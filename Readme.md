@@ -1,0 +1,1 @@
+Run the .bat file in include/vcpkg/bootstrap-vcpkg.bat

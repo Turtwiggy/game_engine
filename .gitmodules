@@ -1,0 +1,6 @@
+[submodule "include/vcpkg"]
+	path = include/vcpkg
+	url = https://github.com/microsoft/vcpkg
+[submodule "include/entt"]
+	path = include/entt
+	url = https://github.com/skypjack/entt

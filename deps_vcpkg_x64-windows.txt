@@ -1,0 +1,12 @@
+boost-beast
+boost-stacktrace
+imgui
+glew
+sfml
+nlohmann-json
+glm
+glfw3
+entt
+lmdb
+--triplet
+x64-windows
