@@ -68,6 +68,7 @@ int main()
 
         //do rendering here
 
+
         ImGui::SFML::Render(window);
         window.display();
     }

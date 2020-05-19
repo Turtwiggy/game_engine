@@ -1,12 +1,9 @@
-[submodule "include/vcpkg"]
-	path = include/vcpkg
-	url = https://github.com/microsoft/vcpkg
-[submodule "include/entt"]
-	path = include/entt
-	url = https://github.com/skypjack/entt
-[submodule "include/ggpo"]
-	path = include/ggpo
-	url = https://github.com/pond3r/ggpo
-[submodule "include/imgui"]
-	path = include/imgui
+[submodule "deps/vcpkg"]
+	path = deps/vcpkg
+	url = https://github.com/Microsoft/vcpkg
+[submodule "deps/imgui"]
+	path = deps/imgui
 	url = https://github.com/ocornut/imgui
+[submodule "deps/ggpo"]
+	path = deps/ggpo
+	url = https://github.com/pond3r/ggpo.git

@@ -19,36 +19,18 @@ outputdir = "%{cfg.buildcfg}-%{cfg.system}-%{cfg.architecture}"
 
 -- Include directories relative to root folder (solution directory)
 IncludeDir = {}
-IncludeDir["include"] = "include"
-IncludeDir["ImGui"] = "include/imgui"
-IncludeDir["entt"]  = "include/entt/single_include"
-
--- Any source files we want included in the project
--- SourceFiles = {}
--- SourceFiles["ndb"]  = "include/ndb/db_storage.cpp"
--- ToolkitSourceFiles = {}
--- ToolkitSourceFiles["toolkit1"] = "include/toolkit/texture.cpp"
--- ToolkitSourceFiles["toolkit2"] = "include/toolkit/base_serialisables.cpp"
--- ToolkitSourceFiles["toolkit3"] = "include/toolkit/clipboard.cpp"
--- ToolkitSourceFiles["toolkit4"] = "include/toolkit/clock.cpp"
--- ToolkitSourceFiles["toolkit5"] = "include/toolkit/fs_helpers.cpp"
--- ToolkitSourceFiles["toolkit6"] = "include/toolkit/opencl.cpp"
--- ToolkitSourceFiles["toolkit7"] = "include/toolkit/render_window.cpp"
--- ToolkitSourceFiles["toolkit8"] = "include/toolkit/stacktrace.cpp"
+IncludeDir["include"] = "deps"
+IncludeDir["ImGui"] = "deps/imgui"
+IncludeDir["entt"]  = "deps/entt/single_include"
 
 ImguiSourceFiles = {}
-ImguiSourceFiles["imgui1"] = "include/imgui/examples/imgui_impl_glfw.cpp"
-ImguiSourceFiles["imgui2"] = "include/imgui/examples/imgui_impl_opengl3.cpp"
-ImguiSourceFiles["imgui3"] = "include/imgui/misc/freetype/imgui_freetype.cpp" 
-ImguiSourceFiles["imgui4"] = "include/imgui/imgui.cpp"
-ImguiSourceFiles["imgui5"] = "include/imgui/imgui_widgets.cpp"
-ImguiSourceFiles["imgui6"] = "include/imgui/imgui_draw.cpp"
-ImguiSourceFiles["imgui7"] = "include/imgui/imgui-SFML.cpp"
-
--- NetworkingSourceFiles = {}
--- NetworkingSourceFiles["networking1"] = "include/networking/beast_compilation_unit.cpp"
--- NetworkingSourceFiles["networking2"] = "include/networking/networking.cpp"
--- NetworkingSourceFiles["networking3"] = "include/networking/serialisable.cpp"
+ImguiSourceFiles["imgui1"] = "deps/imgui/examples/imgui_impl_glfw.cpp"
+ImguiSourceFiles["imgui2"] = "deps/imgui/examples/imgui_impl_opengl3.cpp"
+ImguiSourceFiles["imgui3"] = "deps/imgui/misc/freetype/imgui_freetype.cpp" 
+ImguiSourceFiles["imgui4"] = "deps/imgui/imgui.cpp"
+ImguiSourceFiles["imgui5"] = "deps/imgui/imgui_widgets.cpp"
+ImguiSourceFiles["imgui6"] = "deps/imgui/imgui_draw.cpp"
+ImguiSourceFiles["imgui7"] = "deps/imgui/imgui-SFML.cpp"
 
 project "FightingGameMain"
     location "."
@@ -73,9 +55,6 @@ project "FightingGameMain"
         "src/**.h",
         "src/**.hpp",
         "src/**.cpp",
-        -- "%{SourceFiles.toolkit}",
-        -- "%{SourceFiles.networking}",
-        -- "%{SourceFiles.ndb}",
         "%{ImguiSourceFiles.imgui1}",
         "%{ImguiSourceFiles.imgui2}",
         "%{ImguiSourceFiles.imgui3}",
@@ -84,17 +63,6 @@ project "FightingGameMain"
         "%{ImguiSourceFiles.imgui6}",
         "%{ImguiSourceFiles.imgui6}",
         "%{ImguiSourceFiles.imgui7}",
-        -- "%{ToolkitSourceFiles.toolkit1}",
-        -- "%{ToolkitSourceFiles.toolkit2}",
-        -- "%{ToolkitSourceFiles.toolkit3}",
-        -- "%{ToolkitSourceFiles.toolkit4}",
-        -- "%{ToolkitSourceFiles.toolkit5}",
-        -- "%{ToolkitSourceFiles.toolkit6}",
-        -- "%{ToolkitSourceFiles.toolkit7}",
-        -- "%{ToolkitSourceFiles.toolkit8}",
-        -- "%{NetworkingSourceFiles.networking1}",
-        -- "%{NetworkingSourceFiles.networking2}",
-        -- "%{NetworkingSourceFiles.networking3}",
     }
 
     defines{
