@@ -20,7 +20,7 @@ outputdir = "%{cfg.buildcfg}-%{cfg.system}-%{cfg.architecture}"
 -- Include directories relative to root folder (solution directory)
 IncludeDir = {}
 IncludeDir["include"] = "include"
--- IncludeDir["ImGui"] = "include/imgui"
+IncludeDir["ImGui"] = "include/imgui"
 IncludeDir["entt"]  = "include/entt/single_include"
 
 -- Any source files we want included in the project
@@ -36,13 +36,14 @@ IncludeDir["entt"]  = "include/entt/single_include"
 -- ToolkitSourceFiles["toolkit7"] = "include/toolkit/render_window.cpp"
 -- ToolkitSourceFiles["toolkit8"] = "include/toolkit/stacktrace.cpp"
 
--- ImguiSourceFiles = {}
--- ImguiSourceFiles["imgui1"] = "include/imgui/examples/imgui_impl_glfw.cpp"
--- ImguiSourceFiles["imgui2"] = "include/imgui/examples/imgui_impl_opengl3.cpp"
--- ImguiSourceFiles["imgui3"] = "include/imgui/misc/freetype/imgui_freetype.cpp" 
--- ImguiSourceFiles["imgui4"] = "include/imgui/imgui.cpp"
--- ImguiSourceFiles["imgui5"] = "include/imgui/imgui_widgets.cpp"
--- ImguiSourceFiles["imgui6"] = "include/imgui/imgui_draw.cpp"
+ImguiSourceFiles = {}
+ImguiSourceFiles["imgui1"] = "include/imgui/examples/imgui_impl_glfw.cpp"
+ImguiSourceFiles["imgui2"] = "include/imgui/examples/imgui_impl_opengl3.cpp"
+ImguiSourceFiles["imgui3"] = "include/imgui/misc/freetype/imgui_freetype.cpp" 
+ImguiSourceFiles["imgui4"] = "include/imgui/imgui.cpp"
+ImguiSourceFiles["imgui5"] = "include/imgui/imgui_widgets.cpp"
+ImguiSourceFiles["imgui6"] = "include/imgui/imgui_draw.cpp"
+ImguiSourceFiles["imgui7"] = "include/imgui/imgui-SFML.cpp"
 
 -- NetworkingSourceFiles = {}
 -- NetworkingSourceFiles["networking1"] = "include/networking/beast_compilation_unit.cpp"
@@ -75,13 +76,14 @@ project "FightingGameMain"
         -- "%{SourceFiles.toolkit}",
         -- "%{SourceFiles.networking}",
         -- "%{SourceFiles.ndb}",
-        -- "%{ImguiSourceFiles.imgui1}",
-        -- "%{ImguiSourceFiles.imgui2}",
-        -- "%{ImguiSourceFiles.imgui3}",
-        -- "%{ImguiSourceFiles.imgui4}",
-        -- "%{ImguiSourceFiles.imgui5}",
-        -- "%{ImguiSourceFiles.imgui6}",
-        -- "%{ImguiSourceFiles.imgui6}",
+        "%{ImguiSourceFiles.imgui1}",
+        "%{ImguiSourceFiles.imgui2}",
+        "%{ImguiSourceFiles.imgui3}",
+        "%{ImguiSourceFiles.imgui4}",
+        "%{ImguiSourceFiles.imgui5}",
+        "%{ImguiSourceFiles.imgui6}",
+        "%{ImguiSourceFiles.imgui6}",
+        "%{ImguiSourceFiles.imgui7}",
         -- "%{ToolkitSourceFiles.toolkit1}",
         -- "%{ToolkitSourceFiles.toolkit2}",
         -- "%{ToolkitSourceFiles.toolkit3}",
@@ -103,7 +105,7 @@ project "FightingGameMain"
     {
         "./src",
         "%{IncludeDir.include}",	
-        -- "%{IncludeDir.ImGui}",
+        "%{IncludeDir.ImGui}",
         "%{IncludeDir.entt}",
         -- "/mingw64/include/freetype2"
     }
@@ -116,35 +118,35 @@ project "FightingGameMain"
     configuration {"gmake2"}
         links
         {
-            -- "mingw32",
-            -- "ssl",
-            -- "glfw3",
-            -- "glew32",
-            -- "sfml-audio",
-            -- "sfml-graphics",
-            -- "sfml-system",
-            -- "sfml-window",
-            -- "harfbuzz",
-            -- "freetype",
-            -- "harfbuzz",
-            -- "freetype",
-            -- "graphite2",
-            -- "opengl32",
-            -- "flac",
-            -- "png",
-            -- "z",
-            -- "bz2",
-            -- "rpcrt4",
-            -- "openal",
-            -- "ogg",
-            -- "ole32",
-            -- "dbgeng",
-            -- "crypto",
+            "mingw32",
+            "ssl",
+            "glfw3",
+            "glew32",
+            "sfml-audio",
+            "sfml-graphics",
+            "sfml-system",
+            "sfml-window",
+            "harfbuzz",
+            "freetype",
+            "harfbuzz",
+            "freetype",
+            "graphite2",
+            "opengl32",
+            "flac",
+            "png",
+            "z",
+            "bz2",
+            "rpcrt4",
+            "openal",
+            "ogg",
+            "ole32",
+            "dbgeng",
+            "crypto",
             --"backtrace",
-            -- "gdi32",
-            -- "ws2_32",
-            -- "lmdb",
-            -- "winmm"
+            "gdi32",
+            "ws2_32",
+            "lmdb",
+            "winmm"
         }
 
     filter "system:windows"
@@ -152,11 +154,11 @@ project "FightingGameMain"
 
         defines
         {
-            -- "GLFW_INCLUDE_NONE",
+            "GLFW_INCLUDE_NONE",
             -- "NO_OPENCL",
             -- "NO_STACKTRACE",
             -- "SUBPIXEL_FONT_RENDERING",
-            -- "IMGUI_IMPL_OPENGL_LOADER_GLEW",
+            "IMGUI_IMPL_OPENGL_LOADER_GLEW",
             -- "GLEW_STATIC",
             -- "GRAPHITE2_STATIC",
             -- "SFML_STATIC",

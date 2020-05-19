@@ -4,3 +4,9 @@
 [submodule "include/entt"]
 	path = include/entt
 	url = https://github.com/skypjack/entt
+[submodule "include/ggpo"]
+	path = include/ggpo
+	url = https://github.com/pond3r/ggpo
+[submodule "include/imgui"]
+	path = include/imgui
+	url = https://github.com/ocornut/imgui
