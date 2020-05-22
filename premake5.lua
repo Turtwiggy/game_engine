@@ -22,7 +22,8 @@ IncludeDir = {}
 IncludeDir["include"] = "deps"
 IncludeDir["ImGui"] = "deps/imgui"
 IncludeDir["entt"]  = "deps/entt/single_include"
-
+IncludeDir["ggpo"]  = "deps/ggpo/src/include"
+ 
 ImguiSourceFiles = {}
 ImguiSourceFiles["imgui1"] = "deps/imgui/examples/imgui_impl_glfw.cpp"
 ImguiSourceFiles["imgui2"] = "deps/imgui/examples/imgui_impl_opengl3.cpp"
@@ -31,6 +32,7 @@ ImguiSourceFiles["imgui4"] = "deps/imgui/imgui.cpp"
 ImguiSourceFiles["imgui5"] = "deps/imgui/imgui_widgets.cpp"
 ImguiSourceFiles["imgui6"] = "deps/imgui/imgui_draw.cpp"
 ImguiSourceFiles["imgui7"] = "deps/imgui/imgui-SFML.cpp"
+
 
 project "FightingGameMain"
     location "."
@@ -75,12 +77,14 @@ project "FightingGameMain"
         "%{IncludeDir.include}",	
         "%{IncludeDir.ImGui}",
         "%{IncludeDir.entt}",
+        "%{IncludeDir.ggpo}",
         -- "/mingw64/include/freetype2"
     }
 
     links
     {
         "opengl32",
+        "winmm"
     }
 
     configuration {"gmake2"}
@@ -99,7 +103,6 @@ project "FightingGameMain"
             "harfbuzz",
             "freetype",
             "graphite2",
-            "opengl32",
             "flac",
             "png",
             "z",
@@ -114,7 +117,6 @@ project "FightingGameMain"
             "gdi32",
             "ws2_32",
             "lmdb",
-            "winmm"
         }
 
     filter "system:windows"

@@ -19,14 +19,15 @@
 #include <SFML/OpenGL.hpp> //This header includes OpenGL functions, and nothing else.
 #include <SFML/System/Clock.hpp>
 #include <SFML/Window/Event.hpp>
+#include <SFML/Network.hpp>
 
 #include "audio_player.hpp"
+#include "ggponet.h"
 
 int main()
 {
-    entt::registry registry;
-    std::uint64_t dt = 16;
-    glm::vec3(0.0f, 0.0f, 0.0f);
+    //entt::registry registry;  //using entt
+    //glm::vec3(0.0f, 0.0f, 0.0f); //using glm
 
     sf::RenderWindow window(sf::VideoMode(640, 480), "Fighting Game");
     window.setFramerateLimit(60);
@@ -34,43 +35,86 @@ int main()
     window.setActive(true);
     ImGui::SFML::Init(window);
 
-    // load resources, initialize the OpenGL states, ...
+    //networking
+    sf::UdpSocket socket;
+    unsigned int port = 7000;
+    const unsigned int data_size = 100;
+    char data[data_size] = "Hello World";
+    sf::IpAddress recipient = "localhost";
 
+    //ui
     sf::Clock deltaClock;
 
+    //audio
     audio_player audio;
 
     while (window.isOpen())
     {
         // handle events
         sf::Event event;
-        while (window.pollEvent(event)) {
+        while (window.pollEvent(event))
+        {
             ImGui::SFML::ProcessEvent(event);
 
-            if (event.type == sf::Event::Closed) {
+            if (event.type == sf::Event::Closed)
                 window.close();
-            }
-            else if (event.type == sf::Event::Resized) {
-                // adjust the viewport when the window is resized
+            else if (event.type == sf::Event::Resized)
                 glViewport(0, 0, event.size.width, event.size.height);
-            }
-        }       
+        }
+
+        //IO
+        // printf("x: %f y: %f \n", ImGui::GetIO().MousePos.x, ImGui::GetIO().MousePos.y);
 
         ImGui::SFML::Update(window, deltaClock.restart());
 
-        ImGui::Begin("Hello, world!");
-        ImGui::Button("Look at this pretty button");
-        ImGui::End();
-
-        printf("x: %f y: %f \n", ImGui::GetIO().MousePos.x, ImGui::GetIO().MousePos.y);
-        
         window.clear();
 
-        //do rendering here
+        //        while (!rendering_paused)
+        //        {
+        //            //networking
+        //            MSG msg = { 0 };
+        //            int start, next, now;
+        //
+        //#if defined(WIN32) || defined(_WIN32) || defined(__WIN32)
+        //
+        //            //https://docs.microsoft.com/en-us/windows/win32/api/timeapi/nf-timeapi-timegettime
+        //            //System time in milliseconds since windows was started
+        //            start = next = now = timeGetTime();
+        //            printf("start: %i next: %i now: %i \n", start, next, now);
+        //#elif
+        //            printf("error - currently only builds on windows :( ");
+        //#endif
+        //            //while (PeekMessage(&msg, NULL, 0, 0, PM_REMOVE)) {
+        //            //    TranslateMessage(&msg);
+        //            //    DispatchMessage(&msg);
+        //            //    if (msg.message == WM_QUIT) {
+        //            //        return 0;
+        //            //    }
+        //            //}
+        //            //now = timeGetTime();
+        //            ////VectorWar_Idle(max(0, next - now - 1));
+        //            //if (now >= next) {
+        //            //    //VectorWar_RunFrame(hwnd);
+        //            //    next = now + (1000 / 60);
+        //            //    printf("running frame \n");
+        //            //}
+        //
+        //            rendering_paused = true;
+        //        }
 
+        window.display();
+
+        ImGui::Begin("Networking UI");
+        if (ImGui::Button("Send packet to localhost"))
+        {
+            if (socket.send(data, data_size, recipient, port) != sf::Socket::Done)
+            {
+                printf("error sending data to: %s", recipient);
+            }
+        }
+        ImGui::End();
 
         ImGui::SFML::Render(window);
-        window.display();
     }
 
     return 0;
