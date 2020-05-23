@@ -23,6 +23,7 @@ IncludeDir["include"] = "deps"
 IncludeDir["ImGui"] = "deps/imgui"
 IncludeDir["entt"]  = "deps/entt/single_include"
 IncludeDir["ggpo"]  = "deps/ggpo/src/include"
+IncludeDir["GameNetworkingSockets"] = "deps/gamenetworkingsockets/include"
  
 ImguiSourceFiles = {}
 ImguiSourceFiles["imgui1"] = "deps/imgui/examples/imgui_impl_glfw.cpp"
@@ -78,6 +79,7 @@ project "FightingGameMain"
         "%{IncludeDir.ImGui}",
         "%{IncludeDir.entt}",
         "%{IncludeDir.ggpo}",
+        "%{IncludeDir.GameNetworkingSockets}",
         -- "/mingw64/include/freetype2"
     }
 

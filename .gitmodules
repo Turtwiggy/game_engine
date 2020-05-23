@@ -7,3 +7,6 @@
 [submodule "deps/ggpo"]
 	path = deps/ggpo
 	url = https://github.com/pond3r/ggpo.git
+[submodule "deps/gamenetworkingsockets"]
+	path = deps/gamenetworkingsockets
+	url = https://github.com/ValveSoftware/GameNetworkingSockets.git
