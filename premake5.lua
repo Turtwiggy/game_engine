@@ -34,7 +34,6 @@ ImguiSourceFiles["imgui5"] = "deps/imgui/imgui_widgets.cpp"
 ImguiSourceFiles["imgui6"] = "deps/imgui/imgui_draw.cpp"
 ImguiSourceFiles["imgui7"] = "deps/imgui/imgui-SFML.cpp"
 
-
 project "FightingGameMain"
     location "."
     kind "ConsoleApp"
@@ -86,7 +85,7 @@ project "FightingGameMain"
     links
     {
         "opengl32",
-        "winmm"
+        "winmm",
     }
 
     configuration {"gmake2"}
@@ -118,7 +117,7 @@ project "FightingGameMain"
             --"backtrace",
             "gdi32",
             "ws2_32",
-            "lmdb",
+            "lmdb"
         }
 
     filter "system:windows"

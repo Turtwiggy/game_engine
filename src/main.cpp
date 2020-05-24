@@ -1,6 +1,7 @@
 // main.cpp : This file contains the 'main' function. Program execution begins and ends there.
 
 #include <iostream>
+//#include <assert.h>
 #include <stdio.h>
 
 #define GLM_FORCE_RADIANS
@@ -19,21 +20,16 @@
 #include <SFML/OpenGL.hpp> //This header includes OpenGL functions, and nothing else.
 #include <SFML/System/Clock.hpp>
 #include <SFML/Window/Event.hpp>
-#include <SFML/Network.hpp>
 
 #include "audio_player.hpp"
-#include "ggponet.h"
 
-struct networking_settings
-{    
-    // Create a socket to receive a message from anyone
-    sf::UdpSocket socket;
-
-    unsigned short port = 7000;
-};
+#include "networking/networking_common.hpp"
+#include "networking/network_settings.hpp"
+#include "networking/chat_client.hpp"
+#include "networking/chat_server.hpp"
 
 void processEvents(sf::RenderWindow& window)
-{        
+{
     // handle events
     sf::Event event;
     while (window.pollEvent(event))
@@ -47,66 +43,6 @@ void processEvents(sf::RenderWindow& window)
     }
 }
 
-void runUdpServer()
-{
-    networking_settings settings;
-
-    if (settings.socket.bind(settings.port) != sf::Socket::Done)
-        return;
-
-    std::cout << "Server is listening to port " << settings.port << ", waiting for a message... " << std::endl;
-
-    // Wait for a message
-    char in[128];
-    std::size_t received;
-    sf::IpAddress sender;
-    unsigned short senderPort;
-    if (settings.socket.receive(in, sizeof(in), received, sender, senderPort) != sf::Socket::Done)
-        return;
-    std::cout << "Message received from client " << sender << ": \"" << in << "\"" << std::endl;
-
-    // Send an answer to the client
-    const char out[] = "Hi, I'm the server";
-    if (settings.socket.send(out, sizeof(out), sender, senderPort) != sf::Socket::Done)
-        return;
-    std::cout << "Message sent to the client: \"" << out << "\"" << std::endl;
-}
-
-void runUdpClient()
-{
-    networking_settings settings;
-      
-    // Ask for the server address
-    sf::IpAddress server;
-    do
-    {
-        std::cout << "Type the address or name of the server to connect to: ";
-        std::cin >> server;
-    } while (server == sf::IpAddress::None);
-
-    // Send a message to the server
-    std::string message;
-
-    do
-    {
-        std::cout << "Type a message: ";
-        std::cin >> message;
-    } while (message.empty());
-
-    if (settings.socket.send(message.c_str(), sizeof(message), server, settings.port) != sf::Socket::Done)
-        return;
-    std::cout << "Message sent to the server: \"" << message << "\"" << std::endl;
-
-    // Receive an answer from anyone (but most likely from the server)
-    char in[128];
-    std::size_t received;
-    sf::IpAddress sender;
-    unsigned short senderPort;
-    if (settings.socket.receive(in, sizeof(in), received, sender, senderPort) != sf::Socket::Done)
-        return;
-    std::cout << "Message received from " << sender << ": \"" << in << "\"" << std::endl;
-}
-
 //Called X ticks per second
 void tick(sf::Time deltaTime)
 {
@@ -114,25 +50,40 @@ void tick(sf::Time deltaTime)
 }
 
 //called as fast as possible
-void render(sf::RenderWindow& window, sf::Time deltaTime )
+void render(sf::RenderWindow& window, sf::Time deltaTime, network_settings& settings)
 {
     ImGui::Begin("Some render UI");
 
     if (ImGui::Button("START AS SERVER"))
     {
         printf("starting as server");
-        runUdpServer();
+
+        settings.is_server = true;
+        settings.server.Run((uint16)settings.port);
     };
 
     if (ImGui::Button("START AS CLIENT"))
     {
         printf("starting as client");
-        runUdpClient();
+        settings.is_client = true;
+        settings.client.Run( settings.addrServer );
     };
 
     ImGui::End();
 }
 
+void PrintUsageAndExit(int rc = 1)
+{
+	fflush(stderr);
+	printf(
+R"usage(Usage:
+    example_chat client SERVER_ADDR
+    example_chat server [--port PORT]
+)usage"
+);
+	fflush(stdout);
+	exit(rc);
+}
 
 int main()
 {
@@ -150,10 +101,19 @@ int main()
 
     //audio
     audio_player audio;
-    
+
     //deltatime
     const sf::Time timePerFrame = sf::seconds(1.f / 60.f);
     sf::Time timeSinceLastUpdate = sf::Time::Zero;
+
+    //networking
+    network_settings net_set;
+    net_set.addrServer.Clear();
+    net_set.addrServer.ParseString("localhost");
+    net_set.addrServer.m_port = net_set.port;
+
+    InitSteamDatagramConnectionSockets();
+    LocalUserInput_Init();
 
     while (window.isOpen())
     {
@@ -171,17 +131,20 @@ int main()
             tick(timePerFrame);
         }
 
-        render(window, deltaTime);
+        render(window, deltaTime, net_set);
 
         ImGui::SFML::Render(window);
         window.display();
-        
+
         //IO
         // printf("x: %f y: %f \n", ImGui::GetIO().MousePos.x, ImGui::GetIO().MousePos.y);
     }
 
     ImGui::SFML::Shutdown();
-    return 0;
+
+    ShutdownSteamDatagramConnectionSockets();
+
+    NukeProcess(0);
 }
 
 //        while (!rendering_paused)
