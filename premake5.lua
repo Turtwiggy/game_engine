@@ -82,16 +82,21 @@ project "FightingGameMain"
         -- "/mingw64/include/freetype2"
     }
 
+    libdirs 
+    {
+        "./deps/gamenetworkingsockets/build/src/"
+    }
+
     links
     {
-        "opengl32",
-        "winmm",
+        "opengl32", --(win lib) do not statically link
+        "winmm", --(win lib) do not statically link
     }
 
     configuration {"gmake2"}
         links
         {
-            "mingw32",
+            "mingw32", --do not statically link
             "ssl",
             "glfw3",
             "glew32",
@@ -108,16 +113,17 @@ project "FightingGameMain"
             "png",
             "z",
             "bz2",
-            "rpcrt4",
+            "rpcrt4", --(win lib) do not statically link
             "openal",
             "ogg",
-            "ole32",
-            "dbgeng",
+            "ole32", --(win lib) do not statically link
+            "dbgeng", --(win lib) do not statically link
             "crypto",
             --"backtrace",
-            "gdi32",
+            "gdi32", --(win lib) do not statically link
             "ws2_32",
-            "lmdb"
+            "lmdb",
+            "libGameNetworkingSockets"
         }
 
     filter "system:windows"

@@ -26,7 +26,8 @@ void LocalUserInput_Init()
 				}
 
 				mutexUserInputQueue.lock();
-				queueUserInput.push(std::string(szLine));
+				std::string input = std::string(szLine);
+				queueUserInput.push(input);
 				mutexUserInputQueue.unlock();
 			}
 		});

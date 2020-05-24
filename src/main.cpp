@@ -9,7 +9,6 @@
 #include <glm/vec3.hpp> 
 #include <glm/gtc/matrix_transform.hpp>
 #include <entt/entt.hpp>
-#include <GLFW/glfw3.h>
 
 #include "imgui.h"
 #include "imgui-SFML.h"
@@ -57,7 +56,6 @@ void render(sf::RenderWindow& window, sf::Time deltaTime, network_settings& sett
     if (ImGui::Button("START AS SERVER"))
     {
         printf("starting as server");
-
         settings.is_server = true;
         settings.server.Run((uint16)settings.port);
     };
@@ -109,10 +107,12 @@ int main()
     //networking
     network_settings net_set;
     net_set.addrServer.Clear();
-    net_set.addrServer.ParseString("localhost");
+    net_set.addrServer.ParseString("127.0.0.1");
     net_set.addrServer.m_port = net_set.port;
 
     InitSteamDatagramConnectionSockets();
+
+    //Starts a thread to take in user input
     LocalUserInput_Init();
 
     while (window.isOpen())
