@@ -49,14 +49,14 @@ void ChatServer::Run(uint16 nPort)
 	m_hPollGroup = k_HSteamNetPollGroup_Invalid;
 }
 
-void ChatServer::SendStringToClient(HSteamNetConnection conn, const char* str)
+void ChatServer::SendStringToClient(HSteamNetConnection conn, const char *str)
 {
 	m_pInterface->SendMessageToConnection(conn, str, (uint32)strlen(str), k_nSteamNetworkingSend_Reliable, nullptr);
 }
 
-void ChatServer::SendStringToAllClients(const char* str, HSteamNetConnection except)
+void ChatServer::SendStringToAllClients(const char *str, HSteamNetConnection except)
 {
-	for (auto& c : m_mapClients)
+	for (auto &c : m_mapClients)
 	{
 		if (c.first != except)
 			SendStringToClient(c.first, str);
@@ -65,11 +65,11 @@ void ChatServer::SendStringToAllClients(const char* str, HSteamNetConnection exc
 
 void ChatServer::PollIncomingMessages()
 {
-	char temp[1024];
+	char temp[2048];
 
 	while (!quit)
 	{
-		ISteamNetworkingMessage* pIncomingMsg = nullptr;
+		ISteamNetworkingMessage *pIncomingMsg = nullptr;
 		int numMsgs = m_pInterface->ReceiveMessagesOnPollGroup(m_hPollGroup, &pIncomingMsg, 1);
 		if (numMsgs == 0)
 			break;
@@ -81,8 +81,8 @@ void ChatServer::PollIncomingMessages()
 
 		// '\0'-terminate it to make it easier to parse
 		std::string sCmd;
-		sCmd.assign((const char*)pIncomingMsg->m_pData, pIncomingMsg->m_cbSize);
-		const char* cmd = sCmd.c_str();
+		sCmd.assign((const char *)pIncomingMsg->m_pData, pIncomingMsg->m_cbSize);
+		const char *cmd = sCmd.c_str();
 
 		// We don't need this anymore.
 		pIncomingMsg->Release();
@@ -92,7 +92,7 @@ void ChatServer::PollIncomingMessages()
 
 		if (strncmp(cmd, "/nick", 5) == 0)
 		{
-			const char* nick = cmd + 5;
+			const char *nick = cmd + 5;
 			while (isspace(*nick))
 				++nick;
 
@@ -133,13 +133,12 @@ void ChatServer::PollLocalUserInput()
 		}
 
 		// That's the only command we support
-		Printf("The server only knows one command: '/quit'");
+		Printf("(server) The server only knows one command: '/quit'");
 	}
 }
 
-void ChatServer::SetClientNick(HSteamNetConnection hConn, const char* nick)
+void ChatServer::SetClientNick(HSteamNetConnection hConn, const char *nick)
 {
-
 	// Remember their nick
 	m_mapClients[hConn].m_sNick = nick;
 
@@ -147,7 +146,7 @@ void ChatServer::SetClientNick(HSteamNetConnection hConn, const char* nick)
 	m_pInterface->SetConnectionName(hConn, nick);
 }
 
-void ChatServer::OnSteamNetConnectionStatusChanged(SteamNetConnectionStatusChangedCallback_t* pInfo)
+void ChatServer::OnSteamNetConnectionStatusChanged(SteamNetConnectionStatusChangedCallback_t *pInfo)
 {
 	char temp[1024];
 
@@ -173,7 +172,7 @@ void ChatServer::OnSteamNetConnectionStatusChanged(SteamNetConnectionStatusChang
 			assert(itClient != m_mapClients.end());
 
 			// Select appropriate log messages
-			const char* pszDebugLogAction;
+			const char *pszDebugLogAction;
 			if (pInfo->m_info.m_eState == k_ESteamNetworkingConnectionState_ProblemDetectedLocally)
 			{
 				pszDebugLogAction = "problem detected locally";
@@ -191,11 +190,10 @@ void ChatServer::OnSteamNetConnectionStatusChanged(SteamNetConnectionStatusChang
 			// as the connection description, it will show up, along with their
 			// transport-specific data (e.g. their IP address)
 			Printf("Connection %s %s, reason %d: %s\n",
-				pInfo->m_info.m_szConnectionDescription,
-				pszDebugLogAction,
-				pInfo->m_info.m_eEndReason,
-				pInfo->m_info.m_szEndDebug
-			);
+				   pInfo->m_info.m_szConnectionDescription,
+				   pszDebugLogAction,
+				   pInfo->m_info.m_eEndReason,
+				   pInfo->m_info.m_szEndDebug);
 
 			m_mapClients.erase(itClient);
 
@@ -265,7 +263,7 @@ void ChatServer::OnSteamNetConnectionStatusChanged(SteamNetConnectionStatusChang
 		else
 		{
 			sprintf(temp, "%d companions greet you:", (int)m_mapClients.size());
-			for (auto& c : m_mapClients)
+			for (auto &c : m_mapClients)
 				SendStringToClient(pInfo->m_hConn, c.second.m_sNick.c_str());
 		}
 

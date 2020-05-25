@@ -10,27 +10,27 @@
 void LocalUserInput_Init()
 {
 	s_pThreadUserInput = new std::thread([&]()
+	{
+		while (!quit)
 		{
-			while (!quit)
+			char szLine[4000];
+			if (!fgets(szLine, sizeof(szLine), stdin))
 			{
-				char szLine[4000];
-				if (!fgets(szLine, sizeof(szLine), stdin))
-				{
-					// Well, you would hope that you could close the handle
-					// from the other thread to trigger this.  Nope.
-					if (quit)
-						return;
-					quit = true;
-					Printf("Failed to read on stdin, quitting\n");
-					break;
-				}
-
-				mutexUserInputQueue.lock();
-				std::string input = std::string(szLine);
-				queueUserInput.push(input);
-				mutexUserInputQueue.unlock();
+				// Well, you would hope that you could close the handle
+				// from the other thread to trigger this.  Nope.
+				if (quit)
+					return;
+				quit = true;
+				Printf("Failed to read on stdin, quitting\n");
+				break;
 			}
-		});
+
+			mutexUserInputQueue.lock();
+			std::string input = std::string(szLine);
+			queueUserInput.push(input);
+			mutexUserInputQueue.unlock();
+		}
+	});
 }
 
 void LocalUserInput_Kill()

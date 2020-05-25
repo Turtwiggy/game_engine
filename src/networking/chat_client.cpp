@@ -6,19 +6,22 @@ void ChatClient::Run(const SteamNetworkingIPAddr& serverAddr)
 	m_pInterface = SteamNetworkingSockets();
 
 	// Start connecting
-	char szAddr[SteamNetworkingIPAddr::k_cchMaxString];
-	serverAddr.ToString(szAddr, sizeof(szAddr), true);
-	Printf("Connecting to chat server at %s", szAddr);
-	m_hConnection = m_pInterface->ConnectByIPAddress(serverAddr, 0, nullptr);
-	if (m_hConnection == k_HSteamNetConnection_Invalid)
-		FatalError("Failed to create connection");
+	char szAddr[ SteamNetworkingIPAddr::k_cchMaxString ];
+	serverAddr.ToString( szAddr, sizeof(szAddr), true );
+	Printf( "Connecting to chat server at %s", szAddr );
+	m_hConnection = m_pInterface->ConnectByIPAddress( serverAddr, 0, nullptr );
+	if ( m_hConnection == k_HSteamNetConnection_Invalid )
+		FatalError( "Failed to create connection" );
 
-	while (!quit)
+	while ( !quit )
 	{
 		PollIncomingMessages();
 		PollConnectionStateChanges();
 		PollLocalUserInput();
-		std::this_thread::sleep_for(std::chrono::milliseconds(10));
+		//std::this_thread::sleep_for( std::chrono::milliseconds( 10 ) );
+		
+		printf("client tick");
+		std::this_thread::sleep_for( std::chrono::milliseconds( 1000 ) );
 	}
 }
 
@@ -66,6 +69,8 @@ void ChatClient::PollLocalUserInput()
 			m_pInterface->CloseConnection(m_hConnection, 0, "Goodbye", true);
 			break;
 		}
+
+		Printf("(client) You wrote something \n");
 
 		// Anything else, just send it to the server and let them parse it
 		m_pInterface->SendMessageToConnection(m_hConnection, cmd.c_str(), (uint32)cmd.length(), k_nSteamNetworkingSend_Reliable, nullptr);

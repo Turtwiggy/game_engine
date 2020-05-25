@@ -27,6 +27,8 @@
 #include "networking/chat_client.hpp"
 #include "networking/chat_server.hpp"
 
+std::thread* networking_thread;
+
 void processEvents(sf::RenderWindow& window)
 {
     // handle events
@@ -53,19 +55,33 @@ void render(sf::RenderWindow& window, sf::Time deltaTime, network_settings& sett
 {
     ImGui::Begin("Some render UI");
 
-    if (ImGui::Button("START AS SERVER"))
+    if(networking_thread == nullptr)
     {
-        printf("starting as server");
-        settings.is_server = true;
-        settings.server.Run((uint16)settings.port);
-    };
+        if (ImGui::Button("START AS SERVER"))
+        {
+            printf("starting as server");
+            settings.is_server = true;
 
-    if (ImGui::Button("START AS CLIENT"))
+            networking_thread = new std::thread([&]()
+            {
+                settings.server.Run((uint16)settings.port);
+            });
+        };
+
+        if (ImGui::Button("START AS CLIENT"))
+        {
+            printf("starting as client");
+            settings.is_client = true;
+
+            networking_thread = new std::thread([&]()
+            {
+                settings.client.Run( settings.addrServer );
+            });
+        };
+    } else
     {
-        printf("starting as client");
-        settings.is_client = true;
-        settings.client.Run( settings.addrServer );
-    };
+        ImGui::Text("You are a server or client");        
+    }
 
     ImGui::End();
 }
