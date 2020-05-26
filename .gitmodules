@@ -10,3 +10,6 @@
 [submodule "deps/entt"]
 	path = deps/entt
 	url = https://github.com/skypjack/entt
+[submodule "deps/vcpkg"]
+	path = deps/vcpkg
+	url = https://github.com/Microsoft/vcpkg

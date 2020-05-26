@@ -91,6 +91,7 @@ project "FightingGameMain"
     {
         "opengl32", --(win lib) do not statically link
         "winmm", --(win lib) do not statically link
+        "GameNetworkingSockets"
     }
 
     configuration {"gmake2"}
