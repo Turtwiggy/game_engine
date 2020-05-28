@@ -27,14 +27,18 @@
 #include "networking/chat_client.hpp"
 #include "networking/chat_server.hpp"
 
+#include "physics/physics_example.hpp"
+
 std::thread* networking_thread;
-struct game_state { };
+struct game_state
+{
+    physics_simulation physics;
+};
+
 int frame = 0;
 
-void processEvents(sf::RenderWindow& window)
+void processEvents(sf::RenderWindow& window, sf::Event& event)
 {
-    // handle events
-    sf::Event event;
     while (window.pollEvent(event))
     {
         ImGui::SFML::ProcessEvent(event);
@@ -45,16 +49,27 @@ void processEvents(sf::RenderWindow& window)
             window.close();
         else if (event.type == sf::Event::Resized)
             glViewport(0, 0, event.size.width, event.size.height);
+
+        if (event.type == sf::Event::KeyPressed && event.key.code == sf::Keyboard::Space)
+            printf("space pressed");
     }
 }
 
 //Called X ticks per second
-void tick(game_state& state, sf::Time deltaTime)
+void tick(game_state& state, sf::Time deltaTime, sf::Event& events)
 {
     //update game state...
-
     printf("ticking frame %i game state time: %f \n", frame, deltaTime.asSeconds());
-    frame += 1;
+
+    if (events.type == sf::Event::KeyPressed && events.key.code == sf::Keyboard::Space)
+    {
+        printf("ticking forward one physics iteration");
+
+        frame += 1;
+
+        //assert(deltaTime.asMilliseconds() == (1.f / 60.f) );
+        state.physics.step_simulation(deltaTime.asMilliseconds());
+    }
 }
 
 //called as fast as possible
@@ -62,7 +77,7 @@ void render(sf::RenderWindow& window, game_state& state, network_settings& setti
 {
     ImGui::Begin("Some render UI");
 
-    if(networking_thread == nullptr)
+    if (networking_thread == nullptr)
     {
         if (ImGui::Button("START AS SERVER"))
         {
@@ -72,9 +87,9 @@ void render(sf::RenderWindow& window, game_state& state, network_settings& setti
             quit = false;
 
             networking_thread = new std::thread([&]()
-            {
-                settings.server.Run((uint16)settings.port);
-            });
+                {
+                    settings.server.Run((uint16)settings.port);
+                });
         };
 
         if (ImGui::Button("START AS CLIENT"))
@@ -85,24 +100,26 @@ void render(sf::RenderWindow& window, game_state& state, network_settings& setti
             quit = false;
 
             networking_thread = new std::thread([&]()
-            {
-                settings.client.Run( settings.addrServer );
-            }); 
+                {
+                    settings.client.Run(settings.addrServer);
+                });
         };
 
-    } else
+    }
+    else
     {
-        ImGui::Text("You are a server or client");      
+        ImGui::Text("You are a server or client");
 
         //ImGui::InputText();
 
-        if(ImGui::Button("Quit"))
+        if (ImGui::Button("Quit"))
         {
+            //stop networking
             quit = true;
             //networking_thread->join();
             ShutdownSteamDatagramConnectionSockets();
 
-            networking_thread = nullptr;
+            delete networking_thread;
         }
     }
 
@@ -111,18 +128,16 @@ void render(sf::RenderWindow& window, game_state& state, network_settings& setti
 
 void PrintUsageAndExit(int rc = 1)
 {
-	fflush(stderr);
-	printf(
-R"usage(Usage:
+    fflush(stderr);
+    printf(
+        R"usage(Usage:
     example_chat client SERVER_ADDR
     example_chat server [--port PORT]
 )usage"
 );
-	fflush(stdout);
-	exit(rc);
+    fflush(stdout);
+    exit(rc);
 }
-
-
 
 int main()
 {
@@ -147,12 +162,16 @@ int main()
 
     game_state state_previous;
     game_state state_current;
+    state_current.physics.init_physics();
 
     //networking
     network_settings net_set;
     net_set.addrServer.Clear();
     net_set.addrServer.ParseString("127.0.0.1");
     net_set.addrServer.m_port = net_set.port;
+
+    ////Starts a thread to take in user input
+    //LocalUserInput_Init();
 
     while (window.isOpen())
     {
@@ -167,8 +186,10 @@ int main()
         {
             state_previous = state_current;
 
-            processEvents(window);
-            tick(state_current, timePerFrame);
+            // handle events
+            sf::Event event;
+            processEvents(window, event);
+            tick(state_current, timePerFrame, event);
 
             timeSinceLastUpdate -= timePerFrame;
         }
@@ -187,9 +208,6 @@ int main()
     }
 
     ImGui::SFML::Shutdown();
-
-    ////Starts a thread to take in user input
-    //LocalUserInput_Init();
 
     NukeProcess(0);
 }

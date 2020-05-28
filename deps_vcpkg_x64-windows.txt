@@ -4,5 +4,6 @@ sfml
 glm
 glfw3
 entt
+bullet3
 --triplet
 x64-windows
