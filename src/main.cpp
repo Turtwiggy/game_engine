@@ -28,6 +28,8 @@
 #include "networking/chat_server.hpp"
 
 std::thread* networking_thread;
+struct game_state { };
+int frame = 0;
 
 void processEvents(sf::RenderWindow& window)
 {
@@ -37,6 +39,8 @@ void processEvents(sf::RenderWindow& window)
     {
         ImGui::SFML::ProcessEvent(event);
 
+        //if(event.KeyPressed(GLFW_KEY_))
+
         if (event.type == sf::Event::Closed)
             window.close();
         else if (event.type == sf::Event::Resized)
@@ -45,13 +49,16 @@ void processEvents(sf::RenderWindow& window)
 }
 
 //Called X ticks per second
-void tick(sf::Time deltaTime)
+void tick(game_state& state, sf::Time deltaTime)
 {
-    //printf("tick: %f \n", deltaTime.asSeconds());
+    //update game state...
+
+    printf("ticking frame %i game state time: %f \n", frame, deltaTime.asSeconds());
+    frame += 1;
 }
 
 //called as fast as possible
-void render(sf::RenderWindow& window, sf::Time deltaTime, network_settings& settings)
+void render(sf::RenderWindow& window, game_state& state, network_settings& settings)
 {
     ImGui::Begin("Some render UI");
 
@@ -60,7 +67,9 @@ void render(sf::RenderWindow& window, sf::Time deltaTime, network_settings& sett
         if (ImGui::Button("START AS SERVER"))
         {
             printf("starting as server");
+            InitSteamDatagramConnectionSockets();
             settings.is_server = true;
+            quit = false;
 
             networking_thread = new std::thread([&]()
             {
@@ -71,16 +80,30 @@ void render(sf::RenderWindow& window, sf::Time deltaTime, network_settings& sett
         if (ImGui::Button("START AS CLIENT"))
         {
             printf("starting as client");
+            InitSteamDatagramConnectionSockets();
             settings.is_client = true;
+            quit = false;
 
             networking_thread = new std::thread([&]()
             {
                 settings.client.Run( settings.addrServer );
-            });
+            }); 
         };
+
     } else
     {
-        ImGui::Text("You are a server or client");        
+        ImGui::Text("You are a server or client");      
+
+        //ImGui::InputText();
+
+        if(ImGui::Button("Quit"))
+        {
+            quit = true;
+            //networking_thread->join();
+            ShutdownSteamDatagramConnectionSockets();
+
+            networking_thread = nullptr;
+        }
     }
 
     ImGui::End();
@@ -98,6 +121,8 @@ R"usage(Usage:
 	fflush(stdout);
 	exit(rc);
 }
+
+
 
 int main()
 {
@@ -120,16 +145,14 @@ int main()
     const sf::Time timePerFrame = sf::seconds(1.f / 60.f);
     sf::Time timeSinceLastUpdate = sf::Time::Zero;
 
+    game_state state_previous;
+    game_state state_current;
+
     //networking
     network_settings net_set;
     net_set.addrServer.Clear();
     net_set.addrServer.ParseString("127.0.0.1");
     net_set.addrServer.m_port = net_set.port;
-
-    InitSteamDatagramConnectionSockets();
-
-    //Starts a thread to take in user input
-    LocalUserInput_Init();
 
     while (window.isOpen())
     {
@@ -139,15 +162,22 @@ int main()
         ImGui::SFML::Update(window, deltaTime);
         window.clear();
 
-        while (timeSinceLastUpdate > timePerFrame)
+        //e.g. if time is 1, we process 60 frames. CPU Spike much.
+        while (timeSinceLastUpdate >= timePerFrame)
         {
-            timeSinceLastUpdate -= timePerFrame;
+            state_previous = state_current;
 
             processEvents(window);
-            tick(timePerFrame);
+            tick(state_current, timePerFrame);
+
+            timeSinceLastUpdate -= timePerFrame;
         }
 
-        render(window, deltaTime, net_set);
+        const double alpha = timeSinceLastUpdate / timePerFrame;
+        //lerp between game states
+        //game_state new_state = state_current * alpha + state_previous * ( 1.0 - alpha );
+        //render(window, new_state, net_set);
+        render(window, state_current, net_set);
 
         ImGui::SFML::Render(window);
         window.display();
@@ -158,7 +188,8 @@ int main()
 
     ImGui::SFML::Shutdown();
 
-    ShutdownSteamDatagramConnectionSockets();
+    ////Starts a thread to take in user input
+    //LocalUserInput_Init();
 
     NukeProcess(0);
 }
