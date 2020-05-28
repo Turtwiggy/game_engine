@@ -20,13 +20,12 @@
 #include <SFML/System/Clock.hpp>
 #include <SFML/Window/Event.hpp>
 
-#include "audio_player.hpp"
-
+//my stuff
+#include "audio/audio_player.hpp"
 #include "networking/networking_common.hpp"
 #include "networking/network_settings.hpp"
 #include "networking/chat_client.hpp"
 #include "networking/chat_server.hpp"
-
 #include "physics/physics_example.hpp"
 
 std::thread* networking_thread;
@@ -37,21 +36,27 @@ struct game_state
 
 int frame = 0;
 
-void processEvents(sf::RenderWindow& window, sf::Event& event)
+void advance(game_state& state, sf::Time deltaTime)
+{
+    frame += 1;
+    printf("ticking forward one physics iteration, new frame: %i ", frame);
+
+    state.physics.step_simulation(deltaTime.asMilliseconds());
+}
+
+void process_events(sf::RenderWindow& window, sf::Event& event, game_state& state, sf::Time deltaTime)
 {
     while (window.pollEvent(event))
     {
         ImGui::SFML::ProcessEvent(event);
 
-        //if(event.KeyPressed(GLFW_KEY_))
+        if (event.type == sf::Event::KeyPressed && event.key.code == sf::Keyboard::Space)
+            advance(state, deltaTime); //only advance physics if space is pressed
 
         if (event.type == sf::Event::Closed)
             window.close();
         else if (event.type == sf::Event::Resized)
             glViewport(0, 0, event.size.width, event.size.height);
-
-        if (event.type == sf::Event::KeyPressed && event.key.code == sf::Keyboard::Space)
-            printf("space pressed");
     }
 }
 
@@ -59,23 +64,12 @@ void processEvents(sf::RenderWindow& window, sf::Event& event)
 void tick(game_state& state, sf::Time deltaTime, sf::Event& events)
 {
     //update game state...
-    printf("ticking frame %i game state time: %f \n", frame, deltaTime.asSeconds());
-
-    if (events.type == sf::Event::KeyPressed && events.key.code == sf::Keyboard::Space)
-    {
-        printf("ticking forward one physics iteration");
-
-        frame += 1;
-
-        //assert(deltaTime.asMilliseconds() == (1.f / 60.f) );
-        state.physics.step_simulation(deltaTime.asMilliseconds());
-    }
+    //printf("ticking frame %i game state time: %f \n", frame, deltaTime.asSeconds());
 }
 
-//called as fast as possible
-void render(sf::RenderWindow& window, game_state& state, network_settings& settings)
+void render_ui(sf::RenderWindow& window, game_state& state, network_settings& settings)
 {
-    ImGui::Begin("Some render UI");
+    ImGui::Begin("Networking UI");
 
     if (networking_thread == nullptr)
     {
@@ -104,7 +98,6 @@ void render(sf::RenderWindow& window, game_state& state, network_settings& setti
                     settings.client.Run(settings.addrServer);
                 });
         };
-
     }
     else
     {
@@ -125,6 +118,33 @@ void render(sf::RenderWindow& window, game_state& state, network_settings& setti
 
     ImGui::End();
 }
+
+//called as fast as possible
+void render(sf::RenderWindow& window, game_state& state, network_settings& settings)
+{
+    int num_objects = state.physics.dynamicsWorld->getNumCollisionObjects();
+    //printf("num_objects: %i", num_objects);
+
+    //print positions of all objects
+    for (int j = num_objects - 1; j >= 0; j--)
+    {
+        btCollisionObject* obj = state.physics.dynamicsWorld->getCollisionObjectArray()[j];
+        btRigidBody* body = btRigidBody::upcast(obj);
+        btTransform trans;
+        if (body && body->getMotionState())
+        {
+            body->getMotionState()->getWorldTransform(trans);
+        }
+        else
+        {
+            trans = obj->getWorldTransform();
+        }
+        //printf("world pos object %d = %f,%f,%f\n", j, float(trans.getOrigin().getX()), float(trans.getOrigin().getY()), float(trans.getOrigin().getZ()));
+    }
+
+    render_ui(window, state, settings);
+}
+
 
 void PrintUsageAndExit(int rc = 1)
 {
@@ -188,7 +208,7 @@ int main()
 
             // handle events
             sf::Event event;
-            processEvents(window, event);
+            process_events(window, event, state_current, timePerFrame);
             tick(state_current, timePerFrame, event);
 
             timeSinceLastUpdate -= timePerFrame;
@@ -211,36 +231,3 @@ int main()
 
     NukeProcess(0);
 }
-
-//        while (!rendering_paused)
-//        {
-//            //networking
-//            MSG msg = { 0 };
-//            int start, next, now;
-//
-//#if defined(WIN32) || defined(_WIN32) || defined(__WIN32)
-//
-//            //https://docs.microsoft.com/en-us/windows/win32/api/timeapi/nf-timeapi-timegettime
-//            //System time in milliseconds since windows was started
-//            start = next = now = timeGetTime();
-//            printf("start: %i next: %i now: %i \n", start, next, now);
-//#elif
-//            printf("error - currently only builds on windows :( ");
-//#endif
-//            //while (PeekMessage(&msg, NULL, 0, 0, PM_REMOVE)) {
-//            //    TranslateMessage(&msg);
-//            //    DispatchMessage(&msg);
-//            //    if (msg.message == WM_QUIT) {
-//            //        return 0;
-//            //    }
-//            //}
-//            //now = timeGetTime();
-//            ////VectorWar_Idle(max(0, next - now - 1));
-//            //if (now >= next) {
-//            //    //VectorWar_RunFrame(hwnd);
-//            //    next = now + (1000 / 60);
-//            //    printf("running frame \n");
-//            //}
-//
-//            rendering_paused = true;
-//        }

@@ -84,7 +84,7 @@ project "FightingGameMain"
 
     libdirs 
     {
-        "./deps/gamenetworkingsockets/build/src/"
+        "./dlls/"
     }
 
     links
@@ -154,6 +154,8 @@ project "FightingGameMain"
         defines {"ENGINE_DEBUG", "DEBUG"}
         runtime "Debug"
         symbols "on"
+        -- buildoptions "/MDd"
+
 
     configuration "gmake2"
         buildoptions 
@@ -165,6 +167,7 @@ project "FightingGameMain"
         defines "ENGINE_RELEASE"
         runtime "Release"
         optimize "on"
+        -- buildoptions "/MD"
 
         configuration "gmake2"
             buildoptions 
