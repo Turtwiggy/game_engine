@@ -16,3 +16,12 @@
 [submodule "./deps/imgui"]
 	path = ./deps/imgui
 	url = https://github.com/ocornut/imgui
+[submodule "deps/bx"]
+	path = deps/bx
+	url = https://github.com/bkaradzic/bx.git
+[submodule "deps/bimg"]
+	path = deps/bimg
+	url = https://github.com/bkaradzic/bimg.git
+[submodule "deps/bgfx"]
+	path = deps/bgfx
+	url = https://github.com/bkaradzic/bgfx.git

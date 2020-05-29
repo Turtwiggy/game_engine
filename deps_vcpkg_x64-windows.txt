@@ -1,9 +1,10 @@
 imgui
-glew
+imgui-sfml
 sfml
 glm
-glfw3
+sdl2
 entt
 bullet3
+spdlog
 --triplet
 x64-windows
