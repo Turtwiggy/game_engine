@@ -18,24 +18,23 @@ outputdir = "%{cfg.buildcfg}-%{cfg.system}-%{cfg.architecture}"
 
 -- Include directories relative to root folder (solution directory)
 IncludeDir = {}
-IncludeDir["include"] = "deps"
 IncludeDir["ImGui"] = "deps/imgui"
-IncludeDir["entt"]  = "deps/entt/single_include"
+IncludeDir["ImGui2"] = "deps/imgui/examples"
 IncludeDir["ggpo"]  = "deps/ggpo/src/include"
 IncludeDir["GameNetworkingSockets"] = "deps/gamenetworkingsockets/include"
  
 ImguiSourceFiles = {}
-ImguiSourceFiles["imgui1"] = "deps/imgui/examples/imgui_impl_glfw.cpp"
+ImguiSourceFiles["imgui1"] = "deps/imgui/examples/imgui_impl_sdl.cpp"
 ImguiSourceFiles["imgui2"] = "deps/imgui/examples/imgui_impl_opengl3.cpp"
 ImguiSourceFiles["imgui3"] = "deps/imgui/misc/freetype/imgui_freetype.cpp" 
 ImguiSourceFiles["imgui4"] = "deps/imgui/imgui.cpp"
 ImguiSourceFiles["imgui5"] = "deps/imgui/imgui_widgets.cpp"
 ImguiSourceFiles["imgui6"] = "deps/imgui/imgui_draw.cpp"
-ImguiSourceFiles["imgui7"] = "deps/imgui/imgui-SFML.cpp"
+-- ImguiSourceFiles["imgui7"] = "deps/imgui/imgui_demo.cpp"
 
-local BGFX_DIR = "./deps/bgfx"
-local BIMG_DIR = "./deps/bimg"
-local BX_DIR = "./deps/bx"
+local BGFX_DIR = "deps/bgfx"
+local BIMG_DIR = "deps/bimg"
+local BX_DIR = "deps/bx"
 
 function setBxCompat()
     filter "action:vs*"
@@ -52,18 +51,13 @@ project "FightingGameMain"
     kind "ConsoleApp"
     language "C++"
     cppdialect "C++17"
-    staticruntime "on"
+    staticruntime "off"
 
     targetdir ("builds/bin/" .. outputdir .. "/%{prj.name}")
     objdir ("builds/bin-int/" .. outputdir .. "/%{prj.name}")
 
     -- pchheader "spkpch.h"
     -- pchsource "SparkEngine/src/spkpch.cpp"
-
-    filter {"toolset:vs*"}
-        buildoptions {"/bigobj" , "/permissive-"}
-
-    filter{}
 
     files
     {
@@ -77,7 +71,6 @@ project "FightingGameMain"
         "%{ImguiSourceFiles.imgui5}",
         "%{ImguiSourceFiles.imgui6}",
         "%{ImguiSourceFiles.imgui6}",
-        "%{ImguiSourceFiles.imgui7}",
     }
 
     defines{
@@ -86,10 +79,9 @@ project "FightingGameMain"
 
     includedirs
     {
-        "./src",
-        "%{IncludeDir.include}",	
+        "src",
         "%{IncludeDir.ImGui}",
-        "%{IncludeDir.entt}",
+        "%{IncludeDir.ImGui2}",
         "%{IncludeDir.ggpo}",
         "%{IncludeDir.GameNetworkingSockets}",
         path.join(BGFX_DIR, "include"),
@@ -105,9 +97,16 @@ project "FightingGameMain"
 
     links
     {
-        
         "GameNetworkingSockets",
-        "bgfx", "bimg", "bx"
+        "bgfx", 
+        "bimg", 
+        "bx"
+    }
+
+    defines
+    {
+        "_CRT_SECURE_NO_WARNINGS",
+        "IMGUI_IMPL_OPENGL_LOADER_GLEW"
     }
 
     filter "system:windows"
@@ -122,85 +121,46 @@ project "FightingGameMain"
             "opengl32", 
             "winmm",
         }
+
         defines
         {
-            "GLFW_INCLUDE_NONE",
-            -- "NO_OPENCL",
-            -- "NO_STACKTRACE",
-            -- "SUBPIXEL_FONT_RENDERING",
-            "IMGUI_IMPL_OPENGL_LOADER_GLEW",
-            -- "GLEW_STATIC",
-            -- "GRAPHITE2_STATIC",
-            -- "SFML_STATIC",
-            "__WIN32__",
-            -- "ImDrawIdx=unsigned int",
-            -- "SERIALISE_ENTT"
+            "__WIN32__"
         }
-        -- postbuildcommands -- copy dll after build
-        -- {
-        -- 	("{COPY} %{cfg.buildtarget.relpath} \"../bin/" .. outputdir .. "/Sandbox/\"")
-        -- }
 
 	filter "system:linux"
-		links { "dl", "GL", "pthread", "X11" }
-
-    configuration {"gmake2"}
+        links { "dl", "GL", "pthread", "X11" }
  
-    configuration "Debug"
+    filter "configurations:Debug"
         defines {"ENGINE_DEBUG", "DEBUG"}
         runtime "Debug"
-        symbols "on"
-        buildoptions "/MDd"
-        -- buildoptions "/MDd"
-    configuration "gmake2"
-        buildoptions 
-        {
-            "-std=c++17", "-Wall", "-Wextra", "-Wformat", "-O2", "-s"
-        }
-        links
-        {
-            "mingw32", --do not statically link
-            "ssl",
-            "glfw3",
-            "glew32",
-            "sfml-audio",
-            "sfml-graphics",
-            "sfml-system",
-            "sfml-window",
-            "harfbuzz",
-            "freetype",
-            "harfbuzz",
-            "freetype",
-            "graphite2",
-            "flac",
-            "png",
-            "z",
-            "bz2",
-            "rpcrt4", --(win lib) do not statically link
-            "openal",
-            "ogg",
-            "ole32", --(win lib) do not statically link
-            "dbgeng", --(win lib) do not statically link
-            "crypto",
-            --"backtrace",
-            "gdi32", --(win lib) do not statically link
-            "ws2_32",
-            "lmdb",
-            "libGameNetworkingSockets"
-        }
-    configuration "Release"
+        symbols "off"
+        buildoptions {"/bigobj" , "/permissive-", "/MDd"}
+
+	filter "configurations:Release"
         defines "ENGINE_RELEASE"
         runtime "Release"
-        optimize "Full"
-        buildoptions "/MD"
-
-        -- buildoptions "/MD"
+        optimize "on"
+        buildoptions {"/bigobj" , "/permissive-", "/MD"}
 
         configuration "gmake2"
             buildoptions 
             {
                 "-std=c++17", "-Wall", "-Wextra", "-Wformat", "-g", "-Og"
             }
+
+    -- postbuildcommands -- copy dll after build
+    -- {
+    -- 	("{COPY} %{cfg.buildtarget.relpath} \"../bin/" .. outputdir .. "/Sandbox/\"")
+    -- }
+
+    -- configuration "gmake2"
+    --     buildoptions 
+    --     {
+    --         "-std=c++17", "-Wall", "-Wextra", "-Wformat", "-O2", "-s"
+    --     }
+    --     links { }
+
+    filter{}
 
     setBxCompat()
 	
@@ -233,7 +193,8 @@ project "bgfx"
 		path.join(BGFX_DIR, "3rdparty"),
 		path.join(BGFX_DIR, "3rdparty/dxsdk/include"),
 		path.join(BGFX_DIR, "3rdparty/khronos")
-	}
+    }
+    
 	filter "configurations:Debug"
         defines "BGFX_CONFIG_DEBUG=1"     
         buildoptions "/MDd"
@@ -243,12 +204,15 @@ project "bgfx"
 		{
 			path.join(BGFX_DIR, "src/glcontext_glx.cpp"),
 			path.join(BGFX_DIR, "src/glcontext_egl.cpp")
-		}
+        }
 	filter "system:macosx"
 		files
 		{
 			path.join(BGFX_DIR, "src/*.mm"),
-		}
+        }
+
+    filter {}
+
 	setBxCompat()
 
 project "bimg"
@@ -276,8 +240,12 @@ project "bimg"
 		path.join(BIMG_DIR, "3rdparty/astc-codec"),
 		path.join(BIMG_DIR, "3rdparty/astc-codec/include"),
     }
+
     filter "configurations:Debug"
         buildoptions "/MDd"
+    
+    filter {}
+
 	setBxCompat()
 
 project "bx"
@@ -306,9 +274,13 @@ project "bx"
 	{
 		path.join(BX_DIR, "3rdparty"),
 		path.join(BX_DIR, "include")
-	}
+    }
+    
 	filter "action:vs*"
         defines "_CRT_SECURE_NO_WARNINGS"
     filter "configurations:Debug"
         buildoptions "/MDd"
+
+    filter {}
+
 	setBxCompat()

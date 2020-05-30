@@ -80,6 +80,8 @@ void physics_simulation::init_physics()
 		btRigidBody* body = new btRigidBody(rbInfo);
 
 		dynamicsWorld->addRigidBody(body);
+
+		init = true;
 	}
 }
 
@@ -111,6 +113,9 @@ void physics_simulation::step_simulation(float delta_time)
 physics_simulation::~physics_simulation()
 {
     printf("cleaning up physics");
+
+	if (!init)
+		return;
 
 	//remove the rigidbodies from the dynamics world and delete them
 	for (int i = dynamicsWorld->getNumCollisionObjects() - 1; i >= 0; i--)
