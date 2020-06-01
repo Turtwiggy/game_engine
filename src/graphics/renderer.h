@@ -1,13 +1,15 @@
 #pragma once
 
-#include "graphics/render_pass.h"
 #include "window/game_window.h"
 
+#include "graphics/shader.h"
+#include "graphics/render_pass.h"
+
 #include <SDL2/SDL.h>
-#include <bgfx/bgfx.h>
 
 #include <array>
 #include <string_view>
+#include <memory>
 
 struct shader_definition
 {
@@ -36,32 +38,29 @@ namespace fightinggame {
             OpenGL,
         };
 
-        struct required_attribute
-        {
-            api api;
-            uint32_t name;
-            int value;
-        };
-
         struct draw_scene_desc
         {
             graphics::render_pass view_id;
-            bool bgfxDebug;
-            bool wireframe;
-            bool profile;
-
             int height;
             int width;
         };
 
         renderer() = delete;
-        explicit renderer(const game_window* window, bgfx::RendererType::Enum rendererType, bool vsync);
+        explicit renderer(const game_window* window, bool vsync);
 
         virtual ~renderer();
 
         void configure_view(graphics::render_pass view_id, uint16_t width, uint16_t height) const;
         void draw_scene(const draw_scene_desc& desc) const;
         void draw_pass(const draw_scene_desc& desc) const;
-        void frame();
+        void frame(SDL_Window* window);
+
+        unsigned int loadTexture(char const* path);
+
+    private:
+
+        //temp opengl testing
+        //unsigned int texId;
+        //std::unique_ptr<Shader> flatColorShader;
     };
 }

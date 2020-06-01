@@ -4,5 +4,6 @@ bullet3
 spdlog
 glm
 glew
+stb
 --triplet
 x64-windows

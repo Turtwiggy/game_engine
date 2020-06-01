@@ -1,80 +1,47 @@
 #include "renderer.h"
 
 #include "window/game_window.h"
+#include "graphics/shapes.h"
 
-#include <bx/os.h>
-#include <bx/bx.h>
-#include <bgfx/bgfx.h>
-#include <bgfx/platform.h>
-
+#include <GL/glew.h>
 #include <glm/gtc/type_ptr.hpp>
 #include <glm/gtx/transform.hpp>
 #include <spdlog/spdlog.h>
 
-#include "logo.hpp"
+#define STB_IMAGE_IMPLEMENTATION
+#include "stb_image.h"
 
 using namespace fightinggame;
 using namespace fightinggame::graphics;
 
 namespace fightinggame
 {
-    renderer::renderer(const game_window* window, bgfx::RendererType::Enum rendererType, bool vsync)
+    renderer::renderer(const game_window* window, bool vsync)
     {
-        bgfx::Init init{};
-        init.type = rendererType;
+        // configure global opengl state
+        // -----------------------------
+        glEnable(GL_DEPTH_TEST);
 
-        // Get render area size
-        int drawable_width;
-        int drawable_height;
-        if (rendererType != bgfx::RendererType::Noop)
-        {
-            window->GetSize(drawable_width, drawable_height);
-            spdlog::info("rendering at {}, {}", drawable_width, drawable_height);
+        // build and compile our shader program
+        // ------------------------------------
+        //flatColorShader = std::make_unique<Shader>("src/graphics/shaders/texture_transform.vs", "src/graphics/shaders/texture_transform.fs");
 
-            init.resolution.width = static_cast<uint32_t>(drawable_width);
-            init.resolution.height = static_cast<uint32_t>(drawable_height);
+        // uncomment this call to draw in wireframe polygons.
+        //glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
 
-            // Get Native Handles from SDL window
-            window->GetNativeHandles(init.platformData.nwh, init.platformData.ndt);
-        }
-
-        init.resolution.reset = BGFX_RESET_NONE;
-        if (vsync)
-        {
-            init.resolution.reset |= BGFX_RESET_VSYNC;
-        }
-        //init.callback = dynamic_cast<bgfx::CallbackI*>(_bgfxCallback.get());
-
-        if (!bgfx::init(init))
-        {
-            throw std::runtime_error("Failed to initialize bgfx.");
-        }
-
-        //LoadShaders();
-
-        //// allocate vertex buffers for our debug draw
-        //_debugCross = DebugLines::CreateCross();
-
-        // give debug names to views
-        for (bgfx::ViewId i = 0; i < static_cast<bgfx::ViewId>(graphics::render_pass::_count); ++i)
-        {
-            bgfx::setViewName(i, RenderPassNames[i].data());
-        }
+        //texId = loadTexture("res/textures/Misc/orangecurvedwallsofsandstone.jpg");
+        //flatColorShader->use();
+        //flatColorShader->setInt("u_Texture", texId);
     }
 
     renderer::~renderer()
     {
         //_shaderManager.reset();
-        //_debugCross.reset();
-        bgfx::shutdown();
     }
 
     void renderer::configure_view(graphics::render_pass view_id, uint16_t width, uint16_t height) const
     {
-        static const uint32_t clearColor = 0x274659ff;
 
-        bgfx::setViewClear(static_cast<bgfx::ViewId>(view_id), BGFX_CLEAR_COLOR | BGFX_CLEAR_DEPTH, clearColor, 1.0f, 0);
-        bgfx::setViewRect(static_cast<bgfx::ViewId>(view_id), 0, 0, width, height);
     }
 
     void renderer::draw_scene(const draw_scene_desc& desc) const
@@ -111,58 +78,64 @@ namespace fightinggame
 
     void renderer::draw_pass(const draw_scene_desc& desc) const
     {
-        bgfx::setViewRect(0, 0, 0, uint16_t(desc.width), uint16_t(desc.height));
+        glClearColor(0.2f, 0.3f, 0.3f, 1.0f);
+        glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT | GL_STENCIL_BUFFER_BIT);
 
-        // This dummy draw call is here to make sure that view 0 is cleared
-        // if no other draw calls are submitted to view 0.
-        bgfx::touch(static_cast<bgfx::ViewId>(desc.view_id));
+        //bind texures
+        //glActiveTexture(GL_TEXTURE0);
+        //glBindTexture(GL_TEXTURE_2D, texId);
 
-        // Use debug font to print information about this example.
-        bgfx::dbgTextClear();
-        bgfx::dbgTextImage(
-            bx::max<uint16_t>(uint16_t(desc.width / 2 / 8), 20) - 20
-            , bx::max<uint16_t>(uint16_t(desc.height / 2 / 16), 6) - 6
-            , 40
-            , 12
-            , s_logo
-            , 160
-        );
-        bgfx::dbgTextPrintf(0, 1, 0x0f, "Color can be changed with ANSI \x1b[9;me\x1b[10;ms\x1b[11;mc\x1b[12;ma\x1b[13;mp\x1b[14;me\x1b[0m code too.");
+        // activate shader
+        //flatColorShader->use();
 
-        bgfx::dbgTextPrintf(80, 1, 0x0f, "\x1b[;0m    \x1b[;1m    \x1b[; 2m    \x1b[; 3m    \x1b[; 4m    \x1b[; 5m    \x1b[; 6m    \x1b[; 7m    \x1b[0m");
-        bgfx::dbgTextPrintf(80, 2, 0x0f, "\x1b[;8m    \x1b[;9m    \x1b[;10m    \x1b[;11m    \x1b[;12m    \x1b[;13m    \x1b[;14m    \x1b[;15m    \x1b[0m");
+        // pass transformation matrices to the shader
+        //flatColorShader->setMat4("u_ViewProjection", view_projection);
 
-        const bgfx::Stats* stats = bgfx::getStats();
-        bgfx::dbgTextPrintf(0, 2, 0x0f, "Backbuffer %dW x %dH in pixels, debug text %dW x %dH in characters."
-            , stats->width
-            , stats->height
-            , stats->textWidth
-            , stats->textHeight
-        );
-
-        //bgfx::submit(static_cast<bgfx::ViewId>(desc.view_id));
-
-        // Enable stats or debug text.
-        auto debugMode = BGFX_DEBUG_NONE;
-        //if (desc.bgfxDebug)
-        //{
-        //    debugMode |= BGFX_DEBUG_STATS;
-        //}
-        //if (desc.wireframe)
-        //{
-        //    debugMode |= BGFX_DEBUG_WIREFRAME;
-        //}
-        //if (desc.profile)
-        //{
-        //    debugMode |= BGFX_DEBUG_PROFILER;
-        //}
-        bgfx::setDebug(BGFX_DEBUG_TEXT);
-
+        //the end
     }
 
-    void renderer::frame()
+    void renderer::frame(SDL_Window* window)
     {
-        // Advance to next frame. Process submitted rendering primitives.
-        bgfx::frame();
+        SDL_GL_SwapWindow(window);
     }
+
+    // utility function for loading a 2D texture from file
+    // ---------------------------------------------------
+    unsigned int renderer::loadTexture(char const* path)
+    {
+        unsigned int textureID;
+        glGenTextures(1, &textureID);
+
+        int width, height, nrComponents;
+        unsigned char* data = stbi_load(path, &width, &height, &nrComponents, 0);
+        if (data)
+        {
+            GLenum format;
+            if (nrComponents == 1)
+                format = GL_RED;
+            else if (nrComponents == 3)
+                format = GL_RGB;
+            else if (nrComponents == 4)
+                format = GL_RGBA;
+
+            glBindTexture(GL_TEXTURE_2D, textureID);
+            glTexImage2D(GL_TEXTURE_2D, 0, format, width, height, 0, format, GL_UNSIGNED_BYTE, data);
+            glGenerateMipmap(GL_TEXTURE_2D);
+
+            glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
+            glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
+            glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_LINEAR);
+            glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+
+            stbi_image_free(data);
+        }
+        else
+        {
+            std::cout << "Texture failed to load at path: " << path << std::endl;
+            stbi_image_free(data);
+        }
+
+        return textureID;
+    }
+
 }

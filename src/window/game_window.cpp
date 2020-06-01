@@ -2,10 +2,6 @@
 
 #include <SDL2/SDL_syswm.h>
 #include <spdlog/spdlog.h>
-#if defined(SDL_VIDEO_DRIVER_WAYLAND)
-#include <wayland-egl.h>
-#endif // defined(SDL_VIDEO_DRIVER_WAYLAND)
-
 #include <iostream>
 
 using namespace fightinggame;
@@ -41,7 +37,10 @@ game_window::game_window(const std::string& title, int width, int height, displa
 
 	SDL_ShowCursor(SDL_ENABLE);
 
-	uint32_t flags = SDL_WINDOW_INPUT_FOCUS | SDL_WINDOW_RESIZABLE | SDL_WINDOW_ALLOW_HIGHDPI;
+	int flags = SDL_WINDOW_OPENGL
+		| SDL_WINDOW_INPUT_FOCUS 
+		| SDL_WINDOW_RESIZABLE 
+		| SDL_WINDOW_ALLOW_HIGHDPI ;
 	if (displaymode == display_mode::Fullscreen)
 		flags |= SDL_WINDOW_FULLSCREEN;
 	else if (displaymode == display_mode::Borderless)
@@ -58,6 +57,9 @@ game_window::game_window(const std::string& title, int width, int height, displa
 		spdlog::error("Failed to create SDL2 window: '{}'", SDL_GetError());
 		throw std::runtime_error("Failed creating SDL2 window: " + std::string(SDL_GetError()));
 	}
+
+	SDL_SetWindowMinimumSize(window.get(), 500, 300);
+	SDL_GL_SetSwapInterval(0); //VSync
 
 	_window = std::move(window);
 }

@@ -11,7 +11,7 @@ namespace fightinggame::graphics
 	{
 		Main,
 		//Reflection,
-		//ImGui,
+		ImGui,
 		//MeshViewer,
 
 		_count
@@ -20,7 +20,7 @@ namespace fightinggame::graphics
 	static constexpr std::array<std::string_view, static_cast<uint8_t>(render_pass::_count)> RenderPassNames{
 		"Main Pass",
 		//"Reflection Pass",
-		//"ImGui Pass",
+		"ImGui Pass",
 		//"Mesh Viewer Pass",
 	};
 

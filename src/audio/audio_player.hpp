@@ -14,7 +14,7 @@ public:
 
         if (!buffer.loadFromFile(sound_name))
         {
-            printf("error loading sound %s", sound_name);
+            printf("error loading sound %s", sound_name.c_str());
             return;
         }
 

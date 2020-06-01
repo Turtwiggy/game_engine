@@ -1,4 +1,4 @@
-#include <common/Queue.h>
+#include <common/queue.h>
 #include <SDL2/SDL.h>
 #include <functional>
 #include <stdexcept>
@@ -49,4 +49,4 @@ namespace fightinggame
 			return static_cast<event_queue<Event>*>(p.get());
 		}
 	};
-} // namespace openblack
+}
