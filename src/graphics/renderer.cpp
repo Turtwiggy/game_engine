@@ -13,7 +13,7 @@
 
 #include <SDL2/SDL.h>
 #ifdef _WIN32
-    #include <SDL2/SDL_syswm.h>
+#include <SDL2/SDL_syswm.h>
 #endif
 
 #include "imgui.h"
@@ -25,19 +25,6 @@ using namespace fightinggame::graphics;
 
 namespace fightinggame
 {
-    const char* vertexShaderSource = "#version 330 core\n"
-        "layout (location = 0) in vec3 aPos;\n"
-        "void main()\n"
-        "{\n"
-        "   gl_Position = vec4(aPos.x, aPos.y, aPos.z, 1.0);\n"
-        "}\0";
-    const char* fragmentShaderSource = "#version 330 core\n"
-        "out vec4 FragColor;\n"
-        "void main()\n"
-        "{\n"
-        "   FragColor = vec4(1.0f, 0.5f, 0.2f, 1.0f);\n"
-        "}\n\0";
-
     void renderer::init_opengl(const game_window* window)
     {
         //OpenGL
@@ -110,46 +97,6 @@ namespace fightinggame
         // -----------------------------
         glEnable(GL_DEPTH_TEST);
 
-        // build and compile our shader program
-        // ------------------------------------
-        // vertex shader
-        int vertexShader = glCreateShader(GL_VERTEX_SHADER);
-        glShaderSource(vertexShader, 1, &vertexShaderSource, NULL);
-        glCompileShader(vertexShader);
-        // check for shader compile errors
-        int success;
-        char infoLog[512];
-        glGetShaderiv(vertexShader, GL_COMPILE_STATUS, &success);
-        if (!success)
-        {
-            glGetShaderInfoLog(vertexShader, 512, NULL, infoLog);
-            std::cout << "ERROR::SHADER::VERTEX::COMPILATION_FAILED\n" << infoLog << std::endl;
-        }
-        // fragment shader
-        int fragmentShader = glCreateShader(GL_FRAGMENT_SHADER);
-        glShaderSource(fragmentShader, 1, &fragmentShaderSource, NULL);
-        glCompileShader(fragmentShader);
-        // check for shader compile errors
-        glGetShaderiv(fragmentShader, GL_COMPILE_STATUS, &success);
-        if (!success)
-        {
-            glGetShaderInfoLog(fragmentShader, 512, NULL, infoLog);
-            std::cout << "ERROR::SHADER::FRAGMENT::COMPILATION_FAILED\n" << infoLog << std::endl;
-        }
-        // link shaders
-        shaderProgram = glCreateProgram();
-        glAttachShader(shaderProgram, vertexShader);
-        glAttachShader(shaderProgram, fragmentShader);
-        glLinkProgram(shaderProgram);
-        // check for linking errors
-        glGetProgramiv(shaderProgram, GL_LINK_STATUS, &success);
-        if (!success) {
-            glGetProgramInfoLog(shaderProgram, 512, NULL, infoLog);
-            std::cout << "ERROR::SHADER::PROGRAM::LINKING_FAILED\n" << infoLog << std::endl;
-        }
-        glDeleteShader(vertexShader);
-        glDeleteShader(fragmentShader);
-
         // set up vertex data (and buffer(s)) and configure vertex attributes
         // ------------------------------------------------------------------
         float vertices[] = {
@@ -158,35 +105,37 @@ namespace fightinggame
              0.0f,  0.5f, 0.0f  // top   
         };
 
-        unsigned int VBO = 0;
-        VAO = 0;
+        unsigned int VBO, EBO;
         glGenVertexArrays(1, &VAO);
         glGenBuffers(1, &VBO);
-        // bind the Vertex Array Object first, then bind and set vertex buffer(s), and then configure vertex attributes(s).
+        glGenBuffers(1, &EBO);
         glBindVertexArray(VAO);
 
         glBindBuffer(GL_ARRAY_BUFFER, VBO);
-        glBufferData(GL_ARRAY_BUFFER, sizeof(vertices), vertices, GL_STATIC_DRAW);
+        glBufferData(GL_ARRAY_BUFFER, sizeof(BASIC_SQUARE), BASIC_SQUARE, GL_STATIC_DRAW);
 
-        glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 3 * sizeof(float), (void*)0);
+        glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, EBO);
+        glBufferData(GL_ELEMENT_ARRAY_BUFFER, sizeof(BASIC_SQUARE_INDICIES), BASIC_SQUARE_INDICIES, GL_STATIC_DRAW);
+
+        // position attribute
+        glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 8 * sizeof(float), (void*)0);
         glEnableVertexAttribArray(0);
-
-        // note that this is allowed, the call to glVertexAttribPointer registered VBO as the vertex attribute's bound vertex buffer object so afterwards we can safely unbind
-        glBindBuffer(GL_ARRAY_BUFFER, 0);
-
-        // You can unbind the VAO afterwards so other VAO calls won't accidentally modify this VAO, but this rarely happens. Modifying other
-        // VAOs requires a call to glBindVertexArray anyways so we generally don't unbind VAOs (nor VBOs) when it's not directly necessary.
-        glBindVertexArray(0);
-
-
-        // build and compile our shader program
-        // ------------------------------------
-        //flatColorShader = std::make_unique<Shader>("src/graphics/shaders/texture_transform.vs", "src/graphics/shaders/texture_transform.fs");
+        // color attribute
+        glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, 8 * sizeof(float), (void*)(3 * sizeof(float)));
+        glEnableVertexAttribArray(1);
+        // texture coord attribute
+        glVertexAttribPointer(2, 2, GL_FLOAT, GL_FALSE, 8 * sizeof(float), (void*)(6 * sizeof(float)));
+        glEnableVertexAttribArray(2);
 
         // uncomment this call to draw in wireframe polygons.
         //glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
 
-        //texId = loadTexture("res/textures/Misc/orangecurvedwallsofsandstone.jpg");
+        //Load texture
+        texId = loadTexture("res/textures/Misc/orangecurvedwallsofsandstone.jpg");
+
+        // build and compile our shader program
+        // ------------------------------------
+        flatColorShader = std::make_unique<Shader>("res/shaders/flat_color.vert", "res/shaders/flat_color.frag");
         //flatColorShader->use();
         //flatColorShader->setInt("u_Texture", texId);
     }
@@ -250,13 +199,36 @@ namespace fightinggame
         //glActiveTexture(GL_TEXTURE0);
         //glBindTexture(GL_TEXTURE_2D, texId);
 
-        // draw our first triangle
-        glUseProgram(shaderProgram);
-        glBindVertexArray(VAO); // seeing as we only have a single VAO there's no need to bind it every time, but we'll do so to keep things a bit more organized
-        glDrawArrays(GL_TRIANGLES, 0, 3);
+        // camera
+        //glm::mat4 projection = glm::perspective(glm::radians(camera.Zoom), (float)SCR_WIDTH / (float)SCR_HEIGHT, 0.1f, 100.0f);
+        //glm::mat4 view = camera.GetViewMatrix();
+        //glm::mat4 view_projection = projection * view;
+
+        //bind texures
+        glActiveTexture(GL_TEXTURE0);
+        glBindTexture(GL_TEXTURE_2D, texId);
 
         // activate shader
-        //flatColorShader->use();
+        flatColorShader->use();
+
+        // pass transformation matrices to the shader
+        // note: currently we set the projection matrix each frame, but since the projection
+        // matrix rarely changes it's often best practice to set it outside the main loop only once.
+        //flatColorShader->setMat4("u_ViewProjection", view_projection); 
+
+        // draw our first triangle
+        glm::vec3 glSize = glm::vec3(/*GetSizeForRenderer()*/ glm::vec2(1.0, 1.0), 1.0f);
+        glm::vec3 glPos = glm::vec3(/*pos.x, pos.y*/ 0.0f, 0.0f, -1.0f);
+        glm::mat4 idxMatrix = glm::mat4(1.0f);
+        idxMatrix = glm::translate(idxMatrix, glPos) * glm::scale(idxMatrix, { glSize });
+        //flatColorShader->setMat4("u_Transform", idxMatrix);
+        flatColorShader->setVec4("ourColor", { /*GetColor()*/ glm::vec4(1.0, 0.0, 0.0, 1.0) });
+
+        glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, 0);
+
+        glBindVertexArray(VAO); // seeing as we only have a single VAO there's no need to bind it every time, but we'll do so to keep things a bit more organized
+
+        // activate shader
 
         // pass transformation matrices to the shader
         //flatColorShader->setMat4("u_ViewProjection", view_projection);
@@ -264,10 +236,27 @@ namespace fightinggame
         //the end
     }
 
+    void renderer::render_at_position(Shader* shader)
+    {
+        //get current position from Box2D
+        //b2Vec2 pos = physicsBody->GetPosition();
+        //float angle = physicsBody->GetAngle();
+
+        glm::vec3 glSize = glm::vec3(/*GetSizeForRenderer()*/ glm::vec2(1.0, 1.0), 1.0f);
+        glm::vec3 glPos = glm::vec3(/*pos.x, pos.y*/ 0.0f, 0.0f, 0.0f);
+
+        glm::mat4 idxMatrix = glm::mat4(1.0f);
+        idxMatrix = glm::translate(idxMatrix, glPos) * glm::scale(idxMatrix, { glSize });
+
+        shader->setMat4("u_Transform", idxMatrix);
+        shader->setVec4("u_Color", { /*GetColor()*/ glm::vec4(1.0, 0.0, 0.0, 1.0) });
+
+        glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, 0);
+    }
+
     void renderer::end_frame(SDL_Window* window)
     {
-        //ImGui::SetCurrentContext(_imgui);
-
+        ImGui::SetCurrentContext(_imgui);
         ImDrawData* draw_data = ImGui::GetDrawData();
         ImGui_ImplOpenGL3_RenderDrawData(draw_data);
 
@@ -314,3 +303,111 @@ namespace fightinggame
     }
 
 }
+
+
+/* LIGHTING CODE
+
+// be sure to activate shader when setting uniforms/drawing objects
+//lightingShader.use();
+//lightingShader.setVec3("light.position", lightPos);
+//lightingShader.setVec3("viewPos", camera.Position);
+
+//// light properties
+//glm::vec3 lightColor;
+//lightColor.x = sin(time * 2.0f);
+//lightColor.y = sin(time * 0.7f);
+//lightColor.z = sin(time * 1.3f);
+//glm::vec3 diffuseColor = lightColor * glm::vec3(0.5f); // decrease the influence
+//glm::vec3 ambientColor = diffuseColor * glm::vec3(0.2f); // low influence
+//lightingShader.setVec3("light.ambient", ambientColor);
+//lightingShader.setVec3("light.diffuse", diffuseColor);
+//lightingShader.setVec3("light.specular", 1.0f, 1.0f, 1.0f);
+
+//// material properties
+//lightingShader.setVec3("material.ambient", 1.0f, 0.5f, 0.31f);
+//lightingShader.setVec3("material.diffuse", 1.0f, 0.5f, 0.31f);
+//lightingShader.setVec3("material.specular", 0.5f, 0.5f, 0.5f); // specular lighting doesn't have full effect on this object's material
+//lightingShader.setFloat("material.shininess", 32.0f);
+
+//// view/projection transformations
+//glm::mat4 projection = glm::perspective(glm::radians(camera.Zoom), (float)SCR_WIDTH / (float)SCR_HEIGHT, 0.1f, 100.0f);
+//glm::mat4 view = camera.GetViewMatrix();
+//lightingShader.setMat4("projection", projection);
+//lightingShader.setMat4("view", view);
+
+//// world transformation
+//glm::mat4 model = glm::mat4(1.0f);
+//lightingShader.setMat4("model", model);
+
+//// render the cube
+//glBindVertexArray(cubeVAO);
+//glDrawArrays(GL_TRIANGLES, 0, 36);
+
+//// also draw the lamp object
+//lampShader.use();
+//lampShader.setMat4("projection", projection);
+//lampShader.setMat4("view", view);
+//model = glm::mat4(1.0f);
+//model = glm::translate(model, lightPos);
+//model = glm::scale(model, glm::vec3(0.2f)); // a smaller cube
+//lampShader.setMat4("model", model);
+//lampShader.setVec3("color", diffuseColor);
+
+//glBindVertexArray(lightVAO);
+//glDrawArrays(GL_TRIANGLES, 0, 36);
+
+*/
+
+
+
+/* TEXTURE Examples
+
+// bind textures on corresponding texture units
+//glActiveTexture(GL_TEXTURE0);
+//glBindTexture(GL_TEXTURE_2D, texture1);
+
+// activate shader
+//ourShader.use();
+
+// create transformations
+//glm::mat4 transform = glm::mat4(1.0f); // make sure to initialize matrix to identity matrix first
+//transform = glm::translate(transform, glm::vec3(1.0f, 0.0f, 0.0f));
+//transform = glm::rotate(transform, (float)glfwGetTime(), glm::vec3(0.0f, 0.0f, 1.0f));
+//unsigned int transformLoc = glGetUniformLocation(ourShader.ID, "transform");
+//glUniformMatrix4fv(transformLoc, 1, GL_FALSE, glm::value_ptr(transform));
+
+//More transformations
+//glm::mat4 model = glm::mat4(1.0f); // make sure to initialize matrix to identity matrix first
+//model = glm::rotate(model, (float)glfwGetTime() * glm::radians(50.0f), glm::vec3(0.5f, 1.0f, 0.0f));
+// //retrieve the matrix uniform locations
+//unsigned int modelLoc = glGetUniformLocation(ourShader.ID, "model");
+// //pass them to the shaders
+//glUniformMatrix4fv(modelLoc, 1, GL_FALSE, glm::value_ptr(model));
+
+//camera rotate around point
+//float radius = 10.0f;
+//float camX = sin(glfwGetTime()) * radius;
+//float camZ = cos(glfwGetTime()) * radius;
+
+// pass projection matrix to shader (note that in this case it could change every frame)
+//glm::mat4 projection = glm::perspective(glm::radians(camera.Zoom), (float)SCR_WIDTH / (float)SCR_HEIGHT, 0.1f, 100.0f);
+//ourShader.setMat4("projection", projection);
+
+// camera/view transformation
+//glm::mat4 view = camera.GetViewMatrix();
+//ourShader.setMat4("view", view);
+
+////render container
+//glBindVertexArray(cubeVAO); // seeing as we only have a single VAO there's no need to bind it every time, but we'll do so to keep things a bit more organized
+//for (unsigned int i = 0; i < 10; i++)
+//{
+//	glm::mat4 model = glm::mat4(1.0f); // make sure to initialize matrix to identity matrix first
+//	model = glm::translate(model, cubePositions[i]);
+//	float angle = 20.0f * i;
+//	model = glm::rotate(model, glm::radians(angle), glm::vec3(1.0f, 0.3f, 0.5f));
+//	ourShader.setMat4("model", model);
+
+//	glDrawArrays(GL_TRIANGLES, 0, 36);
+//}
+
+*/

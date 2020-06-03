@@ -64,15 +64,18 @@ namespace fightinggame {
         SDL_GLContext get_gl_context() { return gl_context; }
 
     private:
+        void render_at_position(Shader* shader);
+
+    private:
 
         //temp opengl testing
         //std::array<float, 12> vertices;
         //std::array<unsigned int, 6> indices;
-        unsigned int VAO, EBO;
-        int shaderProgram;
+        unsigned int VAO;
+        unsigned int texId;
 
         //unsigned int texId;
-        //std::unique_ptr<Shader> flatColorShader;
+        std::unique_ptr<Shader> flatColorShader;
 
         //opengl
         SDL_GLContext gl_context;
