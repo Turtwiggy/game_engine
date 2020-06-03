@@ -43,23 +43,45 @@ game::game()
 
     _renderer = std::make_unique<renderer>(_window.get(), false);
 
-    _eventManager->AddHandler(std::function([this](const SDL_Event& event) {
+    _gui = std::make_unique<Gui>();
 
+    _eventManager->AddHandler(std::function([this](const SDL_Event& event) {
         // If gui captures this input, do not propagate
-        if (!this->_gui->ProcessEventSdl2(event))
+        if (!this->_gui->ProcessEventSdl2(event, _renderer->get_imgui_context()))
         {
             //this->_camera->ProcessKeyboard(event, delta_time);
             running = this->process_events(event);
         }
-        }));
-
-    float scale = 1;
-    _gui = Gui::create(_window.get(), graphics::render_pass::ImGui, scale);
+    }));
 }
 
 game::~game()
 {
     shutdown();
+}
+
+void game::process_input_down(const SDL_Event& event)
+{
+    switch (event.key.keysym.sym)
+    {
+    case SDLK_ESCAPE:
+        return;
+    case SDLK_f:
+        _window->SetFullscreen(!fullscreen);
+
+        if (_window)
+        {
+            int width, height;
+            _window->GetSize(width, height);
+            _renderer->configure_view(graphics::render_pass::Main, width, height);
+        }
+        fullscreen = !fullscreen;
+
+        break;
+    case SDLK_F1:
+        //_config.bgfxDebug = !_config.bgfxDebug;
+        break;
+    }
 }
 
 bool game::process_events(const SDL_Event& event)
@@ -72,27 +94,9 @@ bool game::process_events(const SDL_Event& event)
     switch (event.type)
     {
     case SDL_KEYDOWN:
-        switch (event.key.keysym.sym)
-        {
-        case SDLK_ESCAPE:
-            return false;
-        case SDLK_f:
-            _window->SetFullscreen(!fullscreen);
-
-            if (_window)
-            {
-                int width, height;
-                _window->GetSize(width, height);
-                _renderer->configure_view(graphics::render_pass::Main, width, height);
-            }
-            fullscreen = !fullscreen;
-
-            break;
-        case SDLK_F1:
-            //_config.bgfxDebug = !_config.bgfxDebug;
-            break;
-        }
-        break;
+        process_input_down(event);
+    //case SDL_KEYUP:
+        //process_input_up(event);
     }
 
     return true;
@@ -132,15 +136,6 @@ void game::run()
                 _eventManager->Create<SDL_Event>(e);
             }
         }
-        // ImGui events + prepare
-        {
-            //    auto guiLoop = _profiler->BeginScoped(Profiler::Stage::GuiLoop);
-            if (_gui->Loop(*this, *_renderer))
-            {
-                running = false;
-                return;
-            }
-        }
 
         ImGuiIO& io = ImGui::GetIO();
         float delta_time = io.DeltaTime;
@@ -168,6 +163,8 @@ void game::run()
         //glm::mat4 view = camera.GetViewMatrix();
         //glm::mat4 view_projection = projection * view;
 
+        _renderer->new_frame(_window->GetHandle());
+
         {
             renderer::draw_scene_desc drawDesc;
             drawDesc.view_id = graphics::render_pass::Main;
@@ -177,9 +174,14 @@ void game::run()
             _renderer->draw_scene(drawDesc);
         }
 
-        _gui->Draw();
 
-        _renderer->frame(_window->GetHandle());
+        if (_gui->Loop(*this, _renderer->get_imgui_context()))
+        {
+            running = false;
+            return;
+        }
+
+        _renderer->end_frame(_window->GetHandle());
 
         _frameCount++;
         //printf("frame count: %f", _frameCount);
@@ -192,8 +194,8 @@ void game::shutdown()
 {
     running = false;
 
-    _gui.reset();
     _renderer.reset();
+    _gui.reset();
     _window.reset();
     _eventManager.reset();
 

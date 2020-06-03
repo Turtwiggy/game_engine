@@ -6,6 +6,7 @@
 #include "graphics/render_pass.h"
 
 #include <SDL2/SDL.h>
+#include <imgui.h>
 
 #include <array>
 #include <string_view>
@@ -47,20 +48,34 @@ namespace fightinggame {
 
         renderer() = delete;
         explicit renderer(const game_window* window, bool vsync);
+        void init_opengl(const game_window* window);
 
         virtual ~renderer();
 
         void configure_view(graphics::render_pass view_id, uint16_t width, uint16_t height) const;
         void draw_scene(const draw_scene_desc& desc) const;
         void draw_pass(const draw_scene_desc& desc) const;
-        void frame(SDL_Window* window);
+        void new_frame(SDL_Window* window);
+        void end_frame(SDL_Window* window);
 
         unsigned int loadTexture(char const* path);
+
+        ImGuiContext* get_imgui_context() { return _imgui; }
+        SDL_GLContext get_gl_context() { return gl_context; }
 
     private:
 
         //temp opengl testing
+        //std::array<float, 12> vertices;
+        //std::array<unsigned int, 6> indices;
+        unsigned int VAO, EBO;
+        int shaderProgram;
+
         //unsigned int texId;
         //std::unique_ptr<Shader> flatColorShader;
+
+        //opengl
+        SDL_GLContext gl_context;
+        ImGuiContext* _imgui;
     };
 }

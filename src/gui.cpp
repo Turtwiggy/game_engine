@@ -17,11 +17,6 @@
 //#include "Profiler.h"
 
 #include <imgui.h>
-#include <examples/imgui_impl_sdl.h>
-#include <examples/imgui_impl_opengl3.h>
-
-//#include <imgui_widget_flamegraph.h>
-//#include <lnd_file.h>
 #ifdef _WIN32
 #include <SDL2/SDL_syswm.h>
 #endif
@@ -33,80 +28,8 @@ using namespace fightinggame;
 #define IMGUI_FLAGS_NONE UINT8_C(0x00)
 #define IMGUI_FLAGS_ALPHA_BLEND UINT8_C(0x01)
 
-std::unique_ptr<Gui> Gui::create(const game_window* window, graphics::render_pass viewId, float scale)
-{
-	//OpenGL
-	SDL_GLContext gl_context = SDL_GL_CreateContext(window->GetHandle());
-	SDL_GL_MakeCurrent(window->GetHandle(), gl_context);
-
-	int width, height;
-	window->GetSize(width, height);
-	glViewport(0, 0, width, height);
-
-	//setup Dear ImGui Context
-	IMGUI_CHECKVERSION();
-	auto imgui = ImGui::CreateContext();
-	ImGuiIO& io = ImGui::GetIO();
-
-	ImGui::StyleColorsDark();
-
-	ImGuiStyle& style = ImGui::GetStyle();
-	//style.ScaleAllSizes(scale);
-	//io.FontGlobalScale = scale;
-
-	if (gl_context == NULL)
-	{
-		printf("OpenGL context could not be created! SDL Error: %s\n", SDL_GetError());
-		throw std::runtime_error("Failed creating SDL2 window: " + std::string(SDL_GetError()));
-	}
-	else
-	{
-		//Initialize GLEW
-		glewExperimental = GL_TRUE;
-		GLenum glewError = glewInit();
-		if (glewError != GLEW_OK)
-		{
-			printf("Error initializing GLEW! %s\n", glewGetErrorString(glewError));
-			throw std::runtime_error("Error initializing GLEW! " + std::string(SDL_GetError()));
-		}
-}
-
-	std::string glsl_version = "";
-#ifdef __APPLE__
-	// GL 3.2 Core + GLSL 150
-	glsl_version = "#version 150";
-	SDL_GL_SetAttribute( // required on Mac OS
-		SDL_GL_CONTEXT_FLAGS,
-		SDL_GL_CONTEXT_FORWARD_COMPATIBLE_FLAG
-	);
-	SDL_GL_SetAttribute(SDL_GL_CONTEXT_MAJOR_VERSION, 4);
-	SDL_GL_SetAttribute(SDL_GL_CONTEXT_MINOR_VERSION, 1);
-#elif __linux__
-	// GL 3.2 Core + GLSL 150
-	glsl_version = "#version 150";
-	SDL_GL_SetAttribute(SDL_GL_CONTEXT_FLAGS, 0);
-	SDL_GL_SetAttribute(SDL_GL_CONTEXT_MAJOR_VERSION, 4);
-	SDL_GL_SetAttribute(SDL_GL_CONTEXT_MINOR_VERSION, 3);
-#elif _WIN32
-	// GL 3.0 + GLSL 130
-	glsl_version = "#version 130";
-	SDL_GL_SetAttribute(SDL_GL_CONTEXT_FLAGS, 0);
-	SDL_GL_SetAttribute(SDL_GL_CONTEXT_MAJOR_VERSION, 3);
-	SDL_GL_SetAttribute(SDL_GL_CONTEXT_MINOR_VERSION, 2);
-#endif
-
-	// setup platform/renderer bindings
-	ImGui_ImplSDL2_InitForOpenGL(window->GetHandle(), gl_context);
-	ImGui_ImplOpenGL3_Init(glsl_version.c_str());
-
-	auto gui = std::unique_ptr<Gui>(new Gui(imgui));
-
-	return gui;
-}
-
-Gui::Gui(ImGuiContext* imgui )
-	: _imgui(imgui)
-	, _time(0)
+Gui::Gui( )
+	: _time(0)
 	, _mousePressed{ false, false, false }
 	, _mouseCursors{ 0 }
 	, _clipboardTextData(nullptr)
@@ -116,14 +39,12 @@ Gui::Gui(ImGuiContext* imgui )
 
 Gui::~Gui()
 {
-	ImGui_ImplOpenGL3_Shutdown();
-	ImGui_ImplSDL2_Shutdown();
 	ImGui::DestroyContext();
 }
 
-bool Gui::ProcessEventSdl2(const SDL_Event& event)
+bool Gui::ProcessEventSdl2(const SDL_Event& event, ImGuiContext* imgui)
 {
-	ImGui::SetCurrentContext(_imgui);
+	ImGui::SetCurrentContext(imgui);
 
 	ImGuiIO& io = ImGui::GetIO();
 	switch (event.type)
@@ -190,23 +111,24 @@ void Gui::SetClipboardText(const char* text)
 }
 
 
-void Gui::NewFrame(game_window* window)
+void Gui::NewFrame(ImGuiContext* imgui)
 {
-	ImGui::SetCurrentContext(_imgui);
+	ImGui::SetCurrentContext(imgui);
 
-	ImGui_ImplOpenGL3_NewFrame();
-	ImGui_ImplSDL2_NewFrame(window->GetHandle());
 	ImGui::NewFrame();
 }
 
-bool Gui::Loop(game& game, const renderer& renderer)
+bool Gui::Loop(game& game, ImGuiContext* imgui)
 {
-	NewFrame(game.GetWindow());
+	NewFrame(imgui);
 
 	//printf("in gui loop");
 
 	ImGui::Begin("Hello World!");
-	ImGui::Button("Hello button");
+	if (ImGui::Button("Hello button"))
+	{
+		printf("you clicked a button");
+	};
 	ImGui::End();
 
 	ImGuiIO& io = ImGui::GetIO();
@@ -230,14 +152,6 @@ bool Gui::Loop(game& game, const renderer& renderer)
 	ImGui::Render();
 
 	return false;
-}
-
-void Gui::Draw()
-{
-	ImGui::SetCurrentContext(_imgui);
-
-	ImDrawData* draw_data = ImGui::GetDrawData();
-	ImGui_ImplOpenGL3_RenderDrawData(draw_data);
 }
 
 //

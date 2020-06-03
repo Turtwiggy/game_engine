@@ -10,6 +10,7 @@
 #pragma once
 
 #include "graphics/render_pass.h"
+#include "graphics/renderer.h"
 
 #include <imgui.h>
 
@@ -31,17 +32,14 @@ namespace fightinggame
 	class Gui
 	{
 	public:
-		static std::unique_ptr<Gui> create(const game_window* window, graphics::render_pass viewId, float scale);
-
+		Gui();
 		virtual ~Gui();
 
-		bool ProcessEventSdl2(const SDL_Event& event);
-		void NewFrame(game_window* window);
-		bool Loop(game& game, const renderer& renderer);
-		void Draw();
+		bool ProcessEventSdl2(const SDL_Event& event, ImGuiContext* imgui);
+		void NewFrame(ImGuiContext* imgui);
+		bool Loop(game& game, ImGuiContext* imgui);
 
 	private:
-		Gui( ImGuiContext* imgui );
 
 		static const char* StaticGetClipboardText(void* ud) { return reinterpret_cast<Gui*>(ud)->GetClipboardText(); }
 		static void StaticSetClipboardText(void* ud, const char* text) { reinterpret_cast<Gui*>(ud)->SetClipboardText(text); }
@@ -63,7 +61,6 @@ namespace fightinggame
 			}
 		};
 
-		ImGuiContext* _imgui;
 		uint64_t _time;
 		CircularBuffer<float, 100> _times;
 		CircularBuffer<float, 100> _fps;

@@ -39,6 +39,7 @@ namespace fightinggame
         game();
         virtual ~game();
 
+        void process_input_down(const SDL_Event& event);
         bool process_events(const SDL_Event& event);
         void run();
 
