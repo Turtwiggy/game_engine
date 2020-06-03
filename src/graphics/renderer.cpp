@@ -95,20 +95,17 @@ namespace fightinggame
 
         // configure global opengl state
         // -----------------------------
-        glEnable(GL_DEPTH_TEST);
+        //glEnable(GL_DEPTH_TEST);
+
+        //Load texture
+        loadTexture("res/textures/Misc/succulentcactus.jpg");
 
         // set up vertex data (and buffer(s)) and configure vertex attributes
         // ------------------------------------------------------------------
-        float vertices[] = {
-            -0.5f, -0.5f, 0.0f, // left  
-             0.5f, -0.5f, 0.0f, // right 
-             0.0f,  0.5f, 0.0f  // top   
-        };
-
-        unsigned int VBO, EBO;
         glGenVertexArrays(1, &VAO);
         glGenBuffers(1, &VBO);
         glGenBuffers(1, &EBO);
+
         glBindVertexArray(VAO);
 
         glBindBuffer(GL_ARRAY_BUFFER, VBO);
@@ -127,17 +124,16 @@ namespace fightinggame
         glVertexAttribPointer(2, 2, GL_FLOAT, GL_FALSE, 8 * sizeof(float), (void*)(6 * sizeof(float)));
         glEnableVertexAttribArray(2);
 
+
         // uncomment this call to draw in wireframe polygons.
         //glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
 
-        //Load texture
-        texId = loadTexture("res/textures/Misc/orangecurvedwallsofsandstone.jpg");
-
         // build and compile our shader program
         // ------------------------------------
-        flatColorShader = std::make_unique<Shader>("res/shaders/flat_color.vert", "res/shaders/flat_color.frag");
-        //flatColorShader->use();
-        //flatColorShader->setInt("u_Texture", texId);
+        flatColorShader = std::make_unique<Shader>
+            ("res/shaders/flat_color.vert", "res/shaders/flat_color.frag");
+        flatColorShader->use();
+        flatColorShader->setInt("texture1", texId);
     }
 
     renderer::~renderer()
@@ -195,10 +191,6 @@ namespace fightinggame
         glClearColor(0.2f, 0.3f, 0.3f, 1.0f);
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT | GL_STENCIL_BUFFER_BIT);
 
-        //bind texures
-        //glActiveTexture(GL_TEXTURE0);
-        //glBindTexture(GL_TEXTURE_2D, texId);
-
         // camera
         //glm::mat4 projection = glm::perspective(glm::radians(camera.Zoom), (float)SCR_WIDTH / (float)SCR_HEIGHT, 0.1f, 100.0f);
         //glm::mat4 view = camera.GetViewMatrix();
@@ -208,8 +200,10 @@ namespace fightinggame
         glActiveTexture(GL_TEXTURE0);
         glBindTexture(GL_TEXTURE_2D, texId);
 
+        glBindTextureUnit(0, m_RendererID);
+
+
         // activate shader
-        flatColorShader->use();
 
         // pass transformation matrices to the shader
         // note: currently we set the projection matrix each frame, but since the projection
@@ -222,11 +216,11 @@ namespace fightinggame
         glm::mat4 idxMatrix = glm::mat4(1.0f);
         idxMatrix = glm::translate(idxMatrix, glPos) * glm::scale(idxMatrix, { glSize });
         //flatColorShader->setMat4("u_Transform", idxMatrix);
-        flatColorShader->setVec4("ourColor", { /*GetColor()*/ glm::vec4(1.0, 0.0, 0.0, 1.0) });
+        //flatColorShader->setVec4("u_Color", { /*GetColor()*/ glm::vec4(1.0, 0.0, 0.0, 1.0) });
 
+        flatColorShader->use();
+        glBindVertexArray(VAO);
         glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, 0);
-
-        glBindVertexArray(VAO); // seeing as we only have a single VAO there's no need to bind it every time, but we'll do so to keep things a bit more organized
 
         // activate shader
 
@@ -265,43 +259,55 @@ namespace fightinggame
 
     // utility function for loading a 2D texture from file
     // ---------------------------------------------------
-    unsigned int renderer::loadTexture(char const* path)
+    void renderer::loadTexture(const std::string& path)
     {
-        unsigned int textureID;
-        glGenTextures(1, &textureID);
-
         int width, height, nrComponents;
-        unsigned char* data = stbi_load(path, &width, &height, &nrComponents, 0);
-        if (data)
+
+        stbi_uc* data = nullptr;
         {
-            GLenum format;
-            if (nrComponents == 1)
-                format = GL_RED;
-            else if (nrComponents == 3)
-                format = GL_RGB;
-            else if (nrComponents == 4)
-                format = GL_RGBA;
-
-            glBindTexture(GL_TEXTURE_2D, textureID);
-            glTexImage2D(GL_TEXTURE_2D, 0, format, width, height, 0, format, GL_UNSIGNED_BYTE, data);
-            glGenerateMipmap(GL_TEXTURE_2D);
-
-            glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
-            glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
-            glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_LINEAR);
-            glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
-
-            stbi_image_free(data);
+            data = stbi_load(path.c_str(), &width, &height, &nrComponents, 0);
         }
-        else
+
+        if (!data)
         {
             std::cout << "Texture failed to load at path: " << path << std::endl;
             stbi_image_free(data);
         }
 
-        return textureID;
-    }
+        GLenum internalFormat = 0, dataFormat = 0;
 
+        if (nrComponents == 4)
+        {
+            internalFormat = GL_RGBA8;
+            dataFormat = GL_RGBA;
+        }
+        else if (nrComponents == 3)
+        {
+            internalFormat = GL_RGB8;
+            dataFormat = GL_RGB;
+        }
+
+        glCreateTextures(GL_TEXTURE_2D, 1, &m_RendererID);
+        glTextureStorage2D(m_RendererID, 1, internalFormat, width, height);
+
+        //GL_REPEAT: The default behavior for textures.Repeats the texture image.
+        //GL_MIRRORED_REPEAT : Same as GL_REPEAT but mirrors the image with each repeat.
+        //GL_CLAMP_TO_EDGE : Clamps the coordinates between 0 and 1. The result is that higher coordinates become clamped to the edge, resulting in a stretched edge pattern.
+        //GL_CLAMP_TO_BORDER : Coordinates outside the range are now given a user - specified border color.
+        //https://learnopengl.com/Getting-started/Textures
+
+        glTextureParameteri(m_RendererID, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+        glTextureParameteri(m_RendererID, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
+
+        glTextureParameteri(m_RendererID, GL_TEXTURE_WRAP_S, GL_REPEAT);
+        glTextureParameteri(m_RendererID, GL_TEXTURE_WRAP_T, GL_REPEAT);
+
+        glTextureSubImage2D(m_RendererID, 0, 0, 0, width, height, dataFormat, GL_UNSIGNED_BYTE, data);
+
+        stbi_image_free(data);
+
+        printf("texture loaded correctly %s ID: %i", path, m_RendererID);
+    }
 }
 
 

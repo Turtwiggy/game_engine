@@ -58,7 +58,7 @@ namespace fightinggame {
         void new_frame(SDL_Window* window);
         void end_frame(SDL_Window* window);
 
-        unsigned int loadTexture(char const* path);
+        void loadTexture(const std::string& path);
 
         ImGuiContext* get_imgui_context() { return _imgui; }
         SDL_GLContext get_gl_context() { return gl_context; }
@@ -71,14 +71,14 @@ namespace fightinggame {
         //temp opengl testing
         //std::array<float, 12> vertices;
         //std::array<unsigned int, 6> indices;
-        unsigned int VAO;
+        unsigned int VBO, VAO, EBO;
         unsigned int texId;
-
-        //unsigned int texId;
         std::unique_ptr<Shader> flatColorShader;
 
         //opengl
         SDL_GLContext gl_context;
         ImGuiContext* _imgui;
+
+        uint32_t m_RendererID;
     };
 }
