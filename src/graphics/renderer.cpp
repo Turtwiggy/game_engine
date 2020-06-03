@@ -4,9 +4,11 @@
 #include "graphics/shapes.h"
 
 #include <GL/glew.h>
+#include <spdlog/spdlog.h>
+#include <glm/glm.hpp>
+#include <glm/gtc/matrix_transform.hpp>
 #include <glm/gtc/type_ptr.hpp>
 #include <glm/gtx/transform.hpp>
-#include <spdlog/spdlog.h>
 
 #define STB_IMAGE_IMPLEMENTATION
 #include "stb_image.h"
@@ -95,7 +97,7 @@ namespace fightinggame
 
         // configure global opengl state
         // -----------------------------
-        //glEnable(GL_DEPTH_TEST);
+        glEnable(GL_DEPTH_TEST);
 
         //Load texture
         loadTexture("res/textures/Misc/succulentcactus.jpg");
@@ -131,7 +133,7 @@ namespace fightinggame
         // build and compile our shader program
         // ------------------------------------
         flatColorShader = std::make_unique<Shader>
-            ("res/shaders/flat_color.vert", "res/shaders/flat_color.frag");
+            ("res/shaders/textured_transform.vert", "res/shaders/textured_transform.frag");
         flatColorShader->use();
         flatColorShader->setInt("texture1", texId);
     }
@@ -197,13 +199,8 @@ namespace fightinggame
         //glm::mat4 view_projection = projection * view;
 
         //bind texures
-        glActiveTexture(GL_TEXTURE0);
-        glBindTexture(GL_TEXTURE_2D, texId);
-
-        glBindTextureUnit(0, m_RendererID);
-
-
-        // activate shader
+        uint32_t slot = 0;
+        glBindTextureUnit(slot, m_RendererID);
 
         // pass transformation matrices to the shader
         // note: currently we set the projection matrix each frame, but since the projection
@@ -211,23 +208,27 @@ namespace fightinggame
         //flatColorShader->setMat4("u_ViewProjection", view_projection); 
 
         // draw our first triangle
-        glm::vec3 glSize = glm::vec3(/*GetSizeForRenderer()*/ glm::vec2(1.0, 1.0), 1.0f);
-        glm::vec3 glPos = glm::vec3(/*pos.x, pos.y*/ 0.0f, 0.0f, -1.0f);
-        glm::mat4 idxMatrix = glm::mat4(1.0f);
-        idxMatrix = glm::translate(idxMatrix, glPos) * glm::scale(idxMatrix, { glSize });
+        //glm::vec3 glSize = glm::vec3(/*GetSizeForRenderer()*/ glm::vec2(1.0, 1.0), 1.0f);
+        //glm::vec3 glPos = glm::vec3(/*pos.x, pos.y*/ 0.0f, 0.0f, -1.0f);
+        //glm::mat4 idxMatrix = glm::mat4(1.0f);
+        //idxMatrix = glm::translate(idxMatrix, glPos) * glm::scale(idxMatrix, { glSize });
         //flatColorShader->setMat4("u_Transform", idxMatrix);
         //flatColorShader->setVec4("u_Color", { /*GetColor()*/ glm::vec4(1.0, 0.0, 0.0, 1.0) });
 
+        // create transformations
+        glm::mat4 transform = glm::mat4(1.0f); // make sure to initialize matrix to identity matrix first
+        transform = glm::translate(transform, glm::vec3(0.5f, -0.5f, 0.0f));
+        //transform = glm::rotate(transform, (float)glfwGetTime(), glm::vec3(0.0f, 0.0f, 1.0f));
+
         flatColorShader->use();
+        unsigned int transformLoc = glGetUniformLocation(flatColorShader->ID, "transform");
+        glUniformMatrix4fv(transformLoc, 1, GL_FALSE, glm::value_ptr(transform));
+
         glBindVertexArray(VAO);
         glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, 0);
 
-        // activate shader
-
         // pass transformation matrices to the shader
         //flatColorShader->setMat4("u_ViewProjection", view_projection);
-
-        //the end
     }
 
     void renderer::render_at_position(Shader* shader)

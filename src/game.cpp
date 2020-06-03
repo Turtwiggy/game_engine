@@ -35,24 +35,12 @@ game::game()
 
     // create our camera
     _camera = std::make_unique<Camera>(glm::vec3(0.0f, 0.0f, 10.0f));
-    float lastX = m_width / 2.0f;
-    float lastY = m_height / 2.0f;
-    bool firstMouse = true;
 
     _window = std::make_unique<game_window>(kWindowTitle + " [" + kBuildStr + "]", m_width, m_height, display_mode::Windowed);
 
     _renderer = std::make_unique<renderer>(_window.get(), false);
 
     _gui = std::make_unique<Gui>();
-
-    _eventManager->AddHandler(std::function([this](const SDL_Event& event) {
-        // If gui captures this input, do not propagate
-        if (!this->_gui->ProcessEventSdl2(event, _renderer->get_imgui_context()))
-        {
-            //this->_camera->ProcessKeyboard(event, delta_time);
-            running = this->process_events(event);
-        }
-    }));
 }
 
 game::~game()
@@ -128,21 +116,29 @@ void game::run()
     _frameCount = 0;
     while (running)
     {
-        //process events
-        {
-            SDL_Event e;
-            while (SDL_PollEvent(&e))
-            {
-                _eventManager->Create<SDL_Event>(e);
-            }
-        }
-
         ImGuiIO& io = ImGui::GetIO();
         float delta_time = io.DeltaTime;
         //printf("delta_time %f \n", delta_time);
         _timeSinceLastUpdate += delta_time;
 
-        //e.g. if time is 1, we process 60 frames. CPU Spike much.
+        //process input events
+        {
+            SDL_Event e;
+            while (SDL_PollEvent(&e))
+            {
+                //_eventManager->Create<SDL_Event>(e);
+
+                // If gui captures this input, do not propagate
+                if (!this->_gui->ProcessEventSdl2(e, _renderer->get_imgui_context()))
+                {
+                    this->_camera->ProcessEvents(e, delta_time);
+
+                    running = this->process_events(e);
+                }
+            }
+        }
+
+        //e.g. Game Logic Tick
         while (_timeSinceLastUpdate >= timePerFrame)
         {
             state_previous = state_current;

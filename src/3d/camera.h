@@ -21,7 +21,7 @@ enum Camera_Movement {
 // Default camera values
 const float YAW = -90.0f;
 const float PITCH = 0.0f;
-const float SPEED = 2.5f;
+const float SPEED = 50.0f;
 const float SENSITIVITY = 0.1f;
 const float ZOOM = 45.0f;
 
@@ -44,12 +44,20 @@ public:
     float MouseSensitivity;
     float Zoom;
 
+    float lastX;
+    float lastY;
+    bool firstMouse = true;
+
     // Constructor with vectors
     Camera(
-        glm::vec3 position = glm::vec3(0.0f, 0.0f, 0.0f), 
-        glm::vec3 up = glm::vec3(0.0f, 1.0f, 0.0f), 
-        float yaw = YAW, float pitch = PITCH ) 
-        : Front(glm::vec3(0.0f, 0.0f, -1.0f)), MovementSpeed(SPEED), MouseSensitivity(SENSITIVITY), Zoom(ZOOM)
+        glm::vec3 position = glm::vec3(0.0f, 0.0f, 0.0f),
+        glm::vec3 up = glm::vec3(0.0f, 1.0f, 0.0f),
+        float yaw = YAW, 
+        float pitch = PITCH)
+        : Front(glm::vec3(0.0f, 0.0f, -1.0f))
+        , MovementSpeed(SPEED)
+        , MouseSensitivity(SENSITIVITY)
+        , Zoom(ZOOM)
     {
         Position = position;
         WorldUp = up;
@@ -58,7 +66,11 @@ public:
         updateCameraVectors();
     }
     // Constructor with scalar values
-    Camera(float posX, float posY, float posZ, float upX, float upY, float upZ, float yaw, float pitch) : Front(glm::vec3(0.0f, 0.0f, -1.0f)), MovementSpeed(SPEED), MouseSensitivity(SENSITIVITY), Zoom(ZOOM)
+    Camera(float posX, float posY, float posZ, float upX, float upY, float upZ, float yaw, float pitch) 
+        : Front(glm::vec3(0.0f, 0.0f, -1.0f))
+        , MovementSpeed(SPEED)
+        , MouseSensitivity(SENSITIVITY)
+        , Zoom(ZOOM)
     {
         Position = glm::vec3(posX, posY, posZ);
         WorldUp = glm::vec3(upX, upY, upZ);
@@ -87,55 +99,55 @@ public:
             Position += Right * velocity;
     }
 
-    void ProcessKeyboard(const SDL_Event& e, float delta_time)
+    void ProcessEvents(const SDL_Event& e, float delta_time)
     {
-        printf("doing nothing with events");
+        switch (e.type) 
+        {
+        case SDL_KEYDOWN:
+            switch (e.key.keysym.sym)
+            {
+            //Keyboard press
+            case SDLK_w:
+                printf("going forwards");
+                printf("my new pos: %f %f %f ", Position.x, Position.y, Position.z);
+                ProcessKeyboard(FORWARD, delta_time);
+            case SDLK_s:
+                ProcessKeyboard(BACKWARD, delta_time);
+            case SDLK_a:
+                ProcessKeyboard(LEFT, delta_time);
+            case SDLK_d:
+                ProcessKeyboard(RIGHT, delta_time);
+            }
+        case SDL_KEYUP:
+            break;
+        case SDL_MOUSEWHEEL:
+            ProcessMouseScroll(e.wheel.y);
+        case SDL_MOUSEMOTION:
 
-        //if (e.key.keysym.scancode == SDL_SCANCODE_W)
-        //    ProcessKeyboard(Camera_Movement::Forward, delta_time);
-        //else if (e.key.keysym.scancode == SDL_SCANCODE_S)
-        //    //dv.z = (e.type == SDL_KEYDOWN) ? -1.0f : 1.0f;
-        //else if (e.key.keysym.scancode == SDL_SCANCODE_A)
-        //    //dv.x = (e.type == SDL_KEYDOWN) ? -1.0f : 1.0f;
-        //else if (e.key.keysym.scancode == SDL_SCANCODE_D)
-            //dv.x = (e.type == SDL_KEYDOWN) ? 1.0f : -1.0f;
-        //else if (e.key.keysym.scancode == SDL_SCANCODE_LCTRL)
-        //    dv.y = (e.type == SDL_KEYDOWN) ? -1.0f : 1.0f;
-        //else if (e.key.keysym.scancode == SDL_SCANCODE_SPACE)
-        //    dv.y = (e.type == SDL_KEYDOWN) ? 1.0f : -1.0f;
+            float xpos = e.motion.x;
+            float ypos = e.motion.y;
 
-        //THIS WAS GLFW
+            if (firstMouse)
+            {
+                lastX = xpos;
+                lastY = ypos;
+                firstMouse = false;
+            }
+            float xoffset = xpos - lastX;
+            float yoffset = lastY - ypos; // reversed since y-coordinates go from bottom to top
+            lastX = xpos;
+            lastY = ypos;
 
-        //    const float m_CameraRotation = 0.0f;
-        //const float m_CameraTranslationSpeed = 2.5f * m_DeltaTime; // adjust accordingly
-
-  /*    if (glfwGetKey(window, GLFW_KEY_W) == GLFW_PRESS)
-                camera.ProcessKeyboard(FORWARD, m_DeltaTime);
-        if (glfwGetKey(window, GLFW_KEY_S) == GLFW_PRESS)
-            camera.ProcessKeyboard(BACKWARD, m_DeltaTime);
-        if (glfwGetKey(window, GLFW_KEY_A) == GLFW_PRESS)
-            camera.ProcessKeyboard(LEFT, m_DeltaTime);
-        if (glfwGetKey(window, GLFW_KEY_D) == GLFW_PRESS)
-            camera.ProcessKeyboard(RIGHT, m_DeltaTime);*/
-
-        //TODO process mouse scroll
-        //camera.ProcessMouseScroll();
-
-        //TODO mouse callback
-        //    if (firstMouse)
-        //    {
-        //        lastX = xpos;
-        //        lastY = ypos;
-        //        firstMouse = false;
-        //    }
-        //float xoffset = xpos - lastX;
-        //float yoffset = lastY - ypos; // reversed since y-coordinates go from bottom to top
-        //lastX = xpos;
-        //lastY = ypos;
-        //camera.ProcessMouseMovement(xoffset, yoffset);
+            ProcessMouseMovement(xoffset, yoffset);
+        }
     }
 
-    // Processes input received from a mouse input system. Expects the offset value in both the x and y direction.
+    //THIS WAS GLFW
+
+    //    const float m_CameraRotation = 0.0f;
+    //const float m_CameraTranslationSpeed = 2.5f * m_DeltaTime; // adjust accordingly
+
+// Processes input received from a mouse input system. Expects the offset value in both the x and y direction.
     void ProcessMouseMovement(float xoffset, float yoffset, GLboolean constrainPitch = true)
     {
         xoffset *= MouseSensitivity;
@@ -182,5 +194,6 @@ private:
         Right = glm::normalize(glm::cross(Front, WorldUp));  // Normalize the vectors, because their length gets closer to 0 the more you look up or down which results in slower movement.
         Up = glm::normalize(glm::cross(Right, Front));
     }
+
 };
 #endif

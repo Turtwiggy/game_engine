@@ -7,6 +7,8 @@
 
 #include <SDL2/SDL.h>
 #include <imgui.h>
+#include <glm/glm.hpp>
+#include <glm/vec3.hpp>
 
 #include <array>
 #include <string_view>
@@ -80,5 +82,9 @@ namespace fightinggame {
         ImGuiContext* _imgui;
 
         uint32_t m_RendererID;
+
+
+
+
     };
 }
