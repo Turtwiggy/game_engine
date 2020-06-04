@@ -9,12 +9,10 @@
 #include <spdlog/spdlog.h>
 #include "imgui.h"
 #include "SDL2/SDL.h"
-
-#ifdef IMGUI_IMPL_OPENGL_LOADER_GLEW
 #include <GL/glew.h>
-#endif
 
 #include "graphics/render_command.h"
+#include "3d/assimp_obj_loader.h"
 
 #include <cstdint>
 #include <string>
@@ -43,6 +41,9 @@ game::game()
     _renderer = std::make_unique<renderer>(_window.get(), false);
 
     _gui = std::make_unique<Gui>();
+
+    //object loader
+    tempModel = std::make_shared<Model>("res/models/lizard_wizard/source/lizard_wizard.obj");
 }
 
 game::~game()
@@ -76,28 +77,67 @@ bool game::process_input_down(const SDL_Event& event)
     return true;
 }
 
-bool game::process_events(const SDL_Event& event)
+bool game::process_events(float delta_time)
 {
-    if (event.type == SDL_QUIT)
-        return false;
-    else if (event.type == SDL_WINDOWEVENT && event.window.event == SDL_WINDOWEVENT_CLOSE && event.window.windowID == SDL_GetWindowID(_window->GetHandle()))
-        return false;
-
-    switch (event.type)
+    SDL_Event e;
+    while (SDL_PollEvent(&e))
     {
-    case SDL_KEYDOWN:
-        return process_input_down(event);
-    //case SDL_KEYUP:
-        //process_input_up(event);
+        //_eventManager->Create<SDL_Event>(e);
+
+        // If gui captures this input, do not propagate
+        if (!this->_gui->ProcessEventSdl2(e, _renderer->get_imgui_context()))
+        {
+            this->_camera->ProcessEvents(e, delta_time);
+
+            if (e.type == SDL_QUIT)
+                return false;
+            else if (e.type == SDL_WINDOWEVENT
+                && e.window.event == SDL_WINDOWEVENT_CLOSE
+                && e.window.windowID == SDL_GetWindowID(_window->GetHandle()))
+                return false;
+
+            switch (e.type)
+            {
+            case SDL_KEYDOWN:
+                return process_input_down(e);
+            }
+        }
     }
 
     return true;
 }
 
 //Called X ticks per second
-void game::tick(float delta_time)
+void game::tick(float delta_time, game_state& state)
 {
     //printf("ticking frame %i game state time: %f \n", _frameCount, delta_time);
+
+    state.cube_pos = glm::vec3(0.0, 0.0, 0.0);
+}
+
+void game::render(game_state& state)
+{
+    _renderer->new_frame(_window->GetHandle());
+
+    {
+        renderer::draw_scene_desc drawDesc;
+        drawDesc.view_id = graphics::render_pass::Main;
+        drawDesc.height = m_height;
+        drawDesc.width = m_width;
+        drawDesc.camera = _camera;
+        drawDesc.main_character = tempModel;
+
+        _renderer->draw_pass(drawDesc);
+    }
+
+
+    if (_gui->Loop(*this, _renderer->get_imgui_context()))
+    {
+        running = false;
+        return;
+    }
+
+    _renderer->end_frame(_window->GetHandle());
 }
 
 void game::run()
@@ -125,66 +165,31 @@ void game::run()
         //printf("delta_time %f \n", delta_time);
         _timeSinceLastUpdate += delta_time;
 
-        //process input events
-        {
-            SDL_Event e;
-            while (SDL_PollEvent(&e))
-            {
-                //_eventManager->Create<SDL_Event>(e);
-
-                // If gui captures this input, do not propagate
-                if (!this->_gui->ProcessEventSdl2(e, _renderer->get_imgui_context()))
-                {
-                    this->_camera->ProcessEvents(e, delta_time);
-
-                    running = this->process_events(e);
-                }
-            }
-        }
+        // input
+        // -----
+        process_events(delta_time);
 
         //e.g. Game Logic Tick
         while (_timeSinceLastUpdate >= timePerFrame)
         {
             state_previous = state_current;
 
-            tick(timePerFrame /*, state_current */);
+            tick(timePerFrame, state_current ); //this update's state_current
 
             _timeSinceLastUpdate -= timePerFrame;
         }
 
         const float alpha = _timeSinceLastUpdate / timePerFrame;
-
+        
         //lerp between game states
-        //game_state new_state = state_current * alpha + state_previous * ( 1.0 - alpha );
+        //game_state state_lerped = state_current * alpha + state_previous * ( 1.0 - alpha );
+        render(state_current);
+
         //render(window, new_state, net_set);
 
-        // camera
-        //glm::mat4 projection = glm::perspective(glm::radians(camera.Zoom), (float)SCR_WIDTH / (float)SCR_HEIGHT, 0.1f, 100.0f);
-        //glm::mat4 view = camera.GetViewMatrix();
-        //glm::mat4 view_projection = projection * view;
-
-        _renderer->new_frame(_window->GetHandle());
-
-        {
-            renderer::draw_scene_desc drawDesc;
-            drawDesc.view_id = graphics::render_pass::Main;
-            drawDesc.height = m_height;
-            drawDesc.width = m_width;
-            drawDesc.camera = _camera;
-
-            _renderer->draw_pass(drawDesc);
-        }
-
-
-        if (_gui->Loop(*this, _renderer->get_imgui_context()))
-        {
-            running = false;
-            return;
-        }
-
-        _renderer->end_frame(_window->GetHandle());
-
         _frameCount++;
+        state_current.frame = _frameCount;
+
         //printf("frame count: %f", _frameCount);
     }
 

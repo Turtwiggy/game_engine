@@ -6,6 +6,7 @@
 #include "graphics/render_pass.h"
 #include "graphics/shader.h"
 #include "3d/camera.h"
+#include "3d/assimp_obj_loader.h"
 
 #include <SDL2/SDL.h>
 #include <imgui.h>
@@ -38,6 +39,7 @@ namespace fightinggame {
             int height;
             int width;
             std::shared_ptr<Camera> camera;
+            std::shared_ptr<Model> main_character;
         };
 
         renderer() = delete;
@@ -59,23 +61,17 @@ namespace fightinggame {
         SDL_GLContext get_gl_context() { return gl_context; }
 
     private:
-        void render_square(Shader* shader);
-        void setup_square_buffer(unsigned int VAO, unsigned int VBO, unsigned int EBO);
-
-        void loadTexture(const std::string& path);
+        void render_square(Shader& shader);
 
     private:
 
         //temp opengl testing
-        unsigned int texId;
-        std::unique_ptr<Shader> flatColorShader;
-        //-end temp
+        std::unique_ptr<Shader> shader;
+        unsigned int texID;
 
         //opengl
         SDL_GLContext gl_context;
         ImGuiContext* _imgui;
-
-        uint32_t m_RendererID;
 
     public:
         // Stats
@@ -90,4 +86,7 @@ namespace fightinggame {
         static void reset_stats();
         static Statistics get_stats();
     };
+
+   
+
 }

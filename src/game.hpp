@@ -30,7 +30,16 @@ namespace fightinggame
 {
     struct game_state
     {
+        int frame;
+
         physics_simulation physics;
+
+        glm::vec3 cube_pos;
+
+        game_state operator*(const game_state& r) const {
+
+            return *this;
+        }
     };
 
     class game
@@ -40,14 +49,15 @@ namespace fightinggame
         virtual ~game();
 
         bool process_input_down(const SDL_Event& event);
-        bool process_events(const SDL_Event& event);
+        bool process_events(float delta_time);
         void run();
 
         game_window* GetWindow() { return _window.get(); }
         [[nodiscard]] const game_window& GetWindow() const { return *_window; }
 
     private:
-        void tick(float delta_time);    //update game logic
+        void tick(float delta_time, game_state& state);    //update game logic
+        void render(game_state& state);
         void shutdown();
 
     private:
@@ -89,6 +99,7 @@ namespace fightinggame
         //net_set.addrServer.ParseString("127.0.0.1");
         //net_set.addrServer.m_port = net_set.port;
 
-
+        //visuals
+        std::shared_ptr<Model> tempModel;
     };
 }
