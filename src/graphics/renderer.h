@@ -2,8 +2,10 @@
 
 #include "window/game_window.h"
 
-#include "graphics/shader.h"
+#include "graphics/renderer_api.h"
 #include "graphics/render_pass.h"
+#include "graphics/shader.h"
+#include "3d/camera.h"
 
 #include <SDL2/SDL.h>
 #include <imgui.h>
@@ -13,13 +15,6 @@
 #include <array>
 #include <string_view>
 #include <memory>
-
-struct shader_definition
-{
-    const std::string_view name;
-    const std::string_view vertexShaderName;
-    const std::string_view fragmentShaderName;
-};
 
 namespace fightinggame {
 
@@ -36,46 +31,45 @@ namespace fightinggame {
     class renderer
     {
     public:
-        enum class api
-        {
-            OpenGL,
-        };
 
         struct draw_scene_desc
         {
             graphics::render_pass view_id;
             int height;
             int width;
+            std::shared_ptr<Camera> camera;
         };
 
         renderer() = delete;
         explicit renderer(const game_window* window, bool vsync);
-        void init_opengl(const game_window* window);
-
         virtual ~renderer();
 
-        void configure_view(graphics::render_pass view_id, uint16_t width, uint16_t height) const;
-        void draw_scene(const draw_scene_desc& desc) const;
-        void draw_pass(const draw_scene_desc& desc) const;
+        static renderer_api::API get_api() { return renderer_api::GetAPI(); }
+
+        void draw_pass(const draw_scene_desc& desc);
         void new_frame(SDL_Window* window);
         void end_frame(SDL_Window* window);
 
-        void loadTexture(const std::string& path);
+        void render_cube(glm::vec3& position, glm::vec3& size /*, float rotation, const Ref<Texture>& texture*/);
+
 
         ImGuiContext* get_imgui_context() { return _imgui; }
+
+        void init_opengl(const game_window* window);
         SDL_GLContext get_gl_context() { return gl_context; }
 
     private:
-        void render_at_position(Shader* shader);
+        void render_square(Shader* shader);
+        void setup_square_buffer(unsigned int VAO, unsigned int VBO, unsigned int EBO);
+
+        void loadTexture(const std::string& path);
 
     private:
 
         //temp opengl testing
-        //std::array<float, 12> vertices;
-        //std::array<unsigned int, 6> indices;
-        unsigned int VBO, VAO, EBO;
         unsigned int texId;
         std::unique_ptr<Shader> flatColorShader;
+        //-end temp
 
         //opengl
         SDL_GLContext gl_context;
@@ -83,8 +77,17 @@ namespace fightinggame {
 
         uint32_t m_RendererID;
 
+    public:
+        // Stats
+        struct Statistics
+        {
+            uint32_t DrawCalls = 0;
+            uint32_t QuadCount = 0;
 
-
-
+            uint32_t GetTotalVertexCount() { return QuadCount * 4; }
+            uint32_t GetTotalIndexCount() { return QuadCount * 6; }
+        };
+        static void reset_stats();
+        static Statistics get_stats();
     };
 }

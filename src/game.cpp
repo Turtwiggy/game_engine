@@ -14,6 +14,8 @@
 #include <GL/glew.h>
 #endif
 
+#include "graphics/render_command.h"
+
 #include <cstdint>
 #include <string>
 
@@ -48,12 +50,12 @@ game::~game()
     shutdown();
 }
 
-void game::process_input_down(const SDL_Event& event)
+bool game::process_input_down(const SDL_Event& event)
 {
     switch (event.key.keysym.sym)
     {
     case SDLK_ESCAPE:
-        return;
+        return false;
     case SDLK_f:
         _window->SetFullscreen(!fullscreen);
 
@@ -61,7 +63,7 @@ void game::process_input_down(const SDL_Event& event)
         {
             int width, height;
             _window->GetSize(width, height);
-            _renderer->configure_view(graphics::render_pass::Main, width, height);
+            render_command::SetViewport(0, 0, width, height);
         }
         fullscreen = !fullscreen;
 
@@ -70,6 +72,8 @@ void game::process_input_down(const SDL_Event& event)
         //_config.bgfxDebug = !_config.bgfxDebug;
         break;
     }
+
+    return true;
 }
 
 bool game::process_events(const SDL_Event& event)
@@ -82,7 +86,7 @@ bool game::process_events(const SDL_Event& event)
     switch (event.type)
     {
     case SDL_KEYDOWN:
-        process_input_down(event);
+        return process_input_down(event);
     //case SDL_KEYUP:
         //process_input_up(event);
     }
@@ -110,7 +114,7 @@ void game::run()
     {
         int width, height;
         _window->GetSize(width, height);
-        _renderer->configure_view(graphics::render_pass::Main, width, height);
+        render_command::SetViewport(0, 0, width, height);
     }
 
     _frameCount = 0;
@@ -166,8 +170,9 @@ void game::run()
             drawDesc.view_id = graphics::render_pass::Main;
             drawDesc.height = m_height;
             drawDesc.width = m_width;
+            drawDesc.camera = _camera;
 
-            _renderer->draw_scene(drawDesc);
+            _renderer->draw_pass(drawDesc);
         }
 
 

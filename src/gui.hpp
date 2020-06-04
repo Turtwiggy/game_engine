@@ -36,7 +36,6 @@ namespace fightinggame
 		virtual ~Gui();
 
 		bool ProcessEventSdl2(const SDL_Event& event, ImGuiContext* imgui);
-		void NewFrame(ImGuiContext* imgui);
 		bool Loop(game& game, ImGuiContext* imgui);
 
 	private:

@@ -1,7 +1,8 @@
-#include "renderer.h"
+#include "graphics/renderer.h"
 
-#include "window/game_window.h"
 #include "graphics/shapes.h"
+#include "graphics/render_command.h"
+#include "window/game_window.h"
 
 #include <GL/glew.h>
 #include <spdlog/spdlog.h>
@@ -27,6 +28,41 @@ using namespace fightinggame::graphics;
 
 namespace fightinggame
 {
+    struct CubeVertex
+    {
+        glm::vec3 Position;
+        glm::vec4 Color;
+        glm::vec2 TexCoord;
+        float TexIndex;
+        float TilingFactor;
+    };
+
+    struct RenderData
+    {
+        static const uint32_t MaxCubes = 20000;
+        static const uint32_t MaxVertices = MaxCubes * 30;
+        static const uint32_t MaxIndices = MaxCubes * 36;
+        static const uint32_t MaxTextureSlots = 32; // TODO: RenderCaps
+
+        Ref<vertex_array> CubeVertexArray;
+        Ref<vertex_buffer> CubeVertexBuffer;
+        Ref<Shader> TextureShader;
+        //Ref<Texture2D> Texture;
+
+        uint32_t CubeIndexCount = 0;
+        CubeVertex* CubeVertexBufferBase = nullptr;
+        CubeVertex* CubeVertexBufferPtr = nullptr;
+
+        //std::array<Ref<Texture2D>, MaxTextureSlots> TextureSlots;
+        //uint32_t TextureSlotIndex = 1; // 0 = white texture
+
+        //glm::vec4 QuadVertexPositions[4];
+
+        renderer::Statistics Stats;
+    };
+    static RenderData s_Data;
+
+
     void renderer::init_opengl(const game_window* window)
     {
         //OpenGL
@@ -35,7 +71,7 @@ namespace fightinggame
 
         int width, height;
         window->GetSize(width, height);
-        configure_view(render_pass::Main, width, height);
+        render_command::SetViewport(0, 0, width, height);
 
         //Setup ImGui
         IMGUI_CHECKVERSION();
@@ -94,41 +130,55 @@ namespace fightinggame
     renderer::renderer(const game_window* window, bool vsync)
     {
         init_opengl(window);
-
-        // configure global opengl state
-        // -----------------------------
-        glEnable(GL_DEPTH_TEST);
+        render_command::Init(); //configure opengl state
 
         //Load texture
-        loadTexture("res/textures/Misc/succulentcactus.jpg");
-
-        // set up vertex data (and buffer(s)) and configure vertex attributes
-        // ------------------------------------------------------------------
-        glGenVertexArrays(1, &VAO);
-        glGenBuffers(1, &VBO);
-        glGenBuffers(1, &EBO);
-
-        glBindVertexArray(VAO);
-
-        glBindBuffer(GL_ARRAY_BUFFER, VBO);
-        glBufferData(GL_ARRAY_BUFFER, sizeof(BASIC_SQUARE), BASIC_SQUARE, GL_STATIC_DRAW);
-
-        glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, EBO);
-        glBufferData(GL_ELEMENT_ARRAY_BUFFER, sizeof(BASIC_SQUARE_INDICIES), BASIC_SQUARE_INDICIES, GL_STATIC_DRAW);
-
-        // position attribute
-        glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 8 * sizeof(float), (void*)0);
-        glEnableVertexAttribArray(0);
-        // color attribute
-        glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, 8 * sizeof(float), (void*)(3 * sizeof(float)));
-        glEnableVertexAttribArray(1);
-        // texture coord attribute
-        glVertexAttribPointer(2, 2, GL_FLOAT, GL_FALSE, 8 * sizeof(float), (void*)(6 * sizeof(float)));
-        glEnableVertexAttribArray(2);
-
+        loadTexture("res/textures/Bamboo/BambooWall_1K_albedo.jpg");
 
         // uncomment this call to draw in wireframe polygons.
         //glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
+
+        s_Data.CubeVertexArray = vertex_array::Create();
+        s_Data.CubeVertexBuffer = vertex_buffer::Create(s_Data.MaxVertices * sizeof(BASIC_CUBE));
+        s_Data.CubeVertexBuffer->SetLayout
+        ({
+            { shader_data_type::Float3, "aPos" },
+            { shader_data_type::Float3, "aTexCoord" },
+        });
+        s_Data.CubeVertexArray->AddVertexBuffer(s_Data.CubeVertexBuffer);
+
+        s_Data.CubeVertexBufferBase = new CubeVertex[s_Data.MaxVertices];
+
+        uint32_t* quadIndices = new uint32_t[s_Data.MaxIndices];
+
+        uint32_t offset = 0;
+        for (uint32_t i = 0; i < s_Data.MaxIndices; i += 6)
+        {
+            quadIndices[i + 0] = offset + 0;
+            quadIndices[i + 1] = offset + 1;
+            quadIndices[i + 2] = offset + 2;
+
+            quadIndices[i + 3] = offset + 2;
+            quadIndices[i + 4] = offset + 3;
+            quadIndices[i + 5] = offset + 0;
+
+            offset += 4;
+        }
+
+        Ref<index_buffer> quadIB = index_buffer::Create(quadIndices, s_Data.MaxIndices);
+        s_Data.CubeVertexArray->SetIndexBuffer(quadIB);
+        delete[] quadIndices;
+
+        //s_Data.TextureShader = Texture2D::Create(1, 1);
+        //uint32_t whiteTextureData = 0xffffffff;
+        //s_Data.TextureShader->SetData(&whiteTextureData, sizeof(uint32_t));
+
+        //int32_t samplers[s_Data.MaxTextureSlots];
+        //for (uint32_t i = 0; i < s_Data.MaxTextureSlots; i++)
+        //    samplers[i] = i;
+
+        // Set all texture slots to 0
+        //s_Data.TextureSlots[0] = s_Data.WhiteTexture;
 
         // build and compile our shader program
         // ------------------------------------
@@ -145,108 +195,108 @@ namespace fightinggame
         ImGui_ImplSDL2_Shutdown();
     }
 
-    void renderer::configure_view(graphics::render_pass view_id, uint16_t width, uint16_t height) const
+    void renderer::draw_pass(const draw_scene_desc& desc)
     {
-        glViewport(0, 0, width, height);
+        render_command::SetClearColor(glm::vec4(0.2f, 0.3f, 0.3f, 1.0f));
+        render_command::Clear();
+
+        ImGui::Begin("Hello Second");
+        ImGui::Button("Hello Second button");
+        ImGui::End();
+
+        ////if(s_Data.Cube)
+
+        //// camera
+        //glm::mat4 projection = glm::perspective(glm::radians(desc.camera->Zoom), (float)desc.width / (float)desc.height, 0.1f, 100.0f);
+        //glm::mat4 view = desc.camera->GetViewMatrix();
+        //glm::mat4 view_projection = projection * view;
+
+        ////bind texures
+        //uint32_t slot = 0;
+        //glBindTextureUnit(slot, m_RendererID);
+
+        //// shader stuff
+        //flatColorShader->use();
+        //flatColorShader->setMat4("projection", projection);
+        //flatColorShader->setMat4("view", view);
+
+        //// pass transformation matrices to the shader
+        //// note: currently we set the projection matrix each frame, but since the projection
+        //// matrix rarely changes it's often best practice to set it outside the main loop only once.
+        ////flatColorShader->setMat4("u_ViewProjection", view_projection); 
+
+        //// draw our first triangle
+        ////glm::vec3 glSize = glm::vec3(/*GetSizeForRenderer()*/ glm::vec2(1.0, 1.0), 1.0f);
+        ////glm::vec3 glPos = glm::vec3(/*pos.x, pos.y*/ 0.0f, 0.0f, -1.0f);
+        ////glm::mat4 idxMatrix = glm::mat4(1.0f);
+        ////idxMatrix = glm::translate(idxMatrix, glPos) * glm::scale(idxMatrix, { glSize });
+        ////flatColorShader->setVec4("u_Color", { /*GetColor()*/ glm::vec4(1.0, 0.0, 0.0, 1.0) });
+
+        //s_Data.CubeIndexCount = 0;
+        //s_Data.CubeVertexBufferPtr = s_Data.CubeVertexBufferBase;
+        ////s_Data.TextureSlotIndex = 1;
+
+        ////draw some cubes
+        //for (unsigned int i = 0; i < 10; i++)
+        //{
+        //    glm::vec3 size = glm::vec3(1.f, 1.f, 1.f);
+        //    glm::vec3 pos = cubePositions[i];
+        //    render_cube(pos, size);
+        //}
+
+        if (s_Data.CubeIndexCount == 0)
+            return; // Nothing to draw
+
+        //flush
+        render_command::DrawIndexed(s_Data.CubeVertexArray, s_Data.CubeIndexCount);
+        s_Data.Stats.DrawCalls++;
+    }
+
+
+    void renderer::render_cube(glm::vec3& position, glm::vec3& size)
+    {
+        constexpr size_t cubeVertexCount = 30;
+        const float textureIndex = 0.0f; //First texture
+        const float tilingFactor = 1.0f;
+
+        //if (s_Data.QuadIndexCount >= Renderer2DData::MaxIndices)
+        //    FlushAndReset();
+
+        glm::mat4 transform = glm::translate(glm::mat4(1.0f), position)
+            * glm::scale(glm::mat4(1.0f), { size.x, size.y, 1.0f });
+
+        for (size_t i = 0; i < cubeVertexCount; i++)
+        {
+            s_Data.CubeVertexBufferPtr->Position = transform * glm::vec4(1.0, 1.0, 1.0, 1.0); /* * BASIC_CUBE[i] */
+            //s_Data.CubeVertexBufferPtr->Color = color;
+            //s_Data.CubeVertexBufferPtr->TexCoord = textureCoords[i];
+            s_Data.CubeVertexBufferPtr->TexIndex = textureIndex;
+            s_Data.CubeVertexBufferPtr->TilingFactor = tilingFactor;
+            s_Data.CubeVertexBufferPtr++;
+        }
+
+        // calculate the model matrix for each object and pass it to shader before drawing
+        //glm::mat4 model = glm::mat4(1.0f);
+        //model = glm::translate(model, cubePositions[i]);
+        //float angle = 20.0f * i;
+        //model = glm::rotate(model, glm::radians(angle), glm::vec3(1.0f, 0.3f, 0.5f));
+        //flatColorShader->setMat4("model", model);
+
+        //glDrawArrays(GL_TRIANGLES, 0, 36);
+
+        //s_Data.CubeIndexCount += 30;
+        s_Data.Stats.QuadCount++;
+
+        return;
     }
 
     void renderer::new_frame(SDL_Window* window)
     {
         ImGui_ImplOpenGL3_NewFrame();
         ImGui_ImplSDL2_NewFrame(window);
-    }
 
-    void renderer::draw_scene(const draw_scene_desc& desc) const
-    {
-        //// Reflection Pass
-        //{
-        //	auto section = drawDesc.profiler.BeginScoped(Profiler::Stage::ReflectionPass);
-        //	if (drawDesc.drawWater)
-        //	{
-        //		DrawSceneDesc drawPassDesc = drawDesc;
-
-        //		auto& frameBuffer = drawDesc.water.GetFrameBuffer();
-        //		auto reflectionCamera = drawDesc.camera->Reflect(drawDesc.water.GetReflectionPlane());
-
-        //		drawPassDesc.viewId = graphics::RenderPass::Reflection;
-        //		drawPassDesc.camera = reflectionCamera.get();
-        //		drawPassDesc.frameBuffer = &frameBuffer;
-        //		drawPassDesc.drawWater = false;
-        //		drawPassDesc.drawDebugCross = false;
-        //		drawPassDesc.drawBoundingBoxes = false;
-        //		drawPassDesc.cullBack = true;
-        //		DrawPass(meshPack, drawPassDesc);
-        //	}
-        //}
-
-        //// Main Draw Pass
-        //{
-        //	auto section = drawDesc.profiler.BeginScoped(Profiler::Stage::MainPass);
-        //	DrawPass(meshPack, drawDesc);
-        //}
-
-        draw_pass(desc);
-    }
-
-    void renderer::draw_pass(const draw_scene_desc& desc) const
-    {
-        glClearColor(0.2f, 0.3f, 0.3f, 1.0f);
-        glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT | GL_STENCIL_BUFFER_BIT);
-
-        // camera
-        //glm::mat4 projection = glm::perspective(glm::radians(camera.Zoom), (float)SCR_WIDTH / (float)SCR_HEIGHT, 0.1f, 100.0f);
-        //glm::mat4 view = camera.GetViewMatrix();
-        //glm::mat4 view_projection = projection * view;
-
-        //bind texures
-        uint32_t slot = 0;
-        glBindTextureUnit(slot, m_RendererID);
-
-        // pass transformation matrices to the shader
-        // note: currently we set the projection matrix each frame, but since the projection
-        // matrix rarely changes it's often best practice to set it outside the main loop only once.
-        //flatColorShader->setMat4("u_ViewProjection", view_projection); 
-
-        // draw our first triangle
-        //glm::vec3 glSize = glm::vec3(/*GetSizeForRenderer()*/ glm::vec2(1.0, 1.0), 1.0f);
-        //glm::vec3 glPos = glm::vec3(/*pos.x, pos.y*/ 0.0f, 0.0f, -1.0f);
-        //glm::mat4 idxMatrix = glm::mat4(1.0f);
-        //idxMatrix = glm::translate(idxMatrix, glPos) * glm::scale(idxMatrix, { glSize });
-        //flatColorShader->setMat4("u_Transform", idxMatrix);
-        //flatColorShader->setVec4("u_Color", { /*GetColor()*/ glm::vec4(1.0, 0.0, 0.0, 1.0) });
-
-        // create transformations
-        glm::mat4 transform = glm::mat4(1.0f); // make sure to initialize matrix to identity matrix first
-        transform = glm::translate(transform, glm::vec3(0.5f, -0.5f, 0.0f));
-        //transform = glm::rotate(transform, (float)glfwGetTime(), glm::vec3(0.0f, 0.0f, 1.0f));
-
-        flatColorShader->use();
-        unsigned int transformLoc = glGetUniformLocation(flatColorShader->ID, "transform");
-        glUniformMatrix4fv(transformLoc, 1, GL_FALSE, glm::value_ptr(transform));
-
-        glBindVertexArray(VAO);
-        glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, 0);
-
-        // pass transformation matrices to the shader
-        //flatColorShader->setMat4("u_ViewProjection", view_projection);
-    }
-
-    void renderer::render_at_position(Shader* shader)
-    {
-        //get current position from Box2D
-        //b2Vec2 pos = physicsBody->GetPosition();
-        //float angle = physicsBody->GetAngle();
-
-        glm::vec3 glSize = glm::vec3(/*GetSizeForRenderer()*/ glm::vec2(1.0, 1.0), 1.0f);
-        glm::vec3 glPos = glm::vec3(/*pos.x, pos.y*/ 0.0f, 0.0f, 0.0f);
-
-        glm::mat4 idxMatrix = glm::mat4(1.0f);
-        idxMatrix = glm::translate(idxMatrix, glPos) * glm::scale(idxMatrix, { glSize });
-
-        shader->setMat4("u_Transform", idxMatrix);
-        shader->setVec4("u_Color", { /*GetColor()*/ glm::vec4(1.0, 0.0, 0.0, 1.0) });
-
-        glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, 0);
+        ImGui::SetCurrentContext(_imgui);
+        ImGui::NewFrame();
     }
 
     void renderer::end_frame(SDL_Window* window)
@@ -306,8 +356,56 @@ namespace fightinggame
         glTextureSubImage2D(m_RendererID, 0, 0, 0, width, height, dataFormat, GL_UNSIGNED_BYTE, data);
 
         stbi_image_free(data);
+       
+        std::cout << "Texture loaded at path: " << path << "with id: " << m_RendererID << std::endl;
+    }
 
-        printf("texture loaded correctly %s ID: %i", path, m_RendererID);
+    //TEMP CODE
+    //---------
+
+    void renderer::setup_square_buffer(unsigned int VAO, unsigned int VBO, unsigned int EBO)
+    {
+        // set up vertex data (and buffer(s)) and configure vertex attributes
+        // ------------------------------------------------------------------
+        glGenVertexArrays(1, &VAO);
+        glGenBuffers(1, &VBO);
+        glGenBuffers(1, &EBO);
+
+        glBindVertexArray(VAO);
+
+        glBindBuffer(GL_ARRAY_BUFFER, VBO);
+        glBufferData(GL_ARRAY_BUFFER, sizeof(BASIC_SQUARE), BASIC_SQUARE, GL_STATIC_DRAW);
+
+        glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, EBO);
+        glBufferData(GL_ELEMENT_ARRAY_BUFFER, sizeof(BASIC_SQUARE_INDICIES), BASIC_SQUARE_INDICIES, GL_STATIC_DRAW);
+
+        // position attribute
+        glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 8 * sizeof(float), (void*)0);
+        glEnableVertexAttribArray(0);
+        // color attribute
+        glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, 8 * sizeof(float), (void*)(3 * sizeof(float)));
+        glEnableVertexAttribArray(1);
+        // texture coord attribute
+        glVertexAttribPointer(2, 2, GL_FLOAT, GL_FALSE, 8 * sizeof(float), (void*)(6 * sizeof(float)));
+        glEnableVertexAttribArray(2);
+    }
+
+    void renderer::render_square(Shader* shader)
+    {
+        //get current position from Box2D
+        //b2Vec2 pos = physicsBody->GetPosition();
+        //float angle = physicsBody->GetAngle();
+
+        glm::vec3 glSize = glm::vec3(/*GetSizeForRenderer()*/ glm::vec2(1.0, 1.0), 1.0f);
+        glm::vec3 glPos = glm::vec3(/*pos.x, pos.y*/ 0.0f, 0.0f, 0.0f);
+
+        glm::mat4 idxMatrix = glm::mat4(1.0f);
+        idxMatrix = glm::translate(idxMatrix, glPos) * glm::scale(idxMatrix, { glSize });
+
+        shader->setMat4("u_Transform", idxMatrix);
+        shader->setVec4("u_Color", { /*GetColor()*/ glm::vec4(1.0, 0.0, 0.0, 1.0) });
+
+        glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, 0);
     }
 }
 

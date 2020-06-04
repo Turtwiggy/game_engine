@@ -39,7 +39,7 @@ namespace fightinggame
         game();
         virtual ~game();
 
-        void process_input_down(const SDL_Event& event);
+        bool process_input_down(const SDL_Event& event);
         bool process_events(const SDL_Event& event);
         void run();
 
@@ -56,7 +56,7 @@ namespace fightinggame
         std::unique_ptr<game_window> _window;
         std::unique_ptr<renderer> _renderer;
         std::unique_ptr<Gui> _gui;
-        std::unique_ptr<Camera> _camera;
+        std::shared_ptr<Camera> _camera;
         //std::unique_ptr<Profiler> _profiler;
         std::unique_ptr<event_manager> _eventManager;
 

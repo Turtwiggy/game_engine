@@ -21,10 +21,9 @@ enum Camera_Movement {
 // Default camera values
 const float YAW = -90.0f;
 const float PITCH = 0.0f;
-const float SPEED = 50.0f;
+const float SPEED = 2.5f;
 const float SENSITIVITY = 0.1f;
 const float ZOOM = 45.0f;
-
 
 // An abstract camera class that processes input and calculates the corresponding Euler Angles, Vectors and Matrices for use in OpenGL
 class Camera
@@ -101,25 +100,22 @@ public:
 
     void ProcessEvents(const SDL_Event& e, float delta_time)
     {
+        const Uint8* state = SDL_GetKeyboardState(NULL);
+        if (state[SDL_SCANCODE_W]) {
+            ProcessKeyboard(FORWARD, delta_time);
+        }
+        if (state[SDL_SCANCODE_S]) {
+            ProcessKeyboard(BACKWARD, delta_time);
+        }
+        if (state[SDL_SCANCODE_A]) {
+            ProcessKeyboard(LEFT, delta_time);
+        }
+        if (state[SDL_SCANCODE_D]) {
+            ProcessKeyboard(RIGHT, delta_time);
+        }
+
         switch (e.type) 
         {
-        case SDL_KEYDOWN:
-            switch (e.key.keysym.sym)
-            {
-            //Keyboard press
-            case SDLK_w:
-                printf("going forwards");
-                printf("my new pos: %f %f %f ", Position.x, Position.y, Position.z);
-                ProcessKeyboard(FORWARD, delta_time);
-            case SDLK_s:
-                ProcessKeyboard(BACKWARD, delta_time);
-            case SDLK_a:
-                ProcessKeyboard(LEFT, delta_time);
-            case SDLK_d:
-                ProcessKeyboard(RIGHT, delta_time);
-            }
-        case SDL_KEYUP:
-            break;
         case SDL_MOUSEWHEEL:
             ProcessMouseScroll(e.wheel.y);
         case SDL_MOUSEMOTION:
@@ -142,18 +138,15 @@ public:
         }
     }
 
-    //THIS WAS GLFW
-
-    //    const float m_CameraRotation = 0.0f;
-    //const float m_CameraTranslationSpeed = 2.5f * m_DeltaTime; // adjust accordingly
-
-// Processes input received from a mouse input system. Expects the offset value in both the x and y direction.
+    // Processes input received from a mouse input system. Expects the offset value in both the x and y direction.
     void ProcessMouseMovement(float xoffset, float yoffset, GLboolean constrainPitch = true)
     {
         xoffset *= MouseSensitivity;
         yoffset *= MouseSensitivity;
 
         Yaw += xoffset;
+        Yaw = glm::mod(Yaw + xoffset, 360.0f);
+
         Pitch += yoffset;
 
         // Make sure that when pitch is out of bounds, screen doesn't get flipped
@@ -172,26 +165,26 @@ public:
     // Processes input received from a mouse scroll-wheel event. Only requires input on the vertical wheel-axis
     void ProcessMouseScroll(float yoffset)
     {
-        if (Zoom >= 1.0f && Zoom <= 45.0f)
-            Zoom -= yoffset;
-        if (Zoom <= 1.0f)
+        Zoom -= (float)yoffset;
+        if (Zoom < 1.0f)
             Zoom = 1.0f;
-        if (Zoom >= 45.0f)
+        if (Zoom > 45.0f)
             Zoom = 45.0f;
     }
 
+
 private:
-    // Calculates the front vector from the Camera's (updated) Euler Angles
+    // calculates the front vector from the Camera's (updated) Euler Angles
     void updateCameraVectors()
     {
-        // Calculate the new Front vector
+        // calculate the new Front vector
         glm::vec3 front;
         front.x = cos(glm::radians(Yaw)) * cos(glm::radians(Pitch));
         front.y = sin(glm::radians(Pitch));
         front.z = sin(glm::radians(Yaw)) * cos(glm::radians(Pitch));
         Front = glm::normalize(front);
-        // Also re-calculate the Right and Up vector
-        Right = glm::normalize(glm::cross(Front, WorldUp));  // Normalize the vectors, because their length gets closer to 0 the more you look up or down which results in slower movement.
+        // also re-calculate the Right and Up vector
+        Right = glm::normalize(glm::cross(Front, WorldUp));  // normalize the vectors, because their length gets closer to 0 the more you look up or down which results in slower movement.
         Up = glm::normalize(glm::cross(Right, Front));
     }
 

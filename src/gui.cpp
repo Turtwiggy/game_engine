@@ -110,18 +110,8 @@ void Gui::SetClipboardText(const char* text)
 	SDL_SetClipboardText(text);
 }
 
-
-void Gui::NewFrame(ImGuiContext* imgui)
-{
-	ImGui::SetCurrentContext(imgui);
-
-	ImGui::NewFrame();
-}
-
 bool Gui::Loop(game& game, ImGuiContext* imgui)
 {
-	NewFrame(imgui);
-
 	//printf("in gui loop");
 
 	ImGui::Begin("Hello World!");
