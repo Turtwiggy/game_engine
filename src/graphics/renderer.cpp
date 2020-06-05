@@ -133,7 +133,7 @@ namespace fightinggame
         //texID = loadTexture("res/textures/Bamboo/BambooWall_1K_albedo.jpg");
 
         // uncomment this call to draw in wireframe polygons.
-        glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
+        //glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
 
         s_Data.CubeVertexArray = vertex_array::Create();
         s_Data.CubeVertexBuffer = vertex_buffer::Create(s_Data.MaxVertices * sizeof(BASIC_CUBE));

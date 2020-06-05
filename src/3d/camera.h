@@ -42,6 +42,8 @@ public:
     float MovementSpeed;
     float MouseSensitivity;
     float Zoom;
+    //input
+    glm::vec3 input;
 
     float lastX;
     float lastY;
@@ -88,6 +90,7 @@ public:
     void ProcessKeyboard(Camera_Movement direction, float m_DeltaTime)
     {
         float velocity = MovementSpeed * m_DeltaTime;
+
         if (direction == FORWARD)
             Position += Front * velocity;
         if (direction == BACKWARD)
@@ -98,26 +101,51 @@ public:
             Position += Right * velocity;
     }
 
-    void ProcessEvents(const SDL_Event& e, float delta_time)
+
+    void Update(float delta_time)
+    {
+        float velocity = MovementSpeed * delta_time;
+
+        printf("velocity: %f %f \n", input.x, input.y);
+
+        Position += Front * ( input.y * velocity );
+        Position += Right * (input.x * velocity);
+        Position += Up * ( input.z * velocity );
+    }
+
+    void ProcessEvents(const SDL_Event& e)
     {
         const Uint8* state = SDL_GetKeyboardState(NULL);
-        if (state[SDL_SCANCODE_W]) {
-            ProcessKeyboard(FORWARD, delta_time);
-        }
-        if (state[SDL_SCANCODE_S]) {
-            ProcessKeyboard(BACKWARD, delta_time);
-        }
-        if (state[SDL_SCANCODE_A]) {
-            ProcessKeyboard(LEFT, delta_time);
-        }
-        if (state[SDL_SCANCODE_D]) {
-            ProcessKeyboard(RIGHT, delta_time);
-        }
 
-        switch (e.type) 
+        //Forward and backwards
+        if (state[SDL_SCANCODE_W]) 
+            input.y = 1.0f;
+        else if (state[SDL_SCANCODE_S]) 
+            input.y = -1.0f;
+        else
+            input.y = 0.0f;
+
+        //Left and right
+        if (state[SDL_SCANCODE_A]) 
+            input.x = -1.0f;
+        else if (state[SDL_SCANCODE_D]) 
+            input.x = 1.0f;
+        else
+            input.x = 0.0f;
+
+        //Up and down
+        if (state[SDL_SCANCODE_SPACE])
+            input.z = 1.0f;
+        else if (state[SDL_SCANCODE_LSHIFT])
+            input.z = -1.0f;
+        else
+            input.z = 0.0f;
+
+        switch (e.type)
         {
         case SDL_MOUSEWHEEL:
             ProcessMouseScroll(e.wheel.y);
+            break;
         case SDL_MOUSEMOTION:
 
             float xpos = e.motion.x;

@@ -51,7 +51,7 @@ game::~game()
     shutdown();
 }
 
-bool game::process_input_down(const SDL_Event& event)
+bool game::process_window_input_down(const SDL_Event& event)
 {
     switch (event.key.keysym.sym)
     {
@@ -69,9 +69,6 @@ bool game::process_input_down(const SDL_Event& event)
         fullscreen = !fullscreen;
 
         break;
-    case SDLK_F1:
-        //_config.bgfxDebug = !_config.bgfxDebug;
-        break;
     }
 
     return true;
@@ -87,7 +84,7 @@ bool game::process_events(float delta_time)
         // If gui captures this input, do not propagate
         if (!this->_gui->ProcessEventSdl2(e, _renderer->get_imgui_context()))
         {
-            this->_camera->ProcessEvents(e, delta_time);
+            this->_camera->ProcessEvents(e);
 
             if (e.type == SDL_QUIT)
                 return false;
@@ -99,7 +96,7 @@ bool game::process_events(float delta_time)
             switch (e.type)
             {
             case SDL_KEYDOWN:
-                return process_input_down(e);
+                return process_window_input_down(e);
             }
         }
     }
@@ -168,6 +165,7 @@ void game::run()
         // input
         // -----
         process_events(delta_time);
+        _camera->Update(delta_time);
 
         //e.g. Game Logic Tick
         while (_timeSinceLastUpdate >= timePerFrame)
