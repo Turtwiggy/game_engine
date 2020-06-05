@@ -22,6 +22,7 @@
 #endif
 
 #include <GL/glew.h>
+#include <examples/imgui_impl_sdl.h>
 
 using namespace fightinggame;
 

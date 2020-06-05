@@ -62,7 +62,7 @@ namespace fightinggame
 
     static RenderData s_Data;
 
-    void renderer::init_opengl(const game_window* window)
+    void renderer::init_opengl_and_imgui(const game_window* window)
     {
         //OpenGL
         gl_context = SDL_GL_CreateContext(window->GetHandle());
@@ -71,15 +71,6 @@ namespace fightinggame
         int width, height;
         window->GetSize(width, height);
         render_command::SetViewport(0, 0, width, height);
-
-        //Setup ImGui
-        IMGUI_CHECKVERSION();
-        _imgui = ImGui::CreateContext();
-        ImGuiIO& io = ImGui::GetIO();
-        ImGui::StyleColorsDark();
-        ImGuiStyle& style = ImGui::GetStyle();
-        //style.ScaleAllSizes(scale);
-        //io.FontGlobalScale = scale;
 
         if (gl_context == NULL)
         {
@@ -97,6 +88,25 @@ namespace fightinggame
                 throw std::runtime_error("Error initializing GLEW! " + std::string(SDL_GetError()));
             }
         }
+
+        //Setup ImGui
+        IMGUI_CHECKVERSION();
+        _imgui = ImGui::CreateContext();
+        ImGuiIO& io = ImGui::GetIO(); (void)io;
+        io.ConfigFlags |= ImGuiConfigFlags_DockingEnable;           // Enable Docking
+        io.ConfigFlags |= ImGuiConfigFlags_ViewportsEnable;         // Enable Multi-Viewport / Platform Windows
+
+        ImGui::StyleColorsDark();
+
+        // When viewports are enabled we tweak WindowRounding/WindowBg so platform windows can look identical to regular ones.
+        ImGuiStyle& style = ImGui::GetStyle();
+        if (io.ConfigFlags & ImGuiConfigFlags_ViewportsEnable)
+        {
+            style.WindowRounding = 0.0f;
+            style.Colors[ImGuiCol_WindowBg].w = 1.0f;
+    }
+
+
         std::string glsl_version = "";
 #ifdef __APPLE__
         // GL 3.2 Core + GLSL 150
@@ -128,7 +138,7 @@ namespace fightinggame
 
     renderer::renderer(const game_window* window, bool vsync)
     {
-        init_opengl(window);
+        init_opengl_and_imgui(window);
         render_command::Init(); //configure opengl state
 
         //// tell stb_image.h to flip loaded texture's on the y-axis (before loading model).
@@ -276,9 +286,20 @@ namespace fightinggame
 
     void renderer::end_frame(SDL_Window* window)
     {
-        ImGui::SetCurrentContext(_imgui);
-        ImDrawData* draw_data = ImGui::GetDrawData();
-        ImGui_ImplOpenGL3_RenderDrawData(draw_data);
+        ImGuiIO& io = ImGui::GetIO();
+        ImGui_ImplOpenGL3_RenderDrawData(ImGui::GetDrawData());
+
+        // Update and Render additional Platform Windows
+        // (Platform functions may change the current OpenGL context, so we save/restore it to make it easier to paste this code elsewhere.
+        //  For this specific demo app we could also call SDL_GL_MakeCurrent(window, gl_context) directly)
+        if (io.ConfigFlags & ImGuiConfigFlags_ViewportsEnable)
+        {
+            SDL_Window* backup_current_window = SDL_GL_GetCurrentWindow();
+            SDL_GLContext backup_current_context = SDL_GL_GetCurrentContext();
+            ImGui::UpdatePlatformWindows();
+            ImGui::RenderPlatformWindowsDefault();
+            SDL_GL_MakeCurrent(backup_current_window, backup_current_context);
+        }
 
         SDL_GL_SwapWindow(window);
     }

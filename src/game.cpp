@@ -69,8 +69,12 @@ bool game::process_window_input_down(const SDL_Event& event)
         {
             int width, height;
             _window->GetSize(width, height);
-            std::cout << "screen size toggled, w: " << width  << " h: " << height << std::endl;
-            render_command::SetViewport(0, 0, width, height);
+
+            m_width = width;
+            m_height = height;
+
+            std::cout << "screen size toggled, w: " << m_width << " h: " << m_height << std::endl;
+            render_command::SetViewport(0, 0, m_width, m_height);
         }
         fullscreen = !fullscreen;
 
