@@ -6,5 +6,6 @@ glm
 glew
 stb
 assimp
+boost-filesystem
 --triplet
 x64-windows

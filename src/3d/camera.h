@@ -106,8 +106,6 @@ public:
     {
         float velocity = MovementSpeed * delta_time;
 
-        printf("velocity: %f %f \n", input.x, input.y);
-
         Position += Front * ( input.y * velocity );
         Position += Right * (input.x * velocity);
         Position += Up * ( input.z * velocity );

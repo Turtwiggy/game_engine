@@ -16,6 +16,8 @@
 #include <SDL2/SDL_syswm.h>
 #endif
 
+#include "stb_image.h"
+
 #include "imgui.h"
 #include <examples/imgui_impl_sdl.h>
 #include <examples/imgui_impl_opengl3.h>
@@ -57,8 +59,8 @@ namespace fightinggame
 
         renderer::Statistics Stats;
     };
-    static RenderData s_Data;
 
+    static RenderData s_Data;
 
     void renderer::init_opengl(const game_window* window)
     {
@@ -129,6 +131,9 @@ namespace fightinggame
         init_opengl(window);
         render_command::Init(); //configure opengl state
 
+        //// tell stb_image.h to flip loaded texture's on the y-axis (before loading model).
+        //stbi_set_flip_vertically_on_load(true);
+
         //Load texture
         //texID = loadTexture("res/textures/Bamboo/BambooWall_1K_albedo.jpg");
 
@@ -151,7 +156,7 @@ namespace fightinggame
         // build and compile our shader program
         // ------------------------------------
         shader = std::make_unique<Shader>
-            ("res/shaders/textured_transform.vert", "res/shaders/textured_transform.frag");
+            ("res/shaders/diffuse.vert", "res/shaders/diffuse.frag");
         shader->use();
         //shader->setInt("texture1", texID);
     }

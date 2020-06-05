@@ -10,12 +10,14 @@
 #include "imgui.h"
 #include "SDL2/SDL.h"
 #include <GL/glew.h>
+#include "boost/filesystem.hpp"
 
 #include "graphics/render_command.h"
 #include "3d/assimp_obj_loader.h"
 
 #include <cstdint>
 #include <string>
+#include <filesystem>
 
 using namespace fightinggame;
 
@@ -43,7 +45,10 @@ game::game()
     _gui = std::make_unique<Gui>();
 
     //object loader
-    tempModel = std::make_shared<Model>("res/models/lizard_wizard/source/lizard_wizard.obj");
+    std::filesystem::path current_dir = std::filesystem::current_path();
+    //current_dir.append("res/models/backpack/backpack.obj");
+    current_dir.append("res/models/lizard_wizard/lizard_wizard.obj");
+    tempModel = std::make_shared<Model>(current_dir.generic_u8string());
 }
 
 game::~game()
@@ -64,6 +69,7 @@ bool game::process_window_input_down(const SDL_Event& event)
         {
             int width, height;
             _window->GetSize(width, height);
+            std::cout << "screen size toggled, w: " << width  << " h: " << height << std::endl;
             render_command::SetViewport(0, 0, width, height);
         }
         fullscreen = !fullscreen;

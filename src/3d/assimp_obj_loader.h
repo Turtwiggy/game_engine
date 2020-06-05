@@ -17,7 +17,10 @@ namespace fightinggame {
         glm::vec3 Position;
         glm::vec3 Normal;
         glm::vec2 TexCoords;
+        glm::vec3 Tangent;
+        glm::vec3 Bitangent;
     };
+
 
     struct Texture {
         unsigned int id;
@@ -53,6 +56,7 @@ namespace fightinggame {
         // model data
         std::vector<Mesh> meshes;
         std::vector<Texture> textures_loaded;
+        std::string directory;
         bool gammaCorrection;
 
         void loadModel(std::string path);
@@ -68,5 +72,5 @@ namespace fightinggame {
 
     // utility function for loading a 2D texture from file
     // ---------------------------------------------------
-    unsigned int loadTexture(const std::string& path);
+    unsigned int TextureFromFile(const char* path, const std::string& directory, bool gamma = true);
 }

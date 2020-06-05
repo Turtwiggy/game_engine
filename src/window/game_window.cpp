@@ -35,8 +35,6 @@ game_window::game_window(const std::string& title, int width, int height, displa
 			throw std::runtime_error("Could not initialize SDL Timer Subsystem: " + std::string(SDL_GetError()));
 	}
 
-	SDL_ShowCursor(SDL_ENABLE);
-
 	int flags = SDL_WINDOW_OPENGL
 		| SDL_WINDOW_INPUT_FOCUS 
 		| SDL_WINDOW_RESIZABLE 
@@ -60,6 +58,8 @@ game_window::game_window(const std::string& title, int width, int height, displa
 
 	SDL_SetWindowMinimumSize(window.get(), 500, 300);
 	SDL_GL_SetSwapInterval(0); //VSync
+	SDL_ShowCursor(SDL_ENABLE);
+	SDL_CaptureMouse(SDL_TRUE);
 
 	_window = std::move(window);
 }
