@@ -45,10 +45,6 @@ public:
     //input
     glm::vec3 input;
 
-    float lastX;
-    float lastY;
-    bool firstMouse = true;
-
     // Constructor with vectors
     Camera(
         glm::vec3 position = glm::vec3(0.0f, 0.0f, 0.0f),
@@ -66,6 +62,7 @@ public:
         Pitch = pitch;
         updateCameraVectors();
     }
+
     // Constructor with scalar values
     Camera(float posX, float posY, float posZ, float upX, float upY, float upZ, float yaw, float pitch) 
         : Front(glm::vec3(0.0f, 0.0f, -1.0f))
@@ -101,7 +98,6 @@ public:
             Position += Right * velocity;
     }
 
-
     void Update(float delta_time)
     {
         float velocity = MovementSpeed * delta_time;
@@ -111,22 +107,22 @@ public:
         Position += Up * ( input.z * velocity );
     }
 
-    void ProcessEvents(const SDL_Event& e)
+    void ProcessInput()
     {
         const Uint8* state = SDL_GetKeyboardState(NULL);
 
         //Forward and backwards
-        if (state[SDL_SCANCODE_W]) 
+        if (state[SDL_SCANCODE_W])
             input.y = 1.0f;
-        else if (state[SDL_SCANCODE_S]) 
+        else if (state[SDL_SCANCODE_S])
             input.y = -1.0f;
         else
             input.y = 0.0f;
 
         //Left and right
-        if (state[SDL_SCANCODE_A]) 
+        if (state[SDL_SCANCODE_A])
             input.x = -1.0f;
-        else if (state[SDL_SCANCODE_D]) 
+        else if (state[SDL_SCANCODE_D])
             input.x = 1.0f;
         else
             input.x = 0.0f;
@@ -138,6 +134,14 @@ public:
             input.z = -1.0f;
         else
             input.z = 0.0f;
+    }
+
+    void ProcessEvents(const SDL_Event& e)
+    {
+        ProcessInput();
+
+        //int mouse_x, mouse_y;
+        //SDL_GetMouseState(&mouse_x, &mouse_y);
 
         switch (e.type)
         {
@@ -145,22 +149,12 @@ public:
             ProcessMouseScroll(e.wheel.y);
             break;
         case SDL_MOUSEMOTION:
+            float xrel = e.motion.xrel;
+            float yrel = e.motion.yrel;
+            //printf("mousePos x: %f y: %f", xrel, yrel);
 
-            float xpos = e.motion.x;
-            float ypos = e.motion.y;
-
-            if (firstMouse)
-            {
-                lastX = xpos;
-                lastY = ypos;
-                firstMouse = false;
-            }
-            float xoffset = xpos - lastX;
-            float yoffset = lastY - ypos; // reversed since y-coordinates go from bottom to top
-            lastX = xpos;
-            lastY = ypos;
-
-            ProcessMouseMovement(xoffset, yoffset);
+            ProcessMouseMovement(xrel, yrel); 
+            break;
         }
     }
 
@@ -173,7 +167,7 @@ public:
         Yaw += xoffset;
         Yaw = glm::mod(Yaw + xoffset, 360.0f);
 
-        Pitch += yoffset;
+        Pitch += ( yoffset * -1 );
 
         // Make sure that when pitch is out of bounds, screen doesn't get flipped
         if (constrainPitch)

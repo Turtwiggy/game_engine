@@ -61,6 +61,7 @@ bool game::process_window_input_down(const SDL_Event& event)
     switch (event.key.keysym.sym)
     {
     case SDLK_ESCAPE:
+        shutdown();
         return false;
     case SDLK_f:
         _window->SetFullscreen(!fullscreen);
@@ -72,12 +73,14 @@ bool game::process_window_input_down(const SDL_Event& event)
 
             m_width = width;
             m_height = height;
-
             std::cout << "screen size toggled, w: " << m_width << " h: " << m_height << std::endl;
             render_command::SetViewport(0, 0, m_width, m_height);
         }
         fullscreen = !fullscreen;
 
+        break;
+    case SDLK_m:
+        //game_window->Set
         break;
     }
 
@@ -192,12 +195,10 @@ void game::run()
         //lerp between game states
         //game_state state_lerped = state_current * alpha + state_previous * ( 1.0 - alpha );
         render(state_current);
-
         //render(window, new_state, net_set);
 
         _frameCount++;
         state_current.frame = _frameCount;
-
         //printf("frame count: %f", _frameCount);
     }
 
@@ -208,9 +209,10 @@ void game::shutdown()
 {
     running = false;
 
-    _renderer.reset();
     _gui.reset();
+    _renderer.reset();
     _window.reset();
+    _camera.reset();
     _eventManager.reset();
 
     SDL_Quit();

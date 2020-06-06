@@ -59,7 +59,10 @@ game_window::game_window(const std::string& title, int width, int height, displa
 	SDL_SetWindowMinimumSize(window.get(), 500, 300);
 	SDL_GL_SetSwapInterval(0); //VSync
 	SDL_ShowCursor(SDL_ENABLE);
-	SDL_CaptureMouse(SDL_TRUE);
+	//SetMouseCaptured(true);
+	//GrabInput(true);
+	//SDL_SetWindowGrab(window.get(), SDL_TRUE);
+	SDL_SetRelativeMouseMode(SDL_TRUE);
 
 	_window = std::move(window);
 }
@@ -288,4 +291,9 @@ void game_window::SetFullscreen(bool b)
 void game_window::Close()
 {
 	_window.reset(nullptr);
+}
+
+void game_window::SetMouseCaptured(bool b)
+{
+	SDL_CaptureMouse( b ? SDL_TRUE : SDL_FALSE);
 }

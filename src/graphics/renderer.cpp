@@ -104,7 +104,7 @@ namespace fightinggame
         {
             style.WindowRounding = 0.0f;
             style.Colors[ImGuiCol_WindowBg].w = 1.0f;
-    }
+        }
 
 
         std::string glsl_version = "";
@@ -156,7 +156,7 @@ namespace fightinggame
         ({
             { shader_data_type::Float3, "aPos" },
             { shader_data_type::Float2, "aTexCoord" },
-        });
+            });
         s_Data.CubeVertexArray->AddVertexBuffer(s_Data.CubeVertexBuffer);
 
         s_Data.CubeVertexBufferBase = new CubeVertex[s_Data.MaxVertices];
