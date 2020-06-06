@@ -46,10 +46,9 @@ namespace fightinggame
     {
     public:
         game();
-        virtual ~game();
 
         bool process_window_input_down(const SDL_Event& event);
-        bool process_events(float delta_time);
+        bool process_events();
         void run();
 
         game_window* GetWindow() { return _window.get(); }

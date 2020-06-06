@@ -38,11 +38,6 @@ Gui::Gui( )
 {
 }
 
-Gui::~Gui()
-{
-	ImGui::DestroyContext();
-}
-
 bool Gui::ProcessEventSdl2(const SDL_Event& event, ImGuiContext* imgui)
 {
 	ImGui::SetCurrentContext(imgui);

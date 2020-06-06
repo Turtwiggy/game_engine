@@ -44,7 +44,6 @@ namespace fightinggame {
 
         renderer() = delete;
         explicit renderer(const game_window* window, bool vsync);
-        virtual ~renderer();
 
         static renderer_api::API get_api() { return renderer_api::GetAPI(); }
 
@@ -59,6 +58,8 @@ namespace fightinggame {
 
         void init_opengl_and_imgui(const game_window* window);
         SDL_GLContext get_gl_context() { return gl_context; }
+
+        void shutdown();
 
     private:
         void render_square(Shader& shader);

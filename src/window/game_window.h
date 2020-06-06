@@ -54,6 +54,7 @@ namespace fightinggame
 		void SetMaximumSize(int width, int height);
 		void GetMaximumSize(int& width, int& height) const;
 		void SetMouseCaptured(bool b);
+		void ToggleMouseCaptured();
 
 		void Minimise();
 		void Maximise();

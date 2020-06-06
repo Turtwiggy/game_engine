@@ -33,7 +33,6 @@ namespace fightinggame
 	{
 	public:
 		Gui();
-		virtual ~Gui();
 
 		bool ProcessEventSdl2(const SDL_Event& event, ImGuiContext* imgui);
 		bool Loop(game& game, ImGuiContext* imgui);

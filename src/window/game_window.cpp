@@ -290,10 +290,18 @@ void game_window::SetFullscreen(bool b)
 
 void game_window::Close()
 {
+	SDL_DestroyWindow(_window.get());
+	SDL_Quit();
+
 	_window.reset(nullptr);
 }
 
 void game_window::SetMouseCaptured(bool b)
 {
 	SDL_CaptureMouse( b ? SDL_TRUE : SDL_FALSE);
+}
+
+void game_window::ToggleMouseCaptured()
+{
+	GrabInput(!IsInputGrabbed());
 }

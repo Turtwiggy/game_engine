@@ -51,16 +51,12 @@ game::game()
     tempModel = std::make_shared<Model>(current_dir.generic_u8string());
 }
 
-game::~game()
-{
-    shutdown();
-}
-
 bool game::process_window_input_down(const SDL_Event& event)
 {
     switch (event.key.keysym.sym)
     {
     case SDLK_ESCAPE:
+
         shutdown();
         return false;
     case SDLK_f:
@@ -80,14 +76,14 @@ bool game::process_window_input_down(const SDL_Event& event)
 
         break;
     case SDLK_m:
-        //game_window->Set
+        _window->ToggleMouseCaptured();
         break;
     }
 
     return true;
 }
 
-bool game::process_events(float delta_time)
+bool game::process_events()
 {
     SDL_Event e;
     while (SDL_PollEvent(&e))
@@ -170,17 +166,24 @@ void game::run()
     _frameCount = 0;
     while (running)
     {
+        // input
+        // -----
+        running = process_events();
+        if (!running) return;
+
+        // Delta Time
+        // ----------
         ImGuiIO& io = ImGui::GetIO();
         float delta_time = io.DeltaTime;
         //printf("delta_time %f \n", delta_time);
         _timeSinceLastUpdate += delta_time;
 
-        // input
-        // -----
-        process_events(delta_time);
+        // Update Systems
+        // --------------
         _camera->Update(delta_time);
 
-        //e.g. Game Logic Tick
+        // Game Logic Tick
+        // ---------------
         while (_timeSinceLastUpdate >= timePerFrame)
         {
             state_previous = state_current;
@@ -190,11 +193,13 @@ void game::run()
             _timeSinceLastUpdate -= timePerFrame;
         }
 
-        const float alpha = _timeSinceLastUpdate / timePerFrame;
-        
-        //lerp between game states
-        //game_state state_lerped = state_current * alpha + state_previous * ( 1.0 - alpha );
+        // Rendering
+        // ---------
         render(state_current);
+
+        //lerp between game states
+        //const float alpha = _timeSinceLastUpdate / timePerFrame;
+        //game_state state_lerped = state_current * alpha + state_previous * ( 1.0 - alpha );
         //render(window, new_state, net_set);
 
         _frameCount++;
@@ -209,11 +214,12 @@ void game::shutdown()
 {
     running = false;
 
+    _renderer->shutdown();
+    _window->Close();
+
     _gui.reset();
     _renderer.reset();
     _window.reset();
     _camera.reset();
     _eventManager.reset();
-
-    SDL_Quit();
 }

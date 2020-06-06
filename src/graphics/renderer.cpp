@@ -171,13 +171,6 @@ namespace fightinggame
         //shader->setInt("texture1", texID);
     }
 
-    renderer::~renderer()
-    {
-        //_shaderManager.reset();
-        ImGui_ImplOpenGL3_Shutdown();
-        ImGui_ImplSDL2_Shutdown();
-    }
-
     void renderer::draw_pass(const draw_scene_desc& desc)
     {
         render_command::SetClearColor(glm::vec4(0.2f, 0.3f, 0.3f, 1.0f));
@@ -304,6 +297,16 @@ namespace fightinggame
         SDL_GL_SwapWindow(window);
     }
 
+    void renderer::shutdown()
+    {
+        ImGui::SetCurrentContext(_imgui);
+
+        ImGui_ImplOpenGL3_Shutdown();
+        ImGui_ImplSDL2_Shutdown();
+        ImGui::DestroyContext();
+
+        SDL_GL_DeleteContext(gl_context);
+    }
 
     void renderer::render_square(Shader& shader)
     {
