@@ -1,9 +1,8 @@
-/*
+#include "game.h"
 
-*/
-
-#include "game.hpp"
 #include "gui.hpp"
+#include "graphics/render_command.h"
+#include "3d/assimp_obj_loader.h"
 
 #include <glm/glm.hpp>
 #include <spdlog/spdlog.h>
@@ -11,10 +10,6 @@
 #include "SDL2/SDL.h"
 #include <GL/glew.h>
 #include "boost/filesystem.hpp"
-
-#include "graphics/render_command.h"
-#include "3d/assimp_obj_loader.h"
-
 #include <cstdint>
 #include <string>
 #include <filesystem>
@@ -27,99 +22,71 @@ const std::string kWindowTitle = "fightinggame";
 
 game* game::sInstance = nullptr;
 
-game::game()
-    : _eventManager(std::make_unique<event_manager>())
-{
-    //auto logger = spdlog::basic_logger_mt("default_logger", "logs");
-    //spdlog::set_default_logger(logger);
-
-    sInstance = this;
-
-    _profiler = std::make_unique<profiler>();
-
-    // create our camera
-    _camera = std::make_unique<Camera>(glm::vec3(0.0f, 0.0f, 10.0f));
-
-    _window = std::make_unique<game_window>(kWindowTitle + " [" + kBuildStr + "]", m_width, m_height, display_mode::Windowed);
-
-    _renderer = std::make_unique<renderer>(_window.get(), false);
-
-    _gui = std::make_unique<Gui>();
-
-    //object loader
-    std::filesystem::path current_dir = std::filesystem::current_path();
-    //current_dir.append("res/models/backpack/backpack.obj");
-    current_dir.append("res/models/lizard_wizard/lizard_wizard.obj");
-    tempModel = std::make_shared<Model>(current_dir.generic_u8string());
-}
-
-bool game::process_window_input_down(const SDL_Event& event)
+bool game::process_window_input_down(const SDL_Event& event, game_window& window)
 {
     switch (event.key.keysym.sym)
     {
     case SDLK_ESCAPE:
 
-        shutdown();
         return false;
     case SDLK_f:
-        _window->SetFullscreen(!fullscreen);
+        window.SetFullscreen(!fullscreen);
 
-        if (_window)
-        {
-            int width, height;
-            _window->GetSize(width, height);
+        int width, height;
+        window.GetSize(width, height);
 
-            m_width = width;
-            m_height = height;
-            std::cout << "screen size toggled, w: " << m_width << " h: " << m_height << std::endl;
-            render_command::SetViewport(0, 0, m_width, m_height);
-        }
+        m_width = width;
+        m_height = height;
+        std::cout << "screen size toggled, w: " << m_width << " h: " << m_height << std::endl;
+        render_command::SetViewport(0, 0, m_width, m_height);
+        
         fullscreen = !fullscreen;
 
         break;
     case SDLK_m:
-        _window->ToggleMouseCaptured();
+        window.ToggleMouseCaptured();
         break;
     }
 
     return true;
 }
 
-bool game::process_events()
+bool game::process_events(profiler& p, renderer& r, game_window& g, Gui& gui, Camera& c)
 {
     SDL_Event e;
     while (SDL_PollEvent(&e))
     {
-        auto sdlInput = _profiler->BeginScoped(profiler::Stage::SdlInput);
+        p.Begin(profiler::Stage::SdlInput);
             
         //_eventManager->Create<SDL_Event>(e);
 
         // If gui captures this input, do not propagate
-        if (!this->_gui->ProcessEventSdl2(e, _renderer->get_imgui_context()))
+        if (!gui.ProcessEventSdl2(e, r.get_imgui_context()))
         {
             //Update camera when mouse is grabbed
-            if(_window->IsInputGrabbed())
-                this->_camera->ProcessEvents(e);
+            if(g.IsInputGrabbed())
+                c.ProcessEvents(e);
 
             //Other window events
             if (e.type == SDL_QUIT)
                 return false;
             else if (e.type == SDL_WINDOWEVENT
                 && e.window.event == SDL_WINDOWEVENT_CLOSE
-                && e.window.windowID == SDL_GetWindowID(_window->GetHandle()))
+                && e.window.windowID == SDL_GetWindowID(g.GetHandle()))
                 return false;
 
             switch (e.type)
             {
             case SDL_KEYDOWN:
-                return process_window_input_down(e);
+                return process_window_input_down(e, g);
             }
         }
+
+        p.End(profiler::Stage::SdlInput);
     }
 
     return true;
 }
-
 //Called X ticks per second
 void game::tick(float delta_time, game_state& state)
 {
@@ -128,55 +95,88 @@ void game::tick(float delta_time, game_state& state)
     state.cube_pos = glm::vec3(0.0, 0.0, 0.0);
 }
 
-void game::render(game_state& state)
+void game::render(profiler& profiler, game_state& state, renderer& r, Camera& c, Gui& g, game_window& window, Model& model)
 {
-    _renderer->new_frame(_window->GetHandle());
+    profiler.Begin(profiler::Stage::NewFrame);
+    r.new_frame(window.GetHandle());
+    profiler.End(profiler::Stage::NewFrame);
 
     {
-        renderer::draw_scene_desc drawDesc;
+        profiler.Begin(profiler::Stage::SceneDraw);
+        renderer::draw_scene_desc drawDesc
+        ( 
+            model
+        );
         drawDesc.view_id = graphics::render_pass::Main;
         drawDesc.height = m_height;
         drawDesc.width = m_width;
-        drawDesc.camera = _camera;
-        drawDesc.main_character = tempModel;
+        drawDesc.camera = c;
 
-        _renderer->draw_pass(drawDesc);
+        r.draw_pass(drawDesc);
+        profiler.End(profiler::Stage::SceneDraw);
     }
 
-
-    if (_gui->Loop(*this, _renderer->get_imgui_context()))
+    profiler.Begin(profiler::Stage::GuiLoop);
+    if (g.Loop(*this, r.get_imgui_context(), profiler))
     {
         running = false;
         return;
     }
+    profiler.End(profiler::Stage::GuiLoop);
 
-    _renderer->end_frame(_window->GetHandle());
+    profiler.Begin(profiler::Stage::RenderFrame);
+    r.end_frame(window.GetHandle());
+    profiler.End(profiler::Stage::RenderFrame);
 }
 
 void game::run()
 {
-    //// Create profiler
-    //_profiler = std::make_unique<Profiler>();
+    //todo init spdlogger
+    //auto logger = spdlog::basic_logger_mt("default_logger", "logs");
+    //spdlog::set_default_logger(logger);
 
-    //// create our camera
+    sInstance = this;
+
+    //Profiler
+    profiler _profiler;
+
+    //Window
+    game_window _window =  game_window
+    (
+        kWindowTitle + " [" + kBuildStr + "]",
+        m_width,
+        m_height, 
+        display_mode::Windowed
+    );
+
+    //Camera
+    Camera _camera = Camera(glm::vec3(0.0f, 0.0f, 10.0f));
     //_camera = std::make_unique<Camera>();
     //auto aspect = _window ? _window->GetAspectRatio() : 1.0f;
-    //_camera->SetProjectionMatrixPerspective(70.0f, aspect, 1.0f, 65536.0f);
+    //_camera->SetProjectionMatrixPerspective(70.0f, aspect, 1.0f, 65536.0f)
 
-    if (_window)
-    {
-        int width, height;
-        _window->GetSize(width, height);
-        render_command::SetViewport(0, 0, width, height);
-    }
+    //Renderer
+    renderer _renderer = renderer(_window, false);
+
+    //ImGui Gui (harhar)
+    Gui _gui;
+
+    //Temp obj loader - should be moved in future
+    std::filesystem::path current_dir = std::filesystem::current_path();
+    //current_dir.append("res/models/backpack/backpack.obj");
+    current_dir.append("res/models/lizard_wizard/lizard_wizard.obj");
+    Model tempModel = Model(current_dir.generic_u8string());
 
     _frameCount = 0;
     while (running)
     {
+        //Update Profiler
+        _profiler.Frame();
+
         // input
         // -----
-        running = process_events();
-        if (!running) return;
+        running = process_events(_profiler, _renderer, _window, _gui, _camera);
+        if (!running) { shutdown(_renderer, _window);  return; }
 
         // Delta Time
         // ----------
@@ -187,7 +187,7 @@ void game::run()
 
         // Update Systems
         // --------------
-        _camera->Update(delta_time);
+        _camera.Update(delta_time);
 
         // Game Logic Tick
         // ---------------
@@ -202,7 +202,7 @@ void game::run()
 
         // Rendering
         // ---------
-        render(state_current);
+        render(_profiler, state_current, _renderer, _camera, _gui, _window, tempModel);
 
         //lerp between game states
         //const float alpha = _timeSinceLastUpdate / timePerFrame;
@@ -215,18 +215,13 @@ void game::run()
     }
 
     //end
+    //shutdown(_renderer, _window);
 }
 
-void game::shutdown()
+void game::shutdown(renderer& r, game_window& w)
 {
     running = false;
 
-    _renderer->shutdown();
-    _window->Close();
-
-    _gui.reset();
-    _renderer.reset();
-    _window.reset();
-    _camera.reset();
-    _eventManager.reset();
+    r.shutdown();
+    w.Close();
 }

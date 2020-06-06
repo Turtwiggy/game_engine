@@ -16,3 +16,6 @@
 [submodule "./deps/imgui"]
 	path = ./deps/imgui
 	url = https://github.com/ocornut/imgui
+[submodule "deps/imgui-flame-graph"]
+	path = deps/imgui-flame-graph
+	url = https://github.com/bwrsandman/imgui-flame-graph

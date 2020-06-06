@@ -38,40 +38,30 @@ namespace fightinggame
 
         glm::vec3 cube_pos;
 
-        game_state operator*(const game_state& r) const {
-
-            return *this;
+        //todo: how to lerp between game states
+        game_state& lerp(const game_state& other, float percent)
+        {
+            game_state lerped_state = other;
+            return lerped_state;
         }
     };
 
     class game
     {
     public:
-        game();
-
-        bool process_window_input_down(const SDL_Event& event);
-        bool process_events();
+        bool process_window_input_down(const SDL_Event& event, game_window& window);
+        bool process_events(profiler& p, renderer& r, game_window& g, Gui& gui, Camera& c);
         void run();
-
-        game_window* GetWindow() { return _window.get(); }
-        [[nodiscard]] const game_window& GetWindow() const { return *_window; }
-        [[nodiscard]] Camera& GetCamera() const { return *_camera; }
-        [[nodiscard]] profiler& GetProfiler() const { return *_profiler; }
 
     private:
         void tick(float delta_time, game_state& state);    //update game logic
-        void render(game_state& state);
-        void shutdown();
+        void render(profiler& profiler, game_state& state, renderer& r, Camera& c, Gui& g, game_window& window, Model& model);
+        void shutdown(renderer& r, game_window& w);
 
     private:
         static game* sInstance;
 
-        std::unique_ptr<game_window> _window;
-        std::unique_ptr<renderer> _renderer;
-        std::unique_ptr<Gui> _gui;
-        std::shared_ptr<Camera> _camera;
-        std::unique_ptr<profiler> _profiler;
-        std::unique_ptr<event_manager> _eventManager;
+        event_manager _eventManager;
 
         uint32_t _frameCount = 0;
         const float timePerFrame = 1.f / 60.f;
@@ -102,8 +92,5 @@ namespace fightinggame
         //net_set.addrServer.Clear();
         //net_set.addrServer.ParseString("127.0.0.1");
         //net_set.addrServer.m_port = net_set.port;
-
-        //visuals
-        std::shared_ptr<Model> tempModel;
     };
 }

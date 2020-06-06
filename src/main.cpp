@@ -2,9 +2,11 @@
 
 #include <stdio.h>
 
-#include <game.hpp>
+#include "game.h"
 
 #undef main
+
+//physics
 
 //void advance(game_state& state, sf::Time deltaTime)
 //{
@@ -13,6 +15,8 @@
 //
 //    state.physics.step_simulation(deltaTime.asMilliseconds());
 //}
+
+//networking
 
 //void render_ui(sf::RenderWindow& window, game_state& state, network_settings& settings)
 //{
@@ -65,6 +69,8 @@
 //
 //    ImGui::End();
 //}
+
+//rendering physics
 
 ////called as fast as possible
 //void render(sf::RenderWindow& window, game_state& state, network_settings& settings)

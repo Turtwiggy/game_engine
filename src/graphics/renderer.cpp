@@ -62,14 +62,14 @@ namespace fightinggame
 
     static RenderData s_Data;
 
-    void renderer::init_opengl_and_imgui(const game_window* window)
+    void renderer::init_opengl_and_imgui(const game_window& window)
     {
         //OpenGL
-        gl_context = SDL_GL_CreateContext(window->GetHandle());
-        SDL_GL_MakeCurrent(window->GetHandle(), gl_context);
+        gl_context = SDL_GL_CreateContext(window.GetHandle());
+        SDL_GL_MakeCurrent(window.GetHandle(), gl_context);
 
         int width, height;
-        window->GetSize(width, height);
+        window.GetSize(width, height);
         render_command::SetViewport(0, 0, width, height);
 
         if (gl_context == NULL)
@@ -132,11 +132,11 @@ namespace fightinggame
 #endif
 
         // setup platform/renderer bindings
-        ImGui_ImplSDL2_InitForOpenGL(window->GetHandle(), gl_context);
+        ImGui_ImplSDL2_InitForOpenGL(window.GetHandle(), gl_context);
         ImGui_ImplOpenGL3_Init(glsl_version.c_str());
     }
 
-    renderer::renderer(const game_window* window, bool vsync)
+    renderer::renderer(const game_window& window, bool vsync)
     {
         init_opengl_and_imgui(window);
         render_command::Init(); //configure opengl state
@@ -181,8 +181,8 @@ namespace fightinggame
         ImGui::End();
 
         shader->use();
-        glm::mat4 projection = glm::perspective(glm::radians(desc.camera->Zoom), (float)desc.width / (float)desc.height, 0.1f, 100.0f);
-        glm::mat4 view = desc.camera->GetViewMatrix();
+        glm::mat4 projection = glm::perspective(glm::radians(desc.camera.Zoom), (float)desc.width / (float)desc.height, 0.1f, 100.0f);
+        glm::mat4 view = desc.camera.GetViewMatrix();
         glm::mat4 view_projection = projection * view;
         shader->setMat4("projection", projection);
         shader->setMat4("view", view);
@@ -196,7 +196,7 @@ namespace fightinggame
         model = glm::translate(model, glm::vec3(0.0f, 0.0f, 0.0f)); // translate it down so it's at the center of the scene
         model = glm::scale(model, glm::vec3(1.0f, 1.0f, 1.0f));	// it's a bit too big for our scene, so scale it down
         shader->setMat4("model", model);
-        desc.main_character->Draw(*shader);
+        desc.main_character.Draw(*shader);
 
         //s_Data.CubeIndexCount = 0;
         //s_Data.CubeVertexBufferPtr = s_Data.CubeVertexBufferBase;

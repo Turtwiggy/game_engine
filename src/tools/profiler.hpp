@@ -15,11 +15,12 @@ public:
     enum class Stage : uint8_t
     {
         SdlInput,
-        UpdateUniforms,
-        UpdateEntities,
+        NewFrame,
+        //UpdateUniforms,
+        //UpdateEntities,
         GuiLoop,
         SceneDraw,
-        MainPass,
+        //MainPass,
         RenderFrame,
 
         _count,
@@ -51,11 +52,12 @@ public:
 
     static constexpr std::array<std::string_view, static_cast<uint8_t>(Stage::_count)> stageNames = {
         "SDL Input",
-        "Update Uniforms",
-        "Update Entities",
+        "New Frame",
+        //"Update Uniforms",
+        //"Update Entities",
         "GUI Loop",
         "Scene Draw",
-        "Main Pass",
+        //"Main Pass",
         "Renderer Frame",
     };
 

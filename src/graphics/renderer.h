@@ -38,12 +38,17 @@ namespace fightinggame {
             graphics::render_pass view_id;
             int height;
             int width;
-            std::shared_ptr<Camera> camera;
-            std::shared_ptr<Model> main_character;
+            Camera camera;
+            Model& main_character;
+
+            draw_scene_desc(Model& model)
+                : main_character(model)
+            {
+            }
         };
 
         renderer() = delete;
-        explicit renderer(const game_window* window, bool vsync);
+        explicit renderer(const game_window& window, bool vsync);
 
         static renderer_api::API get_api() { return renderer_api::GetAPI(); }
 
@@ -56,7 +61,7 @@ namespace fightinggame {
 
         ImGuiContext* get_imgui_context() { return _imgui; }
 
-        void init_opengl_and_imgui(const game_window* window);
+        void init_opengl_and_imgui(const game_window& window);
         SDL_GLContext get_gl_context() { return gl_context; }
 
         void shutdown();

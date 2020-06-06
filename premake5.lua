@@ -20,6 +20,7 @@ outputdir = "%{cfg.buildcfg}-%{cfg.system}-%{cfg.architecture}"
 IncludeDir = {}
 IncludeDir["ImGui"] = "deps/imgui"
 IncludeDir["ImGui2"] = "deps/imgui/examples"
+IncludeDir["ImGui3"] = "deps/imgui-flame-graph/"
 IncludeDir["ggpo"]  = "deps/ggpo/src/include"
 IncludeDir["GameNetworkingSockets"] = "deps/gamenetworkingsockets/include"
  
@@ -30,6 +31,7 @@ ImguiSourceFiles["imgui3"] = "deps/imgui/examples/imgui_impl_opengl3.cpp"
 ImguiSourceFiles["imgui4"] = "deps/imgui/imgui.cpp"
 ImguiSourceFiles["imgui5"] = "deps/imgui/imgui_draw.cpp"
 ImguiSourceFiles["imgui6"] = "deps/imgui/imgui_demo.cpp"
+ImguiSourceFiles["imgui7"] = "deps/imgui-flame-graph/imgui_widget_flamegraph.cpp"
 
 project "FightingGameMain"
     location "."
@@ -56,6 +58,7 @@ project "FightingGameMain"
         "%{ImguiSourceFiles.imgui4}",
         "%{ImguiSourceFiles.imgui5}",
         "%{ImguiSourceFiles.imgui6}",
+        "%{ImguiSourceFiles.imgui7}",
     }
 
     defines{
@@ -67,6 +70,7 @@ project "FightingGameMain"
         "src",
         "%{IncludeDir.ImGui}",
         "%{IncludeDir.ImGui2}",
+        "%{IncludeDir.ImGui3}",
         "%{IncludeDir.ggpo}",
         "%{IncludeDir.GameNetworkingSockets}",
         -- "/mingw64/include/freetype2"

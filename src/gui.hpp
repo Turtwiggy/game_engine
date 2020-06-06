@@ -1,16 +1,10 @@
-/*****************************************************************************
- * Copyright (c) 2018-2020 openblack developers
- *
- * For a complete list of all authors, please refer to contributors.md
- * Interested in contributing? Visit https://github.com/openblack/openblack
- *
- * openblack is licensed under the GNU General Public License version 3.
- *****************************************************************************/
-
 #pragma once
 
 #include "graphics/render_pass.h"
 #include "graphics/renderer.h"
+#include "window/game_window.h"
+#include "graphics/renderer.h"
+#include "tools/profiler.hpp"
 
 #include <imgui.h>
 
@@ -23,11 +17,11 @@ union SDL_Event;
 
 namespace fightinggame
 {
-	//class Console;
 	class game;
-	class game_window;
+	//class Console;
+	//class game_window;
 	//class MeshViewer;
-	class renderer;
+	//class renderer;
 
 	class Gui
 	{
@@ -35,7 +29,7 @@ namespace fightinggame
 		Gui();
 
 		bool ProcessEventSdl2(const SDL_Event& event, ImGuiContext* imgui);
-		bool Loop(game& game, ImGuiContext* imgui);
+		bool Loop(game& game, ImGuiContext* imgui, profiler& profiler);
 
 	private:
 
@@ -43,7 +37,8 @@ namespace fightinggame
 		static void StaticSetClipboardText(void* ud, const char* text) { reinterpret_cast<Gui*>(ud)->SetClipboardText(text); }
 		const char* GetClipboardText();
 		void SetClipboardText(const char* text);
-		void ShowProfilerWindow();
+
+		void ShowProfilerWindow(game& game, profiler& profiler);
 
 		template <typename T, uint8_t N>
 		struct CircularBuffer
@@ -71,4 +66,4 @@ namespace fightinggame
 		int64_t _last;
 		int32_t _lastScroll;
 	};
-} // namespace fightinggame
+}
