@@ -37,6 +37,7 @@ namespace fightinggame
 		void GrabInput(bool b = true);
 		void SetMousePosition(int x, int y);
 		[[nodiscard]] bool IsInputGrabbed() const;
+		void ToggleMouseCaptured();
 		[[nodiscard]] float GetAspectRatio() const;
 
 		void SetTitle(const std::string& str);
@@ -53,8 +54,6 @@ namespace fightinggame
 		void GetMinimumSize(int& width, int& height) const;
 		void SetMaximumSize(int width, int height);
 		void GetMaximumSize(int& width, int& height) const;
-		void SetMouseCaptured(bool b);
-		void ToggleMouseCaptured();
 
 		void Minimise();
 		void Maximise();

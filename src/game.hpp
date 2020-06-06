@@ -14,12 +14,14 @@
 //#include <entt/entt.hpp>
 
 #include "gui.hpp"
-#include "physics/physics_example.hpp""
-#include "window/game_window.h"
-#include "graphics/renderer.h"
-#include "common/event_manager.h"
 #include "3d/camera.h"
+#include "common/event_manager.h"
+#include "graphics/renderer.h"
+#include "tools/profiler.hpp"
+#include "window/game_window.h"
 
+//placeholder systems
+#include "physics/physics_example.hpp""
 #include "audio/audio_player.hpp"
 #include "networking/networking_common.hpp"
 #include "networking/network_settings.hpp"
@@ -53,6 +55,8 @@ namespace fightinggame
 
         game_window* GetWindow() { return _window.get(); }
         [[nodiscard]] const game_window& GetWindow() const { return *_window; }
+        [[nodiscard]] Camera& GetCamera() const { return *_camera; }
+        [[nodiscard]] profiler& GetProfiler() const { return *_profiler; }
 
     private:
         void tick(float delta_time, game_state& state);    //update game logic
@@ -66,12 +70,13 @@ namespace fightinggame
         std::unique_ptr<renderer> _renderer;
         std::unique_ptr<Gui> _gui;
         std::shared_ptr<Camera> _camera;
-        //std::unique_ptr<Profiler> _profiler;
+        std::unique_ptr<profiler> _profiler;
         std::unique_ptr<event_manager> _eventManager;
 
         uint32_t _frameCount = 0;
         const float timePerFrame = 1.f / 60.f;
         float _timeSinceLastUpdate = 0;
+        bool mouse_grabbed = true;
 
         //glm::ivec2 _mousePosition;
 

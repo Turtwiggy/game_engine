@@ -43,6 +43,7 @@ namespace fightinggame
 		static void StaticSetClipboardText(void* ud, const char* text) { reinterpret_cast<Gui*>(ud)->SetClipboardText(text); }
 		const char* GetClipboardText();
 		void SetClipboardText(const char* text);
+		void ShowProfilerWindow();
 
 		template <typename T, uint8_t N>
 		struct CircularBuffer

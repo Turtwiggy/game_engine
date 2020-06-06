@@ -35,6 +35,8 @@ game::game()
 
     sInstance = this;
 
+    _profiler = std::make_unique<profiler>();
+
     // create our camera
     _camera = std::make_unique<Camera>(glm::vec3(0.0f, 0.0f, 10.0f));
 
@@ -88,13 +90,18 @@ bool game::process_events()
     SDL_Event e;
     while (SDL_PollEvent(&e))
     {
+        auto sdlInput = _profiler->BeginScoped(profiler::Stage::SdlInput);
+            
         //_eventManager->Create<SDL_Event>(e);
 
         // If gui captures this input, do not propagate
         if (!this->_gui->ProcessEventSdl2(e, _renderer->get_imgui_context()))
         {
-            this->_camera->ProcessEvents(e);
+            //Update camera when mouse is grabbed
+            if(_window->IsInputGrabbed())
+                this->_camera->ProcessEvents(e);
 
+            //Other window events
             if (e.type == SDL_QUIT)
                 return false;
             else if (e.type == SDL_WINDOWEVENT

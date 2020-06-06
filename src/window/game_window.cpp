@@ -296,12 +296,10 @@ void game_window::Close()
 	_window.reset(nullptr);
 }
 
-void game_window::SetMouseCaptured(bool b)
-{
-	SDL_CaptureMouse( b ? SDL_TRUE : SDL_FALSE);
-}
-
+//returns true if mouse is grabbed, false if it available
 void game_window::ToggleMouseCaptured()
 {
-	GrabInput(!IsInputGrabbed());
+	bool grabbed = !IsInputGrabbed();
+	SDL_SetRelativeMouseMode(grabbed ? SDL_TRUE : SDL_FALSE);
+	GrabInput(grabbed);
 }
