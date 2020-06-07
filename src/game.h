@@ -53,6 +53,8 @@ namespace fightinggame
         bool process_events(profiler& p, renderer& r, game_window& g, Gui& gui, Camera& c);
         void run();
 
+        float get_average_fps() { return average_fps; }
+
     private:
         void tick(float delta_time, game_state& state);    //update game logic
         void render(profiler& profiler, game_state& state, renderer& r, Camera& c, Gui& g, game_window& window, Model& model);
@@ -61,12 +63,14 @@ namespace fightinggame
     private:
         static game* sInstance;
 
-        event_manager _eventManager;
+        //event_manager _eventManager;
 
         uint32_t _frameCount = 0;
         const float timePerFrame = 1.f / 60.f;
         float _timeSinceLastUpdate = 0;
+
         bool mouse_grabbed = true;
+        float average_fps = 0;
 
         //glm::ivec2 _mousePosition;
 

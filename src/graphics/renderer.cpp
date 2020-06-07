@@ -93,8 +93,8 @@ namespace fightinggame
         IMGUI_CHECKVERSION();
         _imgui = ImGui::CreateContext();
         ImGuiIO& io = ImGui::GetIO(); (void)io;
-        io.ConfigFlags |= ImGuiConfigFlags_DockingEnable;           // Enable Docking
-        io.ConfigFlags |= ImGuiConfigFlags_ViewportsEnable;         // Enable Multi-Viewport / Platform Windows
+        //io.ConfigFlags |= ImGuiConfigFlags_DockingEnable;           // Enable Docking
+        //io.ConfigFlags |= ImGuiConfigFlags_ViewportsEnable;         // Enable Multi-Viewport / Platform Windows
 
         ImGui::StyleColorsDark();
 
@@ -176,8 +176,8 @@ namespace fightinggame
         render_command::SetClearColor(glm::vec4(0.2f, 0.3f, 0.3f, 1.0f));
         render_command::Clear();
 
-        ImGui::Begin("Hello Second");
-        ImGui::Button("Hello Second button");
+        ImGui::Begin("Hello from the renderer");
+        ImGui::Button("Hello button");
         ImGui::End();
 
         shader->use();

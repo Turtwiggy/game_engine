@@ -7,7 +7,7 @@
 [submodule "deps/gamenetworkingsockets"]
 	path = deps/gamenetworkingsockets
 	url = https://github.com/ValveSoftware/GameNetworkingSockets.git
-# [submodule "deps/entt"]
+# [submodule "deps/entt"] - in vcpkg
 # 	path = deps/entt
 # 	url = https://github.com/skypjack/entt
 [submodule "deps/vcpkg"]
@@ -16,6 +16,3 @@
 [submodule "./deps/imgui"]
 	path = ./deps/imgui
 	url = https://github.com/ocornut/imgui
-[submodule "deps/imgui-flame-graph"]
-	path = deps/imgui-flame-graph
-	url = https://github.com/bwrsandman/imgui-flame-graph

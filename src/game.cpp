@@ -56,7 +56,7 @@ bool game::process_events(profiler& p, renderer& r, game_window& g, Gui& gui, Ca
     SDL_Event e;
     while (SDL_PollEvent(&e))
     {
-        p.Begin(profiler::Stage::SdlInput);
+        p.BeginScoped(profiler::Stage::SdlInput);
             
         //_eventManager->Create<SDL_Event>(e);
 
@@ -81,12 +81,11 @@ bool game::process_events(profiler& p, renderer& r, game_window& g, Gui& gui, Ca
                 return process_window_input_down(e, g);
             }
         }
-
-        p.End(profiler::Stage::SdlInput);
     }
 
     return true;
 }
+
 //Called X ticks per second
 void game::tick(float delta_time, game_state& state)
 {
@@ -97,12 +96,13 @@ void game::tick(float delta_time, game_state& state)
 
 void game::render(profiler& profiler, game_state& state, renderer& r, Camera& c, Gui& g, game_window& window, Model& model)
 {
-    profiler.Begin(profiler::Stage::NewFrame);
-    r.new_frame(window.GetHandle());
-    profiler.End(profiler::Stage::NewFrame);
+    {
+        profiler.BeginScoped(profiler::Stage::NewFrame);
+        r.new_frame(window.GetHandle());
+    }
 
     {
-        profiler.Begin(profiler::Stage::SceneDraw);
+        profiler.BeginScoped(profiler::Stage::SceneDraw);
         renderer::draw_scene_desc drawDesc
         ( 
             model
@@ -113,32 +113,32 @@ void game::render(profiler& profiler, game_state& state, renderer& r, Camera& c,
         drawDesc.camera = c;
 
         r.draw_pass(drawDesc);
-        profiler.End(profiler::Stage::SceneDraw);
     }
 
-    profiler.Begin(profiler::Stage::GuiLoop);
-    if (g.Loop(*this, r.get_imgui_context(), profiler))
     {
-        running = false;
-        return;
+        profiler.BeginScoped(profiler::Stage::GuiLoop);
+        if (g.Loop(*this, r.get_imgui_context(), profiler))
+        {
+            running = false;
+            return;
+        }
     }
-    profiler.End(profiler::Stage::GuiLoop);
 
-    profiler.Begin(profiler::Stage::RenderFrame);
-    r.end_frame(window.GetHandle());
-    profiler.End(profiler::Stage::RenderFrame);
+    {
+        profiler.BeginScoped(profiler::Stage::RenderFrame);
+        r.end_frame(window.GetHandle());
+    }
 }
 
 void game::run()
 {
-    //todo init spdlogger
-    //auto logger = spdlog::basic_logger_mt("default_logger", "logs");
-    //spdlog::set_default_logger(logger);
-
     sInstance = this;
+
+    //todo init spdlogger
 
     //Profiler
     profiler _profiler;
+    printf("profiler taking up: %s bytes \n", std::to_string(sizeof(profiler)));
 
     //Window
     game_window _window =  game_window
@@ -148,30 +148,37 @@ void game::run()
         m_height, 
         display_mode::Windowed
     );
+    printf("game window taking up: %s bytes \n", std::to_string(sizeof(game_window)));
 
     //Camera
     Camera _camera = Camera(glm::vec3(0.0f, 0.0f, 10.0f));
+    printf("camera taking up: %s bytes \n", std::to_string(sizeof(Camera)));
+
     //_camera = std::make_unique<Camera>();
     //auto aspect = _window ? _window->GetAspectRatio() : 1.0f;
     //_camera->SetProjectionMatrixPerspective(70.0f, aspect, 1.0f, 65536.0f)
 
     //Renderer
     renderer _renderer = renderer(_window, false);
+    printf("renderer taking up: %s bytes \n", std::to_string(sizeof(renderer)));
 
     //ImGui Gui (harhar)
     Gui _gui;
+    printf("Gui taking up: %s bytes \n", std::to_string(sizeof(Gui)));
 
     //Temp obj loader - should be moved in future
     std::filesystem::path current_dir = std::filesystem::current_path();
     //current_dir.append("res/models/backpack/backpack.obj");
     current_dir.append("res/models/lizard_wizard/lizard_wizard.obj");
     Model tempModel = Model(current_dir.generic_u8string());
+    printf("Model taking up: %s bytes \n", std::to_string(sizeof(Model)));
 
     _frameCount = 0;
     while (running)
     {
         //Update Profiler
         _profiler.Frame();
+        _profiler.BeginScoped(profiler::Stage::UpdateLoop);
 
         // input
         // -----
@@ -182,7 +189,7 @@ void game::run()
         // ----------
         ImGuiIO& io = ImGui::GetIO();
         float delta_time = io.DeltaTime;
-        //printf("delta_time %f \n", delta_time);
+        printf("delta_time %f \n", delta_time);
         _timeSinceLastUpdate += delta_time;
 
         // Update Systems
@@ -211,6 +218,7 @@ void game::run()
 
         _frameCount++;
         state_current.frame = _frameCount;
+        average_fps = 1.0f / delta_time;
         //printf("frame count: %f", _frameCount);
     }
 

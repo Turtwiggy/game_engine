@@ -36,8 +36,8 @@ namespace fightinggame {
         struct draw_scene_desc
         {
             graphics::render_pass view_id;
-            int height;
-            int width;
+            int height = 0;
+            int width = 0;
             Camera camera;
             Model& main_character;
 

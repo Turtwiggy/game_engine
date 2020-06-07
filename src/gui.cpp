@@ -5,7 +5,6 @@
 #include "window/game_window.h"
 
 #include <imgui.h>
-#include <imgui_widget_flamegraph.h>
 #include <examples/imgui_impl_sdl.h>
 #ifdef _WIN32
 #include <SDL2/SDL_syswm.h>
@@ -129,39 +128,27 @@ void Gui::ShowProfilerWindow(game& game, profiler& profiler)
     ImGui::Begin("Profiler");
 
     ImGui::Columns(1);
+    ImGui::Text("FPS: %f", game.get_average_fps());
 
-    auto width = ImGui::GetColumnWidth() - ImGui::CalcTextSize("Frame").x;
+    ImGui::Columns(1);
 
-    auto& entry = profiler._entries[profiler.GetEntryIndex(-1)];
+    float draw_time = profiler.GetTime(profiler::Stage::SdlInput);
+    ImGui::Text("%s %f ms", profiler.stageNames[(int)profiler::Stage::SdlInput].data(), (draw_time));
 
-    ImGuiWidgetFlameGraph::PlotFlame(
-        "CPU",
-        [](float* startTimestamp, float* endTimestamp, ImU8* level, const char** caption, const void* data,
-            int idx) -> void {
-                auto entry = reinterpret_cast<const profiler::Entry*>(data);
-                auto& stage = entry->_stages[idx];
-                if (startTimestamp)
-                {
-                    std::chrono::duration<float, std::milli> fltStart = stage._start - entry->_frameStart;
-                    *startTimestamp = fltStart.count();
-                }
-                if (endTimestamp)
-                {
-                    *endTimestamp = stage._end.time_since_epoch().count() / 1e6f;
+    draw_time = profiler.GetTime(profiler::Stage::NewFrame);
+    ImGui::Text("%s %f ms", profiler.stageNames[(int)profiler::Stage::NewFrame].data(), (draw_time));
 
-                    std::chrono::duration<float, std::milli> fltEnd = stage._end - entry->_frameStart;
-                    *endTimestamp = fltEnd.count();
-                }
-                if (level)
-                {
-                    *level = stage._level;
-                }
-                if (caption)
-                {
-                    *caption = profiler::stageNames[idx].data();
-                }
-        },
-        &entry, static_cast<uint8_t>(profiler::Stage::_count), 0, "Main Thread", 0, FLT_MAX, ImVec2(width, 0));
+    draw_time = profiler.GetTime(profiler::Stage::GuiLoop);
+    ImGui::Text("%s % fms", profiler.stageNames[(int)profiler::Stage::GuiLoop].data(), (draw_time));
+
+    draw_time = profiler.GetTime(profiler::Stage::SceneDraw);
+    ImGui::Text("%s %f ms", profiler.stageNames[(int)profiler::Stage::SceneDraw].data(), (draw_time));
+
+    draw_time = profiler.GetTime(profiler::Stage::RenderFrame);
+    ImGui::Text("%s % fms", profiler.stageNames[(int)profiler::Stage::RenderFrame].data(), (draw_time));
+
+    draw_time = profiler.GetTime(profiler::Stage::UpdateLoop);
+    ImGui::Text("%s % fms", profiler.stageNames[(int)profiler::Stage::UpdateLoop].data(), (draw_time));
 
     ImGui::End();
 }

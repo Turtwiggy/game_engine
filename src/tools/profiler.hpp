@@ -20,8 +20,8 @@ public:
         //UpdateEntities,
         GuiLoop,
         SceneDraw,
-        //MainPass,
         RenderFrame,
+        UpdateLoop,
 
         _count,
     };
@@ -57,8 +57,8 @@ public:
         //"Update Entities",
         "GUI Loop",
         "Scene Draw",
-        //"Main Pass",
         "Renderer Frame",
+        "Update Loop",
     };
 
     struct Entry
@@ -75,7 +75,22 @@ public:
 
     [[nodiscard]] uint8_t GetEntryIndex(int8_t offset) const { return (_currentEntry + _bufferSize + offset) % _bufferSize; }
 
-    static constexpr uint8_t _bufferSize = 100;
+    //returns milliseconds the profiler stage took
+    float GetTime(Stage request)
+    {
+        auto& entry = _entries[GetEntryIndex(-1)];
+        auto& stage = entry._stages[(int)request];
+
+        std::chrono::duration<float, std::milli> fltStart = stage._start - entry._frameStart;
+        float startTimestamp = fltStart.count();
+
+        std::chrono::duration<float, std::milli> fltEnd = stage._end - entry._frameStart;
+        float endTimestamp = fltEnd.count();
+
+        return (endTimestamp - startTimestamp);
+    }
+
+    static constexpr uint8_t _bufferSize = 20;
     std::array<Entry, _bufferSize> _entries;
 
 private:
