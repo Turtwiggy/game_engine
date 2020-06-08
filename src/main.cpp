@@ -3,8 +3,7 @@
 #include <stdio.h>
 
 #include "game.h"
-
-#undef main
+#undef main //thanks sdl2
 
 //physics
 
@@ -115,8 +114,8 @@ int main()
         "=================\n"
         "\n";
 
-    auto game = std::make_unique<fightinggame::game>();
-    game->run();
+    fightinggame::game game;
+    game.run();
 
     return 1;
 }

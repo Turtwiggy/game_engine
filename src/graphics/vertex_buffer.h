@@ -30,7 +30,7 @@ namespace fightinggame {
 		case shader_data_type::Bool:     return 1;
 		}
 
-		assert(false, "unknown shaderdatatype");
+		assert(false); //"unknown shaderdatatype"
 		return 0;
 	}
 
@@ -66,7 +66,7 @@ namespace fightinggame {
 			case shader_data_type::Bool:    return 1;
 			}
 
-			assert(false, "Unknown ShaderDataType!");
+			assert(false); //"unknown shaderdatatype"
 			return 0;
 		}
 	};

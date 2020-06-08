@@ -133,22 +133,22 @@ void Gui::ShowProfilerWindow(game& game, profiler& profiler)
     ImGui::Columns(1);
 
     float draw_time = profiler.GetTime(profiler::Stage::SdlInput);
-    ImGui::Text("%s %f ms", profiler.stageNames[(int)profiler::Stage::SdlInput].data(), (draw_time));
+    ImGui::Text("%s %f ms", profiler.stageNames[(uint8_t)profiler::Stage::SdlInput].data(), (draw_time));
 
     draw_time = profiler.GetTime(profiler::Stage::NewFrame);
-    ImGui::Text("%s %f ms", profiler.stageNames[(int)profiler::Stage::NewFrame].data(), (draw_time));
+    ImGui::Text("%s %f ms", profiler.stageNames[(uint8_t)profiler::Stage::NewFrame].data(), (draw_time));
 
     draw_time = profiler.GetTime(profiler::Stage::GuiLoop);
-    ImGui::Text("%s % fms", profiler.stageNames[(int)profiler::Stage::GuiLoop].data(), (draw_time));
+    ImGui::Text("%s % fms", profiler.stageNames[(uint8_t)profiler::Stage::GuiLoop].data(), (draw_time));
 
     draw_time = profiler.GetTime(profiler::Stage::SceneDraw);
-    ImGui::Text("%s %f ms", profiler.stageNames[(int)profiler::Stage::SceneDraw].data(), (draw_time));
+    ImGui::Text("%s %f ms", profiler.stageNames[(uint8_t)profiler::Stage::SceneDraw].data(), (draw_time));
 
     draw_time = profiler.GetTime(profiler::Stage::RenderFrame);
-    ImGui::Text("%s % fms", profiler.stageNames[(int)profiler::Stage::RenderFrame].data(), (draw_time));
+    ImGui::Text("%s % fms", profiler.stageNames[(uint8_t)profiler::Stage::RenderFrame].data(), (draw_time));
 
     draw_time = profiler.GetTime(profiler::Stage::UpdateLoop);
-    ImGui::Text("%s % fms", profiler.stageNames[(int)profiler::Stage::UpdateLoop].data(), (draw_time));
+    ImGui::Text("%s % fms", profiler.stageNames[(uint8_t)profiler::Stage::UpdateLoop].data(), (draw_time));
 
     ImGui::End();
 }

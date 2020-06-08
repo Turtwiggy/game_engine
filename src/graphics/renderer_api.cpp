@@ -11,11 +11,11 @@ namespace fightinggame {
 	{
 		switch (s_API)
 		{
-		case renderer_api::API::None:    assert(false, "RendererAPI::None is currently not supported!"); return nullptr;
+		case renderer_api::API::None:    assert(false); /*"RendererAPI::None is currently not supported!" */ return nullptr;
 		case renderer_api::API::OpenGL:  return CreateScope<opengl_renderer_api>();
 		}
 
-		assert(false, "Unknown renderer API");
+		assert(false); //unknown renderer api
 		return nullptr;
 	}
 }

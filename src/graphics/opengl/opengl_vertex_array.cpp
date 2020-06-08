@@ -21,7 +21,7 @@ namespace fightinggame {
 		case shader_data_type::Bool:     return GL_BOOL;
 		}
 
-		assert(false, "Unknown ShaderDataType!");
+		assert(false); // "Unknown ShaderDataType!"
 		return 0;
 	}
 
@@ -47,7 +47,7 @@ namespace fightinggame {
 
 	void opengl_vertex_array::AddVertexBuffer(const Ref<vertex_buffer>& vertexBuffer)
 	{
-		assert(vertexBuffer->GetLayout().GetElements().size(), "Vertex Buffer has no layout!");
+		assert(vertexBuffer->GetLayout().GetElements().size()); // "Vertex Buffer has no layout!"
 
 		glBindVertexArray(m_RendererID);
 		vertexBuffer->Bind();
@@ -96,7 +96,7 @@ namespace fightinggame {
 				break;
 			}
 			default:
-				assert(false, "Unknown ShaderDataType!");
+				assert(false); // "Unknown ShaderDataType!"
 			}
 		}
 

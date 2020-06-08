@@ -27,15 +27,6 @@ using namespace fightinggame::graphics;
 
 namespace fightinggame
 {
-    struct CubeVertex
-    {
-        glm::vec3 Position;
-        glm::vec4 Color;
-        glm::vec2 TexCoord;
-        float TexIndex;
-        float TilingFactor;
-    };
-
     struct RenderData
     {
         static const uint32_t MaxCubes = 20000;
@@ -49,8 +40,8 @@ namespace fightinggame
         //Ref<Texture2D> Texture;
 
         uint32_t CubeIndexCount = 0;
-        CubeVertex* CubeVertexBufferBase = nullptr;
-        CubeVertex* CubeVertexBufferPtr = nullptr;
+        Vertex* CubeVertexBufferBase = nullptr;
+        Vertex* CubeVertexBufferPtr = nullptr;
 
         //std::array<Ref<Texture2D>, MaxTextureSlots> TextureSlots;
         //uint32_t TextureSlotIndex = 1; // 0 = white texture
@@ -150,16 +141,22 @@ namespace fightinggame
         // uncomment this call to draw in wireframe polygons.
         //glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
 
-        s_Data.CubeVertexArray = vertex_array::Create();
-        s_Data.CubeVertexBuffer = vertex_buffer::Create(s_Data.MaxVertices * sizeof(BASIC_CUBE));
-        s_Data.CubeVertexBuffer->SetLayout
-        ({
-            { shader_data_type::Float3, "aPos" },
-            { shader_data_type::Float2, "aTexCoord" },
-            });
-        s_Data.CubeVertexArray->AddVertexBuffer(s_Data.CubeVertexBuffer);
+        //std::vector<Vertex> vertices = BASIC_CUBE;
+        //std::vector<unsigned int> indicies;
+        //std::vector<Texture> textures;
+        //Mesh cube(vertices, indicies, textures);
+        //cube.setupMesh();
 
-        s_Data.CubeVertexBufferBase = new CubeVertex[s_Data.MaxVertices];
+        //s_Data.CubeVertexArray = vertex_array::Create();
+        //s_Data.CubeVertexBuffer = vertex_buffer::Create(s_Data.MaxVertices * sizeof(BASIC_CUBE));
+        //s_Data.CubeVertexBuffer->SetLayout
+        //({
+        //    { shader_data_type::Float3, "aPos" },
+        //    { shader_data_type::Float2, "aTexCoord" },
+        //    });
+        //s_Data.CubeVertexArray->AddVertexBuffer(s_Data.CubeVertexBuffer);
+
+        //s_Data.CubeVertexBufferBase = new CubeVertex[s_Data.MaxVertices];
 
         //todo sort out indices 
 
@@ -196,7 +193,9 @@ namespace fightinggame
         model = glm::translate(model, glm::vec3(0.0f, 0.0f, 0.0f)); // translate it down so it's at the center of the scene
         model = glm::scale(model, glm::vec3(1.0f, 1.0f, 1.0f));	// it's a bit too big for our scene, so scale it down
         shader->setMat4("model", model);
-        desc.main_character.Draw(*shader);
+
+        desc.main_character.Draw(*shader); //wizard
+        //desc.models[1].Draw(*shader); //cube
 
         //s_Data.CubeIndexCount = 0;
         //s_Data.CubeVertexBufferPtr = s_Data.CubeVertexBufferBase;
@@ -248,8 +247,8 @@ namespace fightinggame
             s_Data.CubeVertexBufferPtr->Position = transform * glm::vec4(1.0, 1.0, 1.0, 1.0); /* * BASIC_CUBE[i] */
             //s_Data.CubeVertexBufferPtr->Color = color;
             //s_Data.CubeVertexBufferPtr->TexCoord = textureCoords[i];
-            s_Data.CubeVertexBufferPtr->TexIndex = textureIndex;
-            s_Data.CubeVertexBufferPtr->TilingFactor = tilingFactor;
+            //s_Data.CubeVertexBufferPtr->TexIndex = textureIndex;
+            //s_Data.CubeVertexBufferPtr->TilingFactor = tilingFactor;
             s_Data.CubeVertexBufferPtr++;
         }
 
@@ -263,7 +262,8 @@ namespace fightinggame
         //glDrawArrays(GL_TRIANGLES, 0, 36);
 
         //s_Data.CubeIndexCount += 30;
-        s_Data.Stats.QuadCount++;
+
+        //s_Data.Stats.QuadCount++;
 
         return;
     }

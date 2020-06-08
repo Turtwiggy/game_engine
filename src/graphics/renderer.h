@@ -2,11 +2,11 @@
 
 #include "window/game_window.h"
 
+#include "3d/assimp_obj_loader.h"
+#include "3d/camera.h"
 #include "graphics/renderer_api.h"
 #include "graphics/render_pass.h"
 #include "graphics/shader.h"
-#include "3d/camera.h"
-#include "3d/assimp_obj_loader.h"
 
 #include <SDL2/SDL.h>
 #include <imgui.h>
@@ -19,16 +19,6 @@
 
 namespace fightinggame {
 
-    constexpr std::array shaders{
-        NULL
-        //ShaderDefinition {"DebugLine", "vs_line", "fs_line"},
-        //ShaderDefinition {"DebugLineInstanced", "vs_line_instanced", "fs_line"},
-        //ShaderDefinition {"Terrain", "vs_terrain", "fs_terrain"},
-        //ShaderDefinition {"Object", "vs_object", "fs_object"},
-        //ShaderDefinition {"ObjectInstanced", "vs_object_instanced", "fs_object"},
-        //ShaderDefinition {"Water", "vs_water", "fs_water"},
-    };
-
     class renderer
     {
     public:
@@ -39,10 +29,10 @@ namespace fightinggame {
             int height = 0;
             int width = 0;
             Camera camera;
-            Model& main_character;
+            Model &main_character;
 
-            draw_scene_desc(Model& model)
-                : main_character(model)
+            draw_scene_desc(Model &m1)
+                : main_character(m1)
             {
             }
         };
@@ -84,15 +74,12 @@ namespace fightinggame {
         struct Statistics
         {
             uint32_t DrawCalls = 0;
-            uint32_t QuadCount = 0;
+            uint32_t CubeCount = 0;
 
-            uint32_t GetTotalVertexCount() { return QuadCount * 4; }
-            uint32_t GetTotalIndexCount() { return QuadCount * 6; }
+            uint32_t GetTotalVertexCount() { return CubeCount * 30; }
+            uint32_t GetTotalIndexCount() { return CubeCount * 36; }
         };
         static void reset_stats();
         static Statistics get_stats();
     };
-
-   
-
 }

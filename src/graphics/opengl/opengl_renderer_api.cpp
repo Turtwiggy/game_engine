@@ -21,7 +21,7 @@ namespace fightinggame {
 		//case GL_DEBUG_SEVERITY_NOTIFICATION: CORE_TRACE(message); return;
 		//}
 
-		assert(false, "Unknown severity level!");
+		assert(false); //unknown severity level
 	}
 
 	void opengl_renderer_api::Init()

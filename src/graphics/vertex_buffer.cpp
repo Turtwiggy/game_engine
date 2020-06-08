@@ -14,7 +14,7 @@ namespace fightinggame {
 		case renderer_api::API::OpenGL:  return CreateRef<opengl_vertex_buffer>(size);
 		}
 
-		assert(false, "Unknown RendererAPI!");
+		assert(false); //unknown renderer api
 		return nullptr;
 	}
 
@@ -26,7 +26,7 @@ namespace fightinggame {
 		case renderer_api::API::OpenGL:  return CreateRef<opengl_vertex_buffer>(vertices, size);
 		}
 
-		assert(false, "Unknown RendererAPI!");
+		assert(false); //unknown renderer api
 		return nullptr;
 	}
 
@@ -38,7 +38,7 @@ namespace fightinggame {
 		case renderer_api::API::OpenGL:  return CreateRef<opengl_index_buffer>(indices, size);
 		}
 
-		assert(false, "Unknown RendererAPI!");
+		assert(false); //unknown renderer api
 		return nullptr;
 	}
 

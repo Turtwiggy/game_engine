@@ -3,6 +3,9 @@
 #ifndef CAMERA_H
 #define CAMERA_H
 
+#pragma warning( push )
+#pragma warning( disable : 4244 )
+
 #include <glm/glm.hpp>
 #include <glm/gtc/matrix_transform.hpp>
 #include <GL\glew.h>
@@ -209,4 +212,7 @@ private:
     }
 
 };
+
+#pragma warning( pop )
+
 #endif

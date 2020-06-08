@@ -39,11 +39,11 @@ namespace fightinggame
         glm::vec3 cube_pos;
 
         //todo: how to lerp between game states
-        game_state& lerp(const game_state& other, float percent)
-        {
-            game_state lerped_state = other;
-            return lerped_state;
-        }
+        //game_state& lerp(const game_state& other, float percent)
+        //{
+        //    game_state lerped_state = other;
+        //    return lerped_state;
+        //}
     };
 
     class game
@@ -56,27 +56,44 @@ namespace fightinggame
         float get_average_fps() { return average_fps.average(); }
 
     private:
-        void tick(float delta_time, game_state& state);    //update game logic
-        void render(profiler& profiler, game_state& state, renderer& r, Camera& c, Gui& g, game_window& window, Model& model);
+        void tick(float delta_time, game_state& state, Camera& camera);    //update game logic
+        void render
+        (
+            profiler& profiler,
+            game_state& state,
+            renderer& r,
+            Camera& c,
+            Gui& g,
+            game_window& window,
+            std::vector<std::reference_wrapper<Model>>& models
+        );
         void shutdown(renderer& r, game_window& w);
 
     private:
         static game* sInstance;
         
         //delta time metrics
-        const float timePerFrame = 1.f / 60.f;
-        Uint64 now = 0;
-        Uint64 last = 0;
+        float FPS = 144.f;
+        float MILLISECONDS_PER_FRAME = 1000.f / FPS;
+        float SECONDS_PER_FRAME = 1.f / FPS;
+
+        int GAME_TICKS_PER_SECOND = 2;
+        float SECONDS_PER_GAMETICK = 1.f / GAME_TICKS_PER_SECOND;
+
+        unsigned int start = 0;
+        unsigned int prev = 0;
+        unsigned int now = 0;
+        //unsigned int next = 0;
 
         //frame metrics
         uint32_t _frameCount = 0;
-        float _timeSinceLastUpdate = 0;
+        float seconds_since_last_game_tick = 0;
         circular_buffer average_fps;
 
         //game window
         bool mouse_grabbed = true;
 
-        game_state state_previous;
+        //game_state state_previous;
         game_state state_current;
 
         int m_width = 1080;
