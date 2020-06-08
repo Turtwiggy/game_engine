@@ -128,7 +128,7 @@ void Gui::ShowProfilerWindow(game& game, profiler& profiler)
     ImGui::Begin("Profiler");
 
     ImGui::Columns(1);
-    ImGui::Text("FPS: %f", game.get_average_fps());
+    ImGui::Text("FPS: %f", game.get_average_fps() );
 
     ImGui::Columns(1);
 

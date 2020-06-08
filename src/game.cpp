@@ -56,10 +56,6 @@ bool game::process_events(profiler& p, renderer& r, game_window& g, Gui& gui, Ca
     SDL_Event e;
     while (SDL_PollEvent(&e))
     {
-        p.BeginScoped(profiler::Stage::SdlInput);
-            
-        //_eventManager->Create<SDL_Event>(e);
-
         // If gui captures this input, do not propagate
         if (!gui.ProcessEventSdl2(e, r.get_imgui_context()))
         {
@@ -68,8 +64,9 @@ bool game::process_events(profiler& p, renderer& r, game_window& g, Gui& gui, Ca
                 c.ProcessEvents(e);
 
             //Other window events
-            if (e.type == SDL_QUIT)
+            if (e.type == SDL_QUIT) {
                 return false;
+            }
             else if (e.type == SDL_WINDOWEVENT
                 && e.window.event == SDL_WINDOWEVENT_CLOSE
                 && e.window.windowID == SDL_GetWindowID(g.GetHandle()))
@@ -82,7 +79,6 @@ bool game::process_events(profiler& p, renderer& r, game_window& g, Gui& gui, Ca
             }
         }
     }
-
     return true;
 }
 
@@ -97,12 +93,13 @@ void game::tick(float delta_time, game_state& state)
 void game::render(profiler& profiler, game_state& state, renderer& r, Camera& c, Gui& g, game_window& window, Model& model)
 {
     {
-        profiler.BeginScoped(profiler::Stage::NewFrame);
+        profiler.Begin(profiler::Stage::NewFrame);
         r.new_frame(window.GetHandle());
+        profiler.End(profiler::Stage::NewFrame);
     }
 
     {
-        profiler.BeginScoped(profiler::Stage::SceneDraw);
+        profiler.Begin(profiler::Stage::SceneDraw);
         renderer::draw_scene_desc drawDesc
         ( 
             model
@@ -113,20 +110,23 @@ void game::render(profiler& profiler, game_state& state, renderer& r, Camera& c,
         drawDesc.camera = c;
 
         r.draw_pass(drawDesc);
+        profiler.End(profiler::Stage::SceneDraw);
     }
 
     {
-        profiler.BeginScoped(profiler::Stage::GuiLoop);
+        profiler.Begin(profiler::Stage::GuiLoop);
         if (g.Loop(*this, r.get_imgui_context(), profiler))
         {
             running = false;
             return;
         }
+        profiler.End(profiler::Stage::GuiLoop);
     }
 
     {
-        profiler.BeginScoped(profiler::Stage::RenderFrame);
+        profiler.Begin(profiler::Stage::RenderFrame);
         r.end_frame(window.GetHandle());
+        profiler.End(profiler::Stage::RenderFrame);
     }
 }
 
@@ -137,11 +137,11 @@ void game::run()
     //todo init spdlogger
 
     //Profiler
-    profiler _profiler;
+    profiler profile;
     printf("profiler taking up: %s bytes \n", std::to_string(sizeof(profiler)));
 
     //Window
-    game_window _window =  game_window
+    game_window window =  game_window
     (
         kWindowTitle + " [" + kBuildStr + "]",
         m_width,
@@ -151,7 +151,7 @@ void game::run()
     printf("game window taking up: %s bytes \n", std::to_string(sizeof(game_window)));
 
     //Camera
-    Camera _camera = Camera(glm::vec3(0.0f, 0.0f, 10.0f));
+    Camera cam = Camera(glm::vec3(0.0f, 0.0f, 10.0f));
     printf("camera taking up: %s bytes \n", std::to_string(sizeof(Camera)));
 
     //_camera = std::make_unique<Camera>();
@@ -159,16 +159,15 @@ void game::run()
     //_camera->SetProjectionMatrixPerspective(70.0f, aspect, 1.0f, 65536.0f)
 
     //Renderer
-    renderer _renderer = renderer(_window, false);
+    renderer rend = renderer(window, false);
     printf("renderer taking up: %s bytes \n", std::to_string(sizeof(renderer)));
 
     //ImGui Gui (harhar)
-    Gui _gui;
+    Gui gui;
     printf("Gui taking up: %s bytes \n", std::to_string(sizeof(Gui)));
 
     //Temp obj loader - should be moved in future
     std::filesystem::path current_dir = std::filesystem::current_path();
-    //current_dir.append("res/models/backpack/backpack.obj");
     current_dir.append("res/models/lizard_wizard/lizard_wizard.obj");
     Model tempModel = Model(current_dir.generic_u8string());
     printf("Model taking up: %s bytes \n", std::to_string(sizeof(Model)));
@@ -177,24 +176,26 @@ void game::run()
     while (running)
     {
         //Update Profiler
-        _profiler.Frame();
-        _profiler.BeginScoped(profiler::Stage::UpdateLoop);
+        profile.Frame();
+        profile.Begin(profiler::Stage::UpdateLoop);
 
         // input
         // -----
-        running = process_events(_profiler, _renderer, _window, _gui, _camera);
-        if (!running) { shutdown(_renderer, _window);  return; }
+        profile.Begin(profiler::Stage::SdlInput);
+        running = process_events(profile, rend, window, gui, cam);
+        if (!running) { shutdown(rend, window);  return; }
+        profile.End(profiler::Stage::SdlInput);
 
         // Delta Time
         // ----------
         ImGuiIO& io = ImGui::GetIO();
         float delta_time = io.DeltaTime;
-        printf("delta_time %f \n", delta_time);
+        //printf("delta_time %f \n", delta_time);
         _timeSinceLastUpdate += delta_time;
 
         // Update Systems
         // --------------
-        _camera.Update(delta_time);
+        cam.Update(delta_time);
 
         // Game Logic Tick
         // ---------------
@@ -209,17 +210,22 @@ void game::run()
 
         // Rendering
         // ---------
-        render(_profiler, state_current, _renderer, _camera, _gui, _window, tempModel);
+        render(profile, state_current, rend, cam, gui, window, tempModel);
 
         //lerp between game states
         //const float alpha = _timeSinceLastUpdate / timePerFrame;
         //game_state state_lerped = state_current * alpha + state_previous * ( 1.0 - alpha );
         //render(window, new_state, net_set);
 
-        _frameCount++;
+        _frameCount += 1;
         state_current.frame = _frameCount;
-        average_fps = 1.0f / delta_time;
-        //printf("frame count: %f", _frameCount);
+
+        float curr_fps = 1.0f / delta_time;
+        printf("curr_fps: %f", curr_fps );
+        average_fps.add_next( curr_fps  );
+        //printf("frame count: %i \n", _frameCount);
+        profile.End(profiler::Stage::UpdateLoop);
+
     }
 
     //end

@@ -13,9 +13,9 @@
 #include <glm/vec3.hpp> 
 //#include <entt/entt.hpp>
 
-#include "gui.hpp"
 #include "3d/camera.h"
-#include "common/event_manager.h"
+#include "common/circular_buffer.h"
+#include "gui.hpp"
 #include "graphics/renderer.h"
 #include "tools/profiler.hpp"
 #include "window/game_window.h"
@@ -53,7 +53,7 @@ namespace fightinggame
         bool process_events(profiler& p, renderer& r, game_window& g, Gui& gui, Camera& c);
         void run();
 
-        float get_average_fps() { return average_fps; }
+        float get_average_fps() { return average_fps.average(); }
 
     private:
         void tick(float delta_time, game_state& state);    //update game logic
@@ -62,17 +62,19 @@ namespace fightinggame
 
     private:
         static game* sInstance;
-
-        //event_manager _eventManager;
-
-        uint32_t _frameCount = 0;
+        
+        //delta time metrics
         const float timePerFrame = 1.f / 60.f;
+        Uint64 now = 0;
+        Uint64 last = 0;
+
+        //frame metrics
+        uint32_t _frameCount = 0;
         float _timeSinceLastUpdate = 0;
+        circular_buffer average_fps;
 
+        //game window
         bool mouse_grabbed = true;
-        float average_fps = 0;
-
-        //glm::ivec2 _mousePosition;
 
         game_state state_previous;
         game_state state_current;
