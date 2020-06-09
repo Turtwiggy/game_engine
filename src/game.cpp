@@ -85,13 +85,14 @@ bool game::process_events(profiler& p, renderer& r, game_window& g, Gui& gui, Ca
 //Called X ticks per second
 void game::tick(float fixed_delta_time, game_state& state, Camera& cam)
 {
-    printf("ticking frame %i game state time: %f \n", _frameCount, fixed_delta_time);
-
-    state.cube_pos = glm::vec3(0.0, 0.0, 0.0);
-
     //this is a new state
     _frameCount += 1;
     state.frame = _frameCount;
+
+    //update state
+    printf("ticking frame %i game state time: %f \n", _frameCount, fixed_delta_time);
+
+    state.cube_pos = glm::vec3(0.0, 0.0, 0.0);
 }
 
 void game::render (
@@ -113,14 +114,12 @@ void game::render (
         profiler.Begin(profiler::Stage::SceneDraw);
         renderer::draw_scene_desc drawDesc
         ( 
-            models[0]
-            //models[1],
-            //c
+            models,
+            c
         );
         drawDesc.view_id = graphics::render_pass::Main;
         drawDesc.height = m_height;
         drawDesc.width = m_width;
-        drawDesc.camera = c;
 
         r.draw_pass(drawDesc);
         profiler.End(profiler::Stage::SceneDraw);
@@ -182,18 +181,14 @@ void game::run()
     //Temp obj loader - should be moved in future
     printf("Each model : %s bytes \n", std::to_string(sizeof(Model)).c_str());
 
-    std::filesystem::path current_dir = std::filesystem::current_path();
+    const std::string dir = std::string(std::filesystem::current_path().generic_u8string());
 
     //Lizard wizard
-    std::string char_path = current_dir
-                    .append("res/models/lizard_wizard/lizard_wizard.obj")
-                    .generic_u8string();
+    std::string char_path = dir + "/res/models/lizard_wizard/lizard_wizard.obj";
     Model char_model = Model(char_path);
 
     //Cube
-    std::string cube_path = current_dir
-        .append("res/models/cube/cube.obj")
-        .generic_u8string();
+    std::string cube_path = dir + "/res/models/cube/cube.obj";
     Model cube_model = Model(cube_path);
 
     std::vector<std::reference_wrapper<Model>> models;
@@ -233,10 +228,6 @@ void game::run()
         //float delta_time_in_seconds = io.DeltaTime;
         //printf("delta_time %f \n", delta_time_in_seconds);
 
-        // Camera
-        // ------
-        cam.Update(delta_time_in_seconds);
-
         seconds_since_last_game_tick += delta_time_in_seconds;
 
         // Game Logic Tick - X ticks per second
@@ -249,6 +240,10 @@ void game::run()
 
             seconds_since_last_game_tick -= SECONDS_PER_GAMETICK;
         }
+
+        // Camera
+        // ------
+        cam.Update(delta_time_in_seconds);
 
         // Rendering
         // ---------

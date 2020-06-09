@@ -10,17 +10,16 @@
 #include <glm/gtc/matrix_transform.hpp>
 #include <glm/gtc/type_ptr.hpp>
 #include <glm/gtx/transform.hpp>
-
 #include <SDL2/SDL.h>
 #ifdef _WIN32
 #include <SDL2/SDL_syswm.h>
 #endif
-
 #include "stb_image.h"
-
 #include "imgui.h"
 #include <examples/imgui_impl_sdl.h>
 #include <examples/imgui_impl_opengl3.h>
+
+#include <filesystem>
 
 using namespace fightinggame;
 using namespace fightinggame::graphics;
@@ -29,26 +28,20 @@ namespace fightinggame
 {
     struct RenderData
     {
-        static const uint32_t MaxCubes = 20000;
-        static const uint32_t MaxVertices = MaxCubes * 30;
-        static const uint32_t MaxIndices = MaxCubes * 36;
-        static const uint32_t MaxTextureSlots = 32; // TODO: RenderCaps
+        // TODO: RenderCaps
+        static const uint32_t MaxModels = 20;
+        static const uint32_t MaxTextureSlots = 32;
+        static const uint32_t MaxVertices = 10000;
+        static const uint32_t MaxIndicies = 10000;
 
-        Ref<vertex_array> CubeVertexArray;
-        Ref<vertex_buffer> CubeVertexBuffer;
-        Ref<Shader> TextureShader;
-        //Ref<Texture2D> Texture;
+        Ref<Shader> lizard_shader;
+        Ref<Shader> cube_shader;
+        Ref<texture2D> white_texture;
 
-        uint32_t CubeIndexCount = 0;
-        Vertex* CubeVertexBufferBase = nullptr;
-        Vertex* CubeVertexBufferPtr = nullptr;
+        std::array<Ref<texture2D>, MaxTextureSlots> TextureSlots;
+        uint32_t TextureSlotIndex = 1; // 0 = white texture
 
-        //std::array<Ref<Texture2D>, MaxTextureSlots> TextureSlots;
-        //uint32_t TextureSlotIndex = 1; // 0 = white texture
-
-        //glm::vec4 QuadVertexPositions[4];
-
-        renderer::Statistics Stats;
+        renderer::Statistics stats;
     };
 
     static RenderData s_Data;
@@ -134,41 +127,46 @@ namespace fightinggame
 
         //// tell stb_image.h to flip loaded texture's on the y-axis (before loading model).
         //stbi_set_flip_vertically_on_load(true);
-
-        //Load texture
-        //texID = loadTexture("res/textures/Bamboo/BambooWall_1K_albedo.jpg");
-
         // uncomment this call to draw in wireframe polygons.
         //glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
 
-        //std::vector<Vertex> vertices = BASIC_CUBE;
-        //std::vector<unsigned int> indicies;
-        //std::vector<Texture> textures;
-        //Mesh cube(vertices, indicies, textures);
-        //cube.setupMesh();
+        //Ref<index_buffer> ib = index_buffer::Create(/* MODEL INDICIES */, s_Data.MaxIndicies);
+        //s_Data.AllVertexArray->SetIndexBuffer(ib);
 
-        //s_Data.CubeVertexArray = vertex_array::Create();
-        //s_Data.CubeVertexBuffer = vertex_buffer::Create(s_Data.MaxVertices * sizeof(BASIC_CUBE));
-        //s_Data.CubeVertexBuffer->SetLayout
-        //({
-        //    { shader_data_type::Float3, "aPos" },
-        //    { shader_data_type::Float2, "aTexCoord" },
-        //    });
-        //s_Data.CubeVertexArray->AddVertexBuffer(s_Data.CubeVertexBuffer);
+        //create a texture
+        s_Data.white_texture = texture2D::Create(1, 1);
+        uint32_t whiteTextureData = 0xffffffff;
+        s_Data.white_texture->set_data(&whiteTextureData, sizeof(uint32_t));
 
-        //s_Data.CubeVertexBufferBase = new CubeVertex[s_Data.MaxVertices];
-
-        //todo sort out indices 
-
+        int32_t samplers[s_Data.MaxTextureSlots];
+        for (uint32_t i = 0; i < s_Data.MaxTextureSlots; i++)
+            samplers[i] = i;
+        
         // build and compile our shader program
         // ------------------------------------
-        shader = std::make_unique<Shader>
+        //Lizard
+        s_Data.lizard_shader = std::make_unique<Shader>
             ("res/shaders/diffuse.vert", "res/shaders/diffuse.frag");
-        shader->use();
-        //shader->setInt("texture1", texID);
+        s_Data.lizard_shader->use();
+        //s_Data.lizard_shader->SetIntArray("u_Textures", samplers, s_Data.MaxTextureSlots);
+
+        //Cube 
+        cube_pos = glm::vec3(1.f, 0.f, 0.f);
+        s_Data.cube_shader = std::make_unique<Shader>
+            ("res/shaders/diffuse.vert", "res/shaders/diffuse.frag");
+        s_Data.cube_shader->use();
+
+        //Load texture
+        s_Data.TextureSlots[0] = s_Data.white_texture;
+
+        //TODO for each model... load textures and store in TextureSlots
+
+        //texID = TextureFromFile("res/textures/Bamboo/BambooWall_1K_albedo.jpg", std::filesystem::current_path().generic_u8string());
+        //s_Data.cube_shader->setInt("texture_diffuse1", s_Data.white_texture->get_renderer_id());
+        //s_Data.lizard_shader->setInt("texture_diffuse1", s_Data.white_texture->get_renderer_id());
     }
 
-    void renderer::draw_pass(const draw_scene_desc& desc)
+    void renderer::draw_pass(draw_scene_desc& desc)
     {
         render_command::SetClearColor(glm::vec4(0.2f, 0.3f, 0.3f, 1.0f));
         render_command::Clear();
@@ -177,95 +175,68 @@ namespace fightinggame
         ImGui::Button("Hello button");
         ImGui::End();
 
-        shader->use();
         glm::mat4 projection = glm::perspective(glm::radians(desc.camera.Zoom), (float)desc.width / (float)desc.height, 0.1f, 100.0f);
         glm::mat4 view = desc.camera.GetViewMatrix();
         glm::mat4 view_projection = projection * view;
-        shader->setMat4("projection", projection);
-        shader->setMat4("view", view);
 
-        //bind texures
-        //uint32_t slot = 0;
-        //glBindTextureUnit(slot, texID);
+        //Begin Scene
+        //s_Data.AllIndexCount = 0;
+        //s_Data.CubeVertexBufferPtr = s_Data.CubeVertexBufferBase;
+        s_Data.TextureSlotIndex = 1;
 
-        // render the loaded model
+        //End Scene
+        //uint32_t dataSize = (uint32_t)((uint8_t*)s_Data.CubeVertexBufferPtr - (uint8_t*)s_Data.CubeVertexBufferBase);
+        //s_Data.AllVertexBuffer->SetData(s_Data.CubeVertexBufferBase, dataSize);
+
+        //Lizard Stuff
+        s_Data.lizard_shader->use();
+        s_Data.lizard_shader->setMat4("projection", projection);
+        s_Data.lizard_shader->setMat4("view", view);
+
         glm::mat4 model = glm::mat4(1.0f);
         model = glm::translate(model, glm::vec3(0.0f, 0.0f, 0.0f)); // translate it down so it's at the center of the scene
         model = glm::scale(model, glm::vec3(1.0f, 1.0f, 1.0f));	// it's a bit too big for our scene, so scale it down
-        shader->setMat4("model", model);
+        s_Data.lizard_shader->setMat4("model", model);
+        desc.models[0].get().Draw(*s_Data.lizard_shader); //wizard
 
-        desc.main_character.Draw(*shader); //wizard
-        //desc.models[1].Draw(*shader); //cube
+        //Cube Stuff
+        s_Data.cube_shader->use();
+        s_Data.cube_shader->setMat4("projection", projection);
+        s_Data.cube_shader->setMat4("view", view);
 
-        //s_Data.CubeIndexCount = 0;
-        //s_Data.CubeVertexBufferPtr = s_Data.CubeVertexBufferBase;
-        ////s_Data.TextureSlotIndex = 1;
+        glm::mat4 model2 = glm::mat4(1.0f);
+        model2 = glm::translate(model2, cube_pos); // translate it down so it's at the center of the scene
+        model2 = glm::scale(model2, glm::vec3(1.0f, 1.0f, 1.0f));	// it's a bit too big for our scene, so scale it down
+        s_Data.cube_shader->setMat4("model", model2);
+        desc.models[1].get().Draw(*s_Data.cube_shader); //cube
 
-
-        ////draw some cubes
-        //for (unsigned int i = 0; i < 10; i++)
-        //glm::vec3 size = glm::vec3(1.f, 1.f, 1.f);
-        //glm::vec3 pos = glm::vec3(0., 0., 0.);
-        //render_cube(pos, size);
-
-        //flush
-        //if (s_Data.CubeIndexCount == 0) {
-        //    printf("nothing to draw");
-        //    return; // Nothing to draw
-        //}
-
-        //render_command::DrawIndexed(s_Data.CubeVertexArray, s_Data.CubeIndexCount);
-        //s_Data.Stats.DrawCalls++;
-
-        //// pass transformation matrices to the shader
-        //// note: currently we set the projection matrix each frame, but since the projection
-        //// matrix rarely changes it's often best practice to set it outside the main loop only once.
-        ////flatColorShader->setMat4("u_ViewProjection", view_projection); 
-
-        ////glm::vec3 glSize = glm::vec3(/*GetSizeForRenderer()*/ glm::vec2(1.0, 1.0), 1.0f);
-        ////glm::vec3 glPos = glm::vec3(/*pos.x, pos.y*/ 0.0f, 0.0f, -1.0f);
-        ////glm::mat4 idxMatrix = glm::mat4(1.0f);
-        ////idxMatrix = glm::translate(idxMatrix, glPos) * glm::scale(idxMatrix, { glSize });
         ////flatColorShader->setVec4("u_Color", { /*GetColor()*/ glm::vec4(1.0, 0.0, 0.0, 1.0) });
     }
 
-
-    void renderer::render_cube(glm::vec3& position, glm::vec3& size)
+    void flush()
     {
-        constexpr size_t cubeVertexCount = 30;
-        const float textureIndex = 0.0f; //First texture
-        const float tilingFactor = 1.0f;
+        //if (s_Data.AllIndexCount == 0)
+        //    return; // Nothing to draw
 
-        //if (s_Data.QuadIndexCount >= Renderer2DData::MaxIndices)
-        //    FlushAndReset();
+        // Bind textures
+        for (uint32_t i = 0; i < s_Data.TextureSlotIndex; i++)
+            s_Data.TextureSlots[i]->bind(i);
 
-        glm::mat4 transform = glm::translate(glm::mat4(1.0f), position)
-            * glm::scale(glm::mat4(1.0f), { size.x, size.y, 1.0f });
+        //render_command::DrawIndexed(s_Data.AllVertexArray, s_Data.AllIndexCount);
+        s_Data.stats.DrawCalls++;
+    }
 
-        for (size_t i = 0; i < cubeVertexCount; i++)
-        {
-            s_Data.CubeVertexBufferPtr->Position = transform * glm::vec4(1.0, 1.0, 1.0, 1.0); /* * BASIC_CUBE[i] */
-            //s_Data.CubeVertexBufferPtr->Color = color;
-            //s_Data.CubeVertexBufferPtr->TexCoord = textureCoords[i];
-            //s_Data.CubeVertexBufferPtr->TexIndex = textureIndex;
-            //s_Data.CubeVertexBufferPtr->TilingFactor = tilingFactor;
-            s_Data.CubeVertexBufferPtr++;
-        }
+    void flush_and_reset()
+    {
+        //uint32_t dataSize = (uint32_t)((uint8_t*)s_Data.QuadVertexBufferPtr - (uint8_t*)s_Data.QuadVertexBufferBase);
+        //s_Data.QuadVertexBuffer->SetData(s_Data.QuadVertexBufferBase, dataSize);
 
-        // calculate the model matrix for each object and pass it to shader before drawing
-        //glm::mat4 model = glm::mat4(1.0f);
-        //model = glm::translate(model, cubePositions[i]);
-        //float angle = 20.0f * i;
-        //model = glm::rotate(model, glm::radians(angle), glm::vec3(1.0f, 0.3f, 0.5f));
-        //flatColorShader->setMat4("model", model);
+        flush();
 
-        //glDrawArrays(GL_TRIANGLES, 0, 36);
+        //s_Data.QuadIndexCount = 0;
+        //s_Data.QuadVertexBufferPtr = s_Data.QuadVertexBufferBase;
 
-        //s_Data.CubeIndexCount += 30;
-
-        //s_Data.Stats.QuadCount++;
-
-        return;
+        s_Data.TextureSlotIndex = 1;
     }
 
     void renderer::new_frame(SDL_Window* window)
@@ -327,7 +298,6 @@ namespace fightinggame
     }
 }
 
-
 /* LIGHTING CODE
 
 // be sure to activate shader when setting uniforms/drawing objects
@@ -352,16 +322,6 @@ namespace fightinggame
 //lightingShader.setVec3("material.specular", 0.5f, 0.5f, 0.5f); // specular lighting doesn't have full effect on this object's material
 //lightingShader.setFloat("material.shininess", 32.0f);
 
-//// view/projection transformations
-//glm::mat4 projection = glm::perspective(glm::radians(camera.Zoom), (float)SCR_WIDTH / (float)SCR_HEIGHT, 0.1f, 100.0f);
-//glm::mat4 view = camera.GetViewMatrix();
-//lightingShader.setMat4("projection", projection);
-//lightingShader.setMat4("view", view);
-
-//// world transformation
-//glm::mat4 model = glm::mat4(1.0f);
-//lightingShader.setMat4("model", model);
-
 //// render the cube
 //glBindVertexArray(cubeVAO);
 //glDrawArrays(GL_TRIANGLES, 0, 36);
@@ -381,56 +341,20 @@ namespace fightinggame
 
 */
 
-
-
-/* TEXTURE Examples
-
-// bind textures on corresponding texture units
-//glActiveTexture(GL_TEXTURE0);
-//glBindTexture(GL_TEXTURE_2D, texture1);
-
-// activate shader
-//ourShader.use();
-
-// create transformations
-//glm::mat4 transform = glm::mat4(1.0f); // make sure to initialize matrix to identity matrix first
-//transform = glm::translate(transform, glm::vec3(1.0f, 0.0f, 0.0f));
-//transform = glm::rotate(transform, (float)glfwGetTime(), glm::vec3(0.0f, 0.0f, 1.0f));
-//unsigned int transformLoc = glGetUniformLocation(ourShader.ID, "transform");
-//glUniformMatrix4fv(transformLoc, 1, GL_FALSE, glm::value_ptr(transform));
-
-//More transformations
-//glm::mat4 model = glm::mat4(1.0f); // make sure to initialize matrix to identity matrix first
-//model = glm::rotate(model, (float)glfwGetTime() * glm::radians(50.0f), glm::vec3(0.5f, 1.0f, 0.0f));
-// //retrieve the matrix uniform locations
-//unsigned int modelLoc = glGetUniformLocation(ourShader.ID, "model");
-// //pass them to the shaders
-//glUniformMatrix4fv(modelLoc, 1, GL_FALSE, glm::value_ptr(model));
-
+/* Examples
 //camera rotate around point
 //float radius = 10.0f;
 //float camX = sin(glfwGetTime()) * radius;
 //float camZ = cos(glfwGetTime()) * radius;
-
-// pass projection matrix to shader (note that in this case it could change every frame)
-//glm::mat4 projection = glm::perspective(glm::radians(camera.Zoom), (float)SCR_WIDTH / (float)SCR_HEIGHT, 0.1f, 100.0f);
-//ourShader.setMat4("projection", projection);
-
-// camera/view transformation
-//glm::mat4 view = camera.GetViewMatrix();
-//ourShader.setMat4("view", view);
-
-////render container
-//glBindVertexArray(cubeVAO); // seeing as we only have a single VAO there's no need to bind it every time, but we'll do so to keep things a bit more organized
-//for (unsigned int i = 0; i < 10; i++)
-//{
-//	glm::mat4 model = glm::mat4(1.0f); // make sure to initialize matrix to identity matrix first
-//	model = glm::translate(model, cubePositions[i]);
-//	float angle = 20.0f * i;
-//	model = glm::rotate(model, glm::radians(angle), glm::vec3(1.0f, 0.3f, 0.5f));
-//	ourShader.setMat4("model", model);
-
-//	glDrawArrays(GL_TRIANGLES, 0, 36);
-//}
-
 */
+
+//s_Data.AllVertexArray = vertex_array::Create();
+//s_Data.AllVertexBuffer = vertex_buffer::Create(s_Data.MaxVertices);
+//s_Data.AllVertexBuffer->SetLayout
+//({
+//    { shader_data_type::Float3, "aPos" },
+//    { shader_data_type::Float3, "aNormal" },
+//    { shader_data_type::Float2, "aTexCoords" },
+//    });
+//s_Data.AllVertexArray->AddVertexBuffer(s_Data.AllVertexBuffer);
+//s_Data.CubeVertexBufferBase = new Vertex[s_Data.MaxVertices];

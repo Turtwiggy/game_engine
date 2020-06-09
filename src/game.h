@@ -73,7 +73,7 @@ namespace fightinggame
         static game* sInstance;
         
         //delta time metrics
-        float FPS = 144.f;
+        float FPS = 60.f;
         float MILLISECONDS_PER_FRAME = 1000.f / FPS;
         float SECONDS_PER_FRAME = 1.f / FPS;
 

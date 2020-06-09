@@ -28,46 +28,40 @@ namespace fightinggame {
             graphics::render_pass view_id;
             int height = 0;
             int width = 0;
-            Camera camera;
-            Model &main_character;
+            Camera& camera;
+            std::vector<std::reference_wrapper<Model>>& models;
 
-            draw_scene_desc(Model &m1)
-                : main_character(m1)
+            draw_scene_desc(std::vector<std::reference_wrapper<Model>>& models, Camera& c)
+                : models(models)
+                , camera(c)
             {
             }
         };
 
         renderer() = delete;
         explicit renderer(const game_window& window, bool vsync);
-
         static renderer_api::API get_api() { return renderer_api::GetAPI(); }
 
-        void draw_pass(const draw_scene_desc& desc);
         void new_frame(SDL_Window* window);
         void end_frame(SDL_Window* window);
 
-        void render_cube(glm::vec3& position, glm::vec3& size /*, float rotation, const Ref<Texture>& texture*/);
+        void draw_pass(draw_scene_desc& desc);
+        void flush();
+        void flush_and_reset();
 
-
-        ImGuiContext* get_imgui_context() { return _imgui; }
-
-        void init_opengl_and_imgui(const game_window& window);
-        SDL_GLContext get_gl_context() { return gl_context; }
+        void draw_model(Model& m, glm::vec3& position, glm::vec3& size /*, float rotation, const Ref<Texture>& texture*/);
 
         void shutdown();
 
     private:
-        void render_square(Shader& shader);
+        void render_square(Shader& shader); //temporary
 
     private:
 
         //temp opengl testing
-        std::unique_ptr<Shader> shader;
         unsigned int texID;
 
-        //opengl
-        SDL_GLContext gl_context;
-        ImGuiContext* _imgui;
+        glm::vec3 cube_pos;
 
     public:
         // Stats
@@ -81,5 +75,18 @@ namespace fightinggame {
         };
         static void reset_stats();
         static Statistics get_stats();
+
+    public:
+
+        ImGuiContext* get_imgui_context() { return _imgui; }
+
+        void init_opengl_and_imgui(const game_window& window);
+        SDL_GLContext get_gl_context() { return gl_context; }
+
+    private:
+        //opengl
+        SDL_GLContext gl_context;
+        ImGuiContext* _imgui;
+
     };
 }

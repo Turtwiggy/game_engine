@@ -50,7 +50,7 @@ namespace fightinggame
         uint8_t next_index = 0;
         float populated_elements = 0;
 
-        static constexpr uint8_t buffer_size = 250; //note if >255 then uint8_t is not big enough
+        static constexpr uint8_t buffer_size = 200; //note if >255 then uint8_t is not big enough
 
         std::array<float, buffer_size> buffer = { 0 };
     };

@@ -1,6 +1,7 @@
 #pragma once
 
-#include <graphics/shader.h>
+#include "graphics/shader.h"
+#include "graphics/texture.h"
 
 //#include "assimp/"
 #include "glm/glm.hpp"
@@ -21,20 +22,19 @@ namespace fightinggame {
         glm::vec3 Bitangent;
     };
 
-    struct Texture {
-        unsigned int id;
-        std::string type;
-        std::string path;  // we store the path of the texture to compare with other textures
-    };
-
     class Mesh {
     public:
         // mesh data
-        std::vector<Vertex>       vertices;
-        std::vector<unsigned int> indices;
-        std::vector<Texture>      textures;
+        std::vector<Vertex>         vertices;
+        std::vector<unsigned int>   indices;
+        std::vector<Ref<texture2D>> textures;
 
-        Mesh(std::vector<Vertex> vertices, std::vector<unsigned int> indices, std::vector<Texture> textures);
+        Mesh
+        (
+            std::vector<Vertex> vertices,
+            std::vector<unsigned int> indices,
+            std::vector<Ref<texture2D>> textures
+        );
         void Draw(Shader& shader);
         void setupMesh();
 
@@ -46,30 +46,27 @@ namespace fightinggame {
     class Model
     {
     public:
-        Model(std::string path)
+        Model(std::string path) //e.g. 'C:/model.obj'
         {
             loadModel(path);
         }
         void Draw(Shader& shader);
     private:
-        // model data
-        std::vector<Mesh> meshes;
-        std::vector<Texture> textures_loaded;
-        std::string directory;
-        bool gammaCorrection;
 
         void loadModel(std::string path);
         void processNode(aiNode* node, const aiScene* scene);
         Mesh processMesh(aiMesh* mesh, const aiScene* scene);
-        std::vector<Texture> loadMaterialTextures
+
+        std::vector<Ref<texture2D>> loadMaterialTextures
         (
             aiMaterial* mat,
             aiTextureType type,
             std::string typeName
         );
-    };
 
-    // utility function for loading a 2D texture from file
-    // ---------------------------------------------------
-    unsigned int TextureFromFile(const char* path, const std::string& directory, bool gamma = true);
+    private:
+        std::vector<Mesh> meshes;
+        std::vector<Ref<texture2D>> textures_loaded;
+        std::string directory;
+    };
 }
