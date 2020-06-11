@@ -1,6 +1,7 @@
 #pragma once
 
 #include "window/game_window.h"
+#include "base.h"
 
 #include "3d/assimp_obj_loader.h"
 #include "3d/camera.h"
@@ -19,27 +20,24 @@
 
 namespace fightinggame {
 
+    struct draw_scene_desc
+    {
+        graphics::render_pass view_id;
+        int height = 0;
+        int width = 0;
+        Camera& camera;
+        std::vector<std::reference_wrapper<Model>>& models;
+
+        draw_scene_desc(std::vector<std::reference_wrapper<Model>>& models, Camera& c)
+            : models(models)
+            , camera(c)
+        {
+        }
+    };
+
     class renderer
     {
     public:
-
-        struct draw_scene_desc
-        {
-            graphics::render_pass view_id;
-            int height = 0;
-            int width = 0;
-            Camera& camera;
-            std::vector<std::reference_wrapper<Model>>& models;
-
-            draw_scene_desc(std::vector<std::reference_wrapper<Model>>& models, Camera& c)
-                : models(models)
-                , camera(c)
-            {
-            }
-        };
-
-        renderer() = delete;
-        explicit renderer(const game_window& window, bool vsync);
         static renderer_api::API get_api() { return renderer_api::GetAPI(); }
 
         void new_frame(SDL_Window* window);
@@ -81,6 +79,8 @@ namespace fightinggame {
         ImGuiContext* get_imgui_context() { return _imgui; }
 
         void init_opengl_and_imgui(const game_window& window);
+        void init_models_and_shaders();
+
         SDL_GLContext get_gl_context() { return gl_context; }
 
     private:

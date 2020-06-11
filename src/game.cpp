@@ -112,7 +112,7 @@ void game::render (
 
     {
         profiler.Begin(profiler::Stage::SceneDraw);
-        renderer::draw_scene_desc drawDesc
+        fightinggame::draw_scene_desc drawDesc
         ( 
             models,
             c
@@ -145,7 +145,6 @@ void game::render (
 void game::run()
 {
     sInstance = this;
-
     //todo init spdlogger
 
     //Profiler
@@ -165,35 +164,32 @@ void game::run()
     //Camera
     Camera cam = Camera(glm::vec3(0.0f, 0.0f, 10.0f));
     printf("camera taking up: %s bytes \n", std::to_string(sizeof(Camera)));
-
-    //_camera = std::make_unique<Camera>();
     //auto aspect = _window ? _window->GetAspectRatio() : 1.0f;
     //_camera->SetProjectionMatrixPerspective(70.0f, aspect, 1.0f, 65536.0f)
 
     //Renderer
-    renderer rend = renderer(window, false);
+    renderer rend;
     printf("renderer taking up: %s bytes \n", std::to_string(sizeof(renderer)).c_str());
+    rend.init_opengl_and_imgui(window); //do not use opengl before this point
+    rend.init_models_and_shaders();
+
+    //Temp obj loader - should be moved in future
+    printf("Each model : %s bytes \n", std::to_string(sizeof(Model)).c_str());
+    const std::string dir = std::string(std::filesystem::current_path().generic_u8string());
+    //Lizard wizard
+    std::string char_path = dir + "/res/models/lizard_wizard/lizard_wizard.obj";
+    Model char_model = Model(char_path);
+    //Cube
+    std::string cube_path = dir + "/res/models/cube/cube.obj";
+    Model cube_model = Model(cube_path);
+    //All Models
+    std::vector<std::reference_wrapper<Model>> models;
+    models.push_back(char_model);
+    models.push_back(cube_model);
 
     //ImGui Gui (harhar)
     Gui gui;
     printf("Gui taking up: %s bytes \n", std::to_string(sizeof(Gui)).c_str());
-
-    //Temp obj loader - should be moved in future
-    printf("Each model : %s bytes \n", std::to_string(sizeof(Model)).c_str());
-
-    const std::string dir = std::string(std::filesystem::current_path().generic_u8string());
-
-    //Lizard wizard
-    std::string char_path = dir + "/res/models/lizard_wizard/lizard_wizard.obj";
-    Model char_model = Model(char_path);
-
-    //Cube
-    std::string cube_path = dir + "/res/models/cube/cube.obj";
-    Model cube_model = Model(cube_path);
-
-    std::vector<std::reference_wrapper<Model>> models;
-    models.push_back(char_model);
-    models.push_back(cube_model);
 
     _frameCount = 0;
 

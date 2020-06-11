@@ -33,7 +33,7 @@ namespace fightinggame {
         (
             std::vector<Vertex> vertices,
             std::vector<unsigned int> indices,
-            std::vector<Ref<texture2D>> textures
+            std::vector< Ref<texture2D>> textures
         );
         void Draw(Shader& shader);
         void setupMesh();
@@ -51,6 +51,8 @@ namespace fightinggame {
             loadModel(path);
         }
         void Draw(Shader& shader);
+        std::vector<Ref<texture2D>> get_textures() { return textures_loaded; }
+
     private:
 
         void loadModel(std::string path);

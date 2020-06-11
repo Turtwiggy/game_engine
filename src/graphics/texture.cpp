@@ -1,4 +1,4 @@
-#include "texture.h"
+#include "graphics/texture.h"
 
 #include "graphics/renderer.h"
 #include "graphics/opengl/opengl_texture.h"

@@ -23,10 +23,7 @@ namespace fightinggame {
 
         virtual void bind(uint32_t slot = 0) const = 0;
 
-        virtual bool operator==(const texture& other) const = 0;
-
-    private:
-     
+        virtual bool operator==(const texture& other) const = 0;     
     };
 
     class texture2D : public texture

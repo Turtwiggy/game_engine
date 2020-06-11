@@ -14,6 +14,7 @@
 //#include <entt/entt.hpp>
 
 #include "3d/camera.h"
+#include "base.h"
 #include "common/circular_buffer.h"
 #include "gui.hpp"
 #include "graphics/renderer.h"
@@ -71,7 +72,7 @@ namespace fightinggame
 
     private:
         static game* sInstance;
-        
+
         //delta time metrics
         float FPS = 60.f;
         float MILLISECONDS_PER_FRAME = 1000.f / FPS;
