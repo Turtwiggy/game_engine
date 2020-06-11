@@ -6,11 +6,16 @@ namespace fightinggame {
 
     //  --------- MESH -----------
 
-    Mesh::Mesh(std::vector<Vertex> vertices, std::vector<unsigned int> indices, std::vector< Ref<texture2D>> textures)
+    Mesh::Mesh(
+        std::vector<Vertex> vertices,
+        std::vector<unsigned int> indices,
+        std::vector< Ref<texture2D>> textures,
+        std::string name)
     {
         this->vertices = vertices;
         this->indices = indices;
         this->textures = textures;
+        this->name = name;
 
         setupMesh();
     }
@@ -89,15 +94,17 @@ namespace fightinggame {
         glBindVertexArray(0);
 
         // always good practice to set everything back to defaults once configured.
-        glActiveTexture(GL_TEXTURE0);
+        //glActiveTexture(GL_TEXTURE0);
     }
 
     //  --------- MODEL -----------
 
     void Model::Draw(Shader& shader)
     {
-        for (unsigned int i = 0; i < meshes.size(); i++)
+        for (unsigned int i = 0; i < meshes.size(); i++) {
+            std::cout << "drawing mesh: " << meshes[i].name << std::endl;
             meshes[i].Draw(shader);
+        }
     }
 
     void Model::loadModel(std::string path)
@@ -211,7 +218,7 @@ namespace fightinggame {
         textures.insert(textures.end(), heightMaps.begin(), heightMaps.end());
 
         // return a mesh object created from the extracted mesh data
-        return Mesh(vertices, indices, textures);
+        return Mesh(vertices, indices, textures, material->GetName().C_Str());
     }
 
     // checks all material textures of a given type and loads the textures if they're not loaded yet. the required info is returned as a Texture struct.

@@ -28,12 +28,14 @@ namespace fightinggame {
         std::vector<Vertex>         vertices;
         std::vector<unsigned int>   indices;
         std::vector<Ref<texture2D>> textures;
+        std::string                 name;
 
         Mesh
         (
             std::vector<Vertex> vertices,
             std::vector<unsigned int> indices,
-            std::vector< Ref<texture2D>> textures
+            std::vector< Ref<texture2D>> textures,
+            std::string name
         );
         void Draw(Shader& shader);
         void setupMesh();

@@ -122,7 +122,7 @@ namespace fightinggame
         render_command::Init(); //configure opengl state
     }
 
-    void renderer::init_models_and_shaders()
+    void renderer::init_models_and_shaders(std::vector<std::reference_wrapper<Model>>& models)
     {
         //glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);  // uncomment this call to draw in wireframe polygons.
 
@@ -155,23 +155,28 @@ namespace fightinggame
         s_Data.TextureSlots[0] = s_Data.white_texture;
         s_Data.TextureSlotIndex = 1;
 
-        ////Models (TEMPORARY)
-        //Model& lizard = desc.models[0];
-        //std::vector<Ref<texture2D>> lizard_textures = lizard.get_textures();
-        //for (auto tex_index = 0; tex_index < lizard_textures.size(); tex_index++)
-        //{
-        //    std::cout << "adding texture: " << lizard_textures[s_Data.TextureSlotIndex]->get_path() << std::endl;
-        //    s_Data.TextureSlots[s_Data.TextureSlotIndex] = lizard_textures[tex_index];
-        //    s_Data.TextureSlotIndex += 1;
-        //}
-        //Model& cube = desc.models[1];
+        //Models
+        Model& lizard = models[0];
+        std::vector<Ref<texture2D>> lizard_textures = lizard.get_textures();
+        for (auto tex_index = 0; tex_index < lizard_textures.size(); tex_index++)
+        {
+            std::cout << "adding texture: " << lizard_textures[tex_index]->get_path() << std::endl;
+            s_Data.TextureSlots[s_Data.TextureSlotIndex] = lizard_textures[tex_index];
+            s_Data.TextureSlotIndex += 1;
+        }
+
+        Model& cube = models[1];
 
         int32_t samplers[s_Data.MaxTextureSlots];
         for (uint32_t i = 0; i < s_Data.MaxTextureSlots; i++)
             samplers[i] = i;
 
-        //texID = TextureFromFile("res/textures/Bamboo/BambooWall_1K_albedo.jpg", std::filesystem::current_path().generic_u8string());
-        s_Data.cube_shader->setInt("texture_diffuse1", s_Data.white_texture->get_renderer_id());
+        for (auto tex_index = 0; tex_index < s_Data.TextureSlots.size(); tex_index++)
+        {
+            Ref<texture2D> texture = s_Data.TextureSlots[tex_index];
+            if (texture != nullptr)
+                std::cout << "texture (id) " << texture->get_renderer_id() << " path: " << texture->get_path() << std::endl;
+        }
     }
 
     void renderer::draw_pass(draw_scene_desc& desc)
@@ -210,23 +215,31 @@ namespace fightinggame
         model = glm::translate(model, glm::vec3(0.0f, 0.0f, 0.0f)); // translate it down so it's at the center of the scene
         model = glm::scale(model, glm::vec3(1.0f, 1.0f, 1.0f));	// it's a bit too big for our scene, so scale it down
         s_Data.lizard_shader->setMat4("model", model);
-        //desc.models[0].get().Draw(*s_Data.lizard_shader); //wizard
+        Model& lizard = desc.models[0];
+
+        s_Data.lizard_shader->setInt("texture_diffuse1", s_Data.TextureSlots[2]->get_renderer_id());
 
         //Cube Stuff
         glm::mat4 model2 = glm::mat4(1.0f);
         model2 = glm::translate(model2, cube_pos); // translate it down so it's at the center of the scene
         model2 = glm::scale(model2, glm::vec3(1.0f, 1.0f, 1.0f));	// it's a bit too big for our scene, so scale it down
         s_Data.cube_shader->setMat4("model", model2);
-
         Model& cube = desc.models[1];
-        const float white_tex_index = 0.0f;  //white texture
-        s_Data.cube_shader->setInt("texture_diffuse1", s_Data.white_texture->get_renderer_id());
-        s_Data.white_texture->bind(s_Data.white_texture->get_renderer_id());
-        cube.Draw(*s_Data.cube_shader);
+        //s_Data.cube_shader->setInt("texture_diffuse1", s_Data.TextureSlots[1]->get_renderer_id());
 
         // Bind textures
-        for (uint32_t i = 0; i < s_Data.TextureSlotIndex; i++)
+        for (uint32_t i = 0; i < s_Data.MaxTextureSlots; i++)
+        {
+            Ref<texture2D> texture = s_Data.TextureSlots[i];
+            if (texture == nullptr)
+                continue;
+
+            std::cout << "binding: " << s_Data.TextureSlots[i]->get_path() << "to id: " << i << std::endl;
             s_Data.TextureSlots[i]->bind(i);
+        }
+
+        lizard.Draw(*s_Data.lizard_shader);
+        cube.Draw(*s_Data.cube_shader);
 
         ////flatColorShader->setVec4("u_Color", { /*GetColor()*/ glm::vec4(1.0, 0.0, 0.0, 1.0) });
     }

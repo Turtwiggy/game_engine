@@ -79,7 +79,7 @@ namespace fightinggame {
         ImGuiContext* get_imgui_context() { return _imgui; }
 
         void init_opengl_and_imgui(const game_window& window);
-        void init_models_and_shaders();
+        void init_models_and_shaders(std::vector<std::reference_wrapper<Model>>& models);
 
         SDL_GLContext get_gl_context() { return gl_context; }
 

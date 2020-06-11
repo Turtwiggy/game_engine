@@ -171,7 +171,6 @@ void game::run()
     renderer rend;
     printf("renderer taking up: %s bytes \n", std::to_string(sizeof(renderer)).c_str());
     rend.init_opengl_and_imgui(window); //do not use opengl before this point
-    rend.init_models_and_shaders();
 
     //Temp obj loader - should be moved in future
     printf("Each model : %s bytes \n", std::to_string(sizeof(Model)).c_str());
@@ -186,6 +185,8 @@ void game::run()
     std::vector<std::reference_wrapper<Model>> models;
     models.push_back(char_model);
     models.push_back(cube_model);
+
+    rend.init_models_and_shaders(models);
 
     //ImGui Gui (harhar)
     Gui gui;
