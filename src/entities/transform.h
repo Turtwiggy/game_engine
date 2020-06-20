@@ -13,7 +13,7 @@ public:
 
     FGTransform(FGModel& m) : model(m) {}
 
-    glm::vec3 Position;
-    glm::vec3 Scale;
+    glm::vec3 Position = glm::vec3{ 0., 0., 0. };
+    glm::vec3 Scale = glm::vec3{ 1., 1., 1. };
     FGModel& model;
 };

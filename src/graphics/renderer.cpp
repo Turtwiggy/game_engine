@@ -31,8 +31,6 @@ namespace fightinggame
         // TODO: RenderCaps
         static const uint32_t MaxModels = 20;
         static const uint32_t MaxTextureSlots = 32;
-        static const uint32_t MaxVertices = 10000;
-        static const uint32_t MaxIndicies = 10000;
 
         Ref<Shader> lizard_shader;
         Ref<Shader> cube_shader;
@@ -126,19 +124,11 @@ namespace fightinggame
     {
         //glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);  // uncomment this call to draw in wireframe polygons.
 
-        //// tell stb_image.h to flip loaded texture's on the y-axis (before loading model).
-        //stbi_set_flip_vertically_on_load(true);
-
-        //Ref<index_buffer> ib = index_buffer::Create(/* MODEL INDICIES */, s_Data.MaxIndicies);
-        //s_Data.AllVertexArray->SetIndexBuffer(ib);
-
         //create a texture
         s_Data.white_texture = texture2D::Create(1, 1);
         uint32_t whiteTextureData = 0xffffffff;
         s_Data.white_texture->set_data(&whiteTextureData, sizeof(uint32_t));
 
-        // build and compile our shader program
-        // ------------------------------------
         //Lizard
         s_Data.lizard_shader = std::make_unique<Shader>
             ("res/shaders/diffuse.vert", "res/shaders/diffuse.frag");
@@ -189,7 +179,11 @@ namespace fightinggame
         ImGui::Button("Hello button");
         ImGui::End();
 
-        glm::mat4 projection = glm::perspective(glm::radians(desc.camera.Zoom), (float)desc.width / (float)desc.height, 0.1f, 100.0f);
+        int width, height = 0;
+        game_window& window = desc.window;
+        window.GetSize(width, height);
+
+        glm::mat4 projection = glm::perspective(glm::radians(desc.camera.Zoom), (float)width / (float)height, 0.1f, 100.0f);
         glm::mat4 view = desc.camera.GetViewMatrix();
         glm::mat4 view_projection = projection * view;
 
@@ -213,21 +207,18 @@ namespace fightinggame
 
         //Lizard Stuff
         FGTransform& lizard = desc.models[0];
-
         glm::mat4 model = glm::mat4(1.0f);
-        model = glm::translate(model, lizard.Position); // translate it down so it's at the center of the scene
-        model = glm::scale(model, glm::vec3(1.0f, 1.0f, 1.0f));	// it's a bit too big for our scene, so scale it down
+        model = glm::translate(model, lizard.Position);
+        model = glm::scale(model, glm::vec3(1.0f, 1.0f, 1.0f));	
         s_Data.lizard_shader->setMat4("model", model);
         //s_Data.lizard_shader->setInt("texture_diffuse1", s_Data.TextureSlots[2]->get_renderer_id());
 
         //Cube Stuff
         FGTransform& cube = desc.models[1];
-
         glm::mat4 model2 = glm::mat4(1.0f);
-        model2 = glm::translate(model2, cube.Position); // translate it down so it's at the center of the scene
-        model2 = glm::scale(model2, glm::vec3(1.0f, 1.0f, 1.0f));	// it's a bit too big for our scene, so scale it down
+        model2 = glm::translate(model2, cube.Position);
+        model2 = glm::scale(model2, glm::vec3(1.0f, 1.0f, 1.0f));	
         s_Data.cube_shader->setMat4("model", model2);
-
         s_Data.cube_shader->setInt("texture_diffuse1", s_Data.TextureSlots[0]->get_renderer_id());
 
         // Bind textures

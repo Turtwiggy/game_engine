@@ -10,6 +10,7 @@
 #include <glm/gtc/matrix_transform.hpp>
 #include <GL\glew.h>
 #include <glm/gtx/euler_angles.hpp>
+#include <SDL2/SDL.h>
 
 #include <vector>
 
@@ -45,8 +46,6 @@ public:
     float MovementSpeed;
     float MouseSensitivity;
     float Zoom;
-    //input
-    glm::vec3 input;
 
     // Constructor with vectors
     Camera(
@@ -86,22 +85,7 @@ public:
         return glm::lookAt(Position, Position + Front, Up);
     }
 
-    // Processes input received from any keyboard-like input system. Accepts input parameter in the form of camera defined ENUM (to abstract it from windowing systems)
-    void ProcessKeyboard(Camera_Movement direction, float m_DeltaTime)
-    {
-        float velocity = MovementSpeed * m_DeltaTime;
-
-        if (direction == FORWARD)
-            Position += Front * velocity;
-        if (direction == BACKWARD)
-            Position -= Front * velocity;
-        if (direction == LEFT)
-            Position -= Right * velocity;
-        if (direction == RIGHT)
-            Position += Right * velocity;
-    }
-
-    void Update(float delta_time)
+    void Update(glm::vec3 input, float delta_time)
     {
         float velocity = MovementSpeed * delta_time;
 
@@ -110,39 +94,8 @@ public:
         Position += Up * ( input.z * velocity );
     }
 
-    void ProcessInput()
-    {
-        const Uint8* state = SDL_GetKeyboardState(NULL);
-
-        //Forward and backwards
-        if (state[SDL_SCANCODE_W])
-            input.y = 1.0f;
-        else if (state[SDL_SCANCODE_S])
-            input.y = -1.0f;
-        else
-            input.y = 0.0f;
-
-        //Left and right
-        if (state[SDL_SCANCODE_A])
-            input.x = -1.0f;
-        else if (state[SDL_SCANCODE_D])
-            input.x = 1.0f;
-        else
-            input.x = 0.0f;
-
-        //Up and down
-        if (state[SDL_SCANCODE_SPACE])
-            input.z = 1.0f;
-        else if (state[SDL_SCANCODE_LSHIFT])
-            input.z = -1.0f;
-        else
-            input.z = 0.0f;
-    }
-
     void ProcessEvents(const SDL_Event& e)
     {
-        ProcessInput();
-
         //int mouse_x, mouse_y;
         //SDL_GetMouseState(&mouse_x, &mouse_y);
 

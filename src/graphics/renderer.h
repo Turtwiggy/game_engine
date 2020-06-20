@@ -23,14 +23,14 @@ namespace fightinggame {
     struct draw_scene_desc
     {
         graphics::render_pass view_id;
-        int height = 0;
-        int width = 0;
+        game_window& window;
         Camera& camera;
         std::vector<std::reference_wrapper<FGTransform>>& models;
 
-        draw_scene_desc(std::vector<std::reference_wrapper<FGTransform>>& models, Camera& c)
-            : models(models)
+        draw_scene_desc(std::vector<std::reference_wrapper<FGTransform>>& m, Camera& c, game_window& w)
+            : models(m)
             , camera(c)
+            , window(w)
         {
         }
     };

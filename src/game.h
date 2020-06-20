@@ -1,20 +1,7 @@
 #pragma once
 
-#include <string>
-#include <vector>
-#include <memory>
-#include <thread>
-
-#include <SDL2/SDL.h>
-#include <SDL2/SDL_syswm.h>
-
-#define GLM_FORCE_RADIANS
-#include <glm/glm.hpp>
-#include <glm/vec3.hpp> 
-//#include <entt/entt.hpp>
-
-#include "3d/camera.h"
 #include "base.h"
+#include "3d/camera.h"
 #include "common/circular_buffer.h"
 #include "gui.hpp"
 #include "graphics/renderer.h"
@@ -29,15 +16,36 @@
 #include "networking/chat_client.hpp"
 #include "networking/chat_server.hpp"
 
+#include <SDL2/SDL.h>
+#include <SDL2/SDL_syswm.h>
+
+#define GLM_FORCE_RADIANS
+#include <glm/glm.hpp>
+#include <glm/vec3.hpp> 
+//#include <entt/entt.hpp>
+
+#include <string>
+#include <vector>
+#include <memory>
+#include <thread>
+
 namespace fightinggame
 {
+    struct input
+    {
+        bool key_down = false;
+        bool key_up = false;
+
+        SDL_Keycode key;
+    };
+
     struct game_state
     {
         int frame;
 
         physics_simulation physics;
 
-        glm::vec3 cube_pos;
+        glm::vec3 cube_pos = glm::vec3(0.f, 0.f, 0.f);
 
         //todo: how to lerp between game states
         //game_state& lerp(const game_state& other, float percent)
@@ -50,11 +58,11 @@ namespace fightinggame
     class game
     {
     public:
-        bool process_window_input_down(const SDL_Event& event, game_window& window);
+        bool process_window_input_down(const SDL_Event& e, game_window& window);
         bool process_events(profiler& p, renderer& r, game_window& g, Gui& gui, Camera& c);
         void run();
 
-        float get_average_fps() { return average_fps.average(); }
+        float get_average_fps() { return fps_buffer.average(); }
 
     private:
         void tick(float delta_time, game_state& state, Camera& camera);    //update game logic
@@ -74,11 +82,11 @@ namespace fightinggame
         static game* sInstance;
 
         //delta time metrics
-        float FPS = 60.f;
+        float FPS = 144.f;
         float MILLISECONDS_PER_FRAME = 1000.f / FPS;
         float SECONDS_PER_FRAME = 1.f / FPS;
 
-        int GAME_TICKS_PER_SECOND = 2;
+        int GAME_TICKS_PER_SECOND = 1;
         float SECONDS_PER_GAMETICK = 1.f / GAME_TICKS_PER_SECOND;
 
         unsigned int start = 0;
@@ -89,7 +97,7 @@ namespace fightinggame
         //frame metrics
         uint32_t _frameCount = 0;
         float seconds_since_last_game_tick = 0;
-        circular_buffer average_fps;
+        circular_buffer fps_buffer;
 
         //game window
         bool mouse_grabbed = true;
@@ -97,8 +105,6 @@ namespace fightinggame
         //game_state state_previous;
         game_state state_current;
 
-        int m_width = 1080;
-        int m_height = 720;
         bool running = true;
         bool fullscreen = false;
 
