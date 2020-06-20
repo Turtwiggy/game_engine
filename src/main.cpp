@@ -7,13 +7,7 @@
 
 //physics
 
-//void advance(game_state& state, sf::Time deltaTime)
-//{
-//    frame += 1;
-//    printf("ticking forward one physics iteration, new frame: %i ", frame);
-//
-//    state.physics.step_simulation(deltaTime.asMilliseconds());
-//}
+
 
 //networking
 

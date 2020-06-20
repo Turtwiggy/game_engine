@@ -2,6 +2,7 @@
 
 #include "graphics/shader.h"
 #include "graphics/texture.h"
+#include "base.h"
 
 //#include "assimp/"
 #include "glm/glm.hpp"
@@ -11,10 +12,11 @@
 
 #include <string>
 #include <vector>
+#include <functional>
 
 namespace fightinggame {
 
-    struct Vertex {
+    struct FGVertex {
         glm::vec3 Position;
         glm::vec3 Normal;
         glm::vec2 TexCoords;
@@ -22,22 +24,22 @@ namespace fightinggame {
         glm::vec3 Bitangent;
     };
 
-    class Mesh {
+    class FGMesh {
     public:
         // mesh data
-        std::vector<Vertex>         vertices;
+        std::vector<FGVertex>         vertices;
         std::vector<unsigned int>   indices;
         std::vector<Ref<texture2D>> textures;
         std::string                 name;
 
-        Mesh
+        FGMesh
         (
-            std::vector<Vertex> vertices,
+            std::vector<FGVertex> vertices,
             std::vector<unsigned int> indices,
             std::vector< Ref<texture2D>> textures,
             std::string name
         );
-        void Draw(Shader& shader);
+        void draw(Shader& shader);
         void setupMesh();
 
     private:
@@ -45,10 +47,10 @@ namespace fightinggame {
         unsigned int VAO, VBO, EBO;
     };
 
-    class Model
+    class FGModel
     {
     public:
-        Model(std::string path) //e.g. 'C:/model.obj'
+        FGModel(std::string path) //e.g. 'C:/model.obj'
         {
             loadModel(path);
         }
@@ -59,7 +61,7 @@ namespace fightinggame {
 
         void loadModel(std::string path);
         void processNode(aiNode* node, const aiScene* scene);
-        Mesh processMesh(aiMesh* mesh, const aiScene* scene);
+        FGMesh processMesh(aiMesh* mesh, const aiScene* scene);
 
         std::vector<Ref<texture2D>> loadMaterialTextures
         (
@@ -69,8 +71,9 @@ namespace fightinggame {
         );
 
     private:
-        std::vector<Mesh> meshes;
+        std::vector<FGMesh> meshes;
         std::vector<Ref<texture2D>> textures_loaded;
         std::string directory;
     };
+
 }

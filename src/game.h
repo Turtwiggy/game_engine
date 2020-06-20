@@ -66,7 +66,7 @@ namespace fightinggame
             Camera& c,
             Gui& g,
             game_window& window,
-            std::vector<std::reference_wrapper<Model>>& models
+            std::vector<std::reference_wrapper<FGTransform>>& models
         );
         void shutdown(renderer& r, game_window& w);
 

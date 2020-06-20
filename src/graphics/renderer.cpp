@@ -122,7 +122,7 @@ namespace fightinggame
         render_command::Init(); //configure opengl state
     }
 
-    void renderer::init_models_and_shaders(std::vector<std::reference_wrapper<Model>>& models)
+    void renderer::init_models_and_shaders(std::vector<std::reference_wrapper<FGTransform>>& models)
     {
         //glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);  // uncomment this call to draw in wireframe polygons.
 
@@ -156,7 +156,8 @@ namespace fightinggame
         s_Data.TextureSlotIndex = 1;
 
         //Models
-        Model& lizard = models[0];
+        FGTransform& lizard_transform = models[0];
+        FGModel& lizard = lizard_transform.model;
         std::vector<Ref<texture2D>> lizard_textures = lizard.get_textures();
         for (auto tex_index = 0; tex_index < lizard_textures.size(); tex_index++)
         {
@@ -165,11 +166,11 @@ namespace fightinggame
             s_Data.TextureSlotIndex += 1;
         }
 
-        Model& cube = models[1];
+        //Model& cube = models[1];
 
-        int32_t samplers[s_Data.MaxTextureSlots];
-        for (uint32_t i = 0; i < s_Data.MaxTextureSlots; i++)
-            samplers[i] = i;
+        //int32_t samplers[s_Data.MaxTextureSlots];
+        //for (uint32_t i = 0; i < s_Data.MaxTextureSlots; i++)
+        //    samplers[i] = i;
 
         for (auto tex_index = 0; tex_index < s_Data.TextureSlots.size(); tex_index++)
         {
@@ -211,21 +212,23 @@ namespace fightinggame
         s_Data.cube_shader->setMat4("view", view);
 
         //Lizard Stuff
+        FGTransform& lizard = desc.models[0];
+
         glm::mat4 model = glm::mat4(1.0f);
-        model = glm::translate(model, glm::vec3(0.0f, 0.0f, 0.0f)); // translate it down so it's at the center of the scene
+        model = glm::translate(model, lizard.Position); // translate it down so it's at the center of the scene
         model = glm::scale(model, glm::vec3(1.0f, 1.0f, 1.0f));	// it's a bit too big for our scene, so scale it down
         s_Data.lizard_shader->setMat4("model", model);
-        Model& lizard = desc.models[0];
-
-        s_Data.lizard_shader->setInt("texture_diffuse1", s_Data.TextureSlots[2]->get_renderer_id());
+        //s_Data.lizard_shader->setInt("texture_diffuse1", s_Data.TextureSlots[2]->get_renderer_id());
 
         //Cube Stuff
+        FGTransform& cube = desc.models[1];
+
         glm::mat4 model2 = glm::mat4(1.0f);
-        model2 = glm::translate(model2, cube_pos); // translate it down so it's at the center of the scene
+        model2 = glm::translate(model2, cube.Position); // translate it down so it's at the center of the scene
         model2 = glm::scale(model2, glm::vec3(1.0f, 1.0f, 1.0f));	// it's a bit too big for our scene, so scale it down
         s_Data.cube_shader->setMat4("model", model2);
-        Model& cube = desc.models[1];
-        //s_Data.cube_shader->setInt("texture_diffuse1", s_Data.TextureSlots[1]->get_renderer_id());
+
+        s_Data.cube_shader->setInt("texture_diffuse1", s_Data.TextureSlots[0]->get_renderer_id());
 
         // Bind textures
         for (uint32_t i = 0; i < s_Data.MaxTextureSlots; i++)
@@ -234,12 +237,14 @@ namespace fightinggame
             if (texture == nullptr)
                 continue;
 
-            std::cout << "binding: " << s_Data.TextureSlots[i]->get_path() << "to id: " << i << std::endl;
+            //std::cout << "binding: " << s_Data.TextureSlots[i]->get_path() << "to id: " << i << std::endl;
             s_Data.TextureSlots[i]->bind(i);
         }
 
-        lizard.Draw(*s_Data.lizard_shader);
-        cube.Draw(*s_Data.cube_shader);
+        FGModel& lizard_model = lizard.model;
+        lizard_model.Draw(*s_Data.lizard_shader);
+        FGModel& cube_model = cube.model;
+        cube_model.Draw(*s_Data.cube_shader);
 
         ////flatColorShader->setVec4("u_Color", { /*GetColor()*/ glm::vec4(1.0, 0.0, 0.0, 1.0) });
     }
@@ -310,23 +315,23 @@ namespace fightinggame
         SDL_GL_DeleteContext(get_gl_context());
     }
 
-    void renderer::render_square(Shader& shader)
-    {
-        //get current position from Box2D
-        //b2Vec2 pos = physicsBody->GetPosition();
-        //float angle = physicsBody->GetAngle();
+    //void renderer::render_square(Shader& shader)
+    //{
+    //    //get current position from Box2D
+    //    //b2Vec2 pos = physicsBody->GetPosition();
+    //    //float angle = physicsBody->GetAngle();
 
-        glm::vec3 glSize = glm::vec3(/*GetSizeForRenderer()*/ glm::vec2(1.0, 1.0), 1.0f);
-        glm::vec3 glPos = glm::vec3(/*pos.x, pos.y*/ 0.0f, 0.0f, 0.0f);
+    //    glm::vec3 glSize = glm::vec3(/*GetSizeForRenderer()*/ glm::vec2(1.0, 1.0), 1.0f);
+    //    glm::vec3 glPos = glm::vec3(/*pos.x, pos.y*/ 0.0f, 0.0f, 0.0f);
 
-        glm::mat4 idxMatrix = glm::mat4(1.0f);
-        idxMatrix = glm::translate(idxMatrix, glPos) * glm::scale(idxMatrix, { glSize });
+    //    glm::mat4 idxMatrix = glm::mat4(1.0f);
+    //    idxMatrix = glm::translate(idxMatrix, glPos) * glm::scale(idxMatrix, { glSize });
 
-        shader.setMat4("u_Transform", idxMatrix);
-        shader.setVec4("u_Color", { /*GetColor()*/ glm::vec4(1.0, 0.0, 0.0, 1.0) });
+    //    shader.setMat4("u_Transform", idxMatrix);
+    //    shader.setVec4("u_Color", { /*GetColor()*/ glm::vec4(1.0, 0.0, 0.0, 1.0) });
 
-        glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, 0);
-    }
+    //    glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, 0);
+    //}
 }
 
 /* LIGHTING CODE

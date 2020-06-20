@@ -1,13 +1,13 @@
 #pragma once
 
 #include "window/game_window.h"
-#include "base.h"
 
 #include "3d/assimp_obj_loader.h"
 #include "3d/camera.h"
 #include "graphics/renderer_api.h"
 #include "graphics/render_pass.h"
 #include "graphics/shader.h"
+#include "entities/transform.h"
 
 #include <SDL2/SDL.h>
 #include <imgui.h>
@@ -26,9 +26,9 @@ namespace fightinggame {
         int height = 0;
         int width = 0;
         Camera& camera;
-        std::vector<std::reference_wrapper<Model>>& models;
+        std::vector<std::reference_wrapper<FGTransform>>& models;
 
-        draw_scene_desc(std::vector<std::reference_wrapper<Model>>& models, Camera& c)
+        draw_scene_desc(std::vector<std::reference_wrapper<FGTransform>>& models, Camera& c)
             : models(models)
             , camera(c)
         {
@@ -44,15 +44,8 @@ namespace fightinggame {
         void end_frame(SDL_Window* window);
 
         void draw_pass(draw_scene_desc& desc);
-        void flush();
-        void flush_and_reset();
-
-        void draw_model(Model& m, glm::vec3& position, glm::vec3& size /*, float rotation, const Ref<Texture>& texture*/);
 
         void shutdown();
-
-    private:
-        void render_square(Shader& shader); //temporary
 
     private:
 
@@ -79,7 +72,7 @@ namespace fightinggame {
         ImGuiContext* get_imgui_context() { return _imgui; }
 
         void init_opengl_and_imgui(const game_window& window);
-        void init_models_and_shaders(std::vector<std::reference_wrapper<Model>>& models);
+        void init_models_and_shaders(std::vector<std::reference_wrapper<FGTransform>>& models);
 
         SDL_GLContext get_gl_context() { return gl_context; }
 

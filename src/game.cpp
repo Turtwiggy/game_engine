@@ -3,6 +3,7 @@
 #include "gui.hpp"
 #include "graphics/render_command.h"
 #include "3d/assimp_obj_loader.h"
+#include "entities/transform.h"
 
 #include <glm/glm.hpp>
 #include <spdlog/spdlog.h>
@@ -82,17 +83,25 @@ bool game::process_events(profiler& p, renderer& r, game_window& g, Gui& gui, Ca
     return true;
 }
 
+//Physics
+void advance_physics(game_state& state, float fixed_delta_time)
+{
+    state.physics.step_simulation(fixed_delta_time);
+}
+
 //Called X ticks per second
 void game::tick(float fixed_delta_time, game_state& state, Camera& cam)
 {
     //this is a new state
     _frameCount += 1;
     state.frame = _frameCount;
+    //advance_physics(state, fixed_delta_time);
 
     //update state
     printf("ticking frame %i game state time: %f \n", _frameCount, fixed_delta_time);
 
-    state.cube_pos = glm::vec3(0.0, 0.0, 0.0);
+    state.cube_pos = state.cube_pos - glm::vec3(0.0, 1.0, 0.0);
+
 }
 
 void game::render (
@@ -102,7 +111,7 @@ void game::render (
     Camera& c,
     Gui& g,
     game_window& window,
-    std::vector<std::reference_wrapper<Model>>& models)
+    std::vector<std::reference_wrapper<FGTransform>>& models)
 {
     {
         profiler.Begin(profiler::Stage::NewFrame);
@@ -173,18 +182,26 @@ void game::run()
     rend.init_opengl_and_imgui(window); //do not use opengl before this point
 
     //Temp obj loader - should be moved in future
-    printf("Each model : %s bytes \n", std::to_string(sizeof(Model)).c_str());
+    printf("Each model : %s bytes \n", std::to_string(sizeof(FGModel)).c_str());
     const std::string dir = std::string(std::filesystem::current_path().generic_u8string());
     //Lizard wizard
     std::string char_path = dir + "/res/models/lizard_wizard/lizard_wizard.obj";
-    Model char_model = Model(char_path);
+    FGModel char_model = FGModel(char_path);
+    FGTransform char_transform = FGTransform(std::reference_wrapper<FGModel>(char_model));
+    char_transform.Scale = glm::vec3(0.f, 0.f, 0.f);
+    char_transform.Position = glm::vec3(0.f, 1.f, 0.f);
+
     //Cube
     std::string cube_path = dir + "/res/models/cube/cube.obj";
-    Model cube_model = Model(cube_path);
+    FGModel cube_model = FGModel(cube_path);
+    FGTransform cube_transform = FGTransform(std::reference_wrapper<FGModel>(cube_model));
+    cube_transform.Scale = glm::vec3(0.f, 0.f, 0.f);
+    cube_transform.Position = glm::vec3(0.f, 1.f, 0.f);
+
     //All Models
-    std::vector<std::reference_wrapper<Model>> models;
-    models.push_back(char_model);
-    models.push_back(cube_model);
+    std::vector<std::reference_wrapper<FGTransform>> models;
+    models.push_back(char_transform);
+    models.push_back(cube_transform);
 
     rend.init_models_and_shaders(models);
 

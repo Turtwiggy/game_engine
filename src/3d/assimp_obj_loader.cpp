@@ -6,8 +6,8 @@ namespace fightinggame {
 
     //  --------- MESH -----------
 
-    Mesh::Mesh(
-        std::vector<Vertex> vertices,
+    FGMesh::FGMesh(
+        std::vector<FGVertex> vertices,
         std::vector<unsigned int> indices,
         std::vector< Ref<texture2D>> textures,
         std::string name)
@@ -21,7 +21,7 @@ namespace fightinggame {
     }
 
     // initializes all the buffer objects/arrays
-    void Mesh::setupMesh()
+    void FGMesh::setupMesh()
     {
         // create buffers/arrays
         glGenVertexArrays(1, &VAO);
@@ -34,20 +34,20 @@ namespace fightinggame {
         // A great thing about structs is that their memory layout is sequential for all its items.
         // The effect is that we can simply pass a pointer to the struct and it translates perfectly to a glm::vec3/2 array which
         // again translates to 3/2 floats which translates to a byte array.
-        glBufferData(GL_ARRAY_BUFFER, vertices.size() * sizeof(Vertex), &vertices[0], GL_STATIC_DRAW);
+        glBufferData(GL_ARRAY_BUFFER, vertices.size() * sizeof(FGVertex), &vertices[0], GL_STATIC_DRAW);
 
         glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, EBO);
         glBufferData(GL_ELEMENT_ARRAY_BUFFER, indices.size() * sizeof(unsigned int), &indices[0], GL_STATIC_DRAW);
 
         // set the vertex attribute pointers - vertex Positions
         glEnableVertexAttribArray(0);
-        glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, sizeof(Vertex), (void*)0);
+        glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, sizeof(FGVertex), (void*)0);
         // vertex normals
         glEnableVertexAttribArray(1);
-        glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, sizeof(Vertex), (void*)offsetof(Vertex, Normal));
+        glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, sizeof(FGVertex), (void*)offsetof(FGVertex, Normal));
         // vertex texture coords
         glEnableVertexAttribArray(2);
-        glVertexAttribPointer(2, 2, GL_FLOAT, GL_FALSE, sizeof(Vertex), (void*)offsetof(Vertex, TexCoords));
+        glVertexAttribPointer(2, 2, GL_FLOAT, GL_FALSE, sizeof(FGVertex), (void*)offsetof(FGVertex, TexCoords));
         //// vertex tangent
         //glEnableVertexAttribArray(3);
         //glVertexAttribPointer(3, 3, GL_FLOAT, GL_FALSE, sizeof(Vertex), (void*)offsetof(Vertex, Tangent));
@@ -59,7 +59,7 @@ namespace fightinggame {
     }
 
     // render the mesh
-    void Mesh::Draw(Shader& shader)
+    void FGMesh::draw(Shader& shader/*, texture2D& texture*/)
     {
         // bind appropriate textures
         unsigned int diffuseNr = 1;
@@ -68,24 +68,24 @@ namespace fightinggame {
         unsigned int heightNr = 1;
         for (unsigned int i = 0; i < textures.size(); i++)
         {
-            //glActiveTexture(GL_TEXTURE0 + i); // active proper texture unit before binding
-            //// retrieve texture number (the N in diffuse_textureN)
-            //std::string number;
-            //std::string name = textures[i]->get_type();
-            //if (name == "texture_diffuse")
-            //    number = std::to_string(diffuseNr++);
-            //else if (name == "texture_specular")
-            //    number = std::to_string(specularNr++); // transfer unsigned int to stream
-            //else if (name == "texture_normal")
-            //    number = std::to_string(normalNr++); // transfer unsigned int to stream
-            //else if (name == "texture_height")
-            //    number = std::to_string(heightNr++); // transfer unsigned int to stream
+            glActiveTexture(GL_TEXTURE0 + i); // active proper texture unit before binding
+            // retrieve texture number (the N in diffuse_textureN)
+            std::string number;
+            std::string name = textures[i]->get_type();
+            if (name == "texture_diffuse")
+                number = std::to_string(diffuseNr++);
+            else if (name == "texture_specular")
+                number = std::to_string(specularNr++); // transfer unsigned int to stream
+            else if (name == "texture_normal")
+                number = std::to_string(normalNr++); // transfer unsigned int to stream
+            else if (name == "texture_height")
+                number = std::to_string(heightNr++); // transfer unsigned int to stream
 
-            //// now set the sampler to the correct texture unit
-            //const char* tex_name = (name + number).c_str();
-            //shader.setInt(tex_name, i);
-            //// and finally bind the texture
-            //textures[i]->bind(i);
+            // now set the sampler to the correct texture unit
+            const char* tex_name = (name + number).c_str();
+            shader.setInt(tex_name, i);
+            // and finally bind the texture
+            textures[i]->bind(i);
         }
 
         // draw mesh
@@ -99,15 +99,15 @@ namespace fightinggame {
 
     //  --------- MODEL -----------
 
-    void Model::Draw(Shader& shader)
+    void FGModel::Draw(Shader& shader)
     {
         for (unsigned int i = 0; i < meshes.size(); i++) {
-            std::cout << "drawing mesh: " << meshes[i].name << std::endl;
-            meshes[i].Draw(shader);
+            //std::cout << "drawing mesh: " << meshes[i].name << std::endl;
+            meshes[i].draw(shader);
         }
     }
 
-    void Model::loadModel(std::string path)
+    void FGModel::loadModel(std::string path)
     {
         std::cout << "loading model from: " << path << std::endl;
 
@@ -126,7 +126,7 @@ namespace fightinggame {
         processNode(scene->mRootNode, scene);
     }
 
-    void Model::processNode(aiNode* node, const aiScene* scene)
+    void FGModel::processNode(aiNode* node, const aiScene* scene)
     {
         // process all the node's meshes (if any)
         for (unsigned int i = 0; i < node->mNumMeshes; i++)
@@ -141,17 +141,17 @@ namespace fightinggame {
         }
     }
 
-    Mesh Model::processMesh(aiMesh* mesh, const aiScene* scene)
+    FGMesh FGModel::processMesh(aiMesh* mesh, const aiScene* scene)
     {
         // data to fill
-        std::vector<Vertex> vertices;
+        std::vector<FGVertex> vertices;
         std::vector<unsigned int> indices;
         std::vector<Ref<texture2D>> textures;
 
         // walk through each of the mesh's vertices
         for (unsigned int i = 0; i < mesh->mNumVertices; i++)
         {
-            Vertex vertex;
+            FGVertex vertex;
             glm::vec3 vector; // we declare a placeholder vector since assimp uses its own vector class that doesn't directly convert to glm's vec3 class so we transfer the data to this placeholder glm::vec3 first.
             // positions
             vector.x = mesh->mVertices[i].x;
@@ -218,11 +218,11 @@ namespace fightinggame {
         textures.insert(textures.end(), heightMaps.begin(), heightMaps.end());
 
         // return a mesh object created from the extracted mesh data
-        return Mesh(vertices, indices, textures, material->GetName().C_Str());
+        return FGMesh(vertices, indices, textures, material->GetName().C_Str());
     }
 
     // checks all material textures of a given type and loads the textures if they're not loaded yet. the required info is returned as a Texture struct.
-    std::vector<Ref<texture2D>> Model::loadMaterialTextures(aiMaterial* mat, aiTextureType type, std::string typeName)
+    std::vector<Ref<texture2D>> FGModel::loadMaterialTextures(aiMaterial* mat, aiTextureType type, std::string typeName)
     {
         std::vector<Ref<texture2D>> textures;
 
