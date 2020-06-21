@@ -8,7 +8,9 @@
 
 #include <glm/glm.hpp>
 #include <glm/gtc/matrix_transform.hpp>
-#include <GL\glew.h>
+#include <glm/gtc/type_ptr.hpp>
+#include <glm/gtx/transform.hpp>
+#include <GL/glew.h>
 #include <glm/gtx/euler_angles.hpp>
 #include <SDL2/SDL.h>
 
@@ -83,6 +85,13 @@ public:
     glm::mat4 GetViewMatrix() const
     {
         return glm::lookAt(Position, Position + Front, Up);
+    }
+
+    glm::mat4 GetViewProjectionMatrix(int width, int height) const
+    {
+        glm::mat4 projection = glm::perspective(glm::radians(Zoom), (float)width / (float)height, 0.1f, 100.0f);
+        glm::mat4 view = GetViewMatrix();
+        return projection * view;
     }
 
     void Update(glm::vec3 input, float delta_time)

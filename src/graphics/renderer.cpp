@@ -138,7 +138,7 @@ namespace fightinggame
         //Cube 
         cube_pos = glm::vec3(1.f, 0.f, 0.f);
         s_Data.cube_shader = std::make_unique<Shader>
-            ("res/shaders/diffuse.vert", "res/shaders/diffuse.frag");
+            ("res/shaders/new.vert", "res/shaders/new.frag");
         s_Data.cube_shader->use();
 
         //Load texture
@@ -182,44 +182,10 @@ namespace fightinggame
         int width, height = 0;
         game_window& window = desc.window;
         window.GetSize(width, height);
-
-        glm::mat4 projection = glm::perspective(glm::radians(desc.camera.Zoom), (float)width / (float)height, 0.1f, 100.0f);
-        glm::mat4 view = desc.camera.GetViewMatrix();
-        glm::mat4 view_projection = projection * view;
+        glm::mat4 view_projection = desc.camera.GetViewProjectionMatrix(width, height);
 
         //Begin Scene
-        //s_Data.AllIndexCount = 0;
-        //s_Data.CubeVertexBufferPtr = s_Data.CubeVertexBufferBase;
         s_Data.TextureSlotIndex = 1;
-
-        //End Scene
-        //uint32_t dataSize = (uint32_t)((uint8_t*)s_Data.CubeVertexBufferPtr - (uint8_t*)s_Data.CubeVertexBufferBase);
-        //s_Data.AllVertexBuffer->SetData(s_Data.CubeVertexBufferBase, dataSize);
-
-        //shaders
-        s_Data.lizard_shader->use();
-        s_Data.cube_shader->use();
-
-        s_Data.lizard_shader->setMat4("projection", projection);
-        s_Data.lizard_shader->setMat4("view", view);
-        s_Data.cube_shader->setMat4("projection", projection);
-        s_Data.cube_shader->setMat4("view", view);
-
-        //Lizard Stuff
-        FGTransform& lizard = desc.models[0];
-        glm::mat4 model = glm::mat4(1.0f);
-        model = glm::translate(model, lizard.Position);
-        model = glm::scale(model, glm::vec3(1.0f, 1.0f, 1.0f));	
-        s_Data.lizard_shader->setMat4("model", model);
-        //s_Data.lizard_shader->setInt("texture_diffuse1", s_Data.TextureSlots[2]->get_renderer_id());
-
-        //Cube Stuff
-        FGTransform& cube = desc.models[1];
-        glm::mat4 model2 = glm::mat4(1.0f);
-        model2 = glm::translate(model2, cube.Position);
-        model2 = glm::scale(model2, glm::vec3(1.0f, 1.0f, 1.0f));	
-        s_Data.cube_shader->setMat4("model", model2);
-        s_Data.cube_shader->setInt("texture_diffuse1", s_Data.TextureSlots[0]->get_renderer_id());
 
         // Bind textures
         for (uint32_t i = 0; i < s_Data.MaxTextureSlots; i++)
@@ -232,12 +198,37 @@ namespace fightinggame
             s_Data.TextureSlots[i]->bind(i);
         }
 
+        //Lizard Shader
+        s_Data.lizard_shader->use();
+        s_Data.lizard_shader->setMat4("view_projection", view_projection);
+
+        //Lizard Model
+        FGTransform& lizard = desc.models[0];
+        glm::mat4 model = glm::mat4(1.0f);
+        model = glm::translate(model, lizard.Position);
+        model = glm::scale(model, glm::vec3(1.0f, 1.0f, 1.0f));
+        s_Data.lizard_shader->setMat4("model", model);
+        //s_Data.lizard_shader->setInt("texture_diffuse1", s_Data.TextureSlots[2]->get_renderer_id());
         FGModel& lizard_model = lizard.model;
         lizard_model.Draw(*s_Data.lizard_shader);
+
+        //Cube Shader
+        s_Data.cube_shader->use();
+        s_Data.cube_shader->setMat4("view_projection", view_projection);
+        glm::vec3 object_colour(1.0f, 1.0f, 0.0f);
+        s_Data.cube_shader->setVec3("object_colour", object_colour);
+        glm::vec3 light_colour(0.0f, 1.0f, 0.0f);
+        s_Data.cube_shader->setVec3("light_colour", light_colour);
+
+        //Cube Model
+        FGTransform& cube = desc.models[1];
+        glm::mat4 model2 = glm::mat4(1.0f);
+        model2 = glm::translate(model2, cube.Position);
+        model2 = glm::scale(model2, glm::vec3(1.0f, 1.0f, 1.0f));	
+        s_Data.cube_shader->setMat4("model", model2);
+        //s_Data.cube_shader->setInt("texture_diffuse1", s_Data.TextureSlots[0]->get_renderer_id());
         FGModel& cube_model = cube.model;
         cube_model.Draw(*s_Data.cube_shader);
-
-        ////flatColorShader->setVec4("u_Color", { /*GetColor()*/ glm::vec4(1.0, 0.0, 0.0, 1.0) });
     }
 
     void flush()
@@ -311,16 +302,12 @@ namespace fightinggame
     //    //get current position from Box2D
     //    //b2Vec2 pos = physicsBody->GetPosition();
     //    //float angle = physicsBody->GetAngle();
-
     //    glm::vec3 glSize = glm::vec3(/*GetSizeForRenderer()*/ glm::vec2(1.0, 1.0), 1.0f);
     //    glm::vec3 glPos = glm::vec3(/*pos.x, pos.y*/ 0.0f, 0.0f, 0.0f);
-
     //    glm::mat4 idxMatrix = glm::mat4(1.0f);
     //    idxMatrix = glm::translate(idxMatrix, glPos) * glm::scale(idxMatrix, { glSize });
-
     //    shader.setMat4("u_Transform", idxMatrix);
     //    shader.setVec4("u_Color", { /*GetColor()*/ glm::vec4(1.0, 0.0, 0.0, 1.0) });
-
     //    glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, 0);
     //}
 }
@@ -348,7 +335,6 @@ namespace fightinggame
 //lightingShader.setVec3("material.diffuse", 1.0f, 0.5f, 0.31f);
 //lightingShader.setVec3("material.specular", 0.5f, 0.5f, 0.5f); // specular lighting doesn't have full effect on this object's material
 //lightingShader.setFloat("material.shininess", 32.0f);
-
 //// render the cube
 //glBindVertexArray(cubeVAO);
 //glDrawArrays(GL_TRIANGLES, 0, 36);
