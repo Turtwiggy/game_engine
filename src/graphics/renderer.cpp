@@ -41,7 +41,6 @@ namespace fightinggame
 
         renderer::Statistics stats;
     };
-
     static RenderData s_Data;
 
     void renderer::init_opengl_and_imgui(const game_window& window)
@@ -175,10 +174,6 @@ namespace fightinggame
         render_command::SetClearColor(glm::vec4(0.2f, 0.3f, 0.3f, 1.0f));
         render_command::Clear();
 
-        ImGui::Begin("Hello from the renderer");
-        ImGui::Button("Hello button");
-        ImGui::End();
-
         int width, height = 0;
         game_window& window = desc.window;
         window.GetSize(width, height);
@@ -203,14 +198,14 @@ namespace fightinggame
         s_Data.lizard_shader->setMat4("view_projection", view_projection);
 
         //Lizard Model
-        FGTransform& lizard = desc.models[0];
+        FGTransform& lizard = desc.transforms[0];
         glm::mat4 model = glm::mat4(1.0f);
         model = glm::translate(model, lizard.Position);
         model = glm::scale(model, glm::vec3(1.0f, 1.0f, 1.0f));
         s_Data.lizard_shader->setMat4("model", model);
         //s_Data.lizard_shader->setInt("texture_diffuse1", s_Data.TextureSlots[2]->get_renderer_id());
         FGModel& lizard_model = lizard.model;
-        lizard_model.Draw(*s_Data.lizard_shader);
+        lizard_model.Draw(*s_Data.lizard_shader, s_Data.stats.DrawCalls);
 
         //Cube Shader
         s_Data.cube_shader->use();
@@ -221,14 +216,26 @@ namespace fightinggame
         s_Data.cube_shader->setVec3("light_colour", light_colour);
 
         //Cube Model
-        FGTransform& cube = desc.models[1];
+        FGTransform& cube = desc.transforms[1];
         glm::mat4 model2 = glm::mat4(1.0f);
         model2 = glm::translate(model2, cube.Position);
         model2 = glm::scale(model2, glm::vec3(1.0f, 1.0f, 1.0f));	
         s_Data.cube_shader->setMat4("model", model2);
         //s_Data.cube_shader->setInt("texture_diffuse1", s_Data.TextureSlots[0]->get_renderer_id());
         FGModel& cube_model = cube.model;
-        cube_model.Draw(*s_Data.cube_shader);
+        cube_model.Draw(*s_Data.cube_shader, s_Data.stats.DrawCalls);
+
+        //Draw another cube
+        glm::mat4 model3 = glm::mat4(1.0f);
+        model3 = glm::translate(model3, glm::vec3(3.0f, 0.0f, 0.0f));
+        model3 = glm::scale(model3, glm::vec3(1.0f, 1.0f, 1.0f));
+        s_Data.cube_shader->setMat4("model", model3);
+        cube_model.Draw(*s_Data.cube_shader, s_Data.stats.DrawCalls);
+
+        ImGui::Begin("Renderer Profiler");
+        ImGui::Text("Draw Calls: %i", s_Data.stats.DrawCalls);
+        ImGui::End();
+        s_Data.stats.DrawCalls = 0;
     }
 
     void flush()

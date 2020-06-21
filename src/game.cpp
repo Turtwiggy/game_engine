@@ -1,9 +1,10 @@
 #include "game.h"
 
-#include "gui.hpp"
-#include "graphics/render_command.h"
 #include "3d/assimp_obj_loader.h"
 #include "entities/transform.h"
+#include "input/keyboard_input.h"
+#include "graphics/render_command.h"
+#include "gui.hpp"
 
 #include <spdlog/spdlog.h>
 #include "imgui.h"
@@ -104,7 +105,7 @@ void game::tick(float fixed_delta_time, game_state& state, Camera& cam)
 void game::render(
     profiler& profiler,
     game_state& state,
-    renderer& r,
+    renderer& rend,
     Camera& c,
     Gui& g,
     game_window& window,
@@ -112,7 +113,7 @@ void game::render(
 {
     {
         profiler.Begin(profiler::Stage::NewFrame);
-        r.new_frame(window.GetHandle());
+        rend.new_frame(window.GetHandle());
         profiler.End(profiler::Stage::NewFrame);
     }
 
@@ -129,15 +130,15 @@ void game::render(
             window
         );
         drawDesc.view_id = graphics::render_pass::Main;
-        drawDesc.models[1].get().Position = state.cube_pos;
+        drawDesc.transforms[1].get().Position = state.cube_pos;
 
-        r.draw_pass(drawDesc);
+        rend.draw_pass(drawDesc);
         profiler.End(profiler::Stage::SceneDraw);
     }
 
     {
         profiler.Begin(profiler::Stage::GuiLoop);
-        if (g.Loop(*this, r.get_imgui_context(), profiler))
+        if (g.Loop(*this, rend.get_imgui_context(), profiler))
         {
             running = false;
             return;
@@ -147,7 +148,7 @@ void game::render(
 
     {
         profiler.Begin(profiler::Stage::RenderFrame);
-        r.end_frame(window.GetHandle());
+        rend.end_frame(window.GetHandle());
         profiler.End(profiler::Stage::RenderFrame);
     }
 }
@@ -208,9 +209,12 @@ void game::run()
 
     rend.init_models_and_shaders(models);
 
-    //ImGui Gui (harhar)
+    //ImGui
     Gui gui;
     printf("Gui taking up: %s bytes \n", std::to_string(sizeof(Gui)).c_str());
+
+    //Keyboard Controller
+    keyboard_controller input;
 
     running = true;
     _frameCount = 0;
@@ -231,38 +235,10 @@ void game::run()
         // input
         // -----
         profile.Begin(profiler::Stage::SdlInput);
-
         running = process_events(profile, rend, window, gui, cam);
         const Uint8* key_state = SDL_GetKeyboardState(NULL);
 
-        //Camera input
-        glm::vec3 move_dir = glm::vec3(0.f, 0.f, 0.f);
-
-        //Forward and backwards
-        if (key_state[SDL_SCANCODE_W])
-            move_dir.y = 1.0f;
-        else if (key_state[SDL_SCANCODE_S])
-            move_dir.y = -1.0f;
-        else
-            move_dir.y = 0.0f;
-
-        //Left and right
-        if (key_state[SDL_SCANCODE_A])
-            move_dir.x = -1.0f;
-        else if (key_state[SDL_SCANCODE_D])
-            move_dir.x = 1.0f;
-        else
-            move_dir.x = 0.0f;
-
-        //Up and down
-        if (key_state[SDL_SCANCODE_SPACE])
-            move_dir.z = 1.0f;
-        else if (key_state[SDL_SCANCODE_LSHIFT])
-            move_dir.z = -1.0f;
-        else
-            move_dir.z = 0.0f;
-
-        if (key_state[SDL_SCANCODE_B])
+        if (key_state[SDL_SCANCODE_B]) //debugging
             printf("b pressed");
 
         profile.End(profiler::Stage::SdlInput);
@@ -290,7 +266,8 @@ void game::run()
 
         // Camera
         // ------
-        cam.Update(move_dir, delta_time_in_seconds);
+        glm::vec3 move_input = input.get_move_dir(key_state);
+        cam.Update(move_input, delta_time_in_seconds);
 
         // Rendering
         // ---------

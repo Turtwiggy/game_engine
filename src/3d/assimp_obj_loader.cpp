@@ -99,11 +99,13 @@ namespace fightinggame {
 
     //  --------- MODEL -----------
 
-    void FGModel::Draw(Shader& shader)
+    void FGModel::Draw(Shader& shader, uint32_t& draw_calls)
     {
         for (unsigned int i = 0; i < meshes.size(); i++) {
             //std::cout << "drawing mesh: " << meshes[i].name << std::endl;
             meshes[i].draw(shader);
+
+            draw_calls += 1;
         }
     }
 

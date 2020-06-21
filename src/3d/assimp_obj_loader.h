@@ -54,7 +54,7 @@ namespace fightinggame {
         {
             loadModel(path);
         }
-        void Draw(Shader& shader);
+        void Draw(Shader& shader, uint32_t& draw_calls);
         std::vector<Ref<texture2D>> get_textures() { return textures_loaded; }
 
     private:

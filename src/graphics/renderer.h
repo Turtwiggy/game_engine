@@ -25,15 +25,17 @@ namespace fightinggame {
         graphics::render_pass view_id;
         game_window& window;
         Camera& camera;
-        std::vector<std::reference_wrapper<FGTransform>>& models;
+        std::vector<std::reference_wrapper<FGTransform>>& transforms;
 
         draw_scene_desc(std::vector<std::reference_wrapper<FGTransform>>& m, Camera& c, game_window& w)
-            : models(m)
+            : transforms(m)
             , camera(c)
             , window(w)
         {
         }
     };
+
+
 
     class renderer
     {
@@ -51,7 +53,6 @@ namespace fightinggame {
 
         //temp opengl testing
         unsigned int texID;
-
         glm::vec3 cube_pos;
 
     public:
@@ -59,13 +60,7 @@ namespace fightinggame {
         struct Statistics
         {
             uint32_t DrawCalls = 0;
-            uint32_t CubeCount = 0;
-
-            uint32_t GetTotalVertexCount() { return CubeCount * 30; }
-            uint32_t GetTotalIndexCount() { return CubeCount * 36; }
         };
-        static void reset_stats();
-        static Statistics get_stats();
 
     public:
 
@@ -80,6 +75,5 @@ namespace fightinggame {
         //opengl
         SDL_GLContext gl_context;
         ImGuiContext* _imgui;
-
     };
 }
