@@ -38,7 +38,7 @@ namespace fightinggame
         Ref<texture2D> white_texture;
 
         std::array<Ref<texture2D>, MaxTextureSlots> TextureSlots;
-        uint32_t TextureSlotIndex = 1; // 0 = white texture
+        uint32_t TextureSlotIndex = 2; // 0 = white texture
 
         renderer::Statistics stats;
     };
@@ -48,11 +48,6 @@ namespace fightinggame
     {
         //glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);  // uncomment this call to draw in wireframe polygons.
 
-        //create a texture
-        s_Data.white_texture = texture2D::Create(1, 1);
-        uint32_t whiteTextureData = 0xffffffff;
-        s_Data.white_texture->set_data(&whiteTextureData, sizeof(uint32_t));
-
         //Diffuse Shader
         s_Data.diffuse_shader = std::make_unique<Shader>
             ("res/shaders/diffuse.vert", "res/shaders/diffuse.frag");
@@ -61,9 +56,17 @@ namespace fightinggame
         s_Data.lit_object_shader = std::make_unique<Shader>
             ("res/shaders/lit_object.vert", "res/shaders/lit_object.frag");
 
-        //Load texture
+        //create a texture
+        s_Data.white_texture = texture2D::Create(1, 1);
+        uint32_t whiteTextureData = 0xffffffff;
+        s_Data.white_texture->set_data(&whiteTextureData, sizeof(uint32_t));
         s_Data.TextureSlots[0] = s_Data.white_texture;
-        s_Data.TextureSlotIndex = 1;
+
+        //Load a texture
+        std::string path = std::string(std::filesystem::current_path().generic_u8string());
+        path += "/res/textures/Bamboo";
+        Ref<texture2D> loaded_texture = texture2D::Create("BambooWall_1K_albedo.jpg", path);
+        s_Data.TextureSlots[1] = loaded_texture;
 
         //Models
         FGTransform& lizard_transform = models[0];
@@ -71,12 +74,10 @@ namespace fightinggame
         std::vector<Ref<texture2D>> lizard_textures = lizard.get_textures();
         for (auto tex_index = 0; tex_index < lizard_textures.size(); tex_index++)
         {
-            std::cout << "adding texture: " << lizard_textures[tex_index]->get_path() << std::endl;
+            std::cout << "adding texture: " << s_Data.TextureSlotIndex << lizard_textures[tex_index]->get_path() << std::endl;
             s_Data.TextureSlots[s_Data.TextureSlotIndex] = lizard_textures[tex_index];
             s_Data.TextureSlotIndex += 1;
         }
-
-        //Model& cube = models[1];
 
         //int32_t samplers[s_Data.MaxTextureSlots];
         //for (uint32_t i = 0; i < s_Data.MaxTextureSlots; i++)
@@ -86,7 +87,7 @@ namespace fightinggame
         {
             Ref<texture2D> texture = s_Data.TextureSlots[tex_index];
             if (texture != nullptr)
-                std::cout << "texture (id) " << texture->get_renderer_id() << " path: " << texture->get_path() << std::endl;
+                std::cout << "idx: " << tex_index << "texture (id) " << texture->get_renderer_id() << " path: " << texture->get_path() << std::endl;
         }
     }
 
@@ -110,23 +111,13 @@ namespace fightinggame
             if (texture == nullptr)
                 continue;
 
-            //std::cout << "binding: " << s_Data.TextureSlots[i]->get_path() << "to id: " << i << std::endl;
+            //std::cout << "binding: " << s_Data.TextureSlots[i]->get_path() << " to id: " << i << std::endl;
             s_Data.TextureSlots[i]->bind(i);
         }
 
-        ////Lizard Model
-        //glm::mat4 model = glm::mat4(1.0f);
-        //model = glm::translate(model, lizard.Position);
-        //model = glm::scale(model, glm::vec3(1.0f, 1.0f, 1.0f));
-        //s_Data.diffuse_shader->setMat4("model", model);
-        ////s_Data.lizard_shader->setInt("texture_diffuse1", s_Data.TextureSlots[2]->get_renderer_id());
-        //FGModel& lizard_model = lizard.model;
-        ////lizard_model.Draw(*s_Data.diffuse_shader, s_Data.stats.DrawCalls);
-
-        //Data
-        glm::vec3 object_colour(1.0f, 0.5f, 0.31f);
-        glm::vec3 light_colour(1.0f, 1.0f, 1.0f);
-        glm::vec3 light_position(3.0f, 3.0f, 3.0f);
+        //Light
+        glm::vec3 light_position(20.f, 20.f, 20.f);
+        glm::vec3 light_colour(1.0f, 1.f, 1.f);
         //Models
         FGTransform& lizard = desc.transforms[0];
         FGTransform& cube = desc.transforms[1];
@@ -134,6 +125,7 @@ namespace fightinggame
         //Diffuse Shader
         s_Data.diffuse_shader->use();
         s_Data.diffuse_shader->setMat4("view_projection", view_projection);
+        s_Data.diffuse_shader->setInt("texture_diffuse1", s_Data.TextureSlots[1]->get_renderer_id());
 
         //Light Object
         glm::mat4 model2 = glm::mat4(1.0f);
@@ -145,51 +137,37 @@ namespace fightinggame
 
         //Lit Object Shader
         s_Data.lit_object_shader->use();
-        s_Data.lit_object_shader->setMat4("view_projection", view_projection);
-        //Lit Object Shader data
-        s_Data.lit_object_shader->setVec3("object_colour", object_colour);
-        s_Data.lit_object_shader->setVec3("light_colour", light_colour);
-        s_Data.lit_object_shader->setVec3("light_position", light_position);
+        s_Data.lit_object_shader->setVec3("light.position", light_position);
         s_Data.lit_object_shader->setVec3("view_position", desc.camera.Position);
+        s_Data.lit_object_shader->setMat4("view_projection", view_projection);
+        s_Data.lit_object_shader->setVec3("light.ambient", 0.6f, 0.6f, 0.6f);
+        s_Data.lit_object_shader->setVec3("light.diffuse", 0.5f, 0.5f, 0.5f);
+        s_Data.lit_object_shader->setVec3("light.specular", 1.0f, 1.0f, 1.0f);
+        // material properties
+        s_Data.lit_object_shader->setVec3("material.specular", 0.5f, 0.5f, 0.5f);
+        s_Data.lit_object_shader->setFloat("material.shininess", 64.0f);
+        s_Data.lit_object_shader->setInt("texture_diffuse1", s_Data.TextureSlots[1]->get_renderer_id());
 
-        //Draw another cube (Lit Object)
+        //Draw lit cube
         glm::mat4 model3 = glm::mat4(1.0f);
         model3 = glm::translate(model3, glm::vec3(1.0f, 0.0f, 0.0f));
         model3 = glm::scale(model3, glm::vec3(1.0f, 1.0f, 1.0f));
         s_Data.lit_object_shader->setMat4("model", model3);
-        s_Data.lit_object_shader->setInt("texture_diffuse1", s_Data.TextureSlots[0]->get_renderer_id());
         cube_model.Draw(*s_Data.lit_object_shader, s_Data.stats.DrawCalls);
+
+        //Lizard Model
+        glm::mat4 model = glm::mat4(1.0f);
+        model = glm::translate(model, lizard.Position);
+        model = glm::scale(model, glm::vec3(1.0f, 1.0f, 1.0f));
+        s_Data.diffuse_shader->setMat4("model", model);
+        //s_Data.diffuse_shader->setInt("texture_diffuse1", 2 );
+        FGModel& lizard_model = lizard.model;
+        lizard_model.Draw(*s_Data.diffuse_shader, s_Data.stats.DrawCalls);
 
         ImGui::Begin("Renderer Profiler");
         ImGui::Text("Draw Calls: %i", s_Data.stats.DrawCalls);
         ImGui::End();
         s_Data.stats.DrawCalls = 0;
-    }
-
-    void flush()
-    {
-        //if (s_Data.AllIndexCount == 0)
-        //    return; // Nothing to draw
-
-        // Bind textures
-        for (uint32_t i = 0; i < s_Data.TextureSlotIndex; i++)
-            s_Data.TextureSlots[i]->bind(i);
-
-        //render_command::DrawIndexed(s_Data.AllVertexArray, s_Data.AllIndexCount);
-        s_Data.stats.DrawCalls++;
-    }
-
-    void flush_and_reset()
-    {
-        //uint32_t dataSize = (uint32_t)((uint8_t*)s_Data.QuadVertexBufferPtr - (uint8_t*)s_Data.QuadVertexBufferBase);
-        //s_Data.QuadVertexBuffer->SetData(s_Data.QuadVertexBufferBase, dataSize);
-
-        flush();
-
-        //s_Data.QuadIndexCount = 0;
-        //s_Data.QuadVertexBufferPtr = s_Data.QuadVertexBufferBase;
-
-        s_Data.TextureSlotIndex = 1;
     }
 
     void renderer::new_frame(SDL_Window* window)

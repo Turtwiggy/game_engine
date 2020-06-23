@@ -12,7 +12,7 @@ namespace fightinggame {
     {
     public:
         opengl_texture2D(uint32_t width, uint32_t height);
-        opengl_texture2D(const char* path, const std::string& directory);
+        opengl_texture2D(const char* file_name, const std::string& directory);
         virtual ~opengl_texture2D();
 
         virtual uint32_t get_width() const override { return width; }

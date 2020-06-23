@@ -30,7 +30,7 @@ namespace fightinggame {
     {
     public:
         static Ref<texture2D> Create(uint32_t width, uint32_t height);
-        static Ref<texture2D> Create(const char* path, const std::string& directory);
+        static Ref<texture2D> Create(const char* file_name, const std::string& directory);
     };
 
 }

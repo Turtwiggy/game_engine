@@ -35,8 +35,6 @@ namespace fightinggame {
         }
     };
 
-
-
     class renderer
     {
     public:
@@ -48,11 +46,6 @@ namespace fightinggame {
         void draw_pass(draw_scene_desc& desc);
 
         void shutdown();
-
-    private:
-
-        //temp opengl testing
-        unsigned int texID;
 
     public:
         // Stats
