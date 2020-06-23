@@ -53,7 +53,6 @@ namespace fightinggame {
 
         //temp opengl testing
         unsigned int texID;
-        glm::vec3 cube_pos;
 
     public:
         // Stats

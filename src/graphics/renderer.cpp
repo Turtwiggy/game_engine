@@ -32,8 +32,9 @@ namespace fightinggame
         static const uint32_t MaxModels = 20;
         static const uint32_t MaxTextureSlots = 32;
 
-        Ref<Shader> lizard_shader;
-        Ref<Shader> cube_shader;
+        Ref<Shader> diffuse_shader;
+        Ref<Shader> lit_object_shader;
+
         Ref<texture2D> white_texture;
 
         std::array<Ref<texture2D>, MaxTextureSlots> TextureSlots;
@@ -42,82 +43,6 @@ namespace fightinggame
         renderer::Statistics stats;
     };
     static RenderData s_Data;
-
-    void renderer::init_opengl_and_imgui(const game_window& window)
-    {
-        //OpenGL
-        gl_context = SDL_GL_CreateContext(window.GetHandle());
-        SDL_GL_MakeCurrent(window.GetHandle(), gl_context);
-
-        int width, height;
-        window.GetSize(width, height);
-        render_command::SetViewport(0, 0, width, height);
-
-        if (gl_context == NULL)
-        {
-            printf("OpenGL context could not be created! SDL Error: %s\n", SDL_GetError());
-            throw std::runtime_error("Failed creating SDL2 window: " + std::string(SDL_GetError()));
-        }
-        else
-        {
-            //Initialize GLEW
-            glewExperimental = GL_TRUE;
-            GLenum glewError = glewInit();
-            if (glewError != GLEW_OK)
-            {
-                printf("Error initializing GLEW! %s\n", glewGetErrorString(glewError));
-                throw std::runtime_error("Error initializing GLEW! " + std::string(SDL_GetError()));
-            }
-        }
-
-        //Setup ImGui
-        IMGUI_CHECKVERSION();
-        _imgui = ImGui::CreateContext();
-        ImGuiIO& io = ImGui::GetIO(); (void)io;
-        //io.ConfigFlags |= ImGuiConfigFlags_DockingEnable;           // Enable Docking
-        //io.ConfigFlags |= ImGuiConfigFlags_ViewportsEnable;         // Enable Multi-Viewport / Platform Windows
-
-        ImGui::StyleColorsDark();
-
-        // When viewports are enabled we tweak WindowRounding/WindowBg so platform windows can look identical to regular ones.
-        ImGuiStyle& style = ImGui::GetStyle();
-        if (io.ConfigFlags & ImGuiConfigFlags_ViewportsEnable)
-        {
-            style.WindowRounding = 0.0f;
-            style.Colors[ImGuiCol_WindowBg].w = 1.0f;
-        }
-
-
-        std::string glsl_version = "";
-#ifdef __APPLE__
-        // GL 3.2 Core + GLSL 150
-        glsl_version = "#version 150";
-        SDL_GL_SetAttribute( // required on Mac OS
-            SDL_GL_CONTEXT_FLAGS,
-            SDL_GL_CONTEXT_FORWARD_COMPATIBLE_FLAG
-        );
-        SDL_GL_SetAttribute(SDL_GL_CONTEXT_MAJOR_VERSION, 4);
-        SDL_GL_SetAttribute(SDL_GL_CONTEXT_MINOR_VERSION, 1);
-#elif __linux__
-        // GL 3.2 Core + GLSL 150
-        glsl_version = "#version 150";
-        SDL_GL_SetAttribute(SDL_GL_CONTEXT_FLAGS, 0);
-        SDL_GL_SetAttribute(SDL_GL_CONTEXT_MAJOR_VERSION, 4);
-        SDL_GL_SetAttribute(SDL_GL_CONTEXT_MINOR_VERSION, 3);
-#elif _WIN32
-        // GL 3.0 + GLSL 130
-        glsl_version = "#version 130";
-        SDL_GL_SetAttribute(SDL_GL_CONTEXT_FLAGS, 0);
-        SDL_GL_SetAttribute(SDL_GL_CONTEXT_MAJOR_VERSION, 3);
-        SDL_GL_SetAttribute(SDL_GL_CONTEXT_MINOR_VERSION, 2);
-#endif
-
-        // setup platform/renderer bindings
-        ImGui_ImplSDL2_InitForOpenGL(window.GetHandle(), gl_context);
-        ImGui_ImplOpenGL3_Init(glsl_version.c_str());
-
-        render_command::Init(); //configure opengl state
-    }
 
     void renderer::init_models_and_shaders(std::vector<std::reference_wrapper<FGTransform>>& models)
     {
@@ -128,17 +53,13 @@ namespace fightinggame
         uint32_t whiteTextureData = 0xffffffff;
         s_Data.white_texture->set_data(&whiteTextureData, sizeof(uint32_t));
 
-        //Lizard
-        s_Data.lizard_shader = std::make_unique<Shader>
+        //Diffuse Shader
+        s_Data.diffuse_shader = std::make_unique<Shader>
             ("res/shaders/diffuse.vert", "res/shaders/diffuse.frag");
-        s_Data.lizard_shader->use();
-        //s_Data.lizard_shader->SetIntArray("u_Textures", samplers, s_Data.MaxTextureSlots);
 
-        //Cube 
-        cube_pos = glm::vec3(1.f, 0.f, 0.f);
-        s_Data.cube_shader = std::make_unique<Shader>
-            ("res/shaders/new.vert", "res/shaders/new.frag");
-        s_Data.cube_shader->use();
+        //Lit Object Shader
+        s_Data.lit_object_shader = std::make_unique<Shader>
+            ("res/shaders/lit_object.vert", "res/shaders/lit_object.frag");
 
         //Load texture
         s_Data.TextureSlots[0] = s_Data.white_texture;
@@ -193,44 +114,51 @@ namespace fightinggame
             s_Data.TextureSlots[i]->bind(i);
         }
 
-        //Lizard Shader
-        s_Data.lizard_shader->use();
-        s_Data.lizard_shader->setMat4("view_projection", view_projection);
+        ////Lizard Model
+        //glm::mat4 model = glm::mat4(1.0f);
+        //model = glm::translate(model, lizard.Position);
+        //model = glm::scale(model, glm::vec3(1.0f, 1.0f, 1.0f));
+        //s_Data.diffuse_shader->setMat4("model", model);
+        ////s_Data.lizard_shader->setInt("texture_diffuse1", s_Data.TextureSlots[2]->get_renderer_id());
+        //FGModel& lizard_model = lizard.model;
+        ////lizard_model.Draw(*s_Data.diffuse_shader, s_Data.stats.DrawCalls);
 
-        //Lizard Model
+        //Data
+        glm::vec3 object_colour(1.0f, 0.5f, 0.31f);
+        glm::vec3 light_colour(1.0f, 1.0f, 1.0f);
+        glm::vec3 light_position(3.0f, 3.0f, 3.0f);
+        //Models
         FGTransform& lizard = desc.transforms[0];
-        glm::mat4 model = glm::mat4(1.0f);
-        model = glm::translate(model, lizard.Position);
-        model = glm::scale(model, glm::vec3(1.0f, 1.0f, 1.0f));
-        s_Data.lizard_shader->setMat4("model", model);
-        //s_Data.lizard_shader->setInt("texture_diffuse1", s_Data.TextureSlots[2]->get_renderer_id());
-        FGModel& lizard_model = lizard.model;
-        lizard_model.Draw(*s_Data.lizard_shader, s_Data.stats.DrawCalls);
-
-        //Cube Shader
-        s_Data.cube_shader->use();
-        s_Data.cube_shader->setMat4("view_projection", view_projection);
-        glm::vec3 object_colour(1.0f, 1.0f, 0.0f);
-        s_Data.cube_shader->setVec3("object_colour", object_colour);
-        glm::vec3 light_colour(0.0f, 1.0f, 0.0f);
-        s_Data.cube_shader->setVec3("light_colour", light_colour);
-
-        //Cube Model
         FGTransform& cube = desc.transforms[1];
-        glm::mat4 model2 = glm::mat4(1.0f);
-        model2 = glm::translate(model2, cube.Position);
-        model2 = glm::scale(model2, glm::vec3(1.0f, 1.0f, 1.0f));	
-        s_Data.cube_shader->setMat4("model", model2);
-        //s_Data.cube_shader->setInt("texture_diffuse1", s_Data.TextureSlots[0]->get_renderer_id());
-        FGModel& cube_model = cube.model;
-        cube_model.Draw(*s_Data.cube_shader, s_Data.stats.DrawCalls);
 
-        //Draw another cube
+        //Diffuse Shader
+        s_Data.diffuse_shader->use();
+        s_Data.diffuse_shader->setMat4("view_projection", view_projection);
+
+        //Light Object
+        glm::mat4 model2 = glm::mat4(1.0f);
+        model2 = glm::translate(model2, light_position);
+        model2 = glm::scale(model2, glm::vec3(0.2f)); // a smaller object
+        s_Data.diffuse_shader->setMat4("model", model2);
+        FGModel& cube_model = cube.model;
+        cube_model.Draw(*s_Data.diffuse_shader, s_Data.stats.DrawCalls);
+
+        //Lit Object Shader
+        s_Data.lit_object_shader->use();
+        s_Data.lit_object_shader->setMat4("view_projection", view_projection);
+        //Lit Object Shader data
+        s_Data.lit_object_shader->setVec3("object_colour", object_colour);
+        s_Data.lit_object_shader->setVec3("light_colour", light_colour);
+        s_Data.lit_object_shader->setVec3("light_position", light_position);
+        s_Data.lit_object_shader->setVec3("view_position", desc.camera.Position);
+
+        //Draw another cube (Lit Object)
         glm::mat4 model3 = glm::mat4(1.0f);
-        model3 = glm::translate(model3, glm::vec3(3.0f, 0.0f, 0.0f));
+        model3 = glm::translate(model3, glm::vec3(1.0f, 0.0f, 0.0f));
         model3 = glm::scale(model3, glm::vec3(1.0f, 1.0f, 1.0f));
-        s_Data.cube_shader->setMat4("model", model3);
-        cube_model.Draw(*s_Data.cube_shader, s_Data.stats.DrawCalls);
+        s_Data.lit_object_shader->setMat4("model", model3);
+        s_Data.lit_object_shader->setInt("texture_diffuse1", s_Data.TextureSlots[0]->get_renderer_id());
+        cube_model.Draw(*s_Data.lit_object_shader, s_Data.stats.DrawCalls);
 
         ImGui::Begin("Renderer Profiler");
         ImGui::Text("Draw Calls: %i", s_Data.stats.DrawCalls);
@@ -317,6 +245,82 @@ namespace fightinggame
     //    shader.setVec4("u_Color", { /*GetColor()*/ glm::vec4(1.0, 0.0, 0.0, 1.0) });
     //    glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, 0);
     //}
+
+    void renderer::init_opengl_and_imgui(const game_window& window)
+    {
+        //OpenGL
+        gl_context = SDL_GL_CreateContext(window.GetHandle());
+        SDL_GL_MakeCurrent(window.GetHandle(), gl_context);
+
+        int width, height;
+        window.GetSize(width, height);
+        render_command::SetViewport(0, 0, width, height);
+
+        if (gl_context == NULL)
+        {
+            printf("OpenGL context could not be created! SDL Error: %s\n", SDL_GetError());
+            throw std::runtime_error("Failed creating SDL2 window: " + std::string(SDL_GetError()));
+        }
+        else
+        {
+            //Initialize GLEW
+            glewExperimental = GL_TRUE;
+            GLenum glewError = glewInit();
+            if (glewError != GLEW_OK)
+            {
+                printf("Error initializing GLEW! %s\n", glewGetErrorString(glewError));
+                throw std::runtime_error("Error initializing GLEW! " + std::string(SDL_GetError()));
+            }
+        }
+
+        //Setup ImGui
+        IMGUI_CHECKVERSION();
+        _imgui = ImGui::CreateContext();
+        ImGuiIO& io = ImGui::GetIO(); (void)io;
+        //io.ConfigFlags |= ImGuiConfigFlags_DockingEnable;           // Enable Docking
+        //io.ConfigFlags |= ImGuiConfigFlags_ViewportsEnable;         // Enable Multi-Viewport / Platform Windows
+
+        ImGui::StyleColorsDark();
+
+        // When viewports are enabled we tweak WindowRounding/WindowBg so platform windows can look identical to regular ones.
+        ImGuiStyle& style = ImGui::GetStyle();
+        if (io.ConfigFlags & ImGuiConfigFlags_ViewportsEnable)
+        {
+            style.WindowRounding = 0.0f;
+            style.Colors[ImGuiCol_WindowBg].w = 1.0f;
+        }
+
+
+        std::string glsl_version = "";
+#ifdef __APPLE__
+        // GL 3.2 Core + GLSL 150
+        glsl_version = "#version 150";
+        SDL_GL_SetAttribute( // required on Mac OS
+            SDL_GL_CONTEXT_FLAGS,
+            SDL_GL_CONTEXT_FORWARD_COMPATIBLE_FLAG
+        );
+        SDL_GL_SetAttribute(SDL_GL_CONTEXT_MAJOR_VERSION, 4);
+        SDL_GL_SetAttribute(SDL_GL_CONTEXT_MINOR_VERSION, 1);
+#elif __linux__
+        // GL 3.2 Core + GLSL 150
+        glsl_version = "#version 150";
+        SDL_GL_SetAttribute(SDL_GL_CONTEXT_FLAGS, 0);
+        SDL_GL_SetAttribute(SDL_GL_CONTEXT_MAJOR_VERSION, 4);
+        SDL_GL_SetAttribute(SDL_GL_CONTEXT_MINOR_VERSION, 3);
+#elif _WIN32
+        // GL 3.0 + GLSL 130
+        glsl_version = "#version 130";
+        SDL_GL_SetAttribute(SDL_GL_CONTEXT_FLAGS, 0);
+        SDL_GL_SetAttribute(SDL_GL_CONTEXT_MAJOR_VERSION, 3);
+        SDL_GL_SetAttribute(SDL_GL_CONTEXT_MINOR_VERSION, 2);
+#endif
+
+        // setup platform/renderer bindings
+        ImGui_ImplSDL2_InitForOpenGL(window.GetHandle(), gl_context);
+        ImGui_ImplOpenGL3_Init(glsl_version.c_str());
+
+        render_command::Init(); //configure opengl state
+    }
 }
 
 /* LIGHTING CODE
