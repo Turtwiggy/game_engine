@@ -2,6 +2,7 @@
 
 #include "graphics/shapes.h"
 #include "graphics/render_command.h"
+#include "graphics/texture_manager.h"
 #include "window/game_window.h"
 
 #include <GL/glew.h>
@@ -19,8 +20,6 @@
 #include <examples/imgui_impl_sdl.h>
 #include <examples/imgui_impl_opengl3.h>
 
-#include <filesystem>
-
 using namespace fightinggame;
 using namespace fightinggame::graphics;
 
@@ -30,15 +29,9 @@ namespace fightinggame
     {
         // TODO: RenderCaps
         static const uint32_t MaxModels = 20;
-        static const uint32_t MaxTextureSlots = 32;
 
         Ref<Shader> diffuse_shader;
         Ref<Shader> lit_object_shader;
-
-        Ref<texture2D> white_texture;
-
-        std::array<Ref<texture2D>, MaxTextureSlots> TextureSlots;
-        uint32_t TextureSlotIndex = 2; // 0 = white texture
 
         renderer::Statistics stats;
     };
@@ -55,40 +48,6 @@ namespace fightinggame
         //Lit Object Shader
         s_Data.lit_object_shader = std::make_unique<Shader>
             ("res/shaders/lit_object.vert", "res/shaders/lit_object.frag");
-
-        //create a texture
-        s_Data.white_texture = texture2D::Create(1, 1);
-        uint32_t whiteTextureData = 0xffffffff;
-        s_Data.white_texture->set_data(&whiteTextureData, sizeof(uint32_t));
-        s_Data.TextureSlots[0] = s_Data.white_texture;
-
-        //Load a texture
-        std::string path = std::string(std::filesystem::current_path().generic_u8string());
-        path += "/res/textures/Bamboo";
-        Ref<texture2D> loaded_texture = texture2D::Create("BambooWall_1K_albedo.jpg", path);
-        s_Data.TextureSlots[1] = loaded_texture;
-
-        //Models
-        FGTransform& lizard_transform = models[0];
-        FGModel& lizard = lizard_transform.model;
-        std::vector<Ref<texture2D>> lizard_textures = lizard.get_textures();
-        for (auto tex_index = 0; tex_index < lizard_textures.size(); tex_index++)
-        {
-            std::cout << "adding texture: " << s_Data.TextureSlotIndex << lizard_textures[tex_index]->get_path() << std::endl;
-            s_Data.TextureSlots[s_Data.TextureSlotIndex] = lizard_textures[tex_index];
-            s_Data.TextureSlotIndex += 1;
-        }
-
-        //int32_t samplers[s_Data.MaxTextureSlots];
-        //for (uint32_t i = 0; i < s_Data.MaxTextureSlots; i++)
-        //    samplers[i] = i;
-
-        for (auto tex_index = 0; tex_index < s_Data.TextureSlots.size(); tex_index++)
-        {
-            Ref<texture2D> texture = s_Data.TextureSlots[tex_index];
-            if (texture != nullptr)
-                std::cout << "idx: " << tex_index << "texture (id) " << texture->get_renderer_id() << " path: " << texture->get_path() << std::endl;
-        }
     }
 
     void renderer::draw_pass(draw_scene_desc& desc)
@@ -101,19 +60,8 @@ namespace fightinggame
         window.GetSize(width, height);
         glm::mat4 view_projection = desc.camera.GetViewProjectionMatrix(width, height);
 
-        //Begin Scene
-        s_Data.TextureSlotIndex = 1;
-
-        // Bind textures
-        for (uint32_t i = 0; i < s_Data.MaxTextureSlots; i++)
-        {
-            Ref<texture2D> texture = s_Data.TextureSlots[i];
-            if (texture == nullptr)
-                continue;
-
-            //std::cout << "binding: " << s_Data.TextureSlots[i]->get_path() << " to id: " << i << std::endl;
-            s_Data.TextureSlots[i]->bind(i);
-        }
+        auto& tm = texture_manager::instance();
+        tm.bind_textures();
 
         //Light
         glm::vec3 light_position(20.f, 20.f, 20.f);
@@ -125,7 +73,7 @@ namespace fightinggame
         //Diffuse Shader
         s_Data.diffuse_shader->use();
         s_Data.diffuse_shader->setMat4("view_projection", view_projection);
-        s_Data.diffuse_shader->setInt("texture_diffuse1", s_Data.TextureSlots[1]->get_renderer_id());
+        //s_Data.diffuse_shader->setInt("texture_diffuse1", s_Data.TextureSlots[1]->get_renderer_id());
 
         //Light Object
         glm::mat4 model2 = glm::mat4(1.0f);
@@ -146,7 +94,7 @@ namespace fightinggame
         // material properties
         s_Data.lit_object_shader->setVec3("material.specular", 0.5f, 0.5f, 0.5f);
         s_Data.lit_object_shader->setFloat("material.shininess", 64.0f);
-        s_Data.lit_object_shader->setInt("texture_diffuse1", s_Data.TextureSlots[1]->get_renderer_id());
+        //s_Data.lit_object_shader->setInt("texture_diffuse1", s_Data.TextureSlots[1]->get_renderer_id());
 
         //Draw lit cube
         glm::mat4 model3 = glm::mat4(1.0f);
