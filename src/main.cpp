@@ -7,8 +7,6 @@
 
 //physics
 
-
-
 //networking
 
 //void render_ui(sf::RenderWindow& window, game_state& state, network_settings& settings)
@@ -94,13 +92,6 @@
 
 int main()
 {
-    //library checks
-    //entt::registry registry;  //using entt
-    //glm::vec3(0.0f, 0.0f, 0.0f); //using glm
-    //glEnable(GL_TEXTURE_2D); //using opengl
-
-    //return 1;
-
     std::cout << "============================================================="
         "=================\n"
         "  HONK ENGINE   \n"

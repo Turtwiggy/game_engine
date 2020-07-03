@@ -11,10 +11,10 @@
 //placeholder systems
 #include "physics/physics_example.hpp""
 #include "audio/audio_player.hpp"
-#include "networking/networking_common.hpp"
-#include "networking/network_settings.hpp"
-#include "networking/chat_client.hpp"
-#include "networking/chat_server.hpp"
+//#include "networking/networking_common.hpp"
+//#include "networking/network_settings.hpp"
+//#include "networking/chat_client.hpp"
+//#include "networking/chat_server.hpp"
 
 #include <SDL2/SDL.h>
 #include <SDL2/SDL_syswm.h>
@@ -115,10 +115,10 @@ namespace fightinggame
         std::unique_ptr<std::thread> _networking_thread;
 
         //audio
-        audio_player audio;
+        //audio_player audio;
 
         //networking
-        network_settings net_set;
+        //network_settings net_set;
         //net_set.addrServer.Clear();
         //net_set.addrServer.ParseString("127.0.0.1");
         //net_set.addrServer.m_port = net_set.port;
