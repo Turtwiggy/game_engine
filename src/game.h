@@ -7,6 +7,7 @@
 #include "util/base.h"
 #include "util/profiler.hpp"
 #include "util/circular_buffer.h"
+#include "input/input_manager.h"
 #include "window/game_window.h"
 
 //placeholder systems
@@ -41,14 +42,13 @@ namespace fightinggame
     class Game
     {
     public:
-        bool process_window_input_down(const SDL_Event& e, GameWindow& window);
-        bool process_events(Profiler& p, Renderer& r, GameWindow& g, Gui& gui, Camera& c);
+        bool process_events(Renderer& r, GameWindow& g_window, Gui& gui, Camera& camera, InputManager& input_manager);
         void run();
 
         float get_average_fps() { return fps_buffer.average(); }
 
     private:
-        void tick(float delta_time, GameState& state, Camera& camera);    //update game logic
+        void tick(float delta_time, GameState& state);    //update game logic
         void fixed_tick(float fixed_delta_time);
 
         void render
@@ -86,9 +86,6 @@ namespace fightinggame
         uint32_t _frameCount = 0;
         float seconds_since_last_game_tick = 0;
         CircularBuffer fps_buffer;
-
-        //game window
-        bool mouse_grabbed = true;
 
         //physics
         //physics_simulation _physics;

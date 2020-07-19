@@ -6,6 +6,8 @@
 #pragma warning( push )
 #pragma warning( disable : 4244 )
 
+#include "input/input_manager.h"
+
 #include <glm/glm.hpp>
 #include <glm/gtc/matrix_transform.hpp>
 #include <glm/gtc/type_ptr.hpp>
@@ -24,6 +26,15 @@ namespace fightinggame {
         BACKWARD,
         LEFT,
         RIGHT
+    };
+
+    struct CameraState {
+        bool forward_pressed    = false;
+        bool backward_pressed   = false;
+        bool left_pressed       = false;
+        bool right_pressed      = false;
+        bool up_pressed         = false;
+        bool down_pressed       = false;
     };
 
     // Default camera values
@@ -50,6 +61,7 @@ namespace fightinggame {
         float MovementSpeed;
         float MouseSensitivity;
         float Zoom;
+        CameraState state;
 
         // Constructor with vectors
         Camera(
@@ -61,6 +73,7 @@ namespace fightinggame {
             , MovementSpeed(SPEED)
             , MouseSensitivity(SENSITIVITY)
             , Zoom(ZOOM)
+            , state(CameraState{})
         {
             Position = position;
             WorldUp = up;
@@ -96,13 +109,55 @@ namespace fightinggame {
             return projection * view;
         }
 
-        void update(glm::vec3 input, float delta_time)
+        void process_users_input(InputManager& input_manager)
+        {
+            state.forward_pressed = input_manager.get_key_held(SDL_KeyCode::SDLK_w);
+            state.backward_pressed = input_manager.get_key_held(SDL_KeyCode::SDLK_s);
+            state.left_pressed = input_manager.get_key_held(SDL_KeyCode::SDLK_a);
+            state.right_pressed = input_manager.get_key_held(SDL_KeyCode::SDLK_d);
+            state.up_pressed = input_manager.get_key_held(SDL_KeyCode::SDLK_SPACE);
+            state.down_pressed = input_manager.get_key_held(SDL_KeyCode::SDLK_LSHIFT);
+        }
+
+        void update(float delta_time)
         {
             float velocity = MovementSpeed * delta_time;
 
-            Position += Front * (input.y * velocity);
-            Position += Right * (input.x * velocity);
-            Position += Up * (input.z * velocity);
+            if (state.forward_pressed && state.backward_pressed)
+            {
+                //do nothing
+            }
+            else if (state.forward_pressed)
+            {
+                Position += Front * velocity;
+            }
+            else if (state.backward_pressed) {
+                Position += -(Front * velocity);
+            }
+
+            if (state.left_pressed && state.right_pressed)
+            {
+                //do nothing
+            }
+            else if (state.left_pressed)
+            {
+                Position += -(Right * velocity);
+            }
+            else if (state.right_pressed) {
+                Position += Right * velocity;
+            }
+
+            if (state.up_pressed && state.down_pressed)
+            {
+                //do nothing
+            }
+            else if (state.up_pressed)
+            {
+                Position += Up * velocity;
+            }
+            else if (state.down_pressed) {
+                Position += -(Up * velocity);
+            }
         }
 
         void process_events(const SDL_Event& e)

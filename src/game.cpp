@@ -1,7 +1,6 @@
 #include "game.h"
 
 #include "3d/fg_transform.hpp"
-#include "input/keyboard_input.h"
 #include "graphics/render_command.h"
 #include "gui.hpp"
 
@@ -20,37 +19,7 @@ const std::string kBuildStr = "1";
 //const std::string kBuildStr(kGitSHA1Hash, 8);
 const std::string kWindowTitle = "fightinggame";
 
-Game* Game::sInstance = nullptr;
-
-bool Game::process_window_input_down(const SDL_Event& e, GameWindow& window)
-{
-    switch (e.key.keysym.sym)
-    {
-    case SDLK_ESCAPE:
-        return false;
-
-    case SDLK_f:
-        window.SetFullscreen(!fullscreen);
-
-        int width, height;
-        window.GetSize(width, height);
-
-        std::cout << "screen size toggled, w: " << width << " h: " << height << std::endl;
-        RenderCommand::set_viewport(0, 0, width, height);
-
-        fullscreen = !fullscreen;
-        break;
-    case SDLK_m:
-        window.ToggleMouseCaptured();
-        break;
-    case SDLK_n:
-        printf("n pressed \n");
-        break;
-    }
-    return true;
-}
-
-bool Game::process_events(Profiler& p, Renderer& r, GameWindow& g_window, Gui& gui, Camera& camera)
+bool Game::process_events(Renderer& r, GameWindow& g_window, Gui& gui, Camera& camera, InputManager& input_manager)
 {
     SDL_Event e;
     while (SDL_PollEvent(&e))
@@ -73,27 +42,42 @@ bool Game::process_events(Profiler& p, Renderer& r, GameWindow& g_window, Gui& g
             switch (e.type)
             {
             case SDL_KEYDOWN:
-                return process_window_input_down(e, g_window);
+
+                //keyboard specific! (need to rework for controllers)
+                {
+                    SDL_KeyboardEvent key_event = e.key;
+                    auto key = key_event.keysym.sym;
+                    input_manager.add_button_down(key);
+                }
+                return true;
+
+            case SDL_KEYUP:
+
+                //keyboard specific! (need to rework for controllers)
+                {
+                    SDL_KeyboardEvent key_event = e.key;
+                    auto key = key_event.keysym.sym;
+                    input_manager.add_button_up(key);
+                }
+                return true;
             }
         }
     }
     return true;
 }
 
-void Game::tick(float delta_time_in_seconds, GameState& state, Camera& cam)
+void Game::tick(float delta_time_in_seconds, GameState& state)
 {
-    //advance_physics(state, fixed_delta_time);
-
-    //update state
-    printf("ticking state, delta_time: %f \n", delta_time_in_seconds);
+    //printf("ticking state, delta_time: %f \n", delta_time_in_seconds);
 
     //state.cube_pos -= glm::vec3(1.0, 0.0, 0.0);
     //printf("cube pos: %f %f %f", state.cube_pos.x, state.cube_pos.y, state.cube_pos.z);
 }
 
-void Game::fixed_tick(float fixed_delta_time)
+void Game::fixed_tick(float fixed_delta_time_in_seconds)
 {
     printf("fixed tick");
+    //advance_physics(state, fixed_delta_time);
 }
 
 void Game::render(
@@ -153,8 +137,6 @@ void Game::render(
 
 void Game::run()
 {
-    sInstance = this;
-
     //Profiler
     Profiler profile;
     printf("profiler taking up: %s bytes \n", std::to_string(sizeof(Profiler)).c_str());
@@ -181,6 +163,9 @@ void Game::run()
     Renderer rend;
     printf("renderer taking up: %s bytes \n", std::to_string(sizeof(Renderer)).c_str());
     rend.init_opengl_and_imgui(window); //do not use opengl before this point
+
+    //Input Manager
+    InputManager input_manager;
 
     //Temp obj loader - should be moved in future
     printf("Each model : %s bytes \n", std::to_string(sizeof(FGModel)).c_str());
@@ -210,9 +195,6 @@ void Game::run()
     Gui gui;
     printf("Gui taking up: %s bytes \n", std::to_string(sizeof(Gui)).c_str());
 
-    //Keyboard Controller
-    keyboard_controller input;
-
     running = true;
     _frameCount = 0;
     start = now = SDL_GetTicks();
@@ -232,23 +214,41 @@ void Game::run()
         // input
         // -----
         profile.Begin(Profiler::Stage::SdlInput);
-        running = process_events(profile, rend, window, gui, cam);
-        const Uint8* key_state = SDL_GetKeyboardState(NULL);
-
+        input_manager.new_frame();
+        running = process_events(rend, window, gui, cam, input_manager);
         profile.End(Profiler::Stage::SdlInput);
         if (!running) { shutdown(rend, window);  return; }
+
+        // User events
+        // -----------
+        if (input_manager.get_key_down(SDL_KeyCode::SDLK_m))
+        {
+            window.ToggleMouseCaptured();
+        }
+        if (input_manager.get_key_down(SDL_KeyCode::SDLK_f))
+        {
+            window.SetFullscreen(!fullscreen);
+            int width, height;
+            window.GetSize(width, height);
+            std::cout << "screen size toggled, w: " << width << " h: " << height << std::endl;
+            RenderCommand::set_viewport(0, 0, width, height);
+            fullscreen = !fullscreen;
+        }
+        if (input_manager.get_key_down(SDL_KeyCode::SDLK_ESCAPE))
+        {
+            shutdown(rend, window);  return;
+        }
 
         // Delta Time
         // ----------
         ImGuiIO& io = ImGui::GetIO();
         io.DeltaTime = delta_time_in_seconds;
-        //float delta_time_in_seconds = io.DeltaTime;
         //printf("delta_time %f \n", delta_time_in_seconds);
-
-        seconds_since_last_game_tick += delta_time_in_seconds;
 
         // Game Logic Tick - X ticks per second
         // ------------------------------------
+        seconds_since_last_game_tick += delta_time_in_seconds;
+
         while (seconds_since_last_game_tick >= SECONDS_PER_FIXED_TICK)
         {
             //state_previous = state_current;
@@ -260,22 +260,19 @@ void Game::run()
 
         // Update Game State
         // -----------------
-        tick(delta_time_in_seconds, state_current, cam);
+        tick(delta_time_in_seconds, state_current);
 
         // Camera
         // ------
-        glm::vec3 move_input = input.get_move_dir(key_state);
-        cam.update(move_input, delta_time_in_seconds);
+        cam.process_users_input(input_manager);
+        cam.update(delta_time_in_seconds);
 
         // Rendering
         // ---------
         render(profile, state_current, rend, cam, gui, window, models);
 
-        //lerp between game states
-        //const float alpha = _timeSinceLastUpdate / timePerFrame;
-        //game_state state_lerped = state_current * alpha + state_previous * ( 1.0 - alpha );
-        //render(window, new_state, net_set);
-
+        // FPS Profiling
+        // -------------
         float curr_fps = 1.f / delta_time_in_seconds;
         fps_buffer.add_next(curr_fps);
         //printf("frame count: %i \n", _frameCount);
@@ -303,3 +300,8 @@ void Game::shutdown(Renderer& r, GameWindow& w)
 //{
 //    //state.physics.step_simulation(fixed_delta_time);
 //}
+
+//lerp between game states
+//const float alpha = _timeSinceLastUpdate / timePerFrame;
+//game_state state_lerped = state_current * alpha + state_previous * ( 1.0 - alpha );
+//render(window, new_state, net_set);
