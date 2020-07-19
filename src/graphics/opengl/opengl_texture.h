@@ -11,7 +11,7 @@ namespace fightinggame {
     class opengl_texture2D : public texture2D
     {
     public:
-        opengl_texture2D(uint32_t width, uint32_t height);
+        opengl_texture2D(uint32_t width, uint32_t height, std::string unique_name);
         opengl_texture2D(const char* file_name, const std::string& directory);
         virtual ~opengl_texture2D();
 
@@ -26,6 +26,7 @@ namespace fightinggame {
         virtual void set_data(void* data, uint32_t size) override;
 
         virtual void bind(uint32_t slot = 0) const override;
+        virtual void unbind(uint32_t slot = 0) const override;
 
         virtual bool operator==(const texture& other) const override
         {

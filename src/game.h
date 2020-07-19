@@ -1,12 +1,12 @@
 #pragma once
 
-#include "base.h"
 #include "3d/camera.h"
 #include "common/circular_buffer.h"
 #include "gui.hpp"
 #include "graphics/renderer.h"
 #include "tools/profiler.hpp"
 #include "window/game_window.h"
+#include "util/base.h"
 
 //placeholder systems
 #include "physics/physics_example.hpp""
@@ -43,7 +43,7 @@ namespace fightinggame
     {
         int frame;
 
-        physics_simulation physics;
+        //physics_simulation physics;
 
         glm::vec3 cube_pos = glm::vec3(0.f, 0.f, 0.f);
 

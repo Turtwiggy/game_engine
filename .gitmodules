@@ -16,3 +16,6 @@
 [submodule "./deps/imgui"]
 	path = ./deps/imgui
 	url = https://github.com/ocornut/imgui
+[submodule ".\\deps\\angle"]
+	path = .\\deps\\angle
+	url = https://github.com/google/angle.git

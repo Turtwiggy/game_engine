@@ -3,7 +3,7 @@
 
 #include "graphics/renderer_api.h"
 #include "graphics/opengl/opengl_vertex_array.h"
-#include "base.h"
+#include "util/base.h"
 
 namespace fightinggame {
 

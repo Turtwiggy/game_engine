@@ -31,7 +31,6 @@ namespace fightinggame
         static const uint32_t MaxModels = 20;
 
         Ref<Shader> diffuse_shader;
-        Ref<Shader> lit_object_shader;
 
         renderer::Statistics stats;
     };
@@ -43,11 +42,11 @@ namespace fightinggame
 
         //Diffuse Shader
         s_Data.diffuse_shader = std::make_unique<Shader>
-            ("res/shaders/diffuse.vert", "res/shaders/diffuse.frag");
+            ("assets/shaders/lit_directional.vert", "assets/shaders/lit_directional.frag");
 
-        //Lit Object Shader
-        s_Data.lit_object_shader = std::make_unique<Shader>
-            ("res/shaders/lit_object.vert", "res/shaders/lit_object.frag");
+        ////Lit Object Shader
+        //s_Data.lit_object_shader = std::make_unique<Shader>
+        //    ("assets/shaders/lit_directional.vert", "assets/shaders/lit_directional.frag");
     }
 
     void renderer::draw_pass(draw_scene_desc& desc)
@@ -60,57 +59,62 @@ namespace fightinggame
         window.GetSize(width, height);
         glm::mat4 view_projection = desc.camera.GetViewProjectionMatrix(width, height);
 
+        //Texture Manager
         auto& tm = texture_manager::instance();
-        tm.bind_textures();
 
         //Light
-        glm::vec3 light_position(20.f, 20.f, 20.f);
+        glm::vec3 light_position(3.f, 3.f, 3.f);
         glm::vec3 light_colour(1.0f, 1.f, 1.f);
         //Models
         FGTransform& lizard = desc.transforms[0];
         FGTransform& cube = desc.transforms[1];
 
-        //Diffuse Shader
+        //Shader: Lit Directional
         s_Data.diffuse_shader->use();
         s_Data.diffuse_shader->setMat4("view_projection", view_projection);
-        //s_Data.diffuse_shader->setInt("texture_diffuse1", s_Data.TextureSlots[1]->get_renderer_id());
+        //cube's material properties
+        s_Data.diffuse_shader->setVec3("material.specular", glm::vec3(0.5f, 0.5f, 0.5f));
+        s_Data.diffuse_shader->setFloat("material.shininess", 32.0f);
+        //flat lighting
+        glm::vec3 light_direction = glm::vec3(-0.2, -1.0, -0.3);
+        s_Data.diffuse_shader->setVec3("light.direction", light_direction);
+        s_Data.diffuse_shader->setVec3("light.ambient", glm::vec3(0.2, 0.2, 0.2));
+        s_Data.diffuse_shader->setVec3("light.diffuse", glm::vec3(0.5, 0.5, 0.5)); // darken diffuse light a bit
+        s_Data.diffuse_shader->setVec3("light.specular", glm::vec3(1.0, 1.0, 1.0));
 
         //Light Object
         glm::mat4 model2 = glm::mat4(1.0f);
         model2 = glm::translate(model2, light_position);
         model2 = glm::scale(model2, glm::vec3(0.2f)); // a smaller object
+
+        glm::vec3 ambient_colour_1 = glm::vec3(1.0, 1.0, 1.0);
+        glm::vec3 diffuse_colour_1 = ambient_colour_1 * 0.2f;
+        s_Data.diffuse_shader->setVec3("material.diffuse", ambient_colour_1);
+        s_Data.diffuse_shader->setVec3("material.ambient", diffuse_colour_1);
         s_Data.diffuse_shader->setMat4("model", model2);
         FGModel& cube_model = cube.model;
         cube_model.Draw(*s_Data.diffuse_shader, s_Data.stats.DrawCalls);
-
-        //Lit Object Shader
-        s_Data.lit_object_shader->use();
-        s_Data.lit_object_shader->setVec3("light.position", light_position);
-        s_Data.lit_object_shader->setVec3("view_position", desc.camera.Position);
-        s_Data.lit_object_shader->setMat4("view_projection", view_projection);
-        s_Data.lit_object_shader->setVec3("light.ambient", 0.6f, 0.6f, 0.6f);
-        s_Data.lit_object_shader->setVec3("light.diffuse", 0.5f, 0.5f, 0.5f);
-        s_Data.lit_object_shader->setVec3("light.specular", 1.0f, 1.0f, 1.0f);
-        // material properties
-        s_Data.lit_object_shader->setVec3("material.specular", 0.5f, 0.5f, 0.5f);
-        s_Data.lit_object_shader->setFloat("material.shininess", 64.0f);
-        //s_Data.lit_object_shader->setInt("texture_diffuse1", s_Data.TextureSlots[1]->get_renderer_id());
 
         //Draw lit cube
         glm::mat4 model3 = glm::mat4(1.0f);
         model3 = glm::translate(model3, glm::vec3(1.0f, 0.0f, 0.0f));
         model3 = glm::scale(model3, glm::vec3(1.0f, 1.0f, 1.0f));
-        s_Data.lit_object_shader->setMat4("model", model3);
-        cube_model.Draw(*s_Data.lit_object_shader, s_Data.stats.DrawCalls);
+        glm::vec3 ambient_colour_2 = glm::vec3(1.0, 0.0, 0.0);
+        glm::vec3 diffuse_colour_2 = ambient_colour_1 * 0.2f;
+        s_Data.diffuse_shader->setVec3("material.diffuse", ambient_colour_2);
+        s_Data.diffuse_shader->setVec3("material.ambient", diffuse_colour_2);
+        s_Data.diffuse_shader->setMat4("model", model3);
+        tm.bind_texture("white_texture");
+        cube_model.Draw(*s_Data.diffuse_shader, s_Data.stats.DrawCalls);
+        tm.unbind_texture("white_texture");
 
         //Lizard Model
-        glm::mat4 model = glm::mat4(1.0f);
-        model = glm::translate(model, lizard.Position);
-        model = glm::scale(model, glm::vec3(1.0f, 1.0f, 1.0f));
-        s_Data.diffuse_shader->setMat4("model", model);
-        //s_Data.diffuse_shader->setInt("texture_diffuse1", 2 );
-        FGModel& lizard_model = lizard.model;
-        lizard_model.Draw(*s_Data.diffuse_shader, s_Data.stats.DrawCalls);
+        //glm::mat4 model = glm::mat4(1.0f);
+        //model = glm::translate(model, lizard.Position);
+        //model = glm::scale(model, glm::vec3(1.0f, 1.0f, 1.0f));
+        //s_Data.diffuse_shader->setMat4("model", model);
+        //FGModel& lizard_model = lizard.model;
+        //lizard_model.Draw(*s_Data.diffuse_shader, s_Data.stats.DrawCalls);
 
         ImGui::Begin("Renderer Profiler");
         ImGui::Text("Draw Calls: %i", s_Data.stats.DrawCalls);

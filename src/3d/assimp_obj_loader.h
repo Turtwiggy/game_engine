@@ -2,7 +2,7 @@
 
 #include "graphics/shader.h"
 #include "graphics/texture.h"
-#include "base.h"
+#include "util/base.h"
 
 //#include "assimp/"
 #include "glm/glm.hpp"
@@ -36,7 +36,7 @@ namespace fightinggame {
         (
             std::vector<FGVertex> vertices,
             std::vector<unsigned int> indices,
-            std::vector< Ref<texture2D>> textures,
+            std::vector<Ref<texture2D>> textures,
             std::string name
         );
         void draw(Shader& shader);

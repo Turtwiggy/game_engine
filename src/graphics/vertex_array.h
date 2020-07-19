@@ -1,8 +1,8 @@
 
 #pragma once
 
-#include "base.h"
 #include "graphics/vertex_buffer.h"
+#include "util/base.h"
 
 #include <memory>
 #include <vector>
@@ -25,5 +25,4 @@ namespace fightinggame {
 
 		static Ref<vertex_array> Create();
 	};
-
 }

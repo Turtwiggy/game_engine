@@ -8,7 +8,7 @@
 
 namespace fightinggame {
 
-    opengl_texture2D::opengl_texture2D(uint32_t width, uint32_t height)
+    opengl_texture2D::opengl_texture2D(uint32_t width, uint32_t height, std::string unique_name)
         : width(width), height(height)
     {
         internal_format = GL_RGB8;
@@ -22,6 +22,8 @@ namespace fightinggame {
 
         glTextureParameteri(renderer_id, GL_TEXTURE_WRAP_S, GL_REPEAT);
         glTextureParameteri(renderer_id, GL_TEXTURE_WRAP_T, GL_REPEAT);
+
+        this->path = unique_name;
     }
 
     opengl_texture2D::opengl_texture2D(const char* file_name, const std::string& directory)
@@ -88,6 +90,11 @@ namespace fightinggame {
     void opengl_texture2D::bind(uint32_t slot) const
     {
         glBindTextureUnit(slot, renderer_id);
+    }
+
+    void opengl_texture2D::unbind(uint32_t slot) const
+    {
+        glActiveTexture(GL_TEXTURE0);
     }
 
 }

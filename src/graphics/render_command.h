@@ -1,7 +1,7 @@
 #pragma once
 
 #include "graphics/renderer_api.h"
-#include "base.h"
+#include "util/base.h"
 
 namespace fightinggame {
 

@@ -1,6 +1,6 @@
 #pragma once
 
-#include "base.h"
+#include "util/base.h"
 
 #include <string>
 
@@ -22,6 +22,7 @@ namespace fightinggame {
         virtual void set_data(void* data, uint32_t size) = 0;
 
         virtual void bind(uint32_t slot = 0) const = 0;
+        virtual void unbind(uint32_t slot = 0) const = 0;
 
         virtual bool operator==(const texture& other) const = 0;     
     };
@@ -29,7 +30,7 @@ namespace fightinggame {
     class texture2D : public texture
     {
     public:
-        static Ref<texture2D> Create(uint32_t width, uint32_t height);
+        static Ref<texture2D> Create(uint32_t width, uint32_t height, std::string unique_name);
         static Ref<texture2D> Create(const char* file_name, const std::string& directory);
     };
 

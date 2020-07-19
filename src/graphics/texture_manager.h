@@ -1,8 +1,8 @@
 #pragma once
 
 #include "graphics/texture.h"
-#include "singleton.h"
-#include "base.h"
+#include "util/singleton.h"
+#include "util/base.h"
 
 #include <array>
 #include <vector>
@@ -19,7 +19,7 @@ public:
     {
         Ref<texture2D> white_texture;
         //create a texture default
-        white_texture = texture2D::Create(1, 1);
+        white_texture = texture2D::Create(1, 1, "white_texture");
         uint32_t whiteTextureData = 0xffffffff;
         white_texture->set_data(&whiteTextureData, sizeof(uint32_t));
         TextureSlots[0] = white_texture;
@@ -68,21 +68,38 @@ public:
     }
 
 
-    void bind_textures()
+    void bind_texture(std::string texture_name)
     {
-        std::cout << "binding textures" << std::endl;
+        for (uint32_t i = 0; i < MaxTextureSlots; i++)
+        {
+            Ref<texture2D> texture = TextureSlots[i];
+            if (texture == nullptr)
+                continue;
 
-        //// Bind textures
-        //for (uint32_t i = 0; i < s_Data.MaxTextureSlots; i++)
-        //{
-        //    Ref<texture2D> texture = s_Data.TextureSlots[i];
-        //    if (texture == nullptr)
-        //        continue;
-
-        //    //std::cout << "binding: " << s_Data.TextureSlots[i]->get_path() << " to id: " << i << std::endl;
-        //    s_Data.TextureSlots[i]->bind(i);
-        //}
+            if (texture->get_path().compare(texture_name) == 0) {
+                std::cout << "binding: " << TextureSlots[i]->get_path() << " to id: " << i << std::endl;
+                TextureSlots[i]->bind(i);
+                return;
+            }
+        }
     }
+
+    void unbind_texture(std::string texture_name) {
+        for (uint32_t i = 0; i < MaxTextureSlots; i++)
+        {
+            Ref<texture2D> texture = TextureSlots[i];
+            if (texture == nullptr)
+                continue;
+
+            if (texture->get_path().compare(texture_name) == 0) {
+                std::cout << "binding: " << TextureSlots[i]->get_path() << " to id: " << i << std::endl;
+                TextureSlots[i]->unbind(i);
+                return;
+            }
+        }
+    }
+
+
 
 private:
 

@@ -84,7 +84,7 @@ bool game::process_events(profiler& p, renderer& r, game_window& g_window, Gui& 
 //Physics
 void advance_physics(game_state& state, float fixed_delta_time)
 {
-    state.physics.step_simulation(fixed_delta_time);
+    //state.physics.step_simulation(fixed_delta_time);
 }
 
 //Called X ticks per second
@@ -111,12 +111,14 @@ void game::render(
     game_window& window,
     std::vector<std::reference_wrapper<FGTransform>>& models)
 {
+    //Begin Frame
     {
         profiler.Begin(profiler::Stage::NewFrame);
         rend.new_frame(window.GetHandle());
         profiler.End(profiler::Stage::NewFrame);
     }
 
+    //Main rendering
     {
         profiler.Begin(profiler::Stage::SceneDraw);
 
@@ -136,6 +138,7 @@ void game::render(
         profiler.End(profiler::Stage::SceneDraw);
     }
 
+    //Render GUI
     {
         profiler.Begin(profiler::Stage::GuiLoop);
         if (g.Loop(*this, rend.get_imgui_context(), profiler))
@@ -146,6 +149,7 @@ void game::render(
         profiler.End(profiler::Stage::GuiLoop);
     }
 
+    //End Frame
     {
         profiler.Begin(profiler::Stage::RenderFrame);
         rend.end_frame(window.GetHandle());
@@ -189,14 +193,14 @@ void game::run()
     printf("Each model : %s bytes \n", std::to_string(sizeof(FGModel)).c_str());
     const std::string dir = std::string(std::filesystem::current_path().generic_u8string());
     //Lizard wizard
-    std::string char_path = dir + "/res/models/lizard_wizard/lizard_wizard.obj";
+    std::string char_path = dir + "/assets/models/lizard_wizard/lizard_wizard.obj";
     FGModel char_model = FGModel(char_path);
     FGTransform char_transform = FGTransform(std::reference_wrapper<FGModel>(char_model));
     char_transform.Scale = glm::vec3(0.f, 0.f, 0.f);
     char_transform.Position = glm::vec3(0.f, 1.f, 0.f);
 
     //Cube
-    std::string cube_path = dir + "/res/models/cube/cube.obj";
+    std::string cube_path = dir + "/assets/models/cube/cube.obj";
     FGModel cube_model = FGModel(cube_path);
     FGTransform cube_transform = FGTransform(std::reference_wrapper<FGModel>(cube_model));
     cube_transform.Scale = glm::vec3(0.f, 0.f, 0.f);
@@ -285,7 +289,7 @@ void game::run()
         profile.End(profiler::Stage::UpdateLoop);
 
         //Sleep
-        SDL_Delay(MILLISECONDS_PER_FRAME);
+        //SDL_Delay(MILLISECONDS_PER_FRAME);
     }
 
     //end

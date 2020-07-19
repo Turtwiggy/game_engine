@@ -104,7 +104,8 @@ project "FightingGameMain"
 
         defines
         {
-            "__WIN32__"
+            "__WIN32__",
+            "DEPOT_TOOLS_WIN_TOOLCHAIN=0"
         }
 
 	filter "system:linux"
@@ -141,4 +142,3 @@ project "FightingGameMain"
     --     links { }
 
     filter{}
-	

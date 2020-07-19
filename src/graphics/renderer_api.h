@@ -2,7 +2,7 @@
 
 #include <glm/glm.hpp>
 
-#include "base.h"
+#include "util/base.h"
 #include "graphics/vertex_array.h"
 
 namespace fightinggame {
