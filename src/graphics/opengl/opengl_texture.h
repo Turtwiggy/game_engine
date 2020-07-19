@@ -11,7 +11,7 @@ namespace fightinggame {
     class opengl_texture2D : public Texture2D
     {
     public:
-        opengl_texture2D(uint32_t width, uint32_t height, std::string unique_name);
+        opengl_texture2D(uint32_t width, uint32_t height, std::string directory, std::string unique_name);
         opengl_texture2D(const char* file_name, const std::string& directory);
         virtual ~opengl_texture2D();
 

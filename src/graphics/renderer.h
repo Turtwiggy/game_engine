@@ -25,11 +25,9 @@ namespace fightinggame {
         graphics::render_pass view_id;
         GameWindow& window;
         Camera& camera;
-        FGObject& object;
 
-        draw_scene_desc(FGObject& object, Camera& c, GameWindow& w)
-            : object(object)
-            , camera(c)
+        draw_scene_desc(Camera& c, GameWindow& w)
+            : camera(c)
             , window(w)
         {
         }

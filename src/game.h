@@ -69,9 +69,6 @@ namespace fightinggame
         bool running = true;
         bool fullscreen = false;
 
-        GameState state_current;
-        ResourceManager resource_manager;
-
         //delta time metrics
         double FPS = 144.0;
         Uint32 MILLISECONDS_PER_FRAME = (Uint32)(1000 / FPS);

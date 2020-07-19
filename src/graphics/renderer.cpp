@@ -65,9 +65,6 @@ namespace fightinggame
         //Light
         glm::vec3 light_position(3.f, 3.f, 3.f);
         glm::vec3 light_colour(1.0f, 1.f, 1.f);
-        //Models
-        FGObject& cube = desc.object;
-        //FGTransform& cube = desc.transforms[1];
 
         //Shader: Lit Directional
         s_Data.diffuse_shader->use();
@@ -92,20 +89,20 @@ namespace fightinggame
         s_Data.diffuse_shader->setVec3("material.diffuse", ambient_colour_1);
         s_Data.diffuse_shader->setVec3("material.ambient", diffuse_colour_1);
         s_Data.diffuse_shader->setMat4("model", model2);
-        cube.model->draw(*s_Data.diffuse_shader, s_Data.stats.DrawCalls);
+        state.cube->model->draw(*s_Data.diffuse_shader, s_Data.stats.DrawCalls);
 
         //Draw lit cube
         glm::mat4 model3 = glm::mat4(1.0f);
-        model3 = glm::translate(model3, glm::vec3(1.0f, 0.0f, 0.0f));
-        model3 = glm::scale(model3, glm::vec3(1.0f, 1.0f, 1.0f));
+        model3 = glm::translate(model3, state.cube->transform->Position);
+        model3 = glm::scale(model3, state.cube->transform->Scale);
         glm::vec3 ambient_colour_2 = glm::vec3(1.0, 0.0, 0.0);
         glm::vec3 diffuse_colour_2 = ambient_colour_1 * 0.2f;
         s_Data.diffuse_shader->setVec3("material.diffuse", ambient_colour_2);
         s_Data.diffuse_shader->setVec3("material.ambient", diffuse_colour_2);
         s_Data.diffuse_shader->setMat4("model", model3);
-        tm.bind_texture("white_texture");
-        cube.model->draw(*s_Data.diffuse_shader, s_Data.stats.DrawCalls);
-        tm.unbind_texture("white_texture");
+        tm.bind_texture("GENERATED/white_texture");
+        state.cube->model->draw(*s_Data.diffuse_shader, s_Data.stats.DrawCalls);
+        tm.unbind_texture("GENERATED/white_texture");
 
         //Lizard Model
         //glm::mat4 model = glm::mat4(1.0f);

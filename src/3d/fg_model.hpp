@@ -11,8 +11,9 @@ namespace fightinggame {
     {
     public:
         FGModel() = default;
-        FGModel(const aiScene* raw_model, std::string name)
-            : name(name)
+        FGModel(const aiScene* raw_model, std::string directory, std::string name)
+            : directory(directory)
+            , name(name)
         {
             process_node(raw_model->mRootNode, raw_model);
         }
@@ -38,6 +39,7 @@ namespace fightinggame {
     private:
         std::vector<FGMesh> meshes;
         std::vector<Ref<Texture2D>> textures_loaded;
+        std::string directory;
         std::string name;
     };
 }

@@ -135,7 +135,7 @@ namespace fightinggame {
             //texture has not been loaded
             if (!skip)
             {
-                Ref<Texture2D> tex = Texture2D::Create(str.C_Str(), this->name);
+                Ref<Texture2D> tex = Texture2D::Create(str.C_Str(), this->directory);
                 tex->set_type(typeName);
 
                 textures.push_back(tex);

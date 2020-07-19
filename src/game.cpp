@@ -68,12 +68,19 @@ void Game::tick(float delta_time_in_seconds, GameState& state, float timer)
 {
     //printf("ticking state, delta_time: %f \n", delta_time_in_seconds);
 
-    state.cube_pos.x = glm::sin(1.0f);
-    state.cube_pos.y = 2.0f;
-    state.cube_pos.z = glm::cos(1.0f);
+    state.cube->transform->Position.x = glm::sin(timer);
+    state.cube->transform->Position.y = 0.0f;
+    state.cube->transform->Position.z = glm::cos(timer);
 
-    //state.cube_pos -= glm::vec3(1.0, 0.0, 0.0);
+    const float pi = 3.14;
+    const float frequency = 0.3f; // Frequency in Hz
+    float bouncy_val = 0.5 * (1 + sin(2 * pi * frequency * timer));
+
+    state.cube->transform->Scale.x = glm::max(0.3f, bouncy_val);
+    state.cube->transform->Scale.y = 1.0f;
+    state.cube->transform->Scale.z = glm::max(0.3f, bouncy_val);
     //printf("cube pos: %f %f %f", state.cube_pos.x, state.cube_pos.y, state.cube_pos.z);
+    //printf("lerp sin_val: %f x: %f z: %f \n ", bouncy_val);
 }
 
 void Game::fixed_tick(float fixed_delta_time_in_seconds)
@@ -107,12 +114,10 @@ void Game::render(
 
         fightinggame::draw_scene_desc drawDesc
         (
-            cube,
             camera,
             window
         );
         drawDesc.view_id = graphics::render_pass::Main;
-        drawDesc.object.transform->Position = state.cube_pos;
 
         rend.draw_pass
         (
@@ -181,19 +186,23 @@ void Game::run()
     ModelManager model_manager;
     printf("ModelManager taking up: %s bytes \n", std::to_string(sizeof(ModelManager)).c_str());
 
-    //Lizard Wizard
+    //Model: Lizard Wizard
     std::shared_ptr lizard_model = model_manager.load_model("assets/models/lizard_wizard/lizard_wizard.obj", "lizard wizard");
     std::shared_ptr lizard_transform = std::make_shared<FGTransform>();
-    lizard_transform->Scale = glm::vec3(0.f, 0.f, 0.f);
     lizard_transform->Position = glm::vec3(0.f, 1.f, 0.f);
     FGObject lizard_object = FGObject(lizard_model, lizard_transform);
 
-    //Cube
+    //Model: Cube
     std::shared_ptr cube_model = model_manager.load_model("assets/models/cube/cube.obj", "cube");
     std::shared_ptr cube_transform = std::make_shared<FGTransform>();
-    cube_transform->Scale = glm::vec3(0.f, 0.f, 0.f);
     cube_transform->Position = glm::vec3(0.f, 1.f, 0.f);
     FGObject cube_object = FGObject(cube_model, cube_transform);
+
+    // Game State
+    // ----------
+    GameState state_current = GameState(
+        std::make_shared<FGObject>(cube_object)
+    );
 
     //ImGui
     Gui gui;

@@ -19,14 +19,13 @@ namespace fightinggame {
 
         void init()
         {
-            Ref<Texture2D> white_texture = Texture2D::Create(1, 1, "white_texture");
+            Ref<Texture2D> white_texture = Texture2D::Create(1, 1, "GENERATED", "white_texture");
             uint32_t whiteTextureData = 0xffffffff;
             white_texture->set_data(&whiteTextureData, sizeof(uint32_t));
             TextureSlots[0] = white_texture;
 
             //Load a texture
-            std::string path = std::string(std::filesystem::current_path().generic_u8string());
-            path += "/assets/textures/Bamboo";
+            std::string path = "assets/textures/Bamboo";
             Ref<Texture2D> loaded_texture = Texture2D::Create("BambooWall_1K_albedo.jpg", path);
             TextureSlots[1] = loaded_texture;
 

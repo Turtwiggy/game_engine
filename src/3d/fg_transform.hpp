@@ -1,7 +1,6 @@
 #pragma once
 
-#include "3d/fg_model.hpp"
-
+#define GLM_FORCE_RADIANS
 #include "glm/glm.hpp"
 
 namespace fightinggame {

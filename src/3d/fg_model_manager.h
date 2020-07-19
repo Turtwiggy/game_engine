@@ -39,7 +39,9 @@ namespace fightinggame {
                 return nullptr;
             }
 
-            FGModel model = FGModel(scene, unique_name);
+            std::string directory = path.substr(0, path.find_last_of('/'));
+
+            FGModel model = FGModel(scene, directory, unique_name);
 
             return add_model(model);
         }
