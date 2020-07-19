@@ -7,6 +7,7 @@
 #include "util/base.h"
 #include "util/profiler.hpp"
 #include "util/circular_buffer.h"
+#include "util/resource_manager.hpp"
 #include "input/input_manager.h"
 #include "window/game_window.h"
 
@@ -48,7 +49,7 @@ namespace fightinggame
         float get_average_fps() { return fps_buffer.average(); }
 
     private:
-        void tick(float delta_time, GameState& state);    //update game logic
+        void tick(float delta_time, GameState& state, float timer);    //update game logic
         void fixed_tick(float fixed_delta_time);
 
         void render
@@ -59,7 +60,7 @@ namespace fightinggame
             Camera& c,
             Gui& g,
             GameWindow& window,
-            std::vector<std::reference_wrapper<FGTransform>>& models
+            FGObject& cube
         );
         void shutdown(Renderer& r, GameWindow& w);
 
@@ -69,6 +70,7 @@ namespace fightinggame
         bool fullscreen = false;
 
         GameState state_current;
+        ResourceManager resource_manager;
 
         //delta time metrics
         double FPS = 144.0;
@@ -81,6 +83,7 @@ namespace fightinggame
         unsigned int start = 0;
         unsigned int prev = 0;
         unsigned int now = 0;
+        float timer = 0.0f;
 
         //frame metrics
         uint32_t _frameCount = 0;

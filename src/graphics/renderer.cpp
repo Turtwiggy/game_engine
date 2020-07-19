@@ -36,7 +36,7 @@ namespace fightinggame
     };
     static RenderData s_Data;
 
-    void Renderer::init_models_and_shaders(std::vector<std::reference_wrapper<FGTransform>>& models)
+    void Renderer::init_shaders()
     {
         //glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);  // uncomment this call to draw in wireframe polygons.
 
@@ -66,8 +66,8 @@ namespace fightinggame
         glm::vec3 light_position(3.f, 3.f, 3.f);
         glm::vec3 light_colour(1.0f, 1.f, 1.f);
         //Models
-        FGTransform& lizard = desc.transforms[0];
-        FGTransform& cube = desc.transforms[1];
+        FGObject& cube = desc.object;
+        //FGTransform& cube = desc.transforms[1];
 
         //Shader: Lit Directional
         s_Data.diffuse_shader->use();
@@ -92,8 +92,7 @@ namespace fightinggame
         s_Data.diffuse_shader->setVec3("material.diffuse", ambient_colour_1);
         s_Data.diffuse_shader->setVec3("material.ambient", diffuse_colour_1);
         s_Data.diffuse_shader->setMat4("model", model2);
-        FGModel& cube_model = cube.model;
-        cube_model.draw(*s_Data.diffuse_shader, s_Data.stats.DrawCalls);
+        cube.model->draw(*s_Data.diffuse_shader, s_Data.stats.DrawCalls);
 
         //Draw lit cube
         glm::mat4 model3 = glm::mat4(1.0f);
@@ -105,7 +104,7 @@ namespace fightinggame
         s_Data.diffuse_shader->setVec3("material.ambient", diffuse_colour_2);
         s_Data.diffuse_shader->setMat4("model", model3);
         tm.bind_texture("white_texture");
-        cube_model.draw(*s_Data.diffuse_shader, s_Data.stats.DrawCalls);
+        cube.model->draw(*s_Data.diffuse_shader, s_Data.stats.DrawCalls);
         tm.unbind_texture("white_texture");
 
         //Lizard Model
@@ -161,20 +160,6 @@ namespace fightinggame
 
         SDL_GL_DeleteContext(get_gl_context());
     }
-
-    //void renderer::render_square(Shader& shader)
-    //{
-    //    //get current position from Box2D
-    //    //b2Vec2 pos = physicsBody->GetPosition();
-    //    //float angle = physicsBody->GetAngle();
-    //    glm::vec3 glSize = glm::vec3(/*GetSizeForRenderer()*/ glm::vec2(1.0, 1.0), 1.0f);
-    //    glm::vec3 glPos = glm::vec3(/*pos.x, pos.y*/ 0.0f, 0.0f, 0.0f);
-    //    glm::mat4 idxMatrix = glm::mat4(1.0f);
-    //    idxMatrix = glm::translate(idxMatrix, glPos) * glm::scale(idxMatrix, { glSize });
-    //    shader.setMat4("u_Transform", idxMatrix);
-    //    shader.setVec4("u_Color", { /*GetColor()*/ glm::vec4(1.0, 0.0, 0.0, 1.0) });
-    //    glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, 0);
-    //}
 
     void Renderer::init_opengl_and_imgui(const GameWindow& window)
     {
@@ -249,66 +234,6 @@ namespace fightinggame
         ImGui_ImplOpenGL3_Init(glsl_version.c_str());
 
         //configure opengl state
-        RenderCommand::init(); 
+        RenderCommand::init();
     }
 }
-
-/* LIGHTING CODE
-
-// be sure to activate shader when setting uniforms/drawing objects
-//lightingShader.use();
-//lightingShader.setVec3("light.position", lightPos);
-//lightingShader.setVec3("viewPos", camera.Position);
-
-//// light properties
-//glm::vec3 lightColor;
-//lightColor.x = sin(time * 2.0f);
-//lightColor.y = sin(time * 0.7f);
-//lightColor.z = sin(time * 1.3f);
-//glm::vec3 diffuseColor = lightColor * glm::vec3(0.5f); // decrease the influence
-//glm::vec3 ambientColor = diffuseColor * glm::vec3(0.2f); // low influence
-//lightingShader.setVec3("light.ambient", ambientColor);
-//lightingShader.setVec3("light.diffuse", diffuseColor);
-//lightingShader.setVec3("light.specular", 1.0f, 1.0f, 1.0f);
-
-//// material properties
-//lightingShader.setVec3("material.ambient", 1.0f, 0.5f, 0.31f);
-//lightingShader.setVec3("material.diffuse", 1.0f, 0.5f, 0.31f);
-//lightingShader.setVec3("material.specular", 0.5f, 0.5f, 0.5f); // specular lighting doesn't have full effect on this object's material
-//lightingShader.setFloat("material.shininess", 32.0f);
-//// render the cube
-//glBindVertexArray(cubeVAO);
-//glDrawArrays(GL_TRIANGLES, 0, 36);
-
-//// also draw the lamp object
-//lampShader.use();
-//lampShader.setMat4("projection", projection);
-//lampShader.setMat4("view", view);
-//model = glm::mat4(1.0f);
-//model = glm::translate(model, lightPos);
-//model = glm::scale(model, glm::vec3(0.2f)); // a smaller cube
-//lampShader.setMat4("model", model);
-//lampShader.setVec3("color", diffuseColor);
-
-//glBindVertexArray(lightVAO);
-//glDrawArrays(GL_TRIANGLES, 0, 36);
-
-*/
-
-/* Examples
-//camera rotate around point
-//float radius = 10.0f;
-//float camX = sin(glfwGetTime()) * radius;
-//float camZ = cos(glfwGetTime()) * radius;
-*/
-
-//s_Data.AllVertexArray = vertex_array::Create();
-//s_Data.AllVertexBuffer = vertex_buffer::Create(s_Data.MaxVertices);
-//s_Data.AllVertexBuffer->SetLayout
-//({
-//    { shader_data_type::Float3, "aPos" },
-//    { shader_data_type::Float3, "aNormal" },
-//    { shader_data_type::Float2, "aTexCoords" },
-//    });
-//s_Data.AllVertexArray->AddVertexBuffer(s_Data.AllVertexBuffer);
-//s_Data.CubeVertexBufferBase = new Vertex[s_Data.MaxVertices];

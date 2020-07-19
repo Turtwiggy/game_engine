@@ -14,25 +14,6 @@ namespace fightinggame {
         }
     }
 
-    void FGModel::load_model(std::string path)
-    {
-        std::cout << "loading model from: " << path << std::endl;
-
-        Assimp::Importer import;
-        const aiScene* scene = import.ReadFile(path, aiProcess_Triangulate | aiProcess_FlipUVs);
-
-        if (!scene || scene->mFlags & AI_SCENE_FLAGS_INCOMPLETE || !scene->mRootNode)
-        {
-            std::cout << "ERROR::ASSIMP::" << import.GetErrorString() << std::endl;
-            return;
-        }
-
-        // retrieve the directory path of the filepath
-        directory = path.substr(0, path.find_last_of('/'));
-
-        process_node(scene->mRootNode, scene);
-    }
-
     void FGModel::process_node(aiNode* node, const aiScene* scene)
     {
         // process all the node's meshes (if any)
@@ -154,7 +135,7 @@ namespace fightinggame {
             //texture has not been loaded
             if (!skip)
             {
-                Ref<Texture2D> tex = Texture2D::Create(str.C_Str(), this->directory);
+                Ref<Texture2D> tex = Texture2D::Create(str.C_Str(), this->name);
                 tex->set_type(typeName);
 
                 textures.push_back(tex);

@@ -1,6 +1,7 @@
 #pragma once
 
 #include "3d/fg_transform.hpp"
+#include "3d/fg_object.hpp"
 #include "3d/camera.hpp"
 #include <game_state.hpp>
 #include "graphics/renderer_api.h"
@@ -24,10 +25,10 @@ namespace fightinggame {
         graphics::render_pass view_id;
         GameWindow& window;
         Camera& camera;
-        std::vector<std::reference_wrapper<FGTransform>>& transforms;
+        FGObject& object;
 
-        draw_scene_desc(std::vector<std::reference_wrapper<FGTransform>>& m, Camera& c, GameWindow& w)
-            : transforms(m)
+        draw_scene_desc(FGObject& object, Camera& c, GameWindow& w)
+            : object(object)
             , camera(c)
             , window(w)
         {
@@ -58,7 +59,7 @@ namespace fightinggame {
         ImGuiContext* get_imgui_context() { return _imgui; }
 
         void init_opengl_and_imgui(const GameWindow& window);
-        void init_models_and_shaders(std::vector<std::reference_wrapper<FGTransform>>& models);
+        void init_shaders();
 
         SDL_GLContext get_gl_context() { return gl_context; }
 

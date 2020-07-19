@@ -59,10 +59,6 @@ project "FightingGameMain"
         "%{ImguiSourceFiles.imgui6}",
     }
 
-    defines{
-        "_CRT_SECURE_NO_WARNINGS"
-    }
-
     includedirs
     {
         "src",
@@ -95,17 +91,16 @@ project "FightingGameMain"
         --(win libs) do not statically link
         links 
         { 
-            "gdi32", 
-            "kernel32", 
-            "psapi", 
+            --"gdi32", 
+            --"kernel32", 
+            --"psapi", 
             "opengl32", 
-            "winmm",
+            --"winmm",
         }
 
         defines
         {
             "__WIN32__",
-            "DEPOT_TOOLS_WIN_TOOLCHAIN=0"
         }
 
 	filter "system:linux"
@@ -129,11 +124,6 @@ project "FightingGameMain"
                 "-std=c++17", "-Wall", "-Wextra", "-Wformat", "-g", "-Og"
             }
 
-    -- postbuildcommands -- copy dll after build
-    -- {
-    -- 	("{COPY} %{cfg.buildtarget.relpath} \"../bin/" .. outputdir .. "/Sandbox/\"")
-    -- }
-
     -- configuration "gmake2"
     --     buildoptions 
     --     {
@@ -142,3 +132,8 @@ project "FightingGameMain"
     --     links { }
 
     filter{}
+
+    postbuildcommands -- copy resources after build
+    {
+    	("{COPY} $(SolutionDir)/assets $(TargetDir)/assets")
+    }

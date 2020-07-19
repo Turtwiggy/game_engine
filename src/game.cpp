@@ -1,17 +1,15 @@
 #include "game.h"
 
-#include "3d/fg_transform.hpp"
+#include "3d/fg_model_manager.h"
+#include <3d/fg_object.hpp>
+
 #include "graphics/render_command.h"
 #include "gui.hpp"
 
-#include <spdlog/spdlog.h>
-#include "imgui.h"
 #include <GL/glew.h>
-#include "boost/filesystem.hpp"
 
 #include <cstdint>
 #include <string>
-#include <filesystem>
 
 using namespace fightinggame;
 
@@ -66,9 +64,13 @@ bool Game::process_events(Renderer& r, GameWindow& g_window, Gui& gui, Camera& c
     return true;
 }
 
-void Game::tick(float delta_time_in_seconds, GameState& state)
+void Game::tick(float delta_time_in_seconds, GameState& state, float timer)
 {
     //printf("ticking state, delta_time: %f \n", delta_time_in_seconds);
+
+    state.cube_pos.x = glm::sin(1.0f);
+    state.cube_pos.y = 2.0f;
+    state.cube_pos.z = glm::cos(1.0f);
 
     //state.cube_pos -= glm::vec3(1.0, 0.0, 0.0);
     //printf("cube pos: %f %f %f", state.cube_pos.x, state.cube_pos.y, state.cube_pos.z);
@@ -84,10 +86,10 @@ void Game::render(
     Profiler& profiler,
     GameState& state,
     Renderer& rend,
-    Camera& c,
-    Gui& g,
+    Camera& camera,
+    Gui& gui,
     GameWindow& window,
-    std::vector<std::reference_wrapper<FGTransform>>& models)
+    FGObject& cube)
 {
     //Begin Frame
     {
@@ -105,21 +107,25 @@ void Game::render(
 
         fightinggame::draw_scene_desc drawDesc
         (
-            models,
-            c,
+            cube,
+            camera,
             window
         );
         drawDesc.view_id = graphics::render_pass::Main;
-        drawDesc.transforms[1].get().Position = state.cube_pos;
+        drawDesc.object.transform->Position = state.cube_pos;
 
-        rend.draw_pass(drawDesc, state);
+        rend.draw_pass
+        (
+            drawDesc,
+            state
+        );
         profiler.End(Profiler::Stage::SceneDraw);
     }
 
     //Render GUI
     {
         profiler.Begin(Profiler::Stage::GuiLoop);
-        if (g.Loop(*this, rend.get_imgui_context(), profiler))
+        if (gui.Loop(*this, rend.get_imgui_context(), profiler))
         {
             running = false;
             return;
@@ -163,33 +169,31 @@ void Game::run()
     Renderer rend;
     printf("renderer taking up: %s bytes \n", std::to_string(sizeof(Renderer)).c_str());
     rend.init_opengl_and_imgui(window); //do not use opengl before this point
+    rend.init_shaders();
 
     //Input Manager
     InputManager input_manager;
+    printf("input_manager taking up: %s bytes \n", std::to_string(sizeof(InputManager)).c_str());
 
-    //Temp obj loader - should be moved in future
-    printf("Each model : %s bytes \n", std::to_string(sizeof(FGModel)).c_str());
-    const std::string dir = std::string(std::filesystem::current_path().generic_u8string());
-    //Lizard wizard
-    std::string char_path = dir + "/assets/models/lizard_wizard/lizard_wizard.obj";
-    FGModel char_model = FGModel(char_path);
-    FGTransform char_transform = FGTransform(std::reference_wrapper<FGModel>(char_model));
-    char_transform.Scale = glm::vec3(0.f, 0.f, 0.f);
-    char_transform.Position = glm::vec3(0.f, 1.f, 0.f);
+    ResourceManager resource_manager;
+    printf("ResourceManager taking up: %s bytes \n", std::to_string(sizeof(ResourceManager)).c_str());
+
+    ModelManager model_manager;
+    printf("ModelManager taking up: %s bytes \n", std::to_string(sizeof(ModelManager)).c_str());
+
+    //Lizard Wizard
+    std::shared_ptr lizard_model = model_manager.load_model("assets/models/lizard_wizard/lizard_wizard.obj", "lizard wizard");
+    std::shared_ptr lizard_transform = std::make_shared<FGTransform>();
+    lizard_transform->Scale = glm::vec3(0.f, 0.f, 0.f);
+    lizard_transform->Position = glm::vec3(0.f, 1.f, 0.f);
+    FGObject lizard_object = FGObject(lizard_model, lizard_transform);
 
     //Cube
-    std::string cube_path = dir + "/assets/models/cube/cube.obj";
-    FGModel cube_model = FGModel(cube_path);
-    FGTransform cube_transform = FGTransform(std::reference_wrapper<FGModel>(cube_model));
-    cube_transform.Scale = glm::vec3(0.f, 0.f, 0.f);
-    cube_transform.Position = glm::vec3(0.f, 1.f, 0.f);
-
-    //All Models
-    std::vector<std::reference_wrapper<FGTransform>> models;
-    models.push_back(char_transform);
-    models.push_back(cube_transform);
-
-    rend.init_models_and_shaders(models);
+    std::shared_ptr cube_model = model_manager.load_model("assets/models/cube/cube.obj", "cube");
+    std::shared_ptr cube_transform = std::make_shared<FGTransform>();
+    cube_transform->Scale = glm::vec3(0.f, 0.f, 0.f);
+    cube_transform->Position = glm::vec3(0.f, 1.f, 0.f);
+    FGObject cube_object = FGObject(cube_model, cube_transform);
 
     //ImGui
     Gui gui;
@@ -210,6 +214,7 @@ void Game::run()
         uint32_t delta_time_in_milliseconds = now - prev;
         if (delta_time_in_milliseconds < 0) continue; prev = now;
         float delta_time_in_seconds = (delta_time_in_milliseconds / 1000.f);
+        timer += delta_time_in_seconds;
 
         // input
         // -----
@@ -260,7 +265,7 @@ void Game::run()
 
         // Update Game State
         // -----------------
-        tick(delta_time_in_seconds, state_current);
+        tick(delta_time_in_seconds, state_current, timer);
 
         // Camera
         // ------
@@ -269,7 +274,7 @@ void Game::run()
 
         // Rendering
         // ---------
-        render(profile, state_current, rend, cam, gui, window, models);
+        render(profile, state_current, rend, cam, gui, window, cube_object);
 
         // FPS Profiling
         // -------------
