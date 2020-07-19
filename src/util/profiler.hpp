@@ -1,7 +1,8 @@
 #pragma once
 
 #include "imgui.h"
-#include "common/circular_buffer.h"
+#include "util/circular_buffer.h"
+
 #include <array>
 #include <chrono>
 #include <cstdint>
@@ -10,7 +11,7 @@
 
 namespace fightinggame
 {
-    class profiler
+    class Profiler
     {
     public:
         enum class Stage : uint8_t
@@ -82,7 +83,7 @@ namespace fightinggame
         std::array<Entry, _bufferSize> _entries;
 
         //a buffer for the results of the profiler entries
-        std::array<circular_buffer, static_cast<uint8_t>(Stage::_count)> buffer;
+        std::array<CircularBuffer, static_cast<uint8_t>(Stage::_count)> buffer;
 
     private:
         uint8_t _currentEntry = _bufferSize - 1;

@@ -6,7 +6,7 @@
 
 namespace fightinggame
 {
-    struct circular_buffer
+    struct CircularBuffer
     {
     public:
 

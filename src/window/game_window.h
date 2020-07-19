@@ -15,7 +15,7 @@ namespace fightinggame
 		Borderless
 	};
 
-	class game_window
+	class GameWindow
 	{
 		struct SDLDestroyer
 		{
@@ -23,8 +23,8 @@ namespace fightinggame
 		};
 
 	public:
-		game_window(const std::string& title, const SDL_DisplayMode& display, display_mode displaymode);
-		game_window(const std::string& title, int width, int height, display_mode displaymode);
+		GameWindow(const std::string& title, const SDL_DisplayMode& display, display_mode displaymode);
+		GameWindow(const std::string& title, int width, int height, display_mode displaymode);
 
 		[[nodiscard]] SDL_Window* GetHandle() const;
 		void GetNativeHandles(void*& native_window, void*& native_display) const;

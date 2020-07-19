@@ -7,7 +7,7 @@ namespace fightinggame {
 
 	renderer_api::API renderer_api::s_API = renderer_api::API::OpenGL;
 
-	Scope<renderer_api> renderer_api::Create()
+	Scope<renderer_api> renderer_api::create()
 	{
 		switch (s_API)
 		{

@@ -1,16 +1,17 @@
 #pragma once
 
-#include "3d/camera.h"
-#include "common/circular_buffer.h"
-#include "gui.hpp"
+#include "3d/camera.hpp"
+#include "game_state.hpp"
 #include "graphics/renderer.h"
-#include "tools/profiler.hpp"
-#include "window/game_window.h"
+#include "gui.hpp"
 #include "util/base.h"
+#include "util/profiler.hpp"
+#include "util/circular_buffer.h"
+#include "window/game_window.h"
 
 //placeholder systems
-#include "physics/physics_example.hpp""
-#include "audio/audio_player.hpp"
+//#include "physics/physics_example.hpp""
+//#include "audio/audio_player.hpp"
 //#include "networking/networking_common.hpp"
 //#include "networking/network_settings.hpp"
 //#include "networking/chat_client.hpp"
@@ -18,7 +19,6 @@
 
 #include <SDL2/SDL.h>
 #include <SDL2/SDL_syswm.h>
-
 #define GLM_FORCE_RADIANS
 #include <glm/glm.hpp>
 #include <glm/vec3.hpp> 
@@ -31,93 +31,73 @@
 
 namespace fightinggame
 {
-    struct input
+    struct Input
     {
         bool key_down = false;
         bool key_up = false;
-
         SDL_Keycode key;
     };
 
-    struct game_state
-    {
-        int frame;
-
-        //physics_simulation physics;
-
-        glm::vec3 cube_pos = glm::vec3(0.f, 0.f, 0.f);
-
-        //todo: how to lerp between game states
-        //game_state& lerp(const game_state& other, float percent)
-        //{
-        //    game_state lerped_state = other;
-        //    return lerped_state;
-        //}
-    };
-
-    class game
+    class Game
     {
     public:
-        bool process_window_input_down(const SDL_Event& e, game_window& window);
-        bool process_events(profiler& p, renderer& r, game_window& g, Gui& gui, Camera& c);
+        bool process_window_input_down(const SDL_Event& e, GameWindow& window);
+        bool process_events(Profiler& p, Renderer& r, GameWindow& g, Gui& gui, Camera& c);
         void run();
 
         float get_average_fps() { return fps_buffer.average(); }
 
     private:
-        void tick(float delta_time, game_state& state, Camera& camera);    //update game logic
+        void tick(float delta_time, GameState& state, Camera& camera);    //update game logic
+        void fixed_tick(float fixed_delta_time);
+
         void render
         (
-            profiler& profiler,
-            game_state& state,
-            renderer& r,
+            Profiler& profiler,
+            GameState& state,
+            Renderer& r,
             Camera& c,
             Gui& g,
-            game_window& window,
+            GameWindow& window,
             std::vector<std::reference_wrapper<FGTransform>>& models
         );
-        void shutdown(renderer& r, game_window& w);
+        void shutdown(Renderer& r, GameWindow& w);
 
     private:
-        static game* sInstance;
+        static Game* sInstance;
+        bool running = true;
+        bool fullscreen = false;
+
+        GameState state_current;
 
         //delta time metrics
-        float FPS = 144.f;
-        float MILLISECONDS_PER_FRAME = 1000.f / FPS;
-        float SECONDS_PER_FRAME = 1.f / FPS;
+        double FPS = 144.0;
+        Uint32 MILLISECONDS_PER_FRAME = (Uint32)(1000 / FPS);
+        //float SECONDS_PER_FRAME = 1.f / FPS;
 
-        int GAME_TICKS_PER_SECOND = 1;
-        float SECONDS_PER_GAMETICK = 1.f / GAME_TICKS_PER_SECOND;
+        int FIXED_TICKS_PER_SECOND = 1;
+        float SECONDS_PER_FIXED_TICK = 1.f / FIXED_TICKS_PER_SECOND;
 
         unsigned int start = 0;
         unsigned int prev = 0;
         unsigned int now = 0;
-        //unsigned int next = 0;
 
         //frame metrics
         uint32_t _frameCount = 0;
         float seconds_since_last_game_tick = 0;
-        circular_buffer fps_buffer;
+        CircularBuffer fps_buffer;
 
         //game window
         bool mouse_grabbed = true;
 
-        //game_state state_previous;
-        game_state state_current;
-
-        bool running = true;
-        bool fullscreen = false;
-
         //physics
-        physics_simulation _physics;
-
-        //networking
-        std::unique_ptr<std::thread> _networking_thread;
+        //physics_simulation _physics;
 
         //audio
         //audio_player audio;
 
         //networking
+        //std::unique_ptr<std::thread> _networking_thread;
         //network_settings net_set;
         //net_set.addrServer.Clear();
         //net_set.addrServer.ParseString("127.0.0.1");

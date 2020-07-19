@@ -3,8 +3,7 @@
 #include "graphics/render_pass.h"
 #include "graphics/renderer.h"
 #include "window/game_window.h"
-#include "graphics/renderer.h"
-#include "tools/profiler.hpp"
+#include "util/profiler.hpp"
 
 #include <imgui.h>
 
@@ -17,7 +16,7 @@ union SDL_Event;
 
 namespace fightinggame
 {
-	class game;
+	class Game;
 	//class Console;
 	//class game_window;
 	//class MeshViewer;
@@ -29,7 +28,7 @@ namespace fightinggame
 		Gui();
 
 		bool ProcessEventSdl2(const SDL_Event& event, ImGuiContext* imgui);
-		bool Loop(game& game, ImGuiContext* imgui, profiler& profiler);
+		bool Loop(Game& game, ImGuiContext* imgui, Profiler& profiler);
 
 	private:
 
@@ -38,7 +37,7 @@ namespace fightinggame
 		const char* GetClipboardText();
 		void SetClipboardText(const char* text);
 
-		void ShowProfilerWindow(game& game, profiler& profiler);
+		void ShowProfilerWindow(Game& game, Profiler& profiler);
 
 		template <typename T, uint8_t N>
 		struct CircularBuffer

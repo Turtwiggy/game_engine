@@ -6,10 +6,10 @@
 
 namespace fightinggame {
 
-    struct texture
+    struct Texture
     {
     public:
-        virtual ~texture() = default;
+        virtual ~Texture() = default;
 
         virtual uint32_t get_width() const = 0;
         virtual uint32_t get_height() const = 0;
@@ -24,14 +24,14 @@ namespace fightinggame {
         virtual void bind(uint32_t slot = 0) const = 0;
         virtual void unbind(uint32_t slot = 0) const = 0;
 
-        virtual bool operator==(const texture& other) const = 0;     
+        virtual bool operator==(const Texture& other) const = 0;     
     };
 
-    class texture2D : public texture
+    class Texture2D : public Texture
     {
     public:
-        static Ref<texture2D> Create(uint32_t width, uint32_t height, std::string unique_name);
-        static Ref<texture2D> Create(const char* file_name, const std::string& directory);
+        static Ref<Texture2D> Create(uint32_t width, uint32_t height, std::string unique_name);
+        static Ref<Texture2D> Create(const char* file_name, const std::string& directory);
     };
 
 }

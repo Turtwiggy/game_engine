@@ -5,8 +5,6 @@
 #include "game.h"
 #undef main //thanks sdl2
 
-//physics
-
 //networking
 
 //void render_ui(sf::RenderWindow& window, game_state& state, network_settings& settings)
@@ -99,7 +97,7 @@ int main()
         "=================\n"
         "\n";
 
-    fightinggame::game game;
+    fightinggame::Game game;
     game.run();
 
     return 1;

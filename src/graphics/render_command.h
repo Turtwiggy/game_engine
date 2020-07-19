@@ -5,32 +5,32 @@
 
 namespace fightinggame {
 
-	class render_command
+	class RenderCommand
 	{
 	public:
-		static void Init()
+		static void init()
 		{
-			s_RendererAPI->Init();
+			s_RendererAPI->init();
 		}
 
-		static void SetViewport(uint32_t x, uint32_t y, uint32_t width, uint32_t height)
+		static void set_viewport(uint32_t x, uint32_t y, uint32_t width, uint32_t height)
 		{
-			s_RendererAPI->SetViewport(x, y, width, height);
+			s_RendererAPI->set_viewport(x, y, width, height);
 		}
 
-		static void SetClearColor(const glm::vec4& color)
+		static void set_clear_colour(const glm::vec4& color)
 		{
-			s_RendererAPI->SetClearColor(color);
+			s_RendererAPI->set_clear_colour(color);
 		}
 
-		static void Clear()
+		static void clear()
 		{
-			s_RendererAPI->Clear();
+			s_RendererAPI->clear();
 		}
 
-		static void DrawIndexed(const Ref<vertex_array>& vertexArray, uint32_t count = 0)
+		static void draw_indexed(const Ref<vertex_array>& vertexArray, uint32_t count = 0)
 		{
-			s_RendererAPI->DrawIndexed(vertexArray, count);
+			s_RendererAPI->draw_indexed(vertexArray, count);
 		}
 	private:
 		static Scope<renderer_api> s_RendererAPI;

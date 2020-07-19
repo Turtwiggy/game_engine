@@ -6,12 +6,12 @@
 
 using namespace fightinggame;
 
-game_window::game_window(const std::string& title, const SDL_DisplayMode& display, display_mode displaymode)
-	: game_window::game_window(title, display.w, display.h, displaymode)
+GameWindow::GameWindow(const std::string& title, const SDL_DisplayMode& display, display_mode displaymode)
+	: GameWindow::GameWindow(title, display.w, display.h, displaymode)
 {
 }
 
-game_window::game_window(const std::string& title, int width, int height, display_mode displaymode)
+GameWindow::GameWindow(const std::string& title, int width, int height, display_mode displaymode)
 {
 	SDL_version compiledVersion, linkedVersion;
 	SDL_VERSION(&compiledVersion);
@@ -67,12 +67,12 @@ game_window::game_window(const std::string& title, int width, int height, displa
 	_window = std::move(window);
 }
 
-SDL_Window* game_window::GetHandle() const
+SDL_Window* GameWindow::GetHandle() const
 {
 	return _window.get();
 }
 
-void game_window::GetNativeHandles(void*& native_window, void*& native_display) const
+void GameWindow::GetNativeHandles(void*& native_window, void*& native_display) const
 {
 	SDL_SysWMinfo wmi;
 	SDL_VERSION(&wmi.version);
@@ -143,17 +143,17 @@ void game_window::GetNativeHandles(void*& native_window, void*& native_display) 
 					}
 }
 
-bool game_window::IsOpen() const
+bool GameWindow::IsOpen() const
 {
 	return _window != nullptr;
 }
 
-float game_window::GetBrightness() const
+float GameWindow::GetBrightness() const
 {
 	return SDL_GetWindowBrightness(_window.get());
 }
 
-void game_window::SetBrightness(float brightness)
+void GameWindow::SetBrightness(float brightness)
 {
 	if (SDL_SetWindowBrightness(_window.get(), brightness))
 	{
@@ -161,42 +161,42 @@ void game_window::SetBrightness(float brightness)
 	}
 }
 
-uint32_t game_window::GetID() const
+uint32_t GameWindow::GetID() const
 {
 	return SDL_GetWindowID(_window.get());
 }
 
-uint32_t game_window::GetFlags() const
+uint32_t GameWindow::GetFlags() const
 {
 	return SDL_GetWindowFlags(_window.get());
 }
 
-void game_window::GrabInput(bool b)
+void GameWindow::GrabInput(bool b)
 {
 	SDL_SetWindowGrab(_window.get(), b ? SDL_TRUE : SDL_FALSE);
 }
 
-void game_window::SetMousePosition(int x, int y)
+void GameWindow::SetMousePosition(int x, int y)
 {
 	SDL_WarpMouseInWindow(_window.get(), x, y);
 }
 
-bool game_window::IsInputGrabbed() const
+bool GameWindow::IsInputGrabbed() const
 {
 	return SDL_GetWindowGrab(_window.get()) != SDL_FALSE;
 }
 
-std::string game_window::GetTitle() const
+std::string GameWindow::GetTitle() const
 {
 	return SDL_GetWindowTitle(_window.get());
 }
 
-void game_window::SetTitle(const std::string& str)
+void GameWindow::SetTitle(const std::string& str)
 {
 	SDL_SetWindowTitle(_window.get(), str.c_str());
 }
 
-float game_window::GetAspectRatio() const
+float GameWindow::GetAspectRatio() const
 {
 	int width, height;
 	SDL_GetWindowSize(_window.get(), &width, &height);
@@ -204,82 +204,82 @@ float game_window::GetAspectRatio() const
 	return (float)width / (float)height;
 }
 
-void game_window::SetPosition(int x, int y)
+void GameWindow::SetPosition(int x, int y)
 {
 	SDL_SetWindowPosition(_window.get(), x, y);
 }
 
-void game_window::GetPosition(int& x, int& y) const
+void GameWindow::GetPosition(int& x, int& y) const
 {
 	SDL_GetWindowPosition(_window.get(), &x, &y);
 }
 
-void game_window::SetMinimumSize(int width, int height)
+void GameWindow::SetMinimumSize(int width, int height)
 {
 	SDL_SetWindowMinimumSize(_window.get(), width, height);
 }
 
-void game_window::GetMinimumSize(int& width, int& height) const
+void GameWindow::GetMinimumSize(int& width, int& height) const
 {
 	SDL_GetWindowMinimumSize(_window.get(), &width, &height);
 }
 
-void game_window::SetMaximumSize(int width, int height)
+void GameWindow::SetMaximumSize(int width, int height)
 {
 	SDL_SetWindowMaximumSize(_window.get(), width, height);
 }
 
-void game_window::GetMaximumSize(int& width, int& height) const
+void GameWindow::GetMaximumSize(int& width, int& height) const
 {
 	SDL_GetWindowMaximumSize(_window.get(), &width, &height);
 }
 
-void game_window::SetSize(int width, int height)
+void GameWindow::SetSize(int width, int height)
 {
 	SDL_SetWindowSize(_window.get(), width, height);
 }
 
-void game_window::GetSize(int& width, int& height) const
+void GameWindow::GetSize(int& width, int& height) const
 {
 	SDL_GetWindowSize(_window.get(), &width, &height);
 }
 
-void game_window::Show()
+void GameWindow::Show()
 {
 	SDL_ShowWindow(_window.get());
 }
 
-void game_window::Hide()
+void GameWindow::Hide()
 {
 	SDL_HideWindow(_window.get());
 }
 
-void game_window::Maximise()
+void GameWindow::Maximise()
 {
 	SDL_MaximizeWindow(_window.get());
 }
 
-void game_window::Minimise()
+void GameWindow::Minimise()
 {
 	SDL_MinimizeWindow(_window.get());
 }
 
-void game_window::Restore()
+void GameWindow::Restore()
 {
 	SDL_RestoreWindow(_window.get());
 }
 
-void game_window::Raise()
+void GameWindow::Raise()
 {
 	SDL_RaiseWindow(_window.get());
 }
 
-void game_window::SetBordered(bool b)
+void GameWindow::SetBordered(bool b)
 {
 	SDL_SetWindowBordered(_window.get(), b ? SDL_TRUE : SDL_FALSE);
 }
 
-void game_window::SetFullscreen(bool b)
+void GameWindow::SetFullscreen(bool b)
 {
 	// todo: use DisplayMode
 	if (SDL_SetWindowFullscreen(_window.get(), b ? SDL_WINDOW_FULLSCREEN_DESKTOP : 0))
@@ -288,7 +288,7 @@ void game_window::SetFullscreen(bool b)
 	}
 }
 
-void game_window::Close()
+void GameWindow::Close()
 {
 	SDL_DestroyWindow(_window.get());
 	SDL_Quit();
@@ -297,7 +297,7 @@ void game_window::Close()
 }
 
 //returns true if mouse is grabbed, false if it available
-void game_window::ToggleMouseCaptured()
+void GameWindow::ToggleMouseCaptured()
 {
 	bool grabbed = !IsInputGrabbed();
 	SDL_SetRelativeMouseMode(grabbed ? SDL_TRUE : SDL_FALSE);

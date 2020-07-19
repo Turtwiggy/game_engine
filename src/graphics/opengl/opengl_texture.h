@@ -8,7 +8,7 @@
 
 namespace fightinggame {
 
-    class opengl_texture2D : public texture2D
+    class opengl_texture2D : public Texture2D
     {
     public:
         opengl_texture2D(uint32_t width, uint32_t height, std::string unique_name);
@@ -28,7 +28,7 @@ namespace fightinggame {
         virtual void bind(uint32_t slot = 0) const override;
         virtual void unbind(uint32_t slot = 0) const override;
 
-        virtual bool operator==(const texture& other) const override
+        virtual bool operator==(const Texture& other) const override
         {
             return renderer_id == ((opengl_texture2D&)other).renderer_id;
         }

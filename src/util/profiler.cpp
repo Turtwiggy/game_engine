@@ -4,7 +4,7 @@
 
 namespace fightinggame {
 
-    void profiler::Begin(Stage stage)
+    void Profiler::Begin(Stage stage)
     {
         assert(_currentLevel < 255);
         auto& entry = _entries[_currentEntry]._stages[static_cast<uint8_t>(stage)];
@@ -14,7 +14,7 @@ namespace fightinggame {
         entry._finalized = false;
     }
 
-    void profiler::End(Stage stage)
+    void Profiler::End(Stage stage)
     {
         assert(_currentLevel > 0);
         auto& entry = _entries[_currentEntry]._stages[static_cast<uint8_t>(stage)];
@@ -25,7 +25,7 @@ namespace fightinggame {
         entry._finalized = true;
     }
 
-    void profiler::Frame()
+    void Profiler::Frame()
     {
         auto& prevEntry = _entries[_currentEntry];
         _currentEntry = (_currentEntry + 1) % _bufferSize;

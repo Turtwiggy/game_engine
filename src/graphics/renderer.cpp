@@ -1,6 +1,6 @@
 #include "graphics/renderer.h"
 
-#include "graphics/shapes.h"
+#include "data/shapes.h"
 #include "graphics/render_command.h"
 #include "graphics/texture_manager.h"
 #include "window/game_window.h"
@@ -32,11 +32,11 @@ namespace fightinggame
 
         Ref<Shader> diffuse_shader;
 
-        renderer::Statistics stats;
+        Renderer::Statistics stats;
     };
     static RenderData s_Data;
 
-    void renderer::init_models_and_shaders(std::vector<std::reference_wrapper<FGTransform>>& models)
+    void Renderer::init_models_and_shaders(std::vector<std::reference_wrapper<FGTransform>>& models)
     {
         //glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);  // uncomment this call to draw in wireframe polygons.
 
@@ -49,18 +49,18 @@ namespace fightinggame
         //    ("assets/shaders/lit_directional.vert", "assets/shaders/lit_directional.frag");
     }
 
-    void renderer::draw_pass(draw_scene_desc& desc)
+    void Renderer::draw_pass(draw_scene_desc& desc, GameState state)
     {
-        render_command::SetClearColor(glm::vec4(0.2f, 0.3f, 0.3f, 1.0f));
-        render_command::Clear();
+        RenderCommand::set_clear_colour(glm::vec4(0.2f, 0.3f, 0.3f, 1.0f));
+        RenderCommand::clear();
 
         int width, height = 0;
-        game_window& window = desc.window;
+        GameWindow& window = desc.window;
         window.GetSize(width, height);
-        glm::mat4 view_projection = desc.camera.GetViewProjectionMatrix(width, height);
+        glm::mat4 view_projection = desc.camera.get_view_projection_matrix(width, height);
 
         //Texture Manager
-        auto& tm = texture_manager::instance();
+        auto& tm = TextureManager::instance();
 
         //Light
         glm::vec3 light_position(3.f, 3.f, 3.f);
@@ -93,7 +93,7 @@ namespace fightinggame
         s_Data.diffuse_shader->setVec3("material.ambient", diffuse_colour_1);
         s_Data.diffuse_shader->setMat4("model", model2);
         FGModel& cube_model = cube.model;
-        cube_model.Draw(*s_Data.diffuse_shader, s_Data.stats.DrawCalls);
+        cube_model.draw(*s_Data.diffuse_shader, s_Data.stats.DrawCalls);
 
         //Draw lit cube
         glm::mat4 model3 = glm::mat4(1.0f);
@@ -105,7 +105,7 @@ namespace fightinggame
         s_Data.diffuse_shader->setVec3("material.ambient", diffuse_colour_2);
         s_Data.diffuse_shader->setMat4("model", model3);
         tm.bind_texture("white_texture");
-        cube_model.Draw(*s_Data.diffuse_shader, s_Data.stats.DrawCalls);
+        cube_model.draw(*s_Data.diffuse_shader, s_Data.stats.DrawCalls);
         tm.unbind_texture("white_texture");
 
         //Lizard Model
@@ -122,7 +122,7 @@ namespace fightinggame
         s_Data.stats.DrawCalls = 0;
     }
 
-    void renderer::new_frame(SDL_Window* window)
+    void Renderer::new_frame(SDL_Window* window)
     {
         ImGui_ImplOpenGL3_NewFrame();
         ImGui_ImplSDL2_NewFrame(window);
@@ -131,7 +131,7 @@ namespace fightinggame
         ImGui::NewFrame();
     }
 
-    void renderer::end_frame(SDL_Window* window)
+    void Renderer::end_frame(SDL_Window* window)
     {
         ImGuiIO& io = ImGui::GetIO();
         ImGui_ImplOpenGL3_RenderDrawData(ImGui::GetDrawData());
@@ -151,7 +151,7 @@ namespace fightinggame
         SDL_GL_SwapWindow(window);
     }
 
-    void renderer::shutdown()
+    void Renderer::shutdown()
     {
         ImGui::SetCurrentContext(_imgui);
 
@@ -176,7 +176,7 @@ namespace fightinggame
     //    glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, 0);
     //}
 
-    void renderer::init_opengl_and_imgui(const game_window& window)
+    void Renderer::init_opengl_and_imgui(const GameWindow& window)
     {
         //OpenGL
         gl_context = SDL_GL_CreateContext(window.GetHandle());
@@ -184,7 +184,7 @@ namespace fightinggame
 
         int width, height;
         window.GetSize(width, height);
-        render_command::SetViewport(0, 0, width, height);
+        RenderCommand::set_viewport(0, 0, width, height);
 
         if (gl_context == NULL)
         {
@@ -220,7 +220,6 @@ namespace fightinggame
             style.Colors[ImGuiCol_WindowBg].w = 1.0f;
         }
 
-
         std::string glsl_version = "";
 #ifdef __APPLE__
         // GL 3.2 Core + GLSL 150
@@ -249,7 +248,8 @@ namespace fightinggame
         ImGui_ImplSDL2_InitForOpenGL(window.GetHandle(), gl_context);
         ImGui_ImplOpenGL3_Init(glsl_version.c_str());
 
-        render_command::Init(); //configure opengl state
+        //configure opengl state
+        RenderCommand::init(); 
     }
 }
 

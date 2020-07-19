@@ -1,7 +1,6 @@
 #include "game.h"
 
-#include "3d/assimp_obj_loader.h"
-#include "entities/transform.h"
+#include "3d/fg_transform.hpp"
 #include "input/keyboard_input.h"
 #include "graphics/render_command.h"
 #include "gui.hpp"
@@ -21,9 +20,9 @@ const std::string kBuildStr = "1";
 //const std::string kBuildStr(kGitSHA1Hash, 8);
 const std::string kWindowTitle = "fightinggame";
 
-game* game::sInstance = nullptr;
+Game* Game::sInstance = nullptr;
 
-bool game::process_window_input_down(const SDL_Event& e, game_window& window)
+bool Game::process_window_input_down(const SDL_Event& e, GameWindow& window)
 {
     switch (e.key.keysym.sym)
     {
@@ -37,7 +36,7 @@ bool game::process_window_input_down(const SDL_Event& e, game_window& window)
         window.GetSize(width, height);
 
         std::cout << "screen size toggled, w: " << width << " h: " << height << std::endl;
-        render_command::SetViewport(0, 0, width, height);
+        RenderCommand::set_viewport(0, 0, width, height);
 
         fullscreen = !fullscreen;
         break;
@@ -51,7 +50,7 @@ bool game::process_window_input_down(const SDL_Event& e, game_window& window)
     return true;
 }
 
-bool game::process_events(profiler& p, renderer& r, game_window& g_window, Gui& gui, Camera& camera)
+bool Game::process_events(Profiler& p, Renderer& r, GameWindow& g_window, Gui& gui, Camera& camera)
 {
     SDL_Event e;
     while (SDL_PollEvent(&e))
@@ -61,7 +60,7 @@ bool game::process_events(profiler& p, renderer& r, game_window& g_window, Gui& 
         {
             //Update camera when mouse is grabbed
             if (g_window.IsInputGrabbed())
-                camera.ProcessEvents(e);
+                camera.process_events(e);
 
             //Other window events
             if (e.type == SDL_QUIT)
@@ -81,46 +80,41 @@ bool game::process_events(profiler& p, renderer& r, game_window& g_window, Gui& 
     return true;
 }
 
-//Physics
-void advance_physics(game_state& state, float fixed_delta_time)
+void Game::tick(float delta_time_in_seconds, GameState& state, Camera& cam)
 {
-    //state.physics.step_simulation(fixed_delta_time);
-}
-
-//Called X ticks per second
-void game::tick(float fixed_delta_time, game_state& state, Camera& cam)
-{
-    //this is a new state
-    _frameCount += 1;
-    state.frame = _frameCount;
     //advance_physics(state, fixed_delta_time);
 
     //update state
-    printf("ticking frame %i game state time: %f \n", _frameCount, fixed_delta_time);
+    printf("ticking state, delta_time: %f \n", delta_time_in_seconds);
 
     //state.cube_pos -= glm::vec3(1.0, 0.0, 0.0);
-    printf("cube pos: %f %f %f", state.cube_pos.x, state.cube_pos.y, state.cube_pos.z);
+    //printf("cube pos: %f %f %f", state.cube_pos.x, state.cube_pos.y, state.cube_pos.z);
 }
 
-void game::render(
-    profiler& profiler,
-    game_state& state,
-    renderer& rend,
+void Game::fixed_tick(float fixed_delta_time)
+{
+    printf("fixed tick");
+}
+
+void Game::render(
+    Profiler& profiler,
+    GameState& state,
+    Renderer& rend,
     Camera& c,
     Gui& g,
-    game_window& window,
+    GameWindow& window,
     std::vector<std::reference_wrapper<FGTransform>>& models)
 {
     //Begin Frame
     {
-        profiler.Begin(profiler::Stage::NewFrame);
+        profiler.Begin(Profiler::Stage::NewFrame);
         rend.new_frame(window.GetHandle());
-        profiler.End(profiler::Stage::NewFrame);
+        profiler.End(Profiler::Stage::NewFrame);
     }
 
     //Main rendering
     {
-        profiler.Begin(profiler::Stage::SceneDraw);
+        profiler.Begin(Profiler::Stage::SceneDraw);
 
         //set cube to pos from gamestate
         //models[1].get().Position = state.cube_pos;
@@ -134,49 +128,48 @@ void game::render(
         drawDesc.view_id = graphics::render_pass::Main;
         drawDesc.transforms[1].get().Position = state.cube_pos;
 
-        rend.draw_pass(drawDesc);
-        profiler.End(profiler::Stage::SceneDraw);
+        rend.draw_pass(drawDesc, state);
+        profiler.End(Profiler::Stage::SceneDraw);
     }
 
     //Render GUI
     {
-        profiler.Begin(profiler::Stage::GuiLoop);
+        profiler.Begin(Profiler::Stage::GuiLoop);
         if (g.Loop(*this, rend.get_imgui_context(), profiler))
         {
             running = false;
             return;
         }
-        profiler.End(profiler::Stage::GuiLoop);
+        profiler.End(Profiler::Stage::GuiLoop);
     }
 
     //End Frame
     {
-        profiler.Begin(profiler::Stage::RenderFrame);
+        profiler.Begin(Profiler::Stage::RenderFrame);
         rend.end_frame(window.GetHandle());
-        profiler.End(profiler::Stage::RenderFrame);
+        profiler.End(Profiler::Stage::RenderFrame);
     }
 }
 
-void game::run()
+void Game::run()
 {
     sInstance = this;
-    //todo init spdlogger
 
     //Profiler
-    profiler profile;
-    printf("profiler taking up: %s bytes \n", std::to_string(sizeof(profiler)).c_str());
+    Profiler profile;
+    printf("profiler taking up: %s bytes \n", std::to_string(sizeof(Profiler)).c_str());
 
     //Window
     int m_width = 1080;
     int m_height = 720;
-    game_window window = game_window
+    GameWindow window = GameWindow
     (
         kWindowTitle + " [" + kBuildStr + "]",
         m_width,
         m_height,
         display_mode::Windowed
     );
-    printf("game window taking up: %s bytes \n", std::to_string(sizeof(game_window)).c_str());
+    printf("game window taking up: %s bytes \n", std::to_string(sizeof(GameWindow)).c_str());
 
     //Camera
     Camera cam = Camera(glm::vec3(0.0f, 0.0f, 10.0f));
@@ -185,8 +178,8 @@ void game::run()
     //_camera->SetProjectionMatrixPerspective(70.0f, aspect, 1.0f, 65536.0f)
 
     //Renderer
-    renderer rend;
-    printf("renderer taking up: %s bytes \n", std::to_string(sizeof(renderer)).c_str());
+    Renderer rend;
+    printf("renderer taking up: %s bytes \n", std::to_string(sizeof(Renderer)).c_str());
     rend.init_opengl_and_imgui(window); //do not use opengl before this point
 
     //Temp obj loader - should be moved in future
@@ -227,7 +220,7 @@ void game::run()
     {
         //Update Profiler
         profile.Frame();
-        profile.Begin(profiler::Stage::UpdateLoop);
+        profile.Begin(Profiler::Stage::UpdateLoop);
 
         // delta time
         // ----------
@@ -238,14 +231,11 @@ void game::run()
 
         // input
         // -----
-        profile.Begin(profiler::Stage::SdlInput);
+        profile.Begin(Profiler::Stage::SdlInput);
         running = process_events(profile, rend, window, gui, cam);
         const Uint8* key_state = SDL_GetKeyboardState(NULL);
 
-        if (key_state[SDL_SCANCODE_B]) //debugging
-            printf("b pressed");
-
-        profile.End(profiler::Stage::SdlInput);
+        profile.End(Profiler::Stage::SdlInput);
         if (!running) { shutdown(rend, window);  return; }
 
         // Delta Time
@@ -259,19 +249,23 @@ void game::run()
 
         // Game Logic Tick - X ticks per second
         // ------------------------------------
-        while (seconds_since_last_game_tick >= SECONDS_PER_GAMETICK)
+        while (seconds_since_last_game_tick >= SECONDS_PER_FIXED_TICK)
         {
             //state_previous = state_current;
 
-            tick(SECONDS_PER_GAMETICK, state_current, cam); //this update's state_current
+            fixed_tick(SECONDS_PER_FIXED_TICK);
 
-            seconds_since_last_game_tick -= SECONDS_PER_GAMETICK;
+            seconds_since_last_game_tick -= SECONDS_PER_FIXED_TICK;
         }
+
+        // Update Game State
+        // -----------------
+        tick(delta_time_in_seconds, state_current, cam);
 
         // Camera
         // ------
         glm::vec3 move_input = input.get_move_dir(key_state);
-        cam.Update(move_input, delta_time_in_seconds);
+        cam.update(move_input, delta_time_in_seconds);
 
         // Rendering
         // ---------
@@ -286,20 +280,26 @@ void game::run()
         fps_buffer.add_next(curr_fps);
         //printf("frame count: %i \n", _frameCount);
 
-        profile.End(profiler::Stage::UpdateLoop);
+        profile.End(Profiler::Stage::UpdateLoop);
 
         //Sleep
-        //SDL_Delay(MILLISECONDS_PER_FRAME);
+        SDL_Delay(MILLISECONDS_PER_FRAME);
     }
 
     //end
     //shutdown(_renderer, _window);
 }
 
-void game::shutdown(renderer& r, game_window& w)
+void Game::shutdown(Renderer& r, GameWindow& w)
 {
     running = false;
 
     r.shutdown();
     w.Close();
 }
+
+////Physics
+//void advance_physics(GameState& state, float fixed_delta_time)
+//{
+//    //state.physics.step_simulation(fixed_delta_time);
+//}
