@@ -16,14 +16,17 @@ namespace fightinggame {
     public:
 
         GameState(
-            std::shared_ptr<FGObject> transform,
-            std::shared_ptr<FGObject> terrain )
-            : cube(transform)
+            std::vector<std::shared_ptr<FGObject>> transforms,
+            std::shared_ptr<FGObject> terrain,
+            std::shared_ptr<FGObject> player )
+            : cubes(transforms)
             , terrain(terrain)
+            , player(player)
         {}
 
-        std::shared_ptr<FGObject> cube;
+        std::vector<std::shared_ptr<FGObject>> cubes;
         std::shared_ptr<FGObject> terrain;
+        std::shared_ptr<FGObject> player;
     };
 
 }

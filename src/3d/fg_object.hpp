@@ -8,14 +8,13 @@ namespace fightinggame {
     struct FGObject
     {
     public:
-        FGObject(std::shared_ptr<FGModel> model, std::shared_ptr<FGTransform> transform)
+        FGObject(std::shared_ptr<FGModel> model)
             : model(model)
-            , transform(transform)
         {
         }
 
         std::shared_ptr<FGModel> model;
-        std::shared_ptr<FGTransform> transform;
+        FGTransform transform;
     };
 
 }

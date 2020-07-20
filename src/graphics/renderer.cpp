@@ -126,42 +126,53 @@ namespace fightinggame
         s_Data.diffuse_shader->setVec3("material.diffuse", ambient_colour_1);
         s_Data.diffuse_shader->setVec3("material.ambient", diffuse_colour_1);
         s_Data.diffuse_shader->setMat4("model", model2);
-        state.cube->model->draw(*s_Data.diffuse_shader, s_Data.stats.DrawCalls);
+        state.cubes[0]->model->draw(*s_Data.diffuse_shader, s_Data.stats.DrawCalls);
 
-        //Draw lit cube
-        glm::mat4 model3 = glm::mat4(1.0f);
-        model3 = glm::translate(model3, state.cube->transform->Position);
-        model3 = glm::scale(model3, state.cube->transform->Scale);
-        glm::vec3 ambient_colour_2 = glm::vec3(1.0, 0.0, 0.0);
-        glm::vec3 diffuse_colour_2 = ambient_colour_2 * 0.2f;
-        s_Data.diffuse_shader->setVec3("material.diffuse", ambient_colour_2);
-        s_Data.diffuse_shader->setVec3("material.ambient", diffuse_colour_2);
-        s_Data.diffuse_shader->setMat4("model", model3);
+        //Draw lit cubes
         tm.bind_texture("GENERATED/white_texture");
-        state.cube->model->draw(*s_Data.diffuse_shader, s_Data.stats.DrawCalls);
+        for (int i = 0; i < state.cubes.size(); i++)
+        {
+            std::shared_ptr<FGObject> cube = state.cubes[i];
+
+            glm::mat4 model = glm::mat4(1.0f);
+            model = glm::translate(model, cube->transform.Position);
+            model = glm::scale(model, cube->transform.Scale);
+            glm::vec3 ambient_colour_2 = glm::vec3(1.0, 0.0, 0.0);
+            glm::vec3 diffuse_colour_2 = ambient_colour_2 * 0.2f;
+            s_Data.diffuse_shader->setVec3("material.diffuse", ambient_colour_2);
+            s_Data.diffuse_shader->setVec3("material.ambient", diffuse_colour_2);
+            s_Data.diffuse_shader->setMat4("model", model);
+            cube->model->draw(*s_Data.diffuse_shader, s_Data.stats.DrawCalls);
+        }
         tm.unbind_texture("GENERATED/white_texture");
 
         //Terrain
-        glm::mat4 model4 = glm::mat4(1.0f);
-        model4 = glm::translate(model4, state.terrain->transform->Position);
-        model4 = glm::scale(model4, state.terrain->transform->Scale);
-        glm::vec3 ambient_colour_3 = glm::vec3(0.3, 0.3, 0.3);
-        glm::vec3 diffuse_colour_3 = ambient_colour_3 * 0.2f;
-        s_Data.diffuse_shader->setVec3("material.diffuse", ambient_colour_3);
-        s_Data.diffuse_shader->setVec3("material.ambient", diffuse_colour_3);
-        s_Data.diffuse_shader->setMat4("model", model4);
-        state.terrain->model->draw(*s_Data.diffuse_shader, s_Data.stats.DrawCalls);
+        {
+            glm::mat4 model4 = glm::mat4(1.0f);
+            model4 = glm::translate(model4, state.terrain->transform.Position);
+            model4 = glm::scale(model4, state.terrain->transform.Scale);
+            glm::vec3 ambient_colour_3 = glm::vec3(0.3, 0.3, 0.3);
+            glm::vec3 diffuse_colour_3 = ambient_colour_3 * 0.2f;
+            s_Data.diffuse_shader->setVec3("material.diffuse", ambient_colour_3);
+            s_Data.diffuse_shader->setVec3("material.ambient", diffuse_colour_3);
+            s_Data.diffuse_shader->setMat4("model", model4);
+            state.terrain->model->draw(*s_Data.diffuse_shader, s_Data.stats.DrawCalls);
+        }
 
-        glm::mat4 model5 = glm::mat4(1.0f);
-        model5 = glm::translate(model5,glm::vec3(5.0f, 0.0f, 0.0f));
-        model5 = glm::scale(model5, state.terrain->transform->Scale);
-        glm::vec3 ambient_colour_4 = glm::vec3(0.0, 1.0, 0.0);
-        glm::vec3 diffuse_colour_4 = ambient_colour_4 * 0.2f;
-        s_Data.diffuse_shader->setVec3("material.diffuse", ambient_colour_4);
-        s_Data.diffuse_shader->setVec3("material.ambient", diffuse_colour_4);
-        s_Data.diffuse_shader->setMat4("model", model5);
-        state.terrain->model->draw(*s_Data.diffuse_shader, s_Data.stats.DrawCalls);
+        //Player Object
+        {
+            std::shared_ptr<FGObject> player = state.player;
 
+            glm::mat4 render_info = glm::mat4(1.0f);
+            render_info = glm::translate(render_info, state.player->transform.Position);
+            render_info = glm::scale(render_info, state.player->transform.Scale);
+            glm::vec3 ambient_colour = glm::vec3(0.3, 1.0, 1.0);
+            glm::vec3 diffuse_colour = ambient_colour * 0.2f;
+            s_Data.diffuse_shader->setVec3("material.diffuse", ambient_colour);
+            s_Data.diffuse_shader->setVec3("material.ambient", diffuse_colour);
+            s_Data.diffuse_shader->setMat4("model", render_info);
+            player->model->draw(*s_Data.diffuse_shader, s_Data.stats.DrawCalls);
+        }
 
         //Lizard Model
         //glm::mat4 model = glm::mat4(1.0f);

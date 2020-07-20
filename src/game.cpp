@@ -78,28 +78,29 @@ bool Game::process_events(Renderer& r, GameWindow& g_window, Gui& gui, Camera& c
     return true;
 }
 
-void Game::tick(float delta_time_in_seconds, GameState& state, float timer)
+void Game::tick(float delta_time_in_seconds, GameState& state, float timer, InputManager& input_manager)
 {
     //printf("ticking state, delta_time: %f \n", delta_time_in_seconds);
 
-    state.cube->transform->Position.x = glm::sin(timer);
-    state.cube->transform->Position.y = 0.0f;
-    state.cube->transform->Position.z = glm::cos(timer);
+    std::shared_ptr<FGObject> cube0 = state.cubes[0];
+    cube0->transform.Position.x = glm::sin(timer);
+    cube0->transform.Position.y = 0.0f;
+    cube0->transform.Position.z = glm::cos(timer);
 
     const float pi = 3.14;
     const float frequency = 0.3f; // Frequency in Hz
     float bouncy_val = 0.5 * (1.0 + sin(2.0 * pi * frequency * timer));
 
-    state.cube->transform->Scale.x = glm::max(0.3f, bouncy_val);
-    state.cube->transform->Scale.y = 1.0f;
-    state.cube->transform->Scale.z = glm::max(0.3f, bouncy_val);
+    cube0->transform.Scale.x = glm::max(0.3f, bouncy_val);
+    cube0->transform.Scale.y = 1.0f;
+    cube0->transform.Scale.z = glm::max(0.3f, bouncy_val);
     //printf("cube pos: %f %f %f", state.cube_pos.x, state.cube_pos.y, state.cube_pos.z);
     //printf("lerp sin_val: %f x: %f z: %f \n ", bouncy_val);
 }
 
 void Game::fixed_tick(float fixed_delta_time_in_seconds)
 {
-    printf("fixed tick");
+    //printf("fixed tick");
     //advance_physics(state, fixed_delta_time);
 }
 
@@ -202,15 +203,36 @@ void Game::run()
 
     //Model: Lizard Wizard
     std::shared_ptr lizard_model = model_manager.load_model("assets/models/lizard_wizard/lizard_wizard.obj", "lizard wizard");
-    std::shared_ptr lizard_transform = std::make_shared<FGTransform>();
-    lizard_transform->Position = glm::vec3(0.f, 1.f, 0.f);
-    FGObject lizard_object = FGObject(lizard_model, lizard_transform);
+    //Lizard Object
+    FGObject lizard_object = FGObject(lizard_model);
 
     //Model: Cube
     std::shared_ptr cube_model = model_manager.load_model("assets/models/cube/cube.obj", "cube");
-    std::shared_ptr cube_transform = std::make_shared<FGTransform>();
-    cube_transform->Position = glm::vec3(0.f, 1.f, 0.f);
-    FGObject cube_object = FGObject(cube_model, cube_transform);
+    //Cube Objects
+    FGObject cube_object = FGObject(cube_model);
+    cube_object.transform.Position = glm::vec3(0.0f, 0.0f, 0.0f);
+    FGObject cube_object2 = FGObject(cube_model);
+    cube_object2.transform.Position = glm::vec3(2.0f, 5.0f, -15.0f);
+    FGObject cube_object3 = FGObject(cube_model);
+    cube_object3.transform.Position = glm::vec3(-1.5f, -2.2f, -2.5f);
+    FGObject cube_object4 = FGObject(cube_model);
+    cube_object4.transform.Position = glm::vec3(-3.8f, -2.0f, -12.3f);
+    FGObject cube_object5 = FGObject(cube_model);
+    cube_object5.transform.Position = glm::vec3(2.4f, -0.4f, -3.5f);
+    FGObject cube_object6 = FGObject(cube_model);
+    cube_object6.transform.Position = glm::vec3(-1.7f, 3.0f, -7.5f);
+
+    //Player Object
+    FGObject player_object = FGObject(cube_model);
+    player_object.transform.Position = glm::vec3(-2.0f, 0.5f, -2.0f);
+
+    std::vector<std::shared_ptr<FGObject>> cubes;
+    cubes.push_back(std::make_shared<FGObject>(cube_object));
+    cubes.push_back(std::make_shared<FGObject>(cube_object2));
+    cubes.push_back(std::make_shared<FGObject>(cube_object3));
+    cubes.push_back(std::make_shared<FGObject>(cube_object4));
+    cubes.push_back(std::make_shared<FGObject>(cube_object5));
+    cubes.push_back(std::make_shared<FGObject>(cube_object6));
 
     // Procedural terrain
     std::vector<std::shared_ptr<Texture2D>> textures;
@@ -218,16 +240,14 @@ void Game::run()
     std::shared_ptr terrain_mesh = terrain.get_mesh();
     FGModel tm = FGModel(terrain_mesh, "Procedural Terrain");
     std::shared_ptr terrain_model = std::make_shared<FGModel>(tm);
-    std::shared_ptr terrain_transform = std::make_shared<FGTransform>();
-    terrain_transform->Position = glm::vec3(0.0f, 0.0f, 0.0f);
-    terrain_transform->Scale = glm::vec3(1.0f, 1.0f, 1.0f);
-    FGObject terrain_object = FGObject(terrain_model, terrain_transform);
+    FGObject terrain_object = FGObject(terrain_model);
 
     // Game State
     // ----------
     GameState state_current = GameState(
-        std::make_shared<FGObject>(cube_object),
-        std::make_shared<FGObject>(terrain_object)
+        cubes,
+        std::make_shared<FGObject>(terrain_object),
+        std::make_shared<FGObject>(player_object)
     );
 
     //ImGui

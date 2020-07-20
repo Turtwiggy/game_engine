@@ -41,7 +41,7 @@ namespace fightinggame
         float get_average_fps() { return fps_buffer.average(); }
 
     private:
-        void tick(float delta_time, GameState& state, float timer);    //update game logic
+        void tick(float delta_time, GameState& state, float timer, InputManager& input_maanger);    //update game logic
         void fixed_tick(float fixed_delta_time);
 
         void render
