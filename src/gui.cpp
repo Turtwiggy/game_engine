@@ -135,17 +135,20 @@ namespace fightinggame {
         float draw_time = profiler.GetTime(Profiler::Stage::SdlInput);
         ImGui::Text("%s %f ms", profiler.stageNames[(uint8_t)Profiler::Stage::SdlInput].data(), (draw_time));
 
+        draw_time = profiler.GetTime(Profiler::Stage::GameTick);
+        ImGui::Text("%s % fms", profiler.stageNames[(uint8_t)Profiler::Stage::GameTick].data(), (draw_time));
+
         draw_time = profiler.GetTime(Profiler::Stage::NewFrame);
         ImGui::Text("%s %f ms", profiler.stageNames[(uint8_t)Profiler::Stage::NewFrame].data(), (draw_time));
+
+        draw_time = profiler.GetTime(Profiler::Stage::MainDraw);
+        ImGui::Text("%s %f ms", profiler.stageNames[(uint8_t)Profiler::Stage::MainDraw].data(), (draw_time));
 
         draw_time = profiler.GetTime(Profiler::Stage::GuiLoop);
         ImGui::Text("%s % fms", profiler.stageNames[(uint8_t)Profiler::Stage::GuiLoop].data(), (draw_time));
 
-        draw_time = profiler.GetTime(Profiler::Stage::SceneDraw);
-        ImGui::Text("%s %f ms", profiler.stageNames[(uint8_t)Profiler::Stage::SceneDraw].data(), (draw_time));
-
-        draw_time = profiler.GetTime(Profiler::Stage::RenderFrame);
-        ImGui::Text("%s % fms", profiler.stageNames[(uint8_t)Profiler::Stage::RenderFrame].data(), (draw_time));
+        draw_time = profiler.GetTime(Profiler::Stage::EndFrame);
+        ImGui::Text("%s % fms", profiler.stageNames[(uint8_t)Profiler::Stage::EndFrame].data(), (draw_time));
 
         draw_time = profiler.GetTime(Profiler::Stage::UpdateLoop);
         ImGui::Text("%s % fms", profiler.stageNames[(uint8_t)Profiler::Stage::UpdateLoop].data(), (draw_time));

@@ -78,7 +78,7 @@ bool Game::process_events(Renderer& r, GameWindow& g_window, Gui& gui, Camera& c
     return true;
 }
 
-void Game::tick(float delta_time_in_seconds, GameState& state, float timer, InputManager& input_manager)
+void Game::tick(float delta_time_in_seconds, GameState& state, float timer, InputManager& input_manager, Camera& camera)
 {
     //printf("ticking state, delta_time: %f \n", delta_time_in_seconds);
 
@@ -96,6 +96,29 @@ void Game::tick(float delta_time_in_seconds, GameState& state, float timer, Inpu
     cube0->transform.Scale.z = glm::max(0.3f, bouncy_val);
     //printf("cube pos: %f %f %f", state.cube_pos.x, state.cube_pos.y, state.cube_pos.z);
     //printf("lerp sin_val: %f x: %f z: %f \n ", bouncy_val);
+
+    //Player Cube
+    std::shared_ptr<FGObject> player_cube = state.player;
+    if (input_manager.get_key_held(SDLK_UP))
+    {
+        player_cube->transform.Position.z += 1.0f * delta_time_in_seconds;
+    }
+    if (input_manager.get_key_held(SDLK_DOWN))
+    {
+        player_cube->transform.Position.z -= 1.0f * delta_time_in_seconds;
+    }
+    if (input_manager.get_key_held(SDLK_LEFT))
+    {
+        player_cube->transform.Position.x -= 1.0f * delta_time_in_seconds;
+    }
+    if (input_manager.get_key_held(SDLK_RIGHT))
+    {
+        player_cube->transform.Position.x += 1.0f * delta_time_in_seconds;
+    }
+    camera.follow(delta_time_in_seconds, player_cube);
+
+    camera.process_users_input(input_manager);
+    camera.update(delta_time_in_seconds);
 }
 
 void Game::fixed_tick(float fixed_delta_time_in_seconds)
@@ -110,8 +133,7 @@ void Game::render(
     Renderer& rend,
     Camera& camera,
     Gui& gui,
-    GameWindow& window,
-    FGObject& cube)
+    GameWindow& window )
 {
     //Begin Frame
     {
@@ -122,10 +144,7 @@ void Game::render(
 
     //Main rendering
     {
-        profiler.Begin(Profiler::Stage::SceneDraw);
-
-        //set cube to pos from gamestate
-        //models[1].get().Position = state.cube_pos;
+        profiler.Begin(Profiler::Stage::MainDraw);
 
         fightinggame::draw_scene_desc drawDesc
         (
@@ -139,7 +158,7 @@ void Game::render(
             drawDesc,
             state
         );
-        profiler.End(Profiler::Stage::SceneDraw);
+        profiler.End(Profiler::Stage::MainDraw);
     }
 
     //Render GUI
@@ -155,9 +174,9 @@ void Game::render(
 
     //End Frame
     {
-        profiler.Begin(Profiler::Stage::RenderFrame);
+        profiler.Begin(Profiler::Stage::EndFrame);
         rend.end_frame(window.GetHandle());
-        profiler.End(Profiler::Stage::RenderFrame);
+        profiler.End(Profiler::Stage::EndFrame);
     }
 }
 
@@ -273,9 +292,9 @@ void Game::run()
         // input
         // -----
         profile.Begin(Profiler::Stage::SdlInput);
+
         input_manager.new_frame();
         running = process_events(rend, window, gui, cam, input_manager);
-        profile.End(Profiler::Stage::SdlInput);
         if (!running) { shutdown(rend, window);  return; }
 
         // User events
@@ -297,11 +316,12 @@ void Game::run()
         {
             shutdown(rend, window);  return;
         }
-
         if (input_manager.get_mouse_lmb_held())
         {
             //printf("\nlmb held");
         }
+
+        profile.End(Profiler::Stage::SdlInput);
 
         // Delta Time
         // ----------
@@ -315,8 +335,6 @@ void Game::run()
 
         while (seconds_since_last_game_tick >= SECONDS_PER_FIXED_TICK)
         {
-            //state_previous = state_current;
-
             fixed_tick(SECONDS_PER_FIXED_TICK);
 
             seconds_since_last_game_tick -= SECONDS_PER_FIXED_TICK;
@@ -324,27 +342,24 @@ void Game::run()
 
         // Update Game State
         // -----------------
-        tick(delta_time_in_seconds, state_current, timer);
-
-        // Camera
-        // ------
-        cam.process_users_input(input_manager);
-        cam.update(delta_time_in_seconds);
+        {
+            profile.Begin(Profiler::Stage::GameTick);
+            tick(delta_time_in_seconds, state_current, timer, input_manager, cam);
+            profile.End(Profiler::Stage::GameTick);
+        }
 
         // Rendering
         // ---------
-        render(profile, state_current, rend, cam, gui, window, cube_object);
+        render(profile, state_current, rend, cam, gui, window);
 
         // FPS Profiling
         // -------------
-        float curr_fps = 1.f / delta_time_in_seconds;
-        fps_buffer.add_next(curr_fps);
-        //printf("frame count: %i \n", _frameCount);
-
-        profile.End(Profiler::Stage::UpdateLoop);
+        fps_buffer.add_next(1.f / delta_time_in_seconds);
 
         //Sleep
         SDL_Delay(MILLISECONDS_PER_FRAME);
+
+        profile.End(Profiler::Stage::UpdateLoop);
     }
 
     //end

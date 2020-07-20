@@ -7,6 +7,7 @@
 #pragma warning( disable : 4244 )
 
 #include "input/input_manager.h"
+#include "3d/fg_object.hpp"
 
 #include <glm/glm.hpp>
 #include <glm/gtc/matrix_transform.hpp>
@@ -117,6 +118,14 @@ namespace fightinggame {
             state.right_pressed = input_manager.get_key_held(SDL_KeyCode::SDLK_d);
             state.up_pressed = input_manager.get_key_held(SDL_KeyCode::SDLK_SPACE);
             state.down_pressed = input_manager.get_key_held(SDL_KeyCode::SDLK_LSHIFT);
+        }
+
+        float distance_from_player = 50.0;
+        float angle_around_player = 0.0;
+
+        void follow(float delta_time, std::shared_ptr<FGObject> player)
+        {
+            //float horizontal_distance = player->transform.
         }
 
         void update(float delta_time)

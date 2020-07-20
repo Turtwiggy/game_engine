@@ -17,13 +17,14 @@ namespace fightinggame
         enum class Stage : uint8_t
         {
             SdlInput,
+            GameTick,
             NewFrame,
             //UpdateUniforms,
             //UpdateEntities,
+            MainDraw,
             GuiLoop,
-            SceneDraw,
-            RenderFrame,
             UpdateLoop,
+            EndFrame,
 
             _count,
         };
@@ -38,14 +39,15 @@ namespace fightinggame
         };
 
         static constexpr std::array<std::string_view, static_cast<uint8_t>(Stage::_count)> stageNames = {
-            "SDL Input",
-            "New Frame",
-            //"Update Uniforms",
-            //"Update Entities",
-            "GUI Loop",
-            "Scene Draw",
-            "Renderer Frame",
-            "Update Loop",
+            "SdlInput",
+            "GameTick",
+            "NewFrame",
+            //UpdateUniforms,",
+            //UpdateEntities,",
+            "MainDraw",
+            "GuiLoop",
+            "UpdateLoop",
+            "EndFrame",
         };
 
         struct Entry
