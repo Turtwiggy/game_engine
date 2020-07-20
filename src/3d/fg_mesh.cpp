@@ -10,14 +10,13 @@ namespace fightinggame {
     FGMesh::FGMesh(
         std::vector<FGVertex> vertices,
         std::vector<unsigned int> indices,
-        std::vector<Ref<Texture2D>> textures,
+        std::vector<std::shared_ptr<Texture2D>> textures,
         std::string name)
+        : vertices(vertices)
+        , indices(indices)
+        , textures(textures)
+        , name(name)
     {
-        this->vertices = vertices;
-        this->indices = indices;
-        this->textures = textures;
-        this->name = name;
-
         setupMesh();
     }
 
@@ -51,10 +50,10 @@ namespace fightinggame {
         glVertexAttribPointer(2, 2, GL_FLOAT, GL_FALSE, sizeof(FGVertex), (void*)offsetof(FGVertex, TexCoords));
         //// vertex tangent
         //glEnableVertexAttribArray(3);
-        //glVertexAttribPointer(3, 3, GL_FLOAT, GL_FALSE, sizeof(Vertex), (void*)offsetof(Vertex, Tangent));
+        //glVertexAttribPointer(3, 3, GL_FLOAT, GL_FALSE, sizeof(Vertex), (void*)offsetof(FGVertex, Tangent));
         //// vertex bitangent
         //glEnableVertexAttribArray(4);
-        //glVertexAttribPointer(4, 3, GL_FLOAT, GL_FALSE, sizeof(Vertex), (void*)offsetof(Vertex, Bitangent));
+        //glVertexAttribPointer(4, 3, GL_FLOAT, GL_FALSE, sizeof(Vertex), (void*)offsetof(FGVertex, Bitangent));
 
         glBindVertexArray(0);
     }

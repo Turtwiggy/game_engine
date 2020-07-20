@@ -57,7 +57,7 @@ namespace fightinggame {
         ImGuiContext* get_imgui_context() { return _imgui; }
 
         void init_opengl_and_imgui(const GameWindow& window);
-        void init_shaders();
+        void init_renderer();
 
         SDL_GLContext get_gl_context() { return gl_context; }
 

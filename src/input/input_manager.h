@@ -1,7 +1,9 @@
 #pragma once
 
 #include "glm/glm.hpp"
-#include <SDL2\SDL_keycode.h>
+#include <SDL2/SDL_keycode.h>
+#include <SDL2/SDL_mouse.h>
+#include <SDL2/SDL_events.h>
 
 #include <vector>
 
@@ -20,6 +22,7 @@ public:
         down.clear();
         up.clear();
     }
+
 
     void add_button_down(SDL_Keycode button)
     {
@@ -44,7 +47,6 @@ public:
         }
     }
 
-
     bool get_key_down(SDL_Keycode button)
     {
         return std::find(down.begin(), down.end(), button) != down.end();
@@ -60,10 +62,71 @@ public:
         return std::find(held.begin(), held.end(), button) != held.end();
     }
 
+
+    void add_mouse_down(SDL_MouseButtonEvent& mouse_e)
+    {
+        if (mouse_e.button == SDL_BUTTON_LEFT)
+        {
+            lmb = true;
+        }
+        if (mouse_e.button == SDL_BUTTON_RIGHT)
+        {
+            rmb = true;
+        }
+        if (mouse_e.button == SDL_BUTTON_MIDDLE)
+        {
+            mmb = true;
+        }
+    }
+
+    void add_mouse_up(SDL_MouseButtonEvent& mouse_e)
+    {
+        if (mouse_e.button == SDL_BUTTON_LEFT)
+        {
+            lmb = false;
+        }
+        if (mouse_e.button == SDL_BUTTON_RIGHT)
+        {
+            rmb = false;
+        }
+        if (mouse_e.button == SDL_BUTTON_MIDDLE)
+        {
+            mmb = false;
+        }
+    }
+
+    bool get_mouse_lmb_held()
+    {
+        return lmb;
+    }
+
+    bool get_mouse_rmb_held()
+    {
+        return rmb;
+    }
+
+    bool get_mouse_mmb_held()
+    {
+        return mmb;
+    }
+
+
+
+
 private:
+
+    //Keyboard state
+
     //down and up reset every frame
     std::vector<SDL_Keycode> down;
     std::vector<SDL_Keycode> up;
     //contains a sdl_keycode until up is called for it
     std::vector<SDL_Keycode> held;
+
+    //Mouse state
+
+    bool lmb = false;
+    bool rmb = false;
+    bool mmb = false;
+
 };

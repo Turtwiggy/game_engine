@@ -1,7 +1,8 @@
 #include "game.h"
 
 #include "3d/fg_model_manager.h"
-#include <3d/fg_object.hpp>
+#include "3d/fg_object.hpp"
+#include "modules/terrain/terrain.hpp"
 
 #include "graphics/render_command.h"
 #include "gui.hpp"
@@ -40,7 +41,6 @@ bool Game::process_events(Renderer& r, GameWindow& g_window, Gui& gui, Camera& c
             switch (e.type)
             {
             case SDL_KEYDOWN:
-
                 //keyboard specific! (need to rework for controllers)
                 {
                     SDL_KeyboardEvent key_event = e.key;
@@ -50,7 +50,6 @@ bool Game::process_events(Renderer& r, GameWindow& g_window, Gui& gui, Camera& c
                 return true;
 
             case SDL_KEYUP:
-
                 //keyboard specific! (need to rework for controllers)
                 {
                     SDL_KeyboardEvent key_event = e.key;
@@ -58,6 +57,21 @@ bool Game::process_events(Renderer& r, GameWindow& g_window, Gui& gui, Camera& c
                     input_manager.add_button_up(key);
                 }
                 return true;
+
+            case SDL_MOUSEBUTTONDOWN:
+                //mouse specific
+                {
+                    input_manager.add_mouse_down(e.button);
+                }
+                return true;
+
+            case SDL_MOUSEBUTTONUP:
+                //mouse specific
+                {
+                    input_manager.add_mouse_up(e.button);
+                }
+                return true;
+
             }
         }
     }
@@ -74,7 +88,7 @@ void Game::tick(float delta_time_in_seconds, GameState& state, float timer)
 
     const float pi = 3.14;
     const float frequency = 0.3f; // Frequency in Hz
-    float bouncy_val = 0.5 * (1 + sin(2 * pi * frequency * timer));
+    float bouncy_val = 0.5 * (1.0 + sin(2.0 * pi * frequency * timer));
 
     state.cube->transform->Scale.x = glm::max(0.3f, bouncy_val);
     state.cube->transform->Scale.y = 1.0f;
@@ -174,7 +188,7 @@ void Game::run()
     Renderer rend;
     printf("renderer taking up: %s bytes \n", std::to_string(sizeof(Renderer)).c_str());
     rend.init_opengl_and_imgui(window); //do not use opengl before this point
-    rend.init_shaders();
+    rend.init_renderer();
 
     //Input Manager
     InputManager input_manager;
@@ -198,10 +212,22 @@ void Game::run()
     cube_transform->Position = glm::vec3(0.f, 1.f, 0.f);
     FGObject cube_object = FGObject(cube_model, cube_transform);
 
+    // Procedural terrain
+    std::vector<std::shared_ptr<Texture2D>> textures;
+    Terrain terrain = Terrain(0, 0, textures);
+    std::shared_ptr terrain_mesh = terrain.get_mesh();
+    FGModel tm = FGModel(terrain_mesh, "Procedural Terrain");
+    std::shared_ptr terrain_model = std::make_shared<FGModel>(tm);
+    std::shared_ptr terrain_transform = std::make_shared<FGTransform>();
+    terrain_transform->Position = glm::vec3(0.0f, 0.0f, 0.0f);
+    terrain_transform->Scale = glm::vec3(1.0f, 1.0f, 1.0f);
+    FGObject terrain_object = FGObject(terrain_model, terrain_transform);
+
     // Game State
     // ----------
     GameState state_current = GameState(
-        std::make_shared<FGObject>(cube_object)
+        std::make_shared<FGObject>(cube_object),
+        std::make_shared<FGObject>(terrain_object)
     );
 
     //ImGui
@@ -209,7 +235,6 @@ void Game::run()
     printf("Gui taking up: %s bytes \n", std::to_string(sizeof(Gui)).c_str());
 
     running = true;
-    _frameCount = 0;
     start = now = SDL_GetTicks();
     while (running)
     {
@@ -251,6 +276,11 @@ void Game::run()
         if (input_manager.get_key_down(SDL_KeyCode::SDLK_ESCAPE))
         {
             shutdown(rend, window);  return;
+        }
+
+        if (input_manager.get_mouse_lmb_held())
+        {
+            //printf("\nlmb held");
         }
 
         // Delta Time

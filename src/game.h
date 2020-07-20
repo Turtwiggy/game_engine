@@ -4,7 +4,6 @@
 #include "game_state.hpp"
 #include "graphics/renderer.h"
 #include "gui.hpp"
-#include "util/base.h"
 #include "util/profiler.hpp"
 #include "util/circular_buffer.h"
 #include "util/resource_manager.hpp"
@@ -33,13 +32,6 @@
 
 namespace fightinggame
 {
-    struct Input
-    {
-        bool key_down = false;
-        bool key_up = false;
-        SDL_Keycode key;
-    };
-
     class Game
     {
     public:
@@ -68,24 +60,21 @@ namespace fightinggame
         static Game* sInstance;
         bool running = true;
         bool fullscreen = false;
+        float timer = 0.0f;
 
         //delta time metrics
         double FPS = 144.0;
         Uint32 MILLISECONDS_PER_FRAME = (Uint32)(1000 / FPS);
         //float SECONDS_PER_FRAME = 1.f / FPS;
+        CircularBuffer fps_buffer;
 
         int FIXED_TICKS_PER_SECOND = 1;
         float SECONDS_PER_FIXED_TICK = 1.f / FIXED_TICKS_PER_SECOND;
+        float seconds_since_last_game_tick = 0;
 
         unsigned int start = 0;
         unsigned int prev = 0;
         unsigned int now = 0;
-        float timer = 0.0f;
-
-        //frame metrics
-        uint32_t _frameCount = 0;
-        float seconds_since_last_game_tick = 0;
-        CircularBuffer fps_buffer;
 
         //physics
         //physics_simulation _physics;

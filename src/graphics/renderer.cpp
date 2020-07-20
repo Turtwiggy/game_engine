@@ -30,13 +30,14 @@ namespace fightinggame
         // TODO: RenderCaps
         static const uint32_t MaxModels = 20;
 
-        Ref<Shader> diffuse_shader;
+        std::shared_ptr<Shader> diffuse_shader;
+        std::shared_ptr<Shader> terrain_shader;
 
         Renderer::Statistics stats;
     };
     static RenderData s_Data;
 
-    void Renderer::init_shaders()
+    void Renderer::init_renderer()
     {
         //glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);  // uncomment this call to draw in wireframe polygons.
 
@@ -45,8 +46,44 @@ namespace fightinggame
             ("assets/shaders/lit_directional.vert", "assets/shaders/lit_directional.frag");
 
         ////Lit Object Shader
-        //s_Data.lit_object_shader = std::make_unique<Shader>
-        //    ("assets/shaders/lit_directional.vert", "assets/shaders/lit_directional.frag");
+        s_Data.terrain_shader = std::make_unique<Shader>
+            ("assets/shaders/terrain.vert", "assets/shaders/terrain.frag");
+
+        //Enable Multi Sampling
+        SDL_GL_SetAttribute(SDL_GL_MULTISAMPLEBUFFERS, 1);
+        SDL_GL_SetAttribute(SDL_GL_MULTISAMPLESAMPLES, 4);
+        glEnable(GL_MULTISAMPLE);
+
+        //Enable Faceculling
+        glEnable(GL_CULL_FACE);
+        glDepthFunc(GL_LESS);
+
+        glEnable(GL_BLEND);
+        glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+
+        //Enable depth testing
+        glEnable(GL_DEPTH_TEST);
+
+        //Create our own framebuffer
+        //unsigned int framebuffer;
+        //glGenFramebuffers(1, &framebuffer);
+        //glBindFramebuffer(GL_FRAMEBUFFER, framebuffer);
+
+        //// generate texture
+        //unsigned int texColorBuffer;
+        //glGenTextures(1, &texColorBuffer);
+        //glBindTexture(GL_TEXTURE_2D, texColorBuffer);
+        //glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, 800, 600, 0, GL_RGB, GL_UNSIGNED_BYTE, NULL);
+        //glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+        //glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+        //glBindTexture(GL_TEXTURE_2D, 0);
+
+        //// attach it to currently bound framebuffer object
+        //glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, texColorBuffer, 0);
+        //if (glCheckFramebufferStatus(framebuffer) == GL_FRAMEBUFFER_COMPLETE)
+        //{
+        //}
+        //glDeleteFramebuffers(1, &framebuffer);
     }
 
     void Renderer::draw_pass(draw_scene_desc& desc, GameState state)
@@ -96,13 +133,35 @@ namespace fightinggame
         model3 = glm::translate(model3, state.cube->transform->Position);
         model3 = glm::scale(model3, state.cube->transform->Scale);
         glm::vec3 ambient_colour_2 = glm::vec3(1.0, 0.0, 0.0);
-        glm::vec3 diffuse_colour_2 = ambient_colour_1 * 0.2f;
+        glm::vec3 diffuse_colour_2 = ambient_colour_2 * 0.2f;
         s_Data.diffuse_shader->setVec3("material.diffuse", ambient_colour_2);
         s_Data.diffuse_shader->setVec3("material.ambient", diffuse_colour_2);
         s_Data.diffuse_shader->setMat4("model", model3);
         tm.bind_texture("GENERATED/white_texture");
         state.cube->model->draw(*s_Data.diffuse_shader, s_Data.stats.DrawCalls);
         tm.unbind_texture("GENERATED/white_texture");
+
+        //Terrain
+        glm::mat4 model4 = glm::mat4(1.0f);
+        model4 = glm::translate(model4, state.terrain->transform->Position);
+        model4 = glm::scale(model4, state.terrain->transform->Scale);
+        glm::vec3 ambient_colour_3 = glm::vec3(0.3, 0.3, 0.3);
+        glm::vec3 diffuse_colour_3 = ambient_colour_3 * 0.2f;
+        s_Data.diffuse_shader->setVec3("material.diffuse", ambient_colour_3);
+        s_Data.diffuse_shader->setVec3("material.ambient", diffuse_colour_3);
+        s_Data.diffuse_shader->setMat4("model", model4);
+        state.terrain->model->draw(*s_Data.diffuse_shader, s_Data.stats.DrawCalls);
+
+        glm::mat4 model5 = glm::mat4(1.0f);
+        model5 = glm::translate(model5,glm::vec3(5.0f, 0.0f, 0.0f));
+        model5 = glm::scale(model5, state.terrain->transform->Scale);
+        glm::vec3 ambient_colour_4 = glm::vec3(0.0, 1.0, 0.0);
+        glm::vec3 diffuse_colour_4 = ambient_colour_4 * 0.2f;
+        s_Data.diffuse_shader->setVec3("material.diffuse", ambient_colour_4);
+        s_Data.diffuse_shader->setVec3("material.ambient", diffuse_colour_4);
+        s_Data.diffuse_shader->setMat4("model", model5);
+        state.terrain->model->draw(*s_Data.diffuse_shader, s_Data.stats.DrawCalls);
+
 
         //Lizard Model
         //glm::mat4 model = glm::mat4(1.0f);

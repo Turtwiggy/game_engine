@@ -1,7 +1,6 @@
 #pragma once
 
 #include "graphics/renderer_api.h"
-#include "util/base.h"
 
 namespace fightinggame {
 
@@ -28,11 +27,11 @@ namespace fightinggame {
 			s_RendererAPI->clear();
 		}
 
-		static void draw_indexed(const Ref<vertex_array>& vertexArray, uint32_t count = 0)
+		static void draw_indexed(const std::shared_ptr<vertex_array>& vertexArray, uint32_t count = 0)
 		{
 			s_RendererAPI->draw_indexed(vertexArray, count);
 		}
 	private:
-		static Scope<renderer_api> s_RendererAPI;
+		static std::unique_ptr<renderer_api> s_RendererAPI;
 	};
 }

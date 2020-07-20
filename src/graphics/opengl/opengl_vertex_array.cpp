@@ -45,7 +45,7 @@ namespace fightinggame {
 		glBindVertexArray(0);
 	}
 
-	void opengl_vertex_array::AddVertexBuffer(const Ref<vertex_buffer>& vertexBuffer)
+	void opengl_vertex_array::AddVertexBuffer(const std::shared_ptr<vertex_buffer>& vertexBuffer)
 	{
 		assert(vertexBuffer->GetLayout().GetElements().size()); // "Vertex Buffer has no layout!"
 
@@ -103,7 +103,7 @@ namespace fightinggame {
 		m_VertexBuffers.push_back(vertexBuffer);
 	}
 
-	void opengl_vertex_array::SetIndexBuffer(const Ref<index_buffer>& indexBuffer)
+	void opengl_vertex_array::SetIndexBuffer(const std::shared_ptr<index_buffer>& indexBuffer)
 	{
 		glBindVertexArray(m_RendererID);
 		indexBuffer->Bind();

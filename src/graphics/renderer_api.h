@@ -2,7 +2,6 @@
 
 #include <glm/glm.hpp>
 
-#include "util/base.h"
 #include "graphics/vertex_array.h"
 
 namespace fightinggame {
@@ -20,10 +19,10 @@ namespace fightinggame {
 		virtual void set_clear_colour(const glm::vec4& color) = 0;
 		virtual void clear() = 0;
 
-		virtual void draw_indexed(const Ref<vertex_array>& vertexArray, uint32_t indexCount = 0) = 0;
+		virtual void draw_indexed(const std::shared_ptr<vertex_array>& vertexArray, uint32_t indexCount = 0) = 0;
 
 		static API get_api() { return s_API; }
-		static Scope<renderer_api> create();
+		static std::unique_ptr<renderer_api> create();
 	private:
 		static API s_API; //impl in .cpp
 	};

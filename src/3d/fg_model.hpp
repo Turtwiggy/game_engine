@@ -10,7 +10,7 @@ namespace fightinggame {
     class FGModel
     {
     public:
-        FGModel() = default;
+
         FGModel(const aiScene* raw_model, std::string directory, std::string name)
             : directory(directory)
             , name(name)
@@ -18,18 +18,25 @@ namespace fightinggame {
             process_node(raw_model->mRootNode, raw_model);
         }
 
+        FGModel(std::shared_ptr<FGMesh> mesh, std::string name)
+            : name(name)
+            , directory(name)
+        {
+            meshes.push_back(*mesh);
+        }
+
         std::string get_name() { return name; }
 
         void draw(Shader& shader, uint32_t& draw_calls);
 
-        std::vector<Ref<Texture2D>> get_textures() { return textures_loaded; }
+        std::vector<std::shared_ptr<Texture2D>> get_textures() { return textures_loaded; }
 
     private:
 
         void process_node(aiNode* node, const aiScene* scene);
         FGMesh process_mesh(aiMesh* mesh, const aiScene* scene);
 
-        std::vector<Ref<Texture2D>> load_material_textures
+        std::vector<std::shared_ptr<Texture2D>> load_material_textures
         (
             aiMaterial* mat,
             aiTextureType type,
@@ -38,7 +45,7 @@ namespace fightinggame {
 
     private:
         std::vector<FGMesh> meshes;
-        std::vector<Ref<Texture2D>> textures_loaded;
+        std::vector<std::shared_ptr<Texture2D>> textures_loaded;
         std::string directory;
         std::string name;
     };

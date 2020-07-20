@@ -7,12 +7,12 @@
 
 namespace fightinggame {
 
-	Ref<vertex_array> vertex_array::Create()
+    std::shared_ptr<vertex_array> vertex_array::Create()
 	{
 		switch (Renderer::get_api())
 		{
 		case renderer_api::API::None:    assert(false); /*, "RendererAPI::None is currently not supported!");*/ return nullptr;
-		case renderer_api::API::OpenGL:  return CreateRef<opengl_vertex_array>();
+        case renderer_api::API::OpenGL:  return std::make_shared<opengl_vertex_array>();
 		}
 
 		assert(false); //unknown renderer api

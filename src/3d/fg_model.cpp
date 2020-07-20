@@ -34,7 +34,7 @@ namespace fightinggame {
         // data to fill
         std::vector<FGVertex> vertices;
         std::vector<unsigned int> indices;
-        std::vector<Ref<Texture2D>> textures;
+        std::vector<std::shared_ptr<Texture2D>> textures;
 
         // walk through each of the mesh's vertices
         for (unsigned int i = 0; i < mesh->mNumVertices; i++)
@@ -93,16 +93,16 @@ namespace fightinggame {
         // normal: texture_normalN
 
         // 1. diffuse maps
-        std::vector<Ref<Texture2D>> diffuseMaps = load_material_textures(material, aiTextureType_DIFFUSE, "texture_diffuse");
+        std::vector<std::shared_ptr<Texture2D>> diffuseMaps = load_material_textures(material, aiTextureType_DIFFUSE, "texture_diffuse");
         textures.insert(textures.end(), diffuseMaps.begin(), diffuseMaps.end());
         // 2. specular maps
-        std::vector<Ref<Texture2D>> specularMaps = load_material_textures(material, aiTextureType_SPECULAR, "texture_specular");
+        std::vector<std::shared_ptr<Texture2D>> specularMaps = load_material_textures(material, aiTextureType_SPECULAR, "texture_specular");
         textures.insert(textures.end(), specularMaps.begin(), specularMaps.end());
         // 3. normal maps
-        std::vector<Ref<Texture2D>> normalMaps = load_material_textures(material, aiTextureType_HEIGHT, "texture_normal");
+        std::vector<std::shared_ptr<Texture2D>> normalMaps = load_material_textures(material, aiTextureType_HEIGHT, "texture_normal");
         textures.insert(textures.end(), normalMaps.begin(), normalMaps.end());
         // 4. height maps
-        std::vector<Ref<Texture2D>> heightMaps = load_material_textures(material, aiTextureType_AMBIENT, "texture_height");
+        std::vector<std::shared_ptr<Texture2D>> heightMaps = load_material_textures(material, aiTextureType_AMBIENT, "texture_height");
         textures.insert(textures.end(), heightMaps.begin(), heightMaps.end());
 
         // return a mesh object created from the extracted mesh data
@@ -110,9 +110,9 @@ namespace fightinggame {
     }
 
     // checks all material textures of a given type and loads the textures if they're not loaded yet. the required info is returned as a Texture struct.
-    std::vector<Ref<Texture2D>> FGModel::load_material_textures(aiMaterial* mat, aiTextureType type, std::string typeName)
+    std::vector<std::shared_ptr<Texture2D>> FGModel::load_material_textures(aiMaterial* mat, aiTextureType type, std::string typeName)
     {
-        std::vector<Ref<Texture2D>> textures;
+        std::vector<std::shared_ptr<Texture2D>> textures;
 
         for (unsigned int i = 0; i < mat->GetTextureCount(type); i++)
         {
@@ -123,7 +123,7 @@ namespace fightinggame {
             bool skip = false;
             for (auto tex_idx = 0; tex_idx < textures_loaded.size(); tex_idx++)
             {
-                Ref<Texture2D> tex = textures_loaded[tex_idx];
+                std::shared_ptr<Texture2D> tex = textures_loaded[tex_idx];
                 if (std::strcmp(tex->get_path().data(), str.C_Str()) == 0)
                 {
                     textures.push_back(tex);
@@ -135,7 +135,7 @@ namespace fightinggame {
             //texture has not been loaded
             if (!skip)
             {
-                Ref<Texture2D> tex = Texture2D::Create(str.C_Str(), this->directory);
+                std::shared_ptr<Texture2D> tex = Texture2D::Create(str.C_Str(), this->directory);
                 tex->set_type(typeName);
 
                 textures.push_back(tex);

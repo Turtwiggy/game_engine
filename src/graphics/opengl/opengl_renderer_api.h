@@ -3,7 +3,8 @@
 
 #include "graphics/renderer_api.h"
 #include "graphics/opengl/opengl_vertex_array.h"
-#include "util/base.h"
+
+#include <memory>
 
 namespace fightinggame {
 
@@ -16,6 +17,6 @@ namespace fightinggame {
 		virtual void set_clear_colour(const glm::vec4& color) override;
 		virtual void clear() override;
 
-		virtual void draw_indexed(const Ref<vertex_array>& vertexArray, uint32_t indexCount = 0) override;
+		virtual void draw_indexed(const std::shared_ptr<vertex_array>& vertexArray, uint32_t indexCount = 0) override;
 	};
 }

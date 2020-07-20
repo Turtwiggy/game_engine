@@ -2,12 +2,12 @@
 
 #include "graphics/texture.h"
 #include "util/singleton.h"
-#include "util/base.h"
 
 #include <array>
 #include <vector>
 #include <filesystem>
 #include <iostream>
+#include <memory>
 
 namespace fightinggame {
 
@@ -19,14 +19,14 @@ namespace fightinggame {
 
         void init()
         {
-            Ref<Texture2D> white_texture = Texture2D::Create(1, 1, "GENERATED", "white_texture");
+            std::shared_ptr<Texture2D> white_texture = Texture2D::Create(1, 1, "GENERATED", "white_texture");
             uint32_t whiteTextureData = 0xffffffff;
             white_texture->set_data(&whiteTextureData, sizeof(uint32_t));
             TextureSlots[0] = white_texture;
 
             //Load a texture
             std::string path = "assets/textures/Bamboo";
-            Ref<Texture2D> loaded_texture = Texture2D::Create("BambooWall_1K_albedo.jpg", path);
+            std::shared_ptr<Texture2D> loaded_texture = Texture2D::Create("BambooWall_1K_albedo.jpg", path);
             TextureSlots[1] = loaded_texture;
 
             NextTextureSlot = 2;
@@ -54,7 +54,7 @@ namespace fightinggame {
             //}
         };
 
-        void add_texture(Ref<Texture2D> texture)
+        void add_texture(std::shared_ptr<Texture2D> texture)
         {
             if (TextureSlots.size() == MaxTextureSlots)
             {
@@ -71,7 +71,7 @@ namespace fightinggame {
         {
             for (uint32_t i = 0; i < MaxTextureSlots; i++)
             {
-                Ref<Texture2D> texture = TextureSlots[i];
+                std::shared_ptr<Texture2D> texture = TextureSlots[i];
                 if (texture == nullptr)
                     continue;
 
@@ -86,7 +86,7 @@ namespace fightinggame {
         void unbind_texture(std::string texture_name) {
             for (uint32_t i = 0; i < MaxTextureSlots; i++)
             {
-                Ref<Texture2D> texture = TextureSlots[i];
+                std::shared_ptr<Texture2D> texture = TextureSlots[i];
                 if (texture == nullptr)
                     continue;
 
@@ -102,7 +102,7 @@ namespace fightinggame {
 
         static const uint32_t MaxTextureSlots = 32;
         uint32_t NextTextureSlot = 0;
-        std::array<Ref<Texture2D>, MaxTextureSlots> TextureSlots;
+        std::array<std::shared_ptr<Texture2D>, MaxTextureSlots> TextureSlots;
     };
 
 }

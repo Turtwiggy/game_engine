@@ -1,10 +1,9 @@
 #pragma once
 
-#include "util/base.h"
-
 #include <cassert>
 #include <string>
 #include <vector>
+#include <memory>
 
 namespace fightinggame {
 
@@ -119,8 +118,8 @@ namespace fightinggame {
 		virtual const buffer_layout& GetLayout() const = 0;
 		virtual void SetLayout(const buffer_layout& layout) = 0;
 
-		static Ref<vertex_buffer> Create(uint32_t size);
-		static Ref<vertex_buffer> Create(float* vertices, uint32_t size);
+		static std::shared_ptr<vertex_buffer> Create(uint32_t size);
+		static std::shared_ptr<vertex_buffer> Create(float* vertices, uint32_t size);
 	};
 
 	// Currently only supports 32-bit index buffers
@@ -134,6 +133,6 @@ namespace fightinggame {
 
 		virtual uint32_t GetCount() const = 0;
 
-		static Ref<index_buffer> Create(uint32_t* indices, uint32_t count);
+		static std::shared_ptr<index_buffer> Create(uint32_t* indices, uint32_t count);
 	};
 }

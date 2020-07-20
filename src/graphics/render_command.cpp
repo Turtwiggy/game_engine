@@ -1,5 +1,5 @@
 #include "graphics/render_command.h"
 
 namespace fightinggame {
-    Scope<renderer_api> RenderCommand::s_RendererAPI = renderer_api::create();
+    std::unique_ptr<renderer_api> RenderCommand::s_RendererAPI = renderer_api::create();
 }
