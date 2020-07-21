@@ -120,14 +120,6 @@ namespace fightinggame {
             state.down_pressed = input_manager.get_key_held(SDL_KeyCode::SDLK_LSHIFT);
         }
 
-        float distance_from_player = 50.0;
-        float angle_around_player = 0.0;
-
-        void follow(float delta_time, std::shared_ptr<FGObject> player)
-        {
-            //float horizontal_distance = player->transform.
-        }
-
         void update(float delta_time)
         {
             float velocity = MovementSpeed * delta_time;

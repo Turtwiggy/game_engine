@@ -83,9 +83,9 @@ void Game::tick(float delta_time_in_seconds, GameState& state, float timer, Inpu
     //printf("ticking state, delta_time: %f \n", delta_time_in_seconds);
 
     std::shared_ptr<FGObject> cube0 = state.cubes[0];
-    cube0->transform.Position.x = glm::sin(timer);
+    cube0->transform.Position.x = 5.0f + glm::sin(timer);
     cube0->transform.Position.y = 0.0f;
-    cube0->transform.Position.z = glm::cos(timer);
+    cube0->transform.Position.z = 5.0f + glm::cos(timer);
 
     const float pi = 3.14;
     const float frequency = 0.3f; // Frequency in Hz
@@ -115,8 +115,9 @@ void Game::tick(float delta_time_in_seconds, GameState& state, float timer, Inpu
     {
         player_cube->transform.Position.x += 1.0f * delta_time_in_seconds;
     }
-    camera.follow(delta_time_in_seconds, player_cube);
 
+    //Camera
+    //------
     camera.process_users_input(input_manager);
     camera.update(delta_time_in_seconds);
 }
@@ -220,10 +221,9 @@ void Game::run()
     ModelManager model_manager;
     printf("ModelManager taking up: %s bytes \n", std::to_string(sizeof(ModelManager)).c_str());
 
-    //Model: Lizard Wizard
-    std::shared_ptr lizard_model = model_manager.load_model("assets/models/lizard_wizard/lizard_wizard.obj", "lizard wizard");
-    //Lizard Object
-    FGObject lizard_object = FGObject(lizard_model);
+    //Model: Cornel Box
+    std::shared_ptr cornel_model = model_manager.load_model("assets/models/cornell_box/CornellBox-Original.obj", "cornell_box");
+    FGObject cornel_box = FGObject(cornel_model);
 
     //Model: Cube
     std::shared_ptr cube_model = model_manager.load_model("assets/models/cube/cube.obj", "cube");
@@ -243,7 +243,7 @@ void Game::run()
 
     //Player Object
     FGObject player_object = FGObject(cube_model);
-    player_object.transform.Position = glm::vec3(-2.0f, 0.5f, -2.0f);
+    player_object.transform.Position = glm::vec3(-5.0f, 0.5f, -5.0f);
 
     std::vector<std::shared_ptr<FGObject>> cubes;
     cubes.push_back(std::make_shared<FGObject>(cube_object));
@@ -255,7 +255,7 @@ void Game::run()
 
     // Procedural terrain
     std::vector<std::shared_ptr<Texture2D>> textures;
-    Terrain terrain = Terrain(0, 0, textures);
+    Terrain terrain = Terrain(-5, -5, textures);
     std::shared_ptr terrain_mesh = terrain.get_mesh();
     FGModel tm = FGModel(terrain_mesh, "Procedural Terrain");
     std::shared_ptr terrain_model = std::make_shared<FGModel>(tm);
@@ -266,7 +266,8 @@ void Game::run()
     GameState state_current = GameState(
         cubes,
         std::make_shared<FGObject>(terrain_object),
-        std::make_shared<FGObject>(player_object)
+        std::make_shared<FGObject>(player_object),
+        std::make_shared<FGObject>(cornel_box)
     );
 
     //ImGui

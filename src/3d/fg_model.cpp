@@ -1,6 +1,7 @@
 #pragma once
 
 #include "3d/fg_model.hpp"
+#include "3d/fg_texture.hpp"
 
 namespace fightinggame {
 
@@ -40,17 +41,27 @@ namespace fightinggame {
         for (unsigned int i = 0; i < mesh->mNumVertices; i++)
         {
             FGVertex vertex;
-            glm::vec3 vector; // we declare a placeholder vector since assimp uses its own vector class that doesn't directly convert to glm's vec3 class so we transfer the data to this placeholder glm::vec3 first.
+            glm::vec3 vector;
+            // we declare a placeholder vector since assimp uses its own vector class that doesn't directly convert to glm's vec3 class so we transfer the data to this placeholder glm::vec3 first.
             // positions
             vector.x = mesh->mVertices[i].x;
             vector.y = mesh->mVertices[i].y;
             vector.z = mesh->mVertices[i].z;
             vertex.Position = vector;
             // normals
-            vector.x = mesh->mNormals[i].x;
-            vector.y = mesh->mNormals[i].y;
-            vector.z = mesh->mNormals[i].z;
-            vertex.Normal = vector;
+
+            if (mesh->HasNormals())
+            {
+                vector.x = mesh->mNormals[i].x;
+                vector.y = mesh->mNormals[i].y;
+                vector.z = mesh->mNormals[i].z;
+                vertex.Normal = vector;
+            }
+            else
+            {
+                printf(" -> %s has no normals. ", mesh->mName.C_Str());
+            }
+
             // texture coordinates
             if (mesh->mTextureCoords[0]) // does the mesh contain texture coordinates?
             {
@@ -104,6 +115,27 @@ namespace fightinggame {
         // 4. height maps
         std::vector<std::shared_ptr<Texture2D>> heightMaps = load_material_textures(material, aiTextureType_AMBIENT, "texture_height");
         textures.insert(textures.end(), heightMaps.begin(), heightMaps.end());
+
+        //calculate normals if no normals and store info in vetex array
+        //if (!mesh->HasNormals())
+        //{
+        //    printf("mesh had no normals - calculating");
+
+        //    //Newell's method
+        //    //https://www.khronos.org/opengl/wiki/Calculating_a_Surface_Normal#:~:text=A%20surface%20normal%20for%20a,of%20the%20face%20w.r.t.%20winding).
+        //    int num_verts = vertices.size();
+        //    for (int i = 0; i < num_verts; i++)
+        //    {
+        //        FGVertex& cur = vertices[i];
+        //        FGVertex& nxt = vertices[(i+1) % num_verts];
+
+        //        //cur.Normal.x += (cur.Position.y - nxt.Position.y) * (cur.Position.z + nxt.Position.z);
+        //        //cur.Normal.y += (cur.Position.z - nxt.Position.z) * (cur.Position.x + nxt.Position.x);
+        //        //cur.Normal.z += (cur.Position.x - nxt.Position.x) * (cur.Position.y + nxt.Position.y);
+
+        //        vertices[i].Normal += glm::cross(cur.Position, nxt.Position);
+        //    }
+        //}
 
         // return a mesh object created from the extracted mesh data
         return FGMesh(vertices, indices, textures, material->GetName().C_Str());

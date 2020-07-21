@@ -30,7 +30,8 @@ namespace fightinggame
         // TODO: RenderCaps
         static const uint32_t MaxModels = 20;
 
-        std::shared_ptr<Shader> diffuse_shader;
+        std::shared_ptr<Shader> lit_directional_shader;
+        std::shared_ptr<Shader> lit_directional_tex_shader;
         std::shared_ptr<Shader> terrain_shader;
 
         Renderer::Statistics stats;
@@ -41,11 +42,12 @@ namespace fightinggame
     {
         //glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);  // uncomment this call to draw in wireframe polygons.
 
-        //Diffuse Shader
-        s_Data.diffuse_shader = std::make_unique<Shader>
+        s_Data.lit_directional_shader = std::make_unique<Shader>
             ("assets/shaders/lit_directional.vert", "assets/shaders/lit_directional.frag");
 
-        ////Lit Object Shader
+        s_Data.lit_directional_tex_shader = std::make_unique<Shader>
+            ("assets/shaders/lit_directional_tex.vert", "assets/shaders/lit_directional_tex.frag");
+
         s_Data.terrain_shader = std::make_unique<Shader>
             ("assets/shaders/terrain.vert", "assets/shaders/terrain.frag");
 
@@ -55,8 +57,8 @@ namespace fightinggame
         glEnable(GL_MULTISAMPLE);
 
         //Enable Faceculling
-        glEnable(GL_CULL_FACE);
-        glDepthFunc(GL_LESS);
+        //glEnable(GL_CULL_FACE);
+        //glDepthFunc(GL_LESS);
 
         glEnable(GL_BLEND);
         glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
@@ -96,25 +98,22 @@ namespace fightinggame
         window.GetSize(width, height);
         glm::mat4 view_projection = desc.camera.get_view_projection_matrix(width, height);
 
-        //Texture Manager
-        auto& tm = TextureManager::instance();
-
         //Light
         glm::vec3 light_position(3.f, 3.f, 3.f);
         glm::vec3 light_colour(1.0f, 1.f, 1.f);
 
         //Shader: Lit Directional
-        s_Data.diffuse_shader->use();
-        s_Data.diffuse_shader->setMat4("view_projection", view_projection);
+        s_Data.lit_directional_shader->use();
+        s_Data.lit_directional_shader->setMat4("view_projection", view_projection);
         //cube's material properties
-        s_Data.diffuse_shader->setVec3("material.specular", glm::vec3(0.5f, 0.5f, 0.5f));
-        s_Data.diffuse_shader->setFloat("material.shininess", 32.0f);
+        s_Data.lit_directional_shader->setVec3("material.specular", glm::vec3(0.5f, 0.5f, 0.5f));
+        s_Data.lit_directional_shader->setFloat("material.shininess", 32.0f);
         //flat lighting
         glm::vec3 light_direction = glm::vec3(-0.2, -1.0, -0.3);
-        s_Data.diffuse_shader->setVec3("light.direction", light_direction);
-        s_Data.diffuse_shader->setVec3("light.ambient", glm::vec3(0.2, 0.2, 0.2));
-        s_Data.diffuse_shader->setVec3("light.diffuse", glm::vec3(0.5, 0.5, 0.5)); // darken diffuse light a bit
-        s_Data.diffuse_shader->setVec3("light.specular", glm::vec3(1.0, 1.0, 1.0));
+        s_Data.lit_directional_shader->setVec3("light.direction", light_direction);
+        s_Data.lit_directional_shader->setVec3("light.ambient", glm::vec3(0.2, 0.2, 0.2));
+        s_Data.lit_directional_shader->setVec3("light.diffuse", glm::vec3(0.5, 0.5, 0.5)); // darken diffuse light a bit
+        s_Data.lit_directional_shader->setVec3("light.specular", glm::vec3(1.0, 1.0, 1.0));
 
         //Light Object
         glm::mat4 model2 = glm::mat4(1.0f);
@@ -123,13 +122,12 @@ namespace fightinggame
 
         glm::vec3 ambient_colour_1 = glm::vec3(1.0, 1.0, 1.0);
         glm::vec3 diffuse_colour_1 = ambient_colour_1 * 0.2f;
-        s_Data.diffuse_shader->setVec3("material.diffuse", ambient_colour_1);
-        s_Data.diffuse_shader->setVec3("material.ambient", diffuse_colour_1);
-        s_Data.diffuse_shader->setMat4("model", model2);
-        state.cubes[0]->model->draw(*s_Data.diffuse_shader, s_Data.stats.DrawCalls);
+        s_Data.lit_directional_shader->setVec3("material.diffuse", ambient_colour_1);
+        s_Data.lit_directional_shader->setVec3("material.ambient", diffuse_colour_1);
+        s_Data.lit_directional_shader->setMat4("model", model2);
+        state.cubes[0]->model->draw(*s_Data.lit_directional_shader, s_Data.stats.DrawCalls);
 
         //Draw lit cubes
-        tm.bind_texture("GENERATED/white_texture");
         for (int i = 0; i < state.cubes.size(); i++)
         {
             std::shared_ptr<FGObject> cube = state.cubes[i];
@@ -139,12 +137,11 @@ namespace fightinggame
             model = glm::scale(model, cube->transform.Scale);
             glm::vec3 ambient_colour_2 = glm::vec3(1.0, 0.0, 0.0);
             glm::vec3 diffuse_colour_2 = ambient_colour_2 * 0.2f;
-            s_Data.diffuse_shader->setVec3("material.diffuse", ambient_colour_2);
-            s_Data.diffuse_shader->setVec3("material.ambient", diffuse_colour_2);
-            s_Data.diffuse_shader->setMat4("model", model);
-            cube->model->draw(*s_Data.diffuse_shader, s_Data.stats.DrawCalls);
+            s_Data.lit_directional_shader->setVec3("material.diffuse", ambient_colour_2);
+            s_Data.lit_directional_shader->setVec3("material.ambient", diffuse_colour_2);
+            s_Data.lit_directional_shader->setMat4("model", model);
+            cube->model->draw(*s_Data.lit_directional_shader, s_Data.stats.DrawCalls);
         }
-        tm.unbind_texture("GENERATED/white_texture");
 
         //Terrain
         {
@@ -153,10 +150,10 @@ namespace fightinggame
             model4 = glm::scale(model4, state.terrain->transform.Scale);
             glm::vec3 ambient_colour_3 = glm::vec3(0.3, 0.3, 0.3);
             glm::vec3 diffuse_colour_3 = ambient_colour_3 * 0.2f;
-            s_Data.diffuse_shader->setVec3("material.diffuse", ambient_colour_3);
-            s_Data.diffuse_shader->setVec3("material.ambient", diffuse_colour_3);
-            s_Data.diffuse_shader->setMat4("model", model4);
-            state.terrain->model->draw(*s_Data.diffuse_shader, s_Data.stats.DrawCalls);
+            s_Data.lit_directional_shader->setVec3("material.diffuse", ambient_colour_3);
+            s_Data.lit_directional_shader->setVec3("material.ambient", diffuse_colour_3);
+            s_Data.lit_directional_shader->setMat4("model", model4);
+            //state.terrain->model->draw(*s_Data.lit_directional_shader, s_Data.stats.DrawCalls);
         }
 
         //Player Object
@@ -168,19 +165,36 @@ namespace fightinggame
             render_info = glm::scale(render_info, state.player->transform.Scale);
             glm::vec3 ambient_colour = glm::vec3(0.3, 1.0, 1.0);
             glm::vec3 diffuse_colour = ambient_colour * 0.2f;
-            s_Data.diffuse_shader->setVec3("material.diffuse", ambient_colour);
-            s_Data.diffuse_shader->setVec3("material.ambient", diffuse_colour);
-            s_Data.diffuse_shader->setMat4("model", render_info);
-            player->model->draw(*s_Data.diffuse_shader, s_Data.stats.DrawCalls);
+            s_Data.lit_directional_shader->setVec3("material.diffuse", ambient_colour);
+            s_Data.lit_directional_shader->setVec3("material.ambient", diffuse_colour);
+            s_Data.lit_directional_shader->setMat4("model", render_info);
+            player->model->draw(*s_Data.lit_directional_shader, s_Data.stats.DrawCalls);
         }
 
-        //Lizard Model
-        //glm::mat4 model = glm::mat4(1.0f);
-        //model = glm::translate(model, lizard.Position);
-        //model = glm::scale(model, glm::vec3(1.0f, 1.0f, 1.0f));
-        //s_Data.diffuse_shader->setMat4("model", model);
-        //FGModel& lizard_model = lizard.model;
-        //lizard_model.Draw(*s_Data.diffuse_shader, s_Data.stats.DrawCalls);
+        //Cornell
+        {
+            s_Data.lit_directional_tex_shader->use();
+
+            s_Data.lit_directional_tex_shader->setMat4("view_projection", view_projection);
+            //cube's material properties
+            s_Data.lit_directional_tex_shader->setVec3("material.specular", glm::vec3(0.5f, 0.5f, 0.5f));
+            s_Data.lit_directional_tex_shader->setFloat("material.shininess", 32.0f);
+            //flat lighting
+            glm::vec3 light_direction = glm::vec3(-0.2, -1.0, -0.3);
+            s_Data.lit_directional_tex_shader->setVec3("light.direction", light_direction);
+            s_Data.lit_directional_tex_shader->setVec3("light.ambient", glm::vec3(0.2, 0.2, 0.2));
+            s_Data.lit_directional_tex_shader->setVec3("light.diffuse", glm::vec3(0.5, 0.5, 0.5)); // darken diffuse light a bit
+            s_Data.lit_directional_tex_shader->setVec3("light.specular", glm::vec3(1.0, 1.0, 1.0));
+
+            //Positioning
+            std::shared_ptr<FGObject> object = state.cornel_box;
+            glm::mat4 model = glm::mat4(1.0f);
+            model = glm::translate(model, glm::vec3(0.0f, 0.0f, 0.0f));
+            model = glm::scale(model, glm::vec3(1.0f, 1.0f, 1.0f));
+            s_Data.lit_directional_tex_shader->setMat4("model", model);
+            object->model->draw(*s_Data.lit_directional_tex_shader, s_Data.stats.DrawCalls);
+        }
+
 
         ImGui::Begin("Renderer Profiler");
         ImGui::Text("Draw Calls: %i", s_Data.stats.DrawCalls);
@@ -290,10 +304,10 @@ namespace fightinggame
         SDL_GL_SetAttribute(SDL_GL_CONTEXT_MINOR_VERSION, 3);
 #elif _WIN32
         // GL 3.0 + GLSL 130
-        glsl_version = "#version 130";
+        glsl_version = "#version 100";
         SDL_GL_SetAttribute(SDL_GL_CONTEXT_FLAGS, 0);
-        SDL_GL_SetAttribute(SDL_GL_CONTEXT_MAJOR_VERSION, 3);
-        SDL_GL_SetAttribute(SDL_GL_CONTEXT_MINOR_VERSION, 2);
+        SDL_GL_SetAttribute(SDL_GL_CONTEXT_MAJOR_VERSION, 2);
+        SDL_GL_SetAttribute(SDL_GL_CONTEXT_MINOR_VERSION, 0);
 #endif
 
         // setup platform/renderer bindings

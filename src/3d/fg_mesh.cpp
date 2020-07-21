@@ -17,11 +17,11 @@ namespace fightinggame {
         , textures(textures)
         , name(name)
     {
-        setupMesh();
+        setup_mesh();
     }
 
     // initializes all the buffer objects/arrays
-    void FGMesh::setupMesh()
+    void FGMesh::setup_mesh()
     {
         // create buffers/arrays
         glGenVertexArrays(1, &VAO);
@@ -84,7 +84,9 @@ namespace fightinggame {
             // now set the sampler to the correct texture unit
             const char* tex_name = (name + number).c_str();
             shader.setInt(tex_name, i);
+
             // and finally bind the texture
+            //printf("binding: %s", tex_name);
             textures[i]->bind(i);
         }
 

@@ -82,7 +82,8 @@ project "FightingGameMain"
     defines
     {
         "_CRT_SECURE_NO_WARNINGS",
-        "IMGUI_IMPL_OPENGL_LOADER_GLEW"
+        "IMGUI_IMPL_OPENGL_LOADER_GLEW",
+        --"IMGUI_IMPL_OPENGL_ES2"
     }
 
     filter "system:windows"
@@ -96,6 +97,8 @@ project "FightingGameMain"
             --"psapi", 
             "opengl32", 
             --"winmm",
+            --"libEGL",
+            --"libGLESv2"
         }
 
         defines

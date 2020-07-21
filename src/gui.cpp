@@ -118,6 +118,10 @@ namespace fightinggame {
         if (true) //move to config variable
             ShowProfilerWindow(game, profiler);
 
+        ImGui::Begin("Render Settings");
+        ImGui::Text("FPS: ");
+        ImGui::End();
+
         ImGui::Render();
 
         return false;

@@ -32,7 +32,7 @@ namespace fightinggame {
         );
 
         void draw(Shader& shader);
-        void setupMesh();
+        void setup_mesh();
 
     private:
         //  render data
