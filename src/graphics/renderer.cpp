@@ -2,7 +2,6 @@
 
 #include "data/shapes.h"
 #include "graphics/render_command.h"
-#include "graphics/texture_manager.h"
 #include "window/game_window.h"
 
 #include <GL/glew.h>
@@ -43,7 +42,7 @@ namespace fightinggame
         //glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);  // uncomment this call to draw in wireframe polygons.
 
         s_Data.lit_directional_shader = std::make_unique<Shader>
-            ("assets/shaders/lit_directional.vert", "assets/shaders/lit_directional.frag");
+            ("assets/shaders/lit_directional_tex.vert", "assets/shaders/lit_directional_tex.frag");
 
         s_Data.lit_directional_tex_shader = std::make_unique<Shader>
             ("assets/shaders/lit_directional_tex.vert", "assets/shaders/lit_directional_tex.frag");
@@ -122,8 +121,8 @@ namespace fightinggame
 
         glm::vec3 ambient_colour_1 = glm::vec3(1.0, 1.0, 1.0);
         glm::vec3 diffuse_colour_1 = ambient_colour_1 * 0.2f;
-        s_Data.lit_directional_shader->setVec3("material.diffuse", ambient_colour_1);
-        s_Data.lit_directional_shader->setVec3("material.ambient", diffuse_colour_1);
+        //s_Data.lit_directional_shader->setVec3("material.diffuse", ambient_colour_1);
+        //s_Data.lit_directional_shader->setVec3("material.ambient", diffuse_colour_1);
         s_Data.lit_directional_shader->setMat4("model", model2);
         state.cubes[0]->model->draw(*s_Data.lit_directional_shader, s_Data.stats.DrawCalls);
 
@@ -143,56 +142,54 @@ namespace fightinggame
             cube->model->draw(*s_Data.lit_directional_shader, s_Data.stats.DrawCalls);
         }
 
-        //Terrain
-        {
-            glm::mat4 model4 = glm::mat4(1.0f);
-            model4 = glm::translate(model4, state.terrain->transform.Position);
-            model4 = glm::scale(model4, state.terrain->transform.Scale);
-            glm::vec3 ambient_colour_3 = glm::vec3(0.3, 0.3, 0.3);
-            glm::vec3 diffuse_colour_3 = ambient_colour_3 * 0.2f;
-            s_Data.lit_directional_shader->setVec3("material.diffuse", ambient_colour_3);
-            s_Data.lit_directional_shader->setVec3("material.ambient", diffuse_colour_3);
-            s_Data.lit_directional_shader->setMat4("model", model4);
-            //state.terrain->model->draw(*s_Data.lit_directional_shader, s_Data.stats.DrawCalls);
-        }
+        ////Terrain
+        //{
+        //    glm::mat4 model4 = glm::mat4(1.0f);
+        //    model4 = glm::translate(model4, state.terrain->transform.Position);
+        //    model4 = glm::scale(model4, state.terrain->transform.Scale);
+        //    glm::vec3 ambient_colour_3 = glm::vec3(0.3, 0.3, 0.3);
+        //    glm::vec3 diffuse_colour_3 = ambient_colour_3 * 0.2f;
+        //    s_Data.lit_directional_shader->setVec3("material.diffuse", ambient_colour_3);
+        //    s_Data.lit_directional_shader->setVec3("material.ambient", diffuse_colour_3);
+        //    s_Data.lit_directional_shader->setMat4("model", model4);
+        //    //state.terrain->model->draw(*s_Data.lit_directional_shader, s_Data.stats.DrawCalls);
+        //}
 
-        //Player Object
-        {
-            std::shared_ptr<FGObject> player = state.player;
-
-            glm::mat4 render_info = glm::mat4(1.0f);
-            render_info = glm::translate(render_info, state.player->transform.Position);
-            render_info = glm::scale(render_info, state.player->transform.Scale);
-            glm::vec3 ambient_colour = glm::vec3(0.3, 1.0, 1.0);
-            glm::vec3 diffuse_colour = ambient_colour * 0.2f;
-            s_Data.lit_directional_shader->setVec3("material.diffuse", ambient_colour);
-            s_Data.lit_directional_shader->setVec3("material.ambient", diffuse_colour);
-            s_Data.lit_directional_shader->setMat4("model", render_info);
-            player->model->draw(*s_Data.lit_directional_shader, s_Data.stats.DrawCalls);
-        }
+        ////Player Object
+        //{
+        //    std::shared_ptr<FGObject> player = state.player;
+        //    glm::mat4 render_info = glm::mat4(1.0f);
+        //    render_info = glm::translate(render_info, state.player->transform.Position);
+        //    render_info = glm::scale(render_info, state.player->transform.Scale);
+        //    glm::vec3 ambient_colour = glm::vec3(0.3, 1.0, 1.0);
+        //    glm::vec3 diffuse_colour = ambient_colour * 0.2f;
+        //    s_Data.lit_directional_shader->setVec3("material.diffuse", ambient_colour);
+        //    s_Data.lit_directional_shader->setVec3("material.ambient", diffuse_colour);
+        //    s_Data.lit_directional_shader->setMat4("model", render_info);
+        //    player->model->draw(*s_Data.lit_directional_shader, s_Data.stats.DrawCalls);
+        //}
 
         //Cornell
         {
-            s_Data.lit_directional_tex_shader->use();
-
-            s_Data.lit_directional_tex_shader->setMat4("view_projection", view_projection);
-            //cube's material properties
-            s_Data.lit_directional_tex_shader->setVec3("material.specular", glm::vec3(0.5f, 0.5f, 0.5f));
-            s_Data.lit_directional_tex_shader->setFloat("material.shininess", 32.0f);
-            //flat lighting
-            glm::vec3 light_direction = glm::vec3(-0.2, -1.0, -0.3);
-            s_Data.lit_directional_tex_shader->setVec3("light.direction", light_direction);
-            s_Data.lit_directional_tex_shader->setVec3("light.ambient", glm::vec3(0.2, 0.2, 0.2));
-            s_Data.lit_directional_tex_shader->setVec3("light.diffuse", glm::vec3(0.5, 0.5, 0.5)); // darken diffuse light a bit
-            s_Data.lit_directional_tex_shader->setVec3("light.specular", glm::vec3(1.0, 1.0, 1.0));
+            //s_Data.lit_directional_tex_shader->use();
+            //s_Data.lit_directional_tex_shader->setMat4("view_projection", view_projection);
+            ////cube's material properties
+            //s_Data.lit_directional_tex_shader->setVec3("material.specular", glm::vec3(0.5f, 0.5f, 0.5f));
+            //s_Data.lit_directional_tex_shader->setFloat("material.shininess", 32.0f);
+            ////flat lighting
+            //glm::vec3 light_direction = glm::vec3(-0.2, -1.0, -0.3);
+            //s_Data.lit_directional_tex_shader->setVec3("light.direction", light_direction);
+            //s_Data.lit_directional_tex_shader->setVec3("light.ambient", glm::vec3(0.2, 0.2, 0.2));
+            //s_Data.lit_directional_tex_shader->setVec3("light.diffuse", glm::vec3(0.5, 0.5, 0.5)); // darken diffuse light a bit
+            //s_Data.lit_directional_tex_shader->setVec3("light.specular", glm::vec3(1.0, 1.0, 1.0));
 
             //Positioning
             std::shared_ptr<FGObject> object = state.cornel_box;
             glm::mat4 model = glm::mat4(1.0f);
             model = glm::translate(model, glm::vec3(0.0f, 0.0f, 0.0f));
             model = glm::scale(model, glm::vec3(1.0f, 1.0f, 1.0f));
-            s_Data.lit_directional_tex_shader->setMat4("model", model);
-            object->model->draw(*s_Data.lit_directional_tex_shader, s_Data.stats.DrawCalls);
+            s_Data.lit_directional_shader->setMat4("model", model);
+            object->model->draw(*s_Data.lit_directional_shader, s_Data.stats.DrawCalls);
         }
 
 

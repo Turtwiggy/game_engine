@@ -35,7 +35,7 @@ namespace fightinggame {
         // data to fill
         std::vector<FGVertex> vertices;
         std::vector<unsigned int> indices;
-        std::vector<std::shared_ptr<Texture2D>> textures;
+        std::vector<Texture2D> textures;
 
         // walk through each of the mesh's vertices
         for (unsigned int i = 0; i < mesh->mNumVertices; i++)
@@ -59,7 +59,7 @@ namespace fightinggame {
             }
             else
             {
-                printf(" -> %s has no normals. ", mesh->mName.C_Str());
+                printf(" -> %s has no normals. \n", mesh->mName.C_Str());
             }
 
             // texture coordinates
@@ -74,18 +74,28 @@ namespace fightinggame {
             }
             else
                 vertex.TexCoords = glm::vec2(0.0f, 0.0f);
-            //// tangent
-            //vector.x = mesh->mTangents[i].x;
-            //vector.y = mesh->mTangents[i].y;
-            //vector.z = mesh->mTangents[i].z;
-            //vertex.Tangent = vector;
-            //// bitangent
-            //vector.x = mesh->mBitangents[i].x;
-            //vector.y = mesh->mBitangents[i].y;
-            //vector.z = mesh->mBitangents[i].z;
-            //vertex.Bitangent = vector;
+
+            if (mesh->HasTangentsAndBitangents())
+            {
+                // tangent
+                vector.x = mesh->mTangents[i].x;
+                vector.y = mesh->mTangents[i].y;
+                vector.z = mesh->mTangents[i].z;
+                vertex.Tangent = vector;
+                // bitangent
+                vector.x = mesh->mBitangents[i].x;
+                vector.y = mesh->mBitangents[i].y;
+                vector.z = mesh->mBitangents[i].z;
+                vertex.Bitangent = vector;
+            }
+            else
+            {
+                printf("-> %s has no tangent and bittangents. \n", mesh->mName.C_Str());
+            }
+
             vertices.push_back(vertex);
         }
+
         // now wak through each of the mesh's faces (a face is a mesh its triangle) and retrieve the corresponding vertex indices.
         for (unsigned int i = 0; i < mesh->mNumFaces; i++)
         {
@@ -104,23 +114,22 @@ namespace fightinggame {
         // normal: texture_normalN
 
         // 1. diffuse maps
-        std::vector<std::shared_ptr<Texture2D>> diffuseMaps = load_material_textures(material, aiTextureType_DIFFUSE, "texture_diffuse");
+        std::vector<Texture2D> diffuseMaps = load_material_textures(material, aiTextureType_DIFFUSE, "texture_diffuse");
         textures.insert(textures.end(), diffuseMaps.begin(), diffuseMaps.end());
         // 2. specular maps
-        std::vector<std::shared_ptr<Texture2D>> specularMaps = load_material_textures(material, aiTextureType_SPECULAR, "texture_specular");
+        std::vector<Texture2D> specularMaps = load_material_textures(material, aiTextureType_SPECULAR, "texture_specular");
         textures.insert(textures.end(), specularMaps.begin(), specularMaps.end());
         // 3. normal maps
-        std::vector<std::shared_ptr<Texture2D>> normalMaps = load_material_textures(material, aiTextureType_HEIGHT, "texture_normal");
+        std::vector<Texture2D> normalMaps = load_material_textures(material, aiTextureType_HEIGHT, "texture_normal");
         textures.insert(textures.end(), normalMaps.begin(), normalMaps.end());
         // 4. height maps
-        std::vector<std::shared_ptr<Texture2D>> heightMaps = load_material_textures(material, aiTextureType_AMBIENT, "texture_height");
+        std::vector<Texture2D> heightMaps = load_material_textures(material, aiTextureType_AMBIENT, "texture_height");
         textures.insert(textures.end(), heightMaps.begin(), heightMaps.end());
 
         //calculate normals if no normals and store info in vetex array
         //if (!mesh->HasNormals())
         //{
         //    printf("mesh had no normals - calculating");
-
         //    //Newell's method
         //    //https://www.khronos.org/opengl/wiki/Calculating_a_Surface_Normal#:~:text=A%20surface%20normal%20for%20a,of%20the%20face%20w.r.t.%20winding).
         //    int num_verts = vertices.size();
@@ -128,11 +137,9 @@ namespace fightinggame {
         //    {
         //        FGVertex& cur = vertices[i];
         //        FGVertex& nxt = vertices[(i+1) % num_verts];
-
         //        //cur.Normal.x += (cur.Position.y - nxt.Position.y) * (cur.Position.z + nxt.Position.z);
         //        //cur.Normal.y += (cur.Position.z - nxt.Position.z) * (cur.Position.x + nxt.Position.x);
         //        //cur.Normal.z += (cur.Position.x - nxt.Position.x) * (cur.Position.y + nxt.Position.y);
-
         //        vertices[i].Normal += glm::cross(cur.Position, nxt.Position);
         //    }
         //}
@@ -142,39 +149,34 @@ namespace fightinggame {
     }
 
     // checks all material textures of a given type and loads the textures if they're not loaded yet. the required info is returned as a Texture struct.
-    std::vector<std::shared_ptr<Texture2D>> FGModel::load_material_textures(aiMaterial* mat, aiTextureType type, std::string typeName)
+    std::vector<Texture2D> FGModel::load_material_textures(aiMaterial* mat, aiTextureType type, std::string typeName)
     {
-        std::vector<std::shared_ptr<Texture2D>> textures;
-
+        std::vector<Texture2D> textures;
         for (unsigned int i = 0; i < mat->GetTextureCount(type); i++)
         {
             aiString str;
             mat->GetTexture(type, i, &str);
-
-            //check if texture has been loaded
+            // check if texture was loaded before and if so, continue to next iteration: skip loading a new texture
             bool skip = false;
-            for (auto tex_idx = 0; tex_idx < textures_loaded.size(); tex_idx++)
+            for (unsigned int j = 0; j < textures_loaded.size(); j++)
             {
-                std::shared_ptr<Texture2D> tex = textures_loaded[tex_idx];
-                if (std::strcmp(tex->get_path().data(), str.C_Str()) == 0)
+                if (std::strcmp(textures_loaded[j].path.data(), str.C_Str()) == 0)
                 {
-                    textures.push_back(tex);
-                    skip = true;
+                    textures.push_back(textures_loaded[j]);
+                    skip = true; // a texture with the same filepath has already been loaded, continue to next one. (optimization)
                     break;
                 }
             }
-
-            //texture has not been loaded
             if (!skip)
-            {
-                std::shared_ptr<Texture2D> tex = Texture2D::Create(str.C_Str(), this->directory);
-                tex->set_type(typeName);
-
-                textures.push_back(tex);
-                textures_loaded.push_back(tex);
+            {   // if texture hasn't been loaded already, load it
+                Texture2D texture;
+                texture.id = TextureFromFile(str.C_Str(), this->directory);
+                texture.type = typeName;
+                texture.path = str.C_Str();
+                textures.push_back(texture);
+                textures_loaded.push_back(texture);  // store it as texture loaded for entire model, to ensure we won't unnecesery load duplicate textures.
             }
         }
-
         return textures;
     }
 }

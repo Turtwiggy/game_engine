@@ -254,7 +254,7 @@ void Game::run()
     cubes.push_back(std::make_shared<FGObject>(cube_object6));
 
     // Procedural terrain
-    std::vector<std::shared_ptr<Texture2D>> textures;
+    std::vector<Texture2D> textures;
     Terrain terrain = Terrain(-5, -5, textures);
     std::shared_ptr terrain_mesh = terrain.get_mesh();
     FGModel tm = FGModel(terrain_mesh, "Procedural Terrain");

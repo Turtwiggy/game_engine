@@ -1,7 +1,10 @@
 
 #include "3d/fg_mesh.hpp"
 
-#include "graphics/texture.h"
+#include "glm/glm.hpp"
+#include <assimp/Importer.hpp>
+#include <assimp/scene.h>
+#include <assimp/postprocess.h>
 
 namespace fightinggame {
 
@@ -10,7 +13,7 @@ namespace fightinggame {
     FGMesh::FGMesh(
         std::vector<FGVertex> vertices,
         std::vector<unsigned int> indices,
-        std::vector<std::shared_ptr<Texture2D>> textures,
+        std::vector<Texture2D> textures,
         std::string name)
         : vertices(vertices)
         , indices(indices)
@@ -50,16 +53,16 @@ namespace fightinggame {
         glVertexAttribPointer(2, 2, GL_FLOAT, GL_FALSE, sizeof(FGVertex), (void*)offsetof(FGVertex, TexCoords));
         //// vertex tangent
         //glEnableVertexAttribArray(3);
-        //glVertexAttribPointer(3, 3, GL_FLOAT, GL_FALSE, sizeof(Vertex), (void*)offsetof(FGVertex, Tangent));
+        //glVertexAttribPointer(3, 3, GL_FLOAT, GL_FALSE, sizeof(FGVertex), (void*)offsetof(FGVertex, Tangent));
         //// vertex bitangent
         //glEnableVertexAttribArray(4);
-        //glVertexAttribPointer(4, 3, GL_FLOAT, GL_FALSE, sizeof(Vertex), (void*)offsetof(FGVertex, Bitangent));
+        //glVertexAttribPointer(4, 3, GL_FLOAT, GL_FALSE, sizeof(FGVertex), (void*)offsetof(FGVertex, Bitangent));
 
         glBindVertexArray(0);
     }
 
     // render the mesh
-    void FGMesh::draw(Shader& shader/*, texture2D& texture*/)
+    void FGMesh::draw(Shader& shader)
     {
         // bind appropriate textures
         unsigned int diffuseNr = 1;
@@ -71,7 +74,7 @@ namespace fightinggame {
             glActiveTexture(GL_TEXTURE0 + i); // active proper texture unit before binding
             // retrieve texture number (the N in diffuse_textureN)
             std::string number;
-            std::string name = textures[i]->get_type();
+            std::string name = textures[i].type;
             if (name == "texture_diffuse")
                 number = std::to_string(diffuseNr++);
             else if (name == "texture_specular")
@@ -84,10 +87,8 @@ namespace fightinggame {
             // now set the sampler to the correct texture unit
             const char* tex_name = (name + number).c_str();
             shader.setInt(tex_name, i);
-
             // and finally bind the texture
-            //printf("binding: %s", tex_name);
-            textures[i]->bind(i);
+            glBindTexture(GL_TEXTURE_2D, textures[i].id);
         }
 
         // draw mesh

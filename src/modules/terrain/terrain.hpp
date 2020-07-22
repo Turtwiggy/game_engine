@@ -1,7 +1,6 @@
 #pragma once
 
-#include "graphics/texture.h"
-#include "graphics/opengl/opengl_texture.h"
+#include "3d/fg_texture.hpp"
 #include "3d/fg_mesh.hpp"
 #include "3d/fg_model.hpp"
 
@@ -18,7 +17,7 @@ namespace fightinggame {
         const float SIZE = 5.0;
         const int VERTEX_COUNT = 16;
 
-        std::vector<std::shared_ptr<Texture2D>> textures;
+        std::vector<Texture2D> textures;
         std::shared_ptr<FGMesh> mesh;
 
         float x;
@@ -26,7 +25,7 @@ namespace fightinggame {
 
     public:
 
-        Terrain(int grid_x, int grid_z, std::vector<std::shared_ptr<Texture2D>> textures)
+        Terrain(int grid_x, int grid_z, std::vector<Texture2D> textures)
             : x(grid_x * SIZE)
             , z(grid_z * SIZE)
             , textures(textures)
