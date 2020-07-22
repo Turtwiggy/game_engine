@@ -104,6 +104,7 @@ namespace fightinggame {
             for (unsigned int j = 0; j < face.mNumIndices; j++)
                 indices.push_back(face.mIndices[j]);
         }
+
         // process materials
         aiMaterial* material = scene->mMaterials[mesh->mMaterialIndex];
         // we assume a convention for sampler names in the shaders. Each diffuse texture should be named
@@ -126,6 +127,14 @@ namespace fightinggame {
         std::vector<Texture2D> heightMaps = load_material_textures(material, aiTextureType_AMBIENT, "texture_height");
         textures.insert(textures.end(), heightMaps.begin(), heightMaps.end());
 
+
+        //Give each mesh its colour
+        aiColor3D mat_colour(1.f, 1.f, 1.f);
+        material->Get(AI_MATKEY_COLOR_DIFFUSE, mat_colour);
+
+        FGColour color;
+        color.colour = glm::vec4(mat_colour.r, mat_colour.g, mat_colour.b, 1.0f);
+
         //calculate normals if no normals and store info in vetex array
         //if (!mesh->HasNormals())
         //{
@@ -145,7 +154,7 @@ namespace fightinggame {
         //}
 
         // return a mesh object created from the extracted mesh data
-        return FGMesh(vertices, indices, textures, material->GetName().C_Str());
+        return FGMesh(vertices, indices, textures, color, material->GetName().C_Str());
     }
 
     // checks all material textures of a given type and loads the textures if they're not loaded yet. the required info is returned as a Texture struct.

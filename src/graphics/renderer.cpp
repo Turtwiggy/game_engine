@@ -192,7 +192,6 @@ namespace fightinggame
             object->model->draw(*s_Data.lit_directional_shader, s_Data.stats.DrawCalls);
         }
 
-
         ImGui::Begin("Renderer Profiler");
         ImGui::Text("Draw Calls: %i", s_Data.stats.DrawCalls);
         ImGui::End();

@@ -92,7 +92,10 @@ namespace fightinggame {
                 }
             }
 
-            return FGMesh(verts, indices, textures, "Generated Terrain");
+            FGColour color;
+            color.colour = glm::vec4(0.3f, 1.0f, 0.3f, 1.0f);
+
+            return FGMesh(verts, indices, textures, color, "Generated Terrain");
         }
 
 

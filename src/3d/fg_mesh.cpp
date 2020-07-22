@@ -14,10 +14,12 @@ namespace fightinggame {
         std::vector<FGVertex> vertices,
         std::vector<unsigned int> indices,
         std::vector<Texture2D> textures,
+        FGColour colour,
         std::string name)
         : vertices(vertices)
         , indices(indices)
         , textures(textures)
+        , colour(colour)
         , name(name)
     {
         setup_mesh();
@@ -90,6 +92,8 @@ namespace fightinggame {
             // and finally bind the texture
             glBindTexture(GL_TEXTURE_2D, textures[i].id);
         }
+
+        shader.setVec4("material.colour", this->colour.colour);
 
         // draw mesh
         glBindVertexArray(VAO);

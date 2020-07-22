@@ -1,6 +1,7 @@
 #pragma once
 
 #include <3d/fg_mesh.hpp>
+#include <3d/fg_colour.hpp>
 
 #include <stb_image.h>
 #include <assimp/Importer.hpp>
@@ -11,6 +12,7 @@
 #include <vector>
 
 namespace fightinggame {
+
 
     class FGModel
     {
