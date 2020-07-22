@@ -51,7 +51,9 @@ namespace fightinggame
             Renderer& r,
             Camera& c,
             Gui& g,
-            GameWindow& window
+            GameWindow& window,
+            bool hdr,
+            float exposure
         );
         void shutdown(Renderer& r, GameWindow& w);
 
@@ -74,6 +76,19 @@ namespace fightinggame
         unsigned int start = 0;
         unsigned int prev = 0;
         unsigned int now = 0;
+
+        //rendering things
+
+        //hdr
+        bool hdr = true;
+        float exposure = 1.0f;
+
+        bool bloom;
+        bool pbr;
+        bool pbr_ssao;
+        bool pbr_gi;
+        bool raytracing;
+        bool shadows;
 
         //physics
         //physics_simulation _physics;

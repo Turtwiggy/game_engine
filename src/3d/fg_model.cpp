@@ -90,7 +90,7 @@ namespace fightinggame {
             }
             else
             {
-                printf("-> %s has no tangent and bittangents. \n", mesh->mName.C_Str());
+                //printf("-> %s has no tangent and bittangents. \n", mesh->mName.C_Str());
             }
 
             vertices.push_back(vertex);

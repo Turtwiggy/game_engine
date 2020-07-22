@@ -134,7 +134,9 @@ void Game::render(
     Renderer& rend,
     Camera& camera,
     Gui& gui,
-    GameWindow& window )
+    GameWindow& window,
+    bool hdr,
+    float exposure )
 {
     //Begin Frame
     {
@@ -150,7 +152,9 @@ void Game::render(
         fightinggame::draw_scene_desc drawDesc
         (
             camera,
-            window
+            window,
+            hdr,
+            exposure
         );
         drawDesc.view_id = graphics::render_pass::Main;
 
@@ -209,7 +213,7 @@ void Game::run()
     Renderer rend;
     printf("renderer taking up: %s bytes \n", std::to_string(sizeof(Renderer)).c_str());
     rend.init_opengl_and_imgui(window); //do not use opengl before this point
-    rend.init_renderer();
+    rend.init_renderer(m_width, m_height);
 
     //Input Manager
     InputManager input_manager;
@@ -322,6 +326,30 @@ void Game::run()
             //printf("\nlmb held");
         }
 
+        if (input_manager.get_key_down(SDL_KeyCode::SDLK_h))
+        {
+            hdr = true;
+        }
+        if (input_manager.get_key_up(SDL_KeyCode::SDLK_h))
+        {
+            hdr = false;
+        }
+
+        if (input_manager.get_key_held(SDL_KeyCode::SDLK_e))
+        {
+            exposure += 0.001f;
+
+            if (exposure > 1.0f)
+                exposure = 1.0f;
+        }
+        if (input_manager.get_key_held(SDL_KeyCode::SDLK_q))
+        {
+            exposure -= 0.001f;
+
+            if (exposure < 0.0f)
+                exposure = 0.0f;
+        }
+
         profile.End(Profiler::Stage::SdlInput);
 
         // Delta Time
@@ -351,7 +379,7 @@ void Game::run()
 
         // Rendering
         // ---------
-        render(profile, state_current, rend, cam, gui, window);
+        render(profile, state_current, rend, cam, gui, window, hdr, exposure);
 
         // FPS Profiling
         // -------------

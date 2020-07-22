@@ -26,9 +26,14 @@ namespace fightinggame {
         GameWindow& window;
         Camera& camera;
 
-        draw_scene_desc(Camera& c, GameWindow& w)
+        bool hdr = true;
+        float exposure = 1.0f;
+
+        draw_scene_desc(Camera& c, GameWindow& w, bool hdr, float exposure)
             : camera(c)
             , window(w)
+            , hdr(hdr)
+            , exposure(exposure)
         {
         }
     };
@@ -42,6 +47,9 @@ namespace fightinggame {
         void end_frame(SDL_Window* window);
 
         void draw_pass(draw_scene_desc& desc, GameState state);
+
+        void renderCube();
+        void renderQuad();
 
         void shutdown();
 
@@ -57,7 +65,7 @@ namespace fightinggame {
         ImGuiContext* get_imgui_context() { return _imgui; }
 
         void init_opengl_and_imgui(const GameWindow& window);
-        void init_renderer();
+        void init_renderer(int screen_width, int screen_height);
 
         SDL_GLContext get_gl_context() { return gl_context; }
 

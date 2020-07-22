@@ -6,14 +6,14 @@
 
 namespace fightinggame {
 
-    unsigned int TextureFromFile(const char* path, const std::string& directory, bool gamma)
+    unsigned int TextureFromFile(const char* file, const std::string& directory, bool gamma)
     {
-        std::string filename = std::string(path);
+        std::string filename = std::string(file);
         filename = directory + '/' + filename;
 
         printf("----- Texture from path -------\n");
         printf("Dir: %s \n", directory.c_str());
-        printf("Path: %s \n", path);
+        printf("Path: %s \n", file);
         printf("Filename: %s \n", filename.c_str());
         printf("----- End Texture -------\n");
 
@@ -61,7 +61,7 @@ namespace fightinggame {
         }
         else
         {
-            printf("Texture failed to load at path: %s \n", path);
+            printf("Texture failed to load at path: %s \n", file);
         }
         stbi_image_free(data);
 
