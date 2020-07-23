@@ -29,7 +29,7 @@ namespace fightinggame {
             std::string             name
         );
 
-        void draw(Shader& shader);
+        void draw(Shader& shader, int texture = -1);
         void setup_mesh();
 
     private:

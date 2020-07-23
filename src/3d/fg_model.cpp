@@ -5,11 +5,11 @@
 
 namespace fightinggame {
 
-    void FGModel::draw(Shader& shader, uint32_t& draw_calls)
+    void FGModel::draw(Shader& shader, uint32_t& draw_calls, int texture)
     {
         for (unsigned int i = 0; i < meshes.size(); i++) {
             //std::cout << "drawing mesh: " << meshes[i].name << std::endl;
-            meshes[i].draw(shader);
+            meshes[i].draw(shader, texture);
 
             draw_calls += 1;
         }
@@ -75,23 +75,23 @@ namespace fightinggame {
             else
                 vertex.TexCoords = glm::vec2(0.0f, 0.0f);
 
-            if (mesh->HasTangentsAndBitangents())
-            {
-                // tangent
-                vector.x = mesh->mTangents[i].x;
-                vector.y = mesh->mTangents[i].y;
-                vector.z = mesh->mTangents[i].z;
-                vertex.Tangent = vector;
-                // bitangent
-                vector.x = mesh->mBitangents[i].x;
-                vector.y = mesh->mBitangents[i].y;
-                vector.z = mesh->mBitangents[i].z;
-                vertex.Bitangent = vector;
-            }
-            else
-            {
-                //printf("-> %s has no tangent and bittangents. \n", mesh->mName.C_Str());
-            }
+            //if (mesh->HasTangentsAndBitangents())
+            //{
+            //    // tangent
+            //    vector.x = mesh->mTangents[i].x;
+            //    vector.y = mesh->mTangents[i].y;
+            //    vector.z = mesh->mTangents[i].z;
+            //    vertex.Tangent = vector;
+            //    // bitangent
+            //    vector.x = mesh->mBitangents[i].x;
+            //    vector.y = mesh->mBitangents[i].y;
+            //    vector.z = mesh->mBitangents[i].z;
+            //    vertex.Bitangent = vector;
+            //}
+            //else
+            //{
+            //    //printf("-> %s has no tangent and bittangents. \n", mesh->mName.C_Str());
+            //}
 
             vertices.push_back(vertex);
         }

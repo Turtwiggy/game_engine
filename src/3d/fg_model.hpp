@@ -34,7 +34,7 @@ namespace fightinggame {
 
         std::string get_name() { return name; }
 
-        void draw(Shader& shader, uint32_t& draw_calls);
+        void draw(Shader& shader, uint32_t& draw_calls, int texture = -1);
 
     private:
 

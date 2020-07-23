@@ -48,7 +48,8 @@ namespace fightinggame {
 
         void draw_pass(draw_scene_desc& desc, GameState state);
 
-        void renderCube();
+        unsigned int hdr_fbo();
+        unsigned int hdr_colour_buffer(int width, int height, unsigned int hdr_fbo);
         void renderQuad();
 
         void shutdown();
