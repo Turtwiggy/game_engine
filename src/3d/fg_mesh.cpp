@@ -100,9 +100,8 @@ namespace fightinggame {
             glBindTexture(GL_TEXTURE_2D, texture);
             //printf("texture %i", texture);
             shader.setInt("texture_diffuse1", texture);
-
         }
-        //shader.setVec4("material.colour", this->colour.colour);
+        shader.setVec4("material.colour", this->colour.colour);
 
         // draw mesh
         glBindVertexArray(VAO);

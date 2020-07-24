@@ -12,17 +12,13 @@ out VS_OUT {
 uniform mat4 view_projection;
 uniform mat4 model;
 
-uniform bool inverse_normals;
-
 void main()
 {
     vs_out.FragPos = vec3(model * vec4(aPos, 1.0));   
     vs_out.TexCoords = aTexCoords;
-    
-    vec3 n = inverse_normals ? -aNormal : aNormal;
-    
+        
     mat3 normalMatrix = transpose(inverse(mat3(model)));
-    vs_out.Normal = normalize(normalMatrix * n);
+    vs_out.Normal = normalize(normalMatrix * aNormal);
     
     gl_Position = view_projection * model * vec4(aPos, 1.0);
 }
