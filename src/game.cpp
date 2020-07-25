@@ -230,7 +230,7 @@ void Game::run()
     FGObject cornel_box = FGObject(cornel_model);
 
     //Model: Cube
-    std::shared_ptr cube_model = model_manager.load_model("assets/models/cube/cube.obj", "cube");
+    std::shared_ptr cube_model = model_manager.load_model("assets/models/lizard_wizard/lizard_wizard.obj", "lizard_wizard");
     //Cube Objects
     FGObject cube_object = FGObject(cube_model);
     cube_object.transform.Position = glm::vec3(0.0f, 0.0f, 0.0f);

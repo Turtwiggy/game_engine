@@ -50,7 +50,7 @@ namespace fightinggame {
 
         unsigned int hdr_fbo();
         std::array<unsigned int, 2> hdr_colour_buffer(int width, int height, unsigned int hdr_fbo);
-        void renderCube();
+        void renderCube(uint32_t& draw_calls);
         void renderQuad();
 
         void shutdown();

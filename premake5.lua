@@ -65,18 +65,18 @@ project "FightingGameMain"
         "%{IncludeDir.ImGui}",
         "%{IncludeDir.ImGui2}",
         "%{IncludeDir.ggpo}",
-        "%{IncludeDir.GameNetworkingSockets}",
+        -- "%{IncludeDir.GameNetworkingSockets}",
         -- "/mingw64/include/freetype2"
     }
 
     libdirs 
     {
-        "./dlls/"
+        -- "./dlls/"
     }
 
     links
     {
-        "GameNetworkingSockets",
+        -- "GameNetworkingSockets",
     }
 
     defines

@@ -22,6 +22,7 @@ namespace fightinggame {
         , colour(colour)
         , name(name)
     {
+        printf("setting up mesh %s \n", name.c_str());
         setup_mesh();
     }
 
@@ -32,19 +33,14 @@ namespace fightinggame {
         glGenVertexArrays(1, &VAO);
         glGenBuffers(1, &VBO);
         glGenBuffers(1, &EBO);
-
+        //fill buffers
         glBindVertexArray(VAO);
-        // load data into vertex buffers
         glBindBuffer(GL_ARRAY_BUFFER, VBO);
-        // A great thing about structs is that their memory layout is sequential for all its items.
-        // The effect is that we can simply pass a pointer to the struct and it translates perfectly to a glm::vec3/2 array which
-        // again translates to 3/2 floats which translates to a byte array.
         glBufferData(GL_ARRAY_BUFFER, vertices.size() * sizeof(FGVertex), &vertices[0], GL_STATIC_DRAW);
-
         glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, EBO);
         glBufferData(GL_ELEMENT_ARRAY_BUFFER, indices.size() * sizeof(unsigned int), &indices[0], GL_STATIC_DRAW);
 
-        // set the vertex attribute pointers - vertex Positions
+        //link vertex attributes
         glEnableVertexAttribArray(0);
         glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, sizeof(FGVertex), (void*)0);
         // vertex normals
@@ -59,7 +55,7 @@ namespace fightinggame {
         //// vertex bitangent
         //glEnableVertexAttribArray(4);
         //glVertexAttribPointer(4, 3, GL_FLOAT, GL_FALSE, sizeof(FGVertex), (void*)offsetof(FGVertex, Bitangent));
-
+        glBindBuffer(GL_ARRAY_BUFFER, 0);
         glBindVertexArray(0);
     }
 
@@ -96,7 +92,7 @@ namespace fightinggame {
         }
         else
         {
-            glActiveTexture(GL_TEXTURE0);
+            //glActiveTexture(GL_TEXTURE0);
             glBindTexture(GL_TEXTURE_2D, texture);
             //printf("texture %i", texture);
             shader.setInt("texture_diffuse1", texture);

@@ -29,13 +29,13 @@ namespace fightinggame {
 
             if (nrComponents == 3)
             {
-                internal_format = GL_RGB8;
-                data_format = GL_RGB;
+                internal_format = gamma ? GL_SRGB8 : GL_RGB8;
+                data_format = gamma ? GL_SRGB : GL_RGB;
             }
             else if (nrComponents == 4)
             {
-                internal_format = GL_RGBA8;
-                data_format = GL_RGBA;
+                internal_format = gamma ? GL_SRGB8_ALPHA8 : GL_RGBA8;
+                data_format = gamma ? GL_SRGB_ALPHA : GL_RGBA;
             }
 
             //note, if this throws an error opengl is not init

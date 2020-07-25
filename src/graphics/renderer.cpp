@@ -112,8 +112,8 @@ namespace fightinggame
 
         // load textures
         // -------------
-        s_Data.wood_texture = TextureFromFile("BambooWall_1K_albedo.jpg", "assets/textures/Bamboo", true);
-        s_Data.second_texture = TextureFromFile("marble.jpg", "assets/textures", true);
+        s_Data.wood_texture = TextureFromFile("BambooWall_1K_albedo.jpg", "assets/textures/Bamboo", false);
+        s_Data.second_texture = TextureFromFile("container.jpg", "assets/textures", false);
 
         // configure (floating point) framebuffers
         // ---------------------------------------
@@ -174,7 +174,8 @@ namespace fightinggame
 
     void Renderer::draw_pass(draw_scene_desc& desc, GameState state)
     {
-        RenderCommand::set_clear_colour(glm::vec4(0.2f, 0.3f, 0.3f, 1.0f));
+        //RenderCommand::set_clear_colour(glm::vec4(0.2f, 0.3f, 0.3f, 1.0f));
+        RenderCommand::set_clear_colour(glm::vec4(0.0f, 0.0f, 0.0f, 1.0f));
         RenderCommand::clear();
 
         int width, height = 0;
@@ -199,12 +200,13 @@ namespace fightinggame
             s_Data.object_shader.setVec3("lights[" + std::to_string(i) + "].Position", s_Data.light_positions[i]);
             s_Data.object_shader.setVec3("lights[" + std::to_string(i) + "].Color", s_Data.light_colours[i]);
         }
+
         // create one large cube that acts as the floor
         model = glm::mat4(1.0f);
         model = glm::translate(model, glm::vec3(0.0f, -1.0f, 0.0));
         model = glm::scale(model, glm::vec3(12.5f, 0.5f, 12.5f));
         s_Data.object_shader.setMat4("model", model);
-        renderCube();
+        renderCube(s_Data.stats.DrawCalls);
 
         // then create multiple cubes as the scenery
         glBindTexture(GL_TEXTURE_2D, s_Data.second_texture);
@@ -213,35 +215,60 @@ namespace fightinggame
         model = glm::translate(model, glm::vec3(0.0f, 1.5f, 0.0));
         model = glm::scale(model, glm::vec3(0.5f));
         s_Data.object_shader.setMat4("model", model);
-        renderCube();   //cube 1
+        //state.cubes[0]->model->draw(s_Data.object_shader, s_Data.stats.DrawCalls);
+        renderCube(s_Data.stats.DrawCalls);
         model = glm::mat4(1.0f);
         model = glm::translate(model, glm::vec3(2.0f, 0.0f, 1.0));
         model = glm::scale(model, glm::vec3(0.5f));
         s_Data.object_shader.setMat4("model", model);
-        renderCube();   //cube 2
+        renderCube(s_Data.stats.DrawCalls);
         model = glm::mat4(1.0f);
         model = glm::translate(model, glm::vec3(-1.0f, -1.0f, 2.0));
         model = glm::rotate(model, glm::radians(60.0f), glm::normalize(glm::vec3(1.0, 0.0, 1.0)));
         s_Data.object_shader.setMat4("model", model);
-        renderCube();   //cube 3
+        renderCube(s_Data.stats.DrawCalls);
         model = glm::mat4(1.0f);
         model = glm::translate(model, glm::vec3(0.0f, 2.7f, 4.0));
         model = glm::rotate(model, glm::radians(23.0f), glm::normalize(glm::vec3(1.0, 0.0, 1.0)));
         model = glm::scale(model, glm::vec3(1.25));
         s_Data.object_shader.setMat4("model", model);
-        renderCube();   //cube 4
+        renderCube(s_Data.stats.DrawCalls);
         model = glm::mat4(1.0f);
         model = glm::translate(model, glm::vec3(-2.0f, 1.0f, -3.0));
         model = glm::rotate(model, glm::radians(124.0f), glm::normalize(glm::vec3(1.0, 0.0, 1.0)));
         s_Data.object_shader.setMat4("model", model);
-        renderCube();   //cube 5
+        renderCube(s_Data.stats.DrawCalls);
         model = glm::mat4(1.0f);
         model = glm::translate(model, glm::vec3(-3.0f, 0.0f, 0.0));
         model = glm::scale(model, glm::vec3(0.5f));
         s_Data.object_shader.setMat4("model", model);
-        renderCube();   //cube 6
+        renderCube(s_Data.stats.DrawCalls);
 
-        // finally show all the light sources as bright cubes
+        //Cornell
+        {
+            //s_Data.lit_directional_tex_shader.use();
+            //s_Data.lit_directional_tex_shader.setMat4("view_projection", view_projection);
+            ////cube's material properties
+            //s_Data.lit_directional_tex_shader.setVec3("material.specular", glm::vec3(0.5f, 0.5f, 0.5f));
+            //s_Data.lit_directional_tex_shader.setFloat("material.shininess", 32.0f);
+            ////flat lighting
+            //glm::vec3 light_direction = glm::vec3(-0.2, -1.0, -0.3);
+            //s_Data.lit_directional_tex_shader.setVec3("light.direction", light_direction);
+            //s_Data.lit_directional_tex_shader.setVec3("light.ambient", glm::vec3(0.2, 0.2, 0.2));
+            //s_Data.lit_directional_tex_shader.setVec3("light.diffuse", glm::vec3(0.5, 0.5, 0.5)); // darken diffuse light a bit
+            //s_Data.lit_directional_tex_shader.setVec3("light.specular", glm::vec3(1.0, 1.0, 1.0));
+
+            //model = glm::mat4(1.0f);
+            //model = glm::translate(model, glm::vec3(-3.0f, 0.0f, 0.0));
+            //model = glm::scale(model, glm::vec3(0.5f));
+            //s_Data.object_shader.setMat4("model", model);
+            //state.cornel_box->model->draw(s_Data.object_shader, s_Data.stats.DrawCalls);
+        }
+
+
+        // show all the light sources as bright cubes
+        s_Data.light_positions[0] = state.cubes[0]->transform.Position;
+
         s_Data.light_shader.use();
         s_Data.light_shader.setMat4("view_projection", view_projection);
         for (unsigned int i = 0; i < s_Data.light_positions.size(); i++)
@@ -251,7 +278,7 @@ namespace fightinggame
             model = glm::scale(model, glm::vec3(0.25f));
             s_Data.light_shader.setMat4("model", model);
             s_Data.light_shader.setVec3("lightColor", s_Data.light_colours[i]);
-            renderCube();
+            renderCube(s_Data.stats.DrawCalls);
         }
         glBindFramebuffer(GL_FRAMEBUFFER, 0);
 
@@ -260,6 +287,8 @@ namespace fightinggame
         bool horizontal = true, first_iteration = true;
         unsigned int amount = 10;
         s_Data.blur_shader.use();
+        s_Data.blur_shader.setInt("blur_x", amount/2);
+        s_Data.blur_shader.setInt("blur_y", amount/2);
         for (unsigned int i = 0; i < amount; i++)
         {
             glBindFramebuffer(GL_FRAMEBUFFER, s_Data.pingpong_fbo[horizontal]);
@@ -283,22 +312,7 @@ namespace fightinggame
         s_Data.hdr_bloom_final_shader.setInt("bloom", desc.hdr);
         s_Data.hdr_bloom_final_shader.setFloat("exposure", desc.exposure);
         renderQuad();
-
         //std::cout << "bloom: " << (desc.hdr ? "on" : "off") << "| exposure: " << desc.exposure << std::endl;
-
-        //Cornell
-        //{
-        //    s_Data.lit_directional_tex_shader.use();
-        //    s_Data.lit_directional_tex_shader.setMat4("view_projection", view_projection);
-        //    //cube's material properties
-        //    s_Data.lit_directional_tex_shader.setVec3("material.specular", glm::vec3(0.5f, 0.5f, 0.5f));
-        //    s_Data.lit_directional_tex_shader.setFloat("material.shininess", 32.0f);
-        //    //flat lighting
-        //    glm::vec3 light_direction = glm::vec3(-0.2, -1.0, -0.3);
-        //    s_Data.lit_directional_tex_shader.setVec3("light.direction", light_direction);
-        //    s_Data.lit_directional_tex_shader.setVec3("light.ambient", glm::vec3(0.2, 0.2, 0.2));
-        //    s_Data.lit_directional_tex_shader.setVec3("light.diffuse", glm::vec3(0.5, 0.5, 0.5)); // darken diffuse light a bit
-        //    s_Data.lit_directional_tex_shader.setVec3("light.specular", glm::vec3(1.0, 1.0, 1.0));
 
         ImGui::Begin("Renderer Profiler");
         ImGui::Text("Draw Calls: %i", s_Data.stats.DrawCalls);
@@ -427,7 +441,7 @@ namespace fightinggame
     // -------------------------------------------------
     unsigned int cubeVAO = 0;
     unsigned int cubeVBO = 0;
-    void Renderer::renderCube()
+    void Renderer::renderCube(uint32_t& draw_calls)
     {
         // initialize (if necessary)
         if (cubeVAO == 0)
@@ -495,6 +509,7 @@ namespace fightinggame
         // render Cube
         glBindVertexArray(cubeVAO);
         glDrawArrays(GL_TRIANGLES, 0, 36);
+        draw_calls += 1;
         glBindVertexArray(0);
     }
 

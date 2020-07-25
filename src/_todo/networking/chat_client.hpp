@@ -1,29 +1,29 @@
-#pragma once
-
-#include "networking_common.hpp"
-
-/////////////////////////////////////////////////////////////////////////////
+//#pragma once
 //
-// ChatClient
+//#include "networking_common.hpp"
 //
-/////////////////////////////////////////////////////////////////////////////
-
-class ChatClient : private ISteamNetworkingSocketsCallbacks
-{
-public:
-
-	void Run(const SteamNetworkingIPAddr& serverAddr);
-
-private:
-
-	HSteamNetConnection m_hConnection;
-	ISteamNetworkingSockets* m_pInterface;
-
-	void PollIncomingMessages();
-
-	void PollConnectionStateChanges();
-
-	void PollLocalUserInput();
-
-	virtual void OnSteamNetConnectionStatusChanged(SteamNetConnectionStatusChangedCallback_t* pInfo) override;
-};
+///////////////////////////////////////////////////////////////////////////////
+////
+//// ChatClient
+////
+///////////////////////////////////////////////////////////////////////////////
+//
+//class ChatClient : private ISteamNetworkingSocketsCallbacks
+//{
+//public:
+//
+//	void Run(const SteamNetworkingIPAddr& serverAddr);
+//
+//private:
+//
+//	HSteamNetConnection m_hConnection;
+//	ISteamNetworkingSockets* m_pInterface;
+//
+//	void PollIncomingMessages();
+//
+//	void PollConnectionStateChanges();
+//
+//	void PollLocalUserInput();
+//
+//	virtual void OnSteamNetConnectionStatusChanged(SteamNetConnectionStatusChangedCallback_t* pInfo) override;
+//};
