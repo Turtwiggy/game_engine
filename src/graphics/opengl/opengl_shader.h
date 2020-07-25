@@ -14,13 +14,17 @@
 class Shader
 {
 public:
-    Shader() {};
+    Shader() = default;
 
     unsigned int ID;
     // constructor generates the shader on the fly
     // ------------------------------------------------------------------------
     Shader(const char* vertexPath, const char* fragmentPath, const char* geometryPath = nullptr)
     {
+        std::cout
+            << "vertex path: " << vertexPath << "\n"
+            << "frag path: " << fragmentPath << "\n" << std::endl;
+
         // 1. retrieve the vertex/fragment source code from filePath
         std::string vertexCode;
         std::string fragmentCode;

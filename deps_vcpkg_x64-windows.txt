@@ -6,7 +6,5 @@ glm
 glew
 stb
 assimp
-boost-filesystem
-angle
 --triplet
 x64-windows

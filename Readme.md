@@ -8,12 +8,8 @@ How to compile
 This project uses 
 - sdl2 - window management (cross-platform)
 - imgui - ui (cross-platform)
-- Valve's gamenetworkingsockets - networking (unfortunately windows only)
 - entt - entity component system
 - bullet3 - physics
 
 Manual deps required to build:
 - GameNetworkingSockets - https://github.com/ValveSoftware/GameNetworkingSockets
-
-TODO:
-- Test using ANGLE

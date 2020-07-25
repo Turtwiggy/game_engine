@@ -1,6 +1,6 @@
 #include "graphics/renderer_api.h"
 
-#include "graphics/opengl/opengl_renderer_api.h"
+#include "graphics/opengl/opengl_renderer_api.hpp"
 
 namespace fightinggame {
 

@@ -25,6 +25,7 @@ namespace fightinggame
             GuiLoop,
             UpdateLoop,
             EndFrame,
+            Sleep,
 
             _count,
         };
@@ -48,6 +49,7 @@ namespace fightinggame
             "GuiLoop",
             "UpdateLoop",
             "EndFrame",
+            "Sleep",
         };
 
         struct Entry
@@ -76,7 +78,7 @@ namespace fightinggame
             float endTimestamp = fltEnd.count();
 
             auto& buf = buffer[(int)request];
-            buf.add_next(endTimestamp - startTimestamp);
+            buf.push_back(endTimestamp - startTimestamp);
             return buf.average();
         }
 
@@ -85,7 +87,7 @@ namespace fightinggame
         std::array<Entry, _bufferSize> _entries;
 
         //a buffer for the results of the profiler entries
-        std::array<CircularBuffer, static_cast<uint8_t>(Stage::_count)> buffer;
+        std::array<CircularBuffer<float, 100>, static_cast<uint8_t>(Stage::_count)> buffer;
 
     private:
         uint8_t _currentEntry = _bufferSize - 1;

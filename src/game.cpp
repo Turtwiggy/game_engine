@@ -156,7 +156,6 @@ void Game::render(
             hdr,
             exposure
         );
-        drawDesc.view_id = graphics::render_pass::Main;
 
         rend.draw_pass
         (
@@ -169,7 +168,7 @@ void Game::render(
     //Render GUI
     {
         profiler.Begin(Profiler::Stage::GuiLoop);
-        if (gui.Loop(*this, rend.get_imgui_context(), profiler))
+        if (gui.Loop(*this, profiler))
         {
             running = false;
             return;
@@ -188,8 +187,8 @@ void Game::render(
 void Game::run()
 {
     //Profiler
-    Profiler profile;
-    printf("profiler taking up: %s bytes \n", std::to_string(sizeof(Profiler)).c_str());
+    Profiler profiler;
+    printf("profiler taking up: %s bytes \n", std::to_string(sizeof(profiler)).c_str());
 
     //Window
     int m_width = 1080;
@@ -201,29 +200,26 @@ void Game::run()
         m_height,
         display_mode::Windowed
     );
-    printf("game window taking up: %s bytes \n", std::to_string(sizeof(GameWindow)).c_str());
+    printf("game window taking up: %s bytes \n", std::to_string(sizeof(window)).c_str());
 
     //Camera
-    Camera cam = Camera(glm::vec3(0.0f, 0.0f, 10.0f));
-    printf("camera taking up: %s bytes \n", std::to_string(sizeof(Camera)));
+    Camera camera = Camera(glm::vec3(0.0f, 0.0f, 10.0f));
+    printf("camera taking up: %s bytes \n", std::to_string(sizeof(camera)));
     //auto aspect = _window ? _window->GetAspectRatio() : 1.0f;
     //_camera->SetProjectionMatrixPerspective(70.0f, aspect, 1.0f, 65536.0f)
 
     //Renderer
-    Renderer rend;
-    printf("renderer taking up: %s bytes \n", std::to_string(sizeof(Renderer)).c_str());
-    rend.init_opengl_and_imgui(window); //do not use opengl before this point
-    rend.init_renderer(m_width, m_height);
+    Renderer renderer;
+    renderer.init_opengl_and_imgui(window); //do not use opengl before this point
+    renderer.init_renderer(m_width, m_height);
+    printf("renderer taking up: %s bytes \n", std::to_string(sizeof(renderer)).c_str());
 
     //Input Manager
     InputManager input_manager;
-    printf("input_manager taking up: %s bytes \n", std::to_string(sizeof(InputManager)).c_str());
-
-    ResourceManager resource_manager;
-    printf("ResourceManager taking up: %s bytes \n", std::to_string(sizeof(ResourceManager)).c_str());
+    printf("input_manager taking up: %s bytes \n", std::to_string(sizeof(input_manager)).c_str());
 
     ModelManager model_manager;
-    printf("ModelManager taking up: %s bytes \n", std::to_string(sizeof(ModelManager)).c_str());
+    printf("ModelManager taking up: %s bytes \n", std::to_string(sizeof(model_manager)).c_str());
 
     //Model: Cornel Box
     std::shared_ptr cornel_model = model_manager.load_model("assets/models/cornell_box/CornellBox-Original.obj", "cornell_box");
@@ -276,15 +272,16 @@ void Game::run()
 
     //ImGui
     Gui gui;
-    printf("Gui taking up: %s bytes \n", std::to_string(sizeof(Gui)).c_str());
+    printf("Gui taking up: %s bytes \n", std::to_string(sizeof(gui)).c_str());
 
     running = true;
     start = now = SDL_GetTicks();
     while (running)
     {
-        //Update Profiler
-        profile.Frame();
-        profile.Begin(Profiler::Stage::UpdateLoop);
+        // Update Profiler
+        // ---------------
+        profiler.Frame();
+        profiler.Begin(Profiler::Stage::UpdateLoop);
 
         // delta time
         // ----------
@@ -296,13 +293,13 @@ void Game::run()
 
         // input
         // -----
-        profile.Begin(Profiler::Stage::SdlInput);
+        profiler.Begin(Profiler::Stage::SdlInput);
 
         input_manager.new_frame();
-        running = process_events(rend, window, gui, cam, input_manager);
-        if (!running) { shutdown(rend, window);  return; }
+        running = process_events(renderer, window, gui, camera, input_manager);
+        if (!running) { shutdown(renderer, window);  return; }
 
-        // User events
+        // User input events
         // -----------
         if (input_manager.get_key_down(SDL_KeyCode::SDLK_m))
         {
@@ -315,11 +312,13 @@ void Game::run()
             window.GetSize(width, height);
             std::cout << "screen size toggled, w: " << width << " h: " << height << std::endl;
             RenderCommand::set_viewport(0, 0, width, height);
+            renderer.screen_size_changed(width, height);
+            
             fullscreen = !fullscreen;
         }
         if (input_manager.get_key_down(SDL_KeyCode::SDLK_ESCAPE))
         {
-            shutdown(rend, window);  return;
+            shutdown(renderer, window);  return;
         }
         if (input_manager.get_mouse_lmb_held())
         {
@@ -350,7 +349,7 @@ void Game::run()
                 exposure = 0.0f;
         }
 
-        profile.End(Profiler::Stage::SdlInput);
+        profiler.End(Profiler::Stage::SdlInput);
 
         // Delta Time
         // ----------
@@ -372,23 +371,28 @@ void Game::run()
         // Update Game State
         // -----------------
         {
-            profile.Begin(Profiler::Stage::GameTick);
-            tick(delta_time_in_seconds, state_current, timer, input_manager, cam);
-            profile.End(Profiler::Stage::GameTick);
+            profiler.Begin(Profiler::Stage::GameTick);
+            tick(delta_time_in_seconds, state_current, timer, input_manager, camera);
+            profiler.End(Profiler::Stage::GameTick);
         }
 
         // Rendering
         // ---------
-        render(profile, state_current, rend, cam, gui, window, hdr, exposure);
+        render(profiler, state_current, renderer, camera, gui, window, hdr, exposure);
 
         // FPS Profiling
         // -------------
-        fps_buffer.add_next(1.f / delta_time_in_seconds);
+        fps_buffer.push_back(1.f / delta_time_in_seconds);
 
-        //Sleep
-        SDL_Delay(MILLISECONDS_PER_FRAME);
+        // Sleep
+        // -----
+        {
+            profiler.Begin(Profiler::Stage::Sleep);
+            SDL_Delay(MILLISECONDS_PER_FRAME);
+            profiler.End(Profiler::Stage::Sleep);
+        }
 
-        profile.End(Profiler::Stage::UpdateLoop);
+        profiler.End(Profiler::Stage::UpdateLoop);
     }
 
     //end

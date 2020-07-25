@@ -6,7 +6,6 @@
 #include "gui.hpp"
 #include "util/profiler.hpp"
 #include "util/circular_buffer.h"
-#include "util/resource_manager.hpp"
 #include "input/input_manager.h"
 #include "window/game_window.h"
 
@@ -38,7 +37,10 @@ namespace fightinggame
         bool process_events(Renderer& r, GameWindow& g_window, Gui& gui, Camera& camera, InputManager& input_manager);
         void run();
 
-        float get_average_fps() { return fps_buffer.average(); }
+        //FPS settings
+        double FPS = 144.0;
+        Uint32 MILLISECONDS_PER_FRAME = (Uint32)(1000 / FPS);
+        CircularBuffer<float, 100> fps_buffer;
 
     private:
         void tick(float delta_time, GameState& state, float timer, InputManager& input_maanger, Camera& camera);    //update game logic
@@ -63,37 +65,27 @@ namespace fightinggame
         bool fullscreen = false;
         float timer = 0.0f;
 
-        //delta time metrics
-        double FPS = 144.0;
-        Uint32 MILLISECONDS_PER_FRAME = (Uint32)(1000 / FPS);
-        //float SECONDS_PER_FRAME = 1.f / FPS;
-        CircularBuffer fps_buffer;
-
+        //Game's fixed tick
         int FIXED_TICKS_PER_SECOND = 1;
         float SECONDS_PER_FIXED_TICK = 1.f / FIXED_TICKS_PER_SECOND;
         float seconds_since_last_game_tick = 0;
 
+        //Delta time
         unsigned int start = 0;
         unsigned int prev = 0;
         unsigned int now = 0;
 
-        //rendering things
-
-        //hdr
+        //Rendering
         bool hdr = true;
         float exposure = 1.0f;
+        //bool bloom;
+        //bool pbr;
+        //bool pbr_ssao;
+        //bool pbr_gi;
+        //bool raytracing;
+        //bool shadows;
 
-        bool bloom;
-        bool pbr;
-        bool pbr_ssao;
-        bool pbr_gi;
-        bool raytracing;
-        bool shadows;
-
-        //physics
         //physics_simulation _physics;
-
-        //audio
         //audio_player audio;
 
         //networking

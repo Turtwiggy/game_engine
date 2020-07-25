@@ -1,9 +1,9 @@
 #pragma once
 
-#include "graphics/render_pass.h"
 #include "graphics/renderer.h"
 #include "window/game_window.h"
 #include "util/profiler.hpp"
+#include "util/circular_buffer.h"
 
 #include <imgui.h>
 
@@ -28,7 +28,7 @@ namespace fightinggame
 		Gui();
 
 		bool ProcessEventSdl2(const SDL_Event& event, ImGuiContext* imgui);
-		bool Loop(Game& game, ImGuiContext* imgui, Profiler& profiler);
+		bool Loop(Game& game, Profiler& profiler);
 
 	private:
 
@@ -38,25 +38,6 @@ namespace fightinggame
 		void SetClipboardText(const char* text);
 
 		void ShowProfilerWindow(Game& game, Profiler& profiler);
-
-		template <typename T, uint8_t N>
-		struct CircularBuffer
-		{
-			static constexpr uint8_t _bufferSize = N;
-			T _values[_bufferSize] = {};
-			uint8_t _offset = 0;
-
-			[[nodiscard]] T back() const { return _values[_offset]; }
-			void pushBack(T value)
-			{
-				_values[_offset] = value;
-				_offset = (_offset + 1u) % _bufferSize;
-			}
-		};
-
-		uint64_t _time;
-		CircularBuffer<float, 100> _times;
-		CircularBuffer<float, 100> _fps;
 
 		SDL_Window* _window;
 		std::array<bool, 3> _mousePressed;

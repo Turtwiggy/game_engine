@@ -5,7 +5,6 @@
 #include "3d/camera.hpp"
 #include <game_state.hpp>
 #include "graphics/renderer_api.h"
-#include "graphics/render_pass.h"
 #include "graphics/opengl/opengl_shader.h"
 #include "window/game_window.h"
 
@@ -22,7 +21,7 @@ namespace fightinggame {
 
     struct draw_scene_desc
     {
-        graphics::render_pass view_id;
+        //graphics::render_pass view_id;
         GameWindow& window;
         Camera& camera;
 
@@ -47,6 +46,7 @@ namespace fightinggame {
         void end_frame(SDL_Window* window);
 
         void draw_pass(draw_scene_desc& desc, GameState state);
+        void screen_size_changed(unsigned int width, unsigned int height);
 
         unsigned int hdr_fbo();
         std::array<unsigned int, 2> hdr_colour_buffer(int width, int height, unsigned int hdr_fbo);

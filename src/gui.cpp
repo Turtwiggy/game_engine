@@ -17,8 +17,7 @@
 namespace fightinggame {
 
     Gui::Gui()
-        : _time(0)
-        , _mousePressed{ false, false, false }
+        : _mousePressed{ false, false, false }
         , _mouseCursors{ 0 }
         , _clipboardTextData(nullptr)
         , _lastScroll(0)
@@ -93,7 +92,7 @@ namespace fightinggame {
         SDL_SetClipboardText(text);
     }
 
-    bool Gui::Loop(Game& game, ImGuiContext* imgui, Profiler& profiler)
+    bool Gui::Loop(Game& game, Profiler& profiler)
     {
         //printf("in gui loop");
 
@@ -132,7 +131,7 @@ namespace fightinggame {
         ImGui::Begin("Profiler");
 
         ImGui::Columns(1);
-        ImGui::Text("FPS: %f", game.get_average_fps());
+        ImGui::Text("FPS: %f", game.fps_buffer.average());
 
         ImGui::Columns(1);
 
@@ -154,8 +153,11 @@ namespace fightinggame {
         draw_time = profiler.GetTime(Profiler::Stage::EndFrame);
         ImGui::Text("%s % fms", profiler.stageNames[(uint8_t)Profiler::Stage::EndFrame].data(), (draw_time));
 
+        draw_time = profiler.GetTime(Profiler::Stage::Sleep);
+        ImGui::Text("%s % fms", profiler.stageNames[(uint8_t)Profiler::Stage::Sleep].data(), (draw_time));
+
         draw_time = profiler.GetTime(Profiler::Stage::UpdateLoop);
-        ImGui::Text("%s % fms", profiler.stageNames[(uint8_t)Profiler::Stage::UpdateLoop].data(), (draw_time));
+        ImGui::Text(" ~~ %s % fms ~~ ", profiler.stageNames[(uint8_t)Profiler::Stage::UpdateLoop].data(), (draw_time));
 
         ImGui::End();
     }

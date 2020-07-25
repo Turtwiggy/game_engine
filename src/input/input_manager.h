@@ -23,6 +23,7 @@ public:
         up.clear();
     }
 
+    //keyboard
 
     void add_button_down(SDL_Keycode button)
     {
@@ -62,6 +63,7 @@ public:
         return std::find(held.begin(), held.end(), button) != held.end();
     }
 
+    //mouse
 
     void add_mouse_down(SDL_MouseButtonEvent& mouse_e)
     {
@@ -109,9 +111,6 @@ public:
     {
         return mmb;
     }
-
-
-
 
 private:
 

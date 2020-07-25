@@ -6,52 +6,41 @@
 
 namespace fightinggame
 {
+    template <typename T, uint8_t N>
     struct CircularBuffer
     {
-    public:
+        static constexpr uint8_t _bufferSize = N;
+        T _values[_bufferSize] = {};
+        uint8_t _offset = 0;
+        uint8_t _populated_elements = 0;
 
-        void add_next(const float next)
+        [[nodiscard]] T back() const { return _values[_offset]; }
+        void push_back(T value)
         {
-            buffer[next_index] = next;
+            _values[_offset] = value;
+            _offset = (_offset + 1u) % _bufferSize;
 
-            next_index += 1;
-            next_index %= buffer_size;
-
-            if (populated_elements == buffer_size)
+            if (_populated_elements == _bufferSize)
                 return;
-            populated_elements += 1.;
+            _populated_elements += 1u;
         }
 
-        float sum()
+        T sum()
         {
-            float sum = 0;
-            for (auto i = 0; i < buffer_size; i += 1)
+            T sum = 0;
+            for (auto i = 0; i < _bufferSize; i += 1)
             {
-                sum += buffer[i];
+                sum += _values[i];
             }
             return sum;
         }
 
-        float average()
+        T average()
         {
-            if (populated_elements == 0)
+            if (_populated_elements == 0)
                 return 0;
             else
-                return sum() / populated_elements;
+                return sum() / _populated_elements;
         }
-
-        float get(uint8_t index)
-        {
-            return buffer[index];
-        }
-
-    private:
-
-        uint8_t next_index = 0;
-        float populated_elements = 0;
-
-        static constexpr uint8_t buffer_size = 200; //note if >255 then uint8_t is not big enough
-
-        std::array<float, buffer_size> buffer = { 0 };
     };
 }

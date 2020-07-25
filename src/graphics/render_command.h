@@ -2,6 +2,8 @@
 
 #include "graphics/renderer_api.h"
 
+#include <memory>
+
 namespace fightinggame {
 
 	class RenderCommand
@@ -27,10 +29,6 @@ namespace fightinggame {
 			s_RendererAPI->clear();
 		}
 
-		static void draw_indexed(const std::shared_ptr<vertex_array>& vertexArray, uint32_t count = 0)
-		{
-			s_RendererAPI->draw_indexed(vertexArray, count);
-		}
 	private:
 		static std::unique_ptr<renderer_api> s_RendererAPI;
 	};

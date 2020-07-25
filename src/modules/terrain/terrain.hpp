@@ -97,8 +97,5 @@ namespace fightinggame {
 
             return FGMesh(verts, indices, textures, color, "Generated Terrain");
         }
-
-
     };
-
 }

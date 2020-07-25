@@ -1,5 +1,5 @@
 
-#include "graphics/opengl/opengl_renderer_api.h"
+#include "graphics/opengl/opengl_renderer_api.hpp"
 
 #include <gl/glew.h>
 
@@ -75,13 +75,4 @@ namespace fightinggame {
 	{
 		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT | GL_STENCIL_BUFFER_BIT);
 	}
-
-	void opengl_renderer_api::draw_indexed(const std::shared_ptr<vertex_array>& vertexArray, uint32_t indexCount)
-	{
-		uint32_t count = indexCount ? indexCount : vertexArray->GetIndexBuffer()->GetCount();
-		glDrawElements(GL_TRIANGLES, count, GL_UNSIGNED_INT, nullptr);
-
-		glBindTexture(GL_TEXTURE_2D, 0);
-	}
-
 }
