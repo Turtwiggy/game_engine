@@ -25,21 +25,27 @@ namespace fightinggame
         static const uint32_t MaxModels = 20;
 
         //shaders
-        Shader object_shader;
-        Shader light_shader;
-        Shader blur_shader;
-        Shader hdr_bloom_final_shader;
+        //Shader object_shader;
+        //Shader light_shader;
+        //Shader blur_shader;
+        //Shader hdr_bloom_final_shader;
         Shader lit_directional;
 
         //textures
         unsigned int wood_texture;
         unsigned int second_texture;
 
-        //hdr + bloom buffers
-        unsigned int hdr_fbo;
-        std::array<unsigned int, 2> hdr_colour_buffers;
-        std::array<unsigned int, 2> pingpong_fbo;
-        std::array<unsigned int, 2> pingpong_colour_buffers;
+        ////hdr + bloom buffers
+        //unsigned int hdr_fbo;
+        //std::array<unsigned int, 2> hdr_colour_buffers;
+        //std::array<unsigned int, 2> pingpong_fbo;
+        //std::array<unsigned int, 2> pingpong_colour_buffers;
+
+        //RayTracing
+        unsigned int fbo;
+        unsigned int fbo_colour_buffer;
+        Shader compute_shader;
+        Shader quad_shader;
 
         std::vector<glm::vec3> light_positions;
         std::vector<glm::vec3> light_colours;
@@ -101,11 +107,10 @@ namespace fightinggame
 
         // build and compile shaders
         // -------------------------
-        s_Data.object_shader = Shader("assets/shaders/blinn-phong/lit.vert", "assets/shaders/blinn-phong/lit.frag");
-        s_Data.light_shader = Shader("assets/shaders/blinn-phong/lit.vert", "assets/shaders/blinn-phong/lit_box.frag");
-        s_Data.blur_shader = Shader("assets/shaders/blur.vert", "assets/shaders/blur.frag");
-        s_Data.hdr_bloom_final_shader = Shader("assets/shaders/bloom_final.vert", "assets/shaders/bloom_final.frag");
-
+        //s_Data.object_shader = Shader("assets/shaders/blinn-phong/lit.vert", "assets/shaders/blinn-phong/lit.frag");
+        //s_Data.light_shader = Shader("assets/shaders/blinn-phong/lit.vert", "assets/shaders/blinn-phong/lit_box.frag");
+        //s_Data.blur_shader = Shader("assets/shaders/blur.vert", "assets/shaders/blur.frag");
+        //s_Data.hdr_bloom_final_shader = Shader("assets/shaders/bloom_final.vert", "assets/shaders/bloom_final.frag");
         s_Data.lit_directional = Shader("assets/shaders/blinn-phong/lit.vert", "assets/shaders/blinn-phong/lit_directional.frag");
 
         // load textures
@@ -140,17 +145,26 @@ namespace fightinggame
 
         // A ray tracing compute shader
         // ----------------------------
-        unsigned int compute_shader;
+        const char* compute_shader_path = "assets/shaders/raytraced/compute/example.glslcs";
+        Shader compute_shader = Shader(compute_shader_path);
 
         // A quad shader to render the full-screen quad VAO with the framebuffer as texture
         // --------------------------------------------------------------------------------
         Shader quad_shader = Shader("assets/shaders/raytraced/example.vert", "assets/shaders/raytraced/example.frag");
+        quad_shader.use();
+        quad_shader.setInt("tex", 0);
 
-        //vbo = quadFullScreenVbo();
-        //rayTracingProgram = createRayTracingProgram();
-        //initRayTracingProgram();
-        //quadProgram = createQuadProgram();
-        //initQuadProgram();
+        //link loaded resources to data
+        s_Data.fbo = fbo;
+        s_Data.fbo_colour_buffer = fbo_colour_buffer;
+        s_Data.compute_shader = compute_shader;
+        s_Data.quad_shader = quad_shader;
+
+        //Resources
+        //https://github.com/LWJGL/lwjgl3-wiki/wiki/2.6.1.-Ray-tracing-with-OpenGL-Compute-Shaders-%28Part-I%29
+        //https://raytracing.github.io/books/RayTracingInOneWeekend.html#thevec3class
+        //https://github.com/LWJGL/lwjgl3-demos/blob/master/src/org/lwjgl/demo/opengl/raytracing/tutorial/Tutorial1.java#L482
+        //https://github.com/LWJGL/lwjgl3-demos/tree/master/src/org/lwjgl/demo/opengl/raytracing
 
         // draw as wireframe
         //glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
@@ -166,6 +180,48 @@ namespace fightinggame
         window.GetSize(width, height);
         glm::mat4 view_projection = desc.camera.get_view_projection_matrix(width, height);
         glm::mat4 model = glm::mat4(1.0f);
+
+        //Raytracing
+        s_Data.compute_shader.use();
+
+        //Set viewing frustrum corner rays in shader
+        s_Data.compute_shader.setVec3("eye", desc.camera.Position);
+
+        //glm::vec3 eye_ray;
+        //eye_ray = desc.camera.get_eye_ray(-1, -1, eye_ray);
+        //s_Data.compute_shader.setVec3("ray00", desc.camera.Position);
+        //eye_ray = desc.camera.get_eye_ray(-1, 1, eye_ray);
+        //s_Data.compute_shader.setVec3("ray10", desc.camera.Position);
+        //eye_ray = desc.camera.get_eye_ray(1, -1, eye_ray);
+        //s_Data.compute_shader.setVec3("ray01", desc.camera.Position);
+        //eye_ray = desc.camera.get_eye_ray(1, 1, eye_ray);
+        //s_Data.compute_shader.setVec3("rau11", desc.camera.Position);
+
+        ///* Bind level 0 of framebuffer texture as writable image in the shader. */
+        //glBindImageTexture(0, tex, 0, false, 0, GL_WRITE_ONLY, GL_RGBA32F);
+
+        ///* Compute appropriate invocation dimension. */
+        //int worksizeX = Util.nextPowerOfTwo(width);
+        //int worksizeY = Util.nextPowerOfTwo(height);
+
+        ///* Invoke the compute shader. */
+        //glDispatchCompute(worksizeX / workGroupSizeX, worksizeY / workGroupSizeY, 1);
+
+        // Reset image binding. 
+        //glBindImageTexture(0, 0, 0, false, 0, GL_READ_WRITE, GL_RGBA32F);
+        //glMemoryBarrier(GL_SHADER_IMAGE_ACCESS_BARRIER_BIT);
+        //glUseProgram(0);
+
+        // * Draw the rendered image on the screen using textured full-screen
+        // * quad.
+        //glUseProgram(quadProgram);
+        //glBindVertexArray(vao);
+        //glBindTexture(GL_TEXTURE_2D, tex);
+        //glDrawArrays(GL_TRIANGLES, 0, 6);
+        //glBindTexture(GL_TEXTURE_2D, 0);
+        //glBindVertexArray(0);
+        //glUseProgram(0);
+
 
 
         //Render a directionally lit cube
