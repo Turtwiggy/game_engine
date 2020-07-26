@@ -105,9 +105,32 @@ namespace fightinggame {
 
         glm::mat4 get_view_projection_matrix(int width, int height) const
         {
-            glm::mat4 projection = glm::perspective(glm::radians(Zoom), (float)width / (float)height, 0.1f, 100.0f);
+            glm::mat4 projection = glm::perspective(glm::radians(Zoom), (float)width / (float)height, 0.001f, 100.0f);
             glm::mat4 view = get_view_matrix();
             return projection * view;
+        }
+
+        glm::mat4 get_inverse_projection_view_matrix(int width, int height)
+        {
+            glm::mat4 projection = glm::perspective(glm::radians(Zoom), (float)width / (float)height, 0.001f, 100.0f);
+            glm::mat4 view = get_view_matrix();
+            return glm::inverse(projection * view);
+        }
+
+        // Compute the world direction vector based on the given X and Y coordinates in normalized-device space
+        glm::vec3 get_eye_ray(float x, float y, float width, float height)
+        {
+            glm::vec4 temp(x, y, 0.0f, 1.0f);
+
+            glm::mat4 inverse_projection_view = get_inverse_projection_view_matrix(width, height);
+
+            glm::vec4 ray = inverse_projection_view * temp;
+            ray /= ray.w;
+            ray.x -= Position.x;
+            ray.y -= Position.y;
+            ray.z -= Position.z;
+
+            return glm::vec3(ray.x, ray.y, ray.z);
         }
 
         void process_users_input(InputManager& input_manager)

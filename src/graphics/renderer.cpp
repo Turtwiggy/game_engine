@@ -45,6 +45,8 @@ namespace fightinggame
         unsigned int fbo;
         unsigned int fbo_colour_buffer;
         Shader compute_shader;
+        unsigned int compute_shader_workgroup_x;
+        unsigned int compute_shader_workgroup_y;
         Shader quad_shader;
 
         std::vector<glm::vec3> light_positions;
@@ -100,6 +102,18 @@ namespace fightinggame
         return color_buffer_array;
     }
 
+    //http://bits.stephan-brumme.com/roundUpToNextPowerOfTwo.html
+    unsigned int next_power_of_two(unsigned int x)
+    {
+        x--;
+        x |= x >> 1;  // handle  2 bit numbers
+        x |= x >> 2;  // handle  4 bit numbers
+        x |= x >> 4;  // handle  8 bit numbers
+        x |= x >> 8;  // handle 16 bit numbers
+        x |= x >> 16; // handle 32 bit numbers
+        x++;
+        return x;
+    }
 
     void Renderer::init_renderer(int screen_width, int screen_height)
     {
@@ -118,12 +132,9 @@ namespace fightinggame
         s_Data.wood_texture = TextureFromFile("BambooWall_1K_albedo.jpg", "assets/textures/Bamboo", false);
         s_Data.second_texture = TextureFromFile("container.jpg", "assets/textures", false);
 
-
         // configure floating point framebuffer
         // ------------------------------------
-        unsigned int fbo;
-        glGenFramebuffers(1, &fbo);
-        glBindFramebuffer(GL_FRAMEBUFFER, fbo);
+        unsigned int fbo = hdr_fbo();
 
         // add a colour buffer to created fbo
         // ----------------------------------
@@ -131,7 +142,7 @@ namespace fightinggame
         glGenTextures(1, &fbo_colour_buffer);
         glBindTexture(GL_TEXTURE_2D, fbo_colour_buffer);
         //float buffer
-        glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA16F, screen_width, screen_height, 0, GL_RGBA, GL_FLOAT, NULL);
+        glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA32F, screen_width, screen_height, 0, GL_RGBA, GL_FLOAT, NULL);
         //unsigned_byte buffer
         //glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA16F, screen_width, screen_height, 0, GL_RGB, GL_UNSIGNED_BYTE, NULL);
         glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
@@ -140,13 +151,24 @@ namespace fightinggame
         glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
         // attach texture to framebuffer
         glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, fbo_colour_buffer, 0);
+        int status = glCheckFramebufferStatus(GL_FRAMEBUFFER);
+        if (status != GL_FRAMEBUFFER_COMPLETE)
+            std::cout << "!!!!!!!! Error creating framebuffer" << std::endl;;
+
         // bind back to default framebuffer
         glBindFramebuffer(GL_FRAMEBUFFER, 0);
 
         // A ray tracing compute shader
         // ----------------------------
-        const char* compute_shader_path = "assets/shaders/raytraced/compute/example.glslcs";
+        const char* compute_shader_path = "assets/shaders/raytraced/compute/example.glsl";
         Shader compute_shader = Shader(compute_shader_path);
+        compute_shader.use();
+
+        int workgroup_size[3];
+        glGetProgramiv(compute_shader.ID, GL_COMPUTE_WORK_GROUP_SIZE, workgroup_size);
+        unsigned int work_group_size_x = workgroup_size[0];
+        unsigned int work_group_size_y = workgroup_size[1];
+        unsigned int work_group_size_z = workgroup_size[2];
 
         // A quad shader to render the full-screen quad VAO with the framebuffer as texture
         // --------------------------------------------------------------------------------
@@ -158,6 +180,8 @@ namespace fightinggame
         s_Data.fbo = fbo;
         s_Data.fbo_colour_buffer = fbo_colour_buffer;
         s_Data.compute_shader = compute_shader;
+        s_Data.compute_shader_workgroup_x = work_group_size_x;
+        s_Data.compute_shader_workgroup_y = work_group_size_y;
         s_Data.quad_shader = quad_shader;
 
         //Resources
@@ -172,84 +196,111 @@ namespace fightinggame
 
     void Renderer::draw_pass(draw_scene_desc& desc, GameState state)
     {
-        RenderCommand::set_clear_colour(glm::vec4(0.2f, 0.3f, 0.3f, 1.0f));
-        RenderCommand::clear();
-
         int width, height = 0;
         GameWindow& window = desc.window;
         window.GetSize(width, height);
         glm::mat4 view_projection = desc.camera.get_view_projection_matrix(width, height);
         glm::mat4 model = glm::mat4(1.0f);
 
+        // 1. render scene into floating point framebuffer for ray tracing
+        // ---------------------------------------------------------------
+        glBindFramebuffer(GL_FRAMEBUFFER, s_Data.fbo);
+        glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+
         //Raytracing
         s_Data.compute_shader.use();
 
         //Set viewing frustrum corner rays in shader
         s_Data.compute_shader.setVec3("eye", desc.camera.Position);
+        glm::vec3 eye_ray;
+        eye_ray = desc.camera.get_eye_ray(-1, -1, width, height);
+        s_Data.compute_shader.setVec3("ray00", eye_ray);
+        eye_ray = desc.camera.get_eye_ray(-1, 1, width, height);
+        s_Data.compute_shader.setVec3("ray01", eye_ray);
+        eye_ray = desc.camera.get_eye_ray(1, -1, width, height);
+        s_Data.compute_shader.setVec3("ray10", eye_ray);
+        eye_ray = desc.camera.get_eye_ray(1, 1, width, height);
+        s_Data.compute_shader.setVec3("ray11", eye_ray);
 
-        //glm::vec3 eye_ray;
-        //eye_ray = desc.camera.get_eye_ray(-1, -1, eye_ray);
-        //s_Data.compute_shader.setVec3("ray00", desc.camera.Position);
-        //eye_ray = desc.camera.get_eye_ray(-1, 1, eye_ray);
-        //s_Data.compute_shader.setVec3("ray10", desc.camera.Position);
-        //eye_ray = desc.camera.get_eye_ray(1, -1, eye_ray);
-        //s_Data.compute_shader.setVec3("ray01", desc.camera.Position);
-        //eye_ray = desc.camera.get_eye_ray(1, 1, eye_ray);
-        //s_Data.compute_shader.setVec3("rau11", desc.camera.Position);
+        //int loc = glGetUniformLocation(s_Data.compute_shader.ID, "framebuffer");
+        //int params[1];
+        //glGetUniformiv(s_Data.compute_shader.ID, loc, params);
+        //int fbo_image_binding = params[0];
 
-        ///* Bind level 0 of framebuffer texture as writable image in the shader. */
-        //glBindImageTexture(0, tex, 0, false, 0, GL_WRITE_ONLY, GL_RGBA32F);
+        // Bind level 0 of framebuffer texture as writable image in the shader.
+        // It introduces a new image binding point in OpenGL that a shader uses to
+        // read and write a single level of a texture and that we will bind the first
+        // level of our framebuffer texture to.
+        glBindImageTexture(0, s_Data.fbo_colour_buffer, 0, false, 0, GL_WRITE_ONLY, GL_RGBA32F);
 
-        ///* Compute appropriate invocation dimension. */
-        //int worksizeX = Util.nextPowerOfTwo(width);
-        //int worksizeY = Util.nextPowerOfTwo(height);
+        // Compute appropriate invocation dimension
+        int worksizeX = next_power_of_two(width);
+        int worksizeY = next_power_of_two(height);
 
-        ///* Invoke the compute shader. */
-        //glDispatchCompute(worksizeX / workGroupSizeX, worksizeY / workGroupSizeY, 1);
+        if (s_Data.compute_shader_workgroup_x == 0 || s_Data.compute_shader_workgroup_y == 0)
+        {
+            std::cout << "failed to load your compute shader!";
+            return;
+        }
+
+        /* Invoke the compute shader. */
+        // This function takes as argument the number of work groups in each of the
+        // three possible dimensions. The number of work groups is NOT the number of
+        // global work items in each dimension, but is divided by the work group size
+        // that the shader specified in that layout declaration.
+        glDispatchCompute(
+            worksizeX / s_Data.compute_shader_workgroup_x,
+            worksizeY / s_Data.compute_shader_workgroup_y
+            , 1);
+
+        /*
+          * Synchronize all writes to the framebuffer image before we let OpenGL source
+          * texels from it afterwards when rendering the final image with the full-screen quad.
+        */
+        glMemoryBarrier(GL_SHADER_IMAGE_ACCESS_BARRIER_BIT);
 
         // Reset image binding. 
-        //glBindImageTexture(0, 0, 0, false, 0, GL_READ_WRITE, GL_RGBA32F);
-        //glMemoryBarrier(GL_SHADER_IMAGE_ACCESS_BARRIER_BIT);
-        //glUseProgram(0);
+        glBindImageTexture(0, 0, 0, false, 0, GL_READ_WRITE, GL_RGBA32F);
+        glUseProgram(0);
 
-        // * Draw the rendered image on the screen using textured full-screen
-        // * quad.
-        //glUseProgram(quadProgram);
-        //glBindVertexArray(vao);
-        //glBindTexture(GL_TEXTURE_2D, tex);
-        //glDrawArrays(GL_TRIANGLES, 0, 6);
-        //glBindTexture(GL_TEXTURE_2D, 0);
-        //glBindVertexArray(0);
-        //glUseProgram(0);
+        // Normal drawing pass
+        // -------------------
+        glBindFramebuffer(GL_FRAMEBUFFER, 0);
+        RenderCommand::set_clear_colour(glm::vec4(0.2f, 0.3f, 0.3f, 1.0f));
+        //RenderCommand::clear();
+        glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
+        s_Data.quad_shader.use();
+        glActiveTexture(GL_TEXTURE0);
+        glBindTexture(GL_TEXTURE_2D, s_Data.fbo_colour_buffer);
+        renderQuad();
 
+        ////Render a directionally lit cube
+        //{
+        //    s_Data.lit_directional.use();
+        //    s_Data.lit_directional.setMat4("view_projection", view_projection);
+        //    s_Data.lit_directional.setVec3("viewPos", desc.camera.Position);
+        //    //cube's material properties
+        //    glm::vec3 ambient_colour_3 = glm::vec3(0.3, 0.3, 0.3);
+        //    glm::vec3 diffuse_colour_3 = ambient_colour_3 * 0.2f;
+        //    s_Data.lit_directional.setVec3("material.ambient", ambient_colour_3);
+        //    s_Data.lit_directional.setVec3("material.diffuse", diffuse_colour_3);
+        //    s_Data.lit_directional.setVec3("material.specular", glm::vec3(0.5f, 0.5f, 0.5f));
+        //    s_Data.lit_directional.setFloat("material.shininess", 32.0f);
+        //    //flat lighting
+        //    glm::vec3 light_direction = glm::vec3(-0.2, -1.0, -0.3);
+        //    s_Data.lit_directional.setVec3("light.direction", light_direction);
+        //    s_Data.lit_directional.setVec3("light.ambient", glm::vec3(0.2, 0.2, 0.2));
+        //    s_Data.lit_directional.setVec3("light.diffuse", glm::vec3(0.5, 0.5, 0.5)); // darken diffuse light a bit
+        //    s_Data.lit_directional.setVec3("light.specular", glm::vec3(1.0, 1.0, 1.0));
 
-        //Render a directionally lit cube
-        {
-            s_Data.lit_directional.use();
-            s_Data.lit_directional.setMat4("view_projection", view_projection);
-            s_Data.lit_directional.setVec3("viewPos", desc.camera.Position);
-            //cube's material properties
-            glm::vec3 ambient_colour_3 = glm::vec3(0.3, 0.3, 0.3);
-            glm::vec3 diffuse_colour_3 = ambient_colour_3 * 0.2f;
-            s_Data.lit_directional.setVec3("material.ambient", ambient_colour_3);
-            s_Data.lit_directional.setVec3("material.diffuse", diffuse_colour_3);
-            s_Data.lit_directional.setVec3("material.specular", glm::vec3(0.5f, 0.5f, 0.5f));
-            s_Data.lit_directional.setFloat("material.shininess", 32.0f);
-            //flat lighting
-            glm::vec3 light_direction = glm::vec3(-0.2, -1.0, -0.3);
-            s_Data.lit_directional.setVec3("light.direction", light_direction);
-            s_Data.lit_directional.setVec3("light.ambient", glm::vec3(0.2, 0.2, 0.2));
-            s_Data.lit_directional.setVec3("light.diffuse", glm::vec3(0.5, 0.5, 0.5)); // darken diffuse light a bit
-            s_Data.lit_directional.setVec3("light.specular", glm::vec3(1.0, 1.0, 1.0));
+        //    model = glm::mat4(1.0f);
+        //    model = glm::translate(model, glm::vec3(0.0f, 0.0f, 0.0));
+        //    model = glm::scale(model, glm::vec3(1.0f));
+        //    s_Data.lit_directional.setMat4("model", model);
 
-            model = glm::mat4(1.0f);
-            model = glm::translate(model, glm::vec3(0.0f, 0.0f, 0.0));
-            model = glm::scale(model, glm::vec3(1.0f));
-            s_Data.lit_directional.setMat4("model", model);
-
-            renderCube(s_Data.stats.DrawCalls);
-        }
+        //    renderCube(s_Data.stats.DrawCalls);
+        //}
 
         //Cornell
        //{

@@ -82,39 +82,39 @@ void Game::tick(float delta_time_in_seconds, GameState& state, float timer, Inpu
 {
     //printf("ticking state, delta_time: %f \n", delta_time_in_seconds);
 
-    std::shared_ptr<FGObject> cube0 = state.cubes[0];
-    cube0->transform.Position.x = 5.0f + glm::sin(timer);
-    cube0->transform.Position.y = 0.0f;
-    cube0->transform.Position.z = 5.0f + glm::cos(timer);
+    //std::shared_ptr<FGObject> cube0 = state.cubes[0];
+    //cube0->transform.Position.x = 5.0f + glm::sin(timer);
+    //cube0->transform.Position.y = 0.0f;
+    //cube0->transform.Position.z = 5.0f + glm::cos(timer);
 
-    const float pi = 3.14;
-    const float frequency = 0.3f; // Frequency in Hz
-    float bouncy_val = 0.5 * (1.0 + sin(2.0 * pi * frequency * timer));
+    //const float pi = 3.14;
+    //const float frequency = 0.3f; // Frequency in Hz
+    //float bouncy_val = 0.5 * (1.0 + sin(2.0 * pi * frequency * timer));
 
-    cube0->transform.Scale.x = glm::max(0.3f, bouncy_val);
-    cube0->transform.Scale.y = 1.0f;
-    cube0->transform.Scale.z = glm::max(0.3f, bouncy_val);
-    //printf("cube pos: %f %f %f", state.cube_pos.x, state.cube_pos.y, state.cube_pos.z);
-    //printf("lerp sin_val: %f x: %f z: %f \n ", bouncy_val);
+    //cube0->transform.Scale.x = glm::max(0.3f, bouncy_val);
+    //cube0->transform.Scale.y = 1.0f;
+    //cube0->transform.Scale.z = glm::max(0.3f, bouncy_val);
+    ////printf("cube pos: %f %f %f", state.cube_pos.x, state.cube_pos.y, state.cube_pos.z);
+    ////printf("lerp sin_val: %f x: %f z: %f \n ", bouncy_val);
 
-    //Player Cube
-    std::shared_ptr<FGObject> player_cube = state.player;
-    if (input_manager.get_key_held(SDLK_UP))
-    {
-        player_cube->transform.Position.z += 1.0f * delta_time_in_seconds;
-    }
-    if (input_manager.get_key_held(SDLK_DOWN))
-    {
-        player_cube->transform.Position.z -= 1.0f * delta_time_in_seconds;
-    }
-    if (input_manager.get_key_held(SDLK_LEFT))
-    {
-        player_cube->transform.Position.x -= 1.0f * delta_time_in_seconds;
-    }
-    if (input_manager.get_key_held(SDLK_RIGHT))
-    {
-        player_cube->transform.Position.x += 1.0f * delta_time_in_seconds;
-    }
+    ////Player Cube
+    //std::shared_ptr<FGObject> player_cube = state.player;
+    //if (input_manager.get_key_held(SDLK_UP))
+    //{
+    //    player_cube->transform.Position.z += 1.0f * delta_time_in_seconds;
+    //}
+    //if (input_manager.get_key_held(SDLK_DOWN))
+    //{
+    //    player_cube->transform.Position.z -= 1.0f * delta_time_in_seconds;
+    //}
+    //if (input_manager.get_key_held(SDLK_LEFT))
+    //{
+    //    player_cube->transform.Position.x -= 1.0f * delta_time_in_seconds;
+    //}
+    //if (input_manager.get_key_held(SDLK_RIGHT))
+    //{
+    //    player_cube->transform.Position.x += 1.0f * delta_time_in_seconds;
+    //}
 
     //Camera
     //------
@@ -221,53 +221,53 @@ void Game::run()
     ModelManager model_manager;
     printf("ModelManager taking up: %s bytes \n", std::to_string(sizeof(model_manager)).c_str());
 
-    //Model: Cornel Box
-    std::shared_ptr cornel_model = model_manager.load_model("assets/models/cornell_box/CornellBox-Original.obj", "cornell_box");
-    FGObject cornel_box = FGObject(cornel_model);
+    ////Model: Cornel Box
+    //std::shared_ptr cornel_model = model_manager.load_model("assets/models/cornell_box/CornellBox-Original.obj", "cornell_box");
+    //FGObject cornel_box = FGObject(cornel_model);
 
-    //Model: Cube
-    std::shared_ptr cube_model = model_manager.load_model("assets/models/lizard_wizard/lizard_wizard.obj", "lizard_wizard");
-    //Cube Objects
-    FGObject cube_object = FGObject(cube_model);
-    cube_object.transform.Position = glm::vec3(0.0f, 0.0f, 0.0f);
-    FGObject cube_object2 = FGObject(cube_model);
-    cube_object2.transform.Position = glm::vec3(2.0f, 5.0f, -15.0f);
-    FGObject cube_object3 = FGObject(cube_model);
-    cube_object3.transform.Position = glm::vec3(-1.5f, -2.2f, -2.5f);
-    FGObject cube_object4 = FGObject(cube_model);
-    cube_object4.transform.Position = glm::vec3(-3.8f, -2.0f, -12.3f);
-    FGObject cube_object5 = FGObject(cube_model);
-    cube_object5.transform.Position = glm::vec3(2.4f, -0.4f, -3.5f);
-    FGObject cube_object6 = FGObject(cube_model);
-    cube_object6.transform.Position = glm::vec3(-1.7f, 3.0f, -7.5f);
+    ////Model: Cube
+    //std::shared_ptr cube_model = model_manager.load_model("assets/models/lizard_wizard/lizard_wizard.obj", "lizard_wizard");
+    ////Cube Objects
+    //FGObject cube_object = FGObject(cube_model);
+    //cube_object.transform.Position = glm::vec3(0.0f, 0.0f, 0.0f);
+    //FGObject cube_object2 = FGObject(cube_model);
+    //cube_object2.transform.Position = glm::vec3(2.0f, 5.0f, -15.0f);
+    //FGObject cube_object3 = FGObject(cube_model);
+    //cube_object3.transform.Position = glm::vec3(-1.5f, -2.2f, -2.5f);
+    //FGObject cube_object4 = FGObject(cube_model);
+    //cube_object4.transform.Position = glm::vec3(-3.8f, -2.0f, -12.3f);
+    //FGObject cube_object5 = FGObject(cube_model);
+    //cube_object5.transform.Position = glm::vec3(2.4f, -0.4f, -3.5f);
+    //FGObject cube_object6 = FGObject(cube_model);
+    //cube_object6.transform.Position = glm::vec3(-1.7f, 3.0f, -7.5f);
 
-    //Player Object
-    FGObject player_object = FGObject(cube_model);
-    player_object.transform.Position = glm::vec3(-5.0f, 0.5f, -5.0f);
+    ////Player Object
+    //FGObject player_object = FGObject(cube_model);
+    //player_object.transform.Position = glm::vec3(-5.0f, 0.5f, -5.0f);
 
-    std::vector<std::shared_ptr<FGObject>> cubes;
-    cubes.push_back(std::make_shared<FGObject>(cube_object));
-    cubes.push_back(std::make_shared<FGObject>(cube_object2));
-    cubes.push_back(std::make_shared<FGObject>(cube_object3));
-    cubes.push_back(std::make_shared<FGObject>(cube_object4));
-    cubes.push_back(std::make_shared<FGObject>(cube_object5));
-    cubes.push_back(std::make_shared<FGObject>(cube_object6));
+    //std::vector<std::shared_ptr<FGObject>> cubes;
+    //cubes.push_back(std::make_shared<FGObject>(cube_object));
+    //cubes.push_back(std::make_shared<FGObject>(cube_object2));
+    //cubes.push_back(std::make_shared<FGObject>(cube_object3));
+    //cubes.push_back(std::make_shared<FGObject>(cube_object4));
+    //cubes.push_back(std::make_shared<FGObject>(cube_object5));
+    //cubes.push_back(std::make_shared<FGObject>(cube_object6));
 
-    // Procedural terrain
-    std::vector<Texture2D> textures;
-    Terrain terrain = Terrain(-5, -5, textures);
-    std::shared_ptr terrain_mesh = terrain.get_mesh();
-    FGModel tm = FGModel(terrain_mesh, "Procedural Terrain");
-    std::shared_ptr terrain_model = std::make_shared<FGModel>(tm);
-    FGObject terrain_object = FGObject(terrain_model);
+    //// Procedural terrain
+    //std::vector<Texture2D> textures;
+    //Terrain terrain = Terrain(-5, -5, textures);
+    //std::shared_ptr terrain_mesh = terrain.get_mesh();
+    //FGModel tm = FGModel(terrain_mesh, "Procedural Terrain");
+    //std::shared_ptr terrain_model = std::make_shared<FGModel>(tm);
+    //FGObject terrain_object = FGObject(terrain_model);
 
     // Game State
     // ----------
     GameState state_current = GameState(
-        cubes,
-        std::make_shared<FGObject>(terrain_object),
-        std::make_shared<FGObject>(player_object),
-        std::make_shared<FGObject>(cornel_box)
+        //cubes,
+        //std::make_shared<FGObject>(terrain_object),
+        //std::make_shared<FGObject>(player_object),
+        //std::make_shared<FGObject>(cornel_box)
     );
 
     //ImGui

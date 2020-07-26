@@ -51,6 +51,7 @@ public:
         std::vector<unsigned int> shaders;
 
         unsigned int compute_id = load_shader(computePath, GL_COMPUTE_SHADER, "COMPUTE");
+        shaders.push_back(compute_id);
 
         attach_shaders_to_program(shaders);
     }
@@ -85,6 +86,7 @@ public:
                 std::cout << "ERROR::SHADER::FILE_NOT_SUCCESFULLY_READ" << std::endl;
             }
         }
+
         const char* csCode = code.c_str();
         shader_id = glCreateShader(gl_shader_type);
         glShaderSource(shader_id, 1, &csCode, NULL);
@@ -104,7 +106,7 @@ public:
         }
 
         glLinkProgram(ID);
-        Shader::check_compile_errors(ID, "PROGRAM");
+        check_compile_errors(ID, "PROGRAM");
 
         for (unsigned int& a : shaders)
         {
@@ -199,7 +201,8 @@ public:
             if (!success)
             {
                 glGetProgramInfoLog(shader, 1024, NULL, infoLog);
-                std::cout << "ERROR::PROGRAM_LINKING_ERROR of type: " << type << "\n" << infoLog << "\n -- --------------------------------------------------- -- " << std::endl;
+                std::cout << "ERROR::PROGRAM_LINKING_ERROR of type: " << type << "\n"
+                    << infoLog << "\n -- --------------------------------------------------- -- " << std::endl;
             }
         }
     }
