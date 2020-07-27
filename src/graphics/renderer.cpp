@@ -29,7 +29,7 @@ namespace fightinggame
         //Shader light_shader;
         //Shader blur_shader;
         //Shader hdr_bloom_final_shader;
-        Shader lit_directional;
+        //Shader lit_directional;
 
         //textures
         unsigned int wood_texture;
@@ -41,13 +41,17 @@ namespace fightinggame
         //std::array<unsigned int, 2> pingpong_fbo;
         //std::array<unsigned int, 2> pingpong_colour_buffers;
 
+        //Geometry pass
+        unsigned int g_buffer;
+        unsigned int  g_position, g_normal, g_albedo_spec;
+        Shader geometry_shader;
+
         //RayTracing
-        unsigned int fbo;
-        unsigned int fbo_colour_buffer;
         Shader compute_shader;
         unsigned int compute_shader_workgroup_x;
         unsigned int compute_shader_workgroup_y;
         Shader quad_shader;
+
 
         std::vector<glm::vec3> light_positions;
         std::vector<glm::vec3> light_colours;
@@ -117,50 +121,80 @@ namespace fightinggame
 
     void Renderer::init_renderer(int screen_width, int screen_height)
     {
-        //glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);  // uncomment this call to draw in wireframe polygons.
-
         // build and compile shaders
         // -------------------------
         //s_Data.object_shader = Shader("assets/shaders/blinn-phong/lit.vert", "assets/shaders/blinn-phong/lit.frag");
         //s_Data.light_shader = Shader("assets/shaders/blinn-phong/lit.vert", "assets/shaders/blinn-phong/lit_box.frag");
         //s_Data.blur_shader = Shader("assets/shaders/blur.vert", "assets/shaders/blur.frag");
         //s_Data.hdr_bloom_final_shader = Shader("assets/shaders/bloom_final.vert", "assets/shaders/bloom_final.frag");
-        s_Data.lit_directional = Shader("assets/shaders/blinn-phong/lit.vert", "assets/shaders/blinn-phong/lit_directional.frag");
+        //s_Data.lit_directional = Shader("assets/shaders/blinn-phong/lit.vert", "assets/shaders/blinn-phong/lit_directional.frag");
 
         // load textures
         // -------------
         s_Data.wood_texture = TextureFromFile("BambooWall_1K_albedo.jpg", "assets/textures/Bamboo", false);
         s_Data.second_texture = TextureFromFile("container.jpg", "assets/textures", false);
 
-        // configure floating point framebuffer
-        // ------------------------------------
-        unsigned int fbo = hdr_fbo();
+        // A quad shader to render the full-screen quad VAO with the framebuffer as texture
+        // --------------------------------------------------------------------------------
+        Shader quad_shader = Shader("assets/shaders/raytraced/example.vert", "assets/shaders/raytraced/example.frag");
+        quad_shader.use();
+        quad_shader.setInt("tex", 0);
+        s_Data.quad_shader = quad_shader;
 
-        // add a colour buffer to created fbo
-        // ----------------------------------
-        unsigned int fbo_colour_buffer;
-        glGenTextures(1, &fbo_colour_buffer);
-        glBindTexture(GL_TEXTURE_2D, fbo_colour_buffer);
-        //float buffer
-        glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA32F, screen_width, screen_height, 0, GL_RGBA, GL_FLOAT, NULL);
-        //unsigned_byte buffer
-        //glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA16F, screen_width, screen_height, 0, GL_RGB, GL_UNSIGNED_BYTE, NULL);
-        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
-        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
-        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);  // we clamp to the edge as the blur filter would otherwise sample repeated texture values!
-        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
-        // attach texture to framebuffer
-        glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, fbo_colour_buffer, 0);
-        int status = glCheckFramebufferStatus(GL_FRAMEBUFFER);
-        if (status != GL_FRAMEBUFFER_COMPLETE)
-            std::cout << "!!!!!!!! Error creating framebuffer" << std::endl;;
+        Shader geometry_shader = Shader("assets/shaders/raytraced/geometry.vert", "assets/shaders/raytraced/geometry.frag");
+        geometry_shader.use();
+        s_Data.geometry_shader = geometry_shader;
 
-        // bind back to default framebuffer
+        // configure g-buffer framebuffer
+        // ------------------------------
+        unsigned int gBuffer;
+        glGenFramebuffers(1, &gBuffer);
+        glBindFramebuffer(GL_FRAMEBUFFER, gBuffer);
+        unsigned int gPosition, gNormal, gAlbedoSpec;
+        // position color buffer
+        glGenTextures(1, &gPosition);
+        glBindTexture(GL_TEXTURE_2D, gPosition);
+        glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA16F, screen_width, screen_height, 0, GL_RGBA, GL_FLOAT, NULL);
+        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
+        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
+        glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, gPosition, 0);
+        // normal color buffer
+        glGenTextures(1, &gNormal);
+        glBindTexture(GL_TEXTURE_2D, gNormal);
+        glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA16F, screen_width, screen_height, 0, GL_RGBA, GL_FLOAT, NULL);
+        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
+        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
+        glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT1, GL_TEXTURE_2D, gNormal, 0);
+        // color + specular color buffer
+        glGenTextures(1, &gAlbedoSpec);
+        glBindTexture(GL_TEXTURE_2D, gAlbedoSpec);
+        glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA16F, screen_width, screen_height, 0, GL_RGBA, GL_FLOAT, NULL);
+        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
+        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
+        glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT2, GL_TEXTURE_2D, gAlbedoSpec, 0);
+        // tell OpenGL which color attachments we'll use (of this framebuffer) for rendering 
+        unsigned int attachments[3] = { GL_COLOR_ATTACHMENT0, GL_COLOR_ATTACHMENT1, GL_COLOR_ATTACHMENT2 };
+        glDrawBuffers(3, attachments);
+        // create and attach depth buffer (renderbuffer)
+        unsigned int rboDepth;
+        glGenRenderbuffers(1, &rboDepth);
+        glBindRenderbuffer(GL_RENDERBUFFER, rboDepth);
+        glRenderbufferStorage(GL_RENDERBUFFER, GL_DEPTH_COMPONENT, screen_width, screen_height);
+        glFramebufferRenderbuffer(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, GL_RENDERBUFFER, rboDepth);
+        // finally check if framebuffer is complete
+        if (glCheckFramebufferStatus(GL_FRAMEBUFFER) != GL_FRAMEBUFFER_COMPLETE)
+            std::cout << "Framebuffer not complete!" << std::endl;
         glBindFramebuffer(GL_FRAMEBUFFER, 0);
+
+        //link geometry data
+        s_Data.g_buffer = gBuffer;
+        s_Data.g_position = gPosition;
+        s_Data.g_normal = gNormal;
+        s_Data.g_albedo_spec = gAlbedoSpec;
 
         // A ray tracing compute shader
         // ----------------------------
-        const char* compute_shader_path = "assets/shaders/raytraced/compute/example.glsl";
+        const char* compute_shader_path = "assets/shaders/raytraced/compute/raytraced.glsl";
         Shader compute_shader = Shader(compute_shader_path);
         compute_shader.use();
 
@@ -169,20 +203,12 @@ namespace fightinggame
         unsigned int work_group_size_x = workgroup_size[0];
         unsigned int work_group_size_y = workgroup_size[1];
         unsigned int work_group_size_z = workgroup_size[2];
-
-        // A quad shader to render the full-screen quad VAO with the framebuffer as texture
-        // --------------------------------------------------------------------------------
-        Shader quad_shader = Shader("assets/shaders/raytraced/example.vert", "assets/shaders/raytraced/example.frag");
-        quad_shader.use();
-        quad_shader.setInt("tex", 0);
-
-        //link loaded resources to data
-        s_Data.fbo = fbo;
-        s_Data.fbo_colour_buffer = fbo_colour_buffer;
+        //link raytracing data
+        //s_Data.fbo = fbo;
+        //s_Data.fbo_colour_buffer = fbo_colour_buffer;
         s_Data.compute_shader = compute_shader;
         s_Data.compute_shader_workgroup_x = work_group_size_x;
         s_Data.compute_shader_workgroup_y = work_group_size_y;
-        s_Data.quad_shader = quad_shader;
 
         //Resources
         //https://github.com/LWJGL/lwjgl3-wiki/wiki/2.6.1.-Ray-tracing-with-OpenGL-Compute-Shaders-%28Part-I%29
@@ -200,14 +226,33 @@ namespace fightinggame
         GameWindow& window = desc.window;
         window.GetSize(width, height);
         glm::mat4 view_projection = desc.camera.get_view_projection_matrix(width, height);
-        glm::mat4 model = glm::mat4(1.0f);
 
-        // 1. render scene into floating point framebuffer for ray tracing
-        // ---------------------------------------------------------------
-        glBindFramebuffer(GL_FRAMEBUFFER, s_Data.fbo);
+        // 1. geometry pass: render scene's geometry/color data into gbuffer
+        // -----------------------------------------------------------------
+        glBindFramebuffer(GL_FRAMEBUFFER, s_Data.g_buffer);
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
-        //Raytracing
+        //Render a cube
+        {
+            s_Data.geometry_shader.use();
+            s_Data.geometry_shader.setMat4("view_projection", view_projection);
+
+            //either this or textures
+            s_Data.geometry_shader.setVec3("diffuse", glm::vec3(1.0f, 0.0f, 0.0f));
+            s_Data.geometry_shader.setFloat("specular", 1.0f);
+
+            glm::mat4 model = glm::mat4(1.0f);
+            model = glm::translate(model, glm::vec3(0.0f, 0.0f, 0.0));
+            model = glm::scale(model, glm::vec3(1.0f));
+            s_Data.geometry_shader.setMat4("model", model);
+
+            renderCube(s_Data.stats.DrawCalls);
+        }
+        glBindFramebuffer(GL_FRAMEBUFFER, 0);
+
+        // 2. Lighting pass: Raytracing
+        // ------------------------
+        glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
         s_Data.compute_shader.use();
 
         //Set viewing frustrum corner rays in shader
@@ -222,21 +267,20 @@ namespace fightinggame
         eye_ray = desc.camera.get_eye_ray(1, 1, width, height);
         s_Data.compute_shader.setVec3("ray11", eye_ray);
 
-        //int loc = glGetUniformLocation(s_Data.compute_shader.ID, "framebuffer");
-        //int params[1];
-        //glGetUniformiv(s_Data.compute_shader.ID, loc, params);
-        //int fbo_image_binding = params[0];
+        int loc = glGetUniformLocation(s_Data.compute_shader.ID, "albedoSpecData");
+        int params[1];
+        glGetUniformiv(s_Data.compute_shader.ID, loc, params);
+        int albedo_spec_binding = params[0];
 
         // Bind level 0 of framebuffer texture as writable image in the shader.
         // It introduces a new image binding point in OpenGL that a shader uses to
         // read and write a single level of a texture and that we will bind the first
         // level of our framebuffer texture to.
-        glBindImageTexture(0, s_Data.fbo_colour_buffer, 0, false, 0, GL_WRITE_ONLY, GL_RGBA32F);
+        glBindImageTexture(albedo_spec_binding, s_Data.g_albedo_spec, 0, false, 0, GL_READ_WRITE, GL_RGBA16F);
 
         // Compute appropriate invocation dimension
         int worksizeX = next_power_of_two(width);
         int worksizeY = next_power_of_two(height);
-
         if (s_Data.compute_shader_workgroup_x == 0 || s_Data.compute_shader_workgroup_y == 0)
         {
             std::cout << "failed to load your compute shader!";
@@ -253,54 +297,23 @@ namespace fightinggame
             worksizeY / s_Data.compute_shader_workgroup_y
             , 1);
 
-        /*
-          * Synchronize all writes to the framebuffer image before we let OpenGL source
-          * texels from it afterwards when rendering the final image with the full-screen quad.
-        */
+        //Synchronize all writes to the framebuffer image
         glMemoryBarrier(GL_SHADER_IMAGE_ACCESS_BARRIER_BIT);
 
         // Reset image binding. 
-        glBindImageTexture(0, 0, 0, false, 0, GL_READ_WRITE, GL_RGBA32F);
+        glBindImageTexture(albedo_spec_binding, 0, 0, false, 0, GL_READ_WRITE, GL_RGBA32F);
         glUseProgram(0);
 
         // Normal drawing pass
         // -------------------
         glBindFramebuffer(GL_FRAMEBUFFER, 0);
         RenderCommand::set_clear_colour(glm::vec4(0.2f, 0.3f, 0.3f, 1.0f));
-        //RenderCommand::clear();
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
         s_Data.quad_shader.use();
         glActiveTexture(GL_TEXTURE0);
-        glBindTexture(GL_TEXTURE_2D, s_Data.fbo_colour_buffer);
+        glBindTexture(GL_TEXTURE_2D, s_Data.g_albedo_spec);
         renderQuad();
-
-        ////Render a directionally lit cube
-        //{
-        //    s_Data.lit_directional.use();
-        //    s_Data.lit_directional.setMat4("view_projection", view_projection);
-        //    s_Data.lit_directional.setVec3("viewPos", desc.camera.Position);
-        //    //cube's material properties
-        //    glm::vec3 ambient_colour_3 = glm::vec3(0.3, 0.3, 0.3);
-        //    glm::vec3 diffuse_colour_3 = ambient_colour_3 * 0.2f;
-        //    s_Data.lit_directional.setVec3("material.ambient", ambient_colour_3);
-        //    s_Data.lit_directional.setVec3("material.diffuse", diffuse_colour_3);
-        //    s_Data.lit_directional.setVec3("material.specular", glm::vec3(0.5f, 0.5f, 0.5f));
-        //    s_Data.lit_directional.setFloat("material.shininess", 32.0f);
-        //    //flat lighting
-        //    glm::vec3 light_direction = glm::vec3(-0.2, -1.0, -0.3);
-        //    s_Data.lit_directional.setVec3("light.direction", light_direction);
-        //    s_Data.lit_directional.setVec3("light.ambient", glm::vec3(0.2, 0.2, 0.2));
-        //    s_Data.lit_directional.setVec3("light.diffuse", glm::vec3(0.5, 0.5, 0.5)); // darken diffuse light a bit
-        //    s_Data.lit_directional.setVec3("light.specular", glm::vec3(1.0, 1.0, 1.0));
-
-        //    model = glm::mat4(1.0f);
-        //    model = glm::translate(model, glm::vec3(0.0f, 0.0f, 0.0));
-        //    model = glm::scale(model, glm::vec3(1.0f));
-        //    s_Data.lit_directional.setMat4("model", model);
-
-        //    renderCube(s_Data.stats.DrawCalls);
-        //}
 
         //Cornell
        //{
