@@ -232,14 +232,6 @@ void Game::run()
     //cube_object.transform.Position = glm::vec3(0.0f, 0.0f, 0.0f);
     //FGObject cube_object2 = FGObject(cube_model);
     //cube_object2.transform.Position = glm::vec3(2.0f, 5.0f, -15.0f);
-    //FGObject cube_object3 = FGObject(cube_model);
-    //cube_object3.transform.Position = glm::vec3(-1.5f, -2.2f, -2.5f);
-    //FGObject cube_object4 = FGObject(cube_model);
-    //cube_object4.transform.Position = glm::vec3(-3.8f, -2.0f, -12.3f);
-    //FGObject cube_object5 = FGObject(cube_model);
-    //cube_object5.transform.Position = glm::vec3(2.4f, -0.4f, -3.5f);
-    //FGObject cube_object6 = FGObject(cube_model);
-    //cube_object6.transform.Position = glm::vec3(-1.7f, 3.0f, -7.5f);
 
     ////Player Object
     //FGObject player_object = FGObject(cube_model);
@@ -248,10 +240,6 @@ void Game::run()
     //std::vector<std::shared_ptr<FGObject>> cubes;
     //cubes.push_back(std::make_shared<FGObject>(cube_object));
     //cubes.push_back(std::make_shared<FGObject>(cube_object2));
-    //cubes.push_back(std::make_shared<FGObject>(cube_object3));
-    //cubes.push_back(std::make_shared<FGObject>(cube_object4));
-    //cubes.push_back(std::make_shared<FGObject>(cube_object5));
-    //cubes.push_back(std::make_shared<FGObject>(cube_object6));
 
     //// Procedural terrain
     //std::vector<Texture2D> textures;
@@ -326,14 +314,10 @@ void Game::run()
         }
 
         if (input_manager.get_key_down(SDL_KeyCode::SDLK_h))
-        {
             hdr = true;
-        }
         if (input_manager.get_key_up(SDL_KeyCode::SDLK_h))
-        {
             hdr = false;
-        }
-
+        
         if (input_manager.get_key_held(SDL_KeyCode::SDLK_e))
         {
             exposure += 0.001f;
@@ -357,22 +341,24 @@ void Game::run()
         io.DeltaTime = delta_time_in_seconds;
         //printf("delta_time %f \n", delta_time_in_seconds);
 
-        // Game Logic Tick - X ticks per second
-        // ------------------------------------
-        seconds_since_last_game_tick += delta_time_in_seconds;
-
-        while (seconds_since_last_game_tick >= SECONDS_PER_FIXED_TICK)
-        {
-            fixed_tick(SECONDS_PER_FIXED_TICK);
-
-            seconds_since_last_game_tick -= SECONDS_PER_FIXED_TICK;
-        }
-
-        // Update Game State
-        // -----------------
+        // Game State Tick
+        // ---------------
         {
             profiler.Begin(Profiler::Stage::GameTick);
+
+            seconds_since_last_game_tick += delta_time_in_seconds;
+
+            while (seconds_since_last_game_tick >= SECONDS_PER_FIXED_TICK)
+            {
+                //Fixed update
+                fixed_tick(SECONDS_PER_FIXED_TICK);
+
+                seconds_since_last_game_tick -= SECONDS_PER_FIXED_TICK;
+            }
+
+            //Update game state every frame
             tick(delta_time_in_seconds, state_current, timer, input_manager, camera);
+
             profiler.End(Profiler::Stage::GameTick);
         }
 
@@ -394,9 +380,7 @@ void Game::run()
 
         profiler.End(Profiler::Stage::UpdateLoop);
     }
-
     //end
-    //shutdown(_renderer, _window);
 }
 
 void Game::shutdown(Renderer& r, GameWindow& w)
@@ -406,14 +390,3 @@ void Game::shutdown(Renderer& r, GameWindow& w)
     r.shutdown();
     w.Close();
 }
-
-////Physics
-//void advance_physics(GameState& state, float fixed_delta_time)
-//{
-//    //state.physics.step_simulation(fixed_delta_time);
-//}
-
-//lerp between game states
-//const float alpha = _timeSinceLastUpdate / timePerFrame;
-//game_state state_lerped = state_current * alpha + state_previous * ( 1.0 - alpha );
-//render(window, new_state, net_set);

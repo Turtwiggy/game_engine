@@ -78,21 +78,5 @@ namespace fightinggame
         //Rendering
         bool hdr = true;
         float exposure = 1.0f;
-        //bool bloom;
-        //bool pbr;
-        //bool pbr_ssao;
-        //bool pbr_gi;
-        //bool raytracing;
-        //bool shadows;
-
-        //physics_simulation _physics;
-        //audio_player audio;
-
-        //networking
-        //std::unique_ptr<std::thread> _networking_thread;
-        //network_settings net_set;
-        //net_set.addrServer.Clear();
-        //net_set.addrServer.ParseString("127.0.0.1");
-        //net_set.addrServer.m_port = net_set.port;
     };
 }

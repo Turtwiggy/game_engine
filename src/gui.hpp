@@ -17,10 +17,6 @@ union SDL_Event;
 namespace fightinggame
 {
 	class Game;
-	//class Console;
-	//class game_window;
-	//class MeshViewer;
-	//class renderer;
 
 	class Gui
 	{

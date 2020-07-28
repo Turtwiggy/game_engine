@@ -94,8 +94,6 @@ namespace fightinggame {
 
     bool Gui::Loop(Game& game, Profiler& profiler)
     {
-        //printf("in gui loop");
-
         ImGuiIO& io = ImGui::GetIO();
         ImGui::SetNextWindowPos(ImVec2(io.DisplaySize.x - 8.0f, io.DisplaySize.y - 8.0f), ImGuiCond_Always, ImVec2(1.0f, 1.0f));
         ImGui::SetNextWindowBgAlpha(0.35f);
