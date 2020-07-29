@@ -47,6 +47,8 @@ namespace fightinggame
         Shader geometry_shader;
 
         //RayTracing
+        unsigned int ray_fbo;
+        unsigned int ray_texture;
         Shader compute_shader;
         unsigned int compute_shader_workgroup_x;
         unsigned int compute_shader_workgroup_y;
@@ -151,51 +153,78 @@ namespace fightinggame
         glGenFramebuffers(1, &gBuffer);
         glBindFramebuffer(GL_FRAMEBUFFER, gBuffer);
         unsigned int gPosition, gNormal, gAlbedoSpec;
-        // position color buffer
-        glGenTextures(1, &gPosition);
-        glBindTexture(GL_TEXTURE_2D, gPosition);
-        glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA16F, screen_width, screen_height, 0, GL_RGBA, GL_FLOAT, NULL);
-        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
-        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
-        glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, gPosition, 0);
-        // normal color buffer
-        glGenTextures(1, &gNormal);
-        glBindTexture(GL_TEXTURE_2D, gNormal);
-        glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA16F, screen_width, screen_height, 0, GL_RGBA, GL_FLOAT, NULL);
-        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
-        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
-        glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT1, GL_TEXTURE_2D, gNormal, 0);
-        // color + specular color buffer
-        glGenTextures(1, &gAlbedoSpec);
-        glBindTexture(GL_TEXTURE_2D, gAlbedoSpec);
-        glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA16F, screen_width, screen_height, 0, GL_RGBA, GL_FLOAT, NULL);
-        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
-        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
-        glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT2, GL_TEXTURE_2D, gAlbedoSpec, 0);
-        // tell OpenGL which color attachments we'll use (of this framebuffer) for rendering 
-        unsigned int attachments[3] = { GL_COLOR_ATTACHMENT0, GL_COLOR_ATTACHMENT1, GL_COLOR_ATTACHMENT2 };
-        glDrawBuffers(3, attachments);
-        // create and attach depth buffer (renderbuffer)
-        unsigned int rboDepth;
-        glGenRenderbuffers(1, &rboDepth);
-        glBindRenderbuffer(GL_RENDERBUFFER, rboDepth);
-        glRenderbufferStorage(GL_RENDERBUFFER, GL_DEPTH_COMPONENT, screen_width, screen_height);
-        glFramebufferRenderbuffer(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, GL_RENDERBUFFER, rboDepth);
-        // finally check if framebuffer is complete
-        if (glCheckFramebufferStatus(GL_FRAMEBUFFER) != GL_FRAMEBUFFER_COMPLETE)
-            std::cout << "Framebuffer not complete!" << std::endl;
-        glBindFramebuffer(GL_FRAMEBUFFER, 0);
-
-        //link geometry data
+        {
+            // position color buffer
+            glGenTextures(1, &gPosition);
+            glBindTexture(GL_TEXTURE_2D, gPosition);
+            glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA16F, screen_width, screen_height, 0, GL_RGBA, GL_FLOAT, NULL);
+            glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
+            glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
+            glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, gPosition, 0);
+            // normal color buffer
+            glGenTextures(1, &gNormal);
+            glBindTexture(GL_TEXTURE_2D, gNormal);
+            glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA16F, screen_width, screen_height, 0, GL_RGBA, GL_FLOAT, NULL);
+            glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
+            glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
+            glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT1, GL_TEXTURE_2D, gNormal, 0);
+            // color + specular color buffer
+            glGenTextures(1, &gAlbedoSpec);
+            glBindTexture(GL_TEXTURE_2D, gAlbedoSpec);
+            glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA16F, screen_width, screen_height, 0, GL_RGBA, GL_FLOAT, NULL);
+            glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
+            glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
+            glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT2, GL_TEXTURE_2D, gAlbedoSpec, 0);
+            // tell OpenGL which color attachments we'll use (of this framebuffer) for rendering 
+            unsigned int attachments[3] = { GL_COLOR_ATTACHMENT0, GL_COLOR_ATTACHMENT1, GL_COLOR_ATTACHMENT2 };
+            glDrawBuffers(3, attachments);
+            // create and attach depth buffer (renderbuffer)
+            unsigned int rboDepth;
+            glGenRenderbuffers(1, &rboDepth);
+            glBindRenderbuffer(GL_RENDERBUFFER, rboDepth);
+            glRenderbufferStorage(GL_RENDERBUFFER, GL_DEPTH_COMPONENT, screen_width, screen_height);
+            glFramebufferRenderbuffer(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, GL_RENDERBUFFER, rboDepth);
+            // finally check if framebuffer is complete
+            if (glCheckFramebufferStatus(GL_FRAMEBUFFER) != GL_FRAMEBUFFER_COMPLETE)
+                std::cout << "Framebuffer not complete!" << std::endl;
+            glBindFramebuffer(GL_FRAMEBUFFER, 0);
+        }
         s_Data.g_buffer = gBuffer;
         s_Data.g_position = gPosition;
         s_Data.g_normal = gNormal;
         s_Data.g_albedo_spec = gAlbedoSpec;
 
+        // configure Ray Tracing FBO
+        // ------------------------------
+        unsigned int rayFBO;
+        glGenFramebuffers(1, &rayFBO);
+        glBindFramebuffer(GL_FRAMEBUFFER, rayFBO);
+        unsigned int rayTexture;
+        {
+            // position color buffer
+            glGenTextures(1, &rayTexture);
+            glBindTexture(GL_TEXTURE_2D, rayTexture);
+            glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA32F, screen_width, screen_height, 0, GL_RGBA, GL_FLOAT, NULL);
+            glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
+            glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
+            glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, rayTexture, 0);
+            // tell OpenGL which color attachments we'll use (of this framebuffer) for rendering 
+            unsigned int attachments[1] = { GL_COLOR_ATTACHMENT0 };
+            glDrawBuffers(1, attachments);
+            // finally check if framebuffer is complete
+            if (glCheckFramebufferStatus(GL_FRAMEBUFFER) != GL_FRAMEBUFFER_COMPLETE)
+                std::cout << "Framebuffer not complete!" << std::endl;
+            glBindFramebuffer(GL_FRAMEBUFFER, 0);
+        }
+        s_Data.ray_fbo = rayFBO;
+        s_Data.ray_texture = rayTexture;
+
         // A ray tracing compute shader
         // ----------------------------
-        const char* compute_shader_path = "assets/shaders/raytraced/compute/raytraced.glsl";
-        Shader compute_shader = Shader(compute_shader_path);
+        Shader compute_shader = Shader()
+                                    .attach_shader("assets/shaders/raytraced/compute/random.glsl")
+                                    .attach_shader("assets/shaders/raytraced/compute/raytraced.glsl")
+                                    .build_program();
         compute_shader.use();
 
         int workgroup_size[3];
@@ -217,7 +246,7 @@ namespace fightinggame
         //https://github.com/LWJGL/lwjgl3-demos/tree/master/src/org/lwjgl/demo/opengl/raytracing
 
         // draw as wireframe
-        //glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
+        //glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);f
     }
 
     void Renderer::draw_pass(draw_scene_desc& desc, GameState state)
@@ -245,91 +274,112 @@ namespace fightinggame
             model = glm::translate(model, glm::vec3(0.0f, 0.0f, 0.0));
             model = glm::scale(model, glm::vec3(1.0f));
             s_Data.geometry_shader.setMat4("model", model);
+            renderCube(s_Data.stats.DrawCalls);
 
+            //Render another cube
+            model = glm::translate(model, glm::vec3(1.5f, 0.0f, -2.0));
+            model = glm::scale(model, glm::vec3(0.35f));
+            s_Data.geometry_shader.setMat4("model", model);
             renderCube(s_Data.stats.DrawCalls);
         }
-        glBindFramebuffer(GL_FRAMEBUFFER, 0);
 
-        // 2. Lighting pass: Raytracing
-        // ------------------------
-        glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-        s_Data.compute_shader.use();
+        if (desc.hdr) {
 
-        //Set viewing frustrum corner rays in shader
-        s_Data.compute_shader.setVec3("eye", desc.camera.Position);
-        glm::vec3 eye_ray;
-        eye_ray = desc.camera.get_eye_ray(-1, -1, width, height);
-        s_Data.compute_shader.setVec3("ray00", eye_ray);
-        eye_ray = desc.camera.get_eye_ray(-1, 1, width, height);
-        s_Data.compute_shader.setVec3("ray01", eye_ray);
-        eye_ray = desc.camera.get_eye_ray(1, -1, width, height);
-        s_Data.compute_shader.setVec3("ray10", eye_ray);
-        eye_ray = desc.camera.get_eye_ray(1, 1, width, height);
-        s_Data.compute_shader.setVec3("ray11", eye_ray);
+            // 2. Lighting pass: Raytracing
+            // ------------------------
+            glBindFramebuffer(GL_FRAMEBUFFER, s_Data.ray_fbo);
+            glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+            s_Data.compute_shader.use();
 
-        int position_binding, normal_binding, albedo_spec_binding;
-        {
-            int loc = glGetUniformLocation(s_Data.compute_shader.ID, "positionData");
-            int params[1];
-            glGetUniformiv(s_Data.compute_shader.ID, loc, params);
-            position_binding = params[0];
+            //Set viewing frustrum corner rays in shader
+            s_Data.compute_shader.setVec3("eye", desc.camera.Position);
+            glm::vec3 eye_ray;
+            eye_ray = desc.camera.get_eye_ray(-1, -1, width, height);
+            s_Data.compute_shader.setVec3("ray00", eye_ray);
+            eye_ray = desc.camera.get_eye_ray(-1, 1, width, height);
+            s_Data.compute_shader.setVec3("ray01", eye_ray);
+            eye_ray = desc.camera.get_eye_ray(1, -1, width, height);
+            s_Data.compute_shader.setVec3("ray10", eye_ray);
+            eye_ray = desc.camera.get_eye_ray(1, 1, width, height);
+            s_Data.compute_shader.setVec3("ray11", eye_ray);
+
+            int position_binding, normal_binding, albedo_spec_binding, out_texture_binding;
+            {
+                int loc = glGetUniformLocation(s_Data.compute_shader.ID, "positionData");
+                int params[1];
+                glGetUniformiv(s_Data.compute_shader.ID, loc, params);
+                position_binding = params[0];
+            }
+            {
+                int loc = glGetUniformLocation(s_Data.compute_shader.ID, "normalData");
+                int params[1];
+                glGetUniformiv(s_Data.compute_shader.ID, loc, params);
+                normal_binding = params[0];
+            }
+            {
+                int loc = glGetUniformLocation(s_Data.compute_shader.ID, "albedoSpecData");
+                int params[1];
+                glGetUniformiv(s_Data.compute_shader.ID, loc, params);
+                albedo_spec_binding = params[0];
+            }
+            {
+                int loc = glGetUniformLocation(s_Data.compute_shader.ID, "outTexture");
+                int params[1];
+                glGetUniformiv(s_Data.compute_shader.ID, loc, params);
+                out_texture_binding = params[0];
+            }
+
+            // Bind level 0 of framebuffer texture as writable image in the shader.
+            // It introduces a new image binding point in OpenGL that a shader uses to
+            // read and write a single level of a texture and that we will bind the first
+            // level of our framebuffer texture to.
+            glBindImageTexture(position_binding, s_Data.g_position, 0, false, 0, GL_READ_ONLY, GL_RGBA16F);
+            glBindImageTexture(normal_binding, s_Data.g_normal, 0, false, 0, GL_READ_ONLY, GL_RGBA16F);
+            glBindImageTexture(albedo_spec_binding, s_Data.g_albedo_spec, 0, false, 0, GL_READ_ONLY, GL_RGBA16F);
+            glBindImageTexture(out_texture_binding, s_Data.ray_texture, 0, false, 0, GL_WRITE_ONLY, GL_RGBA32F);
+
+            // Compute appropriate invocation dimension
+            int worksizeX = next_power_of_two(width);
+            int worksizeY = next_power_of_two(height);
+            if (s_Data.compute_shader_workgroup_x == 0 || s_Data.compute_shader_workgroup_y == 0)
+            {
+                std::cout << "failed to load your compute shader!";
+                return;
+            }
+
+            /* Invoke the compute shader. */
+            // This function takes as argument the number of work groups in each of the
+            // three possible dimensions. The number of work groups is NOT the number of
+            // global work items in each dimension, but is divided by the work group size
+            // that the shader specified in that layout declaration.
+            glDispatchCompute(
+                worksizeX / s_Data.compute_shader_workgroup_x,
+                worksizeY / s_Data.compute_shader_workgroup_y
+                , 1);
+
+            //Synchronize all writes to the framebuffer image
+            glMemoryBarrier(GL_SHADER_IMAGE_ACCESS_BARRIER_BIT);
+
+            // Reset image binding. 
+            glBindImageTexture(0, 0, 0, false, 0, GL_READ_WRITE, GL_RGBA32F);
+            glUseProgram(0);
         }
-        {
-            int loc = glGetUniformLocation(s_Data.compute_shader.ID, "normalData");
-            int params[1];
-            glGetUniformiv(s_Data.compute_shader.ID, loc, params);
-            normal_binding = params[0];
-        }
-        {
-            int loc = glGetUniformLocation(s_Data.compute_shader.ID, "albedoSpecData");
-            int params[1];
-            glGetUniformiv(s_Data.compute_shader.ID, loc, params);
-            albedo_spec_binding = params[0];
-        }
-
-        // Bind level 0 of framebuffer texture as writable image in the shader.
-        // It introduces a new image binding point in OpenGL that a shader uses to
-        // read and write a single level of a texture and that we will bind the first
-        // level of our framebuffer texture to.
-        glBindImageTexture(position_binding, s_Data.g_position, 0, false, 0, GL_READ_ONLY, GL_RGBA16F);
-        glBindImageTexture(normal_binding, s_Data.g_normal, 0, false, 0, GL_READ_ONLY, GL_RGBA16F);
-        glBindImageTexture(albedo_spec_binding, s_Data.g_albedo_spec, 0, false, 0, GL_READ_WRITE, GL_RGBA16F);
-
-        // Compute appropriate invocation dimension
-        int worksizeX = next_power_of_two(width);
-        int worksizeY = next_power_of_two(height);
-        if (s_Data.compute_shader_workgroup_x == 0 || s_Data.compute_shader_workgroup_y == 0)
-        {
-            std::cout << "failed to load your compute shader!";
-            return;
-        }
-
-        /* Invoke the compute shader. */
-        // This function takes as argument the number of work groups in each of the
-        // three possible dimensions. The number of work groups is NOT the number of
-        // global work items in each dimension, but is divided by the work group size
-        // that the shader specified in that layout declaration.
-        glDispatchCompute(
-            worksizeX / s_Data.compute_shader_workgroup_x,
-            worksizeY / s_Data.compute_shader_workgroup_y
-            , 1);
-
-        //Synchronize all writes to the framebuffer image
-        glMemoryBarrier(GL_SHADER_IMAGE_ACCESS_BARRIER_BIT);
-
-        // Reset image binding. 
-        glBindImageTexture(0, 0, 0, false, 0, GL_READ_WRITE, GL_RGBA32F);
-        glUseProgram(0);
 
         // 3. Normal drawing pass
         // -------------------
         glBindFramebuffer(GL_FRAMEBUFFER, 0);
-        RenderCommand::set_clear_colour(glm::vec4(0.2f, 0.3f, 0.3f, 1.0f));
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
         s_Data.quad_shader.use();
         glActiveTexture(GL_TEXTURE0);
-        glBindTexture(GL_TEXTURE_2D, s_Data.g_albedo_spec);
+
+        if (desc.hdr) {
+            glBindTexture(GL_TEXTURE_2D, s_Data.ray_texture);
+        }
+        else
+        {
+            glBindTexture(GL_TEXTURE_2D, s_Data.g_albedo_spec);
+        }
         renderQuad();
 
         //Cornell
