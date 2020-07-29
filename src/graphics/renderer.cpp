@@ -267,15 +267,32 @@ namespace fightinggame
         eye_ray = desc.camera.get_eye_ray(1, 1, width, height);
         s_Data.compute_shader.setVec3("ray11", eye_ray);
 
-        int loc = glGetUniformLocation(s_Data.compute_shader.ID, "albedoSpecData");
-        int params[1];
-        glGetUniformiv(s_Data.compute_shader.ID, loc, params);
-        int albedo_spec_binding = params[0];
+        int position_binding, normal_binding, albedo_spec_binding;
+        {
+            int loc = glGetUniformLocation(s_Data.compute_shader.ID, "positionData");
+            int params[1];
+            glGetUniformiv(s_Data.compute_shader.ID, loc, params);
+            position_binding = params[0];
+        }
+        {
+            int loc = glGetUniformLocation(s_Data.compute_shader.ID, "normalData");
+            int params[1];
+            glGetUniformiv(s_Data.compute_shader.ID, loc, params);
+            normal_binding = params[0];
+        }
+        {
+            int loc = glGetUniformLocation(s_Data.compute_shader.ID, "albedoSpecData");
+            int params[1];
+            glGetUniformiv(s_Data.compute_shader.ID, loc, params);
+            albedo_spec_binding = params[0];
+        }
 
         // Bind level 0 of framebuffer texture as writable image in the shader.
         // It introduces a new image binding point in OpenGL that a shader uses to
         // read and write a single level of a texture and that we will bind the first
         // level of our framebuffer texture to.
+        glBindImageTexture(position_binding, s_Data.g_position, 0, false, 0, GL_READ_ONLY, GL_RGBA16F);
+        glBindImageTexture(normal_binding, s_Data.g_normal, 0, false, 0, GL_READ_ONLY, GL_RGBA16F);
         glBindImageTexture(albedo_spec_binding, s_Data.g_albedo_spec, 0, false, 0, GL_READ_WRITE, GL_RGBA16F);
 
         // Compute appropriate invocation dimension
@@ -301,10 +318,10 @@ namespace fightinggame
         glMemoryBarrier(GL_SHADER_IMAGE_ACCESS_BARRIER_BIT);
 
         // Reset image binding. 
-        glBindImageTexture(albedo_spec_binding, 0, 0, false, 0, GL_READ_WRITE, GL_RGBA32F);
+        glBindImageTexture(0, 0, 0, false, 0, GL_READ_WRITE, GL_RGBA32F);
         glUseProgram(0);
 
-        // Normal drawing pass
+        // 3. Normal drawing pass
         // -------------------
         glBindFramebuffer(GL_FRAMEBUFFER, 0);
         RenderCommand::set_clear_colour(glm::vec4(0.2f, 0.3f, 0.3f, 1.0f));
