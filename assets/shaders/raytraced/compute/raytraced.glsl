@@ -5,6 +5,24 @@ layout(binding = 1, rgba16f) uniform image2D normalData;
 layout(binding = 2, rgba16f) uniform image2D albedoSpecData;
 layout(binding = 3, rgba32f) uniform image2D outTexture;
 
+struct vertex {
+    vec3 pos;
+    vec3 normal;
+    vec2 tex;
+};
+
+struct triangle {
+    vertex a;
+    vertex b;
+    vertex c;
+};
+
+layout(std430, binding = 4) buffer buffer_data
+{
+    //variable array     
+    triangle triangles_in_scene[];
+};
+
 uniform vec3 eye, ray00, ray01, ray10, ray11;
 
 #define PI 3.14159265359
@@ -32,6 +50,16 @@ struct hitinfo {
     vec3 point;
     vec3 normal;
     float t;
+};
+
+struct box {
+    vec3 center;
+    vec3 size;
+};
+
+box boxes[2] = {
+    {vec3(-5.0, -0.1, -5.0), vec3(5.0, 0.0, 5.0)}, // <- bottom
+    {vec3(-5.1, 0.0, -5.0), vec3(-5.0, 5.0, 5.0)}, // <- left
 };
 
 struct sphere {
@@ -110,16 +138,12 @@ vec3 trace(ray r, vec3 diffuse, vec3 frag_pos, vec3 normal) {
         //get the point of intersection
         //vec3 point = origin + hinfo.near * dir;
         //vec3 normal = hinfo.normal;
-
         //offset point small amount by surface normal
         //origin = point + normal * EPSILON;
-
         //evaluate the surface BRDF
         //vec3 dir = randomHemispherePoint(normal, randvec2(bounce));
-
         //att *= ONE_OVER_PI;
         //att *= dot(dir, normal);
-
         //colour of material (albedo)
         //att *= b.col;   
         //att *= vec3(1.0, 0.1, 0.1);
@@ -172,7 +196,18 @@ void main(void) {
     vec3 Diffuse = imageLoad(albedoSpecData, px).rgb;
     float Specular = imageLoad(albedoSpecData, px).a;
 
-    vec3 color = trace(fwd, Diffuse, FragPos, Normal);
+    //vec3 color = trace(fwd, Diffuse, FragPos, Normal);
+
+    vec3 color;
+    if(triangles_in_scene.length() == 0)
+    {
+        //red is bad
+        color = vec3(1.0, 0.0, 0.0);
+    } else
+    {
+        //blue means we have triangles
+        color = vec3(0.0, 1.0, 0.0);
+    }
 
     imageStore(outTexture, px, vec4(color, 1.0));
 }

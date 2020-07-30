@@ -221,11 +221,11 @@ void Game::run()
     ModelManager model_manager;
     printf("ModelManager taking up: %s bytes \n", std::to_string(sizeof(model_manager)).c_str());
 
-    ////Model: Cornel Box
-    //std::shared_ptr cornel_model = model_manager.load_model("assets/models/cornell_box/CornellBox-Original.obj", "cornell_box");
-    //FGObject cornel_box = FGObject(cornel_model);
+    //Model: Cornel Box
+    std::shared_ptr cornel_model = model_manager.load_model("assets/models/cornell_box/CornellBox-Original.obj", "cornell_box");
+    FGObject cornel_box = FGObject(cornel_model);
 
-    ////Model: Cube
+    //Model: Cube
     //std::shared_ptr cube_model = model_manager.load_model("assets/models/lizard_wizard/lizard_wizard.obj", "lizard_wizard");
     ////Cube Objects
     //FGObject cube_object = FGObject(cube_model);
@@ -255,7 +255,7 @@ void Game::run()
         //cubes,
         //std::make_shared<FGObject>(terrain_object),
         //std::make_shared<FGObject>(player_object),
-        //std::make_shared<FGObject>(cornel_box)
+        std::make_shared<FGObject>(cornel_box)
     );
 
     //ImGui

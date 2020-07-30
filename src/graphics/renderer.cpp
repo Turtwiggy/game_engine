@@ -54,6 +54,8 @@ namespace fightinggame
         unsigned int compute_shader_workgroup_y;
         Shader quad_shader;
 
+        unsigned int max_triangles;
+        unsigned int ssbo;
 
         std::vector<glm::vec3> light_positions;
         std::vector<glm::vec3> light_colours;
@@ -225,6 +227,21 @@ namespace fightinggame
         s_Data.ray_fbo = rayFBO;
         s_Data.ray_texture = rayTexture;
 
+        // ssbo for all triangles in scene
+        unsigned int max_triangles;
+        std::vector<FGTriangle> triangles(max_triangles);
+
+        unsigned int ssbo;
+        glGenBuffers(1, &ssbo);
+        glBindBuffer(GL_SHADER_STORAGE_BUFFER, ssbo);
+        glBufferData(GL_SHADER_STORAGE_BUFFER, triangles.size() * sizeof(FGTriangle), &triangles[0], GL_STATIC_DRAW);
+        unsigned int layout_location = 4;
+        glBindBufferBase(GL_SHADER_STORAGE_BUFFER, layout_location, ssbo);
+        glBindBuffer(GL_SHADER_STORAGE_BUFFER, 0); // unbind
+
+        s_Data.max_triangles = max_triangles;
+        s_Data.ssbo = ssbo;
+
         // A ray tracing compute shader
         // ----------------------------
         Shader compute_shader = Shader()
@@ -239,8 +256,6 @@ namespace fightinggame
         unsigned int work_group_size_y = workgroup_size[1];
         unsigned int work_group_size_z = workgroup_size[2];
         //link raytracing data
-        //s_Data.fbo = fbo;
-        //s_Data.fbo_colour_buffer = fbo_colour_buffer;
         s_Data.compute_shader = compute_shader;
         s_Data.compute_shader_workgroup_x = work_group_size_x;
         s_Data.compute_shader_workgroup_y = work_group_size_y;
@@ -252,10 +267,10 @@ namespace fightinggame
         //https://github.com/LWJGL/lwjgl3-demos/tree/master/src/org/lwjgl/demo/opengl/raytracing
 
         // draw as wireframe
-        //glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);f
+        //glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
     }
 
-    void Renderer::draw_pass(draw_scene_desc& desc, GameState state)
+    void Renderer::draw_pass(draw_scene_desc& desc, const GameState& state)
     {
         int width, height = 0;
         GameWindow& window = desc.window;
@@ -273,20 +288,20 @@ namespace fightinggame
             s_Data.geometry_shader.setMat4("view_projection", view_projection);
 
             //either this or textures
-            s_Data.geometry_shader.setVec3("diffuse", glm::vec3(1.0f, 0.0f, 0.0f));
+            //s_Data.geometry_shader.setVec3("diffuse", glm::vec3(1.0f, 0.0f, 0.0f));
             s_Data.geometry_shader.setFloat("specular", 1.0f);
 
             glm::mat4 model = glm::mat4(1.0f);
             model = glm::translate(model, glm::vec3(0.0f, 0.0f, 0.0));
             model = glm::scale(model, glm::vec3(1.0f));
             s_Data.geometry_shader.setMat4("model", model);
-            renderCube(s_Data.stats.DrawCalls);
+            state.cornel_box->model->draw(s_Data.geometry_shader, s_Data.stats.DrawCalls);
 
-            //Render another cube
-            model = glm::translate(model, glm::vec3(1.5f, 0.0f, -2.0));
-            model = glm::scale(model, glm::vec3(0.35f));
-            s_Data.geometry_shader.setMat4("model", model);
-            renderCube(s_Data.stats.DrawCalls);
+            ////Render another cube
+            //model = glm::translate(model, glm::vec3(1.5f, 0.0f, -2.0));
+            //model = glm::scale(model, glm::vec3(0.35f));
+            //s_Data.geometry_shader.setMat4("model", model);
+            //renderCube(s_Data.stats.DrawCalls);
         }
 
         if (desc.hdr) {
@@ -343,6 +358,20 @@ namespace fightinggame
             glBindImageTexture(normal_binding, s_Data.g_normal, 0, false, 0, GL_READ_ONLY, GL_RGBA16F);
             glBindImageTexture(albedo_spec_binding, s_Data.g_albedo_spec, 0, false, 0, GL_READ_ONLY, GL_RGBA16F);
             glBindImageTexture(out_texture_binding, s_Data.ray_texture, 0, false, 0, GL_WRITE_ONLY, GL_RGBA32F);
+
+            //bind ssbo
+            std::vector<FGTriangle> triangles_in_scene;
+            std::vector<FGTriangle> triangles_in_cornell = state.cornel_box->model->get_all_triangles_in_meshes();
+            triangles_in_scene = triangles_in_cornell;
+
+            //ssbo update
+            //glBindBuffer(GL_SHADER_STORAGE_BUFFER, s_Data.ssbo);
+            //GLvoid* p = glMapBuffer(GL_SHADER_STORAGE_BUFFER, GL_READ_ONLY);
+            //memcpy(p, &shader_data, sizeof(shader_data))
+            //glUnmapBuffer(GL_SHADER_STORAGE_BUFFER);
+            //glBindBufferRange(GL_SHADER_STORAGE_BUFFER, 0, s_Data.ssbo, 0, triangles_in_scene.size() * sizeof(FGTriangle)); // (Binding the buffer to the shader storage index again as well as defining the size and of set in the shader storage array)
+
+            //glBindBufferRange(GL_SHADER_STORAGE_BUFFER)
 
             // Compute appropriate invocation dimension
             int worksizeX = next_power_of_two(width);
@@ -516,82 +545,6 @@ namespace fightinggame
     void Renderer::screen_size_changed(unsigned int width, unsigned int height)
     {
         printf("renderer callback! %i %i ", width, height);
-    }
-
-    // renderCube() renders a 1x1 3D cube in NDC.
-    // -------------------------------------------------
-    unsigned int cubeVAO = 0;
-    unsigned int cubeVBO = 0;
-    void Renderer::renderCube(uint32_t& draw_calls)
-    {
-        // initialize (if necessary)
-        if (cubeVAO == 0)
-        {
-            float vertices[] = {
-                // back face
-                -1.0f, -1.0f, -1.0f,  0.0f,  0.0f, -1.0f, 0.0f, 0.0f, // bottom-left
-                 1.0f,  1.0f, -1.0f,  0.0f,  0.0f, -1.0f, 1.0f, 1.0f, // top-right
-                 1.0f, -1.0f, -1.0f,  0.0f,  0.0f, -1.0f, 1.0f, 0.0f, // bottom-right         
-                 1.0f,  1.0f, -1.0f,  0.0f,  0.0f, -1.0f, 1.0f, 1.0f, // top-right
-                -1.0f, -1.0f, -1.0f,  0.0f,  0.0f, -1.0f, 0.0f, 0.0f, // bottom-left
-                -1.0f,  1.0f, -1.0f,  0.0f,  0.0f, -1.0f, 0.0f, 1.0f, // top-left
-                // front face
-                -1.0f, -1.0f,  1.0f,  0.0f,  0.0f,  1.0f, 0.0f, 0.0f, // bottom-left
-                 1.0f, -1.0f,  1.0f,  0.0f,  0.0f,  1.0f, 1.0f, 0.0f, // bottom-right
-                 1.0f,  1.0f,  1.0f,  0.0f,  0.0f,  1.0f, 1.0f, 1.0f, // top-right
-                 1.0f,  1.0f,  1.0f,  0.0f,  0.0f,  1.0f, 1.0f, 1.0f, // top-right
-                -1.0f,  1.0f,  1.0f,  0.0f,  0.0f,  1.0f, 0.0f, 1.0f, // top-left
-                -1.0f, -1.0f,  1.0f,  0.0f,  0.0f,  1.0f, 0.0f, 0.0f, // bottom-left
-                // left face
-                -1.0f,  1.0f,  1.0f, -1.0f,  0.0f,  0.0f, 1.0f, 0.0f, // top-right
-                -1.0f,  1.0f, -1.0f, -1.0f,  0.0f,  0.0f, 1.0f, 1.0f, // top-left
-                -1.0f, -1.0f, -1.0f, -1.0f,  0.0f,  0.0f, 0.0f, 1.0f, // bottom-left
-                -1.0f, -1.0f, -1.0f, -1.0f,  0.0f,  0.0f, 0.0f, 1.0f, // bottom-left
-                -1.0f, -1.0f,  1.0f, -1.0f,  0.0f,  0.0f, 0.0f, 0.0f, // bottom-right
-                -1.0f,  1.0f,  1.0f, -1.0f,  0.0f,  0.0f, 1.0f, 0.0f, // top-right
-                // right face
-                 1.0f,  1.0f,  1.0f,  1.0f,  0.0f,  0.0f, 1.0f, 0.0f, // top-left
-                 1.0f, -1.0f, -1.0f,  1.0f,  0.0f,  0.0f, 0.0f, 1.0f, // bottom-right
-                 1.0f,  1.0f, -1.0f,  1.0f,  0.0f,  0.0f, 1.0f, 1.0f, // top-right         
-                 1.0f, -1.0f, -1.0f,  1.0f,  0.0f,  0.0f, 0.0f, 1.0f, // bottom-right
-                 1.0f,  1.0f,  1.0f,  1.0f,  0.0f,  0.0f, 1.0f, 0.0f, // top-left
-                 1.0f, -1.0f,  1.0f,  1.0f,  0.0f,  0.0f, 0.0f, 0.0f, // bottom-left     
-                // bottom face
-                -1.0f, -1.0f, -1.0f,  0.0f, -1.0f,  0.0f, 0.0f, 1.0f, // top-right
-                 1.0f, -1.0f, -1.0f,  0.0f, -1.0f,  0.0f, 1.0f, 1.0f, // top-left
-                 1.0f, -1.0f,  1.0f,  0.0f, -1.0f,  0.0f, 1.0f, 0.0f, // bottom-left
-                 1.0f, -1.0f,  1.0f,  0.0f, -1.0f,  0.0f, 1.0f, 0.0f, // bottom-left
-                -1.0f, -1.0f,  1.0f,  0.0f, -1.0f,  0.0f, 0.0f, 0.0f, // bottom-right
-                -1.0f, -1.0f, -1.0f,  0.0f, -1.0f,  0.0f, 0.0f, 1.0f, // top-right
-                // top face
-                -1.0f,  1.0f, -1.0f,  0.0f,  1.0f,  0.0f, 0.0f, 1.0f, // top-left
-                 1.0f,  1.0f , 1.0f,  0.0f,  1.0f,  0.0f, 1.0f, 0.0f, // bottom-right
-                 1.0f,  1.0f, -1.0f,  0.0f,  1.0f,  0.0f, 1.0f, 1.0f, // top-right     
-                 1.0f,  1.0f,  1.0f,  0.0f,  1.0f,  0.0f, 1.0f, 0.0f, // bottom-right
-                -1.0f,  1.0f, -1.0f,  0.0f,  1.0f,  0.0f, 0.0f, 1.0f, // top-left
-                -1.0f,  1.0f,  1.0f,  0.0f,  1.0f,  0.0f, 0.0f, 0.0f  // bottom-left        
-            };
-            glGenVertexArrays(1, &cubeVAO);
-            glGenBuffers(1, &cubeVBO);
-            // fill buffer
-            glBindBuffer(GL_ARRAY_BUFFER, cubeVBO);
-            glBufferData(GL_ARRAY_BUFFER, sizeof(vertices), vertices, GL_STATIC_DRAW);
-            // link vertex attributes
-            glBindVertexArray(cubeVAO);
-            glEnableVertexAttribArray(0);
-            glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 8 * sizeof(float), (void*)0);
-            glEnableVertexAttribArray(1);
-            glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, 8 * sizeof(float), (void*)(3 * sizeof(float)));
-            glEnableVertexAttribArray(2);
-            glVertexAttribPointer(2, 2, GL_FLOAT, GL_FALSE, 8 * sizeof(float), (void*)(6 * sizeof(float)));
-            glBindBuffer(GL_ARRAY_BUFFER, 0);
-            glBindVertexArray(0);
-        }
-        // render Cube
-        glBindVertexArray(cubeVAO);
-        glDrawArrays(GL_TRIANGLES, 0, 36);
-        draw_calls += 1;
-        glBindVertexArray(0);
     }
 
     // renderQuad() renders a 1x1 XY quad in NDC

@@ -29,6 +29,29 @@ namespace fightinggame {
     // initializes all the buffer objects/arrays
     void FGMesh::setup_mesh()
     {
+        //generate triangle information
+        if (indices.size() % 3 != 0)
+        {
+            printf("we got a triangle problem scotty... \n");
+        }
+        else
+        {
+            printf("generating triangle information \n");
+
+            //generate triangle information
+            for (int i = 0; i < indices.size(); i += 3)
+            {
+                FGTriangle tri;
+
+                tri.p1 = vertices[indices[i]];
+                tri.p2 = vertices[indices[i + 1]];
+                tri.p3 = vertices[indices[i + 2]];
+
+                triangles.push_back(tri);
+            }
+        }
+        printf("mesh: %s made of %i triangles ", name, triangles.size());
+
         // create buffers/arrays
         glGenVertexArrays(1, &VAO);
         glGenBuffers(1, &VBO);
@@ -97,7 +120,7 @@ namespace fightinggame {
             //printf("texture %i", texture);
             shader.setInt("texture_diffuse1", texture);
         }
-        shader.setVec4("material.colour", this->colour.colour);
+        shader.setVec3("diffuse", this->colour.colour);
 
         // draw mesh
         glBindVertexArray(VAO);

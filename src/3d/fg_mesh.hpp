@@ -1,5 +1,6 @@
 #pragma once
 
+#include "3d/fg_triangle.hpp"
 #include "3d/fg_vertex.hpp"
 #include "3d/fg_texture.hpp"
 #include <3d/fg_colour.hpp>
@@ -17,6 +18,7 @@ namespace fightinggame {
         std::vector<FGVertex>       vertices;
         std::vector<unsigned int>   indices;
         std::vector<Texture2D>      textures;
+        std::vector<FGTriangle>     triangles;
         std::string                 name;
         FGColour                    colour;
 

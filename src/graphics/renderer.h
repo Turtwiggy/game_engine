@@ -45,12 +45,12 @@ namespace fightinggame {
         void new_frame(SDL_Window* window);
         void end_frame(SDL_Window* window);
 
-        void draw_pass(draw_scene_desc& desc, GameState state);
+        void draw_pass(draw_scene_desc& desc, const GameState& state);
         void screen_size_changed(unsigned int width, unsigned int height);
 
         unsigned int hdr_fbo();
         std::array<unsigned int, 2> hdr_colour_buffer(int width, int height, unsigned int hdr_fbo);
-        void renderCube(uint32_t& draw_calls);
+        //void renderCube(uint32_t& draw_calls);
         void renderQuad();
 
         void shutdown();

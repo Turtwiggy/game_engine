@@ -4,6 +4,21 @@
 #include "3d/fg_texture.hpp"
 
 namespace fightinggame {
+    std::vector<FGTriangle> FGModel::get_all_triangles_in_meshes()
+    {
+        std::vector<FGTriangle> tris;
+
+        for (auto& m : meshes)
+        {
+            for (auto& t : m.triangles)
+            {
+                tris.push_back(t);
+            }
+        }
+
+        //printf("model: %s has %i triangles", name, tris.size());
+        return tris;
+    }
 
     void FGModel::draw(Shader& shader, uint32_t& draw_calls, int texture)
     {
