@@ -108,22 +108,22 @@ vec3 trace(ray r, vec3 diffuse, vec3 frag_pos, vec3 normal) {
         return visulized_normal;
 
         //get the point of intersection
-        vec3 point = origin + hinfo.near * dir;
-        vec3 normal = hinfo.normal;
+        //vec3 point = origin + hinfo.near * dir;
+        //vec3 normal = hinfo.normal;
 
         //offset point small amount by surface normal
-        origin = point + normal * EPSILON;
+        //origin = point + normal * EPSILON;
 
         //evaluate the surface BRDF
-        vec3 dir = randomHemispherePoint(normal, randvec2(bounce));
+        //vec3 dir = randomHemispherePoint(normal, randvec2(bounce));
 
-        att *= ONE_OVER_PI;
-        att *= dot(dir, normal);
+        //att *= ONE_OVER_PI;
+        //att *= dot(dir, normal);
 
         //colour of material (albedo)
         //att *= b.col;   
-        att *= vec3(1.0, 0.1, 0.1);
-        att /= ONE_OVER_2PI;
+        //att *= vec3(1.0, 0.1, 0.1);
+        //att /= ONE_OVER_2PI;
     }
 
     // bool frontface;

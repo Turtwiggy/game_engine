@@ -18,43 +18,46 @@ public:
     Shader() = default;
 
     unsigned int ID;
-    // constructor generates the shader on the fly
-    // ------------------------------------------------------------------------
-    Shader(const char* vertexPath, const char* fragmentPath, const char* geometryPath = nullptr)
+
+    Shader& attach_shader(const char* path, unsigned int type)
     {
-        std::cout
-            << "vertex path: " << vertexPath << "\n"
-            << "frag path: " << fragmentPath << "\n" << std::endl;
-
-        std::vector<unsigned int> shaders;
-
-        unsigned int vert_id = load_shader(vertexPath, GL_VERTEX_SHADER, "VERTEX");
-        shaders.push_back(vert_id);
-
-        unsigned int frag_id = load_shader(fragmentPath, GL_FRAGMENT_SHADER, "FRAGMENT");
-        shaders.push_back(frag_id);
-
-        unsigned int geom_id;
-        if (geometryPath != nullptr)
+        std::string name;
+        switch (type)
         {
-            geom_id; load_shader(geometryPath, GL_GEOMETRY_SHADER, "GEOMETRY");
-            shaders.push_back(geom_id);
+            case GL_VERTEX_SHADER:
+                name = "VERTEX";
+            case GL_COMPUTE_SHADER:
+                name = "COMPUTE";
+            case GL_FRAGMENT_SHADER:
+                name = "FRAGMENT";
+            case GL_GEOMETRY_SHADER:
+                name = "GEOMETRY";
+            default:
+                //ok to have a default as it wont compile anyway
+                name = "VERTEX";
         }
 
-        attach_shaders_to_program(shaders);
+        unsigned int shader = load_shader(path, type, name);
+
+        shaders.push_back(shader);
+
+        return *this;
     }
 
-    Shader(const char* computePath)
+    Shader& build_program()
     {
-        std::cout << "compute path: " << computePath << "\n" << std::endl;
+        if (ok_to_build)
+            attach_shaders_to_program();
+        else
+            printf("shader was not ok to build");
 
-        std::vector<unsigned int> shaders;
-
-        unsigned int compute_id = load_shader(computePath, GL_COMPUTE_SHADER, "COMPUTE");
-        shaders.push_back(compute_id);
-
-        attach_shaders_to_program(shaders);
+        return *this;
     }
+
+private:
+
+    bool ok_to_build = true;
+    std::vector<unsigned int> shaders;
 
     unsigned int load_shader(const char* path, unsigned int gl_shader_type, std::string type)
     {
@@ -84,6 +87,7 @@ public:
             catch (std::ifstream::failure e)
             {
                 std::cout << "ERROR::SHADER::FILE_NOT_SUCCESFULLY_READ" << std::endl;
+                ok_to_build = false;
             }
         }
 
@@ -96,7 +100,7 @@ public:
         return shader_id;
     }
 
-    void attach_shaders_to_program(std::vector<unsigned int>& shaders)
+    void attach_shaders_to_program()
     {
         ID = glCreateProgram();
 
@@ -114,6 +118,8 @@ public:
         }
     }
 
+
+public:
 
     // activate the shader
     // ------------------------------------------------------------------------
@@ -182,7 +188,7 @@ public:
 
     // utility function for checking shader compilation/linking errors.
     // ------------------------------------------------------------------------
-    static void check_compile_errors(GLuint shader, std::string type)
+    void check_compile_errors(GLuint shader, std::string type)
     {
         GLint success;
         GLchar infoLog[1024];
@@ -193,6 +199,7 @@ public:
             {
                 glGetShaderInfoLog(shader, 1024, NULL, infoLog);
                 std::cout << "ERROR::SHADER_COMPILATION_ERROR of type: " << type << "\n" << infoLog << "\n -- --------------------------------------------------- -- " << std::endl;
+                ok_to_build = false;
             }
         }
         else
@@ -203,6 +210,7 @@ public:
                 glGetProgramInfoLog(shader, 1024, NULL, infoLog);
                 std::cout << "ERROR::PROGRAM_LINKING_ERROR of type: " << type << "\n"
                     << infoLog << "\n -- --------------------------------------------------- -- " << std::endl;
+                ok_to_build = false;
             }
         }
     }

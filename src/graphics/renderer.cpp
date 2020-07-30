@@ -138,12 +138,18 @@ namespace fightinggame
 
         // A quad shader to render the full-screen quad VAO with the framebuffer as texture
         // --------------------------------------------------------------------------------
-        Shader quad_shader = Shader("assets/shaders/raytraced/example.vert", "assets/shaders/raytraced/example.frag");
+        Shader quad_shader = Shader()
+                                .attach_shader("assets/shaders/raytraced/example.vert", GL_VERTEX_SHADER)
+                                .attach_shader("assets/shaders/raytraced/example.frag", GL_FRAGMENT_SHADER)
+                                .build_program();
         quad_shader.use();
         quad_shader.setInt("tex", 0);
         s_Data.quad_shader = quad_shader;
 
-        Shader geometry_shader = Shader("assets/shaders/raytraced/geometry.vert", "assets/shaders/raytraced/geometry.frag");
+        Shader geometry_shader = Shader()
+                                .attach_shader("assets/shaders/raytraced/geometry.vert", GL_VERTEX_SHADER)
+                                .attach_shader("assets/shaders/raytraced/geometry.frag", GL_FRAGMENT_SHADER)
+                                .build_program();
         geometry_shader.use();
         s_Data.geometry_shader = geometry_shader;
 
@@ -222,8 +228,8 @@ namespace fightinggame
         // A ray tracing compute shader
         // ----------------------------
         Shader compute_shader = Shader()
-                                    .attach_shader("assets/shaders/raytraced/compute/random.glsl")
-                                    .attach_shader("assets/shaders/raytraced/compute/raytraced.glsl")
+                                    .attach_shader("assets/shaders/raytraced/compute/random.glsl", GL_COMPUTE_SHADER)
+                                    .attach_shader("assets/shaders/raytraced/compute/raytraced.glsl", GL_COMPUTE_SHADER)
                                     .build_program();
         compute_shader.use();
 
