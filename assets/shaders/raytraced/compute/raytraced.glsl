@@ -1,25 +1,25 @@
 #version 430 core
 
-layout(binding = 0, rgba16f) uniform image2D positionData;
-layout(binding = 1, rgba16f) uniform image2D normalData;
-layout(binding = 2, rgba16f) uniform image2D albedoSpecData;
-layout(binding = 3, rgba32f) uniform image2D outTexture;
+//layout(binding = 0, rgba16f) uniform image2D positionData;
+//layout(binding = 0, rgba16f) uniform image2D normalData;
+//layout(binding = 2, rgba16f) uniform image2D albedoSpecData;
+layout(binding = 0, rgba16f) uniform image2D outTexture;
 
 struct vertex {
-    vec3 pos;
-    vec3 normal;
-    vec2 tex;
+    vec4 pos;
+    vec4 normal;
+    vec4 tex;
 };
 
 struct triangle {
-    vertex a;
-    vertex b;
-    vertex c;
+    vec4 a;
+    vec4 b;
+    vec4 c;
 };
 
-layout(std430, binding = 4) buffer buffer_data
+layout(std430, binding = 2) buffer bufferData
 {
-    //variable array     
+    //variable array
     triangle triangles_in_scene[];
 };
 
@@ -35,8 +35,8 @@ uniform vec3 eye, ray00, ray01, ray10, ray11;
 #define SKY_COLOUR vec3(0.2, 0.3, 1.0)
 
 // Forward-declare external functions from random.glsl.
-float random(vec3 f);
-vec3 randomHemispherePoint(vec3 n, vec2 rand);
+//float random(vec3 f);
+//vec3 randomHemispherePoint(vec3 n, vec2 rand);
 
 struct ray {
     vec3 origin, direction ;
@@ -100,39 +100,23 @@ bool hit_sphere(const sphere s, const ray r, float t_min, float t_max, out hitin
 }
 
 //https://stackoverflow.com/questions/23975555/how-to-do-ray-plane-intersection
-vec3 trace(ray r, vec3 diffuse, vec3 frag_pos, vec3 normal) {
-
-    //sphere s = { vec3(0.0, 0.0, -1.0), 0.5f };
-    //hitinfo hinfo;
-
-    //if(hit_sphere(s, r, 0, 1, hinfo)) {
-    //    vec3 N = normalize(hinfo.point);
-    //    return 0.5* vec3(N.x + 1.0, N.y + 1, N.z + 1);
-    //}
-
-    // if ( dot(r.direction, normal) > 0.0) {
-    //     //frontface = false;
-    //     return visulized_normal;
-    // }
-    // //ray is from outside the normal
-    // if( dot(r.direction, normal) < 0.0) {
-    //     //frontface = true;
-    //     return visulized_normal;
-    // }
+vec3 trace(ray r, vec3 normal) {
 
     vec3 origin = r.origin;
     vec3 att = vec3(1.0);
+
     const float bounces = 1;
 
     for(int bounce = 0; bounce < bounces; bounce++) {
 
-        if(dot(r.direction, normal) == 0.0){
+        //use texture information for first bounce
+        if(bounce == 0 && dot(r.direction, normal) == 0.0) {
             //did not hit anything!
             return LIGHT_INTENSITY * SKY_COLOUR * att;
         }
 
         // the ray hit something!
-        vec3 visulized_normal = 0.5 * vec3(frag_pos.x + 1, frag_pos.y + 1, frag_pos.z + 1);
+        vec3 visulized_normal = 0.5 * vec3(normal.x + 1, normal.y + 1, normal.z + 1);
         return visulized_normal;
 
         //get the point of intersection
@@ -162,7 +146,7 @@ layout (local_size_x = 16, local_size_y = 8) in;
 void main(void) {
 
     px = ivec2(gl_GlobalInvocationID.xy);
-    ivec2 size = imageSize(albedoSpecData);
+    ivec2 size = imageSize(outTexture);
 
     if (any(greaterThanEqual(px, size)))
         return;
@@ -191,22 +175,22 @@ void main(void) {
     ray fwd = {eye, dir};
 
     //Sample textures
-    vec3 FragPos = imageLoad(positionData, px).rgb;
-    vec3 Normal = imageLoad(normalData, px).rgb;
-    vec3 Diffuse = imageLoad(albedoSpecData, px).rgb;
-    float Specular = imageLoad(albedoSpecData, px).a;
+    //vec3 FragPos = imageLoad(positionData, px).rgb;
+    //vec3 Normal = imageLoad(normalData, px).rgb;
+    //vec3 Diffuse = imageLoad(albedoSpecData, px).rgb;
+    //float Specular = imageLoad(albedoSpecData, px).a;
 
-    //vec3 color = trace(fwd, Diffuse, FragPos, Normal);
+    //vec3 color = trace(fwd, Normal);
 
-    vec3 color;
+    vec3 color = vec3(0.0, 0.0, 1.0);
     if(triangles_in_scene.length() == 0)
     {
-        //red is bad
-        color = vec3(1.0, 0.0, 0.0);
+        //red = bad
+        color = vec3(0.6, 0.2, 0.2);
     } else
     {
-        //blue means we have triangles
-        color = vec3(0.0, 1.0, 0.0);
+        //green = triangles
+        color = vec3(0.2, 0.6, 0.2);
     }
 
     imageStore(outTexture, px, vec4(color, 1.0));

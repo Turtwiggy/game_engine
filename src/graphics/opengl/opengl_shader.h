@@ -186,6 +186,32 @@ public:
         glUniformMatrix4fv(glGetUniformLocation(ID, name.c_str()), 1, GL_FALSE, &mat[0][0]);
     }
 
+    int get_uniform_binding_location(const char* name)
+    {
+        int loc = glGetUniformLocation(ID, name);
+        int params[1];
+        glGetUniformiv(ID, loc, params);
+        return params[0];
+    }
+
+    int get_buffer_binding_location(const char* name)
+    {
+        int index = glGetProgramResourceIndex(ID, GL_SHADER_STORAGE_BLOCK, name);
+        int params[1];
+        GLenum props[1] = { GL_BUFFER_BINDING };
+        glGetProgramResourceiv(ID, GL_SHADER_STORAGE_BLOCK, index, 1, props, 1, NULL, params);
+        return params[0];
+    }
+
+    void set_compute_buffer_bind_location(const char* name)
+    {
+        int index = glGetProgramResourceIndex(ID, GL_SHADER_STORAGE_BLOCK, name);
+
+        int location = get_buffer_binding_location(name);
+
+        glShaderStorageBlockBinding(ID, index, location);
+    }
+
     // utility function for checking shader compilation/linking errors.
     // ------------------------------------------------------------------------
     void check_compile_errors(GLuint shader, std::string type)

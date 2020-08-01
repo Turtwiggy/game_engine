@@ -32,7 +32,7 @@ namespace fightinggame {
         //generate triangle information
         if (indices.size() % 3 != 0)
         {
-            printf("we got a triangle problem scotty... \n");
+            printf("(FGMESH) setup_mesh: got a triangle problem scotty... \n");
         }
         else
         {
