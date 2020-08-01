@@ -14,9 +14,11 @@ struct triangle {
     vec4 c;
 };
 
-layout(std430, binding = 1 ) buffer bufferData
+uniform int set_triangles;
+
+layout( std430, binding = 1 ) buffer bufferData
 {
-    vec4 data[];
+    vec4 triangles[];
 };
 
 uniform vec3 eye, ray00, ray01, ray10, ray11;
@@ -29,10 +31,6 @@ uniform vec3 eye, ray00, ray01, ray10, ray11;
 #define EPSILON 0.0001
 #define LIGHT_INTENSITY 1.0
 #define SKY_COLOUR vec3(0.2, 0.3, 1.0)
-
-// Forward-declare external functions from random.glsl.
-//float random(vec3 f);
-//vec3 randomHemispherePoint(vec3 n, vec2 rand);
 
 struct ray {
     vec3 origin, direction ;
@@ -83,7 +81,7 @@ void main(void) {
     //vec3 color = trace(fwd, Normal);
 
     vec3 color = vec3(0.0, 0.0, 1.0);
-    if(data.length() > 0)
+    if(set_triangles != 0)
     {
         //green = triangles
         color = vec3(0.2, 0.6, 0.2);

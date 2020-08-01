@@ -31,22 +31,9 @@ namespace fightinggame
 
     struct RenderData
     {
-        //shaders
-        //Shader object_shader;
-        //Shader light_shader;
-        //Shader blur_shader;
-        //Shader hdr_bloom_final_shader;
-        //Shader lit_directional;
-
         //textures
         unsigned int wood_texture;
         unsigned int second_texture;
-
-        ////hdr + bloom buffers
-        //unsigned int hdr_fbo;
-        //std::array<unsigned int, 2> hdr_colour_buffers;
-        //std::array<unsigned int, 2> pingpong_fbo;
-        //std::array<unsigned int, 2> pingpong_colour_buffers;
 
         //Geometry pass
         unsigned int g_buffer;
@@ -64,9 +51,10 @@ namespace fightinggame
         Shader quad_shader;
 
         unsigned int max_triangles = 100;
-        GLuint ssbo;
-        GLuint ssbo_binding;
-        std::vector<glm::vec4> data = { glm::vec4(1.0, 0.0, 0.0, 1.0), glm::vec4(1.0, 0.0, 0.0, 1.0) };
+        unsigned int ssbo;
+        unsigned int ssbo_binding;
+
+        std::vector<glm::vec4> data = { glm::vec4(1.0, 1.0, 1.0, 1.0), glm::vec4(1.0, 1.0, 0.0, 1.0) };
 
         Renderer::Statistics stats;
     };
@@ -325,14 +313,19 @@ namespace fightinggame
             glBindImageTexture(s_Data.compute_out_tex_binding, s_Data.out_texture, 0, false, 0, GL_WRITE_ONLY, GL_RGBA16F);
             CHECK_OPENGL_ERROR(6);
 
+            //upload data every time content changes
+            //glBindBuffer(GL_SHADER_STORAGE_BUFFER, ssbo);
+            //glBufferSubData(GL_SHADER_STORAGE_BUFFER, 0, sizeof(unsigned int), (unsigned int)all_balls.size());
+            //glBufferSubData(GL_SHADER_STORAGE_BUFFER, sizeof(unsigned int), all_balls.size() * sizeof(Ball), &(all_balls[0]));
+
             s_Data.compute_shader.set_compute_buffer_bind_location("bufferData");
             CHECK_OPENGL_ERROR(7);
 
-            //glBindBuffer(GL_SHADER_STORAGE_BUFFER, s_Data.ssbo);
-            //CHECK_OPENGL_ERROR(8);
-
-            glBindBufferBase(GL_SHADER_STORAGE_BUFFER, 1, s_Data.ssbo);
+            glBindBufferBase(GL_SHADER_STORAGE_BUFFER, s_Data.ssbo_binding, s_Data.ssbo);
             CHECK_OPENGL_ERROR(9);
+
+            //opengl makes me cry
+            s_Data.compute_shader.setInt("set_triangles", s_Data.data.size());
 
             // Compute appropriate invocation dimension
             int worksizeX = next_power_of_two(width);
