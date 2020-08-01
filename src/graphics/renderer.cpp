@@ -211,7 +211,7 @@ namespace fightinggame
         glBindBuffer(GL_SHADER_STORAGE_BUFFER, SSBO);
         CHECK_OPENGL_ERROR(1)
 
-        glBufferData(GL_SHADER_STORAGE_BUFFER, sizeof(s_Data.data), &s_Data.data[0], GL_DYNAMIC_DRAW);
+        glBufferData(GL_SHADER_STORAGE_BUFFER, s_Data.data.size() * sizeof(glm::vec4), &s_Data.data[0], GL_DYNAMIC_DRAW);
         CHECK_OPENGL_ERROR(2);
 
         glBindBufferBase(GL_SHADER_STORAGE_BUFFER, s_Data.ssbo_binding, SSBO);
