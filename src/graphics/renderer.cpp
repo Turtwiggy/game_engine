@@ -55,7 +55,7 @@ namespace fightinggame
 
         //RayTracing
         unsigned int ray_fbo;
-        unsigned int ray_texture;
+        unsigned int out_texture;
         Shader compute_shader;
         unsigned int compute_shader_workgroup_x;
         unsigned int compute_shader_workgroup_y;
@@ -64,8 +64,8 @@ namespace fightinggame
         Shader quad_shader;
 
         unsigned int max_triangles = 100;
-        unsigned int ssbo;
-        unsigned int ssbo_binding;
+        GLuint ssbo;
+        GLuint ssbo_binding;
         std::vector<glm::vec4> data = { glm::vec4(1.0, 0.0, 0.0, 1.0), glm::vec4(1.0, 0.0, 0.0, 1.0) };
 
         Renderer::Statistics stats;
@@ -168,7 +168,7 @@ namespace fightinggame
                 std::cout << "Framebuffer not complete!" << std::endl;
         }
         s_Data.ray_fbo = rayFBO;
-        s_Data.ray_texture = rayTexture;
+        s_Data.out_texture = rayTexture;
         glBindFramebuffer(GL_FRAMEBUFFER, 0);
 
         // Ray tracing compute shader
@@ -178,72 +178,47 @@ namespace fightinggame
             .attach_shader("assets/shaders/raytraced/compute/raytraced.glsl", GL_COMPUTE_SHADER)
             .build_program();
         compute_shader.use();
-        compute_shader.set_compute_buffer_bind_location("bufferData");
-        CHECK_OPENGL_ERROR(0);
+        //CHECK_OPENGL_ERROR(0);
 
         int workgroup_size[3];
         glGetProgramiv(compute_shader.ID, GL_COMPUTE_WORK_GROUP_SIZE, workgroup_size);
-
         unsigned int work_group_size_x = workgroup_size[0];
         unsigned int work_group_size_y = workgroup_size[1];
         unsigned int work_group_size_z = workgroup_size[2];
-        //link raytracing data
+        //link data
         s_Data.compute_shader = compute_shader;
         s_Data.compute_shader_workgroup_x = work_group_size_x;
         s_Data.compute_shader_workgroup_y = work_group_size_y;
-        //int position_binding = compute_shader.get_binding_location("positionData");
-        //int albedo_spec_binding = compute_shader.get_binding_location("albedoSpecData");
-        //s_Data.compute_normal_binding = compute_shader.get_uniform_binding_location("normalData");
         s_Data.compute_out_tex_binding = compute_shader.get_uniform_binding_location("outTexture");
         s_Data.ssbo_binding = compute_shader.get_buffer_binding_location("bufferData");
-        printf("binding location: %i \n", s_Data.ssbo_binding);
 
         // Data to bind to GPU
         // -------------------
-        std::vector<ComputeShaderTriangle> triangles;
-        triangles.resize(s_Data.max_triangles);
-        printf("Size of init triangles: %i \n", sizeof(triangles));
+        //std::vector<ComputeShaderTriangle> triangles;
+        //triangles.resize(s_Data.max_triangles);
+        //printf("Size of init triangles: %i \n", sizeof(triangles));
 
         /*glm::vec4 data = glm::vec4(1.0, 0.0, 0.0, 1.0);*/
 
         // Ray tracing SSBO
         // ----------------
-        //unsigned int ssbo;
-        //glGenBuffers(1, &ssbo);
+        printf("bind slot: %i \n", s_Data.ssbo_binding);
 
-        //glBindBuffer(GL_SHADER_STORAGE_BUFFER, ssbo);
-        //CHECK_OPENGL_ERROR(1);
-
-        //glBindBufferBase(GL_SHADER_STORAGE_BUFFER, s_Data.ssbo_binding, ssbo);
-        //CHECK_OPENGL_ERROR(10);
-
-        ////note ComputeShaderTriangle contains vec4s because opengl treats vec3 as vec4 in memory
-        ////glBufferData(GL_SHADER_STORAGE_BUFFER, sizeof(triangles), &triangles[0], GL_STATIC_DRAW);
-        //glBufferData(GL_SHADER_STORAGE_BUFFER, sizeof(s_Data.data), &s_Data.data, GL_DYNAMIC_DRAW);
-        //CHECK_OPENGL_ERROR(2);
-
-        ////link data
-        //s_Data.ssbo = ssbo;
-        //s_Data.ssbo_triangles = std::make_shared<std::vector<ComputeShaderTriangle>>(triangles);
-        ////unbind
-        //glBindBuffer(GL_SHADER_STORAGE_BUFFER, 0);
-        //CHECK_OPENGL_ERROR(3);
-
-
-        // Ray tracing SSBO take 2
-        // -----------------------
         GLuint SSBO;
         glGenBuffers(1, &SSBO);
-        CHECK_OPENGL_ERROR(12);
+        CHECK_OPENGL_ERROR(0);
 
         glBindBuffer(GL_SHADER_STORAGE_BUFFER, SSBO);
-        CHECK_OPENGL_ERROR(14)
+        CHECK_OPENGL_ERROR(1)
 
         glBufferData(GL_SHADER_STORAGE_BUFFER, sizeof(s_Data.data), &s_Data.data[0], GL_DYNAMIC_DRAW);
-        CHECK_OPENGL_ERROR(7);
+        CHECK_OPENGL_ERROR(2);
+
+        glBindBufferBase(GL_SHADER_STORAGE_BUFFER, s_Data.ssbo_binding, SSBO);
+        CHECK_OPENGL_ERROR(3);
 
         glBindBuffer(GL_SHADER_STORAGE_BUFFER, 0);
-        CHECK_OPENGL_ERROR(18);
+        CHECK_OPENGL_ERROR(4);
 
         s_Data.ssbo = SSBO;
 
@@ -342,24 +317,22 @@ namespace fightinggame
             s_Data.compute_shader.setVec3("ray10", eye_ray);
             eye_ray = desc.camera.get_eye_ray(1, 1, width, height);
             s_Data.compute_shader.setVec3("ray11", eye_ray);
-            CHECK_OPENGL_ERROR(10);
+            CHECK_OPENGL_ERROR(5);
 
-            // Bind level 0 of framebuffer texture as writable image in the shader.
+            // Bind framebuffer texture as writable image in the shader.
             //glBindImageTexture(position_binding, s_Data.g_position, 0, false, 0, GL_READ_ONLY, GL_RGBA16F);
-            //glBindImageTexture(s_Data.compute_normal_binding, s_Data.g_normal, 0, false, 0, GL_READ_ONLY, GL_RGBA16F);
-            //glBindImageTexture(albedo_spec_binding, s_Data.g_albedo_spec, 0, false, 0, GL_READ_ONLY, GL_RGBA16F);
-            glBindImageTexture(s_Data.compute_out_tex_binding, s_Data.ray_texture, 0, false, 0, GL_WRITE_ONLY, GL_RGBA16F);
+
+            glBindImageTexture(s_Data.compute_out_tex_binding, s_Data.out_texture, 0, false, 0, GL_WRITE_ONLY, GL_RGBA16F);
             CHECK_OPENGL_ERROR(6);
 
-            int block_index = glGetProgramResourceIndex(s_Data.compute_shader.ID, GL_SHADER_STORAGE_BLOCK, "bufferData");
-            glShaderStorageBlockBinding(s_Data.compute_shader.ID, block_index, 1);
-            CHECK_OPENGL_ERROR(16);
-            glBindBufferBase(GL_SHADER_STORAGE_BUFFER, 1, s_Data.ssbo);
-            CHECK_OPENGL_ERROR(17);
+            s_Data.compute_shader.set_compute_buffer_bind_location("bufferData");
+            CHECK_OPENGL_ERROR(7);
 
-            //glm::vec4* ptr = (glm::vec4*)glMapBuffer(GL_SHADER_STORAGE_BUFFER, GL_WRITE_ONLY);
-            //memcpy(ptr, &pstruct, sizeof(pstruct));
-            //glUnmapBuffer(GL_SHADER_STORAGE_BUFFER);
+            //glBindBuffer(GL_SHADER_STORAGE_BUFFER, s_Data.ssbo);
+            //CHECK_OPENGL_ERROR(8);
+
+            glBindBufferBase(GL_SHADER_STORAGE_BUFFER, 1, s_Data.ssbo);
+            CHECK_OPENGL_ERROR(9);
 
             // Compute appropriate invocation dimension
             int worksizeX = next_power_of_two(width);
@@ -398,7 +371,7 @@ namespace fightinggame
         glActiveTexture(GL_TEXTURE0);
 
         if (desc.hdr) {
-            glBindTexture(GL_TEXTURE_2D, s_Data.ray_texture);
+            glBindTexture(GL_TEXTURE_2D, s_Data.out_texture);
         }
         else
         {

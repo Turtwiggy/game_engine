@@ -14,9 +14,9 @@ struct triangle {
     vec4 c;
 };
 
-layout(std430, binding = 1 ) readonly buffer bufferData
+layout(std430, binding = 1 ) buffer bufferData
 {
-    vec4 triangles[];
+    vec4 data[];
 };
 
 uniform vec3 eye, ray00, ray01, ray10, ray11;
@@ -42,13 +42,10 @@ vec3 ray_at(const ray r, float t) {
     return r.origin + (t * r.direction);
 }
 
-//GLOBALS
-ivec2 px;
-
 layout (local_size_x = 16, local_size_y = 8) in;
 void main(void) {
 
-    px = ivec2(gl_GlobalInvocationID.xy);
+    ivec2 px = ivec2(gl_GlobalInvocationID.xy);
     ivec2 size = imageSize(outTexture);
 
     if (any(greaterThanEqual(px, size)))
@@ -86,7 +83,7 @@ void main(void) {
     //vec3 color = trace(fwd, Normal);
 
     vec3 color = vec3(0.0, 0.0, 1.0);
-    if(triangles.length() > 0)
+    if(data.length() > 0)
     {
         //green = triangles
         color = vec3(0.2, 0.6, 0.2);
