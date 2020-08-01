@@ -1,5 +1,3 @@
-#pragma once
-
 #include "3d/fg_model.hpp"
 #include "3d/fg_texture.hpp"
 

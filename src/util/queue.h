@@ -1,3 +1,5 @@
+#pragma once
+
 #include <atomic>
 #include <functional>
 #include <iostream>
@@ -5,8 +7,6 @@
 #include <mutex>
 #include <stdexcept>
 #include <unordered_map>
-
-#pragma once
 
 template <typename Event>
 using EventHandler = std::function<void(const Event&)>;

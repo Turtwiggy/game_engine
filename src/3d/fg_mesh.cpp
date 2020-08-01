@@ -1,5 +1,6 @@
 
 #include "3d/fg_mesh.hpp"
+#include <util/util_functions.h>
 
 #include "glm/glm.hpp"
 #include <assimp/Importer.hpp>
@@ -56,6 +57,7 @@ namespace fightinggame {
         glGenVertexArrays(1, &VAO);
         glGenBuffers(1, &VBO);
         glGenBuffers(1, &EBO);
+
         //fill buffers
         glBindVertexArray(VAO);
         glBindBuffer(GL_ARRAY_BUFFER, VBO);

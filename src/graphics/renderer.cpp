@@ -59,14 +59,14 @@ namespace fightinggame
         Shader compute_shader;
         unsigned int compute_shader_workgroup_x;
         unsigned int compute_shader_workgroup_y;
-        int compute_normal_binding;
+        //int compute_normal_binding;
         int compute_out_tex_binding;
         Shader quad_shader;
 
         unsigned int max_triangles = 100;
         unsigned int ssbo;
         unsigned int ssbo_binding;
-        std::shared_ptr<std::vector<ComputeShaderTriangle>> ssao_triangles;
+        std::vector<glm::vec4> data = { glm::vec4(1.0, 0.0, 0.0, 1.0), glm::vec4(1.0, 0.0, 0.0, 1.0) };
 
         Renderer::Statistics stats;
     };
@@ -88,6 +88,7 @@ namespace fightinggame
         quad_shader.use();
         quad_shader.setInt("tex", 0);
         s_Data.quad_shader = quad_shader;
+        quad_shader.unbind();
 
         Shader geometry_shader = Shader()
                                 .attach_shader("assets/shaders/raytraced/geometry.vert", GL_VERTEX_SHADER)
@@ -95,6 +96,7 @@ namespace fightinggame
                                 .build_program();
         geometry_shader.use();
         s_Data.geometry_shader = geometry_shader;
+        geometry_shader.unbind();
 
         // configure g-buffer for intial render pass
         // -----------------------------------------
@@ -136,12 +138,13 @@ namespace fightinggame
             // finally check if framebuffer is complete
             if (glCheckFramebufferStatus(GL_FRAMEBUFFER) != GL_FRAMEBUFFER_COMPLETE)
                 std::cout << "Framebuffer not complete!" << std::endl;
-            glBindFramebuffer(GL_FRAMEBUFFER, 0);
         }
         s_Data.g_buffer = gBuffer;
         s_Data.g_position = gPosition;
         s_Data.g_normal = gNormal;
         s_Data.g_albedo_spec = gAlbedoSpec;
+        glBindFramebuffer(GL_FRAMEBUFFER, 0);
+        glBindRenderbuffer(GL_RENDERBUFFER, 0);
 
         // Ray tracing texture that compute shader writes to
         // -------------------------------------------------
@@ -163,10 +166,10 @@ namespace fightinggame
             // finally check if framebuffer is complete
             if (glCheckFramebufferStatus(GL_FRAMEBUFFER) != GL_FRAMEBUFFER_COMPLETE)
                 std::cout << "Framebuffer not complete!" << std::endl;
-            glBindFramebuffer(GL_FRAMEBUFFER, 0);
         }
         s_Data.ray_fbo = rayFBO;
         s_Data.ray_texture = rayTexture;
+        glBindFramebuffer(GL_FRAMEBUFFER, 0);
 
         // Ray tracing compute shader
         // ----------------------------
@@ -176,9 +179,11 @@ namespace fightinggame
             .build_program();
         compute_shader.use();
         compute_shader.set_compute_buffer_bind_location("bufferData");
+        CHECK_OPENGL_ERROR(0);
 
         int workgroup_size[3];
         glGetProgramiv(compute_shader.ID, GL_COMPUTE_WORK_GROUP_SIZE, workgroup_size);
+
         unsigned int work_group_size_x = workgroup_size[0];
         unsigned int work_group_size_y = workgroup_size[1];
         unsigned int work_group_size_z = workgroup_size[2];
@@ -188,31 +193,74 @@ namespace fightinggame
         s_Data.compute_shader_workgroup_y = work_group_size_y;
         //int position_binding = compute_shader.get_binding_location("positionData");
         //int albedo_spec_binding = compute_shader.get_binding_location("albedoSpecData");
-        s_Data.compute_normal_binding = compute_shader.get_uniform_binding_location("normalData");
+        //s_Data.compute_normal_binding = compute_shader.get_uniform_binding_location("normalData");
         s_Data.compute_out_tex_binding = compute_shader.get_uniform_binding_location("outTexture");
         s_Data.ssbo_binding = compute_shader.get_buffer_binding_location("bufferData");
         printf("binding location: %i \n", s_Data.ssbo_binding);
 
-        // Ray tracing SSBO with all triangle information in scene
-        // -------------------------------------------------------
+        // Data to bind to GPU
+        // -------------------
         std::vector<ComputeShaderTriangle> triangles;
         triangles.resize(s_Data.max_triangles);
         printf("Size of init triangles: %i \n", sizeof(triangles));
 
-        unsigned int ssbo;
-        glGenBuffers(1, &ssbo);
-        glBindBuffer(GL_SHADER_STORAGE_BUFFER, ssbo);
+        /*glm::vec4 data = glm::vec4(1.0, 0.0, 0.0, 1.0);*/
 
-        //note ComputeShaderTriangle contains vec4s because opengl treats vec3 as vec4 in memory
-        glBufferData(GL_SHADER_STORAGE_BUFFER, sizeof(triangles), &triangles[0], GL_STATIC_DRAW);
+        // Ray tracing SSBO
+        // ----------------
+        //unsigned int ssbo;
+        //glGenBuffers(1, &ssbo);
+
+        //glBindBuffer(GL_SHADER_STORAGE_BUFFER, ssbo);
+        //CHECK_OPENGL_ERROR(1);
+
+        //glBindBufferBase(GL_SHADER_STORAGE_BUFFER, s_Data.ssbo_binding, ssbo);
+        //CHECK_OPENGL_ERROR(10);
+
+        ////note ComputeShaderTriangle contains vec4s because opengl treats vec3 as vec4 in memory
+        ////glBufferData(GL_SHADER_STORAGE_BUFFER, sizeof(triangles), &triangles[0], GL_STATIC_DRAW);
+        //glBufferData(GL_SHADER_STORAGE_BUFFER, sizeof(s_Data.data), &s_Data.data, GL_DYNAMIC_DRAW);
+        //CHECK_OPENGL_ERROR(2);
+
+        ////link data
+        //s_Data.ssbo = ssbo;
+        //s_Data.ssbo_triangles = std::make_shared<std::vector<ComputeShaderTriangle>>(triangles);
+        ////unbind
+        //glBindBuffer(GL_SHADER_STORAGE_BUFFER, 0);
+        //CHECK_OPENGL_ERROR(3);
+
+
+        // Ray tracing SSBO take 2
+        // -----------------------
+        GLuint SSBO;
+        glGenBuffers(1, &SSBO);
+        CHECK_OPENGL_ERROR(12);
+
+        glBindBuffer(GL_SHADER_STORAGE_BUFFER, SSBO);
+        CHECK_OPENGL_ERROR(14)
+
+        glBufferData(GL_SHADER_STORAGE_BUFFER, sizeof(s_Data.data), &s_Data.data[0], GL_DYNAMIC_DRAW);
+        CHECK_OPENGL_ERROR(7);
 
         glBindBuffer(GL_SHADER_STORAGE_BUFFER, 0);
+        CHECK_OPENGL_ERROR(18);
 
-        //link data
-        s_Data.ssbo = ssbo;
-        s_Data.ssao_triangles = std::make_shared<std::vector<ComputeShaderTriangle>>(triangles);
+        s_Data.ssbo = SSBO;
 
-        glUseProgram(0);
+        //GPU Info
+        printf("OpenGL version supported by this platform (%s): \n", glGetString(GL_VERSION));
+        int params[1];
+        glGetIntegerv(GL_MAX_SHADER_STORAGE_BUFFER_BINDINGS, params);
+        printf("GPU INFO: Max shader storage buffer bindings: %i \n", params[0]);
+        //GL_MAX_SHADER_STORAGE_BUFFER_BINDINGS = 96
+        //GL_MAX_SHADER_STORAGE_BLOCK_SIZE = 2147483647
+        //GL_MAX_VERTEX_SHADER_STORAGE_BLOCKS = 16
+        //GL_MAX_FRAGMENT_SHADER_STORAGE_BLOCKS = 16
+        //GL_MAX_GEOMETRY_SHADER_STORAGE_BLOCKS = 16
+        //GL_MAX_TESS_CONTROL_SHADER_STORAGE_BLOCKS = 16
+        //GL_MAX_TESS_EVALUATION_SHADER_STORAGE_BLOCKS = 16
+        //GL_MAX_COMPUTE_SHADER_STORAGE_BLOCKS = 16
+        //GL_MAX_COMBINED_SHADER_STORAGE_BLOCKS = 96
 
         //Resources
         //https://github.com/LWJGL/lwjgl3-wiki/wiki/2.6.1.-Ray-tracing-with-OpenGL-Compute-Shaders-%28Part-I%29
@@ -253,28 +301,27 @@ namespace fightinggame
         }
 
         //Update scene's triangle description
-        {
-            std::vector<FGTriangle> triangles_in_scene;
-            std::vector<FGTriangle> triangles_in_cornell = state.cornel_box->model->get_all_triangles_in_meshes();
-            triangles_in_scene = triangles_in_cornell;
-            if (triangles_in_scene.size() > s_Data.max_triangles)
-            {
-                printf("too many triangles! handle this scenario");
-                return;
-            }
+        //{
+        //    std::vector<FGTriangle> triangles_in_scene;
+        //    std::vector<FGTriangle> triangles_in_cornell = state.cornel_box->model->get_all_triangles_in_meshes();
+        //    triangles_in_scene = triangles_in_cornell;
+        //    if (triangles_in_scene.size() > s_Data.max_triangles)
+        //    {
+        //        printf("too many triangles! handle this scenario");
+        //        return;
+        //    }
 
-            s_Data.ssao_triangles->clear();
-            s_Data.ssao_triangles->resize(s_Data.max_triangles);
+        //    s_Data.ssao_triangles->clear();
+        //    s_Data.ssao_triangles->resize(s_Data.max_triangles);
 
-            //convert FGTriangle to ComputeShaderTriangle
-            for (int i = 0; i < triangles_in_scene.size(); i++)
-            {
-                s_Data.ssao_triangles->at(i).a = glm::vec4(triangles_in_scene[i].p1.Position, 1.0);
-                s_Data.ssao_triangles->at(i).b = glm::vec4(triangles_in_scene[i].p2.Position, 1.0);
-                s_Data.ssao_triangles->at(i).c = glm::vec4(triangles_in_scene[i].p3.Position, 1.0);
-            }
-        }
-
+        //    //convert FGTriangle to ComputeShaderTriangle
+        //    for (int i = 0; i < triangles_in_scene.size(); i++)
+        //    {
+        //        s_Data.ssao_triangles->at(i).a = glm::vec4(triangles_in_scene[i].p1.Position, 1.0);
+        //        s_Data.ssao_triangles->at(i).b = glm::vec4(triangles_in_scene[i].p2.Position, 1.0);
+        //        s_Data.ssao_triangles->at(i).c = glm::vec4(triangles_in_scene[i].p3.Position, 1.0);
+        //    }
+        //}
 
         if (desc.hdr) {
 
@@ -295,18 +342,24 @@ namespace fightinggame
             s_Data.compute_shader.setVec3("ray10", eye_ray);
             eye_ray = desc.camera.get_eye_ray(1, 1, width, height);
             s_Data.compute_shader.setVec3("ray11", eye_ray);
+            CHECK_OPENGL_ERROR(10);
 
             // Bind level 0 of framebuffer texture as writable image in the shader.
-            // It introduces a new image binding point in OpenGL that a shader uses to
-            // read and write a single level of a texture and that we will bind the first
-            // level of our framebuffer texture to.
             //glBindImageTexture(position_binding, s_Data.g_position, 0, false, 0, GL_READ_ONLY, GL_RGBA16F);
             //glBindImageTexture(s_Data.compute_normal_binding, s_Data.g_normal, 0, false, 0, GL_READ_ONLY, GL_RGBA16F);
             //glBindImageTexture(albedo_spec_binding, s_Data.g_albedo_spec, 0, false, 0, GL_READ_ONLY, GL_RGBA16F);
             glBindImageTexture(s_Data.compute_out_tex_binding, s_Data.ray_texture, 0, false, 0, GL_WRITE_ONLY, GL_RGBA16F);
+            CHECK_OPENGL_ERROR(6);
 
-            /* Bind the SSBO containing our triangles */
-            glBindBufferBase(GL_SHADER_STORAGE_BUFFER, s_Data.ssbo_binding, s_Data.ssbo);
+            int block_index = glGetProgramResourceIndex(s_Data.compute_shader.ID, GL_SHADER_STORAGE_BLOCK, "bufferData");
+            glShaderStorageBlockBinding(s_Data.compute_shader.ID, block_index, 1);
+            CHECK_OPENGL_ERROR(16);
+            glBindBufferBase(GL_SHADER_STORAGE_BUFFER, 1, s_Data.ssbo);
+            CHECK_OPENGL_ERROR(17);
+
+            //glm::vec4* ptr = (glm::vec4*)glMapBuffer(GL_SHADER_STORAGE_BUFFER, GL_WRITE_ONLY);
+            //memcpy(ptr, &pstruct, sizeof(pstruct));
+            //glUnmapBuffer(GL_SHADER_STORAGE_BUFFER);
 
             // Compute appropriate invocation dimension
             int worksizeX = next_power_of_two(width);
@@ -445,6 +498,13 @@ namespace fightinggame
                 printf("Error initializing GLEW! %s\n", glewGetErrorString(glewError));
                 throw std::runtime_error("Error initializing GLEW! " + std::string(SDL_GetError()));
             }
+
+            //Check OpenGL
+            GLenum error;
+            while ((error = glGetError()) != GL_NO_ERROR)
+            {
+                printf("ERROR GLEW: %s\n", gl_error_to_string(error));
+            }
         }
 
         //Setup ImGui
@@ -464,7 +524,7 @@ namespace fightinggame
             style.Colors[ImGuiCol_WindowBg].w = 1.0f;
         }
 
-        std::string glsl_version = "#version 410";
+        std::string glsl_version = "#version 430";
         SDL_GL_SetAttribute(SDL_GL_CONTEXT_FLAGS, 0);
         SDL_GL_SetAttribute(SDL_GL_CONTEXT_MAJOR_VERSION, 4);
         SDL_GL_SetAttribute(SDL_GL_CONTEXT_MINOR_VERSION, 3);

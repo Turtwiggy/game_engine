@@ -348,13 +348,13 @@ void Game::run()
 
             seconds_since_last_game_tick += delta_time_in_seconds;
 
-            while (seconds_since_last_game_tick >= SECONDS_PER_FIXED_TICK)
-            {
-                //Fixed update
-                fixed_tick(SECONDS_PER_FIXED_TICK);
+            //while (seconds_since_last_game_tick >= SECONDS_PER_FIXED_TICK)
+            //{
+            //    //Fixed update
+            //    fixed_tick(SECONDS_PER_FIXED_TICK);
 
-                seconds_since_last_game_tick -= SECONDS_PER_FIXED_TICK;
-            }
+            //    seconds_since_last_game_tick -= SECONDS_PER_FIXED_TICK;
+            //}
 
             //Update game state every frame
             tick(delta_time_in_seconds, state_current, timer, input_manager, camera);
