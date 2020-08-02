@@ -27,6 +27,7 @@ namespace fightinggame
         glm::vec4 pos;
         glm::vec4 nml;
         glm::vec4 tex;
+        glm::vec4 colour;
     };
     struct ComputeShaderTriangle {
         ComputeShaderVertex p1;
@@ -307,16 +308,19 @@ namespace fightinggame
                         v1.pos = glm::vec4(triangles_in_scene[i].p1.Position, 1.0);
                         v1.nml = glm::vec4(triangles_in_scene[i].p1.Normal, 1.0);
                         v1.tex = glm::vec4(triangles_in_scene[i].p1.TexCoords, 1.0, 1.0);
+                        v1.colour = glm::vec4(1.0, 0.0, 0.0, 1.0);
 
                         ComputeShaderVertex v2;
                         v2.pos = glm::vec4(triangles_in_scene[i].p2.Position, 1.0);
                         v2.nml = glm::vec4(triangles_in_scene[i].p2.Normal, 1.0);
                         v2.tex = glm::vec4(triangles_in_scene[i].p2.TexCoords, 1.0, 1.0);
+                        v2.colour = glm::vec4(0.0, 1.0, 0.0, 1.0);
 
                         ComputeShaderVertex v3;
                         v3.pos = glm::vec4(triangles_in_scene[i].p3.Position, 1.0);
                         v3.nml = glm::vec4(triangles_in_scene[i].p3.Normal, 1.0);
                         v3.tex = glm::vec4(triangles_in_scene[i].p3.TexCoords, 1.0, 1.0);
+                        v3.colour = glm::vec4(0.0, 0.0, 1.0, 1.0);
 
                         s_Data.triangles[i].p1 = v1;
                         s_Data.triangles[i].p2 = v2;
