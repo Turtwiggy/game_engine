@@ -170,7 +170,7 @@ namespace fightinggame
         // Ray tracing compute shader
         // ----------------------------
         Shader compute_shader = Shader()
-            //.attach_shader("assets/shaders/raytraced/compute/random.glsl", GL_COMPUTE_SHADER)
+            .attach_shader("assets/shaders/raytraced/compute/random.glsl", GL_COMPUTE_SHADER)
             .attach_shader("assets/shaders/raytraced/compute/raytraced.glsl", GL_COMPUTE_SHADER)
             .build_program();
         compute_shader.use();
@@ -308,19 +308,19 @@ namespace fightinggame
                         v1.pos = glm::vec4(triangles_in_scene[i].p1.Position, 1.0);
                         v1.nml = glm::vec4(triangles_in_scene[i].p1.Normal, 1.0);
                         v1.tex = glm::vec4(triangles_in_scene[i].p1.TexCoords, 1.0, 1.0);
-                        v1.colour = glm::vec4(1.0, 0.0, 0.0, 1.0);
+                        v1.colour = triangles_in_scene[i].p1.Colour.colour;
 
                         ComputeShaderVertex v2;
                         v2.pos = glm::vec4(triangles_in_scene[i].p2.Position, 1.0);
                         v2.nml = glm::vec4(triangles_in_scene[i].p2.Normal, 1.0);
                         v2.tex = glm::vec4(triangles_in_scene[i].p2.TexCoords, 1.0, 1.0);
-                        v2.colour = glm::vec4(0.0, 1.0, 0.0, 1.0);
+                        v2.colour = triangles_in_scene[i].p2.Colour.colour;
 
                         ComputeShaderVertex v3;
                         v3.pos = glm::vec4(triangles_in_scene[i].p3.Position, 1.0);
                         v3.nml = glm::vec4(triangles_in_scene[i].p3.Normal, 1.0);
                         v3.tex = glm::vec4(triangles_in_scene[i].p3.TexCoords, 1.0, 1.0);
-                        v3.colour = glm::vec4(0.0, 0.0, 1.0, 1.0);
+                        v3.colour = triangles_in_scene[i].p3.Colour.colour;
 
                         s_Data.triangles[i].p1 = v1;
                         s_Data.triangles[i].p2 = v2;
@@ -361,6 +361,8 @@ namespace fightinggame
             eye_ray = desc.camera.get_eye_ray(1, 1, width, height);
             s_Data.compute_shader.setVec3("ray11", eye_ray);
             CHECK_OPENGL_ERROR(5);
+
+            s_Data.compute_shader.setFloat("time", state.time);
 
             // Bind framebuffer texture as writable image in the shader.
             glBindImageTexture(s_Data.compute_normal_binding, s_Data.g_normal, 0, false, 0, GL_READ_ONLY, GL_RGBA16F);

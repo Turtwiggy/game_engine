@@ -16,13 +16,17 @@ struct triangle {
     vertex p2;
 };
 
-uniform int set_triangles;
 
 layout( std430, binding = 2 ) readonly buffer bufferData
 {
     triangle triangles[];
 };
 
+//global
+ivec2 px;
+
+uniform int set_triangles;
+uniform float time;
 uniform vec3 eye, ray00, ray01, ray10, ray11;
 
 #define PI 3.14159265359
@@ -30,10 +34,20 @@ uniform vec3 eye, ray00, ray01, ray10, ray11;
 #define ONE_OVER_PI (1.0 / PI)
 #define ONE_OVER_2PI (1.0 / TWO_PI)
 #define LARGE_FLOAT 1E+10
-#define EPSILON 0.0000001
+#define EPSILON 0.0001
 #define LIGHT_INTENSITY 1.0
 #define SKY_COLOUR vec3(0.2, 0.3, 1.0)
 #define MAX_SCENE_BOUNDS 100.0
+
+// See random.glsl for more explanation of these functions.
+float random(vec3 f);
+vec3 randomHemispherePoint(vec3 n, vec2 rand);
+
+vec2 randvec2(int s) {
+  return vec2(
+    random(vec3(px + ivec2(s), time)),
+    random(vec3(px + ivec2(s), time + 1.1)));
+}
 
 struct ray {
     vec3 origin, direction;
@@ -50,9 +64,11 @@ struct hitinfo {
     float u;
     float v;
     float t;
+
+    int tri_index;
 };
 
-bool intersects(ray r, triangle tri, out hitinfo i)
+bool intersects_triangle(ray r, triangle tri, out hitinfo i)
 {
     vec3 v0 = tri.p0.pos.xyz;
     vec3 v1 = tri.p1.pos.xyz;
@@ -66,16 +82,14 @@ bool intersects(ray r, triangle tri, out hitinfo i)
     vec3 pvec = cross(dir, v0v2);
     float det = dot(v0v1, pvec);
 
-    bool culling = false;
+    //culling
+    // if(det < EPSILON) {
+    //    return false;
+    // }
 
-    if(culling) {
-        if(det < EPSILON) {
-            return false;
-        }
-    } else {
-        if(abs(det) < EPSILON) {
-            return false;
-        }
+    //no culling
+    if(abs(det) < EPSILON) {
+        return false;
     }
 
     float inv_det = 1 / det;
@@ -92,8 +106,12 @@ bool intersects(ray r, triangle tri, out hitinfo i)
     if( t > EPSILON)
     {
         //intersection point
-        //i.t = (orig + dir * t);
+        i.point = (orig + dir * t);
 
+        //intersection normal
+        i.normal = normalize(cross(v0v1, v0v2));
+
+        //intersection distance
         i.t = t;
         return true;
     }
@@ -101,78 +119,126 @@ bool intersects(ray r, triangle tri, out hitinfo i)
     return false; // this ray hits the triangle 
 }
 
-//https://stackoverflow.com/questions/23975555/how-to-do-ray-plane-intersection
-vec3 trace(ray r, vec3 normal) {
-
-    vec3 origin = r.origin;
-    vec3 att = vec3(1.0);
-
-    const float bounces = 1;
-
-    //use texture information for first bounce
-    //if(dot(r.direction, normal) == 0.0) {
-    //    //did not hit anything!
-    //    return LIGHT_INTENSITY * SKY_COLOUR * att;
-    //}
-    // the ray hit something!
-    //vec3 visulized_normal = 0.5 * vec3(normal.x + 1, normal.y + 1, normal.z + 1);
-    //return visulized_normal;
+bool intersects_any_triangle(ray r, out hitinfo info) {
 
     float t_nearest = LARGE_FLOAT;
-    triangle tri_nearest;
     bool intersect = false;
-
+    int t_index;
+    
     for(int i = 0; i < set_triangles; i++) {
 
-        const triangle tri = triangles[i];
         hitinfo h;
 
-        if(intersects(r, tri, h) && h.t < t_nearest)
+        const triangle tri = triangles[i];
+
+        if(intersects_triangle(r, tri, h) && h.t < t_nearest)
         {
             //a closer triangle intersected the ray!
-            tri_nearest = tri;
-            t_nearest = h.t;
             intersect = true;
+
+            t_nearest = h.t;
+            t_index = i;
         }
     }
 
-    if(intersect)
-    {
-        //return the triangles colour!
-        //return tri_nearest.p0.colour.xyz;
-        return vec3(0.2, 0.6, 0.2);
-    }
-
-    for(int bounce = 0; bounce < bounces; bounce++) {
-        //get the point of intersection
-        //vec3 point = origin + hinfo.near * dir;
-        //vec3 normal = hinfo.normal;
-        //offset point small amount by surface normal
-        //origin = point + normal * EPSILON;
-        //evaluate the surface BRDF
-        //vec3 dir = randomHemispherePoint(normal, randvec2(bounce));
-        //att *= ONE_OVER_PI;
-        //att *= dot(dir, normal);
-        //colour of material (albedo)
-        //att *= b.col;   
-        //att *= vec3(1.0, 0.1, 0.1);
-        //att /= ONE_OVER_2PI;
-    }
-
-    // bool frontface;
-    // //ray is from inside normal
-    return LIGHT_INTENSITY * SKY_COLOUR * att;
+    info.tri_index = t_index;
+    return intersect;
 }
+
+vec3 ray_color(const ray r, int depth) {
+
+    hitinfo h;
+
+    if(depth <= 0)
+        return vec3(0.0);
+
+    if(intersects_any_triangle(r, h)) {
+
+        triangle tri = triangles[h.tri_index];
+        vec3 point = h.point + randomHemispherePoint(tri.p0.normal.xyz, randvec2(depth));
+
+        //FIX THIS
+        ray new_ray;
+        new_ray.origin = point;
+        new_ray.direction = point - h.point;
+
+        return 0.5 * ray_color(new_ray, depth-1);
+    }
+
+    vec3 unit_direction = normalize(r.direction);
+    float t = 0.5*(unit_direction.y + 1.0);
+    vec3 color = (1.0-t)*vec3(1.0) + t*vec3(0.5, 0.7, 1.0);
+    return color;
+}
+
+
+//https://stackoverflow.com/questions/23975555/how-to-do-ray-plane-intersection
+vec3 trace(ray r, vec3 normal) {
+
+    vec3 att = vec3(1.0);
+    int bounces = 3;
+
+    vec3 color;
+
+     for(int bounce = bounces; bounce >= 0; bounce--) {
+
+        //FIX THIS
+        vec3 new_color = ray_color(r, bounce);
+
+
+
+
+
+        /*
+
+        hitinfo h;
+        if(!intersects_any_triangle(next_ray, h)) {
+            return LIGHT_INTENSITY * SKY_COLOUR * att;
+        }
+
+        triangle tri = triangles[h.tri_index];
+
+        vec3 intersection_point = h.point;
+        vec3 intersection_point_normal = tri.p0.normal.xyz;
+
+        //return the normal colour
+        //return 0.5 * vec3(intersection_point_normal.x + 1, intersection_point_normal.y + 1, intersection_point_normal.z + 1);
+        //return the triangles's v0 colour!
+        //return tri.p0.colour.xyz;
+
+        //offset the next ray's origin
+        ray new_ray;
+        new_ray.origin = intersection_point + intersection_point_normal * EPSILON;
+        //evaluate the surface BRDF
+        new_ray.direction = randomHemispherePoint(intersection_point_normal, randvec2(bounce));
+
+        att *= ONE_OVER_PI;
+        att *= dot(new_ray.direction, intersection_point_normal);
+
+        //colour of material (albedo)
+        att *= tri.p0.colour.xyz;
+        att /= ONE_OVER_2PI;
+
+        next_ray = new_ray;
+
+        */
+    }
+
+    //no colision even after X bounces!
+    // return vec3(0.0);
+}
+
 
 
 layout (local_size_x = 16, local_size_y = 8) in;
 void main(void) {
 
-    ivec2 px = ivec2(gl_GlobalInvocationID.xy);
-    ivec2 size = imageSize(outTexture);
+    px = ivec2(gl_GlobalInvocationID.xy);
 
-    if (any(greaterThanEqual(px, size)))
+    ivec2 size = imageSize(outTexture);
+    if (px.x >= size.x || px.y >= size.y) {
         return;
+    }
 
     vec2 p = (vec2(px) + vec2(0.5)) / vec2(size);
     vec3 dir = mix(mix(ray00, ray01, p.y), mix(ray10, ray11, p.y), p.x);
@@ -182,7 +248,15 @@ void main(void) {
     //vec3 FragPos = imageLoad(positionData, px).rgb;
     vec3 Normal = imageLoad(normalTexture, px).rgb;
 
+    //use texture information for first bounce
+    //if(dot(dir, Normal) == 0.0) {  //no intersection
+    //    imageStore(outTexture, px, vec4(SKY_COLOUR, 1.0));
+    //    return;
+    //}
+
+    //Raytrace
     vec3 color = trace(fwd, Normal);
+    vec3 oldColor = vec3(0.0);
 
     imageStore(outTexture, px, vec4(color, 1.0));
 }

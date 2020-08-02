@@ -157,6 +157,9 @@ void Game::render(
             exposure
         );
 
+        //update gamestate timer
+        state.time = timer;
+
         rend.draw_pass
         (
             drawDesc,

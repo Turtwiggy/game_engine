@@ -30,6 +30,8 @@ namespace fightinggame {
         //std::shared_ptr<FGObject> terrain;
         //std::shared_ptr<FGObject> player;
         std::shared_ptr<FGObject> cornel_box;
+
+        float time;
     };
 
 }

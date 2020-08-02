@@ -45,8 +45,13 @@ namespace fightinggame {
                 FGTriangle tri;
 
                 tri.p1 = vertices[indices[i]];
+                tri.p1.Colour = colour;
+
                 tri.p2 = vertices[indices[i + 1]];
+                tri.p2.Colour = colour;
+
                 tri.p3 = vertices[indices[i + 2]];
+                tri.p3.Colour = colour;
 
                 triangles.push_back(tri);
             }

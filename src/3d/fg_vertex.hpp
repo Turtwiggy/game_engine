@@ -1,5 +1,7 @@
 #pragma once
 
+#include "3d/fg_colour.hpp"
+
 #include "glm/glm.hpp"
 
 namespace fightinggame {
@@ -24,6 +26,8 @@ namespace fightinggame {
         glm::vec2 TexCoords;
         //glm::vec3 Tangent;
         //glm::vec3 Bitangent;
+
+        FGColour Colour;
     };
 
 }
