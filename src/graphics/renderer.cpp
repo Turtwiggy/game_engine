@@ -23,10 +23,15 @@
 
 namespace fightinggame
 {
+    struct ComputeShaderVertex {
+        glm::vec4 pos;
+        glm::vec4 nml;
+        glm::vec4 tex;
+    };
     struct ComputeShaderTriangle {
-        glm::vec4 a;
-        glm::vec4 b;
-        glm::vec4 c;
+        ComputeShaderVertex p1;
+        ComputeShaderVertex p2;
+        ComputeShaderVertex p3;
     };
 
     struct RenderData
@@ -46,15 +51,17 @@ namespace fightinggame
         Shader compute_shader;
         unsigned int compute_shader_workgroup_x;
         unsigned int compute_shader_workgroup_y;
-        //int compute_normal_binding;
+        int compute_normal_binding;
         int compute_out_tex_binding;
         Shader quad_shader;
 
-        unsigned int max_triangles = 100;
+        bool refresh_ssbo = false;
         unsigned int ssbo;
         unsigned int ssbo_binding;
 
-        std::vector<glm::vec4> data = { glm::vec4(1.0, 1.0, 1.0, 1.0), glm::vec4(1.0, 1.0, 0.0, 1.0) };
+        unsigned int max_triangles = 100;
+        unsigned int set_triangles = 0;
+        std::vector<ComputeShaderTriangle> triangles;
 
         Renderer::Statistics stats;
     };
@@ -178,6 +185,7 @@ namespace fightinggame
         s_Data.compute_shader_workgroup_x = work_group_size_x;
         s_Data.compute_shader_workgroup_y = work_group_size_y;
         s_Data.compute_out_tex_binding = compute_shader.get_uniform_binding_location("outTexture");
+        s_Data.compute_normal_binding = compute_shader.get_uniform_binding_location("normalTexture");
         s_Data.ssbo_binding = compute_shader.get_buffer_binding_location("bufferData");
 
         // Data to bind to GPU
@@ -199,8 +207,11 @@ namespace fightinggame
         glBindBuffer(GL_SHADER_STORAGE_BUFFER, SSBO);
         CHECK_OPENGL_ERROR(1)
 
-        glBufferData(GL_SHADER_STORAGE_BUFFER, s_Data.data.size() * sizeof(glm::vec4), &s_Data.data[0], GL_DYNAMIC_DRAW);
+        //glBufferData(GL_SHADER_STORAGE_BUFFER, s_Data.data.size() * sizeof(glm::vec4), &s_Data.data[0], GL_DYNAMIC_DRAW);
+        //initialize empty ssbo
+        glBufferData(GL_SHADER_STORAGE_BUFFER, 0, 0, GL_DYNAMIC_DRAW);
         CHECK_OPENGL_ERROR(2);
+        s_Data.refresh_ssbo = true;
 
         glBindBufferBase(GL_SHADER_STORAGE_BUFFER, s_Data.ssbo_binding, SSBO);
         CHECK_OPENGL_ERROR(3);
@@ -264,27 +275,67 @@ namespace fightinggame
         }
 
         //Update scene's triangle description
-        //{
-        //    std::vector<FGTriangle> triangles_in_scene;
-        //    std::vector<FGTriangle> triangles_in_cornell = state.cornel_box->model->get_all_triangles_in_meshes();
-        //    triangles_in_scene = triangles_in_cornell;
-        //    if (triangles_in_scene.size() > s_Data.max_triangles)
-        //    {
-        //        printf("too many triangles! handle this scenario");
-        //        return;
-        //    }
+        {
+            if ( s_Data.refresh_ssbo ) {
 
-        //    s_Data.ssao_triangles->clear();
-        //    s_Data.ssao_triangles->resize(s_Data.max_triangles);
+                std::vector<FGTriangle> triangles_in_scene;
+                std::vector<FGTriangle> triangles_in_cornell = state.cornel_box->model->get_all_triangles_in_meshes();
+                triangles_in_scene = triangles_in_cornell;
 
-        //    //convert FGTriangle to ComputeShaderTriangle
-        //    for (int i = 0; i < triangles_in_scene.size(); i++)
-        //    {
-        //        s_Data.ssao_triangles->at(i).a = glm::vec4(triangles_in_scene[i].p1.Position, 1.0);
-        //        s_Data.ssao_triangles->at(i).b = glm::vec4(triangles_in_scene[i].p2.Position, 1.0);
-        //        s_Data.ssao_triangles->at(i).c = glm::vec4(triangles_in_scene[i].p3.Position, 1.0);
-        //    }
-        //}
+                int triangles_in_scene_size = triangles_in_scene.size();
+
+                //Check max triangles
+                if (triangles_in_scene_size > s_Data.max_triangles)
+                {
+                    printf("too many triangles! handle this scenario");
+                    return;
+                }
+
+                //Check ssbo size
+                if (s_Data.set_triangles != triangles_in_scene_size)
+                {
+                    printf("Updating SSBO triangles with: %i triangles \n", triangles_in_scene_size);
+
+                    //refresh triangle data
+                    s_Data.triangles.clear();
+                    s_Data.triangles.resize(triangles_in_scene_size);
+
+                    //convert FGTriangle to ComputeShaderTriangle
+                    for (int i = 0; i < triangles_in_scene_size; i++)
+                    {
+                        ComputeShaderVertex v1;
+                        v1.pos = glm::vec4(triangles_in_scene[i].p1.Position, 1.0);
+                        v1.nml = glm::vec4(triangles_in_scene[i].p1.Normal, 1.0);
+                        v1.tex = glm::vec4(triangles_in_scene[i].p1.TexCoords, 1.0, 1.0);
+
+                        ComputeShaderVertex v2;
+                        v2.pos = glm::vec4(triangles_in_scene[i].p2.Position, 1.0);
+                        v2.nml = glm::vec4(triangles_in_scene[i].p2.Normal, 1.0);
+                        v2.tex = glm::vec4(triangles_in_scene[i].p2.TexCoords, 1.0, 1.0);
+
+                        ComputeShaderVertex v3;
+                        v3.pos = glm::vec4(triangles_in_scene[i].p3.Position, 1.0);
+                        v3.nml = glm::vec4(triangles_in_scene[i].p3.Normal, 1.0);
+                        v3.tex = glm::vec4(triangles_in_scene[i].p3.TexCoords, 1.0, 1.0);
+
+                        s_Data.triangles[i].p1 = v1;
+                        s_Data.triangles[i].p2 = v2;
+                        s_Data.triangles[i].p3 = v3;
+                    }
+
+                    //upload data to ssbo when triangle size changes
+                    //note: if the triangles vertices change, this wont update the ssbo currently
+                    glBindBuffer(GL_SHADER_STORAGE_BUFFER, s_Data.ssbo);
+                    glBufferData(GL_SHADER_STORAGE_BUFFER, triangles_in_scene_size * sizeof(ComputeShaderTriangle), &s_Data.triangles[0], GL_STATIC_DRAW);
+                    //glBufferSubData(GL_SHADER_STORAGE_BUFFER, 0, sizeof(unsigned int), (unsigned int)all_balls.size());
+                    //glBufferSubData(GL_SHADER_STORAGE_BUFFER, sizeof(unsigned int), all_balls.size() * sizeof(Ball), &(all_balls[0]));
+
+                    s_Data.set_triangles = triangles_in_scene_size;
+                }
+
+                s_Data.refresh_ssbo = false;
+            }
+        }
 
         if (desc.hdr) {
 
@@ -308,15 +359,9 @@ namespace fightinggame
             CHECK_OPENGL_ERROR(5);
 
             // Bind framebuffer texture as writable image in the shader.
-            //glBindImageTexture(position_binding, s_Data.g_position, 0, false, 0, GL_READ_ONLY, GL_RGBA16F);
-
+            glBindImageTexture(s_Data.compute_normal_binding, s_Data.g_normal, 0, false, 0, GL_READ_ONLY, GL_RGBA16F);
             glBindImageTexture(s_Data.compute_out_tex_binding, s_Data.out_texture, 0, false, 0, GL_WRITE_ONLY, GL_RGBA16F);
             CHECK_OPENGL_ERROR(6);
-
-            //upload data every time content changes
-            //glBindBuffer(GL_SHADER_STORAGE_BUFFER, ssbo);
-            //glBufferSubData(GL_SHADER_STORAGE_BUFFER, 0, sizeof(unsigned int), (unsigned int)all_balls.size());
-            //glBufferSubData(GL_SHADER_STORAGE_BUFFER, sizeof(unsigned int), all_balls.size() * sizeof(Ball), &(all_balls[0]));
 
             s_Data.compute_shader.set_compute_buffer_bind_location("bufferData");
             CHECK_OPENGL_ERROR(7);
@@ -324,8 +369,8 @@ namespace fightinggame
             glBindBufferBase(GL_SHADER_STORAGE_BUFFER, s_Data.ssbo_binding, s_Data.ssbo);
             CHECK_OPENGL_ERROR(9);
 
-            //opengl makes me cry
-            s_Data.compute_shader.setInt("set_triangles", s_Data.data.size());
+            //set the ssbo size in a uniform
+            s_Data.compute_shader.setInt("set_triangles", s_Data.set_triangles);
 
             // Compute appropriate invocation dimension
             int worksizeX = next_power_of_two(width);
