@@ -377,6 +377,8 @@ namespace fightinggame
 
             //set the ssbo size in a uniform
             s_Data.compute_shader.setInt("set_triangles", s_Data.set_triangles);
+            s_Data.compute_shader.setFloat("phongExponent", 128.0f);
+            s_Data.compute_shader.setFloat("specularFactor", desc.exposure);
 
             // Compute appropriate invocation dimension
             int worksizeX = next_power_of_two(width);

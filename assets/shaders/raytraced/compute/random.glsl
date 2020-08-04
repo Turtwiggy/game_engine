@@ -4,7 +4,10 @@
  */
 #version 330 core
 
+#define PI 3.14159265359
 #define TWO_PI 6.28318530718
+#define ONE_OVER_PI (1.0 / PI)
+#define ONE_OVER_2PI (1.0 / TWO_PI)
 
 /*
  * Define the type of a random variable/vector which is used to compute
@@ -119,7 +122,53 @@ vec3 isotropic(float rp, float c) {
  * @returns the random hemisphere vector plus its probability density
  *          value
  */
-vec3 randomHemispherePoint(vec3 n, spatialrand rand) {
-  float c = rand.y;
-  return around(isotropic(rand.x, c), n);
+vec4 randomHemispherePoint(vec3 n, spatialrand rand) {
+  return vec4(around(isotropic(rand.x, rand.y), n), ONE_OVER_2PI);
+}
+/**
+ * Compute the probability density value of randomHemispherePoint()
+ * generating the vector 'v'.
+ *
+ * @param n the normal vector determining the direction of the
+ *          hemisphere
+ * @param v the vector to compute the pdf of
+ * @returns pdf(v) for the uniform hemisphere distribution
+ */
+float hemisphereProbability(vec3 n, vec3 v) {
+  return step(0.0, dot(v, n)) * ONE_OVER_2PI;
+}
+
+/**
+ * Generate a random vector uniformly distributed over the disk with 'n'
+ * pointing at its center and with the radius 'r' at a distance of 'd'.
+ *
+ * https://en.wikipedia.org/wiki/Solid_angle#Cone,_spherical_cap,_hemisphere
+ * https://en.wikipedia.org/wiki/Angular_diameter#Formula
+ *
+ * @param n the unit direction vector towards the disk's center
+ * @param d the distance to the disk
+ * @param r the radius of the disk
+ * @param rand a vector of two pseudo-random numbers
+ * @returns the random disk sample vector
+ */
+vec4 randomDiskPoint(vec3 n, float d, float r, spatialrand rand) {
+  float D = r/d, c = inversesqrt(1.0 + D * D), pr = ONE_OVER_2PI / (1.0 - c);
+  return vec4(around(isotropic(rand.x, 1.0 - rand.y * (1.0 - c)), n), pr);
+}
+/**
+ * Compute the probability density value of randomDiskPoint()
+ * generating the vector 'v'.
+ *
+ * https://en.wikipedia.org/wiki/Solid_angle#Cone,_spherical_cap,_hemisphere
+ * https://en.wikipedia.org/wiki/Angular_diameter#Formula
+ *
+ * @param n the unit direction vector towards the disk's center
+ * @param d the distance to the disk
+ * @param r the radius of the disk
+ * @param v the vector to compute the pdf of
+ * @returns pdf(v) for the disk distribution
+ */
+float diskProbability(vec3 n, float d, float r, vec3 v) {
+  float D = r/d, c = inversesqrt(1.0 + D * D);
+  return step(c, dot(n, v)) * ONE_OVER_2PI / (1.0 - c);
 }
