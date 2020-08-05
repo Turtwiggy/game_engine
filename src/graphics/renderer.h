@@ -37,6 +37,45 @@ namespace fightinggame {
         }
     };
 
+    class RendererImpl
+    {
+    public:
+        virtual void init(int screen_width, int screen_height) = 0;
+        virtual void draw_pass(draw_scene_desc& desc, const GameState& state) = 0;
+        virtual void resize(int width, int height) = 0;
+
+        // renderQuad() renders a 1x1 XY quad in NDC
+        // -----------------------------------------
+        unsigned int quadVAO = 0;
+        unsigned int quadVBO;
+        void renderQuad()
+        {
+            if (quadVAO == 0)
+            {
+                float quadVertices[] = {
+                    // positions        // texture Coords
+                    -1.0f,  1.0f, 0.0f, 0.0f, 1.0f,
+                    -1.0f, -1.0f, 0.0f, 0.0f, 0.0f,
+                     1.0f,  1.0f, 0.0f, 1.0f, 1.0f,
+                     1.0f, -1.0f, 0.0f, 1.0f, 0.0f,
+                };
+                // setup plane VAO
+                glGenVertexArrays(1, &quadVAO);
+                glGenBuffers(1, &quadVBO);
+                glBindVertexArray(quadVAO);
+                glBindBuffer(GL_ARRAY_BUFFER, quadVBO);
+                glBufferData(GL_ARRAY_BUFFER, sizeof(quadVertices), &quadVertices, GL_STATIC_DRAW);
+                glEnableVertexAttribArray(0);
+                glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 5 * sizeof(float), (void*)0);
+                glEnableVertexAttribArray(1);
+                glVertexAttribPointer(1, 2, GL_FLOAT, GL_FALSE, 5 * sizeof(float), (void*)(3 * sizeof(float)));
+            }
+            glBindVertexArray(quadVAO);
+            glDrawArrays(GL_TRIANGLE_STRIP, 0, 4);
+            glBindVertexArray(0);
+        }
+    };
+
     class Renderer
     {
     public:
@@ -45,30 +84,17 @@ namespace fightinggame {
         void new_frame(SDL_Window* window);
         void end_frame(SDL_Window* window);
 
-        void draw_pass(draw_scene_desc& desc, const GameState& state);
-        void screen_size_changed(unsigned int width, unsigned int height);
-
-        //unsigned int hdr_fbo();
-        //std::array<unsigned int, 2> hdr_colour_buffer(int width, int height, unsigned int hdr_fbo);
-        //void renderCube(uint32_t& draw_calls);
-        void renderQuad();
-
         void shutdown();
 
-    public:
-        // Stats
-        struct Statistics
-        {
-            uint32_t DrawCalls = 0;
-        };
+        std::unique_ptr<RendererImpl> renderer_impl;
 
     public:
 
-        ImGuiContext* get_imgui_context() { return _imgui; }
-
+    public:
         void init_opengl_and_imgui(const GameWindow& window);
         void init_renderer(int screen_width, int screen_height);
 
+        ImGuiContext* get_imgui_context() { return _imgui; }
         SDL_GLContext get_gl_context() { return gl_context; }
 
     private:

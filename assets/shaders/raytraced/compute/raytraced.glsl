@@ -204,57 +204,71 @@ vec3 brdf(vec3 albedo, vec3 i, vec3 o, vec3 n) {
          brdfDiffuse(albedo, i, o, n) * (1.0 - specularFactor);
 }
 
+vec3 no_hit_color(ray r) {
+  vec3 dir = normalize(r.direction);
+  float temp = 0.5 * (dir.y + 1.0);
+  vec3 cval = vec3(1.0 - temp) + temp * vec3(0.5, 0.7, 1.0);
+  return cval;
+}
+
 //https://stackoverflow.com/questions/23975555/how-to-do-ray-plane-intersection
 vec3 trace(ray r, vec3 normal) {
 
-    vec3 att = vec3(1.0);
+    //vec3 att = vec3(1.0);
     bool intersected = false;
 
-    vec3 colour = vec3(0.0);
+    vec3 colour = vec3(1.0);
     ray next_ray = r;
 
-    for(int bounce = 0; bounce < 2; bounce += 1 ) {
+    for(int bounce = 2; bounce > -1; bounce-- ) {
+
+        if(bounce <= 0)
+        {
+            return vec3(0.0);
+        }
 
         hitinfo i;
 
-        if(!intersects_any_triangle(next_ray, i))
+        if(intersects_any_triangle(next_ray, i))
         {
-            return LIGHT_INTENSITY * SKY_COLOUR * att;
+            triangle tri = triangles[i.tri_index];
+
+            vec3 albedo_colour = tri.p0.colour.xyz;
+
+            if(bounce == 2)
+            {
+                colour = albedo_colour;
+            } else
+            {
+                colour *= 0.5;
+            }
+
+            vec3 rand = randvec3(bounce);
+            vec3 target = i.point + randomHemispherePoint(i.normal, rand.xy).xyz;
+
+            //att *= brdf(albedo_colour, s.xyz, -next_ray.direction, i.normal);
+
+            ray new_ray;
+            //new_ray.origin = i.point + i.normal * EPSILON;
+            new_ray.origin = i.point;
+            new_ray.direction = target - i.point;
+            next_ray = new_ray;
+
+            //att *= max(0.0, dot( new_ray.direction, i.normal));
+            //if(s.w > 0.0)
+            //    att /= s.w;
+
+            intersected = true;
+        } else
+        {
+            colour *= no_hit_color(next_ray);
+            return colour;
         }
 
-        triangle tri = triangles[i.tri_index];
-
-        vec3 albedo_colour = tri.p0.colour.xyz;
-        vec3 point_of_intersection = i.point;
-        vec3 normal_at_intersection = i.normal;
-
-        //offset point of intersection
-        point_of_intersection = i.point + i.normal * EPSILON;
-
-        vec3 rand = randvec3(bounce);
-        vec4 s = randomHemispherePoint(i.normal, rand.xy);
-
-        att *= brdf(albedo_colour, s.xyz, - next_ray.direction, i.normal);
-
-        ray new_ray;
-        new_ray.origin = point_of_intersection;
-        new_ray.direction = s.xyz;
-
-        att *= max(0.0, dot( new_ray.direction, normal_at_intersection));
-
-        if(s.w > 0.0)
-            att /= s.w;
-
-        next_ray = new_ray;
-
-        return 0.5 * vec3( normal.x + 1,  normal.y + 1,  normal.z + 1);
-
-        float n_dot_l = -dot(tri.p0.normal.xyz, next_ray.direction);
-
-        return albedo_colour;
+        //return 0.5 * vec3( new_ray.direction.x + 1,  new_ray.direction.y + 1,  new_ray.direction.z + 1);
     }
 
-    return LIGHT_INTENSITY * SKY_COLOUR * att;
+    return vec3(1.0, 0.0, 1.0);
 
     //return the normal colour
     //return 0.5 * vec3(intersection_point_normal.x + 1, intersection_point_normal.y + 1, intersection_point_normal.z + 1);
@@ -276,6 +290,7 @@ void main(void) {
 
     vec2 p = (vec2(px) + vec2(0.5)) / vec2(size);
     vec3 dir = mix(mix(ray00, ray01, p.y), mix(ray10, ray11, p.y), p.x);
+
     ray fwd = {eye, dir};
 
     //Sample textures

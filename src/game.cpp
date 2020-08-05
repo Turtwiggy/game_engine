@@ -5,6 +5,7 @@
 #include "modules/terrain/terrain.hpp"
 
 #include "graphics/render_command.h"
+#include "graphics/renderers/renderer_ray_traced.h"
 #include "gui.hpp"
 
 #include <GL/glew.h>
@@ -160,7 +161,7 @@ void Game::render(
         //update gamestate timer
         state.time = timer;
 
-        rend.draw_pass
+        rend.renderer_impl->draw_pass
         (
             drawDesc,
             state
@@ -215,6 +216,8 @@ void Game::run()
     Renderer renderer;
     renderer.init_opengl_and_imgui(window); //do not use opengl before this point
     renderer.init_renderer(m_width, m_height);
+    renderer.renderer_impl = std::make_unique<RendererRayTraced>();
+    renderer.renderer_impl->init(m_width, m_height);
     printf("renderer taking up: %s bytes \n", std::to_string(sizeof(renderer)).c_str());
 
     //Input Manager
@@ -303,7 +306,7 @@ void Game::run()
             window.GetSize(width, height);
             std::cout << "screen size toggled, w: " << width << " h: " << height << std::endl;
             RenderCommand::set_viewport(0, 0, width, height);
-            renderer.screen_size_changed(width, height);
+            renderer.renderer_impl->resize(width, height);
             
             fullscreen = !fullscreen;
         }
@@ -311,11 +314,6 @@ void Game::run()
         {
             shutdown(renderer, window);  return;
         }
-        if (input_manager.get_mouse_lmb_held())
-        {
-            //printf("\nlmb held");
-        }
-
         if (input_manager.get_key_down(SDL_KeyCode::SDLK_h))
             hdr = true;
         if (input_manager.get_key_up(SDL_KeyCode::SDLK_h))
@@ -343,6 +341,14 @@ void Game::run()
         ImGuiIO& io = ImGui::GetIO();
         io.DeltaTime = delta_time_in_seconds;
         //printf("delta_time %f \n", delta_time_in_seconds);
+
+        // Mouse
+        // -----
+        if (input_manager.get_mouse_lmb_held())
+        {
+            auto mpos = glm::vec2{ io.MousePos.x, io.MousePos.y };
+            printf("\nlmb held at %f %f", mpos.x, mpos.y);
+        }
 
         // Game State Tick
         // ---------------
