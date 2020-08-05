@@ -136,7 +136,6 @@ void Game::render(
     Camera& camera,
     Gui& gui,
     GameWindow& window,
-    bool hdr,
     float exposure )
 {
     //Begin Frame
@@ -154,7 +153,6 @@ void Game::render(
         (
             camera,
             window,
-            hdr,
             exposure
         );
 
@@ -315,23 +313,23 @@ void Game::run()
             shutdown(renderer, window);  return;
         }
         if (input_manager.get_key_down(SDL_KeyCode::SDLK_h))
-            hdr = true;
+            is_h_held = true;
         if (input_manager.get_key_up(SDL_KeyCode::SDLK_h))
-            hdr = false;
+            is_h_held = false;
         
         if (input_manager.get_key_held(SDL_KeyCode::SDLK_e))
         {
-            exposure += 0.001f;
+            val_0_1_clamped += 0.001f;
 
-            if (exposure > 1.0f)
-                exposure = 1.0f;
+            if (val_0_1_clamped > 1.0f)
+                val_0_1_clamped = 1.0f;
         }
         if (input_manager.get_key_held(SDL_KeyCode::SDLK_q))
         {
-            exposure -= 0.001f;
+            val_0_1_clamped -= 0.001f;
 
-            if (exposure < 0.0f)
-                exposure = 0.0f;
+            if (val_0_1_clamped < 0.0f)
+                val_0_1_clamped = 0.0f;
         }
 
         profiler.End(Profiler::Stage::SdlInput);
@@ -361,7 +359,6 @@ void Game::run()
             //{
             //    //Fixed update
             //    fixed_tick(SECONDS_PER_FIXED_TICK);
-
             //    seconds_since_last_game_tick -= SECONDS_PER_FIXED_TICK;
             //}
 
@@ -373,7 +370,7 @@ void Game::run()
 
         // Rendering
         // ---------
-        render(profiler, state_current, renderer, camera, gui, window, hdr, exposure);
+        render(profiler, state_current, renderer, camera, gui, window, val_0_1_clamped);
 
         // FPS Profiling
         // -------------

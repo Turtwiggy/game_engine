@@ -54,7 +54,6 @@ namespace fightinggame
             Camera& c,
             Gui& g,
             GameWindow& window,
-            bool hdr,
             float exposure
         );
         void shutdown(Renderer& r, GameWindow& w);
@@ -76,7 +75,7 @@ namespace fightinggame
         unsigned int now = 0;
 
         //Rendering
-        bool hdr = true;
-        float exposure = 1.0f;
+        bool is_h_held = true;
+        float val_0_1_clamped = 1.0f;
     };
 }

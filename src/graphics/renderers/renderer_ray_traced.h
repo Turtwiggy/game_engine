@@ -40,6 +40,9 @@ namespace fightinggame {
         unsigned int set_triangles = 0;
         std::vector<ComputeShaderTriangle> triangles;
 
+        //input for debugging
+        bool is_c_held = false;
+
         uint32_t draw_calls = 0;
     };
     static RayTracedData s_Data;

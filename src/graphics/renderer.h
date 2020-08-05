@@ -25,13 +25,11 @@ namespace fightinggame {
         GameWindow& window;
         Camera& camera;
 
-        bool hdr = true;
         float exposure = 1.0f;
 
-        draw_scene_desc(Camera& c, GameWindow& w, bool hdr, float exposure)
+        draw_scene_desc(Camera& c, GameWindow& w, float exposure)
             : camera(c)
             , window(w)
-            , hdr(hdr)
             , exposure(exposure)
         {
         }

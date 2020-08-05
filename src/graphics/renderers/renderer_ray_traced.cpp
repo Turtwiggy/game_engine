@@ -247,7 +247,7 @@ void fightinggame::RendererRayTraced::draw_pass(draw_scene_desc& desc, const Gam
         }
     }
 
-    if (desc.hdr) {
+    if (s_Data.is_c_held) {
 
         // 2. Lighting pass: Raytracing
         // ------------------------
@@ -322,7 +322,7 @@ void fightinggame::RendererRayTraced::draw_pass(draw_scene_desc& desc, const Gam
     s_Data.quad_shader.use();
     glActiveTexture(GL_TEXTURE0);
 
-    if (desc.hdr) {
+    if (s_Data.is_c_held) {
         glBindTexture(GL_TEXTURE_2D, s_Data.out_texture);
     }
     else
@@ -355,9 +355,9 @@ void fightinggame::RendererRayTraced::draw_pass(draw_scene_desc& desc, const Gam
     ImGui::Begin("RayRenderer Profiler");
     ImGui::Text("Draw Calls: %i", s_Data.draw_calls);
     ImGui::End();
+    s_Data.is_c_held = ImGui::IsKeyDown(ImGui::GetKeyIndex(ImGuiKey_C));
+
     s_Data.draw_calls = 0;
-
-
 }
 
 void fightinggame::RendererRayTraced::resize(int width, int height)
