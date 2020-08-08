@@ -1,6 +1,6 @@
 workspace "FightingGameWorkspace"
     architecture "x86_64"
-    startproject "FightingGameMain"
+    startproject "fighting_game"
     characterset "MBCS"
 
     configurations
@@ -32,8 +32,8 @@ ImguiSourceFiles["imgui5"] = "deps/imgui/imgui_draw.cpp"
 ImguiSourceFiles["imgui6"] = "deps/imgui/imgui_demo.cpp"
 
 
-project "FightingGameMain"
-    location "."
+project "fighting_game"
+    location "fighting_game"
     kind "ConsoleApp"
     language "C++"
     cppdialect "C++17"
@@ -47,10 +47,9 @@ project "FightingGameMain"
 
     files
     {
-        "src/**.h",
-        "src/**.hpp",
-        "src/**.cpp",
-        "include",
+        "%{prj.name}/src/**.h",
+        "%{prj.name}/src/**.hpp",
+        "%{prj.name}/src/**.cpp",
         "%{ImguiSourceFiles.imgui1}",
         "%{ImguiSourceFiles.imgui2}",
         "%{ImguiSourceFiles.imgui3}",
@@ -61,7 +60,7 @@ project "FightingGameMain"
 
     includedirs
     {
-        "src",
+        "%{prj.name}/src",
         "%{IncludeDir.ImGui}",
         "%{IncludeDir.ImGui2}",
         "%{IncludeDir.ggpo}",
@@ -140,3 +139,69 @@ project "FightingGameMain"
     {
     	("{COPY} $(SolutionDir)/assets $(TargetDir)/assets")
     }
+
+    
+project "raytracing_oneweekend"
+    location "raytracing_oneweekend"
+    kind "ConsoleApp"
+    language "C++"
+    cppdialect "C++17"
+    staticruntime "off"
+
+    targetdir ("builds/bin/" .. outputdir .. "/%{prj.name}")
+    objdir ("builds/bin-int/" .. outputdir .. "/%{prj.name}")
+
+    -- pchheader "spkpch.h"
+    -- pchsource "SparkEngine/src/spkpch.cpp"
+
+    files
+    {
+        "%{prj.name}/src/**.h",
+        "%{prj.name}/src/**.hpp",
+        "%{prj.name}/src/**.cpp",
+    }
+
+    includedirs
+    {
+        "%{prj.name}/src",
+    }
+
+    defines
+    {
+        "_CRT_SECURE_NO_WARNINGS",
+    }
+
+    filter "system:windows"
+        systemversion "latest"
+
+        defines
+        {
+            "__WIN32__",
+        }
+
+    filter "configurations:Debug"
+        defines {"ENGINE_DEBUG", "DEBUG"}
+        runtime "Debug"
+        symbols "off"
+        buildoptions {"/bigobj" , "/permissive-", "/MDd"}
+
+    filter "configurations:Release"
+        defines "ENGINE_RELEASE"
+        runtime "Release"
+        optimize "on"
+        buildoptions {"/bigobj" , "/permissive-", "/MD"}
+
+        configuration "gmake2"
+            buildoptions 
+            {
+                "-std=c++17", "-Wall", "-Wextra", "-Wformat", "-g", "-Og"
+            }
+
+    -- configuration "gmake2"
+    --     buildoptions 
+    --     {
+    --         "-std=c++17", "-Wall", "-Wextra", "-Wformat", "-O2", "-s"
+    --     }
+    --     links { }
+
+    filter{}

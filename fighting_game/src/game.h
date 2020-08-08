@@ -54,7 +54,7 @@ namespace fightinggame
             Camera& c,
             Gui& g,
             GameWindow& window,
-            float exposure
+            float val_0_1_clamped
         );
         void shutdown(Renderer& r, GameWindow& w);
 

@@ -9,6 +9,7 @@
 #include "gui.hpp"
 
 #include <GL/glew.h>
+#include <entt/entt.hpp>
 
 #include <cstdint>
 #include <string>
@@ -129,14 +130,7 @@ void Game::fixed_tick(float fixed_delta_time_in_seconds)
     //advance_physics(state, fixed_delta_time);
 }
 
-void Game::render(
-    Profiler& profiler,
-    GameState& state,
-    Renderer& rend,
-    Camera& camera,
-    Gui& gui,
-    GameWindow& window,
-    float exposure )
+void Game::render(Profiler& profiler,GameState& state,Renderer& rend,Camera& camera,Gui& gui,GameWindow& window, float exposure )
 {
     //Begin Frame
     {

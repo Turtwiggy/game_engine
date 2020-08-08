@@ -16,37 +16,6 @@ namespace fightinggame {
         ComputeShaderVertex p3;
     };
 
-    struct RayTracedData {
-        //Geometry pass
-        unsigned int g_buffer;
-        unsigned int  g_position, g_normal, g_albedo_spec;
-        Shader geometry_shader;
-
-        //RayTracing
-        unsigned int ray_fbo;
-        unsigned int out_texture;
-        Shader compute_shader;
-        unsigned int compute_shader_workgroup_x;
-        unsigned int compute_shader_workgroup_y;
-        int compute_normal_binding;
-        int compute_out_tex_binding;
-        Shader quad_shader;
-
-        bool refresh_ssbo = false;
-        unsigned int ssbo;
-        unsigned int ssbo_binding;
-
-        unsigned int max_triangles = 100;
-        unsigned int set_triangles = 0;
-        std::vector<ComputeShaderTriangle> triangles;
-
-        //input for debugging
-        bool is_c_held = false;
-
-        uint32_t draw_calls = 0;
-    };
-    static RayTracedData s_Data;
-
     //Resources
     //https://github.com/LWJGL/lwjgl3-wiki/wiki/2.6.1.-Ray-tracing-with-OpenGL-Compute-Shaders-%28Part-I%29
     //https://raytracing.github.io/books/RayTracingInOneWeekend.html#thevec3class
