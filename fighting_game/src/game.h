@@ -6,8 +6,11 @@
 #include "gui.hpp"
 #include "util/profiler.hpp"
 #include "util/circular_buffer.h"
-#include "input/input_manager.h"
-#include "window/game_window.h"
+
+//engine
+using namespace fightingengine;
+#include <SDL2/input/input_manager.h>
+#include <SDL2/window/game_window.h>
 
 //placeholder systems
 //#include "physics/physics_example.hpp""

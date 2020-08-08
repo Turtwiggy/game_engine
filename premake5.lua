@@ -31,19 +31,15 @@ ImguiSourceFiles["imgui4"] = "deps/imgui/imgui.cpp"
 ImguiSourceFiles["imgui5"] = "deps/imgui/imgui_draw.cpp"
 ImguiSourceFiles["imgui6"] = "deps/imgui/imgui_demo.cpp"
 
-
-project "fighting_game"
-    location "fighting_game"
-    kind "ConsoleApp"
+project "fighting_engine"
+    location "fighting_engine"
+    kind "StaticLib"
     language "C++"
     cppdialect "C++17"
-    staticruntime "off"
+    staticruntime "on"
 
     targetdir ("builds/bin/" .. outputdir .. "/%{prj.name}")
     objdir ("builds/bin-int/" .. outputdir .. "/%{prj.name}")
-
-    -- pchheader "spkpch.h"
-    -- pchsource "SparkEngine/src/spkpch.cpp"
 
     files
     {
@@ -64,8 +60,82 @@ project "fighting_game"
         "%{IncludeDir.ImGui}",
         "%{IncludeDir.ImGui2}",
         "%{IncludeDir.ggpo}",
+    }
+
+    defines
+    {
+        "_CRT_SECURE_NO_WARNINGS",
+        "IMGUI_IMPL_OPENGL_LOADER_GLEW",
+        --"IMGUI_IMPL_OPENGL_ES2"
+    }
+
+    filter "system:windows"
+        systemversion "latest"
+
+        --(win libs) do not statically link
+        links 
+        { 
+            "opengl32"
+        }
+
+        defines
+        {
+            "__WIN32__",
+        }
+
+	filter "system:linux"
+        links { "dl", "GL", "pthread", "X11" }
+ 
+    filter "configurations:Debug"
+        defines {"ENGINE_DEBUG", "DEBUG"}
+        runtime "Debug"
+        symbols "off"
+        buildoptions {"/bigobj" , "/permissive-", "/MDd"}
+
+	filter "configurations:Release"
+        defines "ENGINE_RELEASE"
+        runtime "Release"
+        optimize "on"
+        buildoptions {"/bigobj" , "/permissive-", "/MD"}
+
+        configuration "gmake2"
+            buildoptions 
+            {
+                "-std=c++17", "-Wall", "-Wextra", "-Wformat", "-g", "-Og"
+            }
+
+    filter{}
+
+
+project "fighting_game"
+    location "fighting_game"
+    kind "ConsoleApp"
+    language "C++"
+    cppdialect "C++17"
+    staticruntime "off"
+
+    targetdir ("builds/bin/" .. outputdir .. "/%{prj.name}")
+    objdir ("builds/bin-int/" .. outputdir .. "/%{prj.name}")
+
+    -- pchheader "spkpch.h"
+    -- pchsource "SparkEngine/src/spkpch.cpp"
+
+    files
+    {
+        "%{prj.name}/src/**.h",
+        "%{prj.name}/src/**.hpp",
+        "%{prj.name}/src/**.cpp",
+    }
+
+    includedirs
+    {
+        "%{prj.name}/src",
+        "%{IncludeDir.ImGui}",
+        "%{IncludeDir.ImGui2}",
+        -- "%{IncludeDir.ggpo}",
         -- "%{IncludeDir.GameNetworkingSockets}",
         -- "/mingw64/include/freetype2"
+        "fighting_engine/src"
     }
 
     libdirs 
@@ -76,6 +146,7 @@ project "fighting_game"
     links
     {
         -- "GameNetworkingSockets",
+        "fighting_engine"
     }
 
     defines
@@ -109,13 +180,13 @@ project "fighting_game"
         links { "dl", "GL", "pthread", "X11" }
  
     filter "configurations:Debug"
-        defines {"ENGINE_DEBUG", "DEBUG"}
+        defines {"GAME_DEBUG", "DEBUG"}
         runtime "Debug"
         symbols "off"
         buildoptions {"/bigobj" , "/permissive-", "/MDd"}
 
 	filter "configurations:Release"
-        defines "ENGINE_RELEASE"
+        defines "GAME_RELEASE"
         runtime "Release"
         optimize "on"
         buildoptions {"/bigobj" , "/permissive-", "/MD"}
@@ -151,9 +222,6 @@ project "raytracing_oneweekend"
     targetdir ("builds/bin/" .. outputdir .. "/%{prj.name}")
     objdir ("builds/bin-int/" .. outputdir .. "/%{prj.name}")
 
-    -- pchheader "spkpch.h"
-    -- pchsource "SparkEngine/src/spkpch.cpp"
-
     files
     {
         "%{prj.name}/src/**.h",
@@ -164,11 +232,17 @@ project "raytracing_oneweekend"
     includedirs
     {
         "%{prj.name}/src",
+        "fighting_engine/src"
     }
 
     defines
     {
         "_CRT_SECURE_NO_WARNINGS",
+    }
+
+    links 
+    { 
+        "fighting_engine"
     }
 
     filter "system:windows"
@@ -196,12 +270,5 @@ project "raytracing_oneweekend"
             {
                 "-std=c++17", "-Wall", "-Wextra", "-Wformat", "-g", "-Og"
             }
-
-    -- configuration "gmake2"
-    --     buildoptions 
-    --     {
-    --         "-std=c++17", "-Wall", "-Wextra", "-Wformat", "-O2", "-s"
-    --     }
-    --     links { }
 
     filter{}
