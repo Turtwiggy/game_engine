@@ -3,10 +3,9 @@
 #include "3d/fg_transform.hpp"
 #include "3d/fg_object.hpp"
 #include "3d/camera.hpp"
-#include <game_state.hpp>
 #include "graphics/renderer_api.h"
 #include "graphics/opengl/opengl_shader.h"
-#include "window/game_window.h"
+#include "sdl2/window/game_window.h"
 
 #include <SDL2/SDL.h>
 #include <imgui.h>
@@ -17,20 +16,19 @@
 #include <string_view>
 #include <memory>
 
-namespace fightinggame {
+namespace fightingengine {
 
-    struct draw_scene_desc
+    struct RenderDescriptor
     {
         //graphics::render_pass view_id;
         GameWindow& window;
         Camera& camera;
+        std::vector<std::reference_wrapper<FGObject>>& objects;
 
-        float exposure = 1.0f;
-
-        draw_scene_desc(Camera& c, GameWindow& w, float exposure)
+        RenderDescriptor(Camera& c, GameWindow& w, std::vector<std::reference_wrapper<FGObject>>&)
             : camera(c)
             , window(w)
-            , exposure(exposure)
+            , objects(o)
         {
         }
     };
@@ -39,7 +37,7 @@ namespace fightinggame {
     {
     public:
         virtual void init(int screen_width, int screen_height) = 0;
-        virtual void draw_pass(draw_scene_desc& desc, const GameState& state) = 0;
+        virtual void draw_pass(RenderDescriptor& desc) = 0;
         virtual void resize(int width, int height) = 0;
 
         // renderQuad() renders a 1x1 XY quad in NDC

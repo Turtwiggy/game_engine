@@ -6,7 +6,7 @@
 #include <memory>
 #include <string>
 
-namespace fightinggame
+namespace fightingengine
 {
 	enum display_mode
 	{

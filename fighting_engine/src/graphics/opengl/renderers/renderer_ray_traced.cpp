@@ -1,5 +1,7 @@
 
-#include "renderer_ray_traced.h"
+#include "graphics/opengl/renderers/renderer_ray_traced.h"
+
+#include "graphics/opengl/util/util_functions.h"
 
 namespace fightingengine {
 
