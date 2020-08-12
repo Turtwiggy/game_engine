@@ -1,6 +1,12 @@
-[submodule "./deps/imgui"]
-	path = ./deps/imgui
-	url = https://github.com/ocornut/imgui
-[submodule ".\\deps\\angle"]
-	path = .\\deps\\angle
-	url = https://github.com/google/angle.git
+[submodule "thirdparty/imgui"]
+    path = thirdparty/imgui
+    url = https://github.com/ocornut/imgui
+[submodule "thirdparty/ggpo"]
+    path = thirdparty/ggpo
+    url = https://github.com/pond3r/ggpo.git
+[submodule "thirdparty/gamenetworkingsockets"]
+    path = thirdparty/gamenetworkingsockets
+    url = https://github.com/ValveSoftware/GameNetworkingSockets.git
+[submodule "thirdparty/vcpkg"]
+    path = thirdparty/vcpkg
+    url = https://github.com/Microsoft/vcpkg
