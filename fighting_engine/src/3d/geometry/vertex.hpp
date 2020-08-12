@@ -1,20 +1,20 @@
 #pragma once
 
-#include "3d/fg_colour.hpp"
+#include "graphics/colour.hpp"
 
 #include "glm/glm.hpp"
 
 namespace fightingengine {
 
-    struct FGVertex {
+    struct Vertex {
 
-        FGVertex()
+        Vertex()
             : Position(glm::vec3(0.0, 0.0, 0.0))
             , Normal(glm::vec3(0.0, 0.0, 0.0))
             , TexCoords(glm::vec2(0.0, 0.0))
         {};
 
-        FGVertex(glm::vec3 pos, glm::vec3 normal, glm::vec2 tex)
+        Vertex(glm::vec3 pos, glm::vec3 normal, glm::vec2 tex)
             :Position(pos)
             ,Normal(normal)
             ,TexCoords(tex)
@@ -27,7 +27,7 @@ namespace fightingengine {
         //glm::vec3 Tangent;
         //glm::vec3 Bitangent;
 
-        FGColour Colour;
+        ColourVec4f Colour;
     };
 
 }

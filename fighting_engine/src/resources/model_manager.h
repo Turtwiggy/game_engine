@@ -1,6 +1,6 @@
 #pragma once
 
-#include "3d/fg_model.hpp"
+#include "3d/geometry/model.hpp"
 
 #include <string>
 #include <vector>
@@ -10,13 +10,13 @@ namespace fightingengine {
     class ModelManager
     {
     public:
-        std::shared_ptr<FGModel> add_model(const FGModel& model)
+        std::shared_ptr<Model> add_model(const Model& model)
         {
-            models.push_back(std::make_shared<FGModel>(model));
+            models.push_back(std::make_shared<Model>(model));
             return models.back();
         }
 
-        const std::shared_ptr<FGModel> get_model(const std::string& name)
+        const std::shared_ptr<Model> get_model(const std::string& name)
         {
             for (const auto& val : models)
             {
@@ -27,7 +27,7 @@ namespace fightingengine {
             }
         }
 
-        std::shared_ptr<FGModel> load_model(std::string path, std::string unique_name)
+        std::shared_ptr<Model> load_model(std::string path, std::string unique_name)
         {
             std::cout << "loading model from: " << path << std::endl;
 
@@ -42,13 +42,13 @@ namespace fightingengine {
 
             std::string directory = path.substr(0, path.find_last_of('/'));
 
-            FGModel model = FGModel(scene, directory, unique_name);
+            Model model = Model(scene, directory, unique_name);
 
             return add_model(model);
         }
 
     private:
-        std::vector<std::shared_ptr<FGModel>> models;
+        std::vector<std::shared_ptr<Model>> models;
     };
 
 }

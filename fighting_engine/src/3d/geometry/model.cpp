@@ -1,11 +1,12 @@
-#include "3d/fg_model.hpp"
-#include "3d/fg_texture.hpp"
+#include "3d/geometry/model.hpp"
+#include "graphics/opengl/texture.hpp"
+#include "graphics/opengl/shader.hpp"
 
 namespace fightingengine {
 
-    std::vector<FGTriangle> FGModel::get_all_triangles_in_meshes()
+    std::vector<Triangle> Model::get_all_triangles_in_meshes()
     {
-        std::vector<FGTriangle> tris;
+        std::vector<Triangle> tris;
 
         for (auto& m : meshes)
         {
@@ -19,7 +20,7 @@ namespace fightingengine {
         return tris;
     }
 
-    void FGModel::draw(Shader& shader, uint32_t& draw_calls, int texture)
+    void Model::draw(Shader& shader, uint32_t& draw_calls, int texture)
     {
         for (unsigned int i = 0; i < meshes.size(); i++) {
             //std::cout << "drawing mesh: " << meshes[i].name << std::endl;
@@ -29,7 +30,7 @@ namespace fightingengine {
         }
     }
 
-    void FGModel::process_node(aiNode* node, const aiScene* scene)
+    void Model::process_node(aiNode* node, const aiScene* scene)
     {
         // process all the node's meshes (if any)
         for (unsigned int i = 0; i < node->mNumMeshes; i++)
@@ -44,17 +45,17 @@ namespace fightingengine {
         }
     }
 
-    FGMesh FGModel::process_mesh(aiMesh* mesh, const aiScene* scene)
+    Mesh Model::process_mesh(aiMesh* mesh, const aiScene* scene)
     {
         // data to fill
-        std::vector<FGVertex> vertices;
+        std::vector<Vertex> vertices;
         std::vector<unsigned int> indices;
         std::vector<Texture2D> textures;
 
         // walk through each of the mesh's vertices
         for (unsigned int i = 0; i < mesh->mNumVertices; i++)
         {
-            FGVertex vertex;
+            Vertex vertex;
             glm::vec3 vector;
             // we declare a placeholder vector since assimp uses its own vector class that doesn't directly convert to glm's vec3 class so we transfer the data to this placeholder glm::vec3 first.
             // positions
@@ -146,7 +147,7 @@ namespace fightingengine {
         aiColor3D mat_colour(1.f, 1.f, 1.f);
         material->Get(AI_MATKEY_COLOR_DIFFUSE, mat_colour);
 
-        FGColour color;
+        ColourVec4f color;
         color.colour = glm::vec4(mat_colour.r, mat_colour.g, mat_colour.b, 1.0f);
 
         //calculate normals if no normals and store info in vetex array
@@ -168,11 +169,11 @@ namespace fightingengine {
         //}
 
         // return a mesh object created from the extracted mesh data
-        return FGMesh(vertices, indices, textures, color, material->GetName().C_Str());
+        return Mesh(vertices, indices, textures, color, material->GetName().C_Str());
     }
 
     // checks all material textures of a given type and loads the textures if they're not loaded yet. the required info is returned as a Texture struct.
-    std::vector<Texture2D> FGModel::load_material_textures(aiMaterial* mat, aiTextureType type, std::string typeName)
+    std::vector<Texture2D> Model::load_material_textures(aiMaterial* mat, aiTextureType type, std::string typeName)
     {
         std::vector<Texture2D> textures;
         for (unsigned int i = 0; i < mat->GetTextureCount(type); i++)

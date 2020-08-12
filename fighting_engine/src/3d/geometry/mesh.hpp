@@ -1,10 +1,10 @@
 #pragma once
 
-#include "3d/fg_triangle.hpp"
-#include "3d/fg_vertex.hpp"
-#include "3d/fg_texture.hpp"
-#include <3d/fg_colour.hpp>
-#include "graphics/opengl/opengl_shader.h"
+#include "3d/geometry/triangle.hpp"
+#include "3d/geometry/vertex.hpp"
+#include "graphics/opengl/texture.hpp"
+#include "graphics/opengl/shader.hpp"
+#include "graphics/colour.hpp"
 
 #include <string>
 #include <vector>
@@ -12,22 +12,22 @@
 
 namespace fightingengine {
 
-    class FGMesh {
+    class Mesh {
     public:
         // mesh data
-        std::vector<FGVertex>       vertices;
+        std::vector<Vertex>       vertices;
         std::vector<unsigned int>   indices;
         std::vector<Texture2D>      textures;
-        std::vector<FGTriangle>     triangles;
+        std::vector<Triangle>     triangles;
         std::string                 name;
-        FGColour                    colour;
+        ColourVec4f                    colour;
 
-        FGMesh
+        Mesh
         (
-            std::vector<FGVertex>   vertices,
+            std::vector<Vertex>   vertices,
             std::vector<unsigned int> indices,
             std::vector<Texture2D>  textures,
-            FGColour                colour,
+            ColourVec4f                colour,
             std::string             name
         );
 

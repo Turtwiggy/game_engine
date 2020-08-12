@@ -1,7 +1,7 @@
 #pragma once
 
-#include <3d/fg_mesh.hpp>
-#include <3d/fg_colour.hpp>
+#include "3d/geometry/mesh.hpp"
+#include "graphics/colour.hpp""
 
 #include <stb_image.h>
 #include <assimp/Importer.hpp>
@@ -13,18 +13,18 @@
 
 namespace fightingengine {
 
-    class FGModel
+    class Model
     {
     public:
 
-        FGModel(const aiScene* raw_model, std::string directory, std::string name)
+        Model(const aiScene* raw_model, std::string directory, std::string name)
             : directory(directory)
             , name(name)
         {
             process_node(raw_model->mRootNode, raw_model);
         }
 
-        FGModel(std::shared_ptr<FGMesh> mesh, std::string name)
+        Model(std::shared_ptr<Mesh> mesh, std::string name)
             : name(name)
             , directory(name)
         {
@@ -33,14 +33,14 @@ namespace fightingengine {
 
         std::string get_name() { return name; }
 
-        std::vector<FGTriangle> get_all_triangles_in_meshes();
+        std::vector<Triangle> get_all_triangles_in_meshes();
 
         void draw(Shader& shader, uint32_t& draw_calls, int texture = -1);
 
     private:
 
         void process_node(aiNode* node, const aiScene* scene);
-        FGMesh process_mesh(aiMesh* mesh, const aiScene* scene);
+        Mesh process_mesh(aiMesh* mesh, const aiScene* scene);
 
         std::vector<Texture2D> load_material_textures
         (
@@ -50,7 +50,7 @@ namespace fightingengine {
         );
 
     private:
-        std::vector<FGMesh> meshes;
+        std::vector<Mesh> meshes;
         std::vector<Texture2D> textures_loaded;
         std::string directory;
         std::string name;

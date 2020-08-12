@@ -1,6 +1,6 @@
 #pragma once
 
-#include <GL/glew.h>
+#include "util_functions.h"
 
 #include <cassert>
 

@@ -2,7 +2,7 @@
 
 #include <GL/glew.h>
 
-namespace fightinggame {
+namespace fightingengine {
 
 #define CHECK_OPENGL_ERROR(x) GLenum err_##x = glGetError(); \
                 if (GL_NO_ERROR != err_##x){ \

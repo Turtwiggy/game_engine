@@ -21,11 +21,13 @@ namespace fightingengine {
     struct RenderDescriptor
     {
         //graphics::render_pass view_id;
-        GameWindow& window;
-        Camera& camera;
+        const GameWindow& window;
+        const Camera& camera;
+
+
         std::vector<std::reference_wrapper<FGObject>>& objects;
 
-        RenderDescriptor(Camera& c, GameWindow& w, std::vector<std::reference_wrapper<FGObject>>&)
+        RenderDescriptor(const Camera& c, const GameWindow& w, std::vector<std::reference_wrapper<FGObject>>& o)
             : camera(c)
             , window(w)
             , objects(o)

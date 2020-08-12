@@ -187,7 +187,7 @@ namespace fightingengine {
         s_Data.ssbo = SSBO;
     }
 
-    void RendererRayTraced::draw_pass(draw_scene_desc& desc, const GameState& state)
+    void RendererRayTraced::draw_pass(RenderDescriptor& desc)
     {
         int width, height = 0;
         GameWindow& window = desc.window;
@@ -212,7 +212,7 @@ namespace fightingengine {
             model = glm::translate(model, glm::vec3(0.0f, 0.0f, 0.0));
             model = glm::scale(model, glm::vec3(1.0f));
             s_Data.geometry_shader.setMat4("model", model);
-            state.cornel_box->model->draw(s_Data.geometry_shader, s_Data.draw_calls);
+            desc.objects[0].get().model->draw(s_Data.geometry_shader, s_Data.draw_calls);
         }
 
         //Update scene's triangle description

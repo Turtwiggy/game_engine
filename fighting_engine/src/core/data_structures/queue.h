@@ -21,12 +21,12 @@ namespace fightingengine {
     };
 
     template <class T>
-    class event_queue : public IEventQueue
+    class EventQueue : public IEventQueue
     {
     public:
-        using Ptr = std::shared_ptr<event_queue>;
+        using Ptr = std::shared_ptr<EventQueue>;
 
-        event_queue() {}
+        EventQueue() {}
         void AddHandler(EventHandler<T> handler) { _handlers.push_back(handler); }
 
         void Produce(T event)
@@ -42,7 +42,7 @@ namespace fightingengine {
         }
 
     private:
-        ~event_queue() {}
+        ~EventQueue() {}
 
         using Queue = std::list<T>;
         Queue _instance;

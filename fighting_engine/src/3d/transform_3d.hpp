@@ -5,7 +5,7 @@
 
 namespace fightingengine {
 
-    class FGTransform
+    class Transform3D
     {
     public:
         glm::vec3 Position = glm::vec3{ 0., 0., 0. };

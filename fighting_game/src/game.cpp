@@ -14,7 +14,7 @@
 #include <cstdint>
 #include <string>
 
-using namespace fightinggame;
+using namespace fightingengine;
 
 const std::string kBuildStr = "1";
 //const std::string kBuildStr(kGitSHA1Hash, 8);

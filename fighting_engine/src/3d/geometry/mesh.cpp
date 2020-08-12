@@ -1,6 +1,5 @@
 
-#include "3d/fg_mesh.hpp"
-#include <util/util_functions.h>
+#include "3d/geometry/mesh.hpp"
 
 #include "glm/glm.hpp"
 #include <assimp/Importer.hpp>
