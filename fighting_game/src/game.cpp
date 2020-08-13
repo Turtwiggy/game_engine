@@ -1,12 +1,12 @@
 #include "game.h"
 
-#include "3d/fg_model_manager.h"
-#include "3d/fg_object.hpp"
-#include "modules/terrain/terrain.hpp"
-
+//Import engine stuff
+#include "3d/game_object_3d.hpp"
 #include "graphics/render_command.h"
-#include "graphics/renderers/renderer_ray_traced.h"
+#include "graphics/opengl/renderers/renderer_ray_traced.h"
 #include "gui.hpp"
+#include "_todo/terrain/terrain.hpp"
+using namespace fightingengine;
 
 #include <GL/glew.h>
 #include <entt/entt.hpp>
@@ -14,7 +14,6 @@
 #include <cstdint>
 #include <string>
 
-using namespace fightingengine;
 
 const std::string kBuildStr = "1";
 //const std::string kBuildStr(kGitSHA1Hash, 8);

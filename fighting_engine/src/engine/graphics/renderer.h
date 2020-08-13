@@ -1,10 +1,9 @@
 #pragma once
 
-#include "3d/fg_transform.hpp"
-#include "3d/fg_object.hpp"
 #include "3d/camera.hpp"
+#include "3d/game_object_3d.hpp"
 #include "graphics/renderer_api.h"
-#include "graphics/opengl/opengl_shader.h"
+#include "graphics/opengl/shader.hpp"
 #include "sdl2/window/game_window.h"
 
 #include <SDL2/SDL.h>
@@ -24,10 +23,10 @@ namespace fightingengine {
         const GameWindow& window;
         const Camera& camera;
 
+        //Objects to render
+        const std::vector<std::reference_wrapper<GameObject3D>>& objects;
 
-        std::vector<std::reference_wrapper<FGObject>>& objects;
-
-        RenderDescriptor(const Camera& c, const GameWindow& w, std::vector<std::reference_wrapper<FGObject>>& o)
+        RenderDescriptor(const Camera& c, const GameWindow& w, const std::vector<std::reference_wrapper<GameObject3D>>& o)
             : camera(c)
             , window(w)
             , objects(o)
@@ -92,12 +91,10 @@ namespace fightingengine {
         void init_opengl_and_imgui(const GameWindow& window);
         void init_renderer(int screen_width, int screen_height);
 
-        ImGuiContext* get_imgui_context() { return _imgui; }
         SDL_GLContext get_gl_context() { return gl_context; }
 
     private:
         //opengl
         SDL_GLContext gl_context;
-        ImGuiContext* _imgui;
     };
 }

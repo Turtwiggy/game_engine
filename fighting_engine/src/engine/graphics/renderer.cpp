@@ -1,9 +1,9 @@
 #include "graphics/renderer.h"
 
 #include "graphics/render_command.h"
-#include "window/game_window.h"
-#include "3d/fg_texture.hpp"
-#include "util/util_functions.h"
+#include "sdl2/window/game_window.h"
+#include "graphics/opengl/texture.hpp"
+#include "graphics/opengl//util/util_functions.h"
 
 #include <GL/glew.h>
 #include <glm/glm.hpp>
@@ -14,9 +14,7 @@
 #include <SDL2/SDL_syswm.h>
 #endif
 #include "stb_image.h"
-#include "imgui.h"
-#include <examples/imgui_impl_sdl.h>
-#include <examples/imgui_impl_opengl3.h>
+
 
 #include <vector>
 #include <memory>
@@ -57,42 +55,43 @@ namespace fightingengine
         //glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
     }
 
-    void Renderer::new_frame(SDL_Window* window)
-    {
-        ImGui_ImplOpenGL3_NewFrame();
-        ImGui_ImplSDL2_NewFrame(window);
+    //////void Renderer::new_frame(SDL_Window* window)
+    //////{
+    //////    ImGui_ImplOpenGL3_NewFrame();
+    //////    ImGui_ImplSDL2_NewFrame(window);
 
-        ImGui::SetCurrentContext(_imgui);
-        ImGui::NewFrame();
-    }
+    //////    ImGui::SetCurrentContext(_imgui);
+    //////    ImGui::NewFrame();
+    //////}
 
     void Renderer::end_frame(SDL_Window* window)
     {
-        ImGuiIO& io = ImGui::GetIO();
-        ImGui_ImplOpenGL3_RenderDrawData(ImGui::GetDrawData());
+        //////ImGuiIO& io = ImGui::GetIO();
+        //////ImGui_ImplOpenGL3_RenderDrawData(ImGui::GetDrawData());
 
-        // Update and Render additional Platform Windows
-        // (Platform functions may change the current OpenGL context, so we save/restore it to make it easier to paste this code elsewhere.
-        //  For this specific demo app we could also call SDL_GL_MakeCurrent(window, gl_context) directly)
-        if (io.ConfigFlags & ImGuiConfigFlags_ViewportsEnable)
-        {
-            SDL_Window* backup_current_window = SDL_GL_GetCurrentWindow();
-            SDL_GLContext backup_current_context = SDL_GL_GetCurrentContext();
-            ImGui::UpdatePlatformWindows();
-            ImGui::RenderPlatformWindowsDefault();
-            SDL_GL_MakeCurrent(backup_current_window, backup_current_context);
-        }
+        //////// Update and Render additional Platform Windows
+        //////// (Platform functions may change the current OpenGL context, so we save/restore it to make it easier to paste this code elsewhere.
+        ////////  For this specific demo app we could also call SDL_GL_MakeCurrent(window, gl_context) directly)
+        //////if (io.ConfigFlags & ImGuiConfigFlags_ViewportsEnable)
+        //////{
+        //////    SDL_Window* backup_current_window = SDL_GL_GetCurrentWindow();
+        //////    SDL_GLContext backup_current_context = SDL_GL_GetCurrentContext();
+        //////    ImGui::UpdatePlatformWindows();
+        //////    ImGui::RenderPlatformWindowsDefault();
+        //////    SDL_GL_MakeCurrent(backup_current_window, backup_current_context);
+        //////}
 
         SDL_GL_SwapWindow(window);
     }
 
     void Renderer::shutdown()
     {
-        ImGui::SetCurrentContext(_imgui);
+        ////ImGui::SetCurrentContext(_imgui);
 
-        ImGui_ImplOpenGL3_Shutdown();
-        ImGui_ImplSDL2_Shutdown();
-        ImGui::DestroyContext();
+        //moved in to imgui_layer.cpp
+        //////ImGui_ImplOpenGL3_Shutdown();
+        //////ImGui_ImplSDL2_Shutdown();
+        //////ImGui::DestroyContext();
 
         SDL_GL_DeleteContext(get_gl_context());
     }
@@ -131,22 +130,23 @@ namespace fightingengine
             }
         }
 
-        //Setup ImGui
-        IMGUI_CHECKVERSION();
-        _imgui = ImGui::CreateContext();
-        ImGuiIO& io = ImGui::GetIO(); (void)io;
-        //io.ConfigFlags |= ImGuiConfigFlags_DockingEnable;           // Enable Docking
-        //io.ConfigFlags |= ImGuiConfigFlags_ViewportsEnable;         // Enable Multi-Viewport / Platform Windows
+        //MOVED IN TO IMGUI_LAYER.CPP
+        ////////Setup ImGui
+        //////IMGUI_CHECKVERSION();
+        //////_imgui = ImGui::CreateContext();
+        //////ImGuiIO& io = ImGui::GetIO(); (void)io;
+        ////////io.ConfigFlags |= ImGuiConfigFlags_DockingEnable;           // Enable Docking
+        ////////io.ConfigFlags |= ImGuiConfigFlags_ViewportsEnable;         // Enable Multi-Viewport / Platform Windows
 
-        ImGui::StyleColorsDark();
+        //////ImGui::StyleColorsDark();
 
-        // When viewports are enabled we tweak WindowRounding/WindowBg so platform windows can look identical to regular ones.
-        ImGuiStyle& style = ImGui::GetStyle();
-        if (io.ConfigFlags & ImGuiConfigFlags_ViewportsEnable)
-        {
-            style.WindowRounding = 0.0f;
-            style.Colors[ImGuiCol_WindowBg].w = 1.0f;
-        }
+        //////// When viewports are enabled we tweak WindowRounding/WindowBg so platform windows can look identical to regular ones.
+        //////ImGuiStyle& style = ImGui::GetStyle();
+        //////if (io.ConfigFlags & ImGuiConfigFlags_ViewportsEnable)
+        //////{
+        //////    style.WindowRounding = 0.0f;
+        //////    style.Colors[ImGuiCol_WindowBg].w = 1.0f;
+        //////}
 
         std::string glsl_version = "#version 430";
         SDL_GL_SetAttribute(SDL_GL_CONTEXT_FLAGS, 0);
@@ -154,9 +154,9 @@ namespace fightingengine
         SDL_GL_SetAttribute(SDL_GL_CONTEXT_MINOR_VERSION, 3);
         //4, 3 because that's when compute shaders were introduced
 
-        // setup platform/renderer bindings
-        ImGui_ImplSDL2_InitForOpenGL(window.GetHandle(), gl_context);
-        ImGui_ImplOpenGL3_Init(glsl_version.c_str());
+        //////// setup platform/renderer bindings
+        //////ImGui_ImplSDL2_InitForOpenGL(window.GetHandle(), gl_context);
+        //////ImGui_ImplOpenGL3_Init(glsl_version.c_str());
 
         //configure opengl state
 #ifdef DEBUG

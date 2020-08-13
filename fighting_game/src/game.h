@@ -1,14 +1,16 @@
 #pragma once
 
+//Import engine stuff
 #include "3d/camera.hpp"
-#include "game_state.hpp"
+#include "core/data_structures/circular_buffer.h"
 #include "graphics/renderer.h"
 #include "gui.hpp"
-#include "util/profiler.hpp"
-#include "util/circular_buffer.h"
-
-//engine
+#include "debug/profiler.hpp"
 using namespace fightingengine;
+
+//Import game stuff
+#include "game_state.hpp"
+
 #include <SDL2/input/input_manager.h>
 #include <SDL2/window/game_window.h>
 
@@ -46,26 +48,26 @@ namespace fightinggame
         CircularBuffer<float, 100> fps_buffer;
 
     private:
-        void tick(float delta_time, GameState& state, float timer, InputManager& input_maanger, Camera& camera);    //update game logic
+
+        //game logic
+        void tick(float delta_time, GameState& state, float timer, InputManager& input_maanger, Camera& camera);   
         void fixed_tick(float fixed_delta_time);
 
         void render
         (
             Profiler& profiler,
+            GameWindow& window,
             GameState& state,
-            Renderer& r,
             Camera& c,
             Gui& g,
-            GameWindow& window,
-            float val_0_1_clamped
+            Renderer& r
         );
         void shutdown(Renderer& r, GameWindow& w);
 
     private:
-        static Game* sInstance;
         bool running = true;
         bool fullscreen = false;
-        float timer = 0.0f;
+        float time_since_launch = 0.0f;
 
         //Game's fixed tick
         int FIXED_TICKS_PER_SECOND = 1;
@@ -76,9 +78,5 @@ namespace fightinggame
         unsigned int start = 0;
         unsigned int prev = 0;
         unsigned int now = 0;
-
-        //Rendering
-        bool is_h_held = true;
-        float val_0_1_clamped = 1.0f;
     };
 }

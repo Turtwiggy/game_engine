@@ -18,18 +18,18 @@ outputdir = "%{cfg.buildcfg}-%{cfg.system}-%{cfg.architecture}"
 
 -- Include directories relative to root folder (solution directory)
 IncludeDir = {}
-IncludeDir["ImGui"] = "deps/imgui"
-IncludeDir["ImGui2"] = "deps/imgui/examples"
-IncludeDir["ggpo"]  = "deps/ggpo/src/include"
-IncludeDir["GameNetworkingSockets"] = "deps/gamenetworkingsockets/include"
+IncludeDir["ImGui"] = "thirdparty/imgui"
+IncludeDir["ImGui2"] = "thirdparty/imgui/examples"
+IncludeDir["ggpo"]  = "thirdparty/ggpo/src/include"
+IncludeDir["GameNetworkingSockets"] = "thirdparty/gamenetworkingsockets/include"
  
 ImguiSourceFiles = {}
-ImguiSourceFiles["imgui1"] = "deps/imgui/imgui_widgets.cpp"
-ImguiSourceFiles["imgui2"] = "deps/imgui/examples/imgui_impl_sdl.cpp"
-ImguiSourceFiles["imgui3"] = "deps/imgui/examples/imgui_impl_opengl3.cpp"
-ImguiSourceFiles["imgui4"] = "deps/imgui/imgui.cpp"
-ImguiSourceFiles["imgui5"] = "deps/imgui/imgui_draw.cpp"
-ImguiSourceFiles["imgui6"] = "deps/imgui/imgui_demo.cpp"
+ImguiSourceFiles["imgui1"] = "thirdparty/imgui/imgui_widgets.cpp"
+ImguiSourceFiles["imgui2"] = "thirdparty/imgui/examples/imgui_impl_sdl.cpp"
+ImguiSourceFiles["imgui3"] = "thirdparty/imgui/examples/imgui_impl_opengl3.cpp"
+ImguiSourceFiles["imgui4"] = "thirdparty/imgui/imgui.cpp"
+ImguiSourceFiles["imgui5"] = "thirdparty/imgui/imgui_draw.cpp"
+ImguiSourceFiles["imgui6"] = "thirdparty/imgui/imgui_demo.cpp"
 
 project "fighting_engine"
     location "fighting_engine"
