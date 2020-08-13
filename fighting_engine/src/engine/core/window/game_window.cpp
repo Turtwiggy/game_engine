@@ -2,6 +2,8 @@
 
 #include <SDL2/SDL_syswm.h>
 #include <spdlog/spdlog.h>x
+#include <GL/glew.h>
+
 #include <iostream>
 
 namespace fightingengine {
@@ -65,6 +67,49 @@ namespace fightingengine {
         SDL_SetRelativeMouseMode(SDL_TRUE);
 
         _window = std::move(window);
+
+
+        //OpenGL
+        gl_context = SDL_GL_CreateContext(window.get());
+        SDL_GL_MakeCurrent(window.get(), gl_context);
+
+        if (gl_context == NULL)
+        {
+            printf("OpenGL context could not be created! SDL Error: %s\n", SDL_GetError());
+            throw std::runtime_error("Failed creating SDL2 window: " + std::string(SDL_GetError()));
+        }
+        else
+        {
+            //Initialize GLEW
+            glewExperimental = GL_TRUE;
+            GLenum glewError = glewInit();
+            if (glewError != GLEW_OK)
+            {
+                printf("Error initializing GLEW! %s\n", glewGetErrorString(glewError));
+                throw std::runtime_error("Error initializing GLEW! " + std::string(SDL_GetError()));
+            }
+
+            //Check OpenGL
+            GLenum error;
+            while ((error = glGetError()) != GL_NO_ERROR)
+            {
+                printf("ERROR GLEW: %s\n", gl_error_to_string(error));
+            }
+        }
+
+        SDL_GL_SetAttribute(SDL_GL_CONTEXT_FLAGS, 0);
+        SDL_GL_SetAttribute(SDL_GL_CONTEXT_MAJOR_VERSION, 4);
+        SDL_GL_SetAttribute(SDL_GL_CONTEXT_MINOR_VERSION, 3);
+        //4, 3 because that's when compute shaders were introduced
+
+        //configure opengl state
+#ifdef DEBUG
+        glEnable(GL_DEBUG_OUTPUT);
+        glEnable(GL_DEBUG_OUTPUT_SYNCHRONOUS);
+        glDebugMessageCallback(OpenGLMessageCallback, nullptr);
+
+        glDebugMessageControl(GL_DONT_CARE, GL_DONT_CARE, GL_DEBUG_SEVERITY_NOTIFICATION, 0, NULL, GL_FALSE);
+#endif
     }
 
     SDL_Window* GameWindow::GetHandle() const
@@ -294,6 +339,8 @@ namespace fightingengine {
         SDL_Quit();
 
         _window.reset(nullptr);
+
+        SDL_GL_DeleteContext(get_gl_context());
     }
 
     //returns true if mouse is grabbed, false if it available

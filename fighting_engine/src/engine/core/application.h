@@ -34,8 +34,9 @@ namespace fightingengine {
         bool on_window_resize(WindowResizeEvent& e);
 
     private:
-
         std::unique_ptr<GameWindow> window;
+        std::unique_ptr<Renderer> renderer;
+
         LayerStack layer_stack;
         ImGuiLayer* imgui_layer;
 

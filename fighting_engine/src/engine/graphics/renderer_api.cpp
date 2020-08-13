@@ -1,6 +1,6 @@
-#include "graphics/renderer_api.h"
+#include "engine/graphics/renderer_api.h"
 
-#include "graphics/opengl/opengl_renderer_api.hpp"
+#include "platform/opengl/opengl_renderer_api.hpp"
 
 namespace fightingengine {
 

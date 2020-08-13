@@ -7,10 +7,31 @@
 #include <cstdint>
 #include <memory>
 #include <string>
-#include <functional>
 
 namespace fightingengine
 {
+    struct opengl_context {
+
+    public:
+        opengl_context()
+        {
+        
+        }
+
+        ~opengl_context()
+        {
+
+        }
+
+        void init_opengl(const GameWindow& window);
+        SDL_GLContext get_gl_context() { return gl_context; }
+        std::string get_glsl_version() { return glsl_version; }
+
+    private:
+        SDL_GLContext gl_context;
+        std::string glsl_version = "#version 430";
+    };
+
 	enum display_mode
 	{
 		Windowed,
@@ -24,8 +45,6 @@ namespace fightingengine
 		{
 			void operator()(SDL_Window* window) const { SDL_DestroyWindow(window); }
 		};
-
-        using EventCallbackFn = std::function<void(Event&)>;
 
 	public:
 		GameWindow(const std::string& title, const SDL_DisplayMode& display, display_mode displaymode);
@@ -70,7 +89,9 @@ namespace fightingengine
 		void Close();
 
 	private:
-
 		std::unique_ptr<SDL_Window, SDLDestroyer> _window;
-	};
+
+        SDL_GLContext gl_context;
+        std::string glsl_version = "#version 430";
+    };
 }

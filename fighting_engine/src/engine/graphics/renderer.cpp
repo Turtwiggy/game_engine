@@ -1,9 +1,9 @@
-#include "graphics/renderer.h"
+#include "engine/graphics/renderer.h"
 
-#include "graphics/render_command.h"
-#include "sdl2/window/game_window.h"
-#include "graphics/opengl/texture.hpp"
-#include "graphics/opengl//util/util_functions.h"
+#include "engine/graphics/render_command.h"
+#include "engine/core/window/game_window.h"
+#include "platform/opengl/texture.hpp"
+#include "platform/opengl//util/util_functions.h"
 
 #include <GL/glew.h>
 #include <glm/glm.hpp>
@@ -14,7 +14,6 @@
 #include <SDL2/SDL_syswm.h>
 #endif
 #include "stb_image.h"
-
 
 #include <vector>
 #include <memory>
@@ -53,139 +52,9 @@ namespace fightingengine
 
         // draw as wireframe
         //glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
+
+        //RenderCommand::init();
+        //RenderCommand::set_viewport(0, 0, screen_width, screen_height);
     }
 
-    //////void Renderer::new_frame(SDL_Window* window)
-    //////{
-    //////    ImGui_ImplOpenGL3_NewFrame();
-    //////    ImGui_ImplSDL2_NewFrame(window);
-
-    //////    ImGui::SetCurrentContext(_imgui);
-    //////    ImGui::NewFrame();
-    //////}
-
-    void Renderer::end_frame(SDL_Window* window)
-    {
-        //////ImGuiIO& io = ImGui::GetIO();
-        //////ImGui_ImplOpenGL3_RenderDrawData(ImGui::GetDrawData());
-
-        //////// Update and Render additional Platform Windows
-        //////// (Platform functions may change the current OpenGL context, so we save/restore it to make it easier to paste this code elsewhere.
-        ////////  For this specific demo app we could also call SDL_GL_MakeCurrent(window, gl_context) directly)
-        //////if (io.ConfigFlags & ImGuiConfigFlags_ViewportsEnable)
-        //////{
-        //////    SDL_Window* backup_current_window = SDL_GL_GetCurrentWindow();
-        //////    SDL_GLContext backup_current_context = SDL_GL_GetCurrentContext();
-        //////    ImGui::UpdatePlatformWindows();
-        //////    ImGui::RenderPlatformWindowsDefault();
-        //////    SDL_GL_MakeCurrent(backup_current_window, backup_current_context);
-        //////}
-
-        SDL_GL_SwapWindow(window);
-    }
-
-    void Renderer::shutdown()
-    {
-        ////ImGui::SetCurrentContext(_imgui);
-
-        //moved in to imgui_layer.cpp
-        //////ImGui_ImplOpenGL3_Shutdown();
-        //////ImGui_ImplSDL2_Shutdown();
-        //////ImGui::DestroyContext();
-
-        SDL_GL_DeleteContext(get_gl_context());
-    }
-
-    void Renderer::init_opengl(const GameWindow& window)
-    {
-        //OpenGL
-        gl_context = SDL_GL_CreateContext(window.GetHandle());
-        SDL_GL_MakeCurrent(window.GetHandle(), gl_context);
-
-        int width, height;
-        window.GetSize(width, height);
-        RenderCommand::set_viewport(0, 0, width, height);
-
-        if (gl_context == NULL)
-        {
-            printf("OpenGL context could not be created! SDL Error: %s\n", SDL_GetError());
-            throw std::runtime_error("Failed creating SDL2 window: " + std::string(SDL_GetError()));
-        }
-        else
-        {
-            //Initialize GLEW
-            glewExperimental = GL_TRUE;
-            GLenum glewError = glewInit();
-            if (glewError != GLEW_OK)
-            {
-                printf("Error initializing GLEW! %s\n", glewGetErrorString(glewError));
-                throw std::runtime_error("Error initializing GLEW! " + std::string(SDL_GetError()));
-            }
-
-            //Check OpenGL
-            GLenum error;
-            while ((error = glGetError()) != GL_NO_ERROR)
-            {
-                printf("ERROR GLEW: %s\n", gl_error_to_string(error));
-            }
-        }
-
-        //MOVED IN TO IMGUI_LAYER.CPP
-        ////////Setup ImGui
-        //////IMGUI_CHECKVERSION();
-        //////_imgui = ImGui::CreateContext();
-        //////ImGuiIO& io = ImGui::GetIO(); (void)io;
-        ////////io.ConfigFlags |= ImGuiConfigFlags_DockingEnable;           // Enable Docking
-        ////////io.ConfigFlags |= ImGuiConfigFlags_ViewportsEnable;         // Enable Multi-Viewport / Platform Windows
-
-        //////ImGui::StyleColorsDark();
-
-        //////// When viewports are enabled we tweak WindowRounding/WindowBg so platform windows can look identical to regular ones.
-        //////ImGuiStyle& style = ImGui::GetStyle();
-        //////if (io.ConfigFlags & ImGuiConfigFlags_ViewportsEnable)
-        //////{
-        //////    style.WindowRounding = 0.0f;
-        //////    style.Colors[ImGuiCol_WindowBg].w = 1.0f;
-        //////}
-
-        std::string glsl_version = "#version 430";
-        SDL_GL_SetAttribute(SDL_GL_CONTEXT_FLAGS, 0);
-        SDL_GL_SetAttribute(SDL_GL_CONTEXT_MAJOR_VERSION, 4);
-        SDL_GL_SetAttribute(SDL_GL_CONTEXT_MINOR_VERSION, 3);
-        //4, 3 because that's when compute shaders were introduced
-
-        //////// setup platform/renderer bindings
-        //////ImGui_ImplSDL2_InitForOpenGL(window.GetHandle(), gl_context);
-        //////ImGui_ImplOpenGL3_Init(glsl_version.c_str());
-
-        //configure opengl state
-#ifdef DEBUG
-        glEnable(GL_DEBUG_OUTPUT);
-        glEnable(GL_DEBUG_OUTPUT_SYNCHRONOUS);
-        glDebugMessageCallback(OpenGLMessageCallback, nullptr);
-
-        glDebugMessageControl(GL_DONT_CARE, GL_DONT_CARE, GL_DEBUG_SEVERITY_NOTIFICATION, 0, NULL, GL_FALSE);
-#endif
-
-        //Enable Multi Sampling
-        SDL_GL_SetAttribute(SDL_GL_MULTISAMPLEBUFFERS, 1);
-        SDL_GL_SetAttribute(SDL_GL_MULTISAMPLESAMPLES, 4);
-        glEnable(GL_MULTISAMPLE);
-
-        //Enable Faceculling
-        //glEnable(GL_CULL_FACE);
-        //glDepthFunc(GL_LESS);
-
-        glEnable(GL_BLEND);
-        glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
-
-        //Enable depth testing
-        glEnable(GL_DEPTH_TEST);
-
-        //From now on your rendered images will be gamma corrected and as this is done by the hardware it is completely free.
-        //Something you should keep in mind with this approach (and the other approach) is that gamma correction (also) transforms the colors from linear space to non-linear space so it is very important you only do gamma correction at the last and final step. 
-        //If you gamma-correct your colors before the final output, all subsequent operations on those colors will operate on incorrect values. 
-        //For instance, if you use multiple framebuffers you probably want intermediate results passed in between framebuffers to remain in linear-space and only have the last framebuffer apply gamma correction before being sent to the monitor.
-        glEnable(GL_FRAMEBUFFER_SRGB);
-    }
 }

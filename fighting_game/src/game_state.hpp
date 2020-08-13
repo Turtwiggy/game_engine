@@ -1,6 +1,7 @@
 #pragma once
 
-#include "3d/fg_object.hpp"
+#include "engine/3d/game_object_3d.hpp"
+using namespace fightingengine;
 
 #define GLM_FORCE_RADIANS
 #include <glm/glm.hpp>
@@ -19,7 +20,7 @@ namespace fightinggame {
             //std::vector<std::shared_ptr<FGObject>> transforms,
             //std::shared_ptr<FGObject> terrain,
             //std::shared_ptr<FGObject> player,
-            std::shared_ptr<FGObject> cornel_box )
+            std::shared_ptr<GameObject3D> cornel_box )
             //: cubes(transforms)
             //, terrain(terrain)
             //, player(player)
@@ -29,7 +30,7 @@ namespace fightinggame {
         //std::vector<std::shared_ptr<FGObject>> cubes;
         //std::shared_ptr<FGObject> terrain;
         //std::shared_ptr<FGObject> player;
-        std::shared_ptr<FGObject> cornel_box;
+        std::shared_ptr<GameObject3D> cornel_box;
 
         float time;
     };

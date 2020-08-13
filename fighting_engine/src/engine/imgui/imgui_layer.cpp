@@ -81,6 +81,42 @@ namespace fightingengine {
     }
 
 
+    void ImGuiLayer::begin()
+    {
+        GameWindow& window = Application::instance().GetWindow();
+
+        ImGui_ImplOpenGL3_NewFrame();
+        ImGui_ImplSDL2_NewFrame(window.GetHandle());
+
+        ImGui::NewFrame();
+    }
+
+    void ImGuiLayer::end()
+    {
+        GameWindow& window = Application::instance().GetWindow();
+        int width, height = 0;
+        window.GetSize(width, height);
+
+        ImGuiIO& io = ImGui::GetIO();
+        io.DisplaySize = ImVec2((float)width, (float)height);
+
+        // Rendering
+        ImGui::Render();
+        ImGui_ImplOpenGL3_RenderDrawData(ImGui::GetDrawData());
+
+        // Update and Render additional Platform Windows
+        // (Platform functions may change the current OpenGL context, so we save/restore it to make it easier to paste this code elsewhere.
+        //  For this specific demo app we could also call SDL_GL_MakeCurrent(window, gl_context) directly)
+        if (io.ConfigFlags & ImGuiConfigFlags_ViewportsEnable)
+        {
+            SDL_Window* backup_current_window = SDL_GL_GetCurrentWindow();
+            SDL_GLContext backup_current_context = SDL_GL_GetCurrentContext();
+            ImGui::UpdatePlatformWindows();
+            ImGui::RenderPlatformWindowsDefault();
+            SDL_GL_MakeCurrent(backup_current_window, backup_current_context);
+        }
+    }
+
     bool ImGuiLayer::ProcessEventSdl2(const SDL_Event& e)
     {
         ImGuiIO& io = ImGui::GetIO();
@@ -145,42 +181,6 @@ namespace fightingengine {
     void ImGuiLayer::SetClipboardText(const char* text)
     {
         SDL_SetClipboardText(text);
-    }
-
-    void ImGuiLayer::begin()
-    {
-        GameWindow& window = Application::instance().GetWindow();
-
-        ImGui_ImplOpenGL3_NewFrame();
-        ImGui_ImplSDL2_NewFrame(window.GetHandle());
-
-        ImGui::NewFrame();
-    }
-
-    void ImGuiLayer::end()
-    {
-        GameWindow& window = Application::instance().GetWindow();
-        int width, height = 0;
-        window.GetSize(width, height);
-
-        ImGuiIO& io = ImGui::GetIO();
-        io.DisplaySize = ImVec2((float)width, (float)height);
-
-        // Rendering
-        ImGui::Render();
-        ImGui_ImplOpenGL3_RenderDrawData(ImGui::GetDrawData());
-
-        // Update and Render additional Platform Windows
-        // (Platform functions may change the current OpenGL context, so we save/restore it to make it easier to paste this code elsewhere.
-        //  For this specific demo app we could also call SDL_GL_MakeCurrent(window, gl_context) directly)
-        if (io.ConfigFlags & ImGuiConfigFlags_ViewportsEnable)
-        {
-            SDL_Window* backup_current_window = SDL_GL_GetCurrentWindow();
-            SDL_GLContext backup_current_context = SDL_GL_GetCurrentContext();
-            ImGui::UpdatePlatformWindows();
-            ImGui::RenderPlatformWindowsDefault();
-            SDL_GL_MakeCurrent(backup_current_window, backup_current_context);
-        }
     }
 }
 

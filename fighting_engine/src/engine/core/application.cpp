@@ -5,6 +5,7 @@
 
 #include "SDL2/SDL.h"
 #include "SDL2/SDL_events.h"
+#include <engine\core\input\input_manager.h>
 
 namespace fightingengine {
 
@@ -17,50 +18,34 @@ namespace fightingengine {
         int m_width = 1080;
         int m_height = 720;
         window = std::make_unique<GameWindow>
-        (
-            name + " [" + kBuildStr + "]",
-            m_width,
-            m_height,
-            display_mode::Windowed
-        );
+            (
+                name + " [" + kBuildStr + "]",
+                m_width,
+                m_height,
+                display_mode::Windowed
+                );
 
-        Renderer::instance().init_opengl(*window.get());
-        Renderer::instance().init_renderer(m_width, m_height);
+        renderer = std::make_unique<Renderer>();
+        renderer->init_opengl(*window.get());
+        renderer->init_renderer(m_width, m_height);
 
         imgui_layer = new ImGuiLayer();
         push_overlay(imgui_layer);
+
+        //Profiler
+        Profiler profiler;
+        printf("profiler taking up: %s bytes \n", std::to_string(sizeof(profiler)).c_str());
+
+        InputManager input_manager;
+        printf("input_manager taking up: %s bytes \n", std::to_string(sizeof(input_manager)).c_str());
+
+        running = true;
+        start = now = SDL_GetTicks();
     }
 
     Application::~Application()
     {
-        Renderer::instance().shutdown();
         window->Close();
-    }
-
-    void Application::on_event(Event& e)
-    {
-        EventDispatcher dispatcher(e);
-        dispatcher.Dispatch<WindowCloseEvent>(BIND_EVENT_FN(Application::OnWindowClose));
-        dispatcher.Dispatch<WindowResizeEvent>(BIND_EVENT_FN(Application::OnWindowResize));
-
-        for (auto it = layer_stack.rbegin(); it != layer_stack.rend(); ++it)
-        {
-            if (e.Handled)
-                break;
-            (*it)->on_event(e);
-        }
-    }
-
-    void Application::push_layer(Layer* layer)
-    {
-        layer_stack.PushLayer(layer);
-        layer->on_attach();
-    }
-
-    void Application::push_overlay(Layer* layer)
-    {
-        layer_stack.PushOverlay(layer);
-        layer->on_detach();
     }
 
     void Application::shutdown()
@@ -68,16 +53,9 @@ namespace fightingengine {
         running = false;
     }
 
-    void Application::run()
     {
-        //Profiler
-        Profiler profiler;
-        printf("profiler taking up: %s bytes \n", std::to_string(sizeof(profiler)).c_str());
 
-        running = true;
-        start = now = SDL_GetTicks();
-
-        while (running)
+        //while (running)
         {
             // Update Profiler
             // ---------------
@@ -100,6 +78,8 @@ namespace fightingengine {
 
             // Process Events
             // --------------
+            input_manager.new_frame();
+
             SDL_Event e;
             while (SDL_PollEvent(&e))
             {
@@ -109,27 +89,86 @@ namespace fightingengine {
                     continue;
                 }
 
-                //on_event();
+                //Events to quit
+                if (e.type == SDL_QUIT) {
+                    on_window_close();
+                }
+                else if (e.type == SDL_WINDOWEVENT
+                    && e.window.event == SDL_WINDOWEVENT_CLOSE
+                    && e.window.windowID == SDL_GetWindowID(window->GetHandle())) {
+                    on_window_close();
+                }
 
+                //if (e.type == SDL_Resze)
+                //{
+                //    //
+                //}
 
+                //Key events
+                switch (e.type)
+                {
+                case SDL_KEYDOWN:
+                    //keyboard specific! (need to rework for controllers)
+                {
+                    SDL_KeyboardEvent key_event = e.key;
+                    auto key = key_event.keysym.sym;
+                    input_manager.add_button_down(key);
+                    break;
+                }
 
+                case SDL_KEYUP:
+                    //keyboard specific! (need to rework for controllers)
+                {
+                    SDL_KeyboardEvent key_event = e.key;
+                    auto key = key_event.keysym.sym;
+                    input_manager.add_button_up(key);
+                    break;
+                }
 
+                case SDL_MOUSEBUTTONDOWN:
+                    //mouse specific
+                {
+                    input_manager.add_mouse_down(e.button);
+                    break;
+                }
+
+                case SDL_MOUSEBUTTONUP:
+                    //mouse specific
+                {
+                    input_manager.add_mouse_up(e.button);
+                    break;
+                }
+
+                }
             }
 
 
+            // Propagate through layers
+            // ------------------------
+            /*
 
-
-            imgui_layer->begin();
             for (Layer* layer : layer_stack)
             {
-                layer->on_update();
+                layer->on_update(delta_time_in_seconds);
                 layer->on_imgui_render();
-            }
+            }*/
+
+        }
+
+        {
+            imgui_layer->begin();
+
+            ImGui::Begin("Hello Window");
+            ImGui::Text("Hello World");
+            ImGui::End();
+
             imgui_layer->end();
 
             // FPS Profiling
             // -------------
             fps_buffer.push_back(1.f / delta_time_in_seconds);
+
+            SDL_GL_SwapWindow(window->GetHandle());
 
             // Sleep
             // -----
@@ -142,32 +181,29 @@ namespace fightingengine {
             profiler.End(Profiler::Stage::UpdateLoop);
         }
         //end
-
     }
 
-    bool Application::on_window_close(WindowCloseEvent& e)
+    bool Application::on_window_close()
     {
         printf("application close event recieved");
         running = false;
         return true;
     }
 
-    bool Application::on_window_resize(WindowResizeEvent& e)
+    bool Application::on_window_resize(int w, int h)
     {
         printf("application resize event recieved");
 
-        if (e.GetWidth() == 0 || e.GetHeight() == 0)
+        if (w == 0 || h == 0)
         {
             minimized = true;
             return false;
         }
 
         minimized = false;
-        Renderer::instance().resize(e.GetWidth(), e.GetHeight());
-
+        renderer->resize(w, h);
         return false;
     }
-
 }
 
 ////Camera
