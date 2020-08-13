@@ -1,4 +1,4 @@
-#include "3d/camera.hpp"
+#include "camera.hpp"
 
 namespace fightingengine {
 

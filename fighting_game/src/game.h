@@ -40,12 +40,6 @@ namespace fightinggame
     {
     public:
         bool process_events(Renderer& r, GameWindow& g_window, Gui& gui, Camera& camera, InputManager& input_manager);
-        void run();
-
-        //FPS settings
-        double FPS = 144.0;
-        Uint32 MILLISECONDS_PER_FRAME = (Uint32)(1000 / FPS);
-        CircularBuffer<float, 100> fps_buffer;
 
     private:
 
@@ -63,20 +57,5 @@ namespace fightinggame
             Renderer& r
         );
         void shutdown(Renderer& r, GameWindow& w);
-
-    private:
-        bool running = true;
-        bool fullscreen = false;
-        float time_since_launch = 0.0f;
-
-        //Game's fixed tick
-        int FIXED_TICKS_PER_SECOND = 1;
-        float SECONDS_PER_FIXED_TICK = 1.f / FIXED_TICKS_PER_SECOND;
-        float seconds_since_last_game_tick = 0;
-
-        //Delta time
-        unsigned int start = 0;
-        unsigned int prev = 0;
-        unsigned int now = 0;
     };
 }

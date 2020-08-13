@@ -1,6 +1,6 @@
 #pragma once
 
-#include "graphics/colour.hpp"
+#include "engine/graphics/colour.hpp"
 
 #include "glm/glm.hpp"
 

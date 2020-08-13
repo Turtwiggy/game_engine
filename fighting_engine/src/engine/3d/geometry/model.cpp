@@ -1,6 +1,6 @@
-#include "3d/geometry/model.hpp"
-#include "graphics/opengl/texture.hpp"
-#include "graphics/opengl/shader.hpp"
+#include "engine/3d/geometry/model.hpp"
+#include "platform/opengl/texture.hpp"
+#include "platform/opengl/shader.hpp"
 
 namespace fightingengine {
 

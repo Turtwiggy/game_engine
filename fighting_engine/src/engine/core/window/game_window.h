@@ -1,10 +1,13 @@
 #pragma once
 
+#include "engine\events\event.h"
+
 #include <SDL2/SDL.h>
 
 #include <cstdint>
 #include <memory>
 #include <string>
+#include <functional>
 
 namespace fightingengine
 {
@@ -21,6 +24,8 @@ namespace fightingengine
 		{
 			void operator()(SDL_Window* window) const { SDL_DestroyWindow(window); }
 		};
+
+        using EventCallbackFn = std::function<void(Event&)>;
 
 	public:
 		GameWindow(const std::string& title, const SDL_DisplayMode& display, display_mode displaymode);
@@ -65,6 +70,7 @@ namespace fightingengine
 		void Close();
 
 	private:
+
 		std::unique_ptr<SDL_Window, SDLDestroyer> _window;
 	};
 }

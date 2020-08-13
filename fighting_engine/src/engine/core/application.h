@@ -2,8 +2,10 @@
 
 #include "engine/core/layer_stack.h"
 #include "engine/core/window/game_window.h"
+#include "engine/core/data_structures/circular_buffer.h"
 #include "engine/events/event.h"
 #include "engine/events/app_event.h"
+#include "engine/layers/imgui/imgui_layer.h"
 #include "engine/util/singleton.h"
 
 #include <memory>
@@ -25,9 +27,9 @@ namespace fightingengine {
         GameWindow& GetWindow() { return *window; }
 
         void shutdown();
+        void run();
 
     private:
-        void run();
         bool on_window_close(WindowCloseEvent& e);
         bool on_window_resize(WindowResizeEvent& e);
 
@@ -35,9 +37,16 @@ namespace fightingengine {
 
         std::unique_ptr<GameWindow> window;
         LayerStack layer_stack;
+        ImGuiLayer* imgui_layer;
 
         bool running = true;
         bool fullscreen = false;
+        bool minimized = false;
+
+         //FPS settings
+        double FPS = 144.0;
+        Uint32 MILLISECONDS_PER_FRAME = (Uint32)(1000 / FPS);
+        CircularBuffer<float, 100> fps_buffer;
 
         //Game's fixed tick
         int FIXED_TICKS_PER_SECOND = 1;

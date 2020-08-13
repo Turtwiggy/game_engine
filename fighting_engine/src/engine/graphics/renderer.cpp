@@ -96,7 +96,7 @@ namespace fightingengine
         SDL_GL_DeleteContext(get_gl_context());
     }
 
-    void Renderer::init_opengl_and_imgui(const GameWindow& window)
+    void Renderer::init_opengl(const GameWindow& window)
     {
         //OpenGL
         gl_context = SDL_GL_CreateContext(window.GetHandle());

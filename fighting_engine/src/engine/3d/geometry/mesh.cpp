@@ -1,5 +1,5 @@
 
-#include "3d/geometry/mesh.hpp"
+#include "engine/3d/geometry/mesh.hpp"
 
 #include "glm/glm.hpp"
 #include <assimp/Importer.hpp>

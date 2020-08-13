@@ -1,10 +1,11 @@
 #pragma once
 
-#include "3d/camera.hpp"
-#include "3d/game_object_3d.hpp"
-#include "graphics/renderer_api.h"
-#include "graphics/opengl/shader.hpp"
-#include "sdl2/window/game_window.h"
+#include "engine/3d/camera.hpp"
+#include "engine/3d/game_object_3d.hpp"
+#include "engine/core/window/game_window.h"
+#include "engine/graphics/renderer_api.h"
+#include "engine/util/singleton.h"
+#include "platform/opengl/shader.hpp"
 
 #include <SDL2/SDL.h>
 #include <imgui.h>
@@ -73,28 +74,28 @@ namespace fightingengine {
         }
     };
 
-    class Renderer
+    class Renderer : public Singleton<Renderer>
     {
     public:
+        void init_renderer(int screen_width, int screen_height);
+
         static RendererAPI::API get_api() { return RendererAPI::get_api(); }
 
         void new_frame(SDL_Window* window);
         void end_frame(SDL_Window* window);
+        void resize(int width, int height) { renderer_impl->resize(width, height); };
 
         void shutdown();
 
         std::unique_ptr<RendererImpl> renderer_impl;
 
     public:
-
-    public:
-        void init_opengl_and_imgui(const GameWindow& window);
-        void init_renderer(int screen_width, int screen_height);
-
+        void init_opengl(const GameWindow& window);
         SDL_GLContext get_gl_context() { return gl_context; }
 
+
     private:
-        //opengl
         SDL_GLContext gl_context;
+
     };
 }

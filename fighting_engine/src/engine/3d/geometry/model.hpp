@@ -1,7 +1,7 @@
 #pragma once
 
-#include "3d/geometry/mesh.hpp"
-#include "graphics/colour.hpp""
+#include "engine/3d/geometry/mesh.hpp"
+#include "engine/graphics/colour.hpp""
 
 #include <stb_image.h>
 #include <assimp/Importer.hpp>

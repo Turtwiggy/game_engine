@@ -1,10 +1,10 @@
 #pragma once
 
-#include "3d/geometry/triangle.hpp"
-#include "3d/geometry/vertex.hpp"
-#include "graphics/opengl/texture.hpp"
-#include "graphics/opengl/shader.hpp"
-#include "graphics/colour.hpp"
+#include "engine/3d/geometry/triangle.hpp"
+#include "engine/3d/geometry/vertex.hpp"
+#include "engine/graphics/colour.hpp"
+#include "platform/opengl/texture.hpp"
+#include "platform/opengl/shader.hpp"
 
 #include <string>
 #include <vector>
