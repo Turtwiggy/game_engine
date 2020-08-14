@@ -1,4 +1,5 @@
 #include "game_window.h"
+#include <engine\renderer\util\util_functions.h>
 
 #include <SDL2/SDL_syswm.h>
 #include <spdlog/spdlog.h>x
@@ -66,10 +67,10 @@ namespace fightingengine {
         //SDL_SetWindowGrab(window.get(), SDL_TRUE);
         SDL_SetRelativeMouseMode(SDL_TRUE);
 
-        _window = std::move(window);
+        // --------------------------------------------
+        // OpenGL--------------------------------------
+        // --------------------------------------------
 
-
-        //OpenGL
         gl_context = SDL_GL_CreateContext(window.get());
         SDL_GL_MakeCurrent(window.get(), gl_context);
 
@@ -110,6 +111,8 @@ namespace fightingengine {
 
         glDebugMessageControl(GL_DONT_CARE, GL_DONT_CARE, GL_DEBUG_SEVERITY_NOTIFICATION, 0, NULL, GL_FALSE);
 #endif
+
+        _window = std::move(window);
     }
 
     SDL_Window* GameWindow::GetHandle() const
@@ -341,6 +344,16 @@ namespace fightingengine {
         _window.reset(nullptr);
 
         SDL_GL_DeleteContext(get_gl_context());
+    }
+
+    SDL_GLContext GameWindow::get_gl_context()
+    {
+        return gl_context;
+    }
+
+    std::string GameWindow::get_glsl_version()
+    {
+        return glsl_version;
     }
 
     //returns true if mouse is grabbed, false if it available

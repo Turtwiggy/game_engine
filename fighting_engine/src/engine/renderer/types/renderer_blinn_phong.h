@@ -1,7 +1,5 @@
 #pragma once
 
-#include "graphics/renderer.h"
-
 //namespace fightingengine {
 //
 //    class RendererBlinnPhong : public RendererImpl

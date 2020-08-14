@@ -10,11 +10,11 @@ namespace fightingengine {
 
     //  --------- MESH -----------
 
-    FGMesh::FGMesh(
-        std::vector<FGVertex> vertices,
+    Mesh::Mesh(
+        std::vector<Vertex> vertices,
         std::vector<unsigned int> indices,
         std::vector<Texture2D> textures,
-        FGColour colour,
+        ColourVec4f colour,
         std::string name)
         : vertices(vertices)
         , indices(indices)
@@ -27,7 +27,7 @@ namespace fightingengine {
     }
 
     // initializes all the buffer objects/arrays
-    void FGMesh::setup_mesh()
+    void Mesh::setup_mesh()
     {
         //generate triangle information
         if (indices.size() % 3 != 0)
@@ -41,7 +41,7 @@ namespace fightingengine {
             //generate triangle information
             for (int i = 0; i < indices.size(); i += 3)
             {
-                FGTriangle tri;
+                Triangle tri;
 
                 tri.p1 = vertices[indices[i]];
                 tri.p1.Colour = colour;
@@ -65,19 +65,19 @@ namespace fightingengine {
         //fill buffers
         glBindVertexArray(VAO);
         glBindBuffer(GL_ARRAY_BUFFER, VBO);
-        glBufferData(GL_ARRAY_BUFFER, vertices.size() * sizeof(FGVertex), &vertices[0], GL_STATIC_DRAW);
+        glBufferData(GL_ARRAY_BUFFER, vertices.size() * sizeof(Vertex), &vertices[0], GL_STATIC_DRAW);
         glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, EBO);
         glBufferData(GL_ELEMENT_ARRAY_BUFFER, indices.size() * sizeof(unsigned int), &indices[0], GL_STATIC_DRAW);
 
         //link vertex attributes
         glEnableVertexAttribArray(0);
-        glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, sizeof(FGVertex), (void*)0);
+        glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, sizeof(Vertex), (void*)0);
         // vertex normals
         glEnableVertexAttribArray(1);
-        glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, sizeof(FGVertex), (void*)offsetof(FGVertex, Normal));
+        glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, sizeof(Vertex), (void*)offsetof(Vertex, Normal));
         // vertex texture coords
         glEnableVertexAttribArray(2);
-        glVertexAttribPointer(2, 2, GL_FLOAT, GL_FALSE, sizeof(FGVertex), (void*)offsetof(FGVertex, TexCoords));
+        glVertexAttribPointer(2, 2, GL_FLOAT, GL_FALSE, sizeof(Vertex), (void*)offsetof(Vertex, TexCoords));
         //// vertex tangent
         //glEnableVertexAttribArray(3);
         //glVertexAttribPointer(3, 3, GL_FLOAT, GL_FALSE, sizeof(FGVertex), (void*)offsetof(FGVertex, Tangent));
@@ -89,7 +89,7 @@ namespace fightingengine {
     }
 
     // render the mesh
-    void FGMesh::draw(Shader& shader, int texture)
+    void Mesh::draw(Shader& shader, int texture)
     {
         if (texture == -1)
         {

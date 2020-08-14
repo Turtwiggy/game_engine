@@ -1,9 +1,9 @@
-#include "imgui_layer.h"
-#include "engine/core/application.h"
-#include "engine/graphics/renderer.h"
-#include "engine/graphics/graphics_context.h"
 
-//this means the gui has to be on opengl..
+#include "imgui_setup.h"
+
+#include "engine/core/application.h"
+#include "engine/core/game_window.h"
+
 #include <GL/glew.h>
 
 #include "imgui.h"
@@ -13,24 +13,17 @@
 
 #include <SDL2/SDL.h>
 #include <SDL2/SDL_events.h>
-
 #ifdef _WIN32
 #include <SDL2/SDL_syswm.h>
 #endif
 
 namespace fightingengine {
 
-    ImGuiLayer::ImGuiLayer()
-        : Layer("ImGuiLayer")
-        , _mousePressed {false, false, false}
+    ImGui_Manager::ImGui_Manager(GameWindow* window)
+        : _mousePressed{ false, false, false }
         , _mouseCursors{ 0 }
         , _clipboardTextData(nullptr)
         , _lastScroll(0)
-        , 
-    {
-    }
-
-    void ImGuiLayer::on_attach()
     {
         //Setup ImGui
         IMGUI_CHECKVERSION();
@@ -55,45 +48,28 @@ namespace fightingengine {
             style.Colors[ImGuiCol_WindowBg].w = 1.0f;
         }
 
-        GameWindow& window = Application::instance().GetWindow();
-        Renderer& renderer = Renderer::instance();
-
-        // setup platform/renderer bindings
-        ImGui_ImplSDL2_InitForOpenGL(window.GetHandle(), renderer.get_gl_context());
-        ImGui_ImplOpenGL3_Init(glsl_version.c_str());
+        // setup platform/renderer
+        ImGui_ImplSDL2_InitForOpenGL(window->GetHandle(), window->get_gl_context());
+        ImGui_ImplOpenGL3_Init(window->get_glsl_version().c_str());
     }
 
-    void ImGuiLayer::on_detach()
+    ImGui_Manager::~ImGui_Manager()
     {
         ImGui_ImplOpenGL3_Shutdown();
         ImGui_ImplSDL2_Shutdown();
         ImGui::DestroyContext();
     }
 
-    void ImGuiLayer::on_event(Event& e)
+    void ImGui_Manager::begin(const GameWindow& window)
     {
-        if (m_BlockEvents)
-        {
-            ImGuiIO& io = ImGui::GetIO();
-            e.Handled |= e.IsInCategory(EventCategoryMouse) & io.WantCaptureMouse;
-            e.Handled |= e.IsInCategory(EventCategoryKeyboard) & io.WantCaptureKeyboard;
-        }
-    }
-
-
-    void ImGuiLayer::begin()
-    {
-        GameWindow& window = Application::instance().GetWindow();
-
         ImGui_ImplOpenGL3_NewFrame();
         ImGui_ImplSDL2_NewFrame(window.GetHandle());
 
         ImGui::NewFrame();
     }
 
-    void ImGuiLayer::end()
+    void ImGui_Manager::end(const GameWindow& window)
     {
-        GameWindow& window = Application::instance().GetWindow();
         int width, height = 0;
         window.GetSize(width, height);
 
@@ -117,38 +93,38 @@ namespace fightingengine {
         }
     }
 
-    bool ImGuiLayer::ProcessEventSdl2(const SDL_Event& e)
+    bool ImGui_Manager::ProcessEventSdl2(const SDL_Event& event)
     {
         ImGuiIO& io = ImGui::GetIO();
-        switch (e.type)
+        switch (event.type)
         {
         case SDL_QUIT:
             return false;
         case SDL_MOUSEWHEEL:
         {
-            if (e.wheel.x > 0)
+            if (event.wheel.x > 0)
                 io.MouseWheelH += 1;
-            if (e.wheel.x < 0)
+            if (event.wheel.x < 0)
                 io.MouseWheelH -= 1;
-            if (e.wheel.y > 0)
+            if (event.wheel.y > 0)
                 io.MouseWheel += 1;
-            if (e.wheel.y < 0)
+            if (event.wheel.y < 0)
                 io.MouseWheel -= 1;
             return io.WantCaptureMouse;
         }
         case SDL_MOUSEBUTTONDOWN:
         {
-            if (e.button.button == SDL_BUTTON_LEFT)
+            if (event.button.button == SDL_BUTTON_LEFT)
                 _mousePressed[0] = true;
-            if (e.button.button == SDL_BUTTON_RIGHT)
+            if (event.button.button == SDL_BUTTON_RIGHT)
                 _mousePressed[1] = true;
-            if (e.button.button == SDL_BUTTON_MIDDLE)
+            if (event.button.button == SDL_BUTTON_MIDDLE)
                 _mousePressed[2] = true;
             return io.WantCaptureMouse;
         }
         case SDL_TEXTINPUT:
         {
-            io.AddInputCharactersUTF8.text.text);
+            io.AddInputCharactersUTF8(event.text.text);
             return io.WantTextInput;
         }
         case SDL_KEYDOWN:
@@ -157,9 +133,9 @@ namespace fightingengine {
             //}
         case SDL_KEYUP:
         {
-            int key = e.key.keysym.scancode;
+            int key = event.key.keysym.scancode;
             IM_ASSERT(key >= 0 && key < IM_ARRAYSIZE(io.KeysDown));
-            io.KeysDown[key] = (e.type == SDL_KEYDOWN);
+            io.KeysDown[key] = (event.type == SDL_KEYDOWN);
             io.KeyShift = ((SDL_GetModState() & KMOD_SHIFT) != 0);
             io.KeyCtrl = ((SDL_GetModState() & KMOD_CTRL) != 0);
             io.KeyAlt = ((SDL_GetModState() & KMOD_ALT) != 0);
@@ -170,7 +146,7 @@ namespace fightingengine {
         return io.WantCaptureMouse;
     }
 
-    const char* ImGuiLayer::GetClipboardText()
+    const char* ImGui_Manager::GetClipboardText()
     {
         if (_clipboardTextData)
             SDL_free(_clipboardTextData);
@@ -178,7 +154,7 @@ namespace fightingengine {
         return _clipboardTextData;
     }
 
-    void ImGuiLayer::SetClipboardText(const char* text)
+    void ImGui_Manager::SetClipboardText(const char* text)
     {
         SDL_SetClipboardText(text);
     }

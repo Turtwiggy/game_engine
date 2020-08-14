@@ -1,17 +1,15 @@
 #pragma once
 
-#include "engine/core/application.h"
-#undef main //thanks sdl2
+#include <engine\core\application.h>
+using namespace fightingengine;
 
-extern fightingengine::Application* fightingengine::CreateApplication();
+#undef main //thanks sdl2
 
 int main(int argc, char** argv)
 {
-    auto app = fightingengine::CreateApplication();
+    Application app;
 
-    app.init();
-
-    Camera c;
+    //Camera c;
 
     ////Model: Cornel Box
     //std::shared_ptr cornel_model = model_manager.load_model("assets/models/cornell_box/CornellBox-Original.obj", "cornell_box");
@@ -33,34 +31,32 @@ int main(int argc, char** argv)
     ////cubes.push_back(std::make_shared<FGObject>(cube_object));
     ////cubes.push_back(std::make_shared<FGObject>(cube_object2));
 
-    while (app.isRunning())
+    printf("hello world!");
+
+
+    while (app.is_running())
     {
+        app.frame_begin();
         app.poll();
         app.gui_begin();
 
         //Camera
-        float delta_time_s = app.getDeltaTimeS();
-        c.x += app.isKeyDown(APP_KEY_D);
-        c.x += app.isKeyDown(APP_KEY_A);
-        c.x += app.isKeyDown(APP_KEY_W);
-        c.x += app.isKeyDown(APP_KEY_S);
-        //camera.update(timestep);
-
-
+        float delta_time_s = app.get_delta_time();
+        //c.x += app.input().isKeyDown(APP_KEY_D);
+        //c.x += app.input().isKeyDown(APP_KEY_A);
+        //c.x += app.inpuisKeyDown(APP_KEY_W);
+        //c.x += app.isKeyDown(APP_KEY_S);
+        ////camera.update(timestep);
 
         //Cube
-        if (renderer.state == M_RENDERR_BLINN)
-        {
-            blinn.render(renderdata, camera);
-        }
 
-        graphicsobjects.render(camera);
+        //graphicsobjects.render(camera);
 
         app.gui_end();
-        app.render(profiler, camera);
+        //app.render(profiler, camera);
+        app.frame_end(delta_time_s);
     }
 
-    delete app;
 }
 
 

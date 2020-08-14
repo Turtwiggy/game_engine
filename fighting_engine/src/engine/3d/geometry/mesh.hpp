@@ -2,9 +2,9 @@
 
 #include "engine/3d/geometry/triangle.hpp"
 #include "engine/3d/geometry/vertex.hpp"
-#include "engine/graphics/colour.hpp"
-#include "platform/opengl/texture.hpp"
-#include "platform/opengl/shader.hpp"
+#include "engine/renderer/colour.hpp"
+#include "engine/renderer/texture.hpp"
+#include "engine/renderer/shader.hpp"
 
 #include <string>
 #include <vector>

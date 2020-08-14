@@ -1,44 +1,47 @@
 #pragma once
 
-#include "engine/core/layer_stack.h"
-#include "engine/core/window/game_window.h"
+#include "engine/core/game_window.h"
 #include "engine/core/data_structures/circular_buffer.h"
-#include "engine/events/event.h"
-#include "engine/events/app_event.h"
-#include "engine/layers/imgui/imgui_layer.h"
-#include "engine/util/singleton.h"
+#include "engine/core/input_manager.h"
+#include "engine/imgui/imgui_setup.h"
+#include "engine/debug/profiler.hpp""
 
 #include <memory>
 #include <string>
 
 namespace fightingengine {
 
-    class Application : public Singleton<Application>
+    class Application
     {
     public:
         Application(const std::string& name = "Fighting Engine (Default)");
         virtual ~Application();
+        void shutdown();
 
-        void on_event(Event& e);
+        float get_delta_time();
+        void frame_begin();
+        void frame_end(float delta_time);
+        void poll(); 
+        void gui_begin();
+        void gui_end();
 
-        void push_layer(Layer* layer);
-        void push_overlay(Layer* layer);
+        bool is_running() { return running; }
 
         GameWindow& GetWindow() { return *window; }
 
-        void shutdown();
-        void run();
-
     private:
-        bool on_window_close(WindowCloseEvent& e);
-        bool on_window_resize(WindowResizeEvent& e);
+
+        //window events
+        bool on_window_close();
+        bool on_window_resize(int w, int h);
 
     private:
         std::unique_ptr<GameWindow> window;
-        std::unique_ptr<Renderer> renderer;
+        //std::unique_ptr<Renderer> renderer;
+        Profiler profiler;
+        InputManager input_manager;
 
-        LayerStack layer_stack;
-        ImGuiLayer* imgui_layer;
+        ImGui_Manager* imgui_layer;
 
         bool running = true;
         bool fullscreen = false;
@@ -60,8 +63,4 @@ namespace fightingengine {
         unsigned int now = 0;
         float time_since_launch = 0.0f;
     };
-
-    // To be defined in CLIENT
-    Application* CreateApplication();
-
 }

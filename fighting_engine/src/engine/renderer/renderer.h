@@ -1,20 +1,14 @@
 #pragma once
 
+#include "engine/core/game_window.h"
+#include "engine/renderer/shader.hpp"
+#include "engine/scene/game_object_3d.hpp"
 #include "engine/3d/camera.hpp"
-#include "engine/3d/game_object_3d.hpp"
-#include "engine/core/window/game_window.h"
-#include "engine/graphics/renderer_api.h"
-#include "engine/util/singleton.h"
-#include "platform/opengl/shader.hpp"
 
-#include <SDL2/SDL.h>
-#include <imgui.h>
 #include <glm/glm.hpp>
 #include <glm/vec3.hpp>
 
-#include <array>
-#include <string_view>
-#include <memory>
+#include <vector>
 
 namespace fightingengine {
 
@@ -34,22 +28,7 @@ namespace fightingengine {
         {
         }
     };
-
-    class Renderer
-    {
-    public:
-
-    public:
-        void init_opengl(const GameWindow& window);
-        SDL_GLContext get_gl_context() { return gl_context; }
-        std::string get_glsl_version() { return glsl_version; }
-
-    private:
-        SDL_GLContext gl_context;
-        std::string glsl_version = "#version 430";
-    };
 }
-
 
 //// renderQuad() renders a 1x1 XY quad in NDC
 //// -----------------------------------------

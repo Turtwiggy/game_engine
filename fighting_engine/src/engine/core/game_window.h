@@ -1,7 +1,5 @@
 #pragma once
 
-#include "engine\events\event.h"
-
 #include <SDL2/SDL.h>
 
 #include <cstdint>
@@ -10,28 +8,6 @@
 
 namespace fightingengine
 {
-    struct opengl_context {
-
-    public:
-        opengl_context()
-        {
-        
-        }
-
-        ~opengl_context()
-        {
-
-        }
-
-        void init_opengl(const GameWindow& window);
-        SDL_GLContext get_gl_context() { return gl_context; }
-        std::string get_glsl_version() { return glsl_version; }
-
-    private:
-        SDL_GLContext gl_context;
-        std::string glsl_version = "#version 430";
-    };
-
 	enum display_mode
 	{
 		Windowed,
@@ -85,6 +61,9 @@ namespace fightingengine
 		void Raise();
 		void SetBordered(bool b = true);
 		void SetFullscreen(bool f = true);
+
+        SDL_GLContext get_gl_context();
+        std::string get_glsl_version();
 
 		void Close();
 
