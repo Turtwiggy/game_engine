@@ -1,8 +1,7 @@
 #pragma once
 
-#include <engine\core\application.h>
+#include "engine/core/application.h"
 using namespace fightingengine;
-
 #undef main //thanks sdl2
 
 int main(int argc, char** argv)
@@ -31,17 +30,25 @@ int main(int argc, char** argv)
     ////cubes.push_back(std::make_shared<FGObject>(cube_object));
     ////cubes.push_back(std::make_shared<FGObject>(cube_object2));
 
-    printf("hello world!");
-
-
     while (app.is_running())
     {
         app.frame_begin();
         app.poll();
         app.gui_begin();
 
-        //Camera
         float delta_time_s = app.get_delta_time();
+
+        ImGui::Begin("Hello Window");
+        ImGui::Text("Hello World");
+        ImGui::End();
+
+        if (app.input().get_key_down(SDL_KeyCode::SDLK_ESCAPE))
+            app.shutdown();
+
+        if (app.input().get_key_down(SDL_KeyCode::SDLK_m))
+            app.GetWindow().ToggleMouseCaptured();
+
+        //Cameras
         //c.x += app.input().isKeyDown(APP_KEY_D);
         //c.x += app.input().isKeyDown(APP_KEY_A);
         //c.x += app.inpuisKeyDown(APP_KEY_W);
@@ -52,11 +59,11 @@ int main(int argc, char** argv)
 
         //graphicsobjects.render(camera);
 
+
         app.gui_end();
         //app.render(profiler, camera);
         app.frame_end(delta_time_s);
     }
-
 }
 
 

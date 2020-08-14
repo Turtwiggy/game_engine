@@ -77,7 +77,7 @@ namespace fightingengine {
 
         glm::mat4 get_view_projection_matrix(int width, int height) const;
 
-        glm::mat4 get_inverse_projection_view_matrix(int width, int height);
+        glm::mat4 get_inverse_projection_view_matrix(float width, float height);
 
         // Compute the world direction vector based on the given X and Y coordinates in normalized-device space
         glm::vec3 get_eye_ray(float x, float y, float width, float height);

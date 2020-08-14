@@ -5,9 +5,6 @@
 #include "engine/core/game_window.h"
 
 #include <GL/glew.h>
-
-#include "imgui.h"
-#define IMGUI_IMPL_OPENGL_LOADER_GLEW
 #include <examples/imgui_impl_sdl.h>
 #include <examples/imgui_impl_opengl3.h>
 
@@ -20,10 +17,10 @@
 namespace fightingengine {
 
     ImGui_Manager::ImGui_Manager(GameWindow* window)
-        : _mousePressed{ false, false, false }
-        , _mouseCursors{ 0 }
-        , _clipboardTextData(nullptr)
-        , _lastScroll(0)
+        //: _mousePressed{ false, false, false }
+        //, _mouseCursors{ 0 }
+        //, _clipboardTextData(nullptr)
+        //, _lastScroll(0)
     {
         //Setup ImGui
         IMGUI_CHECKVERSION();
@@ -114,12 +111,6 @@ namespace fightingengine {
         }
         case SDL_MOUSEBUTTONDOWN:
         {
-            if (event.button.button == SDL_BUTTON_LEFT)
-                _mousePressed[0] = true;
-            if (event.button.button == SDL_BUTTON_RIGHT)
-                _mousePressed[1] = true;
-            if (event.button.button == SDL_BUTTON_MIDDLE)
-                _mousePressed[2] = true;
             return io.WantCaptureMouse;
         }
         case SDL_TEXTINPUT:
@@ -146,18 +137,18 @@ namespace fightingengine {
         return io.WantCaptureMouse;
     }
 
-    const char* ImGui_Manager::GetClipboardText()
-    {
-        if (_clipboardTextData)
-            SDL_free(_clipboardTextData);
-        _clipboardTextData = SDL_GetClipboardText();
-        return _clipboardTextData;
-    }
+    //const char* ImGui_Manager::GetClipboardText()
+    //{
+    //    if (_clipboardTextData)
+    //        SDL_free(_clipboardTextData);
+    //    _clipboardTextData = SDL_GetClipboardText();
+    //    return _clipboardTextData;
+    //}
 
-    void ImGui_Manager::SetClipboardText(const char* text)
-    {
-        SDL_SetClipboardText(text);
-    }
+    //void ImGui_Manager::SetClipboardText(const char* text)
+    //{
+    //    SDL_SetClipboardText(text);
+    //}
 }
 
 

@@ -27,6 +27,7 @@ namespace fightingengine {
 
         bool is_running() { return running; }
 
+        InputManager& input() { return input_manager; }
         GameWindow& GetWindow() { return *window; }
 
     private:
@@ -41,7 +42,7 @@ namespace fightingengine {
         Profiler profiler;
         InputManager input_manager;
 
-        ImGui_Manager* imgui_layer;
+        ImGui_Manager* imgui_manager;
 
         bool running = true;
         bool fullscreen = false;

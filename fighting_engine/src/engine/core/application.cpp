@@ -27,7 +27,7 @@ namespace fightingengine {
         //renderer->init_opengl(*window.get());
         //renderer->init_renderer(m_width, m_height);
 
-        imgui_layer = new ImGui_Manager(window.get());
+        imgui_manager = new ImGui_Manager(window.get());
 
         running = true;
         start = now = SDL_GetTicks();
@@ -95,7 +95,7 @@ namespace fightingengine {
         SDL_Event e;
         while (SDL_PollEvent(&e))
         {
-            if (imgui_layer->ProcessEventSdl2(e))
+            if (imgui_manager->ProcessEventSdl2(e))
             {
                 //Imgui stole the event
                 continue;
@@ -153,16 +153,12 @@ namespace fightingengine {
 
     void Application::gui_begin()
     {
-        imgui_layer->begin(GetWindow());
-
-        ImGui::Begin("Hello Window");
-        ImGui::Text("Hello World");
-        ImGui::End();
+        imgui_manager->begin(GetWindow());
     }
 
     void Application::gui_end()
     {
-        imgui_layer->end(GetWindow());
+        imgui_manager->end(GetWindow());
     }
 
     bool Application::on_window_close()

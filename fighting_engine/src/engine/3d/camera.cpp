@@ -15,9 +15,9 @@ namespace fightingengine {
         return projection * view;
     }
 
-    glm::mat4 Camera::get_inverse_projection_view_matrix(int width, int height)
+    glm::mat4 Camera::get_inverse_projection_view_matrix(float width, float height)
     {
-        glm::mat4 projection = glm::perspective(glm::radians(Zoom), (float)width / (float)height, 0.001f, 100.0f);
+        glm::mat4 projection = glm::perspective(glm::radians(Zoom), width / height, 0.001f, 100.0f);
         glm::mat4 view = get_view_matrix();
         return glm::inverse(projection * view);
     }

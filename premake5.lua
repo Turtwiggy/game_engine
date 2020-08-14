@@ -33,7 +33,7 @@ ImguiSourceFiles["imgui6"] = "thirdparty/imgui/imgui_demo.cpp"
 
 project "fighting_engine"
     location "fighting_engine"
-    kind "StaticLib"
+	kind "StaticLib"
     language "C++"
     cppdialect "C++17"
     staticruntime "on"
@@ -66,7 +66,6 @@ project "fighting_engine"
     {
         "_CRT_SECURE_NO_WARNINGS",
         "IMGUI_IMPL_OPENGL_LOADER_GLEW",
-        --"IMGUI_IMPL_OPENGL_ES2"
     }
 
     filter "system:windows"
@@ -106,6 +105,10 @@ project "fighting_engine"
 
     filter{}
 
+    postbuildcommands -- copy resources after build
+    {
+    	("{COPY} $(TargetDir)/ $(TargetDir)/../fighting_game/")
+    }
 
 project "fighting_game"
     location "fighting_game"
@@ -130,11 +133,6 @@ project "fighting_game"
     includedirs
     {
         "%{prj.name}/src",
-        "%{IncludeDir.ImGui}",
-        "%{IncludeDir.ImGui2}",
-        -- "%{IncludeDir.ggpo}",
-        -- "%{IncludeDir.GameNetworkingSockets}",
-        -- "/mingw64/include/freetype2"
         "fighting_engine/src"
     }
 
@@ -152,33 +150,16 @@ project "fighting_game"
     defines
     {
         "_CRT_SECURE_NO_WARNINGS",
-        "IMGUI_IMPL_OPENGL_LOADER_GLEW",
-        --"IMGUI_IMPL_OPENGL_ES2"
     }
 
     filter "system:windows"
         systemversion "latest"
-
-        --(win libs) do not statically link
-        links 
-        { 
-            --"gdi32", 
-            --"kernel32", 
-            --"psapi", 
-            "opengl32", 
-            --"winmm",
-            --"libEGL",
-            --"libGLESv2"
-        }
 
         defines
         {
             "__WIN32__",
         }
 
-	filter "system:linux"
-        links { "dl", "GL", "pthread", "X11" }
- 
     filter "configurations:Debug"
         defines {"GAME_DEBUG", "DEBUG"}
         runtime "Debug"
@@ -210,7 +191,6 @@ project "fighting_game"
     {
     	("{COPY} $(SolutionDir)/assets $(TargetDir)/assets")
     }
-
     
 project "raytracing_oneweekend"
     location "raytracing_oneweekend"
