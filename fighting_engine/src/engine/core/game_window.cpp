@@ -51,28 +51,26 @@ namespace fightingengine {
         const int x = SDL_WINDOWPOS_UNDEFINED;
         const int y = SDL_WINDOWPOS_UNDEFINED;
 
-        auto window = std::unique_ptr<SDL_Window, SDLDestroyer>(SDL_CreateWindow(title.c_str(), x, y, width, height, flags));
-
+        SDL_Window* window = SDL_CreateWindow(title.c_str(), x, y, width, height, flags);
         if (window == nullptr)
         {
             spdlog::error("Failed to create SDL2 window: '{}'", SDL_GetError());
             throw std::runtime_error("Failed creating SDL2 window: " + std::string(SDL_GetError()));
         }
 
-        SDL_SetWindowMinimumSize(window.get(), 500, 300);
+        SDL_SetWindowMinimumSize(window, 500, 300);
         SDL_GL_SetSwapInterval(0); //VSync
         SDL_ShowCursor(SDL_ENABLE);
-        //SetMouseCaptured(true);
-        //GrabInput(true);
-        //SDL_SetWindowGrab(window.get(), SDL_TRUE);
-        SDL_SetRelativeMouseMode(SDL_TRUE);
+        SDL_SetRelativeMouseMode(SDL_FALSE);
 
         // --------------------------------------------
+
         // OpenGL--------------------------------------
+
         // --------------------------------------------
 
-        gl_context = SDL_GL_CreateContext(window.get());
-        SDL_GL_MakeCurrent(window.get(), gl_context);
+        gl_context = SDL_GL_CreateContext(window);
+        SDL_GL_MakeCurrent(window, gl_context);
 
         if (gl_context == NULL)
         {
@@ -103,16 +101,8 @@ namespace fightingengine {
         SDL_GL_SetAttribute(SDL_GL_CONTEXT_MINOR_VERSION, 3);
         //4, 3 because that's when compute shaders were introduced
 
-        //configure opengl state
-#ifdef DEBUG
-        glEnable(GL_DEBUG_OUTPUT);
-        glEnable(GL_DEBUG_OUTPUT_SYNCHRONOUS);
-        glDebugMessageCallback(OpenGLMessageCallback, nullptr);
-
-        glDebugMessageControl(GL_DONT_CARE, GL_DONT_CARE, GL_DEBUG_SEVERITY_NOTIFICATION, 0, NULL, GL_FALSE);
-#endif
-
-        _window = std::move(window);
+        auto window_ptr = std::unique_ptr<SDL_Window, SDLDestroyer>(window);
+        _window = std::move(window_ptr);
     }
 
     SDL_Window* GameWindow::GetHandle() const
@@ -346,7 +336,7 @@ namespace fightingengine {
         SDL_GL_DeleteContext(get_gl_context());
     }
 
-    SDL_GLContext GameWindow::get_gl_context()
+    SDL_GLContext& GameWindow::get_gl_context()
     {
         return gl_context;
     }

@@ -65,7 +65,7 @@ project "fighting_engine"
     defines
     {
         "_CRT_SECURE_NO_WARNINGS",
-        "IMGUI_IMPL_OPENGL_LOADER_GLEW",
+        "IMGUI_IMPL_OPENGL_LOADER_GLEW"
     }
 
     filter "system:windows"
@@ -88,7 +88,7 @@ project "fighting_engine"
     filter "configurations:Debug"
         defines {"ENGINE_DEBUG", "DEBUG"}
         runtime "Debug"
-        symbols "off"
+        symbols "on"
         buildoptions {"/bigobj" , "/permissive-", "/MDd"}
 
 	filter "configurations:Release"
@@ -128,12 +128,25 @@ project "fighting_game"
         "%{prj.name}/src/**.h",
         "%{prj.name}/src/**.hpp",
         "%{prj.name}/src/**.cpp",
+
+        -- build engine directly
+        "fighting_engine/src/**.cpp",
+
+        -- build imgui
+        "%{ImguiSourceFiles.imgui1}",
+        "%{ImguiSourceFiles.imgui2}",
+        "%{ImguiSourceFiles.imgui3}",
+        "%{ImguiSourceFiles.imgui4}",
+        "%{ImguiSourceFiles.imgui5}",
+        "%{ImguiSourceFiles.imgui6}",
     }
 
     includedirs
     {
         "%{prj.name}/src",
-        "fighting_engine/src"
+        "fighting_engine/src",
+        "%{IncludeDir.ImGui}",
+        "%{IncludeDir.ImGui2}"
     }
 
     libdirs 
@@ -144,12 +157,13 @@ project "fighting_game"
     links
     {
         -- "GameNetworkingSockets",
-        "fighting_engine"
+        "opengl32"
     }
 
     defines
     {
         "_CRT_SECURE_NO_WARNINGS",
+        "IMGUI_IMPL_OPENGL_LOADER_GLEW"
     }
 
     filter "system:windows"
@@ -163,7 +177,7 @@ project "fighting_game"
     filter "configurations:Debug"
         defines {"GAME_DEBUG", "DEBUG"}
         runtime "Debug"
-        symbols "off"
+        symbols "on"
         buildoptions {"/bigobj" , "/permissive-", "/MDd"}
 
 	filter "configurations:Release"

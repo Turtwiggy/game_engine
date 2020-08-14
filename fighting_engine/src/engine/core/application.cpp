@@ -5,29 +5,29 @@
 #include "SDL2/SDL.h"
 #include "SDL2/SDL_events.h"
 
+#include <GL\glew.h>
+
 namespace fightingengine {
 
     const std::string kBuildStr = "1";
     //const std::string kBuildStr(kGitSHA1Hash, 8);
 
-    Application::Application(const std::string& name)
+    Application::Application(const std::string& name, int width, int height)
     {
         //Window
-        int m_width = 1080;
-        int m_height = 720;
         window = std::make_unique<GameWindow>
-            (
-                name + " [" + kBuildStr + "]",
-                m_width,
-                m_height,
-                display_mode::Windowed
-                );
+        (
+            name + " [" + kBuildStr + "]",
+            width,
+            height,
+            display_mode::Windowed
+        );
 
         //renderer = std::make_unique<Renderer>();
         //renderer->init_opengl(*window.get());
         //renderer->init_renderer(m_width, m_height);
 
-        imgui_manager = new ImGui_Manager(window.get());
+        imgui_manager.initialize(window.get());
 
         running = true;
         start = now = SDL_GetTicks();
@@ -64,8 +64,8 @@ namespace fightingengine {
     {
         // Update Profiler
         // ---------------
-        profiler.Frame();
-        profiler.Begin(Profiler::Stage::UpdateLoop);
+        //profiler.Frame();
+        //profiler.Begin(Profiler::Stage::UpdateLoop);
 
         input_manager.new_frame();
     }
@@ -76,17 +76,17 @@ namespace fightingengine {
         // -------------
         fps_buffer.push_back(1.f / delta_time);
 
-        SDL_GL_SwapWindow(window->GetHandle());
+        SDL_GL_SwapWindow(get_window().GetHandle());
 
         // Sleep
         // -----
         {
-            profiler.Begin(Profiler::Stage::Sleep);
+            //profiler.Begin(Profiler::Stage::Sleep);
             SDL_Delay(MILLISECONDS_PER_FRAME);
-            profiler.End(Profiler::Stage::Sleep);
+            //profiler.End(Profiler::Stage::Sleep);
         }
 
-        profiler.End(Profiler::Stage::UpdateLoop);
+        //profiler.End(Profiler::Stage::UpdateLoop);
     }
 
 
@@ -95,7 +95,7 @@ namespace fightingengine {
         SDL_Event e;
         while (SDL_PollEvent(&e))
         {
-            if (imgui_manager->ProcessEventSdl2(e))
+            if (imgui_manager.ProcessEventSdl2(e))
             {
                 //Imgui stole the event
                 continue;
@@ -105,13 +105,38 @@ namespace fightingengine {
             if (e.type == SDL_QUIT) {
                 on_window_close();
             }
-            else if (e.type == SDL_WINDOWEVENT
-                && e.window.event == SDL_WINDOWEVENT_CLOSE
-                && e.window.windowID == SDL_GetWindowID(window->GetHandle())) {
-                on_window_close();
-            }
 
-            //TODO RESIZE event
+            //https://wiki.libsdl.org/SDL_WindowEvent
+            if (e.type == SDL_WINDOWEVENT)
+            {
+                switch (e.window.event)
+                {
+                case SDL_WINDOWEVENT_CLOSE:
+                    if (e.window.windowID == SDL_GetWindowID(window->GetHandle()))
+                    {
+                        on_window_close();
+                    }
+                    break;
+                case SDL_WINDOWEVENT_RESIZED:
+                    if (e.window.windowID == SDL_GetWindowID(window->GetHandle()))
+                    {
+                        on_window_resize(e.window.data1, e.window.data2);
+                    }
+                    break;
+                case SDL_WINDOWEVENT_MINIMIZED:
+                    if (e.window.windowID == SDL_GetWindowID(window->GetHandle()))
+                    {
+                        minimized = true;
+                    }
+                    break;
+                case SDL_WINDOWEVENT_FOCUS_GAINED:
+                    SDL_Log("Window %d gained keyboard focus \n", e.window.windowID);
+                    break;
+                case SDL_WINDOWEVENT_FOCUS_LOST:
+                    SDL_Log("Window %d lost keyboard focus \n", e.window.windowID);
+                    break;
+                }
+            }
 
             //Key events
             switch (e.type)
@@ -124,27 +149,10 @@ namespace fightingengine {
                 input_manager.add_button_down(key);
                 break;
             }
-
-            case SDL_KEYUP:
-                //keyboard specific! (need to rework for controllers)
-            {
-                SDL_KeyboardEvent key_event = e.key;
-                auto key = key_event.keysym.sym;
-                input_manager.add_button_up(key);
-                break;
-            }
-
             case SDL_MOUSEBUTTONDOWN:
                 //mouse specific
             {
                 input_manager.add_mouse_down(e.button);
-                break;
-            }
-
-            case SDL_MOUSEBUTTONUP:
-                //mouse specific
-            {
-                input_manager.add_mouse_up(e.button);
                 break;
             }
             }
@@ -153,34 +161,36 @@ namespace fightingengine {
 
     void Application::gui_begin()
     {
-        imgui_manager->begin(GetWindow());
+        imgui_manager.begin(get_window());
+
+        //glClearColor(0.2f, 0.6f, 0.2f, 1.0f);
+        //glClear(GL_COLOR_BUFFER_BIT);
     }
 
     void Application::gui_end()
     {
-        imgui_manager->end(GetWindow());
+        imgui_manager.end(get_window());
     }
 
-    bool Application::on_window_close()
+    void Application::on_window_close()
     {
         printf("application close event recieved");
         running = false;
-        return true;
     }
 
-    bool Application::on_window_resize(int w, int h)
+    void Application::on_window_resize(int w, int h)
     {
-        printf("application resize event recieved");
+        printf("application resize event recieved: %i %i ", w, h);
 
         if (w == 0 || h == 0)
         {
             minimized = true;
-            return false;
+            return;
         }
 
         minimized = false;
         //renderer->resize(w, h);
-        return false;
     }
+
 }
 

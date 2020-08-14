@@ -5,6 +5,8 @@
 #include "engine/core/game_window.h"
 
 #include <GL/glew.h>
+
+#include <imgui.h>
 #include <examples/imgui_impl_sdl.h>
 #include <examples/imgui_impl_opengl3.h>
 
@@ -16,7 +18,7 @@
 
 namespace fightingengine {
 
-    ImGui_Manager::ImGui_Manager(GameWindow* window)
+    void ImGui_Manager::initialize(GameWindow* window)
         //: _mousePressed{ false, false, false }
         //, _mouseCursors{ 0 }
         //, _clipboardTextData(nullptr)
@@ -150,37 +152,3 @@ namespace fightingengine {
     //    SDL_SetClipboardText(text);
     //}
 }
-
-
-//ImGui::Begin("Profiler");
-//
-//ImGui::Columns(1);
-//ImGui::Text("FPS: %f", game.fps_buffer.average());
-//
-//ImGui::Columns(1);
-//
-//float draw_time = profiler.GetTime(Profiler::Stage::SdlInput);
-//ImGui::Text("%s %f ms", profiler.stageNames[(uint8_t)Profiler::Stage::SdlInput].data(), (draw_time));
-//
-//draw_time = profiler.GetTime(Profiler::Stage::GameTick);
-//ImGui::Text("%s % fms", profiler.stageNames[(uint8_t)Profiler::Stage::GameTick].data(), (draw_time));
-//
-//draw_time = profiler.GetTime(Profiler::Stage::NewFrame);
-//ImGui::Text("%s %f ms", profiler.stageNames[(uint8_t)Profiler::Stage::NewFrame].data(), (draw_time));
-//
-//draw_time = profiler.GetTime(Profiler::Stage::MainDraw);
-//ImGui::Text("%s %f ms", profiler.stageNames[(uint8_t)Profiler::Stage::MainDraw].data(), (draw_time));
-//
-//draw_time = profiler.GetTime(Profiler::Stage::GuiLoop);
-//ImGui::Text("%s % fms", profiler.stageNames[(uint8_t)Profiler::Stage::GuiLoop].data(), (draw_time));
-//
-//draw_time = profiler.GetTime(Profiler::Stage::EndFrame);
-//ImGui::Text("%s % fms", profiler.stageNames[(uint8_t)Profiler::Stage::EndFrame].data(), (draw_time));
-//
-//draw_time = profiler.GetTime(Profiler::Stage::Sleep);
-//ImGui::Text("%s % fms", profiler.stageNames[(uint8_t)Profiler::Stage::Sleep].data(), (draw_time));
-//
-//draw_time = profiler.GetTime(Profiler::Stage::UpdateLoop);
-//ImGui::Text(" ~~ %s % fms ~~ ", profiler.stageNames[(uint8_t)Profiler::Stage::UpdateLoop].data(), (draw_time));
-//
-//ImGui::End();

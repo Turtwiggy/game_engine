@@ -4,7 +4,7 @@
 #include "engine/core/data_structures/circular_buffer.h"
 #include "engine/core/input_manager.h"
 #include "engine/imgui/imgui_setup.h"
-#include "engine/debug/profiler.hpp""
+#include "engine/debug/profiler.hpp"
 
 #include <memory>
 #include <string>
@@ -14,7 +14,7 @@ namespace fightingengine {
     class Application
     {
     public:
-        Application(const std::string& name = "Fighting Engine (Default)");
+        Application(const std::string& name = "Fighting Engine (Default)", int width = 1080, int height = 720);
         virtual ~Application();
         void shutdown();
 
@@ -27,22 +27,22 @@ namespace fightingengine {
 
         bool is_running() { return running; }
 
-        InputManager& input() { return input_manager; }
-        GameWindow& GetWindow() { return *window; }
+        InputManager& get_input() { return input_manager; }
+        ImGui_Manager& get_imgui() { return imgui_manager; }
+        GameWindow& get_window() { return *window; }
 
     private:
 
         //window events
-        bool on_window_close();
-        bool on_window_resize(int w, int h);
+        void on_window_close();
+        void on_window_resize(int w, int h);
 
     private:
         std::unique_ptr<GameWindow> window;
         //std::unique_ptr<Renderer> renderer;
-        Profiler profiler;
+        //Profiler profiler;
         InputManager input_manager;
-
-        ImGui_Manager* imgui_manager;
+        ImGui_Manager imgui_manager;
 
         bool running = true;
         bool fullscreen = false;

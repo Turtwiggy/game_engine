@@ -1,14 +1,25 @@
 #pragma once
 
 #include "engine/core/application.h"
+#include "engine/renderer/render_command.h"
 using namespace fightingengine;
-#undef main //thanks sdl2
+
+#include <GL/glew.h>
+#include <glm/glm.hpp>
+#include <SDL2/SDL.h>
+
+#undef main
+//^thanks SDL2
 
 int main(int argc, char** argv)
 {
-    Application app;
+    int width = 1080;
+    int height = 720;
+    Application app("Fighting Game!", width, height);
 
-    //Camera c;
+    ////Camera
+    //Camera camera = Camera(glm::vec3(0.0f, 0.0f, 10.0f));
+    //printf("camera taking up: %s bytes \n", std::to_string(sizeof(camera)));
 
     ////Model: Cornel Box
     //std::shared_ptr cornel_model = model_manager.load_model("assets/models/cornell_box/CornellBox-Original.obj", "cornell_box");
@@ -30,23 +41,21 @@ int main(int argc, char** argv)
     ////cubes.push_back(std::make_shared<FGObject>(cube_object));
     ////cubes.push_back(std::make_shared<FGObject>(cube_object2));
 
+    //Renderer (TODO move to renderer)
+    RenderCommand::init();
+    RenderCommand::set_viewport(0, 0, width, height);
+
     while (app.is_running())
     {
         app.frame_begin();
         app.poll();
-        app.gui_begin();
-
         float delta_time_s = app.get_delta_time();
 
-        ImGui::Begin("Hello Window");
-        ImGui::Text("Hello World");
-        ImGui::End();
-
-        if (app.input().get_key_down(SDL_KeyCode::SDLK_ESCAPE))
+        if (app.get_input().get_key_down(SDL_KeyCode::SDLK_ESCAPE))
             app.shutdown();
 
-        if (app.input().get_key_down(SDL_KeyCode::SDLK_m))
-            app.GetWindow().ToggleMouseCaptured();
+        if (app.get_input().get_key_down(SDL_KeyCode::SDLK_m))
+            app.get_window().ToggleMouseCaptured();
 
         //Cameras
         //c.x += app.input().isKeyDown(APP_KEY_D);
@@ -56,20 +65,28 @@ int main(int argc, char** argv)
         ////camera.update(timestep);
 
         //Cube
-
         //graphicsobjects.render(camera);
 
+        //rendering
+        RenderCommand::set_clear_colour(glm::vec4(0.2f, 0.6f, 0.2f, 1.0f));
+        RenderCommand::clear();
+        //app.render(profiler, camera);
+
+        app.gui_begin();
+
+        ImGui::Begin("Hello Window");
+        ImGui::Text("Hello World");
+        ImGui::End();
 
         app.gui_end();
-        //app.render(profiler, camera);
         app.frame_end(delta_time_s);
     }
+
+    return 0;
 }
 
 
-////Camera
-//Camera camera = Camera(glm::vec3(0.0f, 0.0f, 10.0f));
-//printf("camera taking up: %s bytes \n", std::to_string(sizeof(camera)));
+
 
 ////Renderer
 //Renderer renderer;
@@ -159,3 +176,36 @@ int main(int argc, char** argv)
 //
 //    profiler.End(Profiler::Stage::GameTick);
 //}
+
+//ImGui::Begin("Profiler");
+//
+//ImGui::Columns(1);
+//ImGui::Text("FPS: %f", game.fps_buffer.average());
+//
+//ImGui::Columns(1);
+//
+//float draw_time = profiler.GetTime(Profiler::Stage::SdlInput);
+//ImGui::Text("%s %f ms", profiler.stageNames[(uint8_t)Profiler::Stage::SdlInput].data(), (draw_time));
+//
+//draw_time = profiler.GetTime(Profiler::Stage::GameTick);
+//ImGui::Text("%s % fms", profiler.stageNames[(uint8_t)Profiler::Stage::GameTick].data(), (draw_time));
+//
+//draw_time = profiler.GetTime(Profiler::Stage::NewFrame);
+//ImGui::Text("%s %f ms", profiler.stageNames[(uint8_t)Profiler::Stage::NewFrame].data(), (draw_time));
+//
+//draw_time = profiler.GetTime(Profiler::Stage::MainDraw);
+//ImGui::Text("%s %f ms", profiler.stageNames[(uint8_t)Profiler::Stage::MainDraw].data(), (draw_time));
+//
+//draw_time = profiler.GetTime(Profiler::Stage::GuiLoop);
+//ImGui::Text("%s % fms", profiler.stageNames[(uint8_t)Profiler::Stage::GuiLoop].data(), (draw_time));
+//
+//draw_time = profiler.GetTime(Profiler::Stage::EndFrame);
+//ImGui::Text("%s % fms", profiler.stageNames[(uint8_t)Profiler::Stage::EndFrame].data(), (draw_time));
+//
+//draw_time = profiler.GetTime(Profiler::Stage::Sleep);
+//ImGui::Text("%s % fms", profiler.stageNames[(uint8_t)Profiler::Stage::Sleep].data(), (draw_time));
+//
+//draw_time = profiler.GetTime(Profiler::Stage::UpdateLoop);
+//ImGui::Text(" ~~ %s % fms ~~ ", profiler.stageNames[(uint8_t)Profiler::Stage::UpdateLoop].data(), (draw_time));
+//
+//ImGui::End();
