@@ -69,10 +69,13 @@ namespace fightingengine {
 
         Shader& build_program()
         {
-            if (ok_to_build)
+            if (ok_to_build) {
                 attach_shaders_to_program();
-            else
+                printf("OK! to build shader\n");
+            }
+            else {
                 printf("shader was not ok to build");
+            }
 
             return *this;
         }

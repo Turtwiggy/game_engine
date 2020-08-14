@@ -7,6 +7,12 @@
 namespace fightingengine {
 
     Texture2D::Texture2D()
+        : Texture2D::Texture2D("defaultconstructor")
+    {
+        printf("!! texture created using default constructor !! ");
+    }
+
+    Texture2D::Texture2D(std::string path)
         : width(0)
         , height(0)
         , Internal_Format(GL_RGB)
@@ -15,14 +21,9 @@ namespace fightingengine {
         , Wrap_T(GL_REPEAT)
         , Filter_Min(GL_LINEAR)
         , Filter_Max(GL_LINEAR)
+        , path(path)
     {
         glGenTextures(1, &this->id);
-    }
-
-    Texture2D::Texture2D(std::string path)
-        : path(path)
-    {
-        Texture2D();
     }
 
     void Texture2D::Generate(unsigned int width, unsigned int height, unsigned char* data)
@@ -37,6 +38,7 @@ namespace fightingengine {
         glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, this->Wrap_T);
         glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, this->Filter_Min);
         glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, this->Filter_Max);
+
         // unbind texture
         glBindTexture(GL_TEXTURE_2D, 0);
     }

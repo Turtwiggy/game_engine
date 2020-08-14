@@ -29,6 +29,7 @@ namespace fightingengine {
     Texture2D ResourceManager::load_texture(const char* file, bool alpha, std::string name)
     {
         Textures[name] = load_texture_from_file(file, alpha);
+        printf("texture loaded! %s", name.c_str());
         return Textures[name];
     }
 
@@ -50,7 +51,8 @@ namespace fightingengine {
 
     Shader ResourceManager::load_shader_from_file(std::string path, std::vector<std::string> files)
     {
-        printf("Shader path: %s \n", path.c_str());
+        printf("----- Shader from path -------\n");
+        printf("Dir: %s \n", path);
 
         Shader s;
 
@@ -63,6 +65,8 @@ namespace fightingengine {
 
             s.attach_shader(full_path.c_str(), type);
         }
+
+        printf("-------- Shader ------- \n");
 
         s.build_program();
 
@@ -86,10 +90,31 @@ namespace fightingengine {
         // load image
         int width, height, nrChannels;
         unsigned char* data = stbi_load(full_path, &width, &height, &nrChannels, 0);
+
+        if (data)
+        {
+            if (nrChannels == 3)
+            {
+                texture.Internal_Format = GL_RGB8;
+                texture.Image_Format =  GL_RGB;
+            }
+            else if (nrChannels == 4)
+            {
+                texture.Internal_Format = GL_RGBA8;
+                texture.Image_Format = GL_RGBA;
+            }
+        }
+        else
+        {
+            printf("FAILED TO LOAD TEXTURE: %s", full_path);
+        }
+
         // now generate texture
         texture.Generate(width, height, data);
+
         // and finally free image data
         stbi_image_free(data);
+
         return texture;
     }
 }

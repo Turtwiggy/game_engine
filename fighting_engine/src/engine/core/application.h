@@ -31,6 +31,7 @@ namespace fightingengine {
         ImGui_Manager& get_imgui() { return imgui_manager; }
         GameWindow& get_window() { return *window; }
 
+        void set_fps_limit(double fps) { FPS = fps; MILLISECONDS_PER_FRAME = (Uint32)(1000 / FPS); }
         float get_average_fps() { return fps_buffer.average(); }
 
     private:
@@ -51,7 +52,7 @@ namespace fightingengine {
         bool minimized = false;
 
          //FPS settings
-        double FPS = 144.0;
+        double FPS = 60.0;
         Uint32 MILLISECONDS_PER_FRAME = (Uint32)(1000 / FPS);
         CircularBuffer<float, 100> fps_buffer;
 
