@@ -45,15 +45,15 @@ namespace fightingengine {
         {
             if (mouse_e.button == SDL_BUTTON_LEFT)
             {
-                printf("left mouse clicked");
+                printf("left mouse clicked\n");
             }
             if (mouse_e.button == SDL_BUTTON_RIGHT)
             {
-                printf("right mouse clicked");
+                printf("right mouse clicked\n");
             }
             if (mouse_e.button == SDL_BUTTON_MIDDLE)
             {
-                printf("middle mouse clicked");
+                printf("middle mouse clicked\n");
             }
         }
 

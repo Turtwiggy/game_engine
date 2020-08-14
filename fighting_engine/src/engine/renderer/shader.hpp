@@ -10,8 +10,18 @@
 #include <fstream>
 #include <sstream>
 #include <iostream>
+#include <filesystem> // C++17
+namespace fs = std::filesystem;
 
 namespace fightingengine {
+
+    enum OpenGLShaderTypes
+    {
+        VERTEX,
+        FRAGMENT,
+        COMPUTE,
+        GEOMETRY
+    };
 
     class Shader
     {
@@ -20,22 +30,34 @@ namespace fightingengine {
 
         unsigned int ID;
 
-        Shader& attach_shader(const char* path, unsigned int type)
+        Shader& attach_shader(const char* path, OpenGLShaderTypes shader_type)
         {
             std::string name;
-            switch (type)
+            unsigned int type;
+
+            switch (shader_type)
             {
-            case GL_VERTEX_SHADER:
+            case VERTEX:
                 name = "VERTEX";
-            case GL_COMPUTE_SHADER:
+                type = GL_VERTEX_SHADER;
+                break;
+            case COMPUTE:
                 name = "COMPUTE";
-            case GL_FRAGMENT_SHADER:
+                type = GL_COMPUTE_SHADER;
+                break;
+            case FRAGMENT:
                 name = "FRAGMENT";
-            case GL_GEOMETRY_SHADER:
+                type = GL_FRAGMENT_SHADER;
+                break;
+            case GEOMETRY:
                 name = "GEOMETRY";
+                type = GL_GEOMETRY_SHADER;
+                break;
             default:
                 //ok to have a default as it wont compile anyway
                 name = "VERTEX";
+                type = GL_VERTEX_SHADER;
+                break;
             }
 
             unsigned int shader = load_shader(path, type, name);
@@ -53,6 +75,28 @@ namespace fightingengine {
                 printf("shader was not ok to build");
 
             return *this;
+        }
+
+        static OpenGLShaderTypes convert_file_to_shadertype(std::string file)
+        {
+            fs::path p(file.c_str());
+            std::string extention = p.extension();
+
+            if (extention == ".vert")
+            {
+                return VERTEX;
+            }
+            else if (extention == ".frag")
+            {
+                return FRAGMENT;
+            }
+            else if (extention == ".glsl")
+            {
+                return COMPUTE;
+            }
+
+            printf("ERROR: convert_file_to_shadertype %s extention not found \n", extention.c_str());
+            return VERTEX;
         }
 
     private:
@@ -119,12 +163,11 @@ namespace fightingengine {
             }
         }
 
-
     public:
 
         // activate the shader
-        // ------------------------------------------------------------------------
-        void use()
+
+        void bind()
         {
             glUseProgram(ID);
         }
@@ -134,24 +177,20 @@ namespace fightingengine {
             glUseProgram(0);
         }
 
-
         // utility uniform functions
-        // ------------------------------------------------------------------------
+
         void setBool(const std::string& name, bool value) const
         {
             glUniform1i(glGetUniformLocation(ID, name.c_str()), (int)value);
         }
-        // ------------------------------------------------------------------------
         void setInt(const std::string& name, int value) const
         {
             glUniform1i(glGetUniformLocation(ID, name.c_str()), value);
         }
-        // ------------------------------------------------------------------------
         void setFloat(const std::string& name, float value) const
         {
             glUniform1f(glGetUniformLocation(ID, name.c_str()), value);
         }
-        // ------------------------------------------------------------------------
         void setVec2(const std::string& name, const glm::vec2& value) const
         {
             glUniform2fv(glGetUniformLocation(ID, name.c_str()), 1, &value[0]);
@@ -160,7 +199,6 @@ namespace fightingengine {
         {
             glUniform2f(glGetUniformLocation(ID, name.c_str()), x, y);
         }
-        // ------------------------------------------------------------------------
         void setVec3(const std::string& name, const glm::vec3& value) const
         {
             glUniform3fv(glGetUniformLocation(ID, name.c_str()), 1, &value[0]);
@@ -169,7 +207,6 @@ namespace fightingengine {
         {
             glUniform3f(glGetUniformLocation(ID, name.c_str()), x, y, z);
         }
-        // ------------------------------------------------------------------------
         void setVec4(const std::string& name, const glm::vec4& value) const
         {
             glUniform4fv(glGetUniformLocation(ID, name.c_str()), 1, &value[0]);
@@ -178,17 +215,14 @@ namespace fightingengine {
         {
             glUniform4f(glGetUniformLocation(ID, name.c_str()), x, y, z, w);
         }
-        // ------------------------------------------------------------------------
         void setMat2(const std::string& name, const glm::mat2& mat) const
         {
             glUniformMatrix2fv(glGetUniformLocation(ID, name.c_str()), 1, GL_FALSE, &mat[0][0]);
         }
-        // ------------------------------------------------------------------------
         void setMat3(const std::string& name, const glm::mat3& mat) const
         {
             glUniformMatrix3fv(glGetUniformLocation(ID, name.c_str()), 1, GL_FALSE, &mat[0][0]);
         }
-        // ------------------------------------------------------------------------
         void setMat4(const std::string& name, const glm::mat4& mat) const
         {
             glUniformMatrix4fv(glGetUniformLocation(ID, name.c_str()), 1, GL_FALSE, &mat[0][0]);
@@ -228,7 +262,7 @@ namespace fightingengine {
         }
 
         // utility function for checking shader compilation/linking errors.
-        // ------------------------------------------------------------------------
+
         void check_compile_errors(GLuint shader, std::string type)
         {
             GLint success;

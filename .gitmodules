@@ -4,9 +4,6 @@
 [submodule "thirdparty/ggpo"]
     path = thirdparty/ggpo
     url = https://github.com/pond3r/ggpo.git
-[submodule "thirdparty/gamenetworkingsockets"]
-    path = thirdparty/gamenetworkingsockets
-    url = https://github.com/ValveSoftware/GameNetworkingSockets.git
 [submodule "thirdparty/vcpkg"]
     path = thirdparty/vcpkg
     url = https://github.com/Microsoft/vcpkg

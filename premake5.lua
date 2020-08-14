@@ -65,7 +65,8 @@ project "fighting_engine"
     defines
     {
         "_CRT_SECURE_NO_WARNINGS",
-        "IMGUI_IMPL_OPENGL_LOADER_GLEW"
+        "IMGUI_IMPL_OPENGL_LOADER_GLEW",
+        "STB_IMAGE_IMPLEMENTATION"
     }
 
     filter "system:windows"
@@ -105,13 +106,105 @@ project "fighting_engine"
 
     filter{}
 
-    postbuildcommands -- copy resources after build
-    {
-    	("{COPY} $(TargetDir)/ $(TargetDir)/../fighting_game/")
-    }
-
 project "fighting_game"
     location "fighting_game"
+    kind "ConsoleApp"
+    language "C++"
+    cppdialect "C++17"
+    staticruntime "off"
+
+    targetdir ("builds/bin/" .. outputdir .. "/%{prj.name}")
+    objdir ("builds/bin-int/" .. outputdir .. "/%{prj.name}")
+
+    -- pchheader "spkpch.h"
+    -- pchsource "SparkEngine/src/spkpch.cpp"
+
+    files
+    {
+        "%{prj.name}/src/**.h",
+        "%{prj.name}/src/**.hpp",
+        "%{prj.name}/src/**.cpp",
+
+        -- build engine directly
+        "fighting_engine/src/**.cpp",
+
+        -- build imgui
+        "%{ImguiSourceFiles.imgui1}",
+        "%{ImguiSourceFiles.imgui2}",
+        "%{ImguiSourceFiles.imgui3}",
+        "%{ImguiSourceFiles.imgui4}",
+        "%{ImguiSourceFiles.imgui5}",
+        "%{ImguiSourceFiles.imgui6}",
+    }
+
+    includedirs
+    {
+        "%{prj.name}/src",
+        "fighting_engine/src",
+        "%{IncludeDir.ImGui}",
+        "%{IncludeDir.ImGui2}"
+    }
+
+    libdirs 
+    {
+        -- "./dlls/"
+    }
+
+    links
+    {
+        -- "GameNetworkingSockets",
+        "opengl32"
+    }
+
+    defines
+    {
+        "_CRT_SECURE_NO_WARNINGS",
+        "IMGUI_IMPL_OPENGL_LOADER_GLEW",
+        "STB_IMAGE_IMPLEMENTATION"
+    }
+
+    filter "system:windows"
+        systemversion "latest"
+
+        defines
+        {
+            "__WIN32__",
+        }
+
+    filter "configurations:Debug"
+        defines {"GAME_DEBUG", "DEBUG"}
+        runtime "Debug"
+        symbols "on"
+        buildoptions {"/bigobj" , "/permissive-", "/MDd"}
+
+	filter "configurations:Release"
+        defines "GAME_RELEASE"
+        runtime "Release"
+        optimize "on"
+        buildoptions {"/bigobj" , "/permissive-", "/MD"}
+
+        configuration "gmake2"
+            buildoptions 
+            {
+                "-std=c++17", "-Wall", "-Wextra", "-Wformat", "-g", "-Og"
+            }
+
+    -- configuration "gmake2"
+    --     buildoptions 
+    --     {
+    --         "-std=c++17", "-Wall", "-Wextra", "-Wformat", "-O2", "-s"
+    --     }
+    --     links { }
+
+    filter{}
+
+    postbuildcommands -- copy resources after build
+    {
+    	("{COPY} $(SolutionDir)/assets $(TargetDir)/assets")
+    }
+    
+project "game_breakout"
+    location "game_breakout"
     kind "ConsoleApp"
     language "C++"
     cppdialect "C++17"
@@ -203,9 +296,9 @@ project "fighting_game"
 
     postbuildcommands -- copy resources after build
     {
-    	("{COPY} $(SolutionDir)/assets $(TargetDir)/assets")
+    	("{COPY} $(SolutionDir)/game_breakout/assets $(TargetDir)/assets")
     }
-    
+
 project "raytracing_oneweekend"
     location "raytracing_oneweekend"
     kind "ConsoleApp"

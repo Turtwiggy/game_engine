@@ -31,6 +31,8 @@ namespace fightingengine {
         ImGui_Manager& get_imgui() { return imgui_manager; }
         GameWindow& get_window() { return *window; }
 
+        float get_average_fps() { return fps_buffer.average(); }
+
     private:
 
         //window events

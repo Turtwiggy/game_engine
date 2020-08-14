@@ -1,6 +1,6 @@
 
 #include "engine/core/application.h"
-
+#include "engine/resources/resource_manager.h"
 
 #include "SDL2/SDL.h"
 #include "SDL2/SDL_events.h"
@@ -35,6 +35,7 @@ namespace fightingengine {
 
     Application::~Application()
     {
+        ResourceManager::clear();
         window->Close();
     }
 
@@ -162,9 +163,6 @@ namespace fightingengine {
     void Application::gui_begin()
     {
         imgui_manager.begin(get_window());
-
-        //glClearColor(0.2f, 0.6f, 0.2f, 1.0f);
-        //glClear(GL_COLOR_BUFFER_BIT);
     }
 
     void Application::gui_end()
