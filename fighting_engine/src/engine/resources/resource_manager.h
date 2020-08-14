@@ -38,7 +38,7 @@ namespace fightingengine {
         //e.g. PARAM files: ["example.frag", "example.vert", "example.glsl"]
         static Shader    load_shader_from_file(std::string path, std::vector<std::string> files);
         // loads a single texture from file
-        static Texture2D load_texture_from_file(const char* file, bool alpha);
+        static Texture2D load_texture_from_file(const char* full_path, bool alpha);
     };
 
 }

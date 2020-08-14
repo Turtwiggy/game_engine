@@ -80,7 +80,7 @@ namespace fightingengine {
         static OpenGLShaderTypes convert_file_to_shadertype(std::string file)
         {
             fs::path p(file.c_str());
-            std::string extention = p.extension();
+            std::string extention = p.extension().generic_string();
 
             if (extention == ".vert")
             {

@@ -65,8 +65,7 @@ project "fighting_engine"
     defines
     {
         "_CRT_SECURE_NO_WARNINGS",
-        "IMGUI_IMPL_OPENGL_LOADER_GLEW",
-        "STB_IMAGE_IMPLEMENTATION"
+        "IMGUI_IMPL_OPENGL_LOADER_GLEW"
     }
 
     filter "system:windows"
@@ -159,9 +158,8 @@ project "fighting_game"
     defines
     {
         "_CRT_SECURE_NO_WARNINGS",
-        "IMGUI_IMPL_OPENGL_LOADER_GLEW",
-        "STB_IMAGE_IMPLEMENTATION"
-    }
+        "IMGUI_IMPL_OPENGL_LOADER_GLEW"
+        }
 
     filter "system:windows"
         systemversion "latest"

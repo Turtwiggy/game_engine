@@ -1,6 +1,7 @@
 #include "engine/3d/geometry/model.hpp"
 #include "engine/renderer/texture.hpp"
 #include "engine/renderer/shader.hpp"
+#include "engine/resources/resource_manager.h"
 
 namespace fightingengine {
 
@@ -191,16 +192,27 @@ namespace fightingengine {
                     break;
                 }
             }
-            if (!skip)
-            {   // if texture hasn't been loaded already, load it
-                Texture2D texture;
-                texture.id = TextureFromFile(str.C_Str(), this->directory);
-                texture.type = typeName;
-                texture.path = str.C_Str();
-                textures.push_back(texture);
-                textures_loaded.push_back(texture);  // store it as texture loaded for entire model, to ensure we won't unnecesery load duplicate textures.
-            }
+            //if (!skip)
+            //{   // if texture hasn't been loaded already, load it
+            //    Texture2D texture(str.C_Str());
+
+            //    ResourceManager::load_texture()
+
+
+            //    texture.id = TextureFromFile(str.C_Str(), this->directory);
+            //    texture.type = typeName;
+            //    texture.path = str.C_Str();
+            //    textures.push_back(texture);
+            //    textures_loaded.push_back(texture);  // store it as texture loaded for entire model, to ensure we won't unnecesery load duplicate textures.
+            //}
         }
+
+        assert(false);
+        printf("TRYING TO USE BROKEN LOAD_MATERIAL_TEXTURES function\n");
+        printf("TRYING TO USE BROKEN LOAD_MATERIAL_TEXTURES function\n");
+        printf("TRYING TO USE BROKEN LOAD_MATERIAL_TEXTURES function\n");
+        printf("TRYING TO USE BROKEN LOAD_MATERIAL_TEXTURES function\n");
+
         return textures;
     }
 }

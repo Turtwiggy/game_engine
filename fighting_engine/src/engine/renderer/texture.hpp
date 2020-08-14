@@ -21,9 +21,12 @@ namespace fightingengine {
         unsigned int Wrap_T; // wrapping mode on T axis
         unsigned int Filter_Min; // filtering mode if texture pixels < screen pixels
         unsigned int Filter_Max; // filtering mode if texture pixels > screen pixels
+        std::string path;
+        std::string type; //diffuse, specular, normal, height
 
         // constructor (sets default texture modes)
         Texture2D();
+        Texture2D(std::string path);
 
         // generates texture from image data
         void Generate(unsigned int width, unsigned int height, unsigned char* data);

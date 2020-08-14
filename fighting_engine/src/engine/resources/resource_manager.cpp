@@ -5,6 +5,7 @@
 #include <fstream>
 #include <vector>
 
+#define STB_IMAGE_IMPLEMENTATION
 #include <stb_image.h>
 
 namespace fightingengine {
@@ -69,14 +70,14 @@ namespace fightingengine {
     }
 
     //e.g PARAM file: assets/textures/Bamboo/BambooWall_1k_albedo.jpg
-    Texture2D ResourceManager::load_texture_from_file(const char* file, bool alpha)
+    Texture2D ResourceManager::load_texture_from_file(const char* full_path, bool alpha)
     {
         printf("----- Texture from path -------\n");
-        printf("Dir: %s \n", file);
+        printf("Dir: %s \n", full_path);
         printf("----- End Texture -------\n");
 
         // create texture object
-        Texture2D texture;
+        Texture2D texture(full_path);
         if (alpha)
         {
             texture.Internal_Format = GL_RGBA;
@@ -84,12 +85,11 @@ namespace fightingengine {
         }
         // load image
         int width, height, nrChannels;
-        unsigned char* data = stbi_load(file, &width, &height, &nrChannels, 0);
+        unsigned char* data = stbi_load(full_path, &width, &height, &nrChannels, 0);
         // now generate texture
         texture.Generate(width, height, data);
         // and finally free image data
         stbi_image_free(data);
         return texture;
     }
-
 }

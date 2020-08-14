@@ -19,12 +19,18 @@ namespace fightingengine {
         glGenTextures(1, &this->id);
     }
 
+    Texture2D::Texture2D(std::string path)
+        : path(path)
+    {
+        Texture2D();
+    }
+
     void Texture2D::Generate(unsigned int width, unsigned int height, unsigned char* data)
     {
         this->width = width;
         this->width = height;
         // create Texture
-        glBindTexture(GL_TEXTURE_2D, this->id;
+        glBindTexture(GL_TEXTURE_2D, this->id);
         glTexImage2D(GL_TEXTURE_2D, 0, this->Internal_Format, width, height, 0, this->Image_Format, GL_UNSIGNED_BYTE, data);
         // set Texture wrap and filter modes
         glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, this->Wrap_S);

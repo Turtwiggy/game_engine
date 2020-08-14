@@ -37,7 +37,6 @@ struct Breakout {
 
 };
 
-
 int main(int argc, char** argv)
 {
     int width = 1080;
