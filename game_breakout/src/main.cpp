@@ -6,8 +6,6 @@
 #include "engine/resources/resource_manager.h"
 using namespace fightingengine;
 
-#include "sprite_renderer.h"
-
 #include <GL/glew.h>
 #include <glm/glm.hpp>
 #include <glm/gtc/matrix_transform.hpp>
@@ -16,16 +14,78 @@ using namespace fightingengine;
 #undef main
 //^thanks SDL2
 
+//Resources
+//https://learnopengl.com/In-Practice/2D-Game/Levels
+
 enum BreakoutGameState {
     GAME_ACTIVE,
     GAME_MENU,
     GAME_WIN
 };
 
+struct BreakoutGameObject {
+    glm::vec2   Position, Size, Velocity;
+    glm::vec3   Colour;
+    float       Rotation;
+    bool        Destroyed;
+
+    Texture2D Sprite;
+
+    BreakoutGameObject()
+        : Position(0.0f, 0.0f), Size(1.0f, 1.0f), Velocity(0.0f)
+        , Colour(1.0f), Rotation(0.0f), Sprite(), Destroyed(false) { }
+
+    BreakoutGameObject(
+        glm::vec2 pos, glm::vec2 size, Texture2D sprite, glm::vec3 color = glm::vec3(1.0f),
+        glm::vec2 velocity = glm::vec2(0.0f, 0.0f))
+        : Position(pos), Size(size), Velocity(velocity)
+        , Colour(color), Rotation(0.0f), Sprite(sprite), Destroyed(false) { }
+    ;
+
+    void Draw(SpriteRenderer& renderer)
+    {
+        renderer.DrawSprite(this->Sprite, this->Position, this->Size, this->Rotation, this->Colour);
+    }
+};
+
+struct BreakoutGameLevel {
+    // level state
+    std::vector<BreakoutGameObject> Bricks;
+
+    BreakoutGameLevel() { }
+
+    void Load(const char* file, unsigned int levelWidth, unsigned int levelHeight)
+    {
+
+    }
+
+    void Draw(SpriteRenderer& renderer)
+    {
+
+    }
+
+    bool IsCompleted()
+    {
+
+    }
+
+private:
+    // initialize level from tile data
+    void init(std::vector<std::vector<unsigned int>> tileData,
+        unsigned int levelWidth, unsigned int levelHeight)
+    {
+
+    }
+
+};
+
 struct Breakout {
 
     SpriteRenderer* Renderer;
-    BreakoutGameState state;
+
+    std::vector<BreakoutGameLevel>  levels;
+    unsigned int                    level;
+    BreakoutGameState               state;
 
     void init(int width, int height)
     {

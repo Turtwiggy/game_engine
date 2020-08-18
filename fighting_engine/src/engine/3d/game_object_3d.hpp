@@ -1,6 +1,6 @@
 #pragma once
 
-#include "engine/3d/geometry/model.hpp"
+#include "engine/geometry/model.hpp"
 
 #define GLM_FORCE_RADIANS
 #include "glm/glm.hpp"
