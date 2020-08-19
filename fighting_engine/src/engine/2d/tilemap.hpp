@@ -96,7 +96,7 @@ namespace fightingengine
         };
     }
 
-    std::map<tiles::type, std::vector< glm::vec2>>& get_locations();
+    std::map<tiles::type, std::vector< glm::ivec2>>& get_locations();
     //sprite_handle get_sprite_handle_of( tiles::type type );
     //glm::vec4 get_colour_of(tiles::type type, level_info::types level_type);
 

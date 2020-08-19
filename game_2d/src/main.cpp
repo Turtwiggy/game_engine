@@ -4,6 +4,8 @@
 #include "engine/renderer/render_command.h"
 #include "engine/renderer/shader.hpp"
 #include "engine/resources/resource_manager.h"
+#include "engine/2d/camera_2d.hpp"
+
 using namespace fightingengine;
 
 #include <GL/glew.h>
@@ -130,6 +132,9 @@ int main(int argc, char** argv)
     int height = 720;
     Application app("Breakout", width, height);
     app.set_fps_limit(144.0);
+
+    int pixel_sheet_size = 16;
+    Camera2D camera(pixel_sheet_size);
 
     Breakout game;
     game.init(width, height);

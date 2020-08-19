@@ -19,10 +19,10 @@ struct TilemapPosition
 
 struct RenderDescriptor
 {
-    glm::vec2 position; //in pixels, centered
-    glm::vec4 colour = { 1,1,1,1 }; //linear colour, everything's fine
-    float angle = 0; //in radians, about the origin, which is currently the centre
-    glm::vec2 scale = { 1,1 };
+    glm::vec2 position;                 //in pixels, centered
+    glm::vec4 colour    = { 1,1,1,1 };  //linear colour, everything's fine
+    float angle         = 0;            //in radians, about the origin, which is currently the centre
+    glm::vec2 scale     = { 1,1 };
     bool depress_on_hover = false;
 };
 
