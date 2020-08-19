@@ -1,5 +1,5 @@
 
-#include "engine/3d/geometry/vertex.hpp"
+#include "engine/geometry/vertex.hpp"
 
 #include <vector>
 

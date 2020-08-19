@@ -2,98 +2,108 @@
 
 #include "glm/glm.hpp"
 
-#define BASE 2
-//#define BASE sqrtf(2)
+namespace fightingengine {
 
-float linear_zoom_to_scale(float linear)
-{
-    return pow(BASE, linear);
-}
+    #define BASE 2
+    //#define BASE sqrtf(2)
 
-float logb(float base, float val)
-{
-    return log(val) / log(base);
-}
+    float linear_zoom_to_scale(float linear)
+    {
+        return pow(BASE, linear);
+    }
 
-float scale_to_linear_zoom(float scale)
-{
-    return logb(BASE, scale);
-}
+    float logb(float base, float val)
+    {
+        return log(val) / log(base);
+    }
 
-///scale = r2 ^ linear;
+    float scale_to_linear_zoom(float scale)
+    {
+        return logb(BASE, scale);
+    }
 
-vec2f camera::tile_to_screen(render_window& win, vec2f tile_pos) const
-{
-    vec2i screen_dim = win.get_window_size();
+    ///scale = r2 ^ linear;
 
-    vec2f half_dim = vec2f{ screen_dim.x(), screen_dim.y() } / 2.f;
+    vec2 Camera2D::tile_to_screen(GameWindow& win, vec2 tile_pos) const
+    {
+        int width, height = 0;
+        win.GetSize(width, height);
 
-    vec2f relative = (vec2f{ tile_pos.x(), tile_pos.y() } *TILE_PIX - pos) * calculate_scale() + half_dim;
+        vec2 half_dim = vec2{ width, height } / 2.f;
 
-    return relative;
-}
+        vec2 pos = vec2(tile_pos.x, tile_pos.y);
 
-vec2f camera::screen_to_tile(render_window& win, vec2f screen_pos) const
-{
-    vec2i screen_dim = win.get_window_size();
+        vec2 relative = (  pos * (float)tile_pixels - pos) * calculate_scale() + half_dim;
 
-    vec2f half_dim = vec2f{ screen_dim.x(), screen_dim.y() } / 2.f;
+        return relative;
+    }
 
-    vec2f scaled = screen_pos - half_dim;
-    scaled /= calculate_scale();
+    vec2 Camera2D::screen_to_tile(GameWindow& win, vec2 screen_pos) const
+    {
+        int width, height = 0;
+        win.GetSize(width, height);
 
-    scaled += pos;
+        vec2 half_dim = vec2{ width, height } / 2.f;
 
-    scaled /= TILE_PIX;
+        vec2 scaled = screen_pos - half_dim;
+        scaled /= calculate_scale();
 
-    return scaled;
-}
+        scaled += pos;
 
-vec2f camera::world_to_screen(render_window& win, vec2f world_pos) const
-{
-    vec2i screen_dim = win.get_window_size();
+        scaled /= tile_pixels;
 
-    vec2f half_dim = vec2f{ screen_dim.x(), screen_dim.y() } / 2.f;
+        return scaled;
+    }
 
-    vec2f relative = (world_pos - pos) * calculate_scale() + half_dim;
+    vec2 Camera2D::world_to_screen(GameWindow& win, vec2 world_pos) const
+    {
+        int width, height = 0;
+        win.GetSize(width, height);
 
-    return relative;
-}
+        vec2 half_dim = vec2{ width, height } / 2.f;
 
-vec2f camera::screen_to_world(render_window& win, vec2f screen_pos) const
-{
-    vec2i screen_dim = win.get_window_size();
+        vec2 relative = (world_pos - pos) * calculate_scale() + half_dim;
 
-    vec2f half_dim = vec2f{ screen_dim.x(), screen_dim.y() } / 2.f;
+        return relative;
+    }
 
-    vec2f absolute = ((screen_pos - half_dim) / calculate_scale()) + pos;
+    vec2 Camera2D::screen_to_world(GameWindow& win, vec2 screen_pos) const
+    {
+        int width, height = 0;
+        win.GetSize(width, height);
 
-    return absolute;
-}
+        vec2 half_dim = vec2{ width, height } / 2.f;
 
-vec2f camera::tile_to_world(vec2f pos)
-{
-    return vec2f{ pos.x(), pos.y() } *TILE_PIX + vec2f{ TILE_PIX / 2, TILE_PIX / 2 };
-}
+        vec2 absolute = ((screen_pos - half_dim) / calculate_scale()) + pos;
 
-//vec2f camera::world_to_tile(vec2f pos)
-//{
-//    return (pos - vec2f{ TILE_PIX / 2, TILE_PIX / 2 }) / (float)TILE_PIX ;
-//}
+        return absolute;
+    }
 
-void camera::translate(vec2f amount)
-{
-    pos += amount / calculate_scale();
-}
+    vec2 Camera2D::tile_to_world(vec2 pos, float tile_pixels)
+    {
+        return vec2{ pos.x, pos.y } *tile_pixels + vec2{ tile_pixels / 2, tile_pixels / 2 };
+    }
 
-void camera::zoom(float number_of_levels)
-{
-    zoom_level += number_of_levels;
+    //vec2f camera::world_to_tile(vec2f pos)
+    //{
+    //    return (pos - vec2f{ TILE_PIX / 2, TILE_PIX / 2 }) / (float)TILE_PIX ;
+    //}
 
-    zoom_level = clamp(zoom_level, -3, 3);
-}
+    void Camera2D::translate(vec2 amount)
+    {
+        pos += amount / calculate_scale();
+    }
 
-float camera::calculate_scale() const
-{
-    return linear_zoom_to_scale(zoom_level);
+    void Camera2D::zoom(float number_of_levels)
+    {
+        zoom_level += number_of_levels;
+
+        zoom_level = clamp(zoom_level, -3.0f, 3.0f);
+    }
+
+    float Camera2D::calculate_scale() const
+    {
+        return linear_zoom_to_scale(zoom_level);
+    }
+
 }

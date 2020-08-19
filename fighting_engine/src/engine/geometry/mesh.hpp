@@ -1,7 +1,7 @@
 #pragma once
 
-#include "engine/3d/geometry/triangle.hpp"
-#include "engine/3d/geometry/vertex.hpp"
+#include "engine/geometry/triangle.hpp"
+#include "engine/geometry/vertex.hpp"
 #include "engine/renderer/colour.hpp"
 #include "engine/renderer/texture.hpp"
 #include "engine/renderer/shader.hpp"

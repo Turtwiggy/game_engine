@@ -1,6 +1,6 @@
 #pragma once
 
-#include "engine/3d/geometry/mesh.hpp"
+#include "engine/geometry/mesh.hpp"
 #include "engine/renderer/colour.hpp"
 
 #include <stb_image.h>

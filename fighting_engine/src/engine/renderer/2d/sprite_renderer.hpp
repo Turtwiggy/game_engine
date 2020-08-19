@@ -19,7 +19,7 @@ struct TilemapPosition
 
 struct RenderDescriptor
 {
-    glm::vec2 pos; //in pixels, centered
+    glm::vec2 position; //in pixels, centered
     glm::vec4 colour = { 1,1,1,1 }; //linear colour, everything's fine
     float angle = 0; //in radians, about the origin, which is currently the centre
     glm::vec2 scale = { 1,1 };
@@ -37,8 +37,19 @@ public:
     SpriteRenderer(Shader& shader);
     ~SpriteRenderer();
 
-    void DrawSprite(Texture2D& texture, RenderDescriptor desc);
+    void DrawSprite(Texture2D& texture, const RenderDescriptor& desc, const SpriteHandle& handle);
 private:
     Shader       shader;
     unsigned int quadVAO;
 };
+
+//struct sprite_renderer
+//{
+//    std::vector<std::pair<sprite_handle, render_descriptor>> next_renderables;
+//    texture sprite_sheet;
+//
+//    sprite_renderer();
+//
+//    void add(const sprite_handle& handle, const render_descriptor& descriptor);
+//    void render(render_window& window, const camera& cam);
+//};

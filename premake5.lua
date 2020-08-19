@@ -1,6 +1,6 @@
 workspace "FightingGameWorkspace"
     architecture "x86_64"
-    startproject "fighting_game"
+    startproject "game_3d"
     characterset "MBCS"
 
     configurations
@@ -105,8 +105,8 @@ project "fighting_engine"
 
     filter{}
 
-project "fighting_game"
-    location "fighting_game"
+project "game_3d"
+    location "game_3d"
     kind "ConsoleApp"
     language "C++"
     cppdialect "C++17"
@@ -201,8 +201,8 @@ project "fighting_game"
     	("{COPY} $(SolutionDir)/assets $(TargetDir)/assets")
     }
     
-project "game_breakout"
-    location "game_breakout"
+project "game_2d"
+    location "game_2d"
     kind "ConsoleApp"
     language "C++"
     cppdialect "C++17"
@@ -294,7 +294,7 @@ project "game_breakout"
 
     postbuildcommands -- copy resources after build
     {
-    	("{COPY} $(SolutionDir)/game_breakout/assets $(TargetDir)/assets")
+    	("{COPY} $(SolutionDir)/game_2d/assets $(TargetDir)/assets")
     }
 
 project "raytracing_oneweekend"
