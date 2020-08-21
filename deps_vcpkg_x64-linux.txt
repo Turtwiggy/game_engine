@@ -1,0 +1,10 @@
+sdl2
+entt
+bullet3
+spdlog
+glm
+glew
+stb
+assimp
+--triplet
+x64-linux

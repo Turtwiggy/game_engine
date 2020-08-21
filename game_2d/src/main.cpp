@@ -1,9 +1,9 @@
 #pragma once
 
-#include "engine/core/application.h"
-#include "engine/renderer/render_command.h"
+#include "engine/core/application.hpp"
+#include "engine/renderer/render_command.hpp"
 #include "engine/renderer/shader.hpp"
-#include "engine/resources/resource_manager.h"
+#include "engine/resources/resource_manager.hpp"
 #include "engine/2d/camera_2d.hpp"
 
 using namespace fightingengine;

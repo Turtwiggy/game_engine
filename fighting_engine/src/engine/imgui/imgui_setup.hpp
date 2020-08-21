@@ -1,6 +1,6 @@
 #pragma once
 
-#include "engine/core/game_window.h"
+#include "engine/core/game_window.hpp"
 
 #include <SDL2/SDL.h>
 #include <SDL2/SDL_events.h>

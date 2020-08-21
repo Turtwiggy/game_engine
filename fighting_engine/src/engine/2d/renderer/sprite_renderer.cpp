@@ -69,7 +69,7 @@ namespace fightingengine {
         this->shader.setMat4("model", model);
 
         // render textured quad
-        this->shader.setVec3("spriteColor", desc.colour);
+        this->shader.setVec3("spriteColor", desc.colour.colour);
 
         glActiveTexture(GL_TEXTURE0);
         texture.Bind();

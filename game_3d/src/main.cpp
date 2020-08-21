@@ -1,7 +1,7 @@
 #pragma once
 
-#include "engine/core/application.h"
-#include "engine/renderer/render_command.h"
+#include "engine/core/application.hpp"
+#include "engine/renderer/render_command.hpp"
 using namespace fightingengine;
 
 #include <GL/glew.h>

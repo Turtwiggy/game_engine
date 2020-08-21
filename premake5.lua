@@ -22,7 +22,14 @@ IncludeDir["ImGui"] = "thirdparty/imgui"
 IncludeDir["ImGui2"] = "thirdparty/imgui/examples"
 IncludeDir["ggpo"]  = "thirdparty/ggpo/src/include"
 IncludeDir["GameNetworkingSockets"] = "thirdparty/gamenetworkingsockets/include"
- 
+
+-- VCPKG packages
+IncludeDir["vcpkg"] = "thirdparty/vcpkg/installed/x64-windows/include"
+
+filter "system:linux"
+    IncludeDir["vcpkg"] = "thirdparty/vcpkg/installed/x64-linux/include"
+filter {}
+
 ImguiSourceFiles = {}
 ImguiSourceFiles["imgui1"] = "thirdparty/imgui/imgui_widgets.cpp"
 ImguiSourceFiles["imgui2"] = "thirdparty/imgui/examples/imgui_impl_sdl.cpp"
@@ -60,6 +67,7 @@ project "fighting_engine"
         "%{IncludeDir.ImGui}",
         "%{IncludeDir.ImGui2}",
         "%{IncludeDir.ggpo}",
+        "%{IncludeDir.vcpkg}",
     }
 
     defines
@@ -89,13 +97,22 @@ project "fighting_engine"
         defines {"ENGINE_DEBUG", "DEBUG"}
         runtime "Debug"
         symbols "on"
-        buildoptions {"/bigobj" , "/permissive-", "/MDd"}
+        configuration "vs2019"
+            buildoptions 
+            {
+                "/bigobj" , "/permissive-", "/MDd"
+            }
 
 	filter "configurations:Release"
         defines "ENGINE_RELEASE"
         runtime "Release"
         optimize "on"
-        buildoptions {"/bigobj" , "/permissive-", "/MD"}
+
+        configuration "vs2019"
+            buildoptions 
+            {
+                "/bigobj" , "/permissive-", "/MD"
+            }
 
         configuration "gmake2"
             buildoptions 
@@ -141,7 +158,8 @@ project "game_3d"
         "%{prj.name}/src",
         "fighting_engine/src",
         "%{IncludeDir.ImGui}",
-        "%{IncludeDir.ImGui2}"
+        "%{IncludeDir.ImGui2}",
+        "%{IncludeDir.vcpkg}",
     }
 
     libdirs 
@@ -173,13 +191,22 @@ project "game_3d"
         defines {"GAME_DEBUG", "DEBUG"}
         runtime "Debug"
         symbols "on"
-        buildoptions {"/bigobj" , "/permissive-", "/MDd"}
-
+        configuration "vs2019"
+            buildoptions 
+            {
+                "/bigobj" , "/permissive-", "/MDd"
+            }
+            
 	filter "configurations:Release"
         defines "GAME_RELEASE"
         runtime "Release"
         optimize "on"
-        buildoptions {"/bigobj" , "/permissive-", "/MD"}
+
+        configuration "vs2019"
+            buildoptions 
+            {
+                "/bigobj" , "/permissive-", "/MD"
+            }
 
         configuration "gmake2"
             buildoptions 
@@ -237,7 +264,8 @@ project "game_2d"
         "%{prj.name}/src",
         "fighting_engine/src",
         "%{IncludeDir.ImGui}",
-        "%{IncludeDir.ImGui2}"
+        "%{IncludeDir.ImGui2}",
+        "%{IncludeDir.vcpkg}",
     }
 
     libdirs 
@@ -269,13 +297,21 @@ project "game_2d"
         defines {"GAME_DEBUG", "DEBUG"}
         runtime "Debug"
         symbols "on"
-        buildoptions {"/bigobj" , "/permissive-", "/MDd"}
+        configuration "vs2019"
+            buildoptions 
+            {
+                "/bigobj" , "/permissive-", "/MDd"
+            }
 
 	filter "configurations:Release"
         defines "GAME_RELEASE"
         runtime "Release"
         optimize "on"
-        buildoptions {"/bigobj" , "/permissive-", "/MD"}
+        configuration "vs2019"
+            buildoptions 
+            {
+                "/bigobj" , "/permissive-", "/MD"
+            }
 
         configuration "gmake2"
             buildoptions 
@@ -342,13 +378,21 @@ project "raytracing_oneweekend"
         defines {"ENGINE_DEBUG", "DEBUG"}
         runtime "Debug"
         symbols "off"
-        buildoptions {"/bigobj" , "/permissive-", "/MDd"}
+        configuration "vs2019"
+            buildoptions 
+            {
+                "/bigobj" , "/permissive-", "/MDd"
+            }
 
     filter "configurations:Release"
         defines "ENGINE_RELEASE"
         runtime "Release"
         optimize "on"
-        buildoptions {"/bigobj" , "/permissive-", "/MD"}
+        configuration "vs2019"
+            buildoptions 
+            {
+                "/bigobj" , "/permissive-", "/MD"
+            }
 
         configuration "gmake2"
             buildoptions 

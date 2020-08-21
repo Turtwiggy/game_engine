@@ -1,7 +1,7 @@
 #include "engine/geometry/model.hpp"
 #include "engine/renderer/texture.hpp"
 #include "engine/renderer/shader.hpp"
-#include "engine/resources/resource_manager.h"
+#include "engine/resources/resource_manager.hpp"
 
 namespace fightingengine {
 

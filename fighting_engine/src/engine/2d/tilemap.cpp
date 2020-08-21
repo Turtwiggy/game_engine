@@ -199,86 +199,89 @@ namespace fightingengine {
 
         SpriteHandle handle;
         handle.offset = which[0]; //get the first for now
-        handle.base_colour = get_colour_of(type/*, level_info::GRASS*/); //???
+
+        ColourVec4f colour;
+        handle.colour = colour;
+        //handle.base_colour = get_colour_of(type/*, level_info::GRASS*/); //???
 
         return handle;
     }
 
-    vec4 get_colour_of(tiles::type tile_type/*, level_info::types level_type*/)
-    {
-        vec3 mask_col3 = glm::normalize(srgb_to_lin_approx(vec3{ 71, 45, 60 } / 255.f));
-        vec4 mask_col = { mask_col3.x, mask_col3.y, mask_col3.z, 1.f };
+    // vec4 get_colour_of(tiles::type tile_type/*, level_info::types level_type*/)
+    // {
+    //     vec3 mask_col3 = glm::normalize(srgb_to_lin_approx(vec3{ 71, 45, 60 } / 255.f));
+    //     vec4 mask_col = { mask_col3.x, mask_col3.y, mask_col3.z, 1.f };
 
-        vec4 barren_col = srgb_to_lin_approx(vec4{ 122, 68, 74, 255 } / 255.f);
-        vec4 grass_col = srgb_to_lin_approx(vec4{ 56, 217, 115, 255 } / 255.f);
+    //     vec4 barren_col = srgb_to_lin_approx(vec4{ 122, 68, 74, 255 } / 255.f);
+    //     vec4 grass_col = srgb_to_lin_approx(vec4{ 56, 217, 115, 255 } / 255.f);
 
-        vec4 blue_col = srgb_to_lin_approx(vec4{ 60, 172, 215, 255 } / 255.f);
+    //     vec4 blue_col = srgb_to_lin_approx(vec4{ 60, 172, 215, 255 } / 255.f);
 
-        if (tile_type == tiles::WATER)
-            return blue_col;
+    //     if (tile_type == tiles::WATER)
+    //         return blue_col;
 
-        if (tile_type == tiles::BRAMBLE || tile_type == tiles::SHRUB || tile_type == tiles::BASE)
-        {
-            //if (level_type == level_info::GRASS)
-            //    return grass_col * mask_col;
-            //else
-                return barren_col;
-        }
+    //     if (tile_type == tiles::BRAMBLE || tile_type == tiles::SHRUB || tile_type == tiles::BASE)
+    //     {
+    //         //if (level_type == level_info::GRASS)
+    //         //    return grass_col * mask_col;
+    //         //else
+    //             return barren_col;
+    //     }
 
-        if (tile_type == tiles::DIRT)
-            return barren_col;
+    //     if (tile_type == tiles::DIRT)
+    //         return barren_col;
 
-        if (tile_type == tiles::GRASS)
-            return grass_col * grass_col;
+    //     if (tile_type == tiles::GRASS)
+    //         return grass_col * grass_col;
 
-        if (tile_type == tiles::TREE_1 || tile_type == tiles::TREE_2 || tile_type == tiles::TREE_DENSE ||
-            tile_type == tiles::TREE_ROUND || tile_type == tiles::CACTUS || tile_type == tiles::VINE ||
-            tile_type == tiles::CULTIVATION || tile_type == tiles::CROCODILE)
-            return grass_col;
+    //     if (tile_type == tiles::TREE_1 || tile_type == tiles::TREE_2 || tile_type == tiles::TREE_DENSE ||
+    //         tile_type == tiles::TREE_ROUND || tile_type == tiles::CACTUS || tile_type == tiles::VINE ||
+    //         tile_type == tiles::CULTIVATION || tile_type == tiles::CROCODILE)
+    //         return grass_col;
 
-        vec4 wood_col = srgb_to_lin_approx(vec4{ 191, 121, 88, 255 } / 255.f);
-        vec4 building_gray = srgb_to_lin_approx(vec4{ 207, 198, 184, 255 } / 255.f);
-        vec4 generic_red = srgb_to_lin_approx(vec4{ 230, 72, 46, 255 } / 255.f);
-        vec4 white_col = srgb_to_lin_approx(vec4{ 255, 255, 255, 255 } / 255.f);
+    //     vec4 wood_col = srgb_to_lin_approx(vec4{ 191, 121, 88, 255 } / 255.f);
+    //     vec4 building_gray = srgb_to_lin_approx(vec4{ 207, 198, 184, 255 } / 255.f);
+    //     vec4 generic_red = srgb_to_lin_approx(vec4{ 230, 72, 46, 255 } / 255.f);
+    //     vec4 white_col = srgb_to_lin_approx(vec4{ 255, 255, 255, 255 } / 255.f);
 
-        if (tile_type == tiles::EFFECT_1 || tile_type == tiles::EFFECT_2 || tile_type == tiles::EFFECT_3 ||
-            tile_type == tiles::EFFECT_4 || tile_type == tiles::EFFECT_5 || tile_type == tiles::EFFECT_6 ||
-            tile_type == tiles::EFFECT_7 || tile_type == tiles::EFFECT_8 || tile_type == tiles::EFFECT_9 ||
-            tile_type == tiles::EFFECT_10 || tile_type == tiles::EFFECT_11 || tile_type == tiles::EFFECT_12 ||
-            tile_type == tiles::EFFECT_13)
-            return white_col;
+    //     if (tile_type == tiles::EFFECT_1 || tile_type == tiles::EFFECT_2 || tile_type == tiles::EFFECT_3 ||
+    //         tile_type == tiles::EFFECT_4 || tile_type == tiles::EFFECT_5 || tile_type == tiles::EFFECT_6 ||
+    //         tile_type == tiles::EFFECT_7 || tile_type == tiles::EFFECT_8 || tile_type == tiles::EFFECT_9 ||
+    //         tile_type == tiles::EFFECT_10 || tile_type == tiles::EFFECT_11 || tile_type == tiles::EFFECT_12 ||
+    //         tile_type == tiles::EFFECT_13)
+    //         return white_col;
 
-        if (tile_type == tiles::ROCKS || tile_type == tiles::GRAVE || tile_type == tiles::TILING_WALL)
-            return building_gray;
+    //     if (tile_type == tiles::ROCKS || tile_type == tiles::GRAVE || tile_type == tiles::TILING_WALL)
+    //         return building_gray;
 
-        if (tile_type == tiles::LAND_ANIMAL)
-            return building_gray;
+    //     if (tile_type == tiles::LAND_ANIMAL)
+    //         return building_gray;
 
-        if (tile_type == tiles::SEA_ANIMAL)
-            return building_gray;
+    //     if (tile_type == tiles::SEA_ANIMAL)
+    //         return building_gray;
 
-        if (tile_type == tiles::CIVILIAN || (tile_type >= tiles::SOLDIER && tile_type <= tiles::SOLDIER_BEST) ||
-            tile_type == tiles::GROUND_BUG || tile_type == tiles::FLYING_BUG || tile_type == tiles::ARMOURED_BUG || tile_type == tiles::SMALL_PINCHY)
-            return building_gray;
+    //     if (tile_type == tiles::CIVILIAN || (tile_type >= tiles::SOLDIER && tile_type <= tiles::SOLDIER_BEST) ||
+    //         tile_type == tiles::GROUND_BUG || tile_type == tiles::FLYING_BUG || tile_type == tiles::ARMOURED_BUG || tile_type == tiles::SMALL_PINCHY)
+    //         return building_gray;
 
-        if (tile_type == tiles::SCORPION)
-            return generic_red;
+    //     if (tile_type == tiles::SCORPION)
+    //         return generic_red;
 
-        if (tile_type == tiles::FACE_MALE || tile_type == tiles::FACE_WOMAN)
-            return building_gray;
+    //     if (tile_type == tiles::FACE_MALE || tile_type == tiles::FACE_WOMAN)
+    //         return building_gray;
 
-        if (tile_type == tiles::WOOD_FENCE_FULL || tile_type == tiles::WOOD_FENCE_HALF || tile_type == tiles::TILING_WALL ||
-            tile_type == tiles::THIN_DOOR_CLOSED || tile_type == tiles::THIN_DOOR_OPEN ||
-            tile_type == tiles::DOOR_CLOSED || tile_type == tiles::DOOR_OPEN)
-            return wood_col;
+    //     if (tile_type == tiles::WOOD_FENCE_FULL || tile_type == tiles::WOOD_FENCE_HALF || tile_type == tiles::TILING_WALL ||
+    //         tile_type == tiles::THIN_DOOR_CLOSED || tile_type == tiles::THIN_DOOR_OPEN ||
+    //         tile_type == tiles::DOOR_CLOSED || tile_type == tiles::DOOR_OPEN)
+    //         return wood_col;
 
-        if (tile_type == tiles::CASTLE_1 || tile_type == tiles::CASTLE_2 ||
-            tile_type == tiles::HOUSE_1 || tile_type == tiles::HOUSE_2 || tile_type == tiles::HOUSE_3 || tile_type == tiles::HOUSE_4 ||
-            tile_type == tiles::TENT || tile_type == tiles::FANCY_TENT || tile_type == tiles::CAPITAL_TENT)
-            return building_gray;
+    //     if (tile_type == tiles::CASTLE_1 || tile_type == tiles::CASTLE_2 ||
+    //         tile_type == tiles::HOUSE_1 || tile_type == tiles::HOUSE_2 || tile_type == tiles::HOUSE_3 || tile_type == tiles::HOUSE_4 ||
+    //         tile_type == tiles::TENT || tile_type == tiles::FANCY_TENT || tile_type == tiles::CAPITAL_TENT)
+    //         return building_gray;
 
-        throw std::runtime_error("Did not find " + std::to_string(tile_type));
-    }
+    //     throw std::runtime_error("Did not find " + std::to_string(tile_type));
+    // }
 
     //void tilemap::create(ivec2 _dim)
     //{

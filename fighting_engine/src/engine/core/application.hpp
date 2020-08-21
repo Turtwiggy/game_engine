@@ -1,10 +1,10 @@
 #pragma once
 
-#include "engine/core/game_window.h"
-#include "engine/core/data_structures/circular_buffer.h"
-#include "engine/core/input_manager.h"
-#include "engine/imgui/imgui_setup.h"
-#include "engine/debug/profiler.hpp"
+#include "engine/core/game_window.hpp"
+#include "engine/core/data_structures/circular_buffer.hpp"
+#include "engine/core/input_manager.hpp"
+#include "engine/imgui/imgui_setup.hpp"
+//#include "engine/debug/profiler.hpp"
 
 #include <memory>
 #include <string>

@@ -97,7 +97,7 @@ namespace fightingengine
             PYRAMID,
             CHURCH,
         };
-    }
+    };
 
     std::map<tiles::type, std::vector<glm::ivec2>>& get_locations();
     SpriteHandle get_sprite_handle_of(random_state& rng, tiles::type type);

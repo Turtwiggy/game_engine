@@ -1,8 +1,9 @@
 
 #include "texture.hpp"
 
+#include <GL/glew.h>
+
 #include <iostream>
-#include <GL\glew.h>
 
 namespace fightingengine {
 

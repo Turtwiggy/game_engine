@@ -3,7 +3,7 @@
 #include "glm/glm.hpp"
 using namespace glm;
 
-#include "engine/core/game_window.h"
+#include "engine/core/game_window.hpp"
 
 namespace fightingengine {
 

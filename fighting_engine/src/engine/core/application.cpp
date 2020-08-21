@@ -1,11 +1,11 @@
 
-#include "engine/core/application.h"
-#include "engine/resources/resource_manager.h"
+#include "engine/core/application.hpp"
+#include "engine/resources/resource_manager.hpp"
 
 #include "SDL2/SDL.h"
 #include "SDL2/SDL_events.h"
 
-#include <GL\glew.h>
+#include <GL/glew.h>
 
 namespace fightingengine {
 
