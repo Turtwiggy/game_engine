@@ -1,11 +1,10 @@
 
-#include "imgui_setup.h"
+#include "imgui_setup.hpp"
 
-#include "engine/core/application.h"
-#include "engine/core/game_window.h"
+#include "engine/core/application.hpp"
+#include "engine/core/game_window.hpp"
 
 #include <GL/glew.h>
-
 #include <imgui.h>
 #include <examples/imgui_impl_sdl.h>
 #include <examples/imgui_impl_opengl3.h>

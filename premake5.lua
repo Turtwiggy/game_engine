@@ -33,10 +33,10 @@ ImguiSourceFiles["imgui6"] = "thirdparty/imgui/imgui_demo.cpp"
 
 project "fighting_engine"
     location "fighting_engine"
-	kind "StaticLib"
+	kind "SharedLib"
     language "C++"
     cppdialect "C++17"
-    staticruntime "on"
+    staticruntime "Off"
 
     targetdir ("builds/bin/" .. outputdir .. "/%{prj.name}")
     objdir ("builds/bin-int/" .. outputdir .. "/%{prj.name}")

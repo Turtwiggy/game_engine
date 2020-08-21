@@ -1,6 +1,7 @@
 #include "engine/2d/tilemap.hpp"
 
 #include "engine/2d/renderer/sprite_renderer.hpp"
+#include "engine/renderer/colour.hpp"
 
 #include <entt/entt.hpp>
 #include <glm/glm.hpp>
@@ -192,35 +193,35 @@ namespace fightingengine {
         int len = which.size();
 
         int iwhich = (int)rand_det_s(rng.rng, 0, len);
-
         if (iwhich >= len || iwhich < 0)
+
             throw std::runtime_error("Rng is bad");
 
-        sprite_handle handle;
-        handle.offset = which[iwhich];
-        handle.base_colour = get_colour_of(type, level_info::GRASS); //???
+        SpriteHandle handle;
+        handle.offset = which[0]; //get the first for now
+        handle.base_colour = get_colour_of(type/*, level_info::GRASS*/); //???
 
         return handle;
     }
 
-    vec4f get_colour_of(tiles::type tile_type, level_info::types level_type)
+    vec4 get_colour_of(tiles::type tile_type/*, level_info::types level_type*/)
     {
-        vec3f mask_col3 = srgb_to_lin_approx(vec3f{ 71, 45, 60 } / 255.f).norm();
-        vec4f mask_col = { mask_col3.x(), mask_col3.y(), mask_col3.z(), 1.f };
+        vec3 mask_col3 = glm::normalize(srgb_to_lin_approx(vec3{ 71, 45, 60 } / 255.f));
+        vec4 mask_col = { mask_col3.x, mask_col3.y, mask_col3.z, 1.f };
 
-        vec4f barren_col = srgb_to_lin_approx(vec4f{ 122, 68, 74, 255 } / 255.f);
-        vec4f grass_col = srgb_to_lin_approx(vec4f{ 56, 217, 115, 255 } / 255.f);
+        vec4 barren_col = srgb_to_lin_approx(vec4{ 122, 68, 74, 255 } / 255.f);
+        vec4 grass_col = srgb_to_lin_approx(vec4{ 56, 217, 115, 255 } / 255.f);
 
-        vec4f blue_col = srgb_to_lin_approx(vec4f{ 60, 172, 215, 255 } / 255.f);
+        vec4 blue_col = srgb_to_lin_approx(vec4{ 60, 172, 215, 255 } / 255.f);
 
         if (tile_type == tiles::WATER)
             return blue_col;
 
         if (tile_type == tiles::BRAMBLE || tile_type == tiles::SHRUB || tile_type == tiles::BASE)
         {
-            if (level_type == level_info::GRASS)
-                return grass_col * mask_col;
-            else
+            //if (level_type == level_info::GRASS)
+            //    return grass_col * mask_col;
+            //else
                 return barren_col;
         }
 
@@ -235,10 +236,10 @@ namespace fightingengine {
             tile_type == tiles::CULTIVATION || tile_type == tiles::CROCODILE)
             return grass_col;
 
-        vec4f wood_col = srgb_to_lin_approx(vec4f{ 191, 121, 88, 255 } / 255.f);
-        vec4f building_gray = srgb_to_lin_approx(vec4f{ 207, 198, 184, 255 } / 255.f);
-        vec4f generic_red = srgb_to_lin_approx(vec4f{ 230, 72, 46, 255 } / 255.f);
-        vec4f white_col = srgb_to_lin_approx(vec4f{ 255, 255, 255, 255 } / 255.f);
+        vec4 wood_col = srgb_to_lin_approx(vec4{ 191, 121, 88, 255 } / 255.f);
+        vec4 building_gray = srgb_to_lin_approx(vec4{ 207, 198, 184, 255 } / 255.f);
+        vec4 generic_red = srgb_to_lin_approx(vec4{ 230, 72, 46, 255 } / 255.f);
+        vec4 white_col = srgb_to_lin_approx(vec4{ 255, 255, 255, 255 } / 255.f);
 
         if (tile_type == tiles::EFFECT_1 || tile_type == tiles::EFFECT_2 || tile_type == tiles::EFFECT_3 ||
             tile_type == tiles::EFFECT_4 || tile_type == tiles::EFFECT_5 || tile_type == tiles::EFFECT_6 ||
@@ -279,186 +280,181 @@ namespace fightingengine {
         throw std::runtime_error("Did not find " + std::to_string(tile_type));
     }
 
-    void tilemap::create(vec2i _dim)
-    {
-        dim = _dim;
-        all_entities.resize(dim.x() * dim.y());
-    }
+    //void tilemap::create(ivec2 _dim)
+    //{
+    //    dim = _dim;
+    //    all_entities.resize(dim.x * dim.y);
+    //}
 
-    void tilemap::add(entt::entity en, vec2i pos)
-    {
-        if (pos.x() < 0 || pos.y() < 0 || pos.x() >= dim.x() || pos.y() >= dim.y())
-            throw std::runtime_error("Add out of bounds");
+    //void tilemap::add(entt::entity en, ivec2 pos)
+    //{
+    //    if (pos.x < 0 || pos.y < 0 || pos.x >= dim.x || pos.y >= dim.y)
+    //        throw std::runtime_error("Add out of bounds");
 
-        all_entities[pos.y() * dim.x() + pos.x()].push_back(en);
-    }
+    //    all_entities[pos.y * dim.x + pos.x].push_back(en);
+    //}
 
-    void tilemap::remove(entt::entity en, vec2i pos)
-    {
-        if (pos.x() < 0 || pos.y() < 0 || pos.x() >= dim.x() || pos.y() >= dim.y())
-        {
-            std::string err = "Remove out of bounds: pos.x(): " + std::to_string(pos.x()) +
-                " pos.y(): " + std::to_string(pos.y()) +
-                " dim.x(): " + std::to_string(dim.x()) +
-                " dim.y(): " + std::to_string(dim.y());
-            throw std::runtime_error(err);
-        }
+    //void tilemap::remove(entt::entity en, ivec2 pos)
+    //{
+    //    if (pos.x < 0 || pos.y < 0 || pos.x >= dim.x || pos.y >= dim.y)
+    //    {
+    //        std::string err = "Remove out of bounds: pos.x(): " + std::to_string(pos.x) +
+    //            " pos.y(): " + std::to_string(pos.y) +
+    //            " dim.x(): " + std::to_string(dim.x) +
+    //            " dim.y(): " + std::to_string(dim.y);
+    //        throw std::runtime_error(err);
+    //    }
 
-        std::vector<entt::entity>& lst = all_entities[pos.y() * dim.x() + pos.x()];
+    //    std::vector<entt::entity>& lst = all_entities[pos.y * dim.x + pos.x];
 
-        int size = (int)lst.size();
+    //    int size = (int)lst.size();
 
-        if (size == 0)
-            return;
+    //    if (size == 0)
+    //        return;
 
-        for (int id = 0; id < size; id++)
-        {
-            entt::entity& ent = lst[id];
+    //    for (int id = 0; id < size; id++)
+    //    {
+    //        entt::entity& ent = lst[id];
 
-            if (ent == en)
-            {
-                lst.erase(lst.begin() + id);
-                break;
-            }
-        }
-    }
+    //        if (ent == en)
+    //        {
+    //            lst.erase(lst.begin() + id);
+    //            break;
+    //        }
+    //    }
+    //}
 
-    void tilemap::move(entt::entity en, vec2i from, vec2i to)
-    {
-        if (from.x() < 0 || from.y() < 0 || from.x() >= dim.x() || from.y() >= dim.y())
-            throw std::runtime_error("From out of bounds");
+    //void tilemap::move(entt::entity en, ivec2 from, ivec2 to)
+    //{
+    //    if (from.x < 0 || from.y < 0 || from.x >= dim.x || from.y >= dim.y)
+    //        throw std::runtime_error("From out of bounds");
 
-        if (to.x() < 0 || to.y() < 0 || to.x() >= dim.x() || to.y() >= dim.y())
-            throw std::runtime_error("To out of bounds");
+    //    if (to.x < 0 || to.y < 0 || to.x >= dim.x || to.y >= dim.y)
+    //        throw std::runtime_error("To out of bounds");
 
-        std::vector<entt::entity>& lst = all_entities[from.y() * dim.x() + from.x()];
+    //    std::vector<entt::entity>& lst = all_entities[from.y * dim.x + from.x];
 
-        int size = (int)lst.size();
+    //    int size = (int)lst.size();
 
-        if (size == 0)
-            return;
+    //    if (size == 0)
+    //        return;
 
-        for (int id = 0; id < size; id++)
-        {
-            entt::entity& ent = lst[id];
+    //    for (int id = 0; id < size; id++)
+    //    {
+    //        entt::entity& ent = lst[id];
 
-            if (ent == en)
-            {
-                remove(ent, from);
+    //        if (ent == en)
+    //        {
+    //            remove(ent, from);
 
-                add(ent, to);
+    //            add(ent, to);
 
-                break;
-            }
-        }
+    //            break;
+    //        }
+    //    }
 
-    }
+    //}
 
-    void tilemap::render(entt::registry& registry, render_window& win, camera& cam, sprite_renderer& renderer, vec2f mpos)
-    {
-        vec2f mouse_tile = cam.screen_to_tile(win, mpos);
+    //void tilemap::render(entt::registry& registry, render_window& win, camera& cam, sprite_renderer& renderer, vec2 mpos)
+    //{
+    //    vec2 mouse_tile = cam.screen_to_tile(win, mpos);
+    //    ivec2 i_tile = { mouse_tile.x, mouse_tile.y };
 
-        vec2i i_tile = { mouse_tile.x(), mouse_tile.y() };
+    //    //bool mouse_clicked = ImGui::IsMouseClicked(0) && !ImGui::IsAnyWindowHovered();
+    //    //bool mouse_hovering = !ImGui::IsAnyWindowHovered();
 
-        bool mouse_clicked = ImGui::IsMouseClicked(0) && !ImGui::IsAnyWindowHovered();
-        bool mouse_hovering = !ImGui::IsAnyWindowHovered();
+    //    for (int y = 0; y < dim.y; y++)
+    //    {
+    //        for (int x = 0; x < dim.x; x++)
+    //        {
+    //            const auto& lst = all_entities[y * dim.x + x];
 
-        for (int y = 0; y < dim.y(); y++)
-        {
-            for (int x = 0; x < dim.x(); x++)
-            {
-                const auto& lst = all_entities[y * dim.x() + x];
+    //            for (int id = 0; id < (int)lst.size(); id++)
+    //            {
+    //                auto en = lst[id];
 
-                for (int id = 0; id < (int)lst.size(); id++)
-                {
-                    auto en = lst[id];
+    //                //if (registry.has<mouse_interactable>(en))
+    //                //{
+    //                //    reset_interactable_state(registry, en);
+    //                //    mouse_interactable& interact = registry.get<mouse_interactable>(en);
+    //                //    if (i_tile == vec2i{ x, y })
+    //                //    {
+    //                //        if (mouse_hovering)
+    //                //        {
+    //                //            interact.is_hovered = true;
+    //                //            if (mouse_clicked)
+    //                //            {
+    //                //                interact.just_clicked = true;
+    //                //                selected = en;
+    //                //            }
+    //                //        }
+    //                //    }
+    //                //}
+    //                //else
+    //                //{
+    //                //    //Clicked something unclickable
+    //                //    if (mouse_clicked && i_tile == vec2i{ x, y })
+    //                //    {
+    //                //        selected = std::nullopt;
+    //                //    }
+    //                //}
 
-                    if (registry.has<mouse_interactable>(en))
-                    {
-                        reset_interactable_state(registry, en);
+    //                SpriteHandle& handle = registry.get<SpriteHandle>(en);
+    //                RenderDescriptor desc = registry.get<RenderDescriptor>(en);
 
-                        mouse_interactable& interact = registry.get<mouse_interactable>(en);
+    //                vec4f old_col = handle.base_colour;
 
-                        if (i_tile == vec2i{ x, y })
-                        {
-                            if (mouse_hovering)
-                            {
-                                interact.is_hovered = true;
+    //                vec4f shaded_col = srgb_to_lin_approx(vec4f{ 0.02, 0.02, 0.02, 1 });
 
-                                if (mouse_clicked)
-                                {
-                                    interact.just_clicked = true;
+    //                if (id > 0 && id != (int)lst.size() - 1 && lst.size() > 2)
+    //                {
+    //                    handle.base_colour = mix(shaded_col, handle.base_colour, 0.1);
+    //                    //handle.base_colour.w() *= 0.3;
+    //                }
 
-                                    selected = en;
-                                }
-                            }
-                        }
-                    }
-                    else
-                    {
-                        //Clicked something unclickable
-                        if (mouse_clicked && i_tile == vec2i{ x, y })
-                        {
-                            selected = std::nullopt;
-                        }
-                    }
+    //                if (mouse_hovering && desc.depress_on_hover && i_tile == vec2i{ x, y })
+    //                {
+    //                    if (id > 0)
+    //                    {
+    //                        handle.base_colour.w() = 1;
+    //                        desc.pos.y() -= 3;
+    //                    }
 
-                    sprite_handle& handle = registry.get<sprite_handle>(en);
-                    render_descriptor desc = registry.get<render_descriptor>(en);
+    //                    if (id == 0)
+    //                    {
+    //                        handle.base_colour = mix(shaded_col, handle.base_colour, 0.5);
+    //                    }
+    //                }
 
-                    vec4f old_col = handle.base_colour;
+    //                renderer.add(handle, desc);
 
-                    vec4f shaded_col = srgb_to_lin_approx(vec4f{ 0.02, 0.02, 0.02, 1 });
+    //                handle.base_colour = old_col;
+    //            }
+    //        }
+    //    }
 
-                    if (id > 0 && id != (int)lst.size() - 1 && lst.size() > 2)
-                    {
-                        handle.base_colour = mix(shaded_col, handle.base_colour, 0.1);
-                        //handle.base_colour.w() *= 0.3;
-                    }
+    //    if (ImGui::IsMouseClicked(1) && !ImGui::IsAnyWindowHovered())
+    //    {
+    //        selected = std::nullopt;
+    //    }
 
-                    if (mouse_hovering && desc.depress_on_hover && i_tile == vec2i{ x, y })
-                    {
-                        if (id > 0)
-                        {
-                            handle.base_colour.w() = 1;
-                            desc.pos.y() -= 3;
-                        }
+    //    if (selected.has_value())
+    //    {
+    //        if (registry.has<building_tag>(selected.value()))
+    //        {
+    //            building_tag& tag = registry.get<building_tag>(selected.value());
 
-                        if (id == 0)
-                        {
-                            handle.base_colour = mix(shaded_col, handle.base_colour, 0.5);
-                        }
-                    }
+    //            tag.show_build_ui();
+    //        }
+    //    }
+    //}
 
-                    renderer.add(handle, desc);
+    //int tilemap::entities_at_position(vec2i pos)
+    //{
+    //    if (pos.x() < 0 || pos.y() < 0 || pos.x() >= dim.x() || pos.y() >= dim.y())
+    //        throw std::runtime_error("Out of bounds");
 
-                    handle.base_colour = old_col;
-                }
-            }
-        }
-
-        if (ImGui::IsMouseClicked(1) && !ImGui::IsAnyWindowHovered())
-        {
-            selected = std::nullopt;
-        }
-
-        if (selected.has_value())
-        {
-            if (registry.has<building_tag>(selected.value()))
-            {
-                building_tag& tag = registry.get<building_tag>(selected.value());
-
-                tag.show_build_ui();
-            }
-        }
-    }
-
-    int tilemap::entities_at_position(vec2i pos)
-    {
-        if (pos.x() < 0 || pos.y() < 0 || pos.x() >= dim.x() || pos.y() >= dim.y())
-            throw std::runtime_error("Out of bounds");
-
-        return all_entities[pos.y() * dim.x() + pos.x()].size();
-    }
+    //    return all_entities[pos.y() * dim.x() + pos.x()].size();
+    //}
 
 }

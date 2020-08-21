@@ -46,7 +46,7 @@ struct BreakoutGameObject {
 
     void Draw(SpriteRenderer& renderer)
     {
-        renderer.DrawSprite(this->Sprite, this->Position, this->Size, this->Rotation, this->Colour);
+        renderer.draw_sprite(this->Sprite, this->Position, this->Size, this->Rotation, this->Colour);
     }
 };
 
@@ -122,7 +122,7 @@ struct Breakout {
         glm::vec3 colour(1.0f, 0.0f, 0.0f);
         float angle = 45.0f;
 
-        Renderer->DrawSprite(t, pos, scale, angle, colour);
+        Renderer->draw_sprite(t, pos, scale, angle, colour);
     }
 };
 

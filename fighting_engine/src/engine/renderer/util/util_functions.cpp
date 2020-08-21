@@ -1,6 +1,6 @@
 #pragma once
 
-#include "util_functions.h"
+#include "util_functions.hpp"
 
 #include <cassert>
 

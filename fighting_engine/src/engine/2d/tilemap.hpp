@@ -1,7 +1,10 @@
 #pragma once
 
-#include "glm/glm.hpp"
-#include "entt/entt.hpp"
+#include "engine/2d/renderer/sprite_renderer.hpp"
+#include "engine/core/random.hpp"
+
+#include <glm/glm.hpp>
+#include <entt/entt.hpp>
 
 #include <vector>
 #include <map>
@@ -96,25 +99,25 @@ namespace fightingengine
         };
     }
 
-    std::map<tiles::type, std::vector< glm::ivec2>>& get_locations();
-    //sprite_handle get_sprite_handle_of( tiles::type type );
-    //glm::vec4 get_colour_of(tiles::type type, level_info::types level_type);
+    std::map<tiles::type, std::vector<glm::ivec2>>& get_locations();
+    SpriteHandle get_sprite_handle_of(random_state& rng, tiles::type type);
+    glm::vec4 get_colour_of(tiles::type type/*, level_info::types level_type*/);
 
     struct tilemap
     {
-        std::optional<entt::entity> selected;
+        //std::optional<entt::entity> selected;
 
-        glm::vec2 dim;
+        //glm::vec2 dim;
         // x * y, back to front rendering
-        std::vector<std::vector<entt::entity>> all_entities;
+        //std::vector<std::vector<entt::entity>> all_entities;
 
-        void create(glm::vec2 dim);
-        void add(entt::entity en, glm::vec2 pos);
-        void remove(entt::entity en, glm::vec2 pos);
-        void move(entt::entity en, glm::vec2 from, glm::vec2 to);
+        //void create(glm::ivec2 dim);
+        //void add(entt::entity en, glm::ivec2 pos);
+        //void remove(entt::entity en, glm::ivec2 pos);
+        //void move(entt::entity en, glm::ivec2 from, glm::ivec2 to);
         //void render(entt::registry& reg, render_window& win, camera& cam, sprite_renderer& renderer, vec2f mpos);
 
-        int entities_at_position(glm::vec2 pos);
+        //int entities_at_position(glm::vec2 pos);
     };
 
 }
