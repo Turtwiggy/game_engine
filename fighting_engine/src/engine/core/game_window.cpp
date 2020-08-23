@@ -325,6 +325,14 @@ namespace fightingengine {
         }
     }
 
+    bool GameWindow::ToggleFullscreen()
+    {
+        Uint32 FullscreenFlag = SDL_WINDOW_FULLSCREEN;
+        bool IsFullscreen = SDL_GetWindowFlags(_window.get()) & FullscreenFlag;
+        SDL_SetWindowFullscreen(_window.get(), IsFullscreen ? 0 : FullscreenFlag);
+        SDL_ShowCursor(IsFullscreen);
+    }
+
     void GameWindow::Close()
     {
         SDL_DestroyWindow(_window.get());

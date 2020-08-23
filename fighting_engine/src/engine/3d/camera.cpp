@@ -1,5 +1,7 @@
 #include "camera.hpp"
 
+#include "engine/thirdparty/magic_enum.hpp"
+
 namespace fightingengine {
 
     // Returns the view matrix calculated using Euler Angles and the LookAt Matrix
@@ -38,46 +40,23 @@ namespace fightingengine {
         return glm::vec3(ray.x, ray.y, ray.z);
     }
 
-
-    void Camera::update(float delta_time)
+    void Camera::update(float delta_time, CameraMovement movement)
     {
         float velocity = MovementSpeed * delta_time;
 
-        //if (state.forward_pressed && state.backward_pressed)
-        //{
-        //    //do nothing
-        //}
-        //else if (state.forward_pressed)
-        //{
-        //    Position += Front * velocity;
-        //}
-        //else if (state.backward_pressed) {
-        //    Position += -(Front * velocity);
-        //}
+#ifdef DEBUG
+        //https://stackoverflow.com/questions/28828957/enum-to-string-in-modern-c11-c14-c17-and-future-c20
+        printf("movement: %s", std::string(magic_enum::enum_name(movement)).c_str());
+#endif
 
-        //if (state.left_pressed && state.right_pressed)
-        //{
-        //    //do nothing
-        //}
-        //else if (state.left_pressed)
-        //{
-        //    Position += -(Right * velocity);
-        //}
-        //else if (state.right_pressed) {
-        //    Position += Right * velocity;
-        //}
-
-        //if (state.up_pressed && state.down_pressed)
-        //{
-        //    //do nothing
-        //}
-        //else if (state.up_pressed)
-        //{
-        //    Position += Up * velocity;
-        //}
-        //else if (state.down_pressed) {
-        //    Position += -(Up * velocity);
-        //}
+        if (movement == CameraMovement::FORWARD)
+            Position += Front * velocity;
+        if (movement == CameraMovement::BACKWARD)
+            Position += -(Front * velocity);
+        if (movement == CameraMovement::LEFT)
+            Position += -(Right * velocity);
+        if (movement == CameraMovement::RIGHT)
+            Position += (Right * velocity);
     }
 
     //void Camera::process_events(const SDL_Event& evnt)

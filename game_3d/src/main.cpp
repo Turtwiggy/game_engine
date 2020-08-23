@@ -2,6 +2,10 @@
 
 #include "engine/core/application.hpp"
 #include "engine/renderer/render_command.hpp"
+#include "engine/resources/model_manager.hpp"
+#include "engine/3d/game_object_3d.hpp"
+#include "engine/3d/camera.hpp"
+#include "engine/3d/renderer/renderer_ray_traced.hpp"
 using namespace fightingengine;
 
 #include <GL/glew.h>
@@ -11,39 +15,46 @@ using namespace fightingengine;
 #undef main
 //^thanks SDL2
 
+struct GameState
+{
+    void init(ModelManager& model_manager)
+    {
+        ////Model: Cornel Box
+        //std::shared_ptr cornel_model = model_manager.load_model("assets/models/cornell_box/CornellBox-Original.obj", "cornell_box");
+        //FGObject cornel_box = FGObject(cornel_model);
+
+        //Model: Cube
+        std::shared_ptr cube_model = model_manager.load_model("assets/models/lizard_wizard/lizard_wizard.obj", "lizard_wizard");
+
+        //Objects
+        GameObject3D cube_object = GameObject3D(cube_model);
+        GameObject3D cube_object2 = GameObject3D(cube_model);
+        cube_object.transform.Position = glm::vec3(0.0f, 0.0f, 0.0f);
+        cube_object2.transform.Position = glm::vec3(2.0f, 5.0f, -15.0f);
+        //Reference to Objects
+        cubes.push_back(std::make_shared<GameObject3D>(cube_object));
+        cubes.push_back(std::make_shared<GameObject3D>(cube_object2));
+    }
+
+    std::vector<std::shared_ptr<GameObject3D>> cubes;
+};
+
 int main(int argc, char** argv)
 {
     int width = 1080;
     int height = 720;
     Application app("Fighting Game!", width, height);
 
-    ////Camera
-    //Camera camera = Camera(glm::vec3(0.0f, 0.0f, 10.0f));
-    //printf("camera taking up: %s bytes \n", std::to_string(sizeof(camera)));
+    //Camera
+    Camera camera = Camera(glm::vec3(0.0f, 0.0f, 10.0f), glm::vec3(0.0f, 1.0f, 0.0f));
 
-    ////Model: Cornel Box
-    //std::shared_ptr cornel_model = model_manager.load_model("assets/models/cornell_box/CornellBox-Original.obj", "cornell_box");
-    //FGObject cornel_box = FGObject(cornel_model);
+    ModelManager model_manager;
 
-    ////Model: Cube
-    ////std::shared_ptr cube_model = model_manager.load_model("assets/models/lizard_wizard/lizard_wizard.obj", "lizard_wizard");
-    //////Cube Objects
-    ////FGObject cube_object = FGObject(cube_model);
-    ////cube_object.transform.Position = glm::vec3(0.0f, 0.0f, 0.0f);
-    ////FGObject cube_object2 = FGObject(cube_model);
-    ////cube_object2.transform.Position = glm::vec3(2.0f, 5.0f, -15.0f);
+    GameState state;
+    state.init(model_manager);
 
-    //////Player Object
-    ////FGObject player_object = FGObject(cube_model);
-    ////player_object.transform.Position = glm::vec3(-5.0f, 0.5f, -5.0f);
-
-    ////std::vector<std::shared_ptr<FGObject>> cubes;
-    ////cubes.push_back(std::make_shared<FGObject>(cube_object));
-    ////cubes.push_back(std::make_shared<FGObject>(cube_object2));
-
-    //Renderer (TODO move to renderer)
-    RenderCommand::init();
-    RenderCommand::set_viewport(0, 0, width, height);
+    RendererRayTraced renderer;
+    renderer.init(width, height);
 
     while (app.is_running())
     {
@@ -51,27 +62,53 @@ int main(int argc, char** argv)
         app.poll();
         float delta_time_s = app.get_delta_time();
 
-        if (app.get_input().get_key_down(SDL_KeyCode::SDLK_ESCAPE))
+        //Shutdown app
+        if (app.get_input().get_key_down(SDL_KeyCode::SDLK_END))
             app.shutdown();
 
+        //Toggle mouse capture
         if (app.get_input().get_key_down(SDL_KeyCode::SDLK_m))
             app.get_window().ToggleMouseCaptured();
 
-        //Cameras
-        //c.x += app.input().isKeyDown(APP_KEY_D);
-        //c.x += app.input().isKeyDown(APP_KEY_A);
-        //c.x += app.inpuisKeyDown(APP_KEY_W);
-        //c.x += app.isKeyDown(APP_KEY_S);
-        ////camera.update(timestep);
+        //Fullscreen
+        if (app.get_input().get_key_down(SDL_KeyCode::SDLK_f))
+        {
+            app.get_window().ToggleFullscreen();
+            int width, height;
+            app.get_window().GetSize(width, height);
+            std::cout << "screen size toggled, w: " << width << " h: " << height << std::endl;
+            RenderCommand::set_viewport(0, 0, width, height);
+            renderer.resize(width, height);
+        }
 
-        //Cube
-        //graphicsobjects.render(camera);
+        //Window resized event
+        //if (app.get_event().window_resized)
+        //    renderer.resize(width, height);
 
-        //rendering
+        // ~~ Camera ~~
+        if(app.get_input().get_key_held(SDL_Scancode::SDL_SCANCODE_W))
+            camera.update(delta_time_s, CameraMovement::FORWARD);
+        else if(app.get_input().get_key_held(SDL_Scancode::SDL_SCANCODE_S))
+            camera.update(delta_time_s, CameraMovement::BACKWARD);
+        else if (app.get_input().get_key_held(SDL_Scancode::SDL_SCANCODE_A))
+            camera.update(delta_time_s, CameraMovement::LEFT);
+        else if (app.get_input().get_key_held(SDL_Scancode::SDL_SCANCODE_D))
+            camera.update(delta_time_s, CameraMovement::RIGHT);
+        else
+            camera.update(delta_time_s, CameraMovement::NONE);
+
+        // ~~ rendering ~~
         RenderCommand::set_clear_colour(glm::vec4(0.2f, 0.6f, 0.2f, 1.0f));
         RenderCommand::clear();
-        //app.render(profiler, camera);
 
+        //Convert GameState to DrawDesc
+
+        objects.render(renderer, camera, app.get_window());
+        //renderer.add(handle, desc);
+
+        renderer.draw_pass(desc);
+
+        // ~~ GUI ~~
         app.gui_begin();
 
         ImGui::Begin("Hello Window");
@@ -84,8 +121,6 @@ int main(int argc, char** argv)
 
     return 0;
 }
-
-
 
 //void Game::render(Profiler& profiler,GameState& state,Renderer& rend,Camera& camera,Gui& gui,GameWindow& window, float exposure )
 //{
@@ -175,53 +210,7 @@ int main(int argc, char** argv)
 //    //    player_cube->transform.Position.x += 1.0f * delta_time_in_seconds;
 //    //}
 //
-//    //Camera
-//    //------
-//    camera.process_users_input(input_manager);
-//    camera.update(delta_time_in_seconds);
-//}
 
-
-
-////Renderer
-//Renderer renderer;
-////renderer.init_opengl_and_imgui(window); //do not use opengl before this point
-////renderer.init_renderer(m_width, m_height);
-////renderer.renderer_impl = std::make_unique<RendererRayTraced>();
-////renderer.renderer_impl->init(m_width, m_height);
-////printf("renderer taking up: %s bytes \n", std::to_string(sizeof(renderer)).c_str());
-
-////Input Manager
-//InputManager input_manager;
-//printf("input_manager taking up: %s bytes \n", std::to_string(sizeof(input_manager)).c_str());
-
-//ModelManager model_manager;
-//printf("ModelManager taking up: %s bytes \n", std::to_string(sizeof(model_manager)).c_str());
-
-
-////// Procedural terrain
-////std::vector<Texture2D> textures;
-////Terrain terrain = Terrain(-5, -5, textures);
-////std::shared_ptr terrain_mesh = terrain.get_mesh();
-////FGModel tm = FGModel(terrain_mesh, "Procedural Terrain");
-////std::shared_ptr terrain_model = std::make_shared<FGModel>(tm);
-////FGObject terrain_object = FGObject(terrain_model);
-
-//// Game State
-//// ----------
-//GameState state_current = GameState(
-//    //cubes,
-//    //std::make_shared<FGObject>(terrain_object),
-//    //std::make_shared<FGObject>(player_object),
-//    std::make_shared<FGObject>(cornel_box)
-//);
-
-
-// Rendering
-// ---------
-//RenderDescriptor descriptor = RenderDescriptor();
-//renderer.renderer_impl->draw_pass(descriptor);
-//render(profiler, state_current, renderer, camera, window);
 
 //// input
 //// -----

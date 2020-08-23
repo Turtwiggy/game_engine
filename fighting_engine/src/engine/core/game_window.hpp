@@ -61,6 +61,7 @@ namespace fightingengine
 		void Raise();
 		void SetBordered(bool b = true);
 		void SetFullscreen(bool f = true);
+        bool ToggleFullscreen();    //returns the new value
 
         SDL_GLContext& get_gl_context();
         std::string get_glsl_version();

@@ -1,9 +1,10 @@
 #pragma once
 
-#include "3d/geometry/model.hpp"
+#include "engine/geometry/model.hpp"
 
 #include <string>
 #include <vector>
+#include <memory>
 
 namespace fightingengine {
 
