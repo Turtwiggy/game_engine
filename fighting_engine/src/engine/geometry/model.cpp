@@ -5,9 +5,9 @@
 
 namespace fightingengine {
 
-    std::vector<Triangle> Model::get_all_triangles_in_meshes()
+    std::vector<FETriangle> Model::get_all_triangles_in_meshes()
     {
-        std::vector<Triangle> tris;
+        std::vector<FETriangle> tris;
 
         for (auto& m : meshes)
         {

@@ -1,7 +1,8 @@
 #pragma once
 
 #include <GL/glew.h>
-#include "glm/glm.hpp"
+#include <glm/glm.hpp>
+#include <SDL2/SDL.h>
 
 namespace fightingengine {
 

@@ -330,7 +330,9 @@ namespace fightingengine {
         Uint32 FullscreenFlag = SDL_WINDOW_FULLSCREEN;
         bool IsFullscreen = SDL_GetWindowFlags(_window.get()) & FullscreenFlag;
         SDL_SetWindowFullscreen(_window.get(), IsFullscreen ? 0 : FullscreenFlag);
-        SDL_ShowCursor(IsFullscreen);
+        //SDL_ShowCursor(IsFullscreen);
+
+        return !IsFullscreen;
     }
 
     void GameWindow::Close()

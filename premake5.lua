@@ -23,12 +23,23 @@ IncludeDir["ImGui2"] = "thirdparty/imgui/examples"
 IncludeDir["ggpo"]  = "thirdparty/ggpo/src/include"
 IncludeDir["GameNetworkingSockets"] = "thirdparty/gamenetworkingsockets/include"
 
--- VCPKG packages
-IncludeDir["vcpkg"] = "thirdparty/vcpkg/installed/x64-windows/include"
+LibDir = {}
+DllDir = {}
 
-filter "system:linux"
+-- VCPKG packages
+if os.host() ==  "windows" then
+    printf("building windows!")
+    IncludeDir["vcpkg"] = "thirdparty/vcpkg/installed/x64-windows/include"
+    LibDir["vcpkg"] = "thirdparty/vcpkg/installed/x64-windows/lib/"
+    DllDir["vcpkg"] = "thirdparty/vcpkg/installed/x64-windows/bin/"
+end
+
+if os.host() == "linux" then
+    printf("building linux!")
     IncludeDir["vcpkg"] = "thirdparty/vcpkg/installed/x64-linux/include"
-filter {}
+    LibDir["vcpkg"] = "thirdparty/vcpkg/installed/x64-linux/lib/"
+    DllDir["vcpkg"] = "thirdparty/vcpkg/installed/x64-linux/bin/"
+end
 
 ImguiSourceFiles = {}
 ImguiSourceFiles["imgui1"] = "thirdparty/imgui/imgui_widgets.cpp"
@@ -70,29 +81,44 @@ project "fighting_engine"
         "%{IncludeDir.vcpkg}",
     }
 
+    libdirs 
+    {
+        "%{LibDir.vcpkg}"
+    }
+
     defines
     {
         "_CRT_SECURE_NO_WARNINGS",
         "IMGUI_IMPL_OPENGL_LOADER_GLEW"
     }
-
+    
     filter "system:windows"
         systemversion "latest"
-
+        
         --(win libs) do not statically link
         links 
         { 
-            "opengl32"
+            "opengl32",
+            "SDL2",
+            "glew32",
+            "assimp-vc142-mt",
+            "fmt"
         }
 
         defines
         {
             "__WIN32__",
         }
+    
+    filter "system:linux"
 
-	filter "system:linux"
         links { "dl", "GL", "pthread", "X11" }
- 
+
+        buildoptions 
+        {
+            "-std=c++17", "-Wall", "-Wextra", "-Wformat", "-O2", "-s"
+        }
+
     filter "configurations:Debug"
         defines {"ENGINE_DEBUG", "DEBUG"}
         runtime "Debug"
@@ -164,27 +190,41 @@ project "game_3d"
 
     libdirs 
     {
+        "%{LibDir.vcpkg}"
         -- "./dlls/"
-    }
-
-    links
-    {
-        -- "GameNetworkingSockets",
-        "opengl32"
     }
 
     defines
     {
         "_CRT_SECURE_NO_WARNINGS",
         "IMGUI_IMPL_OPENGL_LOADER_GLEW"
-        }
+    }
 
     filter "system:windows"
         systemversion "latest"
+        
+        --(win libs) do not statically link
+        links 
+        { 
+            "opengl32",
+            "SDL2",
+            "glew32",
+            "assimp-vc142-mt",
+            "fmt"
+        }
 
         defines
         {
             "__WIN32__",
+        }
+    
+    filter "system:linux"
+
+        links { "dl", "GL", "pthread", "X11" }
+
+        buildoptions 
+        {
+            "-std=c++17", "-Wall", "-Wextra", "-Wformat", "-O2", "-s"
         }
 
     filter "configurations:Debug"
@@ -214,18 +254,18 @@ project "game_3d"
                 "-std=c++17", "-Wall", "-Wextra", "-Wformat", "-g", "-Og"
             }
 
-    -- configuration "gmake2"
-    --     buildoptions 
-    --     {
-    --         "-std=c++17", "-Wall", "-Wextra", "-Wformat", "-O2", "-s"
-    --     }
-    --     links { }
+
 
     filter{}
 
     postbuildcommands -- copy resources after build
     {
     	("{COPY} $(SolutionDir)/assets $(TargetDir)/assets")
+    }
+
+    postbuildcommands -- copy dlls next to exe
+    {
+        ("{COPY} $(SolutionDir)/" ..  DllDir["vcpkg"] .. " $(TargetDir)/")
     }
     
 project "game_2d"

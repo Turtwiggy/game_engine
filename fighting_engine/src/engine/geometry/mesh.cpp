@@ -41,7 +41,7 @@ namespace fightingengine {
             //generate triangle information
             for (int i = 0; i < indices.size(); i += 3)
             {
-                Triangle tri;
+                FETriangle tri;
 
                 tri.p1 = vertices[indices[i]];
                 tri.p1.Colour = colour;

@@ -1,6 +1,8 @@
 #include "camera.hpp"
 
-#include "engine/thirdparty/magic_enum.hpp"
+#if DEBUG
+    #include "engine/thirdparty/magic_enum.hpp"
+#endif
 
 namespace fightingengine {
 

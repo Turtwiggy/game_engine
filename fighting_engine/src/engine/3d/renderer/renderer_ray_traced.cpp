@@ -4,7 +4,6 @@
 #include "engine/renderer/render_command.hpp"
 #include "engine/renderer/shader.hpp"
 #include "engine/renderer/util/util_functions.hpp"
-#include "engine/geometry/triangle.hpp"
 
 #include "GL/glew.h"
 #include <glm/glm.hpp>
@@ -12,6 +11,36 @@
 #include <glm/gtx/transform.hpp>
 
 namespace fightingengine {
+
+    // ~~ renderQuad() renders a 1x1 XY quad in NDC ~~
+    unsigned int quadVAO = 0;
+    unsigned int quadVBO;
+    void renderQuad()
+    {
+        if (quadVAO == 0)
+        {
+            float quadVertices[] = {
+                //positions        // texture Coords
+              -1.0f,  1.0f, 0.0f, 0.0f, 1.0f,
+              -1.0f, -1.0f, 0.0f, 0.0f, 0.0f,
+              1.0f,  1.0f, 0.0f, 1.0f, 1.0f,
+              1.0f, -1.0f, 0.0f, 1.0f, 0.0f,
+            };
+            //setup plane VAO
+            glGenVertexArrays(1, &quadVAO);
+            glGenBuffers(1, &quadVBO);
+            glBindVertexArray(quadVAO);
+            glBindBuffer(GL_ARRAY_BUFFER, quadVBO);
+            glBufferData(GL_ARRAY_BUFFER, sizeof(quadVertices), &quadVertices, GL_STATIC_DRAW);
+            glEnableVertexAttribArray(0);
+            glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 5 * sizeof(float), (void*)0);
+            glEnableVertexAttribArray(1);
+            glVertexAttribPointer(1, 2, GL_FLOAT, GL_FALSE, 5 * sizeof(float), (void*)(3 * sizeof(float)));
+        }
+        glBindVertexArray(quadVAO);
+        glDrawArrays(GL_TRIANGLE_STRIP, 0, 4);
+        glBindVertexArray(0);
+    }
 
     struct ComputeShaderVertex {
         glm::vec4 pos;
@@ -52,7 +81,6 @@ namespace fightingengine {
         uint32_t draw_calls = 0;
     };
     static RayTracedData s_Data;
-
 
     void RendererRayTraced::init(int screen_width, int screen_height)
     {
@@ -207,42 +235,42 @@ namespace fightingengine {
         s_Data.ssbo = SSBO;
     }
 
-    void RendererRayTraced::draw_pass(RenderDescriptor& desc, Camera camera, int width, int height)
+    // 1. geometry pass: render scene's geometry/color data into gbuffer
+    Shader& RendererRayTraced::first_geometry_pass(Camera& camera, int width, int height)
     {
-        Camera& camera = desc.camera;
-        int width = width;
-        int height = height;
+        RenderCommand::set_clear_colour(glm::vec4(0.2f, 0.6f, 0.2f, 1.0f));
+        RenderCommand::clear();
 
         glm::mat4 view_projection = camera.get_view_projection_matrix(width, height);
 
-        // 1. geometry pass: render scene's geometry/color data into gbuffer
-        // -----------------------------------------------------------------
         glBindFramebuffer(GL_FRAMEBUFFER, s_Data.g_buffer);
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
-        //Render a cube
-        {
-            s_Data.geometry_shader.bind();
-            s_Data.geometry_shader.setMat4("view_projection", view_projection);
+        s_Data.geometry_shader.bind();
+        s_Data.geometry_shader.setMat4("view_projection", view_projection);
+        //either this or textures
+        //s_Data.geometry_shader.setVec3("diffuse", glm::vec3(1.0f, 0.0f, 0.0f));
+        s_Data.geometry_shader.setFloat("specular", 1.0f);
 
-            //either this or textures
-            //s_Data.geometry_shader.setVec3("diffuse", glm::vec3(1.0f, 0.0f, 0.0f));
-            s_Data.geometry_shader.setFloat("specular", 1.0f);
+        return s_Data.geometry_shader;
+    }
 
-            glm::mat4 model = glm::mat4(1.0f);
-            model = glm::translate(model, glm::vec3(0.0f, 0.0f, 0.0));
-            model = glm::scale(model, glm::vec3(1.0f));
-            s_Data.geometry_shader.setMat4("model", model);
-            desc.objects[0].get().model->draw(s_Data.geometry_shader, s_Data.draw_calls);
-        }
-
+    // 2. Lighting pass: Raytracing
+    void RendererRayTraced::second_raytrace_pass
+    (
+        Camera& camera,
+        int     width,
+        int     height,
+        std::vector<FETriangle> triangles,
+        float   timer,
+        bool    force_refresh
+    )
+    {
         //Update scene's triangle description
         {
             if (s_Data.refresh_ssbo) {
 
-                std::vector<FGTriangle> triangles_in_scene;
-                std::vector<FGTriangle> triangles_in_cornell = state.cornel_box->model->get_all_triangles_in_meshes();
-                triangles_in_scene = triangles_in_cornell;
+                std::vector<FETriangle> triangles_in_scene = triangles;
 
                 int triangles_in_scene_size = triangles_in_scene.size();
 
@@ -302,75 +330,72 @@ namespace fightingengine {
             }
         }
 
-        if (s_Data.is_c_held) {
+        glBindFramebuffer(GL_FRAMEBUFFER, s_Data.ray_fbo);
+        glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+        s_Data.compute_shader.bind();
 
-            // 2. Lighting pass: Raytracing
-            // ------------------------
-            glBindFramebuffer(GL_FRAMEBUFFER, s_Data.ray_fbo);
-            glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-            s_Data.compute_shader.use();
+        //Set viewing frustrum corner rays in shader
+        s_Data.compute_shader.setVec3("eye", camera.Position);
+        glm::vec3 eye_ray;
+        eye_ray = camera.get_eye_ray(-1, -1, width, height);
+        s_Data.compute_shader.setVec3("ray00", eye_ray);
+        eye_ray = camera.get_eye_ray(-1, 1, width, height);
+        s_Data.compute_shader.setVec3("ray01", eye_ray);
+        eye_ray = camera.get_eye_ray(1, -1, width, height);
+        s_Data.compute_shader.setVec3("ray10", eye_ray);
+        eye_ray = camera.get_eye_ray(1, 1, width, height);
+        s_Data.compute_shader.setVec3("ray11", eye_ray);
+        CHECK_OPENGL_ERROR(5);
 
-            //Set viewing frustrum corner rays in shader
-            s_Data.compute_shader.setVec3("eye", desc.camera.Position);
-            glm::vec3 eye_ray;
-            eye_ray = desc.camera.get_eye_ray(-1, -1, width, height);
-            s_Data.compute_shader.setVec3("ray00", eye_ray);
-            eye_ray = desc.camera.get_eye_ray(-1, 1, width, height);
-            s_Data.compute_shader.setVec3("ray01", eye_ray);
-            eye_ray = desc.camera.get_eye_ray(1, -1, width, height);
-            s_Data.compute_shader.setVec3("ray10", eye_ray);
-            eye_ray = desc.camera.get_eye_ray(1, 1, width, height);
-            s_Data.compute_shader.setVec3("ray11", eye_ray);
-            CHECK_OPENGL_ERROR(5);
+        s_Data.compute_shader.setFloat("time", timer);
 
-            s_Data.compute_shader.setFloat("time", state.time);
+        // Bind framebuffer texture as writable image in the shader.
+        glBindImageTexture(s_Data.compute_normal_binding, s_Data.g_normal, 0, false, 0, GL_READ_ONLY, GL_RGBA16F);
+        glBindImageTexture(s_Data.compute_out_tex_binding, s_Data.out_texture, 0, false, 0, GL_WRITE_ONLY, GL_RGBA16F);
+        CHECK_OPENGL_ERROR(6);
 
-            // Bind framebuffer texture as writable image in the shader.
-            glBindImageTexture(s_Data.compute_normal_binding, s_Data.g_normal, 0, false, 0, GL_READ_ONLY, GL_RGBA16F);
-            glBindImageTexture(s_Data.compute_out_tex_binding, s_Data.out_texture, 0, false, 0, GL_WRITE_ONLY, GL_RGBA16F);
-            CHECK_OPENGL_ERROR(6);
+        s_Data.compute_shader.set_compute_buffer_bind_location("bufferData");
+        CHECK_OPENGL_ERROR(7);
 
-            s_Data.compute_shader.set_compute_buffer_bind_location("bufferData");
-            CHECK_OPENGL_ERROR(7);
+        glBindBufferBase(GL_SHADER_STORAGE_BUFFER, s_Data.ssbo_binding, s_Data.ssbo);
+        CHECK_OPENGL_ERROR(9);
 
-            glBindBufferBase(GL_SHADER_STORAGE_BUFFER, s_Data.ssbo_binding, s_Data.ssbo);
-            CHECK_OPENGL_ERROR(9);
+        //set the ssbo size in a uniform
+        s_Data.compute_shader.setInt("set_triangles", s_Data.set_triangles);
+        s_Data.compute_shader.setFloat("phongExponent", 128.0f);
+        //s_Data.compute_shader.setFloat("specularFactor", desc.exposure);
 
-            //set the ssbo size in a uniform
-            s_Data.compute_shader.setInt("set_triangles", s_Data.set_triangles);
-            s_Data.compute_shader.setFloat("phongExponent", 128.0f);
-            s_Data.compute_shader.setFloat("specularFactor", desc.exposure);
-
-            // Compute appropriate invocation dimension
-            int worksizeX = next_power_of_two(width);
-            int worksizeY = next_power_of_two(height);
-            if (s_Data.compute_shader_workgroup_x == 0 || s_Data.compute_shader_workgroup_y == 0)
-            {
-                std::cout << "failed to load your compute shader!";
-                return;
-            }
-
-            /* Invoke the compute shader. */
-            // This function takes as argument the number of work groups in each of the
-            // three possible dimensions. The number of work groups is NOT the number of
-            // global work items in each dimension, but is divided by the work group size
-            // that the shader specified in that layout declaration.
-            glDispatchCompute(
-                worksizeX / s_Data.compute_shader_workgroup_x,
-                worksizeY / s_Data.compute_shader_workgroup_y
-                , 1);
-
-            //Synchronize all writes to the framebuffer image
-            glMemoryBarrier(GL_SHADER_IMAGE_ACCESS_BARRIER_BIT);
-
-            // Reset bindings
-            glBindBufferBase(GL_SHADER_STORAGE_BUFFER, s_Data.ssbo_binding, 0);
-            glBindImageTexture(0, 0, 0, false, 0, GL_READ_WRITE, GL_RGBA32F);
-            glUseProgram(0);
+        // Compute appropriate invocation dimension
+        int worksizeX = next_power_of_two(width);
+        int worksizeY = next_power_of_two(height);
+        if (s_Data.compute_shader_workgroup_x == 0 || s_Data.compute_shader_workgroup_y == 0)
+        {
+            std::cout << "failed to load your compute shader!";
+            return;
         }
 
-        // 3. Normal drawing pass
-        // -------------------
+        /* Invoke the compute shader. */
+        // This function takes as argument the number of work groups in each of the
+        // three possible dimensions. The number of work groups is NOT the number of
+        // global work items in each dimension, but is divided by the work group size
+        // that the shader specified in that layout declaration.
+        glDispatchCompute(
+            worksizeX / s_Data.compute_shader_workgroup_x,
+            worksizeY / s_Data.compute_shader_workgroup_y
+            , 1);
+
+        //Synchronize all writes to the framebuffer image
+        glMemoryBarrier(GL_SHADER_IMAGE_ACCESS_BARRIER_BIT);
+
+        // Reset bindings
+        glBindBufferBase(GL_SHADER_STORAGE_BUFFER, s_Data.ssbo_binding, 0);
+        glBindImageTexture(0, 0, 0, false, 0, GL_READ_WRITE, GL_RGBA32F);
+        glUseProgram(0);
+    }
+
+    // 3. Normal drawing pass
+    void RendererRayTraced::third_quad_pass()
+    {
         glBindFramebuffer(GL_FRAMEBUFFER, 0);
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
@@ -385,8 +410,6 @@ namespace fightingengine {
             glBindTexture(GL_TEXTURE_2D, s_Data.g_albedo_spec);
         }
         renderQuad();
-
-        s_Data.draw_calls = 0;
     }
 
     void RendererRayTraced::resize(int width, int height)

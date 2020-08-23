@@ -34,7 +34,7 @@ namespace fightingengine {
 
         std::string get_name() { return name; }
 
-        std::vector<Triangle> get_all_triangles_in_meshes();
+        std::vector<FETriangle> get_all_triangles_in_meshes();
 
         void draw(Shader& shader, uint32_t& draw_calls, int texture = -1);
 

@@ -2,6 +2,7 @@
 
 #include "engine/geometry/model.hpp"
 
+#include <filesystem>
 #include <string>
 #include <vector>
 #include <memory>
@@ -32,6 +33,15 @@ namespace fightingengine {
         {
             std::cout << "loading model from: " << path << std::endl;
 
+            std::string directory = path.substr(0, path.find_last_of('/'));
+            printf("directory: %s \n", directory.c_str());
+
+            ////List all files in directory
+            //for (auto& p : std::filesystem::recursive_directory_iterator("."))
+            //    std::cout << p.path() << '\n';
+
+            printf("current path: %s \n", std::filesystem::current_path().c_str());
+
             Assimp::Importer import;
             const aiScene* scene = import.ReadFile(path, aiProcess_Triangulate | aiProcess_FlipUVs);
 
@@ -40,8 +50,6 @@ namespace fightingengine {
                 std::cout << "ERROR::ASSIMP::" << import.GetErrorString() << std::endl;
                 return nullptr;
             }
-
-            std::string directory = path.substr(0, path.find_last_of('/'));
 
             Model model = Model(scene, directory, unique_name);
 

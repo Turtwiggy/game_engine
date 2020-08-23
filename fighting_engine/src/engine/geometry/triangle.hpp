@@ -1,3 +1,4 @@
+#pragma once
 
 #include "engine/geometry/vertex.hpp"
 
@@ -5,11 +6,12 @@
 
 namespace fightingengine {
 
-    struct Triangle
+    struct FETriangle
     {
     public:
         Vertex p1;
         Vertex p2;
         Vertex p3;
     };
+
 }

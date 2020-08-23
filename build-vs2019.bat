@@ -1,2 +1,2 @@
-call thirdparty\premake\premake5.exe vs2019
+call thirdparty\premake\windows\premake5.exe vs2019
 PAUSE

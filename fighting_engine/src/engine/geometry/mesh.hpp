@@ -18,7 +18,7 @@ namespace fightingengine {
         std::vector<Vertex>       vertices;
         std::vector<unsigned int>   indices;
         std::vector<Texture2D>      textures;
-        std::vector<Triangle>     triangles;
+        std::vector<FETriangle>     triangles;
         std::string                 name;
         ColourVec4f                    colour;
 
