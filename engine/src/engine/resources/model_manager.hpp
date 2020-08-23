@@ -2,6 +2,8 @@
 
 #include "engine/geometry/model.hpp"
 
+#include "assimp/Importer.hpp"
+
 #include <filesystem>
 #include <string>
 #include <vector>

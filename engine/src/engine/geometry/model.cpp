@@ -48,6 +48,8 @@ namespace fightingengine {
 
     Mesh Model::process_mesh(aiMesh* mesh, const aiScene* scene)
     {
+        printf("\n \n in process mesh! \n \n ");
+
         // data to fill
         std::vector<Vertex> vertices;
         std::vector<unsigned int> indices;
@@ -176,6 +178,8 @@ namespace fightingengine {
     // checks all material textures of a given type and loads the textures if they're not loaded yet. the required info is returned as a Texture struct.
     std::vector<Texture2D> Model::load_material_textures(aiMaterial* mat, aiTextureType type, std::string typeName)
     {
+        printf("in load material textures function!");
+
         std::vector<Texture2D> textures;
         for (unsigned int i = 0; i < mat->GetTextureCount(type); i++)
         {
