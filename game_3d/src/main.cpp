@@ -1,3 +1,6 @@
+#define _CRT_SECURE_NO_WARNINGS
+#define IMGUI_IMPL_OPENGL_LOADER_GLEW
+
 #include "engine/core/application.hpp"
 #include "engine/resources/model_manager.hpp"
 #include "engine/3d/game_object_3d.hpp"
@@ -13,6 +16,7 @@
 //^thanks SDL2
 
 #include <vector>
+
 
 using namespace fightingengine;
 

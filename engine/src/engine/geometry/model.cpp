@@ -201,8 +201,7 @@ namespace fightingengine {
             //    Texture2D texture(str.C_Str());
 
             //    ResourceManager::load_texture()
-
-
+            
             //    texture.id = TextureFromFile(str.C_Str(), this->directory);
             //    texture.type = typeName;
             //    texture.path = str.C_Str();

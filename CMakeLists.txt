@@ -1,45 +1,25 @@
+#this cmake lists compiles the game_3d with the engine
+
 cmake_minimum_required(VERSION 3.0.0)
-
 set (CMAKE_CXX_STANDARD 17)
-#add_definitions("-Wall" "-g")
-add_definitions("_CRT_SECURE_NO_WARNINGS")
-add_definitions("IMGUI_IMPL_OPENGL_LOADER_GLEW")
+set (CMAKE_TOOLCHAIN_FILE ${CMAKE_SOURCE_DIR}/thirdparty/vcpkg/scripts/buildsystems/vcpkg.cmake)
+project(main VERSION 0.1.0)
 
-#vcpkg e.g.
-#-DCMAKE_TOOLCHAIN_FILE=C:\vcpkg\scripts\buildsystems\vcpkg.cmake
-if(DEFINED ENV{VCPKG_ROOT} AND NOT DEFINED CMAKE_TOOLCHAIN_FILE)
-  set(CMAKE_TOOLCHAIN_FILE "$ENV{VCPKG_ROOT}/scripts/buildsystems/vcpkg.cmake"
-      CACHE STRING "")
-endif()
-
-#vcpkg VCPKG_TARGET_TRIPLET 
-if(DEFINED ENV{VCPKG_DEFAULT_TRIPLET} AND NOT DEFINED VCPKG_TARGET_TRIPLET)
-  set(VCPKG_TARGET_TRIPLET "$ENV{VCPKG_DEFAULT_TRIPLET}" CACHE STRING "")
-endif()
-
-project(fightinggame)
-
-#packages from vcpkg
 find_package(SDL2 CONFIG REQUIRED)
-find_package(opengl32 CONFIG REQUIRED)
-find_package(glew CONFIG REQUIRED)
+find_package(EnTT CONFIG REQUIRED)
+find_package(Bullet CONFIG REQUIRED)
+find_package(spdlog CONFIG REQUIRED)
+find_package(glm CONFIG REQUIRED)
+find_package(GLEW REQUIRED)
+find_path(STB_INCLUDE_DIRS "stb.h")
 find_package(assimp CONFIG REQUIRED)
-find_package(fmt CONFIG REQUIRED)
-
-include_directories(
-    engine/src
-    game_3d/src
-    thirdparty/imgui
-    thirdparty/imgui/examples
-    thirdparty/vcpkg/installed/x64-windows/include
-)
 
 file(GLOB_RECURSE SRC_FILES
     #engine    
-    "engine/src/*"
+    "engine/src/*.cpp"
 
     #game
-    "game_3d/*"
+    "game_3d/src/*.cpp"
 
     #imgui
     "thirdparty/imgui/imgui_widgets.cpp"
@@ -50,13 +30,37 @@ file(GLOB_RECURSE SRC_FILES
     "thirdparty/imgui/imgui_demo.cpp"
 )
 
-add_executable(fightinggame ${SRC_FILES})
+add_executable(main ${SRC_FILES})
 
-#link packages
-target_link_libraries(fightinggame PRIVATE SDL2)
-target_link_libraries(fightinggame PRIVATE opengl32)
-target_link_libraries(fightinggame PRIVATE glew)
-target_link_libraries(fightinggame PRIVATE assimp-vc142-mt)
-target_link_libraries(fightinggame PRIVATE fmt)
+target_include_directories(main
+  PRIVATE
+    ${PROJECT_SOURCE_DIR}/engine/src
+    ${PROJECT_SOURCE_DIR}/game_3d/src
+    ${PROJECT_SOURCE_DIR}/thirdparty/imgui
+    ${PROJECT_SOURCE_DIR}/thirdparty/imgui/examples
+    ${PROJECT_SOURCE_DIR}/thirdparty/vcpkg/installed/x64-windows/include
+)
 
-    
+#Link External Libs
+target_link_libraries(main PRIVATE SDL2::SDL2 SDL2::SDL2main)
+target_link_libraries(main PRIVATE EnTT::EnTT)
+target_link_libraries(main PRIVATE LinearMath Bullet3Common BulletDynamics BulletSoftBody)
+target_link_libraries(main PRIVATE spdlog::spdlog spdlog::spdlog_header_only)
+target_link_libraries(main PRIVATE glm)
+target_link_libraries(main PRIVATE GLEW::GLEW)
+target_include_directories(main PRIVATE ${STB_INCLUDE_DIRS})
+target_link_libraries(main PRIVATE assimp::assimp)
+
+#create symlink assets for build
+set (source "${CMAKE_SOURCE_DIR}/assets")
+set (destination "${CMAKE_CURRENT_BINARY_DIR}/Debug/assets")
+add_custom_command(
+  TARGET ${PROJECT_NAME} POST_BUILD
+  COMMAND ${CMAKE_COMMAND} -E create_symlink ${source} ${destination} 
+  DEPENDS ${destination}
+  COMMENT "symbolic link resources folder from ${source} => ${destination}"
+)
+
+set(CPACK_PROJECT_NAME ${PROJECT_NAME})
+set(CPACK_PROJECT_VERSION ${PROJECT_VERSION})
+include(CPack)
