@@ -12,7 +12,6 @@
 *.user
 *.userosscache
 *.sln.docstates
-.vscode/**
 Makefile
 
 #ignore make as we should use premake to generate the make file
