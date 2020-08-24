@@ -4,5 +4,6 @@
         "memory": "cpp",
         "xstring": "cpp"
     },
-    "cmake.preferredGenerators" : [ "Ninja", "make", "Visual Studio"]
+    "cmake.preferredGenerators" : [ "Ninja", "make", "Visual Studio"],
+    "cmake.loggingLevel": "debug"
 }

@@ -98,10 +98,8 @@ struct GameState
         //Second pass: pass raytracer triangle information
         std::vector<FETriangle> t;
         t = cubes[0]->model->get_all_triangles_in_meshes();
-        
-        //triangles.push_back(cubes[1]->model->get_all_triangles_in_meshes());
-
         renderer.second_raytrace_pass(cam, width, height, t, timer);
+
         //Third pass: render scene information to quad
         renderer.third_quad_pass();
     }
