@@ -25,7 +25,7 @@ namespace fightingengine {
         // retrieves a stored sader
         static Shader    get_shader(std::string name);
         // loads (and generates) a texture from file
-        static Texture2D load_texture(const char* file, bool alpha, std::string name);
+        static Texture2D load_texture(const char* full_path, bool alpha, std::string name);
         // retrieves a stored texture
         static Texture2D get_texture(std::string name);
         // properly de-allocates all loaded resources

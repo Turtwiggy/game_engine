@@ -55,7 +55,7 @@ namespace fightingengine {
                 triangles.push_back(tri);
             }
         }
-        printf("mesh: %s made of %i triangles ", name, triangles.size());
+        printf("mesh: %s made of %i triangles ", name.c_str(), (int)triangles.size());
 
         // create buffers/arrays
         glGenVertexArrays(1, &VAO);

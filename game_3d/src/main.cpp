@@ -29,7 +29,7 @@ struct GameState
         //FGObject cornel_box = FGObject(cornel_model);
 
         //Model: Cube
-        std::shared_ptr cube_model = model_manager.load_model("assets/models/lizard_wizard/lizard_wizard.obj", "lizard_wizard");
+        std::shared_ptr cube_model = model_manager.load_model("assets/models/cornell_box/CornellBox-Original.obj", "CornellBox");
 
         //Objects
         GameObject3D cube_object = GameObject3D(cube_model);
@@ -98,6 +98,7 @@ struct GameState
         //Second pass: pass raytracer triangle information
         std::vector<FETriangle> t;
         t = cubes[0]->model->get_all_triangles_in_meshes();
+        
         //triangles.push_back(cubes[1]->model->get_all_triangles_in_meshes());
 
         renderer.second_raytrace_pass(cam, width, height, t, timer);
@@ -161,12 +162,14 @@ int main(int argc, char** argv)
             camera.update(delta_time_s, CameraMovement::FORWARD);
         else if(app.get_input().get_key_held(SDL_Scancode::SDL_SCANCODE_S))
             camera.update(delta_time_s, CameraMovement::BACKWARD);
-        else if (app.get_input().get_key_held(SDL_Scancode::SDL_SCANCODE_A))
+        if (app.get_input().get_key_held(SDL_Scancode::SDL_SCANCODE_A))
             camera.update(delta_time_s, CameraMovement::LEFT);
         else if (app.get_input().get_key_held(SDL_Scancode::SDL_SCANCODE_D))
             camera.update(delta_time_s, CameraMovement::RIGHT);
-        else
-            camera.update(delta_time_s, CameraMovement::NONE);
+        if (app.get_input().get_key_held(SDL_Scancode::SDL_SCANCODE_SPACE))
+            camera.update(delta_time_s, CameraMovement::UP);
+        else if (app.get_input().get_key_held(SDL_Scancode::SDL_SCANCODE_LSHIFT))
+            camera.update(delta_time_s, CameraMovement::DOWN);
 
         // ~~ rendering ~~
         state.render(renderer, camera, app.get_window(), timer);
@@ -176,6 +179,9 @@ int main(int argc, char** argv)
 
         ImGui::Begin("Hello Window");
         ImGui::Text("Hello World");
+        // bool open = true;
+        // ImGui::ShowDemoWindow(&open);
+
         ImGui::End();
 
         app.gui_end();

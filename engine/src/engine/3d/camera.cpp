@@ -1,4 +1,4 @@
-#include "camera.hpp"
+#include "engine/3d/camera.hpp"
 
 #if DEBUG
     #include "engine/thirdparty/magic_enum.hpp"
@@ -59,6 +59,10 @@ namespace fightingengine {
             Position += -(Right * velocity);
         if (movement == CameraMovement::RIGHT)
             Position += (Right * velocity);
+        if (movement == CameraMovement::UP)
+            Position += (Up * velocity);
+        if (movement == CameraMovement::DOWN)
+            Position += -(Up * velocity);
     }
 
     //void Camera::process_events(const SDL_Event& evnt)

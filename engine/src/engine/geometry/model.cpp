@@ -3,15 +3,16 @@
 #include "engine/renderer/shader.hpp"
 #include "engine/resources/resource_manager.hpp"
 
-namespace fightingengine {
+namespace fightingengine
+{
 
     std::vector<FETriangle> Model::get_all_triangles_in_meshes()
     {
         std::vector<FETriangle> tris;
 
-        for (auto& m : meshes)
+        for (auto &m : meshes)
         {
-            for (auto& t : m.triangles)
+            for (auto &t : m.triangles)
             {
                 tris.push_back(t);
             }
@@ -21,9 +22,10 @@ namespace fightingengine {
         return tris;
     }
 
-    void Model::draw(Shader& shader, uint32_t& draw_calls, int texture)
+    void Model::draw(Shader &shader, uint32_t &draw_calls, int texture)
     {
-        for (unsigned int i = 0; i < meshes.size(); i++) {
+        for (unsigned int i = 0; i < meshes.size(); i++)
+        {
             //std::cout << "drawing mesh: " << meshes[i].name << std::endl;
             meshes[i].draw(shader, texture);
 
@@ -31,12 +33,12 @@ namespace fightingengine {
         }
     }
 
-    void Model::process_node(aiNode* node, const aiScene* scene)
+    void Model::process_node(aiNode *node, const aiScene *scene)
     {
         // process all the node's meshes (if any)
         for (unsigned int i = 0; i < node->mNumMeshes; i++)
         {
-            aiMesh* mesh = scene->mMeshes[node->mMeshes[i]];
+            aiMesh *mesh = scene->mMeshes[node->mMeshes[i]];
             meshes.push_back(process_mesh(mesh, scene));
         }
         // then do the same for each of its children
@@ -46,10 +48,8 @@ namespace fightingengine {
         }
     }
 
-    Mesh Model::process_mesh(aiMesh* mesh, const aiScene* scene)
+    Mesh Model::process_mesh(aiMesh *mesh, const aiScene *scene)
     {
-        printf("\n \n in process mesh! \n \n ");
-
         // data to fill
         std::vector<Vertex> vertices;
         std::vector<unsigned int> indices;
@@ -84,7 +84,7 @@ namespace fightingengine {
             if (mesh->mTextureCoords[0]) // does the mesh contain texture coordinates?
             {
                 glm::vec2 vec;
-                // a vertex can contain up to 8 different texture coordinates. We thus make the assumption that we won't 
+                // a vertex can contain up to 8 different texture coordinates. We thus make the assumption that we won't
                 // use models where a vertex can have multiple texture coordinates so we always take the first set (0).
                 vec.x = mesh->mTextureCoords[0][i].x;
                 vec.y = mesh->mTextureCoords[0][i].y;
@@ -124,9 +124,9 @@ namespace fightingengine {
         }
 
         // process materials
-        aiMaterial* material = scene->mMaterials[mesh->mMaterialIndex];
+        aiMaterial *material = scene->mMaterials[mesh->mMaterialIndex];
         // we assume a convention for sampler names in the shaders. Each diffuse texture should be named
-        // as 'texture_diffuseN' where N is a sequential number ranging from 1 to MAX_SAMPLER_NUMBER. 
+        // as 'texture_diffuseN' where N is a sequential number ranging from 1 to MAX_SAMPLER_NUMBER.
         // Same applies to other texture as the following list summarizes:
         // diffuse: texture_diffuseN
         // specular: texture_specularN
@@ -144,7 +144,6 @@ namespace fightingengine {
         // 4. height maps
         std::vector<Texture2D> heightMaps = load_material_textures(material, aiTextureType_AMBIENT, "texture_height");
         textures.insert(textures.end(), heightMaps.begin(), heightMaps.end());
-
 
         //Give each mesh its colour
         aiColor3D mat_colour(1.f, 1.f, 1.f);
@@ -176,46 +175,34 @@ namespace fightingengine {
     }
 
     // checks all material textures of a given type and loads the textures if they're not loaded yet. the required info is returned as a Texture struct.
-    std::vector<Texture2D> Model::load_material_textures(aiMaterial* mat, aiTextureType type, std::string typeName)
+    std::vector<Texture2D> Model::load_material_textures(aiMaterial *mat, aiTextureType type, std::string typeName)
     {
-        printf("in load material textures function!");
-
         std::vector<Texture2D> textures;
         for (unsigned int i = 0; i < mat->GetTextureCount(type); i++)
         {
             aiString str;
             mat->GetTexture(type, i, &str);
-            // check if texture was loaded before and if so, continue to next iteration: skip loading a new texture
-            bool skip = false;
+            std::string full_path = directory + '/' + str.C_Str();
+
+            //check cached textures
             for (unsigned int j = 0; j < textures_loaded.size(); j++)
             {
-                if (std::strcmp(textures_loaded[j].path.data(), str.C_Str()) == 0)
+                if (textures_loaded[j].path.data() != full_path)
                 {
                     textures.push_back(textures_loaded[j]);
-                    skip = true; // a texture with the same filepath has already been loaded, continue to next one. (optimization)
-                    break;
+                    continue;
                 }
             }
-            //if (!skip)
-            //{   // if texture hasn't been loaded already, load it
-            //    Texture2D texture(str.C_Str());
 
-            //    ResourceManager::load_texture()
-            
-            //    texture.id = TextureFromFile(str.C_Str(), this->directory);
-            //    texture.type = typeName;
-            //    texture.path = str.C_Str();
-            //    textures.push_back(texture);
-            //    textures_loaded.push_back(texture);  // store it as texture loaded for entire model, to ensure we won't unnecesery load duplicate textures.
-            //}
+            printf("Texture not loaded, path: %s name: %s \n", full_path.c_str(), str.C_Str());
+            Texture2D texture = ResourceManager::load_texture(full_path.c_str(), false, str.C_Str());
+            texture.type = typeName;
+            texture.path = full_path;
+            textures.push_back(texture);
+
+            textures_loaded.push_back(texture); // store it as texture loaded for entire model, to ensure we won't unnecesery load duplicate textures.
         }
-
-        assert(false);
-        printf("TRYING TO USE BROKEN LOAD_MATERIAL_TEXTURES function\n");
-        printf("TRYING TO USE BROKEN LOAD_MATERIAL_TEXTURES function\n");
-        printf("TRYING TO USE BROKEN LOAD_MATERIAL_TEXTURES function\n");
-        printf("TRYING TO USE BROKEN LOAD_MATERIAL_TEXTURES function\n");
 
         return textures;
     }
-}
+} // namespace fightingengine

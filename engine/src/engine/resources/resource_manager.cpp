@@ -26,9 +26,9 @@ namespace fightingengine {
         return Shaders[name];
     }
 
-    Texture2D ResourceManager::load_texture(const char* file, bool alpha, std::string name)
+    Texture2D ResourceManager::load_texture(const char* full_path, bool alpha, std::string name)
     {
-        Textures[name] = load_texture_from_file(file, alpha);
+        Textures[name] = load_texture_from_file(full_path, alpha);
         printf("texture loaded! %s", name.c_str());
         return Textures[name];
     }
@@ -47,7 +47,6 @@ namespace fightingengine {
         for (auto iter : Textures)
             glDeleteTextures(1, &iter.second.id);
     }
-
 
     Shader ResourceManager::load_shader_from_file(std::string path, std::vector<std::string> files)
     {

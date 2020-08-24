@@ -1,7 +1,8 @@
 {
     "C_Cpp.default.configurationProvider": "ms-vscode.cmake-tools",
     "files.associations": {
-        "memory": "cpp"
+        "memory": "cpp",
+        "xstring": "cpp"
     },
     "cmake.preferredGenerators" : [ "Ninja", "make", "Visual Studio"]
 }
