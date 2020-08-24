@@ -5,6 +5,5 @@ spdlog
 glm
 glew
 stb
-assimp
 --triplet
 x64-linux

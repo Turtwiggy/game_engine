@@ -1,12 +1,12 @@
-#this cmake lists compiles the game_3d with the engine
+#this cmake lists compiles the ray_tracing_one_weekend with the engine
 
 cmake_minimum_required(VERSION 3.0.0)
 set (CMAKE_CXX_STANDARD 17)
 set (CMAKE_TOOLCHAIN_FILE ${CMAKE_SOURCE_DIR}/thirdparty/vcpkg/scripts/buildsystems/vcpkg.cmake)
-project(game_3d VERSION 0.1.0)
+project(ray_tracing_one_weekend VERSION 0.1.0)
 
-message("game_3d: ${CMAKE_SYSTEM_NAME}")
-message("game_3d: ${CMAKE_BUILD_TYPE}")
+message("ray_tracing_one_weekend: ${CMAKE_SYSTEM_NAME}")
+message("ray_tracing_one_weekend: ${CMAKE_BUILD_TYPE}")
 
 find_package(ZLIB REQUIRED)
 find_package(SDL2 CONFIG REQUIRED)
@@ -22,7 +22,7 @@ file(GLOB_RECURSE SRC_FILES
     "${CMAKE_SOURCE_DIR}/engine/src/*.cpp"
 
     #game
-    "${CMAKE_SOURCE_DIR}/game_3d/src/*.cpp"
+    "${CMAKE_SOURCE_DIR}/ray_tracing_one_weekend/src/*.cpp"
 
     #imgui
     "${CMAKE_SOURCE_DIR}/thirdparty/imgui/imgui_widgets.cpp"
@@ -33,24 +33,24 @@ file(GLOB_RECURSE SRC_FILES
     "${CMAKE_SOURCE_DIR}/thirdparty/imgui/imgui_demo.cpp"
 )
 
-add_executable(game_3d ${SRC_FILES})
+add_executable(ray_tracing_one_weekend ${SRC_FILES})
 
 #Includes
-target_include_directories(game_3d
+target_include_directories(ray_tracing_one_weekend
   PRIVATE
     ${CMAKE_SOURCE_DIR}/engine/src
-    ${CMAKE_SOURCE_DIR}/game_3d/src
+    ${CMAKE_SOURCE_DIR}/ray_tracing_one_weekend/src
     ${CMAKE_SOURCE_DIR}/thirdparty/imgui
     ${CMAKE_SOURCE_DIR}/thirdparty/imgui/examples
 )
 #Vcpkg Includes
 if(${CMAKE_SYSTEM_NAME} STREQUAL "Windows")
-  target_include_directories(game_3d
+  target_include_directories(ray_tracing_one_weekend
   PRIVATE
     ${CMAKE_SOURCE_DIR}/thirdparty/vcpkg/installed/x64-windows/include
   )
 elseif(${CMAKE_SYSTEM_NAME} STREQUAL "Linux")
-  target_include_directories(game_3d
+  target_include_directories(ray_tracing_one_weekend
     PRIVATE
       ${CMAKE_SOURCE_DIR}/thirdparty/vcpkg/installed/x64-linux/include
   )
@@ -58,18 +58,18 @@ endif()
 
 #Link SDL2
 if(${CMAKE_SYSTEM_NAME} STREQUAL "Windows")
-  target_link_libraries(game_3d PRIVATE SDL2::SDL2 SDL2::SDL2main)
+  target_link_libraries(ray_tracing_one_weekend PRIVATE SDL2::SDL2 SDL2::SDL2main)
 elseif(${CMAKE_SYSTEM_NAME} STREQUAL "Linux")
-  target_link_libraries(game_3d PRIVATE SDL2::SDL2main SDL2::SDL2-static)
+  target_link_libraries(ray_tracing_one_weekend PRIVATE SDL2::SDL2main SDL2::SDL2-static)
 endif()  
 #Link more Libs
-target_link_libraries(game_3d PRIVATE ZLIB::ZLIB)
-target_link_libraries(game_3d PRIVATE EnTT::EnTT)
-target_link_libraries(game_3d PRIVATE LinearMath Bullet3Common BulletDynamics BulletSoftBody)
-target_link_libraries(game_3d PRIVATE spdlog::spdlog spdlog::spdlog_header_only)
-target_link_libraries(game_3d PRIVATE glm)
-target_link_libraries(game_3d PRIVATE GLEW::GLEW)
-target_include_directories(game_3d PRIVATE ${STB_INCLUDE_DIRS})
+target_link_libraries(ray_tracing_one_weekend PRIVATE ZLIB::ZLIB)
+target_link_libraries(ray_tracing_one_weekend PRIVATE EnTT::EnTT)
+target_link_libraries(ray_tracing_one_weekend PRIVATE LinearMath Bullet3Common BulletDynamics BulletSoftBody)
+target_link_libraries(ray_tracing_one_weekend PRIVATE spdlog::spdlog spdlog::spdlog_header_only)
+target_link_libraries(ray_tracing_one_weekend PRIVATE glm)
+target_link_libraries(ray_tracing_one_weekend PRIVATE GLEW::GLEW)
+target_include_directories(ray_tracing_one_weekend PRIVATE ${STB_INCLUDE_DIRS})
 
 #create symlink assets for build
 IF(${CMAKE_SYSTEM_NAME} STREQUAL "Windows")

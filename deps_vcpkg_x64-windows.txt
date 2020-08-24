@@ -5,7 +5,5 @@ spdlog
 glm
 glew
 stb
-assimp
-gtest
 --triplet
 x64-windows

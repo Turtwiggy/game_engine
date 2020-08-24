@@ -1,6 +1,4 @@
-#pragma once
-
-#include "util_functions.hpp"
+#include "engine/renderer/util/util_functions.hpp"
 
 #include <cassert>
 

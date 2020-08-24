@@ -1,7 +1,5 @@
 
-#include "ray.h"
-
-#include <glm/glm.hpp>
+#include "glm/glm.hpp"
 
 #include <stdio.h>
 #include <iostream>
@@ -9,6 +7,8 @@
 
 int main()
 {
+    printf("beginning... \n");
+
     std::ofstream myfile;
 
     const char* filename = "myimage.ppm";
@@ -42,7 +42,7 @@ int main()
 
             auto r = double(x) / (width - 1);
             auto g = double(y) / (height - 1);
-            auto b = 0.25;
+            auto b = 1;
 
             int ir = static_cast<int>(255.999 * r);
             int ig = static_cast<int>(255.999 * g);
@@ -53,6 +53,6 @@ int main()
     }
 
     myfile.close();
+    printf("done! \n");
     return 0;
-
 }

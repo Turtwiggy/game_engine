@@ -2,7 +2,7 @@
 #define IMGUI_IMPL_OPENGL_LOADER_GLEW
 
 #include "engine/core/application.hpp"
-#include "engine/resources/model_manager.hpp"
+//#include "engine/resources/model_manager.hpp"
 #include "engine/3d/game_object_3d.hpp"
 #include "engine/3d/camera.hpp"
 #include "engine/3d/renderer/renderer_ray_traced.hpp"
@@ -15,31 +15,30 @@
 #undef main
 //^thanks SDL2
 
+#include <memory>
 #include <vector>
-
 
 using namespace fightingengine;
 
 struct GameState
 {
-    void init(ModelManager& model_manager)
-    {
+
+    // void init(ModelManager& model_manager)
+    //{
         ////Model: Cornel Box
         //std::shared_ptr cornel_model = model_manager.load_model("assets/models/cornell_box/CornellBox-Original.obj", "cornell_box");
         //FGObject cornel_box = FGObject(cornel_model);
-
         //Model: Cube
-        std::shared_ptr cube_model = model_manager.load_model("assets/models/cornell_box/CornellBox-Original.obj", "CornellBox");
-
+        //std::shared_ptr cube_model = model_manager.load_model("assets/models/cornell_box/CornellBox-Original.obj", "CornellBox");
         //Objects
-        GameObject3D cube_object = GameObject3D(cube_model);
-        GameObject3D cube_object2 = GameObject3D(cube_model);
-        cube_object.transform.Position = glm::vec3(0.0f, 0.0f, 0.0f);
-        cube_object2.transform.Position = glm::vec3(2.0f, 5.0f, -15.0f);
-        //Reference to Objects
-        cubes.push_back(std::make_shared<GameObject3D>(cube_object));
-        cubes.push_back(std::make_shared<GameObject3D>(cube_object2));
-    }
+        // GameObject3D cube_object = GameObject3D(cube_model);
+        // GameObject3D cube_object2 = GameObject3D(cube_model);
+        // cube_object.transform.Position = glm::vec3(0.0f, 0.0f, 0.0f);
+        // cube_object2.transform.Position = glm::vec3(2.0f, 5.0f, -15.0f);
+        // //Reference to Objects
+        // cubes.push_back(std::make_shared<GameObject3D>(cube_object));
+        // cubes.push_back(std::make_shared<GameObject3D>(cube_object2));
+    //}
 
     //void Game::tick(float delta_time_in_seconds, GameState& state, float timer, InputManager& input_manager, Camera& camera)
     //{
@@ -87,7 +86,8 @@ struct GameState
         model = glm::translate(model, glm::vec3(0.0f, 0.0f, 0.0));
         model = glm::scale(model, glm::vec3(1.0f));
         shader.setMat4("model", model);
-        cubes[0]->model->draw(shader, draw_calls);
+        
+        //cubes[0]->model->draw(shader, draw_calls);
 
         //model = glm::mat4(1.0f);
         //model = glm::translate(model, glm::vec3(5.0f, 0.0f, 0.0));
@@ -97,7 +97,7 @@ struct GameState
 
         //Second pass: pass raytracer triangle information
         std::vector<FETriangle> t;
-        t = cubes[0]->model->get_all_triangles_in_meshes();
+        //t = cubes[0]->model->get_all_triangles_in_meshes();
         renderer.second_raytrace_pass(cam, width, height, t, timer);
 
         //Third pass: render scene information to quad
@@ -117,10 +117,10 @@ int main(int argc, char** argv)
     //Camera
     Camera camera = Camera(glm::vec3(0.0f, 0.0f, 10.0f), glm::vec3(0.0f, 1.0f, 0.0f));
 
-    ModelManager model_manager;
+    //ModelManager model_manager;
 
     GameState state;
-    state.init(model_manager);
+    //state.init(model_manager);
 
     RendererRayTraced renderer;
     renderer.init(width, height);

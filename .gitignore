@@ -13,6 +13,7 @@
 *.userosscache
 *.sln.docstates
 Makefile
+*.ppm
 
 #ignore make as we should use premake to generate the make file
 *.make 
