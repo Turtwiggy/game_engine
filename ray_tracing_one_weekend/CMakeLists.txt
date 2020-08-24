@@ -20,17 +20,15 @@ find_path(STB_INCLUDE_DIRS "stb.h")
 file(GLOB_RECURSE SRC_FILES
     #engine    
     "${CMAKE_SOURCE_DIR}/engine/src/*.cpp"
-
-    #game
-    "${CMAKE_SOURCE_DIR}/ray_tracing_one_weekend/src/*.cpp"
-
-    #imgui
     "${CMAKE_SOURCE_DIR}/thirdparty/imgui/imgui_widgets.cpp"
     "${CMAKE_SOURCE_DIR}/thirdparty/imgui/examples/imgui_impl_sdl.cpp"
     "${CMAKE_SOURCE_DIR}/thirdparty/imgui/examples/imgui_impl_opengl3.cpp"
     "${CMAKE_SOURCE_DIR}/thirdparty/imgui/imgui.cpp"
     "${CMAKE_SOURCE_DIR}/thirdparty/imgui/imgui_draw.cpp"
     "${CMAKE_SOURCE_DIR}/thirdparty/imgui/imgui_demo.cpp"
+
+    #application
+    "${CMAKE_SOURCE_DIR}/ray_tracing_one_weekend/src/*.cpp"
 )
 
 add_executable(ray_tracing_one_weekend ${SRC_FILES})
@@ -45,11 +43,13 @@ target_include_directories(ray_tracing_one_weekend
 )
 #Vcpkg Includes
 if(${CMAKE_SYSTEM_NAME} STREQUAL "Windows")
+  message("vcpkg windows...")
   target_include_directories(ray_tracing_one_weekend
-  PRIVATE
-    ${CMAKE_SOURCE_DIR}/thirdparty/vcpkg/installed/x64-windows/include
+    PRIVATE
+      ${CMAKE_SOURCE_DIR}/thirdparty/vcpkg/installed/x64-windows/include
   )
 elseif(${CMAKE_SYSTEM_NAME} STREQUAL "Linux")
+  message("vcpkg linux...")
   target_include_directories(ray_tracing_one_weekend
     PRIVATE
       ${CMAKE_SOURCE_DIR}/thirdparty/vcpkg/installed/x64-linux/include

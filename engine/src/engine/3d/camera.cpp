@@ -26,22 +26,6 @@ namespace fightingengine {
         return glm::inverse(projection * view);
     }
 
-    // Compute the world direction vector based on the given X and Y coordinates in normalized-device space
-    glm::vec3 Camera::get_eye_ray(float x, float y, float width, float height)
-    {
-        glm::vec4 temp(x, y, 0.0f, 1.0f);
-
-        glm::mat4 inverse_projection_view = get_inverse_projection_view_matrix(width, height);
-
-        glm::vec4 ray = inverse_projection_view * temp;
-        ray /= ray.w;
-        ray.x -= Position.x;
-        ray.y -= Position.y;
-        ray.z -= Position.z;
-
-        return glm::vec3(ray.x, ray.y, ray.z);
-    }
-
     void Camera::update(float delta_time, CameraMovement movement)
     {
         float velocity = MovementSpeed * delta_time;

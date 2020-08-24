@@ -337,14 +337,16 @@ namespace fightingengine {
         //Set viewing frustrum corner rays in shader
         s_Data.compute_shader.setVec3("eye", camera.Position);
         glm::vec3 eye_ray;
-        eye_ray = camera.get_eye_ray(-1, -1, width, height);
-        s_Data.compute_shader.setVec3("ray00", eye_ray);
-        eye_ray = camera.get_eye_ray(-1, 1, width, height);
-        s_Data.compute_shader.setVec3("ray01", eye_ray);
-        eye_ray = camera.get_eye_ray(1, -1, width, height);
-        s_Data.compute_shader.setVec3("ray10", eye_ray);
-        eye_ray = camera.get_eye_ray(1, 1, width, height);
-        s_Data.compute_shader.setVec3("ray11", eye_ray);
+
+        printf("RAYTRACER THIS IS VERY BROKEN");
+        // eye_ray = camera.get_eye_ray(-1, -1, width, height);
+        // s_Data.compute_shader.setVec3("ray00", eye_ray);
+        // eye_ray = camera.get_eye_ray(-1, 1, width, height);
+        // s_Data.compute_shader.setVec3("ray01", eye_ray);
+        // eye_ray = camera.get_eye_ray(1, -1, width, height);
+        // s_Data.compute_shader.setVec3("ray10", eye_ray);
+        // eye_ray = camera.get_eye_ray(1, 1, width, height);
+        // s_Data.compute_shader.setVec3("ray11", eye_ray);
         CHECK_OPENGL_ERROR(5);
 
         s_Data.compute_shader.setFloat("time", timer);

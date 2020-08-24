@@ -1,0 +1,21 @@
+{
+    "configurations": [
+        {
+            "name": "Linux",
+            "includePath": [
+                "${workspaceFolder}/engine/src",
+                "${workspaceFolder}/ray_tracing_one_weekend/src",
+                "${workspaceFolder}/thirdparty/imgui",
+                "${workspaceFolder}/thirdparty/imgui/examples",
+                "${workspaceFolder}/thirdparty/vcpkg/installed/x64-linux/include"
+            ],
+            "defines": [],
+            "compilerPath": "/usr/bin/gcc",
+            "cStandard": "gnu18",
+            "cppStandard": "gnu++14",
+            "intelliSenseMode": "gcc-x64",
+            "configurationProvider": "ms-vscode.cmake-tools"
+        }
+    ],
+    "version": 4
+}
