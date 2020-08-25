@@ -12,10 +12,14 @@ using namespace fightingengine;
 #include <ostream>
 #include <fstream>
 
-#define EPSILON 0.0001f
+#define EPSILON 0.001f
 #define LARGE_FLOAT 1E+10
-#define SAMPLES_PER_PIXEL 30
-#define BOUNCES 5
+#define SAMPLES_PER_PIXEL 70
+#define BOUNCES 35
+
+//materials 
+#define MATERIAL_METAL 1
+#define MATERIAL_DIFFUSE 2
 
 struct vertex
 {
@@ -30,9 +34,18 @@ struct triangle
     vertex p1;
     vertex p2;
 };
+struct material {
+    int material_type;
+    //common to all materials
+    glm::vec3 albedo_colour = glm::vec3(0.9f, 0.2f, 0.2f);
+
+    //metal variables
+    float metal_fuzz;
+};
 struct sphere {
     glm::vec3   position;
     float       radius;
+    material    mat;    
 };
 struct ray
 {
@@ -50,10 +63,49 @@ struct hitinfo
     int index;
 };
 
+
 glm::vec3 ray_at(const ray r, float t)
 {
     return r.origin + (t * r.direction);
 }
+
+glm::vec3 reflect(const glm::vec3 v, const glm::vec3 n)
+{
+    return v - 2*glm::dot(v, n)*n;
+}
+
+
+bool scatter_diffuse(const ray& r, const hitinfo& h, const material& m, glm::vec3& attenuation, ray& scattered, random_state& rnd)
+{
+    if(m.material_type != MATERIAL_DIFFUSE)
+        return false;
+
+    glm::vec3 target = h.normal + rand_unit_vector(rnd);
+
+    scattered.origin = h.point;
+    scattered.direction = target;
+
+    attenuation = m.albedo_colour;
+
+    return true;
+}
+
+bool scatter_metal(const ray& r, const hitinfo& h, const material& m, glm::vec3& attentuation, ray& scattered, random_state& rnd)
+{
+    if(m.material_type != MATERIAL_METAL)
+        return false;
+
+    glm::vec3 reflected = reflect(normalize(r.direction), h.normal);
+
+    scattered.origin = h.point;
+    // scattered.direction = reflected + m.metal_fuzz*rand_unit_vector(rnd);
+    scattered.direction = reflected;
+
+    attentuation = m.albedo_colour;
+
+    return (dot(scattered.direction, h.normal) > 0.0);
+}
+
 
 bool intersects_triangle(ray r, triangle tri, hitinfo &i)
 {
@@ -224,34 +276,56 @@ glm::vec3 ray_colour(const ray &r, std::vector<sphere> spheres, random_state& rn
 
     hitinfo i;
     ray ray_to_shoot = r;
-    float darkness = 1.0f;
+    glm::vec3 final_attenuation = glm::vec3(1.0, 1.0, 1.0);
+    bool intersected = false;
 
     for(int index = 0; index < BOUNCES; index++)
     {
         if(intersects_any_sphere(ray_to_shoot, spheres, i))
         {
-            darkness *= 0.5f;
+            intersected = true;
+            const sphere& hit_sphere = spheres[i.index];
 
-            glm::vec3 target = i.point + i.normal + rand_unit_in_sphere(rnd, -1.0, 1.0);
+            ray scattered_ray;
+            bool scatter = false;
+            glm::vec3 attenuation;
 
-            //bounce it
-            ray bounced_ray;
-            bounced_ray.origin = i.point + i.normal * EPSILON;
-            bounced_ray.direction = target - i.point;
+            //We hit another object on the final bounce... but
+            //we're at the bounce limit... 
+            if(index == BOUNCES - 1){
+                final_attenuation *= glm::vec3(0.0, 0.0, 0.0);
+                break;
+            }
 
-            ray_to_shoot = bounced_ray;
+            switch(hit_sphere.mat.material_type)
+            {
+                case MATERIAL_DIFFUSE:
+                        scatter = scatter_diffuse(ray_to_shoot, i, hit_sphere.mat, attenuation, scattered_ray, rnd);
+                        final_attenuation *= attenuation;
+                    break;
+                case MATERIAL_METAL:
+                        scatter = scatter_metal(ray_to_shoot, i, hit_sphere.mat, attenuation, scattered_ray, rnd);
+                        final_attenuation *= attenuation;
+                    break;
+            }
 
+            if(!scatter)
+            {
+                attenuation = glm::vec3(0.0, 0.0, 0.0);
+                break;
+            } 
+
+            ray_to_shoot = scattered_ray;
             continue;
         }
-
-        //the bounce didnt hit anything!
         break;
     }
 
     glm::vec3 unit_direction = normalize(ray_to_shoot.direction);
     float t = 0.5f*(unit_direction.y + 1.0f);
     glm::vec3 sky_colour = (1.0f - t) * glm::vec3(1.0f, 1.0f, 1.0f) + t * glm::vec3(0.5f, 0.7f, 1.0f);
-    return darkness*sky_colour;
+
+    return final_attenuation*sky_colour;
 }
 
 void write_color(std::ofstream &out, glm::vec3 pixel_color)
@@ -283,21 +357,44 @@ int main()
     myfile.open(filename);
 
     const float aspect_ratio = 16.0 / 9.0f;
-    int width = 400;
+    int width = 250;
     int height = static_cast<int>(width / aspect_ratio);
 
     myfile << "P3\n" << width << " " << height << "\n255\n";
 
-    //World
-    std::vector<sphere> spheres;
+    //ground sphere
+    sphere s4;
+    s4.position = glm::vec3(0.0, -100.5, -1.0);
+    s4.radius = 100.0f;
+    s4.mat.material_type = MATERIAL_DIFFUSE;
+    s4.mat.albedo_colour = glm::vec3(0.8, 0.8, 0.0);
+    //main sphere
     sphere s1;
     s1.position = glm::vec3(0.0, 0.0, -1.0);
     s1.radius = 0.5f;
+    s1.mat.material_type = MATERIAL_DIFFUSE;
+    s1.mat.albedo_colour = glm::vec3(0.7, 0.3, 0.3);
+    //left sphere
     sphere s2;
-    s2.position = glm::vec3(0.0, -100.5, -1.0);
-    s2.radius = 100.0f;
+    s2.position = glm::vec3(-1.0, 0.0, -1.0);
+    s2.radius = 0.5f;
+    s2.mat.material_type = MATERIAL_METAL;
+    s2.mat.albedo_colour = glm::vec3(0.8, 0.8, 0.8);
+    s2.mat.metal_fuzz = 0.3f;
+    //right sphere
+    sphere s3;
+    s3.position = glm::vec3(1.0, 0.0, -1.0);
+    s3.radius = 0.5f;
+    s3.mat.material_type = MATERIAL_METAL;
+    s3.mat.albedo_colour = glm::vec3(0.8, 0.6, 0.2);
+    s3.mat.metal_fuzz = 0.8f;
+
+    //World
+    std::vector<sphere> spheres;
     spheres.push_back(s1);
     spheres.push_back(s2);
+    spheres.push_back(s3);
+    spheres.push_back(s4);
 
     //Camera
     auto viewport_height = 2;
