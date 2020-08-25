@@ -6,7 +6,7 @@ set(CPACK_PROJECT_VERSION ${PROJECT_VERSION})
 
 #VCPKG packages
 set (ENGINE_PACKAGES_CONFIG
-    SDL2 EnTT Bullet spdlog glm GLEW 
+    SDL2 EnTT Bullet spdlog glm 
 )
 set (ENGINE_PACKAGES
     OpenGL GLEW
@@ -40,7 +40,7 @@ if(${CMAKE_SYSTEM_NAME} STREQUAL "Windows")
         LinearMath Bullet3Common BulletDynamics BulletSoftBody
         spdlog::spdlog spdlog::spdlog_header_only
         glm
-        GLEW
+        GLEW::GLEW
         SDL2::SDL2 SDL2::SDL2main
         opengl32
     )
