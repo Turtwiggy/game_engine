@@ -1,6 +1,8 @@
 
 #include "engine/3d/camera.hpp"
 #include "engine/renderer/colour.hpp"
+#include "engine/core/random.hpp"
+#include "engine/core/maths.hpp"
 using namespace fightingengine;
 
 #include <glm/glm.hpp>
@@ -10,8 +12,10 @@ using namespace fightingengine;
 #include <ostream>
 #include <fstream>
 
-#define EPSILON 0.0001
+#define EPSILON 0.0001f
 #define LARGE_FLOAT 1E+10
+#define SAMPLES_PER_PIXEL 30
+#define BOUNCES 5
 
 struct vertex
 {
@@ -43,17 +47,12 @@ struct hitinfo
     float v;
     float t;
 
-    int tri_index;
+    int index;
 };
 
 glm::vec3 ray_at(const ray r, float t)
 {
     return r.origin + (t * r.direction);
-}
-
-float length_squared(const glm::vec3& i)
-{
-    return i.x * i.x + i.y * i.y + i.z * i.z;
 }
 
 bool intersects_triangle(ray r, triangle tri, hitinfo &i)
@@ -136,11 +135,12 @@ bool intersects_any_triangle(ray r, hitinfo &info, std::vector<triangle> &triang
         }
     }
 
-    info.tri_index = t_index;
+    info.index = t_index;
     return intersect;
 }
 
-bool hit_sphere(const ray& r, const sphere& s, hitinfo& i, double t_min = 0, double t_max = LARGE_FLOAT) {
+
+bool hit_sphere(const ray& r, const sphere& s, hitinfo& i, double t_min = EPSILON, double t_max = LARGE_FLOAT) {
     //sphere intersection code
     glm::vec3 oc = r.origin - s.position;
     float a = length_squared(r.direction);
@@ -176,11 +176,38 @@ bool hit_sphere(const ray& r, const sphere& s, hitinfo& i, double t_min = 0, dou
     return false;
 }
 
-glm::vec3 ray_colour(const ray &r, std::vector<sphere> spheres)
+bool intersects_any_sphere(const ray& r, const std::vector<sphere>& spheres, hitinfo& i)
 {
-    // if (hit_sphere(glm::vec3(0,0,-1), 0.5, r))
-    //     return glm::vec3(1, 0, 0);
+    float t_nearest = LARGE_FLOAT;
+    bool t_hit = false;
+    hitinfo hinfo;
 
+    for(int index = 0; index < spheres.size(); index++)
+    {   
+        hitinfo hinfo_temp;
+
+        if(hit_sphere(r, spheres[index], hinfo_temp) && hinfo_temp.t < t_nearest)
+        {
+            //a closer sphere intersected the ray!
+            t_nearest = hinfo_temp.t;
+            t_hit = true;
+
+            hinfo = hinfo_temp;
+            hinfo.index = index;
+        }
+    }
+
+    if(t_hit)
+    {
+        i = hinfo;
+        return true;
+    }
+    return false;
+}
+
+
+glm::vec3 ray_colour(const ray &r, std::vector<sphere> spheres, random_state& rnd)
+{
     triangle tri;
     vertex v0;
     v0.pos = glm::vec3(0.0, 0.0, -1.0);
@@ -195,42 +222,54 @@ glm::vec3 ray_colour(const ray &r, std::vector<sphere> spheres)
     // if (intersects_triangle(r, tri, i))
     //     return glm::vec3(1.0, 0.0, 0.0);
 
-    //hit any sphere?
-    float t_nearest = LARGE_FLOAT;
-    bool t_hit = false;
-    sphere nearest_sphere;
-    hitinfo hinfo;
+    hitinfo i;
+    ray ray_to_shoot = r;
+    float darkness = 1.0f;
 
-    for(const auto& sphere : spheres)
-    {   
-        hitinfo hinfo_temp;
-        if(hit_sphere(r, sphere, hinfo_temp) && hinfo_temp.t < t_nearest)
-        {
-            //a closer sphere intersected the ray!
-            nearest_sphere = sphere;
-            t_nearest = hinfo_temp.t;
-            t_hit = true;
-            hinfo = hinfo_temp;
-        }
-    }
-    //If we hit a sphere!
-    if(t_hit)
+    for(int index = 0; index < BOUNCES; index++)
     {
-        glm::vec3 colour = 0.5f * (hinfo.normal + glm::vec3(1.0, 1.0, 1.0));
-        return colour;
+        if(intersects_any_sphere(ray_to_shoot, spheres, i))
+        {
+            darkness *= 0.5f;
+
+            glm::vec3 target = i.point + i.normal + rand_unit_in_sphere(rnd, -1.0, 1.0);
+
+            //bounce it
+            ray bounced_ray;
+            bounced_ray.origin = i.point + i.normal * EPSILON;
+            bounced_ray.direction = target - i.point;
+
+            ray_to_shoot = bounced_ray;
+
+            continue;
+        }
+
+        //the bounce didnt hit anything!
+        break;
     }
 
-    glm::vec3 unit_direction = normalize(r.direction);
+    glm::vec3 unit_direction = normalize(ray_to_shoot.direction);
     float t = 0.5f*(unit_direction.y + 1.0f);
-    return (1.0f - t) * glm::vec3(1.0f, 1.0f, 1.0f) + t * glm::vec3(0.5f, 0.7f, 1.0f);
+    glm::vec3 sky_colour = (1.0f - t) * glm::vec3(1.0f, 1.0f, 1.0f) + t * glm::vec3(0.5f, 0.7f, 1.0f);
+    return darkness*sky_colour;
 }
 
 void write_color(std::ofstream &out, glm::vec3 pixel_color)
 {
+    auto r = pixel_color.x;
+    auto g = pixel_color.y;
+    auto b = pixel_color.z;
+
+    // Divide the color by the number of samples and gamma-correct for gamma=2.0.
+    auto scale = 1.0 / SAMPLES_PER_PIXEL;
+    r = sqrt(scale * r);
+    g = sqrt(scale * g);
+    b = sqrt(scale * b);
+
     // Write the translated [0,255] value of each color component.
-    out << static_cast<int>(255.999 * pixel_color.x) << ' '
-        << static_cast<int>(255.999 * pixel_color.y) << ' '
-        << static_cast<int>(255.999 * pixel_color.z) << '\n';
+    out << static_cast<int>(256 * glm::clamp(r, 0.0f, 0.999f)) << ' '
+        << static_cast<int>(256 * glm::clamp(g, 0.0f, 0.999f)) << ' '
+        << static_cast<int>(256 * glm::clamp(b, 0.0f, 0.999f)) << '\n';
 }
 
 int main()
@@ -244,7 +283,7 @@ int main()
     myfile.open(filename);
 
     const float aspect_ratio = 16.0 / 9.0f;
-    int width = 200;
+    int width = 400;
     int height = static_cast<int>(width / aspect_ratio);
 
     myfile << "P3\n" << width << " " << height << "\n255\n";
@@ -270,6 +309,8 @@ int main()
     auto vertical = glm::vec3(0, viewport_height, 0);
     auto lower_left_corner = origin - (horizontal / 2.0f) - (vertical / 2.0f) - glm::vec3(0, 0, focal_length);
 
+    random_state rnd;
+
     //Render
 
     for (int y = height - 1; y >= 0; y--)
@@ -277,14 +318,22 @@ int main()
         std::cerr << "\rScanlines remaining: " << y << ' ' << std::flush;
         for (int x = 0; x < width; x++)
         {
-            float u = float(x) / float(width - 1);
-            float v = float(y) / float(height - 1);
+            glm::vec3 colour(0, 0, 0);
+            
+            //multiple pixel sampling (anti-aliasing)
+            for (int s = 0; s < SAMPLES_PER_PIXEL; ++s) 
+            {
+                float rng_val = rand_det_s(rnd.rng, 0.0, 1.0);
+                //printf("rng: %f", rng_val);
+                float u = float(x + rng_val) / float(width - 1);
+                float v = float(y + rng_val) / float(height - 1);
 
-            ray r;
-            r.origin = origin;
-            r.direction = lower_left_corner + u * horizontal + v * vertical - origin;
+                ray r;
+                r.origin = origin;
+                r.direction = lower_left_corner + u * horizontal + v * vertical - origin;
 
-            glm::vec3 colour = ray_colour(r, spheres);
+                colour += ray_colour(r, spheres, rnd);
+            }
 
             write_color(myfile, colour);
         }
