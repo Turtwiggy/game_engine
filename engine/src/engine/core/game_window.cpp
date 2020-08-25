@@ -42,6 +42,7 @@ namespace fightingengine {
             | SDL_WINDOW_INPUT_FOCUS
             | SDL_WINDOW_RESIZABLE
             | SDL_WINDOW_ALLOW_HIGHDPI;
+
         if (displaymode == display_mode::Fullscreen)
             flags |= SDL_WINDOW_FULLSCREEN;
         else if (displaymode == display_mode::Borderless)
