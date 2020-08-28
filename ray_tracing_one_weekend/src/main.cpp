@@ -1,5 +1,6 @@
 
 #include "engine/3d/camera.hpp"
+#include "engine/3d/ray.hpp"
 #include "engine/renderer/colour.hpp"
 #include "engine/core/random.hpp"
 #include "engine/core/maths.hpp"
@@ -14,7 +15,7 @@ using namespace fightingengine;
 
 #define EPSILON 0.001f
 #define LARGE_FLOAT 1E+10
-#define SAMPLES_PER_PIXEL 70
+#define SAMPLES_PER_PIXEL 50
 #define BOUNCES 35
 
 //materials 
@@ -47,10 +48,6 @@ struct sphere {
     float       radius;
     material    mat;    
 };
-struct ray
-{
-    glm::vec3 origin, direction;
-};
 struct hitinfo
 {
     glm::vec3 point;
@@ -77,8 +74,8 @@ glm::vec3 reflect(const glm::vec3 v, const glm::vec3 n)
 
 bool scatter_diffuse(const ray& r, const hitinfo& h, const material& m, glm::vec3& attenuation, ray& scattered, random_state& rnd)
 {
-    if(m.material_type != MATERIAL_DIFFUSE)
-        return false;
+    // if(m.material_type != MATERIAL_DIFFUSE)
+    //     return false;
 
     glm::vec3 target = h.normal + rand_unit_vector(rnd);
 
@@ -92,18 +89,18 @@ bool scatter_diffuse(const ray& r, const hitinfo& h, const material& m, glm::vec
 
 bool scatter_metal(const ray& r, const hitinfo& h, const material& m, glm::vec3& attentuation, ray& scattered, random_state& rnd)
 {
-    if(m.material_type != MATERIAL_METAL)
-        return false;
+    // if(m.material_type != MATERIAL_METAL)
+    //     return false;
 
     glm::vec3 reflected = reflect(normalize(r.direction), h.normal);
 
     scattered.origin = h.point;
-    // scattered.direction = reflected + m.metal_fuzz*rand_unit_vector(rnd);
-    scattered.direction = reflected;
+    scattered.direction = reflected + m.metal_fuzz*rand_unit_vector(rnd);
+    //scattered.direction = reflected;
 
     attentuation = m.albedo_colour;
 
-    return (dot(scattered.direction, h.normal) > 0.0);
+    return (dot(scattered.direction, h.normal) > 0);
 }
 
 
@@ -350,8 +347,6 @@ int main()
 {
     printf("beginning... \n");
 
-    Camera c(glm::vec3(0.0f, 0.0f, 0.0f), glm::vec3(0.0f, 1.0f, 0.0f));
-
     std::ofstream myfile;
     const char *filename = "myimage.ppm";
     myfile.open(filename);
@@ -401,10 +396,11 @@ int main()
     auto viewport_width = viewport_height * aspect_ratio;
     auto focal_length = 1.0;
 
-    auto origin = glm::vec3(0, 0, 0);
-    auto horizontal = glm::vec3(viewport_width, 0, 0);
-    auto vertical = glm::vec3(0, viewport_height, 0);
-    auto lower_left_corner = origin - (horizontal / 2.0f) - (vertical / 2.0f) - glm::vec3(0, 0, focal_length);
+    Camera cam(
+        glm::vec3(0.0f, 0.0f, 0.0f), 
+        glm::vec3(0.0f, 1.0f, 0.0f),
+        viewport_width, 
+        viewport_height );
 
     random_state rnd;
 
@@ -425,9 +421,7 @@ int main()
                 float u = float(x + rng_val) / float(width - 1);
                 float v = float(y + rng_val) / float(height - 1);
 
-                ray r;
-                r.origin = origin;
-                r.direction = lower_left_corner + u * horizontal + v * vertical - origin;
+                ray& r = cam.get_ray(u, v);
 
                 colour += ray_colour(r, spheres, rnd);
             }

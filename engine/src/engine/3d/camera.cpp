@@ -26,6 +26,19 @@ namespace fightingengine {
         return glm::inverse(projection * view);
     }
 
+    ray Camera::get_ray(float u, float v) const {
+
+        glm::vec3 horizontal = glm::vec3(viewport_width, 0.0, 0.0);
+        glm::vec3 vertical = glm::vec3(0.0, viewport_height, 0.0);
+        
+        ray r;
+        r.origin = Position;
+        r.direction = screen_lower_left_corner + u*horizontal + v*vertical - Position;
+
+        return r;
+    }
+
+
     void Camera::update(float delta_time, CameraMovement movement)
     {
         float velocity = MovementSpeed * delta_time;
@@ -53,7 +66,6 @@ namespace fightingengine {
     //{
     //    //int mouse_x, mouse_y;
     //    //SDL_GetMouseState(&mouse_x, &mouse_y);
-
     //    switch (evnt.type)
     //    {
     //    case SDL_MOUSEWHEEL:
@@ -63,7 +75,6 @@ namespace fightingengine {
     //        float xrel = evnt.motion.xrel;
     //        float yrel = evnt.motion.yrel;
     //        //printf("mousePos x: %f y: %f", xrel, yrel);
-
     //        process_mouse_movement(xrel, yrel);
     //        break;
     //    }

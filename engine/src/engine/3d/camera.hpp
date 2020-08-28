@@ -1,5 +1,7 @@
 #pragma once
 
+#include "engine/3d/ray.hpp"
+
 #include <glm/glm.hpp>
 #include <glm/gtc/matrix_transform.hpp>
 #include <glm/gtc/type_ptr.hpp>
@@ -40,48 +42,51 @@ namespace fightingengine {
         glm::vec3 Right;
         glm::vec3 WorldUp;
         // Euler Angles
-
         float Yaw;
         float Pitch;
         // Camera options
         float MovementSpeed;
         float CameraSensitivity;
         float Zoom;
+        //Viewport
+        float viewport_height;
+        float viewport_width;
+        glm::vec3 screen_lower_left_corner;
+        float focal_length = 1.0;
 
         // Constructor with vectors
-        Camera( glm::vec3 position, glm::vec3 up, float yaw = YAW, float pitch = PITCH )
+        Camera ( 
+            glm::vec3 position, 
+            glm::vec3 up, 
+            float viewport_width,
+            float viewport_height,
+            float yaw = YAW, 
+            float pitch = PITCH 
+        )
             : Front(glm::vec3(0.0f, 0.0f, -1.0f))
             , MovementSpeed(SPEED)
             , CameraSensitivity(SENSITIVITY)
             , Zoom(ZOOM)
+            , viewport_width(viewport_width)
+            , viewport_height(viewport_height)
         {
             Position = position;
             WorldUp = up;
             Yaw = yaw;
             Pitch = pitch;
             update_camera_vectors();
-        }
 
-        // Constructor with scalar values
-        Camera(float posX, float posY, float posZ, float upX, float upY, float upZ, float yaw, float pitch)
-            : Front(glm::vec3(0.0f, 0.0f, -1.0f))
-            , MovementSpeed(SPEED)
-            , CameraSensitivity(SENSITIVITY)
-            , Zoom(ZOOM)
-        {
-            Position = glm::vec3(posX, posY, posZ);
-            WorldUp = glm::vec3(upX, upY, upZ);
-            Yaw = yaw;
-            Pitch = pitch;
-            update_camera_vectors();
+            glm::vec3 horizontal = glm::vec3(viewport_width, 0.0, 0.0);
+            glm::vec3 vertical = glm::vec3(0.0, viewport_height, 0.0);
+            screen_lower_left_corner = Position - horizontal/2.0f - vertical/2.0f - glm::vec3(0.0, 0.0, focal_length);
         }
 
         glm::mat4 get_view_matrix() const;
         glm::mat4 get_view_projection_matrix(int width, int height) const;
         glm::mat4 get_inverse_projection_view_matrix(float width, float height);
-
-        // Compute the world direction vector based on the given X and Y coordinates in normalized-device space
-        glm::vec3 get_eye_ray(float x, float y, float width, float height);
+        
+        //u, v is the pixel value from the bottom left as 0,0
+        ray get_ray(float u, float v) const;
 
         void update(float delta_time, CameraMovement movement);
 
