@@ -9,9 +9,9 @@ namespace fightingengine {
     struct FETriangle
     {
     public:
+        Vertex p0;
         Vertex p1;
         Vertex p2;
-        Vertex p3;
     };
 
 }

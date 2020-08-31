@@ -6,6 +6,7 @@
 #include "engine/3d/game_object_3d.hpp"
 #include "engine/3d/camera.hpp"
 #include "engine/3d/renderer/renderer_ray_traced.hpp"
+#include "engine/renderer/render_command.hpp"
 #include "engine/renderer/shader.hpp"
 #include "engine/geometry/triangle.hpp"
 
@@ -108,22 +109,74 @@ struct GameState
     std::vector<std::shared_ptr<GameObject3D>> cubes;
 };
 
+std::vector<Sphere> create_world()
+{
+    //ground sphere
+    Sphere s4;
+    s4.position = glm::vec3(0.0, -100.5, -1.0);
+    s4.radius = 100.0f;
+    s4.mat.material_type = MATERIAL_DIFFUSE;
+    s4.mat.albedo_colour = glm::vec3(0.8, 0.8, 0.0);
+    //main sphere
+    Sphere s1;
+    s1.position = glm::vec3(0.0, 0.0, -1.0);
+    s1.radius = 0.5f;
+    s1.mat.material_type = MATERIAL_DIFFUSE;
+    s1.mat.albedo_colour = glm::vec3(0.7, 0.3, 0.3);
+    //left sphere
+    Sphere s2;
+    s2.position = glm::vec3(-1.0, 0.0, -1.0);
+    s2.radius = 0.5f;
+    s2.mat.material_type = MATERIAL_METAL;
+    s2.mat.albedo_colour = glm::vec3(0.8, 0.8, 0.8);
+    s2.mat.metal_fuzz = 0.3f;
+    //right sphere
+    Sphere s3;
+    s3.position = glm::vec3(1.0, 0.0, -1.0);
+    s3.radius = 0.5f;
+    s3.mat.material_type = MATERIAL_METAL;
+    s3.mat.albedo_colour = glm::vec3(0.8, 0.6, 0.2);
+    s3.mat.metal_fuzz = 0.8f;
+    //World
+    std::vector<Sphere> spheres;
+    spheres.push_back(s1);
+    spheres.push_back(s2);
+    spheres.push_back(s3);
+    spheres.push_back(s4);
+
+    return spheres;
+}
+
 int main(int argc, char** argv)
 {
+    const float aspect_ratio = 16.0 / 9.0f;
     int width = 1080;
-    int height = 720;
+    int height = int(width / aspect_ratio);
     Application app("Fighting Game!", width, height);
+    auto viewport_height = 2;
+    auto viewport_width = viewport_height * aspect_ratio;
+
+    //Create world (for now, just spheres)
+    std::vector<Sphere> world = create_world();
 
     //Camera
-    Camera camera = Camera(glm::vec3(0.0f, 0.0f, 10.0f), glm::vec3(0.0f, 1.0f, 0.0f));
+    Camera camera = Camera (
+        glm::vec3(0.0f, 0.0f, 10.0f), 
+        glm::vec3(0.0f, 1.0f, 0.0f),
+        viewport_width, 
+        viewport_height
+    );
 
     //ModelManager model_manager;
 
     GameState state;
+    RandomState rnd;
+
     //state.init(model_manager);
 
     RendererRayTraced renderer;
     renderer.init(width, height);
+    RenderCommand::set_viewport(0, 0, viewport_width, viewport_height);
 
     float timer = 0.0f;
     while (app.is_running())
@@ -148,11 +201,11 @@ int main(int argc, char** argv)
             int width, height;
             app.get_window().GetSize(width, height);
             std::cout << "screen size toggled, w: " << width << " h: " << height << std::endl;
-            renderer.resize(width, height);
+            renderer.resize(camera, width, height);
         }
 
         //Window resized event
-        //if (app.get_event().window_resized)
+        // if (app.get_event().window_resized)
         //    renderer.resize(width, height);
 
         // ~~ Camera ~~
@@ -177,9 +230,6 @@ int main(int argc, char** argv)
 
         ImGui::Begin("Hello Window");
         ImGui::Text("Hello World");
-        // bool open = true;
-        // ImGui::ShowDemoWindow(&open);
-
         ImGui::End();
 
         app.gui_end();

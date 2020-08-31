@@ -100,7 +100,7 @@ namespace fightingengine
     };
 
     std::map<tiles::type, std::vector<glm::ivec2>>& get_locations();
-    SpriteHandle get_sprite_handle_of(random_state& rng, tiles::type type);
+    SpriteHandle get_sprite_handle_of(RandomState& rng, tiles::type type);
     glm::vec4 get_colour_of(tiles::type type/*, level_info::types level_type*/);
 
     struct tilemap

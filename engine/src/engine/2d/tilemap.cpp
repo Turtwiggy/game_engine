@@ -181,7 +181,7 @@ namespace fightingengine {
         return ret;
     }
 
-    SpriteHandle get_sprite_handle_of(random_state& rng, tiles::type type)
+    SpriteHandle get_sprite_handle_of(RandomState& rng, tiles::type type)
     {
         auto& tiles = get_locations();
 

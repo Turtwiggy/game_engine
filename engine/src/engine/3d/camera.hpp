@@ -81,12 +81,14 @@ namespace fightingengine {
             screen_lower_left_corner = Position - horizontal/2.0f - vertical/2.0f - glm::vec3(0.0, 0.0, focal_length);
         }
 
+        void resize();
+
         glm::mat4 get_view_matrix() const;
         glm::mat4 get_view_projection_matrix(int width, int height) const;
         glm::mat4 get_inverse_projection_view_matrix(float width, float height);
-        
+
         //u, v is the pixel value from the bottom left as 0,0
-        ray get_ray(float u, float v) const;
+        Ray get_ray(float u, float v) const;
 
         void update(float delta_time, CameraMovement movement);
 

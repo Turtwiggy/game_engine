@@ -49,9 +49,9 @@ namespace fightingengine {
         glm::vec4 colour;
     };
     struct ComputeShaderTriangle {
+        ComputeShaderVertex p0;
         ComputeShaderVertex p1;
         ComputeShaderVertex p2;
-        ComputeShaderVertex p3;
     };
 
     struct RayTracedData {
@@ -294,26 +294,26 @@ namespace fightingengine {
                     for (int i = 0; i < triangles_in_scene_size; i++)
                     {
                         ComputeShaderVertex v1;
-                        v1.pos = glm::vec4(triangles_in_scene[i].p1.Position, 1.0);
-                        v1.nml = glm::vec4(triangles_in_scene[i].p1.Normal, 1.0);
-                        v1.tex = glm::vec4(triangles_in_scene[i].p1.TexCoords, 1.0, 1.0);
-                        v1.colour = triangles_in_scene[i].p1.Colour.colour;
+                        v1.pos = glm::vec4(triangles_in_scene[i].p0.Position, 1.0);
+                        v1.nml = glm::vec4(triangles_in_scene[i].p0.Normal, 1.0);
+                        v1.tex = glm::vec4(triangles_in_scene[i].p0.TexCoords, 1.0, 1.0);
+                        v1.colour = triangles_in_scene[i].p0.Colour.colour;
 
                         ComputeShaderVertex v2;
-                        v2.pos = glm::vec4(triangles_in_scene[i].p2.Position, 1.0);
-                        v2.nml = glm::vec4(triangles_in_scene[i].p2.Normal, 1.0);
-                        v2.tex = glm::vec4(triangles_in_scene[i].p2.TexCoords, 1.0, 1.0);
-                        v2.colour = triangles_in_scene[i].p2.Colour.colour;
+                        v2.pos = glm::vec4(triangles_in_scene[i].p1.Position, 1.0);
+                        v2.nml = glm::vec4(triangles_in_scene[i].p1.Normal, 1.0);
+                        v2.tex = glm::vec4(triangles_in_scene[i].p1.TexCoords, 1.0, 1.0);
+                        v2.colour = triangles_in_scene[i].p1.Colour.colour;
 
                         ComputeShaderVertex v3;
-                        v3.pos = glm::vec4(triangles_in_scene[i].p3.Position, 1.0);
-                        v3.nml = glm::vec4(triangles_in_scene[i].p3.Normal, 1.0);
-                        v3.tex = glm::vec4(triangles_in_scene[i].p3.TexCoords, 1.0, 1.0);
-                        v3.colour = triangles_in_scene[i].p3.Colour.colour;
+                        v3.pos = glm::vec4(triangles_in_scene[i].p2.Position, 1.0);
+                        v3.nml = glm::vec4(triangles_in_scene[i].p2.Normal, 1.0);
+                        v3.tex = glm::vec4(triangles_in_scene[i].p2.TexCoords, 1.0, 1.0);
+                        v3.colour = triangles_in_scene[i].p2.Colour.colour;
 
-                        s_Data.triangles[i].p1 = v1;
-                        s_Data.triangles[i].p2 = v2;
-                        s_Data.triangles[i].p3 = v3;
+                        s_Data.triangles[i].p0 = v1;
+                        s_Data.triangles[i].p1 = v2;
+                        s_Data.triangles[i].p2 = v3;
                     }
 
                     //upload data to ssbo when triangle size changes
@@ -414,9 +414,12 @@ namespace fightingengine {
         renderQuad();
     }
 
-    void RendererRayTraced::resize(int width, int height)
+    void RendererRayTraced::resize(Camera& c, int width, int height)
     {
-        printf("resize raytraced");
+        printf("(RendererRayTraced) - resize raytraced - TODO");
+
+        return;
         RenderCommand::set_viewport(0, 0, width, height);
+        c.resize();
     }
 }

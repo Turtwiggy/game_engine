@@ -1,6 +1,6 @@
 #include "engine/3d/camera.hpp"
 
-#if DEBUG
+#ifdef DEBUG
     #include "engine/thirdparty/magic_enum.hpp"
 #endif
 
@@ -26,12 +26,12 @@ namespace fightingengine {
         return glm::inverse(projection * view);
     }
 
-    ray Camera::get_ray(float u, float v) const {
+    Ray Camera::get_ray(float u, float v) const {
 
         glm::vec3 horizontal = glm::vec3(viewport_width, 0.0, 0.0);
         glm::vec3 vertical = glm::vec3(0.0, viewport_height, 0.0);
         
-        ray r;
+        Ray r;
         r.origin = Position;
         r.direction = screen_lower_left_corner + u*horizontal + v*vertical - Position;
 

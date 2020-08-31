@@ -16,7 +16,7 @@ namespace fightingengine {
     {
     public:
         void init(int screen_width, int screen_height);
-        void resize(int width, int height);
+        void resize(Camera& c, int width, int height);
 
         Shader& first_geometry_pass
         (
