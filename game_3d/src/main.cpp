@@ -88,8 +88,6 @@ struct GameState
         model = glm::scale(model, glm::vec3(1.0f));
         shader.setMat4("model", model);
         
-        //cubes[0]->model->draw(shader, draw_calls);
-
         //model = glm::mat4(1.0f);
         //model = glm::translate(model, glm::vec3(5.0f, 0.0f, 0.0));
         //model = glm::scale(model, glm::vec3(2.0f));
@@ -153,6 +151,8 @@ int main(int argc, char** argv)
     int width = 1080;
     int height = int(width / aspect_ratio);
     Application app("Fighting Game!", width, height);
+
+    //viewport
     auto viewport_height = 2;
     auto viewport_width = viewport_height * aspect_ratio;
 

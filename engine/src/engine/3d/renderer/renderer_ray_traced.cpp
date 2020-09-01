@@ -419,7 +419,7 @@ namespace fightingengine {
         printf("(RendererRayTraced) - resize raytraced - TODO");
 
         return;
+        c.resize(width, height);
         RenderCommand::set_viewport(0, 0, width, height);
-        c.resize();
     }
 }

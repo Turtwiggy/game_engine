@@ -6,6 +6,11 @@
 
 namespace fightingengine {
 
+    void Camera::resize(int width, int height)
+    {
+        printf("(Camera) todo resize viewport now!");
+    }
+
     // Returns the view matrix calculated using Euler Angles and the LookAt Matrix
     glm::mat4 Camera::get_view_matrix() const
     {

@@ -81,7 +81,7 @@ namespace fightingengine {
             screen_lower_left_corner = Position - horizontal/2.0f - vertical/2.0f - glm::vec3(0.0, 0.0, focal_length);
         }
 
-        void resize();
+        void resize(int width, int height);
 
         glm::mat4 get_view_matrix() const;
         glm::mat4 get_view_projection_matrix(int width, int height) const;
