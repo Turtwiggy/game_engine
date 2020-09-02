@@ -89,7 +89,6 @@ namespace fightingengine {
         RenderCommand::set_viewport(0, 0, screen_width, screen_height);
 
         // A quad shader to render the full-screen quad VAO with the framebuffer as texture
-        // --------------------------------------------------------------------------------
         Shader quad_shader = Shader()
             .attach_shader("assets/shaders/raytraced/example.vert", OpenGLShaderTypes::VERTEX)
             .attach_shader("assets/shaders/raytraced/example.frag", OpenGLShaderTypes::FRAGMENT)
@@ -108,7 +107,6 @@ namespace fightingengine {
         geometry_shader.unbind();
 
         // configure g-buffer for intial render pass
-        // -----------------------------------------
         unsigned int gBuffer;
         glGenFramebuffers(1, &gBuffer);
         glBindFramebuffer(GL_FRAMEBUFFER, gBuffer);
@@ -156,7 +154,6 @@ namespace fightingengine {
         glBindRenderbuffer(GL_RENDERBUFFER, 0);
 
         // Ray tracing texture that compute shader writes to
-        // -------------------------------------------------
         unsigned int rayFBO;
         glGenFramebuffers(1, &rayFBO);
         glBindFramebuffer(GL_FRAMEBUFFER, rayFBO);
@@ -181,7 +178,6 @@ namespace fightingengine {
         glBindFramebuffer(GL_FRAMEBUFFER, 0);
 
         // Ray tracing compute shader
-        // ----------------------------
         Shader compute_shader = Shader()
             .attach_shader("assets/shaders/raytraced/compute/random.glsl", OpenGLShaderTypes::COMPUTE)
             .attach_shader("assets/shaders/raytraced/compute/raytraced.glsl", OpenGLShaderTypes::COMPUTE)
@@ -214,14 +210,15 @@ namespace fightingengine {
         printf("bind slot: %i \n", s_Data.ssbo_binding);
 
         GLuint SSBO;
+        
         glGenBuffers(1, &SSBO);
         CHECK_OPENGL_ERROR(0);
 
         glBindBuffer(GL_SHADER_STORAGE_BUFFER, SSBO);
         CHECK_OPENGL_ERROR(1)
 
-        //glBufferData(GL_SHADER_STORAGE_BUFFER, s_Data.data.size() * sizeof(glm::vec4), &s_Data.data[0], GL_DYNAMIC_DRAW);
         //initialize empty ssbo
+        //glBufferData(GL_SHADER_STORAGE_BUFFER, s_Data.data.size() * sizeof(glm::vec4), &s_Data.data[0], GL_DYNAMIC_DRAW);
         glBufferData(GL_SHADER_STORAGE_BUFFER, 0, 0, GL_DYNAMIC_DRAW);
         CHECK_OPENGL_ERROR(2);
         s_Data.refresh_ssbo = true;

@@ -2,6 +2,21 @@
 
 layout(binding = 0, rgba16f) writeonly uniform image2D outTexture;
 layout(binding = 1, rgba16f) readonly uniform image2D normalTexture;
+layout( std430, binding = 2 ) readonly buffer bufferData
+{
+    triangle triangles[];
+};
+
+#define PI 3.14159265359
+#define TWO_PI 6.28318530718
+#define ONE_OVER_PI (1.0 / PI)
+#define ONE_OVER_2PI (1.0 / TWO_PI)
+
+#define LARGE_FLOAT 1E+10
+#define EPSILON 0.0001
+
+#define MATERIAL_METAL 1
+#define MATERIAL_DIFFUSE 2
 
 struct vertex {
     vec4 pos;
@@ -9,40 +24,49 @@ struct vertex {
     vec4 tex;
     vec4 colour;
 };
-
 struct triangle {
     vertex p0;
     vertex p1;
     vertex p2;
 };
-
-
-layout( std430, binding = 2 ) readonly buffer bufferData
-{
-    triangle triangles[];
+struct ray {
+    vec3 origin, direction;
 };
+struct hit_info {
+    vec3 point;
+    vec3 normal;
+    float u;
+    float v;
+    float t;
+    int index;
+}
+struct material {
+    int material_type;
+    vec3 albedo_colour;
 
-//global
-ivec2 px;
-const vec3 lightCenterPosition = vec3(1.5, 1.5, 1.5);
-const vec4 lightColor = vec4(1);
+    //metal variables
+    float metal_fuzz;
+}
+struct sphere 
+{
+    vec3 position;
+    float radius;
+    material mat;
+}
+
+vec3 ray_at(const ray r, float t) 
+{
+    return r.origin + (t * r.direction);
+}
+
+vec3 reflect(const vec3 v, const vec3 n)
+{
+    return v - 2 * dot(v, n) * n;
+}
 
 uniform int set_triangles;
 uniform float time;
 uniform vec3 eye, ray00, ray01, ray10, ray11;
-
-uniform float phongExponent;
-uniform float specularFactor;
-
-#define PI 3.14159265359
-#define TWO_PI 6.28318530718
-#define ONE_OVER_PI (1.0 / PI)
-#define ONE_OVER_2PI (1.0 / TWO_PI)
-#define LARGE_FLOAT 1E+10
-#define EPSILON 0.0001
-#define LIGHT_INTENSITY 1.0
-#define SKY_COLOUR vec3(0.2, 0.3, 1.0)
-#define MAX_SCENE_BOUNDS 100.0
 
 // See random.glsl for more explanation of these functions.
 float random(vec3 f);
@@ -58,160 +82,192 @@ vec3 randvec3(int s) {
     random(vec3(px + ivec2(s), time * 0.3)));
 }
 
-struct ray {
-    vec3 origin, direction;
-};
 
-vec3 ray_at(const ray r, float t) {
-    return r.origin + (t * r.direction);
-}
+    bool intersects_triangle(Ray r, FETriangle tri, HitInfo &i)
+    {
+        glm::vec3 v0 = tri.p0.Position;
+        glm::vec3 v1 = tri.p1.Position;
+        glm::vec3 v2 = tri.p2.Position;
+        glm::vec3 dir = r.direction;
+        glm::vec3 orig = r.origin;
 
-struct hitinfo {
-    vec3 point;
-    vec3 normal;
+        glm::vec3 v0v1 = v1 - v0;
+        glm::vec3 v0v2 = v2 - v0;
 
-    float u;
-    float v;
-    float t;
+        glm::vec3 pvec = cross(dir, v0v2);
+        float det = dot(v0v1, pvec);
 
-    int tri_index;
-};
+        //culling
+        // if(det < EPSILON) {
+        //    return false;
+        // }
 
-bool intersects_triangle(ray r, triangle tri, out hitinfo i)
-{
-    vec3 v0 = tri.p0.pos.xyz;
-    vec3 v1 = tri.p1.pos.xyz;
-    vec3 v2 = tri.p2.pos.xyz;
-    vec3 dir = r.direction;
-    vec3 orig = r.origin;
+        //no culling
+        if (abs(det) < EPSILON)
+        {
+            return false;
+        }
 
-    vec3 v0v1 = v1-v0;
-    vec3 v0v2 = v2-v0;
+        float inv_det = 1 / det;
 
-    vec3 pvec = cross(dir, v0v2);
-    float det = dot(v0v1, pvec);
+        glm::vec3 tvec = orig - v0;
+        float u = dot(tvec, pvec) * inv_det;
+        if (u < 0.0 || u > 1.0)
+        {
+            return false;
+        }
 
-    //culling
-    // if(det < EPSILON) {
-    //    return false;
-    // }
-    //no culling
-    if(abs(det) < EPSILON) {
+        glm::vec3 qvec = cross(tvec, v0v1);
+        float v = dot(dir, qvec) * inv_det;
+        if (v < 0.0 || u + v > 1.0)
+        {
+            return false;
+        }
+
+        float intersection_distance = dot(v0v2, qvec) * inv_det;
+        if (intersection_distance > EPSILON)
+        {
+            //intersection point
+            i.point = (orig + dir * intersection_distance);
+
+            //intersection normal
+            i.normal = normalize(cross(v0v1, v0v2));
+
+            i.t = intersection_distance;
+
+            i.u = u;
+            i.v = v;
+
+            return true;
+        }
+        return false; // this ray hits the triangle
+    }
+
+    bool intersects_any_triangle(Ray r, HitInfo &info, std::vector<FETriangle> &triangles, int set_triangles)
+    {
+        float t_nearest = LARGE_FLOAT;
+        bool intersect = false;
+        int t_index;
+
+        for (int i = 0; i < set_triangles; i++)
+        {
+            HitInfo h;
+            const FETriangle tri = triangles[i];
+            if (intersects_triangle(r, tri, h) && h.t < t_nearest)
+            {
+                //a closer triangle intersected the ray!
+                intersect = true;
+
+                t_nearest = h.t;
+                t_index = i;
+            }
+        }
+
+        info.index = t_index;
+        return intersect;
+    }
+
+    bool hit_sphere(const Ray &r, const Sphere &s, HitInfo &i, double t_min, double t_max)
+        {
+            //sphere intersection code
+            glm::vec3 oc = r.origin - s.position;
+            float a = length_squared(r.direction);
+            float half_b = dot(oc, r.direction);
+            float c = length_squared(oc) - s.radius * s.radius;
+            float discriminant = half_b * half_b - a * c;
+
+            if (discriminant > 0)
+            {
+                auto root = sqrt(discriminant);
+                auto temp = (-half_b - root) / a;
+                if (temp < t_max && temp > t_min)
+                {
+                    i.t = temp;
+                    i.point = ray_at(r, i.t);
+                    i.normal = (i.point - s.position) / s.radius;
+
+                    //is a outward-facing face?
+                    bool outwards = dot(r.direction, i.normal) < 0;
+
+                    return true;
+                }
+                temp = (-half_b + root) / a;
+                if (temp < t_max && temp > t_min)
+                {
+                    i.t = temp;
+                    i.point = ray_at(r, i.t);
+                    i.normal = (i.point - s.position) / s.radius;
+
+                    //is a outward-facing face?
+                    bool outwards = dot(r.direction, i.normal) < 0;
+
+                    return true;
+                }
+            }
+            return false;
+        }
+
+    bool intersects_any_sphere(const Ray &r, const std::vector<Sphere> &spheres, HitInfo &i)
+    {
+        float t_nearest = LARGE_FLOAT;
+        bool t_hit = false;
+        HitInfo hinfo;
+
+        for (int index = 0; index < spheres.size(); index++)
+        {
+            HitInfo hinfo_temp;
+
+            if (hit_sphere(r, spheres[index], hinfo_temp) && hinfo_temp.t < t_nearest)
+            {
+                //a closer sphere intersected the ray!
+                t_nearest = hinfo_temp.t;
+                t_hit = true;
+
+                hinfo = hinfo_temp;
+                hinfo.index = index;
+            }
+        }
+
+        if (t_hit)
+        {
+            i = hinfo;
+            return true;
+        }
         return false;
     }
 
-    float inv_det = 1 / det;
-
-    vec3 tvec = orig - v0;
-    float u = dot(tvec, pvec) * inv_det;
-    if( u < 0.0 || u > 1.0 ) { return false; }
-
-    vec3 qvec = cross(tvec, v0v1);
-    float v = dot(dir, qvec) * inv_det;
-    if( v < 0.0 || u + v > 1.0) { return false; }
-
-    float t = dot(v0v2, qvec) * inv_det;
-    if( t > EPSILON)
+    bool scatter_diffuse(const Ray &r, const HitInfo &h, const Material &m, glm::vec3 &attenuation, Ray &scattered, RandomState &rnd)
     {
-        //intersection point
-        i.point = (orig + dir * t);
+        // if(m.material_type != MATERIAL_DIFFUSE)
+        //     return false;
 
-        //intersection normal
-        i.normal = normalize(cross(v0v1, v0v2));
+        glm::vec3 target = h.normal + rand_unit_vector(rnd);
 
-        //intersection distance
-        i.t = t;
+        scattered.origin = h.point;
+        scattered.direction = target;
 
-        i.u = u;
-        i.v = v;
+        attenuation = m.albedo_colour;
 
         return true;
     }
 
-    return false; // this ray hits the triangle 
-}
+    bool scatter_metal(const Ray &r, const HitInfo &h, const Material &m, glm::vec3 &attentuation, Ray &scattered, RandomState &rnd)
+    {
+        // if(m.material_type != MATERIAL_METAL)
+        //     return false;
 
-bool intersects_any_triangle(ray r, out hitinfo info) {
+        glm::vec3 reflected = reflect(normalize(r.direction), h.normal);
 
-    float t_nearest = LARGE_FLOAT;
-    bool intersect = false;
-    int t_index;
+        scattered.origin = h.point;
+        scattered.direction = reflected + m.metal_fuzz * rand_unit_vector(rnd);
+        //scattered.direction = reflected;
 
-    for(int i = 0; i < set_triangles; i++) {
+        attentuation = m.albedo_colour;
 
-        hitinfo h;
-
-        const triangle tri = triangles[i];
-
-        if(intersects_triangle(r, tri, h) && h.t < t_nearest)
-        {
-            //a closer triangle intersected the ray!
-            intersect = true;
-
-            t_nearest = h.t;
-            t_index = i;
-        }
+        return (dot(scattered.direction, h.normal) > 0);
     }
 
-    info.tri_index = t_index;
-    return intersect;
-}
 
-/**
- * Evaluate the specular part of the BRDF.
- *
- * @param b the box to evaluate (used to get its diffuse color)
- * @param i the incoming light direction
- *          (by convention this points away from the surface)
- * @param o the outgoing light direction
- * @param n the surface normal
- * @returns the attenuation factor
- */
-vec3 brdfSpecular(vec3 i, vec3 o, vec3 n) {
-  float a = phongExponent;
-  vec3 r = reflect(-i, n);
-  return vec3(pow(max(0.0, dot(r, o)), a) * (a + 2.0) * ONE_OVER_2PI);
-}
-
-/**
- * Evaluate the diffuse part of the BRDF.
- *
- * @param albedo the diffuse color
- * @param i the incoming light direction
- *          (by convention this points away from the surface)
- * @param o the outgoing light direction
- * @param n the surface normal
- * @returns the attenuation factor
- */
-vec3 brdfDiffuse(vec3 albedo, vec3 i, vec3 o, vec3 n) {
-  return albedo * ONE_OVER_PI;
-}
-
-/**
- * Compute the BRDF of the box's surface given the incoming and outgoing
- * light directions as well as the surface normal.
- *
- * @param albedo the diffuse color
- * @param i the incoming light direction
- *          (by convention this points away from the surface)
- * @param o the outgoing light direction
- * @param n the surface normal
- * @returns the attenuation factor
- */
-vec3 brdf(vec3 albedo, vec3 i, vec3 o, vec3 n) {
-  return brdfSpecular(i, o, n) * specularFactor
-         +
-         brdfDiffuse(albedo, i, o, n) * (1.0 - specularFactor);
-}
-
-vec3 no_hit_color(ray r) {
-  vec3 dir = normalize(r.direction);
-  float temp = 0.5 * (dir.y + 1.0);
-  vec3 cval = vec3(1.0 - temp) + temp * vec3(0.5, 0.7, 1.0);
-  return cval;
-}
-
-//https://stackoverflow.com/questions/23975555/how-to-do-ray-plane-intersection
 vec3 trace(ray r, vec3 normal) {
 
     //vec3 att = vec3(1.0);
@@ -276,12 +332,10 @@ vec3 trace(ray r, vec3 normal) {
     //return tri.p0.colour.xyz;
 }
 
-
-
 layout (local_size_x = 16, local_size_y = 8) in;
 void main(void) {
 
-    px = ivec2(gl_GlobalInvocationID.xy);
+    ivec2 px = ivec2(gl_GlobalInvocationID.xy);
 
     ivec2 size = imageSize(outTexture);
 
@@ -308,4 +362,52 @@ void main(void) {
     vec3 oldColor = vec3(0.0);
 
     imageStore(outTexture, px, vec4(color, 1.0));
+}
+
+
+/**
+ * Evaluate the specular part of the BRDF.
+ *
+ * @param b the box to evaluate (used to get its diffuse color)
+ * @param i the incoming light direction
+ *          (by convention this points away from the surface)
+ * @param o the outgoing light direction
+ * @param n the surface normal
+ * @returns the attenuation factor
+ */
+vec3 brdfSpecular(vec3 i, vec3 o, vec3 n) {
+  float a = phongExponent;
+  vec3 r = reflect(-i, n);
+  return vec3(pow(max(0.0, dot(r, o)), a) * (a + 2.0) * ONE_OVER_2PI);
+}
+
+/**
+ * Evaluate the diffuse part of the BRDF.
+ *
+ * @param albedo the diffuse color
+ * @param i the incoming light direction
+ *          (by convention this points away from the surface)
+ * @param o the outgoing light direction
+ * @param n the surface normal
+ * @returns the attenuation factor
+ */
+vec3 brdfDiffuse(vec3 albedo, vec3 i, vec3 o, vec3 n) {
+  return albedo * ONE_OVER_PI;
+}
+
+/**
+ * Compute the BRDF of the box's surface given the incoming and outgoing
+ * light directions as well as the surface normal.
+ *
+ * @param albedo the diffuse color
+ * @param i the incoming light direction
+ *          (by convention this points away from the surface)
+ * @param o the outgoing light direction
+ * @param n the surface normal
+ * @returns the attenuation factor
+ */
+vec3 brdf(vec3 albedo, vec3 i, vec3 o, vec3 n) {
+  return brdfSpecular(i, o, n) * specularFactor
+         +
+         brdfDiffuse(albedo, i, o, n) * (1.0 - specularFactor);
 }

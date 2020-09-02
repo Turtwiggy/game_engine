@@ -23,7 +23,6 @@ using namespace fightingengine;
 
 struct GameState
 {
-
     // void init(ModelManager& model_manager)
     //{
         ////Model: Cornel Box
@@ -87,7 +86,7 @@ struct GameState
         model = glm::translate(model, glm::vec3(0.0f, 0.0f, 0.0));
         model = glm::scale(model, glm::vec3(1.0f));
         shader.setMat4("model", model);
-        
+      
         //model = glm::mat4(1.0f);
         //model = glm::translate(model, glm::vec3(5.0f, 0.0f, 0.0));
         //model = glm::scale(model, glm::vec3(2.0f));
@@ -168,11 +167,9 @@ int main(int argc, char** argv)
     );
 
     //ModelManager model_manager;
-
     GameState state;
-    RandomState rnd;
-
     //state.init(model_manager);
+    RandomState rnd;
 
     RendererRayTraced renderer;
     renderer.init(width, height);
