@@ -237,7 +237,7 @@ namespace fightingengine {
 
             if (loc == -1)
             {
-                printf("ERROR: Location of uniform not found");
+                printf("ERROR: Location of uniform not found: %s \n", name.c_str());
                 return -1;
             }
 

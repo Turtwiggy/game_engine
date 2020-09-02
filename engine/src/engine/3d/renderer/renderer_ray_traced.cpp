@@ -4,6 +4,7 @@
 #include "engine/renderer/render_command.hpp"
 #include "engine/renderer/shader.hpp"
 #include "engine/renderer/util/util_functions.hpp"
+#include "engine/3d/ray.hpp"
 
 #include "GL/glew.h"
 #include <glm/glm.hpp>
@@ -86,7 +87,6 @@ namespace fightingengine {
     {
         //Configure OpenGL
         RenderCommand::init();
-        RenderCommand::set_viewport(0, 0, screen_width, screen_height);
 
         // A quad shader to render the full-screen quad VAO with the framebuffer as texture
         Shader quad_shader = Shader()
@@ -195,7 +195,9 @@ namespace fightingengine {
         s_Data.compute_shader_workgroup_x = work_group_size_x;
         s_Data.compute_shader_workgroup_y = work_group_size_y;
         s_Data.compute_out_tex_binding = compute_shader.get_uniform_binding_location("outTexture");
+        printf("Raytracer) outtexbinding: %i \n", s_Data.compute_out_tex_binding);
         s_Data.compute_normal_binding = compute_shader.get_uniform_binding_location("normalTexture");
+        printf("Raytracer) compute_normal_binding: %i \n", s_Data.compute_normal_binding);
         s_Data.ssbo_binding = compute_shader.get_buffer_binding_location("bufferData");
 
         // Data to bind to GPU
@@ -207,7 +209,7 @@ namespace fightingengine {
 
         // Ray tracing SSBO
         // ----------------
-        printf("bind slot: %i \n", s_Data.ssbo_binding);
+        printf("(Raytracer) ssbo bind slot: %i \n", s_Data.ssbo_binding);
 
         GLuint SSBO;
         
@@ -235,9 +237,6 @@ namespace fightingengine {
     // 1. geometry pass: render scene's geometry/color data into gbuffer
     Shader& RendererRayTraced::first_geometry_pass(Camera& camera, int width, int height)
     {
-        RenderCommand::set_clear_colour(glm::vec4(0.2f, 0.6f, 0.2f, 1.0f));
-        RenderCommand::clear();
-
         glm::mat4 view_projection = camera.get_view_projection_matrix(width, height);
 
         glBindFramebuffer(GL_FRAMEBUFFER, s_Data.g_buffer);
@@ -330,27 +329,19 @@ namespace fightingengine {
         glBindFramebuffer(GL_FRAMEBUFFER, s_Data.ray_fbo);
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
         s_Data.compute_shader.bind();
+        CHECK_OPENGL_ERROR(5);
 
         //Set viewing frustrum corner rays in shader
         s_Data.compute_shader.setVec3("eye", camera.Position);
-        glm::vec3 eye_ray;
-
-        printf("RAYTRACER THIS IS VERY BROKEN");
-        // eye_ray = camera.get_eye_ray(-1, -1, width, height);
-        // s_Data.compute_shader.setVec3("ray00", eye_ray);
-        // eye_ray = camera.get_eye_ray(-1, 1, width, height);
-        // s_Data.compute_shader.setVec3("ray01", eye_ray);
-        // eye_ray = camera.get_eye_ray(1, -1, width, height);
-        // s_Data.compute_shader.setVec3("ray10", eye_ray);
-        // eye_ray = camera.get_eye_ray(1, 1, width, height);
-        // s_Data.compute_shader.setVec3("ray11", eye_ray);
-        CHECK_OPENGL_ERROR(5);
-
+        s_Data.compute_shader.setVec3("lower_left_corner", camera.screen_lower_left_corner);
+        s_Data.compute_shader.setFloat("viewport_width", camera.viewport_width);
+        s_Data.compute_shader.setFloat("viewport_height", camera.viewport_height);
         s_Data.compute_shader.setFloat("time", timer);
 
         // Bind framebuffer texture as writable image in the shader.
-        glBindImageTexture(s_Data.compute_normal_binding, s_Data.g_normal, 0, false, 0, GL_READ_ONLY, GL_RGBA16F);
         glBindImageTexture(s_Data.compute_out_tex_binding, s_Data.out_texture, 0, false, 0, GL_WRITE_ONLY, GL_RGBA16F);
+        CHECK_OPENGL_ERROR(10);
+        glBindImageTexture(s_Data.compute_normal_binding, s_Data.g_normal, 0, false, 0, GL_READ_ONLY, GL_RGBA16F);
         CHECK_OPENGL_ERROR(6);
 
         s_Data.compute_shader.set_compute_buffer_bind_location("bufferData");
@@ -361,8 +352,6 @@ namespace fightingengine {
 
         //set the ssbo size in a uniform
         s_Data.compute_shader.setInt("set_triangles", s_Data.set_triangles);
-        s_Data.compute_shader.setFloat("phongExponent", 128.0f);
-        //s_Data.compute_shader.setFloat("specularFactor", desc.exposure);
 
         // Compute appropriate invocation dimension
         int worksizeX = next_power_of_two(width);
@@ -401,13 +390,14 @@ namespace fightingengine {
         s_Data.quad_shader.bind();
         glActiveTexture(GL_TEXTURE0);
 
-        //if (s_Data.is_c_held) {
-        //    glBindTexture(GL_TEXTURE_2D, s_Data.out_texture);
+        //if (s_Data.is_c_held) 
+        //{
+        glBindTexture(GL_TEXTURE_2D, s_Data.out_texture);
         //}
-        //else
-        {
-            glBindTexture(GL_TEXTURE_2D, s_Data.g_albedo_spec);
-        }
+        // else
+        // {
+        //     glBindTexture(GL_TEXTURE_2D, s_Data.g_albedo_spec);
+        // }
         renderQuad();
     }
 

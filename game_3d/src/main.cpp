@@ -80,6 +80,7 @@ struct GameState
         window.GetSize(width, height);
 
         //First pass: render all objects
+        RenderCommand::set_clear_colour(glm::vec4(0.0, 0.0, 1.0, 1.0));
         Shader& shader = renderer.first_geometry_pass(cam, width, height);
 
         glm::mat4 model = glm::mat4(1.0f);
