@@ -80,7 +80,7 @@ struct GameState
         window.GetSize(width, height);
 
         //First pass: render all objects
-        RenderCommand::set_clear_colour(glm::vec4(0.0, 0.0, 1.0, 1.0));
+        //RenderCommand::set_clear_colour(glm::vec4(1.0, 0.0, 0.0, 1.0));
         Shader& shader = renderer.first_geometry_pass(cam, width, height);
 
         glm::mat4 model = glm::mat4(1.0f);
@@ -148,13 +148,9 @@ std::vector<Sphere> create_world()
 int main(int argc, char** argv)
 {
     const float aspect_ratio = 16.0 / 9.0f;
-    int width = 1080;
-    int height = int(width / aspect_ratio);
+    const int width = 1080;
+    const int height = 640;
     Application app("Fighting Game!", width, height);
-
-    //viewport
-    auto viewport_height = 2;
-    auto viewport_width = viewport_height * aspect_ratio;
 
     //Create world (for now, just spheres)
     std::vector<Sphere> world = create_world();
@@ -163,8 +159,8 @@ int main(int argc, char** argv)
     Camera camera = Camera (
         glm::vec3(0.0f, 0.0f, 10.0f), 
         glm::vec3(0.0f, 1.0f, 0.0f),
-        viewport_width, 
-        viewport_height
+        width,  //viewport
+        height  //viewport
     );
 
     //ModelManager model_manager;
@@ -174,7 +170,7 @@ int main(int argc, char** argv)
 
     RendererRayTraced renderer;
     renderer.init(width, height);
-    RenderCommand::set_viewport(0, 0, viewport_width, viewport_height);
+    RenderCommand::set_viewport(0, 0, width, height);
 
     float timer = 0.0f;
     while (app.is_running())

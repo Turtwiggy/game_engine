@@ -1,5 +1,8 @@
 #version 430 core
 
+layout(binding = 0, rgba16f) readonly uniform image2D normalTexture;
+layout(binding = 1, rgba16f) writeonly uniform image2D outTexture;
+
 // ---- STRUCTS ----
 
 struct vertex {
@@ -31,8 +34,7 @@ struct material {
     //metal variables
     float metal_fuzz;
 };
-struct sphere 
-{
+struct sphere {
     vec3 position;
     float radius;
     material mat;
@@ -40,8 +42,7 @@ struct sphere
 
 // ---- COMPUTE SHADRER LAYOUT ----
 
-layout(binding = 0, rgba16f) writeonly uniform image2D outTexture;
-layout(binding = 1, rgba16f) readonly uniform image2D normalTexture;
+
 layout( std430, binding = 2 ) readonly buffer bufferData
 {
     triangle triangles[];
@@ -297,9 +298,9 @@ bool scatter_metal(const ray r, const hit_info h, const material m, inout vec3 a
     return (dot(scattered.direction, h.normal) > 0);
 }
 
-vec3 trace(ray r, vec3 normal) {
-
-    return vec3(1.0, 0.0, 0.3);
+vec3 trace(ray r, vec3 normal) 
+{
+    return vec3(0.3, 0.6, 0.3);
 
     //return the normal colour
     //return 0.5 * vec3(intersection_point_normal.x + 1, intersection_point_normal.y + 1, intersection_point_normal.z + 1);
@@ -315,75 +316,21 @@ void main(void) {
     ivec2 size = imageSize(outTexture);
 
     if (any(greaterThanEqual(px, size)))
-        return; // <- no work to do, return.
+        return;
 
     vec2 p = (vec2(px) + vec2(0.5)) / vec2(size);
 
     ray fwd;
     fwd.origin = eye;
-    fwd.direction = lower_left_corner + p.x*viewport_width + p.y*viewport_height - eye;
+    fwd.direction = lower_left_corner + px.x*viewport_width + px.y*viewport_height - eye;
 
     //Sample textures
     //vec3 FragPos = imageLoad(positionData, px).rgb;
     vec3 Normal = imageLoad(normalTexture, px).rgb;
 
-    //use texture information for first bounce
-    //if(dot(dir, Normal) == 0.0) {  //no intersection
-    //    imageStore(outTexture, px, vec4(SKY_COLOUR, 1.0));
-    //    return;
-    //}
-
     //Raytrace
-    vec3 color = trace(fwd , Normal);
+    vec3 color = trace(fwd, Normal);
     vec3 oldColor = vec3(0.0);
 
     imageStore(outTexture, px, vec4(color, 1.0));
 }
-
-
-// /**
-//  * Evaluate the specular part of the BRDF.
-//  *
-//  * @param b the box to evaluate (used to get its diffuse color)
-//  * @param i the incoming light direction
-//  *          (by convention this points away from the surface)
-//  * @param o the outgoing light direction
-//  * @param n the surface normal
-//  * @returns the attenuation factor
-//  */
-// vec3 brdfSpecular(vec3 i, vec3 o, vec3 n) {
-//   float a = phongExponent;
-//   vec3 r = reflect(-i, n);
-//   return vec3(pow(max(0.0, dot(r, o)), a) * (a + 2.0) * ONE_OVER_2PI);
-// }
-
-// /**
-//  * Evaluate the diffuse part of the BRDF.
-//  *
-//  * @param albedo the diffuse color
-//  * @param i the incoming light direction
-//  *          (by convention this points away from the surface)
-//  * @param o the outgoing light direction
-//  * @param n the surface normal
-//  * @returns the attenuation factor
-//  */
-// vec3 brdfDiffuse(vec3 albedo, vec3 i, vec3 o, vec3 n) {
-//   return albedo * ONE_OVER_PI;
-// }
-
-// /**
-//  * Compute the BRDF of the box's surface given the incoming and outgoing
-//  * light directions as well as the surface normal.
-//  *
-//  * @param albedo the diffuse color
-//  * @param i the incoming light direction
-//  *          (by convention this points away from the surface)
-//  * @param o the outgoing light direction
-//  * @param n the surface normal
-//  * @returns the attenuation factor
-//  */
-// vec3 brdf(vec3 albedo, vec3 i, vec3 o, vec3 n) {
-//   return brdfSpecular(i, o, n) * specularFactor
-//          +
-//          brdfDiffuse(albedo, i, o, n) * (1.0 - specularFactor);
-// }

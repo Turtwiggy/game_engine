@@ -13,7 +13,7 @@
 
 namespace fightingengine {
 
-    // ~~ renderQuad() renders a 1x1 XY quad in NDC ~~
+    // renderQuad() renders a 1x1 XY quad in NDC
     unsigned int quadVAO = 0;
     unsigned int quadVBO;
     void renderQuad()
@@ -21,13 +21,13 @@ namespace fightingengine {
         if (quadVAO == 0)
         {
             float quadVertices[] = {
-                //positions        // texture Coords
-              -1.0f,  1.0f, 0.0f, 0.0f, 1.0f,
-              -1.0f, -1.0f, 0.0f, 0.0f, 0.0f,
-              1.0f,  1.0f, 0.0f, 1.0f, 1.0f,
-              1.0f, -1.0f, 0.0f, 1.0f, 0.0f,
+                // positions        // texture Coords
+                -1.0f,  1.0f, 0.0f, 0.0f, 1.0f,
+                -1.0f, -1.0f, 0.0f, 0.0f, 0.0f,
+                 1.0f,  1.0f, 0.0f, 1.0f, 1.0f,
+                 1.0f, -1.0f, 0.0f, 1.0f, 0.0f,
             };
-            //setup plane VAO
+            // setup plane VAO
             glGenVertexArrays(1, &quadVAO);
             glGenBuffers(1, &quadVBO);
             glBindVertexArray(quadVAO);
@@ -102,9 +102,7 @@ namespace fightingengine {
             .attach_shader("assets/shaders/raytraced/geometry.vert", OpenGLShaderTypes::VERTEX)
             .attach_shader("assets/shaders/raytraced/geometry.frag", OpenGLShaderTypes::FRAGMENT)
             .build_program();
-        geometry_shader.bind();
         s_Data.geometry_shader = geometry_shader;
-        geometry_shader.unbind();
 
         // configure g-buffer for intial render pass
         unsigned int gBuffer;
@@ -171,7 +169,7 @@ namespace fightingengine {
             glDrawBuffers(1, attachments);
             // finally check if framebuffer is complete
             if (glCheckFramebufferStatus(GL_FRAMEBUFFER) != GL_FRAMEBUFFER_COMPLETE)
-                std::cout << "Framebuffer not complete!" << std::endl;
+                std::cout << "(Raytracer) ERROR: Framebuffer not complete!" << std::endl;
         }
         s_Data.ray_fbo = rayFBO;
         s_Data.out_texture = rayTexture;
@@ -183,7 +181,7 @@ namespace fightingengine {
             .attach_shader("assets/shaders/raytraced/compute/raytraced.glsl", OpenGLShaderTypes::COMPUTE)
             .build_program();
         compute_shader.bind();
-        //CHECK_OPENGL_ERROR(0);
+        CHECK_OPENGL_ERROR(12);
 
         int workgroup_size[3];
         glGetProgramiv(compute_shader.ID, GL_COMPUTE_WORK_GROUP_SIZE, workgroup_size);
@@ -195,9 +193,9 @@ namespace fightingengine {
         s_Data.compute_shader_workgroup_x = work_group_size_x;
         s_Data.compute_shader_workgroup_y = work_group_size_y;
         s_Data.compute_out_tex_binding = compute_shader.get_uniform_binding_location("outTexture");
-        printf("Raytracer) outtexbinding: %i \n", s_Data.compute_out_tex_binding);
+        printf("(Raytracer) outtexbinding: %i \n", s_Data.compute_out_tex_binding);
         s_Data.compute_normal_binding = compute_shader.get_uniform_binding_location("normalTexture");
-        printf("Raytracer) compute_normal_binding: %i \n", s_Data.compute_normal_binding);
+        printf("(Raytracer) compute_normal_binding: %i \n", s_Data.compute_normal_binding);
         s_Data.ssbo_binding = compute_shader.get_buffer_binding_location("bufferData");
 
         // Data to bind to GPU
@@ -223,7 +221,7 @@ namespace fightingengine {
         //glBufferData(GL_SHADER_STORAGE_BUFFER, s_Data.data.size() * sizeof(glm::vec4), &s_Data.data[0], GL_DYNAMIC_DRAW);
         glBufferData(GL_SHADER_STORAGE_BUFFER, 0, 0, GL_DYNAMIC_DRAW);
         CHECK_OPENGL_ERROR(2);
-        s_Data.refresh_ssbo = true;
+        //s_Data.refresh_ssbo = true;
 
         glBindBufferBase(GL_SHADER_STORAGE_BUFFER, s_Data.ssbo_binding, SSBO);
         CHECK_OPENGL_ERROR(3);
@@ -240,13 +238,17 @@ namespace fightingengine {
         glm::mat4 view_projection = camera.get_view_projection_matrix(width, height);
 
         glBindFramebuffer(GL_FRAMEBUFFER, s_Data.g_buffer);
+        CHECK_OPENGL_ERROR(13);
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
-        s_Data.geometry_shader.bind();
-        s_Data.geometry_shader.setMat4("view_projection", view_projection);
-        //either this or textures
-        //s_Data.geometry_shader.setVec3("diffuse", glm::vec3(1.0f, 0.0f, 0.0f));
-        s_Data.geometry_shader.setFloat("specular", 1.0f);
+        //Setup geometry shader
+        {
+            s_Data.geometry_shader.bind();
+            s_Data.geometry_shader.setMat4("view_projection", view_projection);
+            //either this or textures
+            //s_Data.geometry_shader.setVec3("diffuse", glm::vec3(1.0f, 0.0f, 0.0f));
+            s_Data.geometry_shader.setFloat("specular", 1.0f);
+        }
 
         return s_Data.geometry_shader;
     }
@@ -326,7 +328,9 @@ namespace fightingengine {
             }
         }
 
+
         glBindFramebuffer(GL_FRAMEBUFFER, s_Data.ray_fbo);
+        CHECK_OPENGL_ERROR(14);
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
         s_Data.compute_shader.bind();
         CHECK_OPENGL_ERROR(5);
@@ -351,7 +355,7 @@ namespace fightingengine {
         CHECK_OPENGL_ERROR(9);
 
         //set the ssbo size in a uniform
-        s_Data.compute_shader.setInt("set_triangles", s_Data.set_triangles);
+        //s_Data.compute_shader.setInt("set_triangles", s_Data.set_triangles);
 
         // Compute appropriate invocation dimension
         int worksizeX = next_power_of_two(width);
@@ -388,11 +392,13 @@ namespace fightingengine {
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
         s_Data.quad_shader.bind();
+        CHECK_OPENGL_ERROR(15);
         glActiveTexture(GL_TEXTURE0);
 
         //if (s_Data.is_c_held) 
         //{
         glBindTexture(GL_TEXTURE_2D, s_Data.out_texture);
+        CHECK_OPENGL_ERROR(11);
         //}
         // else
         // {

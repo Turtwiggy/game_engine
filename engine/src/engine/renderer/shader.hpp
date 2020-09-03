@@ -60,6 +60,7 @@ namespace fightingengine {
                 break;
             }
 
+            printf("(Shader) attaching shader: %s \n", path);
             unsigned int shader = load_shader(path, type, name);
 
             shaders.push_back(shader);
@@ -71,10 +72,10 @@ namespace fightingengine {
         {
             if (ok_to_build) {
                 attach_shaders_to_program();
-                printf("OK! to build shader\n");
+                printf("OK! to build program \n");
             }
             else {
-                printf("shader was not ok to build");
+                printf("SHADER ERROR: program was not ok to build \n");
             }
 
             return *this;
