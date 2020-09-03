@@ -1,8 +1,5 @@
 #version 430 core
 
-layout(binding = 0, rgba16f) readonly uniform image2D normalTexture;
-layout(binding = 1, rgba16f) writeonly uniform image2D outTexture;
-
 // ---- STRUCTS ----
 
 struct vertex {
@@ -42,7 +39,8 @@ struct sphere {
 
 // ---- COMPUTE SHADRER LAYOUT ----
 
-
+layout(binding = 0, rgba16f) readonly uniform image2D normalTexture;
+layout(binding = 1, rgba16f) writeonly uniform image2D outTexture;
 layout( std430, binding = 2 ) readonly buffer bufferData
 {
     triangle triangles[];
@@ -65,6 +63,12 @@ uniform int set_triangles;
 uniform float time, viewport_width, viewport_height;
 uniform vec3 eye, lower_left_corner;
 
+// ---- GLOBALS ---- 
+ivec2 px;
+
+#define SPHERES_IN_SCENE 4
+sphere[SPHERES_IN_SCENE] spheres;
+
 // ---- FUNCTIONS ----
 
 vec3 ray_at(const ray r, float t) 
@@ -75,19 +79,12 @@ vec3 reflect(const vec3 v, const vec3 n)
 {
     return v - 2 * dot(v, n) * n;
 }
-
 // See random.glsl for more explanation of these functions.
 float random(vec3 f);
 vec4 randomHemispherePoint(vec3 n, vec2 rand);
 float hemisphereProbability(vec3 n, vec3 v);
 vec4 randomDiskPoint(vec3 n, float d, float r, vec2 rand);
 float diskProbability(vec3 n, float d, float r, vec3 v);
-
-//GLOBAL
-ivec2 px;
-
-#define SPHERES_IN_SCENE 4
-sphere[SPHERES_IN_SCENE] spheres;
 
 vec3 randvec3() {
   return vec3(
@@ -300,12 +297,27 @@ bool scatter_metal(const ray r, const hit_info h, const material m, inout vec3 a
 
 vec3 trace(ray r, vec3 normal) 
 {
-    return vec3(0.3, 0.6, 0.3);
+    hit_info i;
+    ray ray_to_shoot = r;
+    vec3 final_attenuation = vec3(1.0, 1.0, 1.0);
+    bool intersected = false;
 
-    //return the normal colour
-    //return 0.5 * vec3(intersection_point_normal.x + 1, intersection_point_normal.y + 1, intersection_point_normal.z + 1);
-    //return the triangles's v0 colour!
-    //return tri.p0.colour.xyz;
+    //temporary sphere
+    sphere s1;
+    s1.position = vec3(0.0, 0.0, -1.0);
+    s1.radius = 10;
+    s1.mat.material_type = MATERIAL_DIFFUSE;
+    s1.mat.albedo_colour = vec3(0.7, 0.3, 0.3);
+    float t_nearest = LARGE_FLOAT;
+
+    if (hit_sphere(r, s1, i, EPSILON, LARGE_FLOAT) && i.t < t_nearest)
+    {
+        return vec3(1.0, 0.0, 0.0);
+    }
+
+    vec3 unit_direction = normalize(r.direction);
+    float t = 0.5*(unit_direction.y + 1.0);
+    return (1.0-t)*vec3(1.0, 1.0, 1.0) + t*vec3(0.5, 0.7, 1.0);
 }
 
 layout (local_size_x = 16, local_size_y = 8) in;
@@ -322,7 +334,7 @@ void main(void) {
 
     ray fwd;
     fwd.origin = eye;
-    fwd.direction = lower_left_corner + px.x*viewport_width + px.y*viewport_height - eye;
+    fwd.direction = lower_left_corner + p.x*viewport_width + p.y*viewport_height - eye;
 
     //Sample textures
     //vec3 FragPos = imageLoad(positionData, px).rgb;

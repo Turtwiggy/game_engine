@@ -6,6 +6,7 @@
 using namespace fightingengine;
 
 #include <glm/glm.hpp>
+using namespace glm;
 
 #include <stdio.h>
 #include <iostream>
@@ -15,25 +16,25 @@ using namespace fightingengine;
 #define SAMPLES_PER_PIXEL 50
 #define BOUNCES 35
 
-glm::vec3 ray_colour(const Ray &r, std::vector<Sphere> spheres, RandomState& rnd)
+vec3 ray_colour(const Ray &r, std::vector<Sphere> spheres, RandomState& rnd)
 {
     FETriangle tri;
     Vertex v0;
-    v0.Position = glm::vec3(0.0, 0.0, -1.0);
+    v0.Position = vec3(0.0, 0.0, -1.0);
     Vertex v1;
-    v1.Position = glm::vec3(400.0, 400.0, -1.0);
+    v1.Position = vec3(400.0, 400.0, -1.0);
     Vertex v2;
-    v2.Position = glm::vec3(400.0, 0.0, -1.0);
+    v2.Position = vec3(400.0, 0.0, -1.0);
     tri.p0 = v0;
     tri.p1 = v1;
     tri.p2 = v2;
     // hitinfo i;
     // if (intersects_triangle(r, tri, i))
-    //     return glm::vec3(1.0, 0.0, 0.0);
+    //     return vec3(1.0, 0.0, 0.0);
 
     HitInfo i;
     Ray ray_to_shoot = r;
-    glm::vec3 final_attenuation = glm::vec3(1.0, 1.0, 1.0);
+    vec3 final_attenuation = vec3(1.0, 1.0, 1.0);
     bool intersected = false;
 
     for(int index = 0; index < BOUNCES; index++)
@@ -45,12 +46,12 @@ glm::vec3 ray_colour(const Ray &r, std::vector<Sphere> spheres, RandomState& rnd
 
             Ray scattered_ray;
             bool scatter = false;
-            glm::vec3 attenuation;
+            vec3 attenuation;
 
             //We hit another object on the final bounce... but
             //we're at the bounce limit... 
             if(index == BOUNCES - 1){
-                final_attenuation = glm::vec3(0.0, 0.0, 0.0);
+                final_attenuation = vec3(0.0, 0.0, 0.0);
                 break;
             }
 
@@ -68,7 +69,7 @@ glm::vec3 ray_colour(const Ray &r, std::vector<Sphere> spheres, RandomState& rnd
 
             if(!scatter)
             {
-                attenuation = glm::vec3(0.0, 0.0, 0.0);
+                attenuation = vec3(0.0, 0.0, 0.0);
                 break;
             } 
 
@@ -78,14 +79,14 @@ glm::vec3 ray_colour(const Ray &r, std::vector<Sphere> spheres, RandomState& rnd
         break;
     }
 
-    glm::vec3 unit_direction = normalize(ray_to_shoot.direction);
+    vec3 unit_direction = normalize(ray_to_shoot.direction);
     float t = 0.5f*(unit_direction.y + 1.0f);
-    glm::vec3 sky_colour = (1.0f - t) * glm::vec3(1.0f, 1.0f, 1.0f) + t * glm::vec3(0.5f, 0.7f, 1.0f);
+    vec3 sky_colour = (1.0f - t) * vec3(1.0f, 1.0f, 1.0f) + t * vec3(0.5f, 0.7f, 1.0f);
 
     return final_attenuation*sky_colour;
 }
 
-void write_color(std::ofstream &out, glm::vec3 pixel_color)
+void write_color(std::ofstream &out, vec3 pixel_color)
 {
     auto r = pixel_color.x;
     auto g = pixel_color.y;
@@ -98,9 +99,9 @@ void write_color(std::ofstream &out, glm::vec3 pixel_color)
     b = sqrt(scale * b);
 
     // Write the translated [0,255] value of each color component.
-    out << static_cast<int>(256 * glm::clamp(r, 0.0f, 0.999f)) << ' '
-        << static_cast<int>(256 * glm::clamp(g, 0.0f, 0.999f)) << ' '
-        << static_cast<int>(256 * glm::clamp(b, 0.0f, 0.999f)) << '\n';
+    out << static_cast<int>(256 * clamp(r, 0.0f, 0.999f)) << ' '
+        << static_cast<int>(256 * clamp(g, 0.0f, 0.999f)) << ' '
+        << static_cast<int>(256 * clamp(b, 0.0f, 0.999f)) << '\n';
 }
 
 int main()
@@ -119,29 +120,29 @@ int main()
 
     //ground sphere
     Sphere s4;
-    s4.position = glm::vec3(0.0, -100.5, -1.0);
+    s4.position = vec3(0.0, -100.5, -1.0);
     s4.radius = 100.0f;
     s4.mat.material_type = MATERIAL_DIFFUSE;
-    s4.mat.albedo_colour = glm::vec3(0.8, 0.8, 0.0);
+    s4.mat.albedo_colour = vec3(0.8, 0.8, 0.0);
     //main sphere
     Sphere s1;
-    s1.position = glm::vec3(0.0, 0.0, -1.0);
+    s1.position = vec3(0.0, 0.0, -1.0);
     s1.radius = 0.5f;
     s1.mat.material_type = MATERIAL_DIFFUSE;
-    s1.mat.albedo_colour = glm::vec3(0.7, 0.3, 0.3);
+    s1.mat.albedo_colour = vec3(0.7, 0.3, 0.3);
     //left sphere
     Sphere s2;
-    s2.position = glm::vec3(-1.0, 0.0, -1.0);
+    s2.position = vec3(-1.0, 0.0, -1.0);
     s2.radius = 0.5f;
     s2.mat.material_type = MATERIAL_METAL;
-    s2.mat.albedo_colour = glm::vec3(0.8, 0.8, 0.8);
+    s2.mat.albedo_colour = vec3(0.8, 0.8, 0.8);
     s2.mat.metal_fuzz = 0.3f;
     //right sphere
     Sphere s3;
-    s3.position = glm::vec3(1.0, 0.0, -1.0);
+    s3.position = vec3(1.0, 0.0, -1.0);
     s3.radius = 0.5f;
     s3.mat.material_type = MATERIAL_METAL;
-    s3.mat.albedo_colour = glm::vec3(0.8, 0.6, 0.2);
+    s3.mat.albedo_colour = vec3(0.8, 0.6, 0.2);
     s3.mat.metal_fuzz = 0.8f;
     //World
     std::vector<Sphere> spheres;
@@ -155,8 +156,8 @@ int main()
     auto viewport_width = viewport_height * aspect_ratio;
 
     Camera cam(
-        glm::vec3(0.0f, 0.0f, 0.0f), 
-        glm::vec3(0.0f, 1.0f, 0.0f),
+        vec3(0.0f, 0.0f, 0.0f), 
+        vec3(0.0f, 1.0f, 0.0f),
         viewport_width, 
         viewport_height );
 
@@ -169,7 +170,7 @@ int main()
         std::cerr << "\rScanlines remaining: " << y << ' ' << std::flush;
         for (int x = 0; x < width; x++)
         {
-            glm::vec3 colour(0, 0, 0);
+            vec3 colour(0, 0, 0);
             
             //multiple pixel sampling (anti-aliasing)
             for (int s = 0; s < SAMPLES_PER_PIXEL; ++s) 
