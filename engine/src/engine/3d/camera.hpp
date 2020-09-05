@@ -49,17 +49,12 @@ namespace fightingengine {
         float CameraSensitivity;
         float Zoom;
         //Viewport
-        float viewport_height;
-        float viewport_width;
         glm::vec3 screen_lower_left_corner;
-        float focal_length = 1.0;
 
         // Constructor with vectors
         Camera ( 
             glm::vec3 position, 
             glm::vec3 up, 
-            float viewport_width,
-            float viewport_height,
             float yaw = YAW, 
             float pitch = PITCH 
         )
@@ -67,18 +62,12 @@ namespace fightingengine {
             , MovementSpeed(SPEED)
             , CameraSensitivity(SENSITIVITY)
             , Zoom(ZOOM)
-            , viewport_width(viewport_width)
-            , viewport_height(viewport_height)
         {
             Position = position;
             WorldUp = up;
             Yaw = yaw;
             Pitch = pitch;
             update_camera_vectors();
-
-            glm::vec3 horizontal = glm::vec3(viewport_width, 0.0, 0.0);
-            glm::vec3 vertical = glm::vec3(0.0, viewport_height, 0.0);
-            screen_lower_left_corner = Position - horizontal/2.0f - vertical/2.0f - glm::vec3(0.0, 0.0, focal_length);
         }
 
         void resize(int width, int height);
@@ -86,9 +75,10 @@ namespace fightingengine {
         glm::mat4 get_view_matrix() const;
         glm::mat4 get_view_projection_matrix(int width, int height) const;
         glm::mat4 get_inverse_projection_view_matrix(float width, float height);
+        glm::vec3 get_eye_ray(float x, float y, float width, float height);
 
         //u, v is the pixel value from the bottom left as 0,0
-        Ray get_ray(float u, float v) const;
+        Ray get_ray(float u, float v, float viewport_width, float viewport_height) const;
 
         void update(float delta_time, CameraMovement movement);
 

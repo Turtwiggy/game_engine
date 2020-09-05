@@ -193,9 +193,9 @@ namespace fightingengine {
         s_Data.compute_shader_workgroup_x = work_group_size_x;
         s_Data.compute_shader_workgroup_y = work_group_size_y;
         s_Data.compute_out_tex_binding = compute_shader.get_uniform_binding_location("outTexture");
-        printf("(Raytracer) outtexbinding: %i \n", s_Data.compute_out_tex_binding);
+        //printf("(Raytracer) outtexbinding: %i \n", s_Data.compute_out_tex_binding);
         s_Data.compute_normal_binding = compute_shader.get_uniform_binding_location("normalTexture");
-        printf("(Raytracer) compute_normal_binding: %i \n", s_Data.compute_normal_binding);
+        //printf("(Raytracer) compute_normal_binding: %i \n", s_Data.compute_normal_binding);
         s_Data.ssbo_binding = compute_shader.get_buffer_binding_location("bufferData");
 
         // Data to bind to GPU
@@ -337,9 +337,17 @@ namespace fightingengine {
 
         //Set viewing frustrum corner rays in shader
         s_Data.compute_shader.setVec3("eye", camera.Position);
-        s_Data.compute_shader.setVec3("lower_left_corner", camera.screen_lower_left_corner);
-        s_Data.compute_shader.setFloat("viewport_width", camera.viewport_width);
-        s_Data.compute_shader.setFloat("viewport_height", camera.viewport_height);
+
+        glm::vec3 eye_ray;
+        eye_ray = camera.get_eye_ray(-1, -1, width, height);
+        s_Data.compute_shader.setVec3("ray00", eye_ray);
+        eye_ray = camera.get_eye_ray(-1, 1, width, height);
+        s_Data.compute_shader.setVec3("ray01", eye_ray);
+        eye_ray = camera.get_eye_ray(1, -1, width, height);
+        s_Data.compute_shader.setVec3("ray10", eye_ray);
+        eye_ray = camera.get_eye_ray(1, 1, width, height);
+        s_Data.compute_shader.setVec3("ray11", eye_ray);
+
         s_Data.compute_shader.setFloat("time", timer);
 
         // Bind framebuffer texture as writable image in the shader.

@@ -60,7 +60,7 @@ namespace fightingengine {
                 break;
             }
 
-            printf("(Shader) attaching shader: %s \n", path);
+            //printf("(Shader) attaching shader: %s \n", path);
             unsigned int shader = load_shader(path, type, name);
 
             shaders.push_back(shader);

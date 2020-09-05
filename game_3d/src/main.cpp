@@ -74,7 +74,13 @@ struct GameState
     //    player_cube->transform.Position.x += 1.0f * delta_time_in_seconds;
     //}
 
-    void render(RendererRayTraced& renderer, Camera& cam, GameWindow& window, float timer)
+    void render (
+        RendererRayTraced& renderer, 
+        Camera& cam, 
+        GameWindow& window, 
+        float timer,
+        float viewport_width,
+        float viewport_height )
     {
         int width, height;
         window.GetSize(width, height);
@@ -148,21 +154,22 @@ std::vector<Sphere> create_world()
 int main(int argc, char** argv)
 {
     const float aspect_ratio = 16.0 / 9.0f;
-    const int width = 1080;
-    const int height = 640;
+    int width = 1080;
+    int height = static_cast<int>(width / aspect_ratio);
     Application app("Fighting Game!", width, height);
+
+    //Camera
+    // auto viewport_height = 2.0;
+    // auto viewport_width = viewport_height * aspect_ratio;
 
     //Create world (for now, just spheres)
     std::vector<Sphere> world = create_world();
 
     //Camera
     Camera camera = Camera (
-        glm::vec3(0.0f, 0.0f, 10.0f), 
-        glm::vec3(0.0f, 1.0f, 0.0f),
-        width,  //viewport
-        height  //viewport
-    );
-
+        glm::vec3(0.0f, 0.0f, 1.0f), 
+        glm::vec3(0.0f, 1.0f, 0.0f) );
+    
     //ModelManager model_manager;
     GameState state;
     //state.init(model_manager);

@@ -31,7 +31,7 @@ namespace fightingengine {
         return glm::inverse(projection * view);
     }
 
-    Ray Camera::get_ray(float u, float v) const {
+    Ray Camera::get_ray(float u, float v, float viewport_width, float viewport_height) const {
 
         glm::vec3 horizontal = glm::vec3(viewport_width, 0.0, 0.0);
         glm::vec3 vertical = glm::vec3(0.0, viewport_height, 0.0);
@@ -41,6 +41,22 @@ namespace fightingengine {
         r.direction = screen_lower_left_corner + u*horizontal + v*vertical - Position;
 
         return r;
+    }
+
+    // Compute the world direction vector based on the given X and Y coordinates in normalized-device space
+    glm::vec3 Camera::get_eye_ray(float x, float y, float width, float height)
+    {
+        glm::vec4 temp(x, y, 0.0f, 1.0f);
+
+        glm::mat4 inverse_projection_view = get_inverse_projection_view_matrix(width, height);
+
+        glm::vec4 ray = inverse_projection_view * temp;
+        ray /= ray.w;
+        ray.x -= Position.x;
+        ray.y -= Position.y;
+        ray.z -= Position.z;
+
+        return glm::vec3(ray.x, ray.y, ray.z);
     }
 
 
