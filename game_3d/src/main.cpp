@@ -78,9 +78,7 @@ struct GameState
         RendererRayTraced& renderer, 
         Camera& cam, 
         GameWindow& window, 
-        float timer,
-        float viewport_width,
-        float viewport_height )
+        float timer)
     {
         int width, height;
         window.GetSize(width, height);
@@ -157,6 +155,7 @@ int main(int argc, char** argv)
     int width = 1080;
     int height = static_cast<int>(width / aspect_ratio);
     Application app("Fighting Game!", width, height);
+    app.set_fps_limit(150.0);
 
     //Camera
     // auto viewport_height = 2.0;
@@ -177,7 +176,6 @@ int main(int argc, char** argv)
 
     RendererRayTraced renderer;
     renderer.init(width, height);
-    RenderCommand::set_viewport(0, 0, width, height);
 
     float timer = 0.0f;
     while (app.is_running())
@@ -231,6 +229,10 @@ int main(int argc, char** argv)
 
         ImGui::Begin("Hello Window");
         ImGui::Text("Hello World");
+        ImGui::End();
+
+        ImGui::Begin("Info");
+        ImGui::Text("FPS: %f", app.get_average_fps());
         ImGui::End();
 
         app.gui_end();

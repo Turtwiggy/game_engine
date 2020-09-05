@@ -18,16 +18,16 @@ using namespace glm;
 
 vec3 ray_colour(const Ray &r, std::vector<Sphere> spheres, RandomState& rnd)
 {
-    FETriangle tri;
-    Vertex v0;
-    v0.Position = vec3(0.0, 0.0, -1.0);
-    Vertex v1;
-    v1.Position = vec3(400.0, 400.0, -1.0);
-    Vertex v2;
-    v2.Position = vec3(400.0, 0.0, -1.0);
-    tri.p0 = v0;
-    tri.p1 = v1;
-    tri.p2 = v2;
+    // FETriangle tri;
+    // Vertex v0;
+    // v0.Position = vec3(0.0, 0.0, -1.0);
+    // Vertex v1;
+    // v1.Position = vec3(400.0, 400.0, -1.0);
+    // Vertex v2;
+    // v2.Position = vec3(400.0, 0.0, -1.0);
+    // tri.p0 = v0;
+    // tri.p1 = v1;
+    // tri.p2 = v2;
     // hitinfo i;
     // if (intersects_triangle(r, tri, i))
     //     return vec3(1.0, 0.0, 0.0);
@@ -180,7 +180,7 @@ int main()
                 float u = float(x + rng_val) / float(width - 1);
                 float v = float(y + rng_val) / float(height - 1);
 
-                Ray& r = cam.get_ray(u, v);
+                Ray& r = cam.get_ray(u, v, viewport_width, viewport_height);
 
                 colour += ray_colour(r, spheres, rnd);
             }

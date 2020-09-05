@@ -57,6 +57,9 @@ layout( std430, binding = 2 ) readonly buffer bufferData
 #define MATERIAL_METAL 1
 #define MATERIAL_DIFFUSE 2
 
+#define SAMPLES_PER_PIXEL 100
+#define BOUNCES 5
+
 // ---- UNIFORMS ----
 
 uniform int set_triangles;
@@ -66,8 +69,8 @@ uniform vec3 eye, ray00, ray01, ray10, ray11;
 // ---- GLOBALS ---- 
 ivec2 px;
 
-#define SPHERES_IN_SCENE 4
-sphere[SPHERES_IN_SCENE] spheres;
+#define SPHERE_LENGTH 4
+sphere[SPHERE_LENGTH] spheres;
 
 // ---- FUNCTIONS ----
 
@@ -110,6 +113,8 @@ vec3 rand_unit_vector()
     float r = sqrt(1.0 - z * z);
     return vec3(r * cos(a), r * sin(a), z);
 }
+
+// ---- RAY TRIANGLE
 
 bool intersects_triangle(ray r, triangle tri, inout hit_info i)
 {
@@ -195,6 +200,8 @@ bool intersects_any_triangle(ray r, inout hit_info info, int set_triangles)
     return intersect;
 }
 
+// ---- RAY SPHERE
+
 bool hit_sphere(const ray r, const sphere s, inout hit_info i, double t_min, double t_max)
 {
     //sphere intersection code
@@ -241,7 +248,7 @@ bool intersects_any_sphere(const ray r, inout hit_info i)
     bool t_hit = false;
     hit_info hinfo;
 
-    for (int index = 0; index < SPHERES_IN_SCENE; index++)
+    for (int index = 0; index < SPHERE_LENGTH; index++)
     {
         hit_info hinfo_temp;
 
@@ -263,6 +270,8 @@ bool intersects_any_sphere(const ray r, inout hit_info i)
     }
     return false;
 }
+
+// ---- RAY COLOUR
 
 bool scatter_diffuse(const ray r, const hit_info h, const material m, inout vec3 attenuation, inout ray scattered)
 {
@@ -295,6 +304,8 @@ bool scatter_metal(const ray r, const hit_info h, const material m, inout vec3 a
     return (dot(scattered.direction, h.normal) > 0);
 }
 
+// ---- RayTrace function
+
 vec3 trace(ray r, vec3 normal) 
 {
     hit_info i;
@@ -302,22 +313,53 @@ vec3 trace(ray r, vec3 normal)
     vec3 final_attenuation = vec3(1.0, 1.0, 1.0);
     bool intersected = false;
 
-    //temporary sphere
-    sphere s1;
-    s1.position = vec3(0.0, 0.0, -1.0);
-    s1.radius = 3;
-    s1.mat.material_type = MATERIAL_DIFFUSE;
-    s1.mat.albedo_colour = vec3(0.7, 0.3, 0.3);
-    float t_nearest = LARGE_FLOAT;
-
-    if (hit_sphere(r, s1, i, EPSILON, LARGE_FLOAT) && i.t < t_nearest)
+    for(int index = 0; index < BOUNCES; index++ )
     {
-        return vec3(1.0, 0.0, 0.0);
+        if(intersects_any_sphere(ray_to_shoot, i))
+        {
+            intersected = true;
+            const sphere hit_sphere = spheres[i.index];
+
+            ray scattered_ray;
+            bool scatter = false;
+            vec3 attenuation;
+
+            //We hit another object on the final bounce... but
+            //we're at the bounce limit... 
+            if(index == BOUNCES - 1){
+                final_attenuation = vec3(0.0, 0.0, 0.0);
+                break;
+            }
+
+            switch(hit_sphere.mat.material_type)
+            {
+                case MATERIAL_DIFFUSE:
+                        scatter = scatter_diffuse(ray_to_shoot, i, hit_sphere.mat, attenuation, scattered_ray);
+                        final_attenuation *= attenuation;
+                    break;
+                case MATERIAL_METAL:
+                        scatter = scatter_metal(ray_to_shoot, i, hit_sphere.mat, attenuation, scattered_ray);
+                        final_attenuation *= attenuation;
+                    break;
+            }
+
+            if(!scatter)
+            {
+                attenuation = vec3(0.0, 0.0, 0.0);
+                break;
+            } 
+
+            ray_to_shoot = scattered_ray;
+            continue;
+        }
+        break;
     }
 
-    vec3 unit_direction = normalize(r.direction);
-    float t = 0.5*(unit_direction.y + 1.0);
-    return (1.0-t)*vec3(1.0, 1.0, 1.0) + t*vec3(0.5, 0.7, 1.0);
+    vec3 unit_direction = normalize(ray_to_shoot.direction);
+    float t = 0.5f*(unit_direction.y + 1.0f);
+    vec3 sky_colour = (1.0f - t) * vec3(1.0f, 1.0f, 1.0f) + t * vec3(0.5f, 0.7f, 1.0f);
+
+    return final_attenuation*sky_colour;
 }
 
 layout (local_size_x = 16, local_size_y = 8) in;
@@ -330,18 +372,62 @@ void main(void) {
     if (any(greaterThanEqual(px, size)))
         return;
 
-    vec2 p = (vec2(px) + vec2(0.5)) / vec2(size);
-    vec3 dir = mix(mix(ray00, ray01, p.y), mix(ray10, ray11, p.y), p.x);
-
-    ray fwd = {eye, dir};
-
     //Sample textures
     //vec3 FragPos = imageLoad(positionData, px).rgb;
     vec3 Normal = imageLoad(normalTexture, px).rgb;
 
-    //Raytrace
-    vec3 color = trace(fwd, Normal);
-    vec3 oldColor = vec3(0.0);
+    // ---- Setup world
+    //ground sphere
+    sphere s4;
+    s4.position = vec3(0.0, -100.5, -1.0);
+    s4.radius = 100.0f;
+    s4.mat.material_type = MATERIAL_DIFFUSE;
+    s4.mat.albedo_colour = vec3(0.8, 0.8, 0.0);
+    //main sphere
+    sphere s1;
+    s1.position = vec3(0.0, 0.0, -1.0);
+    s1.radius = 0.5f;
+    s1.mat.material_type = MATERIAL_DIFFUSE;
+    s1.mat.albedo_colour = vec3(0.7, 0.3, 0.3);
+    //left sphere
+    sphere s2;
+    s2.position = vec3(-1.0, 0.0, -1.0);
+    s2.radius = 0.5f;
+    s2.mat.material_type = MATERIAL_METAL;
+    s2.mat.albedo_colour = vec3(0.8, 0.8, 0.8);
+    s2.mat.metal_fuzz = 0.3f;
+    //right sphere
+    sphere s3;
+    s3.position = vec3(1.0, 0.0, -1.0);
+    s3.radius = 0.5f;
+    s3.mat.material_type = MATERIAL_METAL;
+    s3.mat.albedo_colour = vec3(0.8, 0.6, 0.2);
+    s3.mat.metal_fuzz = 0.8f;
+    spheres[0] = s1;
+    spheres[1] = s2;
+    spheres[2] = s3;
+    spheres[3] = s4;
 
-    imageStore(outTexture, px, vec4(color, 1.0));
+    //Raytrace
+    vec3 colour = vec3(0, 0, 0);
+
+    for(int s = 0; s < SAMPLES_PER_PIXEL; ++s)
+    {
+        float rng_val = random(vec3(px, time));
+        vec2 px_rnd = vec2(px.x + rng_val, px.y + rng_val);
+
+        vec2 p = (vec2(px_rnd) + vec2(0.5)) / vec2(size);
+        vec3 dir = mix(mix(ray00, ray01, p.y), mix(ray10, ray11, p.y), p.x);
+        ray fwd = {eye, dir};
+
+        colour += trace(fwd, Normal);
+    }
+
+    // Divide the color by the number of samples and gamma-correct for gamma=2.0.
+    float scale = 1.0 / SAMPLES_PER_PIXEL;
+    colour.x = clamp(sqrt(scale*colour.x), 0.0, 1.0);
+    colour.y = clamp(sqrt(scale*colour.y), 0.0, 1.0);
+    colour.z = clamp(sqrt(scale*colour.z), 0.0, 1.0);
+
+    imageStore(outTexture, px, vec4(colour, 1.0));
 }

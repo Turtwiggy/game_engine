@@ -87,6 +87,7 @@ namespace fightingengine {
     {
         //Configure OpenGL
         RenderCommand::init();
+        RenderCommand::set_viewport(0, 0, screen_width, screen_height);
 
         // A quad shader to render the full-screen quad VAO with the framebuffer as texture
         Shader quad_shader = Shader()
