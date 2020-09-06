@@ -221,6 +221,14 @@ int main(int argc, char** argv)
         else if (app.get_input().get_key_held(SDL_Scancode::SDL_SCANCODE_LSHIFT))
             camera.update(delta_time_s, CameraMovement::DOWN);
 
+        // ~~ Mouse ~~
+        if(app.get_window().IsInputGrabbed())
+        {
+            int x, y;
+            SDL_GetRelativeMouseState(&x, &y);
+            camera.process_mouse_movement(x, y, true);
+        }
+
         // ~~ rendering ~~
         state.render(renderer, camera, app.get_window(), timer);
 

@@ -363,5 +363,4 @@ namespace fightingengine {
         SDL_SetRelativeMouseMode(grabbed ? SDL_TRUE : SDL_FALSE);
         GrabInput(grabbed);
     }
-
 }

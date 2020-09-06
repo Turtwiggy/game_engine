@@ -54,11 +54,12 @@ layout( std430, binding = 2 ) readonly buffer bufferData
 #define ONE_OVER_2PI (1.0 / TWO_PI)
 #define LARGE_FLOAT 1E+10
 #define EPSILON 0.0001
+
 #define MATERIAL_METAL 1
 #define MATERIAL_DIFFUSE 2
 
-#define SAMPLES_PER_PIXEL 100
-#define BOUNCES 5
+#define SAMPLES_PER_PIXEL 1
+#define BOUNCES 50
 
 // ---- UNIFORMS ----
 
@@ -69,7 +70,7 @@ uniform vec3 eye, ray00, ray01, ray10, ray11;
 // ---- GLOBALS ---- 
 ivec2 px;
 
-#define SPHERE_LENGTH 4
+#define SPHERE_LENGTH 5
 sphere[SPHERE_LENGTH] spheres;
 
 // ---- FUNCTIONS ----
@@ -224,6 +225,9 @@ bool hit_sphere(const ray r, const sphere s, inout hit_info i, double t_min, dou
             //is a outward-facing face?
             bool outwards = dot(r.direction, i.normal) < 0;
 
+            if(!outwards)
+                return false;
+
             return true;
         }
         temp = (-half_b + root) / a;
@@ -235,6 +239,9 @@ bool hit_sphere(const ray r, const sphere s, inout hit_info i, double t_min, dou
 
             //is a outward-facing face?
             bool outwards = dot(r.direction, i.normal) < 0;
+            
+            if(!outwards)
+                return false;
 
             return true;
         }
@@ -395,18 +402,28 @@ void main(void) {
     s2.radius = 0.5f;
     s2.mat.material_type = MATERIAL_METAL;
     s2.mat.albedo_colour = vec3(0.8, 0.8, 0.8);
-    s2.mat.metal_fuzz = 0.3f;
+    s2.mat.metal_fuzz = 0.0f;
     //right sphere
     sphere s3;
-    s3.position = vec3(1.0, 0.0, -1.0);
+    s3.position = vec3(2.0, 0.0, 0.0);
     s3.radius = 0.5f;
     s3.mat.material_type = MATERIAL_METAL;
     s3.mat.albedo_colour = vec3(0.8, 0.6, 0.2);
-    s3.mat.metal_fuzz = 0.8f;
+    s3.mat.metal_fuzz = 0.0f;
+
+    //player sphere
+    sphere s5;
+    s5.position = eye;
+    s5.radius = 0.2f;
+    s5.mat.material_type = MATERIAL_DIFFUSE;
+    s5.mat.albedo_colour = vec3(0.1, 0.0, 0.0);
+    s5.mat.metal_fuzz = 0.0f;
+
     spheres[0] = s1;
     spheres[1] = s2;
     spheres[2] = s3;
     spheres[3] = s4;
+    spheres[4] = s5;
 
     //Raytrace
     vec3 colour = vec3(0, 0, 0);
