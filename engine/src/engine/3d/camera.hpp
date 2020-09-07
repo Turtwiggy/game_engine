@@ -48,8 +48,6 @@ namespace fightingengine {
         float MovementSpeed;
         float CameraSensitivity;
         float Zoom;
-        //Viewport
-        glm::vec3 screen_lower_left_corner;
 
         // Constructor with vectors
         Camera ( 
@@ -75,10 +73,10 @@ namespace fightingengine {
         glm::mat4 get_view_matrix() const;
         glm::mat4 get_view_projection_matrix(int width, int height) const;
         glm::mat4 get_inverse_projection_view_matrix(float width, float height);
-        glm::vec3 get_eye_ray(float x, float y, float width, float height);
+        glm::vec3 get_eye_ray( float x, float y, float width, float height);
 
         //u, v is the pixel value from the bottom left as 0,0
-        Ray get_ray(float u, float v, float viewport_width, float viewport_height) const;
+        Ray get_ray(glm::vec3 lower_left, float u, float v, float viewport_width, float viewport_height) const;
 
         void update(float delta_time, CameraMovement movement);
 

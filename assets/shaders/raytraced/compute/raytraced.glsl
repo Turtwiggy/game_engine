@@ -66,6 +66,7 @@ layout( std430, binding = 2 ) readonly buffer bufferData
 uniform int set_triangles;
 uniform float time;
 uniform vec3 eye, ray00, ray01, ray10, ray11;
+vec3 light_source;
 
 // ---- GLOBALS ---- 
 ivec2 px;
@@ -304,7 +305,6 @@ bool scatter_metal(const ray r, const hit_info h, const material m, inout vec3 a
 
     scattered.origin = h.point;
     scattered.direction = reflected + m.metal_fuzz * rand_unit_vector();
-    //scattered.direction = reflected;
 
     attentuation = m.albedo_colour;
 
@@ -384,6 +384,8 @@ void main(void) {
     vec3 Normal = imageLoad(normalTexture, px).rgb;
 
     // ---- Setup world
+    light_source = vec3(10, 10, 10);
+
     //ground sphere
     sphere s4;
     s4.position = vec3(0.0, -100.5, -1.0);
@@ -398,7 +400,7 @@ void main(void) {
     s1.mat.albedo_colour = vec3(0.7, 0.3, 0.3);
     //left sphere
     sphere s2;
-    s2.position = vec3(-1.0, 0.0, -1.0);
+    s2.position = light_source;
     s2.radius = 0.5f;
     s2.mat.material_type = MATERIAL_METAL;
     s2.mat.albedo_colour = vec3(0.8, 0.8, 0.8);

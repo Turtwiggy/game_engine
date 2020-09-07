@@ -152,14 +152,18 @@ int main()
     spheres.push_back(s4);
 
     //Camera
-    auto viewport_height = 2;
-    auto viewport_width = viewport_height * aspect_ratio;
+    float viewport_height = 2;
+    float viewport_width = viewport_height * aspect_ratio;
+    float focal_length = 1.0;
+
+    glm::vec3 origin = glm::vec3(0, 0, 0);
+    glm::vec3 horizontal = glm::vec3(viewport_width, 0, 0);
+    glm::vec3 vertical = glm::vec3(0, viewport_height, 0);
+    glm::vec3 lower_left_corner = origin - (horizontal/2.0f) - (vertical/2.0f) - vec3(0, 0, focal_length);
 
     Camera cam(
-        vec3(0.0f, 0.0f, 0.0f), 
-        vec3(0.0f, 1.0f, 0.0f),
-        viewport_width, 
-        viewport_height );
+        origin, 
+        vec3(0.0f, 1.0f, 0.0f) );
 
     RandomState rnd;
 
@@ -180,7 +184,7 @@ int main()
                 float u = float(x + rng_val) / float(width - 1);
                 float v = float(y + rng_val) / float(height - 1);
 
-                Ray& r = cam.get_ray(u, v, viewport_width, viewport_height);
+                Ray& r = cam.get_ray(lower_left_corner, u, v, viewport_width, viewport_height);
 
                 colour += ray_colour(r, spheres, rnd);
             }
