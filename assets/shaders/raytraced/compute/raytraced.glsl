@@ -84,10 +84,11 @@ vec3 reflect(const vec3 v, const vec3 n)
 {
     return v - 2 * dot(v, n) * n;
 }
+
 // See random.glsl for more explanation of these functions.
 float random(vec3 f);
-vec4 randomHemispherePoint(vec3 n, vec2 rand);
-float hemisphereProbability(vec3 n, vec3 v);
+vec4 randomCosineWeightedHemispherePoint(vec3 n, vec2 rand);
+vec4 randomPhongWeightedHemispherePoint(vec3 r, float a, vec2 rand);
 vec4 randomDiskPoint(vec3 n, float d, float r, vec2 rand);
 float diskProbability(vec3 n, float d, float r, vec3 v);
 
@@ -450,3 +451,52 @@ void main(void) {
 
     imageStore(outTexture, px, vec4(colour, 1.0));
 }
+
+
+
+// /**
+//  * Evaluate the specular part of the BRDF.
+//  *
+//  * @param b the box to evaluate (used to get its diffuse color)
+//  * @param i the incoming light direction
+//  *          (by convention this points away from the surface)
+//  * @param o the outgoing light direction
+//  * @param n the surface normal
+//  * @returns the attenuation factor
+//  */
+// vec3 brdfSpecular(box b, vec3 i, vec3 o, vec3 n) {
+//   float a = phongExponent;
+//   vec3 r = reflect(-i, n);
+//   return vec3(pow(max(0.0, dot(r, o)), a) * (a + 2.0) * ONE_OVER_2PI);
+// }
+
+// /**
+//  * Evaluate the diffuse part of the BRDF.
+//  *
+//  * @param albedo the diffuse color
+//  * @param i the incoming light direction
+//  *          (by convention this points away from the surface)
+//  * @param o the outgoing light direction
+//  * @param n the surface normal
+//  * @returns the attenuation factor
+//  */
+// vec3 brdfDiffuse(box b, vec3 i, vec3 o, vec3 n) {
+//   return b.col * ONE_OVER_PI;
+// }
+
+// /**
+//  * Compute the BRDF of the box's surface given the incoming and outgoing
+//  * light directions as well as the surface normal.
+//  *
+//  * @param b the box to evaluate (used to get its diffuse color)
+//  * @param i the incoming light direction
+//  *          (by convention this points away from the surface)
+//  * @param o the outgoing light direction
+//  * @param n the surface normal
+//  * @returns the attenuation factor
+//  */
+// vec3 brdf(box b, vec3 i, vec3 o, vec3 n) {
+//   return brdfSpecular(b, i, o, n) * specularFactor
+//          +
+//          brdfDiffuse(b, i, o, n) * (1.0 - specularFactor);
+// }

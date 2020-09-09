@@ -51,7 +51,7 @@ vec3 ray_colour(const Ray &r, std::vector<Sphere> spheres, RandomState& rnd)
             //We hit another object on the final bounce... but
             //we're at the bounce limit... 
             if(index == BOUNCES - 1){
-                final_attenuation = vec3(0.0, 0.0, 0.0);
+                final_attenuation *= vec3(0.0, 0.0, 0.0);
                 break;
             }
 

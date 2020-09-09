@@ -107,6 +107,43 @@ namespace fightingengine {
                 on_window_close();
             }
 
+            const int JOYSTICK_DEAD_ZONE = 8000;
+            if(e.type == SDL_JOYAXISMOTION)
+            {
+                //Motion on controller 0
+                if(e.jaxis.which == 0)
+                {
+                    //x axis
+                    if(e.jaxis.axis == 0)
+                    {
+                        //Left of deadzone
+                        if(e.jaxis.value < -JOYSTICK_DEAD_ZONE)
+                        {
+                            printf("left!");
+                        }else if(e.jaxis.value > JOYSTICK_DEAD_ZONE)
+                        {
+                            printf("right!");
+                        }
+                    }
+                }
+            }
+            if(e.type == SDL_JOYDEVICEADDED)
+            {
+                printf("gained device %i\n",e.cdevice.which);
+            }
+            if(e.type == SDL_JOYDEVICEREMOVED)
+            {
+                printf("lost device %i\n",e.cdevice.which);   
+            }
+            if(e.type == SDL_CONTROLLERDEVICEADDED)
+            {
+                printf("gained controller device %i\n", e.cdevice.which);
+            }
+            if(e.type == SDL_CONTROLLERDEVICEREMOVED)
+            {
+                printf("lost controller device %i\n",e.cdevice.which);   
+            }
+
             //https://wiki.libsdl.org/SDL_WindowEvent
             if (e.type == SDL_WINDOWEVENT)
             {

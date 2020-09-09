@@ -105,8 +105,8 @@ namespace fightingengine
 
 
     vec2 get_sphere_uv(const vec3& p) {
-        auto phi = atan(p.z, p.x);
-        auto theta = asin(p.y);
+        float phi = atan(p.z, p.x);
+        float theta = asin(p.y);
         float u = 1-(phi + PI) / (2*PI);
         float v = (theta + PI/2) / PI;
         return vec2(u, v);
@@ -205,7 +205,7 @@ namespace fightingengine
 
         return true;
     }
-
+    
     bool scatter_metal(const Ray &r, const HitInfo &h, const Material &m, vec3 &attentuation, Ray &scattered, RandomState &rnd)
     {
         // if(m.material_type != MATERIAL_METAL)

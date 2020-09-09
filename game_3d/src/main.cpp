@@ -174,6 +174,35 @@ int main(int argc, char** argv)
     //state.init(model_manager);
     RandomState rnd;
 
+    //Controller
+    //Analog joystick dead zone
+    // The way SDL handles analog sticks on a game 
+    // controller is that it converts its position 
+    // into a number between -32768 and 32767. 
+    // This means a light tap could report a 
+    // position of 1000+. We want to ignore light
+    // taps, so we want to create a dead zone where
+    // input from the joystick is ignored.
+    //Game Controller 1 handler
+    SDL_Joystick* controller_1 = NULL;
+    //Check for joysticks
+    int num_joysticks = SDL_NumJoysticks();
+    printf("Joysticks: %i \n", num_joysticks);
+    if( num_joysticks < 1 )
+    {
+        printf( "Warning: No joysticks connected!\n" );
+    }
+    else
+    {
+        //Load joystick
+        controller_1 = SDL_JoystickOpen( 1 );
+        if( controller_1 == NULL )
+        {
+            printf( "Warning: Unable to open game controller! SDL Error: %s\n", SDL_GetError() );
+        }
+    }
+
+
     RendererRayTraced renderer;
     renderer.init(width, height);
 

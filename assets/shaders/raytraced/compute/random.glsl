@@ -125,17 +125,45 @@ vec3 isotropic(float rp, float c) {
 vec4 randomHemispherePoint(vec3 n, spatialrand rand) {
   return vec4(around(isotropic(rand.x, rand.y), n), ONE_OVER_2PI);
 }
+
 /**
- * Compute the probability density value of randomHemispherePoint()
- * generating the vector 'v'.
+ * Generate a cosine-weighted random vector on the hemisphere around the
+ * given normal vector 'n'.
+ *
+ * The probability density of any vector is directly proportional to the
+ * cosine of the angle between that vector and the given normal 'n'.
+ *
+ * http://www.rorydriscoll.com/2009/01/07/better-sampling/
  *
  * @param n the normal vector determining the direction of the
  *          hemisphere
- * @param v the vector to compute the pdf of
- * @returns pdf(v) for the uniform hemisphere distribution
+ * @param rand a vector of two floating-point pseudo-random numbers
+ * @returns the cosine-weighted random hemisphere vector plus its
+ *          probability density value
  */
-float hemisphereProbability(vec3 n, vec3 v) {
-  return step(0.0, dot(v, n)) * ONE_OVER_2PI;
+vec4 randomCosineWeightedHemispherePoint(vec3 n, spatialrand rand) {
+  float c = sqrt(rand.y);
+  return vec4(around(isotropic(rand.x, c), n), c * ONE_OVER_PI);
+}
+
+/**
+ * Generate Phong-weighted random vector around the given reflection
+ * vector 'r'.
+ * Since the Phong BRDF has higher values when the outgoing vector is
+ * close to the perfect reflection vector of the incoming vector across
+ * the normal, we generate directions primarily around that reflection
+ * vector.
+ *
+ * http://blog.tobias-franke.eu/2014/03/30/notes_on_importance_sampling.html
+ *
+ * @param r the direction of perfect reflection
+ * @param a the power to raise the cosine term to in the Phong model
+ * @param rand a vector of two pseudo-random numbers
+ * @returns the Phong-weighted random vector
+ */
+vec4 randomPhongWeightedHemispherePoint(vec3 r, float a, spatialrand rand) {
+  float ai = 1.0 / (a + 1.0), pr = (a + 1.0) * pow(rand.y, a * ai) * ONE_OVER_2PI;
+  return vec4(around(isotropic(rand.x, pow(rand.y, ai)), r), pr);
 }
 
 /**

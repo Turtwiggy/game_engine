@@ -36,6 +36,9 @@ namespace fightingengine {
 
             if (SDL_InitSubSystem(SDL_INIT_TIMER) != 0)
                 throw std::runtime_error("Could not initialize SDL Timer Subsystem: " + std::string(SDL_GetError()));
+            
+            if (SDL_InitSubSystem(SDL_INIT_JOYSTICK) != 0)
+                throw std::runtime_error("Could not initialize SDL JoyStick Subsystem: " + std::string(SDL_GetError()));        
         }
 
         int flags = SDL_WINDOW_OPENGL
@@ -64,11 +67,7 @@ namespace fightingengine {
         SDL_ShowCursor(SDL_ENABLE);
         SDL_SetRelativeMouseMode(SDL_FALSE);
 
-        // --------------------------------------------
-
         // OpenGL--------------------------------------
-
-        // --------------------------------------------
 
         gl_context = SDL_GL_CreateContext(window);
         SDL_GL_MakeCurrent(window, gl_context);
