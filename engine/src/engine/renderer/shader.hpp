@@ -32,6 +32,8 @@ namespace fightingengine {
 
         Shader& attach_shader(const char* path, OpenGLShaderTypes shader_type)
         {
+            //printf("(Shader) attaching shader: %s \n", path);
+
             std::string name;
             unsigned int type;
 
@@ -60,7 +62,6 @@ namespace fightingengine {
                 break;
             }
 
-            //printf("(Shader) attaching shader: %s \n", path);
             unsigned int shader = load_shader(path, type, name);
 
             shaders.push_back(shader);

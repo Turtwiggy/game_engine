@@ -44,7 +44,7 @@ target_include_directories(game_3d PRIVATE ${STB_INCLUDE_DIRS})
 #create symlink assets for build
 IF(${CMAKE_SYSTEM_NAME} STREQUAL "Windows")
   set (source "${CMAKE_SOURCE_DIR}/assets")
-  set (destination "${CMAKE_CURRENT_BINARY_DIR}/assets")
+  set (destination "${CMAKE_CURRENT_BINARY_DIR}/Debug/assets")
   add_custom_command(
     TARGET ${PROJECT_NAME} POST_BUILD
     COMMAND ${CMAKE_COMMAND} -E create_symlink ${source} ${destination} 
