@@ -51,7 +51,7 @@ namespace fightingengine {
     Shader ResourceManager::load_shader_from_file(std::string path, std::vector<std::string> files)
     {
         printf("----- Shader from path -------\n");
-        printf("Dir: %s \n", path);
+        printf("Dir: %s \n", path.c_str());
 
         Shader s;
 
