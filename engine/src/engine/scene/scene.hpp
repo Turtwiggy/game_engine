@@ -1,4 +1,8 @@
 
 namespace fightingengine {
 
+    class Scene {
+        
+    }
+
 }

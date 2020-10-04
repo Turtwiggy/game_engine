@@ -151,9 +151,8 @@ std::vector<Sphere> create_world()
 
 int main(int argc, char** argv)
 {
-    const float aspect_ratio = 16.0 / 9.0f;
-    int width = 1080;
-    int height = static_cast<int>(width / aspect_ratio);
+    int width = 1366;
+    int height = 768;
     Application app("Fighting Game!", width, height);
     app.set_fps_limit(150.0);
 
