@@ -31,6 +31,7 @@ namespace fightingengine {
     {
 
         //How to render scene?
+        printf("work me out!");
 
         Camera* main_camera = nullptr;
         glm::mat4* camera_transform = nullptr;
@@ -76,5 +77,5 @@ namespace fightingengine {
 				//camera_component.cam.(width, height);
 		}
     }
-    
+
 }

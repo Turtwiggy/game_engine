@@ -3,6 +3,8 @@
 #include "engine/scene/scene.hpp"
 #include "engine/scene/entity.hpp"
 
+#include <memory>
+
 using namespace fightingengine;
 
 namespace game_3d
@@ -12,17 +14,17 @@ namespace game_3d
     {
     public:
 		SceneHierarchyPanel() = default;
-		SceneHierarchyPanel(const Ref<Scene>& scene);
+		SceneHierarchyPanel(const std::shared_ptr<Scene>& scene);
 
-		void SetContext(const Ref<Scene>& scene);
+		void set_context(const std::shared_ptr<Scene>& scene);
 
-		void OnImGuiRender();
+		void on_imgui_render();
 	private:
-		void DrawEntityNode(Entity entity);
-		void DrawComponents(Entity entity);
+		void draw_entity_node(Entity entity);
+		void draw_components(Entity entity);
 	private:
-		Ref<Scene> m_Context;
-		Entity m_SelectionContext;
+		std::shared_ptr<Scene> context;
+		Entity selection_context;
     };
 
 }

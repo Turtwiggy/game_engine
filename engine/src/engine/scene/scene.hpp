@@ -16,13 +16,13 @@ namespace fightingengine {
 
         void on_update(const float delta_time);
         void on_viewport_resize(uint32_t width, uint32_t height);
-    
+
+        entt::registry& get_registry(){return registry;};
+
     private:
         entt::registry registry;
         int32_t viewport_width = 0, viewport_height = 0;
 
         friend class Entity;
-        friend class SceneHierarchyPanel;
-
     };
 }

@@ -6,6 +6,7 @@
 	],
 	"settings": {
 		"files.associations": {
+			"*.glsl": "c",
 			"memory": "cpp",
 			"xstring": "cpp",
 			"array": "cpp",
@@ -78,7 +79,24 @@
 			"typeinfo": "cpp",
 			"valarray": "cpp",
 			"variant": "cpp",
-			"xiosbase": "cpp"
+			"xiosbase": "cpp",
+			"filesystem": "cpp",
+			"ios": "cpp",
+			"locale": "cpp",
+			"xfacet": "cpp",
+			"xhash": "cpp",
+			"xlocale": "cpp",
+			"xlocbuf": "cpp",
+			"xlocinfo": "cpp",
+			"xlocmes": "cpp",
+			"xlocmon": "cpp",
+			"xlocnum": "cpp",
+			"xloctime": "cpp",
+			"xmemory": "cpp",
+			"xstddef": "cpp",
+			"xtr1common": "cpp",
+			"xtree": "cpp",
+			"xutility": "cpp"
 		},
 		"cmake.loggingLevel": "debug"
 	}
