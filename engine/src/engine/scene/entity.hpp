@@ -14,30 +14,30 @@ namespace fightingengine {
 		Entity(const Entity& other) = default;
 
 		template<typename T, typename... Args>
-		T& AddComponent(Args&&... args)
+		T& add_component(Args&&... args)
 		{
-			assert(!HasComponent<T>()); //"Entity already has component!");
-			return scene->m_Registry.emplace<T>(entity_handle, std::forward<Args>(args)...);
+			assert(!has_component<T>()); //"Entity already has component!");
+			return scene->registry.emplace<T>(entity_handle, std::forward<Args>(args)...);
 		}
 
 		template<typename T>
-		T& GetComponent()
+		T& get_component()
 		{
-			assert(HasComponent<T>()); //, "Entity does not have component!");
-			return scene->m_Registry.get<T>(entity_handle);
+			assert(has_component<T>()); //, "Entity does not have component!");
+			return scene->registry.get<T>(entity_handle);
 		}
 
 		template<typename T>
-		bool HasComponent()
+		bool has_component()
 		{
-			return scene->m_Registry.has<T>(entity_handle);
+			return scene->registry.has<T>(entity_handle);
 		}
 
 		template<typename T>
-		void RemoveComponent()
+		void remove_component()
 		{
-			assert(HasComponent<T>()); //, "Entity does not have component!");
-			scene->m_Registry.remove<T>(entity_handle);
+			assert(has_component<T>()); //, "Entity does not have component!");
+			scene->registry.remove<T>(entity_handle);
 		}
 
 		operator bool() const { return entity_handle != entt::null; }
