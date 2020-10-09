@@ -1,34 +1,36 @@
-Commands    
+Download external libs
 
     git submodule update --init --recursive
 
-How to compile for Linux-x64
+(Linux) Install vcpkg dependancies for Linux-x64
 
-    .\thirdparty\vcpkg\bootstrap-vcpkg.sh
+    ./thirdparty/vcpkg/bootstrap-vcpkg.sh
 
-    .\thirdparty\vcpkg\vcpkg.exe install @deps_vcpkg_x64-linux.txt
+    ./thirdparty/vcpkg/vcpkg.exe install @deps_vcpkg_x64-linux.txt
 
-    ./thirdparty/premake/linux/premake5 gmake2      
-
-    make
-
-How to compile for Window-x64
+(Windows) Install vcpkg dependancies for Window-x64
 
     .\thirdparty\vcpkg\bootstrap-vcpkg.bat
 
     .\thirdparty\vcpkg\vcpkg.exe install @deps_vcpkg_x64-windows.txt
 
-    .\thirdparty\vcpkg\vcpkg.exe integrate install
+How to build a project
 
-    .\build-vs2019.bat
+    - Open the .workspace file in visual studio code
+
+    - Install C/C++ extention
+
+    - Install CMake Tools
+
+    - Build the desired project
 
 This project uses 
 - SDL2 - window management (cross-platform)
 - Glew - opengl extention management (cross-platform)
 - ImGui - ui (cross-platform)
+- Entt - entity component system
 
 planned to use in future
-- GameNetworkingSockets - https://github.com/ValveSoftware/GameNetworkingSockets
+- GameNetworkingSockets - https:\\github.com\ValveSoftware\GameNetworkingSockets
 - GGPO
 - Bullet3 - physics
-- Entt - entity component system
