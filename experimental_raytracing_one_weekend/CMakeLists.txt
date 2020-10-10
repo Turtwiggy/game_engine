@@ -18,6 +18,8 @@ foreach(package ${ENGINE_PACKAGES})
   message("${PROJECT_NAME} finding package... ${package}")
   find_package(${package} REQUIRED)
 endforeach()
+
+#Add VCPKG header-only
 find_path(STB_INCLUDE_DIRS "stb.h")
 
 # add source files
@@ -38,13 +40,13 @@ target_include_directories(ray_tracing_one_weekend PRIVATE
   ${ENGINE_INCLUDES} 
   ${CMAKE_SOURCE_DIR}/ray_tracing_one_weekend/src
 )
+target_include_directories(ray_tracing_one_weekend PRIVATE ${STB_INCLUDE_DIRS})
 
 # link libs
 foreach(library ${ENGINE_LINK_LIBS})
   message("${PROJECT_NAME} linking library... ${library}")
   target_link_libraries(ray_tracing_one_weekend PRIVATE ${library})
 endforeach()
-target_include_directories(ray_tracing_one_weekend PRIVATE ${STB_INCLUDE_DIRS})
 
 # create symlink assets for build
 IF(${CMAKE_SYSTEM_NAME} STREQUAL "Windows")

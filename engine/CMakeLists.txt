@@ -18,6 +18,8 @@ foreach(package ${ENGINE_PACKAGES})
   message("finding package... ${package}")
   find_package(${package} REQUIRED)
 endforeach()
+
+#Add VCPKG header-only
 find_path(STB_INCLUDE_DIRS "stb.h")
 
 #Add source files
@@ -27,6 +29,7 @@ add_library(engine ${SRC_FILES})
 
 #Includes
 target_include_directories(engine PRIVATE ${ENGINE_INCLUDES} )
+target_include_directories(engine PRIVATE ${STB_INCLUDE_DIRS})
 
 #Link Libs
 foreach(library ${ENGINE_LINK_LIBS})

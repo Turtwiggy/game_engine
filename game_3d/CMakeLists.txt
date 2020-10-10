@@ -18,6 +18,8 @@ foreach(package ${ENGINE_PACKAGES})
   message("${PROJECT_NAME} finding package... ${package}")
   find_package(${package} REQUIRED)
 endforeach()
+
+#Add VCPKG header-only
 find_path(STB_INCLUDE_DIRS "stb.h")
 
 # add source files
@@ -33,13 +35,13 @@ target_include_directories(game_3d PRIVATE
   ${ENGINE_INCLUDES} 
   ${CMAKE_SOURCE_DIR}/game_3d/src
 )
+target_include_directories(game_3d PRIVATE ${STB_INCLUDE_DIRS})
 
 # link libs
 foreach(library ${ENGINE_LINK_LIBS})
   message("${PROJECT_NAME} linking library... ${library}")
   target_link_libraries(game_3d PRIVATE ${library})
 endforeach()
-target_include_directories(game_3d PRIVATE ${STB_INCLUDE_DIRS})
 
 #create symlink assets for build
 IF(${CMAKE_SYSTEM_NAME} STREQUAL "Windows")

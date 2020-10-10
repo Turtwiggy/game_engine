@@ -18,38 +18,34 @@ foreach(package ${ENGINE_PACKAGES})
   message("${PROJECT_NAME} finding package... ${package}")
   find_package(${package} REQUIRED)
 endforeach()
+
+#Add VCPKG header-only
 find_path(STB_INCLUDE_DIRS "stb.h")
 
 # add source files
 file(GLOB_RECURSE SRC_FILES 
-
   #engine source
   ${ENGINE_SOURCE} 
-
   #game source
   "${CMAKE_SOURCE_DIR}/game_2d/src/*.cpp"
-
 )
 
 add_executable(game_2d ${SRC_FILES})
 
 # includes
 target_include_directories(game_2d PRIVATE 
-
   #engine includes
   ${ENGINE_INCLUDES} 
-
   #game includes
   ${CMAKE_SOURCE_DIR}/game_2d/src
-
 )
+target_include_directories(game_2d PRIVATE ${STB_INCLUDE_DIRS})
 
 # link libs
 foreach(library ${ENGINE_LINK_LIBS})
   message("${PROJECT_NAME} linking library... ${library}")
   target_link_libraries(game_2d PRIVATE ${library})
 endforeach()
-target_include_directories(game_2d PRIVATE ${STB_INCLUDE_DIRS})
 
 #create symlink assets for build
 IF(${CMAKE_SYSTEM_NAME} STREQUAL "Windows")

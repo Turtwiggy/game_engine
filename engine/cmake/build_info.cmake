@@ -6,7 +6,7 @@ set(CPACK_PROJECT_VERSION ${PROJECT_VERSION})
 
 #VCPKG packages
 set (ENGINE_PACKAGES_CONFIG
-    SDL2 EnTT Bullet spdlog glm 
+    SDL2 EnTT Bullet spdlog glm
 )
 set (ENGINE_PACKAGES
     OpenGL GLEW
@@ -44,6 +44,7 @@ if(${CMAKE_SYSTEM_NAME} STREQUAL "Windows")
         SDL2::SDL2 SDL2::SDL2main
         opengl32
     )
+
 elseif(${CMAKE_SYSTEM_NAME} STREQUAL "Linux")
     #Vcpkg linux includes
     set (ENGINE_INCLUDES

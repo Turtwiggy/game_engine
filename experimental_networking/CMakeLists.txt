@@ -9,7 +9,7 @@ message("experimental_networking: ${CMAKE_BUILD_TYPE}")
 # build the engine + bring in Vcpkg
 include("${CMAKE_SOURCE_DIR}/engine/cmake/build_info.cmake")
 
-# add Vcpkg packages
+#Add VCPKG packages
 foreach(package ${ENGINE_PACKAGES_CONFIG})
   message("${PROJECT_NAME} finding package... ${package}")
   find_package(${package} CONFIG REQUIRED)
@@ -18,6 +18,8 @@ foreach(package ${ENGINE_PACKAGES})
   message("${PROJECT_NAME} finding package... ${package}")
   find_package(${package} REQUIRED)
 endforeach()
+
+#Add VCPKG header-only
 find_path(STB_INCLUDE_DIRS "stb.h")
 
 # add source files
@@ -35,13 +37,13 @@ target_include_directories(experimental_networking PRIVATE
   ${ENGINE_INCLUDES} 
   ${CMAKE_SOURCE_DIR}/experimental_networking/src
 )
+target_include_directories(experimental_networking PRIVATE ${STB_INCLUDE_DIRS})
 
 # link libs
 foreach(library ${ENGINE_LINK_LIBS})
   message("${PROJECT_NAME} linking library... ${library}")
   target_link_libraries(experimental_networking PRIVATE ${library})
 endforeach()
-target_include_directories(experimental_networking PRIVATE ${STB_INCLUDE_DIRS})
 
 # create symlink assets for build
 IF(${CMAKE_SYSTEM_NAME} STREQUAL "Windows")
