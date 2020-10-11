@@ -2,7 +2,7 @@
 
 #include "engine/geometry/triangle.hpp"
 #include "engine/geometry/vertex.hpp"
-#include "engine/core/maths.hpp"
+#include "engine/core/maths/base.hpp"
 
 #include <glm/glm.hpp>
 

@@ -1,6 +1,6 @@
 #pragma once
 
-#include "engine/core/random.hpp"
+#include "engine/core/maths/random.hpp"
 
 #include <glm/glm.hpp>
 

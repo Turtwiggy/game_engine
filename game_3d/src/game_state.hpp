@@ -1,7 +1,6 @@
 #pragma once
 
 #include "engine/core/application.hpp"
-#include "engine/3d/game_object_3d.hpp"
 #include "engine/3d/camera.hpp"
 #include "engine/3d/renderer/renderer_ray_traced.hpp"
 #include "engine/renderer/render_command.hpp"
@@ -95,7 +94,7 @@ struct GameState
     }
 
     uint32_t draw_calls = 0;
-    std::vector<std::shared_ptr<GameObject3D>> cubes;
+    //std::vector<std::shared_ptr<GameObject3D>> cubes;
 };
 
 std::vector<Sphere> create_world()

@@ -4,7 +4,7 @@
 #include "engine/renderer/render_command.hpp"
 #include "engine/renderer/shader.hpp"
 #include "engine/renderer/util/util_functions.hpp"
-#include "engine/3d/ray.hpp"
+#include "engine/core/maths/ray.hpp"
 
 #include "GL/glew.h"
 #include <glm/glm.hpp>

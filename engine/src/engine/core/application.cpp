@@ -29,7 +29,7 @@ namespace fightingengine {
         //renderer->init_renderer(m_width, m_height);
 
         fps_buffer = boost::circular_buffer<float>(100);
-        
+
         imgui_manager.initialize(window.get());
 
         running = true;
@@ -246,7 +246,7 @@ namespace fightingengine {
 
     float Application::get_average_fps()
     {
-        return std::accumulate(fps_buffer.begin(), fps_buffer.end(), 0);
+        return std::accumulate(fps_buffer.begin(), fps_buffer.end(), 0) / (float)fps_buffer.size();
     }
 
 }

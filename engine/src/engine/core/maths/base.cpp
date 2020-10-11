@@ -1,4 +1,4 @@
-#include "engine/core/maths.hpp"
+#include "engine/core/maths/base.hpp"
 
 namespace fightingengine{
     

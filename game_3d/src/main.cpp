@@ -3,7 +3,6 @@
 
 #include "engine/core/application.hpp"
 //#include "engine/resources/model_manager.hpp"
-#include "engine/3d/game_object_3d.hpp"
 #include "engine/3d/camera.hpp"
 #include "engine/3d/renderer/renderer_ray_traced.hpp"
 #include "engine/renderer/render_command.hpp"
@@ -17,8 +16,7 @@
 #include <GL/glew.h>
 #include <glm/glm.hpp>
 #include <SDL2/SDL.h>
-#undef main
-//^thanks SDL2
+#undef main //thanks SDL2?
 
 #include <memory>
 #include <vector>
@@ -52,6 +50,14 @@ int main(int argc, char** argv)
 
     RendererRayTraced renderer;
     renderer.init(width, height);
+
+    //UI
+    auto default_scene = std::make_shared<Scene>();
+    SceneHierarchyPanel scene_panel;
+    scene_panel.set_context(default_scene);
+
+    std::string s1 = std::string("hello world 1");
+    std::string s2 = std::string("hello world 2");
 
     float timer = 0.0f;
     while (app.is_running())
@@ -107,12 +113,14 @@ int main(int argc, char** argv)
 
         // ~~ rendering ~~
         state.render(renderer, camera, app.get_window(), timer);
+        default_scene->on_update(delta_time_s);
 
         // ~~ GUI ~~
         app.gui_begin();
+        scene_panel.on_imgui_render();
 
         ImGui::Begin("Hello Window");
-        ImGui::Text("Hello World");
+        ImGui::Text(s1.c_str());
         ImGui::End();
 
         ImGui::Begin("Info");

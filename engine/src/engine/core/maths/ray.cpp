@@ -1,6 +1,6 @@
-#include "engine/3d/ray.hpp"
+#include "engine/core/maths/ray.hpp"
 
-#include "engine/core/maths.hpp"
+#include "engine/core/maths/base.hpp"
 
 #include "glm/glm.hpp"
 using namespace glm;

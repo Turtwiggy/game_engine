@@ -97,7 +97,19 @@
 			"xtr1common": "cpp",
 			"xtree": "cpp",
 			"xutility": "cpp",
-			"*.ipp": "cpp"
+			"*.ipp": "cpp",
+			"csetjmp": "cpp",
+			"csignal": "cpp",
+			"any": "cpp",
+			"cfenv": "cpp",
+			"charconv": "cpp",
+			"cuchar": "cpp",
+			"execution": "cpp",
+			"queue": "cpp",
+			"scoped_allocator": "cpp",
+			"stack": "cpp",
+			"strstream": "cpp",
+			"typeindex": "cpp"
 		},
 		"cmake.loggingLevel": "debug"
 	}

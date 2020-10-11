@@ -1,7 +1,7 @@
 #pragma once
 
 #include "engine/2d/renderer/sprite_renderer.hpp"
-#include "engine/core/random.hpp"
+#include "engine/core/maths/random.hpp"
 
 #include <glm/glm.hpp>
 #include <entt/entt.hpp>

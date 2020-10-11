@@ -1,6 +1,6 @@
 #pragma once
 
-#include "engine/3d/ray.hpp"
+#include "engine/core/maths/ray.hpp"
 
 #include <glm/glm.hpp>
 #include <glm/gtc/matrix_transform.hpp>
@@ -55,18 +55,7 @@ namespace fightingengine {
             glm::vec3 up, 
             float yaw = YAW, 
             float pitch = PITCH 
-        )
-            : Front(glm::vec3(0.0f, 0.0f, -1.0f))
-            , MovementSpeed(SPEED)
-            , CameraSensitivity(SENSITIVITY)
-            , Zoom(ZOOM)
-        {
-            Position = position;
-            WorldUp = up;
-            Yaw = yaw;
-            Pitch = pitch;
-            update_camera_vectors();
-        }
+        );
 
         void resize(int width, int height);
 
