@@ -1,13 +1,13 @@
 #pragma once
 
 #include "engine/core/game_window.hpp"
-#include "engine/core/data_structures/circular_buffer.hpp"
 #include "engine/core/input_manager.hpp"
 #include "engine/imgui/imgui_setup.hpp"
 //#include "engine/debug/profiler.hpp"
 
 #include <memory>
 #include <string>
+#include <boost/circular_buffer.hpp>
 
 namespace fightingengine {
 
@@ -16,23 +16,23 @@ namespace fightingengine {
     public:
         Application(const std::string& name = "Fighting Engine (Default)", int width = 1080, int height = 720);
         virtual ~Application();
+
+        [[nodiscard]] bool is_running();
         void shutdown();
 
-        float get_delta_time();
+        [[nodiscard]] float get_delta_time();
         void frame_begin();
         void frame_end(float delta_time);
         void poll(); 
         void gui_begin();
         void gui_end();
 
-        bool is_running() { return running; }
+        [[nodiscard]] InputManager& get_input();
+        [[nodiscard]] ImGui_Manager& get_imgui();
+        [[nodiscard]] GameWindow& get_window();
 
-        InputManager& get_input() { return input_manager; }
-        ImGui_Manager& get_imgui() { return imgui_manager; }
-        GameWindow& get_window() { return *window; }
-
-        void set_fps_limit(double fps) { FPS = fps; MILLISECONDS_PER_FRAME = (Uint32)(1000 / FPS); }
-        float get_average_fps() { return fps_buffer.average(); }
+        void set_fps_limit(double fps);
+        [[nodiscard]] float get_average_fps();
 
     private:
 
@@ -51,10 +51,10 @@ namespace fightingengine {
         bool fullscreen = false;
         bool minimized = false;
 
-         //FPS settings
+        //FPS settings
         double FPS = 60.0;
         Uint32 MILLISECONDS_PER_FRAME = (Uint32)(1000 / FPS);
-        CircularBuffer<float, 100> fps_buffer;
+        boost::circular_buffer<float> fps_buffer;
 
         //Game's fixed tick
         int FIXED_TICKS_PER_SECOND = 1;

@@ -2,10 +2,11 @@
 #include "engine/core/application.hpp"
 #include "engine/resources/resource_manager.hpp"
 
-#include "SDL2/SDL.h"
-#include "SDL2/SDL_events.h"
-
+#include <SDL2/SDL.h>
+#include <SDL2/SDL_events.h>
 #include <GL/glew.h>
+
+#include <numeric>
 
 namespace fightingengine {
 
@@ -27,6 +28,8 @@ namespace fightingengine {
         //renderer->init_opengl(*window.get());
         //renderer->init_renderer(m_width, m_height);
 
+        fps_buffer = boost::circular_buffer<float>(100);
+        
         imgui_manager.initialize(window.get());
 
         running = true;
@@ -44,6 +47,11 @@ namespace fightingengine {
         running = false;
     }
 
+    bool Application::is_running()
+    {
+        return running;
+    }
+
     float Application::get_delta_time()
     {
         now = SDL_GetTicks();         //Returns an unsigned 32-bit value representing the number of milliseconds since the SDL library initialized.
@@ -59,7 +67,6 @@ namespace fightingengine {
 
         return delta_time_in_seconds;
     }
-
 
     void Application::frame_begin()
     {
@@ -225,6 +232,21 @@ namespace fightingengine {
 
         minimized = false;
         //renderer->resize(w, h);
+    }
+
+    InputManager& Application::get_input() { return input_manager; }
+    ImGui_Manager& Application::get_imgui() { return imgui_manager; }
+    GameWindow& Application::get_window() { return *window; }
+
+    void Application::set_fps_limit(double fps)
+    { 
+        FPS = fps; 
+        MILLISECONDS_PER_FRAME = (Uint32)(1000 / FPS); 
+    }
+
+    float Application::get_average_fps()
+    {
+        return std::accumulate(fps_buffer.begin(), fps_buffer.end(), 0);
     }
 
 }

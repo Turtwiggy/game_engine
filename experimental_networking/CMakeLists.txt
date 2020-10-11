@@ -21,6 +21,8 @@ endforeach()
 
 #Add VCPKG header-only
 find_path(STB_INCLUDE_DIRS "stb.h")
+find_path(BOOST_ASIO_INCLUDE_DIRS "boost/asio.hpp")
+find_path(BOOST_CIRCULAR_BUFFER_INCLUDE_DIRS "boost/circular_buffer.hpp")
 
 # add source files
 file(GLOB_RECURSE SRC_FILES 
@@ -38,6 +40,8 @@ target_include_directories(experimental_networking PRIVATE
   ${CMAKE_SOURCE_DIR}/experimental_networking/src
 )
 target_include_directories(experimental_networking PRIVATE ${STB_INCLUDE_DIRS})
+target_include_directories(experimental_networking PRIVATE ${BOOST_ASIO_INCLUDE_DIRS})
+target_include_directories(experimental_networking PRIVATE ${BOOST_CIRCULAR_BUFFER_INCLUDE_DIRS})
 
 # link libs
 foreach(library ${ENGINE_LINK_LIBS})

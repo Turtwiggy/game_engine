@@ -5,5 +5,10 @@ spdlog
 glm
 glew
 stb
+boost-circular-buffer
+boost-asio
+boost-coroutine
+boost-regex
+boost-system
 --triplet
 x64-windows

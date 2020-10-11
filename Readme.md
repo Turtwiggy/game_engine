@@ -14,15 +14,15 @@ Download external libs
 
 This project uses 
 
-    - SDL2 - window management (cross-platform)
-    - Glew - opengl extention management (cross-platform)
-    - ImGui 
-    - Entt - entity component system
+- SDL2 - window management (cross-platform)
+- Glew - opengl extention management (cross-platform)
+- ImGui 
+- Entt - entity component system
 
-planned to use in future
+Maybe in future
 
-    - GGPO
-    - Bullet3 - physics
+- GGPO
+- Bullet3 - physics
 
 How to build with Visual Studio Code
 
