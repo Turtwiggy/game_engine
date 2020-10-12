@@ -22,7 +22,7 @@ namespace fightingengine {
 
         [[nodiscard]] float get_delta_time();
         void frame_begin();
-        void frame_end(float delta_time);
+        void frame_end(const float delta_time);
         void poll(); 
         void gui_begin();
         void gui_end();
@@ -31,7 +31,7 @@ namespace fightingengine {
         [[nodiscard]] ImGui_Manager& get_imgui();
         [[nodiscard]] GameWindow& get_window();
 
-        void set_fps_limit(double fps);
+        void set_fps_limit(const double fps);
         [[nodiscard]] float get_average_fps();
 
     private:

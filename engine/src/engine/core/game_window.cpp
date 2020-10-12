@@ -24,7 +24,8 @@ namespace fightingengine {
         spdlog::info("SDL Version/Compiled {}.{}.{}", compiledVersion.major, compiledVersion.minor, compiledVersion.patch);
         spdlog::info("SDL Version/Linked {}.{}.{}", linkedVersion.major, linkedVersion.minor, linkedVersion.patch);
 
-        // Initialize SDL
+        // Initialize SDL -----------------------
+
         if (SDL_WasInit(0) == 0)
         {
             SDL_SetMainReady();
@@ -120,7 +121,7 @@ namespace fightingengine {
         return SDL_GetWindowBrightness(_window.get());
     }
 
-    void GameWindow::SetBrightness(float brightness)
+    void GameWindow::SetBrightness(const float brightness)
     {
         if (SDL_SetWindowBrightness(_window.get(), brightness))
         {
@@ -136,21 +137,6 @@ namespace fightingengine {
     uint32_t GameWindow::GetFlags() const
     {
         return SDL_GetWindowFlags(_window.get());
-    }
-
-    void GameWindow::GrabInput(bool b)
-    {
-        SDL_SetWindowGrab(_window.get(), b ? SDL_TRUE : SDL_FALSE);
-    }
-
-    void GameWindow::SetMousePosition(int x, int y)
-    {
-        SDL_WarpMouseInWindow(_window.get(), x, y);
-    }
-
-    bool GameWindow::IsInputGrabbed() const
-    {
-        return SDL_GetWindowGrab(_window.get()) != SDL_FALSE;
     }
 
     std::string GameWindow::GetTitle() const
@@ -170,6 +156,28 @@ namespace fightingengine {
 
         return (float)width / (float)height;
     }
+
+
+    void GameWindow::Show()
+    {
+        SDL_ShowWindow(_window.get());
+    }
+
+    void GameWindow::Hide()
+    {
+        SDL_HideWindow(_window.get());
+    }
+
+    void GameWindow::Close()
+    {
+        SDL_DestroyWindow(_window.get());
+        SDL_Quit();
+
+        _window.reset(nullptr);
+
+        SDL_GL_DeleteContext(get_gl_context());
+    }
+
 
     void GameWindow::SetPosition(int x, int y)
     {
@@ -211,15 +219,7 @@ namespace fightingengine {
         SDL_GetWindowSize(_window.get(), &width, &height);
     }
 
-    void GameWindow::Show()
-    {
-        SDL_ShowWindow(_window.get());
-    }
 
-    void GameWindow::Hide()
-    {
-        SDL_HideWindow(_window.get());
-    }
 
     void GameWindow::Maximise()
     {
@@ -241,12 +241,12 @@ namespace fightingengine {
         SDL_RaiseWindow(_window.get());
     }
 
-    void GameWindow::SetBordered(bool b)
+    void GameWindow::SetBordered(const bool b)
     {
         SDL_SetWindowBordered(_window.get(), b ? SDL_TRUE : SDL_FALSE);
     }
 
-    void GameWindow::SetFullscreen(bool b)
+    void GameWindow::SetFullscreen(const bool b)
     {
         // todo: use DisplayMode
         if (SDL_SetWindowFullscreen(_window.get(), b ? SDL_WINDOW_FULLSCREEN_DESKTOP : 0))
@@ -255,25 +255,44 @@ namespace fightingengine {
         }
     }
 
-    bool GameWindow::ToggleFullscreen()
+    bool GameWindow::GetFullscreen() const
     {
         Uint32 FullscreenFlag = SDL_WINDOW_FULLSCREEN;
-        bool IsFullscreen = SDL_GetWindowFlags(_window.get()) & FullscreenFlag;
-        SDL_SetWindowFullscreen(_window.get(), IsFullscreen ? 0 : FullscreenFlag);
-        //SDL_ShowCursor(IsFullscreen);
-
-        return !IsFullscreen;
+        return SDL_GetWindowFlags(_window.get()) & FullscreenFlag;
     }
 
-    void GameWindow::Close()
+    void GameWindow::ToggleFullscreen()
     {
-        SDL_DestroyWindow(_window.get());
-        SDL_Quit();
-
-        _window.reset(nullptr);
-
-        SDL_GL_DeleteContext(get_gl_context());
+        Uint32 FullscreenFlag = SDL_WINDOW_FULLSCREEN;
+        bool is_fullscreen = GetFullscreen();
+        SDL_SetWindowFullscreen(_window.get(), is_fullscreen ? 0 : is_fullscreen);
+        //SDL_ShowCursor(IsFullscreen);
     }
+
+
+    void GameWindow::GrabInput(const bool b)
+    {
+        SDL_SetWindowGrab(_window.get(), b ? SDL_TRUE : SDL_FALSE);
+    }
+
+    void GameWindow::SetMousePosition(const int x, const int y)
+    {
+        SDL_WarpMouseInWindow(_window.get(), x, y);
+    }
+
+    bool GameWindow::IsInputGrabbed() const
+    {
+        return SDL_GetWindowGrab(_window.get()) != SDL_FALSE;
+    }
+
+    //returns true if mouse is grabbed, false if it available
+    void GameWindow::ToggleMouseCaptured()
+    {
+        bool grabbed = IsInputGrabbed();
+        SDL_SetRelativeMouseMode(!grabbed ? SDL_TRUE : SDL_FALSE);
+        GrabInput(grabbed);
+    }
+
 
     SDL_GLContext& GameWindow::get_gl_context()
     {
@@ -285,11 +304,4 @@ namespace fightingengine {
         return glsl_version;
     }
 
-    //returns true if mouse is grabbed, false if it available
-    void GameWindow::ToggleMouseCaptured()
-    {
-        bool grabbed = !IsInputGrabbed();
-        SDL_SetRelativeMouseMode(grabbed ? SDL_TRUE : SDL_FALSE);
-        GrabInput(grabbed);
-    }
 }

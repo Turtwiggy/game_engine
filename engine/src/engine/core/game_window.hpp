@@ -30,20 +30,18 @@ namespace fightingengine
 
 		[[nodiscard]] bool IsOpen() const;
 		[[nodiscard]] float GetBrightness() const;
-		void SetBrightness(float bright);
+		void SetBrightness(const float bright);
 		[[nodiscard]] uint32_t GetID() const;
 		[[nodiscard]] uint32_t GetFlags() const;
-		void GrabInput(bool b = true);
-		void SetMousePosition(int x, int y);
-		[[nodiscard]] bool IsInputGrabbed() const;
-		void ToggleMouseCaptured();
-		[[nodiscard]] float GetAspectRatio() const;
+
 
 		void SetTitle(const std::string& str);
 		[[nodiscard]] std::string GetTitle() const;
+		[[nodiscard]] float GetAspectRatio() const;
 
 		void Show();
 		void Hide();
+		void Close();
 
 		void SetPosition(int x, int y);
 		void GetPosition(int& x, int& y) const;
@@ -58,14 +56,21 @@ namespace fightingengine
 		void Maximise();
 		void Restore();
 		void Raise();
-		void SetBordered(bool b = true);
-		void SetFullscreen(bool f = true);
-        bool ToggleFullscreen();    //returns the new value
+
+		void SetBordered(const bool b);
+		void SetFullscreen(const bool f);
+		[[nodiscard]] bool GetFullscreen() const;
+        void ToggleFullscreen();    //returns true if fullscreen
+
+		//Mouse
+		void GrabInput(const bool b);
+		void SetMousePosition(const int x, const int y);
+		[[nodiscard]] bool IsInputGrabbed() const;
+		void ToggleMouseCaptured();
 
         SDL_GLContext& get_gl_context();
         std::string get_glsl_version();
 
-		void Close();
 
 	private:
 		std::unique_ptr<SDL_Window, SDLDestroyer> _window;

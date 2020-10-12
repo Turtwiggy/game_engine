@@ -20,6 +20,7 @@
 
 #include <memory>
 #include <vector>
+#include <string_view>
 
 using namespace fightingengine;
 using namespace game_3d;
@@ -56,8 +57,9 @@ int main(int argc, char** argv)
     SceneHierarchyPanel scene_panel;
     scene_panel.set_context(default_scene);
 
-    std::string s1 = std::string("hello world 1");
-    std::string s2 = std::string("hello world 2");
+    std::string_view s1{"hello world 1"};
+    std::string_view s2{"hello world 2"};
+    std::string_view string_to_display{ s1 };
 
     float timer = 0.0f;
     while (app.is_running())
@@ -120,7 +122,7 @@ int main(int argc, char** argv)
         scene_panel.on_imgui_render();
 
         ImGui::Begin("Hello Window");
-        ImGui::Text(s1.c_str());
+        ImGui::Text(std::string(string_to_display).c_str());
         ImGui::End();
 
         ImGui::Begin("Info");

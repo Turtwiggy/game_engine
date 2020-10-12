@@ -78,7 +78,7 @@ namespace fightingengine {
         input_manager.new_frame();
     }
 
-    void Application::frame_end(float delta_time)
+    void Application::frame_end(const float delta_time)
     {
         // FPS Profiling
         // -------------
@@ -234,11 +234,21 @@ namespace fightingengine {
         //renderer->resize(w, h);
     }
 
-    InputManager& Application::get_input() { return input_manager; }
-    ImGui_Manager& Application::get_imgui() { return imgui_manager; }
-    GameWindow& Application::get_window() { return *window; }
+    InputManager& Application::get_input() 
+    { 
+        return input_manager; 
+    }
 
-    void Application::set_fps_limit(double fps)
+    ImGui_Manager& Application::get_imgui() 
+    { 
+        return imgui_manager; 
+    }
+
+    GameWindow& Application::get_window() { 
+        return *window; 
+    }
+
+    void Application::set_fps_limit(const double fps)
     { 
         FPS = fps; 
         MILLISECONDS_PER_FRAME = (Uint32)(1000 / FPS); 
