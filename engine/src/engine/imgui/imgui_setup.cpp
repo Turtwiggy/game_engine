@@ -4,7 +4,10 @@
 #include "engine/core/application.hpp"
 #include "engine/core/game_window.hpp"
 
-#include <GL/glew.h>
+#if defined(IMGUI_IMPL_OPENGL_LOADER_GLEW)
+#include <GL/glew.h>      
+#endif
+
 #include <imgui.h>
 #include <examples/imgui_impl_sdl.h>
 #include <examples/imgui_impl_opengl3.h>

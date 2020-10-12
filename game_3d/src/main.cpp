@@ -116,9 +116,9 @@ int main(int argc, char** argv)
             //    renderer.resize(width, height);
 
             // ~~ Camera ~~
-            if(app.get_input().get_key_held(SDL_Scancode::SDL_SCANCODE_W))
+            if (app.get_input().get_key_held(SDL_Scancode::SDL_SCANCODE_W))
                 camera.update(delta_time_s, CameraMovement::FORWARD);
-            else if(app.get_input().get_key_held(SDL_Scancode::SDL_SCANCODE_S))
+            else if (app.get_input().get_key_held(SDL_Scancode::SDL_SCANCODE_S))
                 camera.update(delta_time_s, CameraMovement::BACKWARD);
             if (app.get_input().get_key_held(SDL_Scancode::SDL_SCANCODE_A))
                 camera.update(delta_time_s, CameraMovement::LEFT);
@@ -130,7 +130,7 @@ int main(int argc, char** argv)
                 camera.update(delta_time_s, CameraMovement::DOWN);
 
             // ~~ Mouse ~~
-            if(app.get_window().IsInputGrabbed())
+            if (app.get_window().IsInputGrabbed())
             {                
                 int x, y;
                 if(new_grab)
@@ -179,13 +179,15 @@ int main(int argc, char** argv)
             app.gui_begin();
             scene_panel.on_imgui_render();
 
-            bool demo_window = true;
-            ImGui::ShowDemoWindow(&demo_window);
+            //bool demo_window = true;
+            //ImGui::ShowDemoWindow(&demo_window);
 
             ImGui::Begin("Hello Window");
-
+            if (ImGui::Button("Hello Button"))
+            {
+                printf("button clicked \n");
+            };
             ImGui::Text(std::string(string_to_display).c_str());
-
             ImGui::End();
 
             ImGui::Begin("Profiler");

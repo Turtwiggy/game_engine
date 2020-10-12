@@ -18,7 +18,7 @@ namespace fightingengine {
         void init(int screen_width, int screen_height);
         void resize(Camera& c, int width, int height);
 
-        Shader& first_geometry_pass
+        [[nodiscard]] Shader& first_geometry_pass
         (
             Camera& camera,
             int width,
@@ -30,7 +30,7 @@ namespace fightingengine {
             Camera& camera,
             int     width,
             int     height,
-            std::vector<FETriangle> triangles,
+            const std::vector<FETriangle>& triangles,
             float   timer,
             bool    force_refresh = false
         );

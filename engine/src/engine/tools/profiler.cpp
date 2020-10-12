@@ -15,11 +15,6 @@ namespace fightingengine {
         auto& prevEntry = entries[current_entry];
         current_entry = (current_entry + 1) % frames_data_live;
         prevEntry.frame_end = entries[current_entry].frame_start = std::chrono::system_clock::now();
-
-        for(auto& entry : entries)
-        {
-            
-        }
     }
 
     float Profiler::get_time(const Stage& request)

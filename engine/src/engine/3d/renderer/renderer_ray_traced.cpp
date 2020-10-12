@@ -260,7 +260,7 @@ namespace fightingengine {
         Camera& camera,
         int     width,
         int     height,
-        std::vector<FETriangle> triangles,
+        const std::vector<FETriangle>& triangles,
         float   timer,
         bool    force_refresh
     )
