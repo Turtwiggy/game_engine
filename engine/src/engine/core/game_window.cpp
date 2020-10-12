@@ -270,27 +270,27 @@ namespace fightingengine {
     }
 
 
-    void GameWindow::GrabInput(const bool b)
-    {
-        SDL_SetWindowGrab(_window.get(), b ? SDL_TRUE : SDL_FALSE);
-    }
-
-    void GameWindow::SetMousePosition(const int x, const int y)
+    void GameWindow::SetMousePosition(int x, int y)
     {
         SDL_WarpMouseInWindow(_window.get(), x, y);
     }
 
-    bool GameWindow::IsInputGrabbed() const
+    bool GameWindow::IsInputGrabbed()
     {
         return SDL_GetWindowGrab(_window.get()) != SDL_FALSE;
     }
 
     //returns true if mouse is grabbed, false if it available
-    void GameWindow::ToggleMouseCaptured()
+    void GameWindow::CaptureMouse()
     {
-        bool grabbed = IsInputGrabbed();
-        SDL_SetRelativeMouseMode(!grabbed ? SDL_TRUE : SDL_FALSE);
-        GrabInput(grabbed);
+        SDL_SetWindowGrab(_window.get(), SDL_TRUE);
+        SDL_SetRelativeMouseMode(SDL_TRUE);
+    }
+
+    void GameWindow::ReleaseMouse()
+    {
+        SDL_SetWindowGrab(_window.get(), SDL_FALSE);
+        SDL_SetRelativeMouseMode(SDL_FALSE);
     }
 
 

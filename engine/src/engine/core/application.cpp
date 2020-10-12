@@ -42,6 +42,7 @@ namespace fightingengine {
         window->Close();
     }
 
+
     void Application::shutdown()
     {
         running = false;
@@ -234,6 +235,22 @@ namespace fightingengine {
         //renderer->resize(w, h);
     }
 
+    void Application::set_fps_limit(const double fps)
+    { 
+        FPS = fps; 
+        MILLISECONDS_PER_FRAME = (Uint32)(1000 / FPS); 
+    }
+
+    float Application::get_average_fps()
+    {
+        return std::accumulate(fps_buffer.begin(), fps_buffer.end(), 0) / (float)fps_buffer.size();
+    }
+
+    float Application::get_raw_fps(const float delta_time)
+    {
+        return 1.f / delta_time;
+    }
+
     InputManager& Application::get_input() 
     { 
         return input_manager; 
@@ -246,17 +263,6 @@ namespace fightingengine {
 
     GameWindow& Application::get_window() { 
         return *window; 
-    }
-
-    void Application::set_fps_limit(const double fps)
-    { 
-        FPS = fps; 
-        MILLISECONDS_PER_FRAME = (Uint32)(1000 / FPS); 
-    }
-
-    float Application::get_average_fps()
-    {
-        return std::accumulate(fps_buffer.begin(), fps_buffer.end(), 0) / (float)fps_buffer.size();
     }
 
 }

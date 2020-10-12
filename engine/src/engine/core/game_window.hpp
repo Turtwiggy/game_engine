@@ -63,10 +63,10 @@ namespace fightingengine
         void ToggleFullscreen();    //returns true if fullscreen
 
 		//Mouse
-		void GrabInput(const bool b);
-		void SetMousePosition(const int x, const int y);
-		[[nodiscard]] bool IsInputGrabbed() const;
-		void ToggleMouseCaptured();
+		void SetMousePosition(int x, int y);
+		[[nodiscard]] bool IsInputGrabbed();
+		void CaptureMouse();
+		void ReleaseMouse();
 
         SDL_GLContext& get_gl_context();
         std::string get_glsl_version();

@@ -27,12 +27,13 @@ namespace fightingengine {
         void gui_begin();
         void gui_end();
 
+        void set_fps_limit(const double fps);
+        [[nodiscard]] float get_average_fps();
+        [[nodiscard]] float get_raw_fps(const float delta_time);
+
         [[nodiscard]] InputManager& get_input();
         [[nodiscard]] ImGui_Manager& get_imgui();
         [[nodiscard]] GameWindow& get_window();
-
-        void set_fps_limit(const double fps);
-        [[nodiscard]] float get_average_fps();
 
     private:
 
