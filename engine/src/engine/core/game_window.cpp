@@ -255,20 +255,11 @@ namespace fightingengine {
         }
     }
 
-    bool GameWindow::GetFullscreen() const
+    bool GameWindow::IsFullscreen() const
     {
         Uint32 FullscreenFlag = SDL_WINDOW_FULLSCREEN;
         return SDL_GetWindowFlags(_window.get()) & FullscreenFlag;
     }
-
-    void GameWindow::ToggleFullscreen()
-    {
-        Uint32 FullscreenFlag = SDL_WINDOW_FULLSCREEN;
-        bool is_fullscreen = GetFullscreen();
-        SDL_SetWindowFullscreen(_window.get(), is_fullscreen ? 0 : is_fullscreen);
-        //SDL_ShowCursor(IsFullscreen);
-    }
-
 
     void GameWindow::SetMousePosition(int x, int y)
     {

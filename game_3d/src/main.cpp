@@ -100,7 +100,11 @@ int main(int argc, char** argv)
             //Fullscreen
             if (app.get_input().get_key_down(SDL_KeyCode::SDLK_f))
             {
-                app.get_window().ToggleFullscreen();
+                if(app.get_window().IsFullscreen())
+                    app.get_window().SetFullscreen(false);
+                else
+                    app.get_window().SetFullscreen(true);
+
                 int width, height;
                 app.get_window().GetSize(width, height);
                 std::cout << "screen size toggled, w: " << width << " h: " << height << std::endl;

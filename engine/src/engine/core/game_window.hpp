@@ -59,7 +59,7 @@ namespace fightingengine
 
 		void SetBordered(const bool b);
 		void SetFullscreen(const bool f);
-		[[nodiscard]] bool GetFullscreen() const;
+		[[nodiscard]] bool IsFullscreen() const;
         void ToggleFullscreen();    //returns true if fullscreen
 
 		//Mouse
