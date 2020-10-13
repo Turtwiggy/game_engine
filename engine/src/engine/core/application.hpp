@@ -43,13 +43,10 @@ namespace fightingengine {
 
     private:
         std::unique_ptr<GameWindow> window;
-        //std::unique_ptr<Renderer> renderer;
-        //Profiler profiler;
         InputManager input_manager;
         ImGui_Manager imgui_manager;
 
         bool running = true;
-        bool fullscreen = false;
         bool minimized = false;
 
         //FPS settings

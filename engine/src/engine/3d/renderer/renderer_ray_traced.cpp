@@ -3,7 +3,7 @@
 
 #include "engine/renderer/render_command.hpp"
 #include "engine/renderer/shader.hpp"
-#include "engine/renderer/util/util_functions.hpp"
+#include "engine/renderer/util/opengl_util.hpp"
 #include "engine/core/maths/ray.hpp"
 
 #include "GL/glew.h"

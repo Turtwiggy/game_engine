@@ -1,6 +1,7 @@
 #pragma once
 
 #include "engine/renderer/shader.hpp"
+#include "engine/renderer/util/opengl_util.hpp"
 
 #include <GL/glew.h>
 
@@ -146,6 +147,35 @@ namespace fightingengine {
         }
     }
 
+    // utility function for checking shader compilation/linking errors.
+
+    void Shader::check_compile_errors(unsigned int shader, std::string type)
+    {
+        GLint success;
+        GLchar infoLog[1024];
+        if (type != "PROGRAM")
+        {
+            glGetShaderiv(shader, GL_COMPILE_STATUS, &success);
+            if (!success)
+            {
+                glGetShaderInfoLog(shader, 1024, NULL, infoLog);
+                std::cout << "ERROR::SHADER_COMPILATION_ERROR of type: " << type << "\n" << infoLog << "\n -- --------------------------------------------------- -- " << std::endl;
+                ok_to_build = false;
+            }
+        }
+        else
+        {
+            glGetProgramiv(shader, GL_LINK_STATUS, &success);
+            if (!success)
+            {
+                glGetProgramInfoLog(shader, 1024, NULL, infoLog);
+                std::cout << "ERROR::PROGRAM_LINKING_ERROR of type: " << type << "\n"
+                    << infoLog << "\n -- --------------------------------------------------- -- " << std::endl;
+                ok_to_build = false;
+            }
+        }
+    }
+    
     // activate the shader
 
     void Shader::bind()
@@ -242,32 +272,5 @@ namespace fightingengine {
         glShaderStorageBlockBinding(ID, index, location);
     }
 
-    // utility function for checking shader compilation/linking errors.
 
-    void Shader::check_compile_errors(GLuint shader, std::string type)
-    {
-        GLint success;
-        GLchar infoLog[1024];
-        if (type != "PROGRAM")
-        {
-            glGetShaderiv(shader, GL_COMPILE_STATUS, &success);
-            if (!success)
-            {
-                glGetShaderInfoLog(shader, 1024, NULL, infoLog);
-                std::cout << "ERROR::SHADER_COMPILATION_ERROR of type: " << type << "\n" << infoLog << "\n -- --------------------------------------------------- -- " << std::endl;
-                ok_to_build = false;
-            }
-        }
-        else
-        {
-            glGetProgramiv(shader, GL_LINK_STATUS, &success);
-            if (!success)
-            {
-                glGetProgramInfoLog(shader, 1024, NULL, infoLog);
-                std::cout << "ERROR::PROGRAM_LINKING_ERROR of type: " << type << "\n"
-                    << infoLog << "\n -- --------------------------------------------------- -- " << std::endl;
-                ok_to_build = false;
-            }
-        }
-    }
 }

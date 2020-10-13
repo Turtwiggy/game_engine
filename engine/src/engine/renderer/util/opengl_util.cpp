@@ -1,4 +1,4 @@
-#include "engine/renderer/util/util_functions.hpp"
+#include "engine/renderer/util/opengl_util.hpp"
 
 #include <cassert>
 

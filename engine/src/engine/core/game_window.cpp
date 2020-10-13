@@ -1,5 +1,6 @@
-#include "game_window.hpp"
-#include "engine/renderer/util/util_functions.hpp"
+#include "engine/core/game_window.hpp"
+
+#include "engine/renderer/util/opengl_util.hpp"
 
 #include <SDL2/SDL_syswm.h>
 #include <spdlog/spdlog.h>

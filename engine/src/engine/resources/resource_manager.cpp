@@ -1,5 +1,7 @@
 #include "engine/resources/resource_manager.hpp"
 
+#include <GL/glew.h>
+
 #include <iostream>
 #include <sstream>
 #include <fstream>

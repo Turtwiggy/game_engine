@@ -4,6 +4,7 @@
 #include "engine/core/application.hpp"
 //#include "engine/resources/model_manager.hpp"
 #include "engine/3d/camera.hpp"
+#include "engine/3d/renderer/renderer_pbr.hpp"
 #include "engine/3d/renderer/renderer_ray_traced.hpp"
 #include "engine/renderer/render_command.hpp"
 #include "engine/renderer/shader.hpp"
@@ -46,6 +47,8 @@ int main(int argc, char** argv)
 
     RendererRayTraced renderer;
     renderer.init(width, height);
+
+    RendererPBR pbr_renderer;
 
     //UI
     auto default_scene = std::make_shared<Scene>();
@@ -167,9 +170,9 @@ int main(int argc, char** argv)
         { // ~~ Rendering ~~
             profiler.begin(Profiler::Stage::Render);
 
-            state.render(renderer, camera, app.get_window(), timer);
-            default_scene->on_update(delta_time_s);
-
+            //state.render(renderer, camera, app.get_window(), timer);
+            //default_scene->on_update(delta_time_s);
+                        
             profiler.end(Profiler::Stage::Render);
         }
 

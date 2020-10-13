@@ -1,7 +1,5 @@
 #pragma once
 
-#include "engine/renderer/util/util_functions.hpp"
-
 #include <glm/glm.hpp>
 
 #include <vector>
@@ -37,6 +35,9 @@ namespace fightingengine {
         unsigned int load_shader(const char* path, unsigned int gl_shader_type, std::string type);
         void attach_shaders_to_program();
 
+        // utility function for checking shader compilation/linking errors.
+        void check_compile_errors(unsigned int shader, std::string type);
+
     public:
 
         // activate the shader
@@ -62,8 +63,5 @@ namespace fightingengine {
 
         int get_buffer_binding_location(const std::string& name);
         void set_compute_buffer_bind_location(const std::string& name);
-
-        // utility function for checking shader compilation/linking errors.
-        void check_compile_errors(GLuint shader, std::string type);
     };
 }

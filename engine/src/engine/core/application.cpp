@@ -24,10 +24,6 @@ namespace fightingengine {
             display_mode::Windowed
         );
 
-        //renderer = std::make_unique<Renderer>();
-        //renderer->init_opengl(*window.get());
-        //renderer->init_renderer(m_width, m_height);
-
         fps_buffer = boost::circular_buffer<float>(100);
 
         imgui_manager.initialize(window.get());
@@ -71,11 +67,6 @@ namespace fightingengine {
 
     void Application::frame_begin()
     {
-        // Update Profiler
-        // ---------------
-        //profiler.Frame();
-        //profiler.Begin(Profiler::Stage::UpdateLoop);
-
         input_manager.new_frame();
     }
 
@@ -87,15 +78,7 @@ namespace fightingengine {
 
         SDL_GL_SwapWindow(get_window().GetHandle());
 
-        // Sleep
-        // -----
-        {
-            //profiler.Begin(Profiler::Stage::Sleep);
-            SDL_Delay(MILLISECONDS_PER_FRAME);
-            //profiler.End(Profiler::Stage::Sleep);
-        }
-
-        //profiler.End(Profiler::Stage::UpdateLoop);
+        SDL_Delay(MILLISECONDS_PER_FRAME);
     }
 
 
@@ -113,43 +96,6 @@ namespace fightingengine {
             //Events to quit
             if (e.type == SDL_QUIT) {
                 on_window_close();
-            }
-
-            const int JOYSTICK_DEAD_ZONE = 8000;
-            if(e.type == SDL_JOYAXISMOTION)
-            {
-                //Motion on controller 0
-                if(e.jaxis.which == 0)
-                {
-                    //x axis
-                    if(e.jaxis.axis == 0)
-                    {
-                        //Left of deadzone
-                        if(e.jaxis.value < -JOYSTICK_DEAD_ZONE)
-                        {
-                            printf("left!");
-                        }else if(e.jaxis.value > JOYSTICK_DEAD_ZONE)
-                        {
-                            printf("right!");
-                        }
-                    }
-                }
-            }
-            if(e.type == SDL_JOYDEVICEADDED)
-            {
-                printf("gained device %i\n",e.cdevice.which);
-            }
-            if(e.type == SDL_JOYDEVICEREMOVED)
-            {
-                printf("lost device %i\n",e.cdevice.which);   
-            }
-            if(e.type == SDL_CONTROLLERDEVICEADDED)
-            {
-                printf("gained controller device %i\n", e.cdevice.which);
-            }
-            if(e.type == SDL_CONTROLLERDEVICEREMOVED)
-            {
-                printf("lost controller device %i\n",e.cdevice.which);   
             }
 
             //https://wiki.libsdl.org/SDL_WindowEvent
@@ -188,19 +134,19 @@ namespace fightingengine {
             switch (e.type)
             {
             case SDL_KEYDOWN:
-                //keyboard specific! (need to rework for controllers)
-            {
-                SDL_KeyboardEvent key_event = e.key;
-                auto key = key_event.keysym.sym;
-                input_manager.add_button_down(key);
-                break;
-            }
+                //keyboard specific
+                {
+                    SDL_KeyboardEvent key_event = e.key;
+                    auto key = key_event.keysym.sym;
+                    input_manager.add_button_down(key);
+                    break;
+                }
             case SDL_MOUSEBUTTONDOWN:
                 //mouse specific
-            {
-                input_manager.add_mouse_down(e.button);
-                break;
-            }
+                {
+                    input_manager.add_mouse_down(e.button);
+                    break;
+                }
             }
         }
     }
@@ -214,6 +160,8 @@ namespace fightingengine {
     {
         imgui_manager.end(get_window());
     }
+
+    // ---- events
 
     void Application::on_window_close()
     {
@@ -234,6 +182,8 @@ namespace fightingengine {
         minimized = false;
         //renderer->resize(w, h);
     }
+
+    // ---- window controls
 
     void Application::set_fps_limit(const double fps)
     { 
