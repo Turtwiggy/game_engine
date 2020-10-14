@@ -6,7 +6,7 @@
 #include <vector>
 #include <string_view>
 
-//your project headers
+//other library headers
 #include <GL/glew.h>
 #include <glm/glm.hpp>
 #include <SDL2/SDL.h>
@@ -23,16 +23,17 @@
 #include "engine/geometry/triangle.hpp"
 #include "engine/tools/profiler.hpp"
 using namespace fightingengine;
+
 #include "panels/scene_hierarchy_panel.hpp"
 #include "game_state.hpp"
 using namespace game_3d;
 
 int main(int argc, char** argv)
 {
-    int width = 1366;
-    int height = 768;
+    uint32_t width = 1366;
+    uint32_t height = 768;
     Application app("Fighting Game!", width, height);
-    app.set_fps_limit(60.0);
+    app.set_fps_limit(60.0f);
 
     //Camera
     Camera camera = Camera (
@@ -147,7 +148,7 @@ int main(int argc, char** argv)
                 {
                     SDL_GetRelativeMouseState(&x, &y);
                     //printf("relative movement: %i %i \n", x, y);
-                    camera.process_mouse_movement(x, y, true);
+                    camera.process_mouse_movement((float)x, (float)y, true);
                 }
             }
 
@@ -171,9 +172,13 @@ int main(int argc, char** argv)
 
         { // ~~ Rendering ~~
             profiler.begin(Profiler::Stage::Render);
+            
+            RenderCommand::set_clear_colour(glm::vec4(0.1, 0.3, 0.3, 1.0));
+            RenderCommand::clear();
 
             //state.render(renderer, camera, app.get_window(), timer);
             //default_scene->on_update(delta_time_s);
+
                         
             profiler.end(Profiler::Stage::Render);
         }
@@ -187,13 +192,19 @@ int main(int argc, char** argv)
             //bool demo_window = true;
             //ImGui::ShowDemoWindow(&demo_window);
 
+
             ImGui::Begin("Hello Window");
-            if (ImGui::Button("Hello Button"))
+            if (ImGui::Button("Hello Button##1"))
             {
                 printf("button clicked \n");
             };
+            if (ImGui::Button("Hello Button##2"))
+            {
+                printf("button clicked 2 \n");
+            };
             ImGui::Text(std::string(string_to_display).c_str());
             ImGui::End();
+
 
             ImGui::Begin("Profiler");
 

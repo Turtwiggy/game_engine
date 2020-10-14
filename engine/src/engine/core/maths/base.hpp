@@ -8,8 +8,8 @@
 
 namespace fightingengine
 {
-    
-#define PI 3.1415926535897932385
+
+constexpr float PI { 3.1415926535897932385f };
 
 float length_squared(const glm::vec3 &i);
 

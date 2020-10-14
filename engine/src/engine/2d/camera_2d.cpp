@@ -12,7 +12,7 @@ namespace fightingengine {
 
 float linear_zoom_to_scale(float linear)
 {
-    return pow(BASE, linear);
+    return static_cast<float>(pow(BASE, linear));
 }
 
 float logb(float base, float val)

@@ -18,7 +18,7 @@ namespace fightingengine {
     const std::string kBuildStr = "1";
     //const std::string kBuildStr(kGitSHA1Hash, 8);
 
-    Application::Application(const std::string& name, int width, int height)
+    Application::Application(const std::string& name, uint32_t width, uint32_t height)
     {
         //Window
         window = std::make_unique<GameWindow>
@@ -198,7 +198,7 @@ namespace fightingengine {
 
     float Application::get_average_fps()
     {
-        return std::accumulate(fps_buffer.begin(), fps_buffer.end(), 0) / (float)fps_buffer.size();
+        return std::accumulate(fps_buffer.begin(), fps_buffer.end(), 0) / static_cast<float>(fps_buffer.size());
     }
 
     float Application::get_raw_fps(const float delta_time)

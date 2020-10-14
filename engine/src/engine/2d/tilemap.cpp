@@ -193,11 +193,10 @@ SpriteHandle get_sprite_handle_of(RandomState& rng, tiles::type type)
     if (which.size() == 0)
         throw std::runtime_error("No tiles for type " + std::to_string(type));
 
-    int len = which.size();
+    int len = (int)(which.size());
 
-    int iwhich = (int)rand_det_s(rng.rng, 0, len);
+    int iwhich = (int)rand_det_s(rng.rng, 0, static_cast<float>(len));
     if (iwhich >= len || iwhich < 0)
-
         throw std::runtime_error("Rng is bad");
 
     SpriteHandle handle;

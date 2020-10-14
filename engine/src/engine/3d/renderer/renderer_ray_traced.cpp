@@ -78,8 +78,8 @@ struct RayTracedData {
     unsigned int ssbo;
     unsigned int ssbo_binding;
 
-    unsigned int max_triangles = 100;
-    unsigned int set_triangles = 0;
+    size_t max_triangles = 100;
+    size_t set_triangles = 0;
     std::vector<ComputeShaderTriangle> triangles;
 
     uint32_t draw_calls = 0;
@@ -237,7 +237,7 @@ void RendererRayTraced::init(int screen_width, int screen_height)
 }
 
 // 1. geometry pass: render scene's geometry/color data into gbuffer
-Shader& RendererRayTraced::first_geometry_pass(Camera& camera, int width, int height)
+Shader& RendererRayTraced::first_geometry_pass(const Camera& camera, int width, int height)
 {
     glm::mat4 view_projection = camera.get_view_projection_matrix(width, height);
 
@@ -260,9 +260,9 @@ Shader& RendererRayTraced::first_geometry_pass(Camera& camera, int width, int he
 // 2. Lighting pass: Raytracing
 void RendererRayTraced::second_raytrace_pass
 (
-    Camera& camera,
-    int     width,
-    int     height,
+    const Camera& camera,
+    float   width,
+    float   height,
     const std::vector<FETriangle>& triangles,
     float   timer,
     bool    force_refresh
@@ -273,8 +273,7 @@ void RendererRayTraced::second_raytrace_pass
         if (s_Data.refresh_ssbo) {
 
             std::vector<FETriangle> triangles_in_scene = triangles;
-
-            int triangles_in_scene_size = triangles_in_scene.size();
+            size_t triangles_in_scene_size = triangles_in_scene.size();
 
             //Check max triangles
             if (triangles_in_scene_size > s_Data.max_triangles)
@@ -286,7 +285,7 @@ void RendererRayTraced::second_raytrace_pass
             //Check ssbo size
             if (s_Data.set_triangles != triangles_in_scene_size)
             {
-                printf("Updating SSBO triangles with: %i triangles \n", triangles_in_scene_size);
+                printf("Updating SSBO triangles with: %zi triangles \n", triangles_in_scene_size);
 
                 //refresh triangle data
                 s_Data.triangles.clear();
@@ -296,21 +295,21 @@ void RendererRayTraced::second_raytrace_pass
                 for (int i = 0; i < triangles_in_scene_size; i++)
                 {
                     ComputeShaderVertex v1;
-                    v1.pos = glm::vec4(triangles_in_scene[i].p0.Position, 1.0);
-                    v1.nml = glm::vec4(triangles_in_scene[i].p0.Normal, 1.0);
-                    v1.tex = glm::vec4(triangles_in_scene[i].p0.TexCoords, 1.0, 1.0);
+                    v1.pos = glm::vec4(triangles_in_scene[i].p0.Position, 1.0f);
+                    v1.nml = glm::vec4(triangles_in_scene[i].p0.Normal, 1.0f);
+                    v1.tex = glm::vec4(triangles_in_scene[i].p0.TexCoords, 1.0f, 1.0f);
                     v1.colour = triangles_in_scene[i].p0.Colour.colour;
 
                     ComputeShaderVertex v2;
-                    v2.pos = glm::vec4(triangles_in_scene[i].p1.Position, 1.0);
-                    v2.nml = glm::vec4(triangles_in_scene[i].p1.Normal, 1.0);
-                    v2.tex = glm::vec4(triangles_in_scene[i].p1.TexCoords, 1.0, 1.0);
+                    v2.pos = glm::vec4(triangles_in_scene[i].p1.Position, 1.0f);
+                    v2.nml = glm::vec4(triangles_in_scene[i].p1.Normal, 1.0f);
+                    v2.tex = glm::vec4(triangles_in_scene[i].p1.TexCoords, 1.0f, 1.0f);
                     v2.colour = triangles_in_scene[i].p1.Colour.colour;
 
                     ComputeShaderVertex v3;
-                    v3.pos = glm::vec4(triangles_in_scene[i].p2.Position, 1.0);
-                    v3.nml = glm::vec4(triangles_in_scene[i].p2.Normal, 1.0);
-                    v3.tex = glm::vec4(triangles_in_scene[i].p2.TexCoords, 1.0, 1.0);
+                    v3.pos = glm::vec4(triangles_in_scene[i].p2.Position, 1.0f);
+                    v3.nml = glm::vec4(triangles_in_scene[i].p2.Normal, 1.0f);
+                    v3.tex = glm::vec4(triangles_in_scene[i].p2.TexCoords, 1.0f, 1.0f);
                     v3.colour = triangles_in_scene[i].p2.Colour.colour;
 
                     s_Data.triangles[i].p0 = v1;
@@ -370,8 +369,8 @@ void RendererRayTraced::second_raytrace_pass
     //s_Data.compute_shader.setInt("set_triangles", s_Data.set_triangles);
 
     // Compute appropriate invocation dimension
-    int worksizeX = next_power_of_two(width);
-    int worksizeY = next_power_of_two(height);
+    int worksizeX = next_power_of_two(static_cast<unsigned int>(width));
+    int worksizeY = next_power_of_two(static_cast<unsigned int>(height));
     if (s_Data.compute_shader_workgroup_x == 0 || s_Data.compute_shader_workgroup_y == 0)
     {
         std::cout << "failed to load your compute shader!";

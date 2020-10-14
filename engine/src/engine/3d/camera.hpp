@@ -64,13 +64,13 @@ public:
 
     glm::mat4 get_view_matrix() const;
     glm::mat4 get_view_projection_matrix(int width, int height) const;
-    glm::mat4 get_inverse_projection_view_matrix(float width, float height);
-    glm::vec3 get_eye_ray( float x, float y, float width, float height);
+    glm::mat4 get_inverse_projection_view_matrix(float width, float height) const;
+    glm::vec3 get_eye_ray( float x, float y, float width, float height) const;
 
     //u, v is the pixel value from the bottom left as 0,0
     Ray get_ray(glm::vec3 lower_left, float u, float v, float viewport_width, float viewport_height) const;
 
-    void update(float delta_time, CameraMovement movement);
+    void update(float delta_time, const CameraMovement movement);
 
     // Processes input received from a mouse input system. Expects the offset value in both the x and y direction.
     void process_mouse_movement(float xoffset, float yoffset, bool constrainPitch = true);

@@ -272,7 +272,7 @@ namespace fightingengine {
         SDL_WarpMouseInWindow(_window.get(), x, y);
     }
 
-    bool GameWindow::IsInputGrabbed()
+    bool GameWindow::IsInputGrabbed() const
     {
         return SDL_GetWindowGrab(_window.get()) != SDL_FALSE;
     }
@@ -296,7 +296,7 @@ namespace fightingengine {
         return gl_context;
     }
 
-    std::string GameWindow::get_glsl_version()
+    std::string GameWindow::get_glsl_version() const
     {
         return glsl_version;
     }

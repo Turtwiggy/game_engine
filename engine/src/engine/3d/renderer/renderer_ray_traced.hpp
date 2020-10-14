@@ -21,16 +21,16 @@ public:
 
     [[nodiscard]] Shader& first_geometry_pass
     (
-        Camera& camera,
+        const Camera& camera,
         int width,
         int height
     );
 
     void second_raytrace_pass
     (
-        Camera& camera,
-        int     width,
-        int     height,
+        const Camera& camera,
+        float   width,
+        float   height,
         const std::vector<FETriangle>& triangles,
         float   timer,
         bool    force_refresh = false

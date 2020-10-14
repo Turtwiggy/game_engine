@@ -62,22 +62,24 @@ namespace fightingengine
 		void SetBordered(const bool b);
 		void SetFullscreen(const bool f);
 		[[nodiscard]] bool IsFullscreen() const;
-        void ToggleFullscreen();    //returns true if fullscreen
+        void ToggleFullscreen();
 
 		//Mouse
 		void SetMousePosition(int x, int y);
-		[[nodiscard]] bool IsInputGrabbed();
+		[[nodiscard]] bool IsInputGrabbed() const;
 		void CaptureMouse();
 		void ReleaseMouse();
 
-        SDL_GLContext& get_gl_context();
-        std::string get_glsl_version();
-
+        [[nodiscard]] SDL_GLContext& get_gl_context();
+        [[nodiscard]] std::string get_glsl_version() const;
 
 	private:
 		std::unique_ptr<SDL_Window, SDLDestroyer> _window;
 
         SDL_GLContext gl_context;
-        std::string glsl_version = "#version 430";
+
+		//only possible with c++20
+		//constexpr std::string glsl_version = "#version 430";
+		const std::string glsl_version = "#version 430";
     };
 }

@@ -45,7 +45,7 @@ glm::mat4 Camera::get_view_projection_matrix(int width, int height) const
     return projection * view;
 }
 
-glm::mat4 Camera::get_inverse_projection_view_matrix(float width, float height)
+glm::mat4 Camera::get_inverse_projection_view_matrix(float width, float height) const
 {
     glm::mat4 projection = glm::perspective(glm::radians(Zoom), width / height, 0.001f, 100.0f);
     glm::mat4 view = get_view_matrix();
@@ -65,7 +65,7 @@ Ray Camera::get_ray(glm::vec3 lower_left, float u, float v, float viewport_width
 }
 
 // Compute the world direction vector based on the given X and Y coordinates in normalized-device space
-glm::vec3 Camera::get_eye_ray(float x, float y, float width, float height)
+glm::vec3 Camera::get_eye_ray(float x, float y, float width, float height) const
 {
     glm::vec4 temp(x, y, 0.0f, 1.0f);
 
@@ -81,7 +81,7 @@ glm::vec3 Camera::get_eye_ray(float x, float y, float width, float height)
 }
 
 
-void Camera::update(float delta_time, CameraMovement movement)
+void Camera::update(float delta_time, const CameraMovement movement)
 {
     float velocity = MovementSpeed * delta_time;
 

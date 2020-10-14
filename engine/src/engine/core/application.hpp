@@ -17,7 +17,7 @@ namespace fightingengine {
     class Application
     {
     public:
-        Application(const std::string& name = "Fighting Engine (Default)", int width = 1080, int height = 720);
+        Application(const std::string& name = "Fighting Engine (Default)", uint32_t width = 1080, uint32_t height = 720);
         virtual ~Application();
 
         [[nodiscard]] bool is_running();

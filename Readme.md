@@ -36,4 +36,5 @@ How to build with Visual Studio Code
     This extension allows for configuring the CMake project and building it from within the Visual Studio Code IDE.
     VS Marketplace Link: https://marketplace.visualstudio.com/items?itemName=vector-of-bool.cmake-tools
 
-    - Open the .workspace file in visual studio code
+    (Windows Optional for GCC) 
+    https://code.visualstudio.com/docs/cpp/config-wsl
