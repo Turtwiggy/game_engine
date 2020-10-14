@@ -1,12 +1,17 @@
 #pragma once
 
+//c++ standard library headers
+#include <string>
+
 //other library headers
 #include <entt/entt.hpp>
 
 //your project headers
-#include "engine/scene/entity.hpp"
+//#include "engine/scene/entity.hpp"
 
 namespace fightingengine {
+
+class Entity;
 
 class Scene 
 {

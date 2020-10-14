@@ -3,7 +3,7 @@
 #include "camera_2d.hpp"
 
 //other library headers
-#include "glm/glm.hpp"
+#include <glm/glm.hpp>
 
 namespace fightingengine {
 
@@ -101,7 +101,7 @@ void Camera2D::zoom(float number_of_levels)
 {
     zoom_level += number_of_levels;
 
-    zoom_level = clamp(zoom_level, -3.0f, 3.0f);
+    zoom_level = glm::clamp(zoom_level, -3.0f, 3.0f);
 }
 
 float Camera2D::calculate_scale() const
