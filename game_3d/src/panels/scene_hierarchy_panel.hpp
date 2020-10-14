@@ -1,11 +1,11 @@
 #pragma once
 
-#include "engine/scene/scene.hpp"
-#include "engine/scene/entity.hpp"
-
+//c++ standard library headers
 #include <memory>
 
-using namespace fightingengine;
+//yoru project headers
+#include "engine/scene/entity.hpp"
+#include "engine/scene/scene.hpp"
 
 namespace game_3d
 {
@@ -14,17 +14,17 @@ namespace game_3d
     {
     public:
 		SceneHierarchyPanel() = default;
-		SceneHierarchyPanel(const std::shared_ptr<Scene>& scene);
+		SceneHierarchyPanel(const std::shared_ptr<fightingengine::Scene>& scene);
 
-		void set_context(const std::shared_ptr<Scene>& scene);
+		void set_context(const std::shared_ptr<fightingengine::Scene>& scene);
 
 		void on_imgui_render();
 	private:
-		void draw_entity_node(Entity entity);
-		void draw_components(Entity entity);
+		void draw_entity_node(fightingengine::Entity entity);
+		void draw_components(fightingengine::Entity entity);
 	private:
-		std::shared_ptr<Scene> context;
-		Entity selection_context;
+		std::shared_ptr<fightingengine::Scene> context;
+		fightingengine::Entity selection_context;
     };
 
-}
+} //namespace game_3d

@@ -1,10 +1,14 @@
+
+//header
 #include "panels/scene_hierarchy_panel.hpp"
 
-#include "engine/scene/components.hpp"
-
+//other library headers
 #include <imgui.h>
 #include <glm/gtc/type_ptr.hpp>
 
+//your project headers
+#include "engine/scene/components.hpp"
+using namespace fightingengine;
 
 namespace game_3d {
 
@@ -89,4 +93,4 @@ namespace game_3d {
 		}
 	}
 
-}
+} //namespace game_3d

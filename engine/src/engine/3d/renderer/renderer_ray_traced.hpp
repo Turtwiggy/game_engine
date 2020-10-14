@@ -1,43 +1,45 @@
 #pragma once
 
+//your project headers
 #include "engine/3d/camera.hpp"
 #include "engine/renderer/shader.hpp"
 #include "engine/geometry/triangle.hpp"
 
 namespace fightingengine {
 
-    //Resources
-    //https://github.com/LWJGL/lwjgl3-wiki/wiki/2.6.1.-Ray-tracing-with-OpenGL-Compute-Shaders-%28Part-I%29
-    //https://raytracing.github.io/books/RayTracingInOneWeekend.html#thevec3class
-    //https://github.com/LWJGL/lwjgl3-demos/blob/master/src/org/lwjgl/demo/opengl/raytracing/tutorial/Tutorial1.java#L482
-    //https://github.com/LWJGL/lwjgl3-demos/tree/master/src/org/lwjgl/demo/opengl/raytracing
+//Resources
+//https://github.com/LWJGL/lwjgl3-wiki/wiki/2.6.1.-Ray-tracing-with-OpenGL-Compute-Shaders-%28Part-I%29
+//https://raytracing.github.io/books/RayTracingInOneWeekend.html#thevec3class
+//https://github.com/LWJGL/lwjgl3-demos/blob/master/src/org/lwjgl/demo/opengl/raytracing/tutorial/Tutorial1.java#L482
+//https://github.com/LWJGL/lwjgl3-demos/tree/master/src/org/lwjgl/demo/opengl/raytracing
 
-    class RendererRayTraced
-    {
-    public:
-        void init(int screen_width, int screen_height);
-        void resize(Camera& c, int width, int height);
+class RendererRayTraced
+{
+public:
+    void init(int screen_width, int screen_height);
+    void resize(Camera& c, int width, int height);
 
-        [[nodiscard]] Shader& first_geometry_pass
-        (
-            Camera& camera,
-            int width,
-            int height
-        );
+    [[nodiscard]] Shader& first_geometry_pass
+    (
+        Camera& camera,
+        int width,
+        int height
+    );
 
-        void second_raytrace_pass
-        (
-            Camera& camera,
-            int     width,
-            int     height,
-            const std::vector<FETriangle>& triangles,
-            float   timer,
-            bool    force_refresh = false
-        );
+    void second_raytrace_pass
+    (
+        Camera& camera,
+        int     width,
+        int     height,
+        const std::vector<FETriangle>& triangles,
+        float   timer,
+        bool    force_refresh = false
+    );
 
-        void third_quad_pass();
-    };
-}
+    void third_quad_pass();
+};
+
+} //namespace fightingengine
 
 
 

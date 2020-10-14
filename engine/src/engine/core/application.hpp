@@ -1,13 +1,16 @@
 #pragma once
 
+//c++ standard library headers
+#include <memory>
+#include <string>
+
+//other library headers
+#include <boost/circular_buffer.hpp>
+
+//your project headers
 #include "engine/core/game_window.hpp"
 #include "engine/core/input_manager.hpp"
 #include "engine/imgui/imgui_setup.hpp"
-//#include "engine/debug/profiler.hpp"
-
-#include <memory>
-#include <string>
-#include <boost/circular_buffer.hpp>
 
 namespace fightingengine {
 

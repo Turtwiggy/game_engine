@@ -1,6 +1,18 @@
 #define _CRT_SECURE_NO_WARNINGS
 #define IMGUI_IMPL_OPENGL_LOADER_GLEW
 
+//c++ standard library headers
+#include <memory>
+#include <vector>
+#include <string_view>
+
+//your project headers
+#include <GL/glew.h>
+#include <glm/glm.hpp>
+#include <SDL2/SDL.h>
+#undef main //thanks SDL2?
+
+//your project headers
 #include "engine/core/application.hpp"
 //#include "engine/resources/model_manager.hpp"
 #include "engine/3d/camera.hpp"
@@ -11,19 +23,9 @@
 #include "engine/geometry/triangle.hpp"
 #include "engine/tools/profiler.hpp"
 using namespace fightingengine;
-
 #include "panels/scene_hierarchy_panel.hpp"
 #include "game_state.hpp"
 using namespace game_3d;
-
-#include <GL/glew.h>
-#include <glm/glm.hpp>
-#include <SDL2/SDL.h>
-#undef main //thanks SDL2?
-
-#include <memory>
-#include <vector>
-#include <string_view>
 
 int main(int argc, char** argv)
 {

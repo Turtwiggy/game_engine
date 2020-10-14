@@ -1,10 +1,12 @@
 #pragma once
 
-#include <SDL2/SDL.h>
-
+//c++ standard lib headers
 #include <cstdint>
 #include <memory>
 #include <string>
+
+//other library headers
+#include <SDL2/SDL.h>
 
 namespace fightingengine
 {

@@ -1,13 +1,15 @@
 #pragma once
 
+//c++ standard lib headers
+#include <vector>
+
+//other library
 #include <SDL2/SDL_keycode.h>
 #include <SDL2/SDL_mouse.h>
 #include <SDL2/SDL_events.h>
 
-#include <vector>
-
-namespace fightingengine {
-
+namespace fightingengine 
+{
     class InputManager
     {
     public:

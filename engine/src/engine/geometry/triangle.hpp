@@ -1,17 +1,19 @@
 #pragma once
 
-#include "engine/geometry/vertex.hpp"
-
+//c++ standard library headers
 #include <vector>
+
+//your project headers
+#include "engine/geometry/vertex.hpp"
 
 namespace fightingengine {
 
-    struct FETriangle
-    {
-    public:
-        Vertex p0;
-        Vertex p1;
-        Vertex p2;
-    };
+struct FETriangle
+{
+public:
+    Vertex p0;
+    Vertex p1;
+    Vertex p2;
+};
 
-}
+} //namespace fightingengine

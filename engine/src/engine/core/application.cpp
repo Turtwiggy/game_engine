@@ -1,12 +1,17 @@
 
+//header
 #include "engine/core/application.hpp"
-#include "engine/resources/resource_manager.hpp"
 
+//c++ standard lib headers
+#include <numeric>
+
+//other lib headers
 #include <SDL2/SDL.h>
 #include <SDL2/SDL_events.h>
 #include <GL/glew.h>
 
-#include <numeric>
+//your project headers
+#include "engine/resources/resource_manager.hpp"
 
 namespace fightingengine {
 

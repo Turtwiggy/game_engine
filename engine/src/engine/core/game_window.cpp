@@ -1,12 +1,17 @@
+
+//header
 #include "engine/core/game_window.hpp"
 
-#include "engine/renderer/util/opengl_util.hpp"
+//c++ standard library headers
+#include <iostream>
 
+//other library headers
 #include <SDL2/SDL_syswm.h>
 #include <spdlog/spdlog.h>
 #include <GL/glew.h>
 
-#include <iostream>
+//your project headers
+#include "engine/renderer/util/opengl_util.hpp"
 
 namespace fightingengine {
 

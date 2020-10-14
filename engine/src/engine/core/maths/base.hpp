@@ -1,17 +1,20 @@
 #pragma once
 
-#include "engine/core/maths/random.hpp"
-
+//other library headers
 #include <glm/glm.hpp>
+
+//your library headers
+#include "engine/core/maths/random.hpp"
 
 namespace fightingengine
 {
-    #define PI 3.1415926535897932385
+    
+#define PI 3.1415926535897932385
 
-    float length_squared(const glm::vec3 &i);
+float length_squared(const glm::vec3 &i);
 
-    glm::vec3 rand_unit_vector(RandomState &rnd);
+glm::vec3 rand_unit_vector(RandomState &rnd);
 
-    glm::vec3 random_in_hemisphere(RandomState &rnd, glm::vec3 &normal);
+glm::vec3 random_in_hemisphere(RandomState &rnd, glm::vec3 &normal);
 
 } // namespace fightingengine

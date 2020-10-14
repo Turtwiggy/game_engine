@@ -1,11 +1,14 @@
 #pragma once
 
+//your project headers
 #include "engine/core/application.hpp"
 #include "engine/3d/camera.hpp"
 #include "engine/3d/renderer/renderer_ray_traced.hpp"
 #include "engine/renderer/render_command.hpp"
 #include "engine/renderer/shader.hpp"
 #include "engine/geometry/triangle.hpp"
+
+namespace game_3d{
 
 struct GameState
 {
@@ -134,3 +137,5 @@ std::vector<Sphere> create_world()
 
     return spheres;
 }
+
+} //namespace game_3d
