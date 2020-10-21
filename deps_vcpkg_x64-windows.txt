@@ -5,6 +5,7 @@ spdlog
 glm
 glew
 stb
+gtest
 boost-circular-buffer
 boost-asio
 boost-coroutine

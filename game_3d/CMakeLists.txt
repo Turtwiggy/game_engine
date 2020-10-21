@@ -34,8 +34,8 @@ add_executable(game_3d ${SRC_FILES})
 target_include_directories(game_3d PRIVATE 
   ${ENGINE_INCLUDES} 
   ${CMAKE_SOURCE_DIR}/game_3d/src
+  ${STB_INCLUDE_DIRS}
 )
-target_include_directories(game_3d PRIVATE ${STB_INCLUDE_DIRS})
 
 # link libs
 foreach(library ${ENGINE_LINK_LIBS})

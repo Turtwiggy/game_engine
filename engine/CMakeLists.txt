@@ -1,12 +1,12 @@
-#this cmake lists compiles the engine with the engine
+# this cmake lists compiles fightingengine_tests
 
 cmake_minimum_required(VERSION 3.0.0)
-project(engine VERSION 0.1.0)
+project(fightingengine_tests VERSION 0.1.0)
 
-message("engine: ${CMAKE_SYSTEM_NAME}")
-message("engine: ${CMAKE_BUILD_TYPE}")
+message("fightingengine_tests: ${CMAKE_SYSTEM_NAME}")
+message("fightingengine_tests: ${CMAKE_BUILD_TYPE}")
 
-#Build the Engine
+# build the engine + bring in Vcpkg
 include("${CMAKE_SOURCE_DIR}/engine/cmake/build_info.cmake")
 
 #Add VCPKG packages
@@ -22,20 +22,32 @@ endforeach()
 #Add VCPKG header-only
 find_path(STB_INCLUDE_DIRS "stb.h")
 
-#Add source files
-file(GLOB_RECURSE SRC_FILES ${ENGINE_SOURCE} )
+#Add Testing
+enable_testing()
+find_package(GTest CONFIG REQUIRED)
 
-add_library(engine ${SRC_FILES})
+# add source files
+file(GLOB_RECURSE SRC_FILES 
+  #engine/src
+  ${ENGINE_SOURCE}
+  #engine/test (the executable)
+  "${CMAKE_SOURCE_DIR}/engine/test/*.cpp"
+)
+
+add_executable(fightingengine_tests ${SRC_FILES} )
 
 #Includes
-target_include_directories(engine PRIVATE ${ENGINE_INCLUDES} )
-target_include_directories(engine PRIVATE ${STB_INCLUDE_DIRS})
+target_include_directories(fightingengine_tests PRIVATE 
+  ${ENGINE_INCLUDES} 
+  ${STB_INCLUDE_DIRS}
+)
 
 #Link Libs
 foreach(library ${ENGINE_LINK_LIBS})
   message("linking library... ${library}")
-  target_link_libraries(engine PRIVATE ${library})
+  target_link_libraries(fightingengine_tests PRIVATE ${library})
 endforeach()
-target_include_directories(engine PRIVATE ${STB_INCLUDE_DIRS})
+#Link Testing Libs
+target_link_libraries(fightingengine_tests PRIVATE GTest::gtest GTest::gtest_main GTest::gmock GTest::gmock_main)
 
 include(CPack)

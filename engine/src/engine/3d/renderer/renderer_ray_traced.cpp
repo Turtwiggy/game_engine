@@ -86,7 +86,7 @@ struct RayTracedData {
 };
 static RayTracedData s_Data;
 
-void RendererRayTraced::init(int screen_width, int screen_height)
+RendererRayTraced::RendererRayTraced(int screen_width, int screen_height)
 {
     //Configure OpenGL
     RenderCommand::init();

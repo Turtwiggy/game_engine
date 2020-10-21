@@ -48,9 +48,7 @@ int main(int argc, char** argv)
     //state.init(model_manager);
     RandomState rnd;
 
-    RendererRayTraced renderer;
-    renderer.init(width, height);
-
+    RendererRayTraced renderer(width, height);
     RendererPBR pbr_renderer;
 
     //UI
@@ -173,7 +171,7 @@ int main(int argc, char** argv)
         { // ~~ Rendering ~~
             profiler.begin(Profiler::Stage::Render);
             
-            RenderCommand::set_clear_colour(glm::vec4(0.1, 0.3, 0.3, 1.0));
+            RenderCommand::set_clear_colour(glm::vec4(0.0, 0.482f, 0.655f, 1.0));
             RenderCommand::clear();
 
             //state.render(renderer, camera, app.get_window(), timer);

@@ -36,5 +36,9 @@ How to build with Visual Studio Code
     This extension allows for configuring the CMake project and building it from within the Visual Studio Code IDE.
     VS Marketplace Link: https://marketplace.visualstudio.com/items?itemName=vector-of-bool.cmake-tools
 
+    C++ TestMate
+    https://github.com/matepek/vscode-catch2-test-adapter   
+    VS Marketplace Link: https://marketplace.visualstudio.com/items?itemName=hbenl.vscode-test-explorer
+
     (Windows Optional for GCC) 
     https://code.visualstudio.com/docs/cpp/config-wsl

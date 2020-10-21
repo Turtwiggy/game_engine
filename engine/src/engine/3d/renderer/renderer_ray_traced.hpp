@@ -16,7 +16,8 @@ namespace fightingengine {
 class RendererRayTraced
 {
 public:
-    void init(int screen_width, int screen_height);
+    RendererRayTraced(int screen_width, int screen_height);
+
     void resize(Camera& c, int width, int height);
 
     [[nodiscard]] Shader& first_geometry_pass

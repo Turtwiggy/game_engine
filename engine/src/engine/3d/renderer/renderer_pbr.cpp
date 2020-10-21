@@ -4,4 +4,8 @@
 
 namespace fightingengine {
 
+    RendererPBR::RendererPBR()
+    {
+
+    }
 }

@@ -38,7 +38,7 @@ void Scene::on_update(const float delta_time)
 	//printf("work me out!");
 
 	Camera* main_camera = nullptr;
-	glm::mat4* camera_transform = nullptr;
+	glm::mat4 camera_transform;
 	{
 		auto view = registry.view<TransformComponent, CameraComponent>();
 		for (auto entity : view)
@@ -48,7 +48,7 @@ void Scene::on_update(const float delta_time)
 			if (camera.Primary)
 			{
 				main_camera = &camera.cam;
-				camera_transform = &transform.Transform;
+				camera_transform = transform.get_transform();
 				break;
 			}
 		}
