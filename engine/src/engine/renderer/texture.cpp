@@ -10,12 +10,6 @@
 
 namespace fightingengine {
 
-Texture2D::Texture2D()
-    : Texture2D::Texture2D("defaultconstructor")
-{
-    printf("!! texture created using default constructor !! ");
-}
-
 Texture2D::Texture2D(std::string path)
     : width(0)
     , height(0)

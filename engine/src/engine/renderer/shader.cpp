@@ -51,18 +51,21 @@ Shader& Shader::attach_shader(const char* path, OpenGLShaderTypes shader_type)
     unsigned int shader = load_shader(path, type, name);
 
     shaders.push_back(shader);
+    latest_path = std::string(path);
 
     return *this;
 }
 
 Shader& Shader::build_program()
 {
-    if (ok_to_build) {
+    if (ok_to_build) 
+    {
         attach_shaders_to_program();
         printf("OK! to build program \n");
     }
-    else {
-        printf("SHADER ERROR: program was not ok to build \n");
+    else 
+    {
+        printf("SHADER ERROR: program ( %s ) was not ok to build \n", latest_path.c_str());
     }
 
     return *this;
@@ -242,7 +245,7 @@ void Shader::setMat4(const std::string& name, const glm::mat4& mat) const
     glUniformMatrix4fv(glGetUniformLocation(ID, name.c_str()), 1, GL_FALSE, &mat[0][0]);
 }
 
-int Shader::get_uniform_binding_location(const std::string& name)
+int Shader::get_uniform_binding_location(const std::string& name) const
 {
     int loc = glGetUniformLocation(ID, name.c_str());
 
@@ -257,7 +260,7 @@ int Shader::get_uniform_binding_location(const std::string& name)
     return params[0];
 }
 
-int Shader::get_buffer_binding_location(const std::string& name)
+int Shader::get_compute_buffer_binding_location(const std::string& name) const
 {
     int index = glGetProgramResourceIndex(ID, GL_SHADER_STORAGE_BLOCK, name.c_str());
     int params[1];
@@ -270,7 +273,7 @@ void Shader::set_compute_buffer_bind_location(const std::string& name)
 {
     int index = glGetProgramResourceIndex(ID, GL_SHADER_STORAGE_BLOCK, name.c_str());
 
-    int location = get_buffer_binding_location(name);
+    int location = get_compute_buffer_binding_location(name);
 
     glShaderStorageBlockBinding(ID, index, location);
 }

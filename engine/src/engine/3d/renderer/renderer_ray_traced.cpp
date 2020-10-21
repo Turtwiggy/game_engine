@@ -200,7 +200,7 @@ RendererRayTraced::RendererRayTraced(int screen_width, int screen_height)
     //printf("(Raytracer) outtexbinding: %i \n", s_Data.compute_out_tex_binding);
     s_Data.compute_normal_binding = compute_shader.get_uniform_binding_location("normalTexture");
     //printf("(Raytracer) compute_normal_binding: %i \n", s_Data.compute_normal_binding);
-    s_Data.ssbo_binding = compute_shader.get_buffer_binding_location("bufferData");
+    s_Data.ssbo_binding = compute_shader.get_compute_buffer_binding_location("bufferData");
 
     // Data to bind to GPU
     // -------------------

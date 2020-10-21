@@ -21,6 +21,7 @@
 #include "engine/renderer/render_command.hpp"
 #include "engine/renderer/shader.hpp"
 #include "engine/geometry/triangle.hpp"
+#include "engine/resources/resource_manager.hpp"
 #include "engine/tools/profiler.hpp"
 using namespace fightingengine;
 
@@ -33,7 +34,7 @@ int main(int argc, char** argv)
     uint32_t width = 1366;
     uint32_t height = 768;
     Application app("Fighting Game!", width, height);
-    app.set_fps_limit(60.0f);
+    app.set_fps_limit(144.0f);
 
     //Camera
     Camera camera = Camera (
@@ -63,6 +64,8 @@ int main(int argc, char** argv)
     std::string_view s2{"hello world 2"};
     std::string_view string_to_display{ s1 };
     bool new_grab = false;
+    //Testing texture
+    Texture2D tex = ResourceManager::load_texture("assets/textures/octopus.png", "Bamboo", true, false);
 
     float timer = 0.0f;
     while (app.is_running())
@@ -187,22 +190,35 @@ int main(int argc, char** argv)
             app.gui_begin();
             scene_panel.on_imgui_render();
 
-            //bool demo_window = true;
-            //ImGui::ShowDemoWindow(&demo_window);
+            // bool demo_window = true;
+            // ImGui::ShowDemoWindow(&demo_window);
 
+            // ImGui::Begin("Hello Window");
+            // if (ImGui::Button("Hello Button##1"))
+            // {
+            //     printf("button clicked \n");
+            //     string_to_display = "Hello One!";
+            // };
+            // if (ImGui::Button("Hello Button##2"))
+            // {
+            //     printf("button clicked 2 \n");
+            //     string_to_display = "Hello Two!";
+            // };
+            // ImGui::Text(std::string(string_to_display).c_str());
+            // ImGui::End();
 
-            ImGui::Begin("Hello Window");
-            if (ImGui::Button("Hello Button##1"))
-            {
-                printf("button clicked \n");
-            };
-            if (ImGui::Button("Hello Button##2"))
-            {
-                printf("button clicked 2 \n");
-            };
-            ImGui::Text(std::string(string_to_display).c_str());
+            ImGui::Begin("Texture Test");
+
+            // Using a Child allow to fill all the space of the window.
+            // It also alows customization
+            ImGui::BeginChild("GameRender");
+            // Get the size of the child (i.e. the whole draw size of the windows).
+            ImVec2 wsize = ImGui::GetWindowSize();
+            // Because I use the texture from OpenGL, I need to invert the V from the UV.
+            ImGui::Image((ImTextureID)tex.id, wsize, ImVec2(0, 1), ImVec2(1, 0));
+            ImGui::EndChild();
+            
             ImGui::End();
-
 
             ImGui::Begin("Profiler");
 

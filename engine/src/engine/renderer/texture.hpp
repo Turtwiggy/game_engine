@@ -25,8 +25,7 @@ struct Texture2D {
     std::string path;
     std::string type; //diffuse, specular, normal, height
 
-    // constructor (sets default texture modes)
-    Texture2D();
+    Texture2D() = default;
     Texture2D(std::string path);
 
     // generates texture from image data

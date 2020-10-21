@@ -15,10 +15,7 @@ SpriteRenderer::SpriteRenderer(Shader& shader, std::string sprite_sheet_name)
     : spritesheet_name(sprite_sheet_name)
     , shader(shader)
 {
-    spritesheet = ResourceManager::load_texture(
-        ("assets/" + spritesheet_name).c_str(),
-        false,
-        spritesheet_name);
+    spritesheet = ResourceManager::load_texture(("assets/" + spritesheet_name).c_str(), spritesheet_name, true, false);
 
     // configure VAO/VBO
     unsigned int VBO;

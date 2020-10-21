@@ -31,6 +31,9 @@ public:
 
 private:
 
+    //this is the latest path to be added via attach_shader()
+    std::string latest_path;
+    
     bool ok_to_build = true;
     std::vector<unsigned int> shaders;
 
@@ -61,9 +64,9 @@ public:
     void setMat3(const std::string& name, const glm::mat3& mat) const;
     void setMat4(const std::string& name, const glm::mat4& mat) const;
 
-    int get_uniform_binding_location(const std::string& name);
+    [[nodiscard]] int get_uniform_binding_location(const std::string& name) const;
 
-    int get_buffer_binding_location(const std::string& name);
+    [[nodiscard]] int get_compute_buffer_binding_location(const std::string& name) const;
     void set_compute_buffer_bind_location(const std::string& name);
 };
 

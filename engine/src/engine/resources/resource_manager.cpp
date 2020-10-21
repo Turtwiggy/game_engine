@@ -19,6 +19,18 @@ namespace fightingengine {
 std::map<std::string, Texture2D>    ResourceManager::Textures;
 std::map<std::string, Shader>       ResourceManager::Shaders;
 
+void ResourceManager::clear()
+{
+    // delete all shaders	
+    for (auto iter : Shaders)
+        glDeleteProgram(iter.second.ID);
+    // delete all textures
+    for (auto iter : Textures)
+        glDeleteTextures(1, &iter.second.id);
+}
+
+// ---- shaders
+
 Shader ResourceManager::load_shader(std::string path, std::vector<std::string> files, std::string name)
 {
     Shaders[name] = load_shader_from_file(path, files);
@@ -28,28 +40,6 @@ Shader ResourceManager::load_shader(std::string path, std::vector<std::string> f
 Shader ResourceManager::get_shader(std::string name)
 {
     return Shaders[name];
-}
-
-Texture2D ResourceManager::load_texture(const char* full_path, bool alpha, std::string name)
-{
-    Textures[name] = load_texture_from_file(full_path, alpha);
-    printf("texture loaded! %s", name.c_str());
-    return Textures[name];
-}
-
-Texture2D ResourceManager::get_texture(std::string name)
-{
-    return Textures[name];
-}
-
-void ResourceManager::clear()
-{
-    // (properly) delete all shaders	
-    for (auto iter : Shaders)
-        glDeleteProgram(iter.second.ID);
-    // (properly) delete all textures
-    for (auto iter : Textures)
-        glDeleteTextures(1, &iter.second.id);
 }
 
 Shader ResourceManager::load_shader_from_file(std::string path, std::vector<std::string> files)
@@ -76,8 +66,21 @@ Shader ResourceManager::load_shader_from_file(std::string path, std::vector<std:
     return s;
 }
 
-//e.g PARAM file: assets/textures/Bamboo/BambooWall_1k_albedo.jpg
-Texture2D ResourceManager::load_texture_from_file(const char* full_path, bool alpha)
+// ---- textures
+
+Texture2D ResourceManager::load_texture(const char* full_path, std::string unique_name, bool flip, bool alpha)
+{
+    Textures[unique_name] = load_texture_from_file(full_path, flip, alpha);
+    printf("texture loaded! %s", unique_name.c_str());
+    return Textures[unique_name];
+}
+
+Texture2D ResourceManager::get_texture(std::string name)
+{
+    return Textures[name];
+}
+
+Texture2D ResourceManager::load_texture_from_file(const char* full_path, bool flip, bool alpha)
 {
     printf("----- Texture from path -------\n");
     printf("Dir: %s \n", full_path);
@@ -92,6 +95,7 @@ Texture2D ResourceManager::load_texture_from_file(const char* full_path, bool al
     }
     // load image
     int width, height, nrChannels;
+    stbi_set_flip_vertically_on_load(flip);
     unsigned char* data = stbi_load(full_path, &width, &height, &nrChannels, 0);
 
     if (data)
