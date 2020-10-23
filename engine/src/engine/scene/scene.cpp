@@ -35,7 +35,6 @@ void Scene::on_update(const float delta_time)
 {
 
 	//How to render scene?
-	//printf("work me out!");
 
 	Camera* main_camera = nullptr;
 	glm::mat4 camera_transform;

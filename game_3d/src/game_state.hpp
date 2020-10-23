@@ -37,7 +37,7 @@ struct GameState
         //cubes[1]->model->draw(shader, draw_calls);
 
         //Second pass: pass raytracer triangle information
-        std::vector<FETriangle> t;
+        std::vector<Triangle> t;
         //t = cubes[0]->model->get_all_triangles_in_meshes();
         renderer.second_raytrace_pass(cam, static_cast<float>(width), static_cast<float>(height), t, timer);
 

@@ -49,7 +49,7 @@ namespace fightingengine {
         running = false;
     }
 
-    bool Application::is_running()
+    bool Application::is_running() const
     {
         return running;
     }
@@ -158,12 +158,12 @@ namespace fightingengine {
 
     void Application::gui_begin()
     {
-        imgui_manager.begin(get_window());
+        imgui_manager.begin_frame(get_window());
     }
 
     void Application::gui_end()
     {
-        imgui_manager.end(get_window());
+        imgui_manager.end_frame(get_window());
     }
 
     // ---- events
@@ -196,12 +196,12 @@ namespace fightingengine {
         MILLISECONDS_PER_FRAME = (Uint32)(1000 / FPS); 
     }
 
-    float Application::get_average_fps()
+    float Application::get_average_fps() const
     {
         return std::accumulate(fps_buffer.begin(), fps_buffer.end(), 0) / static_cast<float>(fps_buffer.size());
     }
 
-    float Application::get_raw_fps(const float delta_time)
+    float Application::get_raw_fps(const float delta_time) const
     {
         return 1.f / delta_time;
     }

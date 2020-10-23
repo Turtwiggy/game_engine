@@ -18,6 +18,8 @@ public:
         const std::string& vert_name = "lit.vert", 
         const std::string& frag_name = "lit.frag" );
 
+    [[nodiscard]] Shader get_shader() const;
+
 private: 
     Shader shader_;
 

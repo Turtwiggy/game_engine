@@ -263,7 +263,7 @@ void RendererRayTraced::second_raytrace_pass
     const Camera& camera,
     float   width,
     float   height,
-    const std::vector<FETriangle>& triangles,
+    const std::vector<Triangle>& triangles,
     float   timer,
     bool    force_refresh
 )
@@ -272,7 +272,7 @@ void RendererRayTraced::second_raytrace_pass
     {
         if (s_Data.refresh_ssbo) {
 
-            std::vector<FETriangle> triangles_in_scene = triangles;
+            std::vector<Triangle> triangles_in_scene = triangles;
             size_t triangles_in_scene_size = triangles_in_scene.size();
 
             //Check max triangles

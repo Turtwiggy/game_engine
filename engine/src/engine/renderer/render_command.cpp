@@ -10,7 +10,7 @@ namespace fightingengine {
 
 void RenderCommand::init()
 {
-    printf("init opengl \n");
+    printf("(render_command) Init opengl... \n");
 
 #ifdef DEBUG
     glEnable(GL_DEBUG_OUTPUT);
@@ -45,7 +45,7 @@ void RenderCommand::init()
 
 void RenderCommand::set_viewport(uint32_t x, uint32_t y, uint32_t width, uint32_t height)
 {
-    printf("set viewport \n");
+    printf("(render_command) setting viewport... \n");
     glViewport(x, y, width, height);
 }
 

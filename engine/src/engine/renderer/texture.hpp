@@ -5,12 +5,6 @@
 
 namespace fightingengine {
 
-// https://learnopengl.com/Model-Loading/Model
-// https://learnopengl.com/code_viewer_gh.php?code=src/3.model_loading/1.model_loading/model_loading.cpp
-// https://learnopengl.com/code_viewer_gh.php?code=includes/learnopengl/model.h
-// https://learnopengl.com/code_viewer_gh.php?code=includes/learnopengl/mesh.h
-// https://learnopengl.com/code_viewer_gh.php?code=src/7.in_practice/3.2d_game/0.full_source/texture.h
-
 struct Texture2D {
     unsigned int id;
     unsigned int width, height; // width and height of loaded image in pixels

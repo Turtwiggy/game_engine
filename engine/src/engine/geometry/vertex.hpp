@@ -17,9 +17,9 @@ struct Vertex {
     {};
 
     Vertex(glm::vec3 pos, glm::vec3 normal, glm::vec2 tex)
-        :Position(pos)
-        ,Normal(normal)
-        ,TexCoords(tex)
+        : Position(pos)
+        , Normal(normal)
+        , TexCoords(tex)
     {
     }
 

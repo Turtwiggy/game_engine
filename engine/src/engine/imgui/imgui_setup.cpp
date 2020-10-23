@@ -6,18 +6,11 @@
 #if defined(IMGUI_IMPL_OPENGL_LOADER_GLEW)
     #include <GL/glew.h>      
 #endif
-#include <imgui.h>
 #include <examples/imgui_impl_sdl.h>
 #include <examples/imgui_impl_opengl3.h>
-#include <SDL2/SDL.h>
-#include <SDL2/SDL_events.h>
 #ifdef _WIN32
     #include <SDL2/SDL_syswm.h>
 #endif
-
-//your project headers
-#include "engine/core/application.hpp"
-#include "engine/core/game_window.hpp"
 
 namespace fightingengine {
 
@@ -37,6 +30,14 @@ void ImGui_Manager::initialize(GameWindow* window)
     io.ConfigFlags |= ImGuiConfigFlags_ViewportsEnable;         // Enable Multi-Viewport / Platform Windows
     //io.ConfigFlags |= ImGuiConfigFlags_ViewportsNoTaskBarIcons;
     //io.ConfigFlags |= ImGuiConfigFlags_ViewportsNoMerge;
+
+    //Set fonts
+    
+    //bold font
+    //io.Fonts->AddFontFromFileTTF("assets/fonts/droid_sans.ttf", 12.0f);
+
+    //regular font
+    io.FontDefault = io.Fonts->AddFontFromFileTTF("assets/fonts/Roboto/Roboto-Regular.ttf", 14.0f);
 
     // Setup Dear ImGui style
     ImGui::StyleColorsDark();
@@ -62,7 +63,7 @@ ImGui_Manager::~ImGui_Manager()
     ImGui::DestroyContext();
 }
 
-void ImGui_Manager::begin(const GameWindow& window)
+void ImGui_Manager::begin_frame(const GameWindow& window)
 {
     ImGui_ImplOpenGL3_NewFrame();
     ImGui_ImplSDL2_NewFrame(window.GetHandle());
@@ -70,7 +71,7 @@ void ImGui_Manager::begin(const GameWindow& window)
     ImGui::NewFrame();
 }
 
-void ImGui_Manager::end(const GameWindow& window)
+void ImGui_Manager::end_frame(const GameWindow& window)
 {
     int width, height = 0;
     window.GetSize(width, height);
@@ -141,18 +142,5 @@ bool ImGui_Manager::ProcessEventSdl2(const SDL_Event& event)
     }
     return io.WantCaptureMouse;
 }
-
-//const char* ImGui_Manager::GetClipboardText()
-//{
-//    if (_clipboardTextData)
-//        SDL_free(_clipboardTextData);
-//    _clipboardTextData = SDL_GetClipboardText();
-//    return _clipboardTextData;
-//}
-
-//void ImGui_Manager::SetClipboardText(const char* text)
-//{
-//    SDL_SetClipboardText(text);
-//}
 
 } //namespace fightingengine

@@ -8,7 +8,7 @@
 
 namespace fightingengine {
 
-struct FETriangle
+struct Triangle
 {
 public:
     Vertex p0;

@@ -24,14 +24,17 @@
 
 #define IMGUI_DEFINE_MATH_OPERATORS
 
+//c system headers
+#include <time.h>
+
 //c++ standard library headers
 #include <vector>
 
 //other library headers
 #include <imgui.h>
 #include <imgui_internal.h>
-#include <time.h>
-#include "glm/glm.hpp"
+#include <glm/glm.hpp>
+
 
 namespace ImGui
 {

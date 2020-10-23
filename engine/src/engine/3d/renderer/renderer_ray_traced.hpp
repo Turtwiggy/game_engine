@@ -32,7 +32,7 @@ public:
         const Camera& camera,
         float   width,
         float   height,
-        const std::vector<FETriangle>& triangles,
+        const std::vector<Triangle>& triangles,
         float   timer,
         bool    force_refresh = false
     );

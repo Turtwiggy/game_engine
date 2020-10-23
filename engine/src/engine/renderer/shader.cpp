@@ -16,7 +16,7 @@
 
 namespace fightingengine {
 
-Shader& Shader::attach_shader(const char* path, OpenGLShaderTypes shader_type)
+Shader& Shader::attach_shader(const std::string& path, OpenGLShaderTypes shader_type)
 {
     //printf("(Shader) attaching shader: %s \n", path);
 
@@ -94,12 +94,12 @@ OpenGLShaderTypes Shader::convert_file_to_shadertype(std::string file)
 }
 
 
-unsigned int Shader::load_shader(const char* path, unsigned int gl_shader_type, std::string type)
+unsigned int Shader::load_shader(const std::string& path, unsigned int gl_shader_type, std::string type)
 {
     unsigned int shader_id;
     std::string code;
     {
-        const char* compute_shader_path = path;
+        const char* compute_shader_path = path.c_str();
 
         std::ifstream codeFile;
         codeFile.exceptions(std::ifstream::failbit | std::ifstream::badbit);

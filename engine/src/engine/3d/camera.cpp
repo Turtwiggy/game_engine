@@ -4,7 +4,7 @@
 
 //other library headers
 #ifdef DEBUG
-    #include "engine/thirdparty/magic_enum.hpp"
+    #include "thirdparty/magic_enum.hpp"
 #endif
 
 namespace fightingengine {

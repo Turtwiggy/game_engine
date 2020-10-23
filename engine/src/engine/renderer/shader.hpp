@@ -21,23 +21,29 @@ enum OpenGLShaderTypes
 class Shader
 {
 public:
-    Shader() = default;
-
     unsigned int ID;
 
-    Shader& attach_shader(const char* path, OpenGLShaderTypes shader_type);
+    Shader() = default;
+
+    Shader& attach_shader(const std::string& path, OpenGLShaderTypes shader_type);
     Shader& build_program();
+
+    //gets the type based off the extention
+    //e.g. hello.vert returns OpenGLShaderTypes::VERTEX
+    //e.g. hello.frag returns OpenGLShaderTypes::FRAGMENT
+    //e.g. hello.glsl returns OpenGLShaderTypes::COMPUTE
     static OpenGLShaderTypes convert_file_to_shadertype(std::string file);
 
 private:
 
-    //this is the latest path to be added via attach_shader()
+    //this is the latest path added via attach_shader()
+    //this is mainly used for debugging 
     std::string latest_path;
     
     bool ok_to_build = true;
     std::vector<unsigned int> shaders;
 
-    unsigned int load_shader(const char* path, unsigned int gl_shader_type, std::string type);
+    unsigned int load_shader(const std::string& path, unsigned int gl_shader_type, std::string type);
     void attach_shaders_to_program();
 
     // utility function for checking shader compilation/linking errors.

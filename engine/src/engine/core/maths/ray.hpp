@@ -53,8 +53,8 @@ namespace fightingengine
     glm::vec3 reflect(const glm::vec3 v, const glm::vec3 n);
 
     //Ray-Triangle intersections
-    bool intersects_triangle(Ray r, FETriangle tri, HitInfo &i);
-    bool intersects_any_triangle(Ray r, HitInfo &info, std::vector<FETriangle> &triangles, int set_triangles); 
+    bool intersects_triangle(Ray r, Triangle tri, HitInfo &i);
+    bool intersects_any_triangle(Ray r, HitInfo &info, std::vector<Triangle> &triangles, int set_triangles); 
     
     //Ray-Sphere intersections
     bool hit_sphere(const Ray &r, const Sphere &s, HitInfo &i, double t_min = EPSILON, double t_max = LARGE_FLOAT);

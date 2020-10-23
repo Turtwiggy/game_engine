@@ -18,9 +18,9 @@ namespace fightingengine {
     {
     public:
         Application(const std::string& name = "Fighting Engine (Default)", uint32_t width = 1080, uint32_t height = 720);
-        virtual ~Application();
+        ~Application();
 
-        [[nodiscard]] bool is_running();
+        [[nodiscard]] bool is_running() const;
         void shutdown();
 
         [[nodiscard]] float get_delta_time();
@@ -31,8 +31,8 @@ namespace fightingengine {
         void gui_end();
 
         void set_fps_limit(const double fps);
-        [[nodiscard]] float get_average_fps();
-        [[nodiscard]] float get_raw_fps(const float delta_time);
+        [[nodiscard]] float get_average_fps() const;
+        [[nodiscard]] float get_raw_fps(const float delta_time) const;
 
         [[nodiscard]] InputManager& get_input();
         [[nodiscard]] ImGui_Manager& get_imgui();

@@ -27,7 +27,7 @@ vec3 reflect(const vec3 v, const vec3 n)
 }
 
 
-bool intersects_triangle(Ray r, FETriangle tri, HitInfo &i)
+bool intersects_triangle(Ray r, Triangle tri, HitInfo &i)
 {
     vec3 v0 = tri.p0.Position;
     vec3 v1 = tri.p1.Position;
@@ -87,7 +87,7 @@ bool intersects_triangle(Ray r, FETriangle tri, HitInfo &i)
     return false; // this ray hits the triangle
 }
 
-bool intersects_any_triangle(Ray r, HitInfo &info, std::vector<FETriangle> &triangles, int set_triangles)
+bool intersects_any_triangle(Ray r, HitInfo &info, std::vector<Triangle> &triangles, int set_triangles)
 {
     float t_nearest = LARGE_FLOAT;
     bool intersect = false;
@@ -96,7 +96,7 @@ bool intersects_any_triangle(Ray r, HitInfo &info, std::vector<FETriangle> &tria
     for (int i = 0; i < set_triangles; i++)
     {
         HitInfo h;
-        const FETriangle tri = triangles[i];
+        const Triangle tri = triangles[i];
         if (intersects_triangle(r, tri, h) && h.t < t_nearest)
         {
             //a closer triangle intersected the ray!
