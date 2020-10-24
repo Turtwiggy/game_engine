@@ -69,7 +69,10 @@ void Mesh::draw(Shader& shader)
     //     //printf("texture %i", texture);
     //     shader.setInt("texture_diffuse1", texture);
     // }
-    shader.setVec3("diffuse", this->colour.colour);
+    shader.setVec3("material.ambient", this->colour.colour);
+    shader.setVec3("material.diffuse", this->colour.colour);
+    shader.setVec3("material.specular", 0.5f, 0.5f, 0.5f);
+    shader.setFloat("material.shininess", 32.0f);
 
     // draw mesh
     glBindVertexArray(VAO);

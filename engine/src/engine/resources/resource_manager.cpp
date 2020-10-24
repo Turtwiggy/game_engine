@@ -138,7 +138,8 @@ Texture2D ResourceManager::load_texture_from_file(const std::string& full_path, 
 std::shared_ptr<Model> ResourceManager::load_model( const std::string& path, const std::string& unique_name )
 {
     Models[unique_name] = load_model_from_file(path, unique_name);
-    printf("model loaded! %s", unique_name.c_str());
+    printf("model loaded! %s \n", unique_name.c_str());
+    printf("~~~~ end model ~~~~ \n");
     return Models[unique_name];
 }
 
@@ -151,7 +152,6 @@ std::shared_ptr<Model> ResourceManager::load_model_from_file( const std::string&
 {
     printf("----- Model from path -------\n");
     printf("Dir: %s \n", path.c_str());
-    printf("-------- Model ------- \n");
 
     std::string directory = path.substr(0, path.find_last_of('/'));
 
@@ -166,7 +166,7 @@ std::shared_ptr<Model> ResourceManager::load_model_from_file( const std::string&
 
     //A model consists of multiple meshes
     std::shared_ptr<Model> model = std::make_shared<Model>();
-    model->init(scene, unique_name);
+    model->init(scene, unique_name);    
     return model;
 }
 

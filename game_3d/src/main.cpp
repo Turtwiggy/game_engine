@@ -181,9 +181,10 @@ int main(int argc, char** argv)
             RenderCommand::set_clear_colour(glm::vec4(0.0, 0.482f, 0.655f, 1.0));
             RenderCommand::clear();
 
+            simple_renderer.update(camera, width, height);
+
             //state.render(renderer, camera, app.get_window(), timer);
             //default_scene->on_update(delta_time_s);
-
                         
             profiler.end(Profiler::Stage::Render);
         }

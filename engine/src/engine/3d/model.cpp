@@ -37,7 +37,6 @@ void Model::draw(Shader &shader, uint32_t &draw_calls, int texture)
     {
         //std::cout << "drawing mesh: " << meshes[i].name << std::endl;
         meshes[i].draw(shader /*, texture*/);
-
         draw_calls += 1;
     }
 }

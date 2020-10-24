@@ -16,7 +16,7 @@ public:
     void load(
         const std::string& path = "assets/shaders/blinn-phong/", 
         const std::string& vert_name = "lit.vert", 
-        const std::string& frag_name = "lit.frag" );
+        const std::string& frag_name = "lit_directional.frag" );
 
     [[nodiscard]] Shader get_shader() const;
 
