@@ -9,7 +9,7 @@ void FlatShader::load(
     const std::string& vert_name, 
     const std::string& frag_name )
 {
-    printf("----- shader -----");
+    printf("----- shader ----- \n");
     printf("shader vert loading...: %s%s \n", path.c_str(), frag_name.c_str());
     printf("shader frag loading...: %s%s \n", path.c_str(), vert_name.c_str());
 
@@ -18,7 +18,7 @@ void FlatShader::load(
         .attach_shader(path + frag_name, OpenGLShaderTypes::FRAGMENT)
         .build_program();
 
-    printf("~~~~ end shader ~~~~");
+    printf("~~~~ end shader ~~~~ \n");
     shader_ = shader;
 }
 

@@ -1,20 +1,6 @@
 #pragma once
 
-//namespace fightingengine {
-//
-//    class RendererBlinnPhong : public RendererImpl
-//    {
-//        void init(int screen_width, int screen_height);
-//        void draw_pass(draw_scene_desc& desc, const GameState& state);
-//        void resize(int width, int height);
-//    };
-//
-//}
-
-
-
-
-
+//NOTE: this file contains blur and bloom effects
 
 //unsigned int Renderer::hdr_fbo()
 //{

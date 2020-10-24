@@ -13,7 +13,7 @@ namespace fightingengine {
         cube.init();
 
         //TODO LOAD MODELS
-        object_ = ResourceManager::load_model("assets/models/lizard_wizard/lizard_wizard.obj", "Object");
+        object_ = ResourceManager::load_model("assets/models/temp.obj", "Object");
     }
 
     void RendererSimple::update(const Camera& cam, int width, int height)
@@ -39,14 +39,29 @@ namespace fightingengine {
         model = glm::translate(model, glm::vec3(0.0f, 0.0f, 0.0f));
         model = glm::scale(model, glm::vec3(1.0f, 1.0f, 1.0f));
         flat_shader_.get_shader().setMat4("model", model);
-        object_->draw(flat_shader_.get_shader(), draw_calls_);
+
+        //note: this is terrible getting all the meshes every frame
+        std::vector<Mesh> meshes = object_->get_meshes();
+        for (auto i = 0; i < meshes.size(); i++)
+        {   
+            auto mesh = meshes[i];
+
+            //Set material
+            flat_shader_.get_shader().setVec3("material.ambient", mesh.colour.colour);
+            flat_shader_.get_shader().setVec3("material.diffuse", mesh.colour.colour);
+            flat_shader_.get_shader().setVec3("material.specular", 0.5f, 0.5f, 0.5f);
+            flat_shader_.get_shader().setFloat("material.shininess", 32.0f);
+
+            mesh.draw(flat_shader_.get_shader());
+            draw_calls_ += 1;
+        }
 
         //Draw a cube
         model = glm::mat4(1.0f);
         model = glm::translate(model, glm::vec3(2.0f, 0.0f, 0.0f));
         model = glm::scale(model, glm::vec3(1.0f, 1.0f, 1.0f));	
         flat_shader_.get_shader().setMat4("model", model);
-        cube.draw();
+        //cube.draw();
 
         flat_shader_.get_shader().unbind();
     }

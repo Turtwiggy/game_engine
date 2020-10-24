@@ -30,16 +30,12 @@ void Model::init(const aiScene* raw_model, const std::string& name)
     process_node(raw_model->mRootNode, raw_model);
 }
 
-
-void Model::draw(Shader &shader, uint32_t &draw_calls, int texture)
+std::vector<Mesh>& Model::get_meshes()
 {
-    for (unsigned int i = 0; i < meshes.size(); i++)
-    {
-        //std::cout << "drawing mesh: " << meshes[i].name << std::endl;
-        meshes[i].draw(shader /*, texture*/);
-        draw_calls += 1;
-    }
+    return meshes;
 }
+
+
 
 void Model::process_node(aiNode *node, const aiScene *scene)
 {

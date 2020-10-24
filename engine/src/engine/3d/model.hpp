@@ -22,7 +22,8 @@ namespace fightingengine {
         // std::vector<Triangle> get_all_triangles_in_meshes();
 
         void init(const aiScene* raw_model, const std::string& name);
-        void draw(Shader& shader, uint32_t& draw_calls, int texture = -1);
+
+        [[nodiscard]] std::vector<Mesh>& get_meshes();
 
     private:
 
