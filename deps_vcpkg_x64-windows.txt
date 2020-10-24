@@ -6,6 +6,7 @@ glm
 glew
 stb
 gtest
+assimp
 boost-circular-buffer
 boost-asio
 boost-coroutine

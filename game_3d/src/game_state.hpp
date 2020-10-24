@@ -4,9 +4,9 @@
 #include "engine/core/application.hpp"
 #include "engine/3d/camera.hpp"
 #include "engine/3d/renderer/renderer_ray_traced.hpp"
-#include "engine/renderer/render_command.hpp"
-#include "engine/renderer/shader.hpp"
-#include "engine/geometry/triangle.hpp"
+#include "engine/graphics/render_command.hpp"
+#include "engine/graphics/shader.hpp"
+#include "engine/graphics/triangle.hpp"
 
 namespace game_3d{
 
@@ -88,28 +88,6 @@ std::vector<Sphere> create_world()
 }
 
 } //namespace game_3d
-
-
-
-
-//Old code
-
-// void init(ModelManager& model_manager)
-//{
-    ////Model: Cornel Box
-    //std::shared_ptr cornel_model = model_manager.load_model("assets/models/cornell_box/CornellBox-Original.obj", "cornell_box");
-    //FGObject cornel_box = FGObject(cornel_model);
-    //Model: Cube
-    //std::shared_ptr cube_model = model_manager.load_model("assets/models/cornell_box/CornellBox-Original.obj", "CornellBox");
-    //Objects
-    // GameObject3D cube_object = GameObject3D(cube_model);
-    // GameObject3D cube_object2 = GameObject3D(cube_model);
-    // cube_object.transform.Position = glm::vec3(0.0f, 0.0f, 0.0f);
-    // cube_object2.transform.Position = glm::vec3(2.0f, 5.0f, -15.0f);
-    // //Reference to Objects
-    // cubes.push_back(std::make_shared<GameObject3D>(cube_object));
-    // cubes.push_back(std::make_shared<GameObject3D>(cube_object2));
-//}
 
 //void Game::tick(float delta_time_in_seconds, GameState& state, float timer, InputManager& input_manager, Camera& camera)
 //{

@@ -4,8 +4,8 @@
 #include <glm/glm.hpp>
 
 //your project headers
-#include "engine/geometry/triangle.hpp"
-#include "engine/geometry/vertex.hpp"
+#include "engine/graphics/triangle.hpp"
+#include "engine/graphics/vertex.hpp"
 #include "engine/core/maths/base.hpp"
 
 namespace fightingengine

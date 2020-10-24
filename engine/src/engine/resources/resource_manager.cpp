@@ -7,17 +7,23 @@
 #include <sstream>
 #include <fstream>
 #include <vector>
+#include <string>
+#include <memory>
 
 //other library headers
 #include <GL/glew.h>
 #define STB_IMAGE_IMPLEMENTATION
 #include <stb_image.h>
+#include <assimp/Importer.hpp>
+#include <assimp/scene.h>
+#include <assimp/postprocess.h>
 
 namespace fightingengine {
 
 // Instantiate static variables
-std::map<std::string, Texture2D>    ResourceManager::Textures;
-std::map<std::string, Shader>       ResourceManager::Shaders;
+std::map<std::string, Texture2D>               ResourceManager::Textures;
+std::map<std::string, Shader>                  ResourceManager::Shaders;
+std::map<std::string, std::shared_ptr<Model>>  ResourceManager::Models;
 
 void ResourceManager::clear()
 {
@@ -27,28 +33,30 @@ void ResourceManager::clear()
     // delete all textures
     for (auto iter : Textures)
         glDeleteTextures(1, &iter.second.id);
+    // delete all models
+    // for (auto iter : Models)
+    //     delete iter->second;
 }
 
 // ---- shaders
 
-Shader ResourceManager::load_shader(std::string path, std::vector<std::string> files, std::string name)
+Shader ResourceManager::load_shader(const std::string& path, std::vector<std::string> files, const std::string& name)
 {
     Shaders[name] = load_shader_from_file(path, files);
     return Shaders[name];
 }
 
-Shader ResourceManager::get_shader(std::string name)
+Shader ResourceManager::get_shader(const std::string& name)
 {
     return Shaders[name];
 }
 
-Shader ResourceManager::load_shader_from_file(std::string path, std::vector<std::string> files)
+Shader ResourceManager::load_shader_from_file(const std::string& path, std::vector<std::string> files)
 {
     printf("----- Shader from path -------\n");
     printf("Dir: %s \n", path.c_str());
 
     Shader s;
-
     for (auto& f : files)
     {
         printf("File: %s \n", f.c_str());
@@ -68,22 +76,22 @@ Shader ResourceManager::load_shader_from_file(std::string path, std::vector<std:
 
 // ---- textures
 
-Texture2D ResourceManager::load_texture(const char* full_path, std::string unique_name, bool flip, bool alpha)
+Texture2D ResourceManager::load_texture(const std::string& full_path, const std::string& unique_name, bool vertically_flip, bool alpha)
 {
-    Textures[unique_name] = load_texture_from_file(full_path, flip, alpha);
+    Textures[unique_name] = load_texture_from_file(full_path, vertically_flip, alpha);
     printf("texture loaded! %s", unique_name.c_str());
     return Textures[unique_name];
 }
 
-Texture2D ResourceManager::get_texture(std::string name)
+Texture2D ResourceManager::get_texture(const std::string& name)
 {
     return Textures[name];
 }
 
-Texture2D ResourceManager::load_texture_from_file(const char* full_path, bool flip, bool alpha)
+Texture2D ResourceManager::load_texture_from_file(const std::string& full_path, bool vertically_flip, bool alpha)
 {
     printf("----- Texture from path -------\n");
-    printf("Dir: %s \n", full_path);
+    printf("Dir: %s \n", full_path.c_str());
     printf("----- End Texture -------\n");
 
     // create texture object
@@ -95,8 +103,8 @@ Texture2D ResourceManager::load_texture_from_file(const char* full_path, bool fl
     }
     // load image
     int width, height, nrChannels;
-    stbi_set_flip_vertically_on_load(flip);
-    unsigned char* data = stbi_load(full_path, &width, &height, &nrChannels, 0);
+    stbi_set_flip_vertically_on_load(vertically_flip);
+    unsigned char* data = stbi_load(full_path.c_str(), &width, &height, &nrChannels, 0);
 
     if (data)
     {
@@ -113,7 +121,7 @@ Texture2D ResourceManager::load_texture_from_file(const char* full_path, bool fl
     }
     else
     {
-        printf("FAILED TO LOAD TEXTURE: %s", full_path);
+        printf("FAILED TO LOAD TEXTURE: %s", full_path.c_str());
     }
 
     // now generate texture
@@ -124,5 +132,43 @@ Texture2D ResourceManager::load_texture_from_file(const char* full_path, bool fl
 
     return texture;
 }
+
+// ---- models
+
+std::shared_ptr<Model> ResourceManager::load_model( const std::string& path, const std::string& unique_name )
+{
+    Models[unique_name] = load_model_from_file(path, unique_name);
+    printf("model loaded! %s", unique_name.c_str());
+    return Models[unique_name];
+}
+
+std::shared_ptr<Model> ResourceManager::get_model( const std::string& name )
+{
+    return Models[name];
+}
+
+std::shared_ptr<Model> ResourceManager::load_model_from_file( const std::string& path, const std::string& unique_name )
+{
+    printf("----- Model from path -------\n");
+    printf("Dir: %s \n", path.c_str());
+    printf("-------- Model ------- \n");
+
+    std::string directory = path.substr(0, path.find_last_of('/'));
+
+    Assimp::Importer import;    
+    const aiScene* scene = import.ReadFile(path, aiProcess_Triangulate | aiProcess_FlipUVs);
+
+    if (!scene || scene->mFlags & AI_SCENE_FLAGS_INCOMPLETE || !scene->mRootNode)
+    {
+        std::cout << "ERROR::ASSIMP::" << import.GetErrorString() << std::endl;
+        return nullptr;
+    }
+
+    //A model consists of multiple meshes
+    std::shared_ptr<Model> model = std::make_shared<Model>();
+    model->init(scene, unique_name);
+    return model;
+}
+
 
 } //namespace fightingengine

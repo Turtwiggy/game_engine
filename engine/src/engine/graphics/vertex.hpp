@@ -4,12 +4,12 @@
 #include "glm/glm.hpp"
 
 //your project headers
-#include "engine/renderer/colour.hpp"
+#include "engine/graphics/colour.hpp"
 
 namespace fightingengine {
 
-struct Vertex {
-
+class Vertex {
+public:
     Vertex()
         : Position(glm::vec3(0.0, 0.0, 0.0))
         , Normal(glm::vec3(0.0, 0.0, 0.0))
@@ -20,8 +20,7 @@ struct Vertex {
         : Position(pos)
         , Normal(normal)
         , TexCoords(tex)
-    {
-    }
+    {};
 
     glm::vec3 Position;
     glm::vec3 Normal;

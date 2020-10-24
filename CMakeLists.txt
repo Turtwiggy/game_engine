@@ -8,8 +8,8 @@ set (CMAKE_CXX_STANDARD 17)
 set (CMAKE_TOOLCHAIN_FILE ${CMAKE_SOURCE_DIR}/thirdparty/vcpkg/scripts/buildsystems/vcpkg.cmake)
 project(subprojects VERSION 0.1.0)
 
-add_subdirectory(engine)
-add_subdirectory(game_2d)
+#add_subdirectory(engine)
+#add_subdirectory(game_2d)
 add_subdirectory(game_3d)
 
 #random c++ projects

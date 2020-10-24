@@ -6,8 +6,9 @@
 #include <vector>
 
 //your project headers
-#include "engine/renderer/texture.hpp"
-#include "engine/renderer/shader.hpp"
+#include "engine/3d/model.hpp"
+#include "engine/graphics/texture.hpp"
+#include "engine/graphics/shader.hpp"
 
 namespace fightingengine {
 
@@ -22,22 +23,24 @@ public:
     // resource storage
     static std::map<std::string, Shader>    Shaders;
     static std::map<std::string, Texture2D> Textures;
+    static std::map<std::string, std::shared_ptr<Model>> Models;
 
-    // loads (and generates) a shader program from file loading vertex, 
-    // fragment (and geometry) shader's source code. If gShaderFile is not nullptr, it also loads a geometry shader
-    static Shader    load_shader(std::string path, std::vector<std::string> files, std::string name);
-    // retrieves a stored sader
-    static Shader    get_shader(std::string name);
+    // loads (and generates) a shader program from file loading vertex, fragment shader's source code. 
+    static Shader load_shader(const std::string& path, std::vector<std::string> files, const std::string& name);
+    static Shader get_shader(const std::string& name);
 
     // loads (and generates) a texture from file
     //e.g PARAM full_path: assets/textures/Bamboo/BambooWall_1k_albedo.jpg
     //e.g PARAM unique_name: Bamboo
-    static Texture2D load_texture(const char* full_path, std::string unique_name, bool flip = false, bool alpha = false);
-    // retrieves a stored texture
-    static Texture2D get_texture(std::string name);
+    static Texture2D load_texture(const std::string& full_path, const std::string& unique_name, bool vertically_flip = false, bool alpha = false);
+    static Texture2D get_texture(const std::string& name);
+
+    //e.g PARAM full_path: assets/models/Bamboo/BambooWall_1k_albedo.jpg
+    static std::shared_ptr<Model> load_model(const std::string& path, const std::string& unique_name);
+    static std::shared_ptr<Model> get_model(const std::string& name);
 
     // de-allocates all loaded resources
-    static void      clear();
+    static void clear();
 
 private:
     // private constructor, that is we do not want any actual resource manager objects. 
@@ -46,11 +49,14 @@ private:
 
     //e.g. PARAM path: assets/shaders/raytraced/
     //e.g. PARAM files: ["example.frag", "example.vert", "example.glsl"]
-    static Shader    load_shader_from_file(std::string path, std::vector<std::string> files);
+    static Shader load_shader_from_file(const std::string& path, std::vector<std::string> files);
 
     // loads a single texture from file
     //e.g PARAM file: assets/textures/Bamboo/BambooWall_1k_albedo.jpg
-    static Texture2D load_texture_from_file(const char* full_path, bool flip, bool alpha);
+    static Texture2D load_texture_from_file(const std::string& full_path, bool vertically_flip, bool alpha);
+
+    static std::shared_ptr<Model> load_model_from_file(const std::string& path, const std::string& unique_name);
+
 };
 
 } //namespace fightingengine

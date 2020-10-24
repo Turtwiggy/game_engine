@@ -2,8 +2,8 @@
 
 //your project headers
 #include "engine/3d/camera.hpp"
-#include "engine/renderer/shader.hpp"
-#include "engine/geometry/triangle.hpp"
+#include "engine/graphics/shader.hpp"
+#include "engine/graphics/triangle.hpp"
 
 namespace fightingengine {
 

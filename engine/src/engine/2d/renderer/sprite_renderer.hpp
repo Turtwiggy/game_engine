@@ -4,9 +4,9 @@
 #include <glm/glm.hpp>
 
 //your project headers
-#include "engine/renderer/texture.hpp"
-#include "engine/renderer/shader.hpp"
-#include "engine/renderer/colour.hpp"
+#include "engine/graphics/texture.hpp"
+#include "engine/graphics/shader.hpp"
+#include "engine/graphics/colour.hpp"
 
 namespace fightingengine
 {

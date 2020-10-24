@@ -1,7 +1,7 @@
 #pragma once
 
 //header
-#include "engine/renderer/shader.hpp"
+#include "engine/graphics/shader.hpp"
 
 //c++ standard library headers
 #include <fstream>
@@ -12,7 +12,7 @@
 #include <GL/glew.h>
 
 //your project headers
-#include "engine/renderer/util/opengl_util.hpp"
+#include "engine/graphics/util/opengl_util.hpp"
 
 namespace fightingengine {
 

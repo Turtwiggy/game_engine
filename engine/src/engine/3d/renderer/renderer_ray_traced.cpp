@@ -9,43 +9,15 @@
 #include <glm/gtx/transform.hpp>
 
 //your project headers
-#include "engine/renderer/render_command.hpp"
-#include "engine/renderer/shader.hpp"
-#include "engine/renderer/util/opengl_util.hpp"
 #include "engine/core/maths/ray.hpp"
+#include "engine/graphics/render_command.hpp"
+#include "engine/graphics/shader.hpp"
+#include "engine/graphics/util/opengl_util.hpp"
+#include "engine/graphics/primitives/primitives.hpp"
 
 namespace fightingengine {
 
-// renderQuad() renders a 1x1 XY quad in NDC
-unsigned int quadVAO = 0;
-unsigned int quadVBO;
-void renderQuad()
-{
-    if (quadVAO == 0)
-    {
-        float quadVertices[] = {
-            // positions        // texture Coords
-            -1.0f,  1.0f, 0.0f, 0.0f, 1.0f,
-            -1.0f, -1.0f, 0.0f, 0.0f, 0.0f,
-                1.0f,  1.0f, 0.0f, 1.0f, 1.0f,
-                1.0f, -1.0f, 0.0f, 1.0f, 0.0f,
-        };
-        // setup plane VAO
-        glGenVertexArrays(1, &quadVAO);
-        glGenBuffers(1, &quadVBO);
-        glBindVertexArray(quadVAO);
-        glBindBuffer(GL_ARRAY_BUFFER, quadVBO);
-        glBufferData(GL_ARRAY_BUFFER, sizeof(quadVertices), &quadVertices, GL_STATIC_DRAW);
-        glEnableVertexAttribArray(0);
-        glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 5 * sizeof(float), (void*)0);
-        glEnableVertexAttribArray(1);
-        glVertexAttribPointer(1, 2, GL_FLOAT, GL_FALSE, 5 * sizeof(float), (void*)(3 * sizeof(float)));
-    }
-    glBindVertexArray(quadVAO);
-    glDrawArrays(GL_TRIANGLE_STRIP, 0, 4);
-    glBindVertexArray(0);
-}
-
+//Specific to the RayTracer's Shader
 struct ComputeShaderVertex {
     glm::vec4 pos;
     glm::vec4 nml;
@@ -82,6 +54,8 @@ struct RayTracedData {
     size_t set_triangles = 0;
     std::vector<ComputeShaderTriangle> triangles;
 
+    primitives::Plane plane;
+
     uint32_t draw_calls = 0;
 };
 static RayTracedData s_Data;
@@ -107,6 +81,8 @@ RendererRayTraced::RendererRayTraced(int screen_width, int screen_height)
         .attach_shader("assets/shaders/raytraced/geometry.frag", OpenGLShaderTypes::FRAGMENT)
         .build_program();
     s_Data.geometry_shader = geometry_shader;
+
+    s_Data.plane.init();
 
     // configure g-buffer for intial render pass
     unsigned int gBuffer;
@@ -415,7 +391,7 @@ void RendererRayTraced::third_quad_pass()
     // {
     //     glBindTexture(GL_TEXTURE_2D, s_Data.g_albedo_spec);
     // }
-    renderQuad();
+    s_Data.plane.draw();
 }
 
 void RendererRayTraced::resize(Camera& c, int width, int height)

@@ -8,7 +8,7 @@
 
 //your project headers
 #include "engine/2d/renderer/sprite_renderer.hpp"
-#include "engine/renderer/colour.hpp"
+#include "engine/graphics/colour.hpp"
 
 namespace fightingengine {
 

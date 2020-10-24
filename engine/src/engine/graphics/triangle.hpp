@@ -4,7 +4,7 @@
 #include <vector>
 
 //your project headers
-#include "engine/geometry/vertex.hpp"
+#include "engine/graphics/vertex.hpp"
 
 namespace fightingengine {
 

@@ -14,18 +14,19 @@
 
 //your project headers
 #include "engine/core/application.hpp"
-//#include "engine/resources/model_manager.hpp"
 #include "engine/3d/camera.hpp"
 #include "engine/3d/renderer/renderer_pbr.hpp"
 #include "engine/3d/renderer/renderer_ray_traced.hpp"
-#include "engine/renderer/render_command.hpp"
-#include "engine/renderer/shader.hpp"
-#include "engine/geometry/triangle.hpp"
+#include "engine/3d/renderer/renderer_simple.hpp"
+#include "engine/graphics/render_command.hpp"
+#include "engine/graphics/shader.hpp"
+#include "engine/graphics/triangle.hpp"
 #include "engine/resources/resource_manager.hpp"
 #include "engine/tools/profiler.hpp"
 using namespace fightingengine;
 
 #include "panels/scene_hierarchy_panel.hpp"
+#include "panels/profiler_panel.hpp"
 #include "game_state.hpp"
 using namespace game_3d;
 
@@ -40,7 +41,6 @@ int main(int argc, char** argv)
     Camera camera = Camera (
         glm::vec3(0.0f, 0.0f, 1.0f), 
         glm::vec3(0.0f, 1.0f, 0.0f) );
-
     //Create world (for now, just spheres)
     std::vector<Sphere> world = create_world();
     
@@ -51,6 +51,7 @@ int main(int argc, char** argv)
 
     RendererRayTraced renderer(width, height);
     RendererPBR pbr_renderer;
+    RendererSimple simple_renderer;
 
     //UI
     auto default_scene = std::make_shared<Scene>();
@@ -58,6 +59,7 @@ int main(int argc, char** argv)
     scene_panel.set_context(default_scene);
 
     Profiler profiler;
+    ProfilerPanel profiler_panel;
 
     //Fix mouse lurch issue
     //probably should move this in to a class or something
@@ -190,80 +192,21 @@ int main(int argc, char** argv)
             profiler.begin(Profiler::Stage::GuiLoop);
 
             app.gui_begin();
-            scene_panel.on_imgui_render();
 
             // bool demo_window = true;
             // ImGui::ShowDemoWindow(&demo_window);
 
             ImGui::Begin("Texture Test");
-
             // Using a Child allow to fill all the space of the window.
-            // It also alows customization
             ImGui::BeginChild("GameRender");
-
             ImVec2 wsize = ImGui::GetWindowSize();
             ImGui::Image((ImTextureID)tex.id, ImVec2(wsize.x, wsize.x * 9.0 / 16.0), ImVec2(0, 1), ImVec2(1, 0));
             ImGui::Text("Yarr Harr I'm an octopus!");
-        
             ImGui::EndChild();
-            
             ImGui::End();
 
-            ImGui::Begin("Profiler");
-
-            float average_fps = app.get_average_fps();
-            float raw_fps = app.get_raw_fps(delta_time_s);
-            ImGui::Text("Average FPS: %f", average_fps);
-
-            // Fill an array of contiguous float values to plot
-            // Tip: If your float aren't contiguous but part of a structure, you can pass a pointer to your first float
-            // and the sizeof() of your structure in the "stride" parameter.
-            static bool animate = true;
-            ImGui::Checkbox("Animate", &animate);
-
-            static float values[90] = {};
-            static int values_offset = 0;
-            static double refresh_time = 0.0;
-            if (!animate || refresh_time == 0.0)
-                refresh_time = ImGui::GetTime();
-            while (refresh_time < ImGui::GetTime()) // Create data at fixed 60 Hz rate for the demo
-            {
-                values[values_offset] = raw_fps;
-                values_offset = (values_offset + 1) % IM_ARRAYSIZE(values);
-                refresh_time += 1.0f / 60.0f;
-            }
-
-            {
-                float average = 0.0f;
-                for (int n = 0; n < IM_ARRAYSIZE(values); n++)
-                    average += values[n];
-                average /= (float)IM_ARRAYSIZE(values);
-                char overlay[32];
-                sprintf(overlay, "avg %f", average);
-                ImGui::PlotLines("Lines", values, IM_ARRAYSIZE(values), values_offset, overlay, 0.0f, 144.0f, ImVec2(0, 40.0f));
-            }
-            
-            ImGui::Columns(1);
-            
-            float time = profiler.get_average_time(Profiler::Stage::SdlInput);
-            ImGui::Text("%s %f ms", profiler.stageNames[(uint8_t)Profiler::Stage::SdlInput].data(), (time));
-            
-            time = profiler.get_average_time(Profiler::Stage::GameTick);
-            ImGui::Text("%s %f ms", profiler.stageNames[(uint8_t)Profiler::Stage::GameTick].data(), (time));
-
-            time = profiler.get_average_time(Profiler::Stage::Render);
-            ImGui::Text("%s %f ms", profiler.stageNames[(uint8_t)Profiler::Stage::Render].data(), (time));
-            
-            time = profiler.get_average_time(Profiler::Stage::GuiLoop);
-            ImGui::Text("%s %f ms", profiler.stageNames[(uint8_t)Profiler::Stage::GuiLoop].data(), (time));
-            
-            time = profiler.get_average_time(Profiler::Stage::FrameEnd);
-            ImGui::Text("%s %f ms", profiler.stageNames[(uint8_t)Profiler::Stage::FrameEnd].data(), (time));
-            
-            time = profiler.get_average_time(Profiler::Stage::UpdateLoop);
-            ImGui::Text("~~ %s %f ms ~~", profiler.stageNames[(uint8_t)Profiler::Stage::UpdateLoop].data(), (time));
-            
-            ImGui::End();
+            scene_panel.on_imgui_render();
+            profiler_panel.draw(app, profiler, delta_time_s);
 
             app.gui_end();
 

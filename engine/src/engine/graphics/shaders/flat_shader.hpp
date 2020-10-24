@@ -4,7 +4,7 @@
 #include <string>
 
 //your project headers
-#include "engine/renderer/shader.hpp"
+#include "engine/graphics/shader.hpp"
 
 namespace fightingengine {
 

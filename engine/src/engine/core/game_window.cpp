@@ -10,9 +10,6 @@
 #include <spdlog/spdlog.h>
 #include <GL/glew.h>
 
-//your project headers
-#include "engine/renderer/util/opengl_util.hpp"
-
 namespace fightingengine {
 
     GameWindow::GameWindow(const std::string& title, const SDL_DisplayMode& display, display_mode displaymode)
@@ -95,12 +92,12 @@ namespace fightingengine {
                 throw std::runtime_error("Error initializing GLEW! " + std::string(SDL_GetError()));
             }
 
-            //Check OpenGL
-            GLenum error;
-            while ((error = glGetError()) != GL_NO_ERROR)
-            {
-                printf("ERROR GLEW: %s\n", gl_error_to_string(error));
-            }
+            // //Check OpenGL
+            // GLenum error;
+            // while ((error = glGetError()) != GL_NO_ERROR)
+            // {
+            //     printf("ERROR GLEW: %s\n", gl_error_to_string(error));
+            // }
         }
 
         SDL_GL_SetAttribute(SDL_GL_CONTEXT_FLAGS, 0);

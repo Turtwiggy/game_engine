@@ -1,6 +1,6 @@
 
 //header
-#include "engine/renderer/shaders/flat_shader.hpp"
+#include "engine/graphics/shaders/flat_shader.hpp"
 
 namespace fightingengine {
 

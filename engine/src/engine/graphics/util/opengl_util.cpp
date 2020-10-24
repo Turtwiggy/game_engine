@@ -1,6 +1,6 @@
 
 //header
-#include "engine/renderer/util/opengl_util.hpp"
+#include "engine/graphics/util/opengl_util.hpp"
 
 //c system headers
 #include <cassert>

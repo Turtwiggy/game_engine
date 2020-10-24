@@ -61,9 +61,9 @@ public:
     void end(const Stage& stage);
 
     //returns milliseconds the profiler stage took this frame
-    [[nodiscard]] float get_time(const Stage& request);
+    [[nodiscard]] float get_time(const Stage& request) const;
     //returns average milliseconds the the last "frames_data_live" frames took
-    [[nodiscard]] float get_average_time(const Stage& request);
+    [[nodiscard]] float get_average_time(const Stage& request) const;
 
 private:
     uint8_t get_entry_index(int8_t offset) const;

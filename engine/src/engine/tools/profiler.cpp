@@ -22,7 +22,7 @@ void Profiler::new_frame()
     prevEntry.frame_end = entries[current_entry].frame_start = std::chrono::system_clock::now();
 }
 
-float Profiler::get_time(const Stage& request)
+float Profiler::get_time(const Stage& request) const
 {
     auto& entry = entries[get_entry_index(-1)];
     auto& stage = entry.stages[(int)request];
@@ -36,7 +36,7 @@ float Profiler::get_time(const Stage& request)
     return endTimestamp - startTimestamp;
 }
 
-float Profiler::get_average_time(const Stage& request)
+float Profiler::get_average_time(const Stage& request) const
 {
     float average = 0.0f;
     int valid_entries = 0;

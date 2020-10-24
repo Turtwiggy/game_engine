@@ -6,7 +6,7 @@ set(CPACK_PROJECT_VERSION ${PROJECT_VERSION})
 
 #VCPKG packages
 set (ENGINE_PACKAGES_CONFIG
-    SDL2 EnTT Bullet spdlog glm
+    SDL2 EnTT Bullet spdlog glm assimp
 )
 set (ENGINE_PACKAGES
     OpenGL GLEW
@@ -43,6 +43,7 @@ if(${CMAKE_SYSTEM_NAME} STREQUAL "Windows")
         GLEW::GLEW
         SDL2::SDL2 SDL2::SDL2main
         opengl32
+        assimp::assimp
     )
 
 elseif(${CMAKE_SYSTEM_NAME} STREQUAL "Linux")
@@ -62,6 +63,7 @@ elseif(${CMAKE_SYSTEM_NAME} STREQUAL "Linux")
         GLEW
         SDL2::SDL2main SDL2::SDL2-static
         GL
+        #missing assimp here
     )
 endif()  
 

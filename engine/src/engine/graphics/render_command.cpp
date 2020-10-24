@@ -1,6 +1,6 @@
 
 //header
-#include "engine/renderer/render_command.hpp"
+#include "engine/graphics/render_command.hpp"
 
 //other library headers
 #include <SDL2/SDL.h>
