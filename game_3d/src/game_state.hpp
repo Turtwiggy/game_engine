@@ -1,8 +1,14 @@
 #pragma once
 
+//other library headers
+#include <glm/glm.hpp>
+#include <glm/gtc/matrix_transform.hpp>
+#include <glm/gtc/type_ptr.hpp>
+#include <glm/gtx/transform.hpp>
+#include <glm/gtx/euler_angles.hpp>
+
 //your project headers
 #include "engine/core/application.hpp"
-#include "engine/3d/camera.hpp"
 #include "engine/3d/renderer/renderer_ray_traced.hpp"
 #include "engine/graphics/render_command.hpp"
 #include "engine/graphics/shader.hpp"

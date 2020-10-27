@@ -215,7 +215,7 @@ RendererRayTraced::RendererRayTraced(int screen_width, int screen_height)
 // 1. geometry pass: render scene's geometry/color data into gbuffer
 Shader& RendererRayTraced::first_geometry_pass(const Camera& camera, int width, int height)
 {
-    glm::mat4 view_projection = camera.get_view_projection_matrix(width, height);
+    glm::mat4 view_projection = camera.get_view_projection_matrix();
 
     glBindFramebuffer(GL_FRAMEBUFFER, s_Data.g_buffer);
     CHECK_OPENGL_ERROR(13);
@@ -318,13 +318,13 @@ void RendererRayTraced::second_raytrace_pass
     s_Data.compute_shader.setVec3("eye", camera.Position);
 
     glm::vec3 eye_ray;
-    eye_ray = camera.get_eye_ray(-1, -1, width, height);
+    eye_ray = camera.get_eye_ray(-1, -1);
     s_Data.compute_shader.setVec3("ray00", eye_ray);
-    eye_ray = camera.get_eye_ray(-1, 1, width, height);
+    eye_ray = camera.get_eye_ray(-1, 1);
     s_Data.compute_shader.setVec3("ray01", eye_ray);
-    eye_ray = camera.get_eye_ray(1, -1, width, height);
+    eye_ray = camera.get_eye_ray(1, -1);
     s_Data.compute_shader.setVec3("ray10", eye_ray);
-    eye_ray = camera.get_eye_ray(1, 1, width, height);
+    eye_ray = camera.get_eye_ray(1, 1);
     s_Data.compute_shader.setVec3("ray11", eye_ray);
 
     s_Data.compute_shader.setFloat("time", timer);
@@ -392,15 +392,6 @@ void RendererRayTraced::third_quad_pass()
     //     glBindTexture(GL_TEXTURE_2D, s_Data.g_albedo_spec);
     // }
     s_Data.plane.draw();
-}
-
-void RendererRayTraced::resize(Camera& c, int width, int height)
-{
-    printf("(RendererRayTraced) - resize raytraced - TODO");
-
-    return;
-    c.resize(width, height);
-    RenderCommand::set_viewport(0, 0, width, height);
 }
 
 } //namespace fightingengine

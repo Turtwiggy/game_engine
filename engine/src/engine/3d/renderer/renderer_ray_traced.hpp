@@ -1,7 +1,7 @@
 #pragma once
 
 //your project headers
-#include "engine/3d/camera.hpp"
+#include "engine/3d/camera/camera.hpp"
 #include "engine/graphics/shader.hpp"
 #include "engine/graphics/triangle.hpp"
 
@@ -17,9 +17,7 @@ class RendererRayTraced
 {
 public:
     RendererRayTraced(int screen_width, int screen_height);
-
-    void resize(Camera& c, int width, int height);
-
+    
     [[nodiscard]] Shader& first_geometry_pass
     (
         const Camera& camera,

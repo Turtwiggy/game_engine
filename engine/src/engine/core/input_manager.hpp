@@ -19,15 +19,18 @@ namespace fightingengine
         //keyboard
 
         void add_button_down(SDL_Keycode button);
-        bool get_key_down(SDL_Keycode button);
-        bool get_key_held(SDL_Scancode button);
+        [[nodiscard]] bool get_key_down(SDL_Keycode button);
+        [[nodiscard]] bool get_key_held(SDL_Scancode button);
 
         //mouse
 
         void add_mouse_down(SDL_MouseButtonEvent& mouse_e);
-        bool get_mouse_lmb_held();
-        bool get_mouse_rmb_held();
-        bool get_mouse_mmb_held();
+        [[nodiscard]] bool get_mouse_lmb_held();
+        [[nodiscard]] bool get_mouse_rmb_held();
+        [[nodiscard]] bool get_mouse_mmb_held();
+
+        void set_mousewheel_y(const float amount);
+        [[nodiscard]] float get_mousewheel_y() const;
 
     private:
 
@@ -36,6 +39,7 @@ namespace fightingengine
         std::vector<SDL_Keycode> down;
         const Uint8* state;
 
+        float mousewheel_y;
     };
 
 }

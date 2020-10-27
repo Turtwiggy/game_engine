@@ -76,10 +76,15 @@ Shader ResourceManager::load_shader_from_file(const std::string& path, std::vect
 
 // ---- textures
 
-Texture2D ResourceManager::load_texture(const std::string& full_path, const std::string& unique_name, bool vertically_flip, bool alpha)
+Texture2D ResourceManager::load_texture(        
+        const std::string& full_path, 
+        const std::string& unique_name, 
+        GLenum target,
+        GLenum format, 
+        bool srgb )
 {
-    Textures[unique_name] = load_texture_from_file(full_path, vertically_flip, alpha);
-    printf("texture loaded! %s", unique_name.c_str());
+    Textures[unique_name] = load_texture_from_file(full_path, target, format, srgb);
+    printf("texture loaded! %s \n", unique_name.c_str());
     return Textures[unique_name];
 }
 
@@ -88,44 +93,49 @@ Texture2D ResourceManager::get_texture(const std::string& name)
     return Textures[name];
 }
 
-Texture2D ResourceManager::load_texture_from_file(const std::string& full_path, bool vertically_flip, bool alpha)
+Texture2D ResourceManager::load_texture_from_file(
+        std::string full_path, 
+        GLenum target, 
+        GLenum internalFormat, 
+        bool srgb )
 {
     printf("----- Texture from path -------\n");
     printf("Dir: %s \n", full_path.c_str());
     printf("----- End Texture -------\n");
 
     // create texture object
-    Texture2D texture(full_path);
-    if (alpha)
-    {
-        texture.Internal_Format = GL_RGBA;
-        texture.Image_Format = GL_RGBA;
-    }
+    Texture2D texture;
+    texture.Target = target;
+    texture.InternalFormat = internalFormat;
+    if(texture.InternalFormat == GL_RGB || texture.InternalFormat == GL_SRGB)
+        texture.InternalFormat = srgb ? GL_SRGB : GL_RGB;
+    if (texture.InternalFormat == GL_RGBA || texture.InternalFormat == GL_SRGB_ALPHA)
+        texture.InternalFormat = srgb ? GL_SRGB_ALPHA : GL_RGBA;
+
+    // flip textures on their y coordinate while loading
+    stbi_set_flip_vertically_on_load(true);
+
     // load image
     int width, height, nrChannels;
-    stbi_set_flip_vertically_on_load(vertically_flip);
-    unsigned char* data = stbi_load(full_path.c_str(), &width, &height, &nrChannels, 0);
+    void *data = stbi_load(full_path.c_str(), &width, &height, &nrChannels, 0);
 
     if (data)
     {
-        if (nrChannels == 3)
-        {
-            texture.Internal_Format = GL_RGB8;
-            texture.Image_Format =  GL_RGB;
-        }
+        GLenum format;
+        if(nrChannels == 1)
+            format = GL_RED;
+        else if (nrChannels == 3)
+            format = GL_RGB;
         else if (nrChannels == 4)
-        {
-            texture.Internal_Format = GL_RGBA8;
-            texture.Image_Format = GL_RGBA;
-        }
+            format = GL_RGBA;
+
+        if (target == GL_TEXTURE_2D)
+            texture.Generate(width, height, texture.InternalFormat, format, GL_UNSIGNED_BYTE, data);
     }
     else
     {
         printf("FAILED TO LOAD TEXTURE: %s", full_path.c_str());
     }
-
-    // now generate texture
-    texture.Generate(width, height, data);
 
     // and finally free image data
     stbi_image_free(data);

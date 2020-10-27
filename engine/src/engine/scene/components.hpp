@@ -5,7 +5,7 @@
 #include <glm/gtc/matrix_transform.hpp>
 
 //your project headers
-#include "engine/3d/camera.hpp"
+#include "engine/3d/camera/camera.hpp"
 
 namespace fightingengine {
 

@@ -2,6 +2,11 @@
 //header
 #include "engine/3d/renderer/renderer_simple.hpp"
 
+//other library files
+#include <glm/glm.hpp>
+#include <glm/gtc/matrix_transform.hpp>
+#include <glm/gtx/transform.hpp>
+
 //your project files
 #include "engine/resources/resource_manager.hpp"
 
@@ -13,17 +18,18 @@ namespace fightingengine {
         cube.init();
 
         //TODO LOAD MODELS
-        object_ = ResourceManager::load_model("assets/models/temp.obj", "Object");
+        object_ = ResourceManager::load_model("assets/models/lizard_wizard/lizard_wizard.obj", "Object");
     }
 
-    void RendererSimple::update(const Camera& cam, int width, int height)
+    void RendererSimple::update(float delta_time, FlyCamera& camera)
     {
-        glm::mat4 view_projection = cam.get_view_projection_matrix(width, height);
+        camera.Update(delta_time);
+        glm::mat4 view_projection =  camera.get_view_projection_matrix();
 
         draw_calls_ = 0;
         flat_shader_.get_shader().bind();
         flat_shader_.get_shader().setMat4("view_projection", view_projection);
-        flat_shader_.get_shader().setVec3("viewPos", cam.Position);
+        flat_shader_.get_shader().setVec3("viewPos", camera.Position);
 
         // A directional light
         glm::vec3 lightColor(0.9f, 0.9f, 0.9f);
@@ -61,7 +67,7 @@ namespace fightingengine {
         model = glm::translate(model, glm::vec3(2.0f, 0.0f, 0.0f));
         model = glm::scale(model, glm::vec3(1.0f, 1.0f, 1.0f));	
         flat_shader_.get_shader().setMat4("model", model);
-        //cube.draw();
+        cube.draw();
 
         flat_shader_.get_shader().unbind();
     }

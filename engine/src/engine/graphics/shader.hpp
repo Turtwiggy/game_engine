@@ -34,29 +34,12 @@ public:
     //e.g. hello.glsl returns OpenGLShaderTypes::COMPUTE
     static OpenGLShaderTypes convert_file_to_shadertype(std::string file);
 
-private:
-
-    //this is the latest path added via attach_shader()
-    //this is mainly used for debugging 
-    std::string latest_path;
-    
-    bool ok_to_build = true;
-    std::vector<unsigned int> shaders;
-
-    unsigned int load_shader(const std::string& path, unsigned int gl_shader_type, std::string type);
-    void attach_shaders_to_program();
-
-    // utility function for checking shader compilation/linking errors.
-    void check_compile_errors(unsigned int shader, std::string type);
-
-public:
-
     // activate the shader
     void bind();
     void unbind();
 
     // utility uniform functions
-
+    [[nodiscard]] int get_uniform_binding_location(const std::string& name) const;
     void setBool(const std::string& name, bool value) const;
     void setInt(const std::string& name, int value) const;
     void setFloat(const std::string& name, float value) const;
@@ -70,10 +53,25 @@ public:
     void setMat3(const std::string& name, const glm::mat3& mat) const;
     void setMat4(const std::string& name, const glm::mat4& mat) const;
 
-    [[nodiscard]] int get_uniform_binding_location(const std::string& name) const;
-
     [[nodiscard]] int get_compute_buffer_binding_location(const std::string& name) const;
     void set_compute_buffer_bind_location(const std::string& name);
+
+private:
+
+    //this is the latest path added via attach_shader()
+    //this is mainly used for debugging 
+    std::string latest_path;
+    
+    bool ok_to_build = true;
+
+    std::vector<unsigned int> shaders;
+
+    unsigned int load_shader(const std::string& path, unsigned int gl_shader_type, std::string type);
+    
+    void attach_shaders_to_program();
+
+    // utility function for checking shader compilation/linking errors.
+    void check_compile_errors(unsigned int shader, std::string type);
 };
 
 } //namespace fightingengine

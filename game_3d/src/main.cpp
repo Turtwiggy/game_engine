@@ -14,7 +14,6 @@
 
 //your project headers
 #include "engine/core/application.hpp"
-#include "engine/3d/camera.hpp"
 #include "engine/3d/renderer/renderer_pbr.hpp"
 #include "engine/3d/renderer/renderer_ray_traced.hpp"
 #include "engine/3d/renderer/renderer_simple.hpp"
@@ -35,23 +34,22 @@ int main(int argc, char** argv)
     uint32_t width = 1366;
     uint32_t height = 768;
     Application app("Fighting Game!", width, height);
-    app.set_fps_limit(60.0f);
+    app.set_fps_limit(60.0f);   
 
-    //Camera
-    Camera camera = Camera (
-        glm::vec3(0.0f, 2.0f, 4.0f), 
-        glm::vec3(0.0f, 1.0f, 0.0f) );
+    FlyCamera camera {glm::vec3(0.0f, 2.0f, 4.0f)};
+    camera.SetPerspective(glm::radians(90.0f), (float)width/(float)height, 0.1f, 100.0f);
+
     //Create world (for now, just spheres)
-    std::vector<Sphere> world = create_world();
+    //std::vector<Sphere> world = create_world();
     
     //ModelManager model_manager;
     GameState state;
-    //state.init(model_manager);
     RandomState rnd;
 
-    RendererRayTraced renderer(width, height);
-    RendererPBR pbr_renderer;
+    //RendererRayTraced renderer(width, height);
+    //RendererPBR pbr_renderer;
     RendererSimple simple_renderer;
+    RenderCommand::init();
 
     //UI
     auto default_scene = std::make_shared<Scene>();
@@ -69,7 +67,8 @@ int main(int argc, char** argv)
     std::string_view s2{"hello world 2"};
     std::string_view string_to_display{ s1 };
     //Testing texture
-    Texture2D tex = ResourceManager::load_texture("assets/textures/octopus.png", "Octopus", true, false);
+    Texture2D tex = ResourceManager::load_texture(
+        "assets/textures/octopus.png", "Octopus");
 
     float timer = 0.0f;
     while (app.is_running())
@@ -82,7 +81,7 @@ int main(int argc, char** argv)
         float delta_time_s = app.get_delta_time();
         timer += delta_time_s;
 
-        { // ~~ Input ~~
+        { // ~~ Input Events ~~
             profiler.begin(Profiler::Stage::SdlInput);
 
             //Shutdown app
@@ -119,28 +118,29 @@ int main(int argc, char** argv)
                 int width, height;
                 app.get_window().GetSize(width, height);
                 std::cout << "screen size toggled, w: " << width << " h: " << height << std::endl;
-                renderer.resize(camera, width, height);
+
+                RenderCommand::set_viewport(0, 0, width, height);
             }
 
             //TODO EVENT: resized window
             // if (app.get_event().window_resized)
             //    renderer.resize(width, height);
 
-            // ~~ Camera ~~
+            // ~~ Input: Camera ~~
             if (app.get_input().get_key_held(SDL_Scancode::SDL_SCANCODE_W))
-                camera.update(delta_time_s, CameraMovement::FORWARD);
+                camera.InputKey(delta_time_s, CameraMovement::FORWARD);
             else if (app.get_input().get_key_held(SDL_Scancode::SDL_SCANCODE_S))
-                camera.update(delta_time_s, CameraMovement::BACKWARD);
+                camera.InputKey(delta_time_s, CameraMovement::BACKWARD);
             if (app.get_input().get_key_held(SDL_Scancode::SDL_SCANCODE_A))
-                camera.update(delta_time_s, CameraMovement::LEFT);
+                camera.InputKey(delta_time_s, CameraMovement::LEFT);
             else if (app.get_input().get_key_held(SDL_Scancode::SDL_SCANCODE_D))
-                camera.update(delta_time_s, CameraMovement::RIGHT);
+                camera.InputKey(delta_time_s, CameraMovement::RIGHT);
             if (app.get_input().get_key_held(SDL_Scancode::SDL_SCANCODE_SPACE))
-                camera.update(delta_time_s, CameraMovement::UP);
+                camera.InputKey(delta_time_s, CameraMovement::UP);
             else if (app.get_input().get_key_held(SDL_Scancode::SDL_SCANCODE_LSHIFT))
-                camera.update(delta_time_s, CameraMovement::DOWN);
+                camera.InputKey(delta_time_s, CameraMovement::DOWN);
 
-            // ~~ Mouse ~~
+            // ~~ Input: Mouse ~~
             if (app.get_window().IsInputGrabbed())
             {                
                 int x, y;
@@ -153,11 +153,11 @@ int main(int argc, char** argv)
                 {
                     SDL_GetRelativeMouseState(&x, &y);
                     //printf("relative movement: %i %i \n", x, y);
-                    camera.process_mouse_movement((float)x, (float)y, true);
+                    camera.InputMouse((float)x, (float)y);
                 }
             }
 
-            profiler.end(Profiler::Stage::SdlInput);
+        profiler.end(Profiler::Stage::SdlInput);
         }
 
         { // ~~ Game State Tick ~~
@@ -181,7 +181,7 @@ int main(int argc, char** argv)
             RenderCommand::set_clear_colour(glm::vec4(0.0, 0.482f, 0.655f, 1.0));
             RenderCommand::clear();
 
-            simple_renderer.update(camera, width, height);
+            simple_renderer.update(delta_time_s, camera);
 
             //state.render(renderer, camera, app.get_window(), timer);
             //default_scene->on_update(delta_time_s);
@@ -197,13 +197,24 @@ int main(int argc, char** argv)
             // bool demo_window = true;
             // ImGui::ShowDemoWindow(&demo_window);
 
-            ImGui::Begin("Texture Test");
-            // Using a Child allow to fill all the space of the window.
-            ImGui::BeginChild("GameRender");
-            ImVec2 wsize = ImGui::GetWindowSize();
-            ImGui::Image((ImTextureID)tex.id, ImVec2(wsize.x, wsize.x * 9.0 / 16.0), ImVec2(0, 1), ImVec2(1, 0));
-            ImGui::Text("Yarr Harr I'm an octopus!");
-            ImGui::EndChild();
+            // ImGui::Begin("Texture Test");
+            // // Using a Child allow to fill all the space of the window.
+            // ImGui::BeginChild("GameRender");
+            // ImVec2 wsize = ImGui::GetWindowSize();
+            // ImGui::Image((ImTextureID)tex.id, ImVec2(wsize.x, wsize.x * 9.0 / 16.0), ImVec2(0, 1), ImVec2(1, 0));
+            // ImGui::Text("Yarr Harr I'm an octopus!");
+            // ImGui::EndChild();
+            // ImGui::End();
+
+            ImGui::Begin("Entities");
+
+            ImGui::Text("Camera Pos: %f %f %f", 
+                            camera.Position.x, 
+                            camera.Position.y, 
+                            camera.Position.z );
+            ImGui::Text("Camera Pitch: %f", camera.Pitch);
+            ImGui::Text("Camera Yaw: %f", camera.Yaw);
+
             ImGui::End();
 
             scene_panel.on_imgui_render();

@@ -135,6 +135,9 @@ namespace fightingengine {
                 }
             }
 
+            //int mouse_x, mouse_y;
+            //SDL_GetMouseState(&mouse_x, &mouse_y);
+
             //Key events
             switch (e.type)
             {
@@ -150,6 +153,13 @@ namespace fightingengine {
                 //mouse specific
                 {
                     input_manager.add_mouse_down(e.button);
+                    break;
+                }
+        
+            case SDL_MOUSEWHEEL:
+                //mouse scrollwheel
+                {
+                    input_manager.set_mousewheel_y(static_cast<float>(e.wheel.y));
                     break;
                 }
             }
