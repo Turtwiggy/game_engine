@@ -11,7 +11,7 @@ namespace fightingengine {
 class Texture2D {
 public:
     unsigned int id;
-    GLenum Target         = GL_TEXTURE_2D;           // what type of texture we're dealing with
+    GLenum Target         = GL_TEXTURE_2D;           // what type of texture
     GLenum InternalFormat = GL_RGBA;                 // number of color components
     GLenum Format         = GL_RGBA;                 // the format each texel is stored in
     GLenum Type           = GL_UNSIGNED_BYTE;

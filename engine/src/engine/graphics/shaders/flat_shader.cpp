@@ -2,24 +2,13 @@
 //header
 #include "engine/graphics/shaders/flat_shader.hpp"
 
+#include "engine/resources/resource_manager.hpp"
+
 namespace fightingengine {
 
-void FlatShader::load(
-    const std::string& path, 
-    const std::string& vert_name, 
-    const std::string& frag_name )
+void FlatShader::load()
 {
-    printf("----- shader ----- \n");
-    printf("shader vert loading...: %s%s \n", path.c_str(), frag_name.c_str());
-    printf("shader frag loading...: %s%s \n", path.c_str(), vert_name.c_str());
-
-    Shader shader = Shader()
-        .attach_shader(path + vert_name, OpenGLShaderTypes::VERTEX)
-        .attach_shader(path + frag_name, OpenGLShaderTypes::FRAGMENT)
-        .build_program();
-
-    printf("~~~~ end shader ~~~~ \n");
-    shader_ = shader;
+    shader_ = ResourceManager::load_shader("assets/shaders/blinn-phong/", {"lit.vert", "lit_directional.frag"}, "FlatShader");
 }
 
 Shader FlatShader::get_shader() const

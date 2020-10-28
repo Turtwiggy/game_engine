@@ -51,24 +51,21 @@ int main(int argc, char** argv)
     RendererSimple simple_renderer;
     RenderCommand::init();
 
-    //UI
-    auto default_scene = std::make_shared<Scene>();
-    SceneHierarchyPanel scene_panel;
-    scene_panel.set_context(default_scene);
+    TextureCube background = ResourceManager::load_texture_cube(
+        "assets/skybox/skybox-default/", 
+        "default-skybox");
+    Shader skybox_shader = Shader()
+        .attach_shader("assets/shaders/skybox/skybox.vert", OpenGLShaderTypes::VERTEX)
+        .attach_shader("assets/shaders/skybox/skybox.frag", OpenGLShaderTypes::FRAGMENT)
+        .build_program();
 
     Profiler profiler;
     ProfilerPanel profiler_panel;
 
-    //Fix mouse lurch issue
-    //probably should move this in to a class or something
+    //Fix mouse lurch issue - probably should move this in to a class or something
     bool new_grab = false;
-    //Testing stuff
-    std::string_view s1{"hello world 1"};
-    std::string_view s2{"hello world 2"};
-    std::string_view string_to_display{ s1 };
     //Testing texture
-    Texture2D tex = ResourceManager::load_texture(
-        "assets/textures/octopus.png", "Octopus");
+    Texture2D tex = ResourceManager::load_texture("assets/textures/octopus.png", "Octopus");
 
     float timer = 0.0f;
     while (app.is_running())
@@ -180,6 +177,16 @@ int main(int argc, char** argv)
             
             RenderCommand::set_clear_colour(glm::vec4(0.0, 0.482f, 0.655f, 1.0));
             RenderCommand::clear();
+
+            glm::mat4 view_projection =  camera.get_view_projection_matrix();
+            
+            //Draw skybox
+            glDepthMask(GL_FALSE);
+            skybox_shader.bind();
+            skybox_shader.set_mat4("view_projection", view_projection);
+            background.Bind();
+            glDrawArrays(GL_TRIANGLES, 0, 36);
+            glDepthMask(GL_TRUE);
 
             simple_renderer.update(delta_time_s, camera);
 

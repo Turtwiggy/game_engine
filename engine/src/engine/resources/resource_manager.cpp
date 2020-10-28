@@ -22,8 +22,9 @@ namespace fightingengine {
 
 // Instantiate static variables
 std::map<std::string, Texture2D>               ResourceManager::Textures;
+std::map<std::string, TextureCube>             ResourceManager::TextureCubes;
 std::map<std::string, Shader>                  ResourceManager::Shaders;
-std::map<std::string, std::shared_ptr<Model>>  ResourceManager::Models;
+//std::map<std::string, std::shared_ptr<Model>>  ResourceManager::Models;
 
 void ResourceManager::clear()
 {
@@ -36,6 +37,7 @@ void ResourceManager::clear()
     // delete all models
     // for (auto iter : Models)
     //     delete iter->second;
+    // delete all texturecubes
 }
 
 // ---- shaders
@@ -76,15 +78,11 @@ Shader ResourceManager::load_shader_from_file(const std::string& path, std::vect
 
 // ---- textures
 
-Texture2D ResourceManager::load_texture(        
-        const std::string& full_path, 
-        const std::string& unique_name, 
-        GLenum target,
-        GLenum format, 
-        bool srgb )
+Texture2D ResourceManager::load_texture( const std::string& full_path, const std::string& unique_name, GLenum target, GLenum format, bool srgb )
 {
     Textures[unique_name] = load_texture_from_file(full_path, target, format, srgb);
     printf("texture loaded! %s \n", unique_name.c_str());
+    printf("----- End Texture -------\n");
     return Textures[unique_name];
 }
 
@@ -93,15 +91,10 @@ Texture2D ResourceManager::get_texture(const std::string& name)
     return Textures[name];
 }
 
-Texture2D ResourceManager::load_texture_from_file(
-        std::string full_path, 
-        GLenum target, 
-        GLenum internalFormat, 
-        bool srgb )
+Texture2D ResourceManager::load_texture_from_file(std::string full_path, GLenum target, GLenum internalFormat, bool srgb )
 {
     printf("----- Texture from path -------\n");
     printf("Dir: %s \n", full_path.c_str());
-    printf("----- End Texture -------\n");
 
     // create texture object
     Texture2D texture;
@@ -143,42 +136,100 @@ Texture2D ResourceManager::load_texture_from_file(
     return texture;
 }
 
+// ---- texture cubes
+
+TextureCube ResourceManager::load_texture_cube(const std::string& folder_path, const std::string& unique_name )
+{
+    TextureCubes[unique_name] = load_texture_cube_from_folder(folder_path);
+    printf("texture cube loaded! %s \n", unique_name.c_str());
+    printf("~~~~ Texture Cube from folder ~~~~\n");
+    return TextureCubes[unique_name];
+}
+
+TextureCube ResourceManager::get_texture_cube(const std::string& name)
+{
+    return TextureCubes[name];
+}
+
+TextureCube ResourceManager::load_texture_cube_from_folder(const std::string& folder)
+{
+    printf("----- Texture Cube from folder -------\n");
+
+    TextureCube texture;
+
+    // disable y flip on cubemaps
+    stbi_set_flip_vertically_on_load(false);
+
+    std::vector<std::string> faces = { "top.jpg", "bottom.jpg", "left.jpg", "right.jpg", "front.jpg", "back.jpg" };
+    for (unsigned int i = 0; i < faces.size(); ++i)
+    {
+        int width, height, nrComponents;
+
+        std::string path = folder + faces[i];
+        printf("Dir: %s \n", path.c_str());
+
+        unsigned char *data = stbi_load(path.c_str(), &width, &height, &nrComponents, 0);
+        
+        if (data)
+        {
+            GLenum format;
+            if (nrComponents == 3)
+                format = GL_RGB;
+            else
+                format = GL_RGBA;
+
+            texture.GenerateFace(GL_TEXTURE_CUBE_MAP_POSITIVE_X + i, width, height, format, GL_UNSIGNED_BYTE, data);
+            stbi_image_free(data);
+        }
+        else
+        {
+            printf("!! Cube texture at path: %s failed to load. !! \n", faces[i].c_str());
+            stbi_image_free(data);
+            return texture;
+        }
+    }
+    if(texture.Mipmapping)
+        glGenerateMipmap(GL_TEXTURE_CUBE_MAP);
+
+    return texture;
+}
+
 // ---- models
 
-std::shared_ptr<Model> ResourceManager::load_model( const std::string& path, const std::string& unique_name )
-{
-    Models[unique_name] = load_model_from_file(path, unique_name);
-    printf("model loaded! %s \n", unique_name.c_str());
-    printf("~~~~ end model ~~~~ \n");
-    return Models[unique_name];
-}
+// std::shared_ptr<Model> ResourceManager::load_model( const std::string& path, const std::string& unique_name )
+// {
+//     Models[unique_name] = load_model_from_file(path, unique_name);
+//     printf("model loaded! %s \n", unique_name.c_str());
+//     printf("~~~~ end model ~~~~ \n");
+//     return Models[unique_name];
+// }
 
-std::shared_ptr<Model> ResourceManager::get_model( const std::string& name )
-{
-    return Models[name];
-}
+// std::shared_ptr<Model> ResourceManager::get_model( const std::string& name )
+// {
+//     return Models[name];
+// }
 
-std::shared_ptr<Model> ResourceManager::load_model_from_file( const std::string& path, const std::string& unique_name )
-{
-    printf("----- Model from path -------\n");
-    printf("Dir: %s \n", path.c_str());
+// std::shared_ptr<Model> ResourceManager::load_model_from_file( const std::string& path, const std::string& unique_name )
+// {
+//     printf("----- Model from path -------\n");
+//     printf("Dir: %s \n", path.c_str());
 
-    std::string directory = path.substr(0, path.find_last_of('/'));
+//     std::string directory = path.substr(0, path.find_last_of('/'));
 
-    Assimp::Importer import;    
-    const aiScene* scene = import.ReadFile(path, aiProcess_Triangulate | aiProcess_FlipUVs);
+//     Assimp::Importer import;    
+//     const aiScene* scene = import.ReadFile(path, aiProcess_Triangulate | aiProcess_FlipUVs);
 
-    if (!scene || scene->mFlags & AI_SCENE_FLAGS_INCOMPLETE || !scene->mRootNode)
-    {
-        std::cout << "ERROR::ASSIMP::" << import.GetErrorString() << std::endl;
-        return nullptr;
-    }
+//     if (!scene || scene->mFlags & AI_SCENE_FLAGS_INCOMPLETE || !scene->mRootNode)
+//     {
+//         std::cout << "ERROR::ASSIMP::" << import.GetErrorString() << std::endl;
+//         return nullptr;
+//     }
 
-    //A model consists of multiple meshes
-    std::shared_ptr<Model> model = std::make_shared<Model>();
-    model->init(scene, unique_name);    
-    return model;
-}
+//     //A model consists of multiple meshes
+//     std::shared_ptr<Model> model = std::make_shared<Model>();
+//     model->init(scene, unique_name);    
+//     return model;
+// }
 
 
 } //namespace fightingengine

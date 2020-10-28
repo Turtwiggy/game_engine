@@ -42,7 +42,7 @@ SpriteRenderer::SpriteRenderer(Shader& shader, std::string sprite_sheet_name)
     glBindBuffer(GL_ARRAY_BUFFER, 0);
     glBindVertexArray(0);
 
-    shader.setInt("image", spritesheet.id);
+    shader.set_int("image", spritesheet.id);
 }
 
 SpriteRenderer::~SpriteRenderer()
@@ -67,10 +67,10 @@ void SpriteRenderer::draw_sprite
 
     model = glm::scale(model, glm::vec3(desc.scale, 1.0f)); // last scale
 
-    this->shader.setMat4("model", model);
+    this->shader.set_mat4("model", model);
 
     // render textured quad
-    this->shader.setVec3("spriteColor", desc.colour.colour);
+    this->shader.set_vec3("spriteColor", desc.colour.colour);
 
     glActiveTexture(GL_TEXTURE0);
     texture.Bind();

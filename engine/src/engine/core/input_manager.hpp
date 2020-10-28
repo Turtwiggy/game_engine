@@ -14,6 +14,7 @@ namespace fightingengine
     {
     public:
         InputManager();
+
         void new_frame();
 
         //keyboard

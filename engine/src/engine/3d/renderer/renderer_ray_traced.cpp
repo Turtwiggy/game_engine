@@ -72,7 +72,7 @@ RendererRayTraced::RendererRayTraced(int screen_width, int screen_height)
         .attach_shader("assets/shaders/raytraced/example.frag", OpenGLShaderTypes::FRAGMENT)
         .build_program();
     quad_shader.bind();
-    quad_shader.setInt("tex", 0);
+    quad_shader.set_int("tex", 0);
     s_Data.quad_shader = quad_shader;
     quad_shader.unbind();
 
@@ -224,10 +224,10 @@ Shader& RendererRayTraced::first_geometry_pass(const Camera& camera, int width, 
     //Setup geometry shader
     {
         s_Data.geometry_shader.bind();
-        s_Data.geometry_shader.setMat4("view_projection", view_projection);
+        s_Data.geometry_shader.set_mat4("view_projection", view_projection);
         //either this or textures
         //s_Data.geometry_shader.setVec3("diffuse", glm::vec3(1.0f, 0.0f, 0.0f));
-        s_Data.geometry_shader.setFloat("specular", 1.0f);
+        s_Data.geometry_shader.set_float("specular", 1.0f);
     }
 
     return s_Data.geometry_shader;
@@ -315,19 +315,19 @@ void RendererRayTraced::second_raytrace_pass
     CHECK_OPENGL_ERROR(5);
 
     //Set viewing frustrum corner rays in shader
-    s_Data.compute_shader.setVec3("eye", camera.Position);
+    s_Data.compute_shader.set_vec3("eye", camera.Position);
 
     glm::vec3 eye_ray;
     eye_ray = camera.get_eye_ray(-1, -1);
-    s_Data.compute_shader.setVec3("ray00", eye_ray);
+    s_Data.compute_shader.set_vec3("ray00", eye_ray);
     eye_ray = camera.get_eye_ray(-1, 1);
-    s_Data.compute_shader.setVec3("ray01", eye_ray);
+    s_Data.compute_shader.set_vec3("ray01", eye_ray);
     eye_ray = camera.get_eye_ray(1, -1);
-    s_Data.compute_shader.setVec3("ray10", eye_ray);
+    s_Data.compute_shader.set_vec3("ray10", eye_ray);
     eye_ray = camera.get_eye_ray(1, 1);
-    s_Data.compute_shader.setVec3("ray11", eye_ray);
+    s_Data.compute_shader.set_vec3("ray11", eye_ray);
 
-    s_Data.compute_shader.setFloat("time", timer);
+    s_Data.compute_shader.set_float("time", timer);
 
     // Bind framebuffer texture as writable image in the shader.
     glBindImageTexture(s_Data.compute_out_tex_binding, s_Data.out_texture, 0, false, 0, GL_WRITE_ONLY, GL_RGBA16F);
