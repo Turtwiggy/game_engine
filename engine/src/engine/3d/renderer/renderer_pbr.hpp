@@ -4,10 +4,11 @@
 
 namespace fightingengine
 {
-    class RendererPBR
-    {
-    public:
-        RendererPBR();
+class RendererPBR
+{
+public:
+    RendererPBR();
 
-    };
-}
+};
+
+} //fightingengine

@@ -1,10 +1,10 @@
-#this cmake lists compiles the experimental_networking with the engine
+#this cmake lists compiles the hello_application with the engine
 
 cmake_minimum_required(VERSION 3.0.0)
-project(experimental_networking VERSION 0.1.0)
+project(hello_application VERSION 0.1.0)
 
-message("experimental_networking: ${CMAKE_SYSTEM_NAME}")
-message("experimental_networking: ${CMAKE_BUILD_TYPE}")
+message("hello_application: ${CMAKE_SYSTEM_NAME}")
+message("hello_application: ${CMAKE_BUILD_TYPE}")
 
 # build the engine + bring in Vcpkg
 include("${CMAKE_SOURCE_DIR}/engine/cmake/build_info.cmake")
@@ -21,32 +21,28 @@ endforeach()
 
 #Add VCPKG header-only
 find_path(STB_INCLUDE_DIRS "stb.h")
-find_path(BOOST_ASIO_INCLUDE_DIRS "boost/asio.hpp")
-find_path(BOOST_CIRCULAR_BUFFER_INCLUDE_DIRS "boost/circular_buffer.hpp")
 
 # add source files
 file(GLOB_RECURSE SRC_FILES 
   #engine
   ${ENGINE_SOURCE} 
   #application
-  "${CMAKE_SOURCE_DIR}/experimental_networking/src/*.cpp"
+  "${CMAKE_SOURCE_DIR}/hello_application/src/*.cpp"
 )
 
-add_executable(experimental_networking ${SRC_FILES})
+add_executable(hello_application ${SRC_FILES})
 
 # includes
-target_include_directories(experimental_networking PRIVATE 
+target_include_directories(hello_application PRIVATE 
   ${ENGINE_INCLUDES} 
-  ${CMAKE_SOURCE_DIR}/experimental_networking/src
+  ${CMAKE_SOURCE_DIR}/hello_application/src
 )
-target_include_directories(experimental_networking PRIVATE ${STB_INCLUDE_DIRS})
-target_include_directories(experimental_networking PRIVATE ${BOOST_ASIO_INCLUDE_DIRS})
-target_include_directories(experimental_networking PRIVATE ${BOOST_CIRCULAR_BUFFER_INCLUDE_DIRS})
+target_include_directories(hello_application PRIVATE ${STB_INCLUDE_DIRS})
 
 # link libs
 foreach(library ${ENGINE_LINK_LIBS})
   message("${PROJECT_NAME} linking library... ${library}")
-  target_link_libraries(experimental_networking PRIVATE ${library})
+  target_link_libraries(hello_application PRIVATE ${library})
 endforeach()
 
 # create symlink assets for build

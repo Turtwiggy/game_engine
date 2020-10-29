@@ -13,7 +13,7 @@
 #include "engine/graphics/render_command.hpp"
 #include "engine/graphics/shader.hpp"
 #include "engine/graphics/util/opengl_util.hpp"
-#include "engine/graphics/primitives/primitives.hpp"
+#include "engine/mesh/primitives.hpp"
 
 namespace fightingengine {
 
@@ -82,7 +82,7 @@ RendererRayTraced::RendererRayTraced(int screen_width, int screen_height)
         .build_program();
     s_Data.geometry_shader = geometry_shader;
 
-    s_Data.plane.init();
+    s_Data.plane = primitives::Plane(2, 2);
 
     // configure g-buffer for intial render pass
     unsigned int gBuffer;
@@ -391,7 +391,17 @@ void RendererRayTraced::third_quad_pass()
     // {
     //     glBindTexture(GL_TEXTURE_2D, s_Data.g_albedo_spec);
     // }
-    s_Data.plane.draw();
+
+    //Draw the plane
+    glBindVertexArray(s_Data.plane.vao);
+    if (s_Data.plane.Indices.size() > 0)
+    {
+        glDrawElements(s_Data.plane.topology == TRIANGLE_STRIP ? GL_TRIANGLE_STRIP : GL_TRIANGLES, s_Data.plane.Indices.size(), GL_UNSIGNED_INT, 0);
+    }
+    else
+    {
+        glDrawArrays(s_Data.plane.topology == TRIANGLE_STRIP ? GL_TRIANGLE_STRIP : GL_TRIANGLES, 0, s_Data.plane.Positions.size());
+    }
 }
 
 } //namespace fightingengine

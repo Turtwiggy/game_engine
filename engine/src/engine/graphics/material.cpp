@@ -4,12 +4,12 @@
 
 namespace fightingengine {
 
-Material::Material(Shader* shader)
+Material::Material(std::shared_ptr<Shader> shader)
 {
     shader_ = shader;
 }
 
-Shader* Material::get_shader()
+std::shared_ptr<Shader> Material::get_shader()
 {
     return shader_;
 }

@@ -13,8 +13,10 @@ project(subprojects VERSION 0.1.0)
 add_subdirectory(game_3d)
 
 #random c++ projects
-#add_subdirectory(experimental_raytracing_one_weekend)
 #add_subdirectory(experimental_networking)
+
+#examples
+add_subdirectory(examples/hello_application)
 
 set(CPACK_PROJECT_NAME ${PROJECT_NAME})
 set(CPACK_PROJECT_VERSION ${PROJECT_VERSION})

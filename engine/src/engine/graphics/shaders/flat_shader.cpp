@@ -6,14 +6,12 @@
 
 namespace fightingengine {
 
-void FlatShader::load()
+Shader FlatShader::create_shader()
 {
-    shader_ = ResourceManager::load_shader("assets/shaders/blinn-phong/", {"lit.vert", "lit_directional.frag"}, "FlatShader");
-}
-
-Shader FlatShader::get_shader() const
-{
-    return shader_;
+    return ResourceManager::load_shader(
+        "assets/shaders/blinn-phong/", 
+        {"lit.vert", "lit_directional.frag"}, 
+        "FlatShader" );
 }
     
 } //namespace fightingengine

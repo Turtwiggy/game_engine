@@ -5,6 +5,9 @@
 
 namespace fightingengine {
 
+/*
+    A wrapper around the glm::vec4 for colour
+*/
 struct ColourVec4f 
 {
     ColourVec4f() = default;

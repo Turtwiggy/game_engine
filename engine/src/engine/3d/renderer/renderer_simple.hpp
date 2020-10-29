@@ -11,20 +11,23 @@
 
 namespace fightingengine
 {
-    class RendererSimple
-    {
-    public:
-        RendererSimple();
-        
-        void update(float delta_time, FlyCamera& camera);
 
-        void render_mesh();
+class RendererSimple
+{
+public:
+    RendererSimple();
+    
+    void update(float delta_time, FlyCamera& camera);
 
-    private:
-        FlatShader flat_shader_;
-        //std::shared_ptr<Model> object_;
-        primitives::Cube cube;
+    void render_mesh(Mesh* mesh, Shader shader);
 
-        uint32_t draw_calls_ = 0;
-    };
-}
+private:
+    //std::shared_ptr<Model> object_;
+
+    Shader flat_shader_;
+    Mesh* cube;
+
+    uint32_t draw_calls_ = 0;
+};
+
+} //namespace fightingengine
