@@ -67,7 +67,6 @@ int main(int argc, char** argv)
     //Testing texture
     Texture2D tex = ResourceManager::load_texture("assets/textures/octopus.png", "Octopus");
 
-    float timer = 0.0f;
     while (app.is_running())
     {
         profiler.new_frame();
@@ -76,7 +75,6 @@ int main(int argc, char** argv)
         app.poll();
 
         float delta_time_s = app.get_delta_time();
-        timer += delta_time_s;
 
         { // ~~ Input Events ~~
             profiler.begin(Profiler::Stage::SdlInput);
