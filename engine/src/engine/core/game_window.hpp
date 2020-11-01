@@ -7,10 +7,11 @@
 
 //other library headers
 #include <SDL2/SDL.h>
+#undef main //thanks SDL2?
 
 namespace fightingengine
 {
-	enum display_mode
+	enum class display_mode
 	{
 		Windowed,
 		Fullscreen,

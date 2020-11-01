@@ -9,7 +9,7 @@
 
 namespace fightingengine {
 
-enum SHADER_TYPE
+enum class SHADER_TYPE
 {
     SHADER_TYPE_BOOL,
     SHADER_TYPE_INT,

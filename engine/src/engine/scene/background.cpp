@@ -9,16 +9,16 @@
 
 namespace fightingengine {
 
-Background::Background()
-{
+Background::Background() : SceneNode(Scene::CounterID++) {
+
     Shader s = ResourceManager::load_shader(
         "assets/shaders/skybox/", 
         {"skybox.vert", "skybox.frag"}, 
         "skybox-shader");
     shader_ = std::make_shared<Shader>(s);
     
-    Material  = fightingengine::Material(shader_);
-    Mesh      = new primitives::Cube();
+    Material  = std::make_shared<fightingengine::Material>(shader_);
+    Mesh      = std::make_shared<primitives::Cube>();
     BoxMin    = glm::vec3(-99999.0);
     BoxMax    = glm::vec3( 99999.0);
 

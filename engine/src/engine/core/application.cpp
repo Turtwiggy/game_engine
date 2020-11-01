@@ -56,18 +56,15 @@ namespace fightingengine {
 
     float Application::get_delta_time()
     {
-        now = SDL_GetTicks();         //Returns an unsigned 32-bit value representing the number of milliseconds since the SDL library initialized.
-        uint32_t delta_time_in_milliseconds = now - prev;
-        if (delta_time_in_milliseconds < 0) return 0; prev = now;
+        // now = SDL_GetTicks();         //Returns an unsigned 32-bit value representing the number of milliseconds since the SDL library initialized.
+        // uint32_t delta_time_in_milliseconds = now - prev;
+        // if (delta_time_in_milliseconds < 0) return 0; prev = now;
 
-        float delta_time_in_seconds = (delta_time_in_milliseconds / 1000.f);
-        time_since_launch += delta_time_in_seconds;
-
-        ImGuiIO& io = ImGui::GetIO();
-        io.DeltaTime = delta_time_in_seconds;
+        // float delta_time_in_seconds = (delta_time_in_milliseconds / 1000.f);
+        // time_since_launch += delta_time_in_seconds;
         //printf("delta_time %f \n", delta_time_in_seconds);
 
-        return delta_time_in_seconds;
+        return ImGui::GetIO().DeltaTime;
     }
 
     void Application::frame_begin()
@@ -83,9 +80,9 @@ namespace fightingengine {
 
         SDL_GL_SwapWindow(get_window().GetHandle());
 
-        SDL_Delay(MILLISECONDS_PER_FRAME);
+        if(fps_limit)
+            SDL_Delay(MILLISECONDS_PER_FRAME);
     }
-
 
     void Application::poll()
     {
@@ -202,8 +199,14 @@ namespace fightingengine {
 
     void Application::set_fps_limit(const double fps)
     { 
+        fps_limit = true;
         FPS = fps; 
         MILLISECONDS_PER_FRAME = (Uint32)(1000 / FPS); 
+    }
+
+    void Application::remove_fps_limit()
+    { 
+        fps_limit = false;
     }
 
     float Application::get_average_fps() const

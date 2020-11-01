@@ -52,7 +52,7 @@ Plane::Plane(unsigned int x_segments, unsigned int y_segments)
         oddRow = !oddRow;
     }
 
-    topology = TRIANGLE_STRIP;
+    topology = TOPOLOGY::TRIANGLE_STRIP;
     Finalize();
 }
 
@@ -190,7 +190,7 @@ Cube::Cube()
         glm::vec3( 0.0f,  1.0f,  0.0f),
     };
 
-    topology = TRIANGLES;
+    topology = TOPOLOGY::TRIANGLES;
     Finalize();
 }
 

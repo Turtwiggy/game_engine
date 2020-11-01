@@ -10,7 +10,7 @@
 
 namespace fightingengine {
 
-enum OpenGLShaderTypes
+enum class OpenGLShaderTypes
 {
     VERTEX,
     FRAGMENT,

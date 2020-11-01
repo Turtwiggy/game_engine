@@ -25,19 +25,19 @@ Shader& Shader::attach_shader(const std::string& path, OpenGLShaderTypes shader_
 
     switch (shader_type)
     {
-    case VERTEX:
+    case OpenGLShaderTypes::VERTEX:
         name = "VERTEX";
         type = GL_VERTEX_SHADER;
         break;
-    case COMPUTE:
+    case OpenGLShaderTypes::COMPUTE:
         name = "COMPUTE";
         type = GL_COMPUTE_SHADER;
         break;
-    case FRAGMENT:
+    case OpenGLShaderTypes::FRAGMENT:
         name = "FRAGMENT";
         type = GL_FRAGMENT_SHADER;
         break;
-    case GEOMETRY:
+    case OpenGLShaderTypes::GEOMETRY:
         name = "GEOMETRY";
         type = GL_GEOMETRY_SHADER;
         break;
@@ -78,19 +78,19 @@ OpenGLShaderTypes Shader::convert_file_to_shadertype(std::string file)
 
     if (extention == ".vert")
     {
-        return VERTEX;
+        return OpenGLShaderTypes::VERTEX;
     }
     else if (extention == ".frag")
     {
-        return FRAGMENT;
+        return OpenGLShaderTypes::FRAGMENT;
     }
     else if (extention == ".glsl")
     {
-        return COMPUTE;
+        return OpenGLShaderTypes::COMPUTE;
     }
 
     printf("ERROR: convert_file_to_shadertype %s extention not found \n", extention.c_str());
-    return VERTEX;
+    return OpenGLShaderTypes::VERTEX;
 }
 
 

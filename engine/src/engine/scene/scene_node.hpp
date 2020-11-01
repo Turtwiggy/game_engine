@@ -2,6 +2,7 @@
 
 //c++ standard library
 #include <vector>
+#include <memory>
 
 //other library headers
 #include <GL/glew.h>
@@ -28,8 +29,8 @@ namespace fightingengine
     {
     public:
         // each node contains relevant render state
-        Mesh*     Mesh;
-        Material* Material;
+        std::shared_ptr<Mesh>     Mesh;
+        std::shared_ptr<Material> Material;
 
         // bounding box 
         glm::vec3 BoxMin = glm::vec3(-99999.0f);
@@ -64,30 +65,30 @@ namespace fightingengine
         void set_rotation(glm::vec4 rotation);
         void set_scale(glm::vec3 scale);
         void set_scale(float scale);
-        glm::vec3 get_local_position();
-        glm::vec4 get_local_rotation();
-        glm::vec3 get_local_scale();
-        glm::vec3 get_world_position();
-        glm::vec3 get_world_scale();
+        [[nodiscard]] glm::vec3 get_local_position() const;
+        [[nodiscard]] glm::vec4 get_local_rotation() const;
+        [[nodiscard]] glm::vec3 get_local_scale() const;
+        [[nodiscard]] glm::vec3 get_world_position();
+        [[nodiscard]] glm::vec3 get_world_scale();
 
         // scene graph 
-        unsigned int get_id();
+        unsigned int get_id() const;
         void add_child(SceneNode *node);
         void remove_child(unsigned int id);
-        std::vector<SceneNode*> get_children();
-        unsigned int            get_child_count();
-        SceneNode              *get_child(unsigned int id);
-        SceneNode              *get_child_by_index(unsigned int index);
-        SceneNode              *get_parent();
+        [[nodiscard]] std::vector<SceneNode*> get_children() const;
+        [[nodiscard]] unsigned int get_child_count() const;
+        [[nodiscard]] SceneNode *get_child(unsigned int id) const;
+        [[nodiscard]] SceneNode *get_child_by_index(unsigned int index) const;
+        [[nodiscard]] SceneNode *get_parent() const;
 
         // returns the transform of the current node 
         // combined with its parent(s)' transform.
-        glm::mat4 get_transform();
-        glm::mat4 get_prev_transform();
+        [[nodiscard]] glm::mat4 get_transform();
+        [[nodiscard]] glm::mat4 get_prev_transform() const;
 
         // re-calculates this node and its children's 
         // transform components if its parent or the 
         // node itself is dirty.
-        void UpdateTransform(bool updatePrevTransform = false);
+        void update_transform(bool updatePrevTransform = false);
     };
 }

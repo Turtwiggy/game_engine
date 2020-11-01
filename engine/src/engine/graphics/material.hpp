@@ -16,7 +16,7 @@
 
 namespace fightingengine
 {
-enum MaterialType
+enum class MaterialType
 {
     MATERIAL_DEFAULT,
     MATERIAL_CUSTOM,
@@ -38,7 +38,7 @@ private:
     std::map<std::string, UniformValueSampler> sampler_uniforms_; 
 
 public:
-    MaterialType Type = MATERIAL_CUSTOM;
+    MaterialType Type = MaterialType::MATERIAL_CUSTOM;
     ColourVec4f Color;
 
     // depth state

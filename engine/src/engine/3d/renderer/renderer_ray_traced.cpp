@@ -396,11 +396,11 @@ void RendererRayTraced::third_quad_pass()
     glBindVertexArray(s_Data.plane.vao);
     if (s_Data.plane.Indices.size() > 0)
     {
-        glDrawElements(s_Data.plane.topology == TRIANGLE_STRIP ? GL_TRIANGLE_STRIP : GL_TRIANGLES, s_Data.plane.Indices.size(), GL_UNSIGNED_INT, 0);
+        glDrawElements(s_Data.plane.topology == TOPOLOGY::TRIANGLE_STRIP ? GL_TRIANGLE_STRIP : GL_TRIANGLES, s_Data.plane.Indices.size(), GL_UNSIGNED_INT, 0);
     }
     else
     {
-        glDrawArrays(s_Data.plane.topology == TRIANGLE_STRIP ? GL_TRIANGLE_STRIP : GL_TRIANGLES, 0, s_Data.plane.Positions.size());
+        glDrawArrays(s_Data.plane.topology == TOPOLOGY::TRIANGLE_STRIP ? GL_TRIANGLE_STRIP : GL_TRIANGLES, 0, s_Data.plane.Positions.size());
     }
 }
 

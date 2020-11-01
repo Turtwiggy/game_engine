@@ -1,5 +1,4 @@
 #define _CRT_SECURE_NO_WARNINGS
-#define IMGUI_IMPL_OPENGL_LOADER_GLEW
 
 //c++ standard library headers
 #include <memory>
@@ -10,7 +9,6 @@
 #include <GL/glew.h>
 #include <glm/glm.hpp>
 #include <SDL2/SDL.h>
-#undef main //thanks SDL2?
 
 //your project headers
 #include "engine/core/application.hpp"
@@ -185,6 +183,7 @@ int main(int argc, char** argv)
             background.Bind();
             glDrawArrays(GL_TRIANGLES, 0, 36);
             glDepthMask(GL_TRUE);
+            background.Unbind();
 
             simple_renderer.update(delta_time_s, camera);
 
@@ -199,31 +198,28 @@ int main(int argc, char** argv)
 
             app.gui_begin();
 
-            // bool demo_window = true;
-            // ImGui::ShowDemoWindow(&demo_window);
+                // bool demo_window = true;
+                // ImGui::ShowDemoWindow(&demo_window);
 
-            // ImGui::Begin("Texture Test");
-            // // Using a Child allow to fill all the space of the window.
-            // ImGui::BeginChild("GameRender");
-            // ImVec2 wsize = ImGui::GetWindowSize();
-            // ImGui::Image((ImTextureID)tex.id, ImVec2(wsize.x, wsize.x * 9.0 / 16.0), ImVec2(0, 1), ImVec2(1, 0));
-            // ImGui::Text("Yarr Harr I'm an octopus!");
-            // ImGui::EndChild();
-            // ImGui::End();
+                // ImGui::Begin("Texture Test");
+                // // Using a Child allow to fill all the space of the window.
+                // ImGui::BeginChild("GameRender");
+                // ImVec2 wsize = ImGui::GetWindowSize();
+                // ImGui::Image((ImTextureID)tex.id, ImVec2(wsize.x, wsize.x * 9.0 / 16.0), ImVec2(0, 1), ImVec2(1, 0));
+                // ImGui::Text("Yarr Harr I'm an octopus!");
+                // ImGui::EndChild();
+                // ImGui::End();
 
-            ImGui::Begin("Entities");
+                ImGui::Begin("Entities");
 
-            ImGui::Text("Camera Pos: %f %f %f", 
-                            camera.Position.x, 
-                            camera.Position.y, 
-                            camera.Position.z );
-            ImGui::Text("Camera Pitch: %f", camera.Pitch);
-            ImGui::Text("Camera Yaw: %f", camera.Yaw);
+                    //Camera
+                    ImGui::Text("Camera Pos: %f %f %f", camera.Position.x, camera.Position.y, camera.Position.z );
+                    ImGui::Text("Camera Pitch: %f", camera.Pitch);
+                    ImGui::Text("Camera Yaw: %f", camera.Yaw);
+                    
+                ImGui::End();
 
-            ImGui::End();
-
-            scene_panel.on_imgui_render();
-            profiler_panel.draw(app, profiler, delta_time_s);
+                profiler_panel.draw(app, profiler, delta_time_s);
 
             app.gui_end();
 

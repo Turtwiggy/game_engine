@@ -28,9 +28,7 @@ find_package(GTest CONFIG REQUIRED)
 
 # add source files
 file(GLOB_RECURSE SRC_FILES 
-  #engine/src
   ${ENGINE_SOURCE}
-  #engine/test (the executable)
   "${CMAKE_SOURCE_DIR}/engine/test/*.cpp"
 )
 

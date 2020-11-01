@@ -15,15 +15,15 @@ set (ENGINE_PACKAGES
 #Source Files
 set (ENGINE_SOURCE
     #engine    
-    "${CMAKE_SOURCE_DIR}/engine/src/*.cpp"
+    ${CMAKE_SOURCE_DIR}/engine/src/*.cpp
 
     #imgui
-    "${CMAKE_SOURCE_DIR}/thirdparty/imgui/imgui_widgets.cpp"
-    "${CMAKE_SOURCE_DIR}/thirdparty/imgui/examples/imgui_impl_sdl.cpp"
-    "${CMAKE_SOURCE_DIR}/thirdparty/imgui/examples/imgui_impl_opengl3.cpp"
-    "${CMAKE_SOURCE_DIR}/thirdparty/imgui/imgui.cpp"
-    "${CMAKE_SOURCE_DIR}/thirdparty/imgui/imgui_draw.cpp"
-    "${CMAKE_SOURCE_DIR}/thirdparty/imgui/imgui_demo.cpp"
+    ${CMAKE_SOURCE_DIR}/thirdparty/imgui/imgui_widgets.cpp
+    ${CMAKE_SOURCE_DIR}/thirdparty/imgui/examples/imgui_impl_sdl.cpp
+    ${CMAKE_SOURCE_DIR}/thirdparty/imgui/examples/imgui_impl_opengl3.cpp
+    ${CMAKE_SOURCE_DIR}/thirdparty/imgui/imgui.cpp
+    ${CMAKE_SOURCE_DIR}/thirdparty/imgui/imgui_draw.cpp
+    ${CMAKE_SOURCE_DIR}/thirdparty/imgui/imgui_demo.cpp
 )
 
 if(${CMAKE_SYSTEM_NAME} STREQUAL "Windows")

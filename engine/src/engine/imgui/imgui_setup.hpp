@@ -1,5 +1,7 @@
 #pragma once
 
+#define IMGUI_IMPL_OPENGL_LOADER_GLEW
+
 //c++ standard library headers
 #include <array>
 #include <memory>

@@ -24,10 +24,8 @@ find_path(STB_INCLUDE_DIRS "stb.h")
 
 # add source files
 file(GLOB_RECURSE SRC_FILES 
-  #engine
   ${ENGINE_SOURCE} 
-  #application
-  "${CMAKE_SOURCE_DIR}/hello_application/src/*.cpp"
+  "${CMAKE_SOURCE_DIR}/examples/hello_application/src/*.cpp"
 )
 
 add_executable(hello_application ${SRC_FILES})
@@ -35,7 +33,7 @@ add_executable(hello_application ${SRC_FILES})
 # includes
 target_include_directories(hello_application PRIVATE 
   ${ENGINE_INCLUDES} 
-  ${CMAKE_SOURCE_DIR}/hello_application/src
+  ${CMAKE_SOURCE_DIR}/examples/hello_application/src
 )
 target_include_directories(hello_application PRIVATE ${STB_INCLUDE_DIRS})
 

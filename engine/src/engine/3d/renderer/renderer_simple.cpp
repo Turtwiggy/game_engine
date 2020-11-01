@@ -12,84 +12,83 @@
 
 namespace fightingengine {
 
-    RendererSimple::RendererSimple()
+RendererSimple::RendererSimple()
+{
+    flat_shader_ = FlatShader::create_shader();
+
+    //TODO LOAD MODELS
+    //object_ = ResourceManager::load_model("assets/models/lizard_wizard/lizard_wizard.obj", "Object");
+
+    cube = new primitives::Cube();    
+}
+
+void RendererSimple::update(float delta_time, FlyCamera& camera)
+{
+    camera.Update(delta_time);
+    glm::mat4 view_projection =  camera.get_view_projection_matrix();
+
+    draw_calls_ = 0;
+    flat_shader_.bind();
+    flat_shader_.set_mat4("view_projection", view_projection);
+    flat_shader_.set_vec3("viewPos", camera.Position);
+
+    // A directional light
+    glm::vec3 lightColor(0.9f, 0.9f, 0.9f);
+    glm::vec3 diffuseColor = lightColor   * glm::vec3(0.5f); // decrease the influence
+    glm::vec3 ambientColor = diffuseColor * glm::vec3(0.2f); // low influence
+    flat_shader_.set_vec3("light.ambient", ambientColor);
+    flat_shader_.set_vec3("light.diffuse", diffuseColor);
+    flat_shader_.set_vec3("light.specular", 1.0f, 1.0f, 1.0f);
+    flat_shader_.set_vec3("light.direction", -0.2f, -1.0f, -0.3f);
+
+    // position and scale
+    glm::mat4 model = glm::mat4(1.0f);
+    model = glm::translate(model, glm::vec3(0.0f, 0.0f, 0.0f));
+    model = glm::scale(model, glm::vec3(1.0f, 1.0f, 1.0f));
+    flat_shader_.set_mat4("model", model);
+
+    //note: this is terrible getting all the meshes every frame
+    // for (auto i = 0; i < meshes.size(); i++)
+    // {   
+    //     auto mesh = meshes[i];
+
+    //     //Set material
+    //     flat_shader_.setVec3("material.ambient", mesh.colour.colour);
+    //     flat_shader_.setVec3("material.diffuse", mesh.colour.colour);
+    //     flat_shader_.setVec3("material.specular", 0.5f, 0.5f, 0.5f);
+    //     flat_shader_.setFloat("material.shininess", 32.0f);
+
+    //     mesh.draw(flat_shader_);
+    //     draw_calls_ += 1;
+    // }
+
+    //Draw a cube
+    model = glm::mat4(1.0f);
+    model = glm::translate(model, glm::vec3(2.0f, 0.0f, 0.0f));
+    model = glm::scale(model, glm::vec3(1.0f, 1.0f, 1.0f));	
+    flat_shader_.set_mat4("model", model);
+    render_mesh(cube, flat_shader_);
+
+    flat_shader_.unbind();
+}
+
+void RendererSimple::render_mesh(Mesh* mesh, Shader shader)
+{
+    glBindVertexArray(mesh->vao);
+    if (mesh->Indices.size() > 0)
     {
-        flat_shader_ = FlatShader::create_shader();
-
-        //TODO LOAD MODELS
-        //object_ = ResourceManager::load_model("assets/models/lizard_wizard/lizard_wizard.obj", "Object");
-
-        cube = new primitives::Cube();    
+        glDrawElements(mesh->topology == TOPOLOGY::TRIANGLE_STRIP ? GL_TRIANGLE_STRIP : GL_TRIANGLES, mesh->Indices.size(), GL_UNSIGNED_INT, 0);
     }
-
-    void RendererSimple::update(float delta_time, FlyCamera& camera)
+    else
     {
-        camera.Update(delta_time);
-        glm::mat4 view_projection =  camera.get_view_projection_matrix();
-
-        draw_calls_ = 0;
-        flat_shader_.bind();
-        flat_shader_.set_mat4("view_projection", view_projection);
-        flat_shader_.set_vec3("viewPos", camera.Position);
-
-        // A directional light
-        glm::vec3 lightColor(0.9f, 0.9f, 0.9f);
-        glm::vec3 diffuseColor = lightColor   * glm::vec3(0.5f); // decrease the influence
-        glm::vec3 ambientColor = diffuseColor * glm::vec3(0.2f); // low influence
-        flat_shader_.set_vec3("light.ambient", ambientColor);
-        flat_shader_.set_vec3("light.diffuse", diffuseColor);
-        flat_shader_.set_vec3("light.specular", 1.0f, 1.0f, 1.0f);
-        flat_shader_.set_vec3("light.direction", -0.2f, -1.0f, -0.3f);
-
-        // position and scale
-        glm::mat4 model = glm::mat4(1.0f);
-        model = glm::translate(model, glm::vec3(0.0f, 0.0f, 0.0f));
-        model = glm::scale(model, glm::vec3(1.0f, 1.0f, 1.0f));
-        flat_shader_.set_mat4("model", model);
-
-        //note: this is terrible getting all the meshes every frame
-        // for (auto i = 0; i < meshes.size(); i++)
-        // {   
-        //     auto mesh = meshes[i];
-
-        //     //Set material
-        //     flat_shader_.setVec3("material.ambient", mesh.colour.colour);
-        //     flat_shader_.setVec3("material.diffuse", mesh.colour.colour);
-        //     flat_shader_.setVec3("material.specular", 0.5f, 0.5f, 0.5f);
-        //     flat_shader_.setFloat("material.shininess", 32.0f);
-
-        //     mesh.draw(flat_shader_);
-        //     draw_calls_ += 1;
-        // }
-
-        //Draw a cube
-        model = glm::mat4(1.0f);
-        model = glm::translate(model, glm::vec3(2.0f, 0.0f, 0.0f));
-        model = glm::scale(model, glm::vec3(1.0f, 1.0f, 1.0f));	
-        flat_shader_.set_mat4("model", model);
-        render_mesh(cube, flat_shader_);
-
-        flat_shader_.unbind();
+        glDrawArrays(mesh->topology == TOPOLOGY::TRIANGLE_STRIP ? GL_TRIANGLE_STRIP : GL_TRIANGLES, 0, mesh->Positions.size());
     }
-
-    void RendererSimple::render_mesh(Mesh* mesh, Shader shader)
-    {
-        glBindVertexArray(mesh->vao);
-        if (mesh->Indices.size() > 0)
-        {
-            glDrawElements(mesh->topology == TRIANGLE_STRIP ? GL_TRIANGLE_STRIP : GL_TRIANGLES, mesh->Indices.size(), GL_UNSIGNED_INT, 0);
-        }
-        else
-        {
-            glDrawArrays(mesh->topology == TRIANGLE_STRIP ? GL_TRIANGLE_STRIP : GL_TRIANGLES, 0, mesh->Positions.size());
-        }
-    }
+}
 
 } //namespace fightingengine
 
 
 
-#pragma once
 
 //NOTE: this file contains blur and bloom effects
 
@@ -196,10 +195,10 @@ namespace fightingengine {
    //s_Data.hdr_bloom_final_shader.use();
    //s_Data.hdr_bloom_final_shader.setInt("scene", 0);
    //s_Data.hdr_bloom_final_shader.setInt("bloomBlur", 1);
-}
+// }
 
-void hdr_bloom_draw()
-{
+// void hdr_bloom_draw()
+// {
    //   // 1. render scene into floating point framebuffer
    //// -----------------------------------------------
    //   glBindFramebuffer(GL_FRAMEBUFFER, s_Data.hdr_fbo);

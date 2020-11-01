@@ -65,7 +65,7 @@ public:
 };
 
 // Defines several possible options for camera movement.
-enum CameraMovement {
+enum class CameraMovement {
     NONE,
     FORWARD,
     BACKWARD,

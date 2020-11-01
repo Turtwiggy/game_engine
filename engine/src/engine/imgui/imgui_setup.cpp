@@ -37,7 +37,7 @@ void ImGui_Manager::initialize(GameWindow* window)
     //io.Fonts->AddFontFromFileTTF("assets/fonts/droid_sans.ttf", 12.0f);
 
     //regular font
-    io.FontDefault = io.Fonts->AddFontFromFileTTF("assets/fonts/Roboto/Roboto-Regular.ttf", 14.0f);
+    //io.FontDefault = io.Fonts->AddFontFromFileTTF("assets/fonts/Roboto/Roboto-Regular.ttf", 14.0f);
 
     // Setup Dear ImGui style
     ImGui::StyleColorsDark();

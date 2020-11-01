@@ -7,7 +7,7 @@
 
 namespace fightingengine {
 
-enum TOPOLOGY
+enum class TOPOLOGY
 {
     POINTS,
     LINES,
