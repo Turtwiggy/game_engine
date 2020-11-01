@@ -40,8 +40,10 @@ void Texture2D::Generate(
     Unbind();
 }
 
-void Texture2D::Bind() const
+void Texture2D::Bind(int unit) const
 {
+    if(unit >= 0)
+        glActiveTexture(GL_TEXTURE0 + unit);
     glBindTexture(Target, this->id);
 }
 

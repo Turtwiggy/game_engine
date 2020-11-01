@@ -28,6 +28,9 @@ public:
         TextureCube() = default;
         ~TextureCube() = default;
 
+        //Note, instead of using the raw functions here, it is easier to use the 
+        //ResourceManager::load_texture_cube() function
+
         // default initialize all cubemap faces w/ default values
         void DefaultInitialize(
             unsigned int width, 

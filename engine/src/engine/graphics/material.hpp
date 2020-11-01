@@ -62,7 +62,6 @@ public:
     bool ShadowReceive = false;
 
 private:
-    
 public:
     Material() = default;
     Material(std::shared_ptr<Shader> shader);

@@ -14,13 +14,18 @@ namespace fightingengine {
 
 RendererSimple::RendererSimple()
 {
-    flat_shader_ = FlatShader::create_shader();
-
     //TODO LOAD MODELS
-    //object_ = ResourceManager::load_model("assets/models/lizard_wizard/lizard_wizard.obj", "Object");
+    //object_ = ResourceManager::load_model("assets/models/lizard_wizard/lizard_wizard->obj", "Object");
 
-    cube = new primitives::Cube();  
-    plane = new primitives::Plane(2, 2);  
+    flat_shader_ = std::make_shared<Shader>(FlatShader::create_shader());
+
+    cube = std::make_shared<primitives::Cube>();  
+    plane = std::make_shared<primitives::Plane>(2, 2);  
+
+    TextureCube cubemap = ResourceManager::load_texture_cube("assets/skybox/skybox-default/", "default-skybox");
+    cubemap_ = std::make_shared<TextureCube>(cubemap);
+    background = new Background();
+    background->Material->set_texture_cube("DefaultCubemap", cubemap_.get());
 }
 
 void RendererSimple::update(float delta_time, FlyCamera& camera)
@@ -29,65 +34,85 @@ void RendererSimple::update(float delta_time, FlyCamera& camera)
     glm::mat4 view_projection =  camera.get_view_projection_matrix();
 
     draw_calls_ = 0;
-    flat_shader_.bind();
-    flat_shader_.set_mat4("view_projection", view_projection);
-    flat_shader_.set_vec3("viewPos", camera.Position);
+    flat_shader_->bind();
+    flat_shader_->set_mat4("view_projection", view_projection);
+    flat_shader_->set_vec3("viewPos", camera.Position);
 
     // A directional light
     glm::vec3 lightColor(0.9f, 0.9f, 0.9f);
     glm::vec3 diffuseColor = lightColor   * glm::vec3(0.5f); // decrease the influence
     glm::vec3 ambientColor = diffuseColor * glm::vec3(0.2f); // low influence
-    flat_shader_.set_vec3("light.ambient", ambientColor);
-    flat_shader_.set_vec3("light.diffuse", diffuseColor);
-    flat_shader_.set_vec3("light.specular", 1.0f, 1.0f, 1.0f);
-    flat_shader_.set_vec3("light.direction", -0.2f, -1.0f, -0.3f);
+    flat_shader_->set_vec3("light->ambient", ambientColor);
+    flat_shader_->set_vec3("light->diffuse", diffuseColor);
+    flat_shader_->set_vec3("light->specular", 1.0f, 1.0f, 1.0f);
+    flat_shader_->set_vec3("light->direction", -0.2f, -1.0f, -0.3f);
 
     // position and scale
     glm::mat4 model = glm::mat4(1.0f);
     model = glm::translate(model, glm::vec3(0.0f, 0.0f, 0.0f));
     model = glm::scale(model, glm::vec3(1.0f, 1.0f, 1.0f));
-    flat_shader_.set_mat4("model", model);
+    flat_shader_->set_mat4("model", model);
     //Draw a cube
     model = glm::mat4(1.0f);
-    model = glm::translate(model, glm::vec3(2.0f, 0.0f, 0.0f));
-    model = glm::scale(model, glm::vec3(1.0f, 1.0f, 1.0f));	
-    flat_shader_.set_mat4("model", model);
+    model = glm::translate(model, glm::vec3(0.5f, 0.0f, 0.0f));
+    model = glm::scale(model, glm::vec3(0.1f, 0.1f, 0.1f));	
+    flat_shader_->set_mat4("model", model);
     render_mesh(cube, flat_shader_);
 
     //Position and scale
     model = glm::mat4(1.0f);
     model = glm::translate(model, glm::vec3(0.0f, 0.0f, 0.0f));
     model = glm::scale(model, glm::vec3(1.0f, 1.0f, 1.0f));
-    flat_shader_.set_mat4("model", model);
+    flat_shader_->set_mat4("model", model);
     //Draw a plane
     model = glm::mat4(1.0f);
     model = glm::translate(model, glm::vec3(0.0f, -1.0f, 0.0f));
     model = glm::scale(model, glm::vec3(1.0f, 1.0f, 1.0f));	
-    flat_shader_.set_mat4("model", model);
-    render_mesh(plane, flat_shader_);
+    flat_shader_->set_mat4("model", model);
+    //render_mesh(plane, flat_shader_);
 
     //note: this is terrible getting all the meshes every frame
-    // for (auto i = 0; i < meshes.size(); i++)
+    // for (auto i = 0; i < meshes->size(); i++)
     // {   
     //     auto mesh = meshes[i];
 
     //     //Set material
-    //     flat_shader_.setVec3("material.ambient", mesh.colour.colour);
-    //     flat_shader_.setVec3("material.diffuse", mesh.colour.colour);
-    //     flat_shader_.setVec3("material.specular", 0.5f, 0.5f, 0.5f);
-    //     flat_shader_.setFloat("material.shininess", 32.0f);
-
-    //     mesh.draw(flat_shader_);
+    //     flat_shader_->setVec3("material->ambient", mesh->colour->colour);
+    //     flat_shader_->setVec3("material->diffuse", mesh->colour->colour);
+    //     flat_shader_->setVec3("material->specular", 0.5f, 0.5f, 0.5f);
+    //     flat_shader_->setFloat("material->shininess", 32.0f);
+    //     mesh->draw(flat_shader_);
     //     draw_calls_ += 1;
     // }
 
+    // draw skybox as last
+    model = glm::mat4(1.0f);
+    model = glm::scale(model, glm::vec3(10.0f, 10.0f, 10.0f));	
+    glDepthFunc(background->Material->DepthCompare); 
+    background->Material->get_shader()->bind();
+    background->Material->get_shader()->set_mat4("view_projection", view_projection);
+    background->Material->get_shader()->set_mat4("model", model);
+    // skybox cube
+    auto* samplers = background->Material->get_sampler_uniforms();
+    for (auto it = samplers->begin(); it != samplers->end(); ++it)
+    {
+        if (it->second.Type == SHADER_TYPE::SHADER_TYPE_SAMPLERCUBE)
+            it->second.TextureCube->Bind(it->second.Unit);
+        else
+            it->second.Texture->Bind(it->second.Unit);
+    }
+    render_mesh(background->Mesh, background->Material->get_shader());
+    glBindVertexArray(0);
+    glDepthFunc(GL_LESS); // set depth function back to default
 
-    flat_shader_.unbind();
+    flat_shader_->unbind();
 }
 
-void RendererSimple::render_mesh(Mesh* mesh, Shader shader)
+void RendererSimple::render_mesh(std::shared_ptr<Mesh> mesh, std::shared_ptr<Shader> shader)
 {
+    //bind vao
     glBindVertexArray(mesh->vao);
+
     if (mesh->Indices.size() > 0)
     {
         glDrawElements(mesh->topology == TOPOLOGY::TRIANGLE_STRIP ? GL_TRIANGLE_STRIP : GL_TRIANGLES, mesh->Indices.size(), GL_UNSIGNED_INT, 0);
@@ -155,8 +180,8 @@ void RendererSimple::render_mesh(Mesh* mesh, Shader shader)
 // {
    //// configure (floating point) framebuffers
    //// ---------------------------------------
-   //s_Data.hdr_fbo = hdr_fbo();
-   //s_Data.hdr_colour_buffers = hdr_colour_buffer(screen_width, screen_height, s_Data.hdr_fbo);
+   //s_Data->hdr_fbo = hdr_fbo();
+   //s_Data->hdr_colour_buffers = hdr_colour_buffer(screen_width, screen_height, s_Data->hdr_fbo);
 
    //// ping-pong-framebuffer for blurring
    //unsigned int pingpongFBO[2];
@@ -177,131 +202,131 @@ void RendererSimple::render_mesh(Mesh* mesh, Shader shader)
    //    if (glCheckFramebufferStatus(GL_FRAMEBUFFER) != GL_FRAMEBUFFER_COMPLETE)
    //        std::cout << "Framebuffer not complete!" << std::endl;
    //}
-   //s_Data.pingpong_fbo[0] = pingpongFBO[0];
-   //s_Data.pingpong_fbo[1] = pingpongFBO[1];
-   //s_Data.pingpong_colour_buffers[0] = pingpongColorbuffers[0];
-   //s_Data.pingpong_colour_buffers[1] = pingpongColorbuffers[1];
+   //s_Data->pingpong_fbo[0] = pingpongFBO[0];
+   //s_Data->pingpong_fbo[1] = pingpongFBO[1];
+   //s_Data->pingpong_colour_buffers[0] = pingpongColorbuffers[0];
+   //s_Data->pingpong_colour_buffers[1] = pingpongColorbuffers[1];
 
    //// lighting info
    //// -------------
    //// positions
    //std::vector<glm::vec3> lightPositions;
-   //lightPositions.push_back(glm::vec3(0.0f, 0.5f, 1.5f));
-   //lightPositions.push_back(glm::vec3(-4.0f, 0.5f, -3.0f));
-   //lightPositions.push_back(glm::vec3(3.0f, 0.5f, 1.0f));
-   //lightPositions.push_back(glm::vec3(-.8f, 2.4f, -1.0f));
-   //s_Data.light_positions = lightPositions;
+   //lightPositions->push_back(glm::vec3(0.0f, 0.5f, 1.5f));
+   //lightPositions->push_back(glm::vec3(-4.0f, 0.5f, -3.0f));
+   //lightPositions->push_back(glm::vec3(3.0f, 0.5f, 1.0f));
+   //lightPositions->push_back(glm::vec3(-->8f, 2->4f, -1.0f));
+   //s_Data->light_positions = lightPositions;
    //// colors
    //std::vector<glm::vec3> lightColors;
-   //lightColors.push_back(glm::vec3(5.0f, 5.0f, 5.0f));
-   //lightColors.push_back(glm::vec3(10.0f, 0.0f, 0.0f));
-   //lightColors.push_back(glm::vec3(0.0f, 0.0f, 15.0f));
-   //lightColors.push_back(glm::vec3(0.0f, 5.0f, 0.0f));
-   //s_Data.light_colours = lightColors;
+   //lightColors->push_back(glm::vec3(5.0f, 5.0f, 5.0f));
+   //lightColors->push_back(glm::vec3(10.0f, 0.0f, 0.0f));
+   //lightColors->push_back(glm::vec3(0.0f, 0.0f, 15.0f));
+   //lightColors->push_back(glm::vec3(0.0f, 5.0f, 0.0f));
+   //s_Data->light_colours = lightColors;
 
    //// shader configuration
    //// --------------------
-   //s_Data.object_shader.use();
-   //s_Data.object_shader.setInt("texture_diffuse1", 0);
-   //s_Data.blur_shader.use();
-   //s_Data.blur_shader.setInt("image", 0);
-   //s_Data.hdr_bloom_final_shader.use();
-   //s_Data.hdr_bloom_final_shader.setInt("scene", 0);
-   //s_Data.hdr_bloom_final_shader.setInt("bloomBlur", 1);
+   //s_Data->object_shader->use();
+   //s_Data->object_shader->setInt("texture_diffuse1", 0);
+   //s_Data->blur_shader->use();
+   //s_Data->blur_shader->setInt("image", 0);
+   //s_Data->hdr_bloom_final_shader->use();
+   //s_Data->hdr_bloom_final_shader->setInt("scene", 0);
+   //s_Data->hdr_bloom_final_shader->setInt("bloomBlur", 1);
 // }
 
 // void hdr_bloom_draw()
 // {
-   //   // 1. render scene into floating point framebuffer
+   //   // 1-> render scene into floating point framebuffer
    //// -----------------------------------------------
-   //   glBindFramebuffer(GL_FRAMEBUFFER, s_Data.hdr_fbo);
+   //   glBindFramebuffer(GL_FRAMEBUFFER, s_Data->hdr_fbo);
    //   glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
-   //   s_Data.object_shader.use();
-   //   s_Data.object_shader.setMat4("view_projection", view_projection);
-   //   s_Data.object_shader.setVec3("viewPos", desc.camera.Position);
+   //   s_Data->object_shader->use();
+   //   s_Data->object_shader->setMat4("view_projection", view_projection);
+   //   s_Data->object_shader->setVec3("viewPos", desc->camera->Position);
    //   glActiveTexture(GL_TEXTURE0);
-   //   glBindTexture(GL_TEXTURE_2D, s_Data.wood_texture);
+   //   glBindTexture(GL_TEXTURE_2D, s_Data->wood_texture);
    //   // set lighting uniforms
-   //   for (unsigned int i = 0; i < s_Data.light_positions.size(); i++)
+   //   for (unsigned int i = 0; i < s_Data->light_positions->size(); i++)
    //   {
-   //       s_Data.object_shader.setVec3("lights[" + std::to_string(i) + "].Position", s_Data.light_positions[i]);
-   //       s_Data.object_shader.setVec3("lights[" + std::to_string(i) + "].Color", s_Data.light_colours[i]);
+   //       s_Data->object_shader->setVec3("lights[" + std::to_string(i) + "]->Position", s_Data->light_positions[i]);
+   //       s_Data->object_shader->setVec3("lights[" + std::to_string(i) + "]->Color", s_Data->light_colours[i]);
    //   }
 
    //   // create one large cube that acts as the floor
    //   model = glm::mat4(1.0f);
-   //   model = glm::translate(model, glm::vec3(0.0f, -1.0f, 0.0));
+   //   model = glm::translate(model, glm::vec3(0.0f, -1.0f, 0->0));
    //   model = glm::scale(model, glm::vec3(12.5f, 0.5f, 12.5f));
-   //   s_Data.object_shader.setMat4("model", model);
-   //   renderCube(s_Data.stats.DrawCalls);
+   //   s_Data->object_shader->setMat4("model", model);
+   //   renderCube(s_Data->stats->DrawCalls);
 
    //   // then create multiple cubes as the scenery
-   //   glBindTexture(GL_TEXTURE_2D, s_Data.second_texture);
+   //   glBindTexture(GL_TEXTURE_2D, s_Data->second_texture);
 
    //   model = glm::mat4(1.0f);
-   //   model = glm::translate(model, glm::vec3(0.0f, 1.5f, 0.0));
+   //   model = glm::translate(model, glm::vec3(0.0f, 1.5f, 0->0));
    //   model = glm::scale(model, glm::vec3(0.5f));
-   //   s_Data.object_shader.setMat4("model", model);
-   //   //state.cubes[0]->model->draw(s_Data.object_shader, s_Data.stats.DrawCalls);
-   //   renderCube(s_Data.stats.DrawCalls);
+   //   s_Data->object_shader->setMat4("model", model);
+   //   //state->cubes[0]->model->draw(s_Data->object_shader, s_Data->stats->DrawCalls);
+   //   renderCube(s_Data->stats->DrawCalls);
    //   model = glm::mat4(1.0f);
-   //   model = glm::translate(model, glm::vec3(2.0f, 0.0f, 1.0));
+   //   model = glm::translate(model, glm::vec3(2.0f, 0.0f, 1->0));
    //   model = glm::scale(model, glm::vec3(0.5f));
-   //   s_Data.object_shader.setMat4("model", model);
-   //   renderCube(s_Data.stats.DrawCalls);
+   //   s_Data->object_shader->setMat4("model", model);
+   //   renderCube(s_Data->stats->DrawCalls);
    //   model = glm::mat4(1.0f);
-   //   model = glm::translate(model, glm::vec3(-1.0f, -1.0f, 2.0));
-   //   model = glm::rotate(model, glm::radians(60.0f), glm::normalize(glm::vec3(1.0, 0.0, 1.0)));
-   //   s_Data.object_shader.setMat4("model", model);
-   //   renderCube(s_Data.stats.DrawCalls);
+   //   model = glm::translate(model, glm::vec3(-1.0f, -1.0f, 2->0));
+   //   model = glm::rotate(model, glm::radians(60.0f), glm::normalize(glm::vec3(1->0, 0->0, 1->0)));
+   //   s_Data->object_shader->setMat4("model", model);
+   //   renderCube(s_Data->stats->DrawCalls);
    //   model = glm::mat4(1.0f);
-   //   model = glm::translate(model, glm::vec3(0.0f, 2.7f, 4.0));
-   //   model = glm::rotate(model, glm::radians(23.0f), glm::normalize(glm::vec3(1.0, 0.0, 1.0)));
-   //   model = glm::scale(model, glm::vec3(1.25));
-   //   s_Data.object_shader.setMat4("model", model);
-   //   renderCube(s_Data.stats.DrawCalls);
+   //   model = glm::translate(model, glm::vec3(0.0f, 2->7f, 4->0));
+   //   model = glm::rotate(model, glm::radians(23.0f), glm::normalize(glm::vec3(1->0, 0->0, 1->0)));
+   //   model = glm::scale(model, glm::vec3(1->25));
+   //   s_Data->object_shader->setMat4("model", model);
+   //   renderCube(s_Data->stats->DrawCalls);
    //   model = glm::mat4(1.0f);
-   //   model = glm::translate(model, glm::vec3(-2.0f, 1.0f, -3.0));
-   //   model = glm::rotate(model, glm::radians(124.0f), glm::normalize(glm::vec3(1.0, 0.0, 1.0)));
-   //   s_Data.object_shader.setMat4("model", model);
-   //   renderCube(s_Data.stats.DrawCalls);
+   //   model = glm::translate(model, glm::vec3(-2.0f, 1.0f, -3->0));
+   //   model = glm::rotate(model, glm::radians(124.0f), glm::normalize(glm::vec3(1->0, 0->0, 1->0)));
+   //   s_Data->object_shader->setMat4("model", model);
+   //   renderCube(s_Data->stats->DrawCalls);
    //   model = glm::mat4(1.0f);
-   //   model = glm::translate(model, glm::vec3(-3.0f, 0.0f, 0.0));
+   //   model = glm::translate(model, glm::vec3(-3.0f, 0.0f, 0->0));
    //   model = glm::scale(model, glm::vec3(0.5f));
-   //   s_Data.object_shader.setMat4("model", model);
-   //   renderCube(s_Data.stats.DrawCalls);
+   //   s_Data->object_shader->setMat4("model", model);
+   //   renderCube(s_Data->stats->DrawCalls);
 
 
 
    //   // show all the light sources as bright cubes
-   //   s_Data.light_positions[0] = state.cubes[0]->transform.Position;
+   //   s_Data->light_positions[0] = state->cubes[0]->transform->Position;
 
-   //   s_Data.light_shader.use();
-   //   s_Data.light_shader.setMat4("view_projection", view_projection);
-   //   for (unsigned int i = 0; i < s_Data.light_positions.size(); i++)
+   //   s_Data->light_shader->use();
+   //   s_Data->light_shader->setMat4("view_projection", view_projection);
+   //   for (unsigned int i = 0; i < s_Data->light_positions->size(); i++)
    //   {
    //       model = glm::mat4(1.0f);
-   //       model = glm::translate(model, glm::vec3(s_Data.light_positions[i]));
-   //       model = glm::scale(model, glm::vec3(0.25f));
-   //       s_Data.light_shader.setMat4("model", model);
-   //       s_Data.light_shader.setVec3("lightColor", s_Data.light_colours[i]);
-   //       renderCube(s_Data.stats.DrawCalls);
+   //       model = glm::translate(model, glm::vec3(s_Data->light_positions[i]));
+   //       model = glm::scale(model, glm::vec3(0->25f));
+   //       s_Data->light_shader->setMat4("model", model);
+   //       s_Data->light_shader->setVec3("lightColor", s_Data->light_colours[i]);
+   //       renderCube(s_Data->stats->DrawCalls);
    //   }
    //   glBindFramebuffer(GL_FRAMEBUFFER, 0);
 
-   //   // 2. blur bright fragments with two-pass Gaussian Blur 
+   //   // 2-> blur bright fragments with two-pass Gaussian Blur 
    //   // --------------------------------------------------
    //   bool horizontal = true, first_iteration = true;
    //   unsigned int amount = 10;
-   //   s_Data.blur_shader.use();
-   //   s_Data.blur_shader.setInt("blur_x", amount / 2);
-   //   s_Data.blur_shader.setInt("blur_y", amount / 2);
+   //   s_Data->blur_shader->use();
+   //   s_Data->blur_shader->setInt("blur_x", amount / 2);
+   //   s_Data->blur_shader->setInt("blur_y", amount / 2);
    //   for (unsigned int i = 0; i < amount; i++)
    //   {
-   //       glBindFramebuffer(GL_FRAMEBUFFER, s_Data.pingpong_fbo[horizontal]);
-   //       s_Data.blur_shader.setInt("horizontal", horizontal);
-   //       glBindTexture(GL_TEXTURE_2D, first_iteration ? s_Data.hdr_colour_buffers[1] : s_Data.pingpong_colour_buffers[!horizontal]);  // bind texture of other framebuffer (or scene if first iteration)
+   //       glBindFramebuffer(GL_FRAMEBUFFER, s_Data->pingpong_fbo[horizontal]);
+   //       s_Data->blur_shader->setInt("horizontal", horizontal);
+   //       glBindTexture(GL_TEXTURE_2D, first_iteration ? s_Data->hdr_colour_buffers[1] : s_Data->pingpong_colour_buffers[!horizontal]);  // bind texture of other framebuffer (or scene if first iteration)
    //       renderQuad();
    //       horizontal = !horizontal;
    //       if (first_iteration)
@@ -309,17 +334,17 @@ void RendererSimple::render_mesh(Mesh* mesh, Shader shader)
    //   }
    //   glBindFramebuffer(GL_FRAMEBUFFER, 0);
 
-   //   // 3. now render floating point color buffer to 2D quad and tonemap HDR colors to default framebuffer's (clamped) color range
+   //   // 3-> now render floating point color buffer to 2D quad and tonemap HDR colors to default framebuffer's (clamped) color range
    //   // --------------------------------------------------------------------------------------------------------------------------
    //   glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-   //   s_Data.hdr_bloom_final_shader.use();
+   //   s_Data->hdr_bloom_final_shader->use();
    //   glActiveTexture(GL_TEXTURE0);
-   //   glBindTexture(GL_TEXTURE_2D, s_Data.hdr_colour_buffers[0]);
+   //   glBindTexture(GL_TEXTURE_2D, s_Data->hdr_colour_buffers[0]);
    //   glActiveTexture(GL_TEXTURE1);
-   //   glBindTexture(GL_TEXTURE_2D, s_Data.pingpong_colour_buffers[!horizontal]);
-   //   s_Data.hdr_bloom_final_shader.setInt("bloom", desc.hdr);
-   //   s_Data.hdr_bloom_final_shader.setFloat("exposure", desc.exposure);
+   //   glBindTexture(GL_TEXTURE_2D, s_Data->pingpong_colour_buffers[!horizontal]);
+   //   s_Data->hdr_bloom_final_shader->setInt("bloom", desc->hdr);
+   //   s_Data->hdr_bloom_final_shader->setFloat("exposure", desc->exposure);
    //   renderQuad();
-   //   //std::cout << "bloom: " << (desc.hdr ? "on" : "off") << "| exposure: " << desc.exposure << std::endl;
+   //   //std::cout << "bloom: " << (desc->hdr ? "on" : "off") << "| exposure: " << desc->exposure << std::endl;
 // }
 

@@ -38,7 +38,7 @@ uint32_t height = 768;
 Application app("Fighting Game!", width, height);
 app.set_fps_limit(60.0f);   
 
-FlyCamera camera {glm::vec3(0.0f, 2.0f, 4.0f)};
+FlyCamera camera {glm::vec3(0.0f, 0.0f, 0.0f)};
 camera.SetPerspective(glm::radians(65.0f), (float)width/(float)height, 0.1f, 100.0f);
 
 GameState state;
@@ -55,11 +55,7 @@ ProfilerPanel profiler_panel;
 
 // TESTING ---- 
 
-TextureCube background = ResourceManager::load_texture_cube(
-    "assets/skybox/skybox-default/", 
-    "default-skybox");
-
-Texture2D tex = ResourceManager::load_texture("assets/textures/octopus.png", "Octopus");
+Texture2D octopus_texture = ResourceManager::load_texture("assets/textures/octopus.png", "Octopus");
 
 // ------------
 
@@ -186,6 +182,23 @@ while (app.is_running())
                     
                 ImGui::End();
 
+                ImGui::Begin("Renderer", (bool*)1);
+
+                    ImGui::Text("hi");
+
+                    // if (ImGui::CollapsingHeader("Post-processing"))
+                    // {
+                    //     ImGui::Checkbox("SSAO", &renderer->GetPostProcessor()->SSAO);
+                    //     ImGui::Checkbox("Bloom", &renderer->GetPostProcessor()->Bloom);
+                    //     ImGui::Checkbox("Motion Blur", &renderer->GetPostProcessor()->MotionBlur);
+                    //     //ImGui::Checkbox("SSR", &renderer->GetPostProcessor()->SSR);
+                    //     //ImGui::Checkbox("TXAA", &renderer->GetPostProcessor()->TXAA);
+                    //     ImGui::Checkbox("Vignette", &renderer->GetPostProcessor()->Vignette);
+                    //     ImGui::Checkbox("Sepia", &renderer->GetPostProcessor()->Sepia);
+                    // }
+
+                ImGui::End();
+
                 profiler_panel.draw(app, profiler, delta_time_s);
 
             app.gui_end();
@@ -193,7 +206,7 @@ while (app.is_running())
         profiler.end(Profiler::Stage::GuiLoop);
 
         profiler.begin(Profiler::Stage::FrameEnd);
-        {
+        { // ~~ Frame End ~~
             app.frame_end(delta_time_s);
         }
         profiler.end(Profiler::Stage::FrameEnd);

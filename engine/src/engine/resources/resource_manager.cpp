@@ -28,15 +28,15 @@ std::map<std::string, Shader>                  ResourceManager::Shaders;
 
 void ResourceManager::clear()
 {
-    // delete all shaders	
-    for (auto iter : Shaders)
-        glDeleteProgram(iter.second.ID);
-    // delete all textures
-    for (auto iter : Textures)
-        glDeleteTextures(1, &iter.second.id);
-    // delete all models
-    // for (auto iter : Models)
-    //     delete iter->second;
+    // // delete all shaders	
+    // for (auto iter : Shaders)
+    //     glDeleteProgram(iter.second.ID);
+    // // delete all textures
+    // for (auto iter : Textures)
+    //     glDeleteTextures(1, &iter.second.id);
+    // // delete all models
+    // // for (auto iter : Models)
+    // //     delete iter->second;
     // delete all texturecubes
 }
 
@@ -160,7 +160,7 @@ TextureCube ResourceManager::load_texture_cube_from_folder(const std::string& fo
     // disable y flip on cubemaps
     stbi_set_flip_vertically_on_load(false);
 
-    std::vector<std::string> faces = { "top.jpg", "bottom.jpg", "left.jpg", "right.jpg", "front.jpg", "back.jpg" };
+    std::vector<std::string> faces = { "right.jpg", "left.jpg","top.jpg", "bottom.jpg", "front.jpg", "back.jpg" };
     for (unsigned int i = 0; i < faces.size(); ++i)
     {
         int width, height, nrComponents;

@@ -35,7 +35,7 @@ class FlatShader
 {
 public:
     static Shader create_shader();
-private:
+    
     FlatShader() = default;
 };
 

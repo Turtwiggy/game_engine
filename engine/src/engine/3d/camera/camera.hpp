@@ -40,6 +40,9 @@ public:
 class CameraFrustum
 {
 public:
+
+    //This bit of c++ wizardy means a CameraFrustum can be accessed by 
+    //using frustum.Left etc
     union
     {
         FrustumPlane Planes[6];

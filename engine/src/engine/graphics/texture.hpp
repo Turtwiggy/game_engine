@@ -40,7 +40,7 @@ public:
         GLenum type, 
         void* data );
 
-    void Bind() const;
+    void Bind(int unit = -1) const;
     void Unbind();
 };
 
