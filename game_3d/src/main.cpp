@@ -38,7 +38,7 @@ uint32_t height = 768;
 Application app("Fighting Game!", width, height);
 app.set_fps_limit(60.0f);   
 
-FlyCamera camera {glm::vec3(0.0f, 0.0f, 0.0f)};
+FlyCamera camera {glm::vec3(0.0f, 0.0f, -1.0f)};
 camera.SetPerspective(glm::radians(65.0f), (float)width/(float)height, 0.1f, 100.0f);
 
 GameState state;

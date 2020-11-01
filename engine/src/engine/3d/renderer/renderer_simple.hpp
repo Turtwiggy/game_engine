@@ -1,5 +1,8 @@
 #pragma once
 
+//other library files
+#include <glm/glm.hpp>
+
 //your project headers
 #include "engine/graphics/shaders/flat_shader.hpp"
 #include "engine/3d/camera/camera.hpp"
@@ -23,6 +26,10 @@ public:
     void update(float delta_time, FlyCamera& camera);
 
     void render_mesh(std::shared_ptr<Mesh> mesh, std::shared_ptr<Shader> shader);
+
+private:
+
+    void draw_skybox(const glm::mat4& view_projection);
 
 private:
     //std::shared_ptr<Model> object_;

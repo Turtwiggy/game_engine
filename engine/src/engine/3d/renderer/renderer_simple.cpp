@@ -3,7 +3,7 @@
 #include "engine/3d/renderer/renderer_simple.hpp"
 
 //other library files
-#include <glm/glm.hpp>
+
 #include <glm/gtc/matrix_transform.hpp>
 #include <glm/gtx/transform.hpp>
 
@@ -20,7 +20,7 @@ RendererSimple::RendererSimple()
     flat_shader_ = std::make_shared<Shader>(FlatShader::create_shader());
 
     cube = std::make_shared<primitives::Cube>();  
-    plane = std::make_shared<primitives::Plane>(2, 2);  
+    plane = std::make_shared<primitives::Plane>(10, 10);  
 
     TextureCube cubemap = ResourceManager::load_texture_cube("assets/skybox/skybox-default/", "default-skybox");
     cubemap_ = std::make_shared<TextureCube>(cubemap);
@@ -42,52 +42,69 @@ void RendererSimple::update(float delta_time, FlyCamera& camera)
     glm::vec3 lightColor(0.9f, 0.9f, 0.9f);
     glm::vec3 diffuseColor = lightColor   * glm::vec3(0.5f); // decrease the influence
     glm::vec3 ambientColor = diffuseColor * glm::vec3(0.2f); // low influence
-    flat_shader_->set_vec3("light->ambient", ambientColor);
-    flat_shader_->set_vec3("light->diffuse", diffuseColor);
-    flat_shader_->set_vec3("light->specular", 1.0f, 1.0f, 1.0f);
-    flat_shader_->set_vec3("light->direction", -0.2f, -1.0f, -0.3f);
+    flat_shader_->set_vec3("light.ambient", ambientColor);
+    flat_shader_->set_vec3("light.diffuse", diffuseColor);
+    flat_shader_->set_vec3("light.specular", 1.0f, 1.0f, 1.0f);
+    flat_shader_->set_vec3("light.direction", -0.2f, -1.0f, -0.3f);
 
     // position and scale
     glm::mat4 model = glm::mat4(1.0f);
-    model = glm::translate(model, glm::vec3(0.0f, 0.0f, 0.0f));
-    model = glm::scale(model, glm::vec3(1.0f, 1.0f, 1.0f));
+    model = glm::translate(model, glm::vec3(5.0f, 0.0f, 0.0f));
+    model = glm::scale(model, glm::vec3(2.5f, 2.5f, 2.5f));
     flat_shader_->set_mat4("model", model);
+    //material information
+    flat_shader_->set_vec3("material.ambient", glm::vec3(1.0f, 0.0f, 0.0f));
+    flat_shader_->set_vec3("material.diffuse", glm::vec3(1.0f, 0.0f, 0.0f));
+    flat_shader_->set_vec3("material.specular", 0.5f, 0.5f, 0.5f);
+    flat_shader_->set_float("material.shininess", 32.0f);
     //Draw a cube
     model = glm::mat4(1.0f);
-    model = glm::translate(model, glm::vec3(0.5f, 0.0f, 0.0f));
+    model = glm::translate(model, glm::vec3(2.0f, 0.0f, 0.0f));
     model = glm::scale(model, glm::vec3(0.1f, 0.1f, 0.1f));	
     flat_shader_->set_mat4("model", model);
     render_mesh(cube, flat_shader_);
 
     //Position and scale
     model = glm::mat4(1.0f);
-    model = glm::translate(model, glm::vec3(0.0f, 0.0f, 0.0f));
-    model = glm::scale(model, glm::vec3(1.0f, 1.0f, 1.0f));
-    flat_shader_->set_mat4("model", model);
-    //Draw a plane
-    model = glm::mat4(1.0f);
     model = glm::translate(model, glm::vec3(0.0f, -1.0f, 0.0f));
-    model = glm::scale(model, glm::vec3(1.0f, 1.0f, 1.0f));	
+    model = glm::scale(model, glm::vec3(1.0f, 1.0f, 1.0f));
+    model = glm::rotate(model, glm::radians(90.0f), glm::normalize(glm::vec3(1.0f, 0.0f, 0.0f)));
     flat_shader_->set_mat4("model", model);
-    //render_mesh(plane, flat_shader_);
+    //material information
+    flat_shader_->set_vec3("material.ambient", glm::vec3(0.0f, 1.0f, 0.0f));
+    flat_shader_->set_vec3("material.diffuse", glm::vec3(0.0f, 1.0f, 0.0f));
+    flat_shader_->set_vec3("material.specular", 0.5f, 0.5f, 0.5f);
+    flat_shader_->set_float("material.shininess", 32.0f);
+    //Draw a plane
+    flat_shader_->set_mat4("model", model);
+    render_mesh(plane, flat_shader_);
 
-    //note: this is terrible getting all the meshes every frame
-    // for (auto i = 0; i < meshes->size(); i++)
-    // {   
-    //     auto mesh = meshes[i];
+    draw_skybox(view_projection);
 
-    //     //Set material
-    //     flat_shader_->setVec3("material->ambient", mesh->colour->colour);
-    //     flat_shader_->setVec3("material->diffuse", mesh->colour->colour);
-    //     flat_shader_->setVec3("material->specular", 0.5f, 0.5f, 0.5f);
-    //     flat_shader_->setFloat("material->shininess", 32.0f);
-    //     mesh->draw(flat_shader_);
-    //     draw_calls_ += 1;
-    // }
+    flat_shader_->unbind();
+}
 
-    // draw skybox as last
-    model = glm::mat4(1.0f);
-    model = glm::scale(model, glm::vec3(10.0f, 10.0f, 10.0f));	
+
+
+void RendererSimple::render_mesh(std::shared_ptr<Mesh> mesh, std::shared_ptr<Shader> shader)
+{
+    //bind vao
+    glBindVertexArray(mesh->vao);
+
+    if (mesh->Indices.size() > 0)
+    {
+        glDrawElements(mesh->topology == TOPOLOGY::TRIANGLE_STRIP ? GL_TRIANGLE_STRIP : GL_TRIANGLES, mesh->Indices.size(), GL_UNSIGNED_INT, 0);
+    }
+    else
+    {
+        glDrawArrays(mesh->topology == TOPOLOGY::TRIANGLE_STRIP ? GL_TRIANGLE_STRIP : GL_TRIANGLES, 0, mesh->Positions.size());
+    }
+}
+
+void RendererSimple::draw_skybox(const glm::mat4& view_projection)
+{
+    glm::mat4 model = glm::mat4(1.0f);
+    model = glm::scale(model, glm::vec3(1000.0f, 1000.0f, 1000.0f));	
     glDepthFunc(background->Material->DepthCompare); 
     background->Material->get_shader()->bind();
     background->Material->get_shader()->set_mat4("view_projection", view_projection);
@@ -104,23 +121,6 @@ void RendererSimple::update(float delta_time, FlyCamera& camera)
     render_mesh(background->Mesh, background->Material->get_shader());
     glBindVertexArray(0);
     glDepthFunc(GL_LESS); // set depth function back to default
-
-    flat_shader_->unbind();
-}
-
-void RendererSimple::render_mesh(std::shared_ptr<Mesh> mesh, std::shared_ptr<Shader> shader)
-{
-    //bind vao
-    glBindVertexArray(mesh->vao);
-
-    if (mesh->Indices.size() > 0)
-    {
-        glDrawElements(mesh->topology == TOPOLOGY::TRIANGLE_STRIP ? GL_TRIANGLE_STRIP : GL_TRIANGLES, mesh->Indices.size(), GL_UNSIGNED_INT, 0);
-    }
-    else
-    {
-        glDrawArrays(mesh->topology == TOPOLOGY::TRIANGLE_STRIP ? GL_TRIANGLE_STRIP : GL_TRIANGLES, 0, mesh->Positions.size());
-    }
 }
 
 } //namespace fightingengine
