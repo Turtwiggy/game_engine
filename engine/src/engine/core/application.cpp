@@ -80,8 +80,9 @@ namespace fightingengine {
 
         SDL_GL_SwapWindow(get_window().get_handle());
 
-        if(fps_limit)
-            SDL_Delay(MILLISECONDS_PER_FRAME);
+        //If frame finished early
+        if(fps_limit && delta_time < MILLISECONDS_PER_FRAME )
+            SDL_Delay( MILLISECONDS_PER_FRAME - delta_time );
     }
 
     void Application::poll()

@@ -12,15 +12,29 @@
 
 namespace fightingengine {
 
-RendererSimple::RendererSimple()
+RendererSimple::RendererSimple(RandomState& rnd)
 {
     //TODO LOAD MODELS
     //object_ = ResourceManager::load_model("assets/models/lizard_wizard/lizard_wizard->obj", "Object");
+
+    //Create some random cubes
+
+    int desired_cubes = 10;
+    float rnd_x, rnd_y, rnd_z = 0;
+    for(int i = 0; i < desired_cubes; i++)
+    {
+        rnd_x = rand_det_s(rnd.rng, -10.0f, 10.0f);
+        rnd_y = rand_det_s(rnd.rng, -10.0f, 10.0f);
+        rnd_z = rand_det_s(rnd.rng, -10.0f, 10.0f);
+        cube_pos.push_back( glm::vec3(rnd_x, rnd_y, rnd_z));
+    }
 
     flat_shader_ = std::make_shared<Shader>(FlatShader::create_shader());
 
     cube = std::make_shared<primitives::Cube>();  
     plane = std::make_shared<primitives::Plane>(10, 10);  
+
+    ResourceManager::load_shader("assets/shaders/", {"blinn-phong/lit.vert", "blinn-phong/lit.frag"}, "lit");
 
     TextureCube cubemap = ResourceManager::load_texture_cube("assets/skybox/skybox-default/", "default-skybox");
     cubemap_ = std::make_shared<TextureCube>(cubemap);
@@ -28,7 +42,7 @@ RendererSimple::RendererSimple()
     background->Material->set_texture_cube("DefaultCubemap", cubemap_.get());
 }
 
-void RendererSimple::update(float delta_time, FlyCamera& camera)
+void RendererSimple::update(float delta_time, FlyCamera& camera, RandomState& rnd)
 {
     camera.Update(delta_time);
     glm::mat4 view_projection =  camera.get_view_projection_matrix();
@@ -47,22 +61,29 @@ void RendererSimple::update(float delta_time, FlyCamera& camera)
     flat_shader_->set_vec3("light.specular", 1.0f, 1.0f, 1.0f);
     flat_shader_->set_vec3("light.direction", -0.2f, -1.0f, -0.3f);
 
+
     // position and scale
     glm::mat4 model = glm::mat4(1.0f);
     model = glm::translate(model, glm::vec3(5.0f, 0.0f, 0.0f));
-    model = glm::scale(model, glm::vec3(2.5f, 2.5f, 2.5f));
+    model = glm::scale(model, glm::vec3(2.0f, 2.0, 2.0f));
     flat_shader_->set_mat4("model", model);
     //material information
-    flat_shader_->set_vec3("material.ambient", glm::vec3(1.0f, 0.0f, 0.0f));
-    flat_shader_->set_vec3("material.diffuse", glm::vec3(1.0f, 0.0f, 0.0f));
+    flat_shader_->set_vec3("material.ambient", glm::vec3(1.0f, 0.0f, 1.0f));
+    flat_shader_->set_vec3("material.diffuse", glm::vec3(1.0f, 0.0f, 1.0f));
     flat_shader_->set_vec3("material.specular", 0.5f, 0.5f, 0.5f);
     flat_shader_->set_float("material.shininess", 32.0f);
-    //Draw a cube
-    model = glm::mat4(1.0f);
-    model = glm::translate(model, glm::vec3(2.0f, 0.0f, 0.0f));
-    model = glm::scale(model, glm::vec3(0.1f, 0.1f, 0.1f));	
-    flat_shader_->set_mat4("model", model);
-    render_mesh(cube, flat_shader_);
+    
+    //draw some cubes
+    for(int i = 0; i < cube_pos.size(); i++)
+    {
+        // calculate the model matrix for each object and pass it to shader before drawing
+        glm::mat4 model = glm::mat4(1.0f);
+        model = glm::translate(model, cube_pos[i]);
+        model = glm::rotate(model, glm::radians(0.0f), glm::vec3(1.0f, 0.0f, 0.0f));
+        flat_shader_->set_mat4("model", model);
+
+        render_mesh(cube, flat_shader_);
+    }    
 
     //Position and scale
     model = glm::mat4(1.0f);
@@ -76,7 +97,6 @@ void RendererSimple::update(float delta_time, FlyCamera& camera)
     flat_shader_->set_vec3("material.specular", 0.5f, 0.5f, 0.5f);
     flat_shader_->set_float("material.shininess", 32.0f);
     //Draw a plane
-    flat_shader_->set_mat4("model", model);
     render_mesh(plane, flat_shader_);
 
     draw_skybox(view_projection);

@@ -37,6 +37,7 @@ uint32_t width = 1366;
 uint32_t height = 768;
 Application app("Fighting Game!", width, height);
 app.set_fps_limit(60.0f);   
+//app.remove_fps_limit();
 
 FlyCamera camera {glm::vec3(0.0f, 0.0f, -1.0f)};
 camera.SetPerspective(glm::radians(65.0f), (float)width/(float)height, 0.1f, 100.0f);
@@ -47,7 +48,7 @@ Profiler profiler;
 
 //RendererRayTraced renderer(width, height);
 //RendererPBR pbr_renderer;
-RendererSimple simple_renderer;
+RendererSimple simple_renderer(rnd);
 RenderCommand::init();
 
 //UI Panels
@@ -148,7 +149,7 @@ while (app.is_running())
             // glDepthMask(GL_TRUE);
             // background.Unbind();
 
-            simple_renderer.update(delta_time_s, camera);
+            simple_renderer.update(delta_time_s, camera, rnd);
 
             //state.render(renderer, camera, app.get_window(), timer);
             //default_scene->on_update(delta_time_s);

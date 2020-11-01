@@ -4,6 +4,7 @@
 #include <glm/glm.hpp>
 
 //your project headers
+#include "engine/core/maths/random.hpp"
 #include "engine/graphics/shaders/flat_shader.hpp"
 #include "engine/3d/camera/camera.hpp"
 #include "engine/3d/camera/fly_camera.hpp"
@@ -14,6 +15,7 @@
 #include "engine/mesh/primitives.hpp"
 
 #include <memory>
+#include <vector> //remove this eventually!
 
 namespace fightingengine
 {
@@ -21,9 +23,9 @@ namespace fightingengine
 class RendererSimple
 {
 public:
-    RendererSimple();
+    RendererSimple(RandomState& rnd);
     
-    void update(float delta_time, FlyCamera& camera);
+    void update(float delta_time, FlyCamera& camera, RandomState& rnd);
 
     void render_mesh(std::shared_ptr<Mesh> mesh, std::shared_ptr<Shader> shader);
 
@@ -40,6 +42,10 @@ private:
 
     Background* background;
     std::shared_ptr<TextureCube> cubemap_;
+
+    //some gamestate
+    std::vector<glm::vec3> cube_pos;
+
 
     uint32_t draw_calls_ = 0;
 };
