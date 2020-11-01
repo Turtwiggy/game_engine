@@ -24,12 +24,11 @@ struct GameState
         GameWindow& window, 
         float timer)
     {
-        int width, height;
-        window.GetSize(width, height);
+        glm::ivec2 window_size = window.get_size();
 
         //First pass: render all objects
         //RenderCommand::set_clear_colour(glm::vec4(1.0, 0.0, 0.0, 1.0));
-        Shader& shader = renderer.first_geometry_pass(cam, width, height);
+        Shader& shader = renderer.first_geometry_pass(cam, window_size.x, window_size.y);
 
         glm::mat4 model = glm::mat4(1.0f);
         model = glm::translate(model, glm::vec3(0.0f, 0.0f, 0.0));
@@ -45,7 +44,7 @@ struct GameState
         //Second pass: pass raytracer triangle information
         std::vector<Triangle> t;
         //t = cubes[0]->model->get_all_triangles_in_meshes();
-        renderer.second_raytrace_pass(cam, static_cast<float>(width), static_cast<float>(height), t, timer);
+        renderer.second_raytrace_pass(cam, static_cast<float>(window_size.x), static_cast<float>(window_size.y), t, timer);
 
         //Third pass: render scene information to quad
         renderer.third_quad_pass();
@@ -55,43 +54,43 @@ struct GameState
     //std::vector<std::shared_ptr<GameObject3D>> cubes;
 };
 
-std::vector<Sphere> create_world()
-{
-    //ground sphere
-    Sphere s4;
-    s4.position = glm::vec3(0.0f, -100.5f, -1.0f);
-    s4.radius = 100.0f;
-    s4.mat.material_type = MATERIAL_DIFFUSE;
-    s4.mat.albedo_colour = glm::vec3(0.8f, 0.8f, 0.0f);
-    //main sphere
-    Sphere s1;
-    s1.position = glm::vec3(0.0f, 0.0f, -1.0f);
-    s1.radius = 0.5f;
-    s1.mat.material_type = MATERIAL_DIFFUSE;
-    s1.mat.albedo_colour = glm::vec3(0.7f, 0.3f, 0.3f);
-    //left sphere
-    Sphere s2;
-    s2.position = glm::vec3(-1.0f, 0.0f, -1.0f);
-    s2.radius = 0.5f;
-    s2.mat.material_type = MATERIAL_METAL;
-    s2.mat.albedo_colour = glm::vec3(0.8f, 0.8f, 0.8f);
-    s2.mat.metal_fuzz = 0.3f;
-    //right sphere
-    Sphere s3;
-    s3.position = glm::vec3(1.0f, 0.0f, -1.0f);
-    s3.radius = 0.5f;
-    s3.mat.material_type = MATERIAL_METAL;
-    s3.mat.albedo_colour = glm::vec3(0.8f, 0.6f, 0.2f);
-    s3.mat.metal_fuzz = 0.8f;
-    //World
-    std::vector<Sphere> spheres;
-    spheres.push_back(s1);
-    spheres.push_back(s2);
-    spheres.push_back(s3);
-    spheres.push_back(s4);
+// std::vector<Sphere> create_world()
+// {
+//     //ground sphere
+//     Sphere s4;
+//     s4.position = glm::vec3(0.0f, -100.5f, -1.0f);
+//     s4.radius = 100.0f;
+//     s4.mat.material_type = MATERIAL_DIFFUSE;
+//     s4.mat.albedo_colour = glm::vec3(0.8f, 0.8f, 0.0f);
+//     //main sphere
+//     Sphere s1;
+//     s1.position = glm::vec3(0.0f, 0.0f, -1.0f);
+//     s1.radius = 0.5f;
+//     s1.mat.material_type = MATERIAL_DIFFUSE;
+//     s1.mat.albedo_colour = glm::vec3(0.7f, 0.3f, 0.3f);
+//     //left sphere
+//     Sphere s2;
+//     s2.position = glm::vec3(-1.0f, 0.0f, -1.0f);
+//     s2.radius = 0.5f;
+//     s2.mat.material_type = MATERIAL_METAL;
+//     s2.mat.albedo_colour = glm::vec3(0.8f, 0.8f, 0.8f);
+//     s2.mat.metal_fuzz = 0.3f;
+//     //right sphere
+//     Sphere s3;
+//     s3.position = glm::vec3(1.0f, 0.0f, -1.0f);
+//     s3.radius = 0.5f;
+//     s3.mat.material_type = MATERIAL_METAL;
+//     s3.mat.albedo_colour = glm::vec3(0.8f, 0.6f, 0.2f);
+//     s3.mat.metal_fuzz = 0.8f;
+//     //World
+//     std::vector<Sphere> spheres;
+//     spheres.push_back(s1);
+//     spheres.push_back(s2);
+//     spheres.push_back(s3);
+//     spheres.push_back(s4);
 
-    return spheres;
-}
+//     return spheres;
+// }
 
 } //namespace game_3d
 

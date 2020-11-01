@@ -40,7 +40,7 @@ namespace fightingengine {
     Application::~Application()
     {
         ResourceManager::clear();
-        window->Close();
+        window->close();
     }
 
 
@@ -78,7 +78,7 @@ namespace fightingengine {
         // -------------
         fps_buffer.push_back(1.f / delta_time);
 
-        SDL_GL_SwapWindow(get_window().GetHandle());
+        SDL_GL_SwapWindow(get_window().get_handle());
 
         if(fps_limit)
             SDL_Delay(MILLISECONDS_PER_FRAME);
@@ -106,19 +106,19 @@ namespace fightingengine {
                 switch (e.window.event)
                 {
                 case SDL_WINDOWEVENT_CLOSE:
-                    if (e.window.windowID == SDL_GetWindowID(window->GetHandle()))
+                    if (e.window.windowID == SDL_GetWindowID(window->get_handle()))
                     {
                         on_window_close();
                     }
                     break;
                 case SDL_WINDOWEVENT_RESIZED:
-                    if (e.window.windowID == SDL_GetWindowID(window->GetHandle()))
+                    if (e.window.windowID == SDL_GetWindowID(window->get_handle()))
                     {
                         on_window_resize(e.window.data1, e.window.data2);
                     }
                     break;
                 case SDL_WINDOWEVENT_MINIMIZED:
-                    if (e.window.windowID == SDL_GetWindowID(window->GetHandle()))
+                    if (e.window.windowID == SDL_GetWindowID(window->get_handle()))
                     {
                         minimized = true;
                     }

@@ -31,8 +31,8 @@ public:
 
     virtual void Update(float dt);
 
-    virtual void InputKey(float dt, CameraMovement direction);
     virtual void InputMouse(float deltaX, float deltaY);
+    virtual void InputKey(float dt, CameraMovement direction);
     virtual void InputScroll(float deltaX, float deltaY);
 };
 

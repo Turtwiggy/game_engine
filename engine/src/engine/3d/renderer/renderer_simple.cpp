@@ -19,7 +19,8 @@ RendererSimple::RendererSimple()
     //TODO LOAD MODELS
     //object_ = ResourceManager::load_model("assets/models/lizard_wizard/lizard_wizard.obj", "Object");
 
-    cube = new primitives::Cube();    
+    cube = new primitives::Cube();  
+    plane = new primitives::Plane(2, 2);  
 }
 
 void RendererSimple::update(float delta_time, FlyCamera& camera)
@@ -46,6 +47,24 @@ void RendererSimple::update(float delta_time, FlyCamera& camera)
     model = glm::translate(model, glm::vec3(0.0f, 0.0f, 0.0f));
     model = glm::scale(model, glm::vec3(1.0f, 1.0f, 1.0f));
     flat_shader_.set_mat4("model", model);
+    //Draw a cube
+    model = glm::mat4(1.0f);
+    model = glm::translate(model, glm::vec3(2.0f, 0.0f, 0.0f));
+    model = glm::scale(model, glm::vec3(1.0f, 1.0f, 1.0f));	
+    flat_shader_.set_mat4("model", model);
+    render_mesh(cube, flat_shader_);
+
+    //Position and scale
+    model = glm::mat4(1.0f);
+    model = glm::translate(model, glm::vec3(0.0f, 0.0f, 0.0f));
+    model = glm::scale(model, glm::vec3(1.0f, 1.0f, 1.0f));
+    flat_shader_.set_mat4("model", model);
+    //Draw a plane
+    model = glm::mat4(1.0f);
+    model = glm::translate(model, glm::vec3(0.0f, -1.0f, 0.0f));
+    model = glm::scale(model, glm::vec3(1.0f, 1.0f, 1.0f));	
+    flat_shader_.set_mat4("model", model);
+    render_mesh(plane, flat_shader_);
 
     //note: this is terrible getting all the meshes every frame
     // for (auto i = 0; i < meshes.size(); i++)
@@ -62,12 +81,6 @@ void RendererSimple::update(float delta_time, FlyCamera& camera)
     //     draw_calls_ += 1;
     // }
 
-    //Draw a cube
-    model = glm::mat4(1.0f);
-    model = glm::translate(model, glm::vec3(2.0f, 0.0f, 0.0f));
-    model = glm::scale(model, glm::vec3(1.0f, 1.0f, 1.0f));	
-    flat_shader_.set_mat4("model", model);
-    render_mesh(cube, flat_shader_);
 
     flat_shader_.unbind();
 }

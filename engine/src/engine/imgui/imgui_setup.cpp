@@ -3,6 +3,7 @@
 #include "imgui_setup.hpp"
 
 //other library headers
+#include <glm/glm.hpp>
 #if defined(IMGUI_IMPL_OPENGL_LOADER_GLEW)
     #include <GL/glew.h>      
 #endif
@@ -52,7 +53,7 @@ void ImGui_Manager::initialize(GameWindow* window)
     }
 
     // setup platform/renderer
-    ImGui_ImplSDL2_InitForOpenGL(window->GetHandle(), window->get_gl_context());
+    ImGui_ImplSDL2_InitForOpenGL(window->get_handle(), window->get_gl_context());
     ImGui_ImplOpenGL3_Init(window->get_glsl_version().c_str());
 }
 
@@ -66,18 +67,17 @@ ImGui_Manager::~ImGui_Manager()
 void ImGui_Manager::begin_frame(const GameWindow& window)
 {
     ImGui_ImplOpenGL3_NewFrame();
-    ImGui_ImplSDL2_NewFrame(window.GetHandle());
+    ImGui_ImplSDL2_NewFrame(window.get_handle());
 
     ImGui::NewFrame();
 }
 
 void ImGui_Manager::end_frame(const GameWindow& window)
 {
-    int width, height = 0;
-    window.GetSize(width, height);
+    glm::ivec2 window_size = window.get_size();
 
     ImGuiIO& io = ImGui::GetIO();
-    io.DisplaySize = ImVec2((float)width, (float)height);
+    io.DisplaySize = ImVec2(static_cast<float>(window_size.x), static_cast<float>(window_size.y));
 
     // Rendering
     ImGui::Render();

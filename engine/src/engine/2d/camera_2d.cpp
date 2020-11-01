@@ -29,10 +29,9 @@ float scale_to_linear_zoom(float scale)
 
 glm::vec2 Camera2D::tile_to_screen(GameWindow& win, glm::vec2 tile_pos) const
 {
-    int width, height = 0;
-    win.GetSize(width, height);
+    glm::ivec2 window_size = win.get_size();
 
-    glm::vec2 half_dim = glm::vec2{ width, height } / 2.f;
+    glm::vec2 half_dim = glm::vec2{ window_size.x, window_size.y } / 2.f;
 
     glm::vec2 pos = glm::vec2(tile_pos.x, tile_pos.y);
 
@@ -43,10 +42,9 @@ glm::vec2 Camera2D::tile_to_screen(GameWindow& win, glm::vec2 tile_pos) const
 
 glm::vec2 Camera2D::screen_to_tile(GameWindow& win, glm::vec2 screen_pos) const
 {
-    int width, height = 0;
-    win.GetSize(width, height);
+    glm::ivec2 window_size = win.get_size();
 
-    glm::vec2 half_dim = glm::vec2{ width, height } / 2.f;
+    glm::vec2 half_dim = glm::vec2{ window_size.x, window_size.y } / 2.f;
 
     glm::vec2 scaled = screen_pos - half_dim;
     scaled /= calculate_scale();
@@ -60,10 +58,9 @@ glm::vec2 Camera2D::screen_to_tile(GameWindow& win, glm::vec2 screen_pos) const
 
 glm::vec2 Camera2D::world_to_screen(GameWindow& win, glm::vec2 world_pos) const
 {
-    int width, height = 0;
-    win.GetSize(width, height);
+    glm::ivec2 window_size = win.get_size();
 
-    glm::vec2 half_dim = glm::vec2{ width, height } / 2.f;
+    glm::vec2 half_dim = glm::vec2{ window_size.x, window_size.y } / 2.f;
 
     glm::vec2 relative = (world_pos - pos) * calculate_scale() + half_dim;
 
@@ -72,10 +69,9 @@ glm::vec2 Camera2D::world_to_screen(GameWindow& win, glm::vec2 world_pos) const
 
 glm::vec2 Camera2D::screen_to_world(GameWindow& win, glm::vec2 screen_pos) const
 {
-    int width, height = 0;
-    win.GetSize(width, height);
+    glm::ivec2 window_size = win.get_size();
 
-    glm::vec2 half_dim = glm::vec2{ width, height } / 2.f;
+    glm::vec2 half_dim = glm::vec2{ window_size.x, window_size.y } / 2.f;
 
     glm::vec2 absolute = ((screen_pos - half_dim) / calculate_scale()) + pos;
 

@@ -26,6 +26,7 @@ private:
 
     Shader flat_shader_;
     Mesh* cube;
+    Mesh* plane;
 
     uint32_t draw_calls_ = 0;
 };

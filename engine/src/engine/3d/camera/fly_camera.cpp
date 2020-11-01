@@ -7,6 +7,7 @@
 #include <glm/gtc/type_ptr.hpp>
 #include <glm/gtx/transform.hpp>
 #include <glm/gtx/euler_angles.hpp>
+#include <SDL2/SDL.h>
 //#include "thirdparty/magic_enum.hpp"
 
 namespace fightingengine {

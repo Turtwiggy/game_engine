@@ -12,12 +12,16 @@
 
 //your project headers
 #include "engine/core/application.hpp"
-#include "engine/3d/renderer/renderer_pbr.hpp"
-#include "engine/3d/renderer/renderer_ray_traced.hpp"
-#include "engine/3d/renderer/renderer_simple.hpp"
+#include "engine/core/maths/random.hpp"
 #include "engine/graphics/render_command.hpp"
 #include "engine/graphics/shader.hpp"
 #include "engine/graphics/triangle.hpp"
+#include "engine/3d/renderer/renderer_pbr.hpp"
+#include "engine/3d/renderer/renderer_ray_traced.hpp"
+#include "engine/3d/renderer/renderer_simple.hpp"
+#include "engine/scene/background.hpp"
+#include "engine/scene/scene.hpp"
+#include "engine/scene/scene_node.hpp"
 #include "engine/resources/resource_manager.hpp"
 #include "engine/tools/profiler.hpp"
 using namespace fightingengine;
@@ -29,132 +33,96 @@ using namespace game_3d;
 
 int main(int argc, char** argv)
 {
-    uint32_t width = 1366;
-    uint32_t height = 768;
-    Application app("Fighting Game!", width, height);
-    app.set_fps_limit(60.0f);   
+uint32_t width = 1366;
+uint32_t height = 768;
+Application app("Fighting Game!", width, height);
+app.set_fps_limit(60.0f);   
 
-    FlyCamera camera {glm::vec3(0.0f, 2.0f, 4.0f)};
-    camera.SetPerspective(glm::radians(90.0f), (float)width/(float)height, 0.1f, 100.0f);
+FlyCamera camera {glm::vec3(0.0f, 2.0f, 4.0f)};
+camera.SetPerspective(glm::radians(65.0f), (float)width/(float)height, 0.1f, 100.0f);
 
-    //Create world (for now, just spheres)
-    //std::vector<Sphere> world = create_world();
-    
-    //ModelManager model_manager;
-    GameState state;
-    RandomState rnd;
+GameState state;
+RandomState rnd;
+Profiler profiler;
 
-    //RendererRayTraced renderer(width, height);
-    //RendererPBR pbr_renderer;
-    RendererSimple simple_renderer;
-    RenderCommand::init();
+//RendererRayTraced renderer(width, height);
+//RendererPBR pbr_renderer;
+RendererSimple simple_renderer;
+RenderCommand::init();
 
-    TextureCube background = ResourceManager::load_texture_cube(
-        "assets/skybox/skybox-default/", 
-        "default-skybox");
-    Shader skybox_shader = Shader()
-        .attach_shader("assets/shaders/skybox/skybox.vert", OpenGLShaderTypes::VERTEX)
-        .attach_shader("assets/shaders/skybox/skybox.frag", OpenGLShaderTypes::FRAGMENT)
-        .build_program();
+//UI Panels
+ProfilerPanel profiler_panel;
 
-    Profiler profiler;
-    ProfilerPanel profiler_panel;
+// TESTING ---- 
 
-    //Fix mouse lurch issue - probably should move this in to a class or something
-    bool new_grab = false;
-    //Testing texture
-    Texture2D tex = ResourceManager::load_texture("assets/textures/octopus.png", "Octopus");
+TextureCube background = ResourceManager::load_texture_cube(
+    "assets/skybox/skybox-default/", 
+    "default-skybox");
 
-    while (app.is_running())
+Texture2D tex = ResourceManager::load_texture("assets/textures/octopus.png", "Octopus");
+
+// ------------
+
+while (app.is_running())
+{
+    profiler.new_frame();
+    profiler.begin(Profiler::Stage::UpdateLoop);
     {
-        profiler.new_frame();
-        profiler.begin(Profiler::Stage::UpdateLoop);
         app.frame_begin();
         app.poll();
-
         float delta_time_s = app.get_delta_time();
 
+        profiler.begin(Profiler::Stage::SdlInput);
         { // ~~ Input Events ~~
-            profiler.begin(Profiler::Stage::SdlInput);
 
-            //Shutdown app
+            //Settings: Shutdown app
             if (app.get_input().get_key_down(SDL_KeyCode::SDLK_END))
                 app.shutdown();
 
-            //Toggle mouse capture
+            //Settings: Toggle mouse capture
             if (app.get_input().get_key_down(SDL_KeyCode::SDLK_m))
-            {
-                new_grab = app.get_window().IsInputGrabbed();
+                app.get_window().toggle_mouse_capture();
 
-                if(!new_grab)
-                {
-                    app.get_window().CaptureMouse();
-                    new_grab = true;
-                }
-                else
-                {
-                    app.get_window().ReleaseMouse();
-                    new_grab = false;
-                }
-
-                printf("(App) Mouse grabbed? : %d \n", new_grab);
-            }
-
-            //Fullscreen
+            //Settings: Fullscreen
             if (app.get_input().get_key_down(SDL_KeyCode::SDLK_f))
             {
-                if(app.get_window().IsFullscreen())
-                    app.get_window().SetFullscreen(false);
-                else
-                    app.get_window().SetFullscreen(true);
+                app.get_window().toggle_fullscreen();
 
-                int width, height;
-                app.get_window().GetSize(width, height);
-                std::cout << "screen size toggled, w: " << width << " h: " << height << std::endl;
-
-                RenderCommand::set_viewport(0, 0, width, height);
+                glm::ivec2 screen_size = app.get_window().get_size();
+                printf("new screen size: %i %i \n", screen_size.x, screen_size.y);
+                RenderCommand::set_viewport(0, 0, screen_size.x, screen_size.y);
             }
 
-            //TODO EVENT: resized window
-            // if (app.get_event().window_resized)
-            //    renderer.resize(width, height);
-
-            // ~~ Input: Camera ~~
+            // Input: Camera
             if (app.get_input().get_key_held(SDL_Scancode::SDL_SCANCODE_W))
                 camera.InputKey(delta_time_s, CameraMovement::FORWARD);
             else if (app.get_input().get_key_held(SDL_Scancode::SDL_SCANCODE_S))
                 camera.InputKey(delta_time_s, CameraMovement::BACKWARD);
+
             if (app.get_input().get_key_held(SDL_Scancode::SDL_SCANCODE_A))
                 camera.InputKey(delta_time_s, CameraMovement::LEFT);
             else if (app.get_input().get_key_held(SDL_Scancode::SDL_SCANCODE_D))
                 camera.InputKey(delta_time_s, CameraMovement::RIGHT);
+                
             if (app.get_input().get_key_held(SDL_Scancode::SDL_SCANCODE_SPACE))
                 camera.InputKey(delta_time_s, CameraMovement::UP);
             else if (app.get_input().get_key_held(SDL_Scancode::SDL_SCANCODE_LSHIFT))
                 camera.InputKey(delta_time_s, CameraMovement::DOWN);
 
-            // ~~ Input: Mouse ~~
-            if (app.get_window().IsInputGrabbed())
-            {                
-                int x, y;
-                if(new_grab)
-                {
-                    SDL_GetRelativeMouseState(&x, &y); //throw away this huge jumping value
-                    new_grab = false;
-                }
-                else
-                {
-                    SDL_GetRelativeMouseState(&x, &y);
-                    //printf("relative movement: %i %i \n", x, y);
-                    camera.InputMouse((float)x, (float)y);
-                }
+            // Input: Mouse
+            if (app.get_window().get_mouse_captured())
+            {            
+                glm::ivec2 rel_mouse = app.get_window().get_relative_mouse_state();
+                camera.InputMouse(
+                    static_cast<float>(rel_mouse.x), 
+                    static_cast<float>(rel_mouse.y)
+                );
             }
-
-        profiler.end(Profiler::Stage::SdlInput);
         }
+        profiler.end(Profiler::Stage::SdlInput);
 
+        profiler.begin(Profiler::Stage::GameTick);
         { // ~~ Game State Tick ~~
-            profiler.begin(Profiler::Stage::GameTick);
         
             //THIS IS FOR A FIXED GAME TICK
             //seconds_since_last_game_tick += delta_time_in_seconds;
@@ -164,37 +132,36 @@ int main(int argc, char** argv)
             //    fixed_tick(SECONDS_PER_FIXED_TICK);
             //    seconds_since_last_game_tick -= SECONDS_PER_FIXED_TICK;
             //}
-
-            profiler.end(Profiler::Stage::GameTick);
         }
+        profiler.end(Profiler::Stage::GameTick);
 
+        profiler.begin(Profiler::Stage::Render);
         { // ~~ Rendering ~~
-            profiler.begin(Profiler::Stage::Render);
             
             RenderCommand::set_clear_colour(glm::vec4(0.0, 0.482f, 0.655f, 1.0));
             RenderCommand::clear();
 
             glm::mat4 view_projection =  camera.get_view_projection_matrix();
             
-            //Draw skybox
-            glDepthMask(GL_FALSE);
-            skybox_shader.bind();
-            skybox_shader.set_mat4("view_projection", view_projection);
-            background.Bind();
-            glDrawArrays(GL_TRIANGLES, 0, 36);
-            glDepthMask(GL_TRUE);
-            background.Unbind();
+            // //Draw skybox
+            // glDepthMask(GL_FALSE);
+            // skybox_shader.bind();
+            // skybox_shader.set_mat4("view_projection", view_projection);
+            // background.Bind();
+            // glDrawArrays(GL_TRIANGLES, 0, 36);
+            // glDepthMask(GL_TRUE);
+            // background.Unbind();
 
             simple_renderer.update(delta_time_s, camera);
 
             //state.render(renderer, camera, app.get_window(), timer);
             //default_scene->on_update(delta_time_s);
                         
-            profiler.end(Profiler::Stage::Render);
         }
+        profiler.end(Profiler::Stage::Render);
 
+        profiler.begin(Profiler::Stage::GuiLoop);
         { // ~~ GUI ~~
-            profiler.begin(Profiler::Stage::GuiLoop);
 
             app.gui_begin();
 
@@ -222,17 +189,16 @@ int main(int argc, char** argv)
                 profiler_panel.draw(app, profiler, delta_time_s);
 
             app.gui_end();
-
-            profiler.end(Profiler::Stage::GuiLoop);
         }
+        profiler.end(Profiler::Stage::GuiLoop);
 
         profiler.begin(Profiler::Stage::FrameEnd);
-
-        app.frame_end(delta_time_s);
-
+        {
+            app.frame_end(delta_time_s);
+        }
         profiler.end(Profiler::Stage::FrameEnd);
-        profiler.end(Profiler::Stage::UpdateLoop);
     }
-
-    return 0;
+    profiler.end(Profiler::Stage::UpdateLoop);
+}
+return 0;
 }
