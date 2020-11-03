@@ -20,7 +20,7 @@ RendererSimple::RendererSimple(RandomState& rnd)
     //Create some random cubes
 
     int desired_cubes = 10;
-    float rnd_x, rnd_y, rnd_z = 0;
+    float rnd_x, rnd_y, rnd_z = 0; //note, this should live in a struct in the future
     for(int i = 0; i < desired_cubes; i++)
     {
         rnd_x = rand_det_s(rnd.rng, -10.0f, 10.0f);
@@ -34,6 +34,7 @@ RendererSimple::RendererSimple(RandomState& rnd)
     cube = std::make_shared<primitives::Cube>();  
     plane = std::make_shared<primitives::Plane>(10, 10);  
 
+    //TODO finish this
     ResourceManager::load_shader("assets/shaders/", {"blinn-phong/lit.vert", "blinn-phong/lit.frag"}, "lit");
 
     TextureCube cubemap = ResourceManager::load_texture_cube("assets/skybox/skybox-default/", "default-skybox");
@@ -61,19 +62,12 @@ void RendererSimple::update(float delta_time, FlyCamera& camera, RandomState& rn
     flat_shader_->set_vec3("light.specular", 1.0f, 1.0f, 1.0f);
     flat_shader_->set_vec3("light.direction", -0.2f, -1.0f, -0.3f);
 
-
-    // position and scale
-    glm::mat4 model = glm::mat4(1.0f);
-    model = glm::translate(model, glm::vec3(5.0f, 0.0f, 0.0f));
-    model = glm::scale(model, glm::vec3(2.0f, 2.0, 2.0f));
-    flat_shader_->set_mat4("model", model);
-    //material information
+    // Cube: Material
     flat_shader_->set_vec3("material.ambient", glm::vec3(1.0f, 0.0f, 1.0f));
     flat_shader_->set_vec3("material.diffuse", glm::vec3(1.0f, 0.0f, 1.0f));
     flat_shader_->set_vec3("material.specular", 0.5f, 0.5f, 0.5f);
     flat_shader_->set_float("material.shininess", 32.0f);
-    
-    //draw some cubes
+    // Cube: Draw
     for(int i = 0; i < cube_pos.size(); i++)
     {
         // calculate the model matrix for each object and pass it to shader before drawing
@@ -85,18 +79,18 @@ void RendererSimple::update(float delta_time, FlyCamera& camera, RandomState& rn
         render_mesh(cube, flat_shader_);
     }    
 
-    //Position and scale
-    model = glm::mat4(1.0f);
+    //Plane: Scale
+    glm::mat4 model = glm::mat4(1.0f);
     model = glm::translate(model, glm::vec3(0.0f, -1.0f, 0.0f));
     model = glm::scale(model, glm::vec3(1.0f, 1.0f, 1.0f));
     model = glm::rotate(model, glm::radians(90.0f), glm::normalize(glm::vec3(1.0f, 0.0f, 0.0f)));
     flat_shader_->set_mat4("model", model);
-    //material information
+    //Plane: Material
     flat_shader_->set_vec3("material.ambient", glm::vec3(0.0f, 1.0f, 0.0f));
     flat_shader_->set_vec3("material.diffuse", glm::vec3(0.0f, 1.0f, 0.0f));
     flat_shader_->set_vec3("material.specular", 0.5f, 0.5f, 0.5f);
     flat_shader_->set_float("material.shininess", 32.0f);
-    //Draw a plane
+    //Plane: Render
     render_mesh(plane, flat_shader_);
 
     draw_skybox(view_projection);
@@ -144,9 +138,6 @@ void RendererSimple::draw_skybox(const glm::mat4& view_projection)
 }
 
 } //namespace fightingengine
-
-
-
 
 //NOTE: this file contains blur and bloom effects
 

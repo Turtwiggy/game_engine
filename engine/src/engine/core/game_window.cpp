@@ -12,12 +12,7 @@
 
 namespace fightingengine {
 
-    GameWindow::GameWindow(const std::string& title, const SDL_DisplayMode& display, display_mode displaymode)
-        : GameWindow::GameWindow(title, display.w, display.h, displaymode)
-    {
-    }
-
-    GameWindow::GameWindow(const std::string& title, int width, int height, display_mode displaymode)
+    GameWindow::GameWindow(const std::string& title, int width, int height, DisplayMode displaymode)
     {
         SDL_version compiledVersion, linkedVersion;
         SDL_VERSION(&compiledVersion);
@@ -32,17 +27,18 @@ namespace fightingengine {
         if (SDL_WasInit(0) == 0)
         {
             SDL_SetMainReady();
+
             if (SDL_Init(0) != 0)
-                throw std::runtime_error("Could not initialize SDL: " + std::string(SDL_GetError()));
+                spdlog::error("Could not initialize SDL: '{}'", SDL_GetError());
 
             if (SDL_InitSubSystem(SDL_INIT_VIDEO) != 0)
-                throw std::runtime_error("Could not initialize SDL Video Subsystem: " + std::string(SDL_GetError()));
+                spdlog::error("Could not initialize SDL Video Subsystem:  '{}'", SDL_GetError());
 
             if (SDL_InitSubSystem(SDL_INIT_TIMER) != 0)
-                throw std::runtime_error("Could not initialize SDL Timer Subsystem: " + std::string(SDL_GetError()));
+                spdlog::error("Could not initialize SDL Timer Subsystem:  '{}'", SDL_GetError());
             
             if (SDL_InitSubSystem(SDL_INIT_JOYSTICK) != 0)
-                throw std::runtime_error("Could not initialize SDL JoyStick Subsystem: " + std::string(SDL_GetError()));        
+                spdlog::error("Could not initialize SDL JoyStick Subsystem:  '{}'", SDL_GetError());
         }
 
         int flags = SDL_WINDOW_OPENGL
@@ -50,9 +46,9 @@ namespace fightingengine {
             | SDL_WINDOW_RESIZABLE
             | SDL_WINDOW_ALLOW_HIGHDPI;
 
-        if (displaymode == display_mode::Fullscreen)
+        if (displaymode == DisplayMode::Fullscreen)
             flags |= SDL_WINDOW_FULLSCREEN;
-        else if (displaymode == display_mode::Borderless)
+        else if (displaymode == DisplayMode::Borderless)
             flags |= SDL_WINDOW_FULLSCREEN_DESKTOP;
 
         // Get SDL Window requirements from Renderer
@@ -79,7 +75,7 @@ namespace fightingengine {
         if (gl_context == NULL)
         {
             printf("OpenGL context could not be created! SDL Error: %s\n", SDL_GetError());
-            throw std::runtime_error("Failed creating SDL2 window: " + std::string(SDL_GetError()));
+            //throw std::runtime_error("Failed creating SDL2 window: " + std::string(SDL_GetError()));
         }
         else
         {
@@ -89,7 +85,7 @@ namespace fightingengine {
             if (glewError != GLEW_OK)
             {
                 printf("Error initializing GLEW! %s\n", glewGetErrorString(glewError));
-                throw std::runtime_error("Error initializing GLEW! " + std::string(SDL_GetError()));
+                //throw std::runtime_error("Error initializing GLEW! " + std::string(SDL_GetError()));
             }
 
             // //Check OpenGL
@@ -106,44 +102,44 @@ namespace fightingengine {
         //4, 3 because that's when compute shaders were introduced
 
         auto window_ptr = std::unique_ptr<SDL_Window, SDLDestroyer>(window);
-        _window = std::move(window_ptr);
+        window_ = std::move(window_ptr);
     }
 
     SDL_Window* GameWindow::get_handle() const
     {
-        return _window.get();
+        return window_.get();
     }
 
     bool GameWindow::is_open() const
     {
-        return _window != nullptr;
+        return window_ != nullptr;
     }
 
 
     uint32_t GameWindow::get_sdl_id() const
     {
-        return SDL_GetWindowID(_window.get());
+        return SDL_GetWindowID(window_.get());
     }
 
     uint32_t GameWindow::get_sdl_flags() const
     {
-        return SDL_GetWindowFlags(_window.get());
+        return SDL_GetWindowFlags(window_.get());
     }
 
     std::string GameWindow::get_title() const
     {
-        return SDL_GetWindowTitle(_window.get());
+        return SDL_GetWindowTitle(window_.get());
     }
 
     void GameWindow::set_title(const std::string& str)
     {
-        SDL_SetWindowTitle(_window.get(), str.c_str());
+        SDL_SetWindowTitle(window_.get(), str.c_str());
     }
 
     float GameWindow::get_aspect_ratio() const
     {
         int width, height;
-        SDL_GetWindowSize(_window.get(), &width, &height);
+        SDL_GetWindowSize(window_.get(), &width, &height);
 
         return (float)width / (float)height;
     }
@@ -151,62 +147,62 @@ namespace fightingengine {
 
     void GameWindow::set_position(int x, int y)
     {
-        SDL_SetWindowPosition(_window.get(), x, y);
+        SDL_SetWindowPosition(window_.get(), x, y);
     }
 
     glm::ivec2 GameWindow::get_position() const
     {
         int x, y = 0;
-        SDL_GetWindowPosition(_window.get(), &x, &y);
+        SDL_GetWindowPosition(window_.get(), &x, &y);
         return glm::ivec2(x, y);
     }
 
     void GameWindow::set_size(const glm::ivec2& size)
     {
-        SDL_SetWindowSize(_window.get(), size.x, size.y);
+        SDL_SetWindowSize(window_.get(), size.x, size.y);
     }
 
     glm::ivec2 GameWindow::get_size() const
     {
         int width, height = 0;
-        SDL_GetWindowSize(_window.get(), &width, &height);
+        SDL_GetWindowSize(window_.get(), &width, &height);
         return glm::ivec2(width, height);
     }
 
     void GameWindow::set_min_size(int width, int height)
     {
-        SDL_SetWindowMinimumSize(_window.get(), width, height);
+        SDL_SetWindowMinimumSize(window_.get(), width, height);
     }
 
     glm::ivec2 GameWindow::get_min_size() const
     {
         int width, height = 0;
-        SDL_GetWindowMinimumSize(_window.get(), &width, &height);
+        SDL_GetWindowMinimumSize(window_.get(), &width, &height);
         return glm::ivec2(width, height);
     }
 
     void GameWindow::set_max_size(int width, int height)
     {
-        SDL_SetWindowMaximumSize(_window.get(), width, height);
+        SDL_SetWindowMaximumSize(window_.get(), width, height);
     }
 
     glm::ivec2 GameWindow::get_max_size() const
     {
         int width, height = 0;
-        SDL_GetWindowMaximumSize(_window.get(), &width, &height);
+        SDL_GetWindowMaximumSize(window_.get(), &width, &height);
         return glm::ivec2(width, height);
     }
 
 
     void GameWindow::set_bordered(const bool b)
     {
-        SDL_SetWindowBordered(_window.get(), b ? SDL_TRUE : SDL_FALSE);
+        SDL_SetWindowBordered(window_.get(), b ? SDL_TRUE : SDL_FALSE);
     }
 
     void GameWindow::set_fullscreen(const bool b)
     {
         // todo: use DisplayMode
-        if (SDL_SetWindowFullscreen(_window.get(), b ? SDL_WINDOW_FULLSCREEN_DESKTOP : 0))
+        if (SDL_SetWindowFullscreen(window_.get(), b ? SDL_WINDOW_FULLSCREEN_DESKTOP : 0))
         {
             throw std::runtime_error("SDL_SetWindowFullscreen Error: " + std::string(SDL_GetError()));
         }
@@ -215,7 +211,7 @@ namespace fightingengine {
     bool GameWindow::get_fullscreen() const
     {
         Uint32 FullscreenFlag = SDL_WINDOW_FULLSCREEN;
-        return SDL_GetWindowFlags(_window.get()) & FullscreenFlag;
+        return SDL_GetWindowFlags(window_.get()) & FullscreenFlag;
     }
 
     void GameWindow::toggle_fullscreen()
@@ -229,12 +225,12 @@ namespace fightingengine {
 
     float GameWindow::get_brightness() const
     {
-        return SDL_GetWindowBrightness(_window.get());
+        return SDL_GetWindowBrightness(window_.get());
     }
 
     void GameWindow::set_brightness(const float brightness)
     {
-        if (SDL_SetWindowBrightness(_window.get(), brightness))
+        if (SDL_SetWindowBrightness(window_.get(), brightness))
         {
             throw std::runtime_error("SDL_SetWindowBrightness Error: " + std::string(SDL_GetError()));
         }
@@ -243,24 +239,24 @@ namespace fightingengine {
 
     void GameWindow::set_mouse_position(int x, int y)
     {
-        SDL_WarpMouseInWindow(_window.get(), x, y);
+        SDL_WarpMouseInWindow(window_.get(), x, y);
     }
 
     bool GameWindow::get_mouse_captured() const
     {
-        return SDL_GetWindowGrab(_window.get()) != SDL_FALSE;
+        return SDL_GetWindowGrab(window_.get()) != SDL_FALSE;
     }
 
     void GameWindow::set_mouse_captured(const bool b)
     {
         if(b)
         {
-            SDL_SetWindowGrab(_window.get(), SDL_TRUE);
+            SDL_SetWindowGrab(window_.get(), SDL_TRUE);
             SDL_SetRelativeMouseMode(SDL_TRUE);
         } 
         else
         {
-            SDL_SetWindowGrab(_window.get(), SDL_FALSE);
+            SDL_SetWindowGrab(window_.get(), SDL_FALSE);
             SDL_SetRelativeMouseMode(SDL_FALSE);
         }
     }
@@ -305,42 +301,42 @@ namespace fightingengine {
 
     void GameWindow::show()
     {
-        SDL_ShowWindow(_window.get());
+        SDL_ShowWindow(window_.get());
     }
 
     void GameWindow::hide()
     {
-        SDL_HideWindow(_window.get());
+        SDL_HideWindow(window_.get());
     }
 
     void GameWindow::close()
     {
-        SDL_DestroyWindow(_window.get());
+        SDL_DestroyWindow(window_.get());
         SDL_Quit();
 
-        _window.reset(nullptr);
+        window_.reset(nullptr);
 
         SDL_GL_DeleteContext(get_gl_context());
     }
 
     void GameWindow::maximise()
     {
-        SDL_MaximizeWindow(_window.get());
+        SDL_MaximizeWindow(window_.get());
     }
 
     void GameWindow::minimize()
     {
-        SDL_MinimizeWindow(_window.get());
+        SDL_MinimizeWindow(window_.get());
     }
 
     void GameWindow::restore()
     {
-        SDL_RestoreWindow(_window.get());
+        SDL_RestoreWindow(window_.get());
     }
 
     void GameWindow::raise()
     {
-        SDL_RaiseWindow(_window.get());
+        SDL_RaiseWindow(window_.get());
     }
 
 

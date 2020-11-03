@@ -26,7 +26,7 @@ namespace fightingengine {
             name + " [" + kBuildStr + "]",
             width,
             height,
-            display_mode::Windowed
+            DisplayMode::Windowed
         );
 
         fps_buffer = boost::circular_buffer<float>(100);
@@ -193,7 +193,6 @@ namespace fightingengine {
         }
 
         minimized = false;
-        //renderer->resize(w, h);
     }
 
     // ---- window controls

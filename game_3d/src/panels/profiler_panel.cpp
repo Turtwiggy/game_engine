@@ -41,7 +41,7 @@ void ProfilerPanel::draw(const Application& app, const Profiler& profiler, const
             average += values[n];
         average /= (float)IM_ARRAYSIZE(values);
         char overlay[32];
-        sprintf(overlay, "avg %f", average);
+        sprintf_s(overlay, "avg %f", average);
         ImGui::PlotLines("Lines", values, IM_ARRAYSIZE(values), values_offset, overlay, 0.0f, 144.0f, ImVec2(0, 40.0f));
     }
     
