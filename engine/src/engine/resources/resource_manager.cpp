@@ -2,7 +2,7 @@
 //header
 #include "engine/resources/resource_manager.hpp"
 
-//c++ standard library headers
+//c++ standard lib headers
 #include <iostream>
 #include <sstream>
 #include <fstream>
@@ -18,13 +18,16 @@
 #include <assimp/scene.h>
 #include <assimp/postprocess.h>
 
+//your library headers
+#include "engine/resources/mesh_loader.hpp"
+
 namespace fightingengine {
 
 // Instantiate static variables
-std::map<std::string, Texture2D>               ResourceManager::Textures;
-std::map<std::string, TextureCube>             ResourceManager::TextureCubes;
-std::map<std::string, Shader>                  ResourceManager::Shaders;
-//std::map<std::string, std::shared_ptr<Model>>  ResourceManager::Models;
+std::map<std::string, Texture2D>        ResourceManager::Textures;
+std::map<std::string, TextureCube>      ResourceManager::TextureCubes;
+std::map<std::string, Shader>           ResourceManager::Shaders;
+std::map<std::string, SceneNode*>       ResourceManager::Meshes;
 
 void ResourceManager::clear()
 {
@@ -155,7 +158,7 @@ TextureCube ResourceManager::load_texture_cube_from_folder(const std::string& fo
 {
     printf("----- Texture Cube from folder -------\n");
 
-    TextureCube texture;
+    TextureCube texture_cube;
 
     // disable y flip on cubemaps
     stbi_set_flip_vertically_on_load(false);
@@ -178,57 +181,57 @@ TextureCube ResourceManager::load_texture_cube_from_folder(const std::string& fo
             else
                 format = GL_RGBA;
 
-            texture.GenerateFace(GL_TEXTURE_CUBE_MAP_POSITIVE_X + i, width, height, format, GL_UNSIGNED_BYTE, data);
+            texture_cube.GenerateFace(GL_TEXTURE_CUBE_MAP_POSITIVE_X + i, width, height, format, GL_UNSIGNED_BYTE, data);
             stbi_image_free(data);
         }
         else
         {
             printf("!! Cube texture at path: %s failed to load. !! \n", faces[i].c_str());
             stbi_image_free(data);
-            return texture;
+            return texture_cube;
         }
     }
-    if(texture.Mipmapping)
+
+    if(texture_cube.Mipmapping)
         glGenerateMipmap(GL_TEXTURE_CUBE_MAP);
 
-    return texture;
+    return texture_cube;
 }
 
 // ---- models
 
-// std::shared_ptr<Model> ResourceManager::load_model( const std::string& path, const std::string& unique_name )
+// SceneNode* 
+// ResourceManager::load_model( const std::string& path, const std::string& unique_name )
 // {
-//     Models[unique_name] = load_model_from_file(path, unique_name);
+//     Meshes[unique_name] =  load_model_from_file(path);
 //     printf("model loaded! %s \n", unique_name.c_str());
 //     printf("~~~~ end model ~~~~ \n");
-//     return Models[unique_name];
+//     return Meshes[unique_name];
 // }
 
-// std::shared_ptr<Model> ResourceManager::get_model( const std::string& name )
+// SceneNode*
+// ResourceManager::get_model( const std::string& name )
 // {
-//     return Models[name];
+//     return Meshes[name];
 // }
 
-// std::shared_ptr<Model> ResourceManager::load_model_from_file( const std::string& path, const std::string& unique_name )
+// SceneNode*  
+// ResourceManager::load_model_from_file( const std::string& path )
 // {
-//     printf("----- Model from path -------\n");
-//     printf("Dir: %s \n", path.c_str());
-
 //     std::string directory = path.substr(0, path.find_last_of('/'));
 
-//     Assimp::Importer import;    
-//     const aiScene* scene = import.ReadFile(path, aiProcess_Triangulate | aiProcess_FlipUVs);
+//     printf("----- Model from path -------\n");
+//     printf("path: %s \n", path.c_str());
+//     printf("dir: %s \n", directory.c_str());
 
-//     if (!scene || scene->mFlags & AI_SCENE_FLAGS_INCOMPLETE || !scene->mRootNode)
-//     {
-//         std::cout << "ERROR::ASSIMP::" << import.GetErrorString() << std::endl;
-//         return nullptr;
-//     }
+//     //an optimization in the future...
+//     // if (Meshes.find(id) != Meshes.end())
+//     // {
+//     // }
 
-//     //A model consists of multiple meshes
-//     std::shared_ptr<Model> model = std::make_shared<Model>();
-//     model->init(scene, unique_name);    
-//     return model;
+//     SceneNode* node = MeshLoader::load_mesh(path);
+
+//     return Scene::make_scene_node(node);
 // }
 
 

@@ -1,5 +1,9 @@
 #pragma once
 
+//c++ standard lib headers
+#include <memory>
+#include <vector> //remove this eventually!
+
 //other library files
 #include <glm/glm.hpp>
 
@@ -8,14 +12,9 @@
 #include "engine/graphics/shaders/flat_shader.hpp"
 #include "engine/3d/camera/camera.hpp"
 #include "engine/3d/camera/fly_camera.hpp"
-#include "engine/scene/scene.hpp"
 #include "engine/scene/scene_node.hpp"
 #include "engine/scene/background.hpp"
-#include "engine/mesh/model.hpp"
 #include "engine/mesh/primitives.hpp"
-
-#include <memory>
-#include <vector> //remove this eventually!
 
 namespace fightingengine
 {

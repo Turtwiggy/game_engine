@@ -20,7 +20,6 @@
 #include "engine/3d/renderer/renderer_ray_traced.hpp"
 #include "engine/3d/renderer/renderer_simple.hpp"
 #include "engine/scene/background.hpp"
-#include "engine/scene/scene.hpp"
 #include "engine/scene/scene_node.hpp"
 #include "engine/resources/resource_manager.hpp"
 #include "engine/tools/profiler.hpp"
@@ -137,17 +136,6 @@ while (app.is_running())
             
             RenderCommand::set_clear_colour(glm::vec4(0.0, 0.482f, 0.655f, 1.0));
             RenderCommand::clear();
-
-            glm::mat4 view_projection =  camera.get_view_projection_matrix();
-            
-            // //Draw skybox
-            // glDepthMask(GL_FALSE);
-            // skybox_shader.bind();
-            // skybox_shader.set_mat4("view_projection", view_projection);
-            // background.Bind();
-            // glDrawArrays(GL_TRIANGLES, 0, 36);
-            // glDepthMask(GL_TRUE);
-            // background.Unbind();
 
             simple_renderer.update(delta_time_s, camera, rnd);
 

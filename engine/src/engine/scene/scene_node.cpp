@@ -8,13 +8,11 @@
 #include <glm/gtc/type_ptr.hpp>
 
 //your project headers
-#include "engine/scene/scene.hpp"
 #include "engine/mesh/mesh.hpp"
 #include "engine/graphics/material.hpp"
 
 namespace fightingengine {
 
-   
 SceneNode::SceneNode(unsigned int id) : id_(id)
 {
     
@@ -23,13 +21,14 @@ SceneNode::SceneNode(unsigned int id) : id_(id)
 SceneNode::~SceneNode()
 {
     // traverse the list of children and delete accordingly.
-    for (unsigned int i = 0; i < children_.size(); ++i)
-    {
-        // it should not be possible that a scene node is childed by more than one
-        // parent, thus we don't need to care about deleting dangling pointers.
-        delete children_[i];
-    }
+    // for (unsigned int i = 0; i < children_.size(); ++i)
+    // {
+    //     // it should not be possible that a scene node is childed by more than one
+    //     // parent, thus we don't need to care about deleting dangling pointers.
+    //     delete children_[i];
+    // }
 }
+
 
 void SceneNode::set_position(glm::vec3 position)
 {
@@ -55,6 +54,7 @@ void SceneNode::set_scale(float scale)
     dirty_ = true;
 }
 
+
 glm::vec3 SceneNode::get_local_position() const
 {
     return position_;
@@ -69,6 +69,7 @@ glm::vec3 SceneNode::get_local_scale() const
 {
     return scale_;
 }
+
 
 glm::vec3 SceneNode::get_world_position()
 {
@@ -87,60 +88,6 @@ glm::vec3 SceneNode::get_world_scale()
     return scale;
 }
 
-unsigned int SceneNode::get_id() const
-{
-    return id_;
-}
-
-void SceneNode::add_child(SceneNode *node)
-{
-    // check if this child already has a parent. If so, first remove this scene node from its 
-    // current parent. Scene nodes aren't allowed to exist under multiple parents.
-    if (node->parent_)
-    {
-        node->parent_->remove_child(node->id_);
-    }
-    node->parent_ = this;
-    children_.push_back(node);
-}
-
-void SceneNode::remove_child(unsigned int id)
-{
-    auto it = std::find(children_.begin(), children_.end(), get_child(id));
-    if(it != children_.end())
-        children_.erase(it);
-}
-
-std::vector<SceneNode*> SceneNode::get_children() const
-{
-    return children_;
-}
-
-unsigned int SceneNode::get_child_count() const
-{
-    return children_.size();
-}
-
-SceneNode *SceneNode::get_child(unsigned int id) const
-{
-    for (unsigned int i = 0; i < children_.size(); ++i)
-    {
-        if(children_[i]->get_id() == id)
-            return children_[i];
-    }
-    return nullptr;
-}
-
-SceneNode* SceneNode::get_child_by_index(unsigned int index) const
-{
-    assert(index < get_child_count());
-    return children_[index];
-}
-
-SceneNode *SceneNode::get_parent() const
-{
-    return parent_;
-}
 
 glm::mat4 SceneNode::get_transform()
 {
@@ -155,6 +102,7 @@ glm::mat4 SceneNode::get_prev_transform() const
 {
     return prev_transform_;
 }
+
 
 void SceneNode::update_transform(bool updatePrevTransform)
 {
@@ -172,20 +120,22 @@ void SceneNode::update_transform(bool updatePrevTransform)
         transform_ = glm::translate(model, position_);
         transform_ = glm::scale(transform_, scale_);
         transform_ = glm::rotate(transform_, rotation_.w, glm::vec3(rotation_));
-        
-        if (parent_)
-        {
-            transform_ = parent_->transform_ * transform_;
-        }        
     }
-    for (int i = 0; i < children_.size(); ++i)
-    {
-        if (dirty_)
-        {
-            children_[i]->dirty_ = true;
-        }
-        children_[i]->update_transform(updatePrevTransform);
-    }
+
+    //     if (parent_)
+    //     {
+    //         transform_ = parent_->transform_ * transform_;
+    //     }        
+    // }
+    // for (int i = 0; i < children_.size(); ++i)
+    // {
+    //     if (dirty_)
+    //     {
+    //         children_[i]->dirty_ = true;
+    //     }
+    //     children_[i]->update_transform(updatePrevTransform);
+    // }
+
     dirty_ = false;
 }
 

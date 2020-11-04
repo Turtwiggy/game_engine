@@ -3,7 +3,6 @@
 #include "engine/3d/renderer/renderer_simple.hpp"
 
 //other library files
-
 #include <glm/gtc/matrix_transform.hpp>
 #include <glm/gtx/transform.hpp>
 
@@ -117,12 +116,14 @@ void RendererSimple::render_mesh(std::shared_ptr<Mesh> mesh, std::shared_ptr<Sha
 
 void RendererSimple::draw_skybox(const glm::mat4& view_projection)
 {
-    glm::mat4 model = glm::mat4(1.0f);
-    model = glm::scale(model, glm::vec3(1000.0f, 1000.0f, 1000.0f));	
+    glm::mat4 model = glm::scale(glm::mat4(1.0f), glm::vec3(1000.0f, 1000.0f, 1000.0f));
+
     glDepthFunc(background->Material->DepthCompare); 
+
     background->Material->get_shader()->bind();
     background->Material->get_shader()->set_mat4("view_projection", view_projection);
     background->Material->get_shader()->set_mat4("model", model);
+
     // skybox cube
     auto* samplers = background->Material->get_sampler_uniforms();
     for (auto it = samplers->begin(); it != samplers->end(); ++it)
@@ -132,7 +133,9 @@ void RendererSimple::draw_skybox(const glm::mat4& view_projection)
         else
             it->second.Texture->Bind(it->second.Unit);
     }
+    
     render_mesh(background->Mesh, background->Material->get_shader());
+
     glBindVertexArray(0);
     glDepthFunc(GL_LESS); // set depth function back to default
 }

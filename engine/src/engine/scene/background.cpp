@@ -9,7 +9,11 @@
 
 namespace fightingengine {
 
-Background::Background() : SceneNode(Scene::CounterID++) {
+//TODO(Turtwiggy) this should not instantiate to an id of 0, it should be
+//                linked to a global counter of scene nodes. 
+//                when scenes are a thing... change this!
+
+Background::Background() : SceneNode(0) {
 
     Shader s = ResourceManager::load_shader(
         "assets/shaders/skybox/", 
