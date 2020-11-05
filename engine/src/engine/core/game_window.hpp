@@ -76,7 +76,10 @@ public:
 	void set_mouse_position(int x, int y);
 	void set_mouse_captured(const bool b);
 
-	[[nodiscard]] glm::ivec2 get_relative_mouse_state();
+	//0, 0, is top left of screen
+	//x, y is bottom right of screen
+	[[nodiscard]] glm::ivec2 get_mouse_position();
+	[[nodiscard]] glm::ivec2 get_relative_mouse_position();
 	[[nodiscard]] bool get_mouse_captured() const;
 
 	void toggle_mouse_capture();

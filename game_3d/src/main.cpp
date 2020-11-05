@@ -106,13 +106,21 @@ while (app.is_running())
                 camera.InputKey(delta_time_s, CameraMovement::DOWN);
 
             // Input: Mouse
+            
+            //Mouse captured
             if (app.get_window().get_mouse_captured())
             {            
-                glm::ivec2 rel_mouse = app.get_window().get_relative_mouse_state();
+                glm::ivec2 rel_mouse = app.get_window().get_relative_mouse_position();
                 camera.InputMouse(
                     static_cast<float>(rel_mouse.x), 
                     static_cast<float>(rel_mouse.y)
                 );
+            } 
+            //Mouse somewhere not captured
+            else
+            {
+                glm::ivec2 abs_mouse = app.get_window().get_mouse_position();
+                printf("mouse x: %i y: %i \n", abs_mouse.x, abs_mouse.y);
             }
         }
         profiler.end(Profiler::Stage::SdlInput);

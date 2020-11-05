@@ -277,7 +277,14 @@ namespace fightingengine {
         printf("(App) Mouse grabbed? : %d \n", new_grab);
     }
 
-    glm::ivec2 GameWindow::get_relative_mouse_state()
+    glm::ivec2 GameWindow::get_mouse_position()
+    {
+        int x, y = 0;
+        SDL_GetMouseState(&x, &y);
+        return glm::ivec2(x, y);
+    }
+
+    glm::ivec2 GameWindow::get_relative_mouse_position()
     {
         int x, y = 0;
 
