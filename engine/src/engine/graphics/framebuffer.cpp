@@ -6,10 +6,7 @@
 #include <spdlog/spdlog.h>
 #include <GL/glew.h>
 
-//your project headers
-
 namespace fightingengine {
-
 
 unsigned int Framebuffer::create_fbo()
 {
@@ -28,6 +25,34 @@ void Framebuffer::unbind_fbo()
     glBindFramebuffer(GL_FRAMEBUFFER, 0);
 }
 
+void Framebuffer::fbo_enable_writing(unsigned int fbo)
+{
+    glBindFramebuffer(GL_DRAW_FRAMEBUFFER, fbo);
+}
+
+void Framebuffer::fbo_disable_writing(unsigned int fbo)
+{
+    glBindFramebuffer(GL_DRAW_FRAMEBUFFER, 0);
+}
+
+PixelInfo Framebuffer::read_fbo_pixel(unsigned int fbo, int x, int y)
+{
+    //contains object_id, draw_id, prim_id
+    PixelInfo pixel;
+
+    bind_fbo(fbo);
+    
+        glReadBuffer(GL_COLOR_ATTACHMENT0);
+
+        glReadPixels(x, y, 1, 1, GL_RGB, GL_FLOAT, &pixel);
+
+        glReadBuffer(GL_NONE);
+    
+    unbind_fbo();
+
+    return pixel; //returns a copy of pixel
+}
+
 
 unsigned int Framebuffer::create_rbo()
 {
@@ -41,7 +66,7 @@ void Framebuffer::bind_rbo(unsigned int rbo)
     glBindRenderbuffer(GL_RENDERBUFFER, rbo);
 }
 
-void Framebuffer::unbind_rbo(unsigned int rbo)
+void Framebuffer::unbind_rbo()
 {
     glBindRenderbuffer(GL_RENDERBUFFER, 0);
 }
@@ -79,7 +104,7 @@ void Framebuffer::create_picking_colourbuffer_texture(Texture2D& tex, int tex_wi
     tex.FilterMax = GL_LINEAR;
     tex.WrapS = GL_CLAMP_TO_EDGE;
     tex.WrapT = GL_CLAMP_TO_EDGE;
-    tex.Generate(tex_width, tex_height, GL_RGB32F, GL_RGB, GL_FLOAT);
+    tex.Generate(tex_width, tex_height, GL_RGB32F, GL_RGB, GL_FLOAT, 0);
 
     glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, tex.id, 0);
 }
@@ -90,9 +115,9 @@ void Framebuffer::create_picking_depthbuffer_texture(Texture2D& tex, int tex_wid
     tex.FilterMax = GL_LINEAR;
     tex.WrapS = GL_CLAMP_TO_EDGE;
     tex.WrapT = GL_CLAMP_TO_EDGE;
-    tex.Generate(tex_width, tex_height, GL_DEPTH_COMPONENT, GL_DEPTH_COMPONENT, GL_FLOAT);
+    tex.Generate(tex_width, tex_height, GL_DEPTH_COMPONENT, GL_DEPTH_COMPONENT, GL_FLOAT, 0);
 
-    glFrameBufferTexture2D(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, GL_TEXTURE_2D, tex.id, 0);
+    glFramebufferTexture2D(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, GL_TEXTURE_2D, tex.id, 0);
 }
 
 } //fightingengine

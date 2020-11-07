@@ -47,8 +47,7 @@ Profiler profiler;
 
 //RendererRayTraced renderer(width, height);
 //RendererPBR pbr_renderer;
-RendererSimple simple_renderer(rnd);
-RenderCommand::init();
+RendererSimple simple_renderer (rnd, width, height);
 
 //UI Panels
 ProfilerPanel profiler_panel;
@@ -125,8 +124,7 @@ while (app.is_running())
                 {
 
                     //This is the lazy implementation of object picking!
-                    //Its incredibly slow
-                
+
                     // //our ray origin is the camera position
                     // glm::vec3 ray_origin = camera.Position;
 

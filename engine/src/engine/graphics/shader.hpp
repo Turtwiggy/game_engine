@@ -42,6 +42,7 @@ public:
     [[nodiscard]] int get_uniform_binding_location(const std::string& name) const;
     void set_bool(const std::string& name, bool value) const;
     void set_int(const std::string& name, int value) const;
+    void set_uint(const std::string& name, unsigned int value) const;
     void set_float(const std::string& name, float value) const;
     void set_vec2(const std::string& name, const glm::vec2& value) const;
     void set_vec2(const std::string& name, float x, float y) const;

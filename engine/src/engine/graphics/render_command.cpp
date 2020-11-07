@@ -56,7 +56,7 @@ void RenderCommand::set_clear_colour(const glm::vec4& color)
 
 void RenderCommand::clear()
 {
-    glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT );
+    glClear( GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT );
 }
 
 } //namespace fightingengine
