@@ -59,7 +59,7 @@ namespace fightingengine {
         if (window == nullptr)
         {
             spdlog::error("Failed to create SDL2 window: '{}'", SDL_GetError());
-            throw std::runtime_error("Failed creating SDL2 window: " + std::string(SDL_GetError()));
+            //throw std::runtime_error("Failed creating SDL2 window: " + std::string(SDL_GetError()));
         }
 
         SDL_SetWindowMinimumSize(window, 500, 300);

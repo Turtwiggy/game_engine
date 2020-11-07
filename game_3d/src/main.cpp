@@ -116,11 +116,52 @@ while (app.is_running())
                     static_cast<float>(rel_mouse.y)
                 );
             } 
-            //Mouse somewhere not captured
+            //Mouse not captured by window
             else
             {
-                glm::ivec2 abs_mouse = app.get_window().get_mouse_position();
-                printf("mouse x: %i y: %i \n", abs_mouse.x, abs_mouse.y);
+
+                //if mouse is clicked
+                if(app.get_input().get_mouse_lmb_held())
+                {
+
+                    //This is the lazy implementation of object picking!
+                    //Its incredibly slow
+                
+                    // //our ray origin is the camera position
+                    // glm::vec3 ray_origin = camera.Position;
+
+                    // //step 1: get mouse pos
+                    // //range [0:width, height:0]
+                    // glm::ivec2 abs_mouse = app.get_window().get_mouse_position();
+
+                    // //printf("mouse x: %i y: %i \n", abs_mouse.x, abs_mouse.y);
+
+                    // //step 2: convert mouse position in to 3d normalized device coordinates
+                    // //range [-1:1, -1:1, -1:1]
+                    // float x = (2.0f * abs_mouse.x) / width - 1.0f;
+                    // float y = 1.0f - (2.0f * abs_mouse.y) /  height;
+                    // glm::vec2 normalized_device_coords {x, y};
+
+                    // //step 3: convert normalized device coords to homogenous clip coords
+                    // //range [-1:1, -1:1, -1:1, -1:1]
+                    // //note: ray points in the -z direction
+                    // glm::vec4 ray_clip {normalized_device_coords.x, normalized_device_coords.y, -1.0, 1.0};
+
+                    // //Convert homogenous clip coords to  eye camera coordinates
+                    // //range [-x:x, -y:y, -z:z, -w:w]
+                    // glm::vec4 eye_ray = glm::inverse(camera.Projection) * ray_clip;
+                    // eye_ray.z = -1.0f;
+                    // eye_ray.w = 0.0f;
+
+                    // //step 5: convert eye camera coordinates to world coordinates
+                    // //range [-x:x, -y:y, -z:z, -w:w]
+                    // glm::vec3 ray_world = glm::vec3(glm::inverse(camera.View) * eye_ray);
+                    // ray_world = glm::normalize(ray_world);
+
+                    // printf("ray x: %f y: %f z: %f \n", ray_world.x, ray_world.y, ray_world.z);
+
+                }
+
             }
         }
         profiler.end(Profiler::Stage::SdlInput);

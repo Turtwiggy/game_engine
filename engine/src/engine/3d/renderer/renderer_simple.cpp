@@ -52,6 +52,14 @@ void RendererSimple::update(float delta_time, FlyCamera& camera, RandomState& rn
     flat_shader_->set_mat4("view_projection", view_projection);
     flat_shader_->set_vec3("viewPos", camera.Position);
 
+    // 3d picking pass : render scene in to fbo
+    // ----------------------------------------
+
+
+
+    // render pass: rendering phase
+    // ---------------------------
+
     // A directional light
     glm::vec3 lightColor(0.9f, 0.9f, 0.9f);
     glm::vec3 diffuseColor = lightColor   * glm::vec3(0.5f); // decrease the influence
@@ -144,16 +152,6 @@ void RendererSimple::draw_skybox(const glm::mat4& view_projection)
 
 //NOTE: this file contains blur and bloom effects
 
-// unsigned int Renderer::hdr_fbo()
-// {
-//    // configure floating point framebuffer
-//    // ------------------------------------
-//    unsigned int hdrFBO;
-//    glGenFramebuffers(1, &hdrFBO);
-//    glBindFramebuffer(GL_FRAMEBUFFER, hdrFBO);
-//    return hdrFBO;
-// }
-
 // std::array<unsigned int, 2> Renderer::hdr_colour_buffer(int width, int height, unsigned int hdr_fbo)
 // {
 //    // create 2 floating point color buffers (1 for normal rendering, other for brightness treshold values)
@@ -176,9 +174,11 @@ void RendererSimple::draw_skybox(const glm::mat4& view_projection)
 //    glBindRenderbuffer(GL_RENDERBUFFER, rboDepth);
 //    glRenderbufferStorage(GL_RENDERBUFFER, GL_DEPTH_COMPONENT, width, height);
 //    glFramebufferRenderbuffer(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, GL_RENDERBUFFER, rboDepth);
+
 //    // tell OpenGL which color attachments we'll use (of this framebuffer) for rendering 
 //    unsigned int attachments[2] = { GL_COLOR_ATTACHMENT0, GL_COLOR_ATTACHMENT1 };
 //    glDrawBuffers(2, attachments);
+
 //    // finally check if framebuffer is complete
 //    if (glCheckFramebufferStatus(GL_FRAMEBUFFER) != GL_FRAMEBUFFER_COMPLETE)
 //        std::cout << "Framebuffer not complete!" << std::endl;
@@ -194,7 +194,7 @@ void RendererSimple::draw_skybox(const glm::mat4& view_projection)
 // {
    //// configure (floating point) framebuffers
    //// ---------------------------------------
-   //s_Data->hdr_fbo = hdr_fbo();
+   //s_Data->hdr_fbo = create_fbo();
    //s_Data->hdr_colour_buffers = hdr_colour_buffer(screen_width, screen_height, s_Data->hdr_fbo);
 
    //// ping-pong-framebuffer for blurring
