@@ -16,31 +16,19 @@ RendererSimple::RendererSimple(RandomState& rnd, int width, int height)
 {
     //Configure OpenGL
     RenderCommand::init();
+    RenderCommand::set_clear_colour(glm::vec4(0.0, 0.482f, 0.655f, 1.0));
 
-    //TODO LOAD MODELS
-    //object_ = ResourceManager::load_model("assets/models/lizard_wizard/lizard_wizard->obj", "Object");
+    width_ = width;
+    height_ = height;
 
-    //Create some random cubes
-    int desired_cubes = 10;
-    float rnd_x, rnd_y, rnd_z = 0; //note, this should live in a struct in the future
-    for(int i = 0; i < desired_cubes; i++)
-    {
-        rnd_x = rand_det_s(rnd.rng, -10.0f, 10.0f);
-        rnd_y = rand_det_s(rnd.rng, -10.0f, 10.0f);
-        rnd_z = rand_det_s(rnd.rng, -10.0f, 10.0f);
-        cube_pos.push_back( glm::vec3(rnd_x, rnd_y, rnd_z));
-    }
-
-    //picking objects
-    picking_shader_ = ResourceManager::load_shader("assets/shaders/object-picking", {"picking.vert", "picking.frag"}, "objectpicking");
-    picking_fbo_ = Framebuffer::create_picking_fbo(width, height, picking_colour_tex_, picking_depth_tex_);
-
+    //shaders & meshes 
     flat_shader_ = FlatShader::create_shader();
     cube = std::make_shared<primitives::Cube>();  
-    plane = std::make_shared<primitives::Plane>(10, 10);  
+    plane = std::make_shared<primitives::Plane>(1, 1);  
 
-    //TODO finish this
+    //TODO(Turtwiggy) finish this
     ResourceManager::load_shader("assets/shaders/", {"blinn-phong/lit.vert", "blinn-phong/lit.frag"}, "lit");
+    //object_ = ResourceManager::load_model("assets/models/lizard_wizard/lizard_wizard->obj", "Object");
 
     //skybox
     TextureCube cubemap = ResourceManager::load_texture_cube("assets/skybox/skybox-default/", "default-skybox");
@@ -49,8 +37,20 @@ RendererSimple::RendererSimple(RandomState& rnd, int width, int height)
     background->Material->set_texture_cube("DefaultCubemap", cubemap_.get());
 }
 
-void RendererSimple::render_scene()
+void RendererSimple::update(float delta_time, FlyCamera& camera, RandomState& rnd, const std::vector<glm::vec3>& cube_pos)
 {
+    camera.Update(delta_time);
+    glm::mat4 view_projection =  camera.get_view_projection_matrix();
+
+    draw_calls_ = 0;
+
+    // render pass: rendering phase
+    // ---------------------------
+    RenderCommand::clear();
+    flat_shader_.bind();
+    flat_shader_.set_mat4("view_projection", view_projection);
+    flat_shader_.set_vec3("viewPos", camera.Position);
+
     // A directional light
     glm::vec3 lightColor(0.9f, 0.9f, 0.9f);
     glm::vec3 diffuseColor = lightColor   * glm::vec3(0.5f); // decrease the influence
@@ -88,40 +88,8 @@ void RendererSimple::render_scene()
     flat_shader_.set_vec3("material.diffuse", glm::vec3(0.0f, 1.0f, 0.0f));
     flat_shader_.set_vec3("material.specular", 0.5f, 0.5f, 0.5f);
     flat_shader_.set_float("material.shininess", 32.0f);
-
     render_mesh(plane);
-}
 
-void RendererSimple::update(float delta_time, FlyCamera& camera, RandomState& rnd)
-{
-    camera.Update(delta_time);
-    glm::mat4 view_projection =  camera.get_view_projection_matrix();
-
-    draw_calls_ = 0;
-    flat_shader_.bind();
-    flat_shader_.set_mat4("view_projection", view_projection);
-    flat_shader_.set_vec3("viewPos", camera.Position);
-
-    // 3d picking pass : render scene in to fbo
-    // ----------------------------------------
-    picking_shader_.set_uint("gDrawIndex", draw_calls_);
-
-    Framebuffer::fbo_enable_writing(picking_fbo_);
-
-        RenderCommand::clear();
-        //note: picking shader takes in Position at layout (location = 0)
-
-        picking_shader_.set_uint("gObjectIndex", 0);
-
-        //p.GetWVPTrans();
-        picking_shader_.set_mat4("gWVP", glm::mat4(1.0f));
-
-    Framebuffer::fbo_disable_writing(picking_fbo_);
-
-
-    // render pass: rendering phase
-    // ---------------------------
-    render_scene();
 
 
     draw_skybox(view_projection);
@@ -172,6 +140,8 @@ void RendererSimple::draw_skybox(const glm::mat4& view_projection)
     glBindVertexArray(0);
     glDepthFunc(GL_LESS); // set depth function back to default
 }
+
+int RendererSimple::get_draw_calls() { return draw_calls_; }
 
 } //namespace fightingengine
 

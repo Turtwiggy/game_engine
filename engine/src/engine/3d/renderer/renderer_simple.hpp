@@ -25,23 +25,22 @@ class RendererSimple
 public:
     RendererSimple(RandomState& rnd, int width, int height);
     
-    void update(float delta_time, FlyCamera& camera, RandomState& rnd);
+    void update(
+        float delta_time, 
+        FlyCamera& camera, 
+        RandomState& rnd, 
+        const std::vector<glm::vec3>& cube_pos
+    );
 
     void render_mesh(std::shared_ptr<Mesh> mesh);
 
-private:
+    int get_draw_calls();
 
-    void render_scene();
+private:
 
     void draw_skybox(const glm::mat4& view_projection);
 
 private:
-
-    //behaviour to pick objects
-    Shader picking_shader_;
-    unsigned int picking_fbo_;
-    Texture2D picking_colour_tex_;
-    Texture2D picking_depth_tex_;
 
     //rendering shaders / meshes available
     Shader flat_shader_;
@@ -51,11 +50,13 @@ private:
     Background* background;
     std::shared_ptr<TextureCube> cubemap_;
 
-    uint32_t draw_calls_ = 0;
+    int draw_calls_ = 0;
+
+    //initial width and height
+    int width_, height_ = 0;
 
     // ---------------------
     //some gamestate (that shouldn't live in renderer!)
-    std::vector<glm::vec3> cube_pos;
 
 };
 
