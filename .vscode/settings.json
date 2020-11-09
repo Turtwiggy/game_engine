@@ -73,5 +73,6 @@
         "valarray": "cpp",
         "variant": "cpp"
     },
-    "cmake.loggingLevel": "debug"
+    "cmake.loggingLevel": "debug",
+    "cmake.preferredGenerators": ["Ninja"]
 }
