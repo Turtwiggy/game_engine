@@ -6,13 +6,15 @@
 #include <glm/glm.hpp>
 
 //your project headers
-#include "engine/2d/camera_2d.hpp"
 #include "engine/2d/renderer/sprite_renderer.hpp"
 #include "engine/core/application.hpp"
 #include "engine/graphics/render_command.hpp"
 #include "engine/resources/resource_manager.hpp"
-
 using namespace fightingengine;
+
+//gamestuff
+#include "breakout/game.hpp"
+using namespace game2d;
 
 int main()
 {
@@ -24,15 +26,13 @@ int main()
     app.set_fps_limit(60.0f);   
     //app.remove_fps_limit();
 
-    int kenny_nl_spritesheet_pixel_width = 16;
-    Camera2D camera { kenny_nl_spritesheet_pixel_width };
+    //The game!
+    BreakoutData game_data;
+    init_breakout(game_data, width, height);
+    std::cout << "size of gamedata: " << sizeof(game_data) << " bytes" << std::endl;
 
-    Shader sprite_shader = ResourceManager::load_shader( 
-        "assets/shaders/2d/", 
-        {"sprite.vert", "sprite.frag"}, 
-        "sprite_texture" 
-    );
-    SpriteRenderer sprite_renderer { sprite_shader,  "sprite_texture" };
+    //The sprite renderer
+    SpriteRenderer renderer;
 
     while(app.is_running())
     {
@@ -56,6 +56,9 @@ int main()
         RenderCommand::set_clear_colour(dark_blue);
         RenderCommand::clear();
 
+        //render
+        renderer.draw_sprite(game_data.sprite_texture, )
+
         //ImGUI
         app.gui_begin();
 
@@ -76,63 +79,6 @@ int main()
 
 }
 
-//
-//struct BreakoutGameObject {
-//    glm::vec2   Position, Size, Velocity;
-//    glm::vec3   Colour;
-//    float       Rotation;
-//    bool        Destroyed;
-//
-//    Texture2D Sprite;
-//
-//    BreakoutGameObject()
-//        : Position(0.0f, 0.0f), Size(1.0f, 1.0f), Velocity(0.0f)
-//        , Colour(1.0f), Rotation(0.0f), Sprite(), Destroyed(false) { }
-//
-//    BreakoutGameObject(
-//        glm::vec2 pos, glm::vec2 size, Texture2D sprite, glm::vec3 color = glm::vec3(1.0f),
-//        glm::vec2 velocity = glm::vec2(0.0f, 0.0f))
-//        : Position(pos), Size(size), Velocity(velocity)
-//        , Colour(color), Rotation(0.0f), Sprite(sprite), Destroyed(false) { }
-//    ;
-//
-//    void Draw(SpriteRenderer& renderer)
-//    {
-//        renderer.draw_sprite(this->Sprite, this->Position, this->Size, this->Rotation, this->Colour);
-//    }
-//};
-//
-//struct BreakoutGameLevel {
-//    // level state
-//    std::vector<BreakoutGameObject> Bricks;
-//
-//    BreakoutGameLevel() { }
-//
-//    void Load(const char* file, unsigned int levelWidth, unsigned int levelHeight)
-//    {
-//
-//    }
-//
-//    void Draw(SpriteRenderer& renderer)
-//    {
-//
-//    }
-//
-//    bool IsCompleted()
-//    {
-//
-//    }
-//
-//private:
-//    // initialize level from tile data
-//    void init(std::vector<std::vector<unsigned int>> tileData,
-//        unsigned int levelWidth, unsigned int levelHeight)
-//    {
-//
-//    }
-//
-//};
-//
 //struct Breakout {
 //
 //    SpriteRenderer* Renderer;

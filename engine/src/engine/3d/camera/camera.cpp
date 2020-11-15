@@ -30,7 +30,7 @@ float FrustumPlane::Distance(glm::vec3 point)
 
 void CameraFrustum::Update(Camera* camera)
 {
-    float tan = 2.0 * std::tan(camera->FOV * 0.5);
+    float tan        = static_cast<float>(2.0 * std::tan(camera->FOV * 0.5));
     float nearHeight = tan * camera->Near;
     float nearWidth  = nearHeight * camera->Aspect;
     float farHeight  = tan * camera->Far;

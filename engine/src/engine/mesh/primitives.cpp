@@ -10,6 +10,37 @@
 
 namespace fightingengine {
 
+void render_mesh(std::shared_ptr<Mesh> mesh)
+{
+    //bind vao
+    glBindVertexArray(mesh->vao);
+
+    if (mesh->Indices.size() > 0)
+    {
+        glDrawElements(mesh->topology == TOPOLOGY::TRIANGLE_STRIP ? GL_TRIANGLE_STRIP : GL_TRIANGLES, mesh->Indices.size(), GL_UNSIGNED_INT, 0);
+    }
+    else
+    {
+        glDrawArrays(mesh->topology == TOPOLOGY::TRIANGLE_STRIP ? GL_TRIANGLE_STRIP : GL_TRIANGLES, 0, mesh->Positions.size());
+    }
+}
+
+void render_mesh(Mesh& mesh)
+{
+    //bind vao
+    glBindVertexArray(mesh.vao);
+
+    if (mesh.Indices.size() > 0)
+    {
+        glDrawElements(mesh.topology == TOPOLOGY::TRIANGLE_STRIP ? GL_TRIANGLE_STRIP : GL_TRIANGLES, mesh.Indices.size(), GL_UNSIGNED_INT, 0);
+    }
+    else
+    {
+        glDrawArrays(mesh.topology == TOPOLOGY::TRIANGLE_STRIP ? GL_TRIANGLE_STRIP : GL_TRIANGLES, 0, mesh.Positions.size());
+    }
+}
+
+
 namespace primitives {
 
 // ---- plane

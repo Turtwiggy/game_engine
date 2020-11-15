@@ -32,8 +32,6 @@ public:
         const std::vector<glm::vec3>& cube_pos
     );
 
-    void render_mesh(std::shared_ptr<Mesh> mesh);
-
     int get_draw_calls();
 
 private:

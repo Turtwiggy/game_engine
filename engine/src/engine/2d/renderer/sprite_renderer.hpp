@@ -37,25 +37,21 @@ struct Transform
 //and calculate with that the texture coords to render. For example if you have a spritesheet that has
 // a row of 8 sprites and you want the 4th frame rendered, your u coordinates would be between 4/8 and 5/8
 
-class SpriteRenderer
+struct SpriteRendererData
 {
-
-public:
-    SpriteRenderer(Shader& shader, std::string sprite_sheet_name);
-
-    void draw_sprite(
-        Texture2D& texture, 
-        Shader& shader,
-        const Transform& transform, 
-        const SpriteHandle& handle );
-
-private:
     Texture2D    spritesheet;
     std::string  spritesheet_name;
     primitives::Plane plane;
+};
 
-private:
-    void render_mesh(Mesh& mesh);
+void init_sprite_renderer(SpriteRendererData& data)
+{
+    //data.spritesheet = ResourceManager::load_texture(("assets/" + spritesheet_name).c_str(), spritesheet_name, true, false);
+    data.plane = primitives::Plane(2, 2);
+};
+
+void draw_sprite(const SpriteRendererData& data)
+{
 
 };
 

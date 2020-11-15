@@ -4,6 +4,9 @@
 
 namespace fightingengine {
 
+void render_mesh(std::shared_ptr<Mesh> mesh);
+void render_mesh(Mesh& mesh);
+
 namespace primitives {
 
 class Plane : public Mesh {

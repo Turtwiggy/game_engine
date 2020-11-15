@@ -97,23 +97,6 @@ void RendererSimple::update(float delta_time, FlyCamera& camera, RandomState& rn
     flat_shader_.unbind();
 }
 
-void RendererSimple::render_mesh(std::shared_ptr<Mesh> mesh)
-{
-    //bind vao
-    glBindVertexArray(mesh->vao);
-
-    if (mesh->Indices.size() > 0)
-    {
-        glDrawElements(mesh->topology == TOPOLOGY::TRIANGLE_STRIP ? GL_TRIANGLE_STRIP : GL_TRIANGLES, mesh->Indices.size(), GL_UNSIGNED_INT, 0);
-    }
-    else
-    {
-        glDrawArrays(mesh->topology == TOPOLOGY::TRIANGLE_STRIP ? GL_TRIANGLE_STRIP : GL_TRIANGLES, 0, mesh->Positions.size());
-    }
-
-    draw_calls_ += 1;
-}
-
 void RendererSimple::draw_skybox(const glm::mat4& view_projection)
 {
     glm::mat4 model = glm::scale(glm::mat4(1.0f), glm::vec3(1000.0f, 1000.0f, 1000.0f));
