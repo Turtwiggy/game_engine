@@ -7,6 +7,7 @@
 #include "engine/graphics/texture.hpp"
 #include "engine/graphics/shader.hpp"
 #include "engine/graphics/colour.hpp"
+#include "engine/mesh/primitives.hpp"
 
 namespace fightingengine
 {
@@ -22,12 +23,12 @@ struct TilemapPosition
     glm::ivec2 pos;
 };
 
-struct RenderDescriptor
+struct Transform
 {
-    glm::vec2 position;         //in pixels, centered
+    glm::vec2 position = { 0.0f, 0.0f }; //in pixels, centered
+    float angle = 0.0f;                 //in radians, about the origin, which is currently the centre
+    glm::vec2 scale = { 1.0f, 1.0f };
     ColourVec4f colour;
-    float angle = 0;            //in radians, about the origin, which is currently the centre
-    glm::vec2 scale = { 1,1 };
     //bool depress_on_hover = false;
 };
 
@@ -38,28 +39,24 @@ struct RenderDescriptor
 
 class SpriteRenderer
 {
+
 public:
     SpriteRenderer(Shader& shader, std::string sprite_sheet_name);
-    ~SpriteRenderer();
 
-    void draw_sprite(Texture2D& texture, const RenderDescriptor& desc, const SpriteHandle& handle);
-    void render();
+    void draw_sprite(
+        Texture2D& texture, 
+        Shader& shader,
+        const Transform& transform, 
+        const SpriteHandle& handle );
+
 private:
     Texture2D    spritesheet;
     std::string  spritesheet_name;
-    Shader       shader;
-    unsigned int quadVAO;
-};
+    primitives::Plane plane;
 
-//struct sprite_renderer
-//{
-//    std::vector<std::pair<sprite_handle, render_descriptor>> next_renderables;
-//    texture sprite_sheet;
-//
-//    sprite_renderer();
-//
-//    void add(const sprite_handle& handle, const render_descriptor& descriptor);
-//    void render(render_window& window, const camera& cam);
-//};
+private:
+    void render_mesh(Mesh& mesh);
+
+};
 
 } //namespace fightingengine

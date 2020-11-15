@@ -9,7 +9,7 @@ set (CMAKE_TOOLCHAIN_FILE ${CMAKE_SOURCE_DIR}/thirdparty/vcpkg/scripts/buildsyst
 project(subprojects VERSION 0.1.0)
 
 #add_subdirectory(engine)
-#add_subdirectory(game_2d)
+add_subdirectory(game_2d)
 add_subdirectory(game_3d)
 
 #random c++ projects

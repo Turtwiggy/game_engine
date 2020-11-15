@@ -39,8 +39,26 @@ int main()
         if (app.get_input().get_key_held(SDL_SCANCODE_F))
             printf("F is being held! \n");
 
+
+        // Input
+        if (app.get_input().get_key_held(SDL_Scancode::SDL_SCANCODE_W))
+            printf("w is being held! \n");
+        else if (app.get_input().get_key_held(SDL_Scancode::SDL_SCANCODE_S))
+            printf("s is being held! \n");
+
+        if (app.get_input().get_key_held(SDL_Scancode::SDL_SCANCODE_A))
+            printf("a is being held! \n");
+        else if (app.get_input().get_key_held(SDL_Scancode::SDL_SCANCODE_D))
+            printf("d is being held! \n");
+            
+        if (app.get_input().get_key_held(SDL_Scancode::SDL_SCANCODE_SPACE))
+            printf("space is being held! \n");
+        else if (app.get_input().get_key_held(SDL_Scancode::SDL_SCANCODE_LSHIFT))
+            printf("left shift is being held! \n");
+
         //Example OpenGL usage
-        RenderCommand::set_clear_colour(glm::vec4(0.9f, 0.8f, 0.7f, 1.0f));
+        glm::vec4 dark_blue = glm::vec4(0.0f/255.0f, 100.0f/255.0f, 100.0f/255.0f, 1.0f);
+        RenderCommand::set_clear_colour(dark_blue);
         RenderCommand::clear();
 
         //ImGUI

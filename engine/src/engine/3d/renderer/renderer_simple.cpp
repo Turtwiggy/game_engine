@@ -5,6 +5,7 @@
 //other library files
 #include <glm/gtc/matrix_transform.hpp>
 #include <glm/gtx/transform.hpp>
+#include <GL/glew.h>
 
 //your project files
 #include "engine/resources/resource_manager.hpp"
