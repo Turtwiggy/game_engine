@@ -28,18 +28,29 @@ int main()
 
     //The game!
     BreakoutData game_data;
-    init_breakout(game_data, width, height);
     std::cout << "size of gamedata: " << sizeof(game_data) << " bytes" << std::endl;
 
-    //The sprite renderer
-    SpriteRenderer renderer;
+    RenderCommand::init();
+    SpriteRendererData renderer_data;
+    init_breakout(renderer_data, width, height);
+
+    glm::mat4 projection = glm::ortho(0.0f, static_cast<float>(width), static_cast<float>(height), 0.0f, -1.0f, 1.0f);
+    Shader shader = ResourceManager::load_shader( "assets/shaders/2d/", {"sprite.vert", "sprite.frag"}, "sprite_texture" );
+    Texture2D tex =  ResourceManager::load_texture("assets/textures/octopus.png", "octopus");
+    shader.bind();
+    shader.set_int("image", 0);
+    shader.set_mat4("projection", projection);
+
+    Transform t;
+    t.position = {200.0f, 200.0f};
+    t.scale = {720.0f, 720.0f*(9.0f/16.0f)};
+    t.angle = 180.0f;
+    t.colour = {0.0f, 1.0f, 0.0f};
 
     while(app.is_running())
     {
         app.frame_begin();
-
-        //key input events
-        app.poll(); 
+        app.poll(); //input events
 
         float delta_time_s = app.get_delta_time();
 
@@ -57,7 +68,16 @@ int main()
         RenderCommand::clear();
 
         //render
-        renderer.draw_sprite(game_data.sprite_texture, )
+        //draw_sprite(renderer_data, t);
+        draw_sprite(
+            shader,
+            renderer_data.VAO,
+            tex,
+            t.position,
+            t.scale,
+            t.angle,
+            t.colour
+        );
 
         //ImGUI
         app.gui_begin();

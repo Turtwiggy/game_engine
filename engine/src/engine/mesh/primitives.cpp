@@ -23,6 +23,8 @@ void render_mesh(std::shared_ptr<Mesh> mesh)
     {
         glDrawArrays(mesh->topology == TOPOLOGY::TRIANGLE_STRIP ? GL_TRIANGLE_STRIP : GL_TRIANGLES, 0, mesh->Positions.size());
     }
+
+    glBindVertexArray(0);
 }
 
 void render_mesh(Mesh& mesh)
@@ -38,6 +40,8 @@ void render_mesh(Mesh& mesh)
     {
         glDrawArrays(mesh.topology == TOPOLOGY::TRIANGLE_STRIP ? GL_TRIANGLE_STRIP : GL_TRIANGLES, 0, mesh.Positions.size());
     }
+
+    glBindVertexArray(0);
 }
 
 
@@ -66,15 +70,15 @@ Plane::Plane(unsigned int x_segments, unsigned int y_segments)
         glm::vec2(1.0f, 1.0f),
         glm::vec2(1.0f, 0.0f)
     };
-    Normals = std::vector<glm::vec3> {
-        glm::vec3(0.0f, 0.0f, 1.0f),
-        glm::vec3(0.0f, 0.0f, 1.0f),
-        glm::vec3(0.0f, 0.0f, 1.0f),
+    // Normals = std::vector<glm::vec3> {
+    //     glm::vec3(0.0f, 0.0f, 1.0f),
+    //     glm::vec3(0.0f, 0.0f, 1.0f),
+    //     glm::vec3(0.0f, 0.0f, 1.0f),
 
-        glm::vec3(0.0f, 0.0f, 1.0f),
-        glm::vec3(0.0f, 0.0f, 1.0f),
-        glm::vec3(0.0f, 0.0f, 1.0f)
-    };
+    //     glm::vec3(0.0f, 0.0f, 1.0f),
+    //     glm::vec3(0.0f, 0.0f, 1.0f),
+    //     glm::vec3(0.0f, 0.0f, 1.0f)
+    // };
 
     // bool oddRow = false;
 

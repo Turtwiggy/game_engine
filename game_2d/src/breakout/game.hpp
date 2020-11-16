@@ -8,9 +8,19 @@
 #include "engine/resources/resource_manager.hpp"
 #include "engine/graphics/shader.hpp"
 #include "engine/graphics/texture.hpp"
+#include "engine/mesh/primitives.hpp"
 
 namespace game2d 
 {
+
+struct Transform
+{
+    glm::vec2 position = { 0.0f, 0.0f }; //in pixels, centered
+    float angle = 0.0f;                 //in radians, about the origin, which is currently the centre
+    glm::vec2 scale = { 1.0f, 1.0f };
+    glm::vec3 colour = { 0.0f, 1.0f, 0.0f };
+    //bool depress_on_hover = false;
+};
 
 enum class BreakoutGameState 
 {
@@ -19,24 +29,29 @@ enum class BreakoutGameState
    GAME_WIN
 };
 
+struct SpriteRendererData
+{
+    // Texture2D    spritesheet;
+    // std::string  spritesheet_name;
+    //fightingengine::primitives::Plane plane;
+
+    unsigned int VAO;
+};
+
 struct BreakoutData
 {
-    fightingengine::Shader sprite_shader;
-    fightingengine::Texture2D sprite_texture;
-
-    glm::mat4 projection; //this should probably be in a camera2d class
-
     BreakoutGameState state;
 };
 
-void init_breakout(BreakoutData& b, const int& width, const int& height);
+void init_breakout(SpriteRendererData& b, const int& width, const int& height);
 
-
-
-//     //game loop
-//     void input(float delta_time_s);
-//     void update(float delta_time_s);
-//     void render();
-// };
+void draw_sprite (  
+    fightingengine::Shader& shader,
+    unsigned int VAO,
+    fightingengine::Texture2D& texture, 
+    glm::vec2 position, 
+    glm::vec2 size, 
+    float rotate, 
+    glm::vec3 color ); 
 
 } //namespace game2d

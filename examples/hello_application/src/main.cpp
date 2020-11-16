@@ -25,9 +25,7 @@ int main()
     while(app.is_running())
     {
         app.frame_begin();
-
-        //key input events
-        app.poll(); 
+        app.poll(); //input events
 
         float delta_time_s = app.get_delta_time();
 
@@ -38,7 +36,6 @@ int main()
         //Hold a key
         if (app.get_input().get_key_held(SDL_SCANCODE_F))
             printf("F is being held! \n");
-
 
         // Input
         if (app.get_input().get_key_held(SDL_Scancode::SDL_SCANCODE_W))
