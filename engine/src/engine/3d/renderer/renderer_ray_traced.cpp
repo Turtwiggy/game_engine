@@ -82,8 +82,6 @@ RendererRayTraced::RendererRayTraced(int screen_width, int screen_height)
         .build_program();
     s_Data.geometry_shader = geometry_shader;
 
-    s_Data.plane = primitives::Plane(2, 2);
-
     // configure g-buffer for intial render pass
     unsigned int gBuffer;
     glGenFramebuffers(1, &gBuffer);

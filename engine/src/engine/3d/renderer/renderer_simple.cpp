@@ -25,7 +25,7 @@ RendererSimple::RendererSimple(RandomState& rnd, int width, int height)
     //shaders & meshes 
     flat_shader_ = FlatShader::create_shader();
     cube = std::make_shared<primitives::Cube>();  
-    plane = std::make_shared<primitives::Plane>(1, 1);  
+    //plane = std::make_shared<primitives::Plane>();  
 
     //TODO(Turtwiggy) finish this
     ResourceManager::load_shader("assets/shaders/", {"blinn-phong/lit.vert", "blinn-phong/lit.frag"}, "lit");
@@ -89,8 +89,7 @@ void RendererSimple::update(float delta_time, FlyCamera& camera, RandomState& rn
     flat_shader_.set_vec3("material.diffuse", glm::vec3(0.0f, 1.0f, 0.0f));
     flat_shader_.set_vec3("material.specular", 0.5f, 0.5f, 0.5f);
     flat_shader_.set_float("material.shininess", 32.0f);
-
-    render_mesh(plane);
+    //render_mesh(plane);
 
     draw_skybox(view_projection);
 

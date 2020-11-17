@@ -12,7 +12,7 @@ namespace primitives {
 class Plane : public Mesh {
 public:
     Plane() = default;
-    Plane(unsigned int xSegments, unsigned int ySegments);
+    Plane(int x, int y);
 };
 
 class Cube : public Mesh {

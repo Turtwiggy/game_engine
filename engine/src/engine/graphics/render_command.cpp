@@ -6,6 +6,9 @@
 #include <SDL2/SDL.h>
 #include <GL/glew.h>
 
+//your project headers
+#include "engine/graphics/util/opengl_util.hpp"
+
 namespace fightingengine {
 
 void RenderCommand::init()
@@ -41,6 +44,8 @@ void RenderCommand::init()
     // glDepthFunc(GL_LESS);
 
     //glPolygonMode( GL_FRONT_AND_BACK, GL_LINE );
+
+    CHECK_OPENGL_ERROR(0);
 }
 
 void RenderCommand::set_viewport(uint32_t x, uint32_t y, uint32_t width, uint32_t height)

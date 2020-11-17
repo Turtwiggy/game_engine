@@ -43,7 +43,7 @@ private:
     //rendering shaders / meshes available
     Shader flat_shader_;
     std::shared_ptr<Mesh> cube;
-    std::shared_ptr<Mesh> plane;
+    //std::shared_ptr<Mesh> plane;
 
     Background* background;
     std::shared_ptr<TextureCube> cubemap_;

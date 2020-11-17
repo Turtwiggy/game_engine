@@ -29,21 +29,10 @@ enum class BreakoutGameState
    GAME_WIN
 };
 
-struct SpriteRendererData
-{
-    // Texture2D    spritesheet;
-    // std::string  spritesheet_name;
-    //fightingengine::primitives::Plane plane;
-
-    unsigned int VAO;
-};
-
 struct BreakoutData
 {
     BreakoutGameState state;
 };
-
-void init_breakout(SpriteRendererData& b, const int& width, const int& height);
 
 void draw_sprite (  
     fightingengine::Shader& shader,

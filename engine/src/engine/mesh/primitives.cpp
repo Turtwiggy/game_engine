@@ -49,14 +49,12 @@ namespace primitives {
 
 // ---- plane
 
-Plane::Plane(unsigned int x_segments, unsigned int y_segments)
+Plane::Plane(int x, int y)
 {
-
     Positions = std::vector<glm::vec3> {
         glm::vec3(0.0f, 1.0f, 0.0f),
         glm::vec3(1.0f, 0.0f, 0.0f),
         glm::vec3(0.0f, 0.0f, 0.0f),
-
         glm::vec3(0.0f, 1.0f, 0.0f),
         glm::vec3(1.0f, 1.0f, 0.0f),
         glm::vec3(1.0f, 0.0f, 0.0f)
@@ -70,15 +68,18 @@ Plane::Plane(unsigned int x_segments, unsigned int y_segments)
         glm::vec2(1.0f, 1.0f),
         glm::vec2(1.0f, 0.0f)
     };
-    // Normals = std::vector<glm::vec3> {
-    //     glm::vec3(0.0f, 0.0f, 1.0f),
-    //     glm::vec3(0.0f, 0.0f, 1.0f),
-    //     glm::vec3(0.0f, 0.0f, 1.0f),
+    Normals = std::vector<glm::vec3> {
+        glm::vec3(0.0f, 0.0f, 1.0f),
+        glm::vec3(0.0f, 0.0f, 1.0f),
+        glm::vec3(0.0f, 0.0f, 1.0f),
 
-    //     glm::vec3(0.0f, 0.0f, 1.0f),
-    //     glm::vec3(0.0f, 0.0f, 1.0f),
-    //     glm::vec3(0.0f, 0.0f, 1.0f)
-    // };
+        glm::vec3(0.0f, 0.0f, 1.0f),
+        glm::vec3(0.0f, 0.0f, 1.0f),
+        glm::vec3(0.0f, 0.0f, 1.0f)
+    };
+
+    topology = TOPOLOGY::TRIANGLE_STRIP;
+    Finalize();
 
     // bool oddRow = false;
 
@@ -116,8 +117,7 @@ Plane::Plane(unsigned int x_segments, unsigned int y_segments)
     //     oddRow = !oddRow;
     // }
 
-    topology = TOPOLOGY::TRIANGLE_STRIP;
-    Finalize();
+
 }
 
 // ---- cube

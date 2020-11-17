@@ -1,6 +1,7 @@
 
 //c++ lib headers
 #include <iostream>
+#include <stdio.h>
 
 //other library headers
 #include <glm/glm.hpp>
@@ -31,15 +32,13 @@ int main()
     std::cout << "size of gamedata: " << sizeof(game_data) << " bytes" << std::endl;
 
     RenderCommand::init();
-    SpriteRendererData renderer_data;
-    init_breakout(renderer_data, width, height);
-
     glm::mat4 projection = glm::ortho(0.0f, static_cast<float>(width), static_cast<float>(height), 0.0f, -1.0f, 1.0f);
     Shader shader = ResourceManager::load_shader( "assets/shaders/2d/", {"sprite.vert", "sprite.frag"}, "sprite_texture" );
     Texture2D tex =  ResourceManager::load_texture("assets/textures/octopus.png", "octopus");
     shader.bind();
     shader.set_int("image", 0);
     shader.set_mat4("projection", projection);
+    fightingengine::primitives::Plane plane {1, 1};
 
     Transform t;
     t.position = {200.0f, 200.0f};
@@ -71,9 +70,18 @@ int main()
         //draw_sprite(renderer_data, t);
         draw_sprite(
             shader,
-            renderer_data.VAO,
+            plane.vao,
             tex,
             t.position,
+            t.scale,
+            t.angle,
+            t.colour
+        );
+        draw_sprite(
+            shader,
+            plane.vao,
+            tex,
+            {500.0f, 500.0f},
             t.scale,
             t.angle,
             t.colour
