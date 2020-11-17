@@ -6,9 +6,6 @@
 #include <gl/glew.h>
 #include <glm/glm.hpp>
 
-//your project headers
-#include "engine/graphics/util/opengl_util.hpp"
-
 namespace fightingengine {
 
 Mesh::Mesh(std::vector<glm::vec3> positions, std::vector<unsigned int> indices)
@@ -68,7 +65,6 @@ void Mesh::Finalize(bool interleaved)
     // initialize object IDs if not configured before
     if (!vao)
     {
-        CHECK_OPENGL_ERROR(1);
         glGenVertexArrays(1, &vao);
         glGenBuffers(1, &vbo);
         glGenBuffers(1, &ebo);

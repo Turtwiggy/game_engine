@@ -7,20 +7,18 @@
 #include <glm/glm.hpp>
 
 //your project headers
-#include "engine/2d/renderer/sprite_renderer.hpp"
 #include "engine/core/application.hpp"
 #include "engine/graphics/render_command.hpp"
 #include "engine/resources/resource_manager.hpp"
 using namespace fightingengine;
 
-//gamestuff
+//game stuff
 #include "breakout/game.hpp"
+#include "breakout/sprite_renderer.hpp"
 using namespace game2d;
 
 int main()
 {
-    std::cout << "Hello world!" << std::endl;
-
     uint32_t width = 1366;
     uint32_t height = 768;
     Application app("Breakout", width, height);
@@ -33,18 +31,24 @@ int main()
 
     RenderCommand::init();
     glm::mat4 projection = glm::ortho(0.0f, static_cast<float>(width), static_cast<float>(height), 0.0f, -1.0f, 1.0f);
-    Shader shader = ResourceManager::load_shader( "assets/shaders/2d/", {"sprite.vert", "sprite.frag"}, "sprite_texture" );
-    Texture2D tex =  ResourceManager::load_texture("assets/textures/octopus.png", "octopus");
+    Shader shader = ResourceManager::load_shader( "assets/shaders/2d", {"sprite.vert", "sprite.frag"}, "sprite_texture" );
+    Texture2D tex = ResourceManager::load_texture( "assets/textures/octopus.png", "octopus");
+    Texture2D tex2 = ResourceManager::load_texture( "assets/textures/grass.png", "grass");
     shader.bind();
     shader.set_int("image", 0);
     shader.set_mat4("projection", projection);
     fightingengine::primitives::Plane plane {1, 1};
 
-    Transform t;
-    t.position = {200.0f, 200.0f};
-    t.scale = {720.0f, 720.0f*(9.0f/16.0f)};
-    t.angle = 180.0f;
-    t.colour = {0.0f, 1.0f, 0.0f};
+    BreakoutGameObject go;
+    {
+        BreakoutTransform t;
+        t.position = {200.0f, 200.0f};
+        t.scale = {400.0f, 400.0f*(9.0f/16.0f)};
+        t.angle = 0.0f;
+        t.colour = {0.0f, 1.0f, 0.0f};
+        go.texture = tex2;
+        go.transform = t;
+    }
 
     while(app.is_running())
     {
@@ -67,24 +71,12 @@ int main()
         RenderCommand::clear();
 
         //render
-        //draw_sprite(renderer_data, t);
-        draw_sprite(
-            shader,
-            plane.vao,
-            tex,
-            t.position,
-            t.scale,
-            t.angle,
-            t.colour
-        );
-        draw_sprite(
-            shader,
-            plane.vao,
-            tex,
-            {500.0f, 500.0f},
-            t.scale,
-            t.angle,
-            t.colour
+        draw_sprite( shader, plane, go );
+        draw_sprite( shader, plane, tex,
+            {500.0f, 500.0f},   //pos
+            {200.0f, 200.0f},   //scale
+            30.0f,              //angle
+            {1.0f, 0.3f, 0.3f}  //colour
         );
 
         //ImGUI

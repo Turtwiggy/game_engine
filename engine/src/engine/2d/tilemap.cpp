@@ -7,7 +7,6 @@
 #include <glm/glm.hpp>
 
 //your project headers
-#include "engine/2d/renderer/sprite_renderer.hpp"
 #include "engine/graphics/colour.hpp"
 
 namespace fightingengine {
@@ -184,30 +183,30 @@ std::map<tiles::type, std::vector<glm::ivec2>>& get_locations()
     return ret;
 }
 
-SpriteHandle get_sprite_handle_of(RandomState& rng, tiles::type type)
-{
-    auto& tiles = get_locations();
+// SpriteHandle get_sprite_handle_of(RandomState& rng, tiles::type type)
+// {
+//     auto& tiles = get_locations();
 
-    auto& which = tiles[type];
+//     auto& which = tiles[type];
 
-    if (which.size() == 0)
-        throw std::runtime_error("No tiles for type " + std::to_string(type));
+//     if (which.size() == 0)
+//         throw std::runtime_error("No tiles for type " + std::to_string(type));
 
-    int len = (int)(which.size());
+//     int len = (int)(which.size());
 
-    int iwhich = (int)rand_det_s(rng.rng, 0, static_cast<float>(len));
-    if (iwhich >= len || iwhich < 0)
-        throw std::runtime_error("Rng is bad");
+//     int iwhich = (int)rand_det_s(rng.rng, 0, static_cast<float>(len));
+//     if (iwhich >= len || iwhich < 0)
+//         throw std::runtime_error("Rng is bad");
 
-    SpriteHandle handle;
-    handle.offset = which[0]; //get the first for now
+//     SpriteHandle handle;
+//     handle.offset = which[0]; //get the first for now
 
-    ColourVec4f colour;
-    handle.colour = colour;
-    //handle.base_colour = get_colour_of(type/*, level_info::GRASS*/); //???
+//     ColourVec4f colour;
+//     handle.colour = colour;
+//     //handle.base_colour = get_colour_of(type/*, level_info::GRASS*/); //???
 
-    return handle;
-}
+//     return handle;
+// }
 
 // vec4 get_colour_of(tiles::type tile_type/*, level_info::types level_type*/)
 // {

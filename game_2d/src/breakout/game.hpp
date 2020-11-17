@@ -1,25 +1,43 @@
 #pragma once
 
+//c++ standard lib headers
+#include <vector>
+
 //other project headers
 #include <glm/glm.hpp>
 #include <glm/gtc/matrix_transform.hpp>
 
 //your project headers
-#include "engine/resources/resource_manager.hpp"
-#include "engine/graphics/shader.hpp"
 #include "engine/graphics/texture.hpp"
-#include "engine/mesh/primitives.hpp"
+using namespace fightingengine;
 
 namespace game2d 
 {
 
-struct Transform
+struct BreakoutTransform
 {
     glm::vec2 position = { 0.0f, 0.0f }; //in pixels, centered
-    float angle = 0.0f;                 //in radians, about the origin, which is currently the centre
+    float angle = 0.0f;                  //in degrees
     glm::vec2 scale = { 1.0f, 1.0f };
     glm::vec3 colour = { 0.0f, 1.0f, 0.0f };
-    //bool depress_on_hover = false;
+};
+
+struct BreakoutGameObject
+{
+    BreakoutTransform transform;
+    glm::vec2 velocity = { 0.0f, 0.0f };
+    Texture2D texture;
+
+    //gameobject flags... 
+    //note: avoid adding these, or come up with a better system
+    //more flags is a 2^n of configurations of testing to make sure everything
+    bool is_solid = false;
+    bool destroyed = false;
+};
+
+struct BreakoutGameLevel
+{
+    std::vector<BreakoutGameObject> bricks;
 };
 
 enum class BreakoutGameState 
@@ -33,14 +51,5 @@ struct BreakoutData
 {
     BreakoutGameState state;
 };
-
-void draw_sprite (  
-    fightingengine::Shader& shader,
-    unsigned int VAO,
-    fightingengine::Texture2D& texture, 
-    glm::vec2 position, 
-    glm::vec2 size, 
-    float rotate, 
-    glm::vec3 color ); 
 
 } //namespace game2d
