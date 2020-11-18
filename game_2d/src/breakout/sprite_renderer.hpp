@@ -16,8 +16,8 @@ namespace game2d {
 //and calculate with that the texture coords to render. For example if you have a spritesheet that has
 // a row of 8 sprites and you want the 4th frame rendered, your u coordinates would be between 4/8 and 5/8
 
-void draw_sprite ( Shader& shader, Mesh& mesh, BreakoutGameObject& game_object  );
-void draw_sprite ( Shader& shader, Mesh& mesh, Texture2D& texture, BreakoutTransform& t );
+void draw_sprite ( Shader& shader, Mesh& mesh, GameObject& game_object  );
+void draw_sprite ( Shader& shader, Mesh& mesh, Texture2D& texture, Transform& t );
 void draw_sprite (  
     Shader&     shader,
     Mesh&       mesh,

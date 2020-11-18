@@ -4,12 +4,12 @@
 
 namespace game2d {
 
-void draw_sprite ( Shader& shader, Mesh& mesh, BreakoutGameObject& game_object )
+void draw_sprite ( Shader& shader, Mesh& mesh, GameObject& game_object )
 {
     draw_sprite( shader, mesh, game_object.texture, game_object.transform );
 }
 
-void draw_sprite ( Shader& shader, Mesh& mesh, Texture2D& texture, BreakoutTransform& t )
+void draw_sprite ( Shader& shader, Mesh& mesh, Texture2D& texture, Transform& t )
 {
     draw_sprite( shader, mesh, texture, t.position, t.scale, t.angle, t.colour);
 }

@@ -8,13 +8,6 @@
 
 namespace fightingengine {
 
-struct PixelInfo
-{
-    float object_id = 0.0f;
-    float draw_id = 0.0f;
-    float prim_id = 0.0f;
-};
-
 class Framebuffer
 {
 public:
@@ -24,10 +17,6 @@ public:
 
     static void fbo_enable_writing(unsigned int fbo);
     static void fbo_disable_writing(unsigned int fbo); 
-
-    //reads a pixel from an fbo's GL_COLOR_ATTACHMENT0 using glReadPixels
-    //note: for the moment, only reads GL_RGB data
-    static PixelInfo read_fbo_pixel(unsigned int fbo, int x, int y);
 
     //Renderbuffer objects store all the render data directly into
     //their buffer without any conversions to texture-specific formats,

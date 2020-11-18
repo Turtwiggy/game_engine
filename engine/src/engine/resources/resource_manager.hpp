@@ -14,15 +14,12 @@
 
 namespace fightingengine {
 
-//TODO(Turtwiggy) make this class use hashed string ID 
-//when needed. For the moment, strings are fine.
+// A static singleton ResourceManager class that loads:
+    // Textures
+    // Shaders
+    // TextureCubes (or Skybox)
+    // Models (TBC) 
 
-//TODO(Turtwiggy) make get_functions return null if object isn't found
-
-// A static singleton ResourceManager class that load Textures 
-// and Shaders. Each loaded texture and/or shader is stored 
-// for future reference by string handles. All functions 
-// and resources are static and no public constructor is defined.
 class ResourceManager
 {
 private:

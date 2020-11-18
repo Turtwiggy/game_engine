@@ -35,25 +35,6 @@ void Framebuffer::fbo_disable_writing(unsigned int fbo)
     glBindFramebuffer(GL_DRAW_FRAMEBUFFER, 0);
 }
 
-PixelInfo Framebuffer::read_fbo_pixel(unsigned int fbo, int x, int y)
-{
-    //contains object_id, draw_id, prim_id
-    PixelInfo pixel;
-
-    bind_fbo(fbo);
-    
-        glReadBuffer(GL_COLOR_ATTACHMENT0);
-
-        glReadPixels(x, y, 1, 1, GL_RGB, GL_FLOAT, &pixel);
-
-        glReadBuffer(GL_NONE);
-    
-    unbind_fbo();
-
-    return pixel; //returns a copy of pixel
-}
-
-
 unsigned int Framebuffer::create_rbo()
 {
     unsigned int rbo;

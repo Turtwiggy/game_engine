@@ -6,13 +6,13 @@
 //other library headers
 #include <glm/glm.hpp>
 
-//your project headers
+//fightingengine headers
 #include "engine/core/application.hpp"
 #include "engine/graphics/render_command.hpp"
 #include "engine/resources/resource_manager.hpp"
 using namespace fightingengine;
 
-//game stuff
+//game headers
 #include "breakout/game.hpp"
 #include "breakout/sprite_renderer.hpp"
 using namespace game2d;
@@ -26,8 +26,8 @@ int main()
     //app.remove_fps_limit();
 
     //The game!
-    BreakoutData game_data;
-    std::cout << "size of gamedata: " << sizeof(game_data) << " bytes" << std::endl;
+    Breakout game_state;
+    std::cout << "size of gamedata: " << sizeof(game_state) << " bytes" << std::endl;
 
     RenderCommand::init();
     glm::mat4 projection = glm::ortho(0.0f, static_cast<float>(width), static_cast<float>(height), 0.0f, -1.0f, 1.0f);
@@ -39,9 +39,9 @@ int main()
     shader.set_mat4("projection", projection);
     fightingengine::primitives::Plane plane {1, 1};
 
-    BreakoutGameObject go;
+    GameObject go;
     {
-        BreakoutTransform t;
+        Transform t;
         t.position = {200.0f, 200.0f};
         t.scale = {400.0f, 400.0f*(9.0f/16.0f)};
         t.angle = 0.0f;
@@ -49,6 +49,9 @@ int main()
         go.texture = tex2;
         go.transform = t;
     }
+
+    GameLevel level;
+    load_game_level(level, "assets/breakout/level_0.breakout", 10, 10);
 
     while(app.is_running())
     {
@@ -98,48 +101,3 @@ int main()
     }
 
 }
-
-//struct Breakout {
-//
-//    SpriteRenderer* Renderer;
-//
-//    std::vector<BreakoutGameLevel>  levels;
-//    unsigned int                    level;
-//    BreakoutGameState               state;
-//
-//    void init(int width, int height)
-//    {
-//        std::vector<std::string> files = { "example.frag", "example.vert" };
-//        Shader s = ResourceManager::load_shader("assets/", files, "example");
-//
-//        // configure shaders
-//        glm::mat4 projection = glm::ortho(0.0f, static_cast<float>(width), static_cast<float>(height), 0.0f, -1.0f, 1.0f);
-//
-//        s.bind();
-//        s.setInt("image", 0);
-//        s.setMat4("projection", projection);
-//
-//        // set render-specific controls
-//        Renderer = new SpriteRenderer(s);
-//
-//        // load textures
-//        ResourceManager::load_texture("assets/textures/marble.jpg", true, "marble");
-//    }
-//
-//    void tick(float delta_time)
-//    {
-//
-//    }
-//
-//    void render()
-//    {
-//        Texture2D t = ResourceManager::get_texture("marble");
-//
-//        glm::vec2 pos(200.0f, 200.0f);
-//        glm::vec2 scale(300.0f, 300.0f);
-//        glm::vec3 colour(1.0f, 0.0f, 0.0f);
-//        float angle = 45.0f;
-//
-//        Renderer->draw_sprite(t, pos, scale, angle, colour);
-//    }
-//};

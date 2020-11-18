@@ -14,7 +14,7 @@ using namespace fightingengine;
 namespace game2d 
 {
 
-struct BreakoutTransform
+struct Transform
 {
     glm::vec2 position = { 0.0f, 0.0f }; //in pixels, centered
     float angle = 0.0f;                  //in degrees
@@ -22,9 +22,9 @@ struct BreakoutTransform
     glm::vec3 colour = { 0.0f, 1.0f, 0.0f };
 };
 
-struct BreakoutGameObject
+struct GameObject
 {
-    BreakoutTransform transform;
+    Transform transform;
     glm::vec2 velocity = { 0.0f, 0.0f };
     Texture2D texture;
 
@@ -35,21 +35,24 @@ struct BreakoutGameObject
     bool destroyed = false;
 };
 
-struct BreakoutGameLevel
+struct GameLevel
 {
-    std::vector<BreakoutGameObject> bricks;
+    std::vector<GameObject> bricks;
 };
 
-enum class BreakoutGameState 
+void load_game_level(GameLevel& level, std::string path, unsigned int level_width, unsigned int level_height);
+
+enum class GameState 
 {
    GAME_ACTIVE,
    GAME_MENU,
    GAME_WIN
 };
 
-struct BreakoutData
+
+struct Breakout
 {
-    BreakoutGameState state;
+    GameState state;
 };
 
 } //namespace game2d
