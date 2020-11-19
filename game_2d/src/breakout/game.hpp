@@ -40,7 +40,8 @@ struct GameLevel
     std::vector<GameObject> bricks;
 };
 
-void load_game_level(GameLevel& level, std::string path, unsigned int level_width, unsigned int level_height);
+void load_level_from_file(std::vector<std::vector<int>>& layout, const std::string& path);
+void init_level(GameLevel& level, const std::vector<std::vector<int>>& layout, int width, int height);
 
 enum class GameState 
 {

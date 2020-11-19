@@ -50,8 +50,11 @@ int main()
         go.transform = t;
     }
 
+    std::vector<std::vector<int>> bricks; // probs should put this all in 1 vector
+    load_level_from_file(bricks, "assets/breakout/level_0.breakout");
+    
     GameLevel level;
-    load_game_level(level, "assets/breakout/level_0.breakout", 10, 10);
+    init_level(level, bricks, 10, 10);    
 
     while(app.is_running())
     {
