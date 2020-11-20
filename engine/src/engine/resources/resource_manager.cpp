@@ -81,17 +81,40 @@ Shader ResourceManager::load_shader_from_file(const std::string& path, std::vect
 
 // ---- textures
 
-Texture2D ResourceManager::load_texture( const std::string& full_path, const std::string& unique_name, GLenum target, GLenum format, bool srgb )
+Texture2D* ResourceManager::load_texture( const std::string& full_path, const std::string& unique_name, GLenum target, GLenum format, bool srgb )
 {
-    Textures[unique_name] = load_texture_from_file(full_path, target, format, srgb);
+    // if texture already exists, return that handle
+    if (ResourceManager::Textures.find(unique_name) != ResourceManager::Textures.end())
+        return &ResourceManager::Textures[unique_name];
+
+    Texture2D texture = load_texture_from_file(full_path, target, format, srgb);
     printf("texture loaded! %s \n", unique_name.c_str());
     printf("----- End Texture -------\n");
-    return Textures[unique_name];
+
+    // make sure texture got properly loaded
+    if (texture.Width > 0)
+    {
+        ResourceManager::Textures[unique_name] = texture;
+        return &ResourceManager::Textures[unique_name];
+    }
+    else
+    {
+        return nullptr;
+    }
 }
 
-Texture2D ResourceManager::get_texture(const std::string& name)
+Texture2D* ResourceManager::get_texture(const std::string& name)
 {
-    return Textures[name];
+    if( ResourceManager::Textures.find(name) != ResourceManager::Textures.end() )
+    {
+        return &ResourceManager::Textures[name];
+    } 
+    else
+    {
+        printf("Texture2D not found: %s", name.c_str());
+        return nullptr;
+    }
+
 }
 
 Texture2D ResourceManager::load_texture_from_file(std::string full_path, GLenum target, GLenum internalFormat, bool srgb )

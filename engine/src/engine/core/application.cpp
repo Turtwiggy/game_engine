@@ -18,7 +18,7 @@ namespace fightingengine {
     const std::string kBuildStr = "1";
     //const std::string kBuildStr(kGitSHA1Hash, 8);
 
-    Application::Application(const std::string& name, uint32_t width, uint32_t height)
+    Application::Application(const std::string& name, int width, int height)
     {
         //Window
         window = std::make_unique<GameWindow>

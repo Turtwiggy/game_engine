@@ -9,12 +9,12 @@ void draw_sprite ( Shader& shader, Mesh& mesh, GameObject& game_object )
     draw_sprite( shader, mesh, game_object.texture, game_object.transform );
 }
 
-void draw_sprite ( Shader& shader, Mesh& mesh, Texture2D& texture, Transform& t )
+void draw_sprite ( Shader& shader, Mesh& mesh, Texture2D* texture, Transform& t )
 {
     draw_sprite( shader, mesh, texture, t.position, t.scale, t.angle, t.colour);
 }
 
-void draw_sprite( Shader& shader, Mesh& mesh, Texture2D& texture, glm::vec2 position, glm::vec2 size, float angle, glm::vec3 color )
+void draw_sprite( Shader& shader, Mesh& mesh, Texture2D* texture, glm::vec2 position, glm::vec2 size, float angle, glm::vec3 color )
 {
     shader.bind();
 
@@ -32,11 +32,11 @@ void draw_sprite( Shader& shader, Mesh& mesh, Texture2D& texture, glm::vec2 posi
     shader.set_mat4( "model", model );
     shader.set_vec3( "spriteColor", color );
 
-    texture.Bind();
+    texture->Bind();
 
     render_mesh(mesh);
 
-    texture.Unbind();
+    texture->Unbind();
 };
 
 } //namespace game2d

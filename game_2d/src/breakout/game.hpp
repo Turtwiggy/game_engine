@@ -26,7 +26,7 @@ struct GameObject
 {
     Transform transform;
     glm::vec2 velocity = { 0.0f, 0.0f };
-    Texture2D texture;
+    Texture2D* texture;
 
     //gameobject flags... 
     //note: avoid adding these, or come up with a better system
@@ -53,7 +53,7 @@ enum class GameState
 
 struct Breakout
 {
-    GameState state;
+    GameState state = GameState::GAME_ACTIVE;
 };
 
 } //namespace game2d

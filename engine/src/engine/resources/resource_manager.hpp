@@ -38,8 +38,8 @@ public:
     static Shader get_shader(const std::string& name);
 
     // loads (and generates) a texture from file
-    static Texture2D load_texture(const std::string& full_path, const std::string& unique_name, GLenum target = GL_TEXTURE_2D, GLenum format = GL_RGBA, bool srgb = false);
-    static Texture2D get_texture(const std::string& name);
+    static Texture2D* load_texture( const std::string& full_path, const std::string& unique_name, GLenum target = GL_TEXTURE_2D, GLenum format = GL_RGBA, bool srgb = false );
+    static Texture2D* get_texture( const std::string& name );
     
     // loads a single texture from file
     //e.g PARAM file: assets/textures/Bamboo/BambooWall_1k_albedo.jpg
