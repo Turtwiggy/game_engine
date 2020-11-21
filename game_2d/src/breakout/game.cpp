@@ -67,6 +67,7 @@ void init_level(GameLevel& level, const std::vector<std::vector<int>>& layout, i
             //printf("tile_data: %i pos x: %f y: %f size x: %f y: %f \n", tile_data, pos.x, pos.y, size.x, size.y);
             
             GameObject go;
+            go.destroyed = false;
 
             if( tile_data == 1 ) {
                 go.texture = fightingengine::ResourceManager::get_texture("block_solid");
@@ -77,7 +78,6 @@ void init_level(GameLevel& level, const std::vector<std::vector<int>>& layout, i
                 go.transform.angle = 0.0f;
                 //state
                 go.is_solid = true;
-                go.destroyed = false;
             } else
             {
                 go.texture = fightingengine::ResourceManager::get_texture("block");
@@ -99,12 +99,53 @@ void init_level(GameLevel& level, const std::vector<std::vector<int>>& layout, i
                 go.transform.angle = 0.0f;
                 //state
                 go.is_solid = false;
-                go.destroyed = false;
             }
 
             level.bricks.push_back(go);
         }
     }
+}
+
+
+void init_breakout_levels(std::vector<GameLevel>& levels, int screen_width, int screen_height)
+{   
+    levels.clear();
+
+    std::vector<std::vector<int>> level_0_bricks;
+    load_level_from_file(level_0_bricks, "assets/breakout/level_0.breakout");
+    GameLevel level_0;
+    init_level(level_0, level_0_bricks, screen_width, static_cast<int>(screen_height / 2.0f));    
+
+    std::vector<std::vector<int>> level_1_bricks;
+    load_level_from_file(level_1_bricks, "assets/breakout/level_1.breakout");
+    GameLevel level_1;
+    init_level(level_1, level_1_bricks, screen_width, static_cast<int>(screen_height / 2.0f));  
+
+    std::vector<std::vector<int>> level_2_bricks;
+    load_level_from_file(level_2_bricks, "assets/breakout/level_2.breakout");
+    GameLevel level_2;
+    init_level(level_2, level_2_bricks, screen_width, static_cast<int>(screen_height / 2.0f));  
+
+    std::vector<std::vector<int>> level_3_bricks;
+    load_level_from_file(level_3_bricks, "assets/breakout/level_3.breakout");
+    GameLevel level_3;
+    init_level(level_3, level_3_bricks, screen_width, static_cast<int>(screen_height / 2.0f));  
+
+    levels.push_back(level_0);
+    levels.push_back(level_1);
+    levels.push_back(level_2);
+    levels.push_back(level_3);
+}
+
+
+void update_user_input()
+{
+    
+}
+
+void update_game_state()
+{
+
 }
 
 } //namespace game2d

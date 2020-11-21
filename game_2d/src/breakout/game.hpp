@@ -9,10 +9,12 @@
 
 //your project headers
 #include "engine/graphics/texture.hpp"
+#include "engine/graphics/render_command.hpp"
 using namespace fightingengine;
 
 namespace game2d 
 {
+
 
 struct Transform
 {
@@ -35,14 +37,6 @@ struct GameObject
     bool destroyed = false;
 };
 
-struct GameLevel
-{
-    std::vector<GameObject> bricks;
-};
-
-void load_level_from_file(std::vector<std::vector<int>>& layout, const std::string& path);
-void init_level(GameLevel& level, const std::vector<std::vector<int>>& layout, int width, int height);
-
 enum class GameState 
 {
    GAME_ACTIVE,
@@ -51,9 +45,30 @@ enum class GameState
 };
 
 
+struct GameLevel
+{
+    std::vector<GameObject> bricks;
+};
+
+void load_level_from_file(std::vector<std::vector<int>>& layout, const std::string& path);
+
+void init_level(GameLevel& level, const std::vector<std::vector<int>>& layout, int width, int height);
+
+
 struct Breakout
 {
     GameState state = GameState::GAME_ACTIVE;
+
+    std::vector<GameLevel> levels;
 };
+
+void init_breakout_levels(std::vector<GameLevel>& breakout, int screen_width, int screen_height);
+
+
+// ---- breakout game functions
+
+void update_user_input();
+
+void update_game_state();
 
 } //namespace game2d

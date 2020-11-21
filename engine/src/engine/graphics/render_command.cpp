@@ -28,7 +28,7 @@ void RenderCommand::init()
     glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 
     //Enable depth testing
-    glEnable(GL_DEPTH_TEST);
+    set_depth_testing(true);
 
     //From now on your rendered images will be gamma corrected and as this is done by the hardware it is completely free.
     //Something you should keep in mind with this approach (and the other approach) is that gamma correction (also) transforms the colors from linear space to non-linear space so it is very important you only do gamma correction at the last and final step. 
@@ -41,6 +41,14 @@ void RenderCommand::init()
     // glDepthFunc(GL_LESS);
 
     //glPolygonMode( GL_FRONT_AND_BACK, GL_LINE );
+}
+
+void RenderCommand::set_depth_testing(bool toggle)
+{
+    if(toggle)
+        glEnable(GL_DEPTH_TEST);
+    else
+        glDisable(GL_DEPTH_TEST);
 }
 
 void RenderCommand::set_viewport(uint32_t x, uint32_t y, uint32_t width, uint32_t height)

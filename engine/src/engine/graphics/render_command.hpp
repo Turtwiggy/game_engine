@@ -14,6 +14,8 @@ public:
 
 	static void set_clear_colour(const glm::vec4& color);
 
+	static void set_depth_testing(bool toggle);
+
 	static void clear();
 };
 
