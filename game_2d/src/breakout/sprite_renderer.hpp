@@ -22,8 +22,7 @@ void update_renderer (
     Mesh& mesh, 
     int screen_width, 
     int screen_height, 
-    Breakout& breakout,
-    GameObject& player );
+    Breakout& breakout );
 
 void draw_sprite ( Shader& shader, Mesh& mesh, GameObject& game_object  );
 void draw_sprite ( Shader& shader, Mesh& mesh, Texture2D* texture, Transform& t );

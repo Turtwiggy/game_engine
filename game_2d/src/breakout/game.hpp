@@ -20,8 +20,8 @@ struct Transform
 {
     glm::vec2 position = { 0.0f, 0.0f }; //in pixels, centered
     float angle = 0.0f;                  //in degrees
-    glm::vec2 scale = { 1.0f, 1.0f };
-    glm::vec3 colour = { 0.0f, 1.0f, 0.0f };
+    glm::vec2 scale = { 100.0f, 100.0f };
+    glm::vec3 colour = { 1.0f, 1.0f, 1.0f };
 };
 
 struct GameObject
@@ -35,7 +35,21 @@ struct GameObject
     //more flags is a 2^n of configurations of testing to make sure everything
     bool is_solid = false;
     bool destroyed = false;
+
+    GameObject( Texture2D* tex );
 };
+
+struct Ball 
+{
+    GameObject game_object;
+    
+    float radius = 1.0f;
+    bool stuck = true;
+
+    Ball( Texture2D* tex );
+};
+void reset_ball( Ball& ball );
+void move_ball( Ball& ball, float delta_time_s, int window_width );
 
 enum class GameState 
 {

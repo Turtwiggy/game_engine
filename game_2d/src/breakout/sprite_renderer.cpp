@@ -13,8 +13,7 @@ void update_renderer(
     Mesh& mesh, 
     int screen_width, 
     int screen_height, 
-    Breakout& breakout, 
-    GameObject& player )
+    Breakout& breakout )
 {
     RenderCommand::clear();
 
@@ -35,10 +34,6 @@ void update_renderer(
                 draw_sprite( shader, mesh, brick );
         }
     }
-
-    // draw player
-    draw_sprite ( shader, mesh, player );        
-
 }
 
 void draw_sprite ( Shader& shader, Mesh& mesh, GameObject& game_object )

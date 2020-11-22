@@ -197,11 +197,11 @@ namespace fightingengine {
 
     // ---- window controls
 
-    void Application::set_fps_limit(const double fps)
+    void Application::set_fps_limit(const float fps)
     { 
         fps_limit = true;
         FPS = fps; 
-        MILLISECONDS_PER_FRAME = (Uint32)(1000 / FPS); 
+        MILLISECONDS_PER_FRAME = (int)(1000 / FPS); 
     }
 
     void Application::remove_fps_limit()

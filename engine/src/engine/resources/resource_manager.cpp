@@ -58,8 +58,7 @@ Shader ResourceManager::get_shader(const std::string& name)
 
 Shader ResourceManager::load_shader_from_file(const std::string& path, std::vector<std::string> files)
 {
-    printf("----- Shader from path -------\n");
-    printf("Dir: %s \n", path.c_str());
+    //printf("Dir: %s \n", path.c_str());
 
     Shader s;
     for (auto& f : files)
@@ -71,8 +70,6 @@ Shader ResourceManager::load_shader_from_file(const std::string& path, std::vect
 
         s.attach_shader(full_path.c_str(), type);
     }
-
-    printf("-------- Shader ------- \n");
 
     s.build_program();
 
@@ -88,8 +85,7 @@ Texture2D* ResourceManager::load_texture( const std::string& full_path, const st
         return &ResourceManager::Textures[unique_name];
 
     Texture2D texture = load_texture_from_file(full_path, target, format, srgb);
-    printf("texture loaded! %s \n", unique_name.c_str());
-    printf("----- End Texture -------\n");
+    printf("Texture (%s) loaded, path: %s \n", unique_name.c_str(), full_path.c_str());
 
     // make sure texture got properly loaded
     if (texture.Width > 0)
@@ -119,8 +115,6 @@ Texture2D* ResourceManager::get_texture(const std::string& name)
 
 Texture2D ResourceManager::load_texture_from_file(std::string full_path, GLenum target, GLenum internalFormat, bool srgb )
 {
-    printf("----- Texture from path -------\n");
-    printf("Dir: %s \n", full_path.c_str());
 
     // create texture object
     Texture2D texture;

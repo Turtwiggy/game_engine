@@ -13,6 +13,51 @@
 namespace game2d
 {
 
+
+GameObject::GameObject(Texture2D* tex)
+    : texture(tex)
+{
+
+}
+
+Ball::Ball(Texture2D* tex)
+    : game_object( tex )
+{
+    printf("creating ball!");
+}
+void reset_ball( Ball& ball )
+{
+
+}
+void move_ball( Ball& ball, float delta_time_s, int window_width )
+{
+    if( ! ball.stuck )
+    {
+        Transform& transform = ball.game_object.transform;
+        transform.position += ball.game_object.velocity * delta_time_s;
+
+        //if ball goes off left of screen...
+        if (transform.position.x <= 0.0f)
+        {
+            ball.game_object.velocity.x = glm::abs(ball.game_object.velocity.x);
+            transform.position.x = 0.0f;
+        }
+        //if ball goes off right of screen...
+        else if (transform.position.x + transform.scale.x >= window_width)
+        {
+            ball.game_object.velocity.x = -glm::abs(ball.game_object.velocity.x);
+            transform.position.x = window_width - transform.scale.x;
+        }
+        // if ball goes off top of screen...
+        if (transform.position.y <= 0.0f)
+        {
+            ball.game_object.velocity.y = glm::abs(ball.game_object.velocity.y);
+            transform.position.y = 0.0f;
+        }
+    }
+}
+
+
 void load_level_from_file(std::vector<std::vector<int>>& layout, const std::string &path)
 {
     std::ifstream fstream(path);
@@ -66,11 +111,10 @@ void init_level(GameLevel& level, const std::vector<std::vector<int>>& layout, i
             glm::vec2 size(unit_width, unit_height);
             //printf("tile_data: %i pos x: %f y: %f size x: %f y: %f \n", tile_data, pos.x, pos.y, size.x, size.y);
             
-            GameObject go;
-            go.destroyed = false;
-
-            if( tile_data == 1 ) {
-                go.texture = fightingengine::ResourceManager::get_texture("block_solid");
+            if( tile_data == 1 )
+            {
+                GameObject go { fightingengine::ResourceManager::get_texture( "block_solid" ) };
+                
                 //transform
                 go.transform.position = pos;
                 go.transform.scale = size;
@@ -78,9 +122,12 @@ void init_level(GameLevel& level, const std::vector<std::vector<int>>& layout, i
                 go.transform.angle = 0.0f;
                 //state
                 go.is_solid = true;
-            } else
+
+                level.bricks.push_back(go);
+            } 
+            else
             {
-                go.texture = fightingengine::ResourceManager::get_texture("block");
+                GameObject go { fightingengine::ResourceManager::get_texture( "block" ) };
 
                 glm::vec3 color = glm::vec3(1.0f); // original: white
                 if (tile_data == 2)
@@ -99,9 +146,9 @@ void init_level(GameLevel& level, const std::vector<std::vector<int>>& layout, i
                 go.transform.angle = 0.0f;
                 //state
                 go.is_solid = false;
-            }
 
-            level.bricks.push_back(go);
+                level.bricks.push_back(go);
+            }
         }
     }
 }

@@ -42,6 +42,7 @@ int main()
     ResourceManager::load_texture( "assets/breakout/solid_texture.png", "block_solid" );
     ResourceManager::load_texture( "assets/breakout/block_texture.png", "block" );
     ResourceManager::load_texture( "assets/breakout/paddle.png",        "paddle" );
+    ResourceManager::load_texture( "assets/breakout/face.png",        "ball" );
     fightingengine::primitives::Plane plane { 1, 1 };
 
     // ---- Game ----
@@ -54,22 +55,27 @@ int main()
 
     // player
 
-    glm::vec2 player_size { 100.0f, 20.0f };
-    GameObject player;
+    GameObject player { ResourceManager::get_texture("paddle") };
     player.transform.angle = 0.0f;
-    player.transform.colour = { 1.0f, 0.0f, 0.0f };
+    player.transform.colour = { 0.8f, 0.8f, 0.7f };
+    player.transform.scale = { 100.0f, 20.0f };
     player.transform.position = 
     { 
-        screen_width / 2.0f - player_size.x / 2.0f, 
-        screen_height - player_size.y 
-    };
-    player.transform.scale = player_size;
-    player.texture = ResourceManager::get_texture("paddle");
+        screen_width / 2.0f - player.transform.scale.x / 2.0f, 
+        screen_height - player.transform.scale.y
+    };    
     player.velocity = { 500.0f, 0.0f };
 
     // ball
 
-    //TODO(Turtwiggy)
+    Ball ball { ResourceManager::get_texture( "ball" ) };
+    ball.radius = 35.0f;
+    ball.game_object.velocity = { 100.0f, -350.0f };
+    ball.game_object.transform.scale = { ball.radius, ball.radius };
+    ball.game_object.transform.position = { player.transform.position };
+    ball.game_object.transform.position.x += (player.transform.scale.x / 2.0f) - (ball.radius / 2.0f);
+    ball.game_object.transform.position.y += -(ball.radius);
+    //printf("ball pos: %f %f", ball.game_object.transform.position.x, ball.game_object.transform.position.y);
 
     // ---- App ----
 
@@ -81,26 +87,53 @@ int main()
         float delta_time_s = app.get_delta_time();
 
         // Shutdown app
-        if (app.get_input().get_key_down(SDL_KeyCode::SDLK_END))
+        if ( app.get_input().get_key_down( SDL_KeyCode::SDLK_END ) )
             app.shutdown();
 
         // Hold a key
-        if (app.get_input().get_key_held(SDL_SCANCODE_F))
+        if ( app.get_input().get_key_held(SDL_SCANCODE_F) )
             printf("F is being held! \n");
 
         //update_user_input();
-        if(breakout.state == GameState::GAME_ACTIVE)
+        if ( breakout.state == GameState::GAME_ACTIVE )
         {
-            if(app.get_input().get_key_held(SDL_SCANCODE_A))
-                player.transform.position.x -= player.velocity.x * delta_time_s;
-            if(app.get_input().get_key_held(SDL_SCANCODE_D))
-                player.transform.position.x += player.velocity.x * delta_time_s;
+            if( app.get_input().get_key_held( SDL_SCANCODE_A ) )
+            {
+                float velocity_x =  player.velocity.x * delta_time_s;
+                if ( player.transform.position.x >= 0.0f )
+                {
+                    player.transform.position.x -= velocity_x;
+
+                    if( ball.stuck )
+                        ball.game_object.transform.position.x -= velocity_x;
+                }
+            }
+            if( app.get_input().get_key_held( SDL_SCANCODE_D ) )
+            {
+                float velocity_x =  player.velocity.x * delta_time_s;
+                if (player.transform.position.x <= screen_width - player.transform.scale.x )
+                {
+                    player.transform.position.x += velocity_x;
+
+                    if( ball.stuck )
+                        ball.game_object.transform.position.x += velocity_x;
+                }
+            }
+            if( app.get_input().get_key_down( SDL_KeyCode::SDLK_SPACE ) )
+            {
+                printf("ball unstuck \n");
+                ball.stuck = false;
+            }
         }
 
-        update_game_state();
+        //update_game_state();
+        move_ball( ball, delta_time_s, screen_width );
 
-        update_renderer(shader, plane, screen_width, screen_height, breakout, player);
-        
+        //rendering
+        update_renderer( shader, plane, screen_width, screen_height, breakout );
+        draw_sprite ( shader, plane, player );        
+        draw_sprite ( shader, plane, ball.game_object );        
+
         // ImGUI
         app.gui_begin();
 

@@ -30,7 +30,7 @@ namespace fightingengine {
         void gui_begin();
         void gui_end();
 
-        void set_fps_limit(const double fps);
+        void set_fps_limit(const float fps);
         void remove_fps_limit();
         [[nodiscard]] float get_average_fps() const;
         [[nodiscard]] float get_raw_fps(const float delta_time) const;
@@ -55,8 +55,8 @@ namespace fightingengine {
 
         //FPS settings
         bool fps_limit = false;
-        double FPS = 60.0;
-        Uint32 MILLISECONDS_PER_FRAME = (Uint32)(1000 / FPS);
+        float FPS = 60.0;
+        int MILLISECONDS_PER_FRAME = (int)(1000 / FPS);
         boost::circular_buffer<float> fps_buffer;
 
         //Game's fixed tick
