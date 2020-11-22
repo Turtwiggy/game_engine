@@ -7,33 +7,15 @@
 
 namespace game2d {
 
-
-void update_renderer(
-    Shader& shader, 
-    Mesh& mesh, 
-    int screen_width, 
-    int screen_height, 
-    Breakout& breakout )
+void draw_background ( Shader& shader, Mesh& mesh, Texture2D* tex, int screen_width, int screen_height )
 {
-    RenderCommand::clear();
-
     // draw a background
-    draw_sprite (shader, mesh, ResourceManager::get_texture("background"), 
+    draw_sprite (shader, mesh, tex, 
         {0.0f, 0.0f},                   //pos
         {screen_width, screen_height},  //size
         0.0f,                           //angle
         {1.0f, 1.0f, 1.0f}              //colour
     );
-
-    // draw scene
-    if(breakout.state == GameState::GAME_ACTIVE)
-    {   
-        for(auto brick : breakout.levels[0].bricks)
-        {
-            if(!brick.destroyed)
-                draw_sprite( shader, mesh, brick );
-        }
-    }
 }
 
 void draw_sprite ( Shader& shader, Mesh& mesh, GameObject& game_object )
@@ -57,6 +39,7 @@ void draw_sprite( Shader& shader, Mesh& mesh, Texture2D* texture, glm::vec2 posi
     shader.bind();
 
     glm::mat4 model = glm::mat4(1.0f);
+    
     model = glm::translate( model, glm::vec3(position, 0.0f) );  
     // move origin of rotation to center of quad
     model = glm::translate( model, glm::vec3(0.5f * size.x, 0.5f * size.y, 0.0f) ); 

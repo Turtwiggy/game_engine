@@ -2,12 +2,14 @@
 
 //c++ standard lib headers
 #include <vector>
+#include <tuple>
 
 //other project headers
 #include <glm/glm.hpp>
 #include <glm/gtc/matrix_transform.hpp>
 
 //your project headers
+#include "engine/core/application.hpp"
 #include "engine/graphics/texture.hpp"
 #include "engine/graphics/render_command.hpp"
 using namespace fightingengine;
@@ -15,6 +17,12 @@ using namespace fightingengine;
 namespace game2d 
 {
 
+enum class GameState 
+{
+   GAME_ACTIVE,
+   GAME_MENU,
+   GAME_WIN
+};
 
 struct Transform
 {
@@ -48,15 +56,10 @@ struct Ball
 
     Ball( Texture2D* tex );
 };
-void reset_ball( Ball& ball );
-void move_ball( Ball& ball, float delta_time_s, int window_width );
 
-enum class GameState 
-{
-   GAME_ACTIVE,
-   GAME_MENU,
-   GAME_WIN
-};
+void reset_ball( Ball& ball );
+
+void move_ball( Ball& ball, float delta_time_s, int window_width );
 
 
 struct GameLevel
@@ -64,9 +67,9 @@ struct GameLevel
     std::vector<GameObject> bricks;
 };
 
-void load_level_from_file(std::vector<std::vector<int>>& layout, const std::string& path);
+void load_level_from_file( std::vector<std::vector<int>>& layout, const std::string& path );
 
-void init_level(GameLevel& level, const std::vector<std::vector<int>>& layout, int width, int height);
+void init_level( GameLevel& level, const std::vector<std::vector<int>>& layout, int width, int height );
 
 
 struct Breakout
@@ -76,12 +79,28 @@ struct Breakout
     std::vector<GameLevel> levels;
 };
 
-void init_breakout_levels(std::vector<GameLevel>& breakout, int screen_width, int screen_height);
+// ---- simple aabb collisions
 
+enum class CollisionDirection
+{
+    COLLISION_LEFT,
+    COLLISION_RIGHT,
+    COLLISION_UP,
+    COLLISION_DOWN,
+};
+typedef std::tuple<bool, CollisionDirection, glm::vec2> CollisionInfo;    
+
+CollisionDirection get_collision_direction( glm::vec2 target );
+
+bool has_collided( GameObject& one, GameObject& two );
+CollisionInfo has_collided( Ball& ball, GameObject& other );
+
+void do_collisions_bricks( GameLevel& objects, Ball& ball );
+void do_collisions_player( GameObject& player, Ball& ball );
 
 // ---- breakout game functions
 
-void update_user_input();
+void update_user_input( Application& app, float delta_time_s, GameObject& player, Ball& ball, float screen_width );
 
 void update_game_state();
 

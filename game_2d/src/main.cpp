@@ -42,16 +42,25 @@ int main()
     ResourceManager::load_texture( "assets/breakout/solid_texture.png", "block_solid" );
     ResourceManager::load_texture( "assets/breakout/block_texture.png", "block" );
     ResourceManager::load_texture( "assets/breakout/paddle.png",        "paddle" );
-    ResourceManager::load_texture( "assets/breakout/face.png",        "ball" );
+    ResourceManager::load_texture( "assets/breakout/face.png",          "ball" );
     fightingengine::primitives::Plane plane { 1, 1 };
 
-    // ---- Game ----
+    Texture2D* background_tex = ResourceManager::get_texture("background");
 
-    // state
+    // ---- Game ----
     
     Breakout breakout;
     breakout.state = GameState::GAME_ACTIVE;
-    init_breakout_levels(breakout.levels, screen_width, screen_height);
+
+    // levels
+
+    breakout.levels.clear();
+
+    std::vector<std::vector<int>> level_0_bricks;
+    load_level_from_file(level_0_bricks, "assets/breakout/level_0.breakout");
+    GameLevel level_0;
+    init_level(level_0, level_0_bricks, screen_width, static_cast<int>(screen_height / 2.0f));  
+    breakout.levels.push_back(level_0);
 
     // player
 
@@ -69,12 +78,12 @@ int main()
     // ball
 
     Ball ball { ResourceManager::get_texture( "ball" ) };
-    ball.radius = 35.0f;
-    ball.game_object.velocity = { 100.0f, -350.0f };
-    ball.game_object.transform.scale = { ball.radius, ball.radius };
+    ball.radius = 36.0f;
+    ball.game_object.velocity = { 100.0f, -300.0f };
+    ball.game_object.transform.scale = { ball.radius * 2.0f, ball.radius * 2.0f };
     ball.game_object.transform.position = { player.transform.position };
-    ball.game_object.transform.position.x += (player.transform.scale.x / 2.0f) - (ball.radius / 2.0f);
-    ball.game_object.transform.position.y += -(ball.radius);
+    ball.game_object.transform.position.x += (player.transform.scale.x / 2.0f) - ball.radius;
+    ball.game_object.transform.position.y += -ball.radius * 2.0f;
     //printf("ball pos: %f %f", ball.game_object.transform.position.x, ball.game_object.transform.position.y);
 
     // ---- App ----
@@ -94,45 +103,32 @@ int main()
         if ( app.get_input().get_key_held(SDL_SCANCODE_F) )
             printf("F is being held! \n");
 
-        //update_user_input();
+        if ( app.get_input().get_key_down( SDL_KeyCode::SDLK_r ) )
+            printf("Todo - reset game");
+
         if ( breakout.state == GameState::GAME_ACTIVE )
         {
-            if( app.get_input().get_key_held( SDL_SCANCODE_A ) )
+            // update user input
+            update_user_input( app, delta_time_s, player, ball, screen_width );
+
+            // update game state
+            move_ball( ball, delta_time_s, screen_width );
+
+            // collisions
+            do_collisions_bricks( breakout.levels[0], ball);
+            do_collisions_player( player, ball );
+
+            // rendering
+            RenderCommand::clear();
+            draw_background ( shader, plane, background_tex, screen_width, screen_height );
+            for(auto& brick : breakout.levels[0].bricks)
             {
-                float velocity_x =  player.velocity.x * delta_time_s;
-                if ( player.transform.position.x >= 0.0f )
-                {
-                    player.transform.position.x -= velocity_x;
-
-                    if( ball.stuck )
-                        ball.game_object.transform.position.x -= velocity_x;
-                }
+                if(!brick.destroyed)
+                    draw_sprite( shader, plane, brick );
             }
-            if( app.get_input().get_key_held( SDL_SCANCODE_D ) )
-            {
-                float velocity_x =  player.velocity.x * delta_time_s;
-                if (player.transform.position.x <= screen_width - player.transform.scale.x )
-                {
-                    player.transform.position.x += velocity_x;
-
-                    if( ball.stuck )
-                        ball.game_object.transform.position.x += velocity_x;
-                }
-            }
-            if( app.get_input().get_key_down( SDL_KeyCode::SDLK_SPACE ) )
-            {
-                printf("ball unstuck \n");
-                ball.stuck = false;
-            }
-        }
-
-        //update_game_state();
-        move_ball( ball, delta_time_s, screen_width );
-
-        //rendering
-        update_renderer( shader, plane, screen_width, screen_height, breakout );
-        draw_sprite ( shader, plane, player );        
-        draw_sprite ( shader, plane, ball.game_object );        
+            draw_sprite ( shader, plane, player );        
+            draw_sprite ( shader, plane, ball.game_object );     
+        }   
 
         // ImGUI
         app.gui_begin();
