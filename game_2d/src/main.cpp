@@ -5,6 +5,7 @@
 
 //other library headers
 #include <glm/glm.hpp>
+#include <box2d/box2d.h>
 
 //fightingengine headers
 #include "engine/core/application.hpp"
@@ -52,14 +53,52 @@ int main()
     Breakout breakout;
     breakout.state = GameState::GAME_ACTIVE;
 
+    // ---- box2d physics
+
+    b2Vec2 gravity(0.0f, 9.81f);
+    b2World world(gravity);
+
+    // -- create a static body
+
+    //1. define a body with position, damping, etc
+    b2BodyDef body_def;
+    body_def.position = { 0.0f, screen_height - 100.0f};
+    body_def.type = b2_staticBody;
+    //2. use world obj to create body
+    b2Body* static_body = world.CreateBody(&body_def);
+    //3. define fixtures with shape, friction, density etc
+    b2PolygonShape ground_box;
+    ground_box.SetAsBox(50.0f, 50.0f);
+    //4. create fixtures on the body
+    static_body->CreateFixture(&ground_box, 0.0f);
+
+    // -- create a dynamic body
+    b2BodyDef dynamic_body_def;
+    dynamic_body_def.type = b2_dynamicBody;
+    dynamic_body_def.position.Set(0.0f, 400.0f);
+    b2Body* dynamic_body = world.CreateBody(&dynamic_body_def);
+    b2PolygonShape dynamic_box;
+    dynamic_box.SetAsBox(50.0f, 50.0f);
+    b2FixtureDef fixture_def;
+    fixture_def.shape = &dynamic_box;
+    fixture_def.density = 1.0f;
+    fixture_def.friction = 0.3f;
+    dynamic_body->CreateFixture(&fixture_def);
+
+    float physics_timestep = 1.0f / 60.0f;
+    int32 velocity_iterations = 6;
+    int32 position_iterations = 2;
+
     // levels
 
     breakout.levels.clear();
 
-    std::vector<std::vector<int>> level_0_bricks;
-    load_level_from_file(level_0_bricks, "assets/breakout/level_0.breakout");
     GameLevel level_0;
-    init_level(level_0, level_0_bricks, screen_width, static_cast<int>(screen_height / 2.0f));  
+    {
+        std::vector<std::vector<int>> level_0_bricks;
+        load_level_from_file(level_0_bricks, "assets/breakout/level_0.breakout");
+        init_level(level_0, level_0_bricks, screen_width, static_cast<int>(screen_height / 2.0f));  
+    }
     breakout.levels.push_back(level_0);
 
     // player
@@ -79,7 +118,7 @@ int main()
 
     Ball ball { ResourceManager::get_texture( "ball" ) };
     ball.radius = 36.0f;
-    ball.game_object.velocity = { 100.0f, -300.0f };
+    ball.game_object.velocity = { 100.0f, -100.0f };
     ball.game_object.transform.scale = { ball.radius * 2.0f, ball.radius * 2.0f };
     ball.game_object.transform.position = { player.transform.position };
     ball.game_object.transform.position.x += (player.transform.scale.x / 2.0f) - ball.radius;
@@ -95,7 +134,7 @@ int main()
 
         float delta_time_s = app.get_delta_time();
 
-        // Shutdown app
+        // Shutdown app.
         if ( app.get_input().get_key_down( SDL_KeyCode::SDLK_END ) )
             app.shutdown();
 
@@ -106,6 +145,15 @@ int main()
         if ( app.get_input().get_key_down( SDL_KeyCode::SDLK_r ) )
             printf("Todo - reset game");
 
+        if ( app.get_input().get_key_down( SDL_KeyCode::SDLK_t ) )
+            dynamic_body->SetTransform(b2Vec2(0.0f, 0.0f), dynamic_body->GetAngle());
+
+        if ( app.get_input().get_mouse_lmb_held())
+        {
+            glm::ivec2 mouse_pos = app.get_window().get_mouse_position();
+            dynamic_body->SetTransform(b2Vec2(mouse_pos.x, mouse_pos.y), dynamic_body->GetAngle());
+        }
+
         if ( breakout.state == GameState::GAME_ACTIVE )
         {
             // update user input
@@ -115,19 +163,40 @@ int main()
             move_ball( ball, delta_time_s, screen_width );
 
             // collisions
-            do_collisions_bricks( breakout.levels[0], ball);
-            do_collisions_player( player, ball );
+            // do_collisions_bricks( breakout.levels[0], ball);
+            // do_collisions_player( player, ball );
+
+            // physics
+            world.Step(physics_timestep, velocity_iterations, position_iterations);
 
             // rendering
             RenderCommand::clear();
-            draw_background ( shader, plane, background_tex, screen_width, screen_height );
-            for(auto& brick : breakout.levels[0].bricks)
-            {
-                if(!brick.destroyed)
-                    draw_sprite( shader, plane, brick );
-            }
-            draw_sprite ( shader, plane, player );        
-            draw_sprite ( shader, plane, ball.game_object );     
+
+            b2Vec2 pos = dynamic_body->GetPosition();
+            float angle = dynamic_body->GetAngle();
+
+            draw_sprite( shader, plane, ResourceManager::get_texture("block"), 
+                {pos.x, pos.y}, 
+                {100.0f, 100.0f},
+                angle,
+                {1.0f, 1.0f, 1.0f} );
+
+            b2Vec2 static_pos = static_body->GetPosition();           
+            float static_angle = static_body->GetAngle();           
+            draw_sprite( shader, plane, ResourceManager::get_texture("block"), 
+                {static_pos.x, static_pos.y}, 
+                {100.0f, 100.0f},
+                static_angle,
+                {1.0f, 1.0f, 1.0f} );
+        
+            // draw_background ( shader, plane, background_tex, screen_width, screen_height );
+            // for(auto& brick : breakout.levels[0].bricks)
+            // {
+            //     if(!brick.destroyed)
+            //         draw_sprite( shader, plane, brick );
+            // }
+            // draw_sprite ( shader, plane, player );        
+            // draw_sprite ( shader, plane, ball.game_object );     
         }   
 
         // ImGUI

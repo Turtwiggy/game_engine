@@ -81,22 +81,19 @@ struct Breakout
 
 // ---- simple aabb collisions
 
-enum class CollisionDirection
-{
-    COLLISION_LEFT,
-    COLLISION_RIGHT,
-    COLLISION_UP,
-    COLLISION_DOWN,
-};
-typedef std::tuple<bool, CollisionDirection, glm::vec2> CollisionInfo;    
+// enum class CollisionDirection
+// {
+//     COLLISION_LEFT,
+//     COLLISION_RIGHT,
+//     COLLISION_UP,
+//     COLLISION_DOWN,
 
-CollisionDirection get_collision_direction( glm::vec2 target );
+//     COLLISION_NONE
+// };
+// typedef std::tuple<bool, CollisionDirection, glm::vec2> CollisionInfo;    
 
-bool has_collided( GameObject& one, GameObject& two );
-CollisionInfo has_collided( Ball& ball, GameObject& other );
-
-void do_collisions_bricks( GameLevel& objects, Ball& ball );
-void do_collisions_player( GameObject& player, Ball& ball );
+// void do_collisions_bricks( GameLevel& objects, Ball& ball );
+// void do_collisions_player( GameObject& player, Ball& ball );
 
 // ---- breakout game functions
 

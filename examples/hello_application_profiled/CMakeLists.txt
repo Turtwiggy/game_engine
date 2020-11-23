@@ -1,15 +1,15 @@
-#this cmake lists compiles the game_2d with the engine
+#this cmake lists compiles the hello_application_profiled with the engine
 
 cmake_minimum_required(VERSION 3.0.0)
-project(game_2d VERSION 0.1.0)
+project(hello_application_profiled VERSION 0.1.0)
 
-message("game_2d: ${CMAKE_SYSTEM_NAME}")
-message("game_2d: ${CMAKE_BUILD_TYPE}")
+message("hello_application_profiled: ${CMAKE_SYSTEM_NAME}")
+message("hello_application_profiled: ${CMAKE_BUILD_TYPE}")
 
 # build the engine + bring in Vcpkg
 include("${CMAKE_SOURCE_DIR}/engine/cmake/build_info.cmake")
 
-# add Vcpkg packages
+#Add VCPKG packages
 foreach(package ${ENGINE_PACKAGES_CONFIG})
   message("${PROJECT_NAME} finding package... ${package}")
   find_package(${package} CONFIG REQUIRED)
@@ -18,38 +18,32 @@ foreach(package ${ENGINE_PACKAGES})
   message("${PROJECT_NAME} finding package... ${package}")
   find_package(${package} REQUIRED)
 endforeach()
-find_package(unofficial-box2d CONFIG REQUIRED)
 
 #Add VCPKG header-only
 find_path(STB_INCLUDE_DIRS "stb.h")
 
 # add source files
 file(GLOB_RECURSE SRC_FILES 
-  #engine source
   ${ENGINE_SOURCE} 
-  #game source
-  "${CMAKE_SOURCE_DIR}/game_2d/src/*.cpp"
+  "${CMAKE_SOURCE_DIR}/examples/hello_application_profiled/src/*.cpp"
 )
 
-add_executable(game_2d ${SRC_FILES})
+add_executable(hello_application_profiled ${SRC_FILES})
 
 # includes
-target_include_directories(game_2d PRIVATE 
-  #engine includes
+target_include_directories(hello_application_profiled PRIVATE 
   ${ENGINE_INCLUDES} 
-  #game includes
-  ${CMAKE_SOURCE_DIR}/game_2d/src
+  ${CMAKE_SOURCE_DIR}/examples/hello_application_profiled/src
 )
-target_include_directories(game_2d PRIVATE ${STB_INCLUDE_DIRS})
+target_include_directories(hello_application_profiled PRIVATE ${STB_INCLUDE_DIRS})
 
 # link libs
 foreach(library ${ENGINE_LINK_LIBS})
   message("${PROJECT_NAME} linking library... ${library}")
-  target_link_libraries(game_2d PRIVATE ${library})
+  target_link_libraries(hello_application_profiled PRIVATE ${library})
 endforeach()
-target_link_libraries(game_2d PRIVATE unofficial::box2d::box2d)
 
-#create symlink assets for build
+# create symlink assets for build
 IF(${CMAKE_SYSTEM_NAME} STREQUAL "Windows")
   set (source "${CMAKE_SOURCE_DIR}/assets")
   set (destination "${CMAKE_CURRENT_BINARY_DIR}/assets")

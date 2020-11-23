@@ -1,5 +1,6 @@
 sdl2
 entt
+box2d
 bullet3
 spdlog
 glm

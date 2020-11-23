@@ -1,13 +1,13 @@
 
 //header
-#include "panels/profiler_panel.hpp"
+#include "engine/ui/profiler_panel.hpp"
 
 //other library headers
 #include <imgui.h>
 
 using namespace fightingengine;
 
-namespace game_3d {
+namespace fightingengine {
 
 void ProfilerPanel::draw(const Application& app, const Profiler& profiler, const float delta_time_s)
 {
@@ -68,4 +68,4 @@ void ProfilerPanel::draw(const Application& app, const Profiler& profiler, const
     ImGui::End();
 }
 
-} //namespace game_3d
+} //namespace fightingengine

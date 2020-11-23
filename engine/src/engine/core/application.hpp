@@ -61,8 +61,12 @@ namespace fightingengine {
 
         //Game's fixed tick
         int FIXED_TICKS_PER_SECOND = 1;
-        float SECONDS_PER_FIXED_TICK = 1.f / FIXED_TICKS_PER_SECOND;
+        float SECONDS_PER_FIXED_TICK = 1.0f / FIXED_TICKS_PER_SECOND;
         float seconds_since_last_game_tick = 0;
+
+        //Physics tick
+        //int PHYSICS_TICKS_PER_SECOND = 60;
+        //float SECONDS_PER_PHYSICS_TICK = 1.0f / PHYSICS_TICKS_PER_SECOND;
 
         //Delta time
         unsigned int start = 0;

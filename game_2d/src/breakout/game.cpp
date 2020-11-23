@@ -7,8 +7,12 @@
 #include <fstream>
 #include <sstream>
 
+//other project headers
+#include "thirdparty/magic_enum.hpp"
+
 //your lib headers
 #include "engine/resources/resource_manager.hpp"
+
 
 namespace game2d
 {
@@ -158,137 +162,86 @@ void init_level( GameLevel& level, const std::vector<std::vector<int>>& layout, 
 
 // ---- simple aabb collisions
 
-bool has_collided( GameObject& one, GameObject& two )
-{
-    Transform& t1 = one.transform;
-    Transform& t2 = two.transform;
+// void do_collisions_bricks( GameLevel& objects, Ball& ball )
+// {
+//     for ( auto& box : objects.bricks )
+//     {
+//         if ( ! box.destroyed )
+//         {
+//             CollisionInfo collision = has_collided( ball, box );
 
-    // collision x-axis?
-    bool collided_x = 
-          t1.position.x + t1.scale.x >= t2.position.x &&
-          t2.position.x + t2.scale.x >= t1.position.x;
-
-    // collision y-axis?
-    bool collided_y = 
-        t1.position.y + t1.scale.y >= t2.position.y &&
-        t2.position.y + t2.scale.y >= t1.position.y;
-
-    // collision only if on both axes
-    return collided_x && collided_y;
-}
-
-CollisionDirection get_collision_direction( glm::vec2 target )
-{
-    glm::vec2 compass[] = {
-        glm::vec2(0.0f, 1.0f),	// up
-        glm::vec2(1.0f, 0.0f),	// right
-        glm::vec2(0.0f, -1.0f),	// down
-        glm::vec2(-1.0f, 0.0f)	// left
-    };
-    float max = 0.0f;
-    int best_match = -1;
-    for ( int i = 0; i < 4; i++ )
-    {
-        float dot_product = glm::dot( glm::normalize( target ), compass[i] );
-        if ( dot_product > max )
-        {
-            max = dot_product;
-            best_match = i;
-        }
-    }
-    return (CollisionDirection)best_match;
-}
-
-CollisionInfo has_collided( Ball& ball, GameObject& other )
-{
-    glm::vec2 center( ball.game_object.transform.position + ball.radius );
-
-    glm::vec2 aabb_half_extents(
-            other.transform.scale.x / 2.0f, 
-            other.transform.scale.y / 2.0f );
-
-    glm::vec2 aabb_center(
-        other.transform.position.x + aabb_half_extents.x,
-        other.transform.position.y + aabb_half_extents.y );
-
-    glm::vec2 difference = center - aabb_center;
-    glm::vec2 clamped = glm::clamp( difference, -aabb_half_extents, aabb_half_extents );
-    glm::vec2 closest = aabb_center + clamped;
-
-    difference = closest - center;
-
-    if ( glm::length( difference ) <= ball.radius ) 
-        return std::make_tuple( true, get_collision_direction( difference ), difference );
-    else
-        return std::make_tuple( false, CollisionDirection::COLLISION_UP, glm::vec2{ 0.0f, 0.0f } );
-}
-
-void do_collisions_bricks( GameLevel& objects, Ball& ball )
-{
-    for ( auto& box : objects.bricks )
-    {
-        if ( ! box.destroyed )
-        {
-            CollisionInfo collision = has_collided( ball, box );
-
-            if ( !std::get<0>(collision) ) // no collision
-                continue;
+//             if ( ! std::get<0>(collision) ) // no collision
+//                 continue;
             
-            if( ! box.is_solid )
-                box.destroyed = true;
+//             if( ! box.is_solid )
+//                 box.destroyed = true;
 
-            // collision resolution
-            CollisionDirection dir = std::get<1>(collision);
-            glm::vec2 difference = std::get<2>(collision);
+//             // collision resolution
+//             CollisionDirection dir = std::get<1>(collision);
+//             glm::vec2 difference = std::get<2>(collision);
 
-            //horizontal collision
-            if ( dir == CollisionDirection::COLLISION_LEFT || dir == CollisionDirection::COLLISION_RIGHT )
-            {
-                ball.game_object.velocity.x = -ball.game_object.velocity.x;
+//             printf("collision: %s \n", std::string(magic_enum::enum_name(dir)).c_str());
 
-                //relocate ball to collision point
-                float depth = ball.radius - glm::abs( difference.x );
-                if( dir == CollisionDirection::COLLISION_LEFT )
-                    ball.game_object.transform.position.x += depth; //move ball right
-                else
-                    ball.game_object.transform.position.x = depth;  //move ball left
-            }
-            //vertical collision
-            else
-            {
-                ball.game_object.velocity.y = -ball.game_object.velocity.y;
+//             //horizontal collisions
 
-                float depth = ball.radius - glm::abs( difference.y );
-                if( dir == CollisionDirection::COLLISION_UP)
-                    ball.game_object.transform.position.y -= depth; //move ball up
-                else
-                    ball.game_object.transform.position.y += depth; //move ball down
-            }
-        }
-    }
-}
+//             if ( dir == CollisionDirection::COLLISION_LEFT )
+//             {
+//                 ball.game_object.velocity.x = -glm::abs(ball.game_object.velocity.x);
 
-void do_collisions_player( GameObject& player, Ball& ball )
-{
-    CollisionInfo info = has_collided(ball, player);
+//                 float depth = ball.radius - glm::abs( difference.x );
+//                 ball.game_object.transform.position.x += depth; //move ball right
+//             }
 
-    if( ! ball.stuck && std::get<0>(info) )
-    {
-       // printf("ball collided with paddle!");
+//             else if ( dir == CollisionDirection::COLLISION_RIGHT )
+//             {
+//                 ball.game_object.velocity.x = glm::abs(ball.game_object.velocity.x);
+
+//                 float depth = ball.radius - glm::abs( difference.x );
+//                 ball.game_object.transform.position.x -= depth;  //move ball left
+//             }
+
+//             //vertical collisions
+
+//             else if ( dir == CollisionDirection::COLLISION_UP )
+//             {
+//                 ball.game_object.velocity.y = -glm::abs(ball.game_object.velocity.y);
+
+//                 float depth = ball.radius - glm::abs( difference.y );
+//                 ball.game_object.transform.position.y -= depth; //move ball up
+//             }
+
+//             else if ( dir == CollisionDirection::COLLISION_DOWN )
+//             {
+//                 ball.game_object.velocity.y = glm::abs(ball.game_object.velocity.y);
+                
+//                 float depth = ball.radius - glm::abs( difference.y );
+//                 ball.game_object.transform.position.y += depth; //move ball down
+//             }
+
+//         }
+//     }
+// }
+
+// void do_collisions_player( GameObject& player, Ball& ball )
+// {
+
+//     if( ! ball.stuck && std::get<0>(info) )
+//     {
+//        // printf("ball collided with paddle!");
         
-        float center = player.transform.position.x + player.transform.scale.x / 2.0f;
-        float distance = ball.game_object.transform.position.x + ball.radius - center;
-        float percentage = distance / player.transform.scale.x / 2.0f;
-        //printf("percentage: %f", percentage);
+//         float center = player.transform.position.x + player.transform.scale.x / 2.0f;
+//         float distance = ball.game_object.transform.position.x + ball.radius - center;
+//         float percentage = distance / player.transform.scale.x / 2.0f;
+//         //printf("percentage: %f", percentage);
 
-        float strength = 2.0f;
-        glm::vec2 old_velocity = ball.game_object.velocity;
-        float initial_ball_velocity = 100.0f;
-        ball.game_object.velocity.x = initial_ball_velocity * percentage * strength;
-        ball.game_object.velocity.y = -glm::abs(ball.game_object.velocity.y);
-        ball.game_object.velocity = glm::normalize( ball.game_object.velocity ) * glm::length(old_velocity);
-    }
-}
+//         float strength = 2.0f;
+//         glm::vec2 old_velocity = ball.game_object.velocity;
+//         float initial_ball_velocity = 100.0f;
+//         ball.game_object.velocity.x = initial_ball_velocity * percentage * strength;
+//         ball.game_object.velocity.y = -glm::abs(ball.game_object.velocity.y);
+//         ball.game_object.velocity = glm::normalize( ball.game_object.velocity ) * glm::length(old_velocity);
+//     }
+// }
 
 // ---- breakout game functions
 
