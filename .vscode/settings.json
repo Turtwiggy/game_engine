@@ -74,5 +74,8 @@
         "variant": "cpp"
     },
     "cmake.loggingLevel": "debug",
-    "cmake.preferredGenerators": ["Ninja"]
+    "cmake.preferredGenerators": [
+        "Ninja"
+    ],
+    "C_Cpp.errorSquiggles": "Disabled"
 }

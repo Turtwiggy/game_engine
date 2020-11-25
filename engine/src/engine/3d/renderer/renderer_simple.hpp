@@ -9,8 +9,8 @@
 
 //your project headers
 #include "engine/core/maths/random.hpp"
+#include "engine/core/application.hpp"
 #include "engine/graphics/framebuffer.hpp"
-#include "engine/graphics/shaders/flat_shader.hpp"
 #include "engine/3d/camera/camera.hpp"
 #include "engine/3d/camera/fly_camera.hpp"
 #include "engine/scene/scene_node.hpp"
@@ -26,6 +26,7 @@ public:
     RendererSimple(RandomState& rnd, int width, int height);
     
     void update(
+        const Application& app, 
         float delta_time, 
         FlyCamera& camera, 
         RandomState& rnd, 
@@ -40,10 +41,15 @@ private:
 
 private:
 
+    unsigned int sphereVAO = 0;
+    unsigned int indexCount;
+    void renderSphere();
+
     //rendering shaders / meshes available
     Shader flat_shader_;
+    Shader pbr_shader_;
     std::shared_ptr<Mesh> cube;
-    //std::shared_ptr<Mesh> plane;
+    std::shared_ptr<Mesh> plane;
 
     Background* background;
     std::shared_ptr<TextureCube> cubemap_;

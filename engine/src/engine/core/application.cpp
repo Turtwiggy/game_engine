@@ -67,9 +67,16 @@ namespace fightingengine {
         return ImGui::GetIO().DeltaTime;
     }
 
+    float Application::get_time_since_launch() const
+    {
+        return time_since_launch;
+    }
+
     void Application::frame_begin()
     {
         input_manager.new_frame();
+
+        time_since_launch += get_delta_time();
     }
 
     void Application::frame_end(const float delta_time)

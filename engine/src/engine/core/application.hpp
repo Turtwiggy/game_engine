@@ -24,6 +24,7 @@ namespace fightingengine {
         void shutdown();
 
         [[nodiscard]] float get_delta_time();
+        [[nodiscard]] float get_time_since_launch() const;
         void frame_begin();
         void frame_end(const float delta_time);
         void poll(); 

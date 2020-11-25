@@ -42,7 +42,7 @@ void Texture2D::Generate(
 
 void Texture2D::Bind(int unit) const
 {
-    if(unit >= 0)
+    if(unit >= -1)
         glActiveTexture(GL_TEXTURE0 + unit);
     glBindTexture(Target, this->id);
 }

@@ -189,7 +189,7 @@ profiler.begin(Profiler::Stage::Render);
          
         // ---- Rendering 
 
-        simple_renderer.update( delta_time_s, camera,  rnd, cube_pos );                        
+        simple_renderer.update( app, delta_time_s, camera,  rnd, cube_pos );                        
 
 profiler.end(Profiler::Stage::Render);
 profiler.begin(Profiler::Stage::GuiLoop);
