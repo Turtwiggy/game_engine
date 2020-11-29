@@ -10,7 +10,7 @@
 
 namespace fightingengine {
 
-void Texture2D::Generate(
+void Texture2D::generate(
     unsigned int width, 
     unsigned int height, 
     GLenum internalFormat, 
@@ -27,7 +27,7 @@ void Texture2D::Generate(
     Type           = type;
 
     assert(Target == GL_TEXTURE_2D);
-    Bind();
+    bind();
 
     glTexImage2D(Target, 0, internalFormat, width, height, 0, format, type, data);
     glTexParameteri(Target, GL_TEXTURE_MIN_FILTER, FilterMin);
@@ -37,17 +37,17 @@ void Texture2D::Generate(
     if (Mipmapping)
         glGenerateMipmap(Target);
 
-    Unbind();
+    unbind();
 }
 
-void Texture2D::Bind(int unit) const
+void Texture2D::bind(int unit) const
 {
     if(unit >= 0)
         glActiveTexture(GL_TEXTURE0 + unit);
     glBindTexture(Target, this->id);
 }
 
-void Texture2D::Unbind()
+void Texture2D::unbind()
 {
     glBindTexture(Target, 0);
 }

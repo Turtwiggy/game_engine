@@ -147,7 +147,7 @@ Texture2D ResourceManager::load_texture_from_file(std::string full_path, GLenum 
             texture.WrapR = GL_CLAMP_TO_BORDER;
             texture.WrapS = GL_CLAMP_TO_BORDER;
             texture.WrapT = GL_CLAMP_TO_BORDER;
-            texture.Generate(width, height, texture.InternalFormat, format, GL_UNSIGNED_BYTE, data);
+            texture.generate(width, height, texture.InternalFormat, format, GL_UNSIGNED_BYTE, data);
         }
     }
     else

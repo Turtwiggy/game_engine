@@ -3,8 +3,6 @@
 #include "engine/3d/renderer/renderer_simple.hpp"
 
 //other library files
-#include <glm/gtc/matrix_transform.hpp>
-#include <glm/gtx/transform.hpp>
 #include <GL/glew.h>
 
 //your project files
@@ -13,7 +11,7 @@
 
 namespace fightingengine {
 
-RendererSimple::RendererSimple(RandomState& rnd, int width, int height)
+RendererSimple::RendererSimple( RandomState& rnd, int width, int height )
 {
     //Configure OpenGL
     RenderCommand::init();
@@ -25,21 +23,11 @@ RendererSimple::RendererSimple(RandomState& rnd, int width, int height)
 
     //load shaders
     ResourceManager::load_shader("assets/shaders/blinn-phong/", {"lit.vert", "lit_directional.frag"}, "lit");
-    ResourceManager::load_shader("assets/shaders/pbr", {"pbr.vert", "pbr.frag"}, "pbr");
 
     //shaders & meshes 
     flat_shader_ = ResourceManager::get_shader("lit");
-    pbr_shader_ = ResourceManager::get_shader("pbr");
-
     cube = std::make_shared<primitives::Cube>();  
-    plane = std::make_shared<primitives::Plane>(1, 1);  
-
-    //textures
-    ResourceManager::load_texture( "assets/textures/pbr_metalgrid/metalgrid2_basecolor.png", "albedo" );
-    ResourceManager::load_texture( "assets/textures/pbr_metalgrid/metalgrid2_normal-dx.png", "normal" );
-    ResourceManager::load_texture( "assets/textures/pbr_metalgrid/metalgrid2_metallic.png", "metallic" );
-    ResourceManager::load_texture( "assets/textures/pbr_metalgrid/metalgrid2_roughness.png", "roughness" );
-    ResourceManager::load_texture( "assets/textures/pbr_metalgrid/metalgrid2_AO.png", "ao" );
+    plane = std::make_shared<primitives::Plane>( 1, 1 );  
 
     //TODO(Turtwiggy) finish model loading
     //object_ = ResourceManager::load_model("assets/models/lizard_wizard/lizard_wizard->obj", "Object");
@@ -49,252 +37,102 @@ RendererSimple::RendererSimple(RandomState& rnd, int width, int height)
     cubemap_ = std::make_shared<TextureCube>(cubemap);
     background = new Background();
     background->Material->set_texture_cube("DefaultCubemap", cubemap_.get());
+
+    //shadow map
+    shadowmap_fbo_ = Framebuffer::create_fbo();
+    Framebuffer::create_shadowmap_depthbuffer( 
+        shadowmap_fbo_, 
+        shadowmap_texture_, 
+        shadowmap_width_, 
+        shadowmap_height_ );    
 }
 
-
-// renders (and builds at first invocation) a sphere
-// -------------------------------------------------
-
-void RendererSimple::renderSphere()
+void RendererSimple::render_scene( 
+    const glm::mat4& view_projection, 
+    const std::vector<glm::vec3>& cube_pos )
 {
-    draw_calls_ += 1;
+    flat_shader_.bind();
+    flat_shader_.set_mat4("view_projection", view_projection);
+    //flat_shader_.set_vec3("viewPos", camera.Position);
 
-    if (sphereVAO == 0)
+    flat_shader_.set_vec3("light.direction", -0.2f, -1.0f, -0.3f);
+
+    glm::vec3 light_diffuse = glm::vec3(0.9f, 0.9f, 0.9f) * glm::vec3(0.5f); // decrease the influence
+    glm::vec3 light_ambient = light_diffuse * glm::vec3(0.2f); // low influence
+    flat_shader_.set_vec3("light.ambient", light_ambient);
+    flat_shader_.set_vec3("light.diffuse", light_diffuse);
+    flat_shader_.set_vec3("light.specular", 1.0f, 1.0f, 1.0f);
+
+    // Cube: Material
+    flat_shader_.set_vec3("material.ambient", glm::vec3(1.0f, 0.0f, 0.0f));
+    flat_shader_.set_vec3("material.diffuse", glm::vec3(1.0f, 0.0f, 0.0f));
+    flat_shader_.set_vec3("material.specular", 0.5f, 0.5f, 0.5f);
+    flat_shader_.set_float("material.shininess", 32.0f);
+    // Cube: Draw
+    for(int i = 0; i < cube_pos.size(); i++)
     {
-        glGenVertexArrays(1, &sphereVAO);
+        // calculate the model matrix for each object and pass it to shader before drawing
+        glm::mat4 model = glm::mat4(1.0f);
+        model = glm::translate(model, cube_pos[i]);
+        model = glm::rotate(model, glm::radians(0.0f), glm::vec3(1.0f, 0.0f, 0.0f));
+        flat_shader_.set_mat4("model", model);
 
-        unsigned int vbo, ebo;
-        glGenBuffers(1, &vbo);
-        glGenBuffers(1, &ebo);
+        render_mesh(cube);
+    }    
 
-        std::vector<glm::vec3> positions;
-        std::vector<glm::vec2> uv;
-        std::vector<glm::vec3> normals;
-        std::vector<unsigned int> indices;
-
-        const unsigned int X_SEGMENTS = 64;
-        const unsigned int Y_SEGMENTS = 64;
-        const float PI = 3.14159265359;
-        for (unsigned int y = 0; y <= Y_SEGMENTS; ++y)
-        {
-            for (unsigned int x = 0; x <= X_SEGMENTS; ++x)
-            {
-                float xSegment = (float)x / (float)X_SEGMENTS;
-                float ySegment = (float)y / (float)Y_SEGMENTS;
-                float xPos = std::cos(xSegment * 2.0f * PI) * std::sin(ySegment * PI);
-                float yPos = std::cos(ySegment * PI);
-                float zPos = std::sin(xSegment * 2.0f * PI) * std::sin(ySegment * PI);
-
-                positions.push_back(glm::vec3(xPos, yPos, zPos));
-                uv.push_back(glm::vec2(xSegment, ySegment));
-                normals.push_back(glm::vec3(xPos, yPos, zPos));
-            }
-        }
-
-        bool oddRow = false;
-        for (unsigned int y = 0; y < Y_SEGMENTS; ++y)
-        {
-            if (!oddRow) // even rows: y == 0, y == 2; and so on
-            {
-                for (unsigned int x = 0; x <= X_SEGMENTS; ++x)
-                {
-                    indices.push_back(y       * (X_SEGMENTS + 1) + x);
-                    indices.push_back((y + 1) * (X_SEGMENTS + 1) + x);
-                }
-            }
-            else
-            {
-                for (int x = X_SEGMENTS; x >= 0; --x)
-                {
-                    indices.push_back((y + 1) * (X_SEGMENTS + 1) + x);
-                    indices.push_back(y       * (X_SEGMENTS + 1) + x);
-                }
-            }
-            oddRow = !oddRow;
-        }
-        indexCount = indices.size();
-
-        std::vector<float> data;
-        for (std::size_t i = 0; i < positions.size(); ++i)
-        {
-            data.push_back(positions[i].x);
-            data.push_back(positions[i].y);
-            data.push_back(positions[i].z);
-            if (uv.size() > 0)
-            {
-                data.push_back(uv[i].x);
-                data.push_back(uv[i].y);
-            }
-            if (normals.size() > 0)
-            {
-                data.push_back(normals[i].x);
-                data.push_back(normals[i].y);
-                data.push_back(normals[i].z);
-            }
-        }
-        glBindVertexArray(sphereVAO);
-        glBindBuffer(GL_ARRAY_BUFFER, vbo);
-        glBufferData(GL_ARRAY_BUFFER, data.size() * sizeof(float), &data[0], GL_STATIC_DRAW);
-        glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, ebo);
-        glBufferData(GL_ELEMENT_ARRAY_BUFFER, indices.size() * sizeof(unsigned int), &indices[0], GL_STATIC_DRAW);
-        float stride = (3 + 2 + 3) * sizeof(float);
-        glEnableVertexAttribArray(0);
-        glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, stride, (void*)0);
-        glEnableVertexAttribArray(1);
-        glVertexAttribPointer(1, 2, GL_FLOAT, GL_FALSE, stride, (void*)(3 * sizeof(float)));
-        glEnableVertexAttribArray(2);
-        glVertexAttribPointer(2, 3, GL_FLOAT, GL_FALSE, stride, (void*)(5 * sizeof(float)));
-    }
-
-    glBindVertexArray(sphereVAO);
-    glDrawElements(GL_TRIANGLE_STRIP, indexCount, GL_UNSIGNED_INT, 0);
-}
-
-void RendererSimple::update(const Application& app, float delta_time, FlyCamera& camera, RandomState& rnd, const std::vector<glm::vec3>& cube_pos)
-{
-    camera.Update(delta_time);
-    glm::mat4 view_projection =  camera.get_view_projection_matrix();
-
-    draw_calls_ = 0;
-
-    // render pass: rendering phase
-    // ---------------------------
-    RenderCommand::clear();
-
-    // flat_shader_.bind();
-    // flat_shader_.set_mat4("view_projection", view_projection);
-    // //flat_shader_.set_vec3("viewPos", camera.Position);
-
-    // flat_shader_.set_vec3("light.direction", -0.2f, -1.0f, -0.3f);
-
-    // glm::vec3 light_diffuse = light_colours[0]   * glm::vec3(0.5f); // decrease the influence
-    // glm::vec3 light_ambient = light_diffuse * glm::vec3(0.2f); // low influence
-    // flat_shader_.set_vec3("light.ambient", light_ambient);
-    // flat_shader_.set_vec3("light.diffuse", light_diffuse);
-    // flat_shader_.set_vec3("light.specular", 1.0f, 1.0f, 1.0f);
-
-    // // Cube: Material
-    // flat_shader_.set_vec3("material.ambient", glm::vec3(1.0f, 0.0f, 0.0f));
-    // flat_shader_.set_vec3("material.diffuse", glm::vec3(1.0f, 0.0f, 0.0f));
-    // flat_shader_.set_vec3("material.specular", 0.5f, 0.5f, 0.5f);
-    // flat_shader_.set_float("material.shininess", 32.0f);
-    // // Cube: Draw
-    // for(int i = 0; i < cube_pos.size(); i++)
-    // {
-    //     // calculate the model matrix for each object and pass it to shader before drawing
-    //     glm::mat4 model = glm::mat4(1.0f);
-    //     model = glm::translate(model, cube_pos[i]);
-    //     model = glm::rotate(model, glm::radians(0.0f), glm::vec3(1.0f, 0.0f, 0.0f));
-    //     flat_shader_.set_mat4("model", model);
-
-    //     render_mesh(cube);
-    // }    
-
-    // //Plane: Scale
-    // glm::mat4 model = glm::mat4(1.0f);
-    // model = glm::translate(model, glm::vec3(0.0f, 0.0f, 0.0f));
-    // model = glm::scale(model, glm::vec3(10.0f, 10.0f, 10.0f));
-    // model = glm::rotate(model, glm::radians(90.0f), glm::normalize(glm::vec3(1.0f, 0.0f, 0.0f)));
-    // flat_shader_.set_mat4("model", model);
-    // //Plane: Material
-    // flat_shader_.set_vec3("material.ambient", glm::vec3(0.0f, 1.0f, 0.0f));
-    // flat_shader_.set_vec3("material.diffuse", glm::vec3(0.0f, 1.0f, 0.0f));
-    // flat_shader_.set_vec3("material.specular", 0.5f, 0.5f, 0.5f);
-    // flat_shader_.set_float("material.shininess", 32.0f);
-    // render_mesh(plane);
-
-
-
-    // some pbr stuff 
-    // --------------
-
-    glm::vec3 light_positions[] = {
-        glm::vec3(-10.0f,  10.0f, 10.0f),
-        glm::vec3( 10.0f,  10.0f, 10.0f),
-        glm::vec3(-10.0f, -10.0f, 10.0f),
-        glm::vec3( 10.0f, -10.0f, 10.0f),
-    };
-    glm::vec3 light_colours[] = {
-        glm::vec3(300.0f, 300.0f, 300.0f),
-        glm::vec3(300.0f, 300.0f, 300.0f),
-        glm::vec3(300.0f, 300.0f, 300.0f),
-        glm::vec3(300.0f, 300.0f, 300.0f)
-    };
-    int nrRows = 7;
-    int nrColumns = 7;
-    float spacing = 2.5f;
-    
-    pbr_shader_.bind();
-    pbr_shader_.set_mat4("view_projection", view_projection);  
-    pbr_shader_.set_vec3("camPos", camera.Position);  
-    pbr_shader_.set_vec3("albedo", 0.5f, 0.0f, 0.0f);
-    pbr_shader_.set_float("ao", 1.0f);
-
-    // Material	                F0 (Linear)	            F0 (sRGB)
-    // Water	                (0.02, 0.02, 0.02)	    (0.15, 0.15, 0.15)  	
-    // Plastic / Glass (Low)	(0.03, 0.03, 0.03)	    (0.21, 0.21, 0.21)	
-    // Plastic High	            (0.05, 0.05, 0.05)	    (0.24, 0.24, 0.24)	
-    // Glass (high) / Ruby	    (0.08, 0.08, 0.08)	    (0.31, 0.31, 0.31)	
-    // Diamond	                (0.17, 0.17, 0.17)	    (0.45, 0.45, 0.45)	
-    // Iron	                    (0.56, 0.57, 0.58)	    (0.77, 0.78, 0.78)	
-    // Copper	                (0.95, 0.64, 0.54)  	(0.98, 0.82, 0.76)	
-    // Gold	                    (1.00, 0.71, 0.29)  	(1.00, 0.86, 0.57)	
-    // Aluminium	            (0.91, 0.92, 0.92)  	(0.96, 0.96, 0.97)	
-    // Silver	                (0.95, 0.93, 0.88)  	(0.98, 0.97, 0.95
-
-    // ResourceManager::get_texture("albedo")->Bind(0);
-    // ResourceManager::get_texture("normal")->Bind(1);
-    // ResourceManager::get_texture("metallic")->Bind(2);
-    // ResourceManager::get_texture("roughness")->Bind(3);
-    // ResourceManager::get_texture("ao")->Bind(4);
-
-    // render rows*column number of spheres with material properties 
-    // defined by textures (they all have the same material properties)
+    //Plane: Scale
     glm::mat4 model = glm::mat4(1.0f);
-    for (int row = 0; row < nrRows; ++row)
-    {
-        pbr_shader_.set_float("metallic", (float)row / (float)nrRows);
-
-        for (int col = 0; col < nrColumns; ++col)
-        {
-            // we clamp the roughness to 0.025 - 1.0 as perfectly smooth
-            // surfaces (roughness of 0.0) tend to look a bit off
-            // on direct lighting.
-            pbr_shader_.set_float("roughness", glm::clamp((float)col / (float)nrColumns, 0.05f, 1.0f));
-
-            model = glm::mat4(1.0f);
-            model = glm::translate(model, glm::vec3(
-                (float)(col - (nrColumns / 2)) * spacing,
-                (float)(row - (nrRows / 2)) * spacing,
-                0.0f
-            ));
-            pbr_shader_.set_mat4("model", model);
-
-            renderSphere();
-        }
-    }
-
-    // render light source (simply re-render sphere at light positions)
-    // this looks a bit off as we use the same shader, but it'll make their positions obvious and 
-    // keeps the codeprint small.
-    float time_since_launch = app.get_time_since_launch();
-    for (unsigned int i = 0; i < sizeof(light_positions) / sizeof(light_positions[0]); ++i)
-    {
-        glm::vec3 newPos = light_positions[i] + glm::vec3(sin(time_since_launch * 5.0) * 5.0, 0.0, 0.0);
-        newPos = light_positions[i];
-        pbr_shader_.set_vec3("lightPositions[" + std::to_string(i) + "]", newPos);
-        pbr_shader_.set_vec3("lightColors[" + std::to_string(i) + "]", light_colours[i]);
-
-        model = glm::mat4(1.0f);
-        model = glm::translate(model, newPos);
-        model = glm::scale(model, glm::vec3(0.5f));
-        pbr_shader_.set_mat4("model", model);
-        renderSphere();
-    }
+    model = glm::translate(model, glm::vec3(0.0f, 1.0f, 0.0f));
+    model = glm::scale(model, glm::vec3(10.0f, 10.0f, 10.0f));
+    model = glm::rotate(model, glm::radians(90.0f), glm::normalize(glm::vec3(1.0f, 0.0f, 0.0f)));
+    flat_shader_.set_mat4("model", model);
+    //Plane: Material
+    flat_shader_.set_vec3("material.ambient", glm::vec3(0.0f, 1.0f, 0.0f));
+    flat_shader_.set_vec3("material.diffuse", glm::vec3(0.0f, 1.0f, 0.0f));
+    flat_shader_.set_vec3("material.specular", 0.5f, 0.5f, 0.5f);
+    flat_shader_.set_float("material.shininess", 32.0f);
+    render_mesh(plane);
 
     //draw_skybox(view_projection);
     //flat_shader_.unbind();
 }
+
+void RendererSimple::update( 
+    float delta_time, 
+    FlyCamera& camera, 
+    RandomState& rnd, 
+    const std::vector<glm::vec3>& cube_pos )
+{
+    camera.Update(delta_time);
+    draw_calls_ = 0;
+    glm::mat4 view_projection =  camera.get_view_projection_matrix();
+
+    // render pass: shadowmapping
+    // --------------------------
+
+    RenderCommand::set_viewport( 0, 0, shadowmap_width_, shadowmap_height_ );
+    Framebuffer::bind_fbo( shadowmap_fbo_ );
+
+    RenderCommand::clear();
+    render_scene( view_projection, cube_pos );
+
+    Framebuffer::default_fbo();
+
+    // render pass: rendering phase
+    // ---------------------------
+    RenderCommand::set_viewport( 0, 0, width_, height_ );
+    RenderCommand::clear();
+
+    //configure shaders and matrices
+    //todo this
+    
+    shadowmap_texture_.bind();
+
+    render_scene( view_projection, cube_pos );
+
+}
+
+
 
 void RendererSimple::draw_skybox(const glm::mat4& view_projection)
 {
@@ -313,7 +151,7 @@ void RendererSimple::draw_skybox(const glm::mat4& view_projection)
         if (it->second.Type == SHADER_TYPE::SHADER_TYPE_SAMPLERCUBE)
             it->second.TextureCube->Bind(it->second.Unit);
         else
-            it->second.Texture->Bind(it->second.Unit);
+            it->second.Texture->bind(it->second.Unit);
     }
     
     // , background->Material->get_shader()

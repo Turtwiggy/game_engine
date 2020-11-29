@@ -32,7 +32,7 @@ public:
     Texture2D() = default;
 
     // 2D texture generation
-    void Generate(
+    void generate(
         unsigned int width, 
         unsigned int height, 
         GLenum internalFormat, 
@@ -40,8 +40,8 @@ public:
         GLenum type, 
         void* data );
 
-    void Bind(int unit = -1) const;
-    void Unbind();
+    void bind(int unit = -1) const;
+    void unbind();
 };
 
 } //namespace fightingengine

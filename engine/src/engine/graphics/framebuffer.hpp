@@ -1,4 +1,4 @@
-#pragma once
+#pragma onces
 
 //c++ lib headers
 #include <array>
@@ -13,7 +13,7 @@ class Framebuffer
 public:
     static unsigned int create_fbo();
     static void bind_fbo(unsigned int fbo);
-    static void unbind_fbo();
+    static void default_fbo();
 
     static void fbo_enable_writing(unsigned int fbo);
     static void fbo_disable_writing(unsigned int fbo); 
@@ -29,17 +29,15 @@ public:
     static void unbind_rbo();
 
     // ---- object picking specific fbo usage
-
 public:
-    static unsigned int create_picking_fbo(int width, int height, Texture2D& colour_tex, Texture2D& depth_tex);
+    // static unsigned int create_picking_fbo(int width, int height, Texture2D& colour_tex, Texture2D& depth_tex);
+    // static void create_picking_colourbuffer_texture(Texture2D& tex, int tex_width, int tex_height);
+    // static void create_picking_depthbuffer_texture(Texture2D& tex, int tex_width, int tex_height);
 
-private:
-    //note: bind fbo before calling this
-    static void create_picking_colourbuffer_texture(Texture2D& tex, int tex_width, int tex_height);
 
-    //note: bind fbo before calling this
-    static void create_picking_depthbuffer_texture(Texture2D& tex, int tex_width, int tex_height);
-
+    // --- shadow mapping fbo usage
+public:
+    static void create_shadowmap_depthbuffer( int fbo, Texture2D& tex, int tex_width, int tex_height );
 };
 
 } //namespace fightingengine

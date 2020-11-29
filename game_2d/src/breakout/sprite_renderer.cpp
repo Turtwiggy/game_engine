@@ -53,11 +53,11 @@ void draw_sprite( Shader& shader, Mesh& mesh, Texture2D* texture, glm::vec2 posi
     shader.set_mat4( "model", model );
     shader.set_vec3( "spriteColor", color );
 
-    texture->Bind();
+    texture->bind();
 
     render_mesh(mesh);
 
-    texture->Unbind();
+    texture->unbind();
 };
 
 } //namespace game2d
