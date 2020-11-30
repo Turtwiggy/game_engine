@@ -58,6 +58,8 @@ private:
     int shadowmap_height_ = 1024;
     int shadowmap_fbo_;
     Texture2D shadowmap_texture_;
+    Shader shadowmap_shader_;
+    glm::vec3 light_pos_ = {0.0f, 0.0f, 0.0f};
     
     //renderer info
     int draw_calls_ = 0;

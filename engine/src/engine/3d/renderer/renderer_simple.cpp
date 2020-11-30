@@ -23,6 +23,7 @@ RendererSimple::RendererSimple( RandomState& rnd, int width, int height )
 
     //load shaders
     ResourceManager::load_shader("assets/shaders/blinn-phong/", {"lit.vert", "lit_directional.frag"}, "lit");
+    ResourceManager::load_shader("assets/shaders/shadow_mapping/", {"sm.vert", "sm.frag"}, "shadow_mapping");
 
     //shaders & meshes 
     flat_shader_ = ResourceManager::get_shader("lit");
@@ -39,12 +40,18 @@ RendererSimple::RendererSimple( RandomState& rnd, int width, int height )
     background->Material->set_texture_cube("DefaultCubemap", cubemap_.get());
 
     //shadow map
+    //resources: https://learnopengl.com/code_viewer_gh.php?code=src/5.advanced_lighting/3.1.1.shadow_mapping_depth/shadow_mapping_depth.cpp
     shadowmap_fbo_ = Framebuffer::create_fbo();
     Framebuffer::create_shadowmap_depthbuffer( 
         shadowmap_fbo_, 
         shadowmap_texture_, 
         shadowmap_width_, 
         shadowmap_height_ );    
+    shadowmap_shader_ = ResourceManager::get_shader("shadow_mapping");
+    shadowmap_shader_.bind();
+    shadowmap_shader_.set_int("depthMap", 0);
+
+    light_pos_ = {-2.0f, 4.0f, -1.0f} ;
 }
 
 void RendererSimple::render_scene( 
@@ -108,7 +115,7 @@ void RendererSimple::update(
     glm::mat4 view_projection =  camera.get_view_projection_matrix();
 
     // render pass: shadowmapping
-    // --------------------------
+    // render depth of scene to texture (from light's perspective)
 
     RenderCommand::set_viewport( 0, 0, shadowmap_width_, shadowmap_height_ );
     Framebuffer::bind_fbo( shadowmap_fbo_ );
@@ -129,7 +136,6 @@ void RendererSimple::update(
     shadowmap_texture_.bind();
 
     render_scene( view_projection, cube_pos );
-
 }
 
 
