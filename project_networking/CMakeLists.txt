@@ -1,4 +1,4 @@
-#this cmake lists compiles the project_networking with the engine
+# this cmake lists compiles the project_networking with the engine
 
 cmake_minimum_required(VERSION 3.0.0)
 project(project_networking VERSION 0.1.0)
@@ -6,10 +6,10 @@ project(project_networking VERSION 0.1.0)
 message("project_networking: ${CMAKE_SYSTEM_NAME}")
 message("project_networking: ${CMAKE_BUILD_TYPE}")
 
-# build the engine + bring in Vcpkg
+# build the engine + bring in vcpkg
 include("${CMAKE_SOURCE_DIR}/engine/cmake/build_info.cmake")
 
-#Add VCPKG packages
+# Add VCPKG packages
 foreach(package ${ENGINE_PACKAGES_CONFIG})
   message("${PROJECT_NAME} finding package... ${package}")
   find_package(${package} CONFIG REQUIRED)
@@ -18,8 +18,9 @@ foreach(package ${ENGINE_PACKAGES})
   message("${PROJECT_NAME} finding package... ${package}")
   find_package(${package} REQUIRED)
 endforeach()
-#Add VCPKG header-only
+# Add VCPKG header-only librarys
 find_path(STB_INCLUDE_DIRS "stb.h")
+find_path(BOOST_ASIO_INCLUDE_DIRS "boost/asio.hpp")
 
 # add source files
 file(GLOB_RECURSE SRC_FILES 
@@ -29,12 +30,14 @@ file(GLOB_RECURSE SRC_FILES
 
 add_executable(project_networking ${SRC_FILES})
 
-# includes
+# engine and project includes
 target_include_directories(project_networking PRIVATE 
   ${ENGINE_INCLUDES} 
   ${CMAKE_SOURCE_DIR}/project_networking/src
 )
+# vcpkg third party includes
 target_include_directories(project_networking PRIVATE ${STB_INCLUDE_DIRS})
+target_include_directories(project_networking PRIVATE ${BOOST_ASIO_INCLUDE_DIRS})
 
 # link libs
 foreach(library ${ENGINE_LINK_LIBS})

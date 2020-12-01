@@ -9,5 +9,6 @@ stb
 gtest
 assimp
 boost-circular-buffer
+boost-asio
 --triplet
 x64-windows
