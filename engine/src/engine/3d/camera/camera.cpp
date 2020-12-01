@@ -149,7 +149,7 @@ float Camera::FrustumHeightAtDistance(float distance)
 {
     if (Perspective)
     {
-            return 2.0f * distance * tanf(glm::radians(FOV * 0.5));
+            return static_cast<float>(2.0f * distance * tanf(glm::radians(FOV * 0.5)));
     }
     else
     {

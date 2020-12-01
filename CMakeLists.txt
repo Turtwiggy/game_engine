@@ -13,7 +13,7 @@ add_subdirectory(game_2d)
 add_subdirectory(game_3d)
 
 #random c++ projects
-#add_subdirectory(experimental_networking)
+add_subdirectory(project_networking)
 
 #examples
 add_subdirectory(examples/hello_application)

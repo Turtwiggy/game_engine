@@ -1,0 +1,57 @@
+#this cmake lists compiles the project_networking with the engine
+
+cmake_minimum_required(VERSION 3.0.0)
+project(project_networking VERSION 0.1.0)
+
+message("project_networking: ${CMAKE_SYSTEM_NAME}")
+message("project_networking: ${CMAKE_BUILD_TYPE}")
+
+# build the engine + bring in Vcpkg
+include("${CMAKE_SOURCE_DIR}/engine/cmake/build_info.cmake")
+
+#Add VCPKG packages
+foreach(package ${ENGINE_PACKAGES_CONFIG})
+  message("${PROJECT_NAME} finding package... ${package}")
+  find_package(${package} CONFIG REQUIRED)
+endforeach()
+foreach(package ${ENGINE_PACKAGES})
+  message("${PROJECT_NAME} finding package... ${package}")
+  find_package(${package} REQUIRED)
+endforeach()
+#Add VCPKG header-only
+find_path(STB_INCLUDE_DIRS "stb.h")
+
+# add source files
+file(GLOB_RECURSE SRC_FILES 
+  ${ENGINE_SOURCE} 
+  "${CMAKE_SOURCE_DIR}/project_networking/src/*.cpp"
+)
+
+add_executable(project_networking ${SRC_FILES})
+
+# includes
+target_include_directories(project_networking PRIVATE 
+  ${ENGINE_INCLUDES} 
+  ${CMAKE_SOURCE_DIR}/project_networking/src
+)
+target_include_directories(project_networking PRIVATE ${STB_INCLUDE_DIRS})
+
+# link libs
+foreach(library ${ENGINE_LINK_LIBS})
+  message("${PROJECT_NAME} linking library... ${library}")
+  target_link_libraries(project_networking PRIVATE ${library})
+endforeach()
+
+# create symlink assets for build
+IF(${CMAKE_SYSTEM_NAME} STREQUAL "Windows")
+  set (source "${CMAKE_SOURCE_DIR}/assets")
+  set (destination "${CMAKE_CURRENT_BINARY_DIR}/assets")
+  add_custom_command(
+    TARGET ${PROJECT_NAME} POST_BUILD
+    COMMAND ${CMAKE_COMMAND} -E create_symlink ${source} ${destination} 
+    DEPENDS ${destination}
+    COMMENT "symbolic link resources folder from ${source} => ${destination}"
+  )
+endif()
+
+include(CPack)

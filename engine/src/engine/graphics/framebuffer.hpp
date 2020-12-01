@@ -1,4 +1,4 @@
-#pragma onces
+#pragma once
 
 //c++ lib headers
 #include <array>

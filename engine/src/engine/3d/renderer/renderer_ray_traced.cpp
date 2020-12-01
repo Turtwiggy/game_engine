@@ -9,7 +9,6 @@
 #include <glm/gtx/transform.hpp>
 
 //your project headers
-#include "engine/core/maths/ray.hpp"
 #include "engine/graphics/render_command.hpp"
 #include "engine/graphics/shader.hpp"
 #include "engine/graphics/util/opengl_util.hpp"

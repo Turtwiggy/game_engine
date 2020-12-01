@@ -7,9 +7,6 @@
 #include <glm/glm.hpp>
 #include <glm/gtc/matrix_transform.hpp>
 
-//your project headers
-#include "engine/core/maths/ray.hpp"
-
 namespace fightingengine {
 
 class Camera;
