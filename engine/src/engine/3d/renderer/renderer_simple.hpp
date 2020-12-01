@@ -38,7 +38,8 @@ public:
 private:
     void render_scene( 
         const glm::mat4& view_projection, 
-        const std::vector<glm::vec3>& cube_pos );
+        const std::vector<glm::vec3>& cube_pos,
+        const Shader& shader );
 
     void draw_skybox( const glm::mat4& view_projection );
 
@@ -54,11 +55,12 @@ private:
     std::shared_ptr<TextureCube> cubemap_;
 
     //shadow mapping
-    int shadowmap_width_ = 1024;
-    int shadowmap_height_ = 1024;
-    int shadowmap_fbo_;
+    unsigned int shadowmap_width_ = 1024;
+    unsigned int shadowmap_height_ = 1024;
+    unsigned int shadowmap_fbo_;
     Texture2D shadowmap_texture_;
     Shader shadowmap_shader_;
+    Shader shadowmap_shader_debug_;
     glm::vec3 light_pos_ = {0.0f, 0.0f, 0.0f};
     
     //renderer info

@@ -12,7 +12,7 @@ unsigned int Framebuffer::create_fbo()
 {
     unsigned int fbo;
     glGenFramebuffers(1, &fbo);
-    return fbo; //returns a copy of the unsigned int
+    return fbo;
 }
 
 void Framebuffer::bind_fbo(unsigned int fbo)
@@ -105,19 +105,17 @@ void Framebuffer::unbind_rbo()
 
 void Framebuffer::create_shadowmap_depthbuffer( int fbo, Texture2D& tex, int tex_width, int tex_height )
 {
-    bind_fbo(fbo);
-
+    //generate texture
     tex.FilterMin = GL_NEAREST;
     tex.FilterMax = GL_NEAREST;
     tex.WrapS = GL_REPEAT;
     tex.WrapT = GL_REPEAT; 
-    tex.generate(tex_width, tex_height, GL_DEPTH_COMPONENT, GL_DEPTH_COMPONENT16, GL_FLOAT, 0);
+    tex.generate( tex_width, tex_height, GL_DEPTH_COMPONENT, GL_DEPTH_COMPONENT16, GL_FLOAT, 0 );
 
-    glFramebufferTexture2D(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, GL_TEXTURE_2D, tex.id, 0);
-
-    glDrawBuffer(GL_NONE);
-    glReadBuffer(GL_NONE);
-
+    bind_fbo( fbo );
+        glFramebufferTexture2D(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, GL_TEXTURE_2D, tex.id, 0);
+        glDrawBuffer(GL_NONE);
+        glReadBuffer(GL_NONE);
     default_fbo();
 }
 

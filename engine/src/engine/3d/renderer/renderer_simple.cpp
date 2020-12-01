@@ -17,13 +17,15 @@ RendererSimple::RendererSimple( RandomState& rnd, int width, int height )
     RenderCommand::init();
     //RenderCommand::set_clear_colour(glm::vec4(0.0, 0.482f, 0.655f, 1.0));
     RenderCommand::set_clear_colour( { 0.6f, 0.6f, 0.6f, 1.0f } );
+    RenderCommand::set_depth_testing( true );
 
     width_ = width;
     height_ = height;
 
     //load shaders
     ResourceManager::load_shader("assets/shaders/blinn-phong/", {"lit.vert", "lit_directional.frag"}, "lit");
-    ResourceManager::load_shader("assets/shaders/shadow_mapping/", {"sm.vert", "sm.frag"}, "shadow_mapping");
+    ResourceManager::load_shader("assets/shaders/effects/", {"shadowmapping_depth.vert", "shadowmapping_depth.frag"}, "shadow_mapping");
+    ResourceManager::load_shader("assets/shaders/effects/", {"shadowmapping_depth_debug.vert", "shadowmapping_depth_debug.frag"}, "shadow_mapping_debug");
 
     //shaders & meshes 
     flat_shader_ = ResourceManager::get_shader("lit");
@@ -40,7 +42,6 @@ RendererSimple::RendererSimple( RandomState& rnd, int width, int height )
     background->Material->set_texture_cube("DefaultCubemap", cubemap_.get());
 
     //shadow map
-    //resources: https://learnopengl.com/code_viewer_gh.php?code=src/5.advanced_lighting/3.1.1.shadow_mapping_depth/shadow_mapping_depth.cpp
     shadowmap_fbo_ = Framebuffer::create_fbo();
     Framebuffer::create_shadowmap_depthbuffer( 
         shadowmap_fbo_, 
@@ -48,57 +49,84 @@ RendererSimple::RendererSimple( RandomState& rnd, int width, int height )
         shadowmap_width_, 
         shadowmap_height_ );    
     shadowmap_shader_ = ResourceManager::get_shader("shadow_mapping");
-    shadowmap_shader_.bind();
-    shadowmap_shader_.set_int("depthMap", 0);
+    shadowmap_shader_debug_ = ResourceManager::get_shader("shadow_mapping_debug");
+    shadowmap_shader_debug_.bind();
+    shadowmap_shader_debug_.set_int("depth_map", 0);
+    shadowmap_shader_debug_.unbind();
 
-    light_pos_ = {-2.0f, 4.0f, -1.0f} ;
+    light_pos_ = { -2.0f, 4.0f, -1.0f } ;
 }
 
 void RendererSimple::render_scene( 
     const glm::mat4& view_projection, 
-    const std::vector<glm::vec3>& cube_pos )
+    const std::vector<glm::vec3>& cube_pos, 
+    const Shader& shader )
 {
-    flat_shader_.bind();
-    flat_shader_.set_mat4("view_projection", view_projection);
-    //flat_shader_.set_vec3("viewPos", camera.Position);
+    //shader.bind();
+    //shader.set_mat4("view_projection", view_projection);
+    
+    // floor
+    //  = glm::mat4(1.0f);
+    // shader.set_mat4("model", model);
+    // render_mesh(plane);
 
-    flat_shader_.set_vec3("light.direction", -0.2f, -1.0f, -0.3f);
-
-    glm::vec3 light_diffuse = glm::vec3(0.9f, 0.9f, 0.9f) * glm::vec3(0.5f); // decrease the influence
-    glm::vec3 light_ambient = light_diffuse * glm::vec3(0.2f); // low influence
-    flat_shader_.set_vec3("light.ambient", light_ambient);
-    flat_shader_.set_vec3("light.diffuse", light_diffuse);
-    flat_shader_.set_vec3("light.specular", 1.0f, 1.0f, 1.0f);
-
-    // Cube: Material
-    flat_shader_.set_vec3("material.ambient", glm::vec3(1.0f, 0.0f, 0.0f));
-    flat_shader_.set_vec3("material.diffuse", glm::vec3(1.0f, 0.0f, 0.0f));
-    flat_shader_.set_vec3("material.specular", 0.5f, 0.5f, 0.5f);
-    flat_shader_.set_float("material.shininess", 32.0f);
-    // Cube: Draw
-    for(int i = 0; i < cube_pos.size(); i++)
-    {
-        // calculate the model matrix for each object and pass it to shader before drawing
-        glm::mat4 model = glm::mat4(1.0f);
-        model = glm::translate(model, cube_pos[i]);
-        model = glm::rotate(model, glm::radians(0.0f), glm::vec3(1.0f, 0.0f, 0.0f));
-        flat_shader_.set_mat4("model", model);
-
-        render_mesh(cube);
-    }    
-
-    //Plane: Scale
+    // cubes
     glm::mat4 model = glm::mat4(1.0f);
-    model = glm::translate(model, glm::vec3(0.0f, 1.0f, 0.0f));
-    model = glm::scale(model, glm::vec3(10.0f, 10.0f, 10.0f));
-    model = glm::rotate(model, glm::radians(90.0f), glm::normalize(glm::vec3(1.0f, 0.0f, 0.0f)));
-    flat_shader_.set_mat4("model", model);
-    //Plane: Material
-    flat_shader_.set_vec3("material.ambient", glm::vec3(0.0f, 1.0f, 0.0f));
-    flat_shader_.set_vec3("material.diffuse", glm::vec3(0.0f, 1.0f, 0.0f));
-    flat_shader_.set_vec3("material.specular", 0.5f, 0.5f, 0.5f);
-    flat_shader_.set_float("material.shininess", 32.0f);
-    render_mesh(plane);
+    model = glm::translate(model, glm::vec3(0.0f, 1.5f, 0.0));
+    model = glm::scale(model, glm::vec3(0.5f));
+    shader.set_mat4("model", model);
+    render_mesh(cube);    
+
+    model = glm::mat4(1.0f);
+    model = glm::translate(model, glm::vec3(2.0f, 0.0f, 1.0));
+    model = glm::scale(model, glm::vec3(0.5f));
+    shader.set_mat4("model", model);
+    render_mesh(cube);    
+
+    model = glm::mat4(1.0f);
+    model = glm::translate(model, glm::vec3(-1.0f, 0.0f, 2.0));
+    model = glm::rotate(model, glm::radians(60.0f), glm::normalize(glm::vec3(1.0, 0.0, 1.0)));
+    model = glm::scale(model, glm::vec3(0.25));
+    shader.set_mat4("model", model);
+    render_mesh(cube);
+
+    // shader.set_vec3("light.direction", -0.2f, -1.0f, -0.3f);
+
+    // glm::vec3 light_diffuse = glm::vec3(0.9f, 0.9f, 0.9f) * glm::vec3(0.5f); // decrease the influence
+    // glm::vec3 light_ambient = light_diffuse * glm::vec3(0.2f); // low influence
+    // shader.set_vec3("light.ambient", light_ambient);
+    // shader.set_vec3("light.diffuse", light_diffuse);
+    // shader.set_vec3("light.specular", 1.0f, 1.0f, 1.0f);
+
+    // // Cube: Material
+    // shader.set_vec3("material.ambient", glm::vec3(1.0f, 0.0f, 0.0f));
+    // shader.set_vec3("material.diffuse", glm::vec3(1.0f, 0.0f, 0.0f));
+    // shader.set_vec3("material.specular", 0.5f, 0.5f, 0.5f);
+    // shader.set_float("material.shininess", 32.0f);
+    // // Cube: Draw
+    // for(int i = 0; i < cube_pos.size(); i++)
+    // {
+    //     // calculate the model matrix for each object and pass it to shader before drawing
+    //     glm::mat4 model = glm::mat4(1.0f);
+    //     model = glm::translate(model, cube_pos[i]);
+    //     model = glm::rotate(model, glm::radians(0.0f), glm::vec3(1.0f, 0.0f, 0.0f));
+    //     shader.set_mat4("model", model);
+
+    //     render_mesh(cube);
+    // }    
+
+    // //Plane: Scale
+    // glm::mat4 model = glm::mat4(1.0f);
+    // model = glm::translate(model, glm::vec3(0.0f, 1.0f, 0.0f));
+    // model = glm::scale(model, glm::vec3(10.0f, 10.0f, 10.0f));
+    // model = glm::rotate(model, glm::radians(90.0f), glm::normalize(glm::vec3(1.0f, 0.0f, 0.0f)));
+    // shader.set_mat4("model", model);
+    // //Plane: Material
+    // shader.set_vec3("material.ambient", glm::vec3(0.0f, 1.0f, 0.0f));
+    // shader.set_vec3("material.diffuse", glm::vec3(0.0f, 1.0f, 0.0f));
+    // shader.set_vec3("material.specular", 0.5f, 0.5f, 0.5f);
+    // shader.set_float("material.shininess", 32.0f);
+    // render_mesh(plane);
 
     //draw_skybox(view_projection);
     //flat_shader_.unbind();
@@ -115,27 +143,39 @@ void RendererSimple::update(
     glm::mat4 view_projection =  camera.get_view_projection_matrix();
 
     // render pass: shadowmapping
-    // render depth of scene to texture (from light's perspective)
+    // render depth of scene to 
+    // texture (from light's perspective)
+    // ----------------------------------
+
+    float near_plane = 1.0f, far_plane = 7.5f;
+    glm::mat4 light_projection = glm::ortho(-10.0f, 10.0f, -10.0f, 10.0f, near_plane, far_plane);
+    glm::mat4 light_view = glm::lookAt(light_pos_, glm::vec3(0.0f), glm::vec3(0.0f, 1.0f, 0.0f));
+    glm::mat4 light_space_matrix = light_projection * light_view;
+    shadowmap_shader_.bind();
+    shadowmap_shader_.set_mat4("lightSpaceMatrix", light_space_matrix);
 
     RenderCommand::set_viewport( 0, 0, shadowmap_width_, shadowmap_height_ );
     Framebuffer::bind_fbo( shadowmap_fbo_ );
-
-    RenderCommand::clear();
-    render_scene( view_projection, cube_pos );
-
+        glClear( GL_DEPTH_BUFFER_BIT );
+        shadowmap_shader_.bind();
+        shadowmap_texture_.bind();
+        render_scene( view_projection, cube_pos, shadowmap_shader_ );
     Framebuffer::default_fbo();
+
 
     // render pass: rendering phase
     // ---------------------------
     RenderCommand::set_viewport( 0, 0, width_, height_ );
     RenderCommand::clear();
 
-    //configure shaders and matrices
-    //todo this
-    
+    shadowmap_shader_debug_.bind();
+    shadowmap_shader_debug_.set_float("near_plane", near_plane);
+    shadowmap_shader_debug_.set_float("far_plane", far_plane);
     shadowmap_texture_.bind();
 
-    render_scene( view_projection, cube_pos );
+    render_mesh( plane );
+    //render_scene( view_projection, cube_pos, flat_shader_ );
+
 }
 
 
