@@ -4,7 +4,7 @@
 #include <glm/glm.hpp>
 
 //your library headers
-#include "engine/core/maths/random.hpp"
+#include "engine/maths/random.hpp"
 
 namespace fightingengine
 {

@@ -7,3 +7,6 @@
 [submodule "thirdparty/vcpkg"]
     path = thirdparty/vcpkg
     url = https://github.com/Microsoft/vcpkg
+[submodule "thirdparty/imguizmo"]
+	path = thirdparty/imguizmo
+	url = https://github.com/CedricGuillemet/ImGuizmo.git

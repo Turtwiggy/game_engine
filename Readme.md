@@ -14,19 +14,18 @@ Download external libs
 
 This project uses 
 
-- SDL2 - window management (cross-platform)
-- Glew - opengl extention management (cross-platform)
+- SDL2 - Window management
+- Glew - OpenGL extention wrangler
 - ImGui 
-- Entt - entity component system
+- ImGuizmo
 
 Maybe in future
 
+- Entt - entity component system
 - GGPO
 - Bullet3 - physics
 
-How to build with Visual Studio Code
-
-    First, install the tools listed below for VS Code
+I develop with visual studio code. If you want, you can open the .code-workspace using the C/C++ extention tools:
 
     C/C++ by Microsoft
     This extension provides IntelliSense support for C/C++.
@@ -35,10 +34,3 @@ How to build with Visual Studio Code
     CMake Tools by vector-of-bool
     This extension allows for configuring the CMake project and building it from within the Visual Studio Code IDE.
     VS Marketplace Link: https://marketplace.visualstudio.com/items?itemName=vector-of-bool.cmake-tools
-
-    C++ TestMate
-    https://github.com/matepek/vscode-catch2-test-adapter   
-    VS Marketplace Link: https://marketplace.visualstudio.com/items?itemName=hbenl.vscode-test-explorer
-
-    (Windows Optional for GCC) 
-    https://code.visualstudio.com/docs/cpp/config-wsl

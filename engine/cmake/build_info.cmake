@@ -24,6 +24,7 @@ set (ENGINE_SOURCE
     ${CMAKE_SOURCE_DIR}/thirdparty/imgui/imgui.cpp
     ${CMAKE_SOURCE_DIR}/thirdparty/imgui/imgui_draw.cpp
     ${CMAKE_SOURCE_DIR}/thirdparty/imgui/imgui_demo.cpp
+    ${CMAKE_SOURCE_DIR}/thirdparty/imguizmo/ImGuizmo.cpp
 )
 
 if(${CMAKE_SYSTEM_NAME} STREQUAL "Windows")
@@ -32,6 +33,7 @@ if(${CMAKE_SYSTEM_NAME} STREQUAL "Windows")
         ${CMAKE_SOURCE_DIR}/engine/src
         ${CMAKE_SOURCE_DIR}/thirdparty/imgui
         ${CMAKE_SOURCE_DIR}/thirdparty/imgui/examples
+        ${CMAKE_SOURCE_DIR}/thirdparty/imguizmo/
         ${CMAKE_SOURCE_DIR}/thirdparty/vcpkg/installed/x64-windows/include
     )
     #Vcpkg windows links

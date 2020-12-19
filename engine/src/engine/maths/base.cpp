@@ -1,6 +1,6 @@
 
 //header
-#include "engine/core/maths/base.hpp"
+#include "engine/maths/base.hpp"
 
 namespace fightingengine{
     

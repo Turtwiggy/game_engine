@@ -10,30 +10,35 @@
 #include <glm/gtc/matrix_transform.hpp>
 
 //your project headers
-#include "engine/core/maths/random.hpp"
 #include "engine/core/application.hpp"
 #include "engine/3d/camera/camera.hpp"
 #include "engine/3d/camera/fly_camera.hpp"
 #include "engine/graphics/framebuffer.hpp"
 #include "engine/scene/scene_node.hpp"
 #include "engine/scene/background.hpp"
+#include "engine/maths/random.hpp"
 #include "engine/mesh/primitives.hpp"
 
 namespace fightingengine
 {
-
+    
 class RendererSimple
 {
 public:
-    RendererSimple( RandomState& rnd, int width, int height );
+    RendererSimple( RandomState& rnd );
     
     void update(
         float delta_time, 
         FlyCamera& camera, 
         RandomState& rnd, 
-        const std::vector<glm::vec3>& cube_pos );
+        const std::vector<glm::vec3>& cube_pos,
+        const glm::ivec2& screen_size );
 
     int get_draw_calls();
+
+    //Providing a getter to this texture allows
+    //rendering of it in to ImGui for debugging
+    Texture2D& get_shadowmap_texture();
 
 private:
     void render_scene( 
@@ -60,12 +65,11 @@ private:
     unsigned int shadowmap_fbo_;
     Texture2D shadowmap_texture_;
     Shader shadowmap_shader_;
-    Shader shadowmap_shader_debug_;
-    glm::vec3 light_pos_ = {0.0f, 0.0f, 0.0f};
+    Shader shadowmap_depth_shader_;
+    glm::vec3 light_pos_ = { 0.0f, 0.0f, 0.0f };
     
     //renderer info
     int draw_calls_ = 0;
-    int width_, height_ = 0;
 };
 
 } //namespace fightingengine

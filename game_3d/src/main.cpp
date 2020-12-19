@@ -12,7 +12,7 @@
 
 //your project headers
 #include "engine/core/application.hpp"
-#include "engine/core/maths/random.hpp"
+#include "engine/maths/random.hpp"
 #include "engine/graphics/render_command.hpp"
 #include "engine/graphics/shader.hpp"
 #include "engine/graphics/triangle.hpp"
@@ -30,19 +30,95 @@ using namespace fightingengine;
 #include "game_state.hpp"
 using namespace game_3d;
 
+//imguizmo testing / hack
+#include <math.h>
+#include <algorithm>
+#include "ImGuizmo.h"
+
+void EditTransform(const float* cameraView, float* cameraProjection, float* matrix, bool editTransformDecomposition)
+{
+    static ImGuizmo::OPERATION mCurrentGizmoOperation(ImGuizmo::TRANSLATE);
+    static ImGuizmo::MODE mCurrentGizmoMode(ImGuizmo::LOCAL);
+    static bool useSnap = false;
+    static float snap[3] = { 1.f, 1.f, 1.f };
+    static float bounds[] = { -0.5f, -0.5f, -0.5f, 0.5f, 0.5f, 0.5f };
+    static float boundsSnap[] = { 0.1f, 0.1f, 0.1f };
+    static bool boundSizing = false;
+    static bool boundSizingSnap = false;
+
+    if (editTransformDecomposition)
+    {
+        if (ImGui::IsKeyPressed(90))
+            mCurrentGizmoOperation = ImGuizmo::TRANSLATE;
+        if (ImGui::IsKeyPressed(69))
+            mCurrentGizmoOperation = ImGuizmo::ROTATE;
+        if (ImGui::IsKeyPressed(82)) // r Key
+            mCurrentGizmoOperation = ImGuizmo::SCALE;
+        if (ImGui::RadioButton("Translate", mCurrentGizmoOperation == ImGuizmo::TRANSLATE))
+            mCurrentGizmoOperation = ImGuizmo::TRANSLATE;
+        ImGui::SameLine();
+        if (ImGui::RadioButton("Rotate", mCurrentGizmoOperation == ImGuizmo::ROTATE))
+            mCurrentGizmoOperation = ImGuizmo::ROTATE;
+        ImGui::SameLine();
+        if (ImGui::RadioButton("Scale", mCurrentGizmoOperation == ImGuizmo::SCALE))
+            mCurrentGizmoOperation = ImGuizmo::SCALE;
+        float matrixTranslation[3], matrixRotation[3], matrixScale[3];
+        ImGuizmo::DecomposeMatrixToComponents(matrix, matrixTranslation, matrixRotation, matrixScale);
+        ImGui::InputFloat3("Tr", matrixTranslation);
+        ImGui::InputFloat3("Rt", matrixRotation);
+        ImGui::InputFloat3("Sc", matrixScale);
+        ImGuizmo::RecomposeMatrixFromComponents(matrixTranslation, matrixRotation, matrixScale, matrix);
+
+        if (mCurrentGizmoOperation != ImGuizmo::SCALE)
+        {
+            if (ImGui::RadioButton("Local", mCurrentGizmoMode == ImGuizmo::LOCAL))
+                mCurrentGizmoMode = ImGuizmo::LOCAL;
+            ImGui::SameLine();
+            if (ImGui::RadioButton("World", mCurrentGizmoMode == ImGuizmo::WORLD))
+                mCurrentGizmoMode = ImGuizmo::WORLD;
+        }
+        if (ImGui::IsKeyPressed(83))
+            useSnap = !useSnap;
+        ImGui::Checkbox("", &useSnap);
+        ImGui::SameLine();
+
+        switch (mCurrentGizmoOperation)
+        {
+        case ImGuizmo::TRANSLATE:
+            ImGui::InputFloat3("Snap", &snap[0]);
+            break;
+        case ImGuizmo::ROTATE:
+            ImGui::InputFloat("Angle Snap", &snap[0]);
+            break;
+        case ImGuizmo::SCALE:
+            ImGui::InputFloat("Scale Snap", &snap[0]);
+            break;
+        }
+        ImGui::Checkbox("Bound Sizing", &boundSizing);
+        if (boundSizing)
+        {
+            ImGui::PushID(3);
+            ImGui::Checkbox("", &boundSizingSnap);
+            ImGui::SameLine();
+            ImGui::InputFloat3("Snap", boundsSnap);
+            ImGui::PopID();
+        }
+    }
+    ImGuiIO& io = ImGui::GetIO();
+    ImGuizmo::SetRect(0, 0, io.DisplaySize.x, io.DisplaySize.y);
+    ImGuizmo::Manipulate(cameraView, cameraProjection, mCurrentGizmoOperation, mCurrentGizmoMode, matrix, NULL, useSnap ? &snap[0] : NULL, boundSizing ? bounds : NULL, boundSizingSnap ? boundsSnap : NULL);
+}
+
 int main(int argc, char** argv)
 {
-    uint32_t width = 1366;
-    uint32_t height = 768;
+    uint32_t width = 1280;
+    uint32_t height = 720;
     Application app("Fighting Game!", width, height);
     app.set_fps_limit(60.0f);   
+    //app.get_window().set_fullscreen(true);
     //app.remove_fps_limit();
 
-    // ---- Rendering & Textures ----
-
-    ResourceManager::load_texture("assets/textures/octopus.png", "Octopus");
-
-    // ---- Game ----
+    // ---- Game 
 
     FlyCamera camera {glm::vec3(0.0f, 0.0f, -1.0f)};
     camera.SetPerspective(glm::radians(65.0f), (float)width/(float)height, 0.1f, 100.0f);
@@ -50,11 +126,12 @@ int main(int argc, char** argv)
     RandomState rnd;
     Profiler profiler;
     ProfilerPanel profiler_panel;
+    RendererSimple simple_renderer( rnd );
 
-    //RendererRayTraced renderer(width, height);
-    RendererSimple simple_renderer (rnd, width, height);
+    // ImGuiszmo::SetOrthographic(false);
+    // ImGuizmo::ViewManipulate()
 
-    // -- random cubes
+    // ---- random cubes
 
     int desired_cubes = 35;
 
@@ -72,16 +149,14 @@ int main(int argc, char** argv)
 
     while (app.is_running())
     {
-        profiler.new_frame();
-
-profiler.begin(Profiler::Stage::UpdateLoop);
+        profiler.new_frame();       
+        profiler.begin(Profiler::Stage::UpdateLoop);
 
         app.frame_begin();
         
         float delta_time_s = app.get_delta_time();
 
-profiler.begin(Profiler::Stage::SdlInput);
-
+        profiler.begin(Profiler::Stage::SdlInput);
         app.poll(); //input events
 
         //Settings: Shutdown app
@@ -98,7 +173,6 @@ profiler.begin(Profiler::Stage::SdlInput);
             app.get_window().toggle_fullscreen();
 
             glm::ivec2 screen_size = app.get_window().get_size();
-
             RenderCommand::set_viewport(0, 0, screen_size.x, screen_size.y);
         }
 
@@ -120,7 +194,6 @@ profiler.begin(Profiler::Stage::SdlInput);
             camera.InputKey( delta_time_s, CameraMovement::DOWN );
 
         // Input: Mouse
-        
         if ( app.get_window().get_mouse_captured() )
         {            
             glm::ivec2 rel_mouse = app.get_window().get_relative_mouse_position();
@@ -170,8 +243,8 @@ profiler.begin(Profiler::Stage::SdlInput);
             }
         }
 
-profiler.end(Profiler::Stage::SdlInput);
-profiler.begin(Profiler::Stage::GameTick);
+        profiler.end(Profiler::Stage::SdlInput);
+        profiler.begin(Profiler::Stage::GameTick);
 
         // ---- Game State Tick 
         
@@ -184,19 +257,20 @@ profiler.begin(Profiler::Stage::GameTick);
         //    seconds_since_last_game_tick -= SECONDS_PER_FIXED_TICK;
         //}
         
-profiler.end(Profiler::Stage::GameTick);
-profiler.begin(Profiler::Stage::Render);
-         
+        profiler.end(Profiler::Stage::GameTick);
+        profiler.begin(Profiler::Stage::Render);
+                
         // ---- Rendering 
 
         simple_renderer.update( 
             delta_time_s, 
             camera,
             rnd, 
-            cube_pos );                        
+            cube_pos,
+            app.get_window().get_size() );                        
 
-profiler.end(Profiler::Stage::Render);
-profiler.begin(Profiler::Stage::GuiLoop);
+        profiler.end(Profiler::Stage::Render);
+        profiler.begin(Profiler::Stage::GuiLoop);
 
         // ---- GUI 
 
@@ -205,16 +279,20 @@ profiler.begin(Profiler::Stage::GuiLoop);
             // bool demo_window = true;
             // ImGui::ShowDemoWindow(&demo_window);
 
-            // ImGui::Begin("Texture Test");
-            // // Using a Child allow to fill all the space of the window.
-            // ImGui::BeginChild("GameRender");
-            // ImVec2 wsize = ImGui::GetWindowSize();
-            // ImGui::Image((ImTextureID)tex.id, ImVec2(wsize.x, wsize.x * 9.0 / 16.0), ImVec2(0, 1), ImVec2(1, 0));
-            // ImGui::Text("Yarr Harr I'm an octopus!");
-            // ImGui::EndChild();
-            // ImGui::End();
+            ImGui::Begin("Depth Texture");
 
-            ImGui::Begin("Entities");
+                Texture2D tex = simple_renderer.get_shadowmap_texture();
+
+                // Using a Child allow to fill all the space of the window.
+                ImGui::BeginChild("Depth Texture");
+                ImVec2 wsize = ImGui::GetWindowSize();
+                ImGui::Image((ImTextureID)tex.id, ImVec2(wsize.x, wsize.x * 9.0 / 16.0), ImVec2(0, 1), ImVec2(1, 0));
+                //ImGui::Text("Depth Texture being rendererd");
+                ImGui::EndChild();
+
+            ImGui::End();
+
+            ImGui::Begin("Camera");
 
                 //Camera
                 ImGui::Text("Camera Pos: %f %f %f", camera.Position.x, camera.Position.y, camera.Position.z );
@@ -244,14 +322,13 @@ profiler.begin(Profiler::Stage::GuiLoop);
 
         app.gui_end();
 
-profiler.end(Profiler::Stage::GuiLoop);
-profiler.begin(Profiler::Stage::FrameEnd);
+        profiler.end(Profiler::Stage::GuiLoop);
+        profiler.begin(Profiler::Stage::FrameEnd);
 
         app.frame_end(delta_time_s);
 
-profiler.end(Profiler::Stage::FrameEnd);
-profiler.end(Profiler::Stage::UpdateLoop);
-
+        profiler.end(Profiler::Stage::FrameEnd);
+        profiler.end(Profiler::Stage::UpdateLoop);
     }
 
     return 0;
