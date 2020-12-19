@@ -7,8 +7,8 @@
 #if defined(IMGUI_IMPL_OPENGL_LOADER_GLEW)
     #include <GL/glew.h>      
 #endif
-#include <examples/imgui_impl_sdl.h>
-#include <examples/imgui_impl_opengl3.h>
+#include <backends/imgui_impl_sdl.h>
+#include <backends/imgui_impl_opengl3.h>
 #ifdef _WIN32
     #include <SDL2/SDL_syswm.h>
 #endif

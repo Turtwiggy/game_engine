@@ -19,11 +19,12 @@ set (ENGINE_SOURCE
 
     #imgui
     ${CMAKE_SOURCE_DIR}/thirdparty/imgui/imgui_widgets.cpp
-    ${CMAKE_SOURCE_DIR}/thirdparty/imgui/examples/imgui_impl_sdl.cpp
-    ${CMAKE_SOURCE_DIR}/thirdparty/imgui/examples/imgui_impl_opengl3.cpp
+    ${CMAKE_SOURCE_DIR}/thirdparty/imgui/backends/imgui_impl_sdl.cpp
+    ${CMAKE_SOURCE_DIR}/thirdparty/imgui/backends/imgui_impl_opengl3.cpp
     ${CMAKE_SOURCE_DIR}/thirdparty/imgui/imgui.cpp
     ${CMAKE_SOURCE_DIR}/thirdparty/imgui/imgui_draw.cpp
     ${CMAKE_SOURCE_DIR}/thirdparty/imgui/imgui_demo.cpp
+    ${CMAKE_SOURCE_DIR}/thirdparty/imgui/imgui_tables.cpp
     ${CMAKE_SOURCE_DIR}/thirdparty/imguizmo/ImGuizmo.cpp
 )
 
@@ -32,7 +33,7 @@ if(${CMAKE_SYSTEM_NAME} STREQUAL "Windows")
     set (ENGINE_INCLUDES
         ${CMAKE_SOURCE_DIR}/engine/src
         ${CMAKE_SOURCE_DIR}/thirdparty/imgui
-        ${CMAKE_SOURCE_DIR}/thirdparty/imgui/examples
+        ${CMAKE_SOURCE_DIR}/thirdparty/imgui/backends
         ${CMAKE_SOURCE_DIR}/thirdparty/imguizmo/
         ${CMAKE_SOURCE_DIR}/thirdparty/vcpkg/installed/x64-windows/include
     )
