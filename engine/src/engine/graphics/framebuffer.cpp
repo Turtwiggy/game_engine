@@ -108,9 +108,14 @@ void Framebuffer::create_shadowmap_depthbuffer( int fbo, Texture2D& tex, int tex
     //generate texture
     tex.FilterMin = GL_NEAREST;
     tex.FilterMax = GL_NEAREST;
-    tex.WrapS = GL_REPEAT;
-    tex.WrapT = GL_REPEAT; 
+    tex.WrapS = GL_CLAMP_TO_BORDER;
+    tex.WrapT = GL_CLAMP_TO_BORDER; 
     tex.generate( tex_width, tex_height, GL_DEPTH_COMPONENT, GL_DEPTH_COMPONENT16, GL_FLOAT, 0 );
+
+    tex.bind();
+    float borderColor[] = { 1.0, 1.0, 1.0, 1.0 };
+    glTexParameterfv(GL_TEXTURE_2D, GL_TEXTURE_BORDER_COLOR, borderColor);
+    tex.unbind();
 
     bind_fbo( fbo );
         glFramebufferTexture2D(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, GL_TEXTURE_2D, tex.id, 0);

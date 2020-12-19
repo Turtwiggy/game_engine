@@ -144,9 +144,9 @@ Texture2D ResourceManager::load_texture_from_file(std::string full_path, GLenum 
 
         if (target == GL_TEXTURE_2D) 
         {
-            texture.WrapR = GL_CLAMP_TO_BORDER;
-            texture.WrapS = GL_CLAMP_TO_BORDER;
-            texture.WrapT = GL_CLAMP_TO_BORDER;
+            texture.WrapR = format == GL_RGBA ? GL_CLAMP_TO_EDGE : GL_REPEAT;
+            texture.WrapS = format == GL_RGBA ? GL_CLAMP_TO_EDGE : GL_REPEAT;
+            texture.WrapT = format == GL_RGBA ? GL_CLAMP_TO_EDGE : GL_REPEAT;
             texture.generate(width, height, texture.InternalFormat, format, GL_UNSIGNED_BYTE, data);
         }
     }

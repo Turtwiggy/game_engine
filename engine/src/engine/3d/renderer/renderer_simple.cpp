@@ -38,7 +38,7 @@ RendererSimple::RendererSimple( RandomState &rnd )
 
     // textures
     ResourceManager::load_texture_cube("assets/skybox/skybox-default/", "default-skybox");
-    ResourceManager::load_texture("assets/textures/octopus.png", "octopus");
+    ResourceManager::load_texture("assets/textures/Bamboo/BambooWall_1K_albedo.jpg", "wood-floor");
 
     // skybox
     TextureCube cubemap = ResourceManager::get_texture_cube("default-skybox");
@@ -56,10 +56,6 @@ RendererSimple::RendererSimple( RandomState &rnd )
 
     // load shaders
     ResourceManager::load_shader(
-        "assets/shaders/blinn-phong/",
-        {"lit.vert", "lit_directional.frag"},
-        "SHADER_lit");
-    ResourceManager::load_shader(
         "assets/shaders/effects/",
         {"shadow_mapping.vert", "shadow_mapping.frag"},
         "SHADER_shadow_mapping");
@@ -67,14 +63,8 @@ RendererSimple::RendererSimple( RandomState &rnd )
         "assets/shaders/effects/",
         {"shadow_mapping_depth.vert", "shadow_mapping_depth.frag"},
         "SHADER_shadow_mapping_depth");
-    ResourceManager::load_shader(
-        "assets/shaders/effects/",
-        {"debug_quad.vert", "debug_quad.frag"},
-        "SHADER_debug_quad");
 
     // shader config
-    flat_shader_ = ResourceManager::get_shader("SHADER_lit");
-
     shadowmap_shader_ = ResourceManager::get_shader("SHADER_shadow_mapping");
     shadowmap_shader_.bind();
     shadowmap_shader_.set_int("diffuse_texture", 0);
@@ -86,32 +76,6 @@ RendererSimple::RendererSimple( RandomState &rnd )
     light_pos_ = { -2.0f, 4.0f, -1.0f };
 }
 
-void RendererSimple::render_scene(
-    const glm::mat4 &view_projection,
-    const std::vector<glm::vec3> &cube_pos,
-    const Shader &shader )
-{    
-    glm::mat4 model = glm::mat4(1.0f);
-
-    // Plane: Scale
-    shader.set_mat4("model", model);
-    render_mesh(plane);
-    // model = glm::translate(model, glm::vec3(0.0f, 1.0f, 0.0f));
-    // model = glm::scale(model, glm::vec3(10.0f, 10.0f, 10.0f));
-    // model = glm::rotate(model, glm::radians(90.0f), glm::normalize(glm::vec3(1.0f, 0.0f, 0.0f)));
-
-    // Cube: Draw
-    for (int i = 0; i < cube_pos.size(); i++)
-    {
-        // calculate the model matrix for each object and pass it to shader before drawing
-        model = glm::mat4(1.0f);
-        model = glm::translate(model, cube_pos[i]);
-        //model = glm::rotate(model, glm::radians(0.0f), glm::vec3(1.0f, 0.0f, 0.0f));
-        shader.set_mat4("model", model);
-
-        render_mesh(cube);
-    }
-}
 
 void RendererSimple::update(
     float delta_time,
@@ -125,8 +89,7 @@ void RendererSimple::update(
     glm::mat4 view_projection = camera.get_view_projection_matrix();
 
     // render pass: shadowmapping
-    // render depth of scene to texture (from light's perspective)
-    // ----------------------------------
+    // --------------------------
 
     float near_plane = 1.0f, far_plane = 7.5f;
     glm::mat4 light_projection = glm::ortho(-10.0f, 10.0f, -10.0f, 10.0f, near_plane, far_plane);
@@ -135,36 +98,91 @@ void RendererSimple::update(
     
     //render scene from light's point of view
     shadowmap_depth_shader_.bind();
-    shadowmap_depth_shader_.set_mat4("light_space_matrix", light_space_matrix);
+    shadowmap_depth_shader_.set_mat4( "light_space_matrix", light_space_matrix );
 
     RenderCommand::set_viewport(0, 0, shadowmap_width_, shadowmap_height_);
-    Framebuffer::bind_fbo(shadowmap_fbo_);
+    Framebuffer::bind_fbo( shadowmap_fbo_ );
     {
         glClear(GL_DEPTH_BUFFER_BIT);
-        ResourceManager::get_texture("octopus")->bind(0);
-        render_scene(view_projection, cube_pos, shadowmap_depth_shader_);
+        //ResourceManager::get_texture("wood-floor")->bind(0);
+        render_scene( view_projection, cube_pos, shadowmap_depth_shader_ );
     }
 
     // render pass: render scene as normal
     // -----------------------------------
     Framebuffer::default_fbo();
-
     RenderCommand::set_viewport( 0, 0, screen_size.x, screen_size.y );
     RenderCommand::clear();
 
     shadowmap_shader_.bind();
     shadowmap_shader_.set_mat4("view_projection", view_projection );
+    shadowmap_shader_.set_mat4("light_space_matrix", light_space_matrix );
     shadowmap_shader_.set_vec3("view_pos", camera.Position );
     shadowmap_shader_.set_vec3("light_pos", light_pos_ );
-    shadowmap_shader_.set_mat4("light_space_matrix", light_space_matrix );
-    ResourceManager::get_texture("octopus")->bind(0);
+    ResourceManager::get_texture("wood-floor")->bind(0);
     shadowmap_texture_.bind(1);
 
-    render_scene( view_projection, cube_pos, flat_shader_ );
+    render_scene( view_projection, cube_pos, shadowmap_shader_ );
+
+    //Render cube at light's position
+    // glm::mat4 model = glm::mat4(1.0f);
+    // model = glm::translate(model, light_pos_);
+    // model = glm::scale(model, glm::vec3(0.5f));
+    // shadowmap_shader_.set_mat4("model", model);
+    // render_mesh(cube);
 
     // Skybox
     // draw_skybox(view_projection);
 }
+
+void RendererSimple::render_scene(
+    const glm::mat4 &view_projection,
+    const std::vector<glm::vec3> &cube_pos,
+    const Shader &shader )
+{    
+    glm::mat4 model = glm::mat4(1.0f);
+
+    //Plane
+    model = glm::translate(model, glm::vec3(0.0f, -0.1f, 0.0f));
+    model = glm::scale(model, glm::vec3(2.0f));
+    model = glm::rotate(model, glm::radians(90.0f), glm::normalize(glm::vec3(0.0f, 1.0f, 0.0f)));
+    shader.set_mat4("model", model);
+
+    render_mesh(plane);
+
+    // Cube: Draw
+    // for (int i = 0; i < cube_pos.size(); i++)
+    // {
+    //     // calculate the model matrix for each object and pass it to shader before drawing
+    //     model = glm::mat4(1.0f);
+    //     model = glm::translate(model, cube_pos[i]);
+    //     //model = glm::rotate(model, glm::radians(0.0f), glm::vec3(1.0f, 0.0f, 0.0f));
+    //     shader.set_mat4("model", model);
+
+    //     render_mesh(cube);
+    // }
+
+    // cubes
+    model = glm::mat4(1.0f);
+    model = glm::translate(model, glm::vec3(0.0f, 1.5f, 0.0));
+    model = glm::scale(model, glm::vec3(0.5f));
+    shader.set_mat4("model", model);
+
+    render_mesh(cube);
+    model = glm::mat4(1.0f);
+    model = glm::translate(model, glm::vec3(2.0f, 0.0f, 1.0));
+    model = glm::scale(model, glm::vec3(0.5f));
+    shader.set_mat4("model", model);
+    render_mesh(cube);
+
+    model = glm::mat4(1.0f);
+    model = glm::translate(model, glm::vec3(-1.0f, 0.0f, 2.0));
+    model = glm::rotate(model, glm::radians(60.0f), glm::normalize(glm::vec3(1.0, 0.0, 1.0)));
+    model = glm::scale(model, glm::vec3(0.25));
+    shader.set_mat4("model", model);
+    render_mesh(cube);
+}
+
 
 void RendererSimple::draw_skybox( const glm::mat4 &view_projection )
 {

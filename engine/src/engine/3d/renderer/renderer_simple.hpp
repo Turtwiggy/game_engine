@@ -25,6 +25,7 @@ namespace fightingengine
 class RendererSimple
 {
 public:
+
     RendererSimple( RandomState& rnd );
     
     void update(
@@ -50,16 +51,15 @@ private:
 
 private:
 
-    //rendering shaders / meshes available
-    Shader flat_shader_;
+    // meshes available
     std::shared_ptr<Mesh> cube;
     std::shared_ptr<Mesh> plane;
 
-    //skybox
+    // skybox
     Background* background;
     std::shared_ptr<TextureCube> cubemap_;
 
-    //shadow mapping
+    // shadow mapping
     unsigned int shadowmap_width_ = 1024;
     unsigned int shadowmap_height_ = 1024;
     unsigned int shadowmap_fbo_;

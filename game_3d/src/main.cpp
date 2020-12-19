@@ -286,7 +286,7 @@ int main(int argc, char** argv)
                 // Using a Child allow to fill all the space of the window.
                 ImGui::BeginChild("Depth Texture");
                 ImVec2 wsize = ImGui::GetWindowSize();
-                ImGui::Image((ImTextureID)tex.id, ImVec2(wsize.x, wsize.x * 9.0 / 16.0), ImVec2(0, 1), ImVec2(1, 0));
+                ImGui::Image((ImTextureID)tex.id, ImVec2(wsize.x, wsize.y), ImVec2(0, 1), ImVec2(1, 0));
                 //ImGui::Text("Depth Texture being rendererd");
                 ImGui::EndChild();
 
