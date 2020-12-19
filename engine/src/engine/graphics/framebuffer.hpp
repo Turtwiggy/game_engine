@@ -28,16 +28,13 @@ public:
     static void bind_rbo(unsigned int rbo);
     static void unbind_rbo();
 
-    // ---- object picking specific fbo usage
-public:
-    // static unsigned int create_picking_fbo(int width, int height, Texture2D& colour_tex, Texture2D& depth_tex);
-    // static void create_picking_colourbuffer_texture(Texture2D& tex, int tex_width, int tex_height);
-    // static void create_picking_depthbuffer_texture(Texture2D& tex, int tex_width, int tex_height);
-
-
     // --- shadow mapping fbo usage
 public:
-    static void create_shadowmap_depthbuffer( int fbo, Texture2D& tex, int tex_width, int tex_height );
+    static void create_shadowmap_depthbuffer(    
+    unsigned int& depth_map_fbo, 
+    unsigned int& depth_map, 
+    int tex_width, 
+    int tex_heigh );
 };
 
 } //namespace fightingengine

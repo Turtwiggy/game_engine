@@ -120,7 +120,7 @@ int main(int argc, char** argv)
 
     // ---- Game 
 
-    FlyCamera camera {glm::vec3(0.0f, 0.0f, -1.0f)};
+    FlyCamera camera {glm::vec3(0.0f, 0.0f, 3.0f)};
     camera.SetPerspective(glm::radians(65.0f), (float)width/(float)height, 0.1f, 100.0f);
 
     RandomState rnd;
@@ -281,12 +281,10 @@ int main(int argc, char** argv)
 
             ImGui::Begin("Depth Texture");
 
-                Texture2D tex = simple_renderer.get_shadowmap_texture();
-
                 // Using a Child allow to fill all the space of the window.
                 ImGui::BeginChild("Depth Texture");
                 ImVec2 wsize = ImGui::GetWindowSize();
-                ImGui::Image((ImTextureID)tex.id, ImVec2(wsize.x, wsize.y), ImVec2(0, 1), ImVec2(1, 0));
+                ImGui::Image((ImTextureID)simple_renderer.depthmap_, ImVec2(wsize.x, wsize.y), ImVec2(0, 1), ImVec2(1, 0));
                 //ImGui::Text("Depth Texture being rendererd");
                 ImGui::EndChild();
 

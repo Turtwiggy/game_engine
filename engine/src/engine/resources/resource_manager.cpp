@@ -126,7 +126,7 @@ Texture2D ResourceManager::load_texture_from_file(std::string full_path, GLenum 
         texture.InternalFormat = srgb ? GL_SRGB_ALPHA : GL_RGBA;
 
     // flip textures on their y coordinate while loading
-    stbi_set_flip_vertically_on_load(false);
+    //stbi_set_flip_vertically_on_load(false);
 
     // load image
     int width, height, nrChannels;
@@ -144,9 +144,12 @@ Texture2D ResourceManager::load_texture_from_file(std::string full_path, GLenum 
 
         if (target == GL_TEXTURE_2D) 
         {
-            texture.WrapR = format == GL_RGBA ? GL_CLAMP_TO_EDGE : GL_REPEAT;
+            texture.WrapR = GL_REPEAT;
             texture.WrapS = format == GL_RGBA ? GL_CLAMP_TO_EDGE : GL_REPEAT;
             texture.WrapT = format == GL_RGBA ? GL_CLAMP_TO_EDGE : GL_REPEAT;
+            texture.FilterMin = GL_LINEAR_MIPMAP_LINEAR;
+            texture.FilterMax = GL_LINEAR;
+
             texture.generate(width, height, texture.InternalFormat, format, GL_UNSIGNED_BYTE, data);
         }
     }

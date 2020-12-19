@@ -39,11 +39,10 @@ public:
 
     //Providing a getter to this texture allows
     //rendering of it in to ImGui for debugging
-    Texture2D& get_shadowmap_texture();
+    unsigned int depthmap_ = 0;
 
 private:
     void render_scene( 
-        const glm::mat4& view_projection, 
         const std::vector<glm::vec3>& cube_pos,
         const Shader& shader );
 
@@ -62,8 +61,7 @@ private:
     // shadow mapping
     unsigned int shadowmap_width_ = 1024;
     unsigned int shadowmap_height_ = 1024;
-    unsigned int shadowmap_fbo_;
-    Texture2D shadowmap_texture_;
+    unsigned int depthmap_fbo_ = 0;
     Shader shadowmap_shader_;
     Shader shadowmap_depth_shader_;
     glm::vec3 light_pos_ = { 0.0f, 0.0f, 0.0f };

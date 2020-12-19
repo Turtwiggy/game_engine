@@ -54,74 +54,29 @@ void Framebuffer::unbind_rbo()
     glBindRenderbuffer(GL_RENDERBUFFER, 0);
 }
 
-
-// unsigned int Framebuffer::create_picking_fbo(int width, int height, Texture2D& colour_tex, Texture2D& depth_tex)
-// {
-//     unsigned int fbo = create_fbo();
-//     bind_fbo(fbo);
-//     {
-//         create_picking_colourbuffer_texture(colour_tex, width, height);
-//         create_picking_depthbuffer_texture(depth_tex, width, height);
-        
-//         // Disable reading to avoid problems with older GPUs
-//         glReadBuffer(GL_NONE);
-
-//         // tell OpenGL which color attachments we'll 
-//         // use (of this framebuffer) for rendering 
-//         glDrawBuffer(GL_COLOR_ATTACHMENT0);
-
-//         // finally check if framebuffer is complete
-//         if (glCheckFramebufferStatus(GL_FRAMEBUFFER) != GL_FRAMEBUFFER_COMPLETE)
-//             spdlog::error("Framebuffer not complete");
-//     }
-//     // Restore the default framebuffer
-//     glBindTexture(GL_TEXTURE_2D, 0);
-//     unbind_fbo();
-
-//     return fbo;
-// }
-
-// void Framebuffer::create_picking_colourbuffer_texture( Texture2D& tex, int tex_width, int tex_height )
-// {
-//     tex.FilterMin = GL_LINEAR;
-//     tex.FilterMax = GL_LINEAR;
-//     tex.WrapS = GL_CLAMP_TO_EDGE;
-//     tex.WrapT = GL_CLAMP_TO_EDGE;
-//     tex.Generate(tex_width, tex_height, GL_RGB32F, GL_RGB, GL_FLOAT, 0);
-
-//     glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, tex.id, 0);
-// }
-
-// void Framebuffer::create_picking_depthbuffer_texture( Texture2D& tex, int tex_width, int tex_height )
-// {
-//     tex.FilterMin = GL_LINEAR;
-//     tex.FilterMax = GL_LINEAR;
-//     tex.WrapS = GL_CLAMP_TO_EDGE;
-//     tex.WrapT = GL_CLAMP_TO_EDGE;
-//     tex.Generate(tex_width, tex_height, GL_DEPTH_COMPONENT, GL_DEPTH_COMPONENT, GL_FLOAT, 0);
-
-//     glFramebufferTexture2D(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, GL_TEXTURE_2D, tex.id, 0);
-// }
-
-void Framebuffer::create_shadowmap_depthbuffer( int fbo, Texture2D& tex, int tex_width, int tex_height )
+void Framebuffer::create_shadowmap_depthbuffer( 
+    unsigned int& depth_map_fbo, 
+    unsigned int& depth_map, 
+    int tex_width, 
+    int tex_height )
 {
-    //generate texture
-    tex.FilterMin = GL_NEAREST;
-    tex.FilterMax = GL_NEAREST;
-    tex.WrapS = GL_CLAMP_TO_BORDER;
-    tex.WrapT = GL_CLAMP_TO_BORDER; 
-    tex.generate( tex_width, tex_height, GL_DEPTH_COMPONENT, GL_DEPTH_COMPONENT16, GL_FLOAT, 0 );
-
-    tex.bind();
+    glGenFramebuffers(1, &depth_map_fbo);
+    // create depth texture
+    glGenTextures(1, &depth_map);
+    glBindTexture(GL_TEXTURE_2D, depth_map);
+    glTexImage2D(GL_TEXTURE_2D, 0, GL_DEPTH_COMPONENT, tex_width, tex_height, 0, GL_DEPTH_COMPONENT, GL_FLOAT, NULL);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_BORDER);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_BORDER);
     float borderColor[] = { 1.0, 1.0, 1.0, 1.0 };
     glTexParameterfv(GL_TEXTURE_2D, GL_TEXTURE_BORDER_COLOR, borderColor);
-    tex.unbind();
-
-    bind_fbo( fbo );
-        glFramebufferTexture2D(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, GL_TEXTURE_2D, tex.id, 0);
-        glDrawBuffer(GL_NONE);
-        glReadBuffer(GL_NONE);
-    default_fbo();
+    // attach depth texture as FBO's depth buffer
+    glBindFramebuffer(GL_FRAMEBUFFER, depth_map_fbo);
+    glFramebufferTexture2D(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, GL_TEXTURE_2D, depth_map, 0);
+    glDrawBuffer(GL_NONE);
+    glReadBuffer(GL_NONE);
+    glBindFramebuffer(GL_FRAMEBUFFER, 0);
 }
 
 } //fightingengine
