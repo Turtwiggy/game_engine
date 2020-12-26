@@ -1,18 +1,19 @@
 #pragma once
 
-//c++ standard lib headers
+// c++ standard lib headers
 #include <memory>
 #include <vector>
 
-//other library files
+// other library files
 #include <glm/glm.hpp>
 #include <glm/gtx/transform.hpp>
 #include <glm/gtc/matrix_transform.hpp>
 
-//your project headers
+// your project headers
 #include "engine/core/application.hpp"
 #include "engine/3d/camera/camera.hpp"
 #include "engine/3d/camera/fly_camera.hpp"
+#include "engine/3d/renderer/passes/shadowmapping.hpp"
 #include "engine/graphics/framebuffer.hpp"
 #include "engine/scene/scene_node.hpp"
 #include "engine/scene/background.hpp"
@@ -35,39 +36,35 @@ public:
         const std::vector<glm::vec3>& cube_pos,
         const glm::ivec2& screen_size );
 
-    int get_draw_calls();
+    // renderer info
+    int draw_calls = 0;
 
-    //Providing a getter to this texture allows
-    //rendering of it in to ImGui for debugging
-    unsigned int depthmap_ = 0;
+    // renderpasses
+    ShadowmappingRenderpass shadowmapping_pass;
 
 private:
+    // meshes available
+    std::shared_ptr<Mesh> cube_;
+    std::shared_ptr<Mesh> plane_;
+
+    // skybox
+    Background* background_;
+    std::shared_ptr<TextureCube> cubemap_;
+
+    // shaders available
+    Shader shadowmap_shader_;
+        
+    // (temp) renderer state
+    glm::vec3 light_pos_ = { 0.0f, 0.0f, 0.0f };
+
+private:
+
     void render_scene( 
         const std::vector<glm::vec3>& cube_pos,
         const Shader& shader );
 
     void draw_skybox( const glm::mat4& view_projection );
 
-private:
-
-    // meshes available
-    std::shared_ptr<Mesh> cube;
-    std::shared_ptr<Mesh> plane;
-
-    // skybox
-    Background* background;
-    std::shared_ptr<TextureCube> cubemap_;
-
-    // shadow mapping
-    unsigned int shadowmap_width_ = 1024;
-    unsigned int shadowmap_height_ = 1024;
-    unsigned int depthmap_fbo_ = 0;
-    Shader shadowmap_shader_;
-    Shader shadowmap_depth_shader_;
-    glm::vec3 light_pos_ = { 0.0f, 0.0f, 0.0f };
-    
-    //renderer info
-    int draw_calls_ = 0;
 };
 
 } //namespace fightingengine

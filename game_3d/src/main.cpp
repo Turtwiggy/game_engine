@@ -30,7 +30,7 @@ using namespace fightingengine;
 #include "game_state.hpp"
 using namespace game_3d;
 
-//imguizmo testing / hack
+// imguizmo hack
 #include <math.h>
 #include <algorithm>
 #include "ImGuizmo.h"
@@ -114,7 +114,7 @@ int main(int argc, char** argv)
     uint32_t width = 1280;
     uint32_t height = 720;
     Application app("Fighting Game!", width, height);
-    app.set_fps_limit(60.0f);   
+    //app.set_fps_limit(120.0f);   
     //app.get_window().set_fullscreen(true);
     //app.remove_fps_limit();
 
@@ -157,6 +157,7 @@ int main(int argc, char** argv)
         float delta_time_s = app.get_delta_time();
 
         profiler.begin(Profiler::Stage::SdlInput);
+        
         app.poll(); //input events
 
         //Settings: Shutdown app
@@ -201,47 +202,6 @@ int main(int argc, char** argv)
                 static_cast<float>( rel_mouse.x ) , 
                 static_cast<float>( rel_mouse.y ) );
         } 
-        //Mouse not captured by window
-        else
-        {
-            //if mouse is clicked
-            if( app.get_input().get_mouse_lmb_held() )
-            {
-                //This is the lazy implementation of object picking!
-                //our ray origin is the camera position
-                glm::vec3 ray_origin = camera.Position;
-
-                //step 1: get mouse pos
-                //range [0:width, height:0]
-                glm::ivec2 abs_mouse = app.get_window().get_mouse_position();
-
-                //printf("mouse x: %i y: %i \n", abs_mouse.x, abs_mouse.y);
-
-                //step 2: convert mouse position in to 3d normalized device coordinates
-                //range [-1:1, -1:1, -1:1]
-                float x = (2.0f * abs_mouse.x) / width - 1.0f;
-                float y = 1.0f - (2.0f * abs_mouse.y) /  height;
-                glm::vec2 normalized_device_coords {x, y};
-
-                //step 3: convert normalized device coords to homogenous clip coords
-                //range [-1:1, -1:1, -1:1, -1:1]
-                //note: ray points in the -z direction
-                glm::vec4 ray_clip {normalized_device_coords.x, normalized_device_coords.y, -1.0, 1.0};
-
-                //Convert homogenous clip coords to  eye camera coordinates
-                //range [-x:x, -y:y, -z:z, -w:w]
-                glm::vec4 eye_ray = glm::inverse(camera.Projection) * ray_clip;
-                eye_ray.z = -1.0f;
-                eye_ray.w = 0.0f;
-
-                //step 5: convert eye camera coordinates to world coordinates
-                //range [-x:x, -y:y, -z:z, -w:w]
-                glm::vec3 ray_world = glm::vec3(glm::inverse(camera.View) * eye_ray);
-                ray_world = glm::normalize(ray_world);
-
-                printf("ray x: %f y: %f z: %f \n", ray_world.x, ray_world.y, ray_world.z);
-            }
-        }
 
         profiler.end(Profiler::Stage::SdlInput);
         profiler.begin(Profiler::Stage::GameTick);
@@ -284,7 +244,7 @@ int main(int argc, char** argv)
                 // Using a Child allow to fill all the space of the window.
                 ImGui::BeginChild("Depth Texture");
                 ImVec2 wsize = ImGui::GetWindowSize();
-                ImGui::Image((ImTextureID)simple_renderer.depthmap_, ImVec2(wsize.x, wsize.y), ImVec2(0, 1), ImVec2(1, 0));
+                ImGui::Image((ImTextureID)simple_renderer.shadowmapping_pass.depthmap_tex, ImVec2(wsize.x, wsize.y), ImVec2(0, 1), ImVec2(1, 0));
                 //ImGui::Text("Depth Texture being rendererd");
                 ImGui::EndChild();
 
@@ -301,17 +261,17 @@ int main(int argc, char** argv)
 
             ImGui::Begin("Renderer", (bool*)1);
 
-                ImGui::Text("Draw calls: %i", simple_renderer.get_draw_calls());
+                ImGui::Text("Draw calls: %i", simple_renderer.draw_calls);
 
                 // if (ImGui::CollapsingHeader("Post-processing"))
                 // {
+                //     ImGui::Checkbox("Vignette", &renderer->GetPostProcessor()->Vignette);
                 //     ImGui::Checkbox("SSAO", &renderer->GetPostProcessor()->SSAO);
                 //     ImGui::Checkbox("Bloom", &renderer->GetPostProcessor()->Bloom);
-                //     ImGui::Checkbox("Motion Blur", &renderer->GetPostProcessor()->MotionBlur);
                 //     //ImGui::Checkbox("SSR", &renderer->GetPostProcessor()->SSR);
                 //     //ImGui::Checkbox("TXAA", &renderer->GetPostProcessor()->TXAA);
-                //     ImGui::Checkbox("Vignette", &renderer->GetPostProcessor()->Vignette);
                 //     ImGui::Checkbox("Sepia", &renderer->GetPostProcessor()->Sepia);
+                //     ImGui::Checkbox("Motion Blur", &renderer->GetPostProcessor()->MotionBlur);
                 // }
 
             ImGui::End();
@@ -331,3 +291,53 @@ int main(int argc, char** argv)
 
     return 0;
 }
+
+
+
+
+
+// Below code is converting mouse position in to ray
+// -------------------------------------------------
+
+
+// //Mouse not captured by window
+// else
+// {
+//     //if mouse is clicked
+//     if( app.get_input().get_mouse_lmb_held() )
+//     {
+//         //This is the lazy implementation of object picking!
+//         //our ray origin is the camera position
+//         glm::vec3 ray_origin = camera.Position;
+
+//         //step 1: get mouse pos
+//         //range [0:width, height:0]
+//         glm::ivec2 abs_mouse = app.get_window().get_mouse_position();
+
+//         //printf("mouse x: %i y: %i \n", abs_mouse.x, abs_mouse.y);
+
+//         //step 2: convert mouse position in to 3d normalized device coordinates
+//         //range [-1:1, -1:1, -1:1]
+//         float x = (2.0f * abs_mouse.x) / width - 1.0f;
+//         float y = 1.0f - (2.0f * abs_mouse.y) /  height;
+//         glm::vec2 normalized_device_coords {x, y};
+
+//         //step 3: convert normalized device coords to homogenous clip coords
+//         //range [-1:1, -1:1, -1:1, -1:1]
+//         //note: ray points in the -z direction
+//         glm::vec4 ray_clip {normalized_device_coords.x, normalized_device_coords.y, -1.0, 1.0};
+
+//         //Convert homogenous clip coords to  eye camera coordinates
+//         //range [-x:x, -y:y, -z:z, -w:w]
+//         glm::vec4 eye_ray = glm::inverse(camera.Projection) * ray_clip;
+//         eye_ray.z = -1.0f;
+//         eye_ray.w = 0.0f;
+
+//         //step 5: convert eye camera coordinates to world coordinates
+//         //range [-x:x, -y:y, -z:z, -w:w]
+//         glm::vec3 ray_world = glm::vec3(glm::inverse(camera.View) * eye_ray);
+//         ray_world = glm::normalize(ray_world);
+
+//         printf("ray x: %f y: %f z: %f \n", ray_world.x, ray_world.y, ray_world.z);
+//     }
+// }

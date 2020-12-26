@@ -12,73 +12,50 @@
 namespace fightingengine
 {
 
-int RendererSimple::get_draw_calls() 
-{ 
-    return draw_calls_; 
-}
-
 RendererSimple::RendererSimple( RandomState &rnd )
 {
-    // Configure OpenGL
+    // Configure OpenGLó
     RenderCommand::init();
     RenderCommand::set_clear_colour({0.1f, 0.1f, 0.1f, 1.0f});
     RenderCommand::set_depth_testing(true);
 
     // meshes
-    cube = std::make_shared<primitives::Cube>();
-    plane = std::make_shared<primitives::Plane>(1, 1);
+    cube_ = std::make_shared<primitives::Cube>();
+    plane_ = std::make_shared<primitives::Plane>(1, 1);
 
     // TODO(Turtwiggy) finish model loading
     //object_ = ResourceManager::load_model("assets/models/lizard_wizard/lizard_wizard->obj", "Object");
 
     // textures
-    ResourceManager::load_texture_cube("assets/skybox/skybox-default/", "default-skybox");
     ResourceManager::load_texture("assets/textures/wood.png", "wood-floor");
 
     // skybox
-    TextureCube cubemap = ResourceManager::get_texture_cube("default-skybox");
-    cubemap_ = std::make_shared<TextureCube>(cubemap);
-    background = new Background();
-    background->Material->set_texture_cube("DefaultCubemap", cubemap_.get());
+    // ResourceManager::load_texture_cube("assets/skybox/skybox-default/", "default-skybox");
+    // TextureCube cubemap = ResourceManager::get_texture_cube("default-skybox");
+    // cubemap_ = std::make_shared<TextureCube>(cubemap);
+    // background_ = new Background();
+    // background_->Material->set_texture_cube("DefaultCubemap", cubemap_.get());
 
     // load shaders
-    ResourceManager::load_shader(
-        "assets/shaders/effects/",
-        {"shadow_mapping.vert", "shadow_mapping.frag"},
-        "SHADER_shadow_mapping"
-    );
-    ResourceManager::load_shader(
-        "assets/shaders/effects/",
-        {"shadow_mapping_depth.vert", "shadow_mapping_depth.frag"},
-        "SHADER_shadow_mapping_depth"
-    );
     ResourceManager::load_shader(
         "assets/shaders/",
         {"blinn-phong/lit.vert", "solid_colour.frag"},
         "SHADER_solid"
     );
-
-    // shadow mapping depth map FBO
-    Framebuffer::create_shadowmap_depthbuffer
-    (
-        depthmap_fbo_,
-        depthmap_,
-        shadowmap_width_,
-        shadowmap_height_
+    ResourceManager::load_shader(
+        "assets/shaders/effects/",
+        {"shadow_mapping.vert", "shadow_mapping.frag"},
+        "SHADER_shadow_mapping"
     );
 
-    // shader config
+    // shadow mapping depth map FBO
     shadowmap_shader_ = ResourceManager::get_shader("SHADER_shadow_mapping");
     shadowmap_shader_.bind();
-    shadowmap_shader_.set_int("diffuse_texture", 0);
-    shadowmap_shader_.set_int("shadow_map", 1);
-
-    shadowmap_depth_shader_ = ResourceManager::get_shader("SHADER_shadow_mapping_depth");
+    shadowmap_shader_.set_int("shadow_map", 0);
 
     //State that shouldn't be in renderer at some point
     light_pos_ = { -2.0f, 4.0f, -1.0f };
 }
-
 
 void RendererSimple::update(
     float delta_time,
@@ -87,37 +64,25 @@ void RendererSimple::update(
     const std::vector<glm::vec3> &cube_pos,
     const glm::ivec2& screen_size )
 {
-    draw_calls_ = 0;
+    draw_calls = 0;
     camera.Update(delta_time);
 
     // render pass: shadowmapping
-    // --------------------------
+    // render scene in to depth texture
+    // --------------------------------
 
-    float near_plane = 1.0f, far_plane = 7.5f;
-    glm::mat4 light_projection = glm::ortho(-10.0f, 10.0f, -10.0f, 10.0f, near_plane, far_plane);
-    glm::mat4 light_view = glm::lookAt(light_pos_, glm::vec3(0.0f), glm::vec3(0.0f, 1.0f, 0.0f));
-    glm::mat4 light_space_matrix = light_projection * light_view;
-    
-    //render scene from light's point of view
-    shadowmap_depth_shader_.bind();
-    shadowmap_depth_shader_.set_mat4( "light_space_matrix", light_space_matrix );
+    glm::mat4 light_space_matrix = shadowmapping_pass.calculate_light_space_matrix( light_pos_ );
 
-    RenderCommand::set_viewport(0, 0, shadowmap_width_, shadowmap_height_);
-    Framebuffer::bind_fbo( depthmap_fbo_ );
+    shadowmapping_pass.bind( light_space_matrix );
     {
-        glClear(GL_DEPTH_BUFFER_BIT);
-        glActiveTexture(GL_TEXTURE0);
-        glBindTexture( GL_TEXTURE_2D, ResourceManager::get_texture("wood-floor")->id );
-        render_scene( cube_pos, shadowmap_depth_shader_ );
+        render_scene( cube_pos, shadowmapping_pass.shadowmap_depth_shader );
     }
-    Framebuffer::default_fbo();
-
+    shadowmapping_pass.unbind();
 
     // render pass: render scene as normal
     // -----------------------------------
-    glClearColor(0.1f, 0.1f, 0.1f, 1.0f);
-    glViewport(0, 0, screen_size.x, screen_size.y);
-    glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+    RenderCommand::set_viewport(0, 0, screen_size.x, screen_size.y);
+    RenderCommand::clear();
 
     glm::mat4 view_projection = camera.get_view_projection_matrix();
 
@@ -125,12 +90,26 @@ void RendererSimple::update(
     shadowmap_shader_.set_mat4("view_projection", view_projection );
     shadowmap_shader_.set_mat4("light_space_matrix", light_space_matrix );
     shadowmap_shader_.set_vec3("view_pos", camera.Position );
-    shadowmap_shader_.set_vec3("light_pos", light_pos_ );
 
-    glActiveTexture(GL_TEXTURE0);
-    glBindTexture(GL_TEXTURE_2D, ResourceManager::get_texture("wood-floor")->id );
-    glActiveTexture(GL_TEXTURE1);
-    glBindTexture(GL_TEXTURE_2D, depthmap_);
+    glActiveTexture( GL_TEXTURE0 );
+    glBindTexture( GL_TEXTURE_2D, shadowmapping_pass.depthmap_tex );
+
+    // set lighting info
+    glm::vec3 light_diffuse = glm::vec3( 0.9f, 0.9f, 0.9f );
+    glm::vec3 light_ambient = light_diffuse * glm::vec3( 0.2f ); // low influence
+    shadowmap_shader_.set_vec3( "light.position", light_pos_ );
+    shadowmap_shader_.set_vec3( "light.ambient", light_ambient );
+    shadowmap_shader_.set_vec3( "light.diffuse", light_diffuse );
+    shadowmap_shader_.set_vec3( "light.specular", 1.0f, 1.0f, 1.0f );
+    // lighting attenuation
+    shadowmap_shader_.set_float( "light.constant",  1.0f );
+    shadowmap_shader_.set_float( "light.linear",    0.09f) ;
+    shadowmap_shader_.set_float( "light.quadratic", 0.032f );	
+    // set all objects material info
+    shadowmap_shader_.set_vec3( "material.ambient", glm::vec3(0.3f, 1.0f, 0.3f) );
+    shadowmap_shader_.set_vec3( "material.diffuse", glm::vec3(1.0f, 1.0f, 1.0f) );
+    shadowmap_shader_.set_vec3( "material.specular", 0.5f, 0.5f, 0.5f );
+    shadowmap_shader_.set_float( "material.shininess", 32.0f );
 
     render_scene( cube_pos, shadowmap_shader_ );
 
@@ -141,11 +120,12 @@ void RendererSimple::update(
     model = glm::translate(model, light_pos_);
     model = glm::scale(model, glm::vec3(0.5f));
     ResourceManager::get_shader("SHADER_solid").set_mat4("model", model);
-    render_mesh(cube);
+    render_mesh(cube_);
 
     // Skybox
-    draw_skybox(view_projection);
+    //draw_skybox(view_projection);
 }
+
 
 void RendererSimple::render_scene(
     const std::vector<glm::vec3> &cube_pos,
@@ -153,15 +133,14 @@ void RendererSimple::render_scene(
 {    
     glm::mat4 model = glm::mat4(1.0f);
 
-    //Plane
+    // Plane
     model = glm::translate(model, glm::vec3(0.0f, -0.5f, 0.0f));
-    model = glm::scale(model, glm::vec3(10.0f));
+    model = glm::scale(model, glm::vec3(25.0f));
     model = glm::rotate(model, glm::radians(90.0f), glm::normalize(glm::vec3(0.0f, 1.0f, 0.0f)));
     shader.set_mat4("model", model);
+    render_mesh(plane_);
 
-    render_mesh(plane);
-
-    // Cube: Draw
+    // // random cubes
     // for (int i = 0; i < cube_pos.size(); i++)
     // {
     //     // calculate the model matrix for each object and pass it to shader before drawing
@@ -170,7 +149,7 @@ void RendererSimple::render_scene(
     //     //model = glm::rotate(model, glm::radians(0.0f), glm::vec3(1.0f, 0.0f, 0.0f));
     //     shader.set_mat4("model", model);
 
-    //     render_mesh(cube);
+    //     render_mesh(cube_);
     // }
 
     // cubes
@@ -178,48 +157,48 @@ void RendererSimple::render_scene(
     model = glm::translate(model, glm::vec3(0.0f, 1.5f, 0.0));
     model = glm::scale(model, glm::vec3(0.5f));
     shader.set_mat4("model", model);
-    render_mesh(cube);
+    render_mesh(cube_);
 
     model = glm::mat4(1.0f);
     model = glm::translate(model, glm::vec3(2.0f, 0.0f, 1.0));
     model = glm::scale(model, glm::vec3(0.5f));
     shader.set_mat4("model", model);
-    render_mesh(cube);
+    render_mesh(cube_);
 
     model = glm::mat4(1.0f);
     model = glm::translate(model, glm::vec3(-1.0f, 0.0f, 2.0));
     model = glm::rotate(model, glm::radians(60.0f), glm::normalize(glm::vec3(1.0, 0.0, 1.0)));
     model = glm::scale(model, glm::vec3(0.25));
     shader.set_mat4("model", model);
-    render_mesh(cube);
+    render_mesh(cube_);
 }
 
 
-void RendererSimple::draw_skybox( const glm::mat4 &view_projection )
-{
-    glm::mat4 model = glm::scale( glm::mat4(1.0f), glm::vec3(1000.0f, 1000.0f, 1000.0f) );
+// void RendererSimple::draw_skybox( const glm::mat4 &view_projection )
+// {
+//     glm::mat4 model = glm::scale( glm::mat4(1.0f), glm::vec3(1000.0f, 1000.0f, 1000.0f) );
 
-    glDepthFunc( background->Material->DepthCompare );
+//     glDepthFunc( background_->Material->DepthCompare );
 
-    background->Material->get_shader()->bind();
-    background->Material->get_shader()->set_mat4( "view_projection", view_projection );
-    background->Material->get_shader()->set_mat4( "model", model );
+//     background_->Material->get_shader()->bind();
+//     background_->Material->get_shader()->set_mat4( "view_projection", view_projection );
+//     background_->Material->get_shader()->set_mat4( "model", model );
 
-    // skybox cube
-    auto *samplers = background->Material->get_sampler_uniforms();
-    for (auto it = samplers->begin(); it != samplers->end(); ++it)
-    {
-        if ( it->second.Type == SHADER_TYPE::SHADER_TYPE_SAMPLERCUBE )
-            it->second.TextureCube->Bind(it->second.Unit);
-        else
-            it->second.Texture->bind(it->second.Unit);
-    }
+//     // skybox cube
+//     auto *samplers = background_->Material->get_sampler_uniforms();
+//     for (auto it = samplers->begin(); it != samplers->end(); ++it)
+//     {
+//         if ( it->second.Type == SHADER_TYPE::SHADER_TYPE_SAMPLERCUBE )
+//             it->second.TextureCube->Bind(it->second.Unit);
+//         else
+//             it->second.Texture->bind(it->second.Unit);
+//     }
 
-    render_mesh( background->Mesh );
+//     render_mesh( background_->Mesh );
 
-    glBindVertexArray(0);
-    glDepthFunc(GL_LESS); // set depth function back to default
-}
+//     glBindVertexArray(0);
+//     glDepthFunc(GL_LESS); // set depth function back to default
+// }
 
 
 } //namespace fightingengine

@@ -27,14 +27,6 @@ public:
     static unsigned int create_rbo(); 
     static void bind_rbo(unsigned int rbo);
     static void unbind_rbo();
-
-    // --- shadow mapping fbo usage
-public:
-    static void create_shadowmap_depthbuffer(    
-    unsigned int& depth_map_fbo, 
-    unsigned int& depth_map, 
-    int tex_width, 
-    int tex_heigh );
 };
 
 } //namespace fightingengine
