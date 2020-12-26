@@ -6,7 +6,7 @@
 //#include "sprite_renderer.hpp"
 //#include "random.hpp"
 //
-//namespace vfx {
+// namespace vfx {
 //
 //    enum particle_type
 //    {

@@ -1,12 +1,9 @@
 
-//header
+// header
 #include "engine/3d/renderer/renderer_pbr.hpp"
 
 namespace fightingengine {
 
-RendererPBR::RendererPBR()
-{
+RendererPBR::RendererPBR() {}
 
-}
-
-} //fightingengine
+} // fightingengine

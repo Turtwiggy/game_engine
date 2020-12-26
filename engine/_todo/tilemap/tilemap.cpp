@@ -179,7 +179,6 @@
 //     add_to(ret[PYRAMID], { 2, 20 });
 //     add_to(ret[CHURCH], { 3, 20 });
 
-
 //     return ret;
 // }
 
@@ -190,7 +189,8 @@
 // //     auto& which = tiles[type];
 
 // //     if (which.size() == 0)
-// //         throw std::runtime_error("No tiles for type " + std::to_string(type));
+// //         throw std::runtime_error("No tiles for type " +
+// std::to_string(type));
 
 // //     int len = (int)(which.size());
 
@@ -203,25 +203,31 @@
 
 // //     ColourVec4f colour;
 // //     handle.colour = colour;
-// //     //handle.base_colour = get_colour_of(type/*, level_info::GRASS*/); //???
+// //     //handle.base_colour = get_colour_of(type/*, level_info::GRASS*/);
+// //???
 
 // //     return handle;
 // // }
 
-// // vec4 get_colour_of(tiles::type tile_type/*, level_info::types level_type*/)
+// // vec4 get_colour_of(tiles::type tile_type/*, level_info::types
+// level_type*/)
 // // {
-// //     vec3 mask_col3 = glm::normalize(srgb_to_lin_approx(vec3{ 71, 45, 60 } / 255.f));
+// //     vec3 mask_col3 = glm::normalize(srgb_to_lin_approx(vec3{ 71, 45, 60 }
+// / 255.f));
 // //     vec4 mask_col = { mask_col3.x, mask_col3.y, mask_col3.z, 1.f };
 
-// //     vec4 barren_col = srgb_to_lin_approx(vec4{ 122, 68, 74, 255 } / 255.f);
-// //     vec4 grass_col = srgb_to_lin_approx(vec4{ 56, 217, 115, 255 } / 255.f);
+// //     vec4 barren_col = srgb_to_lin_approx(vec4{ 122, 68, 74, 255 } /
+// 255.f);
+// //     vec4 grass_col = srgb_to_lin_approx(vec4{ 56, 217, 115, 255 } /
+// 255.f);
 
 // //     vec4 blue_col = srgb_to_lin_approx(vec4{ 60, 172, 215, 255 } / 255.f);
 
 // //     if (tile_type == tiles::WATER)
 // //         return blue_col;
 
-// //     if (tile_type == tiles::BRAMBLE || tile_type == tiles::SHRUB || tile_type == tiles::BASE)
+// //     if (tile_type == tiles::BRAMBLE || tile_type == tiles::SHRUB ||
+// tile_type == tiles::BASE)
 // //     {
 // //         //if (level_type == level_info::GRASS)
 // //         //    return grass_col * mask_col;
@@ -235,24 +241,34 @@
 // //     if (tile_type == tiles::GRASS)
 // //         return grass_col * grass_col;
 
-// //     if (tile_type == tiles::TREE_1 || tile_type == tiles::TREE_2 || tile_type == tiles::TREE_DENSE ||
-// //         tile_type == tiles::TREE_ROUND || tile_type == tiles::CACTUS || tile_type == tiles::VINE ||
+// //     if (tile_type == tiles::TREE_1 || tile_type == tiles::TREE_2 ||
+// tile_type == tiles::TREE_DENSE ||
+// //         tile_type == tiles::TREE_ROUND || tile_type == tiles::CACTUS ||
+// tile_type == tiles::VINE ||
 // //         tile_type == tiles::CULTIVATION || tile_type == tiles::CROCODILE)
 // //         return grass_col;
 
 // //     vec4 wood_col = srgb_to_lin_approx(vec4{ 191, 121, 88, 255 } / 255.f);
-// //     vec4 building_gray = srgb_to_lin_approx(vec4{ 207, 198, 184, 255 } / 255.f);
-// //     vec4 generic_red = srgb_to_lin_approx(vec4{ 230, 72, 46, 255 } / 255.f);
-// //     vec4 white_col = srgb_to_lin_approx(vec4{ 255, 255, 255, 255 } / 255.f);
+// //     vec4 building_gray = srgb_to_lin_approx(vec4{ 207, 198, 184, 255 } /
+// 255.f);
+// //     vec4 generic_red = srgb_to_lin_approx(vec4{ 230, 72, 46, 255 } /
+// 255.f);
+// //     vec4 white_col = srgb_to_lin_approx(vec4{ 255, 255, 255, 255 } /
+// 255.f);
 
-// //     if (tile_type == tiles::EFFECT_1 || tile_type == tiles::EFFECT_2 || tile_type == tiles::EFFECT_3 ||
-// //         tile_type == tiles::EFFECT_4 || tile_type == tiles::EFFECT_5 || tile_type == tiles::EFFECT_6 ||
-// //         tile_type == tiles::EFFECT_7 || tile_type == tiles::EFFECT_8 || tile_type == tiles::EFFECT_9 ||
-// //         tile_type == tiles::EFFECT_10 || tile_type == tiles::EFFECT_11 || tile_type == tiles::EFFECT_12 ||
+// //     if (tile_type == tiles::EFFECT_1 || tile_type == tiles::EFFECT_2 ||
+// tile_type == tiles::EFFECT_3 ||
+// //         tile_type == tiles::EFFECT_4 || tile_type == tiles::EFFECT_5 ||
+// tile_type == tiles::EFFECT_6 ||
+// //         tile_type == tiles::EFFECT_7 || tile_type == tiles::EFFECT_8 ||
+// tile_type == tiles::EFFECT_9 ||
+// //         tile_type == tiles::EFFECT_10 || tile_type == tiles::EFFECT_11 ||
+// tile_type == tiles::EFFECT_12 ||
 // //         tile_type == tiles::EFFECT_13)
 // //         return white_col;
 
-// //     if (tile_type == tiles::ROCKS || tile_type == tiles::GRAVE || tile_type == tiles::TILING_WALL)
+// //     if (tile_type == tiles::ROCKS || tile_type == tiles::GRAVE ||
+// tile_type == tiles::TILING_WALL)
 // //         return building_gray;
 
 // //     if (tile_type == tiles::LAND_ANIMAL)
@@ -261,8 +277,10 @@
 // //     if (tile_type == tiles::SEA_ANIMAL)
 // //         return building_gray;
 
-// //     if (tile_type == tiles::CIVILIAN || (tile_type >= tiles::SOLDIER && tile_type <= tiles::SOLDIER_BEST) ||
-// //         tile_type == tiles::GROUND_BUG || tile_type == tiles::FLYING_BUG || tile_type == tiles::ARMOURED_BUG || tile_type == tiles::SMALL_PINCHY)
+// //     if (tile_type == tiles::CIVILIAN || (tile_type >= tiles::SOLDIER &&
+// tile_type <= tiles::SOLDIER_BEST) ||
+// //         tile_type == tiles::GROUND_BUG || tile_type == tiles::FLYING_BUG
+// || tile_type == tiles::ARMOURED_BUG || tile_type == tiles::SMALL_PINCHY)
 // //         return building_gray;
 
 // //     if (tile_type == tiles::SCORPION)
@@ -271,14 +289,18 @@
 // //     if (tile_type == tiles::FACE_MALE || tile_type == tiles::FACE_WOMAN)
 // //         return building_gray;
 
-// //     if (tile_type == tiles::WOOD_FENCE_FULL || tile_type == tiles::WOOD_FENCE_HALF || tile_type == tiles::TILING_WALL ||
-// //         tile_type == tiles::THIN_DOOR_CLOSED || tile_type == tiles::THIN_DOOR_OPEN ||
+// //     if (tile_type == tiles::WOOD_FENCE_FULL || tile_type ==
+// tiles::WOOD_FENCE_HALF || tile_type == tiles::TILING_WALL ||
+// //         tile_type == tiles::THIN_DOOR_CLOSED || tile_type ==
+// tiles::THIN_DOOR_OPEN ||
 // //         tile_type == tiles::DOOR_CLOSED || tile_type == tiles::DOOR_OPEN)
 // //         return wood_col;
 
 // //     if (tile_type == tiles::CASTLE_1 || tile_type == tiles::CASTLE_2 ||
-// //         tile_type == tiles::HOUSE_1 || tile_type == tiles::HOUSE_2 || tile_type == tiles::HOUSE_3 || tile_type == tiles::HOUSE_4 ||
-// //         tile_type == tiles::TENT || tile_type == tiles::FANCY_TENT || tile_type == tiles::CAPITAL_TENT)
+// //         tile_type == tiles::HOUSE_1 || tile_type == tiles::HOUSE_2 ||
+// tile_type == tiles::HOUSE_3 || tile_type == tiles::HOUSE_4 ||
+// //         tile_type == tiles::TENT || tile_type == tiles::FANCY_TENT ||
+// tile_type == tiles::CAPITAL_TENT)
 // //         return building_gray;
 
 // //     throw std::runtime_error("Did not find " + std::to_string(tile_type));
@@ -302,7 +324,8 @@
 // //{
 // //    if (pos.x < 0 || pos.y < 0 || pos.x >= dim.x || pos.y >= dim.y)
 // //    {
-// //        std::string err = "Remove out of bounds: pos.x(): " + std::to_string(pos.x) +
+// //        std::string err = "Remove out of bounds: pos.x(): " +
+// std::to_string(pos.x) +
 // //            " pos.y(): " + std::to_string(pos.y) +
 // //            " dim.x(): " + std::to_string(dim.x) +
 // //            " dim.y(): " + std::to_string(dim.y);
@@ -359,12 +382,14 @@
 
 // //}
 
-// //void tilemap::render(entt::registry& registry, render_window& win, camera& cam, sprite_renderer& renderer, vec2 mpos)
+// //void tilemap::render(entt::registry& registry, render_window& win, camera&
+// cam, sprite_renderer& renderer, vec2 mpos)
 // //{
 // //    vec2 mouse_tile = cam.screen_to_tile(win, mpos);
 // //    glm::ivec2 i_tile = { mouse_tile.x, mouse_tile.y };
 
-// //    //bool mouse_clicked = ImGui::IsMouseClicked(0) && !ImGui::IsAnyWindowHovered();
+// //    //bool mouse_clicked = ImGui::IsMouseClicked(0) &&
+// !ImGui::IsAnyWindowHovered();
 // //    //bool mouse_hovering = !ImGui::IsAnyWindowHovered();
 
 // //    for (int y = 0; y < dim.y; y++)
@@ -380,7 +405,8 @@
 // //                //if (registry.has<mouse_interactable>(en))
 // //                //{
 // //                //    reset_interactable_state(registry, en);
-// //                //    mouse_interactable& interact = registry.get<mouse_interactable>(en);
+// //                //    mouse_interactable& interact =
+// registry.get<mouse_interactable>(en);
 // //                //    if (i_tile == vec2i{ x, y })
 // //                //    {
 // //                //        if (mouse_hovering)
@@ -408,15 +434,18 @@
 
 // //                vec4f old_col = handle.base_colour;
 
-// //                vec4f shaded_col = srgb_to_lin_approx(vec4f{ 0.02, 0.02, 0.02, 1 });
+// //                vec4f shaded_col = srgb_to_lin_approx(vec4f{ 0.02, 0.02,
+// 0.02, 1 });
 
 // //                if (id > 0 && id != (int)lst.size() - 1 && lst.size() > 2)
 // //                {
-// //                    handle.base_colour = mix(shaded_col, handle.base_colour, 0.1);
+// //                    handle.base_colour = mix(shaded_col,
+// handle.base_colour, 0.1);
 // //                    //handle.base_colour.w() *= 0.3;
 // //                }
 
-// //                if (mouse_hovering && desc.depress_on_hover && i_tile == vec2i{ x, y })
+// //                if (mouse_hovering && desc.depress_on_hover && i_tile ==
+// vec2i{ x, y })
 // //                {
 // //                    if (id > 0)
 // //                    {
@@ -426,7 +455,8 @@
 
 // //                    if (id == 0)
 // //                    {
-// //                        handle.base_colour = mix(shaded_col, handle.base_colour, 0.5);
+// //                        handle.base_colour = mix(shaded_col,
+// handle.base_colour, 0.5);
 // //                    }
 // //                }
 
@@ -446,7 +476,8 @@
 // //    {
 // //        if (registry.has<building_tag>(selected.value()))
 // //        {
-// //            building_tag& tag = registry.get<building_tag>(selected.value());
+// //            building_tag& tag =
+// registry.get<building_tag>(selected.value());
 
 // //            tag.show_build_ui();
 // //        }
@@ -455,7 +486,8 @@
 
 // //int tilemap::entities_at_position(vec2i pos)
 // //{
-// //    if (pos.x() < 0 || pos.y() < 0 || pos.x() >= dim.x() || pos.y() >= dim.y())
+// //    if (pos.x() < 0 || pos.y() < 0 || pos.x() >= dim.x() || pos.y() >=
+// dim.y())
 // //        throw std::runtime_error("Out of bounds");
 
 // //    return all_entities[pos.y() * dim.x() + pos.x()].size();

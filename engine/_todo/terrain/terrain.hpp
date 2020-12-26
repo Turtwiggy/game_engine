@@ -8,7 +8,7 @@
 //
 //#include <vector>
 //
-//namespace fightinggame {
+// namespace fightinggame {
 //
 //    class Terrain
 //    {
@@ -56,9 +56,9 @@
 //                {
 //                    FGVertex vertex;
 //
-//                    vertex.Position.x = -(float)j / ((float)VERTEX_COUNT - 1) * SIZE;
-//                    vertex.Position.y = 0.0f;
-//                    vertex.Position.z = -(float)i / ((float)VERTEX_COUNT - 1) * SIZE;
+//                    vertex.Position.x = -(float)j / ((float)VERTEX_COUNT - 1)
+//                    * SIZE; vertex.Position.y = 0.0f; vertex.Position.z =
+//                    -(float)i / ((float)VERTEX_COUNT - 1) * SIZE;
 //
 //                    vertex.Normal.x = 0.0f;
 //                    vertex.Normal.y = 1.0f;
@@ -88,14 +88,15 @@
 //                    indices[pointer++] = top_right;
 //                    indices[pointer++] = bottom_left;
 //                    indices[pointer++] = bottom_right;
-// 
+//
 //                }
 //            }
 //
 //            FGColour color;
 //            color.colour = glm::vec4(0.3f, 1.0f, 0.3f, 1.0f);
 //
-//            return FGMesh(verts, indices, textures, color, "Generated Terrain");
+//            return FGMesh(verts, indices, textures, color, "Generated
+//            Terrain");
 //        }
 //    };
 //}

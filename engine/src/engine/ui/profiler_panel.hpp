@@ -5,17 +5,10 @@
 
 namespace fightingengine {
 
-class ProfilerPanel 
+class ProfilerPanel
 {
 public:
-
-void draw
-(
-    const Application& app, 
-    const Profiler& profiler, 
-    const float delta_time_s
-);
-
+  void draw(const Application& app, const Profiler& profiler, const float delta_time_s);
 };
 
-} //namespace fightingengine
+} // namespace fightingengine

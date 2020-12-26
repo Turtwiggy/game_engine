@@ -116,7 +116,8 @@
 //     //void add(entt::entity en, glm::ivec2 pos);
 //     //void remove(entt::entity en, glm::ivec2 pos);
 //     //void move(entt::entity en, glm::ivec2 from, glm::ivec2 to);
-//     //void render(entt::registry& reg, render_window& win, camera& cam, sprite_renderer& renderer, vec2f mpos);
+//     //void render(entt::registry& reg, render_window& win, camera& cam,
+//     sprite_renderer& renderer, vec2f mpos);
 
 //     //int entities_at_position(glm::vec2 pos);
 // };

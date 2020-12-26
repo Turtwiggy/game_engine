@@ -4,8 +4,6 @@
             "name": "Linux",
             "includePath": [
                 "${workspaceFolder}/engine/src",
-                "${workspaceFolder}/experimental_raytracing_one_weekend/src",
-                "${workspaceFolder}/experimental_networking/src",
                 "${workspaceFolder}/thirdparty/imgui",
                 "${workspaceFolder}/thirdparty/imgui/examples",
                 "${workspaceFolder}/thirdparty/vcpkg/installed/x64-linux/include"
@@ -34,8 +32,6 @@
             "name": "Windows",
             "includePath": [
                 "${workspaceFolder}/engine/src",
-                "${workspaceFolder}/experimental_raytracing_one_weekend/src",
-                "${workspaceFolder}/experimental_networking/src",
                 "${workspaceFolder}/thirdparty/imgui",
                 "${workspaceFolder}/thirdparty/imgui/examples",
                 "${workspaceFolder}/thirdparty/vcpkg/installed/x64-windows/include"

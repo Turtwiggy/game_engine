@@ -54,14 +54,18 @@
 
 //     //Ray-Triangle intersections
 //     bool intersects_triangle(Ray r, Triangle tri, HitInfo &i);
-//     bool intersects_any_triangle(Ray r, HitInfo &info, std::vector<Triangle> &triangles, int set_triangles); 
-    
+//     bool intersects_any_triangle(Ray r, HitInfo &info, std::vector<Triangle>
+//     &triangles, int set_triangles);
+
 //     //Ray-Sphere intersections
-//     bool hit_sphere(const Ray &r, const Sphere &s, HitInfo &i, double t_min = EPSILON, double t_max = LARGE_FLOAT);
-//     bool intersects_any_sphere(const Ray &r, const std::vector<Sphere> &spheres, HitInfo &i);
+//     bool hit_sphere(const Ray &r, const Sphere &s, HitInfo &i, double t_min =
+//     EPSILON, double t_max = LARGE_FLOAT); bool intersects_any_sphere(const
+//     Ray &r, const std::vector<Sphere> &spheres, HitInfo &i);
 
 //     //Ray-Material
-//     bool scatter_diffuse(const Ray &r, const HitInfo &h, const Material &m, glm::vec3 &attenuation, Ray &scattered, RandomState &rnd);
-//     bool scatter_metal(const Ray &r, const HitInfo &h, const Material &m, glm::vec3 &attentuation, Ray &scattered, RandomState &rnd);
+//     bool scatter_diffuse(const Ray &r, const HitInfo &h, const Material &m,
+//     glm::vec3 &attenuation, Ray &scattered, RandomState &rnd); bool
+//     scatter_metal(const Ray &r, const HitInfo &h, const Material &m,
+//     glm::vec3 &attentuation, Ray &scattered, RandomState &rnd);
 
 // } // namespace fightingengine

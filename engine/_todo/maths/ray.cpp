@@ -8,8 +8,8 @@
 // //your project headers
 // #include "engine/core/maths/base.hpp"
 
-// //using this namespace so that 
-// //it copies and pastes easier in to 
+// //using this namespace so that
+// //it copies and pastes easier in to
 // //the raytracer.glsl shader
 // using namespace glm;
 
@@ -25,7 +25,6 @@
 // {
 //     return v - 2 * dot(v, n) * n;
 // }
-
 
 // bool intersects_triangle(Ray r, Triangle tri, HitInfo &i)
 // {
@@ -87,7 +86,8 @@
 //     return false; // this ray hits the triangle
 // }
 
-// bool intersects_any_triangle(Ray r, HitInfo &info, std::vector<Triangle> &triangles, int set_triangles)
+// bool intersects_any_triangle(Ray r, HitInfo &info, std::vector<Triangle>
+// &triangles, int set_triangles)
 // {
 //     float t_nearest = LARGE_FLOAT;
 //     bool intersect = false;
@@ -111,7 +111,6 @@
 //     return intersect;
 // }
 
-
 // vec2 get_sphere_uv(const vec3& p) {
 //     float phi = atan(p.z, p.x);
 //     float theta = asin(p.y);
@@ -120,7 +119,8 @@
 //     return vec2(u, v);
 // }
 
-// bool hit_sphere(const Ray &r, const Sphere &s, HitInfo &i, double t_min, double t_max)
+// bool hit_sphere(const Ray &r, const Sphere &s, HitInfo &i, double t_min,
+// double t_max)
 //     {
 //         //sphere intersection code
 //         vec3 oc = r.origin - s.position;
@@ -168,7 +168,8 @@
 //         return false;
 //     }
 
-// bool intersects_any_sphere(const Ray &r, const std::vector<Sphere> &spheres, HitInfo &i)
+// bool intersects_any_sphere(const Ray &r, const std::vector<Sphere> &spheres,
+// HitInfo &i)
 // {
 //     float t_nearest = LARGE_FLOAT;
 //     bool t_hit = false;
@@ -178,7 +179,8 @@
 //     {
 //         HitInfo hinfo_temp;
 
-//         if (hit_sphere(r, spheres[index], hinfo_temp) && hinfo_temp.t < t_nearest)
+//         if (hit_sphere(r, spheres[index], hinfo_temp) && hinfo_temp.t <
+//         t_nearest)
 //         {
 //             //a closer sphere intersected the ray!
 //             t_nearest = hinfo_temp.t;
@@ -197,8 +199,8 @@
 //     return false;
 // }
 
-
-// bool scatter_diffuse(const Ray &r, const HitInfo &h, const Material &m, vec3 &attenuation, Ray &scattered, RandomState &rnd)
+// bool scatter_diffuse(const Ray &r, const HitInfo &h, const Material &m, vec3
+// &attenuation, Ray &scattered, RandomState &rnd)
 // {
 //     // if(m.material_type != MATERIAL_DIFFUSE)
 //     //     return false;
@@ -214,7 +216,8 @@
 //     return true;
 // }
 
-// bool scatter_metal(const Ray &r, const HitInfo &h, const Material &m, vec3 &attentuation, Ray &scattered, RandomState &rnd)
+// bool scatter_metal(const Ray &r, const HitInfo &h, const Material &m, vec3
+// &attentuation, Ray &scattered, RandomState &rnd)
 // {
 //     // if(m.material_type != MATERIAL_METAL)
 //     //     return false;

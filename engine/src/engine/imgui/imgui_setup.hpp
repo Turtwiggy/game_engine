@@ -2,16 +2,16 @@
 
 #define IMGUI_IMPL_OPENGL_LOADER_GLEW
 
-//c++ standard library headers
+// c++ standard library headers
 #include <array>
 #include <memory>
 
-//other library headers
+// other library headers
 #include <SDL2/SDL.h>
 #include <SDL2/SDL_events.h>
 #include <imgui.h>
 
-//your project headers
+// your project headers
 #include "engine/core/game_window.hpp"
 
 namespace fightingengine {
@@ -19,16 +19,14 @@ namespace fightingengine {
 class ImGui_Manager
 {
 public:
-    ~ImGui_Manager();
+  ~ImGui_Manager();
 
-    void initialize(GameWindow* window);
-    
-    void begin_frame(const GameWindow& window);
-    void end_frame(const GameWindow& window);
+  void initialize(GameWindow* window);
 
-    bool ProcessEventSdl2(const SDL_Event& event);
+  void begin_frame(const GameWindow& window);
+  void end_frame(const GameWindow& window);
 
+  bool ProcessEventSdl2(const SDL_Event& event);
 };
 
-} //namespace fightingengine
-
+} // namespace fightingengine

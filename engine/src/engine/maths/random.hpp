@@ -1,27 +1,28 @@
 #pragma once
 
-//c++ standard library headers
+// c++ standard library headers
 #include <random>
 
-namespace fightingengine{
+namespace fightingengine {
 
 struct RandomState
 {
-    std::minstd_rand rng;
+  std::minstd_rand rng;
 };
 
-//https://github.com/20k/funvectormaths/blob/master/vec.hpp
-///falls into the pidgeonhole trap
-///and also std::minstd_rand isn't a very good rng
-///unfortunately the distributions in <random> are unspecified, so will not get the same results
-///across platforms, making them useless for anything which needs reproducible random numbers, aka everything
+// https://github.com/20k/funvectormaths/blob/master/vec.hpp
+/// falls into the pidgeonhole trap
+/// and also std::minstd_rand isn't a very good rng
+/// unfortunately the distributions in <random> are unspecified, so will not get
+/// the same results across platforms, making them useless for anything which
+/// needs reproducible random numbers, aka everything
 template<typename T>
-inline
-float rand_det_s(T& rnd, float M, float MN)
+inline float
+rand_det_s(T& rnd, float M, float MN)
 {
-    float scaled = (rnd() - rnd.min()) / (float)(rnd.max() - rnd.min() + 1.f);
+  float scaled = (rnd() - rnd.min()) / (float)(rnd.max() - rnd.min() + 1.f);
 
-    return scaled * (MN - M) + M;
+  return scaled * (MN - M) + M;
 }
 
-} //namespace fightingengine
+} // namespace fightingengine

@@ -77,5 +77,6 @@
     "cmake.preferredGenerators": [
         "Ninja"
     ],
+    "editor.formatOnSave": true,
     "C_Cpp.errorSquiggles": "Disabled"
 }

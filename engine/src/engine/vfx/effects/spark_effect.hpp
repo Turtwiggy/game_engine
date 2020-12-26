@@ -7,7 +7,7 @@
 //
 ////A "one off" effect
 //
-//namespace vfx {
+// namespace vfx {
 //
 //    struct spark_effect {
 //

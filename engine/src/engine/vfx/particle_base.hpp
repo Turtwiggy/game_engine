@@ -5,7 +5,7 @@
 //#include "particle_system.hpp"
 //#include "tilemap.hpp"
 //
-//namespace vfx {
+// namespace vfx {
 //
 //    struct particle_base
 //    {

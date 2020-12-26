@@ -111,7 +111,8 @@
 			"strstream": "cpp",
 			"typeindex": "cpp",
 			"*.inc": "cpp",
-			"*.frag": "c"
+			"*.frag": "c",
+			"rope": "cpp"
 		},
 		"cmake.loggingLevel": "debug"
 	}

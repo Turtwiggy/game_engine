@@ -4,7 +4,7 @@
 //#include <imgui/imgui.h>
 //
 //
-//namespace vfx {
+// namespace vfx {
 //
 //    void snow_effect::snow_effect_editor()
 //    {
@@ -15,13 +15,14 @@
 //        velocity.x() = list[0];
 //        velocity.y() = list[1];
 //
-//        float start_col[4] = { colour_start.x(), colour_start.y(), colour_start.z(), colour_start.w() };
-//        ImGui::ColorEdit4("StartCol", start_col);
-//        colour_start = vec4f{ start_col[0], start_col[1], start_col[2], start_col[3] };
+//        float start_col[4] = { colour_start.x(), colour_start.y(),
+//        colour_start.z(), colour_start.w() }; ImGui::ColorEdit4("StartCol",
+//        start_col); colour_start = vec4f{ start_col[0], start_col[1],
+//        start_col[2], start_col[3] };
 //
-//        float end_col[4] = { colour_end.x(), colour_end.y(), colour_end.z(), colour_end.w() };
-//        ImGui::ColorEdit4("EndCol", end_col);
-//        colour_end = vec4f{ end_col[0], end_col[1], end_col[2], end_col[3] };
+//        float end_col[4] = { colour_end.x(), colour_end.y(), colour_end.z(),
+//        colour_end.w() }; ImGui::ColorEdit4("EndCol", end_col); colour_end =
+//        vec4f{ end_col[0], end_col[1], end_col[2], end_col[3] };
 //
 //        ImGui::End();
 //    }
@@ -64,7 +65,8 @@
 //        particle_sys.emit(p);
 //    }
 //
-//    void snow_effect::update_all_particles(float delta_time, particle_system& particle_sys)
+//    void snow_effect::update_all_particles(float delta_time, particle_system&
+//    particle_sys)
 //    {
 //        snow_effect_editor();
 //
@@ -94,7 +96,7 @@
 //
 //            //Update position
 //            desc.pos += velocity * delta_time;
-//               
+//
 //            //Update angle
 //            desc.angle += angle_every_frame * delta_time;
 //

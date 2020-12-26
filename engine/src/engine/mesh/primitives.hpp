@@ -4,22 +4,26 @@
 
 namespace fightingengine {
 
-void render_mesh(std::shared_ptr<Mesh> mesh);
-void render_mesh(Mesh& mesh);
+void
+render_mesh(std::shared_ptr<Mesh> mesh);
+void
+render_mesh(Mesh& mesh);
 
 namespace primitives {
 
-class Plane : public Mesh {
+class Plane : public Mesh
+{
 public:
-    Plane() = default;
-    Plane(int x, int y);
+  Plane() = default;
+  Plane(int x, int y);
 };
 
-class Cube : public Mesh {
+class Cube : public Mesh
+{
 public:
-    Cube();
+  Cube();
 };
 
-} //namespace primitives
+} // namespace primitives
 
-} //namespace fightingengine
+} // namespace fightingengine

@@ -1,6 +1,6 @@
 //#include "spark_effect.hpp"
 //
-//namespace vfx {
+// namespace vfx {
 //
 //    void spark_effect::start(
 //        render_window& win,

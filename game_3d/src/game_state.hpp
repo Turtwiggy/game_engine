@@ -1,57 +1,60 @@
 #pragma once
 
-//other library headers
+// other library headers
 #include <glm/glm.hpp>
 #include <glm/gtc/matrix_transform.hpp>
 #include <glm/gtc/type_ptr.hpp>
-#include <glm/gtx/transform.hpp>
 #include <glm/gtx/euler_angles.hpp>
+#include <glm/gtx/transform.hpp>
 
-//your project headers
-#include "engine/core/application.hpp"
+// your project headers
 #include "engine/3d/renderer/renderer_ray_traced.hpp"
+#include "engine/core/application.hpp"
 #include "engine/graphics/render_command.hpp"
 #include "engine/graphics/shader.hpp"
 #include "engine/graphics/triangle.hpp"
 
-namespace game_3d{
+namespace game_3d {
 
 struct GameState
 {
-    void render (
-        RendererRayTraced& renderer, 
-        const Camera& cam, 
-        GameWindow& window, 
-        float timer)
-    {
-        glm::ivec2 window_size = window.get_size();
+  void render(RendererRayTraced& renderer,
+              const Camera& cam,
+              GameWindow& window,
+              float timer)
+  {
+    glm::ivec2 window_size = window.get_size();
 
-        //First pass: render all objects
-        //RenderCommand::set_clear_colour(glm::vec4(1.0, 0.0, 0.0, 1.0));
-        Shader& shader = renderer.first_geometry_pass(cam, window_size.x, window_size.y);
+    // First pass: render all objects
+    // RenderCommand::set_clear_colour(glm::vec4(1.0, 0.0, 0.0, 1.0));
+    Shader& shader =
+      renderer.first_geometry_pass(cam, window_size.x, window_size.y);
 
-        glm::mat4 model = glm::mat4(1.0f);
-        model = glm::translate(model, glm::vec3(0.0f, 0.0f, 0.0));
-        model = glm::scale(model, glm::vec3(1.0f));
-        shader.set_mat4("model", model);
-      
-        //model = glm::mat4(1.0f);
-        //model = glm::translate(model, glm::vec3(5.0f, 0.0f, 0.0));
-        //model = glm::scale(model, glm::vec3(2.0f));
-        //shader.setMat4("model", model);
-        //cubes[1]->model->draw(shader, draw_calls);
+    glm::mat4 model = glm::mat4(1.0f);
+    model = glm::translate(model, glm::vec3(0.0f, 0.0f, 0.0));
+    model = glm::scale(model, glm::vec3(1.0f));
+    shader.set_mat4("model", model);
 
-        //Second pass: pass raytracer triangle information
-        std::vector<Triangle> t;
-        //t = cubes[0]->model->get_all_triangles_in_meshes();
-        renderer.second_raytrace_pass(cam, static_cast<float>(window_size.x), static_cast<float>(window_size.y), t, timer);
+    // model = glm::mat4(1.0f);
+    // model = glm::translate(model, glm::vec3(5.0f, 0.0f, 0.0));
+    // model = glm::scale(model, glm::vec3(2.0f));
+    // shader.setMat4("model", model);
+    // cubes[1]->model->draw(shader, draw_calls);
 
-        //Third pass: render scene information to quad
-        renderer.third_quad_pass();
-    }
+    // Second pass: pass raytracer triangle information
+    std::vector<Triangle> t;
+    // t = cubes[0]->model->get_all_triangles_in_meshes();
+    renderer.second_raytrace_pass(cam,
+                                  static_cast<float>(window_size.x),
+                                  static_cast<float>(window_size.y),
+                                  t,
+                                  timer);
 
-    uint32_t draw_calls = 0;
-    //std::vector<std::shared_ptr<GameObject3D>> cubes;
+    // Third pass: render scene information to quad
+    renderer.third_quad_pass();
+  }
+
+  // std::vector<std::shared_ptr<GameObject3D>> cubes;
 };
 
 // std::vector<Sphere> create_world()
@@ -92,38 +95,39 @@ struct GameState
 //     return spheres;
 // }
 
-} //namespace game_3d
+} // namespace game_3d
 
-//void Game::tick(float delta_time_in_seconds, GameState& state, float timer, InputManager& input_manager, Camera& camera)
+// void Game::tick(float delta_time_in_seconds, GameState& state, float timer,
+// InputManager& input_manager, Camera& camera)
 //{
-//printf("ticking state, delta_time: %f \n", delta_time_in_seconds);
-//std::shared_ptr<FGObject> cube0 = state.cubes[0];
-//cube0->transform.Position.x = 5.0f + glm::sin(timer);
-//cube0->transform.Position.y = 0.0f;
-//cube0->transform.Position.z = 5.0f + glm::cos(timer);
-//const float pi = 3.14;
-//const float frequency = 0.3f; // Frequency in Hz
-//float bouncy_val = 0.5 * (1.0 + sin(2.0 * pi * frequency * timer));
-//cube0->transform.Scale.x = glm::max(0.3f, bouncy_val);
-//cube0->transform.Scale.y = 1.0f;
-//cube0->transform.Scale.z = glm::max(0.3f, bouncy_val);
-////printf("cube pos: %f %f %f", state.cube_pos.x, state.cube_pos.y, state.cube_pos.z);
-////printf("lerp sin_val: %f x: %f z: %f \n ", bouncy_val);
+// printf("ticking state, delta_time: %f \n", delta_time_in_seconds);
+// std::shared_ptr<FGObject> cube0 = state.cubes[0];
+// cube0->transform.Position.x = 5.0f + glm::sin(timer);
+// cube0->transform.Position.y = 0.0f;
+// cube0->transform.Position.z = 5.0f + glm::cos(timer);
+// const float pi = 3.14;
+// const float frequency = 0.3f; // Frequency in Hz
+// float bouncy_val = 0.5 * (1.0 + sin(2.0 * pi * frequency * timer));
+// cube0->transform.Scale.x = glm::max(0.3f, bouncy_val);
+// cube0->transform.Scale.y = 1.0f;
+// cube0->transform.Scale.z = glm::max(0.3f, bouncy_val);
+////printf("cube pos: %f %f %f", state.cube_pos.x, state.cube_pos.y,
+/// state.cube_pos.z); /printf("lerp sin_val: %f x: %f z: %f \n ", bouncy_val);
 ////Player Cube
-//std::shared_ptr<FGObject> player_cube = state.player;
-//if (input_manager.get_key_held(SDLK_UP))
+// std::shared_ptr<FGObject> player_cube = state.player;
+// if (input_manager.get_key_held(SDLK_UP))
 //{
 //    player_cube->transform.Position.z += 1.0f * delta_time_in_seconds;
 //}
-//if (input_manager.get_key_held(SDLK_DOWN))
+// if (input_manager.get_key_held(SDLK_DOWN))
 //{
 //    player_cube->transform.Position.z -= 1.0f * delta_time_in_seconds;
 //}
-//if (input_manager.get_key_held(SDLK_LEFT))
+// if (input_manager.get_key_held(SDLK_LEFT))
 //{
 //    player_cube->transform.Position.x -= 1.0f * delta_time_in_seconds;
 //}
-//if (input_manager.get_key_held(SDLK_RIGHT))
+// if (input_manager.get_key_held(SDLK_RIGHT))
 //{
 //    player_cube->transform.Position.x += 1.0f * delta_time_in_seconds;
 //}

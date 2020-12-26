@@ -6,73 +6,61 @@
 
 // other library files
 #include <glm/glm.hpp>
-#include <glm/gtx/transform.hpp>
 #include <glm/gtc/matrix_transform.hpp>
+#include <glm/gtx/transform.hpp>
 
 // your project headers
-#include "engine/core/application.hpp"
 #include "engine/3d/camera/camera.hpp"
 #include "engine/3d/camera/fly_camera.hpp"
 #include "engine/3d/renderer/passes/shadowmapping.hpp"
+#include "engine/core/application.hpp"
 #include "engine/graphics/framebuffer.hpp"
-#include "engine/scene/scene_node.hpp"
-#include "engine/scene/background.hpp"
 #include "engine/maths/random.hpp"
 #include "engine/mesh/primitives.hpp"
+#include "engine/scene/background.hpp"
+#include "engine/scene/scene_node.hpp"
 
-namespace fightingengine
-{
-    
+namespace fightingengine {
+
 class RendererSimple
 {
 public:
+  RendererSimple(RandomState& rnd);
 
-    RendererSimple( RandomState& rnd );
-    
-    void update(
-        float delta_time, 
-        FlyCamera& camera, 
-        RandomState& rnd, 
-        const std::vector<glm::vec3>& cube_pos,
-        const glm::ivec2& screen_size );
+  void update(float delta_time,
+              FlyCamera& camera,
+              RandomState& rnd,
+              const std::vector<glm::vec3>& cube_pos,
+              const glm::ivec2& screen_size);
 
-    // renderer info
-    int draw_calls = 0;
+  // renderer info
+  int draw_calls = 0;
 
-    // renderpasses
-    ShadowmappingRenderpass shadowmapping_pass;
+  // renderpasses
+  ShadowmappingRenderpass shadowmapping_pass;
 
 private:
-    // meshes available
-    std::shared_ptr<Mesh> cube_;
-    std::shared_ptr<Mesh> plane_;
+  // meshes available
+  std::shared_ptr<Mesh> cube_;
+  std::shared_ptr<Mesh> plane_;
 
-    // skybox
-    Background* background_;
-    std::shared_ptr<TextureCube> cubemap_;
+  // skybox
+  Background* background_;
+  std::shared_ptr<TextureCube> cubemap_;
 
-    // shaders available
-    Shader shadowmap_shader_;
-        
-    // (temp) renderer state
-    glm::vec3 light_pos_ = { 0.0f, 0.0f, 0.0f };
+  // shaders available
+  Shader shadowmap_shader_;
+
+  // (temp) renderer state
+  glm::vec3 light_pos_ = { 0.0f, 0.0f, 0.0f };
 
 private:
+  void render_scene(const std::vector<glm::vec3>& cube_pos, const Shader& shader);
 
-    void render_scene( 
-        const std::vector<glm::vec3>& cube_pos,
-        const Shader& shader );
-
-    void draw_skybox( const glm::mat4& view_projection );
-
+  void draw_skybox(const glm::mat4& view_projection);
 };
 
-} //namespace fightingengine
-
-
-
-
-
+} // namespace fightingengine
 
 // unsigned int sphereVAO = 0;
 // unsigned int indexCount;
@@ -104,9 +92,10 @@ private:
 //             {
 //                 float xSegment = (float)x / (float)X_SEGMENTS;
 //                 float ySegment = (float)y / (float)Y_SEGMENTS;
-//                 float xPos = std::cos(xSegment * 2.0f * PI) * std::sin(ySegment * PI);
-//                 float yPos = std::cos(ySegment * PI);
-//                 float zPos = std::sin(xSegment * 2.0f * PI) * std::sin(ySegment * PI);
+//                 float xPos = std::cos(xSegment * 2.0f * PI) *
+//                 std::sin(ySegment * PI); float yPos = std::cos(ySegment *
+//                 PI); float zPos = std::sin(xSegment * 2.0f * PI) *
+//                 std::sin(ySegment * PI);
 
 //                 positions.push_back(glm::vec3(xPos, yPos, zPos));
 //                 uv.push_back(glm::vec2(xSegment, ySegment));
@@ -157,16 +146,17 @@ private:
 //         }
 //         glBindVertexArray(sphereVAO);
 //         glBindBuffer(GL_ARRAY_BUFFER, vbo);
-//         glBufferData(GL_ARRAY_BUFFER, data.size() * sizeof(float), &data[0], GL_STATIC_DRAW);
-//         glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, ebo);
-//         glBufferData(GL_ELEMENT_ARRAY_BUFFER, indices.size() * sizeof(unsigned int), &indices[0], GL_STATIC_DRAW);
-//         float stride = (3 + 2 + 3) * sizeof(float);
-//         glEnableVertexAttribArray(0);
+//         glBufferData(GL_ARRAY_BUFFER, data.size() * sizeof(float), &data[0],
+//         GL_STATIC_DRAW); glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, ebo);
+//         glBufferData(GL_ELEMENT_ARRAY_BUFFER, indices.size() *
+//         sizeof(unsigned int), &indices[0], GL_STATIC_DRAW); float stride = (3
+//         + 2 + 3) * sizeof(float); glEnableVertexAttribArray(0);
 //         glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, stride, (void*)0);
 //         glEnableVertexAttribArray(1);
-//         glVertexAttribPointer(1, 2, GL_FLOAT, GL_FALSE, stride, (void*)(3 * sizeof(float)));
-//         glEnableVertexAttribArray(2);
-//         glVertexAttribPointer(2, 3, GL_FLOAT, GL_FALSE, stride, (void*)(5 * sizeof(float)));
+//         glVertexAttribPointer(1, 2, GL_FLOAT, GL_FALSE, stride, (void*)(3 *
+//         sizeof(float))); glEnableVertexAttribArray(2);
+//         glVertexAttribPointer(2, 3, GL_FLOAT, GL_FALSE, stride, (void*)(5 *
+//         sizeof(float)));
 //     }
 
 //     glBindVertexArray(sphereVAO);

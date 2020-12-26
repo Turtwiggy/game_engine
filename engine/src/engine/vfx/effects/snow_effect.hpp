@@ -6,7 +6,7 @@
 //#include "engine/vfx/particle_system.hpp"
 //#include "engine/vfx/particle_base.hpp"
 //
-//namespace vfx {
+// namespace vfx {
 //
 //    struct snow_effect : vfx::particle_base {
 //

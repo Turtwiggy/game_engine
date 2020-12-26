@@ -1,6 +1,6 @@
 //#include "particle_system.hpp"
 //
-//namespace vfx {
+// namespace vfx {
 //
 //    void particle_system::emit(particle& p)
 //    {
