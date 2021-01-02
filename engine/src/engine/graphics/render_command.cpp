@@ -45,8 +45,8 @@ RenderCommand::init()
   // glEnable(GL_FRAMEBUFFER_SRGB);
 
   // Enable Faceculling
-  // glEnable(GL_CULL_FACE);
-  // glDepthFunc(GL_LESS);
+  glEnable(GL_CULL_FACE);
+  glDepthFunc(GL_LESS);
 
   // glPolygonMode( GL_FRONT_AND_BACK, GL_LINE );
 }

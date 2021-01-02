@@ -34,14 +34,14 @@ Background::Background()
   Material->ShadowReceive = false;
 }
 
-Background::load_background(std::string path, std::string file_name)
-{
-  // ResourceManager::load_texture_cube("assets/skybox/skybox-default/",
-  // "default-skybox"); TextureCube cubemap =
-  // ResourceManager::get_texture_cube("default-skybox"); cubemap_ =
-  // std::make_shared<TextureCube>(cubemap); background_ = new Background();
-  // background_->Material->set_texture_cube("DefaultCubemap", cubemap_.get());
-}
+// Background::load_background(std::string path, std::string file_name)
+// {
+//   // ResourceManager::load_texture_cube("assets/skybox/skybox-default/",
+//   // "default-skybox"); TextureCube cubemap =
+//   // ResourceManager::get_texture_cube("default-skybox"); cubemap_ =
+//   // std::make_shared<TextureCube>(cubemap); background_ = new Background();
+//   // background_->Material->set_texture_cube("DefaultCubemap", cubemap_.get());
+// }
 
 // void Background::draw_skybox( const glm::mat4 &view_projection )
 // {

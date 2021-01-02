@@ -9,15 +9,16 @@ set (CMAKE_TOOLCHAIN_FILE ${CMAKE_SOURCE_DIR}/thirdparty/vcpkg/scripts/buildsyst
 project(subprojects VERSION 0.1.0)
 
 #add_subdirectory(engine)
-add_subdirectory(game_2d)
+#add_subdirectory(game_2d)
 add_subdirectory(game_3d)
 
 #random c++ projects
-add_subdirectory(project_networking)
+add_subdirectory(net_client)
+add_subdirectory(net_server)
 
 #examples
-add_subdirectory(examples/hello_application)
-add_subdirectory(examples/hello_application_profiled)
+#add_subdirectory(examples/hello_application)
+#add_subdirectory(examples/hello_application_profiled)
 
 set(CPACK_PROJECT_NAME ${PROJECT_NAME})
 set(CPACK_PROJECT_VERSION ${PROJECT_VERSION})

@@ -55,7 +55,9 @@ private:
   glm::vec3 light_pos_ = { 0.0f, 0.0f, 0.0f };
 
 private:
-  void render_scene(const std::vector<glm::vec3>& cube_pos, const Shader& shader);
+  void render_scene(const std::vector<glm::vec3>& cube_pos,
+                    const glm::vec3& cam_pos,
+                    const Shader& shader);
 
   void draw_skybox(const glm::mat4& view_projection);
 };

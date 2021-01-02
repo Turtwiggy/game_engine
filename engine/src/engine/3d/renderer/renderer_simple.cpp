@@ -66,7 +66,7 @@ RendererSimple::update(float delta_time,
 
   shadowmapping_pass.bind(light_space_matrix);
   {
-    render_scene(cube_pos, shadowmapping_pass.shadowmap_depth_shader);
+    render_scene(cube_pos, camera.Position, shadowmapping_pass.shadowmap_depth_shader);
   }
   shadowmapping_pass.unbind();
 
@@ -103,7 +103,7 @@ RendererSimple::update(float delta_time,
   shadowmap_shader_.set_vec3("material.specular", 0.5f, 0.5f, 0.5f);
   shadowmap_shader_.set_float("material.shininess", 32.0f);
 
-  render_scene(cube_pos, shadowmap_shader_);
+  render_scene(cube_pos, camera.Position, shadowmap_shader_);
 
   // Render cube at light's position
   ResourceManager::get_shader("SHADER_solid").bind();
@@ -127,6 +127,7 @@ RendererSimple::update(float delta_time,
 
 void
 RendererSimple::render_scene(const std::vector<glm::vec3>& cube_pos,
+                             const glm::vec3& cam_pos,
                              const Shader& shader)
 {
   glm::mat4 model = glm::mat4(1.0f);
@@ -142,14 +143,20 @@ RendererSimple::render_scene(const std::vector<glm::vec3>& cube_pos,
   // // random cubes
   // for (int i = 0; i < cube_pos.size(); i++)
   // {
-  //     // calculate the model matrix for each object and pass it to shader
-  //     before drawing model = glm::mat4(1.0f); model = glm::translate(model,
-  //     cube_pos[i]);
+  //     // calculate the model matrix for each object and pass it to shader before
+  //     drawing model = glm::mat4(1.0f); model = glm::translate(model, cube_pos[i]);
   //     //model = glm::rotate(model, glm::radians(0.0f), glm::vec3(1.0f, 0.0f,
   //     0.0f)); shader.set_mat4("model", model);
 
   //     render_mesh(cube_);
   // }
+
+  // camera / player
+  model = glm::mat4(1.0f);
+  model = glm::translate(model, cam_pos);
+  model = glm::scale(model, glm::vec3(0.5f));
+  shader.set_mat4("model", model);
+  render_mesh(cube_);
 
   // cubes
   model = glm::mat4(1.0f);
