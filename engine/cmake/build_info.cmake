@@ -6,7 +6,7 @@ set(CPACK_PROJECT_VERSION ${PROJECT_VERSION})
 
 #VCPKG packages
 set (ENGINE_PACKAGES_CONFIG
-    SDL2 EnTT Bullet spdlog glm assimp
+    SDL2 EnTT Bullet spdlog glm assimp GameNetworkingSockets
 )
 set (ENGINE_PACKAGES
     OpenGL GLEW
@@ -47,6 +47,7 @@ if(${CMAKE_SYSTEM_NAME} STREQUAL "Windows")
         SDL2::SDL2 SDL2::SDL2main
         opengl32
         assimp::assimp
+        GameNetworkingSockets::shared GameNetworkingSockets::static GameNetworkingSockets::GameNetworkingSockets GameNetworkingSockets::GameNetworkingSockets_s
     )
 
 elseif(${CMAKE_SYSTEM_NAME} STREQUAL "Linux")

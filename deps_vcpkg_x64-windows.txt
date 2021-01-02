@@ -9,6 +9,5 @@ stb
 gtest
 assimp
 boost-circular-buffer
-gamenetworkingsockets
 --triplet
 x64-windows
