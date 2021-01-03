@@ -3,10 +3,12 @@ set (CMAKE_TOOLCHAIN_FILE ${CMAKE_SOURCE_DIR}/thirdparty/vcpkg/scripts/buildsyst
 set(CPACK_PROJECT_NAME ${PROJECT_NAME})
 set(CPACK_PROJECT_VERSION ${PROJECT_VERSION})
 
+message("engine_info: ${CMAKE_SYSTEM_NAME}")
+message("engine_info: ${CMAKE_BUILD_TYPE}")
 
 #VCPKG packages
 set (ENGINE_PACKAGES_CONFIG
-    SDL2 EnTT Bullet spdlog glm assimp GameNetworkingSockets
+    SDL2 EnTT Bullet spdlog glm assimp
 )
 set (ENGINE_PACKAGES
     OpenGL GLEW
@@ -47,7 +49,6 @@ if(${CMAKE_SYSTEM_NAME} STREQUAL "Windows")
         SDL2::SDL2 SDL2::SDL2main
         opengl32
         assimp::assimp
-        GameNetworkingSockets::shared GameNetworkingSockets::static GameNetworkingSockets::GameNetworkingSockets GameNetworkingSockets::GameNetworkingSockets_s
     )
 
 elseif(${CMAKE_SYSTEM_NAME} STREQUAL "Linux")
@@ -68,7 +69,6 @@ elseif(${CMAKE_SYSTEM_NAME} STREQUAL "Linux")
         SDL2::SDL2main SDL2::SDL2-static
         GL
         assimp::assimp
-        GameNetworkingSockets::shared GameNetworkingSockets::static GameNetworkingSockets::GameNetworkingSockets GameNetworkingSockets::GameNetworkingSockets_s
     )
 endif()  
 
