@@ -9,5 +9,7 @@ stb
 gtest
 assimp
 boost-circular-buffer
+openssl
+protobuf
 --triplet
 x64-windows

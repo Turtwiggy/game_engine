@@ -8,10 +8,10 @@ message("engine_info: ${CMAKE_BUILD_TYPE}")
 
 #VCPKG packages
 set (ENGINE_PACKAGES_CONFIG
-    SDL2 EnTT Bullet spdlog glm assimp
+    SDL2 EnTT Bullet spdlog glm assimp protobuf GameNetworkingSockets
 )
 set (ENGINE_PACKAGES
-    OpenGL GLEW
+    OpenSSL OpenGL GLEW
 )
 
 #Source Files
@@ -27,6 +27,8 @@ set (ENGINE_SOURCE
     ${CMAKE_SOURCE_DIR}/thirdparty/imgui/imgui_draw.cpp
     ${CMAKE_SOURCE_DIR}/thirdparty/imgui/imgui_demo.cpp
     ${CMAKE_SOURCE_DIR}/thirdparty/imgui/imgui_tables.cpp
+
+    #imguizmo
     ${CMAKE_SOURCE_DIR}/thirdparty/imguizmo/ImGuizmo.cpp
 )
 
@@ -36,19 +38,22 @@ if(${CMAKE_SYSTEM_NAME} STREQUAL "Windows")
         ${CMAKE_SOURCE_DIR}/engine/src
         ${CMAKE_SOURCE_DIR}/thirdparty/imgui
         ${CMAKE_SOURCE_DIR}/thirdparty/imgui/backends
-        ${CMAKE_SOURCE_DIR}/thirdparty/imguizmo/
+        ${CMAKE_SOURCE_DIR}/thirdparty/imguizmo
         ${CMAKE_SOURCE_DIR}/thirdparty/vcpkg/installed/x64-windows/include
     )
     #Vcpkg windows links
     set (ENGINE_LINK_LIBS
+        SDL2::SDL2 SDL2::SDL2main
         EnTT::EnTT
         LinearMath Bullet3Common BulletDynamics BulletSoftBody
         spdlog::spdlog spdlog::spdlog_header_only
         glm
-        GLEW::GLEW
-        SDL2::SDL2 SDL2::SDL2main
-        opengl32
         assimp::assimp
+        protobuf::libprotoc protobuf::libprotobuf protobuf::libprotobuf-lite
+        GameNetworkingSockets::shared GameNetworkingSockets::static GameNetworkingSockets::GameNetworkingSockets GameNetworkingSockets::GameNetworkingSockets_s
+        opengl32
+        OpenSSL::SSL OpenSSL::Crypto
+        GLEW::GLEW
     )
 
 elseif(${CMAKE_SYSTEM_NAME} STREQUAL "Linux")
