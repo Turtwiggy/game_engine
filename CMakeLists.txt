@@ -10,7 +10,7 @@ project(subprojects VERSION 0.1.0)
 
 #add_subdirectory(engine)
 #add_subdirectory(game_2d)
-add_subdirectory(game_3d)
+#add_subdirectory(game_3d)
 
 #random c++ projects
 add_subdirectory(net_client)
