@@ -18,8 +18,8 @@
 #include "engine/networking/test.hpp"
 
 #define STEAMNETWORKINGSOCKETS_OPENSOURCE
-#include "net_common.hpp"
-using namespace net_server;
+#include "engine/networking/net_common.hpp"
+using namespace net_common;
 
 class ChatServer
 {
@@ -166,8 +166,19 @@ private:
         break;
       }
 
+      if (strcmp(cmd.c_str(), "/help") == 0) {
+        Printf("Command: /quit");
+        Printf("Command: /help");
+        break;
+      }
+
+      if (strcmp(cmd.c_str(), "/potato") == 0) {
+        Printf("Why'd you type potato on the server?");
+        break;
+      }
+
       // That's the only command we support
-      Printf("The server only knows one command: '/quit'");
+      Printf("For commands, type: '/help'. '/quit'");
     }
   }
 
@@ -365,6 +376,8 @@ main(int argc, const char* argv[])
   printf("starting server on port: %i \n", DEFAULT_SERVER_PORT);
 
   for (int i = 1; i < argc; ++i) {
+    printf("arg: %s \n", argv[i]);
+
     if (!bClient && !bServer) {
       if (!strcmp(argv[i], "client")) {
         bClient = true;

@@ -28,7 +28,9 @@
 #include <unistd.h>
 #endif
 
-namespace net_server {
+// Note(Turtwiggy) should do something about the globals
+
+namespace net_common {
 
 // ---- GLOBALS
 bool g_bQuit = false;
@@ -143,7 +145,6 @@ ShutdownSteamDatagramConnectionSockets()
 // ---- GLOBALS
 std::mutex mutexUserInputQueue;
 std::queue<std::string> queueUserInput;
-
 std::thread* s_pThreadUserInput = nullptr;
 // ------------
 
@@ -204,4 +205,4 @@ LocalUserInput_GetNext(std::string& result)
   return got_input;
 }
 
-} // namespace net_server
+} // namespace net_common

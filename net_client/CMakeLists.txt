@@ -41,7 +41,7 @@ target_include_directories(net_client PRIVATE ${BOOST_ASIO_INCLUDE_DIRS})
 
 # link libs
 foreach(library ${ENGINE_LINK_LIBS})
-  message("${PROJECT_NAME} linking library... ${library}")
+  # message("${PROJECT_NAME} linking library... ${library}")
   target_link_libraries(net_client PRIVATE ${library})
 endforeach()
 
