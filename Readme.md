@@ -1,3 +1,10 @@
+Tools
+
+    cmake
+    ninja
+    git
+    compiler (msvc, g++, etc..)
+
 Download external libs
 
     git submodule update --init --recursive
@@ -5,8 +12,8 @@ Download external libs
 (Linux) Install vcpkg dependancies for Linux-x64
 
     ./thirdparty/vcpkg/bootstrap-vcpkg.sh
-    ./thirdparty/vcpkg/vcpkg.exe install @deps_vcpkg_x64-linux.txt
-    ./thirdparty/vcpkg/vcpkg.exe --overlay-ports=./thirdparty/GameNetworkingSockets/vcpkg_ports/ install gamenetworkingsockets:x64-linux
+    ./thirdparty/vcpkg/vcpkg install @deps_vcpkg_x64-linux.txt
+    ./thirdparty/vcpkg/vcpkg --overlay-ports=./thirdparty/GameNetworkingSockets/vcpkg_ports/ install gamenetworkingsockets:x64-linux
 
 (Windows) Install vcpkg dependancies for Window-x64
 

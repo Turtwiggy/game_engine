@@ -9,21 +9,15 @@
                 "${workspaceFolder}/thirdparty/vcpkg/installed/x64-linux/include"
             ],
             "defines": [],
-            "compilerPath": "/usr/bin/gcc",
-            "cStandard": "gnu18",
-            "cppStandard": "gnu++14",
+            "compilerPath": "/usr/bin/g++",
+            "cStandard": "gnu17",
+            "cppStandard": "gnu++20",
             "intelliSenseMode": "gcc-x64",
             "configurationProvider": "ms-vscode.cmake-tools",
             "compilerArgs": [],
             "browse": {
                 "path": [
-                    "${workspaceFolder}/engine/src",
-                    "${workspaceFolder}/ray_tracing_one_weekend/src",
-                    "${workspaceFolder}/thirdparty/imgui",
-                    "${workspaceFolder}/thirdparty/imgui/examples",
-                    "${workspaceFolder}/thirdparty/vcpkg/installed/x64-linux/include",
-                    "${workspaceFolder}/engine/src",
-                    "${workspaceFolder}"
+                    "${workspaceFolder}/**",
                 ],
                 "limitSymbolsToIncludedHeaders": true
             }
@@ -37,7 +31,6 @@
                 "${workspaceFolder}/thirdparty/vcpkg/installed/x64-windows/include"
             ],
             "defines": [
-                "_DEBUG",
                 "UNICODE",
                 "_UNICODE"
             ],

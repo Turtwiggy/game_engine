@@ -67,7 +67,8 @@ elseif(${CMAKE_SYSTEM_NAME} STREQUAL "Linux")
         GLEW
         SDL2::SDL2main SDL2::SDL2-static
         GL
-        #missing assimp here
+        assimp::assimp
+        GameNetworkingSockets::shared GameNetworkingSockets::static GameNetworkingSockets::GameNetworkingSockets GameNetworkingSockets::GameNetworkingSockets_s
     )
 endif()  
 

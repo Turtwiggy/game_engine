@@ -10,6 +10,6 @@
 [submodule "thirdparty/imguizmo"]
 	path = thirdparty/imguizmo
 	url = https://github.com/CedricGuillemet/ImGuizmo.git
-[submodule ".\\thirdparty\\GameNetworkingSockets"]
-	path = .\\thirdparty\\GameNetworkingSockets
+[submodule "thirdparty/GameNetworkingSockets"]
+	path = thirdparty/GameNetworkingSockets
 	url = https://github.com/ValveSoftware/GameNetworkingSockets.git
