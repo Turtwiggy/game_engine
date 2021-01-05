@@ -21,8 +21,7 @@ Profiler::new_frame()
 {
   auto& prevEntry = entries[current_entry];
   current_entry = (current_entry + 1) % frames_data_live;
-  prevEntry.frame_end = entries[current_entry].frame_start =
-    std::chrono::system_clock::now();
+  prevEntry.frame_end = entries[current_entry].frame_start = std::chrono::system_clock::now();
 }
 
 float
@@ -49,12 +48,10 @@ Profiler::get_average_time(const Stage& request) const
   for (auto& entry : entries) {
     auto& delta_time = entry.stages[(int)request];
 
-    std::chrono::duration<float, std::milli> fltStart =
-      delta_time._start - entry.frame_start;
+    std::chrono::duration<float, std::milli> fltStart = delta_time._start - entry.frame_start;
     float startTimestamp = fltStart.count();
 
-    std::chrono::duration<float, std::milli> fltEnd =
-      delta_time._end - entry.frame_start;
+    std::chrono::duration<float, std::milli> fltEnd = delta_time._end - entry.frame_start;
     float endTimestamp = fltEnd.count();
 
     float time = endTimestamp - startTimestamp;

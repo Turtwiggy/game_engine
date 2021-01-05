@@ -27,7 +27,6 @@ namespace fightingengine {
 std::map<std::string, Texture2D> ResourceManager::Textures;
 std::map<std::string, TextureCube> ResourceManager::TextureCubes;
 std::map<std::string, Shader> ResourceManager::Shaders;
-std::map<std::string, SceneNode*> ResourceManager::Meshes;
 
 void
 ResourceManager::clear()
@@ -47,9 +46,7 @@ ResourceManager::clear()
 // ---- shaders
 
 Shader
-ResourceManager::load_shader(const std::string& path,
-                             std::vector<std::string> files,
-                             const std::string& name)
+ResourceManager::load_shader(const std::string& path, std::vector<std::string> files, const std::string& name)
 {
   Shaders[name] = load_shader_from_file(path, files);
   return Shaders[name];
@@ -62,8 +59,7 @@ ResourceManager::get_shader(const std::string& name)
 }
 
 Shader
-ResourceManager::load_shader_from_file(const std::string& path,
-                                       std::vector<std::string> files)
+ResourceManager::load_shader_from_file(const std::string& path, std::vector<std::string> files)
 {
   // printf("Dir: %s \n", path.c_str());
 
@@ -119,10 +115,7 @@ ResourceManager::get_texture(const std::string& name)
 }
 
 Texture2D
-ResourceManager::load_texture_from_file(std::string full_path,
-                                        GLenum target,
-                                        GLenum internalFormat,
-                                        bool srgb)
+ResourceManager::load_texture_from_file(std::string full_path, GLenum target, GLenum internalFormat, bool srgb)
 {
 
   // create texture object
@@ -157,8 +150,7 @@ ResourceManager::load_texture_from_file(std::string full_path,
       texture.FilterMin = GL_LINEAR_MIPMAP_LINEAR;
       texture.FilterMax = GL_LINEAR;
 
-      texture.generate(
-        width, height, texture.InternalFormat, format, GL_UNSIGNED_BYTE, data);
+      texture.generate(width, height, texture.InternalFormat, format, GL_UNSIGNED_BYTE, data);
     }
   } else {
     printf("FAILED TO LOAD TEXTURE: %s", full_path.c_str());
@@ -173,8 +165,7 @@ ResourceManager::load_texture_from_file(std::string full_path,
 // ---- texture cubes
 
 TextureCube
-ResourceManager::load_texture_cube(const std::string& folder_path,
-                                   const std::string& unique_name)
+ResourceManager::load_texture_cube(const std::string& folder_path, const std::string& unique_name)
 {
   TextureCubes[unique_name] = load_texture_cube_from_folder(folder_path);
   printf("texture cube loaded! %s \n", unique_name.c_str());
@@ -198,8 +189,7 @@ ResourceManager::load_texture_cube_from_folder(const std::string& folder)
   // disable y flip on cubemaps
   stbi_set_flip_vertically_on_load(false);
 
-  std::vector<std::string> faces = { "right.jpg",  "left.jpg",  "top.jpg",
-                                     "bottom.jpg", "front.jpg", "back.jpg" };
+  std::vector<std::string> faces = { "right.jpg", "left.jpg", "top.jpg", "bottom.jpg", "front.jpg", "back.jpg" };
   for (unsigned int i = 0; i < faces.size(); ++i) {
     int width, height, nrComponents;
 
@@ -215,12 +205,7 @@ ResourceManager::load_texture_cube_from_folder(const std::string& folder)
       else
         format = GL_RGBA;
 
-      texture_cube.GenerateFace(GL_TEXTURE_CUBE_MAP_POSITIVE_X + i,
-                                width,
-                                height,
-                                format,
-                                GL_UNSIGNED_BYTE,
-                                data);
+      texture_cube.GenerateFace(GL_TEXTURE_CUBE_MAP_POSITIVE_X + i, width, height, format, GL_UNSIGNED_BYTE, data);
       stbi_image_free(data);
     } else {
       printf("!! Cube texture at path: %s failed to load. !! \n", faces[i].c_str());

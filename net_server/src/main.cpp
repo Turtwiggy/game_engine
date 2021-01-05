@@ -88,13 +88,10 @@ private:
 
   void SendStringToClient(HSteamNetConnection conn, const char* str)
   {
-    m_pInterface->SendMessageToConnection(
-      conn, str, (uint32)strlen(str), k_nSteamNetworkingSend_Reliable, nullptr);
+    m_pInterface->SendMessageToConnection(conn, str, (uint32)strlen(str), k_nSteamNetworkingSend_Reliable, nullptr);
   }
 
-  void SendStringToAllClients(
-    const char* str,
-    HSteamNetConnection except = k_HSteamNetConnection_Invalid)
+  void SendStringToAllClients(const char* str, HSteamNetConnection except = k_HSteamNetConnection_Invalid)
   {
     for (auto& c : m_mapClients) {
       if (c.first != except)
@@ -108,8 +105,7 @@ private:
 
     while (!g_bQuit) {
       ISteamNetworkingMessage* pIncomingMsg = nullptr;
-      int numMsgs =
-        m_pInterface->ReceiveMessagesOnPollGroup(m_hPollGroup, &pIncomingMsg, 1);
+      int numMsgs = m_pInterface->ReceiveMessagesOnPollGroup(m_hPollGroup, &pIncomingMsg, 1);
       if (numMsgs == 0)
         break;
       if (numMsgs < 0)
@@ -135,10 +131,7 @@ private:
           ++nick;
 
         // Let everybody else know they changed their name
-        sprintf_s(temp,
-                  "%s shall henceforth be known as %s",
-                  itClient->second.m_sNick.c_str(),
-                  nick);
+        sprintf_s(temp, "%s shall henceforth be known as %s", itClient->second.m_sNick.c_str(), nick);
         SendStringToAllClients(temp, itClient->first);
 
         // Respond to client
@@ -192,8 +185,7 @@ private:
     m_pInterface->SetConnectionName(hConn, nick);
   }
 
-  void OnSteamNetConnectionStatusChanged(
-    SteamNetConnectionStatusChangedCallback_t* pInfo)
+  void OnSteamNetConnectionStatusChanged(SteamNetConnectionStatusChangedCallback_t* pInfo)
   {
     char temp[1024];
 
@@ -218,8 +210,7 @@ private:
 
           // Select appropriate log messages
           const char* pszDebugLogAction;
-          if (pInfo->m_info.m_eState ==
-              k_ESteamNetworkingConnectionState_ProblemDetectedLocally) {
+          if (pInfo->m_info.m_eState == k_ESteamNetworkingConnectionState_ProblemDetectedLocally) {
             pszDebugLogAction = "problem detected locally";
             sprintf_s(temp,
                       "Alas, %s hath fallen into shadow.  (%s)",
@@ -293,11 +284,10 @@ private:
         sprintf_s(nick, "BraveWarrior%d", 10000 + (rand() % 100000));
 
         // Send them a welcome message
-        sprintf_s(
-          temp,
-          "Welcome, stranger.  Thou art known to us for now as '%s'; upon thine "
-          "command '/nick' we shall know thee otherwise.",
-          nick);
+        sprintf_s(temp,
+                  "Welcome, stranger.  Thou art known to us for now as '%s'; upon thine "
+                  "command '/nick' we shall know thee otherwise.",
+                  nick);
         SendStringToClient(pInfo->m_hConn, temp);
 
         // Also send them a list of everybody who is already connected
@@ -310,11 +300,10 @@ private:
         }
 
         // Let everybody else know who they are for now
-        sprintf_s(
-          temp,
-          "Hark!  A stranger hath joined this merry host.  For now we shall call "
-          "them '%s'",
-          nick);
+        sprintf_s(temp,
+                  "Hark!  A stranger hath joined this merry host.  For now we shall call "
+                  "them '%s'",
+                  nick);
         SendStringToAllClients(temp, pInfo->m_hConn);
 
         // Add them to the client list, using std::map wacky syntax
@@ -335,8 +324,7 @@ private:
   }
 
   static ChatServer* s_pCallbackInstance;
-  static void SteamNetConnectionStatusChangedCallback(
-    SteamNetConnectionStatusChangedCallback_t* pInfo)
+  static void SteamNetConnectionStatusChangedCallback(SteamNetConnectionStatusChangedCallback_t* pInfo)
   {
     s_pCallbackInstance->OnSteamNetConnectionStatusChanged(pInfo);
   }

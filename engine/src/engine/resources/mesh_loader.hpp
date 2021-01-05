@@ -11,15 +11,12 @@
 #include <glm/glm.hpp>
 
 // your lib headers
-#include "engine/mesh/mesh.hpp"
-#include "engine/scene/scene_node.hpp"
-
+#include "engine/opengl/mesh.hpp"
 namespace fightingengine {
 
 class MeshLoader
 {
 public:
-  // static void       clear();
   static std::vector<Mesh> load_mesh(std::string path, bool default_material = true);
 
 private:
@@ -27,10 +24,7 @@ private:
                                         const aiScene* aScene,
                                         std::string directory,
                                         bool set_default_material);
-  static Mesh parse_mesh(aiMesh* aMesh,
-                         const aiScene* aScene,
-                         glm::vec3& out_Min,
-                         glm::vec3& out_Max);
+  static Mesh parse_mesh(aiMesh* aMesh, const aiScene* aScene, glm::vec3& out_Min, glm::vec3& out_Max);
 
   static std::string process_path(aiString* path, std::string directory);
 };

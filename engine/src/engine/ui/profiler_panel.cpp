@@ -10,9 +10,7 @@ using namespace fightingengine;
 namespace fightingengine {
 
 void
-ProfilerPanel::draw(const Application& app,
-                    const Profiler& profiler,
-                    const float delta_time_s)
+ProfilerPanel::draw(const Application& app, const Profiler& profiler, const float delta_time_s)
 {
   ImGui::Begin("Profiler");
 
@@ -32,8 +30,7 @@ ProfilerPanel::draw(const Application& app,
   static double refresh_time = 0.0;
   if (!animate || refresh_time == 0.0)
     refresh_time = ImGui::GetTime();
-  while (refresh_time <
-         ImGui::GetTime()) // Create data at fixed 60 Hz rate for the demo
+  while (refresh_time < ImGui::GetTime()) // Create data at fixed 60 Hz rate for the demo
   {
     values[values_offset] = raw_fps;
     values_offset = (values_offset + 1) % IM_ARRAYSIZE(values);
@@ -47,42 +44,28 @@ ProfilerPanel::draw(const Application& app,
     average /= (float)IM_ARRAYSIZE(values);
     char overlay[32];
     sprintf_s(overlay, "avg %f", average);
-    ImGui::PlotLines("Lines",
-                     values,
-                     IM_ARRAYSIZE(values),
-                     values_offset,
-                     overlay,
-                     0.0f,
-                     144.0f,
-                     ImVec2(0, 40.0f));
+    ImGui::PlotLines("Lines", values, IM_ARRAYSIZE(values), values_offset, overlay, 0.0f, 144.0f, ImVec2(0, 40.0f));
   }
 
   ImGui::Columns(1);
 
   float time = profiler.get_average_time(Profiler::Stage::SdlInput);
-  ImGui::Text(
-    "%s %f ms", profiler.stageNames[(uint8_t)Profiler::Stage::SdlInput].data(), (time));
+  ImGui::Text("%s %f ms", profiler.stageNames[(uint8_t)Profiler::Stage::SdlInput].data(), (time));
 
   time = profiler.get_average_time(Profiler::Stage::GameTick);
-  ImGui::Text(
-    "%s %f ms", profiler.stageNames[(uint8_t)Profiler::Stage::GameTick].data(), (time));
+  ImGui::Text("%s %f ms", profiler.stageNames[(uint8_t)Profiler::Stage::GameTick].data(), (time));
 
   time = profiler.get_average_time(Profiler::Stage::Render);
-  ImGui::Text(
-    "%s %f ms", profiler.stageNames[(uint8_t)Profiler::Stage::Render].data(), (time));
+  ImGui::Text("%s %f ms", profiler.stageNames[(uint8_t)Profiler::Stage::Render].data(), (time));
 
   time = profiler.get_average_time(Profiler::Stage::GuiLoop);
-  ImGui::Text(
-    "%s %f ms", profiler.stageNames[(uint8_t)Profiler::Stage::GuiLoop].data(), (time));
+  ImGui::Text("%s %f ms", profiler.stageNames[(uint8_t)Profiler::Stage::GuiLoop].data(), (time));
 
   time = profiler.get_average_time(Profiler::Stage::FrameEnd);
-  ImGui::Text(
-    "%s %f ms", profiler.stageNames[(uint8_t)Profiler::Stage::FrameEnd].data(), (time));
+  ImGui::Text("%s %f ms", profiler.stageNames[(uint8_t)Profiler::Stage::FrameEnd].data(), (time));
 
   time = profiler.get_average_time(Profiler::Stage::UpdateLoop);
-  ImGui::Text("~~ %s %f ms ~~",
-              profiler.stageNames[(uint8_t)Profiler::Stage::UpdateLoop].data(),
-              (time));
+  ImGui::Text("~~ %s %f ms ~~", profiler.stageNames[(uint8_t)Profiler::Stage::UpdateLoop].data(), (time));
 
   ImGui::End();
 }

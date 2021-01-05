@@ -10,15 +10,12 @@
 #include <spdlog/spdlog.h>
 
 // your project headers
-#include "engine/mesh/mesh.hpp"
+#include "engine/opengl/mesh.hpp"
 
 namespace fightingengine {
 
 std::vector<Mesh>
-MeshLoader::process_node(aiNode* aNode,
-                         const aiScene* aScene,
-                         std::string directory,
-                         bool set_default_material)
+MeshLoader::process_node(aiNode* aNode, const aiScene* aScene, std::string directory, bool set_default_material)
 {
   std::vector<Mesh> meshes;
 
@@ -69,10 +66,7 @@ MeshLoader::process_node(aiNode* aNode,
 }
 
 Mesh
-MeshLoader::parse_mesh(aiMesh* aMesh,
-                       const aiScene* aScene,
-                       glm::vec3& out_Min,
-                       glm::vec3& out_Max)
+MeshLoader::parse_mesh(aiMesh* aMesh, const aiScene* aScene, glm::vec3& out_Min, glm::vec3& out_Max)
 {
   std::vector<glm::vec3> positions;
   std::vector<glm::vec2> uv;
@@ -99,18 +93,14 @@ MeshLoader::parse_mesh(aiMesh* aMesh,
   glm::vec3 pMax(-99999.0);
 
   for (unsigned int i = 0; i < aMesh->mNumVertices; ++i) {
-    positions[i] =
-      glm::vec3(aMesh->mVertices[i].x, aMesh->mVertices[i].y, aMesh->mVertices[i].z);
-    normals[i] =
-      glm::vec3(aMesh->mNormals[i].x, aMesh->mNormals[i].y, aMesh->mNormals[i].z);
+    positions[i] = glm::vec3(aMesh->mVertices[i].x, aMesh->mVertices[i].y, aMesh->mVertices[i].z);
+    normals[i] = glm::vec3(aMesh->mNormals[i].x, aMesh->mNormals[i].y, aMesh->mNormals[i].z);
     if (aMesh->mTextureCoords[0]) {
       uv[i] = glm::vec2(aMesh->mTextureCoords[0][i].x, aMesh->mTextureCoords[0][i].y);
     }
     if (aMesh->mTangents) {
-      tangents[i] =
-        glm::vec3(aMesh->mTangents[i].x, aMesh->mTangents[i].y, aMesh->mTangents[i].z);
-      bitangents[i] = glm::vec3(
-        aMesh->mBitangents[i].x, aMesh->mBitangents[i].y, aMesh->mBitangents[i].z);
+      tangents[i] = glm::vec3(aMesh->mTangents[i].x, aMesh->mTangents[i].y, aMesh->mTangents[i].z);
+      bitangents[i] = glm::vec3(aMesh->mBitangents[i].x, aMesh->mBitangents[i].y, aMesh->mBitangents[i].z);
     }
     if (positions[i].x < pMin.x)
       pMin.x = positions[i].x;
@@ -160,8 +150,7 @@ std::vector<Mesh>
 MeshLoader::load_mesh(std::string path, bool set_default_material)
 {
   Assimp::Importer import;
-  const aiScene* scene =
-    import.ReadFile(path, aiProcess_Triangulate | aiProcess_FlipUVs);
+  const aiScene* scene = import.ReadFile(path, aiProcess_Triangulate | aiProcess_FlipUVs);
 
   if (!scene || scene->mFlags == AI_SCENE_FLAGS_INCOMPLETE || !scene->mRootNode) {
     spdlog::error("Assimp failed to load model at path:  '{}'", path);

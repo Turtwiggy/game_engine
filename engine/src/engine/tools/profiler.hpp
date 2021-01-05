@@ -36,9 +36,9 @@ public:
     bool scope_time_finalized = false;
   };
 
-  static constexpr std::array<std::string_view, static_cast<uint8_t>(Stage::_count)>
-    stageNames = { "SDL Input", "Game Tick", "Render",
-                   "GUI Loop",  "Frame End", "Update Loop" };
+  static constexpr std::array<std::string_view, static_cast<uint8_t>(Stage::_count)> stageNames = {
+    "SDL Input", "Game Tick", "Render", "GUI Loop", "Frame End", "Update Loop"
+  };
 
   // Each "Entry" contains a "DeltaTime" value
   // for each "Stage" for the profiler, so that

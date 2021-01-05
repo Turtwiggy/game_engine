@@ -11,57 +11,217 @@
 #include <glm/glm.hpp>
 
 // your project headers
-#include "engine/3d/renderer/renderer_pbr.hpp"
-#include "engine/3d/renderer/renderer_ray_traced.hpp"
-#include "engine/3d/renderer/renderer_simple.hpp"
 #include "engine/core/application.hpp"
-#include "engine/graphics/render_command.hpp"
-#include "engine/graphics/shader.hpp"
-#include "engine/graphics/triangle.hpp"
 #include "engine/maths/random.hpp"
+#include "engine/opengl/render_command.hpp"
+#include "engine/opengl/renderer.hpp"
+#include "engine/opengl/shader.hpp"
+#include "engine/opengl/triangle.hpp"
 #include "engine/resources/resource_manager.hpp"
-#include "engine/scene/background.hpp"
-#include "engine/scene/scene_node.hpp"
 #include "engine/tools/profiler.hpp"
 #include "engine/ui/profiler_panel.hpp"
 using namespace fightingengine;
 
-#include "game_state.hpp"
-#include "panels/scene_hierarchy_panel.hpp"
-using namespace game_3d;
+// viewport
+uint32_t width = 1280;
+uint32_t height = 720;
 
-// imguizmo hack
-#include "ImGuizmo.h"
-#include <algorithm>
-#include <math.h>
+// texture units
+// const int texUnit_playerDiffuse = 0;
+// const int texUnit_gunDiffuse = 1;
+// const int texUnit_floorDiffuse = 2;
+// const int texUnit_wigglyBoi = 3;
+// const int texUnit_bullet = 4;
+// const int texUnit_floorNormal = 5;
+// const int texUnit_playerNormal = 6;
+// const int texUnit_gunNormal = 7;
+// const int texUnit_shadowMap = 8;
+// const int texUnit_emissionFBO = 9;
+// const int texUnit_playerEmission = 10;
+// const int texUnit_gunEmission = 11;
+// const int texUnit_scene = 12;
+// const int texUnit_horzBlur = 13;
+// const int texUnit_vertBlur = 14;
+// const int texUnit_impactSpriteSheet = 15;
+// const int texUnit_muzzleFlashSpriteSheet = 16;
+// const int texUnit_floorSpec = 18;
+// const int texUnit_playerSpec = 19;
+// const int texUnit_gunSpec = 20;
+
+// camera
+glm::vec3 camera_pos = glm::vec3(0.0f, 0.0f, 3.0f);
+
+// player
+// glm::vec3 player_pos = glm::vec3(0.0f, 0.0f, 0.0f);
+// glm::vec2 player_mov_dir = glm::vec2(0.0f, 0.0f);
+// float lastFireTime = 0.0f;
+// bool isTryingToFire = false;
+// const float fireInterval = 0.1f; // seconds
+// const int spreadAmount = 20;
+// const float playerSpeed = 1.5f;
+// const float playerCollisionRadius = 0.35f;
+// bool isAlive = true;
+// float aimTheta = 0.0f;
+
+// models
+// const float playerModelScale = 0.0044f;
+// const float playerModelGunHeight = 120.0f;       // un-scaled
+// const float playerModelGunMuzzleOffset = 100.0f; // un-scaled
+// const float monsterY = playerModelScale * playerModelGunHeight;
+
+// const glm::vec3 light_dir = glm::normalize(glm::vec3(-0.8f, 0.0f, -1.0f));
+// const glm::vec3 player_light_dir = glm::normalize(glm::vec3(-1.0f, -1.0f, -1.0f));
+// const float light_factor = 0.8;
+// const float non_blue = 0.9f;
+// const glm::vec3 light_colour =
+//   lightFactor * 1.0f * glm::vec3(non_blue * 0.406f, non_blue * 0.723f, 1.0f);
+// const glm::vec3 ambient_colour =
+//   lightFactor * 0.10f * glm::vec3(non_blue * 0.7f, non_blue * 0.7f, 0.7f);
+
+// enemies
+const float monster_speed = 0.6f;
+
+// game state
+int desired_cubes = 35;
+
+// ai
+
+// void
+// chase_player(const float delta_time, std::vector<Enemy>* enemies)
+// {
+//   const glm::vec3 playerCollisionPosition(playerPosition.x, monsterY, playerPosition.z);
+//   for (int i = 0; i < enemies->size(); ++i) {
+//     auto& e = (*enemies)[i];
+//     glm::vec3 dir = playerPosition - e.position;
+//     dir.y = 0.0f;
+//     e.dir = glm::normalize(dir);
+//     e.position += e.dir * delta_time * monster_speed;
+//     if (isAlive) {
+//       const glm::vec3 p1 = e.position - e.dir * (ENEMY_COLLIDER.height / 2);
+//       const glm::vec3 p2 = e.position + e.dir * (ENEMY_COLLIDER.height / 2);
+//       const float dist = distanceBetweenPointAndLineSegment(playerCollisionPosition, p1, p2);
+//       if (dist <= (playerCollisionRadius + ENEMY_COLLIDER.radius)) {
+//         std::cout << "GOTTEM!" << std::endl;
+//         isAlive = false;
+//         playerMovementDir = glm::vec2(0.0f, 0.0f);
+//       }
+//     }
+//   }
+// }
 
 int
 main(int argc, char** argv)
 {
-  uint32_t width = 1280;
-  uint32_t height = 720;
+
   Application app("Fighting Game!", width, height);
   // app.set_fps_limit(120.0f);
   // app.get_window().set_fullscreen(true);
   // app.remove_fps_limit();
 
-  // Game
-
-  FlyCamera camera{ glm::vec3(0.0f, 0.0f, 3.0f) };
-  camera.SetPerspective(
-    glm::radians(65.0f), (float)width / (float)height, 0.1f, 100.0f);
+  FlyCamera camera{ camera_pos };
+  camera.SetPerspective(glm::radians(65.0f), (float)width / (float)height, 0.1f, 100.0f);
 
   RandomState rnd;
   Profiler profiler;
   ProfilerPanel profiler_panel;
-  RendererSimple simple_renderer(rnd);
+  Renderer simple_renderer(rnd);
 
-  // ImGuiszmo::SetOrthographic(false);
-  // ImGuizmo::ViewManipulate()
+  // TODO sound here
+
+  // load shaders
+
+  // Shader blurShader = Shader::create("angrygl/basicer_shader.vert",
+  // "angrygl/blur_shader.frag"); Shader basicerShader =
+  // Shader::create("angrygl/basicer_shader.vert", "angrygl/basicer_shader.frag");
+  // Shader sceneDrawShader = Shader::create("angrygl/basicer_shader.vert",
+  // "angrygl/texture_merge_shader.frag"); Shader simpleDepthShader =
+  // Shader::create("angrygl/depth_shader.vert", "angrygl/depth_shader.frag");
+  // simpleDepthShader.use();
+  // const unsigned int lsml =
+  //   glGetUniformLocation(simpleDepthShader.id, "lightSpaceMatrix");
+  // Shader wigglyShader =
+  //   Shader::create("angrygl/wiggly_shader.vert", "angrygl/player_shader.frag");
+  // Model wigglyBoi("angrygl/assets/wiggly_boi/EelDog.FBX", false);
+
+  // Shader playerShader = Shader::create("angrygl/player_shader.vert",
+  // "angrygl/player_shader.frag"); playerShader.use(); const unsigned int
+  // playerLightSpaceMatrixLocation =
+  //   glGetUniformLocation(playerShader.id, "lightSpaceMatrix");
+  // playerShader.setVec3("directionLight.dir", playerLightDir);
+  // playerShader.setVec3("directionLight.color", lightColor);
+  // playerShader.setVec3("ambient", ambientColor);
+  // playerShader.setInt("texture_spec", texUnit_playerSpec);
+
+  // load textures
+
+  // const Spritesheet bulletImpactSpritesheet(texUnit_impactSpriteSheet, 11, 0.05f);
+  // const Spritesheet muzzleFlashImpactSpritesheet(texUnit_muzzleFlashSpriteSheet, 6, 0.05f);
+  // BulletStore bulletStore = BulletStore::initialiseBuffersAndCreate(&threadPool);
+
+  // {
+  //   std::vector<std::pair<int, std::string>> texturesToLoad;
+  //   texturesToLoad.emplace_back(texUnit_impactSpriteSheet, "angrygl/assets/bullet/impact_spritesheet_with_00.png");
+  //   texturesToLoad.emplace_back(texUnit_muzzleFlashSpriteSheet,"angrygl/assets/Player/muzzle_spritesheet.png");
+  //   texturesToLoad.emplace_back(texUnit_bullet, "angrygl/assets/bullet/BulletTexture2.png");
+  //   texturesToLoad.emplace_back(texUnit_wigglyBoi, "angrygl/assets/wiggly_boi/Eeldog_Albedo.png");
+  //   texturesToLoad.emplace_back(texUnit_floorNormal, "angrygl/assets/floor/Floor_N.psd");
+  //   texturesToLoad.emplace_back(texUnit_floorDiffuse, "angrygl/assets/floor/Floor_D.psd");
+  //   texturesToLoad.emplace_back(texUnit_floorSpec, "angrygl/assets/floor/Floor_M.psd");
+  //   texturesToLoad.emplace_back(texUnit_gunNormal, "angrygl/assets/Player/Textures/Gun_NRM.tga");
+  //   texturesToLoad.emplace_back(texUnit_playerNormal, "angrygl/assets/Player/Textures/Player_NRM.tga");
+  //   texturesToLoad.emplace_back(texUnit_gunDiffuse, "angrygl/assets/Player/Textures/Gun_D.tga");
+  //   texturesToLoad.emplace_back(texUnit_playerEmission, "angrygl/assets/Player/Textures/Player_E.tga");
+  //   texturesToLoad.emplace_back(texUnit_playerSpec, "angrygl/assets/Player/Textures/Player_M.tga");
+  //   texturesToLoad.emplace_back(texUnit_gunEmission, "angrygl/assets/Player/Textures/Gun_E.tga");
+  //   texturesToLoad.emplace_back(texUnit_playerDiffuse, "angrygl/assets/Player/Textures/Player_D.tga");
+  //   texturesToLoad.emplace_back(texUnit_gunSpec, "angrygl/assets/Player/Textures/Gun_M.tga");
+
+  //   std::vector<std::thread> threads;
+  //   std::vector<LoadedTexture> loadedTextures(texturesToLoad.size());
+  //   for (int i = 0; i < texturesToLoad.size(); ++i) {
+  //     const auto& textureToLoad = texturesToLoad[i];
+  //     threads.emplace_back([&textureToLoad, i, &loadedTextures]() {
+  //       loadedTextures[i] = loadTexture(textureToLoad.first, textureToLoad.second);
+  //     });
+  //   }
+  //   for (auto& thread : threads) {
+  //     thread.join();
+  //   }
+  //   for (LoadedTexture& l : loadedTextures) {
+  //     bindLoadedTexture(l);
+  //   }
+  // }
+
+  // PlayerModel playerModel("angrygl/assets/Player/Player.fbx");
+
+  // const glm::mat4 projTransform =
+  //   glm::perspective(glm::radians(45.0f), (float)viewportWidth / viewportHeight, 0.1f, 10.0f);
+  // const glm::mat4 projInv = glm::inverse(projTransform);
+
+  // Shader basicTextureShader = Shader::create("angrygl/basic_texture_shader.vert", "angrygl/floor_shader.frag");
+  // basicTextureShader.use();
+  // basicTextureShader.setVec3("directionLight.dir", lightDir);
+  // basicTextureShader.setVec3("directionLight.color", floorLightColor);
+  // basicTextureShader.setVec3("ambient", floorAmbientColor);
+
+  // Shader instancedTextureShader =
+  // Shader::create("angrygl/instanced_texture_shader.vert", "angrygl/basic_texture_shader.frag");
+  // Shader nodeShader = Shader::create("angrygl/redshader.vert", "angrygl/redshader.frag");
+  // nodeShader.use();
+
+  // wigglyShader.use();
+  // wigglyShader.use();
+  // wigglyShader.setInt("texture_diffuse", texUnit_wigglyBoi);
+  // wigglyShader.setVec3("directionLight.dir", playerLightDir);
+  // wigglyShader.setVec3("directionLight.color", lightColor);
+  // wigglyShader.setVec3("ambient", ambientColor);
+
+  // enemies
+
+  // std::vector<Enemy> enemies;
+  // EnemySpawner enemySpawner(monsterY, &enemies);
 
   // random cubes
-
-  int desired_cubes = 35;
 
   std::vector<glm::vec3> cube_pos;
   glm::vec3 rand_pos{ 0.0f, 0.0f, 0.0f };
@@ -96,8 +256,9 @@ main(int argc, char** argv)
 
     // Settings: Fullscreen
     if (app.get_input().get_key_down(SDL_KeyCode::SDLK_f)) {
+      // Update window size
       app.get_window().toggle_fullscreen();
-
+      // Update viewport size
       glm::ivec2 screen_size = app.get_window().get_size();
       RenderCommand::set_viewport(0, 0, screen_size.x, screen_size.y);
     }
@@ -122,8 +283,7 @@ main(int argc, char** argv)
     // Input: Mouse
     if (app.get_window().get_mouse_captured()) {
       glm::ivec2 rel_mouse = app.get_window().get_relative_mouse_position();
-      camera.InputMouse(static_cast<float>(rel_mouse.x),
-                        static_cast<float>(rel_mouse.y));
+      camera.InputMouse(static_cast<float>(rel_mouse.x), static_cast<float>(rel_mouse.y));
     }
 
     profiler.end(Profiler::Stage::SdlInput);
@@ -140,13 +300,56 @@ main(int argc, char** argv)
     //    seconds_since_last_game_tick -= SECONDS_PER_FIXED_TICK;
     //}
 
+    // otherwise, do game tick every frame here!
+
     profiler.end(Profiler::Stage::GameTick);
     profiler.begin(Profiler::Stage::Render);
 
     // Rendering
 
-    simple_renderer.update(
-      delta_time_s, camera, rnd, cube_pos, app.get_window().get_size());
+    simple_renderer.update(delta_time_s, camera, rnd, cube_pos, app.get_window().get_size());
+
+    // const auto drawBullets = [&]() {
+    //     glEnable(GL_BLEND);
+    //     glDepthMask(GL_FALSE);
+    //     glActiveTexture(GL_TEXTURE0 + texUnit_bullet);
+    //     instancedTextureShader.use();
+    //     instancedTextureShader.setInt("texture_diffuse", texUnit_bullet);
+    //     instancedTextureShader.setBool("useLight", false);
+    //     glUniformMatrix4fv(glGetUniformLocation(instancedTextureShader.id, "PV"), 1,
+    //                        GL_FALSE, glm::value_ptr(PV));
+    //     bulletStore.renderBulletSprites();
+    //     glDisable(GL_BLEND);
+    //     glDepthMask(GL_TRUE);
+    //   };
+    // const auto drawFloor = [&](const glm::mat4* const lightSpaceMatrixOrNull) { // Floor
+    //     basicTextureShader.use();
+    //     basicTextureShader.setBool("useLight", !!lightSpaceMatrixOrNull);
+    //     basicTextureShader.setBool("useSpec", !!lightSpaceMatrixOrNull);
+    //     basicTextureShader.setInt("texture_diffuse", texUnit_floorDiffuse);
+    //     basicTextureShader.setInt("texture_normal", texUnit_floorNormal);
+    //     basicTextureShader.setInt("texture_spec", texUnit_floorSpec);
+    //     basicTextureShader.setInt("shadow_map", texUnit_shadowMap);
+    //     basicTextureShader.setBool("usePointLight", usePointLight);
+    //     basicTextureShader.setVec3("pointLight.worldPos", muzzleWorldPos3);
+    //     basicTextureShader.setVec3("pointLight.color", muzzlePointLightColor);
+    //     basicTextureShader.setVec3("viewPos", cameraPos);
+    //     if (lightSpaceMatrixOrNull) {
+    //       glUniformMatrix4fv(glGetUniformLocation(basicTextureShader.id, "lightSpaceMatrix"),
+    //                          1, GL_FALSE, glm::value_ptr(*lightSpaceMatrixOrNull));
+    //     }
+    //     glUniformMatrix4fv(glGetUniformLocation(basicTextureShader.id, "model"),
+    //                        1, GL_FALSE, glm::value_ptr(glm::rotate(
+    //                            glm::mat4(1.0f),
+    //                            glm::radians(45.0f),
+    //                            glm::vec3(0.0f, 1.0f, 0.0f))));
+    //     glUniformMatrix4fv(glGetUniformLocation(basicTextureShader.id, "PV"), 1,
+    //                        GL_FALSE, glm::value_ptr(PV));
+    //     glBindVertexArray(floorVAO);
+    //     glDrawArrays(GL_TRIANGLES, 0, 6);
+    //     basicTextureShader.setBool("useLight", false);
+    //     basicTextureShader.setBool("useSpec", false);
+    // };
 
     profiler.end(Profiler::Stage::Render);
     profiler.begin(Profiler::Stage::GuiLoop);
@@ -175,8 +378,7 @@ main(int argc, char** argv)
     ImGui::Begin("Camera");
 
     // Camera
-    ImGui::Text(
-      "Camera Pos: %f %f %f", camera.Position.x, camera.Position.y, camera.Position.z);
+    ImGui::Text("Camera Pos: %f %f %f", camera.Position.x, camera.Position.y, camera.Position.z);
     ImGui::Text("Camera Pitch: %f", camera.Pitch);
     ImGui::Text("Camera Yaw: %f", camera.Yaw);
 
@@ -217,10 +419,11 @@ main(int argc, char** argv)
 }
 
 // Below code is converting mouse position in to ray
-//
+// -------------------------------------------------
 
-// //Mouse not captured by window
-// else
+// Note: It'd probably be faster to do a simple line intersection from camera pos
+// to plane along the direction vector.
+// Probably faster too, as there's no matrix inverse else
 // {
 //     //if mouse is clicked
 //     if( app.get_input().get_mouse_lmb_held() )
@@ -245,8 +448,7 @@ main(int argc, char** argv)
 //         //step 3: convert normalized device coords to homogenous clip coords
 //         //range [-1:1, -1:1, -1:1, -1:1]
 //         //note: ray points in the -z direction
-//         glm::vec4 ray_clip {normalized_device_coords.x,
-//         normalized_device_coords.y, -1.0, 1.0};
+//         glm::vec4 ray_clip {normalized_device_coords.x, normalized_device_coords.y, -1.0, 1.0};
 
 //         //Convert homogenous clip coords to  eye camera coordinates
 //         //range [-x:x, -y:y, -z:z, -w:w]
@@ -262,94 +464,4 @@ main(int argc, char** argv)
 //         printf("ray x: %f y: %f z: %f \n", ray_world.x, ray_world.y,
 //         ray_world.z);
 //     }
-// }
-
-// IMGUIZMO hack stuff
-// -------------------
-
-// void
-// EditTransform(const float* cameraView,
-//               float* cameraProjection,
-//               float* matrix,
-//               bool editTransformDecomposition)
-// {
-//   static ImGuizmo::OPERATION mCurrentGizmoOperation(ImGuizmo::TRANSLATE);
-//   static ImGuizmo::MODE mCurrentGizmoMode(ImGuizmo::LOCAL);
-//   static bool useSnap = false;
-//   static float snap[3] = { 1.f, 1.f, 1.f };
-//   static float bounds[] = { -0.5f, -0.5f, -0.5f, 0.5f, 0.5f, 0.5f };
-//   static float boundsSnap[] = { 0.1f, 0.1f, 0.1f };
-//   static bool boundSizing = false;
-//   static bool boundSizingSnap = false;
-
-//   if (editTransformDecomposition) {
-//     if (ImGui::IsKeyPressed(90))
-//       mCurrentGizmoOperation = ImGuizmo::TRANSLATE;
-//     if (ImGui::IsKeyPressed(69))
-//       mCurrentGizmoOperation = ImGuizmo::ROTATE;
-//     if (ImGui::IsKeyPressed(82)) // r Key
-//       mCurrentGizmoOperation = ImGuizmo::SCALE;
-//     if (ImGui::RadioButton("Translate",
-//                            mCurrentGizmoOperation == ImGuizmo::TRANSLATE))
-//       mCurrentGizmoOperation = ImGuizmo::TRANSLATE;
-//     ImGui::SameLine();
-//     if (ImGui::RadioButton("Rotate",
-//                            mCurrentGizmoOperation == ImGuizmo::ROTATE))
-//       mCurrentGizmoOperation = ImGuizmo::ROTATE;
-//     ImGui::SameLine();
-//     if (ImGui::RadioButton("Scale", mCurrentGizmoOperation ==
-//     ImGuizmo::SCALE))
-//       mCurrentGizmoOperation = ImGuizmo::SCALE;
-//     float matrixTranslation[3], matrixRotation[3], matrixScale[3];
-//     ImGuizmo::DecomposeMatrixToComponents(
-//       matrix, matrixTranslation, matrixRotation, matrixScale);
-//     ImGui::InputFloat3("Tr", matrixTranslation);
-//     ImGui::InputFloat3("Rt", matrixRotation);
-//     ImGui::InputFloat3("Sc", matrixScale);
-//     ImGuizmo::RecomposeMatrixFromComponents(
-//       matrixTranslation, matrixRotation, matrixScale, matrix);
-
-//     if (mCurrentGizmoOperation != ImGuizmo::SCALE) {
-//       if (ImGui::RadioButton("Local", mCurrentGizmoMode == ImGuizmo::LOCAL))
-//         mCurrentGizmoMode = ImGuizmo::LOCAL;
-//       ImGui::SameLine();
-//       if (ImGui::RadioButton("World", mCurrentGizmoMode == ImGuizmo::WORLD))
-//         mCurrentGizmoMode = ImGuizmo::WORLD;
-//     }
-//     if (ImGui::IsKeyPressed(83))
-//       useSnap = !useSnap;
-//     ImGui::Checkbox("", &useSnap);
-//     ImGui::SameLine();
-
-//     switch (mCurrentGizmoOperation) {
-//       case ImGuizmo::TRANSLATE:
-//         ImGui::InputFloat3("Snap", &snap[0]);
-//         break;
-//       case ImGuizmo::ROTATE:
-//         ImGui::InputFloat("Angle Snap", &snap[0]);
-//         break;
-//       case ImGuizmo::SCALE:
-//         ImGui::InputFloat("Scale Snap", &snap[0]);
-//         break;
-//     }
-//     ImGui::Checkbox("Bound Sizing", &boundSizing);
-//     if (boundSizing) {
-//       ImGui::PushID(3);
-//       ImGui::Checkbox("", &boundSizingSnap);
-//       ImGui::SameLine();
-//       ImGui::InputFloat3("Snap", boundsSnap);
-//       ImGui::PopID();
-//     }
-//   }
-//   ImGuiIO& io = ImGui::GetIO();
-//   ImGuizmo::SetRect(0, 0, io.DisplaySize.x, io.DisplaySize.y);
-//   ImGuizmo::Manipulate(cameraView,
-//                        cameraProjection,
-//                        mCurrentGizmoOperation,
-//                        mCurrentGizmoMode,
-//                        matrix,
-//                        NULL,
-//                        useSnap ? &snap[0] : NULL,
-//                        boundSizing ? bounds : NULL,
-//                        boundSizingSnap ? boundsSnap : NULL);
 // }
