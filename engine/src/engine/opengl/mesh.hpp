@@ -5,6 +5,9 @@
 
 #include <glm/glm.hpp>
 
+#include "engine/opengl/shader.hpp"
+#include "engine/opengl/vertex.hpp"
+
 namespace fightingengine {
 
 enum class TOPOLOGY
@@ -25,39 +28,39 @@ public:
   unsigned int ebo = 0;
 
 public:
-  std::vector<glm::vec3> Positions;
-  std::vector<glm::vec2> UV;
-  std::vector<glm::vec3> Normals;
-  std::vector<glm::vec3> Tangents;
-  std::vector<glm::vec3> Bitangents;
+  std::vector<vertex> verts;
+  std::vector<unsigned int> indicies;
 
   TOPOLOGY topology = TOPOLOGY::TRIANGLES;
-  std::vector<unsigned int> Indices;
-
-  Mesh() = default;
-  Mesh(std::vector<glm::vec3> positions, std::vector<unsigned int> indices);
-  Mesh(std::vector<glm::vec3> positions, std::vector<glm::vec2> uv, std::vector<unsigned int> indices);
-  Mesh(std::vector<glm::vec3> positions,
-       std::vector<glm::vec2> uv,
-       std::vector<glm::vec3> normals,
-       std::vector<unsigned int> indices);
-  Mesh(std::vector<glm::vec3> positions,
-       std::vector<glm::vec2> uv,
-       std::vector<glm::vec3> normals,
-       std::vector<glm::vec3> tangents,
-       std::vector<glm::vec3> bitangents,
-       std::vector<unsigned int> indices);
-
-  void SetPositions(std::vector<glm::vec3> positions);
-  void SetUVs(std::vector<glm::vec2> uv);
-  void SetNormals(std::vector<glm::vec3> normals);
-  void SetTangents(std::vector<glm::vec3> tangents, std::vector<glm::vec3> bitangents);
 
   // commits all buffers and attributes to the GPU driver
   void Finalize(bool interleaved = true);
-
-  // binds the VAO, draws the triangles
-  // void draw(Shader& shader);
 };
+
+void
+render_mesh(std::shared_ptr<Mesh> mesh);
+
+void
+render_mesh(Mesh& mesh);
+
+namespace primitives {
+
+class Plane
+{
+public:
+  Mesh mesh; // set in constructor
+
+  Plane();
+};
+
+class Cube
+{
+public:
+  Mesh mesh; // set in constructor
+
+  Cube();
+};
+
+} // namespace primitives
 
 }

@@ -53,8 +53,7 @@ private:
   {
     while (!g_bQuit) {
       ISteamNetworkingMessage* pIncomingMsg = nullptr;
-      int numMsgs =
-        m_pInterface->ReceiveMessagesOnConnection(m_hConnection, &pIncomingMsg, 1);
+      int numMsgs = m_pInterface->ReceiveMessagesOnConnection(m_hConnection, &pIncomingMsg, 1);
       if (numMsgs == 0)
         break;
       if (numMsgs < 0)
@@ -88,19 +87,14 @@ private:
       }
 
       // Anything else, just send it to the server and let them parse it
-      m_pInterface->SendMessageToConnection(m_hConnection,
-                                            cmd.c_str(),
-                                            (uint32)cmd.length(),
-                                            k_nSteamNetworkingSend_Reliable,
-                                            nullptr);
+      m_pInterface->SendMessageToConnection(
+        m_hConnection, cmd.c_str(), (uint32)cmd.length(), k_nSteamNetworkingSend_Reliable, nullptr);
     }
   }
 
-  void OnSteamNetConnectionStatusChanged(
-    SteamNetConnectionStatusChangedCallback_t* pInfo)
+  void OnSteamNetConnectionStatusChanged(SteamNetConnectionStatusChangedCallback_t* pInfo)
   {
-    assert(pInfo->m_hConn == m_hConnection ||
-           m_hConnection == k_HSteamNetConnection_Invalid);
+    assert(pInfo->m_hConn == m_hConnection || m_hConnection == k_HSteamNetConnection_Invalid);
 
     // What's the state of the connection?
     switch (pInfo->m_info.m_eState) {
@@ -117,13 +111,9 @@ private:
         if (pInfo->m_eOldState == k_ESteamNetworkingConnectionState_Connecting) {
           // Note: we could distinguish between a timeout, a rejected connection,
           // or some other transport problem.
-          Printf(
-            "We sought the remote host, yet our efforts were met with defeat.  (%s)",
-            pInfo->m_info.m_szEndDebug);
-        } else if (pInfo->m_info.m_eState ==
-                   k_ESteamNetworkingConnectionState_ProblemDetectedLocally) {
-          Printf("Alas, troubles beset us; we have lost contact with the host.  (%s)",
-                 pInfo->m_info.m_szEndDebug);
+          Printf("We sought the remote host, yet our efforts were met with defeat.  (%s)", pInfo->m_info.m_szEndDebug);
+        } else if (pInfo->m_info.m_eState == k_ESteamNetworkingConnectionState_ProblemDetectedLocally) {
+          Printf("Alas, troubles beset us; we have lost contact with the host.  (%s)", pInfo->m_info.m_szEndDebug);
         } else {
           // NOTE: We could check the reason code for a normal disconnection
           Printf("The host hath bidden us farewell.  (%s)", pInfo->m_info.m_szEndDebug);
@@ -156,8 +146,7 @@ private:
   }
 
   static ChatClient* s_pCallbackInstance;
-  static void SteamNetConnectionStatusChangedCallback(
-    SteamNetConnectionStatusChangedCallback_t* pInfo)
+  static void SteamNetConnectionStatusChangedCallback(SteamNetConnectionStatusChangedCallback_t* pInfo)
   {
     s_pCallbackInstance->OnSteamNetConnectionStatusChanged(pInfo);
   }
@@ -186,7 +175,7 @@ ChatClient* ChatClient::s_pCallbackInstance = nullptr;
 int
 main(int argc, const char* argv[])
 {
-  const uint16 DEFAULT_SERVER_PORT = 27020;
+  const uint16 DEFAULT_SERVER_PORT = 27015;
   printf("hello, client! \n");
 
   bool bServer = false;
@@ -206,6 +195,7 @@ main(int argc, const char* argv[])
         continue;
       }
     }
+
     if (!strcmp(argv[i], "--port")) {
       ++i;
       if (i >= argc)

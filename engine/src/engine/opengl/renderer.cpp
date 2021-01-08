@@ -31,9 +31,6 @@ Renderer::Renderer(RandomState& rnd)
   ResourceManager::load_texture("assets/textures/wood.png", "wood-floor");
 
   // load shaders
-  ResourceManager::load_shader("assets/shaders/", { "blinn-phong/lit.vert", "solid_colour.frag" }, "SHADER_solid");
-  ResourceManager::load_shader(
-    "assets/shaders/shadowmapping/", { "shadow_mapping.vert", "shadow_mapping.frag" }, "SHADER_shadow_mapping");
 
   // shadow mapping depth map FBO
   shadowmap_shader_ = ResourceManager::get_shader("SHADER_shadow_mapping");

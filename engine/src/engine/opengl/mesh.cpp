@@ -8,66 +8,6 @@
 
 namespace fightingengine {
 
-Mesh::Mesh(std::vector<glm::vec3> positions, std::vector<unsigned int> indices)
-  : Positions(positions)
-  , Indices(indices)
-{}
-
-Mesh::Mesh(std::vector<glm::vec3> positions, std::vector<glm::vec2> uv, std::vector<unsigned int> indices)
-  : Positions(positions)
-  , Indices(indices)
-  , UV(uv)
-{}
-
-Mesh::Mesh(std::vector<glm::vec3> positions,
-           std::vector<glm::vec2> uv,
-           std::vector<glm::vec3> normals,
-           std::vector<unsigned int> indices)
-  : Positions(positions)
-  , Indices(indices)
-  , Normals(normals)
-  , UV(uv)
-{}
-
-Mesh::Mesh(std::vector<glm::vec3> positions,
-           std::vector<glm::vec2> uv,
-           std::vector<glm::vec3> normals,
-           std::vector<glm::vec3> tangents,
-           std::vector<glm::vec3> bitangents,
-           std::vector<unsigned int> indices)
-  : Positions(positions)
-  , Indices(indices)
-  , Normals(normals)
-  , Tangents(tangents)
-  , Bitangents(bitangents)
-  , UV(uv)
-{}
-
-void
-Mesh::SetPositions(std::vector<glm::vec3> positions)
-{
-  Positions = positions;
-}
-
-void
-Mesh::SetUVs(std::vector<glm::vec2> uv)
-{
-  UV = uv;
-}
-
-void
-Mesh::SetNormals(std::vector<glm::vec3> normals)
-{
-  Normals = normals;
-}
-
-void
-Mesh::SetTangents(std::vector<glm::vec3> tangents, std::vector<glm::vec3> bitangents)
-{
-  Tangents = tangents;
-  Bitangents = bitangents;
-}
-
 void
 Mesh::Finalize(bool interleaved)
 {
@@ -207,52 +147,138 @@ Mesh::Finalize(bool interleaved)
   glBindVertexArray(0);
 }
 
-// void Mesh::draw(Shader& shader)
-// {
-//     // if (texture == -1)
-//     // {
-//     //     // bind appropriate textures
-//     //     unsigned int diffuseNr = 1;
-//     //     unsigned int specularNr = 1;
-//     //     unsigned int normalNr = 1;
-//     //     unsigned int heightNr = 1;
-//     //     for (unsigned int i = 0; i < textures.size(); i++)
-//     //     {
-//     //         glActiveTexture(GL_TEXTURE0 + i); // active proper texture
-//     unit before binding
-//     //         // retrieve texture number (the N in diffuse_textureN)
-//     //         std::string number;
-//     //         std::string name = textures[i].type;
-//     //         if (name == "texture_diffuse")
-//     //             number = std::to_string(diffuseNr++);
-//     //         else if (name == "texture_specular")
-//     //             number = std::to_string(specularNr++); // transfer
-//     unsigned int to stream
-//     //         else if (name == "texture_normal")
-//     //             number = std::to_string(normalNr++); // transfer unsigned
-//     int to stream
-//     //         else if (name == "texture_height")
-//     //             number = std::to_string(heightNr++); // transfer unsigned
-//     int to stream
-//     //         // now set the sampler to the correct texture unit
-//     //         const char* tex_name = (name + number).c_str();
-//     //         shader.setInt(tex_name, i);
-//     //         glBindTexture(GL_TEXTURE_2D, textures[i].id);
-//     //     }
-//     // }
-//     // else
-//     // {
-//     //     //glActiveTexture(GL_TEXTURE0);
-//     //     glBindTexture(GL_TEXTURE_2D, texture);
-//     //     //printf("texture %i", texture);
-//     //     shader.setInt("texture_diffuse1", texture);
-//     // }
-//     // draw mesh
-//     glBindVertexArray(VAO);
-//     glDrawElements(GL_TRIANGLES, indices.size(), GL_UNSIGNED_INT, 0);
-//     glBindVertexArray(0);
-//     // always good practice to set everything back to defaults once
-//     configured. glActiveTexture(GL_TEXTURE0);
-// }
+void
+render_mesh(std::shared_ptr<Mesh> mesh)
+{
+  // bind vao
+  glBindVertexArray(mesh->vao);
+
+  if (mesh->Indices.size() > 0) {
+    glDrawElements(mesh->topology == TOPOLOGY::TRIANGLE_STRIP ? GL_TRIANGLE_STRIP : GL_TRIANGLES,
+                   mesh->Indices.size(),
+                   GL_UNSIGNED_INT,
+                   0);
+  } else {
+    glDrawArrays(
+      mesh->topology == TOPOLOGY::TRIANGLE_STRIP ? GL_TRIANGLE_STRIP : GL_TRIANGLES, 0, mesh->mesh.Positions.size());
+  }
+
+  glBindVertexArray(0);
+}
+
+void
+render_mesh(Mesh& mesh)
+{
+  // bind vao
+  glBindVertexArray(mesh.vao);
+
+  if (mesh.Indices.size() > 0) {
+    glDrawElements(mesh.topology == TOPOLOGY::TRIANGLE_STRIP ? GL_TRIANGLE_STRIP : GL_TRIANGLES,
+                   mesh.Indices.size(),
+                   GL_UNSIGNED_INT,
+                   0);
+  } else {
+    glDrawArrays(
+      mesh.topology == TOPOLOGY::TRIANGLE_STRIP ? GL_TRIANGLE_STRIP : GL_TRIANGLES, 0, mesh.mesh.Positions.size());
+  }
+
+  glBindVertexArray(0);
+}
+
+namespace primitives {
+
+// ---- plane
+
+Plane::Plane()
+{
+  mesh.Positions =
+    std::vector<glm::vec3>{ glm::vec3(1.0f, 0.0f, 1.0f), glm::vec3(-1.0f, 0.0f, 1.0f),  glm::vec3(-1.0f, 0.0f, -1.0f),
+                            glm::vec3(1.0f, 0.0f, 1.0f), glm::vec3(-1.0f, 0.0f, -1.0f), glm::vec3(1.0f, 0.0f, -1.0f) };
+
+  mesh.Normals =
+    std::vector<glm::vec3>{ glm::vec3(0.0f, 1.0f, 0.0f), glm::vec3(0.0f, 1.0f, 0.0f), glm::vec3(0.0f, 1.0f, 0.0f),
+
+                            glm::vec3(0.0f, 1.0f, 0.0f), glm::vec3(0.0f, 1.0f, 0.0f), glm::vec3(0.0f, 1.0f, 0.0f) };
+
+  mesh.UV = std::vector<glm::vec2>{
+    glm::vec2(1.0f, 0.0f), glm::vec2(0.0f, 0.0f), glm::vec2(0.0f, 1.0f),
+
+    glm::vec2(1.0f, 0.0f), glm::vec2(0.0f, 1.0f), glm::vec2(1.0f, 1.0f),
+  };
+
+  mesh.topology = TOPOLOGY::TRIANGLE_STRIP;
+  mesh.Finalize();
+}
+
+// ---- cube
+
+Cube::Cube()
+{
+  mesh.Positions = std::vector<glm::vec3>{
+    glm::vec3(-1.0f, -1.0f, -1.0f), glm::vec3(1.0f, 1.0f, -1.0f),   glm::vec3(1.0f, -1.0f, -1.0f),
+    glm::vec3(1.0f, 1.0f, -1.0f),   glm::vec3(-1.0f, -1.0f, -1.0f), glm::vec3(-1.0f, 1.0f, -1.0f),
+
+    glm::vec3(-1.0f, -1.0f, 1.0f),  glm::vec3(1.0f, -1.0f, 1.0f),   glm::vec3(1.0f, 1.0f, 1.0f),
+    glm::vec3(1.0f, 1.0f, 1.0f),    glm::vec3(-1.0f, 1.0f, 1.0f),   glm::vec3(-1.0f, -1.0f, 1.0f),
+
+    glm::vec3(-1.0f, 1.0f, 1.0f),   glm::vec3(-1.0f, 1.0f, -1.0f),  glm::vec3(-1.0f, -1.0f, -1.0f),
+    glm::vec3(-1.0f, -1.0f, -1.0f), glm::vec3(-1.0f, -1.0f, 1.0f),  glm::vec3(-1.0f, 1.0f, 1.0f),
+
+    glm::vec3(1.0f, 1.0f, 1.0f),    glm::vec3(1.0f, -1.0f, -1.0f),  glm::vec3(1.0f, 1.0f, -1.0f),
+    glm::vec3(1.0f, -1.0f, -1.0f),  glm::vec3(1.0f, 1.0f, 1.0f),    glm::vec3(1.0f, -1.0f, 1.0f),
+
+    glm::vec3(-1.0f, -1.0f, -1.0f), glm::vec3(1.0f, -1.0f, -1.0f),  glm::vec3(1.0f, -1.0f, 1.0f),
+    glm::vec3(1.0f, -1.0f, 1.0f),   glm::vec3(-1.0f, -1.0f, 1.0f),  glm::vec3(-1.0f, -1.0f, -1.0f),
+
+    glm::vec3(-1.0f, 1.0f, -1.0f),  glm::vec3(1.0f, 1.0f, 1.0f),    glm::vec3(1.0f, 1.0f, -1.0f),
+    glm::vec3(1.0f, 1.0f, 1.0f),    glm::vec3(-1.0f, 1.0f, -1.0f),  glm::vec3(-1.0f, 1.0f, 1.0f)
+  };
+
+  mesh.Normals = std::vector<glm::vec3>{
+
+    glm::vec3(0.0f, 0.0f, -1.0f), glm::vec3(0.0f, 0.0f, -1.0f), glm::vec3(0.0f, 0.0f, -1.0f),
+    glm::vec3(0.0f, 0.0f, -1.0f), glm::vec3(0.0f, 0.0f, -1.0f), glm::vec3(0.0f, 0.0f, -1.0f),
+
+    glm::vec3(0.0f, 0.0f, 1.0f),  glm::vec3(0.0f, 0.0f, 1.0f),  glm::vec3(0.0f, 0.0f, 1.0f),
+    glm::vec3(0.0f, 0.0f, 1.0f),  glm::vec3(0.0f, 0.0f, 1.0f),  glm::vec3(0.0f, 0.0f, 1.0f),
+
+    glm::vec3(-1.0f, 0.0f, 0.0f), glm::vec3(-1.0f, 0.0f, 0.0f), glm::vec3(-1.0f, 0.0f, 0.0f),
+    glm::vec3(-1.0f, 0.0f, 0.0f), glm::vec3(-1.0f, 0.0f, 0.0f), glm::vec3(-1.0f, 0.0f, 0.0f),
+
+    glm::vec3(1.0f, 0.0f, 0.0f),  glm::vec3(1.0f, 0.0f, 0.0f),  glm::vec3(1.0f, 0.0f, 0.0f),
+    glm::vec3(1.0f, 0.0f, 0.0f),  glm::vec3(1.0f, 0.0f, 0.0f),  glm::vec3(1.0f, 0.0f, 0.0f),
+
+    glm::vec3(0.0f, -1.0f, 0.0f), glm::vec3(0.0f, -1.0f, 0.0f), glm::vec3(0.0f, -1.0f, 0.0f),
+    glm::vec3(0.0f, -1.0f, 0.0f), glm::vec3(0.0f, -1.0f, 0.0f), glm::vec3(0.0f, -1.0f, 0.0f),
+
+    glm::vec3(0.0f, 1.0f, 0.0f),  glm::vec3(0.0f, 1.0f, 0.0f),  glm::vec3(0.0f, 1.0f, 0.0f),
+    glm::vec3(0.0f, 1.0f, 0.0f),  glm::vec3(0.0f, 1.0f, 0.0f),  glm::vec3(0.0f, 1.0f, 0.0f)
+  };
+
+  mesh.UV = std::vector<glm::vec2>{
+    glm::vec2(0.0f, 0.0f), glm::vec2(1.0f, 1.0f), glm::vec2(1.0f, 0.0f),
+    glm::vec2(1.0f, 1.0f), glm::vec2(0.0f, 0.0f), glm::vec2(0.0f, 1.0f),
+
+    glm::vec2(0.0f, 0.0f), glm::vec2(1.0f, 0.0f), glm::vec2(1.0f, 1.0f),
+    glm::vec2(1.0f, 1.0f), glm::vec2(0.0f, 1.0f), glm::vec2(0.0f, 0.0f),
+
+    glm::vec2(1.0f, 0.0f), glm::vec2(1.0f, 1.0f), glm::vec2(0.0f, 1.0f),
+    glm::vec2(0.0f, 1.0f), glm::vec2(0.0f, 0.0f), glm::vec2(1.0f, 0.0f),
+
+    glm::vec2(1.0f, 0.0f), glm::vec2(0.0f, 1.0f), glm::vec2(1.0f, 1.0f),
+    glm::vec2(0.0f, 1.0f), glm::vec2(1.0f, 0.0f), glm::vec2(0.0f, 0.0f),
+
+    glm::vec2(0.0f, 1.0f), glm::vec2(1.0f, 1.0f), glm::vec2(1.0f, 0.0f),
+    glm::vec2(1.0f, 0.0f), glm::vec2(0.0f, 0.0f), glm::vec2(0.0f, 1.0f),
+
+    glm::vec2(0.0f, 1.0f), glm::vec2(1.0f, 0.0f), glm::vec2(1.0f, 1.0f),
+    glm::vec2(1.0f, 0.0f), glm::vec2(0.0f, 1.0f), glm::vec2(0.0f, 0.0f),
+  };
+
+  mesh.topology = TOPOLOGY::TRIANGLES;
+  mesh.Finalize();
+}
+
+} // namespace primitives
 
 } // namespace fightingengine

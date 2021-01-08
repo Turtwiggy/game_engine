@@ -2,10 +2,15 @@
 // header
 #include "engine/opengl/texture_cube.hpp"
 
+// your project headers
+#ifndef STB_IMAGE_IMPLEMENTATION
+#define STB_IMAGE_IMPLEMENTATION
+#include <stb_image.h>
+
 namespace fightingengine {
 
 void
-TextureCube::DefaultInitialize(unsigned int width, unsigned int height, GLenum format, GLenum type, bool mipmap)
+TextureCube::default_initialize(unsigned int width, unsigned int height, GLenum format, GLenum type, bool mipmap)
 {
   glGenTextures(1, &ID);
 
@@ -24,7 +29,7 @@ TextureCube::DefaultInitialize(unsigned int width, unsigned int height, GLenum f
   else if (type == GL_FLOAT && format == GL_RGBA)
     InternalFormat = GL_RGBA32F;
 
-  Bind();
+  bind();
 
   glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_MIN_FILTER, FilterMin);
   glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_MAG_FILTER, FilterMax);
@@ -40,12 +45,12 @@ TextureCube::DefaultInitialize(unsigned int width, unsigned int height, GLenum f
 }
 
 void
-TextureCube::GenerateFace(GLenum face,
-                          unsigned int width,
-                          unsigned int height,
-                          GLenum format,
-                          GLenum type,
-                          unsigned char* data)
+TextureCube::generate_face(GLenum face,
+                           unsigned int width,
+                           unsigned int height,
+                           GLenum format,
+                           GLenum type,
+                           unsigned char* data)
 {
   if (FaceWidth == 0)
     glGenTextures(1, &ID);
@@ -55,7 +60,7 @@ TextureCube::GenerateFace(GLenum face,
   Format = format;
   Type = type;
 
-  Bind();
+  bind();
 
   glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_MIN_FILTER, FilterMin);
   glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_MAG_FILTER, FilterMax);
@@ -67,7 +72,7 @@ TextureCube::GenerateFace(GLenum face,
 }
 
 void
-TextureCube::Bind(int slot)
+TextureCube::bind(int slot)
 {
   if (slot >= 0)
     glActiveTexture(GL_TEXTURE0 + slot);
@@ -75,9 +80,51 @@ TextureCube::Bind(int slot)
 }
 
 void
-TextureCube::Unbind()
+TextureCube::unbind()
 {
   glBindTexture(GL_TEXTURE_CUBE_MAP, 0);
+}
+
+TextureCube
+load_texture_cube_from_folder(const std::string& folder)
+{
+  //
+  printf("----- Texture Cube from folder -------\n");
+
+  TextureCube texture_cube;
+
+  // disable y flip on cubemaps
+  stbi_set_flip_vertically_on_load(false);
+
+  std::vector<std::string> faces = { "right.jpg", "left.jpg", "top.jpg", "bottom.jpg", "front.jpg", "back.jpg" };
+  for (unsigned int i = 0; i < faces.size(); ++i) {
+    int width, height, nrComponents;
+
+    std::string path = folder + faces[i];
+    printf("Dir: %s \n", path.c_str());
+
+    unsigned char* data = stbi_load(path.c_str(), &width, &height, &nrComponents, 0);
+
+    if (data) {
+      GLenum format;
+      if (nrComponents == 3)
+        format = GL_RGB;
+      else
+        format = GL_RGBA;
+
+      texture_cube.generate_face(GL_TEXTURE_CUBE_MAP_POSITIVE_X + i, width, height, format, GL_UNSIGNED_BYTE, data);
+      stbi_image_free(data);
+    } else {
+      printf("!! Cube texture at path: %s failed to load. !! \n", faces[i].c_str());
+      stbi_image_free(data);
+      return texture_cube;
+    }
+  }
+
+  if (texture_cube.Mipmapping)
+    glGenerateMipmap(GL_TEXTURE_CUBE_MAP);
+
+  return texture_cube;
 }
 
 } // namespace fightingengine

@@ -14,9 +14,6 @@
 #include <string>
 #include <thread>
 
-// engine
-#include "engine/networking/test.hpp"
-
 #define STEAMNETWORKINGSOCKETS_OPENSOURCE
 #include "engine/networking/net_common.hpp"
 using namespace net_common;

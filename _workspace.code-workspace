@@ -112,7 +112,8 @@
 			"typeindex": "cpp",
 			"*.inc": "cpp",
 			"*.frag": "c",
-			"rope": "cpp"
+			"rope": "cpp",
+			"hash_set": "cpp"
 		},
 		"cmake.loggingLevel": "debug"
 	}

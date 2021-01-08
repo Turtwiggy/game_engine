@@ -13,6 +13,7 @@
 // your project headers
 #include "engine/core/application.hpp"
 #include "engine/maths/random.hpp"
+#include "engine/opengl/model.hpp"
 #include "engine/opengl/render_command.hpp"
 #include "engine/opengl/renderer.hpp"
 #include "engine/opengl/shader.hpp"
@@ -21,10 +22,6 @@
 #include "engine/tools/profiler.hpp"
 #include "engine/ui/profiler_panel.hpp"
 using namespace fightingengine;
-
-// viewport
-uint32_t width = 1280;
-uint32_t height = 720;
 
 // texture units
 // const int texUnit_playerDiffuse = 0;
@@ -78,6 +75,13 @@ glm::vec3 camera_pos = glm::vec3(0.0f, 0.0f, 3.0f);
 // const glm::vec3 ambient_colour =
 //   lightFactor * 0.10f * glm::vec3(non_blue * 0.7f, non_blue * 0.7f, 0.7f);
 
+// const float florrLightFactor = 0.35;
+// const float floorNonBlue = 0.7f;
+// const glm::vec3 floorLightColor =
+//   florrLightFactor * 1.0f * glm::vec3(floorNonBlue * 0.406f, floorNonBlue * 0.723f, 1.0f);
+// const glm::vec3 floorAmbientColor =
+//   florrLightFactor * 0.50f * glm::vec3(floorNonBlue * 0.7f, floorNonBlue * 0.7f, 0.7f);
+
 // enemies
 const float monster_speed = 0.6f;
 
@@ -112,7 +116,8 @@ int desired_cubes = 35;
 int
 main(int argc, char** argv)
 {
-
+  uint32_t width = 1280;
+  uint32_t height = 720;
   Application app("Fighting Game!", width, height);
   // app.set_fps_limit(120.0f);
   // app.get_window().set_fullscreen(true);
@@ -124,29 +129,34 @@ main(int argc, char** argv)
   RandomState rnd;
   Profiler profiler;
   ProfilerPanel profiler_panel;
-  Renderer simple_renderer(rnd);
+  Renderer renderer(rnd);
 
-  // TODO sound here
+  // TODO sounds here
+  // ----------------
 
   // load shaders
+  Shader solid = Shader()
+                   .attach_shader("assets/shaders/blinn-phong/lit.vert")
+                   .attach_shader("assets/shaders/solid_colour.frag")
+                   .build_program();
+  Shader shadowmapping = Shader()
+                           .attach_shader("assets/shaders/shadowmapping/shadow_mapping.vert")
+                           .attach_shader("assets/shaders/shadowmapping/shadow_mapping.frag")
+                           .build_program();
 
-  // Shader blurShader = Shader::create("angrygl/basicer_shader.vert",
-  // "angrygl/blur_shader.frag"); Shader basicerShader =
-  // Shader::create("angrygl/basicer_shader.vert", "angrygl/basicer_shader.frag");
-  // Shader sceneDrawShader = Shader::create("angrygl/basicer_shader.vert",
-  // "angrygl/texture_merge_shader.frag"); Shader simpleDepthShader =
-  // Shader::create("angrygl/depth_shader.vert", "angrygl/depth_shader.frag");
+  // Shader blurShader = Shader::create("angrygl/basicer_shader.vert", "angrygl/blur_shader.frag");
+  // Shader basicerShader = Shader::create("angrygl/basicer_shader.vert", "angrygl/basicer_shader.frag");
+  // Shader sceneDrawShader = Shader::create("angrygl/basicer_shader.vert", "angrygl/texture_merge_shader.frag");
+  // Shader simpleDepthShader = Shader::create("angrygl/depth_shader.vert", "angrygl/depth_shader.frag");
   // simpleDepthShader.use();
-  // const unsigned int lsml =
-  //   glGetUniformLocation(simpleDepthShader.id, "lightSpaceMatrix");
-  // Shader wigglyShader =
-  //   Shader::create("angrygl/wiggly_shader.vert", "angrygl/player_shader.frag");
-  // Model wigglyBoi("angrygl/assets/wiggly_boi/EelDog.FBX", false);
+  // const unsigned int lsml = glGetUniformLocation(simpleDepthShader.id, "lightSpaceMatrix");
+  // Shader wigglyShader = Shader::create("angrygl/wiggly_shader.vert", "angrygl/player_shader.frag");
+  Model coffee_cup("assets/models/low_poly_coffee/coffee_cup_final.obj", false);
+  return 0;
 
-  // Shader playerShader = Shader::create("angrygl/player_shader.vert",
-  // "angrygl/player_shader.frag"); playerShader.use(); const unsigned int
-  // playerLightSpaceMatrixLocation =
-  //   glGetUniformLocation(playerShader.id, "lightSpaceMatrix");
+  // Shader playerShader = Shader::create("angrygl/player_shader.vert", "angrygl/player_shader.frag");
+  // playerShader.use();
+  // const unsigned int playerLightSpaceMatrixLocation = glGetUniformLocation(playerShader.id, "lightSpaceMatrix");
   // playerShader.setVec3("directionLight.dir", playerLightDir);
   // playerShader.setVec3("directionLight.color", lightColor);
   // playerShader.setVec3("ambient", ambientColor);
@@ -307,7 +317,7 @@ main(int argc, char** argv)
 
     // Rendering
 
-    simple_renderer.update(delta_time_s, camera, rnd, cube_pos, app.get_window().get_size());
+    renderer.update(delta_time_s, camera, rnd, cube_pos, app.get_window().get_size());
 
     // const auto drawBullets = [&]() {
     //     glEnable(GL_BLEND);
@@ -366,10 +376,8 @@ main(int argc, char** argv)
     // Using a Child allow to fill all the space of the window.
     ImGui::BeginChild("Depth Texture");
     ImVec2 wsize = ImGui::GetWindowSize();
-    ImGui::Image((ImTextureID)simple_renderer.shadowmapping_pass.depthmap_tex,
-                 ImVec2(wsize.x, wsize.y),
-                 ImVec2(0, 1),
-                 ImVec2(1, 0));
+    ImGui::Image(
+      (ImTextureID)renderer.shadowmapping_pass.depthmap_tex, ImVec2(wsize.x, wsize.y), ImVec2(0, 1), ImVec2(1, 0));
     // ImGui::Text("Depth Texture being rendererd");
     ImGui::EndChild();
 
@@ -386,7 +394,7 @@ main(int argc, char** argv)
 
     ImGui::Begin("Renderer", (bool*)1);
 
-    ImGui::Text("Draw calls: %i", simple_renderer.draw_calls);
+    ImGui::Text("Draw calls: %i", renderer.draw_calls);
 
     // if (ImGui::CollapsingHeader("Post-processing"))
     // {

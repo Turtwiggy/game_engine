@@ -28,22 +28,22 @@ public:
   TextureCube() = default;
   ~TextureCube() = default;
 
-  // Note, instead of using the raw functions here, it is easier to use the
-  // ResourceManager::load_texture_cube() function
-
   // default initialize all cubemap faces w/ default values
-  void DefaultInitialize(unsigned int width, unsigned int height, GLenum format, GLenum type, bool mipmap = false);
+  void default_initialize(unsigned int width, unsigned int height, GLenum format, GLenum type, bool mipmap = false);
 
   // cubemap texture generation per face
-  void GenerateFace(GLenum face,
-                    unsigned int width,
-                    unsigned int height,
-                    GLenum format,
-                    GLenum type,
-                    unsigned char* data);
+  void generate_face(GLenum face,
+                     unsigned int width,
+                     unsigned int height,
+                     GLenum format,
+                     GLenum type,
+                     unsigned char* data);
 
-  void Bind(int slot = -1);
-  void Unbind();
+  void bind(int slot = -1);
+  void unbind();
 };
+
+static TextureCube
+load_texture_cube_from_folder(const std::string& folder);
 
 } // namespace fightingengine
