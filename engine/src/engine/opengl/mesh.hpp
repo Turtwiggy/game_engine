@@ -27,22 +27,17 @@ public:
   unsigned int vbo = 0;
   unsigned int ebo = 0;
 
-public:
   std::vector<Vertex> verts;
   std::vector<unsigned int> indices;
-
+  bool vertices_dirty = false;
   TOPOLOGY topology = TOPOLOGY::TRIANGLES;
 
+public:
   // commits all buffers and attributes to the GPU driver
-  void setup_mesh(bool interleaved = true);
+  void setup_mesh();
+
+  void draw();
 };
-
-void
-render_mesh(std::shared_ptr<Mesh> mesh);
-
-void
-render_mesh(Mesh& mesh);
-
 namespace primitives {
 
 // class Plane

@@ -14,7 +14,7 @@
 namespace fightingengine {
 
 StbLoadedTexture
-load_texture(const std::string& full_path)
+load_texture(const std::string& full_path, const int tex_unit)
 {
   int width, height, nrChannels;
   unsigned char* data = stbi_load(full_path.c_str(), &width, &height, &nrChannels, 0);
@@ -32,6 +32,7 @@ load_texture(const std::string& full_path)
   tex.height = height;
   tex.nr_components = nrChannels;
   tex.data = data;
+  tex.texture_unit = tex_unit;
 
   return tex;
 }
@@ -39,7 +40,7 @@ load_texture(const std::string& full_path)
 void
 Texture2D::generate(StbLoadedTexture tex)
 {
-  std::cout << "Texture2D::generate()... " << std::endl;
+  // std::cout << "Texture2D::generate()... " << std::endl;
 
   if (!tex.data) {
     std::cerr << stbi_failure_reason() << std::endl;

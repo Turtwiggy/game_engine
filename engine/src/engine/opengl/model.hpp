@@ -27,7 +27,7 @@ class Model
 public:
   Model(const std::string& full_path, bool enable_textures = true);
 
-  void draw(Shader& s) const;
+  void draw() const;
 
 private:
   bool enabled_textures = true;

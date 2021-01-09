@@ -12,8 +12,10 @@
 namespace fightingengine {
 
 void
-Mesh::setup_mesh(bool interleaved)
+Mesh::setup_mesh()
 {
+  vertices_dirty = true;
+
   // initialize object IDs if not configured before
   if (!vao) {
     glGenVertexArrays(1, &vao);
@@ -38,37 +40,26 @@ Mesh::setup_mesh(bool interleaved)
   glEnableVertexAttribArray(2);
 
   glBindVertexArray(0);
+
+  printf("Setup mesh... \n");
 }
 
 void
-render_mesh(std::shared_ptr<Mesh> mesh)
+Mesh::draw()
 {
   // bind vao
-  glBindVertexArray(mesh->vao);
+  glBindVertexArray(vao);
 
-  GLenum t = mesh->topology == TOPOLOGY::TRIANGLE_STRIP ? GL_TRIANGLE_STRIP : GL_TRIANGLES;
-
-  if (mesh->indices.size() > 0) {
-    glDrawElements(t, mesh->indices.size(), GL_UNSIGNED_INT, 0);
-  } else {
-    glDrawArrays(t, 0, mesh->verts.size());
+  if (vertices_dirty) {
+    glBindBuffer(GL_ARRAY_BUFFER, vbo);
+    glBufferData(GL_ARRAY_BUFFER, verts.size() * sizeof(Vertex), &verts[0], GL_STREAM_DRAW);
+    vertices_dirty = false;
   }
 
-  glBindVertexArray(0);
-}
-
-void
-render_mesh(Mesh& mesh)
-{
-  // bind vao
-  glBindVertexArray(mesh.vao);
-
-  GLenum t = mesh.topology == TOPOLOGY::TRIANGLE_STRIP ? GL_TRIANGLE_STRIP : GL_TRIANGLES;
-
-  if (mesh.indices.size() > 0) {
-    glDrawElements(t, mesh.indices.size(), GL_UNSIGNED_INT, 0);
+  if (topology == TOPOLOGY::TRIANGLE_STRIP) {
+    glDrawElements(GL_TRIANGLE_STRIP, indices.size(), GL_UNSIGNED_INT, 0);
   } else {
-    glDrawArrays(t, 0, mesh.verts.size());
+    glDrawElements(GL_TRIANGLES, indices.size(), GL_UNSIGNED_INT, 0);
   }
 
   glBindVertexArray(0);

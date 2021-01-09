@@ -30,11 +30,15 @@ Model::Model(const std::string& full_path, bool enable_textures)
 }
 
 void
-Model::draw(Shader& s) const
+Model::draw() const
 {
-  for (int i = 0; i < meshes.size(); i++) {
-    Mesh m = meshes[i];
-    render_mesh(m);
+  for (int i = 0; i < this->meshes.size(); i++) {
+    // if (applyTextures) {
+    //   shader.setInt("texture_diffuse", i);
+    //   shader.setInt("texture_spec", i == 0 ? 19 : 20);
+    // }
+    Mesh m = this->meshes[i];
+    m.draw();
   }
 };
 
@@ -60,7 +64,8 @@ Model::process_node(aiNode* node, const aiScene* scene)
   // process all the node's meshes (if any)
   for (unsigned int i = 0; i < node->mNumMeshes; i++) {
     aiMesh* mesh = scene->mMeshes[node->mMeshes[i]];
-    meshes.push_back(process_mesh(mesh, scene));
+    Mesh m = process_mesh(mesh, scene);
+    meshes.push_back(m);
   }
   // then do the same for each of its children
   for (unsigned int i = 0; i < node->mNumChildren; i++) {

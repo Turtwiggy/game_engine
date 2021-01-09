@@ -128,7 +128,7 @@ log_time_since(const std::string& label, std::chrono::time_point<std::chrono::hi
 int
 main(int argc, char** argv)
 {
-  std::cout << "Starting up..." << std::endl;
+  std::cout << "booting up..." << std::endl;
   const auto app_start = std::chrono::high_resolution_clock::now();
 
   uint32_t width = 1280;
@@ -137,7 +137,7 @@ main(int argc, char** argv)
   // app.set_fps_limit(120.0f);
   // app.get_window().set_fullscreen(true);
   // app.remove_fps_limit();
-  log_time_since("app created... ", app_start);
+  log_time_since("starting app... ", app_start);
 
   glm::vec3 camera_pos = glm::vec3(0.0f, 0.0f, 3.0f);
   FlyCamera camera{ camera_pos };
@@ -153,7 +153,6 @@ main(int argc, char** argv)
   RenderCommand::set_depth_testing(true);
 
   // TODO sounds here
-
   // ----------------
 
   // load textures
@@ -162,7 +161,7 @@ main(int argc, char** argv)
   const int tex_unit_octopus = 0;
   const int tex_unit_container = 1;
 
-  std::cout << "Textures beginning... " << std::endl;
+  std::cout << "loading textures... " << std::endl;
   {
     std::vector<std::pair<int, std::string>> textures_to_load;
     textures_to_load.emplace_back(tex_unit_octopus, "assets/textures/octopus.png");
@@ -173,8 +172,9 @@ main(int argc, char** argv)
 
     for (int i = 0; i < textures_to_load.size(); ++i) {
       const std::pair<int, std::string>& tex_to_load = textures_to_load[i];
-      threads.emplace_back(
-        [&tex_to_load, i, &loaded_textures]() { loaded_textures[i] = load_texture(tex_to_load.second); });
+      threads.emplace_back([&tex_to_load, i, &loaded_textures]() {
+        loaded_textures[i] = load_texture(tex_to_load.second, tex_to_load.first);
+      });
     }
     for (auto& thread : threads) {
       thread.join();
@@ -182,6 +182,7 @@ main(int argc, char** argv)
     for (StbLoadedTexture& l : loaded_textures) {
       Texture2D tex;
       tex.generate(l);
+      tex.bind(l.texture_unit);
     }
   }
   log_time_since("textures loaded ", app_start);
@@ -194,13 +195,13 @@ main(int argc, char** argv)
                    .attach_shader("assets/shaders/solid_colour.frag", OpenGLShaderTypes::FRAGMENT)
                    .build_program();
 
-  Shader basic_shader = Shader()
-                          .attach_shader("assets/shaders/lit.vert", OpenGLShaderTypes::VERTEX)
-                          .attach_shader("assets/shaders/basic_shader.frag", OpenGLShaderTypes::FRAGMENT)
-                          .build_program();
-  basic_shader.bind();
-  basic_shader.set_bool("greyscale", false);
-  basic_shader.set_int("tex", tex_unit_octopus);
+  // Shader basic_shader = Shader()
+  //                         .attach_shader("assets/shaders/lit.vert", OpenGLShaderTypes::VERTEX)
+  //                         .attach_shader("assets/shaders/basic_shader.frag", OpenGLShaderTypes::FRAGMENT)
+  //                         .build_program();
+  // basic_shader.bind();
+  // basic_shader.set_bool("greyscale", false);
+  // basic_shader.set_int("tex", tex_unit_octopus);
 
   // Shader shadowmap_shader =
   //   Shader()
@@ -231,7 +232,9 @@ main(int argc, char** argv)
   // load models (note, pretty slow at the moment. could thread)
   // -----------
 
-  // Model model_1("assets/models/low_poly_knife/Knife_01.obj", false);
+  Model model_1("assets/models/low_poly_knife/Knife_01.obj", false);
+  Model model_2("assets/models/rpg_characters_nov_2020/OBJ/Wizard.obj", false);
+
   // Model player_model("angrygl/assets/Player/Player.fbx");
 
   // Shader basicTextureShader = Shader::create("angrygl/basic_texture_shader.vert", "angrygl/floor_shader.frag");
@@ -354,11 +357,10 @@ main(int argc, char** argv)
     model = glm::translate(model, glm::vec3(0.0f, 1.5f, 0.0));
     model = glm::scale(model, glm::vec3(0.5f));
 
-    basic_shader.bind();
-    basic_shader.set_mat4("model", model);
-    basic_shader.set_mat4("view_projection", view_projection);
-
-    // model_1.draw(basic_shader);
+    solid.bind();
+    solid.set_mat4("model", model);
+    solid.set_mat4("view_projection", view_projection);
+    model_2.draw();
 
     profiler.end(Profiler::Stage::Render);
     profiler.begin(Profiler::Stage::GuiLoop);

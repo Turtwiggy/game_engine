@@ -20,10 +20,11 @@ struct StbLoadedTexture
   int height;
   int nr_components;
   unsigned char* data;
+  int texture_unit; // optional
 };
 
 StbLoadedTexture
-load_texture(const std::string& full_path);
+load_texture(const std::string& full_path, const int tex_unit = 0);
 
 class Texture2D
 {
