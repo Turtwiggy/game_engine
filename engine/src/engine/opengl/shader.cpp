@@ -61,7 +61,7 @@ Shader::build_program()
 {
   if (ok_to_build) {
     attach_shaders_to_program();
-    printf("OK! to build program \n");
+    printf("OK! to build program %s \n", latest_path.c_str());
   } else {
     printf("SHADER ERROR: program ( %s ) was not ok to build \n", latest_path.c_str());
   }

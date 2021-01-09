@@ -66,9 +66,7 @@ private:
 
   std::vector<unsigned int> shaders;
 
-  unsigned int load_shader(const std::string& path,
-                           unsigned int gl_shader_type,
-                           std::string type);
+  unsigned int load_shader(const std::string& path, unsigned int gl_shader_type, std::string type);
 
   void attach_shaders_to_program();
 

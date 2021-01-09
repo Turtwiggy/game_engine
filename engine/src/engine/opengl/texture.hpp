@@ -14,10 +14,25 @@ enum class TextureType
   SPECULAR
 };
 
+struct StbLoadedTexture
+{
+  int width;
+  int height;
+  int nr_components;
+  unsigned char* data;
+};
+
+StbLoadedTexture
+load_texture(const std::string& full_path);
+
 class Texture2D
 {
 public:
   unsigned int id;
+  TextureType type;
+  std::string path;
+
+  // OpenGl Texture Data
   GLenum Target = GL_TEXTURE_2D;   // what type of texture
   GLenum InternalFormat = GL_RGBA; // number of color components
   GLenum Format = GL_RGBA;         // the format each texel is stored in
@@ -29,22 +44,15 @@ public:
   GLenum WrapR = GL_REPEAT;                   // wrapping method of the R coordinate
   bool Mipmapping = true;
 
-  unsigned int Width = 0;
-  unsigned int Height = 0;
-  unsigned int Depth = 0;
-
-  std::string path;
-
   Texture2D() = default;
 
-  // 2D texture generation
-  void generate(unsigned int width, unsigned int height, GLenum internalFormat, GLenum format, GLenum type, void* data);
+  // Generate an opengl texture with glGenTextures
+  // based off a loaded texture from stb_image
+  // & binds the texture and sets the glTexParameteri
+  void generate(StbLoadedTexture tex);
 
   void bind(int unit = -1) const;
   void unbind();
 };
-
-static Texture2D
-load_texture(std::string full_path, GLenum target = GL_TEXTURE_2D, GLenum internalFormat = GL_RGBA, bool srgb);
 
 } // namespace fightingengine

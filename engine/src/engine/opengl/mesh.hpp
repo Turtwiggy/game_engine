@@ -28,13 +28,13 @@ public:
   unsigned int ebo = 0;
 
 public:
-  std::vector<vertex> verts;
-  std::vector<unsigned int> indicies;
+  std::vector<Vertex> verts;
+  std::vector<unsigned int> indices;
 
   TOPOLOGY topology = TOPOLOGY::TRIANGLES;
 
   // commits all buffers and attributes to the GPU driver
-  void Finalize(bool interleaved = true);
+  void setup_mesh(bool interleaved = true);
 };
 
 void
@@ -45,21 +45,21 @@ render_mesh(Mesh& mesh);
 
 namespace primitives {
 
-class Plane
-{
-public:
-  Mesh mesh; // set in constructor
+// class Plane
+// {
+// public:
+//   Mesh mesh; // set in constructor
 
-  Plane();
-};
+//   Plane();
+// };
 
-class Cube
-{
-public:
-  Mesh mesh; // set in constructor
+// class Cube
+// {
+// public:
+//   Mesh mesh; // set in constructor
 
-  Cube();
-};
+//   Cube();
+// };
 
 } // namespace primitives
 

@@ -1,16 +1,22 @@
 #define _CRT_SECURE_NO_WARNINGS
 
 // c++ standard library headers
+#include <chrono>
+#include <iostream>
 #include <memory>
 #include <string_view>
+#include <thread>
 #include <vector>
 
 // other library headers
 #include <GL/glew.h>
 #include <SDL2/SDL.h>
 #include <glm/glm.hpp>
+#include <glm/gtc/matrix_transform.hpp>
+#include <glm/gtx/transform.hpp>
 
 // your project headers
+#include "engine/camera/fly_camera.hpp"
 #include "engine/core/application.hpp"
 #include "engine/maths/random.hpp"
 #include "engine/opengl/model.hpp"
@@ -18,7 +24,7 @@
 #include "engine/opengl/renderer.hpp"
 #include "engine/opengl/shader.hpp"
 #include "engine/opengl/triangle.hpp"
-#include "engine/resources/resource_manager.hpp"
+#include "engine/opengl/util.hpp"
 #include "engine/tools/profiler.hpp"
 #include "engine/ui/profiler_panel.hpp"
 using namespace fightingengine;
@@ -44,9 +50,6 @@ using namespace fightingengine;
 // const int texUnit_floorSpec = 18;
 // const int texUnit_playerSpec = 19;
 // const int texUnit_gunSpec = 20;
-
-// camera
-glm::vec3 camera_pos = glm::vec3(0.0f, 0.0f, 3.0f);
 
 // player
 // glm::vec3 player_pos = glm::vec3(0.0f, 0.0f, 0.0f);
@@ -113,36 +116,99 @@ int desired_cubes = 35;
 //   }
 // }
 
+// Util function to log time since start of the program
+void
+log_time_since(const std::string& label, std::chrono::time_point<std::chrono::high_resolution_clock> start)
+{
+  const auto x = std::chrono::high_resolution_clock::now();
+  const auto y = std::chrono::duration_cast<std::chrono::milliseconds>(x - start).count();
+  std::cout << label << y << "ms" << std::endl;
+}
+
 int
 main(int argc, char** argv)
 {
+  std::cout << "Starting up..." << std::endl;
+  const auto app_start = std::chrono::high_resolution_clock::now();
+
   uint32_t width = 1280;
   uint32_t height = 720;
   Application app("Fighting Game!", width, height);
   // app.set_fps_limit(120.0f);
   // app.get_window().set_fullscreen(true);
   // app.remove_fps_limit();
+  log_time_since("app created... ", app_start);
 
+  glm::vec3 camera_pos = glm::vec3(0.0f, 0.0f, 3.0f);
   FlyCamera camera{ camera_pos };
   camera.SetPerspective(glm::radians(65.0f), (float)width / (float)height, 0.1f, 100.0f);
 
   RandomState rnd;
   Profiler profiler;
   ProfilerPanel profiler_panel;
-  Renderer renderer(rnd);
+
+  // Renderer renderer(rnd);
+  RenderCommand::init();
+  RenderCommand::set_clear_colour({ 0.1f, 0.1f, 0.1f, 1.0f });
+  RenderCommand::set_depth_testing(true);
 
   // TODO sounds here
+
   // ----------------
 
+  // load textures
+  // -------------
+
+  const int tex_unit_octopus = 0;
+  const int tex_unit_container = 1;
+
+  std::cout << "Textures beginning... " << std::endl;
+  {
+    std::vector<std::pair<int, std::string>> textures_to_load;
+    textures_to_load.emplace_back(tex_unit_octopus, "assets/textures/octopus.png");
+    textures_to_load.emplace_back(tex_unit_container, "assets/textures/container.jpg");
+
+    std::vector<std::thread> threads;
+    std::vector<StbLoadedTexture> loaded_textures(textures_to_load.size());
+
+    for (int i = 0; i < textures_to_load.size(); ++i) {
+      const std::pair<int, std::string>& tex_to_load = textures_to_load[i];
+      threads.emplace_back(
+        [&tex_to_load, i, &loaded_textures]() { loaded_textures[i] = load_texture(tex_to_load.second); });
+    }
+    for (auto& thread : threads) {
+      thread.join();
+    }
+    for (StbLoadedTexture& l : loaded_textures) {
+      Texture2D tex;
+      tex.generate(l);
+    }
+  }
+  log_time_since("textures loaded ", app_start);
+
   // load shaders
+  // ------------
+
   Shader solid = Shader()
-                   .attach_shader("assets/shaders/blinn-phong/lit.vert")
-                   .attach_shader("assets/shaders/solid_colour.frag")
+                   .attach_shader("assets/shaders/lit.vert", OpenGLShaderTypes::VERTEX)
+                   .attach_shader("assets/shaders/solid_colour.frag", OpenGLShaderTypes::FRAGMENT)
                    .build_program();
-  Shader shadowmapping = Shader()
-                           .attach_shader("assets/shaders/shadowmapping/shadow_mapping.vert")
-                           .attach_shader("assets/shaders/shadowmapping/shadow_mapping.frag")
-                           .build_program();
+
+  Shader basic_shader = Shader()
+                          .attach_shader("assets/shaders/lit.vert", OpenGLShaderTypes::VERTEX)
+                          .attach_shader("assets/shaders/basic_shader.frag", OpenGLShaderTypes::FRAGMENT)
+                          .build_program();
+  basic_shader.bind();
+  basic_shader.set_bool("greyscale", false);
+  basic_shader.set_int("tex", tex_unit_octopus);
+
+  // Shader shadowmap_shader =
+  //   Shader()
+  //     .attach_shader("assets/shaders/shadowmapping/shadow_mapping.vert", OpenGLShaderTypes::VERTEX)
+  //     .attach_shader("assets/shaders/shadowmapping/shadow_mapping.frag", OpenGLShaderTypes::FRAGMENT)
+  //     .build_program();
+  // shadowmap_shader.bind();
+  // shadowmap_shader.set_int("shadow_map", 0);
 
   // Shader blurShader = Shader::create("angrygl/basicer_shader.vert", "angrygl/blur_shader.frag");
   // Shader basicerShader = Shader::create("angrygl/basicer_shader.vert", "angrygl/basicer_shader.frag");
@@ -151,8 +217,6 @@ main(int argc, char** argv)
   // simpleDepthShader.use();
   // const unsigned int lsml = glGetUniformLocation(simpleDepthShader.id, "lightSpaceMatrix");
   // Shader wigglyShader = Shader::create("angrygl/wiggly_shader.vert", "angrygl/player_shader.frag");
-  Model coffee_cup("assets/models/low_poly_coffee/coffee_cup_final.obj", false);
-  return 0;
 
   // Shader playerShader = Shader::create("angrygl/player_shader.vert", "angrygl/player_shader.frag");
   // playerShader.use();
@@ -162,51 +226,13 @@ main(int argc, char** argv)
   // playerShader.setVec3("ambient", ambientColor);
   // playerShader.setInt("texture_spec", texUnit_playerSpec);
 
-  // load textures
+  log_time_since("shaders loaded ", app_start);
 
-  // const Spritesheet bulletImpactSpritesheet(texUnit_impactSpriteSheet, 11, 0.05f);
-  // const Spritesheet muzzleFlashImpactSpritesheet(texUnit_muzzleFlashSpriteSheet, 6, 0.05f);
-  // BulletStore bulletStore = BulletStore::initialiseBuffersAndCreate(&threadPool);
+  // load models (note, pretty slow at the moment. could thread)
+  // -----------
 
-  // {
-  //   std::vector<std::pair<int, std::string>> texturesToLoad;
-  //   texturesToLoad.emplace_back(texUnit_impactSpriteSheet, "angrygl/assets/bullet/impact_spritesheet_with_00.png");
-  //   texturesToLoad.emplace_back(texUnit_muzzleFlashSpriteSheet,"angrygl/assets/Player/muzzle_spritesheet.png");
-  //   texturesToLoad.emplace_back(texUnit_bullet, "angrygl/assets/bullet/BulletTexture2.png");
-  //   texturesToLoad.emplace_back(texUnit_wigglyBoi, "angrygl/assets/wiggly_boi/Eeldog_Albedo.png");
-  //   texturesToLoad.emplace_back(texUnit_floorNormal, "angrygl/assets/floor/Floor_N.psd");
-  //   texturesToLoad.emplace_back(texUnit_floorDiffuse, "angrygl/assets/floor/Floor_D.psd");
-  //   texturesToLoad.emplace_back(texUnit_floorSpec, "angrygl/assets/floor/Floor_M.psd");
-  //   texturesToLoad.emplace_back(texUnit_gunNormal, "angrygl/assets/Player/Textures/Gun_NRM.tga");
-  //   texturesToLoad.emplace_back(texUnit_playerNormal, "angrygl/assets/Player/Textures/Player_NRM.tga");
-  //   texturesToLoad.emplace_back(texUnit_gunDiffuse, "angrygl/assets/Player/Textures/Gun_D.tga");
-  //   texturesToLoad.emplace_back(texUnit_playerEmission, "angrygl/assets/Player/Textures/Player_E.tga");
-  //   texturesToLoad.emplace_back(texUnit_playerSpec, "angrygl/assets/Player/Textures/Player_M.tga");
-  //   texturesToLoad.emplace_back(texUnit_gunEmission, "angrygl/assets/Player/Textures/Gun_E.tga");
-  //   texturesToLoad.emplace_back(texUnit_playerDiffuse, "angrygl/assets/Player/Textures/Player_D.tga");
-  //   texturesToLoad.emplace_back(texUnit_gunSpec, "angrygl/assets/Player/Textures/Gun_M.tga");
-
-  //   std::vector<std::thread> threads;
-  //   std::vector<LoadedTexture> loadedTextures(texturesToLoad.size());
-  //   for (int i = 0; i < texturesToLoad.size(); ++i) {
-  //     const auto& textureToLoad = texturesToLoad[i];
-  //     threads.emplace_back([&textureToLoad, i, &loadedTextures]() {
-  //       loadedTextures[i] = loadTexture(textureToLoad.first, textureToLoad.second);
-  //     });
-  //   }
-  //   for (auto& thread : threads) {
-  //     thread.join();
-  //   }
-  //   for (LoadedTexture& l : loadedTextures) {
-  //     bindLoadedTexture(l);
-  //   }
-  // }
-
-  // PlayerModel playerModel("angrygl/assets/Player/Player.fbx");
-
-  // const glm::mat4 projTransform =
-  //   glm::perspective(glm::radians(45.0f), (float)viewportWidth / viewportHeight, 0.1f, 10.0f);
-  // const glm::mat4 projInv = glm::inverse(projTransform);
+  // Model model_1("assets/models/low_poly_knife/Knife_01.obj", false);
+  // Model player_model("angrygl/assets/Player/Player.fbx");
 
   // Shader basicTextureShader = Shader::create("angrygl/basic_texture_shader.vert", "angrygl/floor_shader.frag");
   // basicTextureShader.use();
@@ -273,22 +299,22 @@ main(int argc, char** argv)
       RenderCommand::set_viewport(0, 0, screen_size.x, screen_size.y);
     }
 
-    // Input: Camera
+    { // Input: Camera
+      if (app.get_input().get_key_held(SDL_Scancode::SDL_SCANCODE_W))
+        camera.InputKey(delta_time_s, CameraMovement::FORWARD);
+      else if (app.get_input().get_key_held(SDL_Scancode::SDL_SCANCODE_S))
+        camera.InputKey(delta_time_s, CameraMovement::BACKWARD);
 
-    if (app.get_input().get_key_held(SDL_Scancode::SDL_SCANCODE_W))
-      camera.InputKey(delta_time_s, CameraMovement::FORWARD);
-    else if (app.get_input().get_key_held(SDL_Scancode::SDL_SCANCODE_S))
-      camera.InputKey(delta_time_s, CameraMovement::BACKWARD);
+      if (app.get_input().get_key_held(SDL_Scancode::SDL_SCANCODE_A))
+        camera.InputKey(delta_time_s, CameraMovement::LEFT);
+      else if (app.get_input().get_key_held(SDL_Scancode::SDL_SCANCODE_D))
+        camera.InputKey(delta_time_s, CameraMovement::RIGHT);
 
-    if (app.get_input().get_key_held(SDL_Scancode::SDL_SCANCODE_A))
-      camera.InputKey(delta_time_s, CameraMovement::LEFT);
-    else if (app.get_input().get_key_held(SDL_Scancode::SDL_SCANCODE_D))
-      camera.InputKey(delta_time_s, CameraMovement::RIGHT);
-
-    if (app.get_input().get_key_held(SDL_Scancode::SDL_SCANCODE_SPACE))
-      camera.InputKey(delta_time_s, CameraMovement::UP);
-    else if (app.get_input().get_key_held(SDL_Scancode::SDL_SCANCODE_LSHIFT))
-      camera.InputKey(delta_time_s, CameraMovement::DOWN);
+      if (app.get_input().get_key_held(SDL_Scancode::SDL_SCANCODE_SPACE))
+        camera.InputKey(delta_time_s, CameraMovement::UP);
+      else if (app.get_input().get_key_held(SDL_Scancode::SDL_SCANCODE_LSHIFT))
+        camera.InputKey(delta_time_s, CameraMovement::DOWN);
+    } // ---- end camera
 
     // Input: Mouse
     if (app.get_window().get_mouse_captured()) {
@@ -300,6 +326,9 @@ main(int argc, char** argv)
     profiler.begin(Profiler::Stage::GameTick);
 
     // Game State Tick
+    // ---------------
+
+    camera.Update(delta_time_s);
 
     // THIS IS FOR A FIXED GAME TICK
     // seconds_since_last_game_tick += delta_time_in_seconds;
@@ -310,92 +339,58 @@ main(int argc, char** argv)
     //    seconds_since_last_game_tick -= SECONDS_PER_FIXED_TICK;
     //}
 
-    // otherwise, do game tick every frame here!
-
     profiler.end(Profiler::Stage::GameTick);
     profiler.begin(Profiler::Stage::Render);
 
     // Rendering
+    // ---------
+    // renderer.update(delta_time_s, camera, rnd, cube_pos, app.get_window().get_size());
 
-    renderer.update(delta_time_s, camera, rnd, cube_pos, app.get_window().get_size());
+    // RenderCommand::set_viewport(0, 0, screen_size.x, screen_size.y);
+    RenderCommand::clear();
+    glm::mat4 view_projection = camera.get_view_projection_matrix();
 
-    // const auto drawBullets = [&]() {
-    //     glEnable(GL_BLEND);
-    //     glDepthMask(GL_FALSE);
-    //     glActiveTexture(GL_TEXTURE0 + texUnit_bullet);
-    //     instancedTextureShader.use();
-    //     instancedTextureShader.setInt("texture_diffuse", texUnit_bullet);
-    //     instancedTextureShader.setBool("useLight", false);
-    //     glUniformMatrix4fv(glGetUniformLocation(instancedTextureShader.id, "PV"), 1,
-    //                        GL_FALSE, glm::value_ptr(PV));
-    //     bulletStore.renderBulletSprites();
-    //     glDisable(GL_BLEND);
-    //     glDepthMask(GL_TRUE);
-    //   };
-    // const auto drawFloor = [&](const glm::mat4* const lightSpaceMatrixOrNull) { // Floor
-    //     basicTextureShader.use();
-    //     basicTextureShader.setBool("useLight", !!lightSpaceMatrixOrNull);
-    //     basicTextureShader.setBool("useSpec", !!lightSpaceMatrixOrNull);
-    //     basicTextureShader.setInt("texture_diffuse", texUnit_floorDiffuse);
-    //     basicTextureShader.setInt("texture_normal", texUnit_floorNormal);
-    //     basicTextureShader.setInt("texture_spec", texUnit_floorSpec);
-    //     basicTextureShader.setInt("shadow_map", texUnit_shadowMap);
-    //     basicTextureShader.setBool("usePointLight", usePointLight);
-    //     basicTextureShader.setVec3("pointLight.worldPos", muzzleWorldPos3);
-    //     basicTextureShader.setVec3("pointLight.color", muzzlePointLightColor);
-    //     basicTextureShader.setVec3("viewPos", cameraPos);
-    //     if (lightSpaceMatrixOrNull) {
-    //       glUniformMatrix4fv(glGetUniformLocation(basicTextureShader.id, "lightSpaceMatrix"),
-    //                          1, GL_FALSE, glm::value_ptr(*lightSpaceMatrixOrNull));
-    //     }
-    //     glUniformMatrix4fv(glGetUniformLocation(basicTextureShader.id, "model"),
-    //                        1, GL_FALSE, glm::value_ptr(glm::rotate(
-    //                            glm::mat4(1.0f),
-    //                            glm::radians(45.0f),
-    //                            glm::vec3(0.0f, 1.0f, 0.0f))));
-    //     glUniformMatrix4fv(glGetUniformLocation(basicTextureShader.id, "PV"), 1,
-    //                        GL_FALSE, glm::value_ptr(PV));
-    //     glBindVertexArray(floorVAO);
-    //     glDrawArrays(GL_TRIANGLES, 0, 6);
-    //     basicTextureShader.setBool("useLight", false);
-    //     basicTextureShader.setBool("useSpec", false);
-    // };
+    glm::mat4 model = glm::mat4(1.0f);
+    model = glm::translate(model, glm::vec3(0.0f, 1.5f, 0.0));
+    model = glm::scale(model, glm::vec3(0.5f));
+
+    basic_shader.bind();
+    basic_shader.set_mat4("model", model);
+    basic_shader.set_mat4("view_projection", view_projection);
+
+    // model_1.draw(basic_shader);
 
     profiler.end(Profiler::Stage::Render);
     profiler.begin(Profiler::Stage::GuiLoop);
 
     // GUI
+    // ---
 
     app.gui_begin();
 
     // bool demo_window = true;
     // ImGui::ShowDemoWindow(&demo_window);
 
-    ImGui::Begin("Depth Texture");
-
+    // ImGui::Begin("Depth Texture");
     // Using a Child allow to fill all the space of the window.
-    ImGui::BeginChild("Depth Texture");
-    ImVec2 wsize = ImGui::GetWindowSize();
-    ImGui::Image(
-      (ImTextureID)renderer.shadowmapping_pass.depthmap_tex, ImVec2(wsize.x, wsize.y), ImVec2(0, 1), ImVec2(1, 0));
-    // ImGui::Text("Depth Texture being rendererd");
-    ImGui::EndChild();
-
-    ImGui::End();
+    // ImGui::BeginChild("Depth Texture");
+    // ImVec2 wsize = ImGui::GetWindowSize();
+    // ImGui::Image(
+    //   (ImTextureID)renderer.shadowmapping_pass.depthmap_tex, ImVec2(wsize.x, wsize.y), ImVec2(0, 1), ImVec2(1, 0));
+    // // ImGui::Text("Depth Texture being rendererd");
+    // ImGui::EndChild();
+    // ImGui::End();
 
     ImGui::Begin("Camera");
-
-    // Camera
-    ImGui::Text("Camera Pos: %f %f %f", camera.Position.x, camera.Position.y, camera.Position.z);
-    ImGui::Text("Camera Pitch: %f", camera.Pitch);
-    ImGui::Text("Camera Yaw: %f", camera.Yaw);
-
+    {
+      ImGui::Text("Camera Pos: %f %f %f", camera.Position.x, camera.Position.y, camera.Position.z);
+      ImGui::Text("Camera Pitch: %f", camera.Pitch);
+      ImGui::Text("Camera Yaw: %f", camera.Yaw);
+    }
     ImGui::End();
 
-    ImGui::Begin("Renderer", (bool*)1);
-
-    ImGui::Text("Draw calls: %i", renderer.draw_calls);
-
+    // ImGui::Begin("Renderer", (bool*)1);
+    // ImGui::Text("Draw calls: %i", renderer.draw_calls);
     // if (ImGui::CollapsingHeader("Post-processing"))
     // {
     //     ImGui::Checkbox("Vignette", &renderer->GetPostProcessor()->Vignette);
@@ -407,8 +402,7 @@ main(int argc, char** argv)
     //     ImGui::Checkbox("Motion Blur",
     //     &renderer->GetPostProcessor()->MotionBlur);
     // }
-
-    ImGui::End();
+    // ImGui::End();
 
     profiler_panel.draw(app, profiler, delta_time_s);
 

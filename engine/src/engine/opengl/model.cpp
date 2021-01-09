@@ -3,25 +3,38 @@
 #include "engine/opengl/model.hpp"
 
 // other project libs
-//
-
-// your project libs
-//
+#include "assimp/Importer.hpp"
+#include "assimp/postprocess.h"
+#include "assimp/scene.h"
+#include <stb_image.h>
 
 namespace fightingengine {
 
-Model::Model(const std::string& path, bool enable_textures = true)
+Texture2D
+load_texture_for_model(std::string full_path)
+{
+  StbLoadedTexture stb_tex = load_texture(full_path);
+
+  Texture2D tex;
+  tex.generate(stb_tex);
+
+  return tex;
+}
+
+Model::Model(const std::string& full_path, bool enable_textures)
 {
   this->enabled_textures = enable_textures;
-  directory = path.substr(0, path.find_last_of('/'));
-  load_model(path);
+  this->directory = full_path.substr(0, full_path.find_last_of('/'));
+
+  load_model(full_path);
 }
 
 void
 Model::draw(Shader& s) const
 {
-  for (auto& i : meshes.size()) {
-    render_mesh(meshes[i]);
+  for (int i = 0; i < meshes.size(); i++) {
+    Mesh m = meshes[i];
+    render_mesh(m);
   }
 };
 
@@ -60,9 +73,9 @@ Model::process_mesh(aiMesh* mesh, const aiScene* scene)
 {
   std::vector<Vertex> vertices;
   std::vector<unsigned int> indices;
-  std::vector<Texture> textures;
+  std::vector<Texture2D> textures;
 
-  for (auto i : mesh->mNumFaces) {
+  for (unsigned int i = 0; i < mesh->mNumVertices; i++) {
     Vertex vertex;
     { // Position
       glm::vec3 vector;
@@ -82,9 +95,9 @@ Model::process_mesh(aiMesh* mesh, const aiScene* scene)
       glm::vec2 vec;
       vec.x = mesh->mTextureCoords[0][i].x;
       vec.y = mesh->mTextureCoords[0][i].y;
-      vertex.texCoords = vec;
+      vertex.tex_coords = vec;
     } else {
-      vertex.texCoords = glm::vec2(0.0f, 0.0f);
+      vertex.tex_coords = glm::vec2(0.0f, 0.0f);
     }
     vertices.push_back(vertex);
   }
@@ -102,16 +115,14 @@ Model::process_mesh(aiMesh* mesh, const aiScene* scene)
     }
   }
   // process material
-  if (enableTextures && mesh->mMaterialIndex >= 0) {
+  if (this->enabled_textures && mesh->mMaterialIndex >= 0) {
     aiMaterial* material = scene->mMaterials[mesh->mMaterialIndex];
 
     std::vector<Texture2D> diffuseMaps = load_material_textures(material, aiTextureType_DIFFUSE, TextureType::DIFFUSE);
-
     textures.insert(textures.end(), diffuseMaps.begin(), diffuseMaps.end());
 
     std::vector<Texture2D> specularMaps =
       load_material_textures(material, aiTextureType_SPECULAR, TextureType::SPECULAR);
-
     textures.insert(textures.end(), specularMaps.begin(), specularMaps.end());
   }
 
@@ -119,9 +130,9 @@ Model::process_mesh(aiMesh* mesh, const aiScene* scene)
 
   Mesh m;
   m.verts = vertices;
-  m.indices = indicies;
+  m.indices = indices;
   m.topology = TOPOLOGY::TRIANGLES;
-  m.Finalize();
+  m.setup_mesh();
 
   return m;
 }
@@ -145,11 +156,15 @@ Model::load_material_textures(aiMaterial* mat, aiTextureType type, TextureType t
     }
 
     if (!skip) { // if texture hasn't been loaded already, load it
-      Texture texture;
-      texture.id = load_texture(str.C_Str(), directory);
+
+      std::string full_path = directory + str.C_Str();
+      std::cout << "loading new texture for model from: " << full_path << std::endl;
+
+      Texture2D texture = load_texture_for_model(full_path);
       texture.type = type2;
       texture.path = str.C_Str();
       textures.push_back(texture);
+
       loaded_textures.push_back(texture); // add to loaded textures
     }
 

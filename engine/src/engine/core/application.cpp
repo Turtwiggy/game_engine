@@ -10,9 +10,6 @@
 #include <SDL2/SDL.h>
 #include <SDL2/SDL_events.h>
 
-// your project headers
-#include "engine/resources/resource_manager.hpp"
-
 namespace fightingengine {
 
 const std::string kBuildStr = "1";
@@ -21,8 +18,7 @@ const std::string kBuildStr = "1";
 Application::Application(const std::string& name, int width, int height)
 {
   // Window
-  window = std::make_unique<GameWindow>(
-    name + " [" + kBuildStr + "]", width, height, DisplayMode::Windowed);
+  window = std::make_unique<GameWindow>(name + " [" + kBuildStr + "]", width, height, DisplayMode::Windowed);
 
   fps_buffer = boost::circular_buffer<float>(100);
 
@@ -34,7 +30,6 @@ Application::Application(const std::string& name, int width, int height)
 
 Application::~Application()
 {
-  ResourceManager::clear();
   window->close();
 }
 
@@ -218,8 +213,7 @@ Application::remove_fps_limit()
 float
 Application::get_average_fps() const
 {
-  return std::accumulate(fps_buffer.begin(), fps_buffer.end(), 0) /
-         static_cast<float>(fps_buffer.size());
+  return std::accumulate(fps_buffer.begin(), fps_buffer.end(), 0) / static_cast<float>(fps_buffer.size());
 }
 
 float

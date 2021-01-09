@@ -7,11 +7,9 @@ namespace fightingengine {
 
 struct Vertex
 {
-  glm::vec3 Position = glm::vec3(0.0, 0.0, 0.0);
-  glm::vec3 Normal = glm::vec3(0.0, 0.0, 0.0);
-  glm::vec2 TexCoords = glm::vec2(0.0, 0.0);
-  // glm::vec3 Tangent;
-  // glm::vec3 Bitangent;
+  glm::vec3 position = glm::vec3(0.0, 0.0, 0.0);
+  glm::vec3 normal = glm::vec3(0.0, 0.0, 0.0);
+  glm::vec2 tex_coords = glm::vec2(0.0, 0.0);
 
   // ColourVec4f Colour;
 };

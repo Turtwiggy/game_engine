@@ -9,6 +9,8 @@ namespace fightingengine {
   GLenum err_##x = glGetError();                                                                                       \
   if (GL_NO_ERROR != err_##x) {                                                                                        \
     printf("\n ~~ ERROR ~~ %i: %s \n", x, gl_error_to_string(err_##x));                                                \
+  } else {                                                                                                             \
+    printf("\n No OpenGL error %i \n", x);                                                                             \
   }
 
 // http://bits.stephan-brumme.com/roundUpToNextPowerOfTwo.html
