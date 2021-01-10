@@ -13,67 +13,44 @@
 
 namespace fightingengine {
 
-StbLoadedTexture
-load_texture(const std::string& full_path, const int tex_unit)
+void
+Texture2D::load_texture_from_file(const std::string& full_path)
 {
-  int width, height, nrChannels;
-  unsigned char* data = stbi_load(full_path.c_str(), &width, &height, &nrChannels, 0);
+  glGenTextures(1, &this->id);
 
-  // flip textures on their y coordinate while loading
-  // stbi_set_flip_vertically_on_load(false);
+  // Stb Load Texture
+  int width, height, nr_components;
+  unsigned char* data = stbi_load(full_path.c_str(), &width, &height, &nr_components, 0);
 
+  // Check Stb texture loaded correctly
   if (!data) {
     printf("FAILED TO LOAD TEXTURE: %s", full_path.c_str());
     exit(1); // note, probs shouldn't do this - fine for dev for myself
   }
 
-  StbLoadedTexture tex;
-  tex.width = width;
-  tex.height = height;
-  tex.nr_components = nrChannels;
-  tex.data = data;
-  tex.texture_unit = tex_unit;
+  { // Populate OpenGL information
+    GLenum format;
+    if (nr_components == 1)
+      format = GL_RED;
+    else if (nr_components == 3)
+      format = GL_RGB;
+    else if (nr_components == 4)
+      format = GL_RGBA;
 
-  return tex;
-}
+    assert(Target == GL_TEXTURE_2D);
+    bind();
 
-void
-Texture2D::generate(StbLoadedTexture tex)
-{
-  // std::cout << "Texture2D::generate()... " << std::endl;
-
-  if (!tex.data) {
-    std::cerr << stbi_failure_reason() << std::endl;
-    stbi_image_free(tex.data);
-    exit(1);
-  }
-
-  glGenTextures(1, &this->id);
-
-  GLenum format;
-  if (tex.nr_components == 1)
-    format = GL_RED;
-  else if (tex.nr_components == 3)
-    format = GL_RGB;
-  else if (tex.nr_components == 4)
-    format = GL_RGBA;
-
-  assert(Target == GL_TEXTURE_2D);
-  bind();
-
-  glTexImage2D(this->Target, 0, this->InternalFormat, tex.width, tex.height, 0, format, this->Type, tex.data);
-  glTexParameteri(Target, GL_TEXTURE_MIN_FILTER, FilterMin);
-  glTexParameteri(Target, GL_TEXTURE_MAG_FILTER, FilterMax);
-  glTexParameteri(Target, GL_TEXTURE_WRAP_S, WrapS);
-  glTexParameteri(Target, GL_TEXTURE_WRAP_T, WrapT);
-
-  if (Mipmapping)
+    glTexImage2D(Target, 0, InternalFormat, width, height, 0, format, Type, data);
     glGenerateMipmap(Target);
 
-  // and finally free image data
-  stbi_image_free(tex.data);
+    glTexParameteri(Target, GL_TEXTURE_MIN_FILTER, FilterMin);
+    glTexParameteri(Target, GL_TEXTURE_MAG_FILTER, FilterMax);
+    glTexParameteri(Target, GL_TEXTURE_WRAP_S, WrapS);
+    glTexParameteri(Target, GL_TEXTURE_WRAP_T, WrapT);
+  }
 
-  unbind();
+  // Free Stb image Data
+  stbi_image_free(data);
 }
 
 void

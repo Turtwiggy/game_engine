@@ -29,28 +29,6 @@
 #include "engine/ui/profiler_panel.hpp"
 using namespace fightingengine;
 
-// texture units
-// const int texUnit_playerDiffuse = 0;
-// const int texUnit_gunDiffuse = 1;
-// const int texUnit_floorDiffuse = 2;
-// const int texUnit_wigglyBoi = 3;
-// const int texUnit_bullet = 4;
-// const int texUnit_floorNormal = 5;
-// const int texUnit_playerNormal = 6;
-// const int texUnit_gunNormal = 7;
-// const int texUnit_shadowMap = 8;
-// const int texUnit_emissionFBO = 9;
-// const int texUnit_playerEmission = 10;
-// const int texUnit_gunEmission = 11;
-// const int texUnit_scene = 12;
-// const int texUnit_horzBlur = 13;
-// const int texUnit_vertBlur = 14;
-// const int texUnit_impactSpriteSheet = 15;
-// const int texUnit_muzzleFlashSpriteSheet = 16;
-// const int texUnit_floorSpec = 18;
-// const int texUnit_playerSpec = 19;
-// const int texUnit_gunSpec = 20;
-
 // player
 // glm::vec3 player_pos = glm::vec3(0.0f, 0.0f, 0.0f);
 // glm::vec2 player_mov_dir = glm::vec2(0.0f, 0.0f);
@@ -91,31 +69,6 @@ const float monster_speed = 0.6f;
 // game state
 int desired_cubes = 35;
 
-// ai
-
-// void
-// chase_player(const float delta_time, std::vector<Enemy>* enemies)
-// {
-//   const glm::vec3 playerCollisionPosition(playerPosition.x, monsterY, playerPosition.z);
-//   for (int i = 0; i < enemies->size(); ++i) {
-//     auto& e = (*enemies)[i];
-//     glm::vec3 dir = playerPosition - e.position;
-//     dir.y = 0.0f;
-//     e.dir = glm::normalize(dir);
-//     e.position += e.dir * delta_time * monster_speed;
-//     if (isAlive) {
-//       const glm::vec3 p1 = e.position - e.dir * (ENEMY_COLLIDER.height / 2);
-//       const glm::vec3 p2 = e.position + e.dir * (ENEMY_COLLIDER.height / 2);
-//       const float dist = distanceBetweenPointAndLineSegment(playerCollisionPosition, p1, p2);
-//       if (dist <= (playerCollisionRadius + ENEMY_COLLIDER.radius)) {
-//         std::cout << "GOTTEM!" << std::endl;
-//         isAlive = false;
-//         playerMovementDir = glm::vec2(0.0f, 0.0f);
-//       }
-//     }
-//   }
-// }
-
 // Util function to log time since start of the program
 void
 log_time_since(const std::string& label, std::chrono::time_point<std::chrono::high_resolution_clock> start)
@@ -139,9 +92,11 @@ main(int argc, char** argv)
   // app.remove_fps_limit();
   log_time_since("starting app... ", app_start);
 
-  glm::vec3 camera_pos = glm::vec3(0.0f, 0.0f, 3.0f);
+  glm::vec3 camera_pos = glm::vec3(0.0f, 1.0f, 2.0f);
   FlyCamera camera{ camera_pos };
   camera.SetPerspective(glm::radians(65.0f), (float)width / (float)height, 0.1f, 100.0f);
+  camera.Yaw = -90.0f;
+  camera.m_TargetYaw = -90.0f;
 
   RandomState rnd;
   Profiler profiler;
@@ -149,7 +104,7 @@ main(int argc, char** argv)
 
   // Renderer renderer(rnd);
   RenderCommand::init();
-  RenderCommand::set_clear_colour({ 0.1f, 0.1f, 0.1f, 1.0f });
+  RenderCommand::set_clear_colour({ 0.9f, 0.9f, 0.9f, 1.0f });
   RenderCommand::set_depth_testing(true);
 
   // TODO sounds here
@@ -158,50 +113,44 @@ main(int argc, char** argv)
   // load textures
   // -------------
 
-  const int tex_unit_octopus = 0;
-  const int tex_unit_container = 1;
+  const int tex_unit_octopus_diffuse = 0;
+  const int tex_unit_container_diffuse = 1;
 
-  std::cout << "loading textures... " << std::endl;
-  {
-    std::vector<std::pair<int, std::string>> textures_to_load;
-    textures_to_load.emplace_back(tex_unit_octopus, "assets/textures/octopus.png");
-    textures_to_load.emplace_back(tex_unit_container, "assets/textures/container.jpg");
+  // std::cout << "loading textures... " << std::endl;
+  // {
+  //   std::vector<std::pair<int, std::string>> textures_to_load;
+  //   textures_to_load.emplace_back(tex_unit_octopus_diffuse, "assets/textures/octopus.png");
+  //   textures_to_load.emplace_back(tex_unit_container_diffuse, "assets/textures/container.jpg");
 
-    std::vector<std::thread> threads;
-    std::vector<StbLoadedTexture> loaded_textures(textures_to_load.size());
+  //   std::vector<std::thread> threads;
+  //   std::vector<StbLoadedTexture> loaded_textures(textures_to_load.size());
 
-    for (int i = 0; i < textures_to_load.size(); ++i) {
-      const std::pair<int, std::string>& tex_to_load = textures_to_load[i];
-      threads.emplace_back([&tex_to_load, i, &loaded_textures]() {
-        loaded_textures[i] = load_texture(tex_to_load.second, tex_to_load.first);
-      });
-    }
-    for (auto& thread : threads) {
-      thread.join();
-    }
-    for (StbLoadedTexture& l : loaded_textures) {
-      Texture2D tex;
-      tex.generate(l);
-      tex.bind(l.texture_unit);
-    }
-  }
-  log_time_since("textures loaded ", app_start);
+  //   for (int i = 0; i < textures_to_load.size(); ++i) {
+  //     const std::pair<int, std::string>& tex_to_load = textures_to_load[i];
+  //     threads.emplace_back([&tex_to_load, i, &loaded_textures]() {
+  //       loaded_textures[i] = load_texture(tex_to_load.second, tex_to_load.first);
+  //     });
+  //   }
+  //   for (auto& thread : threads) {
+  //     thread.join();
+  //   }
+  //   for (StbLoadedTexture& l : loaded_textures) {
+  //     Texture2D tex;
+  //     tex.generate(l);
+  //     tex.bind(l.texture_unit);
+  //  stbi_image_free(stb_tex.data);
+
+  //   }
+  // }
+  // log_time_since("textures loaded ", app_start);
 
   // load shaders
   // ------------
 
-  Shader solid = Shader()
-                   .attach_shader("assets/shaders/lit.vert", OpenGLShaderTypes::VERTEX)
-                   .attach_shader("assets/shaders/solid_colour.frag", OpenGLShaderTypes::FRAGMENT)
-                   .build_program();
-
-  // Shader basic_shader = Shader()
-  //                         .attach_shader("assets/shaders/lit.vert", OpenGLShaderTypes::VERTEX)
-  //                         .attach_shader("assets/shaders/basic_shader.frag", OpenGLShaderTypes::FRAGMENT)
-  //                         .build_program();
-  // basic_shader.bind();
-  // basic_shader.set_bool("greyscale", false);
-  // basic_shader.set_int("tex", tex_unit_octopus);
+  Shader texture_shader = Shader()
+                            .attach_shader("assets/shaders/lit.vert", OpenGLShaderTypes::VERTEX)
+                            .attach_shader("assets/shaders/basic_shader.frag", OpenGLShaderTypes::FRAGMENT)
+                            .build_program();
 
   // Shader shadowmap_shader =
   //   Shader()
@@ -232,10 +181,10 @@ main(int argc, char** argv)
   // load models (note, pretty slow at the moment. could thread)
   // -----------
 
-  Model model_1("assets/models/low_poly_knife/Knife_01.obj", false);
-  Model model_2("assets/models/rpg_characters_nov_2020/OBJ/Wizard.obj", false);
+  // Model model_1("assets/models/cyborg/cyborg.obj");
+  Model model_2("assets/models/rpg_characters_nov_2020/OBJ/Monk.obj");
 
-  // Model player_model("angrygl/assets/Player/Player.fbx");
+  log_time_since("models loaded ", app_start);
 
   // Shader basicTextureShader = Shader::create("angrygl/basic_texture_shader.vert", "angrygl/floor_shader.frag");
   // basicTextureShader.use();
@@ -354,13 +303,13 @@ main(int argc, char** argv)
     glm::mat4 view_projection = camera.get_view_projection_matrix();
 
     glm::mat4 model = glm::mat4(1.0f);
-    model = glm::translate(model, glm::vec3(0.0f, 1.5f, 0.0));
+    model = glm::translate(model, glm::vec3(0.0f, 0.0f, 0.0));
     model = glm::scale(model, glm::vec3(0.5f));
 
-    solid.bind();
-    solid.set_mat4("model", model);
-    solid.set_mat4("view_projection", view_projection);
-    model_2.draw();
+    texture_shader.bind();
+    texture_shader.set_mat4("view_projection", view_projection);
+    texture_shader.set_mat4("model", model);
+    model_2.draw(texture_shader);
 
     profiler.end(Profiler::Stage::Render);
     profiler.begin(Profiler::Stage::GuiLoop);
@@ -423,11 +372,12 @@ main(int argc, char** argv)
 }
 
 // Below code is converting mouse position in to ray
+// Note: Could be faster to do a simple line
+// intersection from camera pos
+// to plane along the direction vector.
+// Probably faster too, as there's no matrix inverse
 // -------------------------------------------------
 
-// Note: It'd probably be faster to do a simple line intersection from camera pos
-// to plane along the direction vector.
-// Probably faster too, as there's no matrix inverse else
 // {
 //     //if mouse is clicked
 //     if( app.get_input().get_mouse_lmb_held() )
@@ -468,4 +418,30 @@ main(int argc, char** argv)
 //         printf("ray x: %f y: %f z: %f \n", ray_world.x, ray_world.y,
 //         ray_world.z);
 //     }
+// }
+
+// ai for chasing player
+// ---------------------
+
+// void
+// chase_player(const float delta_time, std::vector<Enemy>* enemies)
+// {
+//   const glm::vec3 playerCollisionPosition(playerPosition.x, monsterY, playerPosition.z);
+//   for (int i = 0; i < enemies->size(); ++i) {
+//     auto& e = (*enemies)[i];
+//     glm::vec3 dir = playerPosition - e.position;
+//     dir.y = 0.0f;
+//     e.dir = glm::normalize(dir);
+//     e.position += e.dir * delta_time * monster_speed;
+//     if (isAlive) {
+//       const glm::vec3 p1 = e.position - e.dir * (ENEMY_COLLIDER.height / 2);
+//       const glm::vec3 p2 = e.position + e.dir * (ENEMY_COLLIDER.height / 2);
+//       const float dist = distanceBetweenPointAndLineSegment(playerCollisionPosition, p1, p2);
+//       if (dist <= (playerCollisionRadius + ENEMY_COLLIDER.radius)) {
+//         std::cout << "GOTTEM!" << std::endl;
+//         isAlive = false;
+//         playerMovementDir = glm::vec2(0.0f, 0.0f);
+//       }
+//     }
+//   }
 // }

@@ -1,18 +1,12 @@
 #version 330 core
-
 out vec4 FragColor;
 
-in vec2 TexCoord;
+in vec2 TexCoords;
 
-uniform bool greyscale;
-uniform sampler2D tex;
+uniform sampler2D texture_diffuse1;
 
 void
 main()
 {
-  if (greyscale) {
-    FragColor = vec4(vec3(texture(tex, TexCoord).r), 1.0);
-  } else {
-    FragColor = texture(tex, TexCoord);
-  }
+  FragColor = texture(texture_diffuse1, TexCoords);
 }

@@ -10,37 +10,17 @@
 
 namespace fightingengine {
 
-Texture2D
-load_texture_for_model(std::string full_path)
+Model::Model(const std::string& full_path)
 {
-  StbLoadedTexture stb_tex = load_texture(full_path);
-
-  Texture2D tex;
-  tex.generate(stb_tex);
-
-  return tex;
-}
-
-Model::Model(const std::string& full_path, bool enable_textures)
-{
-  this->enabled_textures = enable_textures;
-  this->directory = full_path.substr(0, full_path.find_last_of('/'));
-
   load_model(full_path);
 }
 
 void
-Model::draw() const
+Model::draw(Shader& shader)
 {
-  for (int i = 0; i < this->meshes.size(); i++) {
-    // if (applyTextures) {
-    //   shader.setInt("texture_diffuse", i);
-    //   shader.setInt("texture_spec", i == 0 ? 19 : 20);
-    // }
-    Mesh m = this->meshes[i];
-    m.draw();
-  }
-};
+  for (int i = 0; i < this->meshes.size(); i++)
+    this->meshes[i].draw(shader);
+}
 
 void
 Model::load_model(const std::string& path)
@@ -54,6 +34,9 @@ Model::load_model(const std::string& path)
     std::cerr << "Failed to load scene: " << importer.GetErrorString() << std::endl;
     return;
   }
+
+  this->directory = path.substr(0, path.find_last_of('/'));
+  std::cout << "loading model: " << directory << std::endl;
 
   process_node(scene->mRootNode, scene);
 }
@@ -101,9 +84,9 @@ Model::process_mesh(aiMesh* mesh, const aiScene* scene)
       vec.x = mesh->mTextureCoords[0][i].x;
       vec.y = mesh->mTextureCoords[0][i].y;
       vertex.tex_coords = vec;
-    } else {
+    } else
       vertex.tex_coords = glm::vec2(0.0f, 0.0f);
-    }
+
     vertices.push_back(vertex);
   }
   // process indices
@@ -119,27 +102,31 @@ Model::process_mesh(aiMesh* mesh, const aiScene* scene)
       indices.push_back(vertexIndex);
     }
   }
-  // process material
-  if (this->enabled_textures && mesh->mMaterialIndex >= 0) {
-    aiMaterial* material = scene->mMaterials[mesh->mMaterialIndex];
+  // process materials
+  aiMaterial* material = scene->mMaterials[mesh->mMaterialIndex];
+  // we assume a convention for sampler names in the shaders. Each diffuse texture should be named
+  // as 'texture_diffuseN' where N is a sequential number ranging from 1 to MAX_SAMPLER_NUMBER.
+  // Same applies to other texture as the following list summarizes:
+  // diffuse: texture_diffuseN
+  // specular: texture_specularN
+  // normal: texture_normalN
 
-    std::vector<Texture2D> diffuseMaps = load_material_textures(material, aiTextureType_DIFFUSE, TextureType::DIFFUSE);
-    textures.insert(textures.end(), diffuseMaps.begin(), diffuseMaps.end());
-
-    std::vector<Texture2D> specularMaps =
-      load_material_textures(material, aiTextureType_SPECULAR, TextureType::SPECULAR);
-    textures.insert(textures.end(), specularMaps.begin(), specularMaps.end());
-  }
+  // 1. diffuse maps
+  std::vector<Texture2D> diffuseMaps = load_material_textures(material, aiTextureType_DIFFUSE, TextureType::DIFFUSE);
+  textures.insert(textures.end(), diffuseMaps.begin(), diffuseMaps.end());
+  // 2. specular maps
+  std::vector<Texture2D> specularMaps = load_material_textures(material, aiTextureType_SPECULAR, TextureType::SPECULAR);
+  textures.insert(textures.end(), specularMaps.begin(), specularMaps.end());
+  // 3. normal maps
+  std::vector<Texture2D> normalMaps = load_material_textures(material, aiTextureType_HEIGHT, TextureType::NORMAL);
+  textures.insert(textures.end(), normalMaps.begin(), normalMaps.end());
+  // 4. height maps
+  std::vector<Texture2D> heightMaps = load_material_textures(material, aiTextureType_AMBIENT, TextureType::HEIGHT);
+  textures.insert(textures.end(), heightMaps.begin(), heightMaps.end());
 
   std::cout << "Loaded mesh with vertices: " << vertices.size() << ", indices: " << indices.size() << std::endl;
 
-  Mesh m;
-  m.verts = vertices;
-  m.indices = indices;
-  m.topology = TOPOLOGY::TRIANGLES;
-  m.setup_mesh();
-
-  return m;
+  return Mesh(vertices, indices, textures);
 }
 
 std::vector<Texture2D>
@@ -148,33 +135,32 @@ Model::load_material_textures(aiMaterial* mat, aiTextureType type, TextureType t
   std::vector<Texture2D> textures;
 
   for (unsigned int i = 0; i < mat->GetTextureCount(type); i++) {
-
     aiString str;
     mat->GetTexture(type, i, &str);
+    // check if texture was loaded before and if so, continue to next iteration: skip loading a new texture
     bool skip = false;
     for (unsigned int j = 0; j < loaded_textures.size(); j++) {
       if (std::strcmp(loaded_textures[j].path.data(), str.C_Str()) == 0) {
         textures.push_back(loaded_textures[j]);
-        skip = true;
+        skip = true; // a texture with the same filepath has already been loaded, continue to next one. (optimization)
         break;
       }
     }
-
     if (!skip) { // if texture hasn't been loaded already, load it
 
-      std::string full_path = directory + str.C_Str();
-      std::cout << "loading new texture for model from: " << full_path << std::endl;
+      std::string full_path = this->directory + "/" + str.C_Str();
+      std::cout << "loading texture from: " << full_path << std::endl;
 
-      Texture2D texture = load_texture_for_model(full_path);
+      Texture2D texture;
+      texture.load_texture_from_file(full_path);
       texture.type = type2;
       texture.path = str.C_Str();
+
       textures.push_back(texture);
-
-      loaded_textures.push_back(texture); // add to loaded textures
+      loaded_textures.push_back(texture);
     }
-
-    return textures;
   }
+  return textures;
 }
 
 } // namespace fightingengine

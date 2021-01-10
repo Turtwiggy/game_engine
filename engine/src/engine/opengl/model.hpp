@@ -25,12 +25,11 @@ namespace fightingengine {
 class Model
 {
 public:
-  Model(const std::string& full_path, bool enable_textures = true);
+  Model(const std::string& full_path);
 
-  void draw() const;
+  void draw(Shader& shader);
 
 private:
-  bool enabled_textures = true;
   std::vector<Mesh> meshes;
   std::string directory;
   std::vector<Texture2D> loaded_textures;

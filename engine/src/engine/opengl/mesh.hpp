@@ -6,6 +6,7 @@
 #include <glm/glm.hpp>
 
 #include "engine/opengl/shader.hpp"
+#include "engine/opengl/texture.hpp"
 #include "engine/opengl/vertex.hpp"
 
 namespace fightingengine {
@@ -23,25 +24,25 @@ enum class TOPOLOGY
 class Mesh
 {
 public:
-  unsigned int vao = 0;
-  unsigned int vbo = 0;
-  unsigned int ebo = 0;
-
   std::vector<Vertex> verts;
   std::vector<unsigned int> indices;
-  bool vertices_dirty = false;
-  TOPOLOGY topology = TOPOLOGY::TRIANGLES;
+  std::vector<Texture2D> textures;
 
 public:
+  Mesh(std::vector<Vertex> vertices, std::vector<unsigned int> indices, std::vector<Texture2D> textures);
+
+  void draw(Shader& shader);
+
+private:
+  unsigned int vao, vbo, ebo = 0;
+
   // commits all buffers and attributes to the GPU driver
   void setup_mesh();
-
-  void draw();
 };
 namespace primitives {
 
 // class Plane
-// {
+// { o
 // public:
 //   Mesh mesh; // set in constructor
 

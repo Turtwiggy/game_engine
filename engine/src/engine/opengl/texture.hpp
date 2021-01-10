@@ -11,20 +11,10 @@ namespace fightingengine {
 enum class TextureType
 {
   DIFFUSE,
-  SPECULAR
+  SPECULAR,
+  NORMAL,
+  HEIGHT
 };
-
-struct StbLoadedTexture
-{
-  int width;
-  int height;
-  int nr_components;
-  unsigned char* data;
-  int texture_unit; // optional
-};
-
-StbLoadedTexture
-load_texture(const std::string& full_path, const int tex_unit = 0);
 
 class Texture2D
 {
@@ -47,10 +37,7 @@ public:
 
   Texture2D() = default;
 
-  // Generate an opengl texture with glGenTextures
-  // based off a loaded texture from stb_image
-  // & binds the texture and sets the glTexParameteri
-  void generate(StbLoadedTexture tex);
+  void load_texture_from_file(const std::string& full_path);
 
   void bind(int unit = -1) const;
   void unbind();

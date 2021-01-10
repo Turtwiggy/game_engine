@@ -18,11 +18,12 @@ public:
   float MouseSensitivty = 0.1f;
   float Damping = 5.0f;
 
-private:
   glm::vec3 m_TargetPosition;
-  glm::vec3 m_WorldUp;
   float m_TargetYaw = 0.0f;
   float m_TargetPitch = 0.0f;
+
+private:
+  glm::vec3 m_WorldUp;
 
 public:
   FlyCamera(glm::vec3 position,
