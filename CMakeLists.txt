@@ -13,8 +13,8 @@ project(subprojects VERSION 0.1.0)
 add_subdirectory(game_3d)
 
 #random c++ projects
-add_subdirectory(net_client)
-add_subdirectory(net_server)
+#add_subdirectory(net_client)
+#add_subdirectory(net_server)
 
 #examples
 #add_subdirectory(examples/hello_application)

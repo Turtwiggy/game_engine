@@ -14,81 +14,73 @@
 // your project headers
 #include "engine/opengl/util.hpp"
 
+#define SHADER_ASSET_PATH "assets/shaders/"
+
 namespace fightingengine {
 
-Shader&
-Shader::attach_shader(const std::string& path, OpenGLShaderTypes shader_type)
+void
+check_compile_errors(unsigned int shader, std::string type)
 {
-  // printf("(Shader) attaching shader: %s \n", path);
-
-  std::string name;
-  unsigned int type;
-
-  switch (shader_type) {
-    case OpenGLShaderTypes::VERTEX:
-      name = "VERTEX";
-      type = GL_VERTEX_SHADER;
-      break;
-    case OpenGLShaderTypes::COMPUTE:
-      name = "COMPUTE";
-      type = GL_COMPUTE_SHADER;
-      break;
-    case OpenGLShaderTypes::FRAGMENT:
-      name = "FRAGMENT";
-      type = GL_FRAGMENT_SHADER;
-      break;
-    case OpenGLShaderTypes::GEOMETRY:
-      name = "GEOMETRY";
-      type = GL_GEOMETRY_SHADER;
-      break;
-    default:
-      // ok to have a default as it wont compile anyway
-      name = "VERTEX";
-      type = GL_VERTEX_SHADER;
-      break;
-  }
-
-  unsigned int shader = load_shader(path, type, name);
-
-  shaders.push_back(shader);
-  latest_path = std::string(path);
-
-  return *this;
-}
-
-Shader&
-Shader::build_program()
-{
-  if (ok_to_build) {
-    attach_shaders_to_program();
-    printf("OK! to build program %s \n", latest_path.c_str());
+  GLint success;
+  GLchar infoLog[1024];
+  if (type != "PROGRAM") {
+    glGetShaderiv(shader, GL_COMPILE_STATUS, &success);
+    if (!success) {
+      glGetShaderInfoLog(shader, 1024, NULL, infoLog);
+      std::cout << "ERROR::SHADER_COMPILATION_ERROR of type: " << type << "\n"
+                << infoLog << "\n -- --------------------------------------------------- -- " << std::endl;
+    }
   } else {
-    printf("SHADER ERROR: program ( %s ) was not ok to build \n", latest_path.c_str());
+    glGetProgramiv(shader, GL_LINK_STATUS, &success);
+    if (!success) {
+      glGetProgramInfoLog(shader, 1024, NULL, infoLog);
+      std::cout << "ERROR::PROGRAM_LINKING_ERROR of type: " << type << "\n"
+                << infoLog << "\n -- --------------------------------------------------- -- " << std::endl;
+    }
   }
-
-  return *this;
 }
 
-OpenGLShaderTypes
-Shader::convert_file_to_shadertype(std::string file)
+void
+reload_shader_program(unsigned int* id, const std::string& vert_path, const std::string& frag_path)
 {
-  std::filesystem::path p(file.c_str());
-  std::string extention = p.extension().generic_string();
+  printf("Reloading shader: %s %s \n", vert_path.c_str(), frag_path.c_str());
 
-  if (extention == ".vert") {
-    return OpenGLShaderTypes::VERTEX;
-  } else if (extention == ".frag") {
-    return OpenGLShaderTypes::FRAGMENT;
-  } else if (extention == ".glsl") {
-    return OpenGLShaderTypes::COMPUTE;
+  // Create a new shader program from the given file names. Halt on failure.
+  unsigned int new_id = create_opengl_shader(vert_path, frag_path);
+
+  if (new_id) {
+    glDeleteProgram(*id);
+    *id = new_id;
   }
-
-  printf("ERROR: convert_file_to_shadertype %s extention not found \n", extention.c_str());
-  return OpenGLShaderTypes::VERTEX;
 }
 
 unsigned int
-Shader::load_shader(const std::string& path, unsigned int gl_shader_type, std::string type)
+create_opengl_shader(const std::string& vert_path, const std::string& frag_path)
+{
+  // OpenGL ShaderTypes
+  // GL_VERTEX_SHADER VERTEX
+  // GL_COMPUTE_SHADER COMPUTE
+  // GL_FRAGMENT_SHADER FRAGMENT
+  // GL_GEOMETRY_SHADER VERTEX
+
+  unsigned int vert_shader = load_shader_from_disk(SHADER_ASSET_PATH + vert_path, GL_VERTEX_SHADER, "VERTEX");
+  unsigned int frag_shader = load_shader_from_disk(SHADER_ASSET_PATH + frag_path, GL_FRAGMENT_SHADER, "FRAGMENT");
+
+  unsigned int ID = glCreateProgram();
+  glAttachShader(ID, vert_shader);
+  glAttachShader(ID, frag_shader);
+
+  glLinkProgram(ID);
+  check_compile_errors(ID, "PROGRAM");
+
+  glDeleteShader(vert_shader);
+  glDeleteShader(frag_shader);
+
+  return ID;
+}
+
+unsigned int
+load_shader_from_disk(const std::string& path, unsigned int gl_shader_type, std::string type)
 {
   unsigned int shader_id;
   std::string code;
@@ -114,7 +106,6 @@ Shader::load_shader(const std::string& path, unsigned int gl_shader_type, std::s
       code = csShaderStream.str();
     } catch (std::ifstream::failure e) {
       std::cout << "ERROR::SHADER::FILE_NOT_SUCCESFULLY_READ" << std::endl;
-      ok_to_build = false;
     }
   }
 
@@ -122,55 +113,19 @@ Shader::load_shader(const std::string& path, unsigned int gl_shader_type, std::s
   shader_id = glCreateShader(gl_shader_type);
   glShaderSource(shader_id, 1, &csCode, NULL);
   glCompileShader(shader_id);
-  Shader::check_compile_errors(shader_id, type);
+  check_compile_errors(shader_id, type);
 
   return shader_id;
 }
 
-void
-Shader::attach_shaders_to_program()
+//
+// Shader
+//
+
+Shader::Shader(const std::string& vert_path, const std::string& frag_path)
 {
-  ID = glCreateProgram();
-
-  for (unsigned int& a : shaders) {
-    glAttachShader(ID, a);
-  }
-
-  glLinkProgram(ID);
-  check_compile_errors(ID, "PROGRAM");
-
-  for (unsigned int& a : shaders) {
-    glDeleteShader(a);
-  }
+  ID = create_opengl_shader(vert_path, frag_path);
 }
-
-// utility function for checking shader compilation/linking errors.
-
-void
-Shader::check_compile_errors(unsigned int shader, std::string type)
-{
-  GLint success;
-  GLchar infoLog[1024];
-  if (type != "PROGRAM") {
-    glGetShaderiv(shader, GL_COMPILE_STATUS, &success);
-    if (!success) {
-      glGetShaderInfoLog(shader, 1024, NULL, infoLog);
-      std::cout << "ERROR::SHADER_COMPILATION_ERROR of type: " << type << "\n"
-                << infoLog << "\n -- --------------------------------------------------- -- " << std::endl;
-      ok_to_build = false;
-    }
-  } else {
-    glGetProgramiv(shader, GL_LINK_STATUS, &success);
-    if (!success) {
-      glGetProgramInfoLog(shader, 1024, NULL, infoLog);
-      std::cout << "ERROR::PROGRAM_LINKING_ERROR of type: " << type << "\n"
-                << infoLog << "\n -- --------------------------------------------------- -- " << std::endl;
-      ok_to_build = false;
-    }
-  }
-}
-
-// activate the shader
 
 void
 Shader::bind()
@@ -183,8 +138,6 @@ Shader::unbind()
 {
   glUseProgram(0);
 }
-
-// utility uniform functions
 
 void
 Shader::set_bool(const std::string& name, bool value) const

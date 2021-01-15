@@ -210,18 +210,6 @@ Application::remove_fps_limit()
   fps_limit = false;
 }
 
-float
-Application::get_average_fps() const
-{
-  return std::accumulate(fps_buffer.begin(), fps_buffer.end(), 0) / static_cast<float>(fps_buffer.size());
-}
-
-float
-Application::get_raw_fps(const float delta_time) const
-{
-  return 1.f / delta_time;
-}
-
 InputManager&
 Application::get_input()
 {

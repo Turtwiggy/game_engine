@@ -17,9 +17,7 @@ namespace fightingengine {
 class Application
 {
 public:
-  Application(const std::string& name = "Fighting Engine (Default)",
-              int width = 1080,
-              int height = 720);
+  Application(const std::string& name = "Fighting Engine (Default)", int width = 1080, int height = 720);
   ~Application();
 
   [[nodiscard]] bool is_running() const;
@@ -35,8 +33,6 @@ public:
 
   void set_fps_limit(const float fps);
   void remove_fps_limit();
-  [[nodiscard]] float get_average_fps() const;
-  [[nodiscard]] float get_raw_fps(const float delta_time) const;
 
   [[nodiscard]] InputManager& get_input();
   [[nodiscard]] ImGui_Manager& get_imgui();

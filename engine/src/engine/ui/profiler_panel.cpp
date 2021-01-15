@@ -14,10 +14,6 @@ ProfilerPanel::draw(const Application& app, const Profiler& profiler, const floa
 {
   ImGui::Begin("Profiler");
 
-  float average_fps = app.get_average_fps();
-  float raw_fps = app.get_raw_fps(delta_time_s);
-  ImGui::Text("Average FPS: %f", average_fps);
-
   // Fill an array of contiguous float values to plot
   // Tip: If your float aren't contiguous but part of a structure, you can pass
   // a pointer to your first float and the sizeof() of your structure in the
@@ -32,7 +28,7 @@ ProfilerPanel::draw(const Application& app, const Profiler& profiler, const floa
     refresh_time = ImGui::GetTime();
   while (refresh_time < ImGui::GetTime()) // Create data at fixed 60 Hz rate for the demo
   {
-    values[values_offset] = raw_fps;
+    values[values_offset] = ImGui::GetIO().Framerate;
     values_offset = (values_offset + 1) % IM_ARRAYSIZE(values);
     refresh_time += 1.0f / 60.0f;
   }

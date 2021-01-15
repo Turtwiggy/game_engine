@@ -29,45 +29,8 @@
 #include "engine/ui/profiler_panel.hpp"
 using namespace fightingengine;
 
-// player
-// glm::vec3 player_pos = glm::vec3(0.0f, 0.0f, 0.0f);
-// glm::vec2 player_mov_dir = glm::vec2(0.0f, 0.0f);
-// float lastFireTime = 0.0f;
-// bool isTryingToFire = false;
-// const float fireInterval = 0.1f; // seconds
-// const int spreadAmount = 20;
-// const float playerSpeed = 1.5f;
-// const float playerCollisionRadius = 0.35f;
-// bool isAlive = true;
-// float aimTheta = 0.0f;
-
-// models
-// const float playerModelScale = 0.0044f;
-// const float playerModelGunHeight = 120.0f;       // un-scaled
-// const float playerModelGunMuzzleOffset = 100.0f; // un-scaled
-// const float monsterY = playerModelScale * playerModelGunHeight;
-
-// const glm::vec3 light_dir = glm::normalize(glm::vec3(-0.8f, 0.0f, -1.0f));
-// const glm::vec3 player_light_dir = glm::normalize(glm::vec3(-1.0f, -1.0f, -1.0f));
-// const float light_factor = 0.8;
-// const float non_blue = 0.9f;
-// const glm::vec3 light_colour =
-//   lightFactor * 1.0f * glm::vec3(non_blue * 0.406f, non_blue * 0.723f, 1.0f);
-// const glm::vec3 ambient_colour =
-//   lightFactor * 0.10f * glm::vec3(non_blue * 0.7f, non_blue * 0.7f, 0.7f);
-
-// const float florrLightFactor = 0.35;
-// const float floorNonBlue = 0.7f;
-// const glm::vec3 floorLightColor =
-//   florrLightFactor * 1.0f * glm::vec3(floorNonBlue * 0.406f, floorNonBlue * 0.723f, 1.0f);
-// const glm::vec3 floorAmbientColor =
-//   florrLightFactor * 0.50f * glm::vec3(floorNonBlue * 0.7f, floorNonBlue * 0.7f, 0.7f);
-
-// enemies
-const float monster_speed = 0.6f;
-
 // game state
-int desired_cubes = 35;
+const int STARTING_CUBES = 35;
 
 // Util function to log time since start of the program
 void
@@ -147,34 +110,7 @@ main(int argc, char** argv)
   // load shaders
   // ------------
 
-  Shader texture_shader = Shader()
-                            .attach_shader("assets/shaders/lit.vert", OpenGLShaderTypes::VERTEX)
-                            .attach_shader("assets/shaders/basic_shader.frag", OpenGLShaderTypes::FRAGMENT)
-                            .build_program();
-
-  // Shader shadowmap_shader =
-  //   Shader()
-  //     .attach_shader("assets/shaders/shadowmapping/shadow_mapping.vert", OpenGLShaderTypes::VERTEX)
-  //     .attach_shader("assets/shaders/shadowmapping/shadow_mapping.frag", OpenGLShaderTypes::FRAGMENT)
-  //     .build_program();
-  // shadowmap_shader.bind();
-  // shadowmap_shader.set_int("shadow_map", 0);
-
-  // Shader blurShader = Shader::create("angrygl/basicer_shader.vert", "angrygl/blur_shader.frag");
-  // Shader basicerShader = Shader::create("angrygl/basicer_shader.vert", "angrygl/basicer_shader.frag");
-  // Shader sceneDrawShader = Shader::create("angrygl/basicer_shader.vert", "angrygl/texture_merge_shader.frag");
-  // Shader simpleDepthShader = Shader::create("angrygl/depth_shader.vert", "angrygl/depth_shader.frag");
-  // simpleDepthShader.use();
-  // const unsigned int lsml = glGetUniformLocation(simpleDepthShader.id, "lightSpaceMatrix");
-  // Shader wigglyShader = Shader::create("angrygl/wiggly_shader.vert", "angrygl/player_shader.frag");
-
-  // Shader playerShader = Shader::create("angrygl/player_shader.vert", "angrygl/player_shader.frag");
-  // playerShader.use();
-  // const unsigned int playerLightSpaceMatrixLocation = glGetUniformLocation(playerShader.id, "lightSpaceMatrix");
-  // playerShader.setVec3("directionLight.dir", playerLightDir);
-  // playerShader.setVec3("directionLight.color", lightColor);
-  // playerShader.setVec3("ambient", ambientColor);
-  // playerShader.setInt("texture_spec", texUnit_playerSpec);
+  Shader texture_shader = Shader("lit.vert", "basic_shader.frag");
 
   log_time_since("shaders loaded ", app_start);
 
@@ -213,7 +149,7 @@ main(int argc, char** argv)
 
   std::vector<glm::vec3> cube_pos;
   glm::vec3 rand_pos{ 0.0f, 0.0f, 0.0f };
-  for (int i = 0; i < desired_cubes; i++) {
+  for (int i = 0; i < STARTING_CUBES; i++) {
     rand_pos.x = rand_det_s(rnd.rng, -10.0f, 10.0f);
     rand_pos.y = rand_det_s(rnd.rng, -10.0f, 10.0f);
     rand_pos.z = rand_det_s(rnd.rng, -10.0f, 10.0f);
@@ -274,6 +210,11 @@ main(int argc, char** argv)
       camera.InputMouse(static_cast<float>(rel_mouse.x), static_cast<float>(rel_mouse.y));
     }
 
+    if (app.get_input().get_key_down(SDL_KeyCode::SDLK_r)) {
+      unsigned int* id = &texture_shader.ID;
+      reload_shader_program(id, "lit.vert", "basic_shader.frag");
+    }
+
     profiler.end(Profiler::Stage::SdlInput);
     profiler.begin(Profiler::Stage::GameTick);
 
@@ -308,6 +249,18 @@ main(int argc, char** argv)
 
     texture_shader.bind();
     texture_shader.set_mat4("view_projection", view_projection);
+    texture_shader.set_mat4("model", model);
+    model_2.draw(texture_shader);
+
+    model = glm::mat4(1.0f);
+    model = glm::translate(model, glm::vec3(1.0f, 0.0f, 0.0));
+    model = glm::scale(model, glm::vec3(0.5f));
+    texture_shader.set_mat4("model", model);
+    model_2.draw(texture_shader);
+
+    model = glm::mat4(1.0f);
+    model = glm::translate(model, glm::vec3(2.0f, 0.0f, 0.0));
+    model = glm::scale(model, glm::vec3(0.5f));
     texture_shader.set_mat4("model", model);
     model_2.draw(texture_shader);
 
@@ -354,6 +307,18 @@ main(int argc, char** argv)
     //     &renderer->GetPostProcessor()->MotionBlur);
     // }
     // ImGui::End();
+
+    if (ImGui::BeginMainMenuBar()) {
+
+      if (ImGui::MenuItem("Quit", "Esc")) {
+        app.shutdown();
+      }
+
+      ImGui::SameLine(ImGui::GetWindowWidth() - 154.0f);
+      ImGui::Text("%.2f FPS (%.2f ms)", ImGui::GetIO().Framerate, 1000.0f / ImGui::GetIO().Framerate);
+
+      ImGui::EndMainMenuBar();
+    }
 
     profiler_panel.draw(app, profiler, delta_time_s);
 
