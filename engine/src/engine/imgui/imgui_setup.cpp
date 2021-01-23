@@ -87,8 +87,7 @@ ImGui_Manager::end_frame(const GameWindow& window)
   glm::ivec2 window_size = window.get_size();
 
   ImGuiIO& io = ImGui::GetIO();
-  io.DisplaySize =
-    ImVec2(static_cast<float>(window_size.x), static_cast<float>(window_size.y));
+  io.DisplaySize = ImVec2(static_cast<float>(window_size.x), static_cast<float>(window_size.y));
 
   // Rendering
   ImGui::Render();

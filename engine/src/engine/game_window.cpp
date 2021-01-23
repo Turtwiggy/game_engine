@@ -1,6 +1,6 @@
 
 // header
-#include "engine/core/game_window.hpp"
+#include "engine/game_window.hpp"
 
 // c++ standard library headers
 #include <iostream>
@@ -12,24 +12,15 @@
 
 namespace fightingengine {
 
-GameWindow::GameWindow(const std::string& title,
-                       int width,
-                       int height,
-                       DisplayMode displaymode)
+GameWindow::GameWindow(const std::string& title, int width, int height, DisplayMode displaymode)
 {
   SDL_version compiledVersion, linkedVersion;
   SDL_VERSION(&compiledVersion);
   SDL_GetVersion(&linkedVersion);
 
   spdlog::info("Initializing SDL...");
-  spdlog::info("SDL Version/Compiled {}.{}.{}",
-               compiledVersion.major,
-               compiledVersion.minor,
-               compiledVersion.patch);
-  spdlog::info("SDL Version/Linked {}.{}.{}",
-               linkedVersion.major,
-               linkedVersion.minor,
-               linkedVersion.patch);
+  spdlog::info("SDL Version/Compiled {}.{}.{}", compiledVersion.major, compiledVersion.minor, compiledVersion.patch);
+  spdlog::info("SDL Version/Linked {}.{}.{}", linkedVersion.major, linkedVersion.minor, linkedVersion.patch);
 
   // Initialize SDL -----------------------
 
@@ -46,12 +37,10 @@ GameWindow::GameWindow(const std::string& title,
       spdlog::error("Could not initialize SDL Timer Subsystem:  '{}'", SDL_GetError());
 
     if (SDL_InitSubSystem(SDL_INIT_JOYSTICK) != 0)
-      spdlog::error("Could not initialize SDL JoyStick Subsystem:  '{}'",
-                    SDL_GetError());
+      spdlog::error("Could not initialize SDL JoyStick Subsystem:  '{}'", SDL_GetError());
   }
 
-  int flags = SDL_WINDOW_OPENGL | SDL_WINDOW_INPUT_FOCUS | SDL_WINDOW_RESIZABLE |
-              SDL_WINDOW_ALLOW_HIGHDPI;
+  int flags = SDL_WINDOW_OPENGL | SDL_WINDOW_INPUT_FOCUS | SDL_WINDOW_RESIZABLE | SDL_WINDOW_ALLOW_HIGHDPI;
 
   if (displaymode == DisplayMode::Fullscreen)
     flags |= SDL_WINDOW_FULLSCREEN;
@@ -222,8 +211,7 @@ GameWindow::set_fullscreen(const bool b)
 {
   // todo: use DisplayMode
   if (SDL_SetWindowFullscreen(window_.get(), b ? SDL_WINDOW_FULLSCREEN_DESKTOP : 0)) {
-    throw std::runtime_error("SDL_SetWindowFullscreen Error: " +
-                             std::string(SDL_GetError()));
+    throw std::runtime_error("SDL_SetWindowFullscreen Error: " + std::string(SDL_GetError()));
   }
 }
 
@@ -237,10 +225,7 @@ GameWindow::get_fullscreen() const
 void
 GameWindow::toggle_fullscreen()
 {
-  if (get_fullscreen())
-    set_fullscreen(false);
-  else
-    set_fullscreen(true);
+  set_fullscreen(!get_fullscreen());
 }
 
 float
@@ -253,8 +238,7 @@ void
 GameWindow::set_brightness(const float brightness)
 {
   if (SDL_SetWindowBrightness(window_.get(), brightness)) {
-    throw std::runtime_error("SDL_SetWindowBrightness Error: " +
-                             std::string(SDL_GetError()));
+    throw std::runtime_error("SDL_SetWindowBrightness Error: " + std::string(SDL_GetError()));
   }
 }
 

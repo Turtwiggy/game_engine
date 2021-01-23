@@ -8,8 +8,10 @@
 #include <glm/glm.hpp>
 
 // your project headers
-#include "engine/core/application.hpp"
+#include "engine/application.hpp"
 #include "engine/graphics/render_command.hpp"
+#include "engine/tools/profiler.hpp"
+#include "engine/ui/profiler_panel.hpp"
 using namespace fightingengine;
 
 int
@@ -21,13 +23,22 @@ main()
   app.set_fps_limit(60.0f);
   // app.remove_fps_limit();
 
+  Profiler profiler;
+  ProfilerPanel profiler_panel;
+
   bool show_imgui_demo_window = true;
 
   while (app.is_running()) {
+    profiler.new_frame();
+    profiler.begin(Profiler::Stage::UpdateLoop);
+
     app.frame_begin();
-    app.poll(); // input events
 
     float delta_time_s = app.get_delta_time();
+
+    profiler.begin(Profiler::Stage::SdlInput);
+
+    app.poll(); // input events
 
     // Shutdown app
     if (app.get_input().get_key_down(SDL_KeyCode::SDLK_END))
@@ -38,6 +49,7 @@ main()
       printf("F is being held! \n");
 
     // Input
+
     if (app.get_input().get_key_held(SDL_Scancode::SDL_SCANCODE_W))
       printf("w is being held! \n");
     else if (app.get_input().get_key_held(SDL_Scancode::SDL_SCANCODE_S))
@@ -53,11 +65,21 @@ main()
     else if (app.get_input().get_key_held(SDL_Scancode::SDL_SCANCODE_LSHIFT))
       printf("left shift is being held! \n");
 
+    profiler.end(Profiler::Stage::SdlInput);
+    profiler.begin(Profiler::Stage::GameTick);
+
+    // Some game tick stuff...!
+
+    profiler.end(Profiler::Stage::GameTick);
+    profiler.begin(Profiler::Stage::Render);
+
     // Example OpenGL usage
-    glm::vec4 dark_blue =
-      glm::vec4(0.0f / 255.0f, 100.0f / 255.0f, 100.0f / 255.0f, 1.0f);
+    glm::vec4 dark_blue = glm::vec4(0.0f / 255.0f, 100.0f / 255.0f, 100.0f / 255.0f, 1.0f);
     RenderCommand::set_clear_colour(dark_blue);
     RenderCommand::clear();
+
+    profiler.end(Profiler::Stage::Render);
+    profiler.begin(Profiler::Stage::GuiLoop);
 
     // ImGUI
     app.gui_begin();
@@ -71,9 +93,17 @@ main()
     ImGui::Text("Average App FPS %f", app.get_average_fps());
     ImGui::End();
 
+    profiler_panel.draw(app, profiler, delta_time_s);
+
     app.gui_end();
 
-    // end frame
+    profiler.end(Profiler::Stage::GuiLoop);
+    profiler.begin(Profiler::Stage::FrameEnd);
+
     app.frame_end(delta_time_s);
+
+    profiler.end(Profiler::Stage::FrameEnd);
+    profiler.end(Profiler::Stage::UpdateLoop);
   }
+  return 0;
 }

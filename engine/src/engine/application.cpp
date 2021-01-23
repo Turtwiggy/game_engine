@@ -1,6 +1,6 @@
 
 // header
-#include "engine/core/application.hpp"
+#include "engine/application.hpp"
 
 // c++ standard lib headers
 #include <numeric>

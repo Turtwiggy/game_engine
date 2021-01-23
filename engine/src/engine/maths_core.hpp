@@ -1,9 +1,18 @@
 #pragma once
 
-// c++ standard library headers
+// c++ standard lib headers
 #include <random>
 
+// other library headers
+#include <glm/glm.hpp>
+
 namespace fightingengine {
+
+constexpr float PI{ 3.1415926535897932385f };
+
+//
+// random
+//
 
 struct RandomState
 {
@@ -24,5 +33,14 @@ rand_det_s(T& rnd, float M, float MN)
 
   return scaled * (MN - M) + M;
 }
+
+float
+length_squared(const glm::vec3& i);
+
+glm::vec3
+rand_unit_vector(RandomState& rnd);
+
+glm::vec3
+random_in_hemisphere(RandomState& rnd, glm::vec3& normal);
 
 } // namespace fightingengine

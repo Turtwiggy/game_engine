@@ -2,6 +2,7 @@
 
 // c++ standard library headers
 #include <chrono>
+#include <filesystem>
 #include <iostream>
 #include <memory>
 #include <string_view>
@@ -16,9 +17,9 @@
 #include <glm/gtx/transform.hpp>
 
 // your project headers
-#include "engine/camera/fly_camera.hpp"
-#include "engine/core/application.hpp"
-#include "engine/maths/random.hpp"
+#include "engine/application.hpp"
+#include "engine/camera.hpp"
+#include "engine/maths_core.hpp"
 #include "engine/opengl/model.hpp"
 #include "engine/opengl/render_command.hpp"
 #include "engine/opengl/renderer.hpp"
@@ -29,8 +30,11 @@
 #include "engine/ui/profiler_panel.hpp"
 using namespace fightingengine;
 
+//
 // game state
+//
 const int STARTING_CUBES = 35;
+glm::vec3 player_pos(0.0f, 0.0f, 0.0f);
 
 // Util function to log time since start of the program
 void
@@ -55,67 +59,35 @@ main(int argc, char** argv)
   // app.remove_fps_limit();
   log_time_since("starting app... ", app_start);
 
-  glm::vec3 camera_pos = glm::vec3(0.0f, 1.0f, 2.0f);
-  FlyCamera camera{ camera_pos };
-  camera.SetPerspective(glm::radians(65.0f), (float)width / (float)height, 0.1f, 100.0f);
-  camera.Yaw = -90.0f;
-  camera.m_TargetYaw = -90.0f;
+  Camera camera;
+  camera.set_perspective(glm::radians(65.0f), (float)width / (float)height, 0.1f, 100.0f);
+  camera.target_yaw = -116.0f;
+  camera.target_pitch = -7.8f;
+  camera.target_position = glm::vec3(2.1f, 1.3f, 2.6f);
 
   RandomState rnd;
   Profiler profiler;
-  ProfilerPanel profiler_panel;
 
   // Renderer renderer(rnd);
   RenderCommand::init();
   RenderCommand::set_clear_colour({ 0.9f, 0.9f, 0.9f, 1.0f });
   RenderCommand::set_depth_testing(true);
 
-  // TODO sounds here
-  // ----------------
+  //
+  // TODO sound
+  //
 
-  // load textures
-  // -------------
-
-  const int tex_unit_octopus_diffuse = 0;
-  const int tex_unit_container_diffuse = 1;
-
-  // std::cout << "loading textures... " << std::endl;
-  // {
-  //   std::vector<std::pair<int, std::string>> textures_to_load;
-  //   textures_to_load.emplace_back(tex_unit_octopus_diffuse, "assets/textures/octopus.png");
-  //   textures_to_load.emplace_back(tex_unit_container_diffuse, "assets/textures/container.jpg");
-
-  //   std::vector<std::thread> threads;
-  //   std::vector<StbLoadedTexture> loaded_textures(textures_to_load.size());
-
-  //   for (int i = 0; i < textures_to_load.size(); ++i) {
-  //     const std::pair<int, std::string>& tex_to_load = textures_to_load[i];
-  //     threads.emplace_back([&tex_to_load, i, &loaded_textures]() {
-  //       loaded_textures[i] = load_texture(tex_to_load.second, tex_to_load.first);
-  //     });
-  //   }
-  //   for (auto& thread : threads) {
-  //     thread.join();
-  //   }
-  //   for (StbLoadedTexture& l : loaded_textures) {
-  //     Texture2D tex;
-  //     tex.generate(l);
-  //     tex.bind(l.texture_unit);
-  //  stbi_image_free(stb_tex.data);
-
-  //   }
-  // }
-  // log_time_since("textures loaded ", app_start);
-
+  //
   // load shaders
-  // ------------
+  //
 
   Shader texture_shader = Shader("lit.vert", "basic_shader.frag");
 
   log_time_since("shaders loaded ", app_start);
 
+  //
   // load models (note, pretty slow at the moment. could thread)
-  // -----------
+  //
 
   // Model model_1("assets/models/cyborg/cyborg.obj");
   Model model_2("assets/models/rpg_characters_nov_2020/OBJ/Monk.obj");
@@ -140,12 +112,16 @@ main(int argc, char** argv)
   // wigglyShader.setVec3("directionLight.color", lightColor);
   // wigglyShader.setVec3("ambient", ambientColor);
 
+  //
   // enemies
+  //
 
   // std::vector<Enemy> enemies;
   // EnemySpawner enemySpawner(monsterY, &enemies);
 
+  //
   // random cubes
+  //
 
   std::vector<glm::vec3> cube_pos;
   glm::vec3 rand_pos{ 0.0f, 0.0f, 0.0f };
@@ -170,73 +146,62 @@ main(int argc, char** argv)
 
     app.poll(); // input events
 
+    //
     // Settings: Shutdown app
+    //
     if (app.get_input().get_key_down(SDL_KeyCode::SDLK_END))
       app.shutdown();
 
+    //
     // Settings: Toggle mouse capture
+    //
     if (app.get_input().get_key_down(SDL_KeyCode::SDLK_m))
       app.get_window().toggle_mouse_capture();
 
+    //
     // Settings: Fullscreen
+    //
     if (app.get_input().get_key_down(SDL_KeyCode::SDLK_f)) {
-      // Update window size
-      app.get_window().toggle_fullscreen();
-      // Update viewport size
+      app.get_window().toggle_fullscreen(); // SDL2 window toggle
       glm::ivec2 screen_size = app.get_window().get_size();
       RenderCommand::set_viewport(0, 0, screen_size.x, screen_size.y);
     }
 
-    { // Input: Camera
-      if (app.get_input().get_key_held(SDL_Scancode::SDL_SCANCODE_W))
-        camera.InputKey(delta_time_s, CameraMovement::FORWARD);
-      else if (app.get_input().get_key_held(SDL_Scancode::SDL_SCANCODE_S))
-        camera.InputKey(delta_time_s, CameraMovement::BACKWARD);
+    //
+    // Process Input: Keyboard
+    //
+    camera_fly_around(camera, delta_time_s, app.get_input().get_keyboard_state());
+    // camera_follow_position(camera, player_pos, delta_time_s);
 
-      if (app.get_input().get_key_held(SDL_Scancode::SDL_SCANCODE_A))
-        camera.InputKey(delta_time_s, CameraMovement::LEFT);
-      else if (app.get_input().get_key_held(SDL_Scancode::SDL_SCANCODE_D))
-        camera.InputKey(delta_time_s, CameraMovement::RIGHT);
-
-      if (app.get_input().get_key_held(SDL_Scancode::SDL_SCANCODE_SPACE))
-        camera.InputKey(delta_time_s, CameraMovement::UP);
-      else if (app.get_input().get_key_held(SDL_Scancode::SDL_SCANCODE_LSHIFT))
-        camera.InputKey(delta_time_s, CameraMovement::DOWN);
-    } // ---- end camera
-
-    // Input: Mouse
+    //
+    // Process Input: Mouse
+    //
     if (app.get_window().get_mouse_captured()) {
       glm::ivec2 rel_mouse = app.get_window().get_relative_mouse_position();
-      camera.InputMouse(static_cast<float>(rel_mouse.x), static_cast<float>(rel_mouse.y));
+      camera.process_mouse_input(static_cast<float>(rel_mouse.x), static_cast<float>(rel_mouse.y));
     }
 
+    //
+    // Shader hot reloading
+    //
     if (app.get_input().get_key_down(SDL_KeyCode::SDLK_r)) {
-      unsigned int* id = &texture_shader.ID;
-      reload_shader_program(id, "lit.vert", "basic_shader.frag");
+      reload_shader_program(&texture_shader.ID, "lit.vert", "basic_shader.frag");
     }
 
     profiler.end(Profiler::Stage::SdlInput);
     profiler.begin(Profiler::Stage::GameTick);
-
+    //
     // Game State Tick
-    // ---------------
+    //
 
-    camera.Update(delta_time_s);
-
-    // THIS IS FOR A FIXED GAME TICK
-    // seconds_since_last_game_tick += delta_time_in_seconds;
-    // while (seconds_since_last_game_tick >= SECONDS_PER_FIXED_TICK)
-    //{
-    //    //Fixed update
-    //    fixed_tick(SECONDS_PER_FIXED_TICK);
-    //    seconds_since_last_game_tick -= SECONDS_PER_FIXED_TICK;
-    //}
+    camera.update(delta_time_s);
 
     profiler.end(Profiler::Stage::GameTick);
     profiler.begin(Profiler::Stage::Render);
-
+    //
     // Rendering
-    // ---------
+    //
+
     // renderer.update(delta_time_s, camera, rnd, cube_pos, app.get_window().get_size());
 
     // RenderCommand::set_viewport(0, 0, screen_size.x, screen_size.y);
@@ -266,14 +231,11 @@ main(int argc, char** argv)
 
     profiler.end(Profiler::Stage::Render);
     profiler.begin(Profiler::Stage::GuiLoop);
-
+    //
     // GUI
-    // ---
+    //
 
     app.gui_begin();
-
-    // bool demo_window = true;
-    // ImGui::ShowDemoWindow(&demo_window);
 
     // ImGui::Begin("Depth Texture");
     // Using a Child allow to fill all the space of the window.
@@ -287,9 +249,9 @@ main(int argc, char** argv)
 
     ImGui::Begin("Camera");
     {
-      ImGui::Text("Camera Pos: %f %f %f", camera.Position.x, camera.Position.y, camera.Position.z);
-      ImGui::Text("Camera Pitch: %f", camera.Pitch);
-      ImGui::Text("Camera Yaw: %f", camera.Yaw);
+      ImGui::Text("Camera Pos: %f %f %f", camera.get_position().x, camera.get_position().y, camera.get_position().z);
+      ImGui::Text("Camera Pitch: %f", camera.get_pitch());
+      ImGui::Text("Camera Yaw: %f", camera.get_yaw());
     }
     ImGui::End();
 
@@ -320,7 +282,7 @@ main(int argc, char** argv)
       ImGui::EndMainMenuBar();
     }
 
-    profiler_panel.draw(app, profiler, delta_time_s);
+    profiler_panel::draw(profiler, delta_time_s);
 
     app.gui_end();
 
@@ -410,3 +372,47 @@ main(int argc, char** argv)
 //     }
 //   }
 // }
+
+// THIS IS FOR A FIXED GAME TICK
+// -----------------------------
+// seconds_since_last_game_tick += delta_time_in_seconds;
+// while (seconds_since_last_game_tick >= SECONDS_PER_FIXED_TICK)
+//{
+//    //Fixed update
+//    fixed_tick(SECONDS_PER_FIXED_TICK);
+//    seconds_since_last_game_tick -= SECONDS_PER_FIXED_TICK;
+//}
+
+// load textures
+// -------------
+
+// const int tex_unit_octopus_diffuse = 0;
+// const int tex_unit_container_diffuse = 1;
+
+// std::cout << "loading textures... " << std::endl;
+// {
+//   std::vector<std::pair<int, std::string>> textures_to_load;
+//   textures_to_load.emplace_back(tex_unit_octopus_diffuse, "assets/textures/octopus.png");
+//   textures_to_load.emplace_back(tex_unit_container_diffuse, "assets/textures/container.jpg");
+
+//   std::vector<std::thread> threads;
+//   std::vector<StbLoadedTexture> loaded_textures(textures_to_load.size());
+
+//   for (int i = 0; i < textures_to_load.size(); ++i) {
+//     const std::pair<int, std::string>& tex_to_load = textures_to_load[i];
+//     threads.emplace_back([&tex_to_load, i, &loaded_textures]() {
+//       loaded_textures[i] = load_texture(tex_to_load.second, tex_to_load.first);
+//     });
+//   }
+//   for (auto& thread : threads) {
+//     thread.join();
+//   }
+//   for (StbLoadedTexture& l : loaded_textures) {
+//     Texture2D tex;
+//     tex.generate(l);
+//     tex.bind(l.texture_unit);
+//  stbi_image_free(stb_tex.data);
+
+//   }
+// }
+// log_time_since("textures loaded ", app_start);

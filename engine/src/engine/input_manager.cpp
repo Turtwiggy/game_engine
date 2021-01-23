@@ -1,6 +1,6 @@
 
 // header
-#include "engine/core/input_manager.hpp"
+#include "engine/input_manager.hpp"
 
 // c++ standard lib headers
 #include <vector>
@@ -21,6 +21,12 @@ InputManager::new_frame()
 
 // keyboard
 
+const Uint8*
+InputManager::get_keyboard_state() const
+{
+  return state;
+}
+
 void
 InputManager::add_button_down(SDL_Keycode button)
 {
@@ -28,13 +34,13 @@ InputManager::add_button_down(SDL_Keycode button)
 }
 
 bool
-InputManager::get_key_down(SDL_Keycode button)
+InputManager::get_key_down(SDL_Keycode button) const
 {
   return std::find(down.begin(), down.end(), button) != down.end();
 }
 
 bool
-InputManager::get_key_held(SDL_Scancode button)
+InputManager::get_key_held(SDL_Scancode button) const
 {
   return state[button];
 }
@@ -56,19 +62,19 @@ InputManager::add_mouse_down(SDL_MouseButtonEvent& mouse_e)
 }
 
 bool
-InputManager::get_mouse_lmb_held()
+InputManager::get_mouse_lmb_held() const
 {
   return SDL_GetMouseState(NULL, NULL) & SDL_BUTTON(SDL_BUTTON_LEFT);
 }
 
 bool
-InputManager::get_mouse_rmb_held()
+InputManager::get_mouse_rmb_held() const
 {
   return SDL_GetMouseState(NULL, NULL) & SDL_BUTTON(SDL_BUTTON_RIGHT);
 }
 
 bool
-InputManager::get_mouse_mmb_held()
+InputManager::get_mouse_mmb_held() const
 {
   return SDL_GetMouseState(NULL, NULL) & SDL_BUTTON(SDL_BUTTON_MIDDLE);
 }

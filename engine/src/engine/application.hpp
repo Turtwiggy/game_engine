@@ -8,8 +8,8 @@
 #include <boost/circular_buffer.hpp>
 
 // your project headers
-#include "engine/core/game_window.hpp"
-#include "engine/core/input_manager.hpp"
+#include "engine/game_window.hpp"
+#include "engine/input_manager.hpp"
 #include "engine/imgui/imgui_setup.hpp"
 
 namespace fightingengine {

@@ -9,8 +9,10 @@ using namespace fightingengine;
 
 namespace fightingengine {
 
+namespace profiler_panel {
+
 void
-ProfilerPanel::draw(const Application& app, const Profiler& profiler, const float delta_time_s)
+draw(const Profiler& profiler, const float delta_time_s)
 {
   ImGui::Begin("Profiler");
 
@@ -65,5 +67,7 @@ ProfilerPanel::draw(const Application& app, const Profiler& profiler, const floa
 
   ImGui::End();
 }
+
+} // namespace profiler_panel
 
 } // namespace fightingengine

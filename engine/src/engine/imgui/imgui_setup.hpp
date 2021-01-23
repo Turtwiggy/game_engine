@@ -12,7 +12,7 @@
 #include <imgui.h>
 
 // your project headers
-#include "engine/core/game_window.hpp"
+#include "engine/game_window.hpp"
 
 namespace fightingengine {
 
