@@ -149,7 +149,7 @@ main(int argc, char** argv)
     //
     // Settings: Shutdown app
     //
-    if (app.get_input().get_key_down(SDL_KeyCode::SDLK_END))
+    if (app.get_input().get_key_down(SDL_KeyCode::SDLK_ESCAPE))
       app.shutdown();
 
     //
@@ -166,12 +166,6 @@ main(int argc, char** argv)
       glm::ivec2 screen_size = app.get_window().get_size();
       RenderCommand::set_viewport(0, 0, screen_size.x, screen_size.y);
     }
-
-    //
-    // Process Input: Keyboard
-    //
-    camera_fly_around(camera, delta_time_s, app.get_input().get_keyboard_state());
-    // camera_follow_position(camera, player_pos, delta_time_s);
 
     //
     // Process Input: Mouse
@@ -193,6 +187,12 @@ main(int argc, char** argv)
     //
     // Game State Tick
     //
+
+    //
+    // Process Input: Keyboard
+    //
+    camera_fly_around(camera, delta_time_s, app.get_input().get_keyboard_state());
+    // camera_follow_position(camera, player_pos, delta_time_s);
 
     camera.update(delta_time_s);
 
@@ -236,6 +236,9 @@ main(int argc, char** argv)
     //
 
     app.gui_begin();
+
+    // bool open = true;
+    // ImGui::ShowDemoWindow(&open);
 
     // ImGui::Begin("Depth Texture");
     // Using a Child allow to fill all the space of the window.

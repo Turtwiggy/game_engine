@@ -8,7 +8,6 @@ glew
 stb
 gtest
 assimp
-boost-circular-buffer
 openssl
 protobuf
 --triplet

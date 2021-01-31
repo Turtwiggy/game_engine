@@ -4,13 +4,10 @@
 #include <memory>
 #include <string>
 
-// other library headers
-#include <boost/circular_buffer.hpp>
-
 // your project headers
 #include "engine/game_window.hpp"
-#include "engine/input_manager.hpp"
 #include "engine/imgui/imgui_setup.hpp"
+#include "engine/input_manager.hpp"
 
 namespace fightingengine {
 
@@ -55,7 +52,6 @@ private:
   bool fps_limit = false;
   float FPS = 60.0;
   int MILLISECONDS_PER_FRAME = (int)(1000 / FPS);
-  boost::circular_buffer<float> fps_buffer;
 
   // Game's fixed tick
   int FIXED_TICKS_PER_SECOND = 1;

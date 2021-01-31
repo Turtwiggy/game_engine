@@ -12,15 +12,13 @@
 
 namespace fightingengine {
 
-const std::string kBuildStr = "1";
-// const std::string kBuildStr(kGitSHA1Hash, 8);
-
 Application::Application(const std::string& name, int width, int height)
 {
+  // const std::string kBuildStr(kGitSHA1Hash, 8);
+  const std::string kBuildStr = "0.0.3";
+
   // Window
   window = std::make_unique<GameWindow>(name + " [" + kBuildStr + "]", width, height, DisplayMode::Windowed);
-
-  fps_buffer = boost::circular_buffer<float>(100);
 
   imgui_manager.initialize(window.get());
 
@@ -77,10 +75,6 @@ Application::frame_begin()
 void
 Application::frame_end(const float delta_time)
 {
-  // FPS Profiling
-  // -------------
-  fps_buffer.push_back(1.f / delta_time);
-
   SDL_GL_SwapWindow(get_window().get_handle());
 
   // If frame finished early
