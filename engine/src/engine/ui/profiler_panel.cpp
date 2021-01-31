@@ -2,6 +2,15 @@
 // header
 #include "engine/ui/profiler_panel.hpp"
 
+// standard lib headers
+// clang-format off
+#include <string>
+#if defined(WIN32) || defined(_WIN32) || defined(__WIN32) && !defined(__CYGWIN__)
+#include "windows.h"
+#include "psapi.h"
+#endif
+// clang-forrmat on
+
 // other library headers
 #include <imgui.h>
 
@@ -17,6 +26,7 @@ class AnimatedProfilerEntry
   // Tip: If your float aren't contiguous but part of a structure, you can pass
   // a pointer to your first float and the sizeof() of your structure in the
   // "stride" parameter.
+  bool show_animate_tickbox = false;
   bool animate = true;
 
   float values[90] = {};
@@ -31,7 +41,8 @@ public:
   void draw(float next_value)
   {
     //
-    ImGui::Checkbox("Animate", &animate);
+    if(show_animate_tickbox)
+      ImGui::Checkbox("Animate", &animate);
     if (!animate || refresh_time == 0.0)
       refresh_time = ImGui::GetTime();
 
@@ -60,17 +71,20 @@ public:
 void
 draw(const Profiler& profiler, const float delta_time_s)
 {
+
+  //
+  // Game Time info
+  //
+
   ImGui::Begin("Profiler");
 
   static AnimatedProfilerEntry framerate;
+  framerate.scale_max = 300.0f;
   framerate.draw(ImGui::GetIO().Framerate);
   ImGui::Text("%s %f ms", "Framerate: ", ImGui::GetIO().Framerate);
   ImGui::Separator();
 
   float time = profiler.get_average_time(Profiler::Stage::SdlInput);
-  static AnimatedProfilerEntry input;
-  input.scale_max = 300.0f; // an upper framerate
-  input.draw(time);
   ImGui::Text("%s %f ms", profiler.stageNames[(uint8_t)Profiler::Stage::SdlInput].data(), (time));
   ImGui::Separator();
 
@@ -84,25 +98,47 @@ draw(const Profiler& profiler, const float delta_time_s)
   static AnimatedProfilerEntry render;
   render.draw(time);
   ImGui::Text("%s %f ms", profiler.stageNames[(uint8_t)Profiler::Stage::Render].data(), (time));
-  ImGui::Separator();
 
   time = profiler.get_average_time(Profiler::Stage::GuiLoop);
-  static AnimatedProfilerEntry gui_loop;
-  gui_loop.draw(time);
   ImGui::Text("%s %f ms", profiler.stageNames[(uint8_t)Profiler::Stage::GuiLoop].data(), (time));
-  ImGui::Separator();
 
   time = profiler.get_average_time(Profiler::Stage::FrameEnd);
-  static AnimatedProfilerEntry frame_end;
-  frame_end.draw(time);
   ImGui::Text("%s %f ms", profiler.stageNames[(uint8_t)Profiler::Stage::FrameEnd].data(), (time));
-  ImGui::Separator();
 
   time = profiler.get_average_time(Profiler::Stage::UpdateLoop);
-  static AnimatedProfilerEntry update_loop;
-  update_loop.draw(time);
   ImGui::Text("~~ %s %f ms ~~", profiler.stageNames[(uint8_t)Profiler::Stage::UpdateLoop].data(), (time));
   ImGui::Separator();
+
+  //
+  // Memory Usage Info
+  //
+
+#if defined(WIN32) || defined(_WIN32) || defined(__WIN32) && !defined(__CYGWIN__)
+
+  // https://stackoverflow.com/questions/63166/how-to-determine-cpu-and-memory-consumption-from-inside-a-process
+  MEMORYSTATUSEX memInfo;
+  memInfo.dwLength = sizeof(MEMORYSTATUSEX);
+  GlobalMemoryStatusEx(&memInfo);
+  DWORDLONG totalVirtualMem = memInfo.ullTotalPageFile;
+  DWORDLONG virtualMemUsed = memInfo.ullTotalPageFile - memInfo.ullAvailPageFile;
+
+  PROCESS_MEMORY_COUNTERS_EX pmc;
+  GetProcessMemoryInfo(GetCurrentProcess(), (PROCESS_MEMORY_COUNTERS*)&pmc, sizeof(pmc));
+  SIZE_T virtualMemUsedByMe = pmc.PrivateUsage;
+
+  DWORDLONG totalPhysMem = memInfo.ullTotalPhys;
+  DWORDLONG physMemUsed = memInfo.ullTotalPhys - memInfo.ullAvailPhys;
+  SIZE_T physMemUsedByMe = pmc.WorkingSetSize;
+
+  ImGui::Text("Your Virtual Memory: %s", std::to_string(static_cast<uint64_t>(totalVirtualMem)).c_str());
+  ImGui::Text("Used Virtual Memory: %s", std::to_string(static_cast<uint64_t>(virtualMemUsed)).c_str());
+  ImGui::Text("FG's Used Virtual Memory: %s", std::to_string(static_cast<uint64_t>(virtualMemUsedByMe)).c_str());
+
+  ImGui::Text("Your Physical Memory: %s", std::to_string(static_cast<uint64_t>(totalPhysMem)).c_str());
+  ImGui::Text("Used Physical Memory: %s", std::to_string(static_cast<uint64_t>(physMemUsed)).c_str());
+  ImGui::Text("FG's Used Physical Memory: %s", std::to_string(static_cast<uint64_t>(physMemUsedByMe)).c_str());
+
+#endif
 
   ImGui::End();
 }
