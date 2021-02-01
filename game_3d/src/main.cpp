@@ -35,6 +35,7 @@ using namespace fightingengine;
 //
 const int STARTING_CUBES = 35;
 glm::vec3 player_pos(0.0f, 0.0f, 0.0f);
+float player_move_speed = 1.0f;
 
 // Util function to log time since start of the program
 void
@@ -78,10 +79,48 @@ main(int argc, char** argv)
   //
 
   //
+  // load textures
+  //
+  const int tex_unit_octopus_diffuse = 0;
+  const int tex_unit_container_diffuse = 1;
+  const int tex_unit_player_diffuse = 2;
+
+  log_time_since("(Threaded) loading textures... ", app_start);
+  {
+    std::vector<std::pair<int, std::string>> textures_to_load;
+    textures_to_load.emplace_back(tex_unit_octopus_diffuse, "assets/textures/octopus.png");
+    textures_to_load.emplace_back(tex_unit_container_diffuse, "assets/textures/container.jpg");
+    textures_to_load.emplace_back(tex_unit_player_diffuse,
+                                  "assets/models/rpg_characters_nov_2020/OBJ/Monk_Texture.png");
+
+    // std::vector<std::thread> threads;
+    std::vector<Texture2D> loaded_textures(textures_to_load.size());
+
+    // for (int i = 0; i < textures_to_load.size(); ++i) {
+    //   const std::pair<int, std::string>& tex_to_load = textures_to_load[i];
+    //   threads.emplace_back([&tex_to_load, i, &loaded_textures]() {
+    //     // load texture from path
+    //     std::cout << "loading texture " << tex_to_load.second << ". Binding tex unit: " << tex_to_load.first << std::endl;
+    //     loaded_textures[i].load_texture_from_file(tex_to_load.second);
+    //     loaded_textures[i].bind(tex_to_load.first);
+    //   });
+    // }
+    // for (auto& thread : threads) {
+    //   thread.join();
+    // }
+
+    loaded_textures[2].load_texture_from_file(textures_to_load[2].second);
+    loaded_textures[2].bind(2);
+  }
+  log_time_since("(End Threaded) textures loaded ", app_start);
+
+  //
   // load shaders
   //
 
   Shader texture_shader = Shader("lit.vert", "basic_shader.frag");
+  texture_shader.bind();
+  texture_shader.set_int("texture_diffuse1", tex_unit_player_diffuse);
 
   log_time_since("shaders loaded ", app_start);
 
@@ -112,6 +151,8 @@ main(int argc, char** argv)
   // wigglyShader.setVec3("directionLight.color", lightColor);
   // wigglyShader.setVec3("ambient", ambientColor);
 
+
+
   //
   // enemies
   //
@@ -124,12 +165,14 @@ main(int argc, char** argv)
   //
 
   std::vector<glm::vec3> cube_pos;
-  glm::vec3 rand_pos{ 0.0f, 0.0f, 0.0f };
-  for (int i = 0; i < STARTING_CUBES; i++) {
-    rand_pos.x = rand_det_s(rnd.rng, -10.0f, 10.0f);
-    rand_pos.y = rand_det_s(rnd.rng, -10.0f, 10.0f);
-    rand_pos.z = rand_det_s(rnd.rng, -10.0f, 10.0f);
-    cube_pos.push_back(rand_pos);
+  {
+    glm::vec3 rand_pos{ 0.0f, 0.0f, 0.0f };
+    for (int i = 0; i < STARTING_CUBES; i++) {
+      rand_pos.x = rand_det_s(rnd.rng, -10.0f, 10.0f);
+      rand_pos.y = rand_det_s(rnd.rng, -10.0f, 10.0f);
+      rand_pos.z = rand_det_s(rnd.rng, -10.0f, 10.0f);
+      cube_pos.push_back(rand_pos);
+    }
   }
 
   // App
@@ -188,11 +231,24 @@ main(int argc, char** argv)
     // Game State Tick
     //
 
+    const Uint8* keyboard_state = app.get_input().get_keyboard_state();
+    float player_velocity = player_move_speed * delta_time_s;
+
+    if (keyboard_state[SDL_Scancode::SDL_SCANCODE_W])
+      player_pos += glm::vec3(1.0f, 0.0f, 0.0f) * player_velocity;
+    else if (keyboard_state[SDL_Scancode::SDL_SCANCODE_S])
+      player_pos -= glm::vec3(1.0f, 0.0f, 0.0f) * player_velocity;
+
+    if (keyboard_state[SDL_Scancode::SDL_SCANCODE_A])
+      player_pos -= glm::vec3(0.0f, 0.0f, 1.0f) * player_velocity;
+    else if (keyboard_state[SDL_Scancode::SDL_SCANCODE_D])
+      player_pos += glm::vec3(0.0f, 0.0f, 1.0f) * player_velocity;
+
     //
     // Process Input: Keyboard
     //
-    camera_fly_around(camera, delta_time_s, app.get_input().get_keyboard_state());
-    // camera_follow_position(camera, player_pos, delta_time_s);
+    // camera_fly_around(camera, delta_time_s, app.get_input().get_keyboard_state());
+    camera_follow_position(camera, player_pos, delta_time_s);
 
     camera.update(delta_time_s);
 
@@ -208,12 +264,12 @@ main(int argc, char** argv)
     RenderCommand::clear();
     glm::mat4 view_projection = camera.get_view_projection_matrix();
 
-    glm::mat4 model = glm::mat4(1.0f);
-    model = glm::translate(model, glm::vec3(0.0f, 0.0f, 0.0));
-    model = glm::scale(model, glm::vec3(0.5f));
-
     texture_shader.bind();
     texture_shader.set_mat4("view_projection", view_projection);
+
+    glm::mat4 model = glm::mat4(1.0f);
+    model = glm::translate(model, player_pos);
+    model = glm::scale(model, glm::vec3(0.5f));
     texture_shader.set_mat4("model", model);
     model_2.draw(texture_shader);
 
@@ -385,37 +441,3 @@ main(int argc, char** argv)
 //    fixed_tick(SECONDS_PER_FIXED_TICK);
 //    seconds_since_last_game_tick -= SECONDS_PER_FIXED_TICK;
 //}
-
-// load textures
-// -------------
-
-// const int tex_unit_octopus_diffuse = 0;
-// const int tex_unit_container_diffuse = 1;
-
-// std::cout << "loading textures... " << std::endl;
-// {
-//   std::vector<std::pair<int, std::string>> textures_to_load;
-//   textures_to_load.emplace_back(tex_unit_octopus_diffuse, "assets/textures/octopus.png");
-//   textures_to_load.emplace_back(tex_unit_container_diffuse, "assets/textures/container.jpg");
-
-//   std::vector<std::thread> threads;
-//   std::vector<StbLoadedTexture> loaded_textures(textures_to_load.size());
-
-//   for (int i = 0; i < textures_to_load.size(); ++i) {
-//     const std::pair<int, std::string>& tex_to_load = textures_to_load[i];
-//     threads.emplace_back([&tex_to_load, i, &loaded_textures]() {
-//       loaded_textures[i] = load_texture(tex_to_load.second, tex_to_load.first);
-//     });
-//   }
-//   for (auto& thread : threads) {
-//     thread.join();
-//   }
-//   for (StbLoadedTexture& l : loaded_textures) {
-//     Texture2D tex;
-//     tex.generate(l);
-//     tex.bind(l.texture_unit);
-//  stbi_image_free(stb_tex.data);
-
-//   }
-// }
-// log_time_since("textures loaded ", app_start);

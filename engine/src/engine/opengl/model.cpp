@@ -36,7 +36,7 @@ Model::load_model(const std::string& path)
   }
 
   this->directory = path.substr(0, path.find_last_of('/'));
-  std::cout << "loading model: " << directory << std::endl;
+  std::cout << "loading model from directory: " << directory << std::endl;
 
   process_node(scene->mRootNode, scene);
 }
@@ -48,7 +48,7 @@ Model::process_node(aiNode* node, const aiScene* scene)
   for (unsigned int i = 0; i < node->mNumMeshes; i++) {
     aiMesh* mesh = scene->mMeshes[node->mMeshes[i]];
     Mesh m = process_mesh(mesh, scene);
-    meshes.push_back(m);
+    this->meshes.push_back(m);
   }
   // then do the same for each of its children
   for (unsigned int i = 0; i < node->mNumChildren; i++) {
@@ -102,6 +102,8 @@ Model::process_mesh(aiMesh* mesh, const aiScene* scene)
       indices.push_back(vertexIndex);
     }
   }
+  std::cout << "Loaded mesh with vertices: " << vertices.size() << ", indices: " << indices.size() << std::endl;
+
   // process materials
   aiMaterial* material = scene->mMaterials[mesh->mMaterialIndex];
   // we assume a convention for sampler names in the shaders. Each diffuse texture should be named
@@ -111,56 +113,59 @@ Model::process_mesh(aiMesh* mesh, const aiScene* scene)
   // specular: texture_specularN
   // normal: texture_normalN
 
-  // 1. diffuse maps
-  std::vector<Texture2D> diffuseMaps = load_material_textures(material, aiTextureType_DIFFUSE, TextureType::DIFFUSE);
-  textures.insert(textures.end(), diffuseMaps.begin(), diffuseMaps.end());
-  // 2. specular maps
-  std::vector<Texture2D> specularMaps = load_material_textures(material, aiTextureType_SPECULAR, TextureType::SPECULAR);
-  textures.insert(textures.end(), specularMaps.begin(), specularMaps.end());
-  // 3. normal maps
-  std::vector<Texture2D> normalMaps = load_material_textures(material, aiTextureType_HEIGHT, TextureType::NORMAL);
-  textures.insert(textures.end(), normalMaps.begin(), normalMaps.end());
-  // 4. height maps
-  std::vector<Texture2D> heightMaps = load_material_textures(material, aiTextureType_AMBIENT, TextureType::HEIGHT);
-  textures.insert(textures.end(), heightMaps.begin(), heightMaps.end());
+  // // 1. diffuse maps
+  // std::vector<Texture2D> diffuseMaps = load_material_textures(material, aiTextureType_DIFFUSE, TextureType::DIFFUSE);
+  // textures.insert(textures.end(), diffuseMaps.begin(), diffuseMaps.end());
+  // // 2. specular maps
+  // std::vector<Texture2D> specularMaps = load_material_textures(material, aiTextureType_SPECULAR, TextureType::SPECULAR);
+  // textures.insert(textures.end(), specularMaps.begin(), specularMaps.end());
+  // // 3. normal maps
+  // std::vector<Texture2D> normalMaps = load_material_textures(material, aiTextureType_HEIGHT, TextureType::NORMAL);
+  // textures.insert(textures.end(), normalMaps.begin(), normalMaps.end());
+  // // 4. height maps
+  // std::vector<Texture2D> heightMaps = load_material_textures(material, aiTextureType_AMBIENT, TextureType::HEIGHT);
+  // textures.insert(textures.end(), heightMaps.begin(), heightMaps.end());
 
-  std::cout << "Loaded mesh with vertices: " << vertices.size() << ", indices: " << indices.size() << std::endl;
+  // ^^ Player textures handled externally ^^
+
+  // TODO finish animations see: player_model.cc
+  // http://ogldev.atspace.co.uk/www/tutorial38/tutorial38.html
 
   return Mesh(vertices, indices, textures);
 }
 
-std::vector<Texture2D>
-Model::load_material_textures(aiMaterial* mat, aiTextureType type, TextureType type2)
-{
-  std::vector<Texture2D> textures;
+// std::vector<Texture2D>
+// Model::load_material_textures(aiMaterial* mat, aiTextureType type, TextureType type2)
+// {
+//   std::vector<Texture2D> textures;
 
-  for (unsigned int i = 0; i < mat->GetTextureCount(type); i++) {
-    aiString str;
-    mat->GetTexture(type, i, &str);
-    // check if texture was loaded before and if so, continue to next iteration: skip loading a new texture
-    bool skip = false;
-    for (unsigned int j = 0; j < loaded_textures.size(); j++) {
-      if (std::strcmp(loaded_textures[j].path.data(), str.C_Str()) == 0) {
-        textures.push_back(loaded_textures[j]);
-        skip = true; // a texture with the same filepath has already been loaded, continue to next one. (optimization)
-        break;
-      }
-    }
-    if (!skip) { // if texture hasn't been loaded already, load it
+//   for (unsigned int i = 0; i < mat->GetTextureCount(type); i++) {
+//     aiString str;
+//     mat->GetTexture(type, i, &str);
+//     // check if texture was loaded before and if so, continue to next iteration: skip loading a new texture
+//     bool skip = false;
+//     for (unsigned int j = 0; j < loaded_textures.size(); j++) {
+//       if (std::strcmp(loaded_textures[j].path.data(), str.C_Str()) == 0) {
+//         textures.push_back(loaded_textures[j]);
+//         skip = true; // a texture with the same filepath has already been loaded, continue to next one. (optimization)
+//         break;
+//       }
+//     }
+//     if (!skip) { // if texture hasn't been loaded already, load it
 
-      std::string full_path = this->directory + "/" + str.C_Str();
-      std::cout << "loading texture from: " << full_path << std::endl;
+//       std::string full_path = this->directory + "/" + str.C_Str();
+//       std::cout << "loading texture from: " << full_path << std::endl;
 
-      Texture2D texture;
-      texture.load_texture_from_file(full_path);
-      texture.type = type2;
-      texture.path = str.C_Str();
+//       Texture2D texture;
+//       texture.load_texture_from_file(full_path);
+//       texture.type = type2;
+//       texture.path = str.C_Str();
 
-      textures.push_back(texture);
-      loaded_textures.push_back(texture);
-    }
-  }
-  return textures;
-}
+//       textures.push_back(texture);
+//       loaded_textures.push_back(texture);
+//     }
+//   }
+//   return textures;
+// }
 
 } // namespace fightingengine

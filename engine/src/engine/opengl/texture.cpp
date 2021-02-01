@@ -13,9 +13,13 @@
 
 namespace fightingengine {
 
+
+// Arrrgghh this isn't thread safe! Thanks OpenGL.
 void
 Texture2D::load_texture_from_file(const std::string& full_path)
 {
+  this->path = full_path;
+
   glGenTextures(1, &this->id);
 
   // Stb Load Texture
@@ -24,7 +28,7 @@ Texture2D::load_texture_from_file(const std::string& full_path)
 
   // Check Stb texture loaded correctly
   if (!data) {
-    printf("FAILED TO LOAD TEXTURE: %s", full_path.c_str());
+    std::cout << "FAILED TO LOAD TEXTURE: " << full_path << std::endl;
     exit(1); // note, probs shouldn't do this - fine for dev for myself
   }
 
