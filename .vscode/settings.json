@@ -103,7 +103,7 @@
     "cmake.preferredGenerators": [
         "Ninja"
     ],
-    "editor.formatOnSave": false,
+    "editor.formatOnSave": true,
     "C_Cpp.errorSquiggles": "Disabled",
     "cmake.buildArgs": []
 }

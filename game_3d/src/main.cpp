@@ -35,6 +35,7 @@ using namespace fightingengine;
 //
 const int STARTING_CUBES = 35;
 glm::vec3 player_pos(0.0f, 0.0f, 0.0f);
+glm::vec3 camera_follow_vec(-1.5f, 3.0f, 0.0f);
 float player_move_speed = 1.0f;
 
 // Util function to log time since start of the program
@@ -93,24 +94,22 @@ main(int argc, char** argv)
     textures_to_load.emplace_back(tex_unit_player_diffuse,
                                   "assets/models/rpg_characters_nov_2020/OBJ/Monk_Texture.png");
 
-    // std::vector<std::thread> threads;
-    std::vector<Texture2D> loaded_textures(textures_to_load.size());
+    std::vector<std::thread> threads;
+    std::vector<StbLoadedTexture> loaded_textures(textures_to_load.size());
 
-    // for (int i = 0; i < textures_to_load.size(); ++i) {
-    //   const std::pair<int, std::string>& tex_to_load = textures_to_load[i];
-    //   threads.emplace_back([&tex_to_load, i, &loaded_textures]() {
-    //     // load texture from path
-    //     std::cout << "loading texture " << tex_to_load.second << ". Binding tex unit: " << tex_to_load.first << std::endl;
-    //     loaded_textures[i].load_texture_from_file(tex_to_load.second);
-    //     loaded_textures[i].bind(tex_to_load.first);
-    //   });
-    // }
-    // for (auto& thread : threads) {
-    //   thread.join();
-    // }
-
-    loaded_textures[2].load_texture_from_file(textures_to_load[2].second);
-    loaded_textures[2].bind(2);
+    for (int i = 0; i < textures_to_load.size(); ++i) {
+      const std::pair<int, std::string>& tex_to_load = textures_to_load[i];
+      threads.emplace_back([&tex_to_load, i, &loaded_textures]() {
+        std::cout << "loading texture " << tex_to_load.second << ". tex unit: " << tex_to_load.first << std::endl;
+        loaded_textures[i] = load_texture(tex_to_load.first, tex_to_load.second);
+      });
+    }
+    for (auto& thread : threads) {
+      thread.join();
+    }
+    for (StbLoadedTexture& l : loaded_textures) {
+      bind_stb_loaded_texture(l);
+    }
   }
   log_time_since("(End Threaded) textures loaded ", app_start);
 
@@ -150,8 +149,6 @@ main(int argc, char** argv)
   // wigglyShader.setVec3("directionLight.dir", playerLightDir);
   // wigglyShader.setVec3("directionLight.color", lightColor);
   // wigglyShader.setVec3("ambient", ambientColor);
-
-
 
   //
   // enemies
@@ -248,7 +245,7 @@ main(int argc, char** argv)
     // Process Input: Keyboard
     //
     // camera_fly_around(camera, delta_time_s, app.get_input().get_keyboard_state());
-    camera_follow_position(camera, player_pos, delta_time_s);
+    camera_follow_position(camera, player_pos, camera_follow_vec, delta_time_s);
 
     camera.update(delta_time_s);
 
