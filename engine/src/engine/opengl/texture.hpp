@@ -16,6 +16,23 @@ enum class TextureType
   HEIGHT
 };
 
+struct StbLoadedTexture
+{
+  int width;
+  int height;
+  int nr_components;
+  int texture_unit;
+  std::string path;
+  unsigned char* data;
+};
+
+// Note: this IS thread safe
+StbLoadedTexture
+load_texture(const int textureUnit, const std::string& path);
+
+void
+bind_stb_loaded_texture(StbLoadedTexture& texture);
+
 class Texture2D
 {
 public:
@@ -37,7 +54,9 @@ public:
 
   Texture2D() = default;
 
+  // Note: this isn't thread safe!
   void load_texture_from_file(const std::string& full_path);
+  void create_texture_from_stb_loaded_texture(StbLoadedTexture& texture_ref);
 
   void bind(int unit = -1) const;
   void unbind();

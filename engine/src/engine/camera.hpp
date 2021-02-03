@@ -68,6 +68,6 @@ camera_fly_around(Camera& camera, const float& dt, const Uint8* keyboard_state);
 
 // Camera is given a position to follow
 void
-camera_follow_position(Camera& camera, glm::vec3 position, const float& dt);
+camera_follow_position(Camera& camera, glm::vec3 position, glm::vec3 camera_follow_vec, const float& dt);
 
 } // namespace fightingengine

@@ -142,7 +142,7 @@ camera_fly_around(Camera& camera, const float& dt, const Uint8* keyboard_state)
 }
 
 void
-camera_follow_position(Camera& camera, glm::vec3 position, const float& dt)
+camera_follow_position(Camera& camera, glm::vec3 position, glm::vec3 camera_follow_vec, const float& dt)
 {
   float yaw_angle_around_player = 0.0f;
   float distance_from_player = 5.0f;
@@ -167,6 +167,9 @@ camera_follow_position(Camera& camera, glm::vec3 position, const float& dt)
   // pos.z = player_pos.z - offset_z;
 
   // yaw = 180.0f - player.rotation.y + angle_around_player;
+
+  // camera.target_position = glm::vec3(position.x, position.y+3.0f, position.z);
+  camera.target_position = position + camera_follow_vec;
 }
 
 } // namespace fightingengine

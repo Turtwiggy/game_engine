@@ -32,7 +32,6 @@ public:
 private:
   std::vector<Mesh> meshes;
   std::string directory;
-  std::vector<Texture2D> loaded_textures;
 
 private:
   void load_model(const std::string& path);
