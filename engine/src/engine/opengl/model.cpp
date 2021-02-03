@@ -117,8 +117,8 @@ Model::process_mesh(aiMesh* mesh, const aiScene* scene)
   // std::vector<Texture2D> diffuseMaps = load_material_textures(material, aiTextureType_DIFFUSE, TextureType::DIFFUSE);
   // textures.insert(textures.end(), diffuseMaps.begin(), diffuseMaps.end());
   // // 2. specular maps
-  // std::vector<Texture2D> specularMaps = load_material_textures(material, aiTextureType_SPECULAR, TextureType::SPECULAR);
-  // textures.insert(textures.end(), specularMaps.begin(), specularMaps.end());
+  // std::vector<Texture2D> specularMaps = load_material_textures(material, aiTextureType_SPECULAR,
+  // TextureType::SPECULAR); textures.insert(textures.end(), specularMaps.begin(), specularMaps.end());
   // // 3. normal maps
   // std::vector<Texture2D> normalMaps = load_material_textures(material, aiTextureType_HEIGHT, TextureType::NORMAL);
   // textures.insert(textures.end(), normalMaps.begin(), normalMaps.end());
@@ -147,8 +147,8 @@ Model::process_mesh(aiMesh* mesh, const aiScene* scene)
 //     for (unsigned int j = 0; j < loaded_textures.size(); j++) {
 //       if (std::strcmp(loaded_textures[j].path.data(), str.C_Str()) == 0) {
 //         textures.push_back(loaded_textures[j]);
-//         skip = true; // a texture with the same filepath has already been loaded, continue to next one. (optimization)
-//         break;
+//         skip = true; // a texture with the same filepath has already been loaded, continue to next one.
+//         (optimization) break;
 //       }
 //     }
 //     if (!skip) { // if texture hasn't been loaded already, load it
