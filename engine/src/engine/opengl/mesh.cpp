@@ -11,11 +11,10 @@
 
 namespace fightingengine {
 
-Mesh::Mesh(std::vector<Vertex> vertices, std::vector<unsigned int> indices, std::vector<Texture2D> textures)
+Mesh::Mesh(std::vector<Vertex> vertices, std::vector<unsigned int> indices)
 {
   this->verts = vertices;
   this->indices = indices;
-  this->textures = textures;
 
   setup_mesh();
 }
@@ -23,7 +22,7 @@ Mesh::Mesh(std::vector<Vertex> vertices, std::vector<unsigned int> indices, std:
 void
 Mesh::setup_mesh()
 {
-  // initialize object IDs if not configured before
+  // initialize object IDs
   glGenVertexArrays(1, &vao);
   glGenBuffers(1, &vbo);
   glGenBuffers(1, &ebo);
@@ -54,36 +53,6 @@ Mesh::setup_mesh()
 void
 Mesh::draw(Shader& shader)
 {
-  // bind appropriate textures
-  unsigned int diffuseNr = 1;
-  unsigned int specularNr = 1;
-  unsigned int normalNr = 1;
-  unsigned int heightNr = 1;
-  for (unsigned int i = 0; i < textures.size(); i++) {
-    glActiveTexture(GL_TEXTURE0 + i); // active proper texture unit before binding
-    // retrieve texture number (the N in diffuse_textureN)
-    std::string number;
-    std::string name;
-    TextureType type = textures[i].type;
-    if (type == TextureType::DIFFUSE) {
-      name = "texture_diffuse";
-      number = std::to_string(diffuseNr++);
-    } else if (type == TextureType::SPECULAR) {
-      name = "texture_specular";
-      number = std::to_string(specularNr++); // transfer unsigned int to stream
-    } else if (type == TextureType::NORMAL) {
-      name = "texture_normal";
-      number = std::to_string(normalNr++); // transfer unsigned int to stream
-    } else if (type == TextureType::HEIGHT) {
-      name = "texture_height";
-      number = std::to_string(heightNr++); // transfer unsigned int to stream
-    }
-
-    const char* tex_name = (name + number).c_str();
-    shader.set_int(tex_name, i);
-    textures[i].bind();
-  }
-
   // bind vao
   glBindVertexArray(vao);
   glDrawElements(GL_TRIANGLES, indices.size(), GL_UNSIGNED_INT, 0);

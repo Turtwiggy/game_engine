@@ -100,7 +100,6 @@ main(int argc, char** argv)
     for (int i = 0; i < textures_to_load.size(); ++i) {
       const std::pair<int, std::string>& tex_to_load = textures_to_load[i];
       threads.emplace_back([&tex_to_load, i, &loaded_textures]() {
-        std::cout << "loading texture " << tex_to_load.second << ". tex unit: " << tex_to_load.first << std::endl;
         loaded_textures[i] = load_texture(tex_to_load.first, tex_to_load.second);
       });
     }

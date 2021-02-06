@@ -26,10 +26,9 @@ class Mesh
 public:
   std::vector<Vertex> verts;
   std::vector<unsigned int> indices;
-  std::vector<Texture2D> textures;
 
 public:
-  Mesh(std::vector<Vertex> vertices, std::vector<unsigned int> indices, std::vector<Texture2D> textures);
+  Mesh(std::vector<Vertex> vertices, std::vector<unsigned int> indices);
 
   void draw(Shader& shader);
 
