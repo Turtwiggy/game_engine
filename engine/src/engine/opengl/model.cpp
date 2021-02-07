@@ -90,13 +90,28 @@ Model::process_mesh(aiMesh* mesh, const aiScene* scene)
   // each aiAnimation contains duration, and ticker per  second
   // each aiAnimation contains aiNodeAnim
 
+  // SEE: http://ogldev.atspace.co.uk/www/tutorial38/tutorial38.html
+  // The structure above contains everything we need at the vertex level. By default, we have enough storage for four
+  // bones (ID and weight per bone). VertexBoneData was structured like that to make it simple to pass it on to the
+  // shader. We already got position, texture coordinates and normal bound at locations 0, 1 and 2, respectively.
+
+  // SEE: player_model.cc line 335
+
   aiMatrix4x4 inverse_transform = scene->mRootNode->mTransformation.Inverse();
 
   // clang-format off
+  
   std::cout << " mesh " << mesh->mName.C_Str()
             << "\n (bones): " << std::to_string(mesh->mNumBones)
             << "\n (animations): " << std::to_string(scene->mNumAnimations)
             << std::endl;
+
+  if(scene->mNumAnimations > 0){
+    float anim_ticks_per_second = scene->mAnimations[0]->mTicksPerSecond;
+    float anim_time_in_seconds = 2.0f;
+    float anim_time_in_ticks = anim_time_in_seconds * anim_ticks_per_second;
+  }
+
   // clang-format on
 
   for (int i = 0; i < mesh->mNumBones; i++) {

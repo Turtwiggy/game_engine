@@ -11,6 +11,55 @@
 
 namespace fightingengine {
 
+// clang-format off
+static float vertexPlane[40] =
+{
+	-1.0f, 1.0f, 0.0f, 1.0f,	0.0f, 0.0f, 1.0f, 0.0f,		0.0f, 1.0f,
+	 1.0f,-1.0f, 0.0f, 1.0f,	0.0f, 0.0f, 1.0f, 0.0f,		1.0f, 0.0f,
+	 1.0f, 1.0f, 0.0f, 1.0f,	0.0f, 0.0f, 1.0f, 0.0f,		1.0f, 1.0f,
+	-1.0f,-1.0f, 0.0f, 1.0f,	0.0f, 0.0f, 1.0f, 0.0f,		0.0f, 0.0f
+};
+
+static float vertexCube[] =
+{
+	-1.0f, 1.0f, 1.0f, 1.0f,	0.0f, 0.0f, 1.0f, 0.0f,			0.0f, 1.0f, // top
+	 1.0f,-1.0f, 1.0f, 1.0f,	0.0f, 0.0f, 1.0f, 0.0f,			1.0f, 0.0f,
+	 1.0f, 1.0f, 1.0f, 1.0f,	0.0f, 0.0f, 1.0f, 0.0f,			1.0f, 1.0f,
+	-1.0f,-1.0f, 1.0f, 1.0f,	0.0f, 0.0f, 1.0f, 0.0f,			0.0f, 0.0f,
+
+	-1.0f, 1.0f, -1.0f, 1.0f,	0.0f, 0.0f, -1.0f, 0.0f,		0.0f, 1.0f, // bottom
+	 1.0f,-1.0f, -1.0f, 1.0f,	0.0f, 0.0f, -1.0f, 0.0f,		1.0f, 0.0f,
+	 1.0f, 1.0f, -1.0f, 1.0f,	0.0f, 0.0f, -1.0f, 0.0f,		1.0f, 1.0f,
+	-1.0f,-1.0f, -1.0f, 1.0f,	0.0f, 0.0f, -1.0f, 0.0f,		0.0f, 0.0f,
+
+	 -1.0f, -1.0f, 1.0f,1.0f,	-1.0f, 0.0f, 0.0f, 0.0f,		0.0f, 1.0f, // left
+	 -1.0f,  1.0f,-1.0f,1.0f,	-1.0f, 0.0f, 0.0f, 0.0f,		1.0f, 0.0f,
+	 -1.0f,  1.0f, 1.0f,1.0f,	-1.0f, 0.0f, 0.0f, 0.0f,		1.0f, 1.0f,
+	 -1.0f, -1.0f,-1.0f,1.0f,	-1.0f, 0.0f, 0.0f, 0.0f,		0.0f, 0.0f,
+
+	 1.0f, -1.0f, 1.0f,1.0f,	1.0f, 0.0f, 0.0f, 0.0f,			0.0f, 1.0f, // right
+	 1.0f,  1.0f,-1.0f,1.0f,	1.0f, 0.0f, 0.0f, 0.0f,			1.0f, 0.0f,
+	 1.0f,  1.0f, 1.0f,1.0f,	1.0f, 0.0f, 0.0f, 0.0f,			1.0f, 1.0f,
+	 1.0f, -1.0f,-1.0f,1.0f,	1.0f, 0.0f, 0.0f, 0.0f,			0.0f, 0.0f,
+
+	-1.0f, 1.0f,  1.0f,1.0f,	0.0f, 1.0f, 0.0f, 0.0f,			0.0f, 1.0f, // front
+	 1.0f, 1.0f, -1.0f,1.0f,	0.0f, 1.0f, 0.0f, 0.0f,			1.0f, 0.0f,
+	 1.0f, 1.0f,  1.0f,1.0f,	0.0f, 1.0f, 0.0f, 0.0f,			1.0f, 1.0f,
+	-1.0f, 1.0f, -1.0f,1.0f,	0.0f, 1.0f, 0.0f, 0.0f,			0.0f, 0.0f,
+
+	-1.0f, -1.0f,  1.0f,1.0f,	0.0f, -1.0f, 0.0f, 0.0f,		0.0f, 1.0f, // back
+	 1.0f, -1.0f, -1.0f,1.0f,	0.0f, -1.0f, 0.0f, 0.0f,		1.0f, 0.0f,
+	 1.0f, -1.0f,  1.0f,1.0f,	0.0f, -1.0f, 0.0f, 0.0f,		1.0f, 1.0f,
+	-1.0f, -1.0f, -1.0f,1.0f,	0.0f, -1.0f, 0.0f, 0.0f,		0.0f, 0.0f,
+};
+
+static unsigned short indexPlane[6]
+{
+	0+0, 0+2, 0+1,
+	0+0, 0+1, 0+3
+};
+// clang-format on
+
 Mesh::Mesh(std::vector<Vertex> vertices, std::vector<unsigned int> indices)
 {
   this->verts = vertices;
@@ -45,9 +94,8 @@ Mesh::setup_mesh()
   glVertexAttribPointer(2, 2, GL_FLOAT, GL_FALSE, sizeof(Vertex), (void*)offsetof(Vertex, tex_coords));
   glEnableVertexAttribArray(2);
 
+  // unbind
   glBindVertexArray(0);
-
-  // printf("Setup mesh... \n");
 }
 
 void
@@ -59,109 +107,5 @@ Mesh::draw(Shader& shader)
   glBindVertexArray(0);
   glActiveTexture(GL_TEXTURE0);
 }
-
-namespace primitives {
-
-// ---- plane
-
-// Plane::Plane()
-// {
-//   mesh.verts = std::vector<Vertex>();
-
-//   mesh.verts.position =
-//     std::vector<glm::vec3>{ glm::vec3(1.0f, 0.0f, 1.0f), glm::vec3(-1.0f, 0.0f, 1.0f),  glm::vec3(-1.0f, 0.0f,
-//     -1.0f),
-//                             glm::vec3(1.0f, 0.0f, 1.0f), glm::vec3(-1.0f, 0.0f, -1.0f), glm::vec3(1.0f, 0.0f,
-//                             -1.0f)
-//                             };
-
-//   mesh.verts.normal =
-//     std::vector<glm::vec3>{ glm::vec3(0.0f, 1.0f, 0.0f), glm::vec3(0.0f, 1.0f, 0.0f), glm::vec3(0.0f, 1.0f, 0.0f),
-
-//                             glm::vec3(0.0f, 1.0f, 0.0f), glm::vec3(0.0f, 1.0f, 0.0f), glm::vec3(0.0f, 1.0f, 0.0f)
-//                             };
-
-//   mesh.verts.tex_coords = std::vector<glm::vec2>{
-//     glm::vec2(1.0f, 0.0f), glm::vec2(0.0f, 0.0f), glm::vec2(0.0f, 1.0f),
-
-//     glm::vec2(1.0f, 0.0f), glm::vec2(0.0f, 1.0f), glm::vec2(1.0f, 1.0f),
-//   };
-
-//   mesh.topology = TOPOLOGY::TRIANGLE_STRIP;
-//   mesh.Finalize();
-// }
-
-// ---- cube
-
-// Cube::Cube()
-// {
-//   mesh.verts = std::vector<Vertex>();
-
-//   mesh.verts.position = std::vector<glm::vec3>{
-//     glm::vec3(-1.0f, -1.0f, -1.0f), glm::vec3(1.0f, 1.0f, -1.0f),   glm::vec3(1.0f, -1.0f, -1.0f),
-//     glm::vec3(1.0f, 1.0f, -1.0f),   glm::vec3(-1.0f, -1.0f, -1.0f), glm::vec3(-1.0f, 1.0f, -1.0f),
-
-//     glm::vec3(-1.0f, -1.0f, 1.0f),  glm::vec3(1.0f, -1.0f, 1.0f),   glm::vec3(1.0f, 1.0f, 1.0f),
-//     glm::vec3(1.0f, 1.0f, 1.0f),    glm::vec3(-1.0f, 1.0f, 1.0f),   glm::vec3(-1.0f, -1.0f, 1.0f),
-
-//     glm::vec3(-1.0f, 1.0f, 1.0f),   glm::vec3(-1.0f, 1.0f, -1.0f),  glm::vec3(-1.0f, -1.0f, -1.0f),
-//     glm::vec3(-1.0f, -1.0f, -1.0f), glm::vec3(-1.0f, -1.0f, 1.0f),  glm::vec3(-1.0f, 1.0f, 1.0f),
-
-//     glm::vec3(1.0f, 1.0f, 1.0f),    glm::vec3(1.0f, -1.0f, -1.0f),  glm::vec3(1.0f, 1.0f, -1.0f),
-//     glm::vec3(1.0f, -1.0f, -1.0f),  glm::vec3(1.0f, 1.0f, 1.0f),    glm::vec3(1.0f, -1.0f, 1.0f),
-
-//     glm::vec3(-1.0f, -1.0f, -1.0f), glm::vec3(1.0f, -1.0f, -1.0f),  glm::vec3(1.0f, -1.0f, 1.0f),
-//     glm::vec3(1.0f, -1.0f, 1.0f),   glm::vec3(-1.0f, -1.0f, 1.0f),  glm::vec3(-1.0f, -1.0f, -1.0f),
-
-//     glm::vec3(-1.0f, 1.0f, -1.0f),  glm::vec3(1.0f, 1.0f, 1.0f),    glm::vec3(1.0f, 1.0f, -1.0f),
-//     glm::vec3(1.0f, 1.0f, 1.0f),    glm::vec3(-1.0f, 1.0f, -1.0f),  glm::vec3(-1.0f, 1.0f, 1.0f)
-//   };
-
-//   mesh.verts.normal = std::vector<glm::vec3>{
-
-//     glm::vec3(0.0f, 0.0f, -1.0f), glm::vec3(0.0f, 0.0f, -1.0f), glm::vec3(0.0f, 0.0f, -1.0f),
-//     glm::vec3(0.0f, 0.0f, -1.0f), glm::vec3(0.0f, 0.0f, -1.0f), glm::vec3(0.0f, 0.0f, -1.0f),
-
-//     glm::vec3(0.0f, 0.0f, 1.0f),  glm::vec3(0.0f, 0.0f, 1.0f),  glm::vec3(0.0f, 0.0f, 1.0f),
-//     glm::vec3(0.0f, 0.0f, 1.0f),  glm::vec3(0.0f, 0.0f, 1.0f),  glm::vec3(0.0f, 0.0f, 1.0f),
-
-//     glm::vec3(-1.0f, 0.0f, 0.0f), glm::vec3(-1.0f, 0.0f, 0.0f), glm::vec3(-1.0f, 0.0f, 0.0f),
-//     glm::vec3(-1.0f, 0.0f, 0.0f), glm::vec3(-1.0f, 0.0f, 0.0f), glm::vec3(-1.0f, 0.0f, 0.0f),
-
-//     glm::vec3(1.0f, 0.0f, 0.0f),  glm::vec3(1.0f, 0.0f, 0.0f),  glm::vec3(1.0f, 0.0f, 0.0f),
-//     glm::vec3(1.0f, 0.0f, 0.0f),  glm::vec3(1.0f, 0.0f, 0.0f),  glm::vec3(1.0f, 0.0f, 0.0f),
-
-//     glm::vec3(0.0f, -1.0f, 0.0f), glm::vec3(0.0f, -1.0f, 0.0f), glm::vec3(0.0f, -1.0f, 0.0f),
-//     glm::vec3(0.0f, -1.0f, 0.0f), glm::vec3(0.0f, -1.0f, 0.0f), glm::vec3(0.0f, -1.0f, 0.0f),
-
-//     glm::vec3(0.0f, 1.0f, 0.0f),  glm::vec3(0.0f, 1.0f, 0.0f),  glm::vec3(0.0f, 1.0f, 0.0f),
-//     glm::vec3(0.0f, 1.0f, 0.0f),  glm::vec3(0.0f, 1.0f, 0.0f),  glm::vec3(0.0f, 1.0f, 0.0f)
-//   };
-
-//   mesh.verts.tex_coords = std::vector<glm::vec2>{
-//     glm::vec2(0.0f, 0.0f), glm::vec2(1.0f, 1.0f), glm::vec2(1.0f, 0.0f),
-//     glm::vec2(1.0f, 1.0f), glm::vec2(0.0f, 0.0f), glm::vec2(0.0f, 1.0f),
-
-//     glm::vec2(0.0f, 0.0f), glm::vec2(1.0f, 0.0f), glm::vec2(1.0f, 1.0f),
-//     glm::vec2(1.0f, 1.0f), glm::vec2(0.0f, 1.0f), glm::vec2(0.0f, 0.0f),
-
-//     glm::vec2(1.0f, 0.0f), glm::vec2(1.0f, 1.0f), glm::vec2(0.0f, 1.0f),
-//     glm::vec2(0.0f, 1.0f), glm::vec2(0.0f, 0.0f), glm::vec2(1.0f, 0.0f),
-
-//     glm::vec2(1.0f, 0.0f), glm::vec2(0.0f, 1.0f), glm::vec2(1.0f, 1.0f),
-//     glm::vec2(0.0f, 1.0f), glm::vec2(1.0f, 0.0f), glm::vec2(0.0f, 0.0f),
-
-//     glm::vec2(0.0f, 1.0f), glm::vec2(1.0f, 1.0f), glm::vec2(1.0f, 0.0f),
-//     glm::vec2(1.0f, 0.0f), glm::vec2(0.0f, 0.0f), glm::vec2(0.0f, 1.0f),
-
-//     glm::vec2(0.0f, 1.0f), glm::vec2(1.0f, 0.0f), glm::vec2(1.0f, 1.0f),
-//     glm::vec2(1.0f, 0.0f), glm::vec2(0.0f, 1.0f), glm::vec2(0.0f, 0.0f),
-//   };
-
-//   mesh.topology = TOPOLOGY::TRIANGLES;
-//   mesh.Finalize();
-// }
-
-} // namespace primitives
 
 } // namespace fightingengine

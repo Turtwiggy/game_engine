@@ -38,24 +38,5 @@ private:
   // commits all buffers and attributes to the GPU driver
   void setup_mesh();
 };
-namespace primitives {
-
-// class Plane
-// { o
-// public:
-//   Mesh mesh; // set in constructor
-
-//   Plane();
-// };
-
-// class Cube
-// {
-// public:
-//   Mesh mesh; // set in constructor
-
-//   Cube();
-// };
-
-} // namespace primitives
 
 }
