@@ -100,7 +100,6 @@ main(int argc, char** argv)
     for (int i = 0; i < textures_to_load.size(); ++i) {
       const std::pair<int, std::string>& tex_to_load = textures_to_load[i];
       threads.emplace_back([&tex_to_load, i, &loaded_textures]() {
-        std::cout << "loading texture " << tex_to_load.second << ". tex unit: " << tex_to_load.first << std::endl;
         loaded_textures[i] = load_texture(tex_to_load.first, tex_to_load.second);
       });
     }
@@ -129,6 +128,7 @@ main(int argc, char** argv)
 
   // Model model_1("assets/models/cyborg/cyborg.obj");
   Model model_2("assets/models/rpg_characters_nov_2020/OBJ/Monk.obj");
+  Model model_3("assets/models/arissa_mixamo_fbx/arissa.fbx");
 
   log_time_since("models loaded ", app_start);
 
@@ -278,9 +278,9 @@ main(int argc, char** argv)
 
     model = glm::mat4(1.0f);
     model = glm::translate(model, glm::vec3(2.0f, 0.0f, 0.0));
-    model = glm::scale(model, glm::vec3(0.5f));
+    model = glm::scale(model, glm::vec3(0.01f));
     texture_shader.set_mat4("model", model);
-    model_2.draw(texture_shader);
+    model_3.draw(texture_shader);
 
     profiler.end(Profiler::Stage::Render);
     profiler.begin(Profiler::Stage::GuiLoop);

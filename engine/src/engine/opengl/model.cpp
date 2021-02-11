@@ -2,6 +2,10 @@
 // header
 #include "engine/opengl/model.hpp"
 
+// standard lib headers
+#include <iostream>
+#include <string>
+
 // other project libs
 #include "assimp/Importer.hpp"
 #include "assimp/postprocess.h"
@@ -56,12 +60,65 @@ Model::process_node(aiNode* node, const aiScene* scene)
   }
 }
 
+// struct VertexWithBoneData
+// {
+//   Vertex v; // pos, normal, tex_coords
+
+//   const int num_bones_per_vertex = 4;
+//   uint ids[num_bones_per_vertex];
+//   float weights[num_bones_per_vertex];
+// };
+
 Mesh
 Model::process_mesh(aiMesh* mesh, const aiScene* scene)
 {
   std::vector<Vertex> vertices;
   std::vector<unsigned int> indices;
-  std::vector<Texture2D> textures;
+
+  //
+  // TODO finish animations see: player_model.cc
+  // http://ogldev.atspace.co.uk/www/tutorial38/tutorial38.html
+  //
+
+  // each mesh contains aiBone[]
+  // each mesh contains aiVector3D vertices[]
+  // each aiBone contasn name, aiVertexWeight[], offsetMatrix
+  // each aiVertexWeight[] contains vertexID, weight
+
+  // each scene contains aiNodes
+  // each scene contains aiAnimation
+  // each aiAnimation contains duration, and ticker per  second
+  // each aiAnimation contains aiNodeAnim
+
+  // SEE: http://ogldev.atspace.co.uk/www/tutorial38/tutorial38.html
+  // The structure above contains everything we need at the vertex level. By default, we have enough storage for four
+  // bones (ID and weight per bone). VertexBoneData was structured like that to make it simple to pass it on to the
+  // shader. We already got position, texture coordinates and normal bound at locations 0, 1 and 2, respectively.
+
+  // SEE: player_model.cc line 335
+
+  aiMatrix4x4 inverse_transform = scene->mRootNode->mTransformation.Inverse();
+
+  // clang-format off
+  
+  std::cout << " mesh " << mesh->mName.C_Str()
+            << "\n (bones): " << std::to_string(mesh->mNumBones)
+            << "\n (animations): " << std::to_string(scene->mNumAnimations)
+            << std::endl;
+
+  if(scene->mNumAnimations > 0){
+    float anim_ticks_per_second = scene->mAnimations[0]->mTicksPerSecond;
+    float anim_time_in_seconds = 2.0f;
+    float anim_time_in_ticks = anim_time_in_seconds * anim_ticks_per_second;
+  }
+
+  // clang-format on
+
+  for (int i = 0; i < mesh->mNumBones; i++) {
+    aiBone* bone = mesh->mBones[i];
+    const std::string bone_name = bone->mName.C_Str();
+    std::cout << "found a bone!: " << bone_name << std::endl;
+  }
 
   for (unsigned int i = 0; i < mesh->mNumVertices; i++) {
     Vertex vertex;
@@ -89,6 +146,7 @@ Model::process_mesh(aiMesh* mesh, const aiScene* scene)
 
     vertices.push_back(vertex);
   }
+
   // process indices
   for (unsigned int i = 0; i < mesh->mNumFaces; i++) {
     aiFace face = mesh->mFaces[i];
@@ -113,59 +171,7 @@ Model::process_mesh(aiMesh* mesh, const aiScene* scene)
   // specular: texture_specularN
   // normal: texture_normalN
 
-  // // 1. diffuse maps
-  // std::vector<Texture2D> diffuseMaps = load_material_textures(material, aiTextureType_DIFFUSE, TextureType::DIFFUSE);
-  // textures.insert(textures.end(), diffuseMaps.begin(), diffuseMaps.end());
-  // // 2. specular maps
-  // std::vector<Texture2D> specularMaps = load_material_textures(material, aiTextureType_SPECULAR,
-  // TextureType::SPECULAR); textures.insert(textures.end(), specularMaps.begin(), specularMaps.end());
-  // // 3. normal maps
-  // std::vector<Texture2D> normalMaps = load_material_textures(material, aiTextureType_HEIGHT, TextureType::NORMAL);
-  // textures.insert(textures.end(), normalMaps.begin(), normalMaps.end());
-  // // 4. height maps
-  // std::vector<Texture2D> heightMaps = load_material_textures(material, aiTextureType_AMBIENT, TextureType::HEIGHT);
-  // textures.insert(textures.end(), heightMaps.begin(), heightMaps.end());
-
-  // ^^ Player textures handled externally ^^
-
-  // TODO finish animations see: player_model.cc
-  // http://ogldev.atspace.co.uk/www/tutorial38/tutorial38.html
-
-  return Mesh(vertices, indices, textures);
+  return Mesh(vertices, indices);
 }
-
-// std::vector<Texture2D>
-// Model::load_material_textures(aiMaterial* mat, aiTextureType type, TextureType type2)
-// {
-//   std::vector<Texture2D> textures;
-
-//   for (unsigned int i = 0; i < mat->GetTextureCount(type); i++) {
-//     aiString str;
-//     mat->GetTexture(type, i, &str);
-//     // check if texture was loaded before and if so, continue to next iteration: skip loading a new texture
-//     bool skip = false;
-//     for (unsigned int j = 0; j < loaded_textures.size(); j++) {
-//       if (std::strcmp(loaded_textures[j].path.data(), str.C_Str()) == 0) {
-//         textures.push_back(loaded_textures[j]);
-//         skip = true; // a texture with the same filepath has already been loaded, continue to next one.
-//         (optimization) break;
-//       }
-//     }
-//     if (!skip) { // if texture hasn't been loaded already, load it
-
-//       std::string full_path = this->directory + "/" + str.C_Str();
-//       std::cout << "loading texture from: " << full_path << std::endl;
-
-//       Texture2D texture;
-//       texture.load_texture_from_file(full_path);
-//       texture.type = type2;
-//       texture.path = str.C_Str();
-
-//       textures.push_back(texture);
-//       loaded_textures.push_back(texture);
-//     }
-//   }
-//   return textures;
-// }
 
 } // namespace fightingengine

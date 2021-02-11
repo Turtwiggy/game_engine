@@ -8,7 +8,6 @@
 // your project libs
 #include "engine/opengl/mesh.hpp"
 #include "engine/opengl/shader.hpp"
-#include "engine/opengl/texture.hpp"
 #include "engine/opengl/vertex.hpp"
 
 #ifndef STB_IMAGE_IMPLEMENTATION
@@ -37,7 +36,6 @@ private:
   void load_model(const std::string& path);
   void process_node(aiNode* node, const aiScene* scene);
   Mesh process_mesh(aiMesh* mesh, const aiScene* scene);
-  std::vector<Texture2D> load_material_textures(aiMaterial* mat, aiTextureType type, TextureType type2);
 };
 
 } // namespace fightingengine
