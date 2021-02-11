@@ -19,6 +19,7 @@ add_subdirectory(game_3d)
 #examples
 #add_subdirectory(examples/hello_application)
 #add_subdirectory(examples/hello_application_profiled)
+add_subdirectory(examples/game_2d)
 
 set(CPACK_PROJECT_NAME ${PROJECT_NAME})
 set(CPACK_PROJECT_VERSION ${PROJECT_VERSION})
