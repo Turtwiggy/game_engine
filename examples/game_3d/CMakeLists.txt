@@ -25,7 +25,7 @@ find_path(STB_INCLUDE_DIRS "stb.h")
 # add source files
 file(GLOB_RECURSE SRC_FILES 
   ${ENGINE_SOURCE} 
-  "${CMAKE_SOURCE_DIR}/game_3d/src/*.cpp"
+  "${CMAKE_SOURCE_DIR}/examples/game_3d/src/*.cpp"
 )
 
 add_executable(game_3d ${SRC_FILES})
@@ -33,7 +33,7 @@ add_executable(game_3d ${SRC_FILES})
 # includes
 target_include_directories(game_3d PRIVATE 
   ${ENGINE_INCLUDES} 
-  ${CMAKE_SOURCE_DIR}/game_3d/src
+  ${CMAKE_SOURCE_DIR}/examples/game_3d/src
   ${STB_INCLUDE_DIRS}
 )
 

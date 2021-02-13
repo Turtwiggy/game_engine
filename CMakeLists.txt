@@ -8,18 +8,12 @@ set (CMAKE_CXX_STANDARD 20)
 set (CMAKE_TOOLCHAIN_FILE ${CMAKE_SOURCE_DIR}/thirdparty/vcpkg/scripts/buildsystems/vcpkg.cmake)
 project(subprojects VERSION 0.1.0)
 
-#add_subdirectory(engine)
-#add_subdirectory(game_2d)
-add_subdirectory(game_3d)
-
-#random c++ projects
-#add_subdirectory(net_client)
-#add_subdirectory(net_server)
-
-#examples
+# projects
 #add_subdirectory(examples/hello_application)
-#add_subdirectory(examples/hello_application_profiled)
+#add_subdirectory(examples/net_client)
+#add_subdirectory(examples/net_server)
 add_subdirectory(examples/game_2d)
+add_subdirectory(examples/game_3d)
 
 set(CPACK_PROJECT_NAME ${PROJECT_NAME})
 set(CPACK_PROJECT_VERSION ${PROJECT_VERSION})
