@@ -66,6 +66,5 @@ private:
   unsigned int start = 0;
   unsigned int prev = 0;
   unsigned int now = 0;
-  float time_since_launch = 0.0f;
 };
 }

@@ -28,13 +28,14 @@ struct Transform
   glm::vec2 position = { 0.0f, 0.0f }; // in pixels, centered
   float angle = 0.0f;                  // in degrees
   glm::vec2 scale = { 100.0f, 100.0f };
-  glm::vec3 colour = { 1.0f, 1.0f, 1.0f };
+  glm::vec4 colour = { 1.0f, 1.0f, 1.0f, 1.0f };
 };
 
 struct GameObject
 {
   Transform transform;
   glm::vec2 velocity = { 0.0f, 0.0f };
+  int tex_slot = 0;
 
   // gameobject flags...
   // note: avoid adding these, or come up with a better system
@@ -98,13 +99,5 @@ struct Breakout
 
 // void do_collisions_bricks( GameLevel& objects, Ball& ball );
 // void do_collisions_player( GameObject& player, Ball& ball );
-
-// ---- breakout game functions
-
-void
-update_user_input(Application& app, float delta_time_s, GameObject& player, Ball& ball, float screen_width);
-
-void
-update_game_state();
 
 } // namespace game2d

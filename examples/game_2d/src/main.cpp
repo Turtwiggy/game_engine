@@ -53,34 +53,20 @@ main()
   Profiler profiler;
 
   //
-  // Rendering
-  //
-
-  glm::vec4 dark_blue = glm::vec4(0.0f / 255.0f, 100.0f / 255.0f, 100.0f / 255.0f, 1.0f);
-  RenderCommand::init();
-  RenderCommand::set_clear_colour(dark_blue);
-  RenderCommand::set_viewport(0, 0, screen_width, screen_height);
-  RenderCommand::set_depth_testing(false); // disable depth testing for 2d
-
-  Shader shader = Shader("assets/shaders/sprite.vert", "assets/shaders/sprite.frag");
-  shader.bind();
-  shader.set_int("image", 0);
-  shader.set_mat4("projection", projection);
-
-  //
   // TODO sound
   //
 
   //
   // load textures
   //
-  int textures = 0;
-  int tex_unit_bamboo_diffuse = textures++;
-  int tex_unit_solid = textures++;
-  int tex_unit_block = textures++;
-  int tex_unit_paddle = textures++;
-  int tex_unit_face = textures++;
-  int tex_unit_kenny_nl = textures++;
+  int NUM_TEXTURES = 0;
+  const int tex_unit_bamboo_diffuse = NUM_TEXTURES++;
+  const int tex_unit_solid = NUM_TEXTURES++;
+  const int tex_unit_block = NUM_TEXTURES++;
+  const int tex_unit_paddle = NUM_TEXTURES++;
+  const int tex_unit_face = NUM_TEXTURES++;
+  const int tex_unit_kenny_nl = NUM_TEXTURES;
+  std::cout << "planning to load " << NUM_TEXTURES << " textures" << std::endl;
 
   log_time_since("(Threaded) loading textures... ", app_start);
   {
@@ -89,14 +75,8 @@ main()
     textures_to_load.emplace_back(tex_unit_solid, "assets/breakout/solid_texture.png");
     textures_to_load.emplace_back(tex_unit_block, "assets/breakout/block_texture.png");
     textures_to_load.emplace_back(tex_unit_paddle, "assets/breakout/paddle.png");
-    textures_to_load.emplace_back(tex_unit_face, "assets/breakout/face.png");
-    textures_to_load.emplace_back(tex_unit_kenny_nl, "assets/textures/1-bit-pack-kennynl/Tilesheet/colored.png");
-    // textures_to_load.emplace_back(tex_unit_kenny_nl,
-    // "assets/textures/1-bit-pack-kennynl/Tilesheet/colored_packed.png");
-    // textures_to_load.emplace_back(tex_unit_kenny_nl,
-    // "assets/textures/1-bit-pack-kennynl/Tilesheet/monochrome.png");
-    // textures_to_load.emplace_back(tex_unit_kenny_nl,
-    // "assets/textures/1-bit-pack-kennynl/Tilesheet/monochrome_packed.png");
+    textures_to_load.emplace_back(tex_unit_face, "assets/textures/octopus.png");
+    textures_to_load.emplace_back(tex_unit_kenny_nl, "assets/textures/kennynl_1bit_pack/Tilesheet/colored.png");
 
     std::vector<std::thread> threads;
     std::vector<StbLoadedTexture> loaded_textures(textures_to_load.size());
@@ -115,6 +95,31 @@ main()
     }
   }
   log_time_since("(End Threaded) textures loaded ", app_start);
+
+  //
+  // Rendering
+  //
+
+  glm::vec4 dark_blue = glm::vec4(0.0f / 255.0f, 100.0f / 255.0f, 100.0f / 255.0f, 1.0f);
+  RenderCommand::init();
+  RenderCommand::set_clear_colour(dark_blue);
+  RenderCommand::set_viewport(0, 0, screen_width, screen_height);
+  RenderCommand::set_depth_testing(false); // disable depth testing for 2d
+
+  Shader shader = Shader("2d/sprite.vert", "2d/sprite.frag");
+  shader.bind();
+  shader.set_mat4("projection", projection);
+  shader.set_int("tex", tex_unit_kenny_nl);
+
+  // player
+
+  GameObject player;
+  player.transform.angle = 0.0f;
+  player.transform.colour = { 1.0f, 1.0f, 1.0f, 1.0f };
+  player.transform.scale = { screen_width, screen_height };
+  player.transform.position = { 0.0f, 0.0f };
+  player.tex_slot = tex_unit_kenny_nl;
+  player.velocity = { 500.0f, 500.0f };
 
   // ---- Game ----
 
@@ -159,36 +164,14 @@ main()
 
   // levels
 
-  breakout.levels.clear();
-
-  GameLevel level_0;
-  {
-    std::vector<std::vector<int>> level_0_bricks;
-    load_level_from_file(level_0_bricks, "assets/breakout/level_0.breakout");
-    init_level(level_0, level_0_bricks, screen_width, static_cast<int>(screen_height / 2.0f));
-  }
-  breakout.levels.push_back(level_0);
-
-  // player
-
-  GameObject player;
-  player.transform.angle = 0.0f;
-  player.transform.colour = { 0.8f, 0.8f, 0.7f };
-  player.transform.scale = { 100.0f, 20.0f };
-  player.transform.position = { screen_width / 2.0f - player.transform.scale.x / 2.0f,
-                                screen_height - player.transform.scale.y };
-  player.velocity = { 500.0f, 0.0f };
-
-  // ball
-
-  Ball ball;
-  ball.radius = 36.0f;
-  ball.game_object.velocity = { 100.0f, -100.0f };
-  ball.game_object.transform.scale = { ball.radius * 2.0f, ball.radius * 2.0f };
-  ball.game_object.transform.position = { player.transform.position };
-  ball.game_object.transform.position.x += (player.transform.scale.x / 2.0f) - ball.radius;
-  ball.game_object.transform.position.y += -ball.radius * 2.0f;
-  // printf("ball pos: %f %f", ball.game_object.transform.position.x, ball.game_object.transform.position.y);
+  // breakout.levels.clear();
+  // GameLevel level_0;
+  // {
+  //   std::vector<std::vector<int>> level_0_bricks;
+  //   load_level_from_file(level_0_bricks, "assets/breakout/level_0.breakout");
+  //   init_level(level_0, level_0_bricks, screen_width, static_cast<int>(screen_height / 2.0f));
+  // }
+  // breakout.levels.push_back(level_0);
 
   // ---- App ----
 
@@ -212,8 +195,12 @@ main()
     if (app.get_input().get_key_held(SDL_SCANCODE_F))
       printf("F is being held! \n");
 
+    if (app.get_input().get_key_down(SDL_KeyCode::SDLK_ESCAPE))
+      app.shutdown();
+
+    // Shader hot reload
     if (app.get_input().get_key_down(SDL_KeyCode::SDLK_r))
-      printf("Todo - reset game");
+      reload_shader_program(&shader.ID, "2d/sprite.vert", "2d/sprite.frag");
 
     // if (app.get_input().get_key_down(SDL_KeyCode::SDLK_t))
     //   dynamic_body->SetTransform(b2Vec2(0.0f, 0.0f), dynamic_body->GetAngle());
@@ -227,54 +214,43 @@ main()
     profiler.begin(Profiler::Stage::GameTick);
 
     if (breakout.state == GameState::GAME_ACTIVE) {
-      // update user input
-      update_user_input(app, delta_time_s, player, ball, screen_width);
 
-      // update game state
-      // move_ball(ball, delta_time_s, screen_width);
+      float velocity_x = player.velocity.x * delta_time_s;
+      float velocity_y = player.velocity.y * delta_time_s;
 
-      // collisions
-      // do_collisions_bricks( breakout.levels[0], ball);
-      // do_collisions_player( player, ball );
+      if (app.get_input().get_key_held(SDL_SCANCODE_A))
+        player.transform.position.x -= velocity_x;
 
-      // physics
-      // world.Step(physics_timestep, velocity_iterations, position_iterations);
+      if (app.get_input().get_key_held(SDL_SCANCODE_D))
+        player.transform.position.x += velocity_x;
+
+      if (app.get_input().get_key_held(SDL_SCANCODE_W))
+        player.transform.position.y -= velocity_y;
+
+      if (app.get_input().get_key_held(SDL_SCANCODE_S))
+        player.transform.position.y += velocity_y;
     }
+
+    // update game state
+    // move_ball(ball, delta_time_s, screen_width);
+
+    // collisions
+    // do_collisions_bricks( breakout.levels[0], ball);
+    // do_collisions_player( player, ball );
+
+    // physics
+    // world.Step(physics_timestep, velocity_iterations, position_iterations);
     profiler.end(Profiler::Stage::GameTick);
     profiler.begin(Profiler::Stage::Render);
 
     // rendering
+    RenderCommand::set_clear_colour(dark_blue);
     RenderCommand::clear();
 
     // b2Vec2 pos = dynamic_body->GetPosition();
     // float angle = dynamic_body->GetAngle();
 
-    // draw_sprite(shader,
-    //             plane,
-    //             ResourceManager::get_texture("block"),
-    //             { pos.x, pos.y },
-    //             { 100.0f, 100.0f },
-    //             angle,
-    //             { 1.0f, 1.0f, 1.0f });
-
-    // b2Vec2 static_pos = static_body->GetPosition();
-    // float static_angle = static_body->GetAngle();
-    // draw_sprite(shader,
-    //             plane,
-    //             ResourceManager::get_texture("block"),
-    //             { static_pos.x, static_pos.y },
-    //             { 100.0f, 100.0f },
-    //             static_angle,
-    //             { 1.0f, 1.0f, 1.0f });
-
-    // draw_background ( shader, plane, background_tex, screen_width, screen_height );
-    // for(auto& brick : breakout.levels[0].bricks)
-    // {
-    //     if(!brick.destroyed)
-    //         draw_sprite( shader, plane, brick );
-    // }
-    // draw_sprite ( shader, plane, player );
-    // draw_sprite ( shader, plane, ball.game_object );
+    sprite_renderer::draw_sprite(shader, player);
 
     profiler.end(Profiler::Stage::Render);
     profiler.begin(Profiler::Stage::GuiLoop);
@@ -295,6 +271,10 @@ main()
 
       ImGui::EndMainMenuBar();
     }
+
+    ImGui::Begin("Game Info");
+    ImGui::Text("%f %f", player.transform.position.x, player.transform.position.y);
+    ImGui::End();
 
     // ImGui demo window
     // ImGui::ShowDemoWindow(&show_imgui_demo_window);

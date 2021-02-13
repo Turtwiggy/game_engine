@@ -47,7 +47,10 @@ bind_stb_loaded_texture(StbLoadedTexture& texture)
     exit(1); // note, probs shouldn't do this - fine for dev for myself
   }
 
+  std::cout << "binding " << texture.path << " to " << texture.texture_unit << std::endl;
+
   glActiveTexture(GL_TEXTURE0 + texture_unit);
+
   GLenum format;
   if (nr_components == 1) {
     format = GL_RED;

@@ -61,15 +61,14 @@ Application::get_delta_time()
 float
 Application::get_time_since_launch() const
 {
-  return time_since_launch;
+  // todo this
+  return 0.0;
 }
 
 void
 Application::frame_begin()
 {
   input_manager.new_frame();
-
-  time_since_launch += get_delta_time();
 }
 
 void

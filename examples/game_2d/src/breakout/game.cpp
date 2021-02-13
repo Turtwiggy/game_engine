@@ -213,39 +213,4 @@ init_level(GameLevel& level, const std::vector<std::vector<int>>& layout, int le
 //     }
 // }
 
-// ---- breakout game functions
-
-void
-update_user_input(Application& app, float delta_time_s, GameObject& player, Ball& ball, float screen_width)
-{
-  if (app.get_input().get_key_held(SDL_SCANCODE_A)) {
-    float velocity_x = player.velocity.x * delta_time_s;
-    if (player.transform.position.x >= 0.0f) {
-      player.transform.position.x -= velocity_x;
-
-      if (ball.stuck)
-        ball.game_object.transform.position.x -= velocity_x;
-    }
-  }
-  if (app.get_input().get_key_held(SDL_SCANCODE_D)) {
-    float velocity_x = player.velocity.x * delta_time_s;
-    if (player.transform.position.x <= screen_width - player.transform.scale.x) {
-      player.transform.position.x += velocity_x;
-
-      if (ball.stuck)
-        ball.game_object.transform.position.x += velocity_x;
-    }
-  }
-  if (app.get_input().get_key_down(SDL_KeyCode::SDLK_SPACE)) {
-    printf("ball unstuck \n");
-    ball.stuck = false;
-  }
-}
-
-void
-update_game_state()
-{
-  //
-}
-
 } // namespace game2d

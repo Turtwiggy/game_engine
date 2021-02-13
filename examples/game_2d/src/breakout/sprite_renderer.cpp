@@ -1,74 +1,91 @@
 
-// // header
-// #include "breakout/sprite_renderer.hpp"
+// header
+#include "breakout/sprite_renderer.hpp"
 
-// // engine project headers
-// #include "engine/opengl/render_command.hpp"
+// other project headers
+#include <GL/glew.h>
 
-// namespace game2d {
+// engine project headers
+#include "engine/opengl/texture.hpp"
 
-// void
-// draw_background(Shader& shader, Mesh& mesh, Texture2D* tex, int screen_width, int screen_height)
-// {
-//   // draw a background
-//   draw_sprite(shader,
-//               mesh,
-//               tex,
-//               { 0.0f, 0.0f },                  // pos
-//               { screen_width, screen_height }, // size
-//               0.0f,                            // angle
-//               { 1.0f, 1.0f, 1.0f }             // colour
-//   );
-// }
+namespace game2d {
 
-// void
-// draw_sprite(Shader& shader, Mesh& mesh, GameObject& game_object)
-// {
-//   draw_sprite(shader, mesh, game_object.texture, game_object.transform);
-// }
+namespace sprite_renderer {
 
-// void
-// draw_sprite(Shader& shader, Mesh& mesh, Texture2D* texture, Transform& t)
-// {
-//   draw_sprite(shader, mesh, texture, t.position, t.scale, t.angle, t.colour);
-// }
+unsigned int quadVAO = 0;
+void
+render_quad()
+{
+  if (quadVAO == 0) {
+    float vertices[] = {
+      // clang-format off
+        // pos      // tex
+        0.0f, 1.0f, 0.0f, 1.0f,
+        1.0f, 0.0f, 1.0f, 0.0f,
+        0.0f, 0.0f, 0.0f, 0.0f, 
 
-// void
-// draw_sprite(Shader& shader,
-//             Mesh& mesh,
-//             Texture2D* texture,
-//             glm::vec2 position,
-//             glm::vec2 size,
-//             float angle,
-//             glm::vec3 color)
-// {
-//   if (texture == nullptr) {
-//     printf("(draw_sprite error) texture passed in is null! ");
-//     return;
-//   }
+        0.0f, 1.0f, 0.0f, 1.0f,
+        1.0f, 1.0f, 1.0f, 1.0f,
+        1.0f, 0.0f, 1.0f, 0.0f
+      // clang-format on
+    };
+    unsigned int VBO;
+    glGenVertexArrays(1, &quadVAO);
+    glGenBuffers(1, &VBO);
 
-//   shader.bind();
+    glBindBuffer(GL_ARRAY_BUFFER, VBO);
+    glBufferData(GL_ARRAY_BUFFER, sizeof(vertices), vertices, GL_STATIC_DRAW);
 
-//   glm::mat4 model = glm::mat4(1.0f);
+    glBindVertexArray(quadVAO);
+    glEnableVertexAttribArray(0);
+    glVertexAttribPointer(0, 4, GL_FLOAT, GL_FALSE, 4 * sizeof(float), (void*)0);
+    glBindBuffer(GL_ARRAY_BUFFER, 0);
+    glBindVertexArray(0);
+  }
+  glBindVertexArray(quadVAO);
+  glDrawArrays(GL_TRIANGLES, 0, 6);
+  glBindVertexArray(0);
+}
 
-//   model = glm::translate(model, glm::vec3(position, 0.0f));
-//   // move origin of rotation to center of quad
-//   model = glm::translate(model, glm::vec3(0.5f * size.x, 0.5f * size.y, 0.0f));
-//   // then rotate
-//   model = glm::rotate(model, glm::radians(angle), glm::vec3(0.0f, 0.0f, 1.0f));
-//   // move origin back
-//   model = glm::translate(model, glm::vec3(-0.5f * size.x, -0.5f * size.y, 0.0f));
-//   // then scale
-//   model = glm::scale(model, glm::vec3(size, 1.0f));
+void
+draw_sprite(Shader& shader, GameObject& game_object)
+{
+  draw_sprite(shader, game_object.tex_slot, game_object.transform);
+}
 
-//   shader.set_mat4("model", model);
-//   shader.set_vec3("spriteColor", color);
+void
+draw_sprite(Shader& shader, int tex_slot, Transform& t)
+{
+  draw_sprite(shader, tex_slot, t.position, t.scale, t.angle, t.colour);
+}
 
-//   texture->bind();
+void
+draw_sprite(Shader& shader, int tex_slot, glm::vec2 position, glm::vec2 size, float angle, glm::vec3 color)
+{
+  shader.bind();
 
-//   render_mesh(mesh);
+  glm::mat4 model = glm::mat4(1.0f);
 
-//   texture->unbind();
-// };
+  model = glm::translate(model, glm::vec3(position, 0.0f)); // move origin of rotation to center of quad
 
-// } // namespace game2d
+  model = glm::translate(model, glm::vec3(0.5f * size.x, 0.5f * size.y, 0.0f));
+  model = glm::rotate(model, glm::radians(angle), glm::vec3(0.0f, 0.0f, 1.0f));   // then rotate
+  model = glm::translate(model, glm::vec3(-0.5f * size.x, -0.5f * size.y, 0.0f)); // move origin back
+
+  // then scale
+  model = glm::scale(model, glm::vec3(size, 1.0f));
+
+  shader.set_mat4("model", model);
+  shader.set_vec4("sprite_colour", glm::vec4{ color.x, color.y, color.z, 1.0f });
+  // shader.set_int("tex", tex_slot);
+
+  // bind_tex(tex_slot);
+
+  render_quad();
+
+  // unbind_tex();
+};
+
+} // namespace sprite_renderer
+
+} // namespace game2d
