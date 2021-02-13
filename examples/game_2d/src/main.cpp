@@ -60,23 +60,14 @@ main()
   // load textures
   //
   int NUM_TEXTURES = 0;
-  const int tex_unit_bamboo_diffuse = NUM_TEXTURES++;
-  const int tex_unit_solid = NUM_TEXTURES++;
-  const int tex_unit_block = NUM_TEXTURES++;
-  const int tex_unit_paddle = NUM_TEXTURES++;
-  const int tex_unit_face = NUM_TEXTURES++;
   const int tex_unit_kenny_nl = NUM_TEXTURES;
   std::cout << "planning to load " << NUM_TEXTURES << " textures" << std::endl;
 
   log_time_since("(Threaded) loading textures... ", app_start);
   {
     std::vector<std::pair<int, std::string>> textures_to_load;
-    textures_to_load.emplace_back(tex_unit_bamboo_diffuse, "assets/textures/Bamboo/BambooWall_1K_albedo.jpg");
-    textures_to_load.emplace_back(tex_unit_solid, "assets/breakout/solid_texture.png");
-    textures_to_load.emplace_back(tex_unit_block, "assets/breakout/block_texture.png");
-    textures_to_load.emplace_back(tex_unit_paddle, "assets/breakout/paddle.png");
-    textures_to_load.emplace_back(tex_unit_face, "assets/textures/octopus.png");
-    textures_to_load.emplace_back(tex_unit_kenny_nl, "assets/textures/kennynl_1bit_pack/Tilesheet/colored.png");
+    textures_to_load.emplace_back(tex_unit_kenny_nl,
+                                  "assets/textures/kennynl_1bit_pack/Tilesheet/monochrome_transparent_packed.png");
 
     std::vector<std::thread> threads;
     std::vector<StbLoadedTexture> loaded_textures(textures_to_load.size());
@@ -99,27 +90,39 @@ main()
   //
   // Rendering
   //
-
   glm::vec4 dark_blue = glm::vec4(0.0f / 255.0f, 100.0f / 255.0f, 100.0f / 255.0f, 1.0f);
   RenderCommand::init();
   RenderCommand::set_clear_colour(dark_blue);
   RenderCommand::set_viewport(0, 0, screen_width, screen_height);
   RenderCommand::set_depth_testing(false); // disable depth testing for 2d
 
-  Shader shader = Shader("2d/sprite.vert", "2d/sprite.frag");
+  Shader shader = Shader("2d_texture.vert", "2d_spritesheet.frag");
   shader.bind();
   shader.set_mat4("projection", projection);
   shader.set_int("tex", tex_unit_kenny_nl);
-
-  // player
-
+  shader.set_int("num_cols", 48);
+  shader.set_int("num_rows", 22);
+  shader.set_float("time_per_sprite", 1.0f);
+  float sprite_time_current = 0.0f;
   GameObject player;
   player.transform.angle = 0.0f;
   player.transform.colour = { 1.0f, 1.0f, 1.0f, 1.0f };
-  player.transform.scale = { screen_width, screen_height };
-  player.transform.position = { 0.0f, 0.0f };
+  player.transform.scale = { 768.0f * 20.0f / 48.0f, 352.0f * 20.0f / 22.0f }; // 768x352 pixels
+  player.transform.position = { screen_width / 2.0f, screen_height / 2.0f };
   player.tex_slot = tex_unit_kenny_nl;
   player.velocity = { 500.0f, 500.0f };
+
+  Shader tex_shader = Shader("2d_texture.vert", "2d_texture.frag");
+  tex_shader.bind();
+  tex_shader.set_mat4("projection", projection);
+  tex_shader.set_int("tex", tex_unit_kenny_nl);
+  GameObject tex_obj;
+  tex_obj.transform.angle = 0.0f;
+  tex_obj.transform.colour = { 1.0f, 1.0f, 1.0f, 1.0f };
+  tex_obj.transform.scale = { 768.0f, 352.0f };
+  tex_obj.transform.position = { 0.0f, 50.0f };
+  tex_obj.tex_slot = tex_unit_kenny_nl;
+  tex_obj.velocity = { 0.0f, 0.0f };
 
   // ---- Game ----
 
@@ -199,8 +202,15 @@ main()
       app.shutdown();
 
     // Shader hot reload
-    if (app.get_input().get_key_down(SDL_KeyCode::SDLK_r))
-      reload_shader_program(&shader.ID, "2d/sprite.vert", "2d/sprite.frag");
+    if (app.get_input().get_key_down(SDL_KeyCode::SDLK_r)) {
+      reload_shader_program(&shader.ID, "2d_texture.vert", "2d_spritesheet.frag");
+      shader.bind();
+      shader.set_mat4("projection", projection);
+      shader.set_int("tex", tex_unit_kenny_nl);
+      shader.set_int("num_cols", 48); // 768x352 pixels
+      shader.set_int("num_rows", 22);
+      shader.set_float("time_per_sprite", 1.0f);
+    }
 
     // if (app.get_input().get_key_down(SDL_KeyCode::SDLK_t))
     //   dynamic_body->SetTransform(b2Vec2(0.0f, 0.0f), dynamic_body->GetAngle());
@@ -250,7 +260,15 @@ main()
     // b2Vec2 pos = dynamic_body->GetPosition();
     // float angle = dynamic_body->GetAngle();
 
+    sprite_time_current += delta_time_s;
+
+    shader.bind();
+    shader.set_float("age", sprite_time_current);
+    player.transform.angle += delta_time_s * 100;
     sprite_renderer::draw_sprite(shader, player);
+
+    tex_shader.bind();
+    sprite_renderer::draw_sprite(tex_shader, tex_obj);
 
     profiler.end(Profiler::Stage::Render);
     profiler.begin(Profiler::Stage::GuiLoop);
