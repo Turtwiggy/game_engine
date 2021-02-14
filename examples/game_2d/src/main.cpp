@@ -100,17 +100,15 @@ main()
   shader.bind();
   shader.set_mat4("projection", projection);
   shader.set_int("tex", tex_unit_kenny_nl);
-  shader.set_int("num_cols", 48);
-  shader.set_int("num_rows", 22);
-  shader.set_float("time_per_sprite", 1.0f);
-  float sprite_time_current = 0.0f;
+  shader.set_int("desired_x", 0);
+  shader.set_int("desired_y", 1);
   GameObject player;
-  player.transform.angle = 0.0f;
+  player.transform.angle = 90.0f;
   player.transform.colour = { 1.0f, 1.0f, 1.0f, 1.0f };
-  player.transform.scale = { 768.0f * 20.0f / 48.0f, 352.0f * 20.0f / 22.0f }; // 768x352 pixels
+  player.transform.scale = { 20.0f, 20.0f };
   player.transform.position = { screen_width / 2.0f, screen_height / 2.0f };
   player.tex_slot = tex_unit_kenny_nl;
-  player.velocity = { 500.0f, 500.0f };
+  player.velocity = { 2.0f, 2.0f };
 
   Shader tex_shader = Shader("2d_texture.vert", "2d_texture.frag");
   tex_shader.bind();
@@ -207,9 +205,8 @@ main()
       shader.bind();
       shader.set_mat4("projection", projection);
       shader.set_int("tex", tex_unit_kenny_nl);
-      shader.set_int("num_cols", 48); // 768x352 pixels
-      shader.set_int("num_rows", 22);
-      shader.set_float("time_per_sprite", 1.0f);
+      shader.set_int("desired_x", 1);
+      shader.set_int("desired_x", 0);
     }
 
     // if (app.get_input().get_key_down(SDL_KeyCode::SDLK_t))
@@ -223,26 +220,53 @@ main()
     profiler.end(Profiler::Stage::SdlInput);
     profiler.begin(Profiler::Stage::GameTick);
 
-    if (breakout.state == GameState::GAME_ACTIVE) {
+    const float speed = 10.0f;
+    float velocity_x = delta_time_s * speed;
+    float velocity_y = delta_time_s * speed;
 
-      float velocity_x = player.velocity.x * delta_time_s;
-      float velocity_y = player.velocity.y * delta_time_s;
+    // standard lrud
+    // if (app.get_input().get_key_held(SDL_SCANCODE_A))
+    //   player.transform.position.x -= velocity_x;
+    // if (app.get_input().get_key_held(SDL_SCANCODE_D))
+    //   player.transform.position.x += velocity_x;
+    // if (app.get_input().get_key_held(SDL_SCANCODE_W))
+    //   player.transform.position.y -= velocity_y;
+    // if (app.get_input().get_key_held(SDL_SCANCODE_S))
+    //   player.transform.position.y += velocity_y;
 
-      if (app.get_input().get_key_held(SDL_SCANCODE_A))
-        player.transform.position.x -= velocity_x;
+    // spaceship lrud
+    const float angle_speed = 50.0f;
+    if (app.get_input().get_key_held(SDL_SCANCODE_D))
+      player.transform.angle += delta_time_s * angle_speed;
+    if (app.get_input().get_key_held(SDL_SCANCODE_A))
+      player.transform.angle -= delta_time_s * angle_speed;
 
-      if (app.get_input().get_key_held(SDL_SCANCODE_D))
-        player.transform.position.x += velocity_x;
+    if (app.get_input().get_key_held(SDL_SCANCODE_W))
+      player.velocity.y += velocity_y;
+    if (app.get_input().get_key_held(SDL_SCANCODE_S))
+      player.velocity.y -= velocity_y;
 
-      if (app.get_input().get_key_held(SDL_SCANCODE_W))
-        player.transform.position.y -= velocity_y;
+    float turn_velocity_x = player.velocity.y; // same as y so turning doesnt feel weird
+    // if (app.get_input().get_key_held(SDL_SCANCODE_SPACE))
+    //   turn_velocity_x /= 2.0f;
+    if (app.get_input().get_key_held(SDL_SCANCODE_SPACE))
+      turn_velocity_x = 0.0f;
 
-      if (app.get_input().get_key_held(SDL_SCANCODE_S))
-        player.transform.position.y += velocity_y;
-    }
+    // if (app.get_input().get_key_held(SDL_SCANCODE_LEFT))
+    //   player.velocity.x -= velocity_x;
+    // if (app.get_input().get_key_held(SDL_SCANCODE_RIGHT))
+    //   player.velocity.x += velocity_x;
 
-    // update game state
-    // move_ball(ball, delta_time_s, screen_width);
+    // update get vector based on angle
+    float x = glm::sin(glm::radians(player.transform.angle)) * turn_velocity_x;
+    float y = -glm::cos(glm::radians(player.transform.angle)) * player.velocity.y;
+    // float y = -glm::cos(glm::radians(player.transform.angle)) * speed; <!-- accelerate more in one axis
+
+    // float accel_x = glm::sin(glm::radians(player.transform.angle));
+    // float accel_y = -glm::cos(glm::radians(player.transform.angle));
+
+    player.transform.position.x += x;
+    player.transform.position.y += y;
 
     // collisions
     // do_collisions_bricks( breakout.levels[0], ball);
@@ -250,21 +274,18 @@ main()
 
     // physics
     // world.Step(physics_timestep, velocity_iterations, position_iterations);
-    profiler.end(Profiler::Stage::GameTick);
-    profiler.begin(Profiler::Stage::Render);
-
-    // rendering
-    RenderCommand::set_clear_colour(dark_blue);
-    RenderCommand::clear();
-
     // b2Vec2 pos = dynamic_body->GetPosition();
     // float angle = dynamic_body->GetAngle();
 
-    sprite_time_current += delta_time_s;
+    profiler.end(Profiler::Stage::GameTick);
+    profiler.begin(Profiler::Stage::Render);
+    //
+    // rendering
+    //
+    RenderCommand::set_clear_colour(dark_blue);
+    RenderCommand::clear();
 
     shader.bind();
-    shader.set_float("age", sprite_time_current);
-    player.transform.angle += delta_time_s * 100;
     sprite_renderer::draw_sprite(shader, player);
 
     tex_shader.bind();
@@ -275,7 +296,6 @@ main()
     //
     // GUI
     //
-
     app.gui_begin();
 
     if (ImGui::BeginMainMenuBar()) {
@@ -291,7 +311,10 @@ main()
     }
 
     ImGui::Begin("Game Info");
-    ImGui::Text("%f %f", player.transform.position.x, player.transform.position.y);
+    ImGui::Text("player x comp %f y comp %f", x, y);
+    ImGui::Text("player pos %f %f", player.transform.position.x, player.transform.position.y);
+    ImGui::Text("player vel x: %f y: %f", player.velocity.x, player.velocity.y);
+    ImGui::Text("player angle %f", player.transform.angle);
     ImGui::End();
 
     // ImGui demo window
