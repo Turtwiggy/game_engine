@@ -17,6 +17,10 @@ void
 InputManager::new_frame()
 {
   down.clear();
+
+  mouse_lmb_down = false;
+  mouse_rmb_down = false;
+  mouse_mmb_down = false;
 }
 
 // keyboard
@@ -51,13 +55,19 @@ void
 InputManager::add_mouse_down(SDL_MouseButtonEvent& mouse_e)
 {
   if (mouse_e.button == SDL_BUTTON_LEFT) {
-    printf("left mouse clicked\n");
+    glm::ivec2 mouse_pos = get_mouse_pos();
+    printf("(input_manager) left mouse clicked %i %i \n", mouse_pos.x, mouse_pos.y);
+    mouse_lmb_down = true;
   }
   if (mouse_e.button == SDL_BUTTON_RIGHT) {
-    printf("right mouse clicked\n");
+    glm::ivec2 mouse_pos = get_mouse_pos();
+    printf("(input_manager) right mouse clicked %i %i \n", mouse_pos.x, mouse_pos.y);
+    mouse_rmb_down = true;
   }
   if (mouse_e.button == SDL_BUTTON_MIDDLE) {
-    printf("middle mouse clicked\n");
+    glm::ivec2 mouse_pos = get_mouse_pos();
+    printf("(input_manager) middle mouse clicked %i %i \n", mouse_pos.x, mouse_pos.y);
+    mouse_mmb_down = true;
   }
 }
 
@@ -77,6 +87,32 @@ bool
 InputManager::get_mouse_mmb_held() const
 {
   return SDL_GetMouseState(NULL, NULL) & SDL_BUTTON(SDL_BUTTON_MIDDLE);
+}
+
+bool
+InputManager::get_mouse_lmb_down() const
+{
+  return mouse_lmb_down;
+}
+
+bool
+InputManager::get_mouse_rmb_down() const
+{
+  return mouse_rmb_down;
+}
+
+bool
+InputManager::get_mouse_mmb_down() const
+{
+  return mouse_mmb_down;
+}
+
+glm::vec2
+InputManager::get_mouse_pos() const
+{
+  int x, y = 0;
+  SDL_GetMouseState(&x, &y);
+  return glm::ivec2(x, y);
 }
 
 void

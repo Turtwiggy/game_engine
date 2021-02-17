@@ -1,6 +1,6 @@
 
 // header
-#include "breakout/game.hpp"
+#include "game.hpp"
 
 // C++ lib headers
 #include <fstream>

@@ -91,8 +91,8 @@ GameWindow::GameWindow(const std::string& title, int width, int height, DisplayM
   }
 
   SDL_GL_SetAttribute(SDL_GL_CONTEXT_FLAGS, 0);
-  SDL_GL_SetAttribute(SDL_GL_CONTEXT_MAJOR_VERSION, 4);
-  SDL_GL_SetAttribute(SDL_GL_CONTEXT_MINOR_VERSION, 3);
+  SDL_GL_SetAttribute(SDL_GL_CONTEXT_MAJOR_VERSION, opengl_major);
+  SDL_GL_SetAttribute(SDL_GL_CONTEXT_MINOR_VERSION, opengl_minor);
   // 4, 3 because that's when compute shaders were introduced
 
   auto window_ptr = std::unique_ptr<SDL_Window, SDLDestroyer>(window);

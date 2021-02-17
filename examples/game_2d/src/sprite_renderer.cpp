@@ -1,6 +1,6 @@
 
 // header
-#include "breakout/sprite_renderer.hpp"
+#include "sprite_renderer.hpp"
 
 // other project headers
 #include <GL/glew.h>
@@ -50,17 +50,17 @@ render_quad()
 void
 draw_sprite(Shader& shader, GameObject& game_object)
 {
-  draw_sprite(shader, game_object.tex_slot, game_object.transform);
+  draw_sprite(shader, game_object.transform, game_object.tex_slot);
 }
 
 void
-draw_sprite(Shader& shader, int tex_slot, Transform& t)
+draw_sprite(Shader& shader, Transform& t, int tex_slot)
 {
-  draw_sprite(shader, tex_slot, t.position, t.scale, t.angle, t.colour);
+  draw_sprite(shader, t.position, t.scale, t.angle, t.colour, tex_slot);
 }
 
 void
-draw_sprite(Shader& shader, int tex_slot, glm::vec2 position, glm::vec2 size, float angle, glm::vec3 color)
+draw_sprite(Shader& shader, glm::vec2 position, glm::vec2 size, float angle, glm::vec3 color, int tex_slot)
 {
   shader.bind();
 

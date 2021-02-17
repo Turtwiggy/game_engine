@@ -9,7 +9,7 @@ message("game_2d: ${CMAKE_BUILD_TYPE}")
 # build the engine + bring in Vcpkg
 include("${CMAKE_SOURCE_DIR}/engine/cmake/build_info.cmake")
 
-#Add VCPKG packages
+# Add VCPKG packages
 foreach(package ${ENGINE_PACKAGES_CONFIG})
   message("${PROJECT_NAME} finding package... ${package}")
   find_package(${package} CONFIG REQUIRED)
@@ -18,11 +18,13 @@ foreach(package ${ENGINE_PACKAGES})
   message("${PROJECT_NAME} finding package... ${package}")
   find_package(${package} REQUIRED)
 endforeach()
+# Add 2d game specific packages
+find_package(unofficial-box2d CONFIG REQUIRED)
 
-#Add VCPKG header-only
+# Add VCPKG header-only
 find_path(STB_INCLUDE_DIRS "stb.h")
 
-# add source files
+# Add source files
 file(GLOB_RECURSE SRC_FILES 
   ${ENGINE_SOURCE} 
   "${CMAKE_SOURCE_DIR}/examples/game_2d/src/*.cpp"
@@ -42,6 +44,8 @@ foreach(library ${ENGINE_LINK_LIBS})
   message("${PROJECT_NAME} linking library... ${library}")
   target_link_libraries(game_2d PRIVATE ${library})
 endforeach()
+# link 2d game specific librarys
+target_link_libraries(game_2d PRIVATE unofficial::box2d::box2d)
 
 # create symlink assets for build
 IF(${CMAKE_SYSTEM_NAME} STREQUAL "Windows")

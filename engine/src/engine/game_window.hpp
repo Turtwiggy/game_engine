@@ -26,12 +26,16 @@ class GameWindow
     void operator()(SDL_Window* window) const { SDL_DestroyWindow(window); }
   };
 
+public:
+  inline static std::string glsl_version = "#version 330";
+  inline static int opengl_major = 3;
+  inline static int opengl_minor = 3;
+
 private:
   // SDL2 window
   std::unique_ptr<SDL_Window, SDLDestroyer> window_ = nullptr;
 
   // OpenGL context
-  const std::string glsl_version = "#version 430";
   SDL_GLContext gl_context;
 
   // This variable fixes the "mouse jerk" issue

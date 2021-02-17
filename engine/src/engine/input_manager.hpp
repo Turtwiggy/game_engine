@@ -7,6 +7,7 @@
 #include <SDL2/SDL_events.h>
 #include <SDL2/SDL_keycode.h>
 #include <SDL2/SDL_mouse.h>
+#include <glm/glm.hpp>
 
 namespace fightingengine {
 
@@ -26,22 +27,37 @@ public:
   [[nodiscard]] bool get_key_held(SDL_Scancode button) const;
 
   // mouse
+  [[nodiscard]] glm::vec2 get_mouse_pos() const;
 
   void add_mouse_down(SDL_MouseButtonEvent& mouse_e);
   [[nodiscard]] bool get_mouse_lmb_held() const;
   [[nodiscard]] bool get_mouse_rmb_held() const;
   [[nodiscard]] bool get_mouse_mmb_held() const;
 
+  [[nodiscard]] bool get_mouse_lmb_down() const;
+  [[nodiscard]] bool get_mouse_rmb_down() const;
+  [[nodiscard]] bool get_mouse_mmb_down() const;
+
   void set_mousewheel_y(const float amount);
   [[nodiscard]] float get_mousewheel_y() const;
 
 private:
+  //
   // Keyboard state
-  // down and up reset every frame
+  //
+
+  // down reset every frame
   std::vector<SDL_Keycode> down;
   const Uint8* state;
 
+  //
+  // Mouse state
+  //
   float mousewheel_y;
+
+  bool mouse_rmb_down = false;
+  bool mouse_lmb_down = false;
+  bool mouse_mmb_down = false;
 };
 
 }

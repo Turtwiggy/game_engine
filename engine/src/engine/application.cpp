@@ -18,6 +18,9 @@ Application::Application(const std::string& name, int width, int height)
   const std::string kBuildStr = "0.0.3";
 
   // Window
+  GameWindow::glsl_version = "#version 330";
+  GameWindow::opengl_major = 3;
+  GameWindow::opengl_minor = 3;
   window = std::make_unique<GameWindow>(name + " [" + kBuildStr + "]", width, height, DisplayMode::Windowed);
 
   imgui_manager.initialize(window.get());
