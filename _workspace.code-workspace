@@ -114,7 +114,8 @@
 			"*.frag": "c",
 			"rope": "cpp",
 			"hash_set": "cpp",
-			"*.rh": "cpp"
+			"*.rh": "cpp",
+			"debug_draw_opengl cpp": "cpp"
 		},
 		"cmake.loggingLevel": "debug"
 	}

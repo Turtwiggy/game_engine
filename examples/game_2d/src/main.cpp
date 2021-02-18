@@ -35,6 +35,11 @@ struct sprite_on_spritesheet
 {
   int x = 0;
   int y = 0;
+
+  sprite_on_spritesheet(int x, int y)
+    : x(x)
+    , y(y)
+  {}
 };
 
 // other things to consider
@@ -54,8 +59,9 @@ main()
   Application app("2D Game", screen_width, screen_height);
   app.set_fps_limit(60.0f);
 
-  glm::mat4 projection =
-    glm::ortho(0.0f, static_cast<float>(screen_width), static_cast<float>(screen_height), 0.0f, -1.0f, 1.0f);
+  float screen_width_f = static_cast<float>(screen_width);
+  float screen_height_f = static_cast<float>(screen_height);
+  glm::mat4 projection = glm::ortho(0.0f, screen_width_f, screen_height_f, 0.0f, -1.0f, 1.0f);
 
   RandomState rnd;
   Profiler profiler;
@@ -93,66 +99,20 @@ main()
   }
   log_time_since("(End Threaded) textures loaded ", app_start);
 
-  //
-  // physics
-  //
-
-  b2Vec2 gravity(0.0f, 0.0f);
-  float physics_timestep = 1.0f / 30.0f;
-  int32 velocity_iterations = 6;
-  int32 position_iterations = 2;
-
-  b2World world(gravity);
-
-  // box2d:
-  // types of body: b2_staticBody, b2_kinematicBody, b2_dynamicBody
-
-  // -- create a static body
-  b2BodyDef body_def;
-  body_def.position = { 0.0f, screen_height - 100.0f }; // 1. define a body with position, damping, etc
-  body_def.type = b2_staticBody;
-  b2Body* static_body = world.CreateBody(&body_def); // 2. use world obj to create body
-  b2PolygonShape ground_box;                         // 3. define fixtures with shape, friction, density etc
-  ground_box.SetAsBox(50.0f, 50.0f);
-  static_body->CreateFixture(&ground_box, 0.0f); // 4. create fixtures on the body
-  // -- create a static body transform
-  GameObject static_body_rendering;
-  static_body_rendering.transform.angle = 0.0f;
-  static_body_rendering.transform.colour = { 1.0f, 1.0f, 1.0f, 0.6f };
-  static_body_rendering.transform.scale = { 100.0f, 100.0f };
-  static_body_rendering.transform.position = { body_def.position.x, body_def.position.y };
-  static_body_rendering.tex_slot = tex_unit_kenny_nl;
-
-  // -- create a dynamic body
-  b2BodyDef dynamic_body_def;
-  dynamic_body_def.type = b2_dynamicBody;
-  dynamic_body_def.position.Set(0.0f, 400.0f);
-  b2Body* dynamic_body = world.CreateBody(&dynamic_body_def);
-  b2PolygonShape dynamic_box;
-  dynamic_box.SetAsBox(50.0f, 50.0f);
-  b2FixtureDef fixture_def;
-  fixture_def.shape = &dynamic_box;
-  fixture_def.density = 1.0f;
-  fixture_def.friction = 0.0f;
-  dynamic_body->CreateFixture(&fixture_def);
   // -- create a dynamic body transform
   GameObject player;
   player.transform.angle = 90.0f;
   player.transform.colour = { 0.0f, 1.0f, 0.0f, 0.6f };
   player.transform.scale = { 100.0f, 100.0f };
-  player.transform.position = { dynamic_body_def.position.x, dynamic_body_def.position.y };
+  player.transform.position = { screen_width / 2.0f, screen_height / 2.0f };
   player.tex_slot = tex_unit_kenny_nl;
   player.velocity = { 2.0f, 2.0f };
 
   //
   // Rendering
   //
-  sprite_on_spritesheet boat;
-  boat.x = 10;
-  boat.y = 19;
-  sprite_on_spritesheet white_square;
-  white_square.x = 5;
-  white_square.y = 8;
+  sprite_on_spritesheet boat{ 10, 19 };
+  sprite_on_spritesheet white_square{ 8, 5 };
 
   glm::vec4 dark_blue = glm::vec4(0.0f / 255.0f, 100.0f / 255.0f, 100.0f / 255.0f, 1.0f);
   RenderCommand::init();
@@ -280,67 +240,48 @@ main()
       // if (app.get_input().get_key_held(SDL_SCANCODE_S))
       //   player.transform.position.y += velocity_y;
 
-      // lrud for box2d
-      if (app.get_input().get_key_held(SDL_SCANCODE_A))
-        dynamic_body->ApplyForceToCenter(b2Vec2(-100000.0f, 0.0f), true);
+      // spaceship lrud
+      float angle_speed = 100.0f;
+
+      if (app.get_input().get_key_held(SDL_SCANCODE_W)) {
+        player.velocity.y += velocity_y;
+      }
+      if (app.get_input().get_key_held(SDL_SCANCODE_S)) {
+        player.velocity.y -= velocity_y;
+      }
+
+      float turn_velocity_x = player.velocity.y; // same as y so turning doesnt feel weird
+      float turn_velocity_y = player.velocity.y;
+
+      // if (app.get_input().get_key_held(SDL_SCANCODE_SPACE))
+      //   turn_velocity_x /= 2.0f;
+      if (app.get_input().get_key_held(SDL_SCANCODE_SPACE)) {
+        // turn_velocity_x = 0.0f;
+        turn_velocity_y *= 0.1f;
+        turn_velocity_x *= 0.1f;
+
+        // increase turn speed
+        angle_speed *= 5.0f;
+      }
+
       if (app.get_input().get_key_held(SDL_SCANCODE_D))
-        dynamic_body->ApplyForceToCenter(b2Vec2(100000.0f, 0.0f), true);
-      if (app.get_input().get_key_held(SDL_SCANCODE_W))
-        dynamic_body->ApplyForceToCenter(b2Vec2(0.0f, -100000.0f), true);
-      if (app.get_input().get_key_held(SDL_SCANCODE_S))
-        dynamic_body->ApplyForceToCenter(b2Vec2(0.0f, 100000.0f), true);
+        player.transform.angle += delta_time_s * angle_speed;
+      if (app.get_input().get_key_held(SDL_SCANCODE_A))
+        player.transform.angle -= delta_time_s * angle_speed;
 
-      // // spaceship lrud
-      // float angle_speed = 100.0f;
-
-      // if (app.get_input().get_key_held(SDL_SCANCODE_W)) {
-      //   player.velocity.y += velocity_y;
-      // }
-      // if (app.get_input().get_key_held(SDL_SCANCODE_S)) {
-      //   player.velocity.y -= velocity_y;
-      // }
-
-      // float turn_velocity_x = player.velocity.y; // same as y so turning doesnt feel weird
-      // float turn_velocity_y = player.velocity.y;
-
-      // // if (app.get_input().get_key_held(SDL_SCANCODE_SPACE))
-      // //   turn_velocity_x /= 2.0f;
-      // if (app.get_input().get_key_held(SDL_SCANCODE_SPACE)) {
-      //   // turn_velocity_x = 0.0f;
-      //   turn_velocity_y *= 0.1f;
-      //   turn_velocity_x *= 0.1f;
-
-      //   // increase turn speed
-      //   angle_speed *= 5.0f;
-      // }
-
-      // if (app.get_input().get_key_held(SDL_SCANCODE_D))
-      //   player.transform.angle += delta_time_s * angle_speed;
-      // if (app.get_input().get_key_held(SDL_SCANCODE_A))
-      //   player.transform.angle -= delta_time_s * angle_speed;
-
-      // // if (app.get_input().get_key_held(SDL_SCANCODE_LEFT))
-      // //   player.velocity.x -= velocity_x;
-      // // if (app.get_input().get_key_held(SDL_SCANCODE_RIGHT))
-      // //   player.velocity.x += velocity_x;
+      // if (app.get_input().get_key_held(SDL_SCANCODE_LEFT))
+      //   player.velocity.x -= velocity_x;
+      // if (app.get_input().get_key_held(SDL_SCANCODE_RIGHT))
+      //   player.velocity.x += velocity_x;
 
       // update get vector based on angle
-      // x = glm::sin(glm::radians(player.transform.angle)) * turn_velocity_x;
-      // y = -glm::cos(glm::radians(player.transform.angle)) * turn_velocity_y;
-      // // float y = -glm::cos(glm::radians(player.transform.angle)) * speed; <!-- accelerate more in one axis
+      x = glm::sin(glm::radians(player.transform.angle)) * turn_velocity_x;
+      y = -glm::cos(glm::radians(player.transform.angle)) * turn_velocity_y;
+      // float y = -glm::cos(glm::radians(player.transform.angle)) * speed; <!-- accelerate more in one axis
 
       player.transform.position.x += x;
       player.transform.position.y += y;
-
-      // physics
-      world.Step(physics_timestep, velocity_iterations, position_iterations);
     }
-
-    // convert physics back to renderer
-    b2Vec2 pos = dynamic_body->GetPosition();
-    float angle = dynamic_body->GetAngle();
-    player.transform.position = glm::vec2(pos.x, pos.y);
-    player.transform.angle = angle;
 
     profiler.end(Profiler::Stage::GameTick);
     profiler.begin(Profiler::Stage::Render);
@@ -353,9 +294,7 @@ main()
     sprite_shader.bind();
     sprite_shader.set_int("desired_x", white_square.x);
     sprite_shader.set_int("desired_y", white_square.y);
-
     sprite_renderer::draw_sprite(sprite_shader, player);
-    sprite_renderer::draw_sprite(sprite_shader, static_body_rendering);
 
     sprite_shader.set_int("desired_x", boat.x);
     sprite_shader.set_int("desired_y", boat.y);
@@ -389,7 +328,7 @@ main()
       ImGui::EndMainMenuBar();
     }
 
-    ImGui::Begin("Game Info");
+    ImGui::Begin("Game Info", NULL, ImGuiWindowFlags_NoFocusOnAppearing);
     ImGui::Text("player x comp %f y comp %f", x, y);
     ImGui::Text("player pos %f %f", player.transform.position.x, player.transform.position.y);
     ImGui::Text("player vel x: %f y: %f", player.velocity.x, player.velocity.y);

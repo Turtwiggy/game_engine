@@ -30,6 +30,7 @@ public:
   inline static std::string glsl_version = "#version 330";
   inline static int opengl_major = 3;
   inline static int opengl_minor = 3;
+  // Note: 4, 3 when compute shaders were introduced
 
 private:
   // SDL2 window
