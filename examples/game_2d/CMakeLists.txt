@@ -24,13 +24,8 @@ find_path(STB_INCLUDE_DIRS "stb.h")
 
 # Add source files
 file(GLOB_RECURSE SRC_FILES 
-  ${ENGINE_SOURCE} 
-  "${CMAKE_SOURCE_DIR}/examples/game_2d/src/debug_draw_opengl.cpp",
-  "${CMAKE_SOURCE_DIR}/examples/game_2d/src/car.cpp",
-  "${CMAKE_SOURCE_DIR}/examples/game_2d/src/main.cpp",
-  "${CMAKE_SOURCE_DIR}/examples/game_2d/src/sprite_renderer.cpp",
-
-  # "${CMAKE_SOURCE_DIR}/examples/game_2d/src/*.cpp",
+  ${ENGINE_SOURCE},
+  "${CMAKE_SOURCE_DIR}/examples/game_2d/src/*.cpp"
 )
 
 add_executable(game_2d ${SRC_FILES})

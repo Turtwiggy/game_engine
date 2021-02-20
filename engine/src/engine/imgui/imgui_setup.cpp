@@ -13,8 +13,6 @@
 #include <SDL2/SDL_syswm.h>
 #endif
 
-#include <ImGuizmo.h>
-
 namespace fightingengine {
 
 void
@@ -78,7 +76,6 @@ ImGui_Manager::begin_frame(const GameWindow& window)
   ImGui_ImplSDL2_NewFrame(window.get_handle());
 
   ImGui::NewFrame();
-  ImGuizmo::BeginFrame();
 }
 
 void

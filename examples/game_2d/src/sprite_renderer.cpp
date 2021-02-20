@@ -2,8 +2,12 @@
 // header
 #include "sprite_renderer.hpp"
 
+// standard lib headers
+#include <iostream>
+
 // other project headers
 #include <GL/glew.h>
+#include <glm/gtc/matrix_transform.hpp>
 
 // engine project headers
 #include "engine/opengl/texture.hpp"
@@ -47,43 +51,68 @@ render_quad()
   glBindVertexArray(0);
 }
 
-void
-draw_sprite(Shader& shader, GameObject& game_object)
-{
-  draw_sprite(shader, game_object.transform, game_object.tex_slot);
-}
+// void
+// draw_sprite(Shader& shader, GameObject& game_object)
+// {
+//   draw_sprite(shader, game_object.transform, game_object.tex_slot);
+// }
+
+// void
+// draw_sprite(Shader& shader, Transform& t, int tex_slot)
+// {
+//   draw_sprite(shader, t.position, t.scale, t.angle, t.colour, tex_slot);
+// }
 
 void
-draw_sprite(Shader& shader, Transform& t, int tex_slot)
+draw_sprite(Camera2D& cam,
+            const glm::vec2& screen_size,
+            fightingengine::Shader& shader,
+            glm::vec2 position,
+            glm::vec2 size,
+            float angle,
+            glm::vec3 color,
+            int tex_slot)
 {
-  draw_sprite(shader, t.position, t.scale, t.angle, t.colour, tex_slot);
-}
+  glm::vec2 tl_visible = glm::vec2(0.0f, 0.0f);
+  glm::vec2 br_visible = screen_size;
+  // float camera_scale = cam.calculate_scale();
 
-void
-draw_sprite(Shader& shader, glm::vec2 position, glm::vec2 size, float angle, glm::vec3 color, int tex_slot)
-{
+  // clang-format off
+  if (
+      // left of screen
+      position.x + size.x < tl_visible.x ||
+      // top of screen
+      position.y + size.y < tl_visible.y || 
+      // right of screen
+      position.x > br_visible.x ||
+      // bottom of screen
+      position.y > br_visible.y) {
+    //std::cout << "skipping rendering of object";
+    return;
+  }
+  // clang-format on
+
+  // render object
   shader.bind();
 
   glm::mat4 model = glm::mat4(1.0f);
 
-  model = glm::translate(model, glm::vec3(position, 0.0f)); // move origin of rotation to center of quad
+  // move origin of rotation to center of quad
+  model = glm::translate(model, glm::vec3(position, 0.0f));
 
   model = glm::translate(model, glm::vec3(0.5f * size.x, 0.5f * size.y, 0.0f));
-  model = glm::rotate(model, glm::radians(angle), glm::vec3(0.0f, 0.0f, 1.0f));   // then rotate
-  model = glm::translate(model, glm::vec3(-0.5f * size.x, -0.5f * size.y, 0.0f)); // move origin back
+  // then rotate
+  model = glm::rotate(model, glm::radians(angle), glm::vec3(0.0f, 0.0f, 1.0f));
+  // move origin back
+  model = glm::translate(model, glm::vec3(-0.5f * size.x, -0.5f * size.y, 0.0f));
 
   // then scale
   model = glm::scale(model, glm::vec3(size, 1.0f));
 
   shader.set_mat4("model", model);
   shader.set_vec4("sprite_colour", glm::vec4{ color.x, color.y, color.z, 1.0f });
-  // shader.set_int("tex", tex_slot);
-
-  // bind_tex(tex_slot);
 
   render_quad();
-
-  // unbind_tex();
 };
 
 } // namespace sprite_renderer

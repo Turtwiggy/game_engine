@@ -1,10 +1,11 @@
 #pragma once
 
-// your project headers (engine)
-#include "engine/opengl/shader.hpp"
+// other project headers
+#include <glm/glm.hpp>
 
-// your prject headers (game)
-#include "game.hpp"
+// your project headers
+#include "camera2d.hpp"
+#include "engine/opengl/shader.hpp"
 
 namespace game2d {
 
@@ -15,12 +16,19 @@ namespace sprite_renderer {
 void
 render_quad();
 
+// void
+// draw_sprite(Shader& shader, GameObject& game_object);
+// void
+// draw_sprite(Shader& shader, Transform& t, int tex_slot = 0);
 void
-draw_sprite(Shader& shader, GameObject& game_object);
-void
-draw_sprite(Shader& shader, Transform& t, int tex_slot = 0);
-void
-draw_sprite(Shader& shader, glm::vec2 position, glm::vec2 size, float angle, glm::vec3 color, int tex_slot = 0);
+draw_sprite(Camera2D& cam,
+            const glm::vec2& screen_size,
+            fightingengine::Shader& shader,
+            glm::vec2 position,
+            glm::vec2 size,
+            float angle,
+            glm::vec3 color,
+            int tex_slot = 0);
 
 } // namespace sprite_renderer
 

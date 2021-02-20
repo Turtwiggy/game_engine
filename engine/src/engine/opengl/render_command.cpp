@@ -26,7 +26,8 @@ RenderCommand::init()
   glEnable(GL_MULTISAMPLE);
 
   glEnable(GL_BLEND);
-  glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+  // glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+  glBlendFuncSeparate(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA, GL_ONE, GL_ONE_MINUS_SRC_ALPHA);
 
   // Enable depth testing
   set_depth_testing(true);
@@ -44,7 +45,8 @@ RenderCommand::init()
   // glEnable(GL_FRAMEBUFFER_SRGB);
 
   // Enable Faceculling
-  glEnable(GL_CULL_FACE);
+  // glEnable(GL_CULL_FACE);
+  // glDisable(GL_CULL_FACE);
   glDepthFunc(GL_LESS);
 
   // glPolygonMode( GL_FRONT_AND_BACK, GL_LINE );
