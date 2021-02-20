@@ -77,17 +77,19 @@ draw_sprite(Camera2D& cam,
   glm::vec2 br_visible = screen_size;
   // float camera_scale = cam.calculate_scale();
 
+  glm::vec2 world_space = position - cam.pos;
+
   // clang-format off
   if (
       // left of screen
-      position.x + size.x < tl_visible.x ||
+      world_space.x + size.x < tl_visible.x ||
       // top of screen
-      position.y + size.y < tl_visible.y || 
+      world_space.y + size.y < tl_visible.y || 
       // right of screen
-      position.x > br_visible.x ||
+      world_space.x > br_visible.x ||
       // bottom of screen
-      position.y > br_visible.y) {
-    //std::cout << "skipping rendering of object";
+      world_space.y > br_visible.y) {
+    std::cout << "skipping rendering of object";
     return;
   }
   // clang-format on
@@ -98,7 +100,7 @@ draw_sprite(Camera2D& cam,
   glm::mat4 model = glm::mat4(1.0f);
 
   // move origin of rotation to center of quad
-  model = glm::translate(model, glm::vec3(position, 0.0f));
+  model = glm::translate(model, glm::vec3(world_space, 0.0f));
 
   model = glm::translate(model, glm::vec3(0.5f * size.x, 0.5f * size.y, 0.0f));
   // then rotate

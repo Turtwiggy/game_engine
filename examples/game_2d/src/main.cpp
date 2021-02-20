@@ -69,14 +69,20 @@ enum class GameState
 
 // -- end temp --
 
+const int screen_width = 1366;
+const int screen_height = 768;
+const glm::vec4 dark_blue = glm::vec4(0.0f / 255.0f, 100.0f / 255.0f, 100.0f / 255.0f, 1.0f);
+const int tex_unit_kenny_nl = 0;
+
+const float player_speed = 10.0f;
+const float camera_speed = 100.0f;
+
 int
 main()
 {
   std::cout << "booting up..." << std::endl;
   const auto app_start = std::chrono::high_resolution_clock::now();
 
-  const int screen_width = 1366;
-  const int screen_height = 768;
   Application app("2D Game", screen_width, screen_height);
   app.set_fps_limit(60.0f);
 
@@ -88,28 +94,19 @@ main()
   glm::mat4 projection = glm::ortho(0.0f, screen_width_f, screen_height_f, 0.0f, -1.0f, 1.0f);
 
   Camera2D camera;
-  camera.pos = glm::vec2{ screen_width_f, screen_height_f };
+  camera.pos = glm::vec2{ 0.0f, 0.0f };
 
-  //
   // textures
-  //
-
-  const int tex_unit_kenny_nl = 0;
-
   std::vector<std::pair<int, std::string>> textures_to_load;
   textures_to_load.emplace_back(tex_unit_kenny_nl,
                                 "assets/textures/kennynl_1bit_pack/Tilesheet/monochrome_transparent_packed.png");
-
   load_textures_threaded(textures_to_load, app_start);
 
   //
   // TODO sound
   //
 
-  //
   // Rendering
-  //
-  glm::vec4 dark_blue = glm::vec4(0.0f / 255.0f, 100.0f / 255.0f, 100.0f / 255.0f, 1.0f);
   RenderCommand::init();
   RenderCommand::set_clear_colour(dark_blue);
   RenderCommand::set_viewport(0, 0, screen_width, screen_height);
@@ -123,6 +120,7 @@ main()
   Shader tex_shader = Shader("2d_texture.vert", "2d_texture.frag");
   tex_shader.bind();
   tex_shader.set_mat4("projection", projection);
+  tex_shader.set_int("tex", tex_unit_kenny_nl);
 
   sprite::spritemap spritemap;
   auto& sprites = spritemap.get_locations();
@@ -232,21 +230,6 @@ main()
 
     if (state == GameState::GAME_ACTIVE) {
 
-      const float speed = 10.0f;
-      float velocity_x = delta_time_s * speed;
-      float velocity_y = delta_time_s * speed;
-
-      // standard lrud
-      // if (app.get_input().get_key_held(SDL_SCANCODE_A))
-      //   player.transform.position.x -= velocity_x;
-      // if (app.get_input().get_key_held(SDL_SCANCODE_D))
-      //   player.transform.position.x += velocity_x;
-      // if (app.get_input().get_key_held(SDL_SCANCODE_W))
-      //   player.transform.position.y -= velocity_y;
-      // if (app.get_input().get_key_held(SDL_SCANCODE_S))
-      //   player.transform.position.y += velocity_y;
-
-      const float camera_speed = 10.0f;
       float camera_velocity_x = delta_time_s * camera_speed;
       float camera_velocity_y = delta_time_s * camera_speed;
 
@@ -259,6 +242,19 @@ main()
         camera.pos.y -= camera_velocity_y;
       if (app.get_input().get_key_held(SDL_SCANCODE_DOWN))
         camera.pos.y += camera_velocity_y;
+
+      float velocity_x = delta_time_s * player_speed;
+      float velocity_y = delta_time_s * player_speed;
+
+      // standard lrud
+      // if (app.get_input().get_key_held(SDL_SCANCODE_A))
+      //   player.transform.position.x -= velocity_x;
+      // if (app.get_input().get_key_held(SDL_SCANCODE_D))
+      //   player.transform.position.x += velocity_x;
+      // if (app.get_input().get_key_held(SDL_SCANCODE_W))
+      //   player.transform.position.y -= velocity_y;
+      // if (app.get_input().get_key_held(SDL_SCANCODE_S))
+      //   player.transform.position.y += velocity_y;
 
       // spaceship lrud
       float angle_speed = 100.0f;
@@ -303,21 +299,20 @@ main()
     RenderCommand::set_clear_colour(dark_blue);
     RenderCommand::clear();
 
-    glm::ivec2 obj = spritemap.get_sprite_offset(sprite::type::SQUARE);
-    sprite_shader.set_int("desired_x", obj.x);
-    sprite_shader.set_int("desired_y", obj.y);
+    // tex_shader.bind();
+    // sprite_renderer::draw_sprite(camera,
+    //                              glm::vec2(screen_width_f, screen_height_f),
+    //                              tex_shader,
+    //                              tex_obj.transform.position,
+    //                              tex_obj.transform.scale,
+    //                              tex_obj.transform.angle,
+    //                              tex_obj.transform.colour);
 
+    glm::ivec2 obj = spritemap.get_sprite_offset(sprite::type::TREE_1);
     sprite_shader.bind();
-    sprite_renderer::draw_sprite(camera,
-                                 glm::vec2(screen_width_f, screen_height_f),
-                                 sprite_shader,
-                                 player.transform.position,
-                                 player.transform.scale,
-                                 player.transform.angle,
-                                 player.transform.colour);
-
     sprite_shader.set_int("desired_x", obj.x);
     sprite_shader.set_int("desired_y", obj.y);
+
     for (auto& object : objects) {
       glm::vec2 size = glm::vec2(50.0f, 50.0f);
       glm::vec3 colour = glm::vec3(1.0f, 0.0f, 0.0f);
@@ -325,9 +320,16 @@ main()
         camera, glm::vec2(screen_width_f, screen_height_f), sprite_shader, object, size, 0.0f, colour);
     }
 
-    // tex_shader.bind();
-    // tex_shader.set_int("tex", tex_unit_kenny_nl);
-    // sprite_renderer::draw_sprite(tex_shader, tex_obj);
+    obj = spritemap.get_sprite_offset(sprite::type::BOAT);
+    sprite_shader.set_int("desired_x", obj.x);
+    sprite_shader.set_int("desired_y", obj.y);
+    sprite_renderer::draw_sprite(camera,
+                                 glm::vec2(screen_width_f, screen_height_f),
+                                 sprite_shader,
+                                 player.transform.position,
+                                 player.transform.scale,
+                                 player.transform.angle,
+                                 player.transform.colour);
 
     profiler.end(Profiler::Stage::Render);
     profiler.begin(Profiler::Stage::GuiLoop);
