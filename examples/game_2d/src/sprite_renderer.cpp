@@ -65,7 +65,7 @@ render_quad()
 
 void
 draw_sprite(Camera2D& cam,
-            const glm::vec2& screen_size,
+            const glm::ivec2& screen_size,
             fightingengine::Shader& shader,
             glm::vec2 position,
             glm::vec2 size,
@@ -89,7 +89,7 @@ draw_sprite(Camera2D& cam,
       world_space.x > br_visible.x ||
       // bottom of screen
       world_space.y > br_visible.y) {
-    std::cout << "skipping rendering of object";
+    // std::cout << "skipping rendering of object";
     return;
   }
   // clang-format on

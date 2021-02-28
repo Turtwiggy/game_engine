@@ -1,6 +1,7 @@
 #pragma once
 
 #include <map>
+#include <stdexcept>
 #include <vector>
 
 #include <glm/glm.hpp>
@@ -25,6 +26,9 @@ enum class type
   BOAT,
   SQUARE,
 
+  ROCKET_1,
+  ROCKET_2
+
 };
 
 struct spritemap
@@ -46,6 +50,9 @@ struct spritemap
     ret[type::BOAT] = { 10, 19 };
     ret[type::SQUARE] = { 8, 5 };
 
+    ret[type::ROCKET_1] = { 33, 21 };
+    ret[type::ROCKET_2] = { 34, 21 };
+
     return ret;
   }
 
@@ -54,9 +61,6 @@ struct spritemap
     auto& tiles = get_locations();
 
     auto& which = tiles[t];
-
-    // if (which.size() == 0)
-    //   throw std::runtime_error("No tiles for type " + std::string(magic_enum::enum_name(t)).c_str());
 
     return tiles[t];
   }

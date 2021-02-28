@@ -21,10 +21,9 @@ public:
   void shutdown();
 
   [[nodiscard]] float get_delta_time();
-  [[nodiscard]] float get_time_since_launch() const;
   void frame_begin();
   void frame_end(const float delta_time);
-  void poll();
+
   void gui_begin();
   void gui_end();
 
@@ -54,9 +53,9 @@ private:
   int MILLISECONDS_PER_FRAME = (int)(1000 / FPS);
 
   // Game's fixed tick
-  int FIXED_TICKS_PER_SECOND = 1;
-  float SECONDS_PER_FIXED_TICK = 1.0f / FIXED_TICKS_PER_SECOND;
-  float seconds_since_last_game_tick = 0;
+  // int FIXED_TICKS_PER_SECOND = 1;
+  // float SECONDS_PER_FIXED_TICK = 1.0f / FIXED_TICKS_PER_SECOND;
+  // float seconds_since_last_game_tick = 0;
 
   // Physics tick
   // int PHYSICS_TICKS_PER_SECOND = 60;

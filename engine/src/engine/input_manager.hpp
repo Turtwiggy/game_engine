@@ -22,8 +22,10 @@ public:
 
   const Uint8* get_keyboard_state() const;
 
-  void add_button_down(SDL_Keycode button);
-  [[nodiscard]] bool get_key_down(SDL_Keycode button) const;
+  // return true when the button is pressed for the first time, until released
+  [[nodiscard]] bool get_key_down(SDL_Scancode button);
+  // return true when the button is released for the first itme after press
+  [[nodiscard]] bool get_key_up(SDL_Scancode button);
   [[nodiscard]] bool get_key_held(SDL_Scancode button) const;
 
   // mouse
@@ -45,10 +47,16 @@ private:
   //
   // Keyboard state
   //
-
-  // down reset every frame
-  std::vector<SDL_Keycode> down;
   const Uint8* state;
+
+  // this is so we can keep a tally of kd, or ku over time
+  std::vector<SDL_Scancode> kd;
+  std::vector<SDL_Scancode> ku;
+
+  // this is so we can keep knowledge of kd or ku
+  // for all functions that call get ku or kd in a frame
+  std::vector<SDL_Scancode> kd_cache;
+  std::vector<SDL_Scancode> ku_cache;
 
   //
   // Mouse state

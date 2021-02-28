@@ -61,22 +61,11 @@ Application::get_delta_time()
   return ImGui::GetIO().DeltaTime;
 }
 
-float
-Application::get_time_since_launch() const
-{
-  // todo this
-  return 0.0;
-}
-
-void
-Application::frame_begin()
-{
-  input_manager.new_frame();
-}
-
 void
 Application::frame_end(const float delta_time)
 {
+  imgui_manager.end_frame(get_window());
+
   SDL_GL_SwapWindow(get_window().get_handle());
 
   // If frame finished early
@@ -85,11 +74,14 @@ Application::frame_end(const float delta_time)
 }
 
 void
-Application::poll()
+Application::frame_begin()
 {
+  imgui_manager.begin_frame(get_window());
+  input_manager.new_frame();
+
   SDL_Event e;
   while (SDL_PollEvent(&e)) {
-    if (imgui_manager.ProcessEventSdl2(e)) {
+    if (ImGui::GetIO().WantCaptureKeyboard || ImGui::GetIO().WantCaptureMouse) {
       // Imgui stole the event
       continue;
     }
@@ -126,9 +118,6 @@ Application::poll()
       }
     }
 
-    // int mouse_x, mouse_y;
-    // SDL_GetMouseState(&mouse_x, &mouse_y);
-
     // Key events
     switch (e.type) {
       case SDL_KEYDOWN:
@@ -136,7 +125,7 @@ Application::poll()
         {
           SDL_KeyboardEvent key_event = e.key;
           auto key = key_event.keysym.sym;
-          input_manager.add_button_down(key);
+          // input_manager.add_button_down(key);
           break;
         }
       case SDL_MOUSEBUTTONDOWN:
@@ -154,18 +143,6 @@ Application::poll()
         }
     }
   }
-}
-
-void
-Application::gui_begin()
-{
-  imgui_manager.begin_frame(get_window());
-}
-
-void
-Application::gui_end()
-{
-  imgui_manager.end_frame(get_window());
 }
 
 // ---- events

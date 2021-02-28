@@ -104,47 +104,4 @@ ImGui_Manager::end_frame(const GameWindow& window)
   }
 }
 
-bool
-ImGui_Manager::ProcessEventSdl2(const SDL_Event& event)
-{
-  ImGuiIO& io = ImGui::GetIO();
-  switch (event.type) {
-    case SDL_QUIT:
-      return false;
-    case SDL_MOUSEWHEEL: {
-      if (event.wheel.x > 0)
-        io.MouseWheelH += 1;
-      if (event.wheel.x < 0)
-        io.MouseWheelH -= 1;
-      if (event.wheel.y > 0)
-        io.MouseWheel += 1;
-      if (event.wheel.y < 0)
-        io.MouseWheel -= 1;
-      return io.WantCaptureMouse;
-    }
-    case SDL_MOUSEBUTTONDOWN: {
-      return io.WantCaptureMouse;
-    }
-    case SDL_TEXTINPUT: {
-      io.AddInputCharactersUTF8(event.text.text);
-      return io.WantTextInput;
-    }
-    case SDL_KEYDOWN:
-      // if (event.key.keysym.sym == SDLK_BACKQUOTE)
-      //{
-      //}
-    case SDL_KEYUP: {
-      int key = event.key.keysym.scancode;
-      IM_ASSERT(key >= 0 && key < IM_ARRAYSIZE(io.KeysDown));
-      io.KeysDown[key] = (event.type == SDL_KEYDOWN);
-      io.KeyShift = ((SDL_GetModState() & KMOD_SHIFT) != 0);
-      io.KeyCtrl = ((SDL_GetModState() & KMOD_CTRL) != 0);
-      io.KeyAlt = ((SDL_GetModState() & KMOD_ALT) != 0);
-      io.KeySuper = ((SDL_GetModState() & KMOD_GUI) != 0);
-      return io.WantCaptureKeyboard;
-    }
-  }
-  return io.WantCaptureMouse;
-}
-
 } // namespace fightingengine

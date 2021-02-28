@@ -9,18 +9,18 @@ namespace fightingengine {
 
 InputManager::InputManager()
 {
-  down = std::vector<SDL_Keycode>();
   state = SDL_GetKeyboardState(NULL);
 }
 
 void
 InputManager::new_frame()
 {
-  down.clear();
-
   mouse_lmb_down = false;
   mouse_rmb_down = false;
   mouse_mmb_down = false;
+
+  kd_cache.clear();
+  ku_cache.clear();
 }
 
 // keyboard
@@ -31,16 +31,55 @@ InputManager::get_keyboard_state() const
   return state;
 }
 
-void
-InputManager::add_button_down(SDL_Keycode button)
+bool
+InputManager::get_key_down(SDL_Scancode button)
 {
-  down.push_back(button);
+  // check cache for this frame
+  auto& cache_button_down = std::find(kd_cache.begin(), kd_cache.end(), button);
+  if (cache_button_down != kd_cache.end())
+    return true;
+
+  bool button_held = get_key_held(button);
+  auto& button_down = std::find(kd.begin(), kd.end(), button);
+
+  // button held, and no recollection of it being pressed
+  if (button_held && button_down == kd.end()) {
+    kd.push_back(button);
+    kd_cache.push_back(button);
+    return true;
+  }
+
+  // button released, but we have it in the list of keys
+  if (!button_held && button_down != kd.end()) {
+    kd.erase(button_down);
+  }
+
+  return false;
 }
 
 bool
-InputManager::get_key_down(SDL_Keycode button) const
+InputManager::get_key_up(SDL_Scancode button)
 {
-  return std::find(down.begin(), down.end(), button) != down.end();
+  // check cache for this frame
+  auto& cache_button_up = std::find(ku_cache.begin(), ku_cache.end(), button);
+  if (cache_button_up != ku_cache.end())
+    return true;
+
+  bool button_held = get_key_held(button);
+  auto& button_up = std::find(ku.begin(), ku.end(), button);
+
+  // button held, no recollection of it being pressed
+  if (!button_held && button_up != ku.end()) {
+    ku_cache.push_back(button);
+    ku.erase(button_up);
+    return true;
+  }
+
+  // button is pressed
+  if (button_held && button_up == ku.end())
+    ku.push_back(button);
+
+  return false;
 }
 
 bool

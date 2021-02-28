@@ -22,7 +22,7 @@ render_quad();
 // draw_sprite(Shader& shader, Transform& t, int tex_slot = 0);
 void
 draw_sprite(Camera2D& cam,
-            const glm::vec2& screen_size,
+            const glm::ivec2& screen_size,
             fightingengine::Shader& shader,
             glm::vec2 position,
             glm::vec2 size,

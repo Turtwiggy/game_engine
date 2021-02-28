@@ -25,8 +25,6 @@ public:
 
   void begin_frame(const GameWindow& window);
   void end_frame(const GameWindow& window);
-
-  bool ProcessEventSdl2(const SDL_Event& event);
 };
 
 } // namespace fightingengine
