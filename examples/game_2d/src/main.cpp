@@ -40,7 +40,7 @@ using namespace game2d;
 struct GameObject
 {
   glm::vec2 pos = { 0.0f, 0.0f }; // in pixels, centered
-  float angle = 0.0f;             // in degrees
+  float angle_radians = 0.0f;
   glm::vec2 size = { 100.0f, 100.0f };
   glm::vec4 colour = { 1.0f, 1.0f, 1.0f, 1.0f };
   glm::vec2 velocity = { 0.0f, 0.0f };
@@ -132,7 +132,7 @@ main()
   float spawn_every_cooldown = 0.0f;
 
   GameObject player;
-  player.angle = 90.0f;
+  player.angle_radians = 0.0;
   player.colour = { 0.0f, 1.0f, 0.0f, 0.6f };
   player.size = { 1.0f * 768.0f / 48.0f, 1.0f * 362.0f / 22.0f };
   player.pos = { screen_width / 2.0f, screen_height / 2.0f };
@@ -142,12 +142,15 @@ main()
   // player things
 
   GameObject tex_obj;
-  tex_obj.angle = 0.0f;
+  tex_obj.angle_radians = 0.0f;
   tex_obj.colour = { 1.0f, 1.0f, 1.0f, 1.0f };
   tex_obj.size = { 768.0f, 352.0f };
   tex_obj.pos = { 0.0f, 20.0f };
   tex_obj.tex_slot = tex_unit_kenny_nl;
   tex_obj.velocity = { 0.0f, 0.0f };
+
+  bool move_player = false;
+  float mouse_angle_around_player = 0.0f;
 
   // four random points on the screen
   float offsets = 200.0f;
@@ -315,31 +318,37 @@ main()
 
       float angle_speed = 200.0f;
       if (app.get_input().get_key_held(SDL_SCANCODE_SPACE)) {
-        turn_velocity_x = 0.0f;
-        turn_velocity_y = 0.0f;
-        // turn_velocity_y *= 0.1f;
-        // turn_velocity_x *= 0.1f;
+        turn_velocity_x = 5.0f;
+        turn_velocity_y = 5.0f;
+
         // increase turn speed
-        angle_speed *= 5.0f;
+        // angle_speed *= 5.0f;
       }
 
+      mouse_angle_around_player =
+        atan2(app.get_input().get_mouse_pos().y - player.pos.y, app.get_input().get_mouse_pos().x - player.pos.x);
+      mouse_angle_around_player += PI / 2.0f;
+
       // Turn Ship
-      if (app.get_input().get_key_held(SDL_SCANCODE_D))
-        player.angle += delta_time_s * angle_speed;
-      if (app.get_input().get_key_held(SDL_SCANCODE_A))
-        player.angle -= delta_time_s * angle_speed;
+      // if (app.get_input().get_key_held(SDL_SCANCODE_D))
+      //   player.angle += delta_time_s * angle_speed;
+      // if (app.get_input().get_key_held(SDL_SCANCODE_A))
+      //   player.angle -= delta_time_s * angle_speed;
 
       // Boost
       float extra_speed = 1.0f;
       if (app.get_input().get_key_held(SDL_SCANCODE_LSHIFT))
         extra_speed = 2.0f;
 
-      // update get vector based on angle
-      float x = glm::sin(glm::radians(player.angle)) * turn_velocity_x * extra_speed;
-      float y = -glm::cos(glm::radians(player.angle)) * turn_velocity_y * extra_speed;
-
-      player.pos.x += x * delta_time_s;
-      player.pos.y += y * delta_time_s;
+      if (move_player) {
+        // update get vector based on angle
+        // float x = glm::sin(player.angle_radians) * turn_velocity_x * extra_speed;
+        // float y = -glm::cos(player.angle_radians) * turn_velocity_y * extra_speed;
+        float x = glm::sin(mouse_angle_around_player) * turn_velocity_x * extra_speed;
+        float y = -glm::cos(mouse_angle_around_player) * turn_velocity_y * extra_speed;
+        player.pos.x += x * delta_time_s;
+        player.pos.y += y * delta_time_s;
+      }
 
       // move floaty object to point
       floaty_object.pos = glm::lerp(points[next_point], points[(next_point + 1) % 4], percent);
@@ -359,7 +368,7 @@ main()
 
         GameObject obj;
         obj.pos = player.pos;
-        obj.angle = player.angle;
+        obj.angle_radians = player.angle_radians;
         obj.velocity = player.velocity;
         objects.push_back(obj);
       }
@@ -408,13 +417,13 @@ main()
       glm::vec2 size = glm::vec2(50.0f, 50.0f);
       glm::vec3 colour = glm::vec3(1.0f, 0.0f, 0.0f);
 
-      float x = glm::sin(glm::radians(object.angle)) * object.velocity.x;
-      float y = -glm::cos(glm::radians(object.angle)) * object.velocity.y;
+      float x = glm::sin(object.angle_radians) * object.velocity.x;
+      float y = -glm::cos(object.angle_radians) * object.velocity.y;
       object.pos.x += (x)*delta_time_s;
       object.pos.y += (y)*delta_time_s;
 
       sprite_renderer::draw_sprite(
-        camera, glm::ivec2(screen_width, screen_height), sprite_shader, object.pos, size, object.angle, colour);
+        camera, glm::ivec2(screen_width, screen_height), sprite_shader, object.pos, size, object.angle_radians, colour);
     }
     for (auto& object : points) {
       glm::vec2 size = glm::vec2(50.0f, 50.0f);
@@ -428,7 +437,7 @@ main()
                                  sprite_shader,
                                  floaty_object.pos,
                                  floaty_object.size,
-                                 floaty_object.angle,
+                                 floaty_object.angle_radians,
                                  floaty_object.colour);
 
     obj = spritemap.get_sprite_offset(sprite::type::TREE_1);
@@ -439,7 +448,7 @@ main()
                                  sprite_shader,
                                  player.pos,
                                  player.size,
-                                 player.angle,
+                                 player.angle_radians,
                                  player.colour);
 
     // draw a red line
@@ -469,10 +478,12 @@ main()
     ImGui::Text("player pos %f %f", player.pos.x, player.pos.y);
     ImGui::Text("player accel x: %f y: %f", player.velocity.x, player.velocity.y);
     ImGui::Text("player vel (BROKEN) x: %f y: %f", 0.0f, 0.0f);
-    ImGui::Text("player angle %f", player.angle);
+    ImGui::Text("player angle %f", player.angle_radians);
     ImGui::Text("camera pos %f %f", camera.pos.x, camera.pos.y);
     ImGui::Text("mouse pos %f %f", app.get_input().get_mouse_pos().x, app.get_input().get_mouse_pos().y);
     ImGui::Text("Spawned objects: %i", objects.size());
+    ImGui::Text("Mouse angle around player %f", mouse_angle_around_player);
+    ImGui::Checkbox("Move player? ", &move_player);
     ImGui::End();
 
     // ImGui demo window
