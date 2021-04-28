@@ -1,3 +1,6 @@
+// -- Resources --
+// https://github.com/Turtwiggy/Dwarf-and-Blade/blob/master/src/sprite_renderer.cpp
+// https://github.com/Turtwiggy/Dwarf-and-Blade/tree/master/src
 
 // c++ lib headers
 #include <iostream>
@@ -27,17 +30,7 @@ using namespace fightingengine;
 #include "util.hpp"
 using namespace game2d;
 
-// other things to consider
-// colisions
-// particles
-// post processing
-// rendering text
-
-// -- temp --
-// https://github.com/Turtwiggy/Dwarf-and-Blade/blob/master/src/sprite_renderer.cpp
-// https://github.com/Turtwiggy/Dwarf-and-Blade/tree/master/src
-
-struct GameObject
+struct GameObject2D
 {
   glm::vec2 pos = { 0.0f, 0.0f }; // in pixels, centered
   float angle_radians = 0.0f;
@@ -50,7 +43,7 @@ struct GameObject
 
 // simple aabb collision
 bool
-check_collides(GameObject& one, GameObject& two)
+check_collides(GameObject2D& one, GameObject2D& two)
 {
   // collision x-axis?
   bool collisionX = one.pos.x + one.size.x >= two.pos.x && two.pos.x + two.size.x >= one.pos.x;
@@ -67,11 +60,24 @@ enum class GameState
   GAME_PAUSED
 };
 
-// -- end temp --
-
 float screen_width = 1366.0f;
 float screen_height = 768.0f;
-const glm::vec4 dark_blue = glm::vec4(0.0f / 255.0f, 100.0f / 255.0f, 100.0f / 255.0f, 1.0f);
+
+// https://colorhunt.co/palette/273312
+const glm::vec4 PALETTE_COLOUR_1_0 = glm::vec4(255.0f / 255.0f, 201.0f / 255.0f, 150.0f / 255.0f, 1.0f); // yellowish
+const glm::vec4 PALETTE_COLOUR_2_0 = glm::vec4(255.0f / 255.0f, 132.0f / 255.0f, 116.0f / 255.0f, 1.0f); // orange
+const glm::vec4 PALETTE_COLOUR_3_0 = glm::vec4(159.0f / 255.0f, 95.0f / 255.0f, 128.0f / 255.0f, 1.0f);  // brown-red
+const glm::vec4 PALETTE_COLOUR_4_0 = glm::vec4(88.0f / 255.0f, 61.0f / 255.0f, 114.0f / 255.0f, 1.0f);   // purple
+
+const glm::vec4 PALETTE_COLOUR_1_1 = glm::vec4(57.0f / 255.0f, 62.0f / 255.0f, 70.0f / 255.0f, 1.0f);    // black
+const glm::vec4 PALETTE_COLOUR_2_1 = glm::vec4(0.0f / 255.0f, 173.0f / 255.0f, 181.0f / 255.0f, 1.0f);   // blue
+const glm::vec4 PALETTE_COLOUR_3_1 = glm::vec4(170.0f / 255.0f, 216.0f / 255.0f, 211.0f / 255.0f, 1.0f); // lightblue
+const glm::vec4 PALETTE_COLOUR_4_1 = glm::vec4(238.0f / 255.0f, 238.0f / 255.0f, 238.0f / 255.0f, 1.0f); // grey
+
+glm::vec4 chosen_colour_0 = PALETTE_COLOUR_1_1;
+glm::vec4 chosen_colour_1 = PALETTE_COLOUR_2_1;
+glm::vec4 chosen_colour_2 = PALETTE_COLOUR_3_1;
+glm::vec4 chosen_colour_3 = PALETTE_COLOUR_4_1;
 
 const int tex_unit_kenny_nl = 0;
 
@@ -81,7 +87,7 @@ main()
   std::cout << "booting up..." << std::endl;
   const auto app_start = std::chrono::high_resolution_clock::now();
 
-  Application app("2D Game", screen_width, screen_height);
+  Application app("2D Game", static_cast<int>(screen_width), static_cast<int>(screen_height));
   // app.set_fps_limit(60.0f);
 
   RandomState rnd;
@@ -104,44 +110,45 @@ main()
 
   // Rendering
   RenderCommand::init();
-  RenderCommand::set_clear_colour(dark_blue);
-  RenderCommand::set_viewport(0, 0, screen_width, screen_height);
+  RenderCommand::set_clear_colour(chosen_colour_0);
+  RenderCommand::set_viewport(0, 0, static_cast<uint32_t>(screen_width), static_cast<uint32_t>(screen_height));
   RenderCommand::set_depth_testing(false); // disable depth testing for 2d
 
-  Shader sprite_shader = Shader("2d.vert", "2d_spritesheet.frag");
+  Shader sprite_shader = Shader("2d_texture.vert", "2d_spritesheet.frag");
   sprite_shader.bind();
   sprite_shader.set_mat4("projection", projection);
   sprite_shader.set_int("tex", tex_unit_kenny_nl);
 
-  Shader tex_shader = Shader("2d.vert", "2d_texture.frag");
+  Shader tex_shader = Shader("2d_texture.vert", "2d_texture.frag");
   tex_shader.bind();
   tex_shader.set_mat4("projection", projection);
   tex_shader.set_int("tex", tex_unit_kenny_nl);
 
-  Shader red_shader = Shader("2d_red.vert", "2d_red.frag");
-  red_shader.bind();
+  Shader colour_shader = Shader("2d_basic.vert", "2d_colour.frag");
+  colour_shader.bind();
+  colour_shader.set_vec4("colour", chosen_colour_1);
 
   sprite::spritemap spritemap;
   auto& sprites = spritemap.get_locations();
 
-  // ---- Game ----
+  //
+  // Game
+  //
 
   GameState state = GameState::GAME_ACTIVE;
-  std::vector<GameObject> objects;
+  std::vector<GameObject2D> objects;
   float spawn_every = 1.0f;
   float spawn_every_cooldown = 0.0f;
 
-  GameObject player;
+  GameObject2D player;
   player.angle_radians = 0.0;
-  player.colour = { 0.0f, 1.0f, 0.0f, 0.6f };
+  player.colour = chosen_colour_1;
   player.size = { 1.0f * 768.0f / 48.0f, 1.0f * 362.0f / 22.0f };
   player.pos = { screen_width / 2.0f, screen_height / 2.0f };
   player.tex_slot = tex_unit_kenny_nl;
   player.velocity = { 5.0f, 5.0f };
 
-  // player things
-
-  GameObject tex_obj;
+  GameObject2D tex_obj;
   tex_obj.angle_radians = 0.0f;
   tex_obj.colour = { 1.0f, 1.0f, 1.0f, 1.0f };
   tex_obj.size = { 768.0f, 352.0f };
@@ -149,7 +156,6 @@ main()
   tex_obj.tex_slot = tex_unit_kenny_nl;
   tex_obj.velocity = { 0.0f, 0.0f };
 
-  bool move_player = false;
   float mouse_angle_around_player = 0.0f;
 
   // four random points on the screen
@@ -162,7 +168,7 @@ main()
   std::vector<glm::vec2> points{ tl, tr, br, bl };
 
   float percent = 0.0f;
-  GameObject floaty_object;
+  GameObject2D floaty_object;
   floaty_object.pos = points[0];
   glm::vec2 floaty_object_destination = points[1];
   floaty_object.tex_slot = tex_unit_kenny_nl;
@@ -230,21 +236,21 @@ main()
       sprite_shader.set_mat4("projection", projection);
       tex_shader.bind();
       tex_shader.set_mat4("projection", projection);
-      red_shader.bind();
-      red_shader.set_mat4("projection", projection);
+      colour_shader.bind();
+      colour_shader.set_mat4("projection", projection);
     }
 
     //
     // Shader hot reloading
     //
-    if (app.get_input().get_key_held(SDL_SCANCODE_R)) {
-      reload_shader_program(&sprite_shader.ID, "2d_texture.vert", "2d_spritesheet.frag");
-      sprite_shader.bind();
-      sprite_shader.set_mat4("projection", projection);
-      sprite_shader.set_int("tex", tex_unit_kenny_nl);
-      sprite_shader.set_int("desired_x", 1);
-      sprite_shader.set_int("desired_x", 0);
-    }
+    // if (app.get_input().get_key_held(SDL_SCANCODE_R)) {
+    //   reload_shader_program(&sprite_shader.ID, "2d_texture.vert", "2d_spritesheet.frag");
+    //   sprite_shader.bind();
+    //   sprite_shader.set_mat4("projection", projection);
+    //   sprite_shader.set_int("tex", tex_unit_kenny_nl);
+    //   sprite_shader.set_int("desired_x", 1);
+    //   sprite_shader.set_int("desired_x", 0);
+    // }
 
     //
     // Game: Pause
@@ -256,14 +262,14 @@ main()
     //
     // Add object
     //
-    if (app.get_input().get_mouse_lmb_down()) {
-      glm::ivec2 mouse_pos = app.get_input().get_mouse_pos();
-      printf("(game) left mouse clicked %i %i \n", mouse_pos.x, mouse_pos.y);
-      glm::vec2 world_pos = glm::vec2(mouse_pos) + camera.pos;
-      GameObject obj;
-      obj.pos = glm::vec2(world_pos.x, world_pos.y);
-      objects.push_back(obj);
-    }
+    // if (app.get_input().get_mouse_lmb_down()) {
+    //   glm::ivec2 mouse_pos = app.get_input().get_mouse_pos();
+    //   printf("(game) left mouse clicked %i %i \n", mouse_pos.x, mouse_pos.y);
+    //   glm::vec2 world_pos = glm::vec2(mouse_pos) + camera.pos;
+    //   GameObject2D obj;
+    //   obj.pos = glm::vec2(world_pos.x, world_pos.y);
+    //   objects.push_back(obj);
+    // }
 
     profiler.end(Profiler::Stage::SdlInput);
     profiler.begin(Profiler::Stage::GameTick);
@@ -271,20 +277,17 @@ main()
     if (state == GameState::GAME_ACTIVE) {
 
       // Game Thing: Randomly spawn things
-      spawn_every_cooldown += delta_time_s;
-      if (spawn_every_cooldown > spawn_every) {
-
-        float x = rand_det_s(rnd.rng, 0.0f, 1.0f);
-        float y = rand_det_s(rnd.rng, 0.0f, 1.0f);
-        glm::vec2 rand_pos(x * screen_width, y * screen_height);
-        printf("random pos: %f %f", rand_pos.x, rand_pos.y);
-
-        GameObject obj;
-        obj.pos = rand_pos;
-        objects.push_back(obj);
-
-        spawn_every_cooldown = 0.0f;
-      }
+      // spawn_every_cooldown += delta_time_s;
+      // if (spawn_every_cooldown > spawn_every) {
+      //   float x = rand_det_s(rnd.rng, 0.0f, 1.0f);
+      //   float y = rand_det_s(rnd.rng, 0.0f, 1.0f);
+      //   glm::vec2 rand_pos(x * screen_width, y * screen_height);
+      //   printf("random pos: %f %f", rand_pos.x, rand_pos.y);
+      //   GameObject2D obj;
+      //   obj.pos = rand_pos;
+      //   objects.push_back(obj);
+      //   spawn_every_cooldown = 0.0f;
+      // }
 
       // Game Thing: Reset player pos
       if (app.get_input().get_key_held(SDL_SCANCODE_O)) {
@@ -305,42 +308,36 @@ main()
       if (app.get_input().get_key_held(SDL_SCANCODE_DOWN))
         camera.pos.y += camera_velocity_y;
 
-      // spaceship lrud
-      const float player_speed = 10.0f;
-
-      if (app.get_input().get_key_held(SDL_SCANCODE_W))
-        player.velocity.y += player_speed;
-      if (app.get_input().get_key_held(SDL_SCANCODE_S))
-        player.velocity.y -= player_speed;
-
-      float turn_velocity_x = player.velocity.y; // same as y so turning doesnt feel weird
-      float turn_velocity_y = player.velocity.y;
-
-      float angle_speed = 200.0f;
-      if (app.get_input().get_key_held(SDL_SCANCODE_SPACE)) {
-        turn_velocity_x = 5.0f;
-        turn_velocity_y = 5.0f;
-
-        // increase turn speed
-        // angle_speed *= 5.0f;
-      }
-
-      mouse_angle_around_player =
-        atan2(app.get_input().get_mouse_pos().y - player.pos.y, app.get_input().get_mouse_pos().x - player.pos.x);
-      mouse_angle_around_player += PI / 2.0f;
-
-      // Turn Ship
-      // if (app.get_input().get_key_held(SDL_SCANCODE_D))
-      //   player.angle += delta_time_s * angle_speed;
-      // if (app.get_input().get_key_held(SDL_SCANCODE_A))
-      //   player.angle -= delta_time_s * angle_speed;
-
-      // Boost
+      // Ability: Boost
       float extra_speed = 1.0f;
       if (app.get_input().get_key_held(SDL_SCANCODE_LSHIFT))
         extra_speed = 2.0f;
 
-      if (move_player) {
+      bool movement_spaceship_lrud = false;
+      if (movement_spaceship_lrud) {
+        const float player_speed = 10.0f;
+        // Turn Ship
+        // if (app.get_input().get_key_held(SDL_SCANCODE_D))
+        //   player.angle += delta_time_s * angle_speed;
+        // if (app.get_input().get_key_held(SDL_SCANCODE_A))
+        //   player.angle -= delta_time_s * angle_speed;
+
+        if (app.get_input().get_key_held(SDL_SCANCODE_W))
+          player.velocity.y += player_speed;
+        if (app.get_input().get_key_held(SDL_SCANCODE_S))
+          player.velocity.y -= player_speed;
+
+        float turn_velocity_x = player.velocity.y; // same as y so turning doesnt feel weird
+        float turn_velocity_y = player.velocity.y;
+
+        float angle_speed = 200.0f;
+        if (app.get_input().get_key_held(SDL_SCANCODE_SPACE)) {
+          turn_velocity_x = 5.0f;
+          turn_velocity_y = 5.0f;
+          // increase turn speed
+          // angle_speed *= 5.0f;
+        }
+
         // update get vector based on angle
         // float x = glm::sin(player.angle_radians) * turn_velocity_x * extra_speed;
         // float y = -glm::cos(player.angle_radians) * turn_velocity_y * extra_speed;
@@ -349,6 +346,34 @@ main()
         player.pos.x += x * delta_time_s;
         player.pos.y += y * delta_time_s;
       }
+
+      bool movement_wasd = true;
+      if (movement_wasd) {
+        player.velocity = { 1.0f, 1.0f };
+
+        if (app.get_input().get_key_held(SDL_SCANCODE_A)) {
+          player.pos.x -= player.velocity.x;
+          player.size = { (1.0f * 768.0f / 48.0f) * 1.5f, player.size.y };
+        } else {
+          player.size = { (1.0f * 768.0f / 48.0f) * 1.0f, player.size.y };
+        }
+
+        if (app.get_input().get_key_held(SDL_SCANCODE_D)) {
+          player.pos.x += player.velocity.x;
+          player.size = { (1.0f * 768.0f / 48.0f) * 1.5f, player.size.y };
+        } else {
+          player.size = { (1.0f * 768.0f / 48.0f) * 1.0f, player.size.y };
+        }
+
+        if (app.get_input().get_key_held(SDL_SCANCODE_W))
+          player.pos.y -= player.velocity.y;
+        if (app.get_input().get_key_held(SDL_SCANCODE_S))
+          player.pos.y += player.velocity.y;
+      }
+
+      mouse_angle_around_player =
+        atan2(app.get_input().get_mouse_pos().y - player.pos.y, app.get_input().get_mouse_pos().x - player.pos.x);
+      mouse_angle_around_player += PI / 2.0f;
 
       // move floaty object to point
       floaty_object.pos = glm::lerp(points[next_point], points[(next_point + 1) % 4], percent);
@@ -366,7 +391,7 @@ main()
         printf("(game) right mouse clicked %i %i \n", mouse_pos.x, mouse_pos.y);
         glm::vec2 world_pos = glm::vec2(mouse_pos) + camera.pos;
 
-        GameObject obj;
+        GameObject2D obj;
         obj.pos = player.pos;
         obj.angle_radians = player.angle_radians;
         obj.velocity = player.velocity;
@@ -374,7 +399,7 @@ main()
       }
 
       // Do Collisions
-      std::vector<GameObject>::iterator it = objects.begin();
+      std::vector<GameObject2D>::iterator it = objects.begin();
       while (it != objects.end()) {
 
         if (check_collides(player, *it)) {
@@ -395,27 +420,26 @@ main()
     //
     // rendering
     //
-    RenderCommand::set_clear_colour(dark_blue);
+    RenderCommand::set_clear_colour(chosen_colour_0);
     RenderCommand::clear();
 
-    // tex_shader.bind();
-    // sprite_renderer::draw_sprite(camera,
-    //                              glm::ivec2(screen_width, screen_height),
-    //                              tex_shader,
-    //                              tex_obj.pos,
-    //                              tex_obj.size,
-    //                              tex_obj.angle,
-    //                              tex_obj.colour);
+    tex_shader.bind();
+    sprite_renderer::draw_sprite(camera,
+                                 glm::ivec2(screen_width, screen_height),
+                                 tex_shader,
+                                 tex_obj.pos,
+                                 tex_obj.size,
+                                 tex_obj.angle_radians,
+                                 tex_obj.colour);
 
     glm::ivec2 obj = spritemap.get_sprite_offset(sprite::type::TREE_1);
     sprite_shader.bind();
     sprite_shader.set_int("desired_x", obj.x);
     sprite_shader.set_int("desired_y", obj.y);
 
-    float extra_speed = 10.0f;
     for (auto& object : objects) {
       glm::vec2 size = glm::vec2(50.0f, 50.0f);
-      glm::vec3 colour = glm::vec3(1.0f, 0.0f, 0.0f);
+      glm::vec3 colour = chosen_colour_2;
 
       float x = glm::sin(object.angle_radians) * object.velocity.x;
       float y = -glm::cos(object.angle_radians) * object.velocity.y;
@@ -425,11 +449,11 @@ main()
       sprite_renderer::draw_sprite(
         camera, glm::ivec2(screen_width, screen_height), sprite_shader, object.pos, size, object.angle_radians, colour);
     }
-    for (auto& object : points) {
+    for (auto& pos : points) {
       glm::vec2 size = glm::vec2(50.0f, 50.0f);
-      glm::vec3 colour = glm::vec3(1.0f, 0.0f, 0.0f);
+      glm::vec3 colour = chosen_colour_2;
       sprite_renderer::draw_sprite(
-        camera, glm::vec2(screen_width, screen_height), sprite_shader, object, size, 0.0f, colour);
+        camera, glm::vec2(screen_width, screen_height), sprite_shader, pos, size, 0.0f, colour);
     }
 
     sprite_renderer::draw_sprite(camera,
@@ -451,11 +475,12 @@ main()
                                  player.angle_radians,
                                  player.colour);
 
-    // draw a red line
-    red_shader.bind();
-    glBindVertexArray(line_vao);
-    glDrawArrays(GL_LINES, 0, 4);
-    glBindVertexArray(0);
+    // draw lines
+    // colour_shader.bind();
+    // colour_shader.set_vec4("colour", chosen_colour_3);
+    // glBindVertexArray(line_vao);
+    // glDrawArrays(GL_LINES, 0, 4);
+    // glBindVertexArray(0);
 
     profiler.end(Profiler::Stage::Render);
     profiler.begin(Profiler::Stage::GuiLoop);
@@ -463,7 +488,6 @@ main()
     // GUI
     //
     if (ImGui::BeginMainMenuBar()) {
-
       if (ImGui::MenuItem("Quit", "Esc")) {
         app.shutdown();
       }
@@ -483,7 +507,6 @@ main()
     ImGui::Text("mouse pos %f %f", app.get_input().get_mouse_pos().x, app.get_input().get_mouse_pos().y);
     ImGui::Text("Spawned objects: %i", objects.size());
     ImGui::Text("Mouse angle around player %f", mouse_angle_around_player);
-    ImGui::Checkbox("Move player? ", &move_player);
     ImGui::End();
 
     // ImGui demo window
