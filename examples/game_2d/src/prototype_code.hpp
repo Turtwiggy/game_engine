@@ -6,15 +6,12 @@
 //   //   player.angle += delta_time_s * angle_speed;
 //   // if (app.get_input().get_key_held(SDL_SCANCODE_A))
 //   //   player.angle -= delta_time_s * angle_speed;
-
 //   if (app.get_input().get_key_held(SDL_SCANCODE_W))
 //     player.velocity.y += player_speed;
 //   if (app.get_input().get_key_held(SDL_SCANCODE_S))
 //     player.velocity.y -= player_speed;
-
 //   float turn_velocity_x = player.velocity.y; // same as y so turning doesnt feel weird
 //   float turn_velocity_y = player.velocity.y;
-
 //   float angle_speed = 200.0f;
 //   if (app.get_input().get_key_held(SDL_SCANCODE_SPACE)) {
 //     turn_velocity_x = 5.0f;
@@ -22,7 +19,6 @@
 //     // increase turn speed
 //     // angle_speed *= 5.0f;
 //   }
-
 // // update get vector based on angle
 // // float x = glm::sin(player.angle_radians) * turn_velocity_x * extra_speed;
 // // float y = -glm::cos(player.angle_radians) * turn_velocity_y * extra_speed;

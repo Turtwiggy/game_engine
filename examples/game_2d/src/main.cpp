@@ -12,6 +12,7 @@
 #include <glm/glm.hpp>
 #include <glm/gtc/matrix_transform.hpp>
 #include <glm/gtx/compatibility.hpp>
+#include <glm/gtx/vector_angle.hpp>
 
 // hack: temp
 #include <GL/glew.h>
@@ -32,6 +33,7 @@ using namespace game2d;
 
 struct GameObject2D
 {
+  std::string name = "";
   glm::vec2 pos = { 0.0f, 0.0f }; // in pixels, centered
   float angle_radians = 0.0f;
   glm::vec2 size = { 100.0f, 100.0f };
@@ -258,18 +260,17 @@ main()
     if (app.get_input().get_key_down(SDL_SCANCODE_P)) {
       state = state == GameState::GAME_PAUSED ? GameState::GAME_ACTIVE : GameState::GAME_PAUSED;
     }
-
     //
-    // Add object
+    // Editor: add object
     //
-    // if (app.get_input().get_mouse_lmb_down()) {
-    //   glm::ivec2 mouse_pos = app.get_input().get_mouse_pos();
-    //   printf("(game) left mouse clicked %i %i \n", mouse_pos.x, mouse_pos.y);
-    //   glm::vec2 world_pos = glm::vec2(mouse_pos) + camera.pos;
-    //   GameObject2D obj;
-    //   obj.pos = glm::vec2(world_pos.x, world_pos.y);
-    //   objects.push_back(obj);
-    // }
+    if (app.get_input().get_mouse_lmb_down()) {
+      glm::ivec2 mouse_pos = app.get_input().get_mouse_pos();
+      printf("(game) left mouse clicked %i %i \n", mouse_pos.x, mouse_pos.y);
+      glm::vec2 world_pos = glm::vec2(mouse_pos) + camera.pos;
+      GameObject2D obj;
+      obj.pos = glm::vec2(world_pos.x, world_pos.y);
+      objects.push_back(obj);
+    }
 
     profiler.end(Profiler::Stage::SdlInput);
     profiler.begin(Profiler::Stage::GameTick);
@@ -295,14 +296,10 @@ main()
       if (app.get_input().get_key_held(SDL_SCANCODE_DOWN))
         camera.pos.y += camera_velocity_y;
 
-      mouse_angle_around_player =
-        atan2(app.get_input().get_mouse_pos().y - player.pos.y, app.get_input().get_mouse_pos().x - player.pos.x);
+      glm::vec2 player_world_space_pos = player.pos - camera.pos;
+      mouse_angle_around_player = atan2(app.get_input().get_mouse_pos().y - player_world_space_pos.y,
+                                        app.get_input().get_mouse_pos().x - player_world_space_pos.x);
       mouse_angle_around_player += PI / 2.0f;
-
-      // Ability: Boost
-      float player_speed = 80.0f;
-      if (app.get_input().get_key_held(SDL_SCANCODE_LSHIFT))
-        player_speed *= 2.0f;
 
       bool movement_wasd = true;
       if (movement_wasd) {
@@ -324,8 +321,16 @@ main()
           player.velocity.y = 0.0f;
         }
 
+        // look in mouse direction
         player.angle_radians = mouse_angle_around_player;
-        player.pos += player.velocity * player_speed * delta_time_s;
+        // look in velocity direction
+        // if (glm::length2(player.velocity) > 0) {
+        //   glm::vec2 up_axis = glm::vec2(0.0, -1.0);
+        //   float unsigned_angle = glm::angle(up_axis, player.velocity);
+        //   float sign = (up_axis.x * player.velocity.y - up_axis.y * player.velocity.x) >= 0.0f ? 1.0f : -1.0f;
+        //   float signed_angle = unsigned_angle * sign;
+        //   player.angle_radians = signed_angle;
+        // }
       }
 
       // move floaty object to point
@@ -345,6 +350,7 @@ main()
         glm::vec2 world_pos = glm::vec2(mouse_pos) + camera.pos;
 
         GameObject2D obj;
+        obj.name = "BULLET";
         obj.pos = player.pos;
         obj.angle_radians = player.angle_radians;
         obj.velocity = player.velocity;
@@ -355,12 +361,33 @@ main()
       std::vector<GameObject2D>::iterator it = objects.begin();
       while (it != objects.end()) {
 
-        if (check_collides(player, *it)) {
+        GameObject2D& obj = *it;
+        bool is_bullet = obj.name == std::string("BULLET"); // TODO: think about layer collisions
+        if (!is_bullet && check_collides(player, obj)) {
           printf("Ahh! you are colliding with something");
           it = objects.erase(it);
         } else {
           ++it;
         }
+      }
+
+      //
+      // Update everything's position
+      //
+
+      // Ability: Boost
+      float player_speed = 80.0f;
+      if (app.get_input().get_key_held(SDL_SCANCODE_LSHIFT))
+        player_speed *= 2.0f;
+
+      // player pos
+      player.pos += player.velocity * player_speed * delta_time_s;
+
+      // spawned objects pos
+      float obj_speed = 50.0f;
+      for (int i = 0; i < objects.size(); i++) {
+        GameObject2D& obj = objects[i];
+        obj.pos += obj.velocity * obj_speed * delta_time_s;
       }
 
       // Reset Camera
@@ -464,7 +491,7 @@ main()
     // ImGui demo window
     // ImGui::ShowDemoWindow(&show_imgui_demo_window);
 
-    if (true)
+    if (false)
       profiler_panel::draw(profiler, delta_time_s);
 
     profiler.end(Profiler::Stage::GuiLoop);
