@@ -276,19 +276,6 @@ main()
 
     if (state == GameState::GAME_ACTIVE) {
 
-      // Game Thing: Randomly spawn things
-      // spawn_every_cooldown += delta_time_s;
-      // if (spawn_every_cooldown > spawn_every) {
-      //   float x = rand_det_s(rnd.rng, 0.0f, 1.0f);
-      //   float y = rand_det_s(rnd.rng, 0.0f, 1.0f);
-      //   glm::vec2 rand_pos(x * screen_width, y * screen_height);
-      //   printf("random pos: %f %f", rand_pos.x, rand_pos.y);
-      //   GameObject2D obj;
-      //   obj.pos = rand_pos;
-      //   objects.push_back(obj);
-      //   spawn_every_cooldown = 0.0f;
-      // }
-
       // Game Thing: Reset player pos
       if (app.get_input().get_key_held(SDL_SCANCODE_O)) {
         player.pos = glm::vec2(0.0f, 0.0f);
@@ -308,72 +295,38 @@ main()
       if (app.get_input().get_key_held(SDL_SCANCODE_DOWN))
         camera.pos.y += camera_velocity_y;
 
+      mouse_angle_around_player =
+        atan2(app.get_input().get_mouse_pos().y - player.pos.y, app.get_input().get_mouse_pos().x - player.pos.x);
+      mouse_angle_around_player += PI / 2.0f;
+
       // Ability: Boost
-      float extra_speed = 1.0f;
+      float player_speed = 80.0f;
       if (app.get_input().get_key_held(SDL_SCANCODE_LSHIFT))
-        extra_speed = 2.0f;
-
-      bool movement_spaceship_lrud = false;
-      if (movement_spaceship_lrud) {
-        const float player_speed = 10.0f;
-        // Turn Ship
-        // if (app.get_input().get_key_held(SDL_SCANCODE_D))
-        //   player.angle += delta_time_s * angle_speed;
-        // if (app.get_input().get_key_held(SDL_SCANCODE_A))
-        //   player.angle -= delta_time_s * angle_speed;
-
-        if (app.get_input().get_key_held(SDL_SCANCODE_W))
-          player.velocity.y += player_speed;
-        if (app.get_input().get_key_held(SDL_SCANCODE_S))
-          player.velocity.y -= player_speed;
-
-        float turn_velocity_x = player.velocity.y; // same as y so turning doesnt feel weird
-        float turn_velocity_y = player.velocity.y;
-
-        float angle_speed = 200.0f;
-        if (app.get_input().get_key_held(SDL_SCANCODE_SPACE)) {
-          turn_velocity_x = 5.0f;
-          turn_velocity_y = 5.0f;
-          // increase turn speed
-          // angle_speed *= 5.0f;
-        }
-
-        // update get vector based on angle
-        // float x = glm::sin(player.angle_radians) * turn_velocity_x * extra_speed;
-        // float y = -glm::cos(player.angle_radians) * turn_velocity_y * extra_speed;
-        float x = glm::sin(mouse_angle_around_player) * turn_velocity_x * extra_speed;
-        float y = -glm::cos(mouse_angle_around_player) * turn_velocity_y * extra_speed;
-        player.pos.x += x * delta_time_s;
-        player.pos.y += y * delta_time_s;
-      }
+        player_speed *= 2.0f;
 
       bool movement_wasd = true;
       if (movement_wasd) {
         player.velocity = { 1.0f, 1.0f };
 
         if (app.get_input().get_key_held(SDL_SCANCODE_A)) {
-          player.pos.x -= player.velocity.x;
-          player.size = { (1.0f * 768.0f / 48.0f) * 1.5f, player.size.y };
+          player.velocity.x = -1.0f;
+        } else if (app.get_input().get_key_held(SDL_SCANCODE_D)) {
+          player.velocity.x = 1.0f;
         } else {
-          player.size = { (1.0f * 768.0f / 48.0f) * 1.0f, player.size.y };
+          player.velocity.x = 0.0f;
         }
 
-        if (app.get_input().get_key_held(SDL_SCANCODE_D)) {
-          player.pos.x += player.velocity.x;
-          player.size = { (1.0f * 768.0f / 48.0f) * 1.5f, player.size.y };
+        if (app.get_input().get_key_held(SDL_SCANCODE_W)) {
+          player.velocity.y = -1.0f;
+        } else if (app.get_input().get_key_held(SDL_SCANCODE_S)) {
+          player.velocity.y = 1.0f;
         } else {
-          player.size = { (1.0f * 768.0f / 48.0f) * 1.0f, player.size.y };
+          player.velocity.y = 0.0f;
         }
 
-        if (app.get_input().get_key_held(SDL_SCANCODE_W))
-          player.pos.y -= player.velocity.y;
-        if (app.get_input().get_key_held(SDL_SCANCODE_S))
-          player.pos.y += player.velocity.y;
+        player.angle_radians = mouse_angle_around_player;
+        player.pos += player.velocity * player_speed * delta_time_s;
       }
-
-      mouse_angle_around_player =
-        atan2(app.get_input().get_mouse_pos().y - player.pos.y, app.get_input().get_mouse_pos().x - player.pos.x);
-      mouse_angle_around_player += PI / 2.0f;
 
       // move floaty object to point
       floaty_object.pos = glm::lerp(points[next_point], points[(next_point + 1) % 4], percent);
@@ -500,19 +453,18 @@ main()
 
     ImGui::Begin("Game Info", NULL, ImGuiWindowFlags_NoFocusOnAppearing);
     ImGui::Text("player pos %f %f", player.pos.x, player.pos.y);
-    ImGui::Text("player accel x: %f y: %f", player.velocity.x, player.velocity.y);
-    ImGui::Text("player vel (BROKEN) x: %f y: %f", 0.0f, 0.0f);
+    ImGui::Text("player vel x: %f y: %f", player.velocity.x, player.velocity.y);
     ImGui::Text("player angle %f", player.angle_radians);
     ImGui::Text("camera pos %f %f", camera.pos.x, camera.pos.y);
     ImGui::Text("mouse pos %f %f", app.get_input().get_mouse_pos().x, app.get_input().get_mouse_pos().y);
+    ImGui::Text("mouse angle around player %f", mouse_angle_around_player);
     ImGui::Text("Spawned objects: %i", objects.size());
-    ImGui::Text("Mouse angle around player %f", mouse_angle_around_player);
     ImGui::End();
 
     // ImGui demo window
     // ImGui::ShowDemoWindow(&show_imgui_demo_window);
 
-    if (false)
+    if (true)
       profiler_panel::draw(profiler, delta_time_s);
 
     profiler.end(Profiler::Stage::GuiLoop);

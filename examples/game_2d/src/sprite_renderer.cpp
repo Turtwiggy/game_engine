@@ -69,7 +69,7 @@ draw_sprite(Camera2D& cam,
             fightingengine::Shader& shader,
             glm::vec2 position,
             glm::vec2 size,
-            float angle,
+            float angle_radians,
             glm::vec3 color,
             int tex_slot)
 {
@@ -104,7 +104,7 @@ draw_sprite(Camera2D& cam,
 
   model = glm::translate(model, glm::vec3(0.5f * size.x, 0.5f * size.y, 0.0f));
   // then rotate
-  model = glm::rotate(model, glm::radians(angle), glm::vec3(0.0f, 0.0f, 1.0f));
+  model = glm::rotate(model, angle_radians, glm::vec3(0.0f, 0.0f, 1.0f));
   // move origin back
   model = glm::translate(model, glm::vec3(-0.5f * size.x, -0.5f * size.y, 0.0f));
 
