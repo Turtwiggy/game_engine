@@ -14,9 +14,10 @@ namespace fightingengine {
 
 enum class DisplayMode
 {
-  Windowed,
-  Fullscreen,
-  Borderless
+  WINDOWED,
+  BORDERLESS,
+  FULLSCREEN,
+  FULLSCREEN_BORDERLESS,
 };
 
 class GameWindow
@@ -27,10 +28,10 @@ class GameWindow
   };
 
 public:
-  inline static std::string glsl_version = "#version 330";
-  inline static int opengl_major = 3;
-  inline static int opengl_minor = 3;
+  inline static std::string glsl_version;
   // Note: 4, 3 when compute shaders were introduced
+  inline static int opengl_major;
+  inline static int opengl_minor;
 
 private:
   // SDL2 window

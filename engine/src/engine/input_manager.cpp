@@ -3,6 +3,7 @@
 #include "engine/input_manager.hpp"
 
 // c++ standard lib headers
+#include <imgui.h>
 #include <vector>
 
 namespace fightingengine {
@@ -85,6 +86,9 @@ InputManager::get_key_up(SDL_Scancode button)
 bool
 InputManager::get_key_held(SDL_Scancode button) const
 {
+  if (ImGui::GetIO().WantCaptureKeyboard || ImGui::GetIO().WantCaptureMouse) {
+    return false; // Imgui stole the event
+  }
   return state[button];
 }
 
@@ -159,6 +163,7 @@ InputManager::set_mousewheel_y(const float amount)
 {
   mousewheel_y = amount;
 }
+
 float
 InputManager::get_mousewheel_y() const
 {

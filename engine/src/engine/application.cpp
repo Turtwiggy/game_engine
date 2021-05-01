@@ -3,12 +3,15 @@
 #include "engine/application.hpp"
 
 // c++ standard lib headers
+#include <iostream>
 #include <numeric>
 
 // other lib headers
 #include <GL/glew.h>
 #include <SDL2/SDL.h>
 #include <SDL2/SDL_events.h>
+#include <backends/imgui_impl_sdl.h>
+#include <imgui.h>
 
 namespace fightingengine {
 
@@ -18,10 +21,10 @@ Application::Application(const std::string& name, int width, int height)
   const std::string kBuildStr = "0.0.3";
 
   // Window
-  GameWindow::glsl_version = "#version 330";
+  GameWindow::glsl_version = "#version 150";
   GameWindow::opengl_major = 3;
-  GameWindow::opengl_minor = 3;
-  window = std::make_unique<GameWindow>(name + " [" + kBuildStr + "]", width, height, DisplayMode::Windowed);
+  GameWindow::opengl_minor = 2;
+  window = std::make_unique<GameWindow>(name + " [" + kBuildStr + "]", width, height, DisplayMode::BORDERLESS);
 
   imgui_manager.initialize(window.get());
 
@@ -49,15 +52,6 @@ Application::is_running() const
 float
 Application::get_delta_time()
 {
-  // now = SDL_GetTicks();         //Returns an unsigned 32-bit value
-  // representing the number of milliseconds since the SDL library initialized.
-  // uint32_t delta_time_in_milliseconds = now - prev;
-  // if (delta_time_in_milliseconds < 0) return 0; prev = now;
-
-  // float delta_time_in_seconds = (delta_time_in_milliseconds / 1000.f);
-  // time_since_launch += delta_time_in_seconds;
-  // printf("delta_time %f \n", delta_time_in_seconds);
-
   return ImGui::GetIO().DeltaTime;
 }
 
@@ -70,21 +64,16 @@ Application::frame_end(const float delta_time)
 
   // If frame finished early
   if (fps_limit && delta_time < MILLISECONDS_PER_FRAME)
-    SDL_Delay(MILLISECONDS_PER_FRAME - delta_time);
+    SDL_Delay(static_cast<Uint32>(MILLISECONDS_PER_FRAME) - static_cast<Uint32>(delta_time));
 }
 
 void
 Application::frame_begin()
 {
-  imgui_manager.begin_frame(get_window());
   input_manager.new_frame();
 
   SDL_Event e;
   while (SDL_PollEvent(&e)) {
-    if (ImGui::GetIO().WantCaptureKeyboard || ImGui::GetIO().WantCaptureMouse) {
-      // Imgui stole the event
-      continue;
-    }
 
     // Events to quit
     if (e.type == SDL_QUIT) {
@@ -118,23 +107,19 @@ Application::frame_begin()
       }
     }
 
+    if (ImGui::GetIO().WantCaptureMouse || ImGui::GetIO().WantCaptureKeyboard) {
+      imgui_manager.process_event(&e);
+      continue; // Imgui stole the event
+    }
+
     // Key events
     switch (e.type) {
-      case SDL_KEYDOWN:
-        // keyboard specific
-        {
-          SDL_KeyboardEvent key_event = e.key;
-          auto key = key_event.keysym.sym;
-          // input_manager.add_button_down(key);
-          break;
-        }
       case SDL_MOUSEBUTTONDOWN:
         // mouse specific
         {
           input_manager.add_mouse_down(e.button);
           break;
         }
-
       case SDL_MOUSEWHEEL:
         // mouse scrollwheel
         {
@@ -143,6 +128,8 @@ Application::frame_begin()
         }
     }
   }
+
+  imgui_manager.begin_frame(get_window());
 }
 
 // ---- events

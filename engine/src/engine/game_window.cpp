@@ -42,9 +42,13 @@ GameWindow::GameWindow(const std::string& title, int width, int height, DisplayM
 
   int flags = SDL_WINDOW_OPENGL | SDL_WINDOW_INPUT_FOCUS | SDL_WINDOW_RESIZABLE | SDL_WINDOW_ALLOW_HIGHDPI;
 
-  if (displaymode == DisplayMode::Fullscreen)
+  if (displaymode == DisplayMode::WINDOWED)
+    set_fullscreen(false);
+  else if (displaymode == DisplayMode::BORDERLESS)
+    flags |= SDL_WINDOW_BORDERLESS;
+  else if (displaymode == DisplayMode::FULLSCREEN)
     flags |= SDL_WINDOW_FULLSCREEN;
-  else if (displaymode == DisplayMode::Borderless)
+  else if (displaymode == DisplayMode::FULLSCREEN_BORDERLESS)
     flags |= SDL_WINDOW_FULLSCREEN_DESKTOP;
 
   // Get SDL Window requirements from Renderer
@@ -90,7 +94,9 @@ GameWindow::GameWindow(const std::string& title, int width, int height, DisplayM
     // }
   }
 
+  // SDL_GL_SetAttribute(SDL_GL_CONTEXT_FLAGS, 0);
   SDL_GL_SetAttribute(SDL_GL_CONTEXT_FLAGS, 0);
+  SDL_GL_SetAttribute(SDL_GL_CONTEXT_PROFILE_MASK, SDL_GL_CONTEXT_PROFILE_CORE);
   SDL_GL_SetAttribute(SDL_GL_CONTEXT_MAJOR_VERSION, opengl_major);
   SDL_GL_SetAttribute(SDL_GL_CONTEXT_MINOR_VERSION, opengl_minor);
 
