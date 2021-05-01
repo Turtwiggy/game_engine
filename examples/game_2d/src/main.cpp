@@ -285,7 +285,7 @@ main()
         glm::vec2 world_pos = glm::vec2(mouse_pos) + camera.pos;
 
         GameObject2D obj;
-        obj.name = "BULLET";
+        obj.name = "bullet";
         obj.pos = player.pos;
         obj.angle_radians = player.angle_radians;
         obj.velocity = player.velocity;
@@ -298,8 +298,7 @@ main()
       while (it != objects.end()) {
 
         GameObject2D& obj = *it;
-        bool is_bullet = obj.name == std::string("BULLET"); // TODO: think about layer collisions
-        if (!is_bullet && check_collides(player, obj)) {
+        if (check_collides(player, obj)) {
           printf("Ahh! you are colliding with something");
           it = objects.erase(it);
         } else {

@@ -148,7 +148,6 @@ draw_sprite_debug(Camera2D& cam,
   tr_pos.x = scale(tr_pos.x, 0.0f, screen_size.x, -1.0f, 1.0f);
   tr_pos.y = scale(tr_pos.y, 0.0f, screen_size.y, 1.0f, -1.0f);
 
-  glColor3f(debug_line_shader_colour.x, debug_line_shader_colour.y, debug_line_shader_colour.z);
   glBegin(GL_LINE_LOOP);
   glVertex2f(bl_pos.x, bl_pos.y);
   glVertex2f(tr_pos.x, bl_pos.y);
