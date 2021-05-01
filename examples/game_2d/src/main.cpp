@@ -66,15 +66,15 @@ collides(CollisionLayer& y_l1, CollisionLayer& x_l2)
     true, // player_bullet_1_2
     true, // player_destroyable_1_2
 
-    true, // bullet_default_2_0
-    true, // bullet_player_2_1
-    true, // bullet_bullet_2_2
-    true, // bullet_destroyable_2_2
+    true,  // bullet_default_2_0
+    true,  // bullet_player_2_1
+    false, // bullet_bullet_2_2
+    true,  // bullet_destroyable_2_2
 
-    true, // destroyable_default
-    true, // destroyable_player
-    true, // destroyable_bullet
-    true, // destroyable_destroyable
+    true,  // destroyable_default
+    true,  // destroyable_player
+    true,  // destroyable_bullet
+    false, // destroyable_destroyable
   };
 
   return collision_matrix[val];
@@ -175,7 +175,7 @@ main()
   GameState state = GameState::GAME_ACTIVE;
 
   std::vector<GameObject2D> objects;
-  std::vector<int> objects_that_collided;
+  std::vector<Collision2D> collisions;
   int objects_collected = 0;
 
   GameObject2D player;
@@ -343,28 +343,44 @@ main()
           objects.push_back(bullet_copy);
         }
 
-        // Do Collisions
-        // std::vector<GameObject2D>::iterator it_1 = objects.begin();
-        // std::vector<GameObject2D>::iterator it_2 = objects.begin();
-        // while (it_1 != objects.end()) {
-        //   while (it_2 != objects.end()) {
-        //     GameObject2D& obj_1 = *it_1;
-        //     GameObject2D& obj_2 = *it_2;
-        //     if (obj_1.id == obj_2.id) {
-        //       ++it_2;
-        //       continue;
-        //     }
-
-        //     bool collision_config = collides(obj_1.collision_layer, obj_2.collision_layer);
-        //     if (collision_config && check_collides(obj_1, obj_2)) {
-        //       std::cout << "collideing objects... " << obj_1.id << "," << obj_2.id << std::endl;
-        //       objects_that_collided.push_back(obj_1.id);
-        //       objects_that_collided.push_back(obj_2.id);
-        //     }
-        //     ++it_2;
-        //   }
-        //   ++it_1;
-        // }
+        //
+        // Generate Collisions
+        //
+        collisions.clear();
+        std::vector<GameObject2D>::iterator it_1 = objects.begin();
+        while (it_1 != objects.end()) {
+          std::vector<GameObject2D>::iterator it_2 = objects.begin();
+          while (it_2 != objects.end()) {
+            GameObject2D& obj_1 = *it_1;
+            GameObject2D& obj_2 = *it_2;
+            if (obj_1.id == obj_2.id) {
+              ++it_2;
+              continue;
+            }
+            bool collision_config = collides(obj_1.collision_layer, obj_2.collision_layer);
+            if (collision_config && check_collides(obj_1, obj_2)) {
+              Collision2D col;
+              col.obj_id_1 = obj_1.id;
+              col.obj_id_2 = obj_2.id;
+              collisions.push_back(col);
+            }
+            ++it_2;
+          }
+          ++it_1;
+        }
+        //
+        // Resolve collisions
+        //
+        for (Collision2D c : collisions) {
+          // Iterate over every object... likely to get slow pretty quick.
+          for (int i = 0; i < objects.size(); i++) {
+            GameObject2D& go = objects[i];
+            if (c.obj_id_1 == go.id || c.obj_id_2 == go.id) {
+              objects.erase(objects.begin() + i);
+              break;
+            }
+          }
+        }
 
         //
         // Update everything's position
@@ -436,18 +452,13 @@ main()
       ImGui::Text("mouse pos %f %f", app.get_input().get_mouse_pos().x, app.get_input().get_mouse_pos().y);
       ImGui::Text("mouse angle around player %f", mouse_angle_around_player);
       ImGui::Text("GameObjects: %i", objects.size());
-      ImGui::Text("Collectables: %i", objects_collected);
+      ImGui::Text("Collisions: %i", collisions.size());
+      ImGui::Text("(game) collected: %i", objects_collected);
       ImGui::End();
 
       ImGui::Begin("Objects", NULL, ImGuiWindowFlags_NoFocusOnAppearing);
       for (GameObject2D& go : objects) {
         ImGui::Text("ID: %i, Name: %s", go.id, go.name.c_str());
-      }
-      ImGui::End();
-
-      ImGui::Begin("Collided Objects", NULL, ImGuiWindowFlags_NoFocusOnAppearing);
-      for (int go : objects_that_collided) {
-        ImGui::Text("ID: %i", go);
       }
       ImGui::End();
 
