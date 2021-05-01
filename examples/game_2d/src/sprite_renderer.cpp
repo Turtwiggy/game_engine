@@ -96,19 +96,13 @@ draw_sprite(Camera2D& cam,
 
   // render object
   shader.bind();
-
   glm::mat4 model = glm::mat4(1.0f);
-
-  // move origin of rotation to center of quad
   model = glm::translate(model, glm::vec3(world_space, 0.0f));
 
   model = glm::translate(model, glm::vec3(0.5f * size.x, 0.5f * size.y, 0.0f));
-  // then rotate
   model = glm::rotate(model, angle_radians, glm::vec3(0.0f, 0.0f, 1.0f));
-  // move origin back
   model = glm::translate(model, glm::vec3(-0.5f * size.x, -0.5f * size.y, 0.0f));
 
-  // then scale
   model = glm::scale(model, glm::vec3(size, 1.0f));
 
   shader.set_mat4("model", model);
@@ -116,6 +110,52 @@ draw_sprite(Camera2D& cam,
 
   render_quad();
 };
+
+// scale x from [min,max] to [a,b]
+float
+scale(float x, float min, float max, float a, float b)
+{
+  return ((b - a) * (x - min)) / (max - min) + a;
+}
+
+void
+draw_sprite_debug(Camera2D& cam,
+                  const glm::ivec2& screen_size,
+                  fightingengine::Shader& shader,
+                  GameObject2D& game_object,
+                  fightingengine::Shader& debug_line_shader,
+                  glm::vec4& debug_line_shader_colour,
+                  int tex_slot)
+{
+  draw_sprite(cam,
+              screen_size,
+              shader,
+              game_object.pos,
+              game_object.size,
+              game_object.angle_radians,
+              game_object.colour,
+              tex_slot);
+
+  // draw lines
+  debug_line_shader.bind();
+  debug_line_shader.set_vec4("colour", debug_line_shader_colour);
+
+  glm::vec2 world_pos = game_object.pos - cam.pos;
+  glm::vec2 bl_pos = glm::vec2(world_pos.x, world_pos.y + game_object.size.y);
+  glm::vec2 tr_pos = glm::vec2(world_pos.x + game_object.size.x, world_pos.y);
+  bl_pos.x = scale(bl_pos.x, 0.0f, screen_size.x, -1.0f, 1.0f);
+  bl_pos.y = scale(bl_pos.y, 0.0f, screen_size.y, 1.0f, -1.0f);
+  tr_pos.x = scale(tr_pos.x, 0.0f, screen_size.x, -1.0f, 1.0f);
+  tr_pos.y = scale(tr_pos.y, 0.0f, screen_size.y, 1.0f, -1.0f);
+
+  glColor3f(debug_line_shader_colour.x, debug_line_shader_colour.y, debug_line_shader_colour.z);
+  glBegin(GL_LINE_LOOP);
+  glVertex2f(bl_pos.x, bl_pos.y);
+  glVertex2f(tr_pos.x, bl_pos.y);
+  glVertex2f(tr_pos.x, tr_pos.y);
+  glVertex2f(bl_pos.x, tr_pos.y);
+  glEnd();
+}
 
 } // namespace sprite_renderer
 
