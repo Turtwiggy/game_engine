@@ -23,6 +23,8 @@ enum class type
   TREE_7,
   TREE_8,
 
+  WALL_BIG,
+
   BOAT,
   SQUARE,
 
@@ -45,6 +47,8 @@ struct spritemap
     ret[type::TREE_6] = { 5, 1 };
     ret[type::TREE_7] = { 6, 1 };
     ret[type::TREE_8] = { 7, 1 };
+
+    ret[type::WALL_BIG] = { 2, 3 };
 
     // add_to(ret[BASE], {0, 0});
     ret[type::BOAT] = { 10, 19 };

@@ -45,15 +45,47 @@ check_collides(GameObject2D& one, GameObject2D& two)
   return collisionX && collisionY;
 }
 
+bool
+collides(CollisionLayer& y_l1, CollisionLayer& x_l2)
+{
+  int c1 = static_cast<int>(y_l1); // c1 is 0, 1, or 2
+  int c2 = static_cast<int>(x_l2); // c2 is 0, 1, or 2
+
+  int x_max = 4;
+  int val = c1 * x_max + c2;
+  // e.g. default, player. y=0, x=1.
+
+  static const std::vector<bool> collision_matrix = {
+    true, // default_default_0_0
+    true, // default_player_0_1
+    true, // default_bullet_0_2
+    true, // default_detroyable
+
+    true, // player_default_1_0
+    true, // player_player_1_1
+    true, // player_bullet_1_2
+    true, // player_destroyable_1_2
+
+    true, // bullet_default_2_0
+    true, // bullet_player_2_1
+    true, // bullet_bullet_2_2
+    true, // bullet_destroyable_2_2
+
+    true, // destroyable_default
+    true, // destroyable_player
+    true, // destroyable_bullet
+    true, // destroyable_destroyable
+  };
+
+  return collision_matrix[val];
+}
+
 enum class GameState
 {
   GAME_ACTIVE,
   GAME_MENU,
   GAME_PAUSED
 };
-
-float screen_width = 1366.0f;
-float screen_height = 768.0f;
 
 // https://colorhunt.co/palette/273312
 const glm::vec4 PALETTE_COLOUR_1_0 = glm::vec4(255.0f / 255.0f, 201.0f / 255.0f, 150.0f / 255.0f, 1.0f); // yellowish
@@ -66,11 +98,8 @@ const glm::vec4 PALETTE_COLOUR_2_1 = glm::vec4(0.0f / 255.0f, 173.0f / 255.0f, 1
 const glm::vec4 PALETTE_COLOUR_3_1 = glm::vec4(170.0f / 255.0f, 216.0f / 255.0f, 211.0f / 255.0f, 1.0f); // lightblue
 const glm::vec4 PALETTE_COLOUR_4_1 = glm::vec4(238.0f / 255.0f, 238.0f / 255.0f, 238.0f / 255.0f, 1.0f); // grey
 
-glm::vec4 chosen_colour_0 = PALETTE_COLOUR_1_1;
-glm::vec4 chosen_colour_1 = PALETTE_COLOUR_2_1;
-glm::vec4 chosen_colour_2 = PALETTE_COLOUR_3_1;
-glm::vec4 chosen_colour_3 = PALETTE_COLOUR_4_1;
-
+float screen_width = 1366.0f;
+float screen_height = 768.0f;
 const int tex_unit_kenny_nl = 0;
 
 int
@@ -81,15 +110,14 @@ main()
 
   Application app("2D Game", static_cast<int>(screen_width), static_cast<int>(screen_height));
   // app.set_fps_limit(60.0f);
-
   RandomState rnd;
   Profiler profiler;
-  bool show_profiler = false;
   Console console;
+  bool show_profiler = false;
   bool show_console = false;
+  bool show_demo_window = false;
 
   glm::mat4 projection = glm::ortho(0.0f, screen_width, screen_height, 0.0f, -1.0f, 1.0f);
-
   Camera2D camera;
   camera.pos = glm::vec2{ 0.0f, 0.0f };
 
@@ -103,9 +131,23 @@ main()
   // TODO sound
   //
 
+  // colours
+  glm::vec4 chosen_colour_0 = PALETTE_COLOUR_1_1;
+  glm::vec4 chosen_colour_1 = PALETTE_COLOUR_2_1;
+  glm::vec4 chosen_colour_2 = PALETTE_COLOUR_3_1;
+  glm::vec4 chosen_colour_3 = PALETTE_COLOUR_4_1;
+  glm::vec4 background_colour = chosen_colour_0;
+  glm::vec4 player_colour = chosen_colour_1;
+  glm::vec4 bullet_colour = chosen_colour_2;
+  glm::vec4 wall_colour = chosen_colour_3;
+  // sprites
+  sprite::type player_sprite = sprite::type::TREE_1;
+  sprite::type bullet_sprite = sprite::type::TREE_1;
+  sprite::type wall_sprite = sprite::type::WALL_BIG;
+
   // Rendering
   RenderCommand::init();
-  RenderCommand::set_clear_colour(chosen_colour_0);
+  RenderCommand::set_clear_colour(background_colour);
   RenderCommand::set_viewport(0, 0, static_cast<uint32_t>(screen_width), static_cast<uint32_t>(screen_height));
   RenderCommand::set_depth_testing(false); // disable depth testing for 2d
 
@@ -131,36 +173,54 @@ main()
   //
 
   GameState state = GameState::GAME_ACTIVE;
+
   std::vector<GameObject2D> objects;
-  float spawn_every = 1.0f;
-  float spawn_every_cooldown = 0.0f;
+  std::vector<int> objects_that_collided;
   int objects_collected = 0;
 
   GameObject2D player;
   player.name = "player";
-  player.angle_radians = 0.0;
-  player.colour = chosen_colour_1;
-  player.size = { 1.0f * 768.0f / 48.0f, 1.0f * 362.0f / 22.0f };
   player.pos = { screen_width / 2.0f, screen_height / 2.0f };
+  player.angle_radians = 0.0;
+  player.size = { 1.0f * 768.0f / 48.0f, 1.0f * 362.0f / 22.0f };
+  player.colour = player_colour;
+  player.velocity = { 0.0f, 0.0f };
+  player.sprite = player_sprite;
+  player.collision_layer = CollisionLayer::Player;
   player.tex_slot = tex_unit_kenny_nl;
-  player.velocity = { 5.0f, 5.0f };
+
+  GameObject2D bullet;
+  bullet.name = "bullet";
+  bullet.pos = { 0.0f, 0.0f };
+  bullet.angle_radians = 0.0;
+  bullet.size = { 25.0f, 25.0f };
+  bullet.colour = bullet_colour;
+  bullet.velocity = { 0.0f, 0.0f };
+  bullet.sprite = bullet_sprite;
+  bullet.collision_layer = CollisionLayer::Bullet;
+  bullet.tex_slot = tex_unit_kenny_nl;
+
+  GameObject2D wall;
+  wall.name = "wall";
+  wall.pos = { 0.0f, 0.0f };
+  wall.angle_radians = 0.0;
+  wall.size = { 20.0f, 20.0f };
+  wall.colour = wall_colour;
+  wall.velocity = { 0.0f, 0.0f };
+  wall.sprite = wall_sprite;
+  wall.collision_layer = CollisionLayer::Destroyable;
+  wall.tex_slot = tex_unit_kenny_nl;
 
   GameObject2D tex_obj;
   tex_obj.name = "texture_sheet";
-  tex_obj.angle_radians = 0.0f;
-  tex_obj.colour = { 1.0f, 1.0f, 1.0f, 1.0f };
-  tex_obj.size = { 768.0f, 352.0f };
   tex_obj.pos = { 0.0f, 20.0f };
-  tex_obj.tex_slot = tex_unit_kenny_nl;
+  tex_obj.angle_radians = 0.0f;
+  tex_obj.size = { 768.0f, 352.0f };
+  tex_obj.colour = { 1.0f, 1.0f, 1.0f, 1.0f };
   tex_obj.velocity = { 0.0f, 0.0f };
+  tex_obj.tex_slot = tex_unit_kenny_nl;
 
   float mouse_angle_around_player = 0.0f;
-
-  //
-  // collision matrix
-  //
-  std::vector<bool> collision_matrix;
-  // collision_matrix.resize()
 
   // ---- App ----
 
@@ -173,54 +233,11 @@ main()
     app.frame_begin(); // input events
     float delta_time_s = app.get_delta_time();
 
-    if (app.get_input().get_key_down(SDL_SCANCODE_ESCAPE)) {
+    if (app.get_input().get_key_down(SDL_SCANCODE_ESCAPE))
       app.shutdown();
-    }
-    if (app.get_input().get_key_down(SDL_SCANCODE_F12)) {
+    if (app.get_input().get_key_down(SDL_SCANCODE_F12))
       show_console = !show_console;
-    }
 
-    //
-    // Settings: Fullscreen
-    //
-    // if (app.get_input().get_key_down(SDL_SCANCODE_F)) {
-    //   app.get_window().toggle_fullscreen(); // SDL2 window toggle
-    //   glm::ivec2 screen_size = app.get_window().get_size();
-    //   RenderCommand::set_viewport(0, 0, screen_size.x, screen_size.y);
-
-    //   screen_width = static_cast<float>(screen_size.x);
-    //   screen_height = static_cast<float>(screen_size.y);
-    //   projection = glm::ortho(0.0f, screen_width, screen_height, 0.0f, -1.0f, 1.0f);
-    //   sprite_shader.bind();
-    //   sprite_shader.set_mat4("projection", projection);
-    //   tex_shader.bind();
-    //   tex_shader.set_mat4("projection", projection);
-    //   colour_shader.bind();
-    //   colour_shader.set_mat4("projection", projection);
-    // }
-
-    //
-    // Shader hot reloading
-    //
-    // if (app.get_input().get_key_held(SDL_SCANCODE_R)) {
-    //   reload_shader_program(&sprite_shader.ID, "2d_texture.vert", "2d_spritesheet.frag");
-    //   sprite_shader.bind();
-    //   sprite_shader.set_mat4("projection", projection);
-    //   sprite_shader.set_int("tex", tex_unit_kenny_nl);
-    //   sprite_shader.set_int("desired_x", 1);
-    //   sprite_shader.set_int("desired_x", 0);
-    // }
-
-    //
-    // Game: Pause
-    //
-    // if (app.get_input().get_key_down(SDL_SCANCODE_P)) {
-    //   state = state == GameState::GAME_PAUSED ? GameState::GAME_ACTIVE : GameState::GAME_PAUSED;
-    // }
-    // // Game Thing: Reset player pos
-    // if (app.get_input().get_key_held(SDL_SCANCODE_O)) {
-    //   player.pos = glm::vec2(0.0f, 0.0f);
-    // }
     //
     // Editor: add object
     //
@@ -228,29 +245,44 @@ main()
       glm::ivec2 mouse_pos = app.get_input().get_mouse_pos();
       printf("(game) mmb clicked %i %i \n", mouse_pos.x, mouse_pos.y);
       glm::vec2 world_pos = glm::vec2(mouse_pos) + camera.pos;
-      GameObject2D obj;
-      obj.pos = glm::vec2(world_pos.x, world_pos.y);
-      objects.push_back(obj);
+
+      GameObject2D wall_copy;
+      // defaults
+      wall_copy.name = wall.name;
+      wall_copy.angle_radians = wall.angle_radians;
+      wall_copy.size = wall.size;
+      wall_copy.colour = wall_colour;
+      wall_copy.velocity = wall.velocity;
+      wall_copy.sprite = wall.sprite;
+      wall_copy.collision_layer = wall.collision_layer;
+      wall_copy.tex_slot = wall.tex_slot;
+      // override defaults
+      wall_copy.pos = world_pos;
+
+      objects.push_back(wall_copy);
     }
+    //
+    // Ability: Boost
+    //
+    float player_speed = 50.0f;
+    if (app.get_input().get_key_held(SDL_SCANCODE_LSHIFT))
+      player_speed *= 2.0f;
 
     profiler.end(Profiler::Stage::SdlInput);
     profiler.begin(Profiler::Stage::GameTick);
     {
       if (state == GameState::GAME_ACTIVE) {
 
-        const float camera_speed = 100.0f;
-        float camera_velocity_x = delta_time_s * camera_speed;
-        float camera_velocity_y = delta_time_s * camera_speed;
-
         // camera lrud (standard)
+        const float camera_speed = 100.0f;
         if (app.get_input().get_key_held(SDL_SCANCODE_LEFT))
-          camera.pos.x -= camera_velocity_x;
+          camera.pos.x -= delta_time_s * camera_speed;
         if (app.get_input().get_key_held(SDL_SCANCODE_RIGHT))
-          camera.pos.x += camera_velocity_x;
+          camera.pos.x += delta_time_s * camera_speed;
         if (app.get_input().get_key_held(SDL_SCANCODE_UP))
-          camera.pos.y -= camera_velocity_y;
+          camera.pos.y -= delta_time_s * camera_speed;
         if (app.get_input().get_key_held(SDL_SCANCODE_DOWN))
-          camera.pos.y += camera_velocity_y;
+          camera.pos.y += delta_time_s * camera_speed;
 
         glm::vec2 player_world_space_pos = player.pos - camera.pos;
         mouse_angle_around_player = atan2(app.get_input().get_mouse_pos().y - player_world_space_pos.y,
@@ -276,7 +308,6 @@ main()
           } else {
             player.velocity.y = 0.0f;
           }
-
           // look in mouse direction
           player.angle_radians = mouse_angle_around_player;
           // look in velocity direction
@@ -289,53 +320,64 @@ main()
           // }
         }
 
-        // Shoot
+        //
+        // Ability: Shoot
+        //
         if (app.get_input().get_mouse_rmb_down()) {
-          glm::ivec2 mouse_pos = app.get_input().get_mouse_pos();
-          printf("(game) right mouse clicked %i %i \n", mouse_pos.x, mouse_pos.y);
-          glm::vec2 world_pos = glm::vec2(mouse_pos) + camera.pos;
+          float bullet_speed = 50.0f;
 
-          GameObject2D obj;
-          obj.name = "bullet";
-          obj.pos = player.pos;
-          obj.angle_radians = player.angle_radians;
-          obj.velocity = player.velocity;
-          obj.size = { 50.0f, 50.0f };
-          objects.push_back(obj);
+          GameObject2D bullet_copy;
+          // defaults
+          bullet_copy.name = bullet.name;
+          bullet_copy.size = bullet.size;
+          bullet_copy.colour = bullet.colour;
+          bullet_copy.sprite = bullet.sprite;
+          bullet_copy.tex_slot = bullet.tex_slot;
+          bullet_copy.collision_layer = bullet.collision_layer;
+          // override defaults
+          bullet_copy.pos = player.pos;
+          bullet_copy.angle_radians = mouse_angle_around_player;
+          bullet_copy.velocity.x = bullet_speed;
+          bullet_copy.velocity.y = bullet_speed;
+
+          objects.push_back(bullet_copy);
         }
 
         // Do Collisions
-        std::vector<GameObject2D>::iterator it = objects.begin();
-        while (it != objects.end()) {
-          GameObject2D& obj = *it;
-          if (check_collides(player, obj)) {
-            printf("Ahh! you are colliding with something");
-            objects_collected += 1;
-            it = objects.erase(it);
-          } else {
-            ++it;
-          }
-        }
+        // std::vector<GameObject2D>::iterator it_1 = objects.begin();
+        // std::vector<GameObject2D>::iterator it_2 = objects.begin();
+        // while (it_1 != objects.end()) {
+        //   while (it_2 != objects.end()) {
+        //     GameObject2D& obj_1 = *it_1;
+        //     GameObject2D& obj_2 = *it_2;
+        //     if (obj_1.id == obj_2.id) {
+        //       ++it_2;
+        //       continue;
+        //     }
+
+        //     bool collision_config = collides(obj_1.collision_layer, obj_2.collision_layer);
+        //     if (collision_config && check_collides(obj_1, obj_2)) {
+        //       std::cout << "collideing objects... " << obj_1.id << "," << obj_2.id << std::endl;
+        //       objects_that_collided.push_back(obj_1.id);
+        //       objects_that_collided.push_back(obj_2.id);
+        //     }
+        //     ++it_2;
+        //   }
+        //   ++it_1;
+        // }
 
         //
         // Update everything's position
         //
-
-        // Ability: Boost
-        float player_speed = 80.0f;
-        if (app.get_input().get_key_held(SDL_SCANCODE_LSHIFT))
-          player_speed *= 2.0f;
-
         // pos: player
         player.pos += player.velocity * player_speed * delta_time_s;
-
         // pos: objects
-        float obj_speed = 50.0f;
-        for (int i = 0; i < objects.size(); i++) {
-          GameObject2D& obj = objects[i];
-          obj.pos += obj.velocity * obj_speed * delta_time_s;
+        for (GameObject2D& obj : objects) {
+          float x = glm::sin(obj.angle_radians) * obj.velocity.x;
+          float y = -glm::cos(obj.angle_radians) * obj.velocity.y;
+          obj.pos.x += x * delta_time_s;
+          obj.pos.y += y * delta_time_s;
         }
-
         // pos: camera
         if (app.get_input().get_key_held(SDL_SCANCODE_Q))
           camera.pos = glm::vec2(player.pos.x - screen_width / 2.0f, player.pos.y - screen_height / 2.0f);
@@ -347,28 +389,27 @@ main()
     // rendering
     //
     {
-      RenderCommand::set_clear_colour(chosen_colour_0);
+      RenderCommand::set_clear_colour(background_colour);
       RenderCommand::clear();
       glm::ivec2 screen_wh = glm::ivec2(screen_width, screen_height);
 
-      // texture object
+      // draw: texture object
       tex_shader.bind();
       sprite_renderer::draw_sprite_debug(camera, screen_wh, tex_shader, tex_obj, colour_shader, chosen_colour_3);
 
-      glm::ivec2 obj = spritemap.get_sprite_offset(sprite::type::TREE_1);
-      sprite_shader.bind();
-      sprite_shader.set_int("desired_x", obj.x);
-      sprite_shader.set_int("desired_y", obj.y);
-
+      // draw: game objects
+      glm::ivec2 obj;
       for (GameObject2D& object : objects) {
-        float x = glm::sin(object.angle_radians) * object.velocity.x;
-        float y = -glm::cos(object.angle_radians) * object.velocity.y;
-        object.pos.x += x * delta_time_s;
-        object.pos.y += y * delta_time_s;
+        obj = spritemap.get_sprite_offset(object.sprite);
+        sprite_shader.bind();
+        sprite_shader.set_int("desired_x", obj.x);
+        sprite_shader.set_int("desired_y", obj.y);
         sprite_renderer::draw_sprite_debug(camera, screen_wh, sprite_shader, object, colour_shader, chosen_colour_3);
       }
 
-      obj = spritemap.get_sprite_offset(sprite::type::TREE_1);
+      // draw: player
+      obj = spritemap.get_sprite_offset(player.sprite);
+      sprite_shader.bind();
       sprite_shader.set_int("desired_x", obj.x);
       sprite_shader.set_int("desired_y", obj.y);
       sprite_renderer::draw_sprite_debug(camera, screen_wh, sprite_shader, player, colour_shader, chosen_colour_3);
@@ -380,13 +421,10 @@ main()
     //
     {
       if (ImGui::BeginMainMenuBar()) {
-        if (ImGui::MenuItem("Quit", "Esc")) {
+        if (ImGui::MenuItem("Quit", "Esc"))
           app.shutdown();
-        }
-
         ImGui::SameLine(ImGui::GetWindowWidth() - 154.0f);
         ImGui::Text("%.2f FPS (%.2f ms)", ImGui::GetIO().Framerate, 1000.0f / ImGui::GetIO().Framerate);
-
         ImGui::EndMainMenuBar();
       }
 
@@ -397,14 +435,28 @@ main()
       ImGui::Text("camera pos %f %f", camera.pos.x, camera.pos.y);
       ImGui::Text("mouse pos %f %f", app.get_input().get_mouse_pos().x, app.get_input().get_mouse_pos().y);
       ImGui::Text("mouse angle around player %f", mouse_angle_around_player);
-      ImGui::Text("Spawned objects: %i", objects.size());
-      ImGui::Text("Objects collected: %i", objects_collected);
+      ImGui::Text("GameObjects: %i", objects.size());
+      ImGui::Text("Collectables: %i", objects_collected);
+      ImGui::End();
+
+      ImGui::Begin("Objects", NULL, ImGuiWindowFlags_NoFocusOnAppearing);
+      for (GameObject2D& go : objects) {
+        ImGui::Text("ID: %i, Name: %s", go.id, go.name.c_str());
+      }
+      ImGui::End();
+
+      ImGui::Begin("Collided Objects", NULL, ImGuiWindowFlags_NoFocusOnAppearing);
+      for (int go : objects_that_collided) {
+        ImGui::Text("ID: %i", go);
+      }
       ImGui::End();
 
       if (show_console)
         console.Draw("Console", &show_console);
       if (show_profiler)
         profiler_panel::draw(profiler, delta_time_s);
+      if (show_demo_window)
+        ImGui::ShowDemoWindow(&show_demo_window);
     }
     profiler.end(Profiler::Stage::GuiLoop);
     profiler.begin(Profiler::Stage::FrameEnd);
@@ -418,6 +470,48 @@ main()
 }
 
 // CODE GRAVEYARD
+
+//
+// Settings: Fullscreen
+//
+// if (app.get_input().get_key_down(SDL_SCANCODE_F)) {
+//   app.get_window().toggle_fullscreen(); // SDL2 window toggle
+//   glm::ivec2 screen_size = app.get_window().get_size();
+//   RenderCommand::set_viewport(0, 0, screen_size.x, screen_size.y);
+
+//   screen_width = static_cast<float>(screen_size.x);
+//   screen_height = static_cast<float>(screen_size.y);
+//   projection = glm::ortho(0.0f, screen_width, screen_height, 0.0f, -1.0f, 1.0f);
+//   sprite_shader.bind();
+//   sprite_shader.set_mat4("projection", projection);
+//   tex_shader.bind();
+//   tex_shader.set_mat4("projection", projection);
+//   colour_shader.bind();
+//   colour_shader.set_mat4("projection", projection);
+// }
+
+//
+// Shader hot reloading
+//
+// if (app.get_input().get_key_held(SDL_SCANCODE_R)) {
+//   reload_shader_program(&sprite_shader.ID, "2d_texture.vert", "2d_spritesheet.frag");
+//   sprite_shader.bind();
+//   sprite_shader.set_mat4("projection", projection);
+//   sprite_shader.set_int("tex", tex_unit_kenny_nl);
+//   sprite_shader.set_int("desired_x", 1);
+//   sprite_shader.set_int("desired_x", 0);
+// }
+
+//
+// Game: Pause
+//
+// if (app.get_input().get_key_down(SDL_SCANCODE_P)) {
+//   state = state == GameState::GAME_PAUSED ? GameState::GAME_ACTIVE : GameState::GAME_PAUSED;
+// }
+// // Game Thing: Reset player pos
+// if (app.get_input().get_key_held(SDL_SCANCODE_O)) {
+//   player.pos = glm::vec2(0.0f, 0.0f);
+// }
 
 //
 // Boop left or right feature

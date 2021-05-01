@@ -51,18 +51,6 @@ render_quad()
   glBindVertexArray(0);
 }
 
-// void
-// draw_sprite(Shader& shader, GameObject& game_object)
-// {
-//   draw_sprite(shader, game_object.transform, game_object.tex_slot);
-// }
-
-// void
-// draw_sprite(Shader& shader, Transform& t, int tex_slot)
-// {
-//   draw_sprite(shader, t.position, t.scale, t.angle, t.colour, tex_slot);
-// }
-
 void
 draw_sprite(Camera2D& cam,
             const glm::ivec2& screen_size,
