@@ -20,6 +20,7 @@
 #include "engine/maths_core.hpp"
 #include "engine/opengl/render_command.hpp"
 #include "engine/ui/profiler_panel.hpp"
+#include "engine/util.hpp"
 using namespace fightingengine;
 
 // game headers
@@ -27,7 +28,6 @@ using namespace fightingengine;
 #include "console.hpp"
 #include "sprite_renderer.hpp"
 #include "spritemap.hpp"
-#include "util.hpp"
 using namespace game2d;
 
 // simple aabb collision
@@ -58,13 +58,13 @@ collides(CollisionLayer& y_l1, CollisionLayer& x_l2)
     true, // default_bullet_0_2
     true, // default_detroyable
 
-    true, // player_default_1_0
-    true, // player_player_1_1
-    true, // player_bullet_1_2
-    true, // player_destroyable_1_2
+    true,  // player_default_1_0
+    true,  // player_player_1_1
+    false, // player_bullet_1_2
+    true,  // player_destroyable_1_2
 
     true,  // bullet_default_2_0
-    true,  // bullet_player_2_1
+    false, // bullet_player_2_1
     false, // bullet_bullet_2_2
     true,  // bullet_destroyable_2_2
 
@@ -78,30 +78,27 @@ collides(CollisionLayer& y_l1, CollisionLayer& x_l2)
 }
 
 // ai for chasing player
-// ---------------------
+void
+chase_player(GameObject2D& player, const float delta_time, std::vector<GameObject2D>& enemies)
+{
+  for (int i = 0; i < enemies.size(); ++i) {
+    GameObject2D& e = enemies[i];
 
-// void
-// chase_player(const float delta_time, std::vector<Enemy>* enemies)
-// {
-//   const glm::vec3 playerCollisionPosition(playerPosition.x, monsterY, playerPosition.z);
-//   for (int i = 0; i < enemies->size(); ++i) {
-//     auto& e = (*enemies)[i];
-//     glm::vec3 dir = playerPosition - e.position;
-//     dir.y = 0.0f;
-//     e.dir = glm::normalize(dir);
-//     e.position += e.dir * delta_time * monster_speed;
-//     if (isAlive) {
-//       const glm::vec3 p1 = e.position - e.dir * (ENEMY_COLLIDER.height / 2);
-//       const glm::vec3 p2 = e.position + e.dir * (ENEMY_COLLIDER.height / 2);
-//       const float dist = distanceBetweenPointAndLineSegment(playerCollisionPosition, p1, p2);
-//       if (dist <= (playerCollisionRadius + ENEMY_COLLIDER.radius)) {
-//         std::cout << "GOTTEM!" << std::endl;
-//         isAlive = false;
-//         playerMovementDir = glm::vec2(0.0f, 0.0f);
-//       }
-//     }
-//   }
-// }
+    // rotate to player
+    glm::vec2 dir = player.pos - e.pos;
+    dir = glm::normalize(dir);
+    e.angle_radians = atan2(dir.y, dir.x);
+    e.angle_radians += PI / 2.0f;
+
+    // move to player
+    const float monster_speed = 50.0f;
+    e.velocity = glm::vec2(monster_speed);
+    float x = glm::sin(e.angle_radians) * e.velocity.x;
+    float y = -glm::cos(e.angle_radians) * e.velocity.y;
+    e.pos.x += x * delta_time;
+    e.pos.y += y * delta_time;
+  }
+}
 
 enum class GameState
 {
@@ -132,18 +129,19 @@ main()
   std::cout << "booting up..." << std::endl;
   const auto app_start = std::chrono::high_resolution_clock::now();
 
+  RandomState rnd;
   Application app("2D Game", static_cast<int>(screen_width), static_cast<int>(screen_height));
   // app.set_fps_limit(60.0f);
-  RandomState rnd;
   Profiler profiler;
   Console console;
+  bool show_game_info = false;
   bool show_profiler = false;
   bool show_console = false;
   bool show_demo_window = false;
 
-  glm::mat4 projection = glm::ortho(0.0f, screen_width, screen_height, 0.0f, -1.0f, 1.0f);
   Camera2D camera;
   camera.pos = glm::vec2{ 0.0f, 0.0f };
+  glm::mat4 projection = glm::ortho(0.0f, screen_width, screen_height, 0.0f, -1.0f, 1.0f);
 
   // textures
   std::vector<std::pair<int, std::string>> textures_to_load;
@@ -155,6 +153,9 @@ main()
   // TODO sound
   //
 
+  // -------------
+  // Customization
+  // -------------
   // colours
   glm::vec4 chosen_colour_0 = PALETTE_COLOUR_1_1;
   glm::vec4 chosen_colour_1 = PALETTE_COLOUR_2_1;
@@ -197,10 +198,13 @@ main()
   //
 
   GameState state = GameState::GAME_ACTIVE;
-
-  std::vector<GameObject2D> objects;
+  std::vector<GameObject2D> entities_bullets;
+  std::vector<GameObject2D> entities_walls;
   std::vector<Collision2D> collisions;
+
   int objects_collected = 0;
+  float time_to_spawn_enemy = 1.0f;
+  float time_to_spawn_enemy_cooldown = 0.0f;
 
   GameObject2D player;
   player.name = "player";
@@ -257,45 +261,44 @@ main()
     app.frame_begin(); // input events
     float delta_time_s = app.get_delta_time();
 
+    // Settings: Exit App
     if (app.get_input().get_key_down(SDL_SCANCODE_ESCAPE))
       app.shutdown();
+
+    // Settings: Toggle Console
     if (app.get_input().get_key_down(SDL_SCANCODE_F12))
       show_console = !show_console;
 
-    //
-    // Editor: add object
-    //
-    if (app.get_input().get_mouse_mmb_down()) {
-      glm::ivec2 mouse_pos = app.get_input().get_mouse_pos();
-      printf("(game) mmb clicked %i %i \n", mouse_pos.x, mouse_pos.y);
-      glm::vec2 world_pos = glm::vec2(mouse_pos) + camera.pos;
-
-      GameObject2D wall_copy;
-      // defaults
-      wall_copy.name = wall.name;
-      wall_copy.angle_radians = wall.angle_radians;
-      wall_copy.size = wall.size;
-      wall_copy.colour = wall_colour;
-      wall_copy.velocity = wall.velocity;
-      wall_copy.sprite = wall.sprite;
-      wall_copy.collision_layer = wall.collision_layer;
-      wall_copy.tex_slot = wall.tex_slot;
-      // override defaults
-      wall_copy.pos = world_pos;
-
-      objects.push_back(wall_copy);
+    // Settings: Fullscreen
+    if (app.get_input().get_key_down(SDL_SCANCODE_F)) {
+      app.get_window().toggle_fullscreen(); // SDL2 window toggle
+      glm::ivec2 screen_size = app.get_window().get_size();
+      RenderCommand::set_viewport(0, 0, screen_size.x, screen_size.y);
+      screen_width = static_cast<float>(screen_size.x);
+      screen_height = static_cast<float>(screen_size.y);
+      projection = glm::ortho(0.0f, screen_width, screen_height, 0.0f, -1.0f, 1.0f);
+      sprite_shader.bind();
+      sprite_shader.set_mat4("projection", projection);
+      tex_shader.bind();
+      tex_shader.set_mat4("projection", projection);
+      colour_shader.bind();
+      colour_shader.set_mat4("projection", projection);
     }
-    //
-    // Ability: Boost
-    //
-    float player_speed = 50.0f;
-    if (app.get_input().get_key_held(SDL_SCANCODE_LSHIFT))
-      player_speed *= 2.0f;
 
     profiler.end(Profiler::Stage::SdlInput);
     profiler.begin(Profiler::Stage::GameTick);
     {
       if (state == GameState::GAME_ACTIVE) {
+
+        // Editor: add object
+        // if (app.get_input().get_mouse_mmb_down()) {
+
+        //
+        // Ability: Boost
+        //
+        float player_speed = 50.0f;
+        if (app.get_input().get_key_held(SDL_SCANCODE_LSHIFT))
+          player_speed *= 2.0f;
 
         // camera lrud (standard)
         const float camera_speed = 100.0f;
@@ -364,17 +367,23 @@ main()
           bullet_copy.velocity.x = bullet_speed;
           bullet_copy.velocity.y = bullet_speed;
 
-          objects.push_back(bullet_copy);
+          entities_bullets.push_back(bullet_copy);
         }
 
         //
         // Generate Collisions
         //
         collisions.clear();
-        std::vector<GameObject2D>::iterator it_1 = objects.begin();
-        while (it_1 != objects.end()) {
-          std::vector<GameObject2D>::iterator it_2 = objects.begin();
-          while (it_2 != objects.end()) {
+
+        std::vector<GameObject2D> collidable;
+        collidable.insert(collidable.end(), entities_walls.begin(), entities_walls.end());
+        collidable.insert(collidable.end(), entities_bullets.begin(), entities_bullets.end());
+        collidable.push_back(player);
+
+        std::vector<GameObject2D>::iterator it_1 = collidable.begin();
+        while (it_1 != collidable.end()) {
+          std::vector<GameObject2D>::iterator it_2 = collidable.begin();
+          while (it_2 != collidable.end()) {
             GameObject2D& obj_1 = *it_1;
             GameObject2D& obj_2 = *it_2;
             if (obj_1.id == obj_2.id) {
@@ -397,10 +406,22 @@ main()
         //
         for (Collision2D c : collisions) {
           // Iterate over every object... likely to get slow pretty quick.
-          for (int i = 0; i < objects.size(); i++) {
-            GameObject2D& go = objects[i];
+          for (int i = 0; i < entities_walls.size(); i++) {
+            GameObject2D& go = entities_walls[i];
             if (c.obj_id_1 == go.id || c.obj_id_2 == go.id) {
-              objects.erase(objects.begin() + i);
+              // what to do if a wall collided?
+              // remove it
+              entities_walls.erase(entities_walls.begin() + i);
+              objects_collected += 1;
+              break;
+            }
+          }
+          for (int i = 0; i < entities_bullets.size(); i++) {
+            GameObject2D& go = entities_bullets[i];
+            if (c.obj_id_1 == go.id || c.obj_id_2 == go.id) {
+              // what to do if a bullet collided?
+              // remove it
+              entities_bullets.erase(entities_bullets.begin() + i);
               break;
             }
           }
@@ -411,8 +432,8 @@ main()
         //
         // pos: player
         player.pos += player.velocity * player_speed * delta_time_s;
-        // pos: objects
-        for (GameObject2D& obj : objects) {
+        // pos: bullets
+        for (GameObject2D& obj : entities_bullets) {
           float x = glm::sin(obj.angle_radians) * obj.velocity.x;
           float y = -glm::cos(obj.angle_radians) * obj.velocity.y;
           obj.pos.x += x * delta_time_s;
@@ -421,6 +442,41 @@ main()
         // pos: camera
         if (app.get_input().get_key_held(SDL_SCANCODE_Q))
           camera.pos = glm::vec2(player.pos.x - screen_width / 2.0f, player.pos.y - screen_height / 2.0f);
+
+        //
+        // AI: move to player
+        //
+        chase_player(player, delta_time_s, entities_walls);
+
+        //
+        // Gameplay: Spawn Enemies
+        //
+        if (time_to_spawn_enemy_cooldown <= 0.0f) {
+          time_to_spawn_enemy_cooldown = time_to_spawn_enemy;
+          // glm::ivec2 mouse_pos = app.get_input().get_mouse_pos();
+          // printf("(game) mmb clicked %i %i \n", mouse_pos.x, mouse_pos.y);
+          // glm::vec2 world_pos = glm::vec2(mouse_pos) + camera.pos;
+
+          glm::vec2 rnd_pos =
+            glm::vec2(rand_det_s(rnd.rng, 0.0f, 1.0f) * screen_width, rand_det_s(rnd.rng, 0.0f, 1.0f) * screen_height);
+          glm::vec2 world_pos = rnd_pos + camera.pos;
+
+          GameObject2D wall_copy;
+          // defaults
+          wall_copy.name = wall.name;
+          wall_copy.angle_radians = wall.angle_radians;
+          wall_copy.size = wall.size;
+          wall_copy.colour = wall_colour;
+          wall_copy.velocity = wall.velocity;
+          wall_copy.sprite = wall.sprite;
+          wall_copy.collision_layer = wall.collision_layer;
+          wall_copy.tex_slot = wall.tex_slot;
+          // override defaults
+          wall_copy.pos = world_pos;
+
+          entities_walls.push_back(wall_copy);
+        }
+        time_to_spawn_enemy_cooldown -= delta_time_s;
       }
     }
     profiler.end(Profiler::Stage::GameTick);
@@ -434,19 +490,25 @@ main()
       glm::ivec2 screen_wh = glm::ivec2(screen_width, screen_height);
 
       // draw: texture object
-      tex_shader.bind();
-      sprite_renderer::draw_sprite_debug(camera, screen_wh, tex_shader, tex_obj, colour_shader, chosen_colour_3);
-
-      // draw: game objects
+      // tex_shader.bind();
+      // sprite_renderer::draw_sprite_debug(camera, screen_wh, tex_shader, tex_obj, colour_shader, chosen_colour_3);
+      // draw: walls
       glm::ivec2 obj;
-      for (GameObject2D& object : objects) {
+      for (GameObject2D& object : entities_bullets) {
         obj = spritemap.get_sprite_offset(object.sprite);
         sprite_shader.bind();
         sprite_shader.set_int("desired_x", obj.x);
         sprite_shader.set_int("desired_y", obj.y);
         sprite_renderer::draw_sprite_debug(camera, screen_wh, sprite_shader, object, colour_shader, chosen_colour_3);
       }
-
+      // draw: bullets
+      for (GameObject2D& object : entities_walls) {
+        obj = spritemap.get_sprite_offset(object.sprite);
+        sprite_shader.bind();
+        sprite_shader.set_int("desired_x", obj.x);
+        sprite_shader.set_int("desired_y", obj.y);
+        sprite_renderer::draw_sprite_debug(camera, screen_wh, sprite_shader, object, colour_shader, chosen_colour_3);
+      }
       // draw: player
       obj = spritemap.get_sprite_offset(player.sprite);
       sprite_shader.bind();
@@ -468,24 +530,22 @@ main()
         ImGui::EndMainMenuBar();
       }
 
-      ImGui::Begin("Game Info", NULL, ImGuiWindowFlags_NoFocusOnAppearing);
-      ImGui::Text("player pos %f %f", player.pos.x, player.pos.y);
-      ImGui::Text("player vel x: %f y: %f", player.velocity.x, player.velocity.y);
-      ImGui::Text("player angle %f", player.angle_radians);
-      ImGui::Text("camera pos %f %f", camera.pos.x, camera.pos.y);
-      ImGui::Text("mouse pos %f %f", app.get_input().get_mouse_pos().x, app.get_input().get_mouse_pos().y);
-      ImGui::Text("mouse angle around player %f", mouse_angle_around_player);
-      ImGui::Text("GameObjects: %i", objects.size());
-      ImGui::Text("Collisions: %i", collisions.size());
-      ImGui::Text("(game) collected: %i", objects_collected);
-      ImGui::End();
-
-      ImGui::Begin("Objects", NULL, ImGuiWindowFlags_NoFocusOnAppearing);
-      for (GameObject2D& go : objects) {
-        ImGui::Text("ID: %i, Name: %s", go.id, go.name.c_str());
+      if (show_game_info) {
+        ImGui::Begin("Game Info", NULL, ImGuiWindowFlags_NoFocusOnAppearing);
+        {
+          ImGui::Text("player pos %f %f", player.pos.x, player.pos.y);
+          ImGui::Text("player vel x: %f y: %f", player.velocity.x, player.velocity.y);
+          ImGui::Text("player angle %f", player.angle_radians);
+          ImGui::Text("camera pos %f %f", camera.pos.x, camera.pos.y);
+          ImGui::Text("mouse pos %f %f", app.get_input().get_mouse_pos().x, app.get_input().get_mouse_pos().y);
+          ImGui::Text("mouse angle around player %f", mouse_angle_around_player);
+          ImGui::Text("Wall Objects: %i", entities_walls.size());
+          ImGui::Text("Bullet Objects: %i", entities_bullets.size());
+          ImGui::Text("Collisions: %i", collisions.size());
+          ImGui::Text("(game) collected: %i", objects_collected);
+        }
+        ImGui::End();
       }
-      ImGui::End();
-
       if (show_console)
         console.Draw("Console", &show_console);
       if (show_profiler)
@@ -505,25 +565,6 @@ main()
 }
 
 // CODE GRAVEYARD
-
-//
-// Settings: Fullscreen
-//
-// if (app.get_input().get_key_down(SDL_SCANCODE_F)) {
-//   app.get_window().toggle_fullscreen(); // SDL2 window toggle
-//   glm::ivec2 screen_size = app.get_window().get_size();
-//   RenderCommand::set_viewport(0, 0, screen_size.x, screen_size.y);
-
-//   screen_width = static_cast<float>(screen_size.x);
-//   screen_height = static_cast<float>(screen_size.y);
-//   projection = glm::ortho(0.0f, screen_width, screen_height, 0.0f, -1.0f, 1.0f);
-//   sprite_shader.bind();
-//   sprite_shader.set_mat4("projection", projection);
-//   tex_shader.bind();
-//   tex_shader.set_mat4("projection", projection);
-//   colour_shader.bind();
-//   colour_shader.set_mat4("projection", projection);
-// }
 
 //
 // Shader hot reloading
