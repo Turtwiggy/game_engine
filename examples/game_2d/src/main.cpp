@@ -42,6 +42,7 @@ check_collides(GameObject2D& one, GameObject2D& two)
   return collisionX && collisionY;
 }
 
+// game collision matrix
 bool
 collides(CollisionLayer& y_l1, CollisionLayer& x_l2)
 {
@@ -102,8 +103,8 @@ chase_player(GameObject2D& player, const float delta_time, std::vector<GameObjec
 
 enum class GameState
 {
-  GAME_SPLASH_SCREEN, // todo
-  GAME_OVER_SCREEN,   // todo
+  GAME_SPLASH_SCREEN,
+  GAME_OVER_SCREEN,
   GAME_ACTIVE,
   GAME_PAUSED
 };
@@ -113,15 +114,41 @@ const glm::vec4 PALETTE_COLOUR_1_0 = glm::vec4(255.0f / 255.0f, 201.0f / 255.0f,
 const glm::vec4 PALETTE_COLOUR_2_0 = glm::vec4(255.0f / 255.0f, 132.0f / 255.0f, 116.0f / 255.0f, 1.0f); // orange
 const glm::vec4 PALETTE_COLOUR_3_0 = glm::vec4(159.0f / 255.0f, 95.0f / 255.0f, 128.0f / 255.0f, 1.0f);  // brown-red
 const glm::vec4 PALETTE_COLOUR_4_0 = glm::vec4(88.0f / 255.0f, 61.0f / 255.0f, 114.0f / 255.0f, 1.0f);   // purple
-
 const glm::vec4 PALETTE_COLOUR_1_1 = glm::vec4(57.0f / 255.0f, 62.0f / 255.0f, 70.0f / 255.0f, 1.0f);    // black
 const glm::vec4 PALETTE_COLOUR_2_1 = glm::vec4(0.0f / 255.0f, 173.0f / 255.0f, 181.0f / 255.0f, 1.0f);   // blue
 const glm::vec4 PALETTE_COLOUR_3_1 = glm::vec4(170.0f / 255.0f, 216.0f / 255.0f, 211.0f / 255.0f, 1.0f); // lightblue
 const glm::vec4 PALETTE_COLOUR_4_1 = glm::vec4(238.0f / 255.0f, 238.0f / 255.0f, 238.0f / 255.0f, 1.0f); // grey
-
+glm::vec4 chosen_colour_0 = PALETTE_COLOUR_1_1;
+glm::vec4 chosen_colour_1 = PALETTE_COLOUR_2_1;
+glm::vec4 chosen_colour_2 = PALETTE_COLOUR_3_1;
+glm::vec4 chosen_colour_3 = PALETTE_COLOUR_4_1;
+// colours
+glm::vec4 background_colour = chosen_colour_0;
+glm::vec4 player_colour = chosen_colour_1;
+glm::vec4 bullet_colour = chosen_colour_2;
+glm::vec4 wall_colour = chosen_colour_3;
+// sprites
+sprite::type player_sprite = sprite::type::TREE_1;
+sprite::type bullet_sprite = sprite::type::TREE_1;
+sprite::type wall_sprite = sprite::type::WALL_BIG;
+// textures
+const int tex_unit_kenny_nl = 0;
+// game
+int objects_collected = 0;
+float bullet_speed = 50.0f;
+float player_speed = 50.0f;
+float player_boost_modifier = 2.0f;
+float mouse_angle_around_player = 0.0f;
+float camera_speed = 100.0f;
+float time_to_spawn_enemy = 1.0f;
+float time_to_spawn_enemy_cooldown = 0.0f;
+// app
 float screen_width = 1366.0f;
 float screen_height = 768.0f;
-const int tex_unit_kenny_nl = 0;
+bool show_game_info = false;
+bool show_profiler = false;
+bool show_console = false;
+bool show_demo_window = false;
 
 int
 main()
@@ -134,16 +161,14 @@ main()
   // app.set_fps_limit(60.0f);
   Profiler profiler;
   Console console;
-  bool show_game_info = false;
-  bool show_profiler = false;
-  bool show_console = false;
-  bool show_demo_window = false;
 
   Camera2D camera;
   camera.pos = glm::vec2{ 0.0f, 0.0f };
   glm::mat4 projection = glm::ortho(0.0f, screen_width, screen_height, 0.0f, -1.0f, 1.0f);
 
+  //
   // textures
+  //
   std::vector<std::pair<int, std::string>> textures_to_load;
   textures_to_load.emplace_back(tex_unit_kenny_nl,
                                 "assets/textures/kennynl_1bit_pack/Tilesheet/monochrome_transparent_packed.png");
@@ -153,24 +178,9 @@ main()
   // TODO sound
   //
 
-  // -------------
-  // Customization
-  // -------------
-  // colours
-  glm::vec4 chosen_colour_0 = PALETTE_COLOUR_1_1;
-  glm::vec4 chosen_colour_1 = PALETTE_COLOUR_2_1;
-  glm::vec4 chosen_colour_2 = PALETTE_COLOUR_3_1;
-  glm::vec4 chosen_colour_3 = PALETTE_COLOUR_4_1;
-  glm::vec4 background_colour = chosen_colour_0;
-  glm::vec4 player_colour = chosen_colour_1;
-  glm::vec4 bullet_colour = chosen_colour_2;
-  glm::vec4 wall_colour = chosen_colour_3;
-  // sprites
-  sprite::type player_sprite = sprite::type::TREE_1;
-  sprite::type bullet_sprite = sprite::type::TREE_1;
-  sprite::type wall_sprite = sprite::type::WALL_BIG;
-
+  //
   // Rendering
+  //
   RenderCommand::init();
   RenderCommand::set_clear_colour(background_colour);
   RenderCommand::set_viewport(0, 0, static_cast<uint32_t>(screen_width), static_cast<uint32_t>(screen_height));
@@ -196,15 +206,10 @@ main()
   //
   // Game
   //
-
-  GameState state = GameState::GAME_ACTIVE;
+  GameState state = GameState::GAME_SPLASH_SCREEN;
   std::vector<GameObject2D> entities_bullets;
   std::vector<GameObject2D> entities_walls;
   std::vector<Collision2D> collisions;
-
-  int objects_collected = 0;
-  float time_to_spawn_enemy = 1.0f;
-  float time_to_spawn_enemy_cooldown = 0.0f;
 
   GameObject2D player;
   player.name = "player";
@@ -248,7 +253,7 @@ main()
   tex_obj.velocity = { 0.0f, 0.0f };
   tex_obj.tex_slot = tex_unit_kenny_nl;
 
-  float mouse_angle_around_player = 0.0f;
+  log_time_since("(INFO) End Setup ", app_start);
 
   // ---- App ----
 
@@ -287,21 +292,18 @@ main()
 
     profiler.end(Profiler::Stage::SdlInput);
     profiler.begin(Profiler::Stage::GameTick);
+
     {
-      if (state == GameState::GAME_ACTIVE) {
+      if (state == GameState::GAME_SPLASH_SCREEN) {
+        std::cout << "TODO: splash screen" << std::endl;
+        state = GameState::GAME_ACTIVE;
+      } else if (state == GameState::GAME_ACTIVE) {
 
-        // Editor: add object
-        // if (app.get_input().get_mouse_mmb_down()) {
-
-        //
         // Ability: Boost
-        //
-        float player_speed = 50.0f;
         if (app.get_input().get_key_held(SDL_SCANCODE_LSHIFT))
-          player_speed *= 2.0f;
+          player_speed *= player_boost_modifier;
 
-        // camera lrud (standard)
-        const float camera_speed = 100.0f;
+        // camera lrud
         if (app.get_input().get_key_held(SDL_SCANCODE_LEFT))
           camera.pos.x -= delta_time_s * camera_speed;
         if (app.get_input().get_key_held(SDL_SCANCODE_RIGHT))
@@ -318,7 +320,6 @@ main()
 
         bool movement_wasd = true;
         if (movement_wasd) {
-          player.velocity = { 1.0f, 1.0f };
 
           if (app.get_input().get_key_held(SDL_SCANCODE_A)) {
             player.velocity.x = -1.0f;
@@ -347,12 +348,8 @@ main()
           // }
         }
 
-        //
         // Ability: Shoot
-        //
         if (app.get_input().get_mouse_rmb_down()) {
-          float bullet_speed = 50.0f;
-
           GameObject2D bullet_copy;
           // defaults
           bullet_copy.name = bullet.name;
@@ -374,7 +371,6 @@ main()
         // Generate Collisions
         //
         collisions.clear();
-
         std::vector<GameObject2D> collidable;
         collidable.insert(collidable.end(), entities_walls.begin(), entities_walls.end());
         collidable.insert(collidable.end(), entities_bullets.begin(), entities_bullets.end());
@@ -451,6 +447,8 @@ main()
         //
         // Gameplay: Spawn Enemies
         //
+        // Editor: add object
+        // if (app.get_input().get_mouse_mmb_down()) {
         if (time_to_spawn_enemy_cooldown <= 0.0f) {
           time_to_spawn_enemy_cooldown = time_to_spawn_enemy;
           // glm::ivec2 mouse_pos = app.get_input().get_mouse_pos();
