@@ -128,6 +128,8 @@ draw_sprite_debug(Camera2D& cam,
   debug_line_shader.bind();
   debug_line_shader.set_vec4("colour", debug_line_shader_colour);
 
+#ifdef WIN32
+
   glm::vec2 world_pos = game_object.pos - cam.pos;
   glm::vec2 bl_pos = glm::vec2(world_pos.x, world_pos.y + game_object.size.y);
   glm::vec2 tr_pos = glm::vec2(world_pos.x + game_object.size.x, world_pos.y);
@@ -136,12 +138,15 @@ draw_sprite_debug(Camera2D& cam,
   tr_pos.x = scale(tr_pos.x, 0.0f, screen_size.x, -1.0f, 1.0f);
   tr_pos.y = scale(tr_pos.y, 0.0f, screen_size.y, 1.0f, -1.0f);
 
+  // This API is deprecated, does not work on phones/tablets.
   glBegin(GL_LINE_LOOP);
   glVertex2f(bl_pos.x, bl_pos.y);
   glVertex2f(tr_pos.x, bl_pos.y);
   glVertex2f(tr_pos.x, tr_pos.y);
   glVertex2f(bl_pos.x, tr_pos.y);
   glEnd();
+
+#endif
 }
 
 } // namespace sprite_renderer

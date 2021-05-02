@@ -15,9 +15,6 @@
 #include <glm/gtx/vector_angle.hpp>
 #include <imgui.h>
 
-// hack: temp
-#include <GL/glew.h>
-
 // fightingengine headers
 #include "engine/application.hpp"
 #include "engine/maths_core.hpp"
@@ -80,10 +77,37 @@ collides(CollisionLayer& y_l1, CollisionLayer& x_l2)
   return collision_matrix[val];
 }
 
+// ai for chasing player
+// ---------------------
+
+// void
+// chase_player(const float delta_time, std::vector<Enemy>* enemies)
+// {
+//   const glm::vec3 playerCollisionPosition(playerPosition.x, monsterY, playerPosition.z);
+//   for (int i = 0; i < enemies->size(); ++i) {
+//     auto& e = (*enemies)[i];
+//     glm::vec3 dir = playerPosition - e.position;
+//     dir.y = 0.0f;
+//     e.dir = glm::normalize(dir);
+//     e.position += e.dir * delta_time * monster_speed;
+//     if (isAlive) {
+//       const glm::vec3 p1 = e.position - e.dir * (ENEMY_COLLIDER.height / 2);
+//       const glm::vec3 p2 = e.position + e.dir * (ENEMY_COLLIDER.height / 2);
+//       const float dist = distanceBetweenPointAndLineSegment(playerCollisionPosition, p1, p2);
+//       if (dist <= (playerCollisionRadius + ENEMY_COLLIDER.radius)) {
+//         std::cout << "GOTTEM!" << std::endl;
+//         isAlive = false;
+//         playerMovementDir = glm::vec2(0.0f, 0.0f);
+//       }
+//     }
+//   }
+// }
+
 enum class GameState
 {
+  GAME_SPLASH_SCREEN, // todo
+  GAME_OVER_SCREEN,   // todo
   GAME_ACTIVE,
-  GAME_MENU,
   GAME_PAUSED
 };
 

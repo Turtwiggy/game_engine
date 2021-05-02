@@ -24,9 +24,6 @@ public:
   void frame_begin();
   void frame_end(const float delta_time);
 
-  void gui_begin();
-  void gui_end();
-
   void set_fps_limit(const float fps);
   void remove_fps_limit();
 

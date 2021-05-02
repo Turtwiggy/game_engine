@@ -13,6 +13,7 @@
 #include <glm/glm.hpp>
 #include <glm/gtc/matrix_transform.hpp>
 #include <glm/gtx/transform.hpp>
+#include <imgui.h>
 
 // your project headers
 #include "engine/application.hpp"
@@ -26,6 +27,7 @@
 #include "engine/opengl/util.hpp"
 #include "engine/tools/profiler.hpp"
 #include "engine/ui/profiler_panel.hpp"
+#include "engine/util.hpp"
 using namespace fightingengine;
 
 //
@@ -35,15 +37,6 @@ const int STARTING_CUBES = 35;
 glm::vec3 player_pos(0.0f, 0.0f, 0.0f);
 glm::vec3 camera_follow_vec(-1.5f, 3.0f, 0.0f);
 float player_move_speed = 1.0f;
-
-// Util function to log time since start of the program
-void
-log_time_since(const std::string& label, std::chrono::time_point<std::chrono::high_resolution_clock> start)
-{
-  const auto x = std::chrono::high_resolution_clock::now();
-  const auto y = std::chrono::duration_cast<std::chrono::milliseconds>(x - start).count();
-  std::cout << label << y << "ms" << std::endl;
-}
 
 int
 main(int argc, char** argv)
@@ -173,50 +166,27 @@ main(int argc, char** argv)
   // App
 
   while (app.is_running()) {
+
     profiler.new_frame();
     profiler.begin(Profiler::Stage::UpdateLoop);
-
-    app.frame_begin();
-
-    float delta_time_s = app.get_delta_time();
-
     profiler.begin(Profiler::Stage::SdlInput);
 
-    app.poll(); // input events
+    app.frame_begin();
+    float delta_time_s = app.get_delta_time();
 
-    //
-    // Settings: Shutdown app
-    //
-    if (app.get_input().get_key_down(SDL_KeyCode::SDLK_ESCAPE))
+    if (app.get_input().get_key_down(SDL_SCANCODE_ESCAPE))
       app.shutdown();
 
-    //
-    // Settings: Toggle mouse capture
-    //
-    if (app.get_input().get_key_down(SDL_KeyCode::SDLK_m))
+    if (app.get_input().get_key_down(SDL_SCANCODE_M))
       app.get_window().toggle_mouse_capture();
 
-    //
-    // Settings: Fullscreen
-    //
-    if (app.get_input().get_key_down(SDL_KeyCode::SDLK_f)) {
+    if (app.get_input().get_key_down(SDL_SCANCODE_F)) {
       app.get_window().toggle_fullscreen(); // SDL2 window toggle
       glm::ivec2 screen_size = app.get_window().get_size();
       RenderCommand::set_viewport(0, 0, screen_size.x, screen_size.y);
     }
 
-    //
-    // Process Input: Mouse
-    //
-    if (app.get_window().get_mouse_captured()) {
-      glm::ivec2 rel_mouse = app.get_window().get_relative_mouse_position();
-      camera.process_mouse_input(static_cast<float>(rel_mouse.x), static_cast<float>(rel_mouse.y));
-    }
-
-    //
-    // Shader hot reloading
-    //
-    if (app.get_input().get_key_down(SDL_KeyCode::SDLK_r)) {
+    if (app.get_input().get_key_down(SDL_SCANCODE_R)) {
       reload_shader_program(&texture_shader.ID, "lit.vert", "basic_shader.frag");
     }
 
@@ -226,17 +196,21 @@ main(int argc, char** argv)
     // Game State Tick
     //
 
-    const Uint8* keyboard_state = app.get_input().get_keyboard_state();
+    if (app.get_window().get_mouse_captured()) {
+      glm::ivec2 rel_mouse = app.get_window().get_relative_mouse_position();
+      camera.process_mouse_input(static_cast<float>(rel_mouse.x), static_cast<float>(rel_mouse.y));
+    }
+
     float player_velocity = player_move_speed * delta_time_s;
 
-    if (keyboard_state[SDL_Scancode::SDL_SCANCODE_W])
+    if (app.get_input().get_key_held(SDL_Scancode::SDL_SCANCODE_W))
       player_pos += glm::vec3(1.0f, 0.0f, 0.0f) * player_velocity;
-    else if (keyboard_state[SDL_Scancode::SDL_SCANCODE_S])
+    else if (app.get_input().get_key_held(SDL_Scancode::SDL_SCANCODE_S))
       player_pos -= glm::vec3(1.0f, 0.0f, 0.0f) * player_velocity;
 
-    if (keyboard_state[SDL_Scancode::SDL_SCANCODE_A])
+    if (app.get_input().get_key_held(SDL_Scancode::SDL_SCANCODE_A))
       player_pos -= glm::vec3(0.0f, 0.0f, 1.0f) * player_velocity;
-    else if (keyboard_state[SDL_Scancode::SDL_SCANCODE_D])
+    else if (app.get_input().get_key_held(SDL_Scancode::SDL_SCANCODE_D))
       player_pos += glm::vec3(0.0f, 0.0f, 1.0f) * player_velocity;
 
     //
@@ -286,8 +260,6 @@ main(int argc, char** argv)
     // GUI
     //
 
-    app.gui_begin();
-
     // bool open = true;
     // ImGui::ShowDemoWindow(&open);
 
@@ -325,20 +297,13 @@ main(int argc, char** argv)
     // ImGui::End();
 
     if (ImGui::BeginMainMenuBar()) {
-
-      if (ImGui::MenuItem("Quit", "Esc")) {
+      if (ImGui::MenuItem("Quit", "Esc"))
         app.shutdown();
-      }
-
       ImGui::SameLine(ImGui::GetWindowWidth() - 154.0f);
       ImGui::Text("%.2f FPS (%.2f ms)", ImGui::GetIO().Framerate, 1000.0f / ImGui::GetIO().Framerate);
-
       ImGui::EndMainMenuBar();
     }
-
     profiler_panel::draw(profiler, delta_time_s);
-
-    app.gui_end();
 
     profiler.end(Profiler::Stage::GuiLoop);
     profiler.begin(Profiler::Stage::FrameEnd);
@@ -399,32 +364,6 @@ main(int argc, char** argv)
 //         printf("ray x: %f y: %f z: %f \n", ray_world.x, ray_world.y,
 //         ray_world.z);
 //     }
-// }
-
-// ai for chasing player
-// ---------------------
-
-// void
-// chase_player(const float delta_time, std::vector<Enemy>* enemies)
-// {
-//   const glm::vec3 playerCollisionPosition(playerPosition.x, monsterY, playerPosition.z);
-//   for (int i = 0; i < enemies->size(); ++i) {
-//     auto& e = (*enemies)[i];
-//     glm::vec3 dir = playerPosition - e.position;
-//     dir.y = 0.0f;
-//     e.dir = glm::normalize(dir);
-//     e.position += e.dir * delta_time * monster_speed;
-//     if (isAlive) {
-//       const glm::vec3 p1 = e.position - e.dir * (ENEMY_COLLIDER.height / 2);
-//       const glm::vec3 p2 = e.position + e.dir * (ENEMY_COLLIDER.height / 2);
-//       const float dist = distanceBetweenPointAndLineSegment(playerCollisionPosition, p1, p2);
-//       if (dist <= (playerCollisionRadius + ENEMY_COLLIDER.radius)) {
-//         std::cout << "GOTTEM!" << std::endl;
-//         isAlive = false;
-//         playerMovementDir = glm::vec2(0.0f, 0.0f);
-//       }
-//     }
-//   }
 // }
 
 // THIS IS FOR A FIXED GAME TICK

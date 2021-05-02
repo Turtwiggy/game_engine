@@ -7,7 +7,8 @@
 
 // engine header
 #include "engine/opengl/texture.hpp"
-using namespace fightingengine;
+
+namespace fightingengine {
 
 void
 log_time_since(const std::string& label, std::chrono::time_point<std::chrono::high_resolution_clock> start)
@@ -40,4 +41,6 @@ load_textures_threaded(std::vector<std::pair<int, std::string>>& textures_to_loa
     }
   }
   log_time_since("(End Threaded) textures loaded ", app_start);
+}
+
 }

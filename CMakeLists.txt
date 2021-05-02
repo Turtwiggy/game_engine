@@ -13,7 +13,7 @@ project(subprojects VERSION 0.1.0)
 #add_subdirectory(examples/net_client)
 #add_subdirectory(examples/net_server)
 add_subdirectory(examples/game_2d)
-# add_subdirectory(examples/game_3d)
+add_subdirectory(examples/game_3d)
 
 set(CPACK_PROJECT_NAME ${PROJECT_NAME})
 set(CPACK_PROJECT_VERSION ${PROJECT_VERSION})
