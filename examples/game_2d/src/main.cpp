@@ -108,6 +108,8 @@ enum class GameState
   GAME_ACTIVE,
   GAME_PAUSED
 };
+const float time_on_splash_screen = 0.0f;
+float time_on_splash_screen_left = time_on_splash_screen;
 
 // https://colorhunt.co/palette/273312
 const glm::vec4 PALETTE_COLOUR_1_0 = glm::vec4(255.0f / 255.0f, 201.0f / 255.0f, 150.0f / 255.0f, 1.0f); // yellowish
@@ -128,6 +130,7 @@ glm::vec4 player_colour = chosen_colour_1;
 glm::vec4 bullet_colour = chosen_colour_2;
 glm::vec4 wall_colour = chosen_colour_3;
 // sprites
+sprite::type logo_sprite = sprite::type::ROCKET_1;
 sprite::type player_sprite = sprite::type::TREE_1;
 sprite::type bullet_sprite = sprite::type::TREE_1;
 sprite::type wall_sprite = sprite::type::WALL_BIG;
@@ -136,7 +139,8 @@ const int tex_unit_kenny_nl = 0;
 // game
 int objects_collected = 0;
 float bullet_speed = 50.0f;
-float player_speed = 50.0f;
+float player_speed_current = 50.0f;
+float player_speed_default = 50.0f;
 float player_boost_modifier = 2.0f;
 float mouse_angle_around_player = 0.0f;
 float camera_speed = 100.0f;
@@ -210,6 +214,16 @@ main()
   std::vector<GameObject2D> entities_bullets;
   std::vector<GameObject2D> entities_walls;
   std::vector<Collision2D> collisions;
+
+  GameObject2D logo_entity;
+  logo_entity.name = "logo";
+  logo_entity.pos = { screen_width / 2.0f, screen_height / 2.0f };
+  logo_entity.angle_radians = 0.0;
+  logo_entity.size = { 4.0f * 768.0f / 48.0f, 4.0f * 362.0f / 22.0f };
+  logo_entity.colour = player_colour;
+  logo_entity.velocity = { 0.0f, 0.0f };
+  logo_entity.sprite = logo_sprite;
+  logo_entity.tex_slot = tex_unit_kenny_nl;
 
   GameObject2D player;
   player.name = "player";
@@ -294,14 +308,13 @@ main()
     profiler.begin(Profiler::Stage::GameTick);
 
     {
-      if (state == GameState::GAME_SPLASH_SCREEN) {
-        std::cout << "TODO: splash screen" << std::endl;
-        state = GameState::GAME_ACTIVE;
-      } else if (state == GameState::GAME_ACTIVE) {
+      if (state == GameState::GAME_ACTIVE) {
 
         // Ability: Boost
-        if (app.get_input().get_key_held(SDL_SCANCODE_LSHIFT))
-          player_speed *= player_boost_modifier;
+        if (app.get_input().get_key_down(SDL_SCANCODE_LSHIFT))
+          player_speed_current = player_speed_default * player_boost_modifier;
+        if (app.get_input().get_key_up(SDL_SCANCODE_LSHIFT))
+          player_speed_current = player_speed_default;
 
         // camera lrud
         if (app.get_input().get_key_held(SDL_SCANCODE_LEFT))
@@ -427,7 +440,7 @@ main()
         // Update everything's position
         //
         // pos: player
-        player.pos += player.velocity * player_speed * delta_time_s;
+        player.pos += player.velocity * player_speed_current * delta_time_s;
         // pos: bullets
         for (GameObject2D& obj : entities_bullets) {
           float x = glm::sin(obj.angle_radians) * obj.velocity.x;
@@ -483,36 +496,59 @@ main()
     // rendering
     //
     {
-      RenderCommand::set_clear_colour(background_colour);
-      RenderCommand::clear();
-      glm::ivec2 screen_wh = glm::ivec2(screen_width, screen_height);
 
-      // draw: texture object
-      // tex_shader.bind();
-      // sprite_renderer::draw_sprite_debug(camera, screen_wh, tex_shader, tex_obj, colour_shader, chosen_colour_3);
-      // draw: walls
-      glm::ivec2 obj;
-      for (GameObject2D& object : entities_bullets) {
-        obj = spritemap.get_sprite_offset(object.sprite);
+      if (state == GameState::GAME_SPLASH_SCREEN) {
+
+        RenderCommand::set_clear_colour(glm::vec4(0.0f, 0.0f, 0.0f, 1.0f));
+        RenderCommand::clear();
+        glm::ivec2 screen_wh = glm::ivec2(screen_width, screen_height);
+
+        // draw logo
+        glm::ivec2 obj = spritemap.get_sprite_offset(logo_entity.sprite);
         sprite_shader.bind();
         sprite_shader.set_int("desired_x", obj.x);
         sprite_shader.set_int("desired_y", obj.y);
-        sprite_renderer::draw_sprite_debug(camera, screen_wh, sprite_shader, object, colour_shader, chosen_colour_3);
-      }
-      // draw: bullets
-      for (GameObject2D& object : entities_walls) {
-        obj = spritemap.get_sprite_offset(object.sprite);
+        sprite_renderer::draw_sprite_debug(
+          camera, screen_wh, sprite_shader, logo_entity, colour_shader, chosen_colour_3);
+
+        // when done
+        time_on_splash_screen_left -= delta_time_s;
+        if (time_on_splash_screen_left <= 0) {
+          state = GameState::GAME_ACTIVE;
+        }
+
+      } else {
+        RenderCommand::set_clear_colour(background_colour);
+        RenderCommand::clear();
+        glm::ivec2 screen_wh = glm::ivec2(screen_width, screen_height);
+
+        // draw: texture object
+        // tex_shader.bind();
+        // sprite_renderer::draw_sprite_debug(camera, screen_wh, tex_shader, tex_obj, colour_shader, chosen_colour_3);
+        // draw: walls
+        glm::ivec2 obj;
+        for (GameObject2D& object : entities_bullets) {
+          obj = spritemap.get_sprite_offset(object.sprite);
+          sprite_shader.bind();
+          sprite_shader.set_int("desired_x", obj.x);
+          sprite_shader.set_int("desired_y", obj.y);
+          sprite_renderer::draw_sprite_debug(camera, screen_wh, sprite_shader, object, colour_shader, chosen_colour_3);
+        }
+        // draw: bullets
+        for (GameObject2D& object : entities_walls) {
+          obj = spritemap.get_sprite_offset(object.sprite);
+          sprite_shader.bind();
+          sprite_shader.set_int("desired_x", obj.x);
+          sprite_shader.set_int("desired_y", obj.y);
+          sprite_renderer::draw_sprite_debug(camera, screen_wh, sprite_shader, object, colour_shader, chosen_colour_3);
+        }
+        // draw: player
+        obj = spritemap.get_sprite_offset(player.sprite);
         sprite_shader.bind();
         sprite_shader.set_int("desired_x", obj.x);
         sprite_shader.set_int("desired_y", obj.y);
-        sprite_renderer::draw_sprite_debug(camera, screen_wh, sprite_shader, object, colour_shader, chosen_colour_3);
+        sprite_renderer::draw_sprite_debug(camera, screen_wh, sprite_shader, player, colour_shader, chosen_colour_3);
       }
-      // draw: player
-      obj = spritemap.get_sprite_offset(player.sprite);
-      sprite_shader.bind();
-      sprite_shader.set_int("desired_x", obj.x);
-      sprite_shader.set_int("desired_y", obj.y);
-      sprite_renderer::draw_sprite_debug(camera, screen_wh, sprite_shader, player, colour_shader, chosen_colour_3);
     }
     profiler.end(Profiler::Stage::Render);
     profiler.begin(Profiler::Stage::GuiLoop);

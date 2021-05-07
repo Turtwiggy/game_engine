@@ -124,11 +124,12 @@ draw_sprite_debug(Camera2D& cam,
               game_object.colour,
               tex_slot);
 
+#ifdef WIN32
+#ifdef _DEBUG
+
   // draw lines
   debug_line_shader.bind();
   debug_line_shader.set_vec4("colour", debug_line_shader_colour);
-
-#ifdef WIN32
 
   glm::vec2 world_pos = game_object.pos - cam.pos;
   glm::vec2 bl_pos = glm::vec2(world_pos.x, world_pos.y + game_object.size.y);
@@ -146,6 +147,7 @@ draw_sprite_debug(Camera2D& cam,
   glVertex2f(bl_pos.x, tr_pos.y);
   glEnd();
 
+#endif
 #endif
 }
 
