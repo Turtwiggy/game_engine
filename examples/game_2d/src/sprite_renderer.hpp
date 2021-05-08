@@ -26,25 +26,48 @@ struct Collision2D
 
 struct GameObject2D
 {
+  //
+  // metadata
+  // note: not currently thread safe.
+  //
   static inline int global_int_counter = 0;
   int id = 0;
   std::string name = "DEFAULT";
 
+  //
+  // rendering
+  //
+  sprite::type sprite = sprite::type::SQUARE;
+  int tex_slot = 0;
+
+  //
+  // physics
+  //
+  CollisionLayer collision_layer = CollisionLayer::Default;
+
+  //
+  // game
+  //
   glm::vec2 pos = { 0.0f, 0.0f }; // in pixels, centered
   float angle_radians = 0.0f;
   glm::vec2 size = { 20.0f, 20.0f };
   glm::vec4 colour = { 1.0f, 0.0f, 0.0f, 1.0f };
   glm::vec2 velocity = { 0.0f, 0.0f };
 
-  sprite::type sprite = sprite::type::SQUARE;
-  CollisionLayer collision_layer = CollisionLayer::Default;
-  int tex_slot = 0;
+  // lifecycle
+  float time_alive_left = 5.0f;
 
-  GameObject2D()
-  {
-    global_int_counter++;
-    id = global_int_counter;
-  }
+  // hittable
+  int hits_able_to_be_taken = 30;
+  int hits_taken = 0;
+  bool invulnerable = false;
+
+  // speed
+  float speed_current = 50.0f;
+  float speed_default = 50.0f;
+  float speed_boost_modifier = 2.0f;
+
+  GameObject2D() { id = ++GameObject2D::global_int_counter; }
 };
 
 namespace sprite_renderer {

@@ -52,6 +52,11 @@ Application::is_running() const
 float
 Application::get_delta_time()
 {
+  // now = SDL_GetTicks();         //Returns an unsigned 32-bit value
+  // representing the number of milliseconds since the SDL library initialized.
+  // uint32_t delta_time_in_milliseconds = now - prev;
+  // if (delta_time_in_milliseconds < 0) return 0; prev = now;
+
   return ImGui::GetIO().DeltaTime;
 }
 
@@ -143,6 +148,7 @@ Application::frame_begin()
   }
 
   imgui_manager.begin_frame(get_window());
+  seconds_since_launch += get_delta_time();
 }
 
 // ---- events

@@ -27,6 +27,8 @@ public:
   void set_fps_limit(const float fps);
   void remove_fps_limit();
 
+  float seconds_since_launch = 0.0f;
+
   [[nodiscard]] InputManager& get_input();
   [[nodiscard]] ImGui_Manager& get_imgui();
   [[nodiscard]] GameWindow& get_window();
@@ -64,3 +66,13 @@ private:
   unsigned int now = 0;
 };
 }
+
+// THIS IS FOR A FIXED GAME TICK
+// -----------------------------
+// seconds_since_last_game_tick += delta_time_in_seconds;
+// while (seconds_since_last_game_tick >= SECONDS_PER_FIXED_TICK)
+//{
+//    //Fixed update
+//    fixed_tick(SECONDS_PER_FIXED_TICK);
+//    seconds_since_last_game_tick -= SECONDS_PER_FIXED_TICK;
+//}

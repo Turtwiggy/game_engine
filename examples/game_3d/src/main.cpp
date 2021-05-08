@@ -365,13 +365,3 @@ main(int argc, char** argv)
 //         ray_world.z);
 //     }
 // }
-
-// THIS IS FOR A FIXED GAME TICK
-// -----------------------------
-// seconds_since_last_game_tick += delta_time_in_seconds;
-// while (seconds_since_last_game_tick >= SECONDS_PER_FIXED_TICK)
-//{
-//    //Fixed update
-//    fixed_tick(SECONDS_PER_FIXED_TICK);
-//    seconds_since_last_game_tick -= SECONDS_PER_FIXED_TICK;
-//}
