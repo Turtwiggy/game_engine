@@ -9,6 +9,7 @@
 namespace fightingengine {
 
 constexpr float PI{ 3.1415926535897932385f };
+constexpr float HALF_PI = PI / 2.0f;
 
 //
 // random
