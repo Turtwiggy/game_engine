@@ -52,7 +52,7 @@ render_quad()
 }
 
 void
-draw_sprite(Camera2D& cam,
+draw_sprite(GameObject2D& cam,
             const glm::ivec2& screen_size,
             fightingengine::Shader& shader,
             glm::vec2 position,
@@ -107,7 +107,7 @@ scale(float x, float min, float max, float a, float b)
 }
 
 void
-draw_sprite_debug(Camera2D& cam,
+draw_sprite_debug(GameObject2D& cam,
                   const glm::ivec2& screen_size,
                   fightingengine::Shader& shader,
                   GameObject2D& game_object,

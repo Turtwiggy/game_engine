@@ -76,7 +76,7 @@ draw(const Profiler& profiler, const float delta_time_s)
   // Game Time info
   //
 
-  ImGui::Begin("Profiler");
+  ImGui::Begin("Profiler", NULL, ImGuiWindowFlags_NoFocusOnAppearing);
 
   static AnimatedProfilerEntry framerate;
   framerate.scale_max = 300.0f;

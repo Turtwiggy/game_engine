@@ -4,7 +4,6 @@
 #include <glm/glm.hpp>
 
 // your project headers
-#include "camera2d.hpp"
 #include "engine/opengl/shader.hpp"
 #include "spritemap.hpp"
 
@@ -45,6 +44,11 @@ struct GameObject2D
   //
   CollisionLayer collision_layer = CollisionLayer::Default;
 
+  // todo: interpolation
+  bool is_bullet = false;
+  glm::vec2 pos_last_frame = { 0.0f, 0.0f };
+  float distance_before_needing_interpolate_point = 10.0f;
+
   //
   // game
   //
@@ -53,6 +57,7 @@ struct GameObject2D
   glm::vec2 size = { 20.0f, 20.0f };
   glm::vec4 colour = { 1.0f, 0.0f, 0.0f, 1.0f };
   glm::vec2 velocity = { 0.0f, 0.0f };
+  float velocity_boost_modifier = 2.0f;
 
   // lifecycle
   float time_alive_left = 5.0f;
@@ -65,7 +70,6 @@ struct GameObject2D
   // speed
   float speed_current = 50.0f;
   float speed_default = 50.0f;
-  float speed_boost_modifier = 2.0f;
 
   GameObject2D() { id = ++GameObject2D::global_int_counter; }
 };
@@ -78,7 +82,7 @@ void
 render_quad();
 
 void
-draw_sprite(Camera2D& cam,
+draw_sprite(GameObject2D& cam,
             const glm::ivec2& screen_size,
             fightingengine::Shader& shader,
             glm::vec2 position,
@@ -88,7 +92,7 @@ draw_sprite(Camera2D& cam,
             int tex_slot = 0);
 
 void
-draw_sprite_debug(Camera2D& cam,
+draw_sprite_debug(GameObject2D& cam,
                   const glm::ivec2& screen_size,
                   fightingengine::Shader& shader,
                   GameObject2D& game_object,
