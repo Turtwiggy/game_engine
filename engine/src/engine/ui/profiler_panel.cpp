@@ -88,6 +88,12 @@ draw(const Profiler& profiler, const float delta_time_s)
   ImGui::Text("%s %f ms", profiler.stageNames[(uint8_t)Profiler::Stage::SdlInput].data(), (time));
   ImGui::Separator();
 
+  time = profiler.get_average_time(Profiler::Stage::Physics);
+  static AnimatedProfilerEntry physics;
+  physics.draw(time);
+  ImGui::Text("%s %f ms", profiler.stageNames[(uint8_t)Profiler::Stage::Physics].data(), (time));
+  ImGui::Separator();
+
   time = profiler.get_average_time(Profiler::Stage::GameTick);
   static AnimatedProfilerEntry game_tick;
   game_tick.draw(time);

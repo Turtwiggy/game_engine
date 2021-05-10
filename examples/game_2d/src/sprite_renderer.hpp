@@ -17,12 +17,6 @@ enum class CollisionLayer
   Destroyable = 3,
 };
 
-struct Collision2D
-{
-  int obj_id_1;
-  int obj_id_2;
-};
-
 struct GameObject2D
 {
   //

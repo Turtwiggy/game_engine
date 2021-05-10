@@ -15,6 +15,7 @@ class Profiler
 public:
   enum class Stage : uint8_t
   {
+    Physics,
     SdlInput,
     GameTick,
     Render,
@@ -37,7 +38,7 @@ public:
   };
 
   static constexpr std::array<std::string_view, static_cast<uint8_t>(Stage::_count)> stageNames = {
-    "SDL Input", "Game Tick", "Render", "GUI Loop", "Frame End", "Update Loop"
+    "Physics", "SDL Input", "Game Tick", "Render", "GUI Loop", "Frame End", "Update Loop"
   };
 
   // Each "Entry" contains a "DeltaTime" value

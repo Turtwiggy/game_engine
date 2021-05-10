@@ -23,6 +23,10 @@
 #include "engine/util.hpp"
 using namespace fightingengine;
 
+// hack:
+#include <GL/glew.h>
+#include <glm/gtc/matrix_transform.hpp>
+
 // game headers
 #include "console.hpp"
 #include "sprite_renderer.hpp"
@@ -72,7 +76,7 @@ const int tex_unit_kenny_nl = 0;
 // app
 float screen_width = 1366.0f;
 float screen_height = 768.0f;
-bool show_game_info = true;
+bool show_game_info = false;
 bool show_profiler = true;
 bool show_console = false;
 bool show_demo_window = false;
@@ -96,9 +100,12 @@ SDL_Scancode key_boost = SDL_SCANCODE_LSHIFT;
 SDL_Scancode key_camera_follow_player = SDL_SCANCODE_Q;
 // controller bindings
 
-// simple aabb collision
+//
+// helper physics functions
+//
+
 bool
-collides(GameObject2D& one, GameObject2D& two)
+aabb_collides(GameObject2D& one, GameObject2D& two)
 {
   // collision x-axis?
   bool collisionX = one.pos.x + one.size.x >= two.pos.x && two.pos.x + two.size.x >= one.pos.x;
@@ -108,9 +115,8 @@ collides(GameObject2D& one, GameObject2D& two)
   return collisionX && collisionY;
 }
 
-// game collision matrix
 bool
-collides_matrix(CollisionLayer& y_l1, CollisionLayer& x_l2)
+game_collision_matrix(CollisionLayer& y_l1, CollisionLayer& x_l2)
 {
   int c1 = static_cast<int>(y_l1); // c1 is 0, 1, or 2
   int c2 = static_cast<int>(x_l2); // c2 is 0, 1, or 2
@@ -145,25 +151,25 @@ collides_matrix(CollisionLayer& y_l1, CollisionLayer& x_l2)
 }
 
 void
-generate_collisions(std::vector<GameObject2D>& collidable, std::vector<Collision2D>& collisions)
+generate_collisions_bruteforce(std::vector<std::reference_wrapper<GameObject2D>>& objects,
+                               std::vector<std::pair<int, int>>& collisions)
 {
-  std::vector<GameObject2D>::iterator it_1 = collidable.begin();
-  while (it_1 != collidable.end()) {
-    std::vector<GameObject2D>::iterator it_2 = collidable.begin();
-    while (it_2 != collidable.end()) {
+  std::vector<std::reference_wrapper<GameObject2D>>::iterator it_1 = objects.begin();
+  while (it_1 != objects.end()) {
+    std::vector<std::reference_wrapper<GameObject2D>>::iterator it_2 = objects.begin();
+    while (it_2 != objects.end()) {
       GameObject2D& obj_1 = *it_1;
       GameObject2D& obj_2 = *it_2;
       if (obj_1.id == obj_2.id) {
         ++it_2;
         continue;
       }
-      bool collision_config = collides_matrix(obj_1.collision_layer, obj_2.collision_layer);
-      if (collision_config && collides(obj_1, obj_2)) {
-        Collision2D col;
-        col.obj_id_1 = obj_1.id;
-        col.obj_id_2 = obj_2.id;
+      bool collision_config = game_collision_matrix(obj_1.collision_layer, obj_2.collision_layer);
+      if (collision_config && aabb_collides(obj_1, obj_2)) {
+        std::pair<int, int> col;
+        col.first = obj_1.id;
+        col.second = obj_2.id;
         collisions.push_back(col);
-        // todo: turn this in to a set, so that collision a, b is the same as b, a
       }
       ++it_2;
     }
@@ -171,35 +177,167 @@ generate_collisions(std::vector<GameObject2D>& collidable, std::vector<Collision
   }
 };
 
+enum class COLLISION_AXIS
+{
+  X,
+  Y
+};
+
+struct Collision2D
+{
+  int ent_id_0;
+  int ent_id_1;
+  bool collision_x = false;
+  bool collision_y = false;
+};
+
+uint64_t
+encode_cantor_pairing_function(int x, int y)
+{
+  int64_t p = 0;
+  int i = 0;
+  while (x || y) {
+    p |= ((uint64_t)(x & 1) << i);
+    x >>= 1;
+    p |= ((uint64_t)(y & 1) << (i + 1));
+    y >>= 1;
+    i += 2;
+  }
+  return p;
+}
+
 void
-resolve_collisions(std::vector<Collision2D>& collisions,
+decode_cantor_pairing_function(uint64_t p, uint32_t& x, uint32_t& y)
+{
+  x = 0;
+  y = 0;
+  int i = 0;
+  while (p) {
+    x |= ((uint32_t)(p & 1) << i);
+    p >>= 1;
+    y |= ((uint32_t)(p & 1) << i);
+    p >>= 1;
+    i++;
+  }
+}
+
+void
+generate_broadphase_collisions(const std::vector<std::reference_wrapper<GameObject2D>>& sorted_collidable_objects,
+                               COLLISION_AXIS axis,
+                               std::map<uint64_t, Collision2D>& collisions)
+{
+
+  // 2. begin on the left of above list.
+  std::vector<std::reference_wrapper<GameObject2D>> active_list;
+
+  // 2.1 add the first item from axis_list to active_list.
+  if (sorted_collidable_objects.size() > 0) {
+    active_list.push_back(sorted_collidable_objects[0]);
+  }
+
+  for (int i = 1; i < sorted_collidable_objects.size(); i++) {
+
+    const std::reference_wrapper<GameObject2D>& new_obj = sorted_collidable_objects[i];
+
+    // 2.2 have a look at the next item in axis_list,
+    // and compare it with all the items currently in active_list. (currently just 1)
+    std::vector<std::reference_wrapper<GameObject2D>>::iterator it_1 = active_list.begin();
+    while (it_1 != active_list.end()) {
+
+      std::reference_wrapper<GameObject2D>& old_obj = *it_1;
+
+      float new_item_left = 0;
+      float old_item_right = 0;
+      if (axis == COLLISION_AXIS::X) {
+        // if the new item's left is > than the active_item's right
+        new_item_left = new_obj.get().pos.x;
+        old_item_right = old_obj.get().pos.x + old_obj.get().size.x;
+      }
+      if (axis == COLLISION_AXIS::Y) {
+        // if the new item's bottom is > than the active_item's top
+        new_item_left = new_obj.get().pos.y - new_obj.get().size.y;
+        old_item_right = old_obj.get().pos.y;
+      }
+
+      if (new_item_left > old_item_right) {
+        // 2.3.1 Then remove the active_list item from the active list
+        // as no possible collision!
+        it_1 = active_list.erase(it_1);
+      } else {
+        // 2.3.2 possible collision!
+        // // between new axis_list item and the current active_list item
+        // std::pair<std::reference_wrapper<GameObject2D>, std::reference_wrapper<GameObject2D>> collision =
+        //   std::pair<std::reference_wrapper<GameObject2D>, std::reference_wrapper<GameObject2D>>(new_obj, old_obj);
+
+        // Check game logic!
+        bool valid_collision = game_collision_matrix(new_obj.get().collision_layer, old_obj.get().collision_layer);
+        if (valid_collision) {
+
+          // Check existing collisions
+          uint64_t unique_collision_id = encode_cantor_pairing_function(old_obj.get().id, new_obj.get().id);
+          if (collisions.find(unique_collision_id) != collisions.end()) {
+            // collision for these pairs!
+            Collision2D& coll = collisions[unique_collision_id];
+            if (axis == COLLISION_AXIS::X)
+              coll.collision_x = true;
+            if (axis == COLLISION_AXIS::Y)
+              coll.collision_y = true;
+
+            collisions[unique_collision_id] = coll;
+          } else {
+            // new collision
+            // collision for these pairs!
+            Collision2D& coll = collisions[unique_collision_id];
+            coll.ent_id_0 = old_obj.get().id;
+            coll.ent_id_1 = new_obj.get().id;
+            if (axis == COLLISION_AXIS::X)
+              coll.collision_x = true;
+            if (axis == COLLISION_AXIS::Y)
+              coll.collision_y = true;
+
+            collisions[unique_collision_id] = coll;
+          }
+        }
+
+        ++it_1;
+      }
+    }
+
+    // 2.4 Add the new item itself to active_list and continue with the next item in axis_list
+    active_list.push_back(new_obj);
+  }
+}
+
+void
+resolve_collisions(const std::map<uint64_t, Collision2D>& collisions,
                    int& objects_collected,
                    std::vector<GameObject2D>& walls,
                    std::vector<GameObject2D>& bullets,
                    GameObject2D& player)
 {
-  for (Collision2D c : collisions) {
+  for (auto& c : collisions) {
+
+    uint32_t id_0 = c.second.ent_id_0;
+    uint32_t id_1 = c.second.ent_id_1;
+
     // Iterate over every object... likely to get slow pretty quick.
     for (int i = 0; i < walls.size(); i++) {
       GameObject2D& go = walls[i];
-      if (c.obj_id_1 == go.id || c.obj_id_2 == go.id) {
+      if (id_0 == go.id || id_1 == go.id) {
         // what to do if a wall collided? remove it
         walls.erase(walls.begin() + i);
         objects_collected += 1;
-        break;
       }
     }
     for (int i = 0; i < bullets.size(); i++) {
       GameObject2D& go = bullets[i];
-      if (c.obj_id_1 == go.id || c.obj_id_2 == go.id) {
+      if (id_0 == go.id || id_1 == go.id) {
         // what to do if a bullet collided? remove it
         bullets.erase(bullets.begin() + i);
-        break;
       }
     }
     // player collided
-    // bug: collisions generate both ways, so this will increment twice.
-    if (c.obj_id_1 == player.id || c.obj_id_2 == player.id) {
+    if (id_0 == player.id || id_1 == player.id) {
       if (!player.invulnerable) {
         player.hits_taken += 1;
       }
@@ -258,9 +396,8 @@ player_rotation(Application& app, GameObject2D& player, GameObject2D& camera, fl
   }
 };
 
-// ai for chasing player
 void
-chase_player(GameObject2D& player, const float delta_time, std::vector<GameObject2D>& enemies)
+ai_chase_player(GameObject2D& player, const float delta_time, std::vector<GameObject2D>& enemies)
 {
   for (int i = 0; i < enemies.size(); ++i) {
     GameObject2D& e = enemies[i];
@@ -286,8 +423,7 @@ reset_game(GameObject2D& camera,
            GameObject2D& player,
            int& objects_collected,
            std::vector<GameObject2D>& entities_bullets,
-           std::vector<GameObject2D>& entities_walls,
-           std::vector<Collision2D>& collisions)
+           std::vector<GameObject2D>& entities_walls)
 {
   camera.pos = glm::vec2{ 0.0f, 0.0f };
 
@@ -306,7 +442,6 @@ reset_game(GameObject2D& camera,
 
   entities_bullets.clear();
   entities_walls.clear();
-  collisions.clear();
 }
 
 int
@@ -317,7 +452,6 @@ main()
 
   RandomState rnd;
   Application app("2D Game", static_cast<int>(screen_width), static_cast<int>(screen_height));
-  // app.set_fps_limit(60.0f);
   Profiler profiler;
   Console console;
 
@@ -397,7 +531,7 @@ main()
   player.tex_slot = tex_unit_kenny_nl;
   player.collision_layer = CollisionLayer::Player;
 
-  float bullet_seconds_between_spawning = 0.01f;
+  float bullet_seconds_between_spawning = 0.3f;
   float bullet_seconds_between_spawning_left = 0.0f;
   GameObject2D bullet;
   bullet.sprite = bullet_sprite;
@@ -409,9 +543,9 @@ main()
   bullet.size = { 25.0f, 25.0f };
   bullet.colour = bullet_colour;
   bullet.velocity = { 0.0f, 0.0f };
-  bullet.speed_default = 50.0f;
+  bullet.speed_default = 100.0f;
   bullet.speed_current = bullet.speed_default;
-  bullet.time_alive_left = 10.0f;
+  bullet.time_alive_left = 6.0f;
   bullet.is_bullet = true;
 
   float wall_seconds_between_spawning = 1.0f;
@@ -449,8 +583,7 @@ main()
   int objects_collected = 0;
   std::vector<GameObject2D> entities_bullets;
   std::vector<GameObject2D> entities_walls;
-  std::vector<Collision2D> collisions;
-  reset_game(camera, player, objects_collected, entities_bullets, entities_walls, collisions);
+  reset_game(camera, player, objects_collected, entities_bullets, entities_walls);
 
   log_time_since("(INFO) End Setup ", app_start);
 
@@ -460,76 +593,154 @@ main()
 
     profiler.new_frame();
     profiler.begin(Profiler::Stage::UpdateLoop);
-    profiler.begin(Profiler::Stage::SdlInput);
 
-    app.frame_begin(); // input events
+    app.frame_begin(); // get input events
     float delta_time_s = app.get_delta_time();
 
-    // Settings: Exit App
-    if (app.get_input().get_key_down(key_quit))
-      app.shutdown();
+    profiler.begin(Profiler::Stage::Physics);
+    //
+    // Physics & Collision Detection
+    //
+    {
+      if (state == GameState::GAME_ACTIVE || (state == GameState::GAME_PAUSED && advance_one_frame)) {
 
-    // Settings: Toggle Console
-    if (app.get_input().get_key_down(key_console))
-      show_console = !show_console;
+        // hopefully no copy of GameObject2D
+        std::vector<std::reference_wrapper<GameObject2D>> collidable;
+        collidable.insert(collidable.end(), entities_walls.begin(), entities_walls.end());
+        collidable.insert(collidable.end(), entities_bullets.begin(), entities_bullets.end());
+        collidable.push_back(player);
 
-    // Settings: Fullscreen
-    if (app.get_input().get_key_down(key_fullscreen)) {
-      app.get_window().toggle_fullscreen(); // SDL2 window toggle
-      glm::ivec2 screen_size = app.get_window().get_size();
-      RenderCommand::set_viewport(0, 0, screen_size.x, screen_size.y);
-      screen_width = static_cast<float>(screen_size.x);
-      screen_height = static_cast<float>(screen_size.y);
-      projection = glm::ortho(0.0f, screen_width, screen_height, 0.0f, -1.0f, 1.0f);
-      sprite_shader.bind();
-      sprite_shader.set_mat4("projection", projection);
-      tex_shader.bind();
-      tex_shader.set_mat4("projection", projection);
-      colour_shader.bind();
-      colour_shader.set_mat4("projection", projection);
+        std::map<uint64_t, Collision2D> collisions;
+
+        // broadphase: detect collisions can actually happen and discard collisions which can't.
+        // sort and prune algorithm. note: suffers from large worlds with inactive objects.
+        // this issue can be solved by using multiple smaller SAP's which form a grid.
+        // note: i've adjusted this algortihm to do 2-axis SAP.
+
+        // 1. Do broad-phase check.
+
+        // Sort entities by X-axis
+        std::vector<std::reference_wrapper<GameObject2D>> sorted_collidable_x = collidable;
+        std::sort(sorted_collidable_x.begin(),
+                  sorted_collidable_x.end(),
+                  [](std::reference_wrapper<GameObject2D> a, std::reference_wrapper<GameObject2D> b) {
+                    return a.get().pos.x < b.get().pos.x;
+                  });
+        // SAP x-axis
+        std::vector<std::pair<int, int>> potential_collisions_x;
+        generate_broadphase_collisions(sorted_collidable_x, COLLISION_AXIS::X, collisions);
+
+        // Sort entities by Y-axis
+        std::vector<std::reference_wrapper<GameObject2D>> sorted_collidable_y = collidable;
+        std::sort(sorted_collidable_y.begin(),
+                  sorted_collidable_y.end(),
+                  [](std::reference_wrapper<GameObject2D> a, std::reference_wrapper<GameObject2D> b) {
+                    return a.get().pos.y < b.get().pos.y;
+                  });
+        // SAP y-axis
+        std::vector<std::pair<int, int>> potential_collisions_y;
+        generate_broadphase_collisions(sorted_collidable_y, COLLISION_AXIS::Y, collisions);
+
+        // narrow-phase
+        std::map<uint64_t, Collision2D> filtered_collisions;
+        for (auto& coll : collisions) {
+          Collision2D c = coll.second;
+          if (c.collision_x && c.collision_y) {
+            filtered_collisions[coll.first] = coll.second;
+          }
+        }
+
+        // game's response
+        resolve_collisions(filtered_collisions, objects_collected, entities_walls, entities_bullets, player);
+
+        if (filtered_collisions.size() > 0) {
+          // state = GameState::GAME_PAUSED;
+        }
+
+        // brute force approach
+        // generate_collisions_bruteforce(collidable, filtered_collisions);
+
+        // ImGui::Begin("Collisions");
+        // ImGui::Text("Potential collisions x: %i", potential_collisions_x.size());
+        // ImGui::Text("Potential collisions y: %i", potential_collisions_y.size());
+        // ImGui::Text("collisions: %i", collisions.size());
+        // ImGui::End();
+      }
     }
+    profiler.end(Profiler::Stage::Physics);
+    profiler.begin(Profiler::Stage::SdlInput);
+    //
+    // Process Input
+    //
+    {
+      // Settings: Exit App
+      if (app.get_input().get_key_down(key_quit))
+        app.shutdown();
 
-    // Shader hot reloading
-    // if (app.get_input().get_key_down(SDL_SCANCODE_R)) {
-    //   reload_shader_program(&fun_shader.ID, "2d_texture.vert", "effects/posterized_water.frag");
-    //   fun_shader.bind();
-    //   fun_shader.set_mat4("projection", projection);
-    //   fun_shader.set_int("tex", tex_unit_kenny_nl);
-    // }
+      // Settings: Toggle Console
+      if (app.get_input().get_key_down(key_console))
+        show_console = !show_console;
 
-    // Game: Pause
-    if (app.get_input().get_key_down(SDL_SCANCODE_P)) {
-      state = state == GameState::GAME_PAUSED ? GameState::GAME_ACTIVE : GameState::GAME_PAUSED;
-    }
+      // Settings: Fullscreen
+      if (app.get_input().get_key_down(key_fullscreen)) {
+        app.get_window().toggle_fullscreen(); // SDL2 window toggle
+        glm::ivec2 screen_size = app.get_window().get_size();
+        RenderCommand::set_viewport(0, 0, screen_size.x, screen_size.y);
+        screen_width = static_cast<float>(screen_size.x);
+        screen_height = static_cast<float>(screen_size.y);
+        projection = glm::ortho(0.0f, screen_width, screen_height, 0.0f, -1.0f, 1.0f);
+        sprite_shader.bind();
+        sprite_shader.set_mat4("projection", projection);
+        tex_shader.bind();
+        tex_shader.set_mat4("projection", projection);
+        colour_shader.bind();
+        colour_shader.set_mat4("projection", projection);
+      }
 
-    // Game Thing: Reset player pos
-    if (app.get_input().get_key_held(SDL_SCANCODE_O)) {
-      player.pos = glm::vec2(0.0f, 0.0f);
-    }
+      // Shader hot reloading
+      // if (app.get_input().get_key_down(SDL_SCANCODE_R)) {
+      //   reload_shader_program(&fun_shader.ID, "2d_texture.vert", "effects/posterized_water.frag");
+      //   fun_shader.bind();
+      //   fun_shader.set_mat4("projection", projection);
+      //   fun_shader.set_int("tex", tex_unit_kenny_nl);
+      // }
+
+      // Game: Pause
+      if (app.get_input().get_key_down(SDL_SCANCODE_P)) {
+        state = state == GameState::GAME_PAUSED ? GameState::GAME_ACTIVE : GameState::GAME_PAUSED;
+      }
+
+      // Game Thing: Reset player pos
+      if (app.get_input().get_key_held(SDL_SCANCODE_O)) {
+        player.pos = glm::vec2(0.0f, 0.0f);
+      }
 
 #ifdef _DEBUG
 
-    // Debug: Advance one frame
-    if (app.get_input().get_key_down(SDL_SCANCODE_RSHIFT)) {
-      advance_one_frame = true;
-    }
-    // Debug: Advance frames
-    if (app.get_input().get_key_held(SDL_SCANCODE_RCTRL)) {
-      advance_one_frame = true;
-    }
-    // Debug: Force game over
-    if (app.get_input().get_key_down(SDL_SCANCODE_F11)) {
-      state = GameState::GAME_OVER_SCREEN;
-    }
+      // Debug: Advance one frame
+      if (app.get_input().get_key_down(SDL_SCANCODE_RSHIFT)) {
+        advance_one_frame = true;
+      }
+      // Debug: Advance frames
+      if (app.get_input().get_key_held(SDL_SCANCODE_F10)) {
+        advance_one_frame = true;
+      }
+      // Debug: Force game over
+      if (app.get_input().get_key_down(SDL_SCANCODE_F11)) {
+        state = GameState::GAME_OVER_SCREEN;
+      }
 
 #endif
-
+    }
     profiler.end(Profiler::Stage::SdlInput);
     profiler.begin(Profiler::Stage::GameTick);
+    //
+    // Update Game Logic
+    //
     {
       if (state == GameState::GAME_ACTIVE || (state == GameState::GAME_PAUSED && advance_one_frame)) {
         advance_one_frame = false;
-
+        // process player input
         player_movement(app, player);
         player_rotation(app, player, camera, mouse_angle_around_player);
 
@@ -557,25 +768,6 @@ main()
 
           entities_bullets.push_back(bullet_copy);
         }
-
-        //
-        // Collision Detection
-        //
-
-        collisions.clear();
-
-        // todo: don't take copy of objects here...!
-        std::vector<GameObject2D> collidable;
-        collidable.insert(collidable.end(), entities_walls.begin(), entities_walls.end());
-        collidable.insert(collidable.end(), entities_bullets.begin(), entities_bullets.end());
-        collidable.push_back(player);
-
-        // todo broadphase: sort and sweep algorithm
-
-        // narrow phase
-        generate_collisions(collidable, collisions);
-        // game's response
-        resolve_collisions(collisions, objects_collected, entities_walls, entities_bullets, player);
 
         if (player.hits_taken > player.hits_able_to_be_taken) {
           state = GameState::GAME_OVER_SCREEN;
@@ -626,7 +818,7 @@ main()
         //
         // AI: move to player
         //
-        chase_player(player, delta_time_s, entities_walls);
+        ai_chase_player(player, delta_time_s, entities_walls);
 
         //
         // Gameplay: Spawn Enemies
@@ -663,7 +855,7 @@ main()
     profiler.end(Profiler::Stage::GameTick);
     profiler.begin(Profiler::Stage::Render);
     //
-    // rendering
+    // Rendering
     //
     {
       glm::ivec2 screen_wh = glm::ivec2(screen_width, screen_height);
@@ -727,6 +919,7 @@ main()
         sprite_shader.set_int("desired_x", obj.x);
         sprite_shader.set_int("desired_y", obj.y);
         sprite_renderer::draw_sprite_debug(camera, screen_wh, sprite_shader, player, colour_shader, line_debug_colour);
+
       } else if (state == GameState::GAME_OVER_SCREEN) {
         RenderCommand::set_clear_colour(glm::vec4(0.0f, 0.0f, 0.0f, 1.0f));
         RenderCommand::clear();
@@ -743,7 +936,7 @@ main()
         // when done
         time_on_game_over_screen_left -= delta_time_s;
         if (time_on_game_over_screen_left <= 0) {
-          reset_game(camera, player, objects_collected, entities_bullets, entities_walls, collisions);
+          reset_game(camera, player, objects_collected, entities_bullets, entities_walls);
           time_on_game_over_screen_left = time_on_game_over_screen;
           state = GameState::GAME_ACTIVE;
         }
@@ -776,7 +969,6 @@ main()
           ImGui::Separator();
           ImGui::Text("Walls: %i", entities_walls.size());
           ImGui::Text("Bullets: %i", entities_bullets.size());
-          ImGui::Text("Collisions: %i", collisions.size());
           ImGui::Text("(game) collected: %i", objects_collected);
           ImGui::Text("(game) hp_max %i", player.hits_able_to_be_taken);
           ImGui::Text("(game) hp_remaining %i", player.hits_taken);
@@ -796,52 +988,13 @@ main()
     }
     profiler.end(Profiler::Stage::GuiLoop);
     profiler.begin(Profiler::Stage::FrameEnd);
-
+    //
     // end frame
-    app.frame_end(delta_time_s);
-
+    //
+    {
+      app.frame_end(delta_time_s);
+    }
     profiler.end(Profiler::Stage::FrameEnd);
     profiler.end(Profiler::Stage::UpdateLoop);
   }
 }
-
-// CODE GRAVEYARD
-
-//
-// Boop left or right feature
-//
-
-// float boop_cooldown = 1.0f;
-// bool l_boop = false;
-// float l_boop_cooldown_left = 1.0f;
-// bool r_boop = false;
-// float r_boop_cooldown_left = 1.0f;
-
-// float extra_x = 0.0f;
-// float extra_y = 0.0f;
-// // float boop_amount = 5000.0f;
-// // if (app.get_input().get_key_down(SDL_SCANCODE_A) && l_boop) {
-// //   l_boop = false;
-// //   extra_x = glm::sin(glm::radians(player.angle - 90.0f)) * boop_amount;
-// //   extra_y = -glm::cos(glm::radians(player.angle - 90.0f)) * boop_amount;
-// // } else if (app.get_input().get_key_down(SDL_SCANCODE_A)) {
-// //   l_boop = true;
-// //   l_boop_cooldown_left = boop_cooldown;
-// // }
-// // if (l_boop_cooldown_left > 0.0f)
-// //   l_boop_cooldown_left -= delta_time_s;
-// // else
-// //   l_boop = false;
-
-// // if (app.get_input().get_key_down(SDL_SCANCODE_D) && r_boop) {
-// //   r_boop = false;
-// //   extra_x = glm::sin(glm::radians(player.angle + 90.0f)) * boop_amount;
-// //   extra_y = -glm::cos(glm::radians(player.angle + 90.0f)) * boop_amount;
-// // } else if (app.get_input().get_key_down(SDL_SCANCODE_D)) {
-// //   r_boop = true;
-// //   r_boop_cooldown_left = boop_cooldown;
-// // }
-// // if (r_boop_cooldown_left > 0.0f)
-// //   r_boop_cooldown_left -= delta_time_s;
-// // else
-// //   r_boop = false;
