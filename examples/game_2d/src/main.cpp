@@ -8,7 +8,6 @@
 #include <vector>
 
 // other library headers
-#include <box2d/box2d.h>
 #include <glm/glm.hpp>
 #include <glm/gtc/matrix_transform.hpp>
 #include <glm/gtx/compatibility.hpp>
@@ -22,10 +21,6 @@
 #include "engine/ui/profiler_panel.hpp"
 #include "engine/util.hpp"
 using namespace fightingengine;
-
-// hack:
-#include <GL/glew.h>
-#include <glm/gtc/matrix_transform.hpp>
 
 // game headers
 #include "console.hpp"
@@ -104,6 +99,20 @@ SDL_Scancode key_camera_follow_player = SDL_SCANCODE_Q;
 // helper physics functions
 //
 
+enum class COLLISION_AXIS
+{
+  X,
+  Y
+};
+
+struct Collision2D
+{
+  int ent_id_0;
+  int ent_id_1;
+  bool collision_x = false;
+  bool collision_y = false;
+};
+
 bool
 aabb_collides(GameObject2D& one, GameObject2D& two)
 {
@@ -177,50 +186,6 @@ generate_collisions_bruteforce(std::vector<std::reference_wrapper<GameObject2D>>
   }
 };
 
-enum class COLLISION_AXIS
-{
-  X,
-  Y
-};
-
-struct Collision2D
-{
-  int ent_id_0;
-  int ent_id_1;
-  bool collision_x = false;
-  bool collision_y = false;
-};
-
-uint64_t
-encode_cantor_pairing_function(int x, int y)
-{
-  int64_t p = 0;
-  int i = 0;
-  while (x || y) {
-    p |= ((uint64_t)(x & 1) << i);
-    x >>= 1;
-    p |= ((uint64_t)(y & 1) << (i + 1));
-    y >>= 1;
-    i += 2;
-  }
-  return p;
-}
-
-void
-decode_cantor_pairing_function(uint64_t p, uint32_t& x, uint32_t& y)
-{
-  x = 0;
-  y = 0;
-  int i = 0;
-  while (p) {
-    x |= ((uint32_t)(p & 1) << i);
-    p >>= 1;
-    y |= ((uint32_t)(p & 1) << i);
-    p >>= 1;
-    i++;
-  }
-}
-
 void
 generate_broadphase_collisions(const std::vector<std::reference_wrapper<GameObject2D>>& sorted_collidable_objects,
                                COLLISION_AXIS axis,
@@ -254,9 +219,9 @@ generate_broadphase_collisions(const std::vector<std::reference_wrapper<GameObje
         old_item_right = old_obj.get().pos.x + old_obj.get().size.x;
       }
       if (axis == COLLISION_AXIS::Y) {
-        // if the new item's bottom is > than the active_item's top
-        new_item_left = new_obj.get().pos.y - new_obj.get().size.y;
-        old_item_right = old_obj.get().pos.y;
+        // if the new item's top is > than the active_item's bottom
+        new_item_left = new_obj.get().pos.y;
+        old_item_right = old_obj.get().pos.y + old_obj.get().size.y;
       }
 
       if (new_item_left > old_item_right) {
@@ -531,7 +496,7 @@ main()
   player.tex_slot = tex_unit_kenny_nl;
   player.collision_layer = CollisionLayer::Player;
 
-  float bullet_seconds_between_spawning = 0.3f;
+  float bullet_seconds_between_spawning = 2.0f;
   float bullet_seconds_between_spawning_left = 0.0f;
   GameObject2D bullet;
   bullet.sprite = bullet_sprite;
@@ -545,7 +510,7 @@ main()
   bullet.velocity = { 0.0f, 0.0f };
   bullet.speed_default = 100.0f;
   bullet.speed_current = bullet.speed_default;
-  bullet.time_alive_left = 6.0f;
+  bullet.time_alive_left = 2.0f;
   bullet.is_bullet = true;
 
   float wall_seconds_between_spawning = 1.0f;
@@ -597,6 +562,23 @@ main()
     app.frame_begin(); // get input events
     float delta_time_s = app.get_delta_time();
 
+#ifdef _DEBUG
+
+    // Debug: Advance one frame
+    if (app.get_input().get_key_down(SDL_SCANCODE_RSHIFT)) {
+      advance_one_frame = true;
+    }
+    // Debug: Advance frames
+    if (app.get_input().get_key_held(SDL_SCANCODE_F10)) {
+      advance_one_frame = true;
+    }
+    // Debug: Force game over
+    if (app.get_input().get_key_down(SDL_SCANCODE_F11)) {
+      state = GameState::GAME_OVER_SCREEN;
+    }
+
+#endif
+
     profiler.begin(Profiler::Stage::Physics);
     //
     // Physics & Collision Detection
@@ -617,7 +599,7 @@ main()
         // this issue can be solved by using multiple smaller SAP's which form a grid.
         // note: i've adjusted this algortihm to do 2-axis SAP.
 
-        // 1. Do broad-phase check.
+        // Do broad-phase check.
 
         // Sort entities by X-axis
         std::vector<std::reference_wrapper<GameObject2D>> sorted_collidable_x = collidable;
@@ -714,23 +696,6 @@ main()
       if (app.get_input().get_key_held(SDL_SCANCODE_O)) {
         player.pos = glm::vec2(0.0f, 0.0f);
       }
-
-#ifdef _DEBUG
-
-      // Debug: Advance one frame
-      if (app.get_input().get_key_down(SDL_SCANCODE_RSHIFT)) {
-        advance_one_frame = true;
-      }
-      // Debug: Advance frames
-      if (app.get_input().get_key_held(SDL_SCANCODE_F10)) {
-        advance_one_frame = true;
-      }
-      // Debug: Force game over
-      if (app.get_input().get_key_down(SDL_SCANCODE_F11)) {
-        state = GameState::GAME_OVER_SCREEN;
-      }
-
-#endif
     }
     profiler.end(Profiler::Stage::SdlInput);
     profiler.begin(Profiler::Stage::GameTick);
@@ -739,7 +704,6 @@ main()
     //
     {
       if (state == GameState::GAME_ACTIVE || (state == GameState::GAME_PAUSED && advance_one_frame)) {
-        advance_one_frame = false;
         // process player input
         player_movement(app, player);
         player_rotation(app, player, camera, mouse_angle_around_player);
@@ -992,6 +956,7 @@ main()
     // end frame
     //
     {
+      advance_one_frame = false;
       app.frame_end(delta_time_s);
     }
     profiler.end(Profiler::Stage::FrameEnd);
