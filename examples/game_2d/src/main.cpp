@@ -71,7 +71,7 @@ const int tex_unit_kenny_nl = 0;
 // app
 float screen_width = 1366.0f;
 float screen_height = 768.0f;
-bool show_game_info = false;
+bool show_game_info = true;
 bool show_profiler = true;
 bool show_console = false;
 bool show_demo_window = false;
@@ -124,36 +124,44 @@ aabb_collides(GameObject2D& one, GameObject2D& two)
   return collisionX && collisionY;
 }
 
+int
+get_layer_value(int i, int n)
+{
+  if (i <= 0)
+    return 0;
+  return get_layer_value(i - 1, n) + (n - (i - 1));
+}
+
 bool
 game_collision_matrix(CollisionLayer& y_l1, CollisionLayer& x_l2)
 {
   int c1 = static_cast<int>(y_l1); // c1 is 0, 1, or 2
   int c2 = static_cast<int>(x_l2); // c2 is 0, 1, or 2
+  if (c2 < c1) {
+    // make c1 lower value
+    int temp = c1;
+    c1 = c2;
+    c2 = temp;
+  }
 
-  int x_max = 4;
-  int val = c1 * x_max + c2;
-  // e.g. default, player. y=0, x=1.
+  int x_max = static_cast<int>(CollisionLayer::Count);
+  // int val = c1 * x_max + c2;
+  int val = get_layer_value(c1, x_max) - c1 + c2;
 
   static const std::vector<bool> collision_matrix = {
-    true, // default_default_0_0
-    true, // default_player_0_1
-    true, // default_bullet_0_2
-    true, // default_detroyable 0_3
+    true, // default_default_0_0      // 0
+    true, // default_player_0_1       // 1
+    true, // default_bullet_0_2       // 2
+    true, // default_detroyable 0_3   // 3
 
-    true,  // player_default_1_0
-    true,  // player_player_1_1
-    false, // player_bullet_1_2
-    true,  // player_destroyable_1_3
+    true,  // player_player_1_1       // 4
+    false, // player_bullet_1_2       // 5
+    true,  // player_destroyable_1_3  // 6
 
-    true,  // bullet_default_2_0
-    false, // bullet_player_2_1
-    false, // bullet_bullet_2_2
-    true,  // bullet_destroyable_2_3
+    false, // bullet_bullet_2_2       // 7
+    true,  // bullet_destroyable_2_3  // 8
 
-    true,  // destroyable_default
-    true,  // destroyable_player
-    true,  // destroyable_bullet
-    false, // destroyable_destroyable
+    false, // destroyable_destroyable_3_3 // 9
   };
 
   return collision_matrix[val];
@@ -341,7 +349,7 @@ player_rotation(Application& app, GameObject2D& player, GameObject2D& camera, fl
   // look in mouse direction
   bool look_at_mouse = true;
   if (look_at_mouse) {
-    glm::vec2 player_world_space_pos = player.pos - camera.pos;
+    glm::vec2 player_world_space_pos = sprite_renderer::gameobject_in_worldspace(camera, player);
     mouse_angle_around_player = atan2(app.get_input().get_mouse_pos().y - player_world_space_pos.y,
                                       app.get_input().get_mouse_pos().x - player_world_space_pos.x);
     mouse_angle_around_player += HALF_PI;
@@ -401,7 +409,7 @@ reset_game(GameObject2D& camera,
   player.velocity_boost_modifier = 2.0f;
   player.speed_default = 50.0f;
   player.speed_current = player.speed_default;
-  player.invulnerable = true;
+  player.invulnerable = false;
 
   objects_collected = 0;
 
@@ -469,14 +477,12 @@ main()
   colour_shader.bind();
   colour_shader.set_vec4("colour", chosen_colour_1);
 
-  Shader fun_shader = Shader("2d_texture.vert", "effects/posterized_water.frag");
-  fun_shader.bind();
-  fun_shader.set_mat4("projection", projection);
-  fun_shader.set_int("tex", tex_unit_kenny_nl);
-  fun_shader.set_float("time", app.seconds_since_launch);
-
   sprite::spritemap spritemap;
   auto& sprites = spritemap.get_locations();
+
+  //
+  // TODO Instanced Rendering
+  //
 
   //
   // Game
@@ -496,7 +502,7 @@ main()
   player.tex_slot = tex_unit_kenny_nl;
   player.collision_layer = CollisionLayer::Player;
 
-  float bullet_seconds_between_spawning = 2.0f;
+  float bullet_seconds_between_spawning = 0.2f;
   float bullet_seconds_between_spawning_left = 0.0f;
   GameObject2D bullet;
   bullet.sprite = bullet_sprite;
@@ -508,9 +514,9 @@ main()
   bullet.size = { 25.0f, 25.0f };
   bullet.colour = bullet_colour;
   bullet.velocity = { 0.0f, 0.0f };
-  bullet.speed_default = 100.0f;
+  bullet.speed_default = 200.0f;
   bullet.speed_current = bullet.speed_default;
-  bullet.time_alive_left = 2.0f;
+  bullet.time_alive_left = 6.0f;
   bullet.is_bullet = true;
 
   float wall_seconds_between_spawning = 1.0f;

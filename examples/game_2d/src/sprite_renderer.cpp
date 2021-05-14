@@ -16,6 +16,31 @@ namespace game2d {
 
 namespace sprite_renderer {
 
+glm::vec2
+gameobject_in_worldspace(const GameObject2D& camera, const GameObject2D& go)
+{
+  return go.pos - camera.pos;
+}
+
+bool
+gameobject_off_screen(glm::vec2 pos, glm::vec2 size, const glm::ivec2& screen_size)
+{
+  glm::vec2 tl_visible = glm::vec2(0.0f, 0.0f);
+  glm::vec2 br_visible = screen_size;
+  if (
+    // left of screen
+    pos.x + size.x < tl_visible.x ||
+    // top of screen
+    pos.y + size.y < tl_visible.y ||
+    // right of screen
+    pos.x > br_visible.x ||
+    // bottom of screen
+    pos.y > br_visible.y) {
+    return true;
+  }
+  return false;
+}
+
 unsigned int quadVAO = 0;
 void
 render_quad()
@@ -35,14 +60,15 @@ render_quad()
     };
     unsigned int VBO;
     glGenVertexArrays(1, &quadVAO);
-    glGenBuffers(1, &VBO);
+    glBindVertexArray(quadVAO);
 
+    glGenBuffers(1, &VBO);
     glBindBuffer(GL_ARRAY_BUFFER, VBO);
     glBufferData(GL_ARRAY_BUFFER, sizeof(vertices), vertices, GL_STATIC_DRAW);
 
-    glBindVertexArray(quadVAO);
     glEnableVertexAttribArray(0);
     glVertexAttribPointer(0, 4, GL_FLOAT, GL_FALSE, 4 * sizeof(float), (void*)0);
+
     glBindBuffer(GL_ARRAY_BUFFER, 0);
     glBindVertexArray(0);
   }
@@ -52,50 +78,29 @@ render_quad()
 }
 
 void
-draw_sprite(GameObject2D& cam,
+draw_sprite(const GameObject2D& cam,
             const glm::ivec2& screen_size,
             fightingengine::Shader& shader,
-            glm::vec2 position,
-            glm::vec2 size,
-            float angle_radians,
-            glm::vec3 color,
-            int tex_slot)
+            const GameObject2D& go)
 {
-  glm::vec2 tl_visible = glm::vec2(0.0f, 0.0f);
-  glm::vec2 br_visible = screen_size;
-  // float camera_scale = cam.calculate_scale();
+  glm::vec2 world_space = gameobject_in_worldspace(cam, go);
 
-  glm::vec2 world_space = position - cam.pos;
-
-  // clang-format off
-  if (
-      // left of screen
-      world_space.x + size.x < tl_visible.x ||
-      // top of screen
-      world_space.y + size.y < tl_visible.y || 
-      // right of screen
-      world_space.x > br_visible.x ||
-      // bottom of screen
-      world_space.y > br_visible.y) {
-    // std::cout << "skipping rendering of object";
-    return;
+  if (gameobject_off_screen(world_space, go.size, screen_size)) {
+    return; // skip rendering
   }
-  // clang-format on
 
-  // render object
   shader.bind();
   glm::mat4 model = glm::mat4(1.0f);
   model = glm::translate(model, glm::vec3(world_space, 0.0f));
 
-  model = glm::translate(model, glm::vec3(0.5f * size.x, 0.5f * size.y, 0.0f));
-  model = glm::rotate(model, angle_radians, glm::vec3(0.0f, 0.0f, 1.0f));
-  model = glm::translate(model, glm::vec3(-0.5f * size.x, -0.5f * size.y, 0.0f));
+  model = glm::translate(model, glm::vec3(0.5f * go.size.x, 0.5f * go.size.y, 0.0f));
+  model = glm::rotate(model, go.angle_radians, glm::vec3(0.0f, 0.0f, 1.0f));
+  model = glm::translate(model, glm::vec3(-0.5f * go.size.x, -0.5f * go.size.y, 0.0f));
 
-  model = glm::scale(model, glm::vec3(size, 1.0f));
+  model = glm::scale(model, glm::vec3(go.size, 1.0f));
 
   shader.set_mat4("model", model);
-  shader.set_vec4("sprite_colour", glm::vec4{ color.x, color.y, color.z, 1.0f });
-
+  shader.set_vec4("sprite_colour", glm::vec4{ go.colour.x, go.colour.y, go.colour.z, 1.0f });
   render_quad();
 };
 
@@ -107,22 +112,14 @@ scale(float x, float min, float max, float a, float b)
 }
 
 void
-draw_sprite_debug(GameObject2D& cam,
+draw_sprite_debug(const GameObject2D& cam,
                   const glm::ivec2& screen_size,
                   fightingengine::Shader& shader,
-                  GameObject2D& game_object,
+                  const GameObject2D& game_object,
                   fightingengine::Shader& debug_line_shader,
-                  glm::vec4& debug_line_shader_colour,
-                  int tex_slot)
+                  glm::vec4& debug_line_shader_colour)
 {
-  draw_sprite(cam,
-              screen_size,
-              shader,
-              game_object.pos,
-              game_object.size,
-              game_object.angle_radians,
-              game_object.colour,
-              tex_slot);
+  draw_sprite(cam, screen_size, shader, game_object);
 
 #ifdef WIN32
 #ifdef _DEBUG

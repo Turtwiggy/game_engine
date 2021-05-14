@@ -3,7 +3,7 @@
 #include "engine/camera.hpp"
 
 // other library headers
-#ifdef DEBUG
+#ifdef _DEBUG
 #include "thirdparty/magic_enum.hpp"
 #endif
 #include <glm/glm.hpp>

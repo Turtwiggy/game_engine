@@ -1,19 +1,20 @@
 ### How to get setup
-
-    git clone https://github.com/Turtwiggy/Cplusplus_game_engine.git
+```git
+    git clone https://github.com/Turtwiggy/game_engine.git
     git submodule update --init --recursive
+```
 
 (Linux) Install vcpkg dependancies for Linux-x64
 
     ./thirdparty/vcpkg/bootstrap-vcpkg.sh
     ./thirdparty/vcpkg/vcpkg install @deps_vcpkg_x64-linux.txt
-    ./thirdparty/vcpkg/vcpkg --overlay-ports=./thirdparty/GameNetworkingSockets/vcpkg_ports/ install gamenetworkingsockets:x64-linux
+
 
 (Windows) Install vcpkg dependancies for Window-x64
 
     .\thirdparty\vcpkg\bootstrap-vcpkg.bat
     .\thirdparty\vcpkg\vcpkg.exe install @deps_vcpkg_x64-windows.txt    
-    .\thirdparty\vcpkg\vcpkg.exe --overlay-ports=.\thirdparty\GameNetworkingSockets\vcpkg_ports\ install gamenetworkingsockets:x64-windows
+
 
 ### Building
     
@@ -29,6 +30,14 @@ I develop with visual studio code. You can open the .code-workspace using the C/
 
 Software needed
     
-- compiler (MSVC, gcc, etc)
+- c++ compiler (MSVC, gcc, etc)
 - ninja
 - cmake
+
+
+
+### Old Things
+
+./thirdparty/vcpkg/vcpkg --overlay-ports=./thirdparty/GameNetworkingSockets/vcpkg_ports/ install gamenetworkingsockets:x64-linux
+
+.\thirdparty\vcpkg\vcpkg.exe --overlay-ports=.\thirdparty\GameNetworkingSockets\vcpkg_ports\ install gamenetworkingsockets:x64-windows

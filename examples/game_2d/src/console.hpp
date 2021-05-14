@@ -1,3 +1,5 @@
+#pragma once
+
 // c++ lib headers
 #include <memory>
 

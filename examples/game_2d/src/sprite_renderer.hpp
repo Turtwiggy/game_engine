@@ -15,6 +15,8 @@ enum class CollisionLayer
   Player = 1,
   Bullet = 2,
   Destroyable = 3,
+
+  Count = 4
 };
 
 struct GameObject2D
@@ -70,29 +72,30 @@ struct GameObject2D
 
 namespace sprite_renderer {
 
+glm::vec2
+gameobject_in_worldspace(const GameObject2D& camera, const GameObject2D& go);
+
+bool
+gameobject_off_screen(glm::vec2 pos, glm::vec2 size, const glm::ivec2& screen_size);
+
 // renderQuad() renders a 1x1 XY quad in NDC
 // -----------------------------------------
 void
 render_quad();
 
 void
-draw_sprite(GameObject2D& cam,
+draw_sprite(const GameObject2D& cam,
             const glm::ivec2& screen_size,
             fightingengine::Shader& shader,
-            glm::vec2 position,
-            glm::vec2 size,
-            float angle,
-            glm::vec3 color,
-            int tex_slot = 0);
+            const GameObject2D& object);
 
 void
-draw_sprite_debug(GameObject2D& cam,
+draw_sprite_debug(const GameObject2D& cam,
                   const glm::ivec2& screen_size,
                   fightingengine::Shader& shader,
-                  GameObject2D& game_object,
+                  const GameObject2D& game_object,
                   fightingengine::Shader& debug_line_shader,
-                  glm::vec4& debug_line_shader_colour,
-                  int tex_slot = 0);
+                  glm::vec4& debug_line_shader_colour);
 
 } // namespace sprite_renderer
 

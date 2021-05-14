@@ -1,3 +1,5 @@
+#pragma once
+
 // bool movement_spaceship_lrud = false;
 // if (movement_spaceship_lrud) {
 //   const float player_speed = 10.0f;
