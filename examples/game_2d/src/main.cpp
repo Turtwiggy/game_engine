@@ -858,10 +858,9 @@ main()
 
         // draw: random instanced sprites
         instanced_quad_shader.bind();
-        instanced_quad_shader.set_int("tex", tex_unit_kenny_nl);
-        glm::mat4 model = glm::mat4(1.0f);
-        instanced_quad_shader.set_mat4("model", model);
-        sprite_renderer::draw_instanced();
+        instanced_quad_shader.set_int("desired_x", obj.x);
+        instanced_quad_shader.set_int("desired_y", obj.y);
+        sprite_renderer::draw_instanced(instanced_quad_shader);
 
       } else if (state == GameState::GAME_OVER_SCREEN) {
         RenderCommand::set_clear_colour(glm::vec4(0.0f, 0.0f, 0.0f, 1.0f));

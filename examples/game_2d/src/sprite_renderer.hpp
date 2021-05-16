@@ -82,7 +82,7 @@ void
 init();
 
 void
-draw_instanced();
+draw_instanced(fightingengine::Shader& shader);
 
 // renderQuad() renders a 1x1 XY quad in NDC
 // -----------------------------------------

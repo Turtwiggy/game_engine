@@ -54,66 +54,90 @@ init()
 
 struct Vertex
 {
-  glm::vec3 pos;
+  glm::vec4 pos_and_tex;
   glm::vec4 colour;
-  glm::vec2 tex;
+  glm::vec4 worldspace_pos;
+  // glm::vec4 instance_matrix;
   // float TexID;
 };
 
 static std::array<Vertex, 4>
 create_quad(float x, float y)
 {
-  float size = 1.0f;
+  float screen_width = 1366.0f;
+  float screen_height = 768.0f;
+  glm::mat4 projection = glm::ortho(0.0f, screen_width, screen_height, 0.0f, -1.0f, 1.0f);
+
+  glm::vec2 world_size(25.0f, 25.0f);
+
+  glm::mat4 model = glm::mat4(1.0f);
+  model = glm::translate(model, glm::vec3(glm::vec2(x, y), 0.0f));
+  // model = glm::translate(model, glm::vec3(0.5f * go.size.x, 0.5f * go.size.y, 0.0f));
+  // model = glm::rotate(model, go.angle_radians, glm::vec3(0.0f, 0.0f, 1.0f));
+  // model = glm::translate(model, glm::vec3(-0.5f * go.size.x, -0.5f * go.size.y, 0.0f));
+  model = glm::scale(model, glm::vec3(world_size, 1.0f)); // last scale
 
   Vertex v0;
-  v0.pos = { x, y, 0.0f };
+  v0.pos_and_tex = { 0.0f, 0.0f, 0.0f, 0.0f };
   v0.colour = { 0.18f, 0.6f, 0.96f, 1.0f };
-  v0.tex = { 0.0f, 0.0f };
+  v0.worldspace_pos = projection * model * glm::vec4(v0.pos_and_tex.x, v0.pos_and_tex.y, 0.0f, 1.0f);
 
   Vertex v1;
-  v1.pos = { x + size, y, 0.0f };
+  v1.pos_and_tex = { 1.0f, 0.0f, 1.0f, 0.0f };
   v1.colour = { 0.18f, 0.6f, 0.96f, 1.0f };
-  v1.tex = { 1.0f, 1.0f };
+  v1.worldspace_pos = projection * model * glm::vec4(v1.pos_and_tex.x, v1.pos_and_tex.y, 0.0f, 1.0f);
 
   Vertex v2;
-  v2.pos = { x + size, y - size, 0.0f };
+  v2.pos_and_tex = { 1.0f, -1.0f, 1.0f, 1.0f };
   v2.colour = { 0.18f, 0.6f, 0.96f, 1.0f };
-  v2.tex = { 0.0f, 1.0f };
+  v2.worldspace_pos = projection * model * glm::vec4(v2.pos_and_tex.x, v2.pos_and_tex.y, 0.0f, 1.0f);
 
   Vertex v3;
-  v3.pos = { x, y - size, 0.0f };
+  v3.pos_and_tex = { 0.0f, -1.0f, 0.0f, 1.0f };
   v3.colour = { 0.18f, 0.6f, 0.96f, 1.0f };
-  v3.tex = { 1.0f, 0.0f };
+  v3.worldspace_pos = projection * model * glm::vec4(v3.pos_and_tex.x, v3.pos_and_tex.y, 0.0f, 1.0f);
 
   return { v0, v1, v2, v3 };
 };
 
-int draw_call_quad_amount = 250;
-unsigned int VAO, dynamicVBO, EBO = 0;
+int draw_call_quad_amount = 1000;
+unsigned int VAO, dynamicVBO = 0;
 // temp
-float pos_x = -1.0f;
-float pos_y = 0.0f;
+float pos_x = 1366.0f / 2.0f;
+float pos_y = 768.0f / 2.0f;
+
 void
-draw_instanced()
+draw_instanced(fightingengine::Shader& shader)
 {
   if (VAO == 0) {
 
+    unsigned int EBO = 0;
     glGenVertexArrays(1, &VAO);
     glGenBuffers(1, &dynamicVBO);
     glGenBuffers(1, &EBO);
     glBindVertexArray(VAO); // bind the vao
 
     glBindBuffer(GL_ARRAY_BUFFER, dynamicVBO);
-    glBufferData(GL_ARRAY_BUFFER, sizeof(Vertex) * 4 * draw_call_quad_amount, nullptr, GL_DYNAMIC_DRAW);
-    CHECK_OPENGL_ERROR(0);
+    glBufferData(GL_ARRAY_BUFFER, sizeof(Vertex) * draw_call_quad_amount, nullptr, GL_DYNAMIC_DRAW);
 
     glEnableVertexAttribArray(0);
-    glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, sizeof(Vertex), (const void*)offsetof(Vertex, pos));
-    CHECK_OPENGL_ERROR(1);
+    glVertexAttribPointer(0, 4, GL_FLOAT, GL_FALSE, sizeof(Vertex), (const void*)offsetof(Vertex, pos_and_tex));
 
     glEnableVertexAttribArray(1);
     glVertexAttribPointer(1, 4, GL_FLOAT, GL_FALSE, sizeof(Vertex), (const void*)offsetof(Vertex, colour));
-    CHECK_OPENGL_ERROR(5);
+
+    glEnableVertexAttribArray(3);
+    glVertexAttribPointer(3, 4, GL_FLOAT, GL_FALSE, sizeof(Vertex), (const void*)offsetof(Vertex, worldspace_pos));
+    // glEnableVertexAttribArray(4);
+    // glVertexAttribPointer(4, 4, GL_FLOAT, GL_FALSE, sizeof(Vertex), (const void*)(offset + 1 * sizeof(glm::vec4)));
+    // glEnableVertexAttribArray(5);
+    // glVertexAttribPointer(5, 4, GL_FLOAT, GL_FALSE, sizeof(Vertex), (const void*)(offset + 2 * sizeof(glm::vec4)));
+    // glEnableVertexAttribArray(6);
+    // glVertexAttribPointer(6, 4, GL_FLOAT, GL_FALSE, sizeof(Vertex), (const void*)(offset + 3 * sizeof(glm::vec4)));
+    // glVertexAttribDivisor(3, 1);
+    // glVertexAttribDivisor(4, 1);
+    // glVertexAttribDivisor(5, 1);
+    // glVertexAttribDivisor(6, 1);
 
     uint32_t indices[] = {
       // clang-format off
@@ -121,17 +145,26 @@ draw_instanced()
       4, 5, 6, 6, 7, 4
       // clang-format on
     };
+
     glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, EBO);
     glBufferData(GL_ELEMENT_ARRAY_BUFFER, sizeof(indices), indices, GL_STATIC_DRAW);
-    CHECK_OPENGL_ERROR(3);
 
     // unbind vbo and vao
     glBindBuffer(GL_ARRAY_BUFFER, 0);
     glBindVertexArray(0);
   }
 
+  shader.bind();
+
+  float controls[2] = { pos_x, pos_y };
+  ImGui::Begin("Controls");
+  ImGui::DragFloat2("Quad pos", controls, 0.1f);
+  ImGui::End();
+  pos_x = controls[0];
+  pos_y = controls[1];
+
   auto q0 = create_quad(pos_x, pos_y);
-  auto q1 = create_quad(0.0f, 0.0f);
+  auto q1 = create_quad(1366.0f / 2.0f, 768.0f / 2.0f);
   Vertex vertices[8];
   memcpy(vertices, q0.data(), q0.size() * sizeof(Vertex));
   memcpy(vertices + q0.size(), q1.data(), q1.size() * sizeof(Vertex));
@@ -141,17 +174,10 @@ draw_instanced()
   glBufferSubData(GL_ARRAY_BUFFER, 0, sizeof(vertices), vertices);
 
   glBindVertexArray(VAO);
-  glDrawElements(GL_TRIANGLES, 12, GL_UNSIGNED_INT, 0);
-  CHECK_OPENGL_ERROR(4);
-
-  float controls[2] = { pos_x, pos_y };
-  ImGui::Begin("Controls");
-  ImGui::DragFloat2("Quad pos", controls, 0.1f);
-  ImGui::End();
-  pos_x = controls[0];
-  pos_y = controls[1];
+  glDrawElementsInstanced(GL_TRIANGLES, 12, GL_UNSIGNED_INT, 0, draw_call_quad_amount);
 
   // unbind
+  glBindBuffer(GL_ARRAY_BUFFER, 0);
   glBindVertexArray(0);
 }
 
@@ -242,7 +268,7 @@ draw_sprite_debug(const GameObject2D& cam,
   debug_line_shader.bind();
   debug_line_shader.set_vec4("colour", debug_line_shader_colour);
 
-  glm::vec2 world_pos = game_object.pos - cam.pos;
+  glm::vec2 world_pos = gameobject_in_worldspace(cam, game_object);
   glm::vec2 bl_pos = glm::vec2(world_pos.x, world_pos.y + game_object.size.y);
   glm::vec2 tr_pos = glm::vec2(world_pos.x + game_object.size.x, world_pos.y);
   bl_pos.x = scale(bl_pos.x, 0.0f, screen_size.x, -1.0f, 1.0f);
