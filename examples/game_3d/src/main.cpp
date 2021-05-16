@@ -23,7 +23,6 @@
 #include "engine/opengl/render_command.hpp"
 #include "engine/opengl/renderer.hpp"
 #include "engine/opengl/shader.hpp"
-#include "engine/opengl/triangle.hpp"
 #include "engine/opengl/util.hpp"
 #include "engine/tools/profiler.hpp"
 #include "engine/ui/profiler_panel.hpp"
@@ -94,35 +93,21 @@ main(int argc, char** argv)
   texture_shader.bind();
   texture_shader.set_int("texture_diffuse1", tex_unit_player_diffuse);
 
+  Shader solid_colour = Shader("lit.vert", "unlit_flat.frag");
+  solid_colour.bind();
+  solid_colour.set_int("texture_diffuse1", tex_unit_player_diffuse);
+
   log_time_since("shaders loaded ", app_start);
 
   //
-  // load models (note, pretty slow at the moment. could thread)
+  // load models (could thread)
   //
 
   // Model model_1("assets/models/cyborg/cyborg.obj");
   Model model_2("assets/models/rpg_characters_nov_2020/OBJ/Monk.obj");
-  Model model_3("assets/models/arissa_mixamo_fbx/arissa.fbx");
+  Model model_3("assets/models/mercury/Alchemilla_02_05_2021.obj");
 
   log_time_since("models loaded ", app_start);
-
-  // Shader basicTextureShader = Shader::create("angrygl/basic_texture_shader.vert", "angrygl/floor_shader.frag");
-  // basicTextureShader.use();
-  // basicTextureShader.setVec3("directionLight.dir", lightDir);
-  // basicTextureShader.setVec3("directionLight.color", floorLightColor);
-  // basicTextureShader.setVec3("ambient", floorAmbientColor);
-
-  // Shader instancedTextureShader =
-  // Shader::create("angrygl/instanced_texture_shader.vert", "angrygl/basic_texture_shader.frag");
-  // Shader nodeShader = Shader::create("angrygl/redshader.vert", "angrygl/redshader.frag");
-  // nodeShader.use();
-
-  // wigglyShader.use();
-  // wigglyShader.use();
-  // wigglyShader.setInt("texture_diffuse", texUnit_wigglyBoi);
-  // wigglyShader.setVec3("directionLight.dir", playerLightDir);
-  // wigglyShader.setVec3("directionLight.color", lightColor);
-  // wigglyShader.setVec3("ambient", ambientColor);
 
   //
   // enemies
@@ -231,11 +216,16 @@ main(int argc, char** argv)
     texture_shader.set_mat4("model", model);
     model_2.draw(texture_shader);
 
+    solid_colour.bind();
+    solid_colour.set_mat4("view_projection", view_projection);
     model = glm::mat4(1.0f);
     model = glm::translate(model, glm::vec3(2.0f, 0.0f, 0.0));
-    model = glm::scale(model, glm::vec3(0.01f));
-    texture_shader.set_mat4("model", model);
-    model_3.draw(texture_shader);
+    model = glm::scale(model, glm::vec3(1.0f));
+    solid_colour.set_mat4("model", model);
+    solid_colour.set_vec3("light_colour", glm::vec3(0.1f, 0.1f, 0.1f));
+    solid_colour.set_vec3("object_colour", glm::vec3(1.0f, 0.1f, 0.1f));
+    // soli_dcolour.set_vec3("viewPos")
+    model_3.draw(solid_colour);
 
     profiler.end(Profiler::Stage::Render);
     profiler.begin(Profiler::Stage::GuiLoop);

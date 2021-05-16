@@ -7,6 +7,8 @@ layout(location = 3) in vec4 worldspace_pos;
 out vec2 v_tex;
 out vec4 v_colour;
 
+uniform mat4 projection;
+
 void
 main()
 {
@@ -14,5 +16,5 @@ main()
   v_colour = colour;
 
   // gl_Position = vec4(vertex.xy, 0.0, 1.0);
-  gl_Position = vec4(worldspace_pos.xy, 0.0, 1.0);
+  gl_Position = projection * vec4(worldspace_pos.xy, 0.0, 1.0);
 }

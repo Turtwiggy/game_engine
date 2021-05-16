@@ -66,7 +66,6 @@ create_quad(float x, float y)
 {
   float screen_width = 1366.0f;
   float screen_height = 768.0f;
-  glm::mat4 projection = glm::ortho(0.0f, screen_width, screen_height, 0.0f, -1.0f, 1.0f);
 
   glm::vec2 world_size(25.0f, 25.0f);
 
@@ -80,22 +79,22 @@ create_quad(float x, float y)
   Vertex v0;
   v0.pos_and_tex = { 0.0f, 0.0f, 0.0f, 0.0f };
   v0.colour = { 0.18f, 0.6f, 0.96f, 1.0f };
-  v0.worldspace_pos = projection * model * glm::vec4(v0.pos_and_tex.x, v0.pos_and_tex.y, 0.0f, 1.0f);
+  v0.worldspace_pos = model * glm::vec4(v0.pos_and_tex.x, v0.pos_and_tex.y, 0.0f, 1.0f);
 
   Vertex v1;
   v1.pos_and_tex = { 1.0f, 0.0f, 1.0f, 0.0f };
   v1.colour = { 0.18f, 0.6f, 0.96f, 1.0f };
-  v1.worldspace_pos = projection * model * glm::vec4(v1.pos_and_tex.x, v1.pos_and_tex.y, 0.0f, 1.0f);
+  v1.worldspace_pos = model * glm::vec4(v1.pos_and_tex.x, v1.pos_and_tex.y, 0.0f, 1.0f);
 
   Vertex v2;
   v2.pos_and_tex = { 1.0f, -1.0f, 1.0f, 1.0f };
-  v2.colour = { 0.18f, 0.6f, 0.96f, 1.0f };
-  v2.worldspace_pos = projection * model * glm::vec4(v2.pos_and_tex.x, v2.pos_and_tex.y, 0.0f, 1.0f);
+  v2.colour = { 0.98f, 0.6f, 0.96f, 1.0f };
+  v2.worldspace_pos = model * glm::vec4(v2.pos_and_tex.x, v2.pos_and_tex.y, 0.0f, 1.0f);
 
   Vertex v3;
   v3.pos_and_tex = { 0.0f, -1.0f, 0.0f, 1.0f };
-  v3.colour = { 0.18f, 0.6f, 0.96f, 1.0f };
-  v3.worldspace_pos = projection * model * glm::vec4(v3.pos_and_tex.x, v3.pos_and_tex.y, 0.0f, 1.0f);
+  v3.colour = { 0.98f, 0.6f, 0.96f, 1.0f };
+  v3.worldspace_pos = model * glm::vec4(v3.pos_and_tex.x, v3.pos_and_tex.y, 0.0f, 1.0f);
 
   return { v0, v1, v2, v3 };
 };

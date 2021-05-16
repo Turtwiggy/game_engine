@@ -18,7 +18,7 @@ namespace fightingengine {
 Application::Application(const std::string& name, int width, int height)
 {
   // const std::string kBuildStr(kGitSHA1Hash, 8);
-  const std::string kBuildStr = "0.0.3";
+  const std::string kBuildStr = "0.0.4";
 
   // Window
   GameWindow::glsl_version = "#version 330";
