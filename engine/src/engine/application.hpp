@@ -46,11 +46,6 @@ private:
   bool running = true;
   bool minimized = false;
 
-  // FPS settings
-  bool fps_limit = false;
-  float FPS = 60.0;
-  int MILLISECONDS_PER_FRAME = (int)(1000 / FPS);
-
   // Game's fixed tick
   // int FIXED_TICKS_PER_SECOND = 1;
   // float SECONDS_PER_FIXED_TICK = 1.0f / FIXED_TICKS_PER_SECOND;

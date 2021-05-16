@@ -11,10 +11,13 @@
 
 // engine project headers
 #include "engine/opengl/texture.hpp"
+#include "engine/opengl/util.hpp"
+using namespace fightingengine; // used for opengl macro
+
+// temp
+#include <imgui.h>
 
 namespace game2d {
-
-namespace sprite_renderer {
 
 glm::vec2
 gameobject_in_worldspace(const GameObject2D& camera, const GameObject2D& go)
@@ -41,6 +44,117 @@ gameobject_off_screen(glm::vec2 pos, glm::vec2 size, const glm::ivec2& screen_si
   return false;
 }
 
+namespace sprite_renderer {
+
+void
+init()
+{
+  //
+}
+
+struct Vertex
+{
+  glm::vec3 pos;
+  glm::vec4 colour;
+  glm::vec2 tex;
+  // float TexID;
+};
+
+static std::array<Vertex, 4>
+create_quad(float x, float y)
+{
+  float size = 1.0f;
+
+  Vertex v0;
+  v0.pos = { x, y, 0.0f };
+  v0.colour = { 0.18f, 0.6f, 0.96f, 1.0f };
+  v0.tex = { 0.0f, 0.0f };
+
+  Vertex v1;
+  v1.pos = { x + size, y, 0.0f };
+  v1.colour = { 0.18f, 0.6f, 0.96f, 1.0f };
+  v1.tex = { 1.0f, 1.0f };
+
+  Vertex v2;
+  v2.pos = { x + size, y - size, 0.0f };
+  v2.colour = { 0.18f, 0.6f, 0.96f, 1.0f };
+  v2.tex = { 0.0f, 1.0f };
+
+  Vertex v3;
+  v3.pos = { x, y - size, 0.0f };
+  v3.colour = { 0.18f, 0.6f, 0.96f, 1.0f };
+  v3.tex = { 1.0f, 0.0f };
+
+  return { v0, v1, v2, v3 };
+};
+
+int draw_call_quad_amount = 250;
+unsigned int VAO, dynamicVBO, EBO = 0;
+// temp
+float pos_x = -1.0f;
+float pos_y = 0.0f;
+void
+draw_instanced()
+{
+  if (VAO == 0) {
+
+    glGenVertexArrays(1, &VAO);
+    glGenBuffers(1, &dynamicVBO);
+    glGenBuffers(1, &EBO);
+    glBindVertexArray(VAO); // bind the vao
+
+    glBindBuffer(GL_ARRAY_BUFFER, dynamicVBO);
+    glBufferData(GL_ARRAY_BUFFER, sizeof(Vertex) * 4 * draw_call_quad_amount, nullptr, GL_DYNAMIC_DRAW);
+    CHECK_OPENGL_ERROR(0);
+
+    glEnableVertexAttribArray(0);
+    glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, sizeof(Vertex), (const void*)offsetof(Vertex, pos));
+    CHECK_OPENGL_ERROR(1);
+
+    glEnableVertexAttribArray(1);
+    glVertexAttribPointer(1, 4, GL_FLOAT, GL_FALSE, sizeof(Vertex), (const void*)offsetof(Vertex, colour));
+    CHECK_OPENGL_ERROR(5);
+
+    uint32_t indices[] = {
+      // clang-format off
+      0, 1, 2, 2, 3, 0,
+      4, 5, 6, 6, 7, 4
+      // clang-format on
+    };
+    glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, EBO);
+    glBufferData(GL_ELEMENT_ARRAY_BUFFER, sizeof(indices), indices, GL_STATIC_DRAW);
+    CHECK_OPENGL_ERROR(3);
+
+    // unbind vbo and vao
+    glBindBuffer(GL_ARRAY_BUFFER, 0);
+    glBindVertexArray(0);
+  }
+
+  auto q0 = create_quad(pos_x, pos_y);
+  auto q1 = create_quad(0.0f, 0.0f);
+  Vertex vertices[8];
+  memcpy(vertices, q0.data(), q0.size() * sizeof(Vertex));
+  memcpy(vertices + q0.size(), q1.data(), q1.size() * sizeof(Vertex));
+
+  // Set dynamic vertex buffer
+  glBindBuffer(GL_ARRAY_BUFFER, dynamicVBO);
+  glBufferSubData(GL_ARRAY_BUFFER, 0, sizeof(vertices), vertices);
+
+  glBindVertexArray(VAO);
+  glDrawElements(GL_TRIANGLES, 12, GL_UNSIGNED_INT, 0);
+  CHECK_OPENGL_ERROR(4);
+
+  float controls[2] = { pos_x, pos_y };
+  ImGui::Begin("Controls");
+  ImGui::DragFloat2("Quad pos", controls, 0.1f);
+  ImGui::End();
+  pos_x = controls[0];
+  pos_y = controls[1];
+
+  // unbind
+  glBindVertexArray(0);
+}
+
 unsigned int quadVAO = 0;
 void
 render_quad()
@@ -51,7 +165,7 @@ render_quad()
         // pos      // tex
         0.0f, 1.0f, 0.0f, 1.0f,
         1.0f, 0.0f, 1.0f, 0.0f,
-        0.0f, 0.0f, 0.0f, 0.0f, 
+        0.0f, 0.0f, 0.0f, 0.0f,
 
         0.0f, 1.0f, 0.0f, 1.0f,
         1.0f, 1.0f, 1.0f, 1.0f,

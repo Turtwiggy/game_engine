@@ -49,7 +49,7 @@ RenderCommand::init()
   // glDisable(GL_CULL_FACE);
   glDepthFunc(GL_LESS);
 
-  // glPolygonMode( GL_FRONT_AND_BACK, GL_LINE );
+  // glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
 }
 
 void

@@ -70,13 +70,19 @@ struct GameObject2D
   GameObject2D() { id = ++GameObject2D::global_int_counter; }
 };
 
-namespace sprite_renderer {
-
 glm::vec2
 gameobject_in_worldspace(const GameObject2D& camera, const GameObject2D& go);
 
 bool
 gameobject_off_screen(glm::vec2 pos, glm::vec2 size, const glm::ivec2& screen_size);
+
+namespace sprite_renderer {
+
+void
+init();
+
+void
+draw_instanced();
 
 // renderQuad() renders a 1x1 XY quad in NDC
 // -----------------------------------------

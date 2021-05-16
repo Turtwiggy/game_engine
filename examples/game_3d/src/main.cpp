@@ -78,29 +78,12 @@ main(int argc, char** argv)
   const int tex_unit_player_diffuse = 2;
 
   log_time_since("(Threaded) loading textures... ", app_start);
-  {
-    std::vector<std::pair<int, std::string>> textures_to_load;
-    textures_to_load.emplace_back(tex_unit_octopus_diffuse, "assets/textures/octopus.png");
-    textures_to_load.emplace_back(tex_unit_container_diffuse, "assets/textures/container.jpg");
-    textures_to_load.emplace_back(tex_unit_player_diffuse,
-                                  "assets/models/rpg_characters_nov_2020/OBJ/Monk_Texture.png");
+  std::vector<std::pair<int, std::string>> textures_to_load;
+  textures_to_load.emplace_back(tex_unit_octopus_diffuse, "assets/textures/octopus.png");
+  textures_to_load.emplace_back(tex_unit_container_diffuse, "assets/textures/container.jpg");
+  textures_to_load.emplace_back(tex_unit_player_diffuse, "assets/models/rpg_characters_nov_2020/OBJ/Monk_Texture.png");
+  load_textures_threaded(textures_to_load, app_start);
 
-    std::vector<std::thread> threads;
-    std::vector<StbLoadedTexture> loaded_textures(textures_to_load.size());
-
-    for (int i = 0; i < textures_to_load.size(); ++i) {
-      const std::pair<int, std::string>& tex_to_load = textures_to_load[i];
-      threads.emplace_back([&tex_to_load, i, &loaded_textures]() {
-        loaded_textures[i] = load_texture(tex_to_load.first, tex_to_load.second);
-      });
-    }
-    for (auto& thread : threads) {
-      thread.join();
-    }
-    for (StbLoadedTexture& l : loaded_textures) {
-      bind_stb_loaded_texture(l);
-    }
-  }
   log_time_since("(End Threaded) textures loaded ", app_start);
 
   //

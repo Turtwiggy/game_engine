@@ -7,7 +7,6 @@
 
 #include "engine/opengl/shader.hpp"
 #include "engine/opengl/texture.hpp"
-#include "engine/opengl/vertex.hpp"
 
 namespace fightingengine {
 
@@ -19,6 +18,13 @@ enum class TOPOLOGY
   TRIANGLES,
   TRIANGLE_STRIP,
   TRIANGLE_FAN,
+};
+
+struct Vertex
+{
+  glm::vec3 position = glm::vec3(0.0, 0.0, 0.0);
+  glm::vec3 normal = glm::vec3(0.0, 0.0, 0.0);
+  glm::vec2 tex_coords = glm::vec2(0.0, 0.0);
 };
 
 class Mesh

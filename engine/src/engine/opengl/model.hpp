@@ -8,7 +8,6 @@
 // your project libs
 #include "engine/opengl/mesh.hpp"
 #include "engine/opengl/shader.hpp"
-#include "engine/opengl/vertex.hpp"
 
 #ifndef STB_IMAGE_IMPLEMENTATION
 #define STB_IMAGE_IMPLEMENTATION

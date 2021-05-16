@@ -21,9 +21,9 @@ Application::Application(const std::string& name, int width, int height)
   const std::string kBuildStr = "0.0.3";
 
   // Window
-  GameWindow::glsl_version = "#version 150";
+  GameWindow::glsl_version = "#version 330";
   GameWindow::opengl_major = 3;
-  GameWindow::opengl_minor = 2;
+  GameWindow::opengl_minor = 3;
   window = std::make_unique<GameWindow>(name + " [" + kBuildStr + "]", width, height, DisplayMode::BORDERLESS);
 
   imgui_manager.initialize(window.get());
@@ -68,8 +68,9 @@ Application::frame_end(const float delta_time)
   SDL_GL_SwapWindow(get_window().get_handle());
 
   // If frame finished early
-  if (fps_limit && delta_time < MILLISECONDS_PER_FRAME)
-    SDL_Delay(static_cast<Uint32>(MILLISECONDS_PER_FRAME) - static_cast<Uint32>(delta_time));
+  // float delta_time_ms = delta_time * 1000.0f;
+  // if (fps_limit && delta_time_ms < MILLISECONDS_PER_FRAME)
+  //   SDL_Delay(static_cast<Uint32>(MILLISECONDS_PER_FRAME) - static_cast<Uint32>(delta_time_ms));
 }
 
 void
@@ -174,20 +175,6 @@ Application::on_window_resize(int w, int h)
 }
 
 // ---- window controls
-
-void
-Application::set_fps_limit(const float fps)
-{
-  fps_limit = true;
-  FPS = fps;
-  MILLISECONDS_PER_FRAME = (int)(1000 / FPS);
-}
-
-void
-Application::remove_fps_limit()
-{
-  fps_limit = false;
-}
 
 InputManager&
 Application::get_input()
