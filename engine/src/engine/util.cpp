@@ -43,44 +43,4 @@ load_textures_threaded(std::vector<std::pair<int, std::string>>& textures_to_loa
   log_time_since("(End Threaded) textures loaded ", app_start);
 }
 
-uint64_t
-encode_cantor_pairing_function(int x, int y)
-{
-  // If you don't want to make a distinction between the pairs (a, b) and (b, a),
-  // then sort a and b before applying the pairing function.
-  int temp = 0;
-  if (y < x) {
-    // Swap X and Y
-    int temp = x;
-    x = y;
-    y = temp;
-  }
-
-  int64_t p = 0;
-  int i = 0;
-  while (x || y) {
-    p |= ((uint64_t)(x & 1) << i);
-    x >>= 1;
-    p |= ((uint64_t)(y & 1) << (i + 1));
-    y >>= 1;
-    i += 2;
-  }
-  return p;
-}
-
-void
-decode_cantor_pairing_function(uint64_t p, uint32_t& x, uint32_t& y)
-{
-  x = 0;
-  y = 0;
-  int i = 0;
-  while (p) {
-    x |= ((uint32_t)(p & 1) << i);
-    p >>= 1;
-    y |= ((uint32_t)(p & 1) << i);
-    p >>= 1;
-    i++;
-  }
-}
-
 }

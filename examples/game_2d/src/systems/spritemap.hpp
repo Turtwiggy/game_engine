@@ -1,12 +1,15 @@
 #pragma once
 
+// standard lib
 #include <map>
 #include <stdexcept>
 #include <vector>
 
+// other proj headers
 #include <glm/glm.hpp>
-
+#ifdef _DEBUG
 #include "thirdparty/magic_enum.hpp"
+#endif
 
 namespace game2d {
 

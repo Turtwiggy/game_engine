@@ -1,11 +1,10 @@
 #pragma once
 
+// your project headers
+#include "systems/spritemap.hpp"
+
 // other project headers
 #include <glm/glm.hpp>
-
-// your project headers
-#include "engine/opengl/shader.hpp"
-#include "spritemap.hpp"
 
 namespace game2d {
 
@@ -23,7 +22,6 @@ struct GameObject2D
 {
   //
   // metadata
-  // note: not currently thread safe.
   //
   static inline int global_int_counter = 0;
   int id = 0;
@@ -70,39 +68,10 @@ struct GameObject2D
   GameObject2D() { id = ++GameObject2D::global_int_counter; }
 };
 
-glm::vec2
+[[nodiscard]] glm::vec2
 gameobject_in_worldspace(const GameObject2D& camera, const GameObject2D& go);
 
-bool
+[[nodiscard]] bool
 gameobject_off_screen(glm::vec2 pos, glm::vec2 size, const glm::ivec2& screen_size);
-
-namespace sprite_renderer {
-
-void
-init();
-
-void
-draw_instanced(fightingengine::Shader& shader);
-
-// renderQuad() renders a 1x1 XY quad in NDC
-// -----------------------------------------
-void
-render_quad();
-
-void
-draw_sprite(const GameObject2D& cam,
-            const glm::ivec2& screen_size,
-            fightingengine::Shader& shader,
-            const GameObject2D& object);
-
-void
-draw_sprite_debug(const GameObject2D& cam,
-                  const glm::ivec2& screen_size,
-                  fightingengine::Shader& shader,
-                  const GameObject2D& game_object,
-                  fightingengine::Shader& debug_line_shader,
-                  glm::vec4& debug_line_shader_colour);
-
-} // namespace sprite_renderer
 
 } // namespace game2d

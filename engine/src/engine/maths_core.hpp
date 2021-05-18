@@ -35,13 +35,19 @@ rand_det_s(T& rnd, float M, float MN)
   return scaled * (MN - M) + M;
 }
 
-float
+[[nodiscard]] float
 length_squared(const glm::vec3& i);
 
-glm::vec3
+[[nodiscard]] glm::vec3
 rand_unit_vector(RandomState& rnd);
 
-glm::vec3
+[[nodiscard]] glm::vec3
 random_in_hemisphere(RandomState& rnd, glm::vec3& normal);
+
+[[nodiscard]] uint64_t
+encode_cantor_pairing_function(int x, int y);
+
+[[nodiscard]] void
+decode_cantor_pairing_function(uint64_t p, uint32_t& x, uint32_t& y);
 
 } // namespace fightingengine

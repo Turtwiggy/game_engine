@@ -1,8 +1,9 @@
 
 // header
-#include "sprite_renderer.hpp"
+#include "opengl/sprite_renderer.hpp"
 
 // standard lib headers
+#include <array>
 #include <iostream>
 
 // other project headers
@@ -10,41 +11,22 @@
 #include <glm/gtc/matrix_transform.hpp>
 
 // engine project headers
-#include "engine/opengl/texture.hpp"
 #include "engine/opengl/util.hpp"
 using namespace fightingengine; // used for opengl macro
+#include "game/2d_game_object.hpp"
 
 // temp
 #include <imgui.h>
 
 namespace game2d {
 
-glm::vec2
-gameobject_in_worldspace(const GameObject2D& camera, const GameObject2D& go)
-{
-  return go.pos - camera.pos;
-}
-
-bool
-gameobject_off_screen(glm::vec2 pos, glm::vec2 size, const glm::ivec2& screen_size)
-{
-  glm::vec2 tl_visible = glm::vec2(0.0f, 0.0f);
-  glm::vec2 br_visible = screen_size;
-  if (
-    // left of screen
-    pos.x + size.x < tl_visible.x ||
-    // top of screen
-    pos.y + size.y < tl_visible.y ||
-    // right of screen
-    pos.x > br_visible.x ||
-    // bottom of screen
-    pos.y > br_visible.y) {
-    return true;
-  }
-  return false;
-}
-
 namespace sprite_renderer {
+
+//
+
+// V2 Renderer (Dynamic Batched Draw Calls)
+
+//
 
 void
 init()
@@ -61,8 +43,8 @@ struct Vertex
   // float TexID;
 };
 
-static std::array<Vertex, 4>
-create_quad(float x, float y)
+static Vertex*
+create_quad(Vertex* target, float x, float y)
 {
   float screen_width = 1366.0f;
   float screen_height = 768.0f;
@@ -76,31 +58,29 @@ create_quad(float x, float y)
   // model = glm::translate(model, glm::vec3(-0.5f * go.size.x, -0.5f * go.size.y, 0.0f));
   model = glm::scale(model, glm::vec3(world_size, 1.0f)); // last scale
 
-  Vertex v0;
-  v0.pos_and_tex = { 0.0f, 0.0f, 0.0f, 0.0f };
-  v0.colour = { 0.18f, 0.6f, 0.96f, 1.0f };
-  v0.worldspace_pos = model * glm::vec4(v0.pos_and_tex.x, v0.pos_and_tex.y, 0.0f, 1.0f);
+  target->pos_and_tex = { 0.0f, 0.0f, 0.0f, 0.0f };
+  target->colour = { 0.18f, 0.6f, 0.96f, 1.0f };
+  target->worldspace_pos = model * glm::vec4(target->pos_and_tex.x, target->pos_and_tex.y, 0.0f, 1.0f);
+  target++;
 
-  Vertex v1;
-  v1.pos_and_tex = { 1.0f, 0.0f, 1.0f, 0.0f };
-  v1.colour = { 0.18f, 0.6f, 0.96f, 1.0f };
-  v1.worldspace_pos = model * glm::vec4(v1.pos_and_tex.x, v1.pos_and_tex.y, 0.0f, 1.0f);
+  target->pos_and_tex = { 1.0f, 0.0f, 1.0f, 0.0f };
+  target->colour = { 0.18f, 0.6f, 0.96f, 1.0f };
+  target->worldspace_pos = model * glm::vec4(target->pos_and_tex.x, target->pos_and_tex.y, 0.0f, 1.0f);
+  target++;
 
-  Vertex v2;
-  v2.pos_and_tex = { 1.0f, -1.0f, 1.0f, 1.0f };
-  v2.colour = { 0.98f, 0.6f, 0.96f, 1.0f };
-  v2.worldspace_pos = model * glm::vec4(v2.pos_and_tex.x, v2.pos_and_tex.y, 0.0f, 1.0f);
+  target->pos_and_tex = { 1.0f, -1.0f, 1.0f, 1.0f };
+  target->colour = { 0.98f, 0.6f, 0.96f, 1.0f };
+  target->worldspace_pos = model * glm::vec4(target->pos_and_tex.x, target->pos_and_tex.y, 0.0f, 1.0f);
+  target++;
 
-  Vertex v3;
-  v3.pos_and_tex = { 0.0f, -1.0f, 0.0f, 1.0f };
-  v3.colour = { 0.98f, 0.6f, 0.96f, 1.0f };
-  v3.worldspace_pos = model * glm::vec4(v3.pos_and_tex.x, v3.pos_and_tex.y, 0.0f, 1.0f);
+  target->pos_and_tex = { 0.0f, -1.0f, 0.0f, 1.0f };
+  target->colour = { 0.98f, 0.6f, 0.96f, 1.0f };
+  target->worldspace_pos = model * glm::vec4(target->pos_and_tex.x, target->pos_and_tex.y, 0.0f, 1.0f);
+  target++;
 
-  return { v0, v1, v2, v3 };
+  return target++;
 };
 
-int draw_call_quad_amount = 1000;
-unsigned int VAO, dynamicVBO = 0;
 // temp
 float pos_x = 1366.0f / 2.0f;
 float pos_y = 768.0f / 2.0f;
@@ -117,7 +97,7 @@ draw_instanced(fightingengine::Shader& shader)
     glBindVertexArray(VAO); // bind the vao
 
     glBindBuffer(GL_ARRAY_BUFFER, dynamicVBO);
-    glBufferData(GL_ARRAY_BUFFER, sizeof(Vertex) * draw_call_quad_amount, nullptr, GL_DYNAMIC_DRAW);
+    glBufferData(GL_ARRAY_BUFFER, max_quad_vert_count * sizeof(Vertex), nullptr, GL_DYNAMIC_DRAW);
 
     glEnableVertexAttribArray(0);
     glVertexAttribPointer(0, 4, GL_FLOAT, GL_FALSE, sizeof(Vertex), (const void*)offsetof(Vertex, pos_and_tex));
@@ -138,12 +118,19 @@ draw_instanced(fightingengine::Shader& shader)
     // glVertexAttribDivisor(5, 1);
     // glVertexAttribDivisor(6, 1);
 
-    uint32_t indices[] = {
-      // clang-format off
-      0, 1, 2, 2, 3, 0,
-      4, 5, 6, 6, 7, 4
-      // clang-format on
-    };
+    uint32_t indices[max_quad_index_count];
+    uint32_t offset = 0;
+    for (int i = 0; i < max_quad_index_count; i += 6) {
+      indices[i + 0] = 0 + offset;
+      indices[i + 1] = 1 + offset;
+      indices[i + 2] = 2 + offset;
+
+      indices[i + 3] = 2 + offset;
+      indices[i + 4] = 3 + offset;
+      indices[i + 5] = 0 + offset;
+
+      offset += 4;
+    }
 
     glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, EBO);
     glBufferData(GL_ELEMENT_ARRAY_BUFFER, sizeof(indices), indices, GL_STATIC_DRAW);
@@ -153,8 +140,6 @@ draw_instanced(fightingengine::Shader& shader)
     glBindVertexArray(0);
   }
 
-  shader.bind();
-
   float controls[2] = { pos_x, pos_y };
   ImGui::Begin("Controls");
   ImGui::DragFloat2("Quad pos", controls, 0.1f);
@@ -162,23 +147,36 @@ draw_instanced(fightingengine::Shader& shader)
   pos_x = controls[0];
   pos_y = controls[1];
 
-  auto q0 = create_quad(pos_x, pos_y);
-  auto q1 = create_quad(1366.0f / 2.0f, 768.0f / 2.0f);
-  Vertex vertices[8];
-  memcpy(vertices, q0.data(), q0.size() * sizeof(Vertex));
-  memcpy(vertices + q0.size(), q1.data(), q1.size() * sizeof(Vertex));
+  uint32_t index_count = 0;
+  std::array<Vertex, max_quad_vert_count> vertices;
+  Vertex* buffer = vertices.data();
 
-  // Set dynamic vertex buffer
+  buffer = create_quad(buffer, pos_x, pos_y);
+  index_count += 6;
+  buffer = create_quad(buffer, 300.0f, 300.0f);
+  index_count += 6;
+  buffer = create_quad(buffer, 400.0f, 400.0f);
+  index_count += 6;
+
+  // Set dynamic vertex buffer & upload data
   glBindBuffer(GL_ARRAY_BUFFER, dynamicVBO);
-  glBufferSubData(GL_ARRAY_BUFFER, 0, sizeof(vertices), vertices);
+  glBufferSubData(GL_ARRAY_BUFFER, 0, vertices.size() * sizeof(Vertex), vertices.data());
 
+  // bind vao & draws
+  shader.bind();
   glBindVertexArray(VAO);
-  glDrawElementsInstanced(GL_TRIANGLES, 12, GL_UNSIGNED_INT, 0, draw_call_quad_amount);
+  glDrawElements(GL_TRIANGLES, index_count, GL_UNSIGNED_INT, nullptr);
 
   // unbind
   glBindBuffer(GL_ARRAY_BUFFER, 0);
   glBindVertexArray(0);
 }
+
+//
+
+// V1 Renderer (Draw Call Per Quad)
+
+//
 
 unsigned int quadVAO = 0;
 void
