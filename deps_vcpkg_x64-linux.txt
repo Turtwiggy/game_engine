@@ -1,12 +1,7 @@
 sdl2
-entt
-box2d
-bullet3
-spdlog
 glm
 glew
 stb
-gtest
 assimp
 openssl
 protobuf

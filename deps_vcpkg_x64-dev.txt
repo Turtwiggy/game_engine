@@ -1,0 +1,7 @@
+spdlog
+box2d
+entt
+bullet3
+gtest
+--triplet
+x64-windows

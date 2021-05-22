@@ -7,10 +7,3 @@ openssl
 protobuf
 --triplet
 x64-windows
-
--- old
-spdlog
-box2d
-entt
-bullet3
-gtest
