@@ -8,7 +8,6 @@
 // other library headers
 #include <GL/glew.h>
 #include <SDL2/SDL_syswm.h>
-#include <spdlog/spdlog.h>
 
 namespace fightingengine {
 
@@ -18,9 +17,11 @@ GameWindow::GameWindow(const std::string& title, int width, int height, DisplayM
   SDL_VERSION(&compiledVersion);
   SDL_GetVersion(&linkedVersion);
 
-  spdlog::info("Initializing SDL...");
-  spdlog::info("SDL Version/Compiled {}.{}.{}", compiledVersion.major, compiledVersion.minor, compiledVersion.patch);
-  spdlog::info("SDL Version/Linked {}.{}.{}", linkedVersion.major, linkedVersion.minor, linkedVersion.patch);
+  std::cout << "Initializing SDL..." << std::endl;
+  std::cout << "SDL Version/Compiled " << compiledVersion.major << "." << compiledVersion.minor << "."
+            << compiledVersion.patch << std::endl;
+  std::cout << "SDL Version/Linked " << linkedVersion.major << "." << linkedVersion.minor << "." << linkedVersion.patch
+            << std::endl;
 
   // Initialize SDL -----------------------
 
@@ -28,16 +29,16 @@ GameWindow::GameWindow(const std::string& title, int width, int height, DisplayM
     SDL_SetMainReady();
 
     if (SDL_Init(0) != 0)
-      spdlog::error("Could not initialize SDL: '{}'", SDL_GetError());
+      std::cout << "could not initialize SDL: " << SDL_GetError();
 
     if (SDL_InitSubSystem(SDL_INIT_VIDEO) != 0)
-      spdlog::error("Could not initialize SDL Video Subsystem:  '{}'", SDL_GetError());
+      std::cout << "Could not initialize SDL Video Subsystem:" << SDL_GetError() << std::endl;
 
     if (SDL_InitSubSystem(SDL_INIT_TIMER) != 0)
-      spdlog::error("Could not initialize SDL Timer Subsystem:  '{}'", SDL_GetError());
+      std::cout << "Could not initialize SDL Timer Subsystem:" << SDL_GetError() << std::endl;
 
     if (SDL_InitSubSystem(SDL_INIT_JOYSTICK) != 0)
-      spdlog::error("Could not initialize SDL JoyStick Subsystem:  '{}'", SDL_GetError());
+      std::cout << "Could not initialize SDL JoyStick Subsystem:" << SDL_GetError() << std::endl;
   }
 
   int flags = SDL_WINDOW_OPENGL | SDL_WINDOW_INPUT_FOCUS | SDL_WINDOW_RESIZABLE | SDL_WINDOW_ALLOW_HIGHDPI;
@@ -57,7 +58,7 @@ GameWindow::GameWindow(const std::string& title, int width, int height, DisplayM
 
   SDL_Window* window = SDL_CreateWindow(title.c_str(), x, y, width, height, flags);
   if (window == nullptr) {
-    spdlog::error("Failed to create SDL2 window: '{}'", SDL_GetError());
+    std::cout << "Failed to create SDL2 window: " << SDL_GetError() << std::endl;
     // throw std::runtime_error("Failed creating SDL2 window: " +
     // std::string(SDL_GetError()));
   }

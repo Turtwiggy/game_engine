@@ -31,7 +31,7 @@ public:
   // mouse
   [[nodiscard]] glm::vec2 get_mouse_pos() const;
 
-  void add_mouse_down(SDL_MouseButtonEvent& mouse_e);
+  void add_mouse_down(const SDL_MouseButtonEvent& mouse_e);
   [[nodiscard]] bool get_mouse_lmb_held() const;
   [[nodiscard]] bool get_mouse_rmb_held() const;
   [[nodiscard]] bool get_mouse_mmb_held() const;

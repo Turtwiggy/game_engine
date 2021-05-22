@@ -35,7 +35,6 @@ target_include_directories(game_2d PRIVATE
   ${ENGINE_INCLUDES} 
   ${CMAKE_SOURCE_DIR}/examples/game_2d/src
 )
-target_include_directories(game_2d PRIVATE ${STB_INCLUDE_DIRS})
 
 # link libs
 foreach(library ${ENGINE_LINK_LIBS})

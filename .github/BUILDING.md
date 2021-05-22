@@ -1,6 +1,6 @@
 ### How to get setup
 ```git
-    git clone https://github.com/Turtwiggy/game_engine.git
+    git clone (this repo)
     git submodule update --init --recursive
 ```
 
@@ -8,13 +8,13 @@
 
     ./thirdparty/vcpkg/bootstrap-vcpkg.sh
     ./thirdparty/vcpkg/vcpkg install @deps_vcpkg_x64-linux.txt
-
+    ./thirdparty/vcpkg/vcpkg --overlay-ports=./thirdparty/GameNetworkingSockets/vcpkg_ports/ install gamenetworkingsockets:x64-linux
 
 (Windows) Install vcpkg dependancies for Window-x64
 
     .\thirdparty\vcpkg\bootstrap-vcpkg.bat
     .\thirdparty\vcpkg\vcpkg.exe install @deps_vcpkg_x64-windows.txt    
-
+    .\thirdparty\vcpkg\vcpkg.exe --overlay-ports=.\thirdparty\GameNetworkingSockets\vcpkg_ports\ install gamenetworkingsockets:x64-windows
 
 ### Building
     
@@ -33,11 +33,3 @@ Software needed
 - c++ compiler (MSVC, gcc, etc)
 - ninja
 - cmake
-
-
-
-### Old Things
-
-./thirdparty/vcpkg/vcpkg --overlay-ports=./thirdparty/GameNetworkingSockets/vcpkg_ports/ install gamenetworkingsockets:x64-linux
-
-.\thirdparty\vcpkg\vcpkg.exe --overlay-ports=.\thirdparty\GameNetworkingSockets\vcpkg_ports\ install gamenetworkingsockets:x64-windows

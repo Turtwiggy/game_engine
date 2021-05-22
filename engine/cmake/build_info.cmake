@@ -8,7 +8,7 @@ message("engine_info: ${CMAKE_BUILD_TYPE}")
 
 #VCPKG packages
 set (ENGINE_PACKAGES_CONFIG
-    SDL2 EnTT Bullet spdlog glm assimp protobuf GameNetworkingSockets
+    SDL2 glm assimp protobuf GameNetworkingSockets
 )
 set (ENGINE_PACKAGES
     OpenSSL OpenGL GLEW
@@ -40,21 +40,20 @@ if(${CMAKE_SYSTEM_NAME} STREQUAL "Windows")
         ${CMAKE_SOURCE_DIR}/thirdparty/imgui/backends
         ${CMAKE_SOURCE_DIR}/thirdparty/imguizmo
         ${CMAKE_SOURCE_DIR}/thirdparty/vcpkg/installed/x64-windows/include
+
+        ${STB_INCLUDE_DIRS}
     )
     #Vcpkg windows links
     set (ENGINE_LINK_LIBS
         SDL2::SDL2 SDL2::SDL2main
-        EnTT::EnTT
-        LinearMath Bullet3Common BulletDynamics BulletSoftBody
-        spdlog::spdlog spdlog::spdlog_header_only
         glm
         assimp::assimp
-        protobuf::libprotoc protobuf::libprotobuf protobuf::libprotobuf-lite
-        GameNetworkingSockets::shared GameNetworkingSockets::static GameNetworkingSockets::GameNetworkingSockets GameNetworkingSockets::GameNetworkingSockets_s
         opengl32
-        OpenSSL::SSL OpenSSL::Crypto
         GLEW::GLEW
-    )
+        # game networking sockets libs (windows only)
+        OpenSSL::SSL OpenSSL::Crypto
+        protobuf::libprotoc protobuf::libprotobuf protobuf::libprotobuf-lite
+        GameNetworkingSockets::shared GameNetworkingSockets::static GameNetworkingSockets::GameNetworkingSockets GameNetworkingSockets::GameNetworkingSockets_s)
 
 elseif(${CMAKE_SYSTEM_NAME} STREQUAL "Linux")
     #Vcpkg linux includes
@@ -63,17 +62,16 @@ elseif(${CMAKE_SYSTEM_NAME} STREQUAL "Linux")
         ${CMAKE_SOURCE_DIR}/thirdparty/imgui
         ${CMAKE_SOURCE_DIR}/thirdparty/imgui/examples
         ${CMAKE_SOURCE_DIR}/thirdparty/vcpkg/installed/x64-linux/include
+
+        ${STB_INCLUDE_DIRS}
     )
     #Vcpkg linux links
     set (ENGINE_LINK_LIBS
-        EnTT::EnTT
-        LinearMath Bullet3Common BulletDynamics BulletSoftBody
-        spdlog::spdlog spdlog::spdlog_header_only
-        glm
-        GLEW
         SDL2::SDL2main SDL2::SDL2-static
-        GL
+        glm
         assimp::assimp
+        GL
+        GLEW
     )
 endif()  
 

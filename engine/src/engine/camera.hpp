@@ -1,8 +1,5 @@
 #pragma once
 
-// c++ standard library headers
-#include <vector>
-
 // other library headers
 #include <SDL2/SDL.h>
 #include <glm/glm.hpp>

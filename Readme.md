@@ -18,7 +18,7 @@ An opengl game engine project.
 
 [VCPKG dependencies](./deps_vcpkg_x64-windows.txt)
 
-[How to build / run](./.github/setup.md)
+[How to build / run](./.github/BUILDING.md)
 
 #### Maybe in future
 - Entt - entity component system

@@ -1,11 +1,5 @@
 #pragma once
 
-// c++ lib headers
-#include <array>
-
-// your project files
-#include "engine/opengl/texture.hpp"
-
 namespace fightingengine {
 
 class Framebuffer

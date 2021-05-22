@@ -4,7 +4,6 @@
 
 // c++ standard lib headers
 #include <imgui.h>
-#include <vector>
 
 namespace fightingengine {
 
@@ -95,7 +94,7 @@ InputManager::get_key_held(SDL_Scancode button) const
 // mouse
 
 void
-InputManager::add_mouse_down(SDL_MouseButtonEvent& mouse_e)
+InputManager::add_mouse_down(const SDL_MouseButtonEvent& mouse_e)
 {
   if (mouse_e.button == SDL_BUTTON_LEFT) {
     glm::ivec2 mouse_pos = get_mouse_pos();

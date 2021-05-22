@@ -78,8 +78,6 @@ bool show_profiler = true;
 bool show_console = false;
 bool show_demo_window = false;
 bool advance_one_frame = false;
-// mouse
-float mouse_angle_around_player = 0.0f;
 // key bindings: application
 SDL_Scancode key_quit = SDL_SCANCODE_ESCAPE;
 SDL_Scancode key_console = SDL_SCANCODE_F12;
@@ -96,43 +94,6 @@ SDL_Scancode key_move_right = SDL_SCANCODE_D;
 SDL_Scancode key_boost = SDL_SCANCODE_LSHIFT;
 SDL_Scancode key_camera_follow_player = SDL_SCANCODE_Q;
 // controller bindings
-
-void
-resolve_collisions(const std::map<uint64_t, Collision2D>& collisions,
-                   int& objects_collected,
-                   std::vector<GameObject2D>& walls,
-                   std::vector<GameObject2D>& bullets,
-                   GameObject2D& player)
-{
-  for (auto& c : collisions) {
-
-    uint32_t id_0 = c.second.ent_id_0;
-    uint32_t id_1 = c.second.ent_id_1;
-
-    // Iterate over every object... likely to get slow pretty quick.
-    for (int i = 0; i < walls.size(); i++) {
-      GameObject2D& go = walls[i];
-      if (id_0 == go.id || id_1 == go.id) {
-        // what to do if a wall collided? remove it
-        walls.erase(walls.begin() + i);
-        objects_collected += 1;
-      }
-    }
-    for (int i = 0; i < bullets.size(); i++) {
-      GameObject2D& go = bullets[i];
-      if (id_0 == go.id || id_1 == go.id) {
-        // what to do if a bullet collided? remove it
-        bullets.erase(bullets.begin() + i);
-      }
-    }
-    // player collided
-    if (id_0 == player.id || id_1 == player.id) {
-      if (!player.invulnerable) {
-        player.hits_taken += 1;
-      }
-    }
-  }
-};
 
 void
 player_movement(Application& app, GameObject2D& player)
@@ -160,16 +121,11 @@ player_movement(Application& app, GameObject2D& player)
 };
 
 void
-player_rotation(Application& app, GameObject2D& player, GameObject2D& camera, float& mouse_angle_around_player)
+set_player_rotation(GameObject2D& player, const float& mouse_angle_around_player)
 {
   // look in mouse direction
   bool look_at_mouse = true;
   if (look_at_mouse) {
-    glm::vec2 player_world_space_pos = gameobject_in_worldspace(camera, player);
-    mouse_angle_around_player = atan2(app.get_input().get_mouse_pos().y - player_world_space_pos.y,
-                                      app.get_input().get_mouse_pos().x - player_world_space_pos.x);
-    mouse_angle_around_player += HALF_PI;
-
     player.angle_radians = mouse_angle_around_player;
   }
   // look in velocity direction
@@ -185,32 +141,6 @@ player_rotation(Application& app, GameObject2D& player, GameObject2D& camera, fl
   }
 };
 
-void
-reset_game(GameObject2D& camera,
-           GameObject2D& player,
-           int& objects_collected,
-           std::vector<GameObject2D>& entities_bullets,
-           std::vector<GameObject2D>& entities_walls)
-{
-  camera.pos = glm::vec2{ 0.0f, 0.0f };
-
-  player.name = "player";
-  player.pos = { screen_width / 2.0f, screen_height / 2.0f };
-  player.angle_radians = 0.0;
-  player.size = { 1.0f * 768.0f / 48.0f, 1.0f * 362.0f / 22.0f };
-  player.colour = player_colour;
-  player.velocity = { 0.0f, 0.0f };
-  player.velocity_boost_modifier = 2.0f;
-  player.speed_default = 50.0f;
-  player.speed_current = player.speed_default;
-  player.invulnerable = true;
-
-  objects_collected = 0;
-
-  entities_bullets.clear();
-  entities_walls.clear();
-}
-
 int
 main()
 {
@@ -223,11 +153,11 @@ main()
   Console console;
 
   GameObject2D camera;
+  camera.pos = glm::vec2{ 0.0f, 0.0f };
+
   glm::mat4 projection = glm::ortho(0.0f, screen_width, screen_height, 0.0f, -1.0f, 1.0f);
 
-  //
   // controllers
-  //
 
   // bool use_keyboard = true;
   // int num_controllers_plugged_in = SDL_NumJoysticks();
@@ -240,37 +170,42 @@ main()
   //   }
   // }
 
-  //
   // textures
-  //
+
   std::vector<std::pair<int, std::string>> textures_to_load;
   textures_to_load.emplace_back(tex_unit_kenny_nl,
                                 "assets/textures/kennynl_1bit_pack/Tilesheet/monochrome_transparent_packed.png");
   load_textures_threaded(textures_to_load, app_start);
 
-  //
   // TODO sound
-  //
 
-  //
   // Game
-  //
+
   GameObject2D logo_entity;
   logo_entity.sprite = logo_sprite;
   logo_entity.tex_slot = tex_unit_kenny_nl;
   logo_entity.name = "logo";
   logo_entity.pos = { screen_width / 2.0f, screen_height / 2.0f };
-  logo_entity.angle_radians = 0.0;
   logo_entity.size = { 4.0f * 768.0f / 48.0f, 4.0f * 362.0f / 22.0f };
   logo_entity.colour = player_colour;
-  logo_entity.velocity = { 0.0f, 0.0f };
 
   GameObject2D player;
   player.sprite = player_sprite;
   player.tex_slot = tex_unit_kenny_nl;
   player.collision_layer = CollisionLayer::Player;
+  player.name = "player";
+  player.pos = { screen_width / 2.0f, screen_height / 2.0f };
+  player.angle_radians = 0.0;
+  player.size = { 1.0f * 768.0f / 48.0f, 1.0f * 362.0f / 22.0f };
+  player.colour = player_colour;
+  player.velocity = { 0.0f, 0.0f };
+  player.velocity_boost_modifier = 2.0f;
+  player.speed_default = 50.0f;
+  player.speed_current = player.speed_default;
+  player.invulnerable = false;
+  player.hits_able_to_be_taken = 30;
 
-  float bullet_seconds_between_spawning = 0.1f;
+  float bullet_seconds_between_spawning = 0.25f;
   float bullet_seconds_between_spawning_left = 0.0f;
   GameObject2D bullet;
   bullet.sprite = bullet_sprite;
@@ -285,48 +220,37 @@ main()
   bullet.speed_default = 200.0f;
   bullet.speed_current = bullet.speed_default;
   bullet.time_alive_left = 6.0f;
-  bullet.is_bullet = true;
 
-  float wall_seconds_between_spawning = 0.1f;
+  float wall_seconds_between_spawning = 1.0f;
   float wall_seconds_between_spawning_left = 0.0f;
   GameObject2D wall;
   wall.sprite = wall_sprite;
   wall.tex_slot = tex_unit_kenny_nl;
   wall.collision_layer = CollisionLayer::Destroyable;
   wall.name = "wall";
-  wall.pos = { 0.0f, 0.0f };
   wall.angle_radians = 0.0;
   wall.size = { 20.0f, 20.0f };
   wall.colour = wall_colour;
-  wall.velocity = { 0.0f, 0.0f };
+  wall.hits_able_to_be_taken = 3;
 
   GameObject2D tex_obj;
   tex_obj.tex_slot = tex_unit_kenny_nl;
   tex_obj.name = "texture_sheet";
   tex_obj.pos = { 0.0f, 20.0f };
-  tex_obj.angle_radians = 0.0f;
   tex_obj.size = { 768.0f, 352.0f };
-  tex_obj.colour = { 1.0f, 1.0f, 1.0f, 1.0f };
-  tex_obj.velocity = { 0.0f, 0.0f };
 
   GameObject2D tex_background;
   tex_background.sprite = sprite::type::SQUARE;
   tex_background.tex_slot = tex_unit_kenny_nl;
   tex_background.name = "textured_background";
-  tex_background.pos = { 0.0f, 0.0f };
-  tex_background.angle_radians = 0.0f;
   tex_background.size = { screen_width, screen_height };
-  // tex_background.colour = { 1.0f, 0.0f, 0.0f, 0.1f };
-  tex_background.velocity = { 0.0f, 0.0f };
 
-  int objects_collected = 0;
+  int objects_destroyed = 0;
   std::vector<GameObject2D> entities_bullets;
   std::vector<GameObject2D> entities_walls;
-  reset_game(camera, player, objects_collected, entities_bullets, entities_walls);
 
-  //
   // Rendering
-  //
+
   RenderCommand::init();
   RenderCommand::set_clear_colour(background_colour);
   RenderCommand::set_viewport(0, 0, static_cast<uint32_t>(screen_width), static_cast<uint32_t>(screen_height));
@@ -427,7 +351,39 @@ main()
         // todo: narrow-phase; per-model collision? convex shapes?
 
         // game's response
-        resolve_collisions(filtered_collisions, objects_collected, entities_walls, entities_bullets, player);
+
+        for (auto& c : filtered_collisions) {
+
+          uint32_t id_0 = c.second.ent_id_0;
+          uint32_t id_1 = c.second.ent_id_1;
+
+          // Iterate over every object... likely to get slow pretty quick.
+          for (int i = 0; i < entities_walls.size(); i++) {
+            GameObject2D& go = entities_walls[i];
+            if (id_0 == go.id || id_1 == go.id) {
+
+              go.hits_taken += 1;
+              if (go.hits_taken >= go.hits_able_to_be_taken) {
+                // what to do if a wall collided? remove it
+                entities_walls.erase(entities_walls.begin() + i);
+                objects_destroyed += 1;
+              }
+            }
+          }
+          for (int i = 0; i < entities_bullets.size(); i++) {
+            GameObject2D& go = entities_bullets[i];
+            if (id_0 == go.id || id_1 == go.id) {
+              // what to do if a bullet collided? remove it
+              entities_bullets.erase(entities_bullets.begin() + i);
+            }
+          }
+          // player collided
+          if (id_0 == player.id || id_1 == player.id) {
+            if (!player.invulnerable) {
+              player.hits_taken += 1;
+            }
+          }
+        }
       }
     }
     profiler.end(Profiler::Stage::Physics);
@@ -481,9 +437,15 @@ main()
     //
     {
       if (state == GameState::GAME_ACTIVE || (state == GameState::GAME_PAUSED && advance_one_frame)) {
+
+        glm::vec2 player_world_space_pos = gameobject_in_worldspace(camera, player);
+        float mouse_angle_around_player = atan2(app.get_input().get_mouse_pos().y - player_world_space_pos.y,
+                                                app.get_input().get_mouse_pos().x - player_world_space_pos.x);
+        mouse_angle_around_player += HALF_PI;
+
         // process player input
         player_movement(app, player);
-        player_rotation(app, player, camera, mouse_angle_around_player);
+        set_player_rotation(player, mouse_angle_around_player);
 
         //
         // Ability: Shoot
@@ -641,9 +603,9 @@ main()
         // when done
         time_on_game_over_screen_left -= delta_time_s;
         if (time_on_game_over_screen_left <= 0) {
-          reset_game(camera, player, objects_collected, entities_bullets, entities_walls);
+          // todo reset game
           time_on_game_over_screen_left = time_on_game_over_screen;
-          state = GameState::GAME_ACTIVE;
+          // state = GameState::GAME_ACTIVE;
         }
       }
 
@@ -673,11 +635,10 @@ main()
           ImGui::Text("player angle %f", player.angle_radians);
           ImGui::Text("camera pos %f %f", camera.pos.x, camera.pos.y);
           ImGui::Text("mouse pos %f %f", app.get_input().get_mouse_pos().x, app.get_input().get_mouse_pos().y);
-          ImGui::Text("mouse angle around player %f", mouse_angle_around_player);
           ImGui::Separator();
           ImGui::Text("Walls: %i", entities_walls.size());
           ImGui::Text("Bullets: %i", entities_bullets.size());
-          ImGui::Text("(game) collected: %i", objects_collected);
+          ImGui::Text("(game) destroyed: %i", objects_destroyed);
           ImGui::Text("(game) hp_max %i", player.hits_able_to_be_taken);
           ImGui::Text("(game) hp_remaining %i", player.hits_taken);
           ImGui::Separator();
