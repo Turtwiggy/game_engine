@@ -57,12 +57,6 @@ glm::vec4 chosen_colour_0 = PALETTE_COLOUR_1_1;
 glm::vec4 chosen_colour_1 = PALETTE_COLOUR_2_1;
 glm::vec4 chosen_colour_2 = PALETTE_COLOUR_3_1;
 glm::vec4 chosen_colour_3 = PALETTE_COLOUR_4_1;
-// colours
-glm::vec4 background_colour = chosen_colour_0;
-glm::vec4 player_colour = chosen_colour_1;
-glm::vec4 bullet_colour = chosen_colour_2;
-glm::vec4 wall_colour = chosen_colour_3;
-glm::vec4 line_debug_colour = chosen_colour_3;
 // sprites
 sprite::type logo_sprite = sprite::type::WALL_BIG;
 sprite::type player_sprite = sprite::type::TREE_1;
@@ -187,7 +181,6 @@ main()
   logo_entity.name = "logo";
   logo_entity.pos = { screen_width / 2.0f, screen_height / 2.0f };
   logo_entity.size = { 4.0f * 768.0f / 48.0f, 4.0f * 362.0f / 22.0f };
-  logo_entity.colour = player_colour;
 
   GameObject2D player;
   player.sprite = player_sprite;
@@ -197,12 +190,11 @@ main()
   player.pos = { screen_width / 2.0f, screen_height / 2.0f };
   player.angle_radians = 0.0;
   player.size = { 1.0f * 768.0f / 48.0f, 1.0f * 362.0f / 22.0f };
-  player.colour = player_colour;
   player.velocity = { 0.0f, 0.0f };
   player.velocity_boost_modifier = 2.0f;
   player.speed_default = 50.0f;
   player.speed_current = player.speed_default;
-  player.invulnerable = false;
+  player.invulnerable = true;
   player.hits_able_to_be_taken = 30;
 
   float bullet_seconds_between_spawning = 0.25f;
@@ -215,7 +207,6 @@ main()
   bullet.pos = { 0.0f, 0.0f };
   bullet.angle_radians = 0.0;
   bullet.size = { 25.0f, 25.0f };
-  bullet.colour = bullet_colour;
   bullet.velocity = { 0.0f, 0.0f };
   bullet.speed_default = 200.0f;
   bullet.speed_current = bullet.speed_default;
@@ -230,7 +221,6 @@ main()
   wall.name = "wall";
   wall.angle_radians = 0.0;
   wall.size = { 20.0f, 20.0f };
-  wall.colour = wall_colour;
   wall.hits_able_to_be_taken = 3;
 
   GameObject2D tex_obj;
@@ -252,7 +242,6 @@ main()
   // Rendering
 
   RenderCommand::init();
-  RenderCommand::set_clear_colour(background_colour);
   RenderCommand::set_viewport(0, 0, static_cast<uint32_t>(screen_width), static_cast<uint32_t>(screen_height));
   RenderCommand::set_depth_testing(false); // disable depth testing for 2d
   sprite_renderer::init();
@@ -296,9 +285,6 @@ main()
 #endif
 
     profiler.begin(Profiler::Stage::Physics);
-    //
-    // Physics & Collision Detection
-    //
     {
       if (state == GameState::GAME_ACTIVE || (state == GameState::GAME_PAUSED && advance_one_frame)) {
 
@@ -388,9 +374,6 @@ main()
     }
     profiler.end(Profiler::Stage::Physics);
     profiler.begin(Profiler::Stage::SdlInput);
-    //
-    // Process Input
-    //
     {
       // Settings: Exit App
       if (app.get_input().get_key_down(key_quit))
@@ -432,9 +415,6 @@ main()
     }
     profiler.end(Profiler::Stage::SdlInput);
     profiler.begin(Profiler::Stage::GameTick);
-    //
-    // Update Game Logic
-    //
     {
       if (state == GameState::GAME_ACTIVE || (state == GameState::GAME_PAUSED && advance_one_frame)) {
 
@@ -450,9 +430,11 @@ main()
         //
         // Ability: Shoot
         //
-        bullet_seconds_between_spawning_left -= delta_time_s;
-        if (bullet_seconds_between_spawning_left <= 0.0f) {
-          bullet_seconds_between_spawning_left = bullet_seconds_between_spawning;
+        // bullet_seconds_between_spawning_left -= delta_time_s;
+        // if (bullet_seconds_between_spawning_left <= 0.0f) {
+        //   bullet_seconds_between_spawning_left = bullet_seconds_between_spawning;
+
+        if (app.get_input().get_mouse_lmb_down()) {
 
           GameObject2D bullet_copy;
           // defaults
@@ -542,7 +524,6 @@ main()
           wall_copy.name = wall.name;
           wall_copy.angle_radians = wall.angle_radians;
           wall_copy.size = wall.size;
-          wall_copy.colour = wall_colour;
           wall_copy.velocity = wall.velocity;
           wall_copy.sprite = wall.sprite;
           wall_copy.collision_layer = wall.collision_layer;
@@ -556,10 +537,15 @@ main()
     }
     profiler.end(Profiler::Stage::GameTick);
     profiler.begin(Profiler::Stage::Render);
-    //
-    // Rendering
-    //
     {
+      // colours
+      glm::vec4 background_colour = chosen_colour_0; // black
+      glm::vec4 debug_line_colour = chosen_colour_1; // blue
+      player.colour = chosen_colour_1;               // blue
+      bullet.colour = chosen_colour_2;               // lightblue
+      wall.colour = chosen_colour_3;                 // grey
+      logo_entity.colour = chosen_colour_3;
+
       glm::ivec2 screen_wh = glm::ivec2(screen_width, screen_height);
       RenderCommand::set_clear_colour(background_colour);
       RenderCommand::clear();
@@ -579,23 +565,25 @@ main()
         }
 
       } //
-      else if (state == GameState::GAME_ACTIVE || state == GameState::GAME_PAUSED) {
+      if (state == GameState::GAME_ACTIVE || state == GameState::GAME_PAUSED) {
 
         // draw: walls
         for (GameObject2D& object : entities_bullets) {
+          object.colour = bullet.colour;
           sprite_renderer::draw_sprite_debug(
-            camera, screen_wh, instanced_quad_shader, object, colour_shader, chosen_colour_1);
+            camera, screen_wh, instanced_quad_shader, object, colour_shader, debug_line_colour);
         }
         // draw: bullets
         for (GameObject2D& object : entities_walls) {
+          object.colour = wall.colour;
           sprite_renderer::draw_sprite_debug(
-            camera, screen_wh, instanced_quad_shader, object, colour_shader, chosen_colour_1);
+            camera, screen_wh, instanced_quad_shader, object, colour_shader, debug_line_colour);
         }
         // draw: player
         sprite_renderer::draw_sprite_debug(
-          camera, screen_wh, instanced_quad_shader, player, colour_shader, chosen_colour_1);
-
-      } else if (state == GameState::GAME_OVER_SCREEN) {
+          camera, screen_wh, instanced_quad_shader, player, colour_shader, debug_line_colour);
+      }
+      if (state == GameState::GAME_OVER_SCREEN) {
 
         sprite_renderer::draw_sprite_debug(
           camera, screen_wh, instanced_quad_shader, logo_entity, colour_shader, chosen_colour_1);
@@ -614,9 +602,6 @@ main()
     }
     profiler.end(Profiler::Stage::Render);
     profiler.begin(Profiler::Stage::GuiLoop);
-    //
-    // GUI
-    //
     {
       if (ImGui::BeginMainMenuBar()) {
         if (ImGui::MenuItem("Quit", "Esc"))
@@ -646,6 +631,23 @@ main()
           ImGui::Separator();
           ImGui::Text("draw_calls: %i", sprite_renderer::get_draw_calls());
           ImGui::Text("quad_verts: %i", sprite_renderer::get_quad_count());
+          ImGui::Separator();
+
+          static float col_0[4] = { chosen_colour_0.x, chosen_colour_0.y, chosen_colour_0.z, chosen_colour_0.w };
+          ImGui::ColorEdit4("col 0", col_0);
+          chosen_colour_0 = glm::vec4(col_0[0], col_0[1], col_0[2], col_0[3]);
+
+          static float col_1[4] = { chosen_colour_1.x, chosen_colour_1.y, chosen_colour_1.z, chosen_colour_1.w };
+          ImGui::ColorEdit4("col 1", col_1);
+          chosen_colour_1 = glm::vec4(col_1[0], col_1[1], col_1[2], col_1[3]);
+
+          static float col_2[4] = { chosen_colour_2.x, chosen_colour_2.y, chosen_colour_2.z, chosen_colour_2.w };
+          ImGui::ColorEdit4("col 2", col_2);
+          chosen_colour_2 = glm::vec4(col_2[0], col_2[1], col_2[2], col_2[3]);
+
+          static float col_3[4] = { chosen_colour_3.x, chosen_colour_3.y, chosen_colour_3.z, chosen_colour_3.w };
+          ImGui::ColorEdit4("col 3", col_3);
+          chosen_colour_3 = glm::vec4(col_3[0], col_3[1], col_3[2], col_3[3]);
         }
         ImGui::End();
       }
@@ -659,9 +661,6 @@ main()
     }
     profiler.end(Profiler::Stage::GuiLoop);
     profiler.begin(Profiler::Stage::FrameEnd);
-    //
-    // end frame
-    //
     {
       advance_one_frame = false;
       app.frame_end(delta_time_s);
