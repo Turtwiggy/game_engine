@@ -365,9 +365,7 @@ main()
           }
           // player collided
           if (id_0 == player.id || id_1 == player.id) {
-            if (!player.invulnerable) {
-              player.hits_taken += 1;
-            }
+            player.hits_taken += 1;
           }
         }
       }
@@ -436,17 +434,13 @@ main()
 
         if (app.get_input().get_mouse_lmb_down()) {
 
-          GameObject2D bullet_copy;
-          // defaults
-          bullet_copy.name = bullet.name;
-          bullet_copy.size = bullet.size;
-          bullet_copy.colour = bullet.colour;
-          bullet_copy.sprite = bullet.sprite;
-          bullet_copy.tex_slot = bullet.tex_slot;
-          bullet_copy.collision_layer = bullet.collision_layer;
-          bullet_copy.time_alive_left = bullet.time_alive_left;
+          glm::vec2 bullet_pos = player.pos;
+          bullet_pos.x += player.size.x / 2.0f - bullet.size.x / 2.0f;
+          bullet_pos.y += player.size.y / 2.0f - bullet.size.y / 2.0f;
+
+          GameObject2D bullet_copy = bullet;
           // override defaults
-          bullet_copy.pos = player.pos;
+          bullet_copy.pos = bullet_pos;
           bullet_copy.angle_radians = mouse_angle_around_player;
           bullet_copy.velocity.x = bullet.speed_current;
           bullet_copy.velocity.y = bullet.speed_current;
@@ -454,7 +448,7 @@ main()
           entities_bullets.push_back(bullet_copy);
         }
 
-        if (player.hits_taken > player.hits_able_to_be_taken) {
+        if (!player.invulnerable && player.hits_taken > player.hits_able_to_be_taken) {
           state = GameState::GAME_OVER_SCREEN;
         }
 
@@ -519,15 +513,7 @@ main()
             glm::vec2(rand_det_s(rnd.rng, 0.0f, 1.0f) * screen_width, rand_det_s(rnd.rng, 0.0f, 1.0f) * screen_height);
           glm::vec2 world_pos = rnd_pos + camera.pos;
 
-          GameObject2D wall_copy;
-          // defaults
-          wall_copy.name = wall.name;
-          wall_copy.angle_radians = wall.angle_radians;
-          wall_copy.size = wall.size;
-          wall_copy.velocity = wall.velocity;
-          wall_copy.sprite = wall.sprite;
-          wall_copy.collision_layer = wall.collision_layer;
-          wall_copy.tex_slot = wall.tex_slot;
+          GameObject2D wall_copy = wall;
           // override defaults
           wall_copy.pos = world_pos;
 
@@ -625,7 +611,7 @@ main()
           ImGui::Text("Bullets: %i", entities_bullets.size());
           ImGui::Text("(game) destroyed: %i", objects_destroyed);
           ImGui::Text("(game) hp_max %i", player.hits_able_to_be_taken);
-          ImGui::Text("(game) hp_remaining %i", player.hits_taken);
+          ImGui::Text("(game) hits taken %i", player.hits_taken);
           ImGui::Separator();
           ImGui::Text("controllers %i", SDL_NumJoysticks());
           ImGui::Separator();
