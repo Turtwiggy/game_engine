@@ -16,7 +16,7 @@ An opengl game engine project.
 
 #### More Info
 
-[Deps (Vcpkg)](./deps_vcpkg_x64-windows.txt)
+[VCPKG dependencies](./deps_vcpkg_x64-windows.txt)
 [How to build / run](./.github/setup.md)
 
 #### Maybe in future
