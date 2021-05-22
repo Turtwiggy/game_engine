@@ -1,14 +1,16 @@
 sdl2
-entt
-box2d
-bullet3
-spdlog
 glm
 glew
 stb
-gtest
 assimp
 openssl
 protobuf
 --triplet
 x64-windows
+
+-- old
+spdlog
+box2d
+entt
+bullet3
+gtest

@@ -38,7 +38,7 @@ enum class GameState
   GAME_ACTIVE,
   GAME_PAUSED
 };
-GameState state = GameState::GAME_SPLASH_SCREEN;
+GameState state = GameState::GAME_ACTIVE;
 const float time_on_splash_screen = 0.0f;
 float time_on_splash_screen_left = time_on_splash_screen;
 const float time_on_game_over_screen = 3.0f;
@@ -222,6 +222,9 @@ main()
   Profiler profiler;
   Console console;
 
+  GameObject2D camera;
+  glm::mat4 projection = glm::ortho(0.0f, screen_width, screen_height, 0.0f, -1.0f, 1.0f);
+
   //
   // controllers
   //
@@ -250,43 +253,6 @@ main()
   //
 
   //
-  // Rendering
-  //
-  RenderCommand::init();
-  RenderCommand::set_clear_colour(background_colour);
-  RenderCommand::set_viewport(0, 0, static_cast<uint32_t>(screen_width), static_cast<uint32_t>(screen_height));
-  RenderCommand::set_depth_testing(false); // disable depth testing for 2d
-
-  GameObject2D camera;
-  glm::mat4 projection = glm::ortho(0.0f, screen_width, screen_height, 0.0f, -1.0f, 1.0f);
-
-  Shader sprite_shader = Shader("2d_texture.vert", "2d_spritesheet.frag");
-  sprite_shader.bind();
-  sprite_shader.set_mat4("projection", projection);
-  sprite_shader.set_int("tex", tex_unit_kenny_nl);
-
-  Shader tex_shader = Shader("2d_texture.vert", "2d_texture.frag");
-  tex_shader.bind();
-  tex_shader.set_mat4("projection", projection);
-  tex_shader.set_int("tex", tex_unit_kenny_nl);
-
-  Shader colour_shader = Shader("2d_basic.vert", "2d_colour.frag");
-  colour_shader.bind();
-  colour_shader.set_vec4("colour", chosen_colour_1);
-
-  Shader instanced_quad_shader = Shader("2d_instanced.vert", "2d_instanced.frag");
-  instanced_quad_shader.bind();
-  instanced_quad_shader.set_mat4("projection", projection);
-  instanced_quad_shader.set_int("tex", tex_unit_kenny_nl);
-
-  sprite::spritemap spritemap;
-  auto& sprites = spritemap.get_locations();
-
-  //
-  // TODO Instanced Rendering
-  //
-
-  //
   // Game
   //
   GameObject2D logo_entity;
@@ -304,7 +270,7 @@ main()
   player.tex_slot = tex_unit_kenny_nl;
   player.collision_layer = CollisionLayer::Player;
 
-  float bullet_seconds_between_spawning = 0.0f;
+  float bullet_seconds_between_spawning = 0.1f;
   float bullet_seconds_between_spawning_left = 0.0f;
   GameObject2D bullet;
   bullet.sprite = bullet_sprite;
@@ -321,7 +287,7 @@ main()
   bullet.time_alive_left = 6.0f;
   bullet.is_bullet = true;
 
-  float wall_seconds_between_spawning = 0.0f;
+  float wall_seconds_between_spawning = 0.1f;
   float wall_seconds_between_spawning_left = 0.0f;
   GameObject2D wall;
   wall.sprite = wall_sprite;
@@ -357,6 +323,24 @@ main()
   std::vector<GameObject2D> entities_bullets;
   std::vector<GameObject2D> entities_walls;
   reset_game(camera, player, objects_collected, entities_bullets, entities_walls);
+
+  //
+  // Rendering
+  //
+  RenderCommand::init();
+  RenderCommand::set_clear_colour(background_colour);
+  RenderCommand::set_viewport(0, 0, static_cast<uint32_t>(screen_width), static_cast<uint32_t>(screen_height));
+  RenderCommand::set_depth_testing(false); // disable depth testing for 2d
+  sprite_renderer::init();
+
+  Shader colour_shader = Shader("2d_basic.vert", "2d_colour.frag");
+  colour_shader.bind();
+  colour_shader.set_vec4("colour", chosen_colour_1);
+
+  Shader instanced_quad_shader = Shader("2d_instanced.vert", "2d_instanced.frag");
+  instanced_quad_shader.bind();
+  instanced_quad_shader.set_mat4("projection", projection);
+  instanced_quad_shader.set_int("tex", tex_unit_kenny_nl);
 
   log_time_since("(INFO) End Setup ", app_start);
 
@@ -468,12 +452,8 @@ main()
         screen_width = static_cast<float>(screen_size.x);
         screen_height = static_cast<float>(screen_size.y);
         projection = glm::ortho(0.0f, screen_width, screen_height, 0.0f, -1.0f, 1.0f);
-        sprite_shader.bind();
-        sprite_shader.set_mat4("projection", projection);
-        tex_shader.bind();
-        tex_shader.set_mat4("projection", projection);
-        colour_shader.bind();
-        colour_shader.set_mat4("projection", projection);
+        instanced_quad_shader.bind();
+        instanced_quad_shader.set_mat4("projection", projection);
       }
 
       // Shader hot reloading
@@ -619,20 +599,15 @@ main()
     //
     {
       glm::ivec2 screen_wh = glm::ivec2(screen_width, screen_height);
+      RenderCommand::set_clear_colour(background_colour);
+      RenderCommand::clear();
+      sprite_renderer::reset_stats();
+      sprite_renderer::begin_batch();
 
       if (state == GameState::GAME_SPLASH_SCREEN) {
 
-        RenderCommand::set_clear_colour(glm::vec4(0.0f, 0.0f, 0.0f, 1.0f));
-        RenderCommand::clear();
-        glm::ivec2 screen_wh = glm::ivec2(screen_width, screen_height);
-
-        // draw logo
-        glm::ivec2 obj = spritemap.get_sprite_offset(logo_entity.sprite);
-        sprite_shader.bind();
-        sprite_shader.set_int("desired_x", obj.x);
-        sprite_shader.set_int("desired_y", obj.y);
         sprite_renderer::draw_sprite_debug(
-          camera, screen_wh, sprite_shader, logo_entity, colour_shader, line_debug_colour);
+          camera, screen_wh, instanced_quad_shader, logo_entity, colour_shader, chosen_colour_1);
 
         // when done
         time_on_splash_screen_left -= delta_time_s;
@@ -643,62 +618,25 @@ main()
 
       } //
       else if (state == GameState::GAME_ACTIVE || state == GameState::GAME_PAUSED) {
-        RenderCommand::set_clear_colour(background_colour);
-        RenderCommand::clear();
 
-        // draw: white square with fun shader
-        // fun_shader.bind();
-        // fun_shader.set_float("time", app.seconds_since_launch);
-        // sprite_renderer::draw_sprite_debug(
-        //   camera, screen_wh, fun_shader, tex_background, colour_shader, line_debug_colour);
-
-        // draw: texture object
-        // tex_shader.bind();
-        // sprite_renderer::draw_sprite_debug(camera, screen_wh, tex_shader, tex_obj, colour_shader,
-        // line_debug_colour); draw: walls
-        glm::ivec2 obj;
+        // draw: walls
         for (GameObject2D& object : entities_bullets) {
-          obj = spritemap.get_sprite_offset(object.sprite);
-          sprite_shader.bind();
-          sprite_shader.set_int("desired_x", obj.x);
-          sprite_shader.set_int("desired_y", obj.y);
           sprite_renderer::draw_sprite_debug(
-            camera, screen_wh, sprite_shader, object, colour_shader, line_debug_colour);
+            camera, screen_wh, instanced_quad_shader, object, colour_shader, chosen_colour_1);
         }
         // draw: bullets
         for (GameObject2D& object : entities_walls) {
-          obj = spritemap.get_sprite_offset(object.sprite);
-          sprite_shader.bind();
-          sprite_shader.set_int("desired_x", obj.x);
-          sprite_shader.set_int("desired_y", obj.y);
           sprite_renderer::draw_sprite_debug(
-            camera, screen_wh, sprite_shader, object, colour_shader, line_debug_colour);
+            camera, screen_wh, instanced_quad_shader, object, colour_shader, chosen_colour_1);
         }
         // draw: player
-        obj = spritemap.get_sprite_offset(player.sprite);
-        sprite_shader.bind();
-        sprite_shader.set_int("desired_x", obj.x);
-        sprite_shader.set_int("desired_y", obj.y);
-        sprite_renderer::draw_sprite_debug(camera, screen_wh, sprite_shader, player, colour_shader, line_debug_colour);
-
-        // draw: random instanced sprites
-        instanced_quad_shader.bind();
-        instanced_quad_shader.set_int("desired_x", obj.x);
-        instanced_quad_shader.set_int("desired_y", obj.y);
-        sprite_renderer::draw_instanced(instanced_quad_shader);
+        sprite_renderer::draw_sprite_debug(
+          camera, screen_wh, instanced_quad_shader, player, colour_shader, chosen_colour_1);
 
       } else if (state == GameState::GAME_OVER_SCREEN) {
-        RenderCommand::set_clear_colour(glm::vec4(0.0f, 0.0f, 0.0f, 1.0f));
-        RenderCommand::clear();
-        glm::ivec2 screen_wh = glm::ivec2(screen_width, screen_height);
 
-        // draw logo
-        glm::ivec2 obj = spritemap.get_sprite_offset(player.sprite);
-        sprite_shader.bind();
-        sprite_shader.set_int("desired_x", obj.x);
-        sprite_shader.set_int("desired_y", obj.y);
         sprite_renderer::draw_sprite_debug(
-          camera, screen_wh, sprite_shader, logo_entity, colour_shader, line_debug_colour);
+          camera, screen_wh, instanced_quad_shader, logo_entity, colour_shader, chosen_colour_1);
 
         // when done
         time_on_game_over_screen_left -= delta_time_s;
@@ -708,6 +646,9 @@ main()
           state = GameState::GAME_ACTIVE;
         }
       }
+
+      sprite_renderer::end_batch();
+      sprite_renderer::flush(instanced_quad_shader);
     }
     profiler.end(Profiler::Stage::Render);
     profiler.begin(Profiler::Stage::GuiLoop);
@@ -741,6 +682,9 @@ main()
           ImGui::Text("(game) hp_remaining %i", player.hits_taken);
           ImGui::Separator();
           ImGui::Text("controllers %i", SDL_NumJoysticks());
+          ImGui::Separator();
+          ImGui::Text("draw_calls: %i", sprite_renderer::get_draw_calls());
+          ImGui::Text("quad_verts: %i", sprite_renderer::get_quad_count());
         }
         ImGui::End();
       }

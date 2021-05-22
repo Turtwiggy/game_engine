@@ -15,57 +15,37 @@ namespace sprite_renderer {
 // V2 Renderer (Batched Draw Calls)
 //
 
-static const size_t max_quad = 1000;
-static const size_t max_quad_vert_count = max_quad * 4;
-static const size_t max_quad_index_count = max_quad * 6;
-static unsigned int VAO, dynamicVBO = 0;
-
-// static void
-// init();
-// static void
-// shutdown();
-// static void
-// begin_batch();
-// static void
-// end_batch();
-// static void
-// flush();
-
-// int draw_calls = 0;
-// int quad_count = 0;
-
-// static void
-// draw_quad(const glm::vec2& pos, const glm::vec2& size, const glm::vec4& colour);
-
-//
-// Temp
-//
+void
+reset_stats();
+int
+get_draw_calls();
+int
+get_quad_count();
 
 void
-draw_instanced(fightingengine::Shader& shader);
-
-//
-// V1 Renderer (Draw Call Per Quad)
-//
-
-// renderQuad() renders a 1x1 XY quad in NDC
-// -----------------------------------------
+init();
 void
-render_quad();
+shutdown();
 
 void
-draw_sprite(const GameObject2D& cam,
-            const glm::ivec2& screen_size,
-            fightingengine::Shader& shader,
-            const GameObject2D& object);
+end_batch();
+void
+flush(fightingengine::Shader& shader);
+void
+begin_batch();
 
+void
+draw_instanced_sprite(const GameObject2D& cam,
+                      const glm::ivec2& screen_size,
+                      fightingengine::Shader& shader,
+                      const GameObject2D& go);
 void
 draw_sprite_debug(const GameObject2D& cam,
                   const glm::ivec2& screen_size,
                   fightingengine::Shader& shader,
-                  const GameObject2D& game_object,
+                  const GameObject2D& go,
                   fightingengine::Shader& debug_line_shader,
-                  glm::vec4& debug_line_shader_colour);
+                  const glm::vec4& debug_line_shader_colour);
 
 } // namespace sprite_renderer
 

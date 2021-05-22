@@ -1,12 +1,6 @@
 [![License](https://img.shields.io/badge/License-Apache%202.0-blue.svg)](https://opensource.org/licenses/Apache-2.0)
 
-An opengl game engine project. See [Setup](./.github/setup.md) for how to build / run. 
-
-#### This project uses 
-
-- SDL2 - Window management
-- Opengl/Glew - OpenGL extention wrangler
-- ImGui 
+An opengl game engine project. 
 
 ### Features
 
@@ -15,9 +9,15 @@ An opengl game engine project. See [Setup](./.github/setup.md) for how to build 
 
 #### 2d 
 - sweep and prune collision detection for aabb
+- batch renderer
 
 #### 3d
 - model loading
+
+#### More Info
+
+[Deps (Vcpkg)](./deps_vcpkg_x64-windows.txt)
+[How to build / run](./.github/setup.md)
 
 #### Maybe in future
 - Entt - entity component system

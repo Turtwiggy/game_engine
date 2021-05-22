@@ -38,7 +38,7 @@ enum class type
 
 struct spritemap
 {
-  inline std::map<type, glm::ivec2>& get_locations()
+  static inline std::map<type, glm::ivec2>& get_locations()
   {
     static std::map<type, glm::ivec2> ret;
 
@@ -63,7 +63,7 @@ struct spritemap
     return ret;
   }
 
-  inline glm::vec2 get_sprite_offset(type t)
+  static inline glm::vec2 get_sprite_offset(type t)
   {
     auto& tiles = get_locations();
 
