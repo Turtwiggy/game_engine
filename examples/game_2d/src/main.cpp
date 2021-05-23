@@ -3,6 +3,8 @@
 // https://github.com/Turtwiggy/Dwarf-and-Blade/tree/master/src
 
 // c++ lib headers
+#include <filesystem>
+#include <fstream>
 #include <iostream>
 #include <memory>
 #include <vector>
@@ -38,17 +40,11 @@ enum class GameState
   GAME_ACTIVE,
   GAME_PAUSED
 };
-GameState state = GameState::GAME_ACTIVE;
-const float time_on_splash_screen = 0.0f;
-float time_on_splash_screen_left = time_on_splash_screen;
+GameState state = GameState::GAME_SPLASH_SCREEN;
 const float time_on_game_over_screen = 3.0f;
 float time_on_game_over_screen_left = time_on_game_over_screen;
 
 // default colour palette; https://colorhunt.co/palette/273312
-const glm::vec4 PALETTE_COLOUR_1_0 = glm::vec4(255.0f / 255.0f, 201.0f / 255.0f, 150.0f / 255.0f, 1.0f); // yellowish
-const glm::vec4 PALETTE_COLOUR_2_0 = glm::vec4(255.0f / 255.0f, 132.0f / 255.0f, 116.0f / 255.0f, 1.0f); // orange
-const glm::vec4 PALETTE_COLOUR_3_0 = glm::vec4(159.0f / 255.0f, 95.0f / 255.0f, 128.0f / 255.0f, 1.0f);  // brown-red
-const glm::vec4 PALETTE_COLOUR_4_0 = glm::vec4(88.0f / 255.0f, 61.0f / 255.0f, 114.0f / 255.0f, 1.0f);   // purple
 const glm::vec4 PALETTE_COLOUR_1_1 = glm::vec4(57.0f / 255.0f, 62.0f / 255.0f, 70.0f / 255.0f, 1.0f);    // black
 const glm::vec4 PALETTE_COLOUR_2_1 = glm::vec4(0.0f / 255.0f, 173.0f / 255.0f, 181.0f / 255.0f, 1.0f);   // blue
 const glm::vec4 PALETTE_COLOUR_3_1 = glm::vec4(170.0f / 255.0f, 216.0f / 255.0f, 211.0f / 255.0f, 1.0f); // lightblue
@@ -57,11 +53,6 @@ glm::vec4 chosen_colour_0 = PALETTE_COLOUR_1_1;
 glm::vec4 chosen_colour_1 = PALETTE_COLOUR_2_1;
 glm::vec4 chosen_colour_2 = PALETTE_COLOUR_3_1;
 glm::vec4 chosen_colour_3 = PALETTE_COLOUR_4_1;
-// sprites
-sprite::type logo_sprite = sprite::type::WALL_BIG;
-sprite::type player_sprite = sprite::type::TREE_1;
-sprite::type bullet_sprite = sprite::type::TREE_1;
-sprite::type wall_sprite = sprite::type::WALL_BIG;
 // textures
 const int tex_unit_kenny_nl = 0;
 // app
@@ -72,6 +63,8 @@ bool show_profiler = true;
 bool show_console = false;
 bool show_demo_window = false;
 bool advance_one_frame = false;
+// postprocessing
+bool aces_tone_mapping = true;
 // key bindings: application
 SDL_Scancode key_quit = SDL_SCANCODE_ESCAPE;
 SDL_Scancode key_console = SDL_SCANCODE_F12;
@@ -87,7 +80,6 @@ SDL_Scancode key_move_left = SDL_SCANCODE_A;
 SDL_Scancode key_move_right = SDL_SCANCODE_D;
 SDL_Scancode key_boost = SDL_SCANCODE_LSHIFT;
 SDL_Scancode key_camera_follow_player = SDL_SCANCODE_Q;
-// controller bindings
 
 void
 player_movement(Application& app, GameObject2D& player)
@@ -175,6 +167,11 @@ main()
 
   // Game
 
+  sprite::type logo_sprite = sprite::type::WALL_BIG;
+  sprite::type player_sprite = sprite::type::TREE_1;
+  sprite::type bullet_sprite = sprite::type::TREE_1;
+  sprite::type wall_sprite = sprite::type::WALL_BIG;
+
   GameObject2D logo_entity;
   logo_entity.sprite = logo_sprite;
   logo_entity.tex_slot = tex_unit_kenny_nl;
@@ -197,7 +194,9 @@ main()
   player.invulnerable = true;
   player.hits_able_to_be_taken = 30;
 
-  float bullet_seconds_between_spawning = 0.25f;
+  int bullets_to_fire_after_releasing_mouse = 2;
+  int bullets_to_fire_after_releasing_mouse_left = 0;
+  float bullet_seconds_between_spawning = 0.15f;
   float bullet_seconds_between_spawning_left = 0.0f;
   GameObject2D bullet;
   bullet.sprite = bullet_sprite;
@@ -212,7 +211,7 @@ main()
   bullet.speed_current = bullet.speed_default;
   bullet.time_alive_left = 6.0f;
 
-  float wall_seconds_between_spawning = 1.0f;
+  float wall_seconds_between_spawning = 0.0f;
   float wall_seconds_between_spawning_left = 0.0f;
   GameObject2D wall;
   wall.sprite = wall_sprite;
@@ -416,23 +415,43 @@ main()
     {
       if (state == GameState::GAME_ACTIVE || (state == GameState::GAME_PAUSED && advance_one_frame)) {
 
+        // Temporary! Save a file next to executable
+        ImGui::Begin("Highscores");
+        if (ImGui::Button("Save highscore")) {
+          std::filesystem::create_directory("runtime");
+          std::string path("runtime/highscores.txt");
+          std::cout << "saving highscore to: " << path << std::endl;
+          std::ofstream highscores(path);
+          highscores << "3";
+          highscores.close();
+        }
+        ImGui::End();
+
+        // mouse angle around player
+
         glm::vec2 player_world_space_pos = gameobject_in_worldspace(camera, player);
         float mouse_angle_around_player = atan2(app.get_input().get_mouse_pos().y - player_world_space_pos.y,
                                                 app.get_input().get_mouse_pos().x - player_world_space_pos.x);
         mouse_angle_around_player += HALF_PI;
 
         // process player input
+
         player_movement(app, player);
         set_player_rotation(player, mouse_angle_around_player);
 
-        //
-        // Ability: Shoot
-        //
-        // bullet_seconds_between_spawning_left -= delta_time_s;
-        // if (bullet_seconds_between_spawning_left <= 0.0f) {
-        //   bullet_seconds_between_spawning_left = bullet_seconds_between_spawning;
+        // Ability: Triple Burst Shoot
 
-        if (app.get_input().get_mouse_lmb_down()) {
+        if (app.get_input().get_mouse_lmb_held()) {
+          bullets_to_fire_after_releasing_mouse_left = bullets_to_fire_after_releasing_mouse;
+        }
+
+        if (bullet_seconds_between_spawning_left > 0.0f)
+          bullet_seconds_between_spawning_left -= delta_time_s;
+
+        if (bullets_to_fire_after_releasing_mouse_left > 0 && bullet_seconds_between_spawning_left <= 0.0f) {
+          // std::cout << "btf: " << bullets_to_fire_after_releasing_mouse << std::endl;
+          bullet_seconds_between_spawning_left = bullet_seconds_between_spawning;
+          bullets_to_fire_after_releasing_mouse_left -= 1;
 
           glm::vec2 bullet_pos = player.pos;
           bullet_pos.x += player.size.x / 2.0f - bullet.size.x / 2.0f;
@@ -538,17 +557,23 @@ main()
       sprite_renderer::reset_stats();
       sprite_renderer::begin_batch();
 
+      instanced_quad_shader.bind();
+      // instanced_quad_shader.set_bool("aces_tone_mapping", aces_tone_mapping);
+
       if (state == GameState::GAME_SPLASH_SCREEN) {
 
         sprite_renderer::draw_sprite_debug(
           camera, screen_wh, instanced_quad_shader, logo_entity, colour_shader, chosen_colour_1);
 
-        // when done
-        time_on_splash_screen_left -= delta_time_s;
-        if (time_on_splash_screen_left <= 0) {
+        ImGui::Begin("Name your wizard");
+
+        static char buf1[64] = "";
+        ImGui::InputText("", buf1, 64);
+
+        if (ImGui::Button("Ok!")) {
           state = GameState::GAME_ACTIVE;
-          time_on_splash_screen_left = time_on_splash_screen;
         }
+        ImGui::End();
 
       } //
       if (state == GameState::GAME_ACTIVE || state == GameState::GAME_PAUSED) {
@@ -562,6 +587,10 @@ main()
         // draw: bullets
         for (GameObject2D& object : entities_walls) {
           object.colour = wall.colour;
+          float col_w =
+            (object.hits_able_to_be_taken - object.hits_taken) / static_cast<float>(object.hits_able_to_be_taken);
+          object.colour.w = col_w;
+
           sprite_renderer::draw_sprite_debug(
             camera, screen_wh, instanced_quad_shader, object, colour_shader, debug_line_colour);
         }
@@ -609,6 +638,7 @@ main()
           ImGui::Separator();
           ImGui::Text("Walls: %i", entities_walls.size());
           ImGui::Text("Bullets: %i", entities_bullets.size());
+          ImGui::Text("Bullets to fire: %i", bullets_to_fire_after_releasing_mouse_left);
           ImGui::Text("(game) destroyed: %i", objects_destroyed);
           ImGui::Text("(game) hp_max %i", player.hits_able_to_be_taken);
           ImGui::Text("(game) hits taken %i", player.hits_taken);
@@ -617,20 +647,18 @@ main()
           ImGui::Separator();
           ImGui::Text("draw_calls: %i", sprite_renderer::get_draw_calls());
           ImGui::Text("quad_verts: %i", sprite_renderer::get_quad_count());
+          // ImGui::Separator();
+          // ImGui::Checkbox("Aces Tone Mapping", &aces_tone_mapping);
           ImGui::Separator();
-
           static float col_0[4] = { chosen_colour_0.x, chosen_colour_0.y, chosen_colour_0.z, chosen_colour_0.w };
           ImGui::ColorEdit4("col 0", col_0);
           chosen_colour_0 = glm::vec4(col_0[0], col_0[1], col_0[2], col_0[3]);
-
           static float col_1[4] = { chosen_colour_1.x, chosen_colour_1.y, chosen_colour_1.z, chosen_colour_1.w };
           ImGui::ColorEdit4("col 1", col_1);
           chosen_colour_1 = glm::vec4(col_1[0], col_1[1], col_1[2], col_1[3]);
-
           static float col_2[4] = { chosen_colour_2.x, chosen_colour_2.y, chosen_colour_2.z, chosen_colour_2.w };
           ImGui::ColorEdit4("col 2", col_2);
           chosen_colour_2 = glm::vec4(col_2[0], col_2[1], col_2[2], col_2[3]);
-
           static float col_3[4] = { chosen_colour_3.x, chosen_colour_3.y, chosen_colour_3.z, chosen_colour_3.w };
           ImGui::ColorEdit4("col 3", col_3);
           chosen_colour_3 = glm::vec4(col_3[0], col_3[1], col_3[2], col_3[3]);
