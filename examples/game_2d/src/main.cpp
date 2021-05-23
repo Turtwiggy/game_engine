@@ -43,6 +43,7 @@ enum class GameState
 GameState state = GameState::GAME_SPLASH_SCREEN;
 const float time_on_game_over_screen = 3.0f;
 float time_on_game_over_screen_left = time_on_game_over_screen;
+bool first_time_game_over_screen = true;
 
 // default colour palette; https://colorhunt.co/palette/273312
 const glm::vec4 PALETTE_COLOUR_1_1 = glm::vec4(57.0f / 255.0f, 62.0f / 255.0f, 70.0f / 255.0f, 1.0f);    // black
@@ -80,6 +81,9 @@ SDL_Scancode key_move_left = SDL_SCANCODE_A;
 SDL_Scancode key_move_right = SDL_SCANCODE_D;
 SDL_Scancode key_boost = SDL_SCANCODE_LSHIFT;
 SDL_Scancode key_camera_follow_player = SDL_SCANCODE_Q;
+// highscore
+const std::string highscore_dir("runtime");
+const std::string highscore_path(highscore_dir + "/highscores.txt");
 
 void
 player_movement(Application& app, GameObject2D& player)
@@ -126,6 +130,40 @@ set_player_rotation(GameObject2D& player, const float& mouse_angle_around_player
     }
   }
 };
+
+int
+load_highscore()
+{
+  std::ifstream highscores(highscore_path);
+
+  // int a;
+  // int highest = 0;
+  // while (highscores >> a) {
+  //   if (a > highest) {
+  //     highest = a;
+  //   }
+  // }
+
+  highscores.close();
+
+  return 10;
+}
+
+void
+save_highscore(const std::string& char_name, const int& score)
+{
+  // // Temporary! Save a file next to executable
+  // ImGui::Begin("Highscores");
+  // static char highscore_buf_temp[64] = "";
+  // ImGui::InputText("", highscore_buf_temp, 64);
+  // if (ImGui::Button("Save highscore")) {
+
+  std::cout << "saving highscore to: " << highscore_path << std::endl;
+  std::filesystem::create_directory(highscore_dir);
+  std::ofstream highscores(highscore_path, std::ofstream::out | std::ofstream::app);
+  highscores << "Character: " << char_name << " Score: " << score << std::endl;
+  highscores.close();
+}
 
 int
 main()
@@ -191,8 +229,8 @@ main()
   player.velocity_boost_modifier = 2.0f;
   player.speed_default = 50.0f;
   player.speed_current = player.speed_default;
-  player.invulnerable = true;
-  player.hits_able_to_be_taken = 30;
+  player.invulnerable = false;
+  player.hits_able_to_be_taken = 10;
 
   int bullets_to_fire_after_releasing_mouse = 2;
   int bullets_to_fire_after_releasing_mouse_left = 0;
@@ -205,13 +243,13 @@ main()
   bullet.name = "bullet";
   bullet.pos = { 0.0f, 0.0f };
   bullet.angle_radians = 0.0;
-  bullet.size = { 25.0f, 25.0f };
+  bullet.size = { 10.0f, 10.0f };
   bullet.velocity = { 0.0f, 0.0f };
   bullet.speed_default = 200.0f;
   bullet.speed_current = bullet.speed_default;
   bullet.time_alive_left = 6.0f;
 
-  float wall_seconds_between_spawning = 0.0f;
+  float wall_seconds_between_spawning = 0.5f;
   float wall_seconds_between_spawning_left = 0.0f;
   GameObject2D wall;
   wall.sprite = wall_sprite;
@@ -234,6 +272,10 @@ main()
   tex_background.name = "textured_background";
   tex_background.size = { screen_width, screen_height };
 
+  // game stats
+
+  static char character_name[64] = "";
+  int highscore = load_highscore();
   int objects_destroyed = 0;
   std::vector<GameObject2D> entities_bullets;
   std::vector<GameObject2D> entities_walls;
@@ -352,6 +394,12 @@ main()
                 // what to do if a wall collided? remove it
                 entities_walls.erase(entities_walls.begin() + i);
                 objects_destroyed += 1;
+
+                // other object was player?
+                if (id_0 == player.id || id_1 == player.id) {
+                  player.hits_taken += 1;
+                  std::cout << "player hit taken player_id: " << player.id << std::endl;
+                }
               }
             }
           }
@@ -361,10 +409,6 @@ main()
               // what to do if a bullet collided? remove it
               entities_bullets.erase(entities_bullets.begin() + i);
             }
-          }
-          // player collided
-          if (id_0 == player.id || id_1 == player.id) {
-            player.hits_taken += 1;
           }
         }
       }
@@ -414,18 +458,6 @@ main()
     profiler.begin(Profiler::Stage::GameTick);
     {
       if (state == GameState::GAME_ACTIVE || (state == GameState::GAME_PAUSED && advance_one_frame)) {
-
-        // Temporary! Save a file next to executable
-        ImGui::Begin("Highscores");
-        if (ImGui::Button("Save highscore")) {
-          std::filesystem::create_directory("runtime");
-          std::string path("runtime/highscores.txt");
-          std::cout << "saving highscore to: " << path << std::endl;
-          std::ofstream highscores(path);
-          highscores << "3";
-          highscores.close();
-        }
-        ImGui::End();
 
         // mouse angle around player
 
@@ -566,12 +598,10 @@ main()
           camera, screen_wh, instanced_quad_shader, logo_entity, colour_shader, chosen_colour_1);
 
         ImGui::Begin("Name your wizard");
-
-        static char buf1[64] = "";
-        ImGui::InputText("", buf1, 64);
-
-        if (ImGui::Button("Ok!")) {
-          state = GameState::GAME_ACTIVE;
+        {
+          ImGui::InputText("", character_name, 64);
+          if (ImGui::Button("Ok!"))
+            state = GameState::GAME_ACTIVE;
         }
         ImGui::End();
 
@@ -603,11 +633,21 @@ main()
         sprite_renderer::draw_sprite_debug(
           camera, screen_wh, instanced_quad_shader, logo_entity, colour_shader, chosen_colour_1);
 
+        // on entry
+        if (first_time_game_over_screen) {
+          first_time_game_over_screen = false;
+          save_highscore(std::string(character_name), objects_destroyed);
+        }
+
         // when done
-        time_on_game_over_screen_left -= delta_time_s;
+        if (time_on_game_over_screen > 0.0)
+          time_on_game_over_screen_left -= delta_time_s;
+
         if (time_on_game_over_screen_left <= 0) {
-          // todo reset game
           time_on_game_over_screen_left = time_on_game_over_screen;
+          // first_time_game_over_screen = true;
+
+          // todo reset game
           // state = GameState::GAME_ACTIVE;
         }
       }
@@ -636,6 +676,8 @@ main()
           ImGui::Text("camera pos %f %f", camera.pos.x, camera.pos.y);
           ImGui::Text("mouse pos %f %f", app.get_input().get_mouse_pos().x, app.get_input().get_mouse_pos().y);
           ImGui::Separator();
+          ImGui::Text("(game) %s", character_name);
+          ImGui::Text("(game) highscore: %i", highscore);
           ImGui::Text("Walls: %i", entities_walls.size());
           ImGui::Text("Bullets: %i", entities_bullets.size());
           ImGui::Text("Bullets to fire: %i", bullets_to_fire_after_releasing_mouse_left);
