@@ -18,10 +18,10 @@ GameWindow::GameWindow(const std::string& title, int width, int height, DisplayM
   SDL_GetVersion(&linkedVersion);
 
   std::cout << "Initializing SDL..." << std::endl;
-  std::cout << "SDL Version/Compiled " << compiledVersion.major << "." << compiledVersion.minor << "."
-            << compiledVersion.patch << std::endl;
-  std::cout << "SDL Version/Linked " << linkedVersion.major << "." << linkedVersion.minor << "." << linkedVersion.patch
-            << std::endl;
+  std::cout << "SDL Version/Compiled " << unsigned(compiledVersion.major) << "." << unsigned(compiledVersion.minor)
+            << "." << unsigned(compiledVersion.patch) << std::endl;
+  std::cout << "SDL Version/Linked " << unsigned(linkedVersion.major) << "." << unsigned(linkedVersion.minor) << "."
+            << unsigned(linkedVersion.patch) << std::endl;
 
   // Initialize SDL -----------------------
 

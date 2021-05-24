@@ -50,4 +50,8 @@ encode_cantor_pairing_function(int x, int y);
 [[nodiscard]] void
 decode_cantor_pairing_function(uint64_t p, uint32_t& x, uint32_t& y);
 
+// scale x from [min,max] to [a,b]
+float
+scale(float x, float min, float max, float a, float b);
+
 } // namespace fightingengine

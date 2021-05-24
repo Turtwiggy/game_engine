@@ -5,6 +5,7 @@
 
 // other library
 #include <SDL2/SDL_events.h>
+#include <SDL2/SDL_gamecontroller.h>
 #include <SDL2/SDL_keycode.h>
 #include <SDL2/SDL_mouse.h>
 #include <glm/glm.hpp>
@@ -42,6 +43,17 @@ public:
 
   void set_mousewheel_y(const float amount);
   [[nodiscard]] float get_mousewheel_y() const;
+
+  // controller
+
+  const int JOYSTICK_DEAD_ZONE = 8000;
+
+  [[nodiscard]] Sint16 get_axis_raw(SDL_GameController* controller, SDL_GameControllerAxis axis);
+  [[nodiscard]] float get_axis_dir(SDL_GameController* controller, SDL_GameControllerAxis axis);
+  //[[nodiscard]] bool get_button_down(SDL_GameController* controller, SDL_GameControllerButton button);
+  //[[nodiscard]] bool get_button_up(SDL_GameController* controller, SDL_GameControllerButton button);
+  [[nodiscard]] bool get_button_held(SDL_GameController* controller, SDL_GameControllerButton button);
+  [[nodiscard]] bool InputManager::get_axis_held(SDL_GameController* controller, SDL_GameControllerAxis axis);
 
 private:
   //

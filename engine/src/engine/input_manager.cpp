@@ -4,6 +4,10 @@
 
 // c++ standard lib headers
 #include <imgui.h>
+#include <iostream>
+
+// your proj headers
+#include "engine/maths_core.hpp"
 
 namespace fightingengine {
 
@@ -167,6 +171,52 @@ float
 InputManager::get_mousewheel_y() const
 {
   return mousewheel_y;
+}
+
+Sint16
+InputManager::get_axis_raw(SDL_GameController* controller, SDL_GameControllerAxis axis)
+{
+  Sint16 val = SDL_GameControllerGetAxis(controller, axis);
+  return val;
+}
+
+float
+InputManager::get_axis_dir(SDL_GameController* controller, SDL_GameControllerAxis axis)
+{
+  Sint16 val = SDL_GameControllerGetAxis(controller, axis);
+
+  // add deadzone
+  if (val < 0.0f && val > -JOYSTICK_DEAD_ZONE)
+    return 0.0f;
+  if (val >= 0.0f && val < JOYSTICK_DEAD_ZONE)
+    return 0.0f;
+
+  return scale(val, -32768.0f, 32767.0f, -1.0f, 1.0f);
+}
+bool
+InputManager::get_axis_held(SDL_GameController* controller, SDL_GameControllerAxis axis)
+{
+  return get_axis_dir(controller, axis) > 0.0f;
+}
+
+// bool
+// InputManager::get_button_down(SDL_GameController* controller, SDL_GameControllerButton button)
+// {
+//   // todo
+//   return false;
+// }
+// bool
+// InputManager::get_button_up(SDL_GameController* controller, SDL_GameControllerButton button)
+// {
+//   // todo
+//   return true;
+// }
+
+bool
+InputManager::get_button_held(SDL_GameController* controller, SDL_GameControllerButton button)
+{
+  Uint8 val = SDL_GameControllerGetButton(controller, button);
+  return val != 0;
 }
 
 } // namespace fightingengine

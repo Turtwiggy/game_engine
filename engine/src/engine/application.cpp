@@ -126,26 +126,6 @@ Application::frame_begin()
     if (e.type == SDL_MOUSEWHEEL) {
       input_manager.set_mousewheel_y(static_cast<float>(e.wheel.y));
     }
-
-    const int JOYSTICK_DEAD_ZONE = 8000;
-    int left_analogue_x_dir = 0;
-    if (e.type == SDL_JOYAXISMOTION) {
-      if (e.jaxis.which == 0) {
-        if (e.jaxis.axis == 0) {
-          // Below of dead zone
-          if (e.jaxis.value < -JOYSTICK_DEAD_ZONE) {
-            left_analogue_x_dir = -1;
-          }
-          // Above of dead zone
-          else if (e.jaxis.value > JOYSTICK_DEAD_ZONE) {
-            left_analogue_x_dir = 1;
-          } else {
-            left_analogue_x_dir = 0;
-          }
-          std::cout << "left_analogue_x_dir: " << left_analogue_x_dir << std::endl;
-        }
-      }
-    }
   }
 
   imgui_manager.begin_frame(get_window());

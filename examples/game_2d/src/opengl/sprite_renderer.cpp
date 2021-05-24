@@ -11,6 +11,7 @@
 #include <glm/gtc/matrix_transform.hpp>
 
 // engine project headers
+#include "engine/maths_core.hpp"
 #include "engine/opengl/util.hpp"
 using namespace fightingengine; // used for opengl macro
 #include "game/2d_game_object.hpp"
@@ -68,13 +69,6 @@ int
 get_quad_count()
 {
   return s_data.quad_vertex;
-}
-
-// scale x from [min,max] to [a,b]
-float
-scale(float x, float min, float max, float a, float b)
-{
-  return ((b - a) * (x - min)) / (max - min) + a;
 }
 
 void
@@ -253,10 +247,10 @@ draw_sprite_debug(const GameObject2D& cam,
   glm::vec2 world_pos = gameobject_in_worldspace(cam, game_object);
   glm::vec2 bl_pos = glm::vec2(world_pos.x, world_pos.y + game_object.size.y);
   glm::vec2 tr_pos = glm::vec2(world_pos.x + game_object.size.x, world_pos.y);
-  bl_pos.x = scale(bl_pos.x, 0.0f, screen_size.x, -1.0f, 1.0f);
-  bl_pos.y = scale(bl_pos.y, 0.0f, screen_size.y, 1.0f, -1.0f);
-  tr_pos.x = scale(tr_pos.x, 0.0f, screen_size.x, -1.0f, 1.0f);
-  tr_pos.y = scale(tr_pos.y, 0.0f, screen_size.y, 1.0f, -1.0f);
+  bl_pos.x = fightingengine::scale(bl_pos.x, 0.0f, screen_size.x, -1.0f, 1.0f);
+  bl_pos.y = fightingengine::scale(bl_pos.y, 0.0f, screen_size.y, 1.0f, -1.0f);
+  tr_pos.x = fightingengine::scale(tr_pos.x, 0.0f, screen_size.x, -1.0f, 1.0f);
+  tr_pos.y = fightingengine::scale(tr_pos.y, 0.0f, screen_size.y, 1.0f, -1.0f);
 
   // This API is deprecated, does not work on phones/tablets.
   glBegin(GL_LINE_LOOP);

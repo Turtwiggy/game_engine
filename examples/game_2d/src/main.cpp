@@ -86,31 +86,6 @@ const std::string highscore_dir("runtime");
 const std::string highscore_path(highscore_dir + "/highscores.txt");
 
 void
-player_movement(Application& app, GameObject2D& player)
-{
-  if (app.get_input().get_key_held(key_move_left)) {
-    player.velocity.x = -1.0f;
-  } else if (app.get_input().get_key_held(key_move_right)) {
-    player.velocity.x = 1.0f;
-  } else {
-    player.velocity.x = 0.0f;
-  }
-
-  if (app.get_input().get_key_held(key_move_up)) {
-    player.velocity.y = -1.0f;
-  } else if (app.get_input().get_key_held(key_move_down)) {
-    player.velocity.y = 1.0f;
-  } else {
-    player.velocity.y = 0.0f;
-  }
-  player.velocity *= player.speed_current;
-
-  // Ability: Boost
-  if (app.get_input().get_key_held(key_boost))
-    player.velocity *= player.velocity_boost_modifier;
-};
-
-void
 set_player_rotation(GameObject2D& player, const float& mouse_angle_around_player)
 {
   // look in mouse direction
@@ -131,6 +106,7 @@ set_player_rotation(GameObject2D& player, const float& mouse_angle_around_player
   }
 };
 
+// TODO actually load highscore
 int
 load_highscore()
 {
@@ -152,7 +128,6 @@ load_highscore()
 void
 save_highscore(const std::string& char_name, const int& score)
 {
-  // // Temporary! Save a file next to executable
   // ImGui::Begin("Highscores");
   // static char highscore_buf_temp[64] = "";
   // ImGui::InputText("", highscore_buf_temp, 64);
@@ -182,17 +157,21 @@ main()
   glm::mat4 projection = glm::ortho(0.0f, screen_width, screen_height, 0.0f, -1.0f, 1.0f);
 
   // controllers
+  // could improve: currently only checks for controller once at start of app
 
-  // bool use_keyboard = true;
-  // int num_controllers_plugged_in = SDL_NumJoysticks();
-  // SDL_Joystick* controller_0 = NULL;
-  // if (num_controllers_plugged_in > 0) {
-  //   use_keyboard = false;
-  //   controller_0 = SDL_JoystickOpen(0);
-  //   if (controller_0 == NULL) {
-  //     printf("Warning: Unable to open game controller! SDL Error: %s\n", SDL_GetError());
-  //   }
-  // }
+  bool use_keyboard = true;
+  SDL_GameController* controller = NULL;
+  for (int i = 0; i < SDL_NumJoysticks(); ++i) {
+    if (SDL_IsGameController(i)) {
+      controller = SDL_GameControllerOpen(i);
+      if (controller) {
+        use_keyboard = false;
+        break;
+      } else {
+        fprintf(stderr, "Could not open gamecontroller %i: %s\n", i, SDL_GetError());
+      }
+    }
+  }
 
   // textures
 
@@ -203,7 +182,7 @@ main()
 
   // TODO sound
 
-  // Game
+  // Rendering
 
   sprite::type logo_sprite = sprite::type::WALL_BIG;
   sprite::type player_sprite = sprite::type::TREE_1;
@@ -232,7 +211,7 @@ main()
   player.invulnerable = false;
   player.hits_able_to_be_taken = 10;
 
-  int bullets_to_fire_after_releasing_mouse = 2;
+  int bullets_to_fire_after_releasing_mouse = 1;
   int bullets_to_fire_after_releasing_mouse_left = 0;
   float bullet_seconds_between_spawning = 0.15f;
   float bullet_seconds_between_spawning_left = 0.0f;
@@ -272,16 +251,6 @@ main()
   tex_background.name = "textured_background";
   tex_background.size = { screen_width, screen_height };
 
-  // game stats
-
-  static char character_name[64] = "";
-  int highscore = load_highscore();
-  int objects_destroyed = 0;
-  std::vector<GameObject2D> entities_bullets;
-  std::vector<GameObject2D> entities_walls;
-
-  // Rendering
-
   RenderCommand::init();
   RenderCommand::set_viewport(0, 0, static_cast<uint32_t>(screen_width), static_cast<uint32_t>(screen_height));
   RenderCommand::set_depth_testing(false); // disable depth testing for 2d
@@ -296,6 +265,20 @@ main()
   instanced_quad_shader.set_mat4("projection", projection);
   instanced_quad_shader.set_int("tex", tex_unit_kenny_nl);
 
+  // game
+
+  float look_angle = 0.0f;
+  float l_analogue_x = 0.0f;
+  float l_analogue_y = 0.0f;
+  float r_analogue_x = 0.0f;
+  float r_analogue_y = 0.0f;
+
+  static char character_name[64] = "";
+  int highscore = load_highscore();
+  int objects_destroyed = 0;
+  std::vector<GameObject2D> entities_bullets;
+  std::vector<GameObject2D> entities_walls;
+
   log_time_since("(INFO) End Setup ", app_start);
 
   // ---- App ----
@@ -307,23 +290,6 @@ main()
 
     app.frame_begin(); // get input events
     float delta_time_s = app.get_delta_time();
-
-#ifdef _DEBUG
-
-    // Debug: Advance one frame
-    if (app.get_input().get_key_down(SDL_SCANCODE_RSHIFT)) {
-      advance_one_frame = true;
-    }
-    // Debug: Advance frames
-    if (app.get_input().get_key_held(SDL_SCANCODE_F10)) {
-      advance_one_frame = true;
-    }
-    // Debug: Force game over
-    if (app.get_input().get_key_down(SDL_SCANCODE_F11)) {
-      state = GameState::GAME_OVER_SCREEN;
-    }
-
-#endif
 
     profiler.begin(Profiler::Stage::Physics);
     {
@@ -375,7 +341,7 @@ main()
           }
         }
 
-        // todo: narrow-phase; per-model collision? convex shapes?
+        // TODO: narrow-phase; per-model collision? convex shapes?
 
         // game's response
 
@@ -416,6 +382,27 @@ main()
     profiler.end(Profiler::Stage::Physics);
     profiler.begin(Profiler::Stage::SdlInput);
     {
+
+#ifdef _DEBUG
+
+      // Debug: Advance one frame
+      if (app.get_input().get_key_down(SDL_SCANCODE_RSHIFT)) {
+        advance_one_frame = true;
+      }
+      // Debug: Advance frames
+      if (app.get_input().get_key_held(SDL_SCANCODE_F10)) {
+        advance_one_frame = true;
+      }
+      // Debug: Force game over
+      if (app.get_input().get_key_down(SDL_SCANCODE_F11)) {
+        state = GameState::GAME_OVER_SCREEN;
+      }
+
+      // Debug: Reset player pos
+      if (app.get_input().get_key_held(SDL_SCANCODE_O)) {
+        player.pos = glm::vec2(0.0f, 0.0f);
+      }
+
       // Settings: Exit App
       if (app.get_input().get_key_down(key_quit))
         app.shutdown();
@@ -443,45 +430,91 @@ main()
       //   fun_shader.set_mat4("projection", projection);
       //   fun_shader.set_int("tex", tex_unit_kenny_nl);
       // }
-
-      // Game: Pause
-      if (app.get_input().get_key_down(SDL_SCANCODE_P)) {
-        state = state == GameState::GAME_PAUSED ? GameState::GAME_ACTIVE : GameState::GAME_PAUSED;
-      }
-
-      // Game Thing: Reset player pos
-      if (app.get_input().get_key_held(SDL_SCANCODE_O)) {
-        player.pos = glm::vec2(0.0f, 0.0f);
-      }
+#endif // _DEBUG
     }
     profiler.end(Profiler::Stage::SdlInput);
     profiler.begin(Profiler::Stage::GameTick);
     {
-      if (state == GameState::GAME_ACTIVE || (state == GameState::GAME_PAUSED && advance_one_frame)) {
+      // key mappings for controller / keyboard
+      l_analogue_x = 0.0f;
+      l_analogue_y = 0.0f;
+      bool shoot_pressed = false;
+      bool boost_pressed = false;
+      bool pause_pressed = false;
 
-        // mouse angle around player
+      // Keymaps: Keyboard
+      if (use_keyboard) {
+
+        if (app.get_input().get_key_held(key_move_up)) {
+          l_analogue_y = -1.0f;
+        } else if (app.get_input().get_key_held(key_move_down)) {
+          l_analogue_y = 1.0f;
+        } else {
+          l_analogue_y = 0.0f;
+        }
+
+        if (app.get_input().get_key_held(key_move_left)) {
+          l_analogue_x = -1.0f;
+        } else if (app.get_input().get_key_held(key_move_right)) {
+          l_analogue_x = 1.0f;
+        } else {
+          l_analogue_x = 0.0f;
+        }
+
+        shoot_pressed = app.get_input().get_mouse_lmb_held();
+        boost_pressed = app.get_input().get_key_held(key_boost);
+        pause_pressed = app.get_input().get_key_down(SDL_SCANCODE_P);
 
         glm::vec2 player_world_space_pos = gameobject_in_worldspace(camera, player);
         float mouse_angle_around_player = atan2(app.get_input().get_mouse_pos().y - player_world_space_pos.y,
                                                 app.get_input().get_mouse_pos().x - player_world_space_pos.x);
         mouse_angle_around_player += HALF_PI;
+        look_angle = mouse_angle_around_player;
+
+      }
+      // Keymaps: Controller
+      else {
+        l_analogue_x = app.get_input().get_axis_dir(controller, SDL_GameControllerAxis::SDL_CONTROLLER_AXIS_LEFTX);
+        l_analogue_y = app.get_input().get_axis_dir(controller, SDL_GameControllerAxis::SDL_CONTROLLER_AXIS_LEFTY);
+        r_analogue_x = app.get_input().get_axis_dir(controller, SDL_GameControllerAxis::SDL_CONTROLLER_AXIS_RIGHTX);
+        r_analogue_y = app.get_input().get_axis_dir(controller, SDL_GameControllerAxis::SDL_CONTROLLER_AXIS_RIGHTY);
+        shoot_pressed =
+          app.get_input().get_axis_held(controller, SDL_GameControllerAxis::SDL_CONTROLLER_AXIS_TRIGGERRIGHT);
+        boost_pressed =
+          app.get_input().get_axis_held(controller, SDL_GameControllerAxis::SDL_CONTROLLER_AXIS_TRIGGERLEFT);
+        pause_pressed =
+          app.get_input().get_button_held(controller, SDL_GameControllerButton::SDL_CONTROLLER_BUTTON_START);
+
+        look_angle = atan2(r_analogue_y, r_analogue_x);
+        look_angle += HALF_PI;
+      }
+
+      if (state == GameState::GAME_ACTIVE) {
+
+        // pause game
+        if (pause_pressed) {
+          state = state == GameState::GAME_PAUSED ? GameState::GAME_ACTIVE : GameState::GAME_PAUSED;
+        }
 
         // process player input
+        player.velocity.x = l_analogue_x;
+        player.velocity.y = l_analogue_y;
+        player.velocity *= player.speed_current;
 
-        player_movement(app, player);
-        set_player_rotation(player, mouse_angle_around_player);
+        // Ability: Boost
+        if (boost_pressed)
+          player.velocity *= player.velocity_boost_modifier;
+
+        set_player_rotation(player, look_angle);
 
         // Ability: Triple Burst Shoot
-
-        if (app.get_input().get_mouse_lmb_held()) {
+        if (shoot_pressed)
           bullets_to_fire_after_releasing_mouse_left = bullets_to_fire_after_releasing_mouse;
-        }
 
         if (bullet_seconds_between_spawning_left > 0.0f)
           bullet_seconds_between_spawning_left -= delta_time_s;
 
         if (bullets_to_fire_after_releasing_mouse_left > 0 && bullet_seconds_between_spawning_left <= 0.0f) {
-          // std::cout << "btf: " << bullets_to_fire_after_releasing_mouse << std::endl;
           bullet_seconds_between_spawning_left = bullet_seconds_between_spawning;
           bullets_to_fire_after_releasing_mouse_left -= 1;
 
@@ -492,7 +525,7 @@ main()
           GameObject2D bullet_copy = bullet;
           // override defaults
           bullet_copy.pos = bullet_pos;
-          bullet_copy.angle_radians = mouse_angle_around_player;
+          bullet_copy.angle_radians = look_angle;
           bullet_copy.velocity.x = bullet.speed_current;
           bullet_copy.velocity.y = bullet.speed_current;
 
@@ -508,6 +541,7 @@ main()
         //
 
         // update: camera
+
         if (app.get_input().get_key_held(key_camera_left))
           camera.pos.x -= delta_time_s * camera.speed_current;
         if (app.get_input().get_key_held(key_camera_right))
@@ -518,9 +552,11 @@ main()
           camera.pos.y += delta_time_s * camera.speed_current;
 
         // update: player
+
         player.pos += player.velocity * delta_time_s;
 
         // update: bullets
+
         std::vector<GameObject2D>::iterator it_1 = entities_bullets.begin();
         while (it_1 != entities_bullets.end()) {
           GameObject2D& obj = (*it_1);
@@ -539,19 +575,17 @@ main()
         }
 
         // update: camera
+
         if (app.get_input().get_key_held(key_camera_follow_player)) {
-          // pos
           camera.pos = glm::vec2(player.pos.x - screen_width / 2.0f, player.pos.y - screen_height / 2.0f);
         }
 
-        //
-        // AI: move to player
-        //
+        // Simple AI: move to player
+
         ai_chase_player(player, delta_time_s, entities_walls);
 
-        //
         // Gameplay: Spawn Enemies
-        //
+
         wall_seconds_between_spawning_left -= delta_time_s;
         if (wall_seconds_between_spawning_left <= 0.0f) {
           wall_seconds_between_spawning_left = wall_seconds_between_spawning;
@@ -581,16 +615,14 @@ main()
       player.colour = chosen_colour_1;               // blue
       bullet.colour = chosen_colour_2;               // lightblue
       wall.colour = chosen_colour_3;                 // grey
-      logo_entity.colour = chosen_colour_3;
+      logo_entity.colour = chosen_colour_3;          // grey
 
       glm::ivec2 screen_wh = glm::ivec2(screen_width, screen_height);
       RenderCommand::set_clear_colour(background_colour);
       RenderCommand::clear();
       sprite_renderer::reset_stats();
       sprite_renderer::begin_batch();
-
       instanced_quad_shader.bind();
-      // instanced_quad_shader.set_bool("aces_tone_mapping", aces_tone_mapping);
 
       if (state == GameState::GAME_SPLASH_SCREEN) {
 
@@ -647,7 +679,7 @@ main()
           time_on_game_over_screen_left = time_on_game_over_screen;
           // first_time_game_over_screen = true;
 
-          // todo reset game
+          // TODO reset game
           // state = GameState::GAME_ACTIVE;
         }
       }
@@ -676,8 +708,8 @@ main()
           ImGui::Text("camera pos %f %f", camera.pos.x, camera.pos.y);
           ImGui::Text("mouse pos %f %f", app.get_input().get_mouse_pos().x, app.get_input().get_mouse_pos().y);
           ImGui::Separator();
-          ImGui::Text("(game) %s", character_name);
-          ImGui::Text("(game) highscore: %i", highscore);
+          ImGui::Text("(name) %s", character_name);
+          ImGui::Text("highscore: %i", highscore);
           ImGui::Text("Walls: %i", entities_walls.size());
           ImGui::Text("Bullets: %i", entities_bullets.size());
           ImGui::Text("Bullets to fire: %i", bullets_to_fire_after_releasing_mouse_left);
