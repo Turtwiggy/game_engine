@@ -10,6 +10,7 @@ An opengl game engine project.
 #### 2d 
 - sweep and prune collision detection for aabb
 - batch renderer
+- (in p) controller support via sdl2
 
 #### 3d
 - model loading

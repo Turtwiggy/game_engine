@@ -4,6 +4,7 @@
 #include "systems/spritemap.hpp"
 
 // other project headers
+#include <SDL2/SDL_scancode.h>
 #include <glm/glm.hpp>
 
 namespace game2d {
@@ -18,49 +19,73 @@ enum class CollisionLayer
   Count = 4
 };
 
+struct PlayerKeys
+{
+  SDL_Scancode w = SDL_SCANCODE_W;
+  SDL_Scancode s = SDL_SCANCODE_S;
+  SDL_Scancode a = SDL_SCANCODE_A;
+  SDL_Scancode d = SDL_SCANCODE_D;
+  SDL_Scancode key_boost = SDL_SCANCODE_LSHIFT;
+
+  SDL_Scancode key_camera_up = SDL_SCANCODE_UP;
+  SDL_Scancode key_camera_down = SDL_SCANCODE_DOWN;
+  SDL_Scancode key_camera_left = SDL_SCANCODE_LEFT;
+  SDL_Scancode key_camera_right = SDL_SCANCODE_RIGHT;
+  SDL_Scancode key_camera_follow_player = SDL_SCANCODE_Q;
+};
+
 struct GameObject2D
 {
   static inline uint32_t global_int_counter = 0;
   uint32_t id = 0;
-  std::string name = "DEFAULT";
-  sprite::type sprite = sprite::type::SQUARE;
+
+  bool do_render = true;
+  bool do_lifecycle_timed = false;
+  bool do_lifecycle_health = true;
+  bool do_physics = true;
+
+  // render
   int tex_slot = 0;
-  CollisionLayer collision_layer = CollisionLayer::Default;
+  sprite::type sprite = sprite::type::SQUARE;
   glm::vec2 pos = { 0.0f, 0.0f }; // in pixels, centered
-  float angle_radians = 0.0f;
   glm::vec2 size = { 20.0f, 20.0f };
+  float angle_radians = 0.0f;
   glm::vec4 colour = { 1.0f, 0.0f, 0.0f, 1.0f };
-  glm::vec2 velocity = { 0.0f, 0.0f };
-  float velocity_boost_modifier = 2.0f;
-  float time_alive_left = 5.0f;
-  int hits_able_to_be_taken = 3;
-  int hits_taken = 0;
-  bool invulnerable = false;
+
+  // game: movement
   float speed_current = 50.0f;
   float speed_default = 50.0f;
+  glm::vec2 velocity = { 0.0f, 0.0f };
+  float velocity_boost_modifier = 2.0f;
+
+  // game: lifecycle timed
+  float time_alive_left = 5.0f;
+  bool flag_for_delete = false;
+
+  // game: lifecycle health
+  int hits_able_to_be_taken = 3;
+  int hits_taken = 0;
+  int other_objects_destroyed = 0;
+  bool invulnerable = false;
+
+  // entity: player
+  bool use_keyboard = false;
+  PlayerKeys keys;
+  float l_analogue_x = 0.0f;
+  float l_analogue_y = 0.0f;
+  float r_analogue_x = 0.0f;
+  float r_analogue_y = 0.0f;
+  bool pause_pressed = false;
+  bool shoot_pressed = false;
+  bool boost_pressed = false;
+
+  // game: extra
+  std::string name = "DEFAULT";
+
+  // physics
+  CollisionLayer collision_layer = CollisionLayer::Default;
 
   GameObject2D() { id = ++GameObject2D::global_int_counter; }
-
-  GameObject2D(const GameObject2D& obj)
-  {
-    id = ++GameObject2D::global_int_counter;
-    name = obj.name;
-    sprite = obj.sprite;
-    tex_slot = obj.tex_slot;
-    collision_layer = obj.collision_layer;
-    pos = obj.pos;
-    angle_radians = obj.angle_radians;
-    size = obj.size;
-    colour = obj.colour;
-    velocity = obj.velocity;
-    velocity_boost_modifier = obj.velocity_boost_modifier;
-    time_alive_left = obj.time_alive_left;
-    hits_able_to_be_taken = obj.hits_able_to_be_taken;
-    hits_taken = obj.hits_taken;
-    invulnerable = obj.invulnerable;
-    speed_current = obj.speed_current;
-    speed_default = obj.speed_default;
-  }
 };
 
 [[nodiscard]] glm::vec2

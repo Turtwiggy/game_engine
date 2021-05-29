@@ -29,9 +29,9 @@ public:
 
   float seconds_since_launch = 0.0f;
 
+  [[nodiscard]] GameWindow& get_window();
   [[nodiscard]] InputManager& get_input();
   [[nodiscard]] ImGui_Manager& get_imgui();
-  [[nodiscard]] GameWindow& get_window();
 
 private:
   // window events
