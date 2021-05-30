@@ -44,7 +44,8 @@ private:
   ImGui_Manager imgui_manager;
 
   bool running = true;
-  bool minimized = false;
+  bool minimized = false; 
+  bool fps_limit = false;
 
   // Game's fixed tick
   // int FIXED_TICKS_PER_SECOND = 1;
@@ -54,11 +55,6 @@ private:
   // Physics tick
   // int PHYSICS_TICKS_PER_SECOND = 60;
   // float SECONDS_PER_PHYSICS_TICK = 1.0f / PHYSICS_TICKS_PER_SECOND;
-
-  // Delta time
-  unsigned int start = 0;
-  unsigned int prev = 0;
-  unsigned int now = 0;
 };
 }
 

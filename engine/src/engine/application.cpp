@@ -29,7 +29,6 @@ Application::Application(const std::string& name, int width, int height)
   imgui_manager.initialize(window.get());
 
   running = true;
-  start = now = SDL_GetTicks();
 }
 
 Application::~Application()
@@ -67,10 +66,15 @@ Application::frame_end(const float delta_time)
 
   SDL_GL_SwapWindow(get_window().get_handle());
 
-  // If frame finished early
+  // // If frame finished early
   // float delta_time_ms = delta_time * 1000.0f;
-  // if (fps_limit && delta_time_ms < MILLISECONDS_PER_FRAME)
-  //   SDL_Delay(static_cast<Uint32>(MILLISECONDS_PER_FRAME) - static_cast<Uint32>(delta_time_ms));
+  // std::cout << "deltatimems: " << delta_time_ms << " mspf: " << MILLISECONDS_PER_FRAME << std::endl;
+  
+  // if (fps_limit && delta_time_ms < MILLISECONDS_PER_FRAME){
+  //   Uint32 delay = static_cast<Uint32>(MILLISECONDS_PER_FRAME) - static_cast<Uint32>(delta_time_ms);
+  //   // std::cout << "delaying! " << delay << std::endl;
+  //   SDL_Delay(delay);
+  // }
 }
 
 void
@@ -130,6 +134,14 @@ Application::frame_begin()
 
   imgui_manager.begin_frame(get_window());
   seconds_since_launch += get_delta_time();
+}
+
+void 
+Application::set_fps_limit(const float fps)
+{
+  fps_limit = true;
+  // FPS = fps;
+  // MILLISECONDS_PER_FRAME = (1.0f / fps) * 1000;
 }
 
 // ---- events

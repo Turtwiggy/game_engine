@@ -32,8 +32,8 @@ using namespace fightingengine;
 #include "systems/spritemap.hpp"
 using namespace game2d;
 
-float screen_width = 1366.0f;
-float screen_height = 768.0f;
+float screen_width = 720.0f;
+float screen_height = 480.0f;
 bool show_game_info = true;
 bool show_profiler = true;
 bool show_console = false;
@@ -51,7 +51,7 @@ enum class GameState
   GAME_ACTIVE,
   GAME_PAUSED
 };
-GameState state = GameState::GAME_SPLASH_SCREEN;
+GameState state = GameState::GAME_ACTIVE;
 const float time_on_game_over_screen = 3.0f;
 float time_on_game_over_screen_left = time_on_game_over_screen;
 bool first_time_game_over_screen = true;
@@ -353,6 +353,7 @@ main()
 
   RandomState rnd;
   Application app("2D Game", static_cast<int>(screen_width), static_cast<int>(screen_height));
+  app.set_fps_limit(60.0f);
   Profiler profiler;
   Console console;
 
@@ -612,17 +613,18 @@ main()
           state = state == GameState::GAME_PAUSED ? GameState::GAME_ACTIVE : GameState::GAME_PAUSED;
         }
 
-        player::update_game_logic(player0, app);
-        player::update_game_logic(player1, app);
+        player::update_game_logic(player0, delta_time_s);
+        player::update_game_logic(player1, delta_time_s);
 
-        if (!player.invulnerable && player.hits_taken > player.hits_able_to_be_taken) {
+        bool player0_alive = player0.invulnerable && player0.hits_taken > player0.hits_able_to_be_taken;
+        if (!player0_alive) {
           state = GameState::GAME_OVER_SCREEN;
         }
 
-        player0.update_position();
-        player1.update_position();
-        bullets.update_position();
-        enemies.update_position();
+        gameobject::update_position(player0, delta_time_s);
+        gameobject::update_position(player1, delta_time_s);
+        // gameobject::update_position(bullets);
+        // gameobject::update_position(enemies);
 
         // Gameplay: Spawn Enemies
         wall_seconds_between_spawning_left -= delta_time_s;
@@ -637,9 +639,10 @@ main()
             glm::vec2(rand_det_s(rnd.rng, 0.0f, 1.0f) * screen_width, rand_det_s(rnd.rng, 0.0f, 1.0f) * screen_height);
           glm::vec2 world_pos = rnd_pos + camera.pos;
 
-          GameObject2D wall_copy = wall;
-          wall_copy.pos = world_pos; // override defaults
-          entities_walls.push_back(wall_copy);
+          // todo: spawn wall
+          // GameObject2D wall_copy = wall;
+          // wall_copy.pos = world_pos; // override defaults
+          // entities_walls.push_back(wall_copy);
         }
 
         // todo: manage lifecycle and delete expired objects
@@ -657,9 +660,19 @@ main()
       instanced_quad_shader.bind();
 
       if (state == GameState::GAME_ACTIVE || state == GameState::GAME_PAUSED) {
-        for (GameObject2D& obj : renderables) {
+        
+        std::vector<std::reference_wrapper<GameObject2D>> renderables;
+        renderables.insert(renderables.end(), entities_walls.begin(), entities_walls.end());
+        renderables.insert(renderables.end(), entities_bullets.begin(), entities_bullets.end());
+        renderables.push_back(player0);
+        renderables.push_back(player1);
+
+        for (std::reference_wrapper<GameObject2D> obj : renderables) {
+          
+          GameObject2D& o = obj.get();
+
           sprite_renderer::draw_sprite_debug(
-            camera, screen_wh, instanced_quad_shader, obj, colour_shader, debug_line_colour);
+            camera, screen_wh, instanced_quad_shader, o, colour_shader, debug_line_colour);
         }
       }
 
@@ -681,20 +694,25 @@ main()
         ImGui::Begin("Game Info", NULL, ImGuiWindowFlags_NoFocusOnAppearing);
         {
           ImGui::Text("game running for: %f", app.seconds_since_launch);
-          ImGui::Text("player pos %f %f", player.pos.x, player.pos.y);
-          ImGui::Text("player vel x: %f y: %f", player.velocity.x, player.velocity.y);
-          ImGui::Text("player angle %f", player.angle_radians);
+          ImGui::Text("player0 pos %f %f", player0.pos.x, player0.pos.y);
+          ImGui::Text("player0 vel x: %f y: %f", player0.velocity.x, player0.velocity.y);
+          ImGui::Text("player0 angle %f", player0.angle_radians);
+          ImGui::Text("player0 hp_max %i", player0.hits_able_to_be_taken);
+          ImGui::Text("player0 hits taken %i", player0.hits_taken);
+          ImGui::Text("player1 pos %f %f", player1.pos.x, player1.pos.y);
+          ImGui::Text("player1 vel x: %f y: %f", player1.velocity.x, player1.velocity.y);
+          ImGui::Text("player1 angle %f", player1.angle_radians);
+          ImGui::Text("player1 hp_max %i", player1.hits_able_to_be_taken);
+          ImGui::Text("player1 hits taken %i", player1.hits_taken);
           ImGui::Text("camera pos %f %f", camera.pos.x, camera.pos.y);
           ImGui::Text("mouse pos %f %f", app.get_input().get_mouse_pos().x, app.get_input().get_mouse_pos().y);
           ImGui::Separator();
-          ImGui::Text("(name) %s", character_name);
           // ImGui::Text("highscore: %i", highscore);
           ImGui::Text("Walls: %i", entities_walls.size());
           ImGui::Text("Bullets: %i", entities_bullets.size());
           ImGui::Text("Bullets to fire: %i", bullets_to_fire_after_releasing_mouse_left);
           ImGui::Text("(game) destroyed: %i", objects_destroyed);
-          ImGui::Text("(game) hp_max %i", player.hits_able_to_be_taken);
-          ImGui::Text("(game) hits taken %i", player.hits_taken);
+
           ImGui::Separator();
           ImGui::Text("controllers %i", SDL_NumJoysticks());
           ImGui::Separator();

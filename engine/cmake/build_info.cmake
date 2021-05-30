@@ -46,7 +46,7 @@ if(${CMAKE_SYSTEM_NAME} STREQUAL "Windows")
     #Vcpkg windows links
     set (ENGINE_LINK_LIBS
         SDL2::SDL2 SDL2::SDL2main
-        glm
+        glm::glm
         assimp::assimp
         opengl32
         GLEW::GLEW
