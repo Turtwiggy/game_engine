@@ -14,8 +14,8 @@
 #include "engine/maths_core.hpp"
 #include "engine/opengl/util.hpp"
 using namespace fightingengine; // used for opengl macro
-#include "game/2d_game_object.hpp"
-#include "systems/spritemap.hpp"
+#include "2d_game_object.hpp"
+#include "spritemap.hpp"
 
 namespace game2d {
 

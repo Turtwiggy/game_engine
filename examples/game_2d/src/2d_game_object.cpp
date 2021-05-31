@@ -1,5 +1,5 @@
 // your header
-#include "game/2d_game_object.hpp"
+#include "2d_game_object.hpp"
 
 namespace game2d {
 

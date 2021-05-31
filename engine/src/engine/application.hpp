@@ -24,9 +24,6 @@ public:
   void frame_begin();
   void frame_end();
 
-  void set_fps_limit(const float fps);
-  void remove_fps_limit();
-
   float seconds_since_launch = 0.0f;
 
   [[nodiscard]] GameWindow& get_window();

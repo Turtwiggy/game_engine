@@ -4,8 +4,8 @@
 #include <glm/glm.hpp>
 
 // your project headers
+#include "2d_game_object.hpp"
 #include "engine/opengl/shader.hpp"
-#include "game/2d_game_object.hpp"
 
 namespace game2d {
 

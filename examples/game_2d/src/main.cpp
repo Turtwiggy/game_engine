@@ -29,11 +29,11 @@
 using namespace fightingengine;
 
 // game headers
-#include "game/2d_game_object.hpp"
+#include "2d_game_object.hpp"
+#include "2d_physics.hpp"
+#include "console.hpp"
 #include "opengl/sprite_renderer.hpp"
-#include "systems/2d_physics.hpp"
-#include "systems/console.hpp"
-#include "systems/spritemap.hpp"
+#include "spritemap.hpp"
 using namespace game2d;
 
 float screen_width = 720.0f;
@@ -47,6 +47,9 @@ bool advance_one_frame = false;
 SDL_Scancode key_quit = SDL_SCANCODE_ESCAPE;
 SDL_Scancode key_console = SDL_SCANCODE_F12;
 SDL_Scancode key_fullscreen = SDL_SCANCODE_F;
+SDL_Scancode key_advance_one_frame = SDL_SCANCODE_RSHIFT;
+SDL_Scancode key_advance_one_frame_held = SDL_SCANCODE_F10;
+SDL_Scancode key_force_gameover = SDL_SCANCODE_F11;
 
 enum class GameState
 {
@@ -61,7 +64,7 @@ float time_on_game_over_screen_left = time_on_game_over_screen;
 bool first_time_game_over_screen = true;
 
 // Physics tick
-int PHYSICS_TICKS_PER_SECOND = 45;
+int PHYSICS_TICKS_PER_SECOND = 40;
 float SECONDS_PER_PHYSICS_TICK = 1.0f / PHYSICS_TICKS_PER_SECOND;
 float seconds_since_last_physics_tick = 0;
 
@@ -89,7 +92,6 @@ sprite::type logo_sprite = sprite::type::WALL_BIG;
 sprite::type player_sprite = sprite::type::TREE_1;
 sprite::type bullet_sprite = sprite::type::TREE_1;
 sprite::type wall_sprite = sprite::type::WALL_BIG;
-
 // entity: enemy
 float wall_seconds_between_spawning = 0.5f;
 float wall_seconds_between_spawning_left = 0.0f;
@@ -115,7 +117,7 @@ update_positions(std::vector<GameObject2D>& objs, float delta_time_s)
 
 namespace camera {
 
-GameObject2D
+static GameObject2D
 create_camera()
 {
   GameObject2D game_object;
@@ -141,7 +143,7 @@ update_position(GameObject2D& camera, const PlayerKeysAndKeyState& keys, Applica
 
 namespace bullet {
 
-GameObject2D
+static GameObject2D
 create_bullet()
 {
   GameObject2D game_object;
@@ -156,6 +158,7 @@ create_bullet()
   game_object.speed_default = 200.0f;
   game_object.speed_current = game_object.speed_default;
   game_object.time_alive_left = 6.0f;
+  game_object.colour = bullet_colour;
 
   game_object.do_lifecycle_timed = true;
   return game_object;
@@ -181,7 +184,7 @@ update_game_logic(GameObject2D& obj, float delta_time_s)
 
 namespace player {
 
-GameObject2D
+static GameObject2D
 create_player()
 {
   GameObject2D game_object;
@@ -198,6 +201,8 @@ create_player()
   game_object.speed_current = game_object.speed_default;
   game_object.invulnerable = false;
   game_object.hits_able_to_be_taken = 10;
+  game_object.colour = player_colour;
+
   return game_object;
 };
 
@@ -325,7 +330,7 @@ update_game_logic(GameObject2D& obj,
 
 namespace enemy {
 
-GameObject2D
+static GameObject2D
 create_enemy()
 {
   GameObject2D game_object;
@@ -336,6 +341,7 @@ create_enemy()
   game_object.angle_radians = 0.0;
   game_object.size = { 20.0f, 20.0f };
   game_object.hits_able_to_be_taken = 3;
+  game_object.colour = wall_colour;
   return game_object;
 };
 
@@ -471,9 +477,7 @@ main()
   //   tex_background.name = "textured_background";
   //   tex_background.size = { screen_width, screen_height };
 
-  //
   // entities
-  //
 
   GameObject2D camera = camera::create_camera();
 
@@ -615,22 +619,16 @@ main()
 #ifdef _DEBUG
 
       // Debug: Advance one frame
-      if (app.get_input().get_key_down(SDL_SCANCODE_RSHIFT)) {
+      if (app.get_input().get_key_down(key_advance_one_frame)) {
         advance_one_frame = true;
       }
       // Debug: Advance frames
-      if (app.get_input().get_key_held(SDL_SCANCODE_F10)) {
+      if (app.get_input().get_key_held(key_advance_one_frame_held)) {
         advance_one_frame = true;
       }
       // Debug: Force game over
-      if (app.get_input().get_key_down(SDL_SCANCODE_F11)) {
+      if (app.get_input().get_key_down(key_force_gameover)) {
         state = GameState::GAME_OVER_SCREEN;
-      }
-
-      // Debug: Reset player pos
-      if (app.get_input().get_key_held(SDL_SCANCODE_O)) {
-        player0.pos = glm::vec2(0.0f, 0.0f);
-        player1.pos = glm::vec2(100.0f, 0.0f);
       }
 
       // Settings: Exit App

@@ -1,7 +1,7 @@
 #pragma once
 
 // your project headers
-#include "systems/spritemap.hpp"
+#include "spritemap.hpp"
 
 // other project headers
 #include <SDL2/SDL_scancode.h>

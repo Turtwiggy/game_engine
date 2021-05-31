@@ -13,7 +13,7 @@
 // engine project headers
 #include "engine/opengl/util.hpp"
 using namespace fightingengine; // used for opengl macro
-#include "game/2d_game_object.hpp"
+#include "2d_game_object.hpp"
 
 namespace game2d {
 
