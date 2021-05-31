@@ -51,30 +51,15 @@ Application::is_running() const
 float
 Application::get_delta_time()
 {
-  // now = SDL_GetTicks();         //Returns an unsigned 32-bit value
-  // representing the number of milliseconds since the SDL library initialized.
-  // uint32_t delta_time_in_milliseconds = now - prev;
-  // if (delta_time_in_milliseconds < 0) return 0; prev = now;
-
   return ImGui::GetIO().DeltaTime;
 }
 
 void
-Application::frame_end(const float delta_time)
+Application::frame_end()
 {
   imgui_manager.end_frame(get_window());
 
   SDL_GL_SwapWindow(get_window().get_handle());
-
-  // // If frame finished early
-  // float delta_time_ms = delta_time * 1000.0f;
-  // std::cout << "deltatimems: " << delta_time_ms << " mspf: " << MILLISECONDS_PER_FRAME << std::endl;
-  
-  // if (fps_limit && delta_time_ms < MILLISECONDS_PER_FRAME){
-  //   Uint32 delay = static_cast<Uint32>(MILLISECONDS_PER_FRAME) - static_cast<Uint32>(delta_time_ms);
-  //   // std::cout << "delaying! " << delay << std::endl;
-  //   SDL_Delay(delay);
-  // }
 }
 
 void
@@ -136,14 +121,6 @@ Application::frame_begin()
   seconds_since_launch += get_delta_time();
 }
 
-void 
-Application::set_fps_limit(const float fps)
-{
-  fps_limit = true;
-  // FPS = fps;
-  // MILLISECONDS_PER_FRAME = (1.0f / fps) * 1000;
-}
-
 // ---- events
 
 void
@@ -185,4 +162,5 @@ Application::get_window()
 {
   return *window;
 }
+
 }

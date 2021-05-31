@@ -27,5 +27,3 @@ An opengl game engine project.
 - Bullet3 - physics
 - GameNetworkingSockets
 - ImGuizmo
-
-2d ray marching

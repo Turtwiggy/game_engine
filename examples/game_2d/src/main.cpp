@@ -10,6 +10,7 @@
 #include <vector>
 
 // other library headers
+#include <SDL2/SDL_syswm.h>
 #include <glm/glm.hpp>
 #include <glm/gtc/matrix_transform.hpp>
 #include <glm/gtx/compatibility.hpp>
@@ -22,6 +23,9 @@
 #include "engine/opengl/render_command.hpp"
 #include "engine/ui/profiler_panel.hpp"
 #include "engine/util.hpp"
+#ifdef _DEBUG
+#include "thirdparty/magic_enum.hpp"
+#endif // _DEBUG
 using namespace fightingengine;
 
 // game headers
@@ -56,6 +60,11 @@ const float time_on_game_over_screen = 3.0f;
 float time_on_game_over_screen_left = time_on_game_over_screen;
 bool first_time_game_over_screen = true;
 
+// Physics tick
+int PHYSICS_TICKS_PER_SECOND = 45;
+float SECONDS_PER_PHYSICS_TICK = 1.0f / PHYSICS_TICKS_PER_SECOND;
+float seconds_since_last_physics_tick = 0;
+
 // textures
 const int tex_unit_kenny_nl = 0;
 // default colour palette; https://colorhunt.co/palette/273312
@@ -81,11 +90,6 @@ sprite::type player_sprite = sprite::type::TREE_1;
 sprite::type bullet_sprite = sprite::type::TREE_1;
 sprite::type wall_sprite = sprite::type::WALL_BIG;
 
-// entity: bullet
-int bullets_to_fire_after_releasing_mouse = 1;
-int bullets_to_fire_after_releasing_mouse_left = 0;
-float bullet_seconds_between_spawning = 0.15f;
-float bullet_seconds_between_spawning_left = 0.0f;
 // entity: enemy
 float wall_seconds_between_spawning = 0.5f;
 float wall_seconds_between_spawning_left = 0.0f;
@@ -97,6 +101,14 @@ static void
 update_position(GameObject2D& obj, float delta_time_s)
 {
   obj.pos += obj.velocity * delta_time_s;
+}
+
+static void
+update_positions(std::vector<GameObject2D>& objs, float delta_time_s)
+{
+  for (auto& obj : objs) {
+    obj.pos += obj.velocity * delta_time_s;
+  }
 }
 
 }
@@ -112,16 +124,16 @@ create_camera()
 }
 
 static void
-update_position(GameObject2D& camera, Application& app, float delta_time_s)
+update_position(GameObject2D& camera, const PlayerKeysAndKeyState& keys, Application& app, float delta_time_s)
 {
   // go.pos = glm::vec2(other.pos.x - screen_width / 2.0f, other.pos.y - screen_height / 2.0f);
-  if (app.get_input().get_key_held(camera.keys.key_camera_left))
+  if (app.get_input().get_key_held(keys.key_camera_left))
     camera.pos.x -= delta_time_s * camera.speed_current;
-  if (app.get_input().get_key_held(camera.keys.key_camera_right))
+  if (app.get_input().get_key_held(keys.key_camera_right))
     camera.pos.x += delta_time_s * camera.speed_current;
-  if (app.get_input().get_key_held(camera.keys.key_camera_up))
+  if (app.get_input().get_key_held(keys.key_camera_up))
     camera.pos.y -= delta_time_s * camera.speed_current;
-  if (app.get_input().get_key_held(camera.keys.key_camera_down))
+  if (app.get_input().get_key_held(keys.key_camera_down))
     camera.pos.y += delta_time_s * camera.speed_current;
 };
 
@@ -144,6 +156,8 @@ create_bullet()
   game_object.speed_default = 200.0f;
   game_object.speed_current = game_object.speed_default;
   game_object.time_alive_left = 6.0f;
+
+  game_object.do_lifecycle_timed = true;
   return game_object;
 };
 
@@ -168,7 +182,7 @@ update_game_logic(GameObject2D& obj, float delta_time_s)
 namespace player {
 
 GameObject2D
-create_player(const PlayerKeys& keys)
+create_player()
 {
   GameObject2D game_object;
   game_object.sprite = player_sprite;
@@ -184,47 +198,46 @@ create_player(const PlayerKeys& keys)
   game_object.speed_current = game_object.speed_default;
   game_object.invulnerable = false;
   game_object.hits_able_to_be_taken = 10;
-  game_object.keys = keys;
   return game_object;
 };
 
 static void
-update_input(GameObject2D& obj, Application& app)
+update_input(GameObject2D& obj, PlayerKeysAndKeyState& keys, Application& app, GameObject2D& camera)
 {
-  obj.l_analogue_x = 0.0f;
-  obj.l_analogue_y = 0.0f;
-  obj.shoot_pressed = false;
-  obj.boost_pressed = false;
-  obj.pause_pressed = false;
+  keys.l_analogue_x = 0.0f;
+  keys.l_analogue_y = 0.0f;
+  keys.shoot_pressed = false;
+  keys.boost_pressed = false;
+  keys.pause_pressed = false;
 
   // Keymaps: keyboard
-  if (obj.use_keyboard) {
-    if (app.get_input().get_key_held(obj.keys.w)) {
-      obj.l_analogue_y = -1.0f;
-    } else if (app.get_input().get_key_held(obj.keys.s)) {
-      obj.l_analogue_y = 1.0f;
+  if (keys.use_keyboard) {
+    if (app.get_input().get_key_held(keys.w)) {
+      keys.l_analogue_y = -1.0f;
+    } else if (app.get_input().get_key_held(keys.s)) {
+      keys.l_analogue_y = 1.0f;
     } else {
-      obj.l_analogue_y = 0.0f;
+      keys.l_analogue_y = 0.0f;
     }
+
+    if (app.get_input().get_key_held(keys.a)) {
+      keys.l_analogue_x = -1.0f;
+    } else if (app.get_input().get_key_held(keys.d)) {
+      keys.l_analogue_x = 1.0f;
+    } else {
+      keys.l_analogue_x = 0.0f;
+    }
+
+    keys.shoot_pressed = app.get_input().get_mouse_lmb_held();
+    keys.boost_pressed = app.get_input().get_key_held(keys.key_boost);
+    keys.pause_pressed = app.get_input().get_key_down(keys.key_pause);
+
+    glm::vec2 player_world_space_pos = gameobject_in_worldspace(camera, obj);
+    float mouse_angle_around_player = atan2(app.get_input().get_mouse_pos().y - player_world_space_pos.y,
+                                            app.get_input().get_mouse_pos().x - player_world_space_pos.x);
+    mouse_angle_around_player += HALF_PI;
+    obj.angle_radians = mouse_angle_around_player;
   }
-
-  //   if (app.get_input().get_key_held(key_move_left)) {
-  //     l_analogue_x = -1.0f;
-  //   } else if (app.get_input().get_key_held(key_move_right)) {
-  //     l_analogue_x = 1.0f;
-  //   } else {
-  //     l_analogue_x = 0.0f;
-  //   }
-
-  //   shoot_pressed = app.get_input().get_mouse_lmb_held();
-  //   boost_pressed = app.get_input().get_key_held(key_boost);
-  //   pause_pressed = app.get_input().get_key_down(SDL_SCANCODE_P);
-
-  //   glm::vec2 player_world_space_pos = gameobject_in_worldspace(camera, player);
-  //   float mouse_angle_around_player = atan2(app.get_input().get_mouse_pos().y - player_world_space_pos.y,
-  //                                           app.get_input().get_mouse_pos().x - player_world_space_pos.x);
-  //   mouse_angle_around_player += HALF_PI;
-  //   look_angle = mouse_angle_around_player;
 
   // }
   // // Keymaps: Controller
@@ -246,22 +259,24 @@ update_input(GameObject2D& obj, Application& app)
 }
 
 static void
-update_game_logic(GameObject2D& obj, float delta_time_s)
+update_game_logic(GameObject2D& obj,
+                  const PlayerKeysAndKeyState& keys,
+                  std::vector<GameObject2D>& bullets,
+                  float delta_time_s)
 {
   // process input
-  obj.velocity.x = obj.l_analogue_x;
-  obj.velocity.y = obj.l_analogue_y;
+  obj.velocity.x = keys.l_analogue_x;
+  obj.velocity.y = keys.l_analogue_y;
   obj.velocity *= obj.speed_current;
 
   // Ability: Boost
-  if (obj.boost_pressed)
+  if (keys.boost_pressed)
     obj.velocity *= obj.velocity_boost_modifier;
 
-  float look_angle = 0.0f;
   // look in mouse direction
   bool look_at_mouse = true;
   if (look_at_mouse) {
-    obj.angle_radians = look_angle;
+    // obj.angle_radians = look_angle;
   }
   // look in velocity direction
   else {
@@ -275,32 +290,34 @@ update_game_logic(GameObject2D& obj, float delta_time_s)
     }
   }
 
-  // Ability: Triple Burst Shoot
-  if (obj.shoot_pressed)
-    bullets_to_fire_after_releasing_mouse_left = bullets_to_fire_after_releasing_mouse;
+  // Ability: Shoot
+  // if (keys.shoot_pressed)
+  //   obj.bullets_to_fire_after_releasing_mouse_left = obj.bullets_to_fire_after_releasing_mouse;
 
-  if (bullet_seconds_between_spawning_left > 0.0f)
-    bullet_seconds_between_spawning_left -= delta_time_s;
+  if (obj.bullet_seconds_between_spawning_left > 0.0f)
+    obj.bullet_seconds_between_spawning_left -= delta_time_s;
 
-  if (bullet_seconds_between_spawning_left <= 0.0f) {
-    bullet_seconds_between_spawning_left = bullet_seconds_between_spawning;
-    bullets_to_fire_after_releasing_mouse_left -= 1;
+  if (obj.bullet_seconds_between_spawning_left <= 0.0f) {
+    obj.bullet_seconds_between_spawning_left = obj.bullet_seconds_between_spawning;
+    // obj.bullets_to_fire_after_releasing_mouse_left -= 1;
+    // obj.bullets_to_fire_after_releasing_mouse_left =
+    //   obj.bullets_to_fire_after_releasing_mouse_left < 0 ? 0 : obj.bullets_to_fire_after_releasing_mouse_left;
 
-    std::cout << "todo, shoot bullet" << std::endl;
+    // spawn bullet
 
-    // GameObject2D bullet_copy = bullet::create_bullet();
+    GameObject2D bullet_copy = bullet::create_bullet();
 
-    // glm::vec2 bullet_pos = obj.pos;
-    // bullet_pos.x += obj.size.x / 2.0f - bullet_copy.size.x / 2.0f;
-    // bullet_pos.y += obj.size.y / 2.0f - bullet_copy.size.y / 2.0f;
+    glm::vec2 bullet_pos = obj.pos;
+    bullet_pos.x += obj.size.x / 2.0f - bullet_copy.size.x / 2.0f;
+    bullet_pos.y += obj.size.y / 2.0f - bullet_copy.size.y / 2.0f;
 
-    // // override defaults
-    // bullet_copy.pos = bullet_pos;
-    // bullet_copy.angle_radians = look_angle;
-    // bullet_copy.velocity.x = bullet_copy.speed_current;
-    // bullet_copy.velocity.y = bullet_copy.speed_current;
+    // override defaults
+    bullet_copy.pos = bullet_pos;
+    bullet_copy.angle_radians = obj.angle_radians;
+    bullet_copy.velocity.x = bullet_copy.speed_current;
+    bullet_copy.velocity.y = bullet_copy.speed_current;
 
-    // entities_bullets.push_back(bullet_copy);
+    bullets.push_back(bullet_copy);
   }
 }
 
@@ -322,25 +339,57 @@ create_enemy()
   return game_object;
 };
 
+// spawn a random enemy every X seconds
 static void
-update_game_logic(GameObject2D& obj, GameObject2D& player, float delta_time_s)
+enemy_spawner(std::vector<GameObject2D>& enemies,
+              GameObject2D& camera,
+              RandomState& rnd,
+              float screen_height,
+              float screen_width,
+              float delta_time_s)
+{
+
+  wall_seconds_between_spawning_left -= delta_time_s;
+  if (wall_seconds_between_spawning_left <= 0.0f) {
+    wall_seconds_between_spawning_left = wall_seconds_between_spawning;
+
+    // glm::ivec2 mouse_pos = app.get_input().get_mouse_pos();
+    // printf("(game) mmb clicked %i %i \n", mouse_pos.x, mouse_pos.y);
+    // glm::vec2 world_pos = glm::vec2(mouse_pos) + camera.pos;
+
+    glm::vec2 rnd_pos =
+      glm::vec2(rand_det_s(rnd.rng, 0.0f, 1.0f) * screen_width, rand_det_s(rnd.rng, 0.0f, 1.0f) * screen_height);
+    glm::vec2 world_pos = rnd_pos + camera.pos;
+
+    GameObject2D wall_copy = create_enemy();
+    wall_copy.pos = world_pos; // override defaults
+    enemies.push_back(wall_copy);
+  }
+};
+
+// rotate to player
+// move to player
+static void
+enemy_chase_player(std::vector<GameObject2D>& objs, GameObject2D& player, float delta_time_s)
 {
   //
   // simple chase ai
   //
 
-  // rotate to player
-  glm::vec2 dir = player.pos - obj.pos;
-  dir = glm::normalize(dir);
-  obj.angle_radians = atan2(dir.y, dir.x);
-  obj.angle_radians += fightingengine::PI / 2.0f;
+  for (auto& obj : objs) {
+    // rotate to player
+    glm::vec2 dir = player.pos - obj.pos;
+    dir = glm::normalize(dir);
+    obj.angle_radians = atan2(dir.y, dir.x);
+    obj.angle_radians += fightingengine::PI / 2.0f;
 
-  // move to player
-  obj.velocity = glm::vec2(enemy_default_speed);
-  float x = glm::sin(obj.angle_radians) * obj.velocity.x;
-  float y = -glm::cos(obj.angle_radians) * obj.velocity.y;
-  obj.pos.x += x * delta_time_s;
-  obj.pos.y += y * delta_time_s;
+    // move to player
+    obj.velocity = glm::vec2(enemy_default_speed);
+    float x = glm::sin(obj.angle_radians) * obj.velocity.x;
+    float y = -glm::cos(obj.angle_radians) * obj.velocity.y;
+    obj.pos.x += x * delta_time_s;
+    obj.pos.y += y * delta_time_s;
+  }
 }
 
 } // namespace: enemy
@@ -353,7 +402,8 @@ main()
 
   RandomState rnd;
   Application app("2D Game", static_cast<int>(screen_width), static_cast<int>(screen_height));
-  app.set_fps_limit(60.0f);
+  SDL_GL_SetSwapInterval(1); // VSync
+
   Profiler profiler;
   Console console;
 
@@ -361,19 +411,19 @@ main()
 
   // controllers
   // could improve: currently only checks for controller once at start of app
-  bool use_keyboard = true;
-  SDL_GameController* controller = NULL;
-  for (int i = 0; i < SDL_NumJoysticks(); ++i) {
-    if (SDL_IsGameController(i)) {
-      controller = SDL_GameControllerOpen(i);
-      if (controller) {
-        use_keyboard = false;
-        break;
-      } else {
-        fprintf(stderr, "Could not open gamecontroller %i: %s\n", i, SDL_GetError());
-      }
-    }
-  }
+  // bool use_keyboard = true;
+  // SDL_GameController* controller = NULL;
+  // for (int i = 0; i < SDL_NumJoysticks(); ++i) {
+  //   if (SDL_IsGameController(i)) {
+  //     controller = SDL_GameControllerOpen(i);
+  //     if (controller) {
+  //       use_keyboard = false;
+  //       break;
+  //     } else {
+  //       fprintf(stderr, "Could not open gamecontroller %i: %s\n", i, SDL_GetError());
+  //     }
+  //   }
+  // }
 
   // textures
 
@@ -402,7 +452,6 @@ main()
 
   // game
 
-  // { // Random
   //   GameObject2D logo_entity;
   //   logo_entity.sprite = logo_sprite;
   //   logo_entity.tex_slot = tex_unit_kenny_nl;
@@ -421,7 +470,6 @@ main()
   //   tex_background.tex_slot = tex_unit_kenny_nl;
   //   tex_background.name = "textured_background";
   //   tex_background.size = { screen_width, screen_height };
-  // }
 
   //
   // entities
@@ -429,17 +477,23 @@ main()
 
   GameObject2D camera = camera::create_camera();
 
-  PlayerKeys player0_keys;
-  GameObject2D player0 = player::create_player(player0_keys);
-  player0.use_keyboard = true;
+  PlayerKeysAndKeyState player0_keys;
+  player0_keys.use_keyboard = true;
+  GameObject2D player0 = player::create_player();
 
-  PlayerKeys player1_keys;
-  GameObject2D player1 = player::create_player(player1_keys);
+  PlayerKeysAndKeyState player1_keys;
+  player1_keys.use_keyboard = true;
+  player1_keys.w = SDL_Scancode::SDL_SCANCODE_I;
+  player1_keys.s = SDL_Scancode::SDL_SCANCODE_K;
+  player1_keys.a = SDL_Scancode::SDL_SCANCODE_J;
+  player1_keys.d = SDL_Scancode::SDL_SCANCODE_L;
+  player1_keys.key_boost = SDL_Scancode::SDL_SCANCODE_RCTRL;
+  GameObject2D player1 = player::create_player();
 
   std::vector<GameObject2D> entities_walls;
   std::vector<GameObject2D> entities_bullets;
 
-  float objects_destroyed = 0;
+  uint32_t objects_destroyed = 0;
 
   std::cout << " a game object is: " << sizeof(GameObject2D) << " bytes" << std::endl;
   log_time_since("(INFO) End Setup ", app_start);
@@ -453,95 +507,103 @@ main()
 
     app.frame_begin(); // get input events
     float delta_time_s = app.get_delta_time();
+    if (delta_time_s >= 0.25f)
+      delta_time_s = 0.25f;
 
     profiler.begin(Profiler::Stage::Physics);
     {
       if (state == GameState::GAME_ACTIVE || (state == GameState::GAME_PAUSED && advance_one_frame)) {
 
-        // hopefully no copy of GameObject2D
-        std::vector<std::reference_wrapper<GameObject2D>> collidable;
-        collidable.insert(collidable.end(), entities_walls.begin(), entities_walls.end());
-        collidable.insert(collidable.end(), entities_bullets.begin(), entities_bullets.end());
-        collidable.push_back(player0);
-        collidable.push_back(player1);
+        // FIXED PHYSICS TICK
+        seconds_since_last_physics_tick += delta_time_s;
+        while (seconds_since_last_physics_tick >= SECONDS_PER_PHYSICS_TICK) {
+          seconds_since_last_physics_tick -= SECONDS_PER_PHYSICS_TICK;
 
-        std::map<uint64_t, Collision2D> collisions;
+          // hopefully no copy of GameObject2D
+          std::vector<std::reference_wrapper<GameObject2D>> collidable;
+          collidable.insert(collidable.end(), entities_walls.begin(), entities_walls.end());
+          collidable.insert(collidable.end(), entities_bullets.begin(), entities_bullets.end());
+          collidable.push_back(player0);
+          collidable.push_back(player1);
 
-        // broadphase: detect collisions can actually happen and discard collisions which can't.
-        // sort and prune algorithm. note: suffers from large worlds with inactive objects.
-        // this issue can be solved by using multiple smaller SAP's which form a grid.
-        // note: i've adjusted this algortihm to do 2-axis SAP.
+          std::map<uint64_t, Collision2D> collisions;
 
-        // Do broad-phase check.
+          // broadphase: detect collisions can actually happen and discard collisions which can't.
+          // sort and prune algorithm. note: suffers from large worlds with inactive objects.
+          // this issue can be solved by using multiple smaller SAP's which form a grid.
+          // note: i've adjusted this algortihm to do 2-axis SAP.
 
-        // Sort entities by X-axis
-        std::vector<std::reference_wrapper<GameObject2D>> sorted_collidable_x = collidable;
-        std::sort(sorted_collidable_x.begin(),
-                  sorted_collidable_x.end(),
-                  [](std::reference_wrapper<GameObject2D> a, std::reference_wrapper<GameObject2D> b) {
-                    return a.get().pos.x < b.get().pos.x;
-                  });
-        // SAP x-axis
-        std::vector<std::pair<int, int>> potential_collisions_x;
-        generate_broadphase_collisions(sorted_collidable_x, COLLISION_AXIS::X, collisions);
+          // Do broad-phase check.
 
-        // Sort entities by Y-axis
-        std::vector<std::reference_wrapper<GameObject2D>> sorted_collidable_y = collidable;
-        std::sort(sorted_collidable_y.begin(),
-                  sorted_collidable_y.end(),
-                  [](std::reference_wrapper<GameObject2D> a, std::reference_wrapper<GameObject2D> b) {
-                    return a.get().pos.y < b.get().pos.y;
-                  });
-        // SAP y-axis
-        std::vector<std::pair<int, int>> potential_collisions_y;
-        generate_broadphase_collisions(sorted_collidable_y, COLLISION_AXIS::Y, collisions);
+          // Sort entities by X-axis
+          std::vector<std::reference_wrapper<GameObject2D>> sorted_collidable_x = collidable;
+          std::sort(sorted_collidable_x.begin(),
+                    sorted_collidable_x.end(),
+                    [](std::reference_wrapper<GameObject2D> a, std::reference_wrapper<GameObject2D> b) {
+                      return a.get().pos.x < b.get().pos.x;
+                    });
+          // SAP x-axis
+          std::vector<std::pair<int, int>> potential_collisions_x;
+          generate_broadphase_collisions(sorted_collidable_x, COLLISION_AXIS::X, collisions);
 
-        // use broad-phase results....
-        std::map<uint64_t, Collision2D> filtered_collisions;
-        for (auto& coll : collisions) {
-          Collision2D c = coll.second;
-          if (c.collision_x && c.collision_y) {
-            filtered_collisions[coll.first] = coll.second;
+          // Sort entities by Y-axis
+          std::vector<std::reference_wrapper<GameObject2D>> sorted_collidable_y = collidable;
+          std::sort(sorted_collidable_y.begin(),
+                    sorted_collidable_y.end(),
+                    [](std::reference_wrapper<GameObject2D> a, std::reference_wrapper<GameObject2D> b) {
+                      return a.get().pos.y < b.get().pos.y;
+                    });
+          // SAP y-axis
+          std::vector<std::pair<int, int>> potential_collisions_y;
+          generate_broadphase_collisions(sorted_collidable_y, COLLISION_AXIS::Y, collisions);
+
+          // use broad-phase results....
+          std::map<uint64_t, Collision2D> filtered_collisions;
+          for (auto& coll : collisions) {
+            Collision2D c = coll.second;
+            if (c.collision_x && c.collision_y) {
+              filtered_collisions[coll.first] = coll.second;
+            }
           }
-        }
 
-        // TODO: narrow-phase; per-model collision? convex shapes?
+          // TODO: narrow-phase; per-model collision? convex shapes?
 
-        // game's response
+          // game's response
 
-        for (auto& c : filtered_collisions) {
+          for (auto& c : filtered_collisions) {
 
-          uint32_t id_0 = c.second.ent_id_0;
-          uint32_t id_1 = c.second.ent_id_1;
+            uint32_t id_0 = c.second.ent_id_0;
+            uint32_t id_1 = c.second.ent_id_1;
 
-          // Iterate over every object... likely to get slow pretty quick.
-          for (int i = 0; i < entities_walls.size(); i++) {
-            GameObject2D& go = entities_walls[i];
-            if (id_0 == go.id || id_1 == go.id) {
+            // Iterate over every object... likely to get slow pretty quick.
+            for (int i = 0; i < entities_walls.size(); i++) {
+              GameObject2D& go = entities_walls[i];
+              if (id_0 == go.id || id_1 == go.id) {
 
-              go.hits_taken += 1;
-              if (go.hits_taken >= go.hits_able_to_be_taken) {
-                // what to do if a wall collided? remove it
-                entities_walls.erase(entities_walls.begin() + i);
-                objects_destroyed += 1;
+                go.hits_taken += 1;
+                if (go.hits_taken >= go.hits_able_to_be_taken) {
+                  // what to do if a wall collided? remove it
+                  entities_walls.erase(entities_walls.begin() + i);
+                  objects_destroyed += 1;
 
-                // other object was player?
-                if (id_0 == player0.id || id_1 == player0.id) {
-                  player0.hits_taken += 1;
-                  std::cout << "player0 hit taken: " << player0.id << std::endl;
-                }
-                if (id_0 == player1.id || id_1 == player1.id) {
-                  player1.hits_taken += 1;
-                  std::cout << "player1 hit taken: " << player1.id << std::endl;
+                  // other object was player?
+                  if (id_0 == player0.id || id_1 == player0.id) {
+                    player0.hits_taken += 1;
+                    std::cout << "player0 hit taken: " << player0.id << std::endl;
+                  }
+                  if (id_0 == player1.id || id_1 == player1.id) {
+                    player1.hits_taken += 1;
+                    std::cout << "player1 hit taken: " << player1.id << std::endl;
+                  }
                 }
               }
             }
-          }
-          for (int i = 0; i < entities_bullets.size(); i++) {
-            GameObject2D& go = entities_bullets[i];
-            if (id_0 == go.id || id_1 == go.id) {
-              // what to do if a bullet collided? remove it
-              entities_bullets.erase(entities_bullets.begin() + i);
+            for (int i = 0; i < entities_bullets.size(); i++) {
+              GameObject2D& go = entities_bullets[i];
+              if (id_0 == go.id || id_1 == go.id) {
+                // what to do if a bullet collided? remove it
+                entities_bullets.erase(entities_bullets.begin() + i);
+              }
             }
           }
         }
@@ -603,50 +665,54 @@ main()
     profiler.end(Profiler::Stage::SdlInput);
     profiler.begin(Profiler::Stage::GameTick);
     {
-      player::update_input(player0, app);
-      player::update_input(player1, app);
+      player::update_input(player0, player0_keys, app, camera);
+      player::update_input(player1, player1_keys, app, camera);
+
+      // pause game toggle
+      if (player0_keys.pause_pressed || player1_keys.pause_pressed) {
+        state = state == GameState::GAME_PAUSED ? GameState::GAME_ACTIVE : GameState::GAME_PAUSED;
+      }
 
       if (state == GameState::GAME_ACTIVE) {
 
-        // pause game
-        if (player0.pause_pressed || player1.pause_pressed) {
-          state = state == GameState::GAME_PAUSED ? GameState::GAME_ACTIVE : GameState::GAME_PAUSED;
-        }
+        player::update_game_logic(player0, player0_keys, entities_bullets, delta_time_s);
+        player::update_game_logic(player1, player1_keys, entities_bullets, delta_time_s);
 
-        player::update_game_logic(player0, delta_time_s);
-        player::update_game_logic(player1, delta_time_s);
-
-        bool player0_alive = player0.invulnerable && player0.hits_taken > player0.hits_able_to_be_taken;
-        if (!player0_alive) {
+        bool player0_alive = player0.invulnerable || player0.hits_taken < player0.hits_able_to_be_taken;
+        bool player1_alive = player1.invulnerable || player1.hits_taken < player1.hits_able_to_be_taken;
+        if (!player0_alive || !player1_alive)
           state = GameState::GAME_OVER_SCREEN;
-        }
 
         gameobject::update_position(player0, delta_time_s);
         gameobject::update_position(player1, delta_time_s);
-        // gameobject::update_position(bullets);
-        // gameobject::update_position(enemies);
 
-        // Gameplay: Spawn Enemies
-        wall_seconds_between_spawning_left -= delta_time_s;
-        if (wall_seconds_between_spawning_left <= 0.0f) {
-          wall_seconds_between_spawning_left = wall_seconds_between_spawning;
+        // update: bullets
 
-          // glm::ivec2 mouse_pos = app.get_input().get_mouse_pos();
-          // printf("(game) mmb clicked %i %i \n", mouse_pos.x, mouse_pos.y);
-          // glm::vec2 world_pos = glm::vec2(mouse_pos) + camera.pos;
-
-          glm::vec2 rnd_pos =
-            glm::vec2(rand_det_s(rnd.rng, 0.0f, 1.0f) * screen_width, rand_det_s(rnd.rng, 0.0f, 1.0f) * screen_height);
-          glm::vec2 world_pos = rnd_pos + camera.pos;
-
-          // todo: spawn wall
-          // GameObject2D wall_copy = wall;
-          // wall_copy.pos = world_pos; // override defaults
-          // entities_walls.push_back(wall_copy);
+        std::vector<GameObject2D>::iterator it_1 = entities_bullets.begin();
+        while (it_1 != entities_bullets.end()) {
+          GameObject2D& obj = (*it_1);
+          // pos
+          float x = glm::sin(obj.angle_radians) * obj.velocity.x;
+          float y = -glm::cos(obj.angle_radians) * obj.velocity.y;
+          obj.pos.x += x * delta_time_s;
+          obj.pos.y += y * delta_time_s;
+          // lifecycle
+          obj.time_alive_left -= delta_time_s;
+          if (obj.time_alive_left <= 0.0f) {
+            it_1 = entities_bullets.erase(it_1);
+          } else {
+            ++it_1;
+          }
         }
 
-        // todo: manage lifecycle and delete expired objects
+        // gameobject::update_positions(entities_bullets, delta_time_s);
+        // gameobject::update_positions(entities_walls, delta_time_s);
+
+        enemy::enemy_chase_player(entities_walls, player0, delta_time_s);
+        enemy::enemy_spawner(entities_walls, camera, rnd, screen_height, screen_width, delta_time_s);
       }
+
+      // todo: manage lifecycle and delete expired objects
     }
     profiler.end(Profiler::Stage::GameTick);
     profiler.begin(Profiler::Stage::Render);
@@ -660,7 +726,7 @@ main()
       instanced_quad_shader.bind();
 
       if (state == GameState::GAME_ACTIVE || state == GameState::GAME_PAUSED) {
-        
+
         std::vector<std::reference_wrapper<GameObject2D>> renderables;
         renderables.insert(renderables.end(), entities_walls.begin(), entities_walls.end());
         renderables.insert(renderables.end(), entities_bullets.begin(), entities_bullets.end());
@@ -668,11 +734,8 @@ main()
         renderables.push_back(player1);
 
         for (std::reference_wrapper<GameObject2D> obj : renderables) {
-          
-          GameObject2D& o = obj.get();
-
           sprite_renderer::draw_sprite_debug(
-            camera, screen_wh, instanced_quad_shader, o, colour_shader, debug_line_colour);
+            camera, screen_wh, instanced_quad_shader, obj.get(), colour_shader, debug_line_colour);
         }
       }
 
@@ -710,8 +773,11 @@ main()
           // ImGui::Text("highscore: %i", highscore);
           ImGui::Text("Walls: %i", entities_walls.size());
           ImGui::Text("Bullets: %i", entities_bullets.size());
-          ImGui::Text("Bullets to fire: %i", bullets_to_fire_after_releasing_mouse_left);
           ImGui::Text("(game) destroyed: %i", objects_destroyed);
+#ifdef _DEBUG
+          auto state_name = magic_enum::enum_name(state);
+          ImGui::Text("(game) state: %s", std::string(state_name).data());
+#endif // _DEBUG
 
           ImGui::Separator();
           ImGui::Text("controllers %i", SDL_NumJoysticks());
@@ -748,7 +814,7 @@ main()
     profiler.begin(Profiler::Stage::FrameEnd);
     {
       advance_one_frame = false;
-      app.frame_end(delta_time_s);
+      app.frame_end();
     }
     profiler.end(Profiler::Stage::FrameEnd);
     profiler.end(Profiler::Stage::UpdateLoop);

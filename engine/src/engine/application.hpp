@@ -22,7 +22,7 @@ public:
 
   [[nodiscard]] float get_delta_time();
   void frame_begin();
-  void frame_end(const float delta_time);
+  void frame_end();
 
   void set_fps_limit(const float fps);
   void remove_fps_limit();
@@ -44,8 +44,7 @@ private:
   ImGui_Manager imgui_manager;
 
   bool running = true;
-  bool minimized = false; 
-  bool fps_limit = false;
+  bool minimized = false;
 
   // Game's fixed tick
   // int FIXED_TICKS_PER_SECOND = 1;
