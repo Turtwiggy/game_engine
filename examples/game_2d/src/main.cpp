@@ -105,14 +105,6 @@ update_position(GameObject2D& obj, float delta_time_s)
   obj.pos += obj.velocity * delta_time_s;
 }
 
-static void
-update_positions(std::vector<GameObject2D>& objs, float delta_time_s)
-{
-  for (auto& obj : objs) {
-    obj.pos += obj.velocity * delta_time_s;
-  }
-}
-
 }
 
 namespace camera {
@@ -263,6 +255,10 @@ update_input(GameObject2D& obj, PlayerKeysAndKeyState& keys, Application& app, G
   // }
 }
 
+// process input
+// ability: boost
+// look in mouse direction
+// shoot
 static void
 update_game_logic(GameObject2D& obj,
                   const PlayerKeysAndKeyState& keys,
@@ -481,21 +477,31 @@ main()
 
   GameObject2D camera = camera::create_camera();
 
-  PlayerKeysAndKeyState player0_keys;
-  player0_keys.use_keyboard = true;
-  GameObject2D player0 = player::create_player();
-
-  PlayerKeysAndKeyState player1_keys;
-  player1_keys.use_keyboard = true;
-  player1_keys.w = SDL_Scancode::SDL_SCANCODE_I;
-  player1_keys.s = SDL_Scancode::SDL_SCANCODE_K;
-  player1_keys.a = SDL_Scancode::SDL_SCANCODE_J;
-  player1_keys.d = SDL_Scancode::SDL_SCANCODE_L;
-  player1_keys.key_boost = SDL_Scancode::SDL_SCANCODE_RCTRL;
-  GameObject2D player1 = player::create_player();
-
   std::vector<GameObject2D> entities_walls;
   std::vector<GameObject2D> entities_bullets;
+  std::vector<GameObject2D> entities_player;
+  std::vector<PlayerKeysAndKeyState> player_keys;
+
+  { // populate defaults
+    GameObject2D player0 = player::create_player();
+    GameObject2D player1 = player::create_player();
+
+    entities_player.push_back(player0);
+    // entities_player.push_back(player1);
+
+    PlayerKeysAndKeyState player0_keys;
+    player0_keys.use_keyboard = true;
+    PlayerKeysAndKeyState player1_keys;
+    player1_keys.use_keyboard = true;
+    player1_keys.w = SDL_Scancode::SDL_SCANCODE_I;
+    player1_keys.s = SDL_Scancode::SDL_SCANCODE_K;
+    player1_keys.a = SDL_Scancode::SDL_SCANCODE_J;
+    player1_keys.d = SDL_Scancode::SDL_SCANCODE_L;
+    player1_keys.key_boost = SDL_Scancode::SDL_SCANCODE_RCTRL;
+
+    player_keys.push_back(player0_keys);
+    // player_keys.push_back(player1_keys);
+  }
 
   uint32_t objects_destroyed = 0;
 
@@ -527,10 +533,7 @@ main()
           std::vector<std::reference_wrapper<GameObject2D>> collidable;
           collidable.insert(collidable.end(), entities_walls.begin(), entities_walls.end());
           collidable.insert(collidable.end(), entities_bullets.begin(), entities_bullets.end());
-          collidable.push_back(player0);
-          collidable.push_back(player1);
-
-          std::map<uint64_t, Collision2D> collisions;
+          collidable.insert(collidable.end(), entities_player.begin(), entities_player.end());
 
           // broadphase: detect collisions can actually happen and discard collisions which can't.
           // sort and prune algorithm. note: suffers from large worlds with inactive objects.
@@ -538,6 +541,7 @@ main()
           // note: i've adjusted this algortihm to do 2-axis SAP.
 
           // Do broad-phase check.
+          std::map<uint64_t, Collision2D> collisions;
 
           // Sort entities by X-axis
           std::vector<std::reference_wrapper<GameObject2D>> sorted_collidable_x = collidable;
@@ -591,13 +595,12 @@ main()
                   objects_destroyed += 1;
 
                   // other object was player?
-                  if (id_0 == player0.id || id_1 == player0.id) {
-                    player0.hits_taken += 1;
-                    std::cout << "player0 hit taken: " << player0.id << std::endl;
-                  }
-                  if (id_0 == player1.id || id_1 == player1.id) {
-                    player1.hits_taken += 1;
-                    std::cout << "player1 hit taken: " << player1.id << std::endl;
+                  for (int j = 0; j < entities_player.size(); j++) {
+                    GameObject2D& player = entities_player[j];
+                    if (id_0 == player.id || id_1 == player.id) {
+                      std::cout << "player" << j << " hit taken: " << std::endl;
+                      player.hits_taken += 1;
+                    }
                   }
                 }
               }
@@ -658,42 +661,55 @@ main()
       //   fun_shader.set_mat4("projection", projection);
       //   fun_shader.set_int("tex", tex_unit_kenny_nl);
       // }
+
+      if (app.get_input().get_key_down(SDL_SCANCODE_BACKSPACE)) {
+        entities_player.pop_back(); // kill the first player >:(
+        player_keys.pop_back();
+      }
+
 #endif // _DEBUG
     }
     profiler.end(Profiler::Stage::SdlInput);
     profiler.begin(Profiler::Stage::GameTick);
     {
-      player::update_input(player0, player0_keys, app, camera);
-      player::update_input(player1, player1_keys, app, camera);
 
-      // pause game toggle
-      if (player0_keys.pause_pressed || player1_keys.pause_pressed) {
-        state = state == GameState::GAME_PAUSED ? GameState::GAME_ACTIVE : GameState::GAME_PAUSED;
+      for (int i = 0; i < entities_player.size(); i++) {
+        GameObject2D& player = entities_player[i];
+        PlayerKeysAndKeyState& keys = player_keys[i];
+
+        player::update_input(player, keys, app, camera);
+
+        if (keys.pause_pressed)
+          state = state == GameState::GAME_PAUSED ? GameState::GAME_ACTIVE : GameState::GAME_PAUSED;
       }
 
       if (state == GameState::GAME_ACTIVE) {
 
-        player::update_game_logic(player0, player0_keys, entities_bullets, delta_time_s);
-        player::update_game_logic(player1, player1_keys, entities_bullets, delta_time_s);
+        for (int i = 0; i < entities_player.size(); i++) {
+          GameObject2D& player = entities_player[i];
+          PlayerKeysAndKeyState& keys = player_keys[i];
 
-        bool player0_alive = player0.invulnerable || player0.hits_taken < player0.hits_able_to_be_taken;
-        bool player1_alive = player1.invulnerable || player1.hits_taken < player1.hits_able_to_be_taken;
-        if (!player0_alive || !player1_alive)
-          state = GameState::GAME_OVER_SCREEN;
+          player::update_game_logic(player, keys, entities_bullets, delta_time_s);
 
-        gameobject::update_position(player0, delta_time_s);
-        gameobject::update_position(player1, delta_time_s);
+          bool player_alive = player.invulnerable || player.hits_taken < player.hits_able_to_be_taken;
+          if (!player_alive)
+            state = GameState::GAME_OVER_SCREEN;
+
+          gameobject::update_position(player, delta_time_s);
+        }
 
         // update: bullets
 
         std::vector<GameObject2D>::iterator it_1 = entities_bullets.begin();
         while (it_1 != entities_bullets.end()) {
           GameObject2D& obj = (*it_1);
+
           // pos
           float x = glm::sin(obj.angle_radians) * obj.velocity.x;
           float y = -glm::cos(obj.angle_radians) * obj.velocity.y;
           obj.pos.x += x * delta_time_s;
           obj.pos.y += y * delta_time_s;
+
           // lifecycle
           obj.time_alive_left -= delta_time_s;
           if (obj.time_alive_left <= 0.0f) {
@@ -703,11 +719,16 @@ main()
           }
         }
 
-        // gameobject::update_positions(entities_bullets, delta_time_s);
-        // gameobject::update_positions(entities_walls, delta_time_s);
+        size_t players_in_game = entities_player.size();
+        if (players_in_game > 0) {
 
-        enemy::enemy_chase_player(entities_walls, player0, delta_time_s);
-        enemy::enemy_spawner(entities_walls, camera, rnd, screen_height, screen_width, delta_time_s);
+          // for the moment, eat player 0
+          GameObject2D player_to_chase = entities_player[0];
+          enemy::enemy_chase_player(entities_walls, player_to_chase, delta_time_s);
+
+          //... and only spawn enemies if there is a player.
+          enemy::enemy_spawner(entities_walls, camera, rnd, screen_height, screen_width, delta_time_s);
+        }
       }
 
       // todo: manage lifecycle and delete expired objects
@@ -728,13 +749,21 @@ main()
         std::vector<std::reference_wrapper<GameObject2D>> renderables;
         renderables.insert(renderables.end(), entities_walls.begin(), entities_walls.end());
         renderables.insert(renderables.end(), entities_bullets.begin(), entities_bullets.end());
-        renderables.push_back(player0);
-        renderables.push_back(player1);
+        renderables.insert(renderables.end(), entities_player.begin(), entities_player.end());
 
         for (std::reference_wrapper<GameObject2D> obj : renderables) {
           sprite_renderer::draw_sprite_debug(
             camera, screen_wh, instanced_quad_shader, obj.get(), colour_shader, debug_line_colour);
         }
+
+        // sprite_renderer::draw_instanced_sprite(camera,
+        //                                        screen_wh,
+        //                                        instanced_quad_shader,
+        //                                        player1,
+        //                                        glm::vec4(1.0f, 0.0f, 0.0f, 1.0f),
+        //                                        glm::vec4(1.0f, 0.0f, 0.0f, 1.0f),
+        //                                        glm::vec4(1.0f, 1.0f, 1.0f, 1.0f),
+        //                                        glm::vec4(1.0f, 1.0f, 1.0f, 1.0f));
       }
 
       sprite_renderer::end_batch();
@@ -755,19 +784,21 @@ main()
         ImGui::Begin("Game Info", NULL, ImGuiWindowFlags_NoFocusOnAppearing);
         {
           ImGui::Text("game running for: %f", app.seconds_since_launch);
-          ImGui::Text("player0 pos %f %f", player0.pos.x, player0.pos.y);
-          ImGui::Text("player0 vel x: %f y: %f", player0.velocity.x, player0.velocity.y);
-          ImGui::Text("player0 angle %f", player0.angle_radians);
-          ImGui::Text("player0 hp_max %i", player0.hits_able_to_be_taken);
-          ImGui::Text("player0 hits taken %i", player0.hits_taken);
-          ImGui::Text("player1 pos %f %f", player1.pos.x, player1.pos.y);
-          ImGui::Text("player1 vel x: %f y: %f", player1.velocity.x, player1.velocity.y);
-          ImGui::Text("player1 angle %f", player1.angle_radians);
-          ImGui::Text("player1 hp_max %i", player1.hits_able_to_be_taken);
-          ImGui::Text("player1 hits taken %i", player1.hits_taken);
           ImGui::Text("camera pos %f %f", camera.pos.x, camera.pos.y);
           ImGui::Text("mouse pos %f %f", app.get_input().get_mouse_pos().x, app.get_input().get_mouse_pos().y);
           ImGui::Separator();
+
+          for (int i = 0; i < entities_player.size(); i++) {
+            GameObject2D& player = entities_player[i];
+            ImGui::Text("player id: %i", player.id);
+            ImGui::Text("pos %f %f", player.pos.x, player.pos.y);
+            ImGui::Text("vel x: %f y: %f", player.velocity.x, player.velocity.y);
+            ImGui::Text("angle %f", player.angle_radians);
+            ImGui::Text("hp_max %i", player.hits_able_to_be_taken);
+            ImGui::Text("hits taken %i", player.hits_taken);
+            ImGui::Separator();
+          }
+
           // ImGui::Text("highscore: %i", highscore);
           ImGui::Text("Walls: %i", entities_walls.size());
           ImGui::Text("Bullets: %i", entities_bullets.size());

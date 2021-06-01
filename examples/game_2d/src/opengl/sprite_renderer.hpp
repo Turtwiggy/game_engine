@@ -4,8 +4,8 @@
 #include <glm/glm.hpp>
 
 // your project headers
-#include "engine/opengl/shader.hpp"
 #include "2d_game_object.hpp"
+#include "engine/opengl/shader.hpp"
 
 namespace game2d {
 
@@ -39,6 +39,17 @@ draw_instanced_sprite(const GameObject2D& cam,
                       const glm::ivec2& screen_size,
                       fightingengine::Shader& shader,
                       const GameObject2D& go);
+
+void
+draw_instanced_sprite(const GameObject2D& cam,
+                      const glm::ivec2& screen_size,
+                      fightingengine::Shader& shader,
+                      const GameObject2D& go,
+                      const glm::vec4 colour_tl,
+                      const glm::vec4 colour_tr,
+                      const glm::vec4 colour_bl,
+                      const glm::vec4 colour_br);
+
 void
 draw_sprite_debug(const GameObject2D& cam,
                   const glm::ivec2& screen_size,

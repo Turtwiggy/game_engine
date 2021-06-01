@@ -179,6 +179,19 @@ draw_instanced_sprite(const GameObject2D& cam,
                       fightingengine::Shader& shader,
                       const GameObject2D& go)
 {
+  draw_instanced_sprite(cam, screen_size, shader, go, go.colour, go.colour, go.colour, go.colour);
+}
+
+void
+draw_instanced_sprite(const GameObject2D& cam,
+                      const glm::ivec2& screen_size,
+                      fightingengine::Shader& shader,
+                      const GameObject2D& go,
+                      const glm::vec4 colour_tl,
+                      const glm::vec4 colour_tr,
+                      const glm::vec4 colour_bl,
+                      const glm::vec4 colour_br)
+{
   if (s_data.index_count >= max_quad_index_count) {
     end_batch();
     flush(shader);
@@ -199,26 +212,30 @@ draw_instanced_sprite(const GameObject2D& cam,
 
   glm::ivec2 sprite_offset = sprite::spritemap::get_sprite_offset(go.sprite);
 
+  // tl
   s_data.buffer_ptr->pos_and_tex = { 0.0f, 0.0f, 0.0f, 0.0f };
-  s_data.buffer_ptr->colour = go.colour;
+  s_data.buffer_ptr->colour = colour_tl;
   s_data.buffer_ptr->sprite_pos = sprite_offset;
   s_data.buffer_ptr->model = model;
   s_data.buffer_ptr++;
 
+  // tr
   s_data.buffer_ptr->pos_and_tex = { 1.0f, 0.0f, 1.0f, 0.0f };
-  s_data.buffer_ptr->colour = go.colour;
+  s_data.buffer_ptr->colour = colour_tr;
   s_data.buffer_ptr->sprite_pos = sprite_offset;
   s_data.buffer_ptr->model = model;
   s_data.buffer_ptr++;
 
+  // br
   s_data.buffer_ptr->pos_and_tex = { 1.0f, 1.0f, 1.0f, 1.0f };
-  s_data.buffer_ptr->colour = go.colour;
+  s_data.buffer_ptr->colour = colour_br;
   s_data.buffer_ptr->sprite_pos = sprite_offset;
   s_data.buffer_ptr->model = model;
   s_data.buffer_ptr++;
 
+  // bl
   s_data.buffer_ptr->pos_and_tex = { 0.0f, 1.0f, 0.0f, 1.0f };
-  s_data.buffer_ptr->colour = go.colour;
+  s_data.buffer_ptr->colour = colour_bl;
   s_data.buffer_ptr->sprite_pos = sprite_offset;
   s_data.buffer_ptr->model = model;
   s_data.buffer_ptr++;

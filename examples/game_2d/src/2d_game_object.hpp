@@ -21,6 +21,8 @@ enum class CollisionLayer
 
 struct PlayerKeysAndKeyState
 {
+  int associated_player_id = 0;
+
   SDL_Scancode w = SDL_SCANCODE_W;
   SDL_Scancode s = SDL_SCANCODE_S;
   SDL_Scancode a = SDL_SCANCODE_A;
@@ -81,6 +83,9 @@ struct GameObject2D
   int hits_taken = 0;
   int other_objects_destroyed = 0;
   bool invulnerable = false;
+
+  // enemy ai: target
+  // int player_id = 0;
 
   // game: extra
   std::string name = "DEFAULT";
