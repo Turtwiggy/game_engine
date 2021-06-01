@@ -1,5 +1,43 @@
 #pragma once
 
+// highscore
+const std::string highscore_dir("runtime");
+const std::string highscore_path(highscore_dir + "/highscores.txt");
+
+// // TODO actually load highscore
+// int
+// load_highscore()
+// {
+//   std::ifstream highscores(highscore_path);
+
+//   // int a;
+//   // int highest = 0;
+//   // while (highscores >> a) {
+//   //   if (a > highest) {
+//   //     highest = a;
+//   //   }
+//   // }
+
+//   highscores.close();
+
+//   return 10;
+// }
+
+// void
+// save_highscore(const std::string& char_name, const int& score)
+// {
+//   // ImGui::Begin("Highscores");
+//   // static char highscore_buf_temp[64] = "";
+//   // ImGui::InputText("", highscore_buf_temp, 64);
+//   // if (ImGui::Button("Save highscore")) {
+
+//   std::cout << "saving highscore to: " << highscore_path << std::endl;
+//   std::filesystem::create_directory(highscore_dir);
+//   std::ofstream highscores(highscore_path, std::ofstream::out | std::ofstream::app);
+//   highscores << "Character: " << char_name << " Score: " << score << std::endl;
+//   highscores.close();
+// }
+
 // bool movement_spaceship_lrud = false;
 // if (movement_spaceship_lrud) {
 //   const float player_speed = 10.0f;

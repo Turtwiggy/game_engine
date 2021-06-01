@@ -29,7 +29,6 @@ Application::Application(const std::string& name, int width, int height)
   imgui_manager.initialize(window.get());
 
   running = true;
-  start = now = SDL_GetTicks();
 }
 
 Application::~Application()
@@ -52,25 +51,15 @@ Application::is_running() const
 float
 Application::get_delta_time()
 {
-  // now = SDL_GetTicks();         //Returns an unsigned 32-bit value
-  // representing the number of milliseconds since the SDL library initialized.
-  // uint32_t delta_time_in_milliseconds = now - prev;
-  // if (delta_time_in_milliseconds < 0) return 0; prev = now;
-
   return ImGui::GetIO().DeltaTime;
 }
 
 void
-Application::frame_end(const float delta_time)
+Application::frame_end()
 {
   imgui_manager.end_frame(get_window());
 
   SDL_GL_SwapWindow(get_window().get_handle());
-
-  // If frame finished early
-  // float delta_time_ms = delta_time * 1000.0f;
-  // if (fps_limit && delta_time_ms < MILLISECONDS_PER_FRAME)
-  //   SDL_Delay(static_cast<Uint32>(MILLISECONDS_PER_FRAME) - static_cast<Uint32>(delta_time_ms));
 }
 
 void
@@ -173,4 +162,5 @@ Application::get_window()
 {
   return *window;
 }
+
 }

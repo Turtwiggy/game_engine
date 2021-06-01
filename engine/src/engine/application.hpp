@@ -22,16 +22,13 @@ public:
 
   [[nodiscard]] float get_delta_time();
   void frame_begin();
-  void frame_end(const float delta_time);
-
-  void set_fps_limit(const float fps);
-  void remove_fps_limit();
+  void frame_end();
 
   float seconds_since_launch = 0.0f;
 
+  [[nodiscard]] GameWindow& get_window();
   [[nodiscard]] InputManager& get_input();
   [[nodiscard]] ImGui_Manager& get_imgui();
-  [[nodiscard]] GameWindow& get_window();
 
 private:
   // window events
@@ -54,11 +51,6 @@ private:
   // Physics tick
   // int PHYSICS_TICKS_PER_SECOND = 60;
   // float SECONDS_PER_PHYSICS_TICK = 1.0f / PHYSICS_TICKS_PER_SECOND;
-
-  // Delta time
-  unsigned int start = 0;
-  unsigned int prev = 0;
-  unsigned int now = 0;
 };
 }
 
