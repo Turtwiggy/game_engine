@@ -70,6 +70,8 @@ struct GameObject2D
   float speed_default = 50.0f;
   glm::vec2 velocity = { 0.0f, 0.0f };
   float velocity_boost_modifier = 2.0f;
+  float shift_boost_time = 5.0f;
+  float shift_boost_time_left = shift_boost_time;
 
   // game: shooting
   float bullet_seconds_between_spawning = 0.15f;

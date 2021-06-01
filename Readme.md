@@ -25,8 +25,11 @@ An opengl game engine project.
 [How to build / run](./.github/BUILDING.md)
 
 #### Maybe in future
-- Entt - entity component system
+
+networking...?
 - GGPO
-- Bullet3 - physics
 - GameNetworkingSockets
+
+3d...?
+- Bullet3 - physics
 - ImGuizmo

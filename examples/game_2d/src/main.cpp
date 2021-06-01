@@ -39,10 +39,11 @@ using namespace game2d;
 float screen_width = 720.0f;
 float screen_height = 480.0f;
 bool show_game_info = true;
-bool show_profiler = true;
+bool show_profiler = false;
 bool show_console = false;
 bool show_demo_window = false;
 bool advance_one_frame = false;
+bool juice_game = false;
 // key bindings: application
 SDL_Scancode key_quit = SDL_SCANCODE_ESCAPE;
 SDL_Scancode key_console = SDL_SCANCODE_F12;
@@ -96,6 +97,7 @@ sprite::type wall_sprite = sprite::type::WALL_BIG;
 float wall_seconds_between_spawning = 0.5f;
 float wall_seconds_between_spawning_left = 0.0f;
 const float enemy_default_speed = 50.0f;
+// entity: player
 
 namespace gameobject {
 
@@ -271,8 +273,22 @@ update_game_logic(GameObject2D& obj,
   obj.velocity *= obj.speed_current;
 
   // Ability: Boost
-  if (keys.boost_pressed)
+
+  if (keys.boost_pressed) {
+    // Boost when shift pressed
+    obj.shift_boost_time_left -= delta_time_s;
+    obj.shift_boost_time_left = obj.shift_boost_time_left < 0.0f ? 0.0f : obj.shift_boost_time_left;
+  } else {
+    // Recharge when shift released
+    obj.shift_boost_time_left += delta_time_s;
+    // Cap limit
+    obj.shift_boost_time_left =
+      obj.shift_boost_time_left > obj.shift_boost_time ? obj.shift_boost_time : obj.shift_boost_time_left;
+  }
+
+  if (keys.boost_pressed && obj.shift_boost_time_left > 0.0f) {
     obj.velocity *= obj.velocity_boost_modifier;
+  }
 
   // look in mouse direction
   bool look_at_mouse = true;
@@ -401,6 +417,12 @@ main()
 {
   std::cout << "booting up..." << std::endl;
   const auto app_start = std::chrono::high_resolution_clock::now();
+
+#ifdef WIN32
+#include <Windows.h>
+  // hide console
+  ::ShowWindow(::GetConsoleWindow(), SW_HIDE);
+#endif
 
   RandomState rnd;
   Application app("2D Game", static_cast<int>(screen_width), static_cast<int>(screen_height));
@@ -619,6 +641,22 @@ main()
     profiler.end(Profiler::Stage::Physics);
     profiler.begin(Profiler::Stage::SdlInput);
     {
+      // Settings: Fullscreen
+      if (app.get_input().get_key_down(key_fullscreen)) {
+        app.get_window().toggle_fullscreen(); // SDL2 window toggle
+        glm::ivec2 screen_size = app.get_window().get_size();
+        RenderCommand::set_viewport(0, 0, screen_size.x, screen_size.y);
+        screen_width = static_cast<float>(screen_size.x);
+        screen_height = static_cast<float>(screen_size.y);
+        projection = glm::ortho(0.0f, screen_width, screen_height, 0.0f, -1.0f, 1.0f);
+        instanced_quad_shader.bind();
+        instanced_quad_shader.set_mat4("projection", projection);
+      }
+
+      // Settings: Exit App
+      if (app.get_input().get_key_down(key_quit))
+        app.shutdown();
+
 #ifdef _DEBUG
 
       // Debug: Advance one frame
@@ -634,25 +672,9 @@ main()
         state = GameState::GAME_OVER_SCREEN;
       }
 
-      // Settings: Exit App
-      if (app.get_input().get_key_down(key_quit))
-        app.shutdown();
-
       // Settings: Toggle Console
       if (app.get_input().get_key_down(key_console))
         show_console = !show_console;
-
-      // Settings: Fullscreen
-      if (app.get_input().get_key_down(key_fullscreen)) {
-        app.get_window().toggle_fullscreen(); // SDL2 window toggle
-        glm::ivec2 screen_size = app.get_window().get_size();
-        RenderCommand::set_viewport(0, 0, screen_size.x, screen_size.y);
-        screen_width = static_cast<float>(screen_size.x);
-        screen_height = static_cast<float>(screen_size.y);
-        projection = glm::ortho(0.0f, screen_width, screen_height, 0.0f, -1.0f, 1.0f);
-        instanced_quad_shader.bind();
-        instanced_quad_shader.set_mat4("projection", projection);
-      }
 
       // Shader hot reloading
       // if (app.get_input().get_key_down(SDL_SCANCODE_R)) {
@@ -666,7 +688,6 @@ main()
         entities_player.pop_back(); // kill the first player >:(
         player_keys.pop_back();
       }
-
 #endif // _DEBUG
     }
     profiler.end(Profiler::Stage::SdlInput);
@@ -796,6 +817,7 @@ main()
             ImGui::Text("angle %f", player.angle_radians);
             ImGui::Text("hp_max %i", player.hits_able_to_be_taken);
             ImGui::Text("hits taken %i", player.hits_taken);
+            ImGui::Text("boost %f", player.shift_boost_time_left);
             ImGui::Separator();
           }
 
