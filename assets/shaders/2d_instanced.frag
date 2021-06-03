@@ -14,28 +14,6 @@ const float scale_y = 1.0f / num_rows;
 uniform sampler2D tex;
 // uniform bool aces_tone_mapping;
 
-vec3
-aces(vec3 x)
-{
-  const float a = 2.51;
-  const float b = 0.03;
-  const float c = 2.43;
-  const float d = 0.59;
-  const float e = 0.14;
-  return clamp((x * (a * x + b)) / (x * (c * x + d) + e), 0.0, 1.0);
-}
-
-float
-aces(float x)
-{
-  const float a = 2.51;
-  const float b = 0.03;
-  const float c = 2.43;
-  const float d = 0.59;
-  const float e = 0.14;
-  return clamp((x * (a * x + b)) / (x * (c * x + d) + e), 0.0, 1.0);
-}
-
 void
 main()
 {
@@ -46,10 +24,13 @@ main()
   );
   // clang-format on
 
-  vec4 c = v_colour * texture(tex, sprite_tex_coord);
-  // if (aces_tone_mapping) {
-  // out_colour = vec4(aces(c.xyz), c.w);
-  // } else {
+  vec4 c;
+
+  if (v_sprite_pos.x == 0 && v_sprite_pos.y == 0) {
+    c = v_colour * texture(tex, v_tex);
+  } else {
+    c = v_colour * texture(tex, sprite_tex_coord);
+  }
+
   out_colour = c;
-  // }
 }

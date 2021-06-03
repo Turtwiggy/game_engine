@@ -6,5 +6,7 @@ assimp
 openssl
 protobuf
 gtest
+openal-soft
+libsndfile
 --triplet
 x64-windows

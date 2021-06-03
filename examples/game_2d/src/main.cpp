@@ -1,6 +1,6 @@
-// -- Resources --
-// https://github.com/Turtwiggy/Dwarf-and-Blade/blob/master/src/sprite_renderer.cpp
-// https://github.com/Turtwiggy/Dwarf-and-Blade/tree/master/src
+//
+// A 2D thing.
+//
 
 // c++ lib headers
 #include <filesystem>
@@ -19,6 +19,7 @@
 
 // fightingengine headers
 #include "engine/application.hpp"
+#include "engine/audio.hpp"
 #include "engine/maths_core.hpp"
 #include "engine/opengl/render_command.hpp"
 #include "engine/ui/profiler_panel.hpp"
@@ -39,7 +40,7 @@ using namespace game2d;
 float screen_width = 720.0f;
 float screen_height = 480.0f;
 bool show_game_info = true;
-bool show_profiler = false;
+bool show_profiler = true;
 bool show_console = false;
 bool show_demo_window = false;
 bool advance_one_frame = false;
@@ -90,14 +91,13 @@ glm::vec4 wall_colour = chosen_colour_3;        // grey
 glm::vec4 logo_entity_colour = chosen_colour_3; // grey
 // entity sprite defaults
 sprite::type logo_sprite = sprite::type::WALL_BIG;
-sprite::type player_sprite = sprite::type::TREE_1;
-sprite::type bullet_sprite = sprite::type::TREE_1;
+sprite::type player_sprite = sprite::type::SPACE_VEHICLE_1;
+sprite::type bullet_sprite = sprite::type::ROCKET_2;
 sprite::type wall_sprite = sprite::type::WALL_BIG;
 // entity: enemy
 float wall_seconds_between_spawning = 0.5f;
 float wall_seconds_between_spawning_left = 0.0f;
 const float enemy_default_speed = 50.0f;
-// entity: player
 
 namespace gameobject {
 
@@ -120,7 +120,7 @@ create_camera()
 }
 
 static void
-update_position(GameObject2D& camera, const PlayerKeysAndKeyState& keys, Application& app, float delta_time_s)
+update_position(GameObject2D& camera, const KeysAndState& keys, Application& app, float delta_time_s)
 {
   // go.pos = glm::vec2(other.pos.x - screen_width / 2.0f, other.pos.y - screen_height / 2.0f);
   if (app.get_input().get_key_held(keys.key_camera_left))
@@ -193,7 +193,7 @@ create_player()
   game_object.velocity_boost_modifier = 2.0f;
   game_object.speed_default = 50.0f;
   game_object.speed_current = game_object.speed_default;
-  game_object.invulnerable = false;
+  game_object.invulnerable = true;
   game_object.hits_able_to_be_taken = 10;
   game_object.colour = player_colour;
 
@@ -201,7 +201,7 @@ create_player()
 };
 
 static void
-update_input(GameObject2D& obj, PlayerKeysAndKeyState& keys, Application& app, GameObject2D& camera)
+update_input(GameObject2D& obj, KeysAndState& keys, Application& app, GameObject2D& camera)
 {
   keys.l_analogue_x = 0.0f;
   keys.l_analogue_y = 0.0f;
@@ -263,9 +263,10 @@ update_input(GameObject2D& obj, PlayerKeysAndKeyState& keys, Application& app, G
 // shoot
 static void
 update_game_logic(GameObject2D& obj,
-                  const PlayerKeysAndKeyState& keys,
+                  const KeysAndState& keys,
                   std::vector<GameObject2D>& bullets,
-                  float delta_time_s)
+                  float delta_time_s,
+                  ALint source_id)
 {
   // process input
   obj.velocity.x = keys.l_analogue_x;
@@ -335,10 +336,12 @@ update_game_logic(GameObject2D& obj,
     bullet_copy.velocity.y = bullet_copy.speed_current;
 
     bullets.push_back(bullet_copy);
+
+    audio::play_sound(source_id);
   }
 }
 
-}; // namespace: player
+} // namespace player
 
 namespace enemy {
 
@@ -415,23 +418,19 @@ enemy_chase_player(std::vector<GameObject2D>& objs, GameObject2D& player, float 
 int
 main()
 {
+#ifdef WIN32
+#include <Windows.h>
+  ::ShowWindow(::GetConsoleWindow(), SW_HIDE); // hide console
+#endif
+
   std::cout << "booting up..." << std::endl;
   const auto app_start = std::chrono::high_resolution_clock::now();
 
-#ifdef WIN32
-#include <Windows.h>
-  // hide console
-  ::ShowWindow(::GetConsoleWindow(), SW_HIDE);
-#endif
-
   RandomState rnd;
   Application app("2D Game", static_cast<int>(screen_width), static_cast<int>(screen_height));
-  SDL_GL_SetSwapInterval(1); // VSync
-
+  // SDL_GL_SetSwapInterval(1); // VSync
   Profiler profiler;
   Console console;
-
-  glm::mat4 projection = glm::ortho(0.0f, screen_width, screen_height, 0.0f, -1.0f, 1.0f);
 
   // controllers
   // could improve: currently only checks for controller once at start of app
@@ -456,9 +455,40 @@ main()
                                 "assets/textures/kennynl_1bit_pack/Tilesheet/monochrome_transparent_packed.png");
   load_textures_threaded(textures_to_load, app_start);
 
-  // TODO sound
+  // sound
+
+  // audio setup, which opens one device and one context
+  audio::init_al();
+
+  // audio buffers e.g. sound effects
+  ALuint audio_gunshot_0 = audio::load_sound("assets/audio/seb/Gun_01_shoot.wav");
+  ALuint audio_enemy_hit = audio::load_sound("assets/audio/seb/Impact_03.wav");
+  ALuint audio_menu_0 = audio::load_sound("assets/audio/menu-8-bit-adventure.wav");
+  ALuint audio_game_0 = audio::load_sound("assets/audio/game2-downforce.wav");
+  ALuint audio_game_1 = audio::load_sound("assets/audio/game1-sawtines.wav");
+
+  float master_volume = 0.1f;
+
+  // audio source e.g. sheep with position.
+  ALuint audio_source_enemy_hit;
+  alGenSources(1, &audio_source_enemy_hit);
+  alSourcei(audio_source_enemy_hit, AL_BUFFER, (ALint)audio_enemy_hit);
+  alSourcef(audio_source_enemy_hit, AL_GAIN, master_volume);
+
+  ALuint audio_source_bullet;
+  alGenSources(1, &audio_source_bullet);                             // generate source
+  alSourcei(audio_source_bullet, AL_BUFFER, (ALint)audio_gunshot_0); // attach buffer to source
+  alSourcef(audio_source_bullet, AL_GAIN, master_volume / 2.0f);     // set volume
+
+  // alSourcef(audio_source_continuous_music, AL_PITCH, 1.0f); // set pitch
+  // ALenum audio_state;   // get state of source
+  // alGetSourcei(audio_source_continuous_music, AL_SOURCE_STATE, &audio_state);
+  // ALfloat audio_offset; // get offset of source
+  // alGetSourcef(audio_source_continuous_music, AL_SEC_OFFSET, &audio_offset);
 
   // Rendering
+
+  glm::mat4 projection = glm::ortho(0.0f, screen_width, screen_height, 0.0f, -1.0f, 1.0f);
 
   RenderCommand::init();
   RenderCommand::set_viewport(0, 0, static_cast<uint32_t>(screen_width), static_cast<uint32_t>(screen_height));
@@ -483,17 +513,14 @@ main()
   //   logo_entity.pos = { screen_width / 2.0f, screen_height / 2.0f };
   //   logo_entity.size = { 4.0f * 768.0f / 48.0f, 4.0f * 362.0f / 22.0f };
 
-  //   GameObject2D tex_obj;
-  //   tex_obj.tex_slot = tex_unit_kenny_nl;
-  //   tex_obj.name = "texture_sheet";
-  //   tex_obj.pos = { 0.0f, 20.0f };
-  //   tex_obj.size = { 768.0f, 352.0f };
-
-  //   GameObject2D tex_background;
-  //   tex_background.sprite = sprite::type::SQUARE;
-  //   tex_background.tex_slot = tex_unit_kenny_nl;
-  //   tex_background.name = "textured_background";
-  //   tex_background.size = { screen_width, screen_height };
+  GameObject2D tex_obj;
+  tex_obj.tex_slot = tex_unit_kenny_nl;
+  tex_obj.name = "texture_sheet";
+  tex_obj.pos = { 0.0f, 20.0f };
+  tex_obj.size = { 768.0f, 352.0f };
+  tex_obj.colour = glm::vec4(1.0f, 1.0f, 1.0f, 1.0f);
+  tex_obj.angle_radians = 0.0;
+  tex_obj.sprite = sprite::type::EMPTY;
 
   // entities
 
@@ -502,7 +529,7 @@ main()
   std::vector<GameObject2D> entities_walls;
   std::vector<GameObject2D> entities_bullets;
   std::vector<GameObject2D> entities_player;
-  std::vector<PlayerKeysAndKeyState> player_keys;
+  std::vector<KeysAndState> player_keys;
 
   { // populate defaults
     GameObject2D player0 = player::create_player();
@@ -511,9 +538,9 @@ main()
     entities_player.push_back(player0);
     // entities_player.push_back(player1);
 
-    PlayerKeysAndKeyState player0_keys;
+    KeysAndState player0_keys;
     player0_keys.use_keyboard = true;
-    PlayerKeysAndKeyState player1_keys;
+    KeysAndState player1_keys;
     player1_keys.use_keyboard = true;
     player1_keys.w = SDL_Scancode::SDL_SCANCODE_I;
     player1_keys.s = SDL_Scancode::SDL_SCANCODE_K;
@@ -533,7 +560,6 @@ main()
   // ---- App ----
 
   while (app.is_running()) {
-
     profiler.new_frame();
     profiler.begin(Profiler::Stage::UpdateLoop);
 
@@ -544,6 +570,7 @@ main()
 
     profiler.begin(Profiler::Stage::Physics);
     {
+
       if (state == GameState::GAME_ACTIVE || (state == GameState::GAME_PAUSED && advance_one_frame)) {
 
         // FIXED PHYSICS TICK
@@ -598,7 +625,9 @@ main()
 
           // TODO: narrow-phase; per-model collision? convex shapes?
 
+          //
           // game's response
+          //
 
           for (auto& c : filtered_collisions) {
 
@@ -615,6 +644,7 @@ main()
                   // what to do if a wall collided? remove it
                   entities_walls.erase(entities_walls.begin() + i);
                   objects_destroyed += 1;
+                  audio::play_sound(audio_source_enemy_hit);
 
                   // other object was player?
                   for (int j = 0; j < entities_player.size(); j++) {
@@ -694,9 +724,11 @@ main()
     profiler.begin(Profiler::Stage::GameTick);
     {
 
+      // Update player's input
+
       for (int i = 0; i < entities_player.size(); i++) {
         GameObject2D& player = entities_player[i];
-        PlayerKeysAndKeyState& keys = player_keys[i];
+        KeysAndState& keys = player_keys[i];
 
         player::update_input(player, keys, app, camera);
 
@@ -704,13 +736,15 @@ main()
           state = state == GameState::GAME_PAUSED ? GameState::GAME_ACTIVE : GameState::GAME_PAUSED;
       }
 
+      // Update game state
+
       if (state == GameState::GAME_ACTIVE) {
 
         for (int i = 0; i < entities_player.size(); i++) {
           GameObject2D& player = entities_player[i];
-          PlayerKeysAndKeyState& keys = player_keys[i];
+          KeysAndState& keys = player_keys[i];
 
-          player::update_game_logic(player, keys, entities_bullets, delta_time_s);
+          player::update_game_logic(player, keys, entities_bullets, delta_time_s, audio_source_bullet);
 
           bool player_alive = player.invulnerable || player.hits_taken < player.hits_able_to_be_taken;
           if (!player_alive)
@@ -776,6 +810,10 @@ main()
           sprite_renderer::draw_sprite_debug(
             camera, screen_wh, instanced_quad_shader, obj.get(), colour_shader, debug_line_colour);
         }
+
+        // draw the spritesheet for reference
+        sprite_renderer::draw_sprite_debug(
+          camera, screen_wh, instanced_quad_shader, tex_obj, colour_shader, debug_line_colour);
 
         // sprite_renderer::draw_instanced_sprite(camera,
         //                                        screen_wh,
@@ -870,4 +908,6 @@ main()
     profiler.end(Profiler::Stage::FrameEnd);
     profiler.end(Profiler::Stage::UpdateLoop);
   }
+
+  // end app running
 }

@@ -19,7 +19,7 @@ enum class CollisionLayer
   Count = 4
 };
 
-struct PlayerKeysAndKeyState
+struct KeysAndState
 {
   int associated_player_id = 0;
 

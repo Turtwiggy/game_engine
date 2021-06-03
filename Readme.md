@@ -12,8 +12,9 @@ An opengl game engine project.
 - batch renderer
 
 #### 2d game things
-- (in p) controller support via sdl2
+- (in p) controller support via SDL2
 - (in p) local coop
+- (in p) audio via OpenAL
 
 #### 3d
 - model loading
