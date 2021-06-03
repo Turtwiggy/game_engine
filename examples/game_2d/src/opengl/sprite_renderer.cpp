@@ -33,7 +33,7 @@ struct Vertex
   glm::mat4 model;
 };
 
-static const size_t max_quad = 1000;
+static const size_t max_quad = 5000;
 static const size_t max_quad_vert_count = max_quad * 4;
 static const size_t max_quad_index_count = max_quad * 6;
 

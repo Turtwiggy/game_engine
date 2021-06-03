@@ -91,11 +91,14 @@ glm::vec4 wall_colour = chosen_colour_3;        // grey
 glm::vec4 logo_entity_colour = chosen_colour_3; // grey
 // entity sprite defaults
 sprite::type logo_sprite = sprite::type::WALL_BIG;
-sprite::type player_sprite = sprite::type::SPACE_VEHICLE_1;
+sprite::type player_sprite = sprite::type::TREE_4;
 sprite::type bullet_sprite = sprite::type::ROCKET_2;
 sprite::type wall_sprite = sprite::type::WALL_BIG;
 // entity: enemy
-float wall_seconds_between_spawning = 0.5f;
+float seconds_until_max_difficulty = 10.0f;
+float seconds_until_max_difficulty_spent = 0.0f;
+float wall_seconds_between_spawning_start = 0.5f;
+float wall_seconds_between_spawning_current = wall_seconds_between_spawning_start;
 float wall_seconds_between_spawning_left = 0.0f;
 const float enemy_default_speed = 50.0f;
 
@@ -372,7 +375,7 @@ enemy_spawner(std::vector<GameObject2D>& enemies,
 
   wall_seconds_between_spawning_left -= delta_time_s;
   if (wall_seconds_between_spawning_left <= 0.0f) {
-    wall_seconds_between_spawning_left = wall_seconds_between_spawning;
+    wall_seconds_between_spawning_left = wall_seconds_between_spawning_current;
 
     // glm::ivec2 mouse_pos = app.get_input().get_mouse_pos();
     // printf("(game) mmb clicked %i %i \n", mouse_pos.x, mouse_pos.y);
@@ -386,6 +389,14 @@ enemy_spawner(std::vector<GameObject2D>& enemies,
     wall_copy.pos = world_pos; // override defaults
     enemies.push_back(wall_copy);
   }
+
+  // increase difficulty
+  // 0.5 is starting cooldown
+  // after 30 seconds, cooldown should be 0
+  const float end_cooldown = 0.2f;
+  seconds_until_max_difficulty_spent += delta_time_s;
+  float percent = glm::clamp(seconds_until_max_difficulty_spent / seconds_until_max_difficulty, 0.0f, 1.0f);
+  wall_seconds_between_spawning_current = glm::mix(wall_seconds_between_spawning_start, end_cooldown, percent);
 };
 
 // rotate to player
@@ -457,8 +468,8 @@ main()
 
   // sound
 
-  // audio setup, which opens one device and one context
-  audio::init_al();
+  float master_volume = 0.1f;
+  audio::init_al(); // audio setup, which opens one device and one context
 
   // audio buffers e.g. sound effects
   ALuint audio_gunshot_0 = audio::load_sound("assets/audio/seb/Gun_01_shoot.wav");
@@ -466,8 +477,6 @@ main()
   ALuint audio_menu_0 = audio::load_sound("assets/audio/menu-8-bit-adventure.wav");
   ALuint audio_game_0 = audio::load_sound("assets/audio/game2-downforce.wav");
   ALuint audio_game_1 = audio::load_sound("assets/audio/game1-sawtines.wav");
-
-  float master_volume = 0.1f;
 
   // audio source e.g. sheep with position.
   ALuint audio_source_enemy_hit;
@@ -485,6 +494,8 @@ main()
   // alGetSourcei(audio_source_continuous_music, AL_SOURCE_STATE, &audio_state);
   // ALfloat audio_offset; // get offset of source
   // alGetSourcef(audio_source_continuous_music, AL_SEC_OFFSET, &audio_offset);
+
+  log_time_since("(INFO) Audio Loaded ", app_start);
 
   // Rendering
 
@@ -554,7 +565,7 @@ main()
 
   uint32_t objects_destroyed = 0;
 
-  std::cout << " a game object is: " << sizeof(GameObject2D) << " bytes" << std::endl;
+  std::cout << "GameObject2D is " << sizeof(GameObject2D) << " bytes" << std::endl;
   log_time_since("(INFO) End Setup ", app_start);
 
   // ---- App ----
@@ -740,6 +751,8 @@ main()
 
       if (state == GameState::GAME_ACTIVE) {
 
+        // update: players
+
         for (int i = 0; i < entities_player.size(); i++) {
           GameObject2D& player = entities_player[i];
           KeysAndState& keys = player_keys[i];
@@ -773,6 +786,8 @@ main()
             ++it_1;
           }
         }
+
+        // update: spawn enemies
 
         size_t players_in_game = entities_player.size();
         if (players_in_game > 0) {
@@ -863,6 +878,7 @@ main()
           ImGui::Text("Walls: %i", entities_walls.size());
           ImGui::Text("Bullets: %i", entities_bullets.size());
           ImGui::Text("(game) destroyed: %i", objects_destroyed);
+          ImGui::Text("(game) enemy spawn rate: %f", wall_seconds_between_spawning_current);
 #ifdef _DEBUG
           auto state_name = magic_enum::enum_name(state);
           ImGui::Text("(game) state: %s", std::string(state_name).data());
