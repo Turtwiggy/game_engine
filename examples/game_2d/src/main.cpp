@@ -44,7 +44,8 @@ bool show_profiler = true;
 bool show_console = false;
 bool show_demo_window = false;
 bool advance_one_frame = false;
-bool app_mute_sfx = false;
+bool app_fullscreen = false;
+bool app_mute_sfx = true;
 bool app_use_vsync = false;
 bool app_limit_framerate = true;
 
@@ -343,7 +344,8 @@ update_game_logic(GameObject2D& obj,
 
     bullets.push_back(bullet_copy);
 
-    audio::play_sound(source_id);
+    if (!app_mute_sfx)
+      audio::play_sound(source_id);
   }
 }
 
@@ -370,11 +372,13 @@ create_enemy()
 static void
 enemy_spawner(std::vector<GameObject2D>& enemies,
               GameObject2D& camera,
+              std::vector<GameObject2D>& players,
               RandomState& rnd,
               float screen_height,
               float screen_width,
               float delta_time_s)
 {
+  const float safe_radius_around_player = 9000.0f;
 
   wall_seconds_between_spawning_left -= delta_time_s;
   if (wall_seconds_between_spawning_left <= 0.0f) {
@@ -384,9 +388,47 @@ enemy_spawner(std::vector<GameObject2D>& enemies,
     // printf("(game) mmb clicked %i %i \n", mouse_pos.x, mouse_pos.y);
     // glm::vec2 world_pos = glm::vec2(mouse_pos) + camera.pos;
 
-    glm::vec2 rnd_pos =
-      glm::vec2(rand_det_s(rnd.rng, 0.0f, 1.0f) * screen_width, rand_det_s(rnd.rng, 0.0f, 1.0f) * screen_height);
-    glm::vec2 world_pos = rnd_pos + camera.pos;
+    bool continue_search = true;
+    int iterations_max = 2;
+    int iteration = 0;
+    glm::vec2 found_pos = { 0.0f, 0.0f };
+
+    // generate random pos not too close to players
+    do {
+
+      // tried to generate X times
+      if (iteration == iterations_max) {
+        // ah, screw it, just spawn at 0, 0
+        continue_search = false;
+        break;
+      }
+
+      bool ok = true;
+      glm::vec2 rnd_pos =
+        glm::vec2(rand_det_s(rnd.rng, 0.0f, 1.0f) * screen_width, rand_det_s(rnd.rng, 0.0f, 1.0f) * screen_height);
+      std::cout << "gen pos x: " << rnd_pos.x << " y: " << rnd_pos.y << std::endl;
+
+      for (auto& player : players) {
+
+        float x_dist = rnd_pos.x - player.pos.x;
+        float x_dist_squared = x_dist * x_dist;
+        float y_dist = rnd_pos.y - player.pos.y;
+        float y_dist_squared = y_dist * y_dist;
+
+        float distance_squared = x_dist_squared + y_dist_squared;
+        ok = distance_squared < safe_radius_around_player;
+
+        if (ok) {
+          continue_search = false;
+          found_pos = rnd_pos;
+          break;
+        }
+        iteration += 1;
+      }
+
+    } while (continue_search);
+
+    glm::vec2 world_pos = found_pos + camera.pos;
 
     GameObject2D wall_copy = create_enemy();
     wall_copy.pos = world_pos; // override defaults
@@ -428,6 +470,26 @@ enemy_chase_player(std::vector<GameObject2D>& objs, GameObject2D& player, float 
 }
 
 } // namespace: enemy
+
+namespace events {
+
+void
+toggle_fullscreen(Application& app, std::vector<std::reference_wrapper<Shader>>& shaders)
+{
+  app.get_window().toggle_fullscreen(); // SDL2 window toggle
+  glm::ivec2 screen_size = app.get_window().get_size();
+  RenderCommand::set_viewport(0, 0, screen_size.x, screen_size.y);
+  screen_width = static_cast<float>(screen_size.x);
+  screen_height = static_cast<float>(screen_size.y);
+  glm::mat4 projection = glm::ortho(0.0f, screen_width, screen_height, 0.0f, -1.0f, 1.0f);
+
+  for (auto& shader : shaders) {
+    shader.get().bind();
+    shader.get().set_mat4("projection", projection);
+  }
+}
+
+}
 
 int
 main()
@@ -477,21 +539,31 @@ main()
 
   // audio buffers e.g. sound effects
   ALuint audio_gunshot_0 = audio::load_sound("assets/2d_game/audio/seb/Gun_03_shoot.wav");
-  ALuint audio_enemy_hit = audio::load_sound("assets/2d_game/audio/seb/Impact_03.wav");
+  ALuint audio_impact_0 = audio::load_sound("assets/2d_game/audio/seb/Impact_01.wav");
+  ALuint audio_impact_1 = audio::load_sound("assets/2d_game/audio/seb/Impact_02.wav");
+  ALuint audio_impact_2 = audio::load_sound("assets/2d_game/audio/seb/Impact_03.wav");
   // ALuint audio_menu_0 = audio::load_sound("assets/2d_game/audio/menu-8-bit-adventure.wav");
   // ALuint audio_game_0 = audio::load_sound("assets/2d_game/audio/game2-downforce.wav");
   // ALuint audio_game_1 = audio::load_sound("assets/2d_game/audio/game1-sawtines.wav");
 
   // audio source e.g. sheep with position.
-  ALuint audio_source_enemy_hit;
-  alGenSources(1, &audio_source_enemy_hit);
-  alSourcei(audio_source_enemy_hit, AL_BUFFER, (ALint)audio_enemy_hit);
-  alSourcef(audio_source_enemy_hit, AL_GAIN, master_volume);
-
   ALuint audio_source_bullet;
   alGenSources(1, &audio_source_bullet);                             // generate source
   alSourcei(audio_source_bullet, AL_BUFFER, (ALint)audio_gunshot_0); // attach buffer to source
   alSourcef(audio_source_bullet, AL_GAIN, master_volume / 2.0f);     // set volume
+  ALuint audio_source_impact_0;
+  alGenSources(1, &audio_source_impact_0);
+  alSourcei(audio_source_impact_0, AL_BUFFER, (ALint)audio_impact_0);
+  alSourcef(audio_source_impact_0, AL_GAIN, master_volume);
+  ALuint audio_source_impact_1;
+  alGenSources(1, &audio_source_impact_1);
+  alSourcei(audio_source_impact_1, AL_BUFFER, (ALint)audio_impact_1);
+  alSourcef(audio_source_impact_1, AL_GAIN, master_volume);
+  ALuint audio_source_impact_2;
+  alGenSources(1, &audio_source_impact_2);
+  alSourcei(audio_source_impact_2, AL_BUFFER, (ALint)audio_impact_2);
+  alSourcef(audio_source_impact_2, AL_GAIN, master_volume);
+  std::vector<ALuint> audio_list_impacts = { audio_impact_0, audio_impact_1, audio_impact_2 };
 
   // alSourcef(audio_source_continuous_music, AL_PITCH, 1.0f); // set pitch
   // ALenum audio_state;   // get state of source
@@ -503,21 +575,28 @@ main()
 
   // Rendering
 
-  glm::mat4 projection = glm::ortho(0.0f, screen_width, screen_height, 0.0f, -1.0f, 1.0f);
+  Shader colour_shader = Shader("2d_game/shaders/2d_basic.vert", "2d_game/shaders/2d_colour.frag");
+  Shader instanced_quad_shader = Shader("2d_game/shaders/2d_instanced.vert", "2d_game/shaders/2d_instanced.frag");
+
+  { // set shader attribs
+    glm::mat4 projection = glm::ortho(0.0f, screen_width, screen_height, 0.0f, -1.0f, 1.0f);
+
+    colour_shader.bind();
+    colour_shader.set_vec4("colour", chosen_colour_1);
+
+    instanced_quad_shader.bind();
+    instanced_quad_shader.set_mat4("projection", projection);
+    instanced_quad_shader.set_int("tex", tex_unit_kenny_nl);
+  }
 
   RenderCommand::init();
   RenderCommand::set_viewport(0, 0, static_cast<uint32_t>(screen_width), static_cast<uint32_t>(screen_height));
   RenderCommand::set_depth_testing(false); // disable depth testing for 2d
   sprite_renderer::init();
 
-  Shader colour_shader = Shader("2d_game/shaders/2d_basic.vert", "2d_game/shaders/2d_colour.frag");
-  colour_shader.bind();
-  colour_shader.set_vec4("colour", chosen_colour_1);
-
-  Shader instanced_quad_shader = Shader("2d_game/shaders/2d_instanced.vert", "2d_game/shaders/2d_instanced.frag");
-  instanced_quad_shader.bind();
-  instanced_quad_shader.set_mat4("projection", projection);
-  instanced_quad_shader.set_int("tex", tex_unit_kenny_nl);
+  std::vector<std::reference_wrapper<Shader>> shaders;
+  shaders.push_back(colour_shader);
+  shaders.push_back(instanced_quad_shader);
 
   // game
 
@@ -538,6 +617,8 @@ main()
   tex_obj.sprite = sprite::type::EMPTY;
 
   // entities
+
+  uint32_t objects_destroyed = 0;
 
   GameObject2D camera = camera::create_camera();
 
@@ -566,8 +647,6 @@ main()
     player_keys.push_back(player0_keys);
     // player_keys.push_back(player1_keys);
   }
-
-  uint32_t objects_destroyed = 0;
 
   std::cout << "GameObject2D is " << sizeof(GameObject2D) << " bytes" << std::endl;
   log_time_since("(INFO) End Setup ", app_start);
@@ -661,7 +740,13 @@ main()
                   // what to do if a wall collided? remove it
                   entities_walls.erase(entities_walls.begin() + i);
                   objects_destroyed += 1;
-                  audio::play_sound(audio_source_enemy_hit);
+
+                  if (!app_mute_sfx) {
+                    // choose a random impact sound
+                    float r = rand_det_s(rnd.rng, 0.0f, 3.0f);
+                    ALuint rnd_impact = audio_list_impacts[static_cast<int>(r)];
+                    audio::play_sound(rnd_impact);
+                  }
 
                   // other object was player?
                   for (int j = 0; j < entities_player.size(); j++) {
@@ -690,14 +775,8 @@ main()
     {
       // Settings: Fullscreen
       if (app.get_input().get_key_down(key_fullscreen)) {
-        app.get_window().toggle_fullscreen(); // SDL2 window toggle
-        glm::ivec2 screen_size = app.get_window().get_size();
-        RenderCommand::set_viewport(0, 0, screen_size.x, screen_size.y);
-        screen_width = static_cast<float>(screen_size.x);
-        screen_height = static_cast<float>(screen_size.y);
-        projection = glm::ortho(0.0f, screen_width, screen_height, 0.0f, -1.0f, 1.0f);
-        instanced_quad_shader.bind();
-        instanced_quad_shader.set_mat4("projection", projection);
+        events::toggle_fullscreen(app, shaders);
+        app_fullscreen = app.get_window().get_fullscreen();
       }
 
       // Settings: Exit App
@@ -803,7 +882,7 @@ main()
           enemy::enemy_chase_player(entities_walls, player_to_chase, delta_time_s);
 
           //... and only spawn enemies if there is a player.
-          enemy::enemy_spawner(entities_walls, camera, rnd, screen_height, screen_width, delta_time_s);
+          enemy::enemy_spawner(entities_walls, camera, entities_player, rnd, screen_height, screen_width, delta_time_s);
         }
       }
 
@@ -858,28 +937,44 @@ main()
 
         bool temp = false;
 
-        temp = app_limit_framerate;
-        ImGui::Checkbox("Limit Framerate", &temp);
-        if (temp != app_limit_framerate) {
-          std::cout << "Limit fps toggled to: " << temp << std::endl;
-          app.limit_fps = temp;
+        {
+          temp = app_limit_framerate;
+          ImGui::Checkbox("Limit Framerate", &temp);
+          if (temp != app_limit_framerate) {
+            std::cout << "Limit fps toggled to: " << temp << std::endl;
+            app.limit_fps = temp;
+          }
+          app_limit_framerate = temp;
         }
-        app_limit_framerate = temp;
 
-        temp = app_mute_sfx;
-        ImGui::Checkbox("Mute SFX", &temp);
-        if (temp != app_mute_sfx) {
-          std::cout << "sfx toggled to: " << temp << std::endl;
+        {
+          temp = app_mute_sfx;
+          ImGui::Checkbox("Mute SFX", &temp);
+          if (temp != app_mute_sfx) {
+            std::cout << "sfx toggled to: " << temp << std::endl;
+          }
+          app_mute_sfx = temp;
         }
-        app_mute_sfx = temp;
 
-        temp = app_use_vsync;
-        ImGui::Checkbox("VSync", &temp);
-        if (temp != app_use_vsync) {
-          std::cout << "vsync toggled to: " << temp << std::endl;
-          app.get_window().set_vsync_opengl(temp);
+        {
+          temp = app_use_vsync;
+          ImGui::Checkbox("VSync", &temp);
+          if (temp != app_use_vsync) {
+            std::cout << "vsync toggled to: " << temp << std::endl;
+            app.get_window().set_vsync_opengl(temp);
+          }
+          app_use_vsync = temp;
         }
-        app_use_vsync = temp;
+
+        {
+          temp = app_fullscreen;
+          ImGui::Checkbox("Fullscreen", &app_fullscreen);
+          if (temp != app_fullscreen) {
+            std::cout << "app_fullscreen toggled to: " << temp << std::endl;
+            events::toggle_fullscreen(app, shaders);
+          }
+          app_fullscreen = temp;
+        }
 
         if (ImGui::MenuItem("Quit", "Esc"))
           app.shutdown();
