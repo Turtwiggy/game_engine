@@ -14,7 +14,7 @@
 // your project headers
 #include "engine/opengl/util.hpp"
 
-#define SHADER_ASSET_PATH "assets/shaders/"
+#define SHADER_ASSET_PATH "assets/"
 
 namespace fightingengine {
 

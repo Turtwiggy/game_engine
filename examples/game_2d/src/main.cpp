@@ -472,7 +472,7 @@ main()
   audio::init_al(); // audio setup, which opens one device and one context
 
   // audio buffers e.g. sound effects
-  ALuint audio_gunshot_0 = audio::load_sound("assets/audio/seb/Gun_01_shoot.wav");
+  ALuint audio_gunshot_0 = audio::load_sound("assets/audio/seb/Gun_03_shoot.wav");
   ALuint audio_enemy_hit = audio::load_sound("assets/audio/seb/Impact_03.wav");
   ALuint audio_menu_0 = audio::load_sound("assets/audio/menu-8-bit-adventure.wav");
   ALuint audio_game_0 = audio::load_sound("assets/audio/game2-downforce.wav");
@@ -506,11 +506,11 @@ main()
   RenderCommand::set_depth_testing(false); // disable depth testing for 2d
   sprite_renderer::init();
 
-  Shader colour_shader = Shader("2d_basic.vert", "2d_colour.frag");
+  Shader colour_shader = Shader("shaders_2d/2d_basic.vert", "shaders_2d/2d_colour.frag");
   colour_shader.bind();
   colour_shader.set_vec4("colour", chosen_colour_1);
 
-  Shader instanced_quad_shader = Shader("2d_instanced.vert", "2d_instanced.frag");
+  Shader instanced_quad_shader = Shader("shaders_2d/2d_instanced.vert", "shaders_2d/2d_instanced.frag");
   instanced_quad_shader.bind();
   instanced_quad_shader.set_mat4("projection", projection);
   instanced_quad_shader.set_int("tex", tex_unit_kenny_nl);
