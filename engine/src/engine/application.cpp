@@ -15,7 +15,7 @@
 
 namespace fightingengine {
 
-Application::Application(const std::string& name, int width, int height)
+Application::Application(const std::string& name, int width, int height, bool vsync)
 {
   // const std::string kBuildStr(kGitSHA1Hash, 8);
   const std::string kBuildStr = "0.0.5";
@@ -24,7 +24,7 @@ Application::Application(const std::string& name, int width, int height)
   GameWindow::glsl_version = "#version 330";
   GameWindow::opengl_major = 3;
   GameWindow::opengl_minor = 3;
-  window = std::make_unique<GameWindow>(name + " [" + kBuildStr + "]", width, height, DisplayMode::BORDERLESS);
+  window = std::make_unique<GameWindow>(name + " [" + kBuildStr + "]", width, height, DisplayMode::BORDERLESS, vsync);
 
   imgui_manager.initialize(window.get());
 
@@ -55,11 +55,20 @@ Application::get_delta_time()
 }
 
 void
-Application::frame_end()
+Application::frame_end(Uint64& frame_start_time)
 {
   imgui_manager.end_frame(get_window());
 
   SDL_GL_SwapWindow(get_window().get_handle());
+
+  Uint64 frame_end_time = SDL_GetPerformanceCounter();
+  float elapsed_ms = (frame_end_time - frame_start_time) / static_cast<float>(SDL_GetPerformanceFrequency()) * 1000.0f;
+
+  if (limit_fps) {
+    auto delay = floor(1000.0f / fps_if_limited - elapsed_ms);
+    if (delay > 0.0f)
+      SDL_Delay(static_cast<Uint32>(delay));
+  }
 }
 
 void

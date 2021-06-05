@@ -48,7 +48,7 @@ private:
   bool new_grab = false;
 
 public:
-  GameWindow(const std::string& title, int width, int height, DisplayMode displaymode);
+  GameWindow(const std::string& title, int width, int height, DisplayMode displaymode, bool vsync);
 
   [[nodiscard]] SDL_Window* get_handle() const;
   [[nodiscard]] uint32_t get_sdl_id() const;
@@ -98,8 +98,13 @@ public:
   void restore();
   void raise();
 
+  // ---- opengl context in sdl2 window
   [[nodiscard]] SDL_GLContext& get_gl_context();
   [[nodiscard]] std::string get_glsl_version() const;
+
+  // ---- opengl specific impls
+  void set_vsync_opengl(const bool vs);
+  [[nodiscard]] bool get_vsync_opengl() const;
 };
 
 } // namespace fightingengine

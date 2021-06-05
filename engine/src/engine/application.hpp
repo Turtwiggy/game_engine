@@ -14,7 +14,10 @@ namespace fightingengine {
 class Application
 {
 public:
-  Application(const std::string& name = "Fighting Engine (Default)", int width = 1080, int height = 720);
+  Application(const std::string& name = "Fighting Engine (Default)",
+              int width = 1080,
+              int height = 720,
+              bool vsync = true);
   ~Application();
 
   [[nodiscard]] bool is_running() const;
@@ -22,9 +25,12 @@ public:
 
   [[nodiscard]] float get_delta_time();
   void frame_begin();
-  void frame_end();
+  void frame_end(Uint64& frame_start_time);
 
   float seconds_since_launch = 0.0f;
+
+  float fps_if_limited = 60.0f;
+  bool limit_fps = false;
 
   [[nodiscard]] GameWindow& get_window();
   [[nodiscard]] InputManager& get_input();

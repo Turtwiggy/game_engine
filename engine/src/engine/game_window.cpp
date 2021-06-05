@@ -11,7 +11,7 @@
 
 namespace fightingengine {
 
-GameWindow::GameWindow(const std::string& title, int width, int height, DisplayMode displaymode)
+GameWindow::GameWindow(const std::string& title, int width, int height, DisplayMode displaymode, bool vsync)
 {
   SDL_version compiledVersion, linkedVersion;
   SDL_VERSION(&compiledVersion);
@@ -59,12 +59,9 @@ GameWindow::GameWindow(const std::string& title, int width, int height, DisplayM
   SDL_Window* window = SDL_CreateWindow(title.c_str(), x, y, width, height, flags);
   if (window == nullptr) {
     std::cout << "Failed to create SDL2 window: " << SDL_GetError() << std::endl;
-    // throw std::runtime_error("Failed creating SDL2 window: " +
-    // std::string(SDL_GetError()));
   }
 
   SDL_SetWindowMinimumSize(window, 500, 300);
-  SDL_GL_SetSwapInterval(0); // VSync
   SDL_ShowCursor(SDL_ENABLE);
   SDL_SetRelativeMouseMode(SDL_FALSE);
 
@@ -75,24 +72,13 @@ GameWindow::GameWindow(const std::string& title, int width, int height, DisplayM
 
   if (gl_context == NULL) {
     printf("OpenGL context could not be created! SDL Error: %s\n", SDL_GetError());
-    // throw std::runtime_error("Failed creating SDL2 window: " +
-    // std::string(SDL_GetError()));
   } else {
     // Initialize GLEW
     glewExperimental = GL_TRUE;
     GLenum glewError = glewInit();
     if (glewError != GLEW_OK) {
       printf("Error initializing GLEW! %s\n", glewGetErrorString(glewError));
-      // throw std::runtime_error("Error initializing GLEW! " +
-      // std::string(SDL_GetError()));
     }
-
-    // //Check OpenGL
-    // GLenum error;
-    // while ((error = glGetError()) != GL_NO_ERROR)
-    // {
-    //     printf("ERROR GLEW: %s\n", gl_error_to_string(error));
-    // }
   }
 
   // SDL_GL_SetAttribute(SDL_GL_CONTEXT_FLAGS, 0);
@@ -100,6 +86,7 @@ GameWindow::GameWindow(const std::string& title, int width, int height, DisplayM
   SDL_GL_SetAttribute(SDL_GL_CONTEXT_PROFILE_MASK, SDL_GL_CONTEXT_PROFILE_CORE);
   SDL_GL_SetAttribute(SDL_GL_CONTEXT_MAJOR_VERSION, opengl_major);
   SDL_GL_SetAttribute(SDL_GL_CONTEXT_MINOR_VERSION, opengl_minor);
+  set_vsync_opengl(vsync);
 
   auto window_ptr = std::unique_ptr<SDL_Window, SDLDestroyer>(window);
   window_ = std::move(window_ptr);
@@ -370,6 +357,19 @@ std::string
 GameWindow::get_glsl_version() const
 {
   return glsl_version;
+}
+
+void
+GameWindow::set_vsync_opengl(const bool vs)
+{
+  SDL_GL_SetSwapInterval(vs);
+}
+
+bool
+GameWindow::get_vsync_opengl() const
+{
+  int enabled = SDL_GL_GetSwapInterval();
+  return static_cast<bool>(enabled);
 }
 
 }

@@ -44,7 +44,10 @@ bool show_profiler = true;
 bool show_console = false;
 bool show_demo_window = false;
 bool advance_one_frame = false;
-bool juice_game = false;
+bool app_mute_sfx = false;
+bool app_use_vsync = false;
+bool app_limit_framerate = true;
+
 // key bindings: application
 SDL_Scancode key_quit = SDL_SCANCODE_ESCAPE;
 SDL_Scancode key_console = SDL_SCANCODE_F12;
@@ -438,8 +441,9 @@ main()
   const auto app_start = std::chrono::high_resolution_clock::now();
 
   RandomState rnd;
-  Application app("2D Game", static_cast<int>(screen_width), static_cast<int>(screen_height));
-  // SDL_GL_SetSwapInterval(1); // VSync
+  Application app("2D Game", static_cast<int>(screen_width), static_cast<int>(screen_height), app_use_vsync);
+  app.limit_fps = app_limit_framerate;
+  app.fps_if_limited = 120.0f;
   Profiler profiler;
   Console console;
 
@@ -463,7 +467,7 @@ main()
 
   std::vector<std::pair<int, std::string>> textures_to_load;
   textures_to_load.emplace_back(tex_unit_kenny_nl,
-                                "assets/textures/kennynl_1bit_pack/Tilesheet/monochrome_transparent_packed.png");
+                                "assets/2d_game/textures/kennynl_1bit_pack/monochrome_transparent_packed.png");
   load_textures_threaded(textures_to_load, app_start);
 
   // sound
@@ -472,11 +476,11 @@ main()
   audio::init_al(); // audio setup, which opens one device and one context
 
   // audio buffers e.g. sound effects
-  ALuint audio_gunshot_0 = audio::load_sound("assets/audio/seb/Gun_03_shoot.wav");
-  ALuint audio_enemy_hit = audio::load_sound("assets/audio/seb/Impact_03.wav");
-  ALuint audio_menu_0 = audio::load_sound("assets/audio/menu-8-bit-adventure.wav");
-  ALuint audio_game_0 = audio::load_sound("assets/audio/game2-downforce.wav");
-  ALuint audio_game_1 = audio::load_sound("assets/audio/game1-sawtines.wav");
+  ALuint audio_gunshot_0 = audio::load_sound("assets/2d_game/audio/seb/Gun_03_shoot.wav");
+  ALuint audio_enemy_hit = audio::load_sound("assets/2d_game/audio/seb/Impact_03.wav");
+  // ALuint audio_menu_0 = audio::load_sound("assets/2d_game/audio/menu-8-bit-adventure.wav");
+  // ALuint audio_game_0 = audio::load_sound("assets/2d_game/audio/game2-downforce.wav");
+  // ALuint audio_game_1 = audio::load_sound("assets/2d_game/audio/game1-sawtines.wav");
 
   // audio source e.g. sheep with position.
   ALuint audio_source_enemy_hit;
@@ -506,11 +510,11 @@ main()
   RenderCommand::set_depth_testing(false); // disable depth testing for 2d
   sprite_renderer::init();
 
-  Shader colour_shader = Shader("shaders_2d/2d_basic.vert", "shaders_2d/2d_colour.frag");
+  Shader colour_shader = Shader("2d_game/shaders/2d_basic.vert", "2d_game/shaders/2d_colour.frag");
   colour_shader.bind();
   colour_shader.set_vec4("colour", chosen_colour_1);
 
-  Shader instanced_quad_shader = Shader("shaders_2d/2d_instanced.vert", "shaders_2d/2d_instanced.frag");
+  Shader instanced_quad_shader = Shader("2d_game/shaders/2d_instanced.vert", "2d_game/shaders/2d_instanced.frag");
   instanced_quad_shader.bind();
   instanced_quad_shader.set_mat4("projection", projection);
   instanced_quad_shader.set_int("tex", tex_unit_kenny_nl);
@@ -571,6 +575,8 @@ main()
   // ---- App ----
 
   while (app.is_running()) {
+
+    Uint64 frame_start_time = SDL_GetPerformanceCounter();
     profiler.new_frame();
     profiler.begin(Profiler::Stage::UpdateLoop);
 
@@ -847,10 +853,37 @@ main()
     profiler.begin(Profiler::Stage::GuiLoop);
     {
       if (ImGui::BeginMainMenuBar()) {
+        ImGui::Text("%.2f FPS (%.2f ms)", ImGui::GetIO().Framerate, 1000.0f / ImGui::GetIO().Framerate);
+        // ImGui::SameLine(ImGui::GetWindowWidth());
+
+        bool temp = false;
+
+        temp = app_limit_framerate;
+        ImGui::Checkbox("Limit Framerate", &temp);
+        if (temp != app_limit_framerate) {
+          std::cout << "Limit fps toggled to: " << temp << std::endl;
+          app.limit_fps = temp;
+        }
+        app_limit_framerate = temp;
+
+        temp = app_mute_sfx;
+        ImGui::Checkbox("Mute SFX", &temp);
+        if (temp != app_mute_sfx) {
+          std::cout << "sfx toggled to: " << temp << std::endl;
+        }
+        app_mute_sfx = temp;
+
+        temp = app_use_vsync;
+        ImGui::Checkbox("VSync", &temp);
+        if (temp != app_use_vsync) {
+          std::cout << "vsync toggled to: " << temp << std::endl;
+          app.get_window().set_vsync_opengl(temp);
+        }
+        app_use_vsync = temp;
+
         if (ImGui::MenuItem("Quit", "Esc"))
           app.shutdown();
-        ImGui::SameLine(ImGui::GetWindowWidth() - 154.0f);
-        ImGui::Text("%.2f FPS (%.2f ms)", ImGui::GetIO().Framerate, 1000.0f / ImGui::GetIO().Framerate);
+
         ImGui::EndMainMenuBar();
       }
 
@@ -919,11 +952,10 @@ main()
     profiler.begin(Profiler::Stage::FrameEnd);
     {
       advance_one_frame = false;
-      app.frame_end();
+      app.frame_end(frame_start_time);
     }
     profiler.end(Profiler::Stage::FrameEnd);
     profiler.end(Profiler::Stage::UpdateLoop);
   }
-
   // end app running
 }
