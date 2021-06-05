@@ -22,6 +22,8 @@ struct Collision2D
   int ent_id_1;
   bool collision_x = false;
   bool collision_y = false;
+  // CollisionLayer ent_0_layer;
+  // CollisionLayer ent_1_layer;
 };
 
 bool
@@ -31,5 +33,13 @@ void
 generate_broadphase_collisions(const std::vector<std::reference_wrapper<GameObject2D>>& sorted_collidable_objects,
                                COLLISION_AXIS axis,
                                std::map<uint64_t, Collision2D>& collisions);
+
+// broadphase: detect collisions that can actually happen and discard collisions which can't.
+// sort and prune algorithm. note: suffers from large worlds with inactive objects.
+// this issue can be solved by using multiple smaller SAP's which form a grid.
+// note: i've adjusted this algortihm to do 2-axis SAP.
+void
+generate_filtered_broadphase_collisions(std::vector<std::reference_wrapper<GameObject2D>>& collidable,
+                                        std::map<uint64_t, Collision2D>& filtered_collisions);
 
 } // namespace game2d

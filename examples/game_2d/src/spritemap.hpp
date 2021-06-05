@@ -16,6 +16,23 @@ enum class type
 {
   // row 0
   EMPTY,
+  BUSH_0,
+  BUSH_1,
+  BUSH_2,
+  BUSH_3,
+  BUSH_4,
+  BUSH_5,
+  BUSH_6,
+  BUSH_7,
+  // some more stuff
+  PERSON_0,
+  PERSON_1,
+  PERSON_2,
+  PERSON_3,
+  PERSON_4,
+  PERSON_5,
+  PERSON_6,
+  PERSON_7,
 
   // row 1
   TREE_1,
@@ -55,6 +72,21 @@ struct spritemap
     static std::map<type, glm::ivec2> ret;
 
     ret[type::EMPTY] = { 0, 0 };
+    ret[type::BUSH_0] = { 1, 0 };
+    ret[type::BUSH_1] = { 2, 0 };
+    ret[type::BUSH_2] = { 3, 0 };
+    ret[type::BUSH_3] = { 4, 0 };
+    ret[type::BUSH_4] = { 5, 0 };
+    ret[type::BUSH_5] = { 6, 0 };
+    ret[type::BUSH_6] = { 7, 0 };
+    ret[type::PERSON_0] = { 24, 0 };
+    ret[type::PERSON_1] = { 25, 0 };
+    ret[type::PERSON_2] = { 26, 0 };
+    ret[type::PERSON_3] = { 27, 0 };
+    ret[type::PERSON_4] = { 28, 0 };
+    ret[type::PERSON_5] = { 29, 0 };
+    ret[type::PERSON_6] = { 30, 0 };
+    ret[type::PERSON_7] = { 31, 0 };
 
     ret[type::TREE_1] = { 0, 1 };
     ret[type::TREE_2] = { 1, 1 };

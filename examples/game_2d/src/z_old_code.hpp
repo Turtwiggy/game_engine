@@ -4,6 +4,12 @@
 const std::string highscore_dir("runtime");
 const std::string highscore_path(highscore_dir + "/highscores.txt");
 
+// rotate to player
+// glm::vec2 dir = player.pos - obj.pos;
+// dir = glm::normalize(dir);
+// obj.angle_radians = atan2(dir.y, dir.x);
+// obj.angle_radians += fightingengine::PI / 2.0f;
+
 // // TODO actually load highscore
 // int
 // load_highscore()

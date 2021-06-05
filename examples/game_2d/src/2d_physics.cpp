@@ -30,23 +30,7 @@ game_collision_matrix(CollisionLayer& y_l1, CollisionLayer& x_l2)
   // int val = c1 * x_max + c2;
   int val = get_layer_value(c1, x_max) - c1 + c2;
 
-  static const std::vector<bool> collision_matrix = {
-    true, // default_default_0_0      // 0
-    true, // default_player_0_1       // 1
-    true, // default_bullet_0_2       // 2
-    true, // default_detroyable 0_3   // 3
-
-    true,  // player_player_1_1       // 4
-    false, // player_bullet_1_2       // 5
-    true,  // player_destroyable_1_3  // 6
-
-    false, // bullet_bullet_2_2       // 7
-    true,  // bullet_destroyable_2_3  // 8
-
-    false, // destroyable_destroyable_3_3 // 9
-  };
-
-  return collision_matrix[val];
+  return collision_matrix[val]; // collision_matrix is a global (non-mutable) var
 }
 
 void
@@ -93,9 +77,7 @@ generate_broadphase_collisions(const std::vector<std::reference_wrapper<GameObje
         it_1 = active_list.erase(it_1);
       } else {
         // 2.3.2 possible collision!
-        // // between new axis_list item and the current active_list item
-        // std::pair<std::reference_wrapper<GameObject2D>, std::reference_wrapper<GameObject2D>> collision =
-        //   std::pair<std::reference_wrapper<GameObject2D>, std::reference_wrapper<GameObject2D>>(new_obj, old_obj);
+        // between new axis_list item and the current active_list item
 
         // Check game logic!
         bool valid_collision = game_collision_matrix(new_obj.get().collision_layer, old_obj.get().collision_layer);
@@ -114,11 +96,13 @@ generate_broadphase_collisions(const std::vector<std::reference_wrapper<GameObje
 
             collisions[unique_collision_id] = coll;
           } else {
-            // new collision
-            // collision for these pairs!
+            // new collision for these pairs!
             Collision2D& coll = collisions[unique_collision_id];
             coll.ent_id_0 = old_obj.get().id;
             coll.ent_id_1 = new_obj.get().id;
+            // coll.ent_0_layer = old_obj.get().collision_layer;
+            // coll.ent_1_layer = new_obj.get().collision_layer;
+
             if (axis == COLLISION_AXIS::X)
               coll.collision_x = true;
             if (axis == COLLISION_AXIS::Y)
@@ -136,5 +120,43 @@ generate_broadphase_collisions(const std::vector<std::reference_wrapper<GameObje
     active_list.push_back(new_obj);
   }
 }
+
+void
+generate_filtered_broadphase_collisions(std::vector<std::reference_wrapper<GameObject2D>>& collidable,
+                                        std::map<uint64_t, Collision2D>& filtered_collisions)
+{
+  // Do broad-phase check.
+  std::map<uint64_t, Collision2D> collisions;
+
+  // Sort entities by X-axis
+  std::vector<std::reference_wrapper<GameObject2D>> sorted_collidable_x = collidable;
+  std::sort(sorted_collidable_x.begin(),
+            sorted_collidable_x.end(),
+            [](std::reference_wrapper<GameObject2D> a, std::reference_wrapper<GameObject2D> b) {
+              return a.get().pos.x < b.get().pos.x;
+            });
+  // SAP x-axis
+  std::vector<std::pair<int, int>> potential_collisions_x;
+  generate_broadphase_collisions(sorted_collidable_x, COLLISION_AXIS::X, collisions);
+
+  // Sort entities by Y-axis
+  std::vector<std::reference_wrapper<GameObject2D>> sorted_collidable_y = collidable;
+  std::sort(sorted_collidable_y.begin(),
+            sorted_collidable_y.end(),
+            [](std::reference_wrapper<GameObject2D> a, std::reference_wrapper<GameObject2D> b) {
+              return a.get().pos.y < b.get().pos.y;
+            });
+  // SAP y-axis
+  std::vector<std::pair<int, int>> potential_collisions_y;
+  generate_broadphase_collisions(sorted_collidable_y, COLLISION_AXIS::Y, collisions);
+
+  // use broad-phase results....
+  for (auto& coll : collisions) {
+    Collision2D c = coll.second;
+    if (c.collision_x && c.collision_y) {
+      filtered_collisions[coll.first] = coll.second;
+    }
+  }
+};
 
 }

@@ -3,9 +3,11 @@
 //
 
 // c++ lib headers
+#include <algorithm>
 #include <filesystem>
 #include <fstream>
 #include <iostream>
+#include <iterator>
 #include <memory>
 #include <vector>
 
@@ -37,8 +39,7 @@ using namespace fightingengine;
 #include "spritemap.hpp"
 using namespace game2d;
 
-float screen_width = 720.0f;
-float screen_height = 480.0f;
+glm::ivec2 screen_wh = { 1280, 720 };
 bool show_game_info = true;
 bool show_profiler = true;
 bool show_console = false;
@@ -48,6 +49,7 @@ bool app_fullscreen = false;
 bool app_mute_sfx = true;
 bool app_use_vsync = false;
 bool app_limit_framerate = true;
+bool game_ui_show_inventory = true;
 
 // key bindings: application
 SDL_Scancode key_quit = SDL_SCANCODE_ESCAPE;
@@ -57,6 +59,7 @@ SDL_Scancode key_advance_one_frame = SDL_SCANCODE_RSHIFT;
 SDL_Scancode key_advance_one_frame_held = SDL_SCANCODE_F10;
 SDL_Scancode key_force_gameover = SDL_SCANCODE_F11;
 
+// screens
 enum class GameState
 {
   GAME_SPLASH_SCREEN,
@@ -65,11 +68,8 @@ enum class GameState
   GAME_PAUSED
 };
 GameState state = GameState::GAME_ACTIVE;
-const float time_on_game_over_screen = 3.0f;
-float time_on_game_over_screen_left = time_on_game_over_screen;
-bool first_time_game_over_screen = true;
 
-// Physics tick
+// physics tick
 int PHYSICS_TICKS_PER_SECOND = 40;
 float SECONDS_PER_PHYSICS_TICK = 1.0f / PHYSICS_TICKS_PER_SECOND;
 float seconds_since_last_physics_tick = 0;
@@ -95,36 +95,19 @@ glm::vec4 wall_colour = chosen_colour_3;        // grey
 glm::vec4 logo_entity_colour = chosen_colour_3; // grey
 // entity sprite defaults
 sprite::type logo_sprite = sprite::type::WALL_BIG;
-sprite::type player_sprite = sprite::type::TREE_4;
-sprite::type bullet_sprite = sprite::type::ROCKET_2;
-sprite::type wall_sprite = sprite::type::WALL_BIG;
-// entity: enemy
+sprite::type player_sprite = sprite::type::PERSON_1;
+sprite::type bullet_sprite = sprite::type::TREE_1;
+sprite::type wall_sprite = sprite::type::PERSON_2;
+// game config
 float seconds_until_max_difficulty = 10.0f;
 float seconds_until_max_difficulty_spent = 0.0f;
 float wall_seconds_between_spawning_start = 0.5f;
 float wall_seconds_between_spawning_current = wall_seconds_between_spawning_start;
 float wall_seconds_between_spawning_left = 0.0f;
 const float enemy_default_speed = 50.0f;
-
-namespace gameobject {
-
-static void
-update_position(GameObject2D& obj, float delta_time_s)
-{
-  obj.pos += obj.velocity * delta_time_s;
-}
-
-}
+const float safe_radius_around_player = 7500.0f;
 
 namespace camera {
-
-static GameObject2D
-create_camera()
-{
-  GameObject2D game_object;
-  game_object.pos = glm::vec2{ 0.0f, 0.0f };
-  return game_object;
-}
 
 static void
 update_position(GameObject2D& camera, const KeysAndState& keys, Application& app, float delta_time_s)
@@ -143,27 +126,6 @@ update_position(GameObject2D& camera, const KeysAndState& keys, Application& app
 }; // namespace camera
 
 namespace bullet {
-
-static GameObject2D
-create_bullet()
-{
-  GameObject2D game_object;
-  game_object.sprite = bullet_sprite;
-  game_object.tex_slot = tex_unit_kenny_nl;
-  game_object.collision_layer = CollisionLayer::Bullet;
-  game_object.name = "bullet";
-  game_object.pos = { 0.0f, 0.0f };
-  game_object.angle_radians = 0.0;
-  game_object.size = { 10.0f, 10.0f };
-  game_object.velocity = { 0.0f, 0.0f };
-  game_object.speed_default = 200.0f;
-  game_object.speed_current = game_object.speed_default;
-  game_object.time_alive_left = 6.0f;
-  game_object.colour = bullet_colour;
-
-  game_object.do_lifecycle_timed = true;
-  return game_object;
-};
 
 static void
 update_game_logic(GameObject2D& obj, float delta_time_s)
@@ -185,33 +147,13 @@ update_game_logic(GameObject2D& obj, float delta_time_s)
 
 namespace player {
 
-static GameObject2D
-create_player()
-{
-  GameObject2D game_object;
-  game_object.sprite = player_sprite;
-  game_object.tex_slot = tex_unit_kenny_nl;
-  game_object.collision_layer = CollisionLayer::Player;
-  game_object.name = "player";
-  game_object.pos = { screen_width / 2.0f, screen_height / 2.0f };
-  game_object.angle_radians = 0.0;
-  game_object.size = { 1.0f * 768.0f / 48.0f, 1.0f * 362.0f / 22.0f };
-  game_object.velocity = { 0.0f, 0.0f };
-  game_object.velocity_boost_modifier = 2.0f;
-  game_object.speed_default = 50.0f;
-  game_object.speed_current = game_object.speed_default;
-  game_object.invulnerable = true;
-  game_object.hits_able_to_be_taken = 10;
-  game_object.colour = player_colour;
-
-  return game_object;
-};
-
 static void
 update_input(GameObject2D& obj, KeysAndState& keys, Application& app, GameObject2D& camera)
 {
   keys.l_analogue_x = 0.0f;
   keys.l_analogue_y = 0.0f;
+  keys.r_analogue_x = 0.0f;
+  keys.r_analogue_y = 0.0f;
   keys.shoot_pressed = false;
   keys.boost_pressed = false;
   keys.pause_pressed = false;
@@ -242,7 +184,11 @@ update_input(GameObject2D& obj, KeysAndState& keys, Application& app, GameObject
     float mouse_angle_around_player = atan2(app.get_input().get_mouse_pos().y - player_world_space_pos.y,
                                             app.get_input().get_mouse_pos().x - player_world_space_pos.x);
     mouse_angle_around_player += HALF_PI;
-    obj.angle_radians = mouse_angle_around_player;
+
+    float x_axis = glm::sin(mouse_angle_around_player);
+    float y_axis = -glm::cos(mouse_angle_around_player);
+    keys.r_analogue_x = x_axis;
+    keys.r_analogue_y = y_axis;
   }
 
   // }
@@ -298,22 +244,22 @@ update_game_logic(GameObject2D& obj,
     obj.velocity *= obj.velocity_boost_modifier;
   }
 
-  // look in mouse direction
-  bool look_at_mouse = true;
-  if (look_at_mouse) {
-    // obj.angle_radians = look_angle;
-  }
-  // look in velocity direction
-  else {
-    if (glm::length2(obj.velocity) > 0) {
-      glm::vec2 up_axis = glm::vec2(0.0, -1.0);
-      float unsigned_angle = glm::angle(up_axis, obj.velocity);
-      float sign = (up_axis.x * obj.velocity.y - up_axis.y * obj.velocity.x) >= 0.0f ? 1.0f : -1.0f;
-      float signed_angle = unsigned_angle * sign;
+  // // look in mouse direction
+  // bool look_at_mouse = true;
+  // if (look_at_mouse) {
+  //   // obj.angle_radians = look_angle;
+  // }
+  // // look in velocity direction
+  // else {
+  //   if (glm::length2(obj.velocity) > 0) {
+  //     glm::vec2 up_axis = glm::vec2(0.0, -1.0);
+  //     float unsigned_angle = glm::angle(up_axis, obj.velocity);
+  //     float sign = (up_axis.x * obj.velocity.y - up_axis.y * obj.velocity.x) >= 0.0f ? 1.0f : -1.0f;
+  //     float signed_angle = unsigned_angle * sign;
 
-      obj.angle_radians = signed_angle;
-    }
-  }
+  //     obj.angle_radians = signed_angle;
+  //   }
+  // }
 
   // Ability: Shoot
   // if (keys.shoot_pressed)
@@ -330,7 +276,7 @@ update_game_logic(GameObject2D& obj,
 
     // spawn bullet
 
-    GameObject2D bullet_copy = bullet::create_bullet();
+    GameObject2D bullet_copy = gameobject::create_bullet(bullet_sprite, tex_unit_kenny_nl, bullet_colour);
 
     glm::vec2 bullet_pos = obj.pos;
     bullet_pos.x += obj.size.x / 2.0f - bullet_copy.size.x / 2.0f;
@@ -339,8 +285,11 @@ update_game_logic(GameObject2D& obj,
     // override defaults
     bullet_copy.pos = bullet_pos;
     bullet_copy.angle_radians = obj.angle_radians;
-    bullet_copy.velocity.x = bullet_copy.speed_current;
-    bullet_copy.velocity.y = bullet_copy.speed_current;
+    // convert dir angle to velocity
+    float x_axis = keys.r_analogue_x;
+    float y_axis = keys.r_analogue_y;
+    bullet_copy.velocity.x = x_axis * bullet_copy.speed_current;
+    bullet_copy.velocity.y = y_axis * bullet_copy.speed_current;
 
     bullets.push_back(bullet_copy);
 
@@ -353,32 +302,15 @@ update_game_logic(GameObject2D& obj,
 
 namespace enemy {
 
-static GameObject2D
-create_enemy()
-{
-  GameObject2D game_object;
-  game_object.sprite = wall_sprite;
-  game_object.tex_slot = tex_unit_kenny_nl;
-  game_object.collision_layer = CollisionLayer::Destroyable;
-  game_object.name = "wall";
-  game_object.angle_radians = 0.0;
-  game_object.size = { 20.0f, 20.0f };
-  game_object.hits_able_to_be_taken = 3;
-  game_object.colour = wall_colour;
-  return game_object;
-};
-
 // spawn a random enemy every X seconds
 static void
 enemy_spawner(std::vector<GameObject2D>& enemies,
               GameObject2D& camera,
               std::vector<GameObject2D>& players,
               RandomState& rnd,
-              float screen_height,
-              float screen_width,
+              glm::ivec2 screen_wh,
               float delta_time_s)
 {
-  const float safe_radius_around_player = 9000.0f;
 
   wall_seconds_between_spawning_left -= delta_time_s;
   if (wall_seconds_between_spawning_left <= 0.0f) {
@@ -388,9 +320,12 @@ enemy_spawner(std::vector<GameObject2D>& enemies,
     // printf("(game) mmb clicked %i %i \n", mouse_pos.x, mouse_pos.y);
     // glm::vec2 world_pos = glm::vec2(mouse_pos) + camera.pos;
 
+    // search params
     bool continue_search = true;
-    int iterations_max = 2;
+    int iterations_max = 3;
     int iteration = 0;
+    // result
+    float distance_squared = 0;
     glm::vec2 found_pos = { 0.0f, 0.0f };
 
     // generate random pos not too close to players
@@ -400,13 +335,12 @@ enemy_spawner(std::vector<GameObject2D>& enemies,
       if (iteration == iterations_max) {
         // ah, screw it, just spawn at 0, 0
         continue_search = false;
-        break;
+        std::cout << "(EnemySpawner) max iterations hit" << std::endl;
       }
 
       bool ok = true;
       glm::vec2 rnd_pos =
-        glm::vec2(rand_det_s(rnd.rng, 0.0f, 1.0f) * screen_width, rand_det_s(rnd.rng, 0.0f, 1.0f) * screen_height);
-      std::cout << "gen pos x: " << rnd_pos.x << " y: " << rnd_pos.y << std::endl;
+        glm::vec2(rand_det_s(rnd.rng, 0.0f, 1.0f) * screen_wh.x, rand_det_s(rnd.rng, 0.0f, 1.0f) * screen_wh.y);
 
       for (auto& player : players) {
 
@@ -415,22 +349,22 @@ enemy_spawner(std::vector<GameObject2D>& enemies,
         float y_dist = rnd_pos.y - player.pos.y;
         float y_dist_squared = y_dist * y_dist;
 
-        float distance_squared = x_dist_squared + y_dist_squared;
-        ok = distance_squared < safe_radius_around_player;
+        distance_squared = x_dist_squared + y_dist_squared;
+        ok = distance_squared > safe_radius_around_player;
 
         if (ok) {
           continue_search = false;
           found_pos = rnd_pos;
-          break;
         }
         iteration += 1;
       }
 
     } while (continue_search);
 
+    // std::cout << "enemy spawning " << distance_squared << " away from player" << std::endl;
     glm::vec2 world_pos = found_pos + camera.pos;
 
-    GameObject2D wall_copy = create_enemy();
+    GameObject2D wall_copy = gameobject::create_enemy(wall_sprite, tex_unit_kenny_nl, wall_colour);
     wall_copy.pos = world_pos; // override defaults
     enemies.push_back(wall_copy);
   }
@@ -454,18 +388,11 @@ enemy_chase_player(std::vector<GameObject2D>& objs, GameObject2D& player, float 
   //
 
   for (auto& obj : objs) {
-    // rotate to player
-    glm::vec2 dir = player.pos - obj.pos;
-    dir = glm::normalize(dir);
-    obj.angle_radians = atan2(dir.y, dir.x);
-    obj.angle_radians += fightingengine::PI / 2.0f;
 
     // move to player
     obj.velocity = glm::vec2(enemy_default_speed);
-    float x = glm::sin(obj.angle_radians) * obj.velocity.x;
-    float y = -glm::cos(obj.angle_radians) * obj.velocity.y;
-    obj.pos.x += x * delta_time_s;
-    obj.pos.y += y * delta_time_s;
+    glm::vec2 dir = glm::normalize(player.pos - obj.pos);
+    obj.pos += (dir * obj.velocity * delta_time_s);
   }
 }
 
@@ -474,19 +401,16 @@ enemy_chase_player(std::vector<GameObject2D>& objs, GameObject2D& player, float 
 namespace events {
 
 void
-toggle_fullscreen(Application& app, std::vector<std::reference_wrapper<Shader>>& shaders)
+toggle_fullscreen(Application& app, Shader& shader)
 {
   app.get_window().toggle_fullscreen(); // SDL2 window toggle
-  glm::ivec2 screen_size = app.get_window().get_size();
-  RenderCommand::set_viewport(0, 0, screen_size.x, screen_size.y);
-  screen_width = static_cast<float>(screen_size.x);
-  screen_height = static_cast<float>(screen_size.y);
-  glm::mat4 projection = glm::ortho(0.0f, screen_width, screen_height, 0.0f, -1.0f, 1.0f);
+  screen_wh = app.get_window().get_size();
+  RenderCommand::set_viewport(0, 0, screen_wh.x, screen_wh.y);
+  glm::mat4 projection =
+    glm::ortho(0.0f, static_cast<float>(screen_wh.x), static_cast<float>(screen_wh.y), 0.0f, -1.0f, 1.0f);
 
-  for (auto& shader : shaders) {
-    shader.get().bind();
-    shader.get().set_mat4("projection", projection);
-  }
+  shader.bind();
+  shader.set_mat4("projection", projection);
 }
 
 }
@@ -503,7 +427,7 @@ main()
   const auto app_start = std::chrono::high_resolution_clock::now();
 
   RandomState rnd;
-  Application app("2D Game", static_cast<int>(screen_width), static_cast<int>(screen_height), app_use_vsync);
+  Application app("2D Game", screen_wh.x, screen_wh.y, app_use_vsync);
   app.limit_fps = app_limit_framerate;
   app.fps_if_limited = 120.0f;
   Profiler profiler;
@@ -579,7 +503,8 @@ main()
   Shader instanced_quad_shader = Shader("2d_game/shaders/2d_instanced.vert", "2d_game/shaders/2d_instanced.frag");
 
   { // set shader attribs
-    glm::mat4 projection = glm::ortho(0.0f, screen_width, screen_height, 0.0f, -1.0f, 1.0f);
+    glm::mat4 projection =
+      glm::ortho(0.0f, static_cast<float>(screen_wh.x), static_cast<float>(screen_wh.y), 0.0f, -1.0f, 1.0f);
 
     colour_shader.bind();
     colour_shader.set_vec4("colour", chosen_colour_1);
@@ -590,13 +515,9 @@ main()
   }
 
   RenderCommand::init();
-  RenderCommand::set_viewport(0, 0, static_cast<uint32_t>(screen_width), static_cast<uint32_t>(screen_height));
+  RenderCommand::set_viewport(0, 0, static_cast<uint32_t>(screen_wh.x), static_cast<uint32_t>(screen_wh.y));
   RenderCommand::set_depth_testing(false); // disable depth testing for 2d
   sprite_renderer::init();
-
-  std::vector<std::reference_wrapper<Shader>> shaders;
-  shaders.push_back(colour_shader);
-  shaders.push_back(instanced_quad_shader);
 
   // game
 
@@ -620,7 +541,7 @@ main()
 
   uint32_t objects_destroyed = 0;
 
-  GameObject2D camera = camera::create_camera();
+  GameObject2D camera = gameobject::create_camera();
 
   std::vector<GameObject2D> entities_walls;
   std::vector<GameObject2D> entities_bullets;
@@ -628,8 +549,8 @@ main()
   std::vector<KeysAndState> player_keys;
 
   { // populate defaults
-    GameObject2D player0 = player::create_player();
-    GameObject2D player1 = player::create_player();
+    GameObject2D player0 = gameobject::create_player(player_sprite, tex_unit_kenny_nl, player_colour, screen_wh);
+    GameObject2D player1 = gameobject::create_player(player_sprite, tex_unit_kenny_nl, player_colour, screen_wh);
 
     entities_player.push_back(player0);
     // entities_player.push_back(player1);
@@ -647,6 +568,9 @@ main()
     player_keys.push_back(player0_keys);
     // player_keys.push_back(player1_keys);
   }
+
+  GameObject2D collision_placeholder_object_0;
+  GameObject2D collision_placeholder_object_1;
 
   std::cout << "GameObject2D is " << sizeof(GameObject2D) << " bytes" << std::endl;
   log_time_since("(INFO) End Setup ", app_start);
@@ -674,50 +598,15 @@ main()
         while (seconds_since_last_physics_tick >= SECONDS_PER_PHYSICS_TICK) {
           seconds_since_last_physics_tick -= SECONDS_PER_PHYSICS_TICK;
 
-          // hopefully no copy of GameObject2D
+          // set entities that we want collision info from
           std::vector<std::reference_wrapper<GameObject2D>> collidable;
           collidable.insert(collidable.end(), entities_walls.begin(), entities_walls.end());
           collidable.insert(collidable.end(), entities_bullets.begin(), entities_bullets.end());
           collidable.insert(collidable.end(), entities_player.begin(), entities_player.end());
 
-          // broadphase: detect collisions can actually happen and discard collisions which can't.
-          // sort and prune algorithm. note: suffers from large worlds with inactive objects.
-          // this issue can be solved by using multiple smaller SAP's which form a grid.
-          // note: i've adjusted this algortihm to do 2-axis SAP.
-
-          // Do broad-phase check.
-          std::map<uint64_t, Collision2D> collisions;
-
-          // Sort entities by X-axis
-          std::vector<std::reference_wrapper<GameObject2D>> sorted_collidable_x = collidable;
-          std::sort(sorted_collidable_x.begin(),
-                    sorted_collidable_x.end(),
-                    [](std::reference_wrapper<GameObject2D> a, std::reference_wrapper<GameObject2D> b) {
-                      return a.get().pos.x < b.get().pos.x;
-                    });
-          // SAP x-axis
-          std::vector<std::pair<int, int>> potential_collisions_x;
-          generate_broadphase_collisions(sorted_collidable_x, COLLISION_AXIS::X, collisions);
-
-          // Sort entities by Y-axis
-          std::vector<std::reference_wrapper<GameObject2D>> sorted_collidable_y = collidable;
-          std::sort(sorted_collidable_y.begin(),
-                    sorted_collidable_y.end(),
-                    [](std::reference_wrapper<GameObject2D> a, std::reference_wrapper<GameObject2D> b) {
-                      return a.get().pos.y < b.get().pos.y;
-                    });
-          // SAP y-axis
-          std::vector<std::pair<int, int>> potential_collisions_y;
-          generate_broadphase_collisions(sorted_collidable_y, COLLISION_AXIS::Y, collisions);
-
-          // use broad-phase results....
+          // generate filtered broadphase collisions.
           std::map<uint64_t, Collision2D> filtered_collisions;
-          for (auto& coll : collisions) {
-            Collision2D c = coll.second;
-            if (c.collision_x && c.collision_y) {
-              filtered_collisions[coll.first] = coll.second;
-            }
-          }
+          generate_filtered_broadphase_collisions(collidable, filtered_collisions);
 
           // TODO: narrow-phase; per-model collision? convex shapes?
 
@@ -729,15 +618,47 @@ main()
 
             uint32_t id_0 = c.second.ent_id_0;
             uint32_t id_1 = c.second.ent_id_1;
+            // CollisionLayer layer_0 = c.second.ent_0_layer;
+            // CollisionLayer layer_1 = c.second.ent_1_layer;
 
-            // Iterate over every object... likely to get slow pretty quick.
+            // bool found_0 = false;
+            // { // search for object 1
+            //   auto it = std::find_if(
+            //     collidable.begin(), collidable.end(), [&id_0](const GameObject2D& obj) { return obj.id == id_0; });
+            //   if (it != collidable.end()) {
+            //     collision_placeholder_object_0 = *it;
+            //     found_0 = true;
+            //   }
+            // }
+
+            // bool found_1 = false;
+            // { // search for object 2
+            //   auto it = std::find_if(
+            //     collidable.begin(), collidable.end(), [&id_1](const GameObject2D& obj) { return obj.id == id_1; });
+            //   if (it != collidable.end()) {
+            //     collision_placeholder_object_1 = *it;
+            //     found_1 = true;
+            //   }
+            // }
+
+            // Now resolve game's logic based on collision layers
+
+            // if (id_0layer_0 == CollisionLayer::Bullet ) {
+            // }
+
+            // Resolve game collision matrix...!
+
+            // Check for entities_walls collisions
+
             for (int i = 0; i < entities_walls.size(); i++) {
               GameObject2D& go = entities_walls[i];
               if (id_0 == go.id || id_1 == go.id) {
 
+                // What to do if wall collided?
+
+                // set it as having taken damage
                 go.hits_taken += 1;
                 if (go.hits_taken >= go.hits_able_to_be_taken) {
-                  // what to do if a wall collided? remove it
                   entities_walls.erase(entities_walls.begin() + i);
                   objects_destroyed += 1;
 
@@ -759,10 +680,15 @@ main()
                 }
               }
             }
+
+            // Check for entities_bullets collisions
+
             for (int i = 0; i < entities_bullets.size(); i++) {
               GameObject2D& go = entities_bullets[i];
               if (id_0 == go.id || id_1 == go.id) {
-                // what to do if a bullet collided? remove it
+
+                // what to do if a bullet collided?
+
                 entities_bullets.erase(entities_bullets.begin() + i);
               }
             }
@@ -775,7 +701,7 @@ main()
     {
       // Settings: Fullscreen
       if (app.get_input().get_key_down(key_fullscreen)) {
-        events::toggle_fullscreen(app, shaders);
+        events::toggle_fullscreen(app, instanced_quad_shader);
         app_fullscreen = app.get_window().get_fullscreen();
       }
 
@@ -858,10 +784,14 @@ main()
           GameObject2D& obj = (*it_1);
 
           // pos
-          float x = glm::sin(obj.angle_radians) * obj.velocity.x;
-          float y = -glm::cos(obj.angle_radians) * obj.velocity.y;
-          obj.pos.x += x * delta_time_s;
-          obj.pos.y += y * delta_time_s;
+          gameobject::update_position(obj, delta_time_s);
+
+          // look in velocity direction
+          {
+            float angle = atan2(obj.velocity.y, obj.velocity.x);
+            angle += HALF_PI;
+            obj.angle_radians = angle;
+          }
 
           // lifecycle
           obj.time_alive_left -= delta_time_s;
@@ -882,7 +812,7 @@ main()
           enemy::enemy_chase_player(entities_walls, player_to_chase, delta_time_s);
 
           //... and only spawn enemies if there is a player.
-          enemy::enemy_spawner(entities_walls, camera, entities_player, rnd, screen_height, screen_width, delta_time_s);
+          enemy::enemy_spawner(entities_walls, camera, entities_player, rnd, screen_wh, delta_time_s);
         }
       }
 
@@ -892,7 +822,6 @@ main()
     profiler.begin(Profiler::Stage::Render);
     {
 
-      glm::ivec2 screen_wh = glm::ivec2(screen_width, screen_height);
       RenderCommand::set_clear_colour(background_colour);
       RenderCommand::clear();
       sprite_renderer::reset_stats();
@@ -911,9 +840,11 @@ main()
             camera, screen_wh, instanced_quad_shader, obj.get(), colour_shader, debug_line_colour);
         }
 
+#ifdef _DEBUG
         // draw the spritesheet for reference
         sprite_renderer::draw_sprite_debug(
           camera, screen_wh, instanced_quad_shader, tex_obj, colour_shader, debug_line_colour);
+#endif
 
         // sprite_renderer::draw_instanced_sprite(camera,
         //                                        screen_wh,
@@ -971,7 +902,7 @@ main()
           ImGui::Checkbox("Fullscreen", &app_fullscreen);
           if (temp != app_fullscreen) {
             std::cout << "app_fullscreen toggled to: " << temp << std::endl;
-            events::toggle_fullscreen(app, shaders);
+            events::toggle_fullscreen(app, instanced_quad_shader);
           }
           app_fullscreen = temp;
         }
@@ -1032,6 +963,15 @@ main()
           static float col_3[4] = { chosen_colour_3.x, chosen_colour_3.y, chosen_colour_3.z, chosen_colour_3.w };
           ImGui::ColorEdit4("col 3", col_3);
           chosen_colour_3 = glm::vec4(col_3[0], col_3[1], col_3[2], col_3[3]);
+        }
+        ImGui::End();
+      }
+
+      if (game_ui_show_inventory) {
+        ImGui::Begin("Inventory", NULL, ImGuiWindowFlags_NoFocusOnAppearing);
+        {
+          ImGui::Text("A kangaroo");
+          ImGui::Text("A baseball bat");
         }
         ImGui::End();
       }

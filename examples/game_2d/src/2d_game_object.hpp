@@ -11,18 +11,32 @@ namespace game2d {
 
 enum class CollisionLayer
 {
-  Default = 0,
-  Player = 1,
-  Bullet = 2,
-  Destroyable = 3,
+  NoCollision = 0,
+  Bullet = 1,
+  Player = 2,
+  Enemy = 3,
 
   Count = 4
 };
 
+static const std::vector<bool> collision_matrix = {
+  false, // NoCollision_NoCollision_0_0  // 0
+  false, // NoCollision_player_0_1       // 1
+  false, // NoCollision_bullet_0_2       // 2
+  false, // NoCollision_detroyable 0_3   // 3
+
+  false, // bullet_bullet_1_1       // 4
+  false, // bullet_player_1_2       // 5
+  true,  // bullet_enemy_1_3        // 6
+
+  false, // player_player           // 7
+  true,  // player_enemy            // 8
+
+  false, // enemy_enemy             // 9
+};
+
 struct KeysAndState
 {
-  int associated_player_id = 0;
-
   SDL_Scancode w = SDL_SCANCODE_W;
   SDL_Scancode s = SDL_SCANCODE_S;
   SDL_Scancode a = SDL_SCANCODE_A;
@@ -86,22 +100,44 @@ struct GameObject2D
   int other_objects_destroyed = 0;
   bool invulnerable = false;
 
-  // enemy ai: target
-  // int player_id = 0;
-
   // game: extra
   std::string name = "DEFAULT";
 
   // physics
-  CollisionLayer collision_layer = CollisionLayer::Default;
+  CollisionLayer collision_layer = CollisionLayer::NoCollision;
 
   GameObject2D() { id = ++GameObject2D::global_int_counter; }
 };
+
+// util
 
 [[nodiscard]] glm::vec2
 gameobject_in_worldspace(const GameObject2D& camera, const GameObject2D& go);
 
 [[nodiscard]] bool
 gameobject_off_screen(glm::vec2 pos, glm::vec2 size, const glm::ivec2& screen_size);
+
+namespace gameobject {
+
+// logic
+
+void
+update_position(GameObject2D& obj, float delta_time_s);
+
+// entities
+
+GameObject2D
+create_bullet(sprite::type sprite, int tex_slot, glm::vec4 colour);
+
+GameObject2D
+create_camera();
+
+GameObject2D
+create_enemy(sprite::type sprite, int tex_slot, glm::vec4 colour);
+
+GameObject2D
+create_player(sprite::type sprite, int tex_slot, glm::vec4 colour, glm::vec2 screen);
+
+} // namespace gameobject
 
 } // namespace game2d
