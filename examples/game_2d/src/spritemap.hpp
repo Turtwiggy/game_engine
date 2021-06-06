@@ -24,7 +24,6 @@ enum class type
   BUSH_5,
   BUSH_6,
   BUSH_7,
-  // some more stuff
   PERSON_0,
   PERSON_1,
   PERSON_2,

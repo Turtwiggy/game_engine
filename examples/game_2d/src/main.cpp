@@ -42,13 +42,14 @@ using namespace game2d;
 glm::ivec2 screen_wh = { 1280, 720 };
 bool show_game_info = true;
 bool show_profiler = true;
-bool show_console = false;
+bool show_windows_console = false;
+bool show_game_console = false;
 bool show_demo_window = false;
 bool advance_one_frame = false;
 bool app_fullscreen = false;
 bool app_mute_sfx = true;
-bool app_use_vsync = false;
-bool app_limit_framerate = true;
+bool app_use_vsync = true;
+bool app_limit_framerate = false;
 bool game_ui_show_inventory = true;
 
 // key bindings: application
@@ -265,42 +266,53 @@ update_game_logic(GameObject2D& obj,
   // if (keys.shoot_pressed)
   //   obj.bullets_to_fire_after_releasing_mouse_left = obj.bullets_to_fire_after_releasing_mouse;
 
-  if (obj.bullet_seconds_between_spawning_left > 0.0f)
-    obj.bullet_seconds_between_spawning_left -= delta_time_s;
+  bool player_shoot = false;
+  if (player_shoot) {
+    if (obj.bullet_seconds_between_spawning_left > 0.0f)
+      obj.bullet_seconds_between_spawning_left -= delta_time_s;
 
-  if (obj.bullet_seconds_between_spawning_left <= 0.0f) {
-    obj.bullet_seconds_between_spawning_left = obj.bullet_seconds_between_spawning;
-    // obj.bullets_to_fire_after_releasing_mouse_left -= 1;
-    // obj.bullets_to_fire_after_releasing_mouse_left =
-    //   obj.bullets_to_fire_after_releasing_mouse_left < 0 ? 0 : obj.bullets_to_fire_after_releasing_mouse_left;
+    if (obj.bullet_seconds_between_spawning_left <= 0.0f) {
+      obj.bullet_seconds_between_spawning_left = obj.bullet_seconds_between_spawning;
+      // obj.bullets_to_fire_after_releasing_mouse_left -= 1;
+      // obj.bullets_to_fire_after_releasing_mouse_left =
+      //   obj.bullets_to_fire_after_releasing_mouse_left < 0 ? 0 : obj.bullets_to_fire_after_releasing_mouse_left;
 
-    // spawn bullet
+      // spawn bullet
 
-    GameObject2D bullet_copy = gameobject::create_bullet(bullet_sprite, tex_unit_kenny_nl, bullet_colour);
+      GameObject2D bullet_copy = gameobject::create_bullet(bullet_sprite, tex_unit_kenny_nl, bullet_colour);
 
-    glm::vec2 bullet_pos = obj.pos;
-    bullet_pos.x += obj.size.x / 2.0f - bullet_copy.size.x / 2.0f;
-    bullet_pos.y += obj.size.y / 2.0f - bullet_copy.size.y / 2.0f;
+      glm::vec2 bullet_pos = obj.pos;
+      bullet_pos.x += obj.size.x / 2.0f - bullet_copy.size.x / 2.0f;
+      bullet_pos.y += obj.size.y / 2.0f - bullet_copy.size.y / 2.0f;
 
-    // override defaults
-    bullet_copy.pos = bullet_pos;
-    bullet_copy.angle_radians = obj.angle_radians;
-    // convert dir angle to velocity
-    float x_axis = keys.r_analogue_x;
-    float y_axis = keys.r_analogue_y;
-    bullet_copy.velocity.x = x_axis * bullet_copy.speed_current;
-    bullet_copy.velocity.y = y_axis * bullet_copy.speed_current;
+      // override defaults
+      bullet_copy.pos = bullet_pos;
+      bullet_copy.angle_radians = obj.angle_radians;
+      // convert dir angle to velocity
+      float x_axis = keys.r_analogue_x;
+      float y_axis = keys.r_analogue_y;
+      bullet_copy.velocity.x = x_axis * bullet_copy.speed_current;
+      bullet_copy.velocity.y = y_axis * bullet_copy.speed_current;
 
-    bullets.push_back(bullet_copy);
+      bullets.push_back(bullet_copy);
 
-    if (!app_mute_sfx)
-      audio::play_sound(source_id);
+      if (!app_mute_sfx)
+        audio::play_sound(source_id);
+    }
   }
 }
 
 } // namespace player
 
 namespace enemy {
+
+static void
+spawn_enemy(std::vector<GameObject2D>& enemies, GameObject2D& camera, glm::vec2 pos)
+{
+  GameObject2D wall_copy = gameobject::create_enemy(wall_sprite, tex_unit_kenny_nl, wall_colour);
+  wall_copy.pos = pos; // override defaults
+  enemies.push_back(wall_copy);
+}
 
 // spawn a random enemy every X seconds
 static void
@@ -363,10 +375,7 @@ enemy_spawner(std::vector<GameObject2D>& enemies,
 
     // std::cout << "enemy spawning " << distance_squared << " away from player" << std::endl;
     glm::vec2 world_pos = found_pos + camera.pos;
-
-    GameObject2D wall_copy = gameobject::create_enemy(wall_sprite, tex_unit_kenny_nl, wall_colour);
-    wall_copy.pos = world_pos; // override defaults
-    enemies.push_back(wall_copy);
+    spawn_enemy(enemies, camera, world_pos);
   }
 
   // increase difficulty
@@ -378,23 +387,72 @@ enemy_spawner(std::vector<GameObject2D>& enemies,
   wall_seconds_between_spawning_current = glm::mix(wall_seconds_between_spawning_start, end_cooldown, percent);
 };
 
-// rotate to player
-// move to player
+namespace ai {
+
 static void
-enemy_chase_player(std::vector<GameObject2D>& objs, GameObject2D& player, float delta_time_s)
+enemy_to_dir_vector(GameObject2D& obj, glm::vec2 dir, float delta_time_s)
 {
-  //
-  // simple chase ai
-  //
+  obj.velocity = glm::vec2(enemy_default_speed);
+  dir = glm::normalize(dir);
+  obj.pos += (dir * obj.velocity * delta_time_s);
+}
 
+static void
+enemies_directly_to_player(std::vector<GameObject2D>& objs, GameObject2D& player, float delta_time_s)
+{
   for (auto& obj : objs) {
-
-    // move to player
-    obj.velocity = glm::vec2(enemy_default_speed);
-    glm::vec2 dir = glm::normalize(player.pos - obj.pos);
-    obj.pos += (dir * obj.velocity * delta_time_s);
+    glm::vec2 ab = player.pos - obj.pos;
+    glm::vec2 dir = glm::normalize(ab);
+    enemy_to_dir_vector(obj, dir, delta_time_s);
   }
 }
+
+// note: have a flanking manager assign angles out to these enemies
+// this will mean that enemies will approach the player from all sorts of different angles.
+// if far... arc angles
+// if close... go direct!
+// some direct anyway.
+static void
+enemies_arc_angles_to_player(std::vector<GameObject2D>& objs,
+                             GameObject2D& player,
+                             float delta_time_s,
+                             GameObject2D& debug_object)
+{
+  for (auto& obj : objs) {
+
+    // calculate a vector ab
+    glm::vec2 ab = player.pos - obj.pos;
+    // calculate the point halfway between ab
+    glm::vec2 half_point = obj.pos + (ab / 2.0f);
+    // calculate the vector at a right angle
+    glm::vec2 normal = glm::vec2(-ab.y, ab.x);
+
+#ifdef _DEBUG
+    {
+      float dot = glm::abs(glm::dot(ab, normal));
+      assert(dot <= 0.001f); // good enough
+    }
+#endif
+
+    // offset the midpoint via normal
+    // float angle_of_approach = 0.0f;
+
+    float amplitude = 100.0f;
+    half_point += (glm::normalize(normal) * amplitude);
+
+    // Now create a bezier curve! use the halfpoint as the control point
+    float t = 0.25f;
+    glm::vec2 p = quadratic_curve(obj.pos, half_point, player.pos, t);
+    debug_object.pos = p;
+
+    glm::vec2 dir = glm::normalize(p - obj.pos);
+    // std::cout << "dir x:" << dir.x << " y:" << dir.y << std::endl;
+
+    enemy_to_dir_vector(obj, dir, delta_time_s);
+  }
+}
+
+} // namespace: ai
 
 } // namespace: enemy
 
@@ -420,7 +478,8 @@ main()
 {
 #ifdef WIN32
 #include <Windows.h>
-  ::ShowWindow(::GetConsoleWindow(), SW_HIDE); // hide console
+  if (show_windows_console)
+    ::ShowWindow(::GetConsoleWindow(), SW_HIDE); // hide console
 #endif
 
   std::cout << "booting up..." << std::endl;
@@ -569,13 +628,13 @@ main()
     // player_keys.push_back(player1_keys);
   }
 
-  GameObject2D collision_placeholder_object_0;
-  GameObject2D collision_placeholder_object_1;
+  GameObject2D placeholder_arc_angle_debug_object =
+    gameobject::create_enemy(wall_sprite, tex_unit_kenny_nl, glm::vec4(1.0f, 0.0f, 0.0f, 1.0f));
+  GameObject2D placeholder_collision_object_0;
+  GameObject2D placeholder_collision_object_1;
 
   std::cout << "GameObject2D is " << sizeof(GameObject2D) << " bytes" << std::endl;
   log_time_since("(INFO) End Setup ", app_start);
-
-  // ---- App ----
 
   while (app.is_running()) {
 
@@ -590,7 +649,6 @@ main()
 
     profiler.begin(Profiler::Stage::Physics);
     {
-
       if (state == GameState::GAME_ACTIVE || (state == GameState::GAME_PAUSED && advance_one_frame)) {
 
         // FIXED PHYSICS TICK
@@ -626,7 +684,7 @@ main()
             //   auto it = std::find_if(
             //     collidable.begin(), collidable.end(), [&id_0](const GameObject2D& obj) { return obj.id == id_0; });
             //   if (it != collidable.end()) {
-            //     collision_placeholder_object_0 = *it;
+            //     placeholder_collision_object_0 = *it;
             //     found_0 = true;
             //   }
             // }
@@ -636,7 +694,7 @@ main()
             //   auto it = std::find_if(
             //     collidable.begin(), collidable.end(), [&id_1](const GameObject2D& obj) { return obj.id == id_1; });
             //   if (it != collidable.end()) {
-            //     collision_placeholder_object_1 = *it;
+            //     placeholder_collision_object_1 = *it;
             //     found_1 = true;
             //   }
             // }
@@ -726,7 +784,7 @@ main()
 
       // Settings: Toggle Console
       if (app.get_input().get_key_down(key_console))
-        show_console = !show_console;
+        show_game_console = !show_game_console;
 
       // Shader hot reloading
       // if (app.get_input().get_key_down(SDL_SCANCODE_R)) {
@@ -740,6 +798,15 @@ main()
         entities_player.pop_back(); // kill the first player >:(
         player_keys.pop_back();
       }
+
+      if (app.get_input().get_mouse_lmb_down()) {
+        glm::ivec2 mouse_pos = app.get_input().get_mouse_pos();
+        printf("(game) lmb clicked %i %i \n", mouse_pos.x, mouse_pos.y);
+        glm::vec2 world_pos = glm::vec2(mouse_pos) + camera.pos;
+
+        enemy::spawn_enemy(entities_walls, camera, world_pos);
+      }
+
 #endif // _DEBUG
     }
     profiler.end(Profiler::Stage::SdlInput);
@@ -809,10 +876,13 @@ main()
 
           // for the moment, eat player 0
           GameObject2D player_to_chase = entities_player[0];
-          enemy::enemy_chase_player(entities_walls, player_to_chase, delta_time_s);
+
+          // set the ai behaviour
+          enemy::ai::enemies_arc_angles_to_player(
+            entities_walls, player_to_chase, delta_time_s, placeholder_arc_angle_debug_object);
 
           //... and only spawn enemies if there is a player.
-          enemy::enemy_spawner(entities_walls, camera, entities_player, rnd, screen_wh, delta_time_s);
+          // enemy::enemy_spawner(entities_walls, camera, entities_player, rnd, screen_wh, delta_time_s);
         }
       }
 
@@ -834,6 +904,7 @@ main()
         renderables.insert(renderables.end(), entities_walls.begin(), entities_walls.end());
         renderables.insert(renderables.end(), entities_bullets.begin(), entities_bullets.end());
         renderables.insert(renderables.end(), entities_player.begin(), entities_player.end());
+        renderables.push_back(placeholder_arc_angle_debug_object);
 
         for (std::reference_wrapper<GameObject2D> obj : renderables) {
           sprite_renderer::draw_sprite_debug(
@@ -976,8 +1047,8 @@ main()
         ImGui::End();
       }
 
-      if (show_console)
-        console.Draw("Console", &show_console);
+      if (show_game_console)
+        console.Draw("Console", &show_game_console);
       if (show_profiler)
         profiler_panel::draw(profiler, delta_time_s);
       if (show_demo_window)
