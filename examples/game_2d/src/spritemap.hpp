@@ -8,6 +8,9 @@
 // other proj headers
 #include <glm/glm.hpp>
 
+// your proj headers
+#include "engine/maths_core.hpp"
+
 namespace game2d {
 
 namespace sprite {
@@ -48,6 +51,9 @@ enum class type
 
   // row 5
   SQUARE,
+  WEAPON_ARROW_1,
+  WEAPON_ARROW_2,
+  WEAPON_SHOVEL,
 
   // row 15
   SKULL_AND_BONES,
@@ -70,6 +76,7 @@ struct spritemap
   {
     static std::map<type, glm::ivec2> ret;
 
+    // row 0
     ret[type::EMPTY] = { 0, 0 };
     ret[type::BUSH_0] = { 1, 0 };
     ret[type::BUSH_1] = { 2, 0 };
@@ -87,6 +94,7 @@ struct spritemap
     ret[type::PERSON_6] = { 30, 0 };
     ret[type::PERSON_7] = { 31, 0 };
 
+    // row 1
     ret[type::TREE_1] = { 0, 1 };
     ret[type::TREE_2] = { 1, 1 };
     ret[type::TREE_3] = { 2, 1 };
@@ -96,15 +104,22 @@ struct spritemap
     ret[type::TREE_7] = { 6, 1 };
     ret[type::TREE_8] = { 7, 1 };
 
+    // row 3
     ret[type::WALL_BIG] = { 2, 3 };
 
-    // add_to(ret[BASE], {0, 0});
+    // row 5
     ret[type::SQUARE] = { 8, 5 };
+    ret[type::WEAPON_ARROW_1] = { 40, 5 };
+    ret[type::WEAPON_ARROW_2] = { 41, 5 };
+    ret[type::WEAPON_SHOVEL] = { 42, 5 };
 
+    // row 15
     ret[type::SKULL_AND_BONES] = { 0, 15 };
 
+    // row 19
     ret[type::BOAT] = { 10, 19 };
 
+    // row 21
     ret[type::SPACE_VEHICLE_1] = { 12, 21 };
     ret[type::SPACE_VEHICLE_2] = { 13, 21 };
     ret[type::SPACE_VEHICLE_3] = { 14, 21 };
@@ -115,14 +130,32 @@ struct spritemap
     return ret;
   }
 
-  static inline glm::vec2 get_sprite_offset(type t)
+  static inline std::map<type, float>& get_rotations()
+  {
+    static std::map<type, float> ret;
+
+    // row 5
+    ret[type::SQUARE] = { 0.0f };
+    ret[type::WEAPON_ARROW_1] = { -fightingengine::PI / 4.0f };
+    ret[type::WEAPON_ARROW_2] = { -fightingengine::PI / 4.0f };
+    ret[type::WEAPON_SHOVEL] = { -fightingengine::PI / 4.0f };
+
+    return ret;
+  }
+
+  static inline glm::vec2 get_sprite_offset(const type& t)
   {
     auto& tiles = get_locations();
 
-    auto& which = tiles[t];
+    return tiles[t];
+  };
+
+  static inline float get_sprite_rotation_offset(const type& t)
+  {
+    auto& tiles = get_rotations();
 
     return tiles[t];
-  }
+  };
 };
 
 } // namespace sprite

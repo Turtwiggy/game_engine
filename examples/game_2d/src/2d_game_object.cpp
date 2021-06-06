@@ -51,7 +51,7 @@ create_bullet(sprite::type sprite, int tex_slot, glm::vec4 colour)
   // default
   game_object.collision_layer = CollisionLayer::Bullet;
   game_object.name = "bullet";
-  game_object.size = { 10.0f, 10.0f };
+  game_object.size = { 20.0f, 20.0f };
   game_object.speed_default = 200.0f;
   game_object.speed_current = game_object.speed_default;
   game_object.time_alive_left = 6.0f;
