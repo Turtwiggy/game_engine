@@ -1,11 +1,12 @@
 #pragma once
 
-// your project headers
-#include "spritemap.hpp"
-
 // other project headers
 #include <SDL2/SDL_scancode.h>
 #include <glm/glm.hpp>
+
+// your includes
+#include "engine/maths_core.hpp"
+#include "spritemap.hpp"
 
 namespace game2d {
 
@@ -60,6 +61,12 @@ struct KeysAndState
   bool boost_pressed = false;
 };
 
+enum class ai_behaviour
+{
+  MOVEMENT_DIRECT,
+  MOVEMENT_ARC_ANGLE,
+};
+
 struct GameObject2D
 {
   static inline uint32_t global_int_counter = 0;
@@ -86,6 +93,12 @@ struct GameObject2D
   float velocity_boost_modifier = 2.0f;
   float shift_boost_time = 5.0f;
   float shift_boost_time_left = shift_boost_time;
+
+  // ai: hacky behaviour
+  // could probably use a list of "prioritized" ai instead. will do that on 3+ ai needed.
+  ai_behaviour ai_original = ai_behaviour::MOVEMENT_DIRECT;
+  ai_behaviour ai_current = ai_behaviour::MOVEMENT_DIRECT;
+  float approach_theta_degrees = 0.0f;
 
   // game: shooting
   float bullet_seconds_between_spawning = 0.15f;
@@ -133,10 +146,10 @@ GameObject2D
 create_camera();
 
 GameObject2D
-create_enemy(sprite::type sprite, int tex_slot, glm::vec4 colour);
+create_enemy(sprite::type sprite, int tex_slot, glm::vec4 colour, fightingengine::RandomState& rnd, float speed);
 
 GameObject2D
-create_player(sprite::type sprite, int tex_slot, glm::vec4 colour, glm::vec2 screen);
+create_player(sprite::type sprite, int tex_slot, glm::vec4 colour, glm::vec2 screen, float speed);
 
 } // namespace gameobject
 

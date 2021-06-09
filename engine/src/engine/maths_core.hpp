@@ -5,6 +5,7 @@
 
 // other library headers
 #include <glm/glm.hpp>
+#include <glm/gtx/compatibility.hpp>
 
 namespace fightingengine {
 
@@ -51,7 +52,13 @@ encode_cantor_pairing_function(int x, int y);
 decode_cantor_pairing_function(uint64_t p, uint32_t& x, uint32_t& y);
 
 // scale x from [min,max] to [a,b]
-float
+[[nodiscard]] float
 scale(float x, float min, float max, float a, float b);
+
+[[nodiscard]] glm::vec2
+lerp_with_clamp(glm::vec2 a, glm::vec2 b, float t);
+
+[[nodiscard]] glm::vec2
+quadratic_curve(glm::vec2 a, glm::vec2 b, glm::vec2 c, float t);
 
 } // namespace fightingengine
