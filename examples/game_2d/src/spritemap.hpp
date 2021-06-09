@@ -55,6 +55,13 @@ enum class type
   WEAPON_ARROW_2,
   WEAPON_SHOVEL,
 
+  // row 6
+  ORC,
+
+  // row 14
+  CAMPFIRE,
+  FIRE,
+
   // row 15
   SKULL_AND_BONES,
 
@@ -112,6 +119,13 @@ struct spritemap
     ret[type::WEAPON_ARROW_1] = { 40, 5 };
     ret[type::WEAPON_ARROW_2] = { 41, 5 };
     ret[type::WEAPON_SHOVEL] = { 42, 5 };
+
+    // row 6
+    ret[type::ORC] = { 30, 6 };
+
+    // row 10
+    ret[type::CAMPFIRE] = { 14, 10 };
+    ret[type::FIRE] = { 15, 10 };
 
     // row 15
     ret[type::SKULL_AND_BONES] = { 0, 15 };
