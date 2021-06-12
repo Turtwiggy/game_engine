@@ -18,13 +18,13 @@ namespace fightingengine {
 Application::Application(const std::string& name, int width, int height, bool vsync)
 {
   // const std::string kBuildStr(kGitSHA1Hash, 8);
-  const std::string kBuildStr = "0.0.5";
+  const std::string kBuildStr = "0.0.6";
 
   // Window
   GameWindow::glsl_version = "#version 330";
   GameWindow::opengl_major = 3;
   GameWindow::opengl_minor = 3;
-  window = std::make_unique<GameWindow>(name + " [" + kBuildStr + "]", width, height, DisplayMode::BORDERLESS, vsync);
+  window = std::make_unique<GameWindow>(name + " [" + kBuildStr + "]", width, height, DisplayMode::WINDOWED, vsync);
 
   imgui_manager.initialize(window.get());
 
@@ -143,6 +143,7 @@ void
 Application::on_window_resize(int w, int h)
 {
   printf("application resize event recieved: %i %i ", w, h);
+  window_was_resized = true;
 
   if (w == 0 || h == 0) {
     minimized = true;

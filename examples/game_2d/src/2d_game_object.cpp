@@ -122,7 +122,7 @@ create_player(sprite::type sprite, int tex_slot, glm::vec4 colour, glm::vec2 scr
   game_object.velocity_boost_modifier = 2.0f;
   game_object.speed_default = speed;
   game_object.speed_current = game_object.speed_default;
-  game_object.invulnerable = false;
+  game_object.invulnerable = true;
   game_object.hits_able_to_be_taken = 1;
   return game_object;
 };

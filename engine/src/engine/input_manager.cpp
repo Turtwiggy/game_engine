@@ -22,6 +22,7 @@ InputManager::new_frame()
   mouse_lmb_down = false;
   mouse_rmb_down = false;
   mouse_mmb_down = false;
+  mousewheel_y = 0.0f;
 
   kd_cache.clear();
   ku_cache.clear();

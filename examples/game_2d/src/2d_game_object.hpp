@@ -115,6 +115,7 @@ struct GameObject2D
 
   // game: extra
   std::string name = "DEFAULT";
+  glm::ivec2 grid_position = { 0, 0 };
 
   // physics
   CollisionLayer collision_layer = CollisionLayer::NoCollision;

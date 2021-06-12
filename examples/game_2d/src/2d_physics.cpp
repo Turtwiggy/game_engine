@@ -2,35 +2,21 @@
 #include "2d_physics.hpp"
 
 // engine headers
+#include "engine/grid.hpp"
 #include "engine/maths_core.hpp"
 
 namespace game2d {
 
-int
-get_layer_value(int i, int n)
-{
-  if (i <= 0)
-    return 0;
-  return get_layer_value(i - 1, n) + (n - (i - 1));
-}
-
 bool
 game_collision_matrix(CollisionLayer& y_l1, CollisionLayer& x_l2)
 {
-  int c1 = static_cast<int>(y_l1); // c1 is 0, 1, or 2
-  int c2 = static_cast<int>(x_l2); // c2 is 0, 1, or 2
-  if (c2 < c1) {
-    // make c1 lower value
-    int temp = c1;
-    c1 = c2;
-    c2 = temp;
-  }
-
   int x_max = static_cast<int>(CollisionLayer::Count);
-  // int val = c1 * x_max + c2;
-  int val = get_layer_value(c1, x_max) - c1 + c2;
+  int y = static_cast<int>(y_l1); // c1 is 0, 1, or 2
+  int x = static_cast<int>(x_l2); // c2 is 0, 1, or 2
 
-  return collision_matrix[val]; // collision_matrix is a global (non-mutable) var
+  // collision_matrix is a global (non-mutable) var
+  bool val = grid::get_cell_mirrored_grid(collision_matrix, x, y, x_max);
+  return val;
 }
 
 void

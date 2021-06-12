@@ -22,6 +22,7 @@
 // fightingengine headers
 #include "engine/application.hpp"
 #include "engine/audio.hpp"
+#include "engine/grid.hpp"
 #include "engine/maths_core.hpp"
 #include "engine/opengl/render_command.hpp"
 #include "engine/ui/profiler_panel.hpp"
@@ -39,30 +40,6 @@ using namespace fightingengine;
 #include "spritemap.hpp"
 using namespace game2d;
 
-glm::ivec2 screen_wh = { 1280, 720 };
-bool show_game_info = true;
-bool show_profiler = true;
-bool show_windows_console = false;
-bool show_game_console = false;
-bool show_demo_window = false;
-bool debug_advance_one_frame = false;
-bool app_fullscreen = false;
-bool app_mute_sfx = true;
-bool app_use_vsync = true;
-bool app_limit_framerate = false;
-bool game_ui_show_inventory = true;
-bool game_player_shoot = true; // affects all players
-bool render_spritesheet = true;
-
-// key bindings: application
-SDL_Scancode key_quit = SDL_SCANCODE_ESCAPE;
-SDL_Scancode key_console = SDL_SCANCODE_F12;
-SDL_Scancode key_fullscreen = SDL_SCANCODE_F;
-SDL_Scancode key_advance_one_frame = SDL_SCANCODE_RSHIFT;
-SDL_Scancode key_advance_one_frame_held = SDL_SCANCODE_F10;
-SDL_Scancode key_force_gameover = SDL_SCANCODE_F11;
-
-// screens
 enum class GameState
 {
   GAME_SPLASH_SCREEN,
@@ -72,7 +49,45 @@ enum class GameState
 };
 GameState state = GameState::GAME_ACTIVE;
 
+glm::ivec2 screen_wh = { 1280, 720 };
+bool show_game_info = true;
+bool show_profiler = true;
+bool show_windows_console = false;
+bool show_game_console = false;
+bool show_imgui_demo_window = false;
+bool debug_advance_one_frame = false;
+bool app_fullscreen = false;
+bool app_mute_sfx = true;
+bool app_use_vsync = true;
+bool app_limit_framerate = false;
+// game config
+bool show_entity_menu = true;
+bool game_spawn_enemies = false;
+bool game_ui_show_inventory = true;
+bool game_player_shoot = true; // affects all players
+bool game_destroy_half_sprites_on_damage = false;
+bool render_spritesheet = false;
+float seconds_until_max_difficulty = 100.0f;
+float seconds_until_max_difficulty_spent = 0.0f;
+float wall_seconds_between_spawning_start = 0.5f;
+float wall_seconds_between_spawning_current = wall_seconds_between_spawning_start;
+float wall_seconds_between_spawning_left = 0.0f;
+float wall_seconds_between_spawning_end = 0.2f;
+const float safe_radius_around_player = 7500.0f;
+const float enemy_default_speed = 60.0f;
+const float player_default_speed = 50.0f;
+const float bullet_seconds_between_spawning_default = 1.0f;
+const int enemy_hits_to_take = 1;
+const float enemy_direct_attack_threshold = 4000.0f;
+// key bindings: application
+SDL_Scancode key_quit = SDL_SCANCODE_ESCAPE;
+SDL_Scancode key_console = SDL_SCANCODE_F12;
+SDL_Scancode key_fullscreen = SDL_SCANCODE_F;
+SDL_Scancode key_advance_one_frame = SDL_SCANCODE_RSHIFT;
+SDL_Scancode key_advance_one_frame_held = SDL_SCANCODE_F10;
+SDL_Scancode key_force_gameover = SDL_SCANCODE_F11;
 // physics tick
+int PHYSICS_GRID_SIZE = 100;
 int PHYSICS_TICKS_PER_SECOND = 40;
 float SECONDS_PER_PHYSICS_TICK = 1.0f / PHYSICS_TICKS_PER_SECOND;
 float seconds_since_last_physics_tick = 0;
@@ -112,27 +127,13 @@ glm::vec4 player_dead_colour = PALETTE_COLOUR_2_0; //
 glm::vec4 bullet_colour = chosen_colour_2;         // lightblue
 glm::vec4 wall_colour = chosen_colour_3;           // grey
 glm::vec4 logo_entity_colour = chosen_colour_3;    // grey
-
-// entity sprite defaults
+// entity sprites
 sprite::type sprite_logo = sprite::type::WALL_BIG;
 sprite::type sprite_player = sprite::type::PERSON_1;
 sprite::type sprite_bullet = sprite::type::WEAPON_ARROW_1;
 sprite::type sprite_enemy_core = sprite::type::PERSON_2;
 sprite::type sprite_enemy_muncher = sprite::type::ORC;
 sprite::type sprite_fire = sprite::type::FIRE;
-
-// game config
-float seconds_until_max_difficulty = 100.0f;
-float seconds_until_max_difficulty_spent = 0.0f;
-float wall_seconds_between_spawning_start = 0.5f;
-float wall_seconds_between_spawning_current = wall_seconds_between_spawning_start;
-float wall_seconds_between_spawning_left = 0.0f;
-const float safe_radius_around_player = 7500.0f;
-const float enemy_default_speed = 60.0f;
-const float player_default_speed = 50.0f;
-const float bullet_seconds_between_spawning_default = 1.0f;
-const int enemy_hits_to_take = 1;
-const float enemy_direct_attack_threshold = 4000.0f;
 
 namespace camera {
 
@@ -403,16 +404,25 @@ enemy_spawner(std::vector<GameObject2D>& enemies,
 
     // std::cout << "enemy spawning " << distance_squared << " away from player" << std::endl;
     glm::vec2 world_pos = found_pos + camera.pos;
-    spawn_enemy(enemies, camera, world_pos, rnd);
+
+    if (game_spawn_enemies) {
+      // spawn enemy
+      GameObject2D wall_copy =
+        gameobject::create_enemy(sprite_enemy_core, tex_unit_kenny_nl, wall_colour, rnd, enemy_default_speed);
+      // override defaults
+      wall_copy.pos = world_pos;
+      wall_copy.hits_able_to_be_taken = enemy_hits_to_take;
+      enemies.push_back(wall_copy);
+    }
   }
 
   // increase difficulty
   // 0.5 is starting cooldown
   // after 30 seconds, cooldown should be 0
-  const float end_cooldown = 0.2f;
   seconds_until_max_difficulty_spent += delta_time_s;
   float percent = glm::clamp(seconds_until_max_difficulty_spent / seconds_until_max_difficulty, 0.0f, 1.0f);
-  wall_seconds_between_spawning_current = glm::mix(wall_seconds_between_spawning_start, end_cooldown, percent);
+  wall_seconds_between_spawning_current =
+    glm::mix(wall_seconds_between_spawning_start, wall_seconds_between_spawning_end, percent);
 };
 
 namespace ai {
@@ -476,8 +486,6 @@ enemy_arc_angles_to_player(GameObject2D& obj, GameObject2D& player, float delta_
 
 } // namespace: enemy
 
-namespace events {
-
 void
 toggle_fullscreen(Application& app, Shader& shader)
 {
@@ -491,16 +499,20 @@ toggle_fullscreen(Application& app, Shader& shader)
   shader.set_mat4("projection", projection);
 }
 
-}
-
-int
-main()
+void
+hide_console()
 {
 #ifdef WIN32
 #include <Windows.h>
   if (show_windows_console)
     ::ShowWindow(::GetConsoleWindow(), SW_HIDE); // hide console
 #endif
+}
+
+int
+main()
+{
+  hide_console();
 
   std::cout << "booting up..." << std::endl;
   const auto app_start = std::chrono::high_resolution_clock::now();
@@ -622,6 +634,7 @@ main()
 
   GameObject2D camera = gameobject::create_camera();
 
+  std::vector<GameObject2D> entities_grid;
   std::vector<GameObject2D> entities_enemies;
   std::vector<GameObject2D> entities_bullets;
   std::vector<GameObject2D> entities_player;
@@ -650,10 +663,18 @@ main()
     player1_keys.key_boost = SDL_Scancode::SDL_SCANCODE_RCTRL;
 
     player_keys.push_back(player0_keys);
+
+    for (int i = 0; i < 10; i++) {
+      for (int j = 0; j < 10; j++) {
+        // populate a grid
+      }
+    }
     // player_keys.push_back(player1_keys);
   }
 
   // TEMP objects
+
+  glm::ivec2 mouse_grid;
 
   GameObject2D experimental_fire =
     gameobject::create_enemy(sprite_fire, tex_unit_kenny_nl, wall_colour, rnd, enemy_default_speed);
@@ -682,6 +703,25 @@ main()
     profiler.begin(Profiler::Stage::Physics);
     {
       if (state == GameState::GAME_ACTIVE || (state == GameState::GAME_PAUSED && debug_advance_one_frame)) {
+
+        // pre-physics
+        // For all entities, before their position is updated, calculate the
+        // grid position that they are in.
+        std::vector<std::reference_wrapper<GameObject2D>> grid_entities;
+        grid_entities.insert(grid_entities.end(), entities_enemies.begin(), entities_enemies.end());
+        grid_entities.insert(grid_entities.end(), entities_bullets.begin(), entities_bullets.end());
+        grid_entities.insert(grid_entities.end(), entities_player.begin(), entities_player.end());
+
+        // entities: update entities grid pos
+        for (auto& e : grid_entities) {
+          e.get().grid_position = grid::convert_world_space_to_grid_space(e.get().pos, PHYSICS_GRID_SIZE);
+          e.get().size = { PHYSICS_GRID_SIZE, PHYSICS_GRID_SIZE };
+        }
+        // update mouse grid pos
+        {
+          mouse_grid =
+            grid::convert_world_space_to_grid_space(app.get_input().get_mouse_pos() + camera.pos, PHYSICS_GRID_SIZE);
+        }
 
         // FIXED PHYSICS TICK
         seconds_since_last_physics_tick += delta_time_s;
@@ -718,16 +758,6 @@ main()
             //   if (it != collidable.end()) {
             //     placeholder_collision_object_0 = *it;
             //     found_0 = true;
-            //   }
-            // }
-
-            // bool found_1 = false;
-            // { // search for object 2
-            //   auto it = std::find_if(
-            //     collidable.begin(), collidable.end(), [&id_1](const GameObject2D& obj) { return obj.id == id_1; });
-            //   if (it != collidable.end()) {
-            //     placeholder_collision_object_1 = *it;
-            //     found_1 = true;
             //   }
             // }
 
@@ -769,7 +799,7 @@ main()
               }
             }
 
-            if (player_taken_damage) {
+            if (player_taken_damage && game_destroy_half_sprites_on_damage) {
               // player took damage! chill out for a bit.
               // destroy half the enemies..!
               for (int i = 0; i < entities_enemies.size() / 2; i++) {
@@ -797,8 +827,20 @@ main()
     {
       // Settings: Fullscreen
       if (app.get_input().get_key_down(key_fullscreen)) {
-        events::toggle_fullscreen(app, instanced_quad_shader);
+        toggle_fullscreen(app, instanced_quad_shader);
         app_fullscreen = app.get_window().get_fullscreen();
+      }
+
+      if (app.window_was_resized) {
+        app.window_was_resized = false;
+
+        screen_wh = app.get_window().get_size();
+        RenderCommand::set_viewport(0, 0, screen_wh.x, screen_wh.y);
+        glm::mat4 projection =
+          glm::ortho(0.0f, static_cast<float>(screen_wh.x), static_cast<float>(screen_wh.y), 0.0f, -1.0f, 1.0f);
+
+        instanced_quad_shader.bind();
+        instanced_quad_shader.set_mat4("projection", projection);
       }
 
       // Settings: Exit App
@@ -824,32 +866,20 @@ main()
       if (app.get_input().get_key_down(key_console))
         show_game_console = !show_game_console;
 
-        // Shader hot reloading
-        // if (app.get_input().get_key_down(SDL_SCANCODE_R)) {
-        //   reload_shader_program(&fun_shader.ID, "2d_texture.vert", "effects/posterized_water.frag");
-        //   fun_shader.bind();
-        //   fun_shader.set_mat4("projection", projection);
-        //   fun_shader.set_int("tex", tex_unit_kenny_nl);
-        // }
+      // Shader hot reloading
+      // if (app.get_input().get_key_down(SDL_SCANCODE_R)) {
+      //   reload_shader_program(&fun_shader.ID, "2d_texture.vert", "effects/posterized_water.frag");
+      //   fun_shader.bind();
+      //   fun_shader.set_mat4("projection", projection);
+      //   fun_shader.set_int("tex", tex_unit_kenny_nl);
+      // }
 
-        // if (app.get_input().get_key_down(SDL_SCANCODE_BACKSPACE)) {
-        //   // if (entities_player.size() > 0) {
-        //   //   entities_player.pop_back(); // kill the first player >:(
-        //   //   player_keys.pop_back();
-        //   // }
-
-        //   // kill all
-        //   if (entities_enemies.size() > 0) {
-        //     entities_enemies.clear();
-        //   }
-        // }
-
-        // if (app.get_input().get_mouse_lmb_down()) {
-        //   glm::ivec2 mouse_pos = app.get_input().get_mouse_pos();
-        //   printf("(game) lmb clicked %i %i \n", mouse_pos.x, mouse_pos.y);
-        //   glm::vec2 world_pos = glm::vec2(mouse_pos) + camera.pos;
-        //   enemy::spawn_enemy(entities_enemies, camera, world_pos, rnd);
-        // }
+      float mousewheel = app.get_input().get_mousewheel_y();
+      float epsilon = 0.0001f;
+      if (mousewheel > epsilon || mousewheel < -epsilon) {
+        PHYSICS_GRID_SIZE += mousewheel; // works well enough for now
+        PHYSICS_GRID_SIZE = glm::max(PHYSICS_GRID_SIZE, 0);
+      }
 
 #endif // _DEBUG
     }
@@ -942,13 +972,16 @@ main()
 
           //... and only spawn enemies if there is a player.
           enemy::enemy_spawner(entities_enemies, camera, entities_player, rnd, screen_wh, delta_time_s);
+
+          // update camera pos
+          camera::update_position(camera, player_keys[0], app, delta_time_s);
         }
 
         // update: fire
         experimental_fire.pos = { screen_wh.x / 2.0f - 100.0f, screen_wh.y / 2.0f };
 
         // update: new experimental enemy
-        experimental_new_enemy.pos = { screen_wh.x / 2.0f, screen_wh.y / 2.0f };
+        experimental_new_enemy.pos = { screen_wh.x / 2.0f + 200.0f, screen_wh.y / 2.0f };
 
         // todo: manage lifecycle and delete expired objects
       }
@@ -966,11 +999,11 @@ main()
       if (state == GameState::GAME_ACTIVE || state == GameState::GAME_PAUSED) {
 
         std::vector<std::reference_wrapper<GameObject2D>> renderables;
-        renderables.push_back(experimental_fire);
-        renderables.push_back(experimental_new_enemy);
         renderables.insert(renderables.end(), entities_enemies.begin(), entities_enemies.end());
         renderables.insert(renderables.end(), entities_bullets.begin(), entities_bullets.end());
         renderables.insert(renderables.end(), entities_player.begin(), entities_player.end());
+        renderables.push_back(experimental_fire);
+        renderables.push_back(experimental_new_enemy);
 
         for (std::reference_wrapper<GameObject2D> obj : renderables) {
           sprite_renderer::draw_sprite_debug(
@@ -1041,7 +1074,7 @@ main()
           ImGui::Checkbox("Fullscreen", &app_fullscreen);
           if (temp != app_fullscreen) {
             std::cout << "app_fullscreen toggled to: " << temp << std::endl;
-            events::toggle_fullscreen(app, instanced_quad_shader);
+            toggle_fullscreen(app, instanced_quad_shader);
           }
           app_fullscreen = temp;
         }
@@ -1074,12 +1107,12 @@ main()
           ImGui::Text("game running for: %f", app.seconds_since_launch);
           ImGui::Text("camera pos %f %f", camera.pos.x, camera.pos.y);
           ImGui::Text("mouse pos %f %f", app.get_input().get_mouse_pos().x, app.get_input().get_mouse_pos().y);
+          ImGui::Text("mouse grid pos %i %i", mouse_grid.x, mouse_grid.y);
+          ImGui::Text("PhysicsGridSize %i", PHYSICS_GRID_SIZE);
           ImGui::Separator();
 #endif
 
           // ImGui::Text("highscore: %i", highscore);
-          ImGui::Text("Enemies: %i", entities_enemies.size());
-          ImGui::Text("Bullets: %i", entities_bullets.size());
           ImGui::Text("(game) destroyed: %i", objects_destroyed);
           ImGui::Text("(game) enemy spawn rate: %f", wall_seconds_between_spawning_current);
 #ifdef _DEBUG
@@ -1149,12 +1182,34 @@ main()
         ImGui::End();
       }
 
+      if (show_entity_menu) {
+
+        std::vector<std::reference_wrapper<GameObject2D>> enemy;
+        enemy.insert(enemy.end(), entities_enemies.begin(), entities_enemies.end());
+        enemy.insert(enemy.end(), entities_bullets.begin(), entities_bullets.end());
+        enemy.insert(enemy.end(), entities_player.begin(), entities_player.end());
+
+        ImGui::Begin("Entity Menu", NULL, ImGuiWindowFlags_NoFocusOnAppearing);
+
+        ImGui::Text("Players: %i", entities_player.size());
+        ImGui::Text("Bullets: %i", entities_bullets.size());
+        ImGui::Text("Enemies: %i", entities_enemies.size());
+
+        ImGui::Separator();
+
+        for (auto& e : enemy) {
+          ImGui::Text("E: %s x:%i y:%i", e.get().name.c_str(), e.get().grid_position.x, e.get().grid_position.y);
+        }
+
+        ImGui::End();
+      }
+
       if (show_game_console)
         console.Draw("Console", &show_game_console);
       if (show_profiler)
         profiler_panel::draw(profiler, delta_time_s);
-      if (show_demo_window)
-        ImGui::ShowDemoWindow(&show_demo_window);
+      if (show_imgui_demo_window)
+        ImGui::ShowDemoWindow(&show_imgui_demo_window);
     }
     profiler.end(Profiler::Stage::GuiLoop);
     profiler.begin(Profiler::Stage::FrameEnd);
@@ -1165,5 +1220,4 @@ main()
     profiler.end(Profiler::Stage::FrameEnd);
     profiler.end(Profiler::Stage::UpdateLoop);
   }
-  // end app running
 }

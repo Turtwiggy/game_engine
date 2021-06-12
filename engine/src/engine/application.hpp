@@ -32,6 +32,8 @@ public:
   float fps_if_limited = 60.0f;
   bool limit_fps = false;
 
+  bool window_was_resized = false;
+
   [[nodiscard]] GameWindow& get_window();
   [[nodiscard]] InputManager& get_input();
   [[nodiscard]] ImGui_Manager& get_imgui();
