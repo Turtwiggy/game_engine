@@ -115,7 +115,8 @@ struct GameObject2D
 
   // game: extra
   std::string name = "DEFAULT";
-  glm::ivec2 grid_position = { 0, 0 };
+  // maintain a list of the different cells an entity is in
+  std::vector<glm::ivec2> in_grid_cell;
 
   // physics
   CollisionLayer collision_layer = CollisionLayer::NoCollision;

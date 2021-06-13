@@ -83,9 +83,9 @@ convert_world_space_to_grid_space(const glm::vec2& world_space, int grid_size)
 }
 
 [[nodiscard]] inline glm::vec2
-convert_grid_space_to_worldspace(glm::ivec2 pos, float grid_size)
+convert_grid_space_to_worldspace(glm::ivec2 pos, int grid_size)
 {
-  return pos * grid_size;
+  return glm::vec2{ pos.x, pos.y } * static_cast<float>(grid_size);
 }
 
 } // namespace grid

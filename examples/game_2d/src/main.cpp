@@ -664,9 +664,15 @@ main()
 
     player_keys.push_back(player0_keys);
 
-    for (int i = 0; i < 10; i++) {
-      for (int j = 0; j < 10; j++) {
-        // populate a grid
+    // populate a grid
+    for (int i = 0; i < 20; i++) {
+      for (int j = 0; j < 20; j++) {
+        GameObject2D go;
+        go.pos = grid::convert_grid_space_to_worldspace({ i, j }, PHYSICS_GRID_SIZE);
+        float random_01 = glm::clamp(rand_det_s(rnd.rng, 0.7f, 1.3f) * 0.1f, 0.0f, 1.0f);
+        go.colour = { random_01, random_01, random_01, 1.0f };
+        go.size = { PHYSICS_GRID_SIZE, PHYSICS_GRID_SIZE };
+        entities_grid.push_back(go);
       }
     }
     // player_keys.push_back(player1_keys);
@@ -704,23 +710,55 @@ main()
     {
       if (state == GameState::GAME_ACTIVE || (state == GameState::GAME_PAUSED && debug_advance_one_frame)) {
 
-        // pre-physics
-        // For all entities, before their position is updated, calculate the
-        // grid position that they are in.
-        std::vector<std::reference_wrapper<GameObject2D>> grid_entities;
-        grid_entities.insert(grid_entities.end(), entities_enemies.begin(), entities_enemies.end());
-        grid_entities.insert(grid_entities.end(), entities_bullets.begin(), entities_bullets.end());
-        grid_entities.insert(grid_entities.end(), entities_player.begin(), entities_player.end());
+        { // pre-physics update: grid position
+          std::vector<std::reference_wrapper<GameObject2D>> grid_ents;
+          grid_ents.insert(grid_ents.end(), entities_enemies.begin(), entities_enemies.end());
+          grid_ents.insert(grid_ents.end(), entities_bullets.begin(), entities_bullets.end());
+          grid_ents.insert(grid_ents.end(), entities_player.begin(), entities_player.end());
 
-        // entities: update entities grid pos
-        for (auto& e : grid_entities) {
-          e.get().grid_position = grid::convert_world_space_to_grid_space(e.get().pos, PHYSICS_GRID_SIZE);
-          e.get().size = { PHYSICS_GRID_SIZE, PHYSICS_GRID_SIZE };
-        }
-        // update mouse grid pos
-        {
-          mouse_grid =
-            grid::convert_world_space_to_grid_space(app.get_input().get_mouse_pos() + camera.pos, PHYSICS_GRID_SIZE);
+          // entities: update entities grid pos
+
+          for (auto& e : grid_ents) {
+
+            auto& cells = e.get().in_grid_cell;
+            cells.clear();
+            glm::vec2 pos = e.get().pos;
+            glm::vec2 size = e.get().size;
+
+            glm::vec2 tl = pos;
+            glm::ivec2 gc = grid::convert_world_space_to_grid_space(tl, PHYSICS_GRID_SIZE);
+            cells.push_back(gc);
+
+            glm::vec2 tr = { pos.x + size.x, pos.y };
+            gc = grid::convert_world_space_to_grid_space(tr, PHYSICS_GRID_SIZE);
+            auto it = std::find_if(
+              cells.begin(), cells.end(), [&gc](const glm::ivec2& obj) { return obj.x == gc.x && obj.y == gc.y; });
+            if (it == cells.end()) {
+              cells.push_back(gc);
+            }
+
+            glm::vec2 bl = { pos.x, pos.y + size.y };
+            gc = grid::convert_world_space_to_grid_space(bl, PHYSICS_GRID_SIZE);
+            it = std::find_if(
+              cells.begin(), cells.end(), [&gc](const glm::ivec2& obj) { return obj.x == gc.x && obj.y == gc.y; });
+            if (it == cells.end()) {
+              cells.push_back(gc);
+            }
+
+            glm::vec2 br = { pos.x + size.x, pos.y + size.y };
+            gc = grid::convert_world_space_to_grid_space(br, PHYSICS_GRID_SIZE);
+            it = std::find_if(
+              cells.begin(), cells.end(), [&gc](const glm::ivec2& obj) { return obj.x == gc.x && obj.y == gc.y; });
+            if (it == cells.end()) {
+              cells.push_back(gc);
+            }
+          }
+
+          // update mouse grid pos
+          {
+            mouse_grid =
+              grid::convert_world_space_to_grid_space(app.get_input().get_mouse_pos() + camera.pos, PHYSICS_GRID_SIZE);
+          }
         }
 
         // FIXED PHYSICS TICK
@@ -866,20 +904,24 @@ main()
       if (app.get_input().get_key_down(key_console))
         show_game_console = !show_game_console;
 
-      // Shader hot reloading
-      // if (app.get_input().get_key_down(SDL_SCANCODE_R)) {
-      //   reload_shader_program(&fun_shader.ID, "2d_texture.vert", "effects/posterized_water.frag");
-      //   fun_shader.bind();
-      //   fun_shader.set_mat4("projection", projection);
-      //   fun_shader.set_int("tex", tex_unit_kenny_nl);
-      // }
+        // Shader hot reloading
+        // if (app.get_input().get_key_down(SDL_SCANCODE_R)) {
+        //   reload_shader_program(&fun_shader.ID, "2d_texture.vert", "effects/posterized_water.frag");
+        //   fun_shader.bind();
+        //   fun_shader.set_mat4("projection", projection);
+        //   fun_shader.set_int("tex", tex_unit_kenny_nl);
+        // }
 
-      float mousewheel = app.get_input().get_mousewheel_y();
-      float epsilon = 0.0001f;
-      if (mousewheel > epsilon || mousewheel < -epsilon) {
-        PHYSICS_GRID_SIZE += mousewheel; // works well enough for now
-        PHYSICS_GRID_SIZE = glm::max(PHYSICS_GRID_SIZE, 0);
-      }
+        // float mousewheel = app.get_input().get_mousewheel_y();
+        // float epsilon = 0.0001f;
+        // if (mousewheel > epsilon || mousewheel < -epsilon) {
+        //   // PHYSICS_GRID_SIZE += static_cast<int>(mousewheel);
+        //   // PHYSICS_GRID_SIZE = glm::max(PHYSICS_GRID_SIZE, 0);
+        //   float val = (mousewheel * 10.0f);
+        //   for (auto& p : entities_player) {
+        //     p.size = p.size + val;
+        //   }
+        // }
 
 #endif // _DEBUG
     }
@@ -989,7 +1031,6 @@ main()
     profiler.end(Profiler::Stage::GameTick);
     profiler.begin(Profiler::Stage::Render);
     {
-
       RenderCommand::set_clear_colour(background_colour);
       RenderCommand::clear();
       sprite_renderer::reset_stats();
@@ -999,6 +1040,7 @@ main()
       if (state == GameState::GAME_ACTIVE || state == GameState::GAME_PAUSED) {
 
         std::vector<std::reference_wrapper<GameObject2D>> renderables;
+        renderables.insert(renderables.end(), entities_grid.begin(), entities_grid.end());
         renderables.insert(renderables.end(), entities_enemies.begin(), entities_enemies.end());
         renderables.insert(renderables.end(), entities_bullets.begin(), entities_bullets.end());
         renderables.insert(renderables.end(), entities_player.begin(), entities_player.end());
@@ -1198,9 +1240,11 @@ main()
         ImGui::Separator();
 
         for (auto& e : enemy) {
-          ImGui::Text("E: %s x:%i y:%i", e.get().name.c_str(), e.get().grid_position.x, e.get().grid_position.y);
+          for (auto& c : e.get().in_grid_cell) {
+            ImGui::Text("E: %s x:%i y:%i", e.get().name.c_str(), c.x, c.y);
+          }
+          ImGui::Separator();
         }
-
         ImGui::End();
       }
 
