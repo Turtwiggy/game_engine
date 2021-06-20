@@ -18,16 +18,6 @@ get_layer_value(int y, int x_max)
   return get_layer_value(y - 1, x_max) + (x_max - (y - 1));
 }
 
-// template<typename T>
-// [[nodiscard]] inline std::vector<T>
-// create_empty_grid(std::vector<T>& vec, int x, int y)
-// {
-//   T t;
-//   for (int i = 0; i < x * y; i++) {
-//     vec.push_back(t);
-//   }
-// }
-
 // a grid shaped
 // ~~~~~~~~~~~~~
 // 0  1  2  3  4

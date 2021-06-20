@@ -43,4 +43,13 @@ load_textures_threaded(std::vector<std::pair<int, std::string>>& textures_to_loa
   log_time_since("(End Threaded) textures loaded ", app_start);
 }
 
+void
+hide_console()
+{
+#ifdef WIN32
+#include <Windows.h>
+  ::ShowWindow(::GetConsoleWindow(), SW_HIDE); // hide console
+#endif
+}
+
 }

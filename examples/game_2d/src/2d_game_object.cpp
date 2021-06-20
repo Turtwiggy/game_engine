@@ -79,14 +79,14 @@ create_enemy(sprite::type sprite, int tex_slot, glm::vec4 colour, fightingengine
   game_object.sprite = sprite;
   game_object.tex_slot = tex_slot;
   game_object.colour = colour;
-  game_object.speed_default = speed;
+  game_object.speed_default = 60.0f;
   game_object.speed_current = game_object.speed_default;
   // default
   game_object.collision_layer = CollisionLayer::Enemy;
   game_object.name = "wall";
   game_object.angle_radians = 0.0;
   game_object.size = { 20.0f, 20.0f };
-  game_object.hits_able_to_be_taken = 3;
+  game_object.hits_able_to_be_taken = 1;
 
   // roll a dice
   float rand = fightingengine::rand_det_s(rnd.rng, 0.0f, 100.0f);
@@ -105,7 +105,7 @@ create_enemy(sprite::type sprite, int tex_slot, glm::vec4 colour, fightingengine
 };
 
 GameObject2D
-create_player(sprite::type sprite, int tex_slot, glm::vec4 colour, glm::vec2 screen, float speed)
+create_player(sprite::type sprite, int tex_slot, glm::vec4 colour, glm::vec2 screen)
 {
   GameObject2D game_object;
   // config
@@ -120,10 +120,11 @@ create_player(sprite::type sprite, int tex_slot, glm::vec4 colour, glm::vec2 scr
   game_object.size = { 1.0f * 768.0f / 48.0f, 1.0f * 362.0f / 22.0f };
   game_object.velocity = { 0.0f, 0.0f };
   game_object.velocity_boost_modifier = 2.0f;
-  game_object.speed_default = speed;
+  game_object.speed_default = 50.0f;
   game_object.speed_current = game_object.speed_default;
   game_object.invulnerable = true;
   game_object.hits_able_to_be_taken = 1;
+  game_object.bullet_seconds_between_spawning = 1.0f;
   return game_object;
 };
 
