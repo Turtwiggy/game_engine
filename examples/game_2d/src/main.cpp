@@ -20,14 +20,15 @@
 #include "engine/grid.hpp"
 #include "engine/maths_core.hpp"
 #include "engine/opengl/render_command.hpp"
+#include "engine/opengl/shader.hpp"
 #include "engine/ui/profiler_panel.hpp"
 #include "engine/util.hpp"
 using namespace fightingengine;
 
 // game headers
+#include "2d_game_logic.hpp"
 #include "2d_game_object.hpp"
 #include "2d_physics.hpp"
-#include "game.hpp"
 #include "opengl/sprite_renderer.hpp"
 #include "spritemap.hpp"
 using namespace game2d;
@@ -35,68 +36,60 @@ using namespace game2d;
 enum class GameRunning
 {
   ACTIVE,
-  PAUSED
+  PAUSED,
+  GAME_OVER
 };
+GameRunning state = GameRunning::ACTIVE;
 
-SDL_Scancode key_quit = SDL_SCANCODE_ESCAPE;
-SDL_Scancode key_console = SDL_SCANCODE_F12;
-SDL_Scancode key_fullscreen = SDL_SCANCODE_F;
-SDL_Scancode key_advance_one_frame = SDL_SCANCODE_RSHIFT;
-SDL_Scancode key_advance_one_frame_held = SDL_SCANCODE_F10;
-SDL_Scancode key_force_gameover = SDL_SCANCODE_F11;
+SDL_Scancode debug_key_quit = SDL_SCANCODE_ESCAPE;
+SDL_Scancode debug_key_advance_one_frame = SDL_SCANCODE_RSHIFT;
+SDL_Scancode debug_key_advance_one_frame_held = SDL_SCANCODE_F10;
+SDL_Scancode debug_key_force_gameover = SDL_SCANCODE_F11;
 
-#ifdef _DEBUG
 bool debug_advance_one_frame = false;
-bool show_imgui_demo_window = false;
-bool show_game_info = true;
-bool show_profiler = true;
+bool debug_show_imgui_demo_window = false;
+bool debug_render_spritesheet = false;
+bool debug_show_profiler = true;
+#ifdef _RELEASE
+debug_advance_one_frame = false;
+debug_show_imgui_demo_window = false;
+debug_render_spritesheet = false;
+debug_show_profiler = false;
 #endif
 
-bool app_fullscreen = false;
-bool app_mute_sfx = true;
-bool app_use_vsync = true;
-bool app_limit_framerate = false;
-bool show_entity_menu = true;
-
-// game config
-bool render_spritesheet = false;
-bool game_spawn_enemies = false;
-bool game_player_shoot = true; // affects all players
-bool game_destroy_half_sprites_on_damage = false;
-float seconds_until_max_difficulty = 100.0f;
-float seconds_until_max_difficulty_spent = 0.0f;
-float wall_seconds_between_spawning_start = 0.5f;
-float wall_seconds_between_spawning_current = wall_seconds_between_spawning_start;
-float wall_seconds_between_spawning_left = 0.0f;
-float wall_seconds_between_spawning_end = 0.2f;
-const float safe_radius_around_player = 7500.0f;
-const float enemy_direct_attack_threshold = 4000.0f;
+const bool game_spawn_enemies = false;
+const bool game_player_shoot = true; // affects all players
+const bool game_destroy_half_sprites_on_damage = false;
+const float game_seconds_until_max_difficulty = 100.0f;
+const float game_seconds_until_max_difficulty_spent = 0.0f;
+const float game_wall_seconds_between_spawning_start = 0.5f;
+float game_wall_seconds_between_spawning_current = game_wall_seconds_between_spawning_start;
+const float game_wall_seconds_between_spawning_left = 0.0f;
+const float game_wall_seconds_between_spawning_end = 0.2f;
+const float game_safe_radius_around_player = 7500.0f;
+const float game_enemy_direct_attack_threshold = 4000.0f;
 
 // physics tick
 int PHYSICS_GRID_SIZE = 100;
 int PHYSICS_TICKS_PER_SECOND = 40;
 float SECONDS_PER_PHYSICS_TICK = 1.0f / PHYSICS_TICKS_PER_SECOND;
 float seconds_since_last_physics_tick = 0;
+
 // textures
 const int tex_unit_kenny_nl = 0;
-// default colour palette; https://colorhunt.co/palette/273312
-// normal palette
+
+// colour palette; https://colorhunt.co/palette/273312
 const glm::vec4 PALETTE_COLOUR_1_1 = glm::vec4(57.0f / 255.0f, 62.0f / 255.0f, 70.0f / 255.0f, 1.0f);    // black
 const glm::vec4 PALETTE_COLOUR_2_1 = glm::vec4(0.0f / 255.0f, 173.0f / 255.0f, 181.0f / 255.0f, 1.0f);   // blue
 const glm::vec4 PALETTE_COLOUR_3_1 = glm::vec4(170.0f / 255.0f, 216.0f / 255.0f, 211.0f / 255.0f, 1.0f); // lightblue
 const glm::vec4 PALETTE_COLOUR_4_1 = glm::vec4(238.0f / 255.0f, 238.0f / 255.0f, 238.0f / 255.0f, 1.0f); // grey
-// chosen colours
-glm::vec4 chosen_colour_0 = PALETTE_COLOUR_1_1;
-glm::vec4 chosen_colour_1 = PALETTE_COLOUR_2_1;
-glm::vec4 chosen_colour_2 = PALETTE_COLOUR_3_1;
-glm::vec4 chosen_colour_3 = PALETTE_COLOUR_4_1;
-// entity colours
-glm::vec4 background_colour = chosen_colour_0; // black
-glm::vec4 debug_line_colour = chosen_colour_1; // blue
-glm::vec4 player_colour = chosen_colour_1;     // blue
-glm::vec4 bullet_colour = chosen_colour_2;     // lightblue
-glm::vec4 wall_colour = chosen_colour_3;       // grey
-// entity sprites
+
+glm::vec4 background_colour = PALETTE_COLOUR_1_1; // black
+glm::vec4 debug_line_colour = PALETTE_COLOUR_2_1; // blue
+glm::vec4 player_colour = PALETTE_COLOUR_2_1;     // blue
+glm::vec4 bullet_colour = PALETTE_COLOUR_3_1;     // lightblue
+glm::vec4 wall_colour = PALETTE_COLOUR_4_1;       // grey
+
 sprite::type sprite_player = sprite::type::PERSON_1;
 sprite::type sprite_bullet = sprite::type::WEAPON_ARROW_1;
 sprite::type sprite_enemy_core = sprite::type::PERSON_2;
@@ -117,7 +110,6 @@ toggle_fullscreen(Application& app, Shader& shader)
 int
 main()
 {
-
   std::cout << "booting up..." << std::endl;
   const auto app_start = std::chrono::high_resolution_clock::now();
 
@@ -125,9 +117,18 @@ main()
   if (hide_console)
     fightingengine::hide_console();
 
+  // ui default state
+
+  bool ui_limit_framerate = false;
+  bool ui_mute_sfx = true;
+  bool ui_show_game_info = true;
+  bool ui_show_entity_menu = true;
+  bool ui_use_vsync = true;
+  bool ui_fullscreen = false;
+
   glm::ivec2 screen_wh = { 1080, 720 };
   RandomState rnd;
-  Application app("2D Game", screen_wh.x, screen_wh.y, app_use_vsync);
+  Application app("2D Game", screen_wh.x, screen_wh.y, ui_use_vsync);
   Profiler profiler;
 
   // textures
@@ -165,7 +166,6 @@ main()
       glm::ortho(0.0f, static_cast<float>(screen_wh.x), static_cast<float>(screen_wh.y), 0.0f, -1.0f, 1.0f);
 
     colour_shader.bind();
-    colour_shader.set_vec4("colour", chosen_colour_1);
 
     instanced_quad_shader.bind();
     instanced_quad_shader.set_mat4("projection", projection);
@@ -198,12 +198,10 @@ main()
 
   // game state
 
-  GameRunning state = GameRunning::ACTIVE;
   uint32_t objects_destroyed = 0;
 
-  {
-    GameObject2D player0 =
-      gameobject::create_player(sprite_player, tex_unit_kenny_nl, player_colour, screen_wh, player_default_speed);
+  { // add players
+    GameObject2D player0 = gameobject::create_player(sprite_player, tex_unit_kenny_nl, player_colour, screen_wh);
 
     KeysAndState player0_keys;
     player0_keys.use_keyboard = true;
@@ -216,8 +214,6 @@ main()
 
   log_time_since("(INFO) End Setup ", app_start);
 
-  // Run App
-
   while (app.is_running()) {
 
     Uint64 frame_start_time = SDL_GetPerformanceCounter();
@@ -229,17 +225,20 @@ main()
     if (delta_time_s >= 0.25f)
       delta_time_s = 0.25f;
 
+    // declare a list of common ents here to apply all the generic things
+    // e.g. physics, rendering, ui info
+    std::vector<std::reference_wrapper<GameObject2D>> common_ents;
+    common_ents.insert(common_ents.end(), entities_enemies.begin(), entities_enemies.end());
+    common_ents.insert(common_ents.end(), entities_bullets.begin(), entities_bullets.end());
+    common_ents.insert(common_ents.end(), entities_player.begin(), entities_player.end());
+
     profiler.begin(Profiler::Stage::Physics);
     {
       if (state == GameRunning::ACTIVE || (state == GameRunning::PAUSED && debug_advance_one_frame)) {
 
         { // pre-physics update: grid position
-          std::vector<std::reference_wrapper<GameObject2D>> grid_ents;
-          grid_ents.insert(grid_ents.end(), entities_enemies.begin(), entities_enemies.end());
-          grid_ents.insert(grid_ents.end(), entities_bullets.begin(), entities_bullets.end());
-          grid_ents.insert(grid_ents.end(), entities_player.begin(), entities_player.end());
 
-          // entities: update entities grid pos
+          std::vector<std::reference_wrapper<GameObject2D>>& grid_ents = common_ents;
 
           for (auto& e : grid_ents) {
 
@@ -285,16 +284,11 @@ main()
           seconds_since_last_physics_tick -= SECONDS_PER_PHYSICS_TICK;
 
           // set entities that we want collision info from
-          std::vector<std::reference_wrapper<GameObject2D>> collidable;
-          collidable.insert(collidable.end(), entities_enemies.begin(), entities_enemies.end());
-          collidable.insert(collidable.end(), entities_bullets.begin(), entities_bullets.end());
-          collidable.insert(collidable.end(), entities_player.begin(), entities_player.end());
+          std::vector<std::reference_wrapper<GameObject2D>>& collidable = common_ents;
 
           // generate filtered broadphase collisions.
           std::map<uint64_t, Collision2D> filtered_collisions;
           generate_filtered_broadphase_collisions(collidable, filtered_collisions);
-
-          // TODO: narrow-phase; per-model collision? convex shapes?
 
           //
           // game's response
@@ -323,18 +317,23 @@ main()
                   entities_enemies.erase(entities_enemies.begin() + i);
                   objects_destroyed += 1;
 
-                  if (!app_mute_sfx) {
-                    // choose a random impact sound
-                    float r = rand_det_s(rnd.rng, 0.0f, 3.0f);
-                    ALuint rnd_impact = audio_list_impacts[static_cast<int>(r)];
-                    audio::play_sound(rnd_impact);
-                  }
+                  // TODO propagate event here
+
+                  // if (!ui_mute_sfx) {
+                  //   // choose a random impact sound
+                  //   float r = rand_det_s(rnd.rng, 0.0f, 3.0f);
+                  //   ALuint rnd_impact = audio_list_impacts[static_cast<int>(r)];
+                  //   audio::play_sound(rnd_impact);
+                  // }
 
                   // other object was player?
                   for (int j = 0; j < entities_player.size(); j++) {
                     GameObject2D& player = entities_player[j];
                     if (id_0 == player.id || id_1 == player.id) {
                       std::cout << "player" << j << " hit taken: " << std::endl;
+
+                      // TODO propagate event here
+
                       player.hits_taken += 1;
                       player_taken_damage = true;
                     }
@@ -369,13 +368,6 @@ main()
     profiler.end(Profiler::Stage::Physics);
     profiler.begin(Profiler::Stage::SdlInput);
     {
-      // Settings: Fullscreen
-
-      if (app.get_input().get_key_down(key_fullscreen)) {
-        toggle_fullscreen(app, instanced_quad_shader);
-        app_fullscreen = app.get_window().get_fullscreen();
-      }
-
       if (app.window_was_resized) {
         app.window_was_resized = false;
 
@@ -388,28 +380,16 @@ main()
         instanced_quad_shader.set_mat4("projection", projection);
       }
 
-      // Settings: Exit App
-      if (app.get_input().get_key_down(key_quit))
-        app.shutdown();
-
 #ifdef _DEBUG
 
       // Debug: Advance one frame
-      if (app.get_input().get_key_down(key_advance_one_frame)) {
+      if (app.get_input().get_key_down(debug_key_advance_one_frame)) {
         debug_advance_one_frame = true;
       }
       // Debug: Advance frames
-      if (app.get_input().get_key_held(key_advance_one_frame_held)) {
+      if (app.get_input().get_key_held(debug_key_advance_one_frame_held)) {
         debug_advance_one_frame = true;
       }
-      // Debug: Force game over
-      if (app.get_input().get_key_down(key_force_gameover)) {
-        state = GameRunning::GAME_OVER_SCREEN;
-      }
-
-      // Settings: Toggle Console
-      if (app.get_input().get_key_down(key_console))
-        show_game_console = !show_game_console;
 
 #endif // _DEBUG
     }
@@ -443,7 +423,7 @@ main()
 
           bool player_alive = player.invulnerable || player.hits_taken < player.hits_able_to_be_taken;
           if (!player_alive)
-            state = GameRunning::GAME_OVER_SCREEN;
+            state = GameRunning::GAME_OVER;
 
           gameobject::update_position(player, delta_time_s);
         }
@@ -486,34 +466,26 @@ main()
 
             // check every frame: close to player?
             float distance_squared = glm::distance2(obj.pos, player_to_chase.pos);
-            if (distance_squared < enemy_direct_attack_threshold) {
-              obj.ai_current = ai_behaviour::MOVEMENT_DIRECT;
+            if (distance_squared < game_enemy_direct_attack_threshold) {
+              obj.ai_current = AiBehaviour::MOVEMENT_DIRECT;
             } else {
               obj.ai_current = obj.ai_original;
             }
 
             // check every frame: update ai behaviour
-            if (obj.ai_current == ai_behaviour::MOVEMENT_DIRECT) {
-              enemy::ai::enemy_directly_to_player(obj, player_to_chase, delta_time_s);
-            } else if (obj.ai_current == ai_behaviour::MOVEMENT_ARC_ANGLE) {
-              enemy::ai::enemy_arc_angles_to_player(obj, player_to_chase, delta_time_s);
+            if (obj.ai_current == AiBehaviour::MOVEMENT_DIRECT) {
+              enemy_ai::enemy_directly_to_player(obj, player_to_chase, delta_time_s);
+            } else if (obj.ai_current == AiBehaviour::MOVEMENT_ARC_ANGLE) {
+              enemy_ai::enemy_arc_angles_to_player(obj, player_to_chase, delta_time_s);
             }
           }
 
           //... and only spawn enemies if there is a player.
-          enemy::enemy_spawner(entities_enemies, camera, entities_player, rnd, screen_wh, delta_time_s);
+          enemy_spawner::update(entities_enemies, camera, entities_player, rnd, screen_wh, delta_time_s);
 
           // update camera pos
-          camera::update_position(camera, player_keys[0], app, delta_time_s);
+          camera::update(camera, player_keys[0], app, delta_time_s);
         }
-
-        // update: fire
-        experimental_fire.pos = { screen_wh.x / 2.0f - 100.0f, screen_wh.y / 2.0f };
-
-        // update: new experimental enemy
-        experimental_new_enemy.pos = { screen_wh.x / 2.0f + 200.0f, screen_wh.y / 2.0f };
-
-        // todo: manage lifecycle and delete expired objects
       }
     }
     profiler.end(Profiler::Stage::GameTick);
@@ -527,26 +499,18 @@ main()
 
       if (state == GameRunning::ACTIVE || state == GameRunning::PAUSED) {
 
-        std::vector<std::reference_wrapper<GameObject2D>> renderables;
-        renderables.insert(renderables.end(), entities_grid.begin(), entities_grid.end());
-        renderables.insert(renderables.end(), entities_enemies.begin(), entities_enemies.end());
-        renderables.insert(renderables.end(), entities_bullets.begin(), entities_bullets.end());
-        renderables.insert(renderables.end(), entities_player.begin(), entities_player.end());
-        renderables.push_back(experimental_fire);
-        renderables.push_back(experimental_new_enemy);
+        std::vector<std::reference_wrapper<GameObject2D>> renderables = common_ents;
 
         for (std::reference_wrapper<GameObject2D> obj : renderables) {
           sprite_renderer::draw_sprite_debug(
             camera, screen_wh, instanced_quad_shader, obj.get(), colour_shader, debug_line_colour);
         }
 
-#ifdef _DEBUG
-        if (render_spritesheet) {
+        if (debug_render_spritesheet) {
           // draw the spritesheet for reference
           sprite_renderer::draw_sprite_debug(
             camera, screen_wh, instanced_quad_shader, tex_obj, colour_shader, debug_line_colour);
         }
-#endif
       }
 
       sprite_renderer::end_batch();
@@ -562,42 +526,42 @@ main()
         bool temp = false;
 
         { // limit framerate
-          temp = app_limit_framerate;
+          temp = ui_limit_framerate;
           ImGui::Checkbox("Limit Framerate", &temp);
-          if (temp != app_limit_framerate) {
+          if (temp != ui_limit_framerate) {
             std::cout << "Limit fps toggled to: " << temp << std::endl;
-            app.limit_fps = temp;
+            ui_limit_framerate = temp;
           }
-          app_limit_framerate = temp;
+          ui_limit_framerate = temp;
         }
 
         { // mute sfx
-          temp = app_mute_sfx;
+          temp = ui_mute_sfx;
           ImGui::Checkbox("Mute SFX", &temp);
-          if (temp != app_mute_sfx) {
+          if (temp != ui_mute_sfx) {
             std::cout << "sfx toggled to: " << temp << std::endl;
           }
-          app_mute_sfx = temp;
+          ui_mute_sfx = temp;
         }
 
         { // use vsync
-          temp = app_use_vsync;
+          temp = ui_use_vsync;
           ImGui::Checkbox("VSync", &temp);
-          if (temp != app_use_vsync) {
+          if (temp != ui_use_vsync) {
             std::cout << "vsync toggled to: " << temp << std::endl;
             app.get_window().set_vsync_opengl(temp);
           }
-          app_use_vsync = temp;
+          ui_use_vsync = temp;
         }
 
         { // toggle fullsceren
-          temp = app_fullscreen;
-          ImGui::Checkbox("Fullscreen", &app_fullscreen);
-          if (temp != app_fullscreen) {
-            std::cout << "app_fullscreen toggled to: " << temp << std::endl;
+          temp = ui_fullscreen;
+          ImGui::Checkbox("Fullscreen", &ui_fullscreen);
+          if (temp != ui_fullscreen) {
+            std::cout << "ui_fullscreen toggled to: " << temp << std::endl;
             toggle_fullscreen(app, instanced_quad_shader);
           }
-          app_fullscreen = temp;
+          ui_fullscreen = temp;
         }
 
         if (ImGui::MenuItem("Quit", "Esc"))
@@ -606,7 +570,7 @@ main()
         ImGui::EndMainMenuBar();
       }
 
-      if (show_game_info) {
+      if (ui_show_game_info) {
         ImGui::Begin("Game Info", NULL, ImGuiWindowFlags_NoFocusOnAppearing);
         {
           for (int i = 0; i < entities_player.size(); i++) {
@@ -615,39 +579,31 @@ main()
             ImGui::Text("PLAYER_HP_MAX %i", player.hits_able_to_be_taken);
             ImGui::Text("PLAYER_HITS_TAKEN %i", player.hits_taken);
             ImGui::Text("PLAYER_BOOST %f", player.shift_boost_time_left);
-
-#ifdef _DEBUG
             ImGui::Text("pos %f %f", player.pos.x, player.pos.y);
             ImGui::Text("vel x: %f y: %f", player.velocity.x, player.velocity.y);
             ImGui::Text("angle %f", player.angle_radians);
-#endif
             ImGui::Separator();
           }
 
-#ifdef _DEBUG
           ImGui::Text("game running for: %f", app.seconds_since_launch);
           ImGui::Text("camera pos %f %f", camera.pos.x, camera.pos.y);
           ImGui::Text("mouse pos %f %f", app.get_input().get_mouse_pos().x, app.get_input().get_mouse_pos().y);
-          ImGui::Text("mouse grid pos %i %i", mouse_grid.x, mouse_grid.y);
           ImGui::Text("PhysicsGridSize %i", PHYSICS_GRID_SIZE);
           ImGui::Separator();
-#endif
 
-          // ImGui::Text("highscore: %i", highscore);
           ImGui::Text("(game) destroyed: %i", objects_destroyed);
-          ImGui::Text("(game) enemy spawn rate: %f", wall_seconds_between_spawning_current);
-#ifdef _DEBUG
+          ImGui::Text("(game) enemy spawn rate: %f", game_wall_seconds_between_spawning_current);
 
           // collect number of ai units in game
           {
-            ai_behaviour behaviour = ai_behaviour::MOVEMENT_DIRECT;
+            AiBehaviour behaviour = AiBehaviour::MOVEMENT_DIRECT;
             auto direct_ai =
               std::count_if(entities_enemies.begin(), entities_enemies.end(), [&behaviour](const GameObject2D& obj) {
                 return obj.ai_current == behaviour;
               });
             ImGui::Text("(game) direct ai: %i", direct_ai);
 
-            behaviour = ai_behaviour::MOVEMENT_ARC_ANGLE;
+            behaviour = AiBehaviour::MOVEMENT_ARC_ANGLE;
             auto arc_ai = std::count_if(entities_enemies.begin(),
                                         entities_enemies.end(),
                                         [&behaviour](const GameObject2D& obj) { return obj.ai_current == behaviour; });
@@ -666,61 +622,40 @@ main()
 
           // collect number of ARC_ANGLE ai
 
-#endif // _DEBUG
-
           ImGui::Separator();
           ImGui::Text("controllers %i", SDL_NumJoysticks());
           ImGui::Separator();
           ImGui::Text("draw_calls: %i", sprite_renderer::get_draw_calls());
           ImGui::Text("quad_verts: %i", sprite_renderer::get_quad_count());
-          // ImGui::Separator();
-          // ImGui::Checkbox("Aces Tone Mapping", &aces_tone_mapping);
-          ImGui::Separator();
-          static float col_0[4] = { chosen_colour_0.x, chosen_colour_0.y, chosen_colour_0.z, chosen_colour_0.w };
-          ImGui::ColorEdit4("col 0", col_0);
-          chosen_colour_0 = glm::vec4(col_0[0], col_0[1], col_0[2], col_0[3]);
-          static float col_1[4] = { chosen_colour_1.x, chosen_colour_1.y, chosen_colour_1.z, chosen_colour_1.w };
-          ImGui::ColorEdit4("col 1", col_1);
-          chosen_colour_1 = glm::vec4(col_1[0], col_1[1], col_1[2], col_1[3]);
-          static float col_2[4] = { chosen_colour_2.x, chosen_colour_2.y, chosen_colour_2.z, chosen_colour_2.w };
-          ImGui::ColorEdit4("col 2", col_2);
-          chosen_colour_2 = glm::vec4(col_2[0], col_2[1], col_2[2], col_2[3]);
-          static float col_3[4] = { chosen_colour_3.x, chosen_colour_3.y, chosen_colour_3.z, chosen_colour_3.w };
-          ImGui::ColorEdit4("col 3", col_3);
-          chosen_colour_3 = glm::vec4(col_3[0], col_3[1], col_3[2], col_3[3]);
         }
         ImGui::End();
       }
 
-      if (show_entity_menu) {
+      if (ui_show_entity_menu) {
 
-        std::vector<std::reference_wrapper<GameObject2D>> enemy;
-        enemy.insert(enemy.end(), entities_enemies.begin(), entities_enemies.end());
-        enemy.insert(enemy.end(), entities_bullets.begin(), entities_bullets.end());
-        enemy.insert(enemy.end(), entities_player.begin(), entities_player.end());
+        std::vector<std::reference_wrapper<GameObject2D>> enemy = common_ents;
 
         ImGui::Begin("Entity Menu", NULL, ImGuiWindowFlags_NoFocusOnAppearing);
+        {
+          ImGui::Text("Players: %i", entities_player.size());
+          ImGui::Text("Bullets: %i", entities_bullets.size());
+          ImGui::Text("Enemies: %i", entities_enemies.size());
 
-        ImGui::Text("Players: %i", entities_player.size());
-        ImGui::Text("Bullets: %i", entities_bullets.size());
-        ImGui::Text("Enemies: %i", entities_enemies.size());
-
-        ImGui::Separator();
-
-        for (auto& e : enemy) {
-          for (auto& c : e.get().in_grid_cell) {
-            ImGui::Text("E: %s x:%i y:%i", e.get().name.c_str(), c.x, c.y);
-          }
           ImGui::Separator();
+
+          for (auto& e : enemy) {
+            for (auto& c : e.get().in_grid_cell) {
+              ImGui::Text("E: %s x:%i y:%i", e.get().name.c_str(), c.x, c.y);
+            }
+            ImGui::Separator();
+          }
         }
         ImGui::End();
       }
 
-      if (show_game_console)
-        console.Draw("Console", &show_game_console);
-      if (show_profiler)
+      if (debug_show_profiler)
         profiler_panel::draw(profiler, delta_time_s);
-      if (show_imgui_demo_window)
+      if (debug_show_imgui_demo_window)
         ImGui::ShowDemoWindow(&show_imgui_demo_window);
     }
     profiler.end(Profiler::Stage::GuiLoop);

@@ -61,7 +61,7 @@ struct KeysAndState
   bool boost_pressed = false;
 };
 
-enum class ai_behaviour
+enum class AiBehaviour
 {
   MOVEMENT_DIRECT,
   MOVEMENT_ARC_ANGLE,
@@ -96,8 +96,8 @@ struct GameObject2D
 
   // ai: hacky behaviour
   // could probably use a list of "prioritized" ai instead. will do that on 3+ ai needed.
-  ai_behaviour ai_original = ai_behaviour::MOVEMENT_DIRECT;
-  ai_behaviour ai_current = ai_behaviour::MOVEMENT_DIRECT;
+  AiBehaviour ai_original = AiBehaviour::MOVEMENT_DIRECT;
+  AiBehaviour ai_current = AiBehaviour::MOVEMENT_DIRECT;
   float approach_theta_degrees = 0.0f;
 
   // game: shooting
@@ -151,7 +151,7 @@ GameObject2D
 create_enemy(sprite::type sprite, int tex_slot, glm::vec4 colour, fightingengine::RandomState& rnd, float speed);
 
 GameObject2D
-create_player(sprite::type sprite, int tex_slot, glm::vec4 colour, glm::vec2 screen, float speed);
+create_player(sprite::type sprite, int tex_slot, glm::vec4 colour, glm::vec2 screen);
 
 } // namespace gameobject
 

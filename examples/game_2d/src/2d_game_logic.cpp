@@ -1,19 +1,14 @@
-#pragma once
 
-// fightingengine headers
-#include "engine/application.hpp"
-
-// game headers
-#include "2d_game_object.hpp"
+// your header
+#include "2d_game_logic.hpp"
 
 namespace game2d {
 
-namespace camera {
-static void
-update(game2d::GameObject2D& camera,
-       const game2d::KeysAndState& keys,
-       fightingengine::Application& app,
-       float delta_time_s)
+void
+camera::update(game2d::GameObject2D& camera,
+               const game2d::KeysAndState& keys,
+               fightingengine::Application& app,
+               float delta_time_s)
 {
   // go.pos = glm::vec2(other.pos.x - screen_width / 2.0f, other.pos.y - screen_height / 2.0f);
   if (app.get_input().get_key_held(keys.key_camera_left))
@@ -25,11 +20,9 @@ update(game2d::GameObject2D& camera,
   if (app.get_input().get_key_held(keys.key_camera_down))
     camera.pos.y += delta_time_s * camera.speed_current;
 }
-};
 
-namespace bullet {
-static void
-update(game2d::GameObject2D& obj, float delta_time_s)
+void
+bullet::update(game2d::GameObject2D& obj, float delta_time_s)
 {
   // pos
   float x = glm::sin(obj.angle_radians) * obj.velocity.x;
@@ -43,14 +36,130 @@ update(game2d::GameObject2D& obj, float delta_time_s)
     obj.flag_for_delete = true;
   }
 }
+
+void
+enemy_ai::move_along_vector(GameObject2D& obj, glm::vec2 dir, float delta_time_s)
+{
+  dir = glm::normalize(dir);
+  obj.pos += (dir * obj.speed_current * delta_time_s);
+}
+
+void
+enemy_ai::enemy_directly_to_player(GameObject2D& obj, GameObject2D& player, float delta_time_s)
+{
+  glm::vec2 ab = player.pos - obj.pos;
+  move_along_vector(obj, ab, delta_time_s);
+}
+
+void
+enemy_ai::enemy_arc_angles_to_player(GameObject2D& obj, GameObject2D& player, float delta_time_s)
+{
+  // calculate a vector ab
+  glm::vec2 ab = player.pos - obj.pos;
+  // calculate the point halfway between ab
+  glm::vec2 half_point = obj.pos + (ab / 2.0f);
+  // calculate the vector at a right angle
+  glm::vec2 normal = glm::vec2(-ab.y, ab.x);
+
+  // expensive(?) distance calc
+  float distance = glm::distance(obj.pos, player.pos);
+  float half_distance = distance / 2.0f;
+
+  // offset the midpoint via normal
+  float amplitude = half_distance * sin(obj.approach_theta_degrees);
+  half_point += (glm::normalize(normal) * amplitude);
+
+  // Now create a bezier curve! use the halfpoint as the control point
+  // float t = 0.5f;
+  // glm::vec2 p = quadratic_curve(obj.pos, half_point, player.pos, t);
+
+  glm::vec2 dir = glm::normalize(half_point - obj.pos);
+  // std::cout << "dir x:" << dir.x << " y:" << dir.y << std::endl;
+
+  move_along_vector(obj, dir, delta_time_s);
+}
+
+void
+enemy_spawner::update(std::vector<game2d::GameObject2D>& enemies,
+                      game2d::GameObject2D& camera,
+                      std::vector<game2d::GameObject2D>& players,
+                      fightingengine::RandomState& rnd,
+                      glm::ivec2 screen_wh,
+                      float delta_time_s)
+{
+
+  wall_seconds_between_spawning_left -= delta_time_s;
+  if (wall_seconds_between_spawning_left <= 0.0f) {
+    wall_seconds_between_spawning_left = wall_seconds_between_spawning_current;
+
+    // glm::ivec2 mouse_pos = app.get_input().get_mouse_pos();
+    // printf("(game) mmb clicked %i %i \n", mouse_pos.x, mouse_pos.y);
+    // glm::vec2 world_pos = glm::vec2(mouse_pos) + camera.pos;
+
+    // search params
+    bool continue_search = true;
+    int iterations_max = 3;
+    int iteration = 0;
+    // result
+    float distance_squared = 0;
+    glm::vec2 found_pos = { 0.0f, 0.0f };
+
+    // generate random pos not too close to players
+    do {
+
+      // tried to generate X times
+      if (iteration == iterations_max) {
+        // ah, screw it, just spawn at 0, 0
+        continue_search = false;
+        std::cout << "(EnemySpawner) max iterations hit" << std::endl;
+      }
+
+      bool ok = true;
+      glm::vec2 rnd_pos =
+        glm::vec2(rand_det_s(rnd.rng, 0.0f, 1.0f) * screen_wh.x, rand_det_s(rnd.rng, 0.0f, 1.0f) * screen_wh.y);
+
+      for (auto& player : players) {
+
+        distance_squared = glm::distance2(rnd_pos, player.pos);
+        ok = distance_squared > safe_radius_around_player;
+
+        if (ok) {
+          continue_search = false;
+          found_pos = rnd_pos;
+        }
+        iteration += 1;
+      }
+
+    } while (continue_search);
+
+    // std::cout << "enemy spawning " << distance_squared << " away from player" << std::endl;
+    glm::vec2 world_pos = found_pos + camera.pos;
+
+    if (game_spawn_enemies) {
+      // spawn enemy
+      game2d::GameObject2D wall_copy =
+        gameobject::create_enemy(sprite_enemy_core, tex_unit_kenny_nl, wall_colour, rnd, enemy_default_speed);
+      // override defaults
+      wall_copy.pos = world_pos;
+      wall_copy.hits_able_to_be_taken = enemy_hits_to_take;
+      enemies.push_back(wall_copy);
+    }
+  }
+
+  // increase difficulty
+  // 0.5 is starting cooldown
+  // after 30 seconds, cooldown should be 0
+  seconds_until_max_difficulty_spent += delta_time_s;
+  float percent = glm::clamp(seconds_until_max_difficulty_spent / seconds_until_max_difficulty, 0.0f, 1.0f);
+  wall_seconds_between_spawning_current =
+    glm::mix(wall_seconds_between_spawning_start, wall_seconds_between_spawning_end, percent);
 };
 
-namespace player {
-static void
-update_input(game2d::GameObject2D& obj,
-             game2d::KeysAndState& keys,
-             fightingengine::Application& app,
-             game2d::GameObject2D& camera)
+void
+player::update_input(game2d::GameObject2D& obj,
+                     game2d::KeysAndState& keys,
+                     fightingengine::Application& app,
+                     game2d::GameObject2D& camera)
 {
   keys.l_analogue_x = 0.0f;
   keys.l_analogue_y = 0.0f;
@@ -112,17 +221,11 @@ update_input(game2d::GameObject2D& obj,
   // }
 }
 
-// process input
-// ability: boost
-// look in mouse direction
-// shoot
-// update colour
-static void
-update_game_logic(game2d::GameObject2D& player,
-                  const game2d::KeysAndState& keys,
-                  std::vector<game2d::GameObject2D>& bullets,
-                  float delta_time_s,
-                  ALint source_id)
+void
+player::update_game_logic(game2d::GameObject2D& player,
+                          const game2d::KeysAndState& keys,
+                          std::vector<game2d::GameObject2D>& bullets,
+                          float delta_time_s)
 {
   // process input
   player.velocity.x = keys.l_analogue_x;
@@ -193,8 +296,8 @@ update_game_logic(game2d::GameObject2D& player,
 
       bullets.push_back(bullet_copy);
 
-      if (!app_mute_sfx)
-        audio::play_sound(source_id);
+      // if (!app_mute_sfx)
+      //   audio::play_sound(source_id);
     }
   }
 
@@ -206,157 +309,5 @@ update_game_logic(game2d::GameObject2D& player,
   col.a = glm::clamp(1.0f - t, min_alpha, 1.0f);
   player.colour = col;
 }
-};
-
-namespace enemy_spawner {
-
-static void
-spawn_enemy(std::vector<game2d::GameObject2D>& enemies, game2d::GameObject2D& camera, glm::vec2 pos, RandomState& rnd)
-{
-  game2d::GameObject2D wall_copy =
-    gameobject::create_enemy(sprite_enemy_core, tex_unit_kenny_nl, wall_colour, rnd, enemy_default_speed);
-  // override defaults
-  wall_copy.pos = pos;
-  wall_copy.hits_able_to_be_taken = enemy_hits_to_take;
-  enemies.push_back(wall_copy);
-}
-
-// spawn a random enemy every X seconds
-static void
-enemy_spawner(std::vector<game2d::GameObject2D>& enemies,
-              game2d::GameObject2D& camera,
-              std::vector<game2d::GameObject2D>& players,
-              RandomState& rnd,
-              glm::ivec2 screen_wh,
-              float delta_time_s)
-{
-
-  wall_seconds_between_spawning_left -= delta_time_s;
-  if (wall_seconds_between_spawning_left <= 0.0f) {
-    wall_seconds_between_spawning_left = wall_seconds_between_spawning_current;
-
-    // glm::ivec2 mouse_pos = app.get_input().get_mouse_pos();
-    // printf("(game) mmb clicked %i %i \n", mouse_pos.x, mouse_pos.y);
-    // glm::vec2 world_pos = glm::vec2(mouse_pos) + camera.pos;
-
-    // search params
-    bool continue_search = true;
-    int iterations_max = 3;
-    int iteration = 0;
-    // result
-    float distance_squared = 0;
-    glm::vec2 found_pos = { 0.0f, 0.0f };
-
-    // generate random pos not too close to players
-    do {
-
-      // tried to generate X times
-      if (iteration == iterations_max) {
-        // ah, screw it, just spawn at 0, 0
-        continue_search = false;
-        std::cout << "(EnemySpawner) max iterations hit" << std::endl;
-      }
-
-      bool ok = true;
-      glm::vec2 rnd_pos =
-        glm::vec2(rand_det_s(rnd.rng, 0.0f, 1.0f) * screen_wh.x, rand_det_s(rnd.rng, 0.0f, 1.0f) * screen_wh.y);
-
-      for (auto& player : players) {
-
-        distance_squared = glm::distance2(rnd_pos, player.pos);
-        ok = distance_squared > safe_radius_around_player;
-
-        if (ok) {
-          continue_search = false;
-          found_pos = rnd_pos;
-        }
-        iteration += 1;
-      }
-
-    } while (continue_search);
-
-    // std::cout << "enemy spawning " << distance_squared << " away from player" << std::endl;
-    glm::vec2 world_pos = found_pos + camera.pos;
-
-    if (game_spawn_enemies) {
-      // spawn enemy
-      game2d::GameObject2D wall_copy =
-        gameobject::create_enemy(sprite_enemy_core, tex_unit_kenny_nl, wall_colour, rnd, enemy_default_speed);
-      // override defaults
-      wall_copy.pos = world_pos;
-      wall_copy.hits_able_to_be_taken = enemy_hits_to_take;
-      enemies.push_back(wall_copy);
-    }
-  }
-
-  // increase difficulty
-  // 0.5 is starting cooldown
-  // after 30 seconds, cooldown should be 0
-  seconds_until_max_difficulty_spent += delta_time_s;
-  float percent = glm::clamp(seconds_until_max_difficulty_spent / seconds_until_max_difficulty, 0.0f, 1.0f);
-  wall_seconds_between_spawning_current =
-    glm::mix(wall_seconds_between_spawning_start, wall_seconds_between_spawning_end, percent);
-};
 
 }
-
-namespace enemy_ai {
-
-static void
-enemy_to_dir_vector(game2d::GameObject2D& obj, glm::vec2 dir, float delta_time_s)
-{
-  dir = glm::normalize(dir);
-  obj.pos += (dir * obj.speed_current * delta_time_s);
-}
-
-static void
-enemy_directly_to_player(game2d::GameObject2D& obj, game2d::GameObject2D& player, float delta_time_s)
-{
-  glm::vec2 ab = player.pos - obj.pos;
-  glm::vec2 dir = glm::normalize(ab);
-  enemy_to_dir_vector(obj, dir, delta_time_s);
-}
-
-// note: have a flanking manager assign angles out to these enemies
-// this will mean that enemies will approach the player from all sorts of different angles.
-// if far... arc angles
-// if close... go direct!
-// some direct anyway.
-static void
-enemy_arc_angles_to_player(game2d::GameObject2D& obj, game2d::GameObject2D& player, float delta_time_s)
-{
-  // calculate a vector ab
-  glm::vec2 ab = player.pos - obj.pos;
-  // calculate the point halfway between ab
-  glm::vec2 half_point = obj.pos + (ab / 2.0f);
-  // calculate the vector at a right angle
-  glm::vec2 normal = glm::vec2(-ab.y, ab.x);
-
-#ifdef _DEBUG
-  {
-    float dot = glm::abs(glm::dot(ab, normal));
-    assert(dot <= 0.001f); // good enough
-  }
-#endif
-
-  // expensive(?) distance calc
-  float distance = glm::distance(obj.pos, player.pos);
-  float half_distance = distance / 2.0f;
-
-  // offset the midpoint via normal
-  float amplitude = half_distance * sin(obj.approach_theta_degrees);
-  half_point += (glm::normalize(normal) * amplitude);
-
-  // Now create a bezier curve! use the halfpoint as the control point
-  // float t = 0.5f;
-  // glm::vec2 p = quadratic_curve(obj.pos, half_point, player.pos, t);
-
-  glm::vec2 dir = glm::normalize(half_point - obj.pos);
-  // std::cout << "dir x:" << dir.x << " y:" << dir.y << std::endl;
-
-  enemy_to_dir_vector(obj, dir, delta_time_s);
-}
-
-}
-
-} // namespace game2d

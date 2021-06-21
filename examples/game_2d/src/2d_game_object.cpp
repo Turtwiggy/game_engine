@@ -91,12 +91,12 @@ create_enemy(sprite::type sprite, int tex_slot, glm::vec4 colour, fightingengine
   // roll a dice
   float rand = fightingengine::rand_det_s(rnd.rng, 0.0f, 100.0f);
   if (rand <= 75.0f) {
-    game_object.ai_original = ai_behaviour::MOVEMENT_ARC_ANGLE;
+    game_object.ai_original = AiBehaviour::MOVEMENT_ARC_ANGLE;
     // locked between -89.9 and 89.9 as uses sin(theta), and after these values makes less sense
     game_object.approach_theta_degrees = fightingengine::rand_det_s(rnd.rng, -89.9f, 89.9f);
     std::cout << "approach angle: " << game_object.approach_theta_degrees << std::endl;
   } else {
-    game_object.ai_original = ai_behaviour::MOVEMENT_DIRECT;
+    game_object.ai_original = AiBehaviour::MOVEMENT_DIRECT;
     game_object.approach_theta_degrees = 0.0f;
   }
   game_object.ai_current = game_object.ai_original;
