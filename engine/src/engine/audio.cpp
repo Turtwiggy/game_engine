@@ -146,7 +146,7 @@ audio::play_sound(ALint source_id)
 };
 
 ALuint
-create_source(ALuint& s, float volume)
+audio::create_source(ALuint& s, float volume)
 {
   ALuint source;
   alGenSources(1, &source);               // generate source

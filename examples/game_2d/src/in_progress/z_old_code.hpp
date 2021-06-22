@@ -1,3 +1,5 @@
+#pragma once
+
 // Shader hot reloading
 // if (app.get_input().get_key_down(SDL_SCANCODE_R)) {
 //   reload_shader_program(&fun_shader.ID, "2d_texture.vert", "effects/posterized_water.frag");

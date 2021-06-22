@@ -57,17 +57,7 @@ debug_render_spritesheet = false;
 debug_show_profiler = false;
 #endif
 
-const bool game_spawn_enemies = false;
-const bool game_player_shoot = true; // affects all players
 const bool game_destroy_half_sprites_on_damage = false;
-const float game_seconds_until_max_difficulty = 100.0f;
-const float game_seconds_until_max_difficulty_spent = 0.0f;
-const float game_wall_seconds_between_spawning_start = 0.5f;
-float game_wall_seconds_between_spawning_current = game_wall_seconds_between_spawning_start;
-const float game_wall_seconds_between_spawning_left = 0.0f;
-const float game_wall_seconds_between_spawning_end = 0.2f;
-const float game_safe_radius_around_player = 7500.0f;
-const float game_enemy_direct_attack_threshold = 4000.0f;
 
 // physics tick
 int PHYSICS_GRID_SIZE = 100;
@@ -93,6 +83,9 @@ glm::vec4 wall_colour = PALETTE_COLOUR_4_1;       // grey
 sprite::type sprite_player = sprite::type::PERSON_1;
 sprite::type sprite_bullet = sprite::type::WEAPON_ARROW_1;
 sprite::type sprite_enemy_core = sprite::type::PERSON_2;
+
+const float game_safe_radius_around_player = 7500.0f;
+const float game_enemy_direct_attack_threshold = 4000.0f;
 
 void
 toggle_fullscreen(Application& app, Shader& shader)
@@ -403,7 +396,7 @@ main()
         GameObject2D& player = entities_player[i];
         KeysAndState& keys = player_keys[i];
 
-        player::update_input(player, keys, app, camera);
+        player::update_key_input(player, keys, app, camera);
 
         if (keys.pause_pressed)
           state = state == GameRunning::PAUSED ? GameRunning::ACTIVE : GameRunning::PAUSED;
@@ -419,7 +412,8 @@ main()
           GameObject2D& player = entities_player[i];
           KeysAndState& keys = player_keys[i];
 
-          player::update_game_logic(player, keys, entities_bullets, delta_time_s, audio_source_bullet);
+          player::update_logic(
+            player, keys, entities_bullets, tex_unit_kenny_nl, bullet_colour, sprite_bullet, delta_time_s);
 
           bool player_alive = player.invulnerable || player.hits_taken < player.hits_able_to_be_taken;
           if (!player_alive)
@@ -481,7 +475,16 @@ main()
           }
 
           //... and only spawn enemies if there is a player.
-          enemy_spawner::update(entities_enemies, camera, entities_player, rnd, screen_wh, delta_time_s);
+          enemy_spawner::update(entities_enemies,
+                                camera,
+                                entities_player,
+                                rnd,
+                                screen_wh,
+                                game_safe_radius_around_player,
+                                tex_unit_kenny_nl,
+                                wall_colour,
+                                sprite_enemy_core,
+                                delta_time_s);
 
           // update camera pos
           camera::update(camera, player_keys[0], app, delta_time_s);
@@ -592,7 +595,6 @@ main()
           ImGui::Separator();
 
           ImGui::Text("(game) destroyed: %i", objects_destroyed);
-          ImGui::Text("(game) enemy spawn rate: %f", game_wall_seconds_between_spawning_current);
 
           // collect number of ai units in game
           {
@@ -608,16 +610,6 @@ main()
                                         entities_enemies.end(),
                                         [&behaviour](const GameObject2D& obj) { return obj.ai_current == behaviour; });
             ImGui::Text("(game) arc ai %i", arc_ai);
-          }
-
-          bool temp = false;
-          { // toggle shoot
-            temp = game_player_shoot;
-            ImGui::Checkbox("Player Shoot", &temp);
-            if (temp != game_player_shoot) {
-              std::cout << "player_shoot toggled to: " << temp << std::endl;
-            }
-            game_player_shoot = temp;
           }
 
           // collect number of ARC_ANGLE ai
@@ -656,7 +648,7 @@ main()
       if (debug_show_profiler)
         profiler_panel::draw(profiler, delta_time_s);
       if (debug_show_imgui_demo_window)
-        ImGui::ShowDemoWindow(&show_imgui_demo_window);
+        ImGui::ShowDemoWindow(&debug_show_imgui_demo_window);
     }
     profiler.end(Profiler::Stage::GuiLoop);
     profiler.begin(Profiler::Stage::FrameEnd);

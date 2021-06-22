@@ -4,6 +4,9 @@
 
 // other library headers
 #include <iostream>
+#ifdef WIN32
+#include <Windows.h>
+#endif
 
 // engine header
 #include "engine/opengl/texture.hpp"
@@ -47,7 +50,6 @@ void
 hide_console()
 {
 #ifdef WIN32
-#include <Windows.h>
   ::ShowWindow(::GetConsoleWindow(), SW_HIDE); // hide console
 #endif
 }

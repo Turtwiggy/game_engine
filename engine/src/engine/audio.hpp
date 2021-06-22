@@ -46,7 +46,7 @@ play_sound(ALint source_id);
 // generate source
 // attach buffer to source
 // set volume
-ALuint
+[[nodiscard]] ALuint
 create_source(ALuint& s, float volume);
 
 } // namespace audio

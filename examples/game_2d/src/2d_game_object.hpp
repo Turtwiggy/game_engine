@@ -56,6 +56,7 @@ struct KeysAndState
   float l_analogue_y = 0.0f;
   float r_analogue_x = 0.0f;
   float r_analogue_y = 0.0f;
+  float angle_around_player = 0.0f;
   bool pause_pressed = false;
   bool shoot_pressed = false;
   bool boost_pressed = false;
@@ -148,7 +149,7 @@ GameObject2D
 create_camera();
 
 GameObject2D
-create_enemy(sprite::type sprite, int tex_slot, glm::vec4 colour, fightingengine::RandomState& rnd, float speed);
+create_enemy(sprite::type sprite, int tex_slot, glm::vec4 colour, fightingengine::RandomState& rnd);
 
 GameObject2D
 create_player(sprite::type sprite, int tex_slot, glm::vec4 colour, glm::vec2 screen);

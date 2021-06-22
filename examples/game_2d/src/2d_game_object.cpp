@@ -72,7 +72,7 @@ create_camera()
 }
 
 GameObject2D
-create_enemy(sprite::type sprite, int tex_slot, glm::vec4 colour, fightingengine::RandomState& rnd, float speed)
+create_enemy(sprite::type sprite, int tex_slot, glm::vec4 colour, fightingengine::RandomState& rnd)
 {
   GameObject2D game_object;
   // config
