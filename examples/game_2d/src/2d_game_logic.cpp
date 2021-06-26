@@ -172,7 +172,7 @@ enemy_spawner::update(std::vector<GameObject2D>& enemies,
 namespace player {
 
 void
-update_key_input(GameObject2D& obj, KeysAndState& keys, fightingengine::Application& app, GameObject2D& camera)
+update_input(GameObject2D& obj, KeysAndState& keys, fightingengine::Application& app, GameObject2D& camera)
 {
   keys.l_analogue_x = 0.0f;
   keys.l_analogue_y = 0.0f;

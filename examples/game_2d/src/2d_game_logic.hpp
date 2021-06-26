@@ -59,7 +59,7 @@ update(std::vector<GameObject2D>& enemies,
 namespace player {
 
 void
-update_key_input(GameObject2D& obj, KeysAndState& keys, fightingengine::Application& app, GameObject2D& camera);
+update_input(GameObject2D& obj, KeysAndState& keys, fightingengine::Application& app, GameObject2D& camera);
 
 // process input
 // ability: boost

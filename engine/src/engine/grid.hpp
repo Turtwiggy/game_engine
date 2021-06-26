@@ -1,6 +1,7 @@
 #pragma once
 
 // c++ lib headers
+#include <iostream>
 #include <vector>
 
 // other lib headers
@@ -35,29 +36,39 @@ get_cell(const std::vector<T>& t, int x, int y, int x_max)
 
 // e.g.
 // a grid shaped
-// ~~~~~~~~~~~~~
-// 0  1  2  3  4
-// 5  6  7  8
-// 9  10 11
-// 12 13
-// 14
-// ~~~~~~~~~~~~~~
+//  N  0 | 0  1  2  3
+//  B  1 |    4  5  6
+//  P  2 |       7  8
+//  E  3 |          9
+//       |-----------
+//         0  1  2  3
+//         N  B  P  E
+
 // the get_layer_value is:
-// y=2... x-max=5...
-// (5 - (2-1)) + (5 -(1-1)) = 9
+// x=2... y=1... x-max=4...
+// layer_value: (4 - (2-1)) + (4 -(1-1)) = 7
+// final_value: 7 + 2 - 2
 // because 9 is the first element on the 2nd y layer.
 template<typename T>
 [[nodiscard]] inline T
 get_cell_mirrored_grid(const std::vector<T>& t, int x, int y, int x_max)
 {
-  if (y < x) {
+  // make sure the X value is always the greatest value
+  if (x < y) {
     int temp = x;
     x = y;
     y = temp;
   }
+  // after sorting, if x is still less than y,
+  // this is invalid grid entry
+  if (x < y) {
+    std::cerr << " INVALID GRID ENTRY x:" << x << " y:" << y << std::endl;
+    exit(1); // harsh, but I'd prefer not try and recover currently
+  }
 
-  int val = get_layer_value(y, x_max) - x + y;
-  return t[val];
+  int layer_value = get_layer_value(y, x_max);
+  int v = layer_value + x - y;
+  return t[v];
 }
 
 [[nodiscard]] inline glm::ivec2

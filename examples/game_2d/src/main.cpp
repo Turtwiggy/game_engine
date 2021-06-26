@@ -61,9 +61,9 @@ const bool game_destroy_half_sprites_on_damage = false;
 
 // physics tick
 int PHYSICS_GRID_SIZE = 100;
-int PHYSICS_TICKS_PER_SECOND = 40;
-float SECONDS_PER_PHYSICS_TICK = 1.0f / PHYSICS_TICKS_PER_SECOND;
-float seconds_since_last_physics_tick = 0;
+// int PHYSICS_TICKS_PER_SECOND = 40;
+// float SECONDS_PER_PHYSICS_TICK = 1.0f / PHYSICS_TICKS_PER_SECOND;
+// float seconds_since_last_physics_tick = 0;
 
 // textures
 const int tex_unit_kenny_nl = 0;
@@ -86,19 +86,6 @@ sprite::type sprite_enemy_core = sprite::type::PERSON_2;
 
 const float game_safe_radius_around_player = 7500.0f;
 const float game_enemy_direct_attack_threshold = 4000.0f;
-
-void
-toggle_fullscreen(Application& app, Shader& shader)
-{
-  app.get_window().toggle_fullscreen(); // SDL2 window toggle
-  glm::ivec2 screen_wh = app.get_window().get_size();
-  RenderCommand::set_viewport(0, 0, screen_wh.x, screen_wh.y);
-  glm::mat4 projection =
-    glm::ortho(0.0f, static_cast<float>(screen_wh.x), static_cast<float>(screen_wh.y), 0.0f, -1.0f, 1.0f);
-
-  shader.bind();
-  shader.set_mat4("projection", projection);
-};
 
 int
 main()
@@ -218,8 +205,10 @@ main()
     if (delta_time_s >= 0.25f)
       delta_time_s = 0.25f;
 
-    // declare a list of common ents here to apply all the generic things
+    //
+    // declare a list of entities to apply all the generic things
     // e.g. physics, rendering, ui info
+    //
     std::vector<std::reference_wrapper<GameObject2D>> common_ents;
     common_ents.insert(common_ents.end(), entities_enemies.begin(), entities_enemies.end());
     common_ents.insert(common_ents.end(), entities_bullets.begin(), entities_bullets.end());
@@ -272,90 +261,98 @@ main()
 
         // FIXED PHYSICS TICK
 
-        seconds_since_last_physics_tick += delta_time_s;
-        while (seconds_since_last_physics_tick >= SECONDS_PER_PHYSICS_TICK) {
-          seconds_since_last_physics_tick -= SECONDS_PER_PHYSICS_TICK;
+        // seconds_since_last_physics_tick += delta_time_s;
+        // while (seconds_since_last_physics_tick >= SECONDS_PER_PHYSICS_TICK) {
+        //   seconds_since_last_physics_tick -= SECONDS_PER_PHYSICS_TICK;
 
-          // set entities that we want collision info from
-          std::vector<std::reference_wrapper<GameObject2D>>& collidable = common_ents;
+        // set entities that we want collision info from
+        std::vector<std::reference_wrapper<GameObject2D>>& collidable = common_ents;
 
-          // generate filtered broadphase collisions.
-          std::map<uint64_t, Collision2D> filtered_collisions;
-          generate_filtered_broadphase_collisions(collidable, filtered_collisions);
+        // generate filtered broadphase collisions.
+        std::map<uint64_t, Collision2D> filtered_collisions;
+        generate_filtered_broadphase_collisions(collidable, filtered_collisions);
 
-          //
-          // game's response
-          //
-
-          for (auto& c : filtered_collisions) {
-
-            uint32_t id_0 = c.second.ent_id_0;
-            uint32_t id_1 = c.second.ent_id_1;
-
-            // Resolve game collision matrix...!
-
-            // Check for entities_enemies collisions
-
-            bool player_taken_damage = false;
-
-            for (int i = 0; i < entities_enemies.size(); i++) {
-              GameObject2D& go = entities_enemies[i];
-              if (id_0 == go.id || id_1 == go.id) {
-
-                // What to do if wall collided?
-
-                // set it as having taken damage
-                go.hits_taken += 1;
-                if (go.hits_taken >= go.hits_able_to_be_taken) {
-                  entities_enemies.erase(entities_enemies.begin() + i);
-                  objects_destroyed += 1;
-
-                  // TODO propagate event here
-
-                  // if (!ui_mute_sfx) {
-                  //   // choose a random impact sound
-                  //   float r = rand_det_s(rnd.rng, 0.0f, 3.0f);
-                  //   ALuint rnd_impact = audio_list_impacts[static_cast<int>(r)];
-                  //   audio::play_sound(rnd_impact);
-                  // }
-
-                  // other object was player?
-                  for (int j = 0; j < entities_player.size(); j++) {
-                    GameObject2D& player = entities_player[j];
-                    if (id_0 == player.id || id_1 == player.id) {
-                      std::cout << "player" << j << " hit taken: " << std::endl;
-
-                      // TODO propagate event here
-
-                      player.hits_taken += 1;
-                      player_taken_damage = true;
-                    }
-                  }
-                }
-              }
-            }
-
-            if (player_taken_damage && game_destroy_half_sprites_on_damage) {
-              // player took damage! chill out for a bit.
-              // destroy half the enemies..!
-              for (int i = 0; i < entities_enemies.size() / 2; i++) {
-                entities_enemies.erase(entities_enemies.begin());
-              }
-            }
-
-            // Check for entities_bullets collisions
-
-            for (int i = 0; i < entities_bullets.size(); i++) {
-              GameObject2D& go = entities_bullets[i];
-              if (id_0 == go.id || id_1 == go.id) {
-
-                // what to do if a bullet collided?
-
-                entities_bullets.erase(entities_bullets.begin() + i);
-              }
-            }
-          }
+        if (filtered_collisions.size() > 0) {
+          std::cout << "pause" << std::endl;
         }
+
+        for (auto& fc : filtered_collisions) {
+          ImGui::Begin("Collisions", NULL, ImGuiWindowFlags_NoFocusOnAppearing);
+          ImGui::Text("Collision: %i and %i", fc.second.ent_id_0, fc.second.ent_id_1);
+          ImGui::End();
+        }
+
+        // for (auto& c : filtered_collisions) {
+
+        //   uint32_t id_0 = c.second.ent_id_0;
+        //   uint32_t id_1 = c.second.ent_id_1;
+
+        //   // Resolve game collision matrix...!
+
+        //   // Check for entities_enemies collisions
+
+        //   bool player_taken_damage = false;
+
+        //   for (int i = 0; i < entities_enemies.size(); i++) {
+        //     GameObject2D& go = entities_enemies[i];
+        //     if (id_0 == go.id || id_1 == go.id) {
+
+        //       // What to do if wall collided?
+
+        //       // set it as having taken damage
+        //       go.hits_taken += 1;
+        //       if (go.hits_taken >= go.hits_able_to_be_taken) {
+        //         entities_enemies.erase(entities_enemies.begin() + i);
+        //         objects_destroyed += 1;
+
+        //         // TODO propagate event here
+
+        //         // if (!ui_mute_sfx) {
+        //         //   // choose a random impact sound
+        //         //   float r = rand_det_s(rnd.rng, 0.0f, 3.0f);
+        //         //   ALuint rnd_impact = audio_list_impacts[static_cast<int>(r)];
+        //         //   audio::play_sound(rnd_impact);
+        //         // }
+
+        //         // other object was player?
+        //         for (int j = 0; j < entities_player.size(); j++) {
+        //           GameObject2D& player = entities_player[j];
+        //           if (id_0 == player.id || id_1 == player.id) {
+        //             std::cout << "player" << j << " hit taken: " << std::endl;
+
+        //             // TODO propagate event here
+
+        //             player.hits_taken += 1;
+        //             player_taken_damage = true;
+        //           }
+        //         }
+        //       }
+        //     }
+        //   }
+
+        //   if (player_taken_damage && game_destroy_half_sprites_on_damage) {
+        //     // player took damage! chill out for a bit.
+        //     // destroy half the enemies..!
+        //     for (int i = 0; i < entities_enemies.size() / 2; i++) {
+        //       entities_enemies.erase(entities_enemies.begin());
+        //     }
+        //   }
+
+        //   // Check for entities_bullets collisions
+
+        //   for (int i = 0; i < entities_bullets.size(); i++) {
+        //     GameObject2D& go = entities_bullets[i];
+        //     if (id_0 == go.id || id_1 == go.id) {
+
+        //       // what to do if a bullet collided?
+
+        //       std::cout << go.id << " collided with " << std::endl;
+
+        //       entities_bullets.erase(entities_bullets.begin() + i);
+        //     }
+        //   }
+        // }
+        // }
       }
     }
     profiler.end(Profiler::Stage::Physics);
@@ -374,6 +371,9 @@ main()
       }
 
 #ifdef _DEBUG
+
+      if (app.get_input().get_key_down(SDL_SCANCODE_ESCAPE))
+        app.shutdown();
 
       // Debug: Advance one frame
       if (app.get_input().get_key_down(debug_key_advance_one_frame)) {
@@ -396,7 +396,7 @@ main()
         GameObject2D& player = entities_player[i];
         KeysAndState& keys = player_keys[i];
 
-        player::update_key_input(player, keys, app, camera);
+        player::update_input(player, keys, app, camera);
 
         if (keys.pause_pressed)
           state = state == GameRunning::PAUSED ? GameRunning::ACTIVE : GameRunning::PAUSED;
@@ -524,7 +524,6 @@ main()
     {
       if (ImGui::BeginMainMenuBar()) {
         ImGui::Text("%.2f FPS (%.2f ms)", ImGui::GetIO().Framerate, 1000.0f / ImGui::GetIO().Framerate);
-        // ImGui::SameLine(ImGui::GetWindowWidth());
 
         bool temp = false;
 
@@ -562,11 +561,20 @@ main()
           ImGui::Checkbox("Fullscreen", &ui_fullscreen);
           if (temp != ui_fullscreen) {
             std::cout << "ui_fullscreen toggled to: " << temp << std::endl;
-            toggle_fullscreen(app, instanced_quad_shader);
+
+            // hack
+            app.get_window().toggle_fullscreen(); // SDL2 window toggle
+            glm::ivec2 screen_wh = app.get_window().get_size();
+            RenderCommand::set_viewport(0, 0, screen_wh.x, screen_wh.y);
+            glm::mat4 projection =
+              glm::ortho(0.0f, static_cast<float>(screen_wh.x), static_cast<float>(screen_wh.y), 0.0f, -1.0f, 1.0f);
+            instanced_quad_shader.bind();
+            instanced_quad_shader.set_mat4("projection", projection);
           }
           ui_fullscreen = temp;
         }
 
+        ImGui::SameLine(screen_wh.x - 50.0f);
         if (ImGui::MenuItem("Quit", "Esc"))
           app.shutdown();
 
@@ -592,8 +600,6 @@ main()
           ImGui::Text("camera pos %f %f", camera.pos.x, camera.pos.y);
           ImGui::Text("mouse pos %f %f", app.get_input().get_mouse_pos().x, app.get_input().get_mouse_pos().y);
           ImGui::Text("PhysicsGridSize %i", PHYSICS_GRID_SIZE);
-          ImGui::Separator();
-
           ImGui::Text("(game) destroyed: %i", objects_destroyed);
 
           // collect number of ai units in game
@@ -625,8 +631,6 @@ main()
 
       if (ui_show_entity_menu) {
 
-        std::vector<std::reference_wrapper<GameObject2D>> enemy = common_ents;
-
         ImGui::Begin("Entity Menu", NULL, ImGuiWindowFlags_NoFocusOnAppearing);
         {
           ImGui::Text("Players: %i", entities_player.size());
@@ -635,9 +639,9 @@ main()
 
           ImGui::Separator();
 
-          for (auto& e : enemy) {
+          for (auto& e : common_ents) {
             for (auto& c : e.get().in_grid_cell) {
-              ImGui::Text("E: %s x:%i y:%i", e.get().name.c_str(), c.x, c.y);
+              ImGui::Text("%i E: %s x:%i y:%i", e.get().id, e.get().name.c_str(), c.x, c.y);
             }
             ImGui::Separator();
           }
