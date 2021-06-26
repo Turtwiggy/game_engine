@@ -11,6 +11,22 @@
 namespace game2d {
 
 void
+bullet::update(GameObject2D& obj, float delta_time_s)
+{
+  // pos
+  float x = glm::sin(obj.angle_radians) * obj.velocity.x;
+  float y = -glm::cos(obj.angle_radians) * obj.velocity.y;
+  obj.pos.x += x * delta_time_s;
+  obj.pos.y += y * delta_time_s;
+
+  // lifecycle
+  obj.time_alive_left -= delta_time_s;
+  if (obj.time_alive_left <= 0.0f) {
+    obj.flag_for_delete = true;
+  }
+};
+
+void
 camera::update(GameObject2D& camera, const KeysAndState& keys, fightingengine::Application& app, float delta_time_s)
 {
   // go.pos = glm::vec2(other.pos.x - screen_width / 2.0f, other.pos.y - screen_height / 2.0f);
@@ -25,19 +41,56 @@ camera::update(GameObject2D& camera, const KeysAndState& keys, fightingengine::A
 };
 
 void
-bullet::update(GameObject2D& obj, float delta_time_s)
+collisions::resolve(uint32_t id0, uint32_t id1, const std::vector<std::reference_wrapper<GameObject2D>>& ents)
 {
-  // pos
-  float x = glm::sin(obj.angle_radians) * obj.velocity.x;
-  float y = -glm::cos(obj.angle_radians) * obj.velocity.y;
-  obj.pos.x += x * delta_time_s;
-  obj.pos.y += y * delta_time_s;
+  // Find the objs in the read-only list
+  auto& obj_0_it = std::find_if(ents.begin(), ents.end(), [&id0](const auto& obj) { return obj.get().id == id0; });
+  auto& obj_1_it = std::find_if(ents.begin(), ents.end(), [&id1](const auto& obj) { return obj.get().id == id1; });
 
-  // lifecycle
-  obj.time_alive_left -= delta_time_s;
-  if (obj.time_alive_left <= 0.0f) {
-    obj.flag_for_delete = true;
+  if (obj_0_it == ents.end() || obj_1_it == ents.end()) {
+    std::cerr << "Collision entity not in entity list" << std::endl;
+    exit(1); // harsh, but I prefer this during development
   }
+
+  auto& coll_layer_0 = obj_0_it->get().collision_layer;
+  auto& coll_layer_1 = obj_1_it->get().collision_layer;
+
+  //   if (id_layer.get().collision_layer == CollisionLayer::Bullet) {
+  //   }
+  // if (l0 == CollisionLayer::Bullet || l1 == CollisionLayer::Bullet) {
+  //   // remove from read-only view
+  // }
+
+  // if (l0 == CollisionLayer::Player) {
+  //   // Player Collided
+  //   // What was the other thing?
+  //   if (l1 == CollisionLayer::Enemy) {
+  //     // An enemy
+
+  //     // Make the player take 1 damage
+  //     // auto& bullet_it = std::find_if(entities_bullets.begin(),
+  //     //                                entities_bullets.end(),
+  //     //                                [&id_0](const auto& obj) { return obj.id == id_0; });
+  //     // if (bullet_it != entities_bullets.end())
+  //     //   entities_bullets.erase(bullet_it);
+
+  //     //             player.hits_taken += 1;
+  //     //             player_taken_damage = true;
+
+  //     // Make the enemy dissapear
+
+  //     //     // destroy half the enemies..!
+  //     //     for (int i = 0; i < entities_enemies.size() / 2; i++) {
+  //     //       entities_enemies.erase(entities_enemies.begin());
+  //     //     }
+  //   }
+  // }
+  // if (l0 == CollisionLayer::Enemy) {
+  //   // Enemy Collided
+  //   // What was the other thing?
+  //   if (l1 == CollisionLayer::Bullet) {
+  //     // A bullet!
+  //   }
 };
 
 void
@@ -82,8 +135,9 @@ enemy_ai::enemy_arc_angles_to_player(GameObject2D& obj, GameObject2D& player, fl
   move_along_vector(obj, dir, delta_time_s);
 };
 
-bool game_player_shoot = true; // affects all players
-const bool game_spawn_enemies = false;
+namespace enemy_spawner {
+
+const bool game_spawn_enemies = true;
 const float game_wall_seconds_between_spawning_start = 0.5f;
 float game_wall_seconds_between_spawning_current = game_wall_seconds_between_spawning_start;
 float game_wall_seconds_between_spawning_left = 0.0f;
@@ -92,16 +146,16 @@ const float game_seconds_until_max_difficulty = 100.0f;
 float game_seconds_until_max_difficulty_spent = 0.0f;
 
 void
-enemy_spawner::update(std::vector<GameObject2D>& enemies,
-                      GameObject2D& camera,
-                      std::vector<GameObject2D>& players,
-                      fightingengine::RandomState& rnd,
-                      glm::ivec2 screen_wh,
-                      float safe_radius_around_player,
-                      int tex_unit,
-                      glm::vec4 col,
-                      sprite::type sprite,
-                      float delta_time_s)
+update(std::vector<GameObject2D>& enemies,
+       GameObject2D& camera,
+       std::vector<GameObject2D>& players,
+       fightingengine::RandomState& rnd,
+       glm::ivec2 screen_wh,
+       float safe_radius_around_player,
+       int tex_unit,
+       glm::vec4 col,
+       sprite::type sprite,
+       float delta_time_s)
 {
   game_wall_seconds_between_spawning_left -= delta_time_s;
   if (game_wall_seconds_between_spawning_left <= 0.0f) {
@@ -169,7 +223,11 @@ enemy_spawner::update(std::vector<GameObject2D>& enemies,
     glm::mix(game_wall_seconds_between_spawning_start, game_wall_seconds_between_spawning_end, percent);
 };
 
+} // namespace enemyspawner
+
 namespace player {
+
+bool game_player_shoot = true; // affects all players
 
 void
 update_input(GameObject2D& obj, KeysAndState& keys, fightingengine::Application& app, GameObject2D& camera)

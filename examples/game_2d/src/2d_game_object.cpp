@@ -128,6 +128,19 @@ create_player(sprite::type sprite, int tex_slot, glm::vec4 colour, glm::vec2 scr
   return game_object;
 };
 
+GameObject2D
+create_kennynl_texture(int tex_slot)
+{
+  GameObject2D game_object;
+  game_object.name = "texture_sheet";
+  game_object.pos = { 0.0f, 20.0f };
+  game_object.size = { 768.0f, 352.0f };
+  game_object.colour = glm::vec4(1.0f, 1.0f, 1.0f, 1.0f);
+  game_object.angle_radians = 0.0;
+  game_object.sprite = sprite::type::EMPTY;
+  return game_object;
+}
+
 } // namespace gameobject
 
 } // namespace game2d

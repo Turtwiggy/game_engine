@@ -59,11 +59,8 @@ debug_show_profiler = false;
 
 const bool game_destroy_half_sprites_on_damage = false;
 
-// physics tick
+// physics
 int PHYSICS_GRID_SIZE = 100;
-// int PHYSICS_TICKS_PER_SECOND = 40;
-// float SECONDS_PER_PHYSICS_TICK = 1.0f / PHYSICS_TICKS_PER_SECOND;
-// float seconds_since_last_physics_tick = 0;
 
 // textures
 const int tex_unit_kenny_nl = 0;
@@ -86,6 +83,7 @@ sprite::type sprite_enemy_core = sprite::type::PERSON_2;
 
 const float game_safe_radius_around_player = 7500.0f;
 const float game_enemy_direct_attack_threshold = 4000.0f;
+uint32_t objects_destroyed = 0;
 
 int
 main()
@@ -137,50 +135,33 @@ main()
 
   // Rendering
 
-  Shader colour_shader = Shader("2d_game/shaders/2d_basic.vert", "2d_game/shaders/2d_colour.frag");
-  Shader instanced_quad_shader = Shader("2d_game/shaders/2d_instanced.vert", "2d_game/shaders/2d_instanced.frag");
-
-  { // set shader attribs
-
-    glm::mat4 projection =
-      glm::ortho(0.0f, static_cast<float>(screen_wh.x), static_cast<float>(screen_wh.y), 0.0f, -1.0f, 1.0f);
-
-    colour_shader.bind();
-
-    instanced_quad_shader.bind();
-    instanced_quad_shader.set_mat4("projection", projection);
-    instanced_quad_shader.set_int("tex", tex_unit_kenny_nl);
-  }
-
   RenderCommand::init();
   RenderCommand::set_viewport(0, 0, static_cast<uint32_t>(screen_wh.x), static_cast<uint32_t>(screen_wh.y));
   RenderCommand::set_depth_testing(false); // disable depth testing for 2d
   sprite_renderer::init();
 
+  glm::mat4 projection =
+    glm::ortho(0.0f, static_cast<float>(screen_wh.x), static_cast<float>(screen_wh.y), 0.0f, -1.0f, 1.0f);
+
+  Shader colour_shader = Shader("2d_game/shaders/2d_basic.vert", "2d_game/shaders/2d_colour.frag");
+  colour_shader.bind();
+
+  Shader instanced_quad_shader = Shader("2d_game/shaders/2d_instanced.vert", "2d_game/shaders/2d_instanced.frag");
+  instanced_quad_shader.bind();
+  instanced_quad_shader.set_mat4("projection", projection);
+  instanced_quad_shader.set_int("tex", tex_unit_kenny_nl);
+
   // game
 
-  GameObject2D tex_obj;
-  tex_obj.tex_slot = tex_unit_kenny_nl;
-  tex_obj.name = "texture_sheet";
-  tex_obj.pos = { 0.0f, 20.0f };
-  tex_obj.size = { 768.0f, 352.0f };
-  tex_obj.colour = glm::vec4(1.0f, 1.0f, 1.0f, 1.0f);
-  tex_obj.angle_radians = 0.0;
-  tex_obj.sprite = sprite::type::EMPTY;
-
-  // entitity lists
-
+  GameObject2D tex_obj = gameobject::create_kennynl_texture(tex_unit_kenny_nl);
   GameObject2D camera = gameobject::create_camera();
   std::vector<GameObject2D> entities_enemies;
   std::vector<GameObject2D> entities_bullets;
   std::vector<GameObject2D> entities_player;
   std::vector<KeysAndState> player_keys;
 
-  // game state
-
-  uint32_t objects_destroyed = 0;
-
-  { // add players
+  // add players
+  {
     GameObject2D player0 = gameobject::create_player(sprite_player, tex_unit_kenny_nl, player_colour, screen_wh);
 
     KeysAndState player0_keys;
@@ -207,6 +188,7 @@ main()
 
     //
     // declare a list of entities to apply all the generic things
+    // this list is pretty much a read-only list
     // e.g. physics, rendering, ui info
     //
     std::vector<std::reference_wrapper<GameObject2D>> common_ents;
@@ -218,52 +200,12 @@ main()
     {
       if (state == GameRunning::ACTIVE || (state == GameRunning::PAUSED && debug_advance_one_frame)) {
 
-        { // pre-physics update: grid position
+        // pre-physics update: grid position
+        auto& grid_ents = common_ents;
 
-          std::vector<std::reference_wrapper<GameObject2D>>& grid_ents = common_ents;
-
-          for (auto& e : grid_ents) {
-
-            auto& cells = e.get().in_grid_cell;
-            cells.clear();
-            glm::vec2 pos = e.get().pos;
-            glm::vec2 size = e.get().size;
-
-            glm::vec2 tl = pos;
-            glm::ivec2 gc = grid::convert_world_space_to_grid_space(tl, PHYSICS_GRID_SIZE);
-            cells.push_back(gc);
-
-            glm::vec2 tr = { pos.x + size.x, pos.y };
-            gc = grid::convert_world_space_to_grid_space(tr, PHYSICS_GRID_SIZE);
-            auto it = std::find_if(
-              cells.begin(), cells.end(), [&gc](const glm::ivec2& obj) { return obj.x == gc.x && obj.y == gc.y; });
-            if (it == cells.end()) {
-              cells.push_back(gc);
-            }
-
-            glm::vec2 bl = { pos.x, pos.y + size.y };
-            gc = grid::convert_world_space_to_grid_space(bl, PHYSICS_GRID_SIZE);
-            it = std::find_if(
-              cells.begin(), cells.end(), [&gc](const glm::ivec2& obj) { return obj.x == gc.x && obj.y == gc.y; });
-            if (it == cells.end()) {
-              cells.push_back(gc);
-            }
-
-            glm::vec2 br = { pos.x + size.x, pos.y + size.y };
-            gc = grid::convert_world_space_to_grid_space(br, PHYSICS_GRID_SIZE);
-            it = std::find_if(
-              cells.begin(), cells.end(), [&gc](const glm::ivec2& obj) { return obj.x == gc.x && obj.y == gc.y; });
-            if (it == cells.end()) {
-              cells.push_back(gc);
-            }
-          }
+        for (auto& e : grid_ents) {
+          grid::get_unique_cells(e.get().pos, e.get().size, PHYSICS_GRID_SIZE, e.get().in_grid_cell);
         }
-
-        // FIXED PHYSICS TICK
-
-        // seconds_since_last_physics_tick += delta_time_s;
-        // while (seconds_since_last_physics_tick >= SECONDS_PER_PHYSICS_TICK) {
-        //   seconds_since_last_physics_tick -= SECONDS_PER_PHYSICS_TICK;
 
         // set entities that we want collision info from
         std::vector<std::reference_wrapper<GameObject2D>>& collidable = common_ents;
@@ -272,87 +214,13 @@ main()
         std::map<uint64_t, Collision2D> filtered_collisions;
         generate_filtered_broadphase_collisions(collidable, filtered_collisions);
 
-        if (filtered_collisions.size() > 0) {
-          std::cout << "pause" << std::endl;
+        // Resolve collisions
+        for (auto& c : filtered_collisions) {
+          uint32_t id_0 = c.second.ent_id_0;
+          uint32_t id_1 = c.second.ent_id_1;
+
+          collisions::resolve(id_0, id_1, common_ents);
         }
-
-        for (auto& fc : filtered_collisions) {
-          ImGui::Begin("Collisions", NULL, ImGuiWindowFlags_NoFocusOnAppearing);
-          ImGui::Text("Collision: %i and %i", fc.second.ent_id_0, fc.second.ent_id_1);
-          ImGui::End();
-        }
-
-        // for (auto& c : filtered_collisions) {
-
-        //   uint32_t id_0 = c.second.ent_id_0;
-        //   uint32_t id_1 = c.second.ent_id_1;
-
-        //   // Resolve game collision matrix...!
-
-        //   // Check for entities_enemies collisions
-
-        //   bool player_taken_damage = false;
-
-        //   for (int i = 0; i < entities_enemies.size(); i++) {
-        //     GameObject2D& go = entities_enemies[i];
-        //     if (id_0 == go.id || id_1 == go.id) {
-
-        //       // What to do if wall collided?
-
-        //       // set it as having taken damage
-        //       go.hits_taken += 1;
-        //       if (go.hits_taken >= go.hits_able_to_be_taken) {
-        //         entities_enemies.erase(entities_enemies.begin() + i);
-        //         objects_destroyed += 1;
-
-        //         // TODO propagate event here
-
-        //         // if (!ui_mute_sfx) {
-        //         //   // choose a random impact sound
-        //         //   float r = rand_det_s(rnd.rng, 0.0f, 3.0f);
-        //         //   ALuint rnd_impact = audio_list_impacts[static_cast<int>(r)];
-        //         //   audio::play_sound(rnd_impact);
-        //         // }
-
-        //         // other object was player?
-        //         for (int j = 0; j < entities_player.size(); j++) {
-        //           GameObject2D& player = entities_player[j];
-        //           if (id_0 == player.id || id_1 == player.id) {
-        //             std::cout << "player" << j << " hit taken: " << std::endl;
-
-        //             // TODO propagate event here
-
-        //             player.hits_taken += 1;
-        //             player_taken_damage = true;
-        //           }
-        //         }
-        //       }
-        //     }
-        //   }
-
-        //   if (player_taken_damage && game_destroy_half_sprites_on_damage) {
-        //     // player took damage! chill out for a bit.
-        //     // destroy half the enemies..!
-        //     for (int i = 0; i < entities_enemies.size() / 2; i++) {
-        //       entities_enemies.erase(entities_enemies.begin());
-        //     }
-        //   }
-
-        //   // Check for entities_bullets collisions
-
-        //   for (int i = 0; i < entities_bullets.size(); i++) {
-        //     GameObject2D& go = entities_bullets[i];
-        //     if (id_0 == go.id || id_1 == go.id) {
-
-        //       // what to do if a bullet collided?
-
-        //       std::cout << go.id << " collided with " << std::endl;
-
-        //       entities_bullets.erase(entities_bullets.begin() + i);
-        //     }
-        //   }
-        // }
-        // }
       }
     }
     profiler.end(Profiler::Stage::Physics);

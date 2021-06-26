@@ -26,6 +26,11 @@ update(GameObject2D& camera, const KeysAndState& keys, fightingengine::Applicati
 
 }; // namespace camera
 
+namespace collisions {
+void
+resolve(uint32_t id0, uint32_t id1, const std::vector<std::reference_wrapper<GameObject2D>>& ents);
+}
+
 namespace enemy_ai {
 
 void

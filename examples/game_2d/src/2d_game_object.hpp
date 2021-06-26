@@ -154,6 +154,9 @@ create_enemy(sprite::type sprite, int tex_slot, glm::vec4 colour, fightingengine
 GameObject2D
 create_player(sprite::type sprite, int tex_slot, glm::vec4 colour, glm::vec2 screen);
 
+GameObject2D
+create_kennynl_texture(int tex_slot);
+
 } // namespace gameobject
 
 } // namespace game2d

@@ -36,19 +36,15 @@ get_cell(const std::vector<T>& t, int x, int y, int x_max)
 
 // e.g.
 // a grid shaped
-//  N  0 | 0  1  2  3
-//  B  1 |    4  5  6
-//  P  2 |       7  8
-//  E  3 |          9
-//       |-----------
-//         0  1  2  3
-//         N  B  P  E
-
+//  0 | 0  1  2  3
+//  1 |    4  5  6
+//  2 |       7  8
+//  3 |          9
+//    |-----------
+//      0  1  2  3
 // the get_layer_value is:
 // x=2... y=1... x-max=4...
 // layer_value: (4 - (2-1)) + (4 -(1-1)) = 7
-// final_value: 7 + 2 - 2
-// because 9 is the first element on the 2nd y layer.
 template<typename T>
 [[nodiscard]] inline T
 get_cell_mirrored_grid(const std::vector<T>& t, int x, int y, int x_max)
@@ -87,6 +83,43 @@ convert_world_space_to_grid_space(const glm::vec2& world_space, int grid_size)
 convert_grid_space_to_worldspace(glm::ivec2 pos, int grid_size)
 {
   return glm::vec2{ pos.x, pos.y } * static_cast<float>(grid_size);
+}
+
+// returns the unique (no duplicates) cells an object is in
+inline void
+get_unique_cells(glm::vec2 pos, glm::vec2 size, int grid_size, std::vector<glm::ivec2>& results)
+{
+  results.clear();
+
+  glm::vec2 tl = pos;
+  glm::vec2 tr = { pos.x + size.x, pos.y };
+  glm::vec2 bl = { pos.x, pos.y + size.y };
+  glm::vec2 br = { pos.x + size.x, pos.y + size.y };
+
+  // always push tl
+  glm::ivec2 gc = grid::convert_world_space_to_grid_space(tl, grid_size);
+  results.push_back(gc);
+
+  gc = grid::convert_world_space_to_grid_space(tr, grid_size);
+  auto it = std::find_if(
+    results.begin(), results.end(), [&gc](const glm::ivec2& obj) { return obj.x == gc.x && obj.y == gc.y; });
+  if (it == results.end()) {
+    results.push_back(gc);
+  }
+
+  gc = grid::convert_world_space_to_grid_space(bl, grid_size);
+  it = std::find_if(
+    results.begin(), results.end(), [&gc](const glm::ivec2& obj) { return obj.x == gc.x && obj.y == gc.y; });
+  if (it == results.end()) {
+    results.push_back(gc);
+  }
+
+  gc = grid::convert_world_space_to_grid_space(br, grid_size);
+  it = std::find_if(
+    results.begin(), results.end(), [&gc](const glm::ivec2& obj) { return obj.x == gc.x && obj.y == gc.y; });
+  if (it == results.end()) {
+    results.push_back(gc);
+  }
 }
 
 } // namespace grid
