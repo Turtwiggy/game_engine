@@ -14,15 +14,17 @@ void
 bullet::update(GameObject2D& obj, float delta_time_s)
 {
   // pos
-  float x = glm::sin(obj.angle_radians) * obj.velocity.x;
-  float y = -glm::cos(obj.angle_radians) * obj.velocity.y;
-  obj.pos.x += x * delta_time_s;
-  obj.pos.y += y * delta_time_s;
+  // float x = glm::sin(obj.angle_radians) * obj.velocity.x;
+  // float y = -glm::cos(obj.angle_radians) * obj.velocity.y;
+  // obj.pos.x += x * delta_time_s;
+  // obj.pos.y += y * delta_time_s;
+  gameobject::update_position(obj, delta_time_s);
 
-  // lifecycle
-  obj.time_alive_left -= delta_time_s;
-  if (obj.time_alive_left <= 0.0f) {
-    obj.flag_for_delete = true;
+  // to improve: look in velocity direction
+  {
+    float angle = atan2(obj.velocity.y, obj.velocity.x);
+    angle += fightingengine::HALF_PI + sprite::spritemap::get_sprite_rotation_offset(obj.sprite);
+    obj.angle_radians = angle;
   }
 };
 
@@ -40,8 +42,46 @@ camera::update(GameObject2D& camera, const KeysAndState& keys, fightingengine::A
     camera.pos.y += delta_time_s * camera.speed_current;
 };
 
+namespace collisions {
+
 void
-collisions::resolve(uint32_t id0, uint32_t id1, const std::vector<std::reference_wrapper<GameObject2D>>& ents)
+resolve_enemy_player_collision(GameObject2D& enemy, GameObject2D& player)
+{
+  std::cout << "enemy-player collision!" << std::endl;
+
+  //
+  // enemy
+  //
+
+  enemy.flag_for_delete = true;
+
+  //
+  // player
+  //
+
+  player.hits_taken += 1;
+}
+
+void
+resolve_enemy_bullet_collision(GameObject2D& enemy, GameObject2D& bullet)
+{
+  std::cout << "enemy-bullet collision!" << std::endl;
+
+  //
+  // enemy
+  //
+
+  enemy.hits_taken += 1;
+
+  //
+  // bullet
+  //
+
+  bullet.flag_for_delete = true;
+}
+
+void
+resolve(uint32_t id0, uint32_t id1, const std::vector<std::reference_wrapper<GameObject2D>>& ents)
 {
   // Find the objs in the read-only list
   auto& obj_0_it = std::find_if(ents.begin(), ents.end(), [&id0](const auto& obj) { return obj.get().id == id0; });
@@ -55,43 +95,36 @@ collisions::resolve(uint32_t id0, uint32_t id1, const std::vector<std::reference
   auto& coll_layer_0 = obj_0_it->get().collision_layer;
   auto& coll_layer_1 = obj_1_it->get().collision_layer;
 
-  //   if (id_layer.get().collision_layer == CollisionLayer::Bullet) {
-  //   }
-  // if (l0 == CollisionLayer::Bullet || l1 == CollisionLayer::Bullet) {
-  //   // remove from read-only view
-  // }
+  //
+  // apply to collision interactions e.g. xy or yx
+  //
 
-  // if (l0 == CollisionLayer::Player) {
-  //   // Player Collided
-  //   // What was the other thing?
-  //   if (l1 == CollisionLayer::Enemy) {
-  //     // An enemy
+  // Enemy and player collided
+  if ((coll_layer_0 == CollisionLayer::Player && coll_layer_1 == CollisionLayer::Enemy) ||
+      (coll_layer_1 == CollisionLayer::Player && coll_layer_0 == CollisionLayer::Enemy)) {
 
-  //     // Make the player take 1 damage
-  //     // auto& bullet_it = std::find_if(entities_bullets.begin(),
-  //     //                                entities_bullets.end(),
-  //     //                                [&id_0](const auto& obj) { return obj.id == id_0; });
-  //     // if (bullet_it != entities_bullets.end())
-  //     //   entities_bullets.erase(bullet_it);
+    // work out which is which
+    if (obj_0_it->get().collision_layer == CollisionLayer::Enemy) {
+      resolve_enemy_player_collision(obj_0_it->get(), obj_1_it->get());
+    } else {
+      resolve_enemy_player_collision(obj_1_it->get(), obj_0_it->get());
+    }
+  }
 
-  //     //             player.hits_taken += 1;
-  //     //             player_taken_damage = true;
+  // Enemy and bullet
+  if ((coll_layer_0 == CollisionLayer::Enemy && coll_layer_1 == CollisionLayer::Bullet) ||
+      (coll_layer_1 == CollisionLayer::Enemy && coll_layer_0 == CollisionLayer::Bullet)) {
 
-  //     // Make the enemy dissapear
-
-  //     //     // destroy half the enemies..!
-  //     //     for (int i = 0; i < entities_enemies.size() / 2; i++) {
-  //     //       entities_enemies.erase(entities_enemies.begin());
-  //     //     }
-  //   }
-  // }
-  // if (l0 == CollisionLayer::Enemy) {
-  //   // Enemy Collided
-  //   // What was the other thing?
-  //   if (l1 == CollisionLayer::Bullet) {
-  //     // A bullet!
-  //   }
+    // work out which is which
+    if (obj_0_it->get().collision_layer == CollisionLayer::Enemy) {
+      resolve_enemy_bullet_collision(obj_0_it->get(), obj_1_it->get());
+    } else {
+      resolve_enemy_bullet_collision(obj_1_it->get(), obj_0_it->get());
+    }
+  }
 };
+
+} // namespace collisions
 
 void
 enemy_ai::move_along_vector(GameObject2D& obj, glm::vec2 dir, float delta_time_s)

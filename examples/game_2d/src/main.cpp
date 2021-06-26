@@ -83,7 +83,6 @@ sprite::type sprite_enemy_core = sprite::type::PERSON_2;
 
 const float game_safe_radius_around_player = 7500.0f;
 const float game_enemy_direct_attack_threshold = 4000.0f;
-uint32_t objects_destroyed = 0;
 
 int
 main()
@@ -292,27 +291,8 @@ main()
 
         // update: bullets
 
-        std::vector<GameObject2D>::iterator it_1 = entities_bullets.begin();
-        while (it_1 != entities_bullets.end()) {
-          GameObject2D& obj = (*it_1);
-
-          // pos
-          gameobject::update_position(obj, delta_time_s);
-
-          // to improve: look in velocity direction
-          {
-            float angle = atan2(obj.velocity.y, obj.velocity.x);
-            angle += HALF_PI + sprite::spritemap::get_sprite_rotation_offset(obj.sprite);
-            obj.angle_radians = angle;
-          }
-
-          // to improve: lifecycle
-          obj.time_alive_left -= delta_time_s;
-          if (obj.time_alive_left <= 0.0f) {
-            it_1 = entities_bullets.erase(it_1);
-          } else {
-            ++it_1;
-          }
+        for (auto& bullet : entities_bullets) {
+          bullet::update(bullet, delta_time_s);
         }
 
         // update: spawn enemies
@@ -357,6 +337,49 @@ main()
           // update camera pos
           camera::update(camera, player_keys[0], app, delta_time_s);
         }
+
+        { // lifecycle: decrease life
+
+          for (auto& obj : common_ents) {
+            // timed?
+            if (obj.get().do_lifecycle_timed) {
+              obj.get().time_alive_left -= delta_time_s;
+              if (obj.get().time_alive_left <= 0.0f) {
+                obj.get().flag_for_delete = true;
+              }
+            }
+
+            // health?
+            if (obj.get().do_lifecycle_health) {
+              if (obj.get().hits_taken >= obj.get().hits_able_to_be_taken) {
+                obj.get().flag_for_delete = true;
+              }
+            }
+          }
+        }
+
+        { // lifecycle: delete objects that are flagged for deletion
+
+          std::vector<GameObject2D>::iterator it_1 = entities_bullets.begin();
+          while (it_1 != entities_bullets.end()) {
+            GameObject2D& obj = (*it_1);
+            if (obj.flag_for_delete) {
+              it_1 = entities_bullets.erase(it_1);
+            } else {
+              ++it_1;
+            }
+          }
+
+          it_1 = entities_enemies.begin();
+          while (it_1 != entities_enemies.end()) {
+            GameObject2D& obj = (*it_1);
+            if (obj.flag_for_delete) {
+              it_1 = entities_enemies.erase(it_1);
+            } else {
+              ++it_1;
+            }
+          }
+        } // end lifecycle cleanup
       }
     }
     profiler.end(Profiler::Stage::GameTick);
@@ -468,7 +491,6 @@ main()
           ImGui::Text("camera pos %f %f", camera.pos.x, camera.pos.y);
           ImGui::Text("mouse pos %f %f", app.get_input().get_mouse_pos().x, app.get_input().get_mouse_pos().y);
           ImGui::Text("PhysicsGridSize %i", PHYSICS_GRID_SIZE);
-          ImGui::Text("(game) destroyed: %i", objects_destroyed);
 
           // collect number of ai units in game
           {
