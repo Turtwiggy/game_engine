@@ -13,19 +13,12 @@ namespace game2d {
 void
 bullet::update(GameObject2D& obj, float delta_time_s)
 {
-  // pos
-  // float x = glm::sin(obj.angle_radians) * obj.velocity.x;
-  // float y = -glm::cos(obj.angle_radians) * obj.velocity.y;
-  // obj.pos.x += x * delta_time_s;
-  // obj.pos.y += y * delta_time_s;
   gameobject::update_position(obj, delta_time_s);
 
-  // to improve: look in velocity direction
-  {
-    float angle = atan2(obj.velocity.y, obj.velocity.x);
-    angle += fightingengine::HALF_PI + sprite::spritemap::get_sprite_rotation_offset(obj.sprite);
-    obj.angle_radians = angle;
-  }
+  // look in velocity direction
+  float angle = atan2(obj.velocity.y, obj.velocity.x);
+  angle += fightingengine::HALF_PI + sprite::spritemap::get_sprite_rotation_offset(obj.sprite);
+  obj.angle_radians = angle;
 };
 
 void

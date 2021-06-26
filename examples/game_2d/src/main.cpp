@@ -199,15 +199,13 @@ main()
     {
       if (state == GameRunning::ACTIVE || (state == GameRunning::PAUSED && debug_advance_one_frame)) {
 
-        // pre-physics update: grid position
-        auto& grid_ents = common_ents;
-
-        for (auto& e : grid_ents) {
-          grid::get_unique_cells(e.get().pos, e.get().size, PHYSICS_GRID_SIZE, e.get().in_grid_cell);
-        }
-
         // set entities that we want collision info from
         std::vector<std::reference_wrapper<GameObject2D>>& collidable = common_ents;
+
+        // pre-physics: update grid position
+        for (auto& e : collidable) {
+          grid::get_unique_cells(e.get().pos, e.get().size, PHYSICS_GRID_SIZE, e.get().in_grid_cell);
+        }
 
         // generate filtered broadphase collisions.
         std::map<uint64_t, Collision2D> filtered_collisions;
@@ -393,7 +391,7 @@ main()
 
       if (state == GameRunning::ACTIVE || state == GameRunning::PAUSED) {
 
-        std::vector<std::reference_wrapper<GameObject2D>> renderables = common_ents;
+        std::vector<std::reference_wrapper<GameObject2D>>& renderables = common_ents;
 
         for (std::reference_wrapper<GameObject2D> obj : renderables) {
           sprite_renderer::draw_sprite_debug(
@@ -423,7 +421,7 @@ main()
           ImGui::Checkbox("Limit Framerate", &temp);
           if (temp != ui_limit_framerate) {
             std::cout << "Limit fps toggled to: " << temp << std::endl;
-            ui_limit_framerate = temp;
+            app.limit_fps = temp;
           }
           ui_limit_framerate = temp;
         }
