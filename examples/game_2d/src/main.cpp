@@ -50,12 +50,6 @@ bool debug_advance_one_frame = false;
 bool debug_show_imgui_demo_window = false;
 bool debug_render_spritesheet = false;
 bool debug_show_profiler = true;
-#ifdef _RELEASE
-debug_advance_one_frame = false;
-debug_show_imgui_demo_window = false;
-debug_render_spritesheet = false;
-debug_show_profiler = false;
-#endif
 
 const bool game_destroy_half_sprites_on_damage = false;
 
@@ -64,6 +58,7 @@ int PHYSICS_GRID_SIZE = 100;
 
 // textures
 const int tex_unit_kenny_nl = 0;
+const int tex_tree = 1;
 
 // colour palette; https://colorhunt.co/palette/273312
 const glm::vec4 PALETTE_COLOUR_1_1 = glm::vec4(57.0f / 255.0f, 62.0f / 255.0f, 70.0f / 255.0f, 1.0f);    // black
@@ -80,6 +75,7 @@ glm::vec4 wall_colour = PALETTE_COLOUR_4_1;       // grey
 sprite::type sprite_player = sprite::type::PERSON_1;
 sprite::type sprite_bullet = sprite::type::WEAPON_ARROW_1;
 sprite::type sprite_enemy_core = sprite::type::PERSON_2;
+sprite::type sprite_weapon_base = sprite::type::WEAPON_SHOVEL;
 
 const float game_safe_radius_around_player = 7500.0f;
 const float game_enemy_direct_attack_threshold = 4000.0f;
@@ -87,14 +83,18 @@ const float game_enemy_direct_attack_threshold = 4000.0f;
 int
 main()
 {
+#ifndef _DEBUG
+  debug_advance_one_frame = false;
+  debug_show_imgui_demo_window = false;
+  debug_render_spritesheet = false;
+#endif
+
   std::cout << "booting up..." << std::endl;
   const auto app_start = std::chrono::high_resolution_clock::now();
 
   bool hide_console = false;
   if (hide_console)
     fightingengine::hide_console();
-
-  // ui default state
 
   bool ui_limit_framerate = false;
   bool ui_mute_sfx = true;
@@ -103,7 +103,7 @@ main()
   bool ui_use_vsync = true;
   bool ui_fullscreen = false;
 
-  glm::ivec2 screen_wh = { 1080, 720 };
+  glm::ivec2 screen_wh = { 1280, 720 };
   RandomState rnd;
   Application app("2D Game", screen_wh.x, screen_wh.y, ui_use_vsync);
   Profiler profiler;
@@ -113,6 +113,7 @@ main()
   std::vector<std::pair<int, std::string>> textures_to_load;
   textures_to_load.emplace_back(tex_unit_kenny_nl,
                                 "assets/2d_game/textures/kennynl_1bit_pack/monochrome_transparent_packed.png");
+  textures_to_load.emplace_back(tex_tree, "assets/2d_game/textures/rpg/World/Bush.png");
   load_textures_threaded(textures_to_load, app_start);
 
   // sound
@@ -148,12 +149,25 @@ main()
   Shader instanced_quad_shader = Shader("2d_game/shaders/2d_instanced.vert", "2d_game/shaders/2d_instanced.frag");
   instanced_quad_shader.bind();
   instanced_quad_shader.set_mat4("projection", projection);
-  instanced_quad_shader.set_int("tex", tex_unit_kenny_nl);
 
   // game
 
   GameObject2D tex_obj = gameobject::create_kennynl_texture(tex_unit_kenny_nl);
   GameObject2D camera = gameobject::create_camera();
+  GameObject2D weapon_base;
+  weapon_base.sprite = sprite_weapon_base;
+  weapon_base.pos = { screen_wh.x / 2.0f, screen_wh.y / 2.0f };
+  weapon_base.size = { 50.0f, 50.f };
+  weapon_base.collision_layer = CollisionLayer::Player;
+
+  GameObject2D tree;
+  tree.tex_slot = tex_tree;
+  tree.sprite = sprite::type::EMPTY;
+  tree.pos = { 100.0f, 100.0f };
+  tree.size = { 18.0f * 2.0f, 18.0f * 2.0f };
+  tree.collision_layer = CollisionLayer::NoCollision;
+  tree.colour = { 0.25f, 1.0f, 0.25f, 1.0f };
+
   std::vector<GameObject2D> entities_enemies;
   std::vector<GameObject2D> entities_bullets;
   std::vector<GameObject2D> entities_player;
@@ -187,13 +201,13 @@ main()
 
     //
     // declare a list of entities to apply all the generic things
-    // this list is pretty much a read-only list
     // e.g. physics, rendering, ui info
     //
     std::vector<std::reference_wrapper<GameObject2D>> common_ents;
     common_ents.insert(common_ents.end(), entities_enemies.begin(), entities_enemies.end());
     common_ents.insert(common_ents.end(), entities_bullets.begin(), entities_bullets.end());
     common_ents.insert(common_ents.end(), entities_player.begin(), entities_player.end());
+    common_ents.push_back(weapon_base);
 
     profiler.begin(Profiler::Stage::Physics);
     {
@@ -248,8 +262,32 @@ main()
       if (app.get_input().get_key_held(debug_key_advance_one_frame_held)) {
         debug_advance_one_frame = true;
       }
+      // Debug: Start camera shake
+      if (app.get_input().get_key_held(SDL_SCANCODE_COMMA)) {
+        instanced_quad_shader.set_bool("shake", true);
+      }
+      // Debug: Stop camera shake
+      if (app.get_input().get_key_held(SDL_SCANCODE_PERIOD)) {
+        instanced_quad_shader.set_bool("shake", false);
+      }
 
 #endif // _DEBUG
+
+      //
+      // in progress new weapon
+      //
+
+      if (app.get_input().get_mouse_lmb_held()) {
+        weapon_base.colour = bullet_colour;
+      } else {
+        weapon_base.colour = player_colour;
+      }
+
+      // glm::ivec2 mouse_pos = app.get_input().get_mouse_pos();
+      // printf("(game) mmb clicked %i %i \n", mouse_pos.x, mouse_pos.y);
+      // glm::vec2 world_pos = glm::vec2(mouse_pos) + camera.pos;
+
+      //
     }
     profiler.end(Profiler::Stage::SdlInput);
     profiler.begin(Profiler::Stage::GameTick);
@@ -278,13 +316,11 @@ main()
           KeysAndState& keys = player_keys[i];
 
           player::update_logic(
-            player, keys, entities_bullets, tex_unit_kenny_nl, bullet_colour, sprite_bullet, delta_time_s);
+            player, keys, entities_bullets, tex_unit_kenny_nl, bullet_colour, sprite_bullet, weapon_base, delta_time_s);
 
           bool player_alive = player.invulnerable || player.hits_taken < player.hits_able_to_be_taken;
           if (!player_alive)
             state = GameRunning::GAME_OVER;
-
-          gameobject::update_position(player, delta_time_s);
         }
 
         // update: bullets
@@ -377,6 +413,14 @@ main()
               ++it_1;
             }
           }
+
+          // reset common ents to updated view
+          common_ents.clear();
+          common_ents.insert(common_ents.end(), entities_enemies.begin(), entities_enemies.end());
+          common_ents.insert(common_ents.end(), entities_bullets.begin(), entities_bullets.end());
+          common_ents.insert(common_ents.end(), entities_player.begin(), entities_player.end());
+          common_ents.push_back(weapon_base);
+
         } // end lifecycle cleanup
       }
     }
@@ -388,10 +432,15 @@ main()
       sprite_renderer::reset_stats();
       sprite_renderer::begin_batch();
       instanced_quad_shader.bind();
+      instanced_quad_shader.set_float("time", app.seconds_since_launch);
 
       if (state == GameRunning::ACTIVE || state == GameRunning::PAUSED) {
 
         std::vector<std::reference_wrapper<GameObject2D>>& renderables = common_ents;
+
+        // all sprites from kennynl
+
+        instanced_quad_shader.set_int("tex", tex_unit_kenny_nl);
 
         for (std::reference_wrapper<GameObject2D> obj : renderables) {
           sprite_renderer::draw_sprite_debug(
@@ -403,6 +452,17 @@ main()
           sprite_renderer::draw_sprite_debug(
             camera, screen_wh, instanced_quad_shader, tex_obj, colour_shader, debug_line_colour);
         }
+
+        sprite_renderer::end_batch();
+        sprite_renderer::flush(instanced_quad_shader);
+        sprite_renderer::begin_batch();
+
+        // other sprites
+
+        instanced_quad_shader.set_int("tex", tex_tree);
+
+        sprite_renderer::draw_sprite_debug(
+          camera, screen_wh, instanced_quad_shader, tree, colour_shader, debug_line_colour);
       }
 
       sprite_renderer::end_batch();

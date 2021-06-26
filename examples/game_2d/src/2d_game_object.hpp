@@ -91,8 +91,8 @@ struct GameObject2D
   float speed_current = 50.0f;
   float speed_default = 50.0f;
   glm::vec2 velocity = { 0.0f, 0.0f };
-  float velocity_boost_modifier = 2.0f;
-  float shift_boost_time = 5.0f;
+  float velocity_boost_modifier = 5.0f;
+  float shift_boost_time = 10.0f;
   float shift_boost_time_left = shift_boost_time;
 
   // ai: hacky behaviour

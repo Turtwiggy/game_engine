@@ -3,9 +3,6 @@
 #include "engine/camera.hpp"
 
 // other library headers
-#ifdef _DEBUG
-#include "thirdparty/magic_enum.hpp"
-#endif
 #include <glm/glm.hpp>
 #include <glm/gtc/matrix_transform.hpp>
 #include <glm/gtc/type_ptr.hpp>
@@ -13,6 +10,12 @@
 #include <glm/gtx/transform.hpp>
 
 namespace fightingengine {
+
+void
+Camera::update_view()
+{
+  view = glm::lookAt(position, position + axis_forward, axis_up);
+}
 
 void
 Camera::update(float delta_time)
@@ -31,12 +34,6 @@ Camera::update(float delta_time)
   axis_up = glm::cross(axis_right, axis_forward);
 
   update_view();
-}
-
-void
-Camera::update_view()
-{
-  view = glm::lookAt(position, position + axis_forward, axis_up);
 }
 
 void
@@ -147,28 +144,6 @@ camera_follow_position(Camera& camera, glm::vec3 position, glm::vec3 camera_foll
   float yaw_angle_around_player = 0.0f;
   float distance_from_player = 5.0f;
 
-  // float pitch_change = rel_mouse_y * 0.1f;
-  // pitch -= pitch_change;
-  // float yaw_change = rel_mouse_x * 0.3f;
-  // // angle_around_player -= yaw_change;
-
-  // float x_dist = distance_from_player * cos(pitch);
-  // float y_dist = distance_from_player * sin(pitch);
-
-  // float cam_y = player_pos.y + y_dist;
-
-  // float theta = /*player_y_rotation * */ angle_around_player;
-  // float offset_x = x_dist * sin(theta);
-  // float offset_z = x_dist * cos(theta);
-
-  // glm::vec3 pos;
-  // pos.x = player_pos.x - offset_x;
-  // pos.y = player_pos.y + cam_y;
-  // pos.z = player_pos.z - offset_z;
-
-  // yaw = 180.0f - player.rotation.y + angle_around_player;
-
-  // camera.target_position = glm::vec3(position.x, position.y+3.0f, position.z);
   camera.target_position = position + camera_follow_vec;
 }
 

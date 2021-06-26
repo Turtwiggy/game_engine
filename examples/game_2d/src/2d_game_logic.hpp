@@ -52,12 +52,12 @@ update(std::vector<GameObject2D>& enemies,
        GameObject2D& camera,
        std::vector<GameObject2D>& players,
        fightingengine::RandomState& rnd,
-       glm::ivec2 screen_wh,
-       float safe_radius_around_player,
-       int tex_unit,
-       glm::vec4 col,
-       sprite::type sprite,
-       float delta_time_s);
+       const glm::ivec2 screen_wh,
+       const float safe_radius_around_player,
+       const int tex_unit,
+       const glm::vec4 col,
+       const sprite::type sprite,
+       const float delta_time_s);
 
 }; // namespace enemy_spawner
 
@@ -75,10 +75,11 @@ void
 update_logic(GameObject2D& player,
              const KeysAndState& keys,
              std::vector<GameObject2D>& bullets,
-             int tex_unit,
-             glm::vec4 col,
-             sprite::type sprite,
-             float delta_time_s);
+             const int tex_unit,
+             const glm::vec4 col,
+             const sprite::type sprite,
+             GameObject2D& weapon,
+             const float delta_time_s);
 }; // namespace player
 
 namespace ui {} // namespace ui

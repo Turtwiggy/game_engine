@@ -82,7 +82,6 @@ resolve(uint32_t id0, uint32_t id1, const std::vector<std::reference_wrapper<Gam
 
   if (obj_0_it == ents.end() || obj_1_it == ents.end()) {
     std::cerr << "Collision entity not in entity list" << std::endl;
-    exit(1); // harsh, but I prefer this during development
   }
 
   auto& coll_layer_0 = obj_0_it->get().collision_layer;
@@ -176,20 +175,16 @@ update(std::vector<GameObject2D>& enemies,
        GameObject2D& camera,
        std::vector<GameObject2D>& players,
        fightingengine::RandomState& rnd,
-       glm::ivec2 screen_wh,
-       float safe_radius_around_player,
-       int tex_unit,
-       glm::vec4 col,
-       sprite::type sprite,
-       float delta_time_s)
+       const glm::ivec2 screen_wh,
+       const float safe_radius_around_player,
+       const int tex_unit,
+       const glm::vec4 col,
+       const sprite::type sprite,
+       const float delta_time_s)
 {
   game_wall_seconds_between_spawning_left -= delta_time_s;
   if (game_wall_seconds_between_spawning_left <= 0.0f) {
     game_wall_seconds_between_spawning_left = game_wall_seconds_between_spawning_current;
-
-    // glm::ivec2 mouse_pos = app.get_input().get_mouse_pos();
-    // printf("(game) mmb clicked %i %i \n", mouse_pos.x, mouse_pos.y);
-    // glm::vec2 world_pos = glm::vec2(mouse_pos) + camera.pos;
 
     // search params
     bool continue_search = true;
@@ -253,7 +248,7 @@ update(std::vector<GameObject2D>& enemies,
 
 namespace player {
 
-bool game_player_shoot = true; // affects all players
+bool game_player_shoot = false; // affects all players
 
 void
 update_input(GameObject2D& obj, KeysAndState& keys, fightingengine::Application& app, GameObject2D& camera)
@@ -293,6 +288,7 @@ update_input(GameObject2D& obj, KeysAndState& keys, fightingengine::Application&
                                             app.get_input().get_mouse_pos().x - player_world_space_pos.x);
 
     mouse_angle_around_player += fightingengine::HALF_PI;
+    keys.angle_around_player = mouse_angle_around_player;
 
     float x_axis = glm::sin(mouse_angle_around_player);
     float y_axis = -glm::cos(mouse_angle_around_player);
@@ -320,21 +316,8 @@ update_input(GameObject2D& obj, KeysAndState& keys, fightingengine::Application&
 };
 
 void
-update_logic(GameObject2D& player,
-             const KeysAndState& keys,
-             std::vector<GameObject2D>& bullets,
-             int tex_unit,
-             glm::vec4 col,
-             sprite::type sprite,
-             float delta_time_s)
+ability_boost(GameObject2D& player, const KeysAndState& keys, const float delta_time_s)
 {
-  // process input
-  player.velocity.x = keys.l_analogue_x;
-  player.velocity.y = keys.l_analogue_y;
-  player.velocity *= player.speed_current;
-
-  // Ability: Boost
-
   if (keys.boost_pressed) {
     // Boost when shift pressed
     player.shift_boost_time_left -= delta_time_s;
@@ -350,24 +333,17 @@ update_logic(GameObject2D& player,
   if (keys.boost_pressed && player.shift_boost_time_left > 0.0f) {
     player.velocity *= player.velocity_boost_modifier;
   }
+}
 
-  // // look in mouse direction
-  // bool look_at_mouse = true;
-  // if (look_at_mouse) {
-  //   // obj.angle_radians = look_angle;
-  // }
-  // // look in velocity direction
-  // else {
-  //   if (glm::length2(obj.velocity) > 0) {
-  //     glm::vec2 up_axis = glm::vec2(0.0, -1.0);
-  //     float unsigned_angle = glm::angle(up_axis, obj.velocity);
-  //     float sign = (up_axis.x * obj.velocity.y - up_axis.y * obj.velocity.x) >= 0.0f ? 1.0f : -1.0f;
-  //     float signed_angle = unsigned_angle * sign;
-
-  //     obj.angle_radians = signed_angle;
-  //   }
-  // }
-
+void
+ability_shoot(GameObject2D& player,
+              const KeysAndState& keys,
+              std::vector<GameObject2D>& bullets,
+              const int tex_unit,
+              const glm::vec4 col,
+              const sprite::type sprite,
+              const float delta_time_s)
+{
   // Ability: Shoot
   // if (keys.shoot_pressed)
   //   obj.bullets_to_fire_after_releasing_mouse_left = obj.bullets_to_fire_after_releasing_mouse;
@@ -396,13 +372,49 @@ update_logic(GameObject2D& player,
       bullet_copy.velocity.y = keys.r_analogue_y * bullet_copy.speed_current;
 
       bullets.push_back(bullet_copy);
-
-      // if (!app_mute_sfx)
-      //   audio::play_sound(source_id);
     }
   }
+}
 
-  // // update colour
+void
+update_logic(GameObject2D& player,
+             const KeysAndState& keys,
+             std::vector<GameObject2D>& bullets,
+             const int tex_unit,
+             const glm::vec4 col,
+             const sprite::type sprite,
+             GameObject2D& weapon,
+             const float delta_time_s)
+{
+  // process input
+  player.velocity.x = keys.l_analogue_x;
+  player.velocity.y = keys.l_analogue_y;
+  player.velocity *= player.speed_current;
+
+  ability_boost(player, keys, delta_time_s);
+  ability_shoot(player, keys, bullets, tex_unit, col, sprite, delta_time_s);
+
+  gameobject::update_position(player, delta_time_s);
+
+  // ability: weapon
+  glm::vec2 pos = player.pos;
+  pos.x += player.size.x / 2.0f - weapon.size.x / 2.0f;
+  pos.y += player.size.y / 2.0f - weapon.size.y / 2.0f;
+  weapon.pos = pos;
+  weapon.angle_radians = keys.angle_around_player + sprite::spritemap::get_sprite_rotation_offset(weapon.sprite);
+
+  // calculate a vector ab
+  // glm::vec2 ab = player.pos - glm::vec2(keys.angle_around_player);
+
+  // offset weapon in direction of look angle
+
+  // fix offset issue so bullet spawns in middle of player
+  // glm::vec2 bullet_pos = player.pos;
+  // bullet_pos.x += player.size.x / 2.0f - bullet_copy.size.x / 2.0f;
+  // bullet_pos.y += player.size.y / 2.0f - bullet_copy.size.y / 2.0f;
+  // bullet_copy.pos = bullet_pos;
+
+  // update colour
   // float t = (player.hits_taken) / static_cast<float>(player.hits_able_to_be_taken);
   // t = glm::clamp(t, 0.0f, 1.0f); // clamp it
   // glm::vec4 col = glm::mix(player_colour, player_dead_colour, t);

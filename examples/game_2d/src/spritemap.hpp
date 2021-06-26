@@ -54,6 +54,7 @@ enum class type
   WEAPON_ARROW_1,
   WEAPON_ARROW_2,
   WEAPON_SHOVEL,
+  WEAPON_PICKAXE,
 
   // row 6
   ORC,
@@ -119,6 +120,7 @@ struct spritemap
     ret[type::WEAPON_ARROW_1] = { 40, 5 };
     ret[type::WEAPON_ARROW_2] = { 41, 5 };
     ret[type::WEAPON_SHOVEL] = { 42, 5 };
+    ret[type::WEAPON_PICKAXE] = { 42, 5 };
 
     // row 6
     ret[type::ORC] = { 30, 6 };
@@ -153,6 +155,7 @@ struct spritemap
     ret[type::WEAPON_ARROW_1] = { -fightingengine::PI / 4.0f };
     ret[type::WEAPON_ARROW_2] = { -fightingengine::PI / 4.0f };
     ret[type::WEAPON_SHOVEL] = { -fightingengine::PI / 4.0f };
+    ret[type::WEAPON_PICKAXE] = { -fightingengine::PI / 8.0f };
 
     return ret;
   }

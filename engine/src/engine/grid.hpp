@@ -59,7 +59,6 @@ get_cell_mirrored_grid(const std::vector<T>& t, int x, int y, int x_max)
   // this is invalid grid entry
   if (x < y) {
     std::cerr << " INVALID GRID ENTRY x:" << x << " y:" << y << std::endl;
-    exit(1); // harsh, but I'd prefer not try and recover currently
   }
 
   int layer_value = get_layer_value(y, x_max);

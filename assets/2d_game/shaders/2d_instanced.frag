@@ -12,6 +12,7 @@ const float scale_x = 1.0f / num_cols;
 const float scale_y = 1.0f / num_rows;
 
 uniform sampler2D tex;
+
 // uniform bool aces_tone_mapping;
 
 void
