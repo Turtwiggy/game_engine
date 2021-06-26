@@ -20,20 +20,20 @@ enum class CollisionLayer
   Count = 4
 };
 
-static const std::vector<bool> collision_matrix = {
+static const std::vector<bool> GAME_COLL_MATRIX = {
   false, // NoCollision_NoCollision_0_0  // 0
-  false, // NoCollision_player_0_1       // 1
-  false, // NoCollision_bullet_0_2       // 2
-  false, // NoCollision_detroyable 0_3   // 3
+  false, // bullet_NoCollision_1_0      // 1
+  false, // Player_NoCollision_2_0      // 2
+  false, // Enemy_NoCollision_3_0      // 3
 
-  false, // bullet_bullet_1_1       // 4
-  false, // bullet_player_1_2       // 5
-  true,  // bullet_enemy_1_3        // 6
+  false, // bullet_bullet_1_1           // 4
+  false, // player_bullet_2_1           // 5
+  true,  // enemy_bullet_3_1            // 6
 
-  false, // player_player           // 7
-  true,  // player_enemy            // 8
+  false, // player_player_2_2          // 7
+  true,  // enemy_player_3_2            // 8
 
-  false, // enemy_enemy             // 9
+  false, // enemy_enemy_3_3             // 9
 };
 
 struct KeysAndState
@@ -56,12 +56,13 @@ struct KeysAndState
   float l_analogue_y = 0.0f;
   float r_analogue_x = 0.0f;
   float r_analogue_y = 0.0f;
+  float angle_around_player = 0.0f;
   bool pause_pressed = false;
   bool shoot_pressed = false;
   bool boost_pressed = false;
 };
 
-enum class ai_behaviour
+enum class AiBehaviour
 {
   MOVEMENT_DIRECT,
   MOVEMENT_ARC_ANGLE,
@@ -96,8 +97,8 @@ struct GameObject2D
 
   // ai: hacky behaviour
   // could probably use a list of "prioritized" ai instead. will do that on 3+ ai needed.
-  ai_behaviour ai_original = ai_behaviour::MOVEMENT_DIRECT;
-  ai_behaviour ai_current = ai_behaviour::MOVEMENT_DIRECT;
+  AiBehaviour ai_original = AiBehaviour::MOVEMENT_DIRECT;
+  AiBehaviour ai_current = AiBehaviour::MOVEMENT_DIRECT;
   float approach_theta_degrees = 0.0f;
 
   // game: shooting
@@ -148,10 +149,13 @@ GameObject2D
 create_camera();
 
 GameObject2D
-create_enemy(sprite::type sprite, int tex_slot, glm::vec4 colour, fightingengine::RandomState& rnd, float speed);
+create_enemy(sprite::type sprite, int tex_slot, glm::vec4 colour, fightingengine::RandomState& rnd);
 
 GameObject2D
-create_player(sprite::type sprite, int tex_slot, glm::vec4 colour, glm::vec2 screen, float speed);
+create_player(sprite::type sprite, int tex_slot, glm::vec4 colour, glm::vec2 screen);
+
+GameObject2D
+create_kennynl_texture(int tex_slot);
 
 } // namespace gameobject
 

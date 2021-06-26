@@ -43,6 +43,12 @@ load_sound(const std::string& filename);
 void
 play_sound(ALint source_id);
 
+// generate source
+// attach buffer to source
+// set volume
+[[nodiscard]] ALuint
+create_source(ALuint& s, float volume);
+
 } // namespace audio
 
 } // namespace fightingengine

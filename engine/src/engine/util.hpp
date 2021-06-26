@@ -14,4 +14,7 @@ void
 load_textures_threaded(std::vector<std::pair<int, std::string>>& textures_to_load,
                        const std::chrono::steady_clock::time_point& app_start);
 
+void
+hide_console();
+
 }

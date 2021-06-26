@@ -15,7 +15,7 @@ game_collision_matrix(CollisionLayer& y_l1, CollisionLayer& x_l2)
   int x = static_cast<int>(x_l2); // c2 is 0, 1, or 2
 
   // collision_matrix is a global (non-mutable) var
-  bool val = grid::get_cell_mirrored_grid(collision_matrix, x, y, x_max);
+  bool val = grid::get_cell_mirrored_grid(GAME_COLL_MATRIX, x, y, x_max);
   return val;
 }
 
@@ -86,8 +86,6 @@ generate_broadphase_collisions(const std::vector<std::reference_wrapper<GameObje
             Collision2D& coll = collisions[unique_collision_id];
             coll.ent_id_0 = old_obj.get().id;
             coll.ent_id_1 = new_obj.get().id;
-            // coll.ent_0_layer = old_obj.get().collision_layer;
-            // coll.ent_1_layer = new_obj.get().collision_layer;
 
             if (axis == COLLISION_AXIS::X)
               coll.collision_x = true;

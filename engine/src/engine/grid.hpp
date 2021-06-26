@@ -1,6 +1,7 @@
 #pragma once
 
 // c++ lib headers
+#include <iostream>
 #include <vector>
 
 // other lib headers
@@ -17,16 +18,6 @@ get_layer_value(int y, int x_max)
     return 0;
   return get_layer_value(y - 1, x_max) + (x_max - (y - 1));
 }
-
-// template<typename T>
-// [[nodiscard]] inline std::vector<T>
-// create_empty_grid(std::vector<T>& vec, int x, int y)
-// {
-//   T t;
-//   for (int i = 0; i < x * y; i++) {
-//     vec.push_back(t);
-//   }
-// }
 
 // a grid shaped
 // ~~~~~~~~~~~~~
@@ -45,29 +36,35 @@ get_cell(const std::vector<T>& t, int x, int y, int x_max)
 
 // e.g.
 // a grid shaped
-// ~~~~~~~~~~~~~
-// 0  1  2  3  4
-// 5  6  7  8
-// 9  10 11
-// 12 13
-// 14
-// ~~~~~~~~~~~~~~
+//  0 | 0  1  2  3
+//  1 |    4  5  6
+//  2 |       7  8
+//  3 |          9
+//    |-----------
+//      0  1  2  3
 // the get_layer_value is:
-// y=2... x-max=5...
-// (5 - (2-1)) + (5 -(1-1)) = 9
-// because 9 is the first element on the 2nd y layer.
+// x=2... y=1... x-max=4...
+// layer_value: (4 - (2-1)) + (4 -(1-1)) = 7
 template<typename T>
 [[nodiscard]] inline T
 get_cell_mirrored_grid(const std::vector<T>& t, int x, int y, int x_max)
 {
-  if (y < x) {
+  // make sure the X value is always the greatest value
+  if (x < y) {
     int temp = x;
     x = y;
     y = temp;
   }
+  // after sorting, if x is still less than y,
+  // this is invalid grid entry
+  if (x < y) {
+    std::cerr << " INVALID GRID ENTRY x:" << x << " y:" << y << std::endl;
+    exit(1); // harsh, but I'd prefer not try and recover currently
+  }
 
-  int val = get_layer_value(y, x_max) - x + y;
-  return t[val];
+  int layer_value = get_layer_value(y, x_max);
+  int v = layer_value + x - y;
+  return t[v];
 }
 
 [[nodiscard]] inline glm::ivec2
@@ -86,6 +83,43 @@ convert_world_space_to_grid_space(const glm::vec2& world_space, int grid_size)
 convert_grid_space_to_worldspace(glm::ivec2 pos, int grid_size)
 {
   return glm::vec2{ pos.x, pos.y } * static_cast<float>(grid_size);
+}
+
+// returns the unique (no duplicates) cells an object is in
+inline void
+get_unique_cells(glm::vec2 pos, glm::vec2 size, int grid_size, std::vector<glm::ivec2>& results)
+{
+  results.clear();
+
+  glm::vec2 tl = pos;
+  glm::vec2 tr = { pos.x + size.x, pos.y };
+  glm::vec2 bl = { pos.x, pos.y + size.y };
+  glm::vec2 br = { pos.x + size.x, pos.y + size.y };
+
+  // always push tl
+  glm::ivec2 gc = grid::convert_world_space_to_grid_space(tl, grid_size);
+  results.push_back(gc);
+
+  gc = grid::convert_world_space_to_grid_space(tr, grid_size);
+  auto it = std::find_if(
+    results.begin(), results.end(), [&gc](const glm::ivec2& obj) { return obj.x == gc.x && obj.y == gc.y; });
+  if (it == results.end()) {
+    results.push_back(gc);
+  }
+
+  gc = grid::convert_world_space_to_grid_space(bl, grid_size);
+  it = std::find_if(
+    results.begin(), results.end(), [&gc](const glm::ivec2& obj) { return obj.x == gc.x && obj.y == gc.y; });
+  if (it == results.end()) {
+    results.push_back(gc);
+  }
+
+  gc = grid::convert_world_space_to_grid_space(br, grid_size);
+  it = std::find_if(
+    results.begin(), results.end(), [&gc](const glm::ivec2& obj) { return obj.x == gc.x && obj.y == gc.y; });
+  if (it == results.end()) {
+    results.push_back(gc);
+  }
 }
 
 } // namespace grid

@@ -145,4 +145,14 @@ audio::play_sound(ALint source_id)
   alSourcePlay(source_id);
 };
 
+ALuint
+audio::create_source(ALuint& s, float volume)
+{
+  ALuint source;
+  alGenSources(1, &source);               // generate source
+  alSourcei(source, AL_BUFFER, (ALint)s); // attach buffer to source
+  alSourcef(source, AL_GAIN, volume);     // set volume
+  return source;
+}
+
 } // namespace fightingengine

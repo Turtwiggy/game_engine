@@ -4,6 +4,9 @@
 
 // other library headers
 #include <iostream>
+#ifdef WIN32
+#include <Windows.h>
+#endif
 
 // engine header
 #include "engine/opengl/texture.hpp"
@@ -41,6 +44,14 @@ load_textures_threaded(std::vector<std::pair<int, std::string>>& textures_to_loa
     }
   }
   log_time_since("(End Threaded) textures loaded ", app_start);
+}
+
+void
+hide_console()
+{
+#ifdef WIN32
+  ::ShowWindow(::GetConsoleWindow(), SW_HIDE); // hide console
+#endif
 }
 
 }
