@@ -40,17 +40,11 @@ namespace collisions {
 void
 resolve_enemy_player_collision(GameObject2D& enemy, GameObject2D& player)
 {
-  std::cout << "enemy-player collision!" << std::endl;
-
-  //
   // enemy
-  //
 
   enemy.flag_for_delete = true;
 
-  //
   // player
-  //
 
   player.hits_taken += 1;
 }
@@ -58,17 +52,11 @@ resolve_enemy_player_collision(GameObject2D& enemy, GameObject2D& player)
 void
 resolve_enemy_bullet_collision(GameObject2D& enemy, GameObject2D& bullet)
 {
-  std::cout << "enemy-bullet collision!" << std::endl;
-
-  //
   // enemy
-  //
 
   enemy.hits_taken += 1;
 
-  //
   // bullet
-  //
 
   bullet.flag_for_delete = true;
 }
@@ -150,12 +138,7 @@ enemy_ai::enemy_arc_angles_to_player(GameObject2D& obj, GameObject2D& player, fl
   float amplitude = half_distance * sin(obj.approach_theta_degrees);
   half_point += (glm::normalize(normal) * amplitude);
 
-  // Now create a bezier curve! use the halfpoint as the control point
-  // float t = 0.5f;
-  // glm::vec2 p = quadratic_curve(obj.pos, half_point, player.pos, t);
-
   glm::vec2 dir = glm::normalize(half_point - obj.pos);
-  // std::cout << "dir x:" << dir.x << " y:" << dir.y << std::endl;
 
   move_along_vector(obj, dir, delta_time_s);
 };
@@ -163,7 +146,7 @@ enemy_ai::enemy_arc_angles_to_player(GameObject2D& obj, GameObject2D& player, fl
 namespace enemy_spawner {
 
 const bool game_spawn_enemies = true;
-const float game_wall_seconds_between_spawning_start = 0.5f;
+const float game_wall_seconds_between_spawning_start = 1.0f;
 float game_wall_seconds_between_spawning_current = game_wall_seconds_between_spawning_start;
 float game_wall_seconds_between_spawning_left = 0.0f;
 const float game_wall_seconds_between_spawning_end = 0.2f;
@@ -238,8 +221,7 @@ update(std::vector<GameObject2D>& enemies,
   // 0.5 is starting cooldown
   // after 30 seconds, cooldown should be 0
   game_seconds_until_max_difficulty_spent += delta_time_s;
-  float percent =
-    glm::clamp(game_seconds_until_max_difficulty_spent / game_seconds_until_max_difficulty_spent, 0.0f, 1.0f);
+  float percent = glm::clamp(game_seconds_until_max_difficulty_spent / game_seconds_until_max_difficulty, 0.0f, 1.0f);
   game_wall_seconds_between_spawning_current =
     glm::mix(game_wall_seconds_between_spawning_start, game_wall_seconds_between_spawning_end, percent);
 };
@@ -247,8 +229,6 @@ update(std::vector<GameObject2D>& enemies,
 } // namespace enemyspawner
 
 namespace player {
-
-bool game_player_shoot = false; // affects all players
 
 void
 update_input(GameObject2D& obj, KeysAndState& keys, fightingengine::Application& app, GameObject2D& camera)
@@ -336,7 +316,8 @@ ability_boost(GameObject2D& player, const KeysAndState& keys, const float delta_
 }
 
 void
-ability_shoot(GameObject2D& player,
+ability_shoot(fightingengine::Application& app,
+              GameObject2D& player,
               const KeysAndState& keys,
               std::vector<GameObject2D>& bullets,
               const int tex_unit,
@@ -347,37 +328,84 @@ ability_shoot(GameObject2D& player,
   // Ability: Shoot
   // if (keys.shoot_pressed)
   //   obj.bullets_to_fire_after_releasing_mouse_left = obj.bullets_to_fire_after_releasing_mouse;
+  if (player.bullet_seconds_between_spawning_left > 0.0f)
+    player.bullet_seconds_between_spawning_left -= delta_time_s;
 
-  if (game_player_shoot) {
-    if (player.bullet_seconds_between_spawning_left > 0.0f)
-      player.bullet_seconds_between_spawning_left -= delta_time_s;
+  if (player.bullet_seconds_between_spawning_left <= 0.0f || app.get_input().get_mouse_lmb_down()) {
+    player.bullet_seconds_between_spawning_left = player.bullet_seconds_between_spawning;
+    // obj.bullets_to_fire_after_releasing_mouse_left -= 1;
+    // obj.bullets_to_fire_after_releasing_mouse_left =
+    //   obj.bullets_to_fire_after_releasing_mouse_left < 0 ? 0 : obj.bullets_to_fire_after_releasing_mouse_left;
 
-    if (player.bullet_seconds_between_spawning_left <= 0.0f) {
-      player.bullet_seconds_between_spawning_left = player.bullet_seconds_between_spawning;
-      // obj.bullets_to_fire_after_releasing_mouse_left -= 1;
-      // obj.bullets_to_fire_after_releasing_mouse_left =
-      //   obj.bullets_to_fire_after_releasing_mouse_left < 0 ? 0 : obj.bullets_to_fire_after_releasing_mouse_left;
+    // spawn bullet
 
-      // spawn bullet
+    GameObject2D bullet_copy = gameobject::create_bullet(sprite, tex_unit, col);
+    // override defaults
+    // fix offset issue so bullet spawns in middle of player
+    glm::vec2 bullet_pos = player.pos;
+    bullet_pos.x += player.size.x / 2.0f - bullet_copy.size.x / 2.0f;
+    bullet_pos.y += player.size.y / 2.0f - bullet_copy.size.y / 2.0f;
+    bullet_copy.pos = bullet_pos;
+    // convert right analogue input to velocity
+    bullet_copy.velocity.x = keys.r_analogue_x * bullet_copy.speed_current;
+    bullet_copy.velocity.y = keys.r_analogue_y * bullet_copy.speed_current;
 
-      GameObject2D bullet_copy = gameobject::create_bullet(sprite, tex_unit, col);
-      // override defaults
-      // fix offset issue so bullet spawns in middle of player
-      glm::vec2 bullet_pos = player.pos;
-      bullet_pos.x += player.size.x / 2.0f - bullet_copy.size.x / 2.0f;
-      bullet_pos.y += player.size.y / 2.0f - bullet_copy.size.y / 2.0f;
-      bullet_copy.pos = bullet_pos;
-      // convert right analogue input to velocity
-      bullet_copy.velocity.x = keys.r_analogue_x * bullet_copy.speed_current;
-      bullet_copy.velocity.y = keys.r_analogue_y * bullet_copy.speed_current;
-
-      bullets.push_back(bullet_copy);
-    }
+    bullets.push_back(bullet_copy);
   }
 }
 
+// slash stats
+const float weapon_radius = 30.0f;
+const float lmb_slash_attack_time = 0.15f;
+float lmb_slash_attack_time_left = 0.0f;
+float weapon_current_angle = 0.0f;
+float weapon_angle_speed = fightingengine::HALF_PI / 30.0f; // closer to 0 is faster
+bool attack_left_to_right = true;
+
 void
-update_logic(GameObject2D& player,
+ability_slash(fightingengine::Application& app,
+              GameObject2D& player,
+              const KeysAndState& keys,
+              GameObject2D& weapon,
+              float delta_time_s)
+{
+  if (app.get_input().get_mouse_lmb_down()) {
+    lmb_slash_attack_time_left = lmb_slash_attack_time;
+    attack_left_to_right = !attack_left_to_right; // keep swapping left to right to right to left etc
+
+    if (attack_left_to_right)
+      weapon_current_angle = keys.angle_around_player - fightingengine::HALF_PI / 2.0f;
+    else
+      weapon_current_angle = keys.angle_around_player + fightingengine::HALF_PI / 2.0f;
+
+    weapon.angle_radians = keys.angle_around_player + sprite::spritemap::get_sprite_rotation_offset(weapon.sprite);
+  }
+
+  if (lmb_slash_attack_time_left > 0.0f) {
+    lmb_slash_attack_time_left -= delta_time_s;
+    weapon.active = true;
+  } else {
+    weapon.active = false;
+  }
+
+  glm::vec2 pos = player.pos;
+  pos.x += player.size.x / 2.0f - weapon.size.x / 2.0f;
+  pos.y += player.size.y / 2.0f - weapon.size.y / 2.0f;
+
+  if (attack_left_to_right)
+    weapon_current_angle += weapon_angle_speed;
+  else
+    weapon_current_angle -= weapon_angle_speed;
+
+  glm::vec2 offset_pos =
+    glm::vec2(weapon_radius * sin(weapon_current_angle), -weapon_radius * cos(weapon_current_angle));
+
+  weapon.pos = pos + offset_pos;
+}
+
+void
+update_logic(fightingengine::Application& app,
+             GameObject2D& player,
              const KeysAndState& keys,
              std::vector<GameObject2D>& bullets,
              const int tex_unit,
@@ -392,35 +420,12 @@ update_logic(GameObject2D& player,
   player.velocity *= player.speed_current;
 
   ability_boost(player, keys, delta_time_s);
-  ability_shoot(player, keys, bullets, tex_unit, col, sprite, delta_time_s);
+  if (false)
+    ability_shoot(app, player, keys, bullets, tex_unit, col, sprite, delta_time_s);
 
   gameobject::update_position(player, delta_time_s);
 
-  // ability: weapon
-  glm::vec2 pos = player.pos;
-  pos.x += player.size.x / 2.0f - weapon.size.x / 2.0f;
-  pos.y += player.size.y / 2.0f - weapon.size.y / 2.0f;
-  weapon.pos = pos;
-  weapon.angle_radians = keys.angle_around_player + sprite::spritemap::get_sprite_rotation_offset(weapon.sprite);
-
-  // calculate a vector ab
-  // glm::vec2 ab = player.pos - glm::vec2(keys.angle_around_player);
-
-  // offset weapon in direction of look angle
-
-  // fix offset issue so bullet spawns in middle of player
-  // glm::vec2 bullet_pos = player.pos;
-  // bullet_pos.x += player.size.x / 2.0f - bullet_copy.size.x / 2.0f;
-  // bullet_pos.y += player.size.y / 2.0f - bullet_copy.size.y / 2.0f;
-  // bullet_copy.pos = bullet_pos;
-
-  // update colour
-  // float t = (player.hits_taken) / static_cast<float>(player.hits_able_to_be_taken);
-  // t = glm::clamp(t, 0.0f, 1.0f); // clamp it
-  // glm::vec4 col = glm::mix(player_colour, player_dead_colour, t);
-  // float min_alpha = 0.7f;
-  // col.a = glm::clamp(1.0f - t, min_alpha, 1.0f);
-  // player.colour = col;
+  ability_slash(app, player, keys, weapon, delta_time_s);
 };
 
 } // namespace player

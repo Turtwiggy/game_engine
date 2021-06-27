@@ -68,11 +68,17 @@ enum class AiBehaviour
   MOVEMENT_ARC_ANGLE,
 };
 
+//
+// If this game ever has more than 1 million entities,
+// reconsider this structure. Until then, lets gooooo.
+//
+
 struct GameObject2D
 {
   static inline uint32_t global_int_counter = 0;
   uint32_t id = 0;
 
+  bool active = true;
   bool do_render = true;
   bool do_lifecycle_timed = false;
   bool do_lifecycle_health = true;
@@ -111,16 +117,14 @@ struct GameObject2D
   // game: lifecycle health
   int hits_able_to_be_taken = 3;
   int hits_taken = 0;
-  int other_objects_destroyed = 0;
   bool invulnerable = false;
+
+  // physics
+  std::vector<glm::ivec2> in_grid_cell;
+  CollisionLayer collision_layer = CollisionLayer::NoCollision;
 
   // game: extra
   std::string name = "DEFAULT";
-  // maintain a list of the different cells an entity is in
-  std::vector<glm::ivec2> in_grid_cell;
-
-  // physics
-  CollisionLayer collision_layer = CollisionLayer::NoCollision;
 
   GameObject2D() { id = ++GameObject2D::global_int_counter; }
 };

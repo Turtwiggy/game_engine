@@ -79,16 +79,12 @@ sprite::type sprite_weapon_base = sprite::type::WEAPON_SHOVEL;
 
 const float game_safe_radius_around_player = 7500.0f;
 const float game_enemy_direct_attack_threshold = 4000.0f;
+float screenshake_time = 0.1f;
+float screenshake_time_left = 0.0f;
 
 int
 main()
 {
-#ifndef _DEBUG
-  debug_advance_one_frame = false;
-  debug_show_imgui_demo_window = false;
-  debug_render_spritesheet = false;
-#endif
-
   std::cout << "booting up..." << std::endl;
   const auto app_start = std::chrono::high_resolution_clock::now();
 
@@ -152,25 +148,37 @@ main()
 
   // game
 
+  uint32_t game_objects_destroyed = 0;
+
   GameObject2D tex_obj = gameobject::create_kennynl_texture(tex_unit_kenny_nl);
   GameObject2D camera = gameobject::create_camera();
   GameObject2D weapon_base;
   weapon_base.sprite = sprite_weapon_base;
   weapon_base.pos = { screen_wh.x / 2.0f, screen_wh.y / 2.0f };
-  weapon_base.size = { 50.0f, 50.f };
+  weapon_base.size = { 1.0f * 768.0f / 48.0f, 1.0f * 362.0f / 22.0f };
   weapon_base.collision_layer = CollisionLayer::Player;
+  weapon_base.colour = bullet_colour;
 
   GameObject2D tree;
   tree.tex_slot = tex_tree;
   tree.sprite = sprite::type::EMPTY;
-  tree.pos = { 100.0f, 100.0f };
-  tree.size = { 18.0f * 2.0f, 18.0f * 2.0f };
+  tree.size = { 2.0f * 768.0f / 48.0f, 2.0f * 362.0f / 22.0f };
   tree.collision_layer = CollisionLayer::NoCollision;
   tree.colour = { 0.25f, 1.0f, 0.25f, 1.0f };
 
   std::vector<GameObject2D> entities_enemies;
   std::vector<GameObject2D> entities_bullets;
   std::vector<GameObject2D> entities_player;
+  std::vector<GameObject2D> entities_trees;
+
+  for (int i = 0; i < 50; i++) {
+    glm::vec2 rnd_pos = glm::vec2(fightingengine::rand_det_s(rnd.rng, 0.0f, 1.0f) * screen_wh.x,
+                                  fightingengine::rand_det_s(rnd.rng, 0.0f, 1.0f) * screen_wh.y);
+    tree.pos = rnd_pos;
+    entities_trees.push_back(tree);
+  }
+  std::cout << "trees: " << entities_trees.size() << std::endl;
+
   std::vector<KeysAndState> player_keys;
 
   // add players
@@ -215,21 +223,25 @@ main()
 
         // set entities that we want collision info from
         std::vector<std::reference_wrapper<GameObject2D>>& collidable = common_ents;
+        std::vector<std::reference_wrapper<GameObject2D>> active_collidable;
+        for (auto& obj : collidable) {
+          if (obj.get().active)
+            active_collidable.push_back(obj);
+        }
 
         // pre-physics: update grid position
-        for (auto& e : collidable) {
+        for (auto& e : active_collidable) {
           grid::get_unique_cells(e.get().pos, e.get().size, PHYSICS_GRID_SIZE, e.get().in_grid_cell);
         }
 
         // generate filtered broadphase collisions.
         std::map<uint64_t, Collision2D> filtered_collisions;
-        generate_filtered_broadphase_collisions(collidable, filtered_collisions);
+        generate_filtered_broadphase_collisions(active_collidable, filtered_collisions);
 
         // Resolve collisions
         for (auto& c : filtered_collisions) {
           uint32_t id_0 = c.second.ent_id_0;
           uint32_t id_1 = c.second.ent_id_1;
-
           collisions::resolve(id_0, id_1, common_ents);
         }
       }
@@ -273,21 +285,9 @@ main()
 
 #endif // _DEBUG
 
-      //
-      // in progress new weapon
-      //
-
-      if (app.get_input().get_mouse_lmb_held()) {
-        weapon_base.colour = bullet_colour;
-      } else {
-        weapon_base.colour = player_colour;
-      }
-
       // glm::ivec2 mouse_pos = app.get_input().get_mouse_pos();
       // printf("(game) mmb clicked %i %i \n", mouse_pos.x, mouse_pos.y);
       // glm::vec2 world_pos = glm::vec2(mouse_pos) + camera.pos;
-
-      //
     }
     profiler.end(Profiler::Stage::SdlInput);
     profiler.begin(Profiler::Stage::GameTick);
@@ -315,13 +315,33 @@ main()
           GameObject2D& player = entities_player[i];
           KeysAndState& keys = player_keys[i];
 
-          player::update_logic(
-            player, keys, entities_bullets, tex_unit_kenny_nl, bullet_colour, sprite_bullet, weapon_base, delta_time_s);
+          player::update_logic(app,
+                               player,
+                               keys,
+                               entities_bullets,
+                               tex_unit_kenny_nl,
+                               bullet_colour,
+                               sprite_bullet,
+                               weapon_base,
+                               delta_time_s);
 
           bool player_alive = player.invulnerable || player.hits_taken < player.hits_able_to_be_taken;
           if (!player_alive)
             state = GameRunning::GAME_OVER;
         }
+
+        // if player takes hit:
+        // // screenshake
+        // screenshake_time_left = screenshake_time;
+        // // play some audio
+        // // vfx
+        // update colour
+        // float t = (player.hits_taken) / static_cast<float>(player.hits_able_to_be_taken);
+        // t = glm::clamp(t, 0.0f, 1.0f); // clamp it
+        // glm::vec4 col = glm::mix(player_colour, player_dead_colour, t);
+        // float min_alpha = 0.7f;
+        // col.a = glm::clamp(1.0f - t, min_alpha, 1.0f);
+        // player.colour = col;
 
         // update: bullets
 
@@ -339,6 +359,9 @@ main()
 
           // update with ai behaviour
           for (auto& obj : entities_enemies) {
+
+            if (!obj.active)
+              continue;
 
             // check every frame: close to player?
             float distance_squared = glm::distance2(obj.pos, player_to_chase.pos);
@@ -372,18 +395,26 @@ main()
           camera::update(camera, player_keys[0], app, delta_time_s);
         }
 
-        { // lifecycle: decrease life
+        // update: screenshake
+        if (screenshake_time_left > 0.0f) {
+          screenshake_time_left -= delta_time_s;
+          instanced_quad_shader.bind();
+          instanced_quad_shader.set_bool("shake", true);
+        }
+        if (screenshake_time_left <= 0.0f) {
+          instanced_quad_shader.bind();
+          instanced_quad_shader.set_bool("shake", false);
+        }
+
+        { // lifecycle: decrease life; timed and health
 
           for (auto& obj : common_ents) {
-            // timed?
             if (obj.get().do_lifecycle_timed) {
               obj.get().time_alive_left -= delta_time_s;
               if (obj.get().time_alive_left <= 0.0f) {
                 obj.get().flag_for_delete = true;
               }
             }
-
-            // health?
             if (obj.get().do_lifecycle_health) {
               if (obj.get().hits_taken >= obj.get().hits_able_to_be_taken) {
                 obj.get().flag_for_delete = true;
@@ -409,6 +440,7 @@ main()
             GameObject2D& obj = (*it_1);
             if (obj.flag_for_delete) {
               it_1 = entities_enemies.erase(it_1);
+              game_objects_destroyed += 1;
             } else {
               ++it_1;
             }
@@ -434,7 +466,7 @@ main()
       instanced_quad_shader.bind();
       instanced_quad_shader.set_float("time", app.seconds_since_launch);
 
-      if (state == GameRunning::ACTIVE || state == GameRunning::PAUSED) {
+      if (state == GameRunning::ACTIVE || state == GameRunning::PAUSED || state == GameRunning::GAME_OVER) {
 
         std::vector<std::reference_wrapper<GameObject2D>>& renderables = common_ents;
 
@@ -442,7 +474,9 @@ main()
 
         instanced_quad_shader.set_int("tex", tex_unit_kenny_nl);
 
-        for (std::reference_wrapper<GameObject2D> obj : renderables) {
+        for (auto& obj : renderables) {
+          if (!obj.get().active)
+            continue;
           sprite_renderer::draw_sprite_debug(
             camera, screen_wh, instanced_quad_shader, obj.get(), colour_shader, debug_line_colour);
         }
@@ -461,8 +495,10 @@ main()
 
         instanced_quad_shader.set_int("tex", tex_tree);
 
-        sprite_renderer::draw_sprite_debug(
-          camera, screen_wh, instanced_quad_shader, tree, colour_shader, debug_line_colour);
+        for (auto& obj : entities_trees) {
+          sprite_renderer::draw_sprite_debug(
+            camera, screen_wh, instanced_quad_shader, obj, colour_shader, debug_line_colour);
+        }
       }
 
       sprite_renderer::end_batch();
@@ -535,6 +571,7 @@ main()
         {
           for (int i = 0; i < entities_player.size(); i++) {
             GameObject2D& player = entities_player[i];
+            ImGui::Text("GO Destroyed: %i", game_objects_destroyed);
             ImGui::Text("PLAYER_ID: %i", player.id);
             ImGui::Text("PLAYER_HP_MAX %i", player.hits_able_to_be_taken);
             ImGui::Text("PLAYER_HITS_TAKEN %i", player.hits_taken);

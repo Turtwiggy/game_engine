@@ -72,7 +72,8 @@ update_input(GameObject2D& obj, KeysAndState& keys, fightingengine::Application&
 // shoot
 // update colour
 void
-update_logic(GameObject2D& player,
+update_logic(fightingengine::Application& app,
+             GameObject2D& player,
              const KeysAndState& keys,
              std::vector<GameObject2D>& bullets,
              const int tex_unit,
