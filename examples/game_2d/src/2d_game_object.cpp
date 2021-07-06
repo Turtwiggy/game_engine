@@ -54,7 +54,8 @@ create_bullet(sprite::type sprite, int tex_slot, glm::vec4 colour)
   // default
   game_object.collision_layer = CollisionLayer::Bullet;
   game_object.name = "bullet";
-  game_object.size = { 1.0f * 768.0f / 48.0f, 1.0f * 362.0f / 22.0f };
+  game_object.render_size = { 1.0f * 768.0f / 48.0f, 1.0f * 362.0f / 22.0f };
+  game_object.physics_size = { 1.0f * 768.0f / 48.0f, 1.0f * 362.0f / 22.0f };
   game_object.speed_default = 200.0f;
   game_object.speed_current = game_object.speed_default;
   game_object.time_alive_left = 6.0f;
@@ -85,7 +86,8 @@ create_enemy(sprite::type sprite, int tex_slot, glm::vec4 colour, fightingengine
   game_object.collision_layer = CollisionLayer::Enemy;
   game_object.name = "wall";
   game_object.angle_radians = 0.0;
-  game_object.size = { 1.0f * 768.0f / 48.0f, 1.0f * 362.0f / 22.0f };
+  game_object.render_size = { 1.0f * 768.0f / 48.0f, 1.0f * 362.0f / 22.0f };
+  game_object.physics_size = { 1.0f * 768.0f / 48.0f, 1.0f * 362.0f / 22.0f };
   game_object.hits_able_to_be_taken = 1;
 
   // roll a dice
@@ -105,6 +107,20 @@ create_enemy(sprite::type sprite, int tex_slot, glm::vec4 colour, fightingengine
 };
 
 GameObject2D
+create_tree(int tex_slot)
+{
+  GameObject2D game_object;
+  game_object.collision_layer = CollisionLayer::Obstacle;
+  game_object.name = "tree";
+  game_object.tex_slot = tex_slot;
+  game_object.sprite = sprite::type::EMPTY;
+  game_object.render_size = { 32.0f, 32.0f };
+  game_object.physics_size = { 32.0f, 32.0f };
+  game_object.colour = { 0.25f, 1.0f, 0.25f, 1.0f };
+  return game_object;
+}
+
+GameObject2D
 create_player(sprite::type sprite, int tex_slot, glm::vec4 colour, glm::vec2 screen)
 {
   GameObject2D game_object;
@@ -117,7 +133,8 @@ create_player(sprite::type sprite, int tex_slot, glm::vec4 colour, glm::vec2 scr
   game_object.collision_layer = CollisionLayer::Player;
   game_object.name = "player";
   game_object.angle_radians = 0.0;
-  game_object.size = { 1.0f * 768.0f / 48.0f, 1.0f * 362.0f / 22.0f };
+  game_object.render_size = { 1.0f * 768.0f / 48.0f, 1.0f * 362.0f / 22.0f };
+  game_object.physics_size = { 1.0f * 768.0f / 48.0f, 1.0f * 362.0f / 22.0f };
   game_object.velocity = { 0.0f, 0.0f };
   game_object.velocity_boost_modifier = 2.0f;
   game_object.speed_default = 50.0f;
@@ -134,7 +151,8 @@ create_kennynl_texture(int tex_slot)
   GameObject2D game_object;
   game_object.name = "texture_sheet";
   game_object.pos = { 0.0f, 20.0f };
-  game_object.size = { 768.0f, 352.0f };
+  game_object.render_size = { 768.0f, 352.0f };
+  game_object.physics_size = { 768.0f, 352.0f };
   game_object.colour = glm::vec4(1.0f, 1.0f, 1.0f, 1.0f);
   game_object.angle_radians = 0.0;
   game_object.sprite = sprite::type::EMPTY;

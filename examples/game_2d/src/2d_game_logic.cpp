@@ -35,77 +35,6 @@ camera::update(GameObject2D& camera, const KeysAndState& keys, fightingengine::A
     camera.pos.y += delta_time_s * camera.speed_current;
 };
 
-namespace collisions {
-
-void
-resolve_enemy_player_collision(GameObject2D& enemy, GameObject2D& player)
-{
-  // enemy
-
-  enemy.flag_for_delete = true;
-
-  // player
-
-  player.hits_taken += 1;
-}
-
-void
-resolve_enemy_bullet_collision(GameObject2D& enemy, GameObject2D& bullet)
-{
-  // enemy
-
-  enemy.hits_taken += 1;
-
-  // bullet
-
-  bullet.flag_for_delete = true;
-}
-
-void
-resolve(uint32_t id0, uint32_t id1, const std::vector<std::reference_wrapper<GameObject2D>>& ents)
-{
-  // Find the objs in the read-only list
-  auto& obj_0_it = std::find_if(ents.begin(), ents.end(), [&id0](const auto& obj) { return obj.get().id == id0; });
-  auto& obj_1_it = std::find_if(ents.begin(), ents.end(), [&id1](const auto& obj) { return obj.get().id == id1; });
-
-  if (obj_0_it == ents.end() || obj_1_it == ents.end()) {
-    std::cerr << "Collision entity not in entity list" << std::endl;
-  }
-
-  auto& coll_layer_0 = obj_0_it->get().collision_layer;
-  auto& coll_layer_1 = obj_1_it->get().collision_layer;
-
-  //
-  // apply to collision interactions e.g. xy or yx
-  //
-
-  // Enemy and player collided
-  if ((coll_layer_0 == CollisionLayer::Player && coll_layer_1 == CollisionLayer::Enemy) ||
-      (coll_layer_1 == CollisionLayer::Player && coll_layer_0 == CollisionLayer::Enemy)) {
-
-    // work out which is which
-    if (obj_0_it->get().collision_layer == CollisionLayer::Enemy) {
-      resolve_enemy_player_collision(obj_0_it->get(), obj_1_it->get());
-    } else {
-      resolve_enemy_player_collision(obj_1_it->get(), obj_0_it->get());
-    }
-  }
-
-  // Enemy and bullet
-  if ((coll_layer_0 == CollisionLayer::Enemy && coll_layer_1 == CollisionLayer::Bullet) ||
-      (coll_layer_1 == CollisionLayer::Enemy && coll_layer_0 == CollisionLayer::Bullet)) {
-
-    // work out which is which
-    if (obj_0_it->get().collision_layer == CollisionLayer::Enemy) {
-      resolve_enemy_bullet_collision(obj_0_it->get(), obj_1_it->get());
-    } else {
-      resolve_enemy_bullet_collision(obj_1_it->get(), obj_0_it->get());
-    }
-  }
-};
-
-} // namespace collisions
-
 void
 enemy_ai::move_along_vector(GameObject2D& obj, glm::vec2 dir, float delta_time_s)
 {
@@ -343,8 +272,8 @@ ability_shoot(fightingengine::Application& app,
     // override defaults
     // fix offset issue so bullet spawns in middle of player
     glm::vec2 bullet_pos = player.pos;
-    bullet_pos.x += player.size.x / 2.0f - bullet_copy.size.x / 2.0f;
-    bullet_pos.y += player.size.y / 2.0f - bullet_copy.size.y / 2.0f;
+    bullet_pos.x += player.physics_size.x / 2.0f - bullet_copy.physics_size.x / 2.0f;
+    bullet_pos.y += player.physics_size.y / 2.0f - bullet_copy.physics_size.y / 2.0f;
     bullet_copy.pos = bullet_pos;
     // convert right analogue input to velocity
     bullet_copy.velocity.x = keys.r_analogue_x * bullet_copy.speed_current;
@@ -389,8 +318,8 @@ ability_slash(fightingengine::Application& app,
   }
 
   glm::vec2 pos = player.pos;
-  pos.x += player.size.x / 2.0f - weapon.size.x / 2.0f;
-  pos.y += player.size.y / 2.0f - weapon.size.y / 2.0f;
+  pos.x += player.physics_size.x / 2.0f - weapon.physics_size.x / 2.0f;
+  pos.y += player.physics_size.y / 2.0f - weapon.physics_size.y / 2.0f;
 
   if (attack_left_to_right)
     weapon_current_angle += weapon_angle_speed;

@@ -146,7 +146,7 @@ main()
   instanced_quad_shader.bind();
   instanced_quad_shader.set_mat4("projection", projection);
 
-  // game
+  // Game
 
   uint32_t game_objects_destroyed = 0;
 
@@ -155,31 +155,31 @@ main()
   GameObject2D weapon_base;
   weapon_base.sprite = sprite_weapon_base;
   weapon_base.pos = { screen_wh.x / 2.0f, screen_wh.y / 2.0f };
-  weapon_base.size = { 1.0f * 768.0f / 48.0f, 1.0f * 362.0f / 22.0f };
+  weapon_base.render_size = { 1.0f * 768.0f / 48.0f, 1.0f * 362.0f / 22.0f };
+  weapon_base.physics_size = { 1.0f * 768.0f / 48.0f, 1.0f * 362.0f / 22.0f };
   weapon_base.collision_layer = CollisionLayer::Player;
   weapon_base.colour = bullet_colour;
 
-  GameObject2D tree;
-  tree.tex_slot = tex_tree;
-  tree.sprite = sprite::type::EMPTY;
-  tree.size = { 2.0f * 768.0f / 48.0f, 2.0f * 362.0f / 22.0f };
-  tree.collision_layer = CollisionLayer::NoCollision;
-  tree.colour = { 0.25f, 1.0f, 0.25f, 1.0f };
+  std::vector<std::reference_wrapper<GameObject2D>> game_grid_refs;
+  std::vector<game2d::CollisionEvent> collision_events;
 
   std::vector<GameObject2D> entities_enemies;
   std::vector<GameObject2D> entities_bullets;
   std::vector<GameObject2D> entities_player;
   std::vector<GameObject2D> entities_trees;
-
-  for (int i = 0; i < 50; i++) {
-    glm::vec2 rnd_pos = glm::vec2(fightingengine::rand_det_s(rnd.rng, 0.0f, 1.0f) * screen_wh.x,
-                                  fightingengine::rand_det_s(rnd.rng, 0.0f, 1.0f) * screen_wh.y);
-    tree.pos = rnd_pos;
-    entities_trees.push_back(tree);
-  }
-  std::cout << "trees: " << entities_trees.size() << std::endl;
-
   std::vector<KeysAndState> player_keys;
+
+  // add some random trees
+  {
+    for (int i = 0; i < 5; i++) {
+      glm::vec2 rnd_pos = glm::vec2(fightingengine::rand_det_s(rnd.rng, 0.0f, 1.0f) * screen_wh.x,
+                                    fightingengine::rand_det_s(rnd.rng, 0.0f, 1.0f) * screen_wh.y);
+
+      GameObject2D tree = gameobject::create_tree(tex_tree);
+      tree.pos = rnd_pos;
+      entities_trees.push_back(tree);
+    }
+  }
 
   // add players
   {
@@ -223,6 +223,8 @@ main()
 
         // set entities that we want collision info from
         std::vector<std::reference_wrapper<GameObject2D>>& collidable = common_ents;
+        common_ents.insert(common_ents.end(), entities_trees.begin(), entities_trees.end());
+
         std::vector<std::reference_wrapper<GameObject2D>> active_collidable;
         for (auto& obj : collidable) {
           if (obj.get().active)
@@ -231,18 +233,34 @@ main()
 
         // pre-physics: update grid position
         for (auto& e : active_collidable) {
-          grid::get_unique_cells(e.get().pos, e.get().size, PHYSICS_GRID_SIZE, e.get().in_grid_cell);
+          grid::get_unique_cells(e.get().pos, e.get().physics_size, PHYSICS_GRID_SIZE, e.get().in_grid_cell);
         }
 
         // generate filtered broadphase collisions.
         std::map<uint64_t, Collision2D> filtered_collisions;
         generate_filtered_broadphase_collisions(active_collidable, filtered_collisions);
 
-        // Resolve collisions
+        // clear collision events this frame
+        collision_events.clear();
+
+        // Add collision to events
         for (auto& c : filtered_collisions) {
           uint32_t id_0 = c.second.ent_id_0;
           uint32_t id_1 = c.second.ent_id_1;
-          collisions::resolve(id_0, id_1, common_ents);
+
+          // Find the objs in the read-only list
+          auto& obj_0_it = std::find_if(
+            collidable.begin(), collidable.end(), [&id_0](const auto& obj) { return obj.get().id == id_0; });
+          auto& obj_1_it = std::find_if(
+            collidable.begin(), collidable.end(), [&id_1](const auto& obj) { return obj.get().id == id_1; });
+
+          if (obj_0_it == collidable.end() || obj_1_it == collidable.end()) {
+            std::cerr << "Collision entity not in entity list" << std::endl;
+            continue;
+          }
+
+          CollisionEvent eve(obj_0_it->get(), obj_1_it->get());
+          collision_events.push_back(eve);
         }
       }
     }
@@ -293,6 +311,85 @@ main()
     profiler.begin(Profiler::Stage::GameTick);
     {
 
+      // Resolve collision events
+      for (auto& event : collision_events) {
+
+        auto& coll_layer_0 = event.go0.collision_layer;
+        auto& coll_layer_1 = event.go1.collision_layer;
+
+        //
+        // apply to collision interactions e.g. xy or yx
+        //
+
+        // if player collided with enemy:
+        // // screenshake
+        // screenshake_time_left = screenshake_time;
+        // // play some audio
+        // // vfx
+        // update colour
+        // float t = (player.hits_taken) / static_cast<float>(player.hits_able_to_be_taken);
+        // t = glm::clamp(t, 0.0f, 1.0f); // clamp it
+        // glm::vec4 col = glm::mix(player_colour, player_dead_colour, t);
+        // float min_alpha = 0.7f;
+        // col.a = glm::clamp(1.0f - t, min_alpha, 1.0f);
+        // player.colour = col;
+        // Enemy and player collided
+        if ((coll_layer_0 == CollisionLayer::Player && coll_layer_1 == CollisionLayer::Enemy) ||
+            (coll_layer_1 == CollisionLayer::Player && coll_layer_0 == CollisionLayer::Enemy)) {
+
+          // work out which is which
+          if (event.go1.collision_layer == CollisionLayer::Enemy) {
+            auto& enemy = event.go0;
+            auto& player = event.go1;
+            enemy.flag_for_delete = true; // enemy
+            player.hits_taken += 1;       // player
+          } else {
+            auto& enemy = event.go1;
+            auto& player = event.go0;
+            enemy.flag_for_delete = true; // enemy
+            player.hits_taken += 1;       // player
+          }
+        }
+
+        // Enemy and bullet
+        if ((coll_layer_0 == CollisionLayer::Enemy && coll_layer_1 == CollisionLayer::Bullet) ||
+            (coll_layer_1 == CollisionLayer::Enemy && coll_layer_0 == CollisionLayer::Bullet)) {
+
+          // work out which is which
+          if (event.go1.collision_layer == CollisionLayer::Enemy) {
+            auto& enemy = event.go0;
+            auto& bullet = event.go1;
+            enemy.hits_taken += 1;         // enemy
+            bullet.flag_for_delete = true; // bullet
+
+          } else {
+            auto& enemy = event.go1;
+            auto& bullet = event.go0;
+            enemy.hits_taken += 1;         // enemy
+            bullet.flag_for_delete = true; // bullet
+          }
+        }
+
+        // Obstacle and Player
+        if ((coll_layer_0 == CollisionLayer::Obstacle && coll_layer_1 == CollisionLayer::Player) ||
+            (coll_layer_1 == CollisionLayer::Obstacle && coll_layer_0 == CollisionLayer::Player)) {
+          if (event.go0.collision_layer == CollisionLayer::Obstacle) {
+            // resove_obstacle_player_collision(obj_0_it->get(), obj_1_it->get());
+            // if player collided with a tree:
+            // pick a random tree on the map
+
+            ImGui::Begin("You are colliding");
+            ImGui::Text("AHH");
+            ImGui::End();
+          } else {
+            // resove_obstacle_player_collision(obj_1_it->get(), obj_0_it->get());
+            ImGui::Begin("You are colliding");
+            ImGui::Text("AHH");
+            ImGui::End();
+          }
+        }
+      }
+
       // Update player's input
 
       for (int i = 0; i < entities_player.size(); i++) {
@@ -329,19 +426,6 @@ main()
           if (!player_alive)
             state = GameRunning::GAME_OVER;
         }
-
-        // if player takes hit:
-        // // screenshake
-        // screenshake_time_left = screenshake_time;
-        // // play some audio
-        // // vfx
-        // update colour
-        // float t = (player.hits_taken) / static_cast<float>(player.hits_able_to_be_taken);
-        // t = glm::clamp(t, 0.0f, 1.0f); // clamp it
-        // glm::vec4 col = glm::mix(player_colour, player_dead_colour, t);
-        // float min_alpha = 0.7f;
-        // col.a = glm::clamp(1.0f - t, min_alpha, 1.0f);
-        // player.colour = col;
 
         // update: bullets
 
@@ -477,14 +561,19 @@ main()
         for (auto& obj : renderables) {
           if (!obj.get().active)
             continue;
-          sprite_renderer::draw_sprite_debug(
-            camera, screen_wh, instanced_quad_shader, obj.get(), colour_shader, debug_line_colour);
+          sprite_renderer::draw_sprite_debug(camera,
+                                             screen_wh,
+                                             instanced_quad_shader,
+                                             obj.get(),
+                                             obj.get().render_size,
+                                             colour_shader,
+                                             debug_line_colour);
         }
 
         if (debug_render_spritesheet) {
           // draw the spritesheet for reference
           sprite_renderer::draw_sprite_debug(
-            camera, screen_wh, instanced_quad_shader, tex_obj, colour_shader, debug_line_colour);
+            camera, screen_wh, instanced_quad_shader, tex_obj, tex_obj.render_size, colour_shader, debug_line_colour);
         }
 
         sprite_renderer::end_batch();
@@ -497,7 +586,7 @@ main()
 
         for (auto& obj : entities_trees) {
           sprite_renderer::draw_sprite_debug(
-            camera, screen_wh, instanced_quad_shader, obj, colour_shader, debug_line_colour);
+            camera, screen_wh, instanced_quad_shader, obj, obj.render_size, colour_shader, debug_line_colour);
         }
       }
 

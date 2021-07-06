@@ -1,6 +1,7 @@
 #pragma once
 
 // other project headers
+#include <functional>
 #include <glm/glm.hpp>
 #include <map>
 #include <vector>
@@ -24,6 +25,16 @@ struct Collision2D
   bool collision_y = false;
   // CollisionLayer ent_0_layer;
   // CollisionLayer ent_1_layer;
+};
+
+struct CollisionEvent
+{
+  GameObject2D& go0;
+  GameObject2D& go1;
+
+  CollisionEvent(GameObject2D& go0, GameObject2D& go1)
+    : go0(go0)
+    , go1(go1){};
 };
 
 bool

@@ -69,7 +69,7 @@ draw_sprite(const GameObject2D& cam,
 {
   glm::vec2 world_space = gameobject_in_worldspace(cam, go);
 
-  if (gameobject_off_screen(world_space, go.size, screen_size)) {
+  if (gameobject_off_screen(world_space, go.render_size, screen_size)) {
     return; // skip rendering
   }
 
@@ -77,11 +77,11 @@ draw_sprite(const GameObject2D& cam,
   glm::mat4 model = glm::mat4(1.0f);
   model = glm::translate(model, glm::vec3(world_space, 0.0f));
 
-  model = glm::translate(model, glm::vec3(0.5f * go.size.x, 0.5f * go.size.y, 0.0f));
+  model = glm::translate(model, glm::vec3(0.5f * go.render_size.x, 0.5f * go.render_size.y, 0.0f));
   model = glm::rotate(model, go.angle_radians, glm::vec3(0.0f, 0.0f, 1.0f));
-  model = glm::translate(model, glm::vec3(-0.5f * go.size.x, -0.5f * go.size.y, 0.0f));
+  model = glm::translate(model, glm::vec3(-0.5f * go.render_size.x, -0.5f * go.render_size.y, 0.0f));
 
-  model = glm::scale(model, glm::vec3(go.size, 1.0f));
+  model = glm::scale(model, glm::vec3(go.render_size, 1.0f));
 
   shader.set_mat4("model", model);
   shader.set_vec4("sprite_colour", glm::vec4{ go.colour.x, go.colour.y, go.colour.z, 1.0f });

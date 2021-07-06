@@ -177,9 +177,10 @@ void
 draw_instanced_sprite(const GameObject2D& cam,
                       const glm::ivec2& screen_size,
                       fightingengine::Shader& shader,
-                      const GameObject2D& go)
+                      const GameObject2D& go,
+                      const glm::vec2 draw_size)
 {
-  draw_instanced_sprite(cam, screen_size, shader, go, go.colour, go.colour, go.colour, go.colour);
+  draw_instanced_sprite(cam, screen_size, shader, go, draw_size, go.colour, go.colour, go.colour, go.colour);
 }
 
 void
@@ -187,6 +188,7 @@ draw_instanced_sprite(const GameObject2D& cam,
                       const glm::ivec2& screen_size,
                       fightingengine::Shader& shader,
                       const GameObject2D& go,
+                      const glm::vec2 draw_size,
                       const glm::vec4 colour_tl,
                       const glm::vec4 colour_tr,
                       const glm::vec4 colour_bl,
@@ -199,16 +201,16 @@ draw_instanced_sprite(const GameObject2D& cam,
   }
 
   glm::vec2 worldspace_pos = gameobject_in_worldspace(cam, go);
-  if (gameobject_off_screen(worldspace_pos, go.size, screen_size)) {
+  if (gameobject_off_screen(worldspace_pos, draw_size, screen_size)) {
     return; // skip rendering
   }
 
   glm::mat4 model = glm::mat4(1.0f);
   model = glm::translate(model, glm::vec3(glm::vec2(worldspace_pos.x, worldspace_pos.y), 0.0f));
-  model = glm::translate(model, glm::vec3(0.5f * go.size.x, 0.5f * go.size.y, 0.0f));
+  model = glm::translate(model, glm::vec3(0.5f * draw_size.x, 0.5f * draw_size.y, 0.0f));
   model = glm::rotate(model, go.angle_radians, glm::vec3(0.0f, 0.0f, 1.0f));
-  model = glm::translate(model, glm::vec3(-0.5f * go.size.x, -0.5f * go.size.y, 0.0f));
-  model = glm::scale(model, glm::vec3(go.size, 1.0f));
+  model = glm::translate(model, glm::vec3(-0.5f * draw_size.x, -0.5f * draw_size.y, 0.0f));
+  model = glm::scale(model, glm::vec3(draw_size, 1.0f));
 
   glm::ivec2 sprite_offset = sprite::spritemap::get_sprite_offset(go.sprite);
 
@@ -249,10 +251,11 @@ draw_sprite_debug(const GameObject2D& cam,
                   const glm::ivec2& screen_size,
                   fightingengine::Shader& shader,
                   const GameObject2D& game_object,
+                  const glm::vec2 draw_size,
                   fightingengine::Shader& debug_line_shader,
                   const glm::vec4& debug_line_shader_colour)
 {
-  draw_instanced_sprite(cam, screen_size, shader, game_object);
+  draw_instanced_sprite(cam, screen_size, shader, game_object, draw_size);
 
 #ifdef WIN32
 #ifdef _DEBUG
@@ -262,8 +265,8 @@ draw_sprite_debug(const GameObject2D& cam,
   debug_line_shader.set_vec4("colour", debug_line_shader_colour);
 
   glm::vec2 world_pos = gameobject_in_worldspace(cam, game_object);
-  glm::vec2 bl_pos = glm::vec2(world_pos.x, world_pos.y + game_object.size.y);
-  glm::vec2 tr_pos = glm::vec2(world_pos.x + game_object.size.x, world_pos.y);
+  glm::vec2 bl_pos = glm::vec2(world_pos.x, world_pos.y + game_object.physics_size.y);
+  glm::vec2 tr_pos = glm::vec2(world_pos.x + game_object.physics_size.x, world_pos.y);
   bl_pos.x = fightingengine::scale(bl_pos.x, 0.0f, screen_size.x, -1.0f, 1.0f);
   bl_pos.y = fightingengine::scale(bl_pos.y, 0.0f, screen_size.y, 1.0f, -1.0f);
   tr_pos.x = fightingengine::scale(tr_pos.x, 0.0f, screen_size.x, -1.0f, 1.0f);

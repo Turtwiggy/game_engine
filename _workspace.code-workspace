@@ -116,7 +116,8 @@
 			"hash_set": "cpp",
 			"*.rh": "cpp",
 			"debug_draw_opengl cpp": "cpp",
-			"*.vert": "c"
+			"*.vert": "c",
+			"format": "cpp"
 		},
 		"cmake.loggingLevel": "debug"
 	}

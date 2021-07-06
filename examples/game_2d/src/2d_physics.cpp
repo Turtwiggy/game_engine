@@ -49,12 +49,12 @@ generate_broadphase_collisions(const std::vector<std::reference_wrapper<GameObje
       if (axis == COLLISION_AXIS::X) {
         // if the new item's left is > than the active_item's right
         new_item_left = new_obj.get().pos.x;
-        old_item_right = old_obj.get().pos.x + old_obj.get().size.x;
+        old_item_right = old_obj.get().pos.x + old_obj.get().physics_size.x;
       }
       if (axis == COLLISION_AXIS::Y) {
         // if the new item's top is > than the active_item's bottom
         new_item_left = new_obj.get().pos.y;
-        old_item_right = old_obj.get().pos.y + old_obj.get().size.y;
+        old_item_right = old_obj.get().pos.y + old_obj.get().physics_size.y;
       }
 
       if (new_item_left > old_item_right) {
@@ -72,6 +72,7 @@ generate_broadphase_collisions(const std::vector<std::reference_wrapper<GameObje
           // Check existing collisions
           uint64_t unique_collision_id =
             fightingengine::encode_cantor_pairing_function(old_obj.get().id, new_obj.get().id);
+
           if (collisions.find(unique_collision_id) != collisions.end()) {
             // collision for these pairs!
             Collision2D& coll = collisions[unique_collision_id];
@@ -81,6 +82,15 @@ generate_broadphase_collisions(const std::vector<std::reference_wrapper<GameObje
               coll.collision_y = true;
 
             collisions[unique_collision_id] = coll;
+
+            // debug: collision is going to occur
+            // if ((old_obj.get().collision_layer == CollisionLayer::Player &&
+            //      new_obj.get().collision_layer == CollisionLayer::Obstacle) ||
+            //     old_obj.get().collision_layer == CollisionLayer::Obstacle &&
+            //       new_obj.get().collision_layer == CollisionLayer::Player) {
+            //   std::cout << "pause!" << std::endl;
+            // }
+
           } else {
             // new collision for these pairs!
             Collision2D& coll = collisions[unique_collision_id];
