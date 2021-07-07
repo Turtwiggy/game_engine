@@ -17,8 +17,9 @@ enum class CollisionLayer
   Player = 2,
   Enemy = 3,
   Obstacle = 4,
+  Weapon = 5,
 
-  Count = 5
+  Count = 6
 };
 
 static const std::vector<bool> GAME_COLL_MATRIX = {
@@ -27,20 +28,27 @@ static const std::vector<bool> GAME_COLL_MATRIX = {
   false, // Player_NoCollision_2_0
   false, // Enemy_NoCollision_3_0
   false, // Obstacle_NoCollision_4_0
+  false, // Weapon_NoCollision_5_0
 
   false, // bullet_bullet_1_1
   false, // player_bullet_2_1
   true,  // enemy_bullet_3_1
   true,  // Obstacle_bullet_4_1
+  false, // Weapon_bullet_5_1
 
   false, // player_player_2_2
   true,  // enemy_player_3_2
   true,  // Obstacle_player_4_2
+  false, // Weapon_player_5_2
 
   false, // enemy_enemy_3_3
   true,  // Obstacle_enemy_4_3
+  true,  // Weapon_enemy_5_3
 
   false, // Obstacle_Obstacle_4_4
+  false, // Weapon_Obstacle_5_4
+
+  false, // Weapon_Weapon_5_5
 };
 
 struct KeysAndState

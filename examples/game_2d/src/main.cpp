@@ -157,11 +157,11 @@ main()
   weapon_base.pos = { screen_wh.x / 2.0f, screen_wh.y / 2.0f };
   weapon_base.render_size = { 1.0f * 768.0f / 48.0f, 1.0f * 362.0f / 22.0f };
   weapon_base.physics_size = { 1.0f * 768.0f / 48.0f, 1.0f * 362.0f / 22.0f };
-  weapon_base.collision_layer = CollisionLayer::Player;
+  weapon_base.collision_layer = CollisionLayer::Weapon;
   weapon_base.colour = bullet_colour;
 
   std::vector<std::reference_wrapper<GameObject2D>> game_grid_refs;
-  std::vector<game2d::CollisionEvent> collision_events;
+  std::vector<CollisionEvent> collision_events;
 
   std::vector<GameObject2D> entities_enemies;
   std::vector<GameObject2D> entities_bullets;
@@ -321,72 +321,45 @@ main()
         // apply to collision interactions e.g. xy or yx
         //
 
-        // if player collided with enemy:
-        // // screenshake
-        // screenshake_time_left = screenshake_time;
-        // // play some audio
-        // // vfx
-        // update colour
-        // float t = (player.hits_taken) / static_cast<float>(player.hits_able_to_be_taken);
-        // t = glm::clamp(t, 0.0f, 1.0f); // clamp it
-        // glm::vec4 col = glm::mix(player_colour, player_dead_colour, t);
-        // float min_alpha = 0.7f;
-        // col.a = glm::clamp(1.0f - t, min_alpha, 1.0f);
-        // player.colour = col;
-        // Enemy and player collided
         if ((coll_layer_0 == CollisionLayer::Player && coll_layer_1 == CollisionLayer::Enemy) ||
             (coll_layer_1 == CollisionLayer::Player && coll_layer_0 == CollisionLayer::Enemy)) {
 
-          // work out which is which
-          if (event.go1.collision_layer == CollisionLayer::Enemy) {
-            auto& enemy = event.go0;
-            auto& player = event.go1;
-            enemy.flag_for_delete = true; // enemy
-            player.hits_taken += 1;       // player
-          } else {
-            auto& enemy = event.go1;
-            auto& player = event.go0;
-            enemy.flag_for_delete = true; // enemy
-            player.hits_taken += 1;       // player
-          }
+          GameObject2D& enemy = event.go0.collision_layer == CollisionLayer::Enemy ? event.go0 : event.go1;
+          GameObject2D& player = event.go0.collision_layer == CollisionLayer::Enemy ? event.go1 : event.go0;
+
+          enemy.flag_for_delete = true;             // enemy
+          player.hits_taken += 1;                   // player
+          screenshake_time_left = screenshake_time; // screenshake
+          // // play some audio
+          // update colour
+          // float t = (player.hits_taken) / static_cast<float>(player.hits_able_to_be_taken);
+          // t = glm::clamp(t, 0.0f, 1.0f); // clamp it
+          // glm::vec4 col = glm::mix(player_colour, player_dead_colour, t);
+          // float min_alpha = 0.7f;
+          // col.a = glm::clamp(1.0f - t, min_alpha, 1.0f);
+          // player.colour = col;
         }
 
-        // Enemy and bullet
-        if ((coll_layer_0 == CollisionLayer::Enemy && coll_layer_1 == CollisionLayer::Bullet) ||
-            (coll_layer_1 == CollisionLayer::Enemy && coll_layer_0 == CollisionLayer::Bullet)) {
+        // Enemy and weapon
+        if ((coll_layer_0 == CollisionLayer::Enemy && coll_layer_1 == CollisionLayer::Weapon) ||
+            (coll_layer_1 == CollisionLayer::Enemy && coll_layer_0 == CollisionLayer::Weapon)) {
 
-          // work out which is which
-          if (event.go1.collision_layer == CollisionLayer::Enemy) {
-            auto& enemy = event.go0;
-            auto& bullet = event.go1;
-            enemy.hits_taken += 1;         // enemy
-            bullet.flag_for_delete = true; // bullet
+          GameObject2D& enemy = event.go0.collision_layer == CollisionLayer::Enemy ? event.go0 : event.go1;
+          GameObject2D& weapon = event.go0.collision_layer == CollisionLayer::Enemy ? event.go1 : event.go0;
 
-          } else {
-            auto& enemy = event.go1;
-            auto& bullet = event.go0;
-            enemy.hits_taken += 1;         // enemy
-            bullet.flag_for_delete = true; // bullet
-          }
+          enemy.hits_taken += 1; // enemy
         }
 
         // Obstacle and Player
         if ((coll_layer_0 == CollisionLayer::Obstacle && coll_layer_1 == CollisionLayer::Player) ||
             (coll_layer_1 == CollisionLayer::Obstacle && coll_layer_0 == CollisionLayer::Player)) {
-          if (event.go0.collision_layer == CollisionLayer::Obstacle) {
-            // resove_obstacle_player_collision(obj_0_it->get(), obj_1_it->get());
-            // if player collided with a tree:
-            // pick a random tree on the map
 
-            ImGui::Begin("You are colliding");
-            ImGui::Text("AHH");
-            ImGui::End();
-          } else {
-            // resove_obstacle_player_collision(obj_1_it->get(), obj_0_it->get());
-            ImGui::Begin("You are colliding");
-            ImGui::Text("AHH");
-            ImGui::End();
-          }
+          GameObject2D& obstacle = event.go0.collision_layer == CollisionLayer::Obstacle ? event.go0 : event.go1;
+          GameObject2D& player = event.go0.collision_layer == CollisionLayer::Obstacle ? event.go1 : event.go0;
+
+          ImGui::Begin("You are colliding!", NULL, ImGuiWindowFlags_NoFocusOnAppearing);
+          ImGui::Text("AHH");
+          ImGui::End();
         }
       }
 
