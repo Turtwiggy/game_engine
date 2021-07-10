@@ -115,7 +115,7 @@ create_enemy(sprite::type sprite, int tex_slot, glm::vec4 colour, fightingengine
   game_object.angle_radians = 0.0;
   game_object.render_size = { 1.0f * 768.0f / 48.0f, 1.0f * 362.0f / 22.0f };
   game_object.physics_size = { 1.0f * 768.0f / 48.0f, 1.0f * 362.0f / 22.0f };
-  game_object.hits_able_to_be_taken = 4;
+  game_object.hits_able_to_be_taken = 3;
 
   // roll a dice for ai
   float rand = fightingengine::rand_det_s(rnd.rng, 0.0f, 1.0f);

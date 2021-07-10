@@ -93,6 +93,29 @@ enum class Weapons
   SHOVEL,
 };
 
+// An "Attack" is basically a limiter that prevents collisions
+// applying damage on every frame. This could end up being super weird.
+struct Attack
+{
+private:
+  static inline uint32_t global_attack_int_counter = 0;
+
+public:
+  uint32_t id = 0;
+
+  int entity_weapon_owner_id; // player or enemy
+  int entity_weapon_id;
+  Weapons weapon_type;
+
+  Attack(int parent, int weapon, Weapons type)
+    : entity_weapon_owner_id(parent)
+    , entity_weapon_id(weapon)
+    , weapon_type(type)
+  {
+    id = ++Attack::global_attack_int_counter;
+  };
+};
+
 //
 // If this game ever has more than 1 million entities,
 // reconsider this structure. Until then, lets gooooo.
@@ -151,6 +174,7 @@ public:
   int hits_able_to_be_taken = 3;
   int hits_taken = 0;
   bool invulnerable = false;
+  std::vector<int> attack_ids_taken_damage_from;
 
   // game: extra
   std::string name = "DEFAULT";

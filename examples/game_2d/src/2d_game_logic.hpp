@@ -1,5 +1,8 @@
 #pragma once
 
+// c++ lib headers
+#include <vector>
+
 // other lib headers
 #include <glm/glm.hpp>
 
@@ -70,7 +73,8 @@ update(fightingengine::Application& app,
        const glm::vec4 col,
        const sprite::type sprite,
        GameObject2D& weapon,
-       const float delta_time_s);
+       const float delta_time_s,
+       std::vector<Attack>& attacks);
 
 }; // namespace player
 

@@ -168,6 +168,7 @@ main()
   std::vector<GameObject2D> entities_trees;
   std::vector<GameObject2D> entities_vfx;
   std::vector<KeysAndState> player_keys;
+  std::vector<Attack> live_attacks;
 
   int PHYSICS_GRID_SIZE = 100;
   std::vector<std::reference_wrapper<GameObject2D>> physics_grid_refs;
@@ -365,7 +366,20 @@ main()
             GameObject2D& enemy = event.go0.collision_layer == CollisionLayer::Enemy ? event.go0 : event.go1;
             GameObject2D& weapon = event.go0.collision_layer == CollisionLayer::Enemy ? event.go1 : event.go0;
 
-            enemy.hits_taken += 1; // enemy
+            for (auto& attack : live_attacks) {
+
+              bool is_shovel = attack.weapon_type == Weapons::SHOVEL;
+              bool collision_with_specific_shovel_attack = weapon.id == attack.entity_weapon_id;
+              bool taken_damage_from_shovel = std::find(enemy.attack_ids_taken_damage_from.begin(),
+                                                        enemy.attack_ids_taken_damage_from.end(),
+                                                        attack.id) != enemy.attack_ids_taken_damage_from.end();
+
+              if (is_shovel && collision_with_specific_shovel_attack && !taken_damage_from_shovel) {
+                std::cout << "enemy taking damage from weapon attack ONCE!" << std::endl;
+                enemy.hits_taken += 1; // enemy
+                enemy.attack_ids_taken_damage_from.push_back(attack.id);
+              }
+            }
 
             vfx::spawn_death_splat(rnd, enemy, sprite_splat, tex_unit_kenny_nl, enemy_death_splat_colour, entities_vfx);
 
@@ -429,7 +443,8 @@ main()
                          bullet_colour,
                          sprite_bullet,
                          weapon_base,
-                         delta_time_s);
+                         delta_time_s,
+                         live_attacks);
 
           bool player_alive = player.invulnerable || player.hits_taken < player.hits_able_to_be_taken;
           if (!player_alive)
@@ -542,6 +557,7 @@ main()
               ImGui::Text("Bullets: %i", entities_bullets.size());
               ImGui::Text("Enemies: %i", entities_enemies.size());
               ImGui::Text("Vfx: %i", entities_vfx.size());
+              ImGui::Text("Attacks: %i", live_attacks.size());
               ImGui::Separator();
 
               for (auto& e : renderables) {
