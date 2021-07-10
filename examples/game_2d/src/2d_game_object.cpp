@@ -115,12 +115,11 @@ create_enemy(sprite::type sprite, int tex_slot, glm::vec4 colour, fightingengine
   game_object.angle_radians = 0.0;
   game_object.render_size = { 1.0f * 768.0f / 48.0f, 1.0f * 362.0f / 22.0f };
   game_object.physics_size = { 1.0f * 768.0f / 48.0f, 1.0f * 362.0f / 22.0f };
-  game_object.hits_able_to_be_taken = 1; // to increase this fix coll issue
+  game_object.hits_able_to_be_taken = 4;
 
-  // roll a dice
-  float rand = fightingengine::rand_det_s(rnd.rng, 0.0f, 100.0f);
-
-  if (rand <= 75.0f) {
+  // roll a dice for ai
+  float rand = fightingengine::rand_det_s(rnd.rng, 0.0f, 1.0f);
+  if (rand <= 0.75f) {
     game_object.ai_priority_list.push_back(AiBehaviour::MOVEMENT_ARC_ANGLE);
     // locked between -89.9 and 89.9 as uses sin(theta), and after these values makes less sense
     game_object.approach_theta_degrees = fightingengine::rand_det_s(rnd.rng, -89.9f, 89.9f);

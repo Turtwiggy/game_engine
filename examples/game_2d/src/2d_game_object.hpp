@@ -87,6 +87,12 @@ enum class AiBehaviour
   MOVEMENT_ARC_ANGLE,
 };
 
+enum class Weapons
+{
+  PISTOL,
+  SHOVEL,
+};
+
 //
 // If this game ever has more than 1 million entities,
 // reconsider this structure. Until then, lets gooooo.
@@ -94,7 +100,10 @@ enum class AiBehaviour
 
 struct GameObject2D
 {
+private:
   static inline uint32_t global_int_counter = 0;
+
+public:
   uint32_t id = 0;
 
   bool do_render = true;
@@ -127,6 +136,9 @@ struct GameObject2D
   // ai priority list. higher priority later in list.
   std::vector<AiBehaviour> ai_priority_list;
   float approach_theta_degrees = 0.0f;
+
+  // game: equipment
+  Weapons equipped_weapon = Weapons::SHOVEL;
 
   // game: shooting
   float bullet_seconds_between_spawning = 0.15f;

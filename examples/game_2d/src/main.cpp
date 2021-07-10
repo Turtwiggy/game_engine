@@ -7,6 +7,7 @@
 #include <vector>
 
 // other library headers
+#include "thirdparty/magic_enum.hpp"
 #include <SDL2/SDL_syswm.h>
 #include <glm/glm.hpp>
 #include <glm/gtc/matrix_transform.hpp>
@@ -30,6 +31,7 @@ using namespace fightingengine;
 #include "2d_game_logic.hpp"
 #include "2d_game_object.hpp"
 #include "2d_physics.hpp"
+#include "2d_vfx.hpp"
 #include "opengl/sprite_renderer.hpp"
 #include "spritemap.hpp"
 using namespace game2d;
@@ -49,7 +51,7 @@ SDL_Scancode debug_key_force_gameover = SDL_SCANCODE_F11;
 
 bool debug_advance_one_frame = false;
 bool debug_show_imgui_demo_window = false;
-bool debug_render_spritesheet = true;
+bool debug_render_spritesheet = false;
 bool debug_show_profiler = true;
 
 // textures
@@ -62,13 +64,14 @@ const glm::vec4 PALETTE_COLOUR_2_1 = glm::vec4(0.0f / 255.0f, 173.0f / 255.0f, 1
 const glm::vec4 PALETTE_COLOUR_3_1 = glm::vec4(170.0f / 255.0f, 216.0f / 255.0f, 211.0f / 255.0f, 1.0f); // lightblue
 const glm::vec4 PALETTE_COLOUR_4_1 = glm::vec4(238.0f / 255.0f, 238.0f / 255.0f, 238.0f / 255.0f, 1.0f); // grey
 
-glm::vec4 background_colour = PALETTE_COLOUR_1_1;                    // black
-glm::vec4 debug_line_colour = PALETTE_COLOUR_2_1;                    // blue
-glm::vec4 player_colour = PALETTE_COLOUR_2_1;                        // blue
-glm::vec4 bullet_colour = PALETTE_COLOUR_3_1;                        // lightblue
-glm::vec4 wall_colour = PALETTE_COLOUR_4_1;                          // grey
-glm::vec4 player_splat_colour = glm::vec4(0.95f, 0.3f, 0.3f, 1.0f);  // redish
-glm::vec4 enemy_splat_colour = glm::vec4(0.65f, 0.65f, 0.65f, 1.0f); // greyish
+glm::vec4 background_colour = PALETTE_COLOUR_1_1;                          // black
+glm::vec4 debug_line_colour = PALETTE_COLOUR_2_1;                          // blue
+glm::vec4 player_colour = PALETTE_COLOUR_2_1;                              // blue
+glm::vec4 bullet_colour = PALETTE_COLOUR_3_1;                              // lightblue
+glm::vec4 wall_colour = PALETTE_COLOUR_4_1;                                // grey
+glm::vec4 player_splat_colour = glm::vec4(0.95f, 0.3f, 0.3f, 1.0f);        // redish
+glm::vec4 enemy_death_splat_colour = glm::vec4(0.65f, 0.65f, 0.65f, 1.0f); // greyish
+glm::vec4 enemy_impact_splat_colour = glm::vec4(0.3f, 1.0f, 0.3f, 1.0f);   // greyish
 
 sprite::type sprite_player = sprite::type::PERSON_1;
 sprite::type sprite_bullet = sprite::type::WEAPON_ARROW_1;
@@ -198,11 +201,6 @@ main()
     if (delta_time_s >= 0.25f)
       delta_time_s = 0.25f;
 
-    //
-    // declare a list of entities to apply all the generic things
-    // e.g. physics, rendering, ui info
-    //
-
     profiler.begin(Profiler::Stage::Physics);
     {
       if (state == GameRunning::ACTIVE || (state == GameRunning::PAUSED && debug_advance_one_frame)) {
@@ -292,9 +290,37 @@ main()
 
 #endif // _DEBUG
 
+      float mousewheel = app.get_input().get_mousewheel_y();
+      float epsilon = 0.0001f;
+      if (mousewheel > epsilon || mousewheel < -epsilon) {
+        int wheel_int = static_cast<int>(mousewheel);
+        // std::cout << "wheel int: " << wheel_int << std::endl;
+
+        // temp: cycle through weapons for p0
+        Weapons current_wep = entities_player[0].equipped_weapon;
+
+        if (current_wep == Weapons::SHOVEL)
+          current_wep = Weapons::PISTOL;
+        else if (current_wep == Weapons::PISTOL)
+          current_wep = Weapons::SHOVEL;
+
+        entities_player[0].equipped_weapon = current_wep;
+
+        auto wep = std::string(magic_enum::enum_name(entities_player[0].equipped_weapon));
+        std::cout << "equipped: " << wep << std::endl;
+      }
+
       // glm::ivec2 mouse_pos = app.get_input().get_mouse_pos();
       // printf("(game) mmb clicked %i %i \n", mouse_pos.x, mouse_pos.y);
       // glm::vec2 world_pos = glm::vec2(mouse_pos) + camera.pos;
+
+      // Shader hot reloading
+      // if (app.get_input().get_key_down(SDL_SCANCODE_R)) {
+      //   reload_shader_program(&fun_shader.ID, "2d_texture.vert", "effects/posterized_water.frag");
+      //   fun_shader.bind();
+      //   fun_shader.set_mat4("projection", projection);
+      //   fun_shader.set_int("tex", tex_unit_kenny_nl);
+      // }
     }
     profiler.end(Profiler::Stage::SdlInput);
     profiler.begin(Profiler::Stage::GameTick);
@@ -341,52 +367,23 @@ main()
 
             enemy.hits_taken += 1; // enemy
 
-            // vfx for enemy-weapon collision
-            GameObject2D splat = gameobject::create_generic(sprite_splat, tex_unit_kenny_nl, enemy_splat_colour);
-            splat.do_lifecycle_timed = true;
+            vfx::spawn_death_splat(rnd, enemy, sprite_splat, tex_unit_kenny_nl, enemy_death_splat_colour, entities_vfx);
 
-            // vfx death "splat"
-            if (enemy.hits_taken >= enemy.hits_able_to_be_taken) {
-              splat.pos = enemy.pos;
-              splat.angle_radians = fightingengine::rand_det_s(rnd.rng, 0.0f, fightingengine::PI);
-              splat.time_alive_left = 30.0f;
-              entities_vfx.push_back(splat);
-            }
+            // vfx flash enemy
+          }
 
-            // vfx impact "splats"
-            // these splats fire off in an arc from the enemy.pos
-            splat.angle_radians = 0.0f;
-            splat.time_alive_left = 0.3f; // short splat
-            splat.colour = { 0.0f, 1.0f, 0.0f, 1.0f };
-            splat.speed_default = 40.0f;
-            splat.speed_current = splat.speed_default;
-            splat.physics_size = { 12.0f, 12.0f };
-            splat.render_size = splat.physics_size;
-
-            int amount_of_splats = 4;
+          if ((coll_layer_0 == CollisionLayer::Bullet && coll_layer_1 == CollisionLayer::Enemy) ||
+              (coll_layer_1 == CollisionLayer::Bullet && coll_layer_0 == CollisionLayer::Enemy)) {
+            GameObject2D& bullet = event.go0.collision_layer == CollisionLayer::Bullet ? event.go0 : event.go1;
+            GameObject2D& enemy = event.go0.collision_layer == CollisionLayer::Bullet ? event.go1 : event.go0;
             GameObject2D& player = entities_player[0]; // hack: use player 0 for the moment
-            for (int i = 0; i < amount_of_splats; i++) {
 
-              glm::vec2 enemy_pos_center = enemy.pos + enemy.physics_size / 2.0f;
-              glm::vec2 player_pos_center = player.pos + player.physics_size / 2.0f;
-              glm::vec2 distance = player_pos_center - enemy_pos_center;
-              glm::vec2 dir = -glm::normalize(distance);
+            enemy.hits_taken += 1; // enemy
 
-              glm::vec2 splat_spawn_pos = enemy.pos;
-              splat_spawn_pos.x += enemy.physics_size.x / 2.0f - splat.physics_size.x / 2.0f;
-              splat_spawn_pos.y += enemy.physics_size.y / 2.0f - splat.physics_size.y / 2.0f;
+            vfx::spawn_death_splat(rnd, enemy, sprite_splat, tex_unit_kenny_nl, enemy_death_splat_colour, entities_vfx);
 
-              splat.pos = splat_spawn_pos;
-
-              float theta = rand_det_s(rnd.rng, -fightingengine::PI / 2.0f, fightingengine::PI / 2.0f);
-              glm::vec2 offset_dir;
-              offset_dir.x = cos(theta) * dir.x - sin(theta) * dir.y;
-              offset_dir.y = sin(theta) * dir.x + cos(theta) * dir.y;
-
-              splat.velocity = glm::normalize(dir + glm::normalize(offset_dir)) * splat.speed_current;
-
-              entities_vfx.push_back(splat);
-            }
+            vfx::spawn_impact_splats(
+              rnd, enemy, player, sprite_splat, tex_unit_kenny_nl, enemy_impact_splat_colour, entities_vfx);
           }
 
           if ((coll_layer_0 == CollisionLayer::Obstacle && coll_layer_1 == CollisionLayer::Player) ||
@@ -424,15 +421,15 @@ main()
           GameObject2D& player = entities_player[i];
           KeysAndState& keys = player_keys[i];
 
-          player::update_logic(app,
-                               player,
-                               keys,
-                               entities_bullets,
-                               tex_unit_kenny_nl,
-                               bullet_colour,
-                               sprite_bullet,
-                               weapon_base,
-                               delta_time_s);
+          player::update(app,
+                         player,
+                         keys,
+                         entities_bullets,
+                         tex_unit_kenny_nl,
+                         bullet_colour,
+                         sprite_bullet,
+                         weapon_base,
+                         delta_time_s);
 
           bool player_alive = player.invulnerable || player.hits_taken < player.hits_able_to_be_taken;
           if (!player_alive)
@@ -537,6 +534,30 @@ main()
           renderables.insert(renderables.end(), entities_player.begin(), entities_player.end());
           renderables.insert(renderables.end(), entities_trees.begin(), entities_trees.end());
           renderables.push_back(weapon_base);
+
+          if (ui_show_entity_menu) {
+            ImGui::Begin("Entity Menu", NULL, ImGuiWindowFlags_NoFocusOnAppearing);
+            {
+              ImGui::Text("Players: %i", entities_player.size());
+              ImGui::Text("Bullets: %i", entities_bullets.size());
+              ImGui::Text("Enemies: %i", entities_enemies.size());
+              ImGui::Text("Vfx: %i", entities_vfx.size());
+              ImGui::Separator();
+
+              for (auto& e : renderables) {
+                for (auto& c : e.get().in_physics_grid_cell) {
+                  ImGui::Text("%i E: %s x:%i y:%i ai:%i",
+                              e.get().id,
+                              e.get().name.c_str(),
+                              c.x,
+                              c.y,
+                              e.get().ai_priority_list.size());
+                }
+                ImGui::Separator();
+              }
+            }
+            ImGui::End();
+          }
 
           // all sprites from kennynl
           instanced_quad_shader.set_int("tex", tex_unit_kenny_nl);
@@ -669,31 +690,6 @@ main()
           }
           ImGui::End();
         }
-
-        if (ui_show_entity_menu) {
-
-          ImGui::Begin("Entity Menu", NULL, ImGuiWindowFlags_NoFocusOnAppearing);
-          {
-            ImGui::Text("Players: %i", entities_player.size());
-            ImGui::Text("Bullets: %i", entities_bullets.size());
-            ImGui::Text("Enemies: %i", entities_enemies.size());
-            ImGui::Text("Vfx: %i", entities_vfx.size());
-
-            ImGui::Separator();
-
-            // for (auto& e : renderables) {
-            //   for (auto& c : e.get().in_physics_grid_cell) {
-            //     ImGui::Text("%i E: %s x:%i y:%i ai:%i",
-            //                 e.get().id,
-            //                 e.get().name.c_str(),
-            //                 c.x,
-            //                 c.y,
-            //                 e.get().ai_priority_list.size());
-            //   }
-            //   ImGui::Separator();
-          }
-        }
-        ImGui::End();
       }
 
       if (debug_show_profiler)
