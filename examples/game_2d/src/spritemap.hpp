@@ -26,7 +26,6 @@ enum class type
   BUSH_4,
   BUSH_5,
   BUSH_6,
-  BUSH_7,
   PERSON_0,
   PERSON_1,
   PERSON_2,
@@ -45,6 +44,7 @@ enum class type
   TREE_6,
   TREE_7,
   TREE_8,
+  CASTLE_FLOOR,
 
   // row 3
   WALL_BIG,
@@ -111,6 +111,7 @@ struct spritemap
     ret[type::TREE_6] = { 5, 1 };
     ret[type::TREE_7] = { 6, 1 };
     ret[type::TREE_8] = { 7, 1 };
+    ret[type::CASTLE_FLOOR] = { 19, 1 };
 
     // row 3
     ret[type::WALL_BIG] = { 2, 3 };

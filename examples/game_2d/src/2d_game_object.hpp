@@ -97,7 +97,6 @@ struct GameObject2D
   static inline uint32_t global_int_counter = 0;
   uint32_t id = 0;
 
-  bool active = true;
   bool do_render = true;
   bool do_lifecycle_timed = false;
   bool do_lifecycle_health = true;
@@ -115,7 +114,7 @@ struct GameObject2D
   // physics
   glm::vec2 physics_size = render_size;
   CollisionLayer collision_layer = CollisionLayer::NoCollision;
-  std::vector<glm::ivec2> in_grid_cell;
+  std::vector<glm::ivec2> in_physics_grid_cell;
 
   // game: movement
   float speed_current = 50.0f;
@@ -125,10 +124,8 @@ struct GameObject2D
   float shift_boost_time = 10.0f;
   float shift_boost_time_left = shift_boost_time;
 
-  // ai: hacky behaviour
-  // could probably use a list of "prioritized" ai instead. will do that on 3+ ai needed.
-  AiBehaviour ai_original = AiBehaviour::MOVEMENT_DIRECT;
-  AiBehaviour ai_current = AiBehaviour::MOVEMENT_DIRECT;
+  // ai priority list. higher priority later in list.
+  std::vector<AiBehaviour> ai_priority_list;
   float approach_theta_degrees = 0.0f;
 
   // game: shooting
@@ -162,7 +159,10 @@ namespace gameobject {
 // logic
 
 void
-update_position(GameObject2D& obj, float delta_time_s);
+update_position(GameObject2D& obj, const float delta_time_s);
+
+void
+update_entities_lifecycle(std::vector<GameObject2D>& objs, const float delta_time_s);
 
 // entities
 
@@ -174,6 +174,9 @@ create_camera();
 
 GameObject2D
 create_enemy(sprite::type sprite, int tex_slot, glm::vec4 colour, fightingengine::RandomState& rnd);
+
+GameObject2D
+create_generic(sprite::type sprite, int tex_slot, glm::vec4 colour);
 
 GameObject2D
 create_tree(int tex_slot);

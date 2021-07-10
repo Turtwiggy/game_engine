@@ -11,6 +11,7 @@
 #include <glm/glm.hpp>
 #include <glm/gtc/matrix_transform.hpp>
 #include <glm/gtx/compatibility.hpp>
+#include <glm/gtx/fast_square_root.hpp>
 #include <glm/gtx/vector_angle.hpp>
 #include <imgui.h>
 
@@ -48,13 +49,8 @@ SDL_Scancode debug_key_force_gameover = SDL_SCANCODE_F11;
 
 bool debug_advance_one_frame = false;
 bool debug_show_imgui_demo_window = false;
-bool debug_render_spritesheet = false;
+bool debug_render_spritesheet = true;
 bool debug_show_profiler = true;
-
-const bool game_destroy_half_sprites_on_damage = false;
-
-// physics
-int PHYSICS_GRID_SIZE = 100;
 
 // textures
 const int tex_unit_kenny_nl = 0;
@@ -66,16 +62,19 @@ const glm::vec4 PALETTE_COLOUR_2_1 = glm::vec4(0.0f / 255.0f, 173.0f / 255.0f, 1
 const glm::vec4 PALETTE_COLOUR_3_1 = glm::vec4(170.0f / 255.0f, 216.0f / 255.0f, 211.0f / 255.0f, 1.0f); // lightblue
 const glm::vec4 PALETTE_COLOUR_4_1 = glm::vec4(238.0f / 255.0f, 238.0f / 255.0f, 238.0f / 255.0f, 1.0f); // grey
 
-glm::vec4 background_colour = PALETTE_COLOUR_1_1; // black
-glm::vec4 debug_line_colour = PALETTE_COLOUR_2_1; // blue
-glm::vec4 player_colour = PALETTE_COLOUR_2_1;     // blue
-glm::vec4 bullet_colour = PALETTE_COLOUR_3_1;     // lightblue
-glm::vec4 wall_colour = PALETTE_COLOUR_4_1;       // grey
+glm::vec4 background_colour = PALETTE_COLOUR_1_1;                    // black
+glm::vec4 debug_line_colour = PALETTE_COLOUR_2_1;                    // blue
+glm::vec4 player_colour = PALETTE_COLOUR_2_1;                        // blue
+glm::vec4 bullet_colour = PALETTE_COLOUR_3_1;                        // lightblue
+glm::vec4 wall_colour = PALETTE_COLOUR_4_1;                          // grey
+glm::vec4 player_splat_colour = glm::vec4(0.95f, 0.3f, 0.3f, 1.0f);  // redish
+glm::vec4 enemy_splat_colour = glm::vec4(0.65f, 0.65f, 0.65f, 1.0f); // greyish
 
 sprite::type sprite_player = sprite::type::PERSON_1;
 sprite::type sprite_bullet = sprite::type::WEAPON_ARROW_1;
 sprite::type sprite_enemy_core = sprite::type::PERSON_2;
 sprite::type sprite_weapon_base = sprite::type::WEAPON_SHOVEL;
+sprite::type sprite_splat = sprite::type::CASTLE_FLOOR;
 
 const float game_safe_radius_around_player = 7500.0f;
 const float game_enemy_direct_attack_threshold = 4000.0f;
@@ -160,26 +159,18 @@ main()
   weapon_base.collision_layer = CollisionLayer::Weapon;
   weapon_base.colour = bullet_colour;
 
-  std::vector<std::reference_wrapper<GameObject2D>> game_grid_refs;
-  std::vector<CollisionEvent> collision_events;
-
   std::vector<GameObject2D> entities_enemies;
   std::vector<GameObject2D> entities_bullets;
   std::vector<GameObject2D> entities_player;
   std::vector<GameObject2D> entities_trees;
+  std::vector<GameObject2D> entities_vfx;
   std::vector<KeysAndState> player_keys;
 
-  // add some random trees
-  {
-    for (int i = 0; i < 5; i++) {
-      glm::vec2 rnd_pos = glm::vec2(fightingengine::rand_det_s(rnd.rng, 0.0f, 1.0f) * screen_wh.x,
-                                    fightingengine::rand_det_s(rnd.rng, 0.0f, 1.0f) * screen_wh.y);
-
-      GameObject2D tree = gameobject::create_tree(tex_tree);
-      tree.pos = rnd_pos;
-      entities_trees.push_back(tree);
-    }
-  }
+  int PHYSICS_GRID_SIZE = 100;
+  std::vector<std::reference_wrapper<GameObject2D>> physics_grid_refs;
+  int GAME_GRID_SIZE = 32;
+  std::vector<std::reference_wrapper<GameObject2D>> game_grid_refs;
+  std::vector<CollisionEvent> collision_events;
 
   // add players
   {
@@ -211,29 +202,27 @@ main()
     // declare a list of entities to apply all the generic things
     // e.g. physics, rendering, ui info
     //
-    std::vector<std::reference_wrapper<GameObject2D>> common_ents;
-    common_ents.insert(common_ents.end(), entities_enemies.begin(), entities_enemies.end());
-    common_ents.insert(common_ents.end(), entities_bullets.begin(), entities_bullets.end());
-    common_ents.insert(common_ents.end(), entities_player.begin(), entities_player.end());
-    common_ents.push_back(weapon_base);
 
     profiler.begin(Profiler::Stage::Physics);
     {
       if (state == GameRunning::ACTIVE || (state == GameRunning::PAUSED && debug_advance_one_frame)) {
 
-        // set entities that we want collision info from
-        std::vector<std::reference_wrapper<GameObject2D>>& collidable = common_ents;
-        common_ents.insert(common_ents.end(), entities_trees.begin(), entities_trees.end());
+        std::vector<std::reference_wrapper<GameObject2D>> collidable;
+        collidable.insert(collidable.end(), entities_enemies.begin(), entities_enemies.end());
+        collidable.insert(collidable.end(), entities_bullets.begin(), entities_bullets.end());
+        collidable.insert(collidable.end(), entities_player.begin(), entities_player.end());
+        collidable.insert(collidable.end(), entities_trees.begin(), entities_trees.end());
+        collidable.push_back(weapon_base);
 
         std::vector<std::reference_wrapper<GameObject2D>> active_collidable;
         for (auto& obj : collidable) {
-          if (obj.get().active)
+          if (obj.get().do_physics)
             active_collidable.push_back(obj);
         }
 
         // pre-physics: update grid position
         for (auto& e : active_collidable) {
-          grid::get_unique_cells(e.get().pos, e.get().physics_size, PHYSICS_GRID_SIZE, e.get().in_grid_cell);
+          grid::get_unique_cells(e.get().pos, e.get().physics_size, PHYSICS_GRID_SIZE, e.get().in_physics_grid_cell);
         }
 
         // generate filtered broadphase collisions.
@@ -310,69 +299,119 @@ main()
     profiler.end(Profiler::Stage::SdlInput);
     profiler.begin(Profiler::Stage::GameTick);
     {
+      { // Resolve collision events
+        for (auto& event : collision_events) {
 
-      // Resolve collision events
-      for (auto& event : collision_events) {
+          auto& coll_layer_0 = event.go0.collision_layer;
+          auto& coll_layer_1 = event.go1.collision_layer;
 
-        auto& coll_layer_0 = event.go0.collision_layer;
-        auto& coll_layer_1 = event.go1.collision_layer;
+          if ((coll_layer_0 == CollisionLayer::Player && coll_layer_1 == CollisionLayer::Enemy) ||
+              (coll_layer_1 == CollisionLayer::Player && coll_layer_0 == CollisionLayer::Enemy)) {
 
-        //
-        // apply to collision interactions e.g. xy or yx
-        //
+            GameObject2D& enemy = event.go0.collision_layer == CollisionLayer::Enemy ? event.go0 : event.go1;
+            GameObject2D& player = event.go0.collision_layer == CollisionLayer::Enemy ? event.go1 : event.go0;
 
-        if ((coll_layer_0 == CollisionLayer::Player && coll_layer_1 == CollisionLayer::Enemy) ||
-            (coll_layer_1 == CollisionLayer::Player && coll_layer_0 == CollisionLayer::Enemy)) {
+            if (player.hits_taken >= player.hits_able_to_be_taken)
+              continue; // player is dead
 
-          GameObject2D& enemy = event.go0.collision_layer == CollisionLayer::Enemy ? event.go0 : event.go1;
-          GameObject2D& player = event.go0.collision_layer == CollisionLayer::Enemy ? event.go1 : event.go0;
+            enemy.flag_for_delete = true;             // enemy
+            player.hits_taken += 1;                   // player
+            screenshake_time_left = screenshake_time; // screenshake
 
-          enemy.flag_for_delete = true;             // enemy
-          player.hits_taken += 1;                   // player
-          screenshake_time_left = screenshake_time; // screenshake
-          // // play some audio
-          // update colour
-          // float t = (player.hits_taken) / static_cast<float>(player.hits_able_to_be_taken);
-          // t = glm::clamp(t, 0.0f, 1.0f); // clamp it
-          // glm::vec4 col = glm::mix(player_colour, player_dead_colour, t);
-          // float min_alpha = 0.7f;
-          // col.a = glm::clamp(1.0f - t, min_alpha, 1.0f);
-          // player.colour = col;
-        }
+            // update colour
+            // float t = (player.hits_taken) / static_cast<float>(player.hits_able_to_be_taken);
+            // t = glm::clamp(t, 0.0f, 1.0f); // clamp it
+            // glm::vec4 col = glm::mix(player_colour, player_dead_colour, t);
+            // float min_alpha = 0.7f;
+            // col.a = glm::clamp(1.0f - t, min_alpha, 1.0f);
+            // player.colour = col;
 
-        // Enemy and weapon
-        if ((coll_layer_0 == CollisionLayer::Enemy && coll_layer_1 == CollisionLayer::Weapon) ||
-            (coll_layer_1 == CollisionLayer::Enemy && coll_layer_0 == CollisionLayer::Weapon)) {
+            // vfx spawn a splat!
+            GameObject2D splat = gameobject::create_generic(sprite_splat, tex_unit_kenny_nl, player_splat_colour);
+            splat.pos = player.pos;
+            splat.angle_radians = fightingengine::rand_det_s(rnd.rng, 0.0f, fightingengine::PI);
+            entities_vfx.push_back(splat);
+          }
 
-          GameObject2D& enemy = event.go0.collision_layer == CollisionLayer::Enemy ? event.go0 : event.go1;
-          GameObject2D& weapon = event.go0.collision_layer == CollisionLayer::Enemy ? event.go1 : event.go0;
+          if ((coll_layer_0 == CollisionLayer::Enemy && coll_layer_1 == CollisionLayer::Weapon) ||
+              (coll_layer_1 == CollisionLayer::Enemy && coll_layer_0 == CollisionLayer::Weapon)) {
 
-          enemy.hits_taken += 1; // enemy
-        }
+            GameObject2D& enemy = event.go0.collision_layer == CollisionLayer::Enemy ? event.go0 : event.go1;
+            GameObject2D& weapon = event.go0.collision_layer == CollisionLayer::Enemy ? event.go1 : event.go0;
 
-        // Obstacle and Player
-        if ((coll_layer_0 == CollisionLayer::Obstacle && coll_layer_1 == CollisionLayer::Player) ||
-            (coll_layer_1 == CollisionLayer::Obstacle && coll_layer_0 == CollisionLayer::Player)) {
+            enemy.hits_taken += 1; // enemy
 
-          GameObject2D& obstacle = event.go0.collision_layer == CollisionLayer::Obstacle ? event.go0 : event.go1;
-          GameObject2D& player = event.go0.collision_layer == CollisionLayer::Obstacle ? event.go1 : event.go0;
+            // vfx for enemy-weapon collision
+            GameObject2D splat = gameobject::create_generic(sprite_splat, tex_unit_kenny_nl, enemy_splat_colour);
+            splat.do_lifecycle_timed = true;
 
-          ImGui::Begin("You are colliding!", NULL, ImGuiWindowFlags_NoFocusOnAppearing);
-          ImGui::Text("AHH");
-          ImGui::End();
+            // vfx death "splat"
+            if (enemy.hits_taken >= enemy.hits_able_to_be_taken) {
+              splat.pos = enemy.pos;
+              splat.angle_radians = fightingengine::rand_det_s(rnd.rng, 0.0f, fightingengine::PI);
+              splat.time_alive_left = 30.0f;
+              entities_vfx.push_back(splat);
+            }
+
+            // vfx impact "splats"
+            // these splats fire off in an arc from the enemy.pos
+            splat.angle_radians = 0.0f;
+            splat.time_alive_left = 0.3f; // short splat
+            splat.colour = { 0.0f, 1.0f, 0.0f, 1.0f };
+            splat.speed_default = 40.0f;
+            splat.speed_current = splat.speed_default;
+            splat.physics_size = { 12.0f, 12.0f };
+            splat.render_size = splat.physics_size;
+
+            int amount_of_splats = 4;
+            GameObject2D& player = entities_player[0]; // hack: use player 0 for the moment
+            for (int i = 0; i < amount_of_splats; i++) {
+
+              glm::vec2 enemy_pos_center = enemy.pos + enemy.physics_size / 2.0f;
+              glm::vec2 player_pos_center = player.pos + player.physics_size / 2.0f;
+              glm::vec2 distance = player_pos_center - enemy_pos_center;
+              glm::vec2 dir = -glm::normalize(distance);
+
+              glm::vec2 splat_spawn_pos = enemy.pos;
+              splat_spawn_pos.x += enemy.physics_size.x / 2.0f - splat.physics_size.x / 2.0f;
+              splat_spawn_pos.y += enemy.physics_size.y / 2.0f - splat.physics_size.y / 2.0f;
+
+              splat.pos = splat_spawn_pos;
+
+              float theta = rand_det_s(rnd.rng, -fightingengine::PI / 2.0f, fightingengine::PI / 2.0f);
+              glm::vec2 offset_dir;
+              offset_dir.x = cos(theta) * dir.x - sin(theta) * dir.y;
+              offset_dir.y = sin(theta) * dir.x + cos(theta) * dir.y;
+
+              splat.velocity = glm::normalize(dir + glm::normalize(offset_dir)) * splat.speed_current;
+
+              entities_vfx.push_back(splat);
+            }
+          }
+
+          if ((coll_layer_0 == CollisionLayer::Obstacle && coll_layer_1 == CollisionLayer::Player) ||
+              (coll_layer_1 == CollisionLayer::Obstacle && coll_layer_0 == CollisionLayer::Player)) {
+
+            GameObject2D& obstacle = event.go0.collision_layer == CollisionLayer::Obstacle ? event.go0 : event.go1;
+            GameObject2D& player = event.go0.collision_layer == CollisionLayer::Obstacle ? event.go1 : event.go0;
+
+            ImGui::Begin("Huh. Well then.", NULL, ImGuiWindowFlags_NoFocusOnAppearing);
+            ImGui::Text("You are standing at a tree. Cool!");
+            ImGui::End();
+          }
         }
       }
 
-      // Update player's input
+      { // Update player's input
+        for (int i = 0; i < entities_player.size(); i++) {
+          GameObject2D& player = entities_player[i];
+          KeysAndState& keys = player_keys[i];
 
-      for (int i = 0; i < entities_player.size(); i++) {
-        GameObject2D& player = entities_player[i];
-        KeysAndState& keys = player_keys[i];
+          player::update_input(player, keys, app, camera);
 
-        player::update_input(player, keys, app, camera);
-
-        if (keys.pause_pressed)
-          state = state == GameRunning::PAUSED ? GameRunning::ACTIVE : GameRunning::PAUSED;
+          if (keys.pause_pressed)
+            state = state == GameRunning::PAUSED ? GameRunning::ACTIVE : GameRunning::PAUSED;
+        }
       }
 
       // Update game state
@@ -406,6 +445,12 @@ main()
           bullet::update(bullet, delta_time_s);
         }
 
+        // update: vfx
+
+        for (auto& obj : entities_vfx) {
+          gameobject::update_position(obj, delta_time_s);
+        }
+
         // update: spawn enemies
 
         size_t players_in_game = entities_player.size();
@@ -417,21 +462,25 @@ main()
           // update with ai behaviour
           for (auto& obj : entities_enemies) {
 
-            if (!obj.active)
-              continue;
-
             // check every frame: close to player?
             float distance_squared = glm::distance2(obj.pos, player_to_chase.pos);
             if (distance_squared < game_enemy_direct_attack_threshold) {
-              obj.ai_current = AiBehaviour::MOVEMENT_DIRECT;
+              // push new ai behaviour
+              if (obj.ai_priority_list.size() > 0 && obj.ai_priority_list.back() != AiBehaviour::MOVEMENT_DIRECT) {
+                obj.ai_priority_list.push_back(AiBehaviour::MOVEMENT_DIRECT);
+              }
             } else {
-              obj.ai_current = obj.ai_original;
+              // far away! check if our original ai was move direct or arc angle. pop arc angle if it was pushed.
+              if (obj.ai_priority_list.size() > 1 && obj.ai_priority_list.back() == AiBehaviour::MOVEMENT_DIRECT) {
+                obj.ai_priority_list.pop_back();
+              }
             }
 
-            // check every frame: update ai behaviour
-            if (obj.ai_current == AiBehaviour::MOVEMENT_DIRECT) {
+            // update: ai behaviour (note, currently runs every frame probably bad)
+            if (obj.ai_priority_list.size() > 0 && obj.ai_priority_list.back() == AiBehaviour::MOVEMENT_DIRECT) {
               enemy_ai::enemy_directly_to_player(obj, player_to_chase, delta_time_s);
-            } else if (obj.ai_current == AiBehaviour::MOVEMENT_ARC_ANGLE) {
+            } else if (obj.ai_priority_list.size() > 0 &&
+                       obj.ai_priority_list.back() == AiBehaviour::MOVEMENT_ARC_ANGLE) {
               enemy_ai::enemy_arc_angles_to_player(obj, player_to_chase, delta_time_s);
             }
           }
@@ -463,234 +512,185 @@ main()
           instanced_quad_shader.set_bool("shake", false);
         }
 
-        { // lifecycle: decrease life; timed and health
-
-          for (auto& obj : common_ents) {
-            if (obj.get().do_lifecycle_timed) {
-              obj.get().time_alive_left -= delta_time_s;
-              if (obj.get().time_alive_left <= 0.0f) {
-                obj.get().flag_for_delete = true;
-              }
-            }
-            if (obj.get().do_lifecycle_health) {
-              if (obj.get().hits_taken >= obj.get().hits_able_to_be_taken) {
-                obj.get().flag_for_delete = true;
-              }
-            }
-          }
+        { // object lifecycle
+          gameobject::update_entities_lifecycle(entities_enemies, delta_time_s);
+          gameobject::update_entities_lifecycle(entities_bullets, delta_time_s);
+          gameobject::update_entities_lifecycle(entities_vfx, delta_time_s);
         }
-
-        { // lifecycle: delete objects that are flagged for deletion
-
-          std::vector<GameObject2D>::iterator it_1 = entities_bullets.begin();
-          while (it_1 != entities_bullets.end()) {
-            GameObject2D& obj = (*it_1);
-            if (obj.flag_for_delete) {
-              it_1 = entities_bullets.erase(it_1);
-            } else {
-              ++it_1;
-            }
-          }
-
-          it_1 = entities_enemies.begin();
-          while (it_1 != entities_enemies.end()) {
-            GameObject2D& obj = (*it_1);
-            if (obj.flag_for_delete) {
-              it_1 = entities_enemies.erase(it_1);
-              game_objects_destroyed += 1;
-            } else {
-              ++it_1;
-            }
-          }
-
-          // reset common ents to updated view
-          common_ents.clear();
-          common_ents.insert(common_ents.end(), entities_enemies.begin(), entities_enemies.end());
-          common_ents.insert(common_ents.end(), entities_bullets.begin(), entities_bullets.end());
-          common_ents.insert(common_ents.end(), entities_player.begin(), entities_player.end());
-          common_ents.push_back(weapon_base);
-
-        } // end lifecycle cleanup
       }
-    }
-    profiler.end(Profiler::Stage::GameTick);
-    profiler.begin(Profiler::Stage::Render);
-    {
-      RenderCommand::set_clear_colour(background_colour);
-      RenderCommand::clear();
-      sprite_renderer::reset_stats();
-      sprite_renderer::begin_batch();
-      instanced_quad_shader.bind();
-      instanced_quad_shader.set_float("time", app.seconds_since_launch);
+      profiler.end(Profiler::Stage::GameTick);
+      profiler.begin(Profiler::Stage::Render);
+      {
+        RenderCommand::set_clear_colour(background_colour);
+        RenderCommand::clear();
+        sprite_renderer::reset_stats();
+        sprite_renderer::begin_batch();
+        instanced_quad_shader.bind();
+        instanced_quad_shader.set_float("time", app.seconds_since_launch);
 
-      if (state == GameRunning::ACTIVE || state == GameRunning::PAUSED || state == GameRunning::GAME_OVER) {
+        if (state == GameRunning::ACTIVE || state == GameRunning::PAUSED || state == GameRunning::GAME_OVER) {
 
-        std::vector<std::reference_wrapper<GameObject2D>>& renderables = common_ents;
+          std::vector<std::reference_wrapper<GameObject2D>> renderables;
+          renderables.insert(renderables.end(), entities_enemies.begin(), entities_enemies.end());
+          renderables.insert(renderables.end(), entities_bullets.begin(), entities_bullets.end());
+          renderables.insert(renderables.end(), entities_vfx.begin(), entities_vfx.end());
+          renderables.insert(renderables.end(), entities_player.begin(), entities_player.end());
+          renderables.insert(renderables.end(), entities_trees.begin(), entities_trees.end());
+          renderables.push_back(weapon_base);
 
-        // all sprites from kennynl
+          // all sprites from kennynl
+          instanced_quad_shader.set_int("tex", tex_unit_kenny_nl);
 
-        instanced_quad_shader.set_int("tex", tex_unit_kenny_nl);
+          for (auto& obj : renderables) {
+            if (!obj.get().do_render)
+              continue;
+            sprite_renderer::draw_sprite_debug(camera,
+                                               screen_wh,
+                                               instanced_quad_shader,
+                                               obj.get(),
+                                               obj.get().render_size,
+                                               colour_shader,
+                                               debug_line_colour);
+          }
 
-        for (auto& obj : renderables) {
-          if (!obj.get().active)
-            continue;
-          sprite_renderer::draw_sprite_debug(camera,
-                                             screen_wh,
-                                             instanced_quad_shader,
-                                             obj.get(),
-                                             obj.get().render_size,
-                                             colour_shader,
-                                             debug_line_colour);
-        }
+          if (debug_render_spritesheet) {
+            // draw the spritesheet for reference
+            sprite_renderer::draw_sprite_debug(
+              camera, screen_wh, instanced_quad_shader, tex_obj, tex_obj.render_size, colour_shader, debug_line_colour);
+          }
 
-        if (debug_render_spritesheet) {
-          // draw the spritesheet for reference
-          sprite_renderer::draw_sprite_debug(
-            camera, screen_wh, instanced_quad_shader, tex_obj, tex_obj.render_size, colour_shader, debug_line_colour);
+          sprite_renderer::end_batch();
+          sprite_renderer::flush(instanced_quad_shader);
+          sprite_renderer::begin_batch();
+
+          // other sprites
+
+          instanced_quad_shader.set_int("tex", tex_tree);
+
+          for (auto& obj : entities_trees) {
+            sprite_renderer::draw_sprite_debug(
+              camera, screen_wh, instanced_quad_shader, obj, obj.render_size, colour_shader, debug_line_colour);
+          }
         }
 
         sprite_renderer::end_batch();
         sprite_renderer::flush(instanced_quad_shader);
-        sprite_renderer::begin_batch();
-
-        // other sprites
-
-        instanced_quad_shader.set_int("tex", tex_tree);
-
-        for (auto& obj : entities_trees) {
-          sprite_renderer::draw_sprite_debug(
-            camera, screen_wh, instanced_quad_shader, obj, obj.render_size, colour_shader, debug_line_colour);
-        }
       }
+      profiler.end(Profiler::Stage::Render);
+      profiler.begin(Profiler::Stage::GuiLoop);
+      {
+        if (ImGui::BeginMainMenuBar()) {
+          ImGui::Text("%.2f FPS (%.2f ms)", ImGui::GetIO().Framerate, 1000.0f / ImGui::GetIO().Framerate);
 
-      sprite_renderer::end_batch();
-      sprite_renderer::flush(instanced_quad_shader);
-    }
-    profiler.end(Profiler::Stage::Render);
-    profiler.begin(Profiler::Stage::GuiLoop);
-    {
-      if (ImGui::BeginMainMenuBar()) {
-        ImGui::Text("%.2f FPS (%.2f ms)", ImGui::GetIO().Framerate, 1000.0f / ImGui::GetIO().Framerate);
+          bool temp = false;
 
-        bool temp = false;
-
-        { // limit framerate
-          temp = ui_limit_framerate;
-          ImGui::Checkbox("Limit Framerate", &temp);
-          if (temp != ui_limit_framerate) {
-            std::cout << "Limit fps toggled to: " << temp << std::endl;
-            app.limit_fps = temp;
-          }
-          ui_limit_framerate = temp;
-        }
-
-        { // mute sfx
-          temp = ui_mute_sfx;
-          ImGui::Checkbox("Mute SFX", &temp);
-          if (temp != ui_mute_sfx) {
-            std::cout << "sfx toggled to: " << temp << std::endl;
-          }
-          ui_mute_sfx = temp;
-        }
-
-        { // use vsync
-          temp = ui_use_vsync;
-          ImGui::Checkbox("VSync", &temp);
-          if (temp != ui_use_vsync) {
-            std::cout << "vsync toggled to: " << temp << std::endl;
-            app.get_window().set_vsync_opengl(temp);
-          }
-          ui_use_vsync = temp;
-        }
-
-        { // toggle fullsceren
-          temp = ui_fullscreen;
-          ImGui::Checkbox("Fullscreen", &ui_fullscreen);
-          if (temp != ui_fullscreen) {
-            std::cout << "ui_fullscreen toggled to: " << temp << std::endl;
-
-            // hack
-            app.get_window().toggle_fullscreen(); // SDL2 window toggle
-            glm::ivec2 screen_wh = app.get_window().get_size();
-            RenderCommand::set_viewport(0, 0, screen_wh.x, screen_wh.y);
-            glm::mat4 projection =
-              glm::ortho(0.0f, static_cast<float>(screen_wh.x), static_cast<float>(screen_wh.y), 0.0f, -1.0f, 1.0f);
-            instanced_quad_shader.bind();
-            instanced_quad_shader.set_mat4("projection", projection);
-          }
-          ui_fullscreen = temp;
-        }
-
-        ImGui::SameLine(screen_wh.x - 50.0f);
-        if (ImGui::MenuItem("Quit", "Esc"))
-          app.shutdown();
-
-        ImGui::EndMainMenuBar();
-      }
-
-      if (ui_show_game_info) {
-        ImGui::Begin("Game Info", NULL, ImGuiWindowFlags_NoFocusOnAppearing);
-        {
-          for (int i = 0; i < entities_player.size(); i++) {
-            GameObject2D& player = entities_player[i];
-            ImGui::Text("GO Destroyed: %i", game_objects_destroyed);
-            ImGui::Text("PLAYER_ID: %i", player.id);
-            ImGui::Text("PLAYER_HP_MAX %i", player.hits_able_to_be_taken);
-            ImGui::Text("PLAYER_HITS_TAKEN %i", player.hits_taken);
-            ImGui::Text("PLAYER_BOOST %f", player.shift_boost_time_left);
-            ImGui::Text("pos %f %f", player.pos.x, player.pos.y);
-            ImGui::Text("vel x: %f y: %f", player.velocity.x, player.velocity.y);
-            ImGui::Text("angle %f", player.angle_radians);
-            ImGui::Separator();
-          }
-
-          ImGui::Text("game running for: %f", app.seconds_since_launch);
-          ImGui::Text("camera pos %f %f", camera.pos.x, camera.pos.y);
-          ImGui::Text("mouse pos %f %f", app.get_input().get_mouse_pos().x, app.get_input().get_mouse_pos().y);
-          ImGui::Text("PhysicsGridSize %i", PHYSICS_GRID_SIZE);
-
-          // collect number of ai units in game
-          {
-            AiBehaviour behaviour = AiBehaviour::MOVEMENT_DIRECT;
-            auto direct_ai =
-              std::count_if(entities_enemies.begin(), entities_enemies.end(), [&behaviour](const GameObject2D& obj) {
-                return obj.ai_current == behaviour;
-              });
-            ImGui::Text("(game) direct ai: %i", direct_ai);
-
-            behaviour = AiBehaviour::MOVEMENT_ARC_ANGLE;
-            auto arc_ai = std::count_if(entities_enemies.begin(),
-                                        entities_enemies.end(),
-                                        [&behaviour](const GameObject2D& obj) { return obj.ai_current == behaviour; });
-            ImGui::Text("(game) arc ai %i", arc_ai);
-          }
-
-          // collect number of ARC_ANGLE ai
-
-          ImGui::Separator();
-          ImGui::Text("controllers %i", SDL_NumJoysticks());
-          ImGui::Separator();
-          ImGui::Text("draw_calls: %i", sprite_renderer::get_draw_calls());
-          ImGui::Text("quad_verts: %i", sprite_renderer::get_quad_count());
-        }
-        ImGui::End();
-      }
-
-      if (ui_show_entity_menu) {
-
-        ImGui::Begin("Entity Menu", NULL, ImGuiWindowFlags_NoFocusOnAppearing);
-        {
-          ImGui::Text("Players: %i", entities_player.size());
-          ImGui::Text("Bullets: %i", entities_bullets.size());
-          ImGui::Text("Enemies: %i", entities_enemies.size());
-
-          ImGui::Separator();
-
-          for (auto& e : common_ents) {
-            for (auto& c : e.get().in_grid_cell) {
-              ImGui::Text("%i E: %s x:%i y:%i", e.get().id, e.get().name.c_str(), c.x, c.y);
+          { // limit framerate
+            temp = ui_limit_framerate;
+            ImGui::Checkbox("Limit Framerate", &temp);
+            if (temp != ui_limit_framerate) {
+              std::cout << "Limit fps toggled to: " << temp << std::endl;
+              app.limit_fps = temp;
             }
+            ui_limit_framerate = temp;
+          }
+
+          { // mute sfx
+            temp = ui_mute_sfx;
+            ImGui::Checkbox("Mute SFX", &temp);
+            if (temp != ui_mute_sfx) {
+              std::cout << "sfx toggled to: " << temp << std::endl;
+            }
+            ui_mute_sfx = temp;
+          }
+
+          { // use vsync
+            temp = ui_use_vsync;
+            ImGui::Checkbox("VSync", &temp);
+            if (temp != ui_use_vsync) {
+              std::cout << "vsync toggled to: " << temp << std::endl;
+              app.get_window().set_vsync_opengl(temp);
+            }
+            ui_use_vsync = temp;
+          }
+
+          { // toggle fullsceren
+            temp = ui_fullscreen;
+            ImGui::Checkbox("Fullscreen", &ui_fullscreen);
+            if (temp != ui_fullscreen) {
+              std::cout << "ui_fullscreen toggled to: " << temp << std::endl;
+
+              // hack
+              app.get_window().toggle_fullscreen(); // SDL2 window toggle
+              glm::ivec2 screen_wh = app.get_window().get_size();
+              RenderCommand::set_viewport(0, 0, screen_wh.x, screen_wh.y);
+              glm::mat4 projection =
+                glm::ortho(0.0f, static_cast<float>(screen_wh.x), static_cast<float>(screen_wh.y), 0.0f, -1.0f, 1.0f);
+              instanced_quad_shader.bind();
+              instanced_quad_shader.set_mat4("projection", projection);
+            }
+            ui_fullscreen = temp;
+          }
+
+          ImGui::SameLine(screen_wh.x - 50.0f);
+          if (ImGui::MenuItem("Quit", "Esc"))
+            app.shutdown();
+
+          ImGui::EndMainMenuBar();
+        }
+
+        if (ui_show_game_info) {
+          ImGui::Begin("Game Info", NULL, ImGuiWindowFlags_NoFocusOnAppearing);
+          {
+            for (int i = 0; i < entities_player.size(); i++) {
+              GameObject2D& player = entities_player[i];
+              ImGui::Text("GO Destroyed: %i", game_objects_destroyed);
+              ImGui::Text("PLAYER_ID: %i", player.id);
+              ImGui::Text("PLAYER_HP_MAX %i", player.hits_able_to_be_taken);
+              ImGui::Text("PLAYER_HITS_TAKEN %i", player.hits_taken);
+              ImGui::Text("PLAYER_BOOST %f", player.shift_boost_time_left);
+              ImGui::Text("pos %f %f", player.pos.x, player.pos.y);
+              ImGui::Text("vel x: %f y: %f", player.velocity.x, player.velocity.y);
+              ImGui::Text("angle %f", player.angle_radians);
+              ImGui::Separator();
+            }
+
+            ImGui::Text("game running for: %f", app.seconds_since_launch);
+            ImGui::Text("camera pos %f %f", camera.pos.x, camera.pos.y);
+            ImGui::Text("mouse pos %f %f", app.get_input().get_mouse_pos().x, app.get_input().get_mouse_pos().y);
+            ImGui::Text("PhysicsGridSize %i", PHYSICS_GRID_SIZE);
+
+            // collect number of ARC_ANGLE ai
+
             ImGui::Separator();
+            ImGui::Text("controllers %i", SDL_NumJoysticks());
+            ImGui::Separator();
+            ImGui::Text("draw_calls: %i", sprite_renderer::get_draw_calls());
+            ImGui::Text("quad_verts: %i", sprite_renderer::get_quad_count());
+          }
+          ImGui::End();
+        }
+
+        if (ui_show_entity_menu) {
+
+          ImGui::Begin("Entity Menu", NULL, ImGuiWindowFlags_NoFocusOnAppearing);
+          {
+            ImGui::Text("Players: %i", entities_player.size());
+            ImGui::Text("Bullets: %i", entities_bullets.size());
+            ImGui::Text("Enemies: %i", entities_enemies.size());
+            ImGui::Text("Vfx: %i", entities_vfx.size());
+
+            ImGui::Separator();
+
+            // for (auto& e : renderables) {
+            //   for (auto& c : e.get().in_physics_grid_cell) {
+            //     ImGui::Text("%i E: %s x:%i y:%i ai:%i",
+            //                 e.get().id,
+            //                 e.get().name.c_str(),
+            //                 c.x,
+            //                 c.y,
+            //                 e.get().ai_priority_list.size());
+            //   }
+            //   ImGui::Separator();
           }
         }
         ImGui::End();

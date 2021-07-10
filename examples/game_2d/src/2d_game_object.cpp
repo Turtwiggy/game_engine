@@ -36,9 +36,36 @@ namespace gameobject {
 // logic
 
 void
-update_position(GameObject2D& obj, float delta_time_s)
+update_position(GameObject2D& obj, const float delta_time_s)
 {
   obj.pos += obj.velocity * delta_time_s;
+}
+
+void
+update_entities_lifecycle(std::vector<GameObject2D>& objs, const float delta_time_s)
+{
+  std::vector<GameObject2D>::iterator it_1 = objs.begin();
+  while (it_1 != objs.end()) {
+    GameObject2D& obj = (*it_1);
+
+    if (obj.do_lifecycle_timed) {
+      obj.time_alive_left -= delta_time_s;
+      if (obj.time_alive_left <= 0.0f) {
+        obj.flag_for_delete = true;
+      }
+    }
+
+    if (obj.do_lifecycle_health) {
+      if (obj.hits_taken >= obj.hits_able_to_be_taken) {
+        obj.flag_for_delete = true;
+      }
+    }
+
+    if (obj.flag_for_delete)
+      it_1 = objs.erase(it_1);
+    else
+      ++it_1;
+  }
 }
 
 // entities
@@ -88,23 +115,37 @@ create_enemy(sprite::type sprite, int tex_slot, glm::vec4 colour, fightingengine
   game_object.angle_radians = 0.0;
   game_object.render_size = { 1.0f * 768.0f / 48.0f, 1.0f * 362.0f / 22.0f };
   game_object.physics_size = { 1.0f * 768.0f / 48.0f, 1.0f * 362.0f / 22.0f };
-  game_object.hits_able_to_be_taken = 1;
+  game_object.hits_able_to_be_taken = 1; // to increase this fix coll issue
 
   // roll a dice
   float rand = fightingengine::rand_det_s(rnd.rng, 0.0f, 100.0f);
+
   if (rand <= 75.0f) {
-    game_object.ai_original = AiBehaviour::MOVEMENT_ARC_ANGLE;
+    game_object.ai_priority_list.push_back(AiBehaviour::MOVEMENT_ARC_ANGLE);
     // locked between -89.9 and 89.9 as uses sin(theta), and after these values makes less sense
     game_object.approach_theta_degrees = fightingengine::rand_det_s(rnd.rng, -89.9f, 89.9f);
     std::cout << "approach angle: " << game_object.approach_theta_degrees << std::endl;
   } else {
-    game_object.ai_original = AiBehaviour::MOVEMENT_DIRECT;
+    game_object.ai_priority_list.push_back(AiBehaviour::MOVEMENT_DIRECT);
     game_object.approach_theta_degrees = 0.0f;
   }
-  game_object.ai_current = game_object.ai_original;
 
   return game_object;
 };
+
+GameObject2D
+create_generic(sprite::type sprite, int tex_slot, glm::vec4 colour)
+{
+  GameObject2D game_object;
+  game_object.collision_layer = CollisionLayer::NoCollision;
+  game_object.name = "generic";
+  game_object.tex_slot = tex_slot;
+  game_object.sprite = sprite;
+  game_object.render_size = { 1.0f * 768.0f / 48.0f, 1.0f * 362.0f / 22.0f };
+  game_object.physics_size = { 1.0f * 768.0f / 48.0f, 1.0f * 362.0f / 22.0f };
+  game_object.colour = colour;
+  return game_object;
+}
 
 GameObject2D
 create_tree(int tex_slot)

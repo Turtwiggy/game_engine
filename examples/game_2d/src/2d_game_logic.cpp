@@ -307,14 +307,17 @@ ability_slash(fightingengine::Application& app,
     else
       weapon_current_angle = keys.angle_around_player + fightingengine::HALF_PI / 2.0f;
 
+    // hmm. freezes weapon angle throughout slash?
     weapon.angle_radians = keys.angle_around_player + sprite::spritemap::get_sprite_rotation_offset(weapon.sprite);
   }
 
   if (lmb_slash_attack_time_left > 0.0f) {
     lmb_slash_attack_time_left -= delta_time_s;
-    weapon.active = true;
+    weapon.do_render = true;
+    weapon.do_physics = true;
   } else {
-    weapon.active = false;
+    weapon.do_render = false;
+    weapon.do_physics = false;
   }
 
   glm::vec2 pos = player.pos;
@@ -326,6 +329,7 @@ ability_slash(fightingengine::Application& app,
   else
     weapon_current_angle -= weapon_angle_speed;
 
+  // offset around center of circle
   glm::vec2 offset_pos =
     glm::vec2(weapon_radius * sin(weapon_current_angle), -weapon_radius * cos(weapon_current_angle));
 
