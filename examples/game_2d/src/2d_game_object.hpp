@@ -169,7 +169,7 @@ public:
 
   // game: lifecycle timed
   float time_alive_left = 5.0f;
-  glm::vec4 flash_colour = glm::vec4(1.0f, 0.0f, 0.0f, 1.0f);
+  glm::vec4 flash_colour = glm::vec4(1.0f, 0.3f, 0.3f, 1.0f);
 
   // game: lifecycle health
   int hits_able_to_be_taken = 3;

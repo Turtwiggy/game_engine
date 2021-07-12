@@ -71,7 +71,7 @@ glm::vec4 bullet_colour = PALETTE_COLOUR_3_1;                              // li
 glm::vec4 wall_colour = PALETTE_COLOUR_4_1;                                // grey
 glm::vec4 player_splat_colour = glm::vec4(0.95f, 0.3f, 0.3f, 1.0f);        // redish
 glm::vec4 enemy_death_splat_colour = glm::vec4(0.65f, 0.65f, 0.65f, 1.0f); // greyish
-glm::vec4 enemy_impact_splat_colour = glm::vec4(0.3f, 1.0f, 0.3f, 1.0f);   // greyish
+glm::vec4 enemy_impact_splat_colour = glm::vec4(1.0f, 0.3f, 0.3f, 1.0f);   // redish
 
 sprite::type sprite_player = sprite::type::PERSON_1;
 sprite::type sprite_bullet = sprite::type::WEAPON_ARROW_1;
@@ -83,6 +83,7 @@ const float game_safe_radius_around_player = 7500.0f;
 const float game_enemy_direct_attack_threshold = 4000.0f;
 float screenshake_time = 0.1f;
 float screenshake_time_left = 0.0f;
+float vfx_flash_time = 0.2f;
 
 int
 main()
@@ -343,10 +344,8 @@ main()
 
             enemy.flag_for_delete = true;             // enemy
             player.hits_taken += 1;                   // player
+            player.flash_time_left = vfx_flash_time;  // vfx: flash
             screenshake_time_left = screenshake_time; // screenshake
-
-            // vfx flash
-            player.flash_time_left = 0.25f;
 
             // vfx spawn a splat
             GameObject2D splat = gameobject::create_generic(sprite_splat, tex_unit_kenny_nl, player_splat_colour);
@@ -360,6 +359,7 @@ main()
 
             GameObject2D& enemy = event.go0.collision_layer == CollisionLayer::Enemy ? event.go0 : event.go1;
             GameObject2D& weapon = event.go0.collision_layer == CollisionLayer::Enemy ? event.go1 : event.go0;
+            GameObject2D& player = entities_player[0]; // hack: use player 0 for the moment
 
             for (auto& attack : live_attacks) {
 
@@ -373,13 +373,19 @@ main()
                 // std::cout << "enemy taking damage from weapon attack ONCE!" << std::endl;
                 enemy.hits_taken += 1;
                 enemy.attack_ids_taken_damage_from.push_back(attack.id);
+                enemy.flash_time_left = vfx_flash_time; // vfx: flash
 
-                // vfx flash
-                enemy.flash_time_left = 0.25f;
+                // vfx dealthsplat
+                if (enemy.hits_taken >= enemy.hits_able_to_be_taken) {
+                  vfx::spawn_death_splat(
+                    rnd, enemy, sprite_splat, tex_unit_kenny_nl, enemy_death_splat_colour, entities_vfx);
+                }
+
+                // vfx impactsplat
+                vfx::spawn_impact_splats(
+                  rnd, enemy, player, sprite_splat, tex_unit_kenny_nl, enemy_impact_splat_colour, entities_vfx);
               }
             }
-
-            vfx::spawn_death_splat(rnd, enemy, sprite_splat, tex_unit_kenny_nl, enemy_death_splat_colour, entities_vfx);
           }
 
           if ((coll_layer_0 == CollisionLayer::Bullet && coll_layer_1 == CollisionLayer::Enemy) ||
@@ -400,6 +406,7 @@ main()
                 // std::cout << "enemy taking damage from bullet attack ONCE!" << std::endl;
                 enemy.hits_taken += 1;
                 enemy.attack_ids_taken_damage_from.push_back(attack.id);
+                enemy.flash_time_left = vfx_flash_time; // vfx: flash
 
                 // vfx dealthsplat
                 if (enemy.hits_taken >= enemy.hits_able_to_be_taken) {
