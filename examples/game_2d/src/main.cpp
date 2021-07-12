@@ -345,15 +345,10 @@ main()
             player.hits_taken += 1;                   // player
             screenshake_time_left = screenshake_time; // screenshake
 
-            // update colour
-            // float t = (player.hits_taken) / static_cast<float>(player.hits_able_to_be_taken);
-            // t = glm::clamp(t, 0.0f, 1.0f); // clamp it
-            // glm::vec4 col = glm::mix(player_colour, player_dead_colour, t);
-            // float min_alpha = 0.7f;
-            // col.a = glm::clamp(1.0f - t, min_alpha, 1.0f);
-            // player.colour = col;
+            // vfx flash
+            player.flash_time_left = 0.25f;
 
-            // vfx spawn a splat!
+            // vfx spawn a splat
             GameObject2D splat = gameobject::create_generic(sprite_splat, tex_unit_kenny_nl, player_splat_colour);
             splat.pos = player.pos;
             splat.angle_radians = fightingengine::rand_det_s(rnd.rng, 0.0f, fightingengine::PI);
@@ -375,15 +370,16 @@ main()
                                                         attack.id) != enemy.attack_ids_taken_damage_from.end();
 
               if (is_shovel && collision_with_specific_shovel_attack && !taken_damage_from_shovel) {
-                std::cout << "enemy taking damage from weapon attack ONCE!" << std::endl;
-                enemy.hits_taken += 1; // enemy
+                // std::cout << "enemy taking damage from weapon attack ONCE!" << std::endl;
+                enemy.hits_taken += 1;
                 enemy.attack_ids_taken_damage_from.push_back(attack.id);
+
+                // vfx flash
+                enemy.flash_time_left = 0.25f;
               }
             }
 
             vfx::spawn_death_splat(rnd, enemy, sprite_splat, tex_unit_kenny_nl, enemy_death_splat_colour, entities_vfx);
-
-            // vfx flash enemy
           }
 
           if ((coll_layer_0 == CollisionLayer::Bullet && coll_layer_1 == CollisionLayer::Enemy) ||
@@ -392,12 +388,30 @@ main()
             GameObject2D& enemy = event.go0.collision_layer == CollisionLayer::Bullet ? event.go1 : event.go0;
             GameObject2D& player = entities_player[0]; // hack: use player 0 for the moment
 
-            enemy.hits_taken += 1; // enemy
+            for (auto& attack : live_attacks) {
 
-            vfx::spawn_death_splat(rnd, enemy, sprite_splat, tex_unit_kenny_nl, enemy_death_splat_colour, entities_vfx);
+              bool is_bullet = attack.weapon_type == Weapons::PISTOL;
+              bool collision_with_specific_bullet = bullet.id == attack.entity_weapon_id;
+              bool taken_damage_from_bullet = std::find(enemy.attack_ids_taken_damage_from.begin(),
+                                                        enemy.attack_ids_taken_damage_from.end(),
+                                                        attack.id) != enemy.attack_ids_taken_damage_from.end();
 
-            vfx::spawn_impact_splats(
-              rnd, enemy, player, sprite_splat, tex_unit_kenny_nl, enemy_impact_splat_colour, entities_vfx);
+              if (is_bullet && collision_with_specific_bullet && !taken_damage_from_bullet) {
+                // std::cout << "enemy taking damage from bullet attack ONCE!" << std::endl;
+                enemy.hits_taken += 1;
+                enemy.attack_ids_taken_damage_from.push_back(attack.id);
+
+                // vfx dealthsplat
+                if (enemy.hits_taken >= enemy.hits_able_to_be_taken) {
+                  vfx::spawn_death_splat(
+                    rnd, enemy, sprite_splat, tex_unit_kenny_nl, enemy_death_splat_colour, entities_vfx);
+                }
+
+                // vfx impactsplat
+                vfx::spawn_impact_splats(
+                  rnd, enemy, player, sprite_splat, tex_unit_kenny_nl, enemy_impact_splat_colour, entities_vfx);
+              }
+            }
           }
 
           if ((coll_layer_0 == CollisionLayer::Obstacle && coll_layer_1 == CollisionLayer::Player) ||
@@ -463,6 +477,37 @@ main()
           gameobject::update_position(obj, delta_time_s);
         }
 
+        // update: vfx flash
+
+        for (auto& obj : entities_player) {
+          if (obj.flash_time_left > 0.0f) {
+            obj.flash_time_left -= delta_time_s;
+            obj.colour = obj.flash_colour;
+          } else {
+            obj.colour = player_colour;
+          }
+        }
+        for (auto& obj : entities_enemies) {
+          if (obj.flash_time_left > 0.0f) {
+            obj.flash_time_left -= delta_time_s;
+            obj.colour = obj.flash_colour;
+          } else {
+            obj.colour = wall_colour;
+          }
+        }
+
+        // update: vfx screenshake
+
+        if (screenshake_time_left > 0.0f) {
+          screenshake_time_left -= delta_time_s;
+          instanced_quad_shader.bind();
+          instanced_quad_shader.set_bool("shake", true);
+        }
+        if (screenshake_time_left <= 0.0f) {
+          instanced_quad_shader.bind();
+          instanced_quad_shader.set_bool("shake", false);
+        }
+
         // update: spawn enemies
 
         size_t players_in_game = entities_player.size();
@@ -513,21 +558,35 @@ main()
           camera::update(camera, player_keys[0], app, delta_time_s);
         }
 
-        // update: screenshake
-        if (screenshake_time_left > 0.0f) {
-          screenshake_time_left -= delta_time_s;
-          instanced_quad_shader.bind();
-          instanced_quad_shader.set_bool("shake", true);
-        }
-        if (screenshake_time_left <= 0.0f) {
-          instanced_quad_shader.bind();
-          instanced_quad_shader.set_bool("shake", false);
-        }
-
         { // object lifecycle
+
           gameobject::update_entities_lifecycle(entities_enemies, delta_time_s);
           gameobject::update_entities_lifecycle(entities_bullets, delta_time_s);
           gameobject::update_entities_lifecycle(entities_vfx, delta_time_s);
+
+          // remove "attack" object before deleting "bullet" object (or any object that is cleaned up)
+          // e.g when deleting "player" (in the future)
+          std::vector<Attack>::iterator it = live_attacks.begin();
+          while (it != live_attacks.end()) {
+            const Attack& attack = (*it);
+            int id = attack.entity_weapon_id;
+
+            if (attack.weapon_type == Weapons::PISTOL) {
+              const auto& bullet = std::find_if(
+                entities_bullets.begin(), entities_bullets.end(), [&id](const auto& obj) { return obj.id == id; });
+
+              if (bullet != entities_bullets.end() && bullet->flag_for_delete) {
+                // remove the attack object
+                it = live_attacks.erase(it);
+                continue;
+              }
+            }
+            ++it;
+          }
+
+          gameobject::erase_entities_that_are_flagged_for_delete(entities_enemies, delta_time_s);
+          gameobject::erase_entities_that_are_flagged_for_delete(entities_bullets, delta_time_s);
+          gameobject::erase_entities_that_are_flagged_for_delete(entities_vfx, delta_time_s);
         }
       }
       profiler.end(Profiler::Stage::GameTick);

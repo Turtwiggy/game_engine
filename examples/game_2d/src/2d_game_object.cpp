@@ -61,6 +61,17 @@ update_entities_lifecycle(std::vector<GameObject2D>& objs, const float delta_tim
       }
     }
 
+    ++it_1;
+  }
+}
+
+void
+erase_entities_that_are_flagged_for_delete(std::vector<GameObject2D>& objs, const float delta_time_s)
+{
+  std::vector<GameObject2D>::iterator it_1 = objs.begin();
+  while (it_1 != objs.end()) {
+    GameObject2D& obj = (*it_1);
+
     if (obj.flag_for_delete)
       it_1 = objs.erase(it_1);
     else
@@ -115,7 +126,7 @@ create_enemy(sprite::type sprite, int tex_slot, glm::vec4 colour, fightingengine
   game_object.angle_radians = 0.0;
   game_object.render_size = { 1.0f * 768.0f / 48.0f, 1.0f * 362.0f / 22.0f };
   game_object.physics_size = { 1.0f * 768.0f / 48.0f, 1.0f * 362.0f / 22.0f };
-  game_object.hits_able_to_be_taken = 3;
+  game_object.hits_able_to_be_taken = 2;
 
   // roll a dice for ai
   float rand = fightingengine::rand_det_s(rnd.rng, 0.0f, 1.0f);

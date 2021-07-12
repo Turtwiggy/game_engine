@@ -286,8 +286,8 @@ ability_shoot(fightingengine::Application& app,
     bullets.push_back(bullet_copy);
 
     // Create an attack ID
+    // std::cout << "bullet attack, attack id: " << a.id << std::endl;
     Attack a = Attack(player.id, bullet_copy.id, Weapons::PISTOL);
-    std::cout << "bullet attack, attack id: " << a.id << std::endl;
     attacks.push_back(a);
   }
 }
@@ -325,15 +325,14 @@ ability_slash(fightingengine::Application& app,
     while (it != attacks.end()) {
       Attack& att = (*it);
       if (att.entity_weapon_owner_id == player_obj.id && att.weapon_type == Weapons::SHOVEL) {
-        std::cout << "erasing slash attack" << std::endl;
         it = attacks.erase(it);
       } else {
         ++it;
       }
     }
     // Create a new slash with attack ID
+    // std::cout << "slash attack, attack id: " << a.id << std::endl;
     Attack a = Attack(player_obj.id, weapon.id, Weapons::SHOVEL);
-    std::cout << "slash attack, attack id: " << a.id << std::endl;
     attacks.push_back(a);
   }
 

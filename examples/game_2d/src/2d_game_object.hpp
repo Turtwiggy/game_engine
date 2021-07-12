@@ -169,12 +169,16 @@ public:
 
   // game: lifecycle timed
   float time_alive_left = 5.0f;
+  glm::vec4 flash_colour = glm::vec4(1.0f, 0.0f, 0.0f, 1.0f);
 
   // game: lifecycle health
   int hits_able_to_be_taken = 3;
   int hits_taken = 0;
   bool invulnerable = false;
   std::vector<int> attack_ids_taken_damage_from;
+
+  // vfx
+  float flash_time_left = 0.0f;
 
   // game: extra
   std::string name = "DEFAULT";
@@ -199,6 +203,9 @@ update_position(GameObject2D& obj, const float delta_time_s);
 
 void
 update_entities_lifecycle(std::vector<GameObject2D>& objs, const float delta_time_s);
+
+void
+erase_entities_that_are_flagged_for_delete(std::vector<GameObject2D>& objs, const float delta_time_s);
 
 // entities
 
