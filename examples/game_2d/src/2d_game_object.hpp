@@ -87,6 +87,35 @@ enum class AiBehaviour
   MOVEMENT_ARC_ANGLE,
 };
 
+enum class Weapons
+{
+  PISTOL,
+  SHOVEL,
+};
+
+// An "Attack" is basically a limiter that prevents collisions
+// applying damage on every frame. This could end up being super weird.
+struct Attack
+{
+private:
+  static inline uint32_t global_attack_int_counter = 0;
+
+public:
+  uint32_t id = 0;
+
+  int entity_weapon_owner_id; // player or enemy
+  int entity_weapon_id;
+  Weapons weapon_type;
+
+  Attack(int parent, int weapon, Weapons type)
+    : entity_weapon_owner_id(parent)
+    , entity_weapon_id(weapon)
+    , weapon_type(type)
+  {
+    id = ++Attack::global_attack_int_counter;
+  };
+};
+
 //
 // If this game ever has more than 1 million entities,
 // reconsider this structure. Until then, lets gooooo.
@@ -94,7 +123,10 @@ enum class AiBehaviour
 
 struct GameObject2D
 {
+private:
   static inline uint32_t global_int_counter = 0;
+
+public:
   uint32_t id = 0;
 
   bool do_render = true;
@@ -128,17 +160,25 @@ struct GameObject2D
   std::vector<AiBehaviour> ai_priority_list;
   float approach_theta_degrees = 0.0f;
 
+  // game: equipment
+  Weapons equipped_weapon = Weapons::SHOVEL;
+
   // game: shooting
   float bullet_seconds_between_spawning = 0.15f;
   float bullet_seconds_between_spawning_left = 0.0f;
 
   // game: lifecycle timed
   float time_alive_left = 5.0f;
+  glm::vec4 flash_colour = glm::vec4(1.0f, 0.0f, 0.0f, 1.0f);
 
   // game: lifecycle health
   int hits_able_to_be_taken = 3;
   int hits_taken = 0;
   bool invulnerable = false;
+  std::vector<int> attack_ids_taken_damage_from;
+
+  // vfx
+  float flash_time_left = 0.0f;
 
   // game: extra
   std::string name = "DEFAULT";
@@ -163,6 +203,9 @@ update_position(GameObject2D& obj, const float delta_time_s);
 
 void
 update_entities_lifecycle(std::vector<GameObject2D>& objs, const float delta_time_s);
+
+void
+erase_entities_that_are_flagged_for_delete(std::vector<GameObject2D>& objs, const float delta_time_s);
 
 // entities
 

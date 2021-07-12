@@ -61,6 +61,17 @@ update_entities_lifecycle(std::vector<GameObject2D>& objs, const float delta_tim
       }
     }
 
+    ++it_1;
+  }
+}
+
+void
+erase_entities_that_are_flagged_for_delete(std::vector<GameObject2D>& objs, const float delta_time_s)
+{
+  std::vector<GameObject2D>::iterator it_1 = objs.begin();
+  while (it_1 != objs.end()) {
+    GameObject2D& obj = (*it_1);
+
     if (obj.flag_for_delete)
       it_1 = objs.erase(it_1);
     else
@@ -115,12 +126,11 @@ create_enemy(sprite::type sprite, int tex_slot, glm::vec4 colour, fightingengine
   game_object.angle_radians = 0.0;
   game_object.render_size = { 1.0f * 768.0f / 48.0f, 1.0f * 362.0f / 22.0f };
   game_object.physics_size = { 1.0f * 768.0f / 48.0f, 1.0f * 362.0f / 22.0f };
-  game_object.hits_able_to_be_taken = 1; // to increase this fix coll issue
+  game_object.hits_able_to_be_taken = 2;
 
-  // roll a dice
-  float rand = fightingengine::rand_det_s(rnd.rng, 0.0f, 100.0f);
-
-  if (rand <= 75.0f) {
+  // roll a dice for ai
+  float rand = fightingengine::rand_det_s(rnd.rng, 0.0f, 1.0f);
+  if (rand <= 0.75f) {
     game_object.ai_priority_list.push_back(AiBehaviour::MOVEMENT_ARC_ANGLE);
     // locked between -89.9 and 89.9 as uses sin(theta), and after these values makes less sense
     game_object.approach_theta_degrees = fightingengine::rand_det_s(rnd.rng, -89.9f, 89.9f);

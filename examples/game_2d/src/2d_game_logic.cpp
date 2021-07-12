@@ -8,6 +8,9 @@
 // other lib headers
 #include <glm/gtx/vector_angle.hpp> // for distance2
 
+// engine headers
+#include "engine/maths_core.hpp"
+
 namespace game2d {
 
 void
@@ -64,7 +67,7 @@ enemy_ai::enemy_arc_angles_to_player(GameObject2D& obj, GameObject2D& player, fl
   float half_distance = distance / 2.0f;
 
   // offset the midpoint via normal
-  float amplitude = half_distance * sin(obj.approach_theta_degrees);
+  float amplitude = half_distance * sin(glm::radians(obj.approach_theta_degrees));
   half_point += (glm::normalize(normal) * amplitude);
 
   glm::vec2 dir = glm::normalize(half_point - obj.pos);
@@ -250,9 +253,10 @@ ability_shoot(fightingengine::Application& app,
               const KeysAndState& keys,
               std::vector<GameObject2D>& bullets,
               const int tex_unit,
-              const glm::vec4 col,
+              const glm::vec4 bullet_col,
               const sprite::type sprite,
-              const float delta_time_s)
+              const float delta_time_s,
+              std::vector<Attack>& attacks)
 {
   // Ability: Shoot
   // if (keys.shoot_pressed)
@@ -268,7 +272,7 @@ ability_shoot(fightingengine::Application& app,
 
     // spawn bullet
 
-    GameObject2D bullet_copy = gameobject::create_bullet(sprite, tex_unit, col);
+    GameObject2D bullet_copy = gameobject::create_bullet(sprite, tex_unit, bullet_col);
     // override defaults
     // fix offset issue so bullet spawns in middle of player
     glm::vec2 bullet_pos = player.pos;
@@ -280,6 +284,11 @@ ability_shoot(fightingengine::Application& app,
     bullet_copy.velocity.y = keys.r_analogue_y * bullet_copy.speed_current;
 
     bullets.push_back(bullet_copy);
+
+    // Create an attack ID
+    // std::cout << "bullet attack, attack id: " << a.id << std::endl;
+    Attack a = Attack(player.id, bullet_copy.id, Weapons::PISTOL);
+    attacks.push_back(a);
   }
 }
 
@@ -293,10 +302,11 @@ bool attack_left_to_right = true;
 
 void
 ability_slash(fightingengine::Application& app,
-              GameObject2D& player,
+              GameObject2D& player_obj,
               const KeysAndState& keys,
               GameObject2D& weapon,
-              float delta_time_s)
+              float delta_time_s,
+              std::vector<Attack>& attacks)
 {
   if (app.get_input().get_mouse_lmb_down()) {
     lmb_slash_attack_time_left = lmb_slash_attack_time;
@@ -307,8 +317,23 @@ ability_slash(fightingengine::Application& app,
     else
       weapon_current_angle = keys.angle_around_player + fightingengine::HALF_PI / 2.0f;
 
-    // hmm. freezes weapon angle throughout slash?
+    // set angle, but freezes weapon angle throughout slash?
     weapon.angle_radians = keys.angle_around_player + sprite::spritemap::get_sprite_rotation_offset(weapon.sprite);
+
+    // remove any other slash attacks from this player
+    std::vector<Attack>::iterator it = attacks.begin();
+    while (it != attacks.end()) {
+      Attack& att = (*it);
+      if (att.entity_weapon_owner_id == player_obj.id && att.weapon_type == Weapons::SHOVEL) {
+        it = attacks.erase(it);
+      } else {
+        ++it;
+      }
+    }
+    // Create a new slash with attack ID
+    // std::cout << "slash attack, attack id: " << a.id << std::endl;
+    Attack a = Attack(player_obj.id, weapon.id, Weapons::SHOVEL);
+    attacks.push_back(a);
   }
 
   if (lmb_slash_attack_time_left > 0.0f) {
@@ -320,9 +345,9 @@ ability_slash(fightingengine::Application& app,
     weapon.do_physics = false;
   }
 
-  glm::vec2 pos = player.pos;
-  pos.x += player.physics_size.x / 2.0f - weapon.physics_size.x / 2.0f;
-  pos.y += player.physics_size.y / 2.0f - weapon.physics_size.y / 2.0f;
+  glm::vec2 pos = player_obj.pos;
+  pos.x += player_obj.physics_size.x / 2.0f - weapon.physics_size.x / 2.0f;
+  pos.y += player_obj.physics_size.y / 2.0f - weapon.physics_size.y / 2.0f;
 
   if (attack_left_to_right)
     weapon_current_angle += weapon_angle_speed;
@@ -332,20 +357,20 @@ ability_slash(fightingengine::Application& app,
   // offset around center of circle
   glm::vec2 offset_pos =
     glm::vec2(weapon_radius * sin(weapon_current_angle), -weapon_radius * cos(weapon_current_angle));
-
   weapon.pos = pos + offset_pos;
 }
 
 void
-update_logic(fightingengine::Application& app,
-             GameObject2D& player,
-             const KeysAndState& keys,
-             std::vector<GameObject2D>& bullets,
-             const int tex_unit,
-             const glm::vec4 col,
-             const sprite::type sprite,
-             GameObject2D& weapon,
-             const float delta_time_s)
+update(fightingengine::Application& app,
+       GameObject2D& player,
+       const KeysAndState& keys,
+       std::vector<GameObject2D>& bullets,
+       const int tex_unit,
+       const glm::vec4 col,
+       const sprite::type sprite,
+       GameObject2D& weapon,
+       const float delta_time_s,
+       std::vector<Attack>& attacks)
 {
   // process input
   player.velocity.x = keys.l_analogue_x;
@@ -353,14 +378,15 @@ update_logic(fightingengine::Application& app,
   player.velocity *= player.speed_current;
 
   ability_boost(player, keys, delta_time_s);
-  if (false)
-    ability_shoot(app, player, keys, bullets, tex_unit, col, sprite, delta_time_s);
 
   gameobject::update_position(player, delta_time_s);
 
-  ability_slash(app, player, keys, weapon, delta_time_s);
+  if (player.equipped_weapon == Weapons::SHOVEL)
+    ability_slash(app, player, keys, weapon, delta_time_s, attacks);
+  if (player.equipped_weapon == Weapons::PISTOL)
+    ability_shoot(app, player, keys, bullets, tex_unit, col, sprite, delta_time_s, attacks);
 };
 
-} // namespace player
+}; // namespace player
 
-} // namespace game2d
+}; // namespace game2d

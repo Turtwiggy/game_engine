@@ -1,5 +1,8 @@
 #pragma once
 
+// c++ lib headers
+#include <vector>
+
 // other lib headers
 #include <glm/glm.hpp>
 
@@ -61,23 +64,18 @@ namespace player {
 void
 update_input(GameObject2D& obj, KeysAndState& keys, fightingengine::Application& app, GameObject2D& camera);
 
-// process input
-// ability: boost
-// look in mouse direction
-// shoot
-// update colour
 void
-update_logic(fightingengine::Application& app,
-             GameObject2D& player,
-             const KeysAndState& keys,
-             std::vector<GameObject2D>& bullets,
-             const int tex_unit,
-             const glm::vec4 col,
-             const sprite::type sprite,
-             GameObject2D& weapon,
-             const float delta_time_s);
+update(fightingengine::Application& app,
+       GameObject2D& player,
+       const KeysAndState& keys,
+       std::vector<GameObject2D>& bullets,
+       const int tex_unit,
+       const glm::vec4 col,
+       const sprite::type sprite,
+       GameObject2D& weapon,
+       const float delta_time_s,
+       std::vector<Attack>& attacks);
+
 }; // namespace player
 
-namespace ui {} // namespace ui
-
-} // namespace game2d
+}; // namespace game2d
