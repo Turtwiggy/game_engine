@@ -34,6 +34,7 @@ class AnimatedProfilerEntry
   double refresh_time = 0.0;
 
 public:
+  std::string name = "default";
   float scale_min = 0.0f;
   float scale_max = 50.0f;
 
@@ -59,7 +60,7 @@ public:
         average += values[n];
       average /= (float)IM_ARRAYSIZE(values);
       char overlay[32];
-      sprintf_s(overlay, "avg %f", average);
+      sprintf_s(overlay, "%s %f", name, average);
       ImGui::PlotLines(
         "Lines", values, IM_ARRAYSIZE(values), values_offset, overlay, scale_min, scale_max, ImVec2(0, 30.0f));
     }
@@ -78,38 +79,36 @@ draw(const Profiler& profiler, const float delta_time_s)
 
   ImGui::Begin("Profiler", NULL, ImGuiWindowFlags_NoFocusOnAppearing);
 
-  static AnimatedProfilerEntry framerate;
-  framerate.scale_max = 300.0f;
-  framerate.draw(ImGui::GetIO().Framerate);
-  ImGui::Text("%s %f ms", "Framerate: ", ImGui::GetIO().Framerate);
-  ImGui::Separator();
-
   float time = profiler.get_average_time(Profiler::Stage::SdlInput);
-  ImGui::Text("%s %f ms", profiler.stageNames[(uint8_t)Profiler::Stage::SdlInput].data(), (time));
-  ImGui::Separator();
+  static AnimatedProfilerEntry sdl_input;
+  sdl_input.draw(time);
+  sdl_input.name = std::string("sdl input");
+  // ImGui::Text("%s %f ms", profiler.stageNames[(uint8_t)Profiler::Stage::GuiLoop].data(), (time));
 
   time = profiler.get_average_time(Profiler::Stage::Physics);
   static AnimatedProfilerEntry physics;
   physics.draw(time);
-  ImGui::Text("%s %f ms", profiler.stageNames[(uint8_t)Profiler::Stage::Physics].data(), (time));
-  ImGui::Separator();
+  physics.name = std::string("physics");
 
   time = profiler.get_average_time(Profiler::Stage::GameTick);
   static AnimatedProfilerEntry game_tick;
   game_tick.draw(time);
-  ImGui::Text("%s %f ms", profiler.stageNames[(uint8_t)Profiler::Stage::GameTick].data(), (time));
-  ImGui::Separator();
+  game_tick.name = std::string("game tick");
 
   time = profiler.get_average_time(Profiler::Stage::Render);
   static AnimatedProfilerEntry render;
   render.draw(time);
-  ImGui::Text("%s %f ms", profiler.stageNames[(uint8_t)Profiler::Stage::Render].data(), (time));
+  render.name = std::string("render");
 
   time = profiler.get_average_time(Profiler::Stage::GuiLoop);
-  ImGui::Text("%s %f ms", profiler.stageNames[(uint8_t)Profiler::Stage::GuiLoop].data(), (time));
+  static AnimatedProfilerEntry gui;
+  gui.draw(time);
+  gui.name = std::string("gui");
 
   time = profiler.get_average_time(Profiler::Stage::FrameEnd);
-  ImGui::Text("%s %f ms", profiler.stageNames[(uint8_t)Profiler::Stage::FrameEnd].data(), (time));
+  static AnimatedProfilerEntry end;
+  end.draw(time);
+  end.name = std::string("frameend");
 
   time = profiler.get_average_time(Profiler::Stage::UpdateLoop);
   ImGui::Text("~~ %s %f ms ~~", profiler.stageNames[(uint8_t)Profiler::Stage::UpdateLoop].data(), (time));

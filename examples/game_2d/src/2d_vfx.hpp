@@ -20,7 +20,7 @@ namespace vfx {
 // vfx death "splat"
 void
 spawn_death_splat(fightingengine::RandomState& rnd,
-                  GameObject2D& enemy,
+                  const GameObject2D& enemy,
                   const sprite::type s,
                   const int tex_unit,
                   const glm::vec4 colour,
@@ -29,8 +29,8 @@ spawn_death_splat(fightingengine::RandomState& rnd,
 // vfx impact "splats"
 void
 spawn_impact_splats(fightingengine::RandomState& rnd,
-                    GameObject2D& enemy,
-                    GameObject2D& player,
+                    const GameObject2D& enemy,
+                    const GameObject2D& player,
                     const sprite::type s,
                     const int tex_unit,
                     const glm::vec4 colour,

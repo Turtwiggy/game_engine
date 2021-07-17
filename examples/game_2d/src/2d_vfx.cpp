@@ -8,7 +8,7 @@ namespace vfx {
 // vfx death "splat"
 void
 spawn_death_splat(fightingengine::RandomState& rnd,
-                  GameObject2D& enemy,
+                  const GameObject2D& enemy,
                   const sprite::type s,
                   const int tex_unit,
                   const glm::vec4 colour,
@@ -17,9 +17,11 @@ spawn_death_splat(fightingengine::RandomState& rnd,
   GameObject2D splat = gameobject::create_generic(s, tex_unit, colour);
   splat.do_lifecycle_timed = true;
   splat.time_alive_left = 30.0f; // long splat
+  splat.render_size = enemy.render_size;
+  splat.physics_size = splat.render_size;
 
   splat.pos = enemy.pos;
-  splat.angle_radians = fightingengine::rand_det_s(rnd.rng, 0.0f, fightingengine::PI);
+  splat.angle_radians = fightingengine::rand_det_s(rnd.rng, -fightingengine::PI, fightingengine::PI);
 
   if (enemy.hits_taken >= enemy.hits_able_to_be_taken) {
     ents.push_back(splat);
@@ -28,8 +30,8 @@ spawn_death_splat(fightingengine::RandomState& rnd,
 
 void
 spawn_impact_splats(fightingengine::RandomState& rnd,
-                    GameObject2D& enemy,
-                    GameObject2D& player,
+                    const GameObject2D& enemy,
+                    const GameObject2D& player,
                     const sprite::type s,
                     const int tex_unit,
                     const glm::vec4 colour,
@@ -43,7 +45,7 @@ spawn_impact_splats(fightingengine::RandomState& rnd,
   splat.colour = colour;
   splat.speed_default = 40.0f;
   splat.speed_current = splat.speed_default;
-  splat.physics_size = { 6.0f, 6.0f };
+  splat.physics_size = { 10.0f, 10.0f };
   splat.render_size = splat.physics_size;
 
   int amount_of_splats = 4;

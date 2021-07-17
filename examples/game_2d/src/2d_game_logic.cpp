@@ -87,8 +87,8 @@ float game_seconds_until_max_difficulty_spent = 0.0f;
 
 void
 update(std::vector<GameObject2D>& enemies,
-       GameObject2D& camera,
        std::vector<GameObject2D>& players,
+       const GameObject2D& camera,
        fightingengine::RandomState& rnd,
        const glm::ivec2 screen_wh,
        const float safe_radius_around_player,
@@ -294,8 +294,8 @@ ability_shoot(fightingengine::Application& app,
 
 // slash stats
 const float weapon_radius = 30.0f;
-const float lmb_slash_attack_time = 0.15f;
-float lmb_slash_attack_time_left = 0.0f;
+const float slash_attack_time = 0.15f;
+float slash_attack_time_left = 0.0f;
 float weapon_current_angle = 0.0f;
 float weapon_angle_speed = fightingengine::HALF_PI / 30.0f; // closer to 0 is faster
 bool attack_left_to_right = true;
@@ -309,7 +309,7 @@ ability_slash(fightingengine::Application& app,
               std::vector<Attack>& attacks)
 {
   if (app.get_input().get_mouse_lmb_down()) {
-    lmb_slash_attack_time_left = lmb_slash_attack_time;
+    slash_attack_time_left = slash_attack_time;
     attack_left_to_right = !attack_left_to_right; // keep swapping left to right to right to left etc
 
     if (attack_left_to_right)
@@ -336,8 +336,8 @@ ability_slash(fightingengine::Application& app,
     attacks.push_back(a);
   }
 
-  if (lmb_slash_attack_time_left > 0.0f) {
-    lmb_slash_attack_time_left -= delta_time_s;
+  if (slash_attack_time_left > 0.0f) {
+    slash_attack_time_left -= delta_time_s;
     weapon.do_render = true;
     weapon.do_physics = true;
   } else {
@@ -359,33 +359,6 @@ ability_slash(fightingengine::Application& app,
     glm::vec2(weapon_radius * sin(weapon_current_angle), -weapon_radius * cos(weapon_current_angle));
   weapon.pos = pos + offset_pos;
 }
-
-void
-update(fightingengine::Application& app,
-       GameObject2D& player,
-       const KeysAndState& keys,
-       std::vector<GameObject2D>& bullets,
-       const int tex_unit,
-       const glm::vec4 col,
-       const sprite::type sprite,
-       GameObject2D& weapon,
-       const float delta_time_s,
-       std::vector<Attack>& attacks)
-{
-  // process input
-  player.velocity.x = keys.l_analogue_x;
-  player.velocity.y = keys.l_analogue_y;
-  player.velocity *= player.speed_current;
-
-  ability_boost(player, keys, delta_time_s);
-
-  gameobject::update_position(player, delta_time_s);
-
-  if (player.equipped_weapon == Weapons::SHOVEL)
-    ability_slash(app, player, keys, weapon, delta_time_s, attacks);
-  if (player.equipped_weapon == Weapons::PISTOL)
-    ability_shoot(app, player, keys, bullets, tex_unit, col, sprite, delta_time_s, attacks);
-};
 
 }; // namespace player
 

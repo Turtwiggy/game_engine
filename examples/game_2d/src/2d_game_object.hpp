@@ -166,10 +166,13 @@ public:
   // game: shooting
   float bullet_seconds_between_spawning = 0.15f;
   float bullet_seconds_between_spawning_left = 0.0f;
+  int bullets_in_a_clip = 5;
+  int bullets_in_a_clip_left = bullets_in_a_clip;
+  float reload_time = 0.3f;
+  float reload_time_left = reload_time;
 
   // game: lifecycle timed
   float time_alive_left = 5.0f;
-  glm::vec4 flash_colour = glm::vec4(1.0f, 0.3f, 0.3f, 1.0f);
 
   // game: lifecycle health
   int hits_able_to_be_taken = 3;

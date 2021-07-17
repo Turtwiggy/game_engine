@@ -122,11 +122,11 @@ create_enemy(sprite::type sprite, int tex_slot, glm::vec4 colour, fightingengine
   game_object.speed_current = game_object.speed_default;
   // default
   game_object.collision_layer = CollisionLayer::Enemy;
-  game_object.name = "wall";
+  game_object.name = "enemy";
   game_object.angle_radians = 0.0;
   game_object.render_size = { 1.0f * 768.0f / 48.0f, 1.0f * 362.0f / 22.0f };
   game_object.physics_size = { 1.0f * 768.0f / 48.0f, 1.0f * 362.0f / 22.0f };
-  game_object.hits_able_to_be_taken = 2;
+  game_object.hits_able_to_be_taken = 1;
 
   // roll a dice for ai
   float rand = fightingengine::rand_det_s(rnd.rng, 0.0f, 1.0f);
@@ -134,11 +134,22 @@ create_enemy(sprite::type sprite, int tex_slot, glm::vec4 colour, fightingengine
     game_object.ai_priority_list.push_back(AiBehaviour::MOVEMENT_ARC_ANGLE);
     // locked between -89.9 and 89.9 as uses sin(theta), and after these values makes less sense
     game_object.approach_theta_degrees = fightingengine::rand_det_s(rnd.rng, -89.9f, 89.9f);
-    std::cout << "approach angle: " << game_object.approach_theta_degrees << std::endl;
+    // std::cout << "approach angle: " << game_object.approach_theta_degrees << std::endl;
   } else {
     game_object.ai_priority_list.push_back(AiBehaviour::MOVEMENT_DIRECT);
     game_object.approach_theta_degrees = 0.0f;
   }
+
+  // roll a dice for size
+  // float upper = 1.5f;
+  // rand = fightingengine::rand_det_s(rnd.rng, 0.8f, upper);
+  // game_object.render_size *= rand;
+  // game_object.physics_size = game_object.render_size;
+  // // increase speed
+  // game_object.speed_default *= 1.0f + (upper - rand);
+  // game_object.speed_current = game_object.speed_default;
+  // increase health
+  // game_object.hits_able_to_be_taken *= static_cast<int>(1.0f + (2.0f * rand));
 
   return game_object;
 };

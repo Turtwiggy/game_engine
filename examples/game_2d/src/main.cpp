@@ -51,7 +51,7 @@ SDL_Scancode debug_key_force_gameover = SDL_SCANCODE_F11;
 
 bool debug_advance_one_frame = false;
 bool debug_show_imgui_demo_window = false;
-bool debug_render_spritesheet = false;
+bool debug_render_spritesheet = true;
 bool debug_show_profiler = true;
 
 // textures
@@ -68,10 +68,10 @@ glm::vec4 background_colour = PALETTE_COLOUR_1_1;                          // bl
 glm::vec4 debug_line_colour = PALETTE_COLOUR_2_1;                          // blue
 glm::vec4 player_colour = PALETTE_COLOUR_2_1;                              // blue
 glm::vec4 bullet_colour = PALETTE_COLOUR_3_1;                              // lightblue
-glm::vec4 wall_colour = PALETTE_COLOUR_4_1;                                // grey
-glm::vec4 player_splat_colour = glm::vec4(0.95f, 0.3f, 0.3f, 1.0f);        // redish
+glm::vec4 enemy_colour = PALETTE_COLOUR_4_1;                               // grey
+glm::vec4 player_splat_colour = player_colour;                             // player col
 glm::vec4 enemy_death_splat_colour = glm::vec4(0.65f, 0.65f, 0.65f, 1.0f); // greyish
-glm::vec4 enemy_impact_splat_colour = glm::vec4(1.0f, 0.3f, 0.3f, 1.0f);   // redish
+glm::vec4 enemy_impact_splat_colour = glm::vec4(0.95f, 0.3f, 0.3f, 1.0f);  // redish
 
 sprite::type sprite_player = sprite::type::PERSON_1;
 sprite::type sprite_bullet = sprite::type::WEAPON_ARROW_1;
@@ -84,6 +84,13 @@ const float game_enemy_direct_attack_threshold = 4000.0f;
 float screenshake_time = 0.1f;
 float screenshake_time_left = 0.0f;
 float vfx_flash_time = 0.2f;
+
+enum class EditorMode
+{
+  EDITOR_PLACE_MODE,
+  EDITOR_SELECT_MODE,
+  PLAYER_ATTACK,
+};
 
 int
 main()
@@ -112,7 +119,7 @@ main()
   std::vector<std::pair<int, std::string>> textures_to_load;
   textures_to_load.emplace_back(tex_unit_kenny_nl,
                                 "assets/2d_game/textures/kennynl_1bit_pack/monochrome_transparent_packed.png");
-  textures_to_load.emplace_back(tex_tree, "assets/2d_game/textures/rpg/World/Bush.png");
+  textures_to_load.emplace_back(tex_tree, "assets/2d_game/textures/rpg/foliage_bush.png");
   load_textures_threaded(textures_to_load, app_start);
 
   // sound
@@ -166,15 +173,21 @@ main()
   std::vector<GameObject2D> entities_enemies;
   std::vector<GameObject2D> entities_bullets;
   std::vector<GameObject2D> entities_player;
-  std::vector<GameObject2D> entities_trees;
   std::vector<GameObject2D> entities_vfx;
   std::vector<KeysAndState> player_keys;
   std::vector<Attack> live_attacks;
+  EditorMode editor_left_click_mode = EditorMode::EDITOR_PLACE_MODE;
 
+  std::vector<GameObject2D> entities_trees;
+  std::vector<GameObject2D> entities_shops;
   int PHYSICS_GRID_SIZE = 100;
-  std::vector<std::reference_wrapper<GameObject2D>> physics_grid_refs;
+  // std::vector<std::reference_wrapper<GameObject2D>> physics_grid_refs;
   int GAME_GRID_SIZE = 32;
-  std::vector<std::reference_wrapper<GameObject2D>> game_grid_refs;
+  // std::vector<std::reference_wrapper<GameObject2D>> game_grid_refs;
+
+  int enemies_this_wave = 1;
+  int enemies_left_this_wave = enemies_this_wave;
+
   std::vector<CollisionEvent> collision_events;
 
   // add players
@@ -312,9 +325,34 @@ main()
         std::cout << "equipped: " << wep << std::endl;
       }
 
-      // glm::ivec2 mouse_pos = app.get_input().get_mouse_pos();
-      // printf("(game) mmb clicked %i %i \n", mouse_pos.x, mouse_pos.y);
-      // glm::vec2 world_pos = glm::vec2(mouse_pos) + camera.pos;
+      if (app.get_input().get_mouse_rmb_down()) {
+
+        if (editor_left_click_mode == EditorMode::PLAYER_ATTACK)
+          editor_left_click_mode = EditorMode::EDITOR_PLACE_MODE;
+        else if (editor_left_click_mode == EditorMode::EDITOR_PLACE_MODE)
+          editor_left_click_mode = EditorMode::EDITOR_SELECT_MODE;
+        else if (editor_left_click_mode == EditorMode::EDITOR_SELECT_MODE)
+          editor_left_click_mode = EditorMode::PLAYER_ATTACK;
+
+        auto mode = std::string(magic_enum::enum_name(editor_left_click_mode));
+        std::cout << "editor mode: " << mode << std::endl;
+      }
+
+      bool lmb_clicked = app.get_input().get_mouse_lmb_down();
+      if (lmb_clicked && editor_left_click_mode == EditorMode::EDITOR_PLACE_MODE) {
+
+        glm::ivec2 mouse_pos = app.get_input().get_mouse_pos();
+        printf("(game) clicked gamegrid %i %i \n", mouse_pos.x, mouse_pos.y);
+        glm::vec2 world_pos = glm::vec2(mouse_pos) + camera.pos;
+
+        GameObject2D tree = gameobject::create_tree(tex_unit_kenny_nl);
+        tree.pos = grid::convert_world_space_to_grid_space(world_pos, GAME_GRID_SIZE);
+        tree.pos = grid::convert_grid_space_to_worldspace(tree.pos, GAME_GRID_SIZE);
+        tree.render_size = glm::ivec2(GAME_GRID_SIZE);
+        tree.physics_size = glm::ivec2(GAME_GRID_SIZE);
+
+        entities_trees.push_back(tree);
+      }
 
       // Shader hot reloading
       // if (app.get_input().get_key_down(SDL_SCANCODE_R)) {
@@ -328,6 +366,7 @@ main()
     profiler.begin(Profiler::Stage::GameTick);
     {
       { // Resolve collision events
+
         for (auto& event : collision_events) {
 
           auto& coll_layer_0 = event.go0.collision_layer;
@@ -375,12 +414,6 @@ main()
                 enemy.attack_ids_taken_damage_from.push_back(attack.id);
                 enemy.flash_time_left = vfx_flash_time; // vfx: flash
 
-                // vfx dealthsplat
-                if (enemy.hits_taken >= enemy.hits_able_to_be_taken) {
-                  vfx::spawn_death_splat(
-                    rnd, enemy, sprite_splat, tex_unit_kenny_nl, enemy_death_splat_colour, entities_vfx);
-                }
-
                 // vfx impactsplat
                 vfx::spawn_impact_splats(
                   rnd, enemy, player, sprite_splat, tex_unit_kenny_nl, enemy_impact_splat_colour, entities_vfx);
@@ -407,12 +440,6 @@ main()
                 enemy.hits_taken += 1;
                 enemy.attack_ids_taken_damage_from.push_back(attack.id);
                 enemy.flash_time_left = vfx_flash_time; // vfx: flash
-
-                // vfx dealthsplat
-                if (enemy.hits_taken >= enemy.hits_able_to_be_taken) {
-                  vfx::spawn_death_splat(
-                    rnd, enemy, sprite_splat, tex_unit_kenny_nl, enemy_death_splat_colour, entities_vfx);
-                }
 
                 // vfx impactsplat
                 vfx::spawn_impact_splats(
@@ -456,16 +483,27 @@ main()
           GameObject2D& player = entities_player[i];
           KeysAndState& keys = player_keys[i];
 
-          player::update(app,
-                         player,
-                         keys,
-                         entities_bullets,
-                         tex_unit_kenny_nl,
-                         bullet_colour,
-                         sprite_bullet,
-                         weapon_base,
-                         delta_time_s,
-                         live_attacks);
+          player.velocity.x = keys.l_analogue_x;
+          player.velocity.y = keys.l_analogue_y;
+          player.velocity *= player.speed_current;
+
+          player::ability_boost(player, keys, delta_time_s);
+          gameobject::update_position(player, delta_time_s);
+
+          if (editor_left_click_mode == EditorMode::PLAYER_ATTACK) {
+            if (player.equipped_weapon == Weapons::SHOVEL)
+              player::ability_slash(app, player, keys, weapon_base, delta_time_s, live_attacks);
+            if (player.equipped_weapon == Weapons::PISTOL)
+              player::ability_shoot(app,
+                                    player,
+                                    keys,
+                                    entities_bullets,
+                                    tex_unit_kenny_nl,
+                                    bullet_colour,
+                                    sprite_bullet,
+                                    delta_time_s,
+                                    live_attacks);
+          }
 
           bool player_alive = player.invulnerable || player.hits_taken < player.hits_able_to_be_taken;
           if (!player_alive)
@@ -489,7 +527,7 @@ main()
         for (auto& obj : entities_player) {
           if (obj.flash_time_left > 0.0f) {
             obj.flash_time_left -= delta_time_s;
-            obj.colour = obj.flash_colour;
+            obj.colour = enemy_impact_splat_colour;
           } else {
             obj.colour = player_colour;
           }
@@ -497,9 +535,9 @@ main()
         for (auto& obj : entities_enemies) {
           if (obj.flash_time_left > 0.0f) {
             obj.flash_time_left -= delta_time_s;
-            obj.colour = obj.flash_colour;
+            obj.colour = enemy_impact_splat_colour;
           } else {
-            obj.colour = wall_colour;
+            obj.colour = enemy_colour;
           }
         }
 
@@ -551,13 +589,13 @@ main()
 
           //... and only spawn enemies if there is a player.
           enemy_spawner::update(entities_enemies,
-                                camera,
                                 entities_player,
+                                camera,
                                 rnd,
                                 screen_wh,
                                 game_safe_radius_around_player,
                                 tex_unit_kenny_nl,
-                                wall_colour,
+                                enemy_colour,
                                 sprite_enemy_core,
                                 delta_time_s);
 
@@ -591,6 +629,13 @@ main()
             ++it;
           }
 
+          // enemy has died
+          for (auto& enemy : entities_enemies) {
+            if (enemy.flag_for_delete) {
+              vfx::spawn_death_splat(rnd, enemy, enemy.sprite, tex_unit_kenny_nl, enemy.colour, entities_vfx);
+            }
+          }
+
           gameobject::erase_entities_that_are_flagged_for_delete(entities_enemies, delta_time_s);
           gameobject::erase_entities_that_are_flagged_for_delete(entities_bullets, delta_time_s);
           gameobject::erase_entities_that_are_flagged_for_delete(entities_vfx, delta_time_s);
@@ -609,9 +654,9 @@ main()
         if (state == GameRunning::ACTIVE || state == GameRunning::PAUSED || state == GameRunning::GAME_OVER) {
 
           std::vector<std::reference_wrapper<GameObject2D>> renderables;
+          renderables.insert(renderables.end(), entities_vfx.begin(), entities_vfx.end());
           renderables.insert(renderables.end(), entities_enemies.begin(), entities_enemies.end());
           renderables.insert(renderables.end(), entities_bullets.begin(), entities_bullets.end());
-          renderables.insert(renderables.end(), entities_vfx.begin(), entities_vfx.end());
           renderables.insert(renderables.end(), entities_player.begin(), entities_player.end());
           renderables.insert(renderables.end(), entities_trees.begin(), entities_trees.end());
           renderables.push_back(weapon_base);
@@ -628,14 +673,8 @@ main()
 
               for (auto& e : renderables) {
                 for (auto& c : e.get().in_physics_grid_cell) {
-                  ImGui::Text("%i E: %s x:%i y:%i ai:%i",
-                              e.get().id,
-                              e.get().name.c_str(),
-                              c.x,
-                              c.y,
-                              e.get().ai_priority_list.size());
+                  ImGui::Text("id: %i entity: %s in cell: x:%i y:%i", e.get().id, e.get().name.c_str(), c.x, c.y);
                 }
-                ImGui::Separator();
               }
             }
             ImGui::End();
@@ -668,6 +707,7 @@ main()
 
           // other sprites
 
+          instanced_quad_shader.bind();
           instanced_quad_shader.set_int("tex", tex_tree);
 
           for (auto& obj : entities_trees) {

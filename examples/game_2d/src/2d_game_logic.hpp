@@ -47,8 +47,8 @@ namespace enemy_spawner {
 // spawn a random enemy every X seconds
 void
 update(std::vector<GameObject2D>& enemies,
-       GameObject2D& camera,
        std::vector<GameObject2D>& players,
+       const GameObject2D& camera,
        fightingengine::RandomState& rnd,
        const glm::ivec2 screen_wh,
        const float safe_radius_around_player,
@@ -65,16 +65,26 @@ void
 update_input(GameObject2D& obj, KeysAndState& keys, fightingengine::Application& app, GameObject2D& camera);
 
 void
-update(fightingengine::Application& app,
-       GameObject2D& player,
-       const KeysAndState& keys,
-       std::vector<GameObject2D>& bullets,
-       const int tex_unit,
-       const glm::vec4 col,
-       const sprite::type sprite,
-       GameObject2D& weapon,
-       const float delta_time_s,
-       std::vector<Attack>& attacks);
+ability_boost(GameObject2D& player, const KeysAndState& keys, const float delta_time_s);
+
+void
+ability_slash(fightingengine::Application& app,
+              GameObject2D& player_obj,
+              const KeysAndState& keys,
+              GameObject2D& weapon,
+              float delta_time_s,
+              std::vector<Attack>& attacks);
+
+void
+ability_shoot(fightingengine::Application& app,
+              GameObject2D& player,
+              const KeysAndState& keys,
+              std::vector<GameObject2D>& bullets,
+              const int tex_unit,
+              const glm::vec4 bullet_col,
+              const sprite::type sprite,
+              const float delta_time_s,
+              std::vector<Attack>& attacks);
 
 }; // namespace player
 
