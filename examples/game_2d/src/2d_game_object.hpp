@@ -130,9 +130,9 @@ public:
   uint32_t id = 0;
 
   bool do_render = true;
+  bool do_physics = true;
   bool do_lifecycle_timed = false;
   bool do_lifecycle_health = true;
-  bool do_physics = true;
   bool flag_for_delete = false;
 
   // render

@@ -86,8 +86,17 @@ const float game_seconds_until_max_difficulty = 100.0f;
 float game_seconds_until_max_difficulty_spent = 0.0f;
 
 void
+next_wave(int& enemies_to_spawn_this_wave, int& enemies_to_spawn_this_wave_left)
+{
+  enemies_to_spawn_this_wave += 5;
+  enemies_to_spawn_this_wave_left = enemies_to_spawn_this_wave;
+  std::cout << "left: " << enemies_to_spawn_this_wave_left << std::endl;
+}
+
+void
 update(std::vector<GameObject2D>& enemies,
        std::vector<GameObject2D>& players,
+       int& enemies_to_spawn,
        const GameObject2D& camera,
        fightingengine::RandomState& rnd,
        const glm::ivec2 screen_wh,
@@ -140,12 +149,14 @@ update(std::vector<GameObject2D>& enemies,
     // std::cout << "enemy spawning " << distance_squared << " away from player" << std::endl;
     glm::vec2 world_pos = found_pos + camera.pos;
 
-    if (game_spawn_enemies) {
+    if (game_spawn_enemies && enemies_to_spawn > 0) {
       // spawn enemy
       GameObject2D wall_copy = gameobject::create_enemy(sprite, tex_unit, col, rnd);
       // override defaults
       wall_copy.pos = world_pos;
       enemies.push_back(wall_copy);
+
+      enemies_to_spawn -= 1;
     }
   }
 

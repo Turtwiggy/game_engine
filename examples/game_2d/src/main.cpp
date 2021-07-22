@@ -51,7 +51,7 @@ SDL_Scancode debug_key_force_gameover = SDL_SCANCODE_F11;
 
 bool debug_advance_one_frame = false;
 bool debug_show_imgui_demo_window = false;
-bool debug_render_spritesheet = true;
+bool debug_render_spritesheet = false;
 bool debug_show_profiler = true;
 
 // textures
@@ -79,17 +79,33 @@ sprite::type sprite_enemy_core = sprite::type::PERSON_2;
 sprite::type sprite_weapon_base = sprite::type::WEAPON_SHOVEL;
 sprite::type sprite_splat = sprite::type::CASTLE_FLOOR;
 
+const int PHYSICS_GRID_SIZE = 100; // todo: for optimizing sweep and prune algorithm
+
 const float game_safe_radius_around_player = 7500.0f;
 const float game_enemy_direct_attack_threshold = 4000.0f;
 float screenshake_time = 0.1f;
 float screenshake_time_left = 0.0f;
 float vfx_flash_time = 0.2f;
 
+int enemies_to_spawn_this_wave = 10;
+int enemies_to_spawn_this_wave_left = enemies_to_spawn_this_wave;
+int enemies_destroyed_this_wave = 0;
+
 enum class EditorMode
 {
   EDITOR_PLACE_MODE,
   EDITOR_SELECT_MODE,
   PLAYER_ATTACK,
+};
+enum class EntitiesToPlace
+{
+  TREE,
+  SHOP,
+};
+enum class GamePhase
+{
+  ATTACK,
+  SHOP,
 };
 
 int
@@ -176,17 +192,19 @@ main()
   std::vector<GameObject2D> entities_vfx;
   std::vector<KeysAndState> player_keys;
   std::vector<Attack> live_attacks;
-  EditorMode editor_left_click_mode = EditorMode::EDITOR_PLACE_MODE;
-
-  std::vector<GameObject2D> entities_trees;
-  std::vector<GameObject2D> entities_shops;
-  int PHYSICS_GRID_SIZE = 100;
-  // std::vector<std::reference_wrapper<GameObject2D>> physics_grid_refs;
-  int GAME_GRID_SIZE = 32;
-  // std::vector<std::reference_wrapper<GameObject2D>> game_grid_refs;
 
   int enemies_this_wave = 1;
   int enemies_left_this_wave = enemies_this_wave;
+  int enemies_killed = 0;
+  int current_due_to_enemies_killed = 0;
+
+  EditorMode editor_left_click_mode = EditorMode::PLAYER_ATTACK;
+  GamePhase game_phase = GamePhase::ATTACK;
+  int GAME_GRID_SIZE = 20;
+  std::vector<std::vector<std::reference_wrapper<GameObject2D>>> game_grid_refs;
+
+  std::vector<GameObject2D> entities_trees;
+  std::vector<GameObject2D> entities_shops;
 
   std::vector<CollisionEvent> collision_events;
 
@@ -458,6 +476,23 @@ main()
             ImGui::Text("You are standing at a tree. Cool!");
             ImGui::End();
           }
+
+          if ((coll_layer_0 == CollisionLayer::Obstacle && coll_layer_1 == CollisionLayer::Enemy) ||
+              (coll_layer_1 == CollisionLayer::Obstacle && coll_layer_0 == CollisionLayer::Enemy)) {
+            GameObject2D& obstacle = event.go0.collision_layer == CollisionLayer::Obstacle ? event.go0 : event.go1;
+            GameObject2D& enemy = event.go0.collision_layer == CollisionLayer::Obstacle ? event.go1 : event.go0;
+
+            // std::cout << "enemy taking damage from bullet attack ONCE!" << std::endl;
+            enemy.hits_taken += 1;
+            enemy.flash_time_left = vfx_flash_time;
+
+            obstacle.hits_taken += 1;
+            obstacle.flash_time_left = vfx_flash_time;
+
+            // vfx impactsplat
+            vfx::spawn_impact_splats(
+              rnd, enemy, obstacle, sprite_splat, tex_unit_kenny_nl, enemy_impact_splat_colour, entities_vfx);
+          }
         }
       }
 
@@ -556,7 +591,7 @@ main()
         // update: spawn enemies
 
         size_t players_in_game = entities_player.size();
-        if (players_in_game > 0) {
+        if (players_in_game > 0 && game_phase == GamePhase::ATTACK) {
 
           // for the moment, eat player 0
           GameObject2D player_to_chase = entities_player[0];
@@ -590,6 +625,7 @@ main()
           //... and only spawn enemies if there is a player.
           enemy_spawner::update(entities_enemies,
                                 entities_player,
+                                enemies_to_spawn_this_wave_left,
                                 camera,
                                 rnd,
                                 screen_wh,
@@ -603,10 +639,30 @@ main()
           camera::update(camera, player_keys[0], app, delta_time_s);
         }
 
+        // game: shop
+
+        if (game_phase == GamePhase::SHOP) {
+          ImGui::Begin("Humble Wares", NULL, ImGuiWindowFlags_NoFocusOnAppearing);
+
+          ImGui::Text("You have %i coin!", current_due_to_enemies_killed);
+
+          if (ImGui::Button("Drain your coin....")) {
+            current_due_to_enemies_killed -= 1;
+          }
+
+          if (ImGui::Button("Leave the shop, and never return! Or will you?")) {
+            std::cout << "clicked leave shop" << std::endl;
+            enemy_spawner::next_wave(enemies_to_spawn_this_wave, enemies_to_spawn_this_wave_left);
+            game_phase = GamePhase::ATTACK;
+          }
+          ImGui::End();
+        }
+
         { // object lifecycle
 
           gameobject::update_entities_lifecycle(entities_enemies, delta_time_s);
           gameobject::update_entities_lifecycle(entities_bullets, delta_time_s);
+          gameobject::update_entities_lifecycle(entities_trees, delta_time_s);
           gameobject::update_entities_lifecycle(entities_vfx, delta_time_s);
 
           // remove "attack" object before deleting "bullet" object (or any object that is cleaned up)
@@ -633,11 +689,19 @@ main()
           for (auto& enemy : entities_enemies) {
             if (enemy.flag_for_delete) {
               vfx::spawn_death_splat(rnd, enemy, enemy.sprite, tex_unit_kenny_nl, enemy.colour, entities_vfx);
+              enemies_destroyed_this_wave += 1;
+              enemies_killed += 1;
+              current_due_to_enemies_killed += 1;
             }
+          }
+
+          if (entities_enemies.size() == 0 && enemies_to_spawn_this_wave_left == 0) {
+            game_phase = GamePhase::SHOP;
           }
 
           gameobject::erase_entities_that_are_flagged_for_delete(entities_enemies, delta_time_s);
           gameobject::erase_entities_that_are_flagged_for_delete(entities_bullets, delta_time_s);
+          gameobject::erase_entities_that_are_flagged_for_delete(entities_trees, delta_time_s);
           gameobject::erase_entities_that_are_flagged_for_delete(entities_vfx, delta_time_s);
         }
       }

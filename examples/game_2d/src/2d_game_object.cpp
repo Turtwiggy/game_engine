@@ -140,17 +140,6 @@ create_enemy(sprite::type sprite, int tex_slot, glm::vec4 colour, fightingengine
     game_object.approach_theta_degrees = 0.0f;
   }
 
-  // roll a dice for size
-  // float upper = 1.5f;
-  // rand = fightingengine::rand_det_s(rnd.rng, 0.8f, upper);
-  // game_object.render_size *= rand;
-  // game_object.physics_size = game_object.render_size;
-  // // increase speed
-  // game_object.speed_default *= 1.0f + (upper - rand);
-  // game_object.speed_current = game_object.speed_default;
-  // increase health
-  // game_object.hits_able_to_be_taken *= static_cast<int>(1.0f + (2.0f * rand));
-
   return game_object;
 };
 
@@ -179,6 +168,7 @@ create_tree(int tex_slot)
   game_object.render_size = { 32.0f, 32.0f };
   game_object.physics_size = { 32.0f, 32.0f };
   game_object.colour = { 0.25f, 1.0f, 0.25f, 1.0f };
+  game_object.hits_able_to_be_taken = 1;
   return game_object;
 }
 
