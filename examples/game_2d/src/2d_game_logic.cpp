@@ -307,7 +307,7 @@ ability_shoot(fightingengine::Application& app,
 
   // Create an attack ID
   // std::cout << "bullet attack, attack id: " << a.id << std::endl;
-  Attack a = Attack(fire_from_this_entity.id, bullet_copy.id, Weapons::PISTOL);
+  Attack a = Attack(fire_from_this_entity.id, bullet_copy.id, ShopItem::PISTOL);
   attacks.push_back(a);
 };
 
@@ -343,7 +343,7 @@ ability_slash(fightingengine::Application& app,
     std::vector<Attack>::iterator it = attacks.begin();
     while (it != attacks.end()) {
       Attack& att = (*it);
-      if (att.entity_weapon_owner_id == player_obj.id && att.weapon_type == Weapons::SHOVEL) {
+      if (att.entity_weapon_owner_id == player_obj.id && att.weapon_type == ShopItem::SHOVEL) {
         it = attacks.erase(it);
       } else {
         ++it;
@@ -351,7 +351,7 @@ ability_slash(fightingengine::Application& app,
     }
     // Create a new slash with attack ID
     // std::cout << "slash attack, attack id: " << a.id << std::endl;
-    Attack a = Attack(player_obj.id, weapon.id, Weapons::SHOVEL);
+    Attack a = Attack(player_obj.id, weapon.id, ShopItem::SHOVEL);
     attacks.push_back(a);
   }
 
@@ -380,4 +380,57 @@ ability_slash(fightingengine::Application& app,
 }
 
 }; // namespace player
+
+namespace shop {
+
+std::map<ShopItem, ShopItemState>
+shop_initial_state()
+{
+  // configure shop
+  std::map<ShopItem, ShopItemState> shop;
+  {
+    {
+      ShopItemState i;
+      i.price = 10;
+      i.quantity = 1;
+      i.infinite_quantity = false;
+      shop[ShopItem::PISTOL] = i;
+    };
+    {
+      ShopItemState i;
+      i.price = 3;
+      i.infinite_quantity = true;
+      shop[ShopItem::PISTOL_AMMO] = i;
+    };
+    {
+      ShopItemState i;
+      i.price = 20;
+      i.quantity = 1;
+      i.infinite_quantity = false;
+      shop[ShopItem::SHOTGUN] = i;
+    };
+    {
+      ShopItemState i;
+      i.price = 6;
+      i.infinite_quantity = true;
+      shop[ShopItem::SHOTGUN_AMMO] = i;
+    };
+    {
+      ShopItemState i;
+      i.price = 40;
+      i.infinite_quantity = true;
+      shop[ShopItem::HEAL_HALF] = i;
+    };
+    {
+      ShopItemState i;
+      i.price = 80;
+      i.infinite_quantity = true;
+      shop[ShopItem::HEAL_FULL] = i;
+    };
+  };
+  return shop;
+}
+
+}; // namespace shop
+
 }; // namespace game2d

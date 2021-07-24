@@ -93,18 +93,6 @@ enum class GamePhase
   ATTACK,
   SHOP,
 };
-struct ShopItem
-{
-  bool free = false;
-  int price = 10;
-
-  bool infinite_quantity = false;
-  int quantity = 1;
-};
-struct ItemStats
-{
-  int damage = 0;
-};
 
 int
 main()
@@ -194,11 +182,11 @@ main()
   float pistol_radius_offset = 14.0f;
   bool pistol_infinite_ammo = false;
   int pistol_ammo = 20;
-  int shop_refil_pistol_ammo = 5;
+  int shop_refill_pistol_ammo = 5;
   float shotgun_radius_offset = 17.5f;
   bool shotgun_infinite_ammo = false;
   int shotgun_ammo = 20;
-  int shop_refil_shotgun_ammo = 5;
+  int shop_refill_shotgun_ammo = 5;
 
   // game objs
   GameObject2D tex_obj = gameobject::create_kennynl_texture(tex_unit_kenny_nl);
@@ -210,6 +198,7 @@ main()
   weapon_shovel.physics_size = { 1.0f * 768.0f / 48.0f, 1.0f * 362.0f / 22.0f };
   weapon_shovel.collision_layer = CollisionLayer::Weapon;
   weapon_shovel.colour = pistol_bullet_colour;
+  weapon_shovel.do_render = false;
   GameObject2D weapon_pistol;
   weapon_pistol.sprite = sprite_pistol;
   weapon_pistol.pos = { screen_wh.x / 2.0f, screen_wh.y / 2.0f };
@@ -227,16 +216,17 @@ main()
   weapon_shotgun.colour = pistol_bullet_colour;
   weapon_shotgun.do_render = false;
 
+  std::vector<Attack> attacks;
   std::vector<CollisionEvent> collision_events;
-  std::vector<Attack> live_attacks;
-  std::vector<KeysAndState> player_keys;
   std::vector<GameObject2D> entities_bullets;
   std::vector<GameObject2D> entities_enemies;
   std::vector<GameObject2D> entities_player;
   std::vector<GameObject2D> entities_shops;
   std::vector<GameObject2D> entities_trees;
   std::vector<GameObject2D> entities_vfx;
-  std::vector<std::vector<Weapons>> player_inventories;
+  std::vector<KeysAndState> player_keys;
+  std::vector<std::vector<ShopItem>> player_inventories;
+  std::map<ShopItem, shop::ShopItemState> shop = shop::shop_initial_state();
 
   // add players
   {
@@ -247,63 +237,12 @@ main()
     p0_keys.use_keyboard = true;
     player_keys.push_back(p0_keys);
     // player 0 default weapons
-    std::vector<Weapons> p0_inventory = std::vector<Weapons>();
-    p0_inventory.push_back(Weapons::SHOVEL);
+    std::vector<ShopItem> p0_inventory = std::vector<ShopItem>();
+    p0_inventory.push_back(ShopItem::SHOVEL);
     player_inventories.push_back(p0_inventory);
     // set p0 weapon
     entities_player[0].equipped_item_index = 0;
   }
-
-  // configure shop
-  std::map<Weapons, ShopItem> shop;
-  {
-    {
-      ShopItem i;
-      i.price = 10;
-      i.quantity = 1;
-      i.infinite_quantity = false;
-      shop[Weapons::PISTOL] = i;
-    };
-    {
-      ShopItem i;
-      i.price = 3;
-      i.infinite_quantity = true;
-      shop[Weapons::PISTOL_AMMO] = i;
-    };
-    {
-      ShopItem i;
-      i.price = 20;
-      i.quantity = 1;
-      i.infinite_quantity = false;
-      shop[Weapons::SHOTGUN] = i;
-    };
-    {
-      ShopItem i;
-      i.price = 6;
-      i.infinite_quantity = true;
-      shop[Weapons::SHOTGUN_AMMO] = i;
-    };
-  };
-
-  // configure item stats
-  std::map<Weapons, ItemStats> weapons;
-  {
-    {
-      ItemStats w;
-      w.damage = 50;
-      weapons[Weapons::SHOVEL] = w;
-    };
-    {
-      ItemStats w;
-      w.damage = 50;
-      weapons[Weapons::PISTOL] = w;
-    };
-    {
-      ItemStats w;
-      w.damage = 50;
-      weapons[Weapons::SHOTGUN] = w;
-    };
-  };
 
   std::cout << "GameObject2D is " << sizeof(GameObject2D) << " bytes" << std::endl;
 
@@ -423,7 +362,7 @@ main()
         if (positive_direction)
           cur_item_index = (cur_item_index + 1) % p0_inventory.size();
         else if (cur_item_index == 0)
-          cur_item_index = p0_inventory.size() - 1;
+          cur_item_index = static_cast<int>(p0_inventory.size() - 1);
         else
           cur_item_index = (cur_item_index - 1) % p0_inventory.size();
 
@@ -506,9 +445,9 @@ main()
             GameObject2D& weapon = event.go0.collision_layer == CollisionLayer::Enemy ? event.go1 : event.go0;
             GameObject2D& player = entities_player[0]; // hack: use player 0 for the moment
 
-            for (auto& attack : live_attacks) {
+            for (auto& attack : attacks) {
 
-              bool is_shovel = attack.weapon_type == Weapons::SHOVEL;
+              bool is_shovel = attack.weapon_type == ShopItem::SHOVEL;
               bool collision_with_specific_shovel_attack = weapon.id == attack.entity_weapon_id;
               bool taken_damage_from_shovel = std::find(enemy.attack_ids_taken_damage_from.begin(),
                                                         enemy.attack_ids_taken_damage_from.end(),
@@ -533,9 +472,9 @@ main()
             GameObject2D& enemy = event.go0.collision_layer == CollisionLayer::Bullet ? event.go1 : event.go0;
             GameObject2D& player = entities_player[0]; // hack: use player 0 for the moment
 
-            for (auto& attack : live_attacks) {
+            for (auto& attack : attacks) {
 
-              bool is_bullet = attack.weapon_type == Weapons::PISTOL;
+              bool is_bullet = attack.weapon_type == ShopItem::PISTOL;
               bool collision_with_specific_bullet = bullet.id == attack.entity_weapon_id;
               bool taken_damage_from_bullet = std::find(enemy.attack_ids_taken_damage_from.begin(),
                                                         enemy.attack_ids_taken_damage_from.end(),
@@ -620,12 +559,12 @@ main()
             weapon_pistol.do_render = false;
             weapon_shotgun.do_render = false;
 
-            if (player_inventory[player.equipped_item_index] == Weapons::SHOVEL) {
+            if (player_inventory[player.equipped_item_index] == ShopItem::SHOVEL) {
               weapon_shovel.do_render = true;
-              player::ability_slash(app, player, keys, weapon_shovel, delta_time_s, live_attacks);
+              player::ability_slash(app, player, keys, weapon_shovel, delta_time_s, attacks);
             }
 
-            if (player_inventory[player.equipped_item_index] == Weapons::PISTOL) {
+            if (player_inventory[player.equipped_item_index] == ShopItem::PISTOL) {
               weapon_pistol.do_render = true;
               float angle_around_player = keys.angle_around_player;
               glm::vec2 offset = glm::vec2(pistol_radius_offset * sin(angle_around_player),
@@ -645,11 +584,11 @@ main()
                                       pistol_bullet_colour,
                                       sprite_bullet,
                                       delta_time_s,
-                                      live_attacks);
+                                      attacks);
               }
             }
 
-            if (player_inventory[player.equipped_item_index] == Weapons::SHOTGUN) {
+            if (player_inventory[player.equipped_item_index] == ShopItem::SHOTGUN) {
               weapon_shotgun.do_render = true;
               float angle_around_player = keys.angle_around_player;
               glm::vec2 offset = glm::vec2(shotgun_radius_offset * sin(angle_around_player),
@@ -668,7 +607,7 @@ main()
                                       shotgun_bullet_colour,
                                       sprite_bullet,
                                       delta_time_s,
-                                      live_attacks);
+                                      attacks);
               }
             }
           }
@@ -779,35 +718,51 @@ main()
           ImGui::Begin("Humble Wares", NULL, ImGuiWindowFlags_NoFocusOnAppearing);
           ImGui::Text("You have %i coin!", currency_due_to_enemies_killed);
 
-          if (ImGui::Button("Drain your coin...."))
+          if (ImGui::Button("Drain your coin..."))
             currency_due_to_enemies_killed -= 1;
 
           for (auto& shop_item : shop) {
 
             std::string wep = std::string(magic_enum::enum_name(shop_item.first));
 
-            if (currency_due_to_enemies_killed >= shop_item.second.price && shop_item.second.quantity > 0) {
+            bool able_to_buy =
+              currency_due_to_enemies_killed >= shop_item.second.price && shop_item.second.quantity > 0;
+            if (able_to_buy) {
               std::string buy_button_label = "Buy ##" + wep;
-              if (ImGui::Button(buy_button_label.c_str())) {
+              bool buy_button_clicked = ImGui::Button(buy_button_label.c_str());
+              if (buy_button_clicked) {
                 std::cout << "buy: " << wep << " clicked" << std::endl;
 
-                // reduce item quantity, if not infinite
+                // reduce item quantity if not infinite
                 if (!shop_item.second.infinite_quantity)
                   shop_item.second.quantity -= 1;
 
                 // spend hard earned cash
                 currency_due_to_enemies_killed -= shop_item.second.price;
 
-                if (shop_item.first == Weapons::PISTOL || shop_item.first == Weapons::SHOTGUN) {
-                  // hack: use player 0 for the moment
-                  std::vector<Weapons>& player_inv = player_inventories[0];
-                  player_inv.push_back(shop_item.first);
-                }
-                if (shop_item.first == Weapons::PISTOL_AMMO) {
-                  pistol_ammo += shop_refil_pistol_ammo;
-                }
-                if (shop_item.first == Weapons::SHOTGUN_AMMO) {
-                  shotgun_ammo += shop_refil_shotgun_ammo;
+                // shop logic
+                {
+                  if (shop_item.first == ShopItem::PISTOL || shop_item.first == ShopItem::SHOTGUN) {
+                    // hack: use player 0 for the moment
+                    std::vector<ShopItem>& player_inv = player_inventories[0];
+                    player_inv.push_back(shop_item.first);
+                  }
+                  if (shop_item.first == ShopItem::PISTOL_AMMO) {
+                    pistol_ammo += shop_refill_pistol_ammo;
+                  }
+                  if (shop_item.first == ShopItem::SHOTGUN_AMMO) {
+                    shotgun_ammo += shop_refill_shotgun_ammo;
+                  }
+                  if (shop_item.first == ShopItem::HEAL_HALF) {
+                    GameObject2D& p0 = entities_player[0];
+                    p0.damage_taken -= static_cast<int>(p0.damage_able_to_be_taken / 2);
+                    if (p0.damage_taken < 0)
+                      p0.damage_taken = 0;
+                  }
+                  if (shop_item.first == ShopItem::HEAL_FULL) {
+                    GameObject2D& p0 = entities_player[0];
+                    p0.damage_taken = 0;
+                  }
                 }
               }
               ImGui::SameLine();
@@ -833,18 +788,18 @@ main()
 
           // remove "attack" object before deleting "bullet" object (or any object that is cleaned up)
           // e.g when deleting "player" (in the future)
-          std::vector<Attack>::iterator it = live_attacks.begin();
-          while (it != live_attacks.end()) {
+          std::vector<Attack>::iterator it = attacks.begin();
+          while (it != attacks.end()) {
             const Attack& attack = (*it);
             int id = attack.entity_weapon_id;
 
-            if (attack.weapon_type == Weapons::PISTOL) {
+            if (attack.weapon_type == ShopItem::PISTOL) {
               const auto& bullet = std::find_if(
                 entities_bullets.begin(), entities_bullets.end(), [&id](const auto& obj) { return obj.id == id; });
 
               if (bullet != entities_bullets.end() && bullet->flag_for_delete) {
                 // remove the attack object
-                it = live_attacks.erase(it);
+                it = attacks.erase(it);
                 continue;
               }
             }
@@ -900,7 +855,7 @@ main()
               ImGui::Text("Bullets: %i", entities_bullets.size());
               ImGui::Text("Enemies: %i", entities_enemies.size());
               ImGui::Text("Vfx: %i", entities_vfx.size());
-              ImGui::Text("Attacks: %i", live_attacks.size());
+              ImGui::Text("Attacks: %i", attacks.size());
               ImGui::Separator();
 
               for (auto& e : renderables) {
@@ -1050,7 +1005,7 @@ main()
         auto& p0 = entities_player[0];
         auto& p0_inventory = player_inventories[0];
         for (int i = 0; i < p0_inventory.size(); i++) {
-          Weapons w = p0_inventory[i];
+          ShopItem w = p0_inventory[i];
           std::string wep = std::string(magic_enum::enum_name(w));
 
           std::string label = std::string("Weapon: ") + wep;

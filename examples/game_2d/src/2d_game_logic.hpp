@@ -93,4 +93,20 @@ ability_shoot(fightingengine::Application& app,
 
 }; // namespace player
 
+namespace shop {
+
+struct ShopItemState
+{
+  bool free = false;
+  int price = 10;
+
+  bool infinite_quantity = false;
+  int quantity = 1;
+};
+
+std::map<ShopItem, ShopItemState>
+shop_initial_state();
+
+} // namespace shop
+
 }; // namespace game2d

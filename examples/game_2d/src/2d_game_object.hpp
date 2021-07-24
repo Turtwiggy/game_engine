@@ -26,16 +26,14 @@ enum class CollisionLayer
 
   Count = 6
 };
-enum class EntitiesToPlace
+// A "PlaceableEntity" can be placed on the grid
+enum class PlaceableEntity
 {
   TREE = 0,
   SHOP = 1,
-  TURRETS = 2,
-  BARRICADES = 3,
-
-  COUNT = 4
 };
-enum class Weapons
+// A "ShopItem" is purchasable in the shop
+enum class ShopItem
 {
   SHOVEL = 0,
   PISTOL = 1,
@@ -44,6 +42,10 @@ enum class Weapons
   SHOTGUN_AMMO = 4,
   MACHINE_GUN = 5,
   MACHINE_GUN_AMMO = 6,
+  TURRET = 7,
+  BARRICADE = 8,
+  HEAL_HALF = 9,
+  HEAL_FULL = 10,
 };
 
 static const std::vector<bool> GAME_COLL_MATRIX = {
@@ -87,9 +89,9 @@ public:
 
   int entity_weapon_owner_id; // player or enemy
   int entity_weapon_id;
-  Weapons weapon_type;
+  ShopItem weapon_type;
 
-  Attack(int parent, int weapon, Weapons type)
+  Attack(int parent, int weapon, ShopItem type)
     : entity_weapon_owner_id(parent)
     , entity_weapon_id(weapon)
     , weapon_type(type)
