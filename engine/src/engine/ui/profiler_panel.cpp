@@ -60,7 +60,7 @@ public:
         average += values[n];
       average /= (float)IM_ARRAYSIZE(values);
       char overlay[32];
-      sprintf_s(overlay, "%s %f", name, average);
+      sprintf_s(overlay, "%s %f", name.c_str(), average);
       ImGui::PlotLines(
         "Lines", values, IM_ARRAYSIZE(values), values_offset, overlay, scale_min, scale_max, ImVec2(0, 30.0f));
     }

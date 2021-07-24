@@ -19,11 +19,10 @@ spawn_death_splat(fightingengine::RandomState& rnd,
   splat.time_alive_left = 30.0f; // long splat
   splat.render_size = enemy.render_size;
   splat.physics_size = splat.render_size;
-
   splat.pos = enemy.pos;
   splat.angle_radians = fightingengine::rand_det_s(rnd.rng, -fightingengine::PI, fightingengine::PI);
 
-  if (enemy.hits_taken >= enemy.hits_able_to_be_taken) {
+  if (enemy.damage_taken >= enemy.damage_able_to_be_taken) {
     ents.push_back(splat);
   }
 }

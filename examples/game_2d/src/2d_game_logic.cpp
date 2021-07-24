@@ -86,8 +86,17 @@ const float game_seconds_until_max_difficulty = 100.0f;
 float game_seconds_until_max_difficulty_spent = 0.0f;
 
 void
+next_wave(int& enemies_to_spawn_this_wave, int& enemies_to_spawn_this_wave_left)
+{
+  enemies_to_spawn_this_wave += 5;
+  enemies_to_spawn_this_wave_left = enemies_to_spawn_this_wave;
+  std::cout << "left: " << enemies_to_spawn_this_wave_left << std::endl;
+}
+
+void
 update(std::vector<GameObject2D>& enemies,
        std::vector<GameObject2D>& players,
+       int& enemies_to_spawn,
        const GameObject2D& camera,
        fightingengine::RandomState& rnd,
        const glm::ivec2 screen_wh,
@@ -140,12 +149,14 @@ update(std::vector<GameObject2D>& enemies,
     // std::cout << "enemy spawning " << distance_squared << " away from player" << std::endl;
     glm::vec2 world_pos = found_pos + camera.pos;
 
-    if (game_spawn_enemies) {
+    if (game_spawn_enemies && enemies_to_spawn > 0) {
       // spawn enemy
       GameObject2D wall_copy = gameobject::create_enemy(sprite, tex_unit, col, rnd);
       // override defaults
       wall_copy.pos = world_pos;
       enemies.push_back(wall_copy);
+
+      enemies_to_spawn -= 1;
     }
   }
 
@@ -169,9 +180,13 @@ update_input(GameObject2D& obj, KeysAndState& keys, fightingengine::Application&
   keys.l_analogue_y = 0.0f;
   keys.r_analogue_x = 0.0f;
   keys.r_analogue_y = 0.0f;
-  keys.shoot_pressed = false;
-  keys.boost_pressed = false;
-  keys.pause_pressed = false;
+
+  keys.shoot_down = false;
+  keys.shoot_held = false;
+  keys.boost_down = false;
+  keys.boost_held = false;
+  keys.pause_down = false;
+  keys.pause_held = false;
 
   // Keymaps: keyboard
   if (keys.use_keyboard) {
@@ -191,9 +206,12 @@ update_input(GameObject2D& obj, KeysAndState& keys, fightingengine::Application&
       keys.l_analogue_x = 0.0f;
     }
 
-    keys.shoot_pressed = app.get_input().get_mouse_lmb_held();
-    keys.boost_pressed = app.get_input().get_key_held(keys.key_boost);
-    keys.pause_pressed = app.get_input().get_key_down(keys.key_pause);
+    keys.shoot_down = app.get_input().get_mouse_lmb_down();
+    keys.shoot_held = app.get_input().get_mouse_lmb_held();
+    keys.boost_down = app.get_input().get_key_down(keys.key_boost);
+    keys.boost_held = app.get_input().get_key_held(keys.key_boost);
+    keys.pause_down = app.get_input().get_key_down(keys.key_pause);
+    keys.pause_held = app.get_input().get_key_held(keys.key_pause);
 
     glm::vec2 player_world_space_pos = gameobject_in_worldspace(camera, obj);
     float mouse_angle_around_player = atan2(app.get_input().get_mouse_pos().y - player_world_space_pos.y,
@@ -206,7 +224,7 @@ update_input(GameObject2D& obj, KeysAndState& keys, fightingengine::Application&
     float y_axis = -glm::cos(mouse_angle_around_player);
     keys.r_analogue_x = x_axis;
     keys.r_analogue_y = y_axis;
-  }
+  };
 
   // }
   // // Keymaps: Controller
@@ -230,7 +248,7 @@ update_input(GameObject2D& obj, KeysAndState& keys, fightingengine::Application&
 void
 ability_boost(GameObject2D& player, const KeysAndState& keys, const float delta_time_s)
 {
-  if (keys.boost_pressed) {
+  if (keys.boost_held) {
     // Boost when shift pressed
     player.shift_boost_time_left -= delta_time_s;
     player.shift_boost_time_left = player.shift_boost_time_left < 0.0f ? 0.0f : player.shift_boost_time_left;
@@ -242,14 +260,14 @@ ability_boost(GameObject2D& player, const KeysAndState& keys, const float delta_
       player.shift_boost_time_left > player.shift_boost_time ? player.shift_boost_time : player.shift_boost_time_left;
   }
 
-  if (keys.boost_pressed && player.shift_boost_time_left > 0.0f) {
+  if (keys.boost_held && player.shift_boost_time_left > 0.0f) {
     player.velocity *= player.velocity_boost_modifier;
   }
-}
+};
 
 void
 ability_shoot(fightingengine::Application& app,
-              GameObject2D& player,
+              GameObject2D& fire_from_this_entity,
               const KeysAndState& keys,
               std::vector<GameObject2D>& bullets,
               const int tex_unit,
@@ -261,36 +279,35 @@ ability_shoot(fightingengine::Application& app,
   // Ability: Shoot
   // if (keys.shoot_pressed)
   //   obj.bullets_to_fire_after_releasing_mouse_left = obj.bullets_to_fire_after_releasing_mouse;
-  if (player.bullet_seconds_between_spawning_left > 0.0f)
-    player.bullet_seconds_between_spawning_left -= delta_time_s;
 
-  if (player.bullet_seconds_between_spawning_left <= 0.0f || app.get_input().get_mouse_lmb_down()) {
-    player.bullet_seconds_between_spawning_left = player.bullet_seconds_between_spawning;
-    // obj.bullets_to_fire_after_releasing_mouse_left -= 1;
-    // obj.bullets_to_fire_after_releasing_mouse_left =
-    //   obj.bullets_to_fire_after_releasing_mouse_left < 0 ? 0 : obj.bullets_to_fire_after_releasing_mouse_left;
+  // timed bullets
+  // if (player.bullet_seconds_between_spawning_left > 0.0f)
+  //   player.bullet_seconds_between_spawning_left -= delta_time_s;
+  // if (player.bullet_seconds_between_spawning_left <= 0.0f || app.get_input().get_mouse_lmb_down())
+  //   player.bullet_seconds_between_spawning_left = player.bullet_seconds_between_spawning;
 
-    // spawn bullet
+  if (!app.get_input().get_mouse_lmb_down())
+    return;
 
-    GameObject2D bullet_copy = gameobject::create_bullet(sprite, tex_unit, bullet_col);
-    // override defaults
-    // fix offset issue so bullet spawns in middle of player
-    glm::vec2 bullet_pos = player.pos;
-    bullet_pos.x += player.physics_size.x / 2.0f - bullet_copy.physics_size.x / 2.0f;
-    bullet_pos.y += player.physics_size.y / 2.0f - bullet_copy.physics_size.y / 2.0f;
-    bullet_copy.pos = bullet_pos;
-    // convert right analogue input to velocity
-    bullet_copy.velocity.x = keys.r_analogue_x * bullet_copy.speed_current;
-    bullet_copy.velocity.y = keys.r_analogue_y * bullet_copy.speed_current;
+  // lmb click bullets
 
-    bullets.push_back(bullet_copy);
+  // spawn bullet
+  GameObject2D bullet_copy = gameobject::create_bullet(sprite, tex_unit, bullet_col);
+  // fix offset issue so bullet spawns in middle of player
+  glm::vec2 bullet_pos = fire_from_this_entity.pos;
+  bullet_pos.x += fire_from_this_entity.physics_size.x / 2.0f - bullet_copy.physics_size.x / 2.0f;
+  bullet_pos.y += fire_from_this_entity.physics_size.y / 2.0f - bullet_copy.physics_size.y / 2.0f;
+  bullet_copy.pos = bullet_pos;
+  // convert right analogue input to velocity
+  bullet_copy.velocity.x = keys.r_analogue_x * bullet_copy.speed_current;
+  bullet_copy.velocity.y = keys.r_analogue_y * bullet_copy.speed_current;
+  bullets.push_back(bullet_copy);
 
-    // Create an attack ID
-    // std::cout << "bullet attack, attack id: " << a.id << std::endl;
-    Attack a = Attack(player.id, bullet_copy.id, Weapons::PISTOL);
-    attacks.push_back(a);
-  }
-}
+  // Create an attack ID
+  // std::cout << "bullet attack, attack id: " << a.id << std::endl;
+  Attack a = Attack(fire_from_this_entity.id, bullet_copy.id, Weapons::PISTOL);
+  attacks.push_back(a);
+};
 
 // slash stats
 const float weapon_radius = 30.0f;
@@ -361,5 +378,4 @@ ability_slash(fightingengine::Application& app,
 }
 
 }; // namespace player
-
 }; // namespace game2d

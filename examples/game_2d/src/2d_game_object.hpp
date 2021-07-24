@@ -10,6 +10,11 @@
 
 namespace game2d {
 
+enum class AiBehaviour
+{
+  MOVEMENT_DIRECT,
+  MOVEMENT_ARC_ANGLE,
+};
 enum class CollisionLayer
 {
   NoCollision = 0,
@@ -20,6 +25,25 @@ enum class CollisionLayer
   Weapon = 5,
 
   Count = 6
+};
+enum class EntitiesToPlace
+{
+  TREE = 0,
+  SHOP = 1,
+  TURRETS = 2,
+  BARRICADES = 3,
+
+  COUNT = 4
+};
+enum class Weapons
+{
+  SHOVEL = 0,
+  PISTOL = 1,
+  PISTOL_AMMO = 2,
+  SHOTGUN = 3,
+  SHOTGUN_AMMO = 4,
+  MACHINE_GUN = 5,
+  MACHINE_GUN_AMMO = 6,
 };
 
 static const std::vector<bool> GAME_COLL_MATRIX = {
@@ -51,48 +75,6 @@ static const std::vector<bool> GAME_COLL_MATRIX = {
   false, // Weapon_Weapon_5_5
 };
 
-struct KeysAndState
-{
-  bool use_keyboard = false;
-
-  // keyboard
-  SDL_Scancode w = SDL_SCANCODE_W;
-  SDL_Scancode s = SDL_SCANCODE_S;
-  SDL_Scancode a = SDL_SCANCODE_A;
-  SDL_Scancode d = SDL_SCANCODE_D;
-  SDL_Scancode key_boost = SDL_SCANCODE_LSHIFT;
-  SDL_Scancode key_pause = SDL_SCANCODE_P;
-  SDL_Scancode key_camera_up = SDL_SCANCODE_UP;
-  SDL_Scancode key_camera_down = SDL_SCANCODE_DOWN;
-  SDL_Scancode key_camera_left = SDL_SCANCODE_LEFT;
-  SDL_Scancode key_camera_right = SDL_SCANCODE_RIGHT;
-  SDL_Scancode key_camera_follow_player = SDL_SCANCODE_Q;
-
-  // controller
-  float l_analogue_x = 0.0f;
-  float l_analogue_y = 0.0f;
-  float r_analogue_x = 0.0f;
-  float r_analogue_y = 0.0f;
-
-  // common
-  float angle_around_player = 0.0f;
-  bool pause_pressed = false;
-  bool shoot_pressed = false;
-  bool boost_pressed = false;
-};
-
-enum class AiBehaviour
-{
-  MOVEMENT_DIRECT,
-  MOVEMENT_ARC_ANGLE,
-};
-
-enum class Weapons
-{
-  PISTOL,
-  SHOVEL,
-};
-
 // An "Attack" is basically a limiter that prevents collisions
 // applying damage on every frame. This could end up being super weird.
 struct Attack
@@ -120,7 +102,6 @@ public:
 // If this game ever has more than 1 million entities,
 // reconsider this structure. Until then, lets gooooo.
 //
-
 struct GameObject2D
 {
 private:
@@ -130,9 +111,9 @@ public:
   uint32_t id = 0;
 
   bool do_render = true;
+  bool do_physics = true;
   bool do_lifecycle_timed = false;
   bool do_lifecycle_health = true;
-  bool do_physics = true;
   bool flag_for_delete = false;
 
   // render
@@ -160,8 +141,8 @@ public:
   std::vector<AiBehaviour> ai_priority_list;
   float approach_theta_degrees = 0.0f;
 
-  // game: equipment
-  Weapons equipped_weapon = Weapons::SHOVEL;
+  // game: inventory
+  int equipped_item_index = 0;
 
   // game: shooting
   float bullet_seconds_between_spawning = 0.15f;
@@ -175,8 +156,8 @@ public:
   float time_alive_left = 5.0f;
 
   // game: lifecycle health
-  int hits_able_to_be_taken = 3;
-  int hits_taken = 0;
+  int damage_able_to_be_taken = 100;
+  int damage_taken = 0;
   bool invulnerable = false;
   std::vector<int> attack_ids_taken_damage_from;
 
@@ -187,6 +168,39 @@ public:
   std::string name = "DEFAULT";
 
   GameObject2D() { id = ++GameObject2D::global_int_counter; }
+};
+
+struct KeysAndState
+{
+  bool use_keyboard = false;
+
+  // keyboard
+  SDL_Scancode w = SDL_SCANCODE_W;
+  SDL_Scancode s = SDL_SCANCODE_S;
+  SDL_Scancode a = SDL_SCANCODE_A;
+  SDL_Scancode d = SDL_SCANCODE_D;
+  SDL_Scancode key_boost = SDL_SCANCODE_LSHIFT;
+  SDL_Scancode key_pause = SDL_SCANCODE_P;
+  SDL_Scancode key_camera_up = SDL_SCANCODE_UP;
+  SDL_Scancode key_camera_down = SDL_SCANCODE_DOWN;
+  SDL_Scancode key_camera_left = SDL_SCANCODE_LEFT;
+  SDL_Scancode key_camera_right = SDL_SCANCODE_RIGHT;
+  SDL_Scancode key_camera_follow_player = SDL_SCANCODE_Q;
+
+  // controller
+  float l_analogue_x = 0.0f;
+  float l_analogue_y = 0.0f;
+  float r_analogue_x = 0.0f;
+  float r_analogue_y = 0.0f;
+
+  // common
+  float angle_around_player = 0.0f;
+  bool pause_held = false;
+  bool pause_down = false;
+  bool shoot_held = false;
+  bool shoot_down = false;
+  bool boost_held = false;
+  bool boost_down = false;
 };
 
 // util
@@ -213,16 +227,15 @@ erase_entities_that_are_flagged_for_delete(std::vector<GameObject2D>& objs, cons
 // entities
 
 GameObject2D
+create_generic(sprite::type sprite, int tex_slot, glm::vec4 colour);
+
+// specific entities
+
+GameObject2D
 create_bullet(sprite::type sprite, int tex_slot, glm::vec4 colour);
 
 GameObject2D
-create_camera();
-
-GameObject2D
 create_enemy(sprite::type sprite, int tex_slot, glm::vec4 colour, fightingengine::RandomState& rnd);
-
-GameObject2D
-create_generic(sprite::type sprite, int tex_slot, glm::vec4 colour);
 
 GameObject2D
 create_tree(int tex_slot);

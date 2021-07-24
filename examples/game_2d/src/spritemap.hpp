@@ -59,6 +59,15 @@ enum class type
   // row 6
   ORC,
 
+  // row 9
+  WEAPON_PISTOL,
+  WEAPON_RAY_PISTOL,
+  WEAPON_SHOTGUN,
+  WEAPON_SUB_MACHINE_GUN,
+  WEAPON_MINI_UZI,
+  WEAPON_MP5,
+  WEAPON_RPG,
+
   // row 14
   CAMPFIRE,
   FIRE,
@@ -126,6 +135,15 @@ struct spritemap
     // row 6
     ret[type::ORC] = { 30, 6 };
 
+    // row 9
+    ret[type::WEAPON_PISTOL] = { 37, 9 };
+    ret[type::WEAPON_RAY_PISTOL] = { 38, 9 };
+    ret[type::WEAPON_SHOTGUN] = { 39, 9 };
+    ret[type::WEAPON_SUB_MACHINE_GUN] = { 40, 9 };
+    ret[type::WEAPON_MINI_UZI] = { 41, 9 };
+    ret[type::WEAPON_MP5] = { 42, 9 };
+    ret[type::WEAPON_RPG] = { 43, 9 };
+
     // row 10
     ret[type::CAMPFIRE] = { 14, 10 };
     ret[type::FIRE] = { 15, 10 };
@@ -157,6 +175,15 @@ struct spritemap
     ret[type::WEAPON_ARROW_2] = { -fightingengine::PI / 4.0f };
     ret[type::WEAPON_SHOVEL] = { -fightingengine::PI / 4.0f };
     ret[type::WEAPON_PICKAXE] = { -fightingengine::PI / 8.0f };
+
+    // row 9
+    ret[type::WEAPON_PISTOL] = { -fightingengine::PI / 2.0f };
+    ret[type::WEAPON_RAY_PISTOL] = { -fightingengine::PI / 2.0f };
+    ret[type::WEAPON_SHOTGUN] = { -fightingengine::PI / 2.0f };
+    ret[type::WEAPON_SUB_MACHINE_GUN] = { -fightingengine::PI / 2.0f };
+    ret[type::WEAPON_MINI_UZI] = { -fightingengine::PI / 2.0f };
+    ret[type::WEAPON_MP5] = { -fightingengine::PI / 2.0f };
+    ret[type::WEAPON_RPG] = { -fightingengine::PI / 2.0f };
 
     return ret;
   }

@@ -56,7 +56,7 @@ update_entities_lifecycle(std::vector<GameObject2D>& objs, const float delta_tim
     }
 
     if (obj.do_lifecycle_health) {
-      if (obj.hits_taken >= obj.hits_able_to_be_taken) {
+      if (obj.damage_taken >= obj.damage_able_to_be_taken) {
         obj.flag_for_delete = true;
       }
     }
@@ -102,15 +102,6 @@ create_bullet(sprite::type sprite, int tex_slot, glm::vec4 colour)
 };
 
 GameObject2D
-create_camera()
-{
-  GameObject2D game_object;
-  // default
-  game_object.pos = glm::vec2{ 0.0f, 0.0f };
-  return game_object;
-}
-
-GameObject2D
 create_enemy(sprite::type sprite, int tex_slot, glm::vec4 colour, fightingengine::RandomState& rnd)
 {
   GameObject2D game_object;
@@ -126,7 +117,7 @@ create_enemy(sprite::type sprite, int tex_slot, glm::vec4 colour, fightingengine
   game_object.angle_radians = 0.0;
   game_object.render_size = { 1.0f * 768.0f / 48.0f, 1.0f * 362.0f / 22.0f };
   game_object.physics_size = { 1.0f * 768.0f / 48.0f, 1.0f * 362.0f / 22.0f };
-  game_object.hits_able_to_be_taken = 1;
+  game_object.damage_able_to_be_taken = 1;
 
   // roll a dice for ai
   float rand = fightingengine::rand_det_s(rnd.rng, 0.0f, 1.0f);
@@ -139,17 +130,6 @@ create_enemy(sprite::type sprite, int tex_slot, glm::vec4 colour, fightingengine
     game_object.ai_priority_list.push_back(AiBehaviour::MOVEMENT_DIRECT);
     game_object.approach_theta_degrees = 0.0f;
   }
-
-  // roll a dice for size
-  // float upper = 1.5f;
-  // rand = fightingengine::rand_det_s(rnd.rng, 0.8f, upper);
-  // game_object.render_size *= rand;
-  // game_object.physics_size = game_object.render_size;
-  // // increase speed
-  // game_object.speed_default *= 1.0f + (upper - rand);
-  // game_object.speed_current = game_object.speed_default;
-  // increase health
-  // game_object.hits_able_to_be_taken *= static_cast<int>(1.0f + (2.0f * rand));
 
   return game_object;
 };
@@ -179,6 +159,7 @@ create_tree(int tex_slot)
   game_object.render_size = { 32.0f, 32.0f };
   game_object.physics_size = { 32.0f, 32.0f };
   game_object.colour = { 0.25f, 1.0f, 0.25f, 1.0f };
+  game_object.damage_able_to_be_taken = 1;
   return game_object;
 }
 
@@ -202,7 +183,7 @@ create_player(sprite::type sprite, int tex_slot, glm::vec4 colour, glm::vec2 scr
   game_object.speed_default = 50.0f;
   game_object.speed_current = game_object.speed_default;
   game_object.invulnerable = false;
-  game_object.hits_able_to_be_taken = 10;
+  game_object.damage_able_to_be_taken = 10;
   game_object.bullet_seconds_between_spawning = 1.0f;
   return game_object;
 };

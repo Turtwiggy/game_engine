@@ -51,7 +51,7 @@ SDL_Scancode debug_key_force_gameover = SDL_SCANCODE_F11;
 
 bool debug_advance_one_frame = false;
 bool debug_show_imgui_demo_window = false;
-bool debug_render_spritesheet = true;
+bool debug_render_spritesheet = false;
 bool debug_show_profiler = true;
 
 // textures
@@ -67,29 +67,46 @@ const glm::vec4 PALETTE_COLOUR_4_1 = glm::vec4(238.0f / 255.0f, 238.0f / 255.0f,
 glm::vec4 background_colour = PALETTE_COLOUR_1_1;                          // black
 glm::vec4 debug_line_colour = PALETTE_COLOUR_2_1;                          // blue
 glm::vec4 player_colour = PALETTE_COLOUR_2_1;                              // blue
-glm::vec4 bullet_colour = PALETTE_COLOUR_3_1;                              // lightblue
+glm::vec4 pistol_bullet_colour = PALETTE_COLOUR_3_1;                       // lightblue
+glm::vec4 shotgun_bullet_colour = glm::vec4(1.0f, 1.0f, 0.0f, 1.0f);       // yellow
 glm::vec4 enemy_colour = PALETTE_COLOUR_4_1;                               // grey
 glm::vec4 player_splat_colour = player_colour;                             // player col
 glm::vec4 enemy_death_splat_colour = glm::vec4(0.65f, 0.65f, 0.65f, 1.0f); // greyish
 glm::vec4 enemy_impact_splat_colour = glm::vec4(0.95f, 0.3f, 0.3f, 1.0f);  // redish
 
 sprite::type sprite_player = sprite::type::PERSON_1;
-sprite::type sprite_bullet = sprite::type::WEAPON_ARROW_1;
+sprite::type sprite_pistol = sprite::type::WEAPON_PISTOL;
+sprite::type sprite_shotgun = sprite::type::WEAPON_SHOTGUN;
+sprite::type sprite_bullet = sprite::type::TREE_1;
 sprite::type sprite_enemy_core = sprite::type::PERSON_2;
 sprite::type sprite_weapon_base = sprite::type::WEAPON_SHOVEL;
 sprite::type sprite_splat = sprite::type::CASTLE_FLOOR;
 
-const float game_safe_radius_around_player = 7500.0f;
-const float game_enemy_direct_attack_threshold = 4000.0f;
-float screenshake_time = 0.1f;
-float screenshake_time_left = 0.0f;
-float vfx_flash_time = 0.2f;
+float pistol_radius_offset = 14.0f;
+float shotgun_radius_offset = 17.5f;
 
 enum class EditorMode
 {
   EDITOR_PLACE_MODE,
   EDITOR_SELECT_MODE,
   PLAYER_ATTACK,
+};
+enum class GamePhase
+{
+  ATTACK,
+  SHOP,
+};
+struct ShopItem
+{
+  bool free = false;
+  int price = 10;
+
+  bool infinite_quantity = false;
+  int quantity = 1;
+};
+struct ItemStats
+{
+  int damage = 0;
 };
 
 int
@@ -158,48 +175,133 @@ main()
 
   // Game
 
-  uint32_t game_objects_destroyed = 0;
+  // game vars
+  const int PHYSICS_GRID_SIZE = 100; // todo: for optimizing sweep and prune algorithm
+  const int GAME_GRID_SIZE = 20;
+  const float game_safe_radius_around_player = 7500.0f;
+  const float game_enemy_direct_attack_threshold = 4000.0f;
+  float screenshake_time = 0.1f;
+  float screenshake_time_left = 0.0f;
+  float vfx_flash_time = 0.2f;
 
-  GameObject2D tex_obj = gameobject::create_kennynl_texture(tex_unit_kenny_nl);
-  GameObject2D camera = gameobject::create_camera();
-  GameObject2D weapon_base;
-  weapon_base.sprite = sprite_weapon_base;
-  weapon_base.pos = { screen_wh.x / 2.0f, screen_wh.y / 2.0f };
-  weapon_base.render_size = { 1.0f * 768.0f / 48.0f, 1.0f * 362.0f / 22.0f };
-  weapon_base.physics_size = { 1.0f * 768.0f / 48.0f, 1.0f * 362.0f / 22.0f };
-  weapon_base.collision_layer = CollisionLayer::Weapon;
-  weapon_base.colour = bullet_colour;
-
-  std::vector<GameObject2D> entities_enemies;
-  std::vector<GameObject2D> entities_bullets;
-  std::vector<GameObject2D> entities_player;
-  std::vector<GameObject2D> entities_vfx;
-  std::vector<KeysAndState> player_keys;
-  std::vector<Attack> live_attacks;
-  EditorMode editor_left_click_mode = EditorMode::EDITOR_PLACE_MODE;
-
-  std::vector<GameObject2D> entities_trees;
-  std::vector<GameObject2D> entities_shops;
-  int PHYSICS_GRID_SIZE = 100;
-  // std::vector<std::reference_wrapper<GameObject2D>> physics_grid_refs;
-  int GAME_GRID_SIZE = 32;
-  // std::vector<std::reference_wrapper<GameObject2D>> game_grid_refs;
-
+  int enemies_to_spawn_this_wave = 10;
+  int enemies_to_spawn_this_wave_left = enemies_to_spawn_this_wave;
+  int enemies_destroyed_this_wave = 0;
   int enemies_this_wave = 1;
   int enemies_left_this_wave = enemies_this_wave;
+  int enemies_killed = 0;
+  int currency_due_to_enemies_killed = 0;
+  EditorMode editor_left_click_mode = EditorMode::PLAYER_ATTACK;
+  GamePhase game_phase = GamePhase::ATTACK;
+
+  // game objs
+  GameObject2D tex_obj = gameobject::create_kennynl_texture(tex_unit_kenny_nl);
+  GameObject2D camera = GameObject2D();
+  GameObject2D weapon_shovel;
+  weapon_shovel.sprite = sprite_weapon_base;
+  weapon_shovel.pos = { screen_wh.x / 2.0f, screen_wh.y / 2.0f };
+  weapon_shovel.render_size = { 1.0f * 768.0f / 48.0f, 1.0f * 362.0f / 22.0f };
+  weapon_shovel.physics_size = { 1.0f * 768.0f / 48.0f, 1.0f * 362.0f / 22.0f };
+  weapon_shovel.collision_layer = CollisionLayer::Weapon;
+  weapon_shovel.colour = pistol_bullet_colour;
+  GameObject2D weapon_pistol;
+  weapon_pistol.sprite = sprite_pistol;
+  weapon_pistol.pos = { screen_wh.x / 2.0f, screen_wh.y / 2.0f };
+  weapon_pistol.render_size = { 1.0f * 768.0f / 48.0f, 1.0f * 362.0f / 22.0f };
+  weapon_pistol.physics_size = { 1.0f * 768.0f / 48.0f, 1.0f * 362.0f / 22.0f };
+  weapon_pistol.collision_layer = CollisionLayer::Weapon;
+  weapon_pistol.colour = pistol_bullet_colour;
+  weapon_pistol.do_render = false;
+  GameObject2D weapon_shotgun;
+  weapon_shotgun.sprite = sprite_shotgun;
+  weapon_shotgun.pos = { screen_wh.x / 2.0f, screen_wh.y / 2.0f };
+  weapon_shotgun.render_size = { 1.0f * 768.0f / 48.0f, 1.0f * 362.0f / 22.0f };
+  weapon_shotgun.physics_size = { 1.0f * 768.0f / 48.0f, 1.0f * 362.0f / 22.0f };
+  weapon_shotgun.collision_layer = CollisionLayer::Weapon;
+  weapon_shotgun.colour = pistol_bullet_colour;
+  weapon_shotgun.do_render = false;
 
   std::vector<CollisionEvent> collision_events;
+  std::vector<Attack> live_attacks;
+  std::vector<KeysAndState> player_keys;
+  std::vector<GameObject2D> entities_bullets;
+  std::vector<GameObject2D> entities_enemies;
+  std::vector<GameObject2D> entities_player;
+  std::vector<GameObject2D> entities_shops;
+  std::vector<GameObject2D> entities_trees;
+  std::vector<GameObject2D> entities_vfx;
+  std::vector<std::vector<Weapons>> player_inventories;
 
   // add players
   {
-    GameObject2D player0 = gameobject::create_player(sprite_player, tex_unit_kenny_nl, player_colour, screen_wh);
-
-    KeysAndState player0_keys;
-    player0_keys.use_keyboard = true;
-
-    entities_player.push_back(player0);
-    player_keys.push_back(player0_keys);
+    // player 0
+    GameObject2D p0 = gameobject::create_player(sprite_player, tex_unit_kenny_nl, player_colour, screen_wh);
+    entities_player.push_back(p0);
+    KeysAndState p0_keys;
+    p0_keys.use_keyboard = true;
+    player_keys.push_back(p0_keys);
+    // player 0 default weapons
+    std::vector<Weapons> p0_inventory = std::vector<Weapons>();
+    p0_inventory.push_back(Weapons::SHOVEL);
+    p0_inventory.push_back(Weapons::PISTOL);
+    p0_inventory.push_back(Weapons::SHOTGUN);
+    player_inventories.push_back(p0_inventory);
+    // set p0 weapon
+    entities_player[0].equipped_item_index = 0;
   }
+
+  // configure shop
+  std::map<Weapons, ShopItem> shop;
+  {
+    {
+      ShopItem i;
+      i.price = 10;
+      i.quantity = 1;
+      shop[Weapons::PISTOL] = i;
+    };
+    {
+      ShopItem i;
+      i.price = 3;
+      i.infinite_quantity = true;
+      shop[Weapons::PISTOL_AMMO] = i;
+    };
+    {
+      ShopItem i;
+      i.price = 20;
+      i.quantity = 1;
+      shop[Weapons::SHOTGUN] = i;
+    };
+    {
+      ShopItem i;
+      i.price = 6;
+      i.infinite_quantity = true;
+      shop[Weapons::SHOTGUN_AMMO] = i;
+    };
+    // {
+    //   ShopItem i;
+    //   shop[Weapons::SHOVEL] = i;
+    // };
+  };
+
+  // configure item stats
+  std::map<Weapons, ItemStats> weapons;
+  {
+    {
+      ItemStats w;
+      w.damage = 50;
+      weapons[Weapons::SHOVEL] = w;
+    };
+    {
+      ItemStats w;
+      w.damage = 50;
+      weapons[Weapons::PISTOL] = w;
+    };
+    {
+      ItemStats w;
+      w.damage = 50;
+      weapons[Weapons::SHOTGUN] = w;
+    };
+  };
 
   std::cout << "GameObject2D is " << sizeof(GameObject2D) << " bytes" << std::endl;
 
@@ -225,7 +327,7 @@ main()
         collidable.insert(collidable.end(), entities_bullets.begin(), entities_bullets.end());
         collidable.insert(collidable.end(), entities_player.begin(), entities_player.end());
         collidable.insert(collidable.end(), entities_trees.begin(), entities_trees.end());
-        collidable.push_back(weapon_base);
+        collidable.push_back(weapon_shovel);
 
         std::vector<std::reference_wrapper<GameObject2D>> active_collidable;
         for (auto& obj : collidable) {
@@ -308,21 +410,23 @@ main()
       float mousewheel = app.get_input().get_mousewheel_y();
       float epsilon = 0.0001f;
       if (mousewheel > epsilon || mousewheel < -epsilon) {
-        int wheel_int = static_cast<int>(mousewheel);
+        // int wheel_int = static_cast<int>(mousewheel);
         // std::cout << "wheel int: " << wheel_int << std::endl;
+        bool positive_direction = mousewheel > 0;
 
-        // temp: cycle through weapons for p0
-        Weapons current_wep = entities_player[0].equipped_weapon;
+        // cycle through weapons for p0
+        GameObject2D& p0 = entities_player[0];
+        auto& p0_inventory = player_inventories[0];
+        int cur_item_index = p0.equipped_item_index;
+        if (positive_direction)
+          cur_item_index = (cur_item_index + 1) % p0_inventory.size();
+        else if (cur_item_index == 0)
+          cur_item_index = p0_inventory.size() - 1;
+        else
+          cur_item_index = (cur_item_index - 1) % p0_inventory.size();
 
-        if (current_wep == Weapons::SHOVEL)
-          current_wep = Weapons::PISTOL;
-        else if (current_wep == Weapons::PISTOL)
-          current_wep = Weapons::SHOVEL;
-
-        entities_player[0].equipped_weapon = current_wep;
-
-        auto wep = std::string(magic_enum::enum_name(entities_player[0].equipped_weapon));
-        std::cout << "equipped: " << wep << std::endl;
+        p0.equipped_item_index = cur_item_index;
+        std::cout << "equipping item: " << cur_item_index << "mouse was pos: " << positive_direction << std::endl;
       }
 
       if (app.get_input().get_mouse_rmb_down()) {
@@ -378,11 +482,11 @@ main()
             GameObject2D& enemy = event.go0.collision_layer == CollisionLayer::Enemy ? event.go0 : event.go1;
             GameObject2D& player = event.go0.collision_layer == CollisionLayer::Enemy ? event.go1 : event.go0;
 
-            if (player.hits_taken >= player.hits_able_to_be_taken)
+            if (player.damage_taken >= player.damage_able_to_be_taken)
               continue; // player is dead
 
             enemy.flag_for_delete = true;             // enemy
-            player.hits_taken += 1;                   // player
+            player.damage_taken += 1;                 // player
             player.flash_time_left = vfx_flash_time;  // vfx: flash
             screenshake_time_left = screenshake_time; // screenshake
 
@@ -410,7 +514,7 @@ main()
 
               if (is_shovel && collision_with_specific_shovel_attack && !taken_damage_from_shovel) {
                 // std::cout << "enemy taking damage from weapon attack ONCE!" << std::endl;
-                enemy.hits_taken += 1;
+                enemy.damage_taken += 1;
                 enemy.attack_ids_taken_damage_from.push_back(attack.id);
                 enemy.flash_time_left = vfx_flash_time; // vfx: flash
 
@@ -437,7 +541,7 @@ main()
 
               if (is_bullet && collision_with_specific_bullet && !taken_damage_from_bullet) {
                 // std::cout << "enemy taking damage from bullet attack ONCE!" << std::endl;
-                enemy.hits_taken += 1;
+                enemy.damage_taken += 1;
                 enemy.attack_ids_taken_damage_from.push_back(attack.id);
                 enemy.flash_time_left = vfx_flash_time; // vfx: flash
 
@@ -458,6 +562,23 @@ main()
             ImGui::Text("You are standing at a tree. Cool!");
             ImGui::End();
           }
+
+          if ((coll_layer_0 == CollisionLayer::Obstacle && coll_layer_1 == CollisionLayer::Enemy) ||
+              (coll_layer_1 == CollisionLayer::Obstacle && coll_layer_0 == CollisionLayer::Enemy)) {
+            GameObject2D& obstacle = event.go0.collision_layer == CollisionLayer::Obstacle ? event.go0 : event.go1;
+            GameObject2D& enemy = event.go0.collision_layer == CollisionLayer::Obstacle ? event.go1 : event.go0;
+
+            // std::cout << "enemy taking damage from bullet attack ONCE!" << std::endl;
+            enemy.damage_taken += 1;
+            enemy.flash_time_left = vfx_flash_time;
+
+            obstacle.damage_taken += 1;
+            obstacle.flash_time_left = vfx_flash_time;
+
+            // vfx impactsplat
+            vfx::spawn_impact_splats(
+              rnd, enemy, obstacle, sprite_splat, tex_unit_kenny_nl, enemy_impact_splat_colour, entities_vfx);
+          }
         }
       }
 
@@ -468,7 +589,7 @@ main()
 
           player::update_input(player, keys, app, camera);
 
-          if (keys.pause_pressed)
+          if (keys.pause_down)
             state = state == GameRunning::PAUSED ? GameRunning::ACTIVE : GameRunning::PAUSED;
         }
       }
@@ -482,6 +603,7 @@ main()
         for (int i = 0; i < entities_player.size(); i++) {
           GameObject2D& player = entities_player[i];
           KeysAndState& keys = player_keys[i];
+          auto& player_inventory = player_inventories[i];
 
           player.velocity.x = keys.l_analogue_x;
           player.velocity.y = keys.l_analogue_y;
@@ -491,21 +613,58 @@ main()
           gameobject::update_position(player, delta_time_s);
 
           if (editor_left_click_mode == EditorMode::PLAYER_ATTACK) {
-            if (player.equipped_weapon == Weapons::SHOVEL)
-              player::ability_slash(app, player, keys, weapon_base, delta_time_s, live_attacks);
-            if (player.equipped_weapon == Weapons::PISTOL)
+
+            weapon_shovel.do_render = false;
+            weapon_pistol.do_render = false;
+            weapon_shotgun.do_render = false;
+
+            if (player_inventory[player.equipped_item_index] == Weapons::SHOVEL) {
+              weapon_shovel.do_render = true;
+              player::ability_slash(app, player, keys, weapon_shovel, delta_time_s, live_attacks);
+            }
+
+            if (player_inventory[player.equipped_item_index] == Weapons::PISTOL) {
+              weapon_pistol.do_render = true;
+              float angle_around_player = keys.angle_around_player;
+              glm::vec2 offset = glm::vec2(pistol_radius_offset * sin(angle_around_player),
+                                           -pistol_radius_offset * cos(angle_around_player));
+              weapon_pistol.pos = player.pos + offset;
+              weapon_pistol.angle_radians =
+                keys.angle_around_player + sprite::spritemap::get_sprite_rotation_offset(weapon_pistol.sprite);
+
               player::ability_shoot(app,
-                                    player,
+                                    weapon_pistol,
                                     keys,
                                     entities_bullets,
                                     tex_unit_kenny_nl,
-                                    bullet_colour,
+                                    pistol_bullet_colour,
                                     sprite_bullet,
                                     delta_time_s,
                                     live_attacks);
+            }
+
+            if (player_inventory[player.equipped_item_index] == Weapons::SHOTGUN) {
+              weapon_shotgun.do_render = true;
+              float angle_around_player = keys.angle_around_player;
+              glm::vec2 offset = glm::vec2(shotgun_radius_offset * sin(angle_around_player),
+                                           -shotgun_radius_offset * cos(angle_around_player));
+              weapon_shotgun.pos = player.pos + offset;
+              weapon_shotgun.angle_radians =
+                keys.angle_around_player + sprite::spritemap::get_sprite_rotation_offset(weapon_shotgun.sprite);
+
+              player::ability_shoot(app,
+                                    weapon_shotgun,
+                                    keys,
+                                    entities_bullets,
+                                    tex_unit_kenny_nl,
+                                    shotgun_bullet_colour,
+                                    sprite_bullet,
+                                    delta_time_s,
+                                    live_attacks);
+            }
           }
 
-          bool player_alive = player.invulnerable || player.hits_taken < player.hits_able_to_be_taken;
+          bool player_alive = player.invulnerable || player.damage_taken < player.damage_able_to_be_taken;
           if (!player_alive)
             state = GameRunning::GAME_OVER;
         }
@@ -553,10 +712,11 @@ main()
           instanced_quad_shader.set_bool("shake", false);
         }
 
+        // game phase: attack
         // update: spawn enemies
 
         size_t players_in_game = entities_player.size();
-        if (players_in_game > 0) {
+        if (players_in_game > 0 && game_phase == GamePhase::ATTACK) {
 
           // for the moment, eat player 0
           GameObject2D player_to_chase = entities_player[0];
@@ -590,6 +750,7 @@ main()
           //... and only spawn enemies if there is a player.
           enemy_spawner::update(entities_enemies,
                                 entities_player,
+                                enemies_to_spawn_this_wave_left,
                                 camera,
                                 rnd,
                                 screen_wh,
@@ -603,10 +764,49 @@ main()
           camera::update(camera, player_keys[0], app, delta_time_s);
         }
 
+        // game phase: shop
+
+        if (game_phase == GamePhase::SHOP) {
+          ImGui::Begin("Humble Wares", NULL, ImGuiWindowFlags_NoFocusOnAppearing);
+          ImGui::Text("You have %i coin!", currency_due_to_enemies_killed);
+
+          if (ImGui::Button("Drain your coin...."))
+            currency_due_to_enemies_killed -= 1;
+
+          for (auto& shop_item : shop) {
+
+            std::string wep = std::string(magic_enum::enum_name(shop_item.first));
+            ImGui::Text(
+              "Item: %s Quantiy: %i Price: %i", wep.c_str(), shop_item.second.quantity, shop_item.second.price);
+
+            if (currency_due_to_enemies_killed >= shop_item.second.price && shop_item.second.quantity > 0) {
+              std::string buy_button_label = "Buy ##" + wep;
+              if (ImGui::Button(buy_button_label.c_str())) {
+                std::cout << "buy: " << wep << " clicked" << std::endl;
+                shop_item.second.quantity -= 1;
+                currency_due_to_enemies_killed -= shop_item.second.price;
+
+                // hack: use player 0 for the moment
+                std::vector<Weapons>& player_inv = player_inventories[0];
+                player_inv.push_back(shop_item.first);
+              }
+            } else {
+              ImGui::Text("Unable to buy - not enough money or quantity.");
+            }
+          }
+          if (ImGui::Button("Leave the shop, and never return! Or will you?")) {
+            std::cout << "clicked leave shop" << std::endl;
+            enemy_spawner::next_wave(enemies_to_spawn_this_wave, enemies_to_spawn_this_wave_left);
+            game_phase = GamePhase::ATTACK;
+          }
+          ImGui::End();
+        }
+
         { // object lifecycle
 
           gameobject::update_entities_lifecycle(entities_enemies, delta_time_s);
           gameobject::update_entities_lifecycle(entities_bullets, delta_time_s);
+          gameobject::update_entities_lifecycle(entities_trees, delta_time_s);
           gameobject::update_entities_lifecycle(entities_vfx, delta_time_s);
 
           // remove "attack" object before deleting "bullet" object (or any object that is cleaned up)
@@ -633,11 +833,19 @@ main()
           for (auto& enemy : entities_enemies) {
             if (enemy.flag_for_delete) {
               vfx::spawn_death_splat(rnd, enemy, enemy.sprite, tex_unit_kenny_nl, enemy.colour, entities_vfx);
+              enemies_destroyed_this_wave += 1;
+              enemies_killed += 1;
+              currency_due_to_enemies_killed += 1;
             }
+          }
+
+          if (entities_enemies.size() == 0 && enemies_to_spawn_this_wave_left == 0) {
+            game_phase = GamePhase::SHOP;
           }
 
           gameobject::erase_entities_that_are_flagged_for_delete(entities_enemies, delta_time_s);
           gameobject::erase_entities_that_are_flagged_for_delete(entities_bullets, delta_time_s);
+          gameobject::erase_entities_that_are_flagged_for_delete(entities_trees, delta_time_s);
           gameobject::erase_entities_that_are_flagged_for_delete(entities_vfx, delta_time_s);
         }
       }
@@ -659,7 +867,9 @@ main()
           renderables.insert(renderables.end(), entities_bullets.begin(), entities_bullets.end());
           renderables.insert(renderables.end(), entities_player.begin(), entities_player.end());
           renderables.insert(renderables.end(), entities_trees.begin(), entities_trees.end());
-          renderables.push_back(weapon_base);
+          renderables.push_back(weapon_shovel);
+          renderables.push_back(weapon_pistol);
+          renderables.push_back(weapon_shotgun);
 
           if (ui_show_entity_menu) {
             ImGui::Begin("Entity Menu", NULL, ImGuiWindowFlags_NoFocusOnAppearing);
@@ -786,10 +996,9 @@ main()
           {
             for (int i = 0; i < entities_player.size(); i++) {
               GameObject2D& player = entities_player[i];
-              ImGui::Text("GO Destroyed: %i", game_objects_destroyed);
               ImGui::Text("PLAYER_ID: %i", player.id);
-              ImGui::Text("PLAYER_HP_MAX %i", player.hits_able_to_be_taken);
-              ImGui::Text("PLAYER_HITS_TAKEN %i", player.hits_taken);
+              ImGui::Text("PLAYER_HP_MAX %i", player.damage_able_to_be_taken);
+              ImGui::Text("PLAYER_HITS_TAKEN %i", player.damage_taken);
               ImGui::Text("PLAYER_BOOST %f", player.shift_boost_time_left);
               ImGui::Text("pos %f %f", player.pos.x, player.pos.y);
               ImGui::Text("vel x: %f y: %f", player.velocity.x, player.velocity.y);
@@ -812,6 +1021,23 @@ main()
           }
           ImGui::End();
         }
+
+        ImGui::Begin("Inventory");
+        auto& p0 = entities_player[0];
+        auto& p0_inventory = player_inventories[0];
+        for (int i = 0; i < p0_inventory.size(); i++) {
+          Weapons w = p0_inventory[i];
+          std::string wep = std::string(magic_enum::enum_name(w));
+
+          std::string label = std::string("Weapon: ") + wep;
+          if (p0.equipped_item_index == i) {
+            ImGui::Text("(EQUIPPED) %s", label.c_str());
+          } else {
+            ImGui::Text("%s", label.c_str());
+          }
+        }
+
+        ImGui::End();
       }
 
       if (debug_show_profiler)

@@ -44,10 +44,14 @@ enemy_arc_angles_to_player(GameObject2D& obj, GameObject2D& player, float delta_
 
 namespace enemy_spawner {
 
+void
+next_wave(int& enemies_to_spawn_this_wave, int& enemies_to_spawn_this_wave_left);
+
 // spawn a random enemy every X seconds
 void
 update(std::vector<GameObject2D>& enemies,
        std::vector<GameObject2D>& players,
+       int& enemies_to_spawn,
        const GameObject2D& camera,
        fightingengine::RandomState& rnd,
        const glm::ivec2 screen_wh,
