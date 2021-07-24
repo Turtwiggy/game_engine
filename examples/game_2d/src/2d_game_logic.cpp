@@ -268,6 +268,7 @@ ability_boost(GameObject2D& player, const KeysAndState& keys, const float delta_
 void
 ability_shoot(fightingengine::Application& app,
               GameObject2D& fire_from_this_entity,
+              int& ammo,
               const KeysAndState& keys,
               std::vector<GameObject2D>& bullets,
               const int tex_unit,
@@ -288,6 +289,7 @@ ability_shoot(fightingengine::Application& app,
 
   if (!app.get_input().get_mouse_lmb_down())
     return;
+  ammo -= 1;
 
   // lmb click bullets
 

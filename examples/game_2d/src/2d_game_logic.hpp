@@ -81,7 +81,8 @@ ability_slash(fightingengine::Application& app,
 
 void
 ability_shoot(fightingengine::Application& app,
-              GameObject2D& player,
+              GameObject2D& entity_to_fire_from,
+              int& ammo,
               const KeysAndState& keys,
               std::vector<GameObject2D>& bullets,
               const int tex_unit,

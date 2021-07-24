@@ -82,9 +82,6 @@ sprite::type sprite_enemy_core = sprite::type::PERSON_2;
 sprite::type sprite_weapon_base = sprite::type::WEAPON_SHOVEL;
 sprite::type sprite_splat = sprite::type::CASTLE_FLOOR;
 
-float pistol_radius_offset = 14.0f;
-float shotgun_radius_offset = 17.5f;
-
 enum class EditorMode
 {
   EDITOR_PLACE_MODE,
@@ -194,6 +191,15 @@ main()
   EditorMode editor_left_click_mode = EditorMode::PLAYER_ATTACK;
   GamePhase game_phase = GamePhase::ATTACK;
 
+  float pistol_radius_offset = 14.0f;
+  bool pistol_infinite_ammo = false;
+  int pistol_ammo = 20;
+  int shop_refil_pistol_ammo = 5;
+  float shotgun_radius_offset = 17.5f;
+  bool shotgun_infinite_ammo = false;
+  int shotgun_ammo = 20;
+  int shop_refil_shotgun_ammo = 5;
+
   // game objs
   GameObject2D tex_obj = gameobject::create_kennynl_texture(tex_unit_kenny_nl);
   GameObject2D camera = GameObject2D();
@@ -243,8 +249,6 @@ main()
     // player 0 default weapons
     std::vector<Weapons> p0_inventory = std::vector<Weapons>();
     p0_inventory.push_back(Weapons::SHOVEL);
-    p0_inventory.push_back(Weapons::PISTOL);
-    p0_inventory.push_back(Weapons::SHOTGUN);
     player_inventories.push_back(p0_inventory);
     // set p0 weapon
     entities_player[0].equipped_item_index = 0;
@@ -257,6 +261,7 @@ main()
       ShopItem i;
       i.price = 10;
       i.quantity = 1;
+      i.infinite_quantity = false;
       shop[Weapons::PISTOL] = i;
     };
     {
@@ -269,6 +274,7 @@ main()
       ShopItem i;
       i.price = 20;
       i.quantity = 1;
+      i.infinite_quantity = false;
       shop[Weapons::SHOTGUN] = i;
     };
     {
@@ -277,10 +283,6 @@ main()
       i.infinite_quantity = true;
       shop[Weapons::SHOTGUN_AMMO] = i;
     };
-    // {
-    //   ShopItem i;
-    //   shop[Weapons::SHOVEL] = i;
-    // };
   };
 
   // configure item stats
@@ -632,15 +634,19 @@ main()
               weapon_pistol.angle_radians =
                 keys.angle_around_player + sprite::spritemap::get_sprite_rotation_offset(weapon_pistol.sprite);
 
-              player::ability_shoot(app,
-                                    weapon_pistol,
-                                    keys,
-                                    entities_bullets,
-                                    tex_unit_kenny_nl,
-                                    pistol_bullet_colour,
-                                    sprite_bullet,
-                                    delta_time_s,
-                                    live_attacks);
+              if (pistol_infinite_ammo || pistol_ammo > 0) {
+
+                player::ability_shoot(app,
+                                      weapon_pistol,
+                                      pistol_ammo,
+                                      keys,
+                                      entities_bullets,
+                                      tex_unit_kenny_nl,
+                                      pistol_bullet_colour,
+                                      sprite_bullet,
+                                      delta_time_s,
+                                      live_attacks);
+              }
             }
 
             if (player_inventory[player.equipped_item_index] == Weapons::SHOTGUN) {
@@ -652,15 +658,18 @@ main()
               weapon_shotgun.angle_radians =
                 keys.angle_around_player + sprite::spritemap::get_sprite_rotation_offset(weapon_shotgun.sprite);
 
-              player::ability_shoot(app,
-                                    weapon_shotgun,
-                                    keys,
-                                    entities_bullets,
-                                    tex_unit_kenny_nl,
-                                    shotgun_bullet_colour,
-                                    sprite_bullet,
-                                    delta_time_s,
-                                    live_attacks);
+              if (shotgun_infinite_ammo || shotgun_ammo > 0) {
+                player::ability_shoot(app,
+                                      weapon_shotgun,
+                                      shotgun_ammo,
+                                      keys,
+                                      entities_bullets,
+                                      tex_unit_kenny_nl,
+                                      shotgun_bullet_colour,
+                                      sprite_bullet,
+                                      delta_time_s,
+                                      live_attacks);
+              }
             }
           }
 
@@ -776,23 +785,36 @@ main()
           for (auto& shop_item : shop) {
 
             std::string wep = std::string(magic_enum::enum_name(shop_item.first));
-            ImGui::Text(
-              "Item: %s Quantiy: %i Price: %i", wep.c_str(), shop_item.second.quantity, shop_item.second.price);
 
             if (currency_due_to_enemies_killed >= shop_item.second.price && shop_item.second.quantity > 0) {
               std::string buy_button_label = "Buy ##" + wep;
               if (ImGui::Button(buy_button_label.c_str())) {
                 std::cout << "buy: " << wep << " clicked" << std::endl;
-                shop_item.second.quantity -= 1;
+
+                // reduce item quantity, if not infinite
+                if (!shop_item.second.infinite_quantity)
+                  shop_item.second.quantity -= 1;
+
+                // spend hard earned cash
                 currency_due_to_enemies_killed -= shop_item.second.price;
 
-                // hack: use player 0 for the moment
-                std::vector<Weapons>& player_inv = player_inventories[0];
-                player_inv.push_back(shop_item.first);
+                if (shop_item.first == Weapons::PISTOL || shop_item.first == Weapons::SHOTGUN) {
+                  // hack: use player 0 for the moment
+                  std::vector<Weapons>& player_inv = player_inventories[0];
+                  player_inv.push_back(shop_item.first);
+                }
+                if (shop_item.first == Weapons::PISTOL_AMMO) {
+                  pistol_ammo += shop_refil_pistol_ammo;
+                }
+                if (shop_item.first == Weapons::SHOTGUN_AMMO) {
+                  shotgun_ammo += shop_refil_shotgun_ammo;
+                }
               }
-            } else {
-              ImGui::Text("Unable to buy - not enough money or quantity.");
+              ImGui::SameLine();
             }
+
+            ImGui::Text(
+              "Item: %s Quantiy: %i Price: %i", wep.c_str(), shop_item.second.quantity, shop_item.second.price);
           }
           if (ImGui::Button("Leave the shop, and never return! Or will you?")) {
             std::cout << "clicked leave shop" << std::endl;
@@ -1000,6 +1022,8 @@ main()
               ImGui::Text("PLAYER_HP_MAX %i", player.damage_able_to_be_taken);
               ImGui::Text("PLAYER_HITS_TAKEN %i", player.damage_taken);
               ImGui::Text("PLAYER_BOOST %f", player.shift_boost_time_left);
+              ImGui::Text("AMMO_PISTOL %i", pistol_ammo);
+              ImGui::Text("AMMO_SHOTGUN %i", shotgun_ammo);
               ImGui::Text("pos %f %f", player.pos.x, player.pos.y);
               ImGui::Text("vel x: %f y: %f", player.velocity.x, player.velocity.y);
               ImGui::Text("angle %f", player.angle_radians);
