@@ -4,7 +4,6 @@
 
 // c++ standard lib headers
 #include <imgui.h>
-#include <iostream>
 
 // your proj headers
 #include "engine/maths_core.hpp"
@@ -103,17 +102,17 @@ InputManager::add_mouse_down(const SDL_MouseButtonEvent& mouse_e)
 {
   if (mouse_e.button == SDL_BUTTON_LEFT) {
     glm::ivec2 mouse_pos = get_mouse_pos();
-    printf("(input_manager) left mouse clicked %i %i \n", mouse_pos.x, mouse_pos.y);
+    // printf("(input_manager) left mouse clicked %i %i \n", mouse_pos.x, mouse_pos.y);
     mouse_lmb_down = true;
   }
   if (mouse_e.button == SDL_BUTTON_RIGHT) {
     glm::ivec2 mouse_pos = get_mouse_pos();
-    printf("(input_manager) right mouse clicked %i %i \n", mouse_pos.x, mouse_pos.y);
+    // printf("(input_manager) right mouse clicked %i %i \n", mouse_pos.x, mouse_pos.y);
     mouse_rmb_down = true;
   }
   if (mouse_e.button == SDL_BUTTON_MIDDLE) {
     glm::ivec2 mouse_pos = get_mouse_pos();
-    printf("(input_manager) middle mouse clicked %i %i \n", mouse_pos.x, mouse_pos.y);
+    // printf("(input_manager) middle mouse clicked %i %i \n", mouse_pos.x, mouse_pos.y);
     mouse_mmb_down = true;
   }
 }

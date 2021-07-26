@@ -6,6 +6,7 @@
 #include <iostream>
 
 // other lib headers
+#include <glm/glm.hpp>
 #include <glm/gtx/vector_angle.hpp> // for distance2
 
 // engine headers
@@ -318,6 +319,8 @@ float slash_attack_time_left = 0.0f;
 float weapon_current_angle = 0.0f;
 float weapon_angle_speed = fightingengine::HALF_PI / 30.0f; // closer to 0 is faster
 bool attack_left_to_right = true;
+glm::vec2 weapon_target_pos = { 0.0f, 0.0f };
+float weapon_damping = 20.0f;
 
 void
 ability_slash(fightingengine::Application& app,
@@ -359,24 +362,30 @@ ability_slash(fightingengine::Application& app,
     slash_attack_time_left -= delta_time_s;
     weapon.do_render = true;
     weapon.do_physics = true;
+
+    glm::vec2 pos = player_obj.pos;
+    pos.x += player_obj.physics_size.x / 2.0f - weapon.physics_size.x / 2.0f;
+    pos.y += player_obj.physics_size.y / 2.0f - weapon.physics_size.y / 2.0f;
+
+    if (attack_left_to_right)
+      weapon_current_angle += weapon_angle_speed;
+    else
+      weapon_current_angle -= weapon_angle_speed;
+
+    // offset around center of circle
+    glm::vec2 offset_pos =
+      glm::vec2(weapon_radius * sin(weapon_current_angle), -weapon_radius * cos(weapon_current_angle));
+    weapon_target_pos = pos + offset_pos;
   } else {
-    weapon.do_render = false;
     weapon.do_physics = false;
+    weapon_target_pos = player_obj.pos;
+    // weapon.angle_radians = -2.0; // at-rest angle
   }
 
-  glm::vec2 pos = player_obj.pos;
-  pos.x += player_obj.physics_size.x / 2.0f - weapon.physics_size.x / 2.0f;
-  pos.y += player_obj.physics_size.y / 2.0f - weapon.physics_size.y / 2.0f;
-
-  if (attack_left_to_right)
-    weapon_current_angle += weapon_angle_speed;
-  else
-    weapon_current_angle -= weapon_angle_speed;
-
-  // offset around center of circle
-  glm::vec2 offset_pos =
-    glm::vec2(weapon_radius * sin(weapon_current_angle), -weapon_radius * cos(weapon_current_angle));
-  weapon.pos = pos + offset_pos;
+  // lerp weapon to target position
+  weapon.pos = glm::lerp(glm::vec3(weapon.pos.x, weapon.pos.y, 0.0f),
+                         glm::vec3(weapon_target_pos.x, weapon_target_pos.y, 0.0f),
+                         glm::clamp(delta_time_s * weapon_damping, 0.0f, 1.0f));
 }
 
 }; // namespace player

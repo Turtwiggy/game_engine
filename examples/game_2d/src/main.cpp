@@ -64,12 +64,15 @@ const glm::vec4 PALETTE_COLOUR_2_1 = glm::vec4(0.0f / 255.0f, 173.0f / 255.0f, 1
 const glm::vec4 PALETTE_COLOUR_3_1 = glm::vec4(170.0f / 255.0f, 216.0f / 255.0f, 211.0f / 255.0f, 1.0f); // lightblue
 const glm::vec4 PALETTE_COLOUR_4_1 = glm::vec4(238.0f / 255.0f, 238.0f / 255.0f, 238.0f / 255.0f, 1.0f); // grey
 
-glm::vec4 background_colour = PALETTE_COLOUR_1_1;                          // black
-glm::vec4 debug_line_colour = PALETTE_COLOUR_2_1;                          // blue
-glm::vec4 player_colour = PALETTE_COLOUR_2_1;                              // blue
-glm::vec4 pistol_bullet_colour = PALETTE_COLOUR_3_1;                       // lightblue
-glm::vec4 shotgun_bullet_colour = glm::vec4(1.0f, 1.0f, 0.0f, 1.0f);       // yellow
-glm::vec4 enemy_colour = PALETTE_COLOUR_4_1;                               // grey
+glm::vec4 background_colour = PALETTE_COLOUR_1_1; // black
+glm::vec4 debug_line_colour = PALETTE_COLOUR_2_1; // blue
+glm::vec4 player_colour = PALETTE_COLOUR_2_1;     // blue
+glm::vec4 enemy_colour = PALETTE_COLOUR_4_1;      // grey
+glm::vec4 weapon_shovel_colour = PALETTE_COLOUR_3_1;
+glm::vec4 weapon_pistol_colour = PALETTE_COLOUR_3_1;
+glm::vec4 weapon_shotgun_colour = glm::vec4(1.0, 1.0, 0.0, 1.0);
+glm::vec4 bullet_pistol_colour = weapon_pistol_colour;
+glm::vec4 bullet_shotgun_colour = weapon_shotgun_colour;
 glm::vec4 player_splat_colour = player_colour;                             // player col
 glm::vec4 enemy_death_splat_colour = glm::vec4(0.65f, 0.65f, 0.65f, 1.0f); // greyish
 glm::vec4 enemy_impact_splat_colour = glm::vec4(0.95f, 0.3f, 0.3f, 1.0f);  // redish
@@ -77,6 +80,7 @@ glm::vec4 enemy_impact_splat_colour = glm::vec4(0.95f, 0.3f, 0.3f, 1.0f);  // re
 sprite::type sprite_player = sprite::type::PERSON_1;
 sprite::type sprite_pistol = sprite::type::WEAPON_PISTOL;
 sprite::type sprite_shotgun = sprite::type::WEAPON_SHOTGUN;
+sprite::type sprite_machinegun = sprite::type::WEAPON_MP5;
 sprite::type sprite_bullet = sprite::type::TREE_1;
 sprite::type sprite_enemy_core = sprite::type::PERSON_2;
 sprite::type sprite_weapon_base = sprite::type::WEAPON_SHOVEL;
@@ -162,7 +166,7 @@ main()
 
   // game vars
   const int PHYSICS_GRID_SIZE = 100; // todo: for optimizing sweep and prune algorithm
-  const int GAME_GRID_SIZE = 20;
+  const int GAME_GRID_SIZE = 64;
   const float game_safe_radius_around_player = 7500.0f;
   const float game_enemy_direct_attack_threshold = 4000.0f;
   float screenshake_time = 0.1f;
@@ -197,7 +201,7 @@ main()
   weapon_shovel.render_size = { 1.0f * 768.0f / 48.0f, 1.0f * 362.0f / 22.0f };
   weapon_shovel.physics_size = { 1.0f * 768.0f / 48.0f, 1.0f * 362.0f / 22.0f };
   weapon_shovel.collision_layer = CollisionLayer::Weapon;
-  weapon_shovel.colour = pistol_bullet_colour;
+  weapon_shovel.colour = weapon_shovel_colour;
   weapon_shovel.do_render = false;
   GameObject2D weapon_pistol;
   weapon_pistol.sprite = sprite_pistol;
@@ -205,7 +209,7 @@ main()
   weapon_pistol.render_size = { 1.0f * 768.0f / 48.0f, 1.0f * 362.0f / 22.0f };
   weapon_pistol.physics_size = { 1.0f * 768.0f / 48.0f, 1.0f * 362.0f / 22.0f };
   weapon_pistol.collision_layer = CollisionLayer::Weapon;
-  weapon_pistol.colour = pistol_bullet_colour;
+  weapon_pistol.colour = weapon_pistol_colour;
   weapon_pistol.do_render = false;
   GameObject2D weapon_shotgun;
   weapon_shotgun.sprite = sprite_shotgun;
@@ -213,7 +217,7 @@ main()
   weapon_shotgun.render_size = { 1.0f * 768.0f / 48.0f, 1.0f * 362.0f / 22.0f };
   weapon_shotgun.physics_size = { 1.0f * 768.0f / 48.0f, 1.0f * 362.0f / 22.0f };
   weapon_shotgun.collision_layer = CollisionLayer::Weapon;
-  weapon_shotgun.colour = pistol_bullet_colour;
+  weapon_shotgun.colour = weapon_shotgun_colour;
   weapon_shotgun.do_render = false;
 
   std::vector<Attack> attacks;
@@ -574,14 +578,13 @@ main()
                 keys.angle_around_player + sprite::spritemap::get_sprite_rotation_offset(weapon_pistol.sprite);
 
               if (pistol_infinite_ammo || pistol_ammo > 0) {
-
                 player::ability_shoot(app,
                                       weapon_pistol,
                                       pistol_ammo,
                                       keys,
                                       entities_bullets,
                                       tex_unit_kenny_nl,
-                                      pistol_bullet_colour,
+                                      bullet_pistol_colour,
                                       sprite_bullet,
                                       delta_time_s,
                                       attacks);
@@ -604,7 +607,7 @@ main()
                                       keys,
                                       entities_bullets,
                                       tex_unit_kenny_nl,
-                                      shotgun_bullet_colour,
+                                      bullet_shotgun_colour,
                                       sprite_bullet,
                                       delta_time_s,
                                       attacks);
@@ -842,11 +845,11 @@ main()
           renderables.insert(renderables.end(), entities_vfx.begin(), entities_vfx.end());
           renderables.insert(renderables.end(), entities_enemies.begin(), entities_enemies.end());
           renderables.insert(renderables.end(), entities_bullets.begin(), entities_bullets.end());
-          renderables.insert(renderables.end(), entities_player.begin(), entities_player.end());
-          renderables.insert(renderables.end(), entities_trees.begin(), entities_trees.end());
           renderables.push_back(weapon_shovel);
           renderables.push_back(weapon_pistol);
           renderables.push_back(weapon_shotgun);
+          renderables.insert(renderables.end(), entities_player.begin(), entities_player.end());
+          renderables.insert(renderables.end(), entities_trees.begin(), entities_trees.end());
 
           if (ui_show_entity_menu) {
             ImGui::Begin("Entity Menu", NULL, ImGuiWindowFlags_NoFocusOnAppearing);
