@@ -291,6 +291,7 @@ ability_shoot(fightingengine::Application& app,
   if (!app.get_input().get_mouse_lmb_down())
     return;
   ammo -= 1;
+  fire_from_this_entity.flash_time_left = 0.2f;
 
   // lmb click bullets
 
@@ -379,7 +380,6 @@ ability_slash(fightingengine::Application& app,
   } else {
     weapon.do_physics = false;
     weapon_target_pos = player_obj.pos;
-    // weapon.angle_radians = -2.0; // at-rest angle
   }
 
   // lerp weapon to target position

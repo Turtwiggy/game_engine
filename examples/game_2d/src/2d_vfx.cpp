@@ -16,7 +16,8 @@ spawn_death_splat(fightingengine::RandomState& rnd,
 {
   GameObject2D splat = gameobject::create_generic(s, tex_unit, colour);
   splat.do_lifecycle_timed = true;
-  splat.time_alive_left = 30.0f; // long splat
+  splat.time_alive = 45.0f; // long splat
+  splat.time_alive_left = splat.time_alive;
   splat.render_size = enemy.render_size;
   splat.physics_size = splat.render_size;
   splat.pos = enemy.pos;
@@ -40,14 +41,15 @@ spawn_impact_splats(fightingengine::RandomState& rnd,
   splat.do_lifecycle_timed = true;
 
   // these splats fire off in an arc from the enemy.pos
-  splat.time_alive_left = 0.3f; // short splat
+  splat.time_alive = 0.5f; // short splat
+  splat.time_alive_left = splat.time_alive;
   splat.colour = colour;
   splat.speed_default = 40.0f;
   splat.speed_current = splat.speed_default;
   splat.physics_size = { 10.0f, 10.0f };
   splat.render_size = splat.physics_size;
 
-  int amount_of_splats = 4;
+  int amount_of_splats = 5;
   for (int i = 0; i < amount_of_splats; i++) {
 
     glm::vec2 enemy_pos_center = enemy.pos + enemy.physics_size / 2.0f;

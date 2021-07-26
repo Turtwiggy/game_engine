@@ -64,15 +64,21 @@ const glm::vec4 PALETTE_COLOUR_2_1 = glm::vec4(0.0f / 255.0f, 173.0f / 255.0f, 1
 const glm::vec4 PALETTE_COLOUR_3_1 = glm::vec4(170.0f / 255.0f, 216.0f / 255.0f, 211.0f / 255.0f, 1.0f); // lightblue
 const glm::vec4 PALETTE_COLOUR_4_1 = glm::vec4(238.0f / 255.0f, 238.0f / 255.0f, 238.0f / 255.0f, 1.0f); // grey
 
+// colours: entities
 glm::vec4 background_colour = PALETTE_COLOUR_1_1; // black
 glm::vec4 debug_line_colour = PALETTE_COLOUR_2_1; // blue
 glm::vec4 player_colour = PALETTE_COLOUR_2_1;     // blue
 glm::vec4 enemy_colour = PALETTE_COLOUR_4_1;      // grey
+// colours: weapons
 glm::vec4 weapon_shovel_colour = PALETTE_COLOUR_3_1;
+glm::vec4 weapon_shovel_flash_colour = PALETTE_COLOUR_2_1;
 glm::vec4 weapon_pistol_colour = PALETTE_COLOUR_3_1;
+glm::vec4 weapon_pistol_flash_colour = PALETTE_COLOUR_2_1;
 glm::vec4 weapon_shotgun_colour = glm::vec4(1.0, 1.0, 0.0, 1.0);
+glm::vec4 weapon_shotgun_flash_colour = PALETTE_COLOUR_2_1;
 glm::vec4 bullet_pistol_colour = weapon_pistol_colour;
 glm::vec4 bullet_shotgun_colour = weapon_shotgun_colour;
+// colours: vfx
 glm::vec4 player_splat_colour = player_colour;                             // player col
 glm::vec4 enemy_death_splat_colour = glm::vec4(0.65f, 0.65f, 0.65f, 1.0f); // greyish
 glm::vec4 enemy_impact_splat_colour = glm::vec4(0.95f, 0.3f, 0.3f, 1.0f);  // redish
@@ -184,7 +190,7 @@ main()
   GamePhase game_phase = GamePhase::ATTACK;
 
   float pistol_radius_offset = 14.0f;
-  bool pistol_infinite_ammo = false;
+  bool pistol_infinite_ammo = true;
   int pistol_ammo = 20;
   int shop_refill_pistol_ammo = 5;
   float shotgun_radius_offset = 17.5f;
@@ -243,6 +249,7 @@ main()
     // player 0 default weapons
     std::vector<ShopItem> p0_inventory = std::vector<ShopItem>();
     p0_inventory.push_back(ShopItem::SHOVEL);
+    p0_inventory.push_back(ShopItem::PISTOL);
     player_inventories.push_back(p0_inventory);
     // set p0 weapon
     entities_player[0].equipped_item_index = 0;
@@ -371,7 +378,7 @@ main()
           cur_item_index = (cur_item_index - 1) % p0_inventory.size();
 
         p0.equipped_item_index = cur_item_index;
-        std::cout << "equipping item: " << cur_item_index << "mouse was pos: " << positive_direction << std::endl;
+        // std::cout << "equipping item: " << cur_item_index << "mouse was pos: " << positive_direction << std::endl;
       }
 
       if (app.get_input().get_mouse_rmb_down()) {
@@ -650,6 +657,12 @@ main()
             obj.colour = enemy_colour;
           }
         }
+        if (weapon_pistol.flash_time_left > 0.0f) {
+          weapon_pistol.flash_time_left -= delta_time_s;
+          weapon_pistol.colour = weapon_pistol_flash_colour;
+        } else {
+          weapon_pistol.colour = weapon_pistol_colour;
+        }
 
         // update: vfx screenshake
 
@@ -661,6 +674,12 @@ main()
         if (screenshake_time_left <= 0.0f) {
           instanced_quad_shader.bind();
           instanced_quad_shader.set_bool("shake", false);
+        }
+
+        // update: vfx fade
+
+        for (auto& go : entities_vfx) {
+          go.colour.a = go.time_alive_left / go.time_alive;
         }
 
         // game phase: attack

@@ -155,6 +155,7 @@ public:
   float reload_time_left = reload_time;
 
   // game: lifecycle timed
+  float time_alive = 5.0f;
   float time_alive_left = 5.0f;
 
   // game: lifecycle health
