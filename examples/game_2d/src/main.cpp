@@ -471,8 +471,15 @@ main()
                 enemy.flash_time_left = vfx_flash_time; // vfx: flash
 
                 // vfx impactsplat
-                vfx::spawn_impact_splats(
-                  rnd, enemy, player, sprite_splat, tex_unit_kenny_nl, enemy_impact_splat_colour, entities_vfx);
+                int damage_amount = 9001;
+                vfx::spawn_impact_splats(rnd,
+                                         player,
+                                         enemy,
+                                         tex_unit_kenny_nl,
+                                         sprite_splat,
+                                         enemy_impact_splat_colour,
+                                         damage_amount,
+                                         entities_vfx);
               }
             }
           }
@@ -498,8 +505,15 @@ main()
                 enemy.flash_time_left = vfx_flash_time; // vfx: flash
 
                 // vfx impactsplat
-                vfx::spawn_impact_splats(
-                  rnd, enemy, player, sprite_splat, tex_unit_kenny_nl, enemy_impact_splat_colour, entities_vfx);
+                int damage_amount = 9001;
+                vfx::spawn_impact_splats(rnd,
+                                         player,
+                                         enemy,
+                                         tex_unit_kenny_nl,
+                                         sprite_splat,
+                                         enemy_impact_splat_colour,
+                                         damage_amount,
+                                         entities_vfx);
               }
             }
           }
@@ -528,8 +542,15 @@ main()
             obstacle.flash_time_left = vfx_flash_time;
 
             // vfx impactsplat
-            vfx::spawn_impact_splats(
-              rnd, enemy, obstacle, sprite_splat, tex_unit_kenny_nl, enemy_impact_splat_colour, entities_vfx);
+            int damage_amount = 9001;
+            vfx::spawn_impact_splats(rnd,
+                                     enemy,
+                                     obstacle,
+                                     tex_unit_kenny_nl,
+                                     sprite_splat,
+                                     enemy_impact_splat_colour,
+                                     damage_amount,
+                                     entities_vfx);
           }
         }
       }

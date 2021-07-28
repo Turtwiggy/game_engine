@@ -29,11 +29,12 @@ spawn_death_splat(fightingengine::RandomState& rnd,
 // vfx impact "splats"
 void
 spawn_impact_splats(fightingengine::RandomState& rnd,
-                    const GameObject2D& enemy,
-                    const GameObject2D& player,
-                    const sprite::type s,
-                    const int tex_unit,
+                    const GameObject2D& src,
+                    const GameObject2D& dst,
+                    const int tex_slot,
+                    const sprite::type sprite,
                     const glm::vec4 colour,
+                    int damage_amount,
                     std::vector<GameObject2D>& ents);
 
 } // namespace vfx

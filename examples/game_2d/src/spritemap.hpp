@@ -75,6 +75,18 @@ enum class type
   // row 15
   SKULL_AND_BONES,
 
+  // row 17
+  NUMBER_0,
+  NUMBER_1,
+  NUMBER_2,
+  NUMBER_3,
+  NUMBER_4,
+  NUMBER_5,
+  NUMBER_6,
+  NUMBER_7,
+  NUMBER_8,
+  NUMBER_9,
+
   // row 19
   BOAT,
 
@@ -150,6 +162,18 @@ struct spritemap
 
     // row 15
     ret[type::SKULL_AND_BONES] = { 0, 15 };
+
+    // row 17
+    ret[type::NUMBER_0] = { 35, 17 };
+    ret[type::NUMBER_1] = { 36, 17 };
+    ret[type::NUMBER_2] = { 37, 17 };
+    ret[type::NUMBER_3] = { 38, 17 };
+    ret[type::NUMBER_4] = { 39, 17 };
+    ret[type::NUMBER_5] = { 40, 17 };
+    ret[type::NUMBER_6] = { 41, 17 };
+    ret[type::NUMBER_7] = { 42, 17 };
+    ret[type::NUMBER_8] = { 43, 17 };
+    ret[type::NUMBER_9] = { 44, 17 };
 
     // row 19
     ret[type::BOAT] = { 10, 19 };
