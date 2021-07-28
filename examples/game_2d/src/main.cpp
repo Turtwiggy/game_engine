@@ -42,8 +42,6 @@ enum class GameRunning
   PAUSED,
   GAME_OVER
 };
-GameRunning state = GameRunning::ACTIVE;
-
 SDL_Scancode debug_key_quit = SDL_SCANCODE_ESCAPE;
 SDL_Scancode debug_key_advance_one_frame = SDL_SCANCODE_RSHIFT;
 SDL_Scancode debug_key_advance_one_frame_held = SDL_SCANCODE_F10;
@@ -105,6 +103,13 @@ enum class GamePhase
 {
   ATTACK,
   SHOP,
+};
+struct RangedWeaponStats
+{
+  float radius_offset_from_player = 14.0f;
+  bool infinite_ammo = true;
+  int current_ammo = 20;
+  int shop_refill_ammo = 5;
 };
 
 int
@@ -172,8 +177,8 @@ main()
   instanced_quad_shader.set_mat4("projection", projection);
 
   // Game
+  GameRunning state = GameRunning::ACTIVE;
 
-  // game vars
   const int PHYSICS_GRID_SIZE = 100; // todo: for optimizing sweep and prune algorithm
   const int GAME_GRID_SIZE = 64;
   const float game_safe_radius_around_player = 7500.0f;
@@ -192,21 +197,6 @@ main()
   EditorMode editor_left_click_mode = EditorMode::PLAYER_ATTACK;
   GamePhase game_phase = GamePhase::ATTACK;
 
-  float pistol_radius_offset = 14.0f;
-  bool pistol_infinite_ammo = true;
-  int pistol_ammo = 20;
-  int shop_refill_pistol_ammo = 5;
-
-  float shotgun_radius_offset = 17.5f;
-  bool shotgun_infinite_ammo = false;
-  int shotgun_ammo = 20;
-  int shop_refill_shotgun_ammo = 5;
-
-  float machinegun_radius_offset = 16.0f;
-  bool machinegun_infinite_ammo = false;
-  int machinegun_ammo = 20;
-  int shop_refill_machinegun_ammo = 5;
-
   // game objs
   GameObject2D tex_obj = gameobject::create_kennynl_texture(tex_unit_kenny_nl);
   GameObject2D camera = GameObject2D();
@@ -218,6 +208,7 @@ main()
   weapon_shovel.collision_layer = CollisionLayer::Weapon;
   weapon_shovel.colour = weapon_shovel_colour;
   weapon_shovel.do_render = false;
+
   GameObject2D weapon_pistol;
   weapon_pistol.sprite = sprite_pistol;
   weapon_pistol.pos = { screen_wh.x / 2.0f, screen_wh.y / 2.0f };
@@ -226,6 +217,12 @@ main()
   weapon_pistol.collision_layer = CollisionLayer::Weapon;
   weapon_pistol.colour = weapon_pistol_colour;
   weapon_pistol.do_render = false;
+  RangedWeaponStats stats_pistol;
+  stats_pistol.radius_offset_from_player = 14.0f;
+  stats_pistol.infinite_ammo = false;
+  stats_pistol.current_ammo = 20;
+  stats_pistol.shop_refill_ammo = 5;
+
   GameObject2D weapon_shotgun;
   weapon_shotgun.sprite = sprite_shotgun;
   weapon_shotgun.pos = { screen_wh.x / 2.0f, screen_wh.y / 2.0f };
@@ -234,6 +231,12 @@ main()
   weapon_shotgun.collision_layer = CollisionLayer::Weapon;
   weapon_shotgun.colour = weapon_shotgun_colour;
   weapon_shotgun.do_render = false;
+  RangedWeaponStats stats_shotgun;
+  stats_shotgun.radius_offset_from_player = 17.5f;
+  stats_shotgun.infinite_ammo = false;
+  stats_shotgun.current_ammo = 20;
+  stats_shotgun.shop_refill_ammo = 5;
+
   GameObject2D weapon_machinegun;
   weapon_machinegun.sprite = sprite_machinegun;
   weapon_machinegun.pos = { screen_wh.x / 2.0f, screen_wh.y / 2.0f };
@@ -242,6 +245,11 @@ main()
   weapon_machinegun.collision_layer = CollisionLayer::Weapon;
   weapon_machinegun.colour = weapon_machinegun_colour;
   weapon_machinegun.do_render = false;
+  RangedWeaponStats stats_machinegun;
+  stats_machinegun.radius_offset_from_player = 16.0f;
+  stats_machinegun.infinite_ammo = false;
+  stats_machinegun.current_ammo = 20;
+  stats_machinegun.shop_refill_ammo = 5;
 
   std::vector<Attack> attacks;
   std::vector<CollisionEvent> collision_events;
@@ -1072,6 +1080,7 @@ main()
               ImGui::Text("PLAYER_BOOST %f", player.shift_boost_time_left);
               ImGui::Text("AMMO_PISTOL %i", pistol_ammo);
               ImGui::Text("AMMO_SHOTGUN %i", shotgun_ammo);
+              ImGui::Text("AMMO_MACHINEGUN %i", machinegun_ammo);
               ImGui::Text("pos %f %f", player.pos.x, player.pos.y);
               ImGui::Text("vel x: %f y: %f", player.velocity.x, player.velocity.y);
               ImGui::Text("angle %f", player.angle_radians);

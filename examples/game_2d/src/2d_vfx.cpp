@@ -31,7 +31,7 @@ spawn_death_splat(fightingengine::RandomState& rnd,
 }
 
 std::vector<sprite::type>
-convert_int_to_sprites(int damage, int tex_unit)
+convert_int_to_sprites(int damage)
 {
   sprite::type number_0 = sprite::type::NUMBER_0;
   sprite::type number_1 = sprite::type::NUMBER_1;
@@ -145,7 +145,7 @@ spawn_impact_splats(fightingengine::RandomState& rnd,
     // glm::vec4 colour = glm::vec4(0.8f); // damage popup colour
     splat.colour = colour;
 
-    std::vector<sprite::type> number_sprites = convert_int_to_sprites(damage_amount, tex_slot);
+    std::vector<sprite::type> number_sprites = convert_int_to_sprites(damage_amount);
 
     int amount_of_splats = 1;
     for (int i = 0; i < amount_of_splats; i++) {
