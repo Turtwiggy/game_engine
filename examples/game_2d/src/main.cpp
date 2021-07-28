@@ -76,8 +76,11 @@ glm::vec4 weapon_pistol_colour = PALETTE_COLOUR_3_1;
 glm::vec4 weapon_pistol_flash_colour = PALETTE_COLOUR_2_1;
 glm::vec4 weapon_shotgun_colour = glm::vec4(1.0, 1.0, 0.0, 1.0);
 glm::vec4 weapon_shotgun_flash_colour = PALETTE_COLOUR_2_1;
+glm::vec4 weapon_machinegun_colour = PALETTE_COLOUR_3_1;
+glm::vec4 weapon_machinegun_flash_colour = PALETTE_COLOUR_2_1;
 glm::vec4 bullet_pistol_colour = weapon_pistol_colour;
 glm::vec4 bullet_shotgun_colour = weapon_shotgun_colour;
+glm::vec4 bullet_machinegun_colour = weapon_machinegun_colour;
 // colours: vfx
 glm::vec4 player_splat_colour = player_colour;                             // player col
 glm::vec4 enemy_death_splat_colour = glm::vec4(0.65f, 0.65f, 0.65f, 1.0f); // greyish
@@ -193,10 +196,16 @@ main()
   bool pistol_infinite_ammo = true;
   int pistol_ammo = 20;
   int shop_refill_pistol_ammo = 5;
+
   float shotgun_radius_offset = 17.5f;
   bool shotgun_infinite_ammo = false;
   int shotgun_ammo = 20;
   int shop_refill_shotgun_ammo = 5;
+
+  float machinegun_radius_offset = 16.0f;
+  bool machinegun_infinite_ammo = false;
+  int machinegun_ammo = 20;
+  int shop_refill_machinegun_ammo = 5;
 
   // game objs
   GameObject2D tex_obj = gameobject::create_kennynl_texture(tex_unit_kenny_nl);
@@ -225,6 +234,14 @@ main()
   weapon_shotgun.collision_layer = CollisionLayer::Weapon;
   weapon_shotgun.colour = weapon_shotgun_colour;
   weapon_shotgun.do_render = false;
+  GameObject2D weapon_machinegun;
+  weapon_machinegun.sprite = sprite_machinegun;
+  weapon_machinegun.pos = { screen_wh.x / 2.0f, screen_wh.y / 2.0f };
+  weapon_machinegun.render_size = { 1.0f * 768.0f / 48.0f, 1.0f * 362.0f / 22.0f };
+  weapon_machinegun.physics_size = { 1.0f * 768.0f / 48.0f, 1.0f * 362.0f / 22.0f };
+  weapon_machinegun.collision_layer = CollisionLayer::Weapon;
+  weapon_machinegun.colour = weapon_machinegun_colour;
+  weapon_machinegun.do_render = false;
 
   std::vector<Attack> attacks;
   std::vector<CollisionEvent> collision_events;
@@ -249,7 +266,8 @@ main()
     // player 0 default weapons
     std::vector<ShopItem> p0_inventory = std::vector<ShopItem>();
     p0_inventory.push_back(ShopItem::SHOVEL);
-    p0_inventory.push_back(ShopItem::PISTOL);
+    // p0_inventory.push_back(ShopItem::PISTOL);
+    p0_inventory.push_back(ShopItem::MACHINEGUN);
     player_inventories.push_back(p0_inventory);
     // set p0 weapon
     entities_player[0].equipped_item_index = 0;
@@ -471,7 +489,7 @@ main()
                 enemy.flash_time_left = vfx_flash_time; // vfx: flash
 
                 // vfx impactsplat
-                int damage_amount = 9001;
+                int damage_amount = 3;
                 vfx::spawn_impact_splats(rnd,
                                          player,
                                          enemy,
@@ -505,7 +523,7 @@ main()
                 enemy.flash_time_left = vfx_flash_time; // vfx: flash
 
                 // vfx impactsplat
-                int damage_amount = 9001;
+                int damage_amount = 3;
                 vfx::spawn_impact_splats(rnd,
                                          player,
                                          enemy,
@@ -542,7 +560,7 @@ main()
             obstacle.flash_time_left = vfx_flash_time;
 
             // vfx impactsplat
-            int damage_amount = 9001;
+            int damage_amount = 3;
             vfx::spawn_impact_splats(rnd,
                                      enemy,
                                      obstacle,
@@ -590,6 +608,7 @@ main()
             weapon_shovel.do_render = false;
             weapon_pistol.do_render = false;
             weapon_shotgun.do_render = false;
+            weapon_machinegun.do_render = false;
 
             if (player_inventory[player.equipped_item_index] == ShopItem::SHOVEL) {
               weapon_shovel.do_render = true;
@@ -636,6 +655,29 @@ main()
                                       entities_bullets,
                                       tex_unit_kenny_nl,
                                       bullet_shotgun_colour,
+                                      sprite_bullet,
+                                      delta_time_s,
+                                      attacks);
+              }
+            }
+
+            if (player_inventory[player.equipped_item_index] == ShopItem::MACHINEGUN) {
+              weapon_machinegun.do_render = true;
+              float angle_around_player = keys.angle_around_player;
+              glm::vec2 offset = glm::vec2(machinegun_radius_offset * sin(angle_around_player),
+                                           -machinegun_radius_offset * cos(angle_around_player));
+              weapon_machinegun.pos = player.pos + offset;
+              weapon_machinegun.angle_radians =
+                keys.angle_around_player + sprite::spritemap::get_sprite_rotation_offset(weapon_machinegun.sprite);
+
+              if (shotgun_infinite_ammo || machinegun_ammo > 0) {
+                player::ability_shoot(app,
+                                      weapon_machinegun,
+                                      machinegun_ammo,
+                                      keys,
+                                      entities_bullets,
+                                      tex_unit_kenny_nl,
+                                      bullet_machinegun_colour,
                                       sprite_bullet,
                                       delta_time_s,
                                       attacks);
@@ -785,23 +827,29 @@ main()
 
                 // shop logic
                 {
-                  if (shop_item.first == ShopItem::PISTOL || shop_item.first == ShopItem::SHOTGUN) {
+                  if (shop_item.first == ShopItem::PISTOL || shop_item.first == ShopItem::SHOTGUN ||
+                      shop_item.first == ShopItem::MACHINEGUN) {
                     // hack: use player 0 for the moment
                     std::vector<ShopItem>& player_inv = player_inventories[0];
                     player_inv.push_back(shop_item.first);
                   }
-                  if (shop_item.first == ShopItem::PISTOL_AMMO) {
+
+                  if (shop_item.first == ShopItem::PISTOL_AMMO)
                     pistol_ammo += shop_refill_pistol_ammo;
-                  }
-                  if (shop_item.first == ShopItem::SHOTGUN_AMMO) {
+
+                  if (shop_item.first == ShopItem::SHOTGUN_AMMO)
                     shotgun_ammo += shop_refill_shotgun_ammo;
-                  }
+
+                  if (shop_item.first == ShopItem::MACHINEGUN_AMMO)
+                    machinegun_ammo += shop_refill_machinegun_ammo;
+
                   if (shop_item.first == ShopItem::HEAL_HALF) {
                     GameObject2D& p0 = entities_player[0];
                     p0.damage_taken -= static_cast<int>(p0.damage_able_to_be_taken / 2);
                     if (p0.damage_taken < 0)
                       p0.damage_taken = 0;
                   }
+
                   if (shop_item.first == ShopItem::HEAL_FULL) {
                     GameObject2D& p0 = entities_player[0];
                     p0.damage_taken = 0;
@@ -836,7 +884,8 @@ main()
             const Attack& attack = (*it);
             int id = attack.entity_weapon_id;
 
-            if (attack.weapon_type == ShopItem::PISTOL) {
+            if (attack.weapon_type == ShopItem::PISTOL || attack.weapon_type == ShopItem::SHOTGUN ||
+                attack.weapon_type == ShopItem::MACHINEGUN) {
               const auto& bullet = std::find_if(
                 entities_bullets.begin(), entities_bullets.end(), [&id](const auto& obj) { return obj.id == id; });
 
@@ -888,6 +937,7 @@ main()
           renderables.push_back(weapon_shovel);
           renderables.push_back(weapon_pistol);
           renderables.push_back(weapon_shotgun);
+          renderables.push_back(weapon_machinegun);
           renderables.insert(renderables.end(), entities_player.begin(), entities_player.end());
           renderables.insert(renderables.end(), entities_trees.begin(), entities_trees.end());
 

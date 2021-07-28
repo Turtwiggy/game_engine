@@ -113,7 +113,7 @@ spawn_impact_splats(fightingengine::RandomState& rnd,
 
   splat.colour = colour;
 
-  int amount_of_splats = 5;
+  int amount_of_splats = 0;
   for (int i = 0; i < amount_of_splats; i++) {
 
     // position
@@ -142,7 +142,7 @@ spawn_impact_splats(fightingengine::RandomState& rnd,
 
   if (damage_amount > 0) {
 
-    glm::vec4 colour = glm::vec4(1.0f); // damage popup colour
+    // glm::vec4 colour = glm::vec4(0.8f); // damage popup colour
     splat.colour = colour;
 
     std::vector<sprite::type> number_sprites = convert_int_to_sprites(damage_amount, tex_slot);

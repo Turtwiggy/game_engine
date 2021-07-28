@@ -427,6 +427,19 @@ shop_initial_state()
     {
       ShopItemState i;
       i.price = 40;
+      i.quantity = 1;
+      i.infinite_quantity = false;
+      shop[ShopItem::MACHINEGUN] = i;
+    };
+    {
+      ShopItemState i;
+      i.price = 5;
+      i.infinite_quantity = true;
+      shop[ShopItem::MACHINEGUN_AMMO] = i;
+    };
+    {
+      ShopItemState i;
+      i.price = 40;
       i.infinite_quantity = true;
       shop[ShopItem::HEAL_HALF] = i;
     };
