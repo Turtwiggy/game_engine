@@ -4,12 +4,10 @@
 #include "spritemap.hpp"
 
 // textures
-
 const int tex_unit_kenny_nl = 0;
 const int tex_unit_tree = 1;
 
-// colours
-
+// sprites
 const game2d::sprite::type sprite_player = game2d::sprite::type::PERSON_1;
 const game2d::sprite::type sprite_pistol = game2d::sprite::type::WEAPON_PISTOL;
 const game2d::sprite::type sprite_shotgun = game2d::sprite::type::WEAPON_SHOTGUN;
@@ -24,7 +22,6 @@ const glm::vec4 PALETTE_COLOUR_1_1 = glm::vec4(57.0f / 255.0f, 62.0f / 255.0f, 7
 const glm::vec4 PALETTE_COLOUR_2_1 = glm::vec4(0.0f / 255.0f, 173.0f / 255.0f, 181.0f / 255.0f, 1.0f);   // blue
 const glm::vec4 PALETTE_COLOUR_3_1 = glm::vec4(170.0f / 255.0f, 216.0f / 255.0f, 211.0f / 255.0f, 1.0f); // lightblue
 const glm::vec4 PALETTE_COLOUR_4_1 = glm::vec4(238.0f / 255.0f, 238.0f / 255.0f, 238.0f / 255.0f, 1.0f); // grey
-
 // colours: entities
 const glm::vec4 background_colour = PALETTE_COLOUR_1_1; // black
 const glm::vec4 debug_line_colour = PALETTE_COLOUR_2_1; // blue

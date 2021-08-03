@@ -83,12 +83,12 @@ erase_entities_that_are_flagged_for_delete(std::vector<GameObject2D>& objs, cons
 // entities
 
 GameObject2D
-create_bullet(sprite::type sprite, int tex_slot, glm::vec4 colour)
+create_bullet(sprite::type sprite, glm::vec4 colour)
 {
   GameObject2D game_object;
   // config
   game_object.sprite = sprite;
-  game_object.tex_slot = tex_slot;
+  game_object.tex_slot = tex_unit_kenny_nl;
   game_object.colour = colour;
   // default
   game_object.collision_layer = CollisionLayer::Bullet;
@@ -99,6 +99,7 @@ create_bullet(sprite::type sprite, int tex_slot, glm::vec4 colour)
   game_object.speed_current = game_object.speed_default;
   game_object.time_alive_left = 6.0f;
   game_object.do_lifecycle_timed = true;
+  game_object.tex_slot = tex_unit_kenny_nl;
   return game_object;
 };
 
@@ -135,12 +136,12 @@ create_enemy(fightingengine::RandomState& rnd)
 };
 
 GameObject2D
-create_generic(sprite::type sprite, int tex_slot, glm::vec4 colour)
+create_generic(sprite::type sprite, glm::vec4 colour)
 {
   GameObject2D game_object;
   game_object.collision_layer = CollisionLayer::NoCollision;
   game_object.name = "generic";
-  game_object.tex_slot = tex_slot;
+  game_object.tex_slot = tex_unit_kenny_nl;
   game_object.sprite = sprite;
   game_object.render_size = { 1.0f * 768.0f / 48.0f, 1.0f * 362.0f / 22.0f };
   game_object.physics_size = { 1.0f * 768.0f / 48.0f, 1.0f * 362.0f / 22.0f };

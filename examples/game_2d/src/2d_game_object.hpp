@@ -32,19 +32,44 @@ enum class PlaceableEntity
   TREE = 0,
   SHOP = 1,
 };
-struct RangedWeaponStats
+struct WeaponStats
 {
-  float radius_offset_from_player = 14.0f;
-  bool infinite_ammo = true;
-  int current_ammo = 20;
   int damage = 0;
-  float fire_rate_seconds_limit = 1.0f;
+
+  WeaponStats(int d)
+    : damage(d){};
+};
+struct MeleeWeaponStats : WeaponStats
+{
+  // slash stats
+  // immutable data
+  const float slash_attack_time = 0.15f;
+  const float weapon_radius = 30.0f;
+  const float weapon_angle_speed = fightingengine::HALF_PI / 30.0f; // closer to 0 is faster
+  const float weapon_damping = 20.0f;
+  // mutable data
+  float slash_attack_time_left = 0.0f;
+  bool attack_left_to_right = true;
+  glm::vec2 weapon_target_pos = { 0.0f, 0.0f };
+  float weapon_current_angle = 0.0f;
+
+  MeleeWeaponStats(int d)
+    : WeaponStats(d){};
+};
+struct RangedWeaponStats : WeaponStats
+{
+  // immutable data
+  const float radius_offset_from_player = 14.0f;
+  const bool infinite_ammo = true;
+  const float fire_rate_seconds_limit = 1.0f;
+  // mutable data
+  int current_ammo = 20;
 
   RangedWeaponStats(float r, bool i, int a, int d, float frl)
-    : radius_offset_from_player(r)
+    : WeaponStats(d)
+    , radius_offset_from_player(r)
     , infinite_ammo(i)
     , current_ammo(a)
-    , damage(d)
     , fire_rate_seconds_limit(frl){};
 };
 // A "ShopItem" is purchasable in the shop
@@ -105,11 +130,13 @@ public:
   int entity_weapon_owner_id; // player or enemy
   int entity_weapon_id;
   ShopItem weapon_type;
+  int weapon_damage = 0;
 
-  Attack(int parent, int weapon, ShopItem type)
+  Attack(int parent, int weapon, ShopItem type, int damage)
     : entity_weapon_owner_id(parent)
     , entity_weapon_id(weapon)
     , weapon_type(type)
+    , weapon_damage(damage)
   {
     id = ++Attack::global_attack_int_counter;
   };
@@ -175,7 +202,7 @@ public:
   float time_alive_left = 5.0f;
 
   // game: lifecycle health
-  int damage_able_to_be_taken = 100;
+  int damage_able_to_be_taken = 10;
   int damage_taken = 0;
   bool invulnerable = false;
   std::vector<int> attack_ids_taken_damage_from;
@@ -246,12 +273,12 @@ erase_entities_that_are_flagged_for_delete(std::vector<GameObject2D>& objs, cons
 // entities
 
 GameObject2D
-create_generic(sprite::type sprite, int tex_slot, glm::vec4 colour);
+create_generic(sprite::type sprite, glm::vec4 colour);
 
 // specific entities
 
 GameObject2D
-create_bullet(sprite::type sprite, int tex_slot, glm::vec4 colour);
+create_bullet(sprite::type sprite, glm::vec4 colour);
 
 GameObject2D
 create_enemy(fightingengine::RandomState& rnd);

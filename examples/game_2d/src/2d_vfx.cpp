@@ -1,5 +1,6 @@
 // header
 #include "2d_vfx.hpp"
+#include "2d_game_config.hpp"
 
 #include <iostream>
 
@@ -12,11 +13,10 @@ void
 spawn_death_splat(fightingengine::RandomState& rnd,
                   const GameObject2D& enemy,
                   const sprite::type s,
-                  const int tex_unit,
                   const glm::vec4 colour,
                   std::vector<GameObject2D>& ents)
 {
-  GameObject2D splat = gameobject::create_generic(s, tex_unit, colour);
+  GameObject2D splat = gameobject::create_generic(s, colour);
   splat.do_lifecycle_timed = true;
   splat.time_alive = 45.0f; // long splat
   splat.time_alive_left = splat.time_alive;
@@ -74,7 +74,6 @@ void
 spawn_impact_splats(fightingengine::RandomState& rnd,
                     const GameObject2D& src,
                     const GameObject2D& dst,
-                    const int tex_slot,
                     const sprite::type sprite,
                     const glm::vec4 colour,
                     int damage_amount,
@@ -82,7 +81,7 @@ spawn_impact_splats(fightingengine::RandomState& rnd,
 {
   // these splats fire off in an arc from the enemy.pos
 
-  GameObject2D splat = gameobject::create_generic(sprite, tex_slot, colour);
+  GameObject2D splat = gameobject::create_generic(sprite, colour);
   splat.do_lifecycle_timed = true;
   splat.time_alive = 1.0f; // short splat
   splat.time_alive_left = splat.time_alive;

@@ -78,6 +78,7 @@ ability_slash(fightingengine::Application& app,
               const KeysAndState& keys,
               GameObject2D& weapon,
               float delta_time_s,
+              MeleeWeaponStats& s,
               std::vector<Attack>& attacks);
 
 void
@@ -86,10 +87,10 @@ ability_shoot(fightingengine::Application& app,
               int& ammo,
               const KeysAndState& keys,
               std::vector<GameObject2D>& bullets,
-              const int tex_unit,
               const glm::vec4 bullet_col,
               const sprite::type sprite,
               const float delta_time_s,
+              const RangedWeaponStats& s,
               std::vector<Attack>& attacks);
 
 }; // namespace player

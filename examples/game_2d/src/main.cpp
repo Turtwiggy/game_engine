@@ -55,6 +55,18 @@ enum class GamePhase
   SHOP,
 };
 
+void
+toggle_fullscreen(Application& app, Shader& s)
+{
+  app.get_window().toggle_fullscreen(); // SDL2 window toggle
+  glm::ivec2 screen_wh = app.get_window().get_size();
+  RenderCommand::set_viewport(0, 0, screen_wh.x, screen_wh.y);
+  glm::mat4 projection =
+    glm::ortho(0.0f, static_cast<float>(screen_wh.x), static_cast<float>(screen_wh.y), 0.0f, -1.0f, 1.0f);
+  s.bind();
+  s.set_mat4("projection", projection);
+}
+
 int
 main()
 {
@@ -142,11 +154,13 @@ main()
   int enemies_destroyed_this_wave = 0;
   int enemies_killed = 0;
   // weapon stats
-  game2d::RangedWeaponStats stats_pistol(14.0f, false, 20, 10, 0.2f);
-  game2d::RangedWeaponStats stats_shotgun(17.5f, false, 20, 8, 0.5f);
-  game2d::RangedWeaponStats stats_machinegun(16.0f, false, 20, 5, 0.3f);
+  game2d::MeleeWeaponStats stats_shovel(1);
+  game2d::RangedWeaponStats stats_pistol(14.0f, false, 20, 3, 0.2f);
+  game2d::RangedWeaponStats stats_shotgun(17.5f, false, 20, 5, 0.5f);
+  game2d::RangedWeaponStats stats_machinegun(16.0f, false, 20, 4, 0.3f);
   // shop stats
   int p0_currency = 0;
+  std::map<ShopItem, shop::ShopItemState> shop = shop::shop_initial_state();
   int shop_refill_pistol_ammo = 5;
   int shop_refill_shotgun_ammo = 5;
   int shop_refill_machinegun_ammo = 5;
@@ -173,7 +187,6 @@ main()
   std::vector<GameObject2D> entities_vfx;
   std::vector<KeysAndState> player_keys;
   std::vector<std::vector<ShopItem>> player_inventories;
-  std::map<ShopItem, shop::ShopItemState> shop = shop::shop_initial_state();
 
   // add players
   {
@@ -366,13 +379,13 @@ main()
             if (player.damage_taken >= player.damage_able_to_be_taken)
               continue; // player is dead
 
-            enemy.flag_for_delete = true;             // enemy
-            player.damage_taken += 1;                 // player
-            player.flash_time_left = vfx_flash_time;  // vfx: flash
-            screenshake_time_left = screenshake_time; // screenshake
+            enemy.flag_for_delete = true;                       // enemy
+            player.damage_taken += enemy.damage_to_give_player; // player
+            player.flash_time_left = vfx_flash_time;            // vfx: flash
+            screenshake_time_left = screenshake_time;           // screenshake
 
             // vfx spawn a splat
-            GameObject2D splat = gameobject::create_generic(sprite_splat, tex_unit_kenny_nl, player_splat_colour);
+            GameObject2D splat = gameobject::create_generic(sprite_splat, player_splat_colour);
             splat.pos = player.pos;
             splat.angle_radians = fightingengine::rand_det_s(rnd.rng, 0.0f, fightingengine::PI);
             entities_vfx.push_back(splat);
@@ -395,20 +408,14 @@ main()
 
               if (is_shovel && collision_with_specific_shovel_attack && !taken_damage_from_shovel) {
                 // std::cout << "enemy taking damage from weapon attack ONCE!" << std::endl;
-                enemy.damage_taken += 1;
+                enemy.damage_taken += attack.weapon_damage;
                 enemy.attack_ids_taken_damage_from.push_back(attack.id);
                 enemy.flash_time_left = vfx_flash_time; // vfx: flash
 
                 // vfx impactsplat
-                int damage_amount = 3;
-                vfx::spawn_impact_splats(rnd,
-                                         player,
-                                         enemy,
-                                         tex_unit_kenny_nl,
-                                         sprite_splat,
-                                         enemy_impact_splat_colour,
-                                         damage_amount,
-                                         entities_vfx);
+                int damage_amount = attack.weapon_damage;
+                vfx::spawn_impact_splats(
+                  rnd, player, enemy, sprite_splat, enemy_impact_splat_colour, damage_amount, entities_vfx);
               }
             }
           }
@@ -429,20 +436,14 @@ main()
 
               if (is_bullet && collision_with_specific_bullet && !taken_damage_from_bullet) {
                 // std::cout << "enemy taking damage from bullet attack ONCE!" << std::endl;
-                enemy.damage_taken += 1;
+                enemy.damage_taken += attack.weapon_damage;
                 enemy.attack_ids_taken_damage_from.push_back(attack.id);
                 enemy.flash_time_left = vfx_flash_time; // vfx: flash
 
                 // vfx impactsplat
-                int damage_amount = 3;
-                vfx::spawn_impact_splats(rnd,
-                                         player,
-                                         enemy,
-                                         tex_unit_kenny_nl,
-                                         sprite_splat,
-                                         enemy_impact_splat_colour,
-                                         damage_amount,
-                                         entities_vfx);
+                int damage_amount = attack.weapon_damage;
+                vfx::spawn_impact_splats(
+                  rnd, player, enemy, sprite_splat, enemy_impact_splat_colour, damage_amount, entities_vfx);
               }
             }
           }
@@ -464,22 +465,18 @@ main()
             GameObject2D& enemy = event.go0.collision_layer == CollisionLayer::Obstacle ? event.go1 : event.go0;
 
             // std::cout << "enemy taking damage from bullet attack ONCE!" << std::endl;
-            enemy.damage_taken += 1;
+            const int DAMAGE_TO_GIVE_ENEMY_FROM_OBSTACLE = 10;
+            enemy.damage_taken += DAMAGE_TO_GIVE_ENEMY_FROM_OBSTACLE;
             enemy.flash_time_left = vfx_flash_time;
 
-            obstacle.damage_taken += 1;
+            const int DAMAGE_TO_GIVE_OBSTACLE_FROM_ENEMY = 1;
+            obstacle.damage_taken += DAMAGE_TO_GIVE_OBSTACLE_FROM_ENEMY;
             obstacle.flash_time_left = vfx_flash_time;
 
             // vfx impactsplat
-            int damage_amount = 3;
-            vfx::spawn_impact_splats(rnd,
-                                     enemy,
-                                     obstacle,
-                                     tex_unit_kenny_nl,
-                                     sprite_splat,
-                                     enemy_impact_splat_colour,
-                                     damage_amount,
-                                     entities_vfx);
+            int damage_amount = DAMAGE_TO_GIVE_ENEMY_FROM_OBSTACLE;
+            vfx::spawn_impact_splats(
+              rnd, enemy, obstacle, sprite_splat, enemy_impact_splat_colour, damage_amount, entities_vfx);
           }
         }
       }
@@ -523,7 +520,7 @@ main()
 
             if (player_inventory[player.equipped_item_index] == ShopItem::SHOVEL) {
               weapon_shovel.do_render = true;
-              player::ability_slash(app, player, keys, weapon_shovel, delta_time_s, attacks);
+              player::ability_slash(app, player, keys, weapon_shovel, delta_time_s, stats_shovel, attacks);
             }
 
             if (player_inventory[player.equipped_item_index] == ShopItem::PISTOL) {
@@ -541,10 +538,10 @@ main()
                                       stats_pistol.current_ammo,
                                       keys,
                                       entities_bullets,
-                                      tex_unit_kenny_nl,
                                       bullet_pistol_colour,
                                       sprite_bullet,
                                       delta_time_s,
+                                      stats_pistol,
                                       attacks);
               }
             }
@@ -564,10 +561,10 @@ main()
                                       stats_shotgun.current_ammo,
                                       keys,
                                       entities_bullets,
-                                      tex_unit_kenny_nl,
                                       bullet_shotgun_colour,
                                       sprite_bullet,
                                       delta_time_s,
+                                      stats_shotgun,
                                       attacks);
               }
             }
@@ -587,10 +584,10 @@ main()
                                       stats_machinegun.current_ammo,
                                       keys,
                                       entities_bullets,
-                                      tex_unit_kenny_nl,
                                       bullet_machinegun_colour,
                                       sprite_bullet,
                                       delta_time_s,
+                                      stats_machinegun,
                                       attacks);
               }
             }
@@ -801,7 +798,7 @@ main()
           // enemy has died
           for (auto& enemy : entities_enemies) {
             if (enemy.flag_for_delete) {
-              vfx::spawn_death_splat(rnd, enemy, enemy.sprite, tex_unit_kenny_nl, enemy.colour, entities_vfx);
+              vfx::spawn_death_splat(rnd, enemy, enemy.sprite, enemy.colour, entities_vfx);
               enemies_destroyed_this_wave += 1;
               enemies_killed += 1;
               p0_currency += 1;
@@ -844,25 +841,6 @@ main()
           renderables.insert(renderables.end(), entities_player.begin(), entities_player.end());
           renderables.insert(renderables.end(), entities_trees.begin(), entities_trees.end());
 
-          if (ui_show_entity_menu) {
-            ImGui::Begin("Entity Menu", NULL, ImGuiWindowFlags_NoFocusOnAppearing);
-            {
-              ImGui::Text("Players: %i", entities_player.size());
-              ImGui::Text("Bullets: %i", entities_bullets.size());
-              ImGui::Text("Enemies: %i", entities_enemies.size());
-              ImGui::Text("Vfx: %i", entities_vfx.size());
-              ImGui::Text("Attacks: %i", attacks.size());
-              ImGui::Separator();
-
-              for (auto& e : renderables) {
-                for (auto& c : e.get().in_physics_grid_cell) {
-                  ImGui::Text("id: %i entity: %s in cell: x:%i y:%i", e.get().id, e.get().name.c_str(), c.x, c.y);
-                }
-              }
-            }
-            ImGui::End();
-          }
-
           for (auto& obj : renderables) {
             if (!obj.get().do_render)
               continue;
@@ -876,7 +854,6 @@ main()
           }
 
           if (debug_render_spritesheet) {
-            // draw the spritesheet for reference
             sprite_renderer::draw_sprite_debug(
               camera, screen_wh, instanced_quad_shader, tex_obj, tex_obj.render_size, colour_shader, debug_line_colour);
           }
@@ -927,17 +904,15 @@ main()
             ImGui::Checkbox("Fullscreen", &ui_fullscreen);
             if (temp != ui_fullscreen) {
               std::cout << "ui_fullscreen toggled to: " << temp << std::endl;
-
-              // hack
-              app.get_window().toggle_fullscreen(); // SDL2 window toggle
-              glm::ivec2 screen_wh = app.get_window().get_size();
-              RenderCommand::set_viewport(0, 0, screen_wh.x, screen_wh.y);
-              glm::mat4 projection =
-                glm::ortho(0.0f, static_cast<float>(screen_wh.x), static_cast<float>(screen_wh.y), 0.0f, -1.0f, 1.0f);
-              instanced_quad_shader.bind();
-              instanced_quad_shader.set_mat4("projection", projection);
+              toggle_fullscreen(app, instanced_quad_shader);
             }
             ui_fullscreen = temp;
+          }
+
+          { // restart button
+            if (ImGui::Button("Restart Game")) {
+              std::cout << "restart game" << std::endl;
+            }
           }
 
           ImGui::SameLine(screen_wh.x - 50.0f);
@@ -974,7 +949,6 @@ main()
               }
               ImGui::Separator();
             }
-
             ImGui::Text("game running for: %f", app.seconds_since_launch);
             ImGui::Text("camera pos %f %f", camera.pos.x, camera.pos.y);
             ImGui::Text("mouse pos %f %f", app.get_input().get_mouse_pos().x, app.get_input().get_mouse_pos().y);
@@ -985,6 +959,18 @@ main()
             ImGui::Separator();
             ImGui::Text("draw_calls: %i", sprite_renderer::get_draw_calls());
             ImGui::Text("quad_verts: %i", sprite_renderer::get_quad_count());
+          }
+          ImGui::End();
+        }
+        if (ui_show_entity_menu) {
+          ImGui::Begin("Entity Menu", NULL, ImGuiWindowFlags_NoFocusOnAppearing);
+          {
+            ImGui::Text("Players: %i", entities_player.size());
+            ImGui::Text("Bullets: %i", entities_bullets.size());
+            ImGui::Text("Enemies: %i", entities_enemies.size());
+            ImGui::Text("Vfx: %i", entities_vfx.size());
+            ImGui::Text("Attacks: %i", attacks.size());
+            ImGui::Separator();
           }
           ImGui::End();
         }
