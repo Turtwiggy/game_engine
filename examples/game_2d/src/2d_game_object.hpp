@@ -32,6 +32,21 @@ enum class PlaceableEntity
   TREE = 0,
   SHOP = 1,
 };
+struct RangedWeaponStats
+{
+  float radius_offset_from_player = 14.0f;
+  bool infinite_ammo = true;
+  int current_ammo = 20;
+  int damage = 0;
+  float fire_rate_seconds_limit = 1.0f;
+
+  RangedWeaponStats(float r, bool i, int a, int d, float frl)
+    : radius_offset_from_player(r)
+    , infinite_ammo(i)
+    , current_ammo(a)
+    , damage(d)
+    , fire_rate_seconds_limit(frl){};
+};
 // A "ShopItem" is purchasable in the shop
 enum class ShopItem
 {
@@ -142,6 +157,7 @@ public:
   // ai priority list. higher priority later in list.
   std::vector<AiBehaviour> ai_priority_list;
   float approach_theta_degrees = 0.0f;
+  int damage_to_give_player = 5;
 
   // game: inventory
   int equipped_item_index = 0;
@@ -238,16 +254,19 @@ GameObject2D
 create_bullet(sprite::type sprite, int tex_slot, glm::vec4 colour);
 
 GameObject2D
-create_enemy(sprite::type sprite, int tex_slot, glm::vec4 colour, fightingengine::RandomState& rnd);
+create_enemy(fightingengine::RandomState& rnd);
 
 GameObject2D
-create_tree(int tex_slot);
+create_tree();
 
 GameObject2D
 create_player(sprite::type sprite, int tex_slot, glm::vec4 colour, glm::vec2 screen);
 
 GameObject2D
-create_kennynl_texture(int tex_slot);
+create_kennynl_texture();
+
+GameObject2D
+create_weapon(sprite::type sprite, int tex_slot, glm::vec4 colour);
 
 } // namespace gameobject
 

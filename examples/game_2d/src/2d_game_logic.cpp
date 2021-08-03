@@ -78,38 +78,83 @@ enemy_ai::enemy_arc_angles_to_player(GameObject2D& obj, GameObject2D& player, fl
 
 namespace enemy_spawner {
 
+// spawn vars
 const bool game_spawn_enemies = true;
-const float game_wall_seconds_between_spawning_start = 1.0f;
-float game_wall_seconds_between_spawning_current = game_wall_seconds_between_spawning_start;
-float game_wall_seconds_between_spawning_left = 0.0f;
-const float game_wall_seconds_between_spawning_end = 0.2f;
+int wave = 0;
+int enemies_to_spawn_this_wave = 10;
+int enemies_to_spawn_this_wave_left = enemies_to_spawn_this_wave;
+// difficulty: spawn amount
+const int EXTRA_ENEMIES_TO_SPAWN_PER_WAVE = 5;
+// difficulty: spawn rate
 const float game_seconds_until_max_difficulty = 100.0f;
 float game_seconds_until_max_difficulty_spent = 0.0f;
+const float game_enemies_seconds_between_spawning_start = 1.0f;
+const float game_enemy_seconds_between_spawning_end = 0.2f;
+float game_enemy_seconds_between_spawning_current = game_enemies_seconds_between_spawning_start;
+float game_enemy_seconds_between_spawning_left = 0.0f;
+// difficulty: toughness
+// difficulty: damage
+// difficulty: speed
+// spawn safe radius
+const float game_safe_radius_around_player = 8000.0f;
+
+int
+enemies_left_to_spawn()
+{
+  return enemies_to_spawn_this_wave_left;
+}
+
+int
+get_wave()
+{
+  return wave;
+}
 
 void
-next_wave(int& enemies_to_spawn_this_wave, int& enemies_to_spawn_this_wave_left)
+next_wave()
 {
-  enemies_to_spawn_this_wave += 5;
+  enemies_to_spawn_this_wave += EXTRA_ENEMIES_TO_SPAWN_PER_WAVE * wave;
   enemies_to_spawn_this_wave_left = enemies_to_spawn_this_wave;
+  wave += 1;
   std::cout << "left: " << enemies_to_spawn_this_wave_left << std::endl;
+}
+
+void
+spawn_enemy(std::vector<GameObject2D>& enemies, fightingengine::RandomState& rnd, glm::vec2 world_pos)
+{
+  // spawn enemy
+  GameObject2D enemy_copy = gameobject::create_enemy(rnd);
+  // override defaults
+  enemy_copy.pos = world_pos;
+
+  // override stats based on wave
+  int base_health = enemy_copy.damage_able_to_be_taken;
+  float base_damage = 10.0f;
+  float base_speed = enemy_copy.speed_default;
+
+  enemy_copy.damage_able_to_be_taken = static_cast<int>(base_health * 0.5f); // toughness
+  enemy_copy.damage_to_give_player = static_cast<int>(base_damage * 0.5);    // damage
+  enemy_copy.speed_current = base_speed * 0.8f;                              // speed
+
+  std::cout << "spawning an enemy with stats for wave: " << wave << " "
+            << "datbt: " << enemy_copy.damage_able_to_be_taken << " "
+            << "dgtp: " << enemy_copy.damage_to_give_player << " "
+            << "speed: " << enemy_copy.speed_current << " " << std::endl;
+
+  enemies.push_back(enemy_copy);
 }
 
 void
 update(std::vector<GameObject2D>& enemies,
        std::vector<GameObject2D>& players,
-       int& enemies_to_spawn,
        const GameObject2D& camera,
        fightingengine::RandomState& rnd,
        const glm::ivec2 screen_wh,
-       const float safe_radius_around_player,
-       const int tex_unit,
-       const glm::vec4 col,
-       const sprite::type sprite,
        const float delta_time_s)
 {
-  game_wall_seconds_between_spawning_left -= delta_time_s;
-  if (game_wall_seconds_between_spawning_left <= 0.0f) {
-    game_wall_seconds_between_spawning_left = game_wall_seconds_between_spawning_current;
+  game_enemy_seconds_between_spawning_left -= delta_time_s;
+  if (game_enemy_seconds_between_spawning_left <= 0.0f) {
+    game_enemy_seconds_between_spawning_left = game_enemy_seconds_between_spawning_current;
 
     // search params
     bool continue_search = true;
@@ -136,7 +181,7 @@ update(std::vector<GameObject2D>& enemies,
       for (auto& player : players) {
 
         distance_squared = glm::distance2(rnd_pos, player.pos);
-        ok = distance_squared > safe_radius_around_player;
+        ok = distance_squared > game_safe_radius_around_player;
 
         if (ok) {
           continue_search = false;
@@ -150,14 +195,9 @@ update(std::vector<GameObject2D>& enemies,
     // std::cout << "enemy spawning " << distance_squared << " away from player" << std::endl;
     glm::vec2 world_pos = found_pos + camera.pos;
 
-    if (game_spawn_enemies && enemies_to_spawn > 0) {
-      // spawn enemy
-      GameObject2D wall_copy = gameobject::create_enemy(sprite, tex_unit, col, rnd);
-      // override defaults
-      wall_copy.pos = world_pos;
-      enemies.push_back(wall_copy);
-
-      enemies_to_spawn -= 1;
+    if (game_spawn_enemies && enemies_to_spawn_this_wave_left > 0) {
+      spawn_enemy(enemies, rnd, world_pos);
+      enemies_to_spawn_this_wave_left -= 1;
     }
   }
 
@@ -166,8 +206,8 @@ update(std::vector<GameObject2D>& enemies,
   // after 30 seconds, cooldown should be 0
   game_seconds_until_max_difficulty_spent += delta_time_s;
   float percent = glm::clamp(game_seconds_until_max_difficulty_spent / game_seconds_until_max_difficulty, 0.0f, 1.0f);
-  game_wall_seconds_between_spawning_current =
-    glm::mix(game_wall_seconds_between_spawning_start, game_wall_seconds_between_spawning_end, percent);
+  game_enemy_seconds_between_spawning_current =
+    glm::mix(game_enemies_seconds_between_spawning_start, game_enemy_seconds_between_spawning_end, percent);
 };
 
 } // namespace enemyspawner

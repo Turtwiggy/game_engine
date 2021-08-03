@@ -30,6 +30,7 @@ struct Vertex
   glm::vec4 pos_and_tex;
   glm::vec4 colour;
   glm::vec2 sprite_pos;
+  float tex_index;
   glm::mat4 model;
 };
 
@@ -94,19 +95,22 @@ init()
   glVertexAttribPointer(2, 4, GL_FLOAT, GL_FALSE, sizeof(Vertex), (const void*)offsetof(Vertex, sprite_pos));
 
   glEnableVertexAttribArray(3);
-  glVertexAttribPointer(3, 4, GL_FLOAT, GL_FALSE, sizeof(Vertex), (const void*)offsetof(Vertex, model));
+  glVertexAttribPointer(3, 4, GL_FLOAT, GL_FALSE, sizeof(Vertex), (const void*)offsetof(Vertex, tex_index));
 
   glEnableVertexAttribArray(4);
-  glVertexAttribPointer(
-    4, 4, GL_FLOAT, GL_FALSE, sizeof(Vertex), (const void*)(offsetof(Vertex, model) + 1 * sizeof(glm::vec4)));
+  glVertexAttribPointer(4, 4, GL_FLOAT, GL_FALSE, sizeof(Vertex), (const void*)offsetof(Vertex, model));
 
   glEnableVertexAttribArray(5);
   glVertexAttribPointer(
-    5, 4, GL_FLOAT, GL_FALSE, sizeof(Vertex), (const void*)(offsetof(Vertex, model) + 2 * sizeof(glm::vec4)));
+    5, 4, GL_FLOAT, GL_FALSE, sizeof(Vertex), (const void*)(offsetof(Vertex, model) + 1 * sizeof(glm::vec4)));
 
   glEnableVertexAttribArray(6);
   glVertexAttribPointer(
-    6, 4, GL_FLOAT, GL_FALSE, sizeof(Vertex), (const void*)(offsetof(Vertex, model) + 3 * sizeof(glm::vec4)));
+    6, 4, GL_FLOAT, GL_FALSE, sizeof(Vertex), (const void*)(offsetof(Vertex, model) + 2 * sizeof(glm::vec4)));
+
+  glEnableVertexAttribArray(7);
+  glVertexAttribPointer(
+    7, 4, GL_FLOAT, GL_FALSE, sizeof(Vertex), (const void*)(offsetof(Vertex, model) + 3 * sizeof(glm::vec4)));
 
   uint32_t indices[max_quad_index_count];
   uint32_t index_offset = 0;
@@ -218,6 +222,7 @@ draw_instanced_sprite(const GameObject2D& cam,
   s_data.buffer_ptr->pos_and_tex = { 0.0f, 0.0f, 0.0f, 0.0f };
   s_data.buffer_ptr->colour = colour_tl;
   s_data.buffer_ptr->sprite_pos = sprite_offset;
+  s_data.buffer_ptr->tex_index = (float)go.tex_slot;
   s_data.buffer_ptr->model = model;
   s_data.buffer_ptr++;
 
@@ -225,6 +230,7 @@ draw_instanced_sprite(const GameObject2D& cam,
   s_data.buffer_ptr->pos_and_tex = { 1.0f, 0.0f, 1.0f, 0.0f };
   s_data.buffer_ptr->colour = colour_tr;
   s_data.buffer_ptr->sprite_pos = sprite_offset;
+  s_data.buffer_ptr->tex_index = (float)go.tex_slot;
   s_data.buffer_ptr->model = model;
   s_data.buffer_ptr++;
 
@@ -232,6 +238,7 @@ draw_instanced_sprite(const GameObject2D& cam,
   s_data.buffer_ptr->pos_and_tex = { 1.0f, 1.0f, 1.0f, 1.0f };
   s_data.buffer_ptr->colour = colour_br;
   s_data.buffer_ptr->sprite_pos = sprite_offset;
+  s_data.buffer_ptr->tex_index = (float)go.tex_slot;
   s_data.buffer_ptr->model = model;
   s_data.buffer_ptr++;
 
@@ -239,6 +246,7 @@ draw_instanced_sprite(const GameObject2D& cam,
   s_data.buffer_ptr->pos_and_tex = { 0.0f, 1.0f, 0.0f, 1.0f };
   s_data.buffer_ptr->colour = colour_bl;
   s_data.buffer_ptr->sprite_pos = sprite_offset;
+  s_data.buffer_ptr->tex_index = (float)go.tex_slot;
   s_data.buffer_ptr->model = model;
   s_data.buffer_ptr++;
 

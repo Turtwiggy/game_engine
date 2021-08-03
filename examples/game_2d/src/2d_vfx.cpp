@@ -33,16 +33,6 @@ spawn_death_splat(fightingengine::RandomState& rnd,
 std::vector<sprite::type>
 convert_int_to_sprites(int damage)
 {
-  sprite::type number_0 = sprite::type::NUMBER_0;
-  sprite::type number_1 = sprite::type::NUMBER_1;
-  sprite::type number_2 = sprite::type::NUMBER_2;
-  sprite::type number_3 = sprite::type::NUMBER_3;
-  sprite::type number_4 = sprite::type::NUMBER_4;
-  sprite::type number_5 = sprite::type::NUMBER_5;
-  sprite::type number_6 = sprite::type::NUMBER_6;
-  sprite::type number_7 = sprite::type::NUMBER_7;
-  sprite::type number_8 = sprite::type::NUMBER_8;
-  sprite::type number_9 = sprite::type::NUMBER_9;
 
   std::vector<sprite::type> numbers;
 
@@ -53,39 +43,29 @@ convert_int_to_sprites(int damage)
     int digit = number % 10;
     number /= 10;
 
-    if (digit == 9) {
-      numbers.push_back(number_9);
-    }
-    if (digit == 8) {
-      numbers.push_back(number_8);
-    }
-    if (digit == 7) {
-      numbers.push_back(number_7);
-    }
-    if (digit == 6) {
-      numbers.push_back(number_6);
-    }
-    if (digit == 5) {
-      numbers.push_back(number_5);
-    }
-    if (digit == 4) {
-      numbers.push_back(number_4);
-    }
-    if (digit == 3) {
-      numbers.push_back(number_3);
-    }
-    if (digit == 2) {
-      numbers.push_back(number_2);
-    }
-    if (digit == 1) {
-      numbers.push_back(number_1);
-    }
-    if (digit == 0) {
-      numbers.push_back(number_0);
-    }
+    if (digit == 9)
+      numbers.push_back(sprite::type::NUMBER_9);
+    if (digit == 8)
+      numbers.push_back(sprite::type::NUMBER_8);
+    if (digit == 7)
+      numbers.push_back(sprite::type::NUMBER_7);
+    if (digit == 6)
+      numbers.push_back(sprite::type::NUMBER_6);
+    if (digit == 5)
+      numbers.push_back(sprite::type::NUMBER_5);
+    if (digit == 4)
+      numbers.push_back(sprite::type::NUMBER_4);
+    if (digit == 3)
+      numbers.push_back(sprite::type::NUMBER_3);
+    if (digit == 2)
+      numbers.push_back(sprite::type::NUMBER_2);
+    if (digit == 1)
+      numbers.push_back(sprite::type::NUMBER_1);
+    if (digit == 0)
+      numbers.push_back(sprite::type::NUMBER_0);
   }
 
-  // now reverse numbers, and align them in to e.g. 1230
+  // now reverse numbers in to e.g. 1230
   std::reverse(numbers.begin(), numbers.end());
   return numbers;
 }

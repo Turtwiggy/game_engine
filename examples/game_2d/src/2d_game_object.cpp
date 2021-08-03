@@ -1,5 +1,6 @@
 // your header
 #include "2d_game_object.hpp"
+#include "2d_game_config.hpp"
 
 // c++ standard lib
 #include <iostream>
@@ -102,13 +103,13 @@ create_bullet(sprite::type sprite, int tex_slot, glm::vec4 colour)
 };
 
 GameObject2D
-create_enemy(sprite::type sprite, int tex_slot, glm::vec4 colour, fightingengine::RandomState& rnd)
+create_enemy(fightingengine::RandomState& rnd)
 {
   GameObject2D game_object;
   // config
-  game_object.sprite = sprite;
-  game_object.tex_slot = tex_slot;
-  game_object.colour = colour;
+  game_object.sprite = sprite_enemy_core;
+  game_object.tex_slot = tex_unit_kenny_nl;
+  game_object.colour = enemy_colour;
   game_object.speed_default = 60.0f;
   game_object.speed_current = game_object.speed_default;
   // default
@@ -117,7 +118,6 @@ create_enemy(sprite::type sprite, int tex_slot, glm::vec4 colour, fightingengine
   game_object.angle_radians = 0.0;
   game_object.render_size = { 1.0f * 768.0f / 48.0f, 1.0f * 362.0f / 22.0f };
   game_object.physics_size = { 1.0f * 768.0f / 48.0f, 1.0f * 362.0f / 22.0f };
-  game_object.damage_able_to_be_taken = 1;
 
   // roll a dice for ai
   float rand = fightingengine::rand_det_s(rnd.rng, 0.0f, 1.0f);
@@ -149,12 +149,12 @@ create_generic(sprite::type sprite, int tex_slot, glm::vec4 colour)
 }
 
 GameObject2D
-create_tree(int tex_slot)
+create_tree()
 {
   GameObject2D game_object;
   game_object.collision_layer = CollisionLayer::Obstacle;
   game_object.name = "tree";
-  game_object.tex_slot = tex_slot;
+  game_object.tex_slot = tex_unit_tree;
   game_object.sprite = sprite::type::EMPTY;
   game_object.render_size = { 32.0f, 32.0f };
   game_object.physics_size = { 32.0f, 32.0f };
@@ -189,7 +189,7 @@ create_player(sprite::type sprite, int tex_slot, glm::vec4 colour, glm::vec2 scr
 };
 
 GameObject2D
-create_kennynl_texture(int tex_slot)
+create_kennynl_texture()
 {
   GameObject2D game_object;
   game_object.name = "texture_sheet";
@@ -199,6 +199,22 @@ create_kennynl_texture(int tex_slot)
   game_object.colour = glm::vec4(1.0f, 1.0f, 1.0f, 1.0f);
   game_object.angle_radians = 0.0;
   game_object.sprite = sprite::type::EMPTY;
+  game_object.tex_slot = tex_unit_kenny_nl;
+  return game_object;
+}
+
+GameObject2D
+create_weapon(sprite::type sprite, int tex_slot, glm::vec4 colour)
+{
+  GameObject2D game_object;
+  game_object.name = "weapon";
+  game_object.tex_slot = tex_slot;
+  game_object.sprite = sprite;
+  game_object.render_size = { 1.0f * 768.0f / 48.0f, 1.0f * 362.0f / 22.0f };
+  game_object.physics_size = { 1.0f * 768.0f / 48.0f, 1.0f * 362.0f / 22.0f };
+  game_object.collision_layer = CollisionLayer::Weapon;
+  game_object.colour = colour;
+  game_object.do_render = false;
   return game_object;
 }
 

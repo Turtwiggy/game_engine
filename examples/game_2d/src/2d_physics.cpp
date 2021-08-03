@@ -7,6 +7,8 @@
 
 namespace game2d {
 
+const int PHYSICS_GRID_SIZE = 100; // todo: for optimizing sweep and prune algorithm
+
 bool
 game_collision_matrix(CollisionLayer& y_l1, CollisionLayer& x_l2)
 {
@@ -24,7 +26,6 @@ generate_broadphase_collisions(const std::vector<std::reference_wrapper<GameObje
                                COLLISION_AXIS axis,
                                std::map<uint64_t, Collision2D>& collisions)
 {
-
   // 2. begin on the left of above list.
   std::vector<std::reference_wrapper<GameObject2D>> active_list;
 
@@ -119,6 +120,12 @@ void
 generate_filtered_broadphase_collisions(std::vector<std::reference_wrapper<GameObject2D>>& collidable,
                                         std::map<uint64_t, Collision2D>& filtered_collisions)
 {
+  // Assign grid postions to all entities
+  // pre-physics: update grid position
+  for (auto& e : collidable) {
+    grid::get_unique_cells(e.get().pos, e.get().physics_size, PHYSICS_GRID_SIZE, e.get().in_physics_grid_cell);
+  }
+
   // Do broad-phase check.
   std::map<uint64_t, Collision2D> collisions;
 
