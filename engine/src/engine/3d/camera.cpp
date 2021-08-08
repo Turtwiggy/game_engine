@@ -1,6 +1,6 @@
 
 // header
-#include "engine/camera.hpp"
+#include "engine/3d/camera.hpp"
 
 // other library headers
 #include <glm/glm.hpp>

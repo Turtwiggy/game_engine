@@ -70,14 +70,13 @@ public:
 };
 
 void
-draw(const Profiler& profiler, const float delta_time_s)
+draw_timers(const Profiler& profiler, const float delta_time_s)
 {
 
   //
   // Game Time info
   //
 
-  ImGui::Begin("Profiler", NULL, ImGuiWindowFlags_NoFocusOnAppearing);
 
   float time = profiler.get_average_time(Profiler::Stage::SdlInput);
   static AnimatedProfilerEntry sdl_input;
@@ -144,8 +143,6 @@ draw(const Profiler& profiler, const float delta_time_s)
   ImGui::Text("FG's Used Physical Memory: %s", std::to_string(static_cast<uint64_t>(physMemUsedByMe)).c_str());
 
 #endif
-
-  ImGui::End();
 }
 
 } // namespace profiler_panel

@@ -3,7 +3,9 @@
 //
 
 // c++ lib headers
+#include <iomanip>
 #include <iostream>
+#include <sstream>
 #include <vector>
 
 // other library headers
@@ -21,8 +23,10 @@
 #include "engine/audio.hpp"
 #include "engine/grid.hpp"
 #include "engine/maths_core.hpp"
+#include "engine/opengl/framebuffer.hpp"
 #include "engine/opengl/render_command.hpp"
 #include "engine/opengl/shader.hpp"
+#include "engine/opengl/util.hpp"
 #include "engine/ui/profiler_panel.hpp"
 #include "engine/util.hpp"
 using namespace fightingengine;
@@ -83,14 +87,14 @@ main()
   SDL_Scancode debug_key_advance_one_frame = SDL_SCANCODE_RSHIFT;
   SDL_Scancode debug_key_advance_one_frame_held = SDL_SCANCODE_F10;
   SDL_Scancode debug_key_force_gameover = SDL_SCANCODE_F11;
+
   bool debug_advance_one_frame = false;
   bool debug_show_imgui_demo_window = false;
-  bool debug_render_spritesheet = false;
-  bool debug_show_profiler = true;
+  bool debug_render_spritesheet = true;
+  bool debug_show_profiler = false;
 
   bool ui_limit_framerate = false;
   bool ui_mute_sfx = true;
-  bool ui_show_game_info = true;
   bool ui_show_entity_menu = true;
   bool ui_use_vsync = true;
   bool ui_fullscreen = false;
@@ -129,6 +133,7 @@ main()
   RenderCommand::set_viewport(0, 0, static_cast<uint32_t>(screen_wh.x), static_cast<uint32_t>(screen_wh.y));
   RenderCommand::set_depth_testing(false); // disable depth testing for 2d
   sprite_renderer::init();
+  print_gpu_info();
 
   glm::mat4 projection =
     glm::ortho(0.0f, static_cast<float>(screen_wh.x), static_cast<float>(screen_wh.y), 0.0f, -1.0f, 1.0f);
@@ -481,17 +486,17 @@ main()
         }
       }
 
-      { // Update player's input
-        for (int i = 0; i < entities_player.size(); i++) {
-          GameObject2D& player = entities_player[i];
-          KeysAndState& keys = player_keys[i];
+      // Update player's input
+      for (int i = 0; i < entities_player.size(); i++) {
+        GameObject2D& player = entities_player[i];
+        KeysAndState& keys = player_keys[i];
 
-          player::update_input(player, keys, app, camera);
+        player::update_input(player, keys, app, camera);
 
-          if (keys.pause_down)
-            state = state == GameRunning::PAUSED ? GameRunning::ACTIVE : GameRunning::PAUSED;
+        if (keys.pause_down) {
+          state = state == GameRunning::PAUSED ? GameRunning::ACTIVE : GameRunning::PAUSED;
         }
-      }
+      };
 
       // Update game state
 
@@ -818,166 +823,176 @@ main()
           }
         }
       }
-      profiler.end(Profiler::Stage::GameTick);
-      profiler.begin(Profiler::Stage::Render);
-      {
-        RenderCommand::set_clear_colour(background_colour);
-        RenderCommand::clear();
-        sprite_renderer::reset_stats();
-        sprite_renderer::begin_batch();
-        instanced_quad_shader.bind();
-        instanced_quad_shader.set_float("time", app.seconds_since_launch);
 
-        if (state == GameRunning::ACTIVE || state == GameRunning::PAUSED || state == GameRunning::GAME_OVER) {
+      // end game-active
+    }
+    profiler.end(Profiler::Stage::GameTick);
+    profiler.begin(Profiler::Stage::Render);
+    {
+      Framebuffer::default_fbo(); // set fbo
+      RenderCommand::set_clear_colour(background_colour);
+      RenderCommand::clear();
+      sprite_renderer::reset_stats();
+      sprite_renderer::begin_batch();
+      instanced_quad_shader.bind();
+      instanced_quad_shader.set_float("time", app.seconds_since_launch);
 
-          std::vector<std::reference_wrapper<GameObject2D>> renderables;
-          renderables.insert(renderables.end(), entities_vfx.begin(), entities_vfx.end());
-          renderables.insert(renderables.end(), entities_enemies.begin(), entities_enemies.end());
-          renderables.insert(renderables.end(), entities_bullets.begin(), entities_bullets.end());
-          renderables.push_back(weapon_shovel);
-          renderables.push_back(weapon_pistol);
-          renderables.push_back(weapon_shotgun);
-          renderables.push_back(weapon_machinegun);
-          renderables.insert(renderables.end(), entities_player.begin(), entities_player.end());
-          renderables.insert(renderables.end(), entities_trees.begin(), entities_trees.end());
+      if (state == GameRunning::ACTIVE || state == GameRunning::PAUSED || state == GameRunning::GAME_OVER) {
 
-          for (auto& obj : renderables) {
-            if (!obj.get().do_render)
-              continue;
-            sprite_renderer::draw_sprite_debug(camera,
-                                               screen_wh,
-                                               instanced_quad_shader,
-                                               obj.get(),
-                                               obj.get().render_size,
-                                               colour_shader,
-                                               debug_line_colour);
-          }
+        std::vector<std::reference_wrapper<GameObject2D>> renderables;
+        renderables.insert(renderables.end(), entities_vfx.begin(), entities_vfx.end());
+        renderables.insert(renderables.end(), entities_enemies.begin(), entities_enemies.end());
+        renderables.insert(renderables.end(), entities_bullets.begin(), entities_bullets.end());
+        renderables.push_back(weapon_shovel);
+        renderables.push_back(weapon_pistol);
+        renderables.push_back(weapon_shotgun);
+        renderables.push_back(weapon_machinegun);
+        renderables.insert(renderables.end(), entities_player.begin(), entities_player.end());
+        renderables.insert(renderables.end(), entities_trees.begin(), entities_trees.end());
 
-          if (debug_render_spritesheet) {
-            sprite_renderer::draw_sprite_debug(
-              camera, screen_wh, instanced_quad_shader, tex_obj, tex_obj.render_size, colour_shader, debug_line_colour);
-          }
+        for (auto& obj : renderables) {
+          if (!obj.get().do_render)
+            continue;
+          sprite_renderer::draw_sprite_debug(camera,
+                                             screen_wh,
+                                             instanced_quad_shader,
+                                             obj.get(),
+                                             obj.get().render_size,
+                                             colour_shader,
+                                             debug_line_colour);
         }
 
-        sprite_renderer::end_batch();
-        sprite_renderer::flush(instanced_quad_shader);
-      }
-      profiler.end(Profiler::Stage::Render);
-      profiler.begin(Profiler::Stage::GuiLoop);
-      {
-        if (ImGui::BeginMainMenuBar()) {
-          ImGui::Text("%.2f FPS (%.2f ms)", ImGui::GetIO().Framerate, 1000.0f / ImGui::GetIO().Framerate);
-
-          bool temp = false;
-
-          { // limit framerate
-            temp = ui_limit_framerate;
-            ImGui::Checkbox("Limit Framerate", &temp);
-            if (temp != ui_limit_framerate) {
-              std::cout << "Limit fps toggled to: " << temp << std::endl;
-              app.limit_fps = temp;
-            }
-            ui_limit_framerate = temp;
-          }
-
-          { // mute sfx
-            temp = ui_mute_sfx;
-            ImGui::Checkbox("Mute SFX", &temp);
-            if (temp != ui_mute_sfx) {
-              std::cout << "sfx toggled to: " << temp << std::endl;
-            }
-            ui_mute_sfx = temp;
-          }
-
-          { // use vsync
-            temp = ui_use_vsync;
-            ImGui::Checkbox("VSync", &temp);
-            if (temp != ui_use_vsync) {
-              std::cout << "vsync toggled to: " << temp << std::endl;
-              app.get_window().set_vsync_opengl(temp);
-            }
-            ui_use_vsync = temp;
-          }
-
-          { // toggle fullsceren
-            temp = ui_fullscreen;
-            ImGui::Checkbox("Fullscreen", &ui_fullscreen);
-            if (temp != ui_fullscreen) {
-              std::cout << "ui_fullscreen toggled to: " << temp << std::endl;
-              toggle_fullscreen(app, instanced_quad_shader);
-            }
-            ui_fullscreen = temp;
-          }
-
-          { // restart button
-            if (ImGui::Button("Restart Game")) {
-              std::cout << "restart game" << std::endl;
-            }
-          }
-
-          ImGui::SameLine(screen_wh.x - 50.0f);
-          if (ImGui::MenuItem("Quit", "Esc"))
-            app.shutdown();
-
-          ImGui::EndMainMenuBar();
-        }
-
-        if (ui_show_game_info) {
-          ImGui::Begin("Game Info", NULL, ImGuiWindowFlags_NoFocusOnAppearing);
-          {
-            for (int i = 0; i < entities_player.size(); i++) {
-              GameObject2D& player = entities_player[i];
-              auto& p_inventory = player_inventories[i];
-              ImGui::Text("PLAYER_ID: %i", player.id);
-              ImGui::Text("PLAYER_HP_MAX %i", player.damage_able_to_be_taken);
-              ImGui::Text("PLAYER_HITS_TAKEN %i", player.damage_taken);
-              ImGui::Text("PLAYER_BOOST %f", player.shift_boost_time_left);
-              ImGui::Text("AMMO_PISTOL %i", stats_pistol.current_ammo);
-              ImGui::Text("AMMO_SHOTGUN %i", stats_shotgun.current_ammo);
-              ImGui::Text("AMMO_MACHINEGUN %i", stats_machinegun.current_ammo);
-              ImGui::Text("pos %f %f", player.pos.x, player.pos.y);
-              ImGui::Text("vel x: %f y: %f", player.velocity.x, player.velocity.y);
-              ImGui::Text("angle %f", player.angle_radians);
-              ImGui::Separator();
-              ShopItem w = p_inventory[i];
-              std::string wep = std::string(magic_enum::enum_name(w));
-              std::string label = std::string("Weapon: ") + wep;
-              if (player.equipped_item_index == i) {
-                ImGui::Text("(EQUIPPED) %s", label.c_str());
-              } else {
-                ImGui::Text("%s", label.c_str());
-              }
-              ImGui::Separator();
-            }
-            ImGui::Text("game running for: %f", app.seconds_since_launch);
-            ImGui::Text("camera pos %f %f", camera.pos.x, camera.pos.y);
-            ImGui::Text("mouse pos %f %f", app.get_input().get_mouse_pos().x, app.get_input().get_mouse_pos().y);
-            ImGui::Text("WAVE %i", enemy_spawner::get_wave());
-
-            ImGui::Separator();
-            ImGui::Text("controllers %i", SDL_NumJoysticks());
-            ImGui::Separator();
-            ImGui::Text("draw_calls: %i", sprite_renderer::get_draw_calls());
-            ImGui::Text("quad_verts: %i", sprite_renderer::get_quad_count());
-          }
-          ImGui::End();
-        }
-        if (ui_show_entity_menu) {
-          ImGui::Begin("Entity Menu", NULL, ImGuiWindowFlags_NoFocusOnAppearing);
-          {
-            ImGui::Text("Players: %i", entities_player.size());
-            ImGui::Text("Bullets: %i", entities_bullets.size());
-            ImGui::Text("Enemies: %i", entities_enemies.size());
-            ImGui::Text("Vfx: %i", entities_vfx.size());
-            ImGui::Text("Attacks: %i", attacks.size());
-            ImGui::Separator();
-          }
-          ImGui::End();
+        if (debug_render_spritesheet) {
+          sprite_renderer::draw_sprite_debug(
+            camera, screen_wh, instanced_quad_shader, tex_obj, tex_obj.render_size, colour_shader, debug_line_colour);
         }
       }
 
-      if (debug_show_profiler)
-        profiler_panel::draw(profiler, delta_time_s);
+      sprite_renderer::end_batch();
+      sprite_renderer::flush(instanced_quad_shader);
+
+      // render to another fbo
+      {
+        //
+      }
+    }
+    profiler.end(Profiler::Stage::Render);
+    profiler.begin(Profiler::Stage::GuiLoop);
+    {
+      if (ImGui::BeginMainMenuBar()) {
+
+        ImGui::Text("WAVE %i", enemy_spawner::get_wave());
+        // ImGui::Text("game running for: %f", app.seconds_since_launch);
+        // ImGui::Text("camera pos %f %f", camera.pos.x, camera.pos.y);
+        // ImGui::Text("mouse pos %f %f", app.get_input().get_mouse_pos().x, app.get_input().get_mouse_pos().y);
+
+        for (int i = 0; i < entities_player.size(); i++) {
+          GameObject2D& player = entities_player[i];
+          auto& p_inventory = player_inventories[i];
+
+          ImGui::Text("(P%i) HP %i", i, player.damage_able_to_be_taken - player.damage_taken);
+          ImGui::Text("BOOST %.2fs", player.shift_boost_time_left);
+
+          if (ImGui::BeginMenu("Ammo##player", player.id)) {
+            std::string ammo_pistol_label = "AMMO_PISTOL " + std::to_string(stats_pistol.current_ammo);
+            std::string ammo_shotgun_label = "AMMO_SHOTGUN " + std::to_string(stats_shotgun.current_ammo);
+            std::string ammo_machinegun_label = "AMMO_MACHINEGUN " + std::to_string(stats_machinegun.current_ammo);
+
+            ImGui::MenuItem(ammo_pistol_label.c_str());
+            ImGui::MenuItem(ammo_shotgun_label.c_str());
+            ImGui::MenuItem(ammo_machinegun_label.c_str());
+          }
+
+          //   ShopItem w = p_inventory[i];
+          //   std::string wep = std::string(magic_enum::enum_name(w));
+          //   std::string label = std::string("Weapon: ") + wep;
+          //   if (player.equipped_item_index == i) {
+          //     ImGui::Text("(EQUIPPED) %s", label.c_str());
+          //   } else {
+          //     ImGui::Text("%s", label.c_str());
+          //   }
+          //   ImGui::Separator();
+        }
+        // ImGui::SameLine(screen_wh.x - 60.0f - 150.);
+
+        bool temp = false;
+
+        { // limit framerate
+          temp = ui_limit_framerate;
+          ImGui::Checkbox("Limit Framerate", &temp);
+          if (temp != ui_limit_framerate) {
+            std::cout << "Limit fps toggled to: " << temp << std::endl;
+            app.limit_fps = temp;
+          }
+          ui_limit_framerate = temp;
+        }
+
+        { // mute sfx
+          temp = ui_mute_sfx;
+          ImGui::Checkbox("Mute SFX", &temp);
+          if (temp != ui_mute_sfx) {
+            std::cout << "sfx toggled to: " << temp << std::endl;
+          }
+          ui_mute_sfx = temp;
+        }
+
+        { // use vsync
+          temp = ui_use_vsync;
+          ImGui::Checkbox("VSync", &temp);
+          if (temp != ui_use_vsync) {
+            std::cout << "vsync toggled to: " << temp << std::endl;
+            app.get_window().set_vsync_opengl(temp);
+          }
+          ui_use_vsync = temp;
+        }
+
+        { // toggle fullsceren
+          temp = ui_fullscreen;
+          ImGui::Checkbox("Fullscreen", &ui_fullscreen);
+          if (temp != ui_fullscreen) {
+            std::cout << "ui_fullscreen toggled to: " << temp << std::endl;
+            toggle_fullscreen(app, instanced_quad_shader);
+          }
+          ui_fullscreen = temp;
+        }
+
+        { // restart button
+          if (ImGui::Button("Restart Game")) {
+            std::cout << "restart game" << std::endl;
+          }
+        }
+
+        float framerate = ImGui::GetIO().Framerate;
+        float framerate_ms = 1000.0f / ImGui::GetIO().Framerate;
+        std::stringstream stream;
+        stream << std::fixed << std::setprecision(2) << framerate;
+        std::string framerate_str = stream.str();
+        stream.str(std::string());
+        stream << std::fixed << std::setprecision(2) << framerate;
+        std::string framerate_ms_str = stream.str();
+        std::string framerate_label = framerate_str + std::string(" FPS (") + framerate_ms_str + std::string(" ms)");
+
+        ImGui::Text(framerate_label.c_str());
+        if (ImGui::MenuItem("Quit", "Esc"))
+          app.shutdown();
+
+        ImGui::EndMainMenuBar();
+      }
+
+      if (debug_show_profiler) {
+        ImGui::Begin("Profiler", NULL, ImGuiWindowFlags_NoFocusOnAppearing);
+        ImGui::Text("Players: %i", entities_player.size());
+        ImGui::Text("Bullets: %i", entities_bullets.size());
+        ImGui::Text("Enemies: %i", entities_enemies.size());
+        ImGui::Text("Vfx: %i", entities_vfx.size());
+        ImGui::Text("Attacks: %i", attacks.size());
+        ImGui::Text("controllers %i", SDL_NumJoysticks());
+        ImGui::Separator();
+        ImGui::Text("draw_calls: %i", sprite_renderer::get_draw_calls());
+        ImGui::Text("quad_verts: %i", sprite_renderer::get_quad_count());
+        profiler_panel::draw_timers(profiler, delta_time_s);
+        ImGui::End();
+      }
       if (debug_show_imgui_demo_window)
         ImGui::ShowDemoWindow(&debug_show_imgui_demo_window);
     }

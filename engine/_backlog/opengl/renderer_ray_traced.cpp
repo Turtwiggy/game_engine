@@ -71,22 +71,18 @@
 
 //   // A quad shader to render the full-screen quad VAO with the framebuffer as
 //   // texture
-//   Shader quad_shader =
-//     Shader()
-//       .attach_shader("assets/shaders/raytraced/example.vert", OpenGLShaderTypes::VERTEX)
-//       .attach_shader("assets/shaders/raytraced/example.frag",
-//                      OpenGLShaderTypes::FRAGMENT)
-//       .build_program();
+//   Shader quad_shader = Shader()
+//                          .attach_shader("assets/shaders/raytraced/example.vert", OpenGLShaderTypes::VERTEX)
+//                          .attach_shader("assets/shaders/raytraced/example.frag", OpenGLShaderTypes::FRAGMENT)
+//                          .build_program();
 //   quad_shader.bind();
 //   quad_shader.set_int("tex", 0);
 //   s_Data.quad_shader = quad_shader;
 //   quad_shader.unbind();
 
 //   Shader geometry_shader = Shader()
-//                              .attach_shader("assets/shaders/raytraced/geometry.vert",
-//                                             OpenGLShaderTypes::VERTEX)
-//                              .attach_shader("assets/shaders/raytraced/geometry.frag",
-//                                             OpenGLShaderTypes::FRAGMENT)
+//                              .attach_shader("assets/shaders/raytraced/geometry.vert", OpenGLShaderTypes::VERTEX)
+//                              .attach_shader("assets/shaders/raytraced/geometry.frag", OpenGLShaderTypes::FRAGMENT)
 //                              .build_program();
 //   s_Data.geometry_shader = geometry_shader;
 
@@ -99,65 +95,34 @@
 //     // position color buffer
 //     glGenTextures(1, &gPosition);
 //     glBindTexture(GL_TEXTURE_2D, gPosition);
-//     glTexImage2D(GL_TEXTURE_2D,
-//                  0,
-//                  GL_RGBA16F,
-//                  screen_width,
-//                  screen_height,
-//                  0,
-//                  GL_RGBA,
-//                  GL_FLOAT,
-//                  NULL);
+//     glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA16F, screen_width, screen_height, 0, GL_RGBA, GL_FLOAT, NULL);
 //     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
 //     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
-//     glFramebufferTexture2D(
-//       GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, gPosition, 0);
+//     glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, gPosition, 0);
 //     // normal color buffer
 //     glGenTextures(1, &gNormal);
 //     glBindTexture(GL_TEXTURE_2D, gNormal);
-//     glTexImage2D(GL_TEXTURE_2D,
-//                  0,
-//                  GL_RGBA16F,
-//                  screen_width,
-//                  screen_height,
-//                  0,
-//                  GL_RGBA,
-//                  GL_FLOAT,
-//                  NULL);
+//     glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA16F, screen_width, screen_height, 0, GL_RGBA, GL_FLOAT, NULL);
 //     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
 //     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
-//     glFramebufferTexture2D(
-//       GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT1, GL_TEXTURE_2D, gNormal, 0);
+//     glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT1, GL_TEXTURE_2D, gNormal, 0);
 //     // color + specular color buffer
 //     glGenTextures(1, &gAlbedoSpec);
 //     glBindTexture(GL_TEXTURE_2D, gAlbedoSpec);
-//     glTexImage2D(GL_TEXTURE_2D,
-//                  0,
-//                  GL_RGBA16F,
-//                  screen_width,
-//                  screen_height,
-//                  0,
-//                  GL_RGBA,
-//                  GL_FLOAT,
-//                  NULL);
+//     glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA16F, screen_width, screen_height, 0, GL_RGBA, GL_FLOAT, NULL);
 //     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
 //     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
-//     glFramebufferTexture2D(
-//       GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT2, GL_TEXTURE_2D, gAlbedoSpec, 0);
+//     glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT2, GL_TEXTURE_2D, gAlbedoSpec, 0);
 //     // tell OpenGL which color attachments we'll use (of this framebuffer) for
 //     // rendering
-//     unsigned int attachments[3] = { GL_COLOR_ATTACHMENT0,
-//                                     GL_COLOR_ATTACHMENT1,
-//                                     GL_COLOR_ATTACHMENT2 };
+//     unsigned int attachments[3] = { GL_COLOR_ATTACHMENT0, GL_COLOR_ATTACHMENT1, GL_COLOR_ATTACHMENT2 };
 //     glDrawBuffers(3, attachments);
 //     // create and attach depth buffer (renderbuffer)
 //     unsigned int rboDepth;
 //     glGenRenderbuffers(1, &rboDepth);
 //     glBindRenderbuffer(GL_RENDERBUFFER, rboDepth);
-//     glRenderbufferStorage(
-//       GL_RENDERBUFFER, GL_DEPTH_COMPONENT, screen_width, screen_height);
-//     glFramebufferRenderbuffer(
-//       GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, GL_RENDERBUFFER, rboDepth);
+//     glRenderbufferStorage(GL_RENDERBUFFER, GL_DEPTH_COMPONENT, screen_width, screen_height);
+//     glFramebufferRenderbuffer(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, GL_RENDERBUFFER, rboDepth);
 //     // finally check if framebuffer is complete
 //     if (glCheckFramebufferStatus(GL_FRAMEBUFFER) != GL_FRAMEBUFFER_COMPLETE)
 //       std::cout << "Framebuffer not complete!" << std::endl;
@@ -178,19 +143,10 @@
 //     // position color buffer
 //     glGenTextures(1, &rayTexture);
 //     glBindTexture(GL_TEXTURE_2D, rayTexture);
-//     glTexImage2D(GL_TEXTURE_2D,
-//                  0,
-//                  GL_RGBA16F,
-//                  screen_width,
-//                  screen_height,
-//                  0,
-//                  GL_RGBA,
-//                  GL_FLOAT,
-//                  NULL);
+//     glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA16F, screen_width, screen_height, 0, GL_RGBA, GL_FLOAT, NULL);
 //     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
 //     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
-//     glFramebufferTexture2D(
-//       GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, rayTexture, 0);
+//     glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, rayTexture, 0);
 //     // tell OpenGL which color attachments we'll use (of this framebuffer) for
 //     // rendering
 //     unsigned int attachments[1] = { GL_COLOR_ATTACHMENT0 };
@@ -206,10 +162,8 @@
 //   // Ray tracing compute shader
 //   Shader compute_shader =
 //     Shader()
-//       .attach_shader("assets/shaders/raytraced/compute/random.glsl",
-//                      OpenGLShaderTypes::COMPUTE)
-//       .attach_shader("assets/shaders/raytraced/compute/raytraced.glsl",
-//                      OpenGLShaderTypes::COMPUTE)
+//       .attach_shader("assets/shaders/raytraced/compute/random.glsl", OpenGLShaderTypes::COMPUTE)
+//       .attach_shader("assets/shaders/raytraced/compute/raytraced.glsl", OpenGLShaderTypes::COMPUTE)
 //       .build_program();
 //   compute_shader.bind();
 //   CHECK_OPENGL_ERROR(12);
@@ -223,16 +177,13 @@
 //   s_Data.compute_shader = compute_shader;
 //   s_Data.compute_shader_workgroup_x = work_group_size_x;
 //   s_Data.compute_shader_workgroup_y = work_group_size_y;
-//   s_Data.compute_out_tex_binding =
-//     compute_shader.get_uniform_binding_location("outTexture");
+//   s_Data.compute_out_tex_binding = compute_shader.get_uniform_binding_location("outTexture");
 //   // printf("(Raytracer) outtexbinding: %i \n",
 //   // s_Data.compute_out_tex_binding);
-//   s_Data.compute_normal_binding =
-//     compute_shader.get_uniform_binding_location("normalTexture");
+//   s_Data.compute_normal_binding = compute_shader.get_uniform_binding_location("normalTexture");
 //   // printf("(Raytracer) compute_normal_binding: %i \n",
 //   // s_Data.compute_normal_binding);
-//   s_Data.ssbo_binding =
-//     compute_shader.get_compute_buffer_binding_location("bufferData");
+//   s_Data.ssbo_binding = compute_shader.get_compute_buffer_binding_location("bufferData");
 
 //   // Data to bind to GPU
 //   // -------------------
@@ -314,8 +265,7 @@
 
 //       // Check ssbo size
 //       if (s_Data.set_triangles != triangles_in_scene_size) {
-//         printf("Updating SSBO triangles with: %zi triangles \n",
-//                triangles_in_scene_size);
+//         printf("Updating SSBO triangles with: %zi triangles \n", triangles_in_scene_size);
 
 //         // refresh triangle data
 //         s_Data.triangles.clear();
@@ -388,21 +338,9 @@
 //   s_Data.compute_shader.set_float("time", timer);
 
 //   // Bind framebuffer texture as writable image in the shader.
-//   glBindImageTexture(s_Data.compute_out_tex_binding,
-//                      s_Data.out_texture,
-//                      0,
-//                      false,
-//                      0,
-//                      GL_WRITE_ONLY,
-//                      GL_RGBA16F);
+//   glBindImageTexture(s_Data.compute_out_tex_binding, s_Data.out_texture, 0, false, 0, GL_WRITE_ONLY, GL_RGBA16F);
 //   CHECK_OPENGL_ERROR(10);
-//   glBindImageTexture(s_Data.compute_normal_binding,
-//                      s_Data.g_normal,
-//                      0,
-//                      false,
-//                      0,
-//                      GL_READ_ONLY,
-//                      GL_RGBA16F);
+//   glBindImageTexture(s_Data.compute_normal_binding, s_Data.g_normal, 0, false, 0, GL_READ_ONLY, GL_RGBA16F);
 //   CHECK_OPENGL_ERROR(6);
 
 //   s_Data.compute_shader.set_compute_buffer_bind_location("bufferData");
@@ -417,8 +355,7 @@
 //   // Compute appropriate invocation dimension
 //   int worksizeX = next_power_of_two(static_cast<unsigned int>(width));
 //   int worksizeY = next_power_of_two(static_cast<unsigned int>(height));
-//   if (s_Data.compute_shader_workgroup_x == 0 ||
-//       s_Data.compute_shader_workgroup_y == 0) {
+//   if (s_Data.compute_shader_workgroup_x == 0 || s_Data.compute_shader_workgroup_y == 0) {
 //     std::cout << "failed to load your compute shader!";
 //     return;
 //   }
@@ -428,9 +365,7 @@
 //   // three possible dimensions. The number of work groups is NOT the number of
 //   // global work items in each dimension, but is divided by the work group size
 //   // that the shader specified in that layout declaration.
-//   glDispatchCompute(worksizeX / s_Data.compute_shader_workgroup_x,
-//                     worksizeY / s_Data.compute_shader_workgroup_y,
-//                     1);
+//   glDispatchCompute(worksizeX / s_Data.compute_shader_workgroup_x, worksizeY / s_Data.compute_shader_workgroup_y, 1);
 
 //   // Synchronize all writes to the framebuffer image
 //   glMemoryBarrier(GL_SHADER_IMAGE_ACCESS_BARRIER_BIT);
@@ -465,14 +400,12 @@
 //   // Draw the plane
 //   glBindVertexArray(s_Data.plane.vao);
 //   if (s_Data.plane.Indices.size() > 0) {
-//     glDrawElements(s_Data.plane.topology == TOPOLOGY::TRIANGLE_STRIP ? GL_TRIANGLE_STRIP
-//                                                                      : GL_TRIANGLES,
+//     glDrawElements(s_Data.plane.topology == TOPOLOGY::TRIANGLE_STRIP ? GL_TRIANGLE_STRIP : GL_TRIANGLES,
 //                    s_Data.plane.Indices.size(),
 //                    GL_UNSIGNED_INT,
 //                    0);
 //   } else {
-//     glDrawArrays(s_Data.plane.topology == TOPOLOGY::TRIANGLE_STRIP ? GL_TRIANGLE_STRIP
-//                                                                    : GL_TRIANGLES,
+//     glDrawArrays(s_Data.plane.topology == TOPOLOGY::TRIANGLE_STRIP ? GL_TRIANGLE_STRIP : GL_TRIANGLES,
 //                  0,
 //                  s_Data.plane.Positions.size());
 //   }

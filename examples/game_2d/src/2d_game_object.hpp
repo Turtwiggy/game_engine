@@ -184,7 +184,7 @@ public:
   // ai priority list. higher priority later in list.
   std::vector<AiBehaviour> ai_priority_list;
   float approach_theta_degrees = 0.0f;
-  int damage_to_give_player = 5;
+  int damage_to_give_player = 0;
 
   // game: inventory
   int equipped_item_index = 0;
@@ -202,7 +202,7 @@ public:
   float time_alive_left = 5.0f;
 
   // game: lifecycle health
-  int damage_able_to_be_taken = 10;
+  int damage_able_to_be_taken = 6;
   int damage_taken = 0;
   bool invulnerable = false;
   std::vector<int> attack_ids_taken_damage_from;
