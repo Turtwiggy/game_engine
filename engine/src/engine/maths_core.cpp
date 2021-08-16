@@ -76,7 +76,7 @@ scale(float x, float min, float max, float a, float b)
 }
 
 glm::vec2
-lerp_with_clamp(glm::vec2 a, glm::vec2 b, float t)
+lerp_a_to_b_clamped_between_0_and_1(glm::vec2 a, glm::vec2 b, float t)
 {
   return glm::lerp(a, b, glm::clamp(t, 0.0f, 1.0f));
 }
@@ -84,9 +84,9 @@ lerp_with_clamp(glm::vec2 a, glm::vec2 b, float t)
 glm::vec2
 quadratic_curve(glm::vec2 a, glm::vec2 b, glm::vec2 c, float t)
 {
-  glm::vec2 p0 = lerp_with_clamp(a, b, t);
-  glm::vec2 p1 = lerp_with_clamp(b, c, t);
-  return lerp_with_clamp(p0, p1, t);
+  glm::vec2 p0 = lerp_a_to_b_clamped_between_0_and_1(a, b, t);
+  glm::vec2 p1 = lerp_a_to_b_clamped_between_0_and_1(b, c, t);
+  return lerp_a_to_b_clamped_between_0_and_1(p0, p1, t);
 }
 
 } // namespace fightingengine

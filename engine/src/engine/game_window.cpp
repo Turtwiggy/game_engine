@@ -3,6 +3,13 @@
 #include "engine/game_window.hpp"
 
 // c++ standard library headers
+// clang-format off
+#include <string>
+#if defined(WIN32) || defined(_WIN32) || defined(__WIN32) && !defined(__CYGWIN__)
+#include "windows.h"
+#include "psapi.h"
+#endif
+// clang-forrmat on
 #include <iostream>
 
 // other library headers
@@ -368,6 +375,12 @@ GameWindow::get_vsync_opengl() const
 {
   int enabled = SDL_GL_GetSwapInterval();
   return static_cast<bool>(enabled);
+}
+
+void
+GameWindow::set_icon(SDL_Surface* i)
+{
+  SDL_SetWindowIcon(window_.get(), i);
 }
 
 }

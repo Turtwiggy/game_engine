@@ -1,11 +1,16 @@
 #pragma once
 
+// c++ headers
+#include <vector>
+
 // other project headers
 #include <glm/glm.hpp>
 
+// engine headers
+#include "engine/opengl/shader.hpp"
+
 // your project headers
 #include "2d_game_object.hpp"
-#include "engine/opengl/shader.hpp"
 
 namespace game2d {
 
@@ -16,7 +21,9 @@ namespace sprite_renderer {
 //
 
 void
-reset_stats();
+reset_quad_vert_count();
+void
+end_frame();
 int
 get_draw_calls();
 int
@@ -38,28 +45,24 @@ void
 draw_instanced_sprite(const GameObject2D& cam,
                       const glm::ivec2& screen_size,
                       fightingengine::Shader& shader,
-                      const GameObject2D& go,
-                      const glm::vec2 draw_size);
+                      const GameObject2D& go);
 
 void
 draw_instanced_sprite(const GameObject2D& cam,
                       const glm::ivec2& screen_size,
                       fightingengine::Shader& shader,
                       const GameObject2D& go,
-                      const glm::vec2 draw_size,
                       const glm::vec4 colour_tl,
                       const glm::vec4 colour_tr,
                       const glm::vec4 colour_bl,
                       const glm::vec4 colour_br);
 
 void
-draw_sprite_debug(const GameObject2D& cam,
-                  const glm::ivec2& screen_size,
-                  fightingengine::Shader& shader,
-                  const GameObject2D& go,
-                  const glm::vec2 draw_size,
-                  fightingengine::Shader& debug_line_shader,
-                  const glm::vec4& debug_line_shader_colour);
+draw_sprites_debug(const GameObject2D& cam,
+                   const glm::ivec2& screen_size,
+                   const std::vector<std::reference_wrapper<GameObject2D>>& game_objects,
+                   fightingengine::Shader& debug_line_shader,
+                   const glm::vec4& debug_line_shader_colour);
 
 } // namespace sprite_renderer
 

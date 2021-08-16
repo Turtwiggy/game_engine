@@ -2,13 +2,11 @@
 // header
 #include "engine/opengl/texture.hpp"
 
-// c lib headers
-#include <assert.h>
-
 // c++ standard library headers
 #include <iostream>
 
 // other lib headers
+#include <GL/glew.h>
 #include <stb_image.h>
 
 namespace fightingengine {
@@ -49,6 +47,7 @@ bind_stb_loaded_texture(StbLoadedTexture& texture)
 
   std::cout << "binding " << texture.path << " to " << texture.texture_unit << std::endl;
 
+  // activate the texture unit first before binding texture
   glActiveTexture(GL_TEXTURE0 + texture_unit);
 
   GLenum format;

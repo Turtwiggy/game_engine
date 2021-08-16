@@ -1,4 +1,5 @@
 sdl2
+sdl2-image
 glm
 glew
 stb

@@ -155,8 +155,8 @@ create_tree()
   GameObject2D game_object;
   game_object.collision_layer = CollisionLayer::Obstacle;
   game_object.name = "tree";
-  game_object.tex_slot = tex_unit_tree;
-  game_object.sprite = sprite::type::EMPTY;
+  game_object.tex_slot = tex_unit_kenny_nl;
+  game_object.sprite = sprite_tree;
   game_object.render_size = { 32.0f, 32.0f };
   game_object.physics_size = { 32.0f, 32.0f };
   game_object.colour = { 0.25f, 1.0f, 0.25f, 1.0f };
@@ -195,8 +195,8 @@ create_kennynl_texture()
   GameObject2D game_object;
   game_object.name = "texture_sheet";
   game_object.pos = { 0.0f, 20.0f };
-  game_object.render_size = { 768.0f, 352.0f };
-  game_object.physics_size = { 768.0f, 352.0f };
+  game_object.render_size = { 1.5f * 768.0f, 1.5f * 352.0f };
+  game_object.physics_size = { 1.5f * 768.0f, 1.5f * 352.0f };
   game_object.colour = glm::vec4(1.0f, 1.0f, 1.0f, 1.0f);
   game_object.angle_radians = 0.0;
   game_object.sprite = sprite::type::EMPTY;

@@ -151,10 +151,9 @@ Shader::set_int(const std::string& name, int value) const
   glUniform1i(glGetUniformLocation(ID, name.c_str()), value);
 }
 void
-Shader::set_int_array(const std::string& name, int values[]) const
+Shader::set_int_array(const std::string& name, int values[], int size) const
 {
-  int amount = sizeof(values) / sizeof(int);
-  glUniform1iv(glGetUniformLocation(ID, name.c_str()), amount, values);
+  glUniform1iv(glGetUniformLocation(ID, name.c_str()), size, values);
 }
 void
 Shader::set_uint(const std::string& name, unsigned int value) const

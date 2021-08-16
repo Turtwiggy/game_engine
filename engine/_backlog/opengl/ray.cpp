@@ -16,11 +16,6 @@
 // namespace fightingengine
 // {
 
-// vec3 ray_at(const Ray r, float t)
-// {
-//     return r.origin + (t * r.direction);
-// }
-
 // vec3 reflect(const vec3 v, const vec3 n)
 // {
 //     return v - 2 * dot(v, n) * n;

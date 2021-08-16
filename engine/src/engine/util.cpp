@@ -47,7 +47,7 @@ load_textures_threaded(std::vector<std::pair<int, std::string>>& textures_to_loa
 }
 
 void
-hide_console()
+hide_windows_console()
 {
 #ifdef WIN32
   ::ShowWindow(::GetConsoleWindow(), SW_HIDE); // hide console

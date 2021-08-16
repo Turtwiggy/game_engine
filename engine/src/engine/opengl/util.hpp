@@ -24,12 +24,15 @@ inline void
 print_gpu_info()
 {
   // how to get GPU info from OpenGL
-  // -- -----------------------------
+  // -------------------------------
   // GPU Info
-  printf("(Renderer Info) OpenGL version supported by this platform (%s): \n", glGetString(GL_VERSION));
+  printf("(INFO) OpenGL version supported by this platform (%s): \n", glGetString(GL_VERSION));
   int params[1];
   glGetIntegerv(GL_MAX_SHADER_STORAGE_BUFFER_BINDINGS, params);
-  printf("(Renderer Info) GPU INFO: Max shader storage buffer bindings: %i \n", params[0]);
+  // printf("(INFO) GPU: Max shader storage buffer bindings: %i \n", params[0]);
+  glGetIntegerv(GL_MAX_TEXTURE_IMAGE_UNITS, params);
+  printf("(INFO) GPU: Max texture image units: %i \n", params[0]);
+
   // GL_MAX_SHADER_STORAGE_BUFFER_BINDINGS = 96
   // GL_MAX_SHADER_STORAGE_BLOCK_SIZE = 2147483647
   // GL_MAX_VERTEX_SHADER_STORAGE_BLOCKS = 16

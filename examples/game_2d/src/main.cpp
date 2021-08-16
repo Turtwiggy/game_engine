@@ -10,11 +10,13 @@
 
 // other library headers
 #include "thirdparty/magic_enum.hpp"
+#include <GL/glew.h> // temp while working out lighting
+#include <SDL2/SDL_image.h>
 #include <SDL2/SDL_syswm.h>
 #include <glm/glm.hpp>
 #include <glm/gtc/matrix_transform.hpp>
 #include <glm/gtx/compatibility.hpp>
-#include <glm/gtx/fast_square_root.hpp>
+// #include <glm/gtx/fast_square_root.hpp>
 #include <glm/gtx/vector_angle.hpp>
 #include <imgui.h>
 
@@ -37,7 +39,9 @@ using namespace fightingengine;
 #include "2d_game_object.hpp"
 #include "2d_physics.hpp"
 #include "2d_vfx.hpp"
+#include "lighting.hpp"
 #include "opengl/sprite_renderer.hpp"
+#include "opengl/triangle_fan.hpp"
 #include "spritemap.hpp"
 using namespace game2d;
 
@@ -59,7 +63,7 @@ enum class GamePhase
   SHOP,
 };
 
-void
+glm::ivec2
 toggle_fullscreen(Application& app, Shader& s)
 {
   app.get_window().toggle_fullscreen(); // SDL2 window toggle
@@ -69,6 +73,8 @@ toggle_fullscreen(Application& app, Shader& s)
     glm::ortho(0.0f, static_cast<float>(screen_wh.x), static_cast<float>(screen_wh.y), 0.0f, -1.0f, 1.0f);
   s.bind();
   s.set_mat4("projection", projection);
+
+  return screen_wh;
 }
 
 int
@@ -77,11 +83,9 @@ main()
   std::cout << "booting up..." << std::endl;
   const auto app_start = std::chrono::high_resolution_clock::now();
 
-  bool hide_console = true;
-#ifndef _DEBUG
-  if (hide_console)
-    fightingengine::hide_console();
-#endif
+  bool hide_windows_console = true;
+  if (hide_windows_console)
+    fightingengine::hide_windows_console();
 
   SDL_Scancode debug_key_quit = SDL_SCANCODE_ESCAPE;
   SDL_Scancode debug_key_advance_one_frame = SDL_SCANCODE_RSHIFT;
@@ -90,12 +94,11 @@ main()
 
   bool debug_advance_one_frame = false;
   bool debug_show_imgui_demo_window = false;
-  bool debug_render_spritesheet = true;
-  bool debug_show_profiler = false;
+  bool debug_render_spritesheet = false;
+  bool debug_show_profiler = true;
 
   bool ui_limit_framerate = false;
   bool ui_mute_sfx = true;
-  bool ui_show_entity_menu = true;
   bool ui_use_vsync = true;
   bool ui_fullscreen = false;
 
@@ -104,16 +107,73 @@ main()
   Application app("2D Game", screen_wh.x, screen_wh.y, ui_use_vsync);
   Profiler profiler;
 
+  // textures
+
   std::vector<std::pair<int, std::string>> textures_to_load;
   textures_to_load.emplace_back(tex_unit_kenny_nl,
                                 "assets/2d_game/textures/kennynl_1bit_pack/monochrome_transparent_packed.png");
-  textures_to_load.emplace_back(tex_unit_tree, "assets/2d_game/textures/rpg/foliage_bush.png");
   load_textures_threaded(textures_to_load, app_start);
+
+  unsigned int fbo_main_scene = Framebuffer::create_fbo();
+  unsigned int fbo_lighting = Framebuffer::create_fbo();
+
+  Framebuffer::bind_fbo(fbo_main_scene);
+  RenderCommand::set_viewport(0, 0, static_cast<uint32_t>(screen_wh.x), static_cast<uint32_t>(screen_wh.y));
+  RenderCommand::set_depth_testing(false);
+  { // create a main scene texture
+    unsigned int tex_id;
+    glGenTextures(1, &tex_id);
+    std::cout << "binding tex_unit_main_scene to " << tex_unit_main_scene << std::endl;
+    glActiveTexture(GL_TEXTURE0 + tex_unit_main_scene); // activate the texture unit first before binding texture
+    glBindTexture(GL_TEXTURE_2D, tex_id);
+    glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, screen_wh.x, screen_wh.y, 0, GL_RGB, GL_UNSIGNED_BYTE, NULL);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+    // attach it to the currently bound framebuffer object
+    {
+      glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, tex_id, 0);
+      // tell opengl which colour attachments we'll use of this framebuffer
+      unsigned int attachments[1] = { GL_COLOR_ATTACHMENT0 };
+      glDrawBuffers(1, attachments);
+      if (glCheckFramebufferStatus(GL_FRAMEBUFFER) != GL_FRAMEBUFFER_COMPLETE) {
+        std::cerr << "(FBO: main_scene) ERROR: Framebuffer not complete!" << std::endl;
+        exit(1);
+      }
+    }
+    Framebuffer::default_fbo();
+  }
+
+  Framebuffer::bind_fbo(fbo_lighting);
+  RenderCommand::set_viewport(0, 0, static_cast<uint32_t>(screen_wh.x), static_cast<uint32_t>(screen_wh.y));
+  RenderCommand::set_depth_testing(false);
+  { // create a lighting texture
+    unsigned int tex_id;
+    glGenTextures(1, &tex_id);
+    std::cout << "binding tex_unit_lighting to " << tex_unit_lighting << std::endl;
+    glActiveTexture(GL_TEXTURE0 + tex_unit_lighting); // activate the texture unit first before binding texture
+    glBindTexture(GL_TEXTURE_2D, tex_id);
+    glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, screen_wh.x, screen_wh.y, 0, GL_RGB, GL_UNSIGNED_BYTE, NULL);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+    // attach it to the currently bound framebuffer object
+    {
+      glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, tex_id, 0);
+      // tell opengl which colour attachments we'll use of this framebuffer
+      unsigned int attachments[1] = { GL_COLOR_ATTACHMENT0 };
+      glDrawBuffers(1, attachments);
+      if (glCheckFramebufferStatus(GL_FRAMEBUFFER) != GL_FRAMEBUFFER_COMPLETE) {
+        std::cerr << "(FBO: lighting) ERROR: Framebuffer not complete!" << std::endl;
+        exit(1);
+      }
+    }
+    Framebuffer::default_fbo();
+  }
 
   // sound
 
   float master_volume = 0.1f;
-  audio::init_al(); // audio setup, which opens one device and one context
+  // audio setup, which opens one device and one context
+  audio::init_al();
   // audio buffers e.g. sound effects
   ALuint audio_gunshot_0 = audio::load_sound("assets/2d_game/audio/seb/Gun_03_shoot.wav");
   ALuint audio_impact_0 = audio::load_sound("assets/2d_game/audio/seb/Impact_01.wav");
@@ -133,6 +193,7 @@ main()
   RenderCommand::set_viewport(0, 0, static_cast<uint32_t>(screen_wh.x), static_cast<uint32_t>(screen_wh.y));
   RenderCommand::set_depth_testing(false); // disable depth testing for 2d
   sprite_renderer::init();
+  triangle_fan_renderer::init();
   print_gpu_info();
 
   glm::mat4 projection =
@@ -141,11 +202,26 @@ main()
   Shader colour_shader = Shader("2d_game/shaders/2d_basic.vert", "2d_game/shaders/2d_colour.frag");
   colour_shader.bind();
 
+  std::vector<GameObject2D> point_lights;
+  {
+    GameObject2D point_light;
+    point_light.pos = { screen_wh.x / 2.0f, screen_wh.y / 2.0f };
+    point_light.render_size = { 4.0f, 4.0f };
+    point_light.physics_size = { 4.0f, 4.0f };
+    point_light.sprite = sprite::type::SKULL_AND_BONES;
+    point_lights.push_back(point_light);
+    point_lights.push_back(point_light);
+  }
+
+  Shader fan_shader = Shader("2d_game/shaders/2d_basic_with_proj.vert", "2d_game/shaders/2d_colour.frag");
+  fan_shader.bind();
+  fan_shader.set_mat4("projection", projection);
+
   Shader instanced_quad_shader = Shader("2d_game/shaders/2d_instanced.vert", "2d_game/shaders/2d_instanced.frag");
   instanced_quad_shader.bind();
   instanced_quad_shader.set_mat4("projection", projection);
-  int textures[2] = { tex_unit_kenny_nl, tex_unit_tree };
-  instanced_quad_shader.set_int_array("textures", textures);
+  int textures[3] = { tex_unit_kenny_nl, tex_unit_main_scene, tex_unit_lighting };
+  instanced_quad_shader.set_int_array("textures", textures, 3);
 
   // Game
 
@@ -159,10 +235,7 @@ main()
   int enemies_destroyed_this_wave = 0;
   int enemies_killed = 0;
   // weapon stats
-  game2d::MeleeWeaponStats stats_shovel(1);
-  game2d::RangedWeaponStats stats_pistol(14.0f, false, 20, 3, 0.2f);
-  game2d::RangedWeaponStats stats_shotgun(17.5f, false, 20, 5, 0.5f);
-  game2d::RangedWeaponStats stats_machinegun(16.0f, false, 20, 4, 0.3f);
+
   // shop stats
   int p0_currency = 0;
   std::map<ShopItem, shop::ShopItemState> shop = shop::shop_initial_state();
@@ -173,6 +246,11 @@ main()
   const float game_enemy_direct_attack_threshold = 4000.0f;
 
   // game objs
+
+  game2d::MeleeWeaponStats stats_shovel(1);
+  game2d::RangedWeaponStats stats_pistol(14.0f, false, 20, 3, 0.2f);
+  game2d::RangedWeaponStats stats_shotgun(17.5f, false, 20, 5, 0.5f);
+  game2d::RangedWeaponStats stats_machinegun(16.0f, false, 20, 4, 0.3f);
 
   GameObject2D tex_obj = gameobject::create_kennynl_texture();
   GameObject2D camera = GameObject2D();
@@ -207,8 +285,7 @@ main()
     player_inventories.push_back(p0_inventory);
   }
 
-  std::cout << "GameObject2D is " << sizeof(GameObject2D) << " bytes" << std::endl;
-
+  std::cout << "(INFO) GameObject2D is " << sizeof(GameObject2D) << " bytes" << std::endl;
   log_time_since("(INFO) End Setup ", app_start);
 
   while (app.is_running()) {
@@ -303,6 +380,12 @@ main()
       if (app.get_input().get_key_held(SDL_SCANCODE_PERIOD)) {
         instanced_quad_shader.set_bool("shake", false);
       }
+
+      static int i = 0;
+      if (app.get_input().get_mouse_mmb_down()) {
+        point_lights[1].pos = app.get_input().get_mouse_pos();
+      }
+      point_lights[0].pos = entities_player[0].pos;
 
 #endif // _DEBUG
 
@@ -486,17 +569,18 @@ main()
         }
       }
 
-      // Update player's input
-      for (int i = 0; i < entities_player.size(); i++) {
-        GameObject2D& player = entities_player[i];
-        KeysAndState& keys = player_keys[i];
+      { // Update player's input
+        for (int i = 0; i < entities_player.size(); i++) {
+          GameObject2D& player = entities_player[i];
+          KeysAndState& keys = player_keys[i];
 
-        player::update_input(player, keys, app, camera);
+          player::update_input(player, keys, app, camera);
 
-        if (keys.pause_down) {
-          state = state == GameRunning::PAUSED ? GameRunning::ACTIVE : GameRunning::PAUSED;
-        }
-      };
+          if (keys.pause_down) {
+            state = state == GameRunning::PAUSED ? GameRunning::ACTIVE : GameRunning::PAUSED;
+          }
+        };
+      }
 
       // Update game state
 
@@ -517,85 +601,21 @@ main()
           gameobject::update_position(player, delta_time_s);
 
           if (editor_left_click_mode == EditorMode::PLAYER_ATTACK) {
-
-            weapon_shovel.do_render = false;
-            weapon_pistol.do_render = false;
-            weapon_shotgun.do_render = false;
-            weapon_machinegun.do_render = false;
-
-            if (player_inventory[player.equipped_item_index] == ShopItem::SHOVEL) {
-              weapon_shovel.do_render = true;
-              player::ability_slash(app, player, keys, weapon_shovel, delta_time_s, stats_shovel, attacks);
-            }
-
-            if (player_inventory[player.equipped_item_index] == ShopItem::PISTOL) {
-              weapon_pistol.do_render = true;
-              float angle_around_player = keys.angle_around_player;
-              glm::vec2 offset = glm::vec2(stats_pistol.radius_offset_from_player * sin(angle_around_player),
-                                           -stats_pistol.radius_offset_from_player * cos(angle_around_player));
-              weapon_pistol.pos = player.pos + offset;
-              weapon_pistol.angle_radians =
-                keys.angle_around_player + sprite::spritemap::get_sprite_rotation_offset(weapon_pistol.sprite);
-
-              if (stats_pistol.infinite_ammo || stats_pistol.current_ammo > 0) {
-                player::ability_shoot(app,
-                                      weapon_pistol,
-                                      stats_pistol.current_ammo,
-                                      keys,
-                                      entities_bullets,
-                                      bullet_pistol_colour,
-                                      sprite_bullet,
-                                      delta_time_s,
-                                      stats_pistol,
-                                      attacks);
-              }
-            }
-
-            if (player_inventory[player.equipped_item_index] == ShopItem::SHOTGUN) {
-              weapon_shotgun.do_render = true;
-              float angle_around_player = keys.angle_around_player;
-              glm::vec2 offset = glm::vec2(stats_shotgun.radius_offset_from_player * sin(angle_around_player),
-                                           -stats_shotgun.radius_offset_from_player * cos(angle_around_player));
-              weapon_shotgun.pos = player.pos + offset;
-              weapon_shotgun.angle_radians =
-                keys.angle_around_player + sprite::spritemap::get_sprite_rotation_offset(weapon_shotgun.sprite);
-
-              if (stats_shotgun.infinite_ammo || stats_shotgun.current_ammo > 0) {
-                player::ability_shoot(app,
-                                      weapon_shotgun,
-                                      stats_shotgun.current_ammo,
-                                      keys,
-                                      entities_bullets,
-                                      bullet_shotgun_colour,
-                                      sprite_bullet,
-                                      delta_time_s,
-                                      stats_shotgun,
-                                      attacks);
-              }
-            }
-
-            if (player_inventory[player.equipped_item_index] == ShopItem::MACHINEGUN) {
-              weapon_machinegun.do_render = true;
-              float angle_around_player = keys.angle_around_player;
-              glm::vec2 offset = glm::vec2(stats_machinegun.radius_offset_from_player * sin(angle_around_player),
-                                           -stats_machinegun.radius_offset_from_player * cos(angle_around_player));
-              weapon_machinegun.pos = player.pos + offset;
-              weapon_machinegun.angle_radians =
-                keys.angle_around_player + sprite::spritemap::get_sprite_rotation_offset(weapon_machinegun.sprite);
-
-              if (stats_machinegun.infinite_ammo || stats_machinegun.current_ammo > 0) {
-                player::ability_shoot(app,
-                                      weapon_machinegun,
-                                      stats_machinegun.current_ammo,
-                                      keys,
-                                      entities_bullets,
-                                      bullet_machinegun_colour,
-                                      sprite_bullet,
-                                      delta_time_s,
-                                      stats_machinegun,
-                                      attacks);
-              }
-            }
+            player::player_attack(app,
+                                  player,
+                                  stats_shovel,
+                                  stats_pistol,
+                                  stats_shotgun,
+                                  stats_machinegun,
+                                  weapon_shovel,
+                                  weapon_pistol,
+                                  weapon_shotgun,
+                                  weapon_machinegun,
+                                  player_inventory,
+                                  delta_time_s,
+                                  keys,
+                                  attacks,
+                                  entities_bullets);
           }
 
           bool player_alive = player.invulnerable || player.damage_taken < player.damage_able_to_be_taken;
@@ -700,78 +720,6 @@ main()
           camera::update(camera, player_keys[0], app, delta_time_s);
         }
 
-        // game phase: shop
-
-        if (game_phase == GamePhase::SHOP) {
-          ImGui::Begin("Humble Wares", NULL, ImGuiWindowFlags_NoFocusOnAppearing);
-          ImGui::Text("You have %i coin!", p0_currency);
-
-          if (ImGui::Button("Drain your coin..."))
-            p0_currency -= 1;
-
-          for (auto& shop_item : shop) {
-
-            std::string wep = std::string(magic_enum::enum_name(shop_item.first));
-
-            bool able_to_buy = p0_currency >= shop_item.second.price && shop_item.second.quantity > 0;
-            if (able_to_buy) {
-              std::string buy_button_label = "Buy ##" + wep;
-              bool buy_button_clicked = ImGui::Button(buy_button_label.c_str());
-              if (buy_button_clicked) {
-                std::cout << "buy: " << wep << " clicked" << std::endl;
-
-                // reduce item quantity if not infinite
-                if (!shop_item.second.infinite_quantity)
-                  shop_item.second.quantity -= 1;
-
-                // spend hard earned cash
-                p0_currency -= shop_item.second.price;
-
-                // shop logic
-                {
-                  if (shop_item.first == ShopItem::PISTOL || shop_item.first == ShopItem::SHOTGUN ||
-                      shop_item.first == ShopItem::MACHINEGUN) {
-                    // hack: use player 0 for the moment
-                    std::vector<ShopItem>& player_inv = player_inventories[0];
-                    player_inv.push_back(shop_item.first);
-                  }
-
-                  if (shop_item.first == ShopItem::PISTOL_AMMO)
-                    stats_pistol.current_ammo += shop_refill_pistol_ammo;
-
-                  if (shop_item.first == ShopItem::SHOTGUN_AMMO)
-                    stats_shotgun.current_ammo += shop_refill_shotgun_ammo;
-
-                  if (shop_item.first == ShopItem::MACHINEGUN_AMMO)
-                    stats_machinegun.current_ammo += shop_refill_machinegun_ammo;
-
-                  if (shop_item.first == ShopItem::HEAL_HALF) {
-                    GameObject2D& p0 = entities_player[0];
-                    p0.damage_taken -= static_cast<int>(p0.damage_able_to_be_taken / 2);
-                    if (p0.damage_taken < 0)
-                      p0.damage_taken = 0;
-                  }
-
-                  if (shop_item.first == ShopItem::HEAL_FULL) {
-                    GameObject2D& p0 = entities_player[0];
-                    p0.damage_taken = 0;
-                  }
-                }
-              }
-              ImGui::SameLine();
-            }
-
-            ImGui::Text(
-              "Item: %s Quantiy: %i Price: %i", wep.c_str(), shop_item.second.quantity, shop_item.second.price);
-          }
-          if (ImGui::Button("Leave the shop, and never return! Or will you?")) {
-            std::cout << "clicked leave shop" << std::endl;
-            enemy_spawner::next_wave();
-            game_phase = GamePhase::ATTACK;
-          }
-          ImGui::End();
-        }
-
         { // object lifecycle
 
           gameobject::update_entities_lifecycle(entities_enemies, delta_time_s);
@@ -829,62 +777,155 @@ main()
     profiler.end(Profiler::Stage::GameTick);
     profiler.begin(Profiler::Stage::Render);
     {
-      Framebuffer::default_fbo(); // set fbo
-      RenderCommand::set_clear_colour(background_colour);
+      //
+      // lighting fbo
+      //
+      Framebuffer::bind_fbo(fbo_lighting);
+      // Framebuffer::default_fbo();
+      // glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
+      const glm::vec4 shadow_colour = glm::vec4(0.0f, 0.0f, 0.0f, 1.0f);
+      const glm::vec4 light_colour = glm::vec4(1.0f, 1.0f, 1.0f, 1.0f);
+      RenderCommand::set_clear_colour(glm::vec4(0.0f, 0.0f, 0.0f, 1.0f));
+      RenderCommand::set_depth_testing(false);
       RenderCommand::clear();
-      sprite_renderer::reset_stats();
-      sprite_renderer::begin_batch();
-      instanced_quad_shader.bind();
-      instanced_quad_shader.set_float("time", app.seconds_since_launch);
+      {
+        // angle, x, y for intersections
+        std::vector<std::tuple<float, float, float>> intersections;
 
-      if (state == GameRunning::ACTIVE || state == GameRunning::PAUSED || state == GameRunning::GAME_OVER) {
+        std::vector<std::reference_wrapper<GameObject2D>> lighting_entities;
+        lighting_entities.insert(lighting_entities.end(), entities_enemies.begin(), entities_enemies.end());
+        lighting_entities.insert(lighting_entities.end(), entities_player.begin(), entities_player.end());
+        lighting_entities.insert(lighting_entities.end(), entities_trees.begin(), entities_trees.end());
+        lighting_entities.insert(lighting_entities.end(), entities_bullets.begin(), entities_bullets.end());
 
-        std::vector<std::reference_wrapper<GameObject2D>> renderables;
-        renderables.insert(renderables.end(), entities_vfx.begin(), entities_vfx.end());
-        renderables.insert(renderables.end(), entities_enemies.begin(), entities_enemies.end());
-        renderables.insert(renderables.end(), entities_bullets.begin(), entities_bullets.end());
-        renderables.push_back(weapon_shovel);
-        renderables.push_back(weapon_pistol);
-        renderables.push_back(weapon_shotgun);
-        renderables.push_back(weapon_machinegun);
-        renderables.insert(renderables.end(), entities_player.begin(), entities_player.end());
-        renderables.insert(renderables.end(), entities_trees.begin(), entities_trees.end());
+        std::vector<GameObject2D> lights = { point_lights[1] };
+        for (auto& light : lights) {
+          // for (auto& light : point_lights) {
+          glm::vec2 light_pos = light.pos;
 
-        for (auto& obj : renderables) {
-          if (!obj.get().do_render)
-            continue;
-          sprite_renderer::draw_sprite_debug(camera,
-                                             screen_wh,
-                                             instanced_quad_shader,
-                                             obj.get(),
-                                             obj.get().render_size,
-                                             colour_shader,
-                                             debug_line_colour);
-        }
+          // this generates collision from the light point to the entities
+          generate_intersections(camera, light_pos, lighting_entities, screen_wh, intersections);
 
-        if (debug_render_spritesheet) {
-          sprite_renderer::draw_sprite_debug(
-            camera, screen_wh, instanced_quad_shader, tex_obj, tex_obj.render_size, colour_shader, debug_line_colour);
+          // now create a triangle fan from the generated information
+          triangle_fan_renderer::reset_quad_vert_count();
+          triangle_fan_renderer::begin_batch();
+          fan_shader.bind();
+          fan_shader.set_vec4("colour", glm::vec4(1.0f, 1.0f, 1.0f, 1.0f));
+
+          { // render light
+            triangle_fan_renderer::add_point_to_fan(camera, fan_shader, light_pos);
+            for (int i = 0; i < intersections.size(); i++) {
+              auto& intersection = intersections[i];
+              glm::vec2 pos = glm::vec2(std::get<1>(intersection), std::get<2>(intersection));
+              triangle_fan_renderer::add_point_to_fan(camera, fan_shader, pos);
+            }
+            auto& intersection = intersections[0];
+            glm::vec2 pos = glm::vec2(std::get<1>(intersection), std::get<2>(intersection));
+            triangle_fan_renderer::add_point_to_fan(camera, fan_shader, pos);
+            triangle_fan_renderer::end_batch();
+            triangle_fan_renderer::flush(fan_shader);
+          }
         }
       }
-
-      sprite_renderer::end_batch();
-      sprite_renderer::flush(instanced_quad_shader);
-
-      // render to another fbo
+      //
+      // main scene fbo
+      //
+      Framebuffer::bind_fbo(fbo_main_scene);
+      RenderCommand::set_clear_colour(background_colour);
+      RenderCommand::set_depth_testing(false);
+      RenderCommand::clear();
       {
-        //
+        sprite_renderer::reset_quad_vert_count();
+        sprite_renderer::begin_batch();
+        instanced_quad_shader.bind();
+        instanced_quad_shader.set_float("time", app.seconds_since_launch);
+        instanced_quad_shader.set_mat4("projection", projection);
+        instanced_quad_shader.set_bool("do_lighting", false);
+
+        if (state == GameRunning::ACTIVE || state == GameRunning::PAUSED || state == GameRunning::GAME_OVER) {
+          std::vector<std::reference_wrapper<GameObject2D>> renderables;
+          renderables.insert(renderables.end(), entities_vfx.begin(), entities_vfx.end());
+          renderables.insert(renderables.end(), entities_enemies.begin(), entities_enemies.end());
+          renderables.insert(renderables.end(), entities_bullets.begin(), entities_bullets.end());
+          renderables.push_back(weapon_shovel);
+          renderables.push_back(weapon_pistol);
+          renderables.push_back(weapon_shotgun);
+          renderables.push_back(weapon_machinegun);
+          renderables.insert(renderables.end(), entities_player.begin(), entities_player.end());
+          renderables.insert(renderables.end(), entities_trees.begin(), entities_trees.end());
+          renderables.insert(renderables.end(), point_lights.begin(), point_lights.end());
+
+          for (auto& obj : renderables) {
+            if (!obj.get().do_render)
+              continue;
+            sprite_renderer::draw_instanced_sprite(camera, screen_wh, instanced_quad_shader, obj.get());
+          }
+          sprite_renderer::draw_sprites_debug(camera, screen_wh, renderables, colour_shader, debug_line_colour);
+
+          if (debug_render_spritesheet) {
+            sprite_renderer::draw_instanced_sprite(camera, screen_wh, instanced_quad_shader, tex_obj);
+          }
+        } // <!-- end GameRunning::Active -->
+        sprite_renderer::end_batch();
+        sprite_renderer::flush(instanced_quad_shader);
+      } // <!-- end main scene fbo -->
+
+      //
+      // default fbo, draw a texture to a quad
+      //
+      Framebuffer::default_fbo();
+      RenderCommand::set_clear_colour(background_colour);
+      RenderCommand::set_depth_testing(false);
+      RenderCommand::clear();
+      {
+        sprite_renderer::reset_quad_vert_count();
+        sprite_renderer::begin_batch();
+        instanced_quad_shader.bind();
+        instanced_quad_shader.set_float("time", app.seconds_since_launch);
+        glm::mat4 flip = glm::mat4(1.0f); // flip because opengl textures have different axis
+        flip = glm::rotate(flip, glm::radians(180.0f), glm::vec3(1.0f, 0.0f, 0.0f));
+        instanced_quad_shader.set_mat4("projection", flip * projection);
+        instanced_quad_shader.set_bool("do_lighting", true);
+        {
+          glm::vec3 pos = glm::vec3(point_lights[0].pos.x, glm::abs(point_lights[0].pos.y - screen_wh.y), 0.0f);
+          instanced_quad_shader.set_vec3("light_pos[0]", glm::vec3(glm::vec2(pos.x, pos.y), 0.0f));
+          pos = glm::vec3(point_lights[1].pos.x, glm::abs(point_lights[1].pos.y - screen_wh.y), 0.0f);
+          instanced_quad_shader.set_vec3("light_pos[1]", glm::vec3(glm::vec2(pos.x, pos.y), 0.0f));
+        }
+
+        { // draw single quad as entire screen
+          GameObject2D screen_object = gameobject::create_generic(sprite::type::EMPTY, glm::vec4(1.0f));
+          screen_object.render_size = glm::vec2(screen_wh.x, screen_wh.y);
+          screen_object.tex_slot = tex_unit_main_scene;
+          sprite_renderer::draw_instanced_sprite(camera, screen_wh, instanced_quad_shader, screen_object);
+        }
+        sprite_renderer::end_batch();
+        sprite_renderer::flush(instanced_quad_shader);
       }
     }
     profiler.end(Profiler::Stage::Render);
     profiler.begin(Profiler::Stage::GuiLoop);
     {
+      // ui: shop window
+
+      if (game_phase == GamePhase::SHOP) {
+        ImGui::Begin("Humble Wares", NULL, ImGuiWindowFlags_NoFocusOnAppearing);
+
+        update_shop(p0_currency, shop, player_inventories, entities_player);
+
+        if (ImGui::Button("Leave the shop, and never return! Or will you?")) {
+          std::cout << "clicked leave shop" << std::endl;
+          enemy_spawner::next_wave();
+          game_phase = GamePhase::ATTACK;
+        }
+        ImGui::End();
+      }
+
+      // ui: top menu bar
+
       if (ImGui::BeginMainMenuBar()) {
 
         ImGui::Text("WAVE %i", enemy_spawner::get_wave());
-        // ImGui::Text("game running for: %f", app.seconds_since_launch);
-        // ImGui::Text("camera pos %f %f", camera.pos.x, camera.pos.y);
-        // ImGui::Text("mouse pos %f %f", app.get_input().get_mouse_pos().x, app.get_input().get_mouse_pos().y);
 
         for (int i = 0; i < entities_player.size(); i++) {
           GameObject2D& player = entities_player[i];
@@ -893,106 +934,108 @@ main()
           ImGui::Text("(P%i) HP %i", i, player.damage_able_to_be_taken - player.damage_taken);
           ImGui::Text("BOOST %.2fs", player.shift_boost_time_left);
 
-          if (ImGui::BeginMenu("Ammo##player", player.id)) {
-            std::string ammo_pistol_label = "AMMO_PISTOL " + std::to_string(stats_pistol.current_ammo);
-            std::string ammo_shotgun_label = "AMMO_SHOTGUN " + std::to_string(stats_shotgun.current_ammo);
-            std::string ammo_machinegun_label = "AMMO_MACHINEGUN " + std::to_string(stats_machinegun.current_ammo);
+          std::string ammo_pistol_label = "AMMO_PISTOL " + std::to_string(stats_pistol.current_ammo);
+          std::string ammo_shotgun_label = "AMMO_SHOTGUN " + std::to_string(stats_shotgun.current_ammo);
+          std::string ammo_machinegun_label = "AMMO_MACHINEGUN " + std::to_string(stats_machinegun.current_ammo);
+          ImGui::Text(ammo_pistol_label.c_str());
+          ImGui::Text(ammo_shotgun_label.c_str());
+          ImGui::Text(ammo_machinegun_label.c_str());
 
-            ImGui::MenuItem(ammo_pistol_label.c_str());
-            ImGui::MenuItem(ammo_shotgun_label.c_str());
-            ImGui::MenuItem(ammo_machinegun_label.c_str());
+          ShopItem w = p_inventory[i];
+          std::string wep = std::string("Weapon: ") + std::string(magic_enum::enum_name(w));
+          ImGui::Text(wep.c_str());
+
+          ImGui::SameLine(screen_wh.x - 280.0f);
+
+          float framerate = ImGui::GetIO().Framerate;
+          float framerate_ms = 1000.0f / ImGui::GetIO().Framerate;
+          std::stringstream stream;
+          stream << std::fixed << std::setprecision(2) << framerate;
+          std::string framerate_str = stream.str();
+          stream.str(std::string());
+          stream << std::fixed << std::setprecision(2) << framerate;
+          std::string framerate_ms_str = stream.str();
+          std::string framerate_label = framerate_str + std::string(" FPS (") + framerate_ms_str + std::string(" ms)");
+          ImGui::Text(framerate_label.c_str());
+
+          if (ImGui::BeginMenu("Settings")) {
+
+            bool temp = false;
+
+            { // limit framerate
+              temp = ui_limit_framerate;
+              ImGui::Checkbox("Limit Framerate", &temp);
+              if (temp != ui_limit_framerate) {
+                std::cout << "Limit fps toggled to: " << temp << std::endl;
+                app.limit_fps = temp;
+              }
+              ui_limit_framerate = temp;
+            }
+
+            { // mute sfx
+              temp = ui_mute_sfx;
+              ImGui::Checkbox("Mute SFX", &temp);
+              if (temp != ui_mute_sfx) {
+                std::cout << "sfx toggled to: " << temp << std::endl;
+              }
+              ui_mute_sfx = temp;
+            }
+
+            { // use vsync
+              temp = ui_use_vsync;
+              ImGui::Checkbox("VSync", &temp);
+              if (temp != ui_use_vsync) {
+                std::cout << "vsync toggled to: " << temp << std::endl;
+                app.get_window().set_vsync_opengl(temp);
+              }
+              ui_use_vsync = temp;
+            }
+
+            { // toggle fullsceren
+              temp = ui_fullscreen;
+              ImGui::Checkbox("Fullscreen", &temp);
+              if (temp != ui_fullscreen) {
+                std::cout << "ui_fullscreen toggled to: " << temp << std::endl;
+                screen_wh = toggle_fullscreen(app, instanced_quad_shader);
+              }
+              ui_fullscreen = temp;
+            }
+
+            { // restart button
+              if (ImGui::Button("Restart Game")) {
+                std::cout << "restart game" << std::endl;
+              }
+            }
+
+            ImGui::EndMenu();
           }
-
-          //   ShopItem w = p_inventory[i];
-          //   std::string wep = std::string(magic_enum::enum_name(w));
-          //   std::string label = std::string("Weapon: ") + wep;
-          //   if (player.equipped_item_index == i) {
-          //     ImGui::Text("(EQUIPPED) %s", label.c_str());
-          //   } else {
-          //     ImGui::Text("%s", label.c_str());
-          //   }
-          //   ImGui::Separator();
-        }
-        // ImGui::SameLine(screen_wh.x - 60.0f - 150.);
-
-        bool temp = false;
-
-        { // limit framerate
-          temp = ui_limit_framerate;
-          ImGui::Checkbox("Limit Framerate", &temp);
-          if (temp != ui_limit_framerate) {
-            std::cout << "Limit fps toggled to: " << temp << std::endl;
-            app.limit_fps = temp;
-          }
-          ui_limit_framerate = temp;
         }
 
-        { // mute sfx
-          temp = ui_mute_sfx;
-          ImGui::Checkbox("Mute SFX", &temp);
-          if (temp != ui_mute_sfx) {
-            std::cout << "sfx toggled to: " << temp << std::endl;
-          }
-          ui_mute_sfx = temp;
-        }
-
-        { // use vsync
-          temp = ui_use_vsync;
-          ImGui::Checkbox("VSync", &temp);
-          if (temp != ui_use_vsync) {
-            std::cout << "vsync toggled to: " << temp << std::endl;
-            app.get_window().set_vsync_opengl(temp);
-          }
-          ui_use_vsync = temp;
-        }
-
-        { // toggle fullsceren
-          temp = ui_fullscreen;
-          ImGui::Checkbox("Fullscreen", &ui_fullscreen);
-          if (temp != ui_fullscreen) {
-            std::cout << "ui_fullscreen toggled to: " << temp << std::endl;
-            toggle_fullscreen(app, instanced_quad_shader);
-          }
-          ui_fullscreen = temp;
-        }
-
-        { // restart button
-          if (ImGui::Button("Restart Game")) {
-            std::cout << "restart game" << std::endl;
-          }
-        }
-
-        float framerate = ImGui::GetIO().Framerate;
-        float framerate_ms = 1000.0f / ImGui::GetIO().Framerate;
-        std::stringstream stream;
-        stream << std::fixed << std::setprecision(2) << framerate;
-        std::string framerate_str = stream.str();
-        stream.str(std::string());
-        stream << std::fixed << std::setprecision(2) << framerate;
-        std::string framerate_ms_str = stream.str();
-        std::string framerate_label = framerate_str + std::string(" FPS (") + framerate_ms_str + std::string(" ms)");
-
-        ImGui::Text(framerate_label.c_str());
         if (ImGui::MenuItem("Quit", "Esc"))
           app.shutdown();
 
         ImGui::EndMainMenuBar();
       }
 
+      // ui: profiler
+
       if (debug_show_profiler) {
         ImGui::Begin("Profiler", NULL, ImGuiWindowFlags_NoFocusOnAppearing);
         ImGui::Text("Players: %i", entities_player.size());
         ImGui::Text("Bullets: %i", entities_bullets.size());
         ImGui::Text("Enemies: %i", entities_enemies.size());
+        ImGui::Text("Trees: %i", entities_trees.size());
         ImGui::Text("Vfx: %i", entities_vfx.size());
         ImGui::Text("Attacks: %i", attacks.size());
         ImGui::Text("controllers %i", SDL_NumJoysticks());
         ImGui::Separator();
         ImGui::Text("draw_calls: %i", sprite_renderer::get_draw_calls());
-        ImGui::Text("quad_verts: %i", sprite_renderer::get_quad_count());
         profiler_panel::draw_timers(profiler, delta_time_s);
         ImGui::End();
       }
+
+      // ui: imgui demo window
+
       if (debug_show_imgui_demo_window)
         ImGui::ShowDemoWindow(&debug_show_imgui_demo_window);
     }
@@ -1000,6 +1043,7 @@ main()
     profiler.begin(Profiler::Stage::FrameEnd);
     {
       debug_advance_one_frame = false;
+      sprite_renderer::end_frame();
       app.frame_end(frame_start_time);
     }
     profiler.end(Profiler::Stage::FrameEnd);

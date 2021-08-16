@@ -47,11 +47,14 @@ namespace enemy_spawner {
 void
 next_wave();
 
-int
+[[nodiscard]] int
 get_wave();
 
-int
+[[nodiscard]] int
 enemies_left_to_spawn();
+
+void
+spawn_enemy(std::vector<GameObject2D>& enemies, fightingengine::RandomState& rnd, glm::vec2 world_pos);
 
 // spawn a random enemy every X seconds
 void
@@ -82,16 +85,30 @@ ability_slash(fightingengine::Application& app,
               std::vector<Attack>& attacks);
 
 void
-ability_shoot(fightingengine::Application& app,
-              GameObject2D& entity_to_fire_from,
-              int& ammo,
+ability_shoot(GameObject2D& entity_to_fire_from,
               const KeysAndState& keys,
               std::vector<GameObject2D>& bullets,
               const glm::vec4 bullet_col,
               const sprite::type sprite,
-              const float delta_time_s,
-              const RangedWeaponStats& s,
+              RangedWeaponStats& s,
               std::vector<Attack>& attacks);
+
+void
+player_attack(fightingengine::Application& app,
+              GameObject2D& player,
+              MeleeWeaponStats& stats_shovel,
+              RangedWeaponStats& stats_pistol,
+              RangedWeaponStats& stats_shotgun,
+              RangedWeaponStats& stats_machinegun,
+              GameObject2D& weapon_shovel,
+              GameObject2D& weapon_pistol,
+              GameObject2D& weapon_shotgun,
+              GameObject2D& weapon_machinegun,
+              const std::vector<ShopItem>& player_inventory,
+              const float delta_time_s,
+              const KeysAndState& keys,
+              std::vector<Attack>& attacks,
+              std::vector<GameObject2D>& entities_bullets);
 
 }; // namespace player
 
@@ -106,8 +123,14 @@ struct ShopItemState
   int quantity = 1;
 };
 
-std::map<ShopItem, ShopItemState>
+[[nodiscard]] std::map<ShopItem, ShopItemState>
 shop_initial_state();
+
+void
+update_shop(int& p0_currency,
+            std::map<ShopItem, shop::ShopItemState>& shop,
+            std::vector<std::vector<ShopItem>>& player_inventories,
+            std::vector<GameObject2D>& entities_player);
 
 } // namespace shop
 

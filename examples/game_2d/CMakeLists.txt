@@ -30,7 +30,17 @@ file(GLOB_RECURSE SRC_FILES
   "${CMAKE_SOURCE_DIR}/examples/game_2d/src/*.cpp"
 )
 
-add_executable(game_2d ${SRC_FILES})
+IF(${CMAKE_SYSTEM_NAME} STREQUAL "Windows")
+  add_executable(game_2d 
+    ${SRC_FILES}
+    # add icon to executable
+    # ${CMAKE_CURRENT_BINARY_DIR}/assets/2d_game/textures/resource.rc
+  ) 
+ELSE()
+  add_executable(game_2d 
+    ${SRC_FILES}
+  )
+endif()
 
 # includes
 target_include_directories(game_2d PRIVATE 
@@ -44,8 +54,9 @@ foreach(library ${ENGINE_LINK_LIBS})
   target_link_libraries(game_2d PRIVATE ${library})
 endforeach()
 
-# create symlink assets for build
+# Windows things
 IF(${CMAKE_SYSTEM_NAME} STREQUAL "Windows")
+  # create symlink assets for build
   set (source "${CMAKE_SOURCE_DIR}/assets")
   set (destination "${CMAKE_CURRENT_BINARY_DIR}/assets")
   add_custom_command(

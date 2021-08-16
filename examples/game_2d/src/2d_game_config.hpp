@@ -5,17 +5,19 @@
 
 // textures
 const int tex_unit_kenny_nl = 0;
-const int tex_unit_tree = 1;
+const int tex_unit_main_scene = 1;
+const int tex_unit_lighting = 2;
 
 // sprites
-const game2d::sprite::type sprite_player = game2d::sprite::type::PERSON_1;
-const game2d::sprite::type sprite_pistol = game2d::sprite::type::WEAPON_PISTOL;
-const game2d::sprite::type sprite_shotgun = game2d::sprite::type::WEAPON_SHOTGUN;
-const game2d::sprite::type sprite_machinegun = game2d::sprite::type::WEAPON_MP5;
-const game2d::sprite::type sprite_bullet = game2d::sprite::type::TREE_1;
-const game2d::sprite::type sprite_enemy_core = game2d::sprite::type::PERSON_2;
-const game2d::sprite::type sprite_weapon_base = game2d::sprite::type::WEAPON_SHOVEL;
-const game2d::sprite::type sprite_splat = game2d::sprite::type::CASTLE_FLOOR;
+const game2d::sprite::type sprite_player = game2d::sprite::type::SQUARE;
+const game2d::sprite::type sprite_tree = game2d::sprite::type::SQUARE;
+const game2d::sprite::type sprite_weapon_base = game2d::sprite::type::SQUARE;
+const game2d::sprite::type sprite_pistol = game2d::sprite::type::SQUARE;
+const game2d::sprite::type sprite_shotgun = game2d::sprite::type::SQUARE;
+const game2d::sprite::type sprite_machinegun = game2d::sprite::type::SQUARE;
+const game2d::sprite::type sprite_bullet = game2d::sprite::type::SQUARE;
+const game2d::sprite::type sprite_enemy_core = game2d::sprite::type::SQUARE;
+const game2d::sprite::type sprite_splat = game2d::sprite::type::SQUARE;
 
 // colour palette; https://colorhunt.co/palette/273312
 const glm::vec4 PALETTE_COLOUR_1_1 = glm::vec4(57.0f / 255.0f, 62.0f / 255.0f, 70.0f / 255.0f, 1.0f);    // black

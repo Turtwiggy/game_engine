@@ -133,7 +133,7 @@ generate_filtered_broadphase_collisions(std::vector<std::reference_wrapper<GameO
   std::vector<std::reference_wrapper<GameObject2D>> sorted_collidable_x = collidable;
   std::sort(sorted_collidable_x.begin(),
             sorted_collidable_x.end(),
-            [](std::reference_wrapper<GameObject2D> a, std::reference_wrapper<GameObject2D> b) {
+            [&](std::reference_wrapper<GameObject2D>& a, std::reference_wrapper<GameObject2D>& b) {
               return a.get().pos.x < b.get().pos.x;
             });
   // SAP x-axis
@@ -144,7 +144,7 @@ generate_filtered_broadphase_collisions(std::vector<std::reference_wrapper<GameO
   std::vector<std::reference_wrapper<GameObject2D>> sorted_collidable_y = collidable;
   std::sort(sorted_collidable_y.begin(),
             sorted_collidable_y.end(),
-            [](std::reference_wrapper<GameObject2D> a, std::reference_wrapper<GameObject2D> b) {
+            [&](std::reference_wrapper<GameObject2D>& a, std::reference_wrapper<GameObject2D>& b) {
               return a.get().pos.y < b.get().pos.y;
             });
   // SAP y-axis

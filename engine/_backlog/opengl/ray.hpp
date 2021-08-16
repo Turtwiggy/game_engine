@@ -17,10 +17,6 @@
 //     #define EPSILON 0.001f
 //     #define LARGE_FLOAT 1E+10
 
-//     struct Ray
-//     {
-//         glm::vec3 origin, direction;
-//     };
 //     struct HitInfo
 //     {
 //         glm::vec3 point;
@@ -47,8 +43,6 @@
 //         float radius;
 //         Material mat;
 //     };
-
-//     glm::vec3 ray_at(const Ray r, float t);
 
 //     glm::vec3 reflect(const glm::vec3 v, const glm::vec3 n);
 

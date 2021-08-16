@@ -3,9 +3,6 @@
 // c++ standard library headers
 #include <string>
 
-// other library headers
-#include <GL/glew.h>
-
 namespace fightingengine {
 
 enum class TextureType

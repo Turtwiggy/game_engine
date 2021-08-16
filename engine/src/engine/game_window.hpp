@@ -65,6 +65,7 @@ public:
   void set_bordered(const bool b);
   void set_fullscreen(const bool f);
   void set_brightness(const float bright);
+  void set_icon(SDL_Surface* icon);
 
   [[nodiscard]] std::string get_title() const;
   [[nodiscard]] glm::ivec2 get_position() const;

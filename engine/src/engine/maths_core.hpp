@@ -56,9 +56,23 @@ decode_cantor_pairing_function(uint64_t p, uint32_t& x, uint32_t& y);
 scale(float x, float min, float max, float a, float b);
 
 [[nodiscard]] glm::vec2
-lerp_with_clamp(glm::vec2 a, glm::vec2 b, float t);
+lerp_a_to_b_clamped_between_0_and_1(glm::vec2 a, glm::vec2 b, float t);
 
 [[nodiscard]] glm::vec2
 quadratic_curve(glm::vec2 a, glm::vec2 b, glm::vec2 c, float t);
+
+// any line can be written in parametric form as:
+// point + direction * t
+struct Ray
+{
+  glm::vec3 origin;
+  glm::vec3 dir;
+};
+
+[[nodiscard]] inline glm::vec3
+ray_at(const Ray r, float t)
+{
+  return r.origin + (t * r.dir);
+}
 
 } // namespace fightingengine

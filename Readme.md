@@ -6,24 +6,22 @@ An opengl game engine project.
 
 #### general
 - threaded texture loading
+- controller support (thanks SDL2)
+- audio (thanks OpenAL)
 
 #### 2d 
 - sweep and prune collision detection for aabb
 - batch renderer
-
-#### 2d game things
-- (in p) controller support via SDL2
-- (in p) local coop
-- (in p) audio via OpenAL
+- shadow casting
 
 #### 3d
 - model loading
 
 #### More Info
 
-[VCPKG dependencies](./deps_vcpkg_x64-windows.txt)
-
 [How to build / run](./.github/BUILDING.md)
+
+[VCPKG dependencies](./deps_vcpkg_x64-windows.txt)
 
 #### Maybe in future
 

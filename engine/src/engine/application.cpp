@@ -18,13 +18,19 @@ namespace fightingengine {
 Application::Application(const std::string& name, int width, int height, bool vsync)
 {
   // const std::string kBuildStr(kGitSHA1Hash, 8);
-  const std::string kBuildStr = "0.0.6";
+  std::string kBuildStr = " [0.0.6] ";
+
+#ifdef WIN32
+#ifdef _DEBUG
+  kBuildStr = kBuildStr + std::string("[DEBUG]");
+#endif
+#endif
 
   // Window
   GameWindow::glsl_version = "#version 330";
   GameWindow::opengl_major = 3;
   GameWindow::opengl_minor = 3;
-  window = std::make_unique<GameWindow>(name + " [" + kBuildStr + "]", width, height, DisplayMode::WINDOWED, vsync);
+  window = std::make_unique<GameWindow>(name + kBuildStr, width, height, DisplayMode::WINDOWED, vsync);
 
   imgui_manager.initialize(window.get());
 
