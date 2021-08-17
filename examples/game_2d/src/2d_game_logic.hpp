@@ -129,6 +129,12 @@ shop_initial_state();
 void
 update_shop(int& p0_currency,
             std::map<ShopItem, shop::ShopItemState>& shop,
+            RangedWeaponStats& stats_pistol,
+            RangedWeaponStats& stats_shotgun,
+            RangedWeaponStats& stats_machinegun,
+            int shop_refill_pistol_ammo,
+            int shop_refill_shotgun_ammo,
+            int shop_refill_machinegun_ammo,
             std::vector<std::vector<ShopItem>>& player_inventories,
             std::vector<GameObject2D>& entities_player);
 

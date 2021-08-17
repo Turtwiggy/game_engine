@@ -3,6 +3,9 @@
 // c++ standard library headers
 #include <string>
 
+// other lib headers
+#include <glm/glm.hpp>
+
 namespace fightingengine {
 
 enum class TextureType
@@ -36,5 +39,11 @@ bind_tex(const int id, const int unit = -1);
 
 void
 unbind_tex();
+
+unsigned int
+create_texture(glm::ivec2 size, int tex_slot, unsigned int framebuffer_id);
+
+void
+update_texture_size(glm::ivec2 size, int tex_id);
 
 } // namespace fightingengine

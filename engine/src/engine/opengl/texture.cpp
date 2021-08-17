@@ -9,6 +9,11 @@
 #include <GL/glew.h>
 #include <stb_image.h>
 
+// fightingengine headers
+#include "engine/opengl/framebuffer.hpp"
+#include "engine/opengl/render_command.hpp"
+#include "engine/opengl/util.hpp"
+
 namespace fightingengine {
 
 StbLoadedTexture
@@ -92,5 +97,41 @@ unbind_tex()
 {
   glBindTexture(GL_TEXTURE_2D, 0);
 }
+
+unsigned int
+create_texture(glm::ivec2 size, int tex_slot, unsigned int framebuffer_id)
+{
+  Framebuffer::bind_fbo(framebuffer_id);
+  RenderCommand::set_viewport(0, 0, static_cast<uint32_t>(size.x), static_cast<uint32_t>(size.y));
+  RenderCommand::set_depth_testing(false);
+  unsigned int tex_id;
+  glGenTextures(1, &tex_id);
+  std::cout << "creating texture, and binding to slot: " << tex_slot << std::endl;
+  glActiveTexture(GL_TEXTURE0 + tex_slot); // activate the texture unit first before binding texture
+  glBindTexture(GL_TEXTURE_2D, tex_id);
+  glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, size.x, size.y, 0, GL_RGB, GL_UNSIGNED_BYTE, NULL);
+  glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+  glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+  // attach it to the currently bound framebuffer object
+  {
+    glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, tex_id, 0);
+    // tell opengl which colour attachments we'll use of this framebuffer
+    unsigned int attachments[1] = { GL_COLOR_ATTACHMENT0 };
+    glDrawBuffers(1, attachments);
+    if (glCheckFramebufferStatus(GL_FRAMEBUFFER) != GL_FRAMEBUFFER_COMPLETE) {
+      std::cerr << "(FBO: main_scene) ERROR: Framebuffer not complete!" << std::endl;
+      exit(1);
+    }
+    Framebuffer::default_fbo();
+  }
+  return tex_id;
+};
+
+void
+update_texture_size(glm::ivec2 size, int tex_id)
+{
+  glBindTexture(GL_TEXTURE_2D, tex_id);
+  glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, size.x, size.y, 0, GL_RGB, GL_UNSIGNED_BYTE, NULL);
+};
 
 } // namespace fightingengine

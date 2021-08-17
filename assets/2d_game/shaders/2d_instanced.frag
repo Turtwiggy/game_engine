@@ -62,7 +62,7 @@ main()
     // pixel is in light if (tex_shadow.r == 1.0f) {
     // pixel is in shadow
     if (tex_shadow.r == 0.0f) {
-      c = c * vec4(0.6f, 0.6f, 0.6f, 1.0f);
+      c = c * vec4(0.92f, 0.92f, 0.92f, 1.0f);
     }
 
     out_colour = c;

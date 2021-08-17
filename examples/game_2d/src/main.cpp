@@ -28,6 +28,7 @@
 #include "engine/opengl/framebuffer.hpp"
 #include "engine/opengl/render_command.hpp"
 #include "engine/opengl/shader.hpp"
+#include "engine/opengl/texture.hpp"
 #include "engine/opengl/util.hpp"
 #include "engine/ui/profiler_panel.hpp"
 #include "engine/util.hpp"
@@ -63,18 +64,20 @@ enum class GamePhase
   SHOP,
 };
 
-glm::ivec2
-toggle_fullscreen(Application& app, Shader& s)
+void
+toggle_fullscreen(Application& app,
+                  glm::ivec2& screen_wh,
+                  glm::mat4& projection,
+                  unsigned int tex_id_lighting,
+                  unsigned int tex_id_main_scene)
 {
   app.get_window().toggle_fullscreen(); // SDL2 window toggle
-  glm::ivec2 screen_wh = app.get_window().get_size();
+  screen_wh = app.get_window().get_size();
   RenderCommand::set_viewport(0, 0, screen_wh.x, screen_wh.y);
-  glm::mat4 projection =
-    glm::ortho(0.0f, static_cast<float>(screen_wh.x), static_cast<float>(screen_wh.y), 0.0f, -1.0f, 1.0f);
-  s.bind();
-  s.set_mat4("projection", projection);
+  projection = glm::ortho(0.0f, static_cast<float>(screen_wh.x), static_cast<float>(screen_wh.y), 0.0f, -1.0f, 1.0f);
 
-  return screen_wh;
+  update_texture_size(screen_wh, tex_id_lighting);
+  update_texture_size(screen_wh, tex_id_main_scene);
 }
 
 int
@@ -115,59 +118,9 @@ main()
   load_textures_threaded(textures_to_load, app_start);
 
   unsigned int fbo_main_scene = Framebuffer::create_fbo();
+  unsigned int tex_id_main_scene = create_texture(screen_wh, tex_unit_main_scene, fbo_main_scene);
   unsigned int fbo_lighting = Framebuffer::create_fbo();
-
-  Framebuffer::bind_fbo(fbo_main_scene);
-  RenderCommand::set_viewport(0, 0, static_cast<uint32_t>(screen_wh.x), static_cast<uint32_t>(screen_wh.y));
-  RenderCommand::set_depth_testing(false);
-  { // create a main scene texture
-    unsigned int tex_id;
-    glGenTextures(1, &tex_id);
-    std::cout << "binding tex_unit_main_scene to " << tex_unit_main_scene << std::endl;
-    glActiveTexture(GL_TEXTURE0 + tex_unit_main_scene); // activate the texture unit first before binding texture
-    glBindTexture(GL_TEXTURE_2D, tex_id);
-    glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, screen_wh.x, screen_wh.y, 0, GL_RGB, GL_UNSIGNED_BYTE, NULL);
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
-    // attach it to the currently bound framebuffer object
-    {
-      glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, tex_id, 0);
-      // tell opengl which colour attachments we'll use of this framebuffer
-      unsigned int attachments[1] = { GL_COLOR_ATTACHMENT0 };
-      glDrawBuffers(1, attachments);
-      if (glCheckFramebufferStatus(GL_FRAMEBUFFER) != GL_FRAMEBUFFER_COMPLETE) {
-        std::cerr << "(FBO: main_scene) ERROR: Framebuffer not complete!" << std::endl;
-        exit(1);
-      }
-    }
-    Framebuffer::default_fbo();
-  }
-
-  Framebuffer::bind_fbo(fbo_lighting);
-  RenderCommand::set_viewport(0, 0, static_cast<uint32_t>(screen_wh.x), static_cast<uint32_t>(screen_wh.y));
-  RenderCommand::set_depth_testing(false);
-  { // create a lighting texture
-    unsigned int tex_id;
-    glGenTextures(1, &tex_id);
-    std::cout << "binding tex_unit_lighting to " << tex_unit_lighting << std::endl;
-    glActiveTexture(GL_TEXTURE0 + tex_unit_lighting); // activate the texture unit first before binding texture
-    glBindTexture(GL_TEXTURE_2D, tex_id);
-    glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, screen_wh.x, screen_wh.y, 0, GL_RGB, GL_UNSIGNED_BYTE, NULL);
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
-    // attach it to the currently bound framebuffer object
-    {
-      glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, tex_id, 0);
-      // tell opengl which colour attachments we'll use of this framebuffer
-      unsigned int attachments[1] = { GL_COLOR_ATTACHMENT0 };
-      glDrawBuffers(1, attachments);
-      if (glCheckFramebufferStatus(GL_FRAMEBUFFER) != GL_FRAMEBUFFER_COMPLETE) {
-        std::cerr << "(FBO: lighting) ERROR: Framebuffer not complete!" << std::endl;
-        exit(1);
-      }
-    }
-    Framebuffer::default_fbo();
-  }
+  unsigned int tex_id_lighting = create_texture(screen_wh, tex_unit_lighting, fbo_lighting);
 
   // sound
 
@@ -214,12 +167,9 @@ main()
   }
 
   Shader fan_shader = Shader("2d_game/shaders/2d_basic_with_proj.vert", "2d_game/shaders/2d_colour.frag");
-  fan_shader.bind();
-  fan_shader.set_mat4("projection", projection);
 
   Shader instanced_quad_shader = Shader("2d_game/shaders/2d_instanced.vert", "2d_game/shaders/2d_instanced.frag");
   instanced_quad_shader.bind();
-  instanced_quad_shader.set_mat4("projection", projection);
   int textures[3] = { tex_unit_kenny_nl, tex_unit_main_scene, tex_unit_lighting };
   instanced_quad_shader.set_int_array("textures", textures, 3);
 
@@ -234,7 +184,6 @@ main()
   const float vfx_flash_time = 0.2f;
   int enemies_destroyed_this_wave = 0;
   int enemies_killed = 0;
-  // weapon stats
 
   // shop stats
   int p0_currency = 0;
@@ -347,17 +296,6 @@ main()
     profiler.end(Profiler::Stage::Physics);
     profiler.begin(Profiler::Stage::SdlInput);
     {
-      if (app.window_was_resized) {
-        app.window_was_resized = false;
-
-        screen_wh = app.get_window().get_size();
-        RenderCommand::set_viewport(0, 0, screen_wh.x, screen_wh.y);
-        glm::mat4 projection =
-          glm::ortho(0.0f, static_cast<float>(screen_wh.x), static_cast<float>(screen_wh.y), 0.0f, -1.0f, 1.0f);
-
-        instanced_quad_shader.bind();
-        instanced_quad_shader.set_mat4("projection", projection);
-      }
 
 #ifdef _DEBUG
 
@@ -811,6 +749,7 @@ main()
           triangle_fan_renderer::begin_batch();
           fan_shader.bind();
           fan_shader.set_vec4("colour", glm::vec4(1.0f, 1.0f, 1.0f, 1.0f));
+          fan_shader.set_mat4("projection", projection);
 
           { // render light
             triangle_fan_renderer::add_point_to_fan(camera, fan_shader, light_pos);
@@ -911,7 +850,16 @@ main()
       if (game_phase == GamePhase::SHOP) {
         ImGui::Begin("Humble Wares", NULL, ImGuiWindowFlags_NoFocusOnAppearing);
 
-        update_shop(p0_currency, shop, player_inventories, entities_player);
+        update_shop(p0_currency,
+                    shop,
+                    stats_pistol,
+                    stats_shotgun,
+                    stats_machinegun,
+                    shop_refill_pistol_ammo,
+                    shop_refill_shotgun_ammo,
+                    shop_refill_machinegun_ammo,
+                    player_inventories,
+                    entities_player);
 
         if (ImGui::Button("Leave the shop, and never return! Or will you?")) {
           std::cout << "clicked leave shop" << std::endl;
@@ -996,7 +944,7 @@ main()
               ImGui::Checkbox("Fullscreen", &temp);
               if (temp != ui_fullscreen) {
                 std::cout << "ui_fullscreen toggled to: " << temp << std::endl;
-                screen_wh = toggle_fullscreen(app, instanced_quad_shader);
+                toggle_fullscreen(app, screen_wh, projection, tex_id_lighting, tex_id_main_scene);
               }
               ui_fullscreen = temp;
             }

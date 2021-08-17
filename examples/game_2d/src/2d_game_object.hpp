@@ -163,13 +163,13 @@ public:
   // render
   int tex_slot = 0;
   sprite::type sprite = sprite::type::SQUARE;
-  glm::vec2 pos = { 0.0f, 0.0f }; // in pixels, centered
+  glm::vec2 pos = { 0.0f, 0.0f }; // in pixels, at top left of sprite
   float angle_radians = 0.0f;
   glm::vec4 colour = { 1.0f, 0.0f, 0.0f, 1.0f };
-  glm::vec2 render_size = { 20.0f, 20.0f };
+  glm::ivec2 render_size = { 20.0, 20.0 };
 
   // physics
-  glm::vec2 physics_size = render_size;
+  glm::ivec2 physics_size = render_size;
   CollisionLayer collision_layer = CollisionLayer::NoCollision;
   std::vector<glm::ivec2> in_physics_grid_cell;
 

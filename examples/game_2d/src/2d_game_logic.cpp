@@ -669,6 +669,12 @@ shop_initial_state()
 void
 update_shop(int& p0_currency,
             std::map<ShopItem, shop::ShopItemState>& shop,
+            RangedWeaponStats& stats_pistol,
+            RangedWeaponStats& stats_shotgun,
+            RangedWeaponStats& stats_machinegun,
+            int shop_refill_pistol_ammo,
+            int shop_refill_shotgun_ammo,
+            int shop_refill_machinegun_ammo,
             std::vector<std::vector<ShopItem>>& player_inventories,
             std::vector<GameObject2D>& entities_player)
 {
@@ -704,14 +710,12 @@ update_shop(int& p0_currency,
             player_inv.push_back(shop_item.first);
           }
 
-          // if (shop_item.first == ShopItem::PISTOL_AMMO)
-          //   stats_pistol.current_ammo += shop_refill_pistol_ammo;
-
-          // if (shop_item.first == ShopItem::SHOTGUN_AMMO)
-          //   stats_shotgun.current_ammo += shop_refill_shotgun_ammo;
-
-          // if (shop_item.first == ShopItem::MACHINEGUN_AMMO)
-          //   stats_machinegun.current_ammo += shop_refill_machinegun_ammo;
+          if (shop_item.first == ShopItem::PISTOL_AMMO)
+            stats_pistol.current_ammo += shop_refill_pistol_ammo;
+          if (shop_item.first == ShopItem::SHOTGUN_AMMO)
+            stats_shotgun.current_ammo += shop_refill_shotgun_ammo;
+          if (shop_item.first == ShopItem::MACHINEGUN_AMMO)
+            stats_machinegun.current_ammo += shop_refill_machinegun_ammo;
 
           if (shop_item.first == ShopItem::HEAL_HALF) {
             GameObject2D& p0 = entities_player[0];
