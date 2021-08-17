@@ -105,7 +105,7 @@ main()
   bool ui_use_vsync = true;
   bool ui_fullscreen = false;
 
-  glm::ivec2 screen_wh = { 1280, 720 };
+  glm::ivec2 screen_wh = { 1366, 768 };
   RandomState rnd;
   Application app("2D Game", screen_wh.x, screen_wh.y, ui_use_vsync);
   Profiler profiler;
@@ -734,12 +734,12 @@ main()
         lighting_entities.insert(lighting_entities.end(), entities_enemies.begin(), entities_enemies.end());
         lighting_entities.insert(lighting_entities.end(), entities_player.begin(), entities_player.end());
         lighting_entities.insert(lighting_entities.end(), entities_trees.begin(), entities_trees.end());
-        lighting_entities.insert(lighting_entities.end(), entities_bullets.begin(), entities_bullets.end());
+        // lighting_entities.insert(lighting_entities.end(), entities_bullets.begin(), entities_bullets.end());
 
         std::vector<GameObject2D> lights = { point_lights[1] };
         for (auto& light : lights) {
           // for (auto& light : point_lights) {
-          glm::vec2 light_pos = light.pos;
+          glm::vec2 light_pos = light.pos - camera.pos;
 
           // this generates collision from the light point to the entities
           generate_intersections(camera, light_pos, lighting_entities, screen_wh, intersections);
@@ -826,10 +826,12 @@ main()
         instanced_quad_shader.set_mat4("projection", flip * projection);
         instanced_quad_shader.set_bool("do_lighting", true);
         {
-          glm::vec3 pos = glm::vec3(point_lights[0].pos.x, glm::abs(point_lights[0].pos.y - screen_wh.y), 0.0f);
-          instanced_quad_shader.set_vec3("light_pos[0]", glm::vec3(glm::vec2(pos.x, pos.y), 0.0f));
-          pos = glm::vec3(point_lights[1].pos.x, glm::abs(point_lights[1].pos.y - screen_wh.y), 0.0f);
-          instanced_quad_shader.set_vec3("light_pos[1]", glm::vec3(glm::vec2(pos.x, pos.y), 0.0f));
+          glm::vec2 l1_pos = gameobject_in_worldspace(camera, point_lights[0]);
+          l1_pos = glm::vec3(l1_pos.x, glm::abs(l1_pos.y - screen_wh.y), 0.0f);
+          instanced_quad_shader.set_vec3("light_pos[0]", glm::vec3(l1_pos, 0.0f));
+          glm::vec2 l2_pos = gameobject_in_worldspace(camera, point_lights[1]);
+          l2_pos = glm::vec3(l2_pos.x, glm::abs(l2_pos.y - screen_wh.y), 0.0f);
+          instanced_quad_shader.set_vec3("light_pos[1]", glm::vec3(l2_pos, 0.0f));
         }
 
         { // draw single quad as entire screen

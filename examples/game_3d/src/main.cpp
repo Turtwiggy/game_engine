@@ -16,8 +16,8 @@
 #include <imgui.h>
 
 // your project headers
+#include "engine/3d/camera.hpp"
 #include "engine/application.hpp"
-#include "engine/camera.hpp"
 #include "engine/maths_core.hpp"
 #include "engine/opengl/model.hpp"
 #include "engine/opengl/render_command.hpp"
@@ -29,9 +29,6 @@
 #include "engine/util.hpp"
 using namespace fightingengine;
 
-//
-// game state
-//
 const int STARTING_CUBES = 35;
 glm::vec3 player_pos(0.0f, 0.0f, 0.0f);
 glm::vec3 camera_follow_vec(-1.5f, 3.0f, 0.0f);
@@ -108,17 +105,6 @@ main(int argc, char** argv)
   Model model_3("assets/models/mercury/Alchemilla_02_05_2021.obj");
 
   log_time_since("models loaded ", app_start);
-
-  //
-  // enemies
-  //
-
-  // std::vector<Enemy> enemies;
-  // EnemySpawner enemySpawner(monsterY, &enemies);
-
-  //
-  // random cubes
-  //
 
   std::vector<glm::vec3> cube_pos;
   {
