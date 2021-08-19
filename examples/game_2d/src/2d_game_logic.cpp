@@ -32,7 +32,7 @@ bullet::update(GameObject2D& obj, float delta_time_s)
 };
 
 void
-camera::update(GameObject2D& camera, const KeysAndState& keys, fightingengine::Application& app, float delta_time_s)
+camera::update(GameObject2D& camera, KeysAndState& keys, fightingengine::Application& app, float delta_time_s)
 {
   // go.pos = glm::vec2(other.pos.x - screen_width / 2.0f, other.pos.y - screen_height / 2.0f);
   if (app.get_input().get_key_held(keys.key_camera_left))
@@ -84,20 +84,6 @@ enemy_ai::enemy_arc_angles_to_player(GameObject2D& obj, GameObject2D& player, fl
 
 namespace enemy_spawner {
 
-// spawn vars
-const bool game_spawn_enemies = true;
-int wave = 0;
-int enemies_to_spawn_this_wave = 10;
-int enemies_to_spawn_this_wave_left = enemies_to_spawn_this_wave;
-// difficulty: spawn amount
-const int EXTRA_ENEMIES_TO_SPAWN_PER_WAVE = 5;
-// difficulty: spawn rate
-const float game_seconds_until_max_difficulty = 100.0f;
-float game_seconds_until_max_difficulty_spent = 0.0f;
-const float game_enemies_seconds_between_spawning_start = 1.0f;
-const float game_enemy_seconds_between_spawning_end = 0.2f;
-float game_enemy_seconds_between_spawning_current = game_enemies_seconds_between_spawning_start;
-float game_enemy_seconds_between_spawning_left = 0.0f;
 // difficulty: toughness
 // difficulty: damage
 // difficulty: speed
@@ -195,20 +181,8 @@ static std::map<int, float> wave_speed{
   // clang-format on
 };
 
-int
-enemies_left_to_spawn()
-{
-  return enemies_to_spawn_this_wave_left;
-}
-
-int
-get_wave()
-{
-  return wave;
-}
-
 void
-next_wave()
+next_wave(int& enemies_to_spawn_this_wave, int& enemies_to_spawn_this_wave_left, int& wave)
 {
   enemies_to_spawn_this_wave += EXTRA_ENEMIES_TO_SPAWN_PER_WAVE * wave;
   enemies_to_spawn_this_wave_left = enemies_to_spawn_this_wave;
@@ -216,10 +190,12 @@ next_wave()
   std::cout << "left: " << enemies_to_spawn_this_wave_left << std::endl;
 }
 
-// TODO finish this
+// TODO fix this
 void
-spawn_enemy(std::vector<GameObject2D>& enemies, fightingengine::RandomState& rnd, glm::vec2 world_pos)
+spawn_enemy(MutableGameState& state, fightingengine::RandomState& rnd, glm::vec2 world_pos)
 {
+  const int wave = state.wave;
+
   // spawn enemy
   GameObject2D enemy_copy = gameobject::create_enemy(rnd);
   // override defaults
@@ -244,20 +220,15 @@ spawn_enemy(std::vector<GameObject2D>& enemies, fightingengine::RandomState& rnd
   else
     enemy_copy.speed_current = 3.5f;
 
-  enemies.push_back(enemy_copy);
+  state.entities_enemies.push_back(enemy_copy);
 }
 
 void
-update(std::vector<GameObject2D>& enemies,
-       std::vector<GameObject2D>& players,
-       const GameObject2D& camera,
-       fightingengine::RandomState& rnd,
-       const glm::ivec2 screen_wh,
-       const float delta_time_s)
+update(MutableGameState& state, fightingengine::RandomState& rnd, const glm::ivec2 screen_wh, const float delta_time_s)
 {
-  game_enemy_seconds_between_spawning_left -= delta_time_s;
-  if (game_enemy_seconds_between_spawning_left <= 0.0f) {
-    game_enemy_seconds_between_spawning_left = game_enemy_seconds_between_spawning_current;
+  state.game_enemy_seconds_between_spawning_left -= delta_time_s;
+  if (state.game_enemy_seconds_between_spawning_left <= 0.0f) {
+    state.game_enemy_seconds_between_spawning_left = state.game_enemy_seconds_between_spawning_current;
 
     // search params
     bool continue_search = true;
@@ -281,7 +252,7 @@ update(std::vector<GameObject2D>& enemies,
       glm::vec2 rnd_pos = glm::vec2(fightingengine::rand_det_s(rnd.rng, 0.0f, 1.0f) * screen_wh.x,
                                     fightingengine::rand_det_s(rnd.rng, 0.0f, 1.0f) * screen_wh.y);
 
-      for (auto& player : players) {
+      for (auto& player : state.entities_player) {
 
         distance_squared = glm::distance2(rnd_pos, player.pos);
         ok = distance_squared > game_safe_radius_around_player;
@@ -296,20 +267,21 @@ update(std::vector<GameObject2D>& enemies,
     } while (continue_search);
 
     // std::cout << "enemy spawning " << distance_squared << " away from player" << std::endl;
-    glm::vec2 world_pos = found_pos + camera.pos;
+    glm::vec2 world_pos = found_pos + state.camera.pos;
 
-    if (game_spawn_enemies && enemies_to_spawn_this_wave_left > 0) {
-      spawn_enemy(enemies, rnd, world_pos);
-      enemies_to_spawn_this_wave_left -= 1;
+    if (game_spawn_enemies && state.enemies_to_spawn_this_wave_left > 0) {
+      spawn_enemy(state, rnd, world_pos);
+      state.enemies_to_spawn_this_wave_left -= 1;
     }
   }
 
   // increase difficulty
   // 0.5 is starting cooldown
   // after 30 seconds, cooldown should be 0
-  game_seconds_until_max_difficulty_spent += delta_time_s;
-  float percent = glm::clamp(game_seconds_until_max_difficulty_spent / game_seconds_until_max_difficulty, 0.0f, 1.0f);
-  game_enemy_seconds_between_spawning_current =
+  state.game_seconds_until_max_difficulty_spent += delta_time_s;
+  float percent =
+    glm::clamp(state.game_seconds_until_max_difficulty_spent / game_seconds_until_max_difficulty, 0.0f, 1.0f);
+  state.game_enemy_seconds_between_spawning_current =
     glm::mix(game_enemies_seconds_between_spawning_start, game_enemy_seconds_between_spawning_end, percent);
 };
 
@@ -412,7 +384,7 @@ ability_boost(GameObject2D& player, const KeysAndState& keys, const float delta_
 void
 ability_slash(fightingengine::Application& app,
               GameObject2D& player_obj,
-              const KeysAndState& keys,
+              KeysAndState& keys,
               GameObject2D& weapon,
               float delta_time_s,
               MeleeWeaponStats& s,
@@ -477,7 +449,7 @@ ability_slash(fightingengine::Application& app,
 
 void
 ability_shoot(GameObject2D& fire_from_this_entity,
-              const KeysAndState& keys,
+              KeysAndState& keys,
               std::vector<GameObject2D>& bullets,
               const glm::vec4 bullet_col,
               const sprite::type sprite,
@@ -520,82 +492,83 @@ ability_shoot(GameObject2D& fire_from_this_entity,
 void
 player_attack(fightingengine::Application& app,
               GameObject2D& player,
-              MeleeWeaponStats& stats_shovel,
-              RangedWeaponStats& stats_pistol,
-              RangedWeaponStats& stats_shotgun,
-              RangedWeaponStats& stats_machinegun,
-              GameObject2D& weapon_shovel,
-              GameObject2D& weapon_pistol,
-              GameObject2D& weapon_shotgun,
-              GameObject2D& weapon_machinegun,
-              const std::vector<ShopItem>& player_inventory,
-              const float delta_time_s,
-              const KeysAndState& keys,
-              std::vector<Attack>& attacks,
-              std::vector<GameObject2D>& entities_bullets)
+              MutableGameState& gs,
+              std::vector<ShopItem>& player_inventory,
+              KeysAndState& keys,
+              const float delta_time_s)
 {
-  weapon_shovel.do_render = false;
-  weapon_pistol.do_render = false;
-  weapon_shotgun.do_render = false;
-  weapon_machinegun.do_render = false;
+  gs.weapon_shovel.do_render = false;
+  gs.weapon_pistol.do_render = false;
+  gs.weapon_shotgun.do_render = false;
+  gs.weapon_machinegun.do_render = false;
 
   if (player_inventory[player.equipped_item_index] == ShopItem::SHOVEL) {
-    weapon_shovel.do_render = true;
-    ability_slash(app, player, keys, weapon_shovel, delta_time_s, stats_shovel, attacks);
+    gs.weapon_shovel.do_render = true;
+    ability_slash(app, player, keys, gs.weapon_shovel, delta_time_s, gs.stats_shovel, gs.attacks);
   }
 
   if (player_inventory[player.equipped_item_index] == ShopItem::PISTOL) {
-    weapon_pistol.do_render = true;
+    gs.weapon_pistol.do_render = true;
     float angle_around_player = keys.angle_around_player;
-    glm::vec2 offset = glm::vec2(stats_pistol.radius_offset_from_player * sin(angle_around_player),
-                                 -stats_pistol.radius_offset_from_player * cos(angle_around_player));
-    weapon_pistol.pos = player.pos + offset;
-    weapon_pistol.angle_radians =
-      keys.angle_around_player + sprite::spritemap::get_sprite_rotation_offset(weapon_pistol.sprite);
+    glm::vec2 offset = glm::vec2(gs.stats_pistol.radius_offset_from_player * sin(angle_around_player),
+                                 -gs.stats_pistol.radius_offset_from_player * cos(angle_around_player));
+    gs.weapon_pistol.pos = player.pos + offset;
+    gs.weapon_pistol.angle_radians =
+      keys.angle_around_player + sprite::spritemap::get_sprite_rotation_offset(gs.weapon_pistol.sprite);
 
-    if (stats_pistol.infinite_ammo || stats_pistol.current_ammo > 0) {
+    if (gs.stats_pistol.infinite_ammo || gs.stats_pistol.current_ammo > 0) {
       if (app.get_input().get_mouse_lmb_down()) {
-        ability_shoot(
-          weapon_pistol, keys, entities_bullets, bullet_pistol_colour, sprite_bullet, stats_pistol, attacks);
+        ability_shoot(gs.weapon_pistol,
+                      keys,
+                      gs.entities_bullets,
+                      bullet_pistol_colour,
+                      sprite_bullet,
+                      gs.stats_pistol,
+                      gs.attacks);
       }
     }
   }
 
   if (player_inventory[player.equipped_item_index] == ShopItem::SHOTGUN) {
-    weapon_shotgun.do_render = true;
+    gs.weapon_shotgun.do_render = true;
     float angle_around_player = keys.angle_around_player;
-    glm::vec2 offset = glm::vec2(stats_shotgun.radius_offset_from_player * sin(angle_around_player),
-                                 -stats_shotgun.radius_offset_from_player * cos(angle_around_player));
-    weapon_shotgun.pos = player.pos + offset;
-    weapon_shotgun.angle_radians =
-      keys.angle_around_player + sprite::spritemap::get_sprite_rotation_offset(weapon_shotgun.sprite);
+    glm::vec2 offset = glm::vec2(gs.stats_shotgun.radius_offset_from_player * sin(angle_around_player),
+                                 -gs.stats_shotgun.radius_offset_from_player * cos(angle_around_player));
+    gs.weapon_shotgun.pos = player.pos + offset;
+    gs.weapon_shotgun.angle_radians =
+      keys.angle_around_player + sprite::spritemap::get_sprite_rotation_offset(gs.weapon_shotgun.sprite);
 
-    if (stats_shotgun.infinite_ammo || stats_shotgun.current_ammo > 0) {
+    if (gs.stats_shotgun.infinite_ammo || gs.stats_shotgun.current_ammo > 0) {
       if (app.get_input().get_mouse_lmb_down()) {
-        ability_shoot(
-          weapon_shotgun, keys, entities_bullets, bullet_shotgun_colour, sprite_bullet, stats_shotgun, attacks);
+        ability_shoot(gs.weapon_shotgun,
+                      keys,
+                      gs.entities_bullets,
+                      bullet_pistol_colour,
+                      sprite_bullet,
+                      gs.stats_shotgun,
+                      gs.attacks);
       }
     }
   }
 
   if (player_inventory[player.equipped_item_index] == ShopItem::MACHINEGUN) {
-    weapon_machinegun.do_render = true;
+    gs.weapon_machinegun.do_render = true;
     float angle_around_player = keys.angle_around_player;
-    glm::vec2 offset = glm::vec2(stats_machinegun.radius_offset_from_player * sin(angle_around_player),
-                                 -stats_machinegun.radius_offset_from_player * cos(angle_around_player));
-    weapon_machinegun.pos = player.pos + offset;
-    weapon_machinegun.angle_radians =
-      keys.angle_around_player + sprite::spritemap::get_sprite_rotation_offset(weapon_machinegun.sprite);
+    glm::vec2 offset = glm::vec2(gs.stats_machinegun.radius_offset_from_player * sin(angle_around_player),
+                                 -gs.stats_machinegun.radius_offset_from_player * cos(angle_around_player));
+    gs.weapon_machinegun.pos = player.pos + offset;
+    gs.weapon_machinegun.angle_radians =
+      keys.angle_around_player + sprite::spritemap::get_sprite_rotation_offset(gs.weapon_machinegun.sprite);
 
-    if (stats_machinegun.infinite_ammo || stats_machinegun.current_ammo > 0) {
+    if (gs.stats_machinegun.infinite_ammo || gs.stats_machinegun.current_ammo > 0) {
       if (app.get_input().get_mouse_lmb_down()) {
-        ability_shoot(weapon_machinegun,
+        ability_shoot(gs.weapon_machinegun,
                       keys,
-                      entities_bullets,
+                      gs.entities_bullets,
                       bullet_machinegun_colour,
                       sprite_bullet,
-                      stats_machinegun,
-                      attacks);
+                      gs.stats_machinegun,
+                      gs.attacks);
       }
     }
   }
@@ -668,7 +641,7 @@ shop_initial_state()
 
 void
 update_shop(int& p0_currency,
-            std::map<ShopItem, shop::ShopItemState>& shop,
+            std::map<ShopItem, ShopItemState>& shop,
             RangedWeaponStats& stats_pistol,
             RangedWeaponStats& stats_shotgun,
             RangedWeaponStats& stats_machinegun,

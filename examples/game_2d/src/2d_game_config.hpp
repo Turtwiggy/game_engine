@@ -2,6 +2,7 @@
 
 #include "2d_game_object.hpp"
 #include "spritemap.hpp"
+#include <map>
 
 // textures
 const int tex_unit_kenny_nl = 0;
@@ -45,3 +46,52 @@ const glm::vec4 bullet_machinegun_colour = weapon_machinegun_colour;
 const glm::vec4 player_splat_colour = player_colour;                             // player col
 const glm::vec4 enemy_death_splat_colour = glm::vec4(0.65f, 0.65f, 0.65f, 1.0f); // greyish
 const glm::vec4 enemy_impact_splat_colour = glm::vec4(0.95f, 0.3f, 0.3f, 1.0f);  // redish
+
+// game default states
+
+const int GAME_GRID_SIZE = 32;
+const int game_over_after_wave = 10;
+const float game_enemy_direct_attack_threshold = 4000.0f;
+const bool game_spawn_enemies = true;
+const int EXTRA_ENEMIES_TO_SPAWN_PER_WAVE = 5;
+const float game_seconds_until_max_difficulty = 100.0f;
+const float game_enemies_seconds_between_spawning_start = 1.0f;
+const float game_enemy_seconds_between_spawning_end = 0.2f;
+
+// vfx
+const float screenshake_time = 0.1f;
+const float vfx_flash_time = 0.2f;
+
+// shop & stats
+const int shop_refill_pistol_ammo = 5;
+const int shop_refill_shotgun_ammo = 5;
+const int shop_refill_machinegun_ammo = 5;
+
+static const std::vector<bool> GAME_COLL_MATRIX = {
+  false, // NoCollision_NoCollision_0_0
+  false, // bullet_NoCollision_1_0
+  false, // Player_NoCollision_2_0
+  false, // Enemy_NoCollision_3_0
+  false, // Obstacle_NoCollision_4_0
+  false, // Weapon_NoCollision_5_0
+
+  false, // bullet_bullet_1_1
+  false, // player_bullet_2_1
+  true,  // enemy_bullet_3_1
+  true,  // Obstacle_bullet_4_1
+  false, // Weapon_bullet_5_1
+
+  false, // player_player_2_2
+  true,  // enemy_player_3_2
+  true,  // Obstacle_player_4_2
+  false, // Weapon_player_5_2
+
+  false, // enemy_enemy_3_3
+  true,  // Obstacle_enemy_4_3
+  true,  // Weapon_enemy_5_3
+
+  false, // Obstacle_Obstacle_4_4
+  false, // Weapon_Obstacle_5_4
+
+  false, // Weapon_Weapon_5_5
+};
