@@ -102,7 +102,6 @@ main()
 
   bool debug_advance_one_frame = false;
   bool debug_show_imgui_demo_window = false;
-  bool debug_render_spritesheet = false;
   bool debug_show_profiler = false;
 
   bool ui_limit_framerate = false;
@@ -120,7 +119,7 @@ main()
   std::vector<std::pair<int, std::string>> textures_to_load;
   textures_to_load.emplace_back(tex_unit_kenny_nl,
                                 "assets/2d_game/textures/kennynl_1bit_pack/monochrome_transparent_packed.png");
-  load_textures_threaded(textures_to_load, app_start);
+  std::vector<unsigned int> texture_ids = load_textures_threaded(textures_to_load, app_start);
 
   unsigned int fbo_main_scene = Framebuffer::create_fbo();
   unsigned int tex_id_main_scene = create_texture(screen_wh, tex_unit_main_scene, fbo_main_scene);
@@ -185,6 +184,7 @@ main()
   MutableGameState gs = reset_game(screen_wh);
 
   std::cout << "(INFO) GameObject2D is " << sizeof(GameObject2D) << " bytes" << std::endl;
+  std::cout << "(INFO) MutableGameState is " << sizeof(MutableGameState) << " bytes" << std::endl;
   log_time_since("(INFO) End Setup ", app_start);
 
   while (app.is_running()) {
@@ -567,7 +567,7 @@ main()
 
             // check every frame: close to player?
             float distance_squared = glm::distance2(obj.pos, player_to_chase.pos);
-            if (distance_squared < game_enemy_direct_attack_threshold) {
+            if (distance_squared < ENEMY_ATTACK_THRESHOLD) {
               // push new ai behaviour
               if (obj.ai_priority_list.size() > 0 && obj.ai_priority_list.back() != AiBehaviour::MOVEMENT_DIRECT) {
                 obj.ai_priority_list.push_back(AiBehaviour::MOVEMENT_DIRECT);
@@ -737,9 +737,6 @@ main()
           }
           sprite_renderer::draw_sprites_debug(gs.camera, screen_wh, renderables, colour_shader, debug_line_colour);
 
-          if (debug_render_spritesheet) {
-            sprite_renderer::draw_instanced_sprite(gs.camera, screen_wh, instanced_quad_shader, gs.tex_obj);
-          }
         } // <!-- end GameRunning::Active -->
         sprite_renderer::end_batch();
         sprite_renderer::flush(instanced_quad_shader);
@@ -807,6 +804,13 @@ main()
         ImGui::End();
       }
 
+      // TEMP render opengl texture to imgui
+      ImGui::Begin("Temp texture ui");
+      ImGui::BeginChild("GameRender");
+      ImGui::Image((ImTextureID)texture_ids[0], ImVec2(768.0f, 352.0f), ImVec2(0.0f, 0.0f), ImVec2(1.0f, 1.0f));
+      ImGui::EndChild();
+      ImGui::End();
+
       // ui: top menu bar
 
       if (ImGui::BeginMainMenuBar()) {
@@ -827,7 +831,7 @@ main()
           ImGui::Text(ammo_shotgun_label.c_str());
           ImGui::Text(ammo_machinegun_label.c_str());
 
-          ShopItem w = p_inventory[i];
+          ShopItem w = p_inventory[player.equipped_item_index];
           std::string wep = std::string("Weapon: ") + std::string(magic_enum::enum_name(w));
           ImGui::Text(wep.c_str());
 

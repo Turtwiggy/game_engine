@@ -31,7 +31,7 @@ load_texture(const int textureUnit, const std::string& path)
   return result;
 }
 
-void
+unsigned int
 bind_stb_loaded_texture(StbLoadedTexture& texture)
 {
   unsigned int textureID;
@@ -78,6 +78,8 @@ bind_stb_loaded_texture(StbLoadedTexture& texture)
   stbi_image_free(data);
 
   glBindTexture(GL_TEXTURE_2D, textureID);
+
+  return textureID;
 }
 
 //

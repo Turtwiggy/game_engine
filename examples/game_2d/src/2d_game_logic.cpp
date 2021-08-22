@@ -269,7 +269,7 @@ update(MutableGameState& state, fightingengine::RandomState& rnd, const glm::ive
     // std::cout << "enemy spawning " << distance_squared << " away from player" << std::endl;
     glm::vec2 world_pos = found_pos + state.camera.pos;
 
-    if (game_spawn_enemies && state.enemies_to_spawn_this_wave_left > 0) {
+    if (SPAWN_ENEMIES && state.enemies_to_spawn_this_wave_left > 0) {
       spawn_enemy(state, rnd, world_pos);
       state.enemies_to_spawn_this_wave_left -= 1;
     }
@@ -279,10 +279,9 @@ update(MutableGameState& state, fightingengine::RandomState& rnd, const glm::ive
   // 0.5 is starting cooldown
   // after 30 seconds, cooldown should be 0
   state.game_seconds_until_max_difficulty_spent += delta_time_s;
-  float percent =
-    glm::clamp(state.game_seconds_until_max_difficulty_spent / game_seconds_until_max_difficulty, 0.0f, 1.0f);
+  float percent = glm::clamp(state.game_seconds_until_max_difficulty_spent / SECONDS_UNTIL_MAX_DIFFICULTY, 0.0f, 1.0f);
   state.game_enemy_seconds_between_spawning_current =
-    glm::mix(game_enemies_seconds_between_spawning_start, game_enemy_seconds_between_spawning_end, percent);
+    glm::mix(SECONDS_BETWEEN_SPAWNING_ENEMIES_START, SECONDS_BETWEEN_SPAWNING_ENEMIES_END, percent);
 };
 
 } // namespace enemyspawner

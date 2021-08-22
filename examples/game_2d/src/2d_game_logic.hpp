@@ -147,7 +147,7 @@ struct MutableGameState
   int enemies_to_spawn_this_wave_left = enemies_to_spawn_this_wave;
   // difficulty: spawn rate
   float game_seconds_until_max_difficulty_spent = 0.0f;
-  float game_enemy_seconds_between_spawning_current = game_enemies_seconds_between_spawning_start;
+  float game_enemy_seconds_between_spawning_current = SECONDS_BETWEEN_SPAWNING_ENEMIES_START;
   float game_enemy_seconds_between_spawning_left = 0.0f;
 
   // all entities

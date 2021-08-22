@@ -30,7 +30,7 @@ struct StbLoadedTexture
 StbLoadedTexture
 load_texture(const int textureUnit, const std::string& path);
 
-void
+[[nodiscard]] unsigned int
 bind_stb_loaded_texture(StbLoadedTexture& texture);
 
 // Texture util functions
