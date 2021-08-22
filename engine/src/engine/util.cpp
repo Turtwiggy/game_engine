@@ -21,11 +21,13 @@ log_time_since(const std::string& label, std::chrono::time_point<std::chrono::hi
   std::cout << label << y << "ms" << std::endl;
 }
 
-void
+std::vector<unsigned int>
 load_textures_threaded(std::vector<std::pair<int, std::string>>& textures_to_load,
                        const std::chrono::steady_clock::time_point& app_start)
 {
   log_time_since("(Threaded) loading textures... ", app_start);
+  std::vector<unsigned int> texture_ids;
+
   {
     std::vector<std::thread> threads;
     std::vector<StbLoadedTexture> loaded_textures(textures_to_load.size());
@@ -39,11 +41,14 @@ load_textures_threaded(std::vector<std::pair<int, std::string>>& textures_to_loa
     for (auto& thread : threads) {
       thread.join();
     }
+
     for (StbLoadedTexture& l : loaded_textures) {
-      bind_stb_loaded_texture(l);
+      unsigned int id = bind_stb_loaded_texture(l);
+      texture_ids.push_back(id);
     }
   }
   log_time_since("(End Threaded) textures loaded ", app_start);
+  return texture_ids;
 }
 
 void

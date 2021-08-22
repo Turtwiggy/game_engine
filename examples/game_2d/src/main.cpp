@@ -46,24 +46,6 @@ using namespace fightingengine;
 #include "spritemap.hpp"
 using namespace game2d;
 
-enum class EditorMode
-{
-  EDITOR_PLACE_MODE,
-  EDITOR_SELECT_MODE,
-  PLAYER_ATTACK,
-};
-enum class GameRunning
-{
-  ACTIVE,
-  PAUSED,
-  GAME_OVER
-};
-enum class GamePhase
-{
-  ATTACK,
-  SHOP,
-};
-
 void
 toggle_fullscreen(Application& app,
                   glm::ivec2& screen_wh,
@@ -78,6 +60,29 @@ toggle_fullscreen(Application& app,
 
   update_texture_size(screen_wh, tex_id_lighting);
   update_texture_size(screen_wh, tex_id_main_scene);
+}
+
+void
+add_players(MutableGameState& state, glm::ivec2 screen_wh)
+{
+  GameObject2D p0 = gameobject::create_player(sprite_player, tex_unit_kenny_nl, player_colour, screen_wh);
+  state.entities_player.push_back(p0);
+
+  KeysAndState p0_keys;
+  p0_keys.use_keyboard = true;
+  state.player_keys.push_back(p0_keys);
+
+  std::vector<ShopItem> p0_inventory = std::vector<ShopItem>();
+  p0_inventory.push_back(ShopItem::SHOVEL);
+  state.player_inventories.push_back(p0_inventory);
+}
+
+MutableGameState
+reset_game(glm::ivec2 screen_wh)
+{
+  MutableGameState default_state;
+  add_players(default_state, screen_wh);
+  return default_state;
 }
 
 int
@@ -97,8 +102,7 @@ main()
 
   bool debug_advance_one_frame = false;
   bool debug_show_imgui_demo_window = false;
-  bool debug_render_spritesheet = false;
-  bool debug_show_profiler = true;
+  bool debug_show_profiler = false;
 
   bool ui_limit_framerate = false;
   bool ui_mute_sfx = true;
@@ -115,7 +119,7 @@ main()
   std::vector<std::pair<int, std::string>> textures_to_load;
   textures_to_load.emplace_back(tex_unit_kenny_nl,
                                 "assets/2d_game/textures/kennynl_1bit_pack/monochrome_transparent_packed.png");
-  load_textures_threaded(textures_to_load, app_start);
+  std::vector<unsigned int> texture_ids = load_textures_threaded(textures_to_load, app_start);
 
   unsigned int fbo_main_scene = Framebuffer::create_fbo();
   unsigned int tex_id_main_scene = create_texture(screen_wh, tex_unit_main_scene, fbo_main_scene);
@@ -175,66 +179,12 @@ main()
 
   // Game
 
-  GameRunning state = GameRunning::ACTIVE;
-  GamePhase game_phase = GamePhase::ATTACK;
-  EditorMode editor_left_click_mode = EditorMode::PLAYER_ATTACK;
-  const int GAME_GRID_SIZE = 32;
-  const float screenshake_time = 0.1f;
   float screenshake_time_left = 0.0f;
-  const float vfx_flash_time = 0.2f;
-  int enemies_destroyed_this_wave = 0;
-  int enemies_killed = 0;
 
-  // shop stats
-  int p0_currency = 0;
-  std::map<ShopItem, shop::ShopItemState> shop = shop::shop_initial_state();
-  int shop_refill_pistol_ammo = 5;
-  int shop_refill_shotgun_ammo = 5;
-  int shop_refill_machinegun_ammo = 5;
-  // chase ai
-  const float game_enemy_direct_attack_threshold = 4000.0f;
-
-  // game objs
-
-  game2d::MeleeWeaponStats stats_shovel(1);
-  game2d::RangedWeaponStats stats_pistol(14.0f, false, 20, 3, 0.2f);
-  game2d::RangedWeaponStats stats_shotgun(17.5f, false, 20, 5, 0.5f);
-  game2d::RangedWeaponStats stats_machinegun(16.0f, false, 20, 4, 0.3f);
-
-  GameObject2D tex_obj = gameobject::create_kennynl_texture();
-  GameObject2D camera = GameObject2D();
-  GameObject2D weapon_shovel = gameobject::create_weapon(sprite_weapon_base, tex_unit_kenny_nl, weapon_shovel_colour);
-  GameObject2D weapon_pistol = gameobject::create_weapon(sprite_pistol, tex_unit_kenny_nl, weapon_pistol_colour);
-  GameObject2D weapon_shotgun = gameobject::create_weapon(sprite_shotgun, tex_unit_kenny_nl, weapon_shotgun_colour);
-  GameObject2D weapon_machinegun =
-    gameobject::create_weapon(sprite_machinegun, tex_unit_kenny_nl, weapon_machinegun_colour);
-
-  std::vector<Attack> attacks;
-  std::vector<CollisionEvent> collision_events;
-  std::vector<GameObject2D> entities_bullets;
-  std::vector<GameObject2D> entities_enemies;
-  std::vector<GameObject2D> entities_player;
-  std::vector<GameObject2D> entities_shops;
-  std::vector<GameObject2D> entities_trees;
-  std::vector<GameObject2D> entities_vfx;
-  std::vector<KeysAndState> player_keys;
-  std::vector<std::vector<ShopItem>> player_inventories;
-
-  // add players
-  {
-    GameObject2D p0 = gameobject::create_player(sprite_player, tex_unit_kenny_nl, player_colour, screen_wh);
-    entities_player.push_back(p0);
-
-    KeysAndState p0_keys;
-    p0_keys.use_keyboard = true;
-    player_keys.push_back(p0_keys);
-
-    std::vector<ShopItem> p0_inventory = std::vector<ShopItem>();
-    p0_inventory.push_back(ShopItem::SHOVEL);
-    player_inventories.push_back(p0_inventory);
-  }
+  MutableGameState gs = reset_game(screen_wh);
 
   std::cout << "(INFO) GameObject2D is " << sizeof(GameObject2D) << " bytes" << std::endl;
+  std::cout << "(INFO) MutableGameState is " << sizeof(MutableGameState) << " bytes" << std::endl;
   log_time_since("(INFO) End Setup ", app_start);
 
   while (app.is_running()) {
@@ -250,14 +200,15 @@ main()
 
     profiler.begin(Profiler::Stage::Physics);
     {
-      if (state == GameRunning::ACTIVE || (state == GameRunning::PAUSED && debug_advance_one_frame)) {
+      if (gs.game_running == GameRunning::ACTIVE ||
+          (gs.game_running == GameRunning::PAUSED && debug_advance_one_frame)) {
 
         std::vector<std::reference_wrapper<GameObject2D>> collidable;
-        collidable.insert(collidable.end(), entities_enemies.begin(), entities_enemies.end());
-        collidable.insert(collidable.end(), entities_bullets.begin(), entities_bullets.end());
-        collidable.insert(collidable.end(), entities_player.begin(), entities_player.end());
-        collidable.insert(collidable.end(), entities_trees.begin(), entities_trees.end());
-        collidable.push_back(weapon_shovel);
+        collidable.insert(collidable.end(), gs.entities_enemies.begin(), gs.entities_enemies.end());
+        collidable.insert(collidable.end(), gs.entities_bullets.begin(), gs.entities_bullets.end());
+        collidable.insert(collidable.end(), gs.entities_player.begin(), gs.entities_player.end());
+        collidable.insert(collidable.end(), gs.entities_trees.begin(), gs.entities_trees.end());
+        collidable.push_back(gs.weapon_shovel);
 
         std::vector<std::reference_wrapper<GameObject2D>> active_collidable;
         for (auto& obj : collidable) {
@@ -270,7 +221,7 @@ main()
         generate_filtered_broadphase_collisions(active_collidable, filtered_collisions);
 
         // clear collision events this frame
-        collision_events.clear();
+        gs.collision_events.clear();
 
         // Add collision to events
         for (auto& c : filtered_collisions) {
@@ -289,7 +240,7 @@ main()
           }
 
           CollisionEvent eve(obj_0_it->get(), obj_1_it->get());
-          collision_events.push_back(eve);
+          gs.collision_events.push_back(eve);
         }
       }
     }
@@ -323,7 +274,7 @@ main()
       if (app.get_input().get_mouse_mmb_down()) {
         point_lights[1].pos = app.get_input().get_mouse_pos();
       }
-      point_lights[0].pos = entities_player[0].pos;
+      point_lights[0].pos = gs.entities_player[0].pos;
 
 #endif // _DEBUG
 
@@ -335,8 +286,8 @@ main()
         bool positive_direction = mousewheel > 0;
 
         // cycle through weapons for p0
-        GameObject2D& p0 = entities_player[0];
-        auto& p0_inventory = player_inventories[0];
+        GameObject2D& p0 = gs.entities_player[0];
+        auto& p0_inventory = gs.player_inventories[0];
         int cur_item_index = p0.equipped_item_index;
         if (positive_direction)
           cur_item_index = (cur_item_index + 1) % p0_inventory.size();
@@ -351,23 +302,23 @@ main()
 
       if (app.get_input().get_mouse_rmb_down()) {
 
-        if (editor_left_click_mode == EditorMode::PLAYER_ATTACK)
-          editor_left_click_mode = EditorMode::EDITOR_PLACE_MODE;
-        else if (editor_left_click_mode == EditorMode::EDITOR_PLACE_MODE)
-          editor_left_click_mode = EditorMode::EDITOR_SELECT_MODE;
-        else if (editor_left_click_mode == EditorMode::EDITOR_SELECT_MODE)
-          editor_left_click_mode = EditorMode::PLAYER_ATTACK;
+        if (gs.editor_left_click_mode == EditorMode::PLAYER_ATTACK)
+          gs.editor_left_click_mode = EditorMode::EDITOR_PLACE_MODE;
+        else if (gs.editor_left_click_mode == EditorMode::EDITOR_PLACE_MODE)
+          gs.editor_left_click_mode = EditorMode::EDITOR_SELECT_MODE;
+        else if (gs.editor_left_click_mode == EditorMode::EDITOR_SELECT_MODE)
+          gs.editor_left_click_mode = EditorMode::PLAYER_ATTACK;
 
-        auto mode = std::string(magic_enum::enum_name(editor_left_click_mode));
+        auto mode = std::string(magic_enum::enum_name(gs.editor_left_click_mode));
         std::cout << "editor mode: " << mode << std::endl;
       }
 
       bool lmb_clicked = app.get_input().get_mouse_lmb_down();
-      if (lmb_clicked && editor_left_click_mode == EditorMode::EDITOR_PLACE_MODE) {
+      if (lmb_clicked && gs.editor_left_click_mode == EditorMode::EDITOR_PLACE_MODE) {
 
         glm::ivec2 mouse_pos = app.get_input().get_mouse_pos();
         printf("(game) clicked gamegrid %i %i \n", mouse_pos.x, mouse_pos.y);
-        glm::vec2 world_pos = glm::vec2(mouse_pos) + camera.pos;
+        glm::vec2 world_pos = glm::vec2(mouse_pos) + gs.camera.pos;
 
         GameObject2D tree = gameobject::create_tree();
         tree.pos = grid::convert_world_space_to_grid_space(world_pos, GAME_GRID_SIZE);
@@ -375,7 +326,7 @@ main()
         tree.render_size = glm::ivec2(GAME_GRID_SIZE);
         tree.physics_size = glm::ivec2(GAME_GRID_SIZE);
 
-        entities_trees.push_back(tree);
+        gs.entities_trees.push_back(tree);
       }
 
       // Shader hot reloading
@@ -391,7 +342,7 @@ main()
     {
       { // Resolve collision events
 
-        for (auto& event : collision_events) {
+        for (auto& event : gs.collision_events) {
 
           auto& coll_layer_0 = event.go0.collision_layer;
           auto& coll_layer_1 = event.go1.collision_layer;
@@ -414,7 +365,7 @@ main()
             GameObject2D splat = gameobject::create_generic(sprite_splat, player_splat_colour);
             splat.pos = player.pos;
             splat.angle_radians = fightingengine::rand_det_s(rnd.rng, 0.0f, fightingengine::PI);
-            entities_vfx.push_back(splat);
+            gs.entities_vfx.push_back(splat);
           }
 
           if ((coll_layer_0 == CollisionLayer::Enemy && coll_layer_1 == CollisionLayer::Weapon) ||
@@ -422,9 +373,9 @@ main()
 
             GameObject2D& enemy = event.go0.collision_layer == CollisionLayer::Enemy ? event.go0 : event.go1;
             GameObject2D& weapon = event.go0.collision_layer == CollisionLayer::Enemy ? event.go1 : event.go0;
-            GameObject2D& player = entities_player[0]; // hack: use player 0 for the moment
+            GameObject2D& player = gs.entities_player[0]; // hack: use player 0 for the moment
 
-            for (auto& attack : attacks) {
+            for (auto& attack : gs.attacks) {
 
               bool is_shovel = attack.weapon_type == ShopItem::SHOVEL;
               bool collision_with_specific_shovel_attack = weapon.id == attack.entity_weapon_id;
@@ -441,7 +392,7 @@ main()
                 // vfx impactsplat
                 int damage_amount = attack.weapon_damage;
                 vfx::spawn_impact_splats(
-                  rnd, player, enemy, sprite_splat, enemy_impact_splat_colour, damage_amount, entities_vfx);
+                  rnd, player, enemy, sprite_splat, enemy_impact_splat_colour, damage_amount, gs.entities_vfx);
               }
             }
           }
@@ -450,9 +401,9 @@ main()
               (coll_layer_1 == CollisionLayer::Bullet && coll_layer_0 == CollisionLayer::Enemy)) {
             GameObject2D& bullet = event.go0.collision_layer == CollisionLayer::Bullet ? event.go0 : event.go1;
             GameObject2D& enemy = event.go0.collision_layer == CollisionLayer::Bullet ? event.go1 : event.go0;
-            GameObject2D& player = entities_player[0]; // hack: use player 0 for the moment
+            GameObject2D& player = gs.entities_player[0]; // hack: use player 0 for the moment
 
-            for (auto& attack : attacks) {
+            for (auto& attack : gs.attacks) {
 
               bool is_bullet = attack.weapon_type == ShopItem::PISTOL;
               bool collision_with_specific_bullet = bullet.id == attack.entity_weapon_id;
@@ -469,7 +420,7 @@ main()
                 // vfx impactsplat
                 int damage_amount = attack.weapon_damage;
                 vfx::spawn_impact_splats(
-                  rnd, player, enemy, sprite_splat, enemy_impact_splat_colour, damage_amount, entities_vfx);
+                  rnd, player, enemy, sprite_splat, enemy_impact_splat_colour, damage_amount, gs.entities_vfx);
               }
             }
           }
@@ -502,34 +453,34 @@ main()
             // vfx impactsplat
             int damage_amount = DAMAGE_TO_GIVE_ENEMY_FROM_OBSTACLE;
             vfx::spawn_impact_splats(
-              rnd, enemy, obstacle, sprite_splat, enemy_impact_splat_colour, damage_amount, entities_vfx);
+              rnd, enemy, obstacle, sprite_splat, enemy_impact_splat_colour, damage_amount, gs.entities_vfx);
           }
         }
       }
 
       { // Update player's input
-        for (int i = 0; i < entities_player.size(); i++) {
-          GameObject2D& player = entities_player[i];
-          KeysAndState& keys = player_keys[i];
+        for (int i = 0; i < gs.entities_player.size(); i++) {
+          GameObject2D& player = gs.entities_player[i];
+          KeysAndState& keys = gs.player_keys[i];
 
-          player::update_input(player, keys, app, camera);
+          player::update_input(player, keys, app, gs.camera);
 
           if (keys.pause_down) {
-            state = state == GameRunning::PAUSED ? GameRunning::ACTIVE : GameRunning::PAUSED;
+            gs.game_running = gs.game_running == GameRunning::PAUSED ? GameRunning::ACTIVE : GameRunning::PAUSED;
           }
         };
       }
 
       // Update game state
 
-      if (state == GameRunning::ACTIVE) {
+      if (gs.game_running == GameRunning::ACTIVE) {
 
         // update: players
 
-        for (int i = 0; i < entities_player.size(); i++) {
-          GameObject2D& player = entities_player[i];
-          KeysAndState& keys = player_keys[i];
-          auto& player_inventory = player_inventories[i];
+        for (int i = 0; i < gs.entities_player.size(); i++) {
+          GameObject2D& player = gs.entities_player[i];
+          KeysAndState& keys = gs.player_keys[i];
+          auto& player_inventory = gs.player_inventories[i];
 
           player.velocity.x = keys.l_analogue_x;
           player.velocity.y = keys.l_analogue_y;
@@ -538,44 +489,30 @@ main()
           player::ability_boost(player, keys, delta_time_s);
           gameobject::update_position(player, delta_time_s);
 
-          if (editor_left_click_mode == EditorMode::PLAYER_ATTACK) {
-            player::player_attack(app,
-                                  player,
-                                  stats_shovel,
-                                  stats_pistol,
-                                  stats_shotgun,
-                                  stats_machinegun,
-                                  weapon_shovel,
-                                  weapon_pistol,
-                                  weapon_shotgun,
-                                  weapon_machinegun,
-                                  player_inventory,
-                                  delta_time_s,
-                                  keys,
-                                  attacks,
-                                  entities_bullets);
+          if (gs.editor_left_click_mode == EditorMode::PLAYER_ATTACK) {
+            player::player_attack(app, player, gs, player_inventory, keys, delta_time_s);
           }
 
           bool player_alive = player.invulnerable || player.damage_taken < player.damage_able_to_be_taken;
           if (!player_alive)
-            state = GameRunning::GAME_OVER;
+            gs.game_running = GameRunning::GAME_OVER;
         }
 
         // update: bullets
 
-        for (auto& bullet : entities_bullets) {
+        for (auto& bullet : gs.entities_bullets) {
           bullet::update(bullet, delta_time_s);
         }
 
         // update: vfx
 
-        for (auto& obj : entities_vfx) {
+        for (auto& obj : gs.entities_vfx) {
           gameobject::update_position(obj, delta_time_s);
         }
 
         // update: vfx flash
 
-        for (auto& obj : entities_player) {
+        for (auto& obj : gs.entities_player) {
           if (obj.flash_time_left > 0.0f) {
             obj.flash_time_left -= delta_time_s;
             obj.colour = enemy_impact_splat_colour;
@@ -583,7 +520,7 @@ main()
             obj.colour = player_colour;
           }
         }
-        for (auto& obj : entities_enemies) {
+        for (auto& obj : gs.entities_enemies) {
           if (obj.flash_time_left > 0.0f) {
             obj.flash_time_left -= delta_time_s;
             obj.colour = enemy_impact_splat_colour;
@@ -591,11 +528,11 @@ main()
             obj.colour = enemy_colour;
           }
         }
-        if (weapon_pistol.flash_time_left > 0.0f) {
-          weapon_pistol.flash_time_left -= delta_time_s;
-          weapon_pistol.colour = weapon_pistol_flash_colour;
+        if (gs.weapon_pistol.flash_time_left > 0.0f) {
+          gs.weapon_pistol.flash_time_left -= delta_time_s;
+          gs.weapon_pistol.colour = weapon_pistol_flash_colour;
         } else {
-          weapon_pistol.colour = weapon_pistol_colour;
+          gs.weapon_pistol.colour = weapon_pistol_colour;
         }
 
         // update: vfx screenshake
@@ -612,25 +549,25 @@ main()
 
         // update: vfx fade
 
-        for (auto& go : entities_vfx) {
+        for (auto& go : gs.entities_vfx) {
           go.colour.a = go.time_alive_left / go.time_alive;
         }
 
         // game phase: attack
         // update: spawn enemies
 
-        size_t players_in_game = entities_player.size();
-        if (players_in_game > 0 && game_phase == GamePhase::ATTACK) {
+        size_t players_in_game = gs.entities_player.size();
+        if (players_in_game > 0 && gs.game_phase == GamePhase::ATTACK) {
 
           // for the moment, eat player 0
-          GameObject2D player_to_chase = entities_player[0];
+          GameObject2D player_to_chase = gs.entities_player[0];
 
           // update with ai behaviour
-          for (auto& obj : entities_enemies) {
+          for (auto& obj : gs.entities_enemies) {
 
             // check every frame: close to player?
             float distance_squared = glm::distance2(obj.pos, player_to_chase.pos);
-            if (distance_squared < game_enemy_direct_attack_threshold) {
+            if (distance_squared < ENEMY_ATTACK_THRESHOLD) {
               // push new ai behaviour
               if (obj.ai_priority_list.size() > 0 && obj.ai_priority_list.back() != AiBehaviour::MOVEMENT_DIRECT) {
                 obj.ai_priority_list.push_back(AiBehaviour::MOVEMENT_DIRECT);
@@ -652,34 +589,36 @@ main()
           }
 
           //... and only spawn enemies if there is a player.
-          enemy_spawner::update(entities_enemies, entities_player, camera, rnd, screen_wh, delta_time_s);
+          enemy_spawner::update(gs, rnd, screen_wh, delta_time_s);
 
           // update camera pos
-          camera::update(camera, player_keys[0], app, delta_time_s);
+          KeysAndState keys = gs.player_keys[0];
+          camera::update(gs.camera, keys, app, delta_time_s);
         }
 
         { // object lifecycle
 
-          gameobject::update_entities_lifecycle(entities_enemies, delta_time_s);
-          gameobject::update_entities_lifecycle(entities_bullets, delta_time_s);
-          gameobject::update_entities_lifecycle(entities_trees, delta_time_s);
-          gameobject::update_entities_lifecycle(entities_vfx, delta_time_s);
+          gameobject::update_entities_lifecycle(gs.entities_enemies, delta_time_s);
+          gameobject::update_entities_lifecycle(gs.entities_bullets, delta_time_s);
+          gameobject::update_entities_lifecycle(gs.entities_trees, delta_time_s);
+          gameobject::update_entities_lifecycle(gs.entities_vfx, delta_time_s);
 
           // remove "attack" object before deleting "bullet" object (or any object that is cleaned up)
           // e.g when deleting "player" (in the future)
-          std::vector<Attack>::iterator it = attacks.begin();
-          while (it != attacks.end()) {
+          std::vector<Attack>::iterator it = gs.attacks.begin();
+          while (it != gs.attacks.end()) {
             const Attack& attack = (*it);
             int id = attack.entity_weapon_id;
 
             if (attack.weapon_type == ShopItem::PISTOL || attack.weapon_type == ShopItem::SHOTGUN ||
                 attack.weapon_type == ShopItem::MACHINEGUN) {
-              const auto& bullet = std::find_if(
-                entities_bullets.begin(), entities_bullets.end(), [&id](const auto& obj) { return obj.id == id; });
+              const auto& bullet = std::find_if(gs.entities_bullets.begin(),
+                                                gs.entities_bullets.end(),
+                                                [&id](const auto& obj) { return obj.id == id; });
 
-              if (bullet != entities_bullets.end() && bullet->flag_for_delete) {
+              if (bullet != gs.entities_bullets.end() && bullet->flag_for_delete) {
                 // remove the attack object
-                it = attacks.erase(it);
+                it = gs.attacks.erase(it);
                 continue;
               }
             }
@@ -687,25 +626,25 @@ main()
           }
 
           // enemy has died
-          for (auto& enemy : entities_enemies) {
+          for (auto& enemy : gs.entities_enemies) {
             if (enemy.flag_for_delete) {
-              vfx::spawn_death_splat(rnd, enemy, enemy.sprite, enemy.colour, entities_vfx);
-              enemies_destroyed_this_wave += 1;
-              enemies_killed += 1;
-              p0_currency += 1;
+              vfx::spawn_death_splat(rnd, enemy, enemy.sprite, enemy.colour, gs.entities_vfx);
+              gs.enemies_destroyed_this_wave += 1;
+              gs.enemies_killed += 1;
+              gs.p0_currency += 1;
             }
           }
 
-          gameobject::erase_entities_that_are_flagged_for_delete(entities_enemies, delta_time_s);
-          gameobject::erase_entities_that_are_flagged_for_delete(entities_bullets, delta_time_s);
-          gameobject::erase_entities_that_are_flagged_for_delete(entities_trees, delta_time_s);
-          gameobject::erase_entities_that_are_flagged_for_delete(entities_vfx, delta_time_s);
+          gameobject::erase_entities_that_are_flagged_for_delete(gs.entities_enemies, delta_time_s);
+          gameobject::erase_entities_that_are_flagged_for_delete(gs.entities_bullets, delta_time_s);
+          gameobject::erase_entities_that_are_flagged_for_delete(gs.entities_trees, delta_time_s);
+          gameobject::erase_entities_that_are_flagged_for_delete(gs.entities_vfx, delta_time_s);
         }
 
         // Check if game phase is over
         {
-          if (entities_enemies.size() == 0 && enemy_spawner::enemies_left_to_spawn() == 0) {
-            game_phase = GamePhase::SHOP;
+          if (gs.entities_enemies.size() == 0 && gs.enemies_to_spawn_this_wave_left == 0) {
+            gs.game_phase = GamePhase::SHOP;
           }
         }
       }
@@ -719,10 +658,7 @@ main()
       // lighting fbo
       //
       Framebuffer::bind_fbo(fbo_lighting);
-      // Framebuffer::default_fbo();
-      // glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
-      const glm::vec4 shadow_colour = glm::vec4(0.0f, 0.0f, 0.0f, 1.0f);
-      const glm::vec4 light_colour = glm::vec4(1.0f, 1.0f, 1.0f, 1.0f);
+      // Debugging; // Framebuffer::default_fbo(); glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
       RenderCommand::set_clear_colour(glm::vec4(0.0f, 0.0f, 0.0f, 1.0f));
       RenderCommand::set_depth_testing(false);
       RenderCommand::clear();
@@ -731,18 +667,17 @@ main()
         std::vector<std::tuple<float, float, float>> intersections;
 
         std::vector<std::reference_wrapper<GameObject2D>> lighting_entities;
-        lighting_entities.insert(lighting_entities.end(), entities_enemies.begin(), entities_enemies.end());
-        lighting_entities.insert(lighting_entities.end(), entities_player.begin(), entities_player.end());
-        lighting_entities.insert(lighting_entities.end(), entities_trees.begin(), entities_trees.end());
-        // lighting_entities.insert(lighting_entities.end(), entities_bullets.begin(), entities_bullets.end());
+        lighting_entities.insert(lighting_entities.end(), gs.entities_enemies.begin(), gs.entities_enemies.end());
+        lighting_entities.insert(lighting_entities.end(), gs.entities_player.begin(), gs.entities_player.end());
+        lighting_entities.insert(lighting_entities.end(), gs.entities_trees.begin(), gs.entities_trees.end());
 
         std::vector<GameObject2D> lights = { point_lights[1] };
         for (auto& light : lights) {
           // for (auto& light : point_lights) {
-          glm::vec2 light_pos = light.pos - camera.pos;
+          glm::vec2 light_pos = light.pos - gs.camera.pos;
 
           // this generates collision from the light point to the entities
-          generate_intersections(camera, light_pos, lighting_entities, screen_wh, intersections);
+          generate_intersections(gs.camera, light_pos, lighting_entities, screen_wh, intersections);
 
           // now create a triangle fan from the generated information
           triangle_fan_renderer::reset_quad_vert_count();
@@ -752,15 +687,15 @@ main()
           fan_shader.set_mat4("projection", projection);
 
           { // render light
-            triangle_fan_renderer::add_point_to_fan(camera, fan_shader, light_pos);
+            triangle_fan_renderer::add_point_to_fan(gs.camera, fan_shader, light_pos);
             for (int i = 0; i < intersections.size(); i++) {
               auto& intersection = intersections[i];
               glm::vec2 pos = glm::vec2(std::get<1>(intersection), std::get<2>(intersection));
-              triangle_fan_renderer::add_point_to_fan(camera, fan_shader, pos);
+              triangle_fan_renderer::add_point_to_fan(gs.camera, fan_shader, pos);
             }
             auto& intersection = intersections[0];
             glm::vec2 pos = glm::vec2(std::get<1>(intersection), std::get<2>(intersection));
-            triangle_fan_renderer::add_point_to_fan(camera, fan_shader, pos);
+            triangle_fan_renderer::add_point_to_fan(gs.camera, fan_shader, pos);
             triangle_fan_renderer::end_batch();
             triangle_fan_renderer::flush(fan_shader);
           }
@@ -781,29 +716,27 @@ main()
         instanced_quad_shader.set_mat4("projection", projection);
         instanced_quad_shader.set_bool("do_lighting", false);
 
-        if (state == GameRunning::ACTIVE || state == GameRunning::PAUSED || state == GameRunning::GAME_OVER) {
+        if (gs.game_running == GameRunning::ACTIVE || gs.game_running == GameRunning::PAUSED ||
+            gs.game_running == GameRunning::GAME_OVER) {
           std::vector<std::reference_wrapper<GameObject2D>> renderables;
-          renderables.insert(renderables.end(), entities_vfx.begin(), entities_vfx.end());
-          renderables.insert(renderables.end(), entities_enemies.begin(), entities_enemies.end());
-          renderables.insert(renderables.end(), entities_bullets.begin(), entities_bullets.end());
-          renderables.push_back(weapon_shovel);
-          renderables.push_back(weapon_pistol);
-          renderables.push_back(weapon_shotgun);
-          renderables.push_back(weapon_machinegun);
-          renderables.insert(renderables.end(), entities_player.begin(), entities_player.end());
-          renderables.insert(renderables.end(), entities_trees.begin(), entities_trees.end());
+          renderables.insert(renderables.end(), gs.entities_vfx.begin(), gs.entities_vfx.end());
+          renderables.insert(renderables.end(), gs.entities_enemies.begin(), gs.entities_enemies.end());
+          renderables.insert(renderables.end(), gs.entities_bullets.begin(), gs.entities_bullets.end());
+          renderables.push_back(gs.weapon_shovel);
+          renderables.push_back(gs.weapon_pistol);
+          renderables.push_back(gs.weapon_shotgun);
+          renderables.push_back(gs.weapon_machinegun);
+          renderables.insert(renderables.end(), gs.entities_player.begin(), gs.entities_player.end());
+          renderables.insert(renderables.end(), gs.entities_trees.begin(), gs.entities_trees.end());
           renderables.insert(renderables.end(), point_lights.begin(), point_lights.end());
 
           for (auto& obj : renderables) {
             if (!obj.get().do_render)
               continue;
-            sprite_renderer::draw_instanced_sprite(camera, screen_wh, instanced_quad_shader, obj.get());
+            sprite_renderer::draw_instanced_sprite(gs.camera, screen_wh, instanced_quad_shader, obj.get());
           }
-          sprite_renderer::draw_sprites_debug(camera, screen_wh, renderables, colour_shader, debug_line_colour);
+          sprite_renderer::draw_sprites_debug(gs.camera, screen_wh, renderables, colour_shader, debug_line_colour);
 
-          if (debug_render_spritesheet) {
-            sprite_renderer::draw_instanced_sprite(camera, screen_wh, instanced_quad_shader, tex_obj);
-          }
         } // <!-- end GameRunning::Active -->
         sprite_renderer::end_batch();
         sprite_renderer::flush(instanced_quad_shader);
@@ -813,7 +746,7 @@ main()
       // default fbo, draw a texture to a quad
       //
       Framebuffer::default_fbo();
-      RenderCommand::set_clear_colour(background_colour);
+      RenderCommand::set_clear_colour(glm::vec4(1.0f, 0.0f, 0.0f, 1.0f)); // hit damage colour
       RenderCommand::set_depth_testing(false);
       RenderCommand::clear();
       {
@@ -826,10 +759,10 @@ main()
         instanced_quad_shader.set_mat4("projection", flip * projection);
         instanced_quad_shader.set_bool("do_lighting", true);
         {
-          glm::vec2 l1_pos = gameobject_in_worldspace(camera, point_lights[0]);
+          glm::vec2 l1_pos = gameobject_in_worldspace(gs.camera, point_lights[0]);
           l1_pos = glm::vec3(l1_pos.x, glm::abs(l1_pos.y - screen_wh.y), 0.0f);
           instanced_quad_shader.set_vec3("light_pos[0]", glm::vec3(l1_pos, 0.0f));
-          glm::vec2 l2_pos = gameobject_in_worldspace(camera, point_lights[1]);
+          glm::vec2 l2_pos = gameobject_in_worldspace(gs.camera, point_lights[1]);
           l2_pos = glm::vec3(l2_pos.x, glm::abs(l2_pos.y - screen_wh.y), 0.0f);
           instanced_quad_shader.set_vec3("light_pos[1]", glm::vec3(l2_pos, 0.0f));
         }
@@ -838,7 +771,7 @@ main()
           GameObject2D screen_object = gameobject::create_generic(sprite::type::EMPTY, glm::vec4(1.0f));
           screen_object.render_size = glm::vec2(screen_wh.x, screen_wh.y);
           screen_object.tex_slot = tex_unit_main_scene;
-          sprite_renderer::draw_instanced_sprite(camera, screen_wh, instanced_quad_shader, screen_object);
+          sprite_renderer::draw_instanced_sprite(gs.camera, screen_wh, instanced_quad_shader, screen_object);
         }
         sprite_renderer::end_batch();
         sprite_renderer::flush(instanced_quad_shader);
@@ -849,49 +782,56 @@ main()
     {
       // ui: shop window
 
-      if (game_phase == GamePhase::SHOP) {
+      if (gs.game_phase == GamePhase::SHOP) {
         ImGui::Begin("Humble Wares", NULL, ImGuiWindowFlags_NoFocusOnAppearing);
 
-        update_shop(p0_currency,
-                    shop,
-                    stats_pistol,
-                    stats_shotgun,
-                    stats_machinegun,
-                    shop_refill_pistol_ammo,
-                    shop_refill_shotgun_ammo,
-                    shop_refill_machinegun_ammo,
-                    player_inventories,
-                    entities_player);
+        shop::update_shop(gs.p0_currency,
+                          gs.shop,
+                          gs.stats_pistol,
+                          gs.stats_shotgun,
+                          gs.stats_machinegun,
+                          shop_refill_pistol_ammo,
+                          shop_refill_shotgun_ammo,
+                          shop_refill_machinegun_ammo,
+                          gs.player_inventories,
+                          gs.entities_player);
 
         if (ImGui::Button("Leave the shop, and never return! Or will you?")) {
           std::cout << "clicked leave shop" << std::endl;
-          enemy_spawner::next_wave();
-          game_phase = GamePhase::ATTACK;
+          enemy_spawner::next_wave(gs.enemies_to_spawn_this_wave, gs.enemies_to_spawn_this_wave_left, gs.wave);
+          gs.game_phase = GamePhase::ATTACK;
         }
         ImGui::End();
       }
+
+      // TEMP render opengl texture to imgui
+      ImGui::Begin("Temp texture ui");
+      ImGui::BeginChild("GameRender");
+      ImGui::Image((ImTextureID)texture_ids[0], ImVec2(768.0f, 352.0f), ImVec2(0.0f, 0.0f), ImVec2(1.0f, 1.0f));
+      ImGui::EndChild();
+      ImGui::End();
 
       // ui: top menu bar
 
       if (ImGui::BeginMainMenuBar()) {
 
-        ImGui::Text("WAVE %i", enemy_spawner::get_wave());
+        ImGui::Text("WAVE %i", gs.wave);
 
-        for (int i = 0; i < entities_player.size(); i++) {
-          GameObject2D& player = entities_player[i];
-          auto& p_inventory = player_inventories[i];
+        for (int i = 0; i < gs.entities_player.size(); i++) {
+          GameObject2D& player = gs.entities_player[i];
+          auto& p_inventory = gs.player_inventories[i];
 
           ImGui::Text("(P%i) HP %i", i, player.damage_able_to_be_taken - player.damage_taken);
           ImGui::Text("BOOST %.2fs", player.shift_boost_time_left);
 
-          std::string ammo_pistol_label = "AMMO_PISTOL " + std::to_string(stats_pistol.current_ammo);
-          std::string ammo_shotgun_label = "AMMO_SHOTGUN " + std::to_string(stats_shotgun.current_ammo);
-          std::string ammo_machinegun_label = "AMMO_MACHINEGUN " + std::to_string(stats_machinegun.current_ammo);
+          std::string ammo_pistol_label = "AMMO_PISTOL " + std::to_string(gs.stats_pistol.current_ammo);
+          std::string ammo_shotgun_label = "AMMO_SHOTGUN " + std::to_string(gs.stats_shotgun.current_ammo);
+          std::string ammo_machinegun_label = "AMMO_MACHINEGUN " + std::to_string(gs.stats_machinegun.current_ammo);
           ImGui::Text(ammo_pistol_label.c_str());
           ImGui::Text(ammo_shotgun_label.c_str());
           ImGui::Text(ammo_machinegun_label.c_str());
 
-          ShopItem w = p_inventory[i];
+          ShopItem w = p_inventory[player.equipped_item_index];
           std::string wep = std::string("Weapon: ") + std::string(magic_enum::enum_name(w));
           ImGui::Text(wep.c_str());
 
@@ -954,6 +894,7 @@ main()
             { // restart button
               if (ImGui::Button("Restart Game")) {
                 std::cout << "restart game" << std::endl;
+                gs = reset_game(screen_wh);
               }
             }
 
@@ -971,12 +912,12 @@ main()
 
       if (debug_show_profiler) {
         ImGui::Begin("Profiler", NULL, ImGuiWindowFlags_NoFocusOnAppearing);
-        ImGui::Text("Players: %i", entities_player.size());
-        ImGui::Text("Bullets: %i", entities_bullets.size());
-        ImGui::Text("Enemies: %i", entities_enemies.size());
-        ImGui::Text("Trees: %i", entities_trees.size());
-        ImGui::Text("Vfx: %i", entities_vfx.size());
-        ImGui::Text("Attacks: %i", attacks.size());
+        ImGui::Text("Players: %i", gs.entities_player.size());
+        ImGui::Text("Bullets: %i", gs.entities_bullets.size());
+        ImGui::Text("Enemies: %i", gs.entities_enemies.size());
+        ImGui::Text("Trees: %i", gs.entities_trees.size());
+        ImGui::Text("Vfx: %i", gs.entities_vfx.size());
+        ImGui::Text("Attacks: %i", gs.attacks.size());
         ImGui::Text("controllers %i", SDL_NumJoysticks());
         ImGui::Separator();
         ImGui::Text("draw_calls: %i", sprite_renderer::get_draw_calls());

@@ -1,5 +1,8 @@
 #pragma once
 
+// c++ lib headers
+#include <map>
+
 // other project headers
 #include <SDL2/SDL_scancode.h>
 #include <glm/glm.hpp>
@@ -10,11 +13,32 @@
 
 namespace game2d {
 
+enum class EditorMode
+{
+  EDITOR_PLACE_MODE,
+  EDITOR_SELECT_MODE,
+  PLAYER_ATTACK,
+};
+
+enum class GameRunning
+{
+  ACTIVE,
+  PAUSED,
+  GAME_OVER
+};
+
+enum class GamePhase
+{
+  ATTACK,
+  SHOP,
+};
+
 enum class AiBehaviour
 {
   MOVEMENT_DIRECT,
   MOVEMENT_ARC_ANGLE,
 };
+
 enum class CollisionLayer
 {
   NoCollision = 0,
@@ -26,52 +50,40 @@ enum class CollisionLayer
 
   Count = 6
 };
+
 // A "PlaceableEntity" can be placed on the grid
 enum class PlaceableEntity
 {
   TREE = 0,
-  SHOP = 1,
+  // SHOP = 1,
 };
+
 struct WeaponStats
 {
   int damage = 0;
-
-  WeaponStats(int d)
-    : damage(d){};
 };
+
 struct MeleeWeaponStats : WeaponStats
 {
   // slash stats
-  // immutable data
-  const float slash_attack_time = 0.15f;
-  const float weapon_radius = 30.0f;
-  const float weapon_angle_speed = fightingengine::HALF_PI / 30.0f; // closer to 0 is faster
-  const float weapon_damping = 20.0f;
-  // mutable data
+  float slash_attack_time = 0.15f;
+  float weapon_radius = 30.0f;
+  float weapon_angle_speed = fightingengine::HALF_PI / 30.0f; // closer to 0 is faster
+  float weapon_damping = 20.0f;
   float slash_attack_time_left = 0.0f;
   bool attack_left_to_right = true;
   glm::vec2 weapon_target_pos = { 0.0f, 0.0f };
   float weapon_current_angle = 0.0f;
-
-  MeleeWeaponStats(int d)
-    : WeaponStats(d){};
 };
+
 struct RangedWeaponStats : WeaponStats
 {
-  // immutable data
-  const float radius_offset_from_player = 14.0f;
-  const bool infinite_ammo = true;
-  const float fire_rate_seconds_limit = 1.0f;
-  // mutable data
+  float radius_offset_from_player = 14.0f;
+  bool infinite_ammo = true;
+  float fire_rate_seconds_limit = 1.0f;
   int current_ammo = 20;
-
-  RangedWeaponStats(float r, bool i, int a, int d, float frl)
-    : WeaponStats(d)
-    , radius_offset_from_player(r)
-    , infinite_ammo(i)
-    , current_ammo(a)
-    , fire_rate_seconds_limit(frl){};
 };
+
 // A "ShopItem" is purchasable in the shop
 enum class ShopItem
 {
@@ -88,33 +100,13 @@ enum class ShopItem
   HEAL_FULL = 10,
 };
 
-static const std::vector<bool> GAME_COLL_MATRIX = {
-  false, // NoCollision_NoCollision_0_0
-  false, // bullet_NoCollision_1_0
-  false, // Player_NoCollision_2_0
-  false, // Enemy_NoCollision_3_0
-  false, // Obstacle_NoCollision_4_0
-  false, // Weapon_NoCollision_5_0
+struct ShopItemState
+{
+  bool free = false;
+  int price = 10;
 
-  false, // bullet_bullet_1_1
-  false, // player_bullet_2_1
-  true,  // enemy_bullet_3_1
-  true,  // Obstacle_bullet_4_1
-  false, // Weapon_bullet_5_1
-
-  false, // player_player_2_2
-  true,  // enemy_player_3_2
-  true,  // Obstacle_player_4_2
-  false, // Weapon_player_5_2
-
-  false, // enemy_enemy_3_3
-  true,  // Obstacle_enemy_4_3
-  true,  // Weapon_enemy_5_3
-
-  false, // Obstacle_Obstacle_4_4
-  false, // Weapon_Obstacle_5_4
-
-  false, // Weapon_Weapon_5_5
+  bool infinite_quantity = false;
+  int quantity = 1;
 };
 
 // An "Attack" is basically a limiter that prevents collisions
@@ -296,5 +288,17 @@ GameObject2D
 create_weapon(sprite::type sprite, int tex_slot, glm::vec4 colour);
 
 } // namespace gameobject
+
+MeleeWeaponStats
+create_shovel();
+
+RangedWeaponStats
+create_pistol();
+
+RangedWeaponStats
+create_shotgun();
+
+RangedWeaponStats
+create_machinegun();
 
 } // namespace game2d
