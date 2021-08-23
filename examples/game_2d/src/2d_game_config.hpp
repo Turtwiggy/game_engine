@@ -33,13 +33,17 @@ const int tex_unit_lighting = 2;
 // sprites
 const game2d::sprite::type sprite_player = game2d::sprite::type::SQUARE;
 const game2d::sprite::type sprite_tree = game2d::sprite::type::SQUARE;
-const game2d::sprite::type sprite_weapon_base = game2d::sprite::type::SQUARE;
-const game2d::sprite::type sprite_pistol = game2d::sprite::type::SQUARE;
-const game2d::sprite::type sprite_shotgun = game2d::sprite::type::SQUARE;
-const game2d::sprite::type sprite_machinegun = game2d::sprite::type::SQUARE;
+const game2d::sprite::type sprite_weapon_base = game2d::sprite::type::WEAPON_DAGGER_SOLID_3;
+const game2d::sprite::type sprite_pistol = game2d::sprite::type::WEAPON_PISTOL;
+const game2d::sprite::type sprite_shotgun = game2d::sprite::type::WEAPON_SHOTGUN;
+const game2d::sprite::type sprite_machinegun = game2d::sprite::type::WEAPON_SUB_MACHINE_GUN;
 const game2d::sprite::type sprite_bullet = game2d::sprite::type::SQUARE;
 const game2d::sprite::type sprite_enemy_core = game2d::sprite::type::SQUARE;
 const game2d::sprite::type sprite_splat = game2d::sprite::type::SQUARE;
+const game2d::sprite::type sprite_heart_1 = game2d::sprite::type::ICON_HEART;
+const game2d::sprite::type sprite_heart_2 = game2d::sprite::type::ICON_HEART_OUTLINE;
+const game2d::sprite::type sprite_heart_3 = game2d::sprite::type::ICON_HEART_HALF_FULL;
+const game2d::sprite::type sprite_heart_4 = game2d::sprite::type::ICON_HEART_FULL;
 
 // colour palette; https://colorhunt.co/palette/273312
 const glm::vec4 PALETTE_COLOUR_1_1 = glm::vec4(57.0f / 255.0f, 62.0f / 255.0f, 70.0f / 255.0f, 1.0f);    // black

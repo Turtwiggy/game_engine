@@ -85,6 +85,31 @@ reset_game(glm::ivec2 screen_wh)
   return default_state;
 }
 
+std::array<ImVec2, 2>
+convert_sprite_to_uv(sprite::type type)
+{
+  const int size_x = 768;
+  const int size_y = 352;
+  const int cols_x = 48;
+  const int cols_y = 22;
+  const int pixels_x = size_x / cols_x;
+  const int pixels_y = size_y / cols_y;
+
+  // these are for the full texture
+  // ImVec2 tl = ImVec2(0.0f, 0.0f);
+  // ImVec2 br = ImVec2(1.0f, 1.0f);
+
+  // this is for part of the texture
+  auto offset = sprite::spritemap::get_sprite_offset(type);
+  // clang-format off
+  ImVec2 tl = ImVec2(((offset.x * pixels_x + 0.0f    ) / size_x), ((offset.y * pixels_y + 0.0f    ) / size_y));
+  ImVec2 br = ImVec2(((offset.x * pixels_x + pixels_x) / size_x), ((offset.y * pixels_y + pixels_x) / size_y));
+  // clang-format on
+
+  std::array<ImVec2, 2> coords = { tl, br };
+  return coords;
+}
+
 int
 main()
 {
@@ -101,7 +126,7 @@ main()
   SDL_Scancode debug_key_force_gameover = SDL_SCANCODE_F11;
 
   bool debug_advance_one_frame = false;
-  bool debug_show_imgui_demo_window = false;
+  bool debug_show_imgui_demo_window = true;
   bool debug_show_profiler = false;
 
   bool ui_limit_framerate = false;
@@ -718,15 +743,17 @@ main()
 
         if (gs.game_running == GameRunning::ACTIVE || gs.game_running == GameRunning::PAUSED ||
             gs.game_running == GameRunning::GAME_OVER) {
+
+          // This list defines the render order
           std::vector<std::reference_wrapper<GameObject2D>> renderables;
           renderables.insert(renderables.end(), gs.entities_vfx.begin(), gs.entities_vfx.end());
           renderables.insert(renderables.end(), gs.entities_enemies.begin(), gs.entities_enemies.end());
           renderables.insert(renderables.end(), gs.entities_bullets.begin(), gs.entities_bullets.end());
+          renderables.insert(renderables.end(), gs.entities_player.begin(), gs.entities_player.end());
           renderables.push_back(gs.weapon_shovel);
           renderables.push_back(gs.weapon_pistol);
           renderables.push_back(gs.weapon_shotgun);
           renderables.push_back(gs.weapon_machinegun);
-          renderables.insert(renderables.end(), gs.entities_player.begin(), gs.entities_player.end());
           renderables.insert(renderables.end(), gs.entities_trees.begin(), gs.entities_trees.end());
           renderables.insert(renderables.end(), point_lights.begin(), point_lights.end());
 
@@ -735,6 +762,7 @@ main()
               continue;
             sprite_renderer::draw_instanced_sprite(gs.camera, screen_wh, instanced_quad_shader, obj.get());
           }
+
           sprite_renderer::draw_sprites_debug(gs.camera, screen_wh, renderables, colour_shader, debug_line_colour);
 
         } // <!-- end GameRunning::Active -->
@@ -807,7 +835,7 @@ main()
       // TEMP render opengl texture to imgui
       ImGui::Begin("Temp texture ui");
       ImGui::BeginChild("GameRender");
-      ImGui::Image((ImTextureID)texture_ids[0], ImVec2(768.0f, 352.0f), ImVec2(0.0f, 0.0f), ImVec2(1.0f, 1.0f));
+      ImGui::Image((ImTextureID)texture_ids[0], { 768.0f, 352.0f }, ImVec2(0.0f, 0.0f), ImVec2(1.0f, 1.0f));
       ImGui::EndChild();
       ImGui::End();
 
@@ -821,15 +849,51 @@ main()
           GameObject2D& player = gs.entities_player[i];
           auto& p_inventory = gs.player_inventories[i];
 
-          ImGui::Text("(P%i) HP %i", i, player.damage_able_to_be_taken - player.damage_taken);
-          ImGui::Text("BOOST %.2fs", player.shift_boost_time_left);
+          std::array<ImVec2, 2> tex_coords = convert_sprite_to_uv(sprite::type::CAMPFIRE);
 
-          std::string ammo_pistol_label = "AMMO_PISTOL " + std::to_string(gs.stats_pistol.current_ammo);
-          std::string ammo_shotgun_label = "AMMO_SHOTGUN " + std::to_string(gs.stats_shotgun.current_ammo);
-          std::string ammo_machinegun_label = "AMMO_MACHINEGUN " + std::to_string(gs.stats_machinegun.current_ammo);
-          ImGui::Text(ammo_pistol_label.c_str());
-          ImGui::Text(ammo_shotgun_label.c_str());
-          ImGui::Text(ammo_machinegun_label.c_str());
+          const glm::vec2 heart_icon_size = { 12.0f, 12.0f };
+
+          {
+
+            int empty_hearts_to_show = player.damage_taken;
+            int full_hearts_to_show = player.damage_able_to_be_taken - player.damage_taken;
+            std::array<ImVec2, 2> heart_full_uv = convert_sprite_to_uv(sprite_heart_4);
+            std::array<ImVec2, 2> heart_empty_uv = convert_sprite_to_uv(sprite_heart_2);
+            for (int i = 0; i < full_hearts_to_show; i++) {
+              ImGui::Image((ImTextureID)texture_ids[0],
+                           { heart_icon_size.x, heart_icon_size.y },
+                           heart_full_uv[0],
+                           heart_full_uv[1]);
+            }
+            for (int i = 0; i < empty_hearts_to_show; i++) {
+              ImGui::Image((ImTextureID)texture_ids[0],
+                           { heart_icon_size.x, heart_icon_size.y },
+                           heart_empty_uv[0],
+                           heart_empty_uv[1]);
+            }
+          }
+
+          const glm::vec2 icon_size = { 20.0f, 20.0f };
+
+          ImGui::Text("BOOST %.2fs", player.shift_boost_time_left);
+          {
+            std::array<ImVec2, 2> pistol_uv = convert_sprite_to_uv(sprite_pistol);
+            ImGui::Image((ImTextureID)texture_ids[0], { icon_size.x, icon_size.y }, pistol_uv[0], pistol_uv[1]);
+            std::string ammo_pistol_label = std::to_string(gs.stats_pistol.current_ammo);
+            ImGui::Text(ammo_pistol_label.c_str());
+          }
+          {
+            std::array<ImVec2, 2> shotgun_uv = convert_sprite_to_uv(sprite_shotgun);
+            ImGui::Image((ImTextureID)texture_ids[0], { icon_size.x, icon_size.y }, shotgun_uv[0], shotgun_uv[1]);
+            std::string ammo_shotgun_label = std::to_string(gs.stats_shotgun.current_ammo);
+            ImGui::Text(ammo_shotgun_label.c_str());
+          }
+          {
+            std::array<ImVec2, 2> machinegun_uv = convert_sprite_to_uv(sprite_machinegun);
+            ImGui::Image((ImTextureID)texture_ids[0], { icon_size.x, icon_size.y }, machinegun_uv[0], machinegun_uv[1]);
+            std::string ammo_machinegun_label = std::to_string(gs.stats_machinegun.current_ammo);
+            ImGui::Text(ammo_machinegun_label.c_str());
+          }
 
           ShopItem w = p_inventory[player.equipped_item_index];
           std::string wep = std::string("Weapon: ") + std::string(magic_enum::enum_name(w));

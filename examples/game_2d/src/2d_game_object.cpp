@@ -211,8 +211,8 @@ create_weapon(sprite::type sprite, int tex_slot, glm::vec4 colour)
   game_object.name = "weapon";
   game_object.tex_slot = tex_slot;
   game_object.sprite = sprite;
-  game_object.render_size = { 1.0f * 768.0f / 48.0f, 1.0f * 362.0f / 22.0f };
-  game_object.physics_size = { 1.0f * 768.0f / 48.0f, 1.0f * 362.0f / 22.0f };
+  game_object.render_size = { 1.5f * 768.0f / 48.0f, 1.5f * 362.0f / 22.0f };
+  game_object.physics_size = { 1.5f * 768.0f / 48.0f, 1.5f * 362.0f / 22.0f };
   game_object.collision_layer = CollisionLayer::Weapon;
   game_object.colour = colour;
   game_object.do_render = false;

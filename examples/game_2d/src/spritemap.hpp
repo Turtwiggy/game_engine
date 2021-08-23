@@ -58,6 +58,8 @@ enum class type
 
   // row 6
   ORC,
+  WEAPON_DAGGER_OUTLINED_1,
+  WEAPON_DAGGER_SOLID_3,
 
   // row 9
   WEAPON_PISTOL,
@@ -68,9 +70,13 @@ enum class type
   WEAPON_MP5,
   WEAPON_RPG,
 
-  // row 14
+  // row 10
   CAMPFIRE,
   FIRE,
+  ICON_HEART,
+  ICON_HEART_OUTLINE,
+  ICON_HEART_HALF_FULL,
+  ICON_HEART_FULL,
 
   // row 15
   SKULL_AND_BONES,
@@ -146,6 +152,8 @@ struct spritemap
 
     // row 6
     ret[type::ORC] = { 30, 6 };
+    ret[type::WEAPON_DAGGER_OUTLINED_1] = { 32, 6 };
+    ret[type::WEAPON_DAGGER_SOLID_3] = { 34, 6 };
 
     // row 9
     ret[type::WEAPON_PISTOL] = { 37, 9 };
@@ -159,6 +167,10 @@ struct spritemap
     // row 10
     ret[type::CAMPFIRE] = { 14, 10 };
     ret[type::FIRE] = { 15, 10 };
+    ret[type::ICON_HEART] = { 39, 10 };
+    ret[type::ICON_HEART_OUTLINE] = { 40, 10 };
+    ret[type::ICON_HEART_HALF_FULL] = { 41, 10 };
+    ret[type::ICON_HEART_FULL] = { 42, 10 };
 
     // row 15
     ret[type::SKULL_AND_BONES] = { 0, 15 };
@@ -199,6 +211,10 @@ struct spritemap
     ret[type::WEAPON_ARROW_2] = { -fightingengine::PI / 4.0f };
     ret[type::WEAPON_SHOVEL] = { -fightingengine::PI / 4.0f };
     ret[type::WEAPON_PICKAXE] = { -fightingengine::PI / 8.0f };
+
+    // row 6
+    ret[type::WEAPON_DAGGER_OUTLINED_1] = { -fightingengine::PI / 4.0f };
+    ret[type::WEAPON_DAGGER_SOLID_3] = { -fightingengine::PI / 4.0f };
 
     // row 9
     ret[type::WEAPON_PISTOL] = { -fightingengine::PI / 2.0f };
