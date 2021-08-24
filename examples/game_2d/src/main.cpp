@@ -10,7 +10,6 @@
 
 // other library headers
 #include "thirdparty/magic_enum.hpp"
-#include <GL/glew.h> // temp while working out lighting
 #include <SDL2/SDL_image.h>
 #include <SDL2/SDL_syswm.h>
 #include <glm/glm.hpp>
@@ -44,6 +43,7 @@ using namespace fightingengine;
 #include "opengl/sprite_renderer.hpp"
 #include "opengl/triangle_fan.hpp"
 #include "spritemap.hpp"
+#include "util.hpp"
 using namespace game2d;
 
 void
@@ -73,7 +73,8 @@ add_players(MutableGameState& state, glm::ivec2 screen_wh)
   state.player_keys.push_back(p0_keys);
 
   std::vector<ShopItem> p0_inventory = std::vector<ShopItem>();
-  p0_inventory.push_back(ShopItem::SHOVEL);
+  // p0_inventory.push_back(ShopItem::SHOVEL);
+  p0_inventory.push_back(ShopItem::PISTOL);
   state.player_inventories.push_back(p0_inventory);
 }
 
@@ -83,31 +84,6 @@ reset_game(glm::ivec2 screen_wh)
   MutableGameState default_state;
   add_players(default_state, screen_wh);
   return default_state;
-}
-
-std::array<ImVec2, 2>
-convert_sprite_to_uv(sprite::type type)
-{
-  const int size_x = 768;
-  const int size_y = 352;
-  const int cols_x = 48;
-  const int cols_y = 22;
-  const int pixels_x = size_x / cols_x;
-  const int pixels_y = size_y / cols_y;
-
-  // these are for the full texture
-  // ImVec2 tl = ImVec2(0.0f, 0.0f);
-  // ImVec2 br = ImVec2(1.0f, 1.0f);
-
-  // this is for part of the texture
-  auto offset = sprite::spritemap::get_sprite_offset(type);
-  // clang-format off
-  ImVec2 tl = ImVec2(((offset.x * pixels_x + 0.0f    ) / size_x), ((offset.y * pixels_y + 0.0f    ) / size_y));
-  ImVec2 br = ImVec2(((offset.x * pixels_x + pixels_x) / size_x), ((offset.y * pixels_y + pixels_x) / size_y));
-  // clang-format on
-
-  std::array<ImVec2, 2> coords = { tl, br };
-  return coords;
 }
 
 int
@@ -126,7 +102,8 @@ main()
   SDL_Scancode debug_key_force_gameover = SDL_SCANCODE_F11;
 
   bool debug_advance_one_frame = false;
-  bool debug_show_imgui_demo_window = true;
+  bool debug_show_imgui_demo_window = false;
+  bool debug_show_spritesheet_window = false;
   bool debug_show_profiler = false;
 
   bool ui_limit_framerate = false;
@@ -299,7 +276,13 @@ main()
       if (app.get_input().get_mouse_mmb_down()) {
         point_lights[1].pos = app.get_input().get_mouse_pos();
       }
-      point_lights[0].pos = gs.entities_player[0].pos;
+      // point_lights[0].pos = gs.entities_player[0].pos;
+
+      if (app.get_input().get_key_down(SDL_SCANCODE_RETURN)) {
+        gs.entities_enemies.clear();
+        gs.enemies_to_spawn_this_wave_left = 0;
+        gs.p0_currency += 100;
+      }
 
 #endif // _DEBUG
 
@@ -355,12 +338,11 @@ main()
       }
 
       // Shader hot reloading
-      // if (app.get_input().get_key_down(SDL_SCANCODE_R)) {
-      //   reload_shader_program(&fun_shader.ID, "2d_texture.vert", "effects/posterized_water.frag");
-      //   fun_shader.bind();
-      //   fun_shader.set_mat4("projection", projection);
-      //   fun_shader.set_int("tex", tex_unit_kenny_nl);
-      // }
+      if (app.get_input().get_key_down(SDL_SCANCODE_R)) {
+        reload_shader_program(
+          &instanced_quad_shader.ID, "2d_game/shaders/2d_instanced.vert", "2d_game/shaders/2d_instanced.frag");
+        instanced_quad_shader.bind();
+      }
     }
     profiler.end(Profiler::Stage::SdlInput);
     profiler.begin(Profiler::Stage::GameTick);
@@ -387,7 +369,9 @@ main()
             screenshake_time_left = screenshake_time;           // screenshake
 
             // vfx spawn a splat
-            GameObject2D splat = gameobject::create_generic(sprite_splat, player_splat_colour);
+            GameObject2D splat = gameobject::create_generic();
+            splat.sprite = sprite_splat;
+            splat.colour = player_splat_colour;
             splat.pos = player.pos;
             splat.angle_radians = fightingengine::rand_det_s(rnd.rng, 0.0f, fightingengine::PI);
             gs.entities_vfx.push_back(splat);
@@ -416,8 +400,7 @@ main()
 
                 // vfx impactsplat
                 int damage_amount = attack.weapon_damage;
-                vfx::spawn_impact_splats(
-                  rnd, player, enemy, sprite_splat, enemy_impact_splat_colour, damage_amount, gs.entities_vfx);
+                vfx::spawn_impact_splats(rnd, player, enemy, sprite_splat, damage_amount, gs.entities_vfx);
               }
             }
           }
@@ -444,8 +427,7 @@ main()
 
                 // vfx impactsplat
                 int damage_amount = attack.weapon_damage;
-                vfx::spawn_impact_splats(
-                  rnd, player, enemy, sprite_splat, enemy_impact_splat_colour, damage_amount, gs.entities_vfx);
+                vfx::spawn_impact_splats(rnd, player, enemy, sprite_splat, damage_amount, gs.entities_vfx);
               }
             }
           }
@@ -477,8 +459,7 @@ main()
 
             // vfx impactsplat
             int damage_amount = DAMAGE_TO_GIVE_ENEMY_FROM_OBSTACLE;
-            vfx::spawn_impact_splats(
-              rnd, enemy, obstacle, sprite_splat, enemy_impact_splat_colour, damage_amount, gs.entities_vfx);
+            vfx::spawn_impact_splats(rnd, enemy, obstacle, sprite_splat, damage_amount, gs.entities_vfx);
           }
         }
       }
@@ -540,7 +521,7 @@ main()
         for (auto& obj : gs.entities_player) {
           if (obj.flash_time_left > 0.0f) {
             obj.flash_time_left -= delta_time_s;
-            obj.colour = enemy_impact_splat_colour;
+            obj.colour = enemy_impact_colour;
           } else {
             obj.colour = player_colour;
           }
@@ -548,7 +529,7 @@ main()
         for (auto& obj : gs.entities_enemies) {
           if (obj.flash_time_left > 0.0f) {
             obj.flash_time_left -= delta_time_s;
-            obj.colour = enemy_impact_splat_colour;
+            obj.colour = enemy_impact_colour;
           } else {
             obj.colour = enemy_colour;
           }
@@ -653,7 +634,7 @@ main()
           // enemy has died
           for (auto& enemy : gs.entities_enemies) {
             if (enemy.flag_for_delete) {
-              vfx::spawn_death_splat(rnd, enemy, enemy.sprite, enemy.colour, gs.entities_vfx);
+              vfx::spawn_death_splat(rnd, enemy, enemy.sprite, gs.entities_vfx);
               gs.enemies_destroyed_this_wave += 1;
               gs.enemies_killed += 1;
               gs.p0_currency += 1;
@@ -740,6 +721,7 @@ main()
         instanced_quad_shader.set_float("time", app.seconds_since_launch);
         instanced_quad_shader.set_mat4("projection", projection);
         instanced_quad_shader.set_bool("do_lighting", false);
+        instanced_quad_shader.set_bool("do_pixel", true);
 
         if (gs.game_running == GameRunning::ACTIVE || gs.game_running == GameRunning::PAUSED ||
             gs.game_running == GameRunning::GAME_OVER) {
@@ -786,17 +768,44 @@ main()
         flip = glm::rotate(flip, glm::radians(180.0f), glm::vec3(1.0f, 0.0f, 0.0f));
         instanced_quad_shader.set_mat4("projection", flip * projection);
         instanced_quad_shader.set_bool("do_lighting", true);
+        instanced_quad_shader.set_bool("do_pixel", false);
         {
+          // distance 200
+          // const float light_linear = 0.022f;
+          // const float light_quadratic = 0.0019f;
+          // distance 325
+          // const float light_linear = 0.014f;
+          // const float light_quadratic = 0.0007f;
+          // distance 600
+          // const float light_linear = 0.007f;
+          // const float light_quadratic = 0.0002f;
+          // distance 3250
+          // const float light_linear = 0.0014f;
+          // const float light_quadratic =  0.000007f;
+
+          // temp
+          static float linear = 0.0014f;
+          static float quadratic = 0.000007f;
+          ImGui::Begin("Light intensity");
+          ImGui::InputFloat("linear", &linear, 0.0f, 0.0f, "%.10f");
+          ImGui::InputFloat("quadratic", &quadratic, 0.0f, 0.0f, "%.10f");
+          ImGui::End();
+
           glm::vec2 l1_pos = gameobject_in_worldspace(gs.camera, point_lights[0]);
           l1_pos = glm::vec3(l1_pos.x, glm::abs(l1_pos.y - screen_wh.y), 0.0f);
           instanced_quad_shader.set_vec3("light_pos[0]", glm::vec3(l1_pos, 0.0f));
+          instanced_quad_shader.set_float("light_linear[0]", linear);
+          instanced_quad_shader.set_float("light_quadratic[0]", quadratic);
           glm::vec2 l2_pos = gameobject_in_worldspace(gs.camera, point_lights[1]);
           l2_pos = glm::vec3(l2_pos.x, glm::abs(l2_pos.y - screen_wh.y), 0.0f);
           instanced_quad_shader.set_vec3("light_pos[1]", glm::vec3(l2_pos, 0.0f));
+          instanced_quad_shader.set_float("light_linear[1]", 0.0014f);
+          instanced_quad_shader.set_float("light_quadratic[1]", 0.000007f);
         }
 
         { // draw single quad as entire screen
-          GameObject2D screen_object = gameobject::create_generic(sprite::type::EMPTY, glm::vec4(1.0f));
+          GameObject2D screen_object = gameobject::create_generic();
+          screen_object.sprite = sprite::type::EMPTY;
           screen_object.render_size = glm::vec2(screen_wh.x, screen_wh.y);
           screen_object.tex_slot = tex_unit_main_scene;
           sprite_renderer::draw_instanced_sprite(gs.camera, screen_wh, instanced_quad_shader, screen_object);
@@ -814,6 +823,7 @@ main()
         ImGui::Begin("Humble Wares", NULL, ImGuiWindowFlags_NoFocusOnAppearing);
 
         shop::update_shop(gs.p0_currency,
+                          texture_ids[0], // kenny texture id
                           gs.shop,
                           gs.stats_pistol,
                           gs.stats_shotgun,
@@ -824,20 +834,12 @@ main()
                           gs.player_inventories,
                           gs.entities_player);
 
-        if (ImGui::Button("Leave the shop, and never return! Or will you?")) {
-          std::cout << "clicked leave shop" << std::endl;
+        if (ImGui::Button("Leave shop")) {
           enemy_spawner::next_wave(gs.enemies_to_spawn_this_wave, gs.enemies_to_spawn_this_wave_left, gs.wave);
           gs.game_phase = GamePhase::ATTACK;
         }
         ImGui::End();
       }
-
-      // TEMP render opengl texture to imgui
-      ImGui::Begin("Temp texture ui");
-      ImGui::BeginChild("GameRender");
-      ImGui::Image((ImTextureID)texture_ids[0], { 768.0f, 352.0f }, ImVec2(0.0f, 0.0f), ImVec2(1.0f, 1.0f));
-      ImGui::EndChild();
-      ImGui::End();
 
       // ui: top menu bar
 
@@ -854,11 +856,11 @@ main()
           const glm::vec2 heart_icon_size = { 12.0f, 12.0f };
 
           {
-
             int empty_hearts_to_show = player.damage_taken;
             int full_hearts_to_show = player.damage_able_to_be_taken - player.damage_taken;
             std::array<ImVec2, 2> heart_full_uv = convert_sprite_to_uv(sprite_heart_4);
             std::array<ImVec2, 2> heart_empty_uv = convert_sprite_to_uv(sprite_heart_2);
+            ImGui::SetCursorPosY(4.0f);
             for (int i = 0; i < full_hearts_to_show; i++) {
               ImGui::Image((ImTextureID)texture_ids[0],
                            { heart_icon_size.x, heart_icon_size.y },
@@ -873,6 +875,7 @@ main()
             }
           }
 
+          ImGui::SetCursorPosY(0.0f);
           const glm::vec2 icon_size = { 20.0f, 20.0f };
 
           ImGui::Text("BOOST %.2fs", player.shift_boost_time_left);
@@ -880,7 +883,11 @@ main()
             std::array<ImVec2, 2> pistol_uv = convert_sprite_to_uv(sprite_pistol);
             ImGui::Image((ImTextureID)texture_ids[0], { icon_size.x, icon_size.y }, pistol_uv[0], pistol_uv[1]);
             std::string ammo_pistol_label = std::to_string(gs.stats_pistol.current_ammo);
-            ImGui::Text(ammo_pistol_label.c_str());
+            if (gs.stats_pistol.infinite_ammo) {
+              ImGui::Text("INF");
+            } else {
+              ImGui::Text(ammo_pistol_label.c_str());
+            }
           }
           {
             std::array<ImVec2, 2> shotgun_uv = convert_sprite_to_uv(sprite_shotgun);
@@ -899,7 +906,7 @@ main()
           std::string wep = std::string("Weapon: ") + std::string(magic_enum::enum_name(w));
           ImGui::Text(wep.c_str());
 
-          ImGui::SameLine(screen_wh.x - 280.0f);
+          ImGui::SameLine(screen_wh.x - 330.0f);
 
           float framerate = ImGui::GetIO().Framerate;
           float framerate_ms = 1000.0f / ImGui::GetIO().Framerate;
@@ -911,6 +918,12 @@ main()
           std::string framerate_ms_str = stream.str();
           std::string framerate_label = framerate_str + std::string(" FPS (") + framerate_ms_str + std::string(" ms)");
           ImGui::Text(framerate_label.c_str());
+
+          // ui: pause button
+
+          if (ImGui::Button("Pause")) {
+            gs.game_running = gs.game_running == GameRunning::PAUSED ? GameRunning::ACTIVE : GameRunning::PAUSED;
+          }
 
           if (ImGui::BeginMenu("Settings")) {
 
@@ -986,6 +999,16 @@ main()
         ImGui::Separator();
         ImGui::Text("draw_calls: %i", sprite_renderer::get_draw_calls());
         profiler_panel::draw_timers(profiler, delta_time_s);
+        ImGui::End();
+      }
+
+      // ui: sprite sheet window
+
+      if (debug_show_spritesheet_window) {
+        ImGui::Begin("Temp texture ui");
+        ImGui::BeginChild("GameRender");
+        ImGui::Image((ImTextureID)texture_ids[0], { 768.0f, 352.0f }, ImVec2(0.0f, 0.0f), ImVec2(1.0f, 1.0f));
+        ImGui::EndChild();
         ImGui::End();
       }
 

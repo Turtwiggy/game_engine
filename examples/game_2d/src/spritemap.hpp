@@ -69,6 +69,7 @@ enum class type
   WEAPON_MINI_UZI,
   WEAPON_MP5,
   WEAPON_RPG,
+  AMMO_BOX,
 
   // row 10
   CAMPFIRE,
@@ -163,6 +164,7 @@ struct spritemap
     ret[type::WEAPON_MINI_UZI] = { 41, 9 };
     ret[type::WEAPON_MP5] = { 42, 9 };
     ret[type::WEAPON_RPG] = { 43, 9 };
+    ret[type::AMMO_BOX] = { 44, 9 };
 
     // row 10
     ret[type::CAMPFIRE] = { 14, 10 };

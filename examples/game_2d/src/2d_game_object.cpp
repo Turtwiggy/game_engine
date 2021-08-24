@@ -1,9 +1,11 @@
 // your header
 #include "2d_game_object.hpp"
-#include "2d_game_config.hpp"
 
 // c++ standard lib
 #include <iostream>
+
+// game headers
+#include "2d_game_config.hpp"
 
 namespace game2d {
 
@@ -136,16 +138,15 @@ create_enemy(fightingengine::RandomState& rnd)
 };
 
 GameObject2D
-create_generic(sprite::type sprite, glm::vec4 colour)
+create_generic()
 {
   GameObject2D game_object;
   game_object.collision_layer = CollisionLayer::NoCollision;
   game_object.name = "generic";
   game_object.tex_slot = tex_unit_kenny_nl;
-  game_object.sprite = sprite;
   game_object.render_size = { 1.0f * 768.0f / 48.0f, 1.0f * 362.0f / 22.0f };
   game_object.physics_size = { 1.0f * 768.0f / 48.0f, 1.0f * 362.0f / 22.0f };
-  game_object.colour = colour;
+  game_object.colour = { 0.0f, 0.0f, 1.0f, 1.0f };
   return game_object;
 }
 
@@ -213,6 +214,8 @@ create_weapon(sprite::type sprite, int tex_slot, glm::vec4 colour)
   game_object.sprite = sprite;
   game_object.render_size = { 1.5f * 768.0f / 48.0f, 1.5f * 362.0f / 22.0f };
   game_object.physics_size = { 1.5f * 768.0f / 48.0f, 1.5f * 362.0f / 22.0f };
+  // game_object.render_size = { 786.0f, 352.0f };
+  // game_object.physics_size = { 786.0f, 352.0f };
   game_object.collision_layer = CollisionLayer::Weapon;
   game_object.colour = colour;
   game_object.do_render = false;
@@ -235,8 +238,8 @@ create_pistol()
   RangedWeaponStats r;
   r.damage = 3;
   r.radius_offset_from_player = 14.0f;
-  r.infinite_ammo = false;
-  r.current_ammo = 20;
+  r.infinite_ammo = true;
+  r.current_ammo = 0;
   r.fire_rate_seconds_limit = 0.2f;
   return r;
 };
@@ -248,7 +251,7 @@ create_shotgun()
   r.damage = 5;
   r.radius_offset_from_player = 17.5f;
   r.infinite_ammo = false;
-  r.current_ammo = 20;
+  r.current_ammo = 0;
   r.fire_rate_seconds_limit = 0.5f;
   return r;
 };
@@ -260,7 +263,7 @@ create_machinegun()
   r.damage = 4;
   r.radius_offset_from_player = 16.0f;
   r.infinite_ammo = false;
-  r.current_ammo = 20;
+  r.current_ammo = 0;
   r.fire_rate_seconds_limit = 0.3f;
   return r;
 };

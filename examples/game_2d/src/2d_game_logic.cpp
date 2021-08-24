@@ -17,8 +17,18 @@
 
 // game2d headers
 #include "2d_game_config.hpp"
+#include "util.hpp"
 
 namespace game2d {
+
+glm::vec2
+convert_top_left_to_centre(GameObject2D& go)
+{
+  glm::vec2 center_pos = go.pos;
+  center_pos.x += go.physics_size.x / 2.0f;
+  center_pos.y += go.physics_size.y / 2.0f;
+  return center_pos;
+}
 
 void
 bullet::update(GameObject2D& obj, float delta_time_s)
@@ -328,9 +338,13 @@ update_input(GameObject2D& obj, KeysAndState& keys, fightingengine::Application&
     keys.pause_down = app.get_input().get_key_down(keys.key_pause);
     keys.pause_held = app.get_input().get_key_held(keys.key_pause);
 
-    glm::vec2 player_world_space_pos = gameobject_in_worldspace(camera, obj);
-    float mouse_angle_around_player = atan2(app.get_input().get_mouse_pos().y - player_world_space_pos.y,
-                                            app.get_input().get_mouse_pos().x - player_world_space_pos.x);
+    // calculate angle from center of object, not top left of object
+    glm::vec2 centre = convert_top_left_to_centre(obj);
+    glm::vec2 player_world_space_pos = centre - camera.pos;
+
+    float y = app.get_input().get_mouse_pos().y - player_world_space_pos.y;
+    float x = app.get_input().get_mouse_pos().x - player_world_space_pos.x;
+    float mouse_angle_around_player = atan2(y, x);
 
     mouse_angle_around_player += fightingengine::HALF_PI;
     keys.angle_around_player = mouse_angle_around_player;
@@ -411,8 +425,8 @@ ability_slash(fightingengine::Application& app,
         ++it;
       }
     }
-    // Create a new slash with attack ID
-    // std::cout << "slash attack, attack id: " << a.id << std::endl;
+
+    // Create a new slash with unique attack.id
     Attack a = Attack(player_obj.id, weapon.id, ShopItem::SHOVEL, s.damage);
     attacks.push_back(a);
   }
@@ -455,28 +469,15 @@ ability_shoot(GameObject2D& fire_from_this_entity,
               RangedWeaponStats& s,
               std::vector<Attack>& attacks)
 {
-  // Ability: Shoot
-  // if (keys.shoot_pressed)
-  //   obj.bullets_to_fire_after_releasing_mouse_left = obj.bullets_to_fire_after_releasing_mouse;
-
-  // timed bullets
-  // if (player.bullet_seconds_between_spawning_left > 0.0f)
-  //   player.bullet_seconds_between_spawning_left -= delta_time_s;
-  // if (player.bullet_seconds_between_spawning_left <= 0.0f || app.get_input().get_mouse_lmb_down())
-  //   player.bullet_seconds_between_spawning_left = player.bullet_seconds_between_spawning;
-
   s.current_ammo -= 1;
   fire_from_this_entity.flash_time_left = 0.2f;
 
-  // lmb click bullets
-
   // spawn bullet
   GameObject2D bullet_copy = gameobject::create_bullet(sprite, bullet_col);
-  // fix offset issue so bullet spawns in middle of player
-  glm::vec2 bullet_pos = fire_from_this_entity.pos;
-  bullet_pos.x += fire_from_this_entity.physics_size.x / 2.0f - bullet_copy.physics_size.x / 2.0f;
-  bullet_pos.y += fire_from_this_entity.physics_size.y / 2.0f - bullet_copy.physics_size.y / 2.0f;
-  bullet_copy.pos = bullet_pos;
+  bullet_copy.pos = convert_top_left_to_centre(fire_from_this_entity);
+  bullet_copy.pos.x -= bullet_copy.physics_size.x / 2.0f;
+  bullet_copy.pos.y -= bullet_copy.physics_size.y / 2.0f;
+
   // convert right analogue input to velocity
   bullet_copy.velocity.x = keys.r_analogue_x * bullet_copy.speed_current;
   bullet_copy.velocity.y = keys.r_analogue_y * bullet_copy.speed_current;
@@ -507,32 +508,31 @@ player_attack(fightingengine::Application& app,
   }
 
   if (player_inventory[player.equipped_item_index] == ShopItem::PISTOL) {
-    gs.weapon_pistol.do_render = true;
-    float angle_around_player = keys.angle_around_player;
-    glm::vec2 offset = glm::vec2(gs.stats_pistol.radius_offset_from_player * sin(angle_around_player),
-                                 -gs.stats_pistol.radius_offset_from_player * cos(angle_around_player));
-    gs.weapon_pistol.pos = player.pos + offset;
-    gs.weapon_pistol.angle_radians =
-      keys.angle_around_player + sprite::spritemap::get_sprite_rotation_offset(gs.weapon_pistol.sprite);
+    GameObject2D& weapon = gs.weapon_pistol;
+    RangedWeaponStats& stats = gs.stats_pistol;
 
-    if (gs.stats_pistol.infinite_ammo || gs.stats_pistol.current_ammo > 0) {
-      if (app.get_input().get_mouse_lmb_down()) {
-        ability_shoot(gs.weapon_pistol,
-                      keys,
-                      gs.entities_bullets,
-                      bullet_pistol_colour,
-                      sprite_bullet,
-                      gs.stats_pistol,
-                      gs.attacks);
-      }
+    weapon.angle_radians = keys.angle_around_player + sprite::spritemap::get_sprite_rotation_offset(weapon.sprite);
+    weapon.do_render = true;
+
+    const float radius = gs.stats_pistol.radius_offset_from_player;
+    const float angle = keys.angle_around_player;
+    const glm::vec2 offset = glm::vec2(radius * sin(angle), -radius * cos(angle));
+
+    // Position the gun in a circle around the player, render the gun in it's center.
+    const glm::vec2 player_center = convert_top_left_to_centre(player);
+    weapon.pos = player_center + offset;
+    weapon.pos.x -= weapon.physics_size.x / 2.0f;
+    weapon.pos.y -= weapon.physics_size.y / 2.0f;
+
+    if ((stats.infinite_ammo || stats.current_ammo > 0) && keys.shoot_down) {
+      ability_shoot(weapon, keys, gs.entities_bullets, bullet_pistol_colour, sprite_bullet, stats, gs.attacks);
     }
   }
 
   if (player_inventory[player.equipped_item_index] == ShopItem::SHOTGUN) {
     gs.weapon_shotgun.do_render = true;
-    float angle_around_player = keys.angle_around_player;
-    glm::vec2 offset = glm::vec2(gs.stats_shotgun.radius_offset_from_player * sin(angle_around_player),
-                                 -gs.stats_shotgun.radius_offset_from_player * cos(angle_around_player));
+    glm::vec2 offset = glm::vec2(gs.stats_shotgun.radius_offset_from_player * sin(keys.angle_around_player),
+                                 -gs.stats_shotgun.radius_offset_from_player * cos(keys.angle_around_player));
     gs.weapon_shotgun.pos = player.pos + offset;
     gs.weapon_shotgun.angle_radians =
       keys.angle_around_player + sprite::spritemap::get_sprite_rotation_offset(gs.weapon_shotgun.sprite);
@@ -542,7 +542,7 @@ player_attack(fightingengine::Application& app,
         ability_shoot(gs.weapon_shotgun,
                       keys,
                       gs.entities_bullets,
-                      bullet_pistol_colour,
+                      bullet_shotgun_colour,
                       sprite_bullet,
                       gs.stats_shotgun,
                       gs.attacks);
@@ -552,9 +552,8 @@ player_attack(fightingengine::Application& app,
 
   if (player_inventory[player.equipped_item_index] == ShopItem::MACHINEGUN) {
     gs.weapon_machinegun.do_render = true;
-    float angle_around_player = keys.angle_around_player;
-    glm::vec2 offset = glm::vec2(gs.stats_machinegun.radius_offset_from_player * sin(angle_around_player),
-                                 -gs.stats_machinegun.radius_offset_from_player * cos(angle_around_player));
+    glm::vec2 offset = glm::vec2(gs.stats_machinegun.radius_offset_from_player * sin(keys.angle_around_player),
+                                 -gs.stats_machinegun.radius_offset_from_player * cos(keys.angle_around_player));
     gs.weapon_machinegun.pos = player.pos + offset;
     gs.weapon_machinegun.angle_radians =
       keys.angle_around_player + sprite::spritemap::get_sprite_rotation_offset(gs.weapon_machinegun.sprite);
@@ -588,12 +587,14 @@ shop_initial_state()
       i.price = 10;
       i.quantity = 1;
       i.infinite_quantity = false;
+      i.icons.push_back(sprite_pistol);
       shop[ShopItem::PISTOL] = i;
     };
     {
       ShopItemState i;
       i.price = 3;
       i.infinite_quantity = true;
+      i.icons.push_back(sprite_ammo);
       shop[ShopItem::PISTOL_AMMO] = i;
     };
     {
@@ -601,12 +602,14 @@ shop_initial_state()
       i.price = 20;
       i.quantity = 1;
       i.infinite_quantity = false;
+      i.icons.push_back(sprite_shotgun);
       shop[ShopItem::SHOTGUN] = i;
     };
     {
       ShopItemState i;
       i.price = 6;
       i.infinite_quantity = true;
+      i.icons.push_back(sprite_ammo);
       shop[ShopItem::SHOTGUN_AMMO] = i;
     };
     {
@@ -614,24 +617,28 @@ shop_initial_state()
       i.price = 40;
       i.quantity = 1;
       i.infinite_quantity = false;
+      i.icons.push_back(sprite_machinegun);
       shop[ShopItem::MACHINEGUN] = i;
     };
     {
       ShopItemState i;
       i.price = 5;
       i.infinite_quantity = true;
+      i.icons.push_back(sprite_ammo);
       shop[ShopItem::MACHINEGUN_AMMO] = i;
     };
     {
       ShopItemState i;
       i.price = 40;
       i.infinite_quantity = true;
+      i.icons.push_back(sprite_heart_3);
       shop[ShopItem::HEAL_HALF] = i;
     };
     {
       ShopItemState i;
       i.price = 80;
       i.infinite_quantity = true;
+      i.icons.push_back(sprite_heart_4);
       shop[ShopItem::HEAL_FULL] = i;
     };
   };
@@ -640,6 +647,7 @@ shop_initial_state()
 
 void
 update_shop(int& p0_currency,
+            int kenny_texture_id,
             std::map<ShopItem, ShopItemState>& shop,
             RangedWeaponStats& stats_pistol,
             RangedWeaponStats& stats_shotgun,
@@ -655,12 +663,26 @@ update_shop(int& p0_currency,
   if (ImGui::Button("Drain your coin..."))
     p0_currency -= 1;
 
+  const glm::vec2 shop_icon_size = { 20.0f, 20.0f };
   for (auto& shop_item : shop) {
+
+    for (auto& icon : shop_item.second.icons) {
+      auto uv = convert_sprite_to_uv(icon);
+      ImGui::Image((ImTextureID)kenny_texture_id, { shop_icon_size.x, shop_icon_size.y }, uv[0], uv[1]);
+      ImGui::SameLine();
+    }
 
     std::string wep = std::string(magic_enum::enum_name(shop_item.first));
 
+    if (shop_item.second.infinite_quantity)
+      ImGui::Text("Stock INF Price %i", shop_item.second.price);
+    else
+      ImGui::Text("Stock %i Price %i", shop_item.second.quantity, shop_item.second.price);
+
     bool able_to_buy = p0_currency >= shop_item.second.price && shop_item.second.quantity > 0;
     if (able_to_buy) {
+
+      ImGui::SameLine(ImGui::GetWindowWidth() - 40);
       std::string buy_button_label = "Buy ##" + wep;
       bool buy_button_clicked = ImGui::Button(buy_button_label.c_str());
       if (buy_button_clicked) {
@@ -702,13 +724,9 @@ update_shop(int& p0_currency,
           }
         }
       }
-      ImGui::SameLine();
     }
-
-    ImGui::Text("Item: %s Quantiy: %i Price: %i", wep.c_str(), shop_item.second.quantity, shop_item.second.price);
   }
 }
 
 }; // namespace shop
-
 }; // namespace game2d

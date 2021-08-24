@@ -102,9 +102,10 @@ enum class ShopItem
 
 struct ShopItemState
 {
+  std::vector<sprite::type> icons;
+
   bool free = false;
   int price = 10;
-
   bool infinite_quantity = false;
   int quantity = 1;
 };
@@ -265,7 +266,7 @@ erase_entities_that_are_flagged_for_delete(std::vector<GameObject2D>& objs, cons
 // entities
 
 GameObject2D
-create_generic(sprite::type sprite, glm::vec4 colour);
+create_generic();
 
 // specific entities
 

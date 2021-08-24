@@ -44,17 +44,19 @@ const game2d::sprite::type sprite_heart_1 = game2d::sprite::type::ICON_HEART;
 const game2d::sprite::type sprite_heart_2 = game2d::sprite::type::ICON_HEART_OUTLINE;
 const game2d::sprite::type sprite_heart_3 = game2d::sprite::type::ICON_HEART_HALF_FULL;
 const game2d::sprite::type sprite_heart_4 = game2d::sprite::type::ICON_HEART_FULL;
+const game2d::sprite::type sprite_ammo = game2d::sprite::type::AMMO_BOX;
 
 // colour palette; https://colorhunt.co/palette/273312
 const glm::vec4 PALETTE_COLOUR_1_1 = glm::vec4(57.0f / 255.0f, 62.0f / 255.0f, 70.0f / 255.0f, 1.0f);    // black
 const glm::vec4 PALETTE_COLOUR_2_1 = glm::vec4(0.0f / 255.0f, 173.0f / 255.0f, 181.0f / 255.0f, 1.0f);   // blue
 const glm::vec4 PALETTE_COLOUR_3_1 = glm::vec4(170.0f / 255.0f, 216.0f / 255.0f, 211.0f / 255.0f, 1.0f); // lightblue
 const glm::vec4 PALETTE_COLOUR_4_1 = glm::vec4(238.0f / 255.0f, 238.0f / 255.0f, 238.0f / 255.0f, 1.0f); // grey
+const glm::vec4 PALETTE_COLOUR_5_1 = glm::vec4(0.95f, 0.3f, 0.3f, 1.0f);                                 // redish
 // colours: entities
 const glm::vec4 background_colour = PALETTE_COLOUR_1_1; // black
 const glm::vec4 debug_line_colour = PALETTE_COLOUR_2_1; // blue
 const glm::vec4 player_colour = PALETTE_COLOUR_2_1;     // blue
-const glm::vec4 enemy_colour = PALETTE_COLOUR_4_1;      // grey
+const glm::vec4 enemy_colour = PALETTE_COLOUR_5_1;      // red
 // colours: weapons
 const glm::vec4 weapon_shovel_colour = PALETTE_COLOUR_3_1;
 const glm::vec4 weapon_shovel_flash_colour = PALETTE_COLOUR_2_1;
@@ -68,9 +70,11 @@ const glm::vec4 bullet_pistol_colour = weapon_pistol_colour;
 const glm::vec4 bullet_shotgun_colour = weapon_shotgun_colour;
 const glm::vec4 bullet_machinegun_colour = weapon_machinegun_colour;
 // colours: vfx
-const glm::vec4 player_splat_colour = player_colour;                             // player col
-const glm::vec4 enemy_death_splat_colour = glm::vec4(0.65f, 0.65f, 0.65f, 1.0f); // greyish
-const glm::vec4 enemy_impact_splat_colour = glm::vec4(0.95f, 0.3f, 0.3f, 1.0f);  // redish
+const glm::vec4 player_splat_colour = player_colour;                          // player col
+const glm::vec4 vfx_impact_colour = glm::vec4(0.65f, 0.65f, 0.65f, 1.0f);     // greyish
+const glm::vec4 damage_number_colour = glm::vec4(1.0f, 1.0f, 1.0f, 1.0f);     // white
+const glm::vec4 enemy_death_splat_colour = glm::vec4(0.6f, 0.2f, 0.2f, 1.0f); // dark redish
+const glm::vec4 enemy_impact_colour = glm::vec4(1.0f, 0.5f, 0.5f, 1.0f);      // brighter redish
 
 static const std::vector<bool> GAME_COLL_MATRIX = {
   false, // NoCollision_NoCollision_0_0

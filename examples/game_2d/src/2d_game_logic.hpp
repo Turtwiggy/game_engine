@@ -103,6 +103,7 @@ shop_initial_state();
 
 void
 update_shop(int& p0_currency,
+            int kenny_texture_id,
             std::map<ShopItem, ShopItemState>& shop,
             RangedWeaponStats& stats_pistol,
             RangedWeaponStats& stats_shotgun,

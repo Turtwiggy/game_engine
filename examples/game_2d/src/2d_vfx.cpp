@@ -13,10 +13,10 @@ void
 spawn_death_splat(fightingengine::RandomState& rnd,
                   const GameObject2D& enemy,
                   const sprite::type s,
-                  const glm::vec4 colour,
                   std::vector<GameObject2D>& ents)
 {
-  GameObject2D splat = gameobject::create_generic(s, colour);
+  GameObject2D splat = gameobject::create_generic();
+  splat.sprite = s;
   splat.do_lifecycle_timed = true;
   splat.time_alive = 45.0f; // long splat
   splat.time_alive_left = splat.time_alive;
@@ -24,6 +24,7 @@ spawn_death_splat(fightingengine::RandomState& rnd,
   splat.physics_size = splat.render_size;
   splat.pos = enemy.pos;
   splat.angle_radians = fightingengine::rand_det_s(rnd.rng, -fightingengine::PI, fightingengine::PI);
+  splat.colour = enemy_death_splat_colour;
 
   if (enemy.damage_taken >= enemy.damage_able_to_be_taken) {
     ents.push_back(splat);
@@ -75,13 +76,13 @@ spawn_impact_splats(fightingengine::RandomState& rnd,
                     const GameObject2D& src,
                     const GameObject2D& dst,
                     const sprite::type sprite,
-                    const glm::vec4 colour,
                     int damage_amount,
                     std::vector<GameObject2D>& ents)
 {
   // these splats fire off in an arc from the enemy.pos
 
-  GameObject2D splat = gameobject::create_generic(sprite, colour);
+  GameObject2D splat = gameobject::create_generic();
+  splat.sprite = sprite;
   splat.do_lifecycle_timed = true;
   splat.time_alive = 1.0f; // short splat
   splat.time_alive_left = splat.time_alive;
@@ -90,10 +91,10 @@ spawn_impact_splats(fightingengine::RandomState& rnd,
 
   // vfx impact splats
 
-  splat.colour = colour;
-
   int amount_of_splats = 0;
   for (int i = 0; i < amount_of_splats; i++) {
+
+    splat.colour = damage_number_colour;
 
     // position
     glm::vec2 dst_pos_center = dst.pos + glm::vec2(dst.physics_size) / 2.0f;
@@ -121,8 +122,7 @@ spawn_impact_splats(fightingengine::RandomState& rnd,
 
   if (damage_amount > 0) {
 
-    // glm::vec4 colour = glm::vec4(0.8f); // damage popup colour
-    splat.colour = colour;
+    splat.colour = damage_number_colour;
 
     std::vector<sprite::type> number_sprites = convert_int_to_sprites(damage_amount);
 
