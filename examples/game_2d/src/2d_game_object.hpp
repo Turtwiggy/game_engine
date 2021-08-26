@@ -14,9 +14,10 @@
 
 namespace game2d {
 
-const int GAME_GRID_SIZE = 16;
+const int GAME_GRID_SIZE = 32;
 const int PIXELS_ON_SHEET = 16;
-const int PIXELS_TO_RENDER = 16;
+const int PIXEL_SCALE_SIZE = 2;
+const int PIXELS_TO_RENDER = PIXELS_ON_SHEET * PIXEL_SCALE_SIZE;
 const int spritesheet_width = 768;
 const int spritesheet_height = 352;
 

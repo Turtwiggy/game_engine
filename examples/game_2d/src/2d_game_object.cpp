@@ -141,7 +141,7 @@ create_bullet(sprite::type sprite, glm::vec4 colour)
   // default
   game_object.collision_layer = CollisionLayer::Bullet;
   game_object.name = "bullet";
-  game_object.render_size = { 10, 10 };
+  game_object.render_size = { 4, 4 };
   game_object.physics_size = game_object.render_size;
   game_object.speed_default = 200.0f;
   game_object.speed_current = game_object.speed_default;
@@ -214,7 +214,7 @@ create_player(sprite::type sprite, int tex_slot, glm::vec4 colour, glm::vec2 scr
   game_object.sprite = sprite;
   game_object.tex_slot = tex_slot;
   game_object.colour = colour;
-  game_object.pos = { screen.x / 2.0f, screen.y / 2.0f };
+  game_object.pos = { int(screen.x / 2.0f), int(screen.y / 2.0f) };
   // default
   game_object.collision_layer = CollisionLayer::Player;
   game_object.name = "player";

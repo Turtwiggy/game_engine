@@ -24,10 +24,8 @@ namespace game2d {
 glm::ivec2
 convert_top_left_to_centre(GameObject2D& go)
 {
-  glm::ivec2 center_pos = go.pos;
   glm::ivec2 half = glm::ivec2(int(go.physics_size.x / 2.0f), int(go.physics_size.y / 2.0f));
-  center_pos += half;
-  return center_pos;
+  return go.pos + half;
 }
 
 void
@@ -37,9 +35,8 @@ bullet::update(GameObject2D& obj, float delta_time_s)
   gameobject::update_position_y(obj, delta_time_s);
 
   // look in velocity direction
-  float angle = atan2(obj.velocity.y, obj.velocity.x);
-  angle += fightingengine::HALF_PI + sprite::spritemap::get_sprite_rotation_offset(obj.sprite);
-  obj.angle_radians = angle;
+  // float angle = atan2(obj.velocity.y, obj.velocity.x);
+  // angle += fightingengine::HALF_PI + sprite::spritemap::get_sprite_rotation_offset(obj.sprite);
 };
 
 void
@@ -520,8 +517,8 @@ player_attack(fightingengine::Application& app,
     GameObject2D& weapon = gs.weapon_pistol;
     RangedWeaponStats& stats = gs.stats_pistol;
 
-    weapon.angle_radians = keys.angle_around_player + sprite::spritemap::get_sprite_rotation_offset(weapon.sprite);
     weapon.do_render = true;
+    weapon.angle_radians = keys.angle_around_player + sprite::spritemap::get_sprite_rotation_offset(weapon.sprite);
 
     const float radius = gs.stats_pistol.radius_offset_from_player;
     const float angle = keys.angle_around_player;
