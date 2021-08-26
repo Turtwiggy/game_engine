@@ -151,7 +151,7 @@ begin_batch()
 }
 
 void
-add_point_to_fan(const GameObject2D& cam, fightingengine::Shader& shader, const glm::vec2 point)
+add_point_to_fan(const GameObject2D& cam, fightingengine::Shader& shader, const glm::ivec2 point)
 {
   if (s_data.index_count >= max_quad_index_count) {
     end_batch();
@@ -159,7 +159,7 @@ add_point_to_fan(const GameObject2D& cam, fightingengine::Shader& shader, const 
     begin_batch();
   }
 
-  glm::vec2 worldspace_pos = point - cam.pos;
+  glm::ivec2 worldspace_pos = point - cam.pos;
 
   glm::mat4 model = glm::mat4(1.0f);
   // model = glm::translate(model, glm::vec3(glm::vec2(worldspace_pos.x, worldspace_pos.y), 0.0f));

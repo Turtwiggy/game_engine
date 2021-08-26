@@ -9,7 +9,7 @@
 
 namespace game2d {
 
-glm::vec2
+glm::ivec2
 gameobject_in_worldspace(const GameObject2D& camera, const GameObject2D& go)
 {
   return go.pos - camera.pos;
@@ -39,9 +39,55 @@ namespace gameobject {
 // logic
 
 void
-update_position(GameObject2D& obj, const float delta_time_s)
+update_position_x(GameObject2D& obj, const float delta_time_s)
 {
-  obj.pos += obj.velocity * delta_time_s;
+  obj.remainders.x += obj.velocity.x * delta_time_s;
+  int move = static_cast<int>(obj.remainders.x);
+  if (move != 0) {
+    obj.remainders.x -= move;
+    const auto Sign = [](int x) { return x == 0 ? 0 : (x > 0 ? 1 : -1); };
+    int sign = Sign(move);
+
+    while (move != 0) {
+      bool collision = false;
+      // if(!collide_at(solids, obj.pos.x + sign))
+      if (!collision) {
+        // there is no solid beside
+        obj.pos.x += sign;
+        move -= sign;
+      } else {
+        // there is a solid beside
+        // collide();
+        break;
+      }
+    }
+  }
+}
+
+void
+update_position_y(GameObject2D& obj, const float delta_time_s)
+{
+  obj.remainders.y += obj.velocity.y * delta_time_s;
+  int move = static_cast<int>(obj.remainders.y);
+  if (move != 0) {
+    obj.remainders.y -= move;
+    const auto Sign = [](int x) { return x == 0 ? 0 : (x > 0 ? 1 : -1); };
+    int sign = Sign(move);
+
+    while (move != 0) {
+      bool collision = false;
+      // if(!collide_at(solids, obj.pos.x + sign))
+      if (!collision) {
+        // there is no solid beside
+        obj.pos.y += sign;
+        move -= sign;
+      } else {
+        // there is a solid beside
+        // collide();
+        break;
+      }
+    }
+  }
 }
 
 void
@@ -95,8 +141,8 @@ create_bullet(sprite::type sprite, glm::vec4 colour)
   // default
   game_object.collision_layer = CollisionLayer::Bullet;
   game_object.name = "bullet";
-  game_object.render_size = { 0.7f * 768.0f / 48.0f, 0.7f * 362.0f / 22.0f };
-  game_object.physics_size = { 0.7f * 768.0f / 48.0f, 0.7f * 362.0f / 22.0f };
+  game_object.render_size = { 10, 10 };
+  game_object.physics_size = game_object.render_size;
   game_object.speed_default = 200.0f;
   game_object.speed_current = game_object.speed_default;
   game_object.time_alive_left = 6.0f;
@@ -118,9 +164,6 @@ create_enemy(fightingengine::RandomState& rnd)
   // default
   game_object.collision_layer = CollisionLayer::Enemy;
   game_object.name = "enemy";
-  game_object.angle_radians = 0.0;
-  game_object.render_size = { 1.0f * 768.0f / 48.0f, 1.0f * 362.0f / 22.0f };
-  game_object.physics_size = { 1.0f * 768.0f / 48.0f, 1.0f * 362.0f / 22.0f };
 
   // roll a dice for ai
   float rand = fightingengine::rand_det_s(rnd.rng, 0.0f, 1.0f);
@@ -144,8 +187,6 @@ create_generic()
   game_object.collision_layer = CollisionLayer::NoCollision;
   game_object.name = "generic";
   game_object.tex_slot = tex_unit_kenny_nl;
-  game_object.render_size = { 1.0f * 768.0f / 48.0f, 1.0f * 362.0f / 22.0f };
-  game_object.physics_size = { 1.0f * 768.0f / 48.0f, 1.0f * 362.0f / 22.0f };
   game_object.colour = { 0.0f, 0.0f, 1.0f, 1.0f };
   return game_object;
 }
@@ -177,9 +218,6 @@ create_player(sprite::type sprite, int tex_slot, glm::vec4 colour, glm::vec2 scr
   // default
   game_object.collision_layer = CollisionLayer::Player;
   game_object.name = "player";
-  game_object.angle_radians = 0.0;
-  game_object.render_size = { 1.0f * 768.0f / 48.0f, 1.0f * 362.0f / 22.0f };
-  game_object.physics_size = { 1.0f * 768.0f / 48.0f, 1.0f * 362.0f / 22.0f };
   game_object.velocity = { 0.0f, 0.0f };
   game_object.velocity_boost_modifier = 2.0f;
   game_object.speed_default = 50.0f;
@@ -196,11 +234,8 @@ create_kennynl_texture()
   GameObject2D game_object;
   game_object.name = "texture_sheet";
   game_object.pos = { 0.0f, 20.0f };
-  game_object.render_size = { 1.5f * 768.0f, 1.5f * 352.0f };
-  game_object.physics_size = { 1.5f * 768.0f, 1.5f * 352.0f };
   game_object.colour = glm::vec4(1.0f, 1.0f, 1.0f, 1.0f);
-  game_object.angle_radians = 0.0;
-  game_object.sprite = sprite::type::EMPTY;
+  game_object.sprite = sprite::type::SQUARE;
   game_object.tex_slot = tex_unit_kenny_nl;
   return game_object;
 }
@@ -212,10 +247,6 @@ create_weapon(sprite::type sprite, int tex_slot, glm::vec4 colour)
   game_object.name = "weapon";
   game_object.tex_slot = tex_slot;
   game_object.sprite = sprite;
-  game_object.render_size = { 1.5f * 768.0f / 48.0f, 1.5f * 362.0f / 22.0f };
-  game_object.physics_size = { 1.5f * 768.0f / 48.0f, 1.5f * 362.0f / 22.0f };
-  // game_object.render_size = { 786.0f, 352.0f };
-  // game_object.physics_size = { 786.0f, 352.0f };
   game_object.collision_layer = CollisionLayer::Weapon;
   game_object.colour = colour;
   game_object.do_render = false;

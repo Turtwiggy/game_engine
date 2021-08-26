@@ -7,7 +7,10 @@ in vec4 v_colour;
 in vec2 v_sprite_pos;
 in float v_tex_index;
 
-uniform bool do_pixel = false;
+uniform bool do_spritesheet = false;
+uniform int screen_w;
+uniform int screen_h;
+
 uniform sampler2D textures[3];
 uniform bool do_lighting = false;
 const int num_lights = 2;
@@ -15,22 +18,36 @@ uniform vec3 light_pos[num_lights];
 uniform float light_linear[num_lights];
 uniform float light_quadratic[num_lights];
 
-// hard coded for kennynl spritesheet atm
-const int num_cols = 48;
-const int num_rows = 22;
-const float scale_x = 1.0f / num_cols;
-const float scale_y = 1.0f / num_rows;
-const float w = 768.0f;
-const float h = 352.0f;
-
 void
 main()
 {
   int index = int(v_tex_index);
 
   if (do_lighting) {
-    vec4 tex_main = texture(textures[1], v_tex);
-    vec4 tex_shadow = texture(textures[2], v_tex);
+
+    // non-pixel, directly sample texture
+    // vec2 uv = v_tex;
+
+    // fat pixel approach
+    float tp = float(float(screen_h) / float(screen_w));
+    vec2 tex_size = vec2(screen_w, screen_h);
+    vec2 pixel = v_tex * tex_size;
+    vec2 fat_pixel = floor(pixel) + 0.5;
+    fat_pixel += 1 - clamp((1.0 - fract(pixel)) * tp, 0, 1); // subpixel aa algorithm
+    vec2 uv = fat_pixel / tex_size;
+
+    // this approach?
+    // https://csantosbh.wordpress.com/2014/02/05/automatically-detecting-the-texture-filter-threshold-for-pixelated-magnifications/
+    // int w = int(screen_w);
+    // int h = int(screen_h);
+    // vec2 vUv = v_tex * vec2(w, h);
+    // vec2 alpha = 0.7 * vec2(dFdx(vUv.x), dFdy(vUv.y));
+    // vec2 x = fract(vUv);
+    // vec2 x_ = clamp(0.5 / alpha * x, 0.0, 0.5) + clamp(0.5 / alpha * (x - 1.0) + 0.5, 0.0, 0.5);
+    // vec2 uv = (floor(vUv) + x_) / vec2(w, h);
+
+    vec4 tex_main = texture(textures[1], uv);
+    vec4 tex_shadow = texture(textures[2], uv);
     vec4 r;
 
     for (int i = 0; i < num_lights; i++) {
@@ -65,24 +82,24 @@ main()
     return;
   }
 
-  if (do_pixel) {
-    // pixel shader attempt 1
-    // https://csantosbh.wordpress.com/2014/02/05/automatically-detecting-the-texture-filter-threshold-for-pixelated-magnifications/
-    // i have no idea if below is correct
-    vec2 vUv = v_tex * vec2(w, h);
-    vec2 alpha = 0.7 * vec2(dFdx(vUv.x), dFdy(vUv.y));
-    vec2 x = fract(vUv);
-    vec2 x_ = clamp(0.5 / alpha * x, 0.0, 0.5) + clamp(0.5 / alpha * (x - 1.0) + 0.5, 0.0, 0.5);
-    vec2 uv = (floor(vUv) + x_) / vec2(w, h);
+  // other sprites
+
+  if (do_spritesheet) {
+
+    // hard coded for kennynl spritesheet atm
+    const int num_cols = 48;
+    const int num_rows = 22;
+    const float scale_x = 1.0f / num_cols;
+    const float scale_y = 1.0f / num_rows;
 
     // clang-format off
-    vec2 sprite_tex_coord = vec2(
-      uv.x / num_cols + v_sprite_pos.x * scale_x,
-      uv.y / num_rows + v_sprite_pos.y * scale_y
+    vec2 sprite_uv = vec2(
+      v_tex.x / num_cols + v_sprite_pos.x * scale_x,
+      v_tex.y / num_rows + v_sprite_pos.y * scale_y      
     );
     // clang-format on
 
-    out_colour = v_colour * texture(textures[0], sprite_tex_coord);
+    out_colour = v_colour * texture(textures[0], sprite_uv);
     return;
   }
 }

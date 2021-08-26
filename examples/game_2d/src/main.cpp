@@ -73,8 +73,8 @@ add_players(MutableGameState& state, glm::ivec2 screen_wh)
   state.player_keys.push_back(p0_keys);
 
   std::vector<ShopItem> p0_inventory = std::vector<ShopItem>();
-  // p0_inventory.push_back(ShopItem::SHOVEL);
-  p0_inventory.push_back(ShopItem::PISTOL);
+  p0_inventory.push_back(ShopItem::SHOVEL);
+  // p0_inventory.push_back(ShopItem::PISTOL);
   state.player_inventories.push_back(p0_inventory);
 }
 
@@ -92,11 +92,10 @@ main()
   std::cout << "booting up..." << std::endl;
   const auto app_start = std::chrono::high_resolution_clock::now();
 
-  bool hide_windows_console = true;
+  bool hide_windows_console = false;
   if (hide_windows_console)
     fightingengine::hide_windows_console();
 
-  SDL_Scancode debug_key_quit = SDL_SCANCODE_ESCAPE;
   SDL_Scancode debug_key_advance_one_frame = SDL_SCANCODE_RSHIFT;
   SDL_Scancode debug_key_advance_one_frame_held = SDL_SCANCODE_F10;
   SDL_Scancode debug_key_force_gameover = SDL_SCANCODE_F11;
@@ -110,8 +109,9 @@ main()
   bool ui_mute_sfx = true;
   bool ui_use_vsync = true;
   bool ui_fullscreen = false;
+  bool ui_esc_menu = false;
 
-  glm::ivec2 screen_wh = { 1366, 768 };
+  glm::ivec2 screen_wh = { 1600, 800 };
   RandomState rnd;
   Application app("2D Game", screen_wh.x, screen_wh.y, ui_use_vsync);
   Profiler profiler;
@@ -167,7 +167,7 @@ main()
     point_light.pos = { screen_wh.x / 2.0f, screen_wh.y / 2.0f };
     point_light.render_size = { 4.0f, 4.0f };
     point_light.physics_size = { 4.0f, 4.0f };
-    point_light.sprite = sprite::type::SKULL_AND_BONES;
+    point_light.sprite = sprite::type::SQUARE;
     point_lights.push_back(point_light);
     point_lights.push_back(point_light);
   }
@@ -252,9 +252,6 @@ main()
 
 #ifdef _DEBUG
 
-      if (app.get_input().get_key_down(SDL_SCANCODE_ESCAPE))
-        app.shutdown();
-
       // Debug: Advance one frame
       if (app.get_input().get_key_down(debug_key_advance_one_frame)) {
         debug_advance_one_frame = true;
@@ -278,13 +275,22 @@ main()
       }
       // point_lights[0].pos = gs.entities_player[0].pos;
 
+#endif // _DEBUG
+
       if (app.get_input().get_key_down(SDL_SCANCODE_RETURN)) {
         gs.entities_enemies.clear();
         gs.enemies_to_spawn_this_wave_left = 0;
         gs.p0_currency += 100;
       }
 
-#endif // _DEBUG
+      // Shader hot reloading
+      if (app.get_input().get_key_down(SDL_SCANCODE_R)) {
+        reload_shader_program(
+          &instanced_quad_shader.ID, "2d_game/shaders/2d_instanced.vert", "2d_game/shaders/2d_instanced.frag");
+        instanced_quad_shader.bind();
+        instanced_quad_shader.set_mat4("projection", projection);
+        instanced_quad_shader.set_int_array("textures", textures, 3);
+      }
 
       float mousewheel = app.get_input().get_mousewheel_y();
       float epsilon = 0.0001f;
@@ -326,7 +332,7 @@ main()
 
         glm::ivec2 mouse_pos = app.get_input().get_mouse_pos();
         printf("(game) clicked gamegrid %i %i \n", mouse_pos.x, mouse_pos.y);
-        glm::vec2 world_pos = glm::vec2(mouse_pos) + gs.camera.pos;
+        glm::ivec2 world_pos = mouse_pos + gs.camera.pos;
 
         GameObject2D tree = gameobject::create_tree();
         tree.pos = grid::convert_world_space_to_grid_space(world_pos, GAME_GRID_SIZE);
@@ -337,11 +343,16 @@ main()
         gs.entities_trees.push_back(tree);
       }
 
-      // Shader hot reloading
-      if (app.get_input().get_key_down(SDL_SCANCODE_R)) {
-        reload_shader_program(
-          &instanced_quad_shader.ID, "2d_game/shaders/2d_instanced.vert", "2d_game/shaders/2d_instanced.frag");
-        instanced_quad_shader.bind();
+      if (app.get_input().get_key_down(SDL_SCANCODE_ESCAPE)) {
+        if (ui_esc_menu) {
+          std::cout << "unpausing game" << std::endl;
+          gs.game_running = GameRunning::ACTIVE;
+          ui_esc_menu = false;
+        } else {
+          std::cout << "pause game and showing menu" << std::endl;
+          gs.game_running = GameRunning::PAUSED;
+          ui_esc_menu = true;
+        }
       }
     }
     profiler.end(Profiler::Stage::SdlInput);
@@ -493,7 +504,8 @@ main()
           player.velocity *= player.speed_current;
 
           player::ability_boost(player, keys, delta_time_s);
-          gameobject::update_position(player, delta_time_s);
+          gameobject::update_position_x(player, delta_time_s);
+          gameobject::update_position_y(player, delta_time_s);
 
           if (gs.editor_left_click_mode == EditorMode::PLAYER_ATTACK) {
             player::player_attack(app, player, gs, player_inventory, keys, delta_time_s);
@@ -513,7 +525,8 @@ main()
         // update: vfx
 
         for (auto& obj : gs.entities_vfx) {
-          gameobject::update_position(obj, delta_time_s);
+          gameobject::update_position_x(obj, delta_time_s);
+          gameobject::update_position_y(obj, delta_time_s);
         }
 
         // update: vfx flash
@@ -521,7 +534,7 @@ main()
         for (auto& obj : gs.entities_player) {
           if (obj.flash_time_left > 0.0f) {
             obj.flash_time_left -= delta_time_s;
-            obj.colour = enemy_impact_colour;
+            obj.colour = enemy_colour;
           } else {
             obj.colour = player_colour;
           }
@@ -572,7 +585,7 @@ main()
           for (auto& obj : gs.entities_enemies) {
 
             // check every frame: close to player?
-            float distance_squared = glm::distance2(obj.pos, player_to_chase.pos);
+            float distance_squared = glm::distance2(glm::vec2(obj.pos), glm::vec2(player_to_chase.pos));
             if (distance_squared < ENEMY_ATTACK_THRESHOLD) {
               // push new ai behaviour
               if (obj.ai_priority_list.size() > 0 && obj.ai_priority_list.back() != AiBehaviour::MOVEMENT_DIRECT) {
@@ -680,7 +693,7 @@ main()
         std::vector<GameObject2D> lights = { point_lights[1] };
         for (auto& light : lights) {
           // for (auto& light : point_lights) {
-          glm::vec2 light_pos = light.pos - gs.camera.pos;
+          glm::ivec2 light_pos = light.pos - gs.camera.pos;
 
           // this generates collision from the light point to the entities
           generate_intersections(gs.camera, light_pos, lighting_entities, screen_wh, intersections);
@@ -721,7 +734,7 @@ main()
         instanced_quad_shader.set_float("time", app.seconds_since_launch);
         instanced_quad_shader.set_mat4("projection", projection);
         instanced_quad_shader.set_bool("do_lighting", false);
-        instanced_quad_shader.set_bool("do_pixel", true);
+        instanced_quad_shader.set_bool("do_spritesheet", true);
 
         if (gs.game_running == GameRunning::ACTIVE || gs.game_running == GameRunning::PAUSED ||
             gs.game_running == GameRunning::GAME_OVER) {
@@ -768,7 +781,9 @@ main()
         flip = glm::rotate(flip, glm::radians(180.0f), glm::vec3(1.0f, 0.0f, 0.0f));
         instanced_quad_shader.set_mat4("projection", flip * projection);
         instanced_quad_shader.set_bool("do_lighting", true);
-        instanced_quad_shader.set_bool("do_pixel", false);
+        instanced_quad_shader.set_int("screen_w", screen_wh.x);
+        instanced_quad_shader.set_int("screen_h", screen_wh.y);
+        instanced_quad_shader.set_bool("do_spritesheet", false);
         {
           // distance 200
           // const float light_linear = 0.022f;
@@ -782,7 +797,6 @@ main()
           // distance 3250
           // const float light_linear = 0.0014f;
           // const float light_quadratic =  0.000007f;
-
           // temp
           static float linear = 0.0014f;
           static float quadratic = 0.000007f;
@@ -805,13 +819,14 @@ main()
 
         { // draw single quad as entire screen
           GameObject2D screen_object = gameobject::create_generic();
-          screen_object.sprite = sprite::type::EMPTY;
+          screen_object.sprite = sprite::type::SQUARE;
           screen_object.render_size = glm::vec2(screen_wh.x, screen_wh.y);
           screen_object.tex_slot = tex_unit_main_scene;
           sprite_renderer::draw_instanced_sprite(gs.camera, screen_wh, instanced_quad_shader, screen_object);
         }
         sprite_renderer::end_batch();
         sprite_renderer::flush(instanced_quad_shader);
+        // CHECK_OPENGL_ERROR(0);
       }
     }
     profiler.end(Profiler::Stage::Render);
@@ -841,6 +856,74 @@ main()
         ImGui::End();
       }
 
+      // ui: options menu
+
+      if (ui_esc_menu) {
+
+        gs.game_running = GameRunning::PAUSED;
+        ImGui::Begin("PAUSE MENU", NULL, ImGuiWindowFlags_NoFocusOnAppearing);
+        {
+          { // continue button
+            if (ImGui::Button("Continue")) {
+              gs.game_running = GameRunning::ACTIVE;
+              ui_esc_menu = false;
+            }
+          }
+
+          ImGui::Separator();
+          ImGui::Text("Settings");
+          bool temp;
+          { // limit framerate
+            temp = ui_limit_framerate;
+            ImGui::Checkbox("Limit Framerate", &temp);
+            if (temp != ui_limit_framerate) {
+              std::cout << "Limit fps toggled to: " << temp << std::endl;
+              app.limit_fps = temp;
+            }
+            ui_limit_framerate = temp;
+          }
+          { // mute sfx
+            temp = ui_mute_sfx;
+            ImGui::Checkbox("Mute SFX", &temp);
+            if (temp != ui_mute_sfx) {
+              std::cout << "sfx toggled to: " << temp << std::endl;
+            }
+            ui_mute_sfx = temp;
+          }
+          { // use vsync
+            temp = ui_use_vsync;
+            ImGui::Checkbox("VSync", &temp);
+            if (temp != ui_use_vsync) {
+              std::cout << "vsync toggled to: " << temp << std::endl;
+              app.get_window().set_vsync_opengl(temp);
+            }
+            ui_use_vsync = temp;
+          }
+          { // toggle fullsceren
+            temp = ui_fullscreen;
+            ImGui::Checkbox("Fullscreen", &temp);
+            if (temp != ui_fullscreen) {
+              std::cout << "ui_fullscreen toggled to: " << temp << std::endl;
+              toggle_fullscreen(app, screen_wh, projection, tex_id_lighting, tex_id_main_scene);
+            }
+            ui_fullscreen = temp;
+          }
+
+          ImGui::Separator();
+          { // restart button
+            if (ImGui::Button("Restart")) {
+              gs = reset_game(screen_wh);
+            }
+          }
+          { // exit to desktop
+            if (ImGui::Button("Exit to desktop")) {
+              app.shutdown();
+            }
+          }
+        }
+        ImGui::End();
+      }
+
       // ui: top menu bar
 
       if (ImGui::BeginMainMenuBar()) {
@@ -850,8 +933,6 @@ main()
         for (int i = 0; i < gs.entities_player.size(); i++) {
           GameObject2D& player = gs.entities_player[i];
           auto& p_inventory = gs.player_inventories[i];
-
-          std::array<ImVec2, 2> tex_coords = convert_sprite_to_uv(sprite::type::CAMPFIRE);
 
           const glm::vec2 heart_icon_size = { 12.0f, 12.0f };
 
@@ -906,81 +987,23 @@ main()
           std::string wep = std::string("Weapon: ") + std::string(magic_enum::enum_name(w));
           ImGui::Text(wep.c_str());
 
-          ImGui::SameLine(screen_wh.x - 330.0f);
-
-          float framerate = ImGui::GetIO().Framerate;
-          float framerate_ms = 1000.0f / ImGui::GetIO().Framerate;
-          std::stringstream stream;
-          stream << std::fixed << std::setprecision(2) << framerate;
-          std::string framerate_str = stream.str();
-          stream.str(std::string());
-          stream << std::fixed << std::setprecision(2) << framerate;
-          std::string framerate_ms_str = stream.str();
-          std::string framerate_label = framerate_str + std::string(" FPS (") + framerate_ms_str + std::string(" ms)");
-          ImGui::Text(framerate_label.c_str());
+          ImGui::SameLine(screen_wh.x - 170.0f);
+          {
+            float framerate = ImGui::GetIO().Framerate;
+            float framerate_ms = 1000.0f / ImGui::GetIO().Framerate;
+            std::stringstream stream;
+            stream << std::fixed << std::setprecision(2) << framerate;
+            std::string framerate_str = stream.str();
+            stream.str(std::string());
+            stream << std::fixed << std::setprecision(2) << framerate;
+            std::string framerate_ms_str = stream.str();
+            std::string framerate_label =
+              framerate_str + std::string(" FPS (") + framerate_ms_str + std::string(" ms)");
+            ImGui::Text(framerate_label.c_str());
+          }
 
           // ui: pause button
-
-          if (ImGui::Button("Pause")) {
-            gs.game_running = gs.game_running == GameRunning::PAUSED ? GameRunning::ACTIVE : GameRunning::PAUSED;
-          }
-
-          if (ImGui::BeginMenu("Settings")) {
-
-            bool temp = false;
-
-            { // limit framerate
-              temp = ui_limit_framerate;
-              ImGui::Checkbox("Limit Framerate", &temp);
-              if (temp != ui_limit_framerate) {
-                std::cout << "Limit fps toggled to: " << temp << std::endl;
-                app.limit_fps = temp;
-              }
-              ui_limit_framerate = temp;
-            }
-
-            { // mute sfx
-              temp = ui_mute_sfx;
-              ImGui::Checkbox("Mute SFX", &temp);
-              if (temp != ui_mute_sfx) {
-                std::cout << "sfx toggled to: " << temp << std::endl;
-              }
-              ui_mute_sfx = temp;
-            }
-
-            { // use vsync
-              temp = ui_use_vsync;
-              ImGui::Checkbox("VSync", &temp);
-              if (temp != ui_use_vsync) {
-                std::cout << "vsync toggled to: " << temp << std::endl;
-                app.get_window().set_vsync_opengl(temp);
-              }
-              ui_use_vsync = temp;
-            }
-
-            { // toggle fullsceren
-              temp = ui_fullscreen;
-              ImGui::Checkbox("Fullscreen", &temp);
-              if (temp != ui_fullscreen) {
-                std::cout << "ui_fullscreen toggled to: " << temp << std::endl;
-                toggle_fullscreen(app, screen_wh, projection, tex_id_lighting, tex_id_main_scene);
-              }
-              ui_fullscreen = temp;
-            }
-
-            { // restart button
-              if (ImGui::Button("Restart Game")) {
-                std::cout << "restart game" << std::endl;
-                gs = reset_game(screen_wh);
-              }
-            }
-
-            ImGui::EndMenu();
-          }
         }
-
-        if (ImGui::MenuItem("Quit", "Esc"))
-          app.shutdown();
 
         ImGui::EndMainMenuBar();
       }
@@ -1007,7 +1030,10 @@ main()
       if (debug_show_spritesheet_window) {
         ImGui::Begin("Temp texture ui");
         ImGui::BeginChild("GameRender");
-        ImGui::Image((ImTextureID)texture_ids[0], { 768.0f, 352.0f }, ImVec2(0.0f, 0.0f), ImVec2(1.0f, 1.0f));
+        ImGui::Image((ImTextureID)texture_ids[0],
+                     { spritesheet_width, spritesheet_height },
+                     ImVec2(0.0f, 0.0f),
+                     ImVec2(1.0f, 1.0f));
         ImGui::EndChild();
         ImGui::End();
       }

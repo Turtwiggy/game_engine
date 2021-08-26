@@ -21,19 +21,20 @@
 
 namespace game2d {
 
-glm::vec2
+glm::ivec2
 convert_top_left_to_centre(GameObject2D& go)
 {
-  glm::vec2 center_pos = go.pos;
-  center_pos.x += go.physics_size.x / 2.0f;
-  center_pos.y += go.physics_size.y / 2.0f;
+  glm::ivec2 center_pos = go.pos;
+  glm::ivec2 half = glm::ivec2(int(go.physics_size.x / 2.0f), int(go.physics_size.y / 2.0f));
+  center_pos += half;
   return center_pos;
 }
 
 void
 bullet::update(GameObject2D& obj, float delta_time_s)
 {
-  gameobject::update_position(obj, delta_time_s);
+  gameobject::update_position_x(obj, delta_time_s);
+  gameobject::update_position_y(obj, delta_time_s);
 
   // look in velocity direction
   float angle = atan2(obj.velocity.y, obj.velocity.x);
@@ -45,21 +46,29 @@ void
 camera::update(GameObject2D& camera, KeysAndState& keys, fightingengine::Application& app, float delta_time_s)
 {
   // go.pos = glm::vec2(other.pos.x - screen_width / 2.0f, other.pos.y - screen_height / 2.0f);
-  if (app.get_input().get_key_held(keys.key_camera_left))
-    camera.pos.x -= delta_time_s * camera.speed_current;
-  if (app.get_input().get_key_held(keys.key_camera_right))
-    camera.pos.x += delta_time_s * camera.speed_current;
-  if (app.get_input().get_key_held(keys.key_camera_up))
-    camera.pos.y -= delta_time_s * camera.speed_current;
-  if (app.get_input().get_key_held(keys.key_camera_down))
-    camera.pos.y += delta_time_s * camera.speed_current;
+  // camera.velocity.x = 1.0f;
+  if (app.get_input().get_key_held(keys.key_camera_left)) {
+    gameobject::update_position_x(camera, delta_time_s);
+  }
+  if (app.get_input().get_key_held(keys.key_camera_right)) {
+    gameobject::update_position_x(camera, delta_time_s);
+  }
+  if (app.get_input().get_key_held(keys.key_camera_up)) {
+    gameobject::update_position_y(camera, delta_time_s);
+  }
+  if (app.get_input().get_key_held(keys.key_camera_down)) {
+    gameobject::update_position_y(camera, delta_time_s);
+  }
 };
 
 void
 enemy_ai::move_along_vector(GameObject2D& obj, glm::vec2 dir, float delta_time_s)
 {
   dir = glm::normalize(dir);
-  obj.pos += (dir * obj.speed_current * delta_time_s);
+  obj.velocity.x = dir.x * obj.speed_current;
+  obj.velocity.y = dir.y * obj.speed_current;
+  gameobject::update_position_x(obj, delta_time_s);
+  gameobject::update_position_y(obj, delta_time_s);
 };
 
 void
@@ -75,19 +84,19 @@ enemy_ai::enemy_arc_angles_to_player(GameObject2D& obj, GameObject2D& player, fl
   // calculate a vector ab
   glm::vec2 ab = player.pos - obj.pos;
   // calculate the point halfway between ab
-  glm::vec2 half_point = obj.pos + (ab / 2.0f);
+  glm::vec2 half_point = glm::vec2(obj.pos) + (ab / 2.0f);
   // calculate the vector at a right angle
   glm::vec2 normal = glm::vec2(-ab.y, ab.x);
 
   // expensive(?) distance calc
-  float distance = glm::distance(obj.pos, player.pos);
+  float distance = glm::distance(glm::vec2(obj.pos), glm::vec2(player.pos));
   float half_distance = distance / 2.0f;
 
   // offset the midpoint via normal
   float amplitude = half_distance * sin(glm::radians(obj.approach_theta_degrees));
   half_point += (glm::normalize(normal) * amplitude);
 
-  glm::vec2 dir = glm::normalize(half_point - obj.pos);
+  glm::vec2 dir = glm::normalize(half_point - glm::vec2(obj.pos));
 
   move_along_vector(obj, dir, delta_time_s);
 };
@@ -246,7 +255,7 @@ update(MutableGameState& state, fightingengine::RandomState& rnd, const glm::ive
     int iteration = 0;
     // result
     float distance_squared = 0;
-    glm::vec2 found_pos = { 0.0f, 0.0f };
+    glm::ivec2 found_pos = { 0.0, 0.0 };
 
     // generate random pos not too close to players
     do {
@@ -264,7 +273,7 @@ update(MutableGameState& state, fightingengine::RandomState& rnd, const glm::ive
 
       for (auto& player : state.entities_player) {
 
-        distance_squared = glm::distance2(rnd_pos, player.pos);
+        distance_squared = glm::distance2(rnd_pos, glm::vec2(player.pos));
         ok = distance_squared > game_safe_radius_around_player;
 
         if (ok) {
@@ -339,7 +348,7 @@ update_input(GameObject2D& obj, KeysAndState& keys, fightingengine::Application&
     keys.pause_held = app.get_input().get_key_held(keys.key_pause);
 
     // calculate angle from center of object, not top left of object
-    glm::vec2 centre = convert_top_left_to_centre(obj);
+    glm::ivec2 centre = convert_top_left_to_centre(obj);
     glm::vec2 player_world_space_pos = centre - camera.pos;
 
     float y = app.get_input().get_mouse_pos().y - player_world_space_pos.y;
@@ -531,8 +540,8 @@ player_attack(fightingengine::Application& app,
 
   if (player_inventory[player.equipped_item_index] == ShopItem::SHOTGUN) {
     gs.weapon_shotgun.do_render = true;
-    glm::vec2 offset = glm::vec2(gs.stats_shotgun.radius_offset_from_player * sin(keys.angle_around_player),
-                                 -gs.stats_shotgun.radius_offset_from_player * cos(keys.angle_around_player));
+    glm::ivec2 offset = glm::vec2(int(gs.stats_shotgun.radius_offset_from_player * sin(keys.angle_around_player)),
+                                  int(-gs.stats_shotgun.radius_offset_from_player * cos(keys.angle_around_player)));
     gs.weapon_shotgun.pos = player.pos + offset;
     gs.weapon_shotgun.angle_radians =
       keys.angle_around_player + sprite::spritemap::get_sprite_rotation_offset(gs.weapon_shotgun.sprite);
@@ -552,8 +561,8 @@ player_attack(fightingengine::Application& app,
 
   if (player_inventory[player.equipped_item_index] == ShopItem::MACHINEGUN) {
     gs.weapon_machinegun.do_render = true;
-    glm::vec2 offset = glm::vec2(gs.stats_machinegun.radius_offset_from_player * sin(keys.angle_around_player),
-                                 -gs.stats_machinegun.radius_offset_from_player * cos(keys.angle_around_player));
+    glm::ivec2 offset = glm::ivec2(int(gs.stats_machinegun.radius_offset_from_player * sin(keys.angle_around_player)),
+                                   int(-gs.stats_machinegun.radius_offset_from_player * cos(keys.angle_around_player)));
     gs.weapon_machinegun.pos = player.pos + offset;
     gs.weapon_machinegun.angle_radians =
       keys.angle_around_player + sprite::spritemap::get_sprite_rotation_offset(gs.weapon_machinegun.sprite);

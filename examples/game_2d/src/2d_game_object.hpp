@@ -8,10 +8,17 @@
 #include <glm/glm.hpp>
 
 // your includes
+#include "2d_game_config.hpp"
 #include "engine/maths_core.hpp"
 #include "spritemap.hpp"
 
 namespace game2d {
+
+const int GAME_GRID_SIZE = 16;
+const int PIXELS_ON_SHEET = 16;
+const int PIXELS_TO_RENDER = 16;
+const int spritesheet_width = 768;
+const int spritesheet_height = 352;
 
 enum class EditorMode
 {
@@ -78,7 +85,7 @@ struct MeleeWeaponStats : WeaponStats
 
 struct RangedWeaponStats : WeaponStats
 {
-  float radius_offset_from_player = 14.0f;
+  int radius_offset_from_player = 14;
   bool infinite_ammo = true;
   float fire_rate_seconds_limit = 1.0f;
   int current_ammo = 20;
@@ -156,10 +163,12 @@ public:
   // render
   int tex_slot = 0;
   sprite::type sprite = sprite::type::SQUARE;
-  glm::vec2 pos = { 0.0f, 0.0f }; // in pixels, at top left of sprite
+  glm::ivec2 pos = { 0.0, 0.0 };         // in pixels, at top left of sprite
+  glm::vec2 remainders = { 0.0f, 0.0f }; // move by float, then clamp pos
+
   float angle_radians = 0.0f;
   glm::vec4 colour = { 1.0f, 0.0f, 0.0f, 1.0f };
-  glm::ivec2 render_size = { 20.0, 20.0 };
+  glm::ivec2 render_size = { PIXELS_TO_RENDER, PIXELS_TO_RENDER };
 
   // physics
   glm::ivec2 physics_size = render_size;
@@ -244,7 +253,7 @@ struct KeysAndState
 
 // util
 
-[[nodiscard]] glm::vec2
+[[nodiscard]] glm::ivec2
 gameobject_in_worldspace(const GameObject2D& camera, const GameObject2D& go);
 
 [[nodiscard]] bool
@@ -255,7 +264,10 @@ namespace gameobject {
 // logic
 
 void
-update_position(GameObject2D& obj, const float delta_time_s);
+update_position_x(GameObject2D& obj, const float delta_time_s); // actors
+
+void
+update_position_y(GameObject2D& obj, const float delta_time_s); // actors
 
 void
 update_entities_lifecycle(std::vector<GameObject2D>& objs, const float delta_time_s);

@@ -32,7 +32,7 @@ void
 begin_batch();
 
 void
-add_point_to_fan(const GameObject2D& cam, fightingengine::Shader& shader, const glm::vec2 point);
+add_point_to_fan(const GameObject2D& cam, fightingengine::Shader& shader, const glm::ivec2 point);
 
 } // namespace triangle_fan_renderer
 

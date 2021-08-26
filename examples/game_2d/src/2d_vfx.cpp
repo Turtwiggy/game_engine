@@ -97,8 +97,10 @@ spawn_impact_splats(fightingengine::RandomState& rnd,
     splat.colour = damage_number_colour;
 
     // position
-    glm::vec2 dst_pos_center = dst.pos + glm::vec2(dst.physics_size) / 2.0f;
-    glm::vec2 src_pos_center = src.pos + glm::vec2(src.physics_size) / 2.0f;
+    glm::vec2 half_dst = glm::vec2(dst.physics_size.x / 2.0f, dst.physics_size.y / 2.0f);
+    glm::vec2 half_src = glm::vec2(dst.physics_size.x / 2.0f, dst.physics_size.y / 2.0f);
+    glm::ivec2 dst_pos_center = dst.pos + glm::ivec2(int(half_dst.x), int(half_dst.y));
+    glm::ivec2 src_pos_center = src.pos + glm::ivec2(int(half_src.x), int(half_src.y));
     glm::vec2 distance = src_pos_center - dst_pos_center;
     glm::vec2 dir = -glm::normalize(distance);
     glm::vec2 splat_spawn_pos = dst.pos;
@@ -130,8 +132,10 @@ spawn_impact_splats(fightingengine::RandomState& rnd,
     for (int i = 0; i < amount_of_splats; i++) {
 
       // position
-      glm::vec2 dst_pos_center = dst.pos + glm::vec2(dst.physics_size) / 2.0f;
-      glm::vec2 src_pos_center = src.pos + glm::vec2(src.physics_size) / 2.0f;
+      glm::vec2 half_dst = glm::vec2(dst.physics_size.x / 2.0f, dst.physics_size.y / 2.0f);
+      glm::vec2 half_src = glm::vec2(dst.physics_size.x / 2.0f, dst.physics_size.y / 2.0f);
+      glm::ivec2 dst_pos_center = dst.pos + glm::ivec2(int(half_dst.x), int(half_dst.y));
+      glm::ivec2 src_pos_center = src.pos + glm::ivec2(int(half_src.x), int(half_src.y));
       glm::vec2 distance = src_pos_center - dst_pos_center;
       glm::vec2 dir = -glm::normalize(distance);
       glm::vec2 splat_spawn_pos = dst.pos;

@@ -29,8 +29,7 @@ RenderCommand::init()
   // glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
   glBlendFuncSeparate(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA, GL_ONE, GL_ONE_MINUS_SRC_ALPHA);
 
-  // Enable depth testing
-  set_depth_testing(true);
+  set_depth_testing(false);
 
   // From now on your rendered images will be gamma corrected and as this is
   // done by the hardware it is completely free. Something you should keep in
