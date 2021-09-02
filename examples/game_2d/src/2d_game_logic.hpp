@@ -20,19 +20,6 @@ namespace game2d {
 
 struct MutableGameState;
 
-namespace bullet {
-
-void
-update(GameObject2D& obj, float delta_time_s);
-}; // namespace bullet
-
-namespace camera {
-
-void
-update(GameObject2D& camera, KeysAndState& keys, fightingengine::Application& app, float delta_time_s);
-
-}; // namespace camera
-
 namespace enemy_ai {
 
 void
@@ -62,6 +49,9 @@ update(MutableGameState& state, fightingengine::RandomState& rnd, const glm::ive
 
 namespace player {
 
+glm::ivec2
+rotate_b_around_a(const GameObject2D& a, const GameObject2D& b, float radius, float angle);
+
 void
 update_input(GameObject2D& obj, KeysAndState& keys, fightingengine::Application& app, GameObject2D& camera);
 
@@ -78,21 +68,13 @@ ability_slash(fightingengine::Application& app,
               std::vector<Attack>& attacks);
 
 void
-ability_shoot(GameObject2D& entity_to_fire_from,
-              KeysAndState& keys,
-              std::vector<GameObject2D>& bullets,
-              const glm::vec4 bullet_col,
-              const sprite::type sprite,
-              RangedWeaponStats& s,
-              std::vector<Attack>& attacks);
-
-void
 player_attack(fightingengine::Application& app,
               GameObject2D& player,
               MutableGameState& gs,
               std::vector<ShopItem>& player_inventory,
               KeysAndState& keys,
-              const float delta_time_s);
+              const float delta_time_s,
+              fightingengine::RandomState& rnd);
 
 }; // namespace player
 
@@ -133,7 +115,6 @@ struct MutableGameState
   RangedWeaponStats stats_shotgun = create_shotgun();
   RangedWeaponStats stats_machinegun = create_machinegun();
 
-  GameObject2D tex_obj = gameobject::create_kennynl_texture();
   GameObject2D camera = GameObject2D();
   GameObject2D weapon_shovel = gameobject::create_weapon(sprite_weapon_base, tex_unit_kenny_nl, weapon_shovel_colour);
   GameObject2D weapon_pistol = gameobject::create_weapon(sprite_pistol, tex_unit_kenny_nl, weapon_pistol_colour);

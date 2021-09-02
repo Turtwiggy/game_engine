@@ -209,14 +209,15 @@ draw_instanced_sprite(const GameObject2D& cam,
     return; // skip rendering
   }
 
+  glm::ivec2 sprite_offset = sprite::spritemap::get_sprite_offset(go.sprite);
+  float angle = go.angle_radians + sprite::spritemap::get_sprite_rotation_offset(go.sprite);
+
   glm::mat4 model = glm::mat4(1.0f);
   model = glm::translate(model, glm::vec3(glm::vec2(worldspace_pos.x, worldspace_pos.y), 0.0f));
   model = glm::translate(model, glm::vec3(0.5f * go.render_size.x, 0.5f * go.render_size.y, 0.0f));
-  model = glm::rotate(model, go.angle_radians, glm::vec3(0.0f, 0.0f, 1.0f));
+  model = glm::rotate(model, angle, glm::vec3(0.0f, 0.0f, 1.0f));
   model = glm::translate(model, glm::vec3(-0.5f * go.render_size.x, -0.5f * go.render_size.y, 0.0f));
   model = glm::scale(model, glm::vec3(go.render_size, 1.0f));
-
-  glm::ivec2 sprite_offset = sprite::spritemap::get_sprite_offset(go.sprite);
 
   // tl
   s_data.buffer_ptr->pos_and_tex = { 0.0f, 0.0f, 0.0f, 0.0f };

@@ -14,13 +14,6 @@
 
 namespace game2d {
 
-const int GAME_GRID_SIZE = 32;
-const int PIXELS_ON_SHEET = 16;
-const int PIXEL_SCALE_SIZE = 2;
-const int PIXELS_TO_RENDER = PIXELS_ON_SHEET * PIXEL_SCALE_SIZE;
-const int spritesheet_width = 768;
-const int spritesheet_height = 352;
-
 enum class EditorMode
 {
   EDITOR_PLACE_MODE,
@@ -169,7 +162,7 @@ public:
 
   float angle_radians = 0.0f;
   glm::vec4 colour = { 1.0f, 0.0f, 0.0f, 1.0f };
-  glm::ivec2 render_size = { PIXELS_TO_RENDER, PIXELS_TO_RENDER };
+  glm::ivec2 render_size = { 32, 32 };
 
   // physics
   glm::ivec2 physics_size = render_size;
@@ -212,6 +205,8 @@ public:
 
   // vfx
   float flash_time_left = 0.0f;
+  glm::vec4 flash_colour = { 1.0f, 1.0f, 1.0f, 1.0f };
+  glm::vec4 original_colour = colour;
 
   // game: extra
   std::string name = "DEFAULT";
@@ -257,6 +252,9 @@ struct KeysAndState
 [[nodiscard]] glm::ivec2
 gameobject_in_worldspace(const GameObject2D& camera, const GameObject2D& go);
 
+[[nodiscard]] glm::ivec2
+convert_top_left_to_centre(const GameObject2D& go);
+
 [[nodiscard]] bool
 gameobject_off_screen(glm::vec2 pos, glm::vec2 size, const glm::ivec2& screen_size);
 
@@ -294,9 +292,6 @@ create_tree();
 
 GameObject2D
 create_player(sprite::type sprite, int tex_slot, glm::vec4 colour, glm::vec2 screen);
-
-GameObject2D
-create_kennynl_texture();
 
 GameObject2D
 create_weapon(sprite::type sprite, int tex_slot, glm::vec4 colour);

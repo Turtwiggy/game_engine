@@ -287,22 +287,6 @@ main()
 
 #endif // _DEBUG
 
-      static int i = 0;
-      // if (app.get_input().get_mouse_mmb_down()) {
-      {
-
-        glm::ivec2 flash_offset = { 14 * PIXEL_SCALE_SIZE, 6 * PIXEL_SCALE_SIZE }; // from top left
-
-        GameObject2D& player = gs.entities_player[0];
-        KeysAndState& keys = gs.player_keys[0];
-        const float radius = glm::length(glm::vec2(flash_offset));
-        const float angle = keys.angle_around_player;
-        glm::vec2 offset = glm::vec2(radius * sin(angle), radius * cos(angle)); // calculate offset in a circle
-
-        point_lights[0].pos = gs.weapon_pistol.pos + glm::ivec2(int(flash_offset.x), int(flash_offset.y));
-        // point_lights[0].pos = gs.entities_player[0].pos;
-      }
-
       if (app.get_input().get_key_down(SDL_SCANCODE_RETURN)) {
         gs.entities_enemies.clear();
         gs.enemies_to_spawn_this_wave_left = 0;
@@ -501,7 +485,19 @@ main()
         }
       }
 
-      // Update game state
+      // update: player input
+
+      for (int i = 0; i < gs.entities_player.size(); i++) {
+        GameObject2D& player = gs.entities_player[i];
+        KeysAndState& keys = gs.player_keys[i];
+        auto& player_inventory = gs.player_inventories[i];
+        player::update_input(player, keys, app, gs.camera);
+        player.velocity.x = keys.l_analogue_x;
+        player.velocity.y = keys.l_analogue_y;
+        player.velocity *= player.speed_current;
+      }
+
+      // update: game state
 
       if (gs.game_running == GameRunning::ACTIVE) {
 
@@ -511,84 +507,10 @@ main()
           GameObject2D& player = gs.entities_player[i];
           KeysAndState& keys = gs.player_keys[i];
           auto& player_inventory = gs.player_inventories[i];
-
-          player::update_input(player, keys, app, gs.camera);
-
-          player.velocity.x = keys.l_analogue_x;
-          player.velocity.y = keys.l_analogue_y;
-          player.velocity *= player.speed_current;
-
           player::ability_boost(player, keys, delta_time_s);
-          gameobject::update_position_x(player, delta_time_s);
-          gameobject::update_position_y(player, delta_time_s);
-
-          if (gs.editor_left_click_mode == EditorMode::PLAYER_ATTACK) {
-            player::player_attack(app, player, gs, player_inventory, keys, delta_time_s);
-          }
-
-          bool player_alive = player.invulnerable || player.damage_taken < player.damage_able_to_be_taken;
-          if (!player_alive)
-            gs.game_running = GameRunning::GAME_OVER;
         }
 
-        // update: bullets
-
-        for (auto& bullet : gs.entities_bullets) {
-          bullet::update(bullet, delta_time_s);
-        }
-
-        // update: vfx
-
-        for (auto& obj : gs.entities_vfx) {
-          gameobject::update_position_x(obj, delta_time_s);
-          gameobject::update_position_y(obj, delta_time_s);
-        }
-
-        // update: vfx flash
-
-        for (auto& obj : gs.entities_player) {
-          if (obj.flash_time_left > 0.0f) {
-            obj.flash_time_left -= delta_time_s;
-            obj.colour = enemy_colour;
-          } else {
-            obj.colour = player_colour;
-          }
-        }
-        for (auto& obj : gs.entities_enemies) {
-          if (obj.flash_time_left > 0.0f) {
-            obj.flash_time_left -= delta_time_s;
-            obj.colour = enemy_impact_colour;
-          } else {
-            obj.colour = enemy_colour;
-          }
-        }
-        if (gs.weapon_pistol.flash_time_left > 0.0f) {
-          gs.weapon_pistol.flash_time_left -= delta_time_s;
-          gs.weapon_pistol.colour = weapon_pistol_flash_colour;
-        } else {
-          gs.weapon_pistol.colour = weapon_pistol_colour;
-        }
-
-        // update: vfx screenshake
-
-        if (screenshake_time_left > 0.0f) {
-          screenshake_time_left -= delta_time_s;
-          instanced_quad_shader.bind();
-          instanced_quad_shader.set_bool("shake", true);
-        }
-        if (screenshake_time_left <= 0.0f) {
-          instanced_quad_shader.bind();
-          instanced_quad_shader.set_bool("shake", false);
-        }
-
-        // update: vfx fade
-
-        for (auto& go : gs.entities_vfx) {
-          go.colour.a = go.time_alive_left / go.time_alive;
-        }
-
-        // game phase: attack
-        // update: spawn enemies
+        // update: enemies
 
         size_t players_in_game = gs.entities_player.size();
         if (players_in_game > 0 && gs.game_phase == GamePhase::ATTACK) {
@@ -624,10 +546,97 @@ main()
 
           //... and only spawn enemies if there is a player.
           enemy_spawner::update(gs, rnd, screen_wh, delta_time_s);
+        }
 
-          // update camera pos
-          KeysAndState keys = gs.player_keys[0];
-          camera::update(gs.camera, keys, app, delta_time_s);
+        // look in velocity direction
+        // float angle = atan2(obj.velocity.y, obj.velocity.x);
+        // angle += fightingengine::HALF_PI + sprite::spritemap::get_sprite_rotation_offset(obj.sprite);
+
+        // position update order
+        {
+          std::vector<std::reference_wrapper<GameObject2D>> update_positions;
+          update_positions.insert(update_positions.end(), gs.entities_player.begin(), gs.entities_player.end());
+          update_positions.insert(update_positions.end(), gs.entities_vfx.begin(), gs.entities_vfx.end());
+          update_positions.insert(update_positions.end(), gs.entities_bullets.begin(), gs.entities_bullets.end());
+          update_positions.insert(update_positions.end(), gs.entities_enemies.begin(), gs.entities_enemies.end());
+
+          for (auto& ent : update_positions) {
+            gameobject::update_position_x(ent, delta_time_s);
+            gameobject::update_position_y(ent, delta_time_s);
+          }
+        }
+
+        for (int i = 0; i < gs.entities_player.size(); i++) {
+          GameObject2D& player = gs.entities_player[i];
+          KeysAndState& keys = gs.player_keys[i];
+          auto& player_inventory = gs.player_inventories[i];
+
+          // clamp players to screen
+          if (player.pos.x <= 0)
+            player.pos.x = 0;
+          if (player.pos.x + player.physics_size.x >= screen_wh.x)
+            player.pos.x = screen_wh.x - player.physics_size.x;
+          if (player.pos.y <= 0)
+            player.pos.y = 0;
+          if (player.pos.y + player.physics_size.y >= screen_wh.y)
+            player.pos.y = screen_wh.y - player.physics_size.y;
+
+          // player attacks
+          bool player_able_to_attacking = gs.editor_left_click_mode == EditorMode::PLAYER_ATTACK;
+          if (player_able_to_attacking) {
+            player::player_attack(app, player, gs, player_inventory, keys, delta_time_s, rnd);
+          }
+
+          bool player_alive = player.invulnerable || player.damage_taken < player.damage_able_to_be_taken;
+          if (!player_alive)
+            gs.game_running = GameRunning::GAME_OVER;
+        }
+
+        // update lighting based on positions
+        {
+          const GameObject2D& player = gs.entities_player[0];
+          const KeysAndState& keys = gs.player_keys[0];
+
+          constexpr glm::vec2 flash_offset = { 16.0f, 16.0f }; // from top left
+          const float radius = glm::length(flash_offset);
+          const float angle = gs.weapon_pistol.angle_radians;
+
+          glm::ivec2 gun_tip = player::rotate_b_around_a(gs.weapon_pistol, point_lights[0], radius, angle);
+          point_lights[0].pos = gun_tip;
+        }
+
+        // update: vfx flash
+
+        std::vector<std::reference_wrapper<GameObject2D>> vfx_flash_objects;
+        vfx_flash_objects.insert(vfx_flash_objects.end(), gs.entities_player.begin(), gs.entities_player.end());
+        vfx_flash_objects.insert(vfx_flash_objects.end(), gs.entities_enemies.begin(), gs.entities_enemies.end());
+        vfx_flash_objects.push_back(gs.weapon_pistol);
+
+        for (auto& obj : vfx_flash_objects) {
+          if (obj.get().flash_time_left > 0.0f) {
+            obj.get().flash_time_left -= delta_time_s;
+            obj.get().colour = obj.get().flash_colour;
+          } else {
+            obj.get().colour = obj.get().original_colour;
+          }
+        }
+
+        // update: vfx screenshake
+
+        if (screenshake_time_left > 0.0f) {
+          screenshake_time_left -= delta_time_s;
+          instanced_quad_shader.bind();
+          instanced_quad_shader.set_bool("shake", true);
+        }
+        if (screenshake_time_left <= 0.0f) {
+          instanced_quad_shader.bind();
+          instanced_quad_shader.set_bool("shake", false);
+        }
+
+        // update: vfx fade
+
+        for (auto& go : gs.entities_vfx) {
+          go.colour.a = go.time_alive_left / go.time_alive;
         }
 
         { // object lifecycle
@@ -803,7 +812,7 @@ main()
           int num_lights = 1;
           instanced_quad_shader.set_int("num_lights", num_lights);
 
-          glm::vec2 l1_pos = gameobject_in_worldspace(gs.camera, point_lights[0]);
+          glm::vec2 l1_pos = convert_top_left_to_centre(point_lights[0]);
           l1_pos = glm::vec3(l1_pos.x, glm::abs(l1_pos.y - screen_wh.y), 0.0f);
           instanced_quad_shader.set_bool("light_enabled[0]", true);
           instanced_quad_shader.set_vec3("light_pos[0]", glm::vec3(l1_pos, 0.0f));

@@ -15,6 +15,13 @@ gameobject_in_worldspace(const GameObject2D& camera, const GameObject2D& go)
   return go.pos - camera.pos;
 }
 
+glm::ivec2
+convert_top_left_to_centre(const GameObject2D& go)
+{
+  glm::ivec2 half = glm::ivec2(int(go.physics_size.x / 2.0f), int(go.physics_size.y / 2.0f));
+  return go.pos + half;
+}
+
 bool
 gameobject_off_screen(glm::vec2 pos, glm::vec2 size, const glm::ivec2& screen_size)
 {
@@ -164,6 +171,8 @@ create_enemy(fightingengine::RandomState& rnd)
   // default
   game_object.collision_layer = CollisionLayer::Enemy;
   game_object.name = "enemy";
+  game_object.flash_colour = enemy_impact_colour;
+  game_object.original_colour = enemy_colour;
 
   // roll a dice for ai
   float rand = fightingengine::rand_det_s(rnd.rng, 0.0f, 1.0f);
@@ -225,20 +234,11 @@ create_player(sprite::type sprite, int tex_slot, glm::vec4 colour, glm::vec2 scr
   game_object.invulnerable = false;
   game_object.damage_able_to_be_taken = 10;
   game_object.bullet_seconds_between_spawning = 1.0f;
+  game_object.flash_colour = enemy_colour;
+  game_object.original_colour = player_colour;
+
   return game_object;
 };
-
-GameObject2D
-create_kennynl_texture()
-{
-  GameObject2D game_object;
-  game_object.name = "texture_sheet";
-  game_object.pos = { 0.0f, 20.0f };
-  game_object.colour = glm::vec4(1.0f, 1.0f, 1.0f, 1.0f);
-  game_object.sprite = sprite::type::SQUARE;
-  game_object.tex_slot = tex_unit_kenny_nl;
-  return game_object;
-}
 
 GameObject2D
 create_weapon(sprite::type sprite, int tex_slot, glm::vec4 colour)
@@ -250,6 +250,9 @@ create_weapon(sprite::type sprite, int tex_slot, glm::vec4 colour)
   game_object.collision_layer = CollisionLayer::Weapon;
   game_object.colour = colour;
   game_object.do_render = false;
+  game_object.flash_colour = weapon_pistol_flash_colour;
+  game_object.original_colour = weapon_pistol_colour;
+
   return game_object;
 }
 

@@ -219,13 +219,13 @@ struct spritemap
     ret[type::WEAPON_DAGGER_SOLID_3] = { -fightingengine::PI / 4.0f };
 
     // row 9
-    ret[type::WEAPON_PISTOL] = { -fightingengine::PI / 2.0f };
-    ret[type::WEAPON_RAY_PISTOL] = { -fightingengine::PI / 2.0f };
-    ret[type::WEAPON_SHOTGUN] = { -fightingengine::PI / 2.0f };
-    ret[type::WEAPON_SUB_MACHINE_GUN] = { -fightingengine::PI / 2.0f };
-    ret[type::WEAPON_MINI_UZI] = { -fightingengine::PI / 2.0f };
-    ret[type::WEAPON_MP5] = { -fightingengine::PI / 2.0f };
-    ret[type::WEAPON_RPG] = { -fightingengine::PI / 2.0f };
+    ret[type::WEAPON_PISTOL] = { 0.0f };
+    ret[type::WEAPON_RAY_PISTOL] = { 0.0f };
+    ret[type::WEAPON_SHOTGUN] = { 0.0f };
+    ret[type::WEAPON_SUB_MACHINE_GUN] = { 0.0f };
+    ret[type::WEAPON_MINI_UZI] = { 0.0f };
+    ret[type::WEAPON_MP5] = { 0.0f };
+    ret[type::WEAPON_RPG] = { 0.0f };
 
     return ret;
   }

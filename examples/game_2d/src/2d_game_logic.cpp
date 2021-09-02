@@ -21,51 +21,12 @@
 
 namespace game2d {
 
-glm::ivec2
-convert_top_left_to_centre(GameObject2D& go)
-{
-  glm::ivec2 half = glm::ivec2(int(go.physics_size.x / 2.0f), int(go.physics_size.y / 2.0f));
-  return go.pos + half;
-}
-
-void
-bullet::update(GameObject2D& obj, float delta_time_s)
-{
-  gameobject::update_position_x(obj, delta_time_s);
-  gameobject::update_position_y(obj, delta_time_s);
-
-  // look in velocity direction
-  // float angle = atan2(obj.velocity.y, obj.velocity.x);
-  // angle += fightingengine::HALF_PI + sprite::spritemap::get_sprite_rotation_offset(obj.sprite);
-};
-
-void
-camera::update(GameObject2D& camera, KeysAndState& keys, fightingengine::Application& app, float delta_time_s)
-{
-  // go.pos = glm::vec2(other.pos.x - screen_width / 2.0f, other.pos.y - screen_height / 2.0f);
-  // camera.velocity.x = 1.0f;
-  if (app.get_input().get_key_held(keys.key_camera_left)) {
-    gameobject::update_position_x(camera, delta_time_s);
-  }
-  if (app.get_input().get_key_held(keys.key_camera_right)) {
-    gameobject::update_position_x(camera, delta_time_s);
-  }
-  if (app.get_input().get_key_held(keys.key_camera_up)) {
-    gameobject::update_position_y(camera, delta_time_s);
-  }
-  if (app.get_input().get_key_held(keys.key_camera_down)) {
-    gameobject::update_position_y(camera, delta_time_s);
-  }
-};
-
 void
 enemy_ai::move_along_vector(GameObject2D& obj, glm::vec2 dir, float delta_time_s)
 {
   dir = glm::normalize(dir);
   obj.velocity.x = dir.x * obj.speed_current;
   obj.velocity.y = dir.y * obj.speed_current;
-  gameobject::update_position_x(obj, delta_time_s);
-  gameobject::update_position_y(obj, delta_time_s);
 };
 
 void
@@ -352,7 +313,6 @@ update_input(GameObject2D& obj, KeysAndState& keys, fightingengine::Application&
     float x = app.get_input().get_mouse_pos().x - player_world_space_pos.x;
     float mouse_angle_around_player = atan2(y, x);
 
-    mouse_angle_around_player += fightingengine::HALF_PI;
     keys.angle_around_player = mouse_angle_around_player;
 
     float x_axis = glm::sin(mouse_angle_around_player);
@@ -409,7 +369,7 @@ ability_slash(fightingengine::Application& app,
               MeleeWeaponStats& s,
               std::vector<Attack>& attacks)
 {
-  if (app.get_input().get_mouse_lmb_down()) {
+  if (keys.shoot_down) {
     s.slash_attack_time_left = s.slash_attack_time;
     s.attack_left_to_right = !s.attack_left_to_right; // keep swapping left to right to right to left etc
 
@@ -473,20 +433,47 @@ ability_shoot(GameObject2D& fire_from_this_entity,
               const glm::vec4 bullet_col,
               const sprite::type sprite,
               RangedWeaponStats& s,
-              std::vector<Attack>& attacks)
+              std::vector<Attack>& attacks,
+              fightingengine::RandomState& rnd)
 {
   s.current_ammo -= 1;
   fire_from_this_entity.flash_time_left = 0.2f;
 
   // spawn bullet
   GameObject2D bullet_copy = gameobject::create_bullet(sprite, bullet_col);
-  bullet_copy.pos = convert_top_left_to_centre(fire_from_this_entity);
-  bullet_copy.pos.x -= bullet_copy.physics_size.x / 2.0f;
-  bullet_copy.pos.y -= bullet_copy.physics_size.y / 2.0f;
+
+  // position bullet
+  {
+    const glm::vec2 center = convert_top_left_to_centre(fire_from_this_entity);
+    const glm::vec2 center_corrected = center - (glm::vec2(bullet_copy.physics_size) / 2.0f);
+
+    constexpr glm::vec2 flash_offset = { 16.0f, 16.0f }; // from top left
+    const float radius = glm::length(flash_offset);
+    const float angle = fire_from_this_entity.angle_radians;
+    std::cout << "angle: " << keys.angle_around_player << std::endl;
+
+    glm::ivec2 gun_tip = rotate_b_around_a(fire_from_this_entity, bullet_copy, radius, angle);
+
+    bullet_copy.pos = gun_tip;
+  }
 
   // convert right analogue input to velocity
-  bullet_copy.velocity.x = keys.r_analogue_x * bullet_copy.speed_current;
-  bullet_copy.velocity.y = keys.r_analogue_y * bullet_copy.speed_current;
+  {
+    // bullet_copy.velocity.x = keys.r_analogue_x * bullet_copy.speed_current;
+    // bullet_copy.velocity.y = keys.r_analogue_y * bullet_copy.speed_current;
+    const float velocity_as_angle = atan2(keys.r_analogue_y, keys.r_analogue_x) + fightingengine::PI;
+
+    // add some randomness to the bullet's direction
+    // todo: replace complete randomness with a recoil factor.
+    constexpr float angle_min_max = 10.0f * fightingengine::PI / 180.0f;
+    const float random_angle = fightingengine::rand_det_s(rnd.rng, -angle_min_max, angle_min_max);
+
+    const float new_angle = velocity_as_angle + random_angle;
+    const float rand_x_vel = glm::sin(new_angle);
+    const float rand_y_vel = -glm::cos(new_angle);
+    bullet_copy.velocity.x = rand_x_vel * bullet_copy.speed_current;
+    bullet_copy.velocity.y = rand_y_vel * bullet_copy.speed_current;
+  }
   bullets.push_back(bullet_copy);
 
   // Create an attack ID
@@ -495,13 +482,39 @@ ability_shoot(GameObject2D& fire_from_this_entity,
   attacks.push_back(a);
 };
 
+glm::ivec2
+player::rotate_b_around_a(const GameObject2D& a, const GameObject2D& b, float radius, float angle)
+{
+  const glm::vec2 center{ 0.0f, 0.0f };
+  const glm::vec2 offset = glm::vec2(center.x + radius * cos(angle), center.y + radius * sin(angle));
+
+  // Position b in a circle around the a, and render the b in it's center.
+  const glm::vec2 pos = convert_top_left_to_centre(a);
+  const glm::vec2 rot_pos = pos + offset - (glm::vec2(b.physics_size) / 2.0f);
+
+  return glm::ivec2(int(rot_pos.x), int(rot_pos.y));
+}
+
+void
+position_around_player(GameObject2D& player, GameObject2D& weapon, RangedWeaponStats& stats, KeysAndState& keys)
+{
+  weapon.do_render = true;
+  weapon.angle_radians = keys.angle_around_player;
+
+  const int radius = stats.radius_offset_from_player;
+  const float angle = keys.angle_around_player;
+  glm::vec2 rot_pos = rotate_b_around_a(player, weapon, float(radius), angle);
+  weapon.pos = rot_pos;
+};
+
 void
 player_attack(fightingengine::Application& app,
               GameObject2D& player,
               MutableGameState& gs,
               std::vector<ShopItem>& player_inventory,
               KeysAndState& keys,
-              const float delta_time_s)
+              const float delta_time_s,
+              fightingengine::RandomState& rnd)
 {
   gs.weapon_shovel.do_render = false;
   gs.weapon_pistol.do_render = false;
@@ -517,63 +530,32 @@ player_attack(fightingengine::Application& app,
     GameObject2D& weapon = gs.weapon_pistol;
     RangedWeaponStats& stats = gs.stats_pistol;
 
-    weapon.do_render = true;
-    weapon.angle_radians = keys.angle_around_player + sprite::spritemap::get_sprite_rotation_offset(weapon.sprite);
-
-    const float radius = gs.stats_pistol.radius_offset_from_player;
-    const float angle = keys.angle_around_player;
-    const glm::vec2 offset = glm::vec2(radius * sin(angle), -radius * cos(angle));
-
-    // Position the gun in a circle around the player, render the gun in it's center.
-    const glm::vec2 player_center = convert_top_left_to_centre(player);
-    weapon.pos = player_center + offset;
-    weapon.pos.x -= weapon.physics_size.x / 2.0f;
-    weapon.pos.y -= weapon.physics_size.y / 2.0f;
+    position_around_player(player, weapon, stats, keys);
 
     if ((stats.infinite_ammo || stats.current_ammo > 0) && keys.shoot_down) {
-      ability_shoot(weapon, keys, gs.entities_bullets, bullet_pistol_colour, sprite_bullet, stats, gs.attacks);
+      ability_shoot(weapon, keys, gs.entities_bullets, bullet_pistol_colour, sprite_bullet, stats, gs.attacks, rnd);
     }
   }
 
   if (player_inventory[player.equipped_item_index] == ShopItem::SHOTGUN) {
-    gs.weapon_shotgun.do_render = true;
-    glm::ivec2 offset = glm::vec2(int(gs.stats_shotgun.radius_offset_from_player * sin(keys.angle_around_player)),
-                                  int(-gs.stats_shotgun.radius_offset_from_player * cos(keys.angle_around_player)));
-    gs.weapon_shotgun.pos = player.pos + offset;
-    gs.weapon_shotgun.angle_radians =
-      keys.angle_around_player + sprite::spritemap::get_sprite_rotation_offset(gs.weapon_shotgun.sprite);
+    GameObject2D& weapon = gs.weapon_shotgun;
+    RangedWeaponStats& stats = gs.stats_shotgun;
 
-    if (gs.stats_shotgun.infinite_ammo || gs.stats_shotgun.current_ammo > 0) {
-      if (app.get_input().get_mouse_lmb_down()) {
-        ability_shoot(gs.weapon_shotgun,
-                      keys,
-                      gs.entities_bullets,
-                      bullet_shotgun_colour,
-                      sprite_bullet,
-                      gs.stats_shotgun,
-                      gs.attacks);
-      }
+    position_around_player(player, weapon, stats, keys);
+
+    if ((stats.infinite_ammo || stats.current_ammo > 0) && keys.shoot_down) {
+      ability_shoot(weapon, keys, gs.entities_bullets, bullet_shotgun_colour, sprite_bullet, stats, gs.attacks, rnd);
     }
   }
 
   if (player_inventory[player.equipped_item_index] == ShopItem::MACHINEGUN) {
-    gs.weapon_machinegun.do_render = true;
-    glm::ivec2 offset = glm::ivec2(int(gs.stats_machinegun.radius_offset_from_player * sin(keys.angle_around_player)),
-                                   int(-gs.stats_machinegun.radius_offset_from_player * cos(keys.angle_around_player)));
-    gs.weapon_machinegun.pos = player.pos + offset;
-    gs.weapon_machinegun.angle_radians =
-      keys.angle_around_player + sprite::spritemap::get_sprite_rotation_offset(gs.weapon_machinegun.sprite);
+    GameObject2D& weapon = gs.weapon_machinegun;
+    RangedWeaponStats& stats = gs.stats_machinegun;
 
-    if (gs.stats_machinegun.infinite_ammo || gs.stats_machinegun.current_ammo > 0) {
-      if (app.get_input().get_mouse_lmb_down()) {
-        ability_shoot(gs.weapon_machinegun,
-                      keys,
-                      gs.entities_bullets,
-                      bullet_machinegun_colour,
-                      sprite_bullet,
-                      gs.stats_machinegun,
-                      gs.attacks);
-      }
+    position_around_player(player, weapon, stats, keys);
+
+    if ((stats.infinite_ammo || stats.current_ammo > 0) && keys.shoot_down) {
+      ability_shoot(weapon, keys, gs.entities_bullets, bullet_machinegun_colour, sprite_bullet, stats, gs.attacks, rnd);
     }
   }
 }
