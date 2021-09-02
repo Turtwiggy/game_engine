@@ -37,9 +37,9 @@ using namespace fightingengine;
 #include "2d_game_config.hpp"
 #include "2d_game_logic.hpp"
 #include "2d_game_object.hpp"
+#include "2d_lighting.hpp"
 #include "2d_physics.hpp"
 #include "2d_vfx.hpp"
-#include "lighting.hpp"
 #include "opengl/sprite_renderer.hpp"
 #include "opengl/triangle_fan.hpp"
 #include "spritemap.hpp"
@@ -78,11 +78,43 @@ add_players(MutableGameState& state, glm::ivec2 screen_wh)
   state.player_inventories.push_back(p0_inventory);
 }
 
+void
+add_lighting(MutableGameState& state, glm::ivec2 screen_wh)
+{
+  SceneicPointLight point_light_0;
+  point_light_0.light_object = gameobject::create_light();
+  // point_light_0.light_object.pos = { int(screen_wh.x / 2.0f), int(screen_wh.y / 2.0f) };
+  point_light_0.light_object.pos = { int(0), int(0) };
+
+  SceneicPointLight point_light_1;
+  point_light_1.light_object = gameobject::create_light();
+  point_light_1.light_object.pos = { int(screen_wh.x), int(0) };
+
+  SceneicPointLight point_light_2;
+  point_light_2.light_object = gameobject::create_light();
+  point_light_2.light_object.pos = { int(0), int(screen_wh.y) };
+
+  SceneicPointLight point_light_3;
+  point_light_3.light_object = gameobject::create_light();
+  point_light_3.light_object.pos = { int(screen_wh.x), int(screen_wh.y) };
+
+  SceneicPointLight point_light_4;
+  point_light_4.light_object = gameobject::create_light();
+  point_light_4.light_object.pos = { int(screen_wh.x / 2.0f), int(screen_wh.y / 2.0f) };
+
+  state.point_lights.push_back(point_light_0);
+  state.point_lights.push_back(point_light_1);
+  state.point_lights.push_back(point_light_2);
+  state.point_lights.push_back(point_light_3);
+  state.point_lights.push_back(point_light_4);
+}
+
 MutableGameState
 reset_game(glm::ivec2 screen_wh)
 {
   MutableGameState default_state;
   add_players(default_state, screen_wh);
+  add_lighting(default_state, screen_wh);
   return default_state;
 }
 
@@ -123,10 +155,10 @@ main()
                                 "assets/2d_game/textures/kennynl_1bit_pack/monochrome_transparent_packed.png");
   std::vector<unsigned int> texture_ids = load_textures_threaded(textures_to_load, app_start);
 
-  unsigned int fbo_main_scene = Framebuffer::create_fbo();
-  unsigned int tex_id_main_scene = create_texture(screen_wh, tex_unit_main_scene, fbo_main_scene);
-  unsigned int fbo_lighting = Framebuffer::create_fbo();
-  unsigned int tex_id_lighting = create_texture(screen_wh, tex_unit_lighting, fbo_lighting);
+  const unsigned int fbo_main_scene = Framebuffer::create_fbo();
+  const unsigned int tex_id_main_scene = create_texture(screen_wh, tex_unit_main_scene, fbo_main_scene);
+  const unsigned int fbo_lighting = Framebuffer::create_fbo();
+  const unsigned int tex_id_lighting = create_texture(screen_wh, tex_unit_lighting, fbo_lighting);
 
   // sound
 
@@ -154,47 +186,14 @@ main()
   sprite_renderer::init();
   triangle_fan_renderer::init();
   print_gpu_info();
-
   glm::mat4 projection =
     glm::ortho(0.0f, static_cast<float>(screen_wh.x), static_cast<float>(screen_wh.y), 0.0f, -1.0f, 1.0f);
-
   Shader colour_shader = Shader("2d_game/shaders/2d_basic.vert", "2d_game/shaders/2d_colour.frag");
-  colour_shader.bind();
-
   Shader fan_shader = Shader("2d_game/shaders/2d_basic_with_proj.vert", "2d_game/shaders/2d_colour.frag");
-
   Shader instanced_quad_shader = Shader("2d_game/shaders/2d_instanced.vert", "2d_game/shaders/2d_instanced.frag");
   instanced_quad_shader.bind();
   int textures[3] = { tex_unit_kenny_nl, tex_unit_main_scene, tex_unit_lighting };
   instanced_quad_shader.set_int_array("textures", textures, 3);
-
-  // lighting
-
-  // distance 200
-  // const float light_linear = 0.022f;
-  // const float light_quadratic = 0.0019f;
-  // distance 325
-  // const float light_linear = 0.014f;
-  // const float light_quadratic = 0.0007f;
-  // distance 600
-  // const float light_linear = 0.007f;
-  // const float light_quadratic = 0.0002f;
-  // distance 3250
-  // const float light_linear = 0.0014f;
-  // const float light_quadratic =  0.000007f;
-  // temp
-  static float linear = 0.0014f;
-  static float quadratic = 0.000007f;
-
-  std::vector<GameObject2D> point_lights;
-  {
-    GameObject2D point_light;
-    point_light.pos = { int(screen_wh.x / 2.0f), int(screen_wh.y / 2.0f) };
-    point_light.render_size = { 4.0f, 4.0f };
-    point_light.sprite = sprite::type::SQUARE;
-    point_lights.push_back(point_light);
-    point_lights.push_back(point_light);
-  }
 
   // Game
 
@@ -285,8 +284,6 @@ main()
         instanced_quad_shader.set_bool("shake", false);
       }
 
-#endif // _DEBUG
-
       if (app.get_input().get_key_down(SDL_SCANCODE_RETURN)) {
         gs.entities_enemies.clear();
         gs.enemies_to_spawn_this_wave_left = 0;
@@ -302,66 +299,47 @@ main()
         instanced_quad_shader.set_int_array("textures", textures, 3);
       }
 
-      float mousewheel = app.get_input().get_mousewheel_y();
-      float epsilon = 0.0001f;
-      if (mousewheel > epsilon || mousewheel < -epsilon) {
-        // int wheel_int = static_cast<int>(mousewheel);
-        // std::cout << "wheel int: " << wheel_int << std::endl;
-        bool positive_direction = mousewheel > 0;
+#endif // _DEBUG
 
-        // cycle through weapons for p0
-        GameObject2D& p0 = gs.entities_player[0];
-        auto& p0_inventory = gs.player_inventories[0];
-        int cur_item_index = p0.equipped_item_index;
-        if (positive_direction)
-          cur_item_index = (cur_item_index + 1) % p0_inventory.size();
-        else if (cur_item_index == 0)
-          cur_item_index = static_cast<int>(p0_inventory.size() - 1);
-        else
-          cur_item_index = (cur_item_index - 1) % p0_inventory.size();
+      GameObject2D& p0 = gs.entities_player[0];
+      auto& p0_inventory = gs.player_inventories[0];
+      player::scroll_to_swap_weapons(app, p0, p0_inventory);
 
-        p0.equipped_item_index = cur_item_index;
-        // std::cout << "equipping item: " << cur_item_index << "mouse was pos: " << positive_direction << std::endl;
-      }
+      // TODO: GRID STUFF
+      // if (app.get_input().get_mouse_rmb_down()) {
+      //   if (gs.editor_left_click_mode == EditorMode::PLAYER_ATTACK)
+      //     gs.editor_left_click_mode = EditorMode::EDITOR_PLACE_MODE;
+      //   else if (gs.editor_left_click_mode == EditorMode::EDITOR_PLACE_MODE)
+      //     gs.editor_left_click_mode = EditorMode::EDITOR_SELECT_MODE;
+      //   else if (gs.editor_left_click_mode == EditorMode::EDITOR_SELECT_MODE)
+      //     gs.editor_left_click_mode = EditorMode::PLAYER_ATTACK;
+      //   auto mode = std::string(magic_enum::enum_name(gs.editor_left_click_mode));
+      //   std::cout << "editor mode: " << mode << std::endl;
+      // }
+      // bool lmb_clicked = app.get_input().get_mouse_lmb_down();
+      // if (lmb_clicked && gs.editor_left_click_mode == EditorMode::EDITOR_PLACE_MODE) {
+      //   glm::ivec2 mouse_pos = app.get_input().get_mouse_pos();
+      //   printf("(game) clicked gamegrid %i %i \n", mouse_pos.x, mouse_pos.y);
+      //   glm::ivec2 world_pos = mouse_pos + gs.camera.pos;
+      //   GameObject2D tree = gameobject::create_tree();
+      //   tree.pos = grid::convert_world_space_to_grid_space(world_pos, GAME_GRID_SIZE);
+      //   tree.pos = grid::convert_grid_space_to_worldspace(tree.pos, GAME_GRID_SIZE);
+      //   tree.render_size = glm::ivec2(GAME_GRID_SIZE);
+      //   tree.physics_size = glm::ivec2(GAME_GRID_SIZE);
+      //   gs.entities_trees.push_back(tree);
+      // }
 
-      if (app.get_input().get_mouse_rmb_down()) {
-
-        if (gs.editor_left_click_mode == EditorMode::PLAYER_ATTACK)
-          gs.editor_left_click_mode = EditorMode::EDITOR_PLACE_MODE;
-        else if (gs.editor_left_click_mode == EditorMode::EDITOR_PLACE_MODE)
-          gs.editor_left_click_mode = EditorMode::EDITOR_SELECT_MODE;
-        else if (gs.editor_left_click_mode == EditorMode::EDITOR_SELECT_MODE)
-          gs.editor_left_click_mode = EditorMode::PLAYER_ATTACK;
-
-        auto mode = std::string(magic_enum::enum_name(gs.editor_left_click_mode));
-        std::cout << "editor mode: " << mode << std::endl;
-      }
-
-      bool lmb_clicked = app.get_input().get_mouse_lmb_down();
-      if (lmb_clicked && gs.editor_left_click_mode == EditorMode::EDITOR_PLACE_MODE) {
-
-        glm::ivec2 mouse_pos = app.get_input().get_mouse_pos();
-        printf("(game) clicked gamegrid %i %i \n", mouse_pos.x, mouse_pos.y);
-        glm::ivec2 world_pos = mouse_pos + gs.camera.pos;
-
-        GameObject2D tree = gameobject::create_tree();
-        tree.pos = grid::convert_world_space_to_grid_space(world_pos, GAME_GRID_SIZE);
-        tree.pos = grid::convert_grid_space_to_worldspace(tree.pos, GAME_GRID_SIZE);
-        tree.render_size = glm::ivec2(GAME_GRID_SIZE);
-        tree.physics_size = glm::ivec2(GAME_GRID_SIZE);
-
-        gs.entities_trees.push_back(tree);
-      }
-
-      if (app.get_input().get_key_down(SDL_SCANCODE_ESCAPE)) {
-        if (ui_esc_menu) {
-          std::cout << "unpausing game" << std::endl;
-          gs.game_running = GameRunning::ACTIVE;
-          ui_esc_menu = false;
-        } else {
-          std::cout << "pause game and showing menu" << std::endl;
-          gs.game_running = GameRunning::PAUSED;
-          ui_esc_menu = true;
+      { // Pause menu
+        if (app.get_input().get_key_down(SDL_SCANCODE_ESCAPE)) {
+          if (ui_esc_menu) {
+            std::cout << "unpausing game" << std::endl;
+            gs.game_running = GameRunning::ACTIVE;
+            ui_esc_menu = false;
+          } else {
+            std::cout << "pause game and showing menu" << std::endl;
+            gs.game_running = GameRunning::PAUSED;
+            ui_esc_menu = true;
+          }
         }
       }
     }
@@ -584,7 +562,7 @@ main()
           // player attacks
           bool player_able_to_attacking = gs.editor_left_click_mode == EditorMode::PLAYER_ATTACK;
           if (player_able_to_attacking) {
-            player::player_attack(app, player, gs, player_inventory, keys, delta_time_s, rnd);
+            player::player_attack(app, gs, player, player_inventory, keys, delta_time_s, rnd);
           }
 
           bool player_alive = player.invulnerable || player.damage_taken < player.damage_able_to_be_taken;
@@ -601,8 +579,8 @@ main()
           const float radius = glm::length(flash_offset);
           const float angle = gs.weapon_pistol.angle_radians;
 
-          glm::ivec2 gun_tip = player::rotate_b_around_a(gs.weapon_pistol, point_lights[0], radius, angle);
-          point_lights[0].pos = gun_tip;
+          // glm::ivec2 gun_tip = player::rotate_b_around_a(gs.weapon_pistol, point_lights[0], radius, angle);
+          // point_lights[0].pos = gun_tip;
         }
 
         // update: vfx flash
@@ -774,7 +752,6 @@ main()
           renderables.push_back(gs.weapon_shotgun);
           renderables.push_back(gs.weapon_machinegun);
           renderables.insert(renderables.end(), gs.entities_trees.begin(), gs.entities_trees.end());
-          renderables.insert(renderables.end(), point_lights.begin(), point_lights.end());
 
           for (auto& obj : renderables) {
             if (!obj.get().do_render)
@@ -808,22 +785,23 @@ main()
         instanced_quad_shader.set_int("screen_w", screen_wh.x);
         instanced_quad_shader.set_int("screen_h", screen_wh.y);
         instanced_quad_shader.set_bool("do_spritesheet", false);
-        {
-          int num_lights = 1;
-          instanced_quad_shader.set_int("num_lights", num_lights);
+        { // send light positions to shader
+          const int max_lights = 32;
+          int i = 0;
+          for (i = 0; i < gs.point_lights.size(); i++) {
+            auto& light = gs.point_lights[i];
 
-          glm::vec2 l1_pos = convert_top_left_to_centre(point_lights[0]);
-          l1_pos = glm::vec3(l1_pos.x, glm::abs(l1_pos.y - screen_wh.y), 0.0f);
-          instanced_quad_shader.set_bool("light_enabled[0]", true);
-          instanced_quad_shader.set_vec3("light_pos[0]", glm::vec3(l1_pos, 0.0f));
-          instanced_quad_shader.set_float("light_linear[0]", linear);
-          instanced_quad_shader.set_float("light_quadratic[0]", quadratic);
-          // glm::vec2 l2_pos = gameobject_in_worldspace(gs.camera, point_lights[1]);
-          // l2_pos = glm::vec3(l2_pos.x, glm::abs(l2_pos.y - screen_wh.y), 0.0f);
-          // instanced_quad_shader.set_bool("light_enabled[1]", true);
-          // instanced_quad_shader.set_vec3("light_pos[1]", glm::vec3(l2_pos, 0.0f));
-          // instanced_quad_shader.set_float("light_linear[1]", 0.0014f);
-          // instanced_quad_shader.set_float("light_quadratic[1]", 0.000007f);
+            glm::vec2 light_pos = convert_top_left_to_centre(light.light_object);
+            light_pos = glm::vec3(light_pos.x, glm::abs(light_pos.y - screen_wh.y), 0.0f); // flip
+
+            instanced_quad_shader.set_bool("light_enabled[" + std::to_string(i) + "]", true);
+            instanced_quad_shader.set_vec3("light_pos[" + std::to_string(i) + "]", glm::vec3(light_pos, 0.0f));
+            instanced_quad_shader.set_float("light_linear[" + std::to_string(i) + "]", light.linear);
+            instanced_quad_shader.set_float("light_quadratic[" + std::to_string(i) + "]", light.quadratic);
+          }
+          for (int j = max_lights - 1; j > i; j--) {
+            instanced_quad_shader.set_bool("light_enabled[" + std::to_string(j) + "]", false);
+          }
         }
 
         { // draw single quad as entire screen
@@ -914,6 +892,8 @@ main()
             if (temp != ui_fullscreen) {
               std::cout << "ui_fullscreen toggled to: " << temp << std::endl;
               toggle_fullscreen(app, screen_wh, projection, tex_id_lighting, tex_id_main_scene);
+              gs.point_lights.clear();
+              add_lighting(gs, screen_wh);
             }
             ui_fullscreen = temp;
           }
@@ -1035,24 +1015,23 @@ main()
       // ui: debug game
 
       ImGui::Begin("Debug");
-      ImGui::InputFloat("linear", &linear, 0.0f, 0.0f, "%.10f");
-      ImGui::InputFloat("quadratic", &quadratic, 0.0f, 0.0f, "%.10f");
-      ImGui::Text("Player Pos: %i %i", gs.entities_player[0].pos.x, gs.entities_player[0].pos.y);
-      ImGui::Text("Player Size: %i %i", gs.entities_player[0].render_size.x, gs.entities_player[0].render_size.y);
-
-      ImGui::Text("Players: %i", gs.entities_player.size());
-      ImGui::Text("Bullets: %i", gs.entities_bullets.size());
-      ImGui::Text("Enemies: %i", gs.entities_enemies.size());
-      ImGui::Text("Trees: %i", gs.entities_trees.size());
-      ImGui::Text("Vfx: %i", gs.entities_vfx.size());
-      ImGui::Text("Attacks: %i", gs.attacks.size());
-      ImGui::Text("controllers %i", SDL_NumJoysticks());
-
-      ImGui::BeginChild("GameRender");
-      ImGui::Image(
-        (ImTextureID)texture_ids[0], { spritesheet_width, spritesheet_height }, ImVec2(0.0f, 0.0f), ImVec2(1.0f, 1.0f));
-      ImGui::EndChild();
-
+      {
+        ImGui::Text("Player Pos: %i %i", gs.entities_player[0].pos.x, gs.entities_player[0].pos.y);
+        ImGui::Text("Player Size: %i %i", gs.entities_player[0].render_size.x, gs.entities_player[0].render_size.y);
+        ImGui::Text("Players: %i", gs.entities_player.size());
+        ImGui::Text("Bullets: %i", gs.entities_bullets.size());
+        ImGui::Text("Enemies: %i", gs.entities_enemies.size());
+        ImGui::Text("Trees: %i", gs.entities_trees.size());
+        ImGui::Text("Vfx: %i", gs.entities_vfx.size());
+        ImGui::Text("Attacks: %i", gs.attacks.size());
+        ImGui::Text("controllers %i", SDL_NumJoysticks());
+        ImGui::BeginChild("GameRender");
+        ImGui::Image((ImTextureID)texture_ids[0],
+                     { spritesheet_width, spritesheet_height },
+                     ImVec2(0.0f, 0.0f),
+                     ImVec2(1.0f, 1.0f));
+        ImGui::EndChild();
+      }
       ImGui::End();
     }
     profiler.end(Profiler::Stage::GuiLoop);

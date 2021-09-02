@@ -13,6 +13,7 @@
 // game headers
 #include "2d_game_config.hpp"
 #include "2d_game_object.hpp"
+#include "2d_lighting.hpp"
 #include "2d_physics.hpp"
 #include "spritemap.hpp"
 
@@ -38,9 +39,6 @@ namespace enemy_spawner {
 void
 next_wave(int& enemies_to_spawn_this_wave, int& enemies_to_spawn_this_wave_left, int& wave);
 
-void
-spawn_enemy(std::vector<GameObject2D>& enemies, fightingengine::RandomState& rnd, glm::vec2 world_pos);
-
 // spawn a random enemy every X seconds
 void
 update(MutableGameState& state, fightingengine::RandomState& rnd, const glm::ivec2 screen_wh, const float delta_time_s);
@@ -51,6 +49,9 @@ namespace player {
 
 glm::ivec2
 rotate_b_around_a(const GameObject2D& a, const GameObject2D& b, float radius, float angle);
+
+void
+scroll_to_swap_weapons(fightingengine::Application& app, GameObject2D& player, std::vector<ShopItem>& inventory);
 
 void
 update_input(GameObject2D& obj, KeysAndState& keys, fightingengine::Application& app, GameObject2D& camera);
@@ -69,8 +70,8 @@ ability_slash(fightingengine::Application& app,
 
 void
 player_attack(fightingengine::Application& app,
-              GameObject2D& player,
               MutableGameState& gs,
+              GameObject2D& player,
               std::vector<ShopItem>& player_inventory,
               KeysAndState& keys,
               const float delta_time_s,
@@ -143,6 +144,7 @@ struct MutableGameState
   std::vector<GameObject2D> entities_vfx;
   std::vector<KeysAndState> player_keys;
   std::vector<std::vector<ShopItem>> player_inventories;
+  std::vector<PointLight> point_lights;
 };
 
 }; // namespace game2d

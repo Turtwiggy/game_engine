@@ -198,7 +198,16 @@ create_generic()
   game_object.tex_slot = tex_unit_kenny_nl;
   game_object.colour = { 0.0f, 0.0f, 1.0f, 1.0f };
   return game_object;
-}
+};
+
+GameObject2D
+create_light()
+{
+  GameObject2D game_object;
+  game_object.render_size = { 4.0f, 4.0f };
+  game_object.sprite = sprite::type::SQUARE;
+  return game_object;
+};
 
 GameObject2D
 create_tree()
@@ -213,7 +222,7 @@ create_tree()
   game_object.colour = { 0.25f, 1.0f, 0.25f, 1.0f };
   game_object.damage_able_to_be_taken = 1;
   return game_object;
-}
+};
 
 GameObject2D
 create_player(sprite::type sprite, int tex_slot, glm::vec4 colour, glm::vec2 screen)
@@ -254,7 +263,7 @@ create_weapon(sprite::type sprite, int tex_slot, glm::vec4 colour)
   game_object.original_colour = weapon_pistol_colour;
 
   return game_object;
-}
+};
 
 } // namespace gameobject
 

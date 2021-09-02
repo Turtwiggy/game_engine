@@ -288,6 +288,9 @@ GameObject2D
 create_enemy(fightingengine::RandomState& rnd);
 
 GameObject2D
+create_light();
+
+GameObject2D
 create_tree();
 
 GameObject2D

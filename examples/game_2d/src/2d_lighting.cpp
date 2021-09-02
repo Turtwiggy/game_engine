@@ -1,5 +1,5 @@
 // header
-#include "lighting.hpp"
+#include "2d_lighting.hpp"
 
 // standard lib headers
 #include <array>
