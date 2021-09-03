@@ -5,7 +5,7 @@
 #include <iostream>
 
 // game headers
-#include "2d_game_config.hpp"
+#include "constants.hpp"
 
 namespace game2d {
 
@@ -217,8 +217,8 @@ create_tree()
   game_object.name = "tree";
   game_object.tex_slot = tex_unit_kenny_nl;
   game_object.sprite = sprite_tree;
-  game_object.render_size = { 32.0f, 32.0f };
-  game_object.physics_size = { 32.0f, 32.0f };
+  game_object.render_size = { PIXELS_TO_RENDER, PIXELS_TO_RENDER };
+  game_object.physics_size = { PIXELS_TO_RENDER, PIXELS_TO_RENDER };
   game_object.colour = { 0.25f, 1.0f, 0.25f, 1.0f };
   game_object.damage_able_to_be_taken = 1;
   return game_object;
@@ -266,49 +266,5 @@ create_weapon(sprite::type sprite, int tex_slot, glm::vec4 colour)
 };
 
 } // namespace gameobject
-
-MeleeWeaponStats
-create_shovel()
-{
-  MeleeWeaponStats s;
-  s.damage = 1;
-  return s;
-};
-
-RangedWeaponStats
-create_pistol()
-{
-  RangedWeaponStats r;
-  r.damage = 3;
-  r.radius_offset_from_player = 14.0f;
-  r.infinite_ammo = true;
-  r.current_ammo = 0;
-  r.fire_rate_seconds_limit = 0.2f;
-  return r;
-};
-
-RangedWeaponStats
-create_shotgun()
-{
-  RangedWeaponStats r;
-  r.damage = 5;
-  r.radius_offset_from_player = 17.5f;
-  r.infinite_ammo = false;
-  r.current_ammo = 0;
-  r.fire_rate_seconds_limit = 0.5f;
-  return r;
-};
-
-RangedWeaponStats
-create_machinegun()
-{
-  RangedWeaponStats r;
-  r.damage = 4;
-  r.radius_offset_from_player = 16.0f;
-  r.infinite_ammo = false;
-  r.current_ammo = 0;
-  r.fire_rate_seconds_limit = 0.3f;
-  return r;
-};
 
 } // namespace game2d

@@ -20,6 +20,7 @@ foreach(package ${ENGINE_PACKAGES})
   message("${PROJECT_NAME} finding package... ${package}")
   find_package(${package} REQUIRED)
 endforeach()
+find_package(EnTT CONFIG REQUIRED)
 
 # Add VCPKG header-only
 find_path(STB_INCLUDE_DIRS "stb.h")
@@ -53,6 +54,8 @@ foreach(library ${ENGINE_LINK_LIBS})
   message("${PROJECT_NAME} linking library... ${library}")
   target_link_libraries(game_2d PRIVATE ${library})
 endforeach()
+target_link_libraries(game_2d PRIVATE EnTT::EnTT)
+
 
 # Windows things
 IF(${CMAKE_SYSTEM_NAME} STREQUAL "Windows")

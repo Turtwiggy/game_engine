@@ -29,7 +29,6 @@ struct PointLight
   // const float light_quadratic =  0.000007f;
   float linear = 0.0014f;
   float quadratic = 0.000007f;
-
   bool cast_shadows = false;
 };
 
@@ -39,6 +38,7 @@ struct SceneicPointLight : public PointLight
   {
     this->linear = 0.0014f;
     this->quadratic = 0.000007f;
+    this->cast_shadows = true;
   };
 };
 
@@ -47,7 +47,7 @@ struct MuzzleFlashPointLight : public PointLight
   MuzzleFlashPointLight()
   {
     this->linear = 0.0014f;
-    this->quadratic = 0.000007f;
+    this->quadratic = 0.0019f;
   }
 };
 

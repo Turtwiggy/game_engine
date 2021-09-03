@@ -8,7 +8,7 @@
 
 constexpr int GAME_GRID_SIZE = 16;
 constexpr int PIXELS_ON_SHEET = 16;
-constexpr int PIXEL_SCALE_SIZE = 2;
+constexpr int PIXEL_SCALE_SIZE = 1;
 constexpr int PIXELS_TO_RENDER = PIXELS_ON_SHEET * PIXEL_SCALE_SIZE;
 constexpr int spritesheet_width = 768;
 constexpr int spritesheet_height = 352;

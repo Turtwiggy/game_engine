@@ -1,6 +1,6 @@
 // header
 #include "2d_vfx.hpp"
-#include "2d_game_config.hpp"
+#include "constants.hpp"
 
 #include <iostream>
 
@@ -91,34 +91,34 @@ spawn_impact_splats(fightingengine::RandomState& rnd,
 
   // vfx impact splats
 
-  int amount_of_splats = 0;
-  for (int i = 0; i < amount_of_splats; i++) {
+  // int amount_of_splats = 0;
+  // for (int i = 0; i < amount_of_splats; i++) {
 
-    splat.colour = damage_number_colour;
+  //   splat.colour = damage_number_colour;
 
-    // position
-    glm::vec2 half_dst = glm::vec2(dst.physics_size.x / 2.0f, dst.physics_size.y / 2.0f);
-    glm::vec2 half_src = glm::vec2(dst.physics_size.x / 2.0f, dst.physics_size.y / 2.0f);
-    glm::ivec2 dst_pos_center = dst.pos + glm::ivec2(int(half_dst.x), int(half_dst.y));
-    glm::ivec2 src_pos_center = src.pos + glm::ivec2(int(half_src.x), int(half_src.y));
-    glm::vec2 distance = src_pos_center - dst_pos_center;
-    glm::vec2 dir = -glm::normalize(distance);
-    glm::vec2 splat_spawn_pos = dst.pos;
-    splat_spawn_pos.x += dst.physics_size.x / 2.0f - splat.physics_size.x / 2.0f;
-    splat_spawn_pos.y += dst.physics_size.y / 2.0f - splat.physics_size.y / 2.0f;
+  //   // position
+  //   glm::vec2 half_dst = glm::vec2(dst.physics_size.x / 2.0f, dst.physics_size.y / 2.0f);
+  //   glm::vec2 half_src = glm::vec2(dst.physics_size.x / 2.0f, dst.physics_size.y / 2.0f);
+  //   glm::ivec2 dst_pos_center = dst.pos + glm::ivec2(int(half_dst.x), int(half_dst.y));
+  //   glm::ivec2 src_pos_center = src.pos + glm::ivec2(int(half_src.x), int(half_src.y));
+  //   glm::vec2 distance = src_pos_center - dst_pos_center;
+  //   glm::vec2 dir = -glm::normalize(distance);
+  //   glm::vec2 splat_spawn_pos = dst.pos;
+  //   splat_spawn_pos.x += dst.physics_size.x / 2.0f - splat.physics_size.x / 2.0f;
+  //   splat_spawn_pos.y += dst.physics_size.y / 2.0f - splat.physics_size.y / 2.0f;
 
-    // velocity
-    float theta = fightingengine::rand_det_s(rnd.rng, -fightingengine::PI, fightingengine::PI);
-    glm::vec2 offset_dir;
-    offset_dir.x = cos(theta) * dir.x - sin(theta) * dir.y;
-    offset_dir.y = sin(theta) * dir.x + cos(theta) * dir.y;
-    splat.velocity = glm::normalize(dir + glm::normalize(offset_dir)) * splat.speed_current;
+  //   // velocity
+  //   float theta = fightingengine::rand_det_s(rnd.rng, -fightingengine::PI, fightingengine::PI);
+  //   glm::vec2 offset_dir;
+  //   offset_dir.x = cos(theta) * dir.x - sin(theta) * dir.y;
+  //   offset_dir.y = sin(theta) * dir.x + cos(theta) * dir.y;
+  //   splat.velocity = glm::normalize(dir + glm::normalize(offset_dir)) * splat.speed_current;
 
-    // spawn impact splats
-    splat.pos = splat_spawn_pos;
-    splat.velocity = glm::normalize(dir + glm::normalize(offset_dir)) * splat.speed_current;
-    ents.push_back(splat);
-  }
+  //   // spawn impact splats
+  //   splat.pos = splat_spawn_pos;
+  //   splat.velocity = glm::normalize(dir + glm::normalize(offset_dir)) * splat.speed_current;
+  //   ents.push_back(splat);
+  // }
 
   // vfx damage number popup
 

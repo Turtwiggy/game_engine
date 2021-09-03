@@ -21,7 +21,6 @@
 
 // fightingengine headers
 #include "engine/application.hpp"
-#include "engine/audio.hpp"
 #include "engine/grid.hpp"
 #include "engine/maths_core.hpp"
 #include "engine/opengl/framebuffer.hpp"
@@ -34,16 +33,21 @@
 using namespace fightingengine;
 
 // game headers
-#include "2d_game_config.hpp"
-#include "2d_game_logic.hpp"
 #include "2d_game_object.hpp"
+#include "2d_game_state.hpp"
 #include "2d_lighting.hpp"
 #include "2d_physics.hpp"
 #include "2d_vfx.hpp"
+#include "ai.hpp"
+#include "components/resources.hpp"
+#include "components/screen_shake_timer.hpp"
+#include "constants.hpp"
+#include "enemy_spawner.hpp"
+#include "game.hpp"
 #include "opengl/sprite_renderer.hpp"
 #include "opengl/triangle_fan.hpp"
+#include "player.hpp"
 #include "spritemap.hpp"
-#include "util.hpp"
 using namespace game2d;
 
 void
@@ -121,7 +125,7 @@ reset_game(glm::ivec2 screen_wh)
 int
 main()
 {
-  std::cout << "booting up..." << std::endl;
+  std::cout << "main init..." << std::endl;
   const auto app_start = std::chrono::high_resolution_clock::now();
 
   bool hide_windows_console = false;
@@ -148,56 +152,27 @@ main()
   Application app("2D Game", screen_wh.x, screen_wh.y, ui_use_vsync);
   Profiler profiler;
 
-  // textures
-
-  std::vector<std::pair<int, std::string>> textures_to_load;
-  textures_to_load.emplace_back(tex_unit_kenny_nl,
-                                "assets/2d_game/textures/kennynl_1bit_pack/monochrome_transparent_packed.png");
-  std::vector<unsigned int> texture_ids = load_textures_threaded(textures_to_load, app_start);
-
-  const unsigned int fbo_main_scene = Framebuffer::create_fbo();
-  const unsigned int tex_id_main_scene = create_texture(screen_wh, tex_unit_main_scene, fbo_main_scene);
-  const unsigned int fbo_lighting = Framebuffer::create_fbo();
-  const unsigned int tex_id_lighting = create_texture(screen_wh, tex_unit_lighting, fbo_lighting);
-
-  // sound
-
-  float master_volume = 0.1f;
-  // audio setup, which opens one device and one context
-  audio::init_al();
-  // audio buffers e.g. sound effects
-  ALuint audio_gunshot_0 = audio::load_sound("assets/2d_game/audio/seb/Gun_03_shoot.wav");
-  ALuint audio_impact_0 = audio::load_sound("assets/2d_game/audio/seb/Impact_01.wav");
-  ALuint audio_impact_1 = audio::load_sound("assets/2d_game/audio/seb/Impact_02.wav");
-  ALuint audio_impact_2 = audio::load_sound("assets/2d_game/audio/seb/Impact_03.wav");
-  // audio source e.g. sheep with position.
-  ALuint audio_source_bullet = audio::create_source(audio_gunshot_0, master_volume / 2.0f);
-  ALuint audio_source_impact_0 = audio::create_source(audio_impact_0, master_volume);
-  ALuint audio_source_impact_1 = audio::create_source(audio_impact_1, master_volume);
-  ALuint audio_source_impact_2 = audio::create_source(audio_impact_2, master_volume);
-
-  log_time_since("(INFO) Audio Loaded ", app_start);
-
-  // Rendering
-
-  RenderCommand::init();
   RenderCommand::set_viewport(0, 0, static_cast<uint32_t>(screen_wh.x), static_cast<uint32_t>(screen_wh.y));
   RenderCommand::set_depth_testing(false); // disable depth testing for 2d
   sprite_renderer::init();
   triangle_fan_renderer::init();
   print_gpu_info();
+
+  std::vector<std::pair<int, std::string>> textures_to_load;
+  textures_to_load.emplace_back(tex_unit_kenny_nl,
+                                "assets/2d_game/textures/kennynl_1bit_pack/monochrome_transparent_packed.png");
+
+  entt::registry registry;
+  game::init(registry, screen_wh, app_start);
+  auto& resources = registry.ctx<Resources>();
+
+  int textures[3] = { tex_unit_kenny_nl, tex_unit_main_scene, tex_unit_lighting };
+  resources.instanced_quad_shader.bind();
+  resources.instanced_quad_shader.set_int_array("textures", textures, 3);
+
   glm::mat4 projection =
     glm::ortho(0.0f, static_cast<float>(screen_wh.x), static_cast<float>(screen_wh.y), 0.0f, -1.0f, 1.0f);
-  Shader colour_shader = Shader("2d_game/shaders/2d_basic.vert", "2d_game/shaders/2d_colour.frag");
-  Shader fan_shader = Shader("2d_game/shaders/2d_basic_with_proj.vert", "2d_game/shaders/2d_colour.frag");
-  Shader instanced_quad_shader = Shader("2d_game/shaders/2d_instanced.vert", "2d_game/shaders/2d_instanced.frag");
-  instanced_quad_shader.bind();
-  int textures[3] = { tex_unit_kenny_nl, tex_unit_main_scene, tex_unit_lighting };
-  instanced_quad_shader.set_int_array("textures", textures, 3);
 
-  // Game
-
-  float screenshake_time_left = 0.0f;
   MutableGameState gs = reset_game(screen_wh);
 
   std::cout << "(INFO) GameObject2D is " << sizeof(GameObject2D) << " bytes" << std::endl;
@@ -277,11 +252,13 @@ main()
       }
       // Debug: Start camera shake
       if (app.get_input().get_key_held(SDL_SCANCODE_COMMA)) {
-        instanced_quad_shader.set_bool("shake", true);
+        resources.instanced_quad_shader.bind();
+        resources.instanced_quad_shader.set_bool("shake", true);
       }
       // Debug: Stop camera shake
       if (app.get_input().get_key_held(SDL_SCANCODE_PERIOD)) {
-        instanced_quad_shader.set_bool("shake", false);
+        resources.instanced_quad_shader.bind();
+        resources.instanced_quad_shader.set_bool("shake", false);
       }
 
       if (app.get_input().get_key_down(SDL_SCANCODE_RETURN)) {
@@ -292,11 +269,12 @@ main()
 
       // Shader hot reloading
       if (app.get_input().get_key_down(SDL_SCANCODE_R)) {
-        reload_shader_program(
-          &instanced_quad_shader.ID, "2d_game/shaders/2d_instanced.vert", "2d_game/shaders/2d_instanced.frag");
-        instanced_quad_shader.bind();
-        instanced_quad_shader.set_mat4("projection", projection);
-        instanced_quad_shader.set_int_array("textures", textures, 3);
+        reload_shader_program(&resources.instanced_quad_shader.ID,
+                              "2d_game/shaders/2d_instanced.vert",
+                              "2d_game/shaders/2d_instanced.frag");
+        resources.instanced_quad_shader.bind();
+        resources.instanced_quad_shader.set_mat4("projection", projection);
+        resources.instanced_quad_shader.set_int_array("textures", textures, 3);
       }
 
 #endif // _DEBUG
@@ -346,6 +324,9 @@ main()
     profiler.end(Profiler::Stage::SdlInput);
     profiler.begin(Profiler::Stage::GameTick);
     {
+      game::update_sim(registry, delta_time_s);
+      game::update(registry, delta_time_s);
+
       { // Resolve collision events
 
         for (auto& event : gs.collision_events) {
@@ -365,7 +346,8 @@ main()
             enemy.flag_for_delete = true;                       // enemy
             player.damage_taken += enemy.damage_to_give_player; // player
             player.flash_time_left = vfx_flash_time;            // vfx: flash
-            screenshake_time_left = screenshake_time;           // screenshake
+            auto& ss_timer = registry.ctx<ScreenShakeTimer>();
+            ss_timer.time_left = screenshake_time; // screenshake
 
             // vfx spawn a splat
             GameObject2D splat = gameobject::create_generic();
@@ -570,19 +552,6 @@ main()
             gs.game_running = GameRunning::GAME_OVER;
         }
 
-        // update lighting based on positions
-        {
-          const GameObject2D& player = gs.entities_player[0];
-          const KeysAndState& keys = gs.player_keys[0];
-
-          constexpr glm::vec2 flash_offset = { 16.0f, 16.0f }; // from top left
-          const float radius = glm::length(flash_offset);
-          const float angle = gs.weapon_pistol.angle_radians;
-
-          // glm::ivec2 gun_tip = player::rotate_b_around_a(gs.weapon_pistol, point_lights[0], radius, angle);
-          // point_lights[0].pos = gun_tip;
-        }
-
         // update: vfx flash
 
         std::vector<std::reference_wrapper<GameObject2D>> vfx_flash_objects;
@@ -599,18 +568,6 @@ main()
           }
         }
 
-        // update: vfx screenshake
-
-        if (screenshake_time_left > 0.0f) {
-          screenshake_time_left -= delta_time_s;
-          instanced_quad_shader.bind();
-          instanced_quad_shader.set_bool("shake", true);
-        }
-        if (screenshake_time_left <= 0.0f) {
-          instanced_quad_shader.bind();
-          instanced_quad_shader.set_bool("shake", false);
-        }
-
         // update: vfx fade
 
         for (auto& go : gs.entities_vfx) {
@@ -623,6 +580,17 @@ main()
           gameobject::update_entities_lifecycle(gs.entities_bullets, delta_time_s);
           gameobject::update_entities_lifecycle(gs.entities_trees, delta_time_s);
           gameobject::update_entities_lifecycle(gs.entities_vfx, delta_time_s);
+
+          // update light objects
+          for (auto& light : gs.point_lights) {
+            GameObject2D& obj = light.light_object;
+            if (obj.do_lifecycle_timed) {
+              obj.time_alive_left -= delta_time_s;
+              if (obj.time_alive_left <= 0.0f) {
+                obj.flag_for_delete = true;
+              }
+            }
+          }
 
           // remove "attack" object before deleting "bullet" object (or any object that is cleaned up)
           // e.g when deleting "player" (in the future)
@@ -660,6 +628,15 @@ main()
           gameobject::erase_entities_that_are_flagged_for_delete(gs.entities_bullets, delta_time_s);
           gameobject::erase_entities_that_are_flagged_for_delete(gs.entities_trees, delta_time_s);
           gameobject::erase_entities_that_are_flagged_for_delete(gs.entities_vfx, delta_time_s);
+
+          std::vector<PointLight>::iterator it_1 = gs.point_lights.begin();
+          while (it_1 != gs.point_lights.end()) {
+            PointLight& light = (*it_1);
+            if (light.light_object.flag_for_delete)
+              it_1 = gs.point_lights.erase(it_1);
+            else
+              ++it_1;
+          }
         }
 
         // Check if game phase is over
@@ -675,10 +652,13 @@ main()
     profiler.end(Profiler::Stage::GameTick);
     profiler.begin(Profiler::Stage::Render);
     {
+      game::render(registry);
+
       //
       // lighting fbo
       //
-      Framebuffer::bind_fbo(fbo_lighting);
+
+      Framebuffer::bind_fbo(resources.fbo_lighting);
       // Debugging; // Framebuffer::default_fbo(); glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
       RenderCommand::set_clear_colour(glm::vec4(0.0f, 0.0f, 0.0f, 1.0f));
       RenderCommand::set_depth_testing(false);
@@ -687,56 +667,61 @@ main()
         // angle, x, y for intersections
         std::vector<std::tuple<float, float, float>> intersections;
 
-        std::vector<std::reference_wrapper<GameObject2D>> lighting_entities;
-        lighting_entities.insert(lighting_entities.end(), gs.entities_enemies.begin(), gs.entities_enemies.end());
-        lighting_entities.insert(lighting_entities.end(), gs.entities_player.begin(), gs.entities_player.end());
-        lighting_entities.insert(lighting_entities.end(), gs.entities_trees.begin(), gs.entities_trees.end());
+        std::vector<std::reference_wrapper<GameObject2D>> lit_entities;
+        lit_entities.insert(lit_entities.end(), gs.entities_enemies.begin(), gs.entities_enemies.end());
+        lit_entities.insert(lit_entities.end(), gs.entities_player.begin(), gs.entities_player.end());
+        lit_entities.insert(lit_entities.end(), gs.entities_trees.begin(), gs.entities_trees.end());
 
-        std::vector<GameObject2D> lights = {};
-        for (auto& light : lights) {
-          // for (auto& light : point_lights) {
+        std::vector<std::reference_wrapper<PointLight>> lights = {};
+        for (auto& light : gs.point_lights) {
+          if (light.cast_shadows) {
+            lights.push_back(light);
+          }
+        }
+        for (auto& l : lights) {
+          GameObject2D& light = l.get().light_object;
           glm::ivec2 light_pos = light.pos - gs.camera.pos;
 
           // this generates collision from the light point to the entities
-          generate_intersections(gs.camera, light_pos, lighting_entities, screen_wh, intersections);
+          generate_intersections(gs.camera, light_pos, lit_entities, screen_wh, intersections);
 
           // now create a triangle fan from the generated information
           triangle_fan_renderer::reset_quad_vert_count();
           triangle_fan_renderer::begin_batch();
-          fan_shader.bind();
-          fan_shader.set_vec4("colour", glm::vec4(1.0f, 1.0f, 1.0f, 1.0f));
-          fan_shader.set_mat4("projection", projection);
 
+          resources.fan_shader.bind();
+          resources.fan_shader.set_vec4("colour", glm::vec4(1.0f, 1.0f, 1.0f, 1.0f));
+          resources.fan_shader.set_mat4("projection", projection);
           { // render light
-            triangle_fan_renderer::add_point_to_fan(gs.camera, fan_shader, light_pos);
+            triangle_fan_renderer::add_point_to_fan(gs.camera, resources.fan_shader, light_pos);
             for (int i = 0; i < intersections.size(); i++) {
               auto& intersection = intersections[i];
               glm::vec2 pos = glm::vec2(std::get<1>(intersection), std::get<2>(intersection));
-              triangle_fan_renderer::add_point_to_fan(gs.camera, fan_shader, pos);
+              triangle_fan_renderer::add_point_to_fan(gs.camera, resources.fan_shader, pos);
             }
             auto& intersection = intersections[0];
             glm::vec2 pos = glm::vec2(std::get<1>(intersection), std::get<2>(intersection));
-            triangle_fan_renderer::add_point_to_fan(gs.camera, fan_shader, pos);
+            triangle_fan_renderer::add_point_to_fan(gs.camera, resources.fan_shader, pos);
             triangle_fan_renderer::end_batch();
-            triangle_fan_renderer::flush(fan_shader);
+            triangle_fan_renderer::flush(resources.fan_shader);
           }
         }
       }
       //
       // main scene fbo
       //
-      Framebuffer::bind_fbo(fbo_main_scene);
+      Framebuffer::bind_fbo(resources.fbo_main_scene);
       RenderCommand::set_clear_colour(background_colour);
       RenderCommand::set_depth_testing(false);
       RenderCommand::clear();
       {
         sprite_renderer::reset_quad_vert_count();
         sprite_renderer::begin_batch();
-        instanced_quad_shader.bind();
-        instanced_quad_shader.set_float("time", app.seconds_since_launch);
-        instanced_quad_shader.set_mat4("projection", projection);
-        instanced_quad_shader.set_bool("do_lighting", false);
-        instanced_quad_shader.set_bool("do_spritesheet", true);
+        resources.instanced_quad_shader.bind();
+        resources.instanced_quad_shader.set_float("time", app.seconds_since_launch);
+        resources.instanced_quad_shader.set_mat4("projection", projection);
+        resources.instanced_quad_shader.set_bool("do_lighting", false);
+        resources.instanced_quad_shader.set_bool("do_spritesheet", true);
 
         if (gs.game_running == GameRunning::ACTIVE || gs.game_running == GameRunning::PAUSED ||
             gs.game_running == GameRunning::GAME_OVER) {
@@ -756,14 +741,15 @@ main()
           for (auto& obj : renderables) {
             if (!obj.get().do_render)
               continue;
-            sprite_renderer::draw_instanced_sprite(gs.camera, screen_wh, instanced_quad_shader, obj.get());
+            sprite_renderer::draw_instanced_sprite(gs.camera, screen_wh, resources.instanced_quad_shader, obj.get());
           }
 
-          sprite_renderer::draw_sprites_debug(gs.camera, screen_wh, renderables, colour_shader, debug_line_colour);
+          sprite_renderer::draw_sprites_debug(
+            gs.camera, screen_wh, renderables, resources.colour_shader, debug_line_colour);
 
         } // <!-- end GameRunning::Active -->
         sprite_renderer::end_batch();
-        sprite_renderer::flush(instanced_quad_shader);
+        sprite_renderer::flush(resources.instanced_quad_shader);
       } // <!-- end main scene fbo -->
 
       //
@@ -776,31 +762,35 @@ main()
       {
         sprite_renderer::reset_quad_vert_count();
         sprite_renderer::begin_batch();
-        instanced_quad_shader.bind();
-        instanced_quad_shader.set_float("time", app.seconds_since_launch);
+        resources.instanced_quad_shader.bind();
+        resources.instanced_quad_shader.set_float("time", app.seconds_since_launch);
         glm::mat4 flip = glm::mat4(1.0f); // flip because opengl textures have different axis
         flip = glm::rotate(flip, glm::radians(180.0f), glm::vec3(1.0f, 0.0f, 0.0f));
-        instanced_quad_shader.set_mat4("projection", flip * projection);
-        instanced_quad_shader.set_bool("do_lighting", true);
-        instanced_quad_shader.set_int("screen_w", screen_wh.x);
-        instanced_quad_shader.set_int("screen_h", screen_wh.y);
-        instanced_quad_shader.set_bool("do_spritesheet", false);
+        resources.instanced_quad_shader.set_mat4("projection", flip * projection);
+        resources.instanced_quad_shader.set_bool("do_lighting", true);
+        resources.instanced_quad_shader.set_int("screen_w", screen_wh.x);
+        resources.instanced_quad_shader.set_int("screen_h", screen_wh.y);
+        resources.instanced_quad_shader.set_bool("do_spritesheet", false);
         { // send light positions to shader
           const int max_lights = 32;
           int i = 0;
           for (i = 0; i < gs.point_lights.size(); i++) {
+            if (i >= max_lights) {
+              std::cout << "warning: too many lights" << std::endl;
+              continue;
+            }
             auto& light = gs.point_lights[i];
-
-            glm::vec2 light_pos = convert_top_left_to_centre(light.light_object);
+            glm::vec2 light_pos = light.light_object.pos;
             light_pos = glm::vec3(light_pos.x, glm::abs(light_pos.y - screen_wh.y), 0.0f); // flip
 
-            instanced_quad_shader.set_bool("light_enabled[" + std::to_string(i) + "]", true);
-            instanced_quad_shader.set_vec3("light_pos[" + std::to_string(i) + "]", glm::vec3(light_pos, 0.0f));
-            instanced_quad_shader.set_float("light_linear[" + std::to_string(i) + "]", light.linear);
-            instanced_quad_shader.set_float("light_quadratic[" + std::to_string(i) + "]", light.quadratic);
+            resources.instanced_quad_shader.set_bool("light_enabled[" + std::to_string(i) + "]", true);
+            resources.instanced_quad_shader.set_vec3("light_pos[" + std::to_string(i) + "]",
+                                                     glm::vec3(light_pos, 0.0f));
+            resources.instanced_quad_shader.set_float("light_linear[" + std::to_string(i) + "]", light.linear);
+            resources.instanced_quad_shader.set_float("light_quadratic[" + std::to_string(i) + "]", light.quadratic);
           }
-          for (int j = max_lights - 1; j > i; j--) {
-            instanced_quad_shader.set_bool("light_enabled[" + std::to_string(j) + "]", false);
+          for (int j = max_lights - 1; j >= i; j--) {
+            resources.instanced_quad_shader.set_bool("light_enabled[" + std::to_string(j) + "]", false);
           }
         }
 
@@ -809,10 +799,10 @@ main()
           screen_object.sprite = sprite::type::SQUARE;
           screen_object.render_size = glm::vec2(screen_wh.x, screen_wh.y);
           screen_object.tex_slot = tex_unit_main_scene;
-          sprite_renderer::draw_instanced_sprite(gs.camera, screen_wh, instanced_quad_shader, screen_object);
+          sprite_renderer::draw_instanced_sprite(gs.camera, screen_wh, resources.instanced_quad_shader, screen_object);
         }
         sprite_renderer::end_batch();
-        sprite_renderer::flush(instanced_quad_shader);
+        sprite_renderer::flush(resources.instanced_quad_shader);
         // CHECK_OPENGL_ERROR(0);
       }
     }
@@ -825,7 +815,7 @@ main()
         ImGui::Begin("Humble Wares", NULL, ImGuiWindowFlags_NoFocusOnAppearing);
 
         shop::update_shop(gs.p0_currency,
-                          texture_ids[0], // kenny texture id
+                          resources.texture_ids[0], // kenny texture id
                           gs.shop,
                           gs.stats_pistol,
                           gs.stats_shotgun,
@@ -891,7 +881,7 @@ main()
             ImGui::Checkbox("Fullscreen", &temp);
             if (temp != ui_fullscreen) {
               std::cout << "ui_fullscreen toggled to: " << temp << std::endl;
-              toggle_fullscreen(app, screen_wh, projection, tex_id_lighting, tex_id_main_scene);
+              toggle_fullscreen(app, screen_wh, projection, resources.tex_id_lighting, resources.tex_id_main_scene);
               gs.point_lights.clear();
               add_lighting(gs, screen_wh);
             }
@@ -932,13 +922,13 @@ main()
             std::array<ImVec2, 2> heart_empty_uv = convert_sprite_to_uv(sprite_heart_2);
             ImGui::SetCursorPosY(4.0f);
             for (int i = 0; i < full_hearts_to_show; i++) {
-              ImGui::Image((ImTextureID)texture_ids[0],
+              ImGui::Image((ImTextureID)resources.texture_ids[0],
                            { heart_icon_size.x, heart_icon_size.y },
                            heart_full_uv[0],
                            heart_full_uv[1]);
             }
             for (int i = 0; i < empty_hearts_to_show; i++) {
-              ImGui::Image((ImTextureID)texture_ids[0],
+              ImGui::Image((ImTextureID)resources.texture_ids[0],
                            { heart_icon_size.x, heart_icon_size.y },
                            heart_empty_uv[0],
                            heart_empty_uv[1]);
@@ -951,7 +941,8 @@ main()
           ImGui::Text("BOOST %.2fs", player.shift_boost_time_left);
           {
             std::array<ImVec2, 2> pistol_uv = convert_sprite_to_uv(sprite_pistol);
-            ImGui::Image((ImTextureID)texture_ids[0], { icon_size.x, icon_size.y }, pistol_uv[0], pistol_uv[1]);
+            ImGui::Image(
+              (ImTextureID)resources.texture_ids[0], { icon_size.x, icon_size.y }, pistol_uv[0], pistol_uv[1]);
             std::string ammo_pistol_label = std::to_string(gs.stats_pistol.current_ammo);
             if (gs.stats_pistol.infinite_ammo) {
               ImGui::Text("INF");
@@ -961,13 +952,15 @@ main()
           }
           {
             std::array<ImVec2, 2> shotgun_uv = convert_sprite_to_uv(sprite_shotgun);
-            ImGui::Image((ImTextureID)texture_ids[0], { icon_size.x, icon_size.y }, shotgun_uv[0], shotgun_uv[1]);
+            ImGui::Image(
+              (ImTextureID)resources.texture_ids[0], { icon_size.x, icon_size.y }, shotgun_uv[0], shotgun_uv[1]);
             std::string ammo_shotgun_label = std::to_string(gs.stats_shotgun.current_ammo);
             ImGui::Text(ammo_shotgun_label.c_str());
           }
           {
             std::array<ImVec2, 2> machinegun_uv = convert_sprite_to_uv(sprite_machinegun);
-            ImGui::Image((ImTextureID)texture_ids[0], { icon_size.x, icon_size.y }, machinegun_uv[0], machinegun_uv[1]);
+            ImGui::Image(
+              (ImTextureID)resources.texture_ids[0], { icon_size.x, icon_size.y }, machinegun_uv[0], machinegun_uv[1]);
             std::string ammo_machinegun_label = std::to_string(gs.stats_machinegun.current_ammo);
             ImGui::Text(ammo_machinegun_label.c_str());
           }
@@ -980,15 +973,7 @@ main()
           {
             float framerate = ImGui::GetIO().Framerate;
             float framerate_ms = 1000.0f / ImGui::GetIO().Framerate;
-            std::stringstream stream;
-            stream << std::fixed << std::setprecision(2) << framerate;
-            std::string framerate_str = stream.str();
-            stream.str(std::string());
-            stream << std::fixed << std::setprecision(2) << framerate;
-            std::string framerate_ms_str = stream.str();
-            std::string framerate_label =
-              framerate_str + std::string(" FPS (") + framerate_ms_str + std::string(" ms)");
-            ImGui::Text(framerate_label.c_str());
+            ImGui::Text("FPS %f", framerate);
           }
 
           // ui: pause button
@@ -1026,7 +1011,7 @@ main()
         ImGui::Text("Attacks: %i", gs.attacks.size());
         ImGui::Text("controllers %i", SDL_NumJoysticks());
         ImGui::BeginChild("GameRender");
-        ImGui::Image((ImTextureID)texture_ids[0],
+        ImGui::Image((ImTextureID)resources.texture_ids[0],
                      { spritesheet_width, spritesheet_height },
                      ImVec2(0.0f, 0.0f),
                      ImVec2(1.0f, 1.0f));

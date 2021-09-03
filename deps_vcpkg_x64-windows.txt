@@ -9,5 +9,6 @@ protobuf
 gtest
 openal-soft
 libsndfile
+entt
 --triplet
 x64-windows

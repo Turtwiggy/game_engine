@@ -2,7 +2,7 @@
 #include "2d_physics.hpp"
 
 // engine headers
-#include "2d_game_config.hpp"
+#include "constants.hpp"
 #include "engine/grid.hpp"
 #include "engine/maths_core.hpp"
 

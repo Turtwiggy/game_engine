@@ -45,20 +45,20 @@ main()
       textureLod(textures[1], uv + (clamp(delta_pixel / ddxy, 0.0, 1.0) - delta_pixel) * pixel, min(mip.x, mip.y));
 
     vec4 tex_shadow = texture(textures[2], uv);
-    vec4 r;
-
-    for (int i = 0; i < num_lights; i++) {
-      if (light_enabled[i]) {
-        float distance = length(light_pos[i] - FragPos);
-        const float light_constant = 1.0f;
-        float linear = light_linear[i];
-        float quadratic = light_quadratic[i];
-        float attenuation = 1.0 / (light_constant + linear * distance + quadratic * (distance * distance));
-        vec4 c = tex_main * attenuation;
-        r += c;
-      }
-    }
-    vec4 c = r;
+    // vec4 r;
+    // for (int i = 0; i < num_lights; i++) {
+    //   if (light_enabled[i]) {
+    //     float distance = length(light_pos[i] - FragPos);
+    //     const float light_constant = 1.0f;
+    //     float linear = light_linear[i];
+    //     float quadratic = light_quadratic[i];
+    //     float attenuation = 1.0 / (light_constant + linear * distance + quadratic * (distance * distance));
+    //     vec4 c = tex_main * attenuation;
+    //     r += c;
+    //   }
+    // }
+    // vec4 c = r;
+    vec4 c = tex_main;
 
     // pixel is in shadow
     if (tex_shadow.r == 0.0f) {

@@ -1,8 +1,8 @@
-// your header
-#include "util.hpp"
+// header
+#include "spritemap.hpp"
 
-// your engine headers
-#include "2d_game_object.hpp"
+// game headers
+#include "constants.hpp"
 
 namespace game2d {
 
@@ -25,6 +25,6 @@ convert_sprite_to_uv(sprite::type type)
 
   std::array<ImVec2, 2> coords = { tl, br };
   return coords;
-}
+};
 
-} // namespace game2d
+}

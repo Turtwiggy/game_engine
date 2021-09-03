@@ -1,12 +1,14 @@
 #pragma once
 
 // standard lib
+#include <array>
 #include <map>
-#include <stdexcept>
+// #include <stdexcept>
 #include <vector>
 
 // other proj headers
 #include <glm/glm.hpp>
+#include <imgui.h>
 
 // your proj headers
 #include "engine/maths_core.hpp"
@@ -211,7 +213,7 @@ struct spritemap
     ret[type::SQUARE] = { 0.0f };
     ret[type::WEAPON_ARROW_1] = { -fightingengine::PI / 4.0f };
     ret[type::WEAPON_ARROW_2] = { -fightingengine::PI / 4.0f };
-    ret[type::WEAPON_SHOVEL] = { -fightingengine::PI / 4.0f };
+    ret[type::WEAPON_SHOVEL] = { fightingengine::PI / 4.0f };
     ret[type::WEAPON_PICKAXE] = { -fightingengine::PI / 8.0f };
 
     // row 6
@@ -246,5 +248,8 @@ struct spritemap
 };
 
 } // namespace sprite
+
+std::array<ImVec2, 2>
+convert_sprite_to_uv(sprite::type type);
 
 } // namespace game2d

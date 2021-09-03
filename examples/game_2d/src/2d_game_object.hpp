@@ -4,15 +4,20 @@
 #include <map>
 
 // other project headers
-#include <SDL2/SDL_scancode.h>
 #include <glm/glm.hpp>
 
 // your includes
-#include "2d_game_config.hpp"
+#include "constants.hpp"
 #include "engine/maths_core.hpp"
 #include "spritemap.hpp"
 
 namespace game2d {
+
+enum class AiBehaviour
+{
+  MOVEMENT_DIRECT,
+  MOVEMENT_ARC_ANGLE,
+};
 
 enum class EditorMode
 {
@@ -34,12 +39,6 @@ enum class GamePhase
   SHOP,
 };
 
-enum class AiBehaviour
-{
-  MOVEMENT_DIRECT,
-  MOVEMENT_ARC_ANGLE,
-};
-
 enum class CollisionLayer
 {
   NoCollision = 0,
@@ -57,83 +56,6 @@ enum class PlaceableEntity
 {
   TREE = 0,
   // SHOP = 1,
-};
-
-struct WeaponStats
-{
-  int damage = 0;
-};
-
-struct MeleeWeaponStats : WeaponStats
-{
-  // slash stats
-  float slash_attack_time = 0.15f;
-  float weapon_radius = 30.0f;
-  float weapon_angle_speed = fightingengine::HALF_PI / 30.0f; // closer to 0 is faster
-  float weapon_damping = 20.0f;
-  float slash_attack_time_left = 0.0f;
-  bool attack_left_to_right = true;
-  glm::vec2 weapon_target_pos = { 0.0f, 0.0f };
-  float weapon_current_angle = 0.0f;
-};
-
-struct RangedWeaponStats : WeaponStats
-{
-  int radius_offset_from_player = 14;
-  bool infinite_ammo = true;
-  float fire_rate_seconds_limit = 1.0f;
-  int current_ammo = 20;
-};
-
-// A "ShopItem" is purchasable in the shop
-enum class ShopItem
-{
-  SHOVEL = 0,
-  PISTOL = 1,
-  PISTOL_AMMO = 2,
-  SHOTGUN = 3,
-  SHOTGUN_AMMO = 4,
-  MACHINEGUN = 5,
-  MACHINEGUN_AMMO = 6,
-  TURRET = 7,
-  BARRICADE = 8,
-  HEAL_HALF = 9,
-  HEAL_FULL = 10,
-};
-
-struct ShopItemState
-{
-  std::vector<sprite::type> icons;
-
-  bool free = false;
-  int price = 10;
-  bool infinite_quantity = false;
-  int quantity = 1;
-};
-
-// An "Attack" is basically a limiter that prevents collisions
-// applying damage on every frame. This could end up being super weird.
-struct Attack
-{
-private:
-  static inline uint32_t global_attack_int_counter = 0;
-
-public:
-  uint32_t id = 0;
-
-  int entity_weapon_owner_id; // player or enemy
-  int entity_weapon_id;
-  ShopItem weapon_type;
-  int weapon_damage = 0;
-
-  Attack(int parent, int weapon, ShopItem type, int damage)
-    : entity_weapon_owner_id(parent)
-    , entity_weapon_id(weapon)
-    , weapon_type(type)
-    , weapon_damage(damage)
-  {
-    id = ++Attack::global_attack_int_counter;
-  };
 };
 
 //
@@ -214,39 +136,6 @@ public:
   GameObject2D() { id = ++GameObject2D::global_int_counter; }
 };
 
-struct KeysAndState
-{
-  bool use_keyboard = false;
-
-  // keyboard
-  SDL_Scancode w = SDL_SCANCODE_W;
-  SDL_Scancode s = SDL_SCANCODE_S;
-  SDL_Scancode a = SDL_SCANCODE_A;
-  SDL_Scancode d = SDL_SCANCODE_D;
-  SDL_Scancode key_boost = SDL_SCANCODE_LSHIFT;
-  SDL_Scancode key_pause = SDL_SCANCODE_P;
-  SDL_Scancode key_camera_up = SDL_SCANCODE_UP;
-  SDL_Scancode key_camera_down = SDL_SCANCODE_DOWN;
-  SDL_Scancode key_camera_left = SDL_SCANCODE_LEFT;
-  SDL_Scancode key_camera_right = SDL_SCANCODE_RIGHT;
-  SDL_Scancode key_camera_follow_player = SDL_SCANCODE_Q;
-
-  // controller
-  float l_analogue_x = 0.0f;
-  float l_analogue_y = 0.0f;
-  float r_analogue_x = 0.0f;
-  float r_analogue_y = 0.0f;
-
-  // common
-  float angle_around_player = 0.0f;
-  bool pause_held = false;
-  bool pause_down = false;
-  bool shoot_held = false;
-  bool shoot_down = false;
-  bool boost_held = false;
-  bool boost_down = false;
-};
-
 // util
 
 [[nodiscard]] glm::ivec2
@@ -300,17 +189,5 @@ GameObject2D
 create_weapon(sprite::type sprite, int tex_slot, glm::vec4 colour);
 
 } // namespace gameobject
-
-MeleeWeaponStats
-create_shovel();
-
-RangedWeaponStats
-create_pistol();
-
-RangedWeaponStats
-create_shotgun();
-
-RangedWeaponStats
-create_machinegun();
 
 } // namespace game2d
