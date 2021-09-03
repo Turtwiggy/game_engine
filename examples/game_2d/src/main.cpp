@@ -77,39 +77,40 @@ add_players(MutableGameState& state, glm::ivec2 screen_wh)
   state.player_keys.push_back(p0_keys);
 
   std::vector<ShopItem> p0_inventory = std::vector<ShopItem>();
-  // p0_inventory.push_back(ShopItem::SHOVEL);
-  p0_inventory.push_back(ShopItem::PISTOL);
+  p0_inventory.push_back(ShopItem::SHOVEL);
+  // p0_inventory.push_back(ShopItem::PISTOL);
   state.player_inventories.push_back(p0_inventory);
 }
 
 void
 add_lighting(MutableGameState& state, glm::ivec2 screen_wh)
 {
-  SceneicPointLight point_light_0;
-  point_light_0.light_object = gameobject::create_light();
-  // point_light_0.light_object.pos = { int(screen_wh.x / 2.0f), int(screen_wh.y / 2.0f) };
-  point_light_0.light_object.pos = { int(0), int(0) };
+  // SceneicPointLight point_light_0;
+  // point_light_0.light_object = gameobject::create_light();
+  // // point_light_0.light_object.pos = { int(screen_wh.x / 2.0f), int(screen_wh.y / 2.0f) };
+  // point_light_0.light_object.pos = { int(0), int(0) };
 
-  SceneicPointLight point_light_1;
-  point_light_1.light_object = gameobject::create_light();
-  point_light_1.light_object.pos = { int(screen_wh.x), int(0) };
+  // SceneicPointLight point_light_1;
+  // point_light_1.light_object = gameobject::create_light();
+  // point_light_1.light_object.pos = { int(screen_wh.x), int(0) };
 
-  SceneicPointLight point_light_2;
-  point_light_2.light_object = gameobject::create_light();
-  point_light_2.light_object.pos = { int(0), int(screen_wh.y) };
+  // SceneicPointLight point_light_2;
+  // point_light_2.light_object = gameobject::create_light();
+  // point_light_2.light_object.pos = { int(0), int(screen_wh.y) };
 
-  SceneicPointLight point_light_3;
-  point_light_3.light_object = gameobject::create_light();
-  point_light_3.light_object.pos = { int(screen_wh.x), int(screen_wh.y) };
+  // SceneicPointLight point_light_3;
+  // point_light_3.light_object = gameobject::create_light();
+  // point_light_3.light_object.pos = { int(screen_wh.x), int(screen_wh.y) };
 
   SceneicPointLight point_light_4;
   point_light_4.light_object = gameobject::create_light();
   point_light_4.light_object.pos = { int(screen_wh.x / 2.0f), int(screen_wh.y / 2.0f) };
+  point_light_4.cast_shadows = true;
 
-  state.point_lights.push_back(point_light_0);
-  state.point_lights.push_back(point_light_1);
-  state.point_lights.push_back(point_light_2);
-  state.point_lights.push_back(point_light_3);
+  // state.point_lights.push_back(point_light_0);
+  // state.point_lights.push_back(point_light_1);
+  // state.point_lights.push_back(point_light_2);
+  // state.point_lights.push_back(point_light_3);
   state.point_lights.push_back(point_light_4);
 }
 
@@ -152,15 +153,16 @@ main()
   Application app("2D Game", screen_wh.x, screen_wh.y, ui_use_vsync);
   Profiler profiler;
 
+  std::vector<std::pair<int, std::string>> textures_to_load;
+  textures_to_load.emplace_back(tex_unit_kenny_nl,
+                                "assets/2d_game/textures/kennynl_1bit_pack/monochrome_transparent_packed.png");
+
+  RenderCommand::init();
   RenderCommand::set_viewport(0, 0, static_cast<uint32_t>(screen_wh.x), static_cast<uint32_t>(screen_wh.y));
   RenderCommand::set_depth_testing(false); // disable depth testing for 2d
   sprite_renderer::init();
   triangle_fan_renderer::init();
   print_gpu_info();
-
-  std::vector<std::pair<int, std::string>> textures_to_load;
-  textures_to_load.emplace_back(tex_unit_kenny_nl,
-                                "assets/2d_game/textures/kennynl_1bit_pack/monochrome_transparent_packed.png");
 
   entt::registry registry;
   game::init(registry, screen_wh, app_start);
@@ -172,6 +174,11 @@ main()
 
   glm::mat4 projection =
     glm::ortho(0.0f, static_cast<float>(screen_wh.x), static_cast<float>(screen_wh.y), 0.0f, -1.0f, 1.0f);
+
+  GameObject2D pushable = gameobject::create_generic();
+  pushable.collision_layer = CollisionLayer::Obstacle;
+  pushable.pos = { screen_wh.x / 2.0f, 200.0f };
+  pushable.colour = { 0.0f, 1.0f, 0.0f, 1.0f };
 
   MutableGameState gs = reset_game(screen_wh);
 
@@ -201,6 +208,7 @@ main()
         collidable.insert(collidable.end(), gs.entities_player.begin(), gs.entities_player.end());
         collidable.insert(collidable.end(), gs.entities_trees.begin(), gs.entities_trees.end());
         collidable.push_back(gs.weapon_shovel);
+        collidable.push_back(pushable);
 
         std::vector<std::reference_wrapper<GameObject2D>> active_collidable;
         for (auto& obj : collidable) {
@@ -379,7 +387,7 @@ main()
                 enemy.attack_ids_taken_damage_from.push_back(attack.id);
                 enemy.flash_time_left = vfx_flash_time; // vfx: flash
 
-                // vfx impactsplat
+                // vfx impact splat
                 int damage_amount = attack.weapon_damage;
                 vfx::spawn_impact_splats(rnd, player, enemy, sprite_splat, damage_amount, gs.entities_vfx);
               }
@@ -418,6 +426,25 @@ main()
 
             GameObject2D& obstacle = event.go0.collision_layer == CollisionLayer::Obstacle ? event.go0 : event.go1;
             GameObject2D& player = event.go0.collision_layer == CollisionLayer::Obstacle ? event.go1 : event.go0;
+
+            glm::ivec2 obstacle_pos = convert_top_left_to_centre(obstacle);
+            glm::ivec2 player_pos = convert_top_left_to_centre(player);
+
+            // push the obstacle in x, -x, y, or -y i.e. individual axis
+            glm::vec2 dir = glm::normalize(glm::vec2(player_pos - obstacle_pos));
+            if (glm::abs(dir.x) > glm::abs(dir.y)) {
+              if (dir.x < 0) {
+                obstacle.pos.x += 1;
+              } else {
+                obstacle.pos.x -= 1;
+              }
+            } else {
+              if (dir.y < 0) {
+                obstacle.pos.y += 1;
+              } else {
+                obstacle.pos.y -= 1;
+              }
+            }
 
             ImGui::Begin("Huh. Well then.", NULL, ImGuiWindowFlags_NoFocusOnAppearing);
             ImGui::Text("You are standing at a tree. Cool!");
@@ -737,6 +764,7 @@ main()
           renderables.push_back(gs.weapon_shotgun);
           renderables.push_back(gs.weapon_machinegun);
           renderables.insert(renderables.end(), gs.entities_trees.begin(), gs.entities_trees.end());
+          renderables.push_back(pushable);
 
           for (auto& obj : renderables) {
             if (!obj.get().do_render)
@@ -969,7 +997,7 @@ main()
           std::string wep = std::string("Weapon: ") + std::string(magic_enum::enum_name(w));
           ImGui::Text(wep.c_str());
 
-          ImGui::SameLine(screen_wh.x - 170.0f);
+          ImGui::SameLine(screen_wh.x - 100.0f);
           {
             float framerate = ImGui::GetIO().Framerate;
             float framerate_ms = 1000.0f / ImGui::GetIO().Framerate;

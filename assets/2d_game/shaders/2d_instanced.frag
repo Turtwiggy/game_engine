@@ -20,6 +20,26 @@ uniform vec3 light_pos[num_lights];
 uniform float light_linear[num_lights];
 uniform float light_quadratic[num_lights];
 
+vec2
+uv_nearest(vec2 uv, ivec2 texture_size)
+{
+  vec2 pixel = uv * texture_size;
+  pixel = floor(pixel) + .5;
+  return pixel / texture_size;
+}
+
+vec2
+uv_cstantos(vec2 uv, vec2 res)
+{
+  vec2 pixels = uv * res;
+  // Updated to the final article
+  vec2 alpha = 0.7 * fwidth(pixels);
+  vec2 pixels_fract = fract(pixels);
+  vec2 pixels_diff = clamp(.5 / alpha * pixels_fract, 0, .5) + clamp(.5 / alpha * (pixels_fract - 1) + .5, 0, .5);
+  pixels = floor(pixels) + pixels_diff;
+  return pixels / res;
+}
+
 void
 main()
 {
@@ -28,37 +48,38 @@ main()
   if (do_lighting) {
 
     // non-pixel, directly sample texture
-    // vec2 uv = v_tex;
-    // vec4 tex_main = texture(textures[1], uv);
+    vec2 uv = v_tex;
+    uv = uv_cstantos(uv, vec2(screen_w, screen_h));
+    vec4 tex_main = texture(textures[1], uv);
 
     // heartbeast approach?
     // https://www.youtube.com/watch?v=2JbhkZe22bE&list=RDCMUCrHQNOyU1q6BFEfkNq2CYMA&index=25
-    vec2 uv = v_tex;
-    vec2 size = vec2(textureSize(textures[1], 0));
-    vec2 pixel = vec2(1.0) / size;
-    uv -= pixel * vec2(0.5);
-    vec2 uv_pixels = uv * size;
-    vec2 delta_pixel = fract(uv_pixels) - vec2(0.5);
-    vec2 ddxy = fwidth(uv_pixels);
-    vec2 mip = log2(ddxy) - 0.5;
-    vec4 tex_main =
-      textureLod(textures[1], uv + (clamp(delta_pixel / ddxy, 0.0, 1.0) - delta_pixel) * pixel, min(mip.x, mip.y));
+    // vec2 uv = v_tex;
+    // vec2 size = vec2(textureSize(textures[1], 0));
+    // vec2 pixel = vec2(1.0) / size;
+    // uv -= pixel * vec2(0.5);
+    // vec2 uv_pixels = uv * size;
+    // vec2 delta_pixel = fract(uv_pixels) - vec2(0.5);
+    // vec2 ddxy = fwidth(uv_pixels);
+    // vec2 mip = log2(ddxy) - 0.5;
+    // vec4 tex_main =
+    //   textureLod(textures[1], uv + (clamp(delta_pixel / ddxy, 0.0, 1.0) - delta_pixel) * pixel, min(mip.x, mip.y));
 
     vec4 tex_shadow = texture(textures[2], uv);
-    // vec4 r;
-    // for (int i = 0; i < num_lights; i++) {
-    //   if (light_enabled[i]) {
-    //     float distance = length(light_pos[i] - FragPos);
-    //     const float light_constant = 1.0f;
-    //     float linear = light_linear[i];
-    //     float quadratic = light_quadratic[i];
-    //     float attenuation = 1.0 / (light_constant + linear * distance + quadratic * (distance * distance));
-    //     vec4 c = tex_main * attenuation;
-    //     r += c;
-    //   }
-    // }
-    // vec4 c = r;
-    vec4 c = tex_main;
+    vec4 r;
+    for (int i = 0; i < num_lights; i++) {
+      if (light_enabled[i]) {
+        float distance = length(light_pos[i] - FragPos);
+        const float light_constant = 1.0f;
+        float linear = light_linear[i];
+        float quadratic = light_quadratic[i];
+        float attenuation = 1.0 / (light_constant + linear * distance + quadratic * (distance * distance));
+        vec4 c = tex_main * attenuation;
+        r += c;
+      }
+    }
+    vec4 c = r;
+    // vec4 c = tex_main;
 
     // pixel is in shadow
     if (tex_shadow.r == 0.0f) {
@@ -76,7 +97,22 @@ main()
     out_colour = c;
     return;
   } else if (v_sprite_pos.x == 8 && v_sprite_pos.y == 5) { // the square on the kennynl sprite sheet
-    c = v_colour;
+
+    float border_width = 0.05f;
+    float aspect = 1.0f;
+    float maxX = 1.0 - border_width;
+    float minX = border_width;
+    float maxY = maxX / aspect;
+    float minY = minX / aspect;
+
+    if (v_tex.x < maxX && v_tex.x > minX && v_tex.y < maxY && v_tex.y > minY) {
+      c = v_colour;
+    } else {
+      // border colour
+      // c = vec4(1.0f, 0.3f, 1.0f, 1.0f);
+      c = v_colour;
+    }
+
     out_colour = c;
     return;
   }

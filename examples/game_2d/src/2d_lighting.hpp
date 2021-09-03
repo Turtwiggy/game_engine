@@ -47,7 +47,7 @@ struct MuzzleFlashPointLight : public PointLight
   MuzzleFlashPointLight()
   {
     this->linear = 0.0014f;
-    this->quadratic = 0.0019f;
+    this->quadratic = 0.07f;
   }
 };
 

@@ -84,7 +84,7 @@ public:
 
   float angle_radians = 0.0f;
   glm::vec4 colour = { 1.0f, 0.0f, 0.0f, 1.0f };
-  glm::ivec2 render_size = { 32, 32 };
+  glm::ivec2 render_size = { PIXELS_TO_RENDER, PIXELS_TO_RENDER };
 
   // physics
   glm::ivec2 physics_size = render_size;
