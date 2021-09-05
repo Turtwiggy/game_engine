@@ -8,7 +8,7 @@
 // c++ lib headers
 #include <iostream>
 
-namespace fightingengine {
+namespace engine {
 
 void
 audio::init_al()
@@ -155,4 +155,4 @@ audio::create_source(ALuint& s, float volume)
   return source;
 }
 
-} // namespace fightingengine
+} // namespace engine

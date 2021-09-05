@@ -5,7 +5,7 @@
 // c system headers
 #include <cassert>
 
-namespace fightingengine {
+namespace engine {
 
 unsigned int
 next_power_of_two(unsigned int x)
@@ -50,4 +50,4 @@ gl_error_to_string(GLenum err)
   }
 }
 
-} // namespace fightingengine
+} // namespace engine

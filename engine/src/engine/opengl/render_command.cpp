@@ -6,7 +6,7 @@
 #include <GL/glew.h>
 #include <SDL2/SDL.h>
 
-namespace fightingengine {
+namespace engine {
 
 void
 RenderCommand::init()
@@ -61,7 +61,7 @@ RenderCommand::set_depth_testing(bool toggle)
 }
 
 void
-RenderCommand::set_viewport(uint32_t x, uint32_t y, uint32_t width, uint32_t height)
+RenderCommand::set_viewport(int x, int y, int width, int height)
 {
   // printf("(render_command) setting viewport... \n");
   glViewport(x, y, width, height);
@@ -79,4 +79,4 @@ RenderCommand::clear()
   glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 }
 
-} // namespace fightingengine
+} // namespace engine

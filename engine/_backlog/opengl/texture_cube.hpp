@@ -3,7 +3,7 @@
 // // other library headers
 // #include <GL/glew.h>
 
-// namespace fightingengine {
+// namespace engine {
 
 // // A "TextureCube" or "Skybox" is 6 textures.
 
@@ -46,4 +46,4 @@
 // static TextureCube
 // load_texture_cube_from_folder(const std::string& folder);
 
-// } // namespace fightingengine
+// } // namespace engine

@@ -9,18 +9,18 @@
 #include <GL/glew.h>
 #include <glm/gtc/matrix_transform.hpp>
 
-namespace fightingengine {
+namespace engine {
 
 namespace sprite_renderer {
 
 static RenderData<Vertex> data;
 
 void
-SpriteBatchRenderer::draw_sprite(const RenderDescriptor& r)
+SpriteBatchRenderer::draw_sprite(const RenderDescriptor& r, Shader& s)
 {
   if (data.index_count >= max_quad_index_count) {
     end_batch();
-    flush(shader);
+    flush(s);
     begin_batch();
   }
 
@@ -226,4 +226,4 @@ SpriteBatchRenderer::end_frame()
 
 } // namespace sprite_renderer
 
-} // namespace fightingengine
+} // namespace engine

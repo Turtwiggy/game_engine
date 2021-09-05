@@ -15,7 +15,7 @@
 // #include "engine/graphics/util/opengl_util.hpp"
 // #include "engine/mesh/primitives.hpp"
 
-// namespace fightingengine {
+// namespace engine {
 
 // // Specific to the RayTracer's Shader
 // struct ComputeShaderVertex
@@ -411,4 +411,4 @@
 //   }
 // }
 
-// } // namespace fightingengine
+// } // namespace engine

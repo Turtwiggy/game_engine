@@ -5,7 +5,7 @@
 // your project headers
 #include "engine/game_window.hpp"
 
-namespace fightingengine {
+namespace engine {
 
 class ImGui_Manager
 {
@@ -18,4 +18,4 @@ public:
   void process_event(const SDL_Event* event);
 };
 
-} // namespace fightingengine
+} // namespace engine

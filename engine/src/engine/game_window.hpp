@@ -10,7 +10,7 @@
 #include <memory>
 #include <string>
 
-namespace fightingengine {
+namespace engine {
 
 enum class DisplayMode
 {
@@ -108,4 +108,4 @@ public:
   [[nodiscard]] bool get_vsync_opengl() const;
 };
 
-} // namespace fightingengine
+} // namespace engine

@@ -2,7 +2,7 @@
 // header
 #include "engine/maths_core.hpp"
 
-namespace fightingengine {
+namespace engine {
 
 float
 length_squared(const glm::vec3& i)
@@ -89,4 +89,4 @@ quadratic_curve(glm::vec2 a, glm::vec2 b, glm::vec2 c, float t)
   return lerp_a_to_b_clamped_between_0_and_1(p0, p1, t);
 }
 
-} // namespace fightingengine
+} // namespace engine

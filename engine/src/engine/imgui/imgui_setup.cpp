@@ -14,7 +14,7 @@
 #include <SDL2/SDL_syswm.h>
 #endif
 
-namespace fightingengine {
+namespace engine {
 
 ImGui_Manager::~ImGui_Manager()
 {
@@ -107,4 +107,4 @@ ImGui_Manager::process_event(const SDL_Event* event)
   ImGui_ImplSDL2_ProcessEvent(event);
 }
 
-} // namespace fightingengine
+} // namespace engine

@@ -7,7 +7,7 @@
 // #include "engine/mesh/mesh.hpp"
 // #include "engine/scene/scene_node.hpp"
 
-// namespace fightingengine {
+// namespace engine {
 
 // class Background
 // {
@@ -20,4 +20,4 @@
 //   ~Background() = default;
 // };
 
-// } // namespace fightingengine
+// } // namespace engine

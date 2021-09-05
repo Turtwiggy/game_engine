@@ -8,7 +8,7 @@
 #include <functional>
 #include <vector>
 
-namespace fightingengine {
+namespace engine {
 
 enum class TOPOLOGY
 {

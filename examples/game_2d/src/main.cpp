@@ -29,7 +29,7 @@
 #include "engine/opengl/util.hpp"
 #include "engine/ui/profiler_panel.hpp"
 #include "engine/util.hpp"
-using namespace fightingengine;
+using namespace engine;
 
 // game headers
 #include "2d_game_object.hpp"
@@ -130,7 +130,7 @@ main()
 
   bool hide_windows_console = false;
   if (hide_windows_console)
-    fightingengine::hide_windows_console();
+    engine::hide_windows_console();
 
   SDL_Scancode debug_key_advance_one_frame = SDL_SCANCODE_RSHIFT;
   SDL_Scancode debug_key_advance_one_frame_held = SDL_SCANCODE_F10;
@@ -361,7 +361,7 @@ main()
             splat.sprite = sprite_splat;
             splat.colour = player_splat_colour;
             splat.pos = player.pos;
-            splat.angle_radians = fightingengine::rand_det_s(rnd.rng, 0.0f, fightingengine::PI);
+            splat.angle_radians = engine::rand_det_s(rnd.rng, 0.0f, engine::PI);
             gs.entities_vfx.push_back(splat);
           }
 
@@ -536,7 +536,7 @@ main()
 
         // look in velocity direction
         // float angle = atan2(obj.velocity.y, obj.velocity.x);
-        // angle += fightingengine::HALF_PI + sprite::spritemap::get_sprite_rotation_offset(obj.sprite);
+        // angle += engine::HALF_PI + sprite::spritemap::get_sprite_rotation_offset(obj.sprite);
 
         // position update order
         {

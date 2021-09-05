@@ -11,7 +11,7 @@
 #include <memory>
 #include <string>
 
-namespace fightingengine {
+namespace engine {
 
 class Application
 {

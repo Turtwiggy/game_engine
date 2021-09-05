@@ -6,7 +6,7 @@
 // other lib headers
 #include <glm/glm.hpp>
 
-namespace fightingengine {
+namespace engine {
 
 template<class Vertex>
 struct RenderData
@@ -24,4 +24,4 @@ struct RenderData
   int draw_calls = 0; // stats
 };
 
-} // namespace fightingengine
+} // namespace engine

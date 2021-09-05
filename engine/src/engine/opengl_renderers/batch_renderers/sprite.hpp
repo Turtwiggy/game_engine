@@ -9,7 +9,7 @@
 // c++ headers
 #include <vector>
 
-namespace fightingengine {
+namespace engine {
 
 namespace sprite_renderer {
 
@@ -37,9 +37,8 @@ struct Vertex
 class SpriteBatchRenderer
 {
 public:
-  static void draw_sprite(const RenderDescriptor& r);
+  static void draw_sprite(const RenderDescriptor& r, Shader& s);
 
-public:
   static void init();
   static void shutdown();
 
@@ -54,10 +53,8 @@ private:
   static constexpr int max_quad = 5000;
   static constexpr int max_quad_vert_count = max_quad * 4;
   static constexpr int max_quad_index_count = max_quad * 6;
-  static inline Shader shader =
-    Shader("2d_game/shaders/2d_instanced.vert", "2d_game/shaders/2d_instanced.frag");
 };
 
 } // namespace sprite_renderer
 
-} // namespace fightingengine
+} // namespace engine

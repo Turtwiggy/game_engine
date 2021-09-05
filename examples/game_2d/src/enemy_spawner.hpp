@@ -18,7 +18,7 @@ next_wave(int& enemies_to_spawn_this_wave, int& enemies_to_spawn_this_wave_left,
 
 // spawn a random enemy every X seconds
 void
-update(MutableGameState& state, fightingengine::RandomState& rnd, const glm::ivec2 screen_wh, const float delta_time_s);
+update(MutableGameState& state, engine::RandomState& rnd, const glm::ivec2 screen_wh, const float delta_time_s);
 
 } // namespace enemy_spawner
 

@@ -7,18 +7,18 @@
 // other lib headers
 #include <GL/glew.h>
 
-namespace fightingengine {
+namespace engine {
 
 namespace triangle_fan_renderer {
 
 static RenderData<Vertex> data;
 
 void
-TriangleFanRenderer::add_point_to_fan(Shader& shader, const glm::ivec2 point)
+TriangleFanRenderer::add_point_to_fan(const glm::ivec2 point, Shader& s)
 {
   if (data.index_count >= max_quad_index_count) {
     end_batch();
-    flush(shader);
+    flush(s);
     begin_batch();
   }
 
@@ -110,9 +110,9 @@ TriangleFanRenderer::end_batch()
 
 // submit quads for a drawcall
 void
-TriangleFanRenderer::flush(Shader& shader)
+TriangleFanRenderer::flush(Shader& s)
 {
-  shader.bind();
+  s.bind();
 
   glBindVertexArray(data.VAO);
   glDrawElements(GL_TRIANGLE_FAN, data.index_count, GL_UNSIGNED_INT, nullptr);
@@ -145,4 +145,4 @@ TriangleFanRenderer::end_frame()
 
 } // namespace triangle_fan_renderer
 
-} // namespace fightingengine
+} // namespace engine

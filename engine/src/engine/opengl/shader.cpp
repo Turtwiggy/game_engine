@@ -16,7 +16,7 @@
 
 #define SHADER_ASSET_PATH "assets/"
 
-namespace fightingengine {
+namespace engine {
 
 void
 check_compile_errors(unsigned int shader, std::string type)
@@ -246,4 +246,4 @@ Shader::set_compute_buffer_bind_location(const std::string& name)
   glShaderStorageBlockBinding(ID, index, location);
 }
 
-} // namespace fightingengine
+} // namespace engine

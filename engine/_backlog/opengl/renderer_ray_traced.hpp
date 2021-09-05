@@ -5,7 +5,7 @@
 // #include "engine/graphics/shader.hpp"
 // #include "engine/graphics/triangle.hpp"
 
-// namespace fightingengine {
+// namespace engine {
 
 // Resources
 // https://github.com/LWJGL/lwjgl3-wiki/wiki/2.6.1.-Ray-tracing-with-OpenGL-Compute-Shaders-%28Part-I%29
@@ -30,7 +30,7 @@
 //   void third_quad_pass();
 // };
 
-// } // namespace fightingengine
+// } // namespace engine
 
 // // old rendering code
 // // ------------------

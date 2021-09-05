@@ -170,17 +170,17 @@ generate_intersections(GameObject2D& camera,
   //     glm::vec2 world_pos = gameobject_in_worldspace(camera, obj);
   //     glm::vec2 bl_pos = glm::vec2(world_pos.x, world_pos.y + obj.get().physics_size.y);
   //     glm::vec2 tr_pos = glm::vec2(world_pos.x + obj.get().physics_size.x, world_pos.y);
-  //     bl_pos.x = fightingengine::scale(bl_pos.x, 0.0f, screen_wh.x, -1.0f, 1.0f);
-  //     bl_pos.y = fightingengine::scale(bl_pos.y, 0.0f, screen_wh.y, 1.0f, -1.0f);
-  //     tr_pos.x = fightingengine::scale(tr_pos.x, 0.0f, screen_wh.x, -1.0f, 1.0f);
-  //     tr_pos.y = fightingengine::scale(tr_pos.y, 0.0f, screen_wh.y, 1.0f, -1.0f);
+  //     bl_pos.x = engine::scale(bl_pos.x, 0.0f, screen_wh.x, -1.0f, 1.0f);
+  //     bl_pos.y = engine::scale(bl_pos.y, 0.0f, screen_wh.y, 1.0f, -1.0f);
+  //     tr_pos.x = engine::scale(tr_pos.x, 0.0f, screen_wh.x, -1.0f, 1.0f);
+  //     tr_pos.y = engine::scale(tr_pos.y, 0.0f, screen_wh.y, 1.0f, -1.0f);
 
   //     glm::vec2 light_bl_pos = glm::vec2(light_world_pos.x, light_world_pos.y + light.physics_size.y);
   //     glm::vec2 light_tr_pos = glm::vec2(light_world_pos.x + light.physics_size.x, light_world_pos.y);
-  //     light_bl_pos.x = fightingengine::scale(light_bl_pos.x, 0.0f, screen_wh.x, -1.0f, 1.0f);
-  //     light_bl_pos.y = fightingengine::scale(light_bl_pos.y, 0.0f, screen_wh.y, 1.0f, -1.0f);
-  //     light_tr_pos.x = fightingengine::scale(light_tr_pos.x, 0.0f, screen_wh.x, -1.0f, 1.0f);
-  //     light_tr_pos.y = fightingengine::scale(light_tr_pos.y, 0.0f, screen_wh.y, 1.0f, -1.0f);
+  //     light_bl_pos.x = engine::scale(light_bl_pos.x, 0.0f, screen_wh.x, -1.0f, 1.0f);
+  //     light_bl_pos.y = engine::scale(light_bl_pos.y, 0.0f, screen_wh.y, 1.0f, -1.0f);
+  //     light_tr_pos.x = engine::scale(light_tr_pos.x, 0.0f, screen_wh.x, -1.0f, 1.0f);
+  //     light_tr_pos.y = engine::scale(light_tr_pos.y, 0.0f, screen_wh.y, 1.0f, -1.0f);
 
   //     glBegin(GL_LINE_LOOP);
   //     // line from light to tl

@@ -5,7 +5,7 @@
 #include <glm/glm.hpp>
 #include <glm/gtc/matrix_transform.hpp>
 
-namespace fightingengine {
+namespace engine {
 
 class Camera
 {
@@ -67,4 +67,4 @@ camera_fly_around(Camera& camera, const float& dt, const Uint8* keyboard_state);
 void
 camera_follow_position(Camera& camera, glm::vec3 position, glm::vec3 camera_follow_vec, const float& dt);
 
-} // namespace fightingengine
+} // namespace engine

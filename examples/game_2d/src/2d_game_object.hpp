@@ -174,7 +174,7 @@ GameObject2D
 create_bullet(sprite::type sprite, glm::vec4 colour);
 
 GameObject2D
-create_enemy(fightingengine::RandomState& rnd);
+create_enemy(engine::RandomState& rnd);
 
 GameObject2D
 create_light();

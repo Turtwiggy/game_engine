@@ -8,7 +8,7 @@
 // // your project headers
 // #include "engine/opengl/shader.hpp"
 
-// namespace fightingengine {
+// namespace engine {
 
 // class ShadowmappingRenderpass
 // {
@@ -38,4 +38,4 @@
 //   void unbind();
 // };
 
-// } // namespace fightingengine
+// } // namespace engine

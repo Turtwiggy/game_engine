@@ -5,7 +5,7 @@
 // other lib headers
 #include <GL/glew.h>
 
-namespace fightingengine {
+namespace engine {
 
 unsigned int
 Framebuffer::create_fbo()

@@ -18,7 +18,7 @@
 // #include "engine/opengl/mesh.hpp"
 // #include "engine/opengl/passes/shadowmapping.hpp"
 
-// namespace fightingengine {
+// namespace engine {
 
 // class Renderer
 // {
@@ -58,7 +58,7 @@
 //   void draw_skybox(const glm::mat4& view_projection);
 // };
 
-// } // namespace fightingengine
+// } // namespace engine
 
 // // unsigned int sphereVAO = 0;
 // // unsigned int indexCount;

@@ -7,7 +7,7 @@
 // #include "engine/mesh/primitives.hpp"
 // #include "engine/resources/resource_manager.hpp"
 
-// namespace fightingengine {
+// namespace engine {
 
 // // TODO(Turtwiggy) this should not instantiate to an id of 0, it should be
 // //                 linked to a global counter of scene nodes.
@@ -20,7 +20,7 @@
 //   Shader s = ResourceManager::load_shader("assets/shaders/skybox/", { "skybox.vert", "skybox.frag" },
 //   "skybox-shader"); shader_ = std::make_shared<Shader>(s);
 
-//   Material = std::make_shared<fightingengine::Material>(shader_);
+//   Material = std::make_shared<engine::Material>(shader_);
 //   Mesh = std::make_shared<primitives::Cube>();
 //   BoxMin = glm::vec3(-99999.0);
 //   BoxMax = glm::vec3(99999.0);
@@ -70,4 +70,4 @@
 // //     glDepthFunc(GL_LESS); // set depth function back to default
 // // }
 
-// } // namespace fightingengine
+// } // namespace engine

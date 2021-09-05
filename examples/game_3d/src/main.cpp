@@ -27,7 +27,7 @@
 #include "engine/tools/profiler.hpp"
 #include "engine/ui/profiler_panel.hpp"
 #include "engine/util.hpp"
-using namespace fightingengine;
+using namespace engine;
 
 const int STARTING_CUBES = 35;
 glm::vec3 player_pos(0.0f, 0.0f, 0.0f);

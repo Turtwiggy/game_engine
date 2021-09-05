@@ -14,7 +14,7 @@
 // c++ standard library headers
 #include <iostream>
 
-namespace fightingengine {
+namespace engine {
 
 StbLoadedTexture
 load_texture(const int textureUnit, const std::string& path)
@@ -137,4 +137,4 @@ update_texture_size(glm::ivec2 size, int tex_id)
   glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, size.x, size.y, 0, GL_RGB, GL_UNSIGNED_BYTE, NULL);
 };
 
-} // namespace fightingengine
+} // namespace engine

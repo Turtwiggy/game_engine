@@ -20,16 +20,16 @@ glm::ivec2
 rotate_b_around_a(const GameObject2D& a, const GameObject2D& b, float radius, float angle);
 
 void
-scroll_to_swap_weapons(fightingengine::Application& app, GameObject2D& player, std::vector<ShopItem>& inventory);
+scroll_to_swap_weapons(engine::Application& app, GameObject2D& player, std::vector<ShopItem>& inventory);
 
 void
-update_input(GameObject2D& obj, KeysAndState& keys, fightingengine::Application& app, GameObject2D& camera);
+update_input(GameObject2D& obj, KeysAndState& keys, engine::Application& app, GameObject2D& camera);
 
 void
 ability_boost(GameObject2D& player, const KeysAndState& keys, const float delta_time_s);
 
 void
-ability_slash(fightingengine::Application& app,
+ability_slash(engine::Application& app,
               GameObject2D& player_obj,
               KeysAndState& keys,
               GameObject2D& weapon,
@@ -38,13 +38,13 @@ ability_slash(fightingengine::Application& app,
               std::vector<Attack>& attacks);
 
 void
-player_attack(fightingengine::Application& app,
+player_attack(engine::Application& app,
               MutableGameState& gs,
               GameObject2D& player,
               std::vector<ShopItem>& player_inventory,
               KeysAndState& keys,
               const float delta_time_s,
-              fightingengine::RandomState& rnd);
+              engine::RandomState& rnd);
 
 } // namespace player
 

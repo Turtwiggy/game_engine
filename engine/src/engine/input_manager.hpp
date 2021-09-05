@@ -10,7 +10,7 @@
 // c++ standard lib headers
 #include <vector>
 
-namespace fightingengine {
+namespace engine {
 
 class InputManager
 {

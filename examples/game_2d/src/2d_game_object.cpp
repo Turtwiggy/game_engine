@@ -159,7 +159,7 @@ create_bullet(sprite::type sprite, glm::vec4 colour)
 };
 
 GameObject2D
-create_enemy(fightingengine::RandomState& rnd)
+create_enemy(engine::RandomState& rnd)
 {
   GameObject2D game_object;
   // config
@@ -175,11 +175,11 @@ create_enemy(fightingengine::RandomState& rnd)
   game_object.original_colour = enemy_colour;
 
   // roll a dice for ai
-  float rand = fightingengine::rand_det_s(rnd.rng, 0.0f, 1.0f);
+  float rand = engine::rand_det_s(rnd.rng, 0.0f, 1.0f);
   if (rand <= 0.75f) {
     game_object.ai_priority_list.push_back(AiBehaviour::MOVEMENT_ARC_ANGLE);
     // locked between -89.9 and 89.9 as uses sin(theta), and after these values makes less sense
-    game_object.approach_theta_degrees = fightingengine::rand_det_s(rnd.rng, -89.9f, 89.9f);
+    game_object.approach_theta_degrees = engine::rand_det_s(rnd.rng, -89.9f, 89.9f);
     // std::cout << "approach angle: " << game_object.approach_theta_degrees << std::endl;
   } else {
     game_object.ai_priority_list.push_back(AiBehaviour::MOVEMENT_DIRECT);

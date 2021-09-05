@@ -72,8 +72,7 @@ generate_broadphase_collisions(const std::vector<std::reference_wrapper<GameObje
         if (valid_collision) {
 
           // Check existing collisions
-          uint64_t unique_collision_id =
-            fightingengine::encode_cantor_pairing_function(old_obj.get().id, new_obj.get().id);
+          uint64_t unique_collision_id = engine::encode_cantor_pairing_function(old_obj.get().id, new_obj.get().id);
 
           if (collisions.find(unique_collision_id) != collisions.end()) {
             // collision for these pairs!

@@ -6,7 +6,7 @@
 // c lib headers
 #include <stdio.h>
 
-namespace fightingengine {
+namespace engine {
 
 // http://bits.stephan-brumme.com/roundUpToNextPowerOfTwo.html
 unsigned int
@@ -45,4 +45,4 @@ print_gpu_info()
   // GL_MAX_COMBINED_SHADER_STORAGE_BLOCKS = 96
 }
 
-} // namespace fightingengine
+} // namespace engine

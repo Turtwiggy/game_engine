@@ -18,7 +18,7 @@
 
 
 
-namespace fightingengine {
+namespace engine {
 
 GameWindow::GameWindow(const std::string& title, int width, int height, DisplayMode displaymode, bool vsync)
 {

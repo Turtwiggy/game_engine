@@ -8,7 +8,7 @@
 // #include "engine/graphics/vertex.hpp"
 // #include "engine/core/maths/base.hpp"
 
-// namespace fightingengine
+// namespace engine
 // {
 //     //materials
 //     #define MATERIAL_METAL 1
@@ -62,4 +62,4 @@
 //     scatter_metal(const Ray &r, const HitInfo &h, const Material &m,
 //     glm::vec3 &attentuation, Ray &scattered, RandomState &rnd);
 
-// } // namespace fightingengine
+// } // namespace engine

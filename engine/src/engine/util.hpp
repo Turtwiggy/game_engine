@@ -5,14 +5,13 @@
 #include <thread>
 #include <vector>
 
-namespace fightingengine {
+namespace engine {
 
 void
 log_time_since(const std::string& label, std::chrono::time_point<std::chrono::high_resolution_clock> start);
 
 [[nodiscard]] std::vector<unsigned int>
-load_textures_threaded(std::vector<std::pair<int, std::string>>& textures_to_load,
-                       const std::chrono::steady_clock::time_point& app_start);
+load_textures_threaded(std::vector<std::pair<int, std::string>>& textures_to_load);
 
 void
 hide_windows_console();

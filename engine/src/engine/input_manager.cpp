@@ -8,7 +8,7 @@
 // c++ standard lib headers
 #include <imgui.h>
 
-namespace fightingengine {
+namespace engine {
 
 InputManager::InputManager()
 {
@@ -219,4 +219,4 @@ InputManager::get_button_held(SDL_GameController* controller, SDL_GameController
   return val != 0;
 }
 
-} // namespace fightingengine
+} // namespace engine

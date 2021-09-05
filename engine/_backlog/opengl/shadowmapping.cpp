@@ -9,7 +9,7 @@
 // #include "engine/opengl/framebuffer.hpp"
 // #include "engine/opengl/render_command.hpp"
 
-// namespace fightingengine {
+// namespace engine {
 
 // ShadowmappingRenderpass::ShadowmappingRenderpass()
 // {
@@ -79,4 +79,4 @@
 //   Framebuffer::default_fbo();
 // }
 
-// } // namespace fightingengine
+// } // namespace engine

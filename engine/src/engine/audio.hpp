@@ -7,7 +7,7 @@
 // c++ lib headers
 #include <string>
 
-namespace fightingengine {
+namespace engine {
 
 namespace audio {
 
@@ -51,4 +51,4 @@ create_source(ALuint& s, float volume);
 
 } // namespace audio
 
-} // namespace fightingengine
+} // namespace engine

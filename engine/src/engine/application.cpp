@@ -13,12 +13,12 @@
 #include <iostream>
 #include <numeric>
 
-namespace fightingengine {
+namespace engine {
 
 Application::Application(const std::string& name, int width, int height, bool vsync)
 {
   // const std::string kBuildStr(kGitSHA1Hash, 8);
-  std::string kBuildStr = " [0.0.6] ";
+  std::string kBuildStr = " [0.0.8] ";
 
 #ifdef WIN32
 #ifdef _DEBUG

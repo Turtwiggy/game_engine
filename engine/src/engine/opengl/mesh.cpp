@@ -9,7 +9,7 @@
 // c++ libs
 #include <iostream>
 
-namespace fightingengine {
+namespace engine {
 
 // clang-format off
 static float vertexPlane[40] =
@@ -108,4 +108,4 @@ Mesh::draw(Shader& shader)
   glActiveTexture(GL_TEXTURE0);
 }
 
-} // namespace fightingengine
+} // namespace engine

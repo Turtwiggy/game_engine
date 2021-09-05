@@ -17,7 +17,7 @@ player::rotate_b_around_a(const GameObject2D& a, const GameObject2D& b, float ra
 };
 
 void
-player::scroll_to_swap_weapons(fightingengine::Application& app, GameObject2D& player, std::vector<ShopItem>& inventory)
+player::scroll_to_swap_weapons(engine::Application& app, GameObject2D& player, std::vector<ShopItem>& inventory)
 {
   float mousewheel = app.get_input().get_mousewheel_y();
   float epsilon = 0.0001f;
@@ -41,7 +41,7 @@ player::scroll_to_swap_weapons(fightingengine::Application& app, GameObject2D& p
 };
 
 void
-player::update_input(GameObject2D& obj, KeysAndState& keys, fightingengine::Application& app, GameObject2D& camera)
+player::update_input(GameObject2D& obj, KeysAndState& keys, engine::Application& app, GameObject2D& camera)
 {
   keys.l_analogue_x = 0.0f;
   keys.l_analogue_y = 0.0f;
@@ -136,7 +136,7 @@ player::ability_boost(GameObject2D& player, const KeysAndState& keys, const floa
 };
 
 void
-player::ability_slash(fightingengine::Application& app,
+player::ability_slash(engine::Application& app,
                       GameObject2D& player_obj,
                       KeysAndState& keys,
                       GameObject2D& weapon,
@@ -202,7 +202,7 @@ ability_shoot(GameObject2D& fire_from_this_entity,
               const sprite::type sprite,
               RangedWeaponStats& s,
               MutableGameState& gs,
-              fightingengine::RandomState& rnd)
+              engine::RandomState& rnd)
 {
   s.current_ammo -= 1;
   fire_from_this_entity.flash_time_left = 0.2f;
@@ -236,12 +236,12 @@ ability_shoot(GameObject2D& fire_from_this_entity,
   {
     // bullet_copy.velocity.x = keys.r_analogue_x * bullet_copy.speed_current;
     // bullet_copy.velocity.y = keys.r_analogue_y * bullet_copy.speed_current;
-    const float velocity_as_angle = atan2(keys.r_analogue_y, keys.r_analogue_x) + fightingengine::PI;
+    const float velocity_as_angle = atan2(keys.r_analogue_y, keys.r_analogue_x) + engine::PI;
 
     // add some randomness to the bullet's direction
     // todo: replace complete randomness with a recoil factor.
-    constexpr float angle_min_max = 10.0f * fightingengine::PI / 180.0f;
-    const float random_angle = fightingengine::rand_det_s(rnd.rng, -angle_min_max, angle_min_max);
+    constexpr float angle_min_max = 10.0f * engine::PI / 180.0f;
+    const float random_angle = engine::rand_det_s(rnd.rng, -angle_min_max, angle_min_max);
 
     const float new_angle = velocity_as_angle + random_angle;
     const float rand_x_vel = glm::sin(new_angle);
@@ -270,13 +270,13 @@ position_around_player(GameObject2D& player, GameObject2D& weapon, RangedWeaponS
 };
 
 void
-player::player_attack(fightingengine::Application& app,
+player::player_attack(engine::Application& app,
                       MutableGameState& gs,
                       GameObject2D& player,
                       std::vector<ShopItem>& player_inventory,
                       KeysAndState& keys,
                       const float delta_time_s,
-                      fightingengine::RandomState& rnd)
+                      engine::RandomState& rnd)
 {
   gs.weapon_shovel.do_render = false;
   gs.weapon_pistol.do_render = false;

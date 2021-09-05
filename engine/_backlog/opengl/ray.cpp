@@ -13,7 +13,7 @@
 // //the raytracer.glsl shader
 // using namespace glm;
 
-// namespace fightingengine
+// namespace engine
 // {
 
 // vec3 reflect(const vec3 v, const vec3 n)
@@ -228,4 +228,4 @@
 //     return (dot(scattered.direction, h.normal) > 0);
 // }
 
-// } //namespace fightingengine
+// } //namespace engine

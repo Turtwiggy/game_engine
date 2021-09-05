@@ -6,12 +6,13 @@
 #include "engine/opengl/texture.hpp"
 
 // other library headers
+#include <chrono>
 #include <iostream>
 #ifdef WIN32
 #include <Windows.h>
 #endif
 
-namespace fightingengine {
+namespace engine {
 
 void
 log_time_since(const std::string& label, std::chrono::time_point<std::chrono::high_resolution_clock> start)
@@ -22,10 +23,11 @@ log_time_since(const std::string& label, std::chrono::time_point<std::chrono::hi
 }
 
 std::vector<unsigned int>
-load_textures_threaded(std::vector<std::pair<int, std::string>>& textures_to_load,
-                       const std::chrono::steady_clock::time_point& app_start)
+load_textures_threaded(std::vector<std::pair<int, std::string>>& textures_to_load)
 {
-  log_time_since("(Threaded) loading textures... ", app_start);
+  const auto start = std::chrono::high_resolution_clock::now();
+  log_time_since("(Threaded) loading textures... ", start);
+
   std::vector<unsigned int> texture_ids;
 
   {
@@ -47,7 +49,8 @@ load_textures_threaded(std::vector<std::pair<int, std::string>>& textures_to_loa
       texture_ids.push_back(id);
     }
   }
-  log_time_since("(End Threaded) textures loaded ", app_start);
+
+  log_time_since("(End Threaded) textures loaded took:", start);
   return texture_ids;
 }
 

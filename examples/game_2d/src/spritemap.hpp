@@ -211,14 +211,14 @@ struct spritemap
 
     // row 5
     ret[type::SQUARE] = { 0.0f };
-    ret[type::WEAPON_ARROW_1] = { -fightingengine::PI / 4.0f };
-    ret[type::WEAPON_ARROW_2] = { -fightingengine::PI / 4.0f };
-    ret[type::WEAPON_SHOVEL] = { fightingengine::PI / 4.0f };
-    ret[type::WEAPON_PICKAXE] = { -fightingengine::PI / 8.0f };
+    ret[type::WEAPON_ARROW_1] = { -engine::PI / 4.0f };
+    ret[type::WEAPON_ARROW_2] = { -engine::PI / 4.0f };
+    ret[type::WEAPON_SHOVEL] = { engine::PI / 4.0f };
+    ret[type::WEAPON_PICKAXE] = { -engine::PI / 8.0f };
 
     // row 6
-    ret[type::WEAPON_DAGGER_OUTLINED_1] = { -fightingengine::PI / 4.0f };
-    ret[type::WEAPON_DAGGER_SOLID_3] = { -fightingengine::PI / 4.0f };
+    ret[type::WEAPON_DAGGER_OUTLINED_1] = { -engine::PI / 4.0f };
+    ret[type::WEAPON_DAGGER_SOLID_3] = { -engine::PI / 4.0f };
 
     // row 9
     ret[type::WEAPON_PISTOL] = { 0.0f };

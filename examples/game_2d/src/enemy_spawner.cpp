@@ -120,7 +120,7 @@ enemy_spawner::next_wave(int& enemies_to_spawn_this_wave, int& enemies_to_spawn_
 
 // TODO fix this
 void
-spawn_enemy(MutableGameState& state, fightingengine::RandomState& rnd, glm::vec2 world_pos)
+spawn_enemy(MutableGameState& state, engine::RandomState& rnd, glm::vec2 world_pos)
 {
   const int wave = state.wave;
 
@@ -151,7 +151,7 @@ spawn_enemy(MutableGameState& state, fightingengine::RandomState& rnd, glm::vec2
 
 void
 enemy_spawner::update(MutableGameState& state,
-                      fightingengine::RandomState& rnd,
+                      engine::RandomState& rnd,
                       const glm::ivec2 screen_wh,
                       const float delta_time_s)
 {
@@ -178,8 +178,8 @@ enemy_spawner::update(MutableGameState& state,
       }
 
       bool ok = true;
-      glm::vec2 rnd_pos = glm::vec2(fightingengine::rand_det_s(rnd.rng, 0.0f, 1.0f) * screen_wh.x,
-                                    fightingengine::rand_det_s(rnd.rng, 0.0f, 1.0f) * screen_wh.y);
+      glm::vec2 rnd_pos = glm::vec2(engine::rand_det_s(rnd.rng, 0.0f, 1.0f) * screen_wh.x,
+                                    engine::rand_det_s(rnd.rng, 0.0f, 1.0f) * screen_wh.y);
 
       for (auto& player : state.entities_player) {
 

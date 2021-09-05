@@ -18,7 +18,7 @@
 // https://github.com/ntcaston/AngryGL/blob/master/angrygl/player_mesh.h
 // https://github.com/ntcaston/AngryGL/blob/master/angrygl/player_model.h
 
-namespace fightingengine {
+namespace engine {
 
 class Model
 {
@@ -37,4 +37,4 @@ private:
   Mesh process_mesh(aiMesh* mesh, const aiScene* scene);
 };
 
-} // namespace fightingengine
+} // namespace engine

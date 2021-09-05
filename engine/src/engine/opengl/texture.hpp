@@ -6,7 +6,7 @@
 // c++ standard library headers
 #include <string>
 
-namespace fightingengine {
+namespace engine {
 
 enum class TextureType
 {
@@ -46,4 +46,4 @@ create_texture(glm::ivec2 size, int tex_slot, unsigned int framebuffer_id);
 void
 update_texture_size(glm::ivec2 size, int tex_id);
 
-} // namespace fightingengine
+} // namespace engine

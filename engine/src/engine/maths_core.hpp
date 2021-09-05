@@ -7,7 +7,7 @@
 // c++ standard lib headers
 #include <random>
 
-namespace fightingengine {
+namespace engine {
 
 constexpr float PI{ 3.1415926535897932385f };
 constexpr float HALF_PI = PI / 2.0f;
@@ -75,4 +75,4 @@ ray_at(const Ray r, float t)
   return r.origin + (t * r.dir);
 }
 
-} // namespace fightingengine
+} // namespace engine

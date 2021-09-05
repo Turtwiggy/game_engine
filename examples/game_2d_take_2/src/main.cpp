@@ -1,5 +1,8 @@
-
 // game headers
+#include "game.hpp"
+
+#include "components/global_resources.hpp"
+using namespace game2d;
 
 // engine headers
 #include "engine/application.hpp"
@@ -13,7 +16,7 @@
 #include "engine/opengl_renderers/batch_renderers/sprite.hpp"
 #include "engine/opengl_renderers/batch_renderers/triangle_fan.hpp"
 #include "engine/util.hpp"
-using namespace fightingengine;
+using namespace engine;
 
 // other lib headers
 #include <entt/entt.hpp>
@@ -23,37 +26,28 @@ using namespace fightingengine;
 // std lib headers
 #include <iostream>
 
+// colour palette; https://colorhunt.co/palette/273312
+constexpr glm::vec4 PALETTE_COLOUR_1_1 = glm::vec4(57.0f / 255.0f, 62.0f / 255.0f, 70.0f / 255.0f, 1.0f);  // black
+constexpr glm::vec4 PALETTE_COLOUR_2_1 = glm::vec4(0.0f / 255.0f, 173.0f / 255.0f, 181.0f / 255.0f, 1.0f); // blue
+constexpr glm::vec4 PALETTE_COLOUR_3_1 =
+  glm::vec4(170.0f / 255.0f, 216.0f / 255.0f, 211.0f / 255.0f, 1.0f); // lightblue
+constexpr glm::vec4 PALETTE_COLOUR_4_1 = glm::vec4(238.0f / 255.0f, 238.0f / 255.0f, 238.0f / 255.0f, 1.0f); // grey
+constexpr glm::vec4 PALETTE_COLOUR_5_1 = glm::vec4(0.95f, 0.3f, 0.3f, 1.0f);
+constexpr glm::vec4 background_colour = PALETTE_COLOUR_1_1; // black
+
 int
 main()
 {
   std::cout << "init..." << std::endl;
   const auto app_start = std::chrono::high_resolution_clock::now();
 
-  RandomState rnd;
-
-  // config
-  bool use_vsync = false;
+  bool use_vsync = true;
   bool show_imgui_demo_window = false;
 
-  glm::ivec2 screen_wh = { 1366, 720 };
-  Application app("2D Game", screen_wh.x, screen_wh.y, use_vsync);
-  app.limit_fps = true;
-  app.fps_if_limited = 120.0f;
-
-  // std::vector<std::pair<int, std::string>> textures_to_load;
-  // textures_to_load.emplace_back(tex_unit_kenny_nl,
-  //                               "assets/2d_game/textures/kennynl_1bit_pack/monochrome_transparent_packed.png");
-
-  RenderCommand::init();
-  RenderCommand::set_viewport(0, 0, static_cast<uint32_t>(screen_wh.x), static_cast<uint32_t>(screen_wh.y));
-  RenderCommand::set_depth_testing(false); // disable depth testing for 2d
-  // sprite_renderer::init();
-  // triangle_fan_renderer::init();
-  // print_gpu_info();
-  sprite_renderer::SpriteBatchRenderer::init();
-  triangle_fan_renderer::TriangleFanRenderer::init();
-
+  glm::ivec2 start_screen_wh = { 1366, 720 };
+  Application app("2D Game", start_screen_wh.x, start_screen_wh.y, use_vsync);
   entt::registry registry;
+  init(registry, start_screen_wh);
 
   log_time_since("(INFO) End Setup ", app_start);
 
@@ -73,14 +67,12 @@ main()
 
     // Render
     Framebuffer::default_fbo();
-    glm::vec4 dark_blue = glm::vec4(0.0f / 255.0f, 100.0f / 255.0f, 100.0f / 255.0f, 1.0f);
-    RenderCommand::set_clear_colour(dark_blue);
+    RenderCommand::set_clear_colour(background_colour);
     RenderCommand::clear();
 
     // UI
 
-    // ImGui demo window
-    ImGui::ShowDemoWindow(&show_imgui_demo_window);
+    // ImGui::ShowDemoWindow(&show_imgui_demo_window);
 
     app.frame_end(frame_start_time);
   }

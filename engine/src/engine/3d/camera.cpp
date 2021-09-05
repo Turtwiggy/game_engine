@@ -9,7 +9,7 @@
 #include <glm/gtx/euler_angles.hpp>
 #include <glm/gtx/transform.hpp>
 
-namespace fightingengine {
+namespace engine {
 
 void
 Camera::update_view()
@@ -147,4 +147,4 @@ camera_follow_position(Camera& camera, glm::vec3 position, glm::vec3 camera_foll
   camera.target_position = position + camera_follow_vec;
 }
 
-} // namespace fightingengine
+} // namespace engine

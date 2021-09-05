@@ -12,7 +12,7 @@
 #include <iostream>
 #include <string>
 
-namespace fightingengine {
+namespace engine {
 
 Model::Model(const std::string& full_path)
 {
@@ -174,4 +174,4 @@ Model::process_mesh(aiMesh* mesh, const aiScene* scene)
   return Mesh(vertices, indices);
 }
 
-} // namespace fightingengine
+} // namespace engine

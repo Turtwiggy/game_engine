@@ -7,7 +7,7 @@
 // #define STB_IMAGE_IMPLEMENTATION
 // #include <stb_image.h>
 
-// namespace fightingengine {
+// namespace engine {
 
 // void
 // TextureCube::default_initialize(unsigned int width, unsigned int height, GLenum format, GLenum type, bool mipmap)
@@ -127,4 +127,4 @@
 //   return texture_cube;
 // }
 
-// } // namespace fightingengine
+// } // namespace engine

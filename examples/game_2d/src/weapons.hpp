@@ -43,7 +43,7 @@ struct MeleeWeaponStats : WeaponStats
   // slash stats
   float slash_attack_time = 0.15f;
   float weapon_radius = 30.0f;
-  float weapon_angle_speed = fightingengine::HALF_PI / 30.0f; // closer to 0 is faster
+  float weapon_angle_speed = engine::HALF_PI / 30.0f; // closer to 0 is faster
   float weapon_damping = 20.0f;
   float slash_attack_time_left = 0.0f;
   bool attack_left_to_right = true;

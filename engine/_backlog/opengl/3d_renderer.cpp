@@ -9,7 +9,7 @@
 // #include "engine/opengl/render_command.hpp"
 // #include "engine/resources/resource_manager.hpp"
 
-// namespace fightingengine {
+// namespace engine {
 
 // void
 // Renderer::update(float delta_time,
@@ -137,7 +137,7 @@
 //   render_mesh(cube_);
 // }
 
-// } // namespace fightingengine
+// } // namespace engine
 
 // NOTE: this file contains blur and bloom effects
 

@@ -19,14 +19,14 @@ namespace vfx {
 
 // vfx death "splat"
 void
-spawn_death_splat(fightingengine::RandomState& rnd,
+spawn_death_splat(engine::RandomState& rnd,
                   const GameObject2D& enemy,
                   const sprite::type s,
                   std::vector<GameObject2D>& ents);
 
 // vfx impact "splats"
 void
-spawn_impact_splats(fightingengine::RandomState& rnd,
+spawn_impact_splats(engine::RandomState& rnd,
                     const GameObject2D& src,
                     const GameObject2D& dst,
                     const sprite::type sprite,

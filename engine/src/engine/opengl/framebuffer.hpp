@@ -1,6 +1,6 @@
 #pragma once
 
-namespace fightingengine {
+namespace engine {
 
 class Framebuffer
 {
@@ -23,4 +23,4 @@ public:
   static void unbind_rbo();
 };
 
-} // namespace fightingengine
+} // namespace engine

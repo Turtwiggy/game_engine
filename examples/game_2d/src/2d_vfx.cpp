@@ -10,7 +10,7 @@ namespace vfx {
 
 // vfx death "splat"
 void
-spawn_death_splat(fightingengine::RandomState& rnd,
+spawn_death_splat(engine::RandomState& rnd,
                   const GameObject2D& enemy,
                   const sprite::type s,
                   std::vector<GameObject2D>& ents)
@@ -23,7 +23,7 @@ spawn_death_splat(fightingengine::RandomState& rnd,
   splat.render_size = enemy.render_size;
   splat.physics_size = splat.render_size;
   splat.pos = enemy.pos;
-  splat.angle_radians = fightingengine::rand_det_s(rnd.rng, -fightingengine::PI, fightingengine::PI);
+  splat.angle_radians = engine::rand_det_s(rnd.rng, -engine::PI, engine::PI);
   splat.colour = enemy_death_splat_colour;
 
   if (enemy.damage_taken >= enemy.damage_able_to_be_taken) {
@@ -72,7 +72,7 @@ convert_int_to_sprites(int damage)
 }
 
 void
-spawn_impact_splats(fightingengine::RandomState& rnd,
+spawn_impact_splats(engine::RandomState& rnd,
                     const GameObject2D& src,
                     const GameObject2D& dst,
                     const sprite::type sprite,
@@ -108,7 +108,7 @@ spawn_impact_splats(fightingengine::RandomState& rnd,
   //   splat_spawn_pos.y += dst.physics_size.y / 2.0f - splat.physics_size.y / 2.0f;
 
   //   // velocity
-  //   float theta = fightingengine::rand_det_s(rnd.rng, -fightingengine::PI, fightingengine::PI);
+  //   float theta = engine::rand_det_s(rnd.rng, -engine::PI, engine::PI);
   //   glm::vec2 offset_dir;
   //   offset_dir.x = cos(theta) * dir.x - sin(theta) * dir.y;
   //   offset_dir.y = sin(theta) * dir.x + cos(theta) * dir.y;
@@ -143,7 +143,7 @@ spawn_impact_splats(fightingengine::RandomState& rnd,
       splat_spawn_pos.y += dst.physics_size.y / 2.0f - splat.physics_size.y / 2.0f;
 
       // velocity
-      float theta = fightingengine::rand_det_s(rnd.rng, -fightingengine::PI, fightingengine::PI);
+      float theta = engine::rand_det_s(rnd.rng, -engine::PI, engine::PI);
       glm::vec2 offset_dir;
       offset_dir.x = cos(theta) * dir.x - sin(theta) * dir.y;
       offset_dir.y = sin(theta) * dir.x + cos(theta) * dir.y;

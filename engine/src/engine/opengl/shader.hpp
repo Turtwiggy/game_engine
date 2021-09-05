@@ -8,7 +8,7 @@
 #include <string>
 #include <vector>
 
-namespace fightingengine {
+namespace engine {
 
 void
 check_compile_errors(unsigned int shader, std::string type);
@@ -27,6 +27,7 @@ class Shader
 public:
   unsigned int ID;
 
+  Shader() = default;
   Shader(const std::string& vert_path, const std::string& frag_path);
 
   void bind();
@@ -55,4 +56,4 @@ public:
 private:
 };
 
-} // namespace fightingengine
+} // namespace engine
