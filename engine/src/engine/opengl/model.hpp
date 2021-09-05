@@ -1,13 +1,13 @@
 #pragma once
 
+// your project libs
+#include "engine/opengl/mesh.hpp"
+#include "engine/opengl/shader.hpp"
+
 // other project libs
 #include "assimp/Importer.hpp"
 #include "assimp/postprocess.h"
 #include "assimp/scene.h"
-
-// your project libs
-#include "engine/opengl/mesh.hpp"
-#include "engine/opengl/shader.hpp"
 
 #ifndef STB_IMAGE_IMPLEMENTATION
 #define STB_IMAGE_IMPLEMENTATION

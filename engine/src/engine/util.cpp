@@ -2,14 +2,14 @@
 // header
 #include "util.hpp"
 
+// engine header
+#include "engine/opengl/texture.hpp"
+
 // other library headers
 #include <iostream>
 #ifdef WIN32
 #include <Windows.h>
 #endif
-
-// engine header
-#include "engine/opengl/texture.hpp"
 
 namespace fightingengine {
 

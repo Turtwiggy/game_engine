@@ -1,13 +1,15 @@
 #pragma once
 
+// your project headers
+#include "engine/game_window.hpp"
+
+// engine headers
+#include "engine/imgui/imgui_setup.hpp"
+#include "engine/input_manager.hpp"
+
 // c++ standard library headers
 #include <memory>
 #include <string>
-
-// your project headers
-#include "engine/game_window.hpp"
-#include "engine/imgui/imgui_setup.hpp"
-#include "engine/input_manager.hpp"
 
 namespace fightingengine {
 
@@ -36,7 +38,6 @@ public:
 
   [[nodiscard]] GameWindow& get_window();
   [[nodiscard]] InputManager& get_input();
-  [[nodiscard]] ImGui_Manager& get_imgui();
 
 private:
   // window events

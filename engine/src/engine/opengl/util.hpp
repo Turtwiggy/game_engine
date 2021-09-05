@@ -1,10 +1,11 @@
 #pragma once
 
+// other library headers
+#include <GL/glew.h>
+
 // c lib headers
 #include <stdio.h>
 
-// other library headers
-#include <GL/glew.h>
 namespace fightingengine {
 
 // http://bits.stephan-brumme.com/roundUpToNextPowerOfTwo.html

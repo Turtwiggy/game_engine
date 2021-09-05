@@ -2,15 +2,15 @@
 // header
 #include "engine/opengl/model.hpp"
 
-// standard lib headers
-#include <iostream>
-#include <string>
-
 // other project libs
 #include "assimp/Importer.hpp"
 #include "assimp/postprocess.h"
 #include "assimp/scene.h"
 #include <stb_image.h>
+
+// standard lib headers
+#include <iostream>
+#include <string>
 
 namespace fightingengine {
 

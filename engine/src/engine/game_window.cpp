@@ -2,6 +2,10 @@
 // header
 #include "engine/game_window.hpp"
 
+// other library headers
+#include <GL/glew.h>
+#include <SDL2/SDL_syswm.h>
+
 // c++ standard library headers
 // clang-format off
 #include <string>
@@ -12,9 +16,7 @@
 // clang-forrmat on
 #include <iostream>
 
-// other library headers
-#include <GL/glew.h>
-#include <SDL2/SDL_syswm.h>
+
 
 namespace fightingengine {
 

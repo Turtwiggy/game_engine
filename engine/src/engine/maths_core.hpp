@@ -1,11 +1,11 @@
 #pragma once
 
-// c++ standard lib headers
-#include <random>
-
 // other library headers
 #include <glm/glm.hpp>
 #include <glm/gtx/compatibility.hpp>
+
+// c++ standard lib headers
+#include <random>
 
 namespace fightingengine {
 

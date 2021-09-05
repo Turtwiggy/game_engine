@@ -1,11 +1,11 @@
 #pragma once
 
+// other lib headers
+#include <glm/glm.hpp>
+
 // c++ lib headers
 #include <iostream>
 #include <vector>
-
-// other lib headers
-#include <glm/glm.hpp>
 
 namespace game2d {
 

@@ -2,12 +2,12 @@
 // header
 #include "engine/opengl/mesh.hpp"
 
-// c++ libs
-#include <iostream>
-
 // other library headers
 #include <gl/glew.h>
 #include <glm/glm.hpp>
+
+// c++ libs
+#include <iostream>
 
 namespace fightingengine {
 

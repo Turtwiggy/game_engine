@@ -2,11 +2,11 @@
 // header
 #include "engine/input_manager.hpp"
 
-// c++ standard lib headers
-#include <imgui.h>
-
 // your proj headers
 #include "engine/maths_core.hpp"
+
+// c++ standard lib headers
+#include <imgui.h>
 
 namespace fightingengine {
 

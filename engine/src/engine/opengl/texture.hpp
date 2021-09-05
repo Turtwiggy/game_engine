@@ -1,10 +1,10 @@
 #pragma once
 
-// c++ standard library headers
-#include <string>
-
 // other lib headers
 #include <glm/glm.hpp>
+
+// c++ standard library headers
+#include <string>
 
 namespace fightingengine {
 

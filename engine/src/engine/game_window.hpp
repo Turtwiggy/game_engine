@@ -1,14 +1,14 @@
 #pragma once
 
-// c++ standard lib headers
-#include <cstdint>
-#include <memory>
-#include <string>
-
 // other library headers
 #include <SDL2/SDL.h>
 #undef main // thanks SDL2?
 #include <glm/glm.hpp>
+
+// c++ standard lib headers
+#include <cstdint>
+#include <memory>
+#include <string>
 
 namespace fightingengine {
 

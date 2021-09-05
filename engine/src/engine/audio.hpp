@@ -1,11 +1,11 @@
 #pragma once
 
-// c++ lib headers
-#include <string>
-
 // other project headers
 #include <AL/al.h>
 #include <AL/alc.h>
+
+// c++ lib headers
+#include <string>
 
 namespace fightingengine {
 

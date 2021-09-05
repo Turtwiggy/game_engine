@@ -2,17 +2,17 @@
 // header
 #include "engine/opengl/texture.hpp"
 
-// c++ standard library headers
-#include <iostream>
+// fightingengine headers
+#include "engine/opengl/framebuffer.hpp"
+#include "engine/opengl/render_command.hpp"
+#include "engine/opengl/util.hpp"
 
 // other lib headers
 #include <GL/glew.h>
 #include <stb_image.h>
 
-// fightingengine headers
-#include "engine/opengl/framebuffer.hpp"
-#include "engine/opengl/render_command.hpp"
-#include "engine/opengl/util.hpp"
+// c++ standard library headers
+#include <iostream>
 
 namespace fightingengine {
 

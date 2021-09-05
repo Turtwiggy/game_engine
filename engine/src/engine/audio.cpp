@@ -1,12 +1,12 @@
 // your header
 #include "engine/audio.hpp"
 
-// c++ lib headers
-#include <iostream>
-
 // other project headers
 #include <AL/alext.h>
 #include <sndfile.h>
+
+// c++ lib headers
+#include <iostream>
 
 namespace fightingengine {
 

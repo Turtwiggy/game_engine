@@ -1,12 +1,12 @@
 #pragma once
 
+// other library headers
+#include <glm/glm.hpp>
+
 // c++ standard library headers
 #include <iostream>
 #include <string>
 #include <vector>
-
-// other library headers
-#include <glm/glm.hpp>
 
 namespace fightingengine {
 

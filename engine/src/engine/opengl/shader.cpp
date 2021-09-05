@@ -3,16 +3,16 @@
 // header
 #include "engine/opengl/shader.hpp"
 
-// c++ standard library headers
-#include <filesystem> // C++17
-#include <fstream>
-#include <sstream>
+// your project headers
+#include "engine/opengl/util.hpp"
 
 // other library headers
 #include <GL/glew.h>
 
-// your project headers
-#include "engine/opengl/util.hpp"
+// c++ standard library headers
+#include <filesystem> // C++17
+#include <fstream>
+#include <sstream>
 
 #define SHADER_ASSET_PATH "assets/"
 

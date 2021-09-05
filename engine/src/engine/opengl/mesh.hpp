@@ -1,12 +1,12 @@
 #pragma once
 
-#include <functional>
-#include <vector>
+#include "engine/opengl/shader.hpp"
+#include "engine/opengl/texture.hpp"
 
 #include <glm/glm.hpp>
 
-#include "engine/opengl/shader.hpp"
-#include "engine/opengl/texture.hpp"
+#include <functional>
+#include <vector>
 
 namespace fightingengine {
 

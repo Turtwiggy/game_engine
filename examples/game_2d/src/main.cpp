@@ -15,7 +15,6 @@
 #include <glm/glm.hpp>
 #include <glm/gtc/matrix_transform.hpp>
 #include <glm/gtx/compatibility.hpp>
-// #include <glm/gtx/fast_square_root.hpp>
 #include <glm/gtx/vector_angle.hpp>
 #include <imgui.h>
 
@@ -446,9 +445,9 @@ main()
               }
             }
 
-            ImGui::Begin("Huh. Well then.", NULL, ImGuiWindowFlags_NoFocusOnAppearing);
-            ImGui::Text("You are standing at a tree. Cool!");
-            ImGui::End();
+            // ImGui::Begin("Huh. Well then.", NULL, ImGuiWindowFlags_NoFocusOnAppearing);
+            // ImGui::Text("You are standing at a tree. Cool!");
+            // ImGui::End();
           }
 
           if ((coll_layer_0 == CollisionLayer::Obstacle && coll_layer_1 == CollisionLayer::Enemy) ||

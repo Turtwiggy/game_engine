@@ -1,14 +1,14 @@
 #pragma once
 
-// c++ standard lib headers
-#include <vector>
-
 // other library
 #include <SDL2/SDL_events.h>
 #include <SDL2/SDL_gamecontroller.h>
 #include <SDL2/SDL_keycode.h>
 #include <SDL2/SDL_mouse.h>
 #include <glm/glm.hpp>
+
+// c++ standard lib headers
+#include <vector>
 
 namespace fightingengine {
 
