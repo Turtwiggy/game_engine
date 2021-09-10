@@ -36,7 +36,7 @@ main()
     if (delta_time_s >= 0.25f)
       delta_time_s = 0.25f;
 
-    game2d::update(registry, delta_time_s);
+    game2d::update(registry, app, delta_time_s);
 
     app.frame_end(frame_start_time);
   }

@@ -7,6 +7,7 @@
 // components
 #include "components/colour.hpp"
 #include "components/global_resources.hpp"
+#include "components/hoverable.hpp"
 #include "components/position.hpp"
 #include "components/size.hpp"
 #include "components/sprite.hpp"
@@ -69,14 +70,27 @@ game2d::update_render_system(entt::registry& registry)
   sprite_renderer::SpriteBatchRenderer::begin_batch();
 
   sprite_renderer::RenderDescriptor desc;
+
   auto view = registry.view<const Position, const Size, const Colour, const Sprite>();
-  view.each([&r, &desc](const auto& p, const auto& s, const auto& c, const auto& spr) {
-    desc.pos_tl = { p.x - int(s.x / 2.0f), p.y - int(s.y / 2.0f) };
-    desc.colour = { c.r, c.g, c.b, c.a };
-    desc.size = { s.x, s.y };
+
+  view.each([&registry, &r, &desc](const auto entity, const auto& p, const auto& s, const auto& c, const auto& spr) {
+    desc.pos_tl = { p.x - int(s.w / 2.0f), p.y - int(s.h / 2.0f) };
+    desc.colour = c.colour;
+    desc.size = { s.w, s.h };
     desc.tex_slot = tex_unit_kenny_nl;
     desc.sprite_offset = sprite::spritemap::get_sprite_offset(spr.sprite);
     desc.angle_radians = 0.0f;
+
+    // (optional) hoverable component
+    bool has_hoverable = registry.all_of<Hoverable>(entity);
+    if (has_hoverable) {
+      auto& hoverable = registry.get<Hoverable>(entity);
+      if (hoverable.hovering) {
+        float y_offset = -3;
+        desc.pos_tl.y += y_offset;
+      }
+    }
+
     sprite_renderer::SpriteBatchRenderer::draw_sprite(desc, r.instanced);
   });
 

@@ -7,11 +7,13 @@
 // components
 #include "components/colour.hpp"
 #include "components/global_resources.hpp"
+#include "components/hoverable.hpp"
 #include "components/position.hpp"
 #include "components/size.hpp"
 #include "components/sprite.hpp"
 
 // systems
+#include "systems/hover_system.hpp"
 #include "systems/render_system.hpp"
 
 // helpers
@@ -43,22 +45,33 @@ game2d::init(entt::registry& registry, glm::ivec2 screen_wh)
 
   { // create player entity
     entt::entity r = registry.create();
+
     registry.emplace<Position>(r, int(screen_wh.x / 2.0f), int(screen_wh.y / 2.0f));
     registry.emplace<Size>(r, 16, 16);
-    registry.emplace<Colour>(r, 1.0f, 0.0f, 0.0f, 1.0f);
+    registry.emplace<Colour>(r, Colour(1.0f, 0.0f, 0.0f, 1.0f));
     registry.emplace<Sprite>(r, sprite::type::TREE_1);
+
+    Hoverable h;
+    h.normal_colour.colour = { 1.0f, 0.0f, 0.0f, 1.0f };
+    h.hover_colour.colour = { 0.0f, 1.0f, 0.0f, 1.0f };
+    h.hovering = false;
+    registry.emplace<Hoverable>(r, std::move(h));
   }
-  {
-    entt::entity r = registry.create();
-    registry.emplace<Position>(r, int(screen_wh.x / 2.0f - 100), int(screen_wh.y / 2.0f));
-    registry.emplace<Size>(r, 16, 16);
-    registry.emplace<Colour>(r, 1.0f, 0.0f, 0.0f, 1.0f);
-    registry.emplace<Sprite>(r, sprite::type::SQUARE);
-  }
+  // {
+  //   entt::entity r = registry.create();
+  //   registry.emplace<Position>(r, int(screen_wh.x / 2.0f - 100), int(screen_wh.y / 2.0f));
+  //   registry.emplace<Size>(r, 16, 16);
+  //   registry.emplace<Colour>(r, 1.0f, 0.0f, 0.0f, 1.0f);
+  //   registry.emplace<Sprite>(r, sprite::type::SQUARE);
+  //   // Hoverable h;
+  //   // h.normal_colour.colour = { 1.0f, 0.0f, 0.0f, 1.0f };
+  //   // h.hover_colour.colour = { 0.0f, 1.0f, 0.0f, 1.0f };
+  //   registry.emplace<Hoverable>(r);
+  // }
 }
 
 void
-game2d::update(entt::registry& registry, float dt)
+game2d::update(entt::registry& registry, engine::Application& app, float dt)
 {
   Uint64 start_physics = SDL_GetPerformanceCounter();
   {
@@ -71,8 +84,8 @@ game2d::update(entt::registry& registry, float dt)
     // Input
   };
 
-  {
-    // Game Tick
+  { // game tick
+    update_hover_system(registry, app);
   };
 
   Uint64 start_render = SDL_GetPerformanceCounter();

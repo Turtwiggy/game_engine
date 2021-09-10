@@ -153,7 +153,7 @@ InputManager::get_mouse_mmb_down() const
   return mouse_mmb_down;
 }
 
-glm::vec2
+glm::ivec2
 InputManager::get_mouse_pos() const
 {
   int x, y = 0;

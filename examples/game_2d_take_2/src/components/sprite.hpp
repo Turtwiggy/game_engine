@@ -6,7 +6,7 @@ namespace game2d {
 
 struct Sprite
 {
-  sprite::type sprite;
+  sprite::type sprite = sprite::type::SQUARE;
 };
 
 } // namespace game2d

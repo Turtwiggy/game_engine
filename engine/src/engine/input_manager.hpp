@@ -30,7 +30,7 @@ public:
   [[nodiscard]] bool get_key_held(SDL_Scancode button) const;
 
   // mouse
-  [[nodiscard]] glm::vec2 get_mouse_pos() const;
+  [[nodiscard]] glm::ivec2 get_mouse_pos() const;
 
   void add_mouse_down(const SDL_MouseButtonEvent& mouse_e);
   [[nodiscard]] bool get_mouse_lmb_held() const;

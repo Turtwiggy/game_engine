@@ -4,7 +4,7 @@ namespace game2d {
 
 struct Size
 {
-  int x, y;
+  int w, h;
 };
 
 } // namespace game2d
