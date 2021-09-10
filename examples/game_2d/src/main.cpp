@@ -84,32 +84,11 @@ add_players(MutableGameState& state, glm::ivec2 screen_wh)
 void
 add_lighting(MutableGameState& state, glm::ivec2 screen_wh)
 {
-  // SceneicPointLight point_light_0;
-  // point_light_0.light_object = gameobject::create_light();
-  // // point_light_0.light_object.pos = { int(screen_wh.x / 2.0f), int(screen_wh.y / 2.0f) };
-  // point_light_0.light_object.pos = { int(0), int(0) };
-
-  // SceneicPointLight point_light_1;
-  // point_light_1.light_object = gameobject::create_light();
-  // point_light_1.light_object.pos = { int(screen_wh.x), int(0) };
-
-  // SceneicPointLight point_light_2;
-  // point_light_2.light_object = gameobject::create_light();
-  // point_light_2.light_object.pos = { int(0), int(screen_wh.y) };
-
-  // SceneicPointLight point_light_3;
-  // point_light_3.light_object = gameobject::create_light();
-  // point_light_3.light_object.pos = { int(screen_wh.x), int(screen_wh.y) };
-
   SceneicPointLight point_light_4;
   point_light_4.light_object = gameobject::create_light();
   point_light_4.light_object.pos = { int(screen_wh.x / 2.0f), int(screen_wh.y / 2.0f) };
   point_light_4.cast_shadows = true;
 
-  // state.point_lights.push_back(point_light_0);
-  // state.point_lights.push_back(point_light_1);
-  // state.point_lights.push_back(point_light_2);
-  // state.point_lights.push_back(point_light_3);
   state.point_lights.push_back(point_light_4);
 }
 

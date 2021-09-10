@@ -7,7 +7,6 @@ in vec4 v_colour;
 in vec2 v_sprite_pos;
 in float v_tex_index;
 
-uniform bool do_spritesheet = false;
 uniform int screen_w;
 uniform int screen_h;
 
@@ -118,25 +117,21 @@ main()
   }
 
   // other sprites
+  // hard coded for kennynl spritesheet atm
+  const int num_cols = 48;
+  const int num_rows = 22;
+  const float scale_x = 1.0f / num_cols;
+  const float scale_y = 1.0f / num_rows;
 
-  if (do_spritesheet) {
+  // clang-format off
+  vec2 sprite_uv = vec2(
+    v_tex.x / num_cols + v_sprite_pos.x * scale_x,
+    v_tex.y / num_rows + v_sprite_pos.y * scale_y      
+  );
+  // clang-format on
 
-    // hard coded for kennynl spritesheet atm
-    const int num_cols = 48;
-    const int num_rows = 22;
-    const float scale_x = 1.0f / num_cols;
-    const float scale_y = 1.0f / num_rows;
-
-    // clang-format off
-    vec2 sprite_uv = vec2(
-      v_tex.x / num_cols + v_sprite_pos.x * scale_x,
-      v_tex.y / num_rows + v_sprite_pos.y * scale_y      
-    );
-    // clang-format on
-
-    out_colour = v_colour * texture(textures[0], sprite_uv);
-    return;
-  }
+  out_colour = v_colour * texture(textures[0], sprite_uv);
+  return;
 }
 
 // fat pixel approach

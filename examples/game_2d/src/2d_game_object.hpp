@@ -70,16 +70,9 @@ private:
 public:
   uint32_t id = 0;
 
-  bool do_render = true;
-  bool do_physics = true;
-  bool do_lifecycle_timed = false;
-  bool do_lifecycle_health = true;
-  bool flag_for_delete = false;
-
   // render
   int tex_slot = 0;
   sprite::type sprite = sprite::type::SQUARE;
-  glm::ivec2 pos = { 0.0, 0.0 };         // in pixels, at top left of sprite
   glm::vec2 remainders = { 0.0f, 0.0f }; // move by float, then clamp pos
 
   float angle_radians = 0.0f;

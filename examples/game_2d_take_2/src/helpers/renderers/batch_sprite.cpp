@@ -1,9 +1,9 @@
 
 // header
-#include "engine/opengl_renderers/batch_renderers/sprite.hpp"
+#include "batch_sprite.hpp"
 
 // engine project headers
-#include "engine/opengl_renderers/batch_renderer.hpp"
+#include "helpers/renderers/batch_renderer.hpp"
 
 // other project headers
 #include <GL/glew.h>

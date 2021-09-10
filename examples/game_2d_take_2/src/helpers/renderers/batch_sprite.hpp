@@ -16,12 +16,12 @@ namespace sprite_renderer {
 // data required per sprite
 struct RenderDescriptor
 {
-  glm::vec2 pos_tl;
-  glm::vec2 size;
-  glm::vec4 colour;
-  float angle_radians;
-  glm::ivec2 sprite_offset; // e.g. { 5, 8 }; for spritesheet
-  float tex_slot;
+  glm::ivec2 pos_tl = { 0, 0 };
+  glm::ivec2 size = { 100, 100 };
+  glm::vec4 colour = { 1.0f, 0.0f, 0.0f, 1.0f };
+  float angle_radians = 0.0f;
+  glm::ivec2 sprite_offset = { 0, 0 }; // e.g. { 5, 8 }; for spritesheet
+  int tex_slot = 0;
 };
 
 // data for vert.glsl

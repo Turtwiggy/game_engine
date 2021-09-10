@@ -250,6 +250,6 @@ struct spritemap
 } // namespace sprite
 
 std::array<ImVec2, 2>
-convert_sprite_to_uv(sprite::type type);
+convert_sprite_to_uv(sprite::type type, float pixels, glm::ivec2 wh);
 
 } // namespace game2d

@@ -1,8 +1,8 @@
 // your header
-#include "engine/opengl_renderers/batch_renderers/triangle_fan.hpp"
+#include "batch_triangle_fan.hpp"
 
 // engine headers
-#include "engine/opengl_renderers/batch_renderer.hpp"
+#include "helpers/renderers/batch_renderer.hpp"
 
 // other lib headers
 #include <GL/glew.h>
