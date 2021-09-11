@@ -17,7 +17,7 @@ set(CMAKE_CXX_STANDARD_REQUIRED ON)
 #add_subdirectory(examples/net_client)
 #add_subdirectory(examples/net_server)
 # add_subdirectory(examples/game_2d)
-add_subdirectory(examples/game_2d_take_2)
+add_subdirectory(examples/game_2d)
 # add_subdirectory(examples/game_3d)
 
 set(CPACK_PROJECT_NAME ${PROJECT_NAME})

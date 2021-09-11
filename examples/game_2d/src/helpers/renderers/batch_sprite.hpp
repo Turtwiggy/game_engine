@@ -50,7 +50,7 @@ public:
   static void end_frame();
 
 private:
-  static constexpr int max_quad = 5000;
+  static constexpr int max_quad = 10000;
   static constexpr int max_quad_vert_count = max_quad * 4;
   static constexpr int max_quad_index_count = max_quad * 6;
 };

@@ -23,13 +23,13 @@ game2d::update_hover_system(entt::registry& registry, engine::Application& app)
     [&mouse_pos](auto entity, Hoverable& hoverable, const Position& position, const Size& size, Colour& colour) {
       if (mouse_pos.x >= position.x - int(size.w / 2.0f) && mouse_pos.x <= position.x + int(size.w / 2.0f) &&
           mouse_pos.y <= position.y + int(size.h / 2.0f) && mouse_pos.y >= position.y - int(size.h / 2.0f)) {
-        if (!hoverable.hovering) {
-          hoverable.hovering = true;
+        if (!hoverable.mouse_is_hovering) {
+          hoverable.mouse_is_hovering = true;
           hoverable.normal_colour.colour = colour.colour;
         }
         colour.colour = hoverable.hover_colour.colour;
       } else {
-        hoverable.hovering = false;
+        hoverable.mouse_is_hovering = false;
         colour.colour = hoverable.normal_colour.colour;
       }
     });

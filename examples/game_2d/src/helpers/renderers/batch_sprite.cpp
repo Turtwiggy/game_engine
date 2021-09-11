@@ -28,7 +28,7 @@ SpriteBatchRenderer::draw_sprite(const RenderDescriptor& r, Shader& s)
   const glm::vec2& pos = r.pos_tl;
   const glm::vec2& size = r.size;
   const glm::ivec2& sprite_offset = r.sprite_offset;
-  const float& tex_slot = r.tex_slot;
+  const int& tex_slot = r.tex_slot;
   const glm::vec4& colour = r.colour;
 
   glm::mat4 model = glm::mat4(1.0f);

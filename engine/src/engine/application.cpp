@@ -30,7 +30,7 @@ Application::Application(const std::string& name, int width, int height, bool vs
   GameWindow::glsl_version = "#version 330";
   GameWindow::opengl_major = 3;
   GameWindow::opengl_minor = 3;
-  window = std::make_unique<GameWindow>(name + kBuildStr, width, height, DisplayMode::WINDOWED, vsync);
+  window = std::make_unique<GameWindow>(name + kBuildStr, width, height, DisplayMode::BORDERLESS, vsync);
 
   imgui_manager.initialize(window.get());
 

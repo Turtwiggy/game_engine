@@ -6,7 +6,7 @@ namespace game2d {
 
 struct Hoverable
 {
-  bool hovering = false;
+  bool mouse_is_hovering = false;
   Colour normal_colour;
   Colour hover_colour;
 };
