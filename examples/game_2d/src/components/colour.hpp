@@ -16,6 +16,13 @@ struct Colour
     colour.z = b;
     colour.a = a;
   };
+  Colour(const Colour& c)
+  {
+    colour.x = c.colour.x;
+    colour.y = c.colour.y;
+    colour.z = c.colour.z;
+    colour.a = c.colour.a;
+  };
 };
 
 } // namespace game2d

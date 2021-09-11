@@ -5,9 +5,9 @@
 
 namespace game2d {
 
-struct KeysAndState
+struct PlayerKeys
 {
-  bool use_keyboard = false;
+  bool use_keyboard = true;
 
   // keyboard
   SDL_Scancode w = SDL_SCANCODE_W;
@@ -22,13 +22,13 @@ struct KeysAndState
   SDL_Scancode key_camera_right = SDL_SCANCODE_RIGHT;
   SDL_Scancode key_camera_follow_player = SDL_SCANCODE_Q;
 
-  // controller
+  // controller input
   float l_analogue_x = 0.0f;
   float l_analogue_y = 0.0f;
   float r_analogue_x = 0.0f;
   float r_analogue_y = 0.0f;
 
-  // common
+  // key state
   float angle_around_player = 0.0f;
   bool pause_held = false;
   bool pause_down = false;
@@ -38,4 +38,4 @@ struct KeysAndState
   bool boost_down = false;
 };
 
-}
+} // namespace game2d

@@ -75,7 +75,7 @@ convert_world_space_to_grid_space(const glm::vec2& world_space, int grid_size)
   int grid_x = x < 0.0f ? static_cast<int>((x - grid_size) / grid_size) : static_cast<int>(x / grid_size);
   int grid_y = y < 0.0f ? static_cast<int>((y - grid_size) / grid_size) : static_cast<int>(y / grid_size);
 
-  return glm::ivec2{ grid_x, grid_y };
+  return glm::ivec2{ grid_size * grid_x, grid_size * grid_y };
 }
 
 [[nodiscard]] inline glm::vec2

@@ -22,6 +22,7 @@ struct RenderDescriptor
   float angle_radians = 0.0f;
   glm::ivec2 sprite_offset = { 0, 0 }; // e.g. { 5, 8 }; for spritesheet
   int tex_slot = 0;
+  int z_index = 0;
 };
 
 // data for vert.glsl

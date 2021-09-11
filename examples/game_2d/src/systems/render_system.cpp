@@ -11,6 +11,7 @@
 #include "components/position.hpp"
 #include "components/size.hpp"
 #include "components/sprite.hpp"
+#include "components/z_index.hpp"
 
 // helpers
 #include "helpers/renderers/batch_sprite.hpp"
@@ -24,6 +25,9 @@
 #include "engine/opengl/texture.hpp"
 #include "engine/opengl/util.hpp"
 using namespace engine;
+
+// c++ lib
+#include <vector>
 
 // void
 // toggle_fullscreen(Application& app,
@@ -82,14 +86,20 @@ game2d::update_render_system(entt::registry& registry)
   RenderCommand::set_clear_colour(background_colour);
   RenderCommand::clear();
 
+  // Sort registry by z-index
+  registry.sort<ZIndex>([](const auto& lhs, const auto& rhs) { return lhs.index < rhs.index; });
+
   sprite_renderer::SpriteBatchRenderer::reset_quad_vert_count();
   sprite_renderer::SpriteBatchRenderer::begin_batch();
-
   sprite_renderer::RenderDescriptor desc;
 
-  auto view = registry.view<const Position, const Size, const Colour, const Sprite>();
+  auto view = registry.view<const Position, const Size, const Colour, const Sprite, const ZIndex>();
 
-  view.each([&registry, &r, &desc](const auto entity, const auto& p, const auto& s, const auto& c, const auto& spr) {
+  std::vector<sprite_renderer::RenderDescriptor> index_0_renderables;
+  std::vector<sprite_renderer::RenderDescriptor> index_1_renderables;
+
+  view.each([&registry, &r, &desc, &index_0_renderables, &index_1_renderables](
+              const auto entity, const auto& p, const auto& s, const auto& c, const auto& spr, const auto& z_index) {
     desc.pos_tl = { p.x - int(s.w / 2.0f), p.y - int(s.h / 2.0f) };
     desc.colour = c.colour;
     desc.size = { s.w, s.h };
@@ -105,11 +115,20 @@ game2d::update_render_system(entt::registry& registry)
         // int y_offset = -3;
         int y_offset = 0;
         desc.pos_tl.y += y_offset;
+        desc.colour = hoverable.hover_colour.colour;
       }
     }
 
-    sprite_renderer::SpriteBatchRenderer::draw_sprite(desc, r.instanced);
+    if (z_index.index == 0)
+      index_0_renderables.push_back(desc);
+    else
+      index_1_renderables.push_back(desc);
   });
+
+  for (sprite_renderer::RenderDescriptor desc : index_0_renderables)
+    sprite_renderer::SpriteBatchRenderer::draw_sprite(desc, r.instanced);
+  for (sprite_renderer::RenderDescriptor desc : index_1_renderables)
+    sprite_renderer::SpriteBatchRenderer::draw_sprite(desc, r.instanced);
 
   sprite_renderer::SpriteBatchRenderer::end_batch();
   sprite_renderer::SpriteBatchRenderer::flush(r.instanced);

@@ -2,8 +2,10 @@
 #include "systems/ui_system.hpp"
 
 // components
+#include "components/player.hpp"
 #include "components/profiler_stats.hpp"
 #include "components/sprite.hpp"
+#include "components/z_index.hpp"
 
 // other lib headers
 #include <imgui.h>
@@ -24,14 +26,27 @@ game2d::update_ui_system(entt::registry& registry, engine::Application& app)
   ProfilerStats& p = registry.ctx<ProfilerStats>();
 
   // Profiler
-  auto view = registry.view<const Sprite>();
-  ImGui::Begin("Profiler");
-  ImGui::Text("Rendering entities: %i", view.size());
-  ImGui::Separator();
-  ImGui::Text("Physics %f", p.physics_elapsed_ms);
-  ImGui::Text("Render %f", p.render_elapsed_ms);
-  ImGui::Text("Frame ms total %f", 1000.0f / ImGui::GetIO().Framerate);
-  ImGui::End();
+  {
+    auto view = registry.view<const Sprite>();
+    ImGui::Begin("Profiler");
+    ImGui::Text("Rendering entities: %i", view.size());
+    ImGui::Separator();
+    ImGui::Text("Physics %f", p.physics_elapsed_ms);
+    ImGui::Text("Render %f", p.render_elapsed_ms);
+    ImGui::Text("Frame ms total %f", 1000.0f / ImGui::GetIO().Framerate);
+    ImGui::End();
+  }
+
+  // Player Info
+  {
+    // auto view = registry.view<const Player, const ZIndex>();
+    // ImGui::Begin("Player");
+    // view.each([](const auto entity, const auto& player, const auto& z) {
+    //   //
+    //   ImGui::Text("Player z-index: %i", z.index);
+    // });
+    // ImGui::End();
+  }
 
   // Top menu bar
   glm::ivec2 screen_wh = app.get_window().get_size();
