@@ -1,6 +1,6 @@
 //#pragma once
 //
-//#include "sprite_renderer.hpp"
+//#include "quad_renderer.hpp"
 //#include "random.hpp"
 //#include "particle_system.hpp"
 //#include "tilemap.hpp"

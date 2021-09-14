@@ -7,6 +7,11 @@
 #include "components/sprite.hpp"
 #include "components/z_index.hpp"
 
+// helpers
+#include "helpers/renderers/batch_quad.hpp"
+#include "helpers/renderers/batch_triangle.hpp"
+#include "helpers/renderers/batch_triangle_fan.hpp"
+
 // other lib headers
 #include <imgui.h>
 
@@ -14,7 +19,6 @@ void
 game2d::init_ui_system(entt::registry& registry)
 {
   ProfilerStats p;
-
   registry.set<ProfilerStats>(p);
 }
 
@@ -32,8 +36,14 @@ game2d::update_ui_system(entt::registry& registry, engine::Application& app)
     ImGui::Text("Rendering entities: %i", view.size());
     ImGui::Separator();
     ImGui::Text("Physics %f", p.physics_elapsed_ms);
+    ImGui::Text("Input %f", p.input_elapsed_ms);
+    ImGui::Text("Game Tick %f", p.game_tick_elapsed_ms);
     ImGui::Text("Render %f", p.render_elapsed_ms);
     ImGui::Text("Frame ms total %f", 1000.0f / ImGui::GetIO().Framerate);
+    ImGui::Separator();
+    ImGui::Text("Draw Calls QR %i", engine::quad_renderer::QuadRenderer::draw_calls());
+    ImGui::Text("Draw Calls TR %i", engine::triangle_renderer::TriangleRenderer::draw_calls());
+    ImGui::Text("Draw Calls TFR %i", engine::triangle_fan_renderer::TriangleFanRenderer::draw_calls());
     ImGui::End();
   }
 

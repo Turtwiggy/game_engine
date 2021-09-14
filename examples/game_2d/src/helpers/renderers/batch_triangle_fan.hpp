@@ -29,10 +29,12 @@ public:
   static void reset_quad_vert_count();
   static void end_frame();
 
+  static int draw_calls();
+
 private:
   static constexpr int max_quad = 5000;
-  static constexpr int max_quad_vert_count = max_quad * 4;
-  static constexpr int max_quad_index_count = max_quad * 6;
+  static constexpr int max_quad_vert_count = max_quad * 1;
+  static constexpr int max_quad_index_count = max_quad * 1;
 };
 
 } // namespace triangle_fan_renderer

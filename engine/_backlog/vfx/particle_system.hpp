@@ -3,7 +3,7 @@
 //#include <entt/entt.hpp>
 //
 //#include "vec/vec.hpp"
-//#include "sprite_renderer.hpp"
+//#include "quad_renderer.hpp"
 //#include "random.hpp"
 //
 // namespace vfx {
@@ -28,7 +28,7 @@
 //    {
 //    public:
 //        void emit(particle& p);
-//        void render(sprite_renderer& renderer);
+//        void render(quad_renderer& renderer);
 //
 //        entt::registry& get_particle_registry() { return registry; }
 //

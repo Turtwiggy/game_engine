@@ -1,6 +1,6 @@
 
 // header
-#include "batch_sprite.hpp"
+#include "batch_quad.hpp"
 
 // engine project headers
 #include "helpers/renderers/batch_renderer.hpp"
@@ -11,12 +11,12 @@
 
 namespace engine {
 
-namespace sprite_renderer {
+namespace quad_renderer {
 
 static RenderData<Vertex> data;
 
 void
-SpriteBatchRenderer::draw_sprite(const RenderDescriptor& r, Shader& s)
+QuadRenderer::draw_sprite(const RenderDescriptor& r, Shader& s)
 {
   if (data.index_count >= max_quad_index_count) {
     end_batch();
@@ -75,7 +75,7 @@ SpriteBatchRenderer::draw_sprite(const RenderDescriptor& r, Shader& s)
 }
 
 void
-SpriteBatchRenderer::init()
+QuadRenderer::init()
 {
   data.buffer = new Vertex[max_quad_vert_count];
 
@@ -137,7 +137,7 @@ SpriteBatchRenderer::init()
 };
 
 void
-SpriteBatchRenderer::shutdown()
+QuadRenderer::shutdown()
 {
   glDeleteVertexArrays(1, &data.VAO);
   glDeleteBuffers(1, &data.VBO);
@@ -148,7 +148,7 @@ SpriteBatchRenderer::shutdown()
 
 // upload data to vbo
 void
-SpriteBatchRenderer::end_batch()
+QuadRenderer::end_batch()
 {
   GLsizeiptr size = (uint8_t*)data.buffer_ptr - (uint8_t*)data.buffer;
   // Set dynamic vertex buffer & upload data
@@ -158,12 +158,13 @@ SpriteBatchRenderer::end_batch()
 }
 
 void
-SpriteBatchRenderer::flush(Shader& shader)
+QuadRenderer::flush(Shader& shader)
 {
   shader.bind();
 
   glBindVertexArray(data.VAO);
   glDrawElements(GL_TRIANGLES, data.index_count, GL_UNSIGNED_INT, nullptr);
+  // glDrawElementsInstanced(GL_TRIANGLES, data.index_count, GL_UNSIGNED_INT, 0, 1000);
 
   data.draw_calls += 1;
   data.index_count = 0;
@@ -174,56 +175,29 @@ SpriteBatchRenderer::flush(Shader& shader)
 }
 
 void
-SpriteBatchRenderer::begin_batch()
+QuadRenderer::begin_batch()
 {
   data.buffer_ptr = data.buffer;
 }
 
 void
-SpriteBatchRenderer::reset_quad_vert_count()
+QuadRenderer::reset_quad_vert_count()
 {
   data.quad_vertex = 0;
 }
 
 void
-SpriteBatchRenderer::end_frame()
+QuadRenderer::end_frame()
 {
   data.draw_calls = 0;
 }
 
-// void
-// sprite_renderer::draw_sprites_debug(const RenderDescriptor& cam,
-//                                     const glm::ivec2& screen_size,
-//                                     const std::vector<std::reference_wrapper<RenderDescriptor>>& objects,
-//                                     Shader& debug_line_shader,
-//                                     const glm::vec4& debug_line_shader_colour)
-// {
-// #ifdef WIN32
-// #ifdef _DEBUG
-//   // draw lines
-//   debug_line_shader.bind();
-//   debug_line_shader.set_vec4("colour", debug_line_shader_colour);
+int
+QuadRenderer::draw_calls()
+{
+  return data.draw_calls;
+}
 
-//   // This API is deprecated, does not work on phones/tablets.
-//   for (auto& obj : objects) {
-//     glBegin(GL_LINE_LOOP);
-//     glm::vec2 world_pos = gameobject_in_worldspace(cam, obj.get());
-//     glm::vec2 bl_pos = glm::vec2(world_pos.x, world_pos.y + obj.get().physics_size.y);
-//     glm::vec2 tr_pos = glm::vec2(world_pos.x + obj.get().physics_size.x, world_pos.y);
-//     bl_pos.x = scale(bl_pos.x, 0.0f, screen_size.x, -1.0f, 1.0f);
-//     bl_pos.y = scale(bl_pos.y, 0.0f, screen_size.y, 1.0f, -1.0f);
-//     tr_pos.x = scale(tr_pos.x, 0.0f, screen_size.x, -1.0f, 1.0f);
-//     tr_pos.y = scale(tr_pos.y, 0.0f, screen_size.y, 1.0f, -1.0f);
-//     glVertex2f(bl_pos.x, bl_pos.y);
-//     glVertex2f(tr_pos.x, bl_pos.y);
-//     glVertex2f(tr_pos.x, tr_pos.y);
-//     glVertex2f(bl_pos.x, tr_pos.y);
-//     glEnd();
-//   }
-// #endif
-// #endif
-// }
-
-} // namespace sprite_renderer
+} // namespace quad_renderer
 
 } // namespace engine

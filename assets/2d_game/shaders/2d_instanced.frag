@@ -51,19 +51,6 @@ main()
     uv = uv_cstantos(uv, vec2(screen_w, screen_h));
     vec4 tex_main = texture(textures[1], uv);
 
-    // heartbeast approach?
-    // https://www.youtube.com/watch?v=2JbhkZe22bE&list=RDCMUCrHQNOyU1q6BFEfkNq2CYMA&index=25
-    // vec2 uv = v_tex;
-    // vec2 size = vec2(textureSize(textures[1], 0));
-    // vec2 pixel = vec2(1.0) / size;
-    // uv -= pixel * vec2(0.5);
-    // vec2 uv_pixels = uv * size;
-    // vec2 delta_pixel = fract(uv_pixels) - vec2(0.5);
-    // vec2 ddxy = fwidth(uv_pixels);
-    // vec2 mip = log2(ddxy) - 0.5;
-    // vec4 tex_main =
-    //   textureLod(textures[1], uv + (clamp(delta_pixel / ddxy, 0.0, 1.0) - delta_pixel) * pixel, min(mip.x, mip.y));
-
     vec4 tex_shadow = texture(textures[2], uv);
     vec4 r;
     for (int i = 0; i < num_lights; i++) {
@@ -92,8 +79,8 @@ main()
 
   vec4 c;
   if (v_sprite_pos.x == 0 && v_sprite_pos.y == 0) { // a whole texture
-    c = v_colour * texture(textures[index], v_tex);
-    out_colour = c;
+    // c = v_colour * texture(textures[index], v_tex);
+    out_colour = v_colour;
     return;
   } else if (v_sprite_pos.x == 8 && v_sprite_pos.y == 5) { // the square on the kennynl sprite sheet
 
@@ -133,6 +120,19 @@ main()
   out_colour = v_colour * texture(textures[0], sprite_uv);
   return;
 }
+
+// heartbeast approach?
+// https://www.youtube.com/watch?v=2JbhkZe22bE&list=RDCMUCrHQNOyU1q6BFEfkNq2CYMA&index=25
+// vec2 uv = v_tex;
+// vec2 size = vec2(textureSize(textures[1], 0));
+// vec2 pixel = vec2(1.0) / size;
+// uv -= pixel * vec2(0.5);
+// vec2 uv_pixels = uv * size;
+// vec2 delta_pixel = fract(uv_pixels) - vec2(0.5);
+// vec2 ddxy = fwidth(uv_pixels);
+// vec2 mip = log2(ddxy) - 0.5;
+// vec4 tex_main =
+//   textureLod(textures[1], uv + (clamp(delta_pixel / ddxy, 0.0, 1.0) - delta_pixel) * pixel, min(mip.x, mip.y));
 
 // fat pixel approach
 // float tp = float(float(screen_h) / float(screen_w));

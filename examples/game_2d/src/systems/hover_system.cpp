@@ -15,18 +15,18 @@
 void
 game2d::update_hover_system(entt::registry& registry, engine::Application& app)
 {
-  auto& input = app.get_input();
-  auto& mouse_pos = input.get_mouse_pos();
-
-  auto& view = registry.view<Hoverable, Position, Size>();
-  view.each([&mouse_pos](auto entity, Hoverable& hoverable, const Position& position, const Size& size) {
-    if (mouse_pos.x >= position.x - int(size.w / 2.0f) && mouse_pos.x <= position.x + int(size.w / 2.0f) &&
-        mouse_pos.y <= position.y + int(size.h / 2.0f) && mouse_pos.y >= position.y - int(size.h / 2.0f)) {
-      if (!hoverable.mouse_is_hovering) {
-        hoverable.mouse_is_hovering = true;
+  auto& mouse_pos = app.get_input().get_mouse_pos();
+  {
+    auto& view = registry.view<Hoverable, PositionInt, Size>();
+    view.each([&mouse_pos](auto entity, Hoverable& hoverable, const PositionInt& position, const Size& size) {
+      if (mouse_pos.x >= position.x - int(size.w / 2.0f) && mouse_pos.x <= position.x + int(size.w / 2.0f) &&
+          mouse_pos.y <= position.y + int(size.h / 2.0f) && mouse_pos.y >= position.y - int(size.h / 2.0f)) {
+        if (!hoverable.mouse_is_hovering) {
+          hoverable.mouse_is_hovering = true;
+        }
+      } else {
+        hoverable.mouse_is_hovering = false;
       }
-    } else {
-      hoverable.mouse_is_hovering = false;
-    }
-  });
+    });
+  }
 }

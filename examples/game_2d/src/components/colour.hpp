@@ -23,6 +23,13 @@ struct Colour
     colour.z = c.colour.z;
     colour.a = c.colour.a;
   };
+  Colour(const glm::vec4& c)
+  {
+    colour.x = c.x;
+    colour.y = c.y;
+    colour.z = c.z;
+    colour.a = c.a;
+  };
 };
 
 } // namespace game2d

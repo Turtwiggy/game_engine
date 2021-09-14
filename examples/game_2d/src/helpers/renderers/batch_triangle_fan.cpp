@@ -73,12 +73,10 @@ TriangleFanRenderer::init()
   // indicies
 
   uint32_t indices[max_quad_index_count];
-  uint32_t index_offset = 0;
   for (int i = 0; i < max_quad_index_count; i++) {
-    indices[i] = index_offset;
-
-    index_offset += 1;
+    indices[i] = i;
   }
+
   glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, data.EBO);
   glBufferData(GL_ELEMENT_ARRAY_BUFFER, sizeof(indices), indices, GL_STATIC_DRAW);
 
@@ -104,7 +102,6 @@ TriangleFanRenderer::end_batch()
   GLsizeiptr size = (uint8_t*)data.buffer_ptr - (uint8_t*)data.buffer;
   // Set dynamic vertex buffer & upload data
   glBindBuffer(GL_ARRAY_BUFFER, data.VBO);
-  // glBufferSubData(GL_ARRAY_BUFFER, 0, vertices.size() * sizeof(Vertex), vertices.data());
   glBufferSubData(GL_ARRAY_BUFFER, 0, size, data.buffer);
 }
 
@@ -141,6 +138,12 @@ void
 TriangleFanRenderer::end_frame()
 {
   data.draw_calls = 0;
+}
+
+int
+TriangleFanRenderer::draw_calls()
+{
+  return data.draw_calls;
 }
 
 } // namespace triangle_fan_renderer

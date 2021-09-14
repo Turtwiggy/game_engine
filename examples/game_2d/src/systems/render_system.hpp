@@ -11,4 +11,7 @@ init_render_system(entt::registry& registry, const glm::ivec2& screen_wh);
 void
 update_render_system(entt::registry& registry);
 
+void
+end_frame_render_system(entt::registry& registry);
+
 } // namespace game2d

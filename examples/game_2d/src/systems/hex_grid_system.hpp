@@ -9,6 +9,9 @@
 namespace game2d {
 
 void
-update_player_system(entt::registry& registry, engine::Application& app);
+init_hex_grid_system(entt::registry& registry);
+
+void
+update_hex_grid_system(entt::registry& registry, float dt);
 
 } // namespace game2d

@@ -9,7 +9,7 @@
 //        registry.assign<particle>(base, p);
 //    }
 //
-//    void particle_system::render(sprite_renderer& renderer)
+//    void particle_system::render(quad_renderer& renderer)
 //    {
 //        auto view = registry.view<particle>();
 //

@@ -14,7 +14,8 @@
 #include "components/z_index.hpp"
 
 // helpers
-#include "helpers/renderers/batch_sprite.hpp"
+#include "helpers/renderers/batch_quad.hpp"
+#include "helpers/renderers/batch_triangle.hpp"
 #include "helpers/renderers/batch_triangle_fan.hpp"
 #include "helpers/spritemap.hpp"
 
@@ -63,7 +64,8 @@ game2d::init_render_system(entt::registry& registry, const glm::ivec2& screen_wh
   RenderCommand::init();
   RenderCommand::set_viewport(0, 0, screen_wh.x, screen_wh.y);
   print_gpu_info();
-  sprite_renderer::SpriteBatchRenderer::init();
+  quad_renderer::QuadRenderer::init();
+  triangle_renderer::TriangleRenderer::init();
   triangle_fan_renderer::TriangleFanRenderer::init();
 
   static glm::mat4 projection =
@@ -86,52 +88,78 @@ game2d::update_render_system(entt::registry& registry)
   RenderCommand::set_clear_colour(background_colour);
   RenderCommand::clear();
 
-  // Sort registry by z-index
-  registry.sort<ZIndex>([](const auto& lhs, const auto& rhs) { return lhs.index < rhs.index; });
+  //
+  // Do triangle stuff
+  //
+  {
+    triangle_renderer::TriangleRenderer::reset_quad_vert_count();
+    triangle_renderer::TriangleRenderer::begin_batch();
 
-  sprite_renderer::SpriteBatchRenderer::reset_quad_vert_count();
-  sprite_renderer::SpriteBatchRenderer::begin_batch();
-  sprite_renderer::RenderDescriptor desc;
+    auto view = registry.view<triangle_renderer::TriangleDescriptor>();
 
-  auto view = registry.view<const Position, const Size, const Colour, const Sprite, const ZIndex>();
+    view.each([&r, &registry](const auto& entity, auto& t) {
+      //
+      triangle_renderer::TriangleRenderer::draw_triangle(t, r.instanced);
+    });
 
-  std::vector<sprite_renderer::RenderDescriptor> index_0_renderables;
-  std::vector<sprite_renderer::RenderDescriptor> index_1_renderables;
+    triangle_renderer::TriangleRenderer::end_batch();
+    triangle_renderer::TriangleRenderer::flush(r.instanced);
+  }
 
-  view.each([&registry, &r, &desc, &index_0_renderables, &index_1_renderables](
-              const auto entity, const auto& p, const auto& s, const auto& c, const auto& spr, const auto& z_index) {
-    desc.pos_tl = { p.x - int(s.w / 2.0f), p.y - int(s.h / 2.0f) };
-    desc.colour = c.colour;
-    desc.size = { s.w, s.h };
-    desc.tex_slot = tex_unit_kenny_nl;
-    desc.sprite_offset = sprite::spritemap::get_sprite_offset(spr.sprite);
-    desc.angle_radians = 0.0f;
+  //
+  // Do quad stuff
+  //
+  {
+    quad_renderer::QuadRenderer::reset_quad_vert_count();
+    quad_renderer::QuadRenderer::begin_batch();
+    quad_renderer::RenderDescriptor desc;
+    auto view = registry.view<const PositionInt, const Size, const Colour, const Sprite, const ZIndex>();
 
-    // (optional) hoverable component
-    bool has_hoverable = registry.all_of<Hoverable>(entity);
-    if (has_hoverable) {
-      auto& hoverable = registry.get<Hoverable>(entity);
-      if (hoverable.mouse_is_hovering) {
-        // int y_offset = -3;
-        int y_offset = 0;
-        desc.pos_tl.y += y_offset;
-        desc.colour = hoverable.hover_colour.colour;
+    std::vector<quad_renderer::RenderDescriptor> index_0_renderables;
+    std::vector<quad_renderer::RenderDescriptor> index_1_renderables;
+
+    view.each([&registry, &r, &desc, &index_0_renderables, &index_1_renderables](
+                const auto entity, const auto& p, const auto& s, const auto& c, const auto& spr, const auto& z_index) {
+      desc.pos_tl = { p.x - int(s.w / 2.0f), p.y - int(s.h / 2.0f) };
+      desc.colour = c.colour;
+      desc.size = { s.w, s.h };
+      desc.tex_slot = tex_unit_kenny_nl;
+      desc.sprite_offset = sprite::spritemap::get_sprite_offset(spr.sprite);
+      desc.angle_radians = 0.0f;
+
+      // (optional) hoverable component
+      bool has_hoverable = registry.all_of<Hoverable>(entity);
+      if (has_hoverable) {
+        auto& hoverable = registry.get<Hoverable>(entity);
+        if (hoverable.mouse_is_hovering) {
+          // int y_offset = -3;
+          int y_offset = 0;
+          desc.pos_tl.y += y_offset;
+          desc.colour = hoverable.hover_colour.colour;
+        }
       }
-    }
 
-    if (z_index.index == 0)
-      index_0_renderables.push_back(desc);
-    else
-      index_1_renderables.push_back(desc);
-  });
+      if (z_index.index == 0)
+        index_0_renderables.push_back(desc);
+      else
+        index_1_renderables.push_back(desc);
+    });
 
-  for (sprite_renderer::RenderDescriptor desc : index_0_renderables)
-    sprite_renderer::SpriteBatchRenderer::draw_sprite(desc, r.instanced);
-  for (sprite_renderer::RenderDescriptor desc : index_1_renderables)
-    sprite_renderer::SpriteBatchRenderer::draw_sprite(desc, r.instanced);
+    for (quad_renderer::RenderDescriptor desc : index_0_renderables)
+      quad_renderer::QuadRenderer::draw_sprite(desc, r.instanced);
+    for (quad_renderer::RenderDescriptor desc : index_1_renderables)
+      quad_renderer::QuadRenderer::draw_sprite(desc, r.instanced);
 
-  sprite_renderer::SpriteBatchRenderer::end_batch();
-  sprite_renderer::SpriteBatchRenderer::flush(r.instanced);
+    quad_renderer::QuadRenderer::end_batch();
+    quad_renderer::QuadRenderer::flush(r.instanced);
+  }
+};
+
+void
+game2d::end_frame_render_system(entt::registry& registry)
+{
+  quad_renderer::QuadRenderer::end_frame();
+  triangle_renderer::TriangleRenderer::end_frame();
 };
 
 //
@@ -195,8 +223,8 @@ game2d::update_render_system(entt::registry& registry)
 //   RenderCommand::set_depth_testing(false);
 //   RenderCommand::clear();
 //   {
-//     sprite_renderer::reset_quad_vert_count();
-//     sprite_renderer::begin_batch();
+//     quad_renderer::reset_quad_vert_count();
+//     quad_renderer::begin_batch();
 //     resources.instanced_quad_shader.bind();
 //     resources.instanced_quad_shader.set_float("time", app.seconds_since_launch);
 //     resources.instanced_quad_shader.set_mat4("projection", projection);
@@ -222,15 +250,15 @@ game2d::update_render_system(entt::registry& registry)
 //       for (auto& obj : renderables) {
 //         if (!obj.get().do_render)
 //           continue;
-//         sprite_renderer::draw_instanced_sprite(gs.camera, screen_wh, resources.instanced_quad_shader, obj.get());
+//         quad_renderer::draw_instanced_sprite(gs.camera, screen_wh, resources.instanced_quad_shader, obj.get());
 //       }
 
-//       sprite_renderer::draw_sprites_debug(
+//       quad_renderer::draw_sprites_debug(
 //         gs.camera, screen_wh, renderables, resources.colour_shader, debug_line_colour);
 
 //     } // <!-- end GameRunning::Active -->
-//     sprite_renderer::end_batch();
-//     sprite_renderer::flush(resources.instanced_quad_shader);
+//     quad_renderer::end_batch();
+//     quad_renderer::flush(resources.instanced_quad_shader);
 //   } // <!-- end main scene fbo -->
 
 //   //
@@ -241,8 +269,8 @@ game2d::update_render_system(entt::registry& registry)
 //   RenderCommand::set_depth_testing(false);
 //   RenderCommand::clear();
 //   {
-//     sprite_renderer::reset_quad_vert_count();
-//     sprite_renderer::begin_batch();
+//     quad_renderer::reset_quad_vert_count();
+//     quad_renderer::begin_batch();
 //     resources.instanced_quad_shader.bind();
 //     resources.instanced_quad_shader.set_float("time", app.seconds_since_launch);
 //     glm::mat4 flip = glm::mat4(1.0f); // flip because opengl textures have different axis
@@ -280,10 +308,10 @@ game2d::update_render_system(entt::registry& registry)
 //       screen_object.sprite = sprite::type::SQUARE;
 //       screen_object.render_size = glm::vec2(screen_wh.x, screen_wh.y);
 //       screen_object.tex_slot = tex_unit_main_scene;
-//       sprite_renderer::draw_instanced_sprite(gs.camera, screen_wh, resources.instanced_quad_shader, screen_object);
+//       quad_renderer::draw_instanced_sprite(gs.camera, screen_wh, resources.instanced_quad_shader, screen_object);
 //     }
-//     sprite_renderer::end_batch();
-//     sprite_renderer::flush(resources.instanced_quad_shader);
+//     quad_renderer::end_batch();
+//     quad_renderer::flush(resources.instanced_quad_shader);
 //     // CHECK_OPENGL_ERROR(0);
 //   }
 // }

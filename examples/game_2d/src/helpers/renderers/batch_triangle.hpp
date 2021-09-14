@@ -11,18 +11,18 @@
 
 namespace engine {
 
-namespace sprite_renderer {
+namespace triangle_renderer {
 
-// data required per sprite
-struct RenderDescriptor
+// data required per triangle
+struct TriangleDescriptor
 {
-  glm::ivec2 pos_tl = { 0, 0 };
-  glm::ivec2 size = { 100, 100 };
-  glm::vec4 colour = { 1.0f, 0.0f, 0.0f, 1.0f };
-  float angle_radians = 0.0f;
-  glm::ivec2 sprite_offset = { 0, 0 }; // e.g. { 5, 8 }; for spritesheet
+  glm::vec2 point_0 = { 0, 0 };
+  glm::vec2 point_1 = { 0, 0 };
+  glm::vec2 point_2 = { 0, 0 };
+  glm::vec4 point_0_colour = glm::vec4(1.0f, 0.0f, 0.0f, 1.0f);
+  glm::vec4 point_1_colour = glm::vec4(1.0f, 0.0f, 0.0f, 1.0f);
+  glm::vec4 point_2_colour = glm::vec4(1.0f, 0.0f, 0.0f, 1.0f);
   int tex_slot = 0;
-  int z_index = 0;
 };
 
 // data for vert.glsl
@@ -35,10 +35,10 @@ struct Vertex
   glm::mat4 model;
 };
 
-class SpriteBatchRenderer
+class TriangleRenderer
 {
 public:
-  static void draw_sprite(const RenderDescriptor& r, Shader& s);
+  static void draw_triangle(const TriangleDescriptor& r, Shader& s);
 
   static void init();
   static void shutdown();
@@ -50,12 +50,14 @@ public:
   static void reset_quad_vert_count();
   static void end_frame();
 
+  static int draw_calls();
+
 private:
   static constexpr int max_quad = 10000;
-  static constexpr int max_quad_vert_count = max_quad * 4;
-  static constexpr int max_quad_index_count = max_quad * 6;
+  static constexpr int max_quad_vert_count = max_quad * 3;
+  static constexpr int max_quad_index_count = max_quad * 3;
 };
 
-} // namespace sprite_renderer
+} // namespace triangle_renderer
 
 } // namespace engine
