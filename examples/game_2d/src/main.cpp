@@ -26,7 +26,7 @@ main()
     engine::hide_windows_console();
 
   glm::ivec2 start_screen_wh = { 1366, 720 };
-  Application app("2D Game", start_screen_wh.x, start_screen_wh.y, use_vsync);
+  Application app("2D Game [0.0.8]", start_screen_wh.x, start_screen_wh.y, use_vsync);
   entt::registry registry;
   init(registry, start_screen_wh);
 

@@ -3,8 +3,8 @@
 
 // components
 #include "components/player.hpp"
+#include "components/position.hpp"
 #include "components/profiler_stats.hpp"
-#include "components/sprite.hpp"
 #include "components/z_index.hpp"
 
 // helpers
@@ -31,9 +31,17 @@ game2d::update_ui_system(entt::registry& registry, engine::Application& app)
 
   // Profiler
   {
-    auto view = registry.view<const Sprite>();
+    int pos_ints = 0;
+    {
+      auto view = registry.view<const PositionInt>();
+      pos_ints = view.size();
+    }
+    auto view = registry.view<const PositionFloat>();
+    int pos_floats = view.size();
+
     ImGui::Begin("Profiler");
-    ImGui::Text("Rendering entities: %i", view.size());
+    ImGui::Text("FPS %f", ImGui::GetIO().Framerate);
+    ImGui::Text("Rendering entities: %i", pos_ints + pos_floats);
     ImGui::Separator();
     ImGui::Text("Physics %f", p.physics_elapsed_ms);
     ImGui::Text("Input %f", p.input_elapsed_ms);
@@ -56,23 +64,6 @@ game2d::update_ui_system(entt::registry& registry, engine::Application& app)
     //   ImGui::Text("Player z-index: %i", z.index);
     // });
     // ImGui::End();
-  }
-
-  // Top menu bar
-  glm::ivec2 screen_wh = app.get_window().get_size();
-  if (ImGui::BeginMainMenuBar()) {
-    ImGui::Text("Warlords");
-
-    ImGui::SameLine(screen_wh.x - 120.0f);
-    {
-      float framerate = ImGui::GetIO().Framerate;
-      ImGui::Text("FPS %0.2f", framerate);
-    }
-    ImGui::SameLine(screen_wh.x - 45.0f);
-    if (ImGui::Button("Quit")) {
-      app.shutdown();
-    }
-    ImGui::EndMainMenuBar();
   }
 }
 

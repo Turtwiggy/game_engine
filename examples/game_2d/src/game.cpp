@@ -48,18 +48,15 @@ game2d::init(entt::registry& registry, glm::ivec2 screen_wh)
   res.loaded_texture_ids = engine::load_textures_threaded(textures_to_load);
 
   init_ui_system(registry);
-  init_hex_grid_system(registry);
+  init_hex_grid_system(registry, screen_wh);
 
   { // add a player
-    entt::entity r = registry.create();
+    // entt::entity r = registry.create();
 
     // Colour base;
     // base.colour = { 1.0f, 0.0f, 0.0f, 1.0f };
-    // Hoverable h;
-    // h.hover_colour.colour = { 0.0f, 1.0f, 0.0f, 1.0f };
 
     // registry.emplace<Colour>(r, base);
-    // registry.emplace<Hoverable>(r, h);
     // registry.emplace<Player>(r);
     // registry.emplace<PositionInt>(r, 100, 100);
     // registry.emplace<Size>(r, grid_size, grid_size);
@@ -74,12 +71,12 @@ game2d::update(entt::registry& registry, engine::Application& app, float dt)
   ProfilerStats& p = registry.ctx<ProfilerStats>();
 
   // physics
-  Uint64 start_physics = SDL_GetPerformanceCounter();
-  {
-    //
-  }
-  Uint64 end_physics = SDL_GetPerformanceCounter();
-  p.physics_elapsed_ms = (end_physics - start_physics) / float(SDL_GetPerformanceFrequency()) * 1000.0f;
+  // Uint64 start_physics = SDL_GetPerformanceCounter();
+  // {
+  //   //
+  // }
+  // Uint64 end_physics = SDL_GetPerformanceCounter();
+  // p.physics_elapsed_ms = (end_physics - start_physics) / float(SDL_GetPerformanceFrequency()) * 1000.0f;
 
   // input
   Uint64 start_input = SDL_GetPerformanceCounter();

@@ -9,6 +9,7 @@
 // other proj headers
 #include <glm/glm.hpp>
 #include <imgui.h>
+#include <vector>
 
 // your proj headers
 #include "engine/maths_core.hpp"
@@ -248,6 +249,11 @@ struct spritemap
 };
 
 } // namespace sprite
+
+// util
+
+std::vector<sprite::type>
+convert_int_to_sprites(int damage);
 
 std::array<ImVec2, 2>
 convert_sprite_to_uv(sprite::type type, float pixels, glm::ivec2 wh);

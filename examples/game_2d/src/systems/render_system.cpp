@@ -84,7 +84,7 @@ game2d::update_render_system(entt::registry& registry)
   Resources& r = registry.ctx<Resources>();
 
   Framebuffer::default_fbo();
-  glm::vec4 background_colour = glm::vec4(1.0f);
+  glm::vec4 background_colour = glm::vec4(57.0f / 255.0f, 62.0f / 255.0f, 70.0f / 255.0f, 1.0f);
   RenderCommand::set_clear_colour(background_colour);
   RenderCommand::clear();
 

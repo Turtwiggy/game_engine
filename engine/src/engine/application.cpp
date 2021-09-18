@@ -18,11 +18,11 @@ namespace engine {
 Application::Application(const std::string& name, int width, int height, bool vsync)
 {
   // const std::string kBuildStr(kGitSHA1Hash, 8);
-  std::string kBuildStr = " [0.0.8] ";
+  std::string kBuildStr = "";
 
 #ifdef WIN32
 #ifdef _DEBUG
-  kBuildStr = kBuildStr + std::string("[DEBUG]");
+  kBuildStr = kBuildStr + std::string(" [DEBUG]");
 #endif
 #endif
 
@@ -30,7 +30,7 @@ Application::Application(const std::string& name, int width, int height, bool vs
   GameWindow::glsl_version = "#version 330";
   GameWindow::opengl_major = 3;
   GameWindow::opengl_minor = 3;
-  window = std::make_unique<GameWindow>(name + kBuildStr, width, height, DisplayMode::BORDERLESS, vsync);
+  window = std::make_unique<GameWindow>(name + kBuildStr, width, height, DisplayMode::WINDOWED, vsync);
 
   imgui_manager.initialize(window.get());
 
