@@ -46,12 +46,4 @@ struct HexMesh
   std::array<engine::triangle_renderer::TriangleDescriptor, 6> triangles;
 };
 
-struct HexCell
-{
-  HexPos pos;
-  HexCoord coord;
-  HexMesh mesh;
-  // Colour colour;
-};
-
 } // namespace game2d
