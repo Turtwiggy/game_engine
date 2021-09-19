@@ -1,18 +1,16 @@
 #pragma once
 
-// standard lib
-#include <array>
-#include <map>
-// #include <stdexcept>
-#include <vector>
+// your proj headers
+#include "engine/maths_core.hpp"
 
 // other proj headers
 #include <glm/glm.hpp>
 #include <imgui.h>
-#include <vector>
 
-// your proj headers
-#include "engine/maths_core.hpp"
+// standard lib
+#include <array>
+#include <map>
+#include <vector>
 
 namespace game2d {
 

@@ -4,9 +4,12 @@
 #include "engine/opengl/shader.hpp"
 
 // other project headers
+#include <entt/entt.hpp>
 #include <glm/glm.hpp>
 
 // c++ headers
+#include <iostream>
+#include <memory>
 #include <vector>
 
 namespace engine {
@@ -35,22 +38,43 @@ struct Vertex
   glm::mat4 model;
 };
 
+// interface for overriding how get triangle descriptors
+struct ITriangleRenderable
+{
+  virtual std::vector<TriangleDescriptor> get_triangles(entt::registry& registry) = 0;
+};
+
 class TriangleRenderer
 {
 public:
-  static void draw_triangle(const TriangleDescriptor& r, Shader& s);
+  inline static std::vector<std::unique_ptr<ITriangleRenderable>> interfaces;
 
+public:
+  // Note: I'm not sure how to move this template function
+  // to the cpp file, as I was getting link errors.
+  // have put as inline for the moment :/
+  template<class T>
+  inline static void register_interface()
+  {
+    std::cout << "(BatchTriangle) Registering interface..." << std::endl;
+    std::unique_ptr p = std::make_unique<T>();
+    interfaces.push_back(std::move(p));
+  }
+
+public:
   static void init();
   static void shutdown();
 
+  static void draw(entt::registry& registry, Shader& shader);
+  static void end_frame();
+  static int draw_calls();
+
+private:
+  static void draw_triangle(const TriangleDescriptor& r, Shader& s);
+  static void reset_quad_vert_count();
+  static void begin_batch();
   static void end_batch();
   static void flush(Shader& shader); // submit for a drawcall
-  static void begin_batch();
-
-  static void reset_quad_vert_count();
-  static void end_frame();
-
-  static int draw_calls();
 
 private:
   static constexpr int max_quad = 10000;

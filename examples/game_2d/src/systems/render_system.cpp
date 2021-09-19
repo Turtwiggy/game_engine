@@ -12,6 +12,7 @@
 #include "components/z_index.hpp"
 
 // helpers
+#include "helpers/renderer_interfaces/render_hexagons.hpp"
 #include "helpers/renderers/batch_quad.hpp"
 #include "helpers/renderers/batch_triangle.hpp"
 #include "helpers/renderers/batch_triangle_fan.hpp"
@@ -58,6 +59,9 @@ game2d::init_render_system(entt::registry& registry, const glm::ivec2& screen_wh
   r.instanced.set_int_array("textures", textures, 3);
   r.instanced.set_int("screen_w", screen_wh.x);
   r.instanced.set_int("screen_h", screen_wh.y);
+
+  // Render the HexGrid as an renderable interface
+  triangle_renderer::TriangleRenderer::register_interface<RenderHexagons>();
 };
 
 void
@@ -73,27 +77,7 @@ game2d::update_render_system(entt::registry& registry)
   //
   // Do triangle stuff
   //
-  {
-    triangle_renderer::TriangleRenderer::reset_quad_vert_count();
-    triangle_renderer::TriangleRenderer::begin_batch();
-
-    {
-      // WIP: this questionable that the renderer knows about the triangles in the
-      // hex cell object
-      // maybe register HexCell component with the renderer...
-      // and provide a way for the renderer to know about the triangles?
-      // this should be in the hexcell module, and the renderer should be able to be expanded
-      auto view = registry.view<const HexCell>();
-      view.each([&r](const auto& entity, const auto& cell) {
-        for (const auto& triangle : cell.mesh.triangles) {
-          triangle_renderer::TriangleRenderer::draw_triangle(triangle, r.instanced);
-        }
-      });
-    }
-
-    triangle_renderer::TriangleRenderer::end_batch();
-    triangle_renderer::TriangleRenderer::flush(r.instanced);
-  }
+  triangle_renderer::TriangleRenderer::draw(registry, r.instanced);
 
   //
   // Do quad stuff

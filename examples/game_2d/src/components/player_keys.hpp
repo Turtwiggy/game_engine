@@ -23,19 +23,19 @@ struct PlayerKeys
   SDL_Scancode key_camera_follow_player = SDL_SCANCODE_Q;
 
   // controller input
-  float l_analogue_x = 0.0f;
-  float l_analogue_y = 0.0f;
-  float r_analogue_x = 0.0f;
-  float r_analogue_y = 0.0f;
+  // float l_analogue_x = 0.0f;
+  // float l_analogue_y = 0.0f;
+  // float r_analogue_x = 0.0f;
+  // float r_analogue_y = 0.0f;
 
   // key state
-  float angle_around_player = 0.0f;
-  bool pause_held = false;
-  bool pause_down = false;
-  bool shoot_held = false;
-  bool shoot_down = false;
-  bool boost_held = false;
-  bool boost_down = false;
+  // float angle_around_player = 0.0f;
+  // bool pause_held = false;
+  // bool pause_down = false;
+  // bool shoot_held = false;
+  // bool shoot_down = false;
+  // bool boost_held = false;
+  // bool boost_down = false;
 };
 
 } // namespace game2d

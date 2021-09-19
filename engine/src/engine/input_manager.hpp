@@ -53,7 +53,7 @@ public:
   //[[nodiscard]] bool get_button_down(SDL_GameController* controller, SDL_GameControllerButton button);
   //[[nodiscard]] bool get_button_up(SDL_GameController* controller, SDL_GameControllerButton button);
   [[nodiscard]] bool get_button_held(SDL_GameController* controller, SDL_GameControllerButton button);
-  [[nodiscard]] bool InputManager::get_axis_held(SDL_GameController* controller, SDL_GameControllerAxis axis);
+  [[nodiscard]] bool get_axis_held(SDL_GameController* controller, SDL_GameControllerAxis axis);
 
 private:
   //

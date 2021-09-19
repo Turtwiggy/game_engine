@@ -51,7 +51,7 @@ struct HexCell
   HexPos pos;
   HexCoord coord;
   HexMesh mesh;
-  Colour colour;
+  // Colour colour;
 };
 
 } // namespace game2d

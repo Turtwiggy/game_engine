@@ -1,6 +1,9 @@
 // header
 #include "spritemap.hpp"
 
+// c++ headers
+#include <algorithm>
+
 namespace game2d {
 
 std::vector<sprite::type>

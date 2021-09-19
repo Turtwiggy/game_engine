@@ -8,6 +8,7 @@
 // other project headers
 #include <GL/glew.h>
 #include <glm/gtc/matrix_transform.hpp>
+#include <iostream>
 
 namespace engine {
 
@@ -161,6 +162,23 @@ TriangleRenderer::end_frame()
 {
   data.draw_calls = 0;
 }
+
+void
+TriangleRenderer::draw(entt::registry& registry, Shader& shader)
+{
+  TriangleRenderer::reset_quad_vert_count();
+  TriangleRenderer::begin_batch();
+  {
+    for (auto& interface : interfaces) {
+      const auto& tris = interface->get_triangles(registry);
+      for (const auto& triangle : tris) {
+        draw_triangle(triangle, shader);
+      }
+    }
+  }
+  TriangleRenderer::end_batch();
+  TriangleRenderer::flush(shader);
+};
 
 int
 TriangleRenderer::draw_calls()

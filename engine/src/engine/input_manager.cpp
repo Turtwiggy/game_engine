@@ -5,8 +5,11 @@
 // your proj headers
 #include "engine/maths_core.hpp"
 
-// c++ standard lib headers
+// other lib headers
 #include <imgui.h>
+
+// c++ standard lib headers
+#include <algorithm>
 
 namespace engine {
 
@@ -39,12 +42,12 @@ bool
 InputManager::get_key_down(SDL_Scancode button)
 {
   // check cache for this frame
-  auto& cache_button_down = std::find(kd_cache.begin(), kd_cache.end(), button);
+  const auto& cache_button_down = std::find(kd_cache.begin(), kd_cache.end(), button);
   if (cache_button_down != kd_cache.end())
     return true;
 
   bool button_held = get_key_held(button);
-  auto& button_down = std::find(kd.begin(), kd.end(), button);
+  const auto& button_down = std::find(kd.begin(), kd.end(), button);
 
   // button held, and no recollection of it being pressed
   if (button_held && button_down == kd.end()) {
@@ -65,12 +68,12 @@ bool
 InputManager::get_key_up(SDL_Scancode button)
 {
   // check cache for this frame
-  auto& cache_button_up = std::find(ku_cache.begin(), ku_cache.end(), button);
+  const auto& cache_button_up = std::find(ku_cache.begin(), ku_cache.end(), button);
   if (cache_button_up != ku_cache.end())
     return true;
 
   bool button_held = get_key_held(button);
-  auto& button_up = std::find(ku.begin(), ku.end(), button);
+  const auto& button_up = std::find(ku.begin(), ku.end(), button);
 
   // button held, no recollection of it being pressed
   if (!button_held && button_up != ku.end()) {

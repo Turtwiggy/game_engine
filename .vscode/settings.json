@@ -4,5 +4,6 @@
     ],
     "editor.formatOnSave": true,
     "C_Cpp.errorSquiggles": "Disabled",
-    "cmake.buildArgs": []
+    "cmake.buildArgs": [],
+    // "editor.wordWrap": "on"
 }

@@ -3,9 +3,6 @@
 #include "engine/opengl/model.hpp"
 
 // other project libs
-#include "assimp/Importer.hpp"
-#include "assimp/postprocess.h"
-#include "assimp/scene.h"
 #include <stb_image.h>
 
 // standard lib headers
@@ -35,7 +32,8 @@ Model::load_model(const std::string& path)
   const aiScene* scene = importer.ReadFile(path, aiProcess_Triangulate | aiProcess_FlipUVs);
 
   if (!scene || scene->mFlags & AI_SCENE_FLAGS_INCOMPLETE || !scene->mRootNode) {
-    std::cerr << "Failed to load scene: " << importer.GetErrorString() << std::endl;
+    const auto& err = importer.GetErrorString();
+    std::cerr << "Failed to load scene: " << err << std::endl;
     return;
   }
 
