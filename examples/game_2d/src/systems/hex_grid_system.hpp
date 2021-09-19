@@ -10,9 +10,9 @@
 namespace game2d {
 
 void
-init_hex_grid_system(entt::registry& registry, glm::vec2 screen_wh);
+init_hex_grid_system(entt::registry& registry);
 
 void
-update_hex_grid_system(entt::registry& registry, float dt);
+update_hex_grid_system(entt::registry& registry, engine::Application& app, float dt);
 
 } // namespace game2d

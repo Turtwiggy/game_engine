@@ -7,7 +7,9 @@
 #include "components/hoverable.hpp"
 #include "components/position.hpp"
 #include "components/size.hpp"
-#include "components/sprite.hpp"
+
+// helpers
+#include "helpers/renderers/batch_triangle.hpp"
 
 // other lib headers
 #include <glm/glm.hpp>
@@ -29,4 +31,8 @@ game2d::update_hover_system(entt::registry& registry, engine::Application& app)
       }
     });
   }
+
+  // {
+  //   auto& view = registry.view<Hoverable, engine::triangle_renderer::TriangleDescriptor>();
+  // }
 }

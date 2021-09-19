@@ -25,23 +25,16 @@ game2d::init_ui_system(entt::registry& registry)
 void
 game2d::update_ui_system(entt::registry& registry, engine::Application& app)
 {
+#ifdef _DEBUG
   // bool show_imgui_demo_window = false;
   // ImGui::ShowDemoWindow(&show_imgui_demo_window);
   ProfilerStats& p = registry.ctx<ProfilerStats>();
 
   // Profiler
   {
-    int pos_ints = 0;
-    {
-      auto view = registry.view<const PositionInt>();
-      pos_ints = view.size();
-    }
-    auto view = registry.view<const PositionFloat>();
-    int pos_floats = view.size();
-
     ImGui::Begin("Profiler");
     ImGui::Text("FPS %f", ImGui::GetIO().Framerate);
-    ImGui::Text("Rendering entities: %i", pos_ints + pos_floats);
+    // ImGui::Text("Rendering entities: %i", tris + quads);
     ImGui::Separator();
     ImGui::Text("Physics %f", p.physics_elapsed_ms);
     ImGui::Text("Input %f", p.input_elapsed_ms);
@@ -54,10 +47,11 @@ game2d::update_ui_system(entt::registry& registry, engine::Application& app)
     ImGui::Text("Draw Calls TFR %i", engine::triangle_fan_renderer::TriangleFanRenderer::draw_calls());
     ImGui::End();
   }
+#endif
 
   // Player Info
   {
-    // auto view = registry.view<const Player, const ZIndex>();
+    // auto view = registry.view<const Player>();
     // ImGui::Begin("Player");
     // view.each([](const auto entity, const auto& player, const auto& z) {
     //   //

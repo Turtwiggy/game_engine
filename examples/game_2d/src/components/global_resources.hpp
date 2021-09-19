@@ -7,6 +7,11 @@
 // c++ lib headers
 #include <vector>
 
+// texture constants
+constexpr int tex_unit_kenny_nl = 0;
+constexpr int tex_unit_main_scene = 1;
+constexpr int tex_unit_lighting = 2;
+
 namespace game2d {
 
 struct Resources

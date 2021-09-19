@@ -1,12 +1,10 @@
 // your header
 #include "systems/render_system.hpp"
 
-// game headers
-#include "constants.hpp"
-
 // components
 #include "components/colour.hpp"
 #include "components/global_resources.hpp"
+#include "components/hex_cell.hpp"
 #include "components/hoverable.hpp"
 #include "components/position.hpp"
 #include "components/size.hpp"
@@ -29,22 +27,6 @@ using namespace engine;
 
 // c++ lib
 #include <vector>
-
-// void
-// toggle_fullscreen(Application& app,
-//                   glm::ivec2& screen_wh,
-//                   glm::mat4& projection,
-//                   unsigned int tex_id_lighting,
-//                   unsigned int tex_id_main_scene)
-// {
-//   app.get_window().toggle_fullscreen(); // SDL2 window toggle
-//   screen_wh = app.get_window().get_size();
-//   RenderCommand::set_viewport(0, 0, screen_wh.x, screen_wh.y);
-//   projection = glm::ortho(0.0f, static_cast<float>(screen_wh.x), static_cast<float>(screen_wh.y), 0.0f, -1.0f, 1.0f);
-
-//   update_texture_size(screen_wh, tex_id_lighting);
-//   update_texture_size(screen_wh, tex_id_main_scene);
-// }
 
 void
 game2d::init_render_system(entt::registry& registry, const glm::ivec2& screen_wh)
@@ -95,12 +77,19 @@ game2d::update_render_system(entt::registry& registry)
     triangle_renderer::TriangleRenderer::reset_quad_vert_count();
     triangle_renderer::TriangleRenderer::begin_batch();
 
-    auto view = registry.view<triangle_renderer::TriangleDescriptor>();
-
-    view.each([&r, &registry](const auto& entity, auto& t) {
-      //
-      triangle_renderer::TriangleRenderer::draw_triangle(t, r.instanced);
-    });
+    {
+      // WIP: this questionable that the renderer knows about the triangles in the
+      // hex cell object
+      // maybe register HexCell component with the renderer...
+      // and provide a way for the renderer to know about the triangles?
+      // this should be in the hexcell module, and the renderer should be able to be expanded
+      auto view = registry.view<const HexCell>();
+      view.each([&r](const auto& entity, const auto& cell) {
+        for (const auto& triangle : cell.mesh.triangles) {
+          triangle_renderer::TriangleRenderer::draw_triangle(triangle, r.instanced);
+        }
+      });
+    }
 
     triangle_renderer::TriangleRenderer::end_batch();
     triangle_renderer::TriangleRenderer::flush(r.instanced);
@@ -161,6 +150,22 @@ game2d::end_frame_render_system(entt::registry& registry)
   quad_renderer::QuadRenderer::end_frame();
   triangle_renderer::TriangleRenderer::end_frame();
 };
+
+// void
+// toggle_fullscreen(Application& app,
+//                   glm::ivec2& screen_wh,
+//                   glm::mat4& projection,
+//                   unsigned int tex_id_lighting,
+//                   unsigned int tex_id_main_scene)
+// {
+//   app.get_window().toggle_fullscreen(); // SDL2 window toggle
+//   screen_wh = app.get_window().get_size();
+//   RenderCommand::set_viewport(0, 0, screen_wh.x, screen_wh.y);
+//   projection = glm::ortho(0.0f, static_cast<float>(screen_wh.x), static_cast<float>(screen_wh.y), 0.0f, -1.0f, 1.0f);
+
+//   update_texture_size(screen_wh, tex_id_lighting);
+//   update_texture_size(screen_wh, tex_id_main_scene);
+// }
 
 //
 // lighting fbo

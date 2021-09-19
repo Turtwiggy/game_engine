@@ -1,9 +1,6 @@
 // your header
 #include "game.hpp"
 
-// game headers
-#include "constants.hpp"
-
 // components
 #include "components/colour.hpp"
 #include "components/global_resources.hpp"
@@ -41,6 +38,7 @@ game2d::init(entt::registry& registry, glm::ivec2 screen_wh)
 {
   init_render_system(registry, screen_wh);
   Resources& res = registry.ctx<Resources>();
+
   // sprites
   std::string path_to_kennynl = "assets/2d_game/textures/kennynl_1bit_pack/monochrome_transparent_packed.png";
   std::vector<std::pair<int, std::string>> textures_to_load;
@@ -48,21 +46,7 @@ game2d::init(entt::registry& registry, glm::ivec2 screen_wh)
   res.loaded_texture_ids = engine::load_textures_threaded(textures_to_load);
 
   init_ui_system(registry);
-  init_hex_grid_system(registry, screen_wh);
-
-  { // add a player
-    // entt::entity r = registry.create();
-
-    // Colour base;
-    // base.colour = { 1.0f, 0.0f, 0.0f, 1.0f };
-
-    // registry.emplace<Colour>(r, base);
-    // registry.emplace<Player>(r);
-    // registry.emplace<PositionInt>(r, 100, 100);
-    // registry.emplace<Size>(r, grid_size, grid_size);
-    // registry.emplace<Sprite>(r, sprite::type::PERSON_1);
-    // registry.emplace<ZIndex>(r, 1);
-  }
+  init_hex_grid_system(registry);
 }
 
 void
@@ -95,7 +79,7 @@ game2d::update(entt::registry& registry, engine::Application& app, float dt)
   // game tick
   Uint64 start_game_tick = SDL_GetPerformanceCounter();
   {
-    update_hex_grid_system(registry, dt);
+    update_hex_grid_system(registry, app, dt);
     update_player_system(registry, app);
   };
   Uint64 end_game_tick = SDL_GetPerformanceCounter();
