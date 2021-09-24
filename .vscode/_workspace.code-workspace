@@ -119,6 +119,9 @@
 			"*.vert": "c",
 			"format": "cpp"
 		},
-		"cmake.loggingLevel": "debug"
+		"cmake.loggingLevel": "debug",
+		"cSpell.words": [
+			"entt"
+		]
 	}
 }

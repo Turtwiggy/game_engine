@@ -25,14 +25,13 @@ game2d::init_ui_system(entt::registry& registry)
 void
 game2d::update_ui_system(entt::registry& registry, engine::Application& app)
 {
-#ifdef _DEBUG
   // bool show_imgui_demo_window = false;
   // ImGui::ShowDemoWindow(&show_imgui_demo_window);
   ProfilerStats& p = registry.ctx<ProfilerStats>();
 
   // Profiler
+  ImGui::Begin("Profiler ", NULL, ImGuiWindowFlags_NoFocusOnAppearing);
   {
-    ImGui::Begin("Profiler");
     ImGui::Text("FPS %f", ImGui::GetIO().Framerate);
     // ImGui::Text("Rendering entities: %i", tris + quads);
     ImGui::Separator();
@@ -45,20 +44,13 @@ game2d::update_ui_system(entt::registry& registry, engine::Application& app)
     ImGui::Text("Draw Calls QR %i", engine::quad_renderer::QuadRenderer::draw_calls());
     ImGui::Text("Draw Calls TR %i", engine::triangle_renderer::TriangleRenderer::draw_calls());
     ImGui::Text("Draw Calls TFR %i", engine::triangle_fan_renderer::TriangleFanRenderer::draw_calls());
-    ImGui::End();
   }
-#endif
+  ImGui::End();
 
-  // Player Info
-  {
-    // auto view = registry.view<const Player>();
-    // ImGui::Begin("Player");
-    // view.each([](const auto entity, const auto& player, const auto& z) {
-    //   //
-    //   ImGui::Text("Player z-index: %i", z.index);
-    // });
-    // ImGui::End();
-  }
+  // auto mouse_pos = app.get_input().get_mouse_pos();
+  // ImGui::Begin("Mouse Tab", NULL, ImGuiWindowFlags_NoFocusOnAppearing);
+  // ImGui::Text("mouse %i %i", mouse_pos.x, mouse_pos.y);
+  // ImGui::End();
 }
 
 // static std::function<void()> ui_limit_framerate_callback;

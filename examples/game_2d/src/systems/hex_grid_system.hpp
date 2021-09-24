@@ -16,7 +16,7 @@ namespace game2d {
 // https://catlikecoding.com/unity/tutorials/hex-map/part-1/
 
 void
-init_hex_grid_system(entt::registry& registry);
+init_hex_grid_system(entt::registry& registry, const glm::ivec2& screen_wh);
 
 void
 update_hex_grid_system(entt::registry& registry, engine::Application& app, float dt);

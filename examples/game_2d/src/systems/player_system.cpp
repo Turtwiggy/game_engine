@@ -14,9 +14,9 @@
 void
 game2d::update_player_system(entt::registry& registry, engine::Application& app)
 {
-  auto mouse_pos = app.get_input().get_mouse_pos();
-
-  ImGui::Begin("Mouse Pos");
-  ImGui::Text("mouse %i %i", mouse_pos.x, mouse_pos.y);
+  //
+  auto pos = app.get_input().get_mouse_pos();
+  ImGui::Begin("Mouse", NULL, ImGuiWindowFlags_NoFocusOnAppearing);
+  ImGui::Text("%i %i", pos.x, pos.y);
   ImGui::End();
 };

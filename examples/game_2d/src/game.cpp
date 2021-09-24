@@ -46,7 +46,7 @@ game2d::init(entt::registry& registry, glm::ivec2 screen_wh)
   res.loaded_texture_ids = engine::load_textures_threaded(textures_to_load);
 
   init_ui_system(registry);
-  init_hex_grid_system(registry);
+  init_hex_grid_system(registry, screen_wh);
 }
 
 void

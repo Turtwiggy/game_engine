@@ -18,10 +18,8 @@
 namespace game2d {
 
 // hex grid consts
-constexpr float outer_radius = 32.0f;
+constexpr float outer_radius = 20.0f;
 constexpr float inner_radius = outer_radius * 0.866025404f;
-constexpr int half_width = 5;
-constexpr int half_height = 5;
 
 constexpr std::array<glm::vec2, 7> hexagon_pointy_side_up = {
   glm::vec2(0.0f, outer_radius),
@@ -32,6 +30,9 @@ constexpr std::array<glm::vec2, 7> hexagon_pointy_side_up = {
   glm::vec2(-inner_radius, 0.5f * outer_radius),
   glm::vec2(0.0f, outer_radius), // last point is first point
 };
+
+struct HexText
+{};
 
 struct HexPos : public PositionFloat
 {};
