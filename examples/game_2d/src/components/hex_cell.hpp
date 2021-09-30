@@ -18,7 +18,7 @@
 namespace game2d {
 
 // hex grid consts
-constexpr float outer_radius = 20.0f;
+constexpr float outer_radius = 24.0f;
 constexpr float inner_radius = outer_radius * 0.866025404f;
 
 constexpr std::array<glm::vec2, 7> hexagon_pointy_side_up = {
@@ -39,12 +39,24 @@ struct HexPos : public PositionFloat
 
 struct HexCoord
 {
-  int x, y, z, i = 0;
+  int x, y, z = 0;
 };
 
 struct HexMesh
 {
   std::array<engine::triangle_renderer::TriangleDescriptor, 6> triangles;
+};
+
+struct HexCell;
+struct HexData
+{
+  std::vector<std::reference_wrapper<HexCell>> neighbours;
+};
+struct HexCell
+{
+  HexPos pos;
+  HexCoord coord;
+  HexMesh mesh;
 };
 
 } // namespace game2d

@@ -14,10 +14,10 @@ RenderHexagons::get_triangles(entt::registry& registry)
 {
   std::vector<engine::triangle_renderer::TriangleDescriptor> tris;
 
-  const auto view = registry.view<const HexMesh>();
+  const auto view = registry.view<const HexCell>();
 
-  view.each([&tris](const auto& mesh) {
-    for (const auto& triangle : mesh.triangles) {
+  view.each([&tris](const auto& cell) {
+    for (const auto& triangle : cell.mesh.triangles) {
       tris.push_back(triangle);
     }
   });

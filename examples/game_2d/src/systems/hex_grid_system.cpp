@@ -11,6 +11,7 @@
 #include "components/z_index.hpp"
 
 // helpers
+#include "helpers/hex_grid.hpp"
 #include "helpers/renderers/batch_triangle.hpp"
 #include "helpers/spritemap.hpp"
 
@@ -19,47 +20,9 @@
 #include <glm/glm.hpp>
 
 // c++ lib headers
-#include <iostream>
 #include <vector>
 
 namespace game2d {
-
-glm::ivec3
-convert_pos_to_hex_pos(const glm::ivec2& mouse_pos, const glm::ivec2& offset)
-{
-  float fx = mouse_pos.x / (inner_radius * 2.0f);
-  float fz = -fx;
-  const float y_offset = mouse_pos.y / (outer_radius * 3.0f);
-  fx -= y_offset;
-  fz -= y_offset;
-  int ix = int(glm::roundEven(fx));
-  int iy = int(glm::roundEven(-fx - fz));
-  int iz = int(glm::roundEven(fz));
-
-  const int sum_coords = ix + iy + iz;
-  if (sum_coords != 0) {
-    // the coordinate that got the most rounded is incorrect.
-    const float dx = glm::abs(fx - ix);
-    const float dy = glm::abs(-fx - fz - iy);
-    const float dz = glm::abs(fz - iz);
-
-    if (dx > dy && dx > dz) {
-      ix = -iy - iz;
-    } else if (dy > dx || dy > dz) {
-      iy = -iz - ix;
-    } else if (dz > dx || dz > dy) {
-      iz = -iy - ix;
-    }
-
-    const int new_sum_coords = ix + iy + iz;
-    if (new_sum_coords != 0) {
-      std::cerr << "Error: grid does not add up to 0?" << std::endl;
-    }
-  }
-
-  glm::ivec3 hex_pos = { ix, iy, iz };
-  return hex_pos;
-}
 
 void
 render_number(entt::registry& registry, int number, float x, float y)
@@ -81,7 +44,7 @@ render_number(entt::registry& registry, int number, float x, float y)
       registry.emplace<Colour>(r, neg_text_colour);
     else
       registry.emplace<Colour>(r, text_colour);
-    registry.emplace<PositionInt>(r, int(x) + text_x_offset, int(y));
+    registry.emplace<PositionInt>(r, int(x + text_x_offset), int(y));
     registry.emplace<Size>(r, 10, 10);
     registry.emplace<Sprite>(r, number);
     registry.emplace<ZIndex>(r, 1);
@@ -131,10 +94,16 @@ create_hex_cell(entt::registry& registry, const int x, const int y, const int i,
   // if (glm::abs(coord.x) > half_width || glm::abs(coord.y) > half_width || glm::abs(coord.z) > half_width)
   //   return;
 
+  HexCell cell;
+  cell.pos = pos;
+  cell.coord = coord;
+  cell.mesh = mesh;
+
+  HexData data;
+
   entt::entity r = registry.create();
-  registry.emplace<HexPos>(r, pos);
-  registry.emplace<HexCoord>(r, coord);
-  registry.emplace<HexMesh>(r, mesh);
+  registry.emplace<HexCell>(r, cell);
+  registry.emplace<HexData>(r, data);
 
   // render numbers on top of hexagon
   // render_number(registry, coord.x, pos.x, pos.y - inner_radius / 2);
@@ -149,7 +118,7 @@ game2d::init_hex_grid_system(entt::registry& registry, const glm::ivec2& screen_
 {
   // destroys all hexagons
   {
-    auto view = registry.view<HexMesh>();
+    auto view = registry.view<HexCell>();
     registry.destroy(view.begin(), view.end());
   }
   // destroys all text
@@ -159,8 +128,8 @@ game2d::init_hex_grid_system(entt::registry& registry, const glm::ivec2& screen_
   }
 
   glm::ivec2 offset = { screen_wh.x / 2, screen_wh.y / 2 };
-  int half_width = 16;
-  int half_height = 10;
+  int half_width = 20;
+  int half_height = 12;
 
   int i = 0;
   for (int y = -half_height; y <= half_height; y++) {
@@ -185,41 +154,26 @@ game2d::update_hex_grid_system(entt::registry& registry, engine::Application& ap
   }
   ImGui::End();
 
-  if (app.get_input().get_mouse_lmb_down()) {
+  if (app.get_input().get_mouse_lmb_held()) {
 
+    const auto mouse_pos = app.get_input().get_mouse_pos();
     glm::ivec2 offset = { screen_wh.x / 2, screen_wh.y / 2 };
-    const auto mouse_pos = app.get_input().get_mouse_pos() - offset;
-    // std::cout << "mouse clicked in hex system: " << mouse_pos.x << " " << mouse_pos.y << std::endl;
-
-    glm::ivec3 hex_pos = convert_pos_to_hex_pos(mouse_pos, offset);
+    glm::ivec3 hex_pos = convert_world_pos_to_hex_pos(mouse_pos, offset);
     // std::cout << "(grid pos) " << ix << " " << iy << " " << iz << std::endl;
 
-    // generate colours
+    // Get the hexmesh, and update it's triangles colours
     Resources& res = registry.ctx<Resources>();
     float rnd = engine::rand_det_s(res.rnd.rng, 0.6f, 0.7f);
     glm::vec4 glm_col = glm::vec4(col[0], col[1], col[2], col[3]);
     glm_col *= rnd;
     glm_col.a = 1.0f;
 
-    // Get the hexmesh, and update it's triangles colours
-    const auto view = registry.view<HexPos, HexCoord, HexMesh>();
-    view.each([&registry, &hex_pos, &glm_col](auto& pos, auto& coord, auto& mesh) {
-      if (coord.x == hex_pos.x && coord.y == hex_pos.y && coord.z == hex_pos.z) {
+    const auto view = registry.view<HexCell>();
+    view.each([&registry, &hex_pos, &glm_col](auto& cell) {
+      if (cell.coord.x == hex_pos.x && cell.coord.y == hex_pos.y && cell.coord.z == hex_pos.z) {
         // Change triangle colour
-        // for (auto& tri : mesh.triangles) {
-        //   tri.point_0_colour = tri.point_1_colour = tri.point_2_colour = glm_col;
-        // }
-
-        // Spawn a thing..!
-        // TODO: make it so unable to spawn things on things
-        {
-          entt::entity r = registry.create();
-          registry.emplace<Colour>(r, glm_col);
-          registry.emplace<PositionInt>(r, pos.x, pos.y);
-          registry.emplace<Size>(r, outer_radius, outer_radius);
-          registry.emplace<Sprite>(r, sprite::type::TREE_1);
-          registry.emplace<ZIndex>(r, 1);
-          registry.emplace<HexText>(r);
+        for (auto& tri : cell.mesh.triangles) {
+          tri.point_0_colour = tri.point_1_colour = tri.point_2_colour = glm_col;
         }
       }
     });

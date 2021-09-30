@@ -4,6 +4,7 @@
 // components
 #include "components/colour.hpp"
 #include "components/global_resources.hpp"
+#include "components/hex_cell.hpp"
 #include "components/hoverable.hpp"
 #include "components/player.hpp"
 #include "components/position.hpp"
@@ -47,6 +48,18 @@ game2d::init(entt::registry& registry, glm::ivec2 screen_wh)
 
   init_ui_system(registry);
   init_hex_grid_system(registry, screen_wh);
+
+  // Add a player
+  {
+    entt::entity r = registry.create();
+    registry.emplace<Colour>(r, 1.0f, 0.0f, 0.0f, 1.0f);
+    registry.emplace<PositionInt>(r, 0, 0);
+    registry.emplace<Size>(r, 20.0f, 20.0f);
+    registry.emplace<Sprite>(r, sprite::type::PERSON_1);
+    registry.emplace<ZIndex>(r, 1);
+    registry.emplace<Player>(r);
+    registry.emplace<HexCoord>(r, 0, 0, 0);
+  };
 }
 
 void
