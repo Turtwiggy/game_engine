@@ -3,9 +3,8 @@
 
 // components
 #include "components/player.hpp"
-#include "components/position.hpp"
-#include "components/profiler_stats.hpp"
-#include "components/z_index.hpp"
+#include "components/profiler.hpp"
+#include "components/rendering.hpp"
 
 // helpers
 #include "helpers/renderers/batch_quad.hpp"
@@ -27,13 +26,13 @@ game2d::update_ui_system(entt::registry& registry, engine::Application& app)
 {
   // bool show_imgui_demo_window = false;
   // ImGui::ShowDemoWindow(&show_imgui_demo_window);
+
   ProfilerStats& p = registry.ctx<ProfilerStats>();
 
   // Profiler
   ImGui::Begin("Profiler ", NULL, ImGuiWindowFlags_NoFocusOnAppearing);
   {
     ImGui::Text("FPS %f", ImGui::GetIO().Framerate);
-    // ImGui::Text("Rendering entities: %i", tris + quads);
     ImGui::Separator();
     ImGui::Text("Physics %f", p.physics_elapsed_ms);
     ImGui::Text("Input %f", p.input_elapsed_ms);
@@ -46,11 +45,6 @@ game2d::update_ui_system(entt::registry& registry, engine::Application& app)
     ImGui::Text("Draw Calls TFR %i", engine::triangle_fan_renderer::TriangleFanRenderer::draw_calls());
   }
   ImGui::End();
-
-  // auto mouse_pos = app.get_input().get_mouse_pos();
-  // ImGui::Begin("Mouse Tab", NULL, ImGuiWindowFlags_NoFocusOnAppearing);
-  // ImGui::Text("mouse %i %i", mouse_pos.x, mouse_pos.y);
-  // ImGui::End();
 }
 
 // static std::function<void()> ui_limit_framerate_callback;

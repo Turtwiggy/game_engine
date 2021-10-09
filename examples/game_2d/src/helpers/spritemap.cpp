@@ -1,5 +1,5 @@
 // header
-#include "spritemap.hpp"
+#include "helpers/spritemap.hpp"
 
 // c++ headers
 #include <algorithm>

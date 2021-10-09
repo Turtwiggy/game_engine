@@ -2,14 +2,8 @@
 #include "systems/render_system.hpp"
 
 // components
-#include "components/colour.hpp"
-#include "components/global_resources.hpp"
-#include "components/hex_cell.hpp"
-#include "components/hoverable.hpp"
-#include "components/position.hpp"
-#include "components/size.hpp"
-#include "components/sprite.hpp"
-#include "components/z_index.hpp"
+#include "components/rendering.hpp"
+#include "components/resources.hpp"
 
 // helpers
 #include "helpers/renderer_interfaces/render_hexagons.hpp"
@@ -99,18 +93,6 @@ game2d::update_render_system(entt::registry& registry)
       desc.tex_slot = tex_unit_kenny_nl;
       desc.sprite_offset = sprite::spritemap::get_sprite_offset(spr.sprite);
       desc.angle_radians = 0.0f;
-
-      // (optional) hoverable component
-      bool has_hoverable = registry.all_of<Hoverable>(entity);
-      if (has_hoverable) {
-        auto& hoverable = registry.get<Hoverable>(entity);
-        if (hoverable.mouse_is_hovering) {
-          // int y_offset = -3;
-          int y_offset = 0;
-          desc.pos_tl.y += y_offset;
-          desc.colour = hoverable.hover_colour.colour;
-        }
-      }
 
       if (z_index.index == 0)
         index_0_renderables.push_back(desc);

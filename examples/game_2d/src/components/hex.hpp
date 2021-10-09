@@ -1,8 +1,7 @@
 #pragma once
 
 // components
-#include "components/colour.hpp"
-#include "components/position.hpp"
+#include "components/rendering.hpp"
 
 // helpers
 #include "helpers/renderers/batch_triangle.hpp"
@@ -47,11 +46,6 @@ struct HexMesh
   std::array<engine::triangle_renderer::TriangleDescriptor, 6> triangles;
 };
 
-struct HexCell;
-struct HexData
-{
-  std::vector<std::reference_wrapper<HexCell>> neighbours;
-};
 struct HexCell
 {
   HexPos pos;

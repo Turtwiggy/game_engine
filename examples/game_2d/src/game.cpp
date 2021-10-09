@@ -2,20 +2,14 @@
 #include "game.hpp"
 
 // components
-#include "components/colour.hpp"
-#include "components/global_resources.hpp"
-#include "components/hex_cell.hpp"
-#include "components/hoverable.hpp"
+#include "components/hex.hpp"
 #include "components/player.hpp"
-#include "components/position.hpp"
-#include "components/profiler_stats.hpp"
-#include "components/size.hpp"
-#include "components/sprite.hpp"
-#include "components/z_index.hpp"
+#include "components/profiler.hpp"
+#include "components/rendering.hpp"
+#include "components/resources.hpp"
 
 // systems
 #include "systems/hex_grid_system.hpp"
-#include "systems/hover_system.hpp"
 #include "systems/player_system.hpp"
 #include "systems/render_system.hpp"
 #include "systems/ui_system.hpp"
@@ -47,18 +41,17 @@ game2d::init(entt::registry& registry, glm::ivec2 screen_wh)
   res.loaded_texture_ids = engine::load_textures_threaded(textures_to_load);
 
   init_ui_system(registry);
-  init_hex_grid_system(registry, screen_wh);
+  // init_hex_grid_system(registry, screen_wh);
 
   // Add a player
   {
     entt::entity r = registry.create();
-    registry.emplace<Colour>(r, 1.0f, 0.0f, 0.0f, 1.0f);
+    registry.emplace<Colour>(r, 1.0f, 1.0f, 1.0f, 1.0f);
     registry.emplace<PositionInt>(r, 0, 0);
-    registry.emplace<Size>(r, 20.0f, 20.0f);
+    registry.emplace<Size>(r, 16.0f, 16.0f);
     registry.emplace<Sprite>(r, sprite::type::PERSON_1);
     registry.emplace<ZIndex>(r, 1);
     registry.emplace<Player>(r);
-    registry.emplace<HexCoord>(r, 0, 0, 0);
   };
 }
 
@@ -68,18 +61,16 @@ game2d::update(entt::registry& registry, engine::Application& app, float dt)
   ProfilerStats& p = registry.ctx<ProfilerStats>();
 
   // physics
-  // Uint64 start_physics = SDL_GetPerformanceCounter();
-  // {
-  //   //
-  // }
-  // Uint64 end_physics = SDL_GetPerformanceCounter();
-  // p.physics_elapsed_ms = (end_physics - start_physics) / float(SDL_GetPerformanceFrequency()) * 1000.0f;
+  Uint64 start_physics = SDL_GetPerformanceCounter();
+  {
+    //
+  }
+  Uint64 end_physics = SDL_GetPerformanceCounter();
+  p.physics_elapsed_ms = (end_physics - start_physics) / float(SDL_GetPerformanceFrequency()) * 1000.0f;
 
   // input
   Uint64 start_input = SDL_GetPerformanceCounter();
   {
-    update_hover_system(registry, app);
-
 #ifdef _DEBUG
     if (app.get_input().get_key_down(SDL_SCANCODE_ESCAPE)) {
       app.shutdown();
@@ -92,7 +83,7 @@ game2d::update(entt::registry& registry, engine::Application& app, float dt)
   // game tick
   Uint64 start_game_tick = SDL_GetPerformanceCounter();
   {
-    update_hex_grid_system(registry, app, dt);
+    // update_hex_grid_system(registry, app, dt);
     update_player_system(registry, app);
   };
   Uint64 end_game_tick = SDL_GetPerformanceCounter();

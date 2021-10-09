@@ -1,9 +1,6 @@
 // your header
 #include "helpers/hex_grid.hpp"
 
-// components
-#include "components/hex_cell.hpp"
-
 // c++ lib headers
 #include <iostream>
 

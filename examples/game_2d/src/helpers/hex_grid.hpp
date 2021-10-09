@@ -1,7 +1,7 @@
 #pragma once
 
 // your proj headers
-#include "components/hex_cell.hpp"
+#include "components/hex.hpp"
 
 // other proj headers
 #include <glm/glm.hpp>
@@ -24,17 +24,17 @@ enum class HexDirection
   NW
 };
 
-inline std::reference_wrapper<HexCell>
-get_neighbour(HexData& data, const HexDirection& dir)
-{
-  return data.neighbours[static_cast<int>(dir)];
-};
+// inline std::reference_wrapper<HexCell>
+// get_neighbour(HexData& data, const HexDirection& dir)
+// {
+//   return data.neighbours[static_cast<int>(dir)];
+// };
 
-inline void
-set_neighbour(HexData& data, const HexDirection& dir, const std::reference_wrapper<HexCell>& cell;)
-{
-  data.neighbours[static_cast<int>(dir)] = cell;
-  cell.neighbours[static_cast<int>(dir)] = this;
-};
+// inline void
+// set_neighbour(HexData& data, const HexDirection& dir, const std::reference_wrapper<HexCell>& cell;)
+// {
+//   data.neighbours[static_cast<int>(dir)] = cell;
+//   cell.neighbours[static_cast<int>(dir)] = this;
+// };
 
 } // namespace game2d

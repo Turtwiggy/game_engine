@@ -2,13 +2,9 @@
 #include "systems/hex_grid_system.hpp"
 
 // components
-#include "components/colour.hpp"
-#include "components/global_resources.hpp"
-#include "components/hex_cell.hpp"
-#include "components/position.hpp"
-#include "components/size.hpp"
-#include "components/sprite.hpp"
-#include "components/z_index.hpp"
+#include "components/hex.hpp"
+#include "components/rendering.hpp"
+#include "components/resources.hpp"
 
 // helpers
 #include "helpers/hex_grid.hpp"
@@ -16,8 +12,8 @@
 #include "helpers/spritemap.hpp"
 
 // other project headers
-#include "imgui.h"
 #include <glm/glm.hpp>
+#include <imgui.h>
 
 // c++ lib headers
 #include <vector>
@@ -99,11 +95,8 @@ create_hex_cell(entt::registry& registry, const int x, const int y, const int i,
   cell.coord = coord;
   cell.mesh = mesh;
 
-  HexData data;
-
   entt::entity r = registry.create();
   registry.emplace<HexCell>(r, cell);
-  registry.emplace<HexData>(r, data);
 
   // render numbers on top of hexagon
   // render_number(registry, coord.x, pos.x, pos.y - inner_radius / 2);

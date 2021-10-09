@@ -2,7 +2,7 @@
 #include "helpers/renderer_interfaces/render_hexagons.hpp"
 
 // components
-#include "components/hex_cell.hpp"
+#include "components/hex.hpp"
 
 // c++ lib headers
 #include <vector>
