@@ -73,7 +73,6 @@ public:
   // render
   int tex_slot = 0;
   sprite::type sprite = sprite::type::SQUARE;
-  glm::vec2 remainders = { 0.0f, 0.0f }; // move by float, then clamp pos
 
   float angle_radians = 0.0f;
   glm::vec4 colour = { 1.0f, 0.0f, 0.0f, 1.0f };
@@ -143,12 +142,6 @@ gameobject_off_screen(glm::vec2 pos, glm::vec2 size, const glm::ivec2& screen_si
 namespace gameobject {
 
 // logic
-
-void
-update_position_x(GameObject2D& obj, const float delta_time_s); // actors
-
-void
-update_position_y(GameObject2D& obj, const float delta_time_s); // actors
 
 void
 update_entities_lifecycle(std::vector<GameObject2D>& objs, const float delta_time_s);

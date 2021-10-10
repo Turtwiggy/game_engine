@@ -46,58 +46,6 @@ namespace gameobject {
 // logic
 
 void
-update_position_x(GameObject2D& obj, const float delta_time_s)
-{
-  obj.remainders.x += obj.velocity.x * delta_time_s;
-  int move = static_cast<int>(obj.remainders.x);
-  if (move != 0) {
-    obj.remainders.x -= move;
-    const auto Sign = [](int x) { return x == 0 ? 0 : (x > 0 ? 1 : -1); };
-    int sign = Sign(move);
-
-    while (move != 0) {
-      bool collision = false;
-      // if(!collide_at(solids, obj.pos.x + sign))
-      if (!collision) {
-        // there is no solid beside
-        obj.pos.x += sign;
-        move -= sign;
-      } else {
-        // there is a solid beside
-        // collide();
-        break;
-      }
-    }
-  }
-}
-
-void
-update_position_y(GameObject2D& obj, const float delta_time_s)
-{
-  obj.remainders.y += obj.velocity.y * delta_time_s;
-  int move = static_cast<int>(obj.remainders.y);
-  if (move != 0) {
-    obj.remainders.y -= move;
-    const auto Sign = [](int x) { return x == 0 ? 0 : (x > 0 ? 1 : -1); };
-    int sign = Sign(move);
-
-    while (move != 0) {
-      bool collision = false;
-      // if(!collide_at(solids, obj.pos.x + sign))
-      if (!collision) {
-        // there is no solid beside
-        obj.pos.y += sign;
-        move -= sign;
-      } else {
-        // there is a solid beside
-        // collide();
-        break;
-      }
-    }
-  }
-}
-
-void
 update_entities_lifecycle(std::vector<GameObject2D>& objs, const float delta_time_s)
 {
   std::vector<GameObject2D>::iterator it_1 = objs.begin();

@@ -9,18 +9,15 @@
 
 namespace game2d {
 
-std::vector<engine::triangle_renderer::TriangleDescriptor>
+std::vector<engine::triangle_renderer::TriangleDescriptor>&
 RenderHexagons::get_triangles(entt::registry& registry)
 {
   std::vector<engine::triangle_renderer::TriangleDescriptor> tris;
 
   const auto view = registry.view<const HexCell>();
 
-  view.each([&tris](const auto& cell) {
-    for (const auto& triangle : cell.mesh.triangles) {
-      tris.push_back(triangle);
-    }
-  });
+  view.each(
+    [&tris](const auto& cell) { tris.insert(tris.end(), cell.mesh.triangles.begin(), cell.mesh.triangles.end()); });
 
   return tris;
 };

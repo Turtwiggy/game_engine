@@ -10,6 +10,8 @@
 // c++ standard lib headers
 #include <vector>
 
+// TODO: delete class and put in to event key buffer
+
 namespace engine {
 
 class InputManager

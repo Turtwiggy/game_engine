@@ -38,12 +38,14 @@ struct HexPos : public PositionFloat
 
 struct HexCoord
 {
-  int x, y, z = 0;
+  int x = 0;
+  int y = 0;
+  int z = 0;
 };
 
 struct HexMesh
 {
-  std::array<engine::triangle_renderer::TriangleDescriptor, 6> triangles;
+  std::vector<engine::triangle_renderer::TriangleDescriptor> triangles;
 };
 
 struct HexCell

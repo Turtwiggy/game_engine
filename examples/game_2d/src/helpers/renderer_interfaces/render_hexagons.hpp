@@ -13,7 +13,7 @@ namespace game2d {
 
 struct RenderHexagons : public engine::triangle_renderer::ITriangleRenderable
 {
-  std::vector<engine::triangle_renderer::TriangleDescriptor> get_triangles(entt::registry& registry);
+  std::vector<engine::triangle_renderer::TriangleDescriptor>& get_triangles(entt::registry& registry);
 };
 
 } // namespace game2d

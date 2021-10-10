@@ -34,7 +34,10 @@ struct Colour
 
 struct PositionInt
 {
-  int x, y = 0;
+  int x = 0;
+  int y = 0;
+  float dx = 0.0f; // remainders in the x and y dirs
+  float dy = 0.0f;
 
   PositionInt() = default;
   PositionInt(int x, int y)
@@ -44,7 +47,8 @@ struct PositionInt
 
 struct PositionFloat
 {
-  float x, y = 0;
+  float x = 0.0f;
+  float y = 0.0f;
 
   PositionFloat() = default;
   PositionFloat(float x, float y)
@@ -54,7 +58,8 @@ struct PositionFloat
 
 struct Size
 {
-  int w, h;
+  int w = 0;
+  int h = 0;
 
   Size() = default;
   Size(int w, int h)

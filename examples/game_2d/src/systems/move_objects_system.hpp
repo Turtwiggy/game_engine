@@ -9,6 +9,6 @@
 namespace game2d {
 
 void
-update_player_system(entt::registry& registry, engine::Application& app);
+update_move_objects_system(entt::registry& registry, engine::Application& app);
 
 } // namespace game2d

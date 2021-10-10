@@ -3,6 +3,7 @@
 
 // components
 #include "components/hex.hpp"
+#include "components/physics.hpp"
 #include "components/player.hpp"
 #include "components/profiler.hpp"
 #include "components/rendering.hpp"
@@ -10,7 +11,8 @@
 
 // systems
 #include "systems/hex_grid_system.hpp"
-#include "systems/player_system.hpp"
+#include "systems/move_objects_system.hpp"
+#include "systems/player_input_system.hpp"
 #include "systems/render_system.hpp"
 #include "systems/ui_system.hpp"
 
@@ -33,26 +35,27 @@ game2d::init(entt::registry& registry, glm::ivec2 screen_wh)
 {
   init_render_system(registry, screen_wh);
   Resources& res = registry.ctx<Resources>();
+  glm::ivec2 screen_center = { screen_wh.x / 2, screen_wh.y / 2 };
 
   // sprites
-  std::string path_to_kennynl = "assets/2d_game/textures/kennynl_1bit_pack/monochrome_transparent_packed.png";
+  const std::string path_to_kennynl = "assets/2d_game/textures/kennynl_1bit_pack/monochrome_transparent_packed.png";
   std::vector<std::pair<int, std::string>> textures_to_load;
   textures_to_load.emplace_back(tex_unit_kenny_nl, path_to_kennynl);
   res.loaded_texture_ids = engine::load_textures_threaded(textures_to_load);
-
-  init_ui_system(registry);
-  // init_hex_grid_system(registry, screen_wh);
 
   // Add a player
   {
     entt::entity r = registry.create();
     registry.emplace<Colour>(r, 1.0f, 1.0f, 1.0f, 1.0f);
-    registry.emplace<PositionInt>(r, 0, 0);
+    registry.emplace<Player>(r);
+    registry.emplace<PositionInt>(r, screen_center.x, screen_center.y);
     registry.emplace<Size>(r, 16.0f, 16.0f);
     registry.emplace<Sprite>(r, sprite::type::PERSON_1);
+    registry.emplace<Velocity>(r);
     registry.emplace<ZIndex>(r, 1);
-    registry.emplace<Player>(r);
   };
+
+  init_ui_system(registry);
 }
 
 void
@@ -71,6 +74,8 @@ game2d::update(entt::registry& registry, engine::Application& app, float dt)
   // input
   Uint64 start_input = SDL_GetPerformanceCounter();
   {
+    update_player_input_system(registry, app);
+
 #ifdef _DEBUG
     if (app.get_input().get_key_down(SDL_SCANCODE_ESCAPE)) {
       app.shutdown();
@@ -83,8 +88,7 @@ game2d::update(entt::registry& registry, engine::Application& app, float dt)
   // game tick
   Uint64 start_game_tick = SDL_GetPerformanceCounter();
   {
-    // update_hex_grid_system(registry, app, dt);
-    update_player_system(registry, app);
+    update_move_objects_system(registry, app);
   };
   Uint64 end_game_tick = SDL_GetPerformanceCounter();
   p.game_tick_elapsed_ms = (end_game_tick - start_game_tick) / float(SDL_GetPerformanceFrequency()) * 1000.0f;
