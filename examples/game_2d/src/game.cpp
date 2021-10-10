@@ -6,11 +6,11 @@
 #include "components/resources.hpp"
 
 // systems
-#include "systems/hex_grid_system.hpp"
-#include "systems/move_objects_system.hpp"
-#include "systems/player_input_system.hpp"
-#include "systems/render_system.hpp"
-#include "systems/ui_system.hpp"
+#include "systems/hex_grid.hpp"
+#include "systems/move_objects.hpp"
+#include "systems/player_input.hpp"
+#include "systems/render.hpp"
+#include "systems/ui.hpp"
 
 // game2d headers
 #include "factories.hpp"

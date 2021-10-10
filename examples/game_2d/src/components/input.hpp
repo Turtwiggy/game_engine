@@ -2,7 +2,7 @@
 
 namespace game2d {
 
-struct PlayerKeys
+struct GameInput
 {
   bool use_keyboard = true;
 

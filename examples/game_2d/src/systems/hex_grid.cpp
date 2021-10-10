@@ -1,5 +1,5 @@
 // your header
-#include "systems/hex_grid_system.hpp"
+#include "systems/hex_grid.hpp"
 
 // components
 #include "components/hex.hpp"
