@@ -2,11 +2,7 @@
 #include "game.hpp"
 
 // components
-#include "components/hex.hpp"
-#include "components/physics.hpp"
-#include "components/player.hpp"
 #include "components/profiler.hpp"
-#include "components/rendering.hpp"
 #include "components/resources.hpp"
 
 // systems
@@ -15,6 +11,9 @@
 #include "systems/player_input_system.hpp"
 #include "systems/render_system.hpp"
 #include "systems/ui_system.hpp"
+
+// game2d headers
+#include "factories.hpp"
 
 // engine headers
 #include "engine/maths_core.hpp"
@@ -44,19 +43,10 @@ game2d::init(entt::registry& registry, glm::ivec2 screen_wh)
   res.loaded_texture_ids = engine::load_textures_threaded(textures_to_load);
 
   // Add a player
-  {
-    entt::entity r = registry.create();
-    registry.emplace<Colour>(r, 1.0f, 1.0f, 1.0f, 1.0f);
-    registry.emplace<Player>(r);
-    registry.emplace<PositionInt>(r, screen_center.x, screen_center.y);
-    registry.emplace<Size>(r, 16.0f, 16.0f);
-    registry.emplace<Sprite>(r, sprite::type::PERSON_1);
-    registry.emplace<Velocity>(r);
-    registry.emplace<ZIndex>(r, 1);
-  };
+  auto player_0 = create_player(registry, screen_center);
 
   init_ui_system(registry);
-}
+};
 
 void
 game2d::update(entt::registry& registry, engine::Application& app, float dt)
@@ -85,7 +75,7 @@ game2d::update(entt::registry& registry, engine::Application& app, float dt)
   Uint64 end_input = SDL_GetPerformanceCounter();
   p.input_elapsed_ms = (end_input - start_input) / float(SDL_GetPerformanceFrequency()) * 1000.0f;
 
-  // game tick
+  // game logic
   Uint64 start_game_tick = SDL_GetPerformanceCounter();
   {
     update_move_objects_system(registry, app);
@@ -106,8 +96,8 @@ game2d::update(entt::registry& registry, engine::Application& app, float dt)
     update_ui_system(registry, app);
   };
 
-  // end of frame things
+  // end of frame
   {
     end_frame_render_system(registry);
   }
-}
+};
