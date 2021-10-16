@@ -1,7 +1,7 @@
 #pragma once
 
 // your proj headers
-#include "components/hex.hpp"
+#include "components/grid_hex.hpp"
 
 // other proj headers
 #include <glm/glm.hpp>

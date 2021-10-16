@@ -2,7 +2,7 @@
 #include "systems/hex_grid.hpp"
 
 // components
-#include "components/hex.hpp"
+#include "components/grid_hex.hpp"
 #include "components/rendering.hpp"
 #include "components/resources.hpp"
 

@@ -45,7 +45,7 @@ game2d::update_ui_system(entt::registry& registry, engine::Application& app)
     ImGui::Text("Draw Calls TFR %i", engine::triangle_fan_renderer::TriangleFanRenderer::draw_calls());
   }
   ImGui::End();
-}
+};
 
 // static std::function<void()> ui_limit_framerate_callback;
 // static std::function<void()> ui_vsync_toggled_callback;

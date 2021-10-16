@@ -162,12 +162,13 @@ QuadRenderer::flush(Shader& shader)
 {
   shader.bind();
 
-  glBindVertexArray(data.VAO);
-  glDrawElements(GL_TRIANGLES, data.index_count, GL_UNSIGNED_INT, nullptr);
-  // glDrawElementsInstanced(GL_TRIANGLES, data.index_count, GL_UNSIGNED_INT, 0, 1000);
-
-  data.draw_calls += 1;
-  data.index_count = 0;
+  if (data.index_count > 0) {
+    glBindVertexArray(data.VAO);
+    glDrawElements(GL_TRIANGLES, data.index_count, GL_UNSIGNED_INT, nullptr);
+    // glDrawElementsInstanced(GL_TRIANGLES, data.index_count, GL_UNSIGNED_INT, 0, 1000);
+    data.draw_calls += 1;
+    data.index_count = 0;
+  }
 
   // unbind
   glBindBuffer(GL_ARRAY_BUFFER, 0);

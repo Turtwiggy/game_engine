@@ -2,7 +2,7 @@
 #include "helpers/renderer_interfaces/render_hexagons.hpp"
 
 // components
-#include "components/hex.hpp"
+#include "components/grid_hex.hpp"
 
 // c++ lib headers
 #include <vector>

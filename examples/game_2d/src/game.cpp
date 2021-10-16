@@ -2,7 +2,10 @@
 #include "game.hpp"
 
 // components
+#include "components/physics.hpp"
+#include "components/player.hpp"
 #include "components/profiler.hpp"
+#include "components/rendering.hpp"
 #include "components/resources.hpp"
 
 // systems
@@ -43,7 +46,27 @@ game2d::init(entt::registry& registry, glm::ivec2 screen_wh)
   res.loaded_texture_ids = engine::load_textures_threaded(textures_to_load);
 
   // Add a player
-  auto player_0 = create_player(registry, screen_center);
+  {
+    entt::entity r = registry.create();
+    registry.emplace<Player>(r);
+    registry.emplace<Velocity>(r);
+    registry.emplace<Colour>(r, 1.0f, 1.0f, 1.0f, 1.0f);
+    registry.emplace<PositionInt>(r);
+    registry.emplace<Size>(r, 24.0f, 24.0f);
+    registry.emplace<Sprite>(r, sprite::type::PERSON_1);
+    registry.emplace<ZIndex>(r, 0);
+  }
+
+  // Add a cursor
+  {
+    entt::entity r = registry.create();
+    registry.emplace<Colour>(r, 1.0f, 1.0f, 1.0f, 0.5f);
+    registry.emplace<PositionInt>(r);
+    registry.emplace<Size>(r, 24.0f, 24.0f);
+    registry.emplace<Sprite>(r, sprite::type::EMPTY);
+    registry.emplace<ZIndex>(r, 0);
+    registry.emplace<PlayerCursor>(r);
+  }
 
   init_ui_system(registry);
 };

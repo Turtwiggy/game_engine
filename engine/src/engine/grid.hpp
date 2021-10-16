@@ -7,7 +7,7 @@
 #include <iostream>
 #include <vector>
 
-namespace game2d {
+namespace engine {
 
 namespace grid {
 
@@ -67,19 +67,25 @@ get_cell_mirrored_grid(const std::vector<T>& t, int x, int y, int x_max)
 }
 
 [[nodiscard]] inline glm::ivec2
-convert_world_space_to_grid_space(const glm::vec2& world_space, int grid_size)
+world_space_to_clamped_world_space(const glm::vec2& world_space, int grid_size)
 {
   float x = world_space.x;
   float y = world_space.y;
-
   int grid_x = x < 0.0f ? static_cast<int>((x - grid_size) / grid_size) : static_cast<int>(x / grid_size);
   int grid_y = y < 0.0f ? static_cast<int>((y - grid_size) / grid_size) : static_cast<int>(y / grid_size);
-
   return glm::ivec2{ grid_size * grid_x, grid_size * grid_y };
 }
 
+[[nodiscard]] inline glm::ivec2
+world_space_to_grid_space(const glm::vec2& pos, int grid_size)
+{
+  int grid_x = static_cast<int>(pos.x / grid_size);
+  int grid_y = static_cast<int>(pos.y / grid_size);
+  return glm::ivec2{ grid_x, grid_y };
+}
+
 [[nodiscard]] inline glm::vec2
-convert_grid_space_to_worldspace(glm::ivec2 pos, int grid_size)
+grid_space_to_world_space(glm::ivec2 pos, int grid_size)
 {
   return glm::vec2{ pos.x, pos.y } * static_cast<float>(grid_size);
 }
@@ -96,24 +102,24 @@ get_unique_cells(glm::vec2 pos, glm::vec2 size, int grid_size, std::vector<glm::
   glm::vec2 br = { pos.x + size.x, pos.y + size.y };
 
   // always push tl
-  glm::ivec2 gc = grid::convert_world_space_to_grid_space(tl, grid_size);
+  glm::ivec2 gc = grid::world_space_to_grid_space(tl, grid_size);
   results.push_back(gc);
 
-  gc = grid::convert_world_space_to_grid_space(tr, grid_size);
+  gc = grid::world_space_to_grid_space(tr, grid_size);
   auto it = std::find_if(
     results.begin(), results.end(), [&gc](const glm::ivec2& obj) { return obj.x == gc.x && obj.y == gc.y; });
   if (it == results.end()) {
     results.push_back(gc);
   }
 
-  gc = grid::convert_world_space_to_grid_space(bl, grid_size);
+  gc = grid::world_space_to_grid_space(bl, grid_size);
   it = std::find_if(
     results.begin(), results.end(), [&gc](const glm::ivec2& obj) { return obj.x == gc.x && obj.y == gc.y; });
   if (it == results.end()) {
     results.push_back(gc);
   }
 
-  gc = grid::convert_world_space_to_grid_space(br, grid_size);
+  gc = grid::world_space_to_grid_space(br, grid_size);
   it = std::find_if(
     results.begin(), results.end(), [&gc](const glm::ivec2& obj) { return obj.x == gc.x && obj.y == gc.y; });
   if (it == results.end()) {

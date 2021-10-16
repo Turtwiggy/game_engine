@@ -6,7 +6,4 @@
 
 namespace game2d {
 
-entt::entity
-create_player(entt::registry& registry, glm::ivec2 pos);
-
 } // namespace: game2d

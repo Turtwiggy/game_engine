@@ -8,6 +8,7 @@
 // other lib headers
 #include <imgui.h>
 
+// Move an Actor
 void
 game2d::update_move_objects_system(entt::registry& registry, engine::Application& app)
 {
@@ -19,19 +20,19 @@ game2d::update_move_objects_system(entt::registry& registry, engine::Application
 
     pos.dx += vel.x * delta_time;
     int move_x = static_cast<int>(pos.dx);
+
     if (move_x != 0) {
       pos.dx -= move_x;
       int sign = Sign(move_x);
+
       while (move_x != 0) {
-        bool collision = false;
         // if(!collide_at(solids, obj.pos.x + sign))
-        if (!collision) {
+        if (true) {
           // there is no solid beside
           pos.x += sign;
           move_x -= sign;
         } else {
           // there is a solid beside
-          // collide();
           break;
         }
       }
@@ -39,19 +40,19 @@ game2d::update_move_objects_system(entt::registry& registry, engine::Application
 
     pos.dy += vel.y * delta_time;
     int move_y = static_cast<int>(pos.dy);
+
     if (move_y != 0) {
       pos.dy -= move_y;
       int sign = Sign(move_y);
+
       while (move_y != 0) {
-        bool collision = false;
         // if(!collide_at(solids, obj.pos.x + sign))
-        if (!collision) {
+        if (true) {
           // there is no solid beside
           pos.y += sign;
           move_y -= sign;
         } else {
           // there is a solid beside
-          // collide();
           break;
         }
       }

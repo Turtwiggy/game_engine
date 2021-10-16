@@ -8,4 +8,9 @@ struct Player
   int placeholder = 0;
 };
 
+struct PlayerCursor
+{
+  int placeholder = 0;
+};
+
 } // namespace game2d
