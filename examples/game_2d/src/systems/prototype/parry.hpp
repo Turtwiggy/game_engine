@@ -9,6 +9,6 @@
 namespace game2d {
 
 void
-update_move_objects_system(entt::registry& registry, engine::Application& app, float dt);
+update_parry_system(entt::registry& registry, engine::Application& app, float dt);
 
-} // namespace game2d
+}; // namespace game2d

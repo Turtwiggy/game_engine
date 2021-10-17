@@ -20,7 +20,7 @@ struct RenderDescriptor
   glm::ivec2 size = { 100, 100 };
   glm::vec4 colour = { 1.0f, 0.0f, 0.0f, 1.0f };
   float angle_radians = 0.0f;
-  glm::ivec2 sprite_offset = { 0, 0 }; // e.g. { 5, 8 }; for spritesheet
+  glm::ivec2 sprite_offset = { 0, 0 }; // for spritesheet
   int tex_slot = 0;
 };
 
@@ -52,7 +52,7 @@ public:
   static int draw_calls();
 
 private:
-  static constexpr int max_quad = 10000;
+  static constexpr int max_quad = 5000;
   static constexpr int max_quad_vert_count = max_quad * 4;
   static constexpr int max_quad_index_count = max_quad * 6;
 };

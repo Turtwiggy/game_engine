@@ -14,7 +14,7 @@ constexpr int tex_unit_lighting = 2;
 
 namespace game2d {
 
-struct Resources
+struct SINGLETON_Resources
 {
   // fbo
   unsigned int fbo_main_scene;

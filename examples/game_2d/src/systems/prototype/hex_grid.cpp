@@ -1,5 +1,5 @@
 // your header
-#include "systems/hex_grid.hpp"
+#include "systems/prototype/hex_grid.hpp"
 
 // components
 #include "components/grid_hex.hpp"
@@ -53,7 +53,7 @@ render_number(entt::registry& registry, int number, float x, float y)
 void
 create_hex_cell(entt::registry& registry, const int x, const int y, const int i, glm::ivec2 offset)
 {
-  Resources& res = registry.ctx<Resources>();
+  SINGLETON_Resources& res = registry.ctx<SINGLETON_Resources>();
 
   // hex position in worldspace
   HexPos pos;
@@ -155,7 +155,7 @@ game2d::update_hex_grid_system(entt::registry& registry, engine::Application& ap
     // std::cout << "(grid pos) " << ix << " " << iy << " " << iz << std::endl;
 
     // Get the hexmesh, and update it's triangles colours
-    Resources& res = registry.ctx<Resources>();
+    SINGLETON_Resources& res = registry.ctx<SINGLETON_Resources>();
     float rnd = engine::rand_det_s(res.rnd.rng, 0.6f, 0.7f);
     glm::vec4 glm_col = glm::vec4(col[0], col[1], col[2], col[3]);
     glm_col *= rnd;

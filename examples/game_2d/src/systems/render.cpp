@@ -26,7 +26,7 @@ using namespace engine;
 void
 game2d::init_render_system(entt::registry& registry, const glm::ivec2& screen_wh)
 {
-  Resources r;
+  SINGLETON_Resources r;
   r.fbo_main_scene = Framebuffer::create_fbo();
   r.fbo_lighting = Framebuffer::create_fbo();
   r.tex_id_main_scene = create_texture(screen_wh, tex_unit_main_scene, r.fbo_main_scene);
@@ -35,7 +35,7 @@ game2d::init_render_system(entt::registry& registry, const glm::ivec2& screen_wh
   r.fan = Shader("2d_game/shaders/2d_basic_with_proj.vert", "2d_game/shaders/2d_colour.frag");
 
   // https://github.com/skypjack/entt/wiki/Crash-Course:-entity-component-system#context-variables
-  registry.set<Resources>(r);
+  registry.set<SINGLETON_Resources>(r);
 
   // initialize renderers
   RenderCommand::init();
@@ -61,7 +61,7 @@ game2d::init_render_system(entt::registry& registry, const glm::ivec2& screen_wh
 void
 game2d::update_render_system(entt::registry& registry)
 {
-  Resources& r = registry.ctx<Resources>();
+  SINGLETON_Resources& r = registry.ctx<SINGLETON_Resources>();
 
   Framebuffer::default_fbo();
   glm::vec4 background_colour = glm::vec4(57.0f / 255.0f, 62.0f / 255.0f, 70.0f / 255.0f, 1.0f);

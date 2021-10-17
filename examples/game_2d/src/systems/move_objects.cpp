@@ -10,15 +10,13 @@
 
 // Move an Actor
 void
-game2d::update_move_objects_system(entt::registry& registry, engine::Application& app)
+game2d::update_move_objects_system(entt::registry& registry, engine::Application& app, float dt)
 {
-  float delta_time = app.get_delta_time();
-
   const auto view = registry.view<Velocity, PositionInt>();
-  view.each([&registry, &delta_time](const auto& vel, auto& pos) {
+  view.each([&registry, &dt](const auto& vel, auto& pos) {
     const auto Sign = [](int x) { return x == 0 ? 0 : (x > 0 ? 1 : -1); };
 
-    pos.dx += vel.x * delta_time;
+    pos.dx += vel.x * dt;
     int move_x = static_cast<int>(pos.dx);
 
     if (move_x != 0) {
@@ -38,7 +36,7 @@ game2d::update_move_objects_system(entt::registry& registry, engine::Application
       }
     }
 
-    pos.dy += vel.y * delta_time;
+    pos.dy += vel.y * dt;
     int move_y = static_cast<int>(pos.dy);
 
     if (move_y != 0) {
