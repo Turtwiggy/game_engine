@@ -6,9 +6,6 @@
 #include "components/player.hpp"
 #include "components/rendering.hpp"
 
-// other game2d headers
-#include "factories.hpp"
-
 // other engine headers
 #include "engine/grid.hpp"
 
@@ -47,13 +44,15 @@ game2d::update_player_input_system(entt::registry& registry, engine::Application
         vx = -1;
       else if (app.get_input().get_key_down(SDL_SCANCODE_D))
         vx = 1;
+
+      // TODO: do not set position directly
       pos.x += vx * grid_size;
       pos.y += vy * grid_size;
       ImGui::Text("player %i %i", pos.x, pos.y);
       glm::ivec2 grid_slot = engine::grid::world_space_to_grid_space({ pos.x, pos.y }, grid_size);
       ImGui::Text("player grid %i %i", grid_slot.x, grid_slot.y);
 
-      // Action: spawn object with LMB
+      // // Action: spawn object with LMB
       // if (app.get_input().get_mouse_lmb_down()) {
       //   glm::vec2 world_pos = adjusted_mouse_pos - glm::vec2(pos.x, pos.y);
       //   glm::ivec2 world_pos_clamped = engine::grid::world_space_to_clamped_world_space(world_pos, grid_size);
@@ -68,7 +67,7 @@ game2d::update_player_input_system(entt::registry& registry, engine::Application
       //     registry.emplace<Colour>(r, 1.0f, 1.0f, 1.0f, 1.0f);
       //     registry.emplace<PositionInt>(r, pos.x, pos.y);
       //     registry.emplace<Size>(r, grid_size, grid_size);
-      //     registry.emplace<Sprite>(r, sprite::type::SQUARE);
+      //     registry.emplace<Sprite>(r, sprite::type::EMPTY);
       //     registry.emplace<ZIndex>(r, 0);
       //   }
       // }

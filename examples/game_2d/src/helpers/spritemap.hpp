@@ -51,7 +51,7 @@ enum class type
   WALL_BIG,
 
   // row 5
-  SQUARE,
+  // SQUARE, // use: EMPTY
   WEAPON_ARROW_1,
   WEAPON_ARROW_2,
   WEAPON_SHOVEL,
@@ -146,7 +146,7 @@ struct spritemap
     ret[type::WALL_BIG] = { 2, 3 };
 
     // row 5
-    ret[type::SQUARE] = { 8, 5 };
+    // ret[type::SQUARE] = { 8, 5 }; // use EMPTY
     ret[type::WEAPON_ARROW_1] = { 40, 5 };
     ret[type::WEAPON_ARROW_2] = { 41, 5 };
     ret[type::WEAPON_SHOVEL] = { 42, 5 };
@@ -209,7 +209,7 @@ struct spritemap
     static std::map<type, float> ret;
 
     // row 5
-    ret[type::SQUARE] = { 0.0f };
+    // ret[type::SQUARE] = { 0.0f };
     ret[type::WEAPON_ARROW_1] = { -engine::PI / 4.0f };
     ret[type::WEAPON_ARROW_2] = { -engine::PI / 4.0f };
     ret[type::WEAPON_SHOVEL] = { engine::PI / 4.0f };

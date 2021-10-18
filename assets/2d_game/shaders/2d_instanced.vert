@@ -13,9 +13,6 @@ out vec2 v_sprite_pos;
 out float v_tex_index;
 
 uniform mat4 projection;
-uniform bool shake;
-uniform float time;
-const float strength = 0.005;
 
 void
 main()
@@ -27,9 +24,4 @@ main()
   v_tex_index = tex_index;
 
   gl_Position = projection * model * vec4(vertex.xy, 0.0, 1.0);
-
-  if (shake) {
-    gl_Position.x += cos(time * 10) * strength;
-    gl_Position.y += cos(time * 15) * strength;
-  }
 }

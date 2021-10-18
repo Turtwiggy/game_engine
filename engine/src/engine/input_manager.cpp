@@ -92,9 +92,9 @@ InputManager::get_key_up(SDL_Scancode button)
 bool
 InputManager::get_key_held(SDL_Scancode button) const
 {
-  if (ImGui::GetIO().WantCaptureKeyboard || ImGui::GetIO().WantCaptureMouse) {
-    return false; // Imgui stole the event
-  }
+  // if (ImGui::GetIO().WantCaptureKeyboard || ImGui::GetIO().WantCaptureMouse) {
+  //   return false; // Imgui stole the event
+  // }
   return state[button];
 }
 

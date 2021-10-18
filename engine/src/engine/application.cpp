@@ -117,10 +117,10 @@ Application::frame_begin()
       }
     }
 
-    if (ImGui::GetIO().WantCaptureMouse || ImGui::GetIO().WantCaptureKeyboard) {
-      imgui_manager.process_event(&e);
-      continue; // Imgui stole the event
-    }
+    // if (ImGui::GetIO().WantCaptureMouse || ImGui::GetIO().WantCaptureKeyboard) {
+    //   imgui_manager.process_event(&e);
+    //   continue; // Imgui stole the event
+    // }
 
     // mouse specific
     if (e.type == SDL_MOUSEBUTTONDOWN) {

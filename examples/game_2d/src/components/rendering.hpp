@@ -69,7 +69,7 @@ struct Size
 
 struct Sprite
 {
-  sprite::type sprite = sprite::type::SQUARE;
+  sprite::type sprite = sprite::type::EMPTY;
 
   Sprite() = default;
   Sprite(sprite::type sprite)

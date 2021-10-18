@@ -13,12 +13,10 @@
 // systems
 #include "systems/move_objects.hpp"
 #include "systems/player_input.hpp"
+#include "systems/prototype/clamp_to_screen.hpp"
 #include "systems/prototype/parry.hpp"
 #include "systems/render.hpp"
-#include "systems/ui.hpp"
-
-// game2d headers
-#include "factories.hpp"
+#include "systems/ui_profiler.hpp"
 
 // engine headers
 #include "engine/maths_core.hpp"
@@ -87,7 +85,7 @@ game2d::init(entt::registry& registry, glm::ivec2 screen_wh)
     registry.emplace<Bouncy>(r);
   }
 
-  init_ui_system(registry);
+  init_ui_profiler_system(registry);
 };
 
 void
@@ -121,6 +119,7 @@ game2d::update(entt::registry& registry, engine::Application& app, float dt)
   Uint64 start_game_tick = SDL_GetPerformanceCounter();
   {
     update_move_objects_system(registry, app, dt);
+    update_clamp_to_screen_system(registry, app, dt);
     update_parry_system(registry, app, dt);
   };
   Uint64 end_game_tick = SDL_GetPerformanceCounter();
@@ -136,7 +135,7 @@ game2d::update(entt::registry& registry, engine::Application& app, float dt)
 
   // ui
   {
-    update_ui_system(registry, app);
+    update_ui_profiler_system(registry, app);
   };
 
   // end of frame
