@@ -1,9 +1,6 @@
 {
-    "cmake.preferredGenerators": [
-        "Ninja"
-    ],
-    "editor.formatOnSave": true,
-    "C_Cpp.errorSquiggles": "Disabled",
-    "cmake.buildArgs": [],
-    // "editor.wordWrap": "on"
+  "cmake.preferredGenerators": ["Ninja"],
+  "editor.formatOnSave": true,
+  "C_Cpp.errorSquiggles": "Disabled",
+  "cmake.buildArgs": []
 }

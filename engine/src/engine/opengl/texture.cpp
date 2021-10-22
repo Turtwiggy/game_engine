@@ -109,7 +109,7 @@ create_texture(glm::ivec2 size, int tex_slot, unsigned int framebuffer_id)
   RenderCommand::set_depth_testing(false);
   unsigned int tex_id;
   glGenTextures(1, &tex_id);
-  std::cout << "creating texture, and binding to slot: " << tex_slot << std::endl;
+  std::cout << "creating texture (" << tex_id << "), and binding to slot: " << tex_slot << std::endl;
   glActiveTexture(GL_TEXTURE0 + tex_slot); // activate the texture unit first before binding texture
   glBindTexture(GL_TEXTURE_2D, tex_id);
   glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, size.x, size.y, 0, GL_RGB, GL_UNSIGNED_BYTE, NULL);
@@ -131,9 +131,12 @@ create_texture(glm::ivec2 size, int tex_slot, unsigned int framebuffer_id)
 };
 
 void
-update_texture_size(glm::ivec2 size, int tex_id)
+update_bound_texture_size(glm::ivec2 size)
 {
-  glBindTexture(GL_TEXTURE_2D, tex_id);
+  if (size.x <= 0 || size.y <= 0) {
+    std::cerr << "(update_bound_texture_size) ERROR: Invalid resize for texture" << std::endl;
+    return;
+  }
   glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, size.x, size.y, 0, GL_RGB, GL_UNSIGNED_BYTE, NULL);
 };
 

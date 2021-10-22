@@ -44,6 +44,6 @@ unsigned int
 create_texture(glm::ivec2 size, int tex_slot, unsigned int framebuffer_id);
 
 void
-update_texture_size(glm::ivec2 size, int tex_id);
+update_bound_texture_size(glm::ivec2 size);
 
 } // namespace engine

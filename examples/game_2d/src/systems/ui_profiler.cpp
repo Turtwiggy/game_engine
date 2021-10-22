@@ -24,7 +24,7 @@ game2d::init_ui_profiler_system(entt::registry& registry)
 void
 game2d::update_ui_profiler_system(entt::registry& registry, engine::Application& app)
 {
-  // bool show_imgui_demo_window = false;
+  // bool show_imgui_demo_window = true;
   // ImGui::ShowDemoWindow(&show_imgui_demo_window);
 
   ProfilerStats& p = registry.ctx<ProfilerStats>();

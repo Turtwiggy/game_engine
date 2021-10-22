@@ -1,19 +1,3 @@
-// void
-// toggle_fullscreen(Application& app,
-//                   glm::ivec2& screen_wh,
-//                   glm::mat4& projection,
-//                   unsigned int tex_id_lighting,
-//                   unsigned int tex_id_main_scene)
-// {
-//   app.get_window().toggle_fullscreen(); // SDL2 window toggle
-//   screen_wh = app.get_window().get_size();
-//   RenderCommand::set_viewport(0, 0, screen_wh.x, screen_wh.y);
-//   projection = glm::ortho(0.0f, static_cast<float>(screen_wh.x), static_cast<float>(screen_wh.y), 0.0f, -1.0f, 1.0f);
-
-//   update_texture_size(screen_wh, tex_id_lighting);
-//   update_texture_size(screen_wh, tex_id_main_scene);
-// }
-
 //
 // lighting fbo
 //
