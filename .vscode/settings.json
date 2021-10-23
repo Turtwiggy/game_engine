@@ -2,5 +2,12 @@
   "cmake.preferredGenerators": ["Ninja"],
   "editor.formatOnSave": true,
   "C_Cpp.errorSquiggles": "Disabled",
-  "cmake.buildArgs": []
+  "cmake.buildArgs": [],
+  "search.exclude": {
+    "**/node_modules": true,
+    "**/bower_components": true,
+    "**/*.code-search": true,
+    "**/.git": true,
+    "**/thirdparty": true
+  }
 }

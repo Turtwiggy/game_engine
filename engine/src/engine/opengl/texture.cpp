@@ -83,10 +83,6 @@ bind_stb_loaded_texture(StbLoadedTexture& texture)
   return textureID;
 }
 
-//
-// Util Functions
-//
-
 void
 bind_tex(const int id, const int unit)
 {

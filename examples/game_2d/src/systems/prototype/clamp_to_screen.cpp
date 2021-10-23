@@ -19,7 +19,7 @@ game2d::update_clamp_to_screen_system(entt::registry& registry, engine::Applicat
   // ImGui::Begin("Parry", NULL, ImGuiWindowFlags_NoFocusOnAppearing);
   // ImGui::End();
 
-  auto view = registry.view<Velocity, const PositionInt, const ClampToScreen>();
+  auto& view = registry.view<Velocity, const PositionInt, const ClampToScreen>();
   view.each([](auto& vel, const auto& pos, const auto& cts) {
     // TODO: need to be able to get screen size.
   });

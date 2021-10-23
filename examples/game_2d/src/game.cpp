@@ -36,19 +36,14 @@ void
 game2d::init(entt::registry& registry, glm::ivec2 screen_wh)
 {
   init_render_system(registry, screen_wh);
+
+  registry.set<SINGLETON_ResourceComponent>(SINGLETON_ResourceComponent());
   registry.set<SINGLETON_GridSize>(SINGLETON_GridSize());
 
   // access singleton data
-  SINGLETON_Resources& res = registry.ctx<SINGLETON_Resources>();
+  SINGLETON_ResourceComponent& res = registry.ctx<SINGLETON_ResourceComponent>();
   SINGLETON_GridSize& gs = registry.ctx<SINGLETON_GridSize>();
   const int GRID_SIZE = gs.size_xy;
-  const glm::ivec2 screen_center = { screen_wh.x / 2, screen_wh.y / 2 };
-
-  // sprites
-  const std::string path_to_kennynl = "assets/2d_game/textures/kennynl_1bit_pack/monochrome_transparent_packed.png";
-  std::vector<std::pair<int, std::string>> textures_to_load;
-  textures_to_load.emplace_back(tex_unit_kenny_nl, path_to_kennynl);
-  res.loaded_texture_ids = engine::load_textures_threaded(textures_to_load);
 
   // Add a player
   {

@@ -27,7 +27,7 @@ game2d::update_parry_system(entt::registry& registry, engine::Application& app, 
     player_view.each([&registry, &app](const auto& player, const auto& p_pos) {
       //
       // For each bouncy object...
-      auto view = registry.view<Velocity, Colour, const PositionInt, const Bouncy>();
+      auto& view = registry.view<Velocity, Colour, const PositionInt, const Bouncy>();
       view.each([&app, &p_pos](auto& vel, auto& colour, const auto& b_pos, const auto& bouncy) {
         int xdist = glm::abs(b_pos.x - p_pos.x);
         int ydist = glm::abs(b_pos.y - p_pos.y);

@@ -14,10 +14,9 @@ RenderHexagons::get_triangles(entt::registry& registry)
 {
   std::vector<engine::triangle_renderer::TriangleDescriptor> tris;
 
-  const auto view = registry.view<const HexCell>();
+  const auto& view = registry.view<const HexCell>();
 
-  view.each(
-    [&tris](const auto& cell) { tris.insert(tris.end(), cell.mesh.triangles.begin(), cell.mesh.triangles.end()); });
+  view.each([&tris](const auto& cell) { tris.insert(tris.end(), cell.mesh.triangles.begin(), cell.mesh.triangles.end()); });
 
   return tris;
 };

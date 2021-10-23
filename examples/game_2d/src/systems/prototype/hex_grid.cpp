@@ -53,7 +53,7 @@ render_number(entt::registry& registry, int number, float x, float y)
 void
 create_hex_cell(entt::registry& registry, const int x, const int y, const int i, glm::ivec2 offset)
 {
-  SINGLETON_Resources& res = registry.ctx<SINGLETON_Resources>();
+  SINGLETON_ResourceComponent& res = registry.ctx<SINGLETON_ResourceComponent>();
 
   // hex position in worldspace
   HexPos pos;
@@ -111,12 +111,12 @@ game2d::init_hex_grid_system(entt::registry& registry, const glm::ivec2& screen_
 {
   // destroys all hexagons
   {
-    auto view = registry.view<HexCell>();
+    auto& view = registry.view<HexCell>();
     registry.destroy(view.begin(), view.end());
   }
   // destroys all text
   {
-    auto view = registry.view<HexText>();
+    auto& view = registry.view<HexText>();
     registry.destroy(view.begin(), view.end());
   }
 
@@ -155,13 +155,13 @@ game2d::update_hex_grid_system(entt::registry& registry, engine::Application& ap
     // std::cout << "(grid pos) " << ix << " " << iy << " " << iz << std::endl;
 
     // Get the hexmesh, and update it's triangles colours
-    SINGLETON_Resources& res = registry.ctx<SINGLETON_Resources>();
+    SINGLETON_ResourceComponent& res = registry.ctx<SINGLETON_ResourceComponent>();
     float rnd = engine::rand_det_s(res.rnd.rng, 0.6f, 0.7f);
     glm::vec4 glm_col = glm::vec4(col[0], col[1], col[2], col[3]);
     glm_col *= rnd;
     glm_col.a = 1.0f;
 
-    const auto view = registry.view<HexCell>();
+    const auto& view = registry.view<HexCell>();
     view.each([&registry, &hex_pos, &glm_col](auto& cell) {
       if (cell.coord.x == hex_pos.x && cell.coord.y == hex_pos.y && cell.coord.z == hex_pos.z) {
         // Change triangle colour

@@ -33,7 +33,6 @@ load_texture(const int textureUnit, const std::string& path);
 [[nodiscard]] unsigned int
 bind_stb_loaded_texture(StbLoadedTexture& texture);
 
-// Texture util functions
 void
 bind_tex(const int id, const int unit = -1);
 
