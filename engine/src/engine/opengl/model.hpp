@@ -9,7 +9,7 @@
 #include "assimp/postprocess.h"
 #include "assimp/scene.h"
 
-#ifndef STB_IMAGE_IMPLEMENTATION
+#if !defined(STB_IMAGE_IMPLEMENTATION)
 #define STB_IMAGE_IMPLEMENTATION
 #endif
 

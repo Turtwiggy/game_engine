@@ -12,13 +12,10 @@
 
 // other lib headers
 #include <glm/glm.hpp>
-#include <imgui.h>
 
 void
 game2d::update_parry_system(entt::registry& registry, engine::Application& app, float dt)
 {
-  ImGui::Begin("Parry", NULL, ImGuiWindowFlags_NoFocusOnAppearing);
-
   // Player-Bouncy interaction
   {
     //
@@ -31,13 +28,10 @@ game2d::update_parry_system(entt::registry& registry, engine::Application& app, 
       view.each([&app, &p_pos](auto& vel, auto& colour, const auto& b_pos, const auto& bouncy) {
         int xdist = glm::abs(b_pos.x - p_pos.x);
         int ydist = glm::abs(b_pos.y - p_pos.y);
-        ImGui::Text("ball x %i y %i ", xdist, ydist);
-        ImGui::Text("ball vel x %f y %f", vel.x, vel.y);
 
         // check ball is approaching player
         bool approaching_x = (b_pos.x > p_pos.x && vel.x <= 0) || (b_pos.x < p_pos.x && vel.x > 0);
         bool approaching_y = (b_pos.y < p_pos.y && vel.y > 0) || (b_pos.y > p_pos.y && vel.y <= 0);
-        ImGui::Text("Approaching x %i y %i", approaching_x, approaching_y);
 
         // check distance
         int parry_distance = 75;
@@ -67,6 +61,4 @@ game2d::update_parry_system(entt::registry& registry, engine::Application& app, 
       });
     });
   }
-
-  ImGui::End();
 }
