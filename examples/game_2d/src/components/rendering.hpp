@@ -111,6 +111,7 @@ struct SINGLETON_RendererInfo
   std::vector<unsigned int> loaded_texture_ids;
   // viewport
   glm::vec2 viewport_size = { 0, 0 };
+  glm::vec2 viewport_pos = { 0, 0 };
 };
 
 } // namespace game2d

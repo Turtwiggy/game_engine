@@ -16,7 +16,15 @@
 void
 game2d::update_player_input_system(entt::registry& registry, engine::Application& app)
 {
-  glm::ivec2 mouse_pos = app.get_input().get_mouse_pos();
+  const auto& ri = registry.ctx<SINGLETON_RendererInfo>();
+
+  glm::ivec2 imgui_mouse_pos = app.get_input().get_mouse_pos();
+  glm::vec2 imgui_viewport_tl = ri.viewport_pos;
+
+  // this is what sdl2 returns from mouse_pos, if we wern't using moving viewport
+  // glm::ivec2 window_tl = app.get_window().get_position();
+  // glm::ivec2 mouse_pos = im_mouse_pos - window_tl;
+  glm::ivec2 mouse_pos = imgui_mouse_pos - glm::ivec2(imgui_viewport_tl.x, imgui_viewport_tl.y);
 
   // adjust pos to keep square visible while mouse is in 4 corners
   const int grid_size = 16;
@@ -24,19 +32,9 @@ game2d::update_player_input_system(entt::registry& registry, engine::Application
   grid_adjusted_mouse_pos.x += grid_size / 2.0f;
   grid_adjusted_mouse_pos.y += grid_size / 2.0f;
 
-  glm::vec2 viewport_adjusted_mouse_pos = grid_adjusted_mouse_pos;
-
-  // ImVec2 vMin = ImGui::GetWindowContentRegionMin();
-  // ImVec2 vMax = ImGui::GetWindowContentRegionMax();
-  // vMin.x += ImGui::GetWindowPos().x;
-  // vMin.y += ImGui::GetWindowPos().y;
-  // vMax.x += ImGui::GetWindowPos().x;
-  // vMax.y += ImGui::GetWindowPos().y;
-
   ImGui::Begin("Mouse", NULL, ImGuiWindowFlags_NoFocusOnAppearing);
-  ImGui::Text("%i %i", mouse_pos.x, mouse_pos.y);
+  ImGui::Text("mouse %f %f", mouse_pos.x, mouse_pos.y);
   ImGui::Text("grid adj %f %f", grid_adjusted_mouse_pos.x, grid_adjusted_mouse_pos.y);
-  ImGui::Text("viewport adj %f %f", viewport_adjusted_mouse_pos.x, viewport_adjusted_mouse_pos.y);
 
   {
     auto& view = registry.view<Player, PositionInt>();
@@ -75,8 +73,8 @@ game2d::update_player_input_system(entt::registry& registry, engine::Application
   // Update cursor
   {
     auto& view = registry.view<PlayerCursor, PositionInt>();
-    view.each([&viewport_adjusted_mouse_pos, &grid_size](const auto entity, const auto& c, auto& pos) {
-      glm::ivec2 grid_slot = engine::grid::world_space_to_grid_space(viewport_adjusted_mouse_pos, grid_size);
+    view.each([&grid_adjusted_mouse_pos, &grid_size](const auto entity, const auto& c, auto& pos) {
+      glm::ivec2 grid_slot = engine::grid::world_space_to_grid_space(grid_adjusted_mouse_pos, grid_size);
       ImGui::Text("mouse grid %i %i", grid_slot.x, grid_slot.y);
 
       glm::ivec2 world_space = grid_slot * grid_size;

@@ -36,7 +36,7 @@ calculate_projection(int x, int y)
   return glm::ortho(0.0f, static_cast<float>(x), static_cast<float>(y), 0.0f, -1.0f, 1.0f);
 };
 
-}
+} // namespace game2d
 
 void
 game2d::init_render_system(entt::registry& registry, const glm::ivec2& screen_wh)
@@ -173,7 +173,7 @@ game2d::update_render_system(entt::registry& registry)
   ImGui::PushStyleVar(ImGuiStyleVar_WindowPadding, ImVec2(0.0f, 0.0f));
 
   ImGuiWindowFlags viewport_flags = ImGuiWindowFlags_NoFocusOnAppearing;
-  // viewport_flags |= ImGuiDockNodeFlags_AutoHideTabBar;
+  viewport_flags |= ImGuiWindowFlags_NoTitleBar;
   ImGui::Begin("Viewport", NULL, viewport_flags);
   {
     ImVec2 viewport_size = ImGui::GetContentRegionAvail();
@@ -182,6 +182,13 @@ game2d::update_render_system(entt::registry& registry)
       ri.viewport_size = { viewport_size.x, viewport_size.y };
       update_textures = true;
     }
+
+    // If the viewport moves - input will be a frame behind.
+    // This would mainly affect an editor (unlikely to impact a game?)
+    // As a game's viewport likely wont move that much
+    // (or if a user is updating the viewport, they likely dont need that one frame?)
+    ri.viewport_pos = *((glm::vec2*)&ImGui::GetWindowPos());
+
     ImGui::Image((ImTextureID)tex_unit_main_scene, viewport_size, ImVec2(0, 1), ImVec2(1, 0));
 
     if (update_textures) {

@@ -41,8 +41,8 @@ game2d::init(entt::registry& registry, glm::ivec2 screen_wh)
   registry.set<SINGLETON_GridSize>(SINGLETON_GridSize());
 
   // access singleton data
-  SINGLETON_ResourceComponent& res = registry.ctx<SINGLETON_ResourceComponent>();
-  SINGLETON_GridSize& gs = registry.ctx<SINGLETON_GridSize>();
+  const auto& res = registry.ctx<SINGLETON_ResourceComponent>();
+  const auto& gs = registry.ctx<SINGLETON_GridSize>();
   const int GRID_SIZE = gs.size_xy;
 
   // Add a player

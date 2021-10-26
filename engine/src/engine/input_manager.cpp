@@ -156,14 +156,15 @@ InputManager::get_mouse_mmb_down() const
   return mouse_mmb_down;
 }
 
+// Returns mouse pos relative to tl of screen
 glm::ivec2
 InputManager::get_mouse_pos() const
 {
-  int x, y = 0;
-  SDL_GetMouseState(&x, &y);
-  return glm::ivec2(x, y);
-  // const auto& pos = ImGui::GetIO().MousePos;
-  // return glm::ivec2(pos.x, pos.y);
+  // int x, y = 0;
+  // SDL_GetMouseState(&x, &y);
+  // return glm::ivec2(x, y);
+  const auto& pos = ImGui::GetIO().MousePos;
+  return glm::ivec2(pos.x, pos.y);
 }
 
 void
