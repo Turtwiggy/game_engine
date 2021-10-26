@@ -1,5 +1,3 @@
-#pragma once
-
 // header
 #include "engine/opengl/shader.hpp"
 

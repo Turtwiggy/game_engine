@@ -48,7 +48,7 @@ random_in_hemisphere(RandomState& rnd, glm::vec3& normal);
 [[nodiscard]] uint64_t
 encode_cantor_pairing_function(int x, int y);
 
-[[nodiscard]] void
+void
 decode_cantor_pairing_function(uint64_t p, uint32_t& x, uint32_t& y);
 
 // scale x from [min,max] to [a,b]

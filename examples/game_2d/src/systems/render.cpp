@@ -76,7 +76,7 @@ game2d::init_render_system(entt::registry& registry, const glm::ivec2& screen_wh
 };
 
 void
-game2d::update_render_system(entt::registry& registry)
+game2d::update_render_system(entt::registry& registry, engine::Application& app)
 {
   SINGLETON_ResourceComponent& r = registry.ctx<SINGLETON_ResourceComponent>();
   SINGLETON_RendererInfo& ri = registry.ctx<SINGLETON_RendererInfo>();
@@ -99,7 +99,7 @@ game2d::update_render_system(entt::registry& registry)
     quad_renderer::QuadRenderer::begin_batch();
 
     quad_renderer::RenderDescriptor desc;
-    auto& view = registry.view<const PositionInt, const Size, const Colour, const Sprite, const ZIndex>();
+    const auto& view = registry.view<const PositionInt, const Size, const Colour, const Sprite, const ZIndex>();
     view.each([&registry, &ri, &desc](const auto entity, const auto& p, const auto& s, const auto& c, const auto& spr, const auto& z) {
       desc.pos_tl = { p.x - int(s.w / 2.0f), p.y - int(s.h / 2.0f) };
       desc.colour = c.colour;
@@ -159,22 +159,23 @@ game2d::update_render_system(entt::registry& registry)
     ImGui::DockSpace(dockspace_id, ImVec2(0.0f, 0.0f), dockspace_flags);
   }
 
-  if (ImGui::BeginMenuBar()) {
-    if (ImGui::BeginMenu("Options")) {
-      // Disabling fullscreen would allow the window to be moved to the front of other windows,
-      // which we can't undo at the moment without finer window depth/z control.
-      ImGui::MenuItem("Fullscreen", NULL, &opt_fullscreen);
-      ImGui::Separator();
-      ImGui::EndMenu();
-    }
-    ImGui::EndMenuBar();
-  }
-
-  ImGui::PushStyleVar(ImGuiStyleVar_WindowPadding, ImVec2(0.0f, 0.0f));
+  // if (ImGui::BeginMenuBar()) {
+  //   if (ImGui::BeginMenu("Options")) {
+  //     // Disabling fullscreen would allow the window to be moved to the front of other windows,
+  //     // which we can't undo at the moment without finer window depth/z control.
+  //     // ImGui::MenuItem("Fullscreen", NULL, &opt_fullscreen);
+  //     ImGui::Separator();
+  //     ImGui::EndMenu();
+  //   }
+  //   ImGui::EndMenuBar();
+  // }
 
   ImGuiWindowFlags viewport_flags = ImGuiWindowFlags_NoFocusOnAppearing;
   viewport_flags |= ImGuiWindowFlags_NoTitleBar;
+
+  ImGui::PushStyleVar(ImGuiStyleVar_WindowPadding, ImVec2(0.0f, 0.0f));
   ImGui::Begin("Viewport", NULL, viewport_flags);
+  ImGui::PopStyleVar();
   {
     ImVec2 viewport_size = ImGui::GetContentRegionAvail();
     bool update_textures = false;
@@ -184,10 +185,11 @@ game2d::update_render_system(entt::registry& registry)
     }
 
     // If the viewport moves - input will be a frame behind.
-    // This would mainly affect an editor (unlikely to impact a game?)
-    // As a game's viewport likely wont move that much
-    // (or if a user is updating the viewport, they likely dont need that one frame?)
-    ri.viewport_pos = *((glm::vec2*)&ImGui::GetWindowPos());
+    // This would mainly affect an editor
+    // As a game's viewport probably(?) wouldn't move that much
+    // (or if a user is moving the viewport, they likely dont need that one frame?)
+    const auto& wpos = ImGui::GetWindowPos();
+    ri.viewport_pos = { wpos.x, wpos.y };
 
     ImGui::Image((ImTextureID)tex_unit_main_scene, viewport_size, ImVec2(0, 1), ImVec2(1, 0));
 
@@ -201,7 +203,6 @@ game2d::update_render_system(entt::registry& registry)
     }
   }
   ImGui::End();
-  ImGui::PopStyleVar();
 
   ImGui::End();
 };

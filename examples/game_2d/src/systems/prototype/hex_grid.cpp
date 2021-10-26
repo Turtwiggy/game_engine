@@ -111,12 +111,12 @@ game2d::init_hex_grid_system(entt::registry& registry, const glm::ivec2& screen_
 {
   // destroys all hexagons
   {
-    auto& view = registry.view<HexCell>();
+    const auto& view = registry.view<HexCell>();
     registry.destroy(view.begin(), view.end());
   }
   // destroys all text
   {
-    auto& view = registry.view<HexText>();
+    const auto& view = registry.view<HexText>();
     registry.destroy(view.begin(), view.end());
   }
 

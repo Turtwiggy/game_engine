@@ -41,7 +41,7 @@ struct Vertex
 // interface for overriding how get triangle descriptors
 struct ITriangleRenderable
 {
-  virtual std::vector<TriangleDescriptor>& get_triangles(entt::registry& registry) = 0;
+  virtual std::vector<TriangleDescriptor> get_triangles(entt::registry& registry) = 0;
 };
 
 class TriangleRenderer

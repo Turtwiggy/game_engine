@@ -9,6 +9,10 @@
 
 // other lib headers
 #include <GL/glew.h>
+
+#ifndef STB_IMAGE_IMPLEMENTATION
+#define STB_IMAGE_IMPLEMENTATION
+#endif
 #include <stb_image.h>
 
 // c++ standard library headers

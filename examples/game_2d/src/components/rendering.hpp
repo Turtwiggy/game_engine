@@ -110,6 +110,7 @@ struct SINGLETON_RendererInfo
   unsigned int tex_id_lighting = 0;
   std::vector<unsigned int> loaded_texture_ids;
   // viewport
+  // note: values are updated in render
   glm::vec2 viewport_size = { 0, 0 };
   glm::vec2 viewport_pos = { 0, 0 };
 };

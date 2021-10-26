@@ -16,11 +16,19 @@
 void
 game2d::update_clamp_to_screen_system(entt::registry& registry, engine::Application& app, float dt)
 {
-  // ImGui::Begin("Parry", NULL, ImGuiWindowFlags_NoFocusOnAppearing);
-  // ImGui::End();
+  const auto& ri = registry.ctx<SINGLETON_RendererInfo>();
 
-  auto& view = registry.view<Velocity, const PositionInt, const ClampToScreen>();
-  view.each([](auto& vel, const auto& pos, const auto& cts) {
-    // TODO: need to be able to get screen size.
+  glm::ivec2 boundary = ri.viewport_size;
+
+  const auto& view = registry.view<Velocity, const PositionInt, const Size, const ClampToScreen>();
+  view.each([&boundary](auto& vel, const auto& pos, const auto& size, const auto& cts) {
+    if (pos.x - (size.w / 2.0f) <= 0.0f)
+      vel.x = abs(vel.x);
+    if (pos.x + (size.w / 2.0f) >= boundary.x)
+      vel.x = -abs(vel.x);
+    if (pos.y - (size.h / 2.0f) <= 0.0f)
+      vel.y = abs(vel.y);
+    if (pos.y + (size.h / 2.0f) >= boundary.y)
+      vel.y = -abs(vel.y);
   });
 }

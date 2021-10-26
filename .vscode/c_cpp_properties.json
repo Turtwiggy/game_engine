@@ -21,7 +21,7 @@
       }
     },
     {
-      "name": "Windows",
+      "name": "Windows MSVC",
       "includePath": [
         "${workspaceFolder}/engine/src",
         "${workspaceFolder}/thirdparty/imgui",

@@ -2,6 +2,7 @@
 #include "game.hpp"
 
 // components
+#include "components/clamp_to_screen.hpp"
 #include "components/grid_square.hpp"
 #include "components/parry.hpp"
 #include "components/physics.hpp"
@@ -9,6 +10,7 @@
 #include "components/profiler.hpp"
 #include "components/rendering.hpp"
 #include "components/resources.hpp"
+#include "components/tag.hpp"
 
 // systems
 #include "systems/move_objects.hpp"
@@ -16,6 +18,7 @@
 #include "systems/prototype/clamp_to_screen.hpp"
 #include "systems/prototype/parry.hpp"
 #include "systems/render.hpp"
+#include "systems/ui_hierarchy.hpp"
 #include "systems/ui_profiler.hpp"
 
 // engine headers
@@ -48,6 +51,7 @@ game2d::init(entt::registry& registry, glm::ivec2 screen_wh)
   // Add a player
   {
     entt::entity r = registry.create();
+    registry.emplace<TagComponent>(r, "player0");
     registry.emplace<Player>(r);
     registry.emplace<Velocity>(r);
     registry.emplace<Colour>(r, 1.0f, 1.0f, 1.0f, 1.0f);
@@ -60,6 +64,7 @@ game2d::init(entt::registry& registry, glm::ivec2 screen_wh)
   // Add a cursor
   {
     entt::entity r = registry.create();
+    registry.emplace<TagComponent>(r, "cursor");
     registry.emplace<Colour>(r, 1.0f, 0.0f, 0.0f, 0.5f);
     registry.emplace<PositionInt>(r);
     registry.emplace<Size>(r, GRID_SIZE, GRID_SIZE);
@@ -68,19 +73,22 @@ game2d::init(entt::registry& registry, glm::ivec2 screen_wh)
     registry.emplace<PlayerCursor>(r);
   }
 
-  // Add a default ball aiming at player
+  // Add a default bouncy object
   {
     entt::entity r = registry.create();
-    registry.emplace<Velocity>(r, -100.0f, 0.0f);
+    registry.emplace<TagComponent>(r, "ball");
+    registry.emplace<Velocity>(r, -200.0f, 200.0f);
     registry.emplace<Colour>(r, 1.0f, 1.0f, 1.0f, 1.0f);
     registry.emplace<PositionInt>(r, 50 * GRID_SIZE, 25 * GRID_SIZE);
     registry.emplace<Size>(r, GRID_SIZE, GRID_SIZE);
     registry.emplace<Sprite>(r, sprite::type::EMPTY);
     registry.emplace<ZIndex>(r, 0);
     registry.emplace<Bouncy>(r);
+    registry.emplace<ClampToScreen>(r);
   }
 
   init_ui_profiler_system(registry);
+  init_ui_hierarchy_system(registry);
 };
 
 void
@@ -123,7 +131,7 @@ game2d::update(entt::registry& registry, engine::Application& app, float dt)
   // rendering
   Uint64 start_render = SDL_GetPerformanceCounter();
   {
-    update_render_system(registry);
+    update_render_system(registry, app);
   };
   Uint64 end_render = SDL_GetPerformanceCounter();
   p.render_elapsed_ms = (end_render - start_render) / float(SDL_GetPerformanceFrequency()) * 1000.0f;
@@ -131,6 +139,7 @@ game2d::update(entt::registry& registry, engine::Application& app, float dt)
   // ui
   {
     update_ui_profiler_system(registry, app);
+    update_ui_hierarchy_system(registry, app);
   };
 
   // end of frame

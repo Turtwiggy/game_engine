@@ -17,7 +17,7 @@ foreach(package ${ENGINE_PACKAGES_CONFIG})
   find_package(${package} CONFIG REQUIRED)
 endforeach()
 foreach(package ${ENGINE_PACKAGES})
-  message("${PROJECT_NAME} finding package... ${package}")
+  message("${PROJECT_NAME} finding package...  ${package}")
   find_package(${package} REQUIRED)
 endforeach()
 find_package(EnTT CONFIG REQUIRED)
@@ -35,7 +35,7 @@ IF(${CMAKE_SYSTEM_NAME} STREQUAL "Windows")
   add_executable(game_2d 
     ${SRC_FILES}
     # add icon to executable
-    ${CMAKE_CURRENT_BINARY_DIR}/assets/2d_game/textures/resource.rc
+    # ${CMAKE_CURRENT_BINARY_DIR}/assets/2d_game/textures/resource.rc
   ) 
 ELSE()
   add_executable(game_2d 

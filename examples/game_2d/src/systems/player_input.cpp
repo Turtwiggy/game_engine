@@ -32,12 +32,12 @@ game2d::update_player_input_system(entt::registry& registry, engine::Application
   grid_adjusted_mouse_pos.x += grid_size / 2.0f;
   grid_adjusted_mouse_pos.y += grid_size / 2.0f;
 
-  ImGui::Begin("Mouse", NULL, ImGuiWindowFlags_NoFocusOnAppearing);
-  ImGui::Text("mouse %f %f", mouse_pos.x, mouse_pos.y);
-  ImGui::Text("grid adj %f %f", grid_adjusted_mouse_pos.x, grid_adjusted_mouse_pos.y);
+  // ImGui::Begin("Mouse", NULL, ImGuiWindowFlags_NoFocusOnAppearing);
+  // ImGui::Text("mouse %f %f", mouse_pos.x, mouse_pos.y);
+  // ImGui::Text("grid adj %f %f", grid_adjusted_mouse_pos.x, grid_adjusted_mouse_pos.y);
 
   {
-    auto& view = registry.view<Player, PositionInt>();
+    const auto& view = registry.view<Player, PositionInt>();
     view.each([&registry, &app, &grid_adjusted_mouse_pos, &grid_size](const auto& player, auto& pos) {
       // Action: Move, Convert WASD to input
       int vx = 0;
@@ -56,9 +56,9 @@ game2d::update_player_input_system(entt::registry& registry, engine::Application
       // TODO: do not set position directly
       pos.x += vx * grid_size;
       pos.y += vy * grid_size;
-      ImGui::Text("player %i %i", pos.x, pos.y);
+      // ImGui::Text("player %i %i", pos.x, pos.y);
       glm::ivec2 grid_slot = engine::grid::world_space_to_grid_space({ pos.x, pos.y }, grid_size);
-      ImGui::Text("player grid %i %i", grid_slot.x, grid_slot.y);
+      // ImGui::Text("player grid %i %i", grid_slot.x, grid_slot.y);
 
       // Action: Update player position with RMB
       if (app.get_input().get_mouse_rmb_down()) {
@@ -72,19 +72,19 @@ game2d::update_player_input_system(entt::registry& registry, engine::Application
 
   // Update cursor
   {
-    auto& view = registry.view<PlayerCursor, PositionInt>();
+    const auto& view = registry.view<PlayerCursor, PositionInt>();
     view.each([&grid_adjusted_mouse_pos, &grid_size](const auto entity, const auto& c, auto& pos) {
       glm::ivec2 grid_slot = engine::grid::world_space_to_grid_space(grid_adjusted_mouse_pos, grid_size);
-      ImGui::Text("mouse grid %i %i", grid_slot.x, grid_slot.y);
+      // ImGui::Text("mouse grid %i %i", grid_slot.x, grid_slot.y);
 
       glm::ivec2 world_space = grid_slot * grid_size;
       pos.x = grid_slot.x * grid_size;
       pos.y = grid_slot.y * grid_size;
-      ImGui::Text("mouse clamped %i %i", world_space.x, world_space.y);
+      // ImGui::Text("mouse clamped %i %i", world_space.x, world_space.y);
     });
   }
 
-  ImGui::End();
+  // ImGui::End();
 };
 
 // // Action: spawn object with LMB
