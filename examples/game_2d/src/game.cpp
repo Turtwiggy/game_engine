@@ -13,10 +13,10 @@
 #include "components/tag.hpp"
 
 // systems
+#include "systems/clamp_to_screen.hpp"
 #include "systems/move_objects.hpp"
+#include "systems/parry.hpp"
 #include "systems/player_input.hpp"
-#include "systems/prototype/clamp_to_screen.hpp"
-#include "systems/prototype/parry.hpp"
 #include "systems/render.hpp"
 #include "systems/ui_hierarchy.hpp"
 #include "systems/ui_profiler.hpp"
@@ -58,7 +58,6 @@ game2d::init(entt::registry& registry, glm::ivec2 screen_wh)
     registry.emplace<PositionInt>(r, 30 * GRID_SIZE, 25 * GRID_SIZE);
     registry.emplace<Size>(r, GRID_SIZE, GRID_SIZE);
     registry.emplace<Sprite>(r, sprite::type::PERSON_1);
-    registry.emplace<ZIndex>(r, 0);
   }
 
   // Add a cursor
@@ -69,11 +68,10 @@ game2d::init(entt::registry& registry, glm::ivec2 screen_wh)
     registry.emplace<PositionInt>(r);
     registry.emplace<Size>(r, GRID_SIZE, GRID_SIZE);
     registry.emplace<Sprite>(r, sprite::type::EMPTY);
-    registry.emplace<ZIndex>(r, 1);
     registry.emplace<PlayerCursor>(r);
   }
 
-  // Add a default bouncy object
+  // Add ball object
   {
     entt::entity r = registry.create();
     registry.emplace<TagComponent>(r, "ball");
@@ -82,9 +80,18 @@ game2d::init(entt::registry& registry, glm::ivec2 screen_wh)
     registry.emplace<PositionInt>(r, 50 * GRID_SIZE, 25 * GRID_SIZE);
     registry.emplace<Size>(r, GRID_SIZE, GRID_SIZE);
     registry.emplace<Sprite>(r, sprite::type::EMPTY);
-    registry.emplace<ZIndex>(r, 0);
     registry.emplace<Bouncy>(r);
     registry.emplace<ClampToScreen>(r);
+  }
+
+  // Add goal object
+  {
+    entt::entity r = registry.create();
+    registry.emplace<TagComponent>(r, "goal");
+    registry.emplace<Colour>(r, 0.0f, 1.0f, 0.0f, 1.0f);
+    registry.emplace<PositionInt>(r, 10 * GRID_SIZE, 25 * GRID_SIZE);
+    registry.emplace<Size>(r, GRID_SIZE, GRID_SIZE);
+    registry.emplace<Sprite>(r, sprite::type::EMPTY);
   }
 
   init_ui_profiler_system(registry);

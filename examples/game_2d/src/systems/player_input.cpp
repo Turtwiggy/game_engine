@@ -18,6 +18,10 @@ game2d::update_player_input_system(entt::registry& registry, engine::Application
 {
   const auto& ri = registry.ctx<SINGLETON_RendererInfo>();
 
+  // process game events if the viewport says so
+  if (!ri.viewport_process_events)
+    return;
+
   glm::ivec2 imgui_mouse_pos = app.get_input().get_mouse_pos();
   glm::vec2 imgui_viewport_tl = ri.viewport_pos;
 

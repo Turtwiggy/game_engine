@@ -42,6 +42,7 @@ struct Vertex
 struct ITriangleRenderable
 {
   virtual std::vector<TriangleDescriptor> get_triangles(entt::registry& registry) = 0;
+  virtual ~ITriangleRenderable() = default;
 };
 
 class TriangleRenderer

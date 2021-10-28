@@ -83,14 +83,13 @@ struct Sprite
     : sprite(sprite){};
 };
 
-struct ZIndex
-{
-  int index = 0;
-
-  ZIndex() = default;
-  ZIndex(int index)
-    : index(index){};
-};
+// struct ZIndex
+// {
+//   int index = 0;
+//   ZIndex() = default;
+//   ZIndex(int index)
+//     : index(index){};
+// };
 
 // texture constants
 constexpr int tex_unit_kenny_nl = 0;
@@ -111,8 +110,10 @@ struct SINGLETON_RendererInfo
   std::vector<unsigned int> loaded_texture_ids;
   // viewport
   // note: values are updated in render
-  glm::vec2 viewport_size = { 0, 0 };
+  glm::vec2 viewport_size_render_at = { 0, 0 };
+  glm::vec2 viewport_size_current = { 0, 0 };
   glm::vec2 viewport_pos = { 0, 0 };
+  bool viewport_process_events = false;
 };
 
 } // namespace game2d

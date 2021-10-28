@@ -1,5 +1,5 @@
 // your header
-#include "systems/prototype/hex_grid.hpp"
+#include "systems/hex_grid.hpp"
 
 // components
 #include "components/grid_hex.hpp"
@@ -43,7 +43,6 @@ render_number(entt::registry& registry, int number, float x, float y)
     registry.emplace<PositionInt>(r, int(x + text_x_offset), int(y));
     registry.emplace<Size>(r, 10, 10);
     registry.emplace<Sprite>(r, number);
-    registry.emplace<ZIndex>(r, 1);
     registry.emplace<HexText>(r);
 
     text_x_offset += text_seperation;

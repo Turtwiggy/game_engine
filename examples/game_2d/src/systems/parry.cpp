@@ -1,5 +1,5 @@
 // your header
-#include "systems/prototype/parry.hpp"
+#include "systems/parry.hpp"
 
 // components
 #include "components/parry.hpp"
@@ -16,6 +16,12 @@
 void
 game2d::update_parry_system(entt::registry& registry, engine::Application& app, float dt)
 {
+  const auto& ri = registry.ctx<SINGLETON_RendererInfo>();
+
+  // process game events if the viewport says so
+  if (!ri.viewport_process_events)
+    return;
+
   // Player-Bouncy interaction
   {
     //

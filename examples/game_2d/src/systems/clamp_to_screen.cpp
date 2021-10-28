@@ -1,5 +1,5 @@
 // your header
-#include "systems/prototype/clamp_to_screen.hpp"
+#include "systems/clamp_to_screen.hpp"
 
 // components
 #include "components/clamp_to_screen.hpp"
@@ -18,7 +18,7 @@ game2d::update_clamp_to_screen_system(entt::registry& registry, engine::Applicat
 {
   const auto& ri = registry.ctx<SINGLETON_RendererInfo>();
 
-  glm::ivec2 boundary = ri.viewport_size;
+  glm::ivec2 boundary = ri.viewport_size_render_at;
 
   const auto& view = registry.view<Velocity, const PositionInt, const Size, const ClampToScreen>();
   view.each([&boundary](auto& vel, const auto& pos, const auto& size, const auto& cts) {

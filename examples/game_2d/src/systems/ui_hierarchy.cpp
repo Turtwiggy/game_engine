@@ -5,6 +5,7 @@
 #include "components/tag.hpp"
 
 // other lib headers
+#include <glm/gtc/type_ptr.hpp>
 #include <imgui.h>
 
 // c++ lib headers
@@ -28,6 +29,7 @@ game2d::update_ui_hierarchy_system(entt::registry& registry, engine::Application
 
   ImGui::Begin("Hierarchy");
   {
+    // List all entities...
     registry.each([&registry, &optional_eid](auto entity) {
       const auto& tag = registry.get<TagComponent>(entity).tag;
       const auto& eid = optional_eid.value_or(entt::null);
@@ -47,6 +49,10 @@ game2d::update_ui_hierarchy_system(entt::registry& registry, engine::Application
         ImGui::TreePop();
       }
     });
+
+    // If select anywhere in the window, make entity unselected
+    if (ImGui::IsMouseDown(0) && ImGui::IsWindowHovered())
+      optional_eid = entt::null;
   }
   ImGui::End();
 
@@ -59,6 +65,9 @@ game2d::update_ui_hierarchy_system(entt::registry& registry, engine::Application
 
     const auto& eid = optional_eid.value_or(entt::null);
 
+    //
+    // Display TagComponent
+    //
     if (registry.all_of<TagComponent>(eid)) {
       TagComponent& t = registry.get<TagComponent>(eid);
 
@@ -69,13 +78,36 @@ game2d::update_ui_hierarchy_system(entt::registry& registry, engine::Application
 
       ImGui::Text("Tag: ");
       ImGui::SameLine();
-      if (ImGui::InputText(" ##tagbox", buffer, sizeof(buffer)))
+      if (ImGui::InputText("##tagbox", buffer, sizeof(buffer)))
         t.tag = std::string(buffer);
     }
 
+    //
+    // Display PositionInt component
+    //
     if (registry.all_of<PositionInt>(eid)) {
-      const PositionInt& pi = registry.get<PositionInt>(eid);
-      ImGui::Text("PositionInt: %i %i", pi.x, pi.y);
+      PositionInt& pi = registry.get<PositionInt>(eid);
+
+      // Able to change the value of PositionInt component
+      glm::ivec2 pos = { pi.x, pi.y };
+
+      ImGui::Text("Pos: ");
+      ImGui::SameLine();
+      if (ImGui::DragInt2("##position", glm::value_ptr(pos), 0.5f)) {
+        pi.x = pos.x;
+        pi.y = pos.y;
+      }
+    }
+
+    //
+    // Display Colour component
+    //
+    if (registry.all_of<Colour>(eid)) {
+      Colour& c = registry.get<Colour>(eid);
+
+      ImGui::Text("Colour: ");
+      ImGui::SameLine();
+      ImGui::ColorEdit4("##colour", glm::value_ptr(c.colour));
     }
   }
   ImGui::End();
