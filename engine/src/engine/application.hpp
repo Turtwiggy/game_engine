@@ -4,7 +4,7 @@
 #include "engine/game_window.hpp"
 
 // engine headers
-#include "engine/imgui/imgui_setup.hpp"
+#include "engine/imgui_setup.hpp"
 #include "engine/input_manager.hpp"
 
 // c++ standard library headers
@@ -30,10 +30,8 @@ public:
   void frame_end(Uint64& frame_start_time);
 
   float seconds_since_launch = 0.0f;
-
   float fps_if_limited = 60.0f;
   bool limit_fps = false;
-
   bool window_was_resized = false;
 
   [[nodiscard]] GameWindow& get_window();

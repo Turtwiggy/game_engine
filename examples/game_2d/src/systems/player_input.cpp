@@ -5,6 +5,7 @@
 #include "components/physics.hpp"
 #include "components/player.hpp"
 #include "components/rendering.hpp"
+#include "components/singleton_renderer.hpp"
 
 // other engine headers
 #include "engine/grid.hpp"
@@ -41,7 +42,7 @@ game2d::update_player_input_system(entt::registry& registry, engine::Application
   // ImGui::Text("grid adj %f %f", grid_adjusted_mouse_pos.x, grid_adjusted_mouse_pos.y);
 
   {
-    const auto& view = registry.view<Player, PositionInt>();
+    const auto& view = registry.view<Player, PositionIntComponent>();
     view.each([&registry, &app, &grid_adjusted_mouse_pos, &grid_size](const auto& player, auto& pos) {
       // Action: Move, Convert WASD to input
       int vx = 0;
@@ -76,7 +77,7 @@ game2d::update_player_input_system(entt::registry& registry, engine::Application
 
   // Update cursor
   {
-    const auto& view = registry.view<PlayerCursor, PositionInt>();
+    const auto& view = registry.view<CursorComponent, PositionIntComponent>();
     view.each([&grid_adjusted_mouse_pos, &grid_size](const auto entity, const auto& c, auto& pos) {
       glm::ivec2 grid_slot = engine::grid::world_space_to_grid_space(grid_adjusted_mouse_pos, grid_size);
       // ImGui::Text("mouse grid %i %i", grid_slot.x, grid_slot.y);

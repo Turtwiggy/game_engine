@@ -6,6 +6,7 @@
 #include "components/physics.hpp"
 #include "components/player.hpp"
 #include "components/rendering.hpp"
+#include "components/singleton_renderer.hpp"
 
 // other engine headers
 #include "engine/grid.hpp"
@@ -26,11 +27,12 @@ game2d::update_parry_system(entt::registry& registry, engine::Application& app, 
   {
     //
     // For each player...
-    auto player_view = registry.view<const Player, const PositionInt>();
+    auto player_view = registry.view<const Player, const PositionIntComponent>();
     player_view.each([&registry, &app](const auto& player, const auto& p_pos) {
       //
       // For each bouncy object...
-      const auto& view = registry.view<Velocity, Colour, const PositionInt, const Bouncy>();
+      const auto& view =
+        registry.view<VelocityComponent, ColourComponent, const PositionIntComponent, const ParryComponent>();
       view.each([&app, &p_pos](auto& vel, auto& colour, const auto& b_pos, const auto& bouncy) {
         int xdist = glm::abs(b_pos.x - p_pos.x);
         int ydist = glm::abs(b_pos.y - p_pos.y);

@@ -3,7 +3,8 @@
 
 // components
 #include "components/rendering.hpp"
-#include "components/resources.hpp"
+#include "components/singleton_renderer.hpp"
+#include "components/singleton_resources.hpp"
 
 // helpers
 #include "helpers/renderer_interfaces/render_hexagons.hpp"
@@ -87,7 +88,8 @@ game2d::update_render_system(entt::registry& registry, engine::Application& app)
   // Resize
   auto viewport_wh = ri.viewport_size_render_at;
   if (ri.viewport_size_current.x > 0.0f && ri.viewport_size_current.y > 0.0f &&
-      (ri.viewport_size_render_at.x != ri.viewport_size_current.x || ri.viewport_size_render_at.y != ri.viewport_size_current.y)) {
+      (ri.viewport_size_render_at.x != ri.viewport_size_current.x ||
+       ri.viewport_size_render_at.y != ri.viewport_size_current.y)) {
     viewport_wh = ri.viewport_size_current;
     ri.viewport_size_render_at = viewport_wh;
 
@@ -115,9 +117,12 @@ game2d::update_render_system(entt::registry& registry, engine::Application& app)
     quad_renderer::QuadRenderer::reset_quad_vert_count();
     quad_renderer::QuadRenderer::begin_batch();
 
-    quad_renderer::RenderDescriptor desc;
     // todo: work out z-index
-    const auto& view = registry.view<const PositionInt, const Size, const Colour, const Sprite>();
+    // registry.sort<ZIndex>([](const auto& lhs, const auto& rhs) { return lhs.index < rhs.index; });
+
+    quad_renderer::RenderDescriptor desc;
+    const auto& view =
+      registry.view<const PositionIntComponent, const SizeComponent, const ColourComponent, const SpriteComponent>();
     view.each([&registry, &ri, &desc](const auto entity, const auto& p, const auto& s, const auto& c, const auto& spr) {
       desc.pos_tl = { p.x - int(s.w / 2.0f), p.y - int(s.h / 2.0f) };
       desc.colour = c.colour;
@@ -151,7 +156,8 @@ game2d::update_render_system(entt::registry& registry, engine::Application& app)
     ImGui::SetNextWindowViewport(viewport->ID);
     ImGui::PushStyleVar(ImGuiStyleVar_WindowRounding, 0.0f);
     ImGui::PushStyleVar(ImGuiStyleVar_WindowBorderSize, 0.0f);
-    window_flags |= ImGuiWindowFlags_NoTitleBar | ImGuiWindowFlags_NoCollapse | ImGuiWindowFlags_NoResize | ImGuiWindowFlags_NoMove;
+    window_flags |=
+      ImGuiWindowFlags_NoTitleBar | ImGuiWindowFlags_NoCollapse | ImGuiWindowFlags_NoResize | ImGuiWindowFlags_NoMove;
     window_flags |= ImGuiWindowFlags_NoBringToFrontOnFocus | ImGuiWindowFlags_NoNavFocus;
   } else {
     dockspace_flags &= ~ImGuiDockNodeFlags_PassthruCentralNode;

@@ -2,7 +2,7 @@
 
 namespace game2d {
 
-struct ProfilerStats
+struct Profiler
 {
   float physics_elapsed_ms = 0.0f;
   float input_elapsed_ms = 0.0f;

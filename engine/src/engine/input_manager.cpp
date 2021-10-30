@@ -3,7 +3,7 @@
 #include "engine/input_manager.hpp"
 
 // your proj headers
-#include "engine/maths_core.hpp"
+#include "engine/maths.hpp"
 
 // other lib headers
 #include <imgui.h>

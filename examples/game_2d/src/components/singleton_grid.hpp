@@ -1,7 +1,5 @@
 #pragma once
 
-// other lib headers
-
 namespace game2d {
 
 struct SINGLETON_GridSize

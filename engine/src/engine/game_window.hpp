@@ -54,9 +54,6 @@ public:
   [[nodiscard]] uint32_t get_sdl_id() const;
   [[nodiscard]] uint32_t get_sdl_flags() const;
 
-  [[nodiscard]] bool is_open() const;
-  [[nodiscard]] float get_aspect_ratio() const;
-
   void set_title(const std::string& str);
   void set_position(int x, int y);
   void set_size(const glm::ivec2& size);
@@ -82,8 +79,8 @@ public:
   void set_mouse_position(int x, int y);
   void set_mouse_captured(const bool b);
 
-  // 0, 0, is top left of screen
-  // x, y is bottom right of screen
+  // 0, 0, is top left of monitor
+  // x, y is bottom right of monitor
   [[nodiscard]] glm::ivec2 get_mouse_position();
   [[nodiscard]] glm::ivec2 get_relative_mouse_position();
   [[nodiscard]] bool get_mouse_captured() const;

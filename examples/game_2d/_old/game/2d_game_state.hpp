@@ -10,7 +10,7 @@
 
 // fightingengine headers
 #include "engine/application.hpp"
-#include "engine/maths_core.hpp"
+#include "engine/maths.hpp"
 
 // game headers
 #include "2d_game_object.hpp"

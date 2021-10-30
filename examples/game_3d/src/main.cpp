@@ -18,7 +18,7 @@
 // your project headers
 #include "engine/3d/camera.hpp"
 #include "engine/application.hpp"
-#include "engine/maths_core.hpp"
+#include "engine/maths.hpp"
 #include "engine/opengl/model.hpp"
 #include "engine/opengl/render_command.hpp"
 #include "engine/opengl/renderer.hpp"

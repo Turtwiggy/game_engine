@@ -1,7 +1,7 @@
 #pragma once
 
 // engine headers
-#include "engine/maths_core.hpp"
+#include "engine/maths.hpp"
 
 // game headers
 #include "items.hpp"

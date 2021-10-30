@@ -4,7 +4,7 @@
 // components
 #include "components/grid_hex.hpp"
 #include "components/rendering.hpp"
-#include "components/resources.hpp"
+#include "components/singleton_resources.hpp"
 
 // helpers
 #include "helpers/hex_grid.hpp"
@@ -23,9 +23,9 @@ namespace game2d {
 void
 render_number(entt::registry& registry, int number, float x, float y)
 {
-  Colour text_colour;
+  ColourComponent text_colour;
   text_colour.colour = { 0.0f, 0.0f, 0.0f, 1.0f };
-  Colour neg_text_colour;
+  ColourComponent neg_text_colour;
   neg_text_colour.colour = { 1.0f, 0.0f, 0.0f, 1.0f };
 
   std::vector<sprite::type> sprites = convert_int_to_sprites(glm::abs(number));
@@ -37,12 +37,12 @@ render_number(entt::registry& registry, int number, float x, float y)
   for (auto& number : sprites) {
     entt::entity r = registry.create();
     if (is_negative)
-      registry.emplace<Colour>(r, neg_text_colour);
+      registry.emplace<ColourComponent>(r, neg_text_colour);
     else
-      registry.emplace<Colour>(r, text_colour);
-    registry.emplace<PositionInt>(r, int(x + text_x_offset), int(y));
-    registry.emplace<Size>(r, 10, 10);
-    registry.emplace<Sprite>(r, number);
+      registry.emplace<ColourComponent>(r, text_colour);
+    registry.emplace<PositionIntComponent>(r, int(x + text_x_offset), int(y));
+    registry.emplace<SizeComponent>(r, 10, 10);
+    registry.emplace<SpriteComponent>(r, number);
     registry.emplace<HexText>(r);
 
     text_x_offset += text_seperation;

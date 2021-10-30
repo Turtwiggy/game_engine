@@ -8,7 +8,7 @@
 
 // your includes
 #include "constants.hpp"
-#include "engine/maths_core.hpp"
+#include "engine/maths.hpp"
 #include "spritemap.hpp"
 
 namespace game2d {

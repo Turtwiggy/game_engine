@@ -13,7 +13,7 @@
 #include <glm/gtc/matrix_transform.hpp>
 
 // engine project headers
-#include "engine/maths_core.hpp"
+#include "engine/maths.hpp"
 #include "engine/opengl/util.hpp"
 
 namespace game2d {

@@ -106,12 +106,6 @@ GameWindow::get_handle() const
   return window_.get();
 }
 
-bool
-GameWindow::is_open() const
-{
-  return window_ != nullptr;
-}
-
 uint32_t
 GameWindow::get_sdl_id() const
 {
@@ -134,15 +128,6 @@ void
 GameWindow::set_title(const std::string& str)
 {
   SDL_SetWindowTitle(window_.get(), str.c_str());
-}
-
-float
-GameWindow::get_aspect_ratio() const
-{
-  int width, height;
-  SDL_GetWindowSize(window_.get(), &width, &height);
-
-  return (float)width / (float)height;
 }
 
 void

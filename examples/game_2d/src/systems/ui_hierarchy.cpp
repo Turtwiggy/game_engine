@@ -85,8 +85,8 @@ game2d::update_ui_hierarchy_system(entt::registry& registry, engine::Application
     //
     // Display PositionInt component
     //
-    if (registry.all_of<PositionInt>(eid)) {
-      PositionInt& pi = registry.get<PositionInt>(eid);
+    if (registry.all_of<PositionIntComponent>(eid)) {
+      PositionIntComponent& pi = registry.get<PositionIntComponent>(eid);
 
       // Able to change the value of PositionInt component
       glm::ivec2 pos = { pi.x, pi.y };
@@ -102,8 +102,8 @@ game2d::update_ui_hierarchy_system(entt::registry& registry, engine::Application
     //
     // Display Colour component
     //
-    if (registry.all_of<Colour>(eid)) {
-      Colour& c = registry.get<Colour>(eid);
+    if (registry.all_of<ColourComponent>(eid)) {
+      ColourComponent& c = registry.get<ColourComponent>(eid);
 
       ImGui::Text("Colour: ");
       ImGui::SameLine();

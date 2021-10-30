@@ -1,7 +1,7 @@
 #pragma once
 
 // your proj headers
-#include "engine/maths_core.hpp"
+#include "engine/maths.hpp"
 
 // other proj headers
 #include <glm/glm.hpp>

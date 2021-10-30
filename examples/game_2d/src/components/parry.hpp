@@ -2,7 +2,7 @@
 
 namespace game2d {
 
-struct Bouncy
+struct ParryComponent
 {
   bool placeholder = false;
 };

@@ -12,7 +12,7 @@
 void
 game2d::update_move_objects_system(entt::registry& registry, engine::Application& app, float dt)
 {
-  const auto& view = registry.view<Velocity, PositionInt>();
+  const auto& view = registry.view<VelocityComponent, PositionIntComponent>();
   view.each([&registry, &dt](const auto& vel, auto& pos) {
     const auto Sign = [](int x) { return x == 0 ? 0 : (x > 0 ? 1 : -1); };
 

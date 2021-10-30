@@ -8,7 +8,7 @@ struct Player
   int placeholder = 0;
 };
 
-struct PlayerCursor
+struct CursorComponent
 {
   int placeholder = 0;
 };

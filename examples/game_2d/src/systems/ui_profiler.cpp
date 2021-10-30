@@ -3,8 +3,8 @@
 
 // components
 #include "components/player.hpp"
-#include "components/profiler.hpp"
 #include "components/rendering.hpp"
+#include "components/singleton_profiler.hpp"
 
 // helpers
 #include "helpers/renderers/batch_quad.hpp"
@@ -17,8 +17,8 @@
 void
 game2d::init_ui_profiler_system(entt::registry& registry)
 {
-  ProfilerStats p;
-  registry.set<ProfilerStats>(p);
+  Profiler p;
+  registry.set<Profiler>(p);
 }
 
 void
@@ -27,7 +27,7 @@ game2d::update_ui_profiler_system(entt::registry& registry, engine::Application&
   // bool show_imgui_demo_window = true;
   // ImGui::ShowDemoWindow(&show_imgui_demo_window);
 
-  ProfilerStats& p = registry.ctx<ProfilerStats>();
+  Profiler& p = registry.ctx<Profiler>();
 
   // Profiler
   ImGui::Begin("Profiler ", NULL, ImGuiWindowFlags_NoFocusOnAppearing);

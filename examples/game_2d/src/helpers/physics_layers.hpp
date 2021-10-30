@@ -2,9 +2,11 @@
 
 namespace game2d {
 
-struct ClampToScreen
+enum class CollisionLayer
 {
-  bool placeholder = false;
+  PLAYER,
+  GOAL,
+  OTHER,
 };
 
 } // namespace game2d
