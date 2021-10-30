@@ -2,7 +2,7 @@
 #include "batch_triangle_fan.hpp"
 
 // engine headers
-#include "helpers/renderers/batch_renderer.hpp"
+#include "modules/renderer/helpers/renderers/batch_renderer.hpp"
 
 // other lib headers
 #include <GL/glew.h>

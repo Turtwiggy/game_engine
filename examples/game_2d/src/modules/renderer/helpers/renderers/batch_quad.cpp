@@ -1,23 +1,22 @@
 
 // header
-#include "batch_triangle.hpp"
+#include "batch_quad.hpp"
 
 // engine project headers
-#include "helpers/renderers/batch_renderer.hpp"
+#include "modules/renderer/helpers/renderers/batch_renderer.hpp"
 
 // other project headers
 #include <GL/glew.h>
 #include <glm/gtc/matrix_transform.hpp>
-#include <iostream>
 
 namespace engine {
 
-namespace triangle_renderer {
+namespace quad_renderer {
 
 static RenderData<Vertex> data;
 
 void
-TriangleRenderer::draw_triangle(const TriangleDescriptor& r, Shader& s)
+QuadRenderer::draw_sprite(const RenderDescriptor& r, Shader& s)
 {
   if (data.index_count >= max_quad_index_count) {
     end_batch();
@@ -25,37 +24,58 @@ TriangleRenderer::draw_triangle(const TriangleDescriptor& r, Shader& s)
     begin_batch();
   }
 
+  const float& angle = r.angle_radians;
+  const glm::vec2& pos = r.pos_tl;
+  const glm::vec2& size = r.size;
+  const glm::ivec2& sprite_offset = r.sprite_offset;
   const int& tex_slot = r.tex_slot;
-  const glm::ivec2 sprite_offset = { 0, 0 };
+  const glm::vec4& colour = r.colour;
+
   glm::mat4 model = glm::mat4(1.0f);
+  model = glm::translate(model, glm::vec3(pos.x, pos.y, 0.0f));
+  model = glm::translate(model, glm::vec3(0.5f * size.x, 0.5f * size.y, 0.0f));
+  model = glm::rotate(model, angle, glm::vec3(0.0f, 0.0f, 1.0f));
+  model = glm::translate(model, glm::vec3(-0.5f * size.x, -0.5f * size.y, 0.0f));
+  model = glm::scale(model, glm::vec3(size, 1.0f));
 
-  data.buffer_ptr->pos_and_uv = { r.point_0.x, r.point_0.y, 0.0f, 0.0f };
-  data.buffer_ptr->colour = r.point_0_colour;
+  // tl
+  data.buffer_ptr->pos_and_uv = { 0.0f, 0.0f, 0.0f, 0.0f };
+  data.buffer_ptr->colour = colour;
   data.buffer_ptr->sprite_offset = sprite_offset;
   data.buffer_ptr->tex_slot = tex_slot;
   data.buffer_ptr->model = model;
   data.buffer_ptr++;
 
-  data.buffer_ptr->pos_and_uv = { r.point_1.x, r.point_1.y, 0.0f, 0.0f };
-  data.buffer_ptr->colour = r.point_1_colour;
+  // tr
+  data.buffer_ptr->pos_and_uv = { 1.0f, 0.0f, 1.0f, 0.0f };
+  data.buffer_ptr->colour = colour;
   data.buffer_ptr->sprite_offset = sprite_offset;
   data.buffer_ptr->tex_slot = tex_slot;
   data.buffer_ptr->model = model;
   data.buffer_ptr++;
 
-  data.buffer_ptr->pos_and_uv = { r.point_2.x, r.point_2.y, 0.0f, 0.0f };
-  data.buffer_ptr->colour = r.point_2_colour;
+  // br
+  data.buffer_ptr->pos_and_uv = { 1.0f, 1.0f, 1.0f, 1.0f };
+  data.buffer_ptr->colour = colour;
   data.buffer_ptr->sprite_offset = sprite_offset;
   data.buffer_ptr->tex_slot = tex_slot;
   data.buffer_ptr->model = model;
   data.buffer_ptr++;
 
-  data.index_count += 3;
-  data.quad_vertex += 3;
+  // bl
+  data.buffer_ptr->pos_and_uv = { 0.0f, 1.0f, 0.0f, 1.0f };
+  data.buffer_ptr->colour = colour;
+  data.buffer_ptr->sprite_offset = sprite_offset;
+  data.buffer_ptr->tex_slot = tex_slot;
+  data.buffer_ptr->model = model;
+  data.buffer_ptr++;
+
+  data.index_count += 6;
+  data.quad_vertex += 4;
 }
 
 void
-TriangleRenderer::init()
+QuadRenderer::init()
 {
   data.buffer = new Vertex[max_quad_vert_count];
 
@@ -95,10 +115,17 @@ TriangleRenderer::init()
     7, 4, GL_FLOAT, GL_FALSE, sizeof(Vertex), (const void*)(offsetof(Vertex, model) + 3 * sizeof(glm::vec4)));
 
   uint32_t indices[max_quad_index_count];
-  for (int i = 0; i < max_quad_index_count; i += 3) {
-    indices[i + 0] = 0 + i;
-    indices[i + 1] = 1 + i;
-    indices[i + 2] = 2 + i;
+  uint32_t index_offset = 0;
+  for (int i = 0; i < max_quad_index_count; i += 6) {
+    indices[i + 0] = 0 + index_offset;
+    indices[i + 1] = 1 + index_offset;
+    indices[i + 2] = 2 + index_offset;
+
+    indices[i + 3] = 2 + index_offset;
+    indices[i + 4] = 3 + index_offset;
+    indices[i + 5] = 0 + index_offset;
+
+    index_offset += 4;
   }
 
   glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, data.EBO);
@@ -110,7 +137,7 @@ TriangleRenderer::init()
 };
 
 void
-TriangleRenderer::shutdown()
+QuadRenderer::shutdown()
 {
   glDeleteVertexArrays(1, &data.VAO);
   glDeleteBuffers(1, &data.VBO);
@@ -121,22 +148,24 @@ TriangleRenderer::shutdown()
 
 // upload data to vbo
 void
-TriangleRenderer::end_batch()
+QuadRenderer::end_batch()
 {
   GLsizeiptr size = (uint8_t*)data.buffer_ptr - (uint8_t*)data.buffer;
   // Set dynamic vertex buffer & upload data
   glBindBuffer(GL_ARRAY_BUFFER, data.VBO);
+  // glBufferSubData(GL_ARRAY_BUFFER, 0, vertices.size() * sizeof(Vertex), vertices.data());
   glBufferSubData(GL_ARRAY_BUFFER, 0, size, data.buffer);
 }
 
 void
-TriangleRenderer::flush(Shader& shader)
+QuadRenderer::flush(Shader& shader)
 {
   shader.bind();
 
   if (data.index_count > 0) {
     glBindVertexArray(data.VAO);
     glDrawElements(GL_TRIANGLES, data.index_count, GL_UNSIGNED_INT, nullptr);
+    // glDrawElementsInstanced(GL_TRIANGLES, data.index_count, GL_UNSIGNED_INT, 0, 1000);
     data.draw_calls += 1;
     data.index_count = 0;
   }
@@ -147,46 +176,29 @@ TriangleRenderer::flush(Shader& shader)
 }
 
 void
-TriangleRenderer::begin_batch()
+QuadRenderer::begin_batch()
 {
   data.buffer_ptr = data.buffer;
 }
 
 void
-TriangleRenderer::reset_quad_vert_count()
+QuadRenderer::reset_quad_vert_count()
 {
   data.quad_vertex = 0;
 }
 
 void
-TriangleRenderer::end_frame()
+QuadRenderer::end_frame()
 {
   data.draw_calls = 0;
 }
 
-void
-TriangleRenderer::draw(entt::registry& registry, Shader& shader)
-{
-  TriangleRenderer::reset_quad_vert_count();
-  TriangleRenderer::begin_batch();
-  {
-    for (auto& interface : interfaces) {
-      const auto& tris = interface->get_triangles(registry);
-      for (const auto& triangle : tris) {
-        draw_triangle(triangle, shader);
-      }
-    }
-  }
-  TriangleRenderer::end_batch();
-  TriangleRenderer::flush(shader);
-};
-
 int
-TriangleRenderer::draw_calls()
+QuadRenderer::draw_calls()
 {
   return data.draw_calls;
 }
 
-} // namespace triangle_renderer
+} // namespace quad_renderer
 
 } // namespace engine

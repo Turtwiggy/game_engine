@@ -1,5 +1,5 @@
 // your header
-#include "helpers/hex_grid.hpp"
+#include "modules/hex/helpers.hpp"
 
 // c++ lib headers
 #include <iostream>

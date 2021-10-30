@@ -2,10 +2,9 @@
 #include "systems/velocity_in_boundingbox.hpp"
 
 // components
-#include "components/physics.hpp"
-#include "components/rendering.hpp"
-#include "components/singleton_renderer.hpp"
 #include "components/velocity_in_boundingbox.hpp"
+#include "modules/physics/components.hpp"
+#include "modules/renderer/components.hpp"
 
 // other engine headers
 #include "engine/grid.hpp"

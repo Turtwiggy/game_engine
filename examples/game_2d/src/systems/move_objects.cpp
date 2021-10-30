@@ -2,8 +2,8 @@
 #include "systems/move_objects.hpp"
 
 // components
-#include "components/physics.hpp"
-#include "components/rendering.hpp"
+#include "modules/physics/components.hpp"
+#include "modules/renderer/components.hpp"
 
 // other lib headers
 #include <imgui.h>

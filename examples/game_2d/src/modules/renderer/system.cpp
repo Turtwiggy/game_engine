@@ -1,17 +1,13 @@
 // your header
-#include "systems/render.hpp"
+#include "modules/renderer/system.hpp"
 
-// components
-#include "components/rendering.hpp"
-#include "components/singleton_renderer.hpp"
 #include "components/singleton_resources.hpp"
-
-// helpers
-#include "helpers/renderer_interfaces/render_hexagons.hpp"
-#include "helpers/renderers/batch_quad.hpp"
-#include "helpers/renderers/batch_triangle.hpp"
-#include "helpers/renderers/batch_triangle_fan.hpp"
 #include "helpers/spritemap.hpp"
+#include "modules/renderer/components.hpp"
+#include "modules/renderer/helpers/renderer_interfaces/render_hexagons.hpp"
+#include "modules/renderer/helpers/renderers/batch_quad.hpp"
+#include "modules/renderer/helpers/renderers/batch_triangle.hpp"
+#include "modules/renderer/helpers/renderers/batch_triangle_fan.hpp"
 
 // engine headers
 #include "engine/opengl/framebuffer.hpp"

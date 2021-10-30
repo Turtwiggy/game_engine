@@ -1,8 +1,7 @@
-#include "systems/ui_hierarchy.hpp"
+#include "modules/ui_hierarchy/system.hpp"
 
 // components
-#include "components/rendering.hpp"
-#include "components/tag.hpp"
+#include "modules/renderer/components.hpp"
 
 // other lib headers
 #include <glm/gtc/type_ptr.hpp>
@@ -65,9 +64,7 @@ game2d::update_ui_hierarchy_system(entt::registry& registry, engine::Application
 
     const auto& eid = optional_eid.value_or(entt::null);
 
-    //
     // Display TagComponent
-    //
     if (registry.all_of<TagComponent>(eid)) {
       TagComponent& t = registry.get<TagComponent>(eid);
 
@@ -82,13 +79,9 @@ game2d::update_ui_hierarchy_system(entt::registry& registry, engine::Application
         t.tag = std::string(buffer);
     }
 
-    //
-    // Display PositionInt component
-    //
+    // Display PositionIntComponent
     if (registry.all_of<PositionIntComponent>(eid)) {
       PositionIntComponent& pi = registry.get<PositionIntComponent>(eid);
-
-      // Able to change the value of PositionInt component
       glm::ivec2 pos = { pi.x, pi.y };
 
       ImGui::Text("Pos: ");
@@ -99,9 +92,22 @@ game2d::update_ui_hierarchy_system(entt::registry& registry, engine::Application
       }
     }
 
-    //
-    // Display Colour component
-    //
+    // Display SizeComponent
+    if (registry.all_of<SizeComponent>(eid)) {
+      SizeComponent& sc = registry.get<SizeComponent>(eid);
+
+      // Able to change the value of PositionInt component
+      glm::ivec2 size = { sc.w, sc.h };
+
+      ImGui::Text("Size: ");
+      ImGui::SameLine();
+      if (ImGui::DragInt2("##size", glm::value_ptr(size), 0.5f)) {
+        sc.w = size.x;
+        sc.h = size.y;
+      }
+    }
+
+    // Display ColourComponent
     if (registry.all_of<ColourComponent>(eid)) {
       ColourComponent& c = registry.get<ColourComponent>(eid);
 

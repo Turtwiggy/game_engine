@@ -1,15 +1,15 @@
 // your header
-#include "systems/hex_grid.hpp"
+#include "modules/hex/system.hpp"
 
 // components
-#include "components/grid_hex.hpp"
-#include "components/rendering.hpp"
 #include "components/singleton_resources.hpp"
+#include "modules/hex/components.hpp"
+#include "modules/renderer/components.hpp"
 
 // helpers
-#include "helpers/hex_grid.hpp"
-#include "helpers/renderers/batch_triangle.hpp"
 #include "helpers/spritemap.hpp"
+#include "modules/hex/helpers.hpp"
+#include "modules/renderer/helpers/renderers/batch_triangle.hpp"
 
 // other project headers
 #include <glm/glm.hpp>

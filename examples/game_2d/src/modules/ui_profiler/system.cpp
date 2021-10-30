@@ -1,15 +1,14 @@
 // header
-#include "systems/ui_profiler.hpp"
+#include "system.hpp"
 
 // components
-#include "components/player.hpp"
-#include "components/rendering.hpp"
-#include "components/singleton_profiler.hpp"
+#include "modules/renderer/components.hpp"
+#include "modules/ui_profiler/components.hpp"
 
 // helpers
-#include "helpers/renderers/batch_quad.hpp"
-#include "helpers/renderers/batch_triangle.hpp"
-#include "helpers/renderers/batch_triangle_fan.hpp"
+#include "modules/renderer/helpers/renderers/batch_quad.hpp"
+#include "modules/renderer/helpers/renderers/batch_triangle.hpp"
+#include "modules/renderer/helpers/renderers/batch_triangle_fan.hpp"
 
 // other lib headers
 #include <imgui.h>

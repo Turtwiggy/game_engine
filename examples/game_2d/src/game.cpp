@@ -3,23 +3,25 @@
 
 // components
 #include "components/parry.hpp"
-#include "components/physics.hpp"
 #include "components/player.hpp"
-#include "components/rendering.hpp"
 #include "components/singleton_grid.hpp"
-#include "components/singleton_profiler.hpp"
 #include "components/singleton_resources.hpp"
-#include "components/tag.hpp"
 #include "components/velocity_in_boundingbox.hpp"
+#include "modules/physics/components.hpp"
+#include "modules/renderer/components.hpp"
+#include "modules/ui_profiler/components.hpp"
+
+// helpers
+#include "helpers/physics_layers.hpp"
 
 // systems
+#include "modules/physics/system.hpp"
+#include "modules/renderer/system.hpp"
+#include "modules/ui_hierarchy/system.hpp"
+#include "modules/ui_profiler/system.hpp"
 #include "systems/move_objects.hpp"
 #include "systems/parry.hpp"
-#include "systems/physics.hpp"
 #include "systems/player_input.hpp"
-#include "systems/render.hpp"
-#include "systems/ui_hierarchy.hpp"
-#include "systems/ui_profiler.hpp"
 #include "systems/velocity_in_boundingbox.hpp"
 
 // engine headers
@@ -59,7 +61,8 @@ game2d::init(entt::registry& registry, glm::ivec2 screen_wh)
     registry.emplace<PositionIntComponent>(r, 30 * GRID_SIZE, 25 * GRID_SIZE);
     registry.emplace<SizeComponent>(r, GRID_SIZE, GRID_SIZE);
     registry.emplace<SpriteComponent>(r, sprite::type::PERSON_1);
-    registry.emplace<CollidableComponent>(r, CollisionLayer::PLAYER);
+    CollisionLayer layer(static_cast<int>(GameCollisionLayer::PLAYER));
+    registry.emplace<CollidableComponent>(r, layer);
   }
 
   // Add a cursor
@@ -84,7 +87,8 @@ game2d::init(entt::registry& registry, glm::ivec2 screen_wh)
     registry.emplace<SizeComponent>(r, GRID_SIZE, GRID_SIZE);
     registry.emplace<SpriteComponent>(r, sprite::type::EMPTY);
     registry.emplace<ParryComponent>(r);
-    registry.emplace<CollidableComponent>(r, CollisionLayer::OTHER);
+    CollisionLayer layer(static_cast<int>(GameCollisionLayer::OTHER));
+    registry.emplace<CollidableComponent>(r, layer);
   }
 
   // Add goal object
@@ -95,9 +99,11 @@ game2d::init(entt::registry& registry, glm::ivec2 screen_wh)
     registry.emplace<PositionIntComponent>(r, 10 * GRID_SIZE, 25 * GRID_SIZE);
     registry.emplace<SizeComponent>(r, GRID_SIZE, GRID_SIZE);
     registry.emplace<SpriteComponent>(r, sprite::type::EMPTY);
-    registry.emplace<CollidableComponent>(r, CollisionLayer::GOAL);
+    CollisionLayer layer(static_cast<int>(GameCollisionLayer::GOAL));
+    registry.emplace<CollidableComponent>(r, layer);
   }
 
+  init_physics_system(registry);
   init_ui_profiler_system(registry);
   init_ui_hierarchy_system(registry);
 };

@@ -3,10 +3,9 @@
 
 // components
 #include "components/parry.hpp"
-#include "components/physics.hpp"
 #include "components/player.hpp"
-#include "components/rendering.hpp"
-#include "components/singleton_renderer.hpp"
+#include "modules/physics/components.hpp"
+#include "modules/renderer/components.hpp"
 
 // other engine headers
 #include "engine/grid.hpp"

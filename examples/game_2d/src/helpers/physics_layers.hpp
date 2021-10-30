@@ -2,11 +2,11 @@
 
 namespace game2d {
 
-enum class CollisionLayer
+enum class GameCollisionLayer
 {
-  PLAYER,
-  GOAL,
-  OTHER,
+  PLAYER = 0,
+  GOAL = 1,
+  OTHER = 2,
 };
 
 } // namespace game2d

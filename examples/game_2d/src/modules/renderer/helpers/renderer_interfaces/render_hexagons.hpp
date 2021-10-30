@@ -1,7 +1,7 @@
 #pragma once
 
 // game2d headers
-#include "helpers/renderers/batch_triangle.hpp"
+#include "modules/renderer/helpers/renderers/batch_triangle.hpp"
 
 // other lib headers
 #include <entt/entt.hpp>
