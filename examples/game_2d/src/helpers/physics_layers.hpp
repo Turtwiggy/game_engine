@@ -7,6 +7,8 @@ enum class GameCollisionLayer
 {
   PLAYER = 1,
   GOAL = 2,
+  WALL = 3,
+  BALL = 4,
 };
 
 } // namespace game2d

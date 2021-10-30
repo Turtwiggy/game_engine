@@ -20,10 +20,12 @@ struct PhysicsObject
 // A collision occurs between two entities
 struct Collision2D
 {
-  uint32_t ent_id_0;
-  uint32_t ent_id_1;
-  bool collision_x;
-  bool collision_y;
+  uint32_t ent_id_0 = true;
+  uint32_t ent_id_1 = true;
+  bool collision_x = false;
+  bool collision_y = false;
+
+  bool dirty = false; // dirty means it occured last frame
 };
 
 // broadphase: detect collisions that can actually happen and discard collisions which can't.

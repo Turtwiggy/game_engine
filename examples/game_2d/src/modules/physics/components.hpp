@@ -19,6 +19,9 @@ struct VelocityComponent
 struct CollidableComponent
 {
   uint32_t layer_id = 0;
+  // bool on_collision_enter = false;
+  // bool on_collision_stay = false;
+  // bool on_collision_exit = false;
 };
 
 // -- singleton components
@@ -29,7 +32,15 @@ struct SINGLETON_PhysicsComponent
   std::vector<PhysicsObject> collidable;
 
   // resulting collisions from all registered objects
-  std::map<uint64_t, Collision2D> filtered_collisions;
+  std::map<uint64_t, Collision2D> frame_collisions;
+
+  // persistent buffer, meaning the events enter, stay and exit can be tracked.
+  std::map<uint64_t, Collision2D> persistent_collisions;
+
+  // collision states
+  std::vector<Collision2D> collision_enter;
+  std::vector<Collision2D> collision_stay;
+  std::vector<Collision2D> collision_exit;
 };
 
 } // namespace game2d
