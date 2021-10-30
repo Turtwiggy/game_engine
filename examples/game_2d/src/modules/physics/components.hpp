@@ -18,7 +18,7 @@ struct VelocityComponent
 
 struct CollidableComponent
 {
-  CollisionLayer layer;
+  uint32_t layer_id = 0;
 };
 
 // -- singleton components

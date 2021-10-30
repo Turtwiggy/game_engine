@@ -41,6 +41,7 @@ generate_broadphase_collisions(const std::vector<std::reference_wrapper<const Ph
 
       int new_item_left = 0;
       int old_item_right = 0;
+
       if (axis == COLLISION_AXIS::X) {
         // if the new item's left is > than the active_item's right
         new_item_left = new_obj.get().x_tl;
@@ -52,11 +53,6 @@ generate_broadphase_collisions(const std::vector<std::reference_wrapper<const Ph
         old_item_right = old_obj.get().y_tl + old_obj.get().h;
       }
 
-      // Hmm, >= says no if objects are only touching
-      // i.e. object ends exactly as object starts.
-      // > would say yes if objects were touching.
-      // Temporaily saying that should be >=, as
-      // going to require that objects are overlapping
       if (new_item_left >= old_item_right) {
         // no possible collision!
         // remove the active_list item from the active list
@@ -70,18 +66,19 @@ generate_broadphase_collisions(const std::vector<std::reference_wrapper<const Ph
           engine::encode_cantor_pairing_function(old_obj.get().ent_id, new_obj.get().ent_id);
 
         Collision2D& coll = collisions[unique_collision_id];
-
-        // create collision
-        if (collisions.find(unique_collision_id) == collisions.end()) {
-          coll.ent_id_0 = old_obj.get().ent_id;
-          coll.ent_id_1 = new_obj.get().ent_id;
-        }
+        coll.ent_id_0 = old_obj.get().ent_id;
+        coll.ent_id_1 = new_obj.get().ent_id;
 
         // update collision
         if (axis == COLLISION_AXIS::X)
           coll.collision_x = true;
         if (axis == COLLISION_AXIS::Y)
           coll.collision_y = true;
+
+        // debugging
+        // if (coll.collision_x && coll.collision_y) {
+        //   int i = 0; // pause
+        // }
 
         collisions[unique_collision_id] = coll;
         ++it_1;
@@ -100,7 +97,6 @@ game2d::generate_filtered_broadphase_collisions(const std::vector<PhysicsObject>
                                                 std::map<uint64_t, Collision2D>& collision_results)
 {
   // Do broad-phase check.
-  collision_results.clear();
 
   // entities sorted by X-axis
   std::vector<std::reference_wrapper<const PhysicsObject>> sorted_collidable_x(unsorted_aabb.begin(),
@@ -117,7 +113,7 @@ game2d::generate_filtered_broadphase_collisions(const std::vector<PhysicsObject>
   std::sort(sorted_collidable_y.begin(),
             sorted_collidable_y.end(),
             [&](std::reference_wrapper<const PhysicsObject>& a, std::reference_wrapper<const PhysicsObject>& b) {
-              return a.get().x_tl < b.get().x_tl;
+              return a.get().y_tl < b.get().y_tl;
             });
 
   std::map<uint64_t, Collision2D> collisions;
@@ -125,6 +121,7 @@ game2d::generate_filtered_broadphase_collisions(const std::vector<PhysicsObject>
   generate_broadphase_collisions(sorted_collidable_y, COLLISION_AXIS::Y, collisions);
 
   // use broad-phase results....
+  collision_results.clear();
   for (const auto& coll : collisions) {
     const Collision2D& c = coll.second;
     if (c.collision_x && c.collision_y) {

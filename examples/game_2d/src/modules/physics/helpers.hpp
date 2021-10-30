@@ -6,15 +6,6 @@
 
 namespace game2d {
 
-// A unique collision layer
-struct CollisionLayer
-{
-  int id;
-
-  CollisionLayer(int id)
-    : id(id){};
-};
-
 // A physics object needs an entity id, and size info
 struct PhysicsObject
 {

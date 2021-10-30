@@ -1,7 +1,6 @@
 #version 330 core
 out vec4 out_colour;
 
-in vec3 FragPos;
 in vec2 v_tex;
 in vec4 v_colour;
 in vec2 v_sprite_pos;
@@ -9,6 +8,12 @@ in float v_tex_index;
 
 // uniform int sample_texture = 0;
 uniform sampler2D textures[3];
+
+// other sprites - hard coded for kennynl spritesheet atm
+const int num_cols = 48;
+const int num_rows = 22;
+const float scale_x = 1.0f / num_cols;
+const float scale_y = 1.0f / num_rows;
 
 void
 main()
@@ -20,12 +25,6 @@ main()
     // out_colour += texture(textures[index], v_tex) * when_eq((1-sample_texture), 0);
     return;
   } 
-
-  // other sprites - hard coded for kennynl spritesheet atm
-  const int num_cols = 48;
-  const int num_rows = 22;
-  const float scale_x = 1.0f / num_cols;
-  const float scale_y = 1.0f / num_rows;
 
   // clang-format off
   vec2 sprite_uv = vec2(

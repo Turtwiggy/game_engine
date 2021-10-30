@@ -2,11 +2,11 @@
 
 namespace game2d {
 
+// Note; for no collision, don't attach a CollidableComponent
 enum class GameCollisionLayer
 {
-  PLAYER = 0,
-  GOAL = 1,
-  OTHER = 2,
+  PLAYER = 1,
+  GOAL = 2,
 };
 
 } // namespace game2d

@@ -22,6 +22,7 @@
 #include "systems/move_objects.hpp"
 #include "systems/parry.hpp"
 #include "systems/player_input.hpp"
+#include "systems/process_physics.hpp"
 #include "systems/velocity_in_boundingbox.hpp"
 
 // engine headers
@@ -61,8 +62,7 @@ game2d::init(entt::registry& registry, glm::ivec2 screen_wh)
     registry.emplace<PositionIntComponent>(r, 30 * GRID_SIZE, 25 * GRID_SIZE);
     registry.emplace<SizeComponent>(r, GRID_SIZE, GRID_SIZE);
     registry.emplace<SpriteComponent>(r, sprite::type::PERSON_1);
-    CollisionLayer layer(static_cast<int>(GameCollisionLayer::PLAYER));
-    registry.emplace<CollidableComponent>(r, layer);
+    registry.emplace<CollidableComponent>(r, static_cast<uint32_t>(GameCollisionLayer::PLAYER));
   }
 
   // Add a cursor
@@ -76,21 +76,6 @@ game2d::init(entt::registry& registry, glm::ivec2 screen_wh)
     registry.emplace<CursorComponent>(r);
   }
 
-  // Add ball object
-  {
-    entt::entity r = registry.create();
-    registry.emplace<TagComponent>(r, "ball");
-    registry.emplace<VelocityInBoundingboxComponent>(r);
-    registry.emplace<VelocityComponent>(r, -200.0f, 200.0f);
-    registry.emplace<ColourComponent>(r, 1.0f, 1.0f, 1.0f, 1.0f);
-    registry.emplace<PositionIntComponent>(r, 50 * GRID_SIZE, 25 * GRID_SIZE);
-    registry.emplace<SizeComponent>(r, GRID_SIZE, GRID_SIZE);
-    registry.emplace<SpriteComponent>(r, sprite::type::EMPTY);
-    registry.emplace<ParryComponent>(r);
-    CollisionLayer layer(static_cast<int>(GameCollisionLayer::OTHER));
-    registry.emplace<CollidableComponent>(r, layer);
-  }
-
   // Add goal object
   {
     entt::entity r = registry.create();
@@ -99,8 +84,22 @@ game2d::init(entt::registry& registry, glm::ivec2 screen_wh)
     registry.emplace<PositionIntComponent>(r, 10 * GRID_SIZE, 25 * GRID_SIZE);
     registry.emplace<SizeComponent>(r, GRID_SIZE, GRID_SIZE);
     registry.emplace<SpriteComponent>(r, sprite::type::EMPTY);
-    CollisionLayer layer(static_cast<int>(GameCollisionLayer::GOAL));
-    registry.emplace<CollidableComponent>(r, layer);
+    registry.emplace<CollidableComponent>(r, static_cast<uint32_t>(GameCollisionLayer::GOAL));
+  }
+
+  // Add balls
+  {
+    for (int i = 1; i < 10; i++) {
+      entt::entity r = registry.create();
+      registry.emplace<TagComponent>(r, std::string("ball" + std::to_string(i)));
+      registry.emplace<VelocityInBoundingboxComponent>(r);
+      registry.emplace<VelocityComponent>(r, 250.0f / i, 250.0f / i);
+      registry.emplace<ColourComponent>(r, 1.0f, 1.0f, 1.0f, 1.0f);
+      registry.emplace<PositionIntComponent>(r, 50 * GRID_SIZE, 25 * GRID_SIZE);
+      registry.emplace<SizeComponent>(r, GRID_SIZE, GRID_SIZE);
+      registry.emplace<SpriteComponent>(r, sprite::type::EMPTY);
+      registry.emplace<ParryComponent>(r);
+    }
   }
 
   init_physics_system(registry);
@@ -140,6 +139,7 @@ game2d::update(entt::registry& registry, engine::Application& app, float dt)
   {
     update_move_objects_system(registry, app, dt);
     update_velocity_in_boundingbox_system(registry, app, dt);
+    update_process_physics_system(registry, app, dt);
     update_parry_system(registry, app, dt);
   };
   Uint64 end_game_tick = SDL_GetPerformanceCounter();

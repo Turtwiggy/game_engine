@@ -86,32 +86,3 @@ constexpr glm::vec4 vfx_impact_colour = glm::vec4(0.65f, 0.65f, 0.65f, 1.0f); //
 constexpr glm::vec4 damage_number_colour = glm::vec4(1.0f, 1.0f, 1.0f, 1.0f); // white
 constexpr glm::vec4 enemy_death_splat_colour = PALETTE_COLOUR_5_1;            // same red
 constexpr glm::vec4 enemy_impact_colour = glm::vec4(1.0f, 0.5f, 0.5f, 1.0f);  // brighter redish
-
-static const std::vector<bool> GAME_COLL_MATRIX = {
-  false, // NoCollision_NoCollision_0_0
-  false, // bullet_NoCollision_1_0
-  false, // Player_NoCollision_2_0
-  false, // Enemy_NoCollision_3_0
-  false, // Obstacle_NoCollision_4_0
-  false, // Weapon_NoCollision_5_0
-
-  false, // bullet_bullet_1_1
-  false, // player_bullet_2_1
-  true,  // enemy_bullet_3_1
-  true,  // Obstacle_bullet_4_1
-  false, // Weapon_bullet_5_1
-
-  false, // player_player_2_2
-  true,  // enemy_player_3_2
-  true,  // Obstacle_player_4_2
-  false, // Weapon_player_5_2
-
-  false, // enemy_enemy_3_3
-  true,  // Obstacle_enemy_4_3
-  true,  // Weapon_enemy_5_3
-
-  false, // Obstacle_Obstacle_4_4
-  false, // Weapon_Obstacle_5_4
-
-  false, // Weapon_Weapon_5_5
-};

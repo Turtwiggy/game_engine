@@ -50,6 +50,7 @@ game2d::init_render_system(entt::registry& registry, const glm::ivec2& screen_wh
 
   // initialize renderers
   RenderCommand::init();
+  RenderCommand::set_depth_testing(false);
   print_gpu_info();
   quad_renderer::QuadRenderer::init();
   triangle_renderer::TriangleRenderer::init();
@@ -79,15 +80,14 @@ game2d::update_render_system(entt::registry& registry, engine::Application& app)
 {
   SINGLETON_ResourceComponent& r = registry.ctx<SINGLETON_ResourceComponent>();
   SINGLETON_RendererInfo& ri = registry.ctx<SINGLETON_RendererInfo>();
-  glm::vec4 background_colour = glm::vec4(57.0f / 255.0f, 62.0f / 255.0f, 70.0f / 255.0f, 1.0f);
+  const glm::vec4 background_colour = glm::vec4(57.0f / 255.0f, 62.0f / 255.0f, 70.0f / 255.0f, 1.0f);
 
   // Resize
   auto viewport_wh = ri.viewport_size_render_at;
   if (ri.viewport_size_current.x > 0.0f && ri.viewport_size_current.y > 0.0f &&
-      (ri.viewport_size_render_at.x != ri.viewport_size_current.x ||
-       ri.viewport_size_render_at.y != ri.viewport_size_current.y)) {
-    viewport_wh = ri.viewport_size_current;
-    ri.viewport_size_render_at = viewport_wh;
+      (viewport_wh.x != ri.viewport_size_current.x || viewport_wh.y != ri.viewport_size_current.y)) {
+    ri.viewport_size_render_at = ri.viewport_size_current;
+    viewport_wh = ri.viewport_size_render_at;
 
     // update texture
     bind_tex(ri.tex_id_main_scene, tex_unit_main_scene);
@@ -102,7 +102,6 @@ game2d::update_render_system(entt::registry& registry, engine::Application& app)
   Framebuffer::bind_fbo(ri.fbo_main_scene);
   RenderCommand::set_viewport(0, 0, viewport_wh.x, viewport_wh.y);
   RenderCommand::set_clear_colour(background_colour);
-  RenderCommand::set_depth_testing(false);
   RenderCommand::clear();
 
   // Do triangle stuff
@@ -119,7 +118,7 @@ game2d::update_render_system(entt::registry& registry, engine::Application& app)
     quad_renderer::RenderDescriptor desc;
     const auto& view =
       registry.view<const PositionIntComponent, const SizeComponent, const ColourComponent, const SpriteComponent>();
-    view.each([&registry, &ri, &desc](const auto entity, const auto& p, const auto& s, const auto& c, const auto& spr) {
+    view.each([&registry, &ri, &desc](const auto& p, const auto& s, const auto& c, const auto& spr) {
       desc.pos_tl = { p.x - int(s.w / 2.0f), p.y - int(s.h / 2.0f) };
       desc.colour = c.colour;
       desc.size = { s.w, s.h };
@@ -137,7 +136,6 @@ game2d::update_render_system(entt::registry& registry, engine::Application& app)
   Framebuffer::default_fbo();
   RenderCommand::set_viewport(0, 0, viewport_wh.x, viewport_wh.y);
   RenderCommand::set_clear_colour(glm::vec4(0.0f, 0.0f, 0.0f, 1.0f));
-  RenderCommand::set_depth_testing(false);
   RenderCommand::clear();
 
   static bool dockspace_open = true;
