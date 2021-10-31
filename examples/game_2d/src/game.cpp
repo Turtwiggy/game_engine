@@ -51,6 +51,12 @@ game2d::init(entt::registry& registry, glm::ivec2 screen_wh)
   registry.set<SINGLETON_ResourceComponent>(SINGLETON_ResourceComponent());
   registry.set<SINGLETON_GridSize>(SINGLETON_GridSize());
 
+  // colours
+  const glm::vec4 colour_red = glm::vec4(232 / 255.0f, 80 / 255.0f, 100 / 255.0f, 1.0f);
+  const glm::vec4 colour_cyan = glm::vec4(8 / 255.0f, 177 / 255.0f, 190 / 255.0f, 1.0f);
+  const glm::vec4 colour_dblue = glm::vec4(49 / 255.0f, 99 / 255.0f, 188 / 255.0f, 1.0f);
+  const glm::vec4 colour_white = glm::vec4(1.0f);
+
   // access singleton data
   const auto& res = registry.ctx<SINGLETON_ResourceComponent>();
   const auto& gs = registry.ctx<SINGLETON_GridSize>();
@@ -62,8 +68,8 @@ game2d::init(entt::registry& registry, glm::ivec2 screen_wh)
     registry.emplace<TagComponent>(r, "player");
     registry.emplace<Player>(r);
     registry.emplace<VelocityComponent>(r);
-    registry.emplace<ColourComponent>(r, 1.0f, 1.0f, 1.0f, 1.0f);
-    registry.emplace<PositionIntComponent>(r, 30 * GRID_SIZE, 25 * GRID_SIZE);
+    registry.emplace<ColourComponent>(r, colour_cyan);
+    registry.emplace<PositionIntComponent>(r, 25 * GRID_SIZE, 25 * GRID_SIZE);
     registry.emplace<SizeComponent>(r, GRID_SIZE, GRID_SIZE);
     registry.emplace<SpriteComponent>(r, sprite::type::PERSON_1);
     registry.emplace<CollidableComponent>(r, static_cast<uint32_t>(GameCollisionLayer::PLAYER));
@@ -84,7 +90,7 @@ game2d::init(entt::registry& registry, glm::ivec2 screen_wh)
   {
     entt::entity r = registry.create();
     registry.emplace<TagComponent>(r, "goal");
-    registry.emplace<ColourComponent>(r, 0.0f, 1.0f, 0.0f, 1.0f);
+    registry.emplace<ColourComponent>(r, colour_white);
     registry.emplace<PositionIntComponent>(r, 10 * GRID_SIZE, 25 * GRID_SIZE);
     registry.emplace<SizeComponent>(r, GRID_SIZE, GRID_SIZE);
     registry.emplace<SpriteComponent>(r, sprite::type::EMPTY);
@@ -95,7 +101,7 @@ game2d::init(entt::registry& registry, glm::ivec2 screen_wh)
   {
     entt::entity r = registry.create();
     registry.emplace<TagComponent>(r, "wall");
-    registry.emplace<ColourComponent>(r, 1.0f, 0.0f, 0.0f, 1.0f);
+    registry.emplace<ColourComponent>(r, colour_red);
     registry.emplace<PositionIntComponent>(r, 16 * GRID_SIZE, 25 * GRID_SIZE);
     registry.emplace<SizeComponent>(r, GRID_SIZE, GRID_SIZE);
     registry.emplace<SpriteComponent>(r, sprite::type::EMPTY);
@@ -104,13 +110,13 @@ game2d::init(entt::registry& registry, glm::ivec2 screen_wh)
 
   // Add balls
   {
-    for (int i = 1; i < 1000; i++) {
+    for (int i = 1; i < 2; i++) {
       entt::entity r = registry.create();
       registry.emplace<TagComponent>(r, std::string("ball" + std::to_string(i)));
       registry.emplace<VelocityInBoundingboxComponent>(r);
-      registry.emplace<VelocityComponent>(r, -500.0f, i * 2.0f);
-      registry.emplace<ColourComponent>(r, 1.0f, 1.0f, 1.0f, 1.0f);
-      registry.emplace<PositionIntComponent>(r, (30 + i) * GRID_SIZE, 25 * GRID_SIZE);
+      registry.emplace<VelocityComponent>(r, -5.0f, 0.0f);
+      registry.emplace<ColourComponent>(r, colour_dblue);
+      registry.emplace<PositionIntComponent>(r, (30) * GRID_SIZE, 25 * GRID_SIZE);
       registry.emplace<SizeComponent>(r, GRID_SIZE, GRID_SIZE);
       registry.emplace<SpriteComponent>(r, sprite::type::EMPTY);
       registry.emplace<ParryComponent>(r);
@@ -149,8 +155,8 @@ game2d::update(entt::registry& registry, engine::Application& app, float dt)
   // game logic
   Uint64 start_game_tick = SDL_GetPerformanceCounter();
   {
-    // update_process_physics_system(registry, app, dt);
-    update_destroy_on_collide_system(registry, app, dt);
+    update_process_physics_system(registry, app, dt);
+    // update_destroy_on_collide_system(registry, app, dt);
     update_move_objects_system(registry, app, dt);
     update_velocity_in_boundingbox_system(registry, app, dt);
     update_parry_system(registry, app, dt);
