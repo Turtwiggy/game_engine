@@ -16,16 +16,17 @@
 #include "helpers/physics_layers.hpp"
 
 // systems
+#include "modules/map_editor/system.hpp"
 #include "modules/physics/system.hpp"
 #include "modules/renderer/system.hpp"
 #include "modules/ui_hierarchy/system.hpp"
+#include "modules/ui_physics/system.hpp"
 #include "modules/ui_profiler/system.hpp"
 #include "systems/destroy_on_collide.hpp"
 #include "systems/move_objects.hpp"
 #include "systems/parry.hpp"
 #include "systems/player_input.hpp"
 #include "systems/process_physics.hpp"
-#include "systems/save_map.hpp"
 #include "systems/velocity_in_boundingbox.hpp"
 
 // engine headers
@@ -48,7 +49,8 @@ void
 init_game_state(entt::registry& registry)
 {
   registry.each([&registry](auto entity) { registry.destroy(entity); });
-  registry.set<SINGLETON_PhysicsComponent>(SINGLETON_PhysicsComponent());
+  init_physics_system(registry);
+  init_map_editor_system(registry);
   registry.set<SINGLETON_ResourceComponent>(SINGLETON_ResourceComponent());
   registry.set<SINGLETON_GridSize>(SINGLETON_GridSize());
 
@@ -66,6 +68,17 @@ init_game_state(entt::registry& registry)
   const auto& res = registry.ctx<SINGLETON_ResourceComponent>();
   const auto& gs = registry.ctx<SINGLETON_GridSize>();
   const int GRID_SIZE = gs.size_xy;
+
+  // Add a cursor
+  {
+    entt::entity r = registry.create();
+    registry.emplace<TagComponent>(r, "cursor");
+    registry.emplace<ColourComponent>(r, 1.0f, 0.0f, 0.0f, 0.5f);
+    registry.emplace<PositionIntComponent>(r);
+    registry.emplace<SizeComponent>(r, GRID_SIZE, GRID_SIZE);
+    registry.emplace<SpriteComponent>(r, sprite::type::EMPTY);
+    registry.emplace<CursorComponent>(r);
+  }
 
   // Add balls
   {
@@ -98,17 +111,6 @@ init_game_state(entt::registry& registry)
     registry.emplace<SizeComponent>(r, GRID_SIZE, GRID_SIZE);
     registry.emplace<SpriteComponent>(r, sprite::type::PERSON_1);
     registry.emplace<CollidableComponent>(r, static_cast<uint32_t>(GameCollisionLayer::PLAYER));
-  }
-
-  // Add a cursor
-  {
-    entt::entity r = registry.create();
-    registry.emplace<TagComponent>(r, "cursor");
-    registry.emplace<ColourComponent>(r, 1.0f, 0.0f, 0.0f, 0.5f);
-    registry.emplace<PositionIntComponent>(r);
-    registry.emplace<SizeComponent>(r, GRID_SIZE, GRID_SIZE);
-    registry.emplace<SpriteComponent>(r, sprite::type::EMPTY);
-    registry.emplace<CursorComponent>(r);
   }
 
   // Add goal object
@@ -168,7 +170,6 @@ game2d::update(entt::registry& registry, engine::Application& app, float dt)
       app.shutdown();
     }
 #endif
-    update_save_map_system(registry, app, dt);
     update_player_input_system(registry, app);
     update_process_physics_system(registry, app, dt);
     // update_destroy_on_collide_system(registry, app, dt);
@@ -189,7 +190,9 @@ game2d::update(entt::registry& registry, engine::Application& app, float dt)
 
   // ui
   {
+    update_map_editor_system(registry, app, dt);
     update_ui_profiler_system(registry, app);
+    update_ui_physics_system(registry, app);
     update_ui_hierarchy_system(registry, app);
   };
 

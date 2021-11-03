@@ -21,7 +21,7 @@ game2d::update_ui_hierarchy_system(entt::registry& registry, engine::Application
   static std::optional<entt::entity> selected_entity = std::nullopt;
   std::optional<entt::entity> optional_eid = selected_entity;
 
-  ImGui::Begin("Hierarchy");
+  ImGui::Begin("Hierarchy", NULL, ImGuiWindowFlags_NoFocusOnAppearing);
   {
     // List all entities...
     registry.each([&registry, &optional_eid](auto entity) {
@@ -54,7 +54,7 @@ game2d::update_ui_hierarchy_system(entt::registry& registry, engine::Application
   if (optional_eid != selected_entity)
     selected_entity = optional_eid;
 
-  ImGui::Begin("Properties");
+  ImGui::Begin("Properties", NULL, ImGuiWindowFlags_NoFocusOnAppearing);
   if (selected_entity.value_or(entt::null) != entt::null) {
 
     const auto& eid = optional_eid.value_or(entt::null);

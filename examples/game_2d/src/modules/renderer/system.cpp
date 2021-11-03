@@ -173,8 +173,9 @@ game2d::update_render_system(entt::registry& registry, engine::Application& app)
     ImGui::DockSpace(dockspace_id, ImVec2(0.0f, 0.0f), dockspace_flags);
   }
 
-  ImGuiWindowFlags viewport_flags = ImGuiWindowFlags_NoFocusOnAppearing;
-  viewport_flags |= ImGuiWindowFlags_NoTitleBar;
+  // ImGuiWindowFlags viewport_flags = ImGuiWindowFlags_NoFocusOnAppearing;
+  // viewport_flags |= ImGuiWindowFlags_NoTitleBar;
+  ImGuiWindowFlags viewport_flags = ImGuiWindowFlags_NoTitleBar;
 
   ImGui::PushStyleVar(ImGuiStyleVar_WindowPadding, ImVec2(0.0f, 0.0f));
   ImGui::Begin("Viewport", NULL, viewport_flags);

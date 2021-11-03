@@ -118,7 +118,6 @@ enemy_spawner::next_wave(int& enemies_to_spawn_this_wave, int& enemies_to_spawn_
   std::cout << "left: " << enemies_to_spawn_this_wave_left << std::endl;
 }
 
-// TODO fix this
 void
 spawn_enemy(MutableGameState& state, engine::RandomState& rnd, glm::vec2 world_pos)
 {
