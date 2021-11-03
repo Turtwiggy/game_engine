@@ -16,8 +16,7 @@
 void
 game2d::init_ui_profiler_system(entt::registry& registry)
 {
-  Profiler p;
-  registry.set<Profiler>(p);
+  registry.set<Profiler>(Profiler());
 }
 
 void
@@ -34,7 +33,6 @@ game2d::update_ui_profiler_system(entt::registry& registry, engine::Application&
     ImGui::Text("FPS %f", ImGui::GetIO().Framerate);
     ImGui::Separator();
     ImGui::Text("Physics %f", p.physics_elapsed_ms);
-    ImGui::Text("Input %f", p.input_elapsed_ms);
     ImGui::Text("Game Tick %f", p.game_tick_elapsed_ms);
     ImGui::Text("Render %f", p.render_elapsed_ms);
     ImGui::Text("Frame ms total %f", 1000.0f / ImGui::GetIO().Framerate);

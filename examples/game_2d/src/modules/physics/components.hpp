@@ -19,9 +19,6 @@ struct VelocityComponent
 struct CollidableComponent
 {
   uint32_t layer_id = 0;
-  // bool on_collision_enter = false;
-  // bool on_collision_stay = false;
-  // bool on_collision_exit = false;
 };
 
 // -- singleton components

@@ -1,21 +1,23 @@
 [![License](https://img.shields.io/badge/License-Apache%202.0-blue.svg)](https://opensource.org/licenses/Apache-2.0)
 
-An opengl game engine project. 
+An opengl game engine project.
 
 ### Features
 
 #### general
-- threaded texture loading
-- controller support (thanks SDL2)
-- audio (thanks OpenAL)
 
-#### 2d 
+- threaded texture loading
+- controller support via SDL2
+
+#### 2d
+
 - sweep and prune collision detection for aabb
 - batch renderer
 - shadow casting
 
 #### 3d
-- model loading
+
+- model loading via assimp
 
 #### More Info
 
@@ -26,9 +28,11 @@ An opengl game engine project.
 #### Maybe in future
 
 networking...?
+
 - GGPO
 - GameNetworkingSockets
 
 3d...?
+
 - Bullet3 - physics
 - ImGuizmo

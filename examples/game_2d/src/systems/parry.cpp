@@ -2,6 +2,7 @@
 #include "systems/parry.hpp"
 
 // components
+#include "components/flash_colour.hpp"
 #include "components/parry.hpp"
 #include "components/player.hpp"
 #include "modules/physics/components.hpp"
@@ -22,27 +23,25 @@ game2d::update_parry_system(entt::registry& registry, engine::Application& app, 
   if (!ri.viewport_process_events)
     return;
 
+  // check distance
+  int parry_distance = 75;
+  float ball_speed = 50.0f;
+
   // Player-Bouncy interaction
   {
-    //
     // For each player...
     auto player_view = registry.view<const Player, const PositionIntComponent>();
-    player_view.each([&registry, &app](const auto& player, const auto& p_pos) {
-      //
+    player_view.each([&registry, &app, &parry_distance, &ball_speed](const auto& player, const auto& p_pos) {
       // For each bouncy object...
-      const auto& view =
-        registry.view<VelocityComponent, ColourComponent, const PositionIntComponent, const ParryComponent>();
-      view.each([&app, &p_pos](auto& vel, auto& colour, const auto& b_pos, const auto& bouncy) {
+      const auto& view = registry.view<VelocityComponent, const PositionIntComponent, const ParryComponent>();
+      view.each([&registry, &app, &p_pos, &parry_distance, &ball_speed](
+                  auto entity, auto& vel, const auto& b_pos, const auto& bouncy) {
         int xdist = glm::abs(b_pos.x - p_pos.x);
         int ydist = glm::abs(b_pos.y - p_pos.y);
 
         // check ball is approaching player
         bool approaching_x = (b_pos.x > p_pos.x && vel.x <= 0) || (b_pos.x < p_pos.x && vel.x > 0);
         bool approaching_y = (b_pos.y < p_pos.y && vel.y > 0) || (b_pos.y > p_pos.y && vel.y <= 0);
-
-        // check distance
-        int parry_distance = 75;
-        float ball_speed = 50.0f;
 
         bool able_to_be_parried = xdist < parry_distance && ydist < parry_distance;
         able_to_be_parried &= approaching_x || approaching_y;
@@ -58,11 +57,16 @@ game2d::update_parry_system(entt::registry& registry, engine::Application& app, 
           vel.y = dir.y * 100.0f;
         }
 
-        // Change ball colour if its interactable
-        if (able_to_be_parried)
-          colour.colour = glm::vec4(1.0f, 0.0f, 0.0f, 1.0f); // red
-        else
-          colour.colour = glm::vec4(1.0f); // white
+        if (registry.all_of<ColourComponent, FlashColourComponent>(entity)) {
+          auto& colour = registry.get<ColourComponent>(entity);
+          auto& flash = registry.get<FlashColourComponent>(entity);
+
+          // Change ball colour if its interactable
+          if (able_to_be_parried)
+            colour.colour = flash.flash_colour;
+          else
+            colour.colour = flash.start_colour;
+        }
 
         able_to_be_parried = false;
       });

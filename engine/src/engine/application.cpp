@@ -20,10 +20,8 @@ Application::Application(const std::string& name, int width, int height, bool vs
   // const std::string kBuildStr(kGitSHA1Hash, 8);
   std::string kBuildStr = "";
 
-#ifdef WIN32
 #ifdef _DEBUG
   kBuildStr = kBuildStr + std::string(" [DEBUG]");
-#endif
 #endif
 
   // Window

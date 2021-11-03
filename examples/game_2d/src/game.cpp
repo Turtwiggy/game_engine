@@ -2,6 +2,7 @@
 #include "game.hpp"
 
 // components
+#include "components/flash_colour.hpp"
 #include "components/parry.hpp"
 #include "components/player.hpp"
 #include "components/singleton_grid.hpp"
@@ -24,6 +25,7 @@
 #include "systems/parry.hpp"
 #include "systems/player_input.hpp"
 #include "systems/process_physics.hpp"
+#include "systems/save_map.hpp"
 #include "systems/velocity_in_boundingbox.hpp"
 
 // engine headers
@@ -40,27 +42,50 @@
 #include <utility>
 #include <vector>
 
-void
-game2d::init(entt::registry& registry, glm::ivec2 screen_wh)
-{
-  init_render_system(registry, screen_wh);
-  init_physics_system(registry);
-  init_ui_profiler_system(registry);
-  init_ui_hierarchy_system(registry);
+namespace game2d {
 
+void
+init_game_state(entt::registry& registry)
+{
+  registry.each([&registry](auto entity) { registry.destroy(entity); });
+  registry.set<SINGLETON_PhysicsComponent>(SINGLETON_PhysicsComponent());
   registry.set<SINGLETON_ResourceComponent>(SINGLETON_ResourceComponent());
   registry.set<SINGLETON_GridSize>(SINGLETON_GridSize());
+
+  // load in map data
+  // TODO
 
   // colours
   const glm::vec4 colour_red = glm::vec4(232 / 255.0f, 80 / 255.0f, 100 / 255.0f, 1.0f);
   const glm::vec4 colour_cyan = glm::vec4(8 / 255.0f, 177 / 255.0f, 190 / 255.0f, 1.0f);
   const glm::vec4 colour_dblue = glm::vec4(49 / 255.0f, 99 / 255.0f, 188 / 255.0f, 1.0f);
   const glm::vec4 colour_white = glm::vec4(1.0f);
+  const glm::vec4 colour_green = glm::vec4(100 / 255.0f, 188 / 255.0f, 49 / 255.0f, 1.0f);
 
   // access singleton data
   const auto& res = registry.ctx<SINGLETON_ResourceComponent>();
   const auto& gs = registry.ctx<SINGLETON_GridSize>();
   const int GRID_SIZE = gs.size_xy;
+
+  // Add balls
+  {
+    for (int i = 1; i < 2; i++) {
+      entt::entity r = registry.create();
+      registry.emplace<TagComponent>(r, std::string("ball" + std::to_string(i)));
+      registry.emplace<VelocityInBoundingboxComponent>(r);
+      registry.emplace<VelocityComponent>(r, -50.0f, 0.0f);
+      FlashColourComponent f;
+      f.start_colour = colour_dblue;
+      f.flash_colour = colour_green;
+      registry.emplace<FlashColourComponent>(r, f);
+      registry.emplace<ColourComponent>(r, colour_dblue);
+      registry.emplace<PositionIntComponent>(r, (30) * GRID_SIZE, 25 * GRID_SIZE);
+      registry.emplace<SizeComponent>(r, GRID_SIZE, GRID_SIZE);
+      registry.emplace<SpriteComponent>(r, sprite::type::EMPTY);
+      registry.emplace<ParryComponent>(r);
+      registry.emplace<CollidableComponent>(r, static_cast<uint32_t>(GameCollisionLayer::BALL));
+    }
+  }
 
   // Add a player
   {
@@ -107,22 +132,16 @@ game2d::init(entt::registry& registry, glm::ivec2 screen_wh)
     registry.emplace<SpriteComponent>(r, sprite::type::EMPTY);
     registry.emplace<CollidableComponent>(r, static_cast<uint32_t>(GameCollisionLayer::WALL));
   }
+};
 
-  // Add balls
-  {
-    for (int i = 1; i < 2; i++) {
-      entt::entity r = registry.create();
-      registry.emplace<TagComponent>(r, std::string("ball" + std::to_string(i)));
-      registry.emplace<VelocityInBoundingboxComponent>(r);
-      registry.emplace<VelocityComponent>(r, -5.0f, 0.0f);
-      registry.emplace<ColourComponent>(r, colour_dblue);
-      registry.emplace<PositionIntComponent>(r, (30) * GRID_SIZE, 25 * GRID_SIZE);
-      registry.emplace<SizeComponent>(r, GRID_SIZE, GRID_SIZE);
-      registry.emplace<SpriteComponent>(r, sprite::type::EMPTY);
-      registry.emplace<ParryComponent>(r);
-      registry.emplace<CollidableComponent>(r, static_cast<uint32_t>(GameCollisionLayer::BALL));
-    }
-  }
+} // namespace game2d
+
+void
+game2d::init(entt::registry& registry, glm::ivec2 screen_wh)
+{
+  init_render_system(registry, screen_wh);
+  init_ui_profiler_system(registry);
+  init_game_state(registry);
 };
 
 void
@@ -138,23 +157,19 @@ game2d::update(entt::registry& registry, engine::Application& app, float dt)
   Uint64 end_physics = SDL_GetPerformanceCounter();
   p.physics_elapsed_ms = (end_physics - start_physics) / float(SDL_GetPerformanceFrequency()) * 1000.0f;
 
-  // input
-  Uint64 start_input = SDL_GetPerformanceCounter();
+  // game logic
+  Uint64 start_game_tick = SDL_GetPerformanceCounter();
   {
-    update_player_input_system(registry, app);
-
 #ifdef _DEBUG
+    if (app.get_input().get_key_down(SDL_SCANCODE_R)) {
+      init_game_state(registry);
+    }
     if (app.get_input().get_key_down(SDL_SCANCODE_ESCAPE)) {
       app.shutdown();
     }
 #endif
-  };
-  Uint64 end_input = SDL_GetPerformanceCounter();
-  p.input_elapsed_ms = (end_input - start_input) / float(SDL_GetPerformanceFrequency()) * 1000.0f;
-
-  // game logic
-  Uint64 start_game_tick = SDL_GetPerformanceCounter();
-  {
+    update_save_map_system(registry, app, dt);
+    update_player_input_system(registry, app);
     update_process_physics_system(registry, app, dt);
     // update_destroy_on_collide_system(registry, app, dt);
     update_move_objects_system(registry, app, dt);

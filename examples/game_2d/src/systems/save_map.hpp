@@ -9,6 +9,6 @@
 namespace game2d {
 
 void
-update_ui_hierarchy_system(entt::registry& registry, engine::Application& app);
+update_save_map_system(entt::registry& registry, engine::Application& app, float dt);
 
-} // namespace game2d
+}; // namespace game2d

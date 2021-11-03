@@ -36,6 +36,7 @@ main()
     Uint64 frame_start_time = SDL_GetPerformanceCounter();
 
     app.frame_begin(); // input events
+
     float delta_time_s = app.get_delta_time();
     if (delta_time_s >= 0.25f)
       delta_time_s = 0.25f;

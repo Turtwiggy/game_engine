@@ -10,12 +10,6 @@
 #include <glm/glm.hpp>
 
 void
-game2d::init_physics_system(entt::registry& registry)
-{
-  registry.set<SINGLETON_PhysicsComponent>(SINGLETON_PhysicsComponent());
-};
-
-void
 game2d::update_physics_system(entt::registry& registry, engine::Application& app, float dt)
 {
   // 1. get all the collidable components

@@ -9,9 +9,6 @@
 namespace game2d {
 
 void
-init_physics_system(entt::registry& registry);
-
-void
 update_physics_system(entt::registry& registry, engine::Application& app, float dt);
 
 }; // namespace game2d

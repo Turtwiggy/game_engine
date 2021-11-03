@@ -1,4 +1,5 @@
 ### How to get setup
+
 ```git
     git clone (this repo)
     git submodule update --init --recursive
@@ -13,11 +14,11 @@
 (Windows) Install vcpkg dependancies for Window-x64
 
     .\thirdparty\vcpkg\bootstrap-vcpkg.bat
-    .\thirdparty\vcpkg\vcpkg.exe install @deps_vcpkg_x64-windows.txt    
+    .\thirdparty\vcpkg\vcpkg.exe install @deps_vcpkg_x64-windows.txt
     .\thirdparty\vcpkg\vcpkg.exe --overlay-ports=.\thirdparty\GameNetworkingSockets\vcpkg_ports\ install gamenetworkingsockets:x64-windows
 
-### Building
-    
+### Building (CMake)
+
 I develop with visual studio code. You can open the .code-workspace using the C/C++ extention tools:
 
     C/C++ by Microsoft
@@ -29,7 +30,7 @@ I develop with visual studio code. You can open the .code-workspace using the C/
     VS Marketplace Link: https://marketplace.visualstudio.com/items?itemName=vector-of-bool.cmake-tools
 
 Software needed
-    
-- c++ compiler (MSVC, gcc, etc)
+
+- c++ compiler (MSVC, gcc, clang, maybe more?)
 - ninja
 - cmake

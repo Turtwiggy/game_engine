@@ -15,11 +15,6 @@ namespace game2d {
 } // namespace game2d
 
 void
-game2d::init_ui_hierarchy_system(entt::registry& registry){
-  //
-};
-
-void
 game2d::update_ui_hierarchy_system(entt::registry& registry, engine::Application& app)
 {
   // from a system no-data perspective, this is ILLEGAL
