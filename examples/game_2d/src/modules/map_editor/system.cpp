@@ -1,14 +1,15 @@
 // your header
 #include "modules/map_editor/system.hpp"
 
+// components
 #include "modules/map_editor/components.hpp"
 #include "modules/renderer/components.hpp"
 
+// helpers
+#include "modules/map_editor/helpers.hpp"
+
 // other lib headers
 #include <imgui.h>
-
-// c++ lib headers
-#include <iostream>
 
 void
 game2d::init_map_editor_system(entt::registry& registry)
@@ -23,18 +24,15 @@ game2d::update_map_editor_system(entt::registry& registry, engine::Application& 
 
   ImGui::Begin("Map Editor", NULL, ImGuiWindowFlags_NoFocusOnAppearing);
 
-  if (ImGui::Button("Save map")) {
-    std::cout << "Save map" << std::endl;
+  std::string map_path = "assets/2d_game/scenes/here.txt";
 
-    const auto& view = registry.view<const PositionIntComponent>();
-    view.each([](const auto& pos) {
-      //
-      std::cout << "saving " << pos.x << " " << pos.y << " to file" << std::endl;
-    });
+  if (ImGui::Button("Save map")) {
+    serialize_to_text(registry, map_path);
   }
 
   if (ImGui::Button("Load map")) {
-    std::cout << "load map from file" << std::endl;
+    entt::registry new_registry;
+    deserialize_text_to_registry(new_registry, map_path);
   }
 
   if (ImGui::Checkbox("toggle me", &i.toggle)) {

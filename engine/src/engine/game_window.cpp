@@ -50,8 +50,8 @@ GameWindow::GameWindow(const std::string& title, int width, int height, DisplayM
       std::cout << "Could not initialize SDL JoyStick Subsystem:" << SDL_GetError() << std::endl;
   }
 
-  // int flags =SDL_WINDOW_RESIZABLE;
   int flags = SDL_WINDOW_OPENGL | SDL_WINDOW_INPUT_FOCUS | SDL_WINDOW_ALLOW_HIGHDPI;
+  flags |= SDL_WINDOW_RESIZABLE;
 
   if (displaymode == DisplayMode::BORDERLESS)
     flags |= SDL_WINDOW_BORDERLESS;

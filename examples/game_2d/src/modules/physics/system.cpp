@@ -19,7 +19,7 @@ void
 game2d::update_physics_system(entt::registry& registry, engine::Application& app, float dt)
 {
   // 1. get all the collidable components
-  // 2. generte all possible collisions
+  // 2. generate all possible collisions
   // 3. generate collision enter, exit, stay events between collision events
 
   SINGLETON_PhysicsComponent& p = registry.ctx<SINGLETON_PhysicsComponent>();

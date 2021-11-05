@@ -1,63 +1,84 @@
 #include "modules/ui_hierarchy/system.hpp"
 
 // components
+#include "modules/physics/components.hpp"
 #include "modules/renderer/components.hpp"
+#include "modules/ui_hierarchy/components.hpp"
 
 // other lib headers
 #include <glm/gtc/type_ptr.hpp>
 #include <imgui.h>
+#include <iostream>
 
-// c++ lib headers
-#include <optional>
-
-namespace game2d {
-//
-} // namespace game2d
+void
+game2d::init_ui_hierarchy_system(entt::registry& registry)
+{
+  registry.set<SINGLETON_HierarchyComponent>(SINGLETON_HierarchyComponent());
+}
 
 void
 game2d::update_ui_hierarchy_system(entt::registry& registry, engine::Application& app)
 {
-  // from a system no-data perspective, this is ILLEGAL
-  static std::optional<entt::entity> selected_entity = std::nullopt;
-  std::optional<entt::entity> optional_eid = selected_entity;
+  auto& d = registry.ctx<SINGLETON_HierarchyComponent>();
 
   ImGui::Begin("Hierarchy", NULL, ImGuiWindowFlags_NoFocusOnAppearing);
   {
     // List all entities...
-    registry.each([&registry, &optional_eid](auto entity) {
+    registry.each([&registry, &d](auto entity) {
       const auto& tag = registry.get<TagComponent>(entity).tag;
-      const auto& eid = optional_eid.value_or(entt::null);
+      const auto& eid = d.selected_entity;
 
       ImGuiTreeNodeFlags flags = ((eid == entity) ? ImGuiTreeNodeFlags_Selected : 0) | ImGuiTreeNodeFlags_OpenOnArrow;
+      flags |= ImGuiTreeNodeFlags_SpanAvailWidth;
       bool opened = ImGui::TreeNodeEx((void*)(uint64_t)(uint32_t)entity, flags, tag.c_str());
 
       if (ImGui::IsItemClicked())
-        optional_eid = entity;
+        d.selected_entity = entity;
+
+      // Right click on the dropdown entry to delete it
+      bool delete_entity = false;
+      if (ImGui::BeginPopupContextItem()) {
+        if (ImGui::MenuItem("Delete Entity")) {
+          delete_entity = true;
+        }
+        ImGui::EndPopup();
+      }
 
       if (opened) {
-        ImGuiTreeNodeFlags flags = ImGuiTreeNodeFlags_OpenOnArrow;
+        // ImGuiTreeNodeFlags flags = ImGuiTreeNodeFlags_OpenOnArrow;
         // bool opened = ImGui::TreeNodeEx((void*)9817239, flags, tag.c_str());
         // if (opened)
         //   ImGui::TreePop();
-        // ImGui::Text("HERE?");
+        ImGui::Text("a node");
         ImGui::TreePop();
+      }
+
+      if (delete_entity && eid != entt::null) {
+        registry.destroy(eid);
+        if (eid == d.selected_entity) {
+          d.selected_entity = entt::null;
+        }
       }
     });
 
     // If select anywhere in the window, make entity unselected
     if (ImGui::IsMouseDown(0) && ImGui::IsWindowHovered())
-      optional_eid = entt::null;
+      d.selected_entity = entt::null;
+
+    // Right click on menu
+    if (ImGui::BeginPopupContextWindow(0, 1, false)) {
+      if (ImGui::MenuItem("Create Entity")) {
+        entt::entity r = registry.create();
+        registry.emplace<TagComponent>(r, std::string("Empty Entity"));
+      }
+      ImGui::EndPopup();
+    }
   }
   ImGui::End();
 
-  // update static var
-  if (optional_eid != selected_entity)
-    selected_entity = optional_eid;
-
   ImGui::Begin("Properties", NULL, ImGuiWindowFlags_NoFocusOnAppearing);
-  if (selected_entity.value_or(entt::null) != entt::null) {
-
-    const auto& eid = optional_eid.value_or(entt::null);
+  if (d.selected_entity != entt::null) {
+    const auto& eid = d.selected_entity;
 
     // Display TagComponent
     if (registry.all_of<TagComponent>(eid)) {
@@ -109,6 +130,46 @@ game2d::update_ui_hierarchy_system(entt::registry& registry, engine::Application
       ImGui::Text("Colour: ");
       ImGui::SameLine();
       ImGui::ColorEdit4("##colour", glm::value_ptr(c.colour));
+    }
+
+    // Display VelocityComponent
+    if (registry.all_of<VelocityComponent>(eid)) {
+      VelocityComponent& c = registry.get<VelocityComponent>(eid);
+
+      // Able to change the value of PositionInt component
+      glm::ivec2 vel = { c.x, c.y };
+
+      ImGui::Text("Vel: ");
+      ImGui::SameLine();
+      if (ImGui::DragInt2("##velocity", glm::value_ptr(vel), 0.5f)) {
+        c.x = vel.x;
+        c.y = vel.y;
+      }
+    }
+
+    // Add component
+    if (ImGui::Button("Add component")) {
+      ImGui::OpenPopup("AddComponent");
+    }
+
+    if (ImGui::BeginPopup("AddComponent")) {
+      if (ImGui::MenuItem("PositionIntComponent")) {
+        registry.emplace<PositionIntComponent>(eid);
+        ImGui::CloseCurrentPopup();
+      }
+      if (ImGui::MenuItem("SizeComponent")) {
+        registry.emplace<SizeComponent>(eid);
+        ImGui::CloseCurrentPopup();
+      }
+      if (ImGui::MenuItem("ColourComponent")) {
+        registry.emplace<ColourComponent>(eid);
+        ImGui::CloseCurrentPopup();
+      }
+      if (ImGui::MenuItem("SpriteComponent")) {
+        registry.emplace<SpriteComponent>(eid);
+        ImGui::CloseCurrentPopup();
+      }
+      ImGui::EndPopup();
     }
   }
   ImGui::End();
