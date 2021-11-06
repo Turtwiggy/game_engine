@@ -151,7 +151,7 @@ init_game_state(entt::registry& registry)
     registry.emplace<PositionIntComponent>(r, 16 * GRID_SIZE, 25 * GRID_SIZE);
     registry.emplace<SizeComponent>(r, GRID_SIZE, GRID_SIZE);
     registry.emplace<SpriteComponent>(r, sprite::type::EMPTY);
-    registry.emplace<CollidableComponent>(r, static_cast<uint32_t>(GameCollisionLayer::WALL));
+    registry.emplace<CollidableComponent>(r, static_cast<uint32_t>(GameCollisionLayer::WALL), PhysicsType::SOLID);
   }
 };
 
@@ -177,6 +177,9 @@ game2d::update(entt::registry& registry, engine::Application& app, float dt)
   // physics
   Uint64 start_physics = SDL_GetPerformanceCounter();
   {
+    // move objects, checking collisions along way
+    update_move_objects_system(registry, app, dt);
+    // generate all collisions between all objects
     update_physics_system(registry, app, dt);
   }
   Uint64 end_physics = SDL_GetPerformanceCounter();
@@ -196,7 +199,6 @@ game2d::update(entt::registry& registry, engine::Application& app, float dt)
     update_player_input_system(registry, app);
     update_process_physics_system(registry, app, dt);
     // update_destroy_on_collide_system(registry, app, dt);
-    update_move_objects_system(registry, app, dt);
     update_velocity_in_boundingbox_system(registry, app, dt);
     update_parry_system(registry, app, dt);
     update_ai_head_to_random_point_system(registry, app, dt);

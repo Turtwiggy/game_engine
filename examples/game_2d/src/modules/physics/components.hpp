@@ -8,6 +8,14 @@
 
 namespace game2d {
 
+enum class PhysicsType
+{
+  // Actors and solids will never overlap
+  // Solids will never overlap with solids
+  SOLID,
+  ACTOR,
+};
+
 // -- components
 
 struct VelocityComponent
@@ -19,6 +27,7 @@ struct VelocityComponent
 struct CollidableComponent
 {
   uint32_t layer_id = 0;
+  PhysicsType type = PhysicsType::ACTOR;
 };
 
 // -- singleton components
