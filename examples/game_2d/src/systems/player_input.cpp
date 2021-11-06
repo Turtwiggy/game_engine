@@ -3,6 +3,7 @@
 
 // components
 #include "components/player.hpp"
+#include "components/singleton_grid.hpp"
 #include "modules/physics/components.hpp"
 #include "modules/renderer/components.hpp"
 
@@ -31,10 +32,11 @@ game2d::update_player_input_system(entt::registry& registry, engine::Application
   glm::ivec2 mouse_pos = imgui_mouse_pos - glm::ivec2(imgui_viewport_tl.x, imgui_viewport_tl.y);
 
   // adjust pos to keep square visible while mouse is in 4 corners
-  const int grid_size = 16;
+  const auto& gs = registry.ctx<SINGLETON_GridSize>();
+  const int GRID_SIZE = gs.size_xy;
   glm::vec2 grid_adjusted_mouse_pos = mouse_pos;
-  grid_adjusted_mouse_pos.x += grid_size / 2.0f;
-  grid_adjusted_mouse_pos.y += grid_size / 2.0f;
+  grid_adjusted_mouse_pos.x += GRID_SIZE / 2.0f;
+  grid_adjusted_mouse_pos.y += GRID_SIZE / 2.0f;
 
   // ImGui::Begin("Mouse", NULL, ImGuiWindowFlags_NoFocusOnAppearing);
   // ImGui::Text("mouse %f %f", mouse_pos.x, mouse_pos.y);
@@ -42,7 +44,7 @@ game2d::update_player_input_system(entt::registry& registry, engine::Application
 
   {
     const auto& view = registry.view<Player, PositionIntComponent>();
-    view.each([&registry, &app, &grid_adjusted_mouse_pos, &grid_size](const auto& player, auto& pos) {
+    view.each([&registry, &app, &grid_adjusted_mouse_pos, &GRID_SIZE](const auto& player, auto& pos) {
       // Action: Move, Convert WASD to input
       int vx = 0;
       int vy = 0;
@@ -58,16 +60,16 @@ game2d::update_player_input_system(entt::registry& registry, engine::Application
         vx = 1;
 
       // TODO: do not set position directly
-      pos.x += vx * grid_size;
-      pos.y += vy * grid_size;
+      pos.x += vx * GRID_SIZE;
+      pos.y += vy * GRID_SIZE;
       // ImGui::Text("player %i %i", pos.x, pos.y);
-      glm::ivec2 grid_slot = engine::grid::world_space_to_grid_space({ pos.x, pos.y }, grid_size);
+      glm::ivec2 grid_slot = engine::grid::world_space_to_grid_space({ pos.x, pos.y }, GRID_SIZE);
       // ImGui::Text("player grid %i %i", grid_slot.x, grid_slot.y);
 
       // Action: Update player position with RMB
       if (app.get_input().get_mouse_rmb_down()) {
-        glm::ivec2 grid_slot = engine::grid::world_space_to_grid_space(grid_adjusted_mouse_pos, grid_size);
-        glm::ivec2 world_space = grid_slot * grid_size;
+        glm::ivec2 grid_slot = engine::grid::world_space_to_grid_space(grid_adjusted_mouse_pos, GRID_SIZE);
+        glm::ivec2 world_space = grid_slot * GRID_SIZE;
         pos.x = world_space.x;
         pos.y = world_space.y;
       }
@@ -77,13 +79,13 @@ game2d::update_player_input_system(entt::registry& registry, engine::Application
   // Update cursor
   {
     const auto& view = registry.view<CursorComponent, PositionIntComponent>();
-    view.each([&grid_adjusted_mouse_pos, &grid_size](const auto entity, const auto& c, auto& pos) {
-      glm::ivec2 grid_slot = engine::grid::world_space_to_grid_space(grid_adjusted_mouse_pos, grid_size);
+    view.each([&grid_adjusted_mouse_pos, &GRID_SIZE](const auto entity, const auto& c, auto& pos) {
+      glm::ivec2 grid_slot = engine::grid::world_space_to_grid_space(grid_adjusted_mouse_pos, GRID_SIZE);
       // ImGui::Text("mouse grid %i %i", grid_slot.x, grid_slot.y);
 
-      glm::ivec2 world_space = grid_slot * grid_size;
-      pos.x = grid_slot.x * grid_size;
-      pos.y = grid_slot.y * grid_size;
+      glm::ivec2 world_space = grid_slot * GRID_SIZE;
+      pos.x = grid_slot.x * GRID_SIZE;
+      pos.y = grid_slot.y * GRID_SIZE;
       // ImGui::Text("mouse clamped %i %i", world_space.x, world_space.y);
     });
   }
@@ -94,7 +96,7 @@ game2d::update_player_input_system(entt::registry& registry, engine::Application
 // // Action: spawn object with LMB
 // if (app.get_input().get_mouse_lmb_down()) {
 //   glm::vec2 world_pos = adjusted_mouse_pos - glm::vec2(pos.x, pos.y);
-//   glm::ivec2 world_pos_clamped = engine::grid::world_space_to_clamped_world_space(world_pos, grid_size);
+//   glm::ivec2 world_pos_clamped = engine::grid::world_space_to_clamped_world_space(world_pos, GRID_SIZE);
 //   glm::vec2 vel = glm::vec2(world_pos_clamped.x, world_pos_clamped.y);
 //   if (!(vel.x == 0.0f && vel.y == 0.0f))
 //     vel = glm::normalize(vel);
@@ -105,7 +107,7 @@ game2d::update_player_input_system(entt::registry& registry, engine::Application
 //     registry.emplace<Velocity>(r, vel.x, vel.y);
 //     registry.emplace<Colour>(r, 1.0f, 1.0f, 1.0f, 1.0f);
 //     registry.emplace<PositionInt>(r, pos.x, pos.y);
-//     registry.emplace<Size>(r, grid_size, grid_size);
+//     registry.emplace<Size>(r, GRID_SIZE, GRID_SIZE);
 //     registry.emplace<Sprite>(r, sprite::type::EMPTY);
 //     registry.emplace<ZIndex>(r, 0);
 //   }

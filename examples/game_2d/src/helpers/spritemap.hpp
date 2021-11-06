@@ -104,7 +104,9 @@ enum class type
   SPACE_VEHICLE_3,
   FIREWORK,
   ROCKET_1,
-  ROCKET_2
+  ROCKET_2,
+
+  _COUNT
 };
 
 struct spritemap

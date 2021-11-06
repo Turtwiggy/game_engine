@@ -1,16 +1,10 @@
-#pragma once
+#include "helpers.hpp"
 
-// other lib headers
-#include <entt/entt.hpp>
+// components
+#include "modules/renderer/components.hpp"
 
-// c++ lib headers
-#include <iostream>
-
-namespace game2d {
-//
-
-inline void
-serialize_to_text(entt::registry& registry, std::string path)
+void
+game2d::serialize_to_text(entt::registry& registry, std::string path)
 {
   std::cout << "serializing ... " << path << std::endl;
 
@@ -20,12 +14,10 @@ serialize_to_text(entt::registry& registry, std::string path)
     if (eid == entt::null)
       return;
     // Serialize Entity
-    // key: Entity
     // TODO: dont want incrementing ids, want uuids
-    // Value: 12345678
     // std::cout << "serializing ... " << static_cast<int>(eid) << std::endl;
 
-    // Serialize TagComponent
+    // Serialize TagComponent... etc
     if (registry.all_of<TagComponent>(eid)) {
       TagComponent& t = registry.get<TagComponent>(eid);
       std::cout << "serializing ... " << t.tag << std::endl;
@@ -34,9 +26,12 @@ serialize_to_text(entt::registry& registry, std::string path)
 }
 
 void
-deserialize_text_to_registry(entt::registry& registry, std::string path)
+game2d::deserialize_text_to_registry(entt::registry& registry, std::string path)
 {
   std::cout << "load map from file: " << path << std::endl;
-}
 
-} // namespace game2d
+  // destroy all entities in registry
+  // load in file
+  // loop over all components
+  // uint64_t uuid = //
+};

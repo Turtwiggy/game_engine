@@ -19,7 +19,7 @@ game2d::update_parry_system(entt::registry& registry, engine::Application& app, 
 {
   const auto& ri = registry.ctx<SINGLETON_RendererInfo>();
 
-  // process game events if the viewport says so
+  // dont process game events if the viewport says so
   if (!ri.viewport_process_events)
     return;
 

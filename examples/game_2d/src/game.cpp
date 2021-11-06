@@ -21,6 +21,7 @@
 #include "modules/physics/system.hpp"
 #include "modules/renderer/system.hpp"
 #include "modules/ui_hierarchy/system.hpp"
+#include "modules/ui_map_editor/system.hpp"
 #include "modules/ui_physics/system.hpp"
 #include "modules/ui_profiler/system.hpp"
 #include "systems/ai_head_to_random_point.hpp"
@@ -52,12 +53,8 @@ init_game_state(entt::registry& registry)
 {
   registry.each([&registry](auto entity) { registry.destroy(entity); });
   init_physics_system(registry);
-  init_map_editor_system(registry);
   registry.set<SINGLETON_ResourceComponent>(SINGLETON_ResourceComponent());
   registry.set<SINGLETON_GridSize>(SINGLETON_GridSize());
-
-  // load in map data
-  // TODO
 
   // colours
   const glm::vec4 colour_red = glm::vec4(232 / 255.0f, 80 / 255.0f, 100 / 255.0f, 1.0f);
@@ -167,6 +164,7 @@ game2d::init(entt::registry& registry, glm::ivec2 screen_wh)
   init_render_system(registry, screen_wh);
   init_ui_profiler_system(registry);
   init_ui_hierarchy_system(registry);
+  init_ui_map_editor_system(registry);
   // could be deleted and re-init at any time
   init_game_state(registry);
 };
@@ -220,6 +218,7 @@ game2d::update(entt::registry& registry, engine::Application& app, float dt)
     update_ui_profiler_system(registry, app);
     update_ui_physics_system(registry, app);
     update_ui_hierarchy_system(registry, app);
+    update_ui_map_editor_system(registry, app, dt);
   };
 
   // end of frame
