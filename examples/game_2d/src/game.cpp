@@ -95,7 +95,7 @@ init_game_state(entt::registry& registry)
       registry.emplace<SizeComponent>(r, GRID_SIZE, GRID_SIZE);
       registry.emplace<SpriteComponent>(r, sprite::type::EMPTY);
       registry.emplace<ParryComponent>(r);
-      registry.emplace<CollidableComponent>(r, static_cast<uint32_t>(GameCollisionLayer::BALL));
+      registry.emplace<CollidableComponent>(r, static_cast<uint32_t>(GameCollisionLayer::ACTOR_BALL));
     }
   }
 
@@ -104,12 +104,11 @@ init_game_state(entt::registry& registry)
     entt::entity r = registry.create();
     registry.emplace<TagComponent>(r, "player");
     registry.emplace<Player>(r);
-    registry.emplace<VelocityComponent>(r);
     registry.emplace<ColourComponent>(r, colour_cyan);
     registry.emplace<PositionIntComponent>(r, 25 * GRID_SIZE, 25 * GRID_SIZE);
     registry.emplace<SizeComponent>(r, GRID_SIZE, GRID_SIZE);
-    registry.emplace<SpriteComponent>(r, sprite::type::PERSON_1);
-    registry.emplace<CollidableComponent>(r, static_cast<uint32_t>(GameCollisionLayer::PLAYER));
+    registry.emplace<SpriteComponent>(r, sprite::type::PERSON_0);
+    registry.emplace<CollidableComponent>(r, static_cast<uint32_t>(GameCollisionLayer::ACTOR_PLAYER));
   }
 
   // Add ships
@@ -140,7 +139,7 @@ init_game_state(entt::registry& registry)
     registry.emplace<PositionIntComponent>(r, 10 * GRID_SIZE, 25 * GRID_SIZE);
     registry.emplace<SizeComponent>(r, GRID_SIZE, GRID_SIZE);
     registry.emplace<SpriteComponent>(r, sprite::type::EMPTY);
-    registry.emplace<CollidableComponent>(r, static_cast<uint32_t>(GameCollisionLayer::GOAL));
+    registry.emplace<CollidableComponent>(r, static_cast<uint32_t>(GameCollisionLayer::ACTOR_GOAL));
   }
 
   // Add wall object
@@ -151,7 +150,7 @@ init_game_state(entt::registry& registry)
     registry.emplace<PositionIntComponent>(r, 16 * GRID_SIZE, 25 * GRID_SIZE);
     registry.emplace<SizeComponent>(r, GRID_SIZE, GRID_SIZE);
     registry.emplace<SpriteComponent>(r, sprite::type::EMPTY);
-    registry.emplace<CollidableComponent>(r, static_cast<uint32_t>(GameCollisionLayer::WALL), PhysicsType::SOLID);
+    registry.emplace<CollidableComponent>(r, static_cast<uint32_t>(GameCollisionLayer::SOLID_WALL), PhysicsType::SOLID);
   }
 };
 

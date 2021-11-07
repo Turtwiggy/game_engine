@@ -17,6 +17,20 @@ enum class COLLISION_AXIS
   Y
 };
 
+bool
+collides(const PhysicsObject& one, const std::vector<PhysicsObject>& aabb)
+{
+  for (const auto& two : aabb) {
+    // collision x-axis?
+    bool collision_x = one.x_tl + one.w >= two.x_tl && two.x_tl + two.w >= one.x_tl;
+    // collision y-axis?
+    bool collision_y = one.y_tl + one.h >= two.y_tl && two.y_tl + two.h >= one.y_tl;
+    if (collision_x && collision_y)
+      return true;
+  }
+  return false;
+}
+
 void
 generate_broadphase_collisions(const std::vector<std::reference_wrapper<const PhysicsObject>>& sorted_aabb,
                                COLLISION_AXIS axis,

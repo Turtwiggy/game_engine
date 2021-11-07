@@ -10,8 +10,6 @@ namespace game2d {
 
 enum class PhysicsType
 {
-  // Actors and solids will never overlap
-  // Solids will never overlap with solids
   SOLID,
   ACTOR,
 };

@@ -3,96 +3,109 @@
 
 // components
 #include "modules/physics/components.hpp"
+#include "modules/physics/helpers.hpp"
 #include "modules/renderer/components.hpp"
 
 // other lib headers
 #include <imgui.h>
+#include <iostream>
 
 void
 game2d::update_move_objects_system(entt::registry& registry, engine::Application& app, float dt)
 {
-  // INPROGRESS:
-  // Implement this:
-  // https://maddythorson.medium.com/celeste-and-towerfall-physics-d24bd2ae0fc5
-
-  // Collect all the physics objects in the scene
-  std::vector<PhysicsObject> solids;
-  z std::vector<PhysicsObject> actors;
-
-  PhysicsObject po;
-  const auto& coll_view =
-    registry
-      .view<const VelocityComponent, const CollidableComponent, const PositionIntComponent, const SizeComponent>();
-  coll_view.each(
-    [&registry, &po](const auto entity, const auto& vel, const auto& col, const auto& pos, const auto& size) {
-      po.ent_id = static_cast<uint32_t>(entity);
-      po.x_tl = static_cast<int>(pos.x - size.w / 2.0f);
-      po.y_tl = static_cast<int>(pos.y - size.h / 2.0f);
-      po.w = size.w;
-      po.h = size.h;
-      if (coll.type == PhysicsType::SOLID)
-        solids.push_back(po);
-      else if (coll.type == PhysicsType::ACTOR)
-        actors.push_back(po);
-    });
-
   const auto Sign = [](int x) { return x == 0 ? 0 : (x > 0 ? 1 : -1); };
 
-  // Try and move all the actors
-  for (auto& actor_eid : actors) {
-    auto pos = registry.get<PositionIntComponent>(actor_eid);
-    auto vel = registry.get<VelocityComponent>(actor_eid);
-    auto size = registry.get<SizeComponent>(actor_eid);
+  ImGui::Begin("Debug move objects", NULL, ImGuiWindowFlags_NoFocusOnAppearing);
 
-    pos.dx += vel.x * dt;
+  // actors and solids never overlap,
+  // and solids dont overlap with solids
+
+  // Collect the collidable objects
+  std::vector<entt::entity> actors;
+  std::vector<PhysicsObject> actors_aabb;
+  std::vector<entt::entity> solids;
+  std::vector<PhysicsObject> solids_aabb;
+
+  const auto& coll_view = registry.view<const CollidableComponent>();
+  coll_view.each([&registry, &solids, &actors, &solids_aabb, &actors_aabb](const auto entity, const auto& col) {
+    if (!registry.all_of<PositionIntComponent, SizeComponent>(entity))
+      return;
+    auto pos = registry.get<PositionIntComponent>(entity);
+    const auto size = registry.get<SizeComponent>(entity);
+    PhysicsObject aabb;
+    aabb.ent_id = static_cast<uint32_t>(entity);
+    aabb.x_tl = static_cast<int>(pos.x - size.w / 2.0f);
+    aabb.y_tl = static_cast<int>(pos.y - size.h / 2.0f);
+    aabb.w = size.w;
+    aabb.h = size.h;
+    if (col.type == PhysicsType::SOLID) {
+      solids.push_back(entity);
+      solids_aabb.push_back(aabb);
+    } else if (col.type == PhysicsType::ACTOR) {
+      actors.push_back(entity);
+      actors_aabb.push_back(aabb);
+    }
+  });
+
+  ImGui::Text("actors %i", actors.size());
+  ImGui::Text("actors_aabb %i", actors_aabb.size());
+  ImGui::Text("solids %i", solids.size());
+  ImGui::Text("solids_aabb %i", solids_aabb.size());
+
+  // move actors, but stop at solids
+  for (int i = 0; i < actors.size(); i++) {
+    const auto& actor_eid = actors[i];
+    const auto& actor_aabb = actors_aabb[i];
+    auto& pos = registry.get<PositionIntComponent>(actor_eid);
+
     int move_x = static_cast<int>(pos.dx);
     if (move_x != 0) {
       pos.dx -= move_x;
       int sign = Sign(move_x);
-
+      PhysicsObject potential_aabb;
       while (move_x != 0) {
-        bool collision = false;
-        // Check if any collisions
-        int check_pos_x = pos.x + sign;
-
-        //       // Check if point is in any object
-        //       for (const auto& solid : solids) {
-        //         if (registry.all_of<SizeComponent, PositionIntComponent>(solid)) {
-        //           const auto& position = registry.get<PositionIntComponent>(solid);
-        //           const auto& size = registry.get<SizeComponent>(solid);
-
-        //           bool gt_coll = check_pos_x > position.x - (size.w / 2.0f);
-        //           bool lt_coll = check_pos_x < position.x + (size.w / 2.0f);
-        //           collision |= gt_coll && lt_coll;
-        //           if (collision)
-        //             break;
-        //         }
-        //       }
-        //       if (collision) // ah! collision
-        //         break;
-        //       pos.x += sign;
-        //       move_x -= sign;
+        potential_aabb.x_tl = actor_aabb.x_tl + sign;
+        potential_aabb.y_tl = actor_aabb.y_tl;
+        potential_aabb.w = actor_aabb.w;
+        potential_aabb.h = actor_aabb.h;
+        bool collision_with_solid = collides(potential_aabb, solids_aabb);
+        if (collision_with_solid) // ah! collision, maybe actor-solid callback?
+        {
+          std::cout << "actor collided with solid" << std::endl;
+          break;
+        }
+        pos.x += sign;
+        move_x -= sign;
       }
     }
 
     //   pos.dy += vel.y * dt;
-    //   int move_y = static_cast<int>(pos.dy);
-    //   if (move_y != 0) {
-    //     pos.dy -= move_y;
-    //     int sign = Sign(move_y);
+    int move_y = static_cast<int>(pos.dy);
+    if (move_y != 0) {
+      pos.dy -= move_y;
+      int sign = Sign(move_y);
+      PhysicsObject potential_aabb;
+      while (move_y != 0) {
+        potential_aabb.x_tl = actor_aabb.x_tl + sign;
+        potential_aabb.y_tl = actor_aabb.y_tl;
+        potential_aabb.w = actor_aabb.w;
+        potential_aabb.h = actor_aabb.h;
+        bool collision_with_solid = collides(potential_aabb, solids_aabb);
+        if (collision_with_solid) // ah! collision, maybe actor-solid callback?
+        {
+          std::cout << "actor collided with solid" << std::endl;
+          break;
+        }
+        pos.y += sign;
+        move_y -= sign;
+      }
+    }
 
-    //     while (move_y != 0) {
-    //       bool collision = false;
-    //       // if(!collide_at(solids, obj.pos.x + sign))
-    //       if (collision) // ah! collision
-    //         break;
-    //       pos.y += sign;
-    //       move_y -= sign;
-    //     }
-    //   }
-    // });
+    ImGui::Text("actor: %i %i %f %f", pos.x, pos.y, pos.dx, pos.dy);
+    // end actors
   }
 
-  // Try and move all the solids that need moving
-  // TODO this
+  // TODO: try and move solids?
+
+  ImGui::End();
 };

@@ -20,13 +20,6 @@ struct PhysicsObject
   int h;
 };
 
-// A representation of a line, where only 1 axis matters
-struct Line
-{
-  int point_a;
-  int point_b;
-}
-
 // A collision occurs between two entities
 struct Collision2D
 {
@@ -37,6 +30,9 @@ struct Collision2D
 
   bool dirty = false; // dirty means it occured last frame
 };
+
+bool
+collides(const PhysicsObject& one, const std::vector<PhysicsObject>& aabb);
 
 // broadphase: detect collisions that can actually happen and discard collisions which can't.
 // sort and prune algorithm. note: suffers from large worlds with inactive objects.

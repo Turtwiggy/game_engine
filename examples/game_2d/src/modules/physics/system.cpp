@@ -18,9 +18,9 @@ game2d::init_physics_system(entt::registry& registry)
 void
 game2d::update_physics_system(entt::registry& registry, engine::Application& app, float dt)
 {
-  // 1. get all the collidable components
+  // 1. get all the actors
   // 2. generate all possible collisions
-  // 3. generate collision enter, exit, stay events between collision events
+  // 3. generate collision enter, exit, stay
 
   SINGLETON_PhysicsComponent& p = registry.ctx<SINGLETON_PhysicsComponent>();
 
@@ -28,7 +28,11 @@ game2d::update_physics_system(entt::registry& registry, engine::Application& app
     p.collidable.clear();
     PhysicsObject po;
     const auto& view = registry.view<const CollidableComponent, const PositionIntComponent, const SizeComponent>();
-    view.each([&registry, &po](const auto entity, const auto& col, const auto& pos, const auto& size) {
+    view.each([&registry, &po, &p](const auto entity, const auto& col, const auto& pos, const auto& size) {
+      // actors and solids never overlap,
+      // and solids dont overlap with solids
+      if (col.type == PhysicsType::SOLID)
+        return;
       po.ent_id = static_cast<uint32_t>(entity);
       po.x_tl = static_cast<int>(pos.x - size.w / 2.0f);
       po.y_tl = static_cast<int>(pos.y - size.h / 2.0f);
