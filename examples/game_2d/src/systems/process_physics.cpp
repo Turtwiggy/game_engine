@@ -43,16 +43,12 @@ game2d::update_process_physics_system(entt::registry& registry, engine::Applicat
       std::cout << "PLAYER-GOAL collision..." << std::endl;
     } else if (min_id == GameCollisionLayer::ACTOR_PLAYER && max_id == GameCollisionLayer::ACTOR_BALL) {
       std::cout << "PLAYER-BALL collision..." << std::endl;
-    }
-
-    else if (min_id == GameCollisionLayer::ACTOR_GOAL && max_id == GameCollisionLayer::ACTOR_GOAL) {
+    } else if (min_id == GameCollisionLayer::ACTOR_GOAL && max_id == GameCollisionLayer::ACTOR_GOAL) {
       std::cout << "GOAL-GOAL collision..." << std::endl;
     } else if (min_id == GameCollisionLayer::ACTOR_GOAL && max_id == GameCollisionLayer::ACTOR_BALL) {
       std::cout << "GOAL-BALL collision..." << std::endl;
       std::cout << "You win a cookie!" << std::endl;
-    }
-
-    else if (min_id == GameCollisionLayer::ACTOR_BALL && max_id == GameCollisionLayer::ACTOR_BALL) {
+    } else if (min_id == GameCollisionLayer::ACTOR_BALL && max_id == GameCollisionLayer::ACTOR_BALL) {
       std::cout << "BALL-BALL collision..." << std::endl;
     }
   }

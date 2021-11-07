@@ -8,7 +8,6 @@
 
 // other lib headers
 #include <imgui.h>
-#include <iostream>
 
 void
 game2d::update_move_objects_system(entt::registry& registry, engine::Application& app, float dt)
@@ -21,42 +20,37 @@ game2d::update_move_objects_system(entt::registry& registry, engine::Application
   // and solids dont overlap with solids
 
   // Collect the collidable objects
-  std::vector<entt::entity> actors;
   std::vector<PhysicsObject> actors_aabb;
-  std::vector<entt::entity> solids;
   std::vector<PhysicsObject> solids_aabb;
-
-  const auto& coll_view = registry.view<const CollidableComponent>();
-  coll_view.each([&registry, &solids, &actors, &solids_aabb, &actors_aabb](const auto entity, const auto& col) {
-    if (!registry.all_of<PositionIntComponent, SizeComponent>(entity))
-      return;
-    auto pos = registry.get<PositionIntComponent>(entity);
-    const auto size = registry.get<SizeComponent>(entity);
-    PhysicsObject aabb;
-    aabb.ent_id = static_cast<uint32_t>(entity);
-    aabb.x_tl = static_cast<int>(pos.x - size.w / 2.0f);
-    aabb.y_tl = static_cast<int>(pos.y - size.h / 2.0f);
-    aabb.w = size.w;
-    aabb.h = size.h;
-    if (col.type == PhysicsType::SOLID) {
-      solids.push_back(entity);
-      solids_aabb.push_back(aabb);
-    } else if (col.type == PhysicsType::ACTOR) {
-      actors.push_back(entity);
-      actors_aabb.push_back(aabb);
-    }
-  });
-
-  ImGui::Text("actors %i", actors.size());
+  const auto& coll_view = registry.view<const CollidableComponent, const PositionIntComponent, const SizeComponent>();
+  coll_view.each(
+    [&registry, &solids_aabb, &actors_aabb](const auto entity, const auto& col, const auto& pos, const auto& size) {
+      PhysicsObject aabb;
+      aabb.ent_id = static_cast<uint32_t>(entity);
+      aabb.x_tl = static_cast<int>(pos.x - size.w / 2.0f);
+      aabb.y_tl = static_cast<int>(pos.y - size.h / 2.0f);
+      aabb.w = size.w;
+      aabb.h = size.h;
+      if (col.type == PhysicsType::SOLID) {
+        solids_aabb.push_back(aabb);
+      } else if (col.type == PhysicsType::ACTOR) {
+        actors_aabb.push_back(aabb);
+      }
+    });
   ImGui::Text("actors_aabb %i", actors_aabb.size());
-  ImGui::Text("solids %i", solids.size());
   ImGui::Text("solids_aabb %i", solids_aabb.size());
 
   // move actors, but stop at solids
-  for (int i = 0; i < actors.size(); i++) {
-    const auto& actor_eid = actors[i];
+  for (int i = 0; i < actors_aabb.size(); i++) {
     const auto& actor_aabb = actors_aabb[i];
+    const auto& actor_eid = static_cast<entt::entity>(actor_aabb.ent_id);
     auto& pos = registry.get<PositionIntComponent>(actor_eid);
+
+    if (registry.all_of<VelocityComponent>(actor_eid)) {
+      const auto& vel = registry.get<VelocityComponent>(actor_eid);
+      pos.dx += vel.x * dt;
+      pos.dy += vel.y * dt;
+    }
 
     int move_x = static_cast<int>(pos.dx);
     if (move_x != 0) {
@@ -71,7 +65,7 @@ game2d::update_move_objects_system(entt::registry& registry, engine::Application
         bool collision_with_solid = collides(potential_aabb, solids_aabb);
         if (collision_with_solid) // ah! collision, maybe actor-solid callback?
         {
-          std::cout << "actor collided with solid" << std::endl;
+          // std::cout << "actor would collide X with solid if continue" << std::endl;
           break;
         }
         pos.x += sign;
@@ -86,14 +80,14 @@ game2d::update_move_objects_system(entt::registry& registry, engine::Application
       int sign = Sign(move_y);
       PhysicsObject potential_aabb;
       while (move_y != 0) {
-        potential_aabb.x_tl = actor_aabb.x_tl + sign;
-        potential_aabb.y_tl = actor_aabb.y_tl;
+        potential_aabb.x_tl = actor_aabb.x_tl;
+        potential_aabb.y_tl = actor_aabb.y_tl + sign;
         potential_aabb.w = actor_aabb.w;
         potential_aabb.h = actor_aabb.h;
         bool collision_with_solid = collides(potential_aabb, solids_aabb);
         if (collision_with_solid) // ah! collision, maybe actor-solid callback?
         {
-          std::cout << "actor collided with solid" << std::endl;
+          // std::cout << "actor would Y collide with solid if continue" << std::endl;
           break;
         }
         pos.y += sign;
@@ -106,6 +100,12 @@ game2d::update_move_objects_system(entt::registry& registry, engine::Application
   }
 
   // TODO: try and move solids?
+  // for (int i = 0; i < solids.size(); i++) {
+  //   const auto& solid_eid = solids[i];
+  //   const auto& solid_aabb = solids_aabb[i];
+  //   auto& pos = registry.get<PositionIntComponent>(solid_eid);
+  //   ImGui::Text("solid: %i %i %f %f", pos.x, pos.y, pos.dx, pos.dy);
+  // }
 
   ImGui::End();
 };

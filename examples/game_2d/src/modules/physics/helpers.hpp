@@ -31,13 +31,11 @@ struct Collision2D
   bool dirty = false; // dirty means it occured last frame
 };
 
+// Checks collisions between an object and other objects
 bool
-collides(const PhysicsObject& one, const std::vector<PhysicsObject>& aabb);
+collides(const PhysicsObject& one, const std::vector<PhysicsObject>& others);
 
-// broadphase: detect collisions that can actually happen and discard collisions which can't.
-// sort and prune algorithm. note: suffers from large worlds with inactive objects.
-// this issue can be solved by using multiple smaller SAP's which form a grid.
-// note: i've adjusted this algortihm to do 2-axis SAP.
+// Checks collisions between all objects
 void
 generate_filtered_broadphase_collisions(const std::vector<PhysicsObject>& unsorted_aabb,
                                         std::map<uint64_t, Collision2D>& collision_results);
