@@ -27,8 +27,8 @@ game2d::update_move_objects_system(entt::registry& registry, engine::Application
     [&registry, &solids_aabb, &actors_aabb](const auto entity, const auto& col, const auto& pos, const auto& size) {
       PhysicsObject aabb;
       aabb.ent_id = static_cast<uint32_t>(entity);
-      aabb.x_tl = static_cast<int>(pos.x - size.w / 2.0f);
-      aabb.y_tl = static_cast<int>(pos.y - size.h / 2.0f);
+      aabb.x_tl = static_cast<int>(pos.x - (size.w / 2.0f));
+      aabb.y_tl = static_cast<int>(pos.y - (size.h / 2.0f));
       aabb.w = size.w;
       aabb.h = size.h;
       if (col.type == PhysicsType::SOLID) {
@@ -42,7 +42,7 @@ game2d::update_move_objects_system(entt::registry& registry, engine::Application
 
   // move actors, but stop at solids
   for (int i = 0; i < actors_aabb.size(); i++) {
-    const auto& actor_aabb = actors_aabb[i];
+    auto& actor_aabb = actors_aabb[i];
     const auto& actor_eid = static_cast<entt::entity>(actor_aabb.ent_id);
     auto& pos = registry.get<PositionIntComponent>(actor_eid);
 
@@ -56,8 +56,8 @@ game2d::update_move_objects_system(entt::registry& registry, engine::Application
     if (move_x != 0) {
       pos.dx -= move_x;
       int sign = Sign(move_x);
-      PhysicsObject potential_aabb;
       while (move_x != 0) {
+        PhysicsObject potential_aabb;
         potential_aabb.x_tl = actor_aabb.x_tl + sign;
         potential_aabb.y_tl = actor_aabb.y_tl;
         potential_aabb.w = actor_aabb.w;
@@ -68,6 +68,10 @@ game2d::update_move_objects_system(entt::registry& registry, engine::Application
           // std::cout << "actor would collide X with solid if continue" << std::endl;
           break;
         }
+        actor_aabb.x_tl = potential_aabb.x_tl;
+        actor_aabb.y_tl = potential_aabb.y_tl;
+        actor_aabb.w = potential_aabb.w;
+        actor_aabb.h = potential_aabb.h;
         pos.x += sign;
         move_x -= sign;
       }
@@ -90,6 +94,10 @@ game2d::update_move_objects_system(entt::registry& registry, engine::Application
           // std::cout << "actor would Y collide with solid if continue" << std::endl;
           break;
         }
+        actor_aabb.x_tl = potential_aabb.x_tl;
+        actor_aabb.y_tl = potential_aabb.y_tl;
+        actor_aabb.w = potential_aabb.w;
+        actor_aabb.h = potential_aabb.h;
         pos.y += sign;
         move_y -= sign;
       }
