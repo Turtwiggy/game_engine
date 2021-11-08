@@ -147,7 +147,8 @@ game2d::update_move_objects_system(entt::registry& registry, engine::Application
               if (registry.all_of<PositionIntComponent>(actor_eid)) {
                 auto& pos = registry.get<PositionIntComponent>(actor_eid);
                 float amount = solid_aabb.x_tl + solid_aabb.w - actor_aabb.x_tl;
-                pos.dx += amount;
+                // pos.dx += amount;
+                // actor.move_x(amount);
               }
               // } else if (riding.contains(actor)) {
               //   // Carry right
