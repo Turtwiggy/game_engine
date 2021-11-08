@@ -8,12 +8,6 @@
 
 namespace game2d {
 
-enum class PhysicsType
-{
-  SOLID,
-  ACTOR,
-};
-
 // -- components
 
 struct VelocityComponent

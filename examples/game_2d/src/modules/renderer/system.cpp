@@ -80,7 +80,6 @@ game2d::update_render_system(entt::registry& registry, engine::Application& app)
 {
   SINGLETON_ResourceComponent& r = registry.ctx<SINGLETON_ResourceComponent>();
   SINGLETON_RendererInfo& ri = registry.ctx<SINGLETON_RendererInfo>();
-  // const glm::vec4 background_colour = glm::vec4(57.0f / 255.0f, 62.0f / 255.0f, 70.0f / 255.0f, 1.0f);
   const glm::vec4 background_colour = glm::vec4(12.0f / 255.0f, 15.0f / 255.0f, 22.0f / 255.0f, 1.0f);
 
   // Resize
@@ -106,7 +105,7 @@ game2d::update_render_system(entt::registry& registry, engine::Application& app)
   RenderCommand::clear();
 
   // Do triangle stuff
-  triangle_renderer::TriangleRenderer::draw(registry, ri.instanced);
+  // triangle_renderer::TriangleRenderer::draw(registry, ri.instanced);
 
   // Do quad stuff
   {

@@ -9,6 +9,12 @@
 
 namespace game2d {
 
+enum class PhysicsType
+{
+  SOLID,
+  ACTOR,
+};
+
 // A physics object needs an entity id, and size info
 struct PhysicsObject
 {
@@ -30,6 +36,9 @@ struct Collision2D
 
   bool dirty = false; // dirty means it occured last frame
 };
+
+bool
+collide(const PhysicsObject& one, const PhysicsObject& two);
 
 // Checks collisions between an object and other objects
 bool

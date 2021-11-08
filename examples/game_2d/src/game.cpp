@@ -79,6 +79,50 @@ init_game_state(entt::registry& registry)
     registry.emplace<CursorComponent>(r);
   }
 
+  // Add a player
+  // {
+  //   entt::entity r = registry.create();
+  //   registry.emplace<TagComponent>(r, "player");
+  //   registry.emplace<Player>(r);
+  //   registry.emplace<ColourComponent>(r, colour_cyan);
+  //   registry.emplace<PositionIntComponent>(r, 25 * GRID_SIZE, 25 * GRID_SIZE);
+  //   registry.emplace<SizeComponent>(r, GRID_SIZE, GRID_SIZE);
+  //   registry.emplace<SpriteComponent>(r, sprite::type::PERSON_0);
+  //   registry.emplace<CollidableComponent>(r, static_cast<uint32_t>(GameCollisionLayer::ACTOR_PLAYER));
+  // }
+
+  // Add ships
+  // {
+  //   for (int i = 1; i < 5; i++) {
+  //     entt::entity r = registry.create();
+  //     registry.emplace<TagComponent>(r, std::string("ship" + std::to_string(i)));
+  //     FlashColourComponent f;
+  //     f.start_colour = colour_dblue;
+  //     f.flash_colour = colour_green;
+  //     registry.emplace<FlashColourComponent>(r, f);
+  //     registry.emplace<ParryComponent>(r);
+  //     registry.emplace<ColourComponent>(r, colour_dblue);
+  //     registry.emplace<VelocityComponent>(r, 0.0f, 0.0f);
+  //     registry.emplace<PositionIntComponent>(r, i * GRID_SIZE, 100.0f);
+  //     registry.emplace<SizeComponent>(r, GRID_SIZE, GRID_SIZE);
+  //     registry.emplace<SpriteComponent>(r, sprite::type::SPACE_VEHICLE_1);
+  //     registry.emplace<AIHeadToRandomPoint>(r);
+  //     registry.emplace<VelocityInBoundingboxComponent>(r);
+  //     registry.emplace<CollidableComponent>(r, static_cast<uint32_t>(GameCollisionLayer::ACTOR_BALL));
+  //   }
+  // }
+
+  // Add goal object
+  // {
+  //   entt::entity r = registry.create();
+  //   registry.emplace<TagComponent>(r, "goal");
+  //   registry.emplace<ColourComponent>(r, colour_white);
+  //   registry.emplace<PositionIntComponent>(r, 10 * GRID_SIZE, 25 * GRID_SIZE);
+  //   registry.emplace<SizeComponent>(r, GRID_SIZE, GRID_SIZE);
+  //   registry.emplace<SpriteComponent>(r, sprite::type::EMPTY);
+  //   registry.emplace<CollidableComponent>(r, static_cast<uint32_t>(GameCollisionLayer::ACTOR_GOAL));
+  // }
+
   // Add balls
   {
     for (int i = 1; i < 2; i++) {
@@ -99,55 +143,24 @@ init_game_state(entt::registry& registry)
     }
   }
 
-  // Add a player
+  // Add wall object moving right
   {
     entt::entity r = registry.create();
-    registry.emplace<TagComponent>(r, "player");
-    registry.emplace<Player>(r);
-    registry.emplace<ColourComponent>(r, colour_cyan);
-    registry.emplace<PositionIntComponent>(r, 25 * GRID_SIZE, 25 * GRID_SIZE);
-    registry.emplace<SizeComponent>(r, GRID_SIZE, GRID_SIZE);
-    registry.emplace<SpriteComponent>(r, sprite::type::PERSON_0);
-    registry.emplace<CollidableComponent>(r, static_cast<uint32_t>(GameCollisionLayer::ACTOR_PLAYER));
-  }
-
-  // Add ships
-  {
-    for (int i = 1; i < 5; i++) {
-      entt::entity r = registry.create();
-      registry.emplace<TagComponent>(r, std::string("ship" + std::to_string(i)));
-      FlashColourComponent f;
-      f.start_colour = colour_dblue;
-      f.flash_colour = colour_green;
-      registry.emplace<FlashColourComponent>(r, f);
-      registry.emplace<ParryComponent>(r);
-      registry.emplace<ColourComponent>(r, colour_dblue);
-      registry.emplace<VelocityComponent>(r, 0.0f, 0.0f);
-      registry.emplace<PositionIntComponent>(r, i * GRID_SIZE, 100.0f);
-      registry.emplace<SizeComponent>(r, GRID_SIZE, GRID_SIZE);
-      registry.emplace<SpriteComponent>(r, sprite::type::SPACE_VEHICLE_1);
-      registry.emplace<AIHeadToRandomPoint>(r);
-      registry.emplace<VelocityInBoundingboxComponent>(r);
-    }
-  }
-
-  // Add goal object
-  {
-    entt::entity r = registry.create();
-    registry.emplace<TagComponent>(r, "goal");
-    registry.emplace<ColourComponent>(r, colour_white);
-    registry.emplace<PositionIntComponent>(r, 10 * GRID_SIZE, 25 * GRID_SIZE);
-    registry.emplace<SizeComponent>(r, GRID_SIZE, GRID_SIZE);
-    registry.emplace<SpriteComponent>(r, sprite::type::EMPTY);
-    registry.emplace<CollidableComponent>(r, static_cast<uint32_t>(GameCollisionLayer::ACTOR_GOAL));
-  }
-
-  // Add wall object
-  {
-    entt::entity r = registry.create();
-    registry.emplace<TagComponent>(r, "wall");
+    registry.emplace<TagComponent>(r, "wall moving right");
+    registry.emplace<VelocityComponent>(r, 10.0f, 0.0f);
     registry.emplace<ColourComponent>(r, colour_red);
     registry.emplace<PositionIntComponent>(r, 16 * GRID_SIZE, 25 * GRID_SIZE);
+    registry.emplace<SizeComponent>(r, GRID_SIZE, GRID_SIZE);
+    registry.emplace<SpriteComponent>(r, sprite::type::EMPTY);
+    registry.emplace<CollidableComponent>(r, static_cast<uint32_t>(GameCollisionLayer::SOLID_WALL), PhysicsType::SOLID);
+  }
+  // Add wall object moving left
+  {
+    entt::entity r = registry.create();
+    registry.emplace<TagComponent>(r, "wall moving left");
+    registry.emplace<VelocityComponent>(r, -10.0f, 0.0f);
+    registry.emplace<ColourComponent>(r, colour_red);
+    registry.emplace<PositionIntComponent>(r, 35 * GRID_SIZE, 25 * GRID_SIZE);
     registry.emplace<SizeComponent>(r, GRID_SIZE, GRID_SIZE);
     registry.emplace<SpriteComponent>(r, sprite::type::EMPTY);
     registry.emplace<CollidableComponent>(r, static_cast<uint32_t>(GameCollisionLayer::SOLID_WALL), PhysicsType::SOLID);

@@ -18,15 +18,22 @@ enum class COLLISION_AXIS
 };
 
 bool
+collide(const PhysicsObject& one, const PhysicsObject& two)
+{
+  // collision x-axis?
+  bool collision_x = one.x_tl + one.w > two.x_tl && two.x_tl + two.w > one.x_tl;
+  // collision y-axis?
+  bool collision_y = one.y_tl + one.h > two.y_tl && two.y_tl + two.h > one.y_tl;
+
+  return collision_x && collision_y;
+}
+
+bool
 collides(const PhysicsObject& one, const std::vector<PhysicsObject>& others)
 {
   for (const auto& two : others) {
-    // collision x-axis?
-    bool collision_x = one.x_tl + one.w > two.x_tl && two.x_tl + two.w > one.x_tl;
-    // collision y-axis?
-    bool collision_y = one.y_tl + one.h > two.y_tl && two.y_tl + two.h > one.y_tl;
-
-    if (collision_x && collision_y)
+    bool collides = collide(one, two);
+    if (collides)
       return true;
   }
   return false;
