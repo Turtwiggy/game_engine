@@ -108,7 +108,6 @@ game2d::update_move_objects_system(entt::registry& registry, engine::Application
               const auto actor_eid = static_cast<entt::entity>(actor_aabb.ent_id);
               if (registry.all_of<PositionIntComponent>(actor_eid)) {
                 auto& pos = registry.get<PositionIntComponent>(actor_eid);
-                // TODO: squish callback
                 // push right: right - left
                 float dx = (solid_aabb.x_tl + solid_aabb.w) - actor_aabb.x_tl;
                 move_actors_dir(pos.x, dx, actor_aabb, solids_aabb, squish_callback);
@@ -125,7 +124,6 @@ game2d::update_move_objects_system(entt::registry& registry, engine::Application
               const auto actor_eid = static_cast<entt::entity>(actor_aabb.ent_id);
               if (registry.all_of<PositionIntComponent>(actor_eid)) {
                 auto& pos = registry.get<PositionIntComponent>(actor_eid);
-                // TODO: squish callback
                 // push left: left - right
                 float dx = solid_aabb.x_tl - (actor_aabb.x_tl + actor_aabb.w);
                 move_actors_dir(pos.x, dx, actor_aabb, solids_aabb, squish_callback);
