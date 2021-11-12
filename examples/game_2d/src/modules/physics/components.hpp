@@ -19,6 +19,7 @@ struct VelocityComponent
 struct CollidableComponent
 {
   uint32_t layer_id = 0;
+  PhysicsType type = PhysicsType::ACTOR;
 };
 
 // -- singleton components

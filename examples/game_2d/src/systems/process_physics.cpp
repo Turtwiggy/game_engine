@@ -28,32 +28,27 @@ game2d::update_process_physics_system(entt::registry& registry, engine::Applicat
     auto min_id = static_cast<GameCollisionLayer>(std::min(e0_layer_id, e1_layer_id));
     auto max_id = static_cast<GameCollisionLayer>(std::max(e0_layer_id, e1_layer_id));
 
-    if (min_id == GameCollisionLayer::PLAYER && max_id == GameCollisionLayer::PLAYER) {
-      std::cout << "PLAYER-PLAYER collision..." << std::endl;
-    } else if (min_id == GameCollisionLayer::PLAYER && max_id == GameCollisionLayer::GOAL) {
-      std::cout << "PLAYER-GOAL collision..." << std::endl;
-    } else if (min_id == GameCollisionLayer::PLAYER && max_id == GameCollisionLayer::WALL) {
-      std::cout << "PLAYER-WALL collision..." << std::endl;
-    } else if (min_id == GameCollisionLayer::PLAYER && max_id == GameCollisionLayer::BALL) {
-      std::cout << "PLAYER-BALL collision..." << std::endl;
-    }
+    // else if (min_id == GameCollisionLayer::SOLID_WALL && max_id == GameCollisionLayer::SOLID_WALL) {
+    //   std::cout << "WALL-WALL collision..." << std::endl;
+    // } else if (min_id == GameCollisionLayer::ACTOR_PLAYER && max_id == GameCollisionLayer::SOLID_WALL) {
+    //   std::cout << "PLAYER-WALL collision..." << std::endl;
+    // } else if (min_id == GameCollisionLayer::ACTOR_GOAL && max_id == GameCollisionLayer::SOLID_WALL) {
+    //   std::cout << "GOAL-WALL collision..." << std::endl;
+    // else if (min_id == GameCollisionLayer::SOLID_WALL && max_id == GameCollisionLayer::ACTOR_BALL) {
+    //   std::cout << "WALL-BALL collision..." << std::endl; }
 
-    else if (min_id == GameCollisionLayer::GOAL && max_id == GameCollisionLayer::GOAL) {
+    if (min_id == GameCollisionLayer::ACTOR_PLAYER && max_id == GameCollisionLayer::ACTOR_PLAYER) {
+      std::cout << "PLAYER-PLAYER collision..." << std::endl;
+    } else if (min_id == GameCollisionLayer::ACTOR_PLAYER && max_id == GameCollisionLayer::ACTOR_GOAL) {
+      std::cout << "PLAYER-GOAL collision..." << std::endl;
+    } else if (min_id == GameCollisionLayer::ACTOR_PLAYER && max_id == GameCollisionLayer::ACTOR_BALL) {
+      std::cout << "PLAYER-BALL collision..." << std::endl;
+    } else if (min_id == GameCollisionLayer::ACTOR_GOAL && max_id == GameCollisionLayer::ACTOR_GOAL) {
       std::cout << "GOAL-GOAL collision..." << std::endl;
-    } else if (min_id == GameCollisionLayer::GOAL && max_id == GameCollisionLayer::WALL) {
-      std::cout << "GOAL-WALL collision..." << std::endl;
-    } else if (min_id == GameCollisionLayer::GOAL && max_id == GameCollisionLayer::BALL) {
+    } else if (min_id == GameCollisionLayer::ACTOR_GOAL && max_id == GameCollisionLayer::ACTOR_BALL) {
       std::cout << "GOAL-BALL collision..." << std::endl;
       std::cout << "You win a cookie!" << std::endl;
-    }
-
-    else if (min_id == GameCollisionLayer::WALL && max_id == GameCollisionLayer::WALL) {
-      std::cout << "WALL-WALL collision..." << std::endl;
-    } else if (min_id == GameCollisionLayer::WALL && max_id == GameCollisionLayer::BALL) {
-      std::cout << "WALL-BALL collision..." << std::endl;
-    }
-
-    else if (min_id == GameCollisionLayer::BALL && max_id == GameCollisionLayer::BALL) {
+    } else if (min_id == GameCollisionLayer::ACTOR_BALL && max_id == GameCollisionLayer::ACTOR_BALL) {
       std::cout << "BALL-BALL collision..." << std::endl;
     }
   }

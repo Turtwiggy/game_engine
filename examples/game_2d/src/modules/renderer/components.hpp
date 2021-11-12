@@ -43,7 +43,7 @@ struct PositionIntComponent
 {
   int x = 0;
   int y = 0;
-  float dx = 0.0f; // remainders in the x and y dirs
+  float dx = 0.0f; // amount to move in the x and y dirs
   float dy = 0.0f;
 
   PositionIntComponent() = default;

@@ -20,8 +20,8 @@ game2d::update_player_input_system(entt::registry& registry, engine::Application
   const auto& ri = registry.ctx<SINGLETON_RendererInfo>();
 
   // process game events if the viewport says so
-  if (!ri.viewport_process_events)
-    return;
+  // if (!ri.viewport_process_events)
+  //   return;
 
   glm::ivec2 imgui_mouse_pos = app.get_input().get_mouse_pos();
   glm::vec2 imgui_viewport_tl = ri.viewport_pos;
@@ -38,7 +38,7 @@ game2d::update_player_input_system(entt::registry& registry, engine::Application
   grid_adjusted_mouse_pos.x += GRID_SIZE / 2.0f;
   grid_adjusted_mouse_pos.y += GRID_SIZE / 2.0f;
 
-  // ImGui::Begin("Mouse", NULL, ImGuiWindowFlags_NoFocusOnAppearing);
+  // ImGui::Begin("Player Input", NULL, ImGuiWindowFlags_NoFocusOnAppearing);
   // ImGui::Text("mouse %f %f", mouse_pos.x, mouse_pos.y);
   // ImGui::Text("grid adj %f %f", grid_adjusted_mouse_pos.x, grid_adjusted_mouse_pos.y);
 
@@ -59,10 +59,10 @@ game2d::update_player_input_system(entt::registry& registry, engine::Application
       else if (app.get_input().get_key_down(SDL_SCANCODE_D))
         vx = 1;
 
-      // TODO: do not set position directly
-      pos.x += vx * GRID_SIZE;
-      pos.y += vy * GRID_SIZE;
-      // ImGui::Text("player %i %i", pos.x, pos.y);
+      pos.dx += vx * GRID_SIZE;
+      pos.dy += vy * GRID_SIZE;
+      // ImGui::Text("player %i %i %f %f", pos.x, pos.y, pos.dx, pos.dy);
+
       glm::ivec2 grid_slot = engine::grid::world_space_to_grid_space({ pos.x, pos.y }, GRID_SIZE);
       // ImGui::Text("player grid %i %i", grid_slot.x, grid_slot.y);
 

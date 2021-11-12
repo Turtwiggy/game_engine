@@ -6,6 +6,7 @@
 #include "components/flash_colour.hpp"
 #include "components/parry.hpp"
 #include "components/player.hpp"
+#include "components/singleton_game_paused.hpp"
 #include "components/singleton_grid.hpp"
 #include "components/singleton_resources.hpp"
 #include "components/velocity_in_boundingbox.hpp"
@@ -54,6 +55,7 @@ init_game_state(entt::registry& registry)
   registry.each([&registry](auto entity) { registry.destroy(entity); });
   init_physics_system(registry);
   registry.set<SINGLETON_ResourceComponent>(SINGLETON_ResourceComponent());
+  registry.set<SINGLETON_GamePaused>(SINGLETON_GamePaused());
   registry.set<SINGLETON_GridSize>(SINGLETON_GridSize());
 
   // colours
@@ -79,79 +81,93 @@ init_game_state(entt::registry& registry)
     registry.emplace<CursorComponent>(r);
   }
 
+  // Add a player
+  // {
+  //   entt::entity r = registry.create();
+  //   registry.emplace<TagComponent>(r, "player");
+  //   registry.emplace<Player>(r);
+  //   registry.emplace<ColourComponent>(r, colour_cyan);
+  //   registry.emplace<PositionIntComponent>(r, 25 * GRID_SIZE, 25 * GRID_SIZE);
+  //   registry.emplace<SizeComponent>(r, GRID_SIZE, GRID_SIZE);
+  //   registry.emplace<SpriteComponent>(r, sprite::type::PERSON_0);
+  //   registry.emplace<CollidableComponent>(r, static_cast<uint32_t>(GameCollisionLayer::ACTOR_PLAYER));
+  // }
+
+  // Add ships
+  // {
+  //   for (int i = 1; i < 5; i++) {
+  //     entt::entity r = registry.create();
+  //     registry.emplace<TagComponent>(r, std::string("ship" + std::to_string(i)));
+  //     FlashColourComponent f;
+  //     f.start_colour = colour_dblue;
+  //     f.flash_colour = colour_green;
+  //     registry.emplace<FlashColourComponent>(r, f);
+  //     registry.emplace<ParryComponent>(r);
+  //     registry.emplace<ColourComponent>(r, colour_dblue);
+  //     registry.emplace<VelocityComponent>(r, 0.0f, 0.0f);
+  //     registry.emplace<PositionIntComponent>(r, i * GRID_SIZE, 100.0f);
+  //     registry.emplace<SizeComponent>(r, GRID_SIZE, GRID_SIZE);
+  //     registry.emplace<SpriteComponent>(r, sprite::type::SPACE_VEHICLE_1);
+  //     registry.emplace<AIHeadToRandomPoint>(r);
+  //     registry.emplace<VelocityInBoundingboxComponent>(r);
+  //     registry.emplace<CollidableComponent>(r, static_cast<uint32_t>(GameCollisionLayer::ACTOR_BALL));
+  //   }
+  // }
+
+  // Add goal object
+  // {
+  //   entt::entity r = registry.create();
+  //   registry.emplace<TagComponent>(r, "goal");
+  //   registry.emplace<ColourComponent>(r, colour_white);
+  //   registry.emplace<PositionIntComponent>(r, 10 * GRID_SIZE, 25 * GRID_SIZE);
+  //   registry.emplace<SizeComponent>(r, GRID_SIZE, GRID_SIZE);
+  //   registry.emplace<SpriteComponent>(r, sprite::type::EMPTY);
+  //   registry.emplace<CollidableComponent>(r, static_cast<uint32_t>(GameCollisionLayer::ACTOR_GOAL));
+  // }
+
   // Add balls
   {
     for (int i = 1; i < 2; i++) {
       entt::entity r = registry.create();
       registry.emplace<TagComponent>(r, std::string("ball" + std::to_string(i)));
       registry.emplace<VelocityInBoundingboxComponent>(r);
-      registry.emplace<VelocityComponent>(r, -50.0f, 0.0f);
+      registry.emplace<VelocityComponent>(r, 0.0f, 0.0f);
       FlashColourComponent f;
       f.start_colour = colour_dblue;
       f.flash_colour = colour_green;
       registry.emplace<FlashColourComponent>(r, f);
       registry.emplace<ColourComponent>(r, colour_dblue);
-      registry.emplace<PositionIntComponent>(r, (30) * GRID_SIZE, 25 * GRID_SIZE);
+      registry.emplace<PositionIntComponent>(r, 516, 25 * GRID_SIZE);
       registry.emplace<SizeComponent>(r, GRID_SIZE, GRID_SIZE);
       registry.emplace<SpriteComponent>(r, sprite::type::EMPTY);
       registry.emplace<ParryComponent>(r);
-      registry.emplace<CollidableComponent>(r, static_cast<uint32_t>(GameCollisionLayer::BALL));
+      registry.emplace<CollidableComponent>(r, static_cast<uint32_t>(GameCollisionLayer::ACTOR_BALL));
     }
   }
 
-  // Add a player
+  // Add wall object moving right
   {
     entt::entity r = registry.create();
-    registry.emplace<TagComponent>(r, "player");
-    registry.emplace<Player>(r);
-    registry.emplace<VelocityComponent>(r);
-    registry.emplace<ColourComponent>(r, colour_cyan);
-    registry.emplace<PositionIntComponent>(r, 25 * GRID_SIZE, 25 * GRID_SIZE);
-    registry.emplace<SizeComponent>(r, GRID_SIZE, GRID_SIZE);
-    registry.emplace<SpriteComponent>(r, sprite::type::PERSON_1);
-    registry.emplace<CollidableComponent>(r, static_cast<uint32_t>(GameCollisionLayer::PLAYER));
-  }
-
-  // Add ships
-  {
-    for (int i = 1; i < 5; i++) {
-      entt::entity r = registry.create();
-      registry.emplace<TagComponent>(r, std::string("ship" + std::to_string(i)));
-      FlashColourComponent f;
-      f.start_colour = colour_dblue;
-      f.flash_colour = colour_green;
-      registry.emplace<FlashColourComponent>(r, f);
-      registry.emplace<ParryComponent>(r);
-      registry.emplace<ColourComponent>(r, colour_dblue);
-      registry.emplace<VelocityComponent>(r, 0.0f, 0.0f);
-      registry.emplace<PositionIntComponent>(r, i * GRID_SIZE, 100.0f);
-      registry.emplace<SizeComponent>(r, GRID_SIZE, GRID_SIZE);
-      registry.emplace<SpriteComponent>(r, sprite::type::SPACE_VEHICLE_1);
-      registry.emplace<AIHeadToRandomPoint>(r);
-      registry.emplace<VelocityInBoundingboxComponent>(r);
-    }
-  }
-
-  // Add goal object
-  {
-    entt::entity r = registry.create();
-    registry.emplace<TagComponent>(r, "goal");
-    registry.emplace<ColourComponent>(r, colour_white);
-    registry.emplace<PositionIntComponent>(r, 10 * GRID_SIZE, 25 * GRID_SIZE);
-    registry.emplace<SizeComponent>(r, GRID_SIZE, GRID_SIZE);
-    registry.emplace<SpriteComponent>(r, sprite::type::EMPTY);
-    registry.emplace<CollidableComponent>(r, static_cast<uint32_t>(GameCollisionLayer::GOAL));
-  }
-
-  // Add wall object
-  {
-    entt::entity r = registry.create();
-    registry.emplace<TagComponent>(r, "wall");
+    registry.emplace<TagComponent>(r, "wall moving right");
+    registry.emplace<VelocityComponent>(r, 10.0f, 0.0f);
     registry.emplace<ColourComponent>(r, colour_red);
-    registry.emplace<PositionIntComponent>(r, 16 * GRID_SIZE, 25 * GRID_SIZE);
+    registry.emplace<PositionIntComponent>(r, 300, 25 * GRID_SIZE);
     registry.emplace<SizeComponent>(r, GRID_SIZE, GRID_SIZE);
     registry.emplace<SpriteComponent>(r, sprite::type::EMPTY);
-    registry.emplace<CollidableComponent>(r, static_cast<uint32_t>(GameCollisionLayer::WALL));
+    registry.emplace<CollidableComponent>(r, static_cast<uint32_t>(GameCollisionLayer::SOLID_WALL), PhysicsType::SOLID);
+    registry.emplace<VelocityInBoundingboxComponent>(r);
+  }
+  // Add wall object moving left
+  {
+    entt::entity r = registry.create();
+    registry.emplace<TagComponent>(r, "wall moving left");
+    registry.emplace<VelocityComponent>(r, -10.0f, 0.0f);
+    registry.emplace<ColourComponent>(r, colour_red);
+    registry.emplace<PositionIntComponent>(r, 576, 25 * GRID_SIZE);
+    registry.emplace<SizeComponent>(r, GRID_SIZE, GRID_SIZE);
+    registry.emplace<SpriteComponent>(r, sprite::type::EMPTY);
+    registry.emplace<CollidableComponent>(r, static_cast<uint32_t>(GameCollisionLayer::SOLID_WALL), PhysicsType::SOLID);
+    registry.emplace<VelocityInBoundingboxComponent>(r);
   }
 };
 
@@ -174,10 +190,29 @@ game2d::update(entt::registry& registry, engine::Application& app, float dt)
 {
   Profiler& p = registry.ctx<Profiler>();
 
+#ifdef _DEBUG
+  if (app.get_input().get_key_down(SDL_SCANCODE_R)) {
+    init_game_state(registry);
+  }
+  if (app.get_input().get_key_down(SDL_SCANCODE_ESCAPE)) {
+    app.shutdown();
+  }
+#endif
+  SINGLETON_GamePaused& gp = registry.ctx<SINGLETON_GamePaused>();
+  if (app.get_input().get_key_down(SDL_SCANCODE_P)) {
+    gp.paused = !gp.paused;
+    std::cout << "game paused: " << gp.paused << std::endl;
+  }
+
   // physics
   Uint64 start_physics = SDL_GetPerformanceCounter();
   {
-    update_physics_system(registry, app, dt);
+    if (!gp.paused) {
+      // move objects, checking collisions along way
+      update_move_objects_system(registry, app, dt);
+      // generate all collisions between all objects
+      update_physics_system(registry, app, dt);
+    }
   }
   Uint64 end_physics = SDL_GetPerformanceCounter();
   p.physics_elapsed_ms = (end_physics - start_physics) / float(SDL_GetPerformanceFrequency()) * 1000.0f;
@@ -185,21 +220,14 @@ game2d::update(entt::registry& registry, engine::Application& app, float dt)
   // game logic
   Uint64 start_game_tick = SDL_GetPerformanceCounter();
   {
-#ifdef _DEBUG
-    if (app.get_input().get_key_down(SDL_SCANCODE_R)) {
-      init_game_state(registry);
+    if (!gp.paused) {
+      update_player_input_system(registry, app);
+      update_process_physics_system(registry, app, dt);
+      // update_destroy_on_collide_system(registry, app, dt);
+      update_velocity_in_boundingbox_system(registry, app, dt);
+      update_parry_system(registry, app, dt);
+      update_ai_head_to_random_point_system(registry, app, dt);
     }
-    if (app.get_input().get_key_down(SDL_SCANCODE_ESCAPE)) {
-      app.shutdown();
-    }
-#endif
-    update_player_input_system(registry, app);
-    update_process_physics_system(registry, app, dt);
-    // update_destroy_on_collide_system(registry, app, dt);
-    update_move_objects_system(registry, app, dt);
-    update_velocity_in_boundingbox_system(registry, app, dt);
-    update_parry_system(registry, app, dt);
-    update_ai_head_to_random_point_system(registry, app, dt);
   };
   Uint64 end_game_tick = SDL_GetPerformanceCounter();
   p.game_tick_elapsed_ms = (end_game_tick - start_game_tick) / float(SDL_GetPerformanceFrequency()) * 1000.0f;

@@ -6,7 +6,7 @@
 
 // c++ lib headers
 #include <algorithm>
-#include <functional>
+#include <iostream>
 #include <vector>
 
 namespace game2d {
@@ -16,6 +16,30 @@ enum class COLLISION_AXIS
   X,
   Y
 };
+
+bool
+collide(const PhysicsObject& one, const PhysicsObject& two)
+{
+  // collision x-axis?
+  bool collision_x = one.x_tl + one.w > two.x_tl && two.x_tl + two.w > one.x_tl;
+  // collision y-axis?
+  bool collision_y = one.y_tl + one.h > two.y_tl && two.y_tl + two.h > one.y_tl;
+
+  return collision_x && collision_y;
+}
+
+bool
+collides(const PhysicsObject& one, const std::vector<PhysicsObject>& others)
+{
+  for (const auto& two : others) {
+    if (!two.collidable)
+      continue;
+    bool collides = collide(one, two);
+    if (collides)
+      return true;
+  }
+  return false;
+}
 
 void
 generate_broadphase_collisions(const std::vector<std::reference_wrapper<const PhysicsObject>>& sorted_aabb,
@@ -75,11 +99,6 @@ generate_broadphase_collisions(const std::vector<std::reference_wrapper<const Ph
         if (axis == COLLISION_AXIS::Y)
           coll.collision_y = true;
 
-        // debugging
-        // if (coll.collision_x && coll.collision_y) {
-        //   int i = 0; // pause
-        // }
-
         collisions[unique_collision_id] = coll;
         ++it_1;
       }
@@ -128,4 +147,52 @@ game2d::generate_filtered_broadphase_collisions(const std::vector<PhysicsObject>
       collision_results[coll.first] = coll.second;
     }
   }
+};
+
+void
+game2d::move_actors_dir(int& pos_x,
+                        float& dx,
+                        PhysicsObject& actor_aabb,
+                        std::vector<PhysicsObject>& solids,
+                        std::function<void()>& callback)
+{
+  constexpr auto Sign = [](int x) { return x == 0 ? 0 : (x > 0 ? 1 : -1); };
+
+  int move_x = static_cast<int>(dx);
+  if (move_x != 0) {
+    dx -= move_x;
+    int sign = Sign(move_x);
+    PhysicsObject potential_aabb;
+    while (move_x != 0) {
+      potential_aabb.x_tl = actor_aabb.x_tl + sign;
+      potential_aabb.y_tl = actor_aabb.y_tl;
+      potential_aabb.w = actor_aabb.w;
+      potential_aabb.h = actor_aabb.h;
+      bool collision_with_solid = collides(potential_aabb, solids);
+      if (collision_with_solid) // ah! collision, maybe actor-solid callback?
+      {
+        callback();
+        // std::cout << "actor would collide X with solid if continue" << std::endl;
+        break;
+      }
+      actor_aabb.x_tl = potential_aabb.x_tl;
+      actor_aabb.y_tl = potential_aabb.y_tl;
+      actor_aabb.w = potential_aabb.w;
+      actor_aabb.h = potential_aabb.h;
+      pos_x += sign;
+      move_x -= sign;
+    }
+  }
+};
+
+void
+game2d::print_solid()
+{
+  std::cout << "actor being squished between solids!" << std::endl;
+};
+
+void
+game2d::print_actor()
+{
+  std::cout << "actor stopping itself; would collide with solid." << std::endl;
 };
