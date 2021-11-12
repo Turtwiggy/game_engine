@@ -6,6 +6,7 @@
 #include "components/flash_colour.hpp"
 #include "components/parry.hpp"
 #include "components/player.hpp"
+#include "components/singleton_game_paused.hpp"
 #include "components/singleton_grid.hpp"
 #include "components/singleton_resources.hpp"
 #include "components/velocity_in_boundingbox.hpp"
@@ -54,6 +55,7 @@ init_game_state(entt::registry& registry)
   registry.each([&registry](auto entity) { registry.destroy(entity); });
   init_physics_system(registry);
   registry.set<SINGLETON_ResourceComponent>(SINGLETON_ResourceComponent());
+  registry.set<SINGLETON_GamePaused>(SINGLETON_GamePaused());
   registry.set<SINGLETON_GridSize>(SINGLETON_GridSize());
 
   // colours
@@ -129,13 +131,13 @@ init_game_state(entt::registry& registry)
       entt::entity r = registry.create();
       registry.emplace<TagComponent>(r, std::string("ball" + std::to_string(i)));
       registry.emplace<VelocityInBoundingboxComponent>(r);
-      registry.emplace<VelocityComponent>(r, -50.0f, 0.0f);
+      registry.emplace<VelocityComponent>(r, 0.0f, 0.0f);
       FlashColourComponent f;
       f.start_colour = colour_dblue;
       f.flash_colour = colour_green;
       registry.emplace<FlashColourComponent>(r, f);
       registry.emplace<ColourComponent>(r, colour_dblue);
-      registry.emplace<PositionIntComponent>(r, (30) * GRID_SIZE, 25 * GRID_SIZE);
+      registry.emplace<PositionIntComponent>(r, 516, 25 * GRID_SIZE);
       registry.emplace<SizeComponent>(r, GRID_SIZE, GRID_SIZE);
       registry.emplace<SpriteComponent>(r, sprite::type::EMPTY);
       registry.emplace<ParryComponent>(r);
@@ -149,10 +151,11 @@ init_game_state(entt::registry& registry)
     registry.emplace<TagComponent>(r, "wall moving right");
     registry.emplace<VelocityComponent>(r, 10.0f, 0.0f);
     registry.emplace<ColourComponent>(r, colour_red);
-    registry.emplace<PositionIntComponent>(r, 16 * GRID_SIZE, 25 * GRID_SIZE);
+    registry.emplace<PositionIntComponent>(r, 300, 25 * GRID_SIZE);
     registry.emplace<SizeComponent>(r, GRID_SIZE, GRID_SIZE);
     registry.emplace<SpriteComponent>(r, sprite::type::EMPTY);
     registry.emplace<CollidableComponent>(r, static_cast<uint32_t>(GameCollisionLayer::SOLID_WALL), PhysicsType::SOLID);
+    registry.emplace<VelocityInBoundingboxComponent>(r);
   }
   // Add wall object moving left
   {
@@ -160,10 +163,11 @@ init_game_state(entt::registry& registry)
     registry.emplace<TagComponent>(r, "wall moving left");
     registry.emplace<VelocityComponent>(r, -10.0f, 0.0f);
     registry.emplace<ColourComponent>(r, colour_red);
-    registry.emplace<PositionIntComponent>(r, 35 * GRID_SIZE, 25 * GRID_SIZE);
+    registry.emplace<PositionIntComponent>(r, 576, 25 * GRID_SIZE);
     registry.emplace<SizeComponent>(r, GRID_SIZE, GRID_SIZE);
     registry.emplace<SpriteComponent>(r, sprite::type::EMPTY);
     registry.emplace<CollidableComponent>(r, static_cast<uint32_t>(GameCollisionLayer::SOLID_WALL), PhysicsType::SOLID);
+    registry.emplace<VelocityInBoundingboxComponent>(r);
   }
 };
 
@@ -186,13 +190,29 @@ game2d::update(entt::registry& registry, engine::Application& app, float dt)
 {
   Profiler& p = registry.ctx<Profiler>();
 
+#ifdef _DEBUG
+  if (app.get_input().get_key_down(SDL_SCANCODE_R)) {
+    init_game_state(registry);
+  }
+  if (app.get_input().get_key_down(SDL_SCANCODE_ESCAPE)) {
+    app.shutdown();
+  }
+#endif
+  SINGLETON_GamePaused& gp = registry.ctx<SINGLETON_GamePaused>();
+  if (app.get_input().get_key_down(SDL_SCANCODE_P)) {
+    gp.paused = !gp.paused;
+    std::cout << "game paused: " << gp.paused << std::endl;
+  }
+
   // physics
   Uint64 start_physics = SDL_GetPerformanceCounter();
   {
-    // move objects, checking collisions along way
-    update_move_objects_system(registry, app, dt);
-    // generate all collisions between all objects
-    update_physics_system(registry, app, dt);
+    if (!gp.paused) {
+      // move objects, checking collisions along way
+      update_move_objects_system(registry, app, dt);
+      // generate all collisions between all objects
+      update_physics_system(registry, app, dt);
+    }
   }
   Uint64 end_physics = SDL_GetPerformanceCounter();
   p.physics_elapsed_ms = (end_physics - start_physics) / float(SDL_GetPerformanceFrequency()) * 1000.0f;
@@ -200,20 +220,14 @@ game2d::update(entt::registry& registry, engine::Application& app, float dt)
   // game logic
   Uint64 start_game_tick = SDL_GetPerformanceCounter();
   {
-#ifdef _DEBUG
-    if (app.get_input().get_key_down(SDL_SCANCODE_R)) {
-      init_game_state(registry);
+    if (!gp.paused) {
+      update_player_input_system(registry, app);
+      update_process_physics_system(registry, app, dt);
+      // update_destroy_on_collide_system(registry, app, dt);
+      update_velocity_in_boundingbox_system(registry, app, dt);
+      update_parry_system(registry, app, dt);
+      update_ai_head_to_random_point_system(registry, app, dt);
     }
-    if (app.get_input().get_key_down(SDL_SCANCODE_ESCAPE)) {
-      app.shutdown();
-    }
-#endif
-    update_player_input_system(registry, app);
-    update_process_physics_system(registry, app, dt);
-    // update_destroy_on_collide_system(registry, app, dt);
-    update_velocity_in_boundingbox_system(registry, app, dt);
-    update_parry_system(registry, app, dt);
-    update_ai_head_to_random_point_system(registry, app, dt);
   };
   Uint64 end_game_tick = SDL_GetPerformanceCounter();
   p.game_tick_elapsed_ms = (end_game_tick - start_game_tick) / float(SDL_GetPerformanceFrequency()) * 1000.0f;
