@@ -1,7 +1,8 @@
 // your header
 #include "modules/physics/helpers.hpp"
+#include "modules/renderer/components.hpp"
 
-// engien headers
+// engine headers
 #include "engine/maths.hpp"
 
 // c++ lib headers
@@ -186,13 +187,11 @@ game2d::move_actors_dir(int& pos_x,
 };
 
 void
-game2d::print_solid()
-{
-  std::cout << "actor being squished between solids!" << std::endl;
+game2d::print_solid(){
+  // std::cout << "actor being squished between solids!" << std::endl;
 };
 
 void
-game2d::print_actor()
-{
-  std::cout << "actor stopping itself; would collide with solid." << std::endl;
+game2d::print_actor(){
+  // std::cout << "actor stopping itself; would collide with solid." << std::endl;
 };

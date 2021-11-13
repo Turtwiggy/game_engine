@@ -16,8 +16,8 @@
 void
 game2d::update_move_objects_system(entt::registry& registry, engine::Application& app, float dt)
 {
-  std::function<void()> actor_solid_callback = print_actor;
-  std::function<void()> squish_callback = print_solid;
+  std::function<void()> actor_hit_solid_callback = print_actor;
+  std::function<void()> actor_being_squish_callback = print_solid;
 
   ImGui::Begin("Debug move objects", NULL, ImGuiWindowFlags_NoFocusOnAppearing);
 
@@ -58,8 +58,8 @@ game2d::update_move_objects_system(entt::registry& registry, engine::Application
       pos.dy += vel.y * dt;
     }
 
-    move_actors_dir(pos.x, pos.dx, actor_aabb, solids_aabb, actor_solid_callback);
-    move_actors_dir(pos.y, pos.dy, actor_aabb, solids_aabb, actor_solid_callback);
+    move_actors_dir(pos.x, pos.dx, actor_aabb, solids_aabb, actor_hit_solid_callback);
+    move_actors_dir(pos.y, pos.dy, actor_aabb, solids_aabb, actor_hit_solid_callback);
 
     ImGui::Text("actor: %i %i %f %f", pos.x, pos.y, pos.dx, pos.dy);
     // end actors
@@ -94,6 +94,7 @@ game2d::update_move_objects_system(entt::registry& registry, engine::Application
       // so that actors moved by it do not get stuck on it
       solid_aabb.collidable = false;
 
+      // do x-axis movement....
       if (move_x != 0) {
         pos.dx -= move_x;
         pos.x += move_x;
@@ -107,13 +108,13 @@ game2d::update_move_objects_system(entt::registry& registry, engine::Application
             if (collide(solid_aabb, actor_aabb)) {
               const auto actor_eid = static_cast<entt::entity>(actor_aabb.ent_id);
               if (registry.all_of<PositionIntComponent>(actor_eid)) {
-                auto& pos = registry.get<PositionIntComponent>(actor_eid);
                 // push right: right - left
                 float dx = (solid_aabb.x_tl + solid_aabb.w) - actor_aabb.x_tl;
-                move_actors_dir(pos.x, dx, actor_aabb, solids_aabb, squish_callback);
+                auto& pos = registry.get<PositionIntComponent>(actor_eid);
+                move_actors_dir(pos.x, dx, actor_aabb, solids_aabb, actor_being_squish_callback);
               }
               // } else if (riding.contains(actor)) {
-              //   // Carry right
+              // // Carry right
               //   actor.MoveX(moveX, null);
               // }
             }
@@ -123,19 +124,51 @@ game2d::update_move_objects_system(entt::registry& registry, engine::Application
             if (collide(solid_aabb, actor_aabb)) {
               const auto actor_eid = static_cast<entt::entity>(actor_aabb.ent_id);
               if (registry.all_of<PositionIntComponent>(actor_eid)) {
-                auto& pos = registry.get<PositionIntComponent>(actor_eid);
                 // push left: left - right
                 float dx = solid_aabb.x_tl - (actor_aabb.x_tl + actor_aabb.w);
-                move_actors_dir(pos.x, dx, actor_aabb, solids_aabb, squish_callback);
+                auto& pos = registry.get<PositionIntComponent>(actor_eid);
+                move_actors_dir(pos.x, dx, actor_aabb, solids_aabb, actor_being_squish_callback);
               }
             }
           }
         }
       }
-    }
 
-    if (move_y != 0) {
       // do y-axis movement....
+      if (move_y != 0) {
+        pos.dy -= move_y;
+        pos.y += move_y;
+        solid_aabb.x_tl = static_cast<int>(pos.x - (size.w / 2.0f));
+        solid_aabb.y_tl = static_cast<int>(pos.y - (size.h / 2.0f));
+        solid_aabb.w = size.w;
+        solid_aabb.h = size.h;
+
+        if (move_y > 0) {
+          for (auto& actor_aabb : actors_aabb) {
+            if (collide(solid_aabb, actor_aabb)) {
+              const auto actor_eid = static_cast<entt::entity>(actor_aabb.ent_id);
+              if (registry.all_of<PositionIntComponent>(actor_eid)) {
+                // push bottom: bottom - top
+                float dx = (solid_aabb.y_tl + solid_aabb.h) - actor_aabb.y_tl;
+                auto& pos = registry.get<PositionIntComponent>(actor_eid);
+                move_actors_dir(pos.y, dx, actor_aabb, solids_aabb, actor_being_squish_callback);
+              }
+            }
+          }
+        } else {
+          for (auto& actor_aabb : actors_aabb) {
+            if (collide(solid_aabb, actor_aabb)) {
+              const auto actor_eid = static_cast<entt::entity>(actor_aabb.ent_id);
+              if (registry.all_of<PositionIntComponent>(actor_eid)) {
+                // push top: top - bottom
+                float dx = solid_aabb.y_tl - (actor_aabb.y_tl + actor_aabb.h);
+                auto& pos = registry.get<PositionIntComponent>(actor_eid);
+                move_actors_dir(pos.y, dx, actor_aabb, solids_aabb, actor_being_squish_callback);
+              }
+            }
+          }
+        }
+      }
     }
 
     // Re-enable collisions for this solid

@@ -1,7 +1,13 @@
 #pragma once
 
+// components
+#include "modules/physics/components.hpp"
+
 // other lib headers
 #include <glm/glm.hpp>
+
+// other lib headers
+#include <entt/entt.hpp>
 
 // c++ lib headers
 #include <functional>
@@ -9,36 +15,6 @@
 #include <vector>
 
 namespace game2d {
-
-enum class PhysicsType
-{
-  SOLID,
-  ACTOR,
-};
-
-// A physics object needs an entity id, and size info
-struct PhysicsObject
-{
-  uint32_t ent_id;
-  // aabb
-  int x_tl;
-  int y_tl;
-  int w;
-  int h;
-  // state
-  bool collidable = true;
-};
-
-// A collision occurs between two entities
-struct Collision2D
-{
-  uint32_t ent_id_0 = true;
-  uint32_t ent_id_1 = true;
-  bool collision_x = false;
-  bool collision_y = false;
-
-  bool dirty = false; // dirty means it occurred last frame
-};
 
 // -- check object collisions
 
@@ -62,12 +38,6 @@ move_actors_dir(int& pos_x,
                 PhysicsObject& actor_aabb,
                 std::vector<PhysicsObject>& solids,
                 std::function<void()>& callback);
-
-// TEMP
-inline void
-move_solid_dir(float& dx){
-  //
-};
 
 void
 print_solid();

@@ -1,12 +1,41 @@
 #pragma once
 
-#include "modules/physics/helpers.hpp"
-
 // c++ headers
 #include <map>
 #include <vector>
 
 namespace game2d {
+
+// -- data
+
+// A collision occurs between two entities
+struct Collision2D
+{
+  uint32_t ent_id_0 = true;
+  uint32_t ent_id_1 = true;
+  bool collision_x = false;
+  bool collision_y = false;
+  bool dirty = false; // dirty means it occurred last frame
+};
+
+// A physics object needs an entity id, and size info
+struct PhysicsObject
+{
+  uint32_t ent_id;
+  // aabb
+  int x_tl;
+  int y_tl;
+  int w;
+  int h;
+  // state
+  bool collidable = true;
+};
+
+enum class PhysicsType
+{
+  SOLID,
+  ACTOR,
+};
 
 // -- components
 
