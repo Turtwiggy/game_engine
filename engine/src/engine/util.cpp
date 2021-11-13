@@ -8,9 +8,6 @@
 // other library headers
 #include <chrono>
 #include <iostream>
-#ifdef WIN32
-#include <Windows.h>
-#endif
 
 namespace engine {
 
@@ -52,14 +49,6 @@ load_textures_threaded(std::vector<std::pair<int, std::string>>& textures_to_loa
 
   log_time_since("(End Threaded) textures loaded took:", start);
   return texture_ids;
-}
-
-void
-hide_windows_console()
-{
-#ifdef WIN32
-  ::ShowWindow(::GetConsoleWindow(), SW_HIDE); // hide console
-#endif
 }
 
 }

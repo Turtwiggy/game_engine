@@ -8,7 +8,6 @@
 // other lib headers
 #include <glm/gtc/type_ptr.hpp>
 #include <imgui.h>
-#include <iostream>
 
 void
 game2d::init_ui_hierarchy_system(entt::registry& registry)

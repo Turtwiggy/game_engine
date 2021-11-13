@@ -3,13 +3,18 @@
 #include "imgui_setup.hpp"
 
 // other library headers
-#include <glm/glm.hpp>
+// clang-format off
 #include <imgui.h>
+#include <backends/imgui_impl_opengl3.h>
+#include <backends/imgui_impl_sdl.h>
+#include <imgui_internal.h>
+#include <ImGuizmo.h>
+// clang-format on
+#include <glm/glm.hpp>
 #if defined(IMGUI_IMPL_OPENGL_LOADER_GLEW)
 #include <GL/glew.h>
 #endif
-#include <backends/imgui_impl_opengl3.h>
-#include <backends/imgui_impl_sdl.h>
+
 #ifdef _WIN32
 #include <SDL2/SDL_syswm.h>
 #endif
@@ -25,10 +30,6 @@ ImGui_Manager::~ImGui_Manager()
 
 void
 ImGui_Manager::initialize(GameWindow* window)
-//: _mousePressed{ false, false, false }
-//, _mouseCursors{ 0 }
-//, _clipboardTextData(nullptr)
-//, _lastScroll(0)
 {
   // Setup ImGui
   IMGUI_CHECKVERSION();
@@ -100,6 +101,7 @@ ImGui_Manager::begin_frame(const GameWindow& window)
   ImGui_ImplOpenGL3_NewFrame();
   ImGui_ImplSDL2_NewFrame(window.get_handle());
   ImGui::NewFrame();
+  ImGuizmo::BeginFrame();
 }
 
 void

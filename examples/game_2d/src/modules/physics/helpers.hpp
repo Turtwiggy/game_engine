@@ -2,6 +2,7 @@
 
 // components
 #include "modules/physics/components.hpp"
+#include "modules/renderer/components.hpp"
 
 // other lib headers
 #include <glm/glm.hpp>
@@ -33,7 +34,8 @@ generate_filtered_broadphase_collisions(const std::vector<PhysicsObject>& unsort
 // -- move objects
 
 void
-move_actors_dir(int& pos_x,
+move_actors_dir(COLLISION_AXIS axis,
+                int& pos,
                 float& dx,
                 PhysicsObject& actor_aabb,
                 std::vector<PhysicsObject>& solids,

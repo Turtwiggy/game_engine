@@ -16,20 +16,24 @@ set (ENGINE_PACKAGES
 
 #Source Files
 set (ENGINE_SOURCE
-    #engine    
+    #engine
     ${CMAKE_SOURCE_DIR}/engine/src/*.cpp
 
     #imgui
-    ${CMAKE_SOURCE_DIR}/thirdparty/imgui/imgui_widgets.cpp
     ${CMAKE_SOURCE_DIR}/thirdparty/imgui/backends/imgui_impl_sdl.cpp
     ${CMAKE_SOURCE_DIR}/thirdparty/imgui/backends/imgui_impl_opengl3.cpp
     ${CMAKE_SOURCE_DIR}/thirdparty/imgui/imgui.cpp
     ${CMAKE_SOURCE_DIR}/thirdparty/imgui/imgui_draw.cpp
-    ${CMAKE_SOURCE_DIR}/thirdparty/imgui/imgui_demo.cpp
     ${CMAKE_SOURCE_DIR}/thirdparty/imgui/imgui_tables.cpp
+    ${CMAKE_SOURCE_DIR}/thirdparty/imgui/imgui_demo.cpp
+    ${CMAKE_SOURCE_DIR}/thirdparty/imgui/imgui_widgets.cpp
 
     #imguizmo
     ${CMAKE_SOURCE_DIR}/thirdparty/imguizmo/ImGuizmo.cpp
+    ${CMAKE_SOURCE_DIR}/thirdparty/imguizmo/ImSequencer.cpp
+    ${CMAKE_SOURCE_DIR}/thirdparty/imguizmo/ImGradient.cpp
+    ${CMAKE_SOURCE_DIR}/thirdparty/imguizmo/ImCurveEdit.cpp
+    ${CMAKE_SOURCE_DIR}/thirdparty/imguizmo/GraphEditor.cpp
 )
 
 if(${CMAKE_SYSTEM_NAME} STREQUAL "Windows")
@@ -55,7 +59,8 @@ if(${CMAKE_SYSTEM_NAME} STREQUAL "Windows")
         # game networking sockets libs (windows only)
         OpenSSL::SSL OpenSSL::Crypto
         protobuf::libprotoc protobuf::libprotobuf protobuf::libprotobuf-lite
-        GameNetworkingSockets::shared GameNetworkingSockets::static GameNetworkingSockets::GameNetworkingSockets GameNetworkingSockets::GameNetworkingSockets_s)
+        GameNetworkingSockets::shared GameNetworkingSockets::static GameNetworkingSockets::GameNetworkingSockets GameNetworkingSockets::GameNetworkingSockets_s
+    )
 
 elseif(${CMAKE_SYSTEM_NAME} STREQUAL "Linux")
     #Vcpkg linux includes
@@ -75,7 +80,7 @@ elseif(${CMAKE_SYSTEM_NAME} STREQUAL "Linux")
         GL
         GLEW
     )
-endif()  
+endif()
 
 
 

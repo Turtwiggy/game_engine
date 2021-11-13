@@ -13,7 +13,4 @@ log_time_since(const std::string& label, std::chrono::time_point<std::chrono::hi
 [[nodiscard]] std::vector<unsigned int>
 load_textures_threaded(std::vector<std::pair<int, std::string>>& textures_to_load);
 
-void
-hide_windows_console();
-
 }

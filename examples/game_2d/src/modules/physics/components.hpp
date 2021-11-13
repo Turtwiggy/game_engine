@@ -8,6 +8,12 @@ namespace game2d {
 
 // -- data
 
+enum class COLLISION_AXIS
+{
+  X,
+  Y
+};
+
 // A collision occurs between two entities
 struct Collision2D
 {

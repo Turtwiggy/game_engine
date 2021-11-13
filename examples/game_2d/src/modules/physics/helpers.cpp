@@ -12,12 +12,6 @@
 
 namespace game2d {
 
-enum class COLLISION_AXIS
-{
-  X,
-  Y
-};
-
 bool
 collide(const PhysicsObject& one, const PhysicsObject& two)
 {
@@ -151,7 +145,8 @@ game2d::generate_filtered_broadphase_collisions(const std::vector<PhysicsObject>
 };
 
 void
-game2d::move_actors_dir(int& pos_x,
+game2d::move_actors_dir(COLLISION_AXIS axis,
+                        int& pos,
                         float& dx,
                         PhysicsObject& actor_aabb,
                         std::vector<PhysicsObject>& solids,
@@ -164,9 +159,17 @@ game2d::move_actors_dir(int& pos_x,
     dx -= move_x;
     int sign = Sign(move_x);
     PhysicsObject potential_aabb;
+    potential_aabb.ent_id = actor_aabb.ent_id;
     while (move_x != 0) {
-      potential_aabb.x_tl = actor_aabb.x_tl + sign;
+
+      potential_aabb.x_tl = actor_aabb.x_tl;
+      if (axis == COLLISION_AXIS::X)
+        potential_aabb.x_tl += sign;
+
       potential_aabb.y_tl = actor_aabb.y_tl;
+      if (axis == COLLISION_AXIS::Y)
+        potential_aabb.y_tl += sign;
+
       potential_aabb.w = actor_aabb.w;
       potential_aabb.h = actor_aabb.h;
       bool collision_with_solid = collides(potential_aabb, solids);
@@ -180,7 +183,7 @@ game2d::move_actors_dir(int& pos_x,
       actor_aabb.y_tl = potential_aabb.y_tl;
       actor_aabb.w = potential_aabb.w;
       actor_aabb.h = potential_aabb.h;
-      pos_x += sign;
+      pos += sign;
       move_x -= sign;
     }
   }

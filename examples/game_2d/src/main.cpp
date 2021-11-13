@@ -5,6 +5,7 @@ using namespace game2d;
 // engine headers
 #include "engine/application.hpp"
 #include "engine/util.hpp"
+#include "engine/util_windows.hpp"
 using namespace engine;
 
 // other lib headers

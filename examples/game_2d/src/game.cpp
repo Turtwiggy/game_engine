@@ -21,6 +21,7 @@
 #include "modules/map_editor/system.hpp"
 #include "modules/physics/system.hpp"
 #include "modules/renderer/system.hpp"
+#include "modules/ui_gizmos/system.hpp"
 #include "modules/ui_hierarchy/system.hpp"
 #include "modules/ui_map_editor/system.hpp"
 #include "modules/ui_physics/system.hpp"
@@ -54,6 +55,7 @@ init_game_state(entt::registry& registry)
 {
   registry.each([&registry](auto entity) { registry.destroy(entity); });
   init_physics_system(registry);
+  init_ui_gizmos_system(registry);
   registry.set<SINGLETON_ResourceComponent>(SINGLETON_ResourceComponent());
   registry.set<SINGLETON_GamePaused>(SINGLETON_GamePaused());
   registry.set<SINGLETON_GridSize>(SINGLETON_GridSize());
@@ -145,49 +147,13 @@ init_game_state(entt::registry& registry)
     }
   }
 
-  // Add wall object moving right
+  // Add wall object
   {
     entt::entity r = registry.create();
-    registry.emplace<TagComponent>(r, "wall moving right");
-    registry.emplace<VelocityComponent>(r, 24.0f, 0.0f);
+    registry.emplace<TagComponent>(r, "wall");
+    registry.emplace<VelocityComponent>(r, 0.0f, 0.0f);
     registry.emplace<ColourComponent>(r, colour_red);
     registry.emplace<PositionIntComponent>(r, 300, 25 * GRID_SIZE);
-    registry.emplace<SizeComponent>(r, GRID_SIZE, GRID_SIZE);
-    registry.emplace<SpriteComponent>(r, sprite::type::EMPTY);
-    registry.emplace<CollidableComponent>(r, static_cast<uint32_t>(GameCollisionLayer::SOLID_WALL), PhysicsType::SOLID);
-    registry.emplace<VelocityInBoundingboxComponent>(r);
-  }
-  // Add wall object moving left
-  {
-    entt::entity r = registry.create();
-    registry.emplace<TagComponent>(r, "wall moving left");
-    registry.emplace<VelocityComponent>(r, -24.0f, 0.0f);
-    registry.emplace<ColourComponent>(r, colour_red);
-    registry.emplace<PositionIntComponent>(r, 576, 25 * GRID_SIZE);
-    registry.emplace<SizeComponent>(r, GRID_SIZE, GRID_SIZE);
-    registry.emplace<SpriteComponent>(r, sprite::type::EMPTY);
-    registry.emplace<CollidableComponent>(r, static_cast<uint32_t>(GameCollisionLayer::SOLID_WALL), PhysicsType::SOLID);
-    registry.emplace<VelocityInBoundingboxComponent>(r);
-  }
-  // Add wall object moving down
-  {
-    entt::entity r = registry.create();
-    registry.emplace<TagComponent>(r, "wall moving down");
-    registry.emplace<VelocityComponent>(r, 0.0f, 24.0f);
-    registry.emplace<ColourComponent>(r, colour_red);
-    registry.emplace<PositionIntComponent>(r, 400, 15 * GRID_SIZE);
-    registry.emplace<SizeComponent>(r, GRID_SIZE, GRID_SIZE);
-    registry.emplace<SpriteComponent>(r, sprite::type::EMPTY);
-    registry.emplace<CollidableComponent>(r, static_cast<uint32_t>(GameCollisionLayer::SOLID_WALL), PhysicsType::SOLID);
-    registry.emplace<VelocityInBoundingboxComponent>(r);
-  }
-  // Add wall object moving up
-  {
-    entt::entity r = registry.create();
-    registry.emplace<TagComponent>(r, "wall moving up");
-    registry.emplace<VelocityComponent>(r, 0.0f, -24.0f);
-    registry.emplace<ColourComponent>(r, colour_red);
-    registry.emplace<PositionIntComponent>(r, 400, 30 * GRID_SIZE);
     registry.emplace<SizeComponent>(r, GRID_SIZE, GRID_SIZE);
     registry.emplace<SpriteComponent>(r, sprite::type::EMPTY);
     registry.emplace<CollidableComponent>(r, static_cast<uint32_t>(GameCollisionLayer::SOLID_WALL), PhysicsType::SOLID);
@@ -270,6 +236,7 @@ game2d::update(entt::registry& registry, engine::Application& app, float dt)
     update_ui_profiler_system(registry, app);
     update_ui_physics_system(registry, app);
     update_ui_hierarchy_system(registry, app);
+    update_ui_gizmos_system(registry, app, dt); // update after hierarchy
     update_ui_map_editor_system(registry, app, dt);
   };
 

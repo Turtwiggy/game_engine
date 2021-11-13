@@ -4,9 +4,9 @@
 [submodule "thirdparty/vcpkg"]
     path = thirdparty/vcpkg
     url = https://github.com/Microsoft/vcpkg
-[submodule "thirdparty/imguizmo"]
-    path = thirdparty/imguizmo
-    url = https://github.com/CedricGuillemet/ImGuizmo.git
 [submodule "thirdparty/GameNetworkingSockets"]
     path = thirdparty/GameNetworkingSockets
     url = https://github.com/ValveSoftware/GameNetworkingSockets.git
+[submodule "thirdparty/imguizmo"]
+	path = thirdparty/imguizmo
+	url = https://github.com/CedricGuillemet/ImGuizmo.git

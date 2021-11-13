@@ -1,7 +1,7 @@
 ### How to get setup
 
 ```git
-    git clone (this repo)
+    git clone
     git submodule update --init --recursive
 ```
 

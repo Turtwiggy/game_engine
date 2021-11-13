@@ -43,6 +43,8 @@ ELSE()
   )
 endif()
 
+# target_compile_options(example-app PRIVATE "/std:c++17")
+
 # includes
 target_include_directories(game_2d PRIVATE 
   ${ENGINE_INCLUDES} 
