@@ -3,6 +3,7 @@
 
 // components
 #include "components/ai_head_to_random_point.hpp"
+#include "components/click_to_destroy.hpp"
 #include "components/flash_colour.hpp"
 #include "components/parry.hpp"
 #include "components/player.hpp"
@@ -27,6 +28,7 @@
 #include "modules/ui_physics/system.hpp"
 #include "modules/ui_profiler/system.hpp"
 #include "systems/ai_head_to_random_point.hpp"
+#include "systems/click_to_destroy.hpp"
 #include "systems/destroy_on_collide.hpp"
 #include "systems/move_objects.hpp"
 #include "systems/parry.hpp"
@@ -107,12 +109,14 @@ init_game_state(entt::registry& registry)
       registry.emplace<ParryComponent>(r);
       registry.emplace<ColourComponent>(r, colour_dblue);
       registry.emplace<VelocityComponent>(r, 0.0f, 0.0f);
-      registry.emplace<PositionIntComponent>(r, i * GRID_SIZE, 100.0f);
+      registry.emplace<PositionIntComponent>(r, i * GRID_SIZE, GRID_SIZE * 10);
       registry.emplace<SizeComponent>(r, GRID_SIZE, GRID_SIZE);
       registry.emplace<SpriteComponent>(r, sprite::type::SPACE_VEHICLE_1);
       registry.emplace<AIHeadToRandomPoint>(r);
       registry.emplace<VelocityInBoundingboxComponent>(r);
       registry.emplace<CollidableComponent>(r, static_cast<uint32_t>(GameCollisionLayer::ACTOR_BALL));
+      registry.emplace<HealthComponent>(r, 3);
+      registry.emplace<ClickToDestroyComponent>(r);
     }
   }
 
@@ -212,6 +216,7 @@ game2d::update(entt::registry& registry, engine::Application& app, float dt)
   {
     if (!gp.paused) {
       update_player_input_system(registry, app);
+      update_click_to_destroy_system(registry, app);
       update_process_physics_system(registry, app, dt);
       // update_destroy_on_collide_system(registry, app, dt);
       update_velocity_in_boundingbox_system(registry, app, dt);

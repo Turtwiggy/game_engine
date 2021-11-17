@@ -22,7 +22,7 @@ main()
   std::cout << "init..." << std::endl;
   const auto app_start = std::chrono::high_resolution_clock::now();
 
-  bool hide_windows_console = false;
+  bool hide_windows_console = true;
   if (hide_windows_console)
     engine::hide_windows_console();
 
