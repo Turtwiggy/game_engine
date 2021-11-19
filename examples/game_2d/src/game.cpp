@@ -80,7 +80,8 @@ init_game_state(entt::registry& registry)
     registry.emplace<TagComponent>(r, "cursor");
     registry.emplace<ColourComponent>(r, 1.0f, 0.0f, 0.0f, 0.5f);
     registry.emplace<PositionIntComponent>(r);
-    registry.emplace<SizeComponent>(r, GRID_SIZE, GRID_SIZE);
+    registry.emplace<RenderSizeComponent>(r, GRID_SIZE, GRID_SIZE);
+    registry.emplace<PhysicsSizeComponent>(r, GRID_SIZE, GRID_SIZE);
     registry.emplace<SpriteComponent>(r, sprite::type::EMPTY);
     registry.emplace<CursorComponent>(r);
   }
@@ -92,7 +93,8 @@ init_game_state(entt::registry& registry)
     registry.emplace<Player>(r);
     registry.emplace<ColourComponent>(r, colour_cyan);
     registry.emplace<PositionIntComponent>(r, 25 * GRID_SIZE, 25 * GRID_SIZE);
-    registry.emplace<SizeComponent>(r, GRID_SIZE, GRID_SIZE);
+    registry.emplace<RenderSizeComponent>(r, GRID_SIZE, GRID_SIZE);
+    registry.emplace<PhysicsSizeComponent>(r, GRID_SIZE, GRID_SIZE);
     registry.emplace<SpriteComponent>(r, sprite::type::PERSON_0);
     registry.emplace<CollidableComponent>(r, static_cast<uint32_t>(GameCollisionLayer::ACTOR_PLAYER));
   }
@@ -110,7 +112,8 @@ init_game_state(entt::registry& registry)
       registry.emplace<ColourComponent>(r, colour_dblue);
       registry.emplace<VelocityComponent>(r, 0.0f, 0.0f);
       registry.emplace<PositionIntComponent>(r, i * GRID_SIZE, GRID_SIZE * 10);
-      registry.emplace<SizeComponent>(r, GRID_SIZE, GRID_SIZE);
+      registry.emplace<RenderSizeComponent>(r, GRID_SIZE, GRID_SIZE);
+      registry.emplace<PhysicsSizeComponent>(r, GRID_SIZE, GRID_SIZE);
       registry.emplace<SpriteComponent>(r, sprite::type::SPACE_VEHICLE_1);
       registry.emplace<AIHeadToRandomPoint>(r);
       registry.emplace<VelocityInBoundingboxComponent>(r);
@@ -126,7 +129,8 @@ init_game_state(entt::registry& registry)
     registry.emplace<TagComponent>(r, "goal");
     registry.emplace<ColourComponent>(r, colour_white);
     registry.emplace<PositionIntComponent>(r, 10 * GRID_SIZE, 25 * GRID_SIZE);
-    registry.emplace<SizeComponent>(r, GRID_SIZE, GRID_SIZE);
+    registry.emplace<RenderSizeComponent>(r, GRID_SIZE, GRID_SIZE);
+    registry.emplace<PhysicsSizeComponent>(r, GRID_SIZE, GRID_SIZE);
     registry.emplace<SpriteComponent>(r, sprite::type::EMPTY);
     registry.emplace<CollidableComponent>(r, static_cast<uint32_t>(GameCollisionLayer::ACTOR_GOAL));
   }
@@ -144,7 +148,8 @@ init_game_state(entt::registry& registry)
       registry.emplace<FlashColourComponent>(r, f);
       registry.emplace<ColourComponent>(r, colour_dblue);
       registry.emplace<PositionIntComponent>(r, 15 * GRID_SIZE, 25 * GRID_SIZE);
-      registry.emplace<SizeComponent>(r, GRID_SIZE, GRID_SIZE);
+      registry.emplace<RenderSizeComponent>(r, GRID_SIZE, GRID_SIZE);
+      registry.emplace<PhysicsSizeComponent>(r, GRID_SIZE, GRID_SIZE);
       registry.emplace<SpriteComponent>(r, sprite::type::EMPTY);
       registry.emplace<ParryComponent>(r);
       registry.emplace<CollidableComponent>(r, static_cast<uint32_t>(GameCollisionLayer::ACTOR_BALL));
@@ -158,7 +163,8 @@ init_game_state(entt::registry& registry)
     registry.emplace<VelocityComponent>(r, 0.0f, 0.0f);
     registry.emplace<ColourComponent>(r, colour_red);
     registry.emplace<PositionIntComponent>(r, 30 * GRID_SIZE, 25 * GRID_SIZE);
-    registry.emplace<SizeComponent>(r, GRID_SIZE, GRID_SIZE);
+    registry.emplace<RenderSizeComponent>(r, GRID_SIZE, GRID_SIZE);
+    registry.emplace<PhysicsSizeComponent>(r, GRID_SIZE, GRID_SIZE);
     registry.emplace<SpriteComponent>(r, sprite::type::EMPTY);
     registry.emplace<CollidableComponent>(r, static_cast<uint32_t>(GameCollisionLayer::SOLID_WALL), PhysicsType::SOLID);
     registry.emplace<VelocityInBoundingboxComponent>(r);

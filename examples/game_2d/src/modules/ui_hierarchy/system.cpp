@@ -107,18 +107,33 @@ game2d::update_ui_hierarchy_system(entt::registry& registry, engine::Application
       }
     }
 
-    // Display SizeComponent
-    if (registry.all_of<SizeComponent>(eid)) {
-      SizeComponent& sc = registry.get<SizeComponent>(eid);
+    // Display RenderSizeComponent
+    if (registry.all_of<RenderSizeComponent>(eid)) {
+      RenderSizeComponent& sc = registry.get<RenderSizeComponent>(eid);
 
       // Able to change the value of PositionInt component
       glm::ivec2 size = { sc.w, sc.h };
 
-      ImGui::Text("Size: ");
+      ImGui::Text("Render Size: ");
       ImGui::SameLine();
-      if (ImGui::DragInt2("##size", glm::value_ptr(size), 0.5f)) {
+      if (ImGui::DragInt2("##rendersize", glm::value_ptr(size), 0.5f)) {
         sc.w = size.x;
         sc.h = size.y;
+      }
+    }
+
+    // Display PhysicsSizeComponent
+    if (registry.all_of<PhysicsSizeComponent>(eid)) {
+      PhysicsSizeComponent& psc = registry.get<PhysicsSizeComponent>(eid);
+
+      // Able to change the value of PositionInt component
+      glm::ivec2 size = { psc.w, psc.h };
+
+      ImGui::Text("Physics Size: ");
+      ImGui::SameLine();
+      if (ImGui::DragInt2("##physicssize", glm::value_ptr(size), 0.5f)) {
+        psc.w = size.x;
+        psc.h = size.y;
       }
     }
 
@@ -156,8 +171,12 @@ game2d::update_ui_hierarchy_system(entt::registry& registry, engine::Application
         registry.emplace<PositionIntComponent>(eid);
         ImGui::CloseCurrentPopup();
       }
-      if (ImGui::MenuItem("SizeComponent")) {
-        registry.emplace<SizeComponent>(eid);
+      if (ImGui::MenuItem("RenderSizeComponent")) {
+        registry.emplace<RenderSizeComponent>(eid);
+        ImGui::CloseCurrentPopup();
+      }
+      if (ImGui::MenuItem("PhysicsSizeComponent")) {
+        registry.emplace<PhysicsSizeComponent>(eid);
         ImGui::CloseCurrentPopup();
       }
       if (ImGui::MenuItem("ColourComponent")) {

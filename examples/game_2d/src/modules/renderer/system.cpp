@@ -97,9 +97,6 @@ game2d::update_render_system(entt::registry& registry, engine::Application& app)
   RenderCommand::set_clear_colour(background_colour);
   RenderCommand::clear();
 
-  // Do triangle stuff
-  // triangle_renderer::TriangleRenderer::draw(registry, ri.instanced);
-
   // Do quad stuff
   {
     quad_renderer::QuadRenderer::reset_quad_vert_count();
@@ -110,8 +107,9 @@ game2d::update_render_system(entt::registry& registry, engine::Application& app)
 
     quad_renderer::RenderDescriptor desc;
     const auto& view =
-      registry.view<const PositionIntComponent, const SizeComponent, const ColourComponent, const SpriteComponent>();
-    view.each([&registry, &ri, &desc](const auto& p, const auto& s, const auto& c, const auto& spr) {
+      registry
+        .view<const PositionIntComponent, const RenderSizeComponent, const ColourComponent, const SpriteComponent>();
+    view.each([&ri, &desc](const auto& p, const auto& s, const auto& c, const auto& spr) {
       desc.pos_tl = { p.x - int(s.w / 2.0f), p.y - int(s.h / 2.0f) };
       desc.colour = c.colour;
       desc.size = { s.w, s.h };

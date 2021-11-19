@@ -48,7 +48,8 @@ game2d::update_map_editor_system(entt::registry& registry, engine::Application& 
     registry.emplace<TagComponent>(r, "entity");
     registry.emplace<ColourComponent>(r, 1.0f, 1.0f, 1.0f, 1.0f);
     registry.emplace<PositionIntComponent>(r, world_space.x, world_space.y);
-    registry.emplace<SizeComponent>(r, GRID_SIZE, GRID_SIZE);
+    registry.emplace<RenderSizeComponent>(r, GRID_SIZE, GRID_SIZE);
+    registry.emplace<PhysicsSizeComponent>(r, GRID_SIZE, GRID_SIZE);
     const auto& sprite = map_editor_info.sprite_to_place.value_or(sprite::type::EMPTY);
     registry.emplace<SpriteComponent>(r, sprite);
     registry.emplace<VelocityComponent>(r);

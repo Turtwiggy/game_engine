@@ -27,7 +27,8 @@ game2d::update_physics_system(entt::registry& registry, engine::Application& app
   {
     p.collidable.clear();
     PhysicsObject po;
-    const auto& view = registry.view<const CollidableComponent, const PositionIntComponent, const SizeComponent>();
+    const auto& view =
+      registry.view<const CollidableComponent, const PositionIntComponent, const PhysicsSizeComponent>();
     view.each([&registry, &po, &p](const auto entity, const auto& col, const auto& pos, const auto& size) {
       // actors and solids never overlap,
       // and solids dont overlap with solids

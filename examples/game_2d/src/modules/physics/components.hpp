@@ -45,16 +45,27 @@ enum class PhysicsType
 
 // -- components
 
-struct VelocityComponent
-{
-  float x = 0.0f;
-  float y = 0.0f;
-};
-
 struct CollidableComponent
 {
   uint32_t layer_id = 0;
   PhysicsType type = PhysicsType::ACTOR;
+};
+
+struct PhysicsSizeComponent
+{
+  int w = 0;
+  int h = 0;
+
+  PhysicsSizeComponent() = default;
+  PhysicsSizeComponent(int w, int h)
+    : w(w)
+    , h(h){};
+};
+
+struct VelocityComponent
+{
+  float x = 0.0f;
+  float y = 0.0f;
 };
 
 // -- singleton components

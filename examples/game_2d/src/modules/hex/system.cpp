@@ -41,7 +41,7 @@ render_number(entt::registry& registry, int number, float x, float y)
     else
       registry.emplace<ColourComponent>(r, text_colour);
     registry.emplace<PositionIntComponent>(r, int(x + text_x_offset), int(y));
-    registry.emplace<SizeComponent>(r, 10, 10);
+    registry.emplace<RenderSizeComponent>(r, 10, 10);
     registry.emplace<SpriteComponent>(r, number);
     registry.emplace<HexText>(r);
 

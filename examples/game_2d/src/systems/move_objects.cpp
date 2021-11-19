@@ -27,7 +27,8 @@ game2d::update_move_objects_system(entt::registry& registry, engine::Application
   // Collect the collidable objects
   std::vector<PhysicsObject> actors_aabb;
   std::vector<PhysicsObject> solids_aabb;
-  const auto& coll_view = registry.view<const CollidableComponent, const PositionIntComponent, const SizeComponent>();
+  const auto& coll_view =
+    registry.view<const CollidableComponent, const PositionIntComponent, const PhysicsSizeComponent>();
 
   PhysicsObject aabb;
   coll_view.each([&registry, &solids_aabb, &actors_aabb, &aabb](
@@ -74,7 +75,7 @@ game2d::update_move_objects_system(entt::registry& registry, engine::Application
     auto& solid_aabb = solids_aabb[i];
     const auto& solid_eid = static_cast<entt::entity>(solid_aabb.ent_id);
     auto& pos = registry.get<PositionIntComponent>(solid_eid);
-    auto& size = registry.get<SizeComponent>(solid_eid);
+    auto& size = registry.get<PhysicsSizeComponent>(solid_eid);
 
     if (registry.all_of<VelocityComponent>(solid_eid)) {
       const auto& vel = registry.get<VelocityComponent>(solid_eid);

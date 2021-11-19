@@ -63,13 +63,13 @@ struct PositionFloat
     , y(y){};
 };
 
-struct SizeComponent
+struct RenderSizeComponent
 {
   int w = 0;
   int h = 0;
 
-  SizeComponent() = default;
-  SizeComponent(int w, int h)
+  RenderSizeComponent() = default;
+  RenderSizeComponent(int w, int h)
     : w(w)
     , h(h){};
 };
@@ -101,6 +101,7 @@ constexpr int tex_unit_kenny_nl = 0;
 constexpr int tex_unit_main_scene = 1;
 constexpr int tex_unit_lighting = 2;
 
+// Attributes only updated by renderer system, read by anything.
 struct SINGLETON_RendererInfo
 {
   // fbo
