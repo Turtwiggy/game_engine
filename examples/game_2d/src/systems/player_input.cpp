@@ -18,6 +18,7 @@ void
 game2d::update_player_input_system(entt::registry& registry, engine::Application& app)
 {
   const auto& ri = registry.ctx<SINGLETON_RendererInfo>();
+  const int& GRID_SIZE = registry.ctx<SINGLETON_GridSize>().size_xy;
 
   // process game events if the viewport says so
   // if (!ri.viewport_process_events)
@@ -25,26 +26,14 @@ game2d::update_player_input_system(entt::registry& registry, engine::Application
 
   glm::ivec2 imgui_mouse_pos = app.get_input().get_mouse_pos();
   glm::vec2 imgui_viewport_tl = ri.viewport_pos;
-
-  // this is what sdl2 returns from mouse_pos, if we wern't using moving viewport
-  // glm::ivec2 window_tl = app.get_window().get_position();
-  // glm::ivec2 mouse_pos = im_mouse_pos - window_tl;
   glm::ivec2 mouse_pos = imgui_mouse_pos - glm::ivec2(imgui_viewport_tl.x, imgui_viewport_tl.y);
-
-  // adjust pos to keep square visible while mouse is in 4 corners
-  const auto& gs = registry.ctx<SINGLETON_GridSize>();
-  const int GRID_SIZE = gs.size_xy;
-  glm::vec2 grid_adjusted_mouse_pos = mouse_pos;
-  grid_adjusted_mouse_pos.x += GRID_SIZE / 2.0f;
-  grid_adjusted_mouse_pos.y += GRID_SIZE / 2.0f;
-
-  // ImGui::Begin("Player Input", NULL, ImGuiWindowFlags_NoFocusOnAppearing);
-  // ImGui::Text("mouse %f %f", mouse_pos.x, mouse_pos.y);
-  // ImGui::Text("grid adj %f %f", grid_adjusted_mouse_pos.x, grid_adjusted_mouse_pos.y);
+  glm::vec2 mouse_pos_adjusted_in_worldspace = mouse_pos;
+  mouse_pos_adjusted_in_worldspace.x += GRID_SIZE / 2.0f;
+  mouse_pos_adjusted_in_worldspace.y += GRID_SIZE / 2.0f;
 
   {
     const auto& view = registry.view<Player, PositionIntComponent>();
-    view.each([&registry, &app, &grid_adjusted_mouse_pos, &GRID_SIZE](const auto& player, auto& pos) {
+    view.each([&registry, &app, &mouse_pos_adjusted_in_worldspace, &GRID_SIZE](const auto& player, auto& pos) {
       // Action: Move, Convert WASD to input
       int vx = 0;
       int vy = 0;
@@ -59,6 +48,7 @@ game2d::update_player_input_system(entt::registry& registry, engine::Application
       else if (app.get_input().get_key_down(SDL_SCANCODE_D))
         vx = 1;
 
+      // move in grid sizes
       pos.dx += vx * GRID_SIZE;
       pos.dy += vy * GRID_SIZE;
       // ImGui::Text("player %i %i %f %f", pos.x, pos.y, pos.dx, pos.dy);
@@ -68,7 +58,7 @@ game2d::update_player_input_system(entt::registry& registry, engine::Application
 
       // Action: Update player position with RMB
       if (app.get_input().get_mouse_rmb_down()) {
-        glm::ivec2 grid_slot = engine::grid::world_space_to_grid_space(grid_adjusted_mouse_pos, GRID_SIZE);
+        glm::ivec2 grid_slot = engine::grid::world_space_to_grid_space(mouse_pos_adjusted_in_worldspace, GRID_SIZE);
         glm::ivec2 world_space = grid_slot * GRID_SIZE;
         pos.x = world_space.x;
         pos.y = world_space.y;
@@ -79,8 +69,8 @@ game2d::update_player_input_system(entt::registry& registry, engine::Application
   // Update cursor
   {
     const auto& view = registry.view<CursorComponent, PositionIntComponent>();
-    view.each([&grid_adjusted_mouse_pos, &GRID_SIZE](const auto entity, const auto& c, auto& pos) {
-      glm::ivec2 grid_slot = engine::grid::world_space_to_grid_space(grid_adjusted_mouse_pos, GRID_SIZE);
+    view.each([&mouse_pos_adjusted_in_worldspace, &GRID_SIZE](const auto entity, const auto& c, auto& pos) {
+      glm::ivec2 grid_slot = engine::grid::world_space_to_grid_space(mouse_pos_adjusted_in_worldspace, GRID_SIZE);
       // ImGui::Text("mouse grid %i %i", grid_slot.x, grid_slot.y);
 
       glm::ivec2 world_space = grid_slot * GRID_SIZE;

@@ -143,7 +143,7 @@ init_game_state(entt::registry& registry)
       f.flash_colour = colour_green;
       registry.emplace<FlashColourComponent>(r, f);
       registry.emplace<ColourComponent>(r, colour_dblue);
-      registry.emplace<PositionIntComponent>(r, 516, 25 * GRID_SIZE);
+      registry.emplace<PositionIntComponent>(r, 15 * GRID_SIZE, 25 * GRID_SIZE);
       registry.emplace<SizeComponent>(r, GRID_SIZE, GRID_SIZE);
       registry.emplace<SpriteComponent>(r, sprite::type::EMPTY);
       registry.emplace<ParryComponent>(r);
@@ -157,7 +157,7 @@ init_game_state(entt::registry& registry)
     registry.emplace<TagComponent>(r, "wall");
     registry.emplace<VelocityComponent>(r, 0.0f, 0.0f);
     registry.emplace<ColourComponent>(r, colour_red);
-    registry.emplace<PositionIntComponent>(r, 300, 25 * GRID_SIZE);
+    registry.emplace<PositionIntComponent>(r, 30 * GRID_SIZE, 25 * GRID_SIZE);
     registry.emplace<SizeComponent>(r, GRID_SIZE, GRID_SIZE);
     registry.emplace<SpriteComponent>(r, sprite::type::EMPTY);
     registry.emplace<CollidableComponent>(r, static_cast<uint32_t>(GameCollisionLayer::SOLID_WALL), PhysicsType::SOLID);
@@ -218,7 +218,6 @@ game2d::update(entt::registry& registry, engine::Application& app, float dt)
       update_player_input_system(registry, app);
       update_click_to_destroy_system(registry, app);
       update_process_physics_system(registry, app, dt);
-      // update_destroy_on_collide_system(registry, app, dt);
       update_velocity_in_boundingbox_system(registry, app, dt);
       update_parry_system(registry, app, dt);
       update_ai_head_to_random_point_system(registry, app, dt);

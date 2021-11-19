@@ -4,10 +4,8 @@
 #include "components/singleton_resources.hpp"
 #include "helpers/spritemap.hpp"
 #include "modules/renderer/components.hpp"
-#include "modules/renderer/helpers/renderer_interfaces/render_hexagons.hpp"
+#include "modules/renderer/helpers/helpers.hpp"
 #include "modules/renderer/helpers/renderers/batch_quad.hpp"
-#include "modules/renderer/helpers/renderers/batch_triangle.hpp"
-#include "modules/renderer/helpers/renderers/batch_triangle_fan.hpp"
 
 // engine headers
 #include "engine/opengl/framebuffer.hpp"
@@ -53,8 +51,6 @@ game2d::init_render_system(entt::registry& registry, const glm::ivec2& screen_wh
   RenderCommand::set_depth_testing(false);
   print_gpu_info();
   quad_renderer::QuadRenderer::init();
-  triangle_renderer::TriangleRenderer::init();
-  triangle_fan_renderer::TriangleFanRenderer::init();
 
   // sprites
   const std::string path_to_kennynl = "assets/2d_game/textures/kennynl_1bit_pack/monochrome_transparent_packed.png";
@@ -70,9 +66,6 @@ game2d::init_render_system(entt::registry& registry, const glm::ivec2& screen_wh
 
   // https://github.com/skypjack/entt/wiki/Crash-Course:-entity-component-system#context-variables
   registry.set<SINGLETON_RendererInfo>(ri);
-
-  // Render the HexGrid as an renderable interface
-  triangle_renderer::TriangleRenderer::register_interface<RenderHexagons>();
 };
 
 void
@@ -138,71 +131,17 @@ game2d::update_render_system(entt::registry& registry, engine::Application& app)
   RenderCommand::set_clear_colour(glm::vec4(0.0f, 0.0f, 0.0f, 1.0f));
   RenderCommand::clear();
 
-  static bool dockspace_open = true;
-  static bool opt_fullscreen = true;
-  static ImGuiDockNodeFlags dockspace_flags = ImGuiDockNodeFlags_None;
-
-  ImGuiWindowFlags window_flags = ImGuiWindowFlags_MenuBar | ImGuiWindowFlags_NoDocking;
-  if (opt_fullscreen) {
-    const ImGuiViewport* viewport = ImGui::GetMainViewport();
-    ImGui::SetNextWindowPos(viewport->WorkPos);
-    ImGui::SetNextWindowSize(viewport->WorkSize);
-    ImGui::SetNextWindowViewport(viewport->ID);
-    ImGui::PushStyleVar(ImGuiStyleVar_WindowRounding, 0.0f);
-    ImGui::PushStyleVar(ImGuiStyleVar_WindowBorderSize, 0.0f);
-    window_flags |=
-      ImGuiWindowFlags_NoTitleBar | ImGuiWindowFlags_NoCollapse | ImGuiWindowFlags_NoResize | ImGuiWindowFlags_NoMove;
-    window_flags |= ImGuiWindowFlags_NoBringToFrontOnFocus | ImGuiWindowFlags_NoNavFocus;
-  } else {
-    dockspace_flags &= ~ImGuiDockNodeFlags_PassthruCentralNode;
-  }
-  if (dockspace_flags & ImGuiDockNodeFlags_PassthruCentralNode)
-    window_flags |= ImGuiWindowFlags_NoBackground;
-
-  ImGui::PushStyleVar(ImGuiStyleVar_WindowPadding, ImVec2(0.0f, 0.0f));
-  ImGui::Begin("DockSpace Demo", &dockspace_open, window_flags);
-  ImGui::PopStyleVar();
-  if (opt_fullscreen)
-    ImGui::PopStyleVar(2);
-
-  // Dockspace
-  ImGuiIO& io = ImGui::GetIO();
-  if (io.ConfigFlags & ImGuiConfigFlags_DockingEnable) {
-    ImGuiID dockspace_id = ImGui::GetID("MyDockSpace");
-    ImGui::DockSpace(dockspace_id, ImVec2(0.0f, 0.0f), dockspace_flags);
-  }
-
-  // ImGuiWindowFlags viewport_flags = ImGuiWindowFlags_NoFocusOnAppearing;
-  // viewport_flags |= ImGuiWindowFlags_NoTitleBar;
-  ImGuiWindowFlags viewport_flags = ImGuiWindowFlags_NoTitleBar;
-
-  ImGui::PushStyleVar(ImGuiStyleVar_WindowPadding, ImVec2(0.0f, 0.0f));
-  ImGui::Begin("Viewport", NULL, viewport_flags);
-  ImGui::PopStyleVar();
-
-  ri.viewport_process_events = ImGui::IsWindowFocused() && ImGui::IsWindowHovered();
-
-  ImVec2 viewport_size = ImGui::GetContentRegionAvail();
-  ri.viewport_size_current = { viewport_size.x, viewport_size.y };
-
-  // If the viewport moves - input will be a frame behind.
-  // This would mainly affect an editor
-  // As a game's viewport probably(?) wouldn't move that much
+  ViewportInfo vi = render_texture_to_imgui_viewport(tex_unit_main_scene);
+  // If the viewport moves - viewport position will be a frame behind.
+  // This would mainly affect an editor, a game viewport probably(?) wouldn't move that much
   // (or if a user is moving the viewport, they likely dont need that one frame?)
-  const auto& wpos = ImGui::GetWindowPos();
-  ri.viewport_pos = glm::vec2(wpos.x, wpos.y);
-
-  // render opengl texture to imgui
-  ImGui::Image((ImTextureID)tex_unit_main_scene, viewport_size, ImVec2(0, 1), ImVec2(1, 0));
-
-  ImGui::End();
-
-  ImGui::End();
+  ri.viewport_pos = glm::vec2(vi.pos.x, vi.pos.y);
+  ri.viewport_size_current = { vi.size.x, vi.size.y };
+  ri.viewport_process_events = vi.focused && vi.hovered;
 };
 
 void
 game2d::end_frame_render_system(entt::registry& registry)
 {
   quad_renderer::QuadRenderer::end_frame();
-  triangle_renderer::TriangleRenderer::end_frame();
 };
