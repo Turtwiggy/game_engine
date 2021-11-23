@@ -19,20 +19,6 @@ game2d::init_ui_gizmos_system(entt::registry& registry)
 
 void
 game2d::update_ui_gizmos_system(entt::registry& registry, engine::Application& app, float dt){
-  // Guizmos
-  // ImGuizmo::SetOrthographic(false);
-  // ImGuizmo::SetDrawList();
-  // float window_width = (float)ImGui::GetWindowWidth();
-  // float window_height = (float)ImGui::GetWindowHeight();
-  // ImGuizmo::SetRect(ImGui::GetWindowPos().x, ImGu::GetWindowPos().y, window_width, window_height);
-
-  // auto& hierarchy_component = registry.ctx<SINGLETON_HierarchyComponent>();
-  // if (hierarchy_component.selected_entity != entt::null) {
-  //   ImGui::Begin("ImGuizmo Debug");
-  //   // ImGui::Text("Type: %i", gizmos_component.gizmo_type);
-  //   ImGui::Text("Something selected");
-  //   ImGui::End();
-  // }
   // auto& gizmos_component = registry.ctx<SINGLETON_GizmosComponent>();
   // if (app.get_input().get_key_down(SDL_SCANCODE_Q))
   //   gizmos_component.gizmo_type = -1;
@@ -42,4 +28,21 @@ game2d::update_ui_gizmos_system(entt::registry& registry, engine::Application& a
   //   gizmos_component.gizmo_type = ImGuizmo::OPERATION::ROTATE;
   // if (app.get_input().get_key_down(SDL_SCANCODE_R))
   //   gizmos_component.gizmo_type = ImGuizmo::OPERATION::SCALE;
+
+  // ImGui::Begin("ImGuizmo Debug");
+  // ImGui::Text("Type: %i", gizmos_component.gizmo_type);
+
+  // const auto& hierarchy_component = registry.ctx<SINGLETON_HierarchyComponent>();
+  // if (hierarchy_component.selected_entity != entt::null) {
+  //   ImGui::Text("Something selected");
+
+  //   // Guizmos
+  //   // ImGuizmo::SetOrthographic(false);
+  //   // ImGuizmo::SetDrawlist();
+  //   // float window_width = (float)ImGui::GetWindowWidth();
+  //   // float window_height = (float)ImGui::GetWindowHeight();
+  //   // ImGuizmo::SetRect(ImGui::GetWindowPos().x, ImGu::GetWindowPos().y, window_width, window_height);
+  // }
+
+  // ImGui::End();
 };

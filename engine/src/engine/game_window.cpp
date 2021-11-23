@@ -40,6 +40,9 @@ GameWindow::GameWindow(const std::string& title, int width, int height, DisplayM
     if (SDL_Init(0) != 0)
       std::cout << "could not initialize SDL: " << SDL_GetError();
 
+   if (SDL_InitSubSystem(SDL_INIT_AUDIO) != 0)
+      std::cout << "Could not initialize SDL Audio Subsystem:" << SDL_GetError() << std::endl;
+
     if (SDL_InitSubSystem(SDL_INIT_VIDEO) != 0)
       std::cout << "Could not initialize SDL Video Subsystem:" << SDL_GetError() << std::endl;
 

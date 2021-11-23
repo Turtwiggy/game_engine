@@ -19,7 +19,7 @@ main()
 {
   bool use_vsync = true;
 
-  std::cout << "init..." << std::endl;
+  std::cout << "Running main()" << std::endl;
   const auto app_start = std::chrono::high_resolution_clock::now();
 
   bool hide_windows_console = true;

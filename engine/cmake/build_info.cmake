@@ -8,7 +8,7 @@ message("engine_info: ${CMAKE_BUILD_TYPE}")
 
 #VCPKG packages
 set (ENGINE_PACKAGES_CONFIG
-    SDL2 sdl2-image glm assimp protobuf OpenAL SndFile GameNetworkingSockets
+    SDL2 sdl2-image sdl2-mixer glm assimp protobuf OpenAL SndFile GameNetworkingSockets
 )
 set (ENGINE_PACKAGES
     OpenSSL OpenGL GLEW
@@ -49,7 +49,7 @@ if(${CMAKE_SYSTEM_NAME} STREQUAL "Windows")
     )
     #Vcpkg windows links
     set (ENGINE_LINK_LIBS
-        SDL2::SDL2 SDL2::SDL2main SDL2::SDL2_image
+        SDL2::SDL2 SDL2::SDL2main SDL2::SDL2_image SDL2::SDL2_mixer
         glm
         assimp::assimp
         opengl32

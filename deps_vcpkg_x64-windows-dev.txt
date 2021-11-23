@@ -1,5 +1,7 @@
 spdlog
 box2d
 bullet3
+openal-soft
+libsndfile
 --triplet
 x64-windows

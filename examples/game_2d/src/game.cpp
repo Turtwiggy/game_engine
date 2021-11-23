@@ -3,6 +3,7 @@
 
 // components
 #include "components/ai_head_to_random_point.hpp"
+#include "components/animation.hpp"
 #include "components/click_to_destroy.hpp"
 #include "components/flash_colour.hpp"
 #include "components/parry.hpp"
@@ -11,6 +12,7 @@
 #include "components/singleton_grid.hpp"
 #include "components/singleton_resources.hpp"
 #include "components/velocity_in_boundingbox.hpp"
+#include "modules/audio/components.hpp"
 #include "modules/physics/components.hpp"
 #include "modules/renderer/components.hpp"
 #include "modules/ui_profiler/components.hpp"
@@ -19,6 +21,7 @@
 #include "helpers/physics_layers.hpp"
 
 // systems
+#include "modules/audio/system.hpp"
 #include "modules/map_editor/system.hpp"
 #include "modules/physics/system.hpp"
 #include "modules/renderer/system.hpp"
@@ -28,6 +31,7 @@
 #include "modules/ui_physics/system.hpp"
 #include "modules/ui_profiler/system.hpp"
 #include "systems/ai_head_to_random_point.hpp"
+#include "systems/animation.hpp"
 #include "systems/click_to_destroy.hpp"
 #include "systems/destroy_on_collide.hpp"
 #include "systems/move_objects.hpp"
@@ -90,6 +94,7 @@ init_game_state(entt::registry& registry)
   {
     entt::entity r = registry.create();
     registry.emplace<TagComponent>(r, "player");
+    registry.emplace<AnimationBounce>(r);
     registry.emplace<Player>(r);
     registry.emplace<ColourComponent>(r, colour_cyan);
     registry.emplace<PositionIntComponent>(r, 25 * GRID_SIZE, 25 * GRID_SIZE);
@@ -158,13 +163,15 @@ init_game_state(entt::registry& registry)
 
   // Add wall object
   {
+    int scale = 5;
+
     entt::entity r = registry.create();
     registry.emplace<TagComponent>(r, "wall");
     registry.emplace<VelocityComponent>(r, 0.0f, 0.0f);
     registry.emplace<ColourComponent>(r, colour_red);
     registry.emplace<PositionIntComponent>(r, 30 * GRID_SIZE, 25 * GRID_SIZE);
-    registry.emplace<RenderSizeComponent>(r, GRID_SIZE, GRID_SIZE);
-    registry.emplace<PhysicsSizeComponent>(r, GRID_SIZE, GRID_SIZE);
+    registry.emplace<RenderSizeComponent>(r, GRID_SIZE * scale, GRID_SIZE * scale);
+    registry.emplace<PhysicsSizeComponent>(r, GRID_SIZE * scale, GRID_SIZE * scale);
     registry.emplace<SpriteComponent>(r, sprite::type::EMPTY);
     registry.emplace<CollidableComponent>(r, static_cast<uint32_t>(GameCollisionLayer::SOLID_WALL), PhysicsType::SOLID);
     registry.emplace<VelocityInBoundingboxComponent>(r);
@@ -177,6 +184,7 @@ void
 game2d::init(entt::registry& registry, glm::ivec2 screen_wh)
 {
   // init once only
+  init_audio_system(registry);
   init_render_system(registry, screen_wh);
   init_ui_profiler_system(registry);
   init_ui_hierarchy_system(registry);
@@ -221,6 +229,8 @@ game2d::update(entt::registry& registry, engine::Application& app, float dt)
   Uint64 start_game_tick = SDL_GetPerformanceCounter();
   {
     if (!gp.paused) {
+      update_animation_system(registry, app, dt);
+      update_audio_system(registry, app, dt);
       update_player_input_system(registry, app);
       update_click_to_destroy_system(registry, app);
       update_process_physics_system(registry, app, dt);

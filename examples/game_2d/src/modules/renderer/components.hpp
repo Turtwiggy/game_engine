@@ -67,6 +67,8 @@ struct RenderSizeComponent
 {
   int w = 0;
   int h = 0;
+  float dw = 0.0f; // increase size by float?
+  float dh = 0.0f; // increase size by float?
 
   RenderSizeComponent() = default;
   RenderSizeComponent(int w, int h)

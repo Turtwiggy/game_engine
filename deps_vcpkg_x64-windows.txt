@@ -1,5 +1,6 @@
 sdl2
 sdl2-image
+sdl2-mixer[core,libvorbis, mpg123,nativemidi]
 glm
 glew
 stb
@@ -7,8 +8,6 @@ assimp
 openssl
 protobuf
 gtest
-openal-soft
-libsndfile
 entt
 --triplet
 x64-windows
