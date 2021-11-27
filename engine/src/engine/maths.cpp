@@ -70,7 +70,7 @@ decode_cantor_pairing_function(uint64_t p, uint32_t& x, uint32_t& y)
 }
 
 float
-scale(float x, float min, float max, float a, float b)
+scale(const float x, const float min, const float max, const float a, const float b)
 {
   return ((b - a) * (x - min)) / (max - min) + a;
 }

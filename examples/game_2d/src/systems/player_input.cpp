@@ -24,6 +24,66 @@ game2d::update_player_input_system(entt::registry& registry, engine::Application
   // if (!ri.viewport_process_events)
   //   return;
 
+  ImGui::Begin("Controller stuff");
+
+  // temp
+  const auto& controllers = app.get_input().controllers;
+  if (controllers.size() > 0) {
+    SDL_GameController* controller_0 = controllers[0];
+
+    // axis
+    // float l_analogue_x = app.get_input().get_axis_dir(controller_0,
+    // SDL_GameControllerAxis::SDL_CONTROLLER_AXIS_LEFTX); float l_analogue_y =
+    // app.get_input().get_axis_dir(controller_0, SDL_GameControllerAxis::SDL_CONTROLLER_AXIS_LEFTY); float r_analogue_x
+    // = app.get_input().get_axis_dir(controller_0, SDL_GameControllerAxis::SDL_CONTROLLER_AXIS_RIGHTX); float
+    // r_analogue_y = app.get_input().get_axis_dir(controller_0, SDL_GameControllerAxis::SDL_CONTROLLER_AXIS_RIGHTY);
+    // float l_trigger =
+    //   app.get_input().get_axis_dir(controller_0, SDL_GameControllerAxis::SDL_CONTROLLER_AXIS_TRIGGERLEFT);
+    // float r_trigger =
+    //   app.get_input().get_axis_dir(controller_0, SDL_GameControllerAxis::SDL_CONTROLLER_AXIS_TRIGGERRIGHT);
+    // ImGui::Text("L Analogue X %f", l_analogue_x);
+    // ImGui::Text("L Analogue Y %f", l_analogue_y);
+    // ImGui::Text("R Analogue X %f", r_analogue_x);
+    // ImGui::Text("R Analogue Y %f", r_analogue_y);
+    // ImGui::Text("L Trigger %f", l_trigger);
+    // ImGui::Text("R Trigger %f", r_trigger);
+
+    bool start_button =
+      app.get_input().get_button_down(controller_0, SDL_GameControllerButton::SDL_CONTROLLER_BUTTON_START);
+    bool a_pressed = app.get_input().get_button_down(controller_0, SDL_GameControllerButton::SDL_CONTROLLER_BUTTON_A);
+    bool b_pressed = app.get_input().get_button_down(controller_0, SDL_GameControllerButton::SDL_CONTROLLER_BUTTON_B);
+    bool x_pressed = app.get_input().get_button_down(controller_0, SDL_GameControllerButton::SDL_CONTROLLER_BUTTON_X);
+    bool y_pressed = app.get_input().get_button_down(controller_0, SDL_GameControllerButton::SDL_CONTROLLER_BUTTON_Y);
+
+    if (start_button)
+      printf("start pressed... \n");
+    if (a_pressed)
+      printf("a pressed... \n");
+    if (b_pressed)
+      printf("b pressed... \n");
+    if (x_pressed)
+      printf("x pressed... \n");
+    if (y_pressed)
+      printf("y pressed... \n");
+
+    bool dpad_up =
+      app.get_input().get_button_down(controller_0, SDL_GameControllerButton::SDL_CONTROLLER_BUTTON_DPAD_UP);
+    bool dpad_down =
+      app.get_input().get_button_down(controller_0, SDL_GameControllerButton::SDL_CONTROLLER_BUTTON_DPAD_DOWN);
+    bool dpad_left =
+      app.get_input().get_button_down(controller_0, SDL_GameControllerButton::SDL_CONTROLLER_BUTTON_DPAD_LEFT);
+    bool dpad_right =
+      app.get_input().get_button_down(controller_0, SDL_GameControllerButton::SDL_CONTROLLER_BUTTON_DPAD_RIGHT);
+    if (dpad_up)
+      printf("dpad_up pressed... \n");
+    if (dpad_down)
+      printf("dpad_down pressed... \n");
+    if (dpad_left)
+      printf("dpad_left pressed... \n");
+    if (dpad_right)
+      printf("dpad_right pressed... \n");
+  }
+
   glm::ivec2 imgui_mouse_pos = app.get_input().get_mouse_pos();
   glm::vec2 imgui_viewport_tl = ri.viewport_pos;
   glm::ivec2 mouse_pos = imgui_mouse_pos - glm::ivec2(imgui_viewport_tl.x, imgui_viewport_tl.y);
@@ -80,7 +140,7 @@ game2d::update_player_input_system(entt::registry& registry, engine::Application
     });
   }
 
-  // ImGui::End();
+  ImGui::End();
 };
 
 // // Action: spawn object with LMB

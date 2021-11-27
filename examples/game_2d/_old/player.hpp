@@ -23,9 +23,6 @@ void
 scroll_to_swap_weapons(engine::Application& app, GameObject2D& player, std::vector<ShopItem>& inventory);
 
 void
-update_input(GameObject2D& obj, KeysAndState& keys, engine::Application& app, GameObject2D& camera);
-
-void
 ability_boost(GameObject2D& player, const KeysAndState& keys, const float delta_time_s);
 
 void

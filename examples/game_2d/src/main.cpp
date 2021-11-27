@@ -15,7 +15,7 @@ using namespace engine;
 #include <iostream>
 
 int
-main()
+main(int argc, char* argv[])
 {
 
   std::cout << "Running main()" << std::endl;

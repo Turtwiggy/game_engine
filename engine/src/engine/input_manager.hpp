@@ -23,6 +23,7 @@ public:
   void process_key_up(const SDL_Scancode button, const Uint8 is_repeat);
   void process_mouse_event(const SDL_MouseButtonEvent& mouse_e);
 
+  // keyboard
   [[nodiscard]] bool get_key_down(SDL_Scancode button);
   [[nodiscard]] bool get_key_up(SDL_Scancode button);
   [[nodiscard]] bool get_key_held(SDL_Scancode button) const;
@@ -40,13 +41,11 @@ public:
 
   // controller
   void open_controllers();
-
   [[nodiscard]] bool get_button_down(SDL_GameController* controller, SDL_GameControllerButton button);
   [[nodiscard]] bool get_button_up(SDL_GameController* controller, SDL_GameControllerButton button);
   [[nodiscard]] bool get_button_held(SDL_GameController* controller, SDL_GameControllerButton button);
+  [[nodiscard]] float get_axis_dir(SDL_GameController* controller, SDL_GameControllerAxis axis);
   // [[nodiscard]] Sint16 get_axis_raw(SDL_GameController* controller, SDL_GameControllerAxis axis);
-  // [[nodiscard]] float get_axis_dir(SDL_GameController* controller, SDL_GameControllerAxis axis);
-  // [[nodiscard]] bool get_axis_held(SDL_GameController* controller, SDL_GameControllerAxis axis);
 
 private:
   // keyboard state
@@ -62,8 +61,8 @@ private:
 
 public:
   // controller state
-  // const int JOYSTICK_DEAD_ZONE = 8000;
-  std::map<int, SDL_GameController*> controllers;
+  std::vector<SDL_GameController*> controllers; // connected controllers
+  std::map<SDL_JoystickID, std::vector<Uint8>> controller_buttons_pressed;
 };
 
-} // namespace engien
+} // namespace engine

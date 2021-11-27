@@ -134,26 +134,16 @@ Application::frame_begin()
       input_manager.process_key_up(e.key.keysym.scancode, e.key.repeat);
 
     // controller specific
-    std::cout << e.type << std::endl;
-
-    if (e.type == SDL_JOYBUTTONDOWN) {
-      std::cout << "button down" << std::endl;
-    }
-    if (e.type == SDL_JOYBUTTONUP) {
-      std::cout << "button up" << std::endl;
-    }
-    if (e.type == SDL_JOYDEVICEADDED) {
+    // if (e.type == SDL_JOYHATMOTION)
+    //   input_manager.process_controller_dpad(e.jhat);
+    // if (e.type == SDL_JOYBUTTONDOWN)
+    //   input_manager.process_controller_button_down(e.jbutton);
+    // if (e.type == SDL_JOYBUTTONUP)
+    //   input_manager.process_controller_button_up(e.jbutton);
+    if (e.type == SDL_JOYDEVICEADDED)
       std::cout << "controller added" << std::endl;
-    }
-    if (e.type == SDL_JOYDEVICEREMOVED) {
+    if (e.type == SDL_JOYDEVICEREMOVED)
       std::cout << "controller removed" << std::endl;
-    }
-    if (e.type == SDL_JOYAXISMOTION) {
-      int controller = e.jaxis.which;
-      bool x_axis = e.jaxis.axis == 0;
-      bool y_axis = e.jaxis.axis == 1;
-      float axis_value = e.jaxis.value;
-    }
 
     // mouse specific
     if (e.type == SDL_MOUSEBUTTONDOWN) {

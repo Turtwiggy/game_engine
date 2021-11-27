@@ -2,7 +2,6 @@
 
 // other library headers
 #include <SDL2/SDL.h>
-#undef main // thanks SDL2?
 #include <glm/glm.hpp>
 
 // c++ standard lib headers

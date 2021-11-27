@@ -232,12 +232,6 @@ game2d::update(entt::registry& registry, engine::Application& app, float dt)
   // game logic
   Uint64 start_game_tick = SDL_GetPerformanceCounter();
   {
-    // temp
-    auto controller_0 = app.get_input().controllers[0];
-    if (app.get_input().get_button_down(controller_0, SDL_GameControllerButton::SDL_CONTROLLER_BUTTON_A)) {
-      // printf("A pressed on controller...! \n");
-    }
-
     if (!gp.paused) {
       update_animation_system(registry, app, dt);
       // update_audio_system(registry, app, dt);

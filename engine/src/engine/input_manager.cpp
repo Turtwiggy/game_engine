@@ -55,18 +55,14 @@ bool
 InputManager::get_key_down(const SDL_Scancode button)
 {
   const auto& button_pressed = std::find(keys_pressed.begin(), keys_pressed.end(), button);
-  if (button_pressed != keys_pressed.end())
-    return true;
-  return false;
+  return button_pressed != keys_pressed.end();
 }
 
 bool
 InputManager::get_key_up(const SDL_Scancode button)
 {
   const auto& button_pressed = std::find(keys_released.begin(), keys_released.end(), button);
-  if (button_pressed != keys_released.end())
-    return true;
-  return false;
+  return button_pressed != keys_released.end();
 }
 
 bool
@@ -170,7 +166,7 @@ InputManager::open_controllers()
       // Open available controllers
       SDL_GameController* controller = SDL_GameControllerOpen(i);
       if (controller) {
-        this->controllers.insert(std::make_pair(i, controller));
+        this->controllers.push_back(controller);
         printf("(InputManager) controller loaded... %i \n", i);
       } else {
         fprintf(stderr, "Could not open gamecontroller %i: %s\n", i, SDL_GetError());
@@ -179,24 +175,52 @@ InputManager::open_controllers()
   }
 };
 
-// bool
-// InputManager::get_button_down(SDL_GameController* controller, SDL_GameControllerButton button)
-// {
-//   // todo
-//   return false;
-// }
-// bool
-// InputManager::get_button_up(SDL_GameController* controller, SDL_GameControllerButton button)
-// {
-//   // todo
-//   return true;
-// }
-
 bool
 InputManager::get_button_down(SDL_GameController* controller, SDL_GameControllerButton button)
 {
-  Uint8 val = SDL_GameControllerGetButton(controller, button);
-  return val != 0;
+  // not ideal, but the joy_event buttons dont seem
+  // to align with SDL_GameControllerButton enum
+  bool held = get_button_held(controller, button);
+
+  SDL_Joystick* joystick = SDL_GameControllerGetJoystick(controller);
+  SDL_JoystickID joystick_id = SDL_JoystickInstanceID(joystick);
+  bool has_joystick = controller_buttons_pressed.find(joystick_id) != controller_buttons_pressed.end();
+  if (!has_joystick)
+    controller_buttons_pressed[joystick_id] = std::vector<Uint8>();
+
+  auto& buttons = controller_buttons_pressed[joystick_id];
+  auto& button_location = std::find(buttons.begin(), buttons.end(), button);
+  if (held && button_location == buttons.end()) {
+    buttons.push_back(button);
+    return true;
+  }
+  if (!held && button_location != buttons.end())
+    buttons.erase(button_location);
+  return false;
+}
+
+bool
+InputManager::get_button_up(SDL_GameController* controller, SDL_GameControllerButton button)
+{
+  // not ideal, but the joy_event buttons dont seem
+  // to align with SDL_GameControllerButton enum
+  bool held = get_button_held(controller, button);
+
+  SDL_Joystick* joystick = SDL_GameControllerGetJoystick(controller);
+  SDL_JoystickID joystick_id = SDL_JoystickInstanceID(joystick);
+  bool has_joystick = controller_buttons_pressed.find(joystick_id) != controller_buttons_pressed.end();
+  if (!has_joystick)
+    controller_buttons_pressed[joystick_id] = std::vector<Uint8>();
+
+  auto& buttons = controller_buttons_pressed[joystick_id];
+  auto& button_location = std::find(buttons.begin(), buttons.end(), button);
+  if (!held && button_location != buttons.end()) {
+    buttons.erase(button_location);
+    return true;
+  }
+  if (held && button_location == buttons.end())
+    buttons.push_back(button);
+  return false;
 }
 
 bool
@@ -206,30 +230,27 @@ InputManager::get_button_held(SDL_GameController* controller, SDL_GameController
   return val != 0;
 }
 
+float
+InputManager::get_axis_dir(SDL_GameController* controller, SDL_GameControllerAxis axis)
+{
+  const int JOYSTICK_DEAD_ZONE = 8000;
+
+  Sint16 val = SDL_GameControllerGetAxis(controller, axis);
+
+  // add deadzone
+  if (val < 0.0f && val > -JOYSTICK_DEAD_ZONE)
+    return 0.0f;
+  if (val >= 0.0f && val < JOYSTICK_DEAD_ZONE)
+    return 0.0f;
+
+  return scale(val, -32768.0f, 32767.0f, -1.0f, 1.0f);
+}
+
 // Sint16
 // InputManager::get_axis_raw(SDL_GameController* controller, SDL_GameControllerAxis axis)
 // {
 //   Sint16 val = SDL_GameControllerGetAxis(controller, axis);
 //   return val;
-// }
-
-// float
-// InputManager::get_axis_dir(SDL_GameController* controller, SDL_GameControllerAxis axis)
-// {
-//   Sint16 val = SDL_GameControllerGetAxis(controller, axis);
-
-//   // add deadzone
-//   if (val < 0.0f && val > -JOYSTICK_DEAD_ZONE)
-//     return 0.0f;
-//   if (val >= 0.0f && val < JOYSTICK_DEAD_ZONE)
-//     return 0.0f;
-
-//   return scale(val, -32768.0f, 32767.0f, -1.0f, 1.0f);
-// }
-// bool
-// InputManager::get_axis_held(SDL_GameController* controller, SDL_GameControllerAxis axis)
-// {
-//   return get_axis_dir(controller, axis) > 0.0f;
 // }
 
 } // namespace engine
