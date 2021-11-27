@@ -14,7 +14,6 @@ set(CMAKE_CXX_STANDARD_REQUIRED ON)
 
 # projects
 add_subdirectory(examples/game_2d)
-# add_subdirectory(examples/game_3d)
 
 set(CPACK_PROJECT_NAME ${PROJECT_NAME})
 set(CPACK_PROJECT_VERSION ${PROJECT_VERSION})

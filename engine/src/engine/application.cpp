@@ -90,6 +90,7 @@ Application::frame_begin()
 
     // https://wiki.libsdl.org/SDL_WindowEvent
     if (e.type == SDL_WINDOWEVENT) {
+
       switch (e.window.event) {
         case SDL_WINDOWEVENT_CLOSE:
           if (e.window.windowID == SDL_GetWindowID(window->get_handle())) {
@@ -120,9 +121,43 @@ Application::frame_begin()
       // continue; // Imgui stole the event
     }
 
+    // audio
+    if (e.type == SDL_AUDIODEVICEADDED)
+      std::cout << "audio device added?" << std::endl;
+    if (e.type == SDL_AUDIODEVICEREMOVED)
+      std::cout << "audio device removed?" << std::endl;
+
+    // keyboard specific
+    if (e.type == SDL_KEYDOWN)
+      input_manager.process_key_down(e.key.keysym.scancode, e.key.repeat);
+    if (e.type == SDL_KEYUP)
+      input_manager.process_key_up(e.key.keysym.scancode, e.key.repeat);
+
+    // controller specific
+    std::cout << e.type << std::endl;
+
+    if (e.type == SDL_JOYBUTTONDOWN) {
+      std::cout << "button down" << std::endl;
+    }
+    if (e.type == SDL_JOYBUTTONUP) {
+      std::cout << "button up" << std::endl;
+    }
+    if (e.type == SDL_JOYDEVICEADDED) {
+      std::cout << "controller added" << std::endl;
+    }
+    if (e.type == SDL_JOYDEVICEREMOVED) {
+      std::cout << "controller removed" << std::endl;
+    }
+    if (e.type == SDL_JOYAXISMOTION) {
+      int controller = e.jaxis.which;
+      bool x_axis = e.jaxis.axis == 0;
+      bool y_axis = e.jaxis.axis == 1;
+      float axis_value = e.jaxis.value;
+    }
+
     // mouse specific
     if (e.type == SDL_MOUSEBUTTONDOWN) {
-      input_manager.add_mouse_down(e.button);
+      input_manager.process_mouse_event(e.button);
     }
     // mouse scrollwheel
     if (e.type == SDL_MOUSEWHEEL) {

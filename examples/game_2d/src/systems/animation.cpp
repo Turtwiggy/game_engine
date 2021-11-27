@@ -30,21 +30,21 @@ game2d::update_animation_system(entt::registry& registry, engine::Application& a
   view.each([&dt](auto& anim, auto& size) {
     anim.time += dt;
 
-    static float animation_rate = 6.0f;
-    static float animation_scale = 8.0f;
+    static float animation_rate = 10.0f;
+    static float animation_scale = 10.0f;
 
-    ImGui::Begin("Animation Editor");
-    if (ImGui::DragFloat("Rate", &animation_rate)) {
-      // reset
-      size.w = 16.0f;
-      size.h = 16.0f;
-    }
-    if (ImGui::DragFloat("Scale", &animation_scale)) {
-      // reset
-      size.w = 16.0f;
-      size.h = 16.0f;
-    }
-    ImGui::End();
+    // ImGui::Begin("Animation Editor");
+    // if (ImGui::DragFloat("Rate", &animation_rate)) {
+    //   // reset
+    //   size.w = 16.0f;
+    //   size.h = 16.0f;
+    // }
+    // if (ImGui::DragFloat("Scale", &animation_scale)) {
+    //   // reset
+    //   size.w = 16.0f;
+    //   size.h = 16.0f;
+    // }
+    // ImGui::End();
 
     float amount = animation_scale * sin(animation_rate * anim.time) * dt;
     size.dh += amount;

@@ -17,7 +17,6 @@ using namespace engine;
 int
 main()
 {
-  bool use_vsync = true;
 
   std::cout << "Running main()" << std::endl;
   const auto app_start = std::chrono::high_resolution_clock::now();
@@ -27,9 +26,11 @@ main()
     engine::hide_windows_console();
 
   glm::ivec2 start_screen_wh = { 1366, 720 };
-  Application app("2D Game [0.0.8]", start_screen_wh.x, start_screen_wh.y, use_vsync);
+  Application app("2D Game [0.0.8]", start_screen_wh.x, start_screen_wh.y);
+  app.fps_if_limited = 240.0f;
+
   entt::registry registry;
-  init(registry, start_screen_wh);
+  game2d::init(registry, app, start_screen_wh);
 
   log_time_since("(INFO) End Setup ", app_start);
 

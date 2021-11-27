@@ -170,7 +170,6 @@ main(int argc, char** argv)
     //
     // Process Input: Keyboard
     //
-    // camera_fly_around(camera, delta_time_s, app.get_input().get_keyboard_state());
     camera_follow_position(camera, player_pos, camera_follow_vec, delta_time_s);
 
     camera.update(delta_time_s);

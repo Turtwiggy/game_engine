@@ -1,6 +1,7 @@
 #include "modules/ui_gizmos/system.hpp"
 
 // components
+#include "modules/renderer/components.hpp"
 #include "modules/ui_gizmos/components.hpp"
 #include "modules/ui_hierarchy/components.hpp"
 
@@ -20,6 +21,9 @@ game2d::init_ui_gizmos_system(entt::registry& registry)
 void
 game2d::update_ui_gizmos_system(entt::registry& registry, engine::Application& app, float dt){
   // auto& gizmos_component = registry.ctx<SINGLETON_GizmosComponent>();
+  // const auto& hierarchy_component = registry.ctx<SINGLETON_HierarchyComponent>();
+  // const auto& r = registry.ctx<SINGLETON_RendererInfo>();
+
   // if (app.get_input().get_key_down(SDL_SCANCODE_Q))
   //   gizmos_component.gizmo_type = -1;
   // if (app.get_input().get_key_down(SDL_SCANCODE_W))
@@ -32,16 +36,17 @@ game2d::update_ui_gizmos_system(entt::registry& registry, engine::Application& a
   // ImGui::Begin("ImGuizmo Debug");
   // ImGui::Text("Type: %i", gizmos_component.gizmo_type);
 
-  // const auto& hierarchy_component = registry.ctx<SINGLETON_HierarchyComponent>();
-  // if (hierarchy_component.selected_entity != entt::null) {
+  // if (hierarchy_component.selected_entity != entt::null && gizmos_component.gizmo_type != -1) {
   //   ImGui::Text("Something selected");
 
-  //   // Guizmos
-  //   // ImGuizmo::SetOrthographic(false);
-  //   // ImGuizmo::SetDrawlist();
-  //   // float window_width = (float)ImGui::GetWindowWidth();
-  //   // float window_height = (float)ImGui::GetWindowHeight();
-  //   // ImGuizmo::SetRect(ImGui::GetWindowPos().x, ImGu::GetWindowPos().y, window_width, window_height);
+  //   ImGuizmo::SetOrthographic(false);
+  //   ImGuizmo::SetDrawlist();
+
+  //   float window_width = (float)r.viewport_size_current.x;
+  //   float window_height = (float)r.viewport_size_current.y;
+  //   ImGuizmo::SetRect(ImGui::GetWindowPos().x, ImGui::GetWindowPos().y, window_width, window_height);
+
+  //   ImGuizmo::Manipulate()
   // }
 
   // ImGui::End();

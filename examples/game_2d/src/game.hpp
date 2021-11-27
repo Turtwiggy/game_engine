@@ -10,7 +10,7 @@
 namespace game2d {
 
 void
-init(entt::registry& registry, glm::ivec2 screen_wh);
+init(entt::registry& registry, engine::Application& app, glm::ivec2 screen_wh);
 
 void
 update(entt::registry& registry, engine::Application& app, float dt);

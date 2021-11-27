@@ -8,78 +8,62 @@
 #include <glm/glm.hpp>
 
 // c++ standard lib headers
+#include <map>
 #include <vector>
-
-// TODO: delete class and put in to event key buffer
 
 namespace engine {
 
+// This class gets keyboard input, and gets controller input
 class InputManager
 {
 public:
   InputManager();
-
   void new_frame();
+  void process_key_down(const SDL_Scancode button, const Uint8 is_repeat);
+  void process_key_up(const SDL_Scancode button, const Uint8 is_repeat);
+  void process_mouse_event(const SDL_MouseButtonEvent& mouse_e);
 
-  // keyboard
-
-  const Uint8* get_keyboard_state() const;
-
-  // return true when the button is pressed for the first time, until released
   [[nodiscard]] bool get_key_down(SDL_Scancode button);
-  // return true when the button is released for the first itme after press
   [[nodiscard]] bool get_key_up(SDL_Scancode button);
   [[nodiscard]] bool get_key_held(SDL_Scancode button) const;
 
   // mouse
-  [[nodiscard]] glm::ivec2 get_mouse_pos() const;
-
-  void add_mouse_down(const SDL_MouseButtonEvent& mouse_e);
   [[nodiscard]] bool get_mouse_lmb_held() const;
   [[nodiscard]] bool get_mouse_rmb_held() const;
   [[nodiscard]] bool get_mouse_mmb_held() const;
-
   [[nodiscard]] bool get_mouse_lmb_down() const;
   [[nodiscard]] bool get_mouse_rmb_down() const;
   [[nodiscard]] bool get_mouse_mmb_down() const;
-
+  [[nodiscard]] glm::ivec2 get_mouse_pos() const;
   void set_mousewheel_y(const float amount);
   [[nodiscard]] float get_mousewheel_y() const;
 
   // controller
+  void open_controllers();
 
-  const int JOYSTICK_DEAD_ZONE = 8000;
-
-  [[nodiscard]] Sint16 get_axis_raw(SDL_GameController* controller, SDL_GameControllerAxis axis);
-  [[nodiscard]] float get_axis_dir(SDL_GameController* controller, SDL_GameControllerAxis axis);
-  //[[nodiscard]] bool get_button_down(SDL_GameController* controller, SDL_GameControllerButton button);
-  //[[nodiscard]] bool get_button_up(SDL_GameController* controller, SDL_GameControllerButton button);
+  [[nodiscard]] bool get_button_down(SDL_GameController* controller, SDL_GameControllerButton button);
+  [[nodiscard]] bool get_button_up(SDL_GameController* controller, SDL_GameControllerButton button);
   [[nodiscard]] bool get_button_held(SDL_GameController* controller, SDL_GameControllerButton button);
-  [[nodiscard]] bool get_axis_held(SDL_GameController* controller, SDL_GameControllerAxis axis);
+  // [[nodiscard]] Sint16 get_axis_raw(SDL_GameController* controller, SDL_GameControllerAxis axis);
+  // [[nodiscard]] float get_axis_dir(SDL_GameController* controller, SDL_GameControllerAxis axis);
+  // [[nodiscard]] bool get_axis_held(SDL_GameController* controller, SDL_GameControllerAxis axis);
 
 private:
-  //
-  // Keyboard state
-  //
+  // keyboard state
   const Uint8* state;
+  std::vector<SDL_Scancode> keys_pressed;
+  std::vector<SDL_Scancode> keys_released;
 
-  // this is so we can keep a tally of kd, or ku over time
-  std::vector<SDL_Scancode> kd;
-  std::vector<SDL_Scancode> ku;
-
-  // this is so we can keep knowledge of kd or ku
-  // for all functions that call get ku or kd in a frame
-  std::vector<SDL_Scancode> kd_cache;
-  std::vector<SDL_Scancode> ku_cache;
-
-  //
-  // Mouse state
-  //
+  // mouse state
   float mousewheel_y;
-
   bool mouse_rmb_down = false;
   bool mouse_lmb_down = false;
   bool mouse_mmb_down = false;
+
+public:
+  // controller state
+  // const int JOYSTICK_DEAD_ZONE = 8000;
+  std::map<int, SDL_GameController*> controllers;
 };
 
-}
+} // namespace engien

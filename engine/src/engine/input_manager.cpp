@@ -10,6 +10,7 @@
 
 // c++ standard lib headers
 #include <algorithm>
+#include <cstdio>
 
 namespace engine {
 
@@ -26,96 +27,71 @@ InputManager::new_frame()
   mouse_mmb_down = false;
   mousewheel_y = 0.0f;
 
-  kd_cache.clear();
-  ku_cache.clear();
+  keys_pressed.clear();
+  keys_released.clear();
 }
 
+//
 // keyboard
+//
 
-const Uint8*
-InputManager::get_keyboard_state() const
+void
+InputManager::process_key_down(const SDL_Scancode button, const Uint8 is_repeat)
 {
-  return state;
+  if (is_repeat == 1)
+    return; // dont process held
+  keys_pressed.push_back(button);
+}
+
+void
+InputManager::process_key_up(const SDL_Scancode button, const Uint8 is_repeat)
+{
+  if (is_repeat == 1)
+    return; // dont process held
+  keys_released.push_back(button);
 }
 
 bool
-InputManager::get_key_down(SDL_Scancode button)
+InputManager::get_key_down(const SDL_Scancode button)
 {
-  // check cache for this frame
-  const auto& cache_button_down = std::find(kd_cache.begin(), kd_cache.end(), button);
-  if (cache_button_down != kd_cache.end())
+  const auto& button_pressed = std::find(keys_pressed.begin(), keys_pressed.end(), button);
+  if (button_pressed != keys_pressed.end())
     return true;
-
-  bool button_held = get_key_held(button);
-  const auto& button_down = std::find(kd.begin(), kd.end(), button);
-
-  // button held, and no recollection of it being pressed
-  if (button_held && button_down == kd.end()) {
-    kd.push_back(button);
-    kd_cache.push_back(button);
-    return true;
-  }
-
-  // button released, but we have it in the list of keys
-  if (!button_held && button_down != kd.end()) {
-    kd.erase(button_down);
-  }
-
   return false;
 }
 
 bool
-InputManager::get_key_up(SDL_Scancode button)
+InputManager::get_key_up(const SDL_Scancode button)
 {
-  // check cache for this frame
-  const auto& cache_button_up = std::find(ku_cache.begin(), ku_cache.end(), button);
-  if (cache_button_up != ku_cache.end())
+  const auto& button_pressed = std::find(keys_released.begin(), keys_released.end(), button);
+  if (button_pressed != keys_released.end())
     return true;
-
-  bool button_held = get_key_held(button);
-  const auto& button_up = std::find(ku.begin(), ku.end(), button);
-
-  // button held, no recollection of it being pressed
-  if (!button_held && button_up != ku.end()) {
-    ku_cache.push_back(button);
-    ku.erase(button_up);
-    return true;
-  }
-
-  // button is pressed
-  if (button_held && button_up == ku.end())
-    ku.push_back(button);
-
   return false;
 }
 
 bool
 InputManager::get_key_held(SDL_Scancode button) const
 {
-  // if (ImGui::GetIO().WantCaptureKeyboard || ImGui::GetIO().WantCaptureMouse) {
-  //   return false; // Imgui stole the event
-  // }
   return state[button];
 }
 
+//
 // mouse
+//
 
 void
-InputManager::add_mouse_down(const SDL_MouseButtonEvent& mouse_e)
+InputManager::process_mouse_event(const SDL_MouseButtonEvent& mouse_e)
 {
   if (mouse_e.button == SDL_BUTTON_LEFT) {
     glm::ivec2 mouse_pos = get_mouse_pos();
-    // printf("(input_manager) left mouse clicked %i %i \n", mouse_pos.x, mouse_pos.y);
     mouse_lmb_down = true;
   }
   if (mouse_e.button == SDL_BUTTON_RIGHT) {
     glm::ivec2 mouse_pos = get_mouse_pos();
-    // printf("(input_manager) right mouse clicked %i %i \n", mouse_pos.x, mouse_pos.y);
     mouse_rmb_down = true;
   }
   if (mouse_e.button == SDL_BUTTON_MIDDLE) {
     glm::ivec2 mouse_pos = get_mouse_pos();
-    // printf("(input_manager) middle mouse clicked %i %i \n", mouse_pos.x, mouse_pos.y);
     mouse_mmb_down = true;
   }
 }
@@ -179,31 +155,29 @@ InputManager::get_mousewheel_y() const
   return mousewheel_y;
 }
 
-Sint16
-InputManager::get_axis_raw(SDL_GameController* controller, SDL_GameControllerAxis axis)
-{
-  Sint16 val = SDL_GameControllerGetAxis(controller, axis);
-  return val;
-}
+//
+// controller
+//
 
-float
-InputManager::get_axis_dir(SDL_GameController* controller, SDL_GameControllerAxis axis)
+void
+InputManager::open_controllers()
 {
-  Sint16 val = SDL_GameControllerGetAxis(controller, axis);
+  int controllers = SDL_NumJoysticks();
+  printf("(InputManager) %i controllers available \n", controllers);
 
-  // add deadzone
-  if (val < 0.0f && val > -JOYSTICK_DEAD_ZONE)
-    return 0.0f;
-  if (val >= 0.0f && val < JOYSTICK_DEAD_ZONE)
-    return 0.0f;
-
-  return scale(val, -32768.0f, 32767.0f, -1.0f, 1.0f);
-}
-bool
-InputManager::get_axis_held(SDL_GameController* controller, SDL_GameControllerAxis axis)
-{
-  return get_axis_dir(controller, axis) > 0.0f;
-}
+  for (int i = 0; i < controllers; ++i) {
+    if (SDL_IsGameController(i)) {
+      // Open available controllers
+      SDL_GameController* controller = SDL_GameControllerOpen(i);
+      if (controller) {
+        this->controllers.insert(std::make_pair(i, controller));
+        printf("(InputManager) controller loaded... %i \n", i);
+      } else {
+        fprintf(stderr, "Could not open gamecontroller %i: %s\n", i, SDL_GetError());
+      }
+    }
+  }
+};
 
 // bool
 // InputManager::get_button_down(SDL_GameController* controller, SDL_GameControllerButton button)
@@ -219,10 +193,43 @@ InputManager::get_axis_held(SDL_GameController* controller, SDL_GameControllerAx
 // }
 
 bool
+InputManager::get_button_down(SDL_GameController* controller, SDL_GameControllerButton button)
+{
+  Uint8 val = SDL_GameControllerGetButton(controller, button);
+  return val != 0;
+}
+
+bool
 InputManager::get_button_held(SDL_GameController* controller, SDL_GameControllerButton button)
 {
   Uint8 val = SDL_GameControllerGetButton(controller, button);
   return val != 0;
 }
+
+// Sint16
+// InputManager::get_axis_raw(SDL_GameController* controller, SDL_GameControllerAxis axis)
+// {
+//   Sint16 val = SDL_GameControllerGetAxis(controller, axis);
+//   return val;
+// }
+
+// float
+// InputManager::get_axis_dir(SDL_GameController* controller, SDL_GameControllerAxis axis)
+// {
+//   Sint16 val = SDL_GameControllerGetAxis(controller, axis);
+
+//   // add deadzone
+//   if (val < 0.0f && val > -JOYSTICK_DEAD_ZONE)
+//     return 0.0f;
+//   if (val >= 0.0f && val < JOYSTICK_DEAD_ZONE)
+//     return 0.0f;
+
+//   return scale(val, -32768.0f, 32767.0f, -1.0f, 1.0f);
+// }
+// bool
+// InputManager::get_axis_held(SDL_GameController* controller, SDL_GameControllerAxis axis)
+// {
+//   return get_axis_dir(controller, axis) > 0.0f;
+// }
 
 } // namespace engine

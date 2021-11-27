@@ -50,6 +50,7 @@
 #include <imgui.h>
 
 // c++ lib headers
+#include <cstdio> // temp
 #include <string>
 #include <utility>
 #include <vector>
@@ -181,16 +182,19 @@ init_game_state(entt::registry& registry)
 } // namespace game2d
 
 void
-game2d::init(entt::registry& registry, glm::ivec2 screen_wh)
+game2d::init(entt::registry& registry, engine::Application& app, glm::ivec2 screen_wh)
 {
   // init once only
-  init_audio_system(registry);
+  // init_audio_system(registry);
   init_render_system(registry, screen_wh);
   init_ui_profiler_system(registry);
   init_ui_hierarchy_system(registry);
   init_ui_map_editor_system(registry);
   // could be deleted and re-init at any time
   init_game_state(registry);
+
+  // temp
+  app.get_input().open_controllers();
 };
 
 void
@@ -198,6 +202,11 @@ game2d::update(entt::registry& registry, engine::Application& app, float dt)
 {
   Profiler& p = registry.ctx<Profiler>();
 
+  SINGLETON_GamePaused& gp = registry.ctx<SINGLETON_GamePaused>();
+  if (app.get_input().get_key_down(SDL_SCANCODE_P)) {
+    gp.paused = !gp.paused;
+    std::cout << "game paused: " << gp.paused << std::endl;
+  }
 #ifdef _DEBUG
   if (app.get_input().get_key_down(SDL_SCANCODE_R)) {
     init_game_state(registry);
@@ -206,11 +215,6 @@ game2d::update(entt::registry& registry, engine::Application& app, float dt)
     app.shutdown();
   }
 #endif
-  SINGLETON_GamePaused& gp = registry.ctx<SINGLETON_GamePaused>();
-  if (app.get_input().get_key_down(SDL_SCANCODE_P)) {
-    gp.paused = !gp.paused;
-    std::cout << "game paused: " << gp.paused << std::endl;
-  }
 
   // physics
   Uint64 start_physics = SDL_GetPerformanceCounter();
@@ -228,9 +232,15 @@ game2d::update(entt::registry& registry, engine::Application& app, float dt)
   // game logic
   Uint64 start_game_tick = SDL_GetPerformanceCounter();
   {
+    // temp
+    auto controller_0 = app.get_input().controllers[0];
+    if (app.get_input().get_button_down(controller_0, SDL_GameControllerButton::SDL_CONTROLLER_BUTTON_A)) {
+      // printf("A pressed on controller...! \n");
+    }
+
     if (!gp.paused) {
       update_animation_system(registry, app, dt);
-      update_audio_system(registry, app, dt);
+      // update_audio_system(registry, app, dt);
       update_player_input_system(registry, app);
       update_click_to_destroy_system(registry, app);
       update_process_physics_system(registry, app, dt);

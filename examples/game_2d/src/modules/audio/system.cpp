@@ -35,17 +35,17 @@ game2d::init_audio_system(entt::registry& registry)
 
   // load some audio!
   am.bgm["main_menu"] = Mix_LoadWAV("assets/2d_game/audio/BGM/BGM_ARPG.ogg");
-  am.bgm["ambience"] = Mix_LoadWAV("assets/2d_game/audio/SFX/SFX_AmbienceFar.ogg");
+  am.bgm["ambience"] = Mix_LoadWAV("assets/2d_game/audio/SFX/SFX_AmbienceClose.ogg");
   am.sfx["movement_footsteps"].push_back(Mix_LoadWAV("assets/2d_game/audio/SFX/SFX_Footstep01.ogg"));
   am.sfx["movement_footsteps"].push_back(Mix_LoadWAV("assets/2d_game/audio/SFX/SFX_Footstep02.ogg"));
-  am.sfx["movement_footsteps"].push_back(Mix_LoadWAV("assets/2d_game/audio/SFX/SFX_Footstep03.ogg"));
+  // am.sfx["movement_footsteps"].push_back(Mix_LoadWAV("assets/2d_game/audio/SFX/SFX_Footstep03.ogg"));
   am.sfx["movement_footsteps"].push_back(Mix_LoadWAV("assets/2d_game/audio/SFX/SFX_Footstep04.ogg"));
 
   Mix_Volume(-1, MIX_MAX_VOLUME / 4); // try not to blast ears
 
   // play background music
   Mix_Volume(0, MIX_MAX_VOLUME / 8);
-  Mix_PlayChannel(0, am.bgm["main_menu"], -1);
+  // Mix_PlayChannel(0, am.bgm["main_menu"], -1);
   Mix_PlayChannel(1, am.bgm["ambience"], -1);
 };
 
