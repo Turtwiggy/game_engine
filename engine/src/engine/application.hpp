@@ -19,7 +19,7 @@ public:
   Application(const std::string& name = "Fighting Engine (Default)",
               int width = 1080,
               int height = 720,
-              bool vsync = false);
+              bool vsync = true);
   ~Application();
 
   [[nodiscard]] bool is_running() const;
@@ -31,7 +31,7 @@ public:
 
   float seconds_since_launch = 0.0f;
   float fps_if_limited = 60.0f;
-  bool limit_fps = true;
+  bool limit_fps = false;
   bool window_was_resized = false;
 
   [[nodiscard]] GameWindow& get_window();

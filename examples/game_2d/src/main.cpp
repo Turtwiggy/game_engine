@@ -25,9 +25,9 @@ main(int argc, char* argv[])
   if (hide_windows_console)
     engine::hide_windows_console();
 
+  bool vsync = true;
   glm::ivec2 start_screen_wh = { 1366, 720 };
-  Application app("2D Game [0.0.8]", start_screen_wh.x, start_screen_wh.y);
-  app.fps_if_limited = 240.0f;
+  Application app("2D Game [0.0.8]", start_screen_wh.x, start_screen_wh.y, vsync);
 
   entt::registry registry;
   game2d::init(registry, app, start_screen_wh);

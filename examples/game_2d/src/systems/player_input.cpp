@@ -24,8 +24,6 @@ game2d::update_player_input_system(entt::registry& registry, engine::Application
   // if (!ri.viewport_process_events)
   //   return;
 
-  ImGui::Begin("Controller stuff");
-
   // temp
   const auto& controllers = app.get_input().controllers;
   if (controllers.size() > 0) {
@@ -139,8 +137,6 @@ game2d::update_player_input_system(entt::registry& registry, engine::Application
       // ImGui::Text("mouse clamped %i %i", world_space.x, world_space.y);
     });
   }
-
-  ImGui::End();
 };
 
 // // Action: spawn object with LMB

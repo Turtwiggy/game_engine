@@ -164,7 +164,7 @@ init_game_state(entt::registry& registry)
 
   // Add wall object
   {
-    int scale = 5;
+    int scale = 2;
 
     entt::entity r = registry.create();
     registry.emplace<TagComponent>(r, "wall");
