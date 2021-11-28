@@ -9,6 +9,7 @@
 
 // c++ standard lib headers
 #include <map>
+#include <utility>
 #include <vector>
 
 namespace engine {
@@ -18,10 +19,12 @@ class InputManager
 {
 public:
   InputManager();
-  void new_frame();
+  void new_frame(const uint64_t& frame);
   void process_key_down(const SDL_Scancode button, const Uint8 is_repeat);
   void process_key_up(const SDL_Scancode button, const Uint8 is_repeat);
   void process_mouse_event(const SDL_MouseButtonEvent& mouse_e);
+  void process_controller_added();
+  void process_controller_removed();
 
   // keyboard
   [[nodiscard]] bool get_key_down(SDL_Scancode button);
@@ -61,8 +64,10 @@ private:
 
 public:
   // controller state
+  uint64_t frame = 0;
   std::vector<SDL_GameController*> controllers; // connected controllers
-  std::map<SDL_JoystickID, std::vector<Uint8>> controller_buttons_pressed;
+  // joystick-id, to frame-button associaton
+  std::map<SDL_JoystickID, std::vector<std::pair<uint64_t, Uint8>>> controller_buttons_pressed;
 };
 
 } // namespace engine

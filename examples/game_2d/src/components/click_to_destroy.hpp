@@ -2,11 +2,6 @@
 
 namespace game2d {
 
-struct HealthComponent
-{
-  int hp = 5;
-};
-
 struct ClickToDestroyComponent
 {
   bool placeholder = true;

@@ -26,6 +26,7 @@ public:
   void shutdown();
 
   [[nodiscard]] float get_delta_time();
+
   void frame_begin();
   void frame_end(Uint64& frame_start_time);
 
@@ -47,6 +48,7 @@ private:
   InputManager input_manager;
   ImGui_Manager imgui_manager;
 
+  uint64_t frame = 0;
   bool running = true;
   bool minimized = false;
 

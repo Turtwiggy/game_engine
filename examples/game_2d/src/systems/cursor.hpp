@@ -9,6 +9,6 @@
 namespace game2d {
 
 void
-update_ai_head_to_random_point_system(entt::registry& registry, engine::Application& app, float dt);
+update_cursor_system(entt::registry& registry, engine::Application& app);
 
 } // namespace game2d

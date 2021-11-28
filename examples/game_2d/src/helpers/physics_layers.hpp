@@ -8,7 +8,8 @@ enum class GameCollisionLayer
   ACTOR_PLAYER = 1,
   ACTOR_GOAL = 2,
   ACTOR_BALL = 3,
-  SOLID_WALL = 4,
+  ACTOR_NO_OXY_ZONE = 4,
+  SOLID_WALL = 5,
 };
 
 } // namespace game2d

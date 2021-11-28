@@ -1,8 +1,8 @@
 // your header
-#include "systems/animation.hpp"
+#include "modules/animation/system.hpp"
 
 // components
-#include "components/animation.hpp"
+#include "modules/animation/components.hpp"
 #include "modules/renderer/components.hpp"
 
 // other lib headers
@@ -19,9 +19,9 @@ float
 easeInOutQuad(float x)
 {
   return x < 0.5f ? 2.0f * x * x : 1.0f - pow(-2.0f * x + 2.0f, 2.0f) / 2.0f;
-}
+};
 
-}
+} // namespace game2d
 
 void
 game2d::update_animation_system(entt::registry& registry, engine::Application& app, float dt)

@@ -9,6 +9,6 @@
 namespace game2d {
 
 void
-update_destroy_on_collide_system(entt::registry& registry, engine::Application& app, float dt);
+update_no_oxy_zone_system(entt::registry& registry, engine::Application& app, float dt);
 
-} // namespace game2d
+}; // namespace game2d

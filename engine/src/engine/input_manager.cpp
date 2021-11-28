@@ -10,7 +10,7 @@
 
 // c++ standard lib headers
 #include <algorithm>
-#include <cstdio>
+#include <iostream>
 
 namespace engine {
 
@@ -20,7 +20,7 @@ InputManager::InputManager()
 }
 
 void
-InputManager::new_frame()
+InputManager::new_frame(const uint64_t& frame)
 {
   mouse_lmb_down = false;
   mouse_rmb_down = false;
@@ -29,6 +29,8 @@ InputManager::new_frame()
 
   keys_pressed.clear();
   keys_released.clear();
+
+  this->frame = frame;
 }
 
 //
@@ -156,10 +158,38 @@ InputManager::get_mousewheel_y() const
 //
 
 void
+InputManager::process_controller_added()
+{
+  std::cout << "controller added... processing" << std::endl;
+
+  for (auto* controller : controllers) {
+    if (controller)
+      SDL_GameControllerClose(controller);
+  };
+  controllers.clear();
+
+  open_controllers();
+};
+
+void
+InputManager::process_controller_removed()
+{
+  std::cout << "controller removed... processing" << std::endl;
+
+  for (auto* controller : controllers) {
+    if (controller)
+      SDL_GameControllerClose(controller);
+  };
+  controllers.clear();
+
+  open_controllers();
+};
+
+void
 InputManager::open_controllers()
 {
   int controllers = SDL_NumJoysticks();
-  printf("(InputManager) %i controllers available \n", controllers);
+  std::cout << "(InputManager) controllers available: " << controllers << std::endl;
 
   for (int i = 0; i < controllers; ++i) {
     if (SDL_IsGameController(i)) {
@@ -167,9 +197,9 @@ InputManager::open_controllers()
       SDL_GameController* controller = SDL_GameControllerOpen(i);
       if (controller) {
         this->controllers.push_back(controller);
-        printf("(InputManager) controller loaded... %i \n", i);
+        std::cout << "(InputManager) controller loaded... " << i << std::endl;
       } else {
-        fprintf(stderr, "Could not open gamecontroller %i: %s\n", i, SDL_GetError());
+        std::cerr << "Could not open gamecontroller " << i << " " << SDL_GetError() << std::endl;
       }
     }
   }
@@ -186,40 +216,44 @@ InputManager::get_button_down(SDL_GameController* controller, SDL_GameController
   SDL_JoystickID joystick_id = SDL_JoystickInstanceID(joystick);
   bool has_joystick = controller_buttons_pressed.find(joystick_id) != controller_buttons_pressed.end();
   if (!has_joystick)
-    controller_buttons_pressed[joystick_id] = std::vector<Uint8>();
+    controller_buttons_pressed.insert({ joystick_id, {} });
 
   auto& buttons = controller_buttons_pressed[joystick_id];
-  auto& button_location = std::find(buttons.begin(), buttons.end(), button);
+  auto button_location = std::find_if(
+    buttons.begin(), buttons.end(), [&button](const std::pair<uint64_t, Uint8> obj) { return obj.second == button; });
+
+  // Button was pressed this frame, no recollection
   if (held && button_location == buttons.end()) {
-    buttons.push_back(button);
+    buttons.push_back({ this->frame, button });
     return true;
   }
-  if (!held && button_location != buttons.end())
-    buttons.erase(button_location);
+
+  // Button exists this frame
+  if (button_location != buttons.end()) {
+    // If its still the same frame, return true
+    const auto& button_added_frame = (*button_location).first;
+    if (button_added_frame == this->frame)
+      return true;
+    // If its a different frame, remove it
+    if (!held)
+      buttons.erase(button_location);
+  }
   return false;
 }
 
 bool
 InputManager::get_button_up(SDL_GameController* controller, SDL_GameControllerButton button)
 {
-  // not ideal, but the joy_event buttons dont seem
-  // to align with SDL_GameControllerButton enum
-  bool held = get_button_held(controller, button);
+  bool pressed = get_button_down(controller, button);
 
   SDL_Joystick* joystick = SDL_GameControllerGetJoystick(controller);
   SDL_JoystickID joystick_id = SDL_JoystickInstanceID(joystick);
-  bool has_joystick = controller_buttons_pressed.find(joystick_id) != controller_buttons_pressed.end();
-  if (!has_joystick)
-    controller_buttons_pressed[joystick_id] = std::vector<Uint8>();
-
   auto& buttons = controller_buttons_pressed[joystick_id];
-  auto& button_location = std::find(buttons.begin(), buttons.end(), button);
-  if (!held && button_location != buttons.end()) {
-    buttons.erase(button_location);
+  auto button_location = std::find_if(
+    buttons.begin(), buttons.end(), [&button](const std::pair<uint64_t, Uint8> obj) { return obj.second == button; });
+  if (!pressed && button_location != buttons.end()) {
     return true;
   }
-  if (held && button_location == buttons.end())
-    buttons.push_back(button);
   return false;
 }
 

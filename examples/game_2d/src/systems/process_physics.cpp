@@ -52,8 +52,4 @@ game2d::update_process_physics_system(entt::registry& registry, engine::Applicat
       std::cout << "BALL-BALL collision..." << std::endl;
     }
   }
-
-  // for (const auto& coll : p.collision_exit) {
-  // continue;
-  // }
 }

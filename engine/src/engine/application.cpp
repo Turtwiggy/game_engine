@@ -78,7 +78,10 @@ Application::frame_end(Uint64& frame_start_time)
 void
 Application::frame_begin()
 {
-  input_manager.new_frame();
+  frame += 1;
+  if (frame >= std::numeric_limits<uint64_t>::max())
+    frame = 0;
+  input_manager.new_frame(frame);
 
   SDL_Event e;
   while (SDL_PollEvent(&e)) {
@@ -141,9 +144,9 @@ Application::frame_begin()
     // if (e.type == SDL_JOYBUTTONUP)
     //   input_manager.process_controller_button_up(e.jbutton);
     if (e.type == SDL_JOYDEVICEADDED)
-      std::cout << "controller added" << std::endl;
+      input_manager.process_controller_added();
     if (e.type == SDL_JOYDEVICEREMOVED)
-      std::cout << "controller removed" << std::endl;
+      input_manager.process_controller_removed();
 
     // mouse specific
     if (e.type == SDL_MOUSEBUTTONDOWN) {
@@ -158,7 +161,6 @@ Application::frame_begin()
   imgui_manager.begin_frame(get_window());
   seconds_since_launch += get_delta_time();
 }
-
 // ---- events
 
 void

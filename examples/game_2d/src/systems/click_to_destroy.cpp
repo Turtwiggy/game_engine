@@ -3,6 +3,7 @@
 
 // components
 #include "components/click_to_destroy.hpp"
+#include "components/health.hpp"
 #include "components/singleton_grid.hpp"
 #include "components/singleton_resources.hpp"
 #include "modules/renderer/components.hpp"
@@ -55,7 +56,7 @@ game2d::update_click_to_destroy_system(entt::registry& registry, engine::Applica
           std::cout << "you rolled a: " << random << " they saved: " << random_armour << std::endl;
           if (random >= random_armour) {
             std::cout << "hit! you clicked: " << static_cast<uint32_t>(entity) << std::endl;
-            health.hp -= 1;
+            health.hp -= 1.0f;
             if (health.hp <= 0) {
               std::cout << "delete entity: " << static_cast<uint32_t>(entity) << std::endl;
               registry.destroy(entity);

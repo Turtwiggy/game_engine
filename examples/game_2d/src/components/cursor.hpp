@@ -2,9 +2,8 @@
 
 namespace game2d {
 
-struct Player
+struct CursorComponent
 {
-  // entt really doesn't seem to like empty stucts as components?
   int placeholder = 0;
 };
 

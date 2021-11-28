@@ -13,6 +13,7 @@
 // other lib headers
 #include <glm/glm.hpp>
 #include <imgui.h>
+#include <iostream>
 
 void
 game2d::update_player_input_system(entt::registry& registry, engine::Application& app)
@@ -49,6 +50,8 @@ game2d::update_player_input_system(entt::registry& registry, engine::Application
     bool start_button =
       app.get_input().get_button_down(controller_0, SDL_GameControllerButton::SDL_CONTROLLER_BUTTON_START);
     bool a_pressed = app.get_input().get_button_down(controller_0, SDL_GameControllerButton::SDL_CONTROLLER_BUTTON_A);
+    bool a_pressed_again =
+      app.get_input().get_button_down(controller_0, SDL_GameControllerButton::SDL_CONTROLLER_BUTTON_A);
     bool b_pressed = app.get_input().get_button_down(controller_0, SDL_GameControllerButton::SDL_CONTROLLER_BUTTON_B);
     bool x_pressed = app.get_input().get_button_down(controller_0, SDL_GameControllerButton::SDL_CONTROLLER_BUTTON_X);
     bool y_pressed = app.get_input().get_button_down(controller_0, SDL_GameControllerButton::SDL_CONTROLLER_BUTTON_Y);
@@ -57,6 +60,8 @@ game2d::update_player_input_system(entt::registry& registry, engine::Application
       printf("start pressed... \n");
     if (a_pressed)
       printf("a pressed... \n");
+    if (a_pressed_again)
+      printf("a pressed... 2nd... \n");
     if (b_pressed)
       printf("b pressed... \n");
     if (x_pressed)
@@ -121,20 +126,6 @@ game2d::update_player_input_system(entt::registry& registry, engine::Application
         pos.x = world_space.x;
         pos.y = world_space.y;
       }
-    });
-  }
-
-  // Update cursor
-  {
-    const auto& view = registry.view<CursorComponent, PositionIntComponent>();
-    view.each([&mouse_pos_adjusted_in_worldspace, &GRID_SIZE](const auto entity, const auto& c, auto& pos) {
-      glm::ivec2 grid_slot = engine::grid::world_space_to_grid_space(mouse_pos_adjusted_in_worldspace, GRID_SIZE);
-      // ImGui::Text("mouse grid %i %i", grid_slot.x, grid_slot.y);
-
-      glm::ivec2 world_space = grid_slot * GRID_SIZE;
-      pos.x = grid_slot.x * GRID_SIZE;
-      pos.y = grid_slot.y * GRID_SIZE;
-      // ImGui::Text("mouse clamped %i %i", world_space.x, world_space.y);
     });
   }
 };
