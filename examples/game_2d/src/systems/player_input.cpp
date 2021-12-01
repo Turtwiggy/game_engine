@@ -50,8 +50,6 @@ game2d::update_player_input_system(entt::registry& registry, engine::Application
     bool start_button =
       app.get_input().get_button_down(controller_0, SDL_GameControllerButton::SDL_CONTROLLER_BUTTON_START);
     bool a_pressed = app.get_input().get_button_down(controller_0, SDL_GameControllerButton::SDL_CONTROLLER_BUTTON_A);
-    bool a_pressed_again =
-      app.get_input().get_button_down(controller_0, SDL_GameControllerButton::SDL_CONTROLLER_BUTTON_A);
     bool b_pressed = app.get_input().get_button_down(controller_0, SDL_GameControllerButton::SDL_CONTROLLER_BUTTON_B);
     bool x_pressed = app.get_input().get_button_down(controller_0, SDL_GameControllerButton::SDL_CONTROLLER_BUTTON_X);
     bool y_pressed = app.get_input().get_button_down(controller_0, SDL_GameControllerButton::SDL_CONTROLLER_BUTTON_Y);
@@ -60,8 +58,6 @@ game2d::update_player_input_system(entt::registry& registry, engine::Application
       printf("start pressed... \n");
     if (a_pressed)
       printf("a pressed... \n");
-    if (a_pressed_again)
-      printf("a pressed... 2nd... \n");
     if (b_pressed)
       printf("b pressed... \n");
     if (x_pressed)

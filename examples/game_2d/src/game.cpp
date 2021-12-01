@@ -44,6 +44,7 @@
 // engine headers
 #include "engine/maths.hpp"
 #include "engine/util.hpp"
+#include "engine/util_windows.hpp"
 
 // other project headers
 #include <SDL2/SDL.h>
@@ -108,26 +109,26 @@ init_game_state(entt::registry& registry)
   }
 
   // Add damageable
-  {
-    for (int i = 1; i < 5; i++) {
-      entt::entity r = registry.create();
-      registry.emplace<TagComponent>(r, std::string("damageable" + std::to_string(i)));
-      registry.emplace<ColourComponent>(r, colour_dblue);
-      FlashColourComponent f;
-      f.start_colour = colour_dblue;
-      f.flash_colour = colour_green;
-      registry.emplace<FlashColourComponent>(r, f);
-      registry.emplace<ParryComponent>(r);
-      registry.emplace<VelocityComponent>(r, 0.0f, 0.0f);
-      registry.emplace<PositionIntComponent>(r, i * GRID_SIZE, GRID_SIZE * 10);
-      registry.emplace<RenderSizeComponent>(r, GRID_SIZE, GRID_SIZE);
-      registry.emplace<PhysicsSizeComponent>(r, GRID_SIZE, GRID_SIZE);
-      registry.emplace<SpriteComponent>(r, sprite::type::SPACE_VEHICLE_1);
-      registry.emplace<VelocityInBoundingboxComponent>(r);
-      registry.emplace<HealthComponent>(r, 3.0f);
-      registry.emplace<ClickToDestroyComponent>(r);
-    }
-  }
+  // {
+  //   for (int i = 1; i < 5; i++) {
+  //     entt::entity r = registry.create();
+  //     registry.emplace<TagComponent>(r, std::string("damageable" + std::to_string(i)));
+  //     registry.emplace<ColourComponent>(r, colour_dblue);
+  //     FlashColourComponent f;
+  //     f.start_colour = colour_dblue;
+  //     f.flash_colour = colour_green;
+  //     registry.emplace<FlashColourComponent>(r, f);
+  //     registry.emplace<ParryComponent>(r);
+  //     registry.emplace<VelocityComponent>(r, 0.0f, 0.0f);
+  //     registry.emplace<PositionIntComponent>(r, i * GRID_SIZE, GRID_SIZE * 10);
+  //     registry.emplace<RenderSizeComponent>(r, GRID_SIZE, GRID_SIZE);
+  //     registry.emplace<PhysicsSizeComponent>(r, GRID_SIZE, GRID_SIZE);
+  //     registry.emplace<SpriteComponent>(r, sprite::type::TREE_1);
+  //     registry.emplace<VelocityInBoundingboxComponent>(r);
+  //     registry.emplace<HealthComponent>(r, 3.0f);
+  //     registry.emplace<ClickToDestroyComponent>(r);
+  //   }
+  // }
 
   // Add no-oxy-zone object
   {
@@ -183,6 +184,18 @@ game2d::update(entt::registry& registry, engine::Application& app, float dt)
     app.shutdown();
   }
 #endif
+
+  ImGui::Begin("Menu...");
+  if (ImGui::Button("Open File")) {
+    printf("open file clicked...\n");
+    std::string filepath = engine::open_file(app.get_window(), "All\0*.*\0Text\0*.TXT\0");
+    if (!filepath.empty()) {
+      printf("filepath not empty? %s \n", filepath.c_str());
+    } else {
+      printf("filepath was empty...\n");
+    }
+  }
+  ImGui::End();
 
   // physics
   Uint64 start_physics = SDL_GetPerformanceCounter();

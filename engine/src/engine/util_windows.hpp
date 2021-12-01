@@ -1,21 +1,24 @@
 #pragma once
 
+#include "game_window.hpp"
+
+// c/c++ lib headers
 #ifdef WIN32
 #include <Windows.h>
 #include <commdlg.h>
 #endif
 
+#include <string>
+
 namespace engine {
 
-inline void
-hide_windows_console()
-{
-#ifdef WIN32
-  ::ShowWindow(::GetConsoleWindow(), SW_HIDE); // hide console
-#endif
-};
+void
+hide_windows_console();
 
-//   static std::string OpenFile(const char* filter);
-//   static std::string SaveFile(const char* filter);
+std::string
+open_file(GameWindow& game_window, const char* filter);
 
-}
+std::string
+save_file(GameWindow& game_window, const char* filter);
+
+} // namespace engine

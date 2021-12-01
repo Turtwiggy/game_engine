@@ -68,8 +68,9 @@ GameWindow::GameWindow(const std::string& title, int width, int height, DisplayM
   const int y = SDL_WINDOWPOS_UNDEFINED;
 
   SDL_Window* window = SDL_CreateWindow(title.c_str(), x, y, width, height, flags);
+  
   if (window == nullptr) {
-    std::cout << "Failed to create SDL2 window: " << SDL_GetError() << std::endl;
+    std::cerr << "Failed to create SDL2 window: " << SDL_GetError() << std::endl;
   }
 
   SDL_SetWindowMinimumSize(window, 500, 300);
