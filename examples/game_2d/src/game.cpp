@@ -177,22 +177,28 @@ game2d::update(entt::registry& registry, engine::Application& app, float dt)
     std::cout << "game paused: " << gp.paused << std::endl;
   }
 #ifdef _DEBUG
-  if (app.get_input().get_key_down(SDL_SCANCODE_R)) {
-    init_game_state(registry);
-  }
+  // if (app.get_input().get_key_down(SDL_SCANCODE_R)) {
+  //   init_game_state(registry);
+  // }
   if (app.get_input().get_key_down(SDL_SCANCODE_ESCAPE)) {
     app.shutdown();
   }
 #endif
 
+  // temp
   ImGui::Begin("Menu...");
   if (ImGui::Button("Open File")) {
     printf("open file clicked...\n");
-    std::string filepath = engine::open_file(app.get_window(), "All\0*.*\0Text\0*.TXT\0");
+    std::string filepath = engine::open_file(app.get_window(), "All\0*.*\0Text\0*.txt\0");
     if (!filepath.empty()) {
-      printf("filepath not empty? %s \n", filepath.c_str());
-    } else {
-      printf("filepath was empty...\n");
+      printf("user wants to open file: %s \n", filepath.c_str());
+    }
+  }
+  if (ImGui::Button("Save File")) {
+    printf("save file clicked...\n");
+    std::string filepath = engine::save_file(app.get_window(), "All\0*.*\0.txt\0");
+    if (!filepath.empty()) {
+      printf("user wants to save file: %s \n", filepath.c_str());
     }
   }
   ImGui::End();

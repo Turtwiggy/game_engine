@@ -116,6 +116,8 @@ struct SINGLETON_RendererInfo
   unsigned int tex_id_main_scene = 0;
   unsigned int tex_id_lighting = 0;
   std::vector<unsigned int> loaded_texture_ids;
+  // projection
+  glm::mat4 projection;
   // viewport
   // note: values are updated in render
   glm::vec2 viewport_size_render_at = { 0, 0 };

@@ -50,6 +50,8 @@ public:
   GameWindow(const std::string& title, int width, int height, DisplayMode displaymode, bool vsync);
 
   [[nodiscard]] SDL_Window* get_handle() const;
+  void get_native_handles(void*& native_window) const;
+
   [[nodiscard]] uint32_t get_sdl_id() const;
   [[nodiscard]] uint32_t get_sdl_flags() const;
 

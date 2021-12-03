@@ -8,7 +8,6 @@
 #include <backends/imgui_impl_opengl3.h>
 #include <backends/imgui_impl_sdl.h>
 #include <imgui_internal.h>
-#include <ImGuizmo.h>
 // clang-format on
 #include <glm/glm.hpp>
 #if defined(IMGUI_IMPL_OPENGL_LOADER_GLEW)
@@ -101,7 +100,6 @@ ImGui_Manager::begin_frame(const GameWindow& window)
   ImGui_ImplOpenGL3_NewFrame();
   ImGui_ImplSDL2_NewFrame(window.get_handle());
   ImGui::NewFrame();
-  ImGuizmo::BeginFrame();
 }
 
 void

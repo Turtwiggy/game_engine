@@ -21,7 +21,7 @@ main(int argc, char* argv[])
   std::cout << "Running main()" << std::endl;
   const auto app_start = std::chrono::high_resolution_clock::now();
 
-  bool hide_windows_console = true;
+  bool hide_windows_console = false;
   if (hide_windows_console)
     engine::hide_windows_console();
 

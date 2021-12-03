@@ -7,16 +7,12 @@
 #include <SDL2/SDL_syswm.h>
 
 // c++ standard library headers
-// clang-format off
 #include <string>
 #if defined(WIN32) || defined(_WIN32) || defined(__WIN32) && !defined(__CYGWIN__)
-#include "windows.h"
 #include "psapi.h"
+#include "windows.h"
 #endif
-// clang-forrmat on
 #include <iostream>
-
-
 
 namespace engine {
 
@@ -40,7 +36,7 @@ GameWindow::GameWindow(const std::string& title, int width, int height, DisplayM
     if (SDL_Init(0) != 0)
       std::cout << "could not initialize SDL: " << SDL_GetError();
 
-   if (SDL_InitSubSystem(SDL_INIT_AUDIO) != 0)
+    if (SDL_InitSubSystem(SDL_INIT_AUDIO) != 0)
       std::cout << "Could not initialize SDL Audio Subsystem:" << SDL_GetError() << std::endl;
 
     if (SDL_InitSubSystem(SDL_INIT_VIDEO) != 0)
@@ -68,7 +64,7 @@ GameWindow::GameWindow(const std::string& title, int width, int height, DisplayM
   const int y = SDL_WINDOWPOS_UNDEFINED;
 
   SDL_Window* window = SDL_CreateWindow(title.c_str(), x, y, width, height, flags);
-  
+
   if (window == nullptr) {
     std::cerr << "Failed to create SDL2 window: " << SDL_GetError() << std::endl;
   }
@@ -109,6 +105,28 @@ GameWindow::get_handle() const
 {
   return window_.get();
 }
+
+void
+GameWindow::get_native_handles(void*& native_window) const
+{
+  SDL_SysWMinfo wmi;
+  SDL_VERSION(&wmi.version);
+  if (!SDL_GetWindowWMInfo(this->get_handle(), &wmi)) {
+    std::cerr << "Failed getting native window handles: : " << std::string(SDL_GetError()) << std::endl;
+    exit(0);
+  }
+
+  // windows
+#if defined(SDL_VIDEO_DRIVER_WINDOWS)
+  if (wmi.subsystem == SDL_SYSWM_WINDOWS) {
+    native_window = wmi.info.win.window;
+  } else
+#endif // defined(SDL_VIDEO_DRIVER_WINDOWS)
+  {
+    std::cerr << "Unsupported platform: " << std::to_string(wmi.subsystem) << std::endl;
+    exit(0);
+  }
+};
 
 uint32_t
 GameWindow::get_sdl_id() const

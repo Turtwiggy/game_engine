@@ -45,6 +45,7 @@ game2d::init_render_system(entt::registry& registry, const glm::ivec2& screen_wh
   ri.fan = Shader("2d_game/shaders/2d_basic_with_proj.vert", "2d_game/shaders/2d_colour.frag");
   ri.viewport_size_render_at = screen_wh;
   ri.viewport_size_current = screen_wh;
+  ri.projection = calculate_projection(screen_wh.x, screen_wh.y);
 
   // initialize renderers
   RenderCommand::init();
@@ -61,7 +62,7 @@ game2d::init_render_system(entt::registry& registry, const glm::ivec2& screen_wh
   // textures
   int textures[3] = { tex_unit_kenny_nl, tex_unit_main_scene, tex_unit_lighting };
   ri.instanced.bind();
-  ri.instanced.set_mat4("projection", calculate_projection(screen_wh.x, screen_wh.y));
+  ri.instanced.set_mat4("projection", ri.projection);
   ri.instanced.set_int_array("textures", textures, 3);
 
   // https://github.com/skypjack/entt/wiki/Crash-Course:-entity-component-system#context-variables
@@ -88,7 +89,9 @@ game2d::update_render_system(entt::registry& registry, engine::Application& app)
     unbind_tex();
     RenderCommand::set_viewport(0, 0, viewport_wh.x, viewport_wh.y);
     ri.instanced.bind();
-    ri.instanced.set_mat4("projection", calculate_projection(viewport_wh.x, viewport_wh.y));
+
+    ri.projection = calculate_projection(viewport_wh.x, viewport_wh.y);
+    ri.instanced.set_mat4("projection", ri.projection);
   }
 
   // MAIN FBO
