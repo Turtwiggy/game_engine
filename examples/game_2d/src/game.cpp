@@ -94,65 +94,57 @@ init_game_state(entt::registry& registry)
   {
     entt::entity r = registry.create();
     registry.emplace<TagComponent>(r, "cursor");
+    // rendering
     registry.emplace<ColourComponent>(r, 1.0f, 0.0f, 0.0f, 0.5f);
     registry.emplace<PositionIntComponent>(r);
     registry.emplace<RenderSizeComponent>(r, GRID_SIZE, GRID_SIZE);
-    registry.emplace<PhysicsSizeComponent>(r, GRID_SIZE, GRID_SIZE);
     registry.emplace<SpriteComponent>(r, sprite::type::EMPTY);
+    // gameplay
     registry.emplace<CursorComponent>(r);
+  }
+
+  // Add some blocks
+  {
+    for (int i = 1; i < 5; i++) {
+      entt::entity r = registry.create();
+      registry.emplace<TagComponent>(r, std::string("block" + std::to_string(i)));
+      // rendering
+      registry.emplace<ColourComponent>(r, colour_dblue);
+      registry.emplace<PositionIntComponent>(r, (22 + i) * GRID_SIZE, 30 * GRID_SIZE);
+      registry.emplace<RenderSizeComponent>(r, GRID_SIZE, GRID_SIZE);
+      registry.emplace<SpriteComponent>(r, sprite::type::EMPTY);
+      // physics
+      registry.emplace<CollidableComponent>(
+        r, static_cast<uint32_t>(GameCollisionLayer::SOLID_WALL), PhysicsType::SOLID);
+      registry.emplace<PhysicsSizeComponent>(r, GRID_SIZE, GRID_SIZE);
+      // gameplay
+      FlashColourComponent f;
+      f.start_colour = colour_dblue;
+      f.flash_colour = colour_green;
+      registry.emplace<FlashColourComponent>(r, f);
+      registry.emplace<HealthComponent>(r, 3.0f);
+      registry.emplace<ClickToDestroyComponent>(r);
+      // registry.emplace<ParryComponent>(r);
+    }
   }
 
   // Add a player
   {
     entt::entity r = registry.create();
     registry.emplace<TagComponent>(r, "player");
-    registry.emplace<AnimationBounce>(r);
-    registry.emplace<Player>(r);
+    // rendering
     registry.emplace<ColourComponent>(r, colour_cyan);
     registry.emplace<PositionIntComponent>(r, 25 * GRID_SIZE, 25 * GRID_SIZE);
     registry.emplace<RenderSizeComponent>(r, GRID_SIZE, GRID_SIZE);
-    registry.emplace<PhysicsSizeComponent>(r, GRID_SIZE, GRID_SIZE);
     registry.emplace<SpriteComponent>(r, sprite::type::PERSON_0);
+    // physics
     registry.emplace<CollidableComponent>(r, static_cast<uint32_t>(GameCollisionLayer::ACTOR_PLAYER));
+    registry.emplace<PhysicsSizeComponent>(r, GRID_SIZE, GRID_SIZE);
+    registry.emplace<VelocityComponent>(r, 0.0f, 0.0f);
+    // gameplay
+    registry.emplace<AnimationBounce>(r);
+    registry.emplace<Player>(r);
     registry.emplace<HealthComponent>(r);
-  }
-
-  // Add damageable
-  // {
-  //   for (int i = 1; i < 5; i++) {
-  //     entt::entity r = registry.create();
-  //     registry.emplace<TagComponent>(r, std::string("damageable" + std::to_string(i)));
-  //     registry.emplace<ColourComponent>(r, colour_dblue);
-  //     FlashColourComponent f;
-  //     f.start_colour = colour_dblue;
-  //     f.flash_colour = colour_green;
-  //     registry.emplace<FlashColourComponent>(r, f);
-  //     registry.emplace<ParryComponent>(r);
-  //     registry.emplace<VelocityComponent>(r, 0.0f, 0.0f);
-  //     registry.emplace<PositionIntComponent>(r, i * GRID_SIZE, GRID_SIZE * 10);
-  //     registry.emplace<RenderSizeComponent>(r, GRID_SIZE, GRID_SIZE);
-  //     registry.emplace<PhysicsSizeComponent>(r, GRID_SIZE, GRID_SIZE);
-  //     registry.emplace<SpriteComponent>(r, sprite::type::TREE_1);
-  //     registry.emplace<VelocityInBoundingboxComponent>(r);
-  //     registry.emplace<HealthComponent>(r, 3.0f);
-  //     registry.emplace<ClickToDestroyComponent>(r);
-  //   }
-  // }
-
-  // Add no-oxy-zone object
-  {
-    int scale_y = 100;
-    int scale_x = 5;
-    entt::entity r = registry.create();
-    registry.emplace<TagComponent>(r, "no-oxy-zone");
-    registry.emplace<ColourComponent>(r, 1.0f, 1.0f, 1.0f, 0.3f);
-    registry.emplace<PositionIntComponent>(r, 32 * GRID_SIZE, 25 * GRID_SIZE);
-    registry.emplace<RenderSizeComponent>(r, GRID_SIZE * scale_x, GRID_SIZE * scale_y);
-    registry.emplace<PhysicsSizeComponent>(r, GRID_SIZE * scale_x, GRID_SIZE * scale_y);
-    registry.emplace<SpriteComponent>(r, sprite::type::EMPTY);
-    auto layer = static_cast<uint32_t>(GameCollisionLayer::ACTOR_NO_OXY_ZONE);
-    registry.emplace<CollidableComponent>(r, layer, PhysicsType::ACTOR);
-    registry.emplace<VelocityInBoundingboxComponent>(r);
   }
 };
 

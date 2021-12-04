@@ -11,13 +11,28 @@
 
 // c++ lib headers
 #include <algorithm>
+#include <iostream>
 #include <vector>
+
+namespace game2d {
+
+void
+CALLBACK_stop_velocity(entt::registry& registry, const entt::entity& eid)
+{
+  if (registry.all_of<VelocityComponent>(eid)) {
+    auto& vel = registry.get<VelocityComponent>(eid);
+    vel.y = 0.0f;
+    vel.x = 0.0f;
+  }
+};
+
+} // namespace game2d
 
 void
 game2d::update_move_objects_system(entt::registry& registry, engine::Application& app, float dt)
 {
-  std::function<void()> actor_hit_solid_callback = print_actor;
-  std::function<void()> actor_being_squish_callback = print_solid;
+  std::function<void(entt::registry&, entt::entity&)> actor_hit_solid_callback = CALLBACK_stop_velocity;
+  std::function<void(entt::registry&, entt::entity&)> actor_being_squish_callback = print_solid;
 
   ImGui::Begin("Debug move objects", NULL, ImGuiWindowFlags_NoFocusOnAppearing);
 
@@ -59,8 +74,8 @@ game2d::update_move_objects_system(entt::registry& registry, engine::Application
       pos.dy += vel.y * dt;
     }
 
-    move_actors_dir(COLLISION_AXIS::X, pos.x, pos.dx, actor_aabb, solids_aabb, actor_hit_solid_callback);
-    move_actors_dir(COLLISION_AXIS::Y, pos.y, pos.dy, actor_aabb, solids_aabb, actor_hit_solid_callback);
+    move_actors_dir(registry, COLLISION_AXIS::X, pos.x, pos.dx, actor_aabb, solids_aabb, actor_hit_solid_callback);
+    move_actors_dir(registry, COLLISION_AXIS::Y, pos.y, pos.dy, actor_aabb, solids_aabb, actor_hit_solid_callback);
 
     ImGui::Text("actor: %i %i %f %f", pos.x, pos.y, pos.dx, pos.dy);
     // end actors
@@ -112,7 +127,8 @@ game2d::update_move_objects_system(entt::registry& registry, engine::Application
                 // push right: right - left
                 float dx = (solid_aabb.x_tl + solid_aabb.w) - actor_aabb.x_tl;
                 auto& pos = registry.get<PositionIntComponent>(actor_eid);
-                move_actors_dir(COLLISION_AXIS::X, pos.x, dx, actor_aabb, solids_aabb, actor_being_squish_callback);
+                move_actors_dir(
+                  registry, COLLISION_AXIS::X, pos.x, dx, actor_aabb, solids_aabb, actor_being_squish_callback);
               }
               // } else if (riding.contains(actor)) {
               // // Carry right
@@ -128,7 +144,8 @@ game2d::update_move_objects_system(entt::registry& registry, engine::Application
                 // push left: left - right
                 float dx = solid_aabb.x_tl - (actor_aabb.x_tl + actor_aabb.w);
                 auto& pos = registry.get<PositionIntComponent>(actor_eid);
-                move_actors_dir(COLLISION_AXIS::X, pos.x, dx, actor_aabb, solids_aabb, actor_being_squish_callback);
+                move_actors_dir(
+                  registry, COLLISION_AXIS::X, pos.x, dx, actor_aabb, solids_aabb, actor_being_squish_callback);
               }
             }
           }
@@ -152,7 +169,8 @@ game2d::update_move_objects_system(entt::registry& registry, engine::Application
                 // push bottom: bottom - top
                 float dy = (solid_aabb.y_tl + solid_aabb.h) - actor_aabb.y_tl;
                 auto& pos = registry.get<PositionIntComponent>(actor_eid);
-                move_actors_dir(COLLISION_AXIS::Y, pos.y, dy, actor_aabb, solids_aabb, actor_being_squish_callback);
+                move_actors_dir(
+                  registry, COLLISION_AXIS::Y, pos.y, dy, actor_aabb, solids_aabb, actor_being_squish_callback);
               }
             }
           }
@@ -164,7 +182,8 @@ game2d::update_move_objects_system(entt::registry& registry, engine::Application
                 // push top: top - bottom
                 float dy = solid_aabb.y_tl - (actor_aabb.y_tl + actor_aabb.h);
                 auto& pos = registry.get<PositionIntComponent>(actor_eid);
-                move_actors_dir(COLLISION_AXIS::Y, pos.y, dy, actor_aabb, solids_aabb, actor_being_squish_callback);
+                move_actors_dir(
+                  registry, COLLISION_AXIS::Y, pos.y, dy, actor_aabb, solids_aabb, actor_being_squish_callback);
               }
             }
           }

@@ -13,7 +13,9 @@
 // other lib headers
 #include <glm/glm.hpp>
 #include <imgui.h>
-#include <iostream>
+
+#include <algorithm>
+#include <stdio.h>
 
 void
 game2d::update_player_input_system(entt::registry& registry, engine::Application& app)
@@ -91,38 +93,56 @@ game2d::update_player_input_system(entt::registry& registry, engine::Application
   mouse_pos_adjusted_in_worldspace.y += GRID_SIZE / 2.0f;
 
   {
-    const auto& view = registry.view<Player, PositionIntComponent>();
-    view.each([&registry, &app, &mouse_pos_adjusted_in_worldspace, &GRID_SIZE](const auto& player, auto& pos) {
-      // Action: Move, Convert WASD to input
-      int vx = 0;
-      int vy = 0;
+    const auto& view = registry.view<Player, PositionIntComponent, VelocityComponent>();
+    view.each(
+      [&registry, &app, &mouse_pos_adjusted_in_worldspace, &GRID_SIZE](const auto& player, auto& pos, auto& vel) {
+        //
+        // Action: Move, Convert WASD to input
+        // int vx = 0, vy = 0;
+        // if (app.get_input().get_key_held(SDL_SCANCODE_S))
+        //   vy = 1;
+        // else if (app.get_input().get_key_held(SDL_SCANCODE_W))
+        //   vy = -1;
+        // if (app.get_input().get_key_held(SDL_SCANCODE_A))
+        //   vx = -1;
+        // else if (app.get_input().get_key_held(SDL_SCANCODE_D))
+        //   vx = 1;
 
-      // Limitation: currently all players would be updated with wasd.
-      if (app.get_input().get_key_down(SDL_SCANCODE_S))
-        vy = 1;
-      else if (app.get_input().get_key_down(SDL_SCANCODE_W))
-        vy = -1;
-      if (app.get_input().get_key_down(SDL_SCANCODE_A))
-        vx = -1;
-      else if (app.get_input().get_key_down(SDL_SCANCODE_D))
-        vx = 1;
+        const auto UP = glm::vec2(0.0f, -1.0f);
+        const auto JUMP_VEL = 100.0f;
 
-      // move in grid sizes
-      pos.dx += vx * GRID_SIZE;
-      pos.dy += vy * GRID_SIZE;
-      // ImGui::Text("player %i %i %f %f", pos.x, pos.y, pos.dx, pos.dy);
+        bool jump_pressed = app.get_input().get_key_down(SDL_SCANCODE_SPACE);
+        if (jump_pressed) {
+          vel.y = (UP * JUMP_VEL).y;
+        }
 
-      glm::ivec2 grid_slot = engine::grid::world_space_to_grid_space({ pos.x, pos.y }, GRID_SIZE);
-      // ImGui::Text("player grid %i %i", grid_slot.x, grid_slot.y);
+        // float fall_multiplier = 2.5f;
+        // float low_jump_multiplier = 2.0f;
+        // // if (vel.y > 0.0f) {
+        // //   vel_dt = up * glm::vec2(0.0f, gravity) * glm::vec2(fall_multiplier - 1.0f);
+        // // } else
+        // if (vel.y < 0.0f && !jump_pressed) {
+        //   glm::vec2 vel_dt = (up * gravity);
+        //   // printf("vel_dt: %f %f", vel_dt.x, vel_dt.y);
+        //   //  * glm::vec2(low_jump_multiplier - 1.0f);
+        //   vel.x += vel_dt.x;
+        //   vel.y += vel_dt.y;
+        // }
 
-      // Action: Update player position with RMB
-      if (app.get_input().get_mouse_rmb_down()) {
-        glm::ivec2 grid_slot = engine::grid::world_space_to_grid_space(mouse_pos_adjusted_in_worldspace, GRID_SIZE);
-        glm::ivec2 world_space = grid_slot * GRID_SIZE;
-        pos.x = world_space.x;
-        pos.y = world_space.y;
-      }
-    });
+        // apply gravity
+        float gravity = 1.0f;
+        vel.y += gravity;
+
+        // Action: Update player position with RMB
+        // ImGui::Text("player grid %i %i", grid_slot.x, grid_slot.y);
+        glm::ivec2 grid_slot = engine::grid::world_space_to_grid_space({ pos.x, pos.y }, GRID_SIZE);
+        if (app.get_input().get_mouse_rmb_down()) {
+          glm::ivec2 grid_slot = engine::grid::world_space_to_grid_space(mouse_pos_adjusted_in_worldspace, GRID_SIZE);
+          glm::ivec2 world_space = grid_slot * GRID_SIZE;
+          pos.x = world_space.x;
+          pos.y = world_space.y;
+        }
+      });
   }
 };
 

@@ -23,7 +23,7 @@ bool
 collide(const PhysicsObject& one, const PhysicsObject& two);
 
 // Checks collisions between an object and other objects
-bool
+std::pair<bool, entt::entity>
 collides(const PhysicsObject& one, const std::vector<PhysicsObject>& others);
 
 // Checks collisions between all objects
@@ -34,15 +34,16 @@ generate_filtered_broadphase_collisions(const std::vector<PhysicsObject>& unsort
 // -- move objects
 
 void
-move_actors_dir(COLLISION_AXIS axis,
+move_actors_dir(entt::registry& registry,
+                COLLISION_AXIS axis,
                 int& pos,
                 float& dx,
                 PhysicsObject& actor_aabb,
                 std::vector<PhysicsObject>& solids,
-                std::function<void()>& callback);
+                std::function<void(entt::registry&, entt::entity&)>& callback);
 
 void
-print_solid();
+print_solid(entt::registry& registry, const entt::entity& eid);
 
 void
 print_actor();

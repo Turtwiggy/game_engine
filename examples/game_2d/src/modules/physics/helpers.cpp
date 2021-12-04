@@ -8,6 +8,7 @@
 // c++ lib headers
 #include <algorithm>
 #include <iostream>
+#include <utility>
 #include <vector>
 
 namespace game2d {
@@ -23,17 +24,18 @@ collide(const PhysicsObject& one, const PhysicsObject& two)
   return collision_x && collision_y;
 }
 
-bool
+std::pair<bool, entt::entity>
 collides(const PhysicsObject& one, const std::vector<PhysicsObject>& others)
 {
   for (const auto& two : others) {
     if (!two.collidable)
       continue;
     bool collides = collide(one, two);
+    // note, doesn't return "others" ids
     if (collides)
-      return true;
+      return std::make_pair(true, static_cast<entt::entity>(one.ent_id));
   }
-  return false;
+  return std::make_pair(false, entt::null);
 }
 
 void
@@ -145,12 +147,13 @@ game2d::generate_filtered_broadphase_collisions(const std::vector<PhysicsObject>
 };
 
 void
-game2d::move_actors_dir(COLLISION_AXIS axis,
+game2d::move_actors_dir(entt::registry& registry,
+                        COLLISION_AXIS axis,
                         int& pos,
                         float& dx,
                         PhysicsObject& actor_aabb,
                         std::vector<PhysicsObject>& solids,
-                        std::function<void()>& callback)
+                        std::function<void(entt::registry&, entt::entity&)>& callback)
 {
   constexpr auto Sign = [](int x) { return x == 0 ? 0 : (x > 0 ? 1 : -1); };
 
@@ -172,10 +175,10 @@ game2d::move_actors_dir(COLLISION_AXIS axis,
 
       potential_aabb.w = actor_aabb.w;
       potential_aabb.h = actor_aabb.h;
-      bool collision_with_solid = collides(potential_aabb, solids);
-      if (collision_with_solid) // ah! collision, maybe actor-solid callback?
+      auto collision_with_solid = collides(potential_aabb, solids);
+      if (collision_with_solid.first) // ah! collision, maybe actor-solid callback?
       {
-        callback();
+        callback(registry, collision_with_solid.second);
         // std::cout << "actor would collide X with solid if continue" << std::endl;
         break;
       }
@@ -190,7 +193,7 @@ game2d::move_actors_dir(COLLISION_AXIS axis,
 };
 
 void
-game2d::print_solid(){
+game2d::print_solid(entt::registry& registry, const entt::entity& eid){
   // std::cout << "actor being squished between solids!" << std::endl;
 };
 

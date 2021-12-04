@@ -24,6 +24,7 @@ game2d::update_velocity_in_boundingbox_system(entt::registry& registry, engine::
                                    const PositionIntComponent,
                                    const PhysicsSizeComponent,
                                    const VelocityInBoundingboxComponent>();
+
   view.each([&boundary](auto& vel, const auto& pos, const auto& size, const auto& vib) {
     if (pos.x - (size.w / 2.0f) <= 0.0f)
       vel.x = abs(vel.x);
