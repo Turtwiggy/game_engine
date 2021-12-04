@@ -1,14 +1,14 @@
 // your header
-#include "modules/hex/system.hpp"
+#include "modules/editor_hex_map/system.hpp"
 
 // components
 #include "components/singleton_resources.hpp"
-#include "modules/hex/components.hpp"
+#include "modules/editor_hex_map/components.hpp"
 #include "modules/renderer/components.hpp"
 
 // helpers
 #include "helpers/spritemap.hpp"
-#include "modules/hex/helpers.hpp"
+#include "modules/editor_hex_map/helpers.hpp"
 #include "modules/renderer/helpers/renderers/batch_triangle.hpp"
 
 // other project headers

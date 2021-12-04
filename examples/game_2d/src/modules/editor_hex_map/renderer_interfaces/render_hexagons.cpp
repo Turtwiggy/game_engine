@@ -1,8 +1,8 @@
 // your header
-#include "modules/renderer/helpers/renderer_interfaces/render_hexagons.hpp"
+#include "render_hexagons.hpp"
 
 // components
-#include "modules/hex/components.hpp"
+#include "modules/editor_hex_map/components.hpp"
 
 // c++ lib headers
 #include <vector>

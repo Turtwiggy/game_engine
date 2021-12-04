@@ -23,11 +23,11 @@ game2d::init_ui_gizmos_system(entt::registry& registry)
 void
 game2d::update_ui_gizmos_system(entt::registry& registry, engine::Application& app, float dt)
 {
+  ImGuizmo::BeginFrame();
+
   auto& gizmos_component = registry.ctx<SINGLETON_GizmosComponent>();
   const auto& hierarchy_component = registry.ctx<SINGLETON_HierarchyComponent>();
   const auto& r = registry.ctx<SINGLETON_RendererInfo>();
-
-  ImGuizmo::BeginFrame();
 
   if (app.get_input().get_key_down(SDL_SCANCODE_Q))
     gizmos_component.gizmo_type = -1;
@@ -51,9 +51,9 @@ game2d::update_ui_gizmos_system(entt::registry& registry, engine::Application& a
     float window_height = (float)r.viewport_size_current.y;
     ImGuizmo::SetRect(r.viewport_pos.x, r.viewport_pos.y, window_width, window_height);
 
-    auto& camera_projection = r.projection;
-    glm::mat4 camera_view = glm::inverse(glm::mat4(1.0f));
-    camera_view = glm::translate(camera_view, glm::vec3(0.0f, 0.0f, 0.0f));
+    // auto& camera_projection = r.projection;
+    // glm::mat4 camera_view = glm::inverse(glm::mat4(1.0f));
+    // camera_view = glm::translate(camera_view, glm::vec3(0.0f, 0.0f, 0.0f));
     // model = glm::translate(model, glm::vec3(0.5f * size.x, 0.5f * size.y, 0.0f));
     // model = glm::rotate(model, angle, glm::vec3(0.0f, 0.0f, 1.0f));
     // model = glm::translate(model, glm::vec3(-0.5f * size.x, -0.5f * size.y, 0.0f));
@@ -75,13 +75,13 @@ game2d::update_ui_gizmos_system(entt::registry& registry, engine::Application& a
     // ImGuizmo::RecomposeMatrixFromComponents(matrixTranslation, matrixRotation, matrixScale,
     // glm::value_ptr(transform));
 
-    ImGuizmo::Manipulate(glm::value_ptr(camera_view),
-                         glm::value_ptr(camera_projection),
-                         (ImGuizmo::OPERATION)gizmos_component.gizmo_type,
-                         ImGuizmo::LOCAL,
-                         glm::value_ptr(transform),
-                         nullptr,
-                         nullptr);
+    // ImGuizmo::Manipulate(glm::value_ptr(camera_view),
+    //                      glm::value_ptr(camera_projection),
+    //                      (ImGuizmo::OPERATION)gizmos_component.gizmo_type,
+    //                      ImGuizmo::LOCAL,
+    //                      glm::value_ptr(transform),
+    //                      nullptr,
+    //                      nullptr);
 
     if (ImGuizmo::IsUsing()) {
       ImGui::Text("Using gizmo");

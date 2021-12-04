@@ -14,6 +14,7 @@
 #include "components/velocity_in_boundingbox.hpp"
 #include "modules/animation/components.hpp"
 #include "modules/audio/components.hpp"
+#include "modules/editor_camera/components.hpp"
 #include "modules/physics/components.hpp"
 #include "modules/renderer/components.hpp"
 #include "modules/ui_profiler/components.hpp"
@@ -24,12 +25,14 @@
 // systems
 #include "modules/animation/system.hpp"
 #include "modules/audio/system.hpp"
-#include "modules/map_editor/system.hpp"
+#include "modules/editor_camera/system.hpp"
+#include "modules/editor_map/system.hpp"
 #include "modules/physics/system.hpp"
 #include "modules/renderer/system.hpp"
 #include "modules/ui_gizmos/system.hpp"
 #include "modules/ui_hierarchy/system.hpp"
 #include "modules/ui_map_editor/system.hpp"
+#include "modules/ui_menu_bar/system.hpp"
 #include "modules/ui_physics/system.hpp"
 #include "modules/ui_profiler/system.hpp"
 #include "systems/click_to_destroy.hpp"
@@ -44,7 +47,6 @@
 // engine headers
 #include "engine/maths.hpp"
 #include "engine/util.hpp"
-#include "engine/util_windows.hpp"
 
 // other project headers
 #include <SDL2/SDL.h>
@@ -52,7 +54,6 @@
 #include <imgui.h>
 
 // c++ lib headers
-#include <cstdio> // temp
 #include <string>
 #include <utility>
 #include <vector>
@@ -80,6 +81,14 @@ init_game_state(entt::registry& registry)
   const auto& res = registry.ctx<SINGLETON_ResourceComponent>();
   const auto& gs = registry.ctx<SINGLETON_GridSize>();
   const int GRID_SIZE = gs.size_xy;
+
+  // Editor Camera
+  {
+    entt::entity r = registry.create();
+    registry.emplace<TagComponent>(r, "Editor Camera");
+    registry.emplace<EditorCameraComponent>(r);
+    registry.emplace<CameraComponent>(r);
+  }
 
   // Add a cursor
   {
@@ -177,31 +186,13 @@ game2d::update(entt::registry& registry, engine::Application& app, float dt)
     std::cout << "game paused: " << gp.paused << std::endl;
   }
 #ifdef _DEBUG
-  // if (app.get_input().get_key_down(SDL_SCANCODE_R)) {
-  //   init_game_state(registry);
-  // }
+  if (app.get_input().get_key_down(SDL_SCANCODE_R)) {
+    init_game_state(registry);
+  }
   if (app.get_input().get_key_down(SDL_SCANCODE_ESCAPE)) {
     app.shutdown();
   }
 #endif
-
-  // temp
-  ImGui::Begin("Menu...");
-  if (ImGui::Button("Open File")) {
-    printf("open file clicked...\n");
-    std::string filepath = engine::open_file(app.get_window(), "All\0*.*\0Text\0*.txt\0");
-    if (!filepath.empty()) {
-      printf("user wants to open file: %s \n", filepath.c_str());
-    }
-  }
-  if (ImGui::Button("Save File")) {
-    printf("save file clicked...\n");
-    std::string filepath = engine::save_file(app.get_window(), "All\0*.*\0.txt\0");
-    if (!filepath.empty()) {
-      printf("user wants to save file: %s \n", filepath.c_str());
-    }
-  }
-  ImGui::End();
 
   // physics
   Uint64 start_physics = SDL_GetPerformanceCounter();
@@ -229,6 +220,9 @@ game2d::update(entt::registry& registry, engine::Application& app, float dt)
       update_velocity_in_boundingbox_system(registry, app, dt);
       update_parry_system(registry, app, dt);
       update_no_oxy_zone_system(registry, app, dt);
+      // editor stuff
+      update_editor_camera_system(registry, app, dt);
+      update_map_editor_system(registry, app, dt);
     }
   };
   Uint64 end_game_tick = SDL_GetPerformanceCounter();
@@ -244,12 +238,12 @@ game2d::update(entt::registry& registry, engine::Application& app, float dt)
 
   // ui
   {
-    update_map_editor_system(registry, app, dt);
     update_ui_profiler_system(registry, app);
     update_ui_physics_system(registry, app);
     update_ui_hierarchy_system(registry, app);
-    update_ui_gizmos_system(registry, app, dt); // update after hierarchy
+    // update_ui_gizmos_system(registry, app, dt); // update after hierarchy
     update_ui_map_editor_system(registry, app, dt);
+    update_ui_menu_bar_system(registry, app, dt);
   };
 
   // end frame

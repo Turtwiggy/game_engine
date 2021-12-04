@@ -1,5 +1,5 @@
 // your header
-#include "modules/map_editor/system.hpp"
+#include "modules/editor_map/system.hpp"
 
 // components
 #include "components/singleton_grid.hpp"

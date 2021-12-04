@@ -1,6 +1,7 @@
 #include "modules/ui_hierarchy/system.hpp"
 
 // components
+#include "modules/editor_camera/components.hpp"
 #include "modules/physics/components.hpp"
 #include "modules/renderer/components.hpp"
 #include "modules/ui_hierarchy/components.hpp"
@@ -26,6 +27,9 @@ game2d::update_ui_hierarchy_system(entt::registry& registry, engine::Application
     registry.each([&registry, &d](auto entity) {
       const auto& tag = registry.get<TagComponent>(entity).tag;
       const auto& eid = d.selected_entity;
+
+      if (registry.all_of<EditorCameraComponent>(entity))
+        return; // skip editor camera from hierarchy
 
       ImGuiTreeNodeFlags flags = ((eid == entity) ? ImGuiTreeNodeFlags_Selected : 0) | ImGuiTreeNodeFlags_OpenOnArrow;
       flags |= ImGuiTreeNodeFlags_SpanAvailWidth;
