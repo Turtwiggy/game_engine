@@ -1,7 +1,5 @@
 #pragma once
 
-#include "modules/renderer/components.hpp"
-
 #include <glm/glm.hpp>
 
 namespace game2d {

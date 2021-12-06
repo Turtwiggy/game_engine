@@ -83,9 +83,6 @@ struct VelocityComponent
 
 struct SINGLETON_PhysicsComponent
 {
-  // registered objects to use with physics system
-  std::vector<PhysicsObject> collidable;
-
   // resulting collisions from all registered objects
   std::map<uint64_t, Collision2D> frame_collisions;
 

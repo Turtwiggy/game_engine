@@ -4,6 +4,7 @@
 // components
 #include "components/click_to_destroy.hpp"
 #include "components/cursor.hpp"
+#include "components/double_jump.hpp"
 #include "components/flash_colour.hpp"
 #include "components/health.hpp"
 #include "components/parry.hpp"
@@ -27,6 +28,7 @@
 #include "modules/audio/system.hpp"
 #include "modules/editor_camera/system.hpp"
 #include "modules/editor_map/system.hpp"
+#include "modules/physics/process_move_objects.hpp"
 #include "modules/physics/system.hpp"
 #include "modules/renderer/system.hpp"
 #include "modules/ui_gizmos/system.hpp"
@@ -40,7 +42,6 @@
 #include "systems/no_oxy_zone.hpp"
 #include "systems/parry.hpp"
 #include "systems/player_input.hpp"
-#include "systems/process_move_objects.hpp"
 #include "systems/process_physics.hpp"
 #include "systems/velocity_in_boundingbox.hpp"
 
@@ -105,12 +106,12 @@ init_game_state(entt::registry& registry)
 
   // Add some blocks
   {
-    for (int i = 1; i < 5; i++) {
+    for (int i = 1; i < 30; i++) {
       entt::entity r = registry.create();
       registry.emplace<TagComponent>(r, std::string("a-blocks" + std::to_string(i)));
       // rendering
       registry.emplace<ColourComponent>(r, colour_dblue);
-      registry.emplace<PositionIntComponent>(r, (22 + i) * GRID_SIZE, 30 * GRID_SIZE);
+      registry.emplace<PositionIntComponent>(r, (22 + i) * GRID_SIZE, 35 * GRID_SIZE);
       registry.emplace<RenderSizeComponent>(r, GRID_SIZE, GRID_SIZE);
       registry.emplace<SpriteComponent>(r, sprite::type::EMPTY);
       // physics
@@ -130,12 +131,12 @@ init_game_state(entt::registry& registry)
 
   // Add some blocks
   {
-    for (int i = 1; i < 5; i++) {
+    for (int i = 1; i < 10; i++) {
       entt::entity r = registry.create();
       registry.emplace<TagComponent>(r, std::string("b-blocks" + std::to_string(i)));
       // rendering
-      registry.emplace<ColourComponent>(r, colour_dblue);
-      registry.emplace<PositionIntComponent>(r, (15 + i) * GRID_SIZE, 27 * GRID_SIZE);
+      registry.emplace<ColourComponent>(r, colour_green);
+      registry.emplace<PositionIntComponent>(r, (10 + i) * GRID_SIZE, 30 * GRID_SIZE);
       registry.emplace<RenderSizeComponent>(r, GRID_SIZE, GRID_SIZE);
       registry.emplace<SpriteComponent>(r, sprite::type::EMPTY);
       // physics
@@ -155,11 +156,12 @@ init_game_state(entt::registry& registry)
 
   // Add some blocks
   {
-    for (int i = 1; i < 5; i++) {
+    for (int i = 1; i < 25; i++) {
+
       entt::entity r = registry.create();
       registry.emplace<TagComponent>(r, std::string("c-blocks" + std::to_string(i)));
       // rendering
-      registry.emplace<ColourComponent>(r, colour_dblue);
+      registry.emplace<ColourComponent>(r, colour_cyan);
       registry.emplace<PositionIntComponent>(r, (24 + i) * GRID_SIZE, 24 * GRID_SIZE);
       registry.emplace<RenderSizeComponent>(r, GRID_SIZE, GRID_SIZE);
       registry.emplace<SpriteComponent>(r, sprite::type::EMPTY);
@@ -181,7 +183,7 @@ init_game_state(entt::registry& registry)
   // Add a player
   {
     entt::entity r = registry.create();
-    registry.emplace<TagComponent>(r, "player");
+    registry.emplace<TagComponent>(r, "player0");
     // rendering
     registry.emplace<ColourComponent>(r, colour_cyan);
     registry.emplace<PositionIntComponent>(r, 25 * GRID_SIZE, 25 * GRID_SIZE);
@@ -195,6 +197,7 @@ init_game_state(entt::registry& registry)
     registry.emplace<AnimationBounce>(r);
     registry.emplace<Player>(r);
     registry.emplace<HealthComponent>(r);
+    registry.emplace<DoubleJumpComponent>(r);
   }
 };
 
@@ -242,7 +245,7 @@ game2d::update(entt::registry& registry, engine::Application& app, float dt)
     if (!gp.paused) {
       // move objects, checking collisions along way
       update_move_objects_system(registry, app, dt);
-      // generate all collisions between all objects
+      // generate all collisions between actor-actor objects
       update_physics_system(registry, app, dt);
     }
   }

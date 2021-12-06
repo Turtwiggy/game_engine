@@ -22,11 +22,11 @@ namespace game2d {
 bool
 collide(const PhysicsObject& one, const PhysicsObject& two);
 
-// Checks collisions between an object and other objects
+// Checks collisions between actor-solids.
 std::optional<CollisionInfo2D>
 collides(const PhysicsObject& one, const std::vector<PhysicsObject>& others);
 
-// Checks collisions between all objects
+// Checks collisions between actor-actors.
 void
 generate_filtered_broadphase_collisions(const std::vector<PhysicsObject>& unsorted_aabb,
                                         std::map<uint64_t, Collision2D>& collision_results);

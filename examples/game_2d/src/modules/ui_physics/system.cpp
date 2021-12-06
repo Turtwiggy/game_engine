@@ -24,8 +24,6 @@ game2d::update_ui_physics_system(entt::registry& registry, engine::Application& 
   });
 
   ImGui::Begin("Physics", NULL, ImGuiWindowFlags_NoFocusOnAppearing);
-  ImGui::Text("Collisions %i", p.frame_collisions.size());
-  ImGui::Text("Persistent Collisions %i", p.persistent_collisions.size());
   ImGui::Text("Solids %i", solids);
   ImGui::Text("Actors %i", actors);
   ImGui::End();

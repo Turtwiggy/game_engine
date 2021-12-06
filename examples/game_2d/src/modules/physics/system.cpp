@@ -23,13 +23,14 @@ game2d::update_physics_system(entt::registry& registry, engine::Application& app
   // 3. generate collision enter, exit, stay
 
   SINGLETON_PhysicsComponent& p = registry.ctx<SINGLETON_PhysicsComponent>();
+  std::vector<PhysicsObject> collidable;
 
   {
-    p.collidable.clear();
+    collidable.clear();
     PhysicsObject po;
     const auto& view =
       registry.view<const CollidableComponent, const PositionIntComponent, const PhysicsSizeComponent>();
-    view.each([&registry, &po, &p](const auto entity, const auto& col, const auto& pos, const auto& size) {
+    view.each([&registry, &po, &p, &collidable](const auto entity, const auto& col, const auto& pos, const auto& size) {
       // actors and solids never overlap,
       // and solids dont overlap with solids
       if (col.type == PhysicsType::SOLID)
@@ -40,11 +41,11 @@ game2d::update_physics_system(entt::registry& registry, engine::Application& app
       po.w = size.w;
       po.h = size.h;
 
-      p.collidable.push_back(po);
+      collidable.push_back(po);
     });
   }
 
-  generate_filtered_broadphase_collisions(p.collidable, p.frame_collisions);
+  generate_filtered_broadphase_collisions(collidable, p.frame_collisions);
 
   {
     // There's basically 3 states needed to capture:

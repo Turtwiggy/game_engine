@@ -28,10 +28,13 @@ game2d::update_process_physics_system(entt::registry& registry, engine::Applicat
     auto min_id = static_cast<GameCollisionLayer>(std::min(e0_layer_id, e1_layer_id));
     auto max_id = static_cast<GameCollisionLayer>(std::max(e0_layer_id, e1_layer_id));
 
+    if (min_id == GameCollisionLayer::ACTOR_PLAYER && max_id == GameCollisionLayer::SOLID_WALL) {
+      std::cout << "PLAYER-WALL collision..." << std::endl;
+    }
+
     // else if (min_id == GameCollisionLayer::SOLID_WALL && max_id == GameCollisionLayer::SOLID_WALL) {
     //   std::cout << "WALL-WALL collision..." << std::endl;
-    // } else if (min_id == GameCollisionLayer::ACTOR_PLAYER && max_id == GameCollisionLayer::SOLID_WALL) {
-    //   std::cout << "PLAYER-WALL collision..." << std::endl;
+    // } else
     // } else if (min_id == GameCollisionLayer::ACTOR_GOAL && max_id == GameCollisionLayer::SOLID_WALL) {
     //   std::cout << "GOAL-WALL collision..." << std::endl;
     // else if (min_id == GameCollisionLayer::SOLID_WALL && max_id == GameCollisionLayer::ACTOR_BALL) {

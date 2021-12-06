@@ -2,6 +2,7 @@
 #include "systems/player_input.hpp"
 
 // components
+#include "components/double_jump.hpp"
 #include "components/player.hpp"
 #include "components/singleton_grid.hpp"
 #include "modules/physics/components.hpp"
@@ -93,6 +94,35 @@ game2d::update_player_input_system(entt::registry& registry, engine::Application
   mouse_pos_adjusted_in_worldspace.y += GRID_SIZE / 2.0f;
 
   {
+    const auto& view = registry.view<Player, VelocityComponent, DoubleJumpComponent>();
+    view.each([&app](const auto& player, auto& vel, auto& dd) {
+      if (dd.able_to_jump) {
+
+        // Jump simple
+        const auto UP = glm::vec2(0.0f, -1.0f);
+        const auto JUMP_VEL = 150.0f;
+        bool jump_pressed = app.get_input().get_key_down(SDL_SCANCODE_SPACE);
+        if (jump_pressed) {
+          dd.able_to_jump = false;
+          vel.y = (UP * JUMP_VEL).y;
+        }
+
+        // Jump slightly better control
+        // float fall_multiplier = 2.5f;
+        // float low_jump_multiplier = 2.0f;
+        // // if (vel.y > 0.0f) {
+        // //   vel_dt = up * glm::vec2(0.0f, gravity) * glm::vec2(fall_multiplier - 1.0f);
+        // // } else
+        // if (vel.y < 0.0f && !jump_pressed) {
+        //   glm::vec2 vel_dt = (up * gravity) * glm::vec2(low_jump_multiplier - 1.0f);
+        //   vel.x += vel_dt.x;
+        //   vel.y += vel_dt.y;
+        // }
+      }
+    });
+  }
+
+  {
     const auto& view = registry.view<Player, PositionIntComponent, VelocityComponent>();
     view.each(
       [&registry, &app, &mouse_pos_adjusted_in_worldspace, &GRID_SIZE](const auto& player, auto& pos, auto& vel) {
@@ -108,14 +138,6 @@ game2d::update_player_input_system(entt::registry& registry, engine::Application
         else if (app.get_input().get_key_held(SDL_SCANCODE_D))
           vx = 1;
 
-        // Jump simple
-        const auto UP = glm::vec2(0.0f, -1.0f);
-        const auto JUMP_VEL = 150.0f;
-        bool jump_pressed = app.get_input().get_key_down(SDL_SCANCODE_SPACE);
-        if (jump_pressed) {
-          vel.y = (UP * JUMP_VEL).y;
-        }
-
         // Move left and right
         int x_speed = 50;
         vel.x = vx * x_speed;
@@ -123,17 +145,6 @@ game2d::update_player_input_system(entt::registry& registry, engine::Application
         // apply gravity
         float gravity = 1.0f;
         vel.y += gravity;
-
-        // float fall_multiplier = 2.5f;
-        // float low_jump_multiplier = 2.0f;
-        // // if (vel.y > 0.0f) {
-        // //   vel_dt = up * glm::vec2(0.0f, gravity) * glm::vec2(fall_multiplier - 1.0f);
-        // // } else
-        // if (vel.y < 0.0f && !jump_pressed) {
-        //   glm::vec2 vel_dt = (up * gravity) * glm::vec2(low_jump_multiplier - 1.0f);
-        //   vel.x += vel_dt.x;
-        //   vel.y += vel_dt.y;
-        // }
 
         // Action: Update player position with RMB
         // ImGui::Text("player grid %i %i", grid_slot.x, grid_slot.y);
@@ -144,26 +155,27 @@ game2d::update_player_input_system(entt::registry& registry, engine::Application
           pos.x = world_space.x;
           pos.y = world_space.y;
         }
+
+        // Action: spawn object with LMB
+        // if (app.get_input().get_key_down(SDL_SCANCODE_RIGHT)) {
+        // glm::vec2 world_pos = adjusted_mouse_pos - glm::vec2(pos.x, pos.y);
+        // glm::ivec2 world_pos_clamped = engine::grid::world_space_to_clamped_world_space(world_pos, GRID_SIZE);
+        // glm::vec2 vel = glm::vec2(world_pos_clamped.x, world_pos_clamped.y);
+        // if (!(vel.x == 0.0f && vel.y == 0.0f))
+        //   vel = glm::normalize(vel);
+        // float bullet_speed = 100.0f;
+        // vel *= bullet_speed;
+
+        // {
+        //   entt::entity r = registry.create();
+        //   registry.emplace<VelocityComponent>(r, vel.x, vel.y);
+        //   registry.emplace<ColourComponent>(r, 1.0f, 1.0f, 1.0f, 1.0f);
+        //   registry.emplace<PositionInt>(r, pos.x, pos.y);
+        //   registry.emplace<Size>(r, GRID_SIZE, GRID_SIZE);
+        //   registry.emplace<Sprite>(r, sprite::type::EMPTY);
+        //   registry.emplace<ZIndex>(r, 0);
+        // }
+        // }
       });
   }
 };
-
-// // Action: spawn object with LMB
-// if (app.get_input().get_mouse_lmb_down()) {
-//   glm::vec2 world_pos = adjusted_mouse_pos - glm::vec2(pos.x, pos.y);
-//   glm::ivec2 world_pos_clamped = engine::grid::world_space_to_clamped_world_space(world_pos, GRID_SIZE);
-//   glm::vec2 vel = glm::vec2(world_pos_clamped.x, world_pos_clamped.y);
-//   if (!(vel.x == 0.0f && vel.y == 0.0f))
-//     vel = glm::normalize(vel);
-//   float bullet_speed = 100.0f;
-//   vel *= bullet_speed;
-//   {
-//     entt::entity r = registry.create();
-//     registry.emplace<Velocity>(r, vel.x, vel.y);
-//     registry.emplace<Colour>(r, 1.0f, 1.0f, 1.0f, 1.0f);
-//     registry.emplace<PositionInt>(r, pos.x, pos.y);
-//     registry.emplace<Size>(r, GRID_SIZE, GRID_SIZE);
-//     registry.emplace<Sprite>(r, sprite::type::EMPTY);
-//     registry.emplace<ZIndex>(r, 0);
-//   }
-// }

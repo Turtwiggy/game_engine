@@ -1,5 +1,5 @@
 // your header
-#include "systems/process_move_objects.hpp"
+#include "modules/physics/process_move_objects.hpp"
 
 // components
 #include "modules/physics/components.hpp"
@@ -17,7 +17,7 @@
 namespace game2d {
 
 void
-CALLBACK_stop_velocity(entt::registry& registry, const CollisionInfo2D& info)
+CALLBACK_actor_solid_collision(entt::registry& registry, const CollisionInfo2D& info)
 {
   // std::cout << "actor collided, normal: " << info.normal.x << " " << info.normal.y << std::endl;
   if (registry.all_of<VelocityComponent>(info.eid)) {
@@ -31,6 +31,7 @@ CALLBACK_stop_velocity(entt::registry& registry, const CollisionInfo2D& info)
       // on an x-axis normal?
       vel.x = 0.0f;
     }
+    // std::cout << "x: " << normal.x << " y:" << normal.y << std::endl;
   }
 };
 
@@ -44,7 +45,7 @@ do_nothing(entt::registry& registry, const const CollisionInfo2D& eid){
 void
 game2d::update_move_objects_system(entt::registry& registry, engine::Application& app, float dt)
 {
-  std::function<void(entt::registry&, CollisionInfo2D&)> actor_hit_solid_callback = CALLBACK_stop_velocity;
+  std::function<void(entt::registry&, CollisionInfo2D&)> actor_hit_solid_callback = CALLBACK_actor_solid_collision;
   std::function<void(entt::registry&, CollisionInfo2D&)> actor_being_squish_callback = do_nothing;
 
   ImGui::Begin("Debug move objects", NULL, ImGuiWindowFlags_NoFocusOnAppearing);

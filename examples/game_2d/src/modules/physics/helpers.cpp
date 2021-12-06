@@ -45,9 +45,9 @@ collides(const PhysicsObject& one, const std::vector<PhysicsObject>& others)
 
       // calculate normal
       // calculates from the solid to the actor
-      auto one_center = convert_tl_to_center(one);
-      auto two_center = convert_tl_to_center(two);
-      auto normal = glm::normalize(one_center - two_center);
+      glm::vec2 one_center = convert_tl_to_center(one);
+      glm::vec2 two_center = convert_tl_to_center(two);
+      glm::vec2 normal = glm::normalize(one_center - two_center);
 
       info.normal = normal;
       return std::optional<CollisionInfo2D>{ info };
