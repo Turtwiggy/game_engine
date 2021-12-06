@@ -85,6 +85,13 @@ struct SpriteComponent
     : sprite(sprite){};
 };
 
+// struct CircleComponent
+// {
+//   float thickness = 1.0f;
+//   CircleComponent() = default;
+//   CircleComponent(const CircleComponent&) = default;
+// };
+
 struct TagComponent
 {
   std::string tag;

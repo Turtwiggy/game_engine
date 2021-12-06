@@ -37,10 +37,10 @@
 #include "modules/ui_profiler/system.hpp"
 #include "systems/click_to_destroy.hpp"
 #include "systems/cursor.hpp"
-#include "systems/move_objects.hpp"
 #include "systems/no_oxy_zone.hpp"
 #include "systems/parry.hpp"
 #include "systems/player_input.hpp"
+#include "systems/process_move_objects.hpp"
 #include "systems/process_physics.hpp"
 #include "systems/velocity_in_boundingbox.hpp"
 
@@ -107,10 +107,60 @@ init_game_state(entt::registry& registry)
   {
     for (int i = 1; i < 5; i++) {
       entt::entity r = registry.create();
-      registry.emplace<TagComponent>(r, std::string("block" + std::to_string(i)));
+      registry.emplace<TagComponent>(r, std::string("a-blocks" + std::to_string(i)));
       // rendering
       registry.emplace<ColourComponent>(r, colour_dblue);
       registry.emplace<PositionIntComponent>(r, (22 + i) * GRID_SIZE, 30 * GRID_SIZE);
+      registry.emplace<RenderSizeComponent>(r, GRID_SIZE, GRID_SIZE);
+      registry.emplace<SpriteComponent>(r, sprite::type::EMPTY);
+      // physics
+      registry.emplace<CollidableComponent>(
+        r, static_cast<uint32_t>(GameCollisionLayer::SOLID_WALL), PhysicsType::SOLID);
+      registry.emplace<PhysicsSizeComponent>(r, GRID_SIZE, GRID_SIZE);
+      // gameplay
+      FlashColourComponent f;
+      f.start_colour = colour_dblue;
+      f.flash_colour = colour_green;
+      registry.emplace<FlashColourComponent>(r, f);
+      registry.emplace<HealthComponent>(r, 3.0f);
+      registry.emplace<ClickToDestroyComponent>(r);
+      // registry.emplace<ParryComponent>(r);
+    }
+  }
+
+  // Add some blocks
+  {
+    for (int i = 1; i < 5; i++) {
+      entt::entity r = registry.create();
+      registry.emplace<TagComponent>(r, std::string("b-blocks" + std::to_string(i)));
+      // rendering
+      registry.emplace<ColourComponent>(r, colour_dblue);
+      registry.emplace<PositionIntComponent>(r, (15 + i) * GRID_SIZE, 27 * GRID_SIZE);
+      registry.emplace<RenderSizeComponent>(r, GRID_SIZE, GRID_SIZE);
+      registry.emplace<SpriteComponent>(r, sprite::type::EMPTY);
+      // physics
+      registry.emplace<CollidableComponent>(
+        r, static_cast<uint32_t>(GameCollisionLayer::SOLID_WALL), PhysicsType::SOLID);
+      registry.emplace<PhysicsSizeComponent>(r, GRID_SIZE, GRID_SIZE);
+      // gameplay
+      FlashColourComponent f;
+      f.start_colour = colour_dblue;
+      f.flash_colour = colour_green;
+      registry.emplace<FlashColourComponent>(r, f);
+      registry.emplace<HealthComponent>(r, 3.0f);
+      registry.emplace<ClickToDestroyComponent>(r);
+      // registry.emplace<ParryComponent>(r);
+    }
+  }
+
+  // Add some blocks
+  {
+    for (int i = 1; i < 5; i++) {
+      entt::entity r = registry.create();
+      registry.emplace<TagComponent>(r, std::string("c-blocks" + std::to_string(i)));
+      // rendering
+      registry.emplace<ColourComponent>(r, colour_dblue);
+      registry.emplace<PositionIntComponent>(r, (24 + i) * GRID_SIZE, 24 * GRID_SIZE);
       registry.emplace<RenderSizeComponent>(r, GRID_SIZE, GRID_SIZE);
       registry.emplace<SpriteComponent>(r, sprite::type::EMPTY);
       // physics

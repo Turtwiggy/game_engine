@@ -1,5 +1,9 @@
 #pragma once
 
+// other lib headers
+#include <entt/entt.hpp>
+#include <glm/glm.hpp>
+
 // c++ headers
 #include <map>
 #include <vector>
@@ -14,11 +18,18 @@ enum class COLLISION_AXIS
   Y
 };
 
+struct CollisionInfo2D
+{
+  entt::entity eid = entt::null;
+  // glm::vec2 point{ 0.0f, 0.0f };
+  glm::vec2 normal{ 0.0f, 0.0f };
+};
+
 // A collision occurs between two entities
 struct Collision2D
 {
-  uint32_t ent_id_0 = true;
-  uint32_t ent_id_1 = true;
+  uint32_t ent_id_0 = 0;
+  uint32_t ent_id_1 = 0;
   bool collision_x = false;
   bool collision_y = false;
   bool dirty = false; // dirty means it occurred last frame

@@ -2,7 +2,6 @@
 
 // components
 #include "modules/physics/components.hpp"
-#include "modules/renderer/components.hpp"
 
 // other lib headers
 #include <glm/glm.hpp>
@@ -13,6 +12,7 @@
 // c++ lib headers
 #include <functional>
 #include <map>
+#include <optional>
 #include <vector>
 
 namespace game2d {
@@ -23,7 +23,7 @@ bool
 collide(const PhysicsObject& one, const PhysicsObject& two);
 
 // Checks collisions between an object and other objects
-std::pair<bool, entt::entity>
+std::optional<CollisionInfo2D>
 collides(const PhysicsObject& one, const std::vector<PhysicsObject>& others);
 
 // Checks collisions between all objects
@@ -40,12 +40,6 @@ move_actors_dir(entt::registry& registry,
                 float& dx,
                 PhysicsObject& actor_aabb,
                 std::vector<PhysicsObject>& solids,
-                std::function<void(entt::registry&, entt::entity&)>& callback);
-
-void
-print_solid(entt::registry& registry, const entt::entity& eid);
-
-void
-print_actor();
+                std::function<void(entt::registry&, CollisionInfo2D&)>& callback);
 
 }; // namespace game2d

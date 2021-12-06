@@ -1,5 +1,5 @@
 // your header
-#include "systems/move_objects.hpp"
+#include "systems/process_move_objects.hpp"
 
 // components
 #include "modules/physics/components.hpp"
@@ -17,13 +17,26 @@
 namespace game2d {
 
 void
-CALLBACK_stop_velocity(entt::registry& registry, const entt::entity& eid)
+CALLBACK_stop_velocity(entt::registry& registry, const CollisionInfo2D& info)
 {
-  if (registry.all_of<VelocityComponent>(eid)) {
-    auto& vel = registry.get<VelocityComponent>(eid);
-    vel.y = 0.0f;
-    vel.x = 0.0f;
+  // std::cout << "actor collided, normal: " << info.normal.x << " " << info.normal.y << std::endl;
+  if (registry.all_of<VelocityComponent>(info.eid)) {
+    auto& vel = registry.get<VelocityComponent>(info.eid);
+
+    auto& normal = info.normal;
+    if (glm::abs(normal.y) > glm::abs(normal.x)) {
+      // on a y-axis normal?
+      vel.y = 0.0f;
+    } else if (glm::abs(normal.x) > glm::abs(normal.y)) {
+      // on an x-axis normal?
+      vel.x = 0.0f;
+    }
   }
+};
+
+void
+do_nothing(entt::registry& registry, const const CollisionInfo2D& eid){
+  // std::cout << "actor being squished between solids!" << std::endl;
 };
 
 } // namespace game2d
@@ -31,8 +44,8 @@ CALLBACK_stop_velocity(entt::registry& registry, const entt::entity& eid)
 void
 game2d::update_move_objects_system(entt::registry& registry, engine::Application& app, float dt)
 {
-  std::function<void(entt::registry&, entt::entity&)> actor_hit_solid_callback = CALLBACK_stop_velocity;
-  std::function<void(entt::registry&, entt::entity&)> actor_being_squish_callback = print_solid;
+  std::function<void(entt::registry&, CollisionInfo2D&)> actor_hit_solid_callback = CALLBACK_stop_velocity;
+  std::function<void(entt::registry&, CollisionInfo2D&)> actor_being_squish_callback = do_nothing;
 
   ImGui::Begin("Debug move objects", NULL, ImGuiWindowFlags_NoFocusOnAppearing);
 

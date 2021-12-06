@@ -1,6 +1,5 @@
 // your header
-#include "modules/physics/helpers.hpp"
-#include "modules/renderer/components.hpp"
+#include "helpers.hpp"
 
 // engine headers
 #include "engine/maths.hpp"
@@ -8,10 +7,16 @@
 // c++ lib headers
 #include <algorithm>
 #include <iostream>
-#include <utility>
-#include <vector>
+#include <optional>
 
 namespace game2d {
+
+glm::vec2
+convert_tl_to_center(const PhysicsObject& po)
+{
+  glm::ivec2 half = glm::ivec2(int(po.w / 2.0f), int(po.h / 2.0f));
+  return { po.x_tl + half.x, po.y_tl + half.y };
+};
 
 bool
 collide(const PhysicsObject& one, const PhysicsObject& two)
@@ -22,21 +27,34 @@ collide(const PhysicsObject& one, const PhysicsObject& two)
   bool collision_y = one.y_tl + one.h > two.y_tl && two.y_tl + two.h > one.y_tl;
 
   return collision_x && collision_y;
-}
+};
 
-std::pair<bool, entt::entity>
+std::optional<CollisionInfo2D>
 collides(const PhysicsObject& one, const std::vector<PhysicsObject>& others)
 {
   for (const auto& two : others) {
     if (!two.collidable)
       continue;
     bool collides = collide(one, two);
-    // note, doesn't return "others" ids
-    if (collides)
-      return std::make_pair(true, static_cast<entt::entity>(one.ent_id));
+    // note, doesn't return "others" ids, stops when any collision
+    if (collides) {
+
+      CollisionInfo2D info;
+      info.eid = static_cast<entt::entity>(one.ent_id);
+      // info.point = glm::vec2(0.0f);
+
+      // calculate normal
+      // calculates from the solid to the actor
+      auto one_center = convert_tl_to_center(one);
+      auto two_center = convert_tl_to_center(two);
+      auto normal = glm::normalize(one_center - two_center);
+
+      info.normal = normal;
+      return std::optional<CollisionInfo2D>{ info };
+    }
   }
-  return std::make_pair(false, entt::null);
-}
+  return std::nullopt;
+};
 
 void
 generate_broadphase_collisions(const std::vector<std::reference_wrapper<const PhysicsObject>>& sorted_aabb,
@@ -106,11 +124,9 @@ generate_broadphase_collisions(const std::vector<std::reference_wrapper<const Ph
   }
 };
 
-}; // namespace game2d
-
 void
-game2d::generate_filtered_broadphase_collisions(const std::vector<PhysicsObject>& unsorted_aabb,
-                                                std::map<uint64_t, Collision2D>& collision_results)
+generate_filtered_broadphase_collisions(const std::vector<PhysicsObject>& unsorted_aabb,
+                                        std::map<uint64_t, Collision2D>& collision_results)
 {
   // Do broad-phase check.
 
@@ -147,13 +163,13 @@ game2d::generate_filtered_broadphase_collisions(const std::vector<PhysicsObject>
 };
 
 void
-game2d::move_actors_dir(entt::registry& registry,
-                        COLLISION_AXIS axis,
-                        int& pos,
-                        float& dx,
-                        PhysicsObject& actor_aabb,
-                        std::vector<PhysicsObject>& solids,
-                        std::function<void(entt::registry&, entt::entity&)>& callback)
+move_actors_dir(entt::registry& registry,
+                COLLISION_AXIS axis,
+                int& pos,
+                float& dx,
+                PhysicsObject& actor_aabb,
+                std::vector<PhysicsObject>& solids,
+                std::function<void(entt::registry&, CollisionInfo2D&)>& callback)
 {
   constexpr auto Sign = [](int x) { return x == 0 ? 0 : (x > 0 ? 1 : -1); };
 
@@ -176,9 +192,9 @@ game2d::move_actors_dir(entt::registry& registry,
       potential_aabb.w = actor_aabb.w;
       potential_aabb.h = actor_aabb.h;
       auto collision_with_solid = collides(potential_aabb, solids);
-      if (collision_with_solid.first) // ah! collision, maybe actor-solid callback?
+      if (collision_with_solid.has_value()) // ah! collision, maybe actor-solid callback?
       {
-        callback(registry, collision_with_solid.second);
+        callback(registry, collision_with_solid.value());
         // std::cout << "actor would collide X with solid if continue" << std::endl;
         break;
       }
@@ -192,12 +208,4 @@ game2d::move_actors_dir(entt::registry& registry,
   }
 };
 
-void
-game2d::print_solid(entt::registry& registry, const entt::entity& eid){
-  // std::cout << "actor being squished between solids!" << std::endl;
-};
-
-void
-game2d::print_actor(){
-  // std::cout << "actor stopping itself; would collide with solid." << std::endl;
-};
+}; // namespace game2d
