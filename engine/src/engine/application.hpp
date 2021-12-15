@@ -39,9 +39,8 @@ public:
   [[nodiscard]] InputManager& get_input();
 
 private:
-  // window events
   void on_window_close();
-  void on_window_resize(int w, int h);
+  void on_window_resize(int new_w, int new_h);
 
 private:
   std::unique_ptr<GameWindow> window;

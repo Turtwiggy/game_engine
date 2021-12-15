@@ -8,10 +8,10 @@ message("engine_info: ${CMAKE_BUILD_TYPE}")
 
 #VCPKG packages
 set (ENGINE_PACKAGES_CONFIG
-    SDL2 sdl2-image sdl2-mixer glm assimp protobuf OpenAL SndFile GameNetworkingSockets
+    EnTT SDL2 sdl2-mixer glm
 )
 set (ENGINE_PACKAGES
-    OpenSSL OpenGL GLEW
+    OpenGL GLEW
 )
 
 #Source Files
@@ -49,17 +49,15 @@ if(${CMAKE_SYSTEM_NAME} STREQUAL "Windows")
     )
     #Vcpkg windows links
     set (ENGINE_LINK_LIBS
-        SDL2::SDL2 SDL2::SDL2main SDL2::SDL2_image SDL2::SDL2_mixer
-        glm
-        assimp::assimp
+        SDL2::SDL2 SDL2::SDL2main SDL2::SDL2_mixer
+        glm::glm
+        EnTT::EnTT
         opengl32
         GLEW::GLEW
-        OpenAL::OpenAL
-        SndFile::sndfile
         # game networking sockets libs (windows only)
-        OpenSSL::SSL OpenSSL::Crypto
-        protobuf::libprotoc protobuf::libprotobuf protobuf::libprotobuf-lite
-        GameNetworkingSockets::shared GameNetworkingSockets::static GameNetworkingSockets::GameNetworkingSockets GameNetworkingSockets::GameNetworkingSockets_s
+        # OpenSSL::SSL OpenSSL::Crypto
+        # protobuf::libprotoc protobuf::libprotobuf protobuf::libprotobuf-lite
+        # GameNetworkingSockets::shared GameNetworkingSockets::static GameNetworkingSockets::GameNetworkingSockets GameNetworkingSockets::GameNetworkingSockets_s
     )
 
 elseif(${CMAKE_SYSTEM_NAME} STREQUAL "Linux")
@@ -75,8 +73,8 @@ elseif(${CMAKE_SYSTEM_NAME} STREQUAL "Linux")
     #Vcpkg linux links
     set (ENGINE_LINK_LIBS
         SDL2::SDL2main SDL2::SDL2-static
+        EnTT::EnTT
         glm
-        assimp::assimp
         GL
         GLEW
     )

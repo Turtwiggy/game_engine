@@ -1,7 +1,10 @@
+assimp
 spdlog
 box2d
 bullet3
-openal-soft
-libsndfile
+sdl2-mixer[core,libvorbis, mpg123,nativemidi]
+protobuf
+openssl
+gtest
 --triplet
 x64-windows

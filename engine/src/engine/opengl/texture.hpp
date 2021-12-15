@@ -2,6 +2,9 @@
 
 // other lib headers
 #include <glm/glm.hpp>
+#if !defined(STB_IMAGE_IMPLEMENTATION)
+#define STB_IMAGE_IMPLEMENTATION
+#endif
 
 // c++ standard library headers
 #include <string>

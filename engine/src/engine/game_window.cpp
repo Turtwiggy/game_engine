@@ -387,10 +387,4 @@ GameWindow::get_vsync_opengl() const
   return static_cast<bool>(enabled);
 }
 
-void
-GameWindow::set_icon(SDL_Surface* i)
-{
-  SDL_SetWindowIcon(window_.get(), i);
-}
-
 }

@@ -35,7 +35,7 @@ IF(${CMAKE_SYSTEM_NAME} STREQUAL "Windows")
   add_executable(game_2d 
     ${SRC_FILES}
     # add icon to executable
-    ${CMAKE_CURRENT_BINARY_DIR}/assets/2d_game/textures/resource.rc
+    # ${CMAKE_CURRENT_BINARY_DIR}/assets/2d_game/textures/resource.rc
   ) 
 ELSE()
   add_executable(game_2d 
@@ -56,8 +56,6 @@ foreach(library ${ENGINE_LINK_LIBS})
   message("${PROJECT_NAME} linking library... ${library}")
   target_link_libraries(game_2d PRIVATE ${library})
 endforeach()
-target_link_libraries(game_2d PRIVATE EnTT::EnTT)
-
 
 # Windows things
 IF(${CMAKE_SYSTEM_NAME} STREQUAL "Windows")

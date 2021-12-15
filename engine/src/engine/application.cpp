@@ -40,16 +40,16 @@ Application::~Application()
   window->close();
 }
 
-void
-Application::shutdown()
-{
-  running = false;
-}
-
 bool
 Application::is_running() const
 {
   return running;
+}
+
+void
+Application::shutdown()
+{
+  running = false;
 }
 
 float
@@ -161,6 +161,7 @@ Application::frame_begin()
   imgui_manager.begin_frame(get_window());
   seconds_since_launch += get_delta_time();
 }
+
 // ---- events
 
 void
@@ -171,12 +172,12 @@ Application::on_window_close()
 }
 
 void
-Application::on_window_resize(int w, int h)
+Application::on_window_resize(int new_w, int new_h)
 {
-  printf("application resize event recieved: %i %i ", w, h);
+  printf("application resize event recieved: %i %i ", new_w, new_h);
   window_was_resized = true;
 
-  if (w == 0 || h == 0) {
+  if (new_w == 0 || new_h == 0) {
     minimized = true;
     return;
   }

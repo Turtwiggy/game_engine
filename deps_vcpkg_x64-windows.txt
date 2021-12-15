@@ -1,13 +1,8 @@
-sdl2
-sdl2-image
-sdl2-mixer[core,libvorbis, mpg123,nativemidi]
-glm
-glew
-stb
-assimp
-openssl
-protobuf
-gtest
 entt
+glew
+glm
+sdl2
+sdl2-mixer[core, nativemidi]
+stb
 --triplet
 x64-windows
