@@ -17,7 +17,6 @@ using namespace engine;
 int
 main(int argc, char* argv[])
 {
-
   std::cout << "Running main()" << std::endl;
   const auto app_start = std::chrono::high_resolution_clock::now();
 

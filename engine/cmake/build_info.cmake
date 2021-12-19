@@ -6,9 +6,22 @@ set(CPACK_PROJECT_VERSION ${PROJECT_VERSION})
 message("engine_info: ${CMAKE_SYSTEM_NAME}")
 message("engine_info: ${CMAKE_BUILD_TYPE}")
 
+# Add "_DEBUG" define
+if (CMAKE_BUILD_TYPE STREQUAL "")
+    message(STATUS "  Diag: Build type was unspecified, set to Release")
+    set(CMAKE_BUILD_TYPE Release)
+else ()
+    message(STATUS "  Diag: Build type specified as '${CMAKE_BUILD_TYPE}'")
+    if (${CMAKE_BUILD_TYPE} STREQUAL Debug)
+        set_directory_properties(PROPERTIES COMPILE_DEFINITIONS "_DEBUG")
+    # else ()
+    #   set_directory_properties(PROPERTIES COMPILE_DEFINITIONS "NDEBUG")
+    endif ()
+endif ()
+
 #VCPKG packages
 set (ENGINE_PACKAGES_CONFIG
-    EnTT SDL2 sdl2-mixer glm
+    EnTT SDL2 sdl2-mixer
 )
 set (ENGINE_PACKAGES
     OpenGL GLEW
@@ -43,6 +56,7 @@ if(${CMAKE_SYSTEM_NAME} STREQUAL "Windows")
         ${CMAKE_SOURCE_DIR}/thirdparty/imgui
         ${CMAKE_SOURCE_DIR}/thirdparty/imgui/backends
         ${CMAKE_SOURCE_DIR}/thirdparty/imguizmo
+        ${CMAKE_SOURCE_DIR}/thirdparty/glm
         ${CMAKE_SOURCE_DIR}/thirdparty/vcpkg/installed/x64-windows/include
 
         ${STB_INCLUDE_DIRS}
@@ -50,7 +64,6 @@ if(${CMAKE_SYSTEM_NAME} STREQUAL "Windows")
     #Vcpkg windows links
     set (ENGINE_LINK_LIBS
         SDL2::SDL2 SDL2::SDL2main SDL2::SDL2_mixer
-        glm::glm
         EnTT::EnTT
         opengl32
         GLEW::GLEW
@@ -74,11 +87,7 @@ elseif(${CMAKE_SYSTEM_NAME} STREQUAL "Linux")
     set (ENGINE_LINK_LIBS
         SDL2::SDL2main SDL2::SDL2-static
         EnTT::EnTT
-        glm
         GL
         GLEW
     )
 endif()
-
-
-

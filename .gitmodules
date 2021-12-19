@@ -7,3 +7,8 @@
 [submodule "thirdparty/vcpkg"]
     path = thirdparty/vcpkg
     url = https://github.com/Microsoft/vcpkg
+
+    
+[submodule "thirdparty/glm"]
+	path = thirdparty/glm
+	url = https://github.com/g-truc/glm.git

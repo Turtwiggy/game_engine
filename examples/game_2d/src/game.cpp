@@ -230,7 +230,7 @@ game2d::update(entt::registry& registry, engine::Application& app, float dt)
     gp.paused = !gp.paused;
     std::cout << "game paused: " << gp.paused << std::endl;
   }
-#ifdef _DEBUG
+#if defined _DEBUG || defined DEBUG
   if (app.get_input().get_key_down(SDL_SCANCODE_R)) {
     init_game_state(registry);
   }

@@ -36,7 +36,7 @@ CALLBACK_actor_solid_collision(entt::registry& registry, const CollisionInfo2D& 
 };
 
 void
-do_nothing(entt::registry& registry, const const CollisionInfo2D& eid){
+do_nothing(entt::registry& registry, const CollisionInfo2D& eid){
   // std::cout << "actor being squished between solids!" << std::endl;
 };
 
