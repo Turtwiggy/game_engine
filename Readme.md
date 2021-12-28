@@ -24,12 +24,12 @@ git submodule update --init --recursive
 ```
 (Windows) Building with g++ via mingw64
 
-make -C .
+make -j 14
 ```
 
 ```
 (Emscripten) Building
 
 thirdparty/emsdk/emsdk activate latest
-make -C . -f Makefile-emscripten
+make -C . -f Makefile-emscripten -j 14
 ```
