@@ -9,25 +9,27 @@
 - shadow casting
 - compile to web via emscripten
 
-### How to get setup
-
-Software needed
+### Install
 
 - c++ compiler (MSVC, gcc, clang)
 - make
 
+### Build
+
 ```
 git clone
 git submodule update --init --recursive
+```
 
+```
 (Windows) Building with g++ via mingw64
 
-    make -C .
+make -C .
+```
 
+```
 (Emscripten) Building
 
-    thirdparty/emsdk/emsdk activate latest
-    make -C . -f Makefile-emscripten
-
-
+thirdparty/emsdk/emsdk activate latest
+make -C . -f Makefile-emscripten
 ```
