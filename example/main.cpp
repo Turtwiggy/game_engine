@@ -119,10 +119,11 @@ main(int argc, char* argv[])
 #else
   // while (1)
   //   main_loop();
-
-  std::cout << "Hello, world!" << std::endl;
-
+  std::cout << "Hello, makefile!" << std::endl;
+  std::cout << "Another steve." << std::endl;
 #endif
+
+  exit(0);
 }
 
 static void

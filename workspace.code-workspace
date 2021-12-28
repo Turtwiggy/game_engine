@@ -119,14 +119,6 @@
       "*.vert": "c",
       "format": "cpp"
     },
-    "cSpell.words": ["entt"],
-    "makefile.extensionOutputFolder": "./.vscode",
-    "makefile.launchConfigurations": [
-      {
-        "cwd": "c:\\Programming\\c++_game_engine",
-        "binaryPath": "c:\\Programming\\c++_game_engine\\windows_build",
-        "binaryArgs": []
-      }
-    ]
+    "cSpell.words": ["entt"]
   }
 }

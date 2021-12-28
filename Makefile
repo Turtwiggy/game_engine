@@ -18,14 +18,19 @@ IMGUI_DIR = thirdparty/imgui
 SDL2_DIR = thirdparty/sdl2/x86_64-w64-mingw32
 GLEW_DIR = thirdparty/glew
 
+DEBUG = 1
 CXXFLAGS =
 LIBS = 
+
 
 #
 # BUILD OPTIONS
 #
 
-CXXFLAGS += -std=c++17 -Wall -Wformat -Os
+ifeq ($(DEBUG), 1)
+	CXXFLAGS += -g -Wall
+endif
+CXXFLAGS += -std=c++17 -Wformat -Os
 CXXFLAGS += -I$(PROJECT_DIR)
 CXXFLAGS += -I$(ENGINE_DIR)
 CXXFLAGS += -I$(IMGUI_DIR)

@@ -13,8 +13,7 @@
       "compilerPath": "/usr/bin/g++",
       "cStandard": "c17",
       "cppStandard": "c++20",
-      "intelliSenseMode": "linux-gcc-x64",
-      "configurationProvider": "ms-vscode.make-tools"
+      "intelliSenseMode": "linux-gcc-x64"
     },
     {
       "name": "Windows MSCV",
@@ -24,17 +23,16 @@
         "${workspaceFolder}/thirdparty/imgui/examples",
         "${workspaceFolder}/thirdparty/imgui/backends",
         "${workspaceFolder}/thirdparty/imguizmo/",
-        "${workspaceFolder}/thirdparty/sdl2/include",
         "${workspaceFolder}/thirdparty/glew/include",
-        "${workspaceFolder}/thirdparty/magic_enum"
+        "${workspaceFolder}/thirdparty/magic_enum",
+        "${workspaceFolder}/thirdparty/sdl2/x86_64-w64-mingw32/include/SDL2"
       ],
       "defines": ["UNICODE", "_UNICODE"],
       "windowsSdkVersion": "10.0.19041.0",
       "compilerPath": "C:/Software/msys64/mingw64/bin/g++.exe",
       "cStandard": "c17",
       "cppStandard": "c++20",
-      "intelliSenseMode": "windows-gcc-x64",
-      "configurationProvider": "ms-vscode.make-tools"
+      "intelliSenseMode": "windows-gcc-x64"
     }
   ],
   "version": 4
