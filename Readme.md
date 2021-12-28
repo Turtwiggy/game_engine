@@ -7,6 +7,7 @@
 - sweep and prune collision detection for aabb
 - batch renderer
 - shadow casting
+- compile to web via emscripten
 
 ### How to get setup
 
@@ -19,34 +20,14 @@ Software needed
 git clone
 git submodule update --init --recursive
 
-(Linux) Install vcpkg dependancies for Linux-x64
+(Windows) Building with g++ via mingw64
 
-    ./thirdparty/vcpkg/bootstrap-vcpkg.sh
-    ./thirdparty/vcpkg/vcpkg install @vcpkg_x64-linux.txt
-    ./thirdparty/vcpkg/vcpkg --overlay-ports=./thirdparty/GameNetworkingSockets/vcpkg_ports/ install gamenetworkingsockets:x64-linux
+    make -C .
 
-(Windows) Install vcpkg dependancies for Window-x64
-
-    .\thirdparty\vcpkg\bootstrap-vcpkg.bat
-    .\thirdparty\vcpkg\vcpkg.exe install @vcpkg_x64-windows.txt
-    .\thirdparty\vcpkg\vcpkg.exe --overlay-ports=.\thirdparty\GameNetworkingSockets\vcpkg_ports\ install gamenetworkingsockets:x64-windows
-
-(Emscripten) Install vcpkg dependancies for wasm32-emscripten
-
-    .\thirdparty\emsdk\emsdk activate latest
-    .\thirdparty\vcpkg\bootstrap-vcpkg.bat
-    .\thirdparty\vcpkg\vcpkg.exe install @vcpkg_x32-wasm.txt
-
-```
-
-```
 (Emscripten) Building
 
     thirdparty/emsdk/emsdk activate latest
     make -C . -f Makefile-emscripten
 
-(Windows) Building with gcc
-
-    make -C .
 
 ```
