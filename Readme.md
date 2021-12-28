@@ -1,38 +1,52 @@
 [![License](https://img.shields.io/badge/License-Apache%202.0-blue.svg)](https://opensource.org/licenses/Apache-2.0)
 
-An opengl game engine project.
-
 ### Features
-
-#### general
 
 - threaded texture loading
 - controller support via SDL2
-
-#### 2d
-
 - sweep and prune collision detection for aabb
 - batch renderer
 - shadow casting
 
-#### 3d
+### How to get setup
 
-- model loading via assimp
+Software needed
 
-#### More Info
+- c++ compiler (MSVC, gcc, clang)
+- make
 
-[How to build / run](./.github/BUILDING.md)
+```
+git clone
+git submodule update --init --recursive
 
-[VCPKG dependencies](./deps_vcpkg_x64-windows.txt)
+(Linux) Install vcpkg dependancies for Linux-x64
 
-#### Maybe in future
+    ./thirdparty/vcpkg/bootstrap-vcpkg.sh
+    ./thirdparty/vcpkg/vcpkg install @vcpkg_x64-linux.txt
+    ./thirdparty/vcpkg/vcpkg --overlay-ports=./thirdparty/GameNetworkingSockets/vcpkg_ports/ install gamenetworkingsockets:x64-linux
 
-networking...?
+(Windows) Install vcpkg dependancies for Window-x64
 
-- GGPO
-- GameNetworkingSockets
+    .\thirdparty\vcpkg\bootstrap-vcpkg.bat
+    .\thirdparty\vcpkg\vcpkg.exe install @vcpkg_x64-windows.txt
+    .\thirdparty\vcpkg\vcpkg.exe --overlay-ports=.\thirdparty\GameNetworkingSockets\vcpkg_ports\ install gamenetworkingsockets:x64-windows
 
-3d...?
+(Emscripten) Install vcpkg dependancies for wasm32-emscripten
 
-- Bullet3 - physics
-- ImGuizmo
+    .\thirdparty\emsdk\emsdk activate latest
+    .\thirdparty\vcpkg\bootstrap-vcpkg.bat
+    .\thirdparty\vcpkg\vcpkg.exe install @vcpkg_x32-wasm.txt
+
+```
+
+```
+(Emscripten) Building
+
+    thirdparty/emsdk/emsdk activate latest
+    make -C . -f Makefile-emscripten
+
+(Windows) Building with gcc
+
+    make -C .
+
+```

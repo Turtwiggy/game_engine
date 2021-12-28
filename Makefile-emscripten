@@ -1,0 +1,70 @@
+#
+# Make file to use with emscripten
+#
+
+EXE = $(WEB_DIR)/index.html
+CC = emcc
+CXX = em++
+
+WEB_DIR = web
+IMGUI_DIR = thirdparty/imgui
+ENGINE_DIR = engine/src
+PROJECT_DIR = examples/emscripten/src
+HTML_TEMPLATE = assets/emscripten/shell_minimal.html
+
+SOURCES = $(SRC_DIR)/main.cpp
+SOURCES += $(IMGUI_DIR)/imgui.cpp $(IMGUI_DIR)/imgui_demo.cpp $(IMGUI_DIR)/imgui_draw.cpp $(IMGUI_DIR)/imgui_tables.cpp $(IMGUI_DIR)/imgui_widgets.cpp
+SOURCES += $(IMGUI_DIR)/backends/imgui_impl_sdl.cpp $(IMGUI_DIR)/backends/imgui_impl_opengl3.cpp
+
+OBJS = $(addsuffix .o, $(basename $(notdir $(SOURCES))))
+CPPFLAGS =
+LDFLAGS = 
+EMS = 
+
+#
+# Build options
+#
+
+# ("EMS" options gets added to both CPPFLAGS and LDFLAGS, whereas some options are for linker only)
+EMS += -s USE_SDL=2
+EMS += -s DISABLE_EXCEPTION_CATCHING=1
+LDFLAGS += -s WASM=1 -s ALLOW_MEMORY_GROWTH=1 -s NO_EXIT_RUNTIME=0 -s ASSERTIONS=1
+
+# BUILD FLAGS
+CPPFLAGS += -I$(ENGINE_DIR)
+CPPFLAGS += -I$(PROJECT_DIR)
+CPPFLAGS += -I$(IMGUI_DIR) -I$(IMGUI_DIR)/backends
+CPPFLAGS += -std=c++17 -Wall -Wformat -Os $(EMS)
+LDFLAGS += --shell-file $(HTML_TEMPLATE) $(EMS)
+
+#
+# Build rules
+#
+
+%.o:%.cpp
+	$(CXX) $(CPPFLAGS) $(CXXFLAGS) -c -o $@ $<
+
+%.o:$(PROJECT_DIR)/%.cpp
+	$(CXX) $(CPPFLAGS) $(CXXFLAGS) -c -o $@ $<
+
+%.o:$(IMGUI_DIR)/%.cpp
+	$(CXX) $(CPPFLAGS) $(CXXFLAGS) -c -o $@ $<
+
+%.o:$(IMGUI_DIR)/backends/%.cpp
+	$(CXX) $(CPPFLAGS) $(CXXFLAGS) -c -o $@ $<
+
+all: $(EXE)
+	$(info Build complete for: $(EXE))
+
+$(WEB_DIR):
+	rmdir -r $@
+	mkdir $@
+
+serve: all
+	python3 -m http.server -d $(WEB_DIR)
+
+$(EXE): $(OBJS) $(WEB_DIR)
+	$(CXX) -o $@ $(OBJS) $(LDFLAGS)
+
+clean:
+	rm -r $(OBJS) $(WEB_DIR)

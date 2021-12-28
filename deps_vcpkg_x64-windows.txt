@@ -1,7 +1,0 @@
-entt
-glew
-sdl2
-sdl2-mixer[core, nativemidi]
-stb
---triplet
-x64-windows

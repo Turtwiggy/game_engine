@@ -3,43 +3,38 @@
     {
       "name": "Linux",
       "includePath": [
-        "${workspaceFolder}/engine/src",
+        "${workspaceFolder}/engine",
         "${workspaceFolder}/thirdparty/imgui",
         "${workspaceFolder}/thirdparty/imgui/examples",
-        "${workspaceFolder}/thirdparty/vcpkg/installed/x64-linux/include"
-      ],
-      "defines": [],
-      "compilerPath": "/usr/bin/g++",
-      "cStandard": "gnu17",
-      "cppStandard": "gnu++20",
-      "intelliSenseMode": "gcc-x64",
-      "configurationProvider": "ms-vscode.cmake-tools",
-      "compilerArgs": [],
-      "browse": {
-        "path": ["${workspaceFolder}/**"],
-        "limitSymbolsToIncludedHeaders": true
-      }
-    },
-    {
-      "name": "Windows MSVC",
-      "includePath": [
-        "${workspaceFolder}/engine/src",
-        "${workspaceFolder}/thirdparty/imgui",
-        "${workspaceFolder}/thirdparty/imgui/examples",
-        "${workspaceFolder}/thirdparty/vcpkg/installed/x64-windows/include"
+        "${workspaceFolder}/thirdparty/imgui/backends"
       ],
       "defines": ["UNICODE", "_UNICODE"],
       "windowsSdkVersion": "10.0.19041.0",
-      "compilerPath": "C:/Software/Microsoft Visual Studio/2019/Community/VC/Tools/MSVC/14.27.29110/bin/Hostx64/x64/cl.exe",
+      "compilerPath": "/usr/bin/g++",
       "cStandard": "c17",
       "cppStandard": "c++20",
-      "intelliSenseMode": "msvc-x64",
-      "compilerArgs": ["_DEBUG"],
-      "browse": {
-        "path": ["${workspaceFolder}/**"],
-        "limitSymbolsToIncludedHeaders": true
-      },
-      "configurationProvider": "ms-vscode.cmake-tools"
+      "intelliSenseMode": "linux-gcc-x64",
+      "configurationProvider": "ms-vscode.make-tools"
+    },
+    {
+      "name": "Windows MSCV",
+      "includePath": [
+        "${workspaceFolder}/engine",
+        "${workspaceFolder}/thirdparty/imgui",
+        "${workspaceFolder}/thirdparty/imgui/examples",
+        "${workspaceFolder}/thirdparty/imgui/backends",
+        "${workspaceFolder}/thirdparty/imguizmo/",
+        "${workspaceFolder}/thirdparty/sdl2/include",
+        "${workspaceFolder}/thirdparty/glew/include",
+        "${workspaceFolder}/thirdparty/magic_enum"
+      ],
+      "defines": ["UNICODE", "_UNICODE"],
+      "windowsSdkVersion": "10.0.19041.0",
+      "compilerPath": "C:/Software/msys64/mingw64/bin/g++.exe",
+      "cStandard": "c17",
+      "cppStandard": "c++20",
+      "intelliSenseMode": "windows-gcc-x64",
+      "configurationProvider": "ms-vscode.make-tools"
     }
   ],
   "version": 4
