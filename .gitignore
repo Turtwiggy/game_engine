@@ -1,7 +1,3 @@
-
-#ignore make as we should use premake to generate the make file
-*.make 
-
 # Build results
 x64/
 x86/
