@@ -1,10 +1,9 @@
 # Build results
-x64/
-x86/
-build
-web
-*.o
-*.d
-*.ini
-*.log
 *.exe
+*.o
+*.log
+*.dll
+
+build/
+build-objs/
+build-web/

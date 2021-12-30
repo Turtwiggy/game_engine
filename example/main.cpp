@@ -11,7 +11,7 @@
 
 // #include <backends/imgui_impl_opengl3.h>
 // #include <backends/imgui_impl_sdl.h>
-// #include <imgui.h>
+#include <imgui.h>
 // #include <imgui_internal.h>
 // #if defined(IMGUI_IMPL_OPENGL_LOADER_GLEW)
 // #include <GL/glew.h>
@@ -28,7 +28,7 @@
 
 // For clarity, our main loop code is declared at the end.
 static void
-main_loop();
+main_loop(void*);
 
 int
 main(int argc, char* argv[])
@@ -113,23 +113,25 @@ main(int argc, char* argv[])
   // #endif
 
 #if defined(__EMSCRIPTEN__)
-  // This function call won't return, and will engage in an infinite loop, processing events from the browser, and
-  // dispatching them.
+  std::cout << "Hello, emscripten!" << std::endl;
+  // This function call won't return, and will engage in an infinite loop,
+  // processing events from the browser, and dispatching them.
   emscripten_set_main_loop_arg(main_loop, NULL, 0, true);
 #else
+  std::cout << "Hello, not-emscripten!" << std::endl;
   // while (1)
   //   main_loop();
-  std::cout << "Hello, makefile!" << std::endl;
-  std::cout << "Another steve." << std::endl;
 #endif
 
   exit(0);
 }
 
 static void
-main_loop()
+main_loop(void* arg)
 {
-  // ImGuiIO& io = ImGui::GetIO();
+  ImGuiIO& io = ImGui::GetIO();
+  // We can pass this argument as the second parameter of emscripten_set_main_loop_arg(), but we don't use that.
+  IM_UNUSED(arg);
 
   // // Our state (make them static = more or less global) as a convenience to keep the example terse.
   // static bool show_demo_window = true;
