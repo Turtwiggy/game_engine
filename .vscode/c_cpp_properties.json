@@ -1,21 +1,6 @@
 {
   "configurations": [
     {
-      "name": "Linux",
-      "includePath": [
-        "${workspaceFolder}/engine",
-        "${workspaceFolder}/thirdparty/imgui",
-        "${workspaceFolder}/thirdparty/imgui/examples",
-        "${workspaceFolder}/thirdparty/imgui/backends"
-      ],
-      "defines": ["UNICODE", "_UNICODE"],
-      "windowsSdkVersion": "10.0.19041.0",
-      "compilerPath": "/usr/bin/g++",
-      "cStandard": "c17",
-      "cppStandard": "c++20",
-      "intelliSenseMode": "linux-gcc-x64"
-    },
-    {
       "name": "Windows MSCV",
       "includePath": [
         "${workspaceFolder}/engine",
