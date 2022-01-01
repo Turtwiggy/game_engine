@@ -12,31 +12,10 @@
 ### Install
 
 - c++ compiler (MSVC, gcc, clang)
-- make
+- cmake e.g. choco install cmake
+- ninja e.g. choco install ninja
 
 ### Build
 
-```
-git clone
-git submodule update --init --recursive
-```
-
-```
-(Windows) Building with g++ via mingw64
-
-(run as much as needed to rebuild)
-make -j 14
-```
-
-```
-(Emscripten)
-
-(run once)
-thirdparty/emsdk/emsdk install latest
-
-(run once in current terminal)
-thirdparty/emsdk/emsdk activate latest
-
-(run as much as needed to rebuild)
-make -j 14 EMSCRIPTEN=1
-```
+Include build_engine.cmake in to the cmake that makes the executable.
+e.g. see: CMakeLists.txt at https://github.com/Turtwiggy/opengl_game
