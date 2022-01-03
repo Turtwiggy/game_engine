@@ -15,6 +15,11 @@
 - cmake e.g. choco install cmake
 - ninja e.g. choco install ninja
 
+### Install VCPKG deps
+
+.\thirdparty\vcpkg\bootstrap-vcpkg.bat
+.\thirdparty\vcpkg\vcpkg.exe install @vcpkg_x64-windows.txt
+
 ### Build
 
 Include build_engine.cmake in to the cmake that makes the executable.
