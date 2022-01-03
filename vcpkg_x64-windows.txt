@@ -1,4 +1,5 @@
 glew
+glm
 sdl2
 sdl2-mixer[core, nativemidi]
 stb

@@ -29,9 +29,17 @@ set (ENGINE_INCLUDES
     ${CMAKE_CURRENT_LIST_DIR}/thirdparty/imgui
     ${CMAKE_CURRENT_LIST_DIR}/thirdparty/imgui/backends
     ${CMAKE_CURRENT_LIST_DIR}/thirdparty/imguizmo
-    ${CMAKE_CURRENT_LIST_DIR}/thirdparty/glm
     ${STB_INCLUDE_DIRS}
-
-    # hmm
-    ${CMAKE_CURRENT_LIST_DIR}/thirdparty/vcpkg/installed/x64-windows/include
 )
+
+if(${CMAKE_SYSTEM_NAME} STREQUAL "Windows")
+    set (ENGINE_INCLUDES 
+        ${ENGINE_INCLUDES} 
+        ${CMAKE_CURRENT_LIST_DIR}/thirdparty/vcpkg/installed/x64-windows/include
+    )
+elseif(${CMAKE_SYSTEM_NAME} STREQUAL "Linux")
+    set (ENGINE_INCLUDES 
+        ${ENGINE_INCLUDES} 
+        ${CMAKE_CURRENT_LIST_DIR}/thirdparty/vcpkg/installed/x64-linux/include
+    )
+endif()
