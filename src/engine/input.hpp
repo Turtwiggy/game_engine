@@ -62,12 +62,14 @@ private:
   bool mouse_lmb_down = false;
   bool mouse_mmb_down = false;
 
-public:
   // controller state
   uint64_t frame = 0;
-  std::vector<SDL_GameController*> controllers; // connected controllers
   // joystick-id, to frame-button associaton
   std::map<SDL_JoystickID, std::vector<std::pair<uint64_t, Uint8>>> controller_buttons_pressed;
+
+public:
+  // temp
+  std::vector<SDL_GameController*> controllers; // connected controllers
 };
 
 } // namespace engine

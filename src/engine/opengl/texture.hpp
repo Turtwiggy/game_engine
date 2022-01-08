@@ -8,16 +8,9 @@
 
 // c++ standard library headers
 #include <string>
+#include <vector>
 
 namespace engine {
-
-enum class TextureType
-{
-  DIFFUSE,
-  SPECULAR,
-  NORMAL,
-  HEIGHT
-};
 
 struct StbLoadedTexture
 {
@@ -29,9 +22,11 @@ struct StbLoadedTexture
   unsigned char* data;
 };
 
-// Note: this IS thread safe
 StbLoadedTexture
 load_texture(const int textureUnit, const std::string& path);
+
+[[nodiscard]] std::vector<unsigned int>
+load_textures_threaded(std::vector<std::pair<int, std::string>>& textures_to_load);
 
 [[nodiscard]] unsigned int
 bind_stb_loaded_texture(StbLoadedTexture& texture);

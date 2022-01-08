@@ -3,15 +3,12 @@
 #include "engine/application.hpp"
 
 // other lib headers
-#include <GL/glew.h>
 #include <SDL2/SDL.h>
 #include <SDL2/SDL_events.h>
-#include <backends/imgui_impl_sdl.h>
 #include <imgui.h>
 
 // c++ standard lib headers
 #include <iostream>
-#include <numeric>
 
 namespace engine {
 

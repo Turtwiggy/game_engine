@@ -8,6 +8,13 @@
 // other library headers
 #include <chrono>
 #include <iostream>
+#include <string>
+
+// c/c++ lib headers
+#ifdef WIN32
+#include <Windows.h>
+#include <commdlg.h>
+#endif
 
 namespace engine {
 
@@ -19,36 +26,66 @@ log_time_since(const std::string& label, std::chrono::time_point<std::chrono::hi
   std::cout << label << y << "ms" << std::endl;
 }
 
-std::vector<unsigned int>
-load_textures_threaded(std::vector<std::pair<int, std::string>>& textures_to_load)
+#ifdef WIN32
+
+void
+hide_windows_console()
 {
-  const auto start = std::chrono::high_resolution_clock::now();
-  log_time_since("(Threaded) loading textures... ", start);
+  ::ShowWindow(::GetConsoleWindow(), SW_HIDE); // hide console
+};
 
-  std::vector<unsigned int> texture_ids;
+std::string
+open_file(GameWindow& game_window, const char* filter)
+{
+  OPENFILENAMEA ofn;
+  CHAR szFile[260] = { 0 };
+  CHAR currentDir[256] = { 0 };
+  ZeroMemory(&ofn, sizeof(OPENFILENAME));
+  ofn.lStructSize = sizeof(OPENFILENAME);
 
-  {
-    std::vector<std::thread> threads;
-    std::vector<StbLoadedTexture> loaded_textures(textures_to_load.size());
+  void* window = nullptr;
+  game_window.get_native_handles(window);
+  ofn.hwndOwner = (HWND)window;
 
-    for (int i = 0; i < textures_to_load.size(); ++i) {
-      const std::pair<int, std::string>& tex_to_load = textures_to_load[i];
-      threads.emplace_back([&tex_to_load, i, &loaded_textures]() {
-        loaded_textures[i] = load_texture(tex_to_load.first, tex_to_load.second);
-      });
-    }
-    for (auto& thread : threads) {
-      thread.join();
-    }
-
-    for (StbLoadedTexture& l : loaded_textures) {
-      unsigned int id = bind_stb_loaded_texture(l);
-      texture_ids.push_back(id);
-    }
+  ofn.lpstrFile = szFile;
+  ofn.nMaxFile = sizeof(szFile);
+  if (GetCurrentDirectoryA(256, currentDir))
+    ofn.lpstrInitialDir = currentDir;
+  ofn.lpstrFilter = filter;
+  ofn.nFilterIndex = 1;
+  ofn.Flags = OFN_PATHMUSTEXIST | OFN_FILEMUSTEXIST | OFN_NOCHANGEDIR;
+  if (GetOpenFileNameA(&ofn) == TRUE) {
+    return ofn.lpstrFile;
   }
+  return std::string();
+};
 
-  log_time_since("(End Threaded) textures loaded took:", start);
-  return texture_ids;
-}
+std::string
+save_file(GameWindow& game_window, const char* filter)
+{
+  OPENFILENAMEA ofn;
+  CHAR szFile[260] = { 0 };
+  CHAR currentDir[256] = { 0 };
+  ZeroMemory(&ofn, sizeof(OPENFILENAME));
+  ofn.lStructSize = sizeof(OPENFILENAME);
+
+  void* window = nullptr;
+  game_window.get_native_handles(window);
+  ofn.hwndOwner = (HWND)window;
+
+  ofn.lpstrFile = szFile;
+  ofn.nMaxFile = sizeof(szFile);
+  if (GetCurrentDirectoryA(256, currentDir))
+    ofn.lpstrInitialDir = currentDir;
+  ofn.lpstrFilter = filter;
+  ofn.nFilterIndex = 1;
+  ofn.Flags = OFN_PATHMUSTEXIST | OFN_OVERWRITEPROMPT | OFN_NOCHANGEDIR;
+  if (GetSaveFileNameA(&ofn) == TRUE) {
+    return ofn.lpstrFile;
+  }
+  return std::string();
+};
+
+#endif
 
 }

@@ -1,4 +1,3 @@
-
 // header
 #include "engine/opengl/texture.hpp"
 
@@ -6,6 +5,7 @@
 #include "engine/opengl/framebuffer.hpp"
 #include "engine/opengl/render_command.hpp"
 #include "engine/opengl/util.hpp"
+#include <engine/util.hpp>
 
 // other lib headers
 #include <GL/glew.h>
@@ -29,6 +29,38 @@ load_texture(const int textureUnit, const std::string& path)
   result.texture_unit = textureUnit;
   result.path = path;
   return result;
+}
+
+std::vector<unsigned int>
+load_textures_threaded(std::vector<std::pair<int, std::string>>& textures_to_load)
+{
+  const auto start = std::chrono::high_resolution_clock::now();
+  log_time_since("(Threaded) loading textures... ", start);
+
+  std::vector<unsigned int> texture_ids;
+
+  {
+    std::vector<std::thread> threads;
+    std::vector<StbLoadedTexture> loaded_textures(textures_to_load.size());
+
+    for (int i = 0; i < textures_to_load.size(); ++i) {
+      const std::pair<int, std::string>& tex_to_load = textures_to_load[i];
+      threads.emplace_back([&tex_to_load, i, &loaded_textures]() {
+        loaded_textures[i] = load_texture(tex_to_load.first, tex_to_load.second);
+      });
+    }
+    for (auto& thread : threads) {
+      thread.join();
+    }
+
+    for (StbLoadedTexture& l : loaded_textures) {
+      unsigned int id = bind_stb_loaded_texture(l);
+      texture_ids.push_back(id);
+    }
+  }
+
+  log_time_since("(End Threaded) textures loaded took:", start);
+  return texture_ids;
 }
 
 unsigned int

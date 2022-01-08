@@ -5,7 +5,7 @@
 
 // engine headers
 #include "engine/imgui_setup.hpp"
-#include "engine/input_manager.hpp"
+#include "engine/input.hpp"
 
 // c++ standard library headers
 #include <memory>
