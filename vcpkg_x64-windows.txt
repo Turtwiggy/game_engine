@@ -4,5 +4,6 @@ sdl2
 sdl2-mixer[core, nativemidi]
 stb
 yaml-cpp
+gtest
 --triplet
 x64-windows
