@@ -3,7 +3,7 @@ glm
 sdl2
 sdl2-mixer[core, nativemidi]
 stb
-yaml-cpp
+nlohmann-json
 gtest
 --triplet
 x64-windows
