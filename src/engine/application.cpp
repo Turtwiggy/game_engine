@@ -25,6 +25,7 @@ Application::Application(const std::string& name, int width, int height, bool vs
 
   imgui_manager.initialize(window.get());
 
+  app_start = std::chrono::high_resolution_clock::now();
   running = true;
 }
 

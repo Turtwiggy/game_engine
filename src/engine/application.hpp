@@ -8,6 +8,7 @@
 #include "engine/input.hpp"
 
 // c++ standard library headers
+#include <chrono>
 #include <memory>
 #include <string>
 
@@ -30,6 +31,7 @@ public:
   void frame_begin();
   void frame_end(Uint64& frame_start_time);
 
+  std::chrono::steady_clock::time_point app_start;
   float seconds_since_launch = 0.0f;
   float fps_if_limited = 60.0f;
   bool limit_fps = false;

@@ -3,22 +3,25 @@
 #include "engine/game_window.hpp"
 
 // other library headers
+
+#if defined(__EMSCRIPTEN__)
+#include <SDL.h>
+#include <SDL_opengles2.h>
+#include <emscripten.h>
+#else
 #include <GL/glew.h>
 #include <SDL2/SDL_syswm.h>
+#endif
 
 // c++ standard library headers
+#include <iostream>
 #include <string>
 #if defined(WIN32) || defined(_WIN32) || defined(__WIN32) && !defined(__CYGWIN__)
 #include "psapi.h"
 #include "windows.h"
 #endif
-#include <iostream>
 
-// #if defined(_WIN32)
 // #elif defined(__linux)
-#if defined(__EMSCRIPTEN__)
-#include <emscripten.h>
-#endif
 
 namespace engine {
 
