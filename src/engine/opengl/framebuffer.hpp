@@ -6,7 +6,7 @@ class Framebuffer
 {
 public:
   static unsigned int create_fbo();
-  static void bind_fbo(unsigned int fbo);
+  static void bind_fbo(const unsigned int fbo);
   static void default_fbo();
 
   static void fbo_enable_writing(unsigned int fbo);

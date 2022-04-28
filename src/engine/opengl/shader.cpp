@@ -12,8 +12,6 @@
 #include <fstream>
 #include <sstream>
 
-#define SHADER_ASSET_PATH "assets/"
-
 namespace engine {
 
 void
@@ -41,7 +39,7 @@ check_compile_errors(unsigned int shader, std::string type)
 void
 reload_shader_program(unsigned int* id, const std::string& vert_path, const std::string& frag_path)
 {
-  printf("Reloading shader: %s %s \n", vert_path.c_str(), frag_path.c_str());
+  printf("Reloading shader: %s %s\n", vert_path.c_str(), frag_path.c_str());
 
   // Create a new shader program from the given file names. Halt on failure.
   unsigned int new_id = create_opengl_shader(vert_path, frag_path);
@@ -61,8 +59,8 @@ create_opengl_shader(const std::string& vert_path, const std::string& frag_path)
   // GL_FRAGMENT_SHADER FRAGMENT
   // GL_GEOMETRY_SHADER VERTEX
 
-  unsigned int vert_shader = load_shader_from_disk(SHADER_ASSET_PATH + vert_path, GL_VERTEX_SHADER, "VERTEX");
-  unsigned int frag_shader = load_shader_from_disk(SHADER_ASSET_PATH + frag_path, GL_FRAGMENT_SHADER, "FRAGMENT");
+  unsigned int vert_shader = load_shader_from_disk(vert_path, GL_VERTEX_SHADER, "VERTEX");
+  unsigned int frag_shader = load_shader_from_disk(frag_path, GL_FRAGMENT_SHADER, "FRAGMENT");
 
   unsigned int ID = glCreateProgram();
   glAttachShader(ID, vert_shader);
@@ -122,6 +120,8 @@ load_shader_from_disk(const std::string& path, unsigned int gl_shader_type, std:
 //
 
 Shader::Shader(const std::string& vert_path, const std::string& frag_path)
+  : vert_path(vert_path)
+  , frag_path(frag_path)
 {
   ID = create_opengl_shader(vert_path, frag_path);
 }
@@ -139,6 +139,12 @@ Shader::unbind()
 }
 
 void
+Shader::reload()
+{
+  reload_shader_program(&ID, vert_path, frag_path);
+}
+
+void
 Shader::set_bool(const std::string& name, bool value) const
 {
   glUniform1i(glGetUniformLocation(ID, name.c_str()), (int)value);
@@ -149,7 +155,7 @@ Shader::set_int(const std::string& name, int value) const
   glUniform1i(glGetUniformLocation(ID, name.c_str()), value);
 }
 void
-Shader::set_int_array(const std::string& name, int values[], int size) const
+Shader::set_int_array(const std::string& name, int* values, int size) const
 {
   glUniform1iv(glGetUniformLocation(ID, name.c_str()), size, values);
 }

@@ -23,7 +23,7 @@ struct StbLoadedTexture
 };
 
 StbLoadedTexture
-load_texture(const int textureUnit, const std::string& path);
+load_texture(const int tex_unit, const std::string& path);
 
 [[nodiscard]] std::vector<unsigned int>
 load_textures_threaded(std::vector<std::pair<int, std::string>>& textures_to_load);
@@ -38,9 +38,12 @@ void
 unbind_tex();
 
 unsigned int
-create_texture(glm::ivec2 size, int tex_slot, unsigned int framebuffer_id);
+create_texture(const glm::ivec2 size, const int tex_unit);
 
 void
 update_bound_texture_size(glm::ivec2 size);
+
+void
+attach_texture_to_fbo(const int tex_id, const int fbo_id, glm::vec2 size);
 
 } // namespace engine

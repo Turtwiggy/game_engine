@@ -16,7 +16,7 @@ Framebuffer::create_fbo()
 }
 
 void
-Framebuffer::bind_fbo(unsigned int fbo)
+Framebuffer::bind_fbo(const unsigned int fbo)
 {
   glBindFramebuffer(GL_FRAMEBUFFER, fbo);
 }

@@ -3,6 +3,8 @@
 // other library headers
 #include <GL/glew.h>
 
+#include <stdio.h>
+
 namespace engine {
 
 // http://bits.stephan-brumme.com/roundUpToNextPowerOfTwo.html
