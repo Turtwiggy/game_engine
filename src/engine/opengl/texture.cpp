@@ -14,18 +14,27 @@
 // c++ standard library headers
 #include <algorithm>
 #include <iostream>
+#include <utility>
+
+void
+engine::bind_tex(const unsigned int id)
+{
+  glBindTexture(GL_TEXTURE_2D, id);
+}
 
 namespace engine {
 
 StbLoadedTexture
 load_texture(const int tex_unit, const std::string& path)
 {
-  int width, height, nrComponents;
-  unsigned char* data = stbi_load(path.c_str(), &width, &height, &nrComponents, 0);
+  int width = 0;
+  int height = 0;
+  int nr_components = 0;
+  unsigned char* data = stbi_load(path.c_str(), &width, &height, &nr_components, 0);
   StbLoadedTexture result;
   result.width = width;
   result.height = height;
-  result.nr_components = nrComponents;
+  result.nr_components = nr_components;
   result.data = data;
   result.texture_unit = tex_unit;
   result.path = path;
@@ -54,7 +63,7 @@ load_textures_threaded(std::vector<std::pair<int, std::string>>& textures_to_loa
       thread.join();
     }
 
-    // sort by texture unit as i am bad at opengl and dont understand
+    // sort by texture unit
     std::sort(loaded_textures.begin(), loaded_textures.end(), [](StbLoadedTexture a, StbLoadedTexture b) {
       return a.texture_unit < b.texture_unit;
     });
@@ -72,9 +81,7 @@ load_textures_threaded(std::vector<std::pair<int, std::string>>& textures_to_loa
 unsigned int
 bind_stb_loaded_texture(StbLoadedTexture& texture)
 {
-  unsigned int tex_id;
   int tex_unit = texture.texture_unit;
-  glGenTextures(1, &tex_id);
   int width = texture.width;
   int height = texture.height;
   int nr_components = texture.nr_components;
@@ -88,41 +95,29 @@ bind_stb_loaded_texture(StbLoadedTexture& texture)
     exit(1); // note, probs shouldn't do this - fine for dev for myself?
   }
 
-  bind_tex(tex_id, tex_unit);
-  {
-    GLenum format;
-    if (nr_components == 1) {
-      format = GL_RED;
-    } else if (nr_components == 3) {
-      format = GL_RGB;
-    } else if (nr_components == 4) {
-      format = GL_RGBA;
-    }
+  unsigned int texture_id;
+  glGenTextures(1, &texture_id);
 
-    glTexImage2D(GL_TEXTURE_2D, 0, format, width, height, 0, format, GL_UNSIGNED_BYTE, data);
-    glGenerateMipmap(GL_TEXTURE_2D);
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
-    bool smooth = false;
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_LINEAR);
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, smooth ? GL_LINEAR : GL_NEAREST);
-    // glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, smooth ? GL_LINEAR_MIPMAP_LINEAR :
-    // GL_NEAREST_MIPMAP_LINEAR); glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
+  GLenum format = GL_RGB;
+  if (nr_components == 1)
+    format = GL_RED;
+  else if (nr_components == 3)
+    format = GL_RGB;
+  else if (nr_components == 4)
+    format = GL_RGBA;
 
-    stbi_image_free(data);
-  }
+  glActiveTexture(GL_TEXTURE0 + tex_unit);
+  glBindTexture(GL_TEXTURE_2D, texture_id);
+  glTexImage2D(GL_TEXTURE_2D, 0, format, width, height, 0, format, GL_UNSIGNED_BYTE, data);
+  glGenerateMipmap(GL_TEXTURE_2D);
+  glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
+  glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
+  glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_LINEAR);
+  glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
+
+  stbi_image_free(data);
   unbind_tex();
-  return tex_id;
-}
-
-void
-bind_tex(const int id, const int unit)
-{
-  if (unit >= 0) {
-    std::cout << "(texture) id: " << id << " bound to unit: " << unit << std::endl;
-    glActiveTexture(GL_TEXTURE0 + unit);
-  }
-  glBindTexture(GL_TEXTURE_2D, id);
+  return texture_id;
 }
 
 void
@@ -131,21 +126,6 @@ unbind_tex()
   glBindTexture(GL_TEXTURE_2D, 0);
 }
 
-unsigned int
-create_texture(const glm::ivec2 size, const int tex_unit)
-{
-  unsigned int tex_id;
-  glGenTextures(1, &tex_id);
-  bind_tex(tex_id, tex_unit);
-  {
-    glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, size.x, size.y, 0, GL_RGB, GL_UNSIGNED_BYTE, NULL);
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
-  }
-  unbind_tex();
-  return tex_id;
-};
-
 void
 update_bound_texture_size(glm::ivec2 size)
 {
@@ -153,16 +133,26 @@ update_bound_texture_size(glm::ivec2 size)
     std::cerr << "(update_bound_texture_size) ERROR: Invalid resize for texture" << std::endl;
     return;
   }
-  glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, size.x, size.y, 0, GL_RGB, GL_UNSIGNED_BYTE, NULL);
+  glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, size.x, size.y, 0, GL_RGB, GL_FLOAT, NULL);
 };
 
 void
-attach_texture_to_fbo(const int tex_id, const int fbo_id, glm::vec2 size)
+new_texture_to_fbo(unsigned int& out_fbo_id, unsigned int& out_tex_id, const int tex_unit, glm::ivec2 size)
 {
+  glActiveTexture(GL_TEXTURE0 + tex_unit);
+
+  unsigned int fbo_id = Framebuffer::create_fbo();
   Framebuffer::bind_fbo(fbo_id);
   RenderCommand::set_viewport(0, 0, size.x, size.y);
-  bind_tex(tex_id);
 
+  unsigned int tex_id;
+  glGenTextures(1, &tex_id);
+  glBindTexture(GL_TEXTURE_2D, tex_id);
+  glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, size.x, size.y, 0, GL_RGB, GL_FLOAT, NULL);
+  glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+  glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+  glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
+  glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
   glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, tex_id, 0);
 
   // tell opengl which colour attachments we'll use of this framebuffer
@@ -175,6 +165,8 @@ attach_texture_to_fbo(const int tex_id, const int fbo_id, glm::vec2 size)
   }
 
   Framebuffer::default_fbo();
+  out_fbo_id = fbo_id;
+  out_tex_id = tex_id;
 };
 
 } // namespace engine

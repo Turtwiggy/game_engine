@@ -32,18 +32,18 @@ load_textures_threaded(std::vector<std::pair<int, std::string>>& textures_to_loa
 bind_stb_loaded_texture(StbLoadedTexture& texture);
 
 void
-bind_tex(const int id, const int unit = -1);
+bind_tex(const unsigned int id);
 
 void
 unbind_tex();
 
 unsigned int
-create_texture(const glm::ivec2 size, const int tex_unit);
+create_texture(const glm::ivec2 size, const unsigned int tex_unit, const int nr_components, unsigned char* data);
 
 void
 update_bound_texture_size(glm::ivec2 size);
 
 void
-attach_texture_to_fbo(const int tex_id, const int fbo_id, glm::vec2 size);
+new_texture_to_fbo(unsigned int& out_fbo_id, unsigned int& out_tex_id, const int tex_unit, glm::ivec2 size);
 
 } // namespace engine
