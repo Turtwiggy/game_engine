@@ -3,7 +3,7 @@
 #define IMGUI_IMPL_OPENGL_LOADER_GLEW
 
 // your project headers
-#include "engine/game_window.hpp"
+#include "engine/app/game_window.hpp"
 
 namespace engine {
 

@@ -2,10 +2,10 @@
 #include "engine/opengl/texture.hpp"
 
 // fightingengine headers
+#include "engine/app/io.hpp"
 #include "engine/opengl/framebuffer.hpp"
 #include "engine/opengl/render_command.hpp"
 #include "engine/opengl/util.hpp"
-#include <engine/util.hpp>
 
 // other lib headers
 #include <GL/glew.h>
@@ -14,6 +14,7 @@
 // c++ standard library headers
 #include <algorithm>
 #include <iostream>
+#include <thread>
 #include <utility>
 
 void

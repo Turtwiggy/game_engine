@@ -1,6 +1,6 @@
 
 // header
-#include "engine/game_window.hpp"
+#include "engine/app/game_window.hpp"
 
 // other library headers
 

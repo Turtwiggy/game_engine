@@ -1,6 +1,6 @@
 
 // header
-#include "engine/maths.hpp"
+#include "engine/maths/maths.hpp"
 
 namespace engine {
 

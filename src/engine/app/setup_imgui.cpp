@@ -1,6 +1,6 @@
 
 // your project header
-#include "imgui_setup.hpp"
+#include "setup_imgui.hpp"
 
 // other library headers
 // clang-format off
@@ -96,7 +96,6 @@ ImGui_Manager::initialize(GameWindow* window)
 void
 ImGui_Manager::begin_frame(const GameWindow& window)
 {
-  // Start the Dear ImGui frame
   ImGui_ImplOpenGL3_NewFrame();
   ImGui_ImplSDL2_NewFrame(window.get_handle());
   ImGui::NewFrame();

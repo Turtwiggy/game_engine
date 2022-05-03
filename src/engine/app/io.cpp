@@ -1,9 +1,6 @@
 
 // header
-#include "util.hpp"
-
-// engine header
-#include "engine/opengl/texture.hpp"
+#include "io.hpp"
 
 // other library headers
 #include <chrono>

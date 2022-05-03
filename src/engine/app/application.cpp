@@ -1,6 +1,6 @@
 
 // header
-#include "engine/application.hpp"
+#include "engine/app/application.hpp"
 
 // other lib headers
 #include <SDL2/SDL.h>
@@ -15,13 +15,12 @@ namespace engine {
 Application::Application(const std::string& name, int width, int height, bool vsync)
 {
   // const std::string kBuildStr(kGitSHA1Hash, 8);
-  std::string kBuildStr = "";
-
+  std::string kBuildStr = name;
 #ifdef _DEBUG
   kBuildStr = kBuildStr + std::string(" [DEBUG]");
 #endif
 
-  window = std::make_unique<GameWindow>(name + kBuildStr, width, height, DisplayMode::WINDOWED, vsync);
+  window = std::make_unique<GameWindow>(kBuildStr, width, height, DisplayMode::WINDOWED, vsync);
 
   imgui_manager.initialize(window.get());
 
@@ -35,7 +34,7 @@ Application::~Application()
 }
 
 bool
-Application::is_running() const
+Application::is_running()
 {
   return running;
 }
@@ -50,23 +49,6 @@ float
 Application::get_delta_time()
 {
   return ImGui::GetIO().DeltaTime;
-}
-
-void
-Application::frame_end(Uint64& frame_start_time)
-{
-  imgui_manager.end_frame(get_window());
-
-  SDL_GL_SwapWindow(get_window().get_handle());
-
-  Uint64 frame_end_time = SDL_GetPerformanceCounter();
-  float elapsed_ms = (frame_end_time - frame_start_time) / static_cast<float>(SDL_GetPerformanceFrequency()) * 1000.0f;
-
-  if (limit_fps) {
-    auto delay = floor(1000.0f / fps_if_limited - elapsed_ms);
-    if (delay > 0.0f)
-      SDL_Delay(static_cast<Uint32>(delay));
-  }
 }
 
 void
@@ -154,6 +136,23 @@ Application::frame_begin()
 
   imgui_manager.begin_frame(get_window());
   seconds_since_launch += get_delta_time();
+}
+
+void
+Application::frame_end(Uint64& frame_start_time)
+{
+  imgui_manager.end_frame(get_window());
+
+  SDL_GL_SwapWindow(get_window().get_handle());
+
+  Uint64 frame_end_time = SDL_GetPerformanceCounter();
+  float elapsed_ms = (frame_end_time - frame_start_time) / static_cast<float>(SDL_GetPerformanceFrequency()) * 1000.0f;
+
+  if (limit_fps) {
+    auto delay = floor(1000.0f / fps_if_limited - elapsed_ms);
+    if (delay > 0.0f)
+      SDL_Delay(static_cast<Uint32>(delay));
+  }
 }
 
 // ---- events

@@ -1,9 +1,9 @@
 
 // header
-#include "engine/input.hpp"
+#include "engine/app/input.hpp"
 
 // your proj headers
-#include "engine/maths.hpp"
+#include "engine/maths/maths.hpp"
 
 // other lib headers
 #include <imgui.h>

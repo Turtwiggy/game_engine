@@ -1,11 +1,11 @@
 #pragma once
 
 // your project headers
-#include "engine/game_window.hpp"
+#include "engine/app/game_window.hpp"
 
 // engine headers
-#include "engine/imgui_setup.hpp"
-#include "engine/input.hpp"
+#include "engine/app/input.hpp"
+#include "engine/app/setup_imgui.hpp"
 
 // c++ standard library headers
 #include <chrono>
@@ -23,9 +23,8 @@ public:
               bool vsync = true);
   ~Application();
 
-  [[nodiscard]] bool is_running() const;
+  bool is_running();
   void shutdown();
-
   [[nodiscard]] float get_delta_time();
 
   void frame_begin();
