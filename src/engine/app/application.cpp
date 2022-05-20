@@ -51,6 +51,12 @@ Application::get_delta_time()
   return ImGui::GetIO().DeltaTime;
 }
 
+uint64_t
+Application::get_frame()
+{
+  return frame;
+}
+
 void
 Application::frame_begin()
 {
@@ -126,7 +132,8 @@ Application::frame_begin()
 
     // mouse specific
     if (e.type == SDL_MOUSEBUTTONDOWN) {
-      input_manager.process_mouse_event(e.button);
+      // input_manager uses ImGui for mouse events
+      // input_manager.process_mouse_event(e.button);
     }
     // mouse scrollwheel
     if (e.type == SDL_MOUSEWHEEL) {

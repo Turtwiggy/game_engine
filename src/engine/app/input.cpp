@@ -22,9 +22,6 @@ InputManager::InputManager()
 void
 InputManager::new_frame(const uint64_t& frame)
 {
-  mouse_lmb_down = false;
-  mouse_rmb_down = false;
-  mouse_mmb_down = false;
   mousewheel_y = 0.0f;
 
   keys_pressed.clear();
@@ -77,57 +74,61 @@ InputManager::get_key_held(SDL_Scancode button) const
 // mouse
 //
 
-void
-InputManager::process_mouse_event(const SDL_MouseButtonEvent& mouse_e)
-{
-  if (mouse_e.button == SDL_BUTTON_LEFT) {
-    glm::ivec2 mouse_pos = get_mouse_pos();
-    mouse_lmb_down = true;
-  }
-  if (mouse_e.button == SDL_BUTTON_RIGHT) {
-    glm::ivec2 mouse_pos = get_mouse_pos();
-    mouse_rmb_down = true;
-  }
-  if (mouse_e.button == SDL_BUTTON_MIDDLE) {
-    glm::ivec2 mouse_pos = get_mouse_pos();
-    mouse_mmb_down = true;
-  }
-}
-
 bool
 InputManager::get_mouse_lmb_held() const
 {
-  return SDL_GetMouseState(NULL, NULL) & SDL_BUTTON(SDL_BUTTON_LEFT);
+  // return SDL_GetMouseState(NULL, NULL) & SDL_BUTTON(SDL_BUTTON_LEFT);
+  return ImGui::IsMouseDown(ImGuiMouseButton_Left);
 }
 
 bool
 InputManager::get_mouse_rmb_held() const
 {
-  return SDL_GetMouseState(NULL, NULL) & SDL_BUTTON(SDL_BUTTON_RIGHT);
+  // return SDL_GetMouseState(NULL, NULL) & SDL_BUTTON(SDL_BUTTON_RIGHT);
+  return ImGui::IsMouseDown(ImGuiMouseButton_Right);
 }
 
 bool
 InputManager::get_mouse_mmb_held() const
 {
-  return SDL_GetMouseState(NULL, NULL) & SDL_BUTTON(SDL_BUTTON_MIDDLE);
+  // return SDL_GetMouseState(NULL, NULL) & SDL_BUTTON(SDL_BUTTON_MIDDLE);
+  return ImGui::IsMouseDown(ImGuiMouseButton_Middle);
 }
 
 bool
-InputManager::get_mouse_lmb_down() const
+InputManager::get_mouse_lmb_press() const
 {
-  return mouse_lmb_down;
+  return ImGui::IsMouseClicked(ImGuiMouseButton_Left);
 }
 
 bool
-InputManager::get_mouse_rmb_down() const
+InputManager::get_mouse_rmb_press() const
 {
-  return mouse_rmb_down;
+  return ImGui::IsMouseClicked(ImGuiMouseButton_Right);
 }
 
 bool
-InputManager::get_mouse_mmb_down() const
+InputManager::get_mouse_mmb_press() const
 {
-  return mouse_mmb_down;
+  return ImGui::IsMouseClicked(ImGuiMouseButton_Middle);
+}
+
+bool
+InputManager::get_mouse_lmb_release()
+{
+  return ImGui::IsMouseReleased(ImGuiMouseButton_Left);
+}
+
+bool
+InputManager::get_mouse_rmb_release()
+{
+  return ImGui::IsMouseReleased(ImGuiMouseButton_Right);
+}
+
+bool
+InputManager::get_mouse_mmb_release()
+{
+  return ImGui::IsMouseReleased(ImGuiMouseButton_Middle);
 }
 
 // Returns mouse pos relative to tl of screen

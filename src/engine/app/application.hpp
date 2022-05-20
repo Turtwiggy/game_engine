@@ -29,6 +29,7 @@ public:
 
   void frame_begin();
   void frame_end(Uint64& frame_start_time);
+  uint64_t get_frame();
 
   std::chrono::steady_clock::time_point app_start;
   float seconds_since_launch = 0.0f;

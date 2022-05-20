@@ -22,7 +22,6 @@ public:
   void new_frame(const uint64_t& frame);
   void process_key_down(const SDL_Scancode button, const Uint8 is_repeat);
   void process_key_up(const SDL_Scancode button, const Uint8 is_repeat);
-  void process_mouse_event(const SDL_MouseButtonEvent& mouse_e);
   void process_controller_added();
   void process_controller_removed();
 
@@ -32,12 +31,17 @@ public:
   [[nodiscard]] bool get_key_held(SDL_Scancode button) const;
 
   // mouse
+  // note: _down will occur on the same frame as first _held
+  // note: _release will occur on the frame after last _held
   [[nodiscard]] bool get_mouse_lmb_held() const;
   [[nodiscard]] bool get_mouse_rmb_held() const;
   [[nodiscard]] bool get_mouse_mmb_held() const;
-  [[nodiscard]] bool get_mouse_lmb_down() const;
-  [[nodiscard]] bool get_mouse_rmb_down() const;
-  [[nodiscard]] bool get_mouse_mmb_down() const;
+  [[nodiscard]] bool get_mouse_lmb_press() const;
+  [[nodiscard]] bool get_mouse_rmb_press() const;
+  [[nodiscard]] bool get_mouse_mmb_press() const;
+  [[nodiscard]] bool get_mouse_lmb_release();
+  [[nodiscard]] bool get_mouse_rmb_release();
+  [[nodiscard]] bool get_mouse_mmb_release();
   [[nodiscard]] glm::ivec2 get_mouse_pos() const;
   void set_mousewheel_y(const float amount);
   [[nodiscard]] float get_mousewheel_y() const;
@@ -58,9 +62,6 @@ private:
 
   // mouse state
   float mousewheel_y;
-  bool mouse_rmb_down = false;
-  bool mouse_lmb_down = false;
-  bool mouse_mmb_down = false;
 
   // controller state
   uint64_t frame = 0;
