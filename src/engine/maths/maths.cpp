@@ -4,6 +4,12 @@
 
 namespace engine {
 
+glm::vec2
+angle_radians_to_direction(const float angle)
+{
+  return glm::vec2(glm::sin(angle), -glm::cos(angle));
+}
+
 float
 length_squared(const glm::vec3& i)
 {
