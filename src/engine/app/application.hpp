@@ -27,6 +27,7 @@ public:
   void shutdown();
   [[nodiscard]] float get_delta_time();
 
+  void poll_input();
   void frame_begin();
   void frame_end(Uint64& frame_start_time);
   uint64_t get_frame();

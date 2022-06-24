@@ -55,6 +55,8 @@ public:
   // [[nodiscard]] Sint16 get_axis_raw(SDL_GameController* controller, SDL_GameControllerAxis axis);
 
 private:
+  uint64_t frame = 0;
+
   // keyboard state
   const Uint8* state;
   std::vector<SDL_Scancode> keys_pressed;
@@ -63,8 +65,6 @@ private:
   // mouse state
   float mousewheel_y;
 
-  // controller state
-  uint64_t frame = 0;
   // joystick-id, to frame-button associaton
   std::map<SDL_JoystickID, std::vector<std::pair<uint64_t, Uint8>>> controller_buttons_pressed;
 

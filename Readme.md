@@ -1,26 +1,23 @@
 [![License](https://img.shields.io/badge/License-Apache%202.0-blue.svg)](https://opensource.org/licenses/Apache-2.0)
 
-### Features
+### Engine Components
 
-- threaded texture loading
-- controller support via SDL2
-- sweep and prune collision detection for aabb
-- batch renderer
-- shadow casting
+- SDL2/opengl
+- imgui/opengl
 - compile to web via emscripten
 
 ### Install
 
 - c++ compiler (MSVC, gcc, clang)
-- cmake e.g. choco install cmake
-- ninja e.g. choco install ninja
+- cmake e.g. `choco install cmake`
+- ninja e.g. `choco install ninja`
 
 ### Install VCPKG deps
 
-.\thirdparty\vcpkg\bootstrap-vcpkg.bat
-.\thirdparty\vcpkg\vcpkg.exe install @vcpkg_x64-windows.txt
+`.\thirdparty\vcpkg\bootstrap-vcpkg.bat`
+`.\thirdparty\vcpkg\vcpkg.exe install @vcpkg_x64-windows.txt`
 
 ### Build
 
 Include build_engine.cmake in to the cmake that makes the executable.
-e.g. see: CMakeLists.txt at https://github.com/Turtwiggy/opengl_game
+e.g. https://github.com/Turtwiggy/opengl_game/blob/main/game/CMakeLists.txt

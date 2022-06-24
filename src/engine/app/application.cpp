@@ -58,13 +58,8 @@ Application::get_frame()
 }
 
 void
-Application::frame_begin()
+Application::poll_input()
 {
-  frame += 1;
-  if (frame >= std::numeric_limits<uint64_t>::max())
-    frame = 0;
-  input_manager.new_frame(frame);
-
   SDL_Event e;
   while (SDL_PollEvent(&e)) {
 
@@ -140,8 +135,19 @@ Application::frame_begin()
       input_manager.set_mousewheel_y(static_cast<float>(e.wheel.y));
     }
   }
+}
+
+void
+Application::frame_begin()
+{
+  frame += 1;
+  if (frame == std::numeric_limits<uint64_t>::max())
+    frame = 0;
+
+  input_manager.new_frame(frame);
 
   imgui_manager.begin_frame(get_window());
+
   seconds_since_launch += get_delta_time();
 }
 
