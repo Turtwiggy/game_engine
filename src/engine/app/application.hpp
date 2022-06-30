@@ -35,10 +35,10 @@ public:
   float fps_if_limited = 60.0f;
   bool limit_fps = false;
 
-private:
-  std::unique_ptr<GameWindow> window;
   ImGui_Manager imgui_manager;
+  std::unique_ptr<GameWindow> window;
 
+private:
   uint64_t frame = 0;
   bool running = true;
   bool minimized = false;
