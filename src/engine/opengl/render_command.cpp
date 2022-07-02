@@ -1,6 +1,7 @@
 
 // header
 #include "engine/opengl/render_command.hpp"
+#include "engine/colour.hpp"
 
 // other library headers
 #include <GL/glew.h>
@@ -16,9 +17,15 @@ RenderCommand::set_viewport(int x, int y, int width, int height)
 }
 
 void
-RenderCommand::set_clear_colour(const glm::vec4& color)
+RenderCommand::set_clear_colour_srgb(const SRGBColour& colour)
 {
-  glClearColor(color.r, color.g, color.b, color.a);
+  glClearColor(colour.r, colour.g, colour.b, colour.a);
+}
+
+void
+RenderCommand::set_clear_colour_linear(const LinearColour& colour)
+{
+  glClearColor(colour.r, colour.g, colour.b, colour.a);
 }
 
 void
