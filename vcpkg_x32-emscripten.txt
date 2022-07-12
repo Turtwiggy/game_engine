@@ -1,0 +1,5 @@
+glm
+stb
+nlohmann-json
+--triplet
+wasm32-emscripten
