@@ -5,9 +5,6 @@
 // other lib headers
 #include <imgui.h>
 
-// c++ standard lib headers
-#include <iostream>
-
 namespace engine {
 
 Application::Application(const std::string& name, int width, int height, bool vsync)
@@ -22,7 +19,6 @@ Application::Application(const std::string& name, int width, int height, bool vs
 
   imgui_manager.initialize(window.get());
 
-  app_start = std::chrono::high_resolution_clock::now();
   running = true;
 }
 
@@ -49,22 +45,22 @@ Application::get_delta_time()
   return ImGui::GetIO().DeltaTime;
 }
 
-uint64_t
+double
+Application::get_seconds_since_launch()
+{
+  return ImGui::GetTime();
+}
+
+int
 Application::get_frame()
 {
-  return frame;
+  return ImGui::GetFrameCount();
 }
 
 void
 Application::frame_begin()
 {
-  frame += 1;
-  if (frame == std::numeric_limits<uint64_t>::max())
-    frame = 0;
-
   imgui_manager.begin_frame(*window);
-
-  seconds_since_launch += get_delta_time();
 }
 
 void

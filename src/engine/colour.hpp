@@ -1,8 +1,5 @@
 #pragma once
 
-#include <cmath>
-#include <cstdint>
-
 namespace engine {
 
 // https://en.wikipedia.org/wiki/SRGB

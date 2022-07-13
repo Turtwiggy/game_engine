@@ -42,13 +42,13 @@ load_texture_srgb(const int tex_unit, const std::string& path)
 
   // Check Stb texture loaded correctly
   if (!data) {
-    std::cout << "FAILED TO LOAD TEXTURE: " << path << std::endl;
+    std::cout << "(error) failed to load texture:: " << path << std::endl;
     std::cerr << stbi_failure_reason() << std::endl;
     stbi_image_free(data);
     exit(1); // if a texture fails to load, explode!
   }
 
-  SRGBTexture srgb; // stbi loads as srgb
+  SRGBTexture srgb; // stbi assumes srgb
   srgb.width = width;
   srgb.height = height;
   srgb.nr_components = nr_components;
@@ -92,7 +92,7 @@ load_texture_linear(const int tex_unit, const std::string& path)
       linear.data[offset + 1] = lincol.g;
       linear.data[offset + 2] = lincol.b;
 
-      if (srgb.nr_components > 3)
+      if (srgb.nr_components == 4)
         linear.data[offset + 3] = lincol.a;
     }
   }

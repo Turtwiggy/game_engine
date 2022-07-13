@@ -1,5 +1,7 @@
 #include "colour.hpp"
 
+#include <math.h>
+
 namespace engine {
 
 // This function really should be constexpr
