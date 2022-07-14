@@ -39,6 +39,8 @@ rand_det_s(T& rnd, float M, float MN)
 [[nodiscard]] glm::vec2
 angle_radians_to_direction(const float angle);
 
+[[nodiscard]] float dir_to_angle_radians(const glm::ivec2& direction);
+
 [[nodiscard]] float
 length_squared(const glm::vec3& i);
 

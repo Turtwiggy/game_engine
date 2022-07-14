@@ -11,6 +11,12 @@ angle_radians_to_direction(const float angle)
 }
 
 float
+dir_to_angle_radians(const glm::ivec2& dir)
+{
+  return atan2(dir.y, dir.x) + engine::PI;
+}
+
+float
 length_squared(const glm::vec3& i)
 {
   return i.x * i.x + i.y * i.y + i.z * i.z;
