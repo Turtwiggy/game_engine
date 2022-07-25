@@ -46,7 +46,7 @@ ImGui_Manager::initialize(GameWindow* window)
   // Fonts
   float font_scale = 16.0f; // 1080 scale
   //   font_scale = 18.0f; // 4k scale?
-  io.Fonts->AddFontFromFileTTF("assets/fonts/opensans/OpenSans-Regular.ttf", font_scale);
+  // io.Fonts->AddFontFromFileTTF("assets/fonts/opensans/OpenSans-Regular.ttf", font_scale);
 
   // Setup Dear ImGui style
   ImGui::StyleColorsDark();

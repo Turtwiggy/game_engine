@@ -3,21 +3,20 @@
     {
       "name": "Windows MSCV",
       "includePath": [
-        "${workspaceFolder}/engine",
+        "${workspaceFolder}/src",
+        "${workspaceFolder}/thirdparty/entt/single_include",
         "${workspaceFolder}/thirdparty/imgui",
         "${workspaceFolder}/thirdparty/imgui/examples",
         "${workspaceFolder}/thirdparty/imgui/backends",
-        "${workspaceFolder}/thirdparty/imguizmo/",
-        "${workspaceFolder}/thirdparty/glew/include",
-        "${workspaceFolder}/thirdparty/magic_enum",
-        "${workspaceFolder}/thirdparty/sdl2/x86_64-w64-mingw32/include/SDL2"
+        "${workspaceFolder}/thirdparty/magic_enum"
       ],
       "defines": ["UNICODE", "_UNICODE"],
       "windowsSdkVersion": "10.0.19041.0",
       "compilerPath": "C:/Software/msys64/mingw64/bin/g++.exe",
       "cStandard": "c17",
       "cppStandard": "c++20",
-      "intelliSenseMode": "windows-gcc-x64"
+      "intelliSenseMode": "windows-gcc-x64",
+      "configurationProvider": "ms-vscode.cmake-tools"
     }
   ],
   "version": 4

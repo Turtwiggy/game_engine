@@ -1,0 +1,60 @@
+spritesheet:
+  name: custom
+  px_total: 128
+  py_total: 128
+  px: 16
+  py: 16
+  nx: 8
+  ny: 8
+sprites:
+  - name: EMPTY
+    frames:
+      - [0, 0]
+  - name: SHIP_1
+    frames:
+      - [1, 0]
+  - name: SHIP_2
+    frames:
+      - [2, 0]
+  - name: SHIP_3
+    frames:
+      - [3, 0]
+  - name: SHIP_4
+    frames:
+      - [4, 0]
+  - name: SHIP_5
+    frames:
+      - [5, 0]
+  - name: SHIP_6
+    frames:
+      - [6, 0]
+  - name: SHIP_7
+    frames:
+      - [7, 0]
+  - name: CURSOR_CLICK
+    frames:
+      - [0, 2]
+      - [1, 2]
+      - [2, 2]
+      - [3, 2]
+      - [4, 2]
+      - [5, 2]
+      - [6, 2]
+  - name: DUDE_1
+    frames:
+      - [0, 5]
+  - name: FLAG_0
+    frames:
+      - [1, 5]
+  - name: DUDE_2
+    frames:
+      - [2, 5]
+  - name: PET_0
+    frames:
+      - [0, 7]
+  - name: PET_1
+    frames:
+      - [1, 7]
+  - name: PET_2
+    frames:
+      - [2, 7]

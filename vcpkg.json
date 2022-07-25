@@ -1,0 +1,21 @@
+{
+  "name": "engine",
+  "version-string": "0.0.1",
+  "dependencies": [
+    "glew",
+    "glm",
+    {
+      "name": "sdl2-mixer",
+      "default-features": false,
+      "features": [
+        "nativemidi"
+      ]
+    },
+    "sdl2",
+    "stb",
+    "nlohmann-json",
+    "gamenetworkingsockets",
+    "gtest",
+    "yaml-cpp"
+  ]
+}

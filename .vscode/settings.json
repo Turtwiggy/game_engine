@@ -1,10 +1,12 @@
 {
   "editor.formatOnSave": true,
   "search.exclude": {
-    "**/node_modules": true,
-    "**/bower_components": true,
     "**/*.code-search": true,
     "**/.git": true,
     "**/thirdparty": true
-  }
+  },
+  "files.exclude": {
+    // "**/*.obb": true
+  },
+  "cmake.preferredGenerators": ["Ninja"]
 }

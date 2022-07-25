@@ -1,0 +1,216 @@
+spritesheet:
+  name: kennynl
+  px_total: 768
+  py_total: 352
+  px: 16
+  py: 16
+  nx: 48
+  ny: 22
+sprites:
+  - name: EMPTY
+    frames:
+      - [0, 0]
+  - name: BUSH_0
+    frames:
+      - [1, 0]
+  - name: BUSH_1
+    frames:
+      - [2, 0]
+  - name: BUSH_2
+    frames:
+      - [3, 0]
+  - name: BUSH_3
+    frames:
+      - [4, 0]
+  - name: BUSH_4
+    frames:
+      - [5, 0]
+  - name: BUSH_5
+    frames:
+      - [6, 0]
+  - name: BUSH_6
+    frames:
+      - [7, 0]
+  - name: PERSON_0
+    frames:
+      - [24, 0]
+  - name: PERSON_1
+    frames:
+      - [25, 0]
+  - name: PERSON_2
+    frames:
+      - [26, 0]
+  - name: PERSON_3
+    frames:
+      - [27, 0]
+  - name: PERSON_4
+    frames:
+      - [28, 0]
+  - name: PERSON_5
+    frames:
+      - [29, 0]
+  - name: PERSON_6
+    frames:
+      - [30, 0]
+  - name: PERSON_7
+    frames:
+      - [31, 0]
+  - name: TREE_1
+    frames:
+      - [0, 1]
+  - name: TREE_2
+    frames:
+      - [1, 1]
+  - name: TREE_3
+    frames:
+      - [2, 1]
+  - name: TREE_4
+    frames:
+      - [3, 1]
+  - name: TREE_5
+    frames:
+      - [4, 1]
+  - name: TREE_6
+    frames:
+      - [5, 1]
+  - name: TREE_7
+    frames:
+      - [6, 1]
+  - name: TREE_8
+    frames:
+      - [7, 1]
+  - name: CASTLE_FLOOR
+    frames:
+      - [19, 1]
+  - name: WALL_BIG
+    frames:
+      - [2, 3]
+  - name: WEAPON_ARROW_1
+    frames:
+      - [40, 5]
+    angle: -45.0
+  - name: WEAPON_ARROW_2
+    frames:
+      - [41, 5]
+    angle: -45.0
+  - name: WEAPON_SHOVEL
+    frames:
+      - [42, 5]
+    angle: -45.0
+  - name: WEAPON_PICKAXE
+    frames:
+      - [42, 5]
+    angle: -30.0
+  - name: ORC
+    frames:
+      - [30, 6]
+  - name: WEAPON_DAGGER_OUTLINED_1
+    frames:
+      - [32, 6]
+    angle: -45.0
+  - name: WEAPON_DAGGER_SOLID_3
+    frames:
+      - [34, 6]
+    angle: -45.0
+  - name: DUCK
+    frames:
+      - [25, 7]
+  - name: WEAPON_PISTOL
+    frames:
+      - [37, 9]
+  - name: WEAPON_RAY_PISTOL
+    frames:
+      - [38, 9]
+  - name: WEAPON_SHOTGUN
+    frames:
+      - [39, 9]
+  - name: WEAPON_SUB_MACHINE_GUN
+    frames:
+      - [40, 9]
+  - name: WEAPON_MINI_UZI
+    frames:
+      - [41, 9]
+  - name: WEAPON_MP5
+    frames:
+      - [42, 9]
+  - name: WEAPON_RPG
+    frames:
+      - [43, 9]
+  - name: AMMO_BOX
+    frames:
+      - [44, 9]
+  - name: CAMPFIRE
+    frames:
+      - [14, 10]
+  - name: FIRE
+    frames:
+      - [15, 10]
+  - name: ICON_HEART
+    frames:
+      - [39, 10]
+  - name: ICON_HEART_OUTLINE
+    frames:
+      - [40, 10]
+  - name: ICON_HEART_HALF_FULL
+    frames:
+      - [41, 10]
+  - name: ICON_HEART_FULL
+    frames:
+      - [42, 10]
+  - name: SKULL_AND_BONES
+    frames:
+      - [0, 15]
+  - name: NUMBER_0
+    frames:
+      - [35, 17]
+  - name: NUMBER_1
+    frames:
+      - [36, 17]
+  - name: NUMBER_2
+    frames:
+      - [37, 17]
+  - name: NUMBER_3
+    frames:
+      - [38, 17]
+  - name: NUMBER_4
+    frames:
+      - [39, 17]
+  - name: NUMBER_5
+    frames:
+      - [40, 17]
+  - name: NUMBER_6
+    frames:
+      - [41, 17]
+  - name: NUMBER_7
+    frames:
+      - [42, 17]
+  - name: NUMBER_8
+    frames:
+      - [43, 17]
+  - name: NUMBER_9
+    frames:
+      - [44, 17]
+  - name: BOAT
+    frames:
+      - [10, 19]
+  - name: ARROW_UP
+    frames:
+      - [23, 20]
+  - name: SPACE_VEHICLE_1
+    frames:
+      - [12, 21]
+  - name: SPACE_VEHICLE_2
+    frames:
+      - [13, 21]
+  - name: SPACE_VEHICLE_3
+    frames:
+      - [14, 21]
+  - name: FIREWORK
+    frames:
+      - [32, 21]
+  - name: ROCKET_1
+    frames:
+      - [33, 21]
+  - name: ROCKET_2
+    frames:
+      - [34, 21]

@@ -3,7 +3,10 @@
 *.o
 *.log
 *.dll
-
 build/
-build-objs/
-build-web/
+
+# Configs
+imgui.ini
+
+# Modules
+vcpkg_installed/
