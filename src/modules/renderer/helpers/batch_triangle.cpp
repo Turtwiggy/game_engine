@@ -25,7 +25,7 @@ TriangleRenderer::draw_triangle(const TriangleDescriptor& r, Shader& s)
     begin_batch();
   }
 
-  const int& tex_slot = r.tex_slot;
+  const float tex_slot = static_cast<float>(r.tex_slot);
   const glm::ivec2 sprite_offset = { 0, 0 };
   glm::mat4 model = glm::mat4(1.0f);
 

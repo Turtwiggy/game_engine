@@ -37,9 +37,9 @@ struct SINGLETON_Textures
   const std::string sheet_map = "assets/textures/maps/0.jpg";
 
   // sprite-yml info
-  const std::string yml_kenny = "assets/config/spritemap_kennynl.yml";
-  const std::string yml_custom = "assets/config/spritemap_custom.yml";
-  const std::string yml_sprout = "assets/config/spritemap_sprout.yml";
+  const std::string yml_kenny = "assets/config/spritemap_kennynl.json";
+  const std::string yml_custom = "assets/config/spritemap_custom.json";
+  const std::string yml_sprout = "assets/config/spritemap_sprout.json";
 };
 
 } // namespace game2d

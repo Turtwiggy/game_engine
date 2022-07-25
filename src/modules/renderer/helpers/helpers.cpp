@@ -6,7 +6,7 @@
 #include <imgui_internal.h>
 
 game2d::ViewportInfo
-game2d::render_texture_to_imgui_viewport(const int& tex_unit)
+game2d::render_texture_to_imgui_viewport(const int64_t& tex_unit)
 {
   static bool dockspace_open = true;
   static ImGuiDockNodeFlags dockspace_flags = ImGuiDockNodeFlags_None;

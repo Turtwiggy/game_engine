@@ -18,9 +18,11 @@ struct SINGLETON_ColoursComponent
   const engine::SRGBColour grey = { 82, 88, 98, 1.0f };
   const engine::SRGBColour black = { 0, 0, 0, 1.0f };
   const engine::SRGBColour lightyellow = { 255, 255, 224, 1.0f };
+  const engine::SRGBColour blue_0 = { 12, 28, 43, 1.0f }; // lighter
+  const engine::SRGBColour blue_1 = { 11, 21, 32, 1.0f }; // darker
 
   // game colours
-  const engine::SRGBColour background = black;
+  const engine::SRGBColour background = blue_0;
   const engine::SRGBColour player_unit = dblue;
   const engine::SRGBColour enemy_unit = red;
   const engine::SRGBColour asteroid = red;

@@ -34,18 +34,18 @@ init_sprite_system(entt::registry& registry)
 
   // load animations
 
-  load_sprite_yml(anim.animations, tex.yml_kenny);
-  load_sprite_yml(anim.animations, tex.yml_custom);
-  load_sprite_yml(anim.animations, tex.yml_sprout);
+  load_sprites(anim.animations, tex.yml_kenny);
+  load_sprites(anim.animations, tex.yml_custom);
+  // load_sprites(anim.animations, tex.yml_sprout);
 }
 
 void
 update_sprite_system(entt::registry& registry, float dt)
 {
   const auto& anim = registry.ctx().at<SINGLETON_Animations>();
-
   const auto& view = registry.view<SpriteComponent, SpriteAnimationComponent>();
-  view.each([&registry, &anim, &dt](auto& sprite, auto& animation) {
+
+  view.each([&anim, &dt](SpriteComponent& sprite, SpriteAnimationComponent& animation) {
     //
     SpriteAnimation current_animation = find_animation(anim.animations, animation.playing_animation_name);
 

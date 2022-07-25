@@ -15,7 +15,6 @@
     "stb",
     "nlohmann-json",
     "gamenetworkingsockets",
-    "gtest",
-    "yaml-cpp"
+    "gtest"
   ]
 }

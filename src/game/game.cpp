@@ -36,6 +36,7 @@
 #include "game/systems/player.hpp"
 #include "game/systems/turret.hpp"
 #include "game/systems/ui_highscore.hpp"
+#include "game/systems/ui_networking.hpp"
 #include "game/systems/ui_place_entity.hpp"
 
 // other lib
@@ -45,21 +46,6 @@
 #include <string>
 
 namespace game2d {
-
-void
-init_splash_screen(entt::registry& registry)
-{
-  registry.each([&registry](auto entity) { registry.destroy(entity); });
-  registry.ctx().at<SINGLETON_PhysicsComponent>() = SINGLETON_PhysicsComponent();
-  registry.ctx().at<SINGLETON_GamePausedComponent>() = SINGLETON_GamePausedComponent();
-  registry.ctx().at<SINGLETON_GameOverComponent>() = SINGLETON_GameOverComponent();
-  registry.ctx().at<SINGLETON_HierarchyComponent>() = SINGLETON_HierarchyComponent();
-  registry.ctx().at<SINGLETON_EntityBinComponent>() = SINGLETON_EntityBinComponent();
-  registry.ctx().at<SINGLETON_AsteroidGameStateComponent>() = SINGLETON_AsteroidGameStateComponent();
-
-  create_hierarchy_root_node(registry);
-  create_camera(registry);
-};
 
 void
 init_game_state(entt::registry& registry)
@@ -147,47 +133,32 @@ game2d::update(entt::registry& registry, engine::Application& app, float dt)
   Uint64 start_game_tick = SDL_GetPerformanceCounter();
   {
     update_input_system(registry, app);
-
     const auto& input = registry.ctx().at<SINGLETON_InputComponent>();
+
     if (ri.viewport_process_events) {
       {
         auto& gp = registry.ctx().at<SINGLETON_GamePausedComponent>();
         if (get_key_down(input, SDL_SCANCODE_P))
           gp.paused = !gp.paused;
       }
-      if (get_key_down(input, SDL_SCANCODE_T))
-        init_splash_screen(registry);
       if (get_key_down(input, SDL_SCANCODE_R))
         init_game_state(registry);
       if (get_key_down(input, SDL_SCANCODE_F))
         app.window->toggle_fullscreen();
-    }
-
-    bool was_over = false;
-    {
-      auto& go = registry.ctx().at<SINGLETON_GameOverComponent>();
-      if (go.over) {
-        init_game_state(registry);
-        std::cout << "game over...!" << std::endl;
-        was_over = true;
+      if (get_key_down(input, SDL_SCANCODE_ESCAPE))
+        app.shutdown();
+      {
+        auto& go = registry.ctx().at<SINGLETON_GameOverComponent>();
+        if (go.over)
+          init_game_state(registry);
       }
     }
-    if (was_over) {
-      auto& go2 = registry.ctx().at<SINGLETON_GameOverComponent>();
-      if (go2.over) {
-        std::cout << "This should never happen!" << std::endl;
-      }
-    }
-
-    if (get_key_down(input, SDL_SCANCODE_ESCAPE))
-      app.shutdown();
-
-    update_audio_system(registry);
 
     auto& gp = registry.ctx().at<SINGLETON_GamePausedComponent>();
     if (!gp.paused) {
       // ... systems that always update (when not paused)
       {
+        update_audio_system(registry);
         // update_cursor_system(registry);
         update_asteroid_system(registry);
         update_player_system(registry);
@@ -224,6 +195,7 @@ game2d::update(entt::registry& registry, engine::Application& app, float dt)
       update_ui_hierarchy_system(registry);
       update_ui_profiler_system(registry);
       update_ui_place_entity_system(registry);
+      update_ui_networking_system(registry);
     }
     update_ui_highscore_system(registry);
   };

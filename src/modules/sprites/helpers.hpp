@@ -10,7 +10,7 @@
 namespace game2d {
 
 void
-load_sprite_yml(std::vector<SpriteAnimation>& sprites, const std::string path);
+load_sprites(std::vector<SpriteAnimation>& sprites, const std::string path);
 
 SpriteAnimation
 find_animation(const std::vector<SpriteAnimation>& sprites, const std::string name);

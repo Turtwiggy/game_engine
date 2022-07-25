@@ -11,7 +11,7 @@ SRGBFloatToLinearFloat(const float f)
 {
   if (f <= 0.04045f)
     return f / 12.92f;
-  return pow(f + (0.055f / 1.055f), 2.4f);
+  return static_cast<float>(pow(f + (0.055f / 1.055f), 2.4f));
 };
 
 // This function really should be constexpr
@@ -21,7 +21,7 @@ LinearFloatToSRGBFloat(const float f)
 {
   if (f <= 0.0031308f)
     return 12.92f * f;
-  return 1.055f * pow(f, 1.0f / 2.4f) - 0.055f;
+  return static_cast<float>(1.055f * pow(f, 1.0f / 2.4f) - 0.055f);
 };
 
 LinearColour

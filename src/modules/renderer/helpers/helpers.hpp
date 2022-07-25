@@ -17,6 +17,6 @@ struct ViewportInfo
 };
 
 ViewportInfo
-render_texture_to_imgui_viewport(const int& tex_unit);
+render_texture_to_imgui_viewport(const int64_t& tex_unit);
 
 }; // namespace game2d

@@ -7,8 +7,18 @@ set(CMAKE_CXX_STANDARD_REQUIRED ON)
 # set(CMAKE_VERBOSE_MAKEFILE on)
 
 # if(CMAKE_CXX_COMPILER_ID STREQUAL "MSVC")
-if(CMAKE_CXX_COMPILER_ID MATCHES "GNU")
+if(CMAKE_CXX_COMPILER_ID MATCHES GNU)
   add_definitions("-std=c++20")
+  add_definitions("-Wall")
+  add_definitions("-Wformat")
+  add_definitions("-O2")
+endif()
+
+if(CMAKE_CXX_COMPILER_ID MATCHES MSVC)
+  set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} /MP /fp:fast")
+  set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} /std:c++20 /permissive-")
+
+  # set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS}/WX /W3 /wd4275 /wd4251")
 endif()
 
 project(game_2d VERSION 0.1.0)
@@ -29,10 +39,8 @@ find_package(OpenGL REQUIRED)
 find_package(GLEW REQUIRED)
 find_package(glm CONFIG REQUIRED)
 find_package(nlohmann_json CONFIG REQUIRED)
-find_package(yaml-cpp CONFIG REQUIRED)
+find_package(GameNetworkingSockets CONFIG REQUIRED)
 find_path(STB_INCLUDE_DIRS "stb_c_lexer.h")
-
-# find_package(GameNetworkingSockets CONFIG REQUIRED)
 
 # Add source files
 file(GLOB_RECURSE SRC_FILES
@@ -44,7 +52,7 @@ add_executable(game_2d
   ${SRC_FILES}
 
   # add icon to executable
-  ${CMAKE_SOURCE_DIR}/assets/textures/resource.rc
+  # ${CMAKE_SOURCE_DIR}/assets/textures/resource.rc
 )
 
 if(${CMAKE_SYSTEM_NAME} STREQUAL "Windows")
@@ -67,15 +75,18 @@ target_include_directories(game_2d PRIVATE
   ${CMAKE_SOURCE_DIR}/thirdparty/magic_enum
 )
 
+target_link_libraries(game_2d PRIVATE SDL2::SDL2 SDL2::SDL2main)
+target_link_libraries(game_2d PRIVATE SDL2::SDL2_mixer)
+target_link_libraries(game_2d PRIVATE opengl32)
+target_link_libraries(game_2d PRIVATE GLEW::GLEW)
+target_link_libraries(game_2d PRIVATE glm::glm)
+target_link_libraries(game_2d PRIVATE nlohmann_json::nlohmann_json)
+target_link_libraries(game_2d PRIVATE GameNetworkingSockets::shared)
+
 if(${CMAKE_SYSTEM_NAME} STREQUAL "Windows")
-  # link windows libs
-  target_link_libraries(game_2d PRIVATE SDL2::SDL2 SDL2::SDL2main)
-  target_link_libraries(game_2d PRIVATE SDL2::SDL2_mixer)
-  target_link_libraries(game_2d PRIVATE opengl32)
-  target_link_libraries(game_2d PRIVATE GLEW::GLEW)
-  target_link_libraries(game_2d PRIVATE glm::glm)
-  target_link_libraries(game_2d PRIVATE nlohmann_json nlohmann_json::nlohmann_json)
-  target_link_libraries(game_2d PRIVATE yaml-cpp)
+  # game networking sockets libs (windows only)
+  # OpenSSL::SSL OpenSSL::Crypto
+  # protobuf::libprotoc protobuf::libprotobuf protobuf::libprotobuf-lite
 
   # create symlink assets for build
   set(source "${CMAKE_SOURCE_DIR}/assets")
@@ -86,11 +97,6 @@ if(${CMAKE_SYSTEM_NAME} STREQUAL "Windows")
     DEPENDS ${destination}
     COMMENT "symbolic link resources folder from ${source} => ${destination}"
   )
-
-  # game networking sockets libs (windows only)
-  # OpenSSL::SSL OpenSSL::Crypto
-  # protobuf::libprotoc protobuf::libprotobuf protobuf::libprotobuf-lite
-  # GameNetworkingSockets::shared GameNetworkingSockets::static GameNetworkingSockets::GameNetworkingSockets GameNetworkingSockets::GameNetworkingSockets_s
 endif()
 
 set(CPACK_PROJECT_NAME ${PROJECT_NAME})

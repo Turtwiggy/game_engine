@@ -39,7 +39,7 @@ create_camera(entt::registry& r)
 }
 
 entt::entity
-game2d::create_hierarchy_root_node(entt::registry& r)
+create_hierarchy_root_node(entt::registry& r)
 {
   auto& h = r.ctx().at<SINGLETON_HierarchyComponent>();
   h.root_node = r.create();
@@ -190,7 +190,7 @@ create_bullet_sprite_component(entt::registry& r)
   comp.tex_unit = slots.tex_unit_kenny;
 
   // search kenny-nl spritesheet
-  const auto anim = find_animation(sprites.animations, "ARROW_UP");
+  const auto anim = find_animation(sprites.animations, "PERSON_1");
   comp.x = anim.animation_frames[0].x;
   comp.y = anim.animation_frames[0].y;
   comp.angle_radians = anim.animation_angle_degrees * engine::PI / 180.0f;
@@ -250,7 +250,7 @@ create_turret_sprite_component(entt::registry& r)
   comp.tex_unit = slots.tex_unit_kenny;
 
   // search kenny-nl spritesheet
-  const auto anim = find_animation(sprites.animations, "ARROW_UP");
+  const auto anim = find_animation(sprites.animations, "PERSON_1");
   comp.x = anim.animation_frames[0].x;
   comp.y = anim.animation_frames[0].y;
   comp.angle_radians = anim.animation_angle_degrees * engine::PI / 180.0f;

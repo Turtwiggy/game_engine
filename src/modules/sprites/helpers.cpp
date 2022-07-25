@@ -2,9 +2,11 @@
 #include "modules/sprites/helpers.hpp"
 
 // other libs
-#include <yaml-cpp/yaml.h>
+#include <nlohmann/json.hpp>
+using json = nlohmann::json;
 
 // std libs
+#include <fstream>
 #include <iostream>
 #include <string>
 #include <vector>
@@ -18,29 +20,43 @@ struct Frame
 };
 
 void
-load_sprite_yml(std::vector<SpriteAnimation>& sprites, const std::string path)
+load_sprites(std::vector<SpriteAnimation>& sprites, const std::string path)
 {
-  std::cout << "loading yml: " << path << std::endl;
-  YAML::Node config = YAML::LoadFile(path)["sprites"];
+  std::cout << "loading sprite config: " << path << std::endl;
+  std::ifstream f(path);
+  json data = json::parse(f);
 
-  for (int i = 0; i < config.size(); i++) {
+  auto ss = data["spritesheet"];
+  std::string name = ss["name"];
+  int px_total = ss["px_total"];
+  int py_total = ss["py_total"];
+  int px = ss["px"];
+  int py = ss["py"];
+  int nx = ss["nx"];
+  int ny = ss["ny"];
+
+  auto s = data["sprites"];
+
+  for (auto& el : s) {
     SpriteAnimation s;
-    auto node = config[i];
-    s.name = node["name"].as<std::string>();
+    s.name = el["name"];
 
-    auto frames = node["frames"];
-    for (int i = 0; i < frames.size(); i++) {
+    auto frames = el["frames"];
+    for (auto& frame : frames) {
       Frame f;
-      f.x = frames[i][0].as<int>();
-      f.y = frames[i][1].as<int>();
+      f.x = frame["x"];
+      f.y = frame["y"];
       s.animation_frames.push_back({ f.x, f.y });
     }
 
-    if (node["angle"])
-      s.animation_angle_degrees = node["angle"].as<float>();
+    if (el.contains("angle")) {
+      s.animation_angle_degrees = el["angle"];
+    }
 
     sprites.push_back(s);
   }
+
+  f.close();
 };
 
 SpriteAnimation

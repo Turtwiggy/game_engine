@@ -22,7 +22,6 @@ game2d::update_lifecycle_system(entt::registry& r, float fixed_dt)
 
   // process destroyed objects
   for (auto entity : eb.dead) {
-    std::cout << "destroying... " << std::to_string(static_cast<uint32_t>(entity)) << std::endl;
     r.destroy(entity);
   }
 

@@ -9,8 +9,8 @@
 ```bash
 git clone
 git submodule update --init --recursive
-thirdparty\vcpkg\bootstrap-vcpkg.bat
-thirdparty\vcpkg\vcpkg.exe --feature-flags=versions install --triplet x64-windows
+thirdparty/vcpkg/bootstrap-vcpkg.bat
+thirdparty/vcpkg/vcpkg.exe --feature-flags=versions install --triplet x64-windows
 ```
 
 ### Develop
