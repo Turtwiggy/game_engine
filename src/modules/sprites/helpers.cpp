@@ -27,13 +27,13 @@ load_sprites(std::vector<SpriteAnimation>& sprites, const std::string path)
   json data = json::parse(f);
 
   auto ss = data["spritesheet"];
-  std::string name = ss["name"];
-  int px_total = ss["px_total"];
-  int py_total = ss["py_total"];
-  int px = ss["px"];
-  int py = ss["py"];
-  int nx = ss["nx"];
-  int ny = ss["ny"];
+  // std::string name = ss["name"];
+  // int px_total = ss["px_total"];
+  // int py_total = ss["py_total"];
+  // int px = ss["px"];
+  // int py = ss["py"];
+  // int nx = ss["nx"];
+  // int ny = ss["ny"];
 
   auto s = data["sprites"];
 
@@ -55,8 +55,6 @@ load_sprites(std::vector<SpriteAnimation>& sprites, const std::string path)
 
     sprites.push_back(s);
   }
-
-  f.close();
 };
 
 SpriteAnimation

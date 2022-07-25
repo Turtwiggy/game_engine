@@ -113,7 +113,7 @@ load_textures_threaded(std::vector<std::pair<int, std::string>>& textures_to_loa
     std::vector<std::thread> threads;
     std::vector<LinearTexture> loaded_textures(textures_to_load.size());
 
-    for (int i = 0; i < textures_to_load.size(); i++) {
+    for (size_t i = 0; i < textures_to_load.size(); i++) {
       const std::pair<int, std::string>& tex_to_load = textures_to_load[i];
       threads.emplace_back([&tex_to_load, i, &loaded_textures]() {
         loaded_textures[i] = load_texture_linear(tex_to_load.first, tex_to_load.second);

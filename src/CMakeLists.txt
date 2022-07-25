@@ -8,7 +8,7 @@ set(CMAKE_CXX_STANDARD_REQUIRED ON)
 
 # if(CMAKE_CXX_COMPILER_ID STREQUAL "MSVC")
 if(CMAKE_CXX_COMPILER_ID MATCHES GNU)
-  add_definitions("-std=c++20")
+  add_definitions("-std=c++17")
   add_definitions("-Wall")
   add_definitions("-Wformat")
   add_definitions("-O2")
@@ -84,10 +84,6 @@ target_link_libraries(game_2d PRIVATE nlohmann_json::nlohmann_json)
 target_link_libraries(game_2d PRIVATE GameNetworkingSockets::shared)
 
 if(${CMAKE_SYSTEM_NAME} STREQUAL "Windows")
-  # game networking sockets libs (windows only)
-  # OpenSSL::SSL OpenSSL::Crypto
-  # protobuf::libprotoc protobuf::libprotobuf protobuf::libprotobuf-lite
-
   # create symlink assets for build
   set(source "${CMAKE_SOURCE_DIR}/assets")
   set(destination "${CMAKE_CURRENT_BINARY_DIR}/assets")

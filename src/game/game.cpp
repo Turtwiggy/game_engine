@@ -87,6 +87,7 @@ game2d::init(entt::registry& registry, glm::ivec2 screen_wh)
   init_render_system(registry, screen_wh);
   init_input_system(registry);
   init_audio_system(registry);
+  init_networking_system(registry);
 
   registry.ctx().emplace<SINGLETON_PhysicsComponent>();
   registry.ctx().emplace<SINGLETON_GamePausedComponent>();

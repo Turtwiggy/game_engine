@@ -82,7 +82,20 @@
       "xstring": "cpp",
       "xtr1common": "cpp",
       "xtree": "cpp",
-      "xutility": "cpp"
+      "xutility": "cpp",
+      "deque": "cpp",
+      "mutex": "cpp",
+      "queue": "cpp",
+      "*.tcc": "cpp",
+      "condition_variable": "cpp",
+      "cstdarg": "cpp",
+      "cwctype": "cpp",
+      "memory_resource": "cpp",
+      "string_view": "cpp",
+      "numbers": "cpp",
+      "semaphore": "cpp",
+      "cinttypes": "cpp",
+      "variant": "cpp"
     }
   }
 }
