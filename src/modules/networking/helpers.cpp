@@ -6,7 +6,7 @@
 namespace game2d {
 
 void
-DebugOutput(ESteamNetworkingSocketsDebugOutputType eType, const char* pszMsg)
+debug_output(ESteamNetworkingSocketsDebugOutputType eType, const char* pszMsg)
 {
   printf("%s\n", pszMsg);
   if (eType == k_ESteamNetworkingSocketsDebugOutputType_Bug) {
@@ -17,7 +17,7 @@ DebugOutput(ESteamNetworkingSocketsDebugOutputType eType, const char* pszMsg)
 };
 
 void
-InitSteamDatagramConnectionSockets()
+init_steam_datagram_connection_sockets()
 {
 #ifdef STEAMNETWORKINGSOCKETS_OPENSOURCE
   std::cout << "(networking) STEAMNETWORKINGSOCKETS_OPENSOURCE " << std::endl;
@@ -45,24 +45,101 @@ InitSteamDatagramConnectionSockets()
   // SteamNetworkingUtils()->SetGlobalConfigValueInt32(k_ESteamNetworkingConfig_IP_AllowWithoutAuth, 1);
 #endif
 
-  SteamNetworkingUtils()->SetDebugOutputFunction(k_ESteamNetworkingSocketsDebugOutputType_Msg, DebugOutput);
+  SteamNetworkingUtils()->SetDebugOutputFunction(k_ESteamNetworkingSocketsDebugOutputType_Msg, debug_output);
 }
 
 void
-SendStringToClient(ISteamNetworkingSockets* interface, HSteamNetConnection conn, const char* str)
+start_server_or_quit(entt::registry& r, int port, void* callback)
 {
-  interface->SendMessageToConnection(conn, str, (uint32)strlen(str), k_nSteamNetworkingSend_Reliable, nullptr);
+  SINGLETON_ServerComponent server;
+
+  // Select instance to use.  For now we'll always use the default.
+  // But we could use SteamGameServerNetworkingSockets() on Steam.
+  server.interface = SteamNetworkingSockets();
+
+  // Start Listening
+  SteamNetworkingIPAddr addr;
+  addr.Clear();
+  addr.m_port = port;
+
+  SteamNetworkingConfigValue_t opt;
+  opt.SetPtr(k_ESteamNetworkingConfig_Callback_ConnectionStatusChanged, callback);
+
+  server.socket = server.interface->CreateListenSocketIP(addr, 1, &opt);
+  if (server.socket == k_HSteamListenSocket_Invalid) {
+    std::cerr << "Failed to listen on port: " << port << std::endl;
+    exit(0);
+  }
+
+  server.group = server.interface->CreatePollGroup();
+  if (server.socket == k_HSteamNetPollGroup_Invalid) {
+    std::cerr << "Failed to listen on port: " << std::endl;
+    exit(0);
+  }
+
+  std::cout << "Server listening on port: " << port << std::endl;
+  if (!r.ctx().contains<SINGLETON_ServerComponent>())
+    r.ctx().emplace<SINGLETON_ServerComponent>(server);
 }
 
 void
-SendStringToAllClients(ISteamNetworkingSockets* interface,
-                       std::map<HSteamNetConnection, Client>& clients,
-                       const char* str,
-                       HSteamNetConnection except)
+start_client(entt::registry& r, const std::string& addr, void* callback)
+{
+  SINGLETON_ClientComponent client;
+  client.interface = SteamNetworkingSockets();
+
+  SteamNetworkingIPAddr serverAddr;
+  serverAddr.Clear();
+  if (serverAddr.ParseString(addr.c_str())) {
+    // Start connecting
+    char szAddr[SteamNetworkingIPAddr::k_cchMaxString];
+    serverAddr.ToString(szAddr, sizeof(szAddr), true);
+
+    SteamNetworkingConfigValue_t opt;
+    opt.SetPtr(k_ESteamNetworkingConfig_Callback_ConnectionStatusChanged, callback);
+    auto conn = client.interface->ConnectByIPAddress(serverAddr, 1, &opt);
+    if (conn == k_HSteamNetConnection_Invalid) {
+      std::cerr << "(client) invalid server addr: " << szAddr << std::endl;
+    } else {
+      // successfully connected
+      client.connection = conn;
+      r.ctx().emplace<SINGLETON_ClientComponent>(client);
+    }
+  } else {
+    std::cerr << "Failed to parse server's address for the client" << std::endl;
+  }
+}
+
+// haha you wanted to close networking and now the app crashed
+void
+close_networking()
+{
+  //     std::cout << "TODO (close connections)" << std::endl;
+  // #ifdef STEAMNETWORKINGSOCKETS_OPENSOURCE
+  //     GameNetworkingSockets_Kill();
+  // #else
+  //     SteamDatagramClient_Kill();
+  // #endif
+
+  exit(0); // TODO: do this properly
+}
+
+void
+send_string_to_client(ISteamNetworkingSockets* interface, HSteamNetConnection conn, const std::string& str)
+{
+  interface->SendMessageToConnection(
+    conn, str.c_str(), (uint32)strlen(str.c_str()), k_nSteamNetworkingSend_Reliable, nullptr);
+}
+
+void
+send_string_to_all_clients(ISteamNetworkingSockets* interface,
+                           std::map<HSteamNetConnection, Client>& clients,
+                           const char* str,
+                           HSteamNetConnection except)
 {
   for (auto& c : clients) {
     if (c.first != except)
-      SendStringToClient(interface, c.first, str);
+      send_string_to_client(interface, c.first, str);
   }
 }
 

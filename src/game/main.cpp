@@ -25,7 +25,7 @@ static Application app("2D Game [0.0.8]", start_screen_wh.x, start_screen_wh.y, 
 static entt::registry registry;
 
 // fixed tick
-static int FIXED_TICKS_PER_SECOND = 120;
+static int FIXED_TICKS_PER_SECOND = 60;
 static float SECONDS_PER_FIXED_TICK = 1.0f / FIXED_TICKS_PER_SECOND;
 static float seconds_since_last_game_tick = 0.0f;
 

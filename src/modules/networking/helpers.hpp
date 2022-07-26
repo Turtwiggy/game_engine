@@ -10,20 +10,30 @@
 #endif
 
 #include <map>
+#include <string>
 
 namespace game2d {
 
 void
-InitSteamDatagramConnectionSockets();
+init_steam_datagram_connection_sockets();
 
 void
-SendStringToClient(ISteamNetworkingSockets* interface, HSteamNetConnection conn, const char* str);
+start_server_or_quit(entt::registry& r, int port, void* callback);
 
 void
-SendStringToAllClients(ISteamNetworkingSockets* interface,
-                       std::map<HSteamNetConnection, Client>& clients,
-                       const char* str,
-                       HSteamNetConnection except = k_HSteamNetConnection_Invalid);
+start_client(entt::registry& r, const std::string& addr, void* callback);
+
+void
+close_networking();
+
+void
+send_string_to_client(ISteamNetworkingSockets* interface, HSteamNetConnection conn, const std::string& str);
+
+void
+send_string_to_all_clients(ISteamNetworkingSockets* interface,
+                           std::map<HSteamNetConnection, Client>& clients,
+                           const char* str,
+                           HSteamNetConnection except = k_HSteamNetConnection_Invalid);
 
 void
 OnSteamNetConnectionStatusChanged(entt::registry& r, SteamNetConnectionStatusChangedCallback_t* info);

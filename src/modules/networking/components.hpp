@@ -18,16 +18,12 @@ struct Client
 
 struct SINGLETON_ClientComponent
 {
-  const uint16 port = 27020;
-
   ISteamNetworkingSockets* interface;
   HSteamNetConnection connection;
 };
 
 struct SINGLETON_ServerComponent
 {
-  const uint16 port = 27020;
-
   ISteamNetworkingSockets* interface;
   HSteamListenSocket socket;
   HSteamNetPollGroup group;
