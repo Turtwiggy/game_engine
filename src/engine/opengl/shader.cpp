@@ -95,12 +95,9 @@ load_shader_from_disk(const std::string& path, unsigned int gl_shader_type, std:
       // read file's buffer contents into streams
       csShaderStream << codeFile.rdbuf();
 
-      // close file handlers
-      codeFile.close();
-
       // convert stream into string
       code = csShaderStream.str();
-    } catch (std::ifstream::failure e) {
+    } catch (std::ifstream::failure& e) {
       std::cout << "ERROR::SHADER::FILE_NOT_SUCCESFULLY_READ " << path << std::endl;
       exit(1);
     }

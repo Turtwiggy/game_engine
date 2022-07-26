@@ -14,10 +14,8 @@ namespace game2d {
 void
 update_animated_cursor_click_system(entt::registry& registry)
 {
-  const auto& input = registry.ctx().at<SINGLETON_InputComponent>();
-
-  const auto& view = registry.view<SpriteComponent, SpriteAnimationComponent, TransformComponent>();
-
+  // const auto& input = registry.ctx().at<SINGLETON_InputComponent>();
+  // const auto& view = registry.view<SpriteComponent, SpriteAnimationComponent, TransformComponent>();
   // view.each([&input](auto entity, const auto& sprite, auto& animation, auto& transform) {
   //   if (get_mouse_lmb_press()) {
   //     animation.playing = true;

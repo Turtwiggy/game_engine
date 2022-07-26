@@ -143,6 +143,10 @@ create_asteroid_transform_component(entt::registry& r)
   TransformComponent comp;
   comp.scale.x = SPRITE_SIZE;
   comp.scale.y = SPRITE_SIZE;
+
+  comp.position.x = 100.0f; // temp
+  comp.position.y = 100.0f; // temp
+
   return comp;
 }
 

@@ -11,6 +11,7 @@
 #include "modules/events/system.hpp"
 #include "modules/lifecycle/components.hpp"
 #include "modules/lifecycle/system.hpp"
+#include "modules/networking/system.hpp"
 #include "modules/physics/components.hpp"
 #include "modules/physics/process_actor_actor.hpp"
 #include "modules/physics/process_move_objects.hpp"
@@ -20,6 +21,8 @@
 #include "modules/sprites/system.hpp"
 #include "modules/ui_hierarchy/components.hpp"
 #include "modules/ui_hierarchy/system.hpp"
+#include "modules/ui_networking/components.hpp"
+#include "modules/ui_networking/system.hpp"
 #include "modules/ui_physics/system.hpp"
 #include "modules/ui_profiler/components.hpp"
 #include "modules/ui_profiler/system.hpp"
@@ -36,7 +39,6 @@
 #include "game/systems/player.hpp"
 #include "game/systems/turret.hpp"
 #include "game/systems/ui_highscore.hpp"
-#include "game/systems/ui_networking.hpp"
 #include "game/systems/ui_place_entity.hpp"
 
 // other lib
@@ -87,7 +89,10 @@ game2d::init(entt::registry& registry, glm::ivec2 screen_wh)
   init_render_system(registry, screen_wh);
   init_input_system(registry);
   init_audio_system(registry);
+  init_networking_system(registry);
+  init_ui_networking_system(registry);
 
+  // emplace game things once (as they are delete/reinit at any time)
   registry.ctx().emplace<SINGLETON_PhysicsComponent>();
   registry.ctx().emplace<SINGLETON_GamePausedComponent>();
   registry.ctx().emplace<SINGLETON_GameOverComponent>();
@@ -118,6 +123,9 @@ game2d::fixed_update(entt::registry& registry, engine::Application& app, float f
       // generate all collisions between actor-actor objects
       update_actor_actor_system(registry, app);
     }
+    // TODO: validate this is a correct place to put the networking?
+    //
+    update_networking_system(registry);
   }
   Uint64 end_physics = SDL_GetPerformanceCounter();
   p.physics_elapsed_ms = (end_physics - start_physics) / float(SDL_GetPerformanceFrequency()) * 1000.0f;

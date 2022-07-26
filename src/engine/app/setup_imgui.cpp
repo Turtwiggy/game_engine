@@ -1,4 +1,3 @@
-
 // your project header
 #include "setup_imgui.hpp"
 
@@ -44,7 +43,7 @@ ImGui_Manager::initialize(GameWindow* window)
   // io.ConfigViewportsNoTaskBarIcon = true;
 
   // Fonts
-  float font_scale = 16.0f; // 1080 scale
+  // float font_scale = 16.0f; // 1080 scale
   //   font_scale = 18.0f; // 4k scale?
   // io.Fonts->AddFontFromFileTTF("assets/fonts/opensans/OpenSans-Regular.ttf", font_scale);
 
