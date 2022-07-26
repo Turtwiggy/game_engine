@@ -9,8 +9,8 @@
 #include <steam/steam_api.h>
 #endif
 
-#include <map>
 #include <string>
+#include <vector>
 
 namespace game2d {
 
@@ -31,7 +31,7 @@ send_string_to_client(ISteamNetworkingSockets* interface, HSteamNetConnection co
 
 void
 send_string_to_all_clients(ISteamNetworkingSockets* interface,
-                           std::map<HSteamNetConnection, Client>& clients,
+                           std::vector<HSteamNetConnection>& clients,
                            const char* str,
                            HSteamNetConnection except = k_HSteamNetConnection_Invalid);
 

@@ -64,15 +64,14 @@ init_game_state(entt::registry& registry)
   create_hierarchy_root_node(registry);
   create_camera(registry);
 
-  auto player = create_player(registry);
-  auto& player_transform = registry.get<TransformComponent>(player);
-  player_transform.position.x = 600;
-  player_transform.position.y = 400;
-  auto& player_speed = registry.get<PlayerComponent>(player);
-  player_speed.speed = 250.0f;
-
-  for (int i = 0; i < gs.initial_asteroids; i++)
-    auto asteroid = create_asteroid(registry);
+  // auto player = create_player(registry);
+  // auto& player_transform = registry.get<TransformComponent>(player);
+  // player_transform.position.x = 600;
+  // player_transform.position.y = 400;
+  // auto& player_speed = registry.get<PlayerComponent>(player);
+  // player_speed.speed = 250.0f;
+  // for (int i = 0; i < gs.initial_asteroids; i++)
+  //   auto asteroid = create_asteroid(registry);
 };
 
 } // namespace game2d
@@ -155,22 +154,22 @@ game2d::update(entt::registry& registry, engine::Application& app, float dt)
         app.window->toggle_fullscreen();
       if (get_key_down(input, SDL_SCANCODE_ESCAPE))
         app.shutdown();
-      {
-        auto& go = registry.ctx().at<SINGLETON_GameOverComponent>();
-        if (go.over)
-          init_game_state(registry);
-      }
+    }
+    {
+      auto& go = registry.ctx().at<SINGLETON_GameOverComponent>();
+      if (go.over)
+        init_game_state(registry);
     }
 
     auto& gp = registry.ctx().at<SINGLETON_GamePausedComponent>();
     if (!gp.paused) {
       // ... systems that always update (when not paused)
       {
-        update_audio_system(registry);
-        // update_cursor_system(registry);
-        update_asteroid_system(registry);
         update_player_system(registry);
-        update_turret_system(registry);
+        // update_audio_system(registry);
+        // update_cursor_system(registry);
+        // update_asteroid_system(registry);
+        // update_turret_system(registry);
       }
 
       // ... systems that update if viewport is focused
@@ -203,8 +202,8 @@ game2d::update(entt::registry& registry, engine::Application& app, float dt)
       update_ui_hierarchy_system(registry);
       update_ui_profiler_system(registry);
       update_ui_place_entity_system(registry);
-      update_ui_networking_system(registry);
     }
+    update_ui_networking_system(registry);
     update_ui_highscore_system(registry);
   };
 

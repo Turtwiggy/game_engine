@@ -74,14 +74,14 @@ rebind(entt::registry& registry, const glm::ivec2& wh)
     };
     ri.instanced.bind();
     ri.instanced.set_mat4("projection", projection);
-    ri.instanced.set_int_array("textures", textures, 5);
+    ri.instanced.set_int_array("textures", textures, sizeof(textures));
   }
 
   {
     int textures[1] = { tex.tex_unit_linear_main_scene };
     ri.linear_to_srgb.bind();
     ri.linear_to_srgb.set_mat4("projection", projection);
-    ri.linear_to_srgb.set_int_array("textures", textures, 1);
+    ri.linear_to_srgb.set_int_array("textures", textures, sizeof(textures));
   }
 };
 

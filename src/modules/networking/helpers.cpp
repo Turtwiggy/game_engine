@@ -114,13 +114,13 @@ start_client(entt::registry& r, const std::string& addr, void* callback)
 void
 close_networking()
 {
-  //     std::cout << "TODO (close connections)" << std::endl;
+  // TODO: close connections, then do below
+
   // #ifdef STEAMNETWORKINGSOCKETS_OPENSOURCE
   //     GameNetworkingSockets_Kill();
   // #else
   //     SteamDatagramClient_Kill();
   // #endif
-
   exit(0); // TODO: do this properly
 }
 
@@ -133,41 +133,12 @@ send_string_to_client(ISteamNetworkingSockets* interface, HSteamNetConnection co
 
 void
 send_string_to_all_clients(ISteamNetworkingSockets* interface,
-                           std::map<HSteamNetConnection, Client>& clients,
+                           std::vector<HSteamNetConnection>& clients,
                            const char* str,
                            HSteamNetConnection except)
 {
-  for (auto& c : clients) {
-    if (c.first != except)
-      send_string_to_client(interface, c.first, str);
-  }
+  for (auto& c : clients)
+    send_string_to_client(interface, c, str);
 }
-
-// void
-// OnSteamNetConnectionStatusChanged(entt::registry& r, SteamNetConnectionStatusChangedCallback_t* info)
-// {
-//   assert(pInfo->m_hConn == m_hConnection || m_hConnection == k_HSteamNetConnection_Invalid);
-
-//   char temp[1024];
-
-//   // What's the state of the connection?
-//   switch (info->m_info.m_eState) {
-//     case k_ESteamNetworkingConnectionState_None:
-//       // NOTE: We will get callbacks here when we destroy connections.  You can ignore these.
-//       break;
-//     case k_ESteamNetworkingConnectionState_ClosedByPeer:
-//     case k_ESteamNetworkingConnectionState_ProblemDetectedLocally: {
-//       // Ignore if they were not previously connected.  (If they disconnected
-//       // before we accepted the connection.)
-//       if (info->m_eOldState == k_ESteamNetworkingConnectionState_Connected) {
-//         // Locate the client.  Note that it should have been found, because this
-//         // is the only codepath where we remove clients (except on shutdown),
-//         // and connection change callbacks are dispatched in queue order.
-//         // auto itClient = m_mapClients.find(info->m_hConn);
-//         // assert(itClient != m_mapClients.end());
-//       }
-//     }
-//   }
-// }
 
 } // namespace game2d

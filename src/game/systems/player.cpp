@@ -40,22 +40,21 @@ game2d::update_player_system(entt::registry& r)
       vel.y = 0.0f;
 
     // Shoot()
-    if (get_mouse_lmb_press()) {
-      entt::entity bullet = create_bullet(r);
-      const int BULLET_SPEED = 500;
-      const auto& mouse_pos = input.mouse_position_in_worldspace;
-      glm::vec2 dir = { mouse_pos.x - transform.position.x, mouse_pos.y - transform.position.y };
-      if (dir.x != 0.0f && dir.y != 0.0f)
-        dir = glm::normalize(dir);
-      auto& bullet_velocity = r.get<VelocityComponent>(bullet);
-      bullet_velocity.x = dir.x * BULLET_SPEED;
-      bullet_velocity.y = dir.y * BULLET_SPEED;
-      auto& bullet_transform = r.get<TransformComponent>(bullet);
-      bullet_transform.position = transform.position;
-
-      float angle = engine::dir_to_angle_radians(dir);
-      bullet_transform.rotation.z = angle - engine::HALF_PI;
-    }
+    // if (get_mouse_lmb_press()) {
+    //   entt::entity bullet = create_bullet(r);
+    //   const int BULLET_SPEED = 500;
+    //   const auto& mouse_pos = input.mouse_position_in_worldspace;
+    //   glm::vec2 dir = { mouse_pos.x - transform.position.x, mouse_pos.y - transform.position.y };
+    //   if (dir.x != 0.0f && dir.y != 0.0f)
+    //     dir = glm::normalize(dir);
+    //   auto& bullet_velocity = r.get<VelocityComponent>(bullet);
+    //   bullet_velocity.x = dir.x * BULLET_SPEED;
+    //   bullet_velocity.y = dir.y * BULLET_SPEED;
+    //   auto& bullet_transform = r.get<TransformComponent>(bullet);
+    //   bullet_transform.position = transform.position;
+    //   float angle = engine::dir_to_angle_radians(dir);
+    //   bullet_transform.rotation.z = angle - engine::HALF_PI;
+    // }
 
     // .. rotate to velocity
     // .. IMPROVEMENT

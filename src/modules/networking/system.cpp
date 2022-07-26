@@ -3,12 +3,14 @@
 #include "engine/maths/grid.hpp"
 #include "game/create_entities.hpp"
 #include "modules/events/components.hpp"
+#include "modules/events/helpers/keyboard.hpp"
 #include "modules/events/helpers/mouse.hpp"
 #include "modules/networking/components.hpp"
 #include "modules/networking/helpers.hpp"
 #include "modules/renderer/components.hpp"
 #include "modules/ui_networking/components.hpp"
 
+#include <assert.h>
 #include <imgui.h>
 #include <steam/isteamnetworkingutils.h>
 #include <steam/steamnetworkingsockets.h>
@@ -26,24 +28,8 @@ SteamNetConnectionStatusChangedCallback(SteamNetConnectionStatusChangedCallback_
 };
 
 void
-update_client(SINGLETON_ClientComponent& client)
+update_client_poll_connections(SINGLETON_ClientComponent& client)
 {
-  // do some fun client things
-  // PollIncomingMessages();
-  //
-  ISteamNetworkingMessage* pIncomingMsg = nullptr;
-  int numMsgs = client.interface->ReceiveMessagesOnConnection(client.connection, &pIncomingMsg, 1);
-  // if (numMsgs < 0)
-  //   FatalError("Error checking for messages");
-  if (numMsgs > 0) {
-    std::string data;
-    data.assign((const char*)pIncomingMsg->m_pData, pIncomingMsg->m_cbSize);
-    std::cout << "(client) server sent: " << data << std::endl;
-
-    // We don't need this anymore.
-    pIncomingMsg->Release();
-  }
-
   // PollConnectionStateChanges
   //
   client.interface->RunCallbacks();
@@ -97,34 +83,8 @@ update_client(SINGLETON_ClientComponent& client)
 }
 
 void
-update_server(SINGLETON_ServerComponent& server)
+update_server_poll_connections(SINGLETON_ServerComponent& server)
 {
-  // PollIncomingMessages
-  //
-  ISteamNetworkingMessage* msg = nullptr;
-  int msgs = server.interface->ReceiveMessagesOnPollGroup(server.group, &msg, 1);
-
-  if (msgs < 0)
-    std::cerr << "Error checking for messages" << std::endl;
-
-  if (msgs > 0) {
-    assert(msgs == 1 && msg);
-    auto cli = server.clients.find(msg->m_conn);
-    assert(cli != server.clients.end());
-
-    // '\0'-terminate it to make it easier to parse
-    std::string sCmd;
-    sCmd.assign((const char*)msg->m_pData, msg->m_cbSize);
-    const char* cmd = sCmd.c_str();
-
-    // We don't need this anymore.
-    msg->Release();
-
-    // Check for known commands.  None of this example code is secure or robust.
-    // Don't write a real server like this, please.
-    std::cout << "(server) message from client: " << cmd << std::endl;
-  }
-
   // PollConnectionStateChanges
   //
   server.interface->RunCallbacks();
@@ -137,7 +97,8 @@ update_server(SINGLETON_ServerComponent& server)
     //
     switch (info.m_info.m_eState) {
       case k_ESteamNetworkingConnectionState_None: {
-        // NOTE: We will get callbacks here when we destroy connections.  You can ignore these.
+        // NOTE: We will get callbacks here when we destroy connections.
+        // You can ignore these.
         break;
       }
       case k_ESteamNetworkingConnectionState_Connected: {
@@ -151,7 +112,7 @@ update_server(SINGLETON_ServerComponent& server)
           // Locate the client.  Note that it should have been found, because this
           // is the only codepath where we remove clients (except on shutdown),
           // and connection change callbacks are dispatched in queue order.
-          auto client_it = server.clients.find(info.m_hConn);
+          auto client_it = std::find(server.clients.begin(), server.clients.end(), info.m_hConn);
           assert(client_it != server.clients.end());
 
           // Select appropriate log messages
@@ -167,14 +128,36 @@ update_server(SINGLETON_ServerComponent& server)
           // Send a message so everybody else knows what happened
           // send_string_to_all_clients(temp);
           server.clients.erase(client_it);
+          server.events.push_back(ServerEvents::CLIENT_DROPPED);
+        } else {
+          assert(info.m_eOldState == k_ESteamNetworkingConnectionState_Connecting);
         }
+
+        // Clean up the connection.  This is important!
+        // The connection is "closed" in the network sense, but
+        // it has not been destroyed.  We must close it on our end, too
+        // to finish up.  The reason information do not matter in this case,
+        // and we cannot linger because it's already closed on the other end,
+        // so we just pass 0's.
+        server.interface->CloseConnection(info.m_hConn, 0, nullptr, false);
         break;
       }
       case k_ESteamNetworkingConnectionState_Connecting: {
         // must be a new connection
-        assert(server.clients.find(info.m_hConn) == server.clients.end());
+        auto conn = std::find(server.clients.begin(), server.clients.end(), info.m_hConn);
+        assert(conn == server.clients.end());
 
         std::cout << "Connection request from " << info.m_info.m_szConnectionDescription << std::endl;
+
+        // Arbitrarily limit slots on server
+        // until I'm better at understanding networking stuff
+        bool slots_available = server.clients.size() <= server.max_clients;
+        if (!slots_available) {
+          std::cout << "Can't accept connection. (Server Full)" << std::endl;
+          int reason = 1;
+          server.interface->CloseConnection(info.m_hConn, reason, nullptr, false);
+          break;
+        }
 
         // A client is attempting to connect
         // Try to accept the connection.
@@ -183,7 +166,7 @@ update_server(SINGLETON_ServerComponent& server)
           // disconnected, the connection may already be half closed.  Just
           // destroy whatever we have on our side.
           server.interface->CloseConnection(info.m_hConn, 0, nullptr, false);
-          std::cout << "Can't accept connection.  (It was already closed?)" << std::endl;
+          std::cout << "Can't accept connection.  (Already closed?)" << std::endl;
           break;
         }
 
@@ -196,8 +179,10 @@ update_server(SINGLETON_ServerComponent& server)
 
         send_string_to_client(server.interface, info.m_hConn, std::string("Welcome!"));
 
-        // Add them to the client list, using std::map wacky syntax
-        server.clients[info.m_hConn];
+        // Add them to the client list
+        server.clients.push_back(info.m_hConn);
+        server.events.push_back(ServerEvents::CLIENT_JOINED);
+        std::cout << "client joined on fixedframe: " << server.fixed_frame << std::endl;
         break;
       }
     }
@@ -238,11 +223,108 @@ game2d::update_networking_system(entt::registry& r)
 
   if (r.ctx().contains<SINGLETON_ServerComponent>()) {
     SINGLETON_ServerComponent& server = r.ctx().at<SINGLETON_ServerComponent>();
-    update_server(server);
+    server.fixed_frame += 1;
+    update_server_poll_connections(server);
+
+    // ... do server things ...
+
+    // PollIncomingMessages
+    ISteamNetworkingMessage* msg = nullptr;
+    int msgs = server.interface->ReceiveMessagesOnPollGroup(server.group, &msg, 1);
+
+    if (msgs < 0)
+      std::cerr << "Error checking for messages" << std::endl;
+
+    if (msgs > 0) {
+      assert(msgs == 1 && msg);
+      std::cout << "(server) recieved message on fixedframe: " << server.fixed_frame << std::endl;
+
+      auto conn = std::find(server.clients.begin(), server.clients.end(), msg->m_conn);
+      assert(conn != server.clients.end());
+
+      // '\0'-terminate it to make it easier to parse
+      std::string sCmd;
+      sCmd.assign((const char*)msg->m_pData, msg->m_cbSize);
+
+      // We don't need this anymore.
+      msg->Release();
+
+      // Check for known commands. WARNING: un-sanitized input from client
+      std::cout << "(server) message from client: " << sCmd << std::endl;
+
+      // TODO:
+      // https://gafferongames.com/post/what_every_programmer_needs_to_know_about_game_networking/
+
+      // WARNING: this game logic doesn't belong here
+      if (strcmp(sCmd.c_str(), ",spawn") == 0) {
+        std::cout << "(server) client requested to spawn a player" << std::endl;
+
+        auto player = create_player(r);
+        auto& player_transform = r.get<TransformComponent>(player);
+        player_transform.position.x = 600;
+        player_transform.position.y = 400;
+        auto& player_speed = r.get<PlayerComponent>(player);
+        player_speed.speed = 250.0f;
+
+        send_string_to_client(server.interface, *conn, "Server recieved spawn request");
+      }
+    }
   }
 
   if (r.ctx().contains<SINGLETON_ClientComponent>()) {
     SINGLETON_ClientComponent& client = r.ctx().at<SINGLETON_ClientComponent>();
-    update_client(client);
+    client.fixed_frame += 1;
+    update_client_poll_connections(client);
+
+    // ... do client things ...
+
+    // do some fun client things
+    // PollIncomingMessages();
+    ISteamNetworkingMessage* pIncomingMsg = nullptr;
+    int numMsgs = client.interface->ReceiveMessagesOnConnection(client.connection, &pIncomingMsg, 1);
+    if (numMsgs < 0)
+      std::cerr << "(client) error checking for messages" << std::endl;
+    if (numMsgs > 0) {
+      std::string data;
+      data.assign((const char*)pIncomingMsg->m_pData, pIncomingMsg->m_cbSize);
+      std::cout << "(client) server sent: " << data << std::endl;
+      pIncomingMsg->Release(); // We don't need this anymore.
+    }
+
+    SINGLETON_InputComponent& input = r.ctx().at<SINGLETON_InputComponent>();
+
+    // PollLocalUserInput
+    // HACK: the below is just to get some input sending to the server
+    const int protocol = k_nSteamNetworkingSend_Reliable;
+
+    // std::string str = "";
+
+    // BUG: should not be doing any input things in fixed_update()
+
+    // // str is bad but just to get things working
+    // if (get_key_down(input, SDL_SCANCODE_RETURN))
+    //   str += ",spawn";
+    // if (get_key_down(input, SDL_SCANCODE_W))
+    //   str += ",w_press";
+    // if (get_key_down(input, SDL_SCANCODE_A))
+    //   str += ",a_press";
+    // if (get_key_down(input, SDL_SCANCODE_S))
+    //   str += ",s_press";
+    // if (get_key_down(input, SDL_SCANCODE_D))
+    //   str += ",d_press";
+    // if (get_key_up(input, SDL_SCANCODE_W))
+    //   str += ",w_release";
+    // if (get_key_up(input, SDL_SCANCODE_S))
+    //   str += ",s_release";
+    // if (get_key_up(input, SDL_SCANCODE_A))
+    //   str += ",a_release";
+    // if (get_key_up(input, SDL_SCANCODE_D))
+    //   str += ",d_release";
+
+    // if (str != "") {
+    //   std::cout << "str: " << str << std::endl;
+    //   const char* buf = str.c_str();
+    //   client.interface->SendMessageToConnection(client.connection, buf, (uint32)strlen(buf), protocol, nullptr);
+    // }
   }
 };

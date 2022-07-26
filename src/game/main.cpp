@@ -19,8 +19,7 @@ using namespace engine;
 static bool vsync = true;
 static bool limit_fps = false;
 static float fps_limit = 60.0f;
-
-static glm::ivec2 start_screen_wh = { 1366, 720 };
+static glm::ivec2 start_screen_wh = { 600, 600 * 9 / 16 };
 static Application app("2D Game [0.0.8]", start_screen_wh.x, start_screen_wh.y, vsync);
 static entt::registry registry;
 

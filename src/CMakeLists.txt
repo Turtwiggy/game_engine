@@ -8,7 +8,7 @@ set(CMAKE_CXX_STANDARD_REQUIRED ON)
 
 # if(CMAKE_CXX_COMPILER_ID STREQUAL "MSVC")
 if(CMAKE_CXX_COMPILER_ID MATCHES GNU)
-  add_definitions("-std=c++17")
+  add_definitions("-std=c++20")
   add_definitions("-Wall")
   add_definitions("-Wformat")
   add_definitions("-O2")
@@ -52,7 +52,7 @@ add_executable(game_2d
   ${SRC_FILES}
 
   # add icon to executable
-  # ${CMAKE_SOURCE_DIR}/assets/textures/resource.rc
+  ${CMAKE_SOURCE_DIR}/assets/textures/resource.rc
 )
 
 if(${CMAKE_SYSTEM_NAME} STREQUAL "Windows")
