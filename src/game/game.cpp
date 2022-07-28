@@ -37,6 +37,7 @@
 #include "game/create_entities.hpp"
 #include "game/systems/asteroid.hpp"
 #include "game/systems/player.hpp"
+#include "game/systems/player_inputs.hpp"
 #include "game/systems/turret.hpp"
 #include "game/systems/ui_highscore.hpp"
 #include "game/systems/ui_place_entity.hpp"
@@ -64,12 +65,13 @@ init_game_state(entt::registry& registry)
   create_hierarchy_root_node(registry);
   create_camera(registry);
 
-  // auto player = create_player(registry);
-  // auto& player_transform = registry.get<TransformComponent>(player);
-  // player_transform.position.x = 600;
-  // player_transform.position.y = 400;
-  // auto& player_speed = registry.get<PlayerComponent>(player);
-  // player_speed.speed = 250.0f;
+  auto player = create_player(registry);
+  auto& player_transform = registry.get<TransformComponent>(player);
+  player_transform.position.x = 600;
+  player_transform.position.y = 400;
+  auto& player_speed = registry.get<PlayerComponent>(player);
+  player_speed.speed = 250.0f;
+
   // for (int i = 0; i < gs.initial_asteroids; i++)
   //   auto asteroid = create_asteroid(registry);
 };
@@ -112,9 +114,7 @@ game2d::fixed_update(entt::registry& registry, engine::Application& app, float f
   Uint64 start_physics = SDL_GetPerformanceCounter();
   {
     if (!gp.paused) {
-
-      update_player_system(registry);
-
+      update_player_inputs_system(registry);
       update_lifecycle_system(registry, fixed_dt);
       // TODO: update hroot.children if entity is removed
 
@@ -145,17 +145,17 @@ game2d::update(entt::registry& registry, engine::Application& app, float dt)
     const auto& input = registry.ctx().at<SINGLETON_InputComponent>();
 
     if (ri.viewport_process_events) {
-      {
-        auto& gp = registry.ctx().at<SINGLETON_GamePausedComponent>();
-        if (get_key_down(input, SDL_SCANCODE_P))
-          gp.paused = !gp.paused;
-      }
-      if (get_key_down(input, SDL_SCANCODE_R))
-        init_game_state(registry);
-      if (get_key_down(input, SDL_SCANCODE_F))
-        app.window->toggle_fullscreen();
-      if (get_key_down(input, SDL_SCANCODE_ESCAPE))
-        app.shutdown();
+      //   {
+      //     auto& gp = registry.ctx().at<SINGLETON_GamePausedComponent>();
+      //     if (get_key_down(input, SDL_SCANCODE_P))
+      //       gp.paused = !gp.paused;
+      //   }
+      //   if (get_key_down(input, SDL_SCANCODE_R))
+      //     init_game_state(registry);
+      //   if (get_key_down(input, SDL_SCANCODE_F))
+      //     app.window->toggle_fullscreen();
+      //   if (get_key_down(input, SDL_SCANCODE_ESCAPE))
+      //     app.shutdown();
     }
     {
       auto& go = registry.ctx().at<SINGLETON_GameOverComponent>();
@@ -167,6 +167,7 @@ game2d::update(entt::registry& registry, engine::Application& app, float dt)
     if (!gp.paused) {
       // ... systems that always update (when not paused)
       {
+        update_player_system(registry);
         // update_audio_system(registry);
         // update_cursor_system(registry);
         // update_asteroid_system(registry);

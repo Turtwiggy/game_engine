@@ -1,6 +1,9 @@
 #pragma once
 
+#include <SDL2/SDL_keycode.h>
 #include <entt/entt.hpp>
+
+#include <queue>
 
 namespace game2d {
 
@@ -10,9 +13,18 @@ struct AsteroidComponent
   float spin_amount = 0.0f;
 };
 
+struct InputEvent
+{
+  SDL_Scancode key;
+  bool release = false;
+};
+
 struct PlayerComponent
 {
   float speed = 0.0f;
+
+  // these events are processed at fixedinput
+  std::queue<InputEvent> unprocessed_keyboard_inputs;
 };
 
 struct TurretComponent

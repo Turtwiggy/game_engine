@@ -11,50 +11,50 @@
 
 #include "engine/maths/maths.hpp"
 
+#include <imgui.h>
+
+// maybe the player queue should have a
+// list of all inputs pressed by a player
+
 void
 game2d::update_player_system(entt::registry& r)
 {
-  const auto& input = r.ctx().at<SINGLETON_InputComponent>();
   const auto& p = r.ctx().at<SINGLETON_PhysicsComponent>();
   auto& gameover = r.ctx().at<SINGLETON_GameOverComponent>();
   auto& eb = r.ctx().at<SINGLETON_EntityBinComponent>();
+  auto& input = r.ctx().at<SINGLETON_InputComponent>();
 
   //
-  // Move player(s)
+  // Capture player(s) inputs
   //
 
-  const auto& view = r.view<const PlayerComponent, VelocityComponent, TransformComponent>();
-  view.each([&input, &r](const auto& player, auto& vel, auto& transform) {
-    // if (get_key_held(input, SDL_SCANCODE_W))
-    //   vel.y = -1 * player.speed;
-    // if (get_key_held(input, SDL_SCANCODE_S))
-    //   vel.y = 1 * player.speed;
-    // if (get_key_held(input, SDL_SCANCODE_A))
-    //   vel.x = -1 * player.speed;
-    // if (get_key_held(input, SDL_SCANCODE_D))
-    //   vel.x = 1 * player.speed;
+  ImGui::Begin("Player");
 
-    // if (get_key_up(input, SDL_SCANCODE_A) || get_key_up(input, SDL_SCANCODE_D))
-    //   vel.x = 0.0f;
-    // if (get_key_up(input, SDL_SCANCODE_W) || get_key_up(input, SDL_SCANCODE_S))
-    //   vel.y = 0.0f;
+  const auto& view = r.view<PlayerComponent>();
+  view.each([&input, &r](auto& player) {
+    //
+    if (get_key_down(input, SDL_SCANCODE_W))
+      player.unprocessed_keyboard_inputs.push({ SDL_SCANCODE_W, false });
+    if (get_key_down(input, SDL_SCANCODE_A))
+      player.unprocessed_keyboard_inputs.push({ SDL_SCANCODE_A, false });
+    if (get_key_down(input, SDL_SCANCODE_S))
+      player.unprocessed_keyboard_inputs.push({ SDL_SCANCODE_S, false });
+    if (get_key_down(input, SDL_SCANCODE_D))
+      player.unprocessed_keyboard_inputs.push({ SDL_SCANCODE_D, false });
+    if (get_key_up(input, SDL_SCANCODE_W))
+      player.unprocessed_keyboard_inputs.push({ SDL_SCANCODE_W, true });
+    if (get_key_up(input, SDL_SCANCODE_A))
+      player.unprocessed_keyboard_inputs.push({ SDL_SCANCODE_A, true });
+    if (get_key_up(input, SDL_SCANCODE_S))
+      player.unprocessed_keyboard_inputs.push({ SDL_SCANCODE_S, true });
+    if (get_key_up(input, SDL_SCANCODE_D))
+      player.unprocessed_keyboard_inputs.push({ SDL_SCANCODE_D, true });
+    // if (get_mouse_lmb_press())
+    //   player.unprocessed_inputs.push({ SDL_MOUSEBUTTONDOWN, false });
+    // if (get_mouse_lmb_release())
+    //   player.unprocessed_inputs.push({})
 
-    // Shoot()
-    // if (get_mouse_lmb_press()) {
-    //   entt::entity bullet = create_bullet(r);
-    //   const int BULLET_SPEED = 500;
-    //   const auto& mouse_pos = input.mouse_position_in_worldspace;
-    //   glm::vec2 dir = { mouse_pos.x - transform.position.x, mouse_pos.y - transform.position.y };
-    //   if (dir.x != 0.0f && dir.y != 0.0f)
-    //     dir = glm::normalize(dir);
-    //   auto& bullet_velocity = r.get<VelocityComponent>(bullet);
-    //   bullet_velocity.x = dir.x * BULLET_SPEED;
-    //   bullet_velocity.y = dir.y * BULLET_SPEED;
-    //   auto& bullet_transform = r.get<TransformComponent>(bullet);
-    //   bullet_transform.position = transform.position;
-    //   float angle = engine::dir_to_angle_radians(dir);
-    //   bullet_transform.rotation.z = angle - engine::HALF_PI;
-    // }
+    ImGui::Text("Player: %i", player.unprocessed_keyboard_inputs.size());
 
     // .. rotate to velocity
     // .. IMPROVEMENT
@@ -64,6 +64,8 @@ game2d::update_player_system(entt::registry& r)
     // if (glm::abs(vel.x) > EPSILON || glm::abs(vel.y) > EPSILON)
     //   transform.rotation.z = engine::dir_to_angle_radians({ vel.x, vel.y }) - engine::HALF_PI;
   });
+
+  ImGui::End();
 
   //
   // Resolve player-asteroid collisions

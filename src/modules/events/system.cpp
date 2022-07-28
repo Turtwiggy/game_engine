@@ -44,16 +44,11 @@ game2d::update_input_system(entt::registry& registry, engine::Application& app)
 
   input.keys_pressed.clear();
   input.keys_released.clear();
-
-  int app_frame = app.get_frame();
+  input.sdl_events.clear();
 
   SDL_Event e;
   while (SDL_PollEvent(&e)) {
-
-    AppEvent evt;
-    evt.evt = e;
-    evt.frame = app_frame;
-    input.sdl_events.push(evt);
+    input.sdl_events.push_back(e);
 
     // Events to quit
     if (e.type == SDL_QUIT)

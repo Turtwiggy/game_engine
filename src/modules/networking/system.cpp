@@ -291,18 +291,20 @@ game2d::update_networking_system(entt::registry& r)
       pIncomingMsg->Release(); // We don't need this anymore.
     }
 
-    SINGLETON_InputComponent& input = r.ctx().at<SINGLETON_InputComponent>();
-
     // PollLocalUserInput
     const int protocol = k_nSteamNetworkingSend_Reliable;
 
     // HACK: the below is just to get some input sending to the server
-    // BUG: should not be doing any input things in fixed_update()
+    auto& input = r.ctx().at<SINGLETON_InputComponent>();
+    const auto& view = r.view<PlayerComponent>();
+    view.each([&input, &r, &client](auto& player) {
+      while (!player.unprocessed_keyboard_inputs.empty()) {
+        InputEvent key = player.unprocessed_keyboard_inputs.front();
+        player.unprocessed_keyboard_inputs.pop();
 
-    // if (str != "") {
-    //   std::cout << "str: " << str << std::endl;
-    //   const char* buf = str.c_str();
-    //   client.interface->SendMessageToConnection(client.connection, buf, (uint32)strlen(buf), protocol, nullptr);
-    // }
+        char buf[128] = { key.key };
+        client.interface->SendMessageToConnection(client.connection, buf, (uint32)strlen(buf), protocol, nullptr);
+      }
+    });
   }
 };
