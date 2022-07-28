@@ -9,6 +9,7 @@
 #include <imgui.h>
 
 #include <iostream>
+#include <vector>
 
 void
 game2d::init_input_system(entt::registry& registry)
@@ -43,11 +44,16 @@ game2d::update_input_system(entt::registry& registry, engine::Application& app)
 
   input.keys_pressed.clear();
   input.keys_released.clear();
-  input.sdl_events.clear();
+
+  int app_frame = app.get_frame();
 
   SDL_Event e;
   while (SDL_PollEvent(&e)) {
-    input.sdl_events.push_back(e);
+
+    AppEvent evt;
+    evt.evt = e;
+    evt.frame = app_frame;
+    input.sdl_events.push(evt);
 
     // Events to quit
     if (e.type == SDL_QUIT)

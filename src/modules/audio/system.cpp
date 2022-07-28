@@ -66,24 +66,28 @@ update_audio_system(entt::registry& registry)
   const auto& events = registry.ctx().at<SINGLETON_InputComponent>();
   auto& audio = registry.ctx().at<SINGLETON_AudioComponent>();
 
-  auto audio_added = std::find_if(
-    events.sdl_events.begin(), events.sdl_events.end(), [](const auto& e) { return e.type == SDL_AUDIODEVICEADDED; });
-  auto audio_removed = std::find_if(
-    events.sdl_events.begin(), events.sdl_events.end(), [](const auto& e) { return e.type == SDL_AUDIODEVICEREMOVED; });
+  // TODO: fix audio
 
-  if (audio_added != events.sdl_events.end()) {
-    const int count = SDL_GetNumAudioDevices(0);
-    std::cout << "(audio device added) Audio Devices: " << count << std::endl;
-  }
+  // auto audio_added = std::find_if(
+  //   events.sdl_events.begin(), events.sdl_events.end(), [](const auto& e) { return e.type == SDL_AUDIODEVICEADDED;
+  //   });
+  // auto audio_removed = std::find_if(
+  //   events.sdl_events.begin(), events.sdl_events.end(), [](const auto& e) { return e.type == SDL_AUDIODEVICEREMOVED;
+  //   });
 
-  // Note: this event is only fired if the device was in use by sdl.
-  if (audio_removed != events.sdl_events.end()) {
-    const int count = SDL_GetNumAudioDevices(0);
-    std::cout << "(audio device removed). Audio devices: " << count << std::endl;
-  }
+  // if (audio_added != events.sdl_events.end()) {
+  //   const int count = SDL_GetNumAudioDevices(0);
+  //   std::cout << "(audio device added) Audio Devices: " << count << std::endl;
+  // }
 
-  if (audio.dev == -1) // Failed to open - TODO: implement retry?
-    return;
+  // // Note: this event is only fired if the device was in use by sdl.
+  // if (audio_removed != events.sdl_events.end()) {
+  //   const int count = SDL_GetNumAudioDevices(0);
+  //   std::cout << "(audio device removed). Audio devices: " << count << std::endl;
+  // }
+
+  // if (audio.dev == -1) // Failed to open - TODO: implement retry?
+  //   return;
 
   // EXAMPLE: playing audio
   // if (get_mouse_rmb_press()) {

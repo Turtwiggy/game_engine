@@ -113,6 +113,8 @@ game2d::fixed_update(entt::registry& registry, engine::Application& app, float f
   {
     if (!gp.paused) {
 
+      update_player_system(registry);
+
       update_lifecycle_system(registry, fixed_dt);
       // TODO: update hroot.children if entity is removed
 
@@ -165,7 +167,6 @@ game2d::update(entt::registry& registry, engine::Application& app, float dt)
     if (!gp.paused) {
       // ... systems that always update (when not paused)
       {
-        update_player_system(registry);
         // update_audio_system(registry);
         // update_cursor_system(registry);
         // update_asteroid_system(registry);

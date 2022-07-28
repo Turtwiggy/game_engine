@@ -8,14 +8,21 @@
 #include <SDL2/SDL_mouse.h>
 #include <glm/glm.hpp>
 
+#include <map>
+#include <queue>
 #include <vector>
 
 namespace game2d {
 
+struct AppEvent
+{
+  SDL_Event evt;
+  int frame = 0;
+};
+
 struct SINGLETON_InputComponent
 {
-  // all sdl events
-  std::vector<SDL_Event> sdl_events;
+  std::queue<AppEvent> sdl_events;
 
   // mouse
   const int CURSOR_SIZE = 16;

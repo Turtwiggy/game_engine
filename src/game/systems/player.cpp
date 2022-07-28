@@ -25,19 +25,19 @@ game2d::update_player_system(entt::registry& r)
 
   const auto& view = r.view<const PlayerComponent, VelocityComponent, TransformComponent>();
   view.each([&input, &r](const auto& player, auto& vel, auto& transform) {
-    if (get_key_held(input, SDL_SCANCODE_W))
-      vel.y = -1 * player.speed;
-    if (get_key_held(input, SDL_SCANCODE_S))
-      vel.y = 1 * player.speed;
-    if (get_key_held(input, SDL_SCANCODE_A))
-      vel.x = -1 * player.speed;
-    if (get_key_held(input, SDL_SCANCODE_D))
-      vel.x = 1 * player.speed;
+    // if (get_key_held(input, SDL_SCANCODE_W))
+    //   vel.y = -1 * player.speed;
+    // if (get_key_held(input, SDL_SCANCODE_S))
+    //   vel.y = 1 * player.speed;
+    // if (get_key_held(input, SDL_SCANCODE_A))
+    //   vel.x = -1 * player.speed;
+    // if (get_key_held(input, SDL_SCANCODE_D))
+    //   vel.x = 1 * player.speed;
 
-    if (get_key_up(input, SDL_SCANCODE_A) || get_key_up(input, SDL_SCANCODE_D))
-      vel.x = 0.0f;
-    if (get_key_up(input, SDL_SCANCODE_W) || get_key_up(input, SDL_SCANCODE_S))
-      vel.y = 0.0f;
+    // if (get_key_up(input, SDL_SCANCODE_A) || get_key_up(input, SDL_SCANCODE_D))
+    //   vel.x = 0.0f;
+    // if (get_key_up(input, SDL_SCANCODE_W) || get_key_up(input, SDL_SCANCODE_S))
+    //   vel.y = 0.0f;
 
     // Shoot()
     // if (get_mouse_lmb_press()) {

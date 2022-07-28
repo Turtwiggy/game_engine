@@ -294,32 +294,10 @@ game2d::update_networking_system(entt::registry& r)
     SINGLETON_InputComponent& input = r.ctx().at<SINGLETON_InputComponent>();
 
     // PollLocalUserInput
-    // HACK: the below is just to get some input sending to the server
     const int protocol = k_nSteamNetworkingSend_Reliable;
 
-    // std::string str = "";
-
+    // HACK: the below is just to get some input sending to the server
     // BUG: should not be doing any input things in fixed_update()
-
-    // // str is bad but just to get things working
-    // if (get_key_down(input, SDL_SCANCODE_RETURN))
-    //   str += ",spawn";
-    // if (get_key_down(input, SDL_SCANCODE_W))
-    //   str += ",w_press";
-    // if (get_key_down(input, SDL_SCANCODE_A))
-    //   str += ",a_press";
-    // if (get_key_down(input, SDL_SCANCODE_S))
-    //   str += ",s_press";
-    // if (get_key_down(input, SDL_SCANCODE_D))
-    //   str += ",d_press";
-    // if (get_key_up(input, SDL_SCANCODE_W))
-    //   str += ",w_release";
-    // if (get_key_up(input, SDL_SCANCODE_S))
-    //   str += ",s_release";
-    // if (get_key_up(input, SDL_SCANCODE_A))
-    //   str += ",a_release";
-    // if (get_key_up(input, SDL_SCANCODE_D))
-    //   str += ",d_release";
 
     // if (str != "") {
     //   std::cout << "str: " << str << std::endl;
