@@ -6,16 +6,44 @@
 #include <SDL2/SDL_gamecontroller.h>
 #include <SDL2/SDL_keycode.h>
 #include <SDL2/SDL_mouse.h>
+#include <entt/entt.hpp>
 #include <glm/glm.hpp>
+#include <nlohmann/json.hpp>
 
 #include <map>
+#include <queue>
 #include <vector>
 
 namespace game2d {
 
+struct InputEvent
+{
+  entt::entity player;
+  SDL_Scancode key;
+  bool release = false;
+  bool mouse = false;
+
+  bool controller = false;
+  SDL_GameControllerButton button;
+  SDL_GameControllerAxis axis;
+};
+
+struct SINGLETON_FixedUpdateInputHistory
+{
+  // techniques to combat packet loss & high latency
+  // sliding server buffer to contain more history of inputs
+  // contract fixed time to e.g. 16 -> 15.2 to send inputs more frequently on client
+  // send size of history from last ack frame to current frame
+  int max_history_size = 15; // could be the time between an ack frame vs cur frame
+  std::queue<std::vector<InputEvent>> history;
+
+  // NLOHMANN_DEFINE_TYPE_INTRUSIVE(SINGLETON_FixedUpdateInputHistory, max_history_size, history)
+};
+
 struct SINGLETON_InputComponent
 {
   std::vector<SDL_Event> sdl_events;
+  std::vector<InputEvent> unprocessed_update_inputs;
 
   // mouse
   const int CURSOR_SIZE = 16;
@@ -30,8 +58,7 @@ struct SINGLETON_InputComponent
 
   // connected controllers
   // std::vector<SDL_GameController*> controllers;
-
-  // joystick-id, to frame-button associaton
+  // joystick-id, to button associaton
   // std::map<SDL_JoystickID, std::vector<std::pair<uint64_t, Uint8>>> controller_buttons_pressed;
 };
 

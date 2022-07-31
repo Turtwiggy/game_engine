@@ -35,7 +35,4 @@ send_string_to_all_clients(ISteamNetworkingSockets* interface,
                            const char* str,
                            HSteamNetConnection except = k_HSteamNetConnection_Invalid);
 
-void
-OnSteamNetConnectionStatusChanged(entt::registry& r, SteamNetConnectionStatusChangedCallback_t* info);
-
 }; // namespace game2d

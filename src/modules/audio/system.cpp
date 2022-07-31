@@ -40,8 +40,8 @@ init_audio_system(entt::registry& registry)
   int channels = 2;
   int samples = 4096;
 
-  audio.dev = Mix_OpenAudioDevice(freq, format, channels, samples, NULL, SDL_AUDIO_ALLOW_ANY_CHANGE);
-  if (audio.dev == -1) {
+  audio.device = Mix_OpenAudioDevice(freq, format, channels, samples, NULL, SDL_AUDIO_ALLOW_ANY_CHANGE);
+  if (audio.device == -1) {
     std::cerr << "Failed to open audio: " << SDL_GetError() << std::endl;
     registry.ctx().emplace<SINGLETON_AudioComponent>(audio);
     return;

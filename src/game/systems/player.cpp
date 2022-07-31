@@ -28,33 +28,29 @@ game2d::update_player_system(entt::registry& r)
   // Capture player(s) inputs
   //
 
-  ImGui::Begin("Player");
-
   const auto& view = r.view<PlayerComponent>();
-  view.each([&input, &r](auto& player) {
-    //
+  view.each([&input, &r](auto entity, auto& player) {
+    // just capture inputs and process them in fixedupdate()
     if (get_key_down(input, SDL_SCANCODE_W))
-      player.unprocessed_keyboard_inputs.push({ SDL_SCANCODE_W, false });
+      input.unprocessed_update_inputs.push_back({ entity, SDL_SCANCODE_W, false });
     if (get_key_down(input, SDL_SCANCODE_A))
-      player.unprocessed_keyboard_inputs.push({ SDL_SCANCODE_A, false });
+      input.unprocessed_update_inputs.push_back({ entity, SDL_SCANCODE_A, false });
     if (get_key_down(input, SDL_SCANCODE_S))
-      player.unprocessed_keyboard_inputs.push({ SDL_SCANCODE_S, false });
+      input.unprocessed_update_inputs.push_back({ entity, SDL_SCANCODE_S, false });
     if (get_key_down(input, SDL_SCANCODE_D))
-      player.unprocessed_keyboard_inputs.push({ SDL_SCANCODE_D, false });
+      input.unprocessed_update_inputs.push_back({ entity, SDL_SCANCODE_D, false });
     if (get_key_up(input, SDL_SCANCODE_W))
-      player.unprocessed_keyboard_inputs.push({ SDL_SCANCODE_W, true });
+      input.unprocessed_update_inputs.push_back({ entity, SDL_SCANCODE_W, true });
     if (get_key_up(input, SDL_SCANCODE_A))
-      player.unprocessed_keyboard_inputs.push({ SDL_SCANCODE_A, true });
+      input.unprocessed_update_inputs.push_back({ entity, SDL_SCANCODE_A, true });
     if (get_key_up(input, SDL_SCANCODE_S))
-      player.unprocessed_keyboard_inputs.push({ SDL_SCANCODE_S, true });
+      input.unprocessed_update_inputs.push_back({ entity, SDL_SCANCODE_S, true });
     if (get_key_up(input, SDL_SCANCODE_D))
-      player.unprocessed_keyboard_inputs.push({ SDL_SCANCODE_D, true });
-    // if (get_mouse_lmb_press())
-    //   player.unprocessed_inputs.push({ SDL_MOUSEBUTTONDOWN, false });
-    // if (get_mouse_lmb_release())
-    //   player.unprocessed_inputs.push({})
-
-    ImGui::Text("Player: %i", player.unprocessed_keyboard_inputs.size());
+      input.unprocessed_update_inputs.push_back({ entity, SDL_SCANCODE_D, true });
+    if (get_mouse_lmb_press())
+      input.unprocessed_update_inputs.push_back({ entity, SDL_SCANCODE_UNKNOWN, false, true });
+    if (get_mouse_lmb_release())
+      input.unprocessed_update_inputs.push_back({ entity, SDL_SCANCODE_UNKNOWN, true, true });
 
     // .. rotate to velocity
     // .. IMPROVEMENT
@@ -64,8 +60,6 @@ game2d::update_player_system(entt::registry& r)
     // if (glm::abs(vel.x) > EPSILON || glm::abs(vel.y) > EPSILON)
     //   transform.rotation.z = engine::dir_to_angle_radians({ vel.x, vel.y }) - engine::HALF_PI;
   });
-
-  ImGui::End();
 
   //
   // Resolve player-asteroid collisions

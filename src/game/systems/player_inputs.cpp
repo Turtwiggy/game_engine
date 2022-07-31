@@ -4,23 +4,36 @@
 #include "modules/events/components.hpp"
 
 #include <iostream>
+#include <string>
 
 void
 game2d::update_player_inputs_system(entt::registry& r)
 {
-  auto& input = r.ctx().at<SINGLETON_InputComponent>();
+  {
+    // move all unprocessed inputs from Update() to FixedUpdate()
+    auto& input = r.ctx().at<SINGLETON_InputComponent>();
+    auto& fixed_input = r.ctx().at<SINGLETON_FixedUpdateInputHistory>();
+    fixed_input.history.emplace(std::move(input.unprocessed_update_inputs));
+
+    // only store the last X fixed_inputs
+    if (fixed_input.history.size() > fixed_input.max_history_size)
+      fixed_input.history.pop();
+  }
+
+  const auto& inputs = r.ctx().at<SINGLETON_FixedUpdateInputHistory>();
+  const auto& unprocessed_update_input = inputs.history.back();
+
   const auto& view = r.view<PlayerComponent>();
-
-  view.each([&input, &r](auto& player) {
-    // process all inputs
-
-    int size = player.unprocessed_keyboard_inputs.size();
-    if (size > 0)
-      std::cout << "processing " << size << std::endl;
-
-    // TODO: actually process the events
-    // while (!player.unprocessed_keyboard_inputs.empty())
-    //   player.unprocessed_keyboard_inputs.pop();
+  view.each([&r, &unprocessed_update_input](auto entity, auto& player) {
+    for (int i = 0; i < unprocessed_update_input.size(); i++) {
+      const auto& any_input = unprocessed_update_input[i];
+      if (any_input.player != entity)
+        continue; // wasn't this player's input
+      // was this player's input
+      //
+      // TODO: (this)
+      std::cout << "Processing player input: " << std::to_string(any_input.key) << std::endl;
+    }
   });
 
   // if (get_key_held(input, SDL_SCANCODE_W))
