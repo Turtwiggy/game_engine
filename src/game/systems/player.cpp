@@ -1,6 +1,5 @@
 #include "player.hpp"
 
-#include "game/components/game.hpp"
 #include "game/create_entities.hpp"
 #include "modules/events/components.hpp"
 #include "modules/events/helpers/keyboard.hpp"
@@ -31,26 +30,37 @@ game2d::update_player_system(entt::registry& r)
   const auto& view = r.view<PlayerComponent>();
   view.each([&input, &r](auto entity, auto& player) {
     // just capture inputs and process them in fixedupdate()
-    if (get_key_down(input, SDL_SCANCODE_W))
-      input.unprocessed_update_inputs.push_back({ entity, SDL_SCANCODE_W, false });
-    if (get_key_down(input, SDL_SCANCODE_A))
-      input.unprocessed_update_inputs.push_back({ entity, SDL_SCANCODE_A, false });
-    if (get_key_down(input, SDL_SCANCODE_S))
-      input.unprocessed_update_inputs.push_back({ entity, SDL_SCANCODE_S, false });
-    if (get_key_down(input, SDL_SCANCODE_D))
-      input.unprocessed_update_inputs.push_back({ entity, SDL_SCANCODE_D, false });
-    if (get_key_up(input, SDL_SCANCODE_W))
-      input.unprocessed_update_inputs.push_back({ entity, SDL_SCANCODE_W, true });
-    if (get_key_up(input, SDL_SCANCODE_A))
-      input.unprocessed_update_inputs.push_back({ entity, SDL_SCANCODE_A, true });
-    if (get_key_up(input, SDL_SCANCODE_S))
-      input.unprocessed_update_inputs.push_back({ entity, SDL_SCANCODE_S, true });
-    if (get_key_up(input, SDL_SCANCODE_D))
-      input.unprocessed_update_inputs.push_back({ entity, SDL_SCANCODE_D, true });
+
+    if (get_key_down(input, player.W))
+      input.unprocessed_update_inputs.push_back(
+        { INPUT_TYPE::KEYBOARD, entity, false, static_cast<uint32_t>(player.W) });
+    if (get_key_down(input, player.A))
+      input.unprocessed_update_inputs.push_back(
+        { INPUT_TYPE::KEYBOARD, entity, false, static_cast<uint32_t>(player.A) });
+    if (get_key_down(input, player.S))
+      input.unprocessed_update_inputs.push_back(
+        { INPUT_TYPE::KEYBOARD, entity, false, static_cast<uint32_t>(player.S) });
+    if (get_key_down(input, player.D))
+      input.unprocessed_update_inputs.push_back(
+        { INPUT_TYPE::KEYBOARD, entity, false, static_cast<uint32_t>(player.D) });
+
+    if (get_key_up(input, player.W))
+      input.unprocessed_update_inputs.push_back(
+        { INPUT_TYPE::KEYBOARD, entity, true, static_cast<uint32_t>(player.W) });
+    if (get_key_up(input, player.A))
+      input.unprocessed_update_inputs.push_back(
+        { INPUT_TYPE::KEYBOARD, entity, true, static_cast<uint32_t>(player.A) });
+    if (get_key_up(input, player.S))
+      input.unprocessed_update_inputs.push_back(
+        { INPUT_TYPE::KEYBOARD, entity, true, static_cast<uint32_t>(player.S) });
+    if (get_key_up(input, player.D))
+      input.unprocessed_update_inputs.push_back(
+        { INPUT_TYPE::KEYBOARD, entity, true, static_cast<uint32_t>(player.D) });
+
     if (get_mouse_lmb_press())
-      input.unprocessed_update_inputs.push_back({ entity, SDL_SCANCODE_UNKNOWN, false, true });
+      input.unprocessed_update_inputs.push_back({ INPUT_TYPE::MOUSE, entity, false, SDL_BUTTON_LEFT });
     if (get_mouse_lmb_release())
-      input.unprocessed_update_inputs.push_back({ entity, SDL_SCANCODE_UNKNOWN, true, true });
+      input.unprocessed_update_inputs.push_back({ INPUT_TYPE::MOUSE, entity, true, SDL_BUTTON_LEFT });
 
     // .. rotate to velocity
     // .. IMPROVEMENT

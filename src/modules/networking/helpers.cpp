@@ -116,12 +116,13 @@ close_networking()
 {
   // TODO: close connections, then do below
 
+  // TODO: do this?
   // #ifdef STEAMNETWORKINGSOCKETS_OPENSOURCE
   //     GameNetworkingSockets_Kill();
   // #else
   //     SteamDatagramClient_Kill();
   // #endif
-  exit(0); // TODO: do this properly
+  exit(0);
 }
 
 void
@@ -139,6 +140,55 @@ send_string_to_all_clients(ISteamNetworkingSockets* interface,
 {
   for (auto& c : clients)
     send_string_to_client(interface, c, str);
+}
+
+void
+server_receive_messages_on_poll_group(SINGLETON_ServerComponent& server, std::vector<std::string>& result)
+{
+  constexpr int max_messages = 32;
+  ISteamNetworkingMessage* all_msgs[max_messages] = {};
+  int num_msgs = server.interface->ReceiveMessagesOnPollGroup(server.group, all_msgs, max_messages);
+
+  if (num_msgs < 0)
+    std::cerr << "Error checking for messages" << std::endl;
+
+  for (int i = 0; i < num_msgs; i++) {
+    ISteamNetworkingMessage* msg = all_msgs[i];
+    assert(msg);
+
+    auto conn = std::find(server.clients.begin(), server.clients.end(), msg->m_conn);
+    assert(conn != server.clients.end());
+
+    std::string sCmd;
+    sCmd.assign((const char*)msg->m_pData, msg->m_cbSize);
+    msg->Release(); // We don't need this anymore.
+
+    result.push_back(sCmd);
+  }
+}
+
+void
+client_receive_messages_on_connection(SINGLETON_ClientComponent& client, std::vector<std::string>& result)
+{
+  constexpr int max_messages = 32;
+  ISteamNetworkingMessage* all_msgs[max_messages] = {};
+  int num_msgs = client.interface->ReceiveMessagesOnConnection(client.connection, all_msgs, max_messages);
+
+  if (num_msgs < 0)
+    std::cerr << "(client) error checking for messages" << std::endl;
+
+  {
+    for (int i = 0; i < num_msgs; i++) {
+      ISteamNetworkingMessage* msg = all_msgs[i];
+      assert(msg);
+
+      std::string data;
+      data.assign((const char*)msg->m_pData, msg->m_cbSize);
+      msg->Release(); // We don't need this anymore.
+
+      result.push_back(data);
+    }
+  }
 }
 
 } // namespace game2d

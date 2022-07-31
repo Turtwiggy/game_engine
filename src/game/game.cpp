@@ -33,20 +33,16 @@
 #include "resources/textures.hpp"
 
 // game systems
-#include "game/components/game.hpp"
 #include "game/create_entities.hpp"
 #include "game/systems/asteroid.hpp"
 #include "game/systems/player.hpp"
 #include "game/systems/player_inputs.hpp"
 #include "game/systems/turret.hpp"
-#include "game/systems/ui_highscore.hpp"
+#include "game/systems/ui_main_menu.hpp"
 #include "game/systems/ui_place_entity.hpp"
 
 // other lib
 #include <glm/glm.hpp>
-
-// std lib
-#include <string>
 
 namespace game2d {
 
@@ -55,7 +51,6 @@ init_game_state(entt::registry& r)
 {
   r.each([&r](auto entity) { r.destroy(entity); });
   r.ctx().at<SINGLETON_PhysicsComponent>() = SINGLETON_PhysicsComponent();
-  r.ctx().at<SINGLETON_GamePausedComponent>() = SINGLETON_GamePausedComponent();
   r.ctx().at<SINGLETON_GameOverComponent>() = SINGLETON_GameOverComponent();
   r.ctx().at<SINGLETON_HierarchyComponent>() = SINGLETON_HierarchyComponent();
   r.ctx().at<SINGLETON_EntityBinComponent>() = SINGLETON_EntityBinComponent();
@@ -68,8 +63,8 @@ init_game_state(entt::registry& r)
 
   auto player = create_player(r);
   auto& player_transform = r.get<TransformComponent>(player);
-  player_transform.position.x = 600;
-  player_transform.position.y = 400;
+  player_transform.position.x = 100;
+  player_transform.position.y = 100;
   auto& player_speed = r.get<PlayerComponent>(player);
   player_speed.speed = 250.0f;
 
@@ -96,7 +91,6 @@ game2d::init(entt::registry& r, glm::ivec2 screen_wh)
 
   // emplace game things once (as they are delete/reinit at any time)
   r.ctx().emplace<SINGLETON_PhysicsComponent>();
-  r.ctx().emplace<SINGLETON_GamePausedComponent>();
   r.ctx().emplace<SINGLETON_GameOverComponent>();
   r.ctx().emplace<SINGLETON_HierarchyComponent>();
   r.ctx().emplace<SINGLETON_EntityBinComponent>();
@@ -109,25 +103,22 @@ game2d::init(entt::registry& r, glm::ivec2 screen_wh)
 void
 game2d::fixed_update(entt::registry& r, engine::Application& app, float fixed_dt)
 {
-  const auto& gp = r.ctx().at<SINGLETON_GamePausedComponent>();
   auto& p = r.ctx().at<Profiler>();
 
   // physics
   Uint64 start_physics = SDL_GetPerformanceCounter();
   {
-    if (!gp.paused) {
+    // process player's inputs from Update()
+    update_player_inputs_system(r);
 
-      update_player_inputs_system(r);
+    // destroy objects
+    update_lifecycle_system(r, fixed_dt);
 
-      update_lifecycle_system(r, fixed_dt);
-      // TODO: update hroot.children if entity is removed
+    // move objects, checking collisions along way
+    update_move_objects_system(r, app, fixed_dt);
 
-      // move objects, checking collisions along way
-      update_move_objects_system(r, app, fixed_dt);
-
-      // generate all collisions between actor-actor objects
-      update_actor_actor_system(r, app);
-    }
+    // generate all collisions between actor-actor objects
+    update_actor_actor_system(r, app);
 
     update_networking_system(r);
   }
@@ -153,12 +144,12 @@ game2d::update(entt::registry& r, engine::Application& app, float dt)
       //     if (get_key_down(input, SDL_SCANCODE_P))
       //       gp.paused = !gp.paused;
       //   }
-      //   if (get_key_down(input, SDL_SCANCODE_R))
-      //     init_game_state(r);
-      //   if (get_key_down(input, SDL_SCANCODE_F))
-      //     app.window->toggle_fullscreen();
-      //   if (get_key_down(input, SDL_SCANCODE_ESCAPE))
-      //     app.shutdown();
+      // if (get_key_down(input, SDL_SCANCODE_R))
+      //   init_game_state(r);
+      if (get_key_down(input, SDL_SCANCODE_F))
+        app.window->toggle_fullscreen();
+      if (get_key_down(input, SDL_SCANCODE_ESCAPE))
+        app.shutdown();
     }
     {
       auto& go = r.ctx().at<SINGLETON_GameOverComponent>();
@@ -166,22 +157,19 @@ game2d::update(entt::registry& r, engine::Application& app, float dt)
         init_game_state(r);
     }
 
-    auto& gp = r.ctx().at<SINGLETON_GamePausedComponent>();
-    if (!gp.paused) {
-      // ... systems that always update (when not paused)
-      {
-        update_player_system(r);
-        // update_audio_system(r);
-        // update_cursor_system(r);
-        // update_asteroid_system(r);
-        // update_turret_system(r);
-      }
+    // ... systems that always update
+    {
+      update_player_system(r);
+      // update_audio_system(r);
+      // update_cursor_system(r);
+      // update_asteroid_system(r);
+      // update_turret_system(r);
+    }
 
-      // ... systems that update if viewport is focused
-      {
-        if (ri.viewport_process_events) {
-          update_camera_system(r);
-        }
+    // ... systems that update if viewport is focused
+    {
+      if (ri.viewport_process_events) {
+        update_camera_system(r);
       }
     }
   };
@@ -208,7 +196,7 @@ game2d::update(entt::registry& r, engine::Application& app, float dt)
       update_ui_place_entity_system(r);
     }
     update_ui_networking_system(r);
-    update_ui_highscore_system(r);
+    update_ui_main_menu_system(r);
   };
 
   // end frame

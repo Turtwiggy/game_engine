@@ -6,7 +6,9 @@
     "**/thirdparty": true
   },
   "files.exclude": {
-    // "**/*.obb": true
+    "build/": true,
+    "vcpkg_installed/": true,
+    "vcpkg-manifest-install.log": true
   },
   "cmake.preferredGenerators": ["Ninja"]
 }

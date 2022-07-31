@@ -11,21 +11,28 @@
 #include <nlohmann/json.hpp>
 
 #include <map>
-#include <queue>
 #include <vector>
 
 namespace game2d {
 
+enum class INPUT_TYPE
+{
+  MOUSE = 0,
+  KEYBOARD = 1,
+  CONTROLLER = 2,
+};
+
 struct InputEvent
 {
+  INPUT_TYPE type;
   entt::entity player;
-  SDL_Scancode key;
   bool release = false;
-  bool mouse = false;
+  uint32_t key;
+  // SDL_GameControllerButton button;
+  // SDL_GameControllerAxis axis;
 
-  bool controller = false;
-  SDL_GameControllerButton button;
-  SDL_GameControllerAxis axis;
+  // Note: not player, as no need to send that across the network
+  NLOHMANN_DEFINE_TYPE_INTRUSIVE(InputEvent, type, release, key)
 };
 
 struct SINGLETON_FixedUpdateInputHistory
@@ -34,10 +41,10 @@ struct SINGLETON_FixedUpdateInputHistory
   // sliding server buffer to contain more history of inputs
   // contract fixed time to e.g. 16 -> 15.2 to send inputs more frequently on client
   // send size of history from last ack frame to current frame
-  int max_history_size = 15; // could be the time between an ack frame vs cur frame
-  std::queue<std::vector<InputEvent>> history;
+  int fixed_tick_since_ack = 0;
+  std::vector<std::vector<InputEvent>> history;
 
-  // NLOHMANN_DEFINE_TYPE_INTRUSIVE(SINGLETON_FixedUpdateInputHistory, max_history_size, history)
+  NLOHMANN_DEFINE_TYPE_INTRUSIVE(SINGLETON_FixedUpdateInputHistory, fixed_tick_since_ack, history)
 };
 
 struct SINGLETON_InputComponent

@@ -7,6 +7,7 @@
 #include "modules/events/helpers/mouse.hpp"
 #include "modules/networking/components.hpp"
 #include "modules/networking/helpers.hpp"
+#include "modules/physics/components.hpp" // temp
 #include "modules/renderer/components.hpp"
 #include "modules/ui_networking/components.hpp"
 
@@ -197,51 +198,72 @@ server_tick(entt::registry& r)
   SINGLETON_ServerComponent& server = r.ctx().at<SINGLETON_ServerComponent>();
   update_server_poll_connections(server);
 
-  server.process_fixed_frame += 1;
+  // PollIncomingMessages
+  std::vector<std::string> client_messages;
+  server_receive_messages_on_poll_group(server, client_messages);
+
+  //
+  //
+  //
+
+  // as game is running...
+  // wait for all clients to send input for fixed_frame 0.
+  // then fixed frame 1 etc
+  // (bad initial idea)
+  // only tick the server process_fixed_Frame once all the inputs are received
+  // server.process_fixed_frame += 1;
+
   if (server.events.size() > 0) {
     // someone joined or left
     std::cout << "someone joined or left..." << std::endl;
   }
 
-  // PollIncomingMessages
-  ISteamNetworkingMessage* msg = nullptr;
-  int msgs = server.interface->ReceiveMessagesOnPollGroup(server.group, &msg, 1);
-
-  if (msgs < 0)
-    std::cerr << "Error checking for messages" << std::endl;
-
-  if (msgs > 0) {
-    assert(msgs == 1 && msg);
-
-    auto conn = std::find(server.clients.begin(), server.clients.end(), msg->m_conn);
-    assert(conn != server.clients.end());
-
-    // '\0'-terminate it to make it easier to parse
-    std::string sCmd;
-    sCmd.assign((const char*)msg->m_pData, msg->m_cbSize);
-
-    // We don't need this anymore.
-    msg->Release();
+  for (int i = 0; i < client_messages.size(); i++) {
 
     // Check for known commands. WARNING: un-sanitized input from client
-    // std::cout << "(server) data from client: " << sCmd << std::endl;
+    SINGLETON_FixedUpdateInputHistory player_input_history;
+    player_input_history = nlohmann::json::from_cbor(client_messages[i]);
 
-    // Input history for each player?
-    // SINGLETON_FixedUpdateInputHistory player_input_history;
-    // player_input_history = nlohmann::json::from_cbor(sCmd);
+    {
+      // const auto& unprocessed_update_input = player_input_history.history.back();
+      // const auto& view = r.view<const PlayerComponent, VelocityComponent>();
+      // view.each([&r, &unprocessed_update_input](auto entity, const auto& player, auto& vel) {
+      //   for (int i = 0; i < unprocessed_update_input.size(); i++) {
+      //     const auto& any_input = unprocessed_update_input[i];
+      //     // if (any_input.player != entity)
+      //     //   continue; // wasn't this player's input
+      //     switch (any_input.type) {
+      //       case INPUT_TYPE::KEYBOARD: {
+      //         if (any_input.key == player.W)
+      //           vel.y = -1 * player.speed;
+      //         if (any_input.key == player.S)
+      //           vel.y = 1 * player.speed;
+      //         if (any_input.key == player.A)
+      //           vel.x = -1 * player.speed;
+      //         if (any_input.key == player.D)
+      //           vel.x = 1 * player.speed;
+      //         if ((any_input.key == player.A || any_input.key == player.D) && any_input.release)
+      //           vel.x = 0.0f;
+      //         if ((any_input.key == player.W || any_input.key == player.S) && any_input.release)
+      //           vel.y = 0.0f;
+      //       }
+      //     }
+      //   }
+      // });
+    }
+  }
 
-    // WARNING: this game logic doesn't belong here
-    // if (strcmp(sCmd.c_str(), ",spawn") == 0) {
-    //   std::cout << "(server) client requested to spawn a player" << std::endl;
-    //   auto player = create_player(r);
-    //   auto& player_transform = r.get<TransformComponent>(player);
-    //   player_transform.position.x = 600;
-    //   player_transform.position.y = 400;
-    //   auto& player_speed = r.get<PlayerComponent>(player);
-    //   player_speed.speed = 250.0f;
-    //   send_string_to_client(server.interface, *conn, "Server recieved spawn request");
-    // }
-  };
+  // WARNING: this game logic doesn't belong here
+  // if (strcmp(sCmd.c_str(), ",spawn") == 0) {
+  //   std::cout << "(server) client requested to spawn a player" << std::endl;
+  //   auto player = create_player(r);
+  //   auto& player_transform = r.get<TransformComponent>(player);
+  //   player_transform.position.x = 600;
+  //   player_transform.position.y = 400;
+  //   auto& player_speed = r.get<PlayerComponent>(player);
+  //   player_speed.speed = 250.0f;
+  //   send_string_to_client(server.interface, *conn, "Server recieved spawn request");
+  // }
 };
 
 void
@@ -250,45 +272,36 @@ client_tick(entt::registry& r)
   SINGLETON_ClientComponent& client = r.ctx().at<SINGLETON_ClientComponent>();
   update_client_poll_connections(client);
 
+  // PollIncomingMessages()
+  std::vector<std::string> server_messages;
+  client_receive_messages_on_connection(client, server_messages);
+
+  for (int i = 0; i < server_messages.size(); i++) {
+    std::cout << "(client) received: " << server_messages[i] << std::endl;
+  }
+
   // ... do client things ...
 
-  // PollIncomingMessages()
-  ISteamNetworkingMessage* pIncomingMsg = nullptr;
-  int numMsgs = client.interface->ReceiveMessagesOnConnection(client.connection, &pIncomingMsg, 1);
-  if (numMsgs < 0)
-    std::cerr << "(client) error checking for messages" << std::endl;
-  if (numMsgs > 0) {
-    std::string data;
-    data.assign((const char*)pIncomingMsg->m_pData, pIncomingMsg->m_cbSize);
-    std::cout << "(client) server sent: " << data << std::endl;
-    pIncomingMsg->Release(); // We don't need this anymore.
-  }
-  if (numMsgs > 1) {
-    std::cout << "pause! how to handle more than one message" << std::endl;
-  }
-
   // PollLocalUserInput()
-  // HACK: the below is just to get some input sending to the server
-  // TODO: try a different keyboard
-  // Send inputs and input history every fixed tick.
   // TODO: https://gafferongames.com/post/deterministic_lockstep/
   // TODO: https://gafferongames.com/post/what_every_programmer_needs_to_know_about_game_networking/
+  // TODO: try a different keyboard
+  // TODO: get the client running ahead of the server?
+  // HACK: the below is just to get some input sending to the server
 
-  // the simulation can only simulate frame n when it has hte input for that frame
-  // if it doens't have the input, it has to wait.
+  const auto& inputs = r.ctx().at<SINGLETON_FixedUpdateInputHistory>();
+  auto json = inputs;
+  auto data = nlohmann::json::to_cbor(json);
 
-  // auto& inputs = r.ctx().at<SINGLETON_FixedUpdateInputHistory>();
-  // auto json = inputs;
-  // auto cbor = nlohmann::json::to_cbor(json);
-
-  std::string packet = "honk";
-  // packet.assign(cbor.begin(), cbor.end());
+  std::string packet;
+  packet.assign(data.begin(), data.end());
 
   const int protocol = k_nSteamNetworkingSend_Unreliable;
   const int max_size = k_cbMaxSteamNetworkingSocketsMessageSizeSend;
+
   if (packet.size() >= max_size)
     std::cerr << "packet wanting to send is too large, sending anyway..." << std::endl;
-  std::cout << "packet size: " << packet.size() << std::endl;
+
   client.interface->SendMessageToConnection(
     client.connection, packet.c_str(), (uint32_t)packet.size(), protocol, nullptr);
 };

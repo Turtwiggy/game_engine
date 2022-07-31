@@ -1,15 +1,5 @@
 [![License](https://img.shields.io/badge/License-Apache%202.0-blue.svg)](https://opensource.org/licenses/Apache-2.0)
 
-### Stuff
-
-- pixel-perfect aabb collision
-- ecs with entt
-- sprite animations (including spritesheets)
-- audio via sdl2_mixer
-- opengl / intanced quad renderer
-- networking (in progress)
-- 2d shadow cast lights (broken)
-
 ### Install
 
 - c++ compiler (MSVC, gcc, clang)
