@@ -9,6 +9,7 @@
 #include <imgui.h>
 
 #include <iostream>
+#include <vector>
 
 void
 game2d::init_input_system(entt::registry& registry)
@@ -93,13 +94,6 @@ game2d::update_input_system(entt::registry& registry, engine::Application& app)
     //     input_manager.process_controller_removed();
   }
 };
-
-//
-// input.move_up = false;
-// input.move_down = false;
-// input.move_left = false;
-// input.move_right = false;
-// input.jump = false;
 
 //   // convert keyboard inputs to movement actions for player
 

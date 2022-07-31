@@ -36,6 +36,9 @@ send_string_to_all_clients(ISteamNetworkingSockets* interface,
                            HSteamNetConnection except = k_HSteamNetConnection_Invalid);
 
 void
-OnSteamNetConnectionStatusChanged(entt::registry& r, SteamNetConnectionStatusChangedCallback_t* info);
+server_receive_messages_on_poll_group(SINGLETON_ServerComponent& server, std::vector<std::string>& result);
+
+void
+client_receive_messages_on_connection(SINGLETON_ClientComponent& client, std::vector<std::string>& result);
 
 }; // namespace game2d

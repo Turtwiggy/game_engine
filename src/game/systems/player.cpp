@@ -1,6 +1,5 @@
 #include "player.hpp"
 
-#include "game/components/game.hpp"
 #include "game/create_entities.hpp"
 #include "modules/events/components.hpp"
 #include "modules/events/helpers/keyboard.hpp"
@@ -11,50 +10,57 @@
 
 #include "engine/maths/maths.hpp"
 
+#include <imgui.h>
+
+// maybe the player queue should have a
+// list of all inputs pressed by a player
+
 void
 game2d::update_player_system(entt::registry& r)
 {
-  const auto& input = r.ctx().at<SINGLETON_InputComponent>();
   const auto& p = r.ctx().at<SINGLETON_PhysicsComponent>();
   auto& gameover = r.ctx().at<SINGLETON_GameOverComponent>();
   auto& eb = r.ctx().at<SINGLETON_EntityBinComponent>();
+  auto& input = r.ctx().at<SINGLETON_InputComponent>();
 
   //
-  // Move player(s)
+  // Capture player(s) inputs
   //
 
-  const auto& view = r.view<const PlayerComponent, VelocityComponent, TransformComponent>();
-  view.each([&input, &r](const auto& player, auto& vel, auto& transform) {
-    if (get_key_held(input, SDL_SCANCODE_W))
-      vel.y = -1 * player.speed;
-    if (get_key_held(input, SDL_SCANCODE_S))
-      vel.y = 1 * player.speed;
-    if (get_key_held(input, SDL_SCANCODE_A))
-      vel.x = -1 * player.speed;
-    if (get_key_held(input, SDL_SCANCODE_D))
-      vel.x = 1 * player.speed;
+  const auto& view = r.view<PlayerComponent>();
+  view.each([&input, &r](auto entity, auto& player) {
+    // just capture inputs and process them in fixedupdate()
 
-    if (get_key_up(input, SDL_SCANCODE_A) || get_key_up(input, SDL_SCANCODE_D))
-      vel.x = 0.0f;
-    if (get_key_up(input, SDL_SCANCODE_W) || get_key_up(input, SDL_SCANCODE_S))
-      vel.y = 0.0f;
+    if (get_key_down(input, player.W))
+      input.unprocessed_update_inputs.push_back(
+        { INPUT_TYPE::KEYBOARD, entity, false, static_cast<uint32_t>(player.W) });
+    if (get_key_down(input, player.A))
+      input.unprocessed_update_inputs.push_back(
+        { INPUT_TYPE::KEYBOARD, entity, false, static_cast<uint32_t>(player.A) });
+    if (get_key_down(input, player.S))
+      input.unprocessed_update_inputs.push_back(
+        { INPUT_TYPE::KEYBOARD, entity, false, static_cast<uint32_t>(player.S) });
+    if (get_key_down(input, player.D))
+      input.unprocessed_update_inputs.push_back(
+        { INPUT_TYPE::KEYBOARD, entity, false, static_cast<uint32_t>(player.D) });
 
-    // Shoot()
-    // if (get_mouse_lmb_press()) {
-    //   entt::entity bullet = create_bullet(r);
-    //   const int BULLET_SPEED = 500;
-    //   const auto& mouse_pos = input.mouse_position_in_worldspace;
-    //   glm::vec2 dir = { mouse_pos.x - transform.position.x, mouse_pos.y - transform.position.y };
-    //   if (dir.x != 0.0f && dir.y != 0.0f)
-    //     dir = glm::normalize(dir);
-    //   auto& bullet_velocity = r.get<VelocityComponent>(bullet);
-    //   bullet_velocity.x = dir.x * BULLET_SPEED;
-    //   bullet_velocity.y = dir.y * BULLET_SPEED;
-    //   auto& bullet_transform = r.get<TransformComponent>(bullet);
-    //   bullet_transform.position = transform.position;
-    //   float angle = engine::dir_to_angle_radians(dir);
-    //   bullet_transform.rotation.z = angle - engine::HALF_PI;
-    // }
+    if (get_key_up(input, player.W))
+      input.unprocessed_update_inputs.push_back(
+        { INPUT_TYPE::KEYBOARD, entity, true, static_cast<uint32_t>(player.W) });
+    if (get_key_up(input, player.A))
+      input.unprocessed_update_inputs.push_back(
+        { INPUT_TYPE::KEYBOARD, entity, true, static_cast<uint32_t>(player.A) });
+    if (get_key_up(input, player.S))
+      input.unprocessed_update_inputs.push_back(
+        { INPUT_TYPE::KEYBOARD, entity, true, static_cast<uint32_t>(player.S) });
+    if (get_key_up(input, player.D))
+      input.unprocessed_update_inputs.push_back(
+        { INPUT_TYPE::KEYBOARD, entity, true, static_cast<uint32_t>(player.D) });
+
+    if (get_mouse_lmb_press())
+      input.unprocessed_update_inputs.push_back({ INPUT_TYPE::MOUSE, entity, false, SDL_BUTTON_LEFT });
+    if (get_mouse_lmb_release())
+      input.unprocessed_update_inputs.push_back({ INPUT_TYPE::MOUSE, entity, true, SDL_BUTTON_LEFT });
 
     // .. rotate to velocity
     // .. IMPROVEMENT

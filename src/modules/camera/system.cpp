@@ -19,14 +19,15 @@ update_camera_system(entt::registry& registry)
 
   const int CAM_SPEED = 2;
 
-  if (get_key_held(input, SDL_SCANCODE_W))
-    transform.position.y += 1 * CAM_SPEED;
-  if (get_key_held(input, SDL_SCANCODE_S))
-    transform.position.y -= 1 * CAM_SPEED;
-  if (get_key_held(input, SDL_SCANCODE_A))
-    transform.position.x += 1 * CAM_SPEED;
-  if (get_key_held(input, SDL_SCANCODE_D))
-    transform.position.x -= 1 * CAM_SPEED;
+  // TODO implement camera
+  // if (get_key_held(input, SDL_SCANCODE_W))
+  //   transform.position.y += 1 * CAM_SPEED;
+  // if (get_key_held(input, SDL_SCANCODE_S))
+  //   transform.position.y -= 1 * CAM_SPEED;
+  // if (get_key_held(input, SDL_SCANCODE_A))
+  //   transform.position.x += 1 * CAM_SPEED;
+  // if (get_key_held(input, SDL_SCANCODE_D))
+  //   transform.position.x -= 1 * CAM_SPEED;
 };
 
 } // namespace game2d

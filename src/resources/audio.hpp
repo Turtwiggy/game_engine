@@ -12,8 +12,7 @@ namespace game2d {
 struct SINGLETON_AudioComponent
 {
   // audio device
-
-  SDL_AudioDeviceID dev;
+  int device;
 
   // sounds
 

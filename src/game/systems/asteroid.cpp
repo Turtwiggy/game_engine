@@ -1,7 +1,6 @@
 #include "asteroid.hpp"
 
 #include "engine/maths/maths.hpp"
-#include "game/components/game.hpp"
 #include "game/create_entities.hpp"
 #include "modules/lifecycle/components.hpp"
 #include "modules/physics/components.hpp"

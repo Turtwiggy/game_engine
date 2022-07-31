@@ -7,6 +7,7 @@
 #include "modules/events/helpers/mouse.hpp"
 #include "modules/networking/components.hpp"
 #include "modules/networking/helpers.hpp"
+#include "modules/physics/components.hpp" // temp
 #include "modules/renderer/components.hpp"
 #include "modules/ui_networking/components.hpp"
 
@@ -17,6 +18,7 @@
 #ifndef STEAMNETWORKINGSOCKETS_OPENSOURCE
 #include <steam/steam_api.h>
 #endif
+#include <nlohmann/json.hpp>
 
 namespace game2d {
 
@@ -88,6 +90,7 @@ update_server_poll_connections(SINGLETON_ServerComponent& server)
   // PollConnectionStateChanges
   //
   server.interface->RunCallbacks();
+  server.events.clear();
 
   // Process Callbacks
   //
@@ -182,13 +185,126 @@ update_server_poll_connections(SINGLETON_ServerComponent& server)
         // Add them to the client list
         server.clients.push_back(info.m_hConn);
         server.events.push_back(ServerEvents::CLIENT_JOINED);
-        std::cout << "client joined on fixedframe: " << server.fixed_frame << std::endl;
         break;
       }
     }
   }
   conn_event.clear();
 }
+
+void
+server_tick(entt::registry& r)
+{
+  SINGLETON_ServerComponent& server = r.ctx().at<SINGLETON_ServerComponent>();
+  update_server_poll_connections(server);
+
+  // PollIncomingMessages
+  std::vector<std::string> client_messages;
+  server_receive_messages_on_poll_group(server, client_messages);
+
+  //
+  //
+  //
+
+  // as game is running...
+  // wait for all clients to send input for fixed_frame 0.
+  // then fixed frame 1 etc
+  // (bad initial idea)
+  // only tick the server process_fixed_Frame once all the inputs are received
+  // server.process_fixed_frame += 1;
+
+  if (server.events.size() > 0) {
+    // someone joined or left
+    std::cout << "someone joined or left..." << std::endl;
+  }
+
+  for (int i = 0; i < client_messages.size(); i++) {
+
+    // Check for known commands. WARNING: un-sanitized input from client
+    SINGLETON_FixedUpdateInputHistory player_input_history;
+    player_input_history = nlohmann::json::from_cbor(client_messages[i]);
+
+    {
+      // const auto& unprocessed_update_input = player_input_history.history.back();
+      // const auto& view = r.view<const PlayerComponent, VelocityComponent>();
+      // view.each([&r, &unprocessed_update_input](auto entity, const auto& player, auto& vel) {
+      //   for (int i = 0; i < unprocessed_update_input.size(); i++) {
+      //     const auto& any_input = unprocessed_update_input[i];
+      //     // if (any_input.player != entity)
+      //     //   continue; // wasn't this player's input
+      //     switch (any_input.type) {
+      //       case INPUT_TYPE::KEYBOARD: {
+      //         if (any_input.key == player.W)
+      //           vel.y = -1 * player.speed;
+      //         if (any_input.key == player.S)
+      //           vel.y = 1 * player.speed;
+      //         if (any_input.key == player.A)
+      //           vel.x = -1 * player.speed;
+      //         if (any_input.key == player.D)
+      //           vel.x = 1 * player.speed;
+      //         if ((any_input.key == player.A || any_input.key == player.D) && any_input.release)
+      //           vel.x = 0.0f;
+      //         if ((any_input.key == player.W || any_input.key == player.S) && any_input.release)
+      //           vel.y = 0.0f;
+      //       }
+      //     }
+      //   }
+      // });
+    }
+  }
+
+  // WARNING: this game logic doesn't belong here
+  // if (strcmp(sCmd.c_str(), ",spawn") == 0) {
+  //   std::cout << "(server) client requested to spawn a player" << std::endl;
+  //   auto player = create_player(r);
+  //   auto& player_transform = r.get<TransformComponent>(player);
+  //   player_transform.position.x = 600;
+  //   player_transform.position.y = 400;
+  //   auto& player_speed = r.get<PlayerComponent>(player);
+  //   player_speed.speed = 250.0f;
+  //   send_string_to_client(server.interface, *conn, "Server recieved spawn request");
+  // }
+};
+
+void
+client_tick(entt::registry& r)
+{
+  SINGLETON_ClientComponent& client = r.ctx().at<SINGLETON_ClientComponent>();
+  update_client_poll_connections(client);
+
+  // PollIncomingMessages()
+  std::vector<std::string> server_messages;
+  client_receive_messages_on_connection(client, server_messages);
+
+  for (int i = 0; i < server_messages.size(); i++) {
+    std::cout << "(client) received: " << server_messages[i] << std::endl;
+  }
+
+  // ... do client things ...
+
+  // PollLocalUserInput()
+  // TODO: https://gafferongames.com/post/deterministic_lockstep/
+  // TODO: https://gafferongames.com/post/what_every_programmer_needs_to_know_about_game_networking/
+  // TODO: try a different keyboard
+  // TODO: get the client running ahead of the server?
+  // HACK: the below is just to get some input sending to the server
+
+  const auto& inputs = r.ctx().at<SINGLETON_FixedUpdateInputHistory>();
+  auto json = inputs;
+  auto data = nlohmann::json::to_cbor(json);
+
+  std::string packet;
+  packet.assign(data.begin(), data.end());
+
+  const int protocol = k_nSteamNetworkingSend_Unreliable;
+  const int max_size = k_cbMaxSteamNetworkingSocketsMessageSizeSend;
+
+  if (packet.size() >= max_size)
+    std::cerr << "packet wanting to send is too large, sending anyway..." << std::endl;
+
+  client.interface->SendMessageToConnection(
+    client.connection, packet.c_str(), (uint32_t)packet.size(), protocol, nullptr);
+};
 
 } // namespace game2d
 
@@ -221,110 +337,9 @@ game2d::update_networking_system(entt::registry& r)
     }
   }
 
-  if (r.ctx().contains<SINGLETON_ServerComponent>()) {
-    SINGLETON_ServerComponent& server = r.ctx().at<SINGLETON_ServerComponent>();
-    server.fixed_frame += 1;
-    update_server_poll_connections(server);
+  if (r.ctx().contains<SINGLETON_ServerComponent>())
+    server_tick(r);
 
-    // ... do server things ...
-
-    // PollIncomingMessages
-    ISteamNetworkingMessage* msg = nullptr;
-    int msgs = server.interface->ReceiveMessagesOnPollGroup(server.group, &msg, 1);
-
-    if (msgs < 0)
-      std::cerr << "Error checking for messages" << std::endl;
-
-    if (msgs > 0) {
-      assert(msgs == 1 && msg);
-      std::cout << "(server) recieved message on fixedframe: " << server.fixed_frame << std::endl;
-
-      auto conn = std::find(server.clients.begin(), server.clients.end(), msg->m_conn);
-      assert(conn != server.clients.end());
-
-      // '\0'-terminate it to make it easier to parse
-      std::string sCmd;
-      sCmd.assign((const char*)msg->m_pData, msg->m_cbSize);
-
-      // We don't need this anymore.
-      msg->Release();
-
-      // Check for known commands. WARNING: un-sanitized input from client
-      std::cout << "(server) message from client: " << sCmd << std::endl;
-
-      // TODO:
-      // https://gafferongames.com/post/what_every_programmer_needs_to_know_about_game_networking/
-
-      // WARNING: this game logic doesn't belong here
-      if (strcmp(sCmd.c_str(), ",spawn") == 0) {
-        std::cout << "(server) client requested to spawn a player" << std::endl;
-
-        auto player = create_player(r);
-        auto& player_transform = r.get<TransformComponent>(player);
-        player_transform.position.x = 600;
-        player_transform.position.y = 400;
-        auto& player_speed = r.get<PlayerComponent>(player);
-        player_speed.speed = 250.0f;
-
-        send_string_to_client(server.interface, *conn, "Server recieved spawn request");
-      }
-    }
-  }
-
-  if (r.ctx().contains<SINGLETON_ClientComponent>()) {
-    SINGLETON_ClientComponent& client = r.ctx().at<SINGLETON_ClientComponent>();
-    client.fixed_frame += 1;
-    update_client_poll_connections(client);
-
-    // ... do client things ...
-
-    // do some fun client things
-    // PollIncomingMessages();
-    ISteamNetworkingMessage* pIncomingMsg = nullptr;
-    int numMsgs = client.interface->ReceiveMessagesOnConnection(client.connection, &pIncomingMsg, 1);
-    if (numMsgs < 0)
-      std::cerr << "(client) error checking for messages" << std::endl;
-    if (numMsgs > 0) {
-      std::string data;
-      data.assign((const char*)pIncomingMsg->m_pData, pIncomingMsg->m_cbSize);
-      std::cout << "(client) server sent: " << data << std::endl;
-      pIncomingMsg->Release(); // We don't need this anymore.
-    }
-
-    SINGLETON_InputComponent& input = r.ctx().at<SINGLETON_InputComponent>();
-
-    // PollLocalUserInput
-    // HACK: the below is just to get some input sending to the server
-    const int protocol = k_nSteamNetworkingSend_Reliable;
-
-    // std::string str = "";
-
-    // BUG: should not be doing any input things in fixed_update()
-
-    // // str is bad but just to get things working
-    // if (get_key_down(input, SDL_SCANCODE_RETURN))
-    //   str += ",spawn";
-    // if (get_key_down(input, SDL_SCANCODE_W))
-    //   str += ",w_press";
-    // if (get_key_down(input, SDL_SCANCODE_A))
-    //   str += ",a_press";
-    // if (get_key_down(input, SDL_SCANCODE_S))
-    //   str += ",s_press";
-    // if (get_key_down(input, SDL_SCANCODE_D))
-    //   str += ",d_press";
-    // if (get_key_up(input, SDL_SCANCODE_W))
-    //   str += ",w_release";
-    // if (get_key_up(input, SDL_SCANCODE_S))
-    //   str += ",s_release";
-    // if (get_key_up(input, SDL_SCANCODE_A))
-    //   str += ",a_release";
-    // if (get_key_up(input, SDL_SCANCODE_D))
-    //   str += ",d_release";
-
-    // if (str != "") {
-    //   std::cout << "str: " << str << std::endl;
-    //   const char* buf = str.c_str();
-    //   client.interface->SendMessageToConnection(client.connection, buf, (uint32)strlen(buf), protocol, nullptr);
-    // }
-  }
+  if (r.ctx().contains<SINGLETON_ClientComponent>())
+    client_tick(r);
 };

@@ -1,8 +1,33 @@
 #pragma once
 
+#include "engine/maths/maths.hpp"
+
+#include <SDL2/SDL_keycode.h>
+#include <SDL2/SDL_mouse.h>
 #include <entt/entt.hpp>
 
 namespace game2d {
+
+struct SINGLETON_GameOverComponent
+{
+  bool over = false;
+};
+
+struct SINGLETON_ResourceComponent
+{
+  engine::RandomState rnd;
+};
+
+struct SINGLETON_AsteroidGameStateComponent
+{
+  float initial_asteroids = 20;
+  float max_asteroids = 45;
+  float time_between_asteroids = 0.25f;
+  float time_since_last_asteroid = 0.25f;
+  float asteroid_min_vel = -100.0f;
+  float asteroid_max_vel = 100.0f;
+  float score = 0.0f;
+};
 
 struct AsteroidComponent
 {
@@ -12,7 +37,14 @@ struct AsteroidComponent
 
 struct PlayerComponent
 {
+  // movement
   float speed = 0.0f;
+
+  // input
+  SDL_Scancode W = SDL_SCANCODE_W;
+  SDL_Scancode A = SDL_SCANCODE_A;
+  SDL_Scancode S = SDL_SCANCODE_S;
+  SDL_Scancode D = SDL_SCANCODE_D;
 };
 
 struct TurretComponent
