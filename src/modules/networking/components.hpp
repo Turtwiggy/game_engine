@@ -31,6 +31,9 @@ struct ClientMessage
 
 struct SINGLETON_ClientComponent
 {
+  int fixed_frame = 0;
+  int simulation_frame = 0;
+
   ISteamNetworkingSockets* interface;
   HSteamNetConnection connection;
 };
@@ -38,6 +41,7 @@ struct SINGLETON_ClientComponent
 struct SINGLETON_ServerComponent
 {
   int fixed_frame = 0;
+  int simulation_frame = 0;
 
   ISteamNetworkingSockets* interface;
   HSteamListenSocket socket;

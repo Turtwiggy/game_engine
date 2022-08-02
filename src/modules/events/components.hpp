@@ -41,11 +41,10 @@ struct SINGLETON_FixedUpdateInputHistory
   // sliding server buffer to contain more history of inputs
   // contract fixed time to e.g. 16 -> 15.2 to send inputs more frequently on client
   // send size of history from last ack frame to current frame
-  int fixed_tick = 0;
   int fixed_tick_since_ack = 0;
-  std::vector<std::vector<InputEvent>> history;
+  std::vector<std::map<uint32_t, InputEvent>> history;
 
-  NLOHMANN_DEFINE_TYPE_INTRUSIVE(SINGLETON_FixedUpdateInputHistory, fixed_tick, fixed_tick_since_ack, history)
+  NLOHMANN_DEFINE_TYPE_INTRUSIVE(SINGLETON_FixedUpdateInputHistory, fixed_tick_since_ack, history)
 };
 
 struct SINGLETON_InputComponent

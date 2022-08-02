@@ -11,17 +11,12 @@
 #include <vector>
 
 void
-game2d::update_player_inputs_system(entt::registry& r)
+game2d::update_player_inputs_system(entt::registry& r, const std::vector<InputEvent>& inputs)
 {
-  const auto& inputs = r.ctx().at<SINGLETON_FixedUpdateInputHistory>();
-  if (inputs.history.size() == 0)
-    return;
-  const auto& unprocessed_update_input = inputs.history.back();
-
   const auto& view = r.view<const PlayerComponent, VelocityComponent>();
-  view.each([&r, &unprocessed_update_input](auto entity, const auto& player, auto& vel) {
-    for (int i = 0; i < unprocessed_update_input.size(); i++) {
-      const auto& any_input = unprocessed_update_input[i];
+  view.each([&r, &inputs](auto entity, const auto& player, auto& vel) {
+    for (int i = 0; i < inputs.size(); i++) {
+      const auto& any_input = inputs[i];
 
       if (any_input.player != entity)
         continue; // wasn't this player's input
@@ -36,7 +31,6 @@ game2d::update_player_inputs_system(entt::registry& r)
             vel.x = -1 * player.speed;
           if (any_input.key == player.D)
             vel.x = 1 * player.speed;
-
           if ((any_input.key == player.A || any_input.key == player.D) && any_input.release)
             vel.x = 0;
           if ((any_input.key == player.W || any_input.key == player.S) && any_input.release)

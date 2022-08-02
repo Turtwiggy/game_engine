@@ -1,5 +1,7 @@
 #include "game_tick.hpp"
 
+#include "game/systems/player_inputs.hpp"
+
 // systems&components&helpers
 #include "modules/events/components.hpp"
 #include "modules/events/helpers/keyboard.hpp"
@@ -13,20 +15,12 @@
 
 // game systems
 #include "game/create_entities.hpp"
-#include "game/systems/player_inputs.hpp"
 
 void
-game2d::simulate(entt::registry& r, uint64_t milliseconds_dt)
+game2d::simulate(entt::registry& r, const std::vector<InputEvent>& inputs, uint64_t milliseconds_dt)
 {
-  // // move all unprocessed inputs from Update() to FixedUpdate()
-  // {
-  //   auto& input = r.ctx().at<SINGLETON_InputComponent>();
-  //   auto& fixed_input = r.ctx().at<SINGLETON_FixedUpdateInputHistory>();
-  //   fixed_input.history.push_back(std::move(input.unprocessed_update_inputs));
-  // }
-
   // process inputs in FixedUpdateInputHistory
-  update_player_inputs_system(r);
+  update_player_inputs_system(r, inputs);
 
   // destroy objects
   update_lifecycle_system(r, milliseconds_dt);
