@@ -6,6 +6,6 @@
 namespace game2d {
 
 void
-update_lifecycle_system(entt::registry& registry, float fixed_dt);
+update_lifecycle_system(entt::registry& registry, uint64_t milliseconds_dt);
 
 } // namespace game2d

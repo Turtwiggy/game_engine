@@ -4,20 +4,19 @@
 #include "components.hpp"
 #include "modules/ui_hierarchy/components.hpp"
 
-#include <iostream>
 #include <vector>
 
 void
-game2d::update_lifecycle_system(entt::registry& r, float fixed_dt)
+game2d::update_lifecycle_system(entt::registry& r, uint64_t milliseconds_dt)
 {
   auto& eb = r.ctx().at<SINGLETON_EntityBinComponent>();
 
   // update all components with timed lifecycle
   const auto& view = r.view<EntityTimedLifecycle>();
-  view.each([&eb, &fixed_dt](auto entity, auto& lifecycle) {
-    if (lifecycle.time_alive > lifecycle.time_alive_max)
+  view.each([&eb, &milliseconds_dt](auto entity, auto& lifecycle) {
+    if (lifecycle.milliseconds_alive > lifecycle.milliseconds_alive_max)
       eb.dead.emplace(entity);
-    lifecycle.time_alive += fixed_dt;
+    lifecycle.milliseconds_alive += milliseconds_dt;
   });
 
   // process destroyed objects

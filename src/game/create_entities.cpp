@@ -227,7 +227,7 @@ create_bullet(entt::registry& r)
   r.emplace<PhysicsActorComponent>(e, GameCollisionLayer::ACTOR_BULLET);
   r.emplace<PhysicsSizeComponent>(e, create_bullet_physics_size_component(r));
   r.emplace<VelocityComponent>(e);
-  r.emplace<EntityTimedLifecycle>(e, 2.0f); // bullet time alive
+  r.emplace<EntityTimedLifecycle>(e, 20000); // bullet time alive
   return e;
 }
 

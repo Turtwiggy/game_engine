@@ -27,7 +27,7 @@ ImGui_Manager::~ImGui_Manager()
 }
 
 void
-ImGui_Manager::initialize(GameWindow* window)
+ImGui_Manager::initialize(GameWindow& window)
 {
   // Setup ImGui
   IMGUI_CHECKVERSION();
@@ -89,8 +89,8 @@ ImGui_Manager::initialize(GameWindow* window)
   colors[ImGuiCol_TitleBgCollapsed] = ImVec4{ 0.15f, 0.1505f, 0.151f, 1.0f };
 
   // Setup Platform/Renderer backends
-  ImGui_ImplSDL2_InitForOpenGL(window->get_handle(), window->get_gl_context());
-  ImGui_ImplOpenGL3_Init(window->get_glsl_version().c_str());
+  ImGui_ImplSDL2_InitForOpenGL(window.get_handle(), window.get_gl_context());
+  ImGui_ImplOpenGL3_Init(window.get_glsl_version().c_str());
 }
 
 void

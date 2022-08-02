@@ -1,8 +1,5 @@
 #pragma once
 
-// engine headers
-#include "engine/app/application.hpp"
-
 // other lib headers
 #include <entt/entt.hpp>
 
@@ -12,6 +9,6 @@ void
 init_input_system(entt::registry& registry);
 
 void
-update_input_system(entt::registry& registry, engine::Application& app);
+update_input_system(entt::registry& registry);
 
 } // namespace game2d

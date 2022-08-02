@@ -1,7 +1,9 @@
 #include "system.hpp"
 
+#include "engine/app/application.hpp"
 #include "engine/maths/grid.hpp"
 #include "game/create_entities.hpp"
+#include "game/game_tick.hpp"
 #include "modules/events/components.hpp"
 #include "modules/events/helpers/keyboard.hpp"
 #include "modules/events/helpers/mouse.hpp"
@@ -19,6 +21,8 @@
 #include <steam/steam_api.h>
 #endif
 #include <nlohmann/json.hpp>
+
+#include <vector>
 
 namespace game2d {
 
@@ -180,7 +184,7 @@ update_server_poll_connections(SINGLETON_ServerComponent& server)
           break;
         }
 
-        send_string_to_client(server.interface, info.m_hConn, std::string("Welcome!"));
+        // send_string_to_client(server.interface, info.m_hConn, std::string("Welcome!"));
 
         // Add them to the client list
         server.clients.push_back(info.m_hConn);
@@ -193,81 +197,69 @@ update_server_poll_connections(SINGLETON_ServerComponent& server)
 }
 
 void
-server_tick(entt::registry& r)
+server_tick(entt::registry& r, uint64_t milliseconds_dt)
 {
   SINGLETON_ServerComponent& server = r.ctx().at<SINGLETON_ServerComponent>();
   update_server_poll_connections(server);
 
   // PollIncomingMessages
-  std::vector<std::string> client_messages;
+  std::vector<ClientMessage> client_messages;
   server_receive_messages_on_poll_group(server, client_messages);
-
-  //
-  //
-  //
-
-  // as game is running...
-  // wait for all clients to send input for fixed_frame 0.
-  // then fixed frame 1 etc
-  // (bad initial idea)
-  // only tick the server process_fixed_Frame once all the inputs are received
-  // server.process_fixed_frame += 1;
 
   if (server.events.size() > 0) {
     // someone joined or left
     std::cout << "someone joined or left..." << std::endl;
   }
 
-  for (int i = 0; i < client_messages.size(); i++) {
+  std::cout << "(server) waiting for client to send ft: " << server.fixed_frame << std::endl;
 
-    // Check for known commands. WARNING: un-sanitized input from client
+  // for (int i = 0; i < client_messages.size(); i++) {
+  if (client_messages.size() > 0) {
+    ClientMessage message = client_messages[0];
+
     SINGLETON_FixedUpdateInputHistory player_input_history;
-    player_input_history = nlohmann::json::from_cbor(client_messages[i]);
+    player_input_history = nlohmann::json::from_cbor(message.data);
 
-    {
-      // const auto& unprocessed_update_input = player_input_history.history.back();
-      // const auto& view = r.view<const PlayerComponent, VelocityComponent>();
-      // view.each([&r, &unprocessed_update_input](auto entity, const auto& player, auto& vel) {
-      //   for (int i = 0; i < unprocessed_update_input.size(); i++) {
-      //     const auto& any_input = unprocessed_update_input[i];
-      //     // if (any_input.player != entity)
-      //     //   continue; // wasn't this player's input
-      //     switch (any_input.type) {
-      //       case INPUT_TYPE::KEYBOARD: {
-      //         if (any_input.key == player.W)
-      //           vel.y = -1 * player.speed;
-      //         if (any_input.key == player.S)
-      //           vel.y = 1 * player.speed;
-      //         if (any_input.key == player.A)
-      //           vel.x = -1 * player.speed;
-      //         if (any_input.key == player.D)
-      //           vel.x = 1 * player.speed;
-      //         if ((any_input.key == player.A || any_input.key == player.D) && any_input.release)
-      //           vel.x = 0.0f;
-      //         if ((any_input.key == player.W || any_input.key == player.S) && any_input.release)
-      //           vel.y = 0.0f;
-      //       }
-      //     }
+    if (player_input_history.fixed_tick == server.fixed_frame) {
+      std::cout << "(server) client sent frame data for " << server.fixed_frame << std::endl;
+
+      // HACK: received all the input, ok to simulate frame on server
+      {
+        simulate(r, milliseconds_dt);
+        server.fixed_frame += 1;
+        send_string_to_client(server.interface, message.conn, std::to_string(server.fixed_frame));
+      }
+
+    } else {
+      // TODO: search all player input, or wait for more input?
+      int difference = player_input_history.fixed_tick - server.fixed_frame;
+      std::cout << "(server) client is: " << difference << " ahead" << std::endl;
+      std::cout << "(server) has: " << player_input_history.history.size() << " to search" << std::endl;
+
+      // remove duds
+      auto it = player_input_history.history.end() - difference;
+      player_input_history.history.erase(player_input_history.history.begin(), it);
+
+      // HACK: found past input? simulate the old frame, then the new frames
+      // TODO: this
+      // player_input_history.history =
+      // for (int i = 0; i < difference; i++) {
+      //   // HACK: received all the input, ok to simulate multiple frames on server
+      //   {
+      //     r.ctx().at<SINGLETON_FixedUpdateInputHistory>() = player_input_history;
+      //     simulate(r, milliseconds_dt);
+      //     server.fixed_frame += 1;
+      //     r.ctx().at<SINGLETON_FixedUpdateInputHistory>().history.pop_back();
       //   }
-      // });
+      // }
+
+      send_string_to_client(server.interface, message.conn, std::to_string(server.fixed_frame));
     }
   }
-
-  // WARNING: this game logic doesn't belong here
-  // if (strcmp(sCmd.c_str(), ",spawn") == 0) {
-  //   std::cout << "(server) client requested to spawn a player" << std::endl;
-  //   auto player = create_player(r);
-  //   auto& player_transform = r.get<TransformComponent>(player);
-  //   player_transform.position.x = 600;
-  //   player_transform.position.y = 400;
-  //   auto& player_speed = r.get<PlayerComponent>(player);
-  //   player_speed.speed = 250.0f;
-  //   send_string_to_client(server.interface, *conn, "Server recieved spawn request");
-  // }
 };
 
 void
-client_tick(entt::registry& r)
+client_tick(entt::registry& r, uint64_t milliseconds_dt)
 {
   SINGLETON_ClientComponent& client = r.ctx().at<SINGLETON_ClientComponent>();
   update_client_poll_connections(client);
@@ -276,8 +268,42 @@ client_tick(entt::registry& r)
   std::vector<std::string> server_messages;
   client_receive_messages_on_connection(client, server_messages);
 
-  for (int i = 0; i < server_messages.size(); i++) {
-    std::cout << "(client) received: " << server_messages[i] << std::endl;
+  // HACK: should this be in simulate?
+  // move all unprocessed inputs from Update() to FixedUpdate()
+  {
+    std::cout << "moving inputs..." << std::endl;
+    {
+      auto& input = r.ctx().at<SINGLETON_InputComponent>();
+      auto& fixed_input = r.ctx().at<SINGLETON_FixedUpdateInputHistory>();
+      fixed_input.history.push_back(std::move(input.unprocessed_update_inputs));
+    }
+    simulate(r, milliseconds_dt);
+  }
+  auto& fixed_inputs = r.ctx().at<SINGLETON_FixedUpdateInputHistory>();
+
+  // for (int i = 0; i < server_messages.size(); i++) {
+  if (server_messages.size() > 0) {
+    std::string message = server_messages[0];
+    std::cout << "(client) received: " << message << std::endl;
+
+    // HACK: assume the message was an int containing an ack frame the server received...
+    int server_tick = std::stoi(message);
+
+    fixed_inputs.fixed_tick_since_ack = fixed_inputs.fixed_tick - server_tick;
+    std::cout << "(client) tick: " << fixed_inputs.fixed_tick << " , ticks_ahead: " << fixed_inputs.fixed_tick_since_ack
+              << std::endl;
+
+    // discard any unneeded inputs
+    // while (fixed_inputs.history.size() < fixed_inputs.fixed_tick_since_ack)
+    //   fixed_inputs.history.erase(fixed_inputs.history.begin());
+
+    int excess = fixed_inputs.history.size() - fixed_inputs.fixed_tick_since_ack;
+    if (excess > 0)
+      fixed_inputs.history.erase(fixed_inputs.history.begin(), fixed_inputs.history.begin() + excess);
+#ifdef _DEBUG
+    assert(fixed_inputs.history.size() == fixed_inputs.fixed_tick_since_ack);
+#endif
+    std::cout << "(client) inputs size: " << fixed_inputs.history.size() << std::endl;
   }
 
   // ... do client things ...
@@ -285,25 +311,25 @@ client_tick(entt::registry& r)
   // PollLocalUserInput()
   // TODO: https://gafferongames.com/post/deterministic_lockstep/
   // TODO: https://gafferongames.com/post/what_every_programmer_needs_to_know_about_game_networking/
-  // TODO: try a different keyboard
-  // TODO: get the client running ahead of the server?
-  // HACK: the below is just to get some input sending to the server
 
-  const auto& inputs = r.ctx().at<SINGLETON_FixedUpdateInputHistory>();
-  auto json = inputs;
-  auto data = nlohmann::json::to_cbor(json);
+  {
+    auto json = fixed_inputs;
+    auto data = nlohmann::json::to_cbor(json);
+    std::string packet;
+    packet.assign(data.begin(), data.end());
 
-  std::string packet;
-  packet.assign(data.begin(), data.end());
+    const int protocol = k_nSteamNetworkingSend_Unreliable;
+    const int max_size = k_cbMaxSteamNetworkingSocketsMessageSizeSend;
 
-  const int protocol = k_nSteamNetworkingSend_Unreliable;
-  const int max_size = k_cbMaxSteamNetworkingSocketsMessageSizeSend;
+    if (packet.size() >= max_size)
+      std::cerr << "packet wanting to send is too large, sending anyway..." << std::endl;
 
-  if (packet.size() >= max_size)
-    std::cerr << "packet wanting to send is too large, sending anyway..." << std::endl;
+    client.interface->SendMessageToConnection(
+      client.connection, packet.c_str(), (uint32_t)packet.size(), protocol, nullptr);
 
-  client.interface->SendMessageToConnection(
-    client.connection, packet.c_str(), (uint32_t)packet.size(), protocol, nullptr);
+    fixed_inputs.fixed_tick += 1;
+    fixed_inputs.fixed_tick_since_ack += 1;
+  }
 };
 
 } // namespace game2d
@@ -315,7 +341,7 @@ game2d::init_networking_system(entt::registry& r)
 };
 
 void
-game2d::update_networking_system(entt::registry& r)
+game2d::update_networking_system(entt::registry& r, uint64_t milliseconds_dt)
 {
   {
     auto& ui = r.ctx().at<SINGLETON_NetworkingUIComponent>();
@@ -338,8 +364,8 @@ game2d::update_networking_system(entt::registry& r)
   }
 
   if (r.ctx().contains<SINGLETON_ServerComponent>())
-    server_tick(r);
+    server_tick(r, milliseconds_dt);
 
   if (r.ctx().contains<SINGLETON_ClientComponent>())
-    client_tick(r);
+    client_tick(r, milliseconds_dt);
 };

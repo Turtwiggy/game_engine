@@ -8,11 +8,9 @@ namespace game2d {
 
 struct EntityTimedLifecycle
 {
-  float time_alive_max = 10.0f;
-  float time_alive = 0.0f;
+  int milliseconds_alive_max = 10 * 1000;
+  int milliseconds_alive = 0;
 };
-
-// SINGLETONS
 
 struct SINGLETON_EntityBinComponent
 {

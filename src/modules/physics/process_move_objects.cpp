@@ -11,7 +11,7 @@
 #include <vector>
 
 void
-game2d::update_move_objects_system(entt::registry& registry, engine::Application& app, float dt)
+game2d::update_move_objects_system(entt::registry& registry, uint64_t milliseconds_dt)
 {
   // actors and solids never overlap,
   // and solids dont overlap with solids
@@ -26,9 +26,9 @@ game2d::update_move_objects_system(entt::registry& registry, engine::Application
       .view<const VelocityComponent, TransformComponent, const PhysicsSizeComponent, const PhysicsActorComponent>();
 
   // move actors, but stop at solids
-  actors.each([&solids, &dt](const auto& vel, auto& transform, const auto size, const auto& actor) {
-    transform.position_dxdy.x += vel.x * dt;
-    transform.position_dxdy.y += vel.y * dt;
+  actors.each([&solids, &milliseconds_dt](const auto& vel, auto& transform, const auto size, const auto& actor) {
+    transform.position_dxdy.x += vel.x * (milliseconds_dt / 1000.0f);
+    transform.position_dxdy.y += vel.y * (milliseconds_dt / 1000.0f);
 
     constexpr auto Sign = [](int x) { return x == 0 ? 0 : (x > 0 ? 1 : -1); };
 

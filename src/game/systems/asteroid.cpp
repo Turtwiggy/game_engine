@@ -65,8 +65,8 @@ game2d::update_asteroid_system(entt::registry& r)
       vel.x = spawn_x_vel;
       vel.y = spawn_y_vel;
 
-      const float rnd_time_alive = engine::rand_det_s(rnd.rnd.rng, 5.0f, 20.0f);
-      lifecycle.time_alive_max = rnd_time_alive;
+      const int rnd_time_alive = engine::rand_det_s(rnd.rnd.rng, 5000, 20000);
+      lifecycle.milliseconds_alive_max = rnd_time_alive;
 
       const float rnd_spin_amount = engine::rand_det_s(rnd.rnd.rng, 0.0f, engine::HALF_PI);
       asteroid.spin_amount = rnd_spin_amount;

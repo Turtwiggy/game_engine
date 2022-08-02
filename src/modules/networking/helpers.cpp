@@ -143,7 +143,7 @@ send_string_to_all_clients(ISteamNetworkingSockets* interface,
 }
 
 void
-server_receive_messages_on_poll_group(SINGLETON_ServerComponent& server, std::vector<std::string>& result)
+game2d::server_receive_messages_on_poll_group(SINGLETON_ServerComponent& server, std::vector<ClientMessage>& result)
 {
   constexpr int max_messages = 32;
   ISteamNetworkingMessage* all_msgs[max_messages] = {};
@@ -161,14 +161,14 @@ server_receive_messages_on_poll_group(SINGLETON_ServerComponent& server, std::ve
 
     std::string sCmd;
     sCmd.assign((const char*)msg->m_pData, msg->m_cbSize);
-    msg->Release(); // We don't need this anymore.
+    result.push_back({ sCmd, msg->m_conn });
 
-    result.push_back(sCmd);
+    msg->Release(); // We don't need this anymore.
   }
 }
 
 void
-client_receive_messages_on_connection(SINGLETON_ClientComponent& client, std::vector<std::string>& result)
+game2d::client_receive_messages_on_connection(SINGLETON_ClientComponent& client, std::vector<std::string>& result)
 {
   constexpr int max_messages = 32;
   ISteamNetworkingMessage* all_msgs[max_messages] = {};

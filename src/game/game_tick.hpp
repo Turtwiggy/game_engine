@@ -5,6 +5,6 @@
 namespace game2d {
 
 void
-update_background_triangles_system(entt::registry& r);
+simulate(entt::registry& r, uint64_t milliseconds_dt);
 
 } // namespace game2d

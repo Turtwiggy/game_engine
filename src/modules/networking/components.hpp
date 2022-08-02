@@ -23,6 +23,12 @@ enum class ServerEvents
   CLIENT_JOINED,
 };
 
+struct ClientMessage
+{
+  std::string data;
+  HSteamNetConnection conn;
+};
+
 struct SINGLETON_ClientComponent
 {
   ISteamNetworkingSockets* interface;
@@ -31,7 +37,7 @@ struct SINGLETON_ClientComponent
 
 struct SINGLETON_ServerComponent
 {
-  int process_fixed_frame = 0;
+  int fixed_frame = 0;
 
   ISteamNetworkingSockets* interface;
   HSteamListenSocket socket;

@@ -38,7 +38,7 @@ struct AsteroidComponent
 struct PlayerComponent
 {
   // movement
-  float speed = 0.0f;
+  int speed = 0;
 
   // input
   SDL_Scancode W = SDL_SCANCODE_W;

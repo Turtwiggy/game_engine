@@ -4,6 +4,8 @@
 #include "modules/events/helpers/keyboard.hpp"
 #include "modules/events/helpers/mouse.hpp"
 
+#include "engine/app/application.hpp"
+
 #include <SDL2/SDL.h>
 #include <SDL2/SDL_events.h>
 #include <imgui.h>
@@ -19,9 +21,10 @@ game2d::init_input_system(entt::registry& registry)
 }
 
 void
-game2d::update_input_system(entt::registry& registry, engine::Application& app)
+game2d::update_input_system(entt::registry& registry)
 {
   auto& input = registry.ctx().at<SINGLETON_InputComponent>();
+  auto& app = registry.ctx().at<engine::SINGLETON_Application>();
 
   input.mouse_position_in_worldspace = mouse_position_in_worldspace(registry);
 
@@ -52,13 +55,13 @@ game2d::update_input_system(entt::registry& registry, engine::Application& app)
 
     // Events to quit
     if (e.type == SDL_QUIT)
-      app.shutdown();
+      app.running = false;
 
     // https://wiki.libsdl.org/SDL_WindowEvent
     if (e.type == SDL_WINDOWEVENT) {
       switch (e.window.event) {
         case SDL_WINDOWEVENT_CLOSE:
-          app.shutdown();
+          app.running = false;
         case SDL_WINDOWEVENT_FOCUS_GAINED:
           SDL_Log("Window %d gained keyboard focus \n", e.window.windowID);
           break;
@@ -71,7 +74,7 @@ game2d::update_input_system(entt::registry& registry, engine::Application& app)
     // Pass UI the event
     // Note: should move imgui manager to a System...
     if (ImGui::GetIO().WantCaptureMouse || ImGui::GetIO().WantCaptureKeyboard) {
-      app.imgui_manager.process_event(&e);
+      app.imgui.process_event(&e);
       // continue; // Imgui stole the event
     }
 
