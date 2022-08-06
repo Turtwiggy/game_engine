@@ -17,8 +17,30 @@ game2d::update_asteroid_system(entt::registry& r)
   auto& eb = r.ctx().at<SINGLETON_EntityBinComponent>();
   const auto& ri = r.ctx().at<SINGLETON_RendererInfo>();
   const float dt = ImGui::GetIO().DeltaTime;
-  const auto& view = r.view<AsteroidComponent, VelocityComponent, TransformComponent, EntityTimedLifecycle>();
 
+  // Asteroid Spawner
+
+  size_t live_asteroids = r.view<AsteroidComponent>().size();
+  gs.time_since_last_asteroid -= dt;
+  if (gs.time_since_last_asteroid <= 0.0f && live_asteroids <= gs.max_asteroids) {
+    gs.time_since_last_asteroid = gs.time_between_asteroids;
+    create_asteroid(r);
+
+    // Make game more difficult
+    gs.time_between_asteroids -= 0.01f;
+    gs.time_between_asteroids = glm::max(0.1f, gs.time_between_asteroids);
+
+    // Make game even more difficult
+    gs.max_asteroids += 1;
+
+    // MORE DIFFICULT
+    gs.asteroid_min_vel -= 1.0f;
+    gs.asteroid_max_vel += 1.0f;
+  }
+
+  // Process Asteroids
+
+  const auto& view = r.view<AsteroidComponent, VelocityComponent, TransformComponent, EntityTimedLifecycle>();
   view.each([&gs, &eb, &rnd, &dt, &ri](auto entity, auto& asteroid, auto& vel, auto& transform, auto& lifecycle) {
     if (!asteroid.initialized) {
       asteroid.initialized = true;
@@ -65,8 +87,8 @@ game2d::update_asteroid_system(entt::registry& r)
       vel.x = spawn_x_vel;
       vel.y = spawn_y_vel;
 
-      const float rnd_time_alive = engine::rand_det_s(rnd.rnd.rng, 5.0f, 20.0f);
-      lifecycle.time_alive_max = rnd_time_alive;
+      const int rnd_time_alive = engine::rand_det_s(rnd.rnd.rng, 5000, 20000);
+      lifecycle.milliseconds_alive_max = rnd_time_alive;
 
       const float rnd_spin_amount = engine::rand_det_s(rnd.rnd.rng, 0.0f, engine::HALF_PI);
       asteroid.spin_amount = rnd_spin_amount;
@@ -80,24 +102,4 @@ game2d::update_asteroid_system(entt::registry& r)
     // .. spin the asteroid
     // transform.rotation.z += asteroid.spin_amount * dt;
   });
-
-  // Asteroid Spawner
-
-  size_t live_asteroids = r.view<AsteroidComponent>().size();
-  gs.time_since_last_asteroid -= dt;
-  if (gs.time_since_last_asteroid <= 0.0f && live_asteroids <= gs.max_asteroids) {
-    gs.time_since_last_asteroid = gs.time_between_asteroids;
-    create_asteroid(r);
-
-    // Make game more difficult
-    gs.time_between_asteroids -= 0.01f;
-    gs.time_between_asteroids = glm::max(0.1f, gs.time_between_asteroids);
-
-    // Make game even more difficult
-    gs.max_asteroids += 1;
-
-    // MORE DIFFICULT
-    gs.asteroid_min_vel -= 1.0f;
-    gs.asteroid_max_vel += 1.0f;
-  }
 };

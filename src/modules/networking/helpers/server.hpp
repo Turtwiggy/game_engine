@@ -1,6 +1,6 @@
 #pragma once
 
-#include "components.hpp"
+#include "modules/networking/components.hpp"
 
 #include <entt/entt.hpp>
 #include <steam/isteamnetworkingutils.h>
@@ -15,16 +15,20 @@
 namespace game2d {
 
 void
-init_steam_datagram_connection_sockets();
+start_server_or_quit(entt::registry& r, int port);
 
 void
-start_server_or_quit(entt::registry& r, int port, void* callback);
+server_receive_messages_on_poll_group(SINGLETON_ServerComponent& server, std::vector<ClientMessage>& result);
 
 void
-start_client(entt::registry& r, const std::string& addr, void* callback);
+server_poll_connections(SINGLETON_ServerComponent& server);
 
 void
-close_networking();
+tick_server(entt::registry& r, uint64_t milliseconds_dt);
+
+//
+// Server -> Client
+//
 
 void
 send_string_to_client(ISteamNetworkingSockets* interface, HSteamNetConnection conn, const std::string& str);
@@ -35,10 +39,4 @@ send_string_to_all_clients(ISteamNetworkingSockets* interface,
                            const char* str,
                            HSteamNetConnection except = k_HSteamNetConnection_Invalid);
 
-void
-server_receive_messages_on_poll_group(SINGLETON_ServerComponent& server, std::vector<std::string>& result);
-
-void
-client_receive_messages_on_connection(SINGLETON_ClientComponent& client, std::vector<std::string>& result);
-
-}; // namespace game2d
+} // namespace game2d

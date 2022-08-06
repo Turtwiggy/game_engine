@@ -1,4 +1,4 @@
-#include "ui_place_entity.hpp"
+#include "ui_entity_placer.hpp"
 
 #include "engine/maths/grid.hpp"
 #include "game/create_entities.hpp"
@@ -11,7 +11,7 @@
 namespace game2d {
 
 void
-update_ui_place_entity_system(entt::registry& r)
+update_ui_entity_placer_system(entt::registry& r)
 {
   const auto& input = r.ctx().at<SINGLETON_InputComponent>();
 

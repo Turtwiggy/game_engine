@@ -11,7 +11,7 @@
 #include <vector>
 
 void
-game2d::update_actor_actor_system(entt::registry& registry, engine::Application& app)
+game2d::update_actor_actor_system(entt::registry& registry)
 {
   // 1. get all the actors
   // 2. generate all possible collisions

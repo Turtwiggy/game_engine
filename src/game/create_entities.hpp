@@ -1,10 +1,15 @@
 #pragma once
 
 #include "engine/maths/maths.hpp"
+#include "helpers/items/item.hpp"
 
 #include <SDL2/SDL_keycode.h>
 #include <SDL2/SDL_mouse.h>
 #include <entt/entt.hpp>
+
+#include <memory>
+#include <string>
+#include <vector>
 
 namespace game2d {
 
@@ -13,6 +18,7 @@ struct SINGLETON_GameOverComponent
   bool over = false;
 };
 
+// TODO: remove this component!
 struct SINGLETON_ResourceComponent
 {
   engine::RandomState rnd;
@@ -29,6 +35,11 @@ struct SINGLETON_AsteroidGameStateComponent
   float score = 0.0f;
 };
 
+struct SINGLETON_ShopComponent
+{
+  std::vector<std::shared_ptr<Item>> available_items;
+};
+
 struct AsteroidComponent
 {
   bool initialized = false;
@@ -38,13 +49,16 @@ struct AsteroidComponent
 struct PlayerComponent
 {
   // movement
-  float speed = 0.0f;
+  int speed = 0;
 
   // input
   SDL_Scancode W = SDL_SCANCODE_W;
   SDL_Scancode A = SDL_SCANCODE_A;
   SDL_Scancode S = SDL_SCANCODE_S;
   SDL_Scancode D = SDL_SCANCODE_D;
+
+  // inventory
+  std::vector<std::shared_ptr<Item>> inventory;
 };
 
 struct TurretComponent

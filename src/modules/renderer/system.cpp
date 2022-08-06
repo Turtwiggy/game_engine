@@ -21,6 +21,7 @@
 using namespace engine;
 
 // other lib
+#include <SDL2/SDL.h>
 #include <glm/glm.hpp>
 #include <glm/gtc/type_ptr.hpp>
 

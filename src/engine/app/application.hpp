@@ -1,43 +1,30 @@
 #pragma once
 
-// your project headers
 #include "engine/app/game_window.hpp"
-
-// engine headers
 #include "engine/app/setup_imgui.hpp"
-
-// c++ standard library headers
-#include <memory>
-#include <string>
 
 namespace engine {
 
-class Application
+struct SINGLETON_Application
 {
-public:
-  Application(const std::string& name = "Fighting Engine (Default)",
-              int width = 1080,
-              int height = 720,
-              bool vsync = true);
-  ~Application();
-
-  bool is_running();
-  void shutdown();
-  [[nodiscard]] float get_delta_time();
-  [[nodiscard]] double get_seconds_since_launch();
-  [[nodiscard]] int get_frame();
-
-  void frame_begin();
-  void frame_end(Uint64& frame_start_time);
-
-  float fps_if_limited = 60.0f;
+  // defaults
+  bool vsync = true;
   bool limit_fps = false;
+  float fps_limit = 60.0f;
+  int width = 1024;
+  int height = width * 9 / 16.0f;
+  DisplayMode display = DisplayMode::WINDOWED;
+  GameWindow window;
+  ImGui_Manager imgui;
 
-  ImGui_Manager imgui_manager;
-  std::unique_ptr<GameWindow> window;
-
-private:
   bool running = true;
-  bool minimized = false;
+  uint64_t frame_start_time = 0;
 };
-}
+
+void
+start_frame(SINGLETON_Application& app);
+
+void
+end_frame(SINGLETON_Application& app);
+
+} // namespace engine

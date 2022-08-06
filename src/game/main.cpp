@@ -3,7 +3,6 @@
 #include "game.hpp"
 using namespace game2d;
 
-// engine headers
 #include "engine/app/application.hpp"
 #include "engine/app/io.hpp"
 using namespace engine;
@@ -16,48 +15,45 @@ using namespace engine;
 #include <chrono>
 #include <iostream>
 
-static bool vsync = true;
-static bool limit_fps = false;
-static float fps_limit = 60.0f;
-static glm::ivec2 start_screen_wh = { 600, 600 * 9 / 16 };
-static Application app("2D Game [0.0.8]", start_screen_wh.x, start_screen_wh.y, vsync);
-static entt::registry registry;
-
 // fixed tick
-// static int FIXED_TICKS_PER_SECOND = 62.5; // results in 16ms per tick
-static int FIXED_TICKS_PER_SECOND = 140; // results in ¬7ms per tick
-static float SECONDS_PER_FIXED_TICK = 1.0f / FIXED_TICKS_PER_SECOND;
-static float seconds_since_last_game_tick = 0.0f;
+static const int MILLISECONDS_PER_FIXED_TICK = 7; // or ~142 ticks per second
+// static int FIXED_MILLISECONDS_PER_TICK = 16; // or ~62.5 ticks per second
+static uint64_t milliseconds_since_last_tick = 0;
+static uint64_t now = 0;
+static uint64_t last = 0;
+static uint64_t milliseconds_delta_time = 0;
+
+static entt::registry registry;
 
 void
 main_loop(void* arg)
 {
   IM_UNUSED(arg); // do nothing with it
+  auto& app = registry.ctx().at<SINGLETON_Application>();
+  engine::start_frame(app);
 
-  Uint64 frame_start_time = SDL_GetPerformanceCounter();
-
-  app.frame_begin();
-
-  float delta_time_s = app.get_delta_time();
-  if (delta_time_s > 0.25f)
-    delta_time_s = 0.25f;
+  last = now;
+  now = SDL_GetTicks64();
+  milliseconds_delta_time = now - last;
+  if (milliseconds_delta_time > 250)
+    milliseconds_delta_time = 250; // avoid spiral
 
   // The physics cycle may happen more than once per frame if
   // the fixed timestep is less than the actual frame update time.
-  seconds_since_last_game_tick += delta_time_s;
-  while (seconds_since_last_game_tick >= SECONDS_PER_FIXED_TICK) {
-    seconds_since_last_game_tick -= SECONDS_PER_FIXED_TICK;
+  milliseconds_since_last_tick += milliseconds_delta_time;
+  while (milliseconds_since_last_tick >= MILLISECONDS_PER_FIXED_TICK) {
+    milliseconds_since_last_tick -= MILLISECONDS_PER_FIXED_TICK;
 
-    game2d::fixed_update(registry, app, SECONDS_PER_FIXED_TICK);
+    game2d::fixed_update(registry, MILLISECONDS_PER_FIXED_TICK);
   }
 
   // Implement this if stuttering?
   // const double alpha = seconds_since_last_game_tick / SECONDS_PER_FIXED_TICK;
   // state = current_state * alpha + previous_state * (1.0f - alpha );
 
-  game2d::update(registry, app, delta_time_s);
+  game2d::update(registry, milliseconds_delta_time / 1000.0f);
 
-  app.frame_end(frame_start_time);
+  engine::end_frame(app);
 }
 
 int
@@ -66,32 +62,23 @@ main(int argc, char* argv[])
   IM_UNUSED(argc);
   IM_UNUSED(argv);
 
-  std::cout << "Running main()" << std::endl;
-  const auto app_start = std::chrono::high_resolution_clock::now();
-
-  // configure application
-  app.limit_fps = limit_fps;
-  app.fps_if_limited = fps_limit;
-
-  game2d::init(registry, start_screen_wh);
-
-  log_time_since("(INFO) End Setup ", app_start);
-
-#if defined(__EMSCRIPTEN__)
-  printf("Hello, Emscripten!");
-
-  // This function call won't return, and will engage in an infinite loop,
-  // processing events from the browser, and dispatching them.
-  emscripten_set_main_loop_arg(main_loop, NULL, 0, true);
-#else
+  { // init
+    const auto start = std::chrono::high_resolution_clock::now();
+    auto& app = registry.ctx().emplace<engine::SINGLETON_Application>();
+    app.window = GameWindow("Fighting Game", app.width, app.height, app.display, app.vsync);
+    app.imgui.initialize(app.window);
+    log_time_since("(INFO) End init() ", start);
+  }
 
   bool hide_windows_console = false;
   if (hide_windows_console)
     engine::hide_windows_console();
 
-  while (app.is_running())
+  game2d::init(registry);
+
+  auto& app = registry.ctx().at<engine::SINGLETON_Application>();
+  while (app.running)
     main_loop(nullptr);
-#endif
 
   return 0;
 }

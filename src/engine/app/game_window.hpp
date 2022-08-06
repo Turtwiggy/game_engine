@@ -13,10 +13,10 @@ namespace engine {
 
 enum class DisplayMode
 {
-  WINDOWED,
-  BORDERLESS,
-  FULLSCREEN,
-  FULLSCREEN_BORDERLESS,
+  WINDOWED = 0,
+  BORDERLESS = 1,
+  FULLSCREEN = 2,
+  FULLSCREEN_BORDERLESS = 3,
 };
 
 class GameWindow
@@ -47,6 +47,7 @@ private:
   bool new_grab = false;
 
 public:
+  GameWindow() = default;
   GameWindow(const std::string& title, int width, int height, DisplayMode displaymode, bool vsync);
 
   [[nodiscard]] SDL_Window* get_handle() const;

@@ -9,6 +9,6 @@
 namespace game2d {
 
 void
-update_player_inputs_system(entt::registry& r, const std::vector<InputEvent>& inputs);
+simulate(entt::registry& r, const std::vector<InputEvent>& inputs, uint64_t milliseconds_dt);
 
 } // namespace game2d

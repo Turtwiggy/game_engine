@@ -42,7 +42,9 @@ struct SINGLETON_FixedUpdateInputHistory
   // contract fixed time to e.g. 16 -> 15.2 to send inputs more frequently on client
   // send size of history from last ack frame to current frame
   int fixed_tick_since_ack = 0;
-  std::vector<std::vector<InputEvent>> history;
+  int fixed_tick = 0;
+
+  std::map<uint32_t, std::vector<InputEvent>> history;
 
   NLOHMANN_DEFINE_TYPE_INTRUSIVE(SINGLETON_FixedUpdateInputHistory, fixed_tick_since_ack, history)
 };

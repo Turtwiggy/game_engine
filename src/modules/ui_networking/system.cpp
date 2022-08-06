@@ -12,15 +12,15 @@ void
 init_ui_networking_system(entt::registry& r)
 {
   r.ctx().emplace<SINGLETON_NetworkingUIComponent>();
-
-  auto& ui = r.ctx().at<SINGLETON_NetworkingUIComponent>();
-  ui.utils = SteamNetworkingUtils();
 }
 
 void
 update_ui_networking_system(entt::registry& r)
 {
   auto& ui = r.ctx().at<SINGLETON_NetworkingUIComponent>();
+
+  if (ui.start_offline)
+    return; // dont show networking panel if playing offline
 
   ImGui::Begin("Networking");
 
@@ -33,6 +33,9 @@ update_ui_networking_system(entt::registry& r)
   if (ImGui::Button("Stop Networking"))
     ui.close_networking = true;
 
+  if (ImGui::Button("Start Offline"))
+    ui.start_offline = true;
+
   if (r.ctx().contains<SINGLETON_ServerComponent>()) {
     auto& server = r.ctx().at<SINGLETON_ServerComponent>();
     ImGui::Text("You are a server");
@@ -44,7 +47,7 @@ update_ui_networking_system(entt::registry& r)
     ImGui::Text("You are a client connected to a server");
 
     SteamNetworkPingLocation_t ping;
-    float result = ui.utils->GetLocalPingLocation(ping);
+    float result = SteamNetworkingUtils()->GetLocalPingLocation(ping);
     if (result == -1.0f)
       ImGui::Text("Your ping is: n/a");
     else

@@ -1,8 +1,5 @@
 #pragma once
 
-// engine headers
-#include "engine/app/application.hpp"
-
 // other project headers
 #include <entt/entt.hpp>
 #include <glm/glm.hpp>

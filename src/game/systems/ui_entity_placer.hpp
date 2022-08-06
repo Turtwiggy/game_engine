@@ -5,6 +5,6 @@
 namespace game2d {
 
 void
-update_background_triangles_system(entt::registry& r);
+update_ui_entity_placer_system(entt::registry& r);
 
 } // namespace game2d
