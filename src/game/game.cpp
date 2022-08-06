@@ -28,11 +28,14 @@
 
 // game systems
 #include "game/create_entities.hpp"
+#include "game/game_tick.hpp"
 #include "game/systems/asteroid.hpp"
 #include "game/systems/player.hpp"
 #include "game/systems/turret.hpp"
+#include "game/systems/ui_entity_placer.hpp"
 #include "game/systems/ui_main_menu.hpp"
-#include "game/systems/ui_place_entity.hpp"
+#include "game/systems/ui_player.hpp"
+#include "game/systems/ui_shop.hpp"
 
 // engine
 #include "engine/app/application.hpp"
@@ -64,8 +67,8 @@ init_game_state(entt::registry& r)
   auto& player_speed = r.get<PlayerComponent>(player);
   player_speed.speed = 250;
 
-  // for (int i = 0; i < gs.initial_asteroids; i++)
-  //   auto asteroid = create_asteroid(r);
+  auto& ui = r.ctx().at<SINGLETON_NetworkingUIComponent>();
+  ui.start_offline = true;
 };
 
 } // namespace game2d
@@ -106,6 +109,22 @@ game2d::fixed_update(entt::registry& r, uint64_t milliseconds_dt)
   // physics
   uint64_t start_physics = SDL_GetPerformanceCounter();
   {
+    auto& ui = r.ctx().at<SINGLETON_NetworkingUIComponent>();
+    if (ui.start_offline) {
+      auto& input = r.ctx().at<SINGLETON_InputComponent>();
+      auto& fixed_input = r.ctx().at<SINGLETON_FixedUpdateInputHistory>();
+
+      // while offline, just clear out anything older than a tick (until a sys needs older input)
+      fixed_input.history.clear();
+
+      // move inputs from Update() to this FixedUpdate() tick
+      fixed_input.history[fixed_input.fixed_tick] = std::move(input.unprocessed_update_inputs);
+      auto& inputs = fixed_input.history[fixed_input.fixed_tick];
+
+      simulate(r, inputs, milliseconds_dt);
+      fixed_input.fixed_tick += 1;
+    }
+
     update_networking_system(r, milliseconds_dt);
   }
   uint64_t end_physics = SDL_GetPerformanceCounter();
@@ -126,8 +145,8 @@ game2d::update(entt::registry& r, float dt)
     const auto& input = r.ctx().at<SINGLETON_InputComponent>();
 
     if (ri.viewport_process_events) {
-      // if (get_key_down(input, SDL_SCANCODE_R))
-      //   init_game_state(r);
+      if (get_key_down(input, SDL_SCANCODE_R))
+        init_game_state(r);
       if (get_key_down(input, SDL_SCANCODE_F))
         app.window.toggle_fullscreen();
       if (get_key_down(input, SDL_SCANCODE_ESCAPE))
@@ -137,10 +156,10 @@ game2d::update(entt::registry& r, float dt)
     // ... systems that always update
     {
       update_player_system(r);
-      // update_audio_system(r);
+      update_asteroid_system(r);
+      update_audio_system(r);
       // update_cursor_system(r);
-      // update_asteroid_system(r);
-      // update_turret_system(r);
+      update_turret_system(r);
     }
 
     // ... systems that update if viewport is focused
@@ -170,6 +189,8 @@ game2d::update(entt::registry& r, float dt)
       update_ui_physics_system(r);
       update_ui_hierarchy_system(r);
       update_ui_profiler_system(r);
+      update_ui_shop_system(r);
+      update_ui_player_system(r);
       // update_ui_place_entity_system(r);
     }
     update_ui_networking_system(r);

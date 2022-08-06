@@ -208,38 +208,37 @@ game2d::tick_server(entt::registry& r, uint64_t milliseconds_dt)
   ClientMessage message = client_messages[0];
 
   // Assume all messages are input, so ProcessClientInput()
-  SINGLETON_FixedUpdateInputHistory player_input_history;
-  player_input_history = nlohmann::json::from_cbor(message.data);
+  //   SINGLETON_FixedUpdateInputHistory player_input_history;
+  //   player_input_history = nlohmann::json::from_cbor(message.data);
 
-  int difference = player_input_history.fixed_tick - server.fixed_frame;
-  std::cout << "(server) client is " << difference << " ahead" << std::endl;
-  std::cout << "(server) has " << player_input_history.history.size() << " to search" << std::endl;
+  //   int difference = player_input_history.fixed_tick - server.fixed_frame;
+  //   std::cout << "(server) client is " << difference << " ahead" << std::endl;
+  //   std::cout << "(server) has " << player_input_history.history.size() << " to search" << std::endl;
 
-#ifdef _DEBUG
-  if (difference > 200) {
-    std::cerr << "(server) client is 200 ticks ahead??" << std::endl;
-  }
-#endif
+  // #ifdef _DEBUG
+  //   if (difference > 200) {
+  //     std::cerr << "(server) client is 200 ticks ahead??" << std::endl;
+  //   }
+  // #endif
 
-  // remove duds
-  if (player_input_history.history.size() - difference > 0) {
-    std::vector<std::vector<InputEvent>>::iterator it = player_input_history.history.end() - difference;
-    while (it != player_input_history.history.end()) {
+  //   // remove duds
+  //   if (player_input_history.history.size() - difference > 0) {
+  //     std::vector<std::vector<InputEvent>>::iterator it = player_input_history.history.end() - difference;
+  //     while (it != player_input_history.history.end()) {
 
-      const auto& inputs = it;
+  //       const auto& inputs = it;
 
-      // HACK: just set entity to the only player entity the server has.
-      auto player_id = r.view<const PlayerComponent>().front();
-      for (int i = 0; i < (*inputs).size(); i++) {
-        (*inputs)[i].player = player_id;
-      }
+  //       // HACK: just set entity to the only player entity the server has.
+  //       auto player_id = r.view<const PlayerComponent>().front();
+  //       for (int i = 0; i < (*inputs).size(); i++) {
+  //         (*inputs)[i].player = player_id;
+  //       }
 
-      simulate(r, *inputs, milliseconds_dt);
-      ++it;
-    }
+  //       simulate(r, *inputs, milliseconds_dt);
+  //       ++it;
+  //     }
 
-    send_string_to_client(server.interface, message.conn, std::to_string(server.fixed_frame));
-  }
+  //     send_string_to_client(server.interface, message.conn, std::to_string(server.fixed_frame));
 };
 
 //

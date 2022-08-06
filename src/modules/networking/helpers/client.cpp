@@ -141,15 +141,15 @@ game2d::tick_client(entt::registry& r, uint64_t milliseconds_dt)
   client_receive_messages_on_connection(client, server_messages);
 
   // HACK: move all unprocessed inputs from Update() to FixedUpdate()?
-  {
-    auto& input = r.ctx().at<SINGLETON_InputComponent>();
-    auto& fixed_input = r.ctx().at<SINGLETON_FixedUpdateInputHistory>();
-    fixed_input.history.push_back(std::move(input.unprocessed_update_inputs));
+  // {
+  //   auto& input = r.ctx().at<SINGLETON_InputComponent>();
+  //   auto& fixed_input = r.ctx().at<SINGLETON_FixedUpdateInputHistory>();
+  //   fixed_input.history.push_back(std::move(input.unprocessed_update_inputs));
 
-    // As a client, just simulate immediately
-    simulate(r, fixed_input.history.back(), milliseconds_dt);
-    client.simulation_frame += 1;
-  }
+  //   // As a client, just simulate immediately
+  //   simulate(r, fixed_input.history.back(), milliseconds_dt);
+  //   client.simulation_frame += 1;
+  // }
   auto& fixed_inputs = r.ctx().at<SINGLETON_FixedUpdateInputHistory>();
 
   // for (int i = 0; i < server_messages.size(); i++) {
@@ -158,23 +158,24 @@ game2d::tick_client(entt::registry& r, uint64_t milliseconds_dt)
     std::cout << "(client) received: " << message << std::endl;
 
     // HACK: assume the message was an int containing an ack frame the server received...
-    int server_tick = std::stoi(message);
-    int client_tick = fixed_inputs.history.back();
-    fixed_inputs.fixed_tick_since_ack = fixed_inputs.fixed_tick - server_tick;
+    // int server_tick = std::stoi(message);
+    // int client_tick = fixed_inputs.history.back();
+    // fixed_inputs.fixed_tick_since_ack = fixed_inputs.fixed_tick - server_tick;
 
-    std::cout << "(client) tick: " << fixed_inputs.fixed_tick << " , ticks_ahead: " << fixed_inputs.fixed_tick_since_ack
-              << std::endl;
+    // std::cout << "(client) tick: " << fixed_inputs.fixed_tick << " , ticks_ahead: " <<
+    // fixed_inputs.fixed_tick_since_ack
+    //           << std::endl;
 
     // discard any unneeded inputs
     // while (fixed_inputs.history.size() < fixed_inputs.fixed_tick_since_ack)
     //   fixed_inputs.history.erase(fixed_inputs.history.begin());
 
-    int excess = fixed_inputs.history.size() - fixed_inputs.fixed_tick_since_ack;
-    if (excess > 0)
-      fixed_inputs.history.erase(fixed_inputs.history.begin(), fixed_inputs.history.begin() + excess);
-#ifdef _DEBUG
-    assert(fixed_inputs.history.size() == fixed_inputs.fixed_tick_since_ack);
-#endif
+    //     int excess = fixed_inputs.history.size() - fixed_inputs.fixed_tick_since_ack;
+    //     if (excess > 0)
+    //       fixed_inputs.history.erase(fixed_inputs.history.begin(), fixed_inputs.history.begin() + excess);
+    // #ifdef _DEBUG
+    //     assert(fixed_inputs.history.size() == fixed_inputs.fixed_tick_since_ack);
+    // #endif
     std::cout << "(client) inputs size: " << fixed_inputs.history.size() << std::endl;
   }
 
@@ -184,30 +185,30 @@ game2d::tick_client(entt::registry& r, uint64_t milliseconds_dt)
   // TODO: https://gafferongames.com/post/deterministic_lockstep/
   // TODO: https://gafferongames.com/post/what_every_programmer_needs_to_know_about_game_networking/
 
-  {
-    auto json = fixed_inputs;
-    auto data = nlohmann::json::to_cbor(json);
-    std::string packet;
-    packet.assign(data.begin(), data.end());
+  //   {
+  //     auto json = fixed_inputs;
+  //     auto data = nlohmann::json::to_cbor(json);
+  //     std::string packet;
+  //     packet.assign(data.begin(), data.end());
 
-    const int protocol = k_nSteamNetworkingSend_Unreliable;
-    const int max_size = k_cbMaxSteamNetworkingSocketsMessageSizeSend;
+  //     const int protocol = k_nSteamNetworkingSend_Unreliable;
+  //     const int max_size = k_cbMaxSteamNetworkingSocketsMessageSizeSend;
 
-    if (packet.size() >= max_size)
-      std::cerr << "packet wanting to send is too large, sending anyway..." << std::endl;
+  //     if (packet.size() >= max_size)
+  //       std::cerr << "packet wanting to send is too large, sending anyway..." << std::endl;
 
-    client.interface->SendMessageToConnection(
-      client.connection, packet.c_str(), (uint32_t)packet.size(), protocol, nullptr);
+  //     client.interface->SendMessageToConnection(
+  //       client.connection, packet.c_str(), (uint32_t)packet.size(), protocol, nullptr);
 
-    fixed_inputs.fixed_tick += 1;
-    fixed_inputs.fixed_tick_since_ack += 1;
+  //     fixed_inputs.fixed_tick += 1;
+  //     fixed_inputs.fixed_tick_since_ack += 1;
 
-#ifdef _DEBUG
-    if (fixed_inputs.fixed_tick_since_ack > 200) {
-      std::cerr << "(client) server is 200 ticks behind??" << std::endl;
-    }
-#endif
-  }
+  // #ifdef _DEBUG
+  //     if (fixed_inputs.fixed_tick_since_ack > 200) {
+  //       std::cerr << "(client) server is 200 ticks behind??" << std::endl;
+  //     }
+  // #endif
+  //   }
 }
 
 } // namespace game2d
