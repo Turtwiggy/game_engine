@@ -29,8 +29,10 @@
 // game systems
 #include "game/create_entities.hpp"
 #include "game/game_tick.hpp"
+#include "game/helpers/items.hpp"
 #include "game/systems/asteroid.hpp"
 #include "game/systems/player.hpp"
+#include "game/systems/shop.hpp"
 #include "game/systems/turret.hpp"
 #include "game/systems/ui_entity_placer.hpp"
 #include "game/systems/ui_main_menu.hpp"
@@ -55,6 +57,7 @@ init_game_state(entt::registry& r)
   r.ctx().at<SINGLETON_EntityBinComponent>() = SINGLETON_EntityBinComponent();
   r.ctx().at<SINGLETON_AsteroidGameStateComponent>() = SINGLETON_AsteroidGameStateComponent();
   r.ctx().at<SINGLETON_FixedUpdateInputHistory>() = SINGLETON_FixedUpdateInputHistory();
+  init_shop_system(r);
 
   auto& gs = r.ctx().at<SINGLETON_AsteroidGameStateComponent>();
   create_hierarchy_root_node(r);

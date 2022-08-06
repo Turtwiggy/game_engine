@@ -1,7 +1,7 @@
 #pragma once
 
 #include "engine/maths/maths.hpp"
-#include "helpers/items/item.hpp"
+#include "game/helpers/items.hpp"
 
 #include <SDL2/SDL_keycode.h>
 #include <SDL2/SDL_mouse.h>
@@ -35,11 +35,6 @@ struct SINGLETON_AsteroidGameStateComponent
   float score = 0.0f;
 };
 
-struct SINGLETON_ShopComponent
-{
-  std::vector<std::shared_ptr<Item>> available_items;
-};
-
 struct AsteroidComponent
 {
   bool initialized = false;
@@ -56,9 +51,6 @@ struct PlayerComponent
   SDL_Scancode A = SDL_SCANCODE_A;
   SDL_Scancode S = SDL_SCANCODE_S;
   SDL_Scancode D = SDL_SCANCODE_D;
-
-  // inventory
-  std::vector<std::shared_ptr<Item>> inventory;
 };
 
 struct TurretComponent

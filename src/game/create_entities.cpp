@@ -1,6 +1,7 @@
 #include "game/create_entities.hpp"
 
 // my libs
+#include "game/components/breakable.hpp"
 #include "modules/camera/components.hpp"
 #include "modules/lifecycle/components.hpp"
 #include "modules/physics/components.hpp"
@@ -95,7 +96,6 @@ create_player(entt::registry& r)
 
   auto e = r.create();
   hc.children.push_back(e);
-  r.emplace<PlayerComponent>(e);
 
   r.emplace<TagComponent>(e, "player");
   r.emplace<EntityHierarchyComponent>(e, h.root_node);
@@ -104,6 +104,9 @@ create_player(entt::registry& r)
   r.emplace<PhysicsActorComponent>(e, GameCollisionLayer::ACTOR_PLAYER);
   r.emplace<PhysicsSizeComponent>(e, create_player_physics_size_component(r));
   r.emplace<VelocityComponent>(e);
+  // gameplay
+  r.emplace<PlayerComponent>(e);
+  r.emplace<BreakableComponent>(e, 100);
   return e;
 }
 
@@ -287,7 +290,9 @@ create_turret(entt::registry& r)
   r.emplace<PhysicsActorComponent>(e, GameCollisionLayer::ACTOR_PLAYER_PET);
   r.emplace<PhysicsSizeComponent>(e, create_turret_physics_size_component(r));
   r.emplace<VelocityComponent>(e);
+  // gameplay
   r.emplace<TurretComponent>(e);
+  r.emplace<BreakableComponent>(e, 100);
   return e;
 }
 
