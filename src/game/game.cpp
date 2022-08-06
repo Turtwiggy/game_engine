@@ -159,7 +159,7 @@ game2d::update(entt::registry& r, float dt)
     // ... systems that always update
     {
       update_player_system(r);
-      update_asteroid_system(r);
+      // update_asteroid_system(r);
       update_audio_system(r);
       // update_cursor_system(r);
       update_turret_system(r);

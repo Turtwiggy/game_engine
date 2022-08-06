@@ -95,7 +95,9 @@
       "numbers": "cpp",
       "semaphore": "cpp",
       "cinttypes": "cpp",
-      "variant": "cpp"
+      "variant": "cpp",
+      "ranges": "cpp",
+      "span": "cpp"
     }
   }
 }

@@ -6,12 +6,6 @@
 
 namespace game2d {
 
-Potion::Potion()
-{
-  name = "Potion";
-  infinite_quantity = true;
-};
-
 bool
 Potion::use(entt::registry& r, std::vector<entt::entity>& entities)
 {
@@ -28,6 +22,20 @@ Potion::use(entt::registry& r, std::vector<entt::entity>& entities)
   }
 
   return false;
+};
+
+bool
+Gun::use(entt::registry& r, std::vector<entt::entity>& entities)
+{
+  std::cout << "shootin..!" << std::endl;
+  return true;
+};
+
+bool
+Sword::use(entt::registry& r, std::vector<entt::entity>& entities)
+{
+  std::cout << "slashin..!" << std::endl;
+  return true;
 };
 
 } // namespace game2d

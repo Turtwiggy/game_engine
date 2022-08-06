@@ -100,16 +100,16 @@ GameWindow::GameWindow(const std::string& title, int width, int height, DisplayM
 
 #if defined(__EMSCRIPTEN__)
   // web
-  GameWindow::glsl_version = "#version 300 es";
-  GameWindow::opengl_major = 3;
-  GameWindow::opengl_minor = 0;
+  glsl_version = "#version 300 es";
+  opengl_major = 3;
+  opengl_minor = 0;
   SDL_GL_SetAttribute(SDL_GL_CONTEXT_PROFILE_MASK, SDL_GL_CONTEXT_PROFILE_ES);
   // emscripten_set_main_loop_arg();
 #else
   // desktop
-  GameWindow::glsl_version = "#version 330";
-  GameWindow::opengl_major = 3;
-  GameWindow::opengl_minor = 3;
+  glsl_version = "#version 330";
+  opengl_major = 3;
+  opengl_minor = 3;
   SDL_GL_SetAttribute(SDL_GL_CONTEXT_PROFILE_MASK, SDL_GL_CONTEXT_PROFILE_CORE);
 #endif
 
