@@ -9,7 +9,7 @@ struct SINGLETON_Application
 {
   // defaults
   bool vsync = true;
-  bool limit_fps = false;
+  bool limit_fps = true;
   float fps_limit = 60.0f;
   int width = 1024;
   int height = width * 9 / 16.0f;

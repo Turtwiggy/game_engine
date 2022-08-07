@@ -16,12 +16,12 @@
 // c++ standard library headers
 #include <iostream>
 #include <string>
-#if defined(WIN32) || defined(_WIN32) || defined(__WIN32) && !defined(__CYGWIN__)
+#if defined(SDL_VIDEO_DRIVER_WINDOWS)
 #include "psapi.h"
 #include "windows.h"
 #endif
-
-// #elif defined(__linux)
+#if defined(SDL_VIDEO_DRIVER_COCOA)
+#endif
 
 namespace engine {
 
@@ -84,6 +84,30 @@ GameWindow::GameWindow(const std::string& title, int width, int height, DisplayM
 
   // OpenGL--------------------------------------
 
+// emscripten
+#if defined(__EMSCRIPTEN__)
+  opengl_major = 3;
+  opengl_minor = 0;
+  SDL_GL_SetAttribute(SDL_GL_CONTEXT_PROFILE_MASK, SDL_GL_CONTEXT_PROFILE_ES);
+
+// mac
+#elif defined(SDL_VIDEO_DRIVER_COCOA)
+  opengl_major = 3;
+  opengl_minor = 3;
+  SDL_GL_SetAttribute(SDL_GL_CONTEXT_PROFILE_MASK, SDL_GL_CONTEXT_PROFILE_CORE);
+  SDL_GL_SetAttribute(SDL_GL_CONTEXT_FLAGS, SDL_GL_CONTEXT_FORWARD_COMPATIBLE_FLAG);
+
+// windows
+#elif defined(SDL_VIDEO_DRIVER_WINDOWS)
+  opengl_major = 3;
+  opengl_minor = 3;
+  SDL_GL_SetAttribute(SDL_GL_CONTEXT_PROFILE_MASK, SDL_GL_CONTEXT_PROFILE_CORE);
+#endif
+
+  // SDL_GL_SetAttribute(SDL_GL_CONTEXT_FLAGS, 0);
+  SDL_GL_SetAttribute(SDL_GL_CONTEXT_MAJOR_VERSION, opengl_major);
+  SDL_GL_SetAttribute(SDL_GL_CONTEXT_MINOR_VERSION, opengl_minor);
+
   gl_context = SDL_GL_CreateContext(window);
   SDL_GL_MakeCurrent(window, gl_context);
 
@@ -98,24 +122,6 @@ GameWindow::GameWindow(const std::string& title, int width, int height, DisplayM
     }
   }
 
-#if defined(__EMSCRIPTEN__)
-  // web
-  glsl_version = "#version 300 es";
-  opengl_major = 3;
-  opengl_minor = 0;
-  SDL_GL_SetAttribute(SDL_GL_CONTEXT_PROFILE_MASK, SDL_GL_CONTEXT_PROFILE_ES);
-  // emscripten_set_main_loop_arg();
-#else
-  // desktop
-  glsl_version = "#version 330";
-  opengl_major = 3;
-  opengl_minor = 3;
-  SDL_GL_SetAttribute(SDL_GL_CONTEXT_PROFILE_MASK, SDL_GL_CONTEXT_PROFILE_CORE);
-#endif
-
-  SDL_GL_SetAttribute(SDL_GL_CONTEXT_FLAGS, 0);
-  SDL_GL_SetAttribute(SDL_GL_CONTEXT_MAJOR_VERSION, opengl_major);
-  SDL_GL_SetAttribute(SDL_GL_CONTEXT_MINOR_VERSION, opengl_minor);
   set_vsync_opengl(vsync);
 
   auto window_ptr = std::unique_ptr<SDL_Window, SDLDestroyer>(window);
@@ -138,12 +144,24 @@ GameWindow::get_native_handles(void*& native_window) const
     exit(0);
   }
 
+  // emscripten
+#if defined(__EMSCRIPTEN__)
+	static const char* canvas = "#canvas";
+	nativeWindow = const_cast<void*>(reinterpret_cast<const void*>(canvas));
+	return;
+#endif
+
   // windows
 #if defined(SDL_VIDEO_DRIVER_WINDOWS)
   if (wmi.subsystem == SDL_SYSWM_WINDOWS) {
     native_window = wmi.info.win.window;
   } else
 #endif // defined(SDL_VIDEO_DRIVER_WINDOWS)
+
+	// Mac
+#if defined(SDL_VIDEO_DRIVER_COCOA)
+#endif // defined(SDL_VIDEO_DRIVER_COCOA)
+
   {
     std::cerr << "Unsupported platform: " << std::to_string(wmi.subsystem) << std::endl;
     exit(0);
@@ -388,12 +406,6 @@ SDL_GLContext&
 GameWindow::get_gl_context()
 {
   return gl_context;
-}
-
-std::string
-GameWindow::get_glsl_version() const
-{
-  return glsl_version;
 }
 
 void

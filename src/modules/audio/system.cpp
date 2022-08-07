@@ -51,11 +51,11 @@ init_audio_system(entt::registry& registry)
   // Load Sounds and Music
   //
 
-  audio.sound = Mix_LoadWAV(audio.sound_path.c_str());
-  if (audio.sound == NULL) {
-    std::cerr << "failed to load sound: " << SDL_GetError() << std::endl;
-    exit(0);
-  }
+  // audio.sound = Mix_LoadWAV(audio.sound_path.c_str());
+  // if (audio.sound == NULL) {
+  //   std::cerr << "failed to load sound: " << SDL_GetError() << std::endl;
+  //   exit(0);
+  // }
 
   registry.ctx().emplace<SINGLETON_AudioComponent>(audio);
 };

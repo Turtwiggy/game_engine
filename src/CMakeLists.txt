@@ -33,13 +33,14 @@ message("game_2d: source_dir: ${CMAKE_SOURCE_DIR}")
 include(${CMAKE_SOURCE_DIR}/cmake/imgui.cmake)
 
 # Add VCPKG packages
-find_package(SDL2 CONFIG REQUIRED)
-find_package(sdl2-mixer CONFIG REQUIRED)
-find_package(OpenGL REQUIRED)
+find_package(GameNetworkingSockets CONFIG REQUIRED)
 find_package(GLEW REQUIRED)
 find_package(glm CONFIG REQUIRED)
 find_package(nlohmann_json CONFIG REQUIRED)
-find_package(GameNetworkingSockets CONFIG REQUIRED)
+find_package(SDL2 CONFIG REQUIRED)
+find_package(sdl2-mixer CONFIG REQUIRED)
+
+# find_package(OpenGL REQUIRED)
 find_path(STB_INCLUDE_DIRS "stb_c_lexer.h")
 
 # Add source files
@@ -75,14 +76,14 @@ target_include_directories(game_2d PRIVATE
   ${CMAKE_SOURCE_DIR}/thirdparty/magic_enum
 )
 
-target_link_libraries(game_2d PRIVATE SDL2::SDL2 SDL2::SDL2main)
-target_link_libraries(game_2d PRIVATE SDL2::SDL2_mixer)
-target_link_libraries(game_2d PRIVATE opengl32)
+target_link_libraries(game_2d PRIVATE GameNetworkingSockets::shared)
 target_link_libraries(game_2d PRIVATE GLEW::GLEW)
 target_link_libraries(game_2d PRIVATE glm::glm)
 target_link_libraries(game_2d PRIVATE nlohmann_json::nlohmann_json)
-target_link_libraries(game_2d PRIVATE GameNetworkingSockets::shared)
+target_link_libraries(game_2d PRIVATE SDL2::SDL2 SDL2::SDL2main)
+target_link_libraries(game_2d PRIVATE SDL2::SDL2_mixer)
 
+# target_link_libraries(game_2d PRIVATE opengl32)
 if(${CMAKE_SYSTEM_NAME} STREQUAL "Windows")
   # create symlink assets for build
   set(src ${CMAKE_SOURCE_DIR}/assets)

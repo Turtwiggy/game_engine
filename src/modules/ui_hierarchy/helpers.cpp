@@ -8,6 +8,7 @@
 #include <glm/glm.hpp>
 #include <glm/gtc/type_ptr.hpp>
 #include <imgui.h>
+#include <misc/cpp/imgui_stdlib.h>
 
 // std lib
 #include <algorithm>
@@ -17,14 +18,9 @@
 void
 game2d::imgui_draw_string(entt::registry& r, const std::string& label, std::string& v)
 {
-  char buffer[256];
-  memset(buffer, 0, sizeof(buffer));
-  strcpy_s(buffer, v.c_str());
-
   ImGui::Text(label.c_str());
   ImGui::SameLine();
-  if (ImGui::InputText((std::string("##") + label).c_str(), buffer, sizeof(buffer)))
-    v = std::string(buffer);
+  ImGui::InputText("temp", &v);
 }
 
 void

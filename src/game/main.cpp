@@ -70,9 +70,9 @@ main(int argc, char* argv[])
     log_time_since("(INFO) End init() ", start);
   }
 
-  bool hide_windows_console = false;
-  if (hide_windows_console)
-    engine::hide_windows_console();
+  // bool hide_windows_console = false;
+  // if (hide_windows_console)
+  //   engine::hide_windows_console();
 
   game2d::init(registry);
 

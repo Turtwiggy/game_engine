@@ -90,7 +90,7 @@ ImGui_Manager::initialize(GameWindow& window)
 
   // Setup Platform/Renderer backends
   ImGui_ImplSDL2_InitForOpenGL(window.get_handle(), window.get_gl_context());
-  ImGui_ImplOpenGL3_Init(window.get_glsl_version().c_str());
+  ImGui_ImplOpenGL3_Init();
 }
 
 void

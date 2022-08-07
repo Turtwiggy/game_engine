@@ -3,14 +3,23 @@
 ### Install
 
 - c++ compiler (MSVC, gcc, clang)
-- cmake e.g. `choco install cmake`
-- ninja e.g. `choco install ninja`
+- cmake e.g. `choco install cmake` or `brew install cmake`
+- ninja e.g. `choco install ninja` or `brew install ninja`
 
-```bash
+windows
+```bash 
 git clone
 git submodule update --init --recursive
 thirdparty/vcpkg/bootstrap-vcpkg.bat
 thirdparty/vcpkg/vcpkg.exe --feature-flags=versions install --triplet x64-windows
+```
+
+mac
+```bash
+git clone
+git submodule update --init --recursive
+thirdparty/vcpkg/bootstrap-vcpkg.sh
+thirdparty/vcpkg/vcpkg --feature-flags=versions install --triplet x64-osx
 ```
 
 ### Develop
