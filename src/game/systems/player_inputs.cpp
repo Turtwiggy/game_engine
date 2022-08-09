@@ -13,8 +13,8 @@
 void
 game2d::update_player_inputs_system(entt::registry& r, const std::vector<InputEvent>& inputs)
 {
-  const auto& view = r.view<const PlayerComponent, VelocityComponent>();
-  view.each([&r, &inputs](auto entity, const auto& player, auto& vel) {
+  const auto& view = r.view<PlayerComponent, VelocityComponent>();
+  view.each([&r, &inputs](auto entity, PlayerComponent& player, VelocityComponent& vel) {
     for (int i = 0; i < inputs.size(); i++) {
       const auto& any_input = inputs[i];
 
@@ -37,21 +37,27 @@ game2d::update_player_inputs_system(entt::registry& r, const std::vector<InputEv
             vel.y = 0;
         }
         case INPUT_TYPE::MOUSE: {
-          if (any_input.key == SDL_BUTTON_LEFT) {
-            // Shoot()
-            // entt::entity bullet = create_bullet(r);
-            // const int BULLET_SPEED = 500;
-            // const auto& mouse_pos = input.mouse_position_in_worldspace;
-            // glm::vec2 dir = { mouse_pos.x - transform.position.x, mouse_pos.y - transform.position.y };
-            // if (dir.x != 0.0f && dir.y != 0.0f)
-            //   dir = glm::normalize(dir);
-            // auto& bullet_velocity = r.get<VelocityComponent>(bullet);
-            // bullet_velocity.x = dir.x * BULLET_SPEED;
-            // bullet_velocity.y = dir.y * BULLET_SPEED;
-            // auto& bullet_transform = r.get<TransformComponent>(bullet);
-            // bullet_transform.position = transform.position;
-            // float angle = engine::dir_to_angle_radians(dir);
-            // bullet_transform.rotation.z = angle - engine::HALF_PI;
+          if (any_input.key == SDL_BUTTON_LEFT && !any_input.release) {
+
+            auto& equipment = player.hand_l;
+            if (equipment != nullptr) {
+
+              std::vector<entt::entity> entities = { entity };
+
+              // use eqipment
+              if (equipment->use(r, entities)) {
+
+                // destroy equpment?
+                if (equipment->destroy_after_use) {
+                  if (equipment->count > 1) {
+                    equipment->count -= 1;
+                  } else {
+                    player.hand_l.reset();
+                    std::cout << "resetting" << std::endl;
+                  }
+                }
+              }
+            }
           }
         }
       }

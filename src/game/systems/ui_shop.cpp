@@ -19,16 +19,6 @@ update_ui_shop_system(entt::registry& r)
 
   ImGui::Begin("Shop");
 
-  ImGui::Text("Buy Inventory");
-  ImGui::SameLine();
-  if (ImGui::Button("Buy##inventory")) {
-    const auto& view = r.view<PlayerComponent>();
-    if (view.size() > 0) {
-      auto main_player = view.front();
-      r.get_or_emplace<InventoryComponent>(main_player);
-    }
-  }
-
   ImGui::Text("Potion");
   ImGui::SameLine();
   if (ImGui::Button("Buy##potion")) {

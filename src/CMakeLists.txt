@@ -5,8 +5,6 @@ set(CMAKE_CXX_STANDARD 20)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 
 # set(CMAKE_VERBOSE_MAKEFILE on)
-
-# if(CMAKE_CXX_COMPILER_ID STREQUAL "MSVC")
 if(CMAKE_CXX_COMPILER_ID MATCHES GNU)
   add_definitions("-std=c++20")
   add_definitions("-Wall")
@@ -17,7 +15,9 @@ endif()
 if(CMAKE_CXX_COMPILER_ID MATCHES MSVC)
   set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} /MP /fp:fast")
   set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} /std:c++20 /permissive-")
+  set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} /d1reportTime") # debug compiler frontend???
 
+  # set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} /Bt+ /d2cgsummary") # debug compiler backend???
   # set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS}/WX /W3 /wd4275 /wd4251")
 endif()
 

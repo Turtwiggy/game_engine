@@ -6,12 +6,17 @@
 - cmake e.g. `choco install cmake` or `brew install cmake`
 - ninja e.g. `choco install ninja` or `brew install ninja`
 
+note: I've deliberately not used vcpkg.json as that seems
+to slow down compile time with the vscode c++ extension
+as it seems to recheck dependencies every time for the build,
+adding an additional ~~5s to compile time?
+
 windows
 ```bash 
 git clone
 git submodule update --init --recursive
 thirdparty/vcpkg/bootstrap-vcpkg.bat
-thirdparty/vcpkg/vcpkg.exe --feature-flags=versions install --triplet x64-windows
+thirdparty/vcpkg/vcpkg.exe install @vcpkg-x64-windows.txt
 ```
 
 mac
@@ -19,7 +24,7 @@ mac
 git clone
 git submodule update --init --recursive
 thirdparty/vcpkg/bootstrap-vcpkg.sh
-thirdparty/vcpkg/vcpkg --feature-flags=versions install --triplet x64-osx
+thirdparty/vcpkg/vcpkg.exe install @vcpkg-x64-osx.txt
 ```
 
 ### Develop

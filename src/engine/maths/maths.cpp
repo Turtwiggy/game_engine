@@ -16,7 +16,7 @@ dir_to_angle_radians(const glm::vec2& dir)
   return atan2(dir.y, dir.x) + engine::PI;
 }
 
-float
+constexpr float
 length_squared(const glm::vec3& i)
 {
   return i.x * i.x + i.y * i.y + i.z * i.z;
@@ -80,7 +80,7 @@ decode_cantor_pairing_function(uint64_t p, uint32_t& x, uint32_t& y)
   }
 }
 
-float
+constexpr float
 scale(const float x, const float min, const float max, const float a, const float b)
 {
   return ((b - a) * (x - min)) / (max - min) + a;

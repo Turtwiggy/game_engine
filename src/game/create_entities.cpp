@@ -107,6 +107,7 @@ create_player(entt::registry& r)
   // gameplay
   r.emplace<PlayerComponent>(e);
   r.emplace<BreakableComponent>(e, 100);
+  r.emplace<InventoryComponent>(e);
   return e;
 }
 
