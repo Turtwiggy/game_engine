@@ -158,17 +158,17 @@ game2d::update(entt::registry& r, float dt)
 
     // ... systems that always update
     {
-      update_player_system(r);
-      update_asteroid_system(r);
-      update_audio_system(r);
+      // update_asteroid_system(r);
       // update_cursor_system(r);
+      update_audio_system(r);
       update_turret_system(r);
     }
 
-    // ... systems that update if viewport is focused
+    // ... systems that update if viewport is not focused
     {
       if (ri.viewport_process_events) {
         // update_camera_system(r);
+        update_player_system(r);
       }
     }
   };
@@ -186,7 +186,8 @@ game2d::update(entt::registry& r, float dt)
 
   // ui
   {
-    bool is_release = false; // TODO: fix this
+    // TODO: fix this
+    bool is_release = false;
     if (!is_release) {
       // editor
       update_ui_physics_system(r);

@@ -14,7 +14,7 @@ linear_to_srgb(float f)
   if (f <= 0.0031308f)
     return 12.92f * f;
   return 1.055f * pow(f, 1.0f / 2.4f) - 0.055f;
-};
+}
 
 void
 main()

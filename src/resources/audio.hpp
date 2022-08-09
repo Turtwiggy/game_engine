@@ -15,7 +15,6 @@ struct SINGLETON_AudioComponent
   int device;
 
   // sounds
-
   const std::string sound_path = "assets/audio/usfx_1_4/WHOOSHES/Air/WHOOSH_Air_Blade_RR1_mono.wav";
   Mix_Chunk* sound;
 };

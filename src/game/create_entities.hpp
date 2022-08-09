@@ -51,6 +51,11 @@ struct PlayerComponent
   SDL_Scancode A = SDL_SCANCODE_A;
   SDL_Scancode S = SDL_SCANCODE_S;
   SDL_Scancode D = SDL_SCANCODE_D;
+
+  std::shared_ptr<Equipment> head;
+  std::shared_ptr<Equipment> body;
+  std::shared_ptr<Equipment> hand_l;
+  std::shared_ptr<Equipment> hand_r;
 };
 
 struct TurretComponent

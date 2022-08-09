@@ -8,6 +8,7 @@ set(IMGUI_SOURCE
   ${CMAKE_CURRENT_LIST_DIR}/../thirdparty/imgui/imgui_tables.cpp
   ${CMAKE_CURRENT_LIST_DIR}/../thirdparty/imgui/imgui_demo.cpp
   ${CMAKE_CURRENT_LIST_DIR}/../thirdparty/imgui/imgui_widgets.cpp
+  ${CMAKE_CURRENT_LIST_DIR}/../thirdparty/imgui/misc/cpp/imgui_stdlib.cpp
 )
 
 set(IMGUI_INCLUDES

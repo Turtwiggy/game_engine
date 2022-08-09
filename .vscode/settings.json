@@ -6,7 +6,6 @@
     "**/thirdparty": true
   },
   "files.exclude": {
-    "build/": true,
     "vcpkg_installed/": true,
     "vcpkg-manifest-install.log": true
   },

@@ -12,17 +12,12 @@ namespace game2d {
 void
 update_ui_shop_system(entt::registry& r)
 {
-  ImGui::Begin("Shop");
+#ifdef _DEBUG
+  bool show_imgui_demo_window = false;
+  ImGui::ShowDemoWindow(&show_imgui_demo_window);
+#endif
 
-  ImGui::Text("Buy Inventory");
-  ImGui::SameLine();
-  if (ImGui::Button("Buy##inventory")) {
-    const auto& view = r.view<PlayerComponent>();
-    if (view.size() > 0) {
-      auto main_player = view.front();
-      r.get_or_emplace<InventoryComponent>(main_player);
-    }
-  }
+  ImGui::Begin("Shop");
 
   ImGui::Text("Potion");
   ImGui::SameLine();
@@ -33,6 +28,19 @@ update_ui_shop_system(entt::registry& r)
       if (auto* opt = r.try_get<InventoryComponent>(main_player)) {
         (*opt).inventory.push_back(std::make_shared<Potion>());
         std::cout << "buying potion" << std::endl;
+      }
+    }
+  }
+
+  ImGui::Text("Gun");
+  ImGui::SameLine();
+  if (ImGui::Button("Buy##gun")) {
+    const auto& view = r.view<PlayerComponent>();
+    if (view.size() > 0) {
+      auto main_player = view.front();
+      if (auto* opt = r.try_get<InventoryComponent>(main_player)) {
+        (*opt).inventory.push_back(std::make_shared<Gun>());
+        std::cout << "buying gun" << std::endl;
       }
     }
   }

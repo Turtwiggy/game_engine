@@ -6,8 +6,6 @@
         "${workspaceFolder}/src",
         "${workspaceFolder}/thirdparty/entt/single_include",
         "${workspaceFolder}/thirdparty/imgui",
-        "${workspaceFolder}/thirdparty/imgui/examples",
-        "${workspaceFolder}/thirdparty/imgui/backends",
         "${workspaceFolder}/thirdparty/magic_enum"
       ],
       "defines": ["UNICODE", "_UNICODE"],
@@ -16,6 +14,22 @@
       "cStandard": "c17",
       "cppStandard": "c++20",
       "intelliSenseMode": "windows-gcc-x64",
+      "configurationProvider": "ms-vscode.cmake-tools"
+    },
+    {
+      "name": "Mac Clang",
+      "includePath": [
+        "${workspaceFolder}/src",
+        "${workspaceFolder}/thirdparty/entt/single_include",
+        "${workspaceFolder}/thirdparty/imgui",
+        "${workspaceFolder}/thirdparty/magic_enum"
+      ],
+      "defines": ["UNICODE", "_UNICODE"],
+      "windowsSdkVersion": "10.0.19041.0",
+      "compilerPath": "/usr/bin/clang",
+      "cStandard": "c17",
+      "cppStandard": "c++20",
+      "intelliSenseMode": "macos-clang-x64",
       "configurationProvider": "ms-vscode.cmake-tools"
     }
   ],
