@@ -1,6 +1,7 @@
 #include "simulate.hpp"
 
 #include "game/systems/player.hpp"
+#include "game/systems/resolve_collisions.hpp"
 
 // systems&components&helpers
 #include "modules/events/components.hpp"
@@ -27,4 +28,7 @@ game2d::simulate(entt::registry& r, const std::vector<InputEvent>& inputs, uint6
 
   // generate all collisions between actor-actor objects
   update_actor_actor_system(r);
+
+  // resolve collisions immediately ( this seems wrong )
+  update_resolve_collisions_system(r);
 };

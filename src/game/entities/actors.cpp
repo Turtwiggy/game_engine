@@ -77,7 +77,7 @@ create_player(entt::registry& r)
 //
 
 PhysicsSizeComponent
-create_asteroid_physics_size_component(entt::registry& r)
+create_enemy_physics_size_component(entt::registry& r)
 {
   PhysicsSizeComponent comp;
   comp.h = SPRITE_SIZE;
@@ -86,7 +86,7 @@ create_asteroid_physics_size_component(entt::registry& r)
 }
 
 SpriteComponent
-create_asteroid_sprite_component(entt::registry& r)
+create_enemy_sprite_component(entt::registry& r)
 {
   const auto& slots = r.ctx().at<SINGLETON_Textures>();
   const auto& colours = r.ctx().at<SINGLETON_ColoursComponent>();
@@ -105,7 +105,7 @@ create_asteroid_sprite_component(entt::registry& r)
 }
 
 TransformComponent
-create_asteroid_transform_component(entt::registry& r)
+create_enemy_transform_component(entt::registry& r)
 {
   TransformComponent comp;
   comp.scale.x = SPRITE_SIZE;
@@ -118,7 +118,7 @@ create_asteroid_transform_component(entt::registry& r)
 }
 
 entt::entity
-create_asteroid(entt::registry& r)
+create_enemy(entt::registry& r)
 {
   const auto& h = r.ctx().at<SINGLETON_HierarchyComponent>();
   auto& hc = r.get<EntityHierarchyComponent>(h.root_node);
@@ -127,12 +127,12 @@ create_asteroid(entt::registry& r)
   hc.children.push_back(e);
   r.emplace<AsteroidComponent>(e);
 
-  r.emplace<TagComponent>(e, "asteroid-duck");
+  r.emplace<TagComponent>(e, "enemy");
   r.emplace<EntityHierarchyComponent>(e, h.root_node);
-  r.emplace<SpriteComponent>(e, create_asteroid_sprite_component(r));
-  r.emplace<TransformComponent>(e, create_asteroid_transform_component(r));
-  r.emplace<PhysicsActorComponent>(e, GameCollisionLayer::ACTOR_ASTEROID);
-  r.emplace<PhysicsSizeComponent>(e, create_asteroid_physics_size_component(r));
+  r.emplace<SpriteComponent>(e, create_enemy_sprite_component(r));
+  r.emplace<TransformComponent>(e, create_enemy_transform_component(r));
+  r.emplace<PhysicsActorComponent>(e, GameCollisionLayer::ACTOR_ENEMY);
+  r.emplace<PhysicsSizeComponent>(e, create_enemy_physics_size_component(r));
   r.emplace<VelocityComponent>(e);
   r.emplace<EntityTimedLifecycle>(e);
   return e;

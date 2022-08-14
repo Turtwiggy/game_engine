@@ -27,6 +27,7 @@
 #include "game/simulate.hpp"
 #include "game/systems/player.hpp"
 #include "game/systems/player_inputs.hpp"
+#include "game/systems/resolve_collisions.hpp"
 #include "resources/audio.hpp"
 #include "resources/colour.hpp"
 #include "resources/textures.hpp"

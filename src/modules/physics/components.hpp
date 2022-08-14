@@ -12,7 +12,7 @@ enum class GameCollisionLayer
 {
   ACTOR_PLAYER,
   ACTOR_PLAYER_PET,
-  ACTOR_ASTEROID,
+  ACTOR_ENEMY,
   ACTOR_BULLET,
   SOLID_WALL,
 

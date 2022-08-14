@@ -1,13 +1,11 @@
 // header
 #include "system.hpp"
 
-// my libs
-#include "modules/sprites/helpers.hpp"
-#include "resources/textures.hpp"
-
-// engine
 #include "engine/maths/maths.hpp"
 #include "engine/opengl/texture.hpp"
+#include "modules/physics/components.hpp"
+#include "modules/sprites/helpers.hpp"
+#include "resources/textures.hpp"
 
 namespace game2d {
 
@@ -42,33 +40,65 @@ init_sprite_system(entt::registry& registry)
 void
 update_sprite_system(entt::registry& registry, float dt)
 {
-  const auto& anim = registry.ctx().at<SINGLETON_Animations>();
-  const auto& view = registry.view<SpriteComponent, SpriteAnimationComponent>();
+  const auto& anims = registry.ctx().at<SINGLETON_Animations>();
 
-  view.each([&anim, &dt](SpriteComponent& sprite, SpriteAnimationComponent& animation) {
-    //
-    SpriteAnimation current_animation = find_animation(anim.animations, animation.playing_animation_name);
+  { // set sprite animation by velocity
+    const auto& view =
+      registry.view<SpriteAnimationComponent, SpriteComponent, AnimationSetByVelocityComponent, VelocityComponent>();
+    view.each([&anims, &registry](auto& anim, auto& sprite, const auto& asbv, const auto& vel) {
+      std::string animation = "down_idle";
 
-    if (!animation.playing)
-      return;
+      float angle = engine::dir_to_angle_radians({ vel.x, vel.y });
+      if (angle < 0.25f * engine::PI || angle > 1.75f * engine::PI)
+        animation = "left_walk_cycle";
+      else if (angle < 0.75f * engine::PI)
+        animation = "up_walk_cycle";
+      else if (angle < 1.25f * engine::PI)
+        animation = "right_walk_cycle";
+      else
+        animation = "down_walk_cycle";
 
-    int frames = current_animation.animation_frames.size();
+      if (animation != anim.playing_animation_name) {
+        // immediately play new anim
+        anim.frame = 0;
+        anim.frame_dt = 0.0f;
+        anim.playing_animation_name = animation;
 
-    animation.frame_dt += dt * animation.speed;
-    if (animation.frame_dt >= current_animation.animation_frames_per_second) {
-      // next frame!
-      animation.frame_dt -= current_animation.animation_frames_per_second;
-      animation.frame += 1;
+        // set starting frame
+        const auto& anim_data = find_animation(anims.animations, anim.playing_animation_name);
+        sprite.x = anim_data.animation_frames[0].x;
+        sprite.y = anim_data.animation_frames[0].y;
+      }
+    });
+  }
 
-      if (animation.frame >= frames && !animation.looping)
-        animation.playing = false;
+  { // update sprite component with sprite animation
+    const auto& view = registry.view<SpriteComponent, SpriteAnimationComponent>();
+    view.each([&anims, &dt](SpriteComponent& sprite, SpriteAnimationComponent& animation) {
+      //
+      SpriteAnimation current_animation = find_animation(anims.animations, animation.playing_animation_name);
 
-      animation.frame %= frames;
-      sprite.x = current_animation.animation_frames[animation.frame].x;
-      sprite.y = current_animation.animation_frames[animation.frame].y;
-      sprite.angle_radians = current_animation.animation_angle_degrees * engine::PI / 180.0f;
-    }
-  });
+      if (!animation.playing)
+        return;
+
+      int frames = current_animation.animation_frames.size();
+
+      animation.frame_dt += dt * animation.speed;
+      if (animation.frame_dt >= current_animation.animation_frames_per_second) {
+        // next frame!
+        animation.frame_dt -= current_animation.animation_frames_per_second;
+        animation.frame += 1;
+
+        if (animation.frame >= frames && !animation.looping)
+          animation.playing = false;
+
+        animation.frame %= frames;
+        sprite.x = current_animation.animation_frames[animation.frame].x;
+        sprite.y = current_animation.animation_frames[animation.frame].y;
+        sprite.angle_radians = current_animation.animation_angle_degrees * engine::PI / 180.0f;
+      }
+    });
+  }
 };
 
 } // namespace game2d
