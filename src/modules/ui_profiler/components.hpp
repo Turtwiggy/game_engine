@@ -1,12 +1,22 @@
 #pragma once
 
+#include <SDL2/SDL.h>
+
+#include <string>
+#include <vector>
+
 namespace game2d {
+
+struct ProfileResult
+{
+  std::string name;
+  float ms = 0.0f;
+};
 
 struct Profiler
 {
-  float physics_elapsed_ms = 0.0f;
-  float game_tick_elapsed_ms = 0.0f;
-  float render_elapsed_ms = 0.0f;
+  std::vector<ProfileResult> update_results;
+  std::vector<ProfileResult> fixed_update_results;
 };
 
 } // namespace game2d

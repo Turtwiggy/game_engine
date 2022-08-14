@@ -14,20 +14,22 @@
 #include "modules/sprites/components.hpp"
 #include "modules/sprites/system.hpp"
 #include "modules/ui_hierarchy/components.hpp"
+#include "modules/ui_hierarchy/helpers.hpp"
 #include "modules/ui_hierarchy/system.hpp"
 #include "modules/ui_networking/components.hpp"
 #include "modules/ui_networking/system.hpp"
 #include "modules/ui_physics/system.hpp"
 #include "modules/ui_profiler/components.hpp"
+#include "modules/ui_profiler/helpers.hpp"
 #include "modules/ui_profiler/system.hpp"
 
 #include "engine/app/application.hpp"
 #include "game/entities/actors.hpp"
-#include "game/entities/camera.hpp"
 #include "game/simulate.hpp"
 #include "game/systems/player.hpp"
 #include "game/systems/player_inputs.hpp"
 #include "game/systems/resolve_collisions.hpp"
+#include "modules/camera/components.hpp"
 #include "resources/audio.hpp"
 #include "resources/colour.hpp"
 #include "resources/textures.hpp"
@@ -51,7 +53,6 @@ init_game_state(entt::registry& r)
 
   auto& gs = r.ctx().at<SINGLETON_AsteroidGameStateComponent>();
   create_hierarchy_root_node(r);
-  create_camera(r);
 
   auto player = create_player(r);
   auto& player_transform = r.get<TransformComponent>(player);
@@ -59,9 +60,6 @@ init_game_state(entt::registry& r)
   player_transform.position.y = 200;
   auto& player_speed = r.get<PlayerComponent>(player);
   player_speed.speed = 250;
-
-  auto& ui = r.ctx().at<SINGLETON_NetworkingUIComponent>();
-  ui.start_offline = true;
 };
 
 } // namespace game2d
@@ -80,7 +78,6 @@ game2d::init(entt::registry& r)
   init_input_system(r);
   init_audio_system(r);
   init_networking_system(r);
-  init_ui_networking_system(r);
 
   // emplace game things once (as they are delete/reinit at any time)
   r.ctx().emplace<SINGLETON_PhysicsComponent>();
@@ -98,32 +95,26 @@ game2d::fixed_update(entt::registry& r, uint64_t milliseconds_dt)
 {
   auto& p = r.ctx().at<Profiler>();
 
-  // physics
-  uint64_t start_physics = SDL_GetPerformanceCounter();
   {
-    auto& ui = r.ctx().at<SINGLETON_NetworkingUIComponent>();
-    if (ui.start_offline) {
-      auto& input = r.ctx().at<SINGLETON_InputComponent>();
-      auto& fixed_input = r.ctx().at<SINGLETON_FixedUpdateInputHistory>();
+    auto _ = time_scope(&p, "physics", true);
+    auto& input = r.ctx().at<SINGLETON_InputComponent>();
+    auto& fixed_input = r.ctx().at<SINGLETON_FixedUpdateInputHistory>();
 
-      // while offline, just clear out anything older than a tick (until a sys needs older input)
-      fixed_input.history.clear();
+    // while offline, just clear out anything older than a tick (until a sys needs older input)
+    fixed_input.history.clear();
 
-      // move inputs from Update() to this FixedUpdate() tick
-      fixed_input.history[fixed_input.fixed_tick] = std::move(input.unprocessed_update_inputs);
-      auto& inputs = fixed_input.history[fixed_input.fixed_tick];
+    // move inputs from Update() to this FixedUpdate() tick
+    fixed_input.history[fixed_input.fixed_tick] = std::move(input.unprocessed_update_inputs);
+    auto& inputs = fixed_input.history[fixed_input.fixed_tick];
 
-      simulate(r, inputs, milliseconds_dt);
-      // update_turret_system(r);
-      // update_asteroid_system(r);
+    simulate(r, inputs, milliseconds_dt);
+    // update_turret_system(r);
+    // update_asteroid_system(r);
 
-      fixed_input.fixed_tick += 1;
-    }
+    fixed_input.fixed_tick += 1;
 
     // update_networking_system(r, milliseconds_dt);
   }
-  uint64_t end_physics = SDL_GetPerformanceCounter();
-  p.physics_elapsed_ms = (end_physics - start_physics) / float(SDL_GetPerformanceFrequency()) * 1000.0f;
 }
 
 void
@@ -133,12 +124,10 @@ game2d::update(entt::registry& r, float dt)
   const auto& ri = r.ctx().at<SINGLETON_RendererInfo>();
   auto& app = r.ctx().at<engine::SINGLETON_Application>();
 
-  // game logic
-  uint64_t start_game_tick = SDL_GetPerformanceCounter();
   {
+    auto _ = time_scope(&p, "game_tick");
     update_input_system(r);
     const auto& input = r.ctx().at<SINGLETON_InputComponent>();
-
     if (ri.viewport_process_events) {
       if (get_key_down(input, SDL_SCANCODE_R))
         init_game_state(r);
@@ -162,24 +151,19 @@ game2d::update(entt::registry& r, float dt)
       }
     }
   };
-  uint64_t end_game_tick = SDL_GetPerformanceCounter();
-  p.game_tick_elapsed_ms = (end_game_tick - start_game_tick) / float(SDL_GetPerformanceFrequency()) * 1000.0f;
 
-  // rendering
-  uint64_t start_render = SDL_GetPerformanceCounter();
   {
+    auto _ = time_scope(&p, "rendering");
     update_sprite_system(r, dt);
     update_render_system(r); // put rendering on thread?
   };
-  uint64_t end_render = SDL_GetPerformanceCounter();
-  p.render_elapsed_ms = (end_render - start_render) / float(SDL_GetPerformanceFrequency()) * 1000.0f;
 
   // ui
   {
     // TODO: fix this
     bool is_release = false;
     if (!is_release) {
-      // editor
+      auto _ = time_scope(&p, "ui"); // value always be a frame behind
       update_ui_physics_system(r);
       update_ui_hierarchy_system(r);
       update_ui_profiler_system(r);

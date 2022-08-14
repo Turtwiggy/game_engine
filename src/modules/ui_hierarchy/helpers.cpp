@@ -15,6 +15,18 @@
 #include <stdio.h>
 #include <vector>
 
+entt::entity
+game2d::create_hierarchy_root_node(entt::registry& r)
+{
+  auto& h = r.ctx().at<SINGLETON_HierarchyComponent>();
+  h.root_node = r.create();
+
+  r.emplace<TagComponent>(h.root_node, "root-node");
+  r.emplace<EntityHierarchyComponent>(h.root_node, h.root_node);
+
+  return h.root_node;
+};
+
 void
 game2d::imgui_draw_string(entt::registry& r, const std::string& label, std::string& v)
 {

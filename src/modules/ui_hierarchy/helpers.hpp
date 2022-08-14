@@ -11,6 +11,9 @@
 
 namespace game2d {
 
+entt::entity
+create_hierarchy_root_node(entt::registry& r);
+
 void
 imgui_draw_string(entt::registry& r, const std::string& label, std::string& v);
 

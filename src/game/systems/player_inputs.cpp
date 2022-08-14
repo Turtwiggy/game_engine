@@ -43,7 +43,6 @@ game2d::update_player_inputs_system(entt::registry& r)
     if (get_key_down(input, player.D))
       input.unprocessed_update_inputs.push_back(
         { INPUT_TYPE::KEYBOARD, entity, false, static_cast<uint32_t>(player.D) });
-
     if (get_key_up(input, player.W))
       input.unprocessed_update_inputs.push_back(
         { INPUT_TYPE::KEYBOARD, entity, true, static_cast<uint32_t>(player.W) });
@@ -63,7 +62,6 @@ game2d::update_player_inputs_system(entt::registry& r)
       input.unprocessed_update_inputs.push_back({ INPUT_TYPE::MOUSE, entity, true, SDL_BUTTON_LEFT });
 
     // .. rotate to velocity
-    // .. IMPROVEMENT
     // Could improve this by not immediately setting rotation.z
     // and by setting a target angle that is lerped towards over multiple frames
     // const float EPSILON = 0.005f;
