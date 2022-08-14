@@ -1,7 +1,8 @@
 #include "turret.hpp"
 
 #include "engine/maths/maths.hpp"
-#include "game/create_entities.hpp"
+#include "game/entities/actors.hpp"
+#include "game/entities/equipment.hpp"
 #include "modules/lifecycle/components.hpp"
 #include "modules/physics/components.hpp"
 #include "modules/renderer/components.hpp"
@@ -12,12 +13,11 @@ void
 game2d::update_turret_system(entt::registry& r)
 {
   const auto& p = r.ctx().at<SINGLETON_PhysicsComponent>();
-  auto& rnd = r.ctx().at<SINGLETON_ResourceComponent>();
   auto& eb = r.ctx().at<SINGLETON_EntityBinComponent>();
   const float dt = ImGui::GetIO().DeltaTime; // think this is wrong
 
   const auto& view = r.view<TurretComponent, TransformComponent>();
-  view.each([&r, &rnd, &dt](auto entity, auto& turret, auto& transform) {
+  view.each([&r, &dt](auto entity, auto& turret, auto& transform) {
     // for each turret...
 
     turret.time_since_last_shot += dt;
@@ -26,20 +26,20 @@ game2d::update_turret_system(entt::registry& r)
       turret.time_since_last_shot -= turret.time_between_shots;
 
       // .. get a new random direction
-      const float angle = engine::rand_det_s(rnd.rnd.rng, 0.0f, engine::PI * 2);
-      glm::vec2 dir = engine::angle_radians_to_direction(angle);
+      // const float angle = engine::rand_det_s(rnd.rnd.rng, 0.0f, engine::PI * 2);
+      // glm::vec2 dir = engine::angle_radians_to_direction(angle);
 
       // .. fire a projectile
-      entt::entity bullet = create_bullet(r);
-      auto& bullet_velocity = r.get<VelocityComponent>(bullet);
-      bullet_velocity.x = dir.x * turret.bullet_speed;
-      bullet_velocity.y = dir.y * turret.bullet_speed;
-      auto& bullet_transform = r.get<TransformComponent>(bullet);
-      bullet_transform.position = transform.position;
-      bullet_transform.rotation.z = angle;
+      // entt::entity bullet = create_bullet(r);
+      // auto& bullet_velocity = r.get<VelocityComponent>(bullet);
+      // bullet_velocity.x = dir.x * turret.bullet_speed;
+      // bullet_velocity.y = dir.y * turret.bullet_speed;
+      // auto& bullet_transform = r.get<TransformComponent>(bullet);
+      // bullet_transform.position = transform.position;
+      // bullet_transform.rotation.z = angle;
 
-      // .. set the turret's angle
-      transform.rotation.z = angle;
+      // // .. set the turret's angle
+      // transform.rotation.z = angle;
     }
   });
 

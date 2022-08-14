@@ -10,13 +10,13 @@ namespace game2d {
 // Note; for no collision, don't attach a CollidableComponent
 enum class GameCollisionLayer
 {
-  ACTOR_PLAYER = 1,
-  ACTOR_PLAYER_PET = 2,
-  ACTOR_ASTEROID = 3,
-  ACTOR_BULLET = 4,
-  SOLID_WALL = 5,
+  ACTOR_PLAYER,
+  ACTOR_PLAYER_PET,
+  ACTOR_ASTEROID,
+  ACTOR_BULLET,
+  SOLID_WALL,
 
-  COUNT = 5,
+  COUNT,
 };
 
 struct PhysicsActorComponent

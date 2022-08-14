@@ -1,14 +1,10 @@
 #pragma once
 
-#include "modules/events/components.hpp"
-
 #include <entt/entt.hpp>
-
-#include <vector>
 
 namespace game2d {
 
 void
-update_player_inputs_system(entt::registry& r, const std::vector<InputEvent>& inputs);
+update_player_inputs_system(entt::registry& r);
 
 } // namespace game2d

@@ -110,4 +110,10 @@ Sword::use(entt::registry& r, std::vector<entt::entity>& entities)
   return true;
 };
 
+bool
+Turret::use(entt::registry& r, std::vector<entt::entity>& entities)
+{
+  return true;
+};
+
 } // namespace game2d

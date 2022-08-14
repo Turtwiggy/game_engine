@@ -2,8 +2,7 @@
 
 #include "engine/app/application.hpp"
 #include "engine/maths/grid.hpp"
-#include "game/create_entities.hpp"
-#include "game/game_tick.hpp"
+#include "game/simulate.hpp"
 #include "modules/events/components.hpp"
 #include "modules/events/helpers/keyboard.hpp"
 #include "modules/events/helpers/mouse.hpp"

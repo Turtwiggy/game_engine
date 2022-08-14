@@ -1,6 +1,6 @@
-#include "game_tick.hpp"
+#include "simulate.hpp"
 
-#include "game/systems/player_inputs.hpp"
+#include "game/systems/player.hpp"
 
 // systems&components&helpers
 #include "modules/events/components.hpp"
@@ -13,14 +13,11 @@
 #include "modules/physics/process_actor_actor.hpp"
 #include "modules/physics/process_move_objects.hpp"
 
-// game systems
-#include "game/create_entities.hpp"
-
 void
 game2d::simulate(entt::registry& r, const std::vector<InputEvent>& inputs, uint64_t milliseconds_dt)
 {
   // process inputs in FixedUpdateInputHistory
-  update_player_inputs_system(r, inputs);
+  update_player_system(r, inputs);
 
   // destroy objects
   update_lifecycle_system(r, milliseconds_dt);

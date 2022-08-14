@@ -1,7 +1,8 @@
 #include "ui_player.hpp"
 
-#include "game/components/breakable.hpp"
+#include "game/components/hp.hpp"
 #include "game/create_entities.hpp"
+#include "game/entities/actors.hpp"
 #include "game/helpers/items.hpp"
 
 #include <imgui.h>
@@ -18,7 +19,7 @@ update_ui_player_system(entt::registry& r)
 
   int i = 0; // each item requires unique id
 
-  const auto& view = r.view<PlayerComponent, BreakableComponent>();
+  const auto& view = r.view<PlayerComponent, HpComponent>();
   view.each([&r, &i](auto entity, auto& player, auto& hp) {
     //
     ImGui::Text("¬¬Player¬¬");
@@ -28,25 +29,25 @@ update_ui_player_system(entt::registry& r)
 
     ImGui::Text("Head");
     if (player.head == nullptr)
-      ImGui::Text("¬empty¬");
+      ImGui::Text("¬default head¬");
     else
       ImGui::Text("%s", player.head.get()->name.c_str());
 
     ImGui::Text("Body");
     if (player.body == nullptr)
-      ImGui::Text("¬empty¬");
+      ImGui::Text("¬default organs¬");
     else
       ImGui::Text("%s", player.body.get()->name.c_str());
 
     ImGui::Text("Hand (L)");
     if (player.hand_l == nullptr)
-      ImGui::Text("¬empty¬");
+      ImGui::Text("¬default hand¬");
     else
       ImGui::Text("%s", player.hand_l.get()->name.c_str());
 
     ImGui::Text("Hand (R)");
     if (player.hand_r == nullptr)
-      ImGui::Text("¬empty¬");
+      ImGui::Text("¬default hand¬");
     else
       ImGui::Text("%s", player.hand_r.get()->name.c_str());
 

@@ -11,612 +11,277 @@
     "sprites": [
       {
         "name": "EMPTY",
-        "frames": [
-          {
-            "x": 0,
-            "y": 0
-          }
-        ]
+        "frames": [{"x": 0,"y": 0}]
       },
       {
         "name": "BUSH_0",
-        "frames": [
-          {
-            "x": 1,
-            "y": 0
-          }
-        ]
+        "frames": [{"x": 1,"y": 0}]
       },
       {
         "name": "BUSH_1",
-        "frames": [
-          {
-            "x": 2,
-            "y": 0
-          }
-        ]
+        "frames": [{"x": 2,"y": 0}]
       },
       {
         "name": "BUSH_2",
-        "frames": [
-          {
-            "x": 3,
-            "y": 0
-          }
-        ]
+        "frames": [{"x": 3,"y": 0}]
       },
       {
         "name": "BUSH_3",
-        "frames": [
-          {
-            "x": 4,
-            "y": 0
-          }
-        ]
+        "frames": [{"x": 4,"y": 0}]
       },
       {
         "name": "BUSH_4",
-        "frames": [
-          {
-            "x": 5,
-            "y": 0
-          }
-        ]
+        "frames": [{"x": 5,"y": 0}]
       },
       {
         "name": "BUSH_5",
-        "frames": [
-          {
-            "x": 6,
-            "y": 0
-          }
-        ]
+        "frames": [{"x": 6,"y": 0}]
       },
       {
         "name": "BUSH_6",
-        "frames": [
-          {
-            "x": 7,
-            "y": 0
-          }
-        ]
+        "frames": [{"x": 7,"y": 0}]
       },
       {
         "name": "PERSON_0",
-        "frames": [
-          {
-            "x": 24,
-            "y": 0
-          }
-        ]
+        "frames": [{"x": 24,"y": 0}]
       },
       {
         "name": "PERSON_1",
-        "frames": [
-          {
-            "x": 25,
-            "y": 0
-          }
-        ]
+        "frames": [{"x": 25,"y": 0}]
       },
       {
         "name": "PERSON_2",
-        "frames": [
-          {
-            "x": 26,
-            "y": 0
-          }
-        ]
+        "frames": [{"x": 26,"y": 0}]
       },
       {
         "name": "PERSON_3",
-        "frames": [
-          {
-            "x": 27,
-            "y": 0
-          }
-        ]
+        "frames": [{"x": 27,"y": 0}]
       },
       {
         "name": "PERSON_4",
-        "frames": [
-          {
-            "x": 28,
-            "y": 0
-          }
-        ]
+        "frames": [{"x": 28,"y": 0}]
       },
       {
         "name": "PERSON_5",
-        "frames": [
-          {
-            "x": 29,
-            "y": 0
-          }
-        ]
+        "frames": [{"x": 29,"y": 0}]
       },
       {
         "name": "PERSON_6",
-        "frames": [
-          {
-            "x": 30,
-            "y": 0
-          }
-        ]
+        "frames": [{"x": 30,"y": 0}]
       },
       {
         "name": "PERSON_7",
-        "frames": [
-          {
-            "x": 31,
-            "y": 0
-          }
-        ]
+        "frames": [{"x": 31,"y": 0}]
       },
       {
         "name": "TREE_1",
-        "frames": [
-          {
-            "x": 0,
-            "y": 1
-          }
-        ]
+        "frames": [{"x": 0,"y": 1}]
       },
       {
         "name": "TREE_2",
-        "frames": [
-          {
-            "x": 1,
-            "y": 1
-          }
-        ]
+        "frames": [{"x": 1,"y": 1}]
       },
       {
         "name": "TREE_3",
-        "frames": [
-          {
-            "x": 2,
-            "y": 1
-          }
-        ]
+        "frames": [{"x": 2,"y": 1}]
       },
       {
         "name": "TREE_4",
-        "frames": [
-          {
-            "x": 3,
-            "y": 1
-          }
-        ]
+        "frames": [{"x": 3,"y": 1}]
       },
       {
         "name": "TREE_5",
-        "frames": [
-          {
-            "x": 4,
-            "y": 1
-          }
-        ]
+        "frames": [{"x": 4,"y": 1}]
       },
       {
         "name": "TREE_6",
-        "frames": [
-          {
-            "x": 5,
-            "y": 1
-          }
-        ]
+        "frames": [{"x": 5,"y": 1}]
       },
       {
         "name": "TREE_7",
-        "frames": [
-          {
-            "x": 6,
-            "y": 1
-          }
-        ]
+        "frames": [{"x": 6,"y": 1}]
       },
       {
         "name": "TREE_8",
-        "frames": [
-          {
-            "x": 7,
-            "y": 1
-          }
-        ]
+        "frames": [{"x": 7,"y": 1}]
       },
       {
         "name": "CASTLE_FLOOR",
-        "frames": [
-          {
-            "x": 19,
-            "y": 1
-          }
-        ]
+        "frames": [{"x": 19,"y": 1}]
       },
       {
         "name": "WALL_BIG",
-        "frames": [
-          {
-            "x": 2,
-            "y": 3
-          }
-        ]
+        "frames": [{"x": 2,"y": 3}]
       },
       {
         "name": "WEAPON_ARROW_1",
-        "frames": [
-          {
-            "x": 40,
-            "y": 5
-          }
-        ],
+        "frames": [{"x": 40,"y": 5}],
         "angle": -45.0
       },
       {
         "name": "WEAPON_ARROW_2",
-        "frames": [
-          {
-            "x": 41,
-            "y": 5
-          }
-        ],
+        "frames": [{"x": 41,"y": 5}],
         "angle": -45.0
       },
       {
         "name": "WEAPON_SHOVEL",
-        "frames": [
-          {
-            "x": 42,
-            "y": 5
-          }
-        ],
+        "frames": [{"x": 42,"y": 5}],
         "angle": -45.0
       },
       {
         "name": "WEAPON_PICKAXE",
-        "frames": [
-          {
-            "x": 42,
-            "y": 5
-          }
-        ],
+        "frames": [{"x": 42,"y": 5}],
         "angle": -30.0
       },
       {
         "name": "ORC",
-        "frames": [
-          {
-            "x": 30,
-            "y": 6
-          }
-        ]
+        "frames": [{"x": 30,"y": 6}]
       },
       {
         "name": "WEAPON_DAGGER_OUTLINED_1",
-        "frames": [
-          {
-            "x": 32,
-            "y": 6
-          }
-        ],
+        "frames": [{"x": 32,"y": 6}],
         "angle": -45.0
       },
       {
         "name": "WEAPON_DAGGER_SOLID_3",
-        "frames": [
-          {
-            "x": 34,
-            "y": 6
-          }
-        ],
+        "frames": [{"x": 34,"y": 6}],
         "angle": -45.0
       },
       {
         "name": "DUCK",
-        "frames": [
-          {
-            "x": 25,
-            "y": 7
-          }
-        ]
+        "frames": [{"x": 25,"y": 7}]
       },
       {
         "name": "WEAPON_PISTOL",
-        "frames": [
-          {
-            "x": 37,
-            "y": 9
-          }
-        ]
+        "frames": [{"x": 37,"y": 9}]
       },
       {
         "name": "WEAPON_RAY_PISTOL",
-        "frames": [
-          {
-            "x": 38,
-            "y": 9
-          }
-        ]
+        "frames": [{"x": 38,"y": 9}]
       },
       {
         "name": "WEAPON_SHOTGUN",
-        "frames": [
-          {
-            "x": 39,
-            "y": 9
-          }
-        ]
+        "frames": [{"x": 39,"y": 9}]
       },
       {
         "name": "WEAPON_SUB_MACHINE_GUN",
-        "frames": [
-          {
-            "x": 40,
-            "y": 9
-          }
-        ]
+        "frames": [{"x": 40,"y": 9}]
       },
       {
         "name": "WEAPON_MINI_UZI",
-        "frames": [
-          {
-            "x": 41,
-            "y": 9
-          }
-        ]
+        "frames": [{"x": 41,"y": 9}]
       },
       {
         "name": "WEAPON_MP5",
-        "frames": [
-          {
-            "x": 42,
-            "y": 9
-          }
-        ]
+        "frames": [{"x": 42,"y": 9}]
       },
       {
         "name": "WEAPON_RPG",
-        "frames": [
-          {
-            "x": 43,
-            "y": 9
-          }
-        ]
+        "frames": [{"x": 43,"y": 9}]
       },
       {
         "name": "AMMO_BOX",
-        "frames": [
-          {
-            "x": 44,
-            "y": 9
-          }
-        ]
+        "frames": [{"x": 44,"y": 9}]
       },
       {
         "name": "CAMPFIRE",
-        "frames": [
-          {
-            "x": 14,
-            "y": 10
-          }
-        ]
+        "frames": [{"x": 14,"y": 10}]
       },
       {
         "name": "FIRE",
-        "frames": [
-          {
-            "x": 15,
-            "y": 10
-          }
-        ]
+        "frames": [{"x": 15,"y": 10}]
       },
       {
         "name": "ICON_HEART",
-        "frames": [
-          {
-            "x": 39,
-            "y": 10
-          }
-        ]
+        "frames": [{"x": 39,"y": 10}]
       },
       {
         "name": "ICON_HEART_OUTLINE",
-        "frames": [
-          {
-            "x": 40,
-            "y": 10
-          }
-        ]
+        "frames": [{"x": 40,"y": 10}]
       },
       {
         "name": "ICON_HEART_HALF_FULL",
-        "frames": [
-          {
-            "x": 41,
-            "y": 10
-          }
-        ]
+        "frames": [{"x": 41,"y": 10}]
       },
       {
         "name": "ICON_HEART_FULL",
-        "frames": [
-          {
-            "x": 42,
-            "y": 10
-          }
-        ]
+        "frames": [{"x": 42,"y": 10}]
       },
       {
         "name": "SKULL_AND_BONES",
-        "frames": [
-          {
-            "x": 0,
-            "y": 15
-          }
-        ]
+        "frames": [{"x": 0,"y": 15}]
       },
       {
         "name": "NUMBER_0",
-        "frames": [
-          {
-            "x": 35,
-            "y": 17
-          }
-        ]
+        "frames": [{"x": 35,"y": 17}]
       },
       {
         "name": "NUMBER_1",
-        "frames": [
-          {
-            "x": 36,
-            "y": 17
-          }
-        ]
+        "frames": [{"x": 36,"y": 17}]
       },
       {
         "name": "NUMBER_2",
-        "frames": [
-          {
-            "x": 37,
-            "y": 17
-          }
-        ]
+        "frames": [{"x": 37,"y": 17}]
       },
       {
         "name": "NUMBER_3",
-        "frames": [
-          {
-            "x": 38,
-            "y": 17
-          }
-        ]
+        "frames": [{"x": 38,"y": 17}]
       },
       {
         "name": "NUMBER_4",
-        "frames": [
-          {
-            "x": 39,
-            "y": 17
-          }
-        ]
+        "frames": [{"x": 39,"y": 17}]
       },
       {
         "name": "NUMBER_5",
-        "frames": [
-          {
-            "x": 40,
-            "y": 17
-          }
-        ]
+        "frames": [{"x": 40,"y": 17}]
       },
       {
         "name": "NUMBER_6",
-        "frames": [
-          {
-            "x": 41,
-            "y": 17
-          }
-        ]
+        "frames": [{"x": 41,"y": 17}]
       },
       {
         "name": "NUMBER_7",
-        "frames": [
-          {
-            "x": 42,
-            "y": 17
-          }
-        ]
+        "frames": [{"x": 42,"y": 17}]
       },
       {
         "name": "NUMBER_8",
-        "frames": [
-          {
-            "x": 43,
-            "y": 17
-          }
-        ]
+        "frames": [{"x": 43,"y": 17}]
       },
       {
         "name": "NUMBER_9",
-        "frames": [
-          {
-            "x": 44,
-            "y": 17
-          }
-        ]
+        "frames": [{"x": 44,"y": 17}]
       },
       {
         "name": "BOAT",
-        "frames": [
-          {
-            "x": 10,
-            "y": 19
-          }
-        ]
+        "frames": [{"x": 10,"y": 19}]
       },
       {
         "name": "ARROW_UP",
-        "frames": [
-          {
-            "x": 23,
-            "y": 20
-          }
-        ]
+        "frames": [{"x": 23,"y": 20}]
       },
       {
         "name": "SPACE_VEHICLE_1",
-        "frames": [
-          {
-            "x": 12,
-            "y": 21
-          }
-        ]
+        "frames": [{"x": 12,"y": 21}]
       },
       {
         "name": "SPACE_VEHICLE_2",
-        "frames": [
-          {
-            "x": 13,
-            "y": 21
-          }
-        ]
+        "frames": [{"x": 13,"y": 21}]
       },
       {
         "name": "SPACE_VEHICLE_3",
-        "frames": [
-          {
-            "x": 14,
-            "y": 21
-          }
-        ]
+        "frames": [{"x": 14,"y": 21}]
       },
       {
         "name": "FIREWORK",
-        "frames": [
-          {
-            "x": 32,
-            "y": 21
-          }
-        ]
+        "frames": [{"x": 32,"y": 21}]
       },
       {
         "name": "ROCKET_1",
-        "frames": [
-          {
-            "x": 33,
-            "y": 21
-          }
-        ]
+        "frames": [{"x": 33,"y": 21}]
       },
       {
         "name": "ROCKET_2",
-        "frames": [
-          {
-            "x": 34,
-            "y": 21
-          }
-        ]
+        "frames": [{"x": 34,"y": 21}]
       }
     ]
   }

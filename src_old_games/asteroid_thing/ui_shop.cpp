@@ -1,7 +1,6 @@
 #include "ui_shop.hpp"
 
-#include "game/create_entities.hpp"
-#include "game/helpers/items.hpp"
+#include "game/entities/equipment.hpp"
 
 #include <imgui.h>
 #include <iostream> // temp
@@ -20,30 +19,31 @@ update_ui_shop_system(entt::registry& r)
   ImGui::Begin("Shop");
 
   ImGui::Text("Potion");
-  ImGui::SameLine();
-  if (ImGui::Button("Buy##potion")) {
-    const auto& view = r.view<PlayerComponent>();
-    if (view.size() > 0) {
-      auto main_player = view.front();
-      if (auto* opt = r.try_get<InventoryComponent>(main_player)) {
-        (*opt).inventory.push_back(std::make_shared<Potion>());
-        std::cout << "buying potion" << std::endl;
-      }
-    }
-  }
 
-  ImGui::Text("Gun");
-  ImGui::SameLine();
-  if (ImGui::Button("Buy##gun")) {
-    const auto& view = r.view<PlayerComponent>();
-    if (view.size() > 0) {
-      auto main_player = view.front();
-      if (auto* opt = r.try_get<InventoryComponent>(main_player)) {
-        (*opt).inventory.push_back(std::make_shared<Gun>());
-        std::cout << "buying gun" << std::endl;
-      }
-    }
-  }
+  // ImGui::SameLine();
+  // if (ImGui::Button("Buy##potion")) {
+  //   const auto& view = r.view<PlayerComponent>();
+  //   if (view.size() > 0) {
+  //     auto main_player = view.front();
+  //     if (auto* opt = r.try_get<InventoryComponent>(main_player)) {
+  //       (*opt).inventory.push_back(std::make_shared<Potion>());
+  //       std::cout << "buying potion" << std::endl;
+  //     }
+  //   }
+  // }
+
+  // ImGui::Text("Gun");
+  // ImGui::SameLine();
+  // if (ImGui::Button("Buy##gun")) {
+  //   const auto& view = r.view<PlayerComponent>();
+  //   if (view.size() > 0) {
+  //     auto main_player = view.front();
+  //     if (auto* opt = r.try_get<InventoryComponent>(main_player)) {
+  //       (*opt).inventory.push_back(std::make_shared<Gun>());
+  //       std::cout << "buying gun" << std::endl;
+  //     }
+  //   }
+  // }
 
   ImGui::End();
 };

@@ -21,26 +21,15 @@
 #include "modules/ui_profiler/components.hpp"
 #include "modules/ui_profiler/system.hpp"
 
-// resources
+#include "engine/app/application.hpp"
+#include "game/entities/actors.hpp"
+#include "game/entities/camera.hpp"
+#include "game/simulate.hpp"
+#include "game/systems/player.hpp"
+#include "game/systems/player_inputs.hpp"
 #include "resources/audio.hpp"
 #include "resources/colour.hpp"
 #include "resources/textures.hpp"
-
-// game systems
-#include "game/create_entities.hpp"
-#include "game/game_tick.hpp"
-#include "game/helpers/items.hpp"
-#include "game/systems/asteroid.hpp"
-#include "game/systems/player.hpp"
-#include "game/systems/shop.hpp"
-#include "game/systems/turret.hpp"
-#include "game/systems/ui_entity_placer.hpp"
-#include "game/systems/ui_main_menu.hpp"
-#include "game/systems/ui_player.hpp"
-#include "game/systems/ui_shop.hpp"
-
-// engine
-#include "engine/app/application.hpp"
 
 // other lib
 #include <glm/glm.hpp>
@@ -57,7 +46,7 @@ init_game_state(entt::registry& r)
   r.ctx().at<SINGLETON_EntityBinComponent>() = SINGLETON_EntityBinComponent();
   r.ctx().at<SINGLETON_AsteroidGameStateComponent>() = SINGLETON_AsteroidGameStateComponent();
   r.ctx().at<SINGLETON_FixedUpdateInputHistory>() = SINGLETON_FixedUpdateInputHistory();
-  init_shop_system(r);
+  // init_shop_system(r);
 
   auto& gs = r.ctx().at<SINGLETON_AsteroidGameStateComponent>();
   create_hierarchy_root_node(r);
@@ -84,7 +73,6 @@ game2d::init(entt::registry& r)
   // init once only
   r.ctx().emplace<Profiler>();
   r.ctx().emplace<SINGLETON_Textures>();
-  r.ctx().emplace<SINGLETON_ResourceComponent>();
   r.ctx().emplace<SINGLETON_ColoursComponent>();
   init_sprite_system(r);
   init_render_system(r, { app.width, app.height });
@@ -125,10 +113,13 @@ game2d::fixed_update(entt::registry& r, uint64_t milliseconds_dt)
       auto& inputs = fixed_input.history[fixed_input.fixed_tick];
 
       simulate(r, inputs, milliseconds_dt);
+      // update_turret_system(r);
+      // update_asteroid_system(r);
+
       fixed_input.fixed_tick += 1;
     }
 
-    update_networking_system(r, milliseconds_dt);
+    // update_networking_system(r, milliseconds_dt);
   }
   uint64_t end_physics = SDL_GetPerformanceCounter();
   p.physics_elapsed_ms = (end_physics - start_physics) / float(SDL_GetPerformanceFrequency()) * 1000.0f;
@@ -158,17 +149,15 @@ game2d::update(entt::registry& r, float dt)
 
     // ... systems that always update
     {
-      // update_asteroid_system(r);
       // update_cursor_system(r);
       update_audio_system(r);
-      update_turret_system(r);
     }
 
-    // ... systems that update if viewport is not focused
+    // ... systems that update only if viewport is focused or hovered
     {
       if (ri.viewport_process_events) {
         // update_camera_system(r);
-        update_player_system(r);
+        update_player_inputs_system(r);
       }
     }
   };
@@ -193,11 +182,11 @@ game2d::update(entt::registry& r, float dt)
       update_ui_physics_system(r);
       update_ui_hierarchy_system(r);
       update_ui_profiler_system(r);
-      update_ui_shop_system(r);
-      update_ui_player_system(r);
+      // update_ui_shop_system(r);
+      // update_ui_player_system(r);
       // update_ui_place_entity_system(r);
     }
-    update_ui_networking_system(r);
+    // update_ui_networking_system(r);
     // update_ui_main_menu_system(r);
   };
 

@@ -28,9 +28,9 @@ main()
   );
 
   out_colour = vec4(
-    rgb.x,
-    rgb.y,
-    rgb.z,
+    rgb.r,
+    rgb.g,
+    rgb.b,
     lin.a
   );
 }

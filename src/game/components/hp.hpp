@@ -2,7 +2,7 @@
 
 namespace game2d {
 
-struct BreakableComponent
+struct HpComponent
 {
   int hp = 0;
 };

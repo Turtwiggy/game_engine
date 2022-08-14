@@ -65,8 +65,6 @@ main()
     out_colour = v_colour * texture(textures[index], sprite_uv);
     return;
   }
-  
-  // out_colour = v_colour;
 
   // all other textures
   out_colour = v_colour * texture(textures[index], v_tex);

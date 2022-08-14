@@ -1,10 +1,10 @@
 #include "ui_entity_placer.hpp"
 
 #include "engine/maths/grid.hpp"
-#include "game/create_entities.hpp"
 #include "modules/events/components.hpp"
 #include "modules/events/helpers/mouse.hpp"
 #include "modules/renderer/components.hpp"
+#include "game/entities/actors.hpp"
 
 #include <imgui.h>
 

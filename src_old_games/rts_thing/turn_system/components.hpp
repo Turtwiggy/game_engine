@@ -9,8 +9,9 @@ enum class TURN_PHASE
   CHARGE,
   FIGHT,
   MORALE,
-
   END,
+
+  COUNT,
 };
 
 struct SINGLETON_TurnComponent

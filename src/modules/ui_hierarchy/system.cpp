@@ -1,7 +1,6 @@
 #include "modules/ui_hierarchy/system.hpp"
 
 // components
-#include "game/create_entities.hpp"
 #include "modules/physics/components.hpp"
 #include "modules/renderer/components.hpp"
 #include "modules/sprites/components.hpp"

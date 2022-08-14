@@ -48,7 +48,7 @@ main_loop(void* arg)
   }
 
   // Implement this if stuttering?
-  // const double alpha = seconds_since_last_game_tick / SECONDS_PER_FIXED_TICK;
+  // const float alpha = seconds_since_last_game_tick / SECONDS_PER_FIXED_TICK;
   // state = current_state * alpha + previous_state * (1.0f - alpha );
 
   game2d::update(registry, milliseconds_delta_time / 1000.0f);
