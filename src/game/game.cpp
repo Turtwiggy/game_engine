@@ -39,19 +39,26 @@
 
 namespace game2d {
 
+template<class T>
+void
+ctx_reset(entt::registry& r)
+{
+  if (r.ctx().contains<T>())
+    r.ctx().erase<T>();
+  r.ctx().emplace<T>();
+};
+
 void
 init_game_state(entt::registry& r)
 {
   r.each([&r](auto entity) { r.destroy(entity); });
-  r.ctx().at<SINGLETON_PhysicsComponent>() = SINGLETON_PhysicsComponent();
-  r.ctx().at<SINGLETON_GameOverComponent>() = SINGLETON_GameOverComponent();
-  r.ctx().at<SINGLETON_HierarchyComponent>() = SINGLETON_HierarchyComponent();
-  r.ctx().at<SINGLETON_EntityBinComponent>() = SINGLETON_EntityBinComponent();
-  r.ctx().at<SINGLETON_AsteroidGameStateComponent>() = SINGLETON_AsteroidGameStateComponent();
-  r.ctx().at<SINGLETON_FixedUpdateInputHistory>() = SINGLETON_FixedUpdateInputHistory();
-  // init_shop_system(r);
+  ctx_reset<SINGLETON_PhysicsComponent>(r);
+  ctx_reset<SINGLETON_GameOverComponent>(r);
+  ctx_reset<SINGLETON_HierarchyComponent>(r);
+  ctx_reset<SINGLETON_EntityBinComponent>(r);
+  ctx_reset<SINGLETON_AsteroidGameStateComponent>(r);
+  ctx_reset<SINGLETON_FixedUpdateInputHistory>(r);
 
-  auto& gs = r.ctx().at<SINGLETON_AsteroidGameStateComponent>();
   create_hierarchy_root_node(r);
 
   auto player = create_player(r);
@@ -70,23 +77,14 @@ game2d::init(entt::registry& r)
   const auto& app = r.ctx().at<engine::SINGLETON_Application>();
 
   // init once only
-  r.ctx().emplace<Profiler>();
-  r.ctx().emplace<SINGLETON_Textures>();
-  r.ctx().emplace<SINGLETON_ColoursComponent>();
+  ctx_reset<Profiler>(r);
+  ctx_reset<SINGLETON_Textures>(r);
+  ctx_reset<SINGLETON_ColoursComponent>(r);
   init_sprite_system(r);
   init_render_system(r, { app.width, app.height });
   init_input_system(r);
   init_audio_system(r);
   init_networking_system(r);
-
-  // emplace game things once (as they are delete/reinit at any time)
-  r.ctx().emplace<SINGLETON_PhysicsComponent>();
-  r.ctx().emplace<SINGLETON_GameOverComponent>();
-  r.ctx().emplace<SINGLETON_HierarchyComponent>();
-  r.ctx().emplace<SINGLETON_EntityBinComponent>();
-  r.ctx().emplace<SINGLETON_AsteroidGameStateComponent>();
-  r.ctx().emplace<SINGLETON_FixedUpdateInputHistory>();
-
   init_game_state(r);
 };
 
@@ -94,7 +92,6 @@ void
 game2d::fixed_update(entt::registry& r, uint64_t milliseconds_dt)
 {
   auto& p = r.ctx().at<Profiler>();
-
   {
     auto _ = time_scope(&p, "physics", true);
     auto& input = r.ctx().at<SINGLETON_InputComponent>();
@@ -123,7 +120,6 @@ game2d::update(entt::registry& r, float dt)
   auto& p = r.ctx().at<Profiler>();
   const auto& ri = r.ctx().at<SINGLETON_RendererInfo>();
   auto& app = r.ctx().at<engine::SINGLETON_Application>();
-
   {
     auto _ = time_scope(&p, "game_tick");
     update_input_system(r);
@@ -151,19 +147,15 @@ game2d::update(entt::registry& r, float dt)
       }
     }
   };
-
   {
     auto _ = time_scope(&p, "rendering");
     update_sprite_system(r, dt);
     update_render_system(r); // put rendering on thread?
   };
-
-  // ui
   {
-    // TODO: fix this
+    auto _ = time_scope(&p, "ui"); // value always be a frame behind
     bool is_release = false;
     if (!is_release) {
-      auto _ = time_scope(&p, "ui"); // value always be a frame behind
       update_ui_physics_system(r);
       update_ui_hierarchy_system(r);
       update_ui_profiler_system(r);

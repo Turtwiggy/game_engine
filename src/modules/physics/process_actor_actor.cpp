@@ -17,7 +17,7 @@ game2d::update_actor_actor_system(entt::registry& registry)
   // 2. generate all possible collisions
   // 3. generate collision enter, exit, stay
 
-  SINGLETON_PhysicsComponent& p = registry.ctx().at<SINGLETON_PhysicsComponent>();
+  auto& p = registry.ctx().at<SINGLETON_PhysicsComponent>();
 
   std::vector<PhysicsObject> actors;
   {

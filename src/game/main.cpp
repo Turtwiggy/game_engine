@@ -13,7 +13,6 @@ using namespace engine;
 
 // std lib
 #include <chrono>
-#include <iostream>
 
 // fixed tick
 static const int MILLISECONDS_PER_FIXED_TICK = 7; // or ~142 ticks per second
@@ -29,6 +28,7 @@ void
 main_loop(void* arg)
 {
   IM_UNUSED(arg); // do nothing with it
+
   auto& app = registry.ctx().at<SINGLETON_Application>();
   engine::start_frame(app);
 
