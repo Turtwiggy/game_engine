@@ -32,7 +32,7 @@ game2d::imgui_draw_string(entt::registry& r, const std::string& label, std::stri
 {
   ImGui::Text(label.c_str());
   ImGui::SameLine();
-  ImGui::InputText("temp", &v);
+  ImGui::InputText((std::string("##") + label).c_str(), &v);
 }
 
 void

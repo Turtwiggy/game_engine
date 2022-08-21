@@ -24,11 +24,13 @@
 #include "modules/ui_profiler/system.hpp"
 
 #include "engine/app/application.hpp"
+#include "game/components/components.hpp"
 #include "game/entities/actors.hpp"
 #include "game/simulate.hpp"
 #include "game/systems/player.hpp"
 #include "game/systems/player_inputs.hpp"
 #include "game/systems/resolve_collisions.hpp"
+#include "game/systems/ui_player_inventory.hpp"
 #include "modules/camera/components.hpp"
 #include "resources/audio.hpp"
 #include "resources/colour.hpp"
@@ -56,17 +58,10 @@ init_game_state(entt::registry& r)
   ctx_reset<SINGLETON_GameOverComponent>(r);
   ctx_reset<SINGLETON_HierarchyComponent>(r);
   ctx_reset<SINGLETON_EntityBinComponent>(r);
-  ctx_reset<SINGLETON_AsteroidGameStateComponent>(r);
   ctx_reset<SINGLETON_FixedUpdateInputHistory>(r);
 
   create_hierarchy_root_node(r);
-
-  auto player = create_player(r);
-  auto& player_transform = r.get<TransformComponent>(player);
-  player_transform.position.x = 200;
-  player_transform.position.y = 200;
-  auto& player_speed = r.get<PlayerComponent>(player);
-  player_speed.speed = 250;
+  create_entity(r, ENTITY_TYPE::PLAYER);
 };
 
 } // namespace game2d
@@ -156,6 +151,7 @@ game2d::update(entt::registry& r, float dt)
     auto _ = time_scope(&p, "ui"); // value always be a frame behind
     bool is_release = false;
     if (!is_release) {
+      update_ui_player_inventory_system(r);
       update_ui_physics_system(r);
       update_ui_hierarchy_system(r);
       update_ui_profiler_system(r);

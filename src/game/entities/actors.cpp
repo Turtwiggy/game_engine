@@ -1,7 +1,7 @@
 #include "actors.hpp"
 
 #include "engine/maths/maths.hpp"
-#include "game/components/hp.hpp"
+#include "game/components/components.hpp"
 #include "modules/lifecycle/components.hpp"
 #include "modules/physics/components.hpp"
 #include "modules/renderer/components.hpp"
@@ -11,18 +11,11 @@
 #include "resources/colour.hpp"
 #include "resources/textures.hpp"
 
+#include "magic_enum.hpp"
+
 namespace game2d {
 
 static constexpr int SPRITE_SIZE = 16 * 2;
-
-PhysicsSizeComponent
-create_player_physics_size_component(entt::registry& r)
-{
-  PhysicsSizeComponent comp;
-  comp.h = SPRITE_SIZE;
-  comp.w = SPRITE_SIZE;
-  return comp;
-}
 
 SpriteComponent
 create_player_sprite_component(entt::registry& r)
@@ -52,38 +45,7 @@ create_player_transform_component(entt::registry& r)
   return comp;
 }
 
-entt::entity
-create_player(entt::registry& r)
-{
-  const auto& h = r.ctx().at<SINGLETON_HierarchyComponent>();
-  auto& hc = r.get<EntityHierarchyComponent>(h.root_node);
-
-  auto e = r.create();
-  hc.children.push_back(e);
-
-  r.emplace<TagComponent>(e, "player");
-  r.emplace<EntityHierarchyComponent>(e, h.root_node);
-  r.emplace<SpriteComponent>(e, create_player_sprite_component(r));
-  r.emplace<TransformComponent>(e, create_player_transform_component(r));
-  r.emplace<PhysicsActorComponent>(e, GameCollisionLayer::ACTOR_PLAYER);
-  r.emplace<PhysicsSizeComponent>(e, create_player_physics_size_component(r));
-  r.emplace<VelocityComponent>(e);
-  // gameplay
-  r.emplace<PlayerComponent>(e);
-  r.emplace<HpComponent>(e, 100);
-  return e;
-}
-
 //
-
-PhysicsSizeComponent
-create_enemy_physics_size_component(entt::registry& r)
-{
-  PhysicsSizeComponent comp;
-  comp.h = SPRITE_SIZE;
-  comp.w = SPRITE_SIZE;
-  return comp;
-}
 
 SpriteComponent
 create_enemy_sprite_component(entt::registry& r)
@@ -110,44 +72,10 @@ create_enemy_transform_component(entt::registry& r)
   TransformComponent comp;
   comp.scale.x = SPRITE_SIZE;
   comp.scale.y = SPRITE_SIZE;
-
-  comp.position.x = 100.0f; // temp
-  comp.position.y = 100.0f; // temp
-
   return comp;
-}
-
-entt::entity
-create_enemy(entt::registry& r)
-{
-  const auto& h = r.ctx().at<SINGLETON_HierarchyComponent>();
-  auto& hc = r.get<EntityHierarchyComponent>(h.root_node);
-
-  auto e = r.create();
-  hc.children.push_back(e);
-  r.emplace<AsteroidComponent>(e);
-
-  r.emplace<TagComponent>(e, "enemy");
-  r.emplace<EntityHierarchyComponent>(e, h.root_node);
-  r.emplace<SpriteComponent>(e, create_enemy_sprite_component(r));
-  r.emplace<TransformComponent>(e, create_enemy_transform_component(r));
-  r.emplace<PhysicsActorComponent>(e, GameCollisionLayer::ACTOR_ENEMY);
-  r.emplace<PhysicsSizeComponent>(e, create_enemy_physics_size_component(r));
-  r.emplace<VelocityComponent>(e);
-  r.emplace<EntityTimedLifecycle>(e);
-  return e;
 }
 
 //
-
-PhysicsSizeComponent
-create_bullet_physics_size_component(entt::registry& r)
-{
-  PhysicsSizeComponent comp;
-  comp.h = SPRITE_SIZE / 2;
-  comp.w = SPRITE_SIZE / 2;
-  return comp;
-}
 
 SpriteComponent
 create_bullet_sprite_component(entt::registry& r)
@@ -178,24 +106,83 @@ create_bullet_transform_component(entt::registry& r)
   return comp;
 }
 
+//
+
 entt::entity
-create_bullet(entt::registry& r)
+create_item(entt::registry& r, const ENTITY_TYPE& type, const entt::entity& parent)
+{
+  auto e = create_entity(r, type);
+  r.emplace<InBackpackComponent>(e, parent);
+  return e;
+};
+
+entt::entity
+create_entity(entt::registry& r, const ENTITY_TYPE& type)
 {
   const auto& h = r.ctx().at<SINGLETON_HierarchyComponent>();
   auto& hc = r.get<EntityHierarchyComponent>(h.root_node);
-
   auto e = r.create();
   hc.children.push_back(e);
-
-  r.emplace<TagComponent>(e, "bullet");
   r.emplace<EntityHierarchyComponent>(e, h.root_node);
-  r.emplace<SpriteComponent>(e, create_bullet_sprite_component(r));
-  r.emplace<TransformComponent>(e, create_bullet_transform_component(r));
-  r.emplace<PhysicsActorComponent>(e, GameCollisionLayer::ACTOR_BULLET);
-  r.emplace<PhysicsSizeComponent>(e, create_bullet_physics_size_component(r));
-  r.emplace<VelocityComponent>(e);
-  r.emplace<EntityTimedLifecycle>(e, 20000); // bullet time alive
+  r.emplace<TagComponent>(e, std::string(magic_enum::enum_name(type)));
+
+  switch (type) {
+    case ENTITY_TYPE::ENEMY: {
+      r.emplace<SpriteComponent>(e, create_enemy_sprite_component(r));
+      r.emplace<TransformComponent>(e, create_enemy_transform_component(r));
+      r.emplace<PhysicsActorComponent>(e, GameCollisionLayer::ACTOR_ENEMY);
+      r.emplace<PhysicsSizeComponent>(e, PhysicsSizeComponent(SPRITE_SIZE, SPRITE_SIZE));
+      r.emplace<VelocityComponent>(e);
+      // gameplay
+      r.emplace<EntityTimedLifecycle>(e);
+      break;
+    }
+    case ENTITY_TYPE::PLAYER: {
+      r.emplace<SpriteComponent>(e, create_player_sprite_component(r));
+      r.emplace<TransformComponent>(e, create_player_transform_component(r));
+      r.emplace<PhysicsActorComponent>(e, GameCollisionLayer::ACTOR_PLAYER);
+      r.emplace<PhysicsSizeComponent>(e, PhysicsSizeComponent(SPRITE_SIZE, SPRITE_SIZE));
+      r.emplace<VelocityComponent>(e);
+      // gameplay
+      r.emplace<HealthComponent>(e);
+      r.emplace<PlayerComponent>(e);
+      break;
+    }
+    case ENTITY_TYPE::SWORD: {
+      r.emplace<AttackComponent>(e, AttackComponent(10, 20));
+      break;
+    }
+    case ENTITY_TYPE::FIRE_SWORD: {
+      r.emplace<AttackComponent>(e, AttackComponent(30, 40));
+      break;
+    }
+    case ENTITY_TYPE::CROSSBOW: {
+      r.emplace<AttackComponent>(e, AttackComponent(10, 20));
+      break;
+    }
+    case ENTITY_TYPE::BULLET: {
+      r.emplace<SpriteComponent>(e, create_bullet_sprite_component(r));
+      r.emplace<TransformComponent>(e, create_bullet_transform_component(r));
+      r.emplace<PhysicsActorComponent>(e, GameCollisionLayer::ACTOR_BULLET);
+      r.emplace<PhysicsSizeComponent>(e, PhysicsSizeComponent(SPRITE_SIZE / 2, SPRITE_SIZE / 2));
+      r.emplace<VelocityComponent>(e);
+      // gameplay
+      r.emplace<EntityTimedLifecycle>(e, 20000); // bullet time alive
+      break;
+    }
+    case ENTITY_TYPE::SHIELD: {
+      r.emplace<AttackComponent>(e, AttackComponent(5, 8));
+      r.emplace<DefenseComponent>(e, DefenseComponent(10));
+      break;
+    }
+    case ENTITY_TYPE::POTION: {
+      r.emplace<ItemComponent>(e);
+      r.emplace<PotionComponent>(e);
+      break;
+    }
+  }
+
   return e;
-}
+};
 
 }
