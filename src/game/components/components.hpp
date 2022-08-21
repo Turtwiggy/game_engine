@@ -1,6 +1,7 @@
 #pragma once
 
 #include <SDL2/SDL_scancode.h>
+#include <entt/entt.hpp>
 
 namespace game2d {
 
@@ -8,35 +9,6 @@ struct SINGLETON_GameOverComponent
 {
   bool over = false;
 };
-
-// A "potion" is able to "heal" a "health component".
-// A "sword" is able to "slash" a "health component"
-// A "crossbow" is able to "shoot" a "health component"
-// A "player" is able to "walk".
-// A "fire sword" is able to "slash" a "health component"
-
-// A sword legs the player "attack"
-
-// A "Player" is able to "walk".
-// An player has "Health"
-// An player has "Items"
-// An player has "Equipment"
-// A player has an item ("sword")
-// A player has an item ("legs")
-
-// An enemy has "Health" that can be "attacked"
-// An enemy has "Items" that can be "Used".
-// An enemy has "Equipment" so can equip "Items".
-// An enemy has "Legs" so can "walk".
-
-// Actions:
-// AttackAction
-// HealAction
-// RestAction
-// WalkAction
-// UseAction
-
-// verbs? capabilities?
 
 struct AttackComponent
 {
@@ -58,47 +30,61 @@ struct DefenseComponent
     : ac(ac){};
 };
 
-struct UseComponent
-{
-  bool placeholder = true;
-  int use_cooldown = 1;
-};
-
-struct HealComponent
-{
-  bool placeholder = true;
-};
-
-// nouns?
-
 struct HealthComponent
 {
-  int hp = 0;
+  int max_hp = 100;
+  int hp = 100;
 };
+
+struct MeleeComponent
+{
+  bool placeholder = true;
+  //   int damage = 1;
+  //   int weapon_radius = 30;
+  //   float attack_rate = 0.15f;
+  //   int use_cooldown = 1;
+};
+
+struct RangedComponent
+{
+  bool placeholder = true;
+  //   int projectiles = 1;
+  //   int ammo = 1;
+  //   float fire_rate = 1.0f;
+  //   bool infinite_ammo = false;
+  //   float time_between_shots = 1.0f;
+  //   float time_since_last_shot = 0.0f;
+  //   float bullet_speed = 500.0f;
+};
+
+//
+//
+//
 
 struct ItemComponent
 {
   bool placeholder = true;
 };
 
-struct EquipmentComponent
+struct PotionComponent
 {
-  bool placeholder = true;
+  int heal_amount = 1;
 };
 
-struct CooldownComponent
+// known as an "intent" component
+struct WantsToDrinkPotionComponent
 {
-  float cooldown = 0.0f;
+  entt::entity potion = entt::null;
 };
 
-// verbs?
-
-// actors?
-
-struct EnemyComponent
+struct InBackpackComponent
 {
-  bool placeholder = true;
+  entt::entity parent = entt::null;
 };
+
+//
+//
+//
 
 struct PlayerComponent
 {
@@ -111,69 +97,6 @@ struct PlayerComponent
   SDL_Scancode S = SDL_SCANCODE_S;
   SDL_Scancode D = SDL_SCANCODE_D;
 };
-
-struct SwordComponent
-{
-  bool placeholder = true;
-  //   int use_cooldown = 1;
-  //   int damage = 1;
-  //   int weapon_radius = 30;
-  //   float attack_rate = 0.15f;
-};
-
-struct FireSwordComponent
-{
-  bool spawns_fireballs = true;
-};
-
-struct CrossbowComponent
-{
-  bool placeholder = true;
-  //   int use_cooldown = 1;
-  //   int damage = 1;
-  //   int projectiles = 1;
-  //   int ammo = 1;
-  //   float fire_rate = 1.0f;
-  //   bool infinite_ammo = false;
-  //   float time_between_shots = 1.0f;
-  //   float time_since_last_shot = 0.0f;
-  //   float bullet_speed = 500.0f;
-};
-
-struct BulletComponent
-{
-  bool placeholder = true;
-};
-
-struct ShieldComponent
-{
-  bool placeholder = true;
-};
-
-struct PotionComponent : public ItemComponent
-{
-  int heal_amount = 1;
-};
-
-void
-use(entt::registry& r, entt::entity& source, std::vector<entt::entity> targets)
-{
-  // Potion Impl
-  if (r.all_of<PotionComponent>(source)) {
-    auto& potion = r.get<PotionComponent>(source);
-    for (auto& entity : targets) {
-      if (r.all_of<HealthComponent>(entity)) {
-        auto& hp = r.get<HealthComponent>(entity);
-        hp.hp += potion.heal_amount;
-      }
-    }
-    potion.use_cooldown = 10.0f; // cooldown after using on all targets?
-  }
-};
-
-//
-//
-//
 
 // struct BreedComponent
 // {

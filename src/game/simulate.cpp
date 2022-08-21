@@ -1,5 +1,6 @@
 #include "simulate.hpp"
 
+#include "game/systems/intent_drink_potion.hpp"
 #include "game/systems/player.hpp"
 #include "game/systems/resolve_collisions.hpp"
 
@@ -31,4 +32,9 @@ game2d::simulate(entt::registry& r, const std::vector<InputEvent>& inputs, uint6
 
   // resolve collisions immediately ( this seems wrong )
   update_resolve_collisions_system(r);
+
+  //
+  // gamestate
+  //
+  update_intent_drink_potion_system(r);
 };

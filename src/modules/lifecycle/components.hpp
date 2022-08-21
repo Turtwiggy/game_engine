@@ -6,6 +6,10 @@
 
 namespace game2d {
 
+// This idea could probably be expanded to:
+// After a certain amount of time (i.e. a cooldown)
+// execute some behaviour in the next fixed tick possible.
+
 struct EntityTimedLifecycle
 {
   int milliseconds_alive_max = 10 * 1000;

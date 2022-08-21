@@ -1,5 +1,6 @@
 #include "player_inputs.hpp"
 
+#include "game/components/components.hpp"
 #include "game/entities/actors.hpp"
 #include "modules/events/components.hpp"
 #include "modules/events/helpers/keyboard.hpp"
