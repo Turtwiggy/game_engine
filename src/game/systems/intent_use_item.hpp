@@ -5,6 +5,6 @@
 namespace game2d {
 
 void
-update_intent_drink_potion_system(entt::registry& r);
+update_intent_use_item_system(entt::registry& r);
 
 } // namespace game2d

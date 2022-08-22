@@ -15,7 +15,7 @@ void
 game2d::update_player_system(entt::registry& r, const std::vector<InputEvent>& inputs)
 {
   const auto& view = r.view<PlayerComponent, VelocityComponent>();
-  view.each([&r, &inputs](auto entity, PlayerComponent& player, VelocityComponent& vel) {
+  view.each([&r, &inputs](entt::entity entity, PlayerComponent& player, VelocityComponent& vel) {
     for (int i = 0; i < inputs.size(); i++) {
       const auto& any_input = inputs[i];
 

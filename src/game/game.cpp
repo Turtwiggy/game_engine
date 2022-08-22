@@ -62,6 +62,27 @@ init_game_state(entt::registry& r)
 
   create_hierarchy_root_node(r);
   create_entity(r, ENTITY_TYPE::PLAYER);
+  auto shopkeeper = create_entity(r, ENTITY_TYPE::SHOPKEEPER);
+  auto& transform = r.get<TransformComponent>(shopkeeper);
+  transform.position.x = 500;
+  transform.position.y = 500;
+
+  // stock up!
+  const auto& view = r.view<ShopKeeperComponent>();
+  view.each([&r](auto entity, auto& shopkeeper) {
+    create_item(r, ENTITY_TYPE::POTION, entity);
+    create_item(r, ENTITY_TYPE::POTION, entity);
+    create_item(r, ENTITY_TYPE::POTION, entity);
+    create_item(r, ENTITY_TYPE::SWORD, entity);
+    create_item(r, ENTITY_TYPE::FIRE_SWORD, entity);
+    create_item(r, ENTITY_TYPE::SHIELD, entity);
+    create_item(r, ENTITY_TYPE::STONE, entity);
+    create_item(r, ENTITY_TYPE::CROSSBOW, entity);
+    create_item(r, ENTITY_TYPE::BOLT, entity);
+    create_item(r, ENTITY_TYPE::SCROLL_CONFUSION, entity);
+    create_item(r, ENTITY_TYPE::SCROLL_FIREBALL, entity);
+    create_item(r, ENTITY_TYPE::SCROLL_MAGIC_MISSILE, entity);
+  });
 };
 
 } // namespace game2d
@@ -100,8 +121,6 @@ game2d::fixed_update(entt::registry& r, uint64_t milliseconds_dt)
     auto& inputs = fixed_input.history[fixed_input.fixed_tick];
 
     simulate(r, inputs, milliseconds_dt);
-    // update_turret_system(r);
-    // update_asteroid_system(r);
 
     fixed_input.fixed_tick += 1;
 

@@ -1,6 +1,6 @@
 #include "simulate.hpp"
 
-#include "game/systems/intent_drink_potion.hpp"
+#include "game/systems/intent_use_item.hpp"
 #include "game/systems/player.hpp"
 #include "game/systems/resolve_collisions.hpp"
 
@@ -36,5 +36,5 @@ game2d::simulate(entt::registry& r, const std::vector<InputEvent>& inputs, uint6
   //
   // gamestate
   //
-  update_intent_drink_potion_system(r);
+  update_intent_use_item_system(r);
 };
