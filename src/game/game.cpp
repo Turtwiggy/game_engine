@@ -22,6 +22,10 @@
 #include "modules/ui_profiler/components.hpp"
 #include "modules/ui_profiler/helpers.hpp"
 #include "modules/ui_profiler/system.hpp"
+#include "modules/ui_sprite_placer/components.hpp"
+#include "modules/ui_sprite_placer/system.hpp"
+#include "modules/ui_sprite_searcher/components.hpp"
+#include "modules/ui_sprite_searcher/system.hpp"
 
 #include "engine/app/application.hpp"
 #include "game/components/components.hpp"
@@ -59,6 +63,10 @@ init_game_state(entt::registry& r)
   ctx_reset<SINGLETON_HierarchyComponent>(r);
   ctx_reset<SINGLETON_EntityBinComponent>(r);
   ctx_reset<SINGLETON_FixedUpdateInputHistory>(r);
+
+  // reset editor tools?
+  ctx_reset<SINGLETON_SpriteSearcher>(r);
+  ctx_reset<SINGLETON_TilemapComponent>(r);
 
   create_hierarchy_root_node(r);
   create_entity(r, ENTITY_TYPE::PLAYER);
@@ -101,6 +109,7 @@ game2d::init(entt::registry& r)
   init_input_system(r);
   init_audio_system(r);
   init_networking_system(r);
+
   init_game_state(r);
 };
 
@@ -167,16 +176,32 @@ game2d::update(entt::registry& r, float dt)
     update_render_system(r); // put rendering on thread?
   };
   {
-    auto _ = time_scope(&p, "ui"); // value always be a frame behind
-    bool is_release = false;
-    if (!is_release) {
-      update_ui_player_inventory_system(r);
-      update_ui_physics_system(r);
-      update_ui_hierarchy_system(r);
-      update_ui_profiler_system(r);
-      // update_ui_shop_system(r);
-      // update_ui_player_system(r);
-      // update_ui_place_entity_system(r);
+    auto _ = time_scope(&p, "ui-root"); // value always be a frame behind
+    {
+      {
+        // auto _ = time_scope(&p, "update_ui_player_inventory_system");
+        update_ui_player_inventory_system(r);
+      }
+      {
+        // auto _ = time_scope(&p, "update_ui_physics_system");
+        update_ui_physics_system(r);
+      }
+      {
+        // auto _ = time_scope(&p, "update_ui_hierarchy_system");
+        update_ui_hierarchy_system(r);
+      }
+      {
+        // auto _ = time_scope(&p, "update_ui_profiler_system");
+        update_ui_profiler_system(r);
+      }
+      {
+        // auto _ = time_scope(&p, "update_ui_sprite_searcher_system");
+        update_ui_sprite_searcher_system(r);
+      }
+      {
+        // auto _ = time_scope(&p, "update_ui_sprite_placer_system");
+        update_ui_sprite_placer_system(r);
+      }
     }
     // update_ui_networking_system(r);
     // update_ui_main_menu_system(r);

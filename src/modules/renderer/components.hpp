@@ -30,7 +30,7 @@ struct TransformComponent
   // glm::quaternion::toMat4(quaternion);
   // mat4 RotationMatrix = quaternion::toMat4(quaternion);
   // mat4 ModelMatrix = TranslationMatrix * RotationMatrix * ScaleMatrix;
-  glm::mat4 model = glm::mat4(1.0f);
+  // glm::mat4 model = glm::mat4(1.0f);
 };
 
 // Attributes only updated by renderer system, read by anything.

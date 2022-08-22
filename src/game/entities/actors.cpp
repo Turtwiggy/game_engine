@@ -15,7 +15,7 @@
 
 namespace game2d {
 
-static constexpr int SPRITE_SIZE = 16 * 2;
+static constexpr int SPRITE_SIZE = 16;
 
 entt::entity
 create_item(entt::registry& r, const ENTITY_TYPE& type, const entt::entity& parent)
@@ -49,7 +49,7 @@ create_renderable(entt::registry& r, const entt::entity& e, const ENTITY_TYPE& t
       break;
     }
     case ENTITY_TYPE::PLAYER: {
-      sprite = "PERSON_2";
+      sprite = "PERSON_25_0";
       s_comp.colour = engine::SRGBToLinear(colours.player_unit);
       s_comp.tex_unit = slots.tex_unit_kenny;
       // search kenny-nl spritesheet
@@ -59,7 +59,7 @@ create_renderable(entt::registry& r, const entt::entity& e, const ENTITY_TYPE& t
       break;
     }
     case ENTITY_TYPE::BOLT: {
-      sprite = "PERSON_0";
+      sprite = "PERSON_25_0";
       s_comp.colour = engine::SRGBToLinear(colours.bullet);
       s_comp.tex_unit = slots.tex_unit_kenny;
       // search kenny-nl spritesheet
@@ -93,7 +93,7 @@ create_renderable(entt::registry& r, const entt::entity& e, const ENTITY_TYPE& t
       break;
     }
     case ENTITY_TYPE::SHOPKEEPER: {
-      sprite = "PERSON_0";
+      sprite = "PERSON_25_0";
       s_comp.colour = engine::SRGBToLinear(colours.bullet);
       s_comp.tex_unit = slots.tex_unit_kenny;
       // search kenny-nl spritesheet
