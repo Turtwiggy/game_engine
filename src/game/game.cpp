@@ -3,6 +3,7 @@
 
 // systems&components&helpers
 #include "modules/audio/system.hpp"
+#include "modules/cursor/system.hpp"
 #include "modules/events/components.hpp"
 #include "modules/events/helpers/keyboard.hpp"
 #include "modules/events/system.hpp"
@@ -69,7 +70,14 @@ init_game_state(entt::registry& r)
   ctx_reset<SINGLETON_TilemapComponent>(r);
 
   create_hierarchy_root_node(r);
-  create_entity(r, ENTITY_TYPE::PLAYER);
+  create_entity(r, ENTITY_TYPE::FREE_CURSOR);
+  create_entity(r, ENTITY_TYPE::GRID_CURSOR);
+
+  auto player = create_entity(r, ENTITY_TYPE::PLAYER);
+  auto& player_transform = r.get<TransformComponent>(player);
+  player_transform.position.x = 200;
+  player_transform.position.y = 200;
+
   auto shopkeeper = create_entity(r, ENTITY_TYPE::SHOPKEEPER);
   auto& transform = r.get<TransformComponent>(shopkeeper);
   transform.position.x = 500;
@@ -167,16 +175,18 @@ game2d::update(entt::registry& r, float dt)
       if (ri.viewport_process_events) {
         // update_camera_system(r);
         update_player_inputs_system(r);
+        update_cursor_system(r);
       }
     }
   };
   {
+    // put rendering on thread?
     auto _ = time_scope(&p, "rendering");
     update_sprite_system(r, dt);
-    update_render_system(r); // put rendering on thread?
+    update_render_system(r);
   };
   {
-    auto _ = time_scope(&p, "ui-root"); // value always be a frame behind
+    auto _ = time_scope(&p, "ui"); // value always be a frame behind
     {
       {
         // auto _ = time_scope(&p, "update_ui_player_inventory_system");

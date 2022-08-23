@@ -9,7 +9,16 @@
 
 namespace game2d {
 
-struct CursorComponent
+struct GridCursorComponent
+{
+  entt::entity line_u = entt::null;
+  entt::entity line_d = entt::null;
+  entt::entity line_l = entt::null;
+  entt::entity line_r = entt::null;
+  entt::entity backdrop = entt::null;
+};
+
+struct FreeCursorComponent
 {
   entt::entity line_u = entt::null;
   entt::entity line_d = entt::null;

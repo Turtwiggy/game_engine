@@ -2,6 +2,7 @@
 
 #include "engine/maths/maths.hpp"
 #include "game/components/components.hpp"
+#include "modules/cursor/components.hpp"
 #include "modules/lifecycle/components.hpp"
 #include "modules/physics/components.hpp"
 #include "modules/renderer/components.hpp"
@@ -26,7 +27,10 @@ create_item(entt::registry& r, const ENTITY_TYPE& type, const entt::entity& pare
 };
 
 void
-create_renderable(entt::registry& r, const entt::entity& e, const ENTITY_TYPE& type)
+create_renderable(entt::registry& r,
+                  const entt::entity& e,
+                  const ENTITY_TYPE& type,
+                  const std::optional<engine::SRGBColour>& colour)
 {
   const auto& slots = r.ctx().at<SINGLETON_Textures>();
   const auto& colours = r.ctx().at<SINGLETON_ColoursComponent>();
@@ -102,12 +106,20 @@ create_renderable(entt::registry& r, const entt::entity& e, const ENTITY_TYPE& t
       s_comp.y = anim.animation_frames[0].y;
       break;
     }
+    case ENTITY_TYPE::GRID_CURSOR:
+    case ENTITY_TYPE::FREE_CURSOR: {
+      s_comp.colour = engine::SRGBToLinear(colours.red);
+      s_comp.tex_unit = slots.tex_unit_kenny;
+      break;
+    }
     default: {
       std::cout << "(not implemented), tried to create renderable: " << std::string(magic_enum::enum_name(type))
                 << std::endl;
     }
   }
 
+  if (colour)
+    s_comp.colour = engine::SRGBToLinear(colour.value());
   r.emplace_or_replace<SpriteComponent>(e, s_comp);
   r.emplace_or_replace<TransformComponent>(e, t_comp);
 };
@@ -128,6 +140,8 @@ create_entity(entt::registry& r, const ENTITY_TYPE& type)
   hc.children.push_back(e);
   r.emplace<EntityHierarchyComponent>(e, h.root_node);
   r.emplace<TagComponent>(e, std::string(magic_enum::enum_name(type)));
+
+  const auto& colours = r.ctx().at<SINGLETON_ColoursComponent>();
 
   switch (type) {
     case ENTITY_TYPE::ENEMY: {
@@ -211,6 +225,46 @@ create_entity(entt::registry& r, const ENTITY_TYPE& type)
       r.emplace<ConsumableComponent>(e);
       r.emplace<RangedComponent>(e);
       // r.emplace<ConfusionComponent>(e);
+      break;
+    }
+
+      // misc...
+
+    case ENTITY_TYPE::FREE_CURSOR: {
+      FreeCursorComponent c;
+      c.line_u = r.create();
+      create_renderable(r, c.line_u, ENTITY_TYPE::FREE_CURSOR);
+      c.line_d = r.create();
+      create_renderable(r, c.line_d, ENTITY_TYPE::FREE_CURSOR);
+      c.line_l = r.create();
+      create_renderable(r, c.line_l, ENTITY_TYPE::FREE_CURSOR);
+      c.line_r = r.create();
+      create_renderable(r, c.line_r, ENTITY_TYPE::FREE_CURSOR);
+      c.backdrop = r.create();
+      create_renderable(r, c.backdrop, ENTITY_TYPE::FREE_CURSOR, colours.backdrop_red);
+      r.emplace<FreeCursorComponent>(e, c);
+      // physics
+      r.emplace<PhysicsActorComponent>(e, GameCollisionLayer::ACTOR_CURSOR);
+      r.emplace<PhysicsSizeComponent>(e, PhysicsSizeComponent(SPRITE_SIZE, SPRITE_SIZE));
+      break;
+    }
+
+    case ENTITY_TYPE::GRID_CURSOR: {
+      GridCursorComponent c;
+      c.line_u = r.create();
+      create_renderable(r, c.line_u, ENTITY_TYPE::GRID_CURSOR, colours.cyan);
+      c.line_d = r.create();
+      create_renderable(r, c.line_d, ENTITY_TYPE::GRID_CURSOR, colours.cyan);
+      c.line_l = r.create();
+      create_renderable(r, c.line_l, ENTITY_TYPE::GRID_CURSOR, colours.cyan);
+      c.line_r = r.create();
+      create_renderable(r, c.line_r, ENTITY_TYPE::GRID_CURSOR, colours.cyan);
+      c.backdrop = r.create();
+      create_renderable(r, c.backdrop, ENTITY_TYPE::GRID_CURSOR, colours.dblue);
+      r.emplace<GridCursorComponent>(e, c);
+      // physics
+      r.emplace<PhysicsActorComponent>(e, GameCollisionLayer::ACTOR_CURSOR);
+      r.emplace<PhysicsSizeComponent>(e, PhysicsSizeComponent(SPRITE_SIZE, SPRITE_SIZE));
       break;
     }
   }

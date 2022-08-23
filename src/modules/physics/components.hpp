@@ -14,6 +14,7 @@ enum class GameCollisionLayer
   ACTOR_PLAYER_PET,
   ACTOR_ENEMY,
   ACTOR_BULLET,
+  ACTOR_CURSOR,
   SOLID_WALL,
 
   COUNT,
