@@ -1,6 +1,6 @@
 // #pragma once
 
-// // game default states
+// game default states
 // constexpr int GAME_OVER_WAVE = 10;
 // constexpr int ENEMY_ATTACK_THRESHOLD = 4000;
 // constexpr bool SPAWN_ENEMIES = true;

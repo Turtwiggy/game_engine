@@ -57,7 +57,6 @@ struct SINGLETON_InputComponent
   // mouse
   const int CURSOR_SIZE = 16;
   glm::ivec2 mouse_position_in_worldspace = glm::ivec2(0);
-  glm::ivec2 mouse_drag_boundingbox = glm::ivec2(0);
   glm::ivec2 mouse_click;
 
   // keyboard

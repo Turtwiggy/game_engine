@@ -13,6 +13,8 @@
 
 #include <imgui.h>
 
+static int GRID_SIZE = 16; // hmm
+
 void
 game2d::update_ui_sprite_placer_system(entt::registry& r)
 {
@@ -20,20 +22,28 @@ game2d::update_ui_sprite_placer_system(entt::registry& r)
   auto& ss = r.ctx().at<SINGLETON_SpriteSearcher>();
   auto& tilemap = r.ctx().at<SINGLETON_TilemapComponent>();
 
-  // ImGui::Begin("Sprite Placer");
+  ImGui::Begin("Sprite Placer");
+  ImGui::Text("TODO: improve this");
   // ImGui::Text("SS: %s", ss.clicked.c_str());
-  // ImGui::End();
+  // TODO: show selected sprite
+  // TODO: be able to update sprite colour
+  // TODO: be able to select sprite game behaviour
+  // TODO: save the configs above as prefabs
+  ImGui::End();
+
+  glm::ivec2 mouse_grid_pos =
+    engine::grid::world_space_to_clamped_world_space(input.mouse_position_in_worldspace, GRID_SIZE);
+  std::pair<int, int> pos = { mouse_grid_pos.x, mouse_grid_pos.y };
+
+  const auto& ri = r.ctx().at<SINGLETON_RendererInfo>();
+  if (!ri.viewport_process_events)
+    return; // dont place sprites if selecting ui
 
   // Note: this creation should be deffered to FixedUpdate if
   // this is ever used in gameplay reasons (other than mapping tools)
   if (get_mouse_rmb_held()) {
 
-    const int GRID_SIZE = 16;
-    glm::ivec2 mouse_grid_pos =
-      engine::grid::world_space_to_clamped_world_space(input.mouse_position_in_worldspace, GRID_SIZE);
-
     // check tilemap is empty
-    std::pair<int, int> pos = { mouse_grid_pos.x, mouse_grid_pos.y };
     if (!tilemap.tilemap.contains(pos)) {
       //
       // empty space!
@@ -52,6 +62,21 @@ game2d::update_ui_sprite_placer_system(entt::registry& r)
       sprite.y = ss.y;
 
       tilemap.tilemap[pos] = e;
+    } else {
+      //
+      // overwrite space!
+      //
+      auto& e = tilemap.tilemap[pos];
+      auto& sprite = r.get<SpriteComponent>(e);
+      sprite.x = ss.x;
+      sprite.y = ss.y;
+    }
+  }
+
+  if (get_mouse_mmb_held()) {
+    if (tilemap.tilemap.contains(pos)) {
+      r.destroy(tilemap.tilemap[pos]); // remove entity
+      tilemap.tilemap.erase(pos);      // remove from tilemap
     }
   }
 };

@@ -1,6 +1,7 @@
 #include "modules/ui_hierarchy/system.hpp"
 
 // components
+#include "engine/colour.hpp"
 #include "modules/physics/components.hpp"
 #include "modules/renderer/components.hpp"
 #include "modules/sprites/components.hpp"
@@ -17,10 +18,13 @@ game2d::update_ui_hierarchy_system(entt::registry& registry)
   auto& h = registry.ctx().at<SINGLETON_HierarchyComponent>();
   const auto& hroot = registry.get<EntityHierarchyComponent>(h.root_node);
   size_t root_entity_count = hroot.children.size();
+  size_t entities = registry.alive();
 
   ImGui::Begin("Hierarchy", NULL, ImGuiWindowFlags_NoFocusOnAppearing);
   {
-    ImGui::Text("Entity Count: %i", root_entity_count);
+    // Note: root is 1
+    ImGui::Text("Total alive: %i", entities);
+    ImGui::Text("Under root: %i", root_entity_count);
 
     // let root hierarchy entity be dropped on
     drop_accept_entity(registry, h.root_node);
@@ -37,8 +41,8 @@ game2d::update_ui_hierarchy_system(entt::registry& registry)
 
     // Right click on menu
     if (ImGui::BeginPopupContextWindow(0, 1, false)) {
-      if (ImGui::MenuItem("A menu item...!")) {
-        //
+      if (ImGui::MenuItem("A wild uselss menu item appeared...!")) {
+        // do nothing
       }
       ImGui::EndPopup();
     }
@@ -78,9 +82,16 @@ game2d::update_ui_hierarchy_system(entt::registry& registry)
 
     if (registry.all_of<SpriteComponent>(eid)) {
       SpriteComponent& sc = registry.get<SpriteComponent>(eid);
-      // ImGui::Text("Colour: ");
-      // ImGui::SameLine();
-      // ImGui::ColorEdit4("##colour", sc.colour.r, );
+
+      // colour component
+      ImGui::Text("Colour: ");
+      ImGui::SameLine();
+      engine::SRGBColour rgba = engine::LinearToSRGB(sc.colour);
+      float colours[4] = { rgba.r, rgba.g, rgba.b, rgba.a };
+      if (ImGui::ColorEdit4("##colour", colours))
+        sc.colour = engine::SRGBToLinear({ colours[0], colours[1], colours[2], colours[3] });
+
+      // select sprite
       imgui_draw_ivec2(registry, "Sprite: ", sc.x, sc.y);
     }
 

@@ -188,30 +188,12 @@ game2d::update(entt::registry& r, float dt)
   {
     auto _ = time_scope(&p, "ui"); // value always be a frame behind
     {
-      {
-        // auto _ = time_scope(&p, "update_ui_player_inventory_system");
-        update_ui_player_inventory_system(r);
-      }
-      {
-        // auto _ = time_scope(&p, "update_ui_physics_system");
-        update_ui_physics_system(r);
-      }
-      {
-        // auto _ = time_scope(&p, "update_ui_hierarchy_system");
-        update_ui_hierarchy_system(r);
-      }
-      {
-        // auto _ = time_scope(&p, "update_ui_profiler_system");
-        update_ui_profiler_system(r);
-      }
-      {
-        // auto _ = time_scope(&p, "update_ui_sprite_searcher_system");
-        update_ui_sprite_searcher_system(r);
-      }
-      {
-        // auto _ = time_scope(&p, "update_ui_sprite_placer_system");
-        update_ui_sprite_placer_system(r);
-      }
+      update_ui_player_inventory_system(r);
+      update_ui_physics_system(r);
+      update_ui_hierarchy_system(r);
+      update_ui_profiler_system(r);
+      update_ui_sprite_searcher_system(r);
+      update_ui_sprite_placer_system(r);
     }
     // update_ui_networking_system(r);
     // update_ui_main_menu_system(r);

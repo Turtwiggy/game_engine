@@ -72,6 +72,22 @@ game2d::imgui_draw_vec2(entt::registry& r, const std::string& label, float& x, f
   }
 }
 
+namespace game2d {
+
+void
+recursively_delete_with_children(entt::registry& r, const entt::entity& e)
+{
+  const auto& h = r.get<EntityHierarchyComponent>(e);
+
+  // delete children first. haha.
+  for (int i = 0; i < h.children.size(); i++)
+    recursively_delete_with_children(r, h.children[i]);
+
+  r.destroy(e);
+};
+
+} // namespace game2d
+
 void
 game2d::imgui_draw_entity(entt::registry& r, const std::string& label, const entt::entity& e, entt::entity& selected_e)
 {
@@ -100,11 +116,7 @@ game2d::imgui_draw_entity(entt::registry& r, const std::string& label, const ent
 
   drop_accept_entity(r, e);
 
-  if (delete_entity)
-    printf("todo: implement delete");
-
   if (opened) {
-
     const auto& h = r.get<EntityHierarchyComponent>(e);
     for (const auto& child : h.children) {
       const auto& new_tag = r.get<TagComponent>(child).tag;
@@ -112,6 +124,10 @@ game2d::imgui_draw_entity(entt::registry& r, const std::string& label, const ent
     }
 
     ImGui::TreePop();
+  }
+
+  if (delete_entity) {
+    recursively_delete_with_children(r, e);
   }
 }
 

@@ -33,18 +33,6 @@ game2d::update_input_system(entt::registry& registry)
   if (!get_mouse_lmb_held())
     input.mouse_click = glm::ivec2(0);
 
-  if (get_mouse_lmb_press() || get_mouse_lmb_held()) {
-    // draw expanding square
-    int width = input.mouse_position_in_worldspace.x - input.mouse_click.x;
-    int height = input.mouse_position_in_worldspace.y - input.mouse_click.y;
-    input.mouse_drag_boundingbox.x = width;
-    input.mouse_drag_boundingbox.y = height;
-  } else {
-    // draw regular square
-    input.mouse_drag_boundingbox.x = input.CURSOR_SIZE;
-    input.mouse_drag_boundingbox.y = input.CURSOR_SIZE;
-  }
-
   input.keys_pressed.clear();
   input.keys_released.clear();
   input.sdl_events.clear();

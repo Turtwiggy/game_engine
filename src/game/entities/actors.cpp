@@ -131,14 +131,26 @@ remove_renderable(entt::registry& r, const entt::entity& e)
   r.remove<TransformComponent>(e);
 };
 
+void
+set_parent(entt::registry& r, const entt::entity& e, const entt::entity& parent)
+{
+  r.emplace<EntityHierarchyComponent>(e, parent);
+}
+
+void
+add_child(entt::registry& r, const entt::entity& e, const entt::entity& child)
+{
+  auto& hc = r.get<EntityHierarchyComponent>(e);
+  hc.children.push_back(child);
+}
+
 entt::entity
 create_entity(entt::registry& r, const ENTITY_TYPE& type)
 {
   const auto& h = r.ctx().at<SINGLETON_HierarchyComponent>();
-  auto& hc = r.get<EntityHierarchyComponent>(h.root_node);
   auto e = r.create();
-  hc.children.push_back(e);
-  r.emplace<EntityHierarchyComponent>(e, h.root_node);
+  add_child(r, h.root_node, e);
+  set_parent(r, e, h.root_node);
   r.emplace<TagComponent>(e, std::string(magic_enum::enum_name(type)));
 
   const auto& colours = r.ctx().at<SINGLETON_ColoursComponent>();
@@ -231,17 +243,44 @@ create_entity(entt::registry& r, const ENTITY_TYPE& type)
       // misc...
 
     case ENTITY_TYPE::FREE_CURSOR: {
+
+      auto line_u = r.create();
+      r.emplace<TagComponent>(line_u, "line-u");
+      create_renderable(r, line_u, ENTITY_TYPE::FREE_CURSOR);
+      add_child(r, e, line_u);
+      set_parent(r, line_u, e);
+
+      auto line_d = r.create();
+      r.emplace<TagComponent>(line_d, "line-d");
+      create_renderable(r, line_d, ENTITY_TYPE::FREE_CURSOR);
+      add_child(r, e, line_d);
+      set_parent(r, line_d, e);
+
+      auto line_l = r.create();
+      r.emplace<TagComponent>(line_l, "line-l");
+      create_renderable(r, line_l, ENTITY_TYPE::FREE_CURSOR);
+      add_child(r, e, line_l);
+      set_parent(r, line_l, e);
+
+      auto line_r = r.create();
+      r.emplace<TagComponent>(line_r, "line-r");
+      create_renderable(r, line_r, ENTITY_TYPE::FREE_CURSOR);
+      add_child(r, e, line_r);
+      set_parent(r, line_r, e);
+
+      auto backdrop = r.create();
+      r.emplace<TagComponent>(backdrop, "backdrop");
+      create_renderable(r, backdrop, ENTITY_TYPE::FREE_CURSOR, colours.backdrop_red);
+      add_child(r, e, backdrop);
+      set_parent(r, backdrop, e);
+
+      // object tag
       FreeCursorComponent c;
-      c.line_u = r.create();
-      create_renderable(r, c.line_u, ENTITY_TYPE::FREE_CURSOR);
-      c.line_d = r.create();
-      create_renderable(r, c.line_d, ENTITY_TYPE::FREE_CURSOR);
-      c.line_l = r.create();
-      create_renderable(r, c.line_l, ENTITY_TYPE::FREE_CURSOR);
-      c.line_r = r.create();
-      create_renderable(r, c.line_r, ENTITY_TYPE::FREE_CURSOR);
-      c.backdrop = r.create();
-      create_renderable(r, c.backdrop, ENTITY_TYPE::FREE_CURSOR, colours.backdrop_red);
+      c.line_u = line_u;
+      c.line_d = line_d;
+      c.line_l = line_l;
+      c.line_r = line_r;
+      c.backdrop = backdrop;
       r.emplace<FreeCursorComponent>(e, c);
       // physics
       r.emplace<PhysicsActorComponent>(e, GameCollisionLayer::ACTOR_CURSOR);
@@ -250,17 +289,43 @@ create_entity(entt::registry& r, const ENTITY_TYPE& type)
     }
 
     case ENTITY_TYPE::GRID_CURSOR: {
+
+      auto line_u = r.create();
+      r.emplace<TagComponent>(line_u, "line-u");
+      create_renderable(r, line_u, ENTITY_TYPE::GRID_CURSOR, colours.cyan);
+      add_child(r, e, line_u);
+      set_parent(r, line_u, e);
+
+      auto line_d = r.create();
+      r.emplace<TagComponent>(line_d, "line-d");
+      create_renderable(r, line_d, ENTITY_TYPE::GRID_CURSOR, colours.cyan);
+      add_child(r, e, line_d);
+      set_parent(r, line_d, e);
+
+      auto line_l = r.create();
+      r.emplace<TagComponent>(line_l, "line-l");
+      create_renderable(r, line_l, ENTITY_TYPE::GRID_CURSOR, colours.cyan);
+      add_child(r, e, line_l);
+      set_parent(r, line_l, e);
+
+      auto line_r = r.create();
+      r.emplace<TagComponent>(line_r, "line-r");
+      create_renderable(r, line_r, ENTITY_TYPE::GRID_CURSOR, colours.cyan);
+      add_child(r, e, line_r);
+      set_parent(r, line_r, e);
+
+      auto backdrop = r.create();
+      r.emplace<TagComponent>(backdrop, "backdrop");
+      create_renderable(r, backdrop, ENTITY_TYPE::GRID_CURSOR, colours.dblue);
+      add_child(r, e, backdrop);
+      set_parent(r, backdrop, e);
+
       GridCursorComponent c;
-      c.line_u = r.create();
-      create_renderable(r, c.line_u, ENTITY_TYPE::GRID_CURSOR, colours.cyan);
-      c.line_d = r.create();
-      create_renderable(r, c.line_d, ENTITY_TYPE::GRID_CURSOR, colours.cyan);
-      c.line_l = r.create();
-      create_renderable(r, c.line_l, ENTITY_TYPE::GRID_CURSOR, colours.cyan);
-      c.line_r = r.create();
-      create_renderable(r, c.line_r, ENTITY_TYPE::GRID_CURSOR, colours.cyan);
-      c.backdrop = r.create();
-      create_renderable(r, c.backdrop, ENTITY_TYPE::GRID_CURSOR, colours.dblue);
+      c.line_u = line_u;
+      c.line_d = line_d;
+      c.line_l = line_l;
+      c.line_r = line_r;
+      c.backdrop = backdrop;
       r.emplace<GridCursorComponent>(e, c);
       // physics
       r.emplace<PhysicsActorComponent>(e, GameCollisionLayer::ACTOR_CURSOR);
