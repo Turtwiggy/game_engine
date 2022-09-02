@@ -17,24 +17,28 @@ init_sprite_system(entt::registry& registry)
 
   // load textures
   std::vector<std::pair<int, std::string>> textures_to_load;
-  textures_to_load.emplace_back(tex.tex_unit_kenny, tex.sheet_kenny);
-  textures_to_load.emplace_back(tex.tex_unit_custom, tex.sheet_custom);
-  textures_to_load.emplace_back(tex.tex_unit_sprout, tex.sheet_sprout);
-  textures_to_load.emplace_back(tex.tex_unit_logo, tex.sheet_logo);
-  textures_to_load.emplace_back(tex.tex_unit_map, tex.sheet_map);
+
+  // iterate over user config
+  for (int i = 0; i < tex.textures.size(); i++) {
+    auto& t = tex.textures[i];
+    if (t.path != "") {
+      textures_to_load.emplace_back(t.tex_unit, t.path);
+    }
+  }
 
   auto tex_ids = engine::load_textures_threaded(textures_to_load);
-  tex.tex_id_kenny = tex_ids[0];
-  tex.tex_id_custom = tex_ids[1];
-  tex.tex_id_sprout = tex_ids[2];
-  tex.tex_id_logo = tex_ids[3];
-  tex.tex_id_map = tex_ids[4];
 
-  // load animations
+  for (int i = 0; i < tex.textures.size(); i++) {
+    auto& t = tex.textures[i];
 
-  load_sprites(anim.animations, tex.yml_kenny);
-  load_sprites(anim.animations, tex.yml_custom);
-  // load_sprites(anim.animations, tex.yml_sprout);
+    // set texture ids
+    if (t.path != "")
+      t.tex_id = tex_ids[i];
+
+    // load sprite info from texture if it exists
+    if (t.spritesheet_path != "")
+      load_sprites(anim.animations, t.spritesheet_path);
+  }
 }
 
 void

@@ -45,7 +45,7 @@ create_renderable(entt::registry& r,
   switch (type) {
     case ENTITY_TYPE::ENEMY: {
       s_comp.colour = engine::SRGBToLinear(colours.asteroid);
-      s_comp.tex_unit = slots.tex_unit_kenny;
+      s_comp.tex_unit = get_tex_unit(r, TextureType::KENNY);
       // search kenny-nl spritesheet
       const auto anim = find_animation(sprites.animations, sprite);
       s_comp.x = anim.animation_frames[0].x;
@@ -55,7 +55,7 @@ create_renderable(entt::registry& r,
     case ENTITY_TYPE::PLAYER: {
       sprite = "PERSON_25_0";
       s_comp.colour = engine::SRGBToLinear(colours.player_unit);
-      s_comp.tex_unit = slots.tex_unit_kenny;
+      s_comp.tex_unit = get_tex_unit(r, TextureType::KENNY);
       // search kenny-nl spritesheet
       const auto anim = find_animation(sprites.animations, sprite);
       s_comp.x = anim.animation_frames[0].x;
@@ -65,7 +65,7 @@ create_renderable(entt::registry& r,
     case ENTITY_TYPE::BOLT: {
       sprite = "PERSON_25_0";
       s_comp.colour = engine::SRGBToLinear(colours.bullet);
-      s_comp.tex_unit = slots.tex_unit_kenny;
+      s_comp.tex_unit = get_tex_unit(r, TextureType::KENNY);
       // search kenny-nl spritesheet
       const auto anim = find_animation(sprites.animations, sprite);
       s_comp.x = anim.animation_frames[0].x;
@@ -78,7 +78,7 @@ create_renderable(entt::registry& r,
     case ENTITY_TYPE::POTION: {
       sprite = "DUCK";
       s_comp.colour = engine::SRGBToLinear(colours.bullet);
-      s_comp.tex_unit = slots.tex_unit_kenny;
+      s_comp.tex_unit = get_tex_unit(r, TextureType::KENNY);
       // search kenny-nl spritesheet
       const auto anim = find_animation(sprites.animations, sprite);
       s_comp.x = anim.animation_frames[0].x;
@@ -88,7 +88,7 @@ create_renderable(entt::registry& r,
     case ENTITY_TYPE::SCROLL_MAGIC_MISSILE: {
       sprite = "ROCKET_1";
       s_comp.colour = engine::SRGBToLinear(colours.bullet);
-      s_comp.tex_unit = slots.tex_unit_kenny;
+      s_comp.tex_unit = get_tex_unit(r, TextureType::KENNY);
       // s_comp.angle_radians = anim.animation_angle_degrees * engine::PI / 180.0f;
       // search kenny-nl spritesheet
       const auto anim = find_animation(sprites.animations, sprite);
@@ -99,7 +99,7 @@ create_renderable(entt::registry& r,
     case ENTITY_TYPE::SHOPKEEPER: {
       sprite = "PERSON_25_0";
       s_comp.colour = engine::SRGBToLinear(colours.bullet);
-      s_comp.tex_unit = slots.tex_unit_kenny;
+      s_comp.tex_unit = get_tex_unit(r, TextureType::KENNY);
       // search kenny-nl spritesheet
       const auto anim = find_animation(sprites.animations, sprite);
       s_comp.x = anim.animation_frames[0].x;
@@ -109,7 +109,7 @@ create_renderable(entt::registry& r,
     case ENTITY_TYPE::GRID_CURSOR:
     case ENTITY_TYPE::FREE_CURSOR: {
       s_comp.colour = engine::SRGBToLinear(colours.red);
-      s_comp.tex_unit = slots.tex_unit_kenny;
+      s_comp.tex_unit = get_tex_unit(r, TextureType::KENNY);
       break;
     }
     default: {

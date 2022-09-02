@@ -30,6 +30,14 @@ init_audio_system(entt::registry& registry)
     SDL_Log("SDL audio is init...");
   }
 
+  int result = 0;
+  int flags = MIX_INIT_MP3;
+  if (flags != (result = Mix_Init(flags))) {
+    printf("Could not initialize mixer (result: %d).\n", result);
+    printf("Mix_Init: %s\n", Mix_GetError());
+    exit(1);
+  }
+
   int i, count = SDL_GetNumAudioDevices(0);
   for (i = 0; i < count; ++i) {
     SDL_Log("Audio device %d: %s", i, SDL_GetAudioDeviceName(i, 0));
@@ -39,8 +47,8 @@ init_audio_system(entt::registry& registry)
   Uint16 format = AUDIO_F32;
   int channels = 2;
   int samples = 4096;
-
   audio.device = Mix_OpenAudioDevice(freq, format, channels, samples, NULL, SDL_AUDIO_ALLOW_ANY_CHANGE);
+
   if (audio.device == -1) {
     std::cerr << "Failed to open audio: " << SDL_GetError() << std::endl;
     registry.ctx().emplace<SINGLETON_AudioComponent>(audio);
@@ -51,11 +59,23 @@ init_audio_system(entt::registry& registry)
   // Load Sounds and Music
   //
 
-  // audio.sound = Mix_LoadWAV(audio.sound_path.c_str());
-  // if (audio.sound == NULL) {
-  //   std::cerr << "failed to load sound: " << SDL_GetError() << std::endl;
-  //   exit(0);
-  // }
+  for (auto& entry : audio.sfx) {
+    // (assumption) all sfx are wav for the moment
+    entry.data = Mix_LoadWAV(entry.path.c_str());
+    if (entry.data == NULL) {
+      std::cerr << "failed to load sound: " << SDL_GetError() << std::endl;
+      exit(0);
+    }
+  }
+
+  for (auto& entry : audio.music) {
+    // (assumption) all sfx are mp3 for the moment
+    entry.data = Mix_LoadMUS(entry.path.c_str());
+    if (entry.data == NULL) {
+      std::cerr << "failed to load music: " << SDL_GetError() << std::endl;
+      exit(0);
+    }
+  }
 
   registry.ctx().emplace<SINGLETON_AudioComponent>(audio);
 };

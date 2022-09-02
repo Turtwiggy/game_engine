@@ -1,22 +1,38 @@
 #pragma once
 
-#include "resources/audio.hpp"
-
 #include <SDL2/SDL_mixer.h>
 
-#include <map>
 #include <string>
+#include <vector>
 
 namespace game2d {
+
+struct Music
+{
+  std::string name;
+  std::string path;
+  Mix_Music* data = NULL;
+};
+
+struct Sfx
+{
+  std::string name;
+  std::string path;
+  Mix_Chunk* data = NULL;
+};
 
 struct SINGLETON_AudioComponent
 {
   // audio device
-  int device;
+  int device = 0;
 
-  // sounds
-  const std::string sound_path = "assets/audio/usfx_1_4/WHOOSHES/Air/WHOOSH_Air_Blade_RR1_mono.wav";
-  Mix_Chunk* sound;
+  std::vector<Sfx> sfx{
+    { "woosh", "assets/audio/usfx_1_4/WHOOSHES/Air/WHOOSH_Air_Blade_RR1_mono.wav" },
+  };
+
+  std::vector<Music> music{
+    { "menu", "assets/audio/chase.mp3" },
+  };
 };
 
 } // namespace game2d

@@ -60,7 +60,7 @@ game2d::update_ui_sprite_searcher_system(entt::registry& r)
 
       char buffer[64];
       sprintf(buffer, "x%iy%i", x, y);
-      if (ImGui::ImageButton(buffer, (ImTextureID)slots.tex_id_kenny, { sizex, sizey }, tl, br)) {
+      if (ImGui::ImageButton(buffer, (ImTextureID)get_tex_id(r, TextureType::KENNY), { sizex, sizey }, tl, br)) {
         ss.x = x;
         ss.y = y;
       }

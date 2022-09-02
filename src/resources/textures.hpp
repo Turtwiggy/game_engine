@@ -1,45 +1,71 @@
 #pragma once
 
+#include <entt/entt.hpp>
+
 #include <string>
+#include <vector>
 
 namespace game2d {
 
+enum class TextureType
+{
+  KENNY,
+  CUSTOM,
+  SPROUT,
+  LOGO,
+  MAP_0,
+  LINEAR_MAIN,
+  LINEAR_LIGHTING,
+  SRGB_MAIN,
+};
+
+struct Texture
+{
+  int tex_unit;
+  TextureType type;
+  std::string path;
+  std::string spritesheet_path;
+  int tex_id; // set after bind
+};
+
+Texture&
+get_tex(entt::registry& r, const TextureType& type);
+
+int
+get_tex_id(entt::registry& r, const TextureType& type);
+
+int
+get_tex_unit(entt::registry& r, const TextureType& type);
+
 struct SINGLETON_Textures
 {
-  // TODO: texture unit (slot on gpu)
-  // this is currently tied to
-  // glActiveTexture() in render's system.cpp
-  // this should not be like this
-  const int tex_unit_kenny = 0;
-  const int tex_unit_custom = 1;
-  const int tex_unit_sprout = 2;
-  const int tex_unit_logo = 3;
-  const int tex_unit_map = 4;
-  const int tex_unit_linear_main_scene = 5;
-  const int tex_unit_linear_lighting = 6;
-  const int tex_unit_srgb_main_scene = 7;
-
-  // texture ids (id after bound)
-  int tex_id_kenny = 0;
-  int tex_id_custom = 0;
-  int tex_id_sprout = 0;
-  int tex_id_logo = 0;
-  int tex_id_map = 0;
-  int tex_id_linear_main_scene = 0;
-  int tex_id_linear_lighting = 0;
-  int tex_id_srgb_main_scene = 0;
-
-  // texture paths
-  const std::string sheet_kenny = "assets/textures/kennynl_1bit_pack/monochrome_transparent_packed.png";
-  const std::string sheet_custom = "assets/textures/custom_spaceships.png";
-  const std::string sheet_sprout = "assets/textures/sprout_lands/chars/basic_char.png";
-  const std::string sheet_logo = "assets/textures/logo.png";
-  const std::string sheet_map = "assets/textures/maps/0.jpg";
-
-  // sprite-yml info
-  const std::string yml_kenny = "assets/config/spritemap_kennynl.json";
-  const std::string yml_custom = "assets/config/spritemap_custom.json";
-  const std::string yml_sprout = "assets/config/spritemap_sprout.json";
+  std::vector<Texture> textures{
+    // to be loaded
+    {
+      0,
+      TextureType::KENNY,
+      "assets/textures/kennynl_1bit_pack/monochrome_transparent_packed.png",
+      "assets/config/spritemap_kennynl.json",
+    },
+    {
+      1,
+      TextureType::CUSTOM,
+      "assets/textures/custom_spaceships.png",
+      "assets/config/spritemap_custom.json",
+    },
+    {
+      2,
+      TextureType::SPROUT,
+      "assets/textures/sprout_lands/chars/basic_char.png",
+      // "assets/config/spritemap_sprout.json"
+    },
+    { 3, TextureType::LOGO, "assets/textures/logo.png" },
+    { 4, TextureType::MAP_0, "assets/textures/maps/0.jpg" },
+    // used in fbo
+    { 5, TextureType::LINEAR_MAIN },
+    { 6, TextureType::LINEAR_LIGHTING },
+    { 7, TextureType::SRGB_MAIN },
+  };
 };
 
 } // namespace game2d

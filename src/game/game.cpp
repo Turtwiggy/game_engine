@@ -14,6 +14,7 @@
 #include "modules/renderer/system.hpp"
 #include "modules/sprites/components.hpp"
 #include "modules/sprites/system.hpp"
+#include "modules/ui_editor/system.hpp"
 #include "modules/ui_hierarchy/components.hpp"
 #include "modules/ui_hierarchy/helpers.hpp"
 #include "modules/ui_hierarchy/system.hpp"
@@ -99,6 +100,11 @@ init_game_state(entt::registry& r)
     create_item(r, ENTITY_TYPE::SCROLL_FIREBALL, entity);
     create_item(r, ENTITY_TYPE::SCROLL_MAGIC_MISSILE, entity);
   });
+
+  // auto& audio = r.ctx().at<SINGLETON_AudioComponent>();
+  // if (audio.device != -1 && Mix_PlayingMusic() == 0) {
+  //   Mix_PlayMusic(audio.music.begin()->data, 1); // play music
+  // }
 };
 
 } // namespace game2d
@@ -194,6 +200,7 @@ game2d::update(entt::registry& r, float dt)
       update_ui_profiler_system(r);
       update_ui_sprite_searcher_system(r);
       update_ui_sprite_placer_system(r);
+      update_ui_editor_system(r);
     }
     // update_ui_networking_system(r);
     // update_ui_main_menu_system(r);

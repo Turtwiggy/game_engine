@@ -146,9 +146,9 @@ GameWindow::get_native_handles(void*& native_window) const
 
   // emscripten
 #if defined(__EMSCRIPTEN__)
-	static const char* canvas = "#canvas";
-	nativeWindow = const_cast<void*>(reinterpret_cast<const void*>(canvas));
-	return;
+  static const char* canvas = "#canvas";
+  nativeWindow = const_cast<void*>(reinterpret_cast<const void*>(canvas));
+  return;
 #endif
 
   // windows
@@ -158,7 +158,7 @@ GameWindow::get_native_handles(void*& native_window) const
   } else
 #endif // defined(SDL_VIDEO_DRIVER_WINDOWS)
 
-	// Mac
+  // Mac
 #if defined(SDL_VIDEO_DRIVER_COCOA)
 #endif // defined(SDL_VIDEO_DRIVER_COCOA)
 
