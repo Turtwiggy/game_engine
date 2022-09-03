@@ -70,8 +70,8 @@ game2d::update_ui_hierarchy_system(entt::registry& registry)
 
     if (registry.all_of<TransformComponent>(eid)) {
       auto& transform = registry.get<TransformComponent>(eid);
-      imgui_draw_ivec2(registry, "Pos: ", transform.position.x, transform.position.y);
-      imgui_draw_ivec2(registry, "Render Size: ", transform.scale.x, transform.scale.y);
+      imgui_draw_ivec3(registry, "Pos: ", transform.position.x, transform.position.y, transform.position.z);
+      imgui_draw_ivec3(registry, "Render Size: ", transform.scale.x, transform.scale.y, transform.scale.z);
       imgui_draw_float(registry, "Render Angle:", transform.rotation.z);
     }
 

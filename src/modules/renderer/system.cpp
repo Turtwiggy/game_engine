@@ -9,6 +9,7 @@
 #include "modules/renderer/helpers/helpers.hpp"
 #include "modules/sprites/components.hpp"
 #include "modules/sprites/helpers.hpp"
+#include "modules/ui_hierarchy/components.hpp"
 #include "resources/colour.hpp"
 #include "resources/textures.hpp"
 
@@ -40,12 +41,12 @@ rebind(entt::registry& registry, const glm::ivec2& wh)
   auto& ri = registry.ctx().at<SINGLETON_RendererInfo>();
 
   for (int i = 0; i < tex.textures.size(); i++) {
-    glActiveTexture(GL_TEXTURE0 + tex.textures[i].tex_unit);
-    glBindTexture(GL_TEXTURE_2D, tex.textures[i].tex_id);
+    const auto& texture = tex.textures[i];
+    glActiveTexture(GL_TEXTURE0 + texture.tex_unit);
+    glBindTexture(GL_TEXTURE_2D, texture.tex_id);
   }
 
   glm::mat4 projection = calculate_projection(wh.x, wh.y);
-
   // const auto& camera = get_main_camera(registry);
   // if (camera != entt::null) {
   //   const auto& camera_transform = registry.get<TransformComponent>(camera);
@@ -57,22 +58,126 @@ rebind(entt::registry& registry, const glm::ivec2& wh)
   // }
 
   {
-    int textures[5] = { get_tex_unit(registry, TextureType::KENNY),
-                        get_tex_unit(registry, TextureType::CUSTOM),
-                        get_tex_unit(registry, TextureType::SPROUT),
-                        get_tex_unit(registry, TextureType::LOGO),
-                        get_tex_unit(registry, TextureType::MAP_0) };
+    int textures[5] = { get_tex_unit(registry, AvailableTexture::KENNY),
+                        get_tex_unit(registry, AvailableTexture::CUSTOM),
+                        get_tex_unit(registry, AvailableTexture::SPROUT),
+                        get_tex_unit(registry, AvailableTexture::LOGO),
+                        get_tex_unit(registry, AvailableTexture::MAP_0) };
     ri.instanced.bind();
     ri.instanced.set_mat4("projection", projection);
     ri.instanced.set_int_array("textures", textures, sizeof(textures));
   }
 
   {
-    int textures[1] = { get_tex_unit(registry, TextureType::LINEAR_MAIN) };
+    int textures[1] = { get_tex_unit(registry, AvailableTexture::LINEAR_MAIN) };
     ri.linear_to_srgb.bind();
     ri.linear_to_srgb.set_mat4("projection", projection);
     ri.linear_to_srgb.set_int_array("textures", textures, sizeof(textures));
   }
+};
+
+void
+check_if_viewport_resize(entt::registry& r, SINGLETON_RendererInfo& ri, glm::ivec2& viewport_wh)
+{
+  if (ri.viewport_size_current.x > 0.0f && ri.viewport_size_current.y > 0.0f &&
+      (viewport_wh.x != ri.viewport_size_current.x || viewport_wh.y != ri.viewport_size_current.y)) {
+
+    // A resize occured!
+
+    ri.viewport_size_render_at = ri.viewport_size_current;
+    viewport_wh = ri.viewport_size_render_at;
+
+    // update fbo textures
+    {
+      bind_tex(get_tex_id(r, AvailableTexture::LINEAR_MAIN));
+      update_bound_texture_size(viewport_wh);
+      unbind_tex();
+    }
+    {
+      bind_tex(get_tex_id(r, AvailableTexture::LINEAR_LIGHTING));
+      update_bound_texture_size(viewport_wh);
+      unbind_tex();
+    }
+    {
+      bind_tex(get_tex_id(r, AvailableTexture::SRGB_MAIN));
+      update_bound_texture_size(viewport_wh);
+      unbind_tex();
+    }
+
+    RenderCommand::set_viewport(0, 0, viewport_wh.x, viewport_wh.y);
+    game2d::rebind(r, viewport_wh);
+  }
+}
+
+glm::mat4
+get_local_model_matrix(const TransformComponent& transform)
+{
+  // quat(glm::vec3(90, 45, 0))
+  // gtx::quaternion::angleAxis(degrees(RotationAngle), RotationAxis);
+  // glm::quaternion::toMat4(quaternion);
+  // mat4 RotationMatrix = quaternion::toMat4(quaternion);
+  // desc.pos_tl = camera_transform.position + transform.position - transform.scale / 2;
+  // desc.angle_radians = sc.angle_radians + transform.rotation.z;
+
+  const glm::ivec3& pos_tl = transform.position - transform.scale / 2;
+  const glm::ivec3& size = transform.scale;
+  const glm::vec3& rot = transform.rotation;
+
+  const glm::mat4 transform_x = glm::rotate(glm::mat4(1.0f), glm::radians(rot.x), glm::vec3(1.0f, 0.0f, 0.0f));
+  const glm::mat4 transform_y = glm::rotate(glm::mat4(1.0f), glm::radians(rot.y), glm::vec3(0.0f, 1.0f, 0.0f));
+  const glm::mat4 transform_z = glm::rotate(glm::mat4(1.0f), glm::radians(rot.z), glm::vec3(0.0f, 0.0f, 1.0f));
+  const glm::mat4 rot_matrix = transform_y * transform_x * transform_z;
+
+  glm::mat4 model = glm::mat4(1.0f);
+  model = glm::translate(model, glm::vec3(pos_tl.x, pos_tl.y, pos_tl.z));
+  model = glm::translate(model, glm::vec3(0.5f * size.x, 0.5f * size.y, 0.0f));
+  model *= rot_matrix;
+  model = glm::translate(model, glm::vec3(-0.5f * size.x, -0.5f * size.y, 0.0f));
+  model = glm::scale(model, glm::vec3(size.x, size.y, size.z));
+  return model;
+};
+
+void
+render_recursively(entt::registry& r,
+                   const entt::entity& entity,
+                   const glm::mat4& parent_model,
+                   const engine::Shader& shader)
+{
+  auto* transform = r.try_get<TransformComponent>(entity);
+  auto* sprite = r.try_get<SpriteComponent>(entity);
+  auto* children = r.try_get<EntityHierarchyComponent>(entity);
+
+  if (transform && sprite) {
+
+    glm::mat4 model = parent_model * get_local_model_matrix(*transform);
+
+    quad_renderer::RenderDescriptor desc;
+    desc.colour = (*sprite).colour;
+    desc.sprite_offset_and_spritesheet = { (*sprite).x, (*sprite).y, (*sprite).sx, (*sprite).sy };
+    desc.tex_unit = (*sprite).tex_unit;
+
+    // draw me
+    quad_renderer::QuadRenderer::draw_sprite(desc, model, shader);
+
+    // draw children
+    // note: using this scene-hierarchy and recursive structure
+    // is terrible for performance and cachin'
+    // consider doing something else when needed
+    if (children) {
+      for (const auto& child : children->children)
+        render_recursively(r, child, model, shader);
+    }
+  }
+
+  // const auto& view = registry.view<const TransformComponent, const SpriteComponent>();
+  // view.each([&registry, &ri](auto eid, const TransformComponent& transform, const SpriteComponent& sc) {
+  //   quad_renderer::RenderDescriptor desc;
+  //   desc.colour = sc.colour;
+  //   desc.sprite_offset = { sc.x, sc.y };
+  //   desc.tex_unit = sc.tex_unit;
+  //   glm::mat4 model = get_local_model_matrix(transform);
+  //
+  // });
 };
 
 }; // namespace game2d
@@ -86,16 +191,16 @@ game2d::init_render_system(entt::registry& registry, const glm::ivec2& screen_wh
   SINGLETON_RendererInfo ri;
 
   new_texture_to_fbo(ri.fbo_linear_main_scene,
-                     get_tex(registry, TextureType::LINEAR_MAIN).tex_id,
-                     get_tex_unit(registry, TextureType::LINEAR_MAIN),
+                     get_tex(registry, AvailableTexture::LINEAR_MAIN).tex_id,
+                     get_tex_unit(registry, AvailableTexture::LINEAR_MAIN),
                      screen_wh);
   new_texture_to_fbo(ri.fbo_linear_lighting,
-                     get_tex(registry, TextureType::LINEAR_LIGHTING).tex_id,
-                     get_tex_unit(registry, TextureType::LINEAR_LIGHTING),
+                     get_tex(registry, AvailableTexture::LINEAR_LIGHTING).tex_id,
+                     get_tex_unit(registry, AvailableTexture::LINEAR_LIGHTING),
                      screen_wh);
   new_texture_to_fbo(ri.fbo_srgb_main_scene,
-                     get_tex(registry, TextureType::SRGB_MAIN).tex_id,
-                     get_tex_unit(registry, TextureType::SRGB_MAIN),
+                     get_tex(registry, AvailableTexture::SRGB_MAIN).tex_id,
+                     get_tex_unit(registry, AvailableTexture::SRGB_MAIN),
                      screen_wh);
 
   ri.instanced = Shader("assets/shaders/2d_instanced.vert", "assets/shaders/2d_instanced.frag");
@@ -132,33 +237,8 @@ game2d::update_render_system(entt::registry& registry)
   const auto& colours = registry.ctx().at<SINGLETON_ColoursComponent>();
   const auto& background_colour = colours.background;
   const auto background_colour_linear = engine::SRGBToLinear(background_colour);
-  auto viewport_wh = ri.viewport_size_render_at;
-
-  // Resize
-  if (ri.viewport_size_current.x > 0.0f && ri.viewport_size_current.y > 0.0f &&
-      (viewport_wh.x != ri.viewport_size_current.x || viewport_wh.y != ri.viewport_size_current.y)) {
-    ri.viewport_size_render_at = ri.viewport_size_current;
-    viewport_wh = ri.viewport_size_render_at;
-
-    // update fbo textures
-    {
-      bind_tex(get_tex_id(registry, TextureType::LINEAR_MAIN));
-      update_bound_texture_size(viewport_wh);
-      unbind_tex();
-    }
-    {
-      bind_tex(get_tex_id(registry, TextureType::LINEAR_LIGHTING));
-      update_bound_texture_size(viewport_wh);
-      unbind_tex();
-    }
-    {
-      bind_tex(get_tex_id(registry, TextureType::SRGB_MAIN));
-      update_bound_texture_size(viewport_wh);
-      unbind_tex();
-    }
-    RenderCommand::set_viewport(0, 0, viewport_wh.x, viewport_wh.y);
-    game2d::rebind(registry, viewport_wh);
-  }
+  glm::ivec2 viewport_wh = ri.viewport_size_render_at;
+  check_if_viewport_resize(registry, ri, viewport_wh);
 
   // FBO: Render sprites in to this fbo with linear colour
   Framebuffer::bind_fbo(ri.fbo_linear_main_scene);
@@ -172,23 +252,15 @@ game2d::update_render_system(entt::registry& registry)
     quad_renderer::QuadRenderer::begin_batch();
 
     // TODO: work out z-index
-    // registry.sort<ZIndex>([](const auto& lhs, const auto& rhs) { return lhs.index < rhs.index; });
-
-    const auto& view = registry.view<const TransformComponent, const SpriteComponent>();
-
     // registry.sort<renderable>([](const auto& lhs, const auto& rhs) { return lhs.z < rhs.z; });
 
-    view.each([&registry, &ri](auto eid, const auto& transform, const auto& sc) {
-      quad_renderer::RenderDescriptor desc;
-      // desc.pos_tl = camera_transform.position + transform.position - transform.scale / 2;
-      desc.pos_tl = transform.position - transform.scale / 2;
-      desc.size = transform.scale;
-      desc.angle_radians = sc.angle_radians + transform.rotation.z;
-      desc.colour = sc.colour;
-      desc.tex_unit = sc.tex_unit;
-      desc.sprite_offset = { sc.x, sc.y };
-      quad_renderer::QuadRenderer::draw_sprite(desc, ri.instanced);
-    });
+    auto& h = registry.ctx().at<SINGLETON_HierarchyComponent>();
+    const auto& hroot = registry.get<EntityHierarchyComponent>(h.root_node);
+
+    // skip showing the root node, go to children
+    for (const auto& child : hroot.children) {
+      render_recursively(registry, child, glm::mat4(1.0f), ri.instanced);
+    }
 
     quad_renderer::QuadRenderer::end_batch();
     quad_renderer::QuadRenderer::flush(ri.instanced);
@@ -207,13 +279,12 @@ game2d::update_render_system(entt::registry& registry)
     quad_renderer::QuadRenderer::begin_batch();
     {
       quad_renderer::RenderDescriptor desc;
-      desc.pos_tl = { 0, 0 };
-      desc.size = viewport_wh;
       // desc.colour = // not needed
-      desc.angle_radians = 0.0f;
-      desc.tex_unit = get_tex_unit(registry, TextureType::LINEAR_MAIN);
-      desc.sprite_offset = { 0, 0 };
-      quad_renderer::QuadRenderer::draw_sprite(desc, ri.linear_to_srgb);
+      desc.tex_unit = get_tex_unit(registry, AvailableTexture::LINEAR_MAIN);
+      desc.sprite_offset_and_spritesheet = { 0, 0, 0, 0 };
+      glm::mat4 model = glm::mat4(1.0f);
+      model = glm::scale(model, glm::vec3(viewport_wh, 1.0f));
+      quad_renderer::QuadRenderer::draw_sprite(desc, model, ri.linear_to_srgb);
     }
     quad_renderer::QuadRenderer::end_batch();
     quad_renderer::QuadRenderer::flush(ri.linear_to_srgb);
@@ -226,7 +297,7 @@ game2d::update_render_system(entt::registry& registry)
   RenderCommand::clear();
 
   // Note: ImGui::Image takes in TexID not TexUnit
-  ViewportInfo vi = render_texture_to_imgui_viewport(get_tex_id(registry, TextureType::SRGB_MAIN));
+  ViewportInfo vi = render_texture_to_imgui_viewport(get_tex_id(registry, AvailableTexture::SRGB_MAIN));
   // If the viewport moves - viewport position will be a frame behind.
   // This would mainly affect an editor, a game viewport probably(?) wouldn't move that much
   // (or if a user is moving the viewport, they likely dont need that one frame?)

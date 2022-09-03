@@ -17,11 +17,8 @@ namespace quad_renderer {
 // data required per sprite
 struct RenderDescriptor
 {
-  glm::ivec2 pos_tl = { 0, 0 };
-  glm::ivec2 size = { 100, 100 };
   LinearColour colour;
-  float angle_radians = 0.0f;
-  glm::ivec2 sprite_offset = { 0, 0 }; // for spritesheet
+  glm::ivec4 sprite_offset_and_spritesheet = { 0, 0, 0, 0 };
   int tex_unit = 0;
 };
 
@@ -30,7 +27,7 @@ struct Vertex
 {
   glm::vec4 pos_and_uv;
   glm::vec4 colour;
-  glm::vec2 sprite_offset;
+  glm::vec4 sprite_offset_and_spritesheet;
   float tex_unit;
   glm::mat4 model;
 };
@@ -38,13 +35,13 @@ struct Vertex
 class QuadRenderer
 {
 public:
-  static void draw_sprite(const RenderDescriptor& r, Shader& s);
+  static void draw_sprite(const RenderDescriptor& r, const glm::mat4& model, const Shader& s);
 
   static void init();
   static void shutdown();
 
   static void end_batch();
-  static void flush(Shader& shader); // submit for a drawcall
+  static void flush(const Shader& shader); // submit for a drawcall
   static void begin_batch();
 
   static void reset_quad_vert_count();

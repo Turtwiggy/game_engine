@@ -28,6 +28,7 @@ struct SINGLETON_ColoursComponent
   const engine::SRGBColour asteroid = red;
   const engine::SRGBColour bullet = lightyellow;
   const engine::SRGBColour turret = cyan;
+  const engine::SRGBColour shield = cyan;
 };
 
 } // namespace game2d

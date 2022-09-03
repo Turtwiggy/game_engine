@@ -60,6 +60,20 @@ game2d::imgui_draw_ivec2(entt::registry& r, const std::string& label, int& x, in
 }
 
 void
+game2d::imgui_draw_ivec3(entt::registry& r, const std::string& label, int& x, int& y, int& z)
+{
+  glm::ivec3 v_temp = { x, y, z };
+
+  ImGui::Text(label.c_str());
+  ImGui::SameLine();
+  if (ImGui::DragInt3((std::string("##") + label).c_str(), glm::value_ptr(v_temp), 0.5f)) {
+    x = v_temp.x;
+    y = v_temp.y;
+    z = v_temp.z;
+  }
+}
+
+void
 game2d::imgui_draw_vec2(entt::registry& r, const std::string& label, float& x, float& y)
 {
   glm::vec2 v_temp = { x, y };

@@ -124,13 +124,13 @@ Shader::Shader(const std::string& vert_path, const std::string& frag_path)
 }
 
 void
-Shader::bind()
+Shader::bind() const
 {
   glUseProgram(ID);
 }
 
 void
-Shader::unbind()
+Shader::unbind() const
 {
   glUseProgram(0);
 }

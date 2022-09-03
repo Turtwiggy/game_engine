@@ -6,7 +6,7 @@
 #include "modules/events/helpers/mouse.hpp"
 #include "modules/renderer/components.hpp"
 #include "modules/sprites/components.hpp"
-#include "modules/ui_sprite_placer/components.hpp"
+#include "modules/ui_sprite_prefab/components.hpp"
 #include "modules/ui_sprite_searcher/components.hpp"
 
 #include <map>
@@ -16,13 +16,13 @@
 static int GRID_SIZE = 16; // hmm
 
 void
-game2d::update_ui_sprite_placer_system(entt::registry& r)
+game2d::update_ui_sprite_prefab_system(entt::registry& r)
 {
   const auto& input = r.ctx().at<SINGLETON_InputComponent>();
   auto& ss = r.ctx().at<SINGLETON_SpriteSearcher>();
   auto& tilemap = r.ctx().at<SINGLETON_TilemapComponent>();
 
-  ImGui::Begin("Sprite Placer");
+  ImGui::Begin("Sprite Prefabs");
   ImGui::Text("TODO: improve this");
   // ImGui::Text("SS: %s", ss.clicked.c_str());
   // TODO: show selected sprite

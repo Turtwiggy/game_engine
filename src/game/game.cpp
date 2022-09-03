@@ -24,8 +24,8 @@
 #include "modules/ui_profiler/components.hpp"
 #include "modules/ui_profiler/helpers.hpp"
 #include "modules/ui_profiler/system.hpp"
-#include "modules/ui_sprite_placer/components.hpp"
-#include "modules/ui_sprite_placer/system.hpp"
+#include "modules/ui_sprite_prefab/components.hpp"
+#include "modules/ui_sprite_prefab/system.hpp"
 #include "modules/ui_sprite_searcher/components.hpp"
 #include "modules/ui_sprite_searcher/system.hpp"
 
@@ -74,15 +74,41 @@ init_game_state(entt::registry& r)
   create_entity(r, ENTITY_TYPE::FREE_CURSOR);
   create_entity(r, ENTITY_TYPE::GRID_CURSOR);
 
-  auto player = create_entity(r, ENTITY_TYPE::PLAYER);
-  auto& player_transform = r.get<TransformComponent>(player);
-  player_transform.position.x = 200;
-  player_transform.position.y = 200;
+  {
+    auto shield = create_entity(r, ENTITY_TYPE::SHIELD);
+    auto& shield_transform = r.get<TransformComponent>(shield);
+    shield_transform.position.x = 0;
+    shield_transform.position.y = 0;
+    shield_transform.scale.x = 1;
+    shield_transform.scale.y = 1;
 
-  auto shopkeeper = create_entity(r, ENTITY_TYPE::SHOPKEEPER);
-  auto& transform = r.get<TransformComponent>(shopkeeper);
-  transform.position.x = 500;
-  transform.position.y = 500;
+    auto player = create_entity(r, ENTITY_TYPE::PLAYER);
+    auto& player_transform = r.get<TransformComponent>(player);
+    player_transform.position.x = 200;
+    player_transform.position.y = 200;
+
+    { // set shield as child of player
+      EntityHierarchyComponent& player_hierarchy = r.get<EntityHierarchyComponent>(player);
+      EntityHierarchyComponent& shield_hierarchy = r.get<EntityHierarchyComponent>(shield);
+      // remove the shield from the old parent
+      EntityHierarchyComponent& parent_hierarchy = r.get<EntityHierarchyComponent>(shield_hierarchy.parent);
+      for (int i = 0; i < parent_hierarchy.children.size(); i++) {
+        if (parent_hierarchy.children[i] == shield) {
+          parent_hierarchy.children.erase(parent_hierarchy.children.begin() + i);
+          break;
+        }
+      }
+      shield_hierarchy.parent = player;
+      player_hierarchy.children.push_back(shield);
+    }
+  }
+
+  {
+    auto shopkeeper = create_entity(r, ENTITY_TYPE::SHOPKEEPER);
+    auto& transform = r.get<TransformComponent>(shopkeeper);
+    transform.position.x = 500;
+    transform.position.y = 500;
+  }
 
   // stock up!
   const auto& view = r.view<ShopKeeperComponent>();
@@ -199,7 +225,7 @@ game2d::update(entt::registry& r, float dt)
       update_ui_hierarchy_system(r);
       update_ui_profiler_system(r);
       update_ui_sprite_searcher_system(r);
-      update_ui_sprite_placer_system(r);
+      update_ui_sprite_prefab_system(r);
       update_ui_editor_system(r);
     }
     // update_ui_networking_system(r);
