@@ -35,99 +35,80 @@ create_renderable(entt::registry& r,
   const auto& slots = r.ctx().at<SINGLETON_Textures>();
   const auto& colours = r.ctx().at<SINGLETON_ColoursComponent>();
   const auto& sprites = r.ctx().at<SINGLETON_Animations>();
+  const auto type_name = std::string(magic_enum::enum_name(type));
 
   TransformComponent t_comp;
   t_comp.scale.x = SPRITE_SIZE;
   t_comp.scale.y = SPRITE_SIZE;
   SpriteComponent s_comp;
+  s_comp.tex_unit = get_tex_unit(r, AvailableTexture::KENNY);
   std::string sprite = "EMPTY";
 
-  switch (type) {
-    case ENTITY_TYPE::ENEMY: {
-      s_comp.colour = engine::SRGBToLinear(colours.asteroid);
-      s_comp.tex_unit = get_tex_unit(r, AvailableTexture::KENNY);
-      // search kenny-nl spritesheet
-      const auto anim = find_animation(sprites.animations, sprite);
-      s_comp.x = anim.animation_frames[0].x;
-      s_comp.y = anim.animation_frames[0].y;
-      break;
-    }
-    case ENTITY_TYPE::PLAYER: {
-      sprite = "PERSON_25_0";
-      s_comp.colour = engine::SRGBToLinear(colours.player_unit);
-      s_comp.tex_unit = get_tex_unit(r, AvailableTexture::KENNY);
-      // search kenny-nl spritesheet
-      const auto anim = find_animation(sprites.animations, sprite);
-      s_comp.x = anim.animation_frames[0].x;
-      s_comp.y = anim.animation_frames[0].y;
-      break;
-    }
-    case ENTITY_TYPE::BOLT: {
-      sprite = "PERSON_25_0";
-      s_comp.colour = engine::SRGBToLinear(colours.bullet);
-      s_comp.tex_unit = get_tex_unit(r, AvailableTexture::KENNY);
-      // search kenny-nl spritesheet
-      const auto anim = find_animation(sprites.animations, sprite);
-      s_comp.x = anim.animation_frames[0].x;
-      s_comp.y = anim.animation_frames[0].y;
-      s_comp.angle_radians = anim.animation_angle_degrees * engine::PI / 180.0f;
-      t_comp.scale.x = SPRITE_SIZE / 2;
-      t_comp.scale.y = SPRITE_SIZE / 2;
-      break;
-    }
-    case ENTITY_TYPE::SHIELD: {
-      sprite = "SHIELD_37_2";
-      s_comp.colour = engine::SRGBToLinear(colours.shield);
-      s_comp.tex_unit = get_tex_unit(r, AvailableTexture::KENNY);
-      // search kenny-nl spritesheet
-      const auto anim = find_animation(sprites.animations, sprite);
-      s_comp.x = anim.animation_frames[0].x;
-      s_comp.y = anim.animation_frames[0].y;
-      break;
-    }
-    case ENTITY_TYPE::POTION: {
-      sprite = "DUCK";
-      s_comp.colour = engine::SRGBToLinear(colours.bullet);
-      s_comp.tex_unit = get_tex_unit(r, AvailableTexture::KENNY);
-      // search kenny-nl spritesheet
-      const auto anim = find_animation(sprites.animations, sprite);
-      s_comp.x = anim.animation_frames[0].x;
-      s_comp.y = anim.animation_frames[0].y;
-      break;
-    }
-    case ENTITY_TYPE::SCROLL_MAGIC_MISSILE: {
-      sprite = "ROCKET_1";
-      s_comp.colour = engine::SRGBToLinear(colours.bullet);
-      s_comp.tex_unit = get_tex_unit(r, AvailableTexture::KENNY);
-      // s_comp.angle_radians = anim.animation_angle_degrees * engine::PI / 180.0f;
-      // search kenny-nl spritesheet
-      const auto anim = find_animation(sprites.animations, sprite);
-      s_comp.x = anim.animation_frames[0].x;
-      s_comp.y = anim.animation_frames[0].y;
-      break;
-    }
-    case ENTITY_TYPE::SHOPKEEPER: {
-      sprite = "PERSON_25_0";
-      s_comp.colour = engine::SRGBToLinear(colours.bullet);
-      s_comp.tex_unit = get_tex_unit(r, AvailableTexture::KENNY);
-      // search kenny-nl spritesheet
-      const auto anim = find_animation(sprites.animations, sprite);
-      s_comp.x = anim.animation_frames[0].x;
-      s_comp.y = anim.animation_frames[0].y;
-      break;
-    }
-    case ENTITY_TYPE::GRID_CURSOR:
-    case ENTITY_TYPE::FREE_CURSOR: {
-      s_comp.colour = engine::SRGBToLinear(colours.red);
-      s_comp.tex_unit = get_tex_unit(r, AvailableTexture::KENNY);
-      break;
-    }
-    default: {
-      std::cout << "(not implemented), tried to create renderable: " << std::string(magic_enum::enum_name(type))
-                << "\n";
-    }
+  // sprites
+  if (type == ENTITY_TYPE::EMPTY)
+    sprite = "EMPTY";
+  else if (type == ENTITY_TYPE::WALL)
+    sprite = "EMPTY";
+  else if (type == ENTITY_TYPE::ENEMY)
+    sprite = "PERSON_25_0";
+  else if (type == ENTITY_TYPE::PLAYER)
+    sprite = "PERSON_26_0";
+  else if (type == ENTITY_TYPE::BOLT)
+    sprite = "PERSON_25_0";
+  else if (type == ENTITY_TYPE::SHIELD)
+    sprite = "SHIELD_37_2";
+  else if (type == ENTITY_TYPE::POTION)
+    sprite = "DUCK";
+  else if (type == ENTITY_TYPE::SCROLL_MAGIC_MISSILE)
+    sprite = "ROCKET_1";
+  else if (type == ENTITY_TYPE::SHOPKEEPER)
+    sprite = "PERSON_25_0";
+  else if (type == ENTITY_TYPE::GRID_CURSOR)
+    sprite = "EMPTY";
+  else if (type == ENTITY_TYPE::FREE_CURSOR)
+    sprite = "EMPTY";
+  else
+    std::cerr << "warning! sprite not implemented for: " << type_name << "\n";
+
+  // search spritesheet
+  const auto anim = find_animation(sprites.animations, sprite);
+  s_comp.x = anim.animation_frames[0].x;
+  s_comp.y = anim.animation_frames[0].y;
+
+  // overwrite defaults for sprite
+  if (type == ENTITY_TYPE::BOLT) {
+    s_comp.angle_radians = anim.animation_angle_degrees * engine::PI / 180.0f;
+    t_comp.scale.x = SPRITE_SIZE / 2;
+    t_comp.scale.y = SPRITE_SIZE / 2;
   }
 
+  // colours
+  if (type == ENTITY_TYPE::EMPTY)
+    s_comp.colour = engine::SRGBToLinear(colours.white);
+  else if (type == ENTITY_TYPE::WALL)
+    s_comp.colour = engine::SRGBToLinear(colours.wall);
+  else if (type == ENTITY_TYPE::ENEMY)
+    s_comp.colour = engine::SRGBToLinear(colours.asteroid);
+  else if (type == ENTITY_TYPE::PLAYER)
+    s_comp.colour = engine::SRGBToLinear(colours.player_unit);
+  else if (type == ENTITY_TYPE::BOLT)
+    s_comp.colour = engine::SRGBToLinear(colours.bullet);
+  else if (type == ENTITY_TYPE::SHIELD)
+    s_comp.colour = engine::SRGBToLinear(colours.shield);
+  else if (type == ENTITY_TYPE::POTION)
+    s_comp.colour = engine::SRGBToLinear(colours.red);
+  else if (type == ENTITY_TYPE::SCROLL_MAGIC_MISSILE)
+    s_comp.colour = engine::SRGBToLinear(colours.red);
+  else if (type == ENTITY_TYPE::SHOPKEEPER)
+    s_comp.colour = engine::SRGBToLinear(colours.red);
+  else if (type == ENTITY_TYPE::GRID_CURSOR)
+    s_comp.colour = engine::SRGBToLinear(colours.red);
+  else if (type == ENTITY_TYPE::FREE_CURSOR)
+    s_comp.colour = engine::SRGBToLinear(colours.red);
+  else
+    std::cerr << "warning! colour not implemented for: " << type_name << "\n";
+
+  // overwrite colour
   if (colour)
     s_comp.colour = engine::SRGBToLinear(colour.value());
 
@@ -171,8 +152,19 @@ create_entity(entt::registry& r, const ENTITY_TYPE& type)
   r.emplace<TagComponent>(e, std::string(magic_enum::enum_name(type)));
 
   const auto& colours = r.ctx().at<SINGLETON_ColoursComponent>();
+  const auto type_name = std::string(magic_enum::enum_name(type));
 
   switch (type) {
+    case ENTITY_TYPE::EMPTY: {
+      break;
+    }
+    case ENTITY_TYPE::WALL: {
+      // physics
+      r.emplace<PhysicsSolidComponent>(e, GameCollisionLayer::SOLID_WALL);
+      r.emplace<PhysicsSizeComponent>(e, PhysicsSizeComponent(SPRITE_SIZE, SPRITE_SIZE));
+      r.emplace<VelocityComponent>(e);
+      break;
+    }
     case ENTITY_TYPE::ENEMY: {
       create_renderable(r, e, type);
       // physics
@@ -349,6 +341,10 @@ create_entity(entt::registry& r, const ENTITY_TYPE& type)
       r.emplace<PhysicsActorComponent>(e, GameCollisionLayer::ACTOR_CURSOR);
       r.emplace<PhysicsSizeComponent>(e, PhysicsSizeComponent(SPRITE_SIZE, SPRITE_SIZE));
       break;
+    }
+
+    default: {
+      std::cout << "warning: no gameplay implemented for: " << type_name;
     }
   }
 

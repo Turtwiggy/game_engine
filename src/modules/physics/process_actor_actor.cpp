@@ -20,20 +20,7 @@ game2d::update_actor_actor_system(entt::registry& registry)
   auto& p = registry.ctx().at<SINGLETON_PhysicsComponent>();
 
   std::vector<PhysicsObject> actors;
-  {
-    const auto& entt_actors =
-      registry.view<const TransformComponent, const PhysicsSizeComponent, const PhysicsActorComponent>();
-    PhysicsObject po;
-    entt_actors.each([&actors, &po](const auto entity, const auto& transform, const auto& size, const auto& actor) {
-      po.ent_id = static_cast<uint32_t>(entity);
-      po.x_tl = static_cast<int>(transform.position.x - glm::abs(size.w) / 2.0f);
-      po.y_tl = static_cast<int>(transform.position.y - glm::abs(size.h) / 2.0f);
-      po.w = glm::abs(size.w);
-      po.h = glm::abs(size.h);
-
-      actors.push_back(po);
-    });
-  }
+  get_actors_as_physics_objects(registry, actors);
 
   generate_filtered_broadphase_collisions(actors, p.frame_collisions);
 

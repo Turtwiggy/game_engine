@@ -53,7 +53,7 @@ game2d::render_texture_to_imgui_viewport(const int64_t& tex_unit)
       ImGuiID dock_id_left = ImGui::DockBuilderSplitNode(dock_id_main, ImGuiDir_Left, 0.15f, nullptr, &dock_id_main);
       ImGuiID dock_id_right = ImGui::DockBuilderSplitNode(dock_id_main, ImGuiDir_Right, 0.15f, nullptr, &dock_id_main);
 
-      // TODO: fix this
+      // TODO: improve this
       ImGui::DockBuilderDockWindow("Viewport", dock_id_main);
       ImGui::DockBuilderDockWindow("Hierarchy", dock_id_left);
       // ImGui::DockBuilderDockWindow("Properties", dock_id_right);
@@ -66,8 +66,9 @@ game2d::render_texture_to_imgui_viewport(const int64_t& tex_unit)
   }
 
   ImGuiWindowFlags viewport_flags = ImGuiWindowFlags_NoTitleBar;
+
   ImGuiWindowClass window_class;
-  window_class.DockNodeFlagsOverrideSet = ImGuiDockNodeFlags_AutoHideTabBar;
+  window_class.DockNodeFlagsOverrideSet = ImGuiDockNodeFlags_NoTabBar;
   ImGui::SetNextWindowClass(&window_class);
   ImGui::PushStyleVar(ImGuiStyleVar_WindowPadding, ImVec2(0.0f, 0.0f));
 

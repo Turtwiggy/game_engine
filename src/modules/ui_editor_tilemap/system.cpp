@@ -9,74 +9,114 @@
 #include "modules/sprites/components.hpp"
 #include "modules/ui_sprite_searcher/components.hpp"
 
+#include "magic_enum.hpp"
 #include <imgui.h>
 
 #include <map>
 
-static int GRID_SIZE = 16; // hmm
-
 void
 game2d::update_ui_editor_tilemap_system(entt::registry& r)
 {
-  const auto& input = r.ctx().at<SINGLETON_InputComponent>();
+  // #ifdef _DEBUG
+  //   bool show_imgui_demo_window = true;
+  //   ImGui::ShowDemoWindow(&show_imgui_demo_window);
+  // #endif
+
+  //
+  // Prefab Editor
+  //
+
   auto& ss = r.ctx().at<SINGLETON_SpriteSearcher>();
   auto& tilemap = r.ctx().at<SINGLETON_TilemapComponent>();
+  const int GRID_SIZE = 16; // hmm
+  const glm::ivec2 mouse_position = mouse_position_in_worldspace(r);
+  const glm::ivec2 grid_position = engine::grid::world_space_to_clamped_world_space(mouse_position, GRID_SIZE);
 
-  ImGui::Text("Prefabs");
-  ImGui::Text("TODO");
-  // TODO: show selected sprite
+  // this seems weird, but it's because std::pair is serializable
+  // by the std::map type, whereas the glm::ivec2 isn't by default
+  std::pair<int, int> key = { grid_position.x, grid_position.y };
+
   // TODO: be able to update sprite colour
   // TODO: be able to select sprite game behaviour
   // TODO: save the configs above as prefabs
-  // ImGui::Text("SS: %s", ss.clicked.c_str());
+  ImGui::Begin("Prefabs innit");
+
+  static bool overwrite_sprite = true;
+  ImGui::Checkbox("Overwrite sprite", &overwrite_sprite);
+  ImGui::Text("With: %i %i", ss.x, ss.y);
   ImGui::Separator();
 
-  glm::ivec2 mouse_grid_pos =
-    engine::grid::world_space_to_clamped_world_space(input.mouse_position_in_worldspace, GRID_SIZE);
-  std::pair<int, int> pos = { mouse_grid_pos.x, mouse_grid_pos.y };
-
-  const auto& ri = r.ctx().at<SINGLETON_RendererInfo>();
-  if (!ri.viewport_process_events)
-    return; // dont place sprites if selecting ui
-
-  // Note: this creation should be deffered to FixedUpdate if
-  // this is ever used in gameplay reasons (other than mapping tools)
-  if (get_mouse_rmb_held()) {
-
-    // check tilemap is empty
-    if (!tilemap.tilemap.contains(pos)) {
-      //
-      // empty space!
-      //
-      auto e = create_entity(r, ENTITY_TYPE::POTION);
-      create_renderable(r, e, ENTITY_TYPE::POTION);
-
-      auto& transform = r.get<TransformComponent>(e);
-      // transform.position.x = input.mouse_position_in_worldspace.x;
-      // transform.position.y = input.mouse_position_in_worldspace.y;
-      transform.position.x = mouse_grid_pos.x;
-      transform.position.y = mouse_grid_pos.y;
-
-      auto& sprite = r.get<SpriteComponent>(e);
-      sprite.x = ss.x;
-      sprite.y = ss.y;
-
-      tilemap.tilemap[pos] = e;
-    } else {
-      //
-      // overwrite space!
-      //
-      auto& e = tilemap.tilemap[pos];
-      auto& sprite = r.get<SpriteComponent>(e);
-      sprite.x = ss.x;
-      sprite.y = ss.y;
-    }
+  std::vector<std::string> items;
+  for (int i = 0; i < static_cast<int>(ENTITY_TYPE::COUNT); i++) {
+    ENTITY_TYPE value = magic_enum::enum_value<ENTITY_TYPE>(i);
+    std::string value_str = std::string(magic_enum::enum_name(value));
+    items.push_back(value_str);
   }
+  ImGui::Text("Size: %i", items.size());
+  ImGui::Separator();
 
-  if (get_mouse_mmb_held()) {
-    if (tilemap.tilemap.contains(pos)) {
-      r.destroy(tilemap.tilemap[pos]); // remove entity
-      tilemap.tilemap.erase(pos);      // remove from tilemap
+  static ImGuiComboFlags flags = 0;
+  static int item_current_idx = 0; // Here we store our selection data as an index.
+
+  // Pass in the preview value visible before opening the combo (it could be anything)
+  const char* combo_preview_value = items[item_current_idx].c_str();
+  if (ImGui::BeginCombo("wombocombo", combo_preview_value, flags)) {
+    for (int n = 0; n < items.size(); n++) {
+      const bool is_selected = (item_current_idx == n);
+      if (ImGui::Selectable(items[n].c_str(), is_selected))
+        item_current_idx = n;
+      // Set the initial focus when opening the combo (scrolling + keyboard navigation focus)
+      if (is_selected)
+        ImGui::SetItemDefaultFocus();
+    }
+    ImGui::EndCombo();
+  }
+  ImGui::End();
+
+  // Entity To place!
+  ENTITY_TYPE entity = magic_enum::enum_value<ENTITY_TYPE>(item_current_idx);
+
+  //
+  // Tilemap Editor
+  //
+  {
+    const auto& ri = r.ctx().at<SINGLETON_RendererInfo>();
+    if (!ri.viewport_process_events)
+      return; // dont place sprites if selecting ui
+
+    bool place_mode = get_mouse_rmb_held();
+    bool delete_mode = get_mouse_mmb_held();
+    bool empty_space = !tilemap.tilemap.contains(key);
+
+    // Note: this creation should be deferred to FixedUpdate if
+    // this is ever used in gameplay reasons (other than mapping tools)
+
+    if (place_mode) {
+      entt::entity e = entt::null;
+
+      if (empty_space) {
+        // create
+        e = create_entity(r, entity);
+        create_renderable(r, e, entity);
+        auto& transform = r.get<TransformComponent>(e);
+        transform.position.x = grid_position.x;
+        transform.position.y = grid_position.y;
+        tilemap.tilemap[key] = e;
+      } else {
+        // update
+        e = tilemap.tilemap[key];
+      }
+
+      if (overwrite_sprite) {
+        auto& sprite = r.get<SpriteComponent>(e);
+        sprite.x = ss.x;
+        sprite.y = ss.y;
+      }
+    }
+
+    if (delete_mode && !empty_space) {
+      r.destroy(tilemap.tilemap[key]); // remove entity
+      tilemap.tilemap.erase(key);      // remove from tilemap
     }
   }
 };

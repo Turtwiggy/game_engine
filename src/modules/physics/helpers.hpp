@@ -38,4 +38,13 @@ void
 generate_filtered_broadphase_collisions(const std::vector<PhysicsObject>& unsorted_aabb,
                                         std::map<uint64_t, Collision2D>& collision_results);
 
+void
+get_solids_as_physics_objects(entt::registry& registry, std::vector<PhysicsObject>& result);
+
+void
+get_actors_as_physics_objects(entt::registry& registry, std::vector<PhysicsObject>& result);
+
+bool
+collides(const PhysicsObject& one, const std::vector<PhysicsObject>& others);
+
 }; // namespace game2d

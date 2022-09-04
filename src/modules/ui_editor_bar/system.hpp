@@ -6,6 +6,6 @@
 namespace game2d {
 
 void
-update_ui_editor_system(entt::registry& r);
+update_ui_editor_bar_system(entt::registry& r);
 
 }; // namespace game2d

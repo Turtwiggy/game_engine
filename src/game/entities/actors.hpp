@@ -10,6 +10,8 @@ namespace game2d {
 
 enum class ENTITY_TYPE
 {
+  EMPTY,
+
   // general categories,
   // however, this does not mean you could not attach a
   // component to an enemy to turn it in to a projectile?
@@ -19,6 +21,9 @@ enum class ENTITY_TYPE
   ENEMY,
   PLAYER,
   SHOPKEEPER,
+
+  // solids
+  WALL,
 
   // melee
   SWORD,

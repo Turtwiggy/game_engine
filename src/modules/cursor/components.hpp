@@ -25,6 +25,9 @@ struct FreeCursorComponent
   entt::entity line_l = entt::null;
   entt::entity line_r = entt::null;
   entt::entity backdrop = entt::null;
+
+  int CURSOR_SIZE = 16;
+  glm::ivec2 mouse_click;
 };
 
 struct AnimatedCursorClickComponent

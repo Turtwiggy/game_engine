@@ -1,10 +1,8 @@
 #include "system.hpp"
 
+#include "engine/app/application.hpp"
 #include "modules/events/components.hpp"
 #include "modules/events/helpers/keyboard.hpp"
-#include "modules/events/helpers/mouse.hpp"
-
-#include "engine/app/application.hpp"
 
 #include <SDL2/SDL.h>
 #include <SDL2/SDL_events.h>
@@ -25,13 +23,6 @@ game2d::update_input_system(entt::registry& registry)
 {
   auto& input = registry.ctx().at<SINGLETON_InputComponent>();
   auto& app = registry.ctx().at<engine::SINGLETON_Application>();
-
-  input.mouse_position_in_worldspace = mouse_position_in_worldspace(registry);
-
-  if (get_mouse_lmb_press())
-    input.mouse_click = input.mouse_position_in_worldspace;
-  if (!get_mouse_lmb_held())
-    input.mouse_click = glm::ivec2(0);
 
   input.keys_pressed.clear();
   input.keys_released.clear();

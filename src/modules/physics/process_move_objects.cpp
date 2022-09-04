@@ -3,11 +3,11 @@
 
 // components
 #include "modules/physics/components.hpp"
+#include "modules/physics/helpers.hpp"
 #include "modules/renderer/components.hpp"
 
 // c++ lib headers
 #include <algorithm>
-#include <iostream>
 #include <vector>
 
 void
@@ -15,22 +15,23 @@ game2d::update_move_objects_system(entt::registry& registry, uint64_t millisecon
 {
   // actors and solids never overlap,
   // and solids dont overlap with solids
+  constexpr auto Sign = [](int x) { return x == 0 ? 0 : (x > 0 ? 1 : -1); };
 
-  const auto& solids = registry.view<const VelocityComponent,
-                                     const TransformComponent,
-                                     const PhysicsSizeComponent,
-                                     const PhysicsSolidComponent>();
+  std::vector<PhysicsObject> solids;
+  get_solids_as_physics_objects(registry, solids);
 
   const auto& actors =
     registry
-      .view<const VelocityComponent, TransformComponent, const PhysicsSizeComponent, const PhysicsActorComponent>();
+      .view<TransformComponent, const VelocityComponent, const PhysicsSizeComponent, const PhysicsActorComponent>();
 
   // move actors, but stop at solids
-  actors.each([&solids, &milliseconds_dt](const auto& vel, auto& transform, const auto size, const auto& actor) {
-    transform.position_dxdy.x += vel.x * (milliseconds_dt / 1000.0f);
-    transform.position_dxdy.y += vel.y * (milliseconds_dt / 1000.0f);
-
-    constexpr auto Sign = [](int x) { return x == 0 ? 0 : (x > 0 ? 1 : -1); };
+  float seconds_dt = milliseconds_dt / 1000.0f;
+  actors.each([&solids, &seconds_dt](TransformComponent& transform,
+                                     const VelocityComponent& vel,
+                                     const PhysicsSizeComponent& size,
+                                     const PhysicsActorComponent& actor) {
+    transform.position_dxdy.x += vel.x * seconds_dt;
+    transform.position_dxdy.y += vel.y * seconds_dt;
 
     // x-axis
     int move_x = static_cast<int>(transform.position_dxdy.x);
@@ -38,16 +39,22 @@ game2d::update_move_objects_system(entt::registry& registry, uint64_t millisecon
       transform.position_dxdy.x -= move_x;
       int sign = Sign(move_x);
       while (move_x != 0) {
-        //     aabb.x_tl = static_cast<int>(pos.x - (size.w / 2.0f));
-        //     aabb.y_tl = static_cast<int>(pos.y - (size.h / 2.0f));
-        // if(!collides(solids, pos.x + new vector2(sign, 0)))
-        {
+
+        // updated position
+        PhysicsObject po;
+        po.w = transform.scale.x;
+        po.h = transform.scale.y;
+        po.x_tl = (transform.position.x - (transform.scale.x / 2.0f)) + sign;
+        po.y_tl = (transform.position.y - (transform.scale.y / 2.0f));
+        po.collidable = true;
+
+        if (!collides(po, solids)) {
           transform.position.x += sign;
           move_x -= sign;
-        }
-        // else // hit a solid
-        {
+        } else {
+          // std::cout << "hit a solid";
           // callback(registry)
+          break;
         }
       }
     }
@@ -58,14 +65,22 @@ game2d::update_move_objects_system(entt::registry& registry, uint64_t millisecon
       transform.position_dxdy.y -= move_y;
       int sign = Sign(move_y);
       while (move_y != 0) {
-        // while no solids collision...
-        {
+
+        // updated position
+        PhysicsObject po;
+        po.w = transform.scale.x;
+        po.h = transform.scale.y;
+        po.x_tl = (transform.position.x - (transform.scale.x / 2.0f));
+        po.y_tl = (transform.position.y - (transform.scale.y / 2.0f)) + sign;
+        po.collidable = true;
+
+        if (!collides(po, solids)) {
           transform.position.y += sign;
           move_y -= sign;
-        }
-        // else // hit a solid
-        {
+        } else {
+          // std::cout << "hit a solid";
           // callback(registry)
+          break;
         }
       }
     }

@@ -3,12 +3,56 @@
 
 // engine headers
 #include "engine/maths/maths.hpp"
+#include "modules/renderer/components.hpp"
 
 // c++ lib headers
 #include <algorithm>
 #include <iostream>
 
 namespace game2d {
+
+void
+get_solids_as_physics_objects(entt::registry& registry, std::vector<PhysicsObject>& result)
+{
+  {
+    const auto& entt_solids =
+      registry.view<const TransformComponent, const PhysicsSizeComponent, const PhysicsSolidComponent>();
+
+    PhysicsObject po;
+    entt_solids.each([&result, &po](const auto entity,
+                                    const TransformComponent& transform,
+                                    const PhysicsSizeComponent& size,
+                                    const PhysicsSolidComponent& solid) {
+      po.ent_id = static_cast<uint32_t>(entity);
+      po.x_tl = static_cast<int>(transform.position.x - glm::abs(size.w) / 2.0f);
+      po.y_tl = static_cast<int>(transform.position.y - glm::abs(size.h) / 2.0f);
+      po.w = glm::abs(size.w);
+      po.h = glm::abs(size.h);
+      result.push_back(po);
+    });
+  }
+}
+
+void
+get_actors_as_physics_objects(entt::registry& registry, std::vector<PhysicsObject>& result)
+{
+  {
+    const auto& entt_actors =
+      registry.view<const TransformComponent, const PhysicsSizeComponent, const PhysicsActorComponent>();
+    PhysicsObject po;
+    entt_actors.each([&result, &po](const auto entity,
+                                    const TransformComponent& transform,
+                                    const PhysicsSizeComponent& size,
+                                    const PhysicsActorComponent& actor) {
+      po.ent_id = static_cast<uint32_t>(entity);
+      po.x_tl = static_cast<int>(transform.position.x - glm::abs(size.w) / 2.0f);
+      po.y_tl = static_cast<int>(transform.position.y - glm::abs(size.h) / 2.0f);
+      po.w = glm::abs(size.w);
+      po.h = glm::abs(size.h);
+      result.push_back(po);
+    });
+  }
+}
 
 glm::vec2
 convert_tl_to_center(const PhysicsObject& po)
@@ -134,31 +178,19 @@ generate_filtered_broadphase_collisions(const std::vector<PhysicsObject>& unsort
   }
 };
 
-// std::optional<CollisionInfo2D>
-// collides(const PhysicsObject& one, const std::vector<PhysicsObject>& others)
-// {
-//   for (const auto& two : others) {
-//     if (!two.collidable)
-//       continue;
-//     bool collides = collide(one, two);
-//     // note, doesn't return "others" ids, stops when any collision
-//     if (collides) {
-
-//       CollisionInfo2D info;
-//       info.eid = static_cast<entt::entity>(one.ent_id);
-//       // info.point = glm::vec2(0.0f);
-
-//       // calculate normal
-//       // calculates from the solid to the actor
-//       glm::vec2 one_center = convert_tl_to_center(one);
-//       glm::vec2 two_center = convert_tl_to_center(two);
-//       glm::vec2 normal = glm::normalize(one_center - two_center);
-
-//       info.normal = normal;
-//       return std::optional<CollisionInfo2D>{ info };
-//     }
-//   }
-//   return std::nullopt;
-// };
+bool
+collides(const PhysicsObject& one, const std::vector<PhysicsObject>& others)
+{
+  for (const auto& two : others) {
+    if (!two.collidable)
+      continue;
+    bool collides = collide(one, two);
+    // note, doesn't return "others" ids, stops when any collision
+    if (collides) {
+      return true;
+    }
+  }
+  return false;
+};
 
 }; // namespace game2d

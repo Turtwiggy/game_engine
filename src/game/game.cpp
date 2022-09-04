@@ -14,8 +14,8 @@
 #include "modules/renderer/system.hpp"
 #include "modules/sprites/components.hpp"
 #include "modules/sprites/system.hpp"
-#include "modules/ui_editor/components.hpp"
-#include "modules/ui_editor/system.hpp"
+#include "modules/ui_editor_bar/components.hpp"
+#include "modules/ui_editor_bar/system.hpp"
 #include "modules/ui_editor_scene/system.hpp"
 #include "modules/ui_editor_tilemap/components.hpp"
 #include "modules/ui_editor_tilemap/system.hpp"
@@ -73,7 +73,6 @@ init_game_state(entt::registry& r)
 
   create_hierarchy_root_node(r);
   create_entity(r, ENTITY_TYPE::FREE_CURSOR);
-  create_entity(r, ENTITY_TYPE::GRID_CURSOR);
 
   {
     auto shield = create_entity(r, ENTITY_TYPE::SHIELD);
@@ -233,7 +232,7 @@ game2d::update(entt::registry& r, float dt)
       update_ui_hierarchy_system(r);
       update_ui_profiler_system(r);
       update_ui_sprite_searcher_system(r);
-      update_ui_editor_system(r);
+      update_ui_editor_bar_system(r);
       update_ui_editor_tilemap_system(r);
       update_ui_editor_scene_system(r);
     }

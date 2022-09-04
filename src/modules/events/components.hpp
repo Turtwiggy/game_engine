@@ -37,9 +37,10 @@ struct InputEvent
 
 struct SINGLETON_FixedUpdateInputHistory
 {
-  // techniques to combat packet loss & high latency
-  // sliding server buffer to contain more history of inputs
-  // contract fixed time to e.g. 16 -> 15.2 to send inputs more frequently on client
+  // techniques to combat packet loss & high latency:
+  // - sliding server buffer to contain more history of inputs
+  // - contract fixed time to e.g. 16 -> 15.2 to send inputs more frequently on client
+
   // send size of history from last ack frame to current frame
   int fixed_tick_since_ack = 0;
   int fixed_tick = 0;
@@ -53,11 +54,6 @@ struct SINGLETON_InputComponent
 {
   std::vector<SDL_Event> sdl_events;
   std::vector<InputEvent> unprocessed_update_inputs;
-
-  // mouse
-  const int CURSOR_SIZE = 16;
-  glm::ivec2 mouse_position_in_worldspace = glm::ivec2(0);
-  glm::ivec2 mouse_click;
 
   // keyboard
   const Uint8* state;

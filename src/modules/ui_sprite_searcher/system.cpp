@@ -12,11 +12,6 @@
 void
 game2d::update_ui_sprite_searcher_system(entt::registry& r)
 {
-  // #ifdef _DEBUG
-  // bool show_imgui_demo_window = false;
-  // ImGui::ShowDemoWindow(&show_imgui_demo_window);
-  // #endif
-
   const auto& slots = r.ctx().at<SINGLETON_Textures>();
   auto& ss = r.ctx().at<SINGLETON_SpriteSearcher>();
 
