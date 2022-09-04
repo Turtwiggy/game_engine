@@ -21,7 +21,7 @@ struct TransformComponent
 {
   glm::ivec3 position{ 0, 0, 0 };
   glm::vec3 position_dxdy{ 0.0f, 0.0f, 0.0f };
-  glm::vec3 rotation = { 0, 0, 0 };
+  glm::vec3 rotation_radians = { 0, 0, 0 };
   glm::ivec3 scale{ 0, 0, 0 };
   glm::vec3 scale_dxdy{ 0.0f, 0.0f, 0.0f };
 };

@@ -111,7 +111,7 @@ check_if_viewport_resize(entt::registry& r, SINGLETON_RendererInfo& ri, glm::ive
 }
 
 glm::mat4
-get_local_model_matrix(const TransformComponent& transform)
+get_local_model_matrix(const TransformComponent& transform, const SpriteComponent& sprite)
 {
   // quat(glm::vec3(90, 45, 0))
   // gtx::quaternion::angleAxis(degrees(RotationAngle), RotationAxis);
@@ -122,11 +122,12 @@ get_local_model_matrix(const TransformComponent& transform)
 
   const glm::ivec3& pos_tl = transform.position - transform.scale / 2;
   const glm::ivec3& size = transform.scale;
-  const glm::vec3& rot = transform.rotation;
+  glm::vec3 rot = transform.rotation_radians;
+  rot.z += sprite.angle_radians;
 
-  const glm::mat4 transform_x = glm::rotate(glm::mat4(1.0f), glm::radians(rot.x), glm::vec3(1.0f, 0.0f, 0.0f));
-  const glm::mat4 transform_y = glm::rotate(glm::mat4(1.0f), glm::radians(rot.y), glm::vec3(0.0f, 1.0f, 0.0f));
-  const glm::mat4 transform_z = glm::rotate(glm::mat4(1.0f), glm::radians(rot.z), glm::vec3(0.0f, 0.0f, 1.0f));
+  const glm::mat4 transform_x = glm::rotate(glm::mat4(1.0f), rot.x, glm::vec3(1.0f, 0.0f, 0.0f));
+  const glm::mat4 transform_y = glm::rotate(glm::mat4(1.0f), rot.y, glm::vec3(0.0f, 1.0f, 0.0f));
+  const glm::mat4 transform_z = glm::rotate(glm::mat4(1.0f), rot.z, glm::vec3(0.0f, 0.0f, 1.0f));
   const glm::mat4 rot_matrix = transform_y * transform_x * transform_z;
 
   glm::mat4 model = glm::mat4(1.0f);
@@ -150,7 +151,7 @@ render_recursively(entt::registry& r,
 
   if (transform && sprite) {
 
-    glm::mat4 model = parent_model * get_local_model_matrix(*transform);
+    glm::mat4 model = parent_model * get_local_model_matrix(*transform, *sprite);
 
     quad_renderer::RenderDescriptor desc;
     desc.colour = (*sprite).colour;

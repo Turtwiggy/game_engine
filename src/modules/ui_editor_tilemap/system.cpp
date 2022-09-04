@@ -1,13 +1,16 @@
 #include "system.hpp"
 #include "components.hpp"
 
+#include "engine/colour.hpp"
 #include "engine/maths/grid.hpp"
 #include "game/entities/actors.hpp"
 #include "modules/events/components.hpp"
 #include "modules/events/helpers/mouse.hpp"
 #include "modules/renderer/components.hpp"
 #include "modules/sprites/components.hpp"
+#include "modules/ui_hierarchy/helpers.hpp"
 #include "modules/ui_sprite_searcher/components.hpp"
+#include "resources/colour.hpp"
 
 #include "magic_enum.hpp"
 #include <imgui.h>
@@ -28,6 +31,7 @@ game2d::update_ui_editor_tilemap_system(entt::registry& r)
 
   auto& ss = r.ctx().at<SINGLETON_SpriteSearcher>();
   auto& tilemap = r.ctx().at<SINGLETON_TilemapComponent>();
+  auto& colours = r.ctx().at<SINGLETON_ColoursComponent>();
   const int GRID_SIZE = 16; // hmm
   const glm::ivec2 mouse_position = mouse_position_in_worldspace(r);
   const glm::ivec2 grid_position = engine::grid::world_space_to_clamped_world_space(mouse_position, GRID_SIZE);
@@ -42,8 +46,25 @@ game2d::update_ui_editor_tilemap_system(entt::registry& r)
   ImGui::Begin("Prefabs innit");
 
   static bool overwrite_sprite = true;
-  ImGui::Checkbox("Overwrite sprite", &overwrite_sprite);
+  ImGui::Checkbox("sprite##overwrite", &overwrite_sprite);
+  ImGui::SameLine();
   ImGui::Text("With: %i %i", ss.x, ss.y);
+  ImGui::Separator();
+
+  static bool overwrite_angle = true;
+  static float angle = 0.0f;
+  ImGui::Checkbox("angle", &overwrite_angle);
+  ImGui::SameLine();
+  imgui_draw_float("angle", angle);
+  ImGui::Separator();
+
+  static bool overwrite_colour = true;
+  static engine::SRGBColour rgba = colours.white;
+  ImGui::Checkbox("colour##overwrite", &overwrite_colour);
+  ImGui::SameLine();
+  static float rgba_cols[4] = { rgba.r, rgba.g, rgba.b, rgba.a };
+  if (ImGui::ColorEdit4("##overwritecolouredit", rgba_cols))
+    rgba = { rgba_cols[0], rgba_cols[1], rgba_cols[2], rgba_cols[3] };
   ImGui::Separator();
 
   std::vector<std::string> items;
@@ -111,6 +132,16 @@ game2d::update_ui_editor_tilemap_system(entt::registry& r)
         auto& sprite = r.get<SpriteComponent>(e);
         sprite.x = ss.x;
         sprite.y = ss.y;
+      }
+
+      if (overwrite_angle) {
+        auto& sprite = r.get<SpriteComponent>(e);
+        sprite.angle_radians = glm::radians(angle);
+      }
+
+      if (overwrite_colour) {
+        auto& sprite = r.get<SpriteComponent>(e);
+        sprite.colour = engine::SRGBToLinear(rgba);
       }
     }
 

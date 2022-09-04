@@ -1,6 +1,7 @@
 #include "helpers.hpp"
 
 // my lib
+#include "modules/lifecycle/components.hpp"
 #include "modules/renderer/components.hpp"
 #include "modules/ui_hierarchy/components.hpp"
 
@@ -28,7 +29,7 @@ game2d::create_hierarchy_root_node(entt::registry& r)
 };
 
 void
-game2d::imgui_draw_string(entt::registry& r, const std::string& label, std::string& v)
+game2d::imgui_draw_string(const std::string& label, std::string& v)
 {
   ImGui::Text(label.c_str());
   ImGui::SameLine();
@@ -36,7 +37,7 @@ game2d::imgui_draw_string(entt::registry& r, const std::string& label, std::stri
 }
 
 void
-game2d::imgui_draw_float(entt::registry& r, const std::string& label, float& v)
+game2d::imgui_draw_float(const std::string& label, float& v)
 {
   float v_temp = v;
 
@@ -47,7 +48,7 @@ game2d::imgui_draw_float(entt::registry& r, const std::string& label, float& v)
 }
 
 void
-game2d::imgui_draw_ivec2(entt::registry& r, const std::string& label, int& x, int& y)
+game2d::imgui_draw_ivec2(const std::string& label, int& x, int& y)
 {
   glm::ivec2 v_temp = { x, y };
 
@@ -60,7 +61,21 @@ game2d::imgui_draw_ivec2(entt::registry& r, const std::string& label, int& x, in
 }
 
 void
-game2d::imgui_draw_ivec3(entt::registry& r, const std::string& label, int& x, int& y, int& z)
+game2d::imgui_draw_vec3(const std::string& label, float& x, float& y, float& z)
+{
+  glm::vec3 v_temp = { x, y, z };
+
+  ImGui::Text(label.c_str());
+  ImGui::SameLine();
+  if (ImGui::DragFloat3((std::string("##") + label).c_str(), glm::value_ptr(v_temp), 0.5f)) {
+    x = v_temp.x;
+    y = v_temp.y;
+    z = v_temp.z;
+  }
+}
+
+void
+game2d::imgui_draw_ivec3(const std::string& label, int& x, int& y, int& z)
 {
   glm::ivec3 v_temp = { x, y, z };
 
@@ -74,7 +89,7 @@ game2d::imgui_draw_ivec3(entt::registry& r, const std::string& label, int& x, in
 }
 
 void
-game2d::imgui_draw_vec2(entt::registry& r, const std::string& label, float& x, float& y)
+game2d::imgui_draw_vec2(const std::string& label, float& x, float& y)
 {
   glm::vec2 v_temp = { x, y };
 
@@ -97,7 +112,17 @@ recursively_delete_with_children(entt::registry& r, const entt::entity& e)
   for (int i = 0; i < h.children.size(); i++)
     recursively_delete_with_children(r, h.children[i]);
 
-  r.destroy(e);
+  // remove myself from parent
+  auto* parent_h = r.try_get<EntityHierarchyComponent>(h.parent);
+  if (parent_h != nullptr) {
+    for (int i = 0; i < parent_h->children.size(); i++) {
+      if (parent_h->children[i] == e)
+        parent_h->children.erase(parent_h->children.begin() + i);
+    }
+  }
+
+  auto& eb = r.ctx().at<SINGLETON_EntityBinComponent>();
+  eb.dead.emplace(e);
 };
 
 } // namespace game2d
@@ -140,9 +165,8 @@ game2d::imgui_draw_entity(entt::registry& r, const std::string& label, const ent
     ImGui::TreePop();
   }
 
-  if (delete_entity) {
+  if (delete_entity)
     recursively_delete_with_children(r, e);
-  }
 }
 
 void

@@ -5,7 +5,6 @@
 #include "modules/events/components.hpp"
 #include "modules/events/helpers/keyboard.hpp"
 #include "modules/events/helpers/mouse.hpp"
-#include "modules/lifecycle/components.hpp"
 #include "modules/physics/components.hpp"
 #include "modules/renderer/components.hpp"
 
@@ -21,7 +20,6 @@ game2d::update_player_inputs_system(entt::registry& r)
 {
   const auto& p = r.ctx().at<SINGLETON_PhysicsComponent>();
   auto& gameover = r.ctx().at<SINGLETON_GameOverComponent>();
-  auto& eb = r.ctx().at<SINGLETON_EntityBinComponent>();
   auto& input = r.ctx().at<SINGLETON_InputComponent>();
 
   //
