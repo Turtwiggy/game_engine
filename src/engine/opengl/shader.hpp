@@ -30,8 +30,8 @@ public:
   Shader() = default;
   Shader(const std::string& vert_path, const std::string& frag_path);
 
-  void bind();
-  void unbind();
+  void bind() const;
+  void unbind() const;
   void reload();
 
   void set_bool(const std::string& name, bool value) const;

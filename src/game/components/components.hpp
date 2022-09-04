@@ -187,7 +187,7 @@ struct WantsToAttack
 
 // bool
 // Gun::use(entt::registry& r, std::vector<entt::entity>& entities)
-//   std::cout << "shootin..!" << std::endl;
+//   std::cout << "shootin..!" << "\n";
 //   // Shoot()
 //   // entt::entity bullet = create_bullet(r);
 //   // const int BULLET_SPEED = 500;
@@ -207,7 +207,7 @@ struct WantsToAttack
 //   // constexpr float angle_min_max = 10.0f * engine::PI / 180.0f;
 //   // const float random_angle = engine::rand_det_s(rnd.rng, -angle_min_max, angle_min_max);
 //   // Create an attack ID
-//   // std::cout << "bullet attack, attack id: " << a.id << std::endl;
+//   // std::cout << "bullet attack, attack id: " << a.id << "\n";
 //   // Attack a = Attack(fire_from_this_entity.id, bullet_copy.id, ShopItem::PISTOL, s.damage);
 //   // gs.attacks.push_back(a);
 //   return true;
@@ -216,7 +216,7 @@ struct WantsToAttack
 // bool
 // Sword::use(entt::registry& r, std::vector<entt::entity>& entities)
 // {
-//   std::cout << "slashin..!" << std::endl;
+//   std::cout << "slashin..!" << "\n";
 // s.slash_attack_time_left = s.slash_attack_time;
 // s.attack_left_to_right = !s.attack_left_to_right; // keep swapping left to right to right to left etc
 // if (s.attack_left_to_right)

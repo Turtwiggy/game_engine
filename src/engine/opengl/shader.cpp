@@ -24,14 +24,16 @@ check_compile_errors(unsigned int shader, std::string type)
     if (!success) {
       glGetShaderInfoLog(shader, 1024, NULL, infoLog);
       std::cout << "ERROR::SHADER_COMPILATION_ERROR of type: " << type << "\n"
-                << infoLog << "\n -- --------------------------------------------------- -- " << std::endl;
+                << infoLog << "\n -- --------------------------------------------------- -- "
+                << "\n";
     }
   } else {
     glGetProgramiv(shader, GL_LINK_STATUS, &success);
     if (!success) {
       glGetProgramInfoLog(shader, 1024, NULL, infoLog);
       std::cout << "ERROR::PROGRAM_LINKING_ERROR of type: " << type << "\n"
-                << infoLog << "\n -- --------------------------------------------------- -- " << std::endl;
+                << infoLog << "\n -- --------------------------------------------------- -- "
+                << "\n";
     }
   }
 }
@@ -98,7 +100,7 @@ load_shader_from_disk(const std::string& path, unsigned int gl_shader_type, std:
       // convert stream into string
       code = csShaderStream.str();
     } catch (const std::ifstream::failure& e) {
-      std::cout << "ERROR::SHADER::FILE_NOT_SUCCESFULLY_READ " << path << std::endl;
+      std::cout << "ERROR::SHADER::FILE_NOT_SUCCESFULLY_READ " << path << "\n";
       exit(1);
     }
   }
@@ -124,13 +126,13 @@ Shader::Shader(const std::string& vert_path, const std::string& frag_path)
 }
 
 void
-Shader::bind()
+Shader::bind() const
 {
   glUseProgram(ID);
 }
 
 void
-Shader::unbind()
+Shader::unbind() const
 {
   glUseProgram(0);
 }

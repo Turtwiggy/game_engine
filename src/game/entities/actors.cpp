@@ -45,7 +45,7 @@ create_renderable(entt::registry& r,
   switch (type) {
     case ENTITY_TYPE::ENEMY: {
       s_comp.colour = engine::SRGBToLinear(colours.asteroid);
-      s_comp.tex_unit = get_tex_unit(r, TextureType::KENNY);
+      s_comp.tex_unit = get_tex_unit(r, AvailableTexture::KENNY);
       // search kenny-nl spritesheet
       const auto anim = find_animation(sprites.animations, sprite);
       s_comp.x = anim.animation_frames[0].x;
@@ -55,7 +55,7 @@ create_renderable(entt::registry& r,
     case ENTITY_TYPE::PLAYER: {
       sprite = "PERSON_25_0";
       s_comp.colour = engine::SRGBToLinear(colours.player_unit);
-      s_comp.tex_unit = get_tex_unit(r, TextureType::KENNY);
+      s_comp.tex_unit = get_tex_unit(r, AvailableTexture::KENNY);
       // search kenny-nl spritesheet
       const auto anim = find_animation(sprites.animations, sprite);
       s_comp.x = anim.animation_frames[0].x;
@@ -65,7 +65,7 @@ create_renderable(entt::registry& r,
     case ENTITY_TYPE::BOLT: {
       sprite = "PERSON_25_0";
       s_comp.colour = engine::SRGBToLinear(colours.bullet);
-      s_comp.tex_unit = get_tex_unit(r, TextureType::KENNY);
+      s_comp.tex_unit = get_tex_unit(r, AvailableTexture::KENNY);
       // search kenny-nl spritesheet
       const auto anim = find_animation(sprites.animations, sprite);
       s_comp.x = anim.animation_frames[0].x;
@@ -75,10 +75,20 @@ create_renderable(entt::registry& r,
       t_comp.scale.y = SPRITE_SIZE / 2;
       break;
     }
+    case ENTITY_TYPE::SHIELD: {
+      sprite = "SHIELD_37_2";
+      s_comp.colour = engine::SRGBToLinear(colours.shield);
+      s_comp.tex_unit = get_tex_unit(r, AvailableTexture::KENNY);
+      // search kenny-nl spritesheet
+      const auto anim = find_animation(sprites.animations, sprite);
+      s_comp.x = anim.animation_frames[0].x;
+      s_comp.y = anim.animation_frames[0].y;
+      break;
+    }
     case ENTITY_TYPE::POTION: {
       sprite = "DUCK";
       s_comp.colour = engine::SRGBToLinear(colours.bullet);
-      s_comp.tex_unit = get_tex_unit(r, TextureType::KENNY);
+      s_comp.tex_unit = get_tex_unit(r, AvailableTexture::KENNY);
       // search kenny-nl spritesheet
       const auto anim = find_animation(sprites.animations, sprite);
       s_comp.x = anim.animation_frames[0].x;
@@ -88,7 +98,7 @@ create_renderable(entt::registry& r,
     case ENTITY_TYPE::SCROLL_MAGIC_MISSILE: {
       sprite = "ROCKET_1";
       s_comp.colour = engine::SRGBToLinear(colours.bullet);
-      s_comp.tex_unit = get_tex_unit(r, TextureType::KENNY);
+      s_comp.tex_unit = get_tex_unit(r, AvailableTexture::KENNY);
       // s_comp.angle_radians = anim.animation_angle_degrees * engine::PI / 180.0f;
       // search kenny-nl spritesheet
       const auto anim = find_animation(sprites.animations, sprite);
@@ -99,7 +109,7 @@ create_renderable(entt::registry& r,
     case ENTITY_TYPE::SHOPKEEPER: {
       sprite = "PERSON_25_0";
       s_comp.colour = engine::SRGBToLinear(colours.bullet);
-      s_comp.tex_unit = get_tex_unit(r, TextureType::KENNY);
+      s_comp.tex_unit = get_tex_unit(r, AvailableTexture::KENNY);
       // search kenny-nl spritesheet
       const auto anim = find_animation(sprites.animations, sprite);
       s_comp.x = anim.animation_frames[0].x;
@@ -109,17 +119,24 @@ create_renderable(entt::registry& r,
     case ENTITY_TYPE::GRID_CURSOR:
     case ENTITY_TYPE::FREE_CURSOR: {
       s_comp.colour = engine::SRGBToLinear(colours.red);
-      s_comp.tex_unit = get_tex_unit(r, TextureType::KENNY);
+      s_comp.tex_unit = get_tex_unit(r, AvailableTexture::KENNY);
       break;
     }
     default: {
       std::cout << "(not implemented), tried to create renderable: " << std::string(magic_enum::enum_name(type))
-                << std::endl;
+                << "\n";
     }
   }
 
   if (colour)
     s_comp.colour = engine::SRGBToLinear(colour.value());
+
+  // HACK
+  if (s_comp.tex_unit == get_tex_unit(r, AvailableTexture::KENNY)) {
+    s_comp.sx = 48;
+    s_comp.sy = 22;
+  }
+
   r.emplace_or_replace<SpriteComponent>(e, s_comp);
   r.emplace_or_replace<TransformComponent>(e, t_comp);
 };
@@ -206,6 +223,7 @@ create_entity(entt::registry& r, const ENTITY_TYPE& type)
       break;
     }
     case ENTITY_TYPE::SHIELD: {
+      create_renderable(r, e, type);
       r.emplace<AttackComponent>(e, AttackComponent(5, 8));
       r.emplace<DefenseComponent>(e, DefenseComponent(10));
       break;
@@ -247,32 +265,32 @@ create_entity(entt::registry& r, const ENTITY_TYPE& type)
       auto line_u = r.create();
       r.emplace<TagComponent>(line_u, "line-u");
       create_renderable(r, line_u, ENTITY_TYPE::FREE_CURSOR);
-      add_child(r, e, line_u);
-      set_parent(r, line_u, e);
+      add_child(r, h.root_node, line_u);
+      set_parent(r, line_u, h.root_node);
 
       auto line_d = r.create();
       r.emplace<TagComponent>(line_d, "line-d");
       create_renderable(r, line_d, ENTITY_TYPE::FREE_CURSOR);
-      add_child(r, e, line_d);
-      set_parent(r, line_d, e);
+      add_child(r, h.root_node, line_d);
+      set_parent(r, line_d, h.root_node);
 
       auto line_l = r.create();
       r.emplace<TagComponent>(line_l, "line-l");
       create_renderable(r, line_l, ENTITY_TYPE::FREE_CURSOR);
-      add_child(r, e, line_l);
-      set_parent(r, line_l, e);
+      add_child(r, h.root_node, line_l);
+      set_parent(r, line_l, h.root_node);
 
       auto line_r = r.create();
       r.emplace<TagComponent>(line_r, "line-r");
       create_renderable(r, line_r, ENTITY_TYPE::FREE_CURSOR);
-      add_child(r, e, line_r);
-      set_parent(r, line_r, e);
+      add_child(r, h.root_node, line_r);
+      set_parent(r, line_r, h.root_node);
 
       auto backdrop = r.create();
       r.emplace<TagComponent>(backdrop, "backdrop");
       create_renderable(r, backdrop, ENTITY_TYPE::FREE_CURSOR, colours.backdrop_red);
-      add_child(r, e, backdrop);
-      set_parent(r, backdrop, e);
+      add_child(r, h.root_node, backdrop);
+      set_parent(r, backdrop, h.root_node);
 
       // object tag
       FreeCursorComponent c;
@@ -293,32 +311,32 @@ create_entity(entt::registry& r, const ENTITY_TYPE& type)
       auto line_u = r.create();
       r.emplace<TagComponent>(line_u, "line-u");
       create_renderable(r, line_u, ENTITY_TYPE::GRID_CURSOR, colours.cyan);
-      add_child(r, e, line_u);
-      set_parent(r, line_u, e);
+      add_child(r, h.root_node, line_u);
+      set_parent(r, line_u, h.root_node);
 
       auto line_d = r.create();
       r.emplace<TagComponent>(line_d, "line-d");
       create_renderable(r, line_d, ENTITY_TYPE::GRID_CURSOR, colours.cyan);
-      add_child(r, e, line_d);
-      set_parent(r, line_d, e);
+      add_child(r, h.root_node, line_d);
+      set_parent(r, line_d, h.root_node);
 
       auto line_l = r.create();
       r.emplace<TagComponent>(line_l, "line-l");
       create_renderable(r, line_l, ENTITY_TYPE::GRID_CURSOR, colours.cyan);
-      add_child(r, e, line_l);
-      set_parent(r, line_l, e);
+      add_child(r, h.root_node, line_l);
+      set_parent(r, line_l, h.root_node);
 
       auto line_r = r.create();
       r.emplace<TagComponent>(line_r, "line-r");
       create_renderable(r, line_r, ENTITY_TYPE::GRID_CURSOR, colours.cyan);
-      add_child(r, e, line_r);
-      set_parent(r, line_r, e);
+      add_child(r, h.root_node, line_r);
+      set_parent(r, line_r, h.root_node);
 
       auto backdrop = r.create();
       r.emplace<TagComponent>(backdrop, "backdrop");
       create_renderable(r, backdrop, ENTITY_TYPE::GRID_CURSOR, colours.dblue);
-      add_child(r, e, backdrop);
-      set_parent(r, backdrop, e);
+      add_child(r, h.root_node, backdrop);
+      set_parent(r, backdrop, h.root_node);
 
       GridCursorComponent c;
       c.line_u = line_u;

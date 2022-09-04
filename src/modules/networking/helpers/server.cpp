@@ -40,17 +40,18 @@ start_server_or_quit(entt::registry& r, int port)
 
   server.socket = server.interface->CreateListenSocketIP(addr, 1, &opt);
   if (server.socket == k_HSteamListenSocket_Invalid) {
-    std::cerr << "Failed to listen on port: " << port << std::endl;
+    std::cerr << "Failed to listen on port: " << port << "\n";
     exit(0);
   }
 
   server.group = server.interface->CreatePollGroup();
   if (server.socket == k_HSteamNetPollGroup_Invalid) {
-    std::cerr << "Failed to listen on port: " << std::endl;
+    std::cerr << "Failed to listen on port: "
+              << "\n";
     exit(0);
   }
 
-  std::cout << "Server listening on port: " << port << std::endl;
+  std::cout << "Server listening on port: " << port << "\n";
   if (!r.ctx().contains<SINGLETON_ServerComponent>())
     r.ctx().emplace<SINGLETON_ServerComponent>(server);
 }
@@ -63,7 +64,8 @@ game2d::server_receive_messages_on_poll_group(SINGLETON_ServerComponent& server,
   int num_msgs = server.interface->ReceiveMessagesOnPollGroup(server.group, all_msgs, max_messages);
 
   if (num_msgs < 0)
-    std::cerr << "Error checking for messages" << std::endl;
+    std::cerr << "Error checking for messages"
+              << "\n";
 
   for (int i = 0; i < num_msgs; i++) {
     ISteamNetworkingMessage* msg = all_msgs[i];
@@ -122,7 +124,7 @@ game2d::server_poll_connections(SINGLETON_ServerComponent& server)
             pszDebugLogAction = "closed by peer";
 
           std::cout << "Connection: " << info.m_info.m_szConnectionDescription << " " << pszDebugLogAction << " "
-                    << std::to_string(info.m_info.m_eEndReason) << " " << info.m_info.m_szEndDebug << std::endl;
+                    << std::to_string(info.m_info.m_eEndReason) << " " << info.m_info.m_szEndDebug << "\n";
 
           // Send a message so everybody else knows what happened
           // send_string_to_all_clients(temp);
@@ -146,13 +148,14 @@ game2d::server_poll_connections(SINGLETON_ServerComponent& server)
         auto conn = std::find(server.clients.begin(), server.clients.end(), info.m_hConn);
         assert(conn == server.clients.end());
 
-        std::cout << "Connection request from " << info.m_info.m_szConnectionDescription << std::endl;
+        std::cout << "Connection request from " << info.m_info.m_szConnectionDescription << "\n";
 
         // Arbitrarily limit slots on server
         // until I'm better at understanding networking stuff
         bool slots_available = server.clients.size() <= server.max_clients;
         if (!slots_available) {
-          std::cout << "Can't accept connection. (Server Full)" << std::endl;
+          std::cout << "Can't accept connection. (Server Full)"
+                    << "\n";
           int reason = 1;
           server.interface->CloseConnection(info.m_hConn, reason, nullptr, false);
           break;
@@ -165,14 +168,16 @@ game2d::server_poll_connections(SINGLETON_ServerComponent& server)
           // disconnected, the connection may already be half closed.  Just
           // destroy whatever we have on our side.
           server.interface->CloseConnection(info.m_hConn, 0, nullptr, false);
-          std::cout << "Can't accept connection.  (Already closed?)" << std::endl;
+          std::cout << "Can't accept connection.  (Already closed?)"
+                    << "\n";
           break;
         }
 
         // Assign the poll group
         if (!server.interface->SetConnectionPollGroup(info.m_hConn, server.group)) {
           server.interface->CloseConnection(info.m_hConn, 0, nullptr, false);
-          std::cout << "Failed to set poll group?" << std::endl;
+          std::cout << "Failed to set poll group?"
+                    << "\n";
           break;
         }
 
@@ -200,7 +205,7 @@ game2d::tick_server(entt::registry& r, uint64_t milliseconds_dt)
   server_receive_messages_on_poll_group(server, client_messages);
 
   // ProcessClientMessage()
-  std::cout << "(server) waiting for client to send ft: " << server.fixed_frame << std::endl;
+  std::cout << "(server) waiting for client to send ft: " << server.fixed_frame << "\n";
   if (client_messages.size() == 0)
     return;
   // for (int i = 0; i < client_messages.size(); i++) {
@@ -211,12 +216,12 @@ game2d::tick_server(entt::registry& r, uint64_t milliseconds_dt)
   //   player_input_history = nlohmann::json::from_cbor(message.data);
 
   //   int difference = player_input_history.fixed_tick - server.fixed_frame;
-  //   std::cout << "(server) client is " << difference << " ahead" << std::endl;
-  //   std::cout << "(server) has " << player_input_history.history.size() << " to search" << std::endl;
+  //   std::cout << "(server) client is " << difference << " ahead" << "\n";
+  //   std::cout << "(server) has " << player_input_history.history.size() << " to search" << "\n";
 
   // #ifdef _DEBUG
   //   if (difference > 200) {
-  //     std::cerr << "(server) client is 200 ticks ahead??" << std::endl;
+  //     std::cerr << "(server) client is 200 ticks ahead??" << "\n";
   //   }
   // #endif
 

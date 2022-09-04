@@ -31,11 +31,12 @@ GameWindow::GameWindow(const std::string& title, int width, int height, DisplayM
   SDL_VERSION(&compiledVersion);
   SDL_GetVersion(&linkedVersion);
 
-  std::cout << "Initializing SDL..." << std::endl;
+  std::cout << "Initializing SDL..."
+            << "\n";
   std::cout << "SDL Version/Compiled " << unsigned(compiledVersion.major) << "." << unsigned(compiledVersion.minor)
-            << "." << unsigned(compiledVersion.patch) << std::endl;
+            << "." << unsigned(compiledVersion.patch) << "\n";
   std::cout << "SDL Version/Linked " << unsigned(linkedVersion.major) << "." << unsigned(linkedVersion.minor) << "."
-            << unsigned(linkedVersion.patch) << std::endl;
+            << unsigned(linkedVersion.patch) << "\n";
 
   // Initialize SDL -----------------------
 
@@ -46,16 +47,16 @@ GameWindow::GameWindow(const std::string& title, int width, int height, DisplayM
       std::cout << "could not initialize SDL: " << SDL_GetError();
 
     if (SDL_InitSubSystem(SDL_INIT_AUDIO) != 0)
-      std::cout << "Could not initialize SDL Audio Subsystem:" << SDL_GetError() << std::endl;
+      std::cout << "Could not initialize SDL Audio Subsystem:" << SDL_GetError() << "\n";
 
     if (SDL_InitSubSystem(SDL_INIT_VIDEO) != 0)
-      std::cout << "Could not initialize SDL Video Subsystem:" << SDL_GetError() << std::endl;
+      std::cout << "Could not initialize SDL Video Subsystem:" << SDL_GetError() << "\n";
 
     if (SDL_InitSubSystem(SDL_INIT_TIMER) != 0)
-      std::cout << "Could not initialize SDL Timer Subsystem:" << SDL_GetError() << std::endl;
+      std::cout << "Could not initialize SDL Timer Subsystem:" << SDL_GetError() << "\n";
 
     if (SDL_InitSubSystem(SDL_INIT_JOYSTICK) != 0)
-      std::cout << "Could not initialize SDL JoyStick Subsystem:" << SDL_GetError() << std::endl;
+      std::cout << "Could not initialize SDL JoyStick Subsystem:" << SDL_GetError() << "\n";
   }
 
   int flags = SDL_WINDOW_OPENGL | SDL_WINDOW_INPUT_FOCUS | SDL_WINDOW_ALLOW_HIGHDPI;
@@ -75,7 +76,7 @@ GameWindow::GameWindow(const std::string& title, int width, int height, DisplayM
   SDL_Window* window = SDL_CreateWindow(title.c_str(), x, y, width, height, flags);
 
   if (window == nullptr) {
-    std::cerr << "Failed to create SDL2 window: " << SDL_GetError() << std::endl;
+    std::cerr << "Failed to create SDL2 window: " << SDL_GetError() << "\n";
   }
 
   SDL_SetWindowMinimumSize(window, 500, 300);
@@ -140,7 +141,7 @@ GameWindow::get_native_handles(void*& native_window) const
   SDL_SysWMinfo wmi;
   SDL_VERSION(&wmi.version);
   if (!SDL_GetWindowWMInfo(this->get_handle(), &wmi)) {
-    std::cerr << "Failed getting native window handles: : " << std::string(SDL_GetError()) << std::endl;
+    std::cerr << "Failed getting native window handles: : " << std::string(SDL_GetError()) << "\n";
     exit(0);
   }
 
@@ -163,7 +164,7 @@ GameWindow::get_native_handles(void*& native_window) const
 #endif // defined(SDL_VIDEO_DRIVER_COCOA)
 
   {
-    std::cerr << "Unsupported platform: " << std::to_string(wmi.subsystem) << std::endl;
+    std::cerr << "Unsupported platform: " << std::to_string(wmi.subsystem) << "\n";
     exit(0);
   }
 };

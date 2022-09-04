@@ -22,7 +22,7 @@ struct Frame
 void
 load_sprites(std::vector<SpriteAnimation>& sprites, const std::string path)
 {
-  std::cout << "loading sprite config: " << path << std::endl;
+  std::cout << "loading sprite config: " << path << "\n";
   std::ifstream f(path);
   json data = json::parse(f);
 
@@ -65,7 +65,7 @@ find_animation(const std::vector<SpriteAnimation>& sprites, const std::string na
   if (s != std::end(sprites))
     return *s;
   else {
-    std::cerr << "sprite not found: " << name << std::endl;
+    std::cerr << "sprite not found: " << name << "\n";
     exit(1); // explode!
   }
 }

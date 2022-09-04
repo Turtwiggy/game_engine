@@ -1,25 +1,42 @@
 #pragma once
 
 #include <SDL2/SDL_mixer.h>
+#include <entt/entt.hpp>
 
 #include <string>
 #include <vector>
 
 namespace game2d {
 
+enum class AvailableSfx
+{
+  WOOSH,
+};
+
+enum class AvailableMusic
+{
+  MENU,
+};
+
 struct Music
 {
-  std::string name;
+  AvailableMusic type;
   std::string path;
   Mix_Music* data = NULL;
 };
 
 struct Sfx
 {
-  std::string name;
+  AvailableSfx type;
   std::string path;
   Mix_Chunk* data = NULL;
 };
+
+Music&
+get_music(entt::registry& r, AvailableMusic type);
+
+Sfx&
+get_sfx(entt::registry& r, AvailableSfx type);
 
 struct SINGLETON_AudioComponent
 {
@@ -27,11 +44,11 @@ struct SINGLETON_AudioComponent
   int device = 0;
 
   std::vector<Sfx> sfx{
-    { "woosh", "assets/audio/usfx_1_4/WHOOSHES/Air/WHOOSH_Air_Blade_RR1_mono.wav" },
+    { AvailableSfx::WOOSH, "assets/audio/usfx_1_4/WHOOSHES/Air/WHOOSH_Air_Blade_RR1_mono.wav" },
   };
 
   std::vector<Music> music{
-    { "menu", "assets/audio/chase.mp3" },
+    { AvailableMusic::MENU, "assets/audio/chase.mp3" },
   };
 };
 

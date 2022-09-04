@@ -4,6 +4,7 @@ out vec4 out_colour;
 in vec2 v_tex;
 in vec4 v_colour; 
 in vec2 v_sprite_pos;
+in vec2 v_sprites;
 in float v_tex_unit;
 
 uniform sampler2D textures[1];

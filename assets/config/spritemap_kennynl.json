@@ -44,6 +44,8 @@
       {"name": "PERSON_30_1","frames": [{"x": 30,"y": 1}]},
       {"name": "PERSON_31_1","frames": [{"x": 31,"y": 1}]},
 
+      {"name": "SHIELD_37_2","frames": [{"x": 37,"y": 2}]},
+
       {"name": "WALL_BIG","frames": [{"x": 2,"y": 3}]},
 
       {"name": "WEAPON_ARROW_1","frames": [{"x": 40,"y": 5}],"angle": -45.0},

@@ -46,6 +46,10 @@ struct SpriteComponent
   int y = 0;
   int tex_unit = 0; // do not serialize
   float angle_radians = 0.0f;
+
+  // spritesheet info
+  int sx = 0;
+  int sy = 0;
 };
 
 // Contains sprite frame data from assets/config/spritemap_X.json

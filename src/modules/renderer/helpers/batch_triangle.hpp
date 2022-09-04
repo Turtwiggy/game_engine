@@ -57,7 +57,8 @@ public:
   template<class T>
   inline static void register_interface()
   {
-    std::cout << "(BatchTriangle) Registering interface..." << std::endl;
+    std::cout << "(BatchTriangle) Registering interface..."
+              << "\n";
     std::unique_ptr p = std::make_unique<T>();
     interfaces.push_back(std::move(p));
   }

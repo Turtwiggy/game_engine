@@ -16,7 +16,7 @@ namespace quad_renderer {
 static RenderData<Vertex> data;
 
 void
-QuadRenderer::draw_sprite(const RenderDescriptor& r, Shader& s)
+QuadRenderer::draw_sprite(const RenderDescriptor& r, const glm::mat4& model, const Shader& s)
 {
   if (data.index_count >= max_quad_index_count) {
     end_batch();
@@ -24,24 +24,15 @@ QuadRenderer::draw_sprite(const RenderDescriptor& r, Shader& s)
     begin_batch();
   }
 
-  const float& angle = r.angle_radians;
-  const glm::vec2& pos = r.pos_tl;
-  const glm::vec2& size = r.size;
-  const glm::vec2& sprite_offset = static_cast<glm ::vec2>(r.sprite_offset);
+  const glm::vec2 sprite_offset = { r.sprite_offset_and_spritesheet.x, r.sprite_offset_and_spritesheet.y };
+  const glm::vec2 spritesheet = { r.sprite_offset_and_spritesheet.z, r.sprite_offset_and_spritesheet.w };
   const float tex_unit = static_cast<float>(r.tex_unit);
   const glm::vec4 colour = { r.colour.r, r.colour.g, r.colour.b, r.colour.a };
-
-  glm::mat4 model = glm::mat4(1.0f);
-  model = glm::translate(model, glm::vec3(pos.x, pos.y, 0.0f));
-  model = glm::translate(model, glm::vec3(0.5f * size.x, 0.5f * size.y, 0.0f));
-  model = glm::rotate(model, angle, glm::vec3(0.0f, 0.0f, 1.0f));
-  model = glm::translate(model, glm::vec3(-0.5f * size.x, -0.5f * size.y, 0.0f));
-  model = glm::scale(model, glm::vec3(size, 1.0f));
 
   // tl
   data.buffer_ptr->pos_and_uv = { 0.0f, 0.0f, 0.0f, 0.0f };
   data.buffer_ptr->colour = colour;
-  data.buffer_ptr->sprite_offset = sprite_offset;
+  data.buffer_ptr->sprite_offset_and_spritesheet = { sprite_offset, spritesheet };
   data.buffer_ptr->tex_unit = tex_unit;
   data.buffer_ptr->model = model;
   data.buffer_ptr++;
@@ -49,7 +40,7 @@ QuadRenderer::draw_sprite(const RenderDescriptor& r, Shader& s)
   // tr
   data.buffer_ptr->pos_and_uv = { 1.0f, 0.0f, 1.0f, 0.0f };
   data.buffer_ptr->colour = colour;
-  data.buffer_ptr->sprite_offset = sprite_offset;
+  data.buffer_ptr->sprite_offset_and_spritesheet = { sprite_offset, spritesheet };
   data.buffer_ptr->tex_unit = tex_unit;
   data.buffer_ptr->model = model;
   data.buffer_ptr++;
@@ -57,7 +48,7 @@ QuadRenderer::draw_sprite(const RenderDescriptor& r, Shader& s)
   // br
   data.buffer_ptr->pos_and_uv = { 1.0f, 1.0f, 1.0f, 1.0f };
   data.buffer_ptr->colour = colour;
-  data.buffer_ptr->sprite_offset = sprite_offset;
+  data.buffer_ptr->sprite_offset_and_spritesheet = { sprite_offset, spritesheet };
   data.buffer_ptr->tex_unit = tex_unit;
   data.buffer_ptr->model = model;
   data.buffer_ptr++;
@@ -65,7 +56,7 @@ QuadRenderer::draw_sprite(const RenderDescriptor& r, Shader& s)
   // bl
   data.buffer_ptr->pos_and_uv = { 0.0f, 1.0f, 0.0f, 1.0f };
   data.buffer_ptr->colour = colour;
-  data.buffer_ptr->sprite_offset = sprite_offset;
+  data.buffer_ptr->sprite_offset_and_spritesheet = { sprite_offset, spritesheet };
   data.buffer_ptr->tex_unit = tex_unit;
   data.buffer_ptr->model = model;
   data.buffer_ptr++;
@@ -94,7 +85,8 @@ QuadRenderer::init()
   glVertexAttribPointer(1, 4, GL_FLOAT, GL_FALSE, sizeof(Vertex), (const void*)offsetof(Vertex, colour));
 
   glEnableVertexAttribArray(2);
-  glVertexAttribPointer(2, 4, GL_FLOAT, GL_FALSE, sizeof(Vertex), (const void*)offsetof(Vertex, sprite_offset));
+  glVertexAttribPointer(
+    2, 4, GL_FLOAT, GL_FALSE, sizeof(Vertex), (const void*)offsetof(Vertex, sprite_offset_and_spritesheet));
 
   glEnableVertexAttribArray(3);
   glVertexAttribPointer(3, 4, GL_FLOAT, GL_FALSE, sizeof(Vertex), (const void*)offsetof(Vertex, tex_unit));
@@ -158,7 +150,7 @@ QuadRenderer::end_batch()
 }
 
 void
-QuadRenderer::flush(Shader& shader)
+QuadRenderer::flush(const Shader& shader)
 {
   shader.bind();
 

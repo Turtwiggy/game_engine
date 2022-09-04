@@ -42,8 +42,8 @@ load_texture_srgb(const int tex_unit, const std::string& path)
 
   // Check Stb texture loaded correctly
   if (!data) {
-    std::cout << "(error) failed to load texture:: " << path << std::endl;
-    std::cerr << stbi_failure_reason() << std::endl;
+    std::cout << "(error) failed to load texture:: " << path << "\n";
+    std::cerr << stbi_failure_reason() << "\n";
     stbi_image_free(data);
     exit(1); // if a texture fails to load, explode!
   }
@@ -176,7 +176,8 @@ void
 update_bound_texture_size(const glm::ivec2 size)
 {
   if (size.x <= 0 || size.y <= 0) {
-    std::cerr << "(update_bound_texture_size) ERROR: Invalid resize for texture" << std::endl;
+    std::cerr << "(update_bound_texture_size) ERROR: Invalid resize for texture"
+              << "\n";
     return;
   }
   glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, size.x, size.y, 0, GL_RGB, GL_FLOAT, NULL);
@@ -206,7 +207,8 @@ new_texture_to_fbo(unsigned int& out_fbo_id, int& out_tex_id, const int tex_unit
   glDrawBuffers(1, attachments);
 
   if (glCheckFramebufferStatus(GL_FRAMEBUFFER) != GL_FRAMEBUFFER_COMPLETE) {
-    std::cerr << "(FBO: main_scene) ERROR: Framebuffer not complete!" << std::endl;
+    std::cerr << "(FBO: main_scene) ERROR: Framebuffer not complete!"
+              << "\n";
     exit(1);
   }
 

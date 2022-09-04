@@ -24,6 +24,9 @@ void
 imgui_draw_ivec2(entt::registry& r, const std::string& label, int& x, int& y);
 
 void
+imgui_draw_ivec3(entt::registry& r, const std::string& label, int& x, int& y, int &z);
+
+void
 imgui_draw_vec2(entt::registry& r, const std::string& label, float& x, float& y);
 
 void

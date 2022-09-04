@@ -75,6 +75,7 @@ target_include_directories(game_2d PRIVATE
   ${CMAKE_SOURCE_DIR}/src
   ${CMAKE_SOURCE_DIR}/thirdparty/entt/single_include
   ${CMAKE_SOURCE_DIR}/thirdparty/magic_enum
+  ${CMAKE_SOURCE_DIR}/thirdparty/imgui-filebrowser
 )
 
 target_link_libraries(game_2d PRIVATE GameNetworkingSockets::shared)

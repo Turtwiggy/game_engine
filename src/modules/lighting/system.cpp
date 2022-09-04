@@ -224,7 +224,7 @@
 // //   const int max_lights = 32;
 // //   for (int i = 0; i < gs.point_lights.size(); i++) {
 // //     if (i >= max_lights) {
-// //       std::cout << "warning: too many lights" << std::endl;
+// //       std::cout << "warning: too many lights" << "\n";
 // //       continue;
 // //     }
 // //     auto& light = gs.point_lights[i];

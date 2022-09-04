@@ -7,7 +7,7 @@
 
 namespace game2d {
 
-enum class TextureType
+enum class AvailableTexture
 {
   KENNY,
   CUSTOM,
@@ -22,20 +22,20 @@ enum class TextureType
 struct Texture
 {
   int tex_unit;
-  TextureType type;
+  AvailableTexture type;
   std::string path;
   std::string spritesheet_path;
   int tex_id; // set after bind
 };
 
 Texture&
-get_tex(entt::registry& r, const TextureType& type);
+get_tex(entt::registry& r, const AvailableTexture& type);
 
 int
-get_tex_id(entt::registry& r, const TextureType& type);
+get_tex_id(entt::registry& r, const AvailableTexture& type);
 
 int
-get_tex_unit(entt::registry& r, const TextureType& type);
+get_tex_unit(entt::registry& r, const AvailableTexture& type);
 
 struct SINGLETON_Textures
 {
@@ -43,28 +43,28 @@ struct SINGLETON_Textures
     // to be loaded
     {
       0,
-      TextureType::KENNY,
+      AvailableTexture::KENNY,
       "assets/textures/kennynl_1bit_pack/monochrome_transparent_packed.png",
       "assets/config/spritemap_kennynl.json",
     },
     {
       1,
-      TextureType::CUSTOM,
+      AvailableTexture::CUSTOM,
       "assets/textures/custom_spaceships.png",
       "assets/config/spritemap_custom.json",
     },
     {
       2,
-      TextureType::SPROUT,
+      AvailableTexture::SPROUT,
       "assets/textures/sprout_lands/chars/basic_char.png",
       // "assets/config/spritemap_sprout.json"
     },
-    { 3, TextureType::LOGO, "assets/textures/logo.png" },
-    { 4, TextureType::MAP_0, "assets/textures/maps/0.jpg" },
+    { 3, AvailableTexture::LOGO, "assets/textures/logo.png" },
+    { 4, AvailableTexture::MAP_0, "assets/textures/maps/0.jpg" },
     // used in fbo
-    { 5, TextureType::LINEAR_MAIN },
-    { 6, TextureType::LINEAR_LIGHTING },
-    { 7, TextureType::SRGB_MAIN },
+    { 5, AvailableTexture::LINEAR_MAIN },
+    { 6, AvailableTexture::LINEAR_LIGHTING },
+    { 7, AvailableTexture::SRGB_MAIN },
   };
 };
 

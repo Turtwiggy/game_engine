@@ -33,7 +33,7 @@ game2d::update_cursor_system(entt::registry& registry)
 {
   const auto& input = registry.ctx().at<SINGLETON_InputComponent>();
 
-  int width = 0, height = 0;
+  static int width = 0, height = 0;
   if (get_mouse_lmb_press() || get_mouse_lmb_held()) {
     // draw expanding square
     width = input.mouse_position_in_worldspace.x - input.mouse_click.x;
@@ -43,17 +43,18 @@ game2d::update_cursor_system(entt::registry& registry)
     width = input.CURSOR_SIZE;
     height = input.CURSOR_SIZE;
   }
+  int w = width, h = height;
 
   {
     const auto& view = registry.view<FreeCursorComponent>();
-    view.each([&registry, &input, &width, &height](auto entity, auto& c) {
+    view.each([&registry, &input, &w, &h](auto entity, auto& c) {
       //
       // Rendering...
       //
-      int x_offset = width;
-      int x_offset_half = width / 2.0f;
-      int y_offset = height;
-      int y_offset_half = height / 2.0f;
+      int x_offset = w;
+      int x_offset_half = w / 2.0f;
+      int y_offset = h;
+      int y_offset_half = h / 2.0f;
 
       int tx = 0;
       int ty = 0;
@@ -86,29 +87,29 @@ game2d::update_cursor_system(entt::registry& registry)
       }
 
       // set cursor renderables
-      update_renderable(registry, c.line_u, tx, ty, width, 1);
-      update_renderable(registry, c.line_d, bx, by, width, 1);
-      update_renderable(registry, c.line_l, lx, ly, 1, height);
-      update_renderable(registry, c.line_r, rx, ry, 1, height);
-      update_renderable(registry, c.backdrop, tx, ly, width, height);
+      update_renderable(registry, c.line_u, tx, ty, w, 1);
+      update_renderable(registry, c.line_d, bx, by, w, 1);
+      update_renderable(registry, c.line_l, lx, ly, 1, h);
+      update_renderable(registry, c.line_r, rx, ry, 1, h);
+      update_renderable(registry, c.backdrop, tx, ly, w, h);
 
       // set cursor physics
       auto& ps = registry.get<PhysicsSizeComponent>(entity);
-      ps.w = width;
-      ps.h = height;
+      ps.w = w;
+      ps.h = h;
     });
   }
 
   {
     const auto& view = registry.view<GridCursorComponent>();
-    view.each([&registry, &input, &width, &height](auto entity, auto& c) {
+    view.each([&registry, &input, &w, &h](auto entity, auto& c) {
       //
       // Rendering...
       //
-      int x_offset = width;
-      int x_offset_half = width / 2.0f;
-      int y_offset = height;
-      int y_offset_half = height / 2.0f;
+      int x_offset = w;
+      int x_offset_half = h / 2.0f;
+      int y_offset = w;
+      int y_offset_half = h / 2.0f;
 
       const int grid_size = 16;
       glm::ivec2 nearest_grid_tl =
@@ -148,16 +149,16 @@ game2d::update_cursor_system(entt::registry& registry)
       }
 
       // set cursor renderables
-      update_renderable(registry, c.line_u, tx, ty, width, 1);
-      update_renderable(registry, c.line_d, bx, by, width, 1);
-      update_renderable(registry, c.line_l, lx, ly, 1, height);
-      update_renderable(registry, c.line_r, rx, ry, 1, height);
-      update_renderable(registry, c.backdrop, tx, ly, width, height);
+      update_renderable(registry, c.line_u, tx, ty, w, 1);
+      update_renderable(registry, c.line_d, bx, by, w, 1);
+      update_renderable(registry, c.line_l, lx, ly, 1, h);
+      update_renderable(registry, c.line_r, rx, ry, 1, h);
+      update_renderable(registry, c.backdrop, tx, ly, w, h);
 
       // set cursor physics
       auto& ps = registry.get<PhysicsSizeComponent>(entity);
-      ps.w = width;
-      ps.h = height;
+      ps.w = w;
+      ps.h = h;
     });
   }
 };

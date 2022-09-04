@@ -21,7 +21,7 @@
 //   float epsilon = 0.0001f;
 //   if (mousewheel > epsilon || mousewheel < -epsilon) {
 //     // int wheel_int = static_cast<int>(mousewheel);
-//     // std::cout << "wheel int: " << wheel_int << std::endl;
+//     // std::cout << "wheel int: " << wheel_int << "\n";
 //     bool positive_direction = mousewheel > 0;
 
 //     // cycle through weapons
@@ -34,6 +34,6 @@
 //       cur_item_index = (cur_item_index - 1) % inventory.size();
 
 //     player.equipped_item_index = cur_item_index;
-//     // std::cout << "equipping item: " << cur_item_index << "mouse was pos: " << positive_direction << std::endl;
+//     // std::cout << "equipping item: " << cur_item_index << "mouse was pos: " << positive_direction << "\n";
 //   }
 // };
