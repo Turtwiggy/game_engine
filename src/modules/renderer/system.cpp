@@ -14,6 +14,7 @@
 #include "resources/textures.hpp"
 
 // engine headers
+#include "engine/app/application.hpp"
 #include "engine/opengl/framebuffer.hpp"
 #include "engine/opengl/render_command.hpp"
 #include "engine/opengl/shader.hpp"
@@ -183,8 +184,11 @@ render_recursively(entt::registry& r,
 }; // namespace game2d
 
 void
-game2d::init_render_system(entt::registry& registry, const glm::ivec2& screen_wh)
+game2d::init_render_system(entt::registry& registry)
 {
+  const auto& app = registry.ctx().at<engine::SINGLETON_Application>();
+  const glm::ivec2 screen_wh = { app.width, app.height };
+
   Framebuffer::default_fbo();
   auto& tex = registry.ctx().at<SINGLETON_Textures>();
 

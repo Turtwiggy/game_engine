@@ -10,7 +10,7 @@ namespace game2d {
 // void
 // InputManager::process_controller_added()
 // {
-//   std::cout << "controller added... processing" << std::endl;
+//   std::cout << "controller added... processing" << "\n";
 
 //   for (auto* controller : controllers) {
 //     if (controller)
@@ -24,7 +24,7 @@ namespace game2d {
 // void
 // InputManager::process_controller_removed()
 // {
-//   std::cout << "controller removed... processing" << std::endl;
+//   std::cout << "controller removed... processing" << "\n";
 
 //   for (auto* controller : controllers) {
 //     if (controller)
@@ -39,7 +39,7 @@ namespace game2d {
 // InputManager::open_controllers()
 // {
 //   int controllers = SDL_NumJoysticks();
-//   std::cout << "(InputManager) controllers available: " << controllers << std::endl;
+//   std::cout << "(InputManager) controllers available: " << controllers << "\n";
 
 //   for (int i = 0; i < controllers; ++i) {
 //     if (SDL_IsGameController(i)) {
@@ -47,9 +47,9 @@ namespace game2d {
 //       SDL_GameController* controller = SDL_GameControllerOpen(i);
 //       if (controller) {
 //         this->controllers.push_back(controller);
-//         std::cout << "(InputManager) controller loaded... " << i << std::endl;
+//         std::cout << "(InputManager) controller loaded... " << i << "\n";
 //       } else {
-//         std::cerr << "Could not open gamecontroller " << i << " " << SDL_GetError() << std::endl;
+//         std::cerr << "Could not open gamecontroller " << i << " " << SDL_GetError() << "\n";
 //       }
 //     }
 //   }

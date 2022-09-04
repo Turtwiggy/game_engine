@@ -11,7 +11,7 @@
 void
 game2d::update_ui_editor_system(entt::registry& r)
 {
-  ImGui::Begin("Editor", NULL, ImGuiWindowFlags_NoFocusOnAppearing);
+  ImGui::Begin("Editor##base", NULL, ImGuiWindowFlags_NoFocusOnAppearing);
 
   auto& audio = r.ctx().at<SINGLETON_AudioComponent>();
   ImGui::Text("Audio");

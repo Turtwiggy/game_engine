@@ -19,7 +19,7 @@ game2d::update_ui_profiler_system(entt::registry& registry)
 #ifdef _DEBUG
   // less than X-fps?! what is this?!
   // if (ImGui::GetIO().Framerate <= 45 && ImGui::GetFrameCount() > 120)
-  //   std::cout << "(profiler) fps drop?!" << std::endl;
+  //   std::cout << "(profiler) fps drop?!" << "\n";
 #endif
 
   auto& p = registry.ctx().at<Profiler>();

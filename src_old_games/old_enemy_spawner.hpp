@@ -22,7 +22,7 @@
 //   enemies_to_spawn_this_wave += EXTRA_ENEMIES_TO_SPAWN_PER_WAVE * wave;
 //   enemies_to_spawn_this_wave_left = enemies_to_spawn_this_wave;
 //   wave += 1;
-//   std::cout << "left: " << enemies_to_spawn_this_wave_left << std::endl;
+//   std::cout << "left: " << enemies_to_spawn_this_wave_left << "\n";
 // }
 
 // void
@@ -43,7 +43,7 @@
 //     enemy_copy.damage_to_give_player = static_cast<int>(ENEMY_BASE_DAMAGE * enemy_spawner::wave_damage[wave]); //
 //     damage
 //   } else {
-//     std::cout << " This is the last (curated) wave...!" << std::endl;
+//     std::cout << " This is the last (curated) wave...!" << "\n";
 //     enemy_copy.damage_able_to_be_taken = static_cast<int>(ENEMY_BASE_HEALTH * 25.0f); // toughness
 //     enemy_copy.damage_to_give_player = static_cast<int>(ENEMY_BASE_DAMAGE * 25.0f);   // damage
 //   }
@@ -81,7 +81,7 @@
 //       if (iteration == iterations_max) {
 //         // ah, screw it, just spawn at 0, 0
 //         continue_search = false;
-//         std::cout << "(EnemySpawner) max iterations hit" << std::endl;
+//         std::cout << "(EnemySpawner) max iterations hit" << "\n";
 //       }
 
 //       bool ok = true;
@@ -102,7 +102,7 @@
 
 //     } while (continue_search);
 
-//     // std::cout << "enemy spawning " << distance_squared << " away from player" << std::endl;
+//     // std::cout << "enemy spawning " << distance_squared << " away from player" << "\n";
 //     glm::vec2 world_pos = found_pos + state.camera.pos;
 
 //     if (SPAWN_ENEMIES && state.enemies_to_spawn_this_wave_left > 0) {

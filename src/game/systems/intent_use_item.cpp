@@ -34,7 +34,7 @@ update_intent_use_item_system(entt::registry& r)
         // Does the item heal?
         if (item_heals && target_hp) {
           target_hp->hp = glm::min(target_hp->max_hp, target_hp->hp + item_heals->health);
-          std::cout << "hp now at: " << target_hp->hp << std::endl;
+          std::cout << "hp now at: " << target_hp->hp << "\n";
         }
       }
 

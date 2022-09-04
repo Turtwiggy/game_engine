@@ -38,14 +38,15 @@ start_client(entt::registry& r, const std::string& addr)
                (void*)SteamNetConnectionStatusChangedCallback);
     auto conn = client.interface->ConnectByIPAddress(serverAddr, 1, &opt);
     if (conn == k_HSteamNetConnection_Invalid) {
-      std::cerr << "(client) invalid server addr: " << szAddr << std::endl;
+      std::cerr << "(client) invalid server addr: " << szAddr << "\n";
     } else {
       // successfully connected
       client.connection = conn;
       r.ctx().emplace<SINGLETON_ClientComponent>(client);
     }
   } else {
-    std::cerr << "Failed to parse server's address for the client" << std::endl;
+    std::cerr << "Failed to parse server's address for the client"
+              << "\n";
   }
 }
 
@@ -57,7 +58,8 @@ game2d::client_receive_messages_on_connection(SINGLETON_ClientComponent& client,
   int num_msgs = client.interface->ReceiveMessagesOnConnection(client.connection, all_msgs, max_messages);
 
   if (num_msgs < 0)
-    std::cerr << "(client) error checking for messages" << std::endl;
+    std::cerr << "(client) error checking for messages"
+              << "\n";
 
   {
     for (int i = 0; i < num_msgs; i++) {
@@ -89,10 +91,12 @@ game2d::client_poll_connections(SINGLETON_ClientComponent& client)
         // NOTE: We will get callbacks here when we destroy connections.  You can ignore these.
         break;
       case k_ESteamNetworkingConnectionState_Connecting:
-        std::cout << "Connecting to server..." << std::endl;
+        std::cout << "Connecting to server..."
+                  << "\n";
         break;
       case k_ESteamNetworkingConnectionState_Connected:
-        std::cout << "Connected to server OK!" << std::endl;
+        std::cout << "Connected to server OK!"
+                  << "\n";
         break;
 
       case k_ESteamNetworkingConnectionState_ClosedByPeer:
@@ -102,13 +106,13 @@ game2d::client_poll_connections(SINGLETON_ClientComponent& client)
           // Note: we could distinguish between a timeout, a rejected connection,
           // or some other transport problem.
           std::cout << "We sought the remote host, yet our efforts were met with defeat." << info.m_info.m_szEndDebug
-                    << std::endl;
+                    << "\n";
         } else if (info.m_info.m_eState == k_ESteamNetworkingConnectionState_ProblemDetectedLocally) {
           std::cout << "Alas, troubles beset us; we have lost contact with the host. " << info.m_info.m_szEndDebug
-                    << std::endl;
+                    << "\n";
         } else {
           // NOTE: We could check the reason code for a normal disconnection
-          std::cout << "The host hath bidden us farewell. " << info.m_info.m_szEndDebug << std::endl;
+          std::cout << "The host hath bidden us farewell. " << info.m_info.m_szEndDebug << "\n";
         }
 
         // Clean up the connection.  This is important!
@@ -154,7 +158,7 @@ game2d::tick_client(entt::registry& r, uint64_t milliseconds_dt)
   // for (int i = 0; i < server_messages.size(); i++) {
   if (server_messages.size() > 0) {
     std::string message = server_messages[0];
-    std::cout << "(client) received: " << message << std::endl;
+    std::cout << "(client) received: " << message << "\n";
 
     // HACK: assume the message was an int containing an ack frame the server received...
     // int server_tick = std::stoi(message);
@@ -163,7 +167,7 @@ game2d::tick_client(entt::registry& r, uint64_t milliseconds_dt)
 
     // std::cout << "(client) tick: " << fixed_inputs.fixed_tick << " , ticks_ahead: " <<
     // fixed_inputs.fixed_tick_since_ack
-    //           << std::endl;
+    //           << "\n";
 
     // discard any unneeded inputs
     // while (fixed_inputs.history.size() < fixed_inputs.fixed_tick_since_ack)
@@ -175,7 +179,7 @@ game2d::tick_client(entt::registry& r, uint64_t milliseconds_dt)
     // #ifdef _DEBUG
     //     assert(fixed_inputs.history.size() == fixed_inputs.fixed_tick_since_ack);
     // #endif
-    std::cout << "(client) inputs size: " << fixed_inputs.history.size() << std::endl;
+    std::cout << "(client) inputs size: " << fixed_inputs.history.size() << "\n";
   }
 
   // ... do client things ...
@@ -194,7 +198,7 @@ game2d::tick_client(entt::registry& r, uint64_t milliseconds_dt)
   //     const int max_size = k_cbMaxSteamNetworkingSocketsMessageSizeSend;
 
   //     if (packet.size() >= max_size)
-  //       std::cerr << "packet wanting to send is too large, sending anyway..." << std::endl;
+  //       std::cerr << "packet wanting to send is too large, sending anyway..." << "\n";
 
   //     client.interface->SendMessageToConnection(
   //       client.connection, packet.c_str(), (uint32_t)packet.size(), protocol, nullptr);
@@ -204,7 +208,7 @@ game2d::tick_client(entt::registry& r, uint64_t milliseconds_dt)
 
   // #ifdef _DEBUG
   //     if (fixed_inputs.fixed_tick_since_ack > 200) {
-  //       std::cerr << "(client) server is 200 ticks behind??" << std::endl;
+  //       std::cerr << "(client) server is 200 ticks behind??" << "\n";
   //     }
   // #endif
   //   }

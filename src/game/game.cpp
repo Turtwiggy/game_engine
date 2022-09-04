@@ -14,7 +14,11 @@
 #include "modules/renderer/system.hpp"
 #include "modules/sprites/components.hpp"
 #include "modules/sprites/system.hpp"
+#include "modules/ui_editor/components.hpp"
 #include "modules/ui_editor/system.hpp"
+#include "modules/ui_editor_scene/system.hpp"
+#include "modules/ui_editor_tilemap/components.hpp"
+#include "modules/ui_editor_tilemap/system.hpp"
 #include "modules/ui_hierarchy/components.hpp"
 #include "modules/ui_hierarchy/helpers.hpp"
 #include "modules/ui_hierarchy/system.hpp"
@@ -24,8 +28,6 @@
 #include "modules/ui_profiler/components.hpp"
 #include "modules/ui_profiler/helpers.hpp"
 #include "modules/ui_profiler/system.hpp"
-#include "modules/ui_sprite_prefab/components.hpp"
-#include "modules/ui_sprite_prefab/system.hpp"
 #include "modules/ui_sprite_searcher/components.hpp"
 #include "modules/ui_sprite_searcher/system.hpp"
 
@@ -67,7 +69,6 @@ init_game_state(entt::registry& r)
   ctx_reset<SINGLETON_FixedUpdateInputHistory>(r);
 
   // reset editor tools?
-  ctx_reset<SINGLETON_SpriteSearcher>(r);
   ctx_reset<SINGLETON_TilemapComponent>(r);
 
   create_hierarchy_root_node(r);
@@ -140,16 +141,22 @@ game2d::init(entt::registry& r)
 {
   const auto& app = r.ctx().at<engine::SINGLETON_Application>();
 
-  // init once only
+  // editor tools
   ctx_reset<Profiler>(r);
+  ctx_reset<SINGLETON_EditorComponent>(r);
+  ctx_reset<SINGLETON_SpriteSearcher>(r);
+  // other
   ctx_reset<SINGLETON_Textures>(r);
   ctx_reset<SINGLETON_ColoursComponent>(r);
   init_sprite_system(r);
-  init_render_system(r, { app.width, app.height });
+  init_render_system(r);
   init_input_system(r);
   init_audio_system(r);
   init_networking_system(r);
 
+  // GOAL: remove init_game_state with the
+  // map load/save functionality
+  // eventually this game state should be savable to a file
   init_game_state(r);
 };
 
@@ -158,11 +165,12 @@ game2d::fixed_update(entt::registry& r, uint64_t milliseconds_dt)
 {
   auto& p = r.ctx().at<Profiler>();
   {
-    auto _ = time_scope(&p, "physics", true);
+    auto _ = time_scope(&p, "(all)", true);
     auto& input = r.ctx().at<SINGLETON_InputComponent>();
     auto& fixed_input = r.ctx().at<SINGLETON_FixedUpdateInputHistory>();
 
-    // while offline, just clear out anything older than a tick (until a sys needs older input)
+    // while offline, just clear out anything older than a tick
+    // (until a gameplay system needs older input)
     fixed_input.history.clear();
 
     // move inputs from Update() to this FixedUpdate() tick
@@ -225,8 +233,9 @@ game2d::update(entt::registry& r, float dt)
       update_ui_hierarchy_system(r);
       update_ui_profiler_system(r);
       update_ui_sprite_searcher_system(r);
-      update_ui_sprite_prefab_system(r);
       update_ui_editor_system(r);
+      update_ui_editor_tilemap_system(r);
+      update_ui_editor_scene_system(r);
     }
     // update_ui_networking_system(r);
     // update_ui_main_menu_system(r);

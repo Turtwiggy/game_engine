@@ -51,7 +51,7 @@ game2d::update_player_system(entt::registry& r, const std::vector<InputEvent>& i
             //         equipment->count -= 1;
             //       } else {
             //         player.hand_l.reset();
-            //         std::cout << "resetting" << std::endl;
+            //         std::cout << "resetting" << "\n";
             //       }
             //     }
             //   }

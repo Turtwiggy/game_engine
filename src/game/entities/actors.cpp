@@ -124,7 +124,7 @@ create_renderable(entt::registry& r,
     }
     default: {
       std::cout << "(not implemented), tried to create renderable: " << std::string(magic_enum::enum_name(type))
-                << std::endl;
+                << "\n";
     }
   }
 

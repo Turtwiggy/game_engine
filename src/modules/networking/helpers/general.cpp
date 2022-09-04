@@ -26,22 +26,25 @@ void
 init_steam_datagram_connection_sockets()
 {
 #ifdef STEAMNETWORKINGSOCKETS_OPENSOURCE
-  std::cout << "(networking) STEAMNETWORKINGSOCKETS_OPENSOURCE " << std::endl;
+  std::cout << "(networking) STEAMNETWORKINGSOCKETS_OPENSOURCE "
+            << "\n";
 
   SteamDatagramErrMsg err;
   if (!GameNetworkingSockets_Init(nullptr, err)) {
-    std::cerr << "Failed to init gamenetworkingsockets" << std::endl;
+    std::cerr << "Failed to init gamenetworkingsockets"
+              << "\n";
     exit(0);
   }
 
 #else
-  std::cout << "GAMENETWORKINGSOCKETS init..." << std::endl;
+  std::cout << "GAMENETWORKINGSOCKETS init..."
+            << "\n";
 
   // SteamDatagram_SetAppID(570); // Just set something, doesn't matter what
   // SteamDatagram_SetUniverse(false, k_EUniverseDev);
   // SteamDatagramErrMsg err;
   // if (!SteamDatagramClient_Init(err))
-  //   std::cerr << "Failed to init SteamDatagramClient_Init" << std::endl;
+  //   std::cerr << "Failed to init SteamDatagramClient_Init" << "\n";
 
   // Disable authentication when running with Steam, for this
   // example, since we're not a real app.

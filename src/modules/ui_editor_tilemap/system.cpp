@@ -1,4 +1,5 @@
 #include "system.hpp"
+#include "components.hpp"
 
 #include "engine/maths/grid.hpp"
 #include "game/entities/actors.hpp"
@@ -6,30 +7,29 @@
 #include "modules/events/helpers/mouse.hpp"
 #include "modules/renderer/components.hpp"
 #include "modules/sprites/components.hpp"
-#include "modules/ui_sprite_prefab/components.hpp"
 #include "modules/ui_sprite_searcher/components.hpp"
 
-#include <map>
-
 #include <imgui.h>
+
+#include <map>
 
 static int GRID_SIZE = 16; // hmm
 
 void
-game2d::update_ui_sprite_prefab_system(entt::registry& r)
+game2d::update_ui_editor_tilemap_system(entt::registry& r)
 {
   const auto& input = r.ctx().at<SINGLETON_InputComponent>();
   auto& ss = r.ctx().at<SINGLETON_SpriteSearcher>();
   auto& tilemap = r.ctx().at<SINGLETON_TilemapComponent>();
 
-  ImGui::Begin("Sprite Prefabs");
-  ImGui::Text("TODO: improve this");
-  // ImGui::Text("SS: %s", ss.clicked.c_str());
+  ImGui::Text("Prefabs");
+  ImGui::Text("TODO");
   // TODO: show selected sprite
   // TODO: be able to update sprite colour
   // TODO: be able to select sprite game behaviour
   // TODO: save the configs above as prefabs
-  ImGui::End();
+  // ImGui::Text("SS: %s", ss.clicked.c_str());
+  ImGui::Separator();
 
   glm::ivec2 mouse_grid_pos =
     engine::grid::world_space_to_clamped_world_space(input.mouse_position_in_worldspace, GRID_SIZE);

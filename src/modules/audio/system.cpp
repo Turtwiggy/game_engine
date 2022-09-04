@@ -50,7 +50,7 @@ init_audio_system(entt::registry& registry)
   audio.device = Mix_OpenAudioDevice(freq, format, channels, samples, NULL, SDL_AUDIO_ALLOW_ANY_CHANGE);
 
   if (audio.device == -1) {
-    std::cerr << "Failed to open audio: " << SDL_GetError() << std::endl;
+    std::cerr << "Failed to open audio: " << SDL_GetError() << "\n";
     registry.ctx().emplace<SINGLETON_AudioComponent>(audio);
     return;
   }
@@ -63,7 +63,7 @@ init_audio_system(entt::registry& registry)
     // (assumption) all sfx are wav for the moment
     entry.data = Mix_LoadWAV(entry.path.c_str());
     if (entry.data == NULL) {
-      std::cerr << "failed to load sound: " << SDL_GetError() << std::endl;
+      std::cerr << "failed to load sound: " << SDL_GetError() << "\n";
       exit(0);
     }
   }
@@ -72,7 +72,7 @@ init_audio_system(entt::registry& registry)
     // (assumption) all sfx are mp3 for the moment
     entry.data = Mix_LoadMUS(entry.path.c_str());
     if (entry.data == NULL) {
-      std::cerr << "failed to load music: " << SDL_GetError() << std::endl;
+      std::cerr << "failed to load music: " << SDL_GetError() << "\n";
       exit(0);
     }
   }
@@ -97,13 +97,13 @@ update_audio_system(entt::registry& registry)
 
   // if (audio_added != events.sdl_events.end()) {
   //   const int count = SDL_GetNumAudioDevices(0);
-  //   std::cout << "(audio device added) Audio Devices: " << count << std::endl;
+  //   std::cout << "(audio device added) Audio Devices: " << count << "\n";
   // }
 
   // // Note: this event is only fired if the device was in use by sdl.
   // if (audio_removed != events.sdl_events.end()) {
   //   const int count = SDL_GetNumAudioDevices(0);
-  //   std::cout << "(audio device removed). Audio devices: " << count << std::endl;
+  //   std::cout << "(audio device removed). Audio devices: " << count << "\n";
   // }
 
   // if (audio.dev == -1) // Failed to open - TODO: implement retry?

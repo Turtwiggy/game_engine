@@ -152,7 +152,7 @@ game2d::drop_accept_entity(entt::registry& r, const entt::entity& e)
     if (const ImGuiPayload* payload = ImGui::AcceptDragDropPayload("DEMO")) {
       IM_ASSERT(payload->DataSize == sizeof(entt::entity));
       entt::entity payload_n = *(const entt::entity*)payload->Data;
-      // std::cout << "received payload: " << static_cast<uint32_t>(payload_n) << std::endl;
+      // std::cout << "received payload: " << static_cast<uint32_t>(payload_n) << "\n";
 
       if (payload_n != e) { // payload entity isn't this entity
 

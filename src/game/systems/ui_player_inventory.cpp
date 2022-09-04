@@ -82,7 +82,7 @@ game2d::update_ui_player_inventory_system(entt::registry& r)
 
         // ImGui::SameLine();
         // if (ImGui::Button(label_equip.c_str()))
-        //   std::cout << "You want to equip an inventory item " << std::endl;
+        //   std::cout << "You want to equip an inventory item " << "\n";
 
         ImGui::SameLine();
         if (ImGui::Button(label_drop.c_str())) {

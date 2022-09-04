@@ -59,7 +59,7 @@ game2d::update_actor_actor_system(entt::registry& registry)
       auto result = std::find_if(pmap.begin(), pmap.end(), [val](const auto& col) { return col.first == val; });
       if (result == pmap.end()) {
         // New collision
-        // std::cout << "ents: new coll" << std::endl;
+        // std::cout << "ents: new coll" << "\n";
         p.collision_enter.push_back(frame_collision.second);
         p.collision_stay.push_back(frame_collision.second);
       } else {
@@ -77,7 +77,7 @@ game2d::update_actor_actor_system(entt::registry& registry)
         ++it;
         continue;
       }
-      // std::cout << "ents: exit coll" << std::endl;
+      // std::cout << "ents: exit coll" << "\n";
       p.collision_exit.push_back(it->second);
       p.persistent_collisions.erase(it++);
     }
