@@ -32,7 +32,7 @@ struct InputEvent
   // SDL_GameControllerAxis axis;
 
   // Note: not player, as no need to send that across the network
-  NLOHMANN_DEFINE_TYPE_INTRUSIVE(InputEvent, type, release, key)
+  NLOHMANN_DEFINE_TYPE_INTRUSIVE(InputEvent, type, release, key);
 };
 
 struct SINGLETON_FixedUpdateInputHistory
@@ -47,7 +47,7 @@ struct SINGLETON_FixedUpdateInputHistory
 
   std::map<uint32_t, std::vector<InputEvent>> history;
 
-  NLOHMANN_DEFINE_TYPE_INTRUSIVE(SINGLETON_FixedUpdateInputHistory, fixed_tick_since_ack, history)
+  NLOHMANN_DEFINE_TYPE_INTRUSIVE(SINGLETON_FixedUpdateInputHistory, fixed_tick_since_ack, history);
 };
 
 struct SINGLETON_InputComponent

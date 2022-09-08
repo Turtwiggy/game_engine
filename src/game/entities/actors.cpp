@@ -14,6 +14,8 @@
 
 #include "magic_enum.hpp"
 
+#include <iostream>
+
 namespace game2d {
 
 static constexpr int SPRITE_SIZE = 16;
@@ -21,16 +23,20 @@ static constexpr int SPRITE_SIZE = 16;
 entt::entity
 create_item(entt::registry& r, const ENTITY_TYPE& type, const entt::entity& parent)
 {
-  auto e = create_entity(r, type);
-  r.emplace<InBackpackComponent>(e, parent);
-  return e;
+  auto entity = r.create();
+  create_item(r, entity, type, parent);
+  return entity;
 };
 
 void
-create_renderable(entt::registry& r,
-                  const entt::entity& e,
-                  const ENTITY_TYPE& type,
-                  const std::optional<engine::SRGBColour>& colour)
+create_item(entt::registry& r, const entt::entity& e, const ENTITY_TYPE& type, const entt::entity& parent)
+{
+  create_gameplay(r, e, type);
+  r.emplace<InBackpackComponent>(e, parent);
+};
+
+void
+create_renderable(entt::registry& r, const entt::entity& e, const ENTITY_TYPE& type)
 {
   const auto& slots = r.ctx().at<SINGLETON_Textures>();
   const auto& colours = r.ctx().at<SINGLETON_ColoursComponent>();
@@ -63,8 +69,6 @@ create_renderable(entt::registry& r,
     sprite = "ROCKET_1";
   else if (type == ENTITY_TYPE::SHOPKEEPER)
     sprite = "PERSON_25_0";
-  else if (type == ENTITY_TYPE::GRID_CURSOR)
-    sprite = "EMPTY";
   else if (type == ENTITY_TYPE::FREE_CURSOR)
     sprite = "EMPTY";
   else
@@ -101,16 +105,10 @@ create_renderable(entt::registry& r,
     s_comp.colour = engine::SRGBToLinear(colours.red);
   else if (type == ENTITY_TYPE::SHOPKEEPER)
     s_comp.colour = engine::SRGBToLinear(colours.red);
-  else if (type == ENTITY_TYPE::GRID_CURSOR)
-    s_comp.colour = engine::SRGBToLinear(colours.red);
   else if (type == ENTITY_TYPE::FREE_CURSOR)
     s_comp.colour = engine::SRGBToLinear(colours.red);
   else
     std::cerr << "warning! colour not implemented for: " << type_name << "\n";
-
-  // overwrite colour
-  if (colour)
-    s_comp.colour = engine::SRGBToLinear(colour.value());
 
   // HACK
   if (s_comp.tex_unit == get_tex_unit(r, AvailableTexture::KENNY)) {
@@ -133,24 +131,33 @@ void
 set_parent(entt::registry& r, const entt::entity& e, const entt::entity& parent)
 {
   r.emplace<EntityHierarchyComponent>(e, parent);
-}
+};
 
 void
 add_child(entt::registry& r, const entt::entity& e, const entt::entity& child)
 {
   auto& hc = r.get<EntityHierarchyComponent>(e);
   hc.children.push_back(child);
-}
+};
 
 entt::entity
-create_entity(entt::registry& r, const ENTITY_TYPE& type)
+create_gameplay(entt::registry& r, const ENTITY_TYPE& type)
 {
-  const auto& h = r.ctx().at<SINGLETON_HierarchyComponent>();
-  auto e = r.create();
-  add_child(r, h.root_node, e);
-  set_parent(r, e, h.root_node);
+  const auto& h = r.view<RootNode>().front();
+  const auto& e = r.create();
+
+  add_child(r, h, e);
+  set_parent(r, e, h);
   r.emplace<TagComponent>(e, std::string(magic_enum::enum_name(type)));
 
+  create_gameplay(r, e, type);
+
+  return e;
+};
+
+void
+create_gameplay(entt::registry& r, const entt::entity& e, const ENTITY_TYPE& type)
+{
   const auto& colours = r.ctx().at<SINGLETON_ColoursComponent>();
   const auto type_name = std::string(magic_enum::enum_name(type));
 
@@ -166,7 +173,6 @@ create_entity(entt::registry& r, const ENTITY_TYPE& type)
       break;
     }
     case ENTITY_TYPE::ENEMY: {
-      create_renderable(r, e, type);
       // physics
       r.emplace<PhysicsActorComponent>(e, GameCollisionLayer::ACTOR_ENEMY);
       r.emplace<PhysicsSizeComponent>(e, PhysicsSizeComponent(SPRITE_SIZE, SPRITE_SIZE));
@@ -177,7 +183,6 @@ create_entity(entt::registry& r, const ENTITY_TYPE& type)
       break;
     }
     case ENTITY_TYPE::PLAYER: {
-      create_renderable(r, e, type);
       r.emplace<PhysicsActorComponent>(e, GameCollisionLayer::ACTOR_PLAYER);
       r.emplace<PhysicsSizeComponent>(e, PhysicsSizeComponent(SPRITE_SIZE, SPRITE_SIZE));
       r.emplace<VelocityComponent>(e);
@@ -188,7 +193,6 @@ create_entity(entt::registry& r, const ENTITY_TYPE& type)
       break;
     }
     case ENTITY_TYPE::SHOPKEEPER: {
-      create_renderable(r, e, type);
       // gameplay
       r.emplace<ShopKeeperComponent>(e);
       break;
@@ -206,7 +210,6 @@ create_entity(entt::registry& r, const ENTITY_TYPE& type)
       break;
     }
     case ENTITY_TYPE::BOLT: {
-      create_renderable(r, e, type);
       r.emplace<PhysicsActorComponent>(e, GameCollisionLayer::ACTOR_BULLET);
       r.emplace<PhysicsSizeComponent>(e, PhysicsSizeComponent(SPRITE_SIZE / 2, SPRITE_SIZE / 2));
       r.emplace<VelocityComponent>(e);
@@ -215,7 +218,6 @@ create_entity(entt::registry& r, const ENTITY_TYPE& type)
       break;
     }
     case ENTITY_TYPE::SHIELD: {
-      create_renderable(r, e, type);
       r.emplace<AttackComponent>(e, AttackComponent(5, 8));
       r.emplace<DefenseComponent>(e, DefenseComponent(10));
       break;
@@ -254,92 +256,42 @@ create_entity(entt::registry& r, const ENTITY_TYPE& type)
 
     case ENTITY_TYPE::FREE_CURSOR: {
 
-      auto line_u = r.create();
-      r.emplace<TagComponent>(line_u, "line-u");
-      create_renderable(r, line_u, ENTITY_TYPE::FREE_CURSOR);
-      add_child(r, h.root_node, line_u);
-      set_parent(r, line_u, h.root_node);
+      // auto line_u = r.create();
+      // r.emplace<TagComponent>(line_u, "line-u");
+      // add_child(r, h, line_u);
+      // set_parent(r, line_u, h);
 
-      auto line_d = r.create();
-      r.emplace<TagComponent>(line_d, "line-d");
-      create_renderable(r, line_d, ENTITY_TYPE::FREE_CURSOR);
-      add_child(r, h.root_node, line_d);
-      set_parent(r, line_d, h.root_node);
+      // auto line_d = r.create();
+      // r.emplace<TagComponent>(line_d, "line-d");
+      // add_child(r, h, line_d);
+      // set_parent(r, line_d, h);
 
-      auto line_l = r.create();
-      r.emplace<TagComponent>(line_l, "line-l");
-      create_renderable(r, line_l, ENTITY_TYPE::FREE_CURSOR);
-      add_child(r, h.root_node, line_l);
-      set_parent(r, line_l, h.root_node);
+      // auto line_l = r.create();
+      // r.emplace<TagComponent>(line_l, "line-l");
+      // add_child(r, h, line_l);
+      // set_parent(r, line_l, h);
 
-      auto line_r = r.create();
-      r.emplace<TagComponent>(line_r, "line-r");
-      create_renderable(r, line_r, ENTITY_TYPE::FREE_CURSOR);
-      add_child(r, h.root_node, line_r);
-      set_parent(r, line_r, h.root_node);
+      // auto line_r = r.create();
+      // r.emplace<TagComponent>(line_r, "line-r");
+      // add_child(r, h, line_r);
+      // set_parent(r, line_r, h);
 
-      auto backdrop = r.create();
-      r.emplace<TagComponent>(backdrop, "backdrop");
-      create_renderable(r, backdrop, ENTITY_TYPE::FREE_CURSOR, colours.backdrop_red);
-      add_child(r, h.root_node, backdrop);
-      set_parent(r, backdrop, h.root_node);
+      // auto backdrop = r.create();
+      // r.emplace<TagComponent>(backdrop, "backdrop");
+      // add_child(r, h, backdrop);
+      // set_parent(r, backdrop, h);
 
-      // object tag
-      FreeCursorComponent c;
-      c.line_u = line_u;
-      c.line_d = line_d;
-      c.line_l = line_l;
-      c.line_r = line_r;
-      c.backdrop = backdrop;
-      r.emplace<FreeCursorComponent>(e, c);
-      // physics
-      r.emplace<PhysicsActorComponent>(e, GameCollisionLayer::ACTOR_CURSOR);
-      r.emplace<PhysicsSizeComponent>(e, PhysicsSizeComponent(SPRITE_SIZE, SPRITE_SIZE));
-      break;
-    }
-
-    case ENTITY_TYPE::GRID_CURSOR: {
-
-      auto line_u = r.create();
-      r.emplace<TagComponent>(line_u, "line-u");
-      create_renderable(r, line_u, ENTITY_TYPE::GRID_CURSOR, colours.cyan);
-      add_child(r, h.root_node, line_u);
-      set_parent(r, line_u, h.root_node);
-
-      auto line_d = r.create();
-      r.emplace<TagComponent>(line_d, "line-d");
-      create_renderable(r, line_d, ENTITY_TYPE::GRID_CURSOR, colours.cyan);
-      add_child(r, h.root_node, line_d);
-      set_parent(r, line_d, h.root_node);
-
-      auto line_l = r.create();
-      r.emplace<TagComponent>(line_l, "line-l");
-      create_renderable(r, line_l, ENTITY_TYPE::GRID_CURSOR, colours.cyan);
-      add_child(r, h.root_node, line_l);
-      set_parent(r, line_l, h.root_node);
-
-      auto line_r = r.create();
-      r.emplace<TagComponent>(line_r, "line-r");
-      create_renderable(r, line_r, ENTITY_TYPE::GRID_CURSOR, colours.cyan);
-      add_child(r, h.root_node, line_r);
-      set_parent(r, line_r, h.root_node);
-
-      auto backdrop = r.create();
-      r.emplace<TagComponent>(backdrop, "backdrop");
-      create_renderable(r, backdrop, ENTITY_TYPE::GRID_CURSOR, colours.dblue);
-      add_child(r, h.root_node, backdrop);
-      set_parent(r, backdrop, h.root_node);
-
-      GridCursorComponent c;
-      c.line_u = line_u;
-      c.line_d = line_d;
-      c.line_l = line_l;
-      c.line_r = line_r;
-      c.backdrop = backdrop;
-      r.emplace<GridCursorComponent>(e, c);
-      // physics
-      r.emplace<PhysicsActorComponent>(e, GameCollisionLayer::ACTOR_CURSOR);
-      r.emplace<PhysicsSizeComponent>(e, PhysicsSizeComponent(SPRITE_SIZE, SPRITE_SIZE));
+      // // object tag
+      // FreeCursorComponent c;
+      // c.line_u = line_u;
+      // c.line_d = line_d;
+      // c.line_l = line_l;
+      // c.line_r = line_r;
+      // c.backdrop = backdrop;
+      // r.emplace<FreeCursorComponent>(e, c);
+      // // physics
+      // r.emplace<PhysicsActorComponent>(e, GameCollisionLayer::ACTOR_CURSOR);
+      // r.emplace<PhysicsSizeComponent>(e, PhysicsSizeComponent(SPRITE_SIZE, SPRITE_SIZE));
       break;
     }
 
@@ -347,8 +299,6 @@ create_entity(entt::registry& r, const ENTITY_TYPE& type)
       std::cout << "warning: no gameplay implemented for: " << type_name;
     }
   }
-
-  return e;
 };
 
 } // namespace game2d

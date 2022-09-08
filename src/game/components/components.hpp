@@ -2,6 +2,7 @@
 
 #include <SDL2/SDL_scancode.h>
 #include <entt/entt.hpp>
+#include <nlohmann/json.hpp>
 
 #include <vector>
 
@@ -21,6 +22,8 @@ struct AttackComponent
   AttackComponent(int min, int max)
     : min_damage(min)
     , max_damage(max){};
+
+  NLOHMANN_DEFINE_TYPE_INTRUSIVE(AttackComponent, min_damage, max_damage);
 };
 
 struct DefenseComponent
@@ -30,12 +33,16 @@ struct DefenseComponent
   DefenseComponent() = default;
   DefenseComponent(int ac)
     : ac(ac){};
+
+  NLOHMANN_DEFINE_TYPE_INTRUSIVE(DefenseComponent, ac);
 };
 
 struct HealthComponent
 {
   int max_hp = 100;
   int hp = 100;
+
+  NLOHMANN_DEFINE_TYPE_INTRUSIVE(HealthComponent, max_hp, hp);
 };
 
 struct MeleeComponent
@@ -44,6 +51,8 @@ struct MeleeComponent
   //   int weapon_radius = 30;
   //   float attack_rate = 0.15f;
   //   int use_cooldown = 1;
+
+  NLOHMANN_DEFINE_TYPE_INTRUSIVE(MeleeComponent, placeholder);
 };
 
 struct RangedComponent
@@ -56,6 +65,8 @@ struct RangedComponent
   //   float time_between_shots = 1.0f;
   //   float time_since_last_shot = 0.0f;
   //   float bullet_speed = 500.0f;
+
+  NLOHMANN_DEFINE_TYPE_INTRUSIVE(RangedComponent, placeholder);
 };
 
 //
@@ -72,11 +83,15 @@ struct PlayerComponent
   SDL_Scancode A = SDL_SCANCODE_A;
   SDL_Scancode S = SDL_SCANCODE_S;
   SDL_Scancode D = SDL_SCANCODE_D;
+
+  NLOHMANN_DEFINE_TYPE_INTRUSIVE(PlayerComponent, speed, W, A, S, D);
 };
 
 struct ShopKeeperComponent
 {
   bool placeholder = true;
+
+  NLOHMANN_DEFINE_TYPE_INTRUSIVE(ShopKeeperComponent, placeholder);
 };
 
 //
@@ -86,34 +101,48 @@ struct ShopKeeperComponent
 struct InBackpackComponent
 {
   entt::entity parent = entt::null;
+
+  NLOHMANN_DEFINE_TYPE_INTRUSIVE(InBackpackComponent, parent);
 };
 
 struct ConsumableComponent
 {
   int uses_left = 1;
+
+  NLOHMANN_DEFINE_TYPE_INTRUSIVE(ConsumableComponent, uses_left);
 };
 
 // "intent" components surrounding items
 struct Use
 {
-  entt::entity item;
+  entt::entity item = entt::null;
   std::vector<entt::entity> targets;
+
+  NLOHMANN_DEFINE_TYPE_INTRUSIVE(Use, item, targets);
 };
 struct WantsToUse
 {
   std::vector<Use> items;
+
+  NLOHMANN_DEFINE_TYPE_INTRUSIVE(WantsToUse, items);
 };
 struct WantsToDrop
 {
   std::vector<entt::entity> items;
+
+  NLOHMANN_DEFINE_TYPE_INTRUSIVE(WantsToDrop, items);
 };
 struct WantsToPurchase
 {
   std::vector<entt::entity> items;
+
+  NLOHMANN_DEFINE_TYPE_INTRUSIVE(WantsToPurchase, items);
 };
 struct WantsToSell
 {
   std::vector<entt::entity> items;
+
+  NLOHMANN_DEFINE_TYPE_INTRUSIVE(WantsToSell, items);
 };
 
 //
@@ -129,23 +158,31 @@ struct WantsToSell
 struct TakeDamageComponent
 {
   std::vector<int> damage;
+
+  NLOHMANN_DEFINE_TYPE_INTRUSIVE(TakeDamageComponent, damage);
 };
 
 struct GiveHealsComponent
 {
   int health = 1;
   // std::vector<int> health_q;
+
+  NLOHMANN_DEFINE_TYPE_INTRUSIVE(GiveHealsComponent, health);
 };
 
 struct TakeHealsComponent
 {
   std::vector<int> heals;
+
+  NLOHMANN_DEFINE_TYPE_INTRUSIVE(TakeHealsComponent, heals);
 };
 
 // "intent" components surrounding combat
 struct WantsToAttack
 {
   bool placeholder = true;
+
+  NLOHMANN_DEFINE_TYPE_INTRUSIVE(WantsToAttack, placeholder);
 };
 
 // struct AreaOfEffectComponent

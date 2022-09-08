@@ -1,5 +1,7 @@
 #pragma once
 
+#include <nlohmann/json.hpp>
+
 // c++ headers
 #include <cstdint>
 #include <map>
@@ -23,11 +25,15 @@ enum class GameCollisionLayer
 struct PhysicsActorComponent
 {
   GameCollisionLayer layer_id;
+
+  NLOHMANN_DEFINE_TYPE_INTRUSIVE(PhysicsActorComponent, layer_id);
 };
 
 struct PhysicsSolidComponent
 {
   GameCollisionLayer layer_id;
+
+  NLOHMANN_DEFINE_TYPE_INTRUSIVE(PhysicsSolidComponent, layer_id);
 };
 
 struct PhysicsSizeComponent
@@ -39,12 +45,16 @@ struct PhysicsSizeComponent
   PhysicsSizeComponent(int w, int h)
     : w(w)
     , h(h){};
+
+  NLOHMANN_DEFINE_TYPE_INTRUSIVE(PhysicsSizeComponent, w, h);
 };
 
 struct VelocityComponent
 {
   int x = 0;
   int y = 0;
+
+  NLOHMANN_DEFINE_TYPE_INTRUSIVE(VelocityComponent, x, y);
 };
 
 // specific for actor-actor collisions

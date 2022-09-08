@@ -4,6 +4,7 @@
 
 #include <entt/entt.hpp>
 #include <glm/glm.hpp>
+#include <nlohmann/json.hpp>
 
 #include <string>
 #include <vector>
@@ -50,6 +51,8 @@ struct SpriteComponent
   // spritesheet info
   int sx = 0;
   int sy = 0;
+
+  NLOHMANN_DEFINE_TYPE_INTRUSIVE(SpriteComponent, colour.r, colour.g, colour.b, colour.a, x, y, angle_radians, sx, sy);
 };
 
 // Contains sprite frame data from assets/config/spritemap_X.json

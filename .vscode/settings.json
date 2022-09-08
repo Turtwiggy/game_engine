@@ -9,5 +9,25 @@
     "vcpkg_installed/": true,
     "vcpkg-manifest-install.log": true
   },
-  "cmake.preferredGenerators": ["Ninja"]
+  "cmake.preferredGenerators": ["Ninja"],
+  "files.associations": {
+    "*.glsl": "c",
+    "xstring": "cpp",
+    "vector": "cpp",
+    "any": "cpp",
+    "array": "cpp",
+    "compare": "cpp",
+    "filesystem": "cpp",
+    "format": "cpp",
+    "functional": "cpp",
+    "memory": "cpp",
+    "ratio": "cpp",
+    "tuple": "cpp",
+    "type_traits": "cpp",
+    "utility": "cpp",
+    "variant": "cpp",
+    "xmemory": "cpp",
+    "xtr1common": "cpp",
+    "xutility": "cpp"
+  }
 }

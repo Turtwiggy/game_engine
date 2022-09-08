@@ -64,7 +64,6 @@ init_game_state(entt::registry& r)
   r.each([&r](auto entity) { r.destroy(entity); });
   ctx_reset<SINGLETON_PhysicsComponent>(r);
   ctx_reset<SINGLETON_GameOverComponent>(r);
-  ctx_reset<SINGLETON_HierarchyComponent>(r);
   ctx_reset<SINGLETON_EntityBinComponent>(r);
   ctx_reset<SINGLETON_FixedUpdateInputHistory>(r);
 
@@ -72,17 +71,19 @@ init_game_state(entt::registry& r)
   ctx_reset<SINGLETON_TilemapComponent>(r);
 
   create_hierarchy_root_node(r);
-  create_entity(r, ENTITY_TYPE::FREE_CURSOR);
+  create_gameplay(r, ENTITY_TYPE::FREE_CURSOR);
 
   {
-    auto shield = create_entity(r, ENTITY_TYPE::SHIELD);
+    auto shield = create_gameplay(r, ENTITY_TYPE::SHIELD);
+    create_renderable(r, shield, ENTITY_TYPE::SHIELD);
     auto& shield_transform = r.get<TransformComponent>(shield);
     shield_transform.position.x = 0;
     shield_transform.position.y = 0;
     shield_transform.scale.x = 1;
     shield_transform.scale.y = 1;
 
-    auto player = create_entity(r, ENTITY_TYPE::PLAYER);
+    auto player = create_gameplay(r, ENTITY_TYPE::PLAYER);
+    create_renderable(r, player, ENTITY_TYPE::PLAYER);
     auto& player_transform = r.get<TransformComponent>(player);
     player_transform.position.x = 200;
     player_transform.position.y = 200;
@@ -104,7 +105,8 @@ init_game_state(entt::registry& r)
   }
 
   {
-    auto shopkeeper = create_entity(r, ENTITY_TYPE::SHOPKEEPER);
+    auto shopkeeper = create_gameplay(r, ENTITY_TYPE::SHOPKEEPER);
+    create_renderable(r, shopkeeper, ENTITY_TYPE::SHOPKEEPER);
     auto& transform = r.get<TransformComponent>(shopkeeper);
     transform.position.x = 500;
     transform.position.y = 500;
@@ -112,25 +114,20 @@ init_game_state(entt::registry& r)
 
   // stock up!
   const auto& view = r.view<ShopKeeperComponent>();
-  view.each([&r](auto entity, auto& shopkeeper) {
-    create_item(r, ENTITY_TYPE::POTION, entity);
-    create_item(r, ENTITY_TYPE::POTION, entity);
-    create_item(r, ENTITY_TYPE::POTION, entity);
-    create_item(r, ENTITY_TYPE::SWORD, entity);
-    create_item(r, ENTITY_TYPE::FIRE_SWORD, entity);
-    create_item(r, ENTITY_TYPE::SHIELD, entity);
-    create_item(r, ENTITY_TYPE::STONE, entity);
-    create_item(r, ENTITY_TYPE::CROSSBOW, entity);
-    create_item(r, ENTITY_TYPE::BOLT, entity);
-    create_item(r, ENTITY_TYPE::SCROLL_CONFUSION, entity);
-    create_item(r, ENTITY_TYPE::SCROLL_FIREBALL, entity);
-    create_item(r, ENTITY_TYPE::SCROLL_MAGIC_MISSILE, entity);
+  view.each([&r](auto shop_entity, auto& shopkeeper) {
+    create_item(r, ENTITY_TYPE::POTION, shop_entity);
+    create_item(r, ENTITY_TYPE::POTION, shop_entity);
+    create_item(r, ENTITY_TYPE::POTION, shop_entity);
+    create_item(r, ENTITY_TYPE::SWORD, shop_entity);
+    create_item(r, ENTITY_TYPE::FIRE_SWORD, shop_entity);
+    create_item(r, ENTITY_TYPE::SHIELD, shop_entity);
+    create_item(r, ENTITY_TYPE::STONE, shop_entity);
+    create_item(r, ENTITY_TYPE::CROSSBOW, shop_entity);
+    create_item(r, ENTITY_TYPE::BOLT, shop_entity);
+    create_item(r, ENTITY_TYPE::SCROLL_CONFUSION, shop_entity);
+    create_item(r, ENTITY_TYPE::SCROLL_FIREBALL, shop_entity);
+    create_item(r, ENTITY_TYPE::SCROLL_MAGIC_MISSILE, shop_entity);
   });
-
-  // auto& audio = r.ctx().at<SINGLETON_AudioComponent>();
-  // if (audio.device != -1 && Mix_PlayingMusic() == 0) {
-  //   Mix_PlayMusic(audio.music.begin()->data, 1); // play music
-  // }
 };
 
 } // namespace game2d

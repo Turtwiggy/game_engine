@@ -26,21 +26,19 @@ game2d::update_ui_editor_scene_system(entt::registry& r)
   ImGui::Text("Current map: %s", current_map.c_str());
 
   if (ImGui::Button("Load")) {
-    open_dialog.Open();
-    entt::registry registry;
-    load(registry, "");
+    // open_dialog.Open();
+    load(r, "assets/maps/home.json");
   };
 
   ImGui::SameLine();
   if (ImGui::Button("Save As")) {
-    save_dialog.Open();
-    entt::registry registry;
-    save(registry, "");
+    // save_dialog.Open();
+    save(r, "assets/maps/home.json");
   };
 
   ImGui::SameLine();
   if (ImGui::Button("Save")) {
-    std::cout << "todo: save";
+    save(r, "assets/maps/home.json");
   };
 
   open_dialog.Display();

@@ -95,7 +95,7 @@ game2d::update_ui_editor_tilemap_system(entt::registry& r)
   ImGui::End();
 
   // Entity To place!
-  ENTITY_TYPE entity = magic_enum::enum_value<ENTITY_TYPE>(item_current_idx);
+  ENTITY_TYPE entity_type = magic_enum::enum_value<ENTITY_TYPE>(item_current_idx);
 
   //
   // Tilemap Editor
@@ -113,12 +113,13 @@ game2d::update_ui_editor_tilemap_system(entt::registry& r)
     // this is ever used in gameplay reasons (other than mapping tools)
 
     if (place_mode) {
-      entt::entity e = entt::null;
+
+      entt::entity e;
 
       if (empty_space) {
         // create
-        e = create_entity(r, entity);
-        create_renderable(r, e, entity);
+        e = create_gameplay(r, entity_type);
+        create_renderable(r, e, entity_type);
         auto& transform = r.get<TransformComponent>(e);
         transform.position.x = grid_position.x;
         transform.position.y = grid_position.y;

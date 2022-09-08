@@ -259,8 +259,8 @@ game2d::update_render_system(entt::registry& registry)
     // TODO: work out z-index
     // registry.sort<renderable>([](const auto& lhs, const auto& rhs) { return lhs.z < rhs.z; });
 
-    auto& h = registry.ctx().at<SINGLETON_HierarchyComponent>();
-    const auto& hroot = registry.get<EntityHierarchyComponent>(h.root_node);
+    const auto& h = registry.view<RootNode>().front();
+    auto& hroot = registry.get<EntityHierarchyComponent>(h);
 
     // skip showing the root node, go to children
     for (const auto& child : hroot.children) {

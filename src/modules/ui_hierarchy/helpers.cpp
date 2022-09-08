@@ -19,13 +19,13 @@
 entt::entity
 game2d::create_hierarchy_root_node(entt::registry& r)
 {
-  auto& h = r.ctx().at<SINGLETON_HierarchyComponent>();
-  h.root_node = r.create();
+  auto h = r.create();
+  const auto type_name = std::string("EMPTY");
 
-  r.emplace<TagComponent>(h.root_node, "root-node");
-  r.emplace<EntityHierarchyComponent>(h.root_node, h.root_node);
-
-  return h.root_node;
+  r.emplace<TagComponent>(h, type_name);
+  r.emplace<EntityHierarchyComponent>(h);
+  r.emplace<RootNode>(h);
+  return h;
 };
 
 void
@@ -34,7 +34,7 @@ game2d::imgui_draw_string(const std::string& label, std::string& v)
   ImGui::Text(label.c_str());
   ImGui::SameLine();
   ImGui::InputText((std::string("##") + label).c_str(), &v);
-}
+};
 
 void
 game2d::imgui_draw_float(const std::string& label, float& v)
@@ -45,7 +45,7 @@ game2d::imgui_draw_float(const std::string& label, float& v)
   ImGui::SameLine();
   if (ImGui::DragFloat((std::string("##") + label).c_str(), &v_temp, 0.5f))
     v = v_temp;
-}
+};
 
 void
 game2d::imgui_draw_ivec2(const std::string& label, int& x, int& y)
@@ -58,7 +58,7 @@ game2d::imgui_draw_ivec2(const std::string& label, int& x, int& y)
     x = v_temp.x;
     y = v_temp.y;
   }
-}
+};
 
 void
 game2d::imgui_draw_vec3(const std::string& label, float& x, float& y, float& z)
@@ -72,7 +72,7 @@ game2d::imgui_draw_vec3(const std::string& label, float& x, float& y, float& z)
     y = v_temp.y;
     z = v_temp.z;
   }
-}
+};
 
 void
 game2d::imgui_draw_ivec3(const std::string& label, int& x, int& y, int& z)
@@ -86,7 +86,7 @@ game2d::imgui_draw_ivec3(const std::string& label, int& x, int& y, int& z)
     y = v_temp.y;
     z = v_temp.z;
   }
-}
+};
 
 void
 game2d::imgui_draw_vec2(const std::string& label, float& x, float& y)
@@ -99,7 +99,7 @@ game2d::imgui_draw_vec2(const std::string& label, float& x, float& y)
     x = v_temp.x;
     y = v_temp.y;
   }
-}
+};
 
 namespace game2d {
 
@@ -167,7 +167,7 @@ game2d::imgui_draw_entity(entt::registry& r, const std::string& label, const ent
 
   if (delete_entity)
     recursively_delete_with_children(r, e);
-}
+};
 
 void
 game2d::drop_accept_entity(entt::registry& r, const entt::entity& e)
@@ -199,4 +199,4 @@ game2d::drop_accept_entity(entt::registry& r, const entt::entity& e)
     }
     ImGui::EndDragDropTarget();
   }
-}
+};

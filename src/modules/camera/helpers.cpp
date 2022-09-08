@@ -10,13 +10,13 @@ namespace game2d {
 entt::entity
 create_camera(entt::registry& r)
 {
-  auto& h = r.ctx().at<SINGLETON_HierarchyComponent>();
+  // auto& h = r.ctx().at<SINGLETON_HierarchyComponent>();
 
   entt::entity e = r.create();
-  r.emplace<TagComponent>(e, "camera");
-  r.emplace<EntityHierarchyComponent>(e, h.root_node);
-  r.emplace<TransformComponent>(e);
-  r.emplace<CameraComponent>(e);
+  // r.emplace<TagComponent>(e, "camera");
+  // r.emplace<EntityHierarchyComponent>(e, h.root_node);
+  // r.emplace<TransformComponent>(e);
+  // r.emplace<CameraComponent>(e);
 
   return e;
 }

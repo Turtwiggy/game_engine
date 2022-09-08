@@ -15,10 +15,11 @@
 void
 game2d::update_ui_hierarchy_system(entt::registry& registry)
 {
-  auto& h = registry.ctx().at<SINGLETON_HierarchyComponent>();
-  const auto& hroot = registry.get<EntityHierarchyComponent>(h.root_node);
+  const auto& h_entity = registry.view<RootNode>().front();
+  auto& hroot = registry.get<EntityHierarchyComponent>(h_entity);
   size_t root_entity_count = hroot.children.size();
   size_t entities = registry.alive();
+  static entt::entity selected_entity = entt::null;
 
   ImGui::Begin("Hierarchy", NULL, ImGuiWindowFlags_NoFocusOnAppearing);
   {
@@ -27,17 +28,17 @@ game2d::update_ui_hierarchy_system(entt::registry& registry)
     ImGui::Text("Under root: %i", root_entity_count);
 
     // let root hierarchy entity be dropped on
-    drop_accept_entity(registry, h.root_node);
+    drop_accept_entity(registry, h_entity);
 
     // skip showing the root node, go to children
     for (const auto& child : hroot.children) {
       const auto& tag = registry.get<TagComponent>(child).tag;
-      imgui_draw_entity(registry, tag, child, h.selected_entity);
+      imgui_draw_entity(registry, tag, child, selected_entity);
     }
 
     // If select anywhere in the window, make entity unselected
     if (ImGui::IsMouseDown(0) && ImGui::IsWindowHovered())
-      h.selected_entity = entt::null;
+      selected_entity = entt::null;
 
     // Right click on menu
     if (ImGui::BeginPopupContextWindow(0, 1, false)) {
@@ -54,14 +55,14 @@ game2d::update_ui_hierarchy_system(entt::registry& registry)
   //
 
   ImGui::Begin("Properties", NULL, ImGuiWindowFlags_NoFocusOnAppearing);
-  if (h.selected_entity != entt::null) {
+  if (selected_entity != entt::null) {
 
-    if (!registry.valid(h.selected_entity)) {
+    if (!registry.valid(selected_entity)) {
       ImGui::End();
       return; // make sure selected entity is valid
     }
 
-    const auto& eid = h.selected_entity;
+    const auto& eid = selected_entity;
 
     if (registry.all_of<TagComponent>(eid)) {
       TagComponent& t = registry.get<TagComponent>(eid);

@@ -74,4 +74,4 @@ public:
   }
 };
 
-} // namespace plantproject
+} // namespace game2d

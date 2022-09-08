@@ -26,8 +26,8 @@ game2d::update_lifecycle_system(entt::registry& r, uint64_t milliseconds_dt)
 
   // update hierarchy...
   // update hroot.children if entity is removed
-  auto& h = r.ctx().at<SINGLETON_HierarchyComponent>();
-  auto& hroot = r.get<EntityHierarchyComponent>(h.root_node);
+  const auto& h = r.view<RootNode>().front();
+  auto& hroot = r.get<EntityHierarchyComponent>(h);
   std::vector<entt::entity>::iterator it = hroot.children.begin();
   while (it != hroot.children.end()) {
     if (!r.valid(*it))

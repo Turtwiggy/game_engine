@@ -14,7 +14,7 @@ struct TagComponent
 {
   std::string tag;
 
-  NLOHMANN_DEFINE_TYPE_INTRUSIVE(TagComponent, tag)
+  NLOHMANN_DEFINE_TYPE_INTRUSIVE(TagComponent, tag);
 };
 
 struct TransformComponent
@@ -24,6 +24,17 @@ struct TransformComponent
   glm::vec3 rotation_radians = { 0, 0, 0 };
   glm::ivec3 scale{ 0, 0, 0 };
   glm::vec3 scale_dxdy{ 0.0f, 0.0f, 0.0f };
+
+  NLOHMANN_DEFINE_TYPE_INTRUSIVE(TransformComponent,
+                                 position.x,
+                                 position.y,
+                                 position.z,
+                                 rotation_radians.x,
+                                 rotation_radians.y,
+                                 rotation_radians.z,
+                                 scale.x,
+                                 scale.y,
+                                 scale.z);
 };
 
 // Attributes only updated by renderer system, read by anything.

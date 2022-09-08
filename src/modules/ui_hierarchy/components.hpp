@@ -4,9 +4,9 @@
 
 // other lib headers
 #include <entt/entt.hpp>
+#include <nlohmann/json.hpp>
 
 // c++ lib headers
-#include <string>
 #include <vector>
 
 namespace game2d {
@@ -15,12 +15,15 @@ struct EntityHierarchyComponent
 {
   entt::entity parent = entt::null;
   std::vector<entt::entity> children;
+
+  NLOHMANN_DEFINE_TYPE_INTRUSIVE(EntityHierarchyComponent, parent, children);
 };
 
-struct SINGLETON_HierarchyComponent
+struct RootNode
 {
-  entt::entity selected_entity = entt::null;
-  entt::entity root_node = entt::null;
+  bool placeholder = true;
+
+  NLOHMANN_DEFINE_TYPE_INTRUSIVE(RootNode, placeholder);
 };
 
 } // namespace game2d

@@ -44,24 +44,24 @@ enum class ENTITY_TYPE
 
   // misc...
   FREE_CURSOR,
-  GRID_CURSOR,
 
   COUNT
 };
 
 entt::entity
 create_item(entt::registry& r, const ENTITY_TYPE& type, const entt::entity& parent);
+void
+create_item(entt::registry& r, const entt::entity& e, const ENTITY_TYPE& type, const entt::entity& parent);
 
 void
-create_renderable(entt::registry& r,
-                  const entt::entity& e,
-                  const ENTITY_TYPE& type,
-                  const std::optional<engine::SRGBColour>& colour = std::nullopt);
+create_renderable(entt::registry& r, const entt::entity& e, const ENTITY_TYPE& type);
 
 void
 remove_renderable(entt::registry& r, const entt::entity& e);
 
 entt::entity
-create_entity(entt::registry&, const ENTITY_TYPE& type);
+create_gameplay(entt::registry& r, const ENTITY_TYPE& type);
+void
+create_gameplay(entt::registry&, const entt::entity& e, const ENTITY_TYPE& type);
 
 } // namespace game2d
