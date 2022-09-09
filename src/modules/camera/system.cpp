@@ -13,7 +13,7 @@ namespace game2d {
 void
 update_camera_system(entt::registry& registry)
 {
-  const auto& input = registry.ctx().at<SINGLETON_InputComponent>();
+  const auto& input = registry.ctx().at<InputComponent>();
   const auto camera = get_main_camera(registry);
   auto& transform = registry.get<TransformComponent>(camera);
 

@@ -20,7 +20,7 @@ game2d::update_player_inputs_system(entt::registry& r)
 {
   const auto& p = r.ctx().at<SINGLETON_PhysicsComponent>();
   auto& gameover = r.ctx().at<SINGLETON_GameOverComponent>();
-  auto& input = r.ctx().at<SINGLETON_InputComponent>();
+  auto& input = r.ctx().at<InputComponent>();
 
   //
   // Capture player(s) inputs

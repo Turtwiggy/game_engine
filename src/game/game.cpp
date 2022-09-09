@@ -68,7 +68,8 @@ init_game_state(entt::registry& r)
   ctx_reset<SINGLETON_FixedUpdateInputHistory>(r);
 
   // reset editor tools?
-  ctx_reset<SINGLETON_TilemapComponent>(r);
+  auto tilemap_ent = r.create();
+  r.emplace<TilemapComponent>(tilemap_ent);
 
   create_hierarchy_root_node(r);
   create_gameplay(r, ENTITY_TYPE::FREE_CURSOR);
@@ -162,7 +163,7 @@ game2d::fixed_update(entt::registry& r, uint64_t milliseconds_dt)
   auto& p = r.ctx().at<Profiler>();
   {
     auto _ = time_scope(&p, "(all)", true);
-    auto& input = r.ctx().at<SINGLETON_InputComponent>();
+    auto& input = r.ctx().at<InputComponent>();
     auto& fixed_input = r.ctx().at<SINGLETON_FixedUpdateInputHistory>();
 
     // while offline, just clear out anything older than a tick
@@ -190,7 +191,7 @@ game2d::update(entt::registry& r, float dt)
   {
     auto _ = time_scope(&p, "game_tick");
     update_input_system(r);
-    const auto& input = r.ctx().at<SINGLETON_InputComponent>();
+    auto& input = r.ctx().at<InputComponent>();
     if (ri.viewport_process_events) {
       if (get_key_down(input, SDL_SCANCODE_R))
         init_game_state(r);

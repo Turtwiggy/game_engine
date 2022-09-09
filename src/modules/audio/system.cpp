@@ -83,7 +83,7 @@ init_audio_system(entt::registry& registry)
 void
 update_audio_system(entt::registry& registry)
 {
-  const auto& events = registry.ctx().at<SINGLETON_InputComponent>();
+  // const auto& events = registry.ctx().at<SINGLETON_InputComponent>();
   auto& audio = registry.ctx().at<SINGLETON_AudioComponent>();
 
   // TODO: fix audio

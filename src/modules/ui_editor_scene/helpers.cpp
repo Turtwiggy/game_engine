@@ -33,7 +33,9 @@ save(const entt::registry& registry, std::string path)
   entt::basic_snapshot{ registry }
     .entities(json_archive)
     .component<
-      //
+      // editor
+      TilemapComponent,
+      // game/renderer
       TagComponent,
       EntityHierarchyComponent,
       RootNode,
@@ -101,7 +103,9 @@ load(entt::registry& r, std::string path)
   entt::basic_snapshot_loader{ registry_to_load_in_to }
     .entities(json_in)
     .component<
-      //
+      // editor
+      TilemapComponent,
+      // game/renderer
       TagComponent,
       EntityHierarchyComponent,
       RootNode,
@@ -139,7 +143,7 @@ load(entt::registry& r, std::string path)
   ctx_reset<SINGLETON_EntityBinComponent>(r);
   ctx_reset<SINGLETON_FixedUpdateInputHistory>(r);
   // reset editor tools?
-  ctx_reset<SINGLETON_TilemapComponent>(r);
+  // ctx_reset<SINGLETON_TilemapComponent>(r);
 
   const auto& view = r.view<const TagComponent>();
   view.each([&r](auto entity, const TagComponent& tag) {

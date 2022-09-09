@@ -14,14 +14,14 @@
 void
 game2d::init_input_system(entt::registry& registry)
 {
-  auto& input = registry.ctx().emplace<SINGLETON_InputComponent>();
+  auto& input = registry.ctx().emplace<InputComponent>();
   input.state = SDL_GetKeyboardState(NULL);
-}
+};
 
 void
 game2d::update_input_system(entt::registry& registry)
 {
-  auto& input = registry.ctx().at<SINGLETON_InputComponent>();
+  auto& input = registry.ctx().at<InputComponent>();
   auto& app = registry.ctx().at<engine::SINGLETON_Application>();
 
   input.keys_pressed.clear();

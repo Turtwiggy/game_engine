@@ -50,7 +50,7 @@ struct SINGLETON_FixedUpdateInputHistory
   NLOHMANN_DEFINE_TYPE_INTRUSIVE(SINGLETON_FixedUpdateInputHistory, fixed_tick_since_ack, history);
 };
 
-struct SINGLETON_InputComponent
+struct InputComponent
 {
   std::vector<SDL_Event> sdl_events;
   std::vector<InputEvent> unprocessed_update_inputs;

@@ -17,6 +17,14 @@
 
 #include <map>
 
+template<class T>
+T&
+get_first(entt::registry& r)
+{
+  const entt::enity& entity = r.viewT > () >.front();
+  return r.get<T>(entity);
+};
+
 void
 game2d::update_ui_editor_tilemap_system(entt::registry& r)
 {
@@ -30,7 +38,7 @@ game2d::update_ui_editor_tilemap_system(entt::registry& r)
   //
 
   auto& ss = r.ctx().at<SINGLETON_SpriteSearcher>();
-  auto& tilemap = r.ctx().at<SINGLETON_TilemapComponent>();
+  auto& tilemap = get_first<TilemapComponent>(r);
   auto& colours = r.ctx().at<SINGLETON_ColoursComponent>();
   const int GRID_SIZE = 16; // hmm
   const glm::ivec2 mouse_position = mouse_position_in_worldspace(r);
@@ -45,20 +53,20 @@ game2d::update_ui_editor_tilemap_system(entt::registry& r)
   // TODO: save the configs above as prefabs
   ImGui::Begin("Prefabs innit");
 
-  static bool overwrite_sprite = true;
+  static bool overwrite_sprite = false;
   ImGui::Checkbox("sprite##overwrite", &overwrite_sprite);
   ImGui::SameLine();
   ImGui::Text("With: %i %i", ss.x, ss.y);
   ImGui::Separator();
 
-  static bool overwrite_angle = true;
+  static bool overwrite_angle = false;
   static float angle = 0.0f;
   ImGui::Checkbox("angle", &overwrite_angle);
   ImGui::SameLine();
   imgui_draw_float("angle", angle);
   ImGui::Separator();
 
-  static bool overwrite_colour = true;
+  static bool overwrite_colour = false;
   static engine::SRGBColour rgba = colours.white;
   ImGui::Checkbox("colour##overwrite", &overwrite_colour);
   ImGui::SameLine();
