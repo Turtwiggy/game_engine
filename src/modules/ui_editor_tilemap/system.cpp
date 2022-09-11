@@ -4,6 +4,7 @@
 #include "engine/colour.hpp"
 #include "engine/maths/grid.hpp"
 #include "game/entities/actors.hpp"
+#include "modules/entt/helpers.hpp"
 #include "modules/events/components.hpp"
 #include "modules/events/helpers/mouse.hpp"
 #include "modules/renderer/components.hpp"
@@ -16,14 +17,6 @@
 #include <imgui.h>
 
 #include <map>
-
-template<class T>
-T&
-get_first(entt::registry& r)
-{
-  const entt::enity& entity = r.viewT > () >.front();
-  return r.get<T>(entity);
-};
 
 void
 game2d::update_ui_editor_tilemap_system(entt::registry& r)

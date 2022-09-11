@@ -50,8 +50,8 @@ enum class ENTITY_TYPE
 
 entt::entity
 create_item(entt::registry& r, const ENTITY_TYPE& type, const entt::entity& parent);
-void
-create_item(entt::registry& r, const entt::entity& e, const ENTITY_TYPE& type, const entt::entity& parent);
+// void
+// create_item(entt::registry& r, const entt::entity& e, const ENTITY_TYPE& type, const entt::entity& parent);
 
 void
 create_renderable(entt::registry& r, const entt::entity& e, const ENTITY_TYPE& type);

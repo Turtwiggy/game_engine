@@ -4,6 +4,7 @@
 // systems&components&helpers
 #include "modules/audio/system.hpp"
 #include "modules/cursor/system.hpp"
+#include "modules/entt/helpers.hpp"
 #include "modules/events/components.hpp"
 #include "modules/events/helpers/keyboard.hpp"
 #include "modules/events/system.hpp"
@@ -49,15 +50,6 @@
 
 namespace game2d {
 
-template<class T>
-void
-ctx_reset(entt::registry& r)
-{
-  if (r.ctx().contains<T>())
-    r.ctx().erase<T>();
-  r.ctx().emplace<T>();
-};
-
 void
 init_game_state(entt::registry& r)
 {
@@ -83,25 +75,10 @@ init_game_state(entt::registry& r)
     shield_transform.scale.x = 1;
     shield_transform.scale.y = 1;
 
-    auto player = create_gameplay(r, ENTITY_TYPE::PLAYER);
-    create_renderable(r, player, ENTITY_TYPE::PLAYER);
-    auto& player_transform = r.get<TransformComponent>(player);
-    player_transform.position.x = 200;
-    player_transform.position.y = 200;
-
-    { // set shield as child of player
-      EntityHierarchyComponent& player_hierarchy = r.get<EntityHierarchyComponent>(player);
-      EntityHierarchyComponent& shield_hierarchy = r.get<EntityHierarchyComponent>(shield);
-      // remove the shield from the old parent
-      EntityHierarchyComponent& parent_hierarchy = r.get<EntityHierarchyComponent>(shield_hierarchy.parent);
-      for (int i = 0; i < parent_hierarchy.children.size(); i++) {
-        if (parent_hierarchy.children[i] == shield) {
-          parent_hierarchy.children.erase(parent_hierarchy.children.begin() + i);
-          break;
-        }
-      }
-      shield_hierarchy.parent = player;
-      player_hierarchy.children.push_back(shield);
+    // Player's starting units
+    for (int i = 0; i < 4; i++) {
+      auto player = create_gameplay(r, ENTITY_TYPE::PLAYER);
+      create_renderable(r, player, ENTITY_TYPE::PLAYER);
     }
   }
 

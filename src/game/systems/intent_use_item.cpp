@@ -102,6 +102,10 @@ update_intent_use_item_system(entt::registry& r)
 
   // WantsToAttack
   // ...
+
+  // WantsToEquip
+  // ...
+  // Equipment can have item slots?
 };
 
 } // namespace game2d

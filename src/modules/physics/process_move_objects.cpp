@@ -21,13 +21,12 @@ game2d::update_move_objects_system(entt::registry& registry, uint64_t millisecon
   get_solids_as_physics_objects(registry, solids);
 
   const auto& actors =
-    registry
-      .view<TransformComponent, const VelocityComponent, const PhysicsSizeComponent, const PhysicsActorComponent>();
+    registry.view<TransformComponent, VelocityComponent, const PhysicsSizeComponent, const PhysicsActorComponent>();
 
   // move actors, but stop at solids
   float seconds_dt = milliseconds_dt / 1000.0f;
   actors.each([&solids, &seconds_dt](TransformComponent& transform,
-                                     const VelocityComponent& vel,
+                                     VelocityComponent& vel,
                                      const PhysicsSizeComponent& size,
                                      const PhysicsActorComponent& actor) {
     transform.position_dxdy.x += vel.x * seconds_dt;
@@ -52,7 +51,7 @@ game2d::update_move_objects_system(entt::registry& registry, uint64_t millisecon
           transform.position.x += sign;
           move_x -= sign;
         } else {
-          // std::cout << "hit a solid";
+          printf("hit a solid");
           // callback(registry)
           break;
         }
@@ -78,7 +77,7 @@ game2d::update_move_objects_system(entt::registry& registry, uint64_t millisecon
           transform.position.y += sign;
           move_y -= sign;
         } else {
-          // std::cout << "hit a solid";
+          printf("hit a solid");
           // callback(registry)
           break;
         }

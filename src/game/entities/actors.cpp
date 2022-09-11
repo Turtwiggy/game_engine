@@ -20,20 +20,41 @@ namespace game2d {
 
 static constexpr int SPRITE_SIZE = 16;
 
-entt::entity
-create_item(entt::registry& r, const ENTITY_TYPE& type, const entt::entity& parent)
+void
+set_parent(entt::registry& r, const entt::entity& e, const entt::entity& parent)
 {
-  auto entity = r.create();
-  create_item(r, entity, type, parent);
-  return entity;
+  r.emplace<EntityHierarchyComponent>(e, parent);
 };
 
 void
-create_item(entt::registry& r, const entt::entity& e, const ENTITY_TYPE& type, const entt::entity& parent)
+add_child(entt::registry& r, const entt::entity& e, const entt::entity& child)
 {
-  create_gameplay(r, e, type);
-  r.emplace<InBackpackComponent>(e, parent);
+  auto& hc = r.get<EntityHierarchyComponent>(e);
+  hc.children.push_back(child);
 };
+
+entt::entity
+create_item(entt::registry& r, const ENTITY_TYPE& type, const entt::entity& parent)
+{
+  auto e = r.create();
+
+  const auto& h = r.view<RootNode>().front();
+  add_child(r, h, e);
+  set_parent(r, e, h);
+  r.emplace<TagComponent>(e, std::string(magic_enum::enum_name(type)));
+
+  create_gameplay(r, e, type);
+
+  r.emplace<InBackpackComponent>(e, parent);
+  return e;
+};
+
+// void
+// create_item(entt::registry& r, const entt::entity& e, const ENTITY_TYPE& type, const entt::entity& parent)
+// {
+//   create_gameplay(r, e, type);
+//   r.emplace<InBackpackComponent>(e, parent);
+// };
 
 void
 create_renderable(entt::registry& r, const entt::entity& e, const ENTITY_TYPE& type)
@@ -127,19 +148,6 @@ remove_renderable(entt::registry& r, const entt::entity& e)
   r.remove<TransformComponent>(e);
 };
 
-void
-set_parent(entt::registry& r, const entt::entity& e, const entt::entity& parent)
-{
-  r.emplace<EntityHierarchyComponent>(e, parent);
-};
-
-void
-add_child(entt::registry& r, const entt::entity& e, const entt::entity& child)
-{
-  auto& hc = r.get<EntityHierarchyComponent>(e);
-  hc.children.push_back(child);
-};
-
 entt::entity
 create_gameplay(entt::registry& r, const ENTITY_TYPE& type)
 {
@@ -186,6 +194,7 @@ create_gameplay(entt::registry& r, const entt::entity& e, const ENTITY_TYPE& typ
       r.emplace<PhysicsActorComponent>(e, GameCollisionLayer::ACTOR_PLAYER);
       r.emplace<PhysicsSizeComponent>(e, PhysicsSizeComponent(SPRITE_SIZE, SPRITE_SIZE));
       r.emplace<VelocityComponent>(e);
+      // use grid-move
       // gameplay
       r.emplace<HealthComponent>(e);
       r.emplace<TakeDamageComponent>(e);
@@ -195,6 +204,10 @@ create_gameplay(entt::registry& r, const entt::entity& e, const ENTITY_TYPE& typ
     case ENTITY_TYPE::SHOPKEEPER: {
       // gameplay
       r.emplace<ShopKeeperComponent>(e);
+      break;
+    }
+    case ENTITY_TYPE::STONE: {
+      r.emplace<AttackComponent>(e, AttackComponent(0, 4));
       break;
     }
     case ENTITY_TYPE::SWORD: {
