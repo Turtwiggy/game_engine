@@ -1,4 +1,4 @@
-#include "player.hpp"
+#include "player_controller.hpp"
 
 #include "game/components/components.hpp"
 #include "game/entities/actors.hpp"
@@ -14,12 +14,12 @@
 #include <vector>
 
 void
-game2d::update_player_system(entt::registry& r, const std::vector<InputEvent>& inputs)
+game2d::update_player_controller_system(entt::registry& r, const std::vector<InputEvent>& inputs)
 {
   auto& tilemap = game2d::get_first<TilemapComponent>(r);
 
-  const auto& view = r.view<PlayerComponent, VelocityComponent>();
-  view.each([&r, &inputs](entt::entity entity, PlayerComponent& player, VelocityComponent& vel) {
+  const auto& view = r.view<PlayerComponent, GridMoveComponent>();
+  view.each([&r, &inputs](entt::entity entity, PlayerComponent& player, GridMoveComponent& grid) {
     for (int i = 0; i < inputs.size(); i++) {
       const auto& any_input = inputs[i];
 
@@ -29,28 +29,19 @@ game2d::update_player_system(entt::registry& r, const std::vector<InputEvent>& i
       switch (any_input.type) {
         case INPUT_TYPE::KEYBOARD: {
 
-          if (any_input.key == player.W) {
-            // vel.y = -1 * player.speed;
-            vel.y = -16;
-          }
-          if (any_input.key == player.S) {
-            // vel.y = 1 * player.speed;
-            vel.y = 16;
-          }
-          if (any_input.key == player.A) {
-            // vel.x = -1 * player.speed;
-            vel.x = -16;
-          }
-          if (any_input.key == player.D) {
-            // vel.x = 1 * player.speed;
-            vel.x = 16;
-          }
-          if ((any_input.key == player.A || any_input.key == player.D) && any_input.release) {
-            // vel.x = 0;
-          }
-          if ((any_input.key == player.W || any_input.key == player.S) && any_input.release) {
-            // vel.y = 0;
-          }
+          int dx = 0;
+          int dy = 0;
+          if (any_input.key == player.W && !any_input.release)
+            dy = -1;
+          if (any_input.key == player.S && !any_input.release)
+            dy = 1;
+          if (any_input.key == player.A && !any_input.release)
+            dx = -1;
+          if (any_input.key == player.D && !any_input.release)
+            dx = 1;
+
+          grid.x += 16 * dx;
+          grid.y += 16 * dy;
         }
         case INPUT_TYPE::MOUSE: {
           if (any_input.key == SDL_BUTTON_LEFT && !any_input.release) {

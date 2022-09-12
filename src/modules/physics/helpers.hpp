@@ -2,6 +2,7 @@
 
 // components
 #include "modules/physics/components.hpp"
+#include "modules/renderer/components.hpp"
 
 // other lib headers
 #include <glm/glm.hpp>
@@ -46,5 +47,11 @@ get_actors_as_physics_objects(entt::registry& registry, std::vector<PhysicsObjec
 
 bool
 collides(const PhysicsObject& one, const std::vector<PhysicsObject>& others);
+
+void
+do_move_x(TransformComponent& t, std::vector<PhysicsObject>& solids, int& amount);
+
+void
+do_move_y(TransformComponent& t, std::vector<PhysicsObject>& solids, int& amount);
 
 }; // namespace game2d

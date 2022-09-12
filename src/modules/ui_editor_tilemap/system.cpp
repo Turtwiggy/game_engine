@@ -7,6 +7,7 @@
 #include "modules/entt/helpers.hpp"
 #include "modules/events/components.hpp"
 #include "modules/events/helpers/mouse.hpp"
+#include "modules/physics/components.hpp"
 #include "modules/renderer/components.hpp"
 #include "modules/sprites/components.hpp"
 #include "modules/ui_hierarchy/helpers.hpp"
@@ -34,7 +35,7 @@ game2d::update_ui_editor_tilemap_system(entt::registry& r)
   auto& tilemap = get_first<TilemapComponent>(r);
   auto& colours = r.ctx().at<SINGLETON_ColoursComponent>();
   const int GRID_SIZE = 16; // hmm
-  const glm::ivec2 mouse_position = mouse_position_in_worldspace(r);
+  const glm::ivec2 mouse_position = mouse_position_in_worldspace(r) + glm::ivec2(GRID_SIZE / 2, GRID_SIZE / 2);
   const glm::ivec2 grid_position = engine::grid::world_space_to_clamped_world_space(mouse_position, GRID_SIZE);
 
   // this seems weird, but it's because std::pair is serializable
@@ -66,6 +67,15 @@ game2d::update_ui_editor_tilemap_system(entt::registry& r)
   static float rgba_cols[4] = { rgba.r, rgba.g, rgba.b, rgba.a };
   if (ImGui::ColorEdit4("##overwritecolouredit", rgba_cols))
     rgba = { rgba_cols[0], rgba_cols[1], rgba_cols[2], rgba_cols[3] };
+  ImGui::Separator();
+
+  static bool overwrite_size = false;
+  static int size = 16;
+  ImGui::Checkbox("size##overwrite", &overwrite_size);
+  ImGui::SameLine();
+  int in_size = size;
+  if (ImGui::DragInt("##overwritesize", &in_size))
+    size = in_size;
   ImGui::Separator();
 
   std::vector<std::string> items;
@@ -144,6 +154,17 @@ game2d::update_ui_editor_tilemap_system(entt::registry& r)
       if (overwrite_colour) {
         auto& sprite = r.get<SpriteComponent>(e);
         sprite.colour = engine::SRGBToLinear(rgba);
+      }
+
+      if (overwrite_size) {
+        auto& sprite_t = r.get<TransformComponent>(e);
+        sprite_t.scale.x = size;
+        sprite_t.scale.y = size;
+        auto sprite_po = r.try_get<PhysicsSizeComponent>(e);
+        if (sprite_po) {
+          sprite_po->w = size;
+          sprite_po->h = size;
+        }
       }
     }
 

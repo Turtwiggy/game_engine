@@ -193,8 +193,8 @@ create_gameplay(entt::registry& r, const entt::entity& e, const ENTITY_TYPE& typ
     case ENTITY_TYPE::PLAYER: {
       r.emplace<PhysicsActorComponent>(e, GameCollisionLayer::ACTOR_PLAYER);
       r.emplace<PhysicsSizeComponent>(e, PhysicsSizeComponent(SPRITE_SIZE, SPRITE_SIZE));
-      r.emplace<VelocityComponent>(e);
-      // use grid-move
+      // r.emplace<VelocityComponent>(e);
+      r.emplace<GridMoveComponent>(e);
       // gameplay
       r.emplace<HealthComponent>(e);
       r.emplace<TakeDamageComponent>(e);

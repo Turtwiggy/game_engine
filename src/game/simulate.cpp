@@ -1,7 +1,7 @@
 #include "simulate.hpp"
 
 #include "game/systems/intent_use_item.hpp"
-#include "game/systems/player.hpp"
+#include "game/systems/player_controller.hpp"
 #include "game/systems/resolve_collisions.hpp"
 
 // systems&components&helpers
@@ -19,7 +19,7 @@ void
 game2d::simulate(entt::registry& r, const std::vector<InputEvent>& inputs, uint64_t milliseconds_dt)
 {
   // process inputs in FixedUpdateInputHistory
-  update_player_system(r, inputs);
+  update_player_controller_system(r, inputs);
 
   // destroy objects
   update_lifecycle_system(r, milliseconds_dt);

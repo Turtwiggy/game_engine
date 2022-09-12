@@ -195,4 +195,64 @@ collides(const PhysicsObject& one, const std::vector<PhysicsObject>& others)
   return false;
 };
 
+void
+do_move_x(TransformComponent& transform, std::vector<PhysicsObject>& solids, int& amount)
+{
+  constexpr auto Sign = [](int x) { return x == 0 ? 0 : (x > 0 ? 1 : -1); };
+
+  if (amount != 0) {
+    transform.position_dxdy.x -= amount;
+    int sign = Sign(amount);
+    while (amount != 0) {
+
+      // updated position
+      PhysicsObject po;
+      po.w = transform.scale.x;
+      po.h = transform.scale.y;
+      po.x_tl = (transform.position.x - (transform.scale.x / 2.0f)) + sign;
+      po.y_tl = (transform.position.y - (transform.scale.y / 2.0f));
+      po.collidable = true;
+
+      if (!collides(po, solids)) {
+        transform.position.x += sign;
+        amount -= sign;
+      } else {
+        printf("hit a solid");
+        // callback(registry)
+        break;
+      }
+    }
+  }
+};
+
+void
+do_move_y(TransformComponent& transform, std::vector<PhysicsObject>& solids, int& amount)
+{
+  constexpr auto Sign = [](int x) { return x == 0 ? 0 : (x > 0 ? 1 : -1); };
+
+  if (amount != 0) {
+    transform.position_dxdy.y -= amount;
+    int sign = Sign(amount);
+    while (amount != 0) {
+
+      // updated position
+      PhysicsObject po;
+      po.w = transform.scale.x;
+      po.h = transform.scale.y;
+      po.x_tl = (transform.position.x - (transform.scale.x / 2.0f));
+      po.y_tl = (transform.position.y - (transform.scale.y / 2.0f)) + sign;
+      po.collidable = true;
+
+      if (!collides(po, solids)) {
+        transform.position.y += sign;
+        amount -= sign;
+      } else {
+        printf("hit a solid");
+        // callback(registry)
+        break;
+      }
+    }
+  }
+};
+
 }; // namespace game2d

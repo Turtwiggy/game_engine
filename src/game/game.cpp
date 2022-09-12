@@ -36,7 +36,6 @@
 #include "game/components/components.hpp"
 #include "game/entities/actors.hpp"
 #include "game/simulate.hpp"
-#include "game/systems/player.hpp"
 #include "game/systems/player_inputs.hpp"
 #include "game/systems/resolve_collisions.hpp"
 #include "game/systems/ui_player_inventory.hpp"
@@ -76,7 +75,7 @@ init_game_state(entt::registry& r)
     shield_transform.scale.y = 1;
 
     // Player's starting units
-    for (int i = 0; i < 4; i++) {
+    for (int i = 0; i < 1; i++) {
       auto player = create_gameplay(r, ENTITY_TYPE::PLAYER);
       create_renderable(r, player, ENTITY_TYPE::PLAYER);
     }

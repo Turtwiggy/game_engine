@@ -57,6 +57,14 @@ struct VelocityComponent
   NLOHMANN_DEFINE_TYPE_INTRUSIVE(VelocityComponent, x, y);
 };
 
+struct GridMoveComponent
+{
+  int x = 0;
+  int y = 0;
+
+  NLOHMANN_DEFINE_TYPE_INTRUSIVE(GridMoveComponent, x, y);
+};
+
 // specific for actor-actor collisions
 
 // A collision occurs between two entities
