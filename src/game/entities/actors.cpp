@@ -2,6 +2,7 @@
 
 #include "engine/maths/maths.hpp"
 #include "game/components/components.hpp"
+#include "game/helpers/dungeon.hpp"
 #include "modules/cursor/components.hpp"
 #include "modules/lifecycle/components.hpp"
 #include "modules/physics/components.hpp"
@@ -49,24 +50,22 @@ create_item(entt::registry& r, const ENTITY_TYPE& type, const entt::entity& pare
   return e;
 };
 
-// void
-// create_item(entt::registry& r, const entt::entity& e, const ENTITY_TYPE& type, const entt::entity& parent)
-// {
-//   create_gameplay(r, e, type);
-//   r.emplace<InBackpackComponent>(e, parent);
-// };
-
-void
-create_renderable(entt::registry& r, const entt::entity& e, const ENTITY_TYPE& type)
+TransformComponent
+create_transform(entt::registry& r, const entt::entity& e)
 {
-  const auto& slots = r.ctx().at<SINGLETON_Textures>();
+  TransformComponent t_comp;
+  t_comp.scale.x = SPRITE_SIZE;
+  t_comp.scale.y = SPRITE_SIZE;
+  return t_comp;
+};
+
+SpriteComponent
+create_sprite(entt::registry& r, const entt::entity& e, const ENTITY_TYPE& type)
+{
   const auto& colours = r.ctx().at<SINGLETON_ColoursComponent>();
   const auto& sprites = r.ctx().at<SINGLETON_Animations>();
   const auto type_name = std::string(magic_enum::enum_name(type));
 
-  TransformComponent t_comp;
-  t_comp.scale.x = SPRITE_SIZE;
-  t_comp.scale.y = SPRITE_SIZE;
   SpriteComponent s_comp;
   s_comp.tex_unit = get_tex_unit(r, AvailableTexture::KENNY);
   std::string sprite = "EMPTY";
@@ -75,6 +74,8 @@ create_renderable(entt::registry& r, const entt::entity& e, const ENTITY_TYPE& t
   if (type == ENTITY_TYPE::EMPTY)
     sprite = "EMPTY";
   else if (type == ENTITY_TYPE::WALL)
+    sprite = "EMPTY";
+  else if (type == ENTITY_TYPE::FLOOR)
     sprite = "EMPTY";
   else if (type == ENTITY_TYPE::ENEMY)
     sprite = "PERSON_25_0";
@@ -95,23 +96,13 @@ create_renderable(entt::registry& r, const entt::entity& e, const ENTITY_TYPE& t
   else
     std::cerr << "warning! sprite not implemented for: " << type_name << "\n";
 
-  // search spritesheet
-  const auto anim = find_animation(sprites.animations, sprite);
-  s_comp.x = anim.animation_frames[0].x;
-  s_comp.y = anim.animation_frames[0].y;
-
-  // overwrite defaults for sprite
-  if (type == ENTITY_TYPE::BOLT) {
-    s_comp.angle_radians = anim.animation_angle_degrees * engine::PI / 180.0f;
-    t_comp.scale.x = SPRITE_SIZE / 2;
-    t_comp.scale.y = SPRITE_SIZE / 2;
-  }
-
   // colours
   if (type == ENTITY_TYPE::EMPTY)
     s_comp.colour = engine::SRGBToLinear(colours.white);
   else if (type == ENTITY_TYPE::WALL)
     s_comp.colour = engine::SRGBToLinear(colours.wall);
+  else if (type == ENTITY_TYPE::FLOOR)
+    s_comp.colour = engine::SRGBToLinear(colours.floor);
   else if (type == ENTITY_TYPE::ENEMY)
     s_comp.colour = engine::SRGBToLinear(colours.asteroid);
   else if (type == ENTITY_TYPE::PLAYER)
@@ -131,21 +122,32 @@ create_renderable(entt::registry& r, const entt::entity& e, const ENTITY_TYPE& t
   else
     std::cerr << "warning! colour not implemented for: " << type_name << "\n";
 
+  // search spritesheet
+  const auto anim = find_animation(sprites.animations, sprite);
+  s_comp.x = anim.animation_frames[0].x;
+  s_comp.y = anim.animation_frames[0].y;
+
+  // overwrite defaults for sprite
+  // if (type == ENTITY_TYPE::BOLT) {
+  //   s_comp.angle_radians = anim.animation_angle_degrees * engine::PI / 180.0f;
+  //   t_comp.scale.x = SPRITE_SIZE / 2;
+  //   t_comp.scale.y = SPRITE_SIZE / 2;
+  // }
+
   // HACK
   if (s_comp.tex_unit == get_tex_unit(r, AvailableTexture::KENNY)) {
     s_comp.sx = 48;
     s_comp.sy = 22;
   }
 
-  r.emplace_or_replace<SpriteComponent>(e, s_comp);
-  r.emplace_or_replace<TransformComponent>(e, t_comp);
+  return s_comp;
 };
 
 void
-remove_renderable(entt::registry& r, const entt::entity& e)
+create_renderable(entt::registry& r, const entt::entity& e, const ENTITY_TYPE& type)
 {
-  r.remove<SpriteComponent>(e);
-  r.remove<TransformComponent>(e);
+  r.emplace<SpriteComponent>(e, create_sprite(r, e, type));
+  r.emplace<TransformComponent>(e, create_transform(r, e));
 };
 
 entt::entity
@@ -177,7 +179,59 @@ create_gameplay(entt::registry& r, const entt::entity& e, const ENTITY_TYPE& typ
       // physics
       r.emplace<PhysicsSolidComponent>(e, GameCollisionLayer::SOLID_WALL);
       r.emplace<PhysicsSizeComponent>(e, PhysicsSizeComponent(SPRITE_SIZE, SPRITE_SIZE));
-      r.emplace<VelocityComponent>(e);
+      // gameplay
+      // r.emplace<TileBlocksFoVComponent>(e);
+
+      // SpriteSwapBasedOnStateComponent ssc;
+      // {
+      //   SpriteTagComponent sprite_tag;
+      //   sprite_tag.tag = "default";
+      //   {
+      //     SpriteComponent sprite = create_sprite(r, e, type);
+      //     sprite_tag.sprite = sprite;
+      //   }
+      //   ssc.sprites.push_back(sprite_tag);
+      // }
+      // {
+      //   SpriteTagComponent sprite_tag;
+      //   sprite_tag.tag = "out_of_view";
+      //   {
+      //     SpriteComponent sprite;
+      //     sprite.colour = engine::SRGBToLinear(colours.red);
+      //     sprite_tag.sprite = sprite;
+      //   }
+      //   ssc.sprites.push_back(sprite_tag);
+      // }
+      // r.emplace<SpriteSwapBasedOnStateComponent>(e, ssc);
+
+      break;
+    }
+    case ENTITY_TYPE::FLOOR: {
+
+      // gameplay
+
+      // SpriteSwapBasedOnStateComponent ssc;
+      // {
+      //   SpriteTagComponent sprite_tag;
+      //   sprite_tag.tag = "default";
+      //   {
+      //     SpriteComponent sprite = create_sprite(r, e, type);
+      //     sprite_tag.sprite = sprite;
+      //   }
+      //   ssc.sprites.push_back(sprite_tag);
+      // }
+      // {
+      //   SpriteTagComponent sprite_tag;
+      //   sprite_tag.tag = "out_of_view";
+      //   {
+      //     SpriteComponent sprite;
+      //     sprite.colour = engine::SRGBToLinear(colours.red);
+      //     sprite_tag.sprite = sprite;
+      //   }
+      //   ssc.sprites.push_back(sprite_tag);
+      // }
+      // r.emplace<SpriteSwapBasedOnStateComponent>(e, ssc);
+
       break;
     }
     case ENTITY_TYPE::ENEMY: {

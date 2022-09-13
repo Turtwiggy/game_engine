@@ -1,10 +1,10 @@
 #pragma once
 
 #include "engine/colour.hpp"
+#include "modules/renderer/components.hpp"
+#include "modules/sprites/components.hpp"
 
 #include <entt/entt.hpp>
-
-#include <optional>
 
 namespace game2d {
 
@@ -22,8 +22,9 @@ enum class ENTITY_TYPE
   PLAYER,
   SHOPKEEPER,
 
-  // solids
+  // tile types
   WALL,
+  FLOOR,
 
   // melee
   SWORD,
@@ -53,11 +54,14 @@ create_item(entt::registry& r, const ENTITY_TYPE& type, const entt::entity& pare
 // void
 // create_item(entt::registry& r, const entt::entity& e, const ENTITY_TYPE& type, const entt::entity& parent);
 
-void
-create_renderable(entt::registry& r, const entt::entity& e, const ENTITY_TYPE& type);
+TransformComponent
+create_transform(entt::registry& r, const entt::entity& e);
+
+SpriteComponent
+create_sprite(entt::registry& r, const entt::entity& e, const ENTITY_TYPE& type);
 
 void
-remove_renderable(entt::registry& r, const entt::entity& e);
+create_renderable(entt::registry& r, const entt::entity& e, const ENTITY_TYPE& type);
 
 entt::entity
 create_gameplay(entt::registry& r, const ENTITY_TYPE& type);

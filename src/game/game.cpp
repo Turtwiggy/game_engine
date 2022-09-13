@@ -2,6 +2,7 @@
 #include "game.hpp"
 
 // systems&components&helpers
+#include "helpers/dungeon.hpp"
 #include "modules/audio/system.hpp"
 #include "modules/cursor/system.hpp"
 #include "modules/entt/helpers.hpp"
@@ -66,22 +67,6 @@ init_game_state(entt::registry& r)
   create_gameplay(r, ENTITY_TYPE::FREE_CURSOR);
 
   {
-    auto shield = create_gameplay(r, ENTITY_TYPE::SHIELD);
-    create_renderable(r, shield, ENTITY_TYPE::SHIELD);
-    auto& shield_transform = r.get<TransformComponent>(shield);
-    shield_transform.position.x = 0;
-    shield_transform.position.y = 0;
-    shield_transform.scale.x = 1;
-    shield_transform.scale.y = 1;
-
-    // Player's starting units
-    for (int i = 0; i < 1; i++) {
-      auto player = create_gameplay(r, ENTITY_TYPE::PLAYER);
-      create_renderable(r, player, ENTITY_TYPE::PLAYER);
-    }
-  }
-
-  {
     auto shopkeeper = create_gameplay(r, ENTITY_TYPE::SHOPKEEPER);
     create_renderable(r, shopkeeper, ENTITY_TYPE::SHOPKEEPER);
     auto& transform = r.get<TransformComponent>(shopkeeper);
@@ -105,6 +90,27 @@ init_game_state(entt::registry& r)
     create_item(r, ENTITY_TYPE::SCROLL_FIREBALL, shop_entity);
     create_item(r, ENTITY_TYPE::SCROLL_MAGIC_MISSILE, shop_entity);
   });
+
+  std::cout << "creating dungeon...!" << std::endl;
+  Dungeon d;
+  generate_dungeon(r, d);
+  entt::entity e = r.create();
+  r.emplace<Dungeon>(e, d);
+
+  // Player's starting units
+  for (int i = 0; i < 1; i++) {
+    ENTITY_TYPE et = ENTITY_TYPE::PLAYER;
+    entt::entity e = create_gameplay(r, et);
+    SpriteComponent s = create_sprite(r, e, et);
+    TransformComponent t = create_transform(r, e);
+
+    const int GRID_SIZE = 16;
+    glm::ivec2 pos = engine::grid::grid_space_to_world_space({ 1, 1 }, GRID_SIZE);
+    t.position = { pos.x, pos.y, 0 };
+
+    r.emplace<SpriteComponent>(e, s);
+    r.emplace<TransformComponent>(e, t);
+  }
 };
 
 } // namespace game2d

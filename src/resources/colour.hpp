@@ -30,6 +30,7 @@ struct SINGLETON_ColoursComponent
   const engine::SRGBColour bullet = lightyellow;
   const engine::SRGBColour turret = cyan;
   const engine::SRGBColour shield = cyan;
+  const engine::SRGBColour floor = feint_white;
 };
 
 } // namespace game2d
