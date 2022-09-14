@@ -110,78 +110,6 @@ check_if_viewport_resize(entt::registry& r, SINGLETON_RendererInfo& ri, glm::ive
   }
 }
 
-glm::mat4
-get_local_model_matrix(const TransformComponent& transform, const SpriteComponent& sprite)
-{
-  // quat(glm::vec3(90, 45, 0))
-  // gtx::quaternion::angleAxis(degrees(RotationAngle), RotationAxis);
-  // glm::quaternion::toMat4(quaternion);
-  // mat4 RotationMatrix = quaternion::toMat4(quaternion);
-  // desc.pos_tl = camera_transform.position + transform.position - transform.scale / 2;
-  // desc.angle_radians = sc.angle_radians + transform.rotation.z;
-
-  const glm::ivec3& pos_tl = transform.position - transform.scale / 2;
-  const glm::ivec3& size = transform.scale;
-  glm::vec3 rot = transform.rotation_radians;
-  rot.z += sprite.angle_radians;
-
-  const glm::mat4 transform_x = glm::rotate(glm::mat4(1.0f), rot.x, glm::vec3(1.0f, 0.0f, 0.0f));
-  const glm::mat4 transform_y = glm::rotate(glm::mat4(1.0f), rot.y, glm::vec3(0.0f, 1.0f, 0.0f));
-  const glm::mat4 transform_z = glm::rotate(glm::mat4(1.0f), rot.z, glm::vec3(0.0f, 0.0f, 1.0f));
-  const glm::mat4 rot_matrix = transform_y * transform_x * transform_z;
-
-  glm::mat4 model = glm::mat4(1.0f);
-  model = glm::translate(model, glm::vec3(pos_tl.x, pos_tl.y, pos_tl.z));
-  model = glm::translate(model, glm::vec3(0.5f * size.x, 0.5f * size.y, 0.0f));
-  model *= rot_matrix;
-  model = glm::translate(model, glm::vec3(-0.5f * size.x, -0.5f * size.y, 0.0f));
-  model = glm::scale(model, glm::vec3(size.x, size.y, size.z));
-  return model;
-};
-
-void
-render_recursively(entt::registry& r,
-                   const entt::entity& entity,
-                   const glm::mat4& parent_model,
-                   const engine::Shader& shader)
-{
-  auto* transform = r.try_get<TransformComponent>(entity);
-  auto* sprite = r.try_get<SpriteComponent>(entity);
-  auto* children = r.try_get<EntityHierarchyComponent>(entity);
-
-  if (transform && sprite) {
-
-    glm::mat4 model = parent_model * get_local_model_matrix(*transform, *sprite);
-
-    quad_renderer::RenderDescriptor desc;
-    desc.colour = (*sprite).colour;
-    desc.sprite_offset_and_spritesheet = { (*sprite).x, (*sprite).y, (*sprite).sx, (*sprite).sy };
-    desc.tex_unit = (*sprite).tex_unit;
-
-    // draw me
-    quad_renderer::QuadRenderer::draw_sprite(desc, model, shader);
-
-    // draw children
-    // note: using this scene-hierarchy and recursive structure
-    // is terrible for performance and cachin'
-    // consider doing something else when needed
-    if (children) {
-      for (const auto& child : children->children)
-        render_recursively(r, child, model, shader);
-    }
-  }
-
-  // const auto& view = registry.view<const TransformComponent, const SpriteComponent>();
-  // view.each([&registry, &ri](auto eid, const TransformComponent& transform, const SpriteComponent& sc) {
-  //   quad_renderer::RenderDescriptor desc;
-  //   desc.colour = sc.colour;
-  //   desc.sprite_offset = { sc.x, sc.y };
-  //   desc.tex_unit = sc.tex_unit;
-  //   glm::mat4 model = get_local_model_matrix(transform);
-  //
-  // });
-};
-
 }; // namespace game2d
 
 void
@@ -219,7 +147,7 @@ game2d::init_render_system(entt::registry& registry)
   SDL_GL_SetAttribute(SDL_GL_MULTISAMPLESAMPLES, 4);
   glEnable(GL_MULTISAMPLE);
   glEnable(GL_BLEND);
-  glDisable(GL_DEPTH_TEST);
+  glEnable(GL_DEPTH_TEST); // maybe not needed for 2d
   glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 
   print_gpu_info();
@@ -262,10 +190,18 @@ game2d::update_render_system(entt::registry& registry)
     const auto& h = registry.view<RootNode>().front();
     auto& hroot = registry.get<EntityHierarchyComponent>(h);
 
-    // skip showing the root node, go to children
-    for (const auto& child : hroot.children) {
-      render_recursively(registry, child, glm::mat4(1.0f), ri.instanced);
-    }
+    const auto& view = registry.view<const TransformComponent, const SpriteComponent>();
+    view.each([&registry, &ri](auto eid, const auto& transform, const auto& sc) {
+      quad_renderer::RenderDescriptor desc;
+      // desc.pos_tl = camera_transform.position + transform.position - transform.scale / 2;
+      desc.pos_tl = transform.position - transform.scale / 2;
+      desc.size = transform.scale;
+      desc.angle_radians = sc.angle_radians + transform.rotation_radians.z;
+      desc.colour = sc.colour;
+      desc.tex_unit = sc.tex_unit;
+      desc.sprite_offset_and_spritesheet = { sc.x, sc.y, sc.sx, sc.sy };
+      quad_renderer::QuadRenderer::draw_sprite(desc, ri.instanced);
+    });
 
     quad_renderer::QuadRenderer::end_batch();
     quad_renderer::QuadRenderer::flush(ri.instanced);
@@ -284,12 +220,13 @@ game2d::update_render_system(entt::registry& registry)
     quad_renderer::QuadRenderer::begin_batch();
     {
       quad_renderer::RenderDescriptor desc;
+      desc.pos_tl = { 0, 0 };
+      desc.size = viewport_wh;
+      desc.angle_radians = 0.0f;
       // desc.colour = // not needed
       desc.tex_unit = get_tex_unit(registry, AvailableTexture::LINEAR_MAIN);
       desc.sprite_offset_and_spritesheet = { 0, 0, 0, 0 };
-      glm::mat4 model = glm::mat4(1.0f);
-      model = glm::scale(model, glm::vec3(viewport_wh, 1.0f));
-      quad_renderer::QuadRenderer::draw_sprite(desc, model, ri.linear_to_srgb);
+      quad_renderer::QuadRenderer::draw_sprite(desc, ri.linear_to_srgb);
     }
     quad_renderer::QuadRenderer::end_batch();
     quad_renderer::QuadRenderer::flush(ri.linear_to_srgb);

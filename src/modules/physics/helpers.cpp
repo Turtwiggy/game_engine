@@ -184,7 +184,9 @@ collides(const PhysicsObject& one, const std::vector<PhysicsObject>& others)
   for (const auto& two : others) {
     if (!two.collidable)
       continue;
-    if (one.ent_id == two.ent_id)
+
+    bool ent_ids_both_null = one.ent_id == 0 && two.ent_id == 0;
+    if (one.ent_id == two.ent_id && !ent_ids_both_null)
       continue;
     bool collides = collide(one, two);
     // note, doesn't return "others" ids, stops when any collision

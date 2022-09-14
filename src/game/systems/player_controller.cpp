@@ -2,8 +2,10 @@
 
 #include "game/components/components.hpp"
 #include "game/entities/actors.hpp"
+#include "game/helpers/line.hpp"
 #include "modules/entt/helpers.hpp"
 #include "modules/events/components.hpp"
+#include "modules/events/helpers/mouse.hpp"
 #include "modules/networking/components.hpp"
 #include "modules/physics/components.hpp"
 #include "modules/ui_editor_tilemap/components.hpp"
@@ -17,9 +19,11 @@ void
 game2d::update_player_controller_system(entt::registry& r, const std::vector<InputEvent>& inputs)
 {
   auto& tilemap = game2d::get_first<TilemapComponent>(r);
+  const glm::ivec2 mouse_position = mouse_position_in_worldspace(r);
 
-  const auto& view = r.view<PlayerComponent, GridMoveComponent>();
-  view.each([&r, &inputs](entt::entity entity, PlayerComponent& player, GridMoveComponent& grid) {
+  const auto& view = r.view<PlayerComponent, TransformComponent, GridMoveComponent>();
+  view.each([&r, &inputs, &mouse_position](
+              entt::entity entity, PlayerComponent& player, TransformComponent& transform, GridMoveComponent& grid) {
     for (int i = 0; i < inputs.size(); i++) {
       const auto& any_input = inputs[i];
 
@@ -45,26 +49,23 @@ game2d::update_player_controller_system(entt::registry& r, const std::vector<Inp
         }
         case INPUT_TYPE::MOUSE: {
           if (any_input.key == SDL_BUTTON_LEFT && !any_input.release) {
+            //
+          };
 
-            // auto& equipment = player.hand_l;
-            // if (equipment != nullptr) {
-            //   std::vector<entt::entity> entities = { entity };
-            //   // use eqipment
-            //   if (equipment->use(r, entities)) {
-            //     // destroy equpment?
-            //     if (equipment->destroy_after_use) {
-            //       if (equipment->count > 1) {
-            //         equipment->count -= 1;
-            //       } else {
-            //         player.hand_l.reset();
-            //         std::cout << "resetting" << "\n";
-            //       }
-            //     }
-            //   }
-            // }
+          if (any_input.key == SDL_BUTTON_RIGHT) {
+            if (!any_input.release)
+              r.emplace_or_replace<TransformComponent>(player.aim_line);
+            else
+              r.remove<TransformComponent>(player.aim_line);
           }
         }
       }
     }
+
+    // update player's line position
+    // note: this probably doesn't belong here
+    const glm::ivec2& pos_player = transform.position;
+    const glm::ivec2 pos_mouse = mouse_position;
+    set_line(r, player.aim_line, pos_player, pos_mouse);
   });
 }

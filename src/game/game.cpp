@@ -67,11 +67,9 @@ init_game_state(entt::registry& r)
   create_gameplay(r, ENTITY_TYPE::FREE_CURSOR);
 
   {
-    auto shopkeeper = create_gameplay(r, ENTITY_TYPE::SHOPKEEPER);
-    create_renderable(r, shopkeeper, ENTITY_TYPE::SHOPKEEPER);
-    auto& transform = r.get<TransformComponent>(shopkeeper);
-    transform.position.x = 500;
-    transform.position.y = 500;
+    ENTITY_TYPE et = ENTITY_TYPE::SHOPKEEPER;
+    auto shopkeeper = create_gameplay(r, et);
+    create_renderable(r, shopkeeper, et);
   }
 
   // stock up!
@@ -91,26 +89,20 @@ init_game_state(entt::registry& r)
     create_item(r, ENTITY_TYPE::SCROLL_MAGIC_MISSILE, shop_entity);
   });
 
+  const int GRID_SIZE = 16;
+
+  // players
+  for (int i = 0; i < 1; i++) {
+    ENTITY_TYPE et = ENTITY_TYPE::PLAYER;
+    entt::entity e = create_gameplay(r, et);
+    create_renderable(r, e, et);
+  }
+
   std::cout << "creating dungeon...!" << std::endl;
   Dungeon d;
   generate_dungeon(r, d);
   entt::entity e = r.create();
   r.emplace<Dungeon>(e, d);
-
-  // Player's starting units
-  for (int i = 0; i < 1; i++) {
-    ENTITY_TYPE et = ENTITY_TYPE::PLAYER;
-    entt::entity e = create_gameplay(r, et);
-    SpriteComponent s = create_sprite(r, e, et);
-    TransformComponent t = create_transform(r, e);
-
-    const int GRID_SIZE = 16;
-    glm::ivec2 pos = engine::grid::grid_space_to_world_space({ 1, 1 }, GRID_SIZE);
-    t.position = { pos.x, pos.y, 0 };
-
-    r.emplace<SpriteComponent>(e, s);
-    r.emplace<TransformComponent>(e, t);
-  }
 };
 
 } // namespace game2d

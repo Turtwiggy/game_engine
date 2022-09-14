@@ -45,6 +45,7 @@ enum class ENTITY_TYPE
 
   // misc...
   FREE_CURSOR,
+  AIM_LINE,
 
   COUNT
 };

@@ -16,7 +16,7 @@ namespace quad_renderer {
 static RenderData<Vertex> data;
 
 void
-QuadRenderer::draw_sprite(const RenderDescriptor& r, const glm::mat4& model, const Shader& s)
+QuadRenderer::draw_sprite(const RenderDescriptor& r, const Shader& s)
 {
   if (data.index_count >= max_quad_index_count) {
     end_batch();
@@ -28,6 +28,16 @@ QuadRenderer::draw_sprite(const RenderDescriptor& r, const glm::mat4& model, con
   const glm::vec2 spritesheet = { r.sprite_offset_and_spritesheet.z, r.sprite_offset_and_spritesheet.w };
   const float tex_unit = static_cast<float>(r.tex_unit);
   const glm::vec4 colour = { r.colour.r, r.colour.g, r.colour.b, r.colour.a };
+
+  const float& angle = r.angle_radians;
+  const glm::vec2& pos = r.pos_tl;
+  const glm::vec2& size = r.size;
+  glm::mat4 model = glm::mat4(1.0f);
+  model = glm::translate(model, glm::vec3(pos.x, pos.y, 0.0f));
+  model = glm::translate(model, glm::vec3(0.5f * size.x, 0.5f * size.y, 0.0f));
+  model = glm::rotate(model, angle, glm::vec3(0.0f, 0.0f, 1.0f));
+  model = glm::translate(model, glm::vec3(-0.5f * size.x, -0.5f * size.y, 0.0f));
+  model = glm::scale(model, glm::vec3(size, 1.0f));
 
   // tl
   data.buffer_ptr->pos_and_uv = { 0.0f, 0.0f, 0.0f, 0.0f };

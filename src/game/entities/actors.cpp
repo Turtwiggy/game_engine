@@ -77,6 +77,8 @@ create_sprite(entt::registry& r, const entt::entity& e, const ENTITY_TYPE& type)
     sprite = "EMPTY";
   else if (type == ENTITY_TYPE::FLOOR)
     sprite = "EMPTY";
+  else if (type == ENTITY_TYPE::AIM_LINE)
+    sprite = "EMPTY";
   else if (type == ENTITY_TYPE::ENEMY)
     sprite = "PERSON_25_0";
   else if (type == ENTITY_TYPE::PLAYER)
@@ -103,6 +105,8 @@ create_sprite(entt::registry& r, const entt::entity& e, const ENTITY_TYPE& type)
     s_comp.colour = engine::SRGBToLinear(colours.wall);
   else if (type == ENTITY_TYPE::FLOOR)
     s_comp.colour = engine::SRGBToLinear(colours.floor);
+  else if (type == ENTITY_TYPE::AIM_LINE)
+    s_comp.colour = engine::SRGBToLinear(colours.desat_red);
   else if (type == ENTITY_TYPE::ENEMY)
     s_comp.colour = engine::SRGBToLinear(colours.asteroid);
   else if (type == ENTITY_TYPE::PLAYER)
@@ -252,12 +256,20 @@ create_gameplay(entt::registry& r, const entt::entity& e, const ENTITY_TYPE& typ
       // gameplay
       r.emplace<HealthComponent>(e);
       r.emplace<TakeDamageComponent>(e);
-      r.emplace<PlayerComponent>(e);
+
+      PlayerComponent p;
+      p.aim_line = create_gameplay(r, ENTITY_TYPE::AIM_LINE);
+      create_renderable(r, p.aim_line, ENTITY_TYPE::AIM_LINE);
+
+      r.emplace<PlayerComponent>(e, p);
       break;
     }
     case ENTITY_TYPE::SHOPKEEPER: {
       // gameplay
       r.emplace<ShopKeeperComponent>(e);
+      break;
+    }
+    case ENTITY_TYPE::AIM_LINE: {
       break;
     }
     case ENTITY_TYPE::STONE: {

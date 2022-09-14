@@ -84,6 +84,8 @@ struct PlayerComponent
   SDL_Scancode S = SDL_SCANCODE_S;
   SDL_Scancode D = SDL_SCANCODE_D;
 
+  entt::entity aim_line;
+
   NLOHMANN_DEFINE_TYPE_INTRUSIVE(PlayerComponent, speed, W, A, S, D);
 };
 

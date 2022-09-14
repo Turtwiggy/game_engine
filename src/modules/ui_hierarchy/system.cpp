@@ -32,8 +32,12 @@ game2d::update_ui_hierarchy_system(entt::registry& registry)
 
     // skip showing the root node, go to children
     for (const auto& child : hroot.children) {
-      const auto& tag = registry.get<TagComponent>(child).tag;
-      imgui_draw_entity(registry, tag, child, selected_entity);
+      if (registry.valid(child)) {
+        const auto& tag = registry.get<TagComponent>(child).tag;
+        imgui_draw_entity(registry, tag, child, selected_entity);
+      } else {
+        ImGui::Text("INVALID ENTITY");
+      }
     }
 
     // If select anywhere in the window, make entity unselected

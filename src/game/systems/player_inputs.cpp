@@ -59,6 +59,10 @@ game2d::update_player_inputs_system(entt::registry& r)
       input.unprocessed_update_inputs.push_back({ INPUT_TYPE::MOUSE, entity, false, SDL_BUTTON_LEFT });
     if (get_mouse_lmb_release())
       input.unprocessed_update_inputs.push_back({ INPUT_TYPE::MOUSE, entity, true, SDL_BUTTON_LEFT });
+    if (get_mouse_rmb_press())
+      input.unprocessed_update_inputs.push_back({ INPUT_TYPE::MOUSE, entity, false, SDL_BUTTON_RIGHT });
+    if (get_mouse_rmb_release())
+      input.unprocessed_update_inputs.push_back({ INPUT_TYPE::MOUSE, entity, true, SDL_BUTTON_RIGHT });
 
     // .. rotate to velocity
     // Could improve this by not immediately setting rotation.z

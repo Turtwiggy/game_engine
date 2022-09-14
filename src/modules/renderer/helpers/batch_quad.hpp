@@ -17,6 +17,9 @@ namespace quad_renderer {
 // data required per sprite
 struct RenderDescriptor
 {
+  glm::ivec2 pos_tl = { 0, 0 };
+  glm::ivec2 size = { 1, 1 };
+  float angle_radians = 0.0f;
   LinearColour colour;
   glm::ivec4 sprite_offset_and_spritesheet = { 0, 0, 0, 0 };
   int tex_unit = 0;
@@ -35,7 +38,7 @@ struct Vertex
 class QuadRenderer
 {
 public:
-  static void draw_sprite(const RenderDescriptor& r, const glm::mat4& model, const Shader& s);
+  static void draw_sprite(const RenderDescriptor& r, const Shader& s);
 
   static void init();
   static void shutdown();
