@@ -35,7 +35,7 @@ add_child(entt::registry& r, const entt::entity& e, const entt::entity& child)
 };
 
 entt::entity
-create_item(entt::registry& r, const ENTITY_TYPE& type, const entt::entity& parent)
+create_item(entt::registry& r, const EntityType& type, const entt::entity& parent)
 {
   auto e = r.create();
 
@@ -60,102 +60,81 @@ create_transform(entt::registry& r, const entt::entity& e)
 };
 
 SpriteComponent
-create_sprite(entt::registry& r, const entt::entity& e, const ENTITY_TYPE& type)
+create_sprite(entt::registry& r, const entt::entity& e, const EntityType& type)
 {
   const auto& colours = r.ctx().at<SINGLETON_ColoursComponent>();
   const auto& sprites = r.ctx().at<SINGLETON_Animations>();
   const auto type_name = std::string(magic_enum::enum_name(type));
 
   SpriteComponent s_comp;
-  s_comp.tex_unit = get_tex_unit(r, AvailableTexture::KENNY);
   std::string sprite = "EMPTY";
+  engine::SRGBColour srgb = colours.white;
 
   // sprites
-  if (type == ENTITY_TYPE::EMPTY)
+  if (type == EntityType::empty) {
     sprite = "EMPTY";
-  else if (type == ENTITY_TYPE::WALL)
+    srgb = colours.white;
+  } else if (type == EntityType::wall) {
     sprite = "EMPTY";
-  else if (type == ENTITY_TYPE::FLOOR)
+    srgb = colours.wall;
+  } else if (type == EntityType::floor) {
     sprite = "EMPTY";
-  else if (type == ENTITY_TYPE::AIM_LINE)
+    srgb = colours.floor;
+  } else if (type == EntityType::aim_line) {
     sprite = "EMPTY";
-  else if (type == ENTITY_TYPE::ENEMY)
+    srgb = colours.desat_red;
+  } else if (type == EntityType::enemy) {
     sprite = "PERSON_25_0";
-  else if (type == ENTITY_TYPE::PLAYER)
+    srgb = colours.asteroid;
+  } else if (type == EntityType::player) {
     sprite = "PERSON_26_0";
-  else if (type == ENTITY_TYPE::BOLT)
+    srgb = colours.player_unit;
+  } else if (type == EntityType::bolt) {
     sprite = "PERSON_25_0";
-  else if (type == ENTITY_TYPE::SHIELD)
+    srgb = colours.bullet;
+  } else if (type == EntityType::shield) {
     sprite = "SHIELD_37_2";
-  else if (type == ENTITY_TYPE::POTION)
+    srgb = colours.shield;
+  } else if (type == EntityType::potion) {
     sprite = "DUCK";
-  else if (type == ENTITY_TYPE::SCROLL_MAGIC_MISSILE)
+    srgb = colours.red;
+  } else if (type == EntityType::scroll_magic_missile) {
     sprite = "ROCKET_1";
-  else if (type == ENTITY_TYPE::SHOPKEEPER)
+    srgb = colours.red;
+  } else if (type == EntityType::shopkeeper) {
     sprite = "PERSON_25_0";
-  else if (type == ENTITY_TYPE::FREE_CURSOR)
+    srgb = colours.red;
+  } else if (type == EntityType::free_cursor) {
     sprite = "EMPTY";
-  else
-    std::cerr << "warning! sprite not implemented for: " << type_name << "\n";
-
-  // colours
-  if (type == ENTITY_TYPE::EMPTY)
-    s_comp.colour = engine::SRGBToLinear(colours.white);
-  else if (type == ENTITY_TYPE::WALL)
-    s_comp.colour = engine::SRGBToLinear(colours.wall);
-  else if (type == ENTITY_TYPE::FLOOR)
-    s_comp.colour = engine::SRGBToLinear(colours.floor);
-  else if (type == ENTITY_TYPE::AIM_LINE)
-    s_comp.colour = engine::SRGBToLinear(colours.desat_red);
-  else if (type == ENTITY_TYPE::ENEMY)
-    s_comp.colour = engine::SRGBToLinear(colours.asteroid);
-  else if (type == ENTITY_TYPE::PLAYER)
-    s_comp.colour = engine::SRGBToLinear(colours.player_unit);
-  else if (type == ENTITY_TYPE::BOLT)
-    s_comp.colour = engine::SRGBToLinear(colours.bullet);
-  else if (type == ENTITY_TYPE::SHIELD)
-    s_comp.colour = engine::SRGBToLinear(colours.shield);
-  else if (type == ENTITY_TYPE::POTION)
-    s_comp.colour = engine::SRGBToLinear(colours.red);
-  else if (type == ENTITY_TYPE::SCROLL_MAGIC_MISSILE)
-    s_comp.colour = engine::SRGBToLinear(colours.red);
-  else if (type == ENTITY_TYPE::SHOPKEEPER)
-    s_comp.colour = engine::SRGBToLinear(colours.red);
-  else if (type == ENTITY_TYPE::FREE_CURSOR)
-    s_comp.colour = engine::SRGBToLinear(colours.red);
-  else
-    std::cerr << "warning! colour not implemented for: " << type_name << "\n";
+    srgb = colours.red;
+  } else
+    std::cerr << "warning! not renderable: " << type_name << "\n";
 
   // search spritesheet
   const auto anim = find_animation(sprites.animations, sprite);
   s_comp.x = anim.animation_frames[0].x;
   s_comp.y = anim.animation_frames[0].y;
 
-  // overwrite defaults for sprite
-  // if (type == ENTITY_TYPE::BOLT) {
-  //   s_comp.angle_radians = anim.animation_angle_degrees * engine::PI / 180.0f;
-  //   t_comp.scale.x = SPRITE_SIZE / 2;
-  //   t_comp.scale.y = SPRITE_SIZE / 2;
-  // }
-
-  // HACK
-  if (s_comp.tex_unit == get_tex_unit(r, AvailableTexture::KENNY)) {
+  // limitation: all sprites are now kenny sprites
+  s_comp.tex_unit = get_tex_unit(r, AvailableTexture::kenny);
+  if (s_comp.tex_unit == get_tex_unit(r, AvailableTexture::kenny)) {
     s_comp.sx = 48;
     s_comp.sy = 22;
   }
 
+  s_comp.colour = engine::SRGBToLinear(srgb);
   return s_comp;
 };
 
 void
-create_renderable(entt::registry& r, const entt::entity& e, const ENTITY_TYPE& type)
+create_renderable(entt::registry& r, const entt::entity& e, const EntityType& type)
 {
   r.emplace<SpriteComponent>(e, create_sprite(r, e, type));
   r.emplace<TransformComponent>(e, create_transform(r, e));
 };
 
 entt::entity
-create_gameplay(entt::registry& r, const ENTITY_TYPE& type)
+create_gameplay(entt::registry& r, const EntityType& type)
 {
   const auto& h = r.view<RootNode>().front();
   const auto& e = r.create();
@@ -170,16 +149,16 @@ create_gameplay(entt::registry& r, const ENTITY_TYPE& type)
 };
 
 void
-create_gameplay(entt::registry& r, const entt::entity& e, const ENTITY_TYPE& type)
+create_gameplay(entt::registry& r, const entt::entity& e, const EntityType& type)
 {
   const auto& colours = r.ctx().at<SINGLETON_ColoursComponent>();
   const auto type_name = std::string(magic_enum::enum_name(type));
 
   switch (type) {
-    case ENTITY_TYPE::EMPTY: {
+    case EntityType::empty: {
       break;
     }
-    case ENTITY_TYPE::WALL: {
+    case EntityType::wall: {
       // physics
       r.emplace<PhysicsSolidComponent>(e, GameCollisionLayer::SOLID_WALL);
       r.emplace<PhysicsSizeComponent>(e, PhysicsSizeComponent(SPRITE_SIZE, SPRITE_SIZE));
@@ -201,7 +180,7 @@ create_gameplay(entt::registry& r, const entt::entity& e, const ENTITY_TYPE& typ
       //   sprite_tag.tag = "out_of_view";
       //   {
       //     SpriteComponent sprite;
-      //     sprite.colour = engine::SRGBToLinear(colours.red);
+      //     sprite.srgb= colours.red;
       //     sprite_tag.sprite = sprite;
       //   }
       //   ssc.sprites.push_back(sprite_tag);
@@ -210,7 +189,7 @@ create_gameplay(entt::registry& r, const entt::entity& e, const ENTITY_TYPE& typ
 
       break;
     }
-    case ENTITY_TYPE::FLOOR: {
+    case EntityType::floor: {
 
       // gameplay
 
@@ -229,7 +208,7 @@ create_gameplay(entt::registry& r, const entt::entity& e, const ENTITY_TYPE& typ
       //   sprite_tag.tag = "out_of_view";
       //   {
       //     SpriteComponent sprite;
-      //     sprite.colour = engine::SRGBToLinear(colours.red);
+      //     sprite.srgb= colours.red;
       //     sprite_tag.sprite = sprite;
       //   }
       //   ssc.sprites.push_back(sprite_tag);
@@ -238,7 +217,7 @@ create_gameplay(entt::registry& r, const entt::entity& e, const ENTITY_TYPE& typ
 
       break;
     }
-    case ENTITY_TYPE::ENEMY: {
+    case EntityType::enemy: {
       // physics
       r.emplace<PhysicsActorComponent>(e, GameCollisionLayer::ACTOR_ENEMY);
       r.emplace<PhysicsSizeComponent>(e, PhysicsSizeComponent(SPRITE_SIZE, SPRITE_SIZE));
@@ -248,7 +227,7 @@ create_gameplay(entt::registry& r, const entt::entity& e, const ENTITY_TYPE& typ
       r.emplace<TakeDamageComponent>(e);
       break;
     }
-    case ENTITY_TYPE::PLAYER: {
+    case EntityType::player: {
       r.emplace<PhysicsActorComponent>(e, GameCollisionLayer::ACTOR_PLAYER);
       r.emplace<PhysicsSizeComponent>(e, PhysicsSizeComponent(SPRITE_SIZE, SPRITE_SIZE));
       // r.emplace<VelocityComponent>(e);
@@ -258,37 +237,37 @@ create_gameplay(entt::registry& r, const entt::entity& e, const ENTITY_TYPE& typ
       r.emplace<TakeDamageComponent>(e);
 
       PlayerComponent p;
-      p.aim_line = create_gameplay(r, ENTITY_TYPE::AIM_LINE);
-      create_renderable(r, p.aim_line, ENTITY_TYPE::AIM_LINE);
+      p.aim_line = create_gameplay(r, EntityType::aim_line);
+      create_renderable(r, p.aim_line, EntityType::aim_line);
 
       r.emplace<PlayerComponent>(e, p);
       break;
     }
-    case ENTITY_TYPE::SHOPKEEPER: {
+    case EntityType::shopkeeper: {
       // gameplay
       r.emplace<ShopKeeperComponent>(e);
       break;
     }
-    case ENTITY_TYPE::AIM_LINE: {
+    case EntityType::aim_line: {
       break;
     }
-    case ENTITY_TYPE::STONE: {
+    case EntityType::stone: {
       r.emplace<AttackComponent>(e, AttackComponent(0, 4));
       break;
     }
-    case ENTITY_TYPE::SWORD: {
+    case EntityType::sword: {
       r.emplace<AttackComponent>(e, AttackComponent(10, 20));
       break;
     }
-    case ENTITY_TYPE::FIRE_SWORD: {
+    case EntityType::fire_sword: {
       r.emplace<AttackComponent>(e, AttackComponent(30, 40));
       break;
     }
-    case ENTITY_TYPE::CROSSBOW: {
+    case EntityType::crossbow: {
       r.emplace<AttackComponent>(e, AttackComponent(10, 20));
       break;
     }
-    case ENTITY_TYPE::BOLT: {
+    case EntityType::bolt: {
       r.emplace<PhysicsActorComponent>(e, GameCollisionLayer::ACTOR_BULLET);
       r.emplace<PhysicsSizeComponent>(e, PhysicsSizeComponent(SPRITE_SIZE / 2, SPRITE_SIZE / 2));
       r.emplace<VelocityComponent>(e);
@@ -296,7 +275,7 @@ create_gameplay(entt::registry& r, const entt::entity& e, const ENTITY_TYPE& typ
       // r.emplace<EntityTimedLifecycle>(e, 20000); // bullet time alive
       break;
     }
-    case ENTITY_TYPE::SHIELD: {
+    case EntityType::shield: {
       r.emplace<AttackComponent>(e, AttackComponent(5, 8));
       r.emplace<DefenseComponent>(e, DefenseComponent(10));
       break;
@@ -304,19 +283,19 @@ create_gameplay(entt::registry& r, const entt::entity& e, const ENTITY_TYPE& typ
 
       // consumable items
 
-    case ENTITY_TYPE::POTION: {
+    case EntityType::potion: {
       r.emplace<ConsumableComponent>(e);
       r.emplace<GiveHealsComponent>(e);
       break;
     }
-    case ENTITY_TYPE::SCROLL_MAGIC_MISSILE: {
+    case EntityType::scroll_magic_missile: {
       r.emplace<ConsumableComponent>(e);
       r.emplace<AttackComponent>(e, AttackComponent(5, 10));
       r.emplace<RangedComponent>(e);
       // r.emplace<GiveDamageComponent>(e);
       break;
     }
-    case ENTITY_TYPE::SCROLL_FIREBALL: {
+    case EntityType::scroll_fireball: {
       r.emplace<ConsumableComponent>(e);
       r.emplace<AttackComponent>(e, AttackComponent(5, 10));
       r.emplace<RangedComponent>(e);
@@ -324,7 +303,7 @@ create_gameplay(entt::registry& r, const entt::entity& e, const ENTITY_TYPE& typ
       // r.emplace<AreaOfEffectComponent>(e);
       break;
     }
-    case ENTITY_TYPE::SCROLL_CONFUSION: {
+    case EntityType::scroll_confusion: {
       r.emplace<ConsumableComponent>(e);
       r.emplace<RangedComponent>(e);
       // r.emplace<ConfusionComponent>(e);
@@ -333,7 +312,7 @@ create_gameplay(entt::registry& r, const entt::entity& e, const ENTITY_TYPE& typ
 
       // misc...
 
-    case ENTITY_TYPE::FREE_CURSOR: {
+    case EntityType::free_cursor: {
 
       // auto line_u = r.create();
       // r.emplace<TagComponent>(line_u, "line-u");

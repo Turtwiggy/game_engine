@@ -49,7 +49,7 @@ update_intent_use_item_system(entt::registry& r)
   drop_view.each([&r](auto entity, const auto& actor, auto& intent) {
     //
     for (const auto& item : intent.items) {
-      create_renderable(r, item, ENTITY_TYPE::POTION);
+      create_renderable(r, item, EntityType::potion);
       auto& transform = r.get<TransformComponent>(item);
       transform.position.x = actor.position.x;
       transform.position.y = actor.position.y;

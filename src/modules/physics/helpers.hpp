@@ -16,10 +16,10 @@
 
 namespace game2d {
 
-enum class COLLISION_AXIS
+enum class CollisionAxis
 {
-  X,
-  Y
+  x,
+  y
 };
 
 struct PhysicsObject

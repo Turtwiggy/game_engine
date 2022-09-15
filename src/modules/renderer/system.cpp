@@ -58,18 +58,18 @@ rebind(entt::registry& registry, const glm::ivec2& wh)
   // }
 
   {
-    int textures[5] = { get_tex_unit(registry, AvailableTexture::KENNY),
-                        get_tex_unit(registry, AvailableTexture::CUSTOM),
-                        get_tex_unit(registry, AvailableTexture::SPROUT),
-                        get_tex_unit(registry, AvailableTexture::LOGO),
-                        get_tex_unit(registry, AvailableTexture::MAP_0) };
+    int textures[5] = { get_tex_unit(registry, AvailableTexture::kenny),
+                        get_tex_unit(registry, AvailableTexture::custom),
+                        get_tex_unit(registry, AvailableTexture::sprout),
+                        get_tex_unit(registry, AvailableTexture::logo),
+                        get_tex_unit(registry, AvailableTexture::map_0) };
     ri.instanced.bind();
     ri.instanced.set_mat4("projection", projection);
     ri.instanced.set_int_array("textures", textures, sizeof(textures));
   }
 
   {
-    int textures[1] = { get_tex_unit(registry, AvailableTexture::LINEAR_MAIN) };
+    int textures[1] = { get_tex_unit(registry, AvailableTexture::linear_main) };
     ri.linear_to_srgb.bind();
     ri.linear_to_srgb.set_mat4("projection", projection);
     ri.linear_to_srgb.set_int_array("textures", textures, sizeof(textures));
@@ -89,17 +89,17 @@ check_if_viewport_resize(entt::registry& r, SINGLETON_RendererInfo& ri, glm::ive
 
     // update fbo textures
     {
-      bind_tex(get_tex_id(r, AvailableTexture::LINEAR_MAIN));
+      bind_tex(get_tex_id(r, AvailableTexture::linear_main));
       update_bound_texture_size(viewport_wh);
       unbind_tex();
     }
     {
-      bind_tex(get_tex_id(r, AvailableTexture::LINEAR_LIGHTING));
+      bind_tex(get_tex_id(r, AvailableTexture::linear_lighting));
       update_bound_texture_size(viewport_wh);
       unbind_tex();
     }
     {
-      bind_tex(get_tex_id(r, AvailableTexture::SRGB_MAIN));
+      bind_tex(get_tex_id(r, AvailableTexture::srgb_main));
       update_bound_texture_size(viewport_wh);
       unbind_tex();
     }
@@ -123,16 +123,16 @@ game2d::init_render_system(entt::registry& registry)
   SINGLETON_RendererInfo ri;
 
   new_texture_to_fbo(ri.fbo_linear_main_scene,
-                     get_tex(registry, AvailableTexture::LINEAR_MAIN).tex_id,
-                     get_tex_unit(registry, AvailableTexture::LINEAR_MAIN),
+                     get_tex(registry, AvailableTexture::linear_main).tex_id,
+                     get_tex_unit(registry, AvailableTexture::linear_main),
                      screen_wh);
   new_texture_to_fbo(ri.fbo_linear_lighting,
-                     get_tex(registry, AvailableTexture::LINEAR_LIGHTING).tex_id,
-                     get_tex_unit(registry, AvailableTexture::LINEAR_LIGHTING),
+                     get_tex(registry, AvailableTexture::linear_lighting).tex_id,
+                     get_tex_unit(registry, AvailableTexture::linear_lighting),
                      screen_wh);
   new_texture_to_fbo(ri.fbo_srgb_main_scene,
-                     get_tex(registry, AvailableTexture::SRGB_MAIN).tex_id,
-                     get_tex_unit(registry, AvailableTexture::SRGB_MAIN),
+                     get_tex(registry, AvailableTexture::srgb_main).tex_id,
+                     get_tex_unit(registry, AvailableTexture::srgb_main),
                      screen_wh);
 
   ri.instanced = Shader("assets/shaders/2d_instanced.vert", "assets/shaders/2d_instanced.frag");
@@ -223,7 +223,7 @@ game2d::update_render_system(entt::registry& registry)
       desc.size = viewport_wh;
       desc.angle_radians = 0.0f;
       // desc.colour = // not needed
-      desc.tex_unit = get_tex_unit(registry, AvailableTexture::LINEAR_MAIN);
+      desc.tex_unit = get_tex_unit(registry, AvailableTexture::linear_main);
       desc.sprite_offset_and_spritesheet = { 0, 0, 0, 0 };
       quad_renderer::QuadRenderer::draw_sprite(desc, ri.linear_to_srgb);
     }
@@ -238,7 +238,7 @@ game2d::update_render_system(entt::registry& registry)
   RenderCommand::clear();
 
   // Note: ImGui::Image takes in TexID not TexUnit
-  ViewportInfo vi = render_texture_to_imgui_viewport(get_tex_id(registry, AvailableTexture::SRGB_MAIN));
+  ViewportInfo vi = render_texture_to_imgui_viewport(get_tex_id(registry, AvailableTexture::srgb_main));
   // If the viewport moves - viewport position will be a frame behind.
   // This would mainly affect an editor, a game viewport probably(?) wouldn't move that much
   // (or if a user is moving the viewport, they likely dont need that one frame?)

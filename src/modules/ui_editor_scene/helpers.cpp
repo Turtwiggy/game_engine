@@ -148,7 +148,7 @@ load(entt::registry& r, std::string path)
   const auto& view = r.view<const TagComponent>();
   view.each([&r](auto entity, const TagComponent& tag) {
     //
-    ENTITY_TYPE value = magic_enum::enum_cast<ENTITY_TYPE>(tag.tag).value();
+    EntityType value = magic_enum::enum_cast<EntityType>(tag.tag).value();
     create_gameplay(r, entity, value);
     // create_renderable(r, e, value);
   });

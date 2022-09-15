@@ -64,34 +64,34 @@ init_game_state(entt::registry& r)
   r.emplace<TilemapComponent>(tilemap_ent);
 
   create_hierarchy_root_node(r);
-  create_gameplay(r, ENTITY_TYPE::FREE_CURSOR);
+  create_gameplay(r, EntityType::free_cursor);
 
-  ENTITY_TYPE et = ENTITY_TYPE::SHOPKEEPER;
+  EntityType et = EntityType::shopkeeper;
   auto shopkeeper = create_gameplay(r, et);
   create_renderable(r, shopkeeper, et);
 
   // stock up!
   const auto& view = r.view<ShopKeeperComponent>();
   view.each([&r](auto shop_entity, auto& shopkeeper) {
-    create_item(r, ENTITY_TYPE::POTION, shop_entity);
-    create_item(r, ENTITY_TYPE::POTION, shop_entity);
-    create_item(r, ENTITY_TYPE::POTION, shop_entity);
-    create_item(r, ENTITY_TYPE::SWORD, shop_entity);
-    create_item(r, ENTITY_TYPE::FIRE_SWORD, shop_entity);
-    create_item(r, ENTITY_TYPE::SHIELD, shop_entity);
-    create_item(r, ENTITY_TYPE::STONE, shop_entity);
-    create_item(r, ENTITY_TYPE::CROSSBOW, shop_entity);
-    create_item(r, ENTITY_TYPE::BOLT, shop_entity);
-    create_item(r, ENTITY_TYPE::SCROLL_CONFUSION, shop_entity);
-    create_item(r, ENTITY_TYPE::SCROLL_FIREBALL, shop_entity);
-    create_item(r, ENTITY_TYPE::SCROLL_MAGIC_MISSILE, shop_entity);
+    create_item(r, EntityType::potion, shop_entity);
+    create_item(r, EntityType::potion, shop_entity);
+    create_item(r, EntityType::potion, shop_entity);
+    create_item(r, EntityType::sword, shop_entity);
+    create_item(r, EntityType::fire_sword, shop_entity);
+    create_item(r, EntityType::shield, shop_entity);
+    create_item(r, EntityType::stone, shop_entity);
+    create_item(r, EntityType::crossbow, shop_entity);
+    create_item(r, EntityType::bolt, shop_entity);
+    create_item(r, EntityType::scroll_confusion, shop_entity);
+    create_item(r, EntityType::scroll_fireball, shop_entity);
+    create_item(r, EntityType::scroll_magic_missile, shop_entity);
   });
 
   const int GRID_SIZE = 16;
 
   // players
   for (int i = 0; i < 1; i++) {
-    ENTITY_TYPE et = ENTITY_TYPE::PLAYER;
+    EntityType et = EntityType::player;
     entt::entity e = create_gameplay(r, et);
     create_renderable(r, e, et);
   }

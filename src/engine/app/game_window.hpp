@@ -13,10 +13,10 @@ namespace engine {
 
 enum class DisplayMode
 {
-  WINDOWED = 0,
-  BORDERLESS = 1,
-  FULLSCREEN = 2,
-  FULLSCREEN_BORDERLESS = 3,
+  windowed = 0,
+  borderless = 1,
+  fullscreen = 2,
+  fullscreen_borderless = 3,
 };
 
 class GameWindow

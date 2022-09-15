@@ -79,8 +79,8 @@ game2d::update_ui_editor_tilemap_system(entt::registry& r)
   ImGui::Separator();
 
   std::vector<std::string> items;
-  for (int i = 0; i < static_cast<int>(ENTITY_TYPE::COUNT); i++) {
-    ENTITY_TYPE value = magic_enum::enum_value<ENTITY_TYPE>(i);
+  for (int i = 0; i < static_cast<int>(EntityType::count); i++) {
+    EntityType value = magic_enum::enum_value<EntityType>(i);
     std::string value_str = std::string(magic_enum::enum_name(value));
     items.push_back(value_str);
   }
@@ -106,7 +106,7 @@ game2d::update_ui_editor_tilemap_system(entt::registry& r)
   ImGui::End();
 
   // Entity To place!
-  ENTITY_TYPE entity_type = magic_enum::enum_value<ENTITY_TYPE>(item_current_idx);
+  EntityType type = magic_enum::enum_value<EntityType>(item_current_idx);
 
   //
   // Tilemap Editor
@@ -129,8 +129,8 @@ game2d::update_ui_editor_tilemap_system(entt::registry& r)
 
       if (empty_space) {
         // create
-        e = create_gameplay(r, entity_type);
-        create_renderable(r, e, entity_type);
+        e = create_gameplay(r, type);
+        create_renderable(r, e, type);
         auto& transform = r.get<TransformComponent>(e);
         transform.position.x = grid_position.x;
         transform.position.y = grid_position.y;

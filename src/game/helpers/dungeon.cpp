@@ -25,16 +25,16 @@ create_room(entt::registry& r, Dungeon& d, const Room& room)
   for (int x = 0; x < room.w; x++) {
     for (int y = 0; y < room.h; y++) {
 
-      ENTITY_TYPE et = ENTITY_TYPE::FLOOR;
+      EntityType et = EntityType::floor;
 
       if (x == 0)
-        et = ENTITY_TYPE::WALL;
+        et = EntityType::wall;
       if (y == 0)
-        et = ENTITY_TYPE::WALL;
+        et = EntityType::wall;
       if (x == room.w - 1)
-        et = ENTITY_TYPE::WALL;
+        et = EntityType::wall;
       if (y == room.h - 1)
-        et = ENTITY_TYPE::WALL;
+        et = EntityType::wall;
 
       entt::entity e = create_gameplay(r, et);
       SpriteComponent s = create_sprite(r, e, et);
@@ -138,7 +138,7 @@ create_tunnel_floor(entt::registry& r, Dungeon& d, std::vector<std::pair<int, in
     int x = coord.first;
     int y = coord.second;
 
-    ENTITY_TYPE et = ENTITY_TYPE::FLOOR;
+    EntityType et = EntityType::floor;
     entt::entity e = create_gameplay(r, et);
     SpriteComponent s = create_sprite(r, e, et);
     TransformComponent t = create_transform(r, e);
@@ -226,7 +226,7 @@ generate_dungeon(entt::registry& r, Dungeon& d, int step)
 
   for (int x = 0; x < d.width; x++) {
     for (int y = 0; y < d.height; y++) {
-      ENTITY_TYPE et = ENTITY_TYPE::WALL;
+      EntityType et = EntityType::wall;
       entt::entity e = create_gameplay(r, et);
       SpriteComponent s = create_sprite(r, e, et);
       TransformComponent t = create_transform(r, e);

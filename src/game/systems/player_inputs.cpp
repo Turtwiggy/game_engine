@@ -32,37 +32,33 @@ game2d::update_player_inputs_system(entt::registry& r)
 
     if (get_key_down(input, player.W))
       input.unprocessed_update_inputs.push_back(
-        { INPUT_TYPE::KEYBOARD, entity, false, static_cast<uint32_t>(player.W) });
+        { InputType::keyboard, entity, false, static_cast<uint32_t>(player.W) });
     if (get_key_down(input, player.A))
       input.unprocessed_update_inputs.push_back(
-        { INPUT_TYPE::KEYBOARD, entity, false, static_cast<uint32_t>(player.A) });
+        { InputType::keyboard, entity, false, static_cast<uint32_t>(player.A) });
     if (get_key_down(input, player.S))
       input.unprocessed_update_inputs.push_back(
-        { INPUT_TYPE::KEYBOARD, entity, false, static_cast<uint32_t>(player.S) });
+        { InputType::keyboard, entity, false, static_cast<uint32_t>(player.S) });
     if (get_key_down(input, player.D))
       input.unprocessed_update_inputs.push_back(
-        { INPUT_TYPE::KEYBOARD, entity, false, static_cast<uint32_t>(player.D) });
+        { InputType::keyboard, entity, false, static_cast<uint32_t>(player.D) });
     if (get_key_up(input, player.W))
-      input.unprocessed_update_inputs.push_back(
-        { INPUT_TYPE::KEYBOARD, entity, true, static_cast<uint32_t>(player.W) });
+      input.unprocessed_update_inputs.push_back({ InputType::keyboard, entity, true, static_cast<uint32_t>(player.W) });
     if (get_key_up(input, player.A))
-      input.unprocessed_update_inputs.push_back(
-        { INPUT_TYPE::KEYBOARD, entity, true, static_cast<uint32_t>(player.A) });
+      input.unprocessed_update_inputs.push_back({ InputType::keyboard, entity, true, static_cast<uint32_t>(player.A) });
     if (get_key_up(input, player.S))
-      input.unprocessed_update_inputs.push_back(
-        { INPUT_TYPE::KEYBOARD, entity, true, static_cast<uint32_t>(player.S) });
+      input.unprocessed_update_inputs.push_back({ InputType::keyboard, entity, true, static_cast<uint32_t>(player.S) });
     if (get_key_up(input, player.D))
-      input.unprocessed_update_inputs.push_back(
-        { INPUT_TYPE::KEYBOARD, entity, true, static_cast<uint32_t>(player.D) });
+      input.unprocessed_update_inputs.push_back({ InputType::keyboard, entity, true, static_cast<uint32_t>(player.D) });
 
     if (get_mouse_lmb_press())
-      input.unprocessed_update_inputs.push_back({ INPUT_TYPE::MOUSE, entity, false, SDL_BUTTON_LEFT });
+      input.unprocessed_update_inputs.push_back({ InputType::mouse, entity, false, SDL_BUTTON_LEFT });
     if (get_mouse_lmb_release())
-      input.unprocessed_update_inputs.push_back({ INPUT_TYPE::MOUSE, entity, true, SDL_BUTTON_LEFT });
+      input.unprocessed_update_inputs.push_back({ InputType::mouse, entity, true, SDL_BUTTON_LEFT });
     if (get_mouse_rmb_press())
-      input.unprocessed_update_inputs.push_back({ INPUT_TYPE::MOUSE, entity, false, SDL_BUTTON_RIGHT });
+      input.unprocessed_update_inputs.push_back({ InputType::mouse, entity, false, SDL_BUTTON_RIGHT });
     if (get_mouse_rmb_release())
-      input.unprocessed_update_inputs.push_back({ INPUT_TYPE::MOUSE, entity, true, SDL_BUTTON_RIGHT });
+      input.unprocessed_update_inputs.push_back({ InputType::mouse, entity, true, SDL_BUTTON_RIGHT });
 
     // .. rotate to velocity
     // Could improve this by not immediately setting rotation.z

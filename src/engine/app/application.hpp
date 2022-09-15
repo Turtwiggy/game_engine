@@ -13,7 +13,7 @@ struct SINGLETON_Application
   float fps_limit = 60.0f;
   int width = 1400;
   int height = width * 9 / 16.0f;
-  DisplayMode display = DisplayMode::WINDOWED;
+  DisplayMode display = DisplayMode::windowed;
   GameWindow window;
   ImGui_Manager imgui;
 

@@ -7,17 +7,6 @@
 
 namespace game2d {
 
-// enum class Stage : uint8_t
-// {
-//   PhysicsUpdate,
-//   SdlInput,
-//   GameLogic,
-//   MainPass,
-//   GuiDraw,
-//   Renderer,
-//   _count,
-// };
-
 // A generic timer
 struct Timer
 {

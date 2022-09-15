@@ -15,16 +15,16 @@
 
 namespace game2d {
 
-enum class INPUT_TYPE
+enum class InputType
 {
-  MOUSE = 0,
-  KEYBOARD = 1,
-  CONTROLLER = 2,
+  mouse,
+  keyboard,
+  controller,
 };
 
 struct InputEvent
 {
-  INPUT_TYPE type;
+  InputType type;
   entt::entity player;
   bool release = false;
   uint32_t key;

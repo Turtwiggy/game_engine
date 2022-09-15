@@ -8,9 +8,9 @@
 
 namespace game2d {
 
-enum class ENTITY_TYPE
+enum class EntityType
 {
-  EMPTY,
+  empty,
 
   // general categories,
   // however, this does not mean you could not attach a
@@ -18,55 +18,55 @@ enum class ENTITY_TYPE
   // i dunno ecs is weird
 
   // actors
-  ENEMY,
-  PLAYER,
-  SHOPKEEPER,
+  enemy,
+  player,
+  shopkeeper,
 
   // tile types
-  WALL,
-  FLOOR,
+  wall,
+  floor,
 
   // melee
-  SWORD,
-  FIRE_SWORD,
-  CROSSBOW,
-  SHIELD,
+  sword,
+  fire_sword,
+  crossbow,
+  shield,
 
   // ballistics
-  ARROW,
-  BOLT,
-  STONE,
+  arrow,
+  bolt,
+  stone,
 
   // consumable items
-  POTION,
-  SCROLL_MAGIC_MISSILE,
-  SCROLL_FIREBALL,
-  SCROLL_CONFUSION,
+  potion,
+  scroll_magic_missile,
+  scroll_fireball,
+  scroll_confusion,
 
   // misc...
-  FREE_CURSOR,
-  AIM_LINE,
+  free_cursor,
+  aim_line,
 
-  COUNT
+  count
 };
 
 entt::entity
-create_item(entt::registry& r, const ENTITY_TYPE& type, const entt::entity& parent);
+create_item(entt::registry& r, const EntityType& type, const entt::entity& parent);
 // void
-// create_item(entt::registry& r, const entt::entity& e, const ENTITY_TYPE& type, const entt::entity& parent);
+// create_item(entt::registry& r, const entt::entity& e, const EntityType& type, const entt::entity& parent);
 
 TransformComponent
 create_transform(entt::registry& r, const entt::entity& e);
 
 SpriteComponent
-create_sprite(entt::registry& r, const entt::entity& e, const ENTITY_TYPE& type);
+create_sprite(entt::registry& r, const entt::entity& e, const EntityType& type);
 
 void
-create_renderable(entt::registry& r, const entt::entity& e, const ENTITY_TYPE& type);
+create_renderable(entt::registry& r, const entt::entity& e, const EntityType& type);
 
 entt::entity
-create_gameplay(entt::registry& r, const ENTITY_TYPE& type);
+create_gameplay(entt::registry& r, const EntityType& type);
 void
-create_gameplay(entt::registry&, const entt::entity& e, const ENTITY_TYPE& type);
+create_gameplay(entt::registry&, const entt::entity& e, const EntityType& type);
 
 } // namespace game2d

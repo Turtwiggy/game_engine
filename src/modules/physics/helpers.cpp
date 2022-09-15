@@ -74,7 +74,7 @@ collide(const PhysicsObject& one, const PhysicsObject& two)
 
 void
 generate_broadphase_collisions(const std::vector<std::reference_wrapper<const PhysicsObject>>& sorted_aabb,
-                               COLLISION_AXIS axis,
+                               CollisionAxis axis,
                                std::map<uint64_t, Collision2D>& collisions)
 {
   std::vector<std::reference_wrapper<const PhysicsObject>> active_list;
@@ -96,12 +96,12 @@ generate_broadphase_collisions(const std::vector<std::reference_wrapper<const Ph
       int new_item_left = 0;
       int old_item_right = 0;
 
-      if (axis == COLLISION_AXIS::X) {
+      if (axis == CollisionAxis::x) {
         // if the new item's left is > than the active_item's right
         new_item_left = new_obj.get().x_tl;
         old_item_right = old_obj.get().x_tl + old_obj.get().w;
       }
-      if (axis == COLLISION_AXIS::Y) {
+      if (axis == CollisionAxis::y) {
         // if the new item's top is > than the active_item's bottom
         new_item_left = new_obj.get().y_tl;
         old_item_right = old_obj.get().y_tl + old_obj.get().h;
@@ -124,9 +124,9 @@ generate_broadphase_collisions(const std::vector<std::reference_wrapper<const Ph
         coll.ent_id_1 = new_obj.get().ent_id;
 
         // update collision
-        if (axis == COLLISION_AXIS::X)
+        if (axis == CollisionAxis::x)
           coll.collision_x = true;
-        if (axis == COLLISION_AXIS::Y)
+        if (axis == CollisionAxis::y)
           coll.collision_y = true;
 
         collisions[unique_collision_id] = coll;
@@ -164,8 +164,8 @@ generate_filtered_broadphase_collisions(const std::vector<PhysicsObject>& unsort
             });
 
   std::map<uint64_t, Collision2D> collisions;
-  generate_broadphase_collisions(sorted_collidable_x, COLLISION_AXIS::X, collisions);
-  generate_broadphase_collisions(sorted_collidable_y, COLLISION_AXIS::Y, collisions);
+  generate_broadphase_collisions(sorted_collidable_x, CollisionAxis::x, collisions);
+  generate_broadphase_collisions(sorted_collidable_y, CollisionAxis::y, collisions);
 
   // use broad-phase results....
   collision_results.clear();

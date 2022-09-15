@@ -23,8 +23,8 @@ thirdparty/vcpkg/vcpkg.exe install @vcpkg-x64-osx.txt
 ```
 
 note: Not used vcpkg.json as it seems
-to slow down build time with the vscode c++ extension
-by rechecking dependencies with every build adding ~5s. 
+to slow down build time by ~5s as the vscode c++ extention
+seems to reload / check dependencies when building ( every time )
 
 ### Develop
 

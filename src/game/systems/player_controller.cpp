@@ -30,7 +30,7 @@ game2d::update_player_controller_system(entt::registry& r, const std::vector<Inp
         continue; // wasn't this player's input
 
       switch (input.type) {
-        case INPUT_TYPE::KEYBOARD: {
+        case InputType::keyboard: {
 
           int dx = 0;
           int dy = 0;
@@ -46,7 +46,7 @@ game2d::update_player_controller_system(entt::registry& r, const std::vector<Inp
           grid.x += 16 * dx;
           grid.y += 16 * dy;
         }
-        case INPUT_TYPE::MOUSE: {
+        case InputType::mouse: {
           if (input.key == SDL_BUTTON_LEFT && !input.release) {
             //
           };
