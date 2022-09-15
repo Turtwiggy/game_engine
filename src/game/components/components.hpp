@@ -117,10 +117,10 @@ struct ConsumableComponent
 // "intent" components surrounding items
 struct Use
 {
-  entt::entity item = entt::null;
+  entt::entity entity = entt::null;
   std::vector<entt::entity> targets;
 
-  NLOHMANN_DEFINE_TYPE_INTRUSIVE(Use, item, targets);
+  NLOHMANN_DEFINE_TYPE_INTRUSIVE(Use, entity, targets);
 };
 struct WantsToUse
 {

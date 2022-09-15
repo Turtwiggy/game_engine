@@ -109,16 +109,15 @@ recursively_delete_with_children(entt::registry& r, const entt::entity& e)
   const auto& h = r.get<EntityHierarchyComponent>(e);
 
   // delete children first. haha.
-  for (int i = 0; i < h.children.size(); i++)
-    recursively_delete_with_children(r, h.children[i]);
+  for (auto& child : h.children)
+    recursively_delete_with_children(r, child);
 
   // remove myself from parent
   auto* parent_h = r.try_get<EntityHierarchyComponent>(h.parent);
-  if (parent_h != nullptr) {
-    for (int i = 0; i < parent_h->children.size(); i++) {
-      if (parent_h->children[i] == e)
-        parent_h->children.erase(parent_h->children.begin() + i);
-    }
+  for (int i = 0; const auto& child : parent_h->children) {
+    if (child == e)
+      parent_h->children.erase(parent_h->children.begin() + i);
+    i++;
   }
 
   auto& eb = r.ctx().at<SINGLETON_EntityBinComponent>();

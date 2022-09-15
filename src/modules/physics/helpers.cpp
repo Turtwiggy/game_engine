@@ -81,9 +81,8 @@ generate_broadphase_collisions(const std::vector<std::reference_wrapper<const Ph
 
   // begin on the left of sorted_aabb.
   // add the first item from sorted_aabb to active_list.
-  if (sorted_aabb.size() > 0) {
+  if (sorted_aabb.size() > 0)
     active_list.push_back(sorted_aabb[0]);
-  }
 
   for (int i = 1; i < sorted_aabb.size(); i++) {
     const auto& new_obj = sorted_aabb[i];

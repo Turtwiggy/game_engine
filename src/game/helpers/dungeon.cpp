@@ -54,15 +54,16 @@ create_room(entt::registry& r, Dungeon& d, const Room& room)
 
         bool contained_floor = false;
         {
-          for (int j = 0; j < entities.size(); j++) {
+          for (int j = 0; const auto& entity : entities) {
             TagComponent tag = r.get<TagComponent>(entities[j]);
             if (tag.tag == "FLOOR") {
               // leave it
               contained_floor = true;
             } else {
-              r.destroy(entities[j]);
+              r.destroy(entity);
               entities[j] = entt::null;
             }
+            ++j;
           }
         }
 
@@ -133,9 +134,9 @@ create_line(int r0, int c0, int r1, int c1, std::vector<std::pair<int, int>>& re
 void
 create_tunnel_floor(entt::registry& r, Dungeon& d, std::vector<std::pair<int, int>>& coords)
 {
-  for (int i = 0; i < coords.size(); i++) {
-    int x = coords[i].first;
-    int y = coords[i].second;
+  for (const auto& coord : coords) {
+    int x = coord.first;
+    int y = coord.second;
 
     ENTITY_TYPE et = ENTITY_TYPE::FLOOR;
     entt::entity e = create_gameplay(r, et);
@@ -152,8 +153,8 @@ create_tunnel_floor(entt::registry& r, Dungeon& d, std::vector<std::pair<int, in
     std::pair<int, int> tilemap_index = { x, y };
     if (d.tilemap.contains(tilemap_index)) {
       std::vector<entt::entity>& entities = d.tilemap[tilemap_index];
-      for (int j = 0; j < entities.size(); j++)
-        r.destroy(entities[j]);
+      for (const auto& entity : entities)
+        r.destroy(entity);
       entities.clear();
       entities.push_back(e);
     } else {
@@ -208,7 +209,7 @@ rooms_overlap(const Room& r0, const Room& r1)
   return collides(p0, { p1 });
 }
 
-glm::ivec2
+constexpr glm::ivec2
 room_center(const Room& r)
 {
   return { (r.x + r.x + r.w) / 2, (r.y + r.y + r.h) / 2 };
@@ -217,11 +218,10 @@ room_center(const Room& r)
 void
 generate_dungeon(entt::registry& r, Dungeon& d, int step)
 {
-  for (auto const& [key, val] : d.tilemap) {
-    for (int i = 0; i < (val).size(); i++) {
-      r.destroy(val[i]);
-    }
-  }
+  // delete all entities, clear dungeon tilemap
+  for (auto const& [key, val] : d.tilemap)
+    for (const auto& entity : val)
+      r.destroy(entity);
   d.tilemap.clear();
 
   for (int x = 0; x < d.width; x++) {
@@ -241,8 +241,8 @@ generate_dungeon(entt::registry& r, Dungeon& d, int step)
       std::pair<int, int> tilemap_index = { grid_index.x, grid_index.y };
       if (d.tilemap.contains(tilemap_index)) {
         std::vector<entt::entity>& entities = d.tilemap[tilemap_index];
-        for (int j = 0; j < entities.size(); j++)
-          r.destroy(entities[j]);
+        for (const auto& entity : entities)
+          r.destroy(entity);
         entities.clear();
         entities.push_back(e);
       } else {
@@ -278,29 +278,30 @@ generate_dungeon(entt::registry& r, Dungeon& d, int step)
     room.w = room_width;
     room.h = room_height;
 
-    // if valid...
-    bool any_overlap = false;
-    for (int room_idx = 0; room_idx < rooms.size(); room_idx++) {
-      if (rooms_overlap(rooms[room_idx], room)) {
-        any_overlap = true;
-        break;
-      }
-    }
-    if (any_overlap)
-      continue; // skip this room
+    // Check if the room overlaps with any of the rooms
+    const auto it =
+      std::find_if(rooms.begin(), rooms.end(), [&room](const Room& other) { return rooms_overlap(room, other); });
+    if (it != rooms.end())
+      continue; // overlap; skip this room
 
     create_room(r, d, room);
 
-    if (max_room_idx == 0) {
-      // this is the first valid room the player can start;
+    // this is the first valid room
+    bool starting_room = max_room_idx == 0;
+
+    if (starting_room) {
+      // Put the player in it
+      // limitation: currently all player put in same spot
       const auto& view = r.view<TransformComponent, const PlayerComponent>();
       view.each([&x, &y, &room](auto entity, TransformComponent& t, const PlayerComponent& p) {
         auto center = room_center(room);
         glm::ivec2 pos = engine::grid::grid_space_to_world_space(center, GRID_SIZE);
         t.position = { pos.x, pos.y, 0 };
       });
-    } else {
-      // dig out a tunnel between this room and the previous one
+    }
+
+    // dig out a tunnel between this room and the previous one
+    if (!starting_room) {
       auto r0_center = room_center(rooms[rooms.size() - 1]);
       auto r1_center = room_center(room);
       create_tunnel(r, d, r0_center.x, r0_center.y, r1_center.x, r1_center.y);
@@ -309,6 +310,7 @@ generate_dungeon(entt::registry& r, Dungeon& d, int step)
     rooms.push_back(room);
   }
 
+  // Put a shopkeeper in a room
   const auto& shopkeeper_view = r.view<ShopKeeperComponent, TransformComponent>();
   shopkeeper_view.each([&rooms](ShopKeeperComponent& sk, TransformComponent& t) {
     if (rooms.size() > 1) {
@@ -318,13 +320,6 @@ generate_dungeon(entt::registry& r, Dungeon& d, int step)
       t.position = { pos.x, pos.y, 0 };
     }
   });
-
-  // generate square rooms
-  // create_room(r, d, 20, 15, 10, 15);
-  // create_room(r, d, 35, 15, 10, 15);
-  // glm::ivec2 room_1_center = { (20 + 20 + 10) / 2, (15 + 15 + 15) / 2 };
-  // glm::ivec2 room_2_center = { (35 + 35 + 10) / 2, (15 + 15 + 15) / 2 };
-  // create_tunnel(r, d, room_1_center.x, room_1_center.y, room_2_center.x, room_2_center.y);
 };
 
 } // namespace game2d

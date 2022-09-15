@@ -41,8 +41,7 @@ rebind(entt::registry& registry, const glm::ivec2& wh)
   const auto& tex = registry.ctx().at<SINGLETON_Textures>();
   auto& ri = registry.ctx().at<SINGLETON_RendererInfo>();
 
-  for (int i = 0; i < tex.textures.size(); i++) {
-    const auto& texture = tex.textures[i];
+  for (const Texture& texture : tex.textures) {
     glActiveTexture(GL_TEXTURE0 + texture.tex_unit);
     glBindTexture(GL_TEXTURE_2D, texture.tex_id);
   }

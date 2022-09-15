@@ -15,22 +15,19 @@ update_intent_use_item_system(entt::registry& r)
   //
   // WantsToUse
   const auto& use_view = r.view<WantsToUse>();
-  use_view.each([&r](auto entity, auto& intent) {
+  use_view.each([&r](auto entity, WantsToUse& intent) {
     //
-    for (int i = 0; i < intent.items.size(); i++) {
-      Use u = intent.items[i];
-      auto* item_heals = r.try_get<GiveHealsComponent>(u.item);
-      auto* item_consumable = r.try_get<ConsumableComponent>(u.item);
+    for (const Use& item : intent.items) {
+      auto* item_heals = r.try_get<GiveHealsComponent>(item.entity);
+      auto* item_consumable = r.try_get<ConsumableComponent>(item.entity);
 
       // If not, use on self
       // auto& target = entity;
       // auto* target_hp = r.try_get<HealthComponent>(entity);
 
       // If targets are set, use those
-      for (int j = 0; j < u.targets.size(); j++) {
-        auto& target = u.targets[j];
+      for (const entt::entity& target : item.targets) {
         auto* target_hp = r.try_get<HealthComponent>(target);
-
         // Does the item heal?
         if (item_heals && target_hp) {
           target_hp->hp = glm::min(target_hp->max_hp, target_hp->hp + item_heals->health);
@@ -40,7 +37,7 @@ update_intent_use_item_system(entt::registry& r)
 
       // Is the item consumable?
       if (item_consumable)
-        r.destroy(u.item);
+        r.destroy(item.entity);
     }
 
     // Done processing all the items
@@ -51,14 +48,11 @@ update_intent_use_item_system(entt::registry& r)
   const auto& drop_view = r.view<const TransformComponent, WantsToDrop>();
   drop_view.each([&r](auto entity, const auto& actor, auto& intent) {
     //
-    for (int i = 0; i < intent.items.size(); i++) {
-      entt::entity item = intent.items[i];
-
+    for (const auto& item : intent.items) {
       create_renderable(r, item, ENTITY_TYPE::POTION);
       auto& transform = r.get<TransformComponent>(item);
       transform.position.x = actor.position.x;
       transform.position.y = actor.position.y;
-
       r.remove<InBackpackComponent>(item);
     }
     r.remove<WantsToDrop>(entity);
@@ -67,8 +61,7 @@ update_intent_use_item_system(entt::registry& r)
   // WantsToPurchase
   const auto& purchase_view = r.view<const WantsToPurchase>();
   purchase_view.each([&r](auto entity, auto& intent) {
-    for (int i = 0; i < intent.items.size(); i++) {
-      entt::entity item = intent.items[i];
+    for (const auto& item : intent.items) {
       if (auto* backpack = r.try_get<InBackpackComponent>(item)) {
         // remove from the shopkeepers angry hands
         // why is the shop keeper angry? i dunno man
@@ -87,8 +80,7 @@ update_intent_use_item_system(entt::registry& r)
     const auto& shopkeepers = r.view<ShopKeeperComponent>();
     const auto& shopkeeper0 = shopkeepers.front();
 
-    for (int i = 0; i < intent.items.size(); i++) {
-      entt::entity item = intent.items[i];
+    for (const auto& item : intent.items) {
       if (auto* backpack = r.try_get<InBackpackComponent>(item)) {
         // remove from the entity regretful hands
         // why is the entity regretful? i dunno man

@@ -66,11 +66,9 @@ init_game_state(entt::registry& r)
   create_hierarchy_root_node(r);
   create_gameplay(r, ENTITY_TYPE::FREE_CURSOR);
 
-  {
-    ENTITY_TYPE et = ENTITY_TYPE::SHOPKEEPER;
-    auto shopkeeper = create_gameplay(r, et);
-    create_renderable(r, shopkeeper, et);
-  }
+  ENTITY_TYPE et = ENTITY_TYPE::SHOPKEEPER;
+  auto shopkeeper = create_gameplay(r, et);
+  create_renderable(r, shopkeeper, et);
 
   // stock up!
   const auto& view = r.view<ShopKeeperComponent>();

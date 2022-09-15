@@ -74,7 +74,7 @@ game2d::update_ui_player_inventory_system(entt::registry& r)
           auto& items = r.get_or_emplace<WantsToUse>(entity_player);
 
           Use info;
-          info.item = item;
+          info.entity = item;
           info.targets = { entity_player }; // self
 
           items.items.push_back(info);

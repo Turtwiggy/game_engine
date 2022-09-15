@@ -20,7 +20,7 @@ game2d::update_lifecycle_system(entt::registry& r, uint64_t milliseconds_dt)
   });
 
   // process destroyed objects
-  for (auto entity : eb.dead) {
+  for (const auto& entity : eb.dead) {
     r.destroy(entity);
   }
 

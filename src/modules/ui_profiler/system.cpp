@@ -34,15 +34,11 @@ game2d::update_ui_profiler_system(entt::registry& registry)
     ImGui::Separator();
     ImGui::Text("Frame ms total %f", 1000.0f / ImGui::GetIO().Framerate);
 
-    for (int i = 0; i < p.update_results.size(); i++) {
-      const auto& result = p.update_results[i];
+    for (const auto& result : p.update_results)
       ImGui::Text("update: %s %f", result.name.c_str(), result.ms);
-    };
 
-    for (int i = 0; i < p.fixed_update_results.size(); i++) {
-      const auto& result = p.fixed_update_results[i];
+    for (const auto& result : p.fixed_update_results)
       ImGui::Text("fixed_update: %s %f", result.name.c_str(), result.ms);
-    };
 
     p.update_results.clear();
     p.fixed_update_results.clear();

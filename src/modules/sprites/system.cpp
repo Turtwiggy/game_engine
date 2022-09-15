@@ -19,25 +19,23 @@ init_sprite_system(entt::registry& registry)
   std::vector<std::pair<int, std::string>> textures_to_load;
 
   // iterate over user config
-  for (int i = 0; i < tex.textures.size(); i++) {
-    auto& t = tex.textures[i];
-    if (t.path != "") {
-      textures_to_load.emplace_back(t.tex_unit, t.path);
-    }
+  for (const auto& texture : tex.textures) {
+    if (texture.path != "") // e.g. fbo textures
+      textures_to_load.emplace_back(texture.tex_unit, texture.path);
   }
 
   auto tex_ids = engine::load_textures_threaded(textures_to_load);
 
-  for (int i = 0; i < tex.textures.size(); i++) {
-    auto& t = tex.textures[i];
-
+  for (int i = 0; auto& texture : tex.textures) {
     // set texture ids
-    if (t.path != "")
-      t.tex_id = tex_ids[i];
+    if (texture.path != "")
+      texture.tex_id = tex_ids[i];
 
     // load sprite info from texture if it exists
-    if (t.spritesheet_path != "")
-      load_sprites(anim.animations, t.spritesheet_path);
+    if (texture.spritesheet_path != "")
+      load_sprites(anim.animations, texture.spritesheet_path);
+
+    i++;
   }
 }
 

@@ -24,36 +24,35 @@ game2d::update_player_controller_system(entt::registry& r, const std::vector<Inp
   const auto& view = r.view<PlayerComponent, TransformComponent, GridMoveComponent>();
   view.each([&r, &inputs, &mouse_position](
               entt::entity entity, PlayerComponent& player, TransformComponent& transform, GridMoveComponent& grid) {
-    for (int i = 0; i < inputs.size(); i++) {
-      const auto& any_input = inputs[i];
-
-      if (any_input.player != entity)
+    for (const InputEvent& input : inputs) {
+      //
+      if (input.player != entity)
         continue; // wasn't this player's input
 
-      switch (any_input.type) {
+      switch (input.type) {
         case INPUT_TYPE::KEYBOARD: {
 
           int dx = 0;
           int dy = 0;
-          if (any_input.key == player.W && !any_input.release)
+          if (input.key == player.W && !input.release)
             dy = -1;
-          if (any_input.key == player.S && !any_input.release)
+          if (input.key == player.S && !input.release)
             dy = 1;
-          if (any_input.key == player.A && !any_input.release)
+          if (input.key == player.A && !input.release)
             dx = -1;
-          if (any_input.key == player.D && !any_input.release)
+          if (input.key == player.D && !input.release)
             dx = 1;
 
           grid.x += 16 * dx;
           grid.y += 16 * dy;
         }
         case INPUT_TYPE::MOUSE: {
-          if (any_input.key == SDL_BUTTON_LEFT && !any_input.release) {
+          if (input.key == SDL_BUTTON_LEFT && !input.release) {
             //
           };
 
-          if (any_input.key == SDL_BUTTON_RIGHT) {
-            if (!any_input.release)
+          if (input.key == SDL_BUTTON_RIGHT) {
+            if (!input.release)
               r.emplace_or_replace<TransformComponent>(player.aim_line);
             else
               r.remove<TransformComponent>(player.aim_line);
