@@ -189,14 +189,14 @@ game2d::update_render_system(entt::registry& registry)
     const auto& h = registry.view<RootNode>().front();
     auto& hroot = registry.get<EntityHierarchyComponent>(h);
 
-    const auto& view = registry.view<const TransformComponent, const SpriteComponent>();
-    view.each([&registry, &ri](auto eid, const auto& transform, const auto& sc) {
+    const auto& view = registry.view<const TransformComponent, const SpriteComponent, const SpriteColourComponent>();
+    view.each([&registry, &ri](auto eid, const auto& transform, const auto& sc, const auto& scc) {
       quad_renderer::RenderDescriptor desc;
       // desc.pos_tl = camera_transform.position + transform.position - transform.scale / 2;
       desc.pos_tl = transform.position - transform.scale / 2;
       desc.size = transform.scale;
       desc.angle_radians = sc.angle_radians + transform.rotation_radians.z;
-      desc.colour = sc.colour;
+      desc.colour = scc.colour;
       desc.tex_unit = sc.tex_unit;
       desc.sprite_offset_and_spritesheet = { sc.x, sc.y, sc.sx, sc.sy };
       quad_renderer::QuadRenderer::draw_sprite(desc, ri.instanced);

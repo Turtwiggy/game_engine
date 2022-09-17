@@ -39,20 +39,26 @@ struct SpriteAnimationComponent
   bool looping = true;
 };
 
+struct SpriteColourComponent
+{
+  engine::LinearColour colour;
+
+  NLOHMANN_DEFINE_TYPE_INTRUSIVE(SpriteColourComponent, colour.r, colour.g, colour.b, colour.a);
+};
+
 // Information required by the renderer
 struct SpriteComponent
 {
-  engine::LinearColour colour;
+  float angle_radians = 0.0f;
   int x = 0;
   int y = 0;
   int tex_unit = 0; // do not serialize
-  float angle_radians = 0.0f;
 
   // spritesheet info
   int sx = 0;
   int sy = 0;
 
-  NLOHMANN_DEFINE_TYPE_INTRUSIVE(SpriteComponent, colour.r, colour.g, colour.b, colour.a, x, y, angle_radians, sx, sy);
+  NLOHMANN_DEFINE_TYPE_INTRUSIVE(SpriteComponent, x, y, angle_radians, sx, sy);
 };
 
 // Contains sprite frame data from assets/config/spritemap_X.json

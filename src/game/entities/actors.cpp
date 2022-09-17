@@ -62,74 +62,98 @@ create_transform(entt::registry& r, const entt::entity& e)
 SpriteComponent
 create_sprite(entt::registry& r, const entt::entity& e, const EntityType& type)
 {
-  const auto& colours = r.ctx().at<SINGLETON_ColoursComponent>();
   const auto& sprites = r.ctx().at<SINGLETON_Animations>();
   const auto type_name = std::string(magic_enum::enum_name(type));
 
-  SpriteComponent s_comp;
   std::string sprite = "EMPTY";
-  engine::SRGBColour srgb = colours.white;
-
-  // sprites
-  if (type == EntityType::empty) {
+  if (type == EntityType::empty)
     sprite = "EMPTY";
-    srgb = colours.white;
-  } else if (type == EntityType::wall) {
+  else if (type == EntityType::wall)
     sprite = "EMPTY";
-    srgb = colours.wall;
-  } else if (type == EntityType::floor) {
+  else if (type == EntityType::floor)
     sprite = "EMPTY";
-    srgb = colours.floor;
-  } else if (type == EntityType::aim_line) {
+  else if (type == EntityType::aim_line)
     sprite = "EMPTY";
-    srgb = colours.desat_red;
-  } else if (type == EntityType::enemy) {
+  else if (type == EntityType::enemy)
     sprite = "PERSON_25_0";
-    srgb = colours.asteroid;
-  } else if (type == EntityType::player) {
+  else if (type == EntityType::player)
     sprite = "PERSON_26_0";
-    srgb = colours.player_unit;
-  } else if (type == EntityType::bolt) {
+  else if (type == EntityType::bolt)
     sprite = "PERSON_25_0";
-    srgb = colours.bullet;
-  } else if (type == EntityType::shield) {
+  else if (type == EntityType::shield)
     sprite = "SHIELD_37_2";
-    srgb = colours.shield;
-  } else if (type == EntityType::potion) {
+  else if (type == EntityType::potion)
     sprite = "DUCK";
-    srgb = colours.red;
-  } else if (type == EntityType::scroll_magic_missile) {
+  else if (type == EntityType::scroll_magic_missile)
     sprite = "ROCKET_1";
-    srgb = colours.red;
-  } else if (type == EntityType::shopkeeper) {
+  else if (type == EntityType::shopkeeper)
     sprite = "PERSON_25_0";
-    srgb = colours.red;
-  } else if (type == EntityType::free_cursor) {
+  else if (type == EntityType::free_cursor)
     sprite = "EMPTY";
-    srgb = colours.red;
-  } else
+  else
     std::cerr << "warning! not renderable: " << type_name << "\n";
+
+  SpriteComponent sc;
 
   // search spritesheet
   const auto anim = find_animation(sprites.animations, sprite);
-  s_comp.x = anim.animation_frames[0].x;
-  s_comp.y = anim.animation_frames[0].y;
+  sc.x = anim.animation_frames[0].x;
+  sc.y = anim.animation_frames[0].y;
 
   // limitation: all sprites are now kenny sprites
-  s_comp.tex_unit = get_tex_unit(r, AvailableTexture::kenny);
-  if (s_comp.tex_unit == get_tex_unit(r, AvailableTexture::kenny)) {
-    s_comp.sx = 48;
-    s_comp.sy = 22;
+  sc.tex_unit = get_tex_unit(r, AvailableTexture::kenny);
+  if (sc.tex_unit == get_tex_unit(r, AvailableTexture::kenny)) {
+    sc.sx = 48;
+    sc.sy = 22;
   }
 
-  s_comp.colour = engine::SRGBToLinear(srgb);
-  return s_comp;
+  return sc;
 };
+
+SpriteColourComponent
+create_colour(entt::registry& r, const entt::entity& e, const EntityType& type)
+{
+  const auto& colours = r.ctx().at<SINGLETON_ColoursComponent>();
+  const auto type_name = std::string(magic_enum::enum_name(type));
+
+  engine::SRGBColour srgb = colours.white;
+  if (type == EntityType::empty)
+    srgb = colours.white;
+  else if (type == EntityType::wall)
+    srgb = colours.wall;
+  else if (type == EntityType::floor)
+    srgb = colours.floor;
+  else if (type == EntityType::aim_line)
+    srgb = colours.desat_red;
+  else if (type == EntityType::enemy)
+    srgb = colours.asteroid;
+  else if (type == EntityType::player)
+    srgb = colours.player_unit;
+  else if (type == EntityType::bolt)
+    srgb = colours.bullet;
+  else if (type == EntityType::shield)
+    srgb = colours.shield;
+  else if (type == EntityType::potion)
+    srgb = colours.red;
+  else if (type == EntityType::scroll_magic_missile)
+    srgb = colours.red;
+  else if (type == EntityType::shopkeeper)
+    srgb = colours.red;
+  else if (type == EntityType::free_cursor)
+    srgb = colours.red;
+  else
+    std::cerr << "warning! not renderable: " << type_name << "\n";
+
+  SpriteColourComponent scc;
+  scc.colour = engine::SRGBToLinear(srgb);
+  return scc;
+}
 
 void
 create_renderable(entt::registry& r, const entt::entity& e, const EntityType& type)
 {
   r.emplace<SpriteComponent>(e, create_sprite(r, e, type));
+  r.emplace<SpriteColourComponent>(e, create_colour(r, e, type));
   r.emplace<TransformComponent>(e, create_transform(r, e));
 };
 

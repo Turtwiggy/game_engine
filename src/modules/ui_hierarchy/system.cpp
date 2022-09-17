@@ -86,13 +86,14 @@ game2d::update_ui_hierarchy_system(entt::registry& registry)
       imgui_draw_ivec2("Physics Size: ", psc.w, psc.h);
     }
 
-    if (registry.all_of<SpriteComponent>(eid)) {
+    if (registry.all_of<SpriteComponent, SpriteColourComponent>(eid)) {
       SpriteComponent& sc = registry.get<SpriteComponent>(eid);
+      SpriteColourComponent& scc = registry.get<SpriteColourComponent>(eid);
 
       // colour component
       ImGui::Text("Colour: ");
       ImGui::SameLine();
-      engine::SRGBColour rgba = engine::LinearToSRGB(sc.colour);
+      engine::SRGBColour rgba = engine::LinearToSRGB(scc.colour);
 
       float colours[4] = { rgba.r, rgba.g, rgba.b, rgba.a };
       // colours[0] = glm::min(rgba.r, 255.0f);
@@ -101,7 +102,7 @@ game2d::update_ui_hierarchy_system(entt::registry& registry)
       // colours[3] = glm::min(rgba.a, 1.0f);
 
       if (ImGui::ColorEdit4("##colour", colours))
-        sc.colour = engine::SRGBToLinear({ colours[0], colours[1], colours[2], colours[3] });
+        scc.colour = engine::SRGBToLinear({ colours[0], colours[1], colours[2], colours[3] });
 
       // select sprite
       imgui_draw_ivec2("Sprite: ", sc.x, sc.y);

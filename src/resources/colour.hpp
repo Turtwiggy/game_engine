@@ -31,6 +31,17 @@ struct SINGLETON_ColoursComponent
   const engine::SRGBColour turret = cyan;
   const engine::SRGBColour shield = cyan;
   const engine::SRGBColour floor = feint_white;
+
+  // linear
+  const engine::LinearColour lin_background = engine::SRGBToLinear(background);
+  const engine::LinearColour lin_player_unit = engine::SRGBToLinear(player_unit);
+  const engine::LinearColour lin_enemy_unit = engine::SRGBToLinear(enemy_unit);
+  const engine::LinearColour lin_wall = engine::SRGBToLinear(wall);
+  const engine::LinearColour lin_asteroid = engine::SRGBToLinear(asteroid);
+  const engine::LinearColour lin_bullet = engine::SRGBToLinear(bullet);
+  const engine::LinearColour lin_turret = engine::SRGBToLinear(turret);
+  const engine::LinearColour lin_shield = engine::SRGBToLinear(shield);
+  const engine::LinearColour lin_floor = engine::SRGBToLinear(floor);
 };
 
 } // namespace game2d

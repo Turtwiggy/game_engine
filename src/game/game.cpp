@@ -125,7 +125,8 @@ game2d::init(entt::registry& r)
 
   // GOAL: remove init_game_state with the
   // map load/save functionality
-  // eventually this game state should be savable to a file
+  // eventually this game state should be savable to a file?
+  // maybe just the visuals are in this file
   init_game_state(r);
 };
 

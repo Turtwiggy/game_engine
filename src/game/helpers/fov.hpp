@@ -1,24 +1,22 @@
 #pragma once
 
+#include <entt/entt.hpp>
+
 namespace game2d {
 
-enum class TileState : unsigned char
-{
-  visible,
-  not_visible,
-  not_visible_but_seen_before,
-};
-
+// light colours
 struct VisibleComponent
 {
   bool placeholder = true;
 };
 
+// shroud colours
 struct NotVisibleComponent
 {
   bool placeholder = true;
 };
 
+// dark colours
 struct NotVisibleButPreviouslySeenComponent
 {
   bool placeholder = true;

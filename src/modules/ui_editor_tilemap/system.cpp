@@ -152,7 +152,7 @@ game2d::update_ui_editor_tilemap_system(entt::registry& r)
       }
 
       if (overwrite_colour) {
-        auto& sprite = r.get<SpriteComponent>(e);
+        auto& sprite = r.get<SpriteColourComponent>(e);
         sprite.colour = engine::SRGBToLinear(rgba);
       }
 

@@ -16,7 +16,7 @@ using namespace engine;
 
 // fixed tick
 static const int MILLISECONDS_PER_FIXED_TICK = 7; // or ~142 ticks per second
-// static int FIXED_MILLISECONDS_PER_TICK = 16; // or ~62.5 ticks per second
+// static int MILLISECONDS_PER_FIXED_TICK = 16; // or ~62.5 ticks per second
 static uint64_t milliseconds_since_last_tick = 0;
 static uint64_t now = 0;
 static uint64_t last = 0;

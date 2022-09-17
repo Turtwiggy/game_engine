@@ -61,7 +61,7 @@ game2d::update_player_controller_system(entt::registry& r, const std::vector<Inp
       }
     }
 
-    // update player's line position
+    // gameplay: update player's line position
     // note: this probably doesn't belong here
     const glm::ivec2& pos_player = transform.position;
     const glm::ivec2 pos_mouse = mouse_position;

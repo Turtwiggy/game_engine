@@ -61,6 +61,9 @@ create_transform(entt::registry& r, const entt::entity& e);
 SpriteComponent
 create_sprite(entt::registry& r, const entt::entity& e, const EntityType& type);
 
+SpriteColourComponent
+create_colour(entt::registry& r, const entt::entity& e, const EntityType& type);
+
 void
 create_renderable(entt::registry& r, const entt::entity& e, const EntityType& type);
 
