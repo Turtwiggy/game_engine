@@ -2,6 +2,7 @@
 
 // game
 #include "game/helpers/dungeon.hpp"
+#include "game/helpers/fov.hpp"
 #include "game/systems/intent_use_item.hpp"
 #include "game/systems/player_controller.hpp"
 #include "game/systems/resolve_collisions.hpp"
@@ -50,5 +51,6 @@ game2d::simulate(entt::registry& r, const std::vector<InputEvent>& inputs, uint6
   {
     auto _ = time_scope(&p, "(update_dungeon_system)", true);
     update_dungeon_system(r);
+    update_tile_fov_system(r);
   }
 };

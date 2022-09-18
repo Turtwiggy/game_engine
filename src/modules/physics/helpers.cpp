@@ -11,6 +11,7 @@
 
 namespace game2d {
 
+// todo: look to remove this function
 void
 get_solids_as_physics_objects(entt::registry& registry, std::vector<PhysicsObject>& result)
 {

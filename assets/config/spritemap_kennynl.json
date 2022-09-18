@@ -17,6 +17,7 @@
       {"name": "BUSH_4_0",  "frames": [{"x": 5,"y": 0}]},
       {"name": "BUSH_5_0",  "frames": [{"x": 6,"y": 0}]},
       {"name": "BUSH_6_0",  "fraes": [{"x": 7,"y": 0}]},
+      {"name": "WALL_16_0","frames": [{"x": 16,"y": 0}]},
       {"name": "PERSON_24_0","frames": [{"x": 24,"y": 0}]},
       {"name": "PERSON_25_0","frames": [{"x": 25,"y": 0}]},
       {"name": "PERSON_26_0","frames": [{"x": 26,"y": 0}]},

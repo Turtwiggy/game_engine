@@ -12,6 +12,7 @@
 #include <glm/gtc/type_ptr.hpp>
 #include <imgui.h>
 
+// TODO: look to improve this
 void
 game2d::update_ui_hierarchy_system(entt::registry& registry)
 {

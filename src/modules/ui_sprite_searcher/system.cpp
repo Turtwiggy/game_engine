@@ -9,6 +9,7 @@
 
 #include <stdio.h>
 
+// this function is pretty slow
 void
 game2d::update_ui_sprite_searcher_system(entt::registry& r)
 {

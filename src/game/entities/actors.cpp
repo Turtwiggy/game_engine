@@ -22,6 +22,18 @@ namespace game2d {
 static constexpr int SPRITE_SIZE = 16;
 
 void
+to_json(json& j, const EntityTypeComponent& et)
+{
+  j = json{ { "type", static_cast<int>(et.type) } };
+};
+
+void
+from_json(const json& j, EntityTypeComponent& et)
+{
+  j.at("type").get_to(et.type);
+};
+
+void
 set_parent(entt::registry& r, const entt::entity& e, const entt::entity& parent)
 {
   r.emplace<EntityHierarchyComponent>(e, parent);
@@ -38,11 +50,6 @@ entt::entity
 create_item(entt::registry& r, const EntityType& type, const entt::entity& parent)
 {
   auto e = r.create();
-
-  const auto& h = r.view<RootNode>().front();
-  add_child(r, h, e);
-  set_parent(r, e, h);
-  r.emplace<TagComponent>(e, std::string(magic_enum::enum_name(type)));
 
   create_gameplay(r, e, type);
 
@@ -69,9 +76,9 @@ create_sprite(entt::registry& r, const entt::entity& e, const EntityType& type)
   if (type == EntityType::empty)
     sprite = "EMPTY";
   else if (type == EntityType::wall)
-    sprite = "EMPTY";
+    sprite = "WALL_16_0";
   else if (type == EntityType::floor)
-    sprite = "EMPTY";
+    sprite = "CASTLE_FLOOR";
   else if (type == EntityType::aim_line)
     sprite = "EMPTY";
   else if (type == EntityType::enemy)
@@ -166,6 +173,7 @@ create_gameplay(entt::registry& r, const EntityType& type)
   add_child(r, h, e);
   set_parent(r, e, h);
   r.emplace<TagComponent>(e, std::string(magic_enum::enum_name(type)));
+  r.emplace<EntityTypeComponent>(e, type);
 
   create_gameplay(r, e, type);
 
@@ -188,57 +196,10 @@ create_gameplay(entt::registry& r, const entt::entity& e, const EntityType& type
       r.emplace<PhysicsSizeComponent>(e, PhysicsSizeComponent(SPRITE_SIZE, SPRITE_SIZE));
       // gameplay
       // r.emplace<TileBlocksFoVComponent>(e);
-
-      // SpriteSwapBasedOnStateComponent ssc;
-      // {
-      //   SpriteTagComponent sprite_tag;
-      //   sprite_tag.tag = "default";
-      //   {
-      //     SpriteComponent sprite = create_sprite(r, e, type);
-      //     sprite_tag.sprite = sprite;
-      //   }
-      //   ssc.sprites.push_back(sprite_tag);
-      // }
-      // {
-      //   SpriteTagComponent sprite_tag;
-      //   sprite_tag.tag = "out_of_view";
-      //   {
-      //     SpriteComponent sprite;
-      //     sprite.srgb= colours.red;
-      //     sprite_tag.sprite = sprite;
-      //   }
-      //   ssc.sprites.push_back(sprite_tag);
-      // }
-      // r.emplace<SpriteSwapBasedOnStateComponent>(e, ssc);
-
       break;
     }
     case EntityType::floor: {
-
       // gameplay
-
-      // SpriteSwapBasedOnStateComponent ssc;
-      // {
-      //   SpriteTagComponent sprite_tag;
-      //   sprite_tag.tag = "default";
-      //   {
-      //     SpriteComponent sprite = create_sprite(r, e, type);
-      //     sprite_tag.sprite = sprite;
-      //   }
-      //   ssc.sprites.push_back(sprite_tag);
-      // }
-      // {
-      //   SpriteTagComponent sprite_tag;
-      //   sprite_tag.tag = "out_of_view";
-      //   {
-      //     SpriteComponent sprite;
-      //     sprite.srgb= colours.red;
-      //     sprite_tag.sprite = sprite;
-      //   }
-      //   ssc.sprites.push_back(sprite_tag);
-      // }
-      // r.emplace<SpriteSwapBasedOnStateComponent>(e, ssc);
-
       break;
     }
     case EntityType::enemy: {

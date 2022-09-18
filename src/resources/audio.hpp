@@ -10,7 +10,8 @@ namespace game2d {
 
 enum class AvailableSfx
 {
-  woosh,
+  //woosh,
+    none,
 };
 
 enum class AvailableMusic
@@ -44,7 +45,7 @@ struct SINGLETON_AudioComponent
   int device = 0;
 
   std::vector<Sfx> sfx{
-    { AvailableSfx::woosh, "assets/audio/usfx_1_4/WHOOSHES/Air/WHOOSH_Air_Blade_RR1_mono.wav" },
+    //{ AvailableSfx::woosh, "assets/audio/usfx_1_4/WHOOSHES/Air/WHOOSH_Air_Blade_RR1_mono.wav" },
   };
 
   std::vector<Music> music{

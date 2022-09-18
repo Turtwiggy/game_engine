@@ -50,6 +50,17 @@ enum class EntityType
   count
 };
 
+struct EntityTypeComponent
+{
+  EntityType type;
+};
+
+using json = nlohmann::json;
+void
+to_json(json& j, const EntityTypeComponent& et);
+void
+from_json(const json& j, EntityTypeComponent& et);
+
 entt::entity
 create_item(entt::registry& r, const EntityType& type, const entt::entity& parent);
 // void

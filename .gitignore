@@ -4,6 +4,7 @@
 *.log
 *.dll
 build/
+.vs/
 
 # Configs
 imgui.ini

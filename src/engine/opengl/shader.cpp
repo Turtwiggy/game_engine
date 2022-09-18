@@ -6,6 +6,7 @@
 
 // other library headers
 #include <GL/glew.h>
+#include <glm/gtc/type_ptr.hpp>
 
 // c++ standard library headers
 #include <filesystem> // C++17
@@ -171,7 +172,7 @@ Shader::set_float(const std::string& name, float value) const
 void
 Shader::set_vec2(const std::string& name, const glm::vec2& value) const
 {
-  glUniform2fv(glGetUniformLocation(ID, name.c_str()), 1, &value[0]);
+  glUniform2fv(glGetUniformLocation(ID, name.c_str()), 1, glm::value_ptr(value));
 }
 void
 Shader::set_vec2(const std::string& name, float x, float y) const
@@ -181,7 +182,7 @@ Shader::set_vec2(const std::string& name, float x, float y) const
 void
 Shader::set_vec3(const std::string& name, const glm::vec3& value) const
 {
-  glUniform3fv(glGetUniformLocation(ID, name.c_str()), 1, &value[0]);
+  glUniform3fv(glGetUniformLocation(ID, name.c_str()), 1, glm::value_ptr(value));
 }
 void
 Shader::set_vec3(const std::string& name, float x, float y, float z) const
@@ -191,7 +192,7 @@ Shader::set_vec3(const std::string& name, float x, float y, float z) const
 void
 Shader::set_vec4(const std::string& name, const glm::vec4& value) const
 {
-  glUniform4fv(glGetUniformLocation(ID, name.c_str()), 1, &value[0]);
+  glUniform4fv(glGetUniformLocation(ID, name.c_str()), 1, glm::value_ptr(value));
 }
 void
 Shader::set_vec4(const std::string& name, float x, float y, float z, float w)
@@ -201,17 +202,17 @@ Shader::set_vec4(const std::string& name, float x, float y, float z, float w)
 void
 Shader::set_mat2(const std::string& name, const glm::mat2& mat) const
 {
-  glUniformMatrix2fv(glGetUniformLocation(ID, name.c_str()), 1, GL_FALSE, &mat[0][0]);
+  glUniformMatrix2fv(glGetUniformLocation(ID, name.c_str()), 1, GL_FALSE, glm::value_ptr(mat));
 }
 void
 Shader::set_mat3(const std::string& name, const glm::mat3& mat) const
 {
-  glUniformMatrix3fv(glGetUniformLocation(ID, name.c_str()), 1, GL_FALSE, &mat[0][0]);
+  glUniformMatrix3fv(glGetUniformLocation(ID, name.c_str()), 1, GL_FALSE, glm::value_ptr(mat));
 }
 void
 Shader::set_mat4(const std::string& name, const glm::mat4& mat) const
 {
-  glUniformMatrix4fv(glGetUniformLocation(ID, name.c_str()), 1, GL_FALSE, &mat[0][0]);
+  glUniformMatrix4fv(glGetUniformLocation(ID, name.c_str()), 1, GL_FALSE, glm::value_ptr(mat));
 }
 
 int

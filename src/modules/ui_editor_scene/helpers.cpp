@@ -33,14 +33,15 @@ save(const entt::registry& registry, std::string path)
   entt::basic_snapshot{ registry }
     .entities(json_archive)
     .component<
-      // editor
+      //
       TilemapComponent,
-      // game/renderer
       TagComponent,
+      EntityTypeComponent,
       EntityHierarchyComponent,
       RootNode,
       TransformComponent,
-      SpriteComponent
+      SpriteComponent,
+      SpriteColourComponent
       // physics
       // PhysicsActorComponent,
       // PhysicsSolidComponent,
@@ -105,35 +106,13 @@ load(entt::registry& r, std::string path)
     .component<
       // editor
       TilemapComponent,
-      // game/renderer
       TagComponent,
+      EntityTypeComponent,
       EntityHierarchyComponent,
       RootNode,
       TransformComponent,
-      SpriteComponent
-      // physics
-      // PhysicsActorComponent,
-      // PhysicsSolidComponent,
-      // PhysicsSizeComponent,
-      // VelocityComponent,
-      // gameplay
-      // AttackComponent,
-      // DefenseComponent,
-      // HealthComponent,
-      // MeleeComponent,
-      // RangedComponent,
-      // PlayerComponent,
-      // ShopKeeperComponent,
-      // InBackpackComponent,
-      // ConsumableComponent,
-      // WantsToUse,
-      // WantsToDrop,
-      // WantsToPurchase,
-      // WantsToSell,
-      // TakeDamageComponent,
-      // GiveHealsComponent,
-      // TakeHealsComponent,
-      // WantsToAttack
+      SpriteComponent,
+      SpriteColourComponent
       //
       >(json_in);
 
@@ -145,12 +124,10 @@ load(entt::registry& r, std::string path)
   // reset editor tools?
   // ctx_reset<SINGLETON_TilemapComponent>(r);
 
-  const auto& view = r.view<const TagComponent>();
-  view.each([&r](auto entity, const TagComponent& tag) {
+  const auto& view = r.view<const EntityTypeComponent>();
+  view.each([&r](auto entity, const EntityTypeComponent& type) {
     //
-    EntityType value = magic_enum::enum_cast<EntityType>(tag.tag).value();
-    create_gameplay(r, entity, value);
-    // create_renderable(r, e, value);
+    create_gameplay(r, entity, type.type);
   });
 };
 

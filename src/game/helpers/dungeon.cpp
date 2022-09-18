@@ -2,6 +2,7 @@
 
 #include "engine/maths/maths.hpp"
 #include "game/components/components.hpp"
+#include "game/helpers/fov.hpp"
 #include "game/helpers/line.hpp"
 #include "modules/physics/components.hpp"
 #include "modules/physics/helpers.hpp"
@@ -41,7 +42,6 @@ create_room(entt::registry& r, const Room& room)
     for (int y = 0; y < room.h; y++) {
 
       EntityType et = EntityType::floor;
-
       if (x == 0)
         et = EntityType::wall;
       if (y == 0)
@@ -50,8 +50,6 @@ create_room(entt::registry& r, const Room& room)
         et = EntityType::wall;
       if (y == room.h - 1)
         et = EntityType::wall;
-
-      // TODO: investigate
 
       entt::entity e = create_gameplay(r, et);
       SpriteComponent s = create_sprite(r, e, et);
@@ -70,8 +68,8 @@ create_room(entt::registry& r, const Room& room)
 
       std::vector<entt::entity> entities = grid_entities_at(r, grid_index.x, grid_index.y);
       for (const auto& entity : entities) {
-        TagComponent tag = r.get<TagComponent>(entity);
-        if (tag.tag == "floor") {
+        EntityTypeComponent type = r.get<EntityTypeComponent>(entity);
+        if (type.type == EntityType::floor) {
           // leave it
           contained_floor = true;
         } else {
@@ -83,6 +81,9 @@ create_room(entt::registry& r, const Room& room)
         r.emplace<GridTileComponent>(e, grid_index.x, grid_index.y);
       else
         r.destroy(e);
+
+      // if (x != 0 && y != 0 && x != room.w - 1 && y != room.h - 1)
+      //   r.emplace<HealthComponent>(e, 1); // give inner walls health
     }
   }
 };
@@ -166,30 +167,44 @@ room_center(const Room& r)
   return { (r.x + r.x + r.w) / 2, (r.y + r.y + r.h) / 2 };
 };
 
+//
+// entry functions
+//
+
 void
 generate_dungeon(entt::registry& r, const Dungeon& d, int step)
 {
+  const auto& colours = r.ctx().at<SINGLETON_ColoursComponent>();
+
   // destroy any grid tiles
   const auto& view_grid_entities = r.view<const GridTileComponent>();
   view_grid_entities.each([&r](auto entity, const auto& grid) { r.destroy(entity); });
+
+  int offset_x = 15;
+  int offset_y = 5;
 
   // create all the tiles
   for (int x = 0; x < d.width; x++) {
     for (int y = 0; y < d.height; y++) {
       EntityType et = EntityType::wall;
+
       entt::entity e = create_gameplay(r, et);
       SpriteComponent s = create_sprite(r, e, et);
       TransformComponent t = create_transform(r, e);
       SpriteColourComponent scc = create_colour(r, e, et);
 
-      glm::ivec2 grid_index = { x, y };
+      glm::ivec2 grid_index = { offset_x + x, offset_y + y };
       glm::ivec2 world_position = engine::grid::grid_space_to_world_space(grid_index, GRID_SIZE);
       t.position = { world_position.x, world_position.y, 0 };
 
       r.emplace<SpriteComponent>(e, s);
       r.emplace<TransformComponent>(e, t);
+      r.emplace<GridTileComponent>(e, grid_index.x, grid_index.y);
+
+      if (x != 0 && y != 0 && x != d.width - 1 && y != d.height - 1)
+        r.emplace<HealthComponent>(e, 1); // give inner walls health
+
       r.emplace<SpriteColourComponent>(e, scc);
-      r.emplace<GridTileComponent>(e, x, y);
     }
   }
 
@@ -209,16 +224,12 @@ generate_dungeon(entt::registry& r, const Dungeon& d, int step)
     if (max_room_idx > step)
       break;
 
-    int room_width = engine::rand_det_s(rnd.rng, room_min_size, room_max_size);
-    int room_height = engine::rand_det_s(rnd.rng, room_min_size, room_max_size);
-    int x = engine::rand_det_s(rnd.rng, 0, d.width - room_width - 1);
-    int y = engine::rand_det_s(rnd.rng, 0, d.height - room_height - 1);
+    int room_width = static_cast<int>(engine::rand_det_s(rnd.rng, room_min_size, room_max_size));
+    int room_height = static_cast<int>(engine::rand_det_s(rnd.rng, room_min_size, room_max_size));
+    int x = static_cast<int>(engine::rand_det_s(rnd.rng, 0, d.width - room_width - 1));
+    int y = static_cast<int>(engine::rand_det_s(rnd.rng, 0, d.height - room_height - 1));
 
-    Room room;
-    room.x = x;
-    room.y = y;
-    room.w = room_width;
-    room.h = room_height;
+    Room room{ offset_x + x, offset_y + y, room_width, room_height };
 
     // Check if the room overlaps with any of the rooms
     const auto it =
@@ -270,28 +281,45 @@ generate_dungeon(entt::registry& r, const Dungeon& d, int step)
 void
 update_dungeon_system(entt::registry& r)
 {
-  const auto& colours = r.ctx().at<SINGLETON_ColoursComponent>();
-
   const auto& player_view = r.view<PlayerComponent>();
   const auto player_entity = player_view.front();
   const auto& player_transform = r.get<TransformComponent>(player_entity);
   glm::ivec2 player_grid_pos =
     engine::grid::world_space_to_grid_space({ player_transform.position.x, player_transform.position.y }, 16);
 
-  const auto& view_grid_tiles = r.view<SpriteColourComponent, const GridTileComponent, const TagComponent>();
-  view_grid_tiles.each([&r, &colours, &player_grid_pos](auto& scc, const auto& grid, const auto& tag) {
-    //
-    int distance_x = glm::abs(grid.x - player_grid_pos.x);
-    int distance_y = glm::abs(grid.y - player_grid_pos.y);
-    int distance_total = distance_x + distance_y;
+  const auto& view_grid_tiles = r.view<SpriteColourComponent, const GridTileComponent, const EntityTypeComponent>();
 
-    if (tag.tag == "floor") {
-      scc.colour = colours.lin_floor;
-    } else {
-      if (distance_total < 8)
-        scc.colour = colours.lin_bullet;
-      else
-        scc.colour = colours.lin_wall;
+  view_grid_tiles.each([&r, &player_grid_pos](auto e, auto& scc, const auto& grid, const auto& type) {
+    const int distance_x = glm::abs(grid.x - player_grid_pos.x);
+    const int distance_y = glm::abs(grid.y - player_grid_pos.y);
+    const int dst = 4;
+    const bool within_distance = distance_x < dst && distance_y < dst;
+
+    // If it's within the distance, make it visible
+    if (within_distance) {
+      r.emplace_or_replace<VisibleComponent>(e);
+      if (r.try_get<NotVisibleComponent>(e))
+        r.remove<NotVisibleComponent>(e);
+      if (r.try_get<NotVisibleButPreviouslySeenComponent>(e))
+        r.remove<NotVisibleButPreviouslySeenComponent>(e);
+    }
+    // If it's not within the distance, hide it
+    else {
+
+      // if it's already got NotVisibleButPreviouslySeenComponent,
+      auto seen_before = r.try_get<NotVisibleButPreviouslySeenComponent>(e);
+      if (seen_before)
+        return; // change nothing
+
+      // if it was Visible, set as NotVisibleButPreviouslySeenComponent
+      if (auto visible = r.try_get<VisibleComponent>(e)) {
+        r.remove<VisibleComponent>(e);
+        r.emplace_or_replace<NotVisibleButPreviouslySeenComponent>(e);
+      }
+      // if it was not Visible, just set it back to not visible
+      else {
+        r.emplace_or_replace<NotVisibleComponent>(e);
+      }
     }
   });
 }

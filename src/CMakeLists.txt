@@ -99,7 +99,7 @@ if(${CMAKE_SYSTEM_NAME} STREQUAL "Windows")
 
   # (server) copy files
   # set(server_src ${CMAKE_CURRENT_BINARY_DIR}/)
-  # set(server_dst ${CMAKE_CURRENT_BINARY_DIR}/../server)
+  # set(server_dst ${CMAKE_CURREdNT_BINARY_DIR}/../server)
   # add_custom_command(
   # TARGET ${PROJECT_NAME} POST_BUILD
   # COMMAND ${CMAKE_COMMAND} -E copy_directory ${server_src} ${server_dst}
