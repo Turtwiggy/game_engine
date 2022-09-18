@@ -5,65 +5,17 @@
 #include "engine/maths/maths.hpp"
 #include "modules/renderer/components.hpp"
 
-// c++ lib headers
-#include <algorithm>
-#include <iostream>
-
 namespace game2d {
 
-// todo: look to remove this function
-void
-get_solids_as_physics_objects(entt::registry& registry, std::vector<PhysicsObject>& result)
-{
-  {
-    const auto& entt_solids =
-      registry.view<const TransformComponent, const PhysicsSizeComponent, const PhysicsSolidComponent>();
-
-    PhysicsObject po;
-    entt_solids.each([&result, &po](const auto entity,
-                                    const TransformComponent& transform,
-                                    const PhysicsSizeComponent& size,
-                                    const PhysicsSolidComponent& solid) {
-      po.ent_id = static_cast<uint32_t>(entity);
-      po.x_tl = static_cast<int>(transform.position.x - glm::abs(size.w) / 2.0f);
-      po.y_tl = static_cast<int>(transform.position.y - glm::abs(size.h) / 2.0f);
-      po.w = glm::abs(size.w);
-      po.h = glm::abs(size.h);
-      result.push_back(po);
-    });
-  }
-}
-
-void
-get_actors_as_physics_objects(entt::registry& registry, std::vector<PhysicsObject>& result)
-{
-  {
-    const auto& entt_actors =
-      registry.view<const TransformComponent, const PhysicsSizeComponent, const PhysicsActorComponent>();
-    PhysicsObject po;
-    entt_actors.each([&result, &po](const auto entity,
-                                    const TransformComponent& transform,
-                                    const PhysicsSizeComponent& size,
-                                    const PhysicsActorComponent& actor) {
-      po.ent_id = static_cast<uint32_t>(entity);
-      po.x_tl = static_cast<int>(transform.position.x - glm::abs(size.w) / 2.0f);
-      po.y_tl = static_cast<int>(transform.position.y - glm::abs(size.h) / 2.0f);
-      po.w = glm::abs(size.w);
-      po.h = glm::abs(size.h);
-      result.push_back(po);
-    });
-  }
-}
-
 glm::vec2
-convert_tl_to_center(const PhysicsObject& po)
+convert_tl_to_center(const PhysicsTransformComponent& po)
 {
   glm::ivec2 half = glm::ivec2(int(po.w / 2.0f), int(po.h / 2.0f));
   return { po.x_tl + half.x, po.y_tl + half.y };
 };
 
 bool
-collide(const PhysicsObject& one, const PhysicsObject& two)
+collide(const PhysicsTransformComponent& one, const PhysicsTransformComponent& two)
 {
   // collision x-axis?
   bool collision_x = one.x_tl + one.w > two.x_tl && two.x_tl + two.w > one.x_tl;
@@ -73,24 +25,102 @@ collide(const PhysicsObject& one, const PhysicsObject& two)
   return collision_x && collision_y;
 };
 
+bool
+collides(const PhysicsTransformComponent& one, const std::vector<PhysicsTransformComponent>& others)
+{
+  for (const auto& two : others) {
+    bool collides = collide(one, two);
+    if (collides)
+      return true;
+  }
+  return false;
+};
+
 void
-generate_broadphase_collisions(const std::vector<std::reference_wrapper<const PhysicsObject>>& sorted_aabb,
-                               CollisionAxis axis,
+do_move(entt::registry& r,
+        entt::entity& entity,
+        int& amount,
+        TransformComponent& transform,
+        const PhysicsTransformComponent& ptc,
+        const CollisionAxis& axis,
+        std::vector<Collision2D>& would_collide)
+{
+  constexpr auto Sign = [](const int& x) { return x == 0 ? 0 : (x > 0 ? 1 : -1); };
+  const auto& blocking_objects_view = r.view<const PhysicsSolidComponent, const PhysicsTransformComponent>();
+
+  if (amount != 0) {
+    if (axis == CollisionAxis::x)
+      transform.position_dxdy.x -= amount;
+    if (axis == CollisionAxis::y)
+      transform.position_dxdy.y -= amount;
+    int sign = Sign(amount);
+
+    while (amount != 0) {
+
+      // updated position
+      PhysicsTransformComponent po;
+      po.x_tl = ptc.x_tl;
+      po.y_tl = ptc.y_tl;
+      po.w = ptc.w;
+      po.h = ptc.h;
+      if (axis == CollisionAxis::x)
+        po.x_tl += sign;
+      if (axis == CollisionAxis::y)
+        po.y_tl += sign;
+
+      // Check if the updated position would collide with anything
+      for (auto [o_entity, o_block, o_ptransform] : blocking_objects_view.each()) {
+        bool same = entity == o_entity;
+        if (!same && collide(po, o_ptransform)) {
+          Collision2D collision;
+          collision.ent_id_0 = static_cast<uint32_t>(entity);
+          collision.ent_id_1 = static_cast<uint32_t>(o_entity);
+          would_collide.push_back(collision);
+        }
+      }
+
+      if (would_collide.size() != 0)
+        break;
+
+      // Move player if empty space
+      if (axis == CollisionAxis::x)
+        transform.position.x += sign;
+      if (axis == CollisionAxis::y)
+        transform.position.y += sign;
+      amount -= sign;
+    }
+  }
+};
+
+void
+generate_broadphase_collisions(entt::registry& r,
+                               const CollisionAxis& axis,
                                std::map<uint64_t, Collision2D>& collisions)
 {
-  std::vector<std::reference_wrapper<const PhysicsObject>> active_list;
+  // Sort by axis
+  const auto& sorted_aabb = r.group<PhysicsTransformComponent, PhysicsActorComponent>();
+  if (axis == CollisionAxis::x)
+    sorted_aabb.sort<PhysicsTransformComponent>([&r](const auto& a, const auto& b) { return a.x_tl < b.x_tl; });
+  else if (axis == CollisionAxis::y)
+    sorted_aabb.sort<PhysicsTransformComponent>([&r](const auto& a, const auto& b) { return a.y_tl < b.y_tl; });
 
-  // begin on the left of sorted_aabb.
-  // add the first item from sorted_aabb to active_list.
-  if (sorted_aabb.size() > 0)
-    active_list.push_back(sorted_aabb[0]);
+  std::vector<std::reference_wrapper<const PhysicsTransformComponent>> active_list;
 
-  for (int i = 1; i < sorted_aabb.size(); i++) {
-    const auto& new_obj = sorted_aabb[i];
+  for (int i = 0; auto [entity, ptransform, pactor] : sorted_aabb.each()) {
+
+    // begin on the left of sorted_aabb.
+    // add the first item from sorted_aabb to active_list.
+    if (i == 0) {
+      active_list.push_back(ptransform);
+      ++i;
+      continue;
+    }
 
     // have a look at the next item in axis_list,
-    // and compare it with all the items currently in active_list. (currently just 1)
-    std::vector<std::reference_wrapper<const PhysicsObject>>::iterator it_1 = active_list.begin();
+    const auto& new_obj = ptransform;
+
+    // compare it with all the items currently in active_list. (currently just 1)
+    auto it_1 = active_list.begin();
     while (it_1 != active_list.end()) {
       const auto& old_obj = *it_1;
 
@@ -99,12 +129,12 @@ generate_broadphase_collisions(const std::vector<std::reference_wrapper<const Ph
 
       if (axis == CollisionAxis::x) {
         // if the new item's left is > than the active_item's right
-        new_item_left = new_obj.get().x_tl;
+        new_item_left = new_obj.x_tl;
         old_item_right = old_obj.get().x_tl + old_obj.get().w;
       }
       if (axis == CollisionAxis::y) {
         // if the new item's top is > than the active_item's bottom
-        new_item_left = new_obj.get().y_tl;
+        new_item_left = new_obj.y_tl;
         old_item_right = old_obj.get().y_tl + old_obj.get().h;
       }
 
@@ -117,12 +147,13 @@ generate_broadphase_collisions(const std::vector<std::reference_wrapper<const Ph
         // between new axis_list item and the current active_list item
 
         // Check existing collisions
-        uint64_t unique_collision_id =
-          engine::encode_cantor_pairing_function(old_obj.get().ent_id, new_obj.get().ent_id);
+        uint32_t old_ent_id = old_obj.get().ent_id;
+        uint32_t new_ent_id = new_obj.ent_id;
+        uint64_t unique_collision_id = engine::encode_cantor_pairing_function(old_ent_id, new_ent_id);
 
         Collision2D& coll = collisions[unique_collision_id];
-        coll.ent_id_0 = old_obj.get().ent_id;
-        coll.ent_id_1 = new_obj.get().ent_id;
+        coll.ent_id_0 = old_ent_id;
+        coll.ent_id_1 = new_ent_id;
 
         // update collision
         if (axis == CollisionAxis::x)
@@ -137,122 +168,26 @@ generate_broadphase_collisions(const std::vector<std::reference_wrapper<const Ph
 
     // Add the new item itself to active_list and continue with the next item in axis_list
     active_list.push_back(new_obj);
+
+    ++i; // next
   }
 };
 
 void
-generate_filtered_broadphase_collisions(const std::vector<PhysicsObject>& unsorted_aabb,
-                                        std::map<uint64_t, Collision2D>& collision_results)
+generate_filtered_broadphase_collisions(entt::registry& r, std::map<uint64_t, Collision2D>& collision_results)
 {
-  // Do broad-phase check.
-
-  // entities sorted by X-axis
-  std::vector<std::reference_wrapper<const PhysicsObject>> sorted_collidable_x(unsorted_aabb.begin(),
-                                                                               unsorted_aabb.end());
-  std::sort(sorted_collidable_x.begin(),
-            sorted_collidable_x.end(),
-            [&](std::reference_wrapper<const PhysicsObject>& a, std::reference_wrapper<const PhysicsObject>& b) {
-              return a.get().x_tl < b.get().x_tl;
-            });
-
-  // entities sorted by Y-axis
-  std::vector<std::reference_wrapper<const PhysicsObject>> sorted_collidable_y(unsorted_aabb.begin(),
-                                                                               unsorted_aabb.end());
-  std::sort(sorted_collidable_y.begin(),
-            sorted_collidable_y.end(),
-            [&](std::reference_wrapper<const PhysicsObject>& a, std::reference_wrapper<const PhysicsObject>& b) {
-              return a.get().y_tl < b.get().y_tl;
-            });
-
-  std::map<uint64_t, Collision2D> collisions;
-  generate_broadphase_collisions(sorted_collidable_x, CollisionAxis::x, collisions);
-  generate_broadphase_collisions(sorted_collidable_y, CollisionAxis::y, collisions);
-
-  // use broad-phase results....
   collision_results.clear();
+
+  // Do broad-phase check.
+  std::map<uint64_t, Collision2D> collisions;
+  generate_broadphase_collisions(r, CollisionAxis::x, collisions);
+  generate_broadphase_collisions(r, CollisionAxis::y, collisions);
+
+  // Use broad-phase results.
   for (const auto& coll : collisions) {
     const Collision2D& c = coll.second;
     if (c.collision_x && c.collision_y) {
       collision_results[coll.first] = coll.second;
-    }
-  }
-};
-
-bool
-collides(const PhysicsObject& one, const std::vector<PhysicsObject>& others)
-{
-  for (const auto& two : others) {
-    if (!two.collidable)
-      continue;
-
-    bool ent_ids_both_null = one.ent_id == 0 && two.ent_id == 0;
-    if (one.ent_id == two.ent_id && !ent_ids_both_null)
-      continue;
-    bool collides = collide(one, two);
-    // note, doesn't return "others" ids, stops when any collision
-    if (collides) {
-      return true;
-    }
-  }
-  return false;
-};
-
-void
-do_move_x(TransformComponent& transform, std::vector<PhysicsObject>& solids, int& amount)
-{
-  constexpr auto Sign = [](int x) { return x == 0 ? 0 : (x > 0 ? 1 : -1); };
-
-  if (amount != 0) {
-    transform.position_dxdy.x -= amount;
-    int sign = Sign(amount);
-    while (amount != 0) {
-
-      // updated position
-      PhysicsObject po;
-      po.w = transform.scale.x;
-      po.h = transform.scale.y;
-      po.x_tl = (transform.position.x - (transform.scale.x / 2.0f)) + sign;
-      po.y_tl = (transform.position.y - (transform.scale.y / 2.0f));
-      po.collidable = true;
-
-      if (!collides(po, solids)) {
-        transform.position.x += sign;
-        amount -= sign;
-      } else {
-        printf("hit a solid");
-        // callback(registry)
-        break;
-      }
-    }
-  }
-};
-
-void
-do_move_y(TransformComponent& transform, std::vector<PhysicsObject>& solids, int& amount)
-{
-  constexpr auto Sign = [](int x) { return x == 0 ? 0 : (x > 0 ? 1 : -1); };
-
-  if (amount != 0) {
-    transform.position_dxdy.y -= amount;
-    int sign = Sign(amount);
-    while (amount != 0) {
-
-      // updated position
-      PhysicsObject po;
-      po.w = transform.scale.x;
-      po.h = transform.scale.y;
-      po.x_tl = (transform.position.x - (transform.scale.x / 2.0f));
-      po.y_tl = (transform.position.y - (transform.scale.y / 2.0f)) + sign;
-      po.collidable = true;
-
-      if (!collides(po, solids)) {
-        transform.position.y += sign;
-        amount -= sign;
-      } else {
-        printf("hit a solid");
-        // callback(registry)
-        break;
-      }
     }
   }
 };

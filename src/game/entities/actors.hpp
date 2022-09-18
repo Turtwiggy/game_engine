@@ -18,7 +18,8 @@ enum class EntityType
   // i dunno ecs is weird
 
   // actors
-  enemy,
+  enemy_troll,
+  enemy_orc,
   player,
   shopkeeper,
 

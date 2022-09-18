@@ -19,10 +19,7 @@ game2d::update_actor_actor_system(entt::registry& registry)
 
   auto& p = registry.ctx().at<SINGLETON_PhysicsComponent>();
 
-  std::vector<PhysicsObject> actors;
-  get_actors_as_physics_objects(registry, actors);
-
-  generate_filtered_broadphase_collisions(actors, p.frame_collisions);
+  generate_filtered_broadphase_collisions(registry, p.frame_collisions);
 
   {
     // There's 3 states needed to capture:

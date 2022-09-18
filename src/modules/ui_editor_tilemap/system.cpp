@@ -160,7 +160,7 @@ game2d::update_ui_editor_tilemap_system(entt::registry& r)
         auto& sprite_t = r.get<TransformComponent>(e);
         sprite_t.scale.x = size;
         sprite_t.scale.y = size;
-        auto sprite_po = r.try_get<PhysicsSizeComponent>(e);
+        auto sprite_po = r.try_get<PhysicsTransformComponent>(e);
         if (sprite_po) {
           sprite_po->w = size;
           sprite_po->h = size;

@@ -186,11 +186,11 @@ game2d::update_render_system(entt::registry& registry)
     // TODO: work out z-index
     // registry.sort<renderable>([](const auto& lhs, const auto& rhs) { return lhs.z < rhs.z; });
 
-    const auto& h = registry.view<RootNode>().front();
-    auto& hroot = registry.get<EntityHierarchyComponent>(h);
+    // const auto& h = registry.view<RootNode>().front();
+    // auto& hroot = registry.get<EntityHierarchyComponent>(h);
 
-    const auto& view = registry.view<const TransformComponent, const SpriteComponent, const SpriteColourComponent>();
-    view.each([&registry, &ri](auto eid, const auto& transform, const auto& sc, const auto& scc) {
+    const auto& group = registry.group<const TransformComponent, const SpriteComponent, const SpriteColourComponent>();
+    group.each([&ri](const auto& transform, const auto& sc, const auto& scc) {
       quad_renderer::RenderDescriptor desc;
       // desc.pos_tl = camera_transform.position + transform.position - transform.scale / 2;
       desc.pos_tl = transform.position - transform.scale / 2;

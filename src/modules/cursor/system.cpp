@@ -93,7 +93,7 @@ game2d::update_cursor_system(entt::registry& registry)
       update_renderable(registry, c.backdrop, tx, ly, width, height);
 
       // set cursor collision size
-      auto& ps = registry.get<PhysicsSizeComponent>(entity);
+      auto& ps = registry.get<PhysicsTransformComponent>(entity);
       ps.w = width;
       ps.h = height;
     });

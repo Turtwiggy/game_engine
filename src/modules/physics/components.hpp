@@ -9,44 +9,32 @@
 
 namespace game2d {
 
-// Note; for no collision, don't attach a CollidableComponent
-enum class GameCollisionLayer
+struct PhysicsTransformComponent
 {
-  ACTOR_PLAYER,
-  ACTOR_PLAYER_PET,
-  ACTOR_ENEMY,
-  ACTOR_BULLET,
-  ACTOR_CURSOR,
-  SOLID_WALL,
+  uint32_t ent_id = 0;
+  int x_tl = 0;
+  int y_tl = 0;
+  int w = 0;
+  int h = 0;
 
-  COUNT,
-};
+  PhysicsTransformComponent() = default;
+  PhysicsTransformComponent(int w, int h)
+    : w(w)
+    , h(h){};
 
-struct PhysicsActorComponent
-{
-  GameCollisionLayer layer_id;
-
-  NLOHMANN_DEFINE_TYPE_INTRUSIVE(PhysicsActorComponent, layer_id);
+  NLOHMANN_DEFINE_TYPE_INTRUSIVE(PhysicsTransformComponent, w, h);
 };
 
 struct PhysicsSolidComponent
 {
-  GameCollisionLayer layer_id;
-
-  NLOHMANN_DEFINE_TYPE_INTRUSIVE(PhysicsSolidComponent, layer_id);
+  bool placeholder = true;
+  NLOHMANN_DEFINE_TYPE_INTRUSIVE(PhysicsSolidComponent, placeholder);
 };
 
-struct PhysicsSizeComponent
+struct PhysicsActorComponent
 {
-  int w = 0;
-  int h = 0;
-
-  PhysicsSizeComponent() = default;
-  PhysicsSizeComponent(int w, int h)
-    : w(w)
-    , h(h){};
-
-  NLOHMANN_DEFINE_TYPE_INTRUSIVE(PhysicsSizeComponent, w, h);
+  bool placeholder = true;
+  NLOHMANN_DEFINE_TYPE_INTRUSIVE(PhysicsActorComponent, placeholder);
 };
 
 struct VelocityComponent

@@ -32,11 +32,12 @@ game2d::simulate(entt::registry& r, const std::vector<InputEvent>& inputs, uint6
   update_lifecycle_system(r, milliseconds_dt);
 
   {
-    auto _ = time_scope(&p, "(physics)", true);
-
+    auto _ = time_scope(&p, "(physics-move-objs)", true);
     // move objects, checking collisions along way
     update_move_objects_system(r, milliseconds_dt);
-
+  }
+  {
+    auto _ = time_scope(&p, "(physics-actor-actor)", true);
     // generate all collisions between actor-actor objects
     update_actor_actor_system(r);
   }
@@ -44,12 +45,10 @@ game2d::simulate(entt::registry& r, const std::vector<InputEvent>& inputs, uint6
   // resolve collisions immediately ( this seems wrong )
   update_resolve_collisions_system(r);
 
-  //
-  // gamestate
-  //
-  update_intent_use_item_system(r);
+  // game logic
   {
-    auto _ = time_scope(&p, "(update_dungeon_system)", true);
+    auto _ = time_scope(&p, "(game_logic)", true);
+    update_intent_use_item_system(r);
     update_dungeon_system(r);
     update_tile_fov_system(r);
   }

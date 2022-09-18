@@ -22,36 +22,23 @@ enum class CollisionAxis
   y
 };
 
-struct PhysicsObject
-{
-  uint32_t ent_id = 0;
-  // aabb
-  int x_tl = 0;
-  int y_tl = 0;
-  int w = 0;
-  int h = 0;
-  // state
-  bool collidable = true;
-};
+bool
+collide(const PhysicsTransformComponent& one, const PhysicsTransformComponent& two);
+
+bool
+collides(const PhysicsTransformComponent& one, const std::vector<PhysicsTransformComponent>& others);
+
+void
+do_move(entt::registry& r,
+        entt::entity& entity,
+        int& amount,
+        TransformComponent& transform,
+        const PhysicsTransformComponent& ptc,
+        const CollisionAxis& axis,
+        std::vector<Collision2D>& would_collide);
 
 // Checks collisions between actor-actors.
 void
-generate_filtered_broadphase_collisions(const std::vector<PhysicsObject>& unsorted_aabb,
-                                        std::map<uint64_t, Collision2D>& collision_results);
-
-void
-get_solids_as_physics_objects(entt::registry& registry, std::vector<PhysicsObject>& result);
-
-void
-get_actors_as_physics_objects(entt::registry& registry, std::vector<PhysicsObject>& result);
-
-bool
-collides(const PhysicsObject& one, const std::vector<PhysicsObject>& others);
-
-void
-do_move_x(TransformComponent& t, std::vector<PhysicsObject>& solids, int& amount);
-
-void
-do_move_y(TransformComponent& t, std::vector<PhysicsObject>& solids, int& amount);
+generate_filtered_broadphase_collisions(entt::registry& r, std::map<uint64_t, Collision2D>& collision_results);
 
 }; // namespace game2d

@@ -66,26 +66,26 @@ init_game_state(entt::registry& r)
   create_hierarchy_root_node(r);
   create_gameplay(r, EntityType::free_cursor);
 
-  EntityType et = EntityType::shopkeeper;
-  auto shopkeeper = create_gameplay(r, et);
-  create_renderable(r, shopkeeper, et);
+  // EntityType et = EntityType::shopkeeper;
+  // auto shopkeeper = create_gameplay(r, et);
+  // create_renderable(r, shopkeeper, et);
 
-  // stock up!
-  const auto& view = r.view<ShopKeeperComponent>();
-  view.each([&r](auto shop_entity, auto& shopkeeper) {
-    create_item(r, EntityType::potion, shop_entity);
-    create_item(r, EntityType::potion, shop_entity);
-    create_item(r, EntityType::potion, shop_entity);
-    create_item(r, EntityType::sword, shop_entity);
-    create_item(r, EntityType::fire_sword, shop_entity);
-    create_item(r, EntityType::shield, shop_entity);
-    create_item(r, EntityType::stone, shop_entity);
-    create_item(r, EntityType::crossbow, shop_entity);
-    create_item(r, EntityType::bolt, shop_entity);
-    create_item(r, EntityType::scroll_confusion, shop_entity);
-    create_item(r, EntityType::scroll_fireball, shop_entity);
-    create_item(r, EntityType::scroll_magic_missile, shop_entity);
-  });
+  // // stock up!
+  // const auto& view = r.view<ShopKeeperComponent>();
+  // view.each([&r](auto shop_entity, auto& shopkeeper) {
+  //   create_item(r, EntityType::potion, shop_entity);
+  //   create_item(r, EntityType::potion, shop_entity);
+  //   create_item(r, EntityType::potion, shop_entity);
+  //   create_item(r, EntityType::sword, shop_entity);
+  //   create_item(r, EntityType::fire_sword, shop_entity);
+  //   create_item(r, EntityType::shield, shop_entity);
+  //   create_item(r, EntityType::stone, shop_entity);
+  //   create_item(r, EntityType::crossbow, shop_entity);
+  //   create_item(r, EntityType::bolt, shop_entity);
+  //   create_item(r, EntityType::scroll_confusion, shop_entity);
+  //   create_item(r, EntityType::scroll_fireball, shop_entity);
+  //   create_item(r, EntityType::scroll_magic_missile, shop_entity);
+  // });
 
   const int GRID_SIZE = 16;
 

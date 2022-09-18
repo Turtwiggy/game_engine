@@ -11,10 +11,13 @@ void
 game2d::update_ui_physics_system(entt::registry& registry)
 {
   const auto& p = registry.ctx().at<SINGLETON_PhysicsComponent>();
-  const auto& actors = registry.view<PhysicsActorComponent>();
+
+  const auto& objs = registry.view<PhysicsTransformComponent>();
   const auto& solids = registry.view<PhysicsSolidComponent>();
+  const auto& actors = registry.view<PhysicsActorComponent>();
 
   ImGui::Begin("Physics", NULL, ImGuiWindowFlags_NoFocusOnAppearing);
+  ImGui::Text("Objects %i", objs.size());
   ImGui::Text("Solids %i", solids.size());
   ImGui::Text("Actors %i", actors.size());
   ImGui::Text("collision_enter %i", p.collision_enter.size());

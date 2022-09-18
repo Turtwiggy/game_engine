@@ -22,7 +22,7 @@ update_tile_fov_system(entt::registry& r)
     visible_no_hp_view.each(
       [&r, &colours](const VisibleComponent& v, SpriteColourComponent& scc, const EntityTypeComponent& et) {
         //
-        scc.colour = colours.lin_white;
+        scc.colour = colours.lin_red;
       });
   }
 
@@ -36,7 +36,7 @@ update_tile_fov_system(entt::registry& r)
                                     const HealthComponent& hp,
                                     const EntityTypeComponent& et) {
       //
-      scc.colour = colours.lin_cyan;
+      scc.colour = colours.lin_orange;
     });
   }
 
@@ -54,7 +54,7 @@ update_tile_fov_system(entt::registry& r)
     auto was_visible_view = r.view<const NotVisibleButPreviouslySeenComponent, SpriteColourComponent>();
     was_visible_view.each([&colours](const NotVisibleButPreviouslySeenComponent& v, SpriteColourComponent& scc) {
       //
-      scc.colour = colours.lin_red;
+      scc.colour = colours.lin_feint_white;
     });
   }
 
@@ -69,15 +69,15 @@ update_tile_fov_system(entt::registry& r)
                                              const HealthComponent& hp,
                                              const EntityTypeComponent& et) {
       //
-      scc.colour = colours.lin_orange;
+      scc.colour = colours.lin_cyan;
     });
   }
 
   // HACK
-  if (get_mouse_lmb_held()) {
-    for (const auto& visible_entity_with_hp : visible_hp_view)
-      r.destroy(visible_entity_with_hp);
-  }
+  // if (get_mouse_lmb_held()) {
+  //   for (const auto& visible_entity_with_hp : visible_hp_view)
+  //     r.destroy(visible_entity_with_hp);
+  // }
 };
 
 } // namespace game2d

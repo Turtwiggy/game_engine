@@ -81,8 +81,10 @@ create_sprite(entt::registry& r, const entt::entity& e, const EntityType& type)
     sprite = "CASTLE_FLOOR";
   else if (type == EntityType::aim_line)
     sprite = "EMPTY";
-  else if (type == EntityType::enemy)
+  else if (type == EntityType::enemy_orc)
     sprite = "PERSON_25_0";
+  else if (type == EntityType::enemy_troll)
+    sprite = "PERSON_31_0";
   else if (type == EntityType::player)
     sprite = "PERSON_26_0";
   else if (type == EntityType::bolt)
@@ -91,6 +93,8 @@ create_sprite(entt::registry& r, const entt::entity& e, const EntityType& type)
     sprite = "SHIELD_37_2";
   else if (type == EntityType::potion)
     sprite = "DUCK";
+  else if (type == EntityType::scroll_confusion)
+    sprite = "ROCKET_1";
   else if (type == EntityType::scroll_magic_missile)
     sprite = "ROCKET_1";
   else if (type == EntityType::shopkeeper)
@@ -132,7 +136,9 @@ create_colour(entt::registry& r, const entt::entity& e, const EntityType& type)
     srgb = colours.floor;
   else if (type == EntityType::aim_line)
     srgb = colours.desat_red;
-  else if (type == EntityType::enemy)
+  else if (type == EntityType::enemy_orc)
+    srgb = colours.asteroid;
+  else if (type == EntityType::enemy_troll)
     srgb = colours.asteroid;
   else if (type == EntityType::player)
     srgb = colours.player_unit;
@@ -192,39 +198,48 @@ create_gameplay(entt::registry& r, const entt::entity& e, const EntityType& type
     }
     case EntityType::wall: {
       // physics
-      r.emplace<PhysicsSolidComponent>(e, GameCollisionLayer::SOLID_WALL);
-      r.emplace<PhysicsSizeComponent>(e, PhysicsSizeComponent(SPRITE_SIZE, SPRITE_SIZE));
-      // gameplay
-      // r.emplace<TileBlocksFoVComponent>(e);
+      r.emplace<PhysicsTransformComponent>(e, PhysicsTransformComponent(SPRITE_SIZE, SPRITE_SIZE));
+      r.emplace<PhysicsSolidComponent>(e);
       break;
     }
     case EntityType::floor: {
       // gameplay
       break;
     }
-    case EntityType::enemy: {
+
+      // pc/npcs
+
+    case EntityType::enemy_troll: {
       // physics
-      r.emplace<PhysicsActorComponent>(e, GameCollisionLayer::ACTOR_ENEMY);
-      r.emplace<PhysicsSizeComponent>(e, PhysicsSizeComponent(SPRITE_SIZE, SPRITE_SIZE));
-      r.emplace<VelocityComponent>(e);
+      r.emplace<PhysicsTransformComponent>(e, PhysicsTransformComponent(SPRITE_SIZE, SPRITE_SIZE));
+      r.emplace<GridMoveComponent>(e);
+      r.emplace<PhysicsSolidComponent>(e);
+      r.emplace<PhysicsActorComponent>(e);
       // gameplay
       r.emplace<HealthComponent>(e);
-      r.emplace<TakeDamageComponent>(e);
+      break;
+    }
+    case EntityType::enemy_orc: {
+      // physics
+      r.emplace<PhysicsTransformComponent>(e, PhysicsTransformComponent(SPRITE_SIZE, SPRITE_SIZE));
+      r.emplace<GridMoveComponent>(e);
+      r.emplace<PhysicsSolidComponent>(e);
+      r.emplace<PhysicsActorComponent>(e);
+      // gameplay
+      r.emplace<HealthComponent>(e);
       break;
     }
     case EntityType::player: {
-      r.emplace<PhysicsActorComponent>(e, GameCollisionLayer::ACTOR_PLAYER);
-      r.emplace<PhysicsSizeComponent>(e, PhysicsSizeComponent(SPRITE_SIZE, SPRITE_SIZE));
-      // r.emplace<VelocityComponent>(e);
+      r.emplace<PhysicsTransformComponent>(e, PhysicsTransformComponent(SPRITE_SIZE, SPRITE_SIZE));
       r.emplace<GridMoveComponent>(e);
+      r.emplace<PhysicsSolidComponent>(e);
+      r.emplace<PhysicsActorComponent>(e);
       // gameplay
       r.emplace<HealthComponent>(e);
-      r.emplace<TakeDamageComponent>(e);
 
       PlayerComponent p;
       p.aim_line = create_gameplay(r, EntityType::aim_line);
       create_renderable(r, p.aim_line, EntityType::aim_line);
-
       r.emplace<PlayerComponent>(e, p);
       break;
     }
@@ -233,9 +248,9 @@ create_gameplay(entt::registry& r, const entt::entity& e, const EntityType& type
       r.emplace<ShopKeeperComponent>(e);
       break;
     }
-    case EntityType::aim_line: {
-      break;
-    }
+
+      // items
+
     case EntityType::stone: {
       r.emplace<AttackComponent>(e, AttackComponent(0, 4));
       break;
@@ -253,8 +268,7 @@ create_gameplay(entt::registry& r, const entt::entity& e, const EntityType& type
       break;
     }
     case EntityType::bolt: {
-      r.emplace<PhysicsActorComponent>(e, GameCollisionLayer::ACTOR_BULLET);
-      r.emplace<PhysicsSizeComponent>(e, PhysicsSizeComponent(SPRITE_SIZE / 2, SPRITE_SIZE / 2));
+      r.emplace<PhysicsTransformComponent>(e, PhysicsTransformComponent(SPRITE_SIZE / 2, SPRITE_SIZE / 2));
       r.emplace<VelocityComponent>(e);
       // gameplay
       // r.emplace<EntityTimedLifecycle>(e, 20000); // bullet time alive
@@ -289,6 +303,10 @@ create_gameplay(entt::registry& r, const entt::entity& e, const EntityType& type
       break;
     }
     case EntityType::scroll_confusion: {
+      // able to collide to be picked up
+      r.emplace<PhysicsTransformComponent>(e, PhysicsTransformComponent(SPRITE_SIZE, SPRITE_SIZE));
+      r.emplace<PhysicsActorComponent>(e);
+      //
       r.emplace<ConsumableComponent>(e);
       r.emplace<RangedComponent>(e);
       // r.emplace<ConfusionComponent>(e);
@@ -296,7 +314,9 @@ create_gameplay(entt::registry& r, const entt::entity& e, const EntityType& type
     }
 
       // misc...
-
+    case EntityType::aim_line: {
+      break;
+    }
     case EntityType::free_cursor: {
 
       // auto line_u = r.create();

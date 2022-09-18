@@ -82,9 +82,10 @@ game2d::update_ui_hierarchy_system(entt::registry& registry)
         "Render Angle:", transform.rotation_radians.x, transform.rotation_radians.y, transform.rotation_radians.z);
     }
 
-    if (registry.all_of<PhysicsSizeComponent>(eid)) {
-      PhysicsSizeComponent& psc = registry.get<PhysicsSizeComponent>(eid);
-      imgui_draw_ivec2("Physics Size: ", psc.w, psc.h);
+    if (registry.all_of<PhysicsTransformComponent>(eid)) {
+      PhysicsTransformComponent& ptc = registry.get<PhysicsTransformComponent>(eid);
+      imgui_draw_ivec2("Physics Pos (tl/tr): ", ptc.x_tl, ptc.y_tl);
+      imgui_draw_ivec2("Physics Size: ", ptc.w, ptc.h);
     }
 
     if (registry.all_of<SpriteComponent, SpriteColourComponent>(eid)) {

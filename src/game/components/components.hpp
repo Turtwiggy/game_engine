@@ -157,12 +157,12 @@ struct WantsToSell
 //   // std::vector<int> damage_q;
 // };
 
-struct TakeDamageComponent
-{
-  std::vector<int> damage;
+// struct TakeDamageComponent
+// {
+//   std::vector<int> damage;
 
-  NLOHMANN_DEFINE_TYPE_INTRUSIVE(TakeDamageComponent, damage);
-};
+//   NLOHMANN_DEFINE_TYPE_INTRUSIVE(TakeDamageComponent, damage);
+// };
 
 struct GiveHealsComponent
 {

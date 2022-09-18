@@ -11,6 +11,7 @@
 
 #include <glm/glm.hpp>
 
+#include <algorithm>
 #include <utility>
 #include <vector>
 
@@ -33,11 +34,6 @@ grid_entities_at(entt::registry& r, int x, int y)
 void
 create_room(entt::registry& r, const Room& room)
 {
-  int x1 = room.x;
-  int y1 = room.y;
-  int x2 = x1 + room.w;
-  int y2 = y1 + room.h;
-
   for (int x = 0; x < room.w; x++) {
     for (int y = 0; y < room.h; y++) {
 
@@ -56,7 +52,7 @@ create_room(entt::registry& r, const Room& room)
       TransformComponent t = create_transform(r, e);
       SpriteColourComponent scc = create_colour(r, e, et);
 
-      glm::ivec2 grid_index = { room.x + x, room.y + y };
+      glm::ivec2 grid_index = { room.x1 + x, room.y1 + y };
       glm::ivec2 world_position = engine::grid::grid_space_to_world_space(grid_index, GRID_SIZE);
       t.position = { world_position.x, world_position.y, 0 };
 
@@ -64,6 +60,8 @@ create_room(entt::registry& r, const Room& room)
       r.emplace<TransformComponent>(e, t);
       r.emplace<SpriteColourComponent>(e, scc);
 
+      // TODO: improve lines of code below
+      //
       bool contained_floor = false;
 
       std::vector<entt::entity> entities = grid_entities_at(r, grid_index.x, grid_index.y);
@@ -81,9 +79,6 @@ create_room(entt::registry& r, const Room& room)
         r.emplace<GridTileComponent>(e, grid_index.x, grid_index.y);
       else
         r.destroy(e);
-
-      // if (x != 0 && y != 0 && x != room.w - 1 && y != room.h - 1)
-      //   r.emplace<HealthComponent>(e, 1); // give inner walls health
     }
   }
 };
@@ -146,25 +141,25 @@ create_tunnel(entt::registry& r, const Dungeon& d, int x1, int y1, int x2, int y
 bool
 rooms_overlap(const Room& r0, const Room& r1)
 {
-  PhysicsObject p0;
-  p0.x_tl = r0.x;
-  p0.y_tl = r0.y;
+  PhysicsTransformComponent p0;
+  p0.x_tl = r0.x1;
+  p0.y_tl = r0.y1;
   p0.w = r0.w;
   p0.h = r0.h;
 
-  PhysicsObject p1;
-  p1.x_tl = r1.x;
-  p1.y_tl = r1.y;
+  PhysicsTransformComponent p1;
+  p1.x_tl = r1.x1;
+  p1.y_tl = r1.y1;
   p1.w = r1.w;
   p1.h = r1.h;
 
-  return collides(p0, { p1 });
-}
+  return collide(p0, p1);
+};
 
 constexpr glm::ivec2
 room_center(const Room& r)
 {
-  return { (r.x + r.x + r.w) / 2, (r.y + r.y + r.h) / 2 };
+  return { (r.x1 + r.x2) / 2, (r.y1 + r.y2) / 2 };
 };
 
 //
@@ -213,6 +208,7 @@ generate_dungeon(entt::registry& r, const Dungeon& d, int step)
   const int room_min_size = 6;
   const int room_max_size = 10;
   const int max_rooms = 30;
+  const int max_monsters_per_room = 5;
 
   std::vector<Room> rooms;
 
@@ -229,7 +225,13 @@ generate_dungeon(entt::registry& r, const Dungeon& d, int step)
     int x = static_cast<int>(engine::rand_det_s(rnd.rng, 0, d.width - room_width - 1));
     int y = static_cast<int>(engine::rand_det_s(rnd.rng, 0, d.height - room_height - 1));
 
-    Room room{ offset_x + x, offset_y + y, room_width, room_height };
+    Room room;
+    room.x1 = offset_x + x;
+    room.y1 = offset_y + y;
+    room.x2 = room.x1 + room_width;
+    room.y2 = room.y1 + room_height;
+    room.w = room_width;
+    room.h = room_height;
 
     // Check if the room overlaps with any of the rooms
     const auto it =
@@ -251,9 +253,7 @@ generate_dungeon(entt::registry& r, const Dungeon& d, int step)
   }
 
   //
-  // Gameplay logic!
-  //
-
+  // Gameplay logic
   // Put a player in a room
   // limitation: currently all player put in same spot
   const auto& view = r.view<TransformComponent, const PlayerComponent>();
@@ -266,16 +266,65 @@ generate_dungeon(entt::registry& r, const Dungeon& d, int step)
     }
   });
 
-  // Put a shopkeeper in a room
-  const auto& shopkeeper_view = r.view<ShopKeeperComponent, TransformComponent>();
-  shopkeeper_view.each([&rooms](ShopKeeperComponent& sk, TransformComponent& t) {
-    if (rooms.size() > 1) {
-      auto room = rooms[1];
-      auto center = room_center(room);
-      glm::ivec2 pos = engine::grid::grid_space_to_world_space(center, GRID_SIZE);
-      t.position = { pos.x, pos.y, 0 };
+  //
+  // Gameplay logic
+  // placing enemies
+  //
+  for (const auto& room : rooms) {
+    int number_of_monsters = static_cast<int>(engine::rand_det_s(rnd.rng, 0, max_monsters_per_room));
+
+    std::vector<glm::ivec2> occupied_slots;
+
+    for (int i = 0; i < number_of_monsters; i++) {
+
+      float random = engine::rand_det_s(rnd.rng, 0.0f, 1.0f);
+      EntityType et = EntityType::enemy_orc;
+
+      if (random < 0.8f)
+        et = EntityType::scroll_confusion;
+      else if (random < 0.9f)
+        et = EntityType::enemy_orc;
+      else
+        et = EntityType::enemy_troll;
+
+      int x = static_cast<int>(engine::rand_det_s(rnd.rng, room.x1 + 1, room.x2 - 1));
+      int y = static_cast<int>(engine::rand_det_s(rnd.rng, room.y1 + 1, room.y2 - 1));
+      glm::ivec2 grid_index = { x, y };
+
+      entt::entity e = create_gameplay(r, et);
+      SpriteComponent s = create_sprite(r, e, et);
+      TransformComponent t = create_transform(r, e);
+      SpriteColourComponent scc = create_colour(r, e, et);
+
+      // Check the tile isn't occupied
+      auto full = std::find_if(
+        occupied_slots.begin(), occupied_slots.end(), [&grid_index](const auto& val) { return grid_index == val; });
+      if (full != occupied_slots.end()) {
+        printf("already entity at position");
+        return;
+      }
+      occupied_slots.push_back(grid_index);
+
+      // Create the entity
+      glm::ivec2 world_position = engine::grid::grid_space_to_world_space(grid_index, GRID_SIZE);
+      t.position = { world_position.x, world_position.y, 0 };
+      r.emplace<TransformComponent>(e, t);
+      r.emplace<SpriteComponent>(e, s);
+      r.emplace<SpriteColourComponent>(e, scc);
+      r.emplace<GridTileComponent>(e, grid_index.x, grid_index.y);
     }
-  });
+  }
+
+  // Put a shopkeeper in a room
+  // const auto& shopkeeper_view = r.view<ShopKeeperComponent, TransformComponent>();
+  // shopkeeper_view.each([&rooms](ShopKeeperComponent& sk, TransformComponent& t) {
+  //   if (rooms.size() > 1) {
+  //     auto room = rooms[1];
+  //     auto center = room_center(room);
+  //     glm::ivec2 pos = engine::grid::grid_space_to_world_space(center, GRID_SIZE);
+  //     t.position = { pos.x, pos.y, 0 };
+  //   }
+  // });
 };
 
 void
@@ -292,7 +341,8 @@ update_dungeon_system(entt::registry& r)
   view_grid_tiles.each([&r, &player_grid_pos](auto e, auto& scc, const auto& grid, const auto& type) {
     const int distance_x = glm::abs(grid.x - player_grid_pos.x);
     const int distance_y = glm::abs(grid.y - player_grid_pos.y);
-    const int dst = 4;
+    // const int dst = 4;
+    const int dst = 10; // debug to see whole map
     const bool within_distance = distance_x < dst && distance_y < dst;
 
     // If it's within the distance, make it visible
