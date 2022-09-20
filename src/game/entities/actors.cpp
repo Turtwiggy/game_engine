@@ -217,6 +217,7 @@ create_gameplay(entt::registry& r, const entt::entity& e, const EntityType& type
       r.emplace<PhysicsActorComponent>(e);
       // gameplay
       r.emplace<HealthComponent>(e);
+      r.emplace<AiBrainComponent>(e);
       break;
     }
     case EntityType::enemy_orc: {
@@ -227,6 +228,7 @@ create_gameplay(entt::registry& r, const entt::entity& e, const EntityType& type
       r.emplace<PhysicsActorComponent>(e);
       // gameplay
       r.emplace<HealthComponent>(e);
+      r.emplace<AiBrainComponent>(e);
       break;
     }
     case EntityType::player: {

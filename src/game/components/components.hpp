@@ -96,6 +96,13 @@ struct ShopKeeperComponent
   NLOHMANN_DEFINE_TYPE_INTRUSIVE(ShopKeeperComponent, placeholder);
 };
 
+struct AiBrainComponent
+{
+  bool placeholder = true;
+
+  NLOHMANN_DEFINE_TYPE_INTRUSIVE(AiBrainComponent, placeholder);
+};
+
 //
 // item/inventory
 //

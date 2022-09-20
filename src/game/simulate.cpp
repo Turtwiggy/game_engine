@@ -1,6 +1,7 @@
 #include "simulate.hpp"
 
 // game
+#include "game/helpers/ai.hpp"
 #include "game/helpers/dungeon.hpp"
 #include "game/helpers/fov.hpp"
 #include "game/systems/intent_use_item.hpp"
@@ -42,7 +43,7 @@ game2d::simulate(entt::registry& r, const std::vector<InputEvent>& inputs, uint6
     update_actor_actor_system(r);
   }
 
-  // resolve collisions immediately ( this seems wrong )
+  // resolve collisions immediately
   update_resolve_collisions_system(r);
 
   // game logic
@@ -51,5 +52,6 @@ game2d::simulate(entt::registry& r, const std::vector<InputEvent>& inputs, uint6
     update_intent_use_item_system(r);
     update_dungeon_system(r);
     update_tile_fov_system(r);
+    update_ai_system(r);
   }
 };

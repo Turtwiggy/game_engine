@@ -36,7 +36,8 @@ game2d::update_ui_editor_tilemap_system(entt::registry& r)
   auto& colours = r.ctx().at<SINGLETON_ColoursComponent>();
   const int GRID_SIZE = 16; // hmm
   const glm::ivec2 mouse_position = mouse_position_in_worldspace(r) + glm::ivec2(GRID_SIZE / 2, GRID_SIZE / 2);
-  const glm::ivec2 grid_position = engine::grid::world_space_to_clamped_world_space(mouse_position, GRID_SIZE);
+  const glm::ivec2 grid_position = engine::grid::world_space_to_grid_space(mouse_position, GRID_SIZE);
+  const glm::ivec2 world_position = engine::grid::grid_space_to_world_space(grid_position, GRID_SIZE);
 
   // this seems weird, but it's because std::pair is serializable
   // by the std::map type, whereas the glm::ivec2 isn't by default
@@ -132,8 +133,8 @@ game2d::update_ui_editor_tilemap_system(entt::registry& r)
         e = create_gameplay(r, type);
         create_renderable(r, e, type);
         auto& transform = r.get<TransformComponent>(e);
-        transform.position.x = grid_position.x;
-        transform.position.y = grid_position.y;
+        transform.position.x = world_position.x;
+        transform.position.y = world_position.y;
         tilemap.tilemap[key] = e;
       } else {
         // update

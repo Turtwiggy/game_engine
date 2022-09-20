@@ -23,8 +23,8 @@ std::vector<entt::entity>
 grid_entities_at(entt::registry& r, int x, int y)
 {
   std::vector<entt::entity> results;
-  const auto& view_grid_entities = r.view<const GridTileComponent>();
-  view_grid_entities.each([&results, &x, &y](auto entity, const auto& grid) {
+  const auto& view = r.view<const GridTileComponent>();
+  view.each([&results, &x, &y](auto entity, const auto& grid) {
     if (x == grid.x && y == grid.y)
       results.push_back(entity);
   });
@@ -196,8 +196,9 @@ generate_dungeon(entt::registry& r, const Dungeon& d, int step)
       r.emplace<TransformComponent>(e, t);
       r.emplace<GridTileComponent>(e, grid_index.x, grid_index.y);
 
-      if (x != 0 && y != 0 && x != d.width - 1 && y != d.height - 1)
-        r.emplace<HealthComponent>(e, 1); // give inner walls health
+      if (x != 0 && y != 0 && x != d.width - 1 && y != d.height - 1) {
+        r.emplace<HealthComponent>(e, 1, 1); // give inner walls health
+      }
 
       r.emplace<SpriteColourComponent>(e, scc);
     }
@@ -212,9 +213,9 @@ generate_dungeon(entt::registry& r, const Dungeon& d, int step)
 
   std::vector<Room> rooms;
 
-  std::cout << "step is: " << step << "max is: " << max_rooms << "\n";
   if (step == -1)
     step = max_rooms + 1;
+  std::cout << "step is: " << step << "max is: " << max_rooms << "\n";
 
   for (int max_room_idx = 0; max_room_idx < max_rooms; max_room_idx++) {
     if (max_room_idx > step)
@@ -341,8 +342,8 @@ update_dungeon_system(entt::registry& r)
   view_grid_tiles.each([&r, &player_grid_pos](auto e, auto& scc, const auto& grid, const auto& type) {
     const int distance_x = glm::abs(grid.x - player_grid_pos.x);
     const int distance_y = glm::abs(grid.y - player_grid_pos.y);
-    // const int dst = 4;
-    const int dst = 10; // debug to see whole map
+    const int dst = 4;
+    // const int dst = 10; // debug to see whole map
     const bool within_distance = distance_x < dst && distance_y < dst;
 
     // If it's within the distance, make it visible

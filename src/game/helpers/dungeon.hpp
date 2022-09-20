@@ -25,6 +25,16 @@ struct Room
   int h = 0;
 };
 
+enum class GridDirection
+{
+  NORTH,
+  EAST,
+  SOUTH,
+  WEST,
+
+  COUNT,
+};
+
 struct GridTileComponent
 {
   int x = 0;

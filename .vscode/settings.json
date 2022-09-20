@@ -91,6 +91,7 @@
     "xlocbuf": "cpp",
     "xlocinfo": "cpp",
     "xstddef": "cpp",
-    "xtree": "cpp"
+    "xtree": "cpp",
+    "queue": "cpp"
   }
 }
