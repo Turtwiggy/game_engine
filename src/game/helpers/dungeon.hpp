@@ -32,13 +32,25 @@ enum class GridDirection
   SOUTH,
   WEST,
 
-  COUNT,
+  // DIAGONALS?
+  NORTH_EAST,
+  SOUTH_EAST,
+  NORTH_WEST,
+  SOUTH_WEST,
+
+  COUNT
 };
 
 struct GridTileComponent
 {
   int x = 0;
   int y = 0;
+
+  // pathfinding
+  int cost = 1;
+
+  // spaceship operator
+  auto operator<=>(const GridTileComponent&) const = default;
 };
 
 // If the room generation algorithm hits "step" rooms

@@ -175,8 +175,8 @@ generate_dungeon(entt::registry& r, const Dungeon& d, int step)
   const auto& view_grid_entities = r.view<const GridTileComponent>();
   view_grid_entities.each([&r](auto entity, const auto& grid) { r.destroy(entity); });
 
-  int offset_x = 15;
-  int offset_y = 5;
+  int offset_x = 0;
+  int offset_y = 0;
 
   // create all the tiles
   for (int x = 0; x < d.width; x++) {
