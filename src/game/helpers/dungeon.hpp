@@ -47,11 +47,14 @@ struct GridTileComponent
   int y = 0;
 
   // pathfinding
-  int cost = 1;
+  int cost = 0;
 
   // spaceship operator
   auto operator<=>(const GridTileComponent&) const = default;
 };
+
+std::vector<entt::entity>
+grid_entities_at(entt::registry& r, int x, int y);
 
 // If the room generation algorithm hits "step" rooms
 // the algorithm is stopped. This can be useful for debugging

@@ -51,7 +51,10 @@ game2d::simulate(entt::registry& r, const std::vector<InputEvent>& inputs, uint6
     auto _ = time_scope(&p, "(game_logic)", true);
     update_intent_use_item_system(r);
     update_dungeon_system(r);
-    // update_tile_fov_system(r);
+    update_tile_fov_system(r);
+  }
+  {
+    auto _ = time_scope(&p, "(pathfinding/ai)", true);
     update_ai_system(r);
   }
 };
