@@ -75,8 +75,9 @@ create_room(entt::registry& r, const Room& room)
         }
       }
 
+      const int wall_pathfinding_cost = 10;
       if (!contained_floor)
-        r.emplace<GridTileComponent>(e, grid_index.x, grid_index.y);
+        r.emplace<GridTileComponent>(e, grid_index.x, grid_index.y, wall_pathfinding_cost);
       else
         r.destroy(e);
     }
@@ -175,13 +176,14 @@ generate_dungeon(entt::registry& r, const Dungeon& d, int step)
   const auto& view_grid_entities = r.view<const GridTileComponent>();
   view_grid_entities.each([&r](auto entity, const auto& grid) { r.destroy(entity); });
 
-  int offset_x = 15;
-  int offset_y = 5;
+  int offset_x = 0;
+  int offset_y = 0;
 
   // create all the tiles
   for (int x = 0; x < d.width; x++) {
     for (int y = 0; y < d.height; y++) {
       EntityType et = EntityType::wall;
+      const int wall_pathfinding_cost = 10;
 
       entt::entity e = create_gameplay(r, et);
       SpriteComponent s = create_sprite(r, e, et);
@@ -194,7 +196,7 @@ generate_dungeon(entt::registry& r, const Dungeon& d, int step)
 
       r.emplace<SpriteComponent>(e, s);
       r.emplace<TransformComponent>(e, t);
-      r.emplace<GridTileComponent>(e, grid_index.x, grid_index.y);
+      r.emplace<GridTileComponent>(e, grid_index.x, grid_index.y, wall_pathfinding_cost);
 
       if (x != 0 && y != 0 && x != d.width - 1 && y != d.height - 1) {
         r.emplace<HealthComponent>(e, 1, 1); // give inner walls health
@@ -272,7 +274,8 @@ generate_dungeon(entt::registry& r, const Dungeon& d, int step)
   // placing enemies
   //
   for (const auto& room : rooms) {
-    int number_of_monsters = static_cast<int>(engine::rand_det_s(rnd.rng, 0, max_monsters_per_room));
+    // int number_of_monsters = static_cast<int>(engine::rand_det_s(rnd.rng, 0, max_monsters_per_room));
+    int number_of_monsters = static_cast<int>(engine::rand_det_s(rnd.rng, 0, 0));
 
     std::vector<glm::ivec2> occupied_slots;
 
@@ -337,9 +340,9 @@ update_dungeon_system(entt::registry& r)
   glm::ivec2 player_grid_pos =
     engine::grid::world_space_to_grid_space({ player_transform.position.x, player_transform.position.y }, 16);
 
-  const auto& view_grid_tiles = r.view<SpriteColourComponent, const GridTileComponent, const EntityTypeComponent>();
+  const auto& view_grid_tiles = r.view<const GridTileComponent>();
 
-  view_grid_tiles.each([&r, &player_grid_pos](auto e, auto& scc, const auto& grid, const auto& type) {
+  view_grid_tiles.each([&r, &player_grid_pos](auto e, const auto& grid) {
     const int distance_x = glm::abs(grid.x - player_grid_pos.x);
     const int distance_y = glm::abs(grid.y - player_grid_pos.y);
     const int dst = 4;
