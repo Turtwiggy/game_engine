@@ -96,11 +96,32 @@ struct ShopKeeperComponent
   NLOHMANN_DEFINE_TYPE_INTRUSIVE(ShopKeeperComponent, placeholder);
 };
 
+//
+// AI / pathfinding
+//
+
+const int milliseconds_between_ai_updates = 1000;
+
 struct AiBrainComponent
 {
-  bool placeholder = true;
+  int milliseconds_between_ai_updates_left = 1000;
 
-  NLOHMANN_DEFINE_TYPE_INTRUSIVE(AiBrainComponent, placeholder);
+  // NLOHMANN_DEFINE_TYPE_INTRUSIVE(AiBrainComponent);
+};
+
+struct GridComponent
+{
+  int x = 0;
+  int y = 0;
+
+  NLOHMANN_DEFINE_TYPE_INTRUSIVE(GridComponent, x, y);
+};
+
+struct PathfindableComponent
+{
+  int cost = 0;
+
+  NLOHMANN_DEFINE_TYPE_INTRUSIVE(PathfindableComponent, cost);
 };
 
 //

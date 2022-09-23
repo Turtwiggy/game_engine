@@ -6,13 +6,14 @@
 #include <entt/entt.hpp>
 
 #include <map>
+#include <vector>
 
 namespace game2d {
 
 struct Dungeon
 {
-  int width = 30;
-  int height = 30;
+  int width = 50;
+  int height = 50;
 };
 
 struct Room
@@ -25,36 +26,29 @@ struct Room
   int h = 0;
 };
 
-enum class GridDirection
+enum class GridDirection : size_t
 {
-  NORTH,
-  EAST,
-  SOUTH,
-  WEST,
+  north,
+  south,
+  east,
+  west,
 
-  // DIAGONALS?
-  NORTH_EAST,
-  SOUTH_EAST,
-  NORTH_WEST,
-  SOUTH_WEST,
+  // allow diagonals?
+  north_east,
+  south_east,
+  south_west,
+  north_west,
 
-  COUNT
+  count,
 };
 
-struct GridTileComponent
-{
-  int x = 0;
-  int y = 0;
-
-  // pathfinding
-  int cost = 0;
-
-  // spaceship operator
-  auto operator<=>(const GridTileComponent&) const = default;
-};
-
-std::vector<entt::entity>
-grid_entities_at(entt::registry& r, int x, int y);
+// e.g. 0, 0 should return {1, 0}, {1, 1}, {0, 1}
+void
+get_neighbour_indicies(const int x,
+                       const int y,
+                       const int x_max,
+                       const int y_max,
+                       std::vector<std::pair<GridDirection, int>>& results);
 
 // If the room generation algorithm hits "step" rooms
 // the algorithm is stopped. This can be useful for debugging

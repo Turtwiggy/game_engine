@@ -23,13 +23,63 @@ std::vector<entt::entity>
 grid_entities_at(entt::registry& r, int x, int y)
 {
   std::vector<entt::entity> results;
-  const auto& view = r.view<const GridTileComponent>();
+  const auto& view = r.view<const GridComponent>();
   view.each([&results, &x, &y](auto entity, const auto& grid) {
     if (x == grid.x && y == grid.y)
       results.push_back(entity);
   });
   return results;
 }
+
+void
+get_neighbour_indicies(const int x,
+                       const int y,
+                       const int x_max,
+                       const int y_max,
+                       std::vector<std::pair<GridDirection, int>>& results)
+{
+  const int max_idx = x_max * y_max;
+  const int idx_north = x_max * (y - 1) + x;
+  const int idx_east = x_max * y + (x + 1);
+  const int idx_south = x_max * (y + 1) + x;
+  const int idx_west = x_max * y + (x - 1);
+  const int idx_north_east = x_max * (y - 1) + (x + 1);
+  const int idx_south_east = x_max * (y + 1) + (x + 1);
+  const int idx_south_west = x_max * (y + 1) + (x - 1);
+  const int idx_north_west = x_max * (y - 1) + (x - 1);
+  const bool ignore_north = y <= 0;
+  const bool ignore_east = x >= x_max - 1;
+  const bool ignore_south = y >= y_max - 1;
+  const bool ignore_west = x <= 0;
+  const bool ignore_north_east = ignore_north | ignore_east;
+  const bool ignore_south_east = ignore_south | ignore_east;
+  const bool ignore_south_west = ignore_south | ignore_west;
+  const bool ignore_north_west = ignore_north | ignore_west;
+
+  if (!ignore_north && idx_north >= 0 && idx_north < max_idx)
+    results.push_back({ GridDirection::north, idx_north });
+
+  if (!ignore_east && idx_east >= 0 && idx_east < max_idx)
+    results.push_back({ GridDirection::east, idx_east });
+
+  if (!ignore_south && idx_south >= 0 && idx_south < max_idx)
+    results.push_back({ GridDirection::south, idx_south });
+
+  if (!ignore_west && idx_west >= 0 && idx_west < max_idx)
+    results.push_back({ GridDirection::west, idx_west });
+
+  if (!ignore_north_east && idx_north_east >= 0 && idx_north_east < max_idx)
+    results.push_back({ GridDirection::north_east, idx_north_east });
+
+  if (!ignore_south_east && idx_south_east >= 0 && idx_south_east < max_idx)
+    results.push_back({ GridDirection::south_east, idx_south_east });
+
+  if (!ignore_south_west && idx_south_west >= 0 && idx_south_west < max_idx)
+    results.push_back({ GridDirection::south_west, idx_south_west });
+
+  if (!ignore_north_west && idx_north_west >= 0 && idx_north_west < max_idx)
+    results.push_back({ GridDirection::north_west, idx_north_west });
+};
 
 void
 create_room(entt::registry& r, const Room& room)
@@ -61,25 +111,10 @@ create_room(entt::registry& r, const Room& room)
       r.emplace<SpriteColourComponent>(e, scc);
 
       // TODO: improve lines of code below
-      //
-      bool contained_floor = false;
-
       std::vector<entt::entity> entities = grid_entities_at(r, grid_index.x, grid_index.y);
-      for (const auto& entity : entities) {
-        EntityTypeComponent type = r.get<EntityTypeComponent>(entity);
-        if (type.type == EntityType::floor) {
-          // leave it
-          contained_floor = true;
-        } else {
-          r.destroy(entity);
-        }
-      }
-
-      const int wall_pathfinding_cost = 10;
-      if (!contained_floor)
-        r.emplace<GridTileComponent>(e, grid_index.x, grid_index.y, wall_pathfinding_cost);
-      else
-        r.destroy(e);
+      for (const auto& entity : entities)
+        r.destroy(entity);
+      r.emplace<GridComponent>(e, grid_index.x, grid_index.y);
     }
   }
 };
@@ -107,7 +142,7 @@ create_tunnel_floor(entt::registry& r, const Dungeon& d, std::vector<std::pair<i
     std::vector<entt::entity> entities = grid_entities_at(r, x, y);
     for (const auto& entity : entities)
       r.destroy(entity);
-    r.emplace<GridTileComponent>(e, x, y);
+    r.emplace<GridComponent>(e, x, y);
   }
 }
 
@@ -173,7 +208,7 @@ generate_dungeon(entt::registry& r, const Dungeon& d, int step)
   const auto& colours = r.ctx().at<SINGLETON_ColoursComponent>();
 
   // destroy any grid tiles
-  const auto& view_grid_entities = r.view<const GridTileComponent>();
+  const auto& view_grid_entities = r.view<const GridComponent>();
   view_grid_entities.each([&r](auto entity, const auto& grid) { r.destroy(entity); });
 
   int offset_x = 0;
@@ -183,7 +218,6 @@ generate_dungeon(entt::registry& r, const Dungeon& d, int step)
   for (int x = 0; x < d.width; x++) {
     for (int y = 0; y < d.height; y++) {
       EntityType et = EntityType::wall;
-      const int wall_pathfinding_cost = 10;
 
       entt::entity e = create_gameplay(r, et);
       SpriteComponent s = create_sprite(r, e, et);
@@ -196,11 +230,10 @@ generate_dungeon(entt::registry& r, const Dungeon& d, int step)
 
       r.emplace<SpriteComponent>(e, s);
       r.emplace<TransformComponent>(e, t);
-      r.emplace<GridTileComponent>(e, grid_index.x, grid_index.y, wall_pathfinding_cost);
+      r.emplace<GridComponent>(e, grid_index.x, grid_index.y);
 
-      if (x != 0 && y != 0 && x != d.width - 1 && y != d.height - 1) {
+      if (x != 0 && y != 0 && x != d.width - 1 && y != d.height - 1)
         r.emplace<HealthComponent>(e, 1, 1); // give inner walls health
-      }
 
       r.emplace<SpriteColourComponent>(e, scc);
     }
@@ -256,18 +289,40 @@ generate_dungeon(entt::registry& r, const Dungeon& d, int step)
   }
 
   //
+  // Set pathfinding cost
+  //
+  {
+    const auto& grid_tiles = r.view<const GridComponent>();
+    grid_tiles.each([&r](auto entity, const auto& grid) {
+      EntityTypeComponent& t = r.get<EntityTypeComponent>(entity);
+      PathfindableComponent path;
+
+      if (t.type == EntityType::floor)
+        path.cost = 1;
+      else if (t.type == EntityType::wall)
+        path.cost = -1; // not passable
+      else
+        path.cost = 1;
+
+      r.emplace<PathfindableComponent>(entity, path);
+    });
+  }
+
+  //
   // Gameplay logic
   // Put a player in a room
   // limitation: currently all player put in same spot
-  const auto& view = r.view<TransformComponent, const PlayerComponent>();
-  view.each([&rooms](auto entity, TransformComponent& t, const PlayerComponent& p) {
-    if (rooms.size() > 0) {
-      auto room = rooms[0];
-      auto center = room_center(room);
-      glm::ivec2 pos = engine::grid::grid_space_to_world_space(center, GRID_SIZE);
-      t.position = { pos.x, pos.y, 0 };
-    }
-  });
+  {
+    const auto& view = r.view<TransformComponent, const PlayerComponent>();
+    view.each([&rooms](auto entity, TransformComponent& t, const PlayerComponent& p) {
+      if (rooms.size() > 0) {
+        auto room = rooms[0];
+        auto center = room_center(room);
+        glm::ivec2 pos = engine::grid::grid_space_to_world_space(center, GRID_SIZE);
+        t.position = { pos.x, pos.y, 0 };
+      }
+    });
+  }
 
   //
   // Gameplay logic
@@ -275,9 +330,9 @@ generate_dungeon(entt::registry& r, const Dungeon& d, int step)
   //
   for (const auto& room : rooms) {
     // int number_of_monsters = static_cast<int>(engine::rand_det_s(rnd.rng, 0, max_monsters_per_room));
-    int number_of_monsters = static_cast<int>(engine::rand_det_s(rnd.rng, 0, 0));
+    int number_of_monsters = static_cast<int>(engine::rand_det_s(rnd.rng, 0, max_monsters_per_room));
 
-    std::vector<glm::ivec2> occupied_slots;
+    std::vector<glm::ivec2> room_occupied_slots;
 
     for (int i = 0; i < number_of_monsters; i++) {
 
@@ -285,8 +340,6 @@ generate_dungeon(entt::registry& r, const Dungeon& d, int step)
       EntityType et = EntityType::enemy_orc;
 
       if (random < 0.8f)
-        et = EntityType::scroll_confusion;
-      else if (random < 0.9f)
         et = EntityType::enemy_orc;
       else
         et = EntityType::enemy_troll;
@@ -301,13 +354,14 @@ generate_dungeon(entt::registry& r, const Dungeon& d, int step)
       SpriteColourComponent scc = create_colour(r, e, et);
 
       // Check the tile isn't occupied
-      auto full = std::find_if(
-        occupied_slots.begin(), occupied_slots.end(), [&grid_index](const auto& val) { return grid_index == val; });
-      if (full != occupied_slots.end()) {
+      auto full = std::find_if(room_occupied_slots.begin(), room_occupied_slots.end(), [&grid_index](const auto& val) {
+        return grid_index == val;
+      });
+      if (full != room_occupied_slots.end()) {
         printf("already entity at position");
         return;
       }
-      occupied_slots.push_back(grid_index);
+      room_occupied_slots.push_back(grid_index);
 
       // Create the entity
       glm::ivec2 world_position = engine::grid::grid_space_to_world_space(grid_index, GRID_SIZE);
@@ -315,7 +369,7 @@ generate_dungeon(entt::registry& r, const Dungeon& d, int step)
       r.emplace<TransformComponent>(e, t);
       r.emplace<SpriteComponent>(e, s);
       r.emplace<SpriteColourComponent>(e, scc);
-      r.emplace<GridTileComponent>(e, grid_index.x, grid_index.y);
+      r.emplace<GridComponent>(e, grid_index.x, grid_index.y);
     }
   }
 
@@ -334,48 +388,7 @@ generate_dungeon(entt::registry& r, const Dungeon& d, int step)
 void
 update_dungeon_system(entt::registry& r)
 {
-  const auto& player_view = r.view<PlayerComponent>();
-  const auto player_entity = player_view.front();
-  const auto& player_transform = r.get<TransformComponent>(player_entity);
-  glm::ivec2 player_grid_pos =
-    engine::grid::world_space_to_grid_space({ player_transform.position.x, player_transform.position.y }, 16);
-
-  const auto& view_grid_tiles = r.view<const GridTileComponent>();
-
-  view_grid_tiles.each([&r, &player_grid_pos](auto e, const auto& grid) {
-    const int distance_x = glm::abs(grid.x - player_grid_pos.x);
-    const int distance_y = glm::abs(grid.y - player_grid_pos.y);
-    const int dst = 4;
-    // const int dst = 10; // debug to see whole map
-    const bool within_distance = distance_x < dst && distance_y < dst;
-
-    // If it's within the distance, make it visible
-    if (within_distance) {
-      r.emplace_or_replace<VisibleComponent>(e);
-      if (r.try_get<NotVisibleComponent>(e))
-        r.remove<NotVisibleComponent>(e);
-      if (r.try_get<NotVisibleButPreviouslySeenComponent>(e))
-        r.remove<NotVisibleButPreviouslySeenComponent>(e);
-    }
-    // If it's not within the distance, hide it
-    else {
-
-      // if it's already got NotVisibleButPreviouslySeenComponent,
-      auto seen_before = r.try_get<NotVisibleButPreviouslySeenComponent>(e);
-      if (seen_before)
-        return; // change nothing
-
-      // if it was Visible, set as NotVisibleButPreviouslySeenComponent
-      if (auto visible = r.try_get<VisibleComponent>(e)) {
-        r.remove<VisibleComponent>(e);
-        r.emplace_or_replace<NotVisibleButPreviouslySeenComponent>(e);
-      }
-      // if it was not Visible, just set it back to not visible
-      else {
-        r.emplace_or_replace<NotVisibleComponent>(e);
-      }
-    }
-  });
+  // nada
 }
 
 } // namespace game2d

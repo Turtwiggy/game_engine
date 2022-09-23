@@ -1,5 +1,6 @@
 #include "fov.hpp"
 
+#include "engine/maths/grid.hpp"
 #include "game/components/components.hpp"
 #include "game/entities/actors.hpp"
 #include "modules/events/helpers/mouse.hpp" // shouldnt be here
@@ -15,6 +16,48 @@ void
 update_tile_fov_system(entt::registry& r)
 {
   const auto& colours = r.ctx().at<SINGLETON_ColoursComponent>();
+
+  const auto& player_view = r.view<PlayerComponent>();
+  const auto player_entity = player_view.front();
+  const auto& player_transform = r.get<TransformComponent>(player_entity);
+  glm::ivec2 player_grid_pos =
+    engine::grid::world_space_to_grid_space({ player_transform.position.x, player_transform.position.y }, 16);
+
+  const auto& view_grid_tiles = r.view<const GridComponent>();
+  view_grid_tiles.each([&r, &player_grid_pos](auto e, const auto& grid) {
+    const int distance_x = glm::abs(grid.x - player_grid_pos.x);
+    const int distance_y = glm::abs(grid.y - player_grid_pos.y);
+    const int dst = 4;
+    // const int dst = 10; // debug to see whole map
+    const bool within_distance = distance_x < dst && distance_y < dst;
+
+    // If it's within the distance, make it visible
+    if (within_distance) {
+      r.emplace_or_replace<VisibleComponent>(e);
+      if (r.try_get<NotVisibleComponent>(e))
+        r.remove<NotVisibleComponent>(e);
+      if (r.try_get<NotVisibleButPreviouslySeenComponent>(e))
+        r.remove<NotVisibleButPreviouslySeenComponent>(e);
+    }
+    // If it's not within the distance, hide it
+    else {
+
+      // if it's already got NotVisibleButPreviouslySeenComponent,
+      auto seen_before = r.try_get<NotVisibleButPreviouslySeenComponent>(e);
+      if (seen_before)
+        return; // change nothing
+
+      // if it was Visible, set as NotVisibleButPreviouslySeenComponent
+      if (auto visible = r.try_get<VisibleComponent>(e)) {
+        r.remove<VisibleComponent>(e);
+        r.emplace_or_replace<NotVisibleButPreviouslySeenComponent>(e);
+      }
+      // if it was not Visible, just set it back to not visible
+      else {
+        r.emplace_or_replace<NotVisibleComponent>(e);
+      }
+    }
+  });
 
   // visible no hp tiles
   {

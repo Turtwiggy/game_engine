@@ -48,7 +48,7 @@ encode_cantor_pairing_function(int x, int y)
   // then sort a and b before applying the pairing function.
   if (y < x) {
     // Swap X and Y
-    uint64_t temp = x;
+    int temp = x;
     x = y;
     y = temp;
   }

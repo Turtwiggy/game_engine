@@ -14,56 +14,61 @@
 
 #include <functional>
 #include <map>
+#include <utility>
 #include <vector>
 
 namespace game2d {
 
-// astar pathfinding
-
-struct Path
+struct vec2i
 {
-  entt::entity entity = entt::null;
-  GridTileComponent tile;
+  int x = 0;
+  int y = 0;
 
   // spaceship operator
-  auto operator<=>(const Path&) const = default;
+  auto operator<=>(const vec2i&) const = default;
 };
 
+// astar pathfinding
+
+template<typename T>
 int
-distance(const Path& a, const Path& b)
+distance(const T& a, const T& b)
 {
-  int distance_x = a.tile.x < b.tile.x ? b.tile.x - a.tile.x : a.tile.x - b.tile.x;
-  int distance_y = a.tile.y < b.tile.y ? b.tile.y - a.tile.y : a.tile.y - b.tile.y;
+  int distance_x = a.x < b.x ? b.x - a.x : a.x - b.x;
+  int distance_y = a.y < b.y ? b.y - a.y : a.y - b.y;
   return (distance_x + distance_y);
 }
 
-int
-heuristic(const Path& a, const Path& b)
-{
-  return distance(a, b);
-};
-
+template<typename T>
 bool
-equal(const Path& a, const Path& b)
+equal(const T& a, const T& b)
 {
-  return (a.tile.x == b.tile.x) && (a.tile.y == b.tile.y);
+  return (a.x == b.x) && (a.y == b.y);
 };
 
-std::vector<Path>
-reconstruct_path(std::map<Path, Path>& came_from, const Path& start, const Path& goal)
+template<typename T>
+int
+heuristic(const T& a, const T& b)
 {
-  Path current = goal;
+  return distance<T>(a, b);
+};
 
-  std::vector<Path> path;
+template<typename T>
+std::vector<T>
+reconstruct_path(std::map<T, T>& came_from, const T& start, const T& goal)
+{
+  T current = goal;
 
-  while (!equal(current, start)) {
+  std::vector<T> path;
+
+  while (!equal<T>(current, start)) {
     path.push_back(current);
 
-    Path copy = current;
+    T copy = current;
     current = came_from[current];
 
-    if (equal(copy, current)) {
-      printf("we got a problem");
+    if (equal<T>(copy, current)) {
+      printf("pathfinding hit a loop?");
       break;
     }
   }
@@ -73,134 +78,89 @@ reconstruct_path(std::map<Path, Path>& came_from, const Path& start, const Path&
   return path;
 }
 
+template<typename T>
 void
-evaluate_neighbour(std::map<Path, Path>& came_from,
-                   std::map<Path, int>& cost_so_far,
-                   PriorityQueue<Path>& frontier,
-                   const Path& current,
-                   const Path& neighbour,
-                   const Path& to)
+evaluate_neighbour(std::map<T, T>& came_from,
+                   std::map<T, int>& cost_so_far,
+                   PriorityQueue<T>& frontier,
+                   const T& current,
+                   const T& neighbour,
+                   const int neighbour_cost,
+                   const T& to)
 {
   // Assumption:
   // assume multiple entities on the same tile
   // are the same path cost.
-  int map_cost = neighbour.tile.cost;
+  int map_cost = neighbour_cost;
   int new_cost = cost_so_far[current] + map_cost;
   if (!cost_so_far.contains(neighbour) || new_cost < cost_so_far[neighbour]) {
     cost_so_far[neighbour] = new_cost;
-    int priority = new_cost + heuristic(neighbour, to);
+    int priority = new_cost + heuristic<T>(neighbour, to);
     frontier.enqueue(neighbour, priority);
     came_from[neighbour] = current;
   }
 }
 
-std::vector<Path>
-astar(const entt::registry& r, std::vector<Path>& t, const Path& from, const Path& to)
+std::vector<vec2i>
+astar(entt::registry& registry, const vec2i& from, const vec2i& to)
 {
   // hack: only one dungeon at the moment
-  const auto dungeon = r.view<Dungeon>().front();
-  const auto& d = r.get<Dungeon>(dungeon);
-  const int x_max = d.width;
-  const int y_max = d.height;
+  const auto d = registry.view<Dungeon>().front();
+  const auto& dungeon = registry.get<Dungeon>(d);
+  const int x_max = dungeon.width;
 
-  if (equal(from, to)) //|| distance(from, to) == 0)
+  if (equal<vec2i>(from, to)) //|| distance(from, to) == 0)
     return {};
 
-  PriorityQueue<Path> frontier;
+  PriorityQueue<vec2i> frontier;
   frontier.enqueue(from, 0);
-  std::map<Path, Path> came_from;
-  std::map<Path, int> cost_so_far;
+  std::map<vec2i, vec2i> came_from;
+  std::map<vec2i, int> cost_so_far;
   came_from[from] = from;
   cost_so_far[from] = 0;
 
+  // read-only view of the grid
+  const auto& group = registry.group<GridComponent, PathfindableComponent>();
+  group.sort<GridComponent>([&x_max](const auto& a, const auto& b) {
+    int index_a = x_max * a.y + a.x;
+    int index_b = x_max * b.y + b.x;
+    return index_a < index_b;
+  });
+
   while (frontier.size() > 0) {
-    Path current = frontier.dequeue();
+    vec2i current = frontier.dequeue();
 
-    if (equal(current, to))
-      return reconstruct_path(came_from, from, to);
+    if (equal<vec2i>(current, to))
+      return reconstruct_path<vec2i>(came_from, from, to);
 
-    // evaluates all neighbours, and they're prioritized via cost heuristic
+    std::vector<std::pair<GridDirection, int>> results;
+    get_neighbour_indicies(current.x, current.y, dungeon.width, dungeon.height, results);
 
-    const int idx_north = x_max * (current.tile.y - 1) + (current.tile.x);
-    const int idx_east = x_max * (current.tile.y) + (current.tile.x + 1);
-    const int idx_south = x_max * (current.tile.y + 1) + (current.tile.x);
-    const int idx_west = x_max * (current.tile.y) + (current.tile.x - 1);
-    const int idx_north_east = x_max * (current.tile.y - 1) + (current.tile.x + 1);
-    const int idx_south_east = x_max * (current.tile.y + 1) + (current.tile.x + 1);
-    const int idx_south_west = x_max * (current.tile.y + 1) + (current.tile.x - 1);
-    const int idx_north_west = x_max * (current.tile.y - 1) + (current.tile.x - 1);
-    const int max_idx = d.width * d.height;
+    for (const auto& neighbour_idx : results) {
+      const auto& entity = group[neighbour_idx.second];
+      const auto [grid, path] = group.get<GridComponent, PathfindableComponent>(entity);
 
-    // borders
-    const bool ignore_north = current.tile.y == 0;
-    const bool ignore_east = current.tile.x == x_max;
-    const bool ignore_south = current.tile.y == y_max;
-    const bool ignore_west = current.tile.x == 0;
-    const bool ignore_north_east = ignore_north | ignore_east;
-    const bool ignore_south_east = ignore_south | ignore_east;
-    const bool ignore_south_west = ignore_south | ignore_west;
-    const bool ignore_north_west = ignore_north | ignore_west;
+      const vec2i neighbour = { grid.x, grid.y };
+      const int neighbour_cost = path.cost;
 
-    if (!ignore_north && idx_north >= 0 && idx_north < max_idx)
-      evaluate_neighbour(came_from, cost_so_far, frontier, current, t[idx_north], to);
-
-    if (!ignore_north_east && idx_north_east >= 0 && idx_north_east < max_idx)
-      evaluate_neighbour(came_from, cost_so_far, frontier, current, t[idx_north_east], to);
-
-    if (!ignore_east && idx_east >= 0 && idx_east < max_idx)
-      evaluate_neighbour(came_from, cost_so_far, frontier, current, t[idx_east], to);
-
-    if (!ignore_south_east && idx_south_east >= 0 && idx_south_east < max_idx)
-      evaluate_neighbour(came_from, cost_so_far, frontier, current, t[idx_south_east], to);
-
-    if (!ignore_south && idx_south >= 0 && idx_south < max_idx)
-      evaluate_neighbour(came_from, cost_so_far, frontier, current, t[idx_south], to);
-
-    if (!ignore_south_west && idx_south_west >= 0 && idx_south_west < max_idx)
-      evaluate_neighbour(came_from, cost_so_far, frontier, current, t[idx_south_west], to);
-
-    if (!ignore_west && idx_west >= 0 && idx_west < max_idx)
-      evaluate_neighbour(came_from, cost_so_far, frontier, current, t[idx_west], to);
-
-    if (!ignore_north_west && idx_north_west >= 0 && idx_north_west < max_idx)
-      evaluate_neighbour(came_from, cost_so_far, frontier, current, t[idx_north_west], to);
+      if (neighbour_cost == -1)
+        continue; // neighbour isnt passable
+      evaluate_neighbour<vec2i>(came_from, cost_so_far, frontier, current, neighbour, neighbour_cost, to);
+    }
   }
 
   return {};
 }
 
-//
-//
-//
-
 void
-update_ai_system(entt::registry& r)
+update_ai_system(entt::registry& r, const uint64_t& milliseconds_dt)
 {
   auto& colours = r.ctx().at<SINGLETON_ColoursComponent>();
 
   // hack: only one dungeon at the moment
   const auto dungeon = r.view<Dungeon>().front();
   const auto& d = r.get<Dungeon>(dungeon);
-  const int x_max = d.width;
-
-  // recreate tilemap
-  std::vector<Path> tilemap;
-  tilemap.resize(d.width * d.height);
-  {
-    const auto& view = r.view<GridTileComponent, SpriteColourComponent>();
-    for (auto [entity, grid, col] : view.each()) {
-      int index = (x_max * grid.y) + grid.x;
-
-      auto what_is_this = tilemap[index];
-      if (what_is_this.entity != entt::null)
-        printf("warning; overwriting entity in tilemap");
-
-      Path tile;
-      tile.entity = entity;
-      tile.tile = grid;
-      tilemap[index] = tile;
-    }
-  }
+  const int& x_max = d.width;
 
   const int GRID_SIZE = 16;
   const auto& player_view = r.view<PlayerComponent>();
@@ -209,36 +169,41 @@ update_ai_system(entt::registry& r)
   const auto grid_position =
     engine::grid::world_space_to_grid_space({ player_transform.position.x, player_transform.position.y }, GRID_SIZE);
 
-  const glm::ivec2 mouse_position = mouse_position_in_worldspace(r) - glm::ivec2{ GRID_SIZE / 2, GRID_SIZE / 2 };
-  // const glm::ivec2 world_position = engine::grid::world_space_to_clamped_world_space(mouse_position, GRID_SIZE);
+  const glm::ivec2 mouse_position = mouse_position_in_worldspace(r) + glm::ivec2(GRID_SIZE / 2, GRID_SIZE / 2);
   const glm::ivec2 mouse_grid_position = engine::grid::world_space_to_grid_space(mouse_position, GRID_SIZE);
 
-  Path from;
-  from.tile.x = glm::clamp(grid_position.x, 0, d.width - 1);
-  from.tile.y = glm::clamp(grid_position.y, 0, d.height - 1);
-  from.tile.cost = 1;
-  const auto from_entities = grid_entities_at(r, from.tile.x, from.tile.y);
-  from.entity = from_entities[0];
-  from.tile.cost = r.get<GridTileComponent>(from_entities[0]).cost;
+  // mouse location
+  vec2i to = { glm::clamp(mouse_grid_position.x, 0, d.width - 1), glm::clamp(mouse_grid_position.y, 0, d.height - 1) };
 
-  Path to;
-  to.tile.x = glm::clamp(mouse_grid_position.x, 0, d.width - 1);
-  to.tile.y = glm::clamp(mouse_grid_position.y, 0, d.height - 1);
-  const auto to_entities = grid_entities_at(r, to.tile.x, to.tile.y);
-  to.entity = to_entities[0];
-  to.tile.cost = r.get<GridTileComponent>(to_entities[0]).cost;
+  const auto& group = r.group<GridComponent, PathfindableComponent>();
+  group.sort<GridComponent>([&x_max](const auto& a, const auto& b) {
+    int index_a = x_max * a.y + a.x;
+    int index_b = x_max * b.y + b.x;
+    return index_a < index_b;
+  });
 
-  const auto path = astar(r, tilemap, from, to);
-  for (const auto& p : path) {
-    auto& col = r.get<SpriteColourComponent>(p.entity);
-    col.colour = colours.lin_cyan;
+  const auto& view = r.view<AiBrainComponent, GridComponent, GridMoveComponent>();
+  for (auto [entity, ai, grid, move] : view.each()) {
+
+    vec2i from;
+    from.x = glm::clamp(grid.x, 0, d.width - 1);
+    from.y = glm::clamp(grid.y, 0, d.height - 1);
+
+    const auto path = astar(r, from, to);
+    for (const auto& p : path) {
+      int index = x_max * p.y + p.x;
+      const auto& e = group[index];
+      auto& col = r.get<SpriteColourComponent>(e);
+      col.colour = colours.lin_cyan;
+    }
   }
 
-  // const auto& view = r.view<AiBrainComponent, GridTileComponent, GridMoveComponent>();
-  // for (auto [entity, ai, grid, move] : view.each())
-  // move in desired direction (with cooldown)
-  // move.x -= glm::clamp(static_cast<int>(dir.x), -1, 1);
-  // move.y -= glm::clamp(static_cast<int>(dir.y), -1, 1);
+  //   // move in desired direction (with cooldown)
+  //   // move.x -= glm::clamp(static_cast<int>(dir.x), -1, 1);
+  //   // move.y -= glm::clamp(static_cast<int>(dir.y), -1, 1);
+  // }
+
+  //
 };
 
 } // namespace game2d
