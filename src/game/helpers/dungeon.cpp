@@ -300,7 +300,7 @@ generate_dungeon(entt::registry& r, const Dungeon& d, int step)
       if (t.type == EntityType::floor)
         path.cost = 1;
       else if (t.type == EntityType::wall)
-        path.cost = -1; // not passable
+        path.cost = -1; // impassable
       else
         path.cost = 1;
 

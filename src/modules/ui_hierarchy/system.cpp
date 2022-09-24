@@ -28,11 +28,33 @@ game2d::update_ui_hierarchy_system(entt::registry& registry)
     ImGui::Text("Total alive: %i", entities);
     ImGui::Text("Under root: %i", root_entity_count);
 
+    // UI optimisation:
+    // paginate the shown entities
+    static int SHOWING_INDEX = 0;
+    const int MAX_TO_SHOW = 10;
+    const int min_show = SHOWING_INDEX * MAX_TO_SHOW;
+    const int max_show = (SHOWING_INDEX + 1) * MAX_TO_SHOW;
+    std::string next_label = std::string("Next " + std::to_string(MAX_TO_SHOW));
+    std::string prev_label = std::string("prev " + std::to_string(MAX_TO_SHOW));
+    if (ImGui::Button(next_label.c_str()))
+      SHOWING_INDEX += 1;
+    ImGui::SameLine();
+    if (ImGui::Button(prev_label.c_str()))
+      SHOWING_INDEX -= 1;
+    ImGui::Text("Showing between %i %i", min_show, max_show);
+
     // let root hierarchy entity be dropped on
     drop_accept_entity(registry, h_entity);
 
     // skip showing the root node, go to children
-    for (const auto& child : hroot.children) {
+    for (int i = 0; const auto& child : hroot.children) {
+
+      // optimisation; only show MAX_TO_SHOW in hierachy at one time
+      bool valid = i >= min_show && i <= max_show;
+      ++i;
+      if (!valid)
+        continue;
+
       if (registry.valid(child)) {
         const auto& tag = registry.get<TagComponent>(child).tag;
         imgui_draw_entity(registry, tag, child, selected_entity);

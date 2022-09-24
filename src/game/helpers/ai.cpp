@@ -92,6 +92,8 @@ evaluate_neighbour(std::map<T, T>& came_from,
   // assume multiple entities on the same tile
   // are the same path cost.
   int map_cost = neighbour_cost;
+  if (map_cost == -1)
+    return; // impassable
   int new_cost = cost_so_far[current] + map_cost;
   if (!cost_so_far.contains(neighbour) || new_cost < cost_so_far[neighbour]) {
     cost_so_far[neighbour] = new_cost;
@@ -142,9 +144,6 @@ astar(entt::registry& registry, const vec2i& from, const vec2i& to)
 
       const vec2i neighbour = { grid.x, grid.y };
       const int neighbour_cost = path.cost;
-
-      if (neighbour_cost == -1)
-        continue; // neighbour isnt passable
       evaluate_neighbour<vec2i>(came_from, cost_so_far, frontier, current, neighbour, neighbour_cost, to);
     }
   }
@@ -174,6 +173,19 @@ update_ai_system(entt::registry& r, const uint64_t& milliseconds_dt)
 
   // mouse location
   vec2i to = { glm::clamp(mouse_grid_position.x, 0, d.width - 1), glm::clamp(mouse_grid_position.y, 0, d.height - 1) };
+
+  // Temporary optmisation:
+  // if hovering over a WALL tile,
+  // skip all pathfinding
+  auto hovered = grid_entities_at(r, to.x, to.y);
+  bool skip_all_pathfinding = false;
+  for (auto& e : hovered) {
+    EntityTypeComponent t = r.get<EntityTypeComponent>(e);
+    if (t.type == EntityType::wall)
+      skip_all_pathfinding = true;
+  }
+  if (skip_all_pathfinding)
+    return;
 
   const auto& group = r.group<GridComponent, PathfindableComponent>();
   group.sort<GridComponent>([&x_max](const auto& a, const auto& b) {

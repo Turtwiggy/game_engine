@@ -42,6 +42,9 @@ enum class GridDirection : size_t
   count,
 };
 
+std::vector<entt::entity>
+grid_entities_at(entt::registry& r, int x, int y);
+
 // e.g. 0, 0 should return {1, 0}, {1, 1}, {0, 1}
 void
 get_neighbour_indicies(const int x,
