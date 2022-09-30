@@ -36,11 +36,10 @@ main_loop(void* arg)
   now = SDL_GetTicks64();
   milliseconds_delta_time = now - last;
 
-  const int max_frames_to_process = 2;
-  const int cap_ms = (MILLISECONDS_PER_FIXED_TICK * max_frames_to_process) + 1;
-
-  if (milliseconds_delta_time > cap_ms)
-    milliseconds_delta_time = cap_ms; // avoid spiral
+  // const int max_frames_to_process = 2;
+  // const int cap_ms = (MILLISECONDS_PER_FIXED_TICK * max_frames_to_process) + 1;
+  if (milliseconds_delta_time > 250)
+    milliseconds_delta_time = 250; // avoid spiral
 
   // The physics cycle may happen more than once per frame if
   // the fixed timestep is less than the actual frame update time.

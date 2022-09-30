@@ -46,12 +46,21 @@ struct SpriteColourComponent
   NLOHMANN_DEFINE_TYPE_INTRUSIVE(SpriteColourComponent, colour.r, colour.g, colour.b, colour.a);
 };
 
+enum class RenderOrder
+{
+  background,
+  foreground,
+
+  count,
+};
+
 // Information required by the renderer
 struct SpriteComponent
 {
   float angle_radians = 0.0f;
   int x = 0;
   int y = 0;
+  RenderOrder render_order = RenderOrder::background;
   int tex_unit = 0; // do not serialize
 
   // spritesheet info

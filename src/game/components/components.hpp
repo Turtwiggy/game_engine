@@ -100,7 +100,7 @@ struct ShopKeeperComponent
 // AI / pathfinding
 //
 
-const int milliseconds_between_ai_updates = 1000;
+const int k_milliseconds_between_ai_updates = 1000;
 
 struct AiBrainComponent
 {

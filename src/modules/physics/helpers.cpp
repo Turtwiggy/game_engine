@@ -39,11 +39,10 @@ collides(const PhysicsTransformComponent& one, const std::vector<PhysicsTransfor
 void
 do_move(entt::registry& r,
         entt::entity& entity,
-        int& amount,
+        int amount,
         TransformComponent& transform,
         const PhysicsTransformComponent& ptc,
-        const CollisionAxis& axis,
-        std::vector<Collision2D>& would_collide)
+        const CollisionAxis& axis)
 {
   constexpr auto Sign = [](const int& x) { return x == 0 ? 0 : (x > 0 ? 1 : -1); };
   const auto& blocking_objects_view = r.view<const PhysicsSolidComponent, const PhysicsTransformComponent>();
@@ -75,12 +74,9 @@ do_move(entt::registry& r,
           Collision2D collision;
           collision.ent_id_0 = static_cast<uint32_t>(entity);
           collision.ent_id_1 = static_cast<uint32_t>(o_entity);
-          would_collide.push_back(collision);
+          return; // collision occurred
         }
       }
-
-      if (would_collide.size() != 0)
-        break;
 
       // Move player if empty space
       if (axis == CollisionAxis::x)

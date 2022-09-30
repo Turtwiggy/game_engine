@@ -195,17 +195,21 @@ game2d::update(entt::registry& r, float dt)
     update_sprite_system(r, dt);
     update_render_system(r);
   };
+
   {
     auto _ = time_scope(&p, "ui"); // value always be a frame behind
     {
+      static bool show_editor_ui = true;
+      if (show_editor_ui) {
+        update_ui_editor_bar_system(r);
+        update_ui_editor_tilemap_system(r);
+        update_ui_editor_scene_system(r);
+        update_ui_physics_system(r);
+        update_ui_hierarchy_system(r);
+        update_ui_profiler_system(r);
+        update_ui_sprite_searcher_system(r);
+      }
       update_ui_player_inventory_system(r);
-      update_ui_physics_system(r);
-      update_ui_hierarchy_system(r);
-      update_ui_profiler_system(r);
-      update_ui_sprite_searcher_system(r);
-      update_ui_editor_bar_system(r);
-      update_ui_editor_tilemap_system(r);
-      update_ui_editor_scene_system(r);
     }
     // update_ui_networking_system(r);
     // update_ui_main_menu_system(r);

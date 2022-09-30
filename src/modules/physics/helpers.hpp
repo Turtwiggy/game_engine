@@ -31,11 +31,10 @@ collides(const PhysicsTransformComponent& one, const std::vector<PhysicsTransfor
 void
 do_move(entt::registry& r,
         entt::entity& entity,
-        int& amount,
+        int amount,
         TransformComponent& transform,
         const PhysicsTransformComponent& ptc,
-        const CollisionAxis& axis,
-        std::vector<Collision2D>& would_collide);
+        const CollisionAxis& axis);
 
 // Checks collisions between actor-actors.
 void

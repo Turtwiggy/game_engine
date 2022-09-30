@@ -104,7 +104,27 @@ create_sprite(entt::registry& r, const entt::entity& e, const EntityType& type)
   else
     std::cerr << "warning! not renderable: " << type_name << "\n";
 
+  RenderOrder order = RenderOrder::background;
+
+  if (type == EntityType::enemy_orc)
+    order = RenderOrder::foreground;
+  else if (type == EntityType::enemy_troll)
+    order = RenderOrder::foreground;
+  else if (type == EntityType::player)
+    order = RenderOrder::foreground;
+  else if (type == EntityType::bolt)
+    order = RenderOrder::foreground;
+  else if (type == EntityType::shield)
+    order = RenderOrder::foreground;
+  else if (type == EntityType::potion)
+    order = RenderOrder::foreground;
+  else if (type == EntityType::scroll_confusion)
+    order = RenderOrder::foreground;
+  else if (type == EntityType::scroll_magic_missile)
+    order = RenderOrder::foreground;
+
   SpriteComponent sc;
+  sc.render_order = order;
 
   // search spritesheet
   const auto anim = find_animation(sprites.animations, sprite);

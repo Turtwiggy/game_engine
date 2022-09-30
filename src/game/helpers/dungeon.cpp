@@ -43,18 +43,18 @@ get_neighbour_indicies(const int x,
   const int idx_east = x_max * y + (x + 1);
   const int idx_south = x_max * (y + 1) + x;
   const int idx_west = x_max * y + (x - 1);
-  const int idx_north_east = x_max * (y - 1) + (x + 1);
-  const int idx_south_east = x_max * (y + 1) + (x + 1);
-  const int idx_south_west = x_max * (y + 1) + (x - 1);
-  const int idx_north_west = x_max * (y - 1) + (x - 1);
+  // const int idx_north_east = x_max * (y - 1) + (x + 1);
+  // const int idx_south_east = x_max * (y + 1) + (x + 1);
+  // const int idx_south_west = x_max * (y + 1) + (x - 1);
+  // const int idx_north_west = x_max * (y - 1) + (x - 1);
   const bool ignore_north = y <= 0;
   const bool ignore_east = x >= x_max - 1;
   const bool ignore_south = y >= y_max - 1;
   const bool ignore_west = x <= 0;
-  const bool ignore_north_east = ignore_north | ignore_east;
-  const bool ignore_south_east = ignore_south | ignore_east;
-  const bool ignore_south_west = ignore_south | ignore_west;
-  const bool ignore_north_west = ignore_north | ignore_west;
+  // const bool ignore_north_east = ignore_north | ignore_east;
+  // const bool ignore_south_east = ignore_south | ignore_east;
+  // const bool ignore_south_west = ignore_south | ignore_west;
+  // const bool ignore_north_west = ignore_north | ignore_west;
 
   if (!ignore_north && idx_north >= 0 && idx_north < max_idx)
     results.push_back({ GridDirection::north, idx_north });
@@ -68,17 +68,17 @@ get_neighbour_indicies(const int x,
   if (!ignore_west && idx_west >= 0 && idx_west < max_idx)
     results.push_back({ GridDirection::west, idx_west });
 
-  if (!ignore_north_east && idx_north_east >= 0 && idx_north_east < max_idx)
-    results.push_back({ GridDirection::north_east, idx_north_east });
+  // if (!ignore_north_east && idx_north_east >= 0 && idx_north_east < max_idx)
+  //   results.push_back({ GridDirection::north_east, idx_north_east });
 
-  if (!ignore_south_east && idx_south_east >= 0 && idx_south_east < max_idx)
-    results.push_back({ GridDirection::south_east, idx_south_east });
+  // if (!ignore_south_east && idx_south_east >= 0 && idx_south_east < max_idx)
+  //   results.push_back({ GridDirection::south_east, idx_south_east });
 
-  if (!ignore_south_west && idx_south_west >= 0 && idx_south_west < max_idx)
-    results.push_back({ GridDirection::south_west, idx_south_west });
+  // if (!ignore_south_west && idx_south_west >= 0 && idx_south_west < max_idx)
+  //   results.push_back({ GridDirection::south_west, idx_south_west });
 
-  if (!ignore_north_west && idx_north_west >= 0 && idx_north_west < max_idx)
-    results.push_back({ GridDirection::north_west, idx_north_west });
+  // if (!ignore_north_west && idx_north_west >= 0 && idx_north_west < max_idx)
+  //   results.push_back({ GridDirection::north_west, idx_north_west });
 };
 
 void
@@ -232,8 +232,8 @@ generate_dungeon(entt::registry& r, const Dungeon& d, int step)
       r.emplace<TransformComponent>(e, t);
       r.emplace<GridComponent>(e, grid_index.x, grid_index.y);
 
-      if (x != 0 && y != 0 && x != d.width - 1 && y != d.height - 1)
-        r.emplace<HealthComponent>(e, 1, 1); // give inner walls health
+      // if (x != 0 && y != 0 && x != d.width - 1 && y != d.height - 1)
+      //   r.emplace<HealthComponent>(e, 1, 1); // give inner walls health
 
       r.emplace<SpriteColourComponent>(e, scc);
     }
@@ -295,10 +295,11 @@ generate_dungeon(entt::registry& r, const Dungeon& d, int step)
     const auto& grid_tiles = r.view<const GridComponent>();
     grid_tiles.each([&r](auto entity, const auto& grid) {
       EntityTypeComponent& t = r.get<EntityTypeComponent>(entity);
+
       PathfindableComponent path;
 
       if (t.type == EntityType::floor)
-        path.cost = 1;
+        path.cost = 0;
       else if (t.type == EntityType::wall)
         path.cost = -1; // impassable
       else
@@ -370,6 +371,10 @@ generate_dungeon(entt::registry& r, const Dungeon& d, int step)
       r.emplace<SpriteComponent>(e, s);
       r.emplace<SpriteColourComponent>(e, scc);
       r.emplace<GridComponent>(e, grid_index.x, grid_index.y);
+
+      // randomize brain offset time to prevent fps drops
+      // auto& brain = r.get<AiBrainComponent>(e);
+      // brain.milliseconds_between_ai_updates_left = engine::rand_det_s(rnd.rng, 0, k_milliseconds_between_ai_updates);
     }
   }
 

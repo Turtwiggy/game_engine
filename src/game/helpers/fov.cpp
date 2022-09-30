@@ -23,8 +23,15 @@ update_tile_fov_system(entt::registry& r)
   glm::ivec2 player_grid_pos =
     engine::grid::world_space_to_grid_space({ player_transform.position.x, player_transform.position.y }, 16);
 
-  const auto& view_grid_tiles = r.view<const GridComponent>();
-  view_grid_tiles.each([&r, &player_grid_pos](auto e, const auto& grid) {
+  const int GRID_SIZE = 16;
+
+  const auto& view_transforms = r.view<const TransformComponent>();
+  view_transforms.each([&r, &player_grid_pos, &player_entity](auto e, const auto& t) {
+    // skip self
+    if (e == player_entity)
+      return;
+
+    const auto grid = engine::grid::world_space_to_grid_space({ t.position.x, t.position.y }, GRID_SIZE);
     const int distance_x = glm::abs(grid.x - player_grid_pos.x);
     const int distance_y = glm::abs(grid.y - player_grid_pos.y);
     const int dst = 4;

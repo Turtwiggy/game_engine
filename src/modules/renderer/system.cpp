@@ -183,13 +183,11 @@ game2d::update_render_system(entt::registry& registry)
     quad_renderer::QuadRenderer::reset_quad_vert_count();
     quad_renderer::QuadRenderer::begin_batch();
 
-    // TODO: work out z-index
-    // registry.sort<renderable>([](const auto& lhs, const auto& rhs) { return lhs.z < rhs.z; });
+    const auto& group = registry.group<TransformComponent, SpriteComponent, SpriteColourComponent>();
 
-    // const auto& h = registry.view<RootNode>().front();
-    // auto& hroot = registry.get<EntityHierarchyComponent>(h);
+    // sort by z-index
+    group.sort<SpriteComponent>([](const auto& a, const auto& b) { return a.render_order < b.render_order; });
 
-    const auto& group = registry.group<const TransformComponent, const SpriteComponent, const SpriteColourComponent>();
     group.each([&ri](const auto& transform, const auto& sc, const auto& scc) {
       quad_renderer::RenderDescriptor desc;
       // desc.pos_tl = camera_transform.position + transform.position - transform.scale / 2;

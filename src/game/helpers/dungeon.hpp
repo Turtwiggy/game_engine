@@ -34,10 +34,10 @@ enum class GridDirection : size_t
   west,
 
   // allow diagonals?
-  north_east,
-  south_east,
-  south_west,
-  north_west,
+  // north_east,
+  // south_east,
+  // south_west,
+  // north_west,
 
   count,
 };
