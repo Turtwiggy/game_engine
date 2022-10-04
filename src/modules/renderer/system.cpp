@@ -4,6 +4,7 @@
 // components/systems
 #include "modules/camera/components.hpp"
 #include "modules/camera/helpers.hpp"
+#include "modules/entt/helpers.hpp"
 #include "modules/renderer/components.hpp"
 #include "modules/renderer/helpers/batch_quad.hpp"
 #include "modules/renderer/helpers/helpers.hpp"
@@ -29,12 +30,6 @@ using namespace engine;
 
 namespace game2d {
 
-glm::mat4
-calculate_projection(int x, int y)
-{
-  return glm::ortho(0.0f, static_cast<float>(x), static_cast<float>(y), 0.0f, -1.0f, 1.0f);
-};
-
 void
 rebind(entt::registry& registry, const glm::ivec2& wh)
 {
@@ -47,15 +42,6 @@ rebind(entt::registry& registry, const glm::ivec2& wh)
   }
 
   glm::mat4 projection = calculate_projection(wh.x, wh.y);
-  // const auto& camera = get_main_camera(registry);
-  // if (camera != entt::null) {
-  //   const auto& camera_transform = registry.get<TransformComponent>(camera);
-  //   glm::vec3 cam_front = glm::vec3(0.0f, 0.0f, -1.0f);
-  //   glm::vec3 cam_up = glm::vec3(0.0f, 1.0f, 0.0f);
-  //   glm::vec3 cam_pos = camera_transform.position;
-  //   glm::mat4 view = glm::lookAt(cam_pos, cam_pos + cam_front, cam_up);
-  //   projection *= view;
-  // }
 
   {
     int textures[5] = { get_tex_unit(registry, AvailableTexture::kenny),
@@ -141,6 +127,9 @@ game2d::init_render_system(entt::registry& registry)
   ri.viewport_size_render_at = screen_wh;
   ri.viewport_size_current = screen_wh;
 
+  ri.linear_to_srgb.bind();
+  ri.linear_to_srgb.set_mat4("view", glm::mat4(1.0f));
+
   // initialize renderer
   SDL_GL_SetAttribute(SDL_GL_MULTISAMPLEBUFFERS, 1);
   SDL_GL_SetAttribute(SDL_GL_MULTISAMPLESAMPLES, 4);
@@ -182,6 +171,14 @@ game2d::update_render_system(entt::registry& registry)
   {
     quad_renderer::QuadRenderer::reset_quad_vert_count();
     quad_renderer::QuadRenderer::begin_batch();
+
+    // camera
+    {
+      const auto& camera = get_first<CameraComponent>(registry);
+      const auto& view = camera.view;
+      ri.instanced.bind();
+      ri.instanced.set_mat4("view", view);
+    }
 
     const auto& group = registry.group<TransformComponent, SpriteComponent, SpriteColourComponent>();
 

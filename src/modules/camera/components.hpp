@@ -1,12 +1,24 @@
 #pragma once
 
+#include <glm/glm.hpp>
+
 namespace game2d {
 
 struct CameraComponent
 {
-  bool placeholder = true;
+  glm::mat4 view;
+
+  // perspective
+  // float pitch = 0.0f;
+  // float yaw = 0.0f;
+
+  // orthographic
+  float rotation = 0.0f;
 };
 
-// Camera, CameraTrackable, Transform
+// struct CameraTrackable
+// {
+//   bool placeholder = true;
+// };
 
 } // namespace game2d

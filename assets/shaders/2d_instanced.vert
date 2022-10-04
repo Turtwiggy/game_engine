@@ -12,6 +12,7 @@ out vec2 v_sprite_pos;
 out vec2 v_sprites;
 out float v_tex_unit;
 
+uniform mat4 view;
 uniform mat4 projection;
 
 uniform float screenshake_trauma;
@@ -26,7 +27,7 @@ main()
   v_sprites = sprite_pos_and_spritesheet.zw;
   v_tex_unit = tex_unit;
 
-  gl_Position = projection * model * vec4(vertex.xy, 0.0, 1.0);
+  gl_Position = projection * view * model * vec4(vertex.xy, 0.0, 1.0);
 
   // translational and rotational screenshake
   // gl_Position.x *= cos(time * 10) * strength; 

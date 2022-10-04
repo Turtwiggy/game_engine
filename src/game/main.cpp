@@ -29,8 +29,10 @@ main_loop(void* arg)
 {
   IM_UNUSED(arg); // do nothing with it
 
-  auto& app = registry.ctx().at<SINGLETON_Application>();
-  engine::start_frame(app);
+  {
+    auto& app = registry.ctx().at<SINGLETON_Application>();
+    engine::start_frame(app);
+  }
 
   last = now;
   now = SDL_GetTicks64();
@@ -56,7 +58,10 @@ main_loop(void* arg)
 
   game2d::update(registry, milliseconds_delta_time / 1000.0f);
 
-  engine::end_frame(app);
+  {
+    auto& app = registry.ctx().at<SINGLETON_Application>();
+    engine::end_frame(app);
+  }
 }
 
 int

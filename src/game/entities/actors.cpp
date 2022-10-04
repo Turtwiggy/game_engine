@@ -3,6 +3,7 @@
 #include "engine/maths/maths.hpp"
 #include "game/components/components.hpp"
 #include "game/helpers/dungeon.hpp"
+#include "modules/camera/components.hpp"
 #include "modules/cursor/components.hpp"
 #include "modules/lifecycle/components.hpp"
 #include "modules/physics/components.hpp"
@@ -218,7 +219,7 @@ create_gameplay(entt::registry& r, const entt::entity& e, const EntityType& type
     }
     case EntityType::wall: {
       // physics
-      r.emplace<PhysicsTransformComponent>(e, PhysicsTransformComponent(SPRITE_SIZE, SPRITE_SIZE));
+      r.emplace<PhysicsTransformComponent>(e);
       r.emplace<PhysicsSolidComponent>(e);
       break;
     }
@@ -231,7 +232,7 @@ create_gameplay(entt::registry& r, const entt::entity& e, const EntityType& type
 
     case EntityType::enemy_troll: {
       // physics
-      r.emplace<PhysicsTransformComponent>(e, PhysicsTransformComponent(SPRITE_SIZE, SPRITE_SIZE));
+      r.emplace<PhysicsTransformComponent>(e);
       r.emplace<GridMoveComponent>(e);
       r.emplace<PhysicsSolidComponent>(e);
       r.emplace<PhysicsActorComponent>(e);
@@ -242,7 +243,7 @@ create_gameplay(entt::registry& r, const entt::entity& e, const EntityType& type
     }
     case EntityType::enemy_orc: {
       // physics
-      r.emplace<PhysicsTransformComponent>(e, PhysicsTransformComponent(SPRITE_SIZE, SPRITE_SIZE));
+      r.emplace<PhysicsTransformComponent>(e);
       r.emplace<GridMoveComponent>(e);
       r.emplace<PhysicsSolidComponent>(e);
       r.emplace<PhysicsActorComponent>(e);
@@ -252,7 +253,7 @@ create_gameplay(entt::registry& r, const entt::entity& e, const EntityType& type
       break;
     }
     case EntityType::player: {
-      r.emplace<PhysicsTransformComponent>(e, PhysicsTransformComponent(SPRITE_SIZE, SPRITE_SIZE));
+      r.emplace<PhysicsTransformComponent>(e);
       r.emplace<GridMoveComponent>(e);
       r.emplace<PhysicsSolidComponent>(e);
       r.emplace<PhysicsActorComponent>(e);
@@ -336,50 +337,50 @@ create_gameplay(entt::registry& r, const entt::entity& e, const EntityType& type
     }
 
       // misc...
+    case EntityType::camera: {
+      r.emplace<CameraComponent>(e);
+      break;
+    }
+
     case EntityType::aim_line: {
       break;
     }
     case EntityType::free_cursor: {
+      const auto& h = r.view<RootNode>().front();
 
-      // auto line_u = r.create();
-      // r.emplace<TagComponent>(line_u, "line-u");
-      // add_child(r, h, line_u);
-      // set_parent(r, line_u, h);
+      auto create = [&](const std::string& name) {
+        auto line = r.create();
+        r.emplace<TagComponent>(line, name);
+        r.emplace<EntityTypeComponent>(line, type);
+        create_gameplay(r, line, EntityType::empty);
+        create_renderable(r, line, EntityType::empty);
+        add_child(r, h, line);
+        set_parent(r, line, h);
+        return line;
+      };
 
-      // auto line_d = r.create();
-      // r.emplace<TagComponent>(line_d, "line-d");
-      // add_child(r, h, line_d);
-      // set_parent(r, line_d, h);
+      auto line_u = create("line_u");
+      auto line_d = create("line_d");
+      auto line_l = create("line_l");
+      auto line_r = create("line_r");
+      auto backdrop = create("backdrop");
+      r.emplace<PhysicsActorComponent>(backdrop);
+      r.emplace<PhysicsTransformComponent>(backdrop);
 
-      // auto line_l = r.create();
-      // r.emplace<TagComponent>(line_l, "line-l");
-      // add_child(r, h, line_l);
-      // set_parent(r, line_l, h);
-
-      // auto line_r = r.create();
-      // r.emplace<TagComponent>(line_r, "line-r");
-      // add_child(r, h, line_r);
-      // set_parent(r, line_r, h);
-
-      // auto backdrop = r.create();
-      // r.emplace<TagComponent>(backdrop, "backdrop");
-      // add_child(r, h, backdrop);
-      // set_parent(r, backdrop, h);
-
-      // // object tag
-      // FreeCursorComponent c;
-      // c.line_u = line_u;
-      // c.line_d = line_d;
-      // c.line_l = line_l;
-      // c.line_r = line_r;
-      // c.backdrop = backdrop;
-      // r.emplace<FreeCursorComponent>(e, c);
-      // // physics
-      // r.emplace<PhysicsActorComponent>(e, GameCollisionLayer::ACTOR_CURSOR);
-      // r.emplace<PhysicsSizeComponent>(e, PhysicsSizeComponent(SPRITE_SIZE, SPRITE_SIZE));
+      // object tag
+      FreeCursorComponent c;
+      c.line_u = line_u;
+      c.line_d = line_d;
+      c.line_l = line_l;
+      c.line_r = line_r;
+      c.backdrop = backdrop;
+      r.emplace<FreeCursorComponent>(e, c);
       break;
     }
-
+    case EntityType::ui_action_card: {
+      r.emplace<PhysicsActorComponent>(e);
+      r.emplace<PhysicsTransformComponent>(e);
+    }
     default: {
       std::cout << "warning: no gameplay implemented for: " << type_name;
     }

@@ -36,11 +36,12 @@ game2d::update_ui_hierarchy_system(entt::registry& registry)
     const int max_show = (SHOWING_INDEX + 1) * MAX_TO_SHOW;
     std::string next_label = std::string("Next " + std::to_string(MAX_TO_SHOW));
     std::string prev_label = std::string("prev " + std::to_string(MAX_TO_SHOW));
-    if (ImGui::Button(next_label.c_str()))
-      SHOWING_INDEX += 1;
-    ImGui::SameLine();
     if (ImGui::Button(prev_label.c_str()))
       SHOWING_INDEX -= 1;
+    ImGui::SameLine();
+    if (ImGui::Button(next_label.c_str()))
+      SHOWING_INDEX += 1;
+
     ImGui::Text("Showing between %i %i", min_show, max_show);
 
     // let root hierarchy entity be dropped on

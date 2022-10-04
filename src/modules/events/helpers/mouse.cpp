@@ -1,9 +1,8 @@
 // header
 #include "mouse.hpp"
 
-#include "modules/camera/helpers.hpp"
-
 #include "modules/camera/components.hpp"
+#include "modules/entt/helpers.hpp"
 #include "modules/renderer/components.hpp"
 
 // other lib headers
@@ -82,16 +81,20 @@ get_mouse_pos()
 glm::ivec2
 mouse_position_in_worldspace(entt::registry& registry)
 {
-  // const auto main_camera = get_main_camera(registry);
-  // const auto& transform = registry.get<TransformComponent>(main_camera);
-  // const auto& camera_pos = transform.position;
   const auto& ri = registry.ctx().at<SINGLETON_RendererInfo>();
+  const auto& cameras = registry.view<CameraComponent, TransformComponent>();
+
+  glm::ivec2 camera_position;
+  for (auto [entity, camera, transform] : cameras.each())
+    camera_position = { transform.position.x, transform.position.y };
 
   const auto mouse_pos = get_mouse_pos() - ri.viewport_pos;
-  // glm::ivec2 mouse_pos_adjusted_in_worldspace = { mouse_pos.x + (camera_pos.x * -1),
-  //                                                 mouse_pos.y + (camera_pos.y * -1) };
 
-  return mouse_pos;
+  const glm::ivec2 mouse_pos_in_worldpsace = {
+    mouse_pos.x + (camera_position.x),
+    mouse_pos.y + (camera_position.y),
+  };
+  return mouse_pos_in_worldpsace;
 };
 
 } // namespace game2d

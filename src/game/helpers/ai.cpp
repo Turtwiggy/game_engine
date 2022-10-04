@@ -168,7 +168,11 @@ update_ai_system(entt::registry& r, const uint64_t& milliseconds_dt)
   const int& x_max = d.width;
 
   const int GRID_SIZE = 16;
+
   const auto& player_view = r.view<PlayerComponent>();
+  if (player_view.size() == 0)
+    return; // no player to home in on
+
   const auto player_entity = player_view.front();
   const auto& player_transform = r.get<TransformComponent>(player_entity);
   const auto player_grid =

@@ -92,6 +92,9 @@
       {"name": "BOAT","frames": [{"x": 10,"y": 19}]},
 
       {"name": "ARROW_UP","frames": [{"x": 23,"y": 20}]},
+      {"name": "ARROW_RIGHT","frames": [{"x": 24,"y": 20}]},
+      {"name": "ARROW_DOWN","frames": [{"x": 25,"y": 20}]},
+      {"name": "ARROW_LEFT","frames": [{"x": 26,"y": 20}]},
 
       {"name": "SPACE_VEHICLE_1","frames": [{"x": 12,"y": 21}]},
       {"name": "SPACE_VEHICLE_2","frames": [{"x": 13,"y": 21}]},

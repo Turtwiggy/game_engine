@@ -1,11 +1,10 @@
 #pragma once
 
-// other lib headers
 #include <entt/entt.hpp>
 
 namespace game2d {
 
 void
-update_select_objects_system(entt::registry& registry);
+update_ux_hover_system(entt::registry& r);
 
 } // namespace game2d

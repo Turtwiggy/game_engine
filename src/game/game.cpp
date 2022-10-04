@@ -4,6 +4,7 @@
 // systems&components&helpers
 #include "helpers/dungeon.hpp"
 #include "modules/audio/system.hpp"
+#include "modules/camera/system.hpp"
 #include "modules/cursor/system.hpp"
 #include "modules/entt/helpers.hpp"
 #include "modules/events/components.hpp"
@@ -32,6 +33,8 @@
 #include "modules/ui_profiler/system.hpp"
 #include "modules/ui_sprite_searcher/components.hpp"
 #include "modules/ui_sprite_searcher/system.hpp"
+#include "modules/ux_hover/components.hpp"
+#include "modules/ux_hover/system.hpp"
 
 #include "engine/app/application.hpp"
 #include "game/components/components.hpp"
@@ -65,6 +68,8 @@ init_game_state(entt::registry& r)
 
   create_hierarchy_root_node(r);
   create_gameplay(r, EntityType::free_cursor);
+  init_camera_system(r);
+  const auto& colours = r.ctx().at<SINGLETON_ColoursComponent>();
 
   // EntityType et = EntityType::shopkeeper;
   // auto shopkeeper = create_gameplay(r, et);
@@ -90,11 +95,41 @@ init_game_state(entt::registry& r)
   const int GRID_SIZE = 16;
 
   // players
-  for (int i = 0; i < 1; i++) {
-    EntityType et = EntityType::player;
+  // for (int i = 0; i < 1; i++) {
+  //   EntityType et = EntityType::player;
+  //   entt::entity e = create_gameplay(r, et);
+  //   create_renderable(r, e, et);
+  // }
+
+  int size_x = 100;
+  int size_y = 100;
+  auto create_ui_arrow = [&](int sx, int sy, int x, int y) {
+    engine::SRGBColour colour_default = colours.backdrop_red;
+    engine::SRGBColour colour_hover = colours.red;
+    EntityType et = EntityType::ui_action_card;
     entt::entity e = create_gameplay(r, et);
-    create_renderable(r, e, et);
-  }
+    SpriteComponent s = create_sprite(r, e, et);
+    TransformComponent t = create_transform(r, e);
+    SpriteColourComponent scc = create_colour(r, e, et);
+    HoverComponent hc;
+    t.scale.x = size_x;
+    t.scale.y = size_y;
+    t.position.x = x;
+    t.position.y = y;
+    s.x = sx;
+    s.y = sy;
+    scc.colour = engine::SRGBToLinear(colour_default);
+    hc.hover_colour = colour_hover;
+    hc.regular_colour = colour_default;
+    r.emplace<SpriteComponent>(e, s);
+    r.emplace<TransformComponent>(e, t);
+    r.emplace<SpriteColourComponent>(e, scc);
+    r.emplace<HoverComponent>(e, hc);
+  };
+  create_ui_arrow(23, 20, -96, 20);
+  create_ui_arrow(24, 20, 250, 250);
+  create_ui_arrow(25, 20, 500, 500);
+  create_ui_arrow(26, 20, 100, 300);
 
   std::cout << "creating dungeon...!" << std::endl;
   Dungeon d;
@@ -183,9 +218,10 @@ game2d::update(entt::registry& r, float dt)
     // ... systems that update only if viewport is focused or hovered
     {
       if (ri.viewport_process_events) {
-        // update_camera_system(r);
+        update_camera_system(r, dt);
         update_player_inputs_system(r);
         update_cursor_system(r);
+        update_ux_hover_system(r);
       }
     }
   };
@@ -209,7 +245,7 @@ game2d::update(entt::registry& r, float dt)
         update_ui_profiler_system(r);
         update_ui_sprite_searcher_system(r);
       }
-      update_ui_player_inventory_system(r);
+      // update_ui_player_inventory_system(r);
     }
     // update_ui_networking_system(r);
     // update_ui_main_menu_system(r);

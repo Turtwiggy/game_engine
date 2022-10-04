@@ -45,8 +45,10 @@ enum class EntityType
   scroll_confusion,
 
   // misc...
+  camera,
   free_cursor,
   aim_line,
+  ui_action_card,
 
   count
 };

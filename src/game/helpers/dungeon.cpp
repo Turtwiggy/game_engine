@@ -4,6 +4,7 @@
 #include "game/components/components.hpp"
 #include "game/helpers/fov.hpp"
 #include "game/helpers/line.hpp"
+#include "modules/camera/components.hpp"
 #include "modules/physics/components.hpp"
 #include "modules/physics/helpers.hpp"
 #include "modules/renderer/components.hpp"
@@ -390,10 +391,25 @@ generate_dungeon(entt::registry& r, const Dungeon& d, int step)
   // });
 };
 
+static bool first_frame = true;
+
 void
 update_dungeon_system(entt::registry& r)
 {
-  // nada
+  if (first_frame) {
+    first_frame = false;
+    return;
+  }
+  // glm::ivec2 grid_space_center = room_center(rooms[0]);
+  // glm::vec2 world_space_center = engine::grid::grid_space_to_world_space(grid_space_center, GRID_SIZE);
+
+  // center the camera on the center of the room
+  // const auto& ri = r.ctx().at<SINGLETON_RendererInfo>();
+  // const auto& cameras = r.view<CameraComponent, TransformComponent>();
+  // for (auto [entity, camera, transform] : cameras.each()) {
+  //   transform.position.x = (-ri.viewport_size_render_at.x / 2) + world_space_center.x;
+  //   transform.position.y = (-ri.viewport_size_render_at.y / 2) + world_space_center.y;
+  // };
 }
 
 } // namespace game2d

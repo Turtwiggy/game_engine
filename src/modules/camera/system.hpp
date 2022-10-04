@@ -6,6 +6,9 @@
 namespace game2d {
 
 void
-update_camera_system(entt::registry& registry);
+init_camera_system(entt::registry& registry);
+
+void
+update_camera_system(entt::registry& registry, float dt);
 
 } // namespace game2d

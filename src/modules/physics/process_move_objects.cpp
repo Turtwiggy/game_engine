@@ -17,6 +17,8 @@ game2d::update_move_objects_system(entt::registry& r, uint64_t milliseconds_dt)
   // update the physics view of the world
   auto physics_objects_view = r.view<PhysicsTransformComponent, const TransformComponent>();
   physics_objects_view.each([](auto entity, PhysicsTransformComponent& ptc, const TransformComponent& tc) {
+    ptc.w = tc.scale.x;
+    ptc.h = tc.scale.y;
     ptc.x_tl = static_cast<int>(tc.position.x - (ptc.w / 2.0f));
     ptc.y_tl = static_cast<int>(tc.position.y - (ptc.h / 2.0f));
     ptc.ent_id = static_cast<uint32_t>(entity);
