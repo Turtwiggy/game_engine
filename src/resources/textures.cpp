@@ -7,17 +7,17 @@
 namespace game2d {
 
 Texture&
-get_tex(entt::registry& r, const AvailableTexture& type)
+get_tex(SINGLETON_Textures& e, const AvailableTexture& type)
 {
-  auto& textures = r.ctx().at<SINGLETON_Textures>().textures;
+  auto& textures = e.textures;
   auto it = std::find_if(textures.begin(), textures.end(), [&type](const auto& a) { return a.type == type; });
   return *it;
 };
 
 int
-get_tex_id(entt::registry& r, const AvailableTexture& type)
+get_tex_id(const SINGLETON_Textures& e, const AvailableTexture& type)
 {
-  auto& textures = r.ctx().at<SINGLETON_Textures>().textures;
+  const auto& textures = e.textures;
   auto it = std::find_if(textures.begin(), textures.end(), [&type](const auto& a) { return a.type == type; });
 
   // warning: could be null if not found via name
@@ -25,9 +25,9 @@ get_tex_id(entt::registry& r, const AvailableTexture& type)
 };
 
 int
-get_tex_unit(entt::registry& r, const AvailableTexture& type)
+get_tex_unit(const SINGLETON_Textures& e, const AvailableTexture& type)
 {
-  auto& textures = r.ctx().at<SINGLETON_Textures>().textures;
+  const auto& textures = e.textures;
   auto it = std::find_if(textures.begin(), textures.end(), [&type](const auto& a) { return a.type == type; });
 
   // warning: could be null if not found via name

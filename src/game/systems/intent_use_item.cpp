@@ -4,14 +4,17 @@
 #include "game/entities/actors.hpp"
 #include "modules/renderer/components.hpp"
 
+#include <entt/entt.hpp>
 #include <glm/glm.hpp>
 #include <imgui.h>
 
 namespace game2d {
 
 void
-update_intent_use_item_system(entt::registry& r)
+update_intent_use_item_system(GameEditor& editor, Game& game)
 {
+  auto& r = game.state;
+
   //
   // WantsToUse
   const auto& use_view = r.view<WantsToUse>();
@@ -45,18 +48,18 @@ update_intent_use_item_system(entt::registry& r)
   });
 
   // WantsToDrop
-  const auto& drop_view = r.view<const TransformComponent, WantsToDrop>();
-  drop_view.each([&r](auto entity, const auto& actor, auto& intent) {
-    //
-    for (const auto& item : intent.items) {
-      create_renderable(r, item, EntityType::potion);
-      auto& transform = r.get<TransformComponent>(item);
-      transform.position.x = actor.position.x;
-      transform.position.y = actor.position.y;
-      r.remove<InBackpackComponent>(item);
-    }
-    r.remove<WantsToDrop>(entity);
-  });
+  // const auto& drop_view = r.view<const TransformComponent, WantsToDrop>();
+  // drop_view.each([&r](auto entity, const auto& actor, auto& intent) {
+  //   //
+  //   for (const auto& item : intent.items) {
+  //     create_renderable(editor, item, EntityType::potion);
+  //     auto& transform = r.get<TransformComponent>(item);
+  //     transform.position.x = actor.position.x;
+  //     transform.position.y = actor.position.y;
+  //     r.remove<InBackpackComponent>(item);
+  //   }
+  //   r.remove<WantsToDrop>(entity);
+  // });
 
   // WantsToPurchase
   const auto& purchase_view = r.view<const WantsToPurchase>();

@@ -1,6 +1,7 @@
 #pragma once
 
 #include "engine/colour.hpp"
+#include "game/components/app.hpp"
 #include "modules/renderer/components.hpp"
 #include "modules/sprites/components.hpp"
 
@@ -49,6 +50,7 @@ enum class EntityType
   free_cursor,
   aim_line,
   ui_action_card,
+  ui_health_bar,
 
   count
 };
@@ -65,25 +67,23 @@ void
 from_json(const json& j, EntityTypeComponent& et);
 
 entt::entity
-create_item(entt::registry& r, const EntityType& type, const entt::entity& parent);
+create_item(GameEditor& editor, Game& game, const EntityType& type, const entt::entity& parent);
 // void
 // create_item(entt::registry& r, const entt::entity& e, const EntityType& type, const entt::entity& parent);
 
 TransformComponent
 create_transform(entt::registry& r, const entt::entity& e);
-
 SpriteComponent
-create_sprite(entt::registry& r, const entt::entity& e, const EntityType& type);
-
+create_sprite(GameEditor& editor, entt::registry& r, const entt::entity& e, const EntityType& type);
 SpriteColourComponent
-create_colour(entt::registry& r, const entt::entity& e, const EntityType& type);
+create_colour(GameEditor& editor, entt::registry& r, const entt::entity& e, const EntityType& type);
 
 void
-create_renderable(entt::registry& r, const entt::entity& e, const EntityType& type);
+create_renderable(GameEditor& editor, entt::registry& r, const entt::entity& e, const EntityType& type);
 
 entt::entity
-create_gameplay(entt::registry& r, const EntityType& type);
+create_gameplay(GameEditor& editor, Game& game, const EntityType& type);
 void
-create_gameplay(entt::registry&, const entt::entity& e, const EntityType& type);
+create_gameplay(GameEditor& editor, Game& game, const entt::entity& e, const EntityType& type);
 
 } // namespace game2d

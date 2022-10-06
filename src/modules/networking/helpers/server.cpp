@@ -22,9 +22,10 @@ SteamNetConnectionStatusChangedCallback(SteamNetConnectionStatusChangedCallback_
 };
 
 void
-start_server_or_quit(entt::registry& r, int port)
+start_server_or_quit(GameEditor& editor, Game& game, int port)
 {
-  SINGLETON_ServerComponent server;
+  auto& server = editor.server;
+  auto& r = game.state;
 
   // Select instance to use.  For now we'll always use the default.
   // But we could use SteamGameServerNetworkingSockets() on Steam.
@@ -194,9 +195,9 @@ game2d::server_poll_connections(SINGLETON_ServerComponent& server)
 }
 
 void
-game2d::tick_server(entt::registry& r, uint64_t milliseconds_dt)
+game2d::tick_server(GameEditor& editor, Game& game, uint64_t milliseconds_dt)
 {
-  SINGLETON_ServerComponent& server = r.ctx().at<SINGLETON_ServerComponent>();
+  auto& server = editor.server;
   server_poll_connections(server);
   server.fixed_frame += 1;
 

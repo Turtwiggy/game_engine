@@ -22,9 +22,10 @@
 #include "modules/ui_profiler/helpers.hpp"
 
 void
-game2d::simulate(entt::registry& r, const std::vector<InputEvent>& inputs, uint64_t milliseconds_dt)
+game2d::simulate(GameEditor& editor, Game& game, const std::vector<InputEvent>& inputs, uint64_t milliseconds_dt)
 {
-  auto& p = r.ctx().at<Profiler>();
+  auto& p = editor.profiler;
+  auto& r = game.state;
 
   // process inputs in FixedUpdateInputHistory
   update_player_controller_system(r, inputs);
@@ -52,14 +53,14 @@ game2d::simulate(entt::registry& r, const std::vector<InputEvent>& inputs, uint6
   }
   {
     auto _ = time_scope(&p, "(game_logic)-dungeon", true);
-    update_dungeon_system(r);
+    update_dungeon_system(editor, game);
   }
   {
     auto _ = time_scope(&p, "(game_logic)-fov", true);
-    update_tile_fov_system(r);
+    update_tile_fov_system(editor, game);
   }
   {
     auto _ = time_scope(&p, "(game_logic)-pathfinding/ai)", true);
-    update_ai_system(r, milliseconds_dt);
+    update_ai_system(editor, game, milliseconds_dt);
   }
 };

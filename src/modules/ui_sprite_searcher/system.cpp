@@ -11,10 +11,10 @@
 
 // this function is pretty slow
 void
-game2d::update_ui_sprite_searcher_system(entt::registry& r)
+game2d::update_ui_sprite_searcher_system(GameEditor& editor, Game& game)
 {
-  const auto& slots = r.ctx().at<SINGLETON_Textures>();
-  auto& ss = r.ctx().at<SINGLETON_SpriteSearcher>();
+  const auto& slots = editor.textures;
+  auto& ss = editor.sprites;
 
   // texture information
   const float px = 768.0;
@@ -56,7 +56,8 @@ game2d::update_ui_sprite_searcher_system(entt::registry& r)
 
       char buffer[64];
       sprintf(buffer, "x%iy%i", x, y);
-      if (ImGui::ImageButton(buffer, (ImTextureID)get_tex_id(r, AvailableTexture::kenny), { sizex, sizey }, tl, br)) {
+      if (ImGui::ImageButton(
+            buffer, (ImTextureID)get_tex_id(slots, AvailableTexture::kenny), { sizex, sizey }, tl, br)) {
         ss.x = x;
         ss.y = y;
       }

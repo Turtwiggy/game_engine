@@ -48,11 +48,12 @@ add_child(entt::registry& r, const entt::entity& e, const entt::entity& child)
 };
 
 entt::entity
-create_item(entt::registry& r, const EntityType& type, const entt::entity& parent)
+create_item(GameEditor& editor, Game& game, const EntityType& type, const entt::entity& parent)
 {
+  auto& r = game.state;
   auto e = r.create();
 
-  create_gameplay(r, e, type);
+  create_gameplay(editor, game, e, type);
 
   r.emplace<InBackpackComponent>(e, parent);
   return e;
@@ -68,9 +69,10 @@ create_transform(entt::registry& r, const entt::entity& e)
 };
 
 SpriteComponent
-create_sprite(entt::registry& r, const entt::entity& e, const EntityType& type)
+create_sprite(GameEditor& editor, entt::registry& r, const entt::entity& e, const EntityType& type)
 {
-  const auto& sprites = r.ctx().at<SINGLETON_Animations>();
+  const auto& sprites = editor.animations;
+  const auto& textures = editor.textures;
   const auto type_name = std::string(magic_enum::enum_name(type));
 
   std::string sprite = "EMPTY";
@@ -102,6 +104,8 @@ create_sprite(entt::registry& r, const entt::entity& e, const EntityType& type)
     sprite = "PERSON_25_0";
   else if (type == EntityType::free_cursor)
     sprite = "EMPTY";
+  else if (type == EntityType::ui_health_bar)
+    sprite = "EMPTY";
   else
     std::cerr << "warning! not renderable: " << type_name << "\n";
 
@@ -123,6 +127,8 @@ create_sprite(entt::registry& r, const entt::entity& e, const EntityType& type)
     order = RenderOrder::foreground;
   else if (type == EntityType::scroll_magic_missile)
     order = RenderOrder::foreground;
+  else if (type == EntityType::ui_health_bar)
+    order = RenderOrder::foreground;
 
   SpriteComponent sc;
   sc.render_order = order;
@@ -133,8 +139,8 @@ create_sprite(entt::registry& r, const entt::entity& e, const EntityType& type)
   sc.y = anim.animation_frames[0].y;
 
   // limitation: all sprites are now kenny sprites
-  sc.tex_unit = get_tex_unit(r, AvailableTexture::kenny);
-  if (sc.tex_unit == get_tex_unit(r, AvailableTexture::kenny)) {
+  sc.tex_unit = get_tex_unit(textures, AvailableTexture::kenny);
+  if (sc.tex_unit == get_tex_unit(textures, AvailableTexture::kenny)) {
     sc.sx = 48;
     sc.sy = 22;
   }
@@ -143,9 +149,9 @@ create_sprite(entt::registry& r, const entt::entity& e, const EntityType& type)
 };
 
 SpriteColourComponent
-create_colour(entt::registry& r, const entt::entity& e, const EntityType& type)
+create_colour(GameEditor& editor, entt::registry& r, const entt::entity& e, const EntityType& type)
 {
-  const auto& colours = r.ctx().at<SINGLETON_ColoursComponent>();
+  const auto& colours = editor.colours;
   const auto type_name = std::string(magic_enum::enum_name(type));
 
   engine::SRGBColour srgb = colours.white;
@@ -184,16 +190,17 @@ create_colour(entt::registry& r, const entt::entity& e, const EntityType& type)
 }
 
 void
-create_renderable(entt::registry& r, const entt::entity& e, const EntityType& type)
+create_renderable(GameEditor& editor, entt::registry& r, const entt::entity& e, const EntityType& type)
 {
-  r.emplace<SpriteComponent>(e, create_sprite(r, e, type));
-  r.emplace<SpriteColourComponent>(e, create_colour(r, e, type));
+  r.emplace<SpriteComponent>(e, create_sprite(editor, r, e, type));
+  r.emplace<SpriteColourComponent>(e, create_colour(editor, r, e, type));
   r.emplace<TransformComponent>(e, create_transform(r, e));
 };
 
 entt::entity
-create_gameplay(entt::registry& r, const EntityType& type)
+create_gameplay(GameEditor& editor, Game& game, const EntityType& type)
 {
+  auto& r = game.state;
   const auto& h = r.view<RootNode>().front();
   const auto& e = r.create();
 
@@ -202,15 +209,16 @@ create_gameplay(entt::registry& r, const EntityType& type)
   r.emplace<TagComponent>(e, std::string(magic_enum::enum_name(type)));
   r.emplace<EntityTypeComponent>(e, type);
 
-  create_gameplay(r, e, type);
+  create_gameplay(editor, game, e, type);
 
   return e;
 };
 
 void
-create_gameplay(entt::registry& r, const entt::entity& e, const EntityType& type)
+create_gameplay(GameEditor& editor, Game& game, const entt::entity& e, const EntityType& type)
 {
-  const auto& colours = r.ctx().at<SINGLETON_ColoursComponent>();
+  const auto& colours = editor.colours;
+  auto& r = game.state;
   const auto type_name = std::string(magic_enum::enum_name(type));
 
   switch (type) {
@@ -261,8 +269,8 @@ create_gameplay(entt::registry& r, const entt::entity& e, const EntityType& type
       r.emplace<HealthComponent>(e);
 
       PlayerComponent p;
-      p.aim_line = create_gameplay(r, EntityType::aim_line);
-      create_renderable(r, p.aim_line, EntityType::aim_line);
+      p.aim_line = create_gameplay(editor, game, EntityType::aim_line);
+      create_renderable(editor, r, p.aim_line, EntityType::aim_line);
       r.emplace<PlayerComponent>(e, p);
       break;
     }
@@ -352,8 +360,8 @@ create_gameplay(entt::registry& r, const entt::entity& e, const EntityType& type
         auto line = r.create();
         r.emplace<TagComponent>(line, name);
         r.emplace<EntityTypeComponent>(line, type);
-        create_gameplay(r, line, EntityType::empty);
-        create_renderable(r, line, EntityType::empty);
+        create_gameplay(editor, game, line, EntityType::empty);
+        create_renderable(editor, r, line, EntityType::empty);
         add_child(r, h, line);
         set_parent(r, line, h);
         return line;
@@ -380,7 +388,12 @@ create_gameplay(entt::registry& r, const entt::entity& e, const EntityType& type
     case EntityType::ui_action_card: {
       r.emplace<PhysicsActorComponent>(e);
       r.emplace<PhysicsTransformComponent>(e);
+      break;
     }
+    case EntityType::ui_health_bar: {
+      break;
+    }
+
     default: {
       std::cout << "warning: no gameplay implemented for: " << type_name;
     }

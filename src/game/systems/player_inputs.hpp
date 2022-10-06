@@ -1,10 +1,10 @@
 #pragma once
 
-#include <entt/entt.hpp>
+#include "game/components/app.hpp"
 
 namespace game2d {
 
 void
-update_player_inputs_system(entt::registry& r);
+update_player_inputs_system(Game& r);
 
 } // namespace game2d

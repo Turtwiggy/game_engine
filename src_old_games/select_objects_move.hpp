@@ -1,11 +1,10 @@
 #pragma once
 
-// other lib headers
-#include <entt/entt.hpp>
+#include "game/components/app.hpp"
 
 namespace game2d {
 
 void
-update_select_objects_move_system(entt::registry& registry);
+update_select_objects_move_system(GameEditor& editor, Game& game);
 
 } // namespace game2d

@@ -19,7 +19,7 @@ static ImGui::FileBrowser save_dialog{ ImGuiFileBrowserFlags_EnterNewFilename | 
 void
 game2d::update_ui_editor_scene_system(entt::registry& r)
 {
-  ImGui::Begin("Editor-Scene", NULL, ImGuiWindowFlags_NoFocusOnAppearing);
+  ImGui::Begin("GameEditor-Scene", NULL, ImGuiWindowFlags_NoFocusOnAppearing);
 
   std::string current_map = "todo";
   ImGui::Text("Map");

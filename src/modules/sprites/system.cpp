@@ -10,10 +10,10 @@
 namespace game2d {
 
 void
-init_sprite_system(entt::registry& registry)
+init_sprite_system(GameEditor& editor)
 {
-  auto& anim = registry.ctx().emplace<SINGLETON_Animations>();
-  auto& tex = registry.ctx().at<SINGLETON_Textures>();
+  auto& anim = editor.animations;
+  auto& tex = editor.textures;
 
   // load textures
   std::vector<std::pair<int, std::string>> textures_to_load;
@@ -40,9 +40,10 @@ init_sprite_system(entt::registry& registry)
 }
 
 void
-update_sprite_system(entt::registry& registry, float dt)
+update_sprite_system(const GameEditor& editor, Game& game, float dt)
 {
-  const auto& anims = registry.ctx().at<SINGLETON_Animations>();
+  const auto& anims = editor.animations;
+  auto& registry = game.state;
 
   { // set sprite animation by velocity
     const auto& view =

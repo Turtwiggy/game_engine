@@ -28,7 +28,7 @@ game2d::update_ui_editor_tilemap_system(entt::registry& r)
   // #endif
 
   //
-  // Prefab Editor
+  // Prefab GameEditor
   //
 
   auto& ss = r.ctx().at<SINGLETON_SpriteSearcher>();
@@ -110,7 +110,7 @@ game2d::update_ui_editor_tilemap_system(entt::registry& r)
   EntityType type = magic_enum::enum_value<EntityType>(item_current_idx);
 
   //
-  // Tilemap Editor
+  // Tilemap GameEditor
   //
   {
     const auto& ri = r.ctx().at<SINGLETON_RendererInfo>();

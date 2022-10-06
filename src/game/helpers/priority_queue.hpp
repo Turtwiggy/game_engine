@@ -17,11 +17,7 @@ private:
 public:
   [[nodiscard]] inline size_t size() const { return elements.size(); }
 
-  inline void enqueue(const T& item, const int& priority)
-  {
-    //
-    elements.push_back({ item, priority });
-  }
+  inline void enqueue(const T& item, const int& priority) { elements.push_back({ item, priority }); }
 
   [[nodiscard]] inline T dequeue()
   {

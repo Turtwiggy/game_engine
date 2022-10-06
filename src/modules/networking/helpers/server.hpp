@@ -1,8 +1,8 @@
 #pragma once
 
+#include "game/components/app.hpp"
 #include "modules/networking/components.hpp"
 
-#include <entt/entt.hpp>
 #include <steam/isteamnetworkingutils.h>
 #include <steam/steamnetworkingsockets.h>
 #ifndef STEAMNETWORKINGSOCKETS_OPENSOURCE
@@ -15,7 +15,7 @@
 namespace game2d {
 
 void
-start_server_or_quit(entt::registry& r, int port);
+start_server_or_quit(GameEditor& editor, Game& game, int port);
 
 void
 server_receive_messages_on_poll_group(SINGLETON_ServerComponent& server, std::vector<ClientMessage>& result);
@@ -24,7 +24,7 @@ void
 server_poll_connections(SINGLETON_ServerComponent& server);
 
 void
-tick_server(entt::registry& r, uint64_t milliseconds_dt);
+tick_server(GameEditor& editor, Game& game, uint64_t milliseconds_dt);
 
 //
 // Server -> Client

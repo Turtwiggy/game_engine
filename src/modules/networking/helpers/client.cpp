@@ -21,9 +21,11 @@ SteamNetConnectionStatusChangedCallback(SteamNetConnectionStatusChangedCallback_
 };
 
 void
-start_client(entt::registry& r, const std::string& addr)
+start_client(GameEditor& editor, Game& game, const std::string& addr)
 {
-  SINGLETON_ClientComponent client;
+  auto& client = editor.client;
+  auto& r = game.state;
+
   client.interface = SteamNetworkingSockets();
 
   SteamNetworkingIPAddr serverAddr;
@@ -133,9 +135,10 @@ game2d::client_poll_connections(SINGLETON_ClientComponent& client)
 }
 
 void
-game2d::tick_client(entt::registry& r, uint64_t milliseconds_dt)
+game2d::tick_client(GameEditor& editor, Game& game, uint64_t milliseconds_dt)
 {
-  SINGLETON_ClientComponent& client = r.ctx().at<SINGLETON_ClientComponent>();
+  auto& client = editor.client;
+  auto& r = game.state;
   client_poll_connections(client);
   client.fixed_frame += 1;
 

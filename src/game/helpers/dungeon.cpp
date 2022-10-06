@@ -30,7 +30,7 @@ grid_entities_at(entt::registry& r, int x, int y)
       results.push_back(entity);
   });
   return results;
-}
+};
 
 void
 get_neighbour_indicies(const int x,
@@ -83,8 +83,10 @@ get_neighbour_indicies(const int x,
 };
 
 void
-create_room(entt::registry& r, const Room& room)
+create_room(GameEditor& editor, Game& game, const Room& room)
 {
+  auto& r = game.state;
+
   for (int x = 0; x < room.w; x++) {
     for (int y = 0; y < room.h; y++) {
 
@@ -98,10 +100,10 @@ create_room(entt::registry& r, const Room& room)
       if (y == room.h - 1)
         et = EntityType::wall;
 
-      entt::entity e = create_gameplay(r, et);
-      SpriteComponent s = create_sprite(r, e, et);
+      entt::entity e = create_gameplay(editor, game, et);
+      SpriteComponent s = create_sprite(editor, r, e, et);
       TransformComponent t = create_transform(r, e);
-      SpriteColourComponent scc = create_colour(r, e, et);
+      SpriteColourComponent scc = create_colour(editor, r, e, et);
 
       glm::ivec2 grid_index = { room.x1 + x, room.y1 + y };
       glm::ivec2 world_position = engine::grid::grid_space_to_world_space(grid_index, GRID_SIZE);
@@ -110,6 +112,7 @@ create_room(entt::registry& r, const Room& room)
       r.emplace<SpriteComponent>(e, s);
       r.emplace<TransformComponent>(e, t);
       r.emplace<SpriteColourComponent>(e, scc);
+      r.emplace<FovComponent>(e);
 
       // TODO: improve lines of code below
       std::vector<entt::entity> entities = grid_entities_at(r, grid_index.x, grid_index.y);
@@ -121,17 +124,19 @@ create_room(entt::registry& r, const Room& room)
 };
 
 void
-create_tunnel_floor(entt::registry& r, const Dungeon& d, std::vector<std::pair<int, int>>& coords)
+create_tunnel_floor(GameEditor& editor, Game& game, const Dungeon& d, std::vector<std::pair<int, int>>& coords)
 {
+  auto& r = game.state;
+
   for (const auto& coord : coords) {
     int x = coord.first;
     int y = coord.second;
 
     EntityType et = EntityType::floor;
-    entt::entity e = create_gameplay(r, et);
-    SpriteComponent s = create_sprite(r, e, et);
+    entt::entity e = create_gameplay(editor, game, et);
+    SpriteComponent s = create_sprite(editor, r, e, et);
     TransformComponent t = create_transform(r, e);
-    SpriteColourComponent scc = create_colour(r, e, et);
+    SpriteColourComponent scc = create_colour(editor, r, e, et);
 
     glm::ivec2 pos = engine::grid::grid_space_to_world_space({ x, y }, GRID_SIZE);
     t.position = { pos.x, pos.y, 0 };
@@ -139,6 +144,7 @@ create_tunnel_floor(entt::registry& r, const Dungeon& d, std::vector<std::pair<i
     r.emplace<SpriteComponent>(e, s);
     r.emplace<TransformComponent>(e, t);
     r.emplace<SpriteColourComponent>(e, scc);
+    r.emplace<FovComponent>(e);
 
     std::vector<entt::entity> entities = grid_entities_at(r, x, y);
     for (const auto& entity : entities)
@@ -149,7 +155,7 @@ create_tunnel_floor(entt::registry& r, const Dungeon& d, std::vector<std::pair<i
 
 // Create an L-shaped tunnel between two points
 void
-create_tunnel(entt::registry& r, const Dungeon& d, int x1, int y1, int x2, int y2)
+create_tunnel(GameEditor& editor, Game& game, const Dungeon& d, int x1, int y1, int x2, int y2)
 {
   int corner_x = 0;
   int corner_y = 0;
@@ -167,12 +173,12 @@ create_tunnel(entt::registry& r, const Dungeon& d, int x1, int y1, int x2, int y
   // a) x1, y1 to corner_x, corner_y
   std::vector<std::pair<int, int>> line_0;
   create_line(x1, y1, corner_x, corner_y, line_0);
-  create_tunnel_floor(r, d, line_0);
+  create_tunnel_floor(editor, game, d, line_0);
 
   // b) corner_x, corner_y to x2, y2
   std::vector<std::pair<int, int>> line_1;
   create_line(corner_x, corner_y, x2, y2, line_1);
-  create_tunnel_floor(r, d, line_1);
+  create_tunnel_floor(editor, game, d, line_1);
 };
 
 bool
@@ -204,13 +210,10 @@ room_center(const Room& r)
 //
 
 void
-generate_dungeon(entt::registry& r, const Dungeon& d, int step)
+generate_dungeon(const GameEditor& editor, Game& game, const Dungeon& d)
 {
-  const auto& colours = r.ctx().at<SINGLETON_ColoursComponent>();
-
-  // destroy any grid tiles
-  const auto& view_grid_entities = r.view<const GridComponent>();
-  view_grid_entities.each([&r](auto entity, const auto& grid) { r.destroy(entity); });
+  const auto& colours = editor.colours;
+  auto& r = game.state;
 
   int offset_x = 0;
   int offset_y = 0;
@@ -220,10 +223,10 @@ generate_dungeon(entt::registry& r, const Dungeon& d, int step)
     for (int y = 0; y < d.height; y++) {
       EntityType et = EntityType::wall;
 
-      entt::entity e = create_gameplay(r, et);
-      SpriteComponent s = create_sprite(r, e, et);
+      entt::entity e = create_gameplay(editor, game, et);
+      SpriteComponent s = create_sprite(editor, r, e, et);
       TransformComponent t = create_transform(r, e);
-      SpriteColourComponent scc = create_colour(r, e, et);
+      SpriteColourComponent scc = create_colour(editor, r, e, et);
 
       glm::ivec2 grid_index = { offset_x + x, offset_y + y };
       glm::ivec2 world_position = engine::grid::grid_space_to_world_space(grid_index, GRID_SIZE);
@@ -232,6 +235,7 @@ generate_dungeon(entt::registry& r, const Dungeon& d, int step)
       r.emplace<SpriteComponent>(e, s);
       r.emplace<TransformComponent>(e, t);
       r.emplace<GridComponent>(e, grid_index.x, grid_index.y);
+      r.emplace<FovComponent>(e);
 
       // if (x != 0 && y != 0 && x != d.width - 1 && y != d.height - 1)
       //   r.emplace<HealthComponent>(e, 1, 1); // give inner walls health
@@ -249,13 +253,13 @@ generate_dungeon(entt::registry& r, const Dungeon& d, int step)
 
   std::vector<Room> rooms;
 
-  if (step == -1)
-    step = max_rooms + 1;
-  std::cout << "step is: " << step << "max is: " << max_rooms << "\n";
+  // if (step == -1)
+  //   step = max_rooms + 1;
+  // std::cout << "step is: " << step << "max is: " << max_rooms << "\n";
 
   for (int max_room_idx = 0; max_room_idx < max_rooms; max_room_idx++) {
-    if (max_room_idx > step)
-      break;
+    // if (max_room_idx > step)
+    //   break;
 
     int room_width = static_cast<int>(engine::rand_det_s(rnd.rng, room_min_size, room_max_size));
     int room_height = static_cast<int>(engine::rand_det_s(rnd.rng, room_min_size, room_max_size));
@@ -276,14 +280,14 @@ generate_dungeon(entt::registry& r, const Dungeon& d, int step)
     if (it != rooms.end())
       continue; // overlap; skip this room
 
-    create_room(r, room);
+    create_room(editor, game, room);
 
     // dig out a tunnel between this room and the previous one
     bool starting_room = max_room_idx == 0;
     if (!starting_room) {
       auto r0_center = room_center(rooms[rooms.size() - 1]);
       auto r1_center = room_center(room);
-      create_tunnel(r, d, r0_center.x, r0_center.y, r1_center.x, r1_center.y);
+      create_tunnel(editor, game, d, r0_center.x, r0_center.y, r1_center.x, r1_center.y);
     }
 
     rooms.push_back(room);
@@ -350,10 +354,10 @@ generate_dungeon(entt::registry& r, const Dungeon& d, int step)
       int y = static_cast<int>(engine::rand_det_s(rnd.rng, room.y1 + 1, room.y2 - 1));
       glm::ivec2 grid_index = { x, y };
 
-      entt::entity e = create_gameplay(r, et);
-      SpriteComponent s = create_sprite(r, e, et);
+      entt::entity e = create_gameplay(editor, game, et);
+      SpriteComponent s = create_sprite(editor, r, e, et);
       TransformComponent t = create_transform(r, e);
-      SpriteColourComponent scc = create_colour(r, e, et);
+      SpriteColourComponent scc = create_colour(editor, r, e, et);
 
       // Check the tile isn't occupied
       auto full = std::find_if(room_occupied_slots.begin(), room_occupied_slots.end(), [&grid_index](const auto& val) {
@@ -372,10 +376,11 @@ generate_dungeon(entt::registry& r, const Dungeon& d, int step)
       r.emplace<SpriteComponent>(e, s);
       r.emplace<SpriteColourComponent>(e, scc);
       r.emplace<GridComponent>(e, grid_index.x, grid_index.y);
+      r.emplace<FovComponent>(e);
 
       // randomize brain offset time to prevent fps drops
-      // auto& brain = r.get<AiBrainComponent>(e);
-      // brain.milliseconds_between_ai_updates_left = engine::rand_det_s(rnd.rng, 0, k_milliseconds_between_ai_updates);
+      auto& brain = r.get<AiBrainComponent>(e);
+      brain.milliseconds_between_ai_updates_left = engine::rand_det_s(rnd.rng, 0, k_milliseconds_between_ai_updates);
     }
   }
 
@@ -394,7 +399,7 @@ generate_dungeon(entt::registry& r, const Dungeon& d, int step)
 static bool first_frame = true;
 
 void
-update_dungeon_system(entt::registry& r)
+update_dungeon_system(GameEditor& editor, Game& game)
 {
   if (first_frame) {
     first_frame = false;

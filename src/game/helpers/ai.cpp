@@ -158,15 +158,15 @@ astar(entt::registry& registry, const vec2i& from, const vec2i& to)
 }
 
 void
-update_ai_system(entt::registry& r, const uint64_t& milliseconds_dt)
+update_ai_system(GameEditor& editor, Game& game, const uint64_t& milliseconds_dt)
 {
-  auto& colours = r.ctx().at<SINGLETON_ColoursComponent>();
+  auto& colours = editor.colours;
+  auto& r = game.state;
 
   // hack: only one dungeon at the moment
   const auto dungeon = r.view<Dungeon>().front();
   const auto& d = r.get<Dungeon>(dungeon);
   const int& x_max = d.width;
-
   const int GRID_SIZE = 16;
 
   const auto& player_view = r.view<PlayerComponent>();
@@ -177,33 +177,6 @@ update_ai_system(entt::registry& r, const uint64_t& milliseconds_dt)
   const auto& player_transform = r.get<TransformComponent>(player_entity);
   const auto player_grid =
     engine::grid::world_space_to_grid_space({ player_transform.position.x, player_transform.position.y }, GRID_SIZE);
-
-  // const glm::ivec2 mouse_position = mouse_position_in_worldspace(r) + glm::ivec2(GRID_SIZE / 2, GRID_SIZE / 2);
-  // const glm::ivec2 mouse_grid_position = engine::grid::world_space_to_grid_space(mouse_position, GRID_SIZE);
-
-  // mouse location
-  // vec2i to = { glm::clamp(mouse_grid_position.x, 0, d.width - 1), glm::clamp(mouse_grid_position.y, 0, d.height - 1)
-  // };
-
-  // mouse optimization if it hovers over a wall:
-  // if hovering over a WALL tile,
-  // skip all pathfinding
-  // auto hovered = grid_entities_at(r, to.x, to.y);
-  // bool skip_all_pathfinding = false;
-  // for (auto& e : hovered) {
-  //   EntityTypeComponent t = r.get<EntityTypeComponent>(e);
-  //   if (t.type == EntityType::wall)
-  //     skip_all_pathfinding = true;
-  // }
-  // if (skip_all_pathfinding)
-  //   return;
-
-  // const auto& group = r.group<GridComponent, PathfindableComponent>();
-  // group.sort<GridComponent>([&x_max](const auto& a, const auto& b) {
-  //   int index_a = x_max * a.y + a.x;
-  //   int index_b = x_max * b.y + b.x;
-  //   return index_a < index_b;
-  // });
 
   // player position
   vec2i to = { glm::clamp(player_grid.x, 0, d.width - 1), glm::clamp(player_grid.y, 0, d.height - 1) };
@@ -226,6 +199,10 @@ update_ai_system(entt::registry& r, const uint64_t& milliseconds_dt)
 
       // move it, chump!
       const auto path = astar(r, from, to);
+
+      const int max_paths = d.height * d.width;
+      if (path.size() > max_paths) // assume something is wrong
+        std::cout << "pathfinding has gone wrong\n";
 
       if (path.size() >= 2) {
         const auto& next_step = path[1]; // path[0] is start

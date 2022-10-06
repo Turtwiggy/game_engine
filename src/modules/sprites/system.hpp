@@ -1,14 +1,13 @@
 #pragma once
 
-// other lib headers
-#include <entt/entt.hpp>
+#include "game/components/app.hpp"
 
 namespace game2d {
 
 void
-init_sprite_system(entt::registry& registry);
+init_sprite_system(GameEditor& editor);
 
 void
-update_sprite_system(entt::registry& registry, float dt);
+update_sprite_system(const GameEditor& editor, Game& game, float dt);
 
 } // namespace game2d
