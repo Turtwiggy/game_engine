@@ -1,5 +1,6 @@
 #pragma once
 
+#include "game/components/app.hpp"
 #include "modules/ui_hierarchy/components.hpp"
 
 // other lib
@@ -33,7 +34,11 @@ void
 imgui_draw_vec2(const std::string& label, float& x, float& y);
 
 void
-imgui_draw_entity(entt::registry& r, const std::string& label, const entt::entity& e, entt::entity& selected_e);
+imgui_draw_entity(GameEditor& editor,
+                  Game& game,
+                  const std::string& label,
+                  const entt::entity& e,
+                  entt::entity& selected_e);
 
 void
 drop_accept_entity(entt::registry& r, const entt::entity& e);

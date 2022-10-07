@@ -16,14 +16,14 @@
 namespace game2d {
 
 void
-init_camera_system(const GameEditor& editor, Game& game)
+init_camera_system(GameEditor& editor, Game& game)
 {
   const auto& ri = editor.renderer;
   auto& registry = game.state;
 
   // create a camera
   {
-    auto c = create_gameplay(registry, EntityType::camera);
+    auto c = create_gameplay(editor, game, EntityType::camera);
     registry.emplace<TransformComponent>(c);
   }
 

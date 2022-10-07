@@ -1,5 +1,7 @@
 #pragma once
 
+#include "game/components/app.hpp"
+
 #include <entt/entt.hpp>
 
 #include <string>
@@ -10,7 +12,7 @@ void
 save(const entt::registry& registry, std::string path);
 
 void
-load(entt::registry& registry, std::string path);
+load(GameEditor& editor, Game& game, std::string path);
 
 void
 load_if_exists(entt::registry& registry, std::string path);

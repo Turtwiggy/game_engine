@@ -21,10 +21,8 @@
 #include <string>
 #include <vector>
 
-namespace game2d {
-
 void
-save(const entt::registry& registry, std::string path)
+game2d::save(const entt::registry& registry, std::string path)
 {
   std::cout << "saving...\n";
 
@@ -76,19 +74,12 @@ save(const entt::registry& registry, std::string path)
   fout << data.c_str();
 };
 
-template<class T>
 void
-ctx_reset(entt::registry& r)
-{
-  if (r.ctx().contains<T>())
-    r.ctx().erase<T>();
-  r.ctx().emplace<T>();
-};
-
-void
-load(entt::registry& r, std::string path)
+game2d::load(GameEditor& editor, Game& game, std::string path)
 {
   std::cout << "loading...\n";
+
+  auto& r = game.state;
   r.each([&r](auto entity) { r.destroy(entity); });
 
   // load from disk
@@ -116,26 +107,15 @@ load(entt::registry& r, std::string path)
       //
       >(json_in);
 
-  // initialize game
-  ctx_reset<SINGLETON_PhysicsComponent>(r);
-  ctx_reset<SINGLETON_GameOverComponent>(r);
-  ctx_reset<SINGLETON_EntityBinComponent>(r);
-  ctx_reset<SINGLETON_FixedUpdateInputHistory>(r);
-  // reset editor tools?
-  // ctx_reset<SINGLETON_TilemapComponent>(r);
-
   const auto& view = r.view<const EntityTypeComponent>();
-  view.each([&r](auto entity, const EntityTypeComponent& type) {
-    //
-    create_gameplay(r, entity, type.type);
+  view.each([&editor, &game](auto entity, const EntityTypeComponent& type) {
+    create_gameplay(editor, game, entity, type.type);
   });
 };
 
 void
-load_if_exists(entt::registry& registry, std::string path){
+game2d::load_if_exists(entt::registry& registry, std::string path){
   //   std::ifstream file(path.c_str());
   //   if (file)
   //     load(registry, path);
 };
-
-} // namespace game2d

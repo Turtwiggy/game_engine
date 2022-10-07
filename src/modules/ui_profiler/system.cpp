@@ -14,7 +14,7 @@
 #include <imgui.h>
 
 void
-game2d::update_ui_profiler_system(entt::registry& registry)
+game2d::update_ui_profiler_system(GameEditor& editor, Game& game)
 {
 #ifdef _DEBUG
   // less than X-fps?! what is this?!
@@ -22,7 +22,7 @@ game2d::update_ui_profiler_system(entt::registry& registry)
   //   std::cout << "(profiler) fps drop?!" << "\n";
 #endif
 
-  auto& p = registry.ctx().at<Profiler>();
+  auto& p = editor.profiler;
 
   // Profiler
   ImGui::Begin("Profiler ", NULL, ImGuiWindowFlags_NoFocusOnAppearing);

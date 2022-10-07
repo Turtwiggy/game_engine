@@ -79,9 +79,11 @@ get_mouse_pos()
 }
 
 glm::ivec2
-mouse_position_in_worldspace(entt::registry& registry)
+mouse_position_in_worldspace(GameEditor& editor, Game& game)
 {
-  const auto& ri = registry.ctx().at<SINGLETON_RendererInfo>();
+  const auto& ri = editor.renderer;
+  auto& registry = game.state;
+
   const auto& cameras = registry.view<CameraComponent, TransformComponent>();
 
   glm::ivec2 camera_position;

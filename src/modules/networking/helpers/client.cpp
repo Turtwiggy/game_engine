@@ -44,7 +44,6 @@ start_client(GameEditor& editor, Game& game, const std::string& addr)
     } else {
       // successfully connected
       client.connection = conn;
-      r.ctx().emplace<SINGLETON_ClientComponent>(client);
     }
   } else {
     std::cerr << "Failed to parse server's address for the client"
@@ -139,6 +138,7 @@ game2d::tick_client(GameEditor& editor, Game& game, uint64_t milliseconds_dt)
 {
   auto& client = editor.client;
   auto& r = game.state;
+  auto& fixed_inputs = game.fixed_update_input;
   client_poll_connections(client);
   client.fixed_frame += 1;
 
@@ -156,7 +156,6 @@ game2d::tick_client(GameEditor& editor, Game& game, uint64_t milliseconds_dt)
   //   simulate(r, fixed_input.history.back(), milliseconds_dt);
   //   client.simulation_frame += 1;
   // }
-  auto& fixed_inputs = r.ctx().at<SINGLETON_FixedUpdateInputHistory>();
 
   // for (int i = 0; i < server_messages.size(); i++) {
   if (server_messages.size() > 0) {

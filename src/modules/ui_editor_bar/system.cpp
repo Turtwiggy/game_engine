@@ -8,9 +8,9 @@
 #include <imgui.h>
 
 void
-game2d::update_ui_editor_bar_system(entt::registry& r)
+game2d::update_ui_editor_bar_system(GameEditor& editor, Game& game)
 {
-  auto& audio = r.ctx().at<SINGLETON_AudioComponent>();
+  auto& audio = editor.audio;
 
   if (ImGui::BeginMainMenuBar()) {
 
@@ -19,7 +19,6 @@ game2d::update_ui_editor_bar_system(entt::registry& r)
       // hack: just to play some music for the moment
       // probably shouldn't live here
       if (ImGui::MenuItem("Play Music")) {
-        auto& audio = r.ctx().at<SINGLETON_AudioComponent>();
         if (audio.device != -1 && Mix_PlayingMusic() == 0) {
           Mix_PlayMusic(audio.music.begin()->data, 1); // play music
         }

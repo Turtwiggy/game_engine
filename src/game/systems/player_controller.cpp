@@ -16,10 +16,11 @@
 #include <vector>
 
 void
-game2d::update_player_controller_system(entt::registry& r, const std::vector<InputEvent>& inputs)
+game2d::update_player_controller_system(GameEditor& editor, Game& game, const std::vector<InputEvent>& inputs)
 {
+  auto& r = game.state;
   auto& tilemap = game2d::get_first<TilemapComponent>(r);
-  const glm::ivec2 mouse_position = mouse_position_in_worldspace(r);
+  const glm::ivec2 mouse_position = mouse_position_in_worldspace(editor, game);
 
   const auto& view = r.view<PlayerComponent, TransformComponent, GridMoveComponent>();
   view.each([&r, &inputs, &mouse_position](

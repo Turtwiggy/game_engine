@@ -78,8 +78,9 @@ init_audio_system(GameEditor& editor)
 };
 
 void
-update_audio_system(GameEditor& editor){
-  auto& audio = editor.audio
+update_audio_system(GameEditor& editor)
+{
+  auto& audio = editor.audio;
 
   // TODO: fix audio
 

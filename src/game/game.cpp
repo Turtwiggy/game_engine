@@ -2,11 +2,10 @@
 #include "game.hpp"
 
 #include "game/components/app.hpp"
+#include "game/components/components.hpp"
 
 // systems&components&helpers
 #include "engine/app/application.hpp"
-#include "game/components/app.hpp"
-#include "game/components/components.hpp"
 #include "game/entities/actors.hpp"
 #include "game/simulate.hpp"
 #include "game/systems/player_inputs.hpp"
@@ -16,15 +15,26 @@
 #include "helpers/dungeon.hpp"
 #include "modules/audio/system.hpp"
 #include "modules/camera/components.hpp"
+#include "modules/camera/helpers.hpp"
 #include "modules/camera/system.hpp"
+#include "modules/cursor/system.hpp"
+#include "modules/events/helpers/keyboard.hpp"
 #include "modules/events/system.hpp"
 #include "modules/networking/system.hpp"
 #include "modules/renderer/system.hpp"
 #include "modules/sprites/system.hpp"
+#include "modules/ui_editor_bar/system.hpp"
+#include "modules/ui_editor_scene/system.hpp"
 #include "modules/ui_editor_tilemap/components.hpp"
+#include "modules/ui_editor_tilemap/system.hpp"
 #include "modules/ui_hierarchy/helpers.hpp"
+#include "modules/ui_hierarchy/system.hpp"
+#include "modules/ui_physics/system.hpp"
 #include "modules/ui_profiler/helpers.hpp"
+#include "modules/ui_profiler/system.hpp"
+#include "modules/ui_sprite_searcher/system.hpp"
 #include "modules/ux_hover/components.hpp"
+#include "modules/ux_hover/system.hpp"
 
 // other lib
 #include <algorithm>
@@ -34,7 +44,7 @@
 namespace game2d {
 
 void
-init_game_state(const GameEditor& editor, Game& game)
+init_game_state(GameEditor& editor, Game& game)
 {
   const auto& colours = editor.colours;
 
@@ -46,7 +56,7 @@ init_game_state(const GameEditor& editor, Game& game)
   r.emplace<TilemapComponent>(tilemap_ent);
 
   create_hierarchy_root_node(r);
-  create_gameplay(r, EntityType::free_cursor);
+  create_gameplay(editor, game, EntityType::free_cursor);
   init_camera_system(editor, game);
 
   // EntityType et = EntityType::shopkeeper;
@@ -75,9 +85,9 @@ init_game_state(const GameEditor& editor, Game& game)
   // players
   for (int i = 0; i < 1; i++) {
     EntityType et = EntityType::player;
-    entt::entity e = create_gameplay(r, et);
-    create_renderable(r, e, et);
-    init_ui_hp_bar(r, e);
+    entt::entity e = create_gameplay(editor, game, et);
+    create_renderable(editor, r, e, et);
+    init_ui_hp_bar(editor, game, e);
   }
 
   int size_x = 100;
@@ -86,10 +96,10 @@ init_game_state(const GameEditor& editor, Game& game)
     engine::SRGBColour colour_default = colours.backdrop_red;
     engine::SRGBColour colour_hover = colours.red;
     EntityType et = EntityType::ui_action_card;
-    entt::entity e = create_gameplay(r, et);
-    SpriteComponent s = create_sprite(r, e, et);
+    entt::entity e = create_gameplay(editor, game, et);
+    SpriteComponent s = create_sprite(editor, r, e, et);
     TransformComponent t = create_transform(r, e);
-    SpriteColourComponent scc = create_colour(r, e, et);
+    SpriteColourComponent scc = create_colour(editor, r, e, et);
     HoverComponent hc;
     t.scale.x = size_x;
     t.scale.y = size_y;
@@ -173,7 +183,7 @@ update(engine::SINGLETON_Application& app, GameEditor& editor, Game& game, float
   const auto& ri = editor.renderer;
   {
     auto _ = time_scope(&p, "game_tick");
-    update_input_system(r);
+    update_input_system(app, editor, game);
 
     auto& input = game.input;
 
@@ -187,17 +197,17 @@ update(engine::SINGLETON_Application& app, GameEditor& editor, Game& game, float
     // ... systems that always update
     {
       // update_cursor_system(r);
-      update_audio_system(r);
+      update_audio_system(editor);
     }
 
     // ... systems that update only if viewport is focused or hovered
     {
       if (ri.viewport_process_events) {
-        update_camera_system(r, dt);
-        update_player_inputs_system(r);
-        update_cursor_system(r);
-        update_ux_hover_system(r);
-        update_ui_hp_bar(r);
+        update_camera_system(editor, game, dt);
+        update_player_inputs_system(game);
+        update_cursor_system(editor, game);
+        update_ux_hover_system(editor, game);
+        update_ui_hp_bar(editor, game);
       }
     }
   };
@@ -213,13 +223,13 @@ update(engine::SINGLETON_Application& app, GameEditor& editor, Game& game, float
     {
       static bool show_editor_ui = true;
       if (show_editor_ui) {
-        update_ui_editor_bar_system(r);
-        update_ui_editor_tilemap_system(r);
-        update_ui_editor_scene_system(r);
-        update_ui_physics_system(r);
-        update_ui_hierarchy_system(r);
-        update_ui_profiler_system(r);
-        update_ui_sprite_searcher_system(r);
+        update_ui_editor_bar_system(editor, game);
+        update_ui_editor_tilemap_system(editor, game);
+        update_ui_editor_scene_system(editor, game);
+        update_ui_physics_system(editor, game);
+        update_ui_hierarchy_system(editor, game);
+        update_ui_profiler_system(editor, game);
+        update_ui_sprite_searcher_system(editor, game);
       }
       // update_ui_player_inventory_system(r);
     }
@@ -229,6 +239,7 @@ update(engine::SINGLETON_Application& app, GameEditor& editor, Game& game, float
 
   // end frame
   {
+    auto& r = game.state;
     end_frame_render_system(r);
   }
 };

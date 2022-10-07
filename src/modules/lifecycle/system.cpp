@@ -7,9 +7,10 @@
 #include <vector>
 
 void
-game2d::update_lifecycle_system(entt::registry& r, uint64_t milliseconds_dt)
+game2d::update_lifecycle_system(GameEditor& editor, Game& game, uint64_t milliseconds_dt)
 {
-  auto& eb = r.ctx().at<SINGLETON_EntityBinComponent>();
+  auto& eb = game.dead;
+  auto& r = game.state;
 
   // update all components with timed lifecycle
   const auto& view = r.view<EntityTimedLifecycle>();

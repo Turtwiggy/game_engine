@@ -210,7 +210,7 @@ room_center(const Room& r)
 //
 
 void
-generate_dungeon(const GameEditor& editor, Game& game, const Dungeon& d)
+generate_dungeon(GameEditor& editor, Game& game, const Dungeon& d)
 {
   const auto& colours = editor.colours;
   auto& r = game.state;
@@ -409,7 +409,6 @@ update_dungeon_system(GameEditor& editor, Game& game)
   // glm::vec2 world_space_center = engine::grid::grid_space_to_world_space(grid_space_center, GRID_SIZE);
 
   // center the camera on the center of the room
-  // const auto& ri = r.ctx().at<SINGLETON_RendererInfo>();
   // const auto& cameras = r.view<CameraComponent, TransformComponent>();
   // for (auto [entity, camera, transform] : cameras.each()) {
   //   transform.position.x = (-ri.viewport_size_render_at.x / 2) + world_space_center.x;

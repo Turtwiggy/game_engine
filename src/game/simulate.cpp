@@ -28,10 +28,10 @@ game2d::simulate(GameEditor& editor, Game& game, const std::vector<InputEvent>& 
   auto& r = game.state;
 
   // process inputs in FixedUpdateInputHistory
-  update_player_controller_system(r, inputs);
+  update_player_controller_system(editor, game, inputs);
 
   // destroy objects
-  update_lifecycle_system(r, milliseconds_dt);
+  update_lifecycle_system(editor, game, milliseconds_dt);
 
   {
     auto _ = time_scope(&p, "(physics-move-objs)", true);
@@ -41,15 +41,15 @@ game2d::simulate(GameEditor& editor, Game& game, const std::vector<InputEvent>& 
   {
     auto _ = time_scope(&p, "(physics-actor-actor)", true);
     // generate all collisions between actor-actor objects
-    update_actor_actor_system(r);
+    update_actor_actor_system(editor, game);
   }
 
   // resolve collisions immediately
-  update_resolve_collisions_system(r);
+  update_resolve_collisions_system(game);
 
   // game logic
   {
-    update_intent_use_item_system(r);
+    update_intent_use_item_system(editor, game);
   }
   {
     auto _ = time_scope(&p, "(game_logic)-dungeon", true);

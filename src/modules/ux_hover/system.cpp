@@ -11,12 +11,13 @@
 namespace game2d {
 
 void
-update_ux_hover_system(entt::registry& r)
+update_ux_hover_system(GameEditor& editor, Game& game)
 {
   //
   // work out if an entity is selected
   //
-  const auto& physics = r.ctx().at<SINGLETON_PhysicsComponent>();
+  const auto& physics = game.physics;
+  auto& r = game.state;
   const auto& cursor = get_first<FreeCursorComponent>(r);
   const auto& cursor_collision_area = cursor.backdrop;
 

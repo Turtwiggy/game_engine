@@ -49,14 +49,14 @@ main_loop(void* arg)
   while (milliseconds_since_last_tick >= MILLISECONDS_PER_FIXED_TICK) {
     milliseconds_since_last_tick -= MILLISECONDS_PER_FIXED_TICK;
 
-    game2d::fixed_update(registry, MILLISECONDS_PER_FIXED_TICK);
+    game2d::fixed_update(editor, game, MILLISECONDS_PER_FIXED_TICK);
   }
 
   // Implement this if stuttering?
   // const float alpha = seconds_since_last_game_tick / SECONDS_PER_FIXED_TICK;
   // state = current_state * alpha + previous_state * (1.0f - alpha );
 
-  game2d::update(registry, milliseconds_delta_time / 1000.0f);
+  game2d::update(app, editor, game, milliseconds_delta_time / 1000.0f);
 
   engine::end_frame(app);
 }

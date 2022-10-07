@@ -53,8 +53,6 @@ start_server_or_quit(GameEditor& editor, Game& game, int port)
   }
 
   std::cout << "Server listening on port: " << port << "\n";
-  if (!r.ctx().contains<SINGLETON_ServerComponent>())
-    r.ctx().emplace<SINGLETON_ServerComponent>(server);
 }
 
 void

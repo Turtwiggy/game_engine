@@ -59,7 +59,7 @@ get_neighbour_indicies(const int x,
 // by pausing it at "step" 1, 2, 3, 4 and seeing what the
 // rooms look like at that "step".
 void
-generate_dungeon(const GameEditor& editor, Game& game, const Dungeon& d);
+generate_dungeon(GameEditor& editor, Game& game, const Dungeon& d);
 
 void
 update_dungeon_system(GameEditor& editor, Game& game);

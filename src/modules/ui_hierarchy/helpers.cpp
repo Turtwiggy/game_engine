@@ -1,6 +1,7 @@
 #include "helpers.hpp"
 
 // my lib
+#include "game/components/app.hpp"
 #include "modules/lifecycle/components.hpp"
 #include "modules/renderer/components.hpp"
 #include "modules/ui_hierarchy/components.hpp"
@@ -104,13 +105,15 @@ game2d::imgui_draw_vec2(const std::string& label, float& x, float& y)
 namespace game2d {
 
 void
-recursively_delete_with_children(entt::registry& r, const entt::entity& e)
+recursively_delete_with_children(GameEditor& editor, Game& game, const entt::entity& e)
 {
+  auto& r = game.state;
+  auto& eb = game.dead;
   const auto& h = r.get<EntityHierarchyComponent>(e);
 
   // delete children first. haha.
   for (auto& child : h.children)
-    recursively_delete_with_children(r, child);
+    recursively_delete_with_children(editor, game, child);
 
   // remove myself from parent
   auto* parent_h = r.try_get<EntityHierarchyComponent>(h.parent);
@@ -120,14 +123,17 @@ recursively_delete_with_children(entt::registry& r, const entt::entity& e)
     i++;
   }
 
-  auto& eb = r.ctx().at<SINGLETON_EntityBinComponent>();
   eb.dead.emplace(e);
 };
 
 } // namespace game2d
 
 void
-game2d::imgui_draw_entity(entt::registry& r, const std::string& label, const entt::entity& e, entt::entity& selected_e)
+game2d::imgui_draw_entity(GameEditor& editor,
+                          Game& game,
+                          const std::string& label,
+                          const entt::entity& e,
+                          entt::entity& selected_e)
 {
   ImGuiTreeNodeFlags flags = ((selected_e == e) ? ImGuiTreeNodeFlags_Selected : 0);
   flags |= ImGuiTreeNodeFlags_OpenOnArrow;
@@ -152,20 +158,22 @@ game2d::imgui_draw_entity(entt::registry& r, const std::string& label, const ent
     ImGui::EndDragDropSource();
   }
 
+  auto& r = game.state;
+
   drop_accept_entity(r, e);
 
   if (opened) {
     const auto& h = r.get<EntityHierarchyComponent>(e);
     for (const auto& child : h.children) {
       const auto& new_tag = r.get<TagComponent>(child).tag;
-      imgui_draw_entity(r, new_tag, child, selected_e);
+      imgui_draw_entity(editor, game, new_tag, child, selected_e);
     }
 
     ImGui::TreePop();
   }
 
   if (delete_entity)
-    recursively_delete_with_children(r, e);
+    recursively_delete_with_children(editor, game, e);
 };
 
 void
