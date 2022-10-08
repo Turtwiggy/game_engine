@@ -12,13 +12,4 @@ get_first(entt::registry& r)
   return r.get<T>(entity);
 };
 
-template<class T>
-void
-ctx_reset(entt::registry& r)
-{
-  if (r.ctx().contains<T>())
-    r.ctx().erase<T>();
-  r.ctx().emplace<T>();
-};
-
 }; // namespace game2d

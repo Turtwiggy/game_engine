@@ -18,30 +18,31 @@ set_music_pause(bool on)
 };
 
 void
-play_music(entt::registry& r, const AvailableMusic& type)
+play_music(GameEditor& editor, const AvailableMusic& type)
 {
-  auto& res = r.ctx().at<SINGLETON_AudioComponent>().music;
+  auto& audio = editor.audio;
+  auto& res = audio.music;
   auto it = std::find_if(res.begin(), res.end(), [&type](const auto& a) { return a.type == type; });
 
   Mix_Music* data = it->data;
 }
 
 void
-stop_music(entt::registry& r, const AvailableMusic& type)
+stop_music(GameEditor& editor, const AvailableMusic& type)
 {
-  auto& audio = r.ctx().at<SINGLETON_AudioComponent>();
+  auto& audio = editor.audio;
 }
 
 void
-play_sfx(entt::registry& r, const AvailableSfx& type)
+play_sfx(GameEditor& editor, const AvailableSfx& type)
 {
-  auto& audio = r.ctx().at<SINGLETON_AudioComponent>();
+  auto& audio = editor.audio;
 }
 
 void
-stop_sfx(entt::registry& r, const AvailableSfx& type)
+stop_sfx(GameEditor& editor, const AvailableSfx& type)
 {
-  auto& audio = r.ctx().at<SINGLETON_AudioComponent>();
+  auto& audio = editor.audio;
 }
 
 } // namespace game2d

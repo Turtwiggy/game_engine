@@ -1,8 +1,6 @@
 #pragma once
 
 #include <SDL2/SDL_mixer.h>
-#include <entt/entt.hpp>
-
 #include <string>
 #include <vector>
 
@@ -10,8 +8,8 @@ namespace game2d {
 
 enum class AvailableSfx
 {
-  //woosh,
-    none,
+  // woosh,
+  none,
 };
 
 enum class AvailableMusic
@@ -33,12 +31,6 @@ struct Sfx
   Mix_Chunk* data = NULL;
 };
 
-Music&
-get_music(entt::registry& r, AvailableMusic type);
-
-Sfx&
-get_sfx(entt::registry& r, AvailableSfx type);
-
 struct SINGLETON_AudioComponent
 {
   // audio device
@@ -52,5 +44,12 @@ struct SINGLETON_AudioComponent
     { AvailableMusic::menu, "assets/audio/chase.mp3" },
   };
 };
+
+Music&
+get_music(SINGLETON_AudioComponent& audio, AvailableMusic type);
+
+Sfx&
+get_sfx(SINGLETON_AudioComponent& audio, AvailableSfx type);
+
 
 } // namespace game2d

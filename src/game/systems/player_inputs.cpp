@@ -1,6 +1,5 @@
 #include "player_inputs.hpp"
 
-#include "game/components/components.hpp"
 #include "game/entities/actors.hpp"
 #include "modules/events/components.hpp"
 #include "modules/events/helpers/keyboard.hpp"
@@ -16,11 +15,12 @@
 // list of all inputs pressed by a player
 
 void
-game2d::update_player_inputs_system(entt::registry& r)
+game2d::update_player_inputs_system(Game& g)
 {
-  const auto& p = r.ctx().at<SINGLETON_PhysicsComponent>();
-  auto& gameover = r.ctx().at<SINGLETON_GameOverComponent>();
-  auto& input = r.ctx().at<InputComponent>();
+  const auto& p = g.physics;
+  const auto& gameover = g.gameover;
+  auto& input = g.input;
+  auto& r = g.state;
 
   //
   // Capture player(s) inputs
@@ -30,27 +30,16 @@ game2d::update_player_inputs_system(entt::registry& r)
   view.each([&input, &r](auto entity, auto& player) {
     // just capture inputs and process them in fixedupdate()
 
-    if (get_key_down(input, player.W))
-      input.unprocessed_update_inputs.push_back(
-        { InputType::keyboard, entity, false, static_cast<uint32_t>(player.W) });
-    if (get_key_down(input, player.A))
-      input.unprocessed_update_inputs.push_back(
-        { InputType::keyboard, entity, false, static_cast<uint32_t>(player.A) });
-    if (get_key_down(input, player.S))
-      input.unprocessed_update_inputs.push_back(
-        { InputType::keyboard, entity, false, static_cast<uint32_t>(player.S) });
-    if (get_key_down(input, player.D))
-      input.unprocessed_update_inputs.push_back(
-        { InputType::keyboard, entity, false, static_cast<uint32_t>(player.D) });
-    if (get_key_up(input, player.W))
-      input.unprocessed_update_inputs.push_back({ InputType::keyboard, entity, true, static_cast<uint32_t>(player.W) });
-    if (get_key_up(input, player.A))
-      input.unprocessed_update_inputs.push_back({ InputType::keyboard, entity, true, static_cast<uint32_t>(player.A) });
-    if (get_key_up(input, player.S))
-      input.unprocessed_update_inputs.push_back({ InputType::keyboard, entity, true, static_cast<uint32_t>(player.S) });
-    if (get_key_up(input, player.D))
-      input.unprocessed_update_inputs.push_back({ InputType::keyboard, entity, true, static_cast<uint32_t>(player.D) });
-
+    for (const SDL_Event& evt : input.sdl_events) {
+      if (evt.type == SDL_KEYDOWN && get_key_down(input, evt.key.keysym.scancode)) {
+        InputEvent ie{ InputType::keyboard, entity, false, static_cast<uint32_t>(evt.key.keysym.scancode) };
+        input.unprocessed_update_inputs.push_back(ie);
+      }
+      if (evt.type == SDL_KEYUP && get_key_up(input, evt.key.keysym.scancode)) {
+        InputEvent ie{ InputType::keyboard, entity, true, static_cast<uint32_t>(evt.key.keysym.scancode) };
+        input.unprocessed_update_inputs.push_back(ie);
+      }
+    }
     if (get_mouse_lmb_press())
       input.unprocessed_update_inputs.push_back({ InputType::mouse, entity, false, SDL_BUTTON_LEFT });
     if (get_mouse_lmb_release())

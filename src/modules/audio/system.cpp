@@ -22,9 +22,9 @@ namespace game2d {
 // https://wiki.libsdl.org/SDL_AudioSpec
 
 void
-init_audio_system(entt::registry& registry)
+init_audio_system(GameEditor& editor)
 {
-  SINGLETON_AudioComponent audio;
+  auto& audio = editor.audio;
 
   if (SDL_WasInit(SDL_INIT_EVERYTHING) & SDL_INIT_AUDIO) {
     SDL_Log("SDL audio is init...");
@@ -51,7 +51,6 @@ init_audio_system(entt::registry& registry)
 
   if (audio.device == -1) {
     std::cerr << "Failed to open audio: " << SDL_GetError() << "\n";
-    registry.ctx().emplace<SINGLETON_AudioComponent>(audio);
     return;
   }
 
@@ -76,15 +75,12 @@ init_audio_system(entt::registry& registry)
       exit(0);
     }
   }
-
-  registry.ctx().emplace<SINGLETON_AudioComponent>(audio);
 };
 
 void
-update_audio_system(entt::registry& registry)
+update_audio_system(GameEditor& editor)
 {
-  // const auto& events = registry.ctx().at<SINGLETON_InputComponent>();
-  auto& audio = registry.ctx().at<SINGLETON_AudioComponent>();
+  auto& audio = editor.audio;
 
   // TODO: fix audio
 

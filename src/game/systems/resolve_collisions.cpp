@@ -5,9 +5,10 @@
 #include "modules/physics/components.hpp"
 
 void
-game2d::update_resolve_collisions_system(entt::registry& r)
+game2d::update_resolve_collisions_system(Game& game)
 {
-  auto& eb = r.ctx().at<SINGLETON_EntityBinComponent>();
+  auto& eb = game.dead;
+  auto& r = game.state;
 
   { // take damage on collision
     const auto& view = r.view<WasCollidedWithComponent, HealthComponent>();

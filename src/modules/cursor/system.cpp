@@ -24,9 +24,10 @@ update_renderable(entt::registry& r, const entt::entity& e, const int x, const i
 } // namespace game2d
 
 void
-game2d::update_cursor_system(entt::registry& registry)
+game2d::update_cursor_system(GameEditor& editor, Game& game)
 {
-  const glm::ivec2 mouse_position = mouse_position_in_worldspace(registry);
+  auto& registry = game.state;
+  const glm::ivec2 mouse_position = mouse_position_in_worldspace(editor, game);
 
   {
     const auto& view = registry.view<FreeCursorComponent>();

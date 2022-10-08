@@ -1,11 +1,10 @@
 #pragma once
 
-// other lib headers
-#include <entt/entt.hpp>
+#include "game/components/app.hpp"
 
 namespace game2d {
 
 void
-update_cursor_system(entt::registry& registry);
+update_cursor_system(GameEditor& editor, Game& game);
 
 } // namespace game2d

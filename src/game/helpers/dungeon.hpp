@@ -1,6 +1,7 @@
 #pragma once
 
 #include "engine/maths/grid.hpp"
+#include "game/components/app.hpp"
 #include "game/entities/actors.hpp"
 
 #include <entt/entt.hpp>
@@ -58,9 +59,9 @@ get_neighbour_indicies(const int x,
 // by pausing it at "step" 1, 2, 3, 4 and seeing what the
 // rooms look like at that "step".
 void
-generate_dungeon(entt::registry& r, const Dungeon& d, int step = -1);
+generate_dungeon(GameEditor& editor, Game& game, const Dungeon& d);
 
 void
-update_dungeon_system(entt::registry& r);
+update_dungeon_system(GameEditor& editor, Game& game);
 
 } // namespace game2d

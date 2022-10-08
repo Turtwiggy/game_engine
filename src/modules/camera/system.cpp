@@ -16,13 +16,14 @@
 namespace game2d {
 
 void
-init_camera_system(entt::registry& registry)
+init_camera_system(GameEditor& editor, Game& game)
 {
-  const auto& ri = registry.ctx().at<SINGLETON_RendererInfo>();
+  const auto& ri = editor.renderer;
+  auto& registry = game.state;
 
   // create a camera
   {
-    auto c = create_gameplay(registry, EntityType::camera);
+    auto c = create_gameplay(editor, game, EntityType::camera);
     registry.emplace<TransformComponent>(c);
   }
 
@@ -35,26 +36,30 @@ init_camera_system(entt::registry& registry)
 };
 
 void
-update_camera_system(entt::registry& registry, float dt)
+update_camera_system(const GameEditor& editor, Game& game, float dt)
 {
-  const auto& input = registry.ctx().at<InputComponent>();
+  const auto& input = game.input;
+  auto& registry = game.state;
   const auto& cameras = registry.view<CameraComponent, TransformComponent>();
-  const float CAM_SPEED = 100.0f;
+
+  float CAM_SPEED = 100.0f;
+  if (get_key_held(input, SDL_SCANCODE_LSHIFT))
+    CAM_SPEED *= 2.0f;
 
   for (auto [entity, camera, transform] : cameras.each()) {
     camera.view = calculate_view(transform, camera);
 
-    if (get_key_held(input, SDL_SCANCODE_A)) {
+    if (get_key_held(input, SDL_SCANCODE_LEFT)) {
       transform.position_dxdy.x -= cos(glm::radians(camera.rotation)) * CAM_SPEED * dt;
       transform.position_dxdy.y -= sin(glm::radians(camera.rotation)) * CAM_SPEED * dt;
-    } else if (get_key_held(input, SDL_SCANCODE_D)) {
+    } else if (get_key_held(input, SDL_SCANCODE_RIGHT)) {
       transform.position_dxdy.x += cos(glm::radians(camera.rotation)) * CAM_SPEED * dt;
       transform.position_dxdy.y += sin(glm::radians(camera.rotation)) * CAM_SPEED * dt;
     }
-    if (get_key_held(input, SDL_SCANCODE_S)) {
+    if (get_key_held(input, SDL_SCANCODE_DOWN)) {
       transform.position_dxdy.x += -sin(glm::radians(camera.rotation)) * CAM_SPEED * dt;
       transform.position_dxdy.y += cos(glm::radians(camera.rotation)) * CAM_SPEED * dt;
-    } else if (get_key_held(input, SDL_SCANCODE_W)) {
+    } else if (get_key_held(input, SDL_SCANCODE_UP)) {
       transform.position_dxdy.x -= -sin(glm::radians(camera.rotation)) * CAM_SPEED * dt;
       transform.position_dxdy.y -= cos(glm::radians(camera.rotation)) * CAM_SPEED * dt;
     }

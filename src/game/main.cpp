@@ -1,6 +1,7 @@
 
 // game headers
 #include "game.hpp"
+#include "game/components/app.hpp"
 using namespace game2d;
 
 #include "engine/app/application.hpp"
@@ -22,17 +23,16 @@ static uint64_t now = 0;
 static uint64_t last = 0;
 static uint64_t milliseconds_delta_time = 0;
 
-static entt::registry registry;
+static SINGLETON_Application app;
+static GameEditor editor;
+static Game game;
 
 void
 main_loop(void* arg)
 {
   IM_UNUSED(arg); // do nothing with it
 
-  {
-    auto& app = registry.ctx().at<SINGLETON_Application>();
-    engine::start_frame(app);
-  }
+  engine::start_frame(app);
 
   last = now;
   now = SDL_GetTicks64();
@@ -49,19 +49,16 @@ main_loop(void* arg)
   while (milliseconds_since_last_tick >= MILLISECONDS_PER_FIXED_TICK) {
     milliseconds_since_last_tick -= MILLISECONDS_PER_FIXED_TICK;
 
-    game2d::fixed_update(registry, MILLISECONDS_PER_FIXED_TICK);
+    game2d::fixed_update(editor, game, MILLISECONDS_PER_FIXED_TICK);
   }
 
   // Implement this if stuttering?
   // const float alpha = seconds_since_last_game_tick / SECONDS_PER_FIXED_TICK;
   // state = current_state * alpha + previous_state * (1.0f - alpha );
 
-  game2d::update(registry, milliseconds_delta_time / 1000.0f);
+  game2d::update(app, editor, game, milliseconds_delta_time / 1000.0f);
 
-  {
-    auto& app = registry.ctx().at<SINGLETON_Application>();
-    engine::end_frame(app);
-  }
+  engine::end_frame(app);
 }
 
 int
@@ -70,21 +67,17 @@ main(int argc, char* argv[])
   IM_UNUSED(argc);
   IM_UNUSED(argv);
 
-  { // init
-    const auto start = std::chrono::high_resolution_clock::now();
-    auto& app = registry.ctx().emplace<engine::SINGLETON_Application>();
-    app.window = GameWindow("Fighting Game", app.width, app.height, app.display, app.vsync);
-    app.imgui.initialize(app.window);
-    log_time_since("(INFO) End init() ", start);
-  }
+  const auto start = std::chrono::high_resolution_clock::now();
+  app.window = GameWindow("Fighting Game", app.width, app.height, app.display, app.vsync);
+  app.imgui.initialize(app.window);
 
   // bool hide_windows_console = false;
   // if (hide_windows_console)
   //   engine::hide_windows_console();
 
-  game2d::init(registry);
+  game2d::init(app, editor, game);
+  log_time_since("(INFO) End init()", start);
 
-  auto& app = registry.ctx().at<engine::SINGLETON_Application>();
   while (app.running)
     main_loop(nullptr);
 

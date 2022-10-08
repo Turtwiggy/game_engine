@@ -8,9 +8,10 @@
 #include <imgui.h>
 
 void
-game2d::update_ui_physics_system(entt::registry& registry)
+game2d::update_ui_physics_system(GameEditor& editor, Game& game)
 {
-  const auto& p = registry.ctx().at<SINGLETON_PhysicsComponent>();
+  const auto& p = game.physics;
+  const auto& registry = game.state;
 
   const auto& objs = registry.view<PhysicsTransformComponent>();
   const auto& solids = registry.view<PhysicsSolidComponent>();

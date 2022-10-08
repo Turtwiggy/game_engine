@@ -31,6 +31,10 @@ struct InputEvent
   // SDL_GameControllerButton button;
   // SDL_GameControllerAxis axis;
 
+  // spaceship operator
+  // auto operator<=>(const InputEvent&) const = default;
+  // bool operator==(const InputEvent&) const = default;
+
   // Note: not player, as no need to send that across the network
   NLOHMANN_DEFINE_TYPE_INTRUSIVE(InputEvent, type, release, key);
 };
@@ -50,7 +54,7 @@ struct SINGLETON_FixedUpdateInputHistory
   NLOHMANN_DEFINE_TYPE_INTRUSIVE(SINGLETON_FixedUpdateInputHistory, fixed_tick_since_ack, history);
 };
 
-struct InputComponent
+struct SINGLETON_InputComponent
 {
   std::vector<SDL_Event> sdl_events;
   std::vector<InputEvent> unprocessed_update_inputs;
@@ -65,16 +69,6 @@ struct InputComponent
   // joystick-id, to button associaton
   // std::map<SDL_JoystickID, std::vector<std::pair<uint64_t, Uint8>>> controller_buttons_pressed;
 };
-
-// struct PlayerKeyboardComponent
-// {
-//   SDL_Scancode kb_start = SDL_SCANCODE_RETURN;
-//   SDL_Scancode kb_up = SDL_SCANCODE_W;
-//   SDL_Scancode kb_left = SDL_SCANCODE_A;
-//   SDL_Scancode kb_down = SDL_SCANCODE_S;
-//   SDL_Scancode kb_right = SDL_SCANCODE_D;
-//   SDL_Scancode kb_space = SDL_SCANCODE_SPACE;
-// };
 
 // struct PlayerControllerComponent
 // {

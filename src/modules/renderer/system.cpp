@@ -31,10 +31,10 @@ using namespace engine;
 namespace game2d {
 
 void
-rebind(entt::registry& registry, const glm::ivec2& wh)
+rebind(GameEditor& editor, const glm::ivec2& wh)
 {
-  const auto& tex = registry.ctx().at<SINGLETON_Textures>();
-  auto& ri = registry.ctx().at<SINGLETON_RendererInfo>();
+  const auto& tex = editor.textures;
+  auto& ri = editor.renderer;
 
   for (const Texture& texture : tex.textures) {
     glActiveTexture(GL_TEXTURE0 + texture.tex_unit);
@@ -44,18 +44,18 @@ rebind(entt::registry& registry, const glm::ivec2& wh)
   glm::mat4 projection = calculate_projection(wh.x, wh.y);
 
   {
-    int textures[5] = { get_tex_unit(registry, AvailableTexture::kenny),
-                        get_tex_unit(registry, AvailableTexture::custom),
-                        get_tex_unit(registry, AvailableTexture::sprout),
-                        get_tex_unit(registry, AvailableTexture::logo),
-                        get_tex_unit(registry, AvailableTexture::map_0) };
+    int textures[5] = { get_tex_unit(tex, AvailableTexture::kenny),
+                        get_tex_unit(tex, AvailableTexture::custom),
+                        get_tex_unit(tex, AvailableTexture::sprout),
+                        get_tex_unit(tex, AvailableTexture::logo),
+                        get_tex_unit(tex, AvailableTexture::map_0) };
     ri.instanced.bind();
     ri.instanced.set_mat4("projection", projection);
     ri.instanced.set_int_array("textures", textures, sizeof(textures));
   }
 
   {
-    int textures[1] = { get_tex_unit(registry, AvailableTexture::linear_main) };
+    int textures[1] = { get_tex_unit(tex, AvailableTexture::linear_main) };
     ri.linear_to_srgb.bind();
     ri.linear_to_srgb.set_mat4("projection", projection);
     ri.linear_to_srgb.set_int_array("textures", textures, sizeof(textures));
@@ -63,8 +63,11 @@ rebind(entt::registry& registry, const glm::ivec2& wh)
 };
 
 void
-check_if_viewport_resize(entt::registry& r, SINGLETON_RendererInfo& ri, glm::ivec2& viewport_wh)
+check_if_viewport_resize(GameEditor& editor, glm::ivec2& viewport_wh)
 {
+  auto& ri = editor.renderer;
+  auto& tex = editor.textures;
+
   if (ri.viewport_size_current.x > 0.0f && ri.viewport_size_current.y > 0.0f &&
       (viewport_wh.x != ri.viewport_size_current.x || viewport_wh.y != ri.viewport_size_current.y)) {
 
@@ -75,50 +78,48 @@ check_if_viewport_resize(entt::registry& r, SINGLETON_RendererInfo& ri, glm::ive
 
     // update fbo textures
     {
-      bind_tex(get_tex_id(r, AvailableTexture::linear_main));
+      bind_tex(get_tex_id(tex, AvailableTexture::linear_main));
       update_bound_texture_size(viewport_wh);
       unbind_tex();
     }
     {
-      bind_tex(get_tex_id(r, AvailableTexture::linear_lighting));
+      bind_tex(get_tex_id(tex, AvailableTexture::linear_lighting));
       update_bound_texture_size(viewport_wh);
       unbind_tex();
     }
     {
-      bind_tex(get_tex_id(r, AvailableTexture::srgb_main));
+      bind_tex(get_tex_id(tex, AvailableTexture::srgb_main));
       update_bound_texture_size(viewport_wh);
       unbind_tex();
     }
 
     RenderCommand::set_viewport(0, 0, viewport_wh.x, viewport_wh.y);
-    game2d::rebind(r, viewport_wh);
+    game2d::rebind(editor, viewport_wh);
   }
 }
 
 }; // namespace game2d
 
 void
-game2d::init_render_system(entt::registry& registry)
+game2d::init_render_system(const engine::SINGLETON_Application& app, GameEditor& editor)
 {
-  const auto& app = registry.ctx().at<engine::SINGLETON_Application>();
   const glm::ivec2 screen_wh = { app.width, app.height };
+  auto& ri = editor.renderer;
+  auto& tex = editor.textures;
 
   Framebuffer::default_fbo();
-  auto& tex = registry.ctx().at<SINGLETON_Textures>();
-
-  SINGLETON_RendererInfo ri;
 
   new_texture_to_fbo(ri.fbo_linear_main_scene,
-                     get_tex(registry, AvailableTexture::linear_main).tex_id,
-                     get_tex_unit(registry, AvailableTexture::linear_main),
+                     get_tex(tex, AvailableTexture::linear_main).tex_id,
+                     get_tex_unit(tex, AvailableTexture::linear_main),
                      screen_wh);
   new_texture_to_fbo(ri.fbo_linear_lighting,
-                     get_tex(registry, AvailableTexture::linear_lighting).tex_id,
-                     get_tex_unit(registry, AvailableTexture::linear_lighting),
+                     get_tex(tex, AvailableTexture::linear_lighting).tex_id,
+                     get_tex_unit(tex, AvailableTexture::linear_lighting),
                      screen_wh);
   new_texture_to_fbo(ri.fbo_srgb_main_scene,
-                     get_tex(registry, AvailableTexture::srgb_main).tex_id,
-                     get_tex_unit(registry, AvailableTexture::srgb_main),
+                     get_tex(tex, AvailableTexture::srgb_main).tex_id,
+                     get_tex_unit(tex, AvailableTexture::srgb_main),
                      screen_wh);
 
   ri.instanced = Shader("assets/shaders/2d_instanced.vert", "assets/shaders/2d_instanced.frag");
@@ -145,21 +146,21 @@ game2d::init_render_system(entt::registry& registry)
   CHECK_OPENGL_ERROR(0);
 #endif
 
-  registry.ctx().emplace<SINGLETON_RendererInfo>(ri);
-
-  game2d::rebind(registry, screen_wh);
+  game2d::rebind(editor, screen_wh);
 };
 
 void
-game2d::update_render_system(entt::registry& registry)
+game2d::update_render_system(GameEditor& editor, Game& game)
 {
-  auto& ri = registry.ctx().at<SINGLETON_RendererInfo>();
-  const auto& tex = registry.ctx().at<SINGLETON_Textures>();
-  const auto& colours = registry.ctx().at<SINGLETON_ColoursComponent>();
+  const auto& tex = editor.textures;
+  const auto& colours = editor.colours;
+  auto& ri = editor.renderer;
+  auto& registry = game.state;
+
   const auto& background_colour = colours.background;
   const auto background_colour_linear = engine::SRGBToLinear(background_colour);
   glm::ivec2 viewport_wh = ri.viewport_size_render_at;
-  check_if_viewport_resize(registry, ri, viewport_wh);
+  check_if_viewport_resize(editor, viewport_wh);
 
   // FBO: Render sprites in to this fbo with linear colour
   Framebuffer::bind_fbo(ri.fbo_linear_main_scene);
@@ -218,7 +219,7 @@ game2d::update_render_system(entt::registry& registry)
       desc.size = viewport_wh;
       desc.angle_radians = 0.0f;
       // desc.colour = // not needed
-      desc.tex_unit = get_tex_unit(registry, AvailableTexture::linear_main);
+      desc.tex_unit = get_tex_unit(tex, AvailableTexture::linear_main);
       desc.sprite_offset_and_spritesheet = { 0, 0, 0, 0 };
       quad_renderer::QuadRenderer::draw_sprite(desc, ri.linear_to_srgb);
     }
@@ -233,7 +234,7 @@ game2d::update_render_system(entt::registry& registry)
   RenderCommand::clear();
 
   // Note: ImGui::Image takes in TexID not TexUnit
-  ViewportInfo vi = render_texture_to_imgui_viewport(get_tex_id(registry, AvailableTexture::srgb_main));
+  ViewportInfo vi = render_texture_to_imgui_viewport(get_tex_id(tex, AvailableTexture::srgb_main));
   // If the viewport moves - viewport position will be a frame behind.
   // This would mainly affect an editor, a game viewport probably(?) wouldn't move that much
   // (or if a user is moving the viewport, they likely dont need that one frame?)

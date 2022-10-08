@@ -20,7 +20,7 @@
 #include <map>
 
 void
-game2d::update_ui_editor_tilemap_system(entt::registry& r)
+game2d::update_ui_editor_tilemap_system(GameEditor& editor, Game& game)
 {
   // #ifdef _DEBUG
   //   bool show_imgui_demo_window = true;
@@ -28,14 +28,16 @@ game2d::update_ui_editor_tilemap_system(entt::registry& r)
   // #endif
 
   //
-  // Prefab Editor
+  // Prefab GameEditor
   //
 
-  auto& ss = r.ctx().at<SINGLETON_SpriteSearcher>();
+  auto& ss = editor.sprites;
+  auto& r = game.state;
   auto& tilemap = get_first<TilemapComponent>(r);
-  auto& colours = r.ctx().at<SINGLETON_ColoursComponent>();
+  auto& colours = editor.colours;
   const int GRID_SIZE = 16; // hmm
-  const glm::ivec2 mouse_position = mouse_position_in_worldspace(r) + glm::ivec2(GRID_SIZE / 2, GRID_SIZE / 2);
+  const glm::ivec2 mouse_position =
+    mouse_position_in_worldspace(editor, game) + glm::ivec2(GRID_SIZE / 2, GRID_SIZE / 2);
   const glm::ivec2 grid_position = engine::grid::world_space_to_grid_space(mouse_position, GRID_SIZE);
   const glm::ivec2 world_position = engine::grid::grid_space_to_world_space(grid_position, GRID_SIZE);
 
@@ -110,10 +112,10 @@ game2d::update_ui_editor_tilemap_system(entt::registry& r)
   EntityType type = magic_enum::enum_value<EntityType>(item_current_idx);
 
   //
-  // Tilemap Editor
+  // Tilemap GameEditor
   //
   {
-    const auto& ri = r.ctx().at<SINGLETON_RendererInfo>();
+    const auto& ri = editor.renderer;
     if (!ri.viewport_process_events)
       return; // dont place sprites if selecting ui
 
@@ -130,8 +132,8 @@ game2d::update_ui_editor_tilemap_system(entt::registry& r)
 
       if (empty_space) {
         // create
-        e = create_gameplay(r, type);
-        create_renderable(r, e, type);
+        e = create_gameplay(editor, game, type);
+        create_renderable(editor, r, e, type);
         auto& transform = r.get<TransformComponent>(e);
         transform.position.x = world_position.x;
         transform.position.y = world_position.y;

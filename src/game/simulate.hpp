@@ -1,14 +1,13 @@
 #pragma once
 
+#include "game/components/app.hpp"
 #include "modules/events/components.hpp"
-
-#include <entt/entt.hpp>
 
 #include <vector>
 
 namespace game2d {
 
 void
-simulate(entt::registry& r, const std::vector<InputEvent>& inputs, uint64_t milliseconds_dt);
+simulate(GameEditor& editor, Game& game, const std::vector<InputEvent>& inputs, uint64_t milliseconds_dt);
 
 } // namespace game2d

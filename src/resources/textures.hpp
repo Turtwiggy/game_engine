@@ -1,7 +1,5 @@
 #pragma once
 
-#include <entt/entt.hpp>
-
 #include <string>
 #include <vector>
 
@@ -27,15 +25,6 @@ struct Texture
   std::string spritesheet_path;
   int tex_id; // set after bind
 };
-
-Texture&
-get_tex(entt::registry& r, const AvailableTexture& type);
-
-int
-get_tex_id(entt::registry& r, const AvailableTexture& type);
-
-int
-get_tex_unit(entt::registry& r, const AvailableTexture& type);
 
 struct SINGLETON_Textures
 {
@@ -67,5 +56,14 @@ struct SINGLETON_Textures
     { 7, AvailableTexture::srgb_main },
   };
 };
+
+Texture&
+get_tex(SINGLETON_Textures& e, const AvailableTexture& type);
+
+int
+get_tex_id(const SINGLETON_Textures& e, const AvailableTexture& type);
+
+int
+get_tex_unit(const SINGLETON_Textures& e, const AvailableTexture& type);
 
 } // namespace game2d

@@ -13,9 +13,10 @@
 namespace game2d {
 
 void
-update_tile_fov_system(entt::registry& r)
+update_tile_fov_system(GameEditor& editor, Game& game)
 {
-  const auto& colours = r.ctx().at<SINGLETON_ColoursComponent>();
+  const auto& colours = editor.colours;
+  auto& r = game.state;
 
   const auto& player_view = r.view<PlayerComponent>();
   if (player_view.size() == 0)
@@ -27,8 +28,8 @@ update_tile_fov_system(entt::registry& r)
 
   const int GRID_SIZE = 16;
 
-  const auto& view_transforms = r.view<const TransformComponent>();
-  view_transforms.each([&r, &player_grid_pos, &player_entity](auto e, const auto& t) {
+  const auto& view_transforms = r.view<const TransformComponent, const FovComponent>();
+  view_transforms.each([&r, &player_grid_pos, &player_entity](auto e, const auto& t, const auto& fov) {
     // skip self
     if (e == player_entity)
       return;

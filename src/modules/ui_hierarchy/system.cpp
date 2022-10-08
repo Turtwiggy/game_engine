@@ -14,8 +14,9 @@
 
 // TODO: look to improve this
 void
-game2d::update_ui_hierarchy_system(entt::registry& registry)
+game2d::update_ui_hierarchy_system(GameEditor& editor, Game& game)
 {
+  auto& registry = game.state;
   const auto& h_entity = registry.view<RootNode>().front();
   auto& hroot = registry.get<EntityHierarchyComponent>(h_entity);
   size_t root_entity_count = hroot.children.size();
@@ -58,7 +59,7 @@ game2d::update_ui_hierarchy_system(entt::registry& registry)
 
       if (registry.valid(child)) {
         const auto& tag = registry.get<TagComponent>(child).tag;
-        imgui_draw_entity(registry, tag, child, selected_entity);
+        imgui_draw_entity(editor, game, tag, child, selected_entity);
       } else {
         ImGui::Text("INVALID ENTITY");
       }

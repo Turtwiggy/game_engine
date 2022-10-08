@@ -1,8 +1,7 @@
 #pragma once
 
+#include "game/components/app.hpp"
 #include "resources/audio.hpp"
-
-#include <entt/entt.hpp>
 
 #include <string>
 
@@ -12,15 +11,15 @@ void
 set_music_pause(bool on);
 
 void
-play_music(entt::registry& r, const AvailableMusic& type);
+play_music(GameEditor& editor, const AvailableMusic& type);
 
 void
-stop_music(entt::registry& r, const AvailableMusic& type);
+stop_music(GameEditor& editor, const AvailableMusic& type);
 
 void
-play_sfx(entt::registry& r, const AvailableSfx& type);
+play_sfx(GameEditor& editor, const AvailableSfx& type);
 
 void
-stop_sfx(entt::registry& r, const AvailableSfx& type);
+stop_sfx(GameEditor& editor, const AvailableSfx& type);
 
 } // namespace game2d

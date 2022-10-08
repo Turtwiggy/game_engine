@@ -1,11 +1,10 @@
 #pragma once
 
-// other lib headers
-#include <entt/entt.hpp>
+#include "game/components/app.hpp"
 
 namespace game2d {
 
 void
-update_ui_profiler_system(entt::registry& registry);
+update_ui_profiler_system(GameEditor& editor, Game& game);
 
 } // namespace game2d

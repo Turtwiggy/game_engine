@@ -17,9 +17,10 @@ static ImGui::FileBrowser open_dialog{};
 static ImGui::FileBrowser save_dialog{ ImGuiFileBrowserFlags_EnterNewFilename | ImGuiFileBrowserFlags_CreateNewDir };
 
 void
-game2d::update_ui_editor_scene_system(entt::registry& r)
+game2d::update_ui_editor_scene_system(GameEditor& editor, Game& game)
 {
-  ImGui::Begin("Editor-Scene", NULL, ImGuiWindowFlags_NoFocusOnAppearing);
+  auto& r = game.state;
+  ImGui::Begin("GameEditor-Scene", NULL, ImGuiWindowFlags_NoFocusOnAppearing);
 
   std::string current_map = "todo";
   ImGui::Text("Map");
@@ -27,15 +28,13 @@ game2d::update_ui_editor_scene_system(entt::registry& r)
 
   if (ImGui::Button("Load")) {
     // open_dialog.Open();
-    load(r, "assets/maps/home.json");
+    load(editor, game, "assets/maps/home.json");
   };
-
   ImGui::SameLine();
   if (ImGui::Button("Save As")) {
     // save_dialog.Open();
     save(r, "assets/maps/home.json");
   };
-
   ImGui::SameLine();
   if (ImGui::Button("Save")) {
     save(r, "assets/maps/home.json");

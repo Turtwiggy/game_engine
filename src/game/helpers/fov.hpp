@@ -1,8 +1,13 @@
 #pragma once
 
-#include <entt/entt.hpp>
+#include "game/components/app.hpp"
 
 namespace game2d {
+
+struct FovComponent
+{
+  bool placeholder = true;
+};
 
 struct VisibleComponent
 {
@@ -20,6 +25,6 @@ struct NotVisibleButPreviouslySeenComponent
 };
 
 void
-update_tile_fov_system(entt::registry& r);
+update_tile_fov_system(GameEditor& editor, Game& game);
 
 } // game2d

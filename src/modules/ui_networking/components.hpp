@@ -14,6 +14,9 @@ struct SINGLETON_NetworkingUIComponent
   bool close_networking = false;
   bool start_offline = false;
 
+  bool server_was_started = false;
+  bool client_was_started = false;
+
   ISteamNetworkingUtils* utils;
 };
 

@@ -5,17 +5,17 @@
 namespace game2d {
 
 Music&
-get_music(entt::registry& r, AvailableMusic type)
+get_music(SINGLETON_AudioComponent& audio, AvailableMusic type)
 {
-  auto& res = r.ctx().at<SINGLETON_AudioComponent>().music;
+  auto& res = audio.music;
   auto it = std::find_if(res.begin(), res.end(), [&type](const auto& a) { return a.type == type; });
   return *it;
 };
 
 Sfx&
-get_sfx(entt::registry& r, AvailableSfx type)
+get_sfx(SINGLETON_AudioComponent& audio, AvailableSfx type)
 {
-  auto& res = r.ctx().at<SINGLETON_AudioComponent>().sfx;
+  auto& res = audio.sfx;
   auto it = std::find_if(res.begin(), res.end(), [&type](const auto& a) { return a.type == type; });
   return *it;
 };

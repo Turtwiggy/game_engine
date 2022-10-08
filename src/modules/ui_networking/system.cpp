@@ -9,15 +9,9 @@
 namespace game2d {
 
 void
-init_ui_networking_system(entt::registry& r)
+update_ui_networking_system(GameEditor& editor, Game& game)
 {
-  r.ctx().emplace<SINGLETON_NetworkingUIComponent>();
-}
-
-void
-update_ui_networking_system(entt::registry& r)
-{
-  auto& ui = r.ctx().at<SINGLETON_NetworkingUIComponent>();
+  auto& ui = editor.networking_ui;
 
   if (ui.start_offline)
     return; // dont show networking panel if playing offline
@@ -36,23 +30,23 @@ update_ui_networking_system(entt::registry& r)
   if (ImGui::Button("Start Offline"))
     ui.start_offline = true;
 
-  if (r.ctx().contains<SINGLETON_ServerComponent>()) {
-    auto& server = r.ctx().at<SINGLETON_ServerComponent>();
-    ImGui::Text("You are a server");
-    ImGui::Text("You have %i clients", server.clients.size());
-  }
+  // if (r.ctx().contains<SINGLETON_ServerComponent>()) {
+  //   auto& server = r.ctx().at<SINGLETON_ServerComponent>();
+  //   ImGui::Text("You are a server");
+  //   ImGui::Text("You have %i clients", server.clients.size());
+  // }
 
-  if (r.ctx().contains<SINGLETON_ClientComponent>()) {
-    auto& client = r.ctx().at<SINGLETON_ClientComponent>();
-    ImGui::Text("You are a client connected to a server");
+  // if (r.ctx().contains<SINGLETON_ClientComponent>()) {
+  //   auto& client = r.ctx().at<SINGLETON_ClientComponent>();
+  //   ImGui::Text("You are a client connected to a server");
 
-    SteamNetworkPingLocation_t ping;
-    float result = SteamNetworkingUtils()->GetLocalPingLocation(ping);
-    if (result == -1.0f)
-      ImGui::Text("Your ping is: n/a");
-    else
-      ImGui::Text("Your ping is: %s", std::to_string(result).c_str());
-  }
+  //   SteamNetworkPingLocation_t ping;
+  //   float result = SteamNetworkingUtils()->GetLocalPingLocation(ping);
+  //   if (result == -1.0f)
+  //     ImGui::Text("Your ping is: n/a");
+  //   else
+  //     ImGui::Text("Your ping is: %s", std::to_string(result).c_str());
+  // }
 
   ImGui::End();
 }

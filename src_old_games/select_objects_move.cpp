@@ -17,10 +17,11 @@
 #include "engine/maths/maths.hpp"
 
 void
-game2d::update_select_objects_move_system(entt::registry& registry)
+game2d::update_select_objects_move_system(GameEditor& editor, Game& game)
 {
-  const auto& colours = registry.ctx().at<SINGLETON_ColoursComponent>();
-  const auto& input = registry.ctx().at<SINGLETON_InputComponent>();
+  const auto& colours = editor.colours;
+  const auto& input = game.input;
+  auto& registry = game.state;
   const auto& mouse_pos = input.mouse_position_in_worldspace;
 
   //
