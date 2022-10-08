@@ -1,6 +1,7 @@
 #pragma once
 
 #include "game/components/components.hpp"
+#include "game/modules/ui_event_console/components.hpp"
 #include "modules/events/components.hpp"
 #include "modules/lifecycle/components.hpp"
 #include "modules/networking/components.hpp"
@@ -40,11 +41,12 @@ struct GameEditor
 struct Game
 {
   entt::registry state;
-  SINGLETON_GameOverComponent gameover;
-  SINGLETON_PhysicsComponent physics;
   SINGLETON_EntityBinComponent dead;
-  SINGLETON_InputComponent input;
+  SINGLETON_EventConsoleLogComponent ui_events;
   SINGLETON_FixedUpdateInputHistory fixed_update_input;
+  SINGLETON_GameOverComponent gameover;
+  SINGLETON_InputComponent input;
+  SINGLETON_PhysicsComponent physics;
 };
 
 } // namespace game2d

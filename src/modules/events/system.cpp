@@ -3,6 +3,7 @@
 #include "engine/app/application.hpp"
 #include "modules/events/components.hpp"
 #include "modules/events/helpers/keyboard.hpp"
+#include "modules/events/helpers/mouse.hpp"
 
 #include <SDL2/SDL.h>
 #include <SDL2/SDL_events.h>
@@ -72,5 +73,28 @@ game2d::update_input_system(engine::SINGLETON_Application& app, const GameEditor
     //     input_manager.process_controller_added();
     //   if (e.type == SDL_JOYDEVICEREMOVED)
     //     input_manager.process_controller_removed();
+
+  }; // finished polling events
+
+  //
+  // capture inputs incase FixedUpdate() wants to know about them
+  //
+  for (const SDL_Event& evt : input.sdl_events) {
+    if (evt.type == SDL_KEYDOWN && get_key_down(input, evt.key.keysym.scancode)) {
+      InputEvent ie{ InputType::keyboard, false, static_cast<uint32_t>(evt.key.keysym.scancode) };
+      input.unprocessed_inputs.push_back(ie);
+    }
+    if (evt.type == SDL_KEYUP && get_key_up(input, evt.key.keysym.scancode)) {
+      InputEvent ie{ InputType::keyboard, true, static_cast<uint32_t>(evt.key.keysym.scancode) };
+      input.unprocessed_inputs.push_back(ie);
+    }
   }
+  if (get_mouse_lmb_press())
+    input.unprocessed_inputs.push_back({ InputType::mouse, false, SDL_BUTTON_LEFT });
+  if (get_mouse_lmb_release())
+    input.unprocessed_inputs.push_back({ InputType::mouse, true, SDL_BUTTON_LEFT });
+  if (get_mouse_rmb_press())
+    input.unprocessed_inputs.push_back({ InputType::mouse, false, SDL_BUTTON_RIGHT });
+  if (get_mouse_rmb_release())
+    input.unprocessed_inputs.push_back({ InputType::mouse, true, SDL_BUTTON_RIGHT });
 };

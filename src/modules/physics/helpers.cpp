@@ -36,7 +36,7 @@ collides(const PhysicsTransformComponent& one, const std::vector<PhysicsTransfor
   return false;
 };
 
-void
+std::optional<Collision2D>
 do_move(entt::registry& r,
         entt::entity& entity,
         int amount,
@@ -74,7 +74,7 @@ do_move(entt::registry& r,
           Collision2D collision;
           collision.ent_id_0 = static_cast<uint32_t>(entity);
           collision.ent_id_1 = static_cast<uint32_t>(o_entity);
-          return; // collision occurred
+          return collision;
         }
       }
 
@@ -85,6 +85,8 @@ do_move(entt::registry& r,
         transform.position.y += sign;
       amount -= sign;
     }
+
+    return std::nullopt;
   }
 };
 

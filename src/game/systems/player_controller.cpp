@@ -26,10 +26,6 @@ game2d::update_player_controller_system(GameEditor& editor, Game& game, const st
   view.each([&r, &inputs, &mouse_position](
               entt::entity entity, PlayerComponent& player, TransformComponent& transform, GridMoveComponent& grid) {
     for (const InputEvent& input : inputs) {
-      //
-      if (input.player != entity)
-        continue; // wasn't this player's input
-
       switch (input.type) {
         case InputType::keyboard: {
 

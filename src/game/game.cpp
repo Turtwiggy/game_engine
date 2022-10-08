@@ -7,8 +7,8 @@
 // systems&components&helpers
 #include "engine/app/application.hpp"
 #include "game/entities/actors.hpp"
+#include "game/modules/ui_event_console/system.hpp"
 #include "game/simulate.hpp"
-#include "game/systems/player_inputs.hpp"
 #include "game/systems/resolve_collisions.hpp"
 #include "game/systems/ui_hp_bar.hpp"
 #include "game/systems/ui_player_inventory.hpp"
@@ -51,6 +51,7 @@ init_game_state(GameEditor& editor)
   Game game;
   auto& r = game.state;
   init_input_system(game);
+  game.ui_events.events.push_back("Welcome!");
 
   // reset editor tools?
   auto tilemap_ent = r.create();
@@ -141,7 +142,7 @@ init(engine::SINGLETON_Application& app, GameEditor& editor, Game& game)
   // GOAL: remove init_game_state with the
   // map load/save functionality
   // eventually this game state should be savable to a file?
-  // maybe just the visuals are in this file
+  // maybe just the visuals are in this file??
   game = init_game_state(editor);
 };
 
@@ -159,7 +160,7 @@ fixed_update(GameEditor& editor, Game& game, uint64_t milliseconds_dt)
     fixed_input.history.clear();
 
     // move inputs from Update() to this FixedUpdate() tick
-    fixed_input.history[fixed_input.fixed_tick] = std::move(input.unprocessed_update_inputs);
+    fixed_input.history[fixed_input.fixed_tick] = std::move(input.unprocessed_inputs);
     std::vector<InputEvent>& inputs = fixed_input.history[fixed_input.fixed_tick];
 
     simulate(editor, game, inputs, milliseconds_dt);
@@ -195,21 +196,18 @@ update(engine::SINGLETON_Application& app, GameEditor& editor, Game& game, float
         app.running = false;
     }
 
-    // ... systems that always update
     {
-      // update_cursor_system(r);
-      update_audio_system(editor);
-    }
-
-    // ... systems that update only if viewport is focused or hovered
-    {
+      // ... systems that update only if viewport is focused or hovered
       if (ri.viewport_process_events) {
         update_camera_system(editor, game, dt);
-        update_player_inputs_system(game);
         update_cursor_system(editor, game);
         update_ux_hover_system(editor, game);
         update_ui_hp_bar(editor, game);
       }
+
+      // ... systems that always update
+      update_audio_system(editor);
+      update_ui_event_console(editor, game);
     }
   };
   {
@@ -233,9 +231,9 @@ update(engine::SINGLETON_Application& app, GameEditor& editor, Game& game, float
         update_ui_sprite_searcher_system(editor, game);
       }
       // update_ui_player_inventory_system(r);
+      // update_ui_networking_system(r);
+      // update_ui_main_menu_system(r);
     }
-    // update_ui_networking_system(r);
-    // update_ui_main_menu_system(r);
   };
 
   // end frame

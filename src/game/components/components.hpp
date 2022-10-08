@@ -39,8 +39,8 @@ struct DefenseComponent
 
 struct HealthComponent
 {
-  int max_hp = 100;
-  int hp = 100;
+  int max_hp = 10;
+  int hp = 10;
 
   NLOHMANN_DEFINE_TYPE_INTRUSIVE(HealthComponent, max_hp, hp);
 };

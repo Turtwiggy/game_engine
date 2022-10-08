@@ -25,7 +25,6 @@ enum class InputType
 struct InputEvent
 {
   InputType type;
-  entt::entity player;
   bool release = false;
   uint32_t key;
   // SDL_GameControllerButton button;
@@ -56,8 +55,13 @@ struct SINGLETON_FixedUpdateInputHistory
 
 struct SINGLETON_InputComponent
 {
+  // all sdl events this frame e.g. in Update()
   std::vector<SDL_Event> sdl_events;
-  std::vector<InputEvent> unprocessed_update_inputs;
+
+  // keys pressed in Update() to be processed in FixedUpdate()
+  // note: this is deliberately not a Set incase a user e.g.
+  // press W, release W, press W before one FixedUpdate() occurs.
+  std::vector<InputEvent> unprocessed_inputs;
 
   // keyboard
   const Uint8* state;

@@ -12,6 +12,7 @@
 
 // c++ lib headers
 #include <map>
+#include <optional>
 #include <vector>
 
 namespace game2d {
@@ -22,13 +23,13 @@ enum class CollisionAxis
   y
 };
 
-bool
+[[nodiscard]] bool
 collide(const PhysicsTransformComponent& one, const PhysicsTransformComponent& two);
 
-bool
+[[nodiscard]] bool
 collides(const PhysicsTransformComponent& one, const std::vector<PhysicsTransformComponent>& others);
 
-void
+[[nodiscard]] std::optional<Collision2D>
 do_move(entt::registry& r,
         entt::entity& entity,
         int amount,

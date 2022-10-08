@@ -50,9 +50,17 @@ update_ui_hp_bar(GameEditor& editor, Game& game)
   auto& r = game.state;
   auto view = r.view<HpBar>();
   for (auto [entity, hp] : view.each()) {
+
+    if (!r.valid(hp.entity))
+      return;
+
     HealthComponent& health = r.get<HealthComponent>(hp.entity);
     TransformComponent& front = r.get<TransformComponent>(hp.front);
-    front.scale.x = glm::max(0, front.scale.x - 1);
+    int& cur_hp = health.hp;
+    int& max_hp = health.max_hp;
+    float percent = cur_hp / static_cast<float>(max_hp);
+    int width = 100;
+    front.scale.x = glm::max(0.0f, width * percent);
   }
 };
 

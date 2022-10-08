@@ -5,6 +5,6 @@
 namespace game2d {
 
 void
-update_player_inputs_system(Game& r);
+update_ui_event_console(GameEditor& editor, Game& game);
 
 } // namespace game2d
