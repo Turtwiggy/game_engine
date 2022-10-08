@@ -43,13 +43,14 @@
 
 namespace game2d {
 
-void
-init_game_state(GameEditor& editor, Game& game)
+Game
+init_game_state(GameEditor& editor)
 {
   const auto& colours = editor.colours;
 
-  game.state.clear();
+  Game game;
   auto& r = game.state;
+  init_input_system(game);
 
   // reset editor tools?
   auto tilemap_ent = r.create();
@@ -125,23 +126,23 @@ init_game_state(GameEditor& editor, Game& game)
   generate_dungeon(editor, game, d);
   entt::entity e = r.create();
   r.emplace<Dungeon>(e, d);
+
+  return game;
 };
 
 void
 init(engine::SINGLETON_Application& app, GameEditor& editor, Game& game)
 {
-  game = {};
   init_sprite_system(editor);
   init_networking_system(editor);
   init_audio_system(editor);
-  init_render_system(app, editor, game);
-  init_input_system(game);
+  init_render_system(app, editor);
 
   // GOAL: remove init_game_state with the
   // map load/save functionality
   // eventually this game state should be savable to a file?
   // maybe just the visuals are in this file
-  init_game_state(editor, game);
+  game = init_game_state(editor);
 };
 
 void
@@ -170,7 +171,7 @@ fixed_update(GameEditor& editor, Game& game, uint64_t milliseconds_dt)
     // reset game
     for (const InputEvent& i : inputs) {
       if (i.type == InputType::keyboard && i.key == static_cast<uint32_t>(SDL_SCANCODE_R) && !i.release) {
-        init_game_state(editor, game);
+        game = init_game_state(editor);
       }
     }
   }

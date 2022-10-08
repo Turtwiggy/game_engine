@@ -13,8 +13,8 @@ namespace game2d {
 
 struct Dungeon
 {
-  int width = 20;
-  int height = 20;
+  int width = 50;
+  int height = 50;
 };
 
 struct Room

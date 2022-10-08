@@ -101,12 +101,11 @@ check_if_viewport_resize(GameEditor& editor, glm::ivec2& viewport_wh)
 }; // namespace game2d
 
 void
-game2d::init_render_system(const engine::SINGLETON_Application& app, GameEditor& editor, const Game& game)
+game2d::init_render_system(const engine::SINGLETON_Application& app, GameEditor& editor)
 {
   const glm::ivec2 screen_wh = { app.width, app.height };
   auto& ri = editor.renderer;
   auto& tex = editor.textures;
-  auto& registry = game.state;
 
   Framebuffer::default_fbo();
 

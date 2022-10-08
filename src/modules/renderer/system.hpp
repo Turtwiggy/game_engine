@@ -6,7 +6,7 @@
 namespace game2d {
 
 void
-init_render_system(const engine::SINGLETON_Application& app, GameEditor& editor, const Game& game);
+init_render_system(const engine::SINGLETON_Application& app, GameEditor& editor);
 
 void
 update_render_system(GameEditor& editor, Game& game);
