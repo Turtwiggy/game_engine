@@ -8,9 +8,9 @@
 #include "engine/app/application.hpp"
 #include "game/entities/actors.hpp"
 #include "game/modules/ui_event_console/system.hpp"
+#include "game/modules/ui_health_bar/system.hpp"
 #include "game/simulate.hpp"
 #include "game/systems/resolve_collisions.hpp"
-#include "game/systems/ui_hp_bar.hpp"
 #include "game/systems/ui_player_inventory.hpp"
 #include "helpers/dungeon.hpp"
 #include "modules/audio/system.hpp"
@@ -89,7 +89,6 @@ init_game_state(GameEditor& editor)
     EntityType et = EntityType::player;
     entt::entity e = create_gameplay(editor, game, et);
     create_renderable(editor, r, e, et);
-    init_ui_hp_bar(editor, game, e);
   }
 
   int size_x = 100;
@@ -189,25 +188,27 @@ update(engine::SINGLETON_Application& app, GameEditor& editor, Game& game, float
 
     auto& input = game.input;
 
-    if (ri.viewport_process_events) {
-      if (get_key_down(input, SDL_SCANCODE_F))
-        app.window.toggle_fullscreen();
-      if (get_key_down(input, SDL_SCANCODE_ESCAPE))
-        app.running = false;
-    }
+    // if (ri.viewport_process_events) {
+    if (get_key_down(input, SDL_SCANCODE_F))
+      app.window.toggle_fullscreen();
+    if (get_key_down(input, SDL_SCANCODE_ESCAPE))
+      app.running = false;
 
     {
       // ... systems that update only if viewport is focused or hovered
       if (ri.viewport_process_events) {
         update_camera_system(editor, game, dt);
-        update_cursor_system(editor, game);
-        update_ux_hover_system(editor, game);
-        update_ui_hp_bar(editor, game);
       }
 
       // ... systems that always update
       update_audio_system(editor);
+      update_cursor_system(editor, game);
+      update_ux_hover_system(editor, game);
+      update_ui_hp_bar(editor, game);
       update_ui_event_console(editor, game);
+      // update_ui_player_inventory_system(r);
+      // update_ui_networking_system(r);
+      // update_ui_main_menu_system(r);
     }
   };
   {
@@ -230,9 +231,6 @@ update(engine::SINGLETON_Application& app, GameEditor& editor, Game& game, float
         update_ui_profiler_system(editor, game);
         update_ui_sprite_searcher_system(editor, game);
       }
-      // update_ui_player_inventory_system(r);
-      // update_ui_networking_system(r);
-      // update_ui_main_menu_system(r);
     }
   };
 

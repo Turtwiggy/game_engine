@@ -8,11 +8,6 @@
 
 namespace game2d {
 
-struct SINGLETON_GameOverComponent
-{
-  bool over = false;
-};
-
 struct AttackComponent
 {
   int min_damage = 0;

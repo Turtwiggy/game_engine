@@ -20,6 +20,28 @@
 
 namespace game2d {
 
+template<class T>
+struct SetOnce
+{
+private:
+  T state = false;
+  bool was_set = false;
+
+public:
+  SetOnce(const T& start)
+    : state(start){};
+
+  void Set(const T& new_state)
+  {
+    if (was_set)
+      return;
+    was_set = false;
+    state = new_state;
+  };
+
+  T Get() const { return state; }
+};
+
 // persistent between games
 struct GameEditor
 {
@@ -44,9 +66,12 @@ struct Game
   SINGLETON_EntityBinComponent dead;
   SINGLETON_EventConsoleLogComponent ui_events;
   SINGLETON_FixedUpdateInputHistory fixed_update_input;
-  SINGLETON_GameOverComponent gameover;
   SINGLETON_InputComponent input;
   SINGLETON_PhysicsComponent physics;
+
+  // beginning of the end
+  SetOnce<bool> on_start{ true };
+  SetOnce<bool> gameover{ false };
 };
 
 } // namespace game2d

@@ -396,24 +396,34 @@ generate_dungeon(GameEditor& editor, Game& game, const Dungeon& d)
   // });
 };
 
-static bool first_frame = true;
-
 void
 update_dungeon_system(GameEditor& editor, Game& game)
 {
-  if (first_frame) {
-    first_frame = false;
-    return;
-  }
-  // glm::ivec2 grid_space_center = room_center(rooms[0]);
-  // glm::vec2 world_space_center = engine::grid::grid_space_to_world_space(grid_space_center, GRID_SIZE);
+  if (game.on_start.Get()) {
+    const int room_width = 50;
+    const int room_height = 50;
+    Room room;
+    room.x1 = 0;
+    room.y1 = 0;
+    room.x2 = room_width;
+    room.y2 = room_height;
+    room.w = room_width;
+    room.h = room_height;
 
-  // center the camera on the center of the room
-  // const auto& cameras = r.view<CameraComponent, TransformComponent>();
-  // for (auto [entity, camera, transform] : cameras.each()) {
-  //   transform.position.x = (-ri.viewport_size_render_at.x / 2) + world_space_center.x;
-  //   transform.position.y = (-ri.viewport_size_render_at.y / 2) + world_space_center.y;
-  // };
+    glm::ivec2 grid_space_center = room_center(room);
+    glm::vec2 world_space_center = engine::grid::grid_space_to_world_space(grid_space_center, GRID_SIZE);
+
+    // center the camera on the center of the room
+    auto& r = game.state;
+    const auto& ri = editor.renderer;
+
+    const auto& cameras = r.view<CameraComponent, TransformComponent>();
+    for (auto [entity, camera, transform] : cameras.each()) {
+      transform.position.x = (-ri.viewport_size_render_at.x / 2) + world_space_center.x;
+      transform.position.y = (-ri.viewport_size_render_at.y / 2) + world_space_center.y;
+    };
+  }
+  game.on_start.Set(false);
 }
 
 } // namespace game2d
