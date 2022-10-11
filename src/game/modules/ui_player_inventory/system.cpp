@@ -1,7 +1,9 @@
-#include "ui_player_inventory.hpp"
+#include "system.hpp"
 
-#include "game/components/components.hpp"
-#include "game/entities/actors.hpp"
+#include "game/components/actors.hpp"
+#include "game/modules/combat/components.hpp"
+#include "game/modules/items/components.hpp"
+#include "game/modules/player/components.hpp"
 #include "modules/renderer/components.hpp"
 
 #include <imgui.h>

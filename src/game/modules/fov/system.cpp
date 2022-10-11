@@ -1,9 +1,10 @@
-#include "fov.hpp"
+#include "system.hpp"
 
+#include "components.hpp"
 #include "engine/maths/grid.hpp"
-#include "game/components/components.hpp"
-#include "game/entities/actors.hpp"
-#include "modules/events/helpers/mouse.hpp" // shouldnt be here
+#include "game/components/actors.hpp"
+#include "game/modules/combat/components.hpp"
+#include "game/modules/player/components.hpp"
 #include "modules/renderer/components.hpp"
 #include "modules/sprites/components.hpp"
 #include "resources/colour.hpp"

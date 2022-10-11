@@ -42,17 +42,6 @@ angle_radians_to_direction(const float angle);
 [[nodiscard]] float
 dir_to_angle_radians(const glm::vec2& dir);
 
-// glm::ivec2
-// player::rotate_b_around_a(const GameObject2D& a, const GameObject2D& b, float radius, float angle)
-// {
-//   const glm::vec2 center{ 0.0f, 0.0f };
-//   const glm::vec2 offset = glm::vec2(center.x + radius * cos(angle), center.y + radius * sin(angle));
-//   // Position b in a circle around the a, and render the b in it's center.
-//   const glm::vec2 pos = convert_top_left_to_centre(a);
-//   const glm::vec2 rot_pos = pos + offset - (glm::vec2(b.physics_size) / 2.0f);
-//   return glm::ivec2(int(rot_pos.x), int(rot_pos.y));
-// };
-
 [[nodiscard]] constexpr float
 length_squared(const glm::vec3& i);
 

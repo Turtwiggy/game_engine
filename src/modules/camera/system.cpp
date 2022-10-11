@@ -2,8 +2,7 @@
 #include "system.hpp"
 
 // components/systems
-#include "game/components/components.hpp"
-#include "game/entities/actors.hpp"
+#include "game/components/actors.hpp"
 #include "modules/camera/components.hpp"
 #include "modules/camera/helpers.hpp"
 #include "modules/events/components.hpp"

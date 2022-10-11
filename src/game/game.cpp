@@ -2,17 +2,14 @@
 #include "game.hpp"
 
 #include "game/components/app.hpp"
-#include "game/components/components.hpp"
 
 // systems&components&helpers
 #include "engine/app/application.hpp"
-#include "game/entities/actors.hpp"
+#include "game/components/actors.hpp"
 #include "game/modules/ui_event_console/system.hpp"
 #include "game/modules/ui_health_bar/system.hpp"
 #include "game/simulate.hpp"
 #include "game/systems/resolve_collisions.hpp"
-#include "game/systems/ui_player_inventory.hpp"
-#include "helpers/dungeon.hpp"
 #include "modules/audio/system.hpp"
 #include "modules/camera/components.hpp"
 #include "modules/camera/helpers.hpp"
@@ -35,6 +32,7 @@
 #include "modules/ui_sprite_searcher/system.hpp"
 #include "modules/ux_hover/components.hpp"
 #include "modules/ux_hover/system.hpp"
+#include "game/modules/dungeon/system.hpp"
 
 // other lib
 #include <algorithm>

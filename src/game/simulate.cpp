@@ -1,11 +1,11 @@
 #include "simulate.hpp"
 
 // game
-#include "game/helpers/ai.hpp"
-#include "game/helpers/dungeon.hpp"
-#include "game/helpers/fov.hpp"
-#include "game/systems/intent_use_item.hpp"
-#include "game/systems/player_controller.hpp"
+#include "game/modules/ai/system.hpp"
+#include "game/modules/dungeon/system.hpp"
+#include "game/modules/fov/system.hpp"
+#include "game/modules/items/intent_use_item.hpp"
+#include "game/modules/player/system.hpp"
 #include "game/systems/resolve_collisions.hpp"
 
 // modules

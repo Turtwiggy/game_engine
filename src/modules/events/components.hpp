@@ -30,10 +30,6 @@ struct InputEvent
   // SDL_GameControllerButton button;
   // SDL_GameControllerAxis axis;
 
-  // spaceship operator
-  // auto operator<=>(const InputEvent&) const = default;
-  // bool operator==(const InputEvent&) const = default;
-
   // Note: not player, as no need to send that across the network
   NLOHMANN_DEFINE_TYPE_INTRUSIVE(InputEvent, type, release, key);
 };

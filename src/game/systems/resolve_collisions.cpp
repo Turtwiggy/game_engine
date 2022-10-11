@@ -1,6 +1,6 @@
 #include "resolve_collisions.hpp"
 
-#include "game/components/components.hpp"
+#include "game/modules/combat/components.hpp"
 #include "modules/lifecycle/components.hpp"
 #include "modules/physics/components.hpp"
 

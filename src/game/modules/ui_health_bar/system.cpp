@@ -1,9 +1,11 @@
 #include "system.hpp"
 
-#include "game/components/components.hpp"
-#include "game/entities/actors.hpp"
+#include "game/components/actors.hpp"
 #include "modules/renderer/components.hpp"
 #include "resources/colour.hpp"
+#include "game/modules/player/components.hpp"
+#include "game/modules/items/components.hpp"
+#include "game/modules/combat/components.hpp"
 
 #include <glm/glm.hpp>
 #include <imgui.h>

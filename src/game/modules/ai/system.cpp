@@ -1,11 +1,12 @@
-#include "ai.hpp"
+#include "system.hpp"
 
+#include "components.hpp"
 #include "engine/maths/grid.hpp"
 #include "engine/maths/maths.hpp"
-
-#include "game/components/components.hpp"
-#include "game/helpers/dungeon.hpp"
 #include "game/helpers/priority_queue.hpp"
+#include "game/modules/player/components.hpp"
+#include "game/modules/dungeon/components.hpp"
+#include "game/modules/dungeon/helpers.hpp"
 #include "modules/events/helpers/mouse.hpp"
 #include "modules/physics/components.hpp"
 #include "resources/colour.hpp"

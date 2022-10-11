@@ -2,8 +2,7 @@
 
 #include "serialize.hpp"
 
-#include "game/components/components.hpp"
-#include "game/entities/actors.hpp"
+#include "game/components/actors.hpp"
 #include "modules/events/components.hpp"
 #include "modules/lifecycle/components.hpp"
 #include "modules/physics/components.hpp"
@@ -39,32 +38,7 @@ game2d::save(const entt::registry& registry, std::string path)
       RootNode,
       TransformComponent,
       SpriteComponent,
-      SpriteColourComponent
-      // physics
-      // PhysicsActorComponent,
-      // PhysicsSolidComponent,
-      // PhysicsSizeComponent,
-      // VelocityComponent,
-      // gameplay
-      // AttackComponent,
-      // DefenseComponent,
-      // HealthComponent,
-      // MeleeComponent,
-      // RangedComponent,
-      // PlayerComponent,
-      // ShopKeeperComponent,
-      // InBackpackComponent,
-      // ConsumableComponent,
-      // WantsToUse,
-      // WantsToDrop,
-      // WantsToPurchase,
-      // WantsToSell,
-      // TakeDamageComponent,
-      // GiveHealsComponent,
-      // TakeHealsComponent,
-      // WantsToAttack
-      //
-      >(json_archive);
+      SpriteColourComponent>(json_archive);
   json_archive.close();
 
   std::string data = json_archive.as_string();
@@ -103,9 +77,7 @@ game2d::load(GameEditor& editor, Game& game, std::string path)
       RootNode,
       TransformComponent,
       SpriteComponent,
-      SpriteColourComponent
-      //
-      >(json_in);
+      SpriteColourComponent>(json_in);
 
   const auto& view = r.view<const EntityTypeComponent>();
   view.each([&editor, &game](auto entity, const EntityTypeComponent& type) {

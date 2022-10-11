@@ -3,7 +3,7 @@
 
 #include "engine/colour.hpp"
 #include "engine/maths/grid.hpp"
-#include "game/entities/actors.hpp"
+#include "game/components/actors.hpp"
 #include "modules/entt/helpers.hpp"
 #include "modules/events/components.hpp"
 #include "modules/events/helpers/mouse.hpp"

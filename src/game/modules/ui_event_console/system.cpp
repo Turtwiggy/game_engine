@@ -1,5 +1,6 @@
 #include "system.hpp"
 
+#include "components.hpp"
 #include "modules/events/helpers/mouse.hpp"
 
 #include <imgui.h>

@@ -1,7 +1,5 @@
 #pragma once
 
-#include "game/components/app.hpp"
-
 namespace game2d {
 
 struct FovComponent
@@ -24,7 +22,4 @@ struct NotVisibleButPreviouslySeenComponent
   bool placeholder = true;
 };
 
-void
-update_tile_fov_system(GameEditor& editor, Game& game);
-
-} // game2d
+} // namespace game2d

@@ -1,6 +1,5 @@
 #pragma once
 
-#include "game/components/components.hpp"
 #include "game/modules/ui_event_console/components.hpp"
 #include "modules/events/components.hpp"
 #include "modules/lifecycle/components.hpp"
@@ -19,6 +18,8 @@
 #include <entt/entt.hpp>
 
 namespace game2d {
+
+// budget set once class (i.e. not thread safe)
 
 template<class T>
 struct SetOnce

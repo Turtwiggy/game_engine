@@ -1,8 +1,10 @@
 #include "actors.hpp"
 
 #include "engine/maths/maths.hpp"
-#include "game/components/components.hpp"
-#include "game/helpers/dungeon.hpp"
+#include "game/modules/ai/components.hpp"
+#include "game/modules/combat/components.hpp"
+#include "game/modules/player/components.hpp"
+#include "game/modules/items/components.hpp"
 #include "modules/camera/components.hpp"
 #include "modules/cursor/components.hpp"
 #include "modules/lifecycle/components.hpp"

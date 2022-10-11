@@ -1,7 +1,7 @@
-#include "player_controller.hpp"
+#include "system.hpp"
 
-#include "game/components/components.hpp"
-#include "game/entities/actors.hpp"
+#include "components.hpp"
+
 #include "game/helpers/line.hpp"
 #include "modules/entt/helpers.hpp"
 #include "modules/events/components.hpp"

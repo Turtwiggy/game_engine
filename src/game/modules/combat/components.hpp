@@ -1,12 +1,15 @@
 #pragma once
 
-#include <SDL2/SDL_scancode.h>
 #include <entt/entt.hpp>
 #include <nlohmann/json.hpp>
 
 #include <vector>
 
 namespace game2d {
+
+//
+// combat
+//
 
 struct AttackComponent
 {
@@ -64,116 +67,6 @@ struct RangedComponent
   NLOHMANN_DEFINE_TYPE_INTRUSIVE(RangedComponent, placeholder);
 };
 
-//
-// "tag" components i.e. specific entities
-//
-
-struct PlayerComponent
-{
-  // movement
-  int speed = 100;
-
-  // input
-  SDL_Scancode W = SDL_SCANCODE_W;
-  SDL_Scancode A = SDL_SCANCODE_A;
-  SDL_Scancode S = SDL_SCANCODE_S;
-  SDL_Scancode D = SDL_SCANCODE_D;
-
-  entt::entity aim_line;
-
-  NLOHMANN_DEFINE_TYPE_INTRUSIVE(PlayerComponent, speed, W, A, S, D);
-};
-
-struct ShopKeeperComponent
-{
-  bool placeholder = true;
-
-  NLOHMANN_DEFINE_TYPE_INTRUSIVE(ShopKeeperComponent, placeholder);
-};
-
-//
-// AI / pathfinding
-//
-
-const int k_milliseconds_between_ai_updates = 1000;
-
-struct AiBrainComponent
-{
-  int milliseconds_between_ai_updates_left = 1000;
-
-  // NLOHMANN_DEFINE_TYPE_INTRUSIVE(AiBrainComponent);
-};
-
-struct GridComponent
-{
-  int x = 0;
-  int y = 0;
-
-  NLOHMANN_DEFINE_TYPE_INTRUSIVE(GridComponent, x, y);
-};
-
-struct PathfindableComponent
-{
-  int cost = 0;
-
-  NLOHMANN_DEFINE_TYPE_INTRUSIVE(PathfindableComponent, cost);
-};
-
-//
-// item/inventory
-//
-
-struct InBackpackComponent
-{
-  entt::entity parent = entt::null;
-
-  NLOHMANN_DEFINE_TYPE_INTRUSIVE(InBackpackComponent, parent);
-};
-
-struct ConsumableComponent
-{
-  int uses_left = 1;
-
-  NLOHMANN_DEFINE_TYPE_INTRUSIVE(ConsumableComponent, uses_left);
-};
-
-// "intent" components surrounding items
-struct Use
-{
-  entt::entity entity = entt::null;
-  std::vector<entt::entity> targets;
-
-  NLOHMANN_DEFINE_TYPE_INTRUSIVE(Use, entity, targets);
-};
-struct WantsToUse
-{
-  std::vector<Use> items;
-
-  NLOHMANN_DEFINE_TYPE_INTRUSIVE(WantsToUse, items);
-};
-struct WantsToDrop
-{
-  std::vector<entt::entity> items;
-
-  NLOHMANN_DEFINE_TYPE_INTRUSIVE(WantsToDrop, items);
-};
-struct WantsToPurchase
-{
-  std::vector<entt::entity> items;
-
-  NLOHMANN_DEFINE_TYPE_INTRUSIVE(WantsToPurchase, items);
-};
-struct WantsToSell
-{
-  std::vector<entt::entity> items;
-
-  NLOHMANN_DEFINE_TYPE_INTRUSIVE(WantsToSell, items);
-};
-
-//
-// combat
-//
-
 // struct GiveDamageComponent
 // {
 //   int damage = 1;
@@ -186,21 +79,6 @@ struct WantsToSell
 
 //   NLOHMANN_DEFINE_TYPE_INTRUSIVE(TakeDamageComponent, damage);
 // };
-
-struct GiveHealsComponent
-{
-  int health = 1;
-  // std::vector<int> health_q;
-
-  NLOHMANN_DEFINE_TYPE_INTRUSIVE(GiveHealsComponent, health);
-};
-
-struct TakeHealsComponent
-{
-  std::vector<int> heals;
-
-  NLOHMANN_DEFINE_TYPE_INTRUSIVE(TakeHealsComponent, heals);
-};
 
 // "intent" components surrounding combat
 struct WantsToAttack
@@ -219,10 +97,6 @@ struct WantsToAttack
 // {
 //   float time_left = 1.0f;
 // };
-
-//
-//
-//
 
 // struct BreedComponent
 // {
