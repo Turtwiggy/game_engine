@@ -3,8 +3,8 @@
 #include "engine/maths/maths.hpp"
 #include "game/modules/ai/components.hpp"
 #include "game/modules/combat/components.hpp"
-#include "game/modules/player/components.hpp"
 #include "game/modules/items/components.hpp"
+#include "game/modules/player/components.hpp"
 #include "modules/camera/components.hpp"
 #include "modules/cursor/components.hpp"
 #include "modules/lifecycle/components.hpp"
@@ -53,9 +53,8 @@ entt::entity
 create_item(GameEditor& editor, Game& game, const EntityType& type, const entt::entity& parent)
 {
   auto& r = game.state;
-  auto e = r.create();
 
-  create_gameplay(editor, game, e, type);
+  auto e = create_gameplay(editor, game, type);
 
   r.emplace<InBackpackComponent>(e, parent);
   return e;
@@ -106,10 +105,8 @@ create_sprite(GameEditor& editor, entt::registry& r, const entt::entity& e, cons
     sprite = "PERSON_25_0";
   else if (type == EntityType::free_cursor)
     sprite = "EMPTY";
-  else if (type == EntityType::ui_health_bar)
-    sprite = "EMPTY";
   else
-    std::cerr << "warning! not renderable: " << type_name << "\n";
+    std::cerr << "warning! renderable not implemented: " << type_name << "\n";
 
   RenderOrder order = RenderOrder::background;
 
@@ -128,8 +125,6 @@ create_sprite(GameEditor& editor, entt::registry& r, const entt::entity& e, cons
   else if (type == EntityType::scroll_confusion)
     order = RenderOrder::foreground;
   else if (type == EntityType::scroll_magic_missile)
-    order = RenderOrder::foreground;
-  else if (type == EntityType::ui_health_bar)
     order = RenderOrder::foreground;
 
   SpriteComponent sc;
@@ -301,7 +296,7 @@ create_gameplay(GameEditor& editor, Game& game, const entt::entity& e, const Ent
       break;
     }
     case EntityType::bolt: {
-      r.emplace<PhysicsTransformComponent>(e, PhysicsTransformComponent(SPRITE_SIZE / 2, SPRITE_SIZE / 2));
+      r.emplace<PhysicsTransformComponent>(e);
       r.emplace<VelocityComponent>(e);
       // gameplay
       // r.emplace<EntityTimedLifecycle>(e, 20000); // bullet time alive
@@ -316,6 +311,8 @@ create_gameplay(GameEditor& editor, Game& game, const entt::entity& e, const Ent
       // consumable items
 
     case EntityType::potion: {
+      r.emplace<PhysicsTransformComponent>(e);
+      r.emplace<PhysicsActorComponent>(e);
       r.emplace<ConsumableComponent>(e);
       r.emplace<GiveHealsComponent>(e);
       break;
@@ -385,14 +382,6 @@ create_gameplay(GameEditor& editor, Game& game, const entt::entity& e, const Ent
       c.line_r = line_r;
       c.backdrop = backdrop;
       r.emplace<FreeCursorComponent>(e, c);
-      break;
-    }
-    case EntityType::ui_action_card: {
-      r.emplace<PhysicsActorComponent>(e);
-      r.emplace<PhysicsTransformComponent>(e);
-      break;
-    }
-    case EntityType::ui_health_bar: {
       break;
     }
 

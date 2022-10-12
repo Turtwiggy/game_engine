@@ -1,9 +1,12 @@
 #pragma once
 
-#include "components.hpp"
+#include "engine/maths/maths.hpp"
+#include "game/components/actors.hpp"
 #include "game/components/app.hpp"
+#include "game/modules/dungeon/components.hpp"
 
 #include <entt/entt.hpp>
+#include <glm/glm.hpp>
 
 #include <utility>
 #include <vector>
@@ -39,5 +42,24 @@ create_tunnel_floor(GameEditor& editor, Game& game, const Dungeon& d, std::vecto
 // Create an L-shaped tunnel between two points
 void
 create_tunnel(GameEditor& editor, Game& game, const Dungeon& d, int x1, int y1, int x2, int y2);
+
+//
+// Gameplay logic below
+//
+
+entt::entity
+create_dungeon_entity(GameEditor& editor, Game& game, EntityType et, glm::ivec2 grid_index);
+
+void
+set_pathfinding_cost(GameEditor& editor, Game& game);
+
+void
+set_player_positions(GameEditor& editor, Game& game, std::vector<Room>& rooms, engine::RandomState& rnd);
+
+void
+set_enemy_positions(GameEditor& editor, Game& game, std::vector<Room>& rooms, engine::RandomState& rnd);
+
+void
+set_item_positions(GameEditor& editor, Game& game, std::vector<Room>& rooms, engine::RandomState& rnd);
 
 } // namespace game2d

@@ -5,19 +5,32 @@
 namespace game2d {
 
 void
-update_intent_purchase_item(GameEditor& editor, Game& game)
+update_intent_purchase_item_system(GameEditor& editor, Game& game)
 {
   auto& r = game.state;
 
   // WantsToPurchase
   const auto& purchase_view = r.view<const WantsToPurchase>();
   purchase_view.each([&r](auto entity, auto& intent) {
-    for (const auto& item : intent.items) {
+    for (const entt::entity& item : intent.items) {
       if (auto* backpack = r.try_get<InBackpackComponent>(item)) {
-        // remove from the shopkeepers angry hands
-        // why is the shop keeper angry? i dunno man
+
+        // was the item in the shopkeepers hands?
+        // was the item in another player's hands?
+        // should probably validate who the item is being removed from
+
+        // remove from someone's angry hands
+        // why are they angry? i dunno man, they're being robbed
         // put it in the entity hands
         backpack->parent = entity;
+      }
+
+      // If it wasn't in a backpack, put it in a backpack
+      // this can occur if the item was picked up from the floor
+      // should the world have a backpack?!?!?!
+      else {
+        InBackpackComponent& new_backpack = r.emplace<InBackpackComponent>(item);
+        new_backpack.parent = entity;
       }
     }
     r.remove<WantsToPurchase>(entity); // assume success

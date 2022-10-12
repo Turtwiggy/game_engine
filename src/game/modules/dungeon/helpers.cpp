@@ -1,16 +1,17 @@
 #include "helpers.hpp"
 
 #include "engine/maths/grid.hpp"
-#include "game/components/actors.hpp"
 #include "game/helpers/line.hpp"
+#include "game/modules/ai/components.hpp"
 #include "game/modules/fov/components.hpp"
+#include "game/modules/player/components.hpp"
 #include "modules/physics/helpers.hpp"
 
 namespace game2d {
 
 const int GRID_SIZE = 16;
 
-}
+} // namespace game2d
 
 bool
 game2d::rooms_overlap(const Room& r0, const Room& r1)
@@ -188,4 +189,130 @@ game2d::create_tunnel(GameEditor& editor, Game& game, const Dungeon& d, int x1, 
   std::vector<std::pair<int, int>> line_1;
   create_line(corner_x, corner_y, x2, y2, line_1);
   create_tunnel_floor(editor, game, d, line_1);
+};
+
+void
+game2d::set_pathfinding_cost(GameEditor& editor, Game& game)
+{
+  auto& r = game.state;
+  const auto& grid_tiles = r.view<const GridComponent>();
+  grid_tiles.each([&r](auto entity, const auto& grid) {
+    EntityTypeComponent& t = r.get<EntityTypeComponent>(entity);
+
+    PathfindableComponent path;
+
+    if (t.type == EntityType::floor)
+      path.cost = 0;
+    else if (t.type == EntityType::wall)
+      path.cost = -1; // impassable
+    else
+      path.cost = 1;
+
+    r.emplace<PathfindableComponent>(entity, path);
+  });
+};
+
+entt::entity
+game2d::create_dungeon_entity(GameEditor& editor, Game& game, EntityType et, glm::ivec2 grid_index)
+{
+  auto& r = game.state;
+  glm::ivec2 world_position = engine::grid::grid_space_to_world_space(grid_index, GRID_SIZE);
+
+  entt::entity e = create_gameplay(editor, game, et);
+  SpriteComponent s = create_sprite(editor, r, e, et);
+  TransformComponent t = create_transform(r, e);
+  SpriteColourComponent scc = create_colour(editor, r, e, et);
+
+  t.position = { world_position.x, world_position.y, 0 };
+
+  r.emplace<SpriteComponent>(e, s);
+  r.emplace<SpriteColourComponent>(e, scc);
+  r.emplace<TransformComponent>(e, t);
+  r.emplace<GridComponent>(e, grid_index.x, grid_index.y);
+  r.emplace<FovComponent>(e);
+
+  return e;
+}
+
+void
+game2d::set_player_positions(GameEditor& editor, Game& game, std::vector<Room>& rooms, engine::RandomState& rnd)
+{
+  auto& r = game.state;
+  const auto& view = r.view<TransformComponent, const PlayerComponent>();
+  view.each([&rooms](auto entity, TransformComponent& t, const PlayerComponent& p) {
+    if (rooms.size() > 0) {
+      auto room = rooms[0];
+      auto center = room_center(room);
+      glm::ivec2 pos = engine::grid::grid_space_to_world_space(center, GRID_SIZE);
+      t.position = { pos.x, pos.y, 0 };
+    }
+  });
+};
+
+void
+game2d::set_enemy_positions(GameEditor& editor, Game& game, std::vector<Room>& rooms, engine::RandomState& rnd)
+{
+  constexpr int max_monsters_per_room = 5;
+
+  for (auto& room : rooms) {
+    int number_of_monsters = static_cast<int>(engine::rand_det_s(rnd.rng, 0, max_monsters_per_room));
+    for (int i = 0; i < number_of_monsters; i++) {
+
+      float random = engine::rand_det_s(rnd.rng, 0.0f, 1.0f);
+      EntityType et = EntityType::enemy_orc;
+
+      if (random < 0.8f)
+        et = EntityType::enemy_orc;
+      else
+        et = EntityType::enemy_troll;
+
+      int x = static_cast<int>(engine::rand_det_s(rnd.rng, room.x1 + 1, room.x2 - 1));
+      int y = static_cast<int>(engine::rand_det_s(rnd.rng, room.y1 + 1, room.y2 - 1));
+      glm::ivec2 grid_index = { x, y };
+
+      // Check the tile isn't occupied
+      auto full = std::find_if(
+        room.occupied.begin(), room.occupied.end(), [&grid_index](const auto& val) { return grid_index == val; });
+      if (full != room.occupied.end()) {
+        printf("already entity at position");
+        continue;
+      }
+
+      room.occupied.push_back(grid_index);
+
+      // randomize brain offset time to prevent fps drops
+      auto e = create_dungeon_entity(editor, game, et, grid_index);
+      auto& r = game.state;
+      auto& brain = r.get<AiBrainComponent>(e);
+      brain.milliseconds_between_ai_updates_left = engine::rand_det_s(rnd.rng, 0, k_milliseconds_between_ai_updates);
+    }
+  }
+}
+
+void
+game2d::set_item_positions(GameEditor& editor, Game& game, std::vector<Room>& rooms, engine::RandomState& rnd)
+{
+  constexpr int max_items_per_room = 2;
+
+  for (auto& room : rooms) {
+    int number_of_items = static_cast<int>(engine::rand_det_s(rnd.rng, 0, max_items_per_room));
+
+    for (int i = 0; i < number_of_items; i++) {
+      int x = static_cast<int>(engine::rand_det_s(rnd.rng, room.x1 + 1, room.x2 - 1));
+      int y = static_cast<int>(engine::rand_det_s(rnd.rng, room.y1 + 1, room.y2 - 1));
+      glm::ivec2 grid_index = { x, y };
+      glm::ivec2 world_position = engine::grid::grid_space_to_world_space(grid_index, GRID_SIZE);
+
+      // Check the tile isn't occupied
+      auto full = std::find_if(
+        room.occupied.begin(), room.occupied.end(), [&grid_index](const auto& val) { return grid_index == val; });
+      if (full != room.occupied.end()) {
+        printf("already entity at position");
+        continue;
+      }
+      room.occupied.push_back(grid_index);
+
+      create_dungeon_entity(editor, game, EntityType::potion, grid_index);
+    }
+  }
 };

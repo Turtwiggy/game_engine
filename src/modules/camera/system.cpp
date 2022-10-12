@@ -15,7 +15,7 @@
 namespace game2d {
 
 void
-init_camera_system(GameEditor& editor, Game& game)
+init_camera_system(GameEditor& editor, Game& game, glm::ivec2 camera_target)
 {
   const auto& ri = editor.renderer;
   auto& registry = game.state;
@@ -29,8 +29,8 @@ init_camera_system(GameEditor& editor, Game& game)
   // center all cameras
   const auto& cameras = registry.view<CameraComponent, TransformComponent>();
   for (auto [entity, camera, transform] : cameras.each()) {
-    transform.position.x = -ri.viewport_size_render_at.x / 2;
-    transform.position.y = -ri.viewport_size_render_at.y / 2;
+    transform.position.x = camera_target.x;
+    transform.position.y = camera_target.y;
   }
 };
 

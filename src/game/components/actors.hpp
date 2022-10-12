@@ -49,8 +49,6 @@ enum class EntityType
   camera,
   free_cursor,
   aim_line,
-  ui_action_card,
-  ui_health_bar,
 
   count
 };

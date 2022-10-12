@@ -1,6 +1,9 @@
 #pragma once
 
+#include <glm/glm.hpp>
 #include <nlohmann/json.hpp>
+
+#include <vector>
 
 namespace game2d {
 
@@ -18,6 +21,8 @@ struct Room
   int y2 = 0;
   int w = 0;
   int h = 0;
+
+  std::vector<glm::ivec2> occupied;
 };
 
 enum class GridDirection : size_t

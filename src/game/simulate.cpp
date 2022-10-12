@@ -4,6 +4,8 @@
 #include "game/modules/ai/system.hpp"
 #include "game/modules/dungeon/system.hpp"
 #include "game/modules/fov/system.hpp"
+#include "game/modules/items/intent_drop_item.hpp"
+#include "game/modules/items/intent_purchase_item.hpp"
 #include "game/modules/items/intent_use_item.hpp"
 #include "game/modules/player/system.hpp"
 #include "game/systems/resolve_collisions.hpp"
@@ -50,6 +52,8 @@ game2d::simulate(GameEditor& editor, Game& game, const std::vector<InputEvent>& 
   // game logic
   {
     update_intent_use_item_system(editor, game);
+    update_intent_purchase_item_system(editor, game);
+    update_intent_drop_item_system(editor, game);
   }
   {
     auto _ = time_scope(&p, "(game_logic)-dungeon", true);

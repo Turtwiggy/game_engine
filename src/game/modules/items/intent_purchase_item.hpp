@@ -5,6 +5,6 @@
 namespace game2d {
 
 void
-update_intent_purchase_item(GameEditor& editor, Game& game);
+update_intent_purchase_item_system(GameEditor& editor, Game& game);
 
 };

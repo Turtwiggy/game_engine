@@ -3,7 +3,7 @@
 namespace game2d {
 
 void
-update_intent_drop_item(GameEditor& editor, Game& game)
+update_intent_drop_item_system(GameEditor& editor, Game& game)
 {
   auto& r = game.state;
 

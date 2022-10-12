@@ -5,9 +5,13 @@
 
 // systems&components&helpers
 #include "engine/app/application.hpp"
+#include "engine/maths/grid.hpp"
 #include "game/components/actors.hpp"
+#include "game/modules/dungeon/system.hpp"
+#include "game/modules/items/components.hpp"
 #include "game/modules/ui_event_console/system.hpp"
 #include "game/modules/ui_health_bar/system.hpp"
+#include "game/modules/ui_player_inventory/system.hpp"
 #include "game/simulate.hpp"
 #include "game/systems/resolve_collisions.hpp"
 #include "modules/audio/system.hpp"
@@ -32,7 +36,6 @@
 #include "modules/ui_sprite_searcher/system.hpp"
 #include "modules/ux_hover/components.hpp"
 #include "modules/ux_hover/system.hpp"
-#include "game/modules/dungeon/system.hpp"
 
 // other lib
 #include <algorithm>
@@ -57,28 +60,27 @@ init_game_state(GameEditor& editor)
 
   create_hierarchy_root_node(r);
   create_gameplay(editor, game, EntityType::free_cursor);
-  init_camera_system(editor, game);
 
-  // EntityType et = EntityType::shopkeeper;
-  // auto shopkeeper = create_gameplay(r, et);
-  // create_renderable(r, shopkeeper, et);
+  EntityType et = EntityType::shopkeeper;
+  auto shopkeeper = create_gameplay(editor, game, et);
+  create_renderable(editor, r, shopkeeper, et);
 
-  // // stock up!
-  // const auto& view = r.view<ShopKeeperComponent>();
-  // view.each([&r](auto shop_entity, auto& shopkeeper) {
-  //   create_item(r, EntityType::potion, shop_entity);
-  //   create_item(r, EntityType::potion, shop_entity);
-  //   create_item(r, EntityType::potion, shop_entity);
-  //   create_item(r, EntityType::sword, shop_entity);
-  //   create_item(r, EntityType::fire_sword, shop_entity);
-  //   create_item(r, EntityType::shield, shop_entity);
-  //   create_item(r, EntityType::stone, shop_entity);
-  //   create_item(r, EntityType::crossbow, shop_entity);
-  //   create_item(r, EntityType::bolt, shop_entity);
-  //   create_item(r, EntityType::scroll_confusion, shop_entity);
-  //   create_item(r, EntityType::scroll_fireball, shop_entity);
-  //   create_item(r, EntityType::scroll_magic_missile, shop_entity);
-  // });
+  // stock up!
+  const auto& view = r.view<ShopKeeperComponent>();
+  view.each([&editor, &game](auto shop_entity, auto& shopkeeper) {
+    create_item(editor, game, EntityType::potion, shop_entity);
+    create_item(editor, game, EntityType::potion, shop_entity);
+    create_item(editor, game, EntityType::potion, shop_entity);
+    create_item(editor, game, EntityType::sword, shop_entity);
+    create_item(editor, game, EntityType::fire_sword, shop_entity);
+    create_item(editor, game, EntityType::shield, shop_entity);
+    create_item(editor, game, EntityType::stone, shop_entity);
+    create_item(editor, game, EntityType::crossbow, shop_entity);
+    create_item(editor, game, EntityType::bolt, shop_entity);
+    create_item(editor, game, EntityType::scroll_confusion, shop_entity);
+    create_item(editor, game, EntityType::scroll_fireball, shop_entity);
+    create_item(editor, game, EntityType::scroll_magic_missile, shop_entity);
+  });
 
   const int GRID_SIZE = 16;
 
@@ -89,41 +91,18 @@ init_game_state(GameEditor& editor)
     create_renderable(editor, r, e, et);
   }
 
-  int size_x = 100;
-  int size_y = 100;
-  auto create_ui_arrow = [&](int sx, int sy, int x, int y) {
-    engine::SRGBColour colour_default = colours.backdrop_red;
-    engine::SRGBColour colour_hover = colours.red;
-    EntityType et = EntityType::ui_action_card;
-    entt::entity e = create_gameplay(editor, game, et);
-    SpriteComponent s = create_sprite(editor, r, e, et);
-    TransformComponent t = create_transform(r, e);
-    SpriteColourComponent scc = create_colour(editor, r, e, et);
-    HoverComponent hc;
-    t.scale.x = size_x;
-    t.scale.y = size_y;
-    t.position.x = x;
-    t.position.y = y;
-    s.x = sx;
-    s.y = sy;
-    scc.colour = engine::SRGBToLinear(colour_default);
-    hc.hover_colour = colour_hover;
-    hc.regular_colour = colour_default;
-    r.emplace<SpriteComponent>(e, s);
-    r.emplace<TransformComponent>(e, t);
-    r.emplace<SpriteColourComponent>(e, scc);
-    r.emplace<HoverComponent>(e, hc);
-  };
-  create_ui_arrow(23, 20, -96, 20);
-  create_ui_arrow(24, 20, 250, 250);
-  create_ui_arrow(25, 20, 500, 500);
-  create_ui_arrow(26, 20, 100, 300);
-
   std::cout << "creating dungeon...!" << std::endl;
   Dungeon d;
   generate_dungeon(editor, game, d);
   entt::entity e = r.create();
   r.emplace<Dungeon>(e, d);
+
+  const auto& ri = editor.renderer;
+  glm::ivec2 grid_position{ d.width / 2, d.height / 2 };
+  glm::ivec2 cam_position = engine::grid::grid_space_to_world_space(grid_position, 16);
+  cam_position.x = (-ri.viewport_size_render_at.x / 2) + cam_position.x;
+  cam_position.y = (-ri.viewport_size_render_at.y / 2) + cam_position.y;
+  init_camera_system(editor, game, cam_position);
 
   return game;
 };
@@ -202,11 +181,6 @@ update(engine::SINGLETON_Application& app, GameEditor& editor, Game& game, float
       update_audio_system(editor);
       update_cursor_system(editor, game);
       update_ux_hover_system(editor, game);
-      update_ui_hp_bar(editor, game);
-      update_ui_event_console(editor, game);
-      // update_ui_player_inventory_system(r);
-      // update_ui_networking_system(r);
-      // update_ui_main_menu_system(r);
     }
   };
   {
@@ -219,6 +193,12 @@ update(engine::SINGLETON_Application& app, GameEditor& editor, Game& game, float
   {
     auto _ = time_scope(&p, "ui"); // value always be a frame behind
     {
+      update_ui_hp_bar(editor, game);
+      update_ui_event_console(editor, game);
+      update_ui_player_inventory_system(editor, game);
+      // update_ui_networking_system(editor, game);
+      // update_ui_main_menu_system(editor, game);
+
       static bool show_editor_ui = true;
       if (show_editor_ui) {
         update_ui_editor_bar_system(editor, game);
