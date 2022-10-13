@@ -292,10 +292,10 @@ game2d::set_enemy_positions(GameEditor& editor, Game& game, std::vector<Room>& r
 void
 game2d::set_item_positions(GameEditor& editor, Game& game, std::vector<Room>& rooms, engine::RandomState& rnd)
 {
-  constexpr int max_items_per_room = 2;
+  constexpr int max_items_per_room = 4;
 
   for (auto& room : rooms) {
-    int number_of_items = static_cast<int>(engine::rand_det_s(rnd.rng, 0, max_items_per_room));
+    int number_of_items = engine::rand_det_s(rnd.rng, 0, max_items_per_room);
 
     for (int i = 0; i < number_of_items; i++) {
       int x = static_cast<int>(engine::rand_det_s(rnd.rng, room.x1 + 1, room.x2 - 1));
@@ -312,7 +312,11 @@ game2d::set_item_positions(GameEditor& editor, Game& game, std::vector<Room>& ro
       }
       room.occupied.push_back(grid_index);
 
-      create_dungeon_entity(editor, game, EntityType::potion, grid_index);
+      float percent = engine::rand_det_s(rnd.rng, 0.0f, 1.0f);
+      if (percent < 0.7f)
+        create_dungeon_entity(editor, game, EntityType::potion, grid_index);
+      else
+        create_dungeon_entity(editor, game, EntityType::scroll_damage_nearest, grid_index);
     }
   }
 };

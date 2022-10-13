@@ -43,7 +43,7 @@ angle_radians_to_direction(const float angle);
 dir_to_angle_radians(const glm::vec2& dir);
 
 [[nodiscard]] constexpr float
-length_squared(const glm::vec3& i);
+distance_squared(const glm::vec3& i);
 
 [[nodiscard]] glm::vec3
 rand_unit_vector(RandomState& rnd);
@@ -79,6 +79,6 @@ struct Ray
 ray_at(const Ray r, float t)
 {
   return r.origin + (t * r.dir);
-}
+};
 
 } // namespace engine

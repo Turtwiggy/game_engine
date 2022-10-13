@@ -1,6 +1,7 @@
 #include "system.hpp"
 
 #include "game/components/actors.hpp"
+#include "game/helpers/distance.hpp"
 #include "game/modules/combat/components.hpp"
 #include "game/modules/items/components.hpp"
 #include "game/modules/player/components.hpp"
@@ -55,7 +56,7 @@ game2d::update_ui_player_inventory_system(GameEditor& editor, Game& game)
   ImGui::Begin("Player(s) UI");
   {
     const auto& players = r.view<const PlayerComponent>();
-    const auto& items = r.view<const InBackpackComponent, const TagComponent>();
+    const auto& items = r.view<const InBackpackComponent, const TagComponent, const EntityTypeComponent>();
 
     for (auto [entity_player, player] : players.each()) {
 
@@ -66,7 +67,7 @@ game2d::update_ui_player_inventory_system(GameEditor& editor, Game& game)
       // Inventory..!
       ImGui::Text("¬¬ Inventory ¬¬");
 
-      for (auto [entity_item, backpack, tag] : items.each()) {
+      for (auto [entity_item, backpack, tag, type] : items.each()) {
 
         if (backpack.parent != entity_player)
           continue; // not my item
@@ -79,7 +80,16 @@ game2d::update_ui_player_inventory_system(GameEditor& editor, Game& game)
           auto& u = r.get_or_emplace<WantsToUse>(entity_player);
           Use info;
           info.entity = entity_item;
-          info.targets = { entity_player }; // self
+
+          // HACK: this seems wrong
+          if (type.type == EntityType::potion)
+            info.targets = { entity_player }; // self
+          if (type.type == EntityType::scroll_damage_nearest) {
+            entt::entity nearest = get_nearest_attackable(game, entity_player);
+            if (nearest != entt::null)
+              info.targets = { nearest };
+          }
+
           u.items.push_back(info);
         }
 

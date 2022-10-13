@@ -12,30 +12,28 @@
 void
 game2d::update_resolve_collisions_system(Game& game)
 {
-  auto& eb = game.dead;
   auto& r = game.state;
   const auto& physics = game.physics;
 
   { // take damage on collision
-    const auto& view = r.view<WasCollidedWithComponent, HealthComponent>();
-    view.each([&game, &eb](auto entity, WasCollidedWithComponent& coll, HealthComponent& hp) {
-      //
-      hp.hp -= 1;
-      game.ui_events.events.push_back(std::format("someone took {} damage, new_hp: {}", 1, hp.hp));
-
-      if (hp.hp <= 0) {
-        eb.dead.emplace(entity);
-        game.ui_events.events.push_back("somoene died :O");
-      }
-    });
+    const auto& view = r.view<const WasCollidedWithComponent, TakeDamageComponent>();
+    for (auto [entity, coll, damages] : view.each()) {
+      const int collision_damage = 1;
+      damages.damage.push_back(collision_damage);
+    }
   }
 
-  { // flash sprite on collision
+  { // TODO: flash sprite on collision
     const auto& view = r.view<WasCollidedWithComponent, HealthComponent>();
-    // TODO: this
   }
 
-  { // are we on an item we can pickup?
+  {
+    // are we on an item we can pickup?
+    std::vector<EntityType> valid_types{
+      EntityType::potion,
+      EntityType::scroll_damage_nearest,
+    };
+
     const auto& players = r.view<PlayerComponent>();
     for (auto [player_entity, player] : players.each()) {
       for (const auto& p : physics.collision_stay) {
@@ -43,7 +41,10 @@ game2d::update_resolve_collisions_system(Game& game)
         if (p.ent_id_0 == static_cast<uint32_t>(player_entity)) {
           auto other = static_cast<entt::entity>(p.ent_id_1);
           auto type = r.get<EntityTypeComponent>(other);
-          if (type.type == EntityType::potion) {
+
+          auto contains = std::find_if(
+            valid_types.begin(), valid_types.end(), [&type](const EntityType& t) { return t == type.type; });
+          if (contains != valid_types.end()) {
 
             // PURCHASE FROM THE FLOOR?
             auto& purchase = r.get_or_emplace<WantsToPurchase>(player_entity);
@@ -65,7 +66,10 @@ game2d::update_resolve_collisions_system(Game& game)
         if (p.ent_id_1 == static_cast<uint32_t>(player_entity)) {
           auto other = static_cast<entt::entity>(p.ent_id_0);
           auto type = r.get<EntityTypeComponent>(other);
-          if (type.type == EntityType::potion) {
+
+          auto contains = std::find_if(
+            valid_types.begin(), valid_types.end(), [&type](const EntityType& t) { return t == type.type; });
+          if (contains != valid_types.end()) {
 
             // PURCHASE FROM THE FLOOR?
             auto& purchase = r.get_or_emplace<WantsToPurchase>(player_entity);

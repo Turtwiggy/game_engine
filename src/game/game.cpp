@@ -77,9 +77,7 @@ init_game_state(GameEditor& editor)
     create_item(editor, game, EntityType::stone, shop_entity);
     create_item(editor, game, EntityType::crossbow, shop_entity);
     create_item(editor, game, EntityType::bolt, shop_entity);
-    create_item(editor, game, EntityType::scroll_confusion, shop_entity);
-    create_item(editor, game, EntityType::scroll_fireball, shop_entity);
-    create_item(editor, game, EntityType::scroll_magic_missile, shop_entity);
+    create_item(editor, game, EntityType::scroll_damage_nearest, shop_entity);
   });
 
   const int GRID_SIZE = 16;

@@ -97,9 +97,7 @@ create_sprite(GameEditor& editor, entt::registry& r, const entt::entity& e, cons
     sprite = "SHIELD_37_2";
   else if (type == EntityType::potion)
     sprite = "DUCK";
-  else if (type == EntityType::scroll_confusion)
-    sprite = "ROCKET_1";
-  else if (type == EntityType::scroll_magic_missile)
+  else if (type == EntityType::scroll_damage_nearest)
     sprite = "ROCKET_1";
   else if (type == EntityType::shopkeeper)
     sprite = "PERSON_25_0";
@@ -122,9 +120,7 @@ create_sprite(GameEditor& editor, entt::registry& r, const entt::entity& e, cons
     order = RenderOrder::foreground;
   else if (type == EntityType::potion)
     order = RenderOrder::foreground;
-  else if (type == EntityType::scroll_confusion)
-    order = RenderOrder::foreground;
-  else if (type == EntityType::scroll_magic_missile)
+  else if (type == EntityType::scroll_damage_nearest)
     order = RenderOrder::foreground;
 
   SpriteComponent sc;
@@ -172,7 +168,7 @@ create_colour(GameEditor& editor, entt::registry& r, const entt::entity& e, cons
     srgb = colours.shield;
   else if (type == EntityType::potion)
     srgb = colours.red;
-  else if (type == EntityType::scroll_magic_missile)
+  else if (type == EntityType::scroll_damage_nearest)
     srgb = colours.red;
   else if (type == EntityType::shopkeeper)
     srgb = colours.red;
@@ -242,8 +238,9 @@ create_gameplay(GameEditor& editor, Game& game, const entt::entity& e, const Ent
       r.emplace<PhysicsSolidComponent>(e);
       r.emplace<PhysicsActorComponent>(e);
       // gameplay
-      r.emplace<HealthComponent>(e);
       r.emplace<AiBrainComponent>(e);
+      r.emplace<HealthComponent>(e);
+      r.emplace<TakeDamageComponent>(e);
       break;
     }
     case EntityType::enemy_orc: {
@@ -253,8 +250,9 @@ create_gameplay(GameEditor& editor, Game& game, const entt::entity& e, const Ent
       r.emplace<PhysicsSolidComponent>(e);
       r.emplace<PhysicsActorComponent>(e);
       // gameplay
-      r.emplace<HealthComponent>(e);
       r.emplace<AiBrainComponent>(e);
+      r.emplace<HealthComponent>(e);
+      r.emplace<TakeDamageComponent>(e);
       break;
     }
     case EntityType::player: {
@@ -264,6 +262,7 @@ create_gameplay(GameEditor& editor, Game& game, const entt::entity& e, const Ent
       r.emplace<PhysicsActorComponent>(e);
       // gameplay
       r.emplace<HealthComponent>(e);
+      r.emplace<TakeDamageComponent>(e);
 
       PlayerComponent p;
       p.aim_line = create_gameplay(editor, game, EntityType::aim_line);
@@ -317,29 +316,13 @@ create_gameplay(GameEditor& editor, Game& game, const entt::entity& e, const Ent
       r.emplace<GiveHealsComponent>(e);
       break;
     }
-    case EntityType::scroll_magic_missile: {
-      r.emplace<ConsumableComponent>(e);
-      r.emplace<AttackComponent>(e, AttackComponent(5, 10));
-      r.emplace<RangedComponent>(e);
-      // r.emplace<GiveDamageComponent>(e);
-      break;
-    }
-    case EntityType::scroll_fireball: {
-      r.emplace<ConsumableComponent>(e);
-      r.emplace<AttackComponent>(e, AttackComponent(5, 10));
-      r.emplace<RangedComponent>(e);
-      // r.emplace<GiveDamageComponent>(e);
-      // r.emplace<AreaOfEffectComponent>(e);
-      break;
-    }
-    case EntityType::scroll_confusion: {
-      // able to collide to be picked up
-      r.emplace<PhysicsTransformComponent>(e, PhysicsTransformComponent(SPRITE_SIZE, SPRITE_SIZE));
+    case EntityType::scroll_damage_nearest: {
+      r.emplace<PhysicsTransformComponent>(e);
       r.emplace<PhysicsActorComponent>(e);
-      //
       r.emplace<ConsumableComponent>(e);
+      r.emplace<AttackComponent>(e, AttackComponent(5, 10));
       r.emplace<RangedComponent>(e);
-      // r.emplace<ConfusionComponent>(e);
+      // r.emplace<GiveDamageComponent>(e);
       break;
     }
 

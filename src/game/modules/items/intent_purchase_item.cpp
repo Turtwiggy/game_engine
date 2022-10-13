@@ -11,9 +11,12 @@ update_intent_purchase_item_system(GameEditor& editor, Game& game)
 
   // WantsToPurchase
   const auto& purchase_view = r.view<const WantsToPurchase>();
-  purchase_view.each([&r](auto entity, auto& intent) {
+
+  for (auto [entity, intent] : purchase_view.each()) {
     for (const entt::entity& item : intent.items) {
-      if (auto* backpack = r.try_get<InBackpackComponent>(item)) {
+
+      auto* backpack = r.try_get<InBackpackComponent>(item);
+      if (backpack) {
 
         // was the item in the shopkeepers hands?
         // was the item in another player's hands?
@@ -23,18 +26,25 @@ update_intent_purchase_item_system(GameEditor& editor, Game& game)
         // why are they angry? i dunno man, they're being robbed
         // put it in the entity hands
         backpack->parent = entity;
+
+        // const TagComponent tag = r.get<TagComponent>(item);
+        // const std::string msg = std::format("You purchased: {}", tag.tag.c_str());
+        // game.ui_events.events.push_back(msg);
       }
 
       // If it wasn't in a backpack, put it in a backpack
       // this can occur if the item was picked up from the floor
-      // should the world have a backpack?!?!?!
+      // should the world have a backpack??
       else {
         InBackpackComponent& new_backpack = r.emplace<InBackpackComponent>(item);
         new_backpack.parent = entity;
+
+        // const TagComponent tag = r.get<TagComponent>(item);
+        // const std::string msg = std::format("You purchased: {}", tag.tag.c_str());
+        // game.ui_events.events.push_back(msg);
       }
     }
-    r.remove<WantsToPurchase>(entity); // assume success
-  });
+  }
 
   // WantsToSell
   const auto& sell_view = r.view<const WantsToSell>();

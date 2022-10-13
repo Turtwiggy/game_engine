@@ -22,14 +22,9 @@ update_intent_use_item_system(GameEditor& editor, Game& game)
   use_view.each([&r](auto entity, WantsToUse& intent) {
     //
     for (const Use& item : intent.items) {
+
+      // Does the item heal?
       auto* item_heals = r.try_get<GiveHealsComponent>(item.entity);
-      auto* item_consumable = r.try_get<ConsumableComponent>(item.entity);
-
-      // If not, use on self
-      // auto& target = entity;
-      // auto* target_hp = r.try_get<HealthComponent>(entity);
-
-      // If targets are set, use those
       for (const entt::entity& target : item.targets) {
         auto* target_hp = r.try_get<HealthComponent>(target);
         // Does the item heal?
@@ -39,7 +34,24 @@ update_intent_use_item_system(GameEditor& editor, Game& game)
         }
       }
 
+      // Does the item damage?
+      auto* item_damage = r.try_get<AttackComponent>(item.entity);
+      if (item_damage) {
+        for (const entt::entity& target : item.targets) {
+          // Can the target take damage?
+          auto* target_damage_buffer = r.try_get<TakeDamageComponent>(target);
+          if (target_damage_buffer) {
+            // TEMP: just use min damage
+            int damage = item_damage->min_damage;
+            target_damage_buffer->damage.push_back(damage);
+          } else {
+            std::cerr << "Tried to attack an entity that doesn't have a TakeDamageComponent\n";
+          }
+        }
+      }
+
       // Is the item consumable?
+      auto* item_consumable = r.try_get<ConsumableComponent>(item.entity);
       if (item_consumable)
         r.destroy(item.entity);
     }

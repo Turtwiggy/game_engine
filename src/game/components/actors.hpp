@@ -41,9 +41,7 @@ enum class EntityType
 
   // consumable items
   potion,
-  scroll_magic_missile,
-  scroll_fireball,
-  scroll_confusion,
+  scroll_damage_nearest,
 
   // misc...
   camera,
