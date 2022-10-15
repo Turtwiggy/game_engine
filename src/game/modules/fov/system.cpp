@@ -126,12 +126,6 @@ update_tile_fov_system(GameEditor& editor, Game& game)
       scc.colour = colours.lin_cyan;
     });
   }
-
-  // HACK
-  // if (get_mouse_lmb_held()) {
-  //   for (const auto& visible_entity_with_hp : visible_hp_view)
-  //     r.destroy(visible_entity_with_hp);
-  // }
 };
 
 } // namespace game2d

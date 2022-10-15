@@ -22,16 +22,23 @@ enum class InputType
   controller,
 };
 
+enum class InputState
+{
+  press,
+  held,
+  release,
+};
+
 struct InputEvent
 {
   InputType type;
-  bool release = false;
+  InputState state;
   uint32_t key;
   // SDL_GameControllerButton button;
   // SDL_GameControllerAxis axis;
 
   // Note: not player, as no need to send that across the network
-  NLOHMANN_DEFINE_TYPE_INTRUSIVE(InputEvent, type, release, key);
+  NLOHMANN_DEFINE_TYPE_INTRUSIVE(InputEvent, type, state, key);
 };
 
 struct SINGLETON_FixedUpdateInputHistory

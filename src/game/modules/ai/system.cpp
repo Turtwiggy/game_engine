@@ -2,6 +2,7 @@
 
 #include "components.hpp"
 #include "engine/maths/grid.hpp"
+#include "game/components/events.hpp"
 #include "game/modules/dungeon/components.hpp"
 #include "game/modules/dungeon/helpers.hpp"
 #include "game/modules/player/components.hpp"
@@ -43,30 +44,36 @@ update_ai_system(GameEditor& editor, Game& game, const uint64_t& milliseconds_dt
   // player position
   vec2i to = { glm::clamp(player_grid.x, 0, d.width - 1), glm::clamp(player_grid.y, 0, d.height - 1) };
 
-  const auto& view = r.view<AiBrainComponent, const TransformComponent, GridMoveComponent>();
-  for (auto [entity, ai, transform, move] : view.each()) {
+  const auto& view = r.view<AiBrainComponent, GridMoveComponent, const TransformComponent>();
+  for (auto [entity, ai, move, transform] : view.each()) {
 
     const auto grid =
       engine::grid::world_space_to_grid_space({ transform.position.x, transform.position.y }, GRID_SIZE);
-
-    vec2i from;
-    from.x = glm::clamp(grid.x, 0, d.width - 1);
-    from.y = glm::clamp(grid.y, 0, d.height - 1);
+    vec2i from = { glm::clamp(grid.x, 0, d.width - 1), glm::clamp(grid.y, 0, d.height - 1) };
 
     ai.milliseconds_between_ai_updates_left -= milliseconds_dt;
-
     if (ai.milliseconds_between_ai_updates_left <= 0) {
       ai.milliseconds_between_ai_updates_left = k_milliseconds_between_ai_updates;
 
-      // move it, chump!
+      // Take an action...
+
+      // If confused... choose a random direction...
+      // TODO...
+
+      // Otherwise... try to choose a sane direction...
       const auto path = astar(r, from, to);
 
       const int max_paths = d.height * d.width;
       if (path.size() > max_paths) // assume something is wrong
         std::cout << "pathfinding has gone wrong\n";
 
-      if (path.size() >= 2) {
-        const auto& next_step = path[1]; // path[0] is start
+      // next door to entity...
+      if (path.size() == 2)
+        r.emplace<WasCollidedWithComponent>(player_entity);
+
+      // in range of entity...
+      if (path.size() > 2 && path.size() < 6) {
+        const auto& next_step = path[1]; // path[0] is current
         move.x = ((next_step.x - from.x) * GRID_SIZE);
         move.y = ((next_step.y - from.y) * GRID_SIZE);
       }

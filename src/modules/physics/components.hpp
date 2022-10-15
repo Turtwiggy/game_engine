@@ -55,11 +55,6 @@ struct GridMoveComponent
 
 // events
 
-struct WasCollidedWithComponent
-{
-  bool placeholder = true;
-};
-
 // A collision occurs between two entities
 struct Collision2D
 {

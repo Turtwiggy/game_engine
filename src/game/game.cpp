@@ -55,15 +55,14 @@ init_game_state(GameEditor& editor)
   game.ui_events.events.push_back("Welcome!");
 
   // reset editor tools?
-  auto tilemap_ent = r.create();
-  r.emplace<TilemapComponent>(tilemap_ent);
+  // auto tilemap_ent = r.create();
+  // r.emplace<TilemapComponent>(tilemap_ent);
 
   create_hierarchy_root_node(r);
-  create_gameplay(editor, game, EntityType::free_cursor);
 
   EntityType et = EntityType::shopkeeper;
   auto shopkeeper = create_gameplay(editor, game, et);
-  // create_renderable(ed itor, r, shopkeeper, et);
+  // create_renderable(editor, r, shopkeeper, et);
 
   // stock up!
   const auto& view = r.view<ShopKeeperComponent>();
@@ -78,6 +77,7 @@ init_game_state(GameEditor& editor)
     create_item(editor, game, EntityType::crossbow, shop_entity);
     create_item(editor, game, EntityType::bolt, shop_entity);
     create_item(editor, game, EntityType::scroll_damage_nearest, shop_entity);
+    create_item(editor, game, EntityType::scroll_damage_selected_on_grid, shop_entity);
   });
 
   const int GRID_SIZE = 16;
@@ -95,12 +95,12 @@ init_game_state(GameEditor& editor)
   entt::entity e = r.create();
   r.emplace<Dungeon>(e, d);
 
-  const auto& ri = editor.renderer;
-  glm::ivec2 grid_position{ d.width / 2, d.height / 2 };
-  glm::ivec2 cam_position = engine::grid::grid_space_to_world_space(grid_position, 16);
-  cam_position.x = (-ri.viewport_size_render_at.x / 2) + cam_position.x;
-  cam_position.y = (-ri.viewport_size_render_at.y / 2) + cam_position.y;
-  init_camera_system(editor, game, cam_position);
+  // const auto& ri = editor.renderer;
+  // glm::ivec2 grid_position{ d.width / 2, d.height / 2 };
+  // glm::ivec2 cam_position = engine::grid::grid_space_to_world_space(grid_position, 16);
+  // cam_position.x = (-ri.viewport_size_render_at.x / 2) + cam_position.x;
+  // cam_position.y = (-ri.viewport_size_render_at.y / 2) + cam_position.y;
+  init_camera_system(editor, game);
 
   return game;
 };
@@ -147,7 +147,8 @@ fixed_update(GameEditor& editor, Game& game, uint64_t milliseconds_dt)
 
       // reset game
       for (const InputEvent& i : inputs) {
-        if (i.type == InputType::keyboard && i.key == static_cast<uint32_t>(SDL_SCANCODE_R) && !i.release) {
+        if (i.type == InputType::keyboard && i.key == static_cast<uint32_t>(SDL_SCANCODE_R) &&
+            i.state == InputState::press) {
           game = init_game_state(editor);
         }
       }
@@ -165,14 +166,9 @@ update(engine::SINGLETON_Application& app, GameEditor& editor, Game& game, float
   {
     auto _ = time_scope(&p, "game_tick");
     update_input_system(app, editor, game);
-
-    // ... systems that update only if viewport is focused or hovered
-    if (ri.viewport_process_events)
-      update_camera_system(editor, game, dt);
-
-    // ... systems that always update
+    update_camera_system(editor, game, dt);
     update_audio_system(editor);
-    // update_cursor_system(editor, game);
+    update_cursor_system(editor, game);
     update_ux_hover_system(editor, game);
   };
 

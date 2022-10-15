@@ -175,7 +175,7 @@ game2d::update_render_system(GameEditor& editor, Game& game)
 
     // camera
     {
-      const auto& camera = get_first<CameraComponent>(registry);
+      const auto& camera = get_first<CameraComponent>(registry)->get();
       const auto& view = camera.view;
       ri.instanced.bind();
       ri.instanced.set_mat4("view", view);

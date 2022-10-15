@@ -10,7 +10,6 @@
 #include "modules/events/helpers/mouse.hpp"
 #include "modules/networking/components.hpp"
 #include "modules/physics/components.hpp"
-#include "modules/ui_editor_tilemap/components.hpp"
 
 #include <SDL2/SDL_mouse.h>
 
@@ -18,40 +17,42 @@
 #include <vector>
 
 void
-game2d::update_player_controller_system(GameEditor& editor, Game& game, const std::vector<InputEvent>& inputs)
+game2d::update_player_controller_system(GameEditor& editor,
+                                        Game& game,
+                                        const std::vector<InputEvent>& inputs,
+                                        const uint64_t& milliseconds_dt)
 {
   auto& r = game.state;
-  auto& tilemap = game2d::get_first<TilemapComponent>(r);
   const glm::ivec2 mouse_position = mouse_position_in_worldspace(editor, game);
 
   const auto& view = r.view<PlayerComponent, TransformComponent, GridMoveComponent>();
-  view.each([&r, &inputs, &mouse_position, &editor, &game](
+  view.each([&r, &inputs, &mouse_position, &editor, &game, &milliseconds_dt](
               entt::entity entity, PlayerComponent& player, TransformComponent& transform, GridMoveComponent& grid) {
+    //
+
+    int dx = 0;
+    int dy = 0;
+
     for (const InputEvent& input : inputs) {
       switch (input.type) {
         case InputType::keyboard: {
-
-          int dx = 0;
-          int dy = 0;
-          if (input.key == player.W && !input.release)
+          if (input.key == player.W && (input.state == InputState::held || input.state == InputState::press))
             dy = -1;
-          if (input.key == player.S && !input.release)
+          if (input.key == player.S && (input.state == InputState::held || input.state == InputState::press))
             dy = 1;
-          if (input.key == player.A && !input.release)
+          if (input.key == player.A && (input.state == InputState::held || input.state == InputState::press))
             dx = -1;
-          if (input.key == player.D && !input.release)
+          if (input.key == player.D && (input.state == InputState::held || input.state == InputState::press))
             dx = 1;
-
-          grid.x += 16 * dx;
-          grid.y += 16 * dy;
         }
         case InputType::mouse: {
-          if (input.key == SDL_BUTTON_LEFT && !input.release) {
+          if (input.key == SDL_BUTTON_LEFT && input.state == InputState::press) {
 
-            // shoot()
+            bool do_fire = false;
+            if (!do_fire)
+              break;
 
             const float bullet_speed = 50.0f;
-
             entt::entity bullet = create_gameplay(editor, game, EntityType::arrow);
             create_renderable(editor, r, bullet, EntityType::arrow);
             glm::vec2 dir = { mouse_position.x - transform.position.x, mouse_position.y - transform.position.y };
@@ -81,6 +82,16 @@ game2d::update_player_controller_system(GameEditor& editor, Game& game, const st
         }
       }
     }
+
+    // player.able_to_move = player.milliseconds_move_cooldown <= 0;
+    // if (!player.able_to_move)
+    //   player.milliseconds_move_cooldown -= milliseconds_dt;
+    // if (player.able_to_move)
+    //   player.milliseconds_move_cooldown = k_milliseconds_move_cooldown;
+
+    // do the move
+    grid.x += 16 * dx;
+    grid.y += 16 * dy;
 
     // gameplay: update player's line position
     // note: this probably doesn't belong here

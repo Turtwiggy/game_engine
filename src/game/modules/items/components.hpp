@@ -80,4 +80,11 @@ struct WantsToSell
   NLOHMANN_DEFINE_TYPE_INTRUSIVE(WantsToSell, items);
 };
 
+struct WantsToSelectUnitsForItem
+{
+  std::vector<Use> items;
+
+  NLOHMANN_DEFINE_TYPE_INTRUSIVE(WantsToSelectUnitsForItem, items);
+};
+
 } // namespace game2d

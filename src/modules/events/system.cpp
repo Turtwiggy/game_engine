@@ -81,20 +81,24 @@ game2d::update_input_system(engine::SINGLETON_Application& app, const GameEditor
   //
   for (const SDL_Event& evt : input.sdl_events) {
     if (evt.type == SDL_KEYDOWN && get_key_down(input, evt.key.keysym.scancode)) {
-      InputEvent ie{ InputType::keyboard, false, static_cast<uint32_t>(evt.key.keysym.scancode) };
+      InputEvent ie{ InputType::keyboard, InputState::press, static_cast<uint32_t>(evt.key.keysym.scancode) };
       input.unprocessed_inputs.push_back(ie);
     }
     if (evt.type == SDL_KEYUP && get_key_up(input, evt.key.keysym.scancode)) {
-      InputEvent ie{ InputType::keyboard, true, static_cast<uint32_t>(evt.key.keysym.scancode) };
+      InputEvent ie{ InputType::keyboard, InputState::release, static_cast<uint32_t>(evt.key.keysym.scancode) };
+      input.unprocessed_inputs.push_back(ie);
+    }
+    if (evt.type == SDL_KEYDOWN && get_key_held(input, evt.key.keysym.scancode)) {
+      InputEvent ie{ InputType::keyboard, InputState::held, static_cast<uint32_t>(evt.key.keysym.scancode) };
       input.unprocessed_inputs.push_back(ie);
     }
   }
   if (get_mouse_lmb_press())
-    input.unprocessed_inputs.push_back({ InputType::mouse, false, SDL_BUTTON_LEFT });
+    input.unprocessed_inputs.push_back({ InputType::mouse, InputState::press, SDL_BUTTON_LEFT });
   if (get_mouse_lmb_release())
-    input.unprocessed_inputs.push_back({ InputType::mouse, true, SDL_BUTTON_LEFT });
+    input.unprocessed_inputs.push_back({ InputType::mouse, InputState::release, SDL_BUTTON_LEFT });
   if (get_mouse_rmb_press())
-    input.unprocessed_inputs.push_back({ InputType::mouse, false, SDL_BUTTON_RIGHT });
+    input.unprocessed_inputs.push_back({ InputType::mouse, InputState::press, SDL_BUTTON_RIGHT });
   if (get_mouse_rmb_release())
-    input.unprocessed_inputs.push_back({ InputType::mouse, true, SDL_BUTTON_RIGHT });
+    input.unprocessed_inputs.push_back({ InputType::mouse, InputState::release, SDL_BUTTON_RIGHT });
 };

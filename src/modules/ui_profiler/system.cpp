@@ -29,7 +29,6 @@ game2d::update_ui_profiler_system(GameEditor& editor, Game& game)
   const auto& objs = registry.view<PhysicsTransformComponent>();
   const auto& solids = registry.view<PhysicsSolidComponent>();
   const auto& actors = registry.view<PhysicsActorComponent>();
-  const auto& stopped = registry.view<WasCollidedWithComponent>();
 
   // Profiler
   ImGui::Begin("Profiler ", NULL, ImGuiWindowFlags_NoFocusOnAppearing);
@@ -38,7 +37,6 @@ game2d::update_ui_profiler_system(GameEditor& editor, Game& game)
     ImGui::Text("Objects %i", objs.size());
     ImGui::Text("Solids %i", solids.size());
     ImGui::Text("Actors %i", actors.size());
-    ImGui::Text("WasCollidedWithComponent %i", stopped.size());
     ImGui::Text("collision_enter %i", physics.collision_enter.size());
     ImGui::Text("collision_stay %i", physics.collision_stay.size());
     ImGui::Text("collision_exit %i", physics.collision_exit.size());

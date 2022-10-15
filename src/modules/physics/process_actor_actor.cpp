@@ -34,10 +34,10 @@ game2d::update_actor_actor_system(GameEditor& editor, Game& game)
     p.collision_exit.clear();
 
     // Set any persistent collisions to dirty, as they're from last frame
-    for (auto& persistent_collision : p.persistent_collisions) {
+    for (auto& persistent_collision : p.persistent_collisions)
       persistent_collision.second.dirty = true;
-    }
 
+    // Check the new collisions
     for (const auto& frame_collision : p.frame_collisions) {
       const auto& val = frame_collision.first;
       const auto& pmap = p.persistent_collisions;

@@ -42,10 +42,12 @@ enum class EntityType
   // consumable items
   potion,
   scroll_damage_nearest,
+  scroll_damage_selected_on_grid,
 
   // misc...
   camera,
   free_cursor,
+  grid_cursor,
 
   count
 };

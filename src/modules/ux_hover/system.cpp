@@ -20,7 +20,9 @@ update_ux_hover_system(GameEditor& editor, Game& game)
   const auto& physics = game.physics;
   auto& r = game.state;
   const auto& cursor = get_first<FreeCursorComponent>(r);
-  const auto& cursor_collision_area = cursor.backdrop;
+  if (!cursor)
+    return;
+  const auto& cursor_collision_area = cursor->get().backdrop;
 
   // if (get_mouse_lmb_press())
   //   r.clear<SelectableComponent>();

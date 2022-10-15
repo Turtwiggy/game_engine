@@ -1,6 +1,7 @@
 #include "helpers.hpp"
 
 // my lib
+#include "game/components/actors.hpp"
 #include "game/components/app.hpp"
 #include "modules/lifecycle/components.hpp"
 #include "modules/renderer/components.hpp"
@@ -21,9 +22,9 @@ entt::entity
 game2d::create_hierarchy_root_node(entt::registry& r)
 {
   auto h = r.create();
-  const auto type_name = std::string("EMPTY");
 
-  r.emplace<TagComponent>(h, type_name);
+  r.emplace<TagComponent>(h, std::string("EMPTY"));
+  r.emplace<EntityTypeComponent>(h, EntityType::empty);
   r.emplace<EntityHierarchyComponent>(h);
   r.emplace<RootNode>(h);
   return h;

@@ -11,7 +11,6 @@ update_intent_purchase_item_system(GameEditor& editor, Game& game)
 
   // WantsToPurchase
   const auto& purchase_view = r.view<const WantsToPurchase>();
-
   for (auto [entity, intent] : purchase_view.each()) {
     for (const entt::entity& item : intent.items) {
 
@@ -36,27 +35,28 @@ update_intent_purchase_item_system(GameEditor& editor, Game& game)
         new_backpack.parent = entity;
       }
     }
+
+    // Done processing the item
+    r.remove<WantsToPurchase>(entity);
   }
 
   // WantsToSell
-  const auto& sell_view = r.view<const WantsToSell>();
-  sell_view.each([&r](auto entity, auto& intent) {
-    //
-    // Hack: sell to the first shopkeeper for the moment
-    const auto& shopkeepers = r.view<ShopKeeperComponent>();
-    const auto& shopkeeper0 = shopkeepers.front();
-
-    for (const auto& item : intent.items) {
-      if (auto* backpack = r.try_get<InBackpackComponent>(item)) {
-        // remove from the entity regretful hands
-        // why is the entity regretful? i dunno man
-        // put it in the now happy again shopkeeper
-        backpack->parent = shopkeeper0;
-      }
-    }
-
-    r.remove<WantsToSell>(entity); // assume success
-  });
+  // const auto& sell_view = r.view<const WantsToSell>();
+  // sell_view.each([&r](auto entity, auto& intent) {
+  //   //
+  //   // Hack: sell to the first shopkeeper for the moment
+  //   const auto& shopkeepers = r.view<ShopKeeperComponent>();
+  //   const auto& shopkeeper0 = shopkeepers.front();
+  //   for (const auto& item : intent.items) {
+  //     if (auto* backpack = r.try_get<InBackpackComponent>(item)) {
+  //       // remove from the entity regretful hands
+  //       // why is the entity regretful? i dunno man
+  //       // put it in the now happy again shopkeeper
+  //       backpack->parent = shopkeeper0;
+  //     }
+  //   }
+  //   r.remove<WantsToSell>(entity); // assume success
+  // });
 }
 
 } // namespace game2d

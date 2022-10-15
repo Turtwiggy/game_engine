@@ -7,6 +7,7 @@
 #include "game/modules/fov/system.hpp"
 #include "game/modules/items/intent_drop_item.hpp"
 #include "game/modules/items/intent_purchase_item.hpp"
+#include "game/modules/items/intent_select_units_for_item.hpp"
 #include "game/modules/items/intent_use_item.hpp"
 #include "game/modules/player/system.hpp"
 #include "game/systems/resolve_collisions.hpp"
@@ -31,7 +32,7 @@ game2d::simulate(GameEditor& editor, Game& game, const std::vector<InputEvent>& 
   auto& r = game.state;
 
   // process inputs in FixedUpdateInputHistory
-  update_player_controller_system(editor, game, inputs);
+  update_player_controller_system(editor, game, inputs, milliseconds_dt);
 
   // destroy objects
   update_lifecycle_system(editor, game, milliseconds_dt);
@@ -52,9 +53,10 @@ game2d::simulate(GameEditor& editor, Game& game, const std::vector<InputEvent>& 
 
   // game logic
   {
+    update_select_units_for_item_system(editor, game);
     update_intent_use_item_system(editor, game);
     update_intent_purchase_item_system(editor, game);
-    update_intent_drop_item_system(editor, game);
+    // update_intent_drop_item_system(editor, game);
     update_take_damage_system(editor, game);
   }
   {

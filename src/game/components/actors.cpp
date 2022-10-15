@@ -101,6 +101,8 @@ create_sprite(GameEditor& editor, entt::registry& r, const entt::entity& e, cons
     sprite = "PERSON_25_0";
   else if (type == EntityType::free_cursor)
     sprite = "EMPTY";
+  else if (type == EntityType::grid_cursor)
+    sprite = "EMPTY";
   else
     std::cerr << "warning! renderable not implemented: " << type_name << "\n";
 
@@ -119,6 +121,8 @@ create_sprite(GameEditor& editor, entt::registry& r, const entt::entity& e, cons
   else if (type == EntityType::potion)
     order = RenderOrder::foreground;
   else if (type == EntityType::scroll_damage_nearest)
+    order = RenderOrder::foreground;
+  else if (type == EntityType::scroll_damage_selected_on_grid)
     order = RenderOrder::foreground;
 
   SpriteComponent sc;
@@ -169,6 +173,8 @@ create_colour(GameEditor& editor, entt::registry& r, const entt::entity& e, cons
   else if (type == EntityType::shopkeeper)
     srgb = colours.red;
   else if (type == EntityType::free_cursor)
+    srgb = colours.red;
+  else if (type == EntityType::grid_cursor)
     srgb = colours.red;
   else
     std::cerr << "warning! not renderable: " << type_name << "\n";
@@ -231,6 +237,7 @@ create_gameplay(GameEditor& editor, Game& game, const entt::entity& e, const Ent
       // physics
       r.emplace<PhysicsTransformComponent>(e);
       r.emplace<PhysicsActorComponent>(e);
+      r.emplace<PhysicsSolidComponent>(e);
       r.emplace<GridMoveComponent>(e);
       // gameplay
       r.emplace<AiBrainComponent>(e);
@@ -242,6 +249,7 @@ create_gameplay(GameEditor& editor, Game& game, const entt::entity& e, const Ent
       // physics
       r.emplace<PhysicsTransformComponent>(e);
       r.emplace<PhysicsActorComponent>(e);
+      r.emplace<PhysicsSolidComponent>(e);
       r.emplace<GridMoveComponent>(e);
       // gameplay
       r.emplace<AiBrainComponent>(e);
@@ -324,6 +332,13 @@ create_gameplay(GameEditor& editor, Game& game, const entt::entity& e, const Ent
       r.emplace<AttackComponent>(e, AttackComponent(5, 10));
       break;
     }
+    case EntityType::scroll_damage_selected_on_grid: {
+      r.emplace<PhysicsTransformComponent>(e);
+      r.emplace<PhysicsActorComponent>(e);
+      r.emplace<ConsumableComponent>(e);
+      r.emplace<AttackComponent>(e, AttackComponent(5, 10));
+      break;
+    }
 
       // misc...
     case EntityType::camera: {
@@ -334,12 +349,12 @@ create_gameplay(GameEditor& editor, Game& game, const entt::entity& e, const Ent
     case EntityType::free_cursor: {
       const auto& h = r.view<RootNode>().front();
 
-      auto create = [&](const std::string& name) {
+      auto create = [&r, &editor, &game, &h, &type](const std::string& name) {
         auto line = r.create();
         r.emplace<TagComponent>(line, name);
         r.emplace<EntityTypeComponent>(line, type);
         create_gameplay(editor, game, line, EntityType::empty);
-        create_renderable(editor, r, line, EntityType::empty);
+        create_renderable(editor, r, line, EntityType::free_cursor);
         add_child(r, h, line);
         set_parent(r, line, h);
         return line;
@@ -353,7 +368,6 @@ create_gameplay(GameEditor& editor, Game& game, const entt::entity& e, const Ent
       r.emplace<PhysicsActorComponent>(backdrop);
       r.emplace<PhysicsTransformComponent>(backdrop);
 
-      // object tag
       FreeCursorComponent c;
       c.line_u = line_u;
       c.line_d = line_d;

@@ -33,7 +33,11 @@ game2d::update_ui_editor_tilemap_system(GameEditor& editor, Game& game)
 
   auto& ss = editor.sprites;
   auto& r = game.state;
-  auto& tilemap = get_first<TilemapComponent>(r);
+  auto tilemap_opt = game2d::get_first<TilemapComponent>(r);
+  if (!tilemap_opt.has_value())
+    return;
+  auto& tilemap = tilemap_opt->get();
+  return;
   auto& colours = editor.colours;
   const int GRID_SIZE = 16; // hmm
   const glm::ivec2 mouse_position =
