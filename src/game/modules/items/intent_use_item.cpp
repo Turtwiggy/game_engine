@@ -28,10 +28,8 @@ update_intent_use_item_system(GameEditor& editor, Game& game)
       for (const entt::entity& target : item.targets) {
         auto* target_hp = r.try_get<HealthComponent>(target);
         // Does the item heal?
-        if (item_heals && target_hp) {
+        if (item_heals && target_hp)
           target_hp->hp = glm::min(target_hp->max_hp, target_hp->hp + item_heals->health);
-          std::cout << "hp now at: " << target_hp->hp << "\n";
-        }
       }
 
       // Does the item damage?

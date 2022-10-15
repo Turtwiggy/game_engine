@@ -2,11 +2,10 @@
 
 #include "components.hpp"
 #include "engine/maths/grid.hpp"
-#include "engine/maths/maths.hpp"
-#include "game/helpers/priority_queue.hpp"
-#include "game/modules/player/components.hpp"
 #include "game/modules/dungeon/components.hpp"
 #include "game/modules/dungeon/helpers.hpp"
+#include "game/modules/player/components.hpp"
+#include "helpers.hpp"
 #include "modules/events/helpers/mouse.hpp"
 #include "modules/physics/components.hpp"
 #include "resources/colour.hpp"
@@ -19,144 +18,6 @@
 #include <vector>
 
 namespace game2d {
-
-struct vec2i
-{
-  int x = 0;
-  int y = 0;
-
-  // spaceship operator
-  auto operator<=>(const vec2i&) const = default;
-};
-
-vec2i
-operator-(const vec2i& a, const vec2i& b)
-{
-  return vec2i{ a.x - b.x, a.y - b.y };
-};
-
-// astar pathfinding
-
-template<typename T>
-int
-distance(const T& a, const T& b)
-{
-  int distance_x = a.x < b.x ? b.x - a.x : a.x - b.x;
-  int distance_y = a.y < b.y ? b.y - a.y : a.y - b.y;
-  return (distance_x + distance_y);
-}
-
-template<typename T>
-bool
-equal(const T& a, const T& b)
-{
-  return (a.x == b.x) && (a.y == b.y);
-};
-
-template<typename T>
-int
-heuristic(const T& a, const T& b)
-{
-  return distance<T>(a, b);
-};
-
-template<typename T>
-std::vector<T>
-reconstruct_path(std::map<T, T>& came_from, const T& start, const T& goal)
-{
-  T current = goal;
-
-  std::vector<T> path;
-
-  while (!equal<T>(current, start)) {
-    path.push_back(current);
-
-    T copy = current;
-    current = came_from[current];
-
-    if (equal<T>(copy, current)) {
-      printf("pathfinding hit a loop?");
-      break;
-    }
-  }
-
-  path.push_back(start); // optional to add end
-  std::reverse(path.begin(), path.end());
-  return path;
-}
-
-template<typename T>
-void
-evaluate_neighbour(std::map<T, T>& came_from,
-                   std::map<T, int>& cost_so_far,
-                   PriorityQueue<T>& frontier,
-                   const T& current,
-                   const T& neighbour,
-                   const int neighbour_cost,
-                   const T& to)
-{
-  // Assumption:
-  // assume multiple entities on the same tile
-  // are the same path cost.
-  int map_cost = neighbour_cost;
-  if (map_cost == -1)
-    return; // impassable
-  int new_cost = cost_so_far[current] + map_cost;
-  if (!cost_so_far.contains(neighbour) || new_cost < cost_so_far[neighbour]) {
-    cost_so_far[neighbour] = new_cost;
-    int priority = new_cost + heuristic<T>(neighbour, to);
-    frontier.enqueue(neighbour, priority);
-    came_from[neighbour] = current;
-  }
-}
-
-std::vector<vec2i>
-astar(entt::registry& registry, const vec2i& from, const vec2i& to)
-{
-  // hack: only one dungeon at the moment
-  const auto d = registry.view<Dungeon>().front();
-  const auto& dungeon = registry.get<Dungeon>(d);
-  const int x_max = dungeon.width;
-
-  if (equal<vec2i>(from, to)) //|| distance(from, to) == 0)
-    return {};
-
-  PriorityQueue<vec2i> frontier;
-  frontier.enqueue(from, 0);
-  std::map<vec2i, vec2i> came_from;
-  std::map<vec2i, int> cost_so_far;
-  came_from[from] = from;
-  cost_so_far[from] = 0;
-
-  // read-only view of the grid
-  const auto& group = registry.group<GridComponent, PathfindableComponent>();
-  group.sort<GridComponent>([&x_max](const auto& a, const auto& b) {
-    int index_a = x_max * a.y + a.x;
-    int index_b = x_max * b.y + b.x;
-    return index_a < index_b;
-  });
-
-  while (frontier.size() > 0) {
-    vec2i current = frontier.dequeue();
-
-    if (equal<vec2i>(current, to))
-      return reconstruct_path<vec2i>(came_from, from, to);
-
-    std::vector<std::pair<GridDirection, int>> results;
-    get_neighbour_indicies(current.x, current.y, dungeon.width, dungeon.height, results);
-
-    for (const auto& neighbour_idx : results) {
-      const auto& entity = group[neighbour_idx.second];
-      const auto [grid, path] = group.get<GridComponent, PathfindableComponent>(entity);
-
-      const vec2i neighbour = { grid.x, grid.y };
-      const int neighbour_cost = path.cost;
-      evaluate_neighbour<vec2i>(came_from, cost_so_far, frontier, current, neighbour, neighbour_cost, to);
-    }
-  }
-
-  return {};
-}
 
 void
 update_ai_system(GameEditor& editor, Game& game, const uint64_t& milliseconds_dt)
@@ -195,7 +56,6 @@ update_ai_system(GameEditor& editor, Game& game, const uint64_t& milliseconds_dt
     ai.milliseconds_between_ai_updates_left -= milliseconds_dt;
 
     if (ai.milliseconds_between_ai_updates_left <= 0) {
-      // reset the brain
       ai.milliseconds_between_ai_updates_left = k_milliseconds_between_ai_updates;
 
       // move it, chump!
@@ -207,10 +67,8 @@ update_ai_system(GameEditor& editor, Game& game, const uint64_t& milliseconds_dt
 
       if (path.size() >= 2) {
         const auto& next_step = path[1]; // path[0] is start
-
-        auto dir = next_step - from;
-        move.x = (dir.x * GRID_SIZE);
-        move.y = (dir.y * GRID_SIZE);
+        move.x = ((next_step.x - from.x) * GRID_SIZE);
+        move.y = ((next_step.y - from.y) * GRID_SIZE);
       }
 
       // debugging

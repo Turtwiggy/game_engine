@@ -6,6 +6,7 @@
 #include "game/modules/items/components.hpp"
 #include "game/modules/player/components.hpp"
 #include "modules/renderer/components.hpp"
+#include "modules/ux_hover/components.hpp"
 
 #include <entt/entt.hpp>
 #include <imgui.h>
@@ -52,6 +53,7 @@ game2d::update_ui_player_inventory_system(GameEditor& editor, Game& game)
   //
   // Budget Inventory Display
   //
+  const auto& colours = editor.colours;
 
   ImGui::Begin("Player(s) UI");
   {
@@ -84,10 +86,12 @@ game2d::update_ui_player_inventory_system(GameEditor& editor, Game& game)
           // HACK: this seems wrong
           if (type.type == EntityType::potion)
             info.targets = { entity_player }; // self
+
           if (type.type == EntityType::scroll_damage_nearest) {
             entt::entity nearest = get_nearest_attackable(game, entity_player);
-            if (nearest != entt::null)
+            if (nearest != entt::null) {
               info.targets = { nearest };
+            }
           }
 
           u.items.push_back(info);
@@ -107,6 +111,17 @@ game2d::update_ui_player_inventory_system(GameEditor& editor, Game& game)
           u.items.push_back(entity_item);
         }
       }
+
+      // DEBUG: highlight the nearest enemy
+      // entt::entity nearest = get_nearest_attackable(game, entity_player);
+      // if (nearest != entt::null) {
+      //   r.emplace_or_replace<SelectableComponent>(nearest, true);
+      //   SpriteColourComponent& sc = r.get<SpriteColourComponent>(nearest);
+      //   HoverComponent hc;
+      //   hc.regular_colour = engine::LinearToSRGB(sc.colour);
+      //   hc.hover_colour = colours.green;
+      //   r.emplace_or_replace<HoverComponent>(nearest, hc);
+      // }
     }
   }
   ImGui::End();

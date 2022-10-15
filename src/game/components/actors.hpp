@@ -46,7 +46,6 @@ enum class EntityType
   // misc...
   camera,
   free_cursor,
-  aim_line,
 
   count
 };

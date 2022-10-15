@@ -11,6 +11,7 @@
 #include "game/modules/items/components.hpp"
 #include "game/modules/ui_event_console/system.hpp"
 #include "game/modules/ui_health_bar/system.hpp"
+#include "game/modules/ui_main_menu/system.hpp"
 #include "game/modules/ui_player_inventory/system.hpp"
 #include "game/simulate.hpp"
 #include "game/systems/resolve_collisions.hpp"
@@ -30,7 +31,6 @@
 #include "modules/ui_editor_tilemap/system.hpp"
 #include "modules/ui_hierarchy/helpers.hpp"
 #include "modules/ui_hierarchy/system.hpp"
-#include "modules/ui_physics/system.hpp"
 #include "modules/ui_profiler/helpers.hpp"
 #include "modules/ui_profiler/system.hpp"
 #include "modules/ui_sprite_searcher/system.hpp"
@@ -63,7 +63,7 @@ init_game_state(GameEditor& editor)
 
   EntityType et = EntityType::shopkeeper;
   auto shopkeeper = create_gameplay(editor, game, et);
-  create_renderable(editor, r, shopkeeper, et);
+  // create_renderable(ed itor, r, shopkeeper, et);
 
   // stock up!
   const auto& view = r.view<ShopKeeperComponent>();
@@ -129,26 +129,31 @@ fixed_update(GameEditor& editor, Game& game, uint64_t milliseconds_dt)
     auto& input = game.input;
     auto& fixed_input = game.fixed_update_input;
 
-    // while offline, just clear out anything older than a tick
-    // (until a gameplay system needs older input)
-    fixed_input.history.clear();
+    if (game.paused) {
+      // ignore inputs
+      input.unprocessed_inputs.clear();
+    } else {
 
-    // move inputs from Update() to this FixedUpdate() tick
-    fixed_input.history[fixed_input.fixed_tick] = std::move(input.unprocessed_inputs);
-    std::vector<InputEvent>& inputs = fixed_input.history[fixed_input.fixed_tick];
+      // while offline, just clear out anything older than a tick
+      // (until a gameplay system needs older input)
+      fixed_input.history.clear();
 
-    simulate(editor, game, inputs, milliseconds_dt);
+      // move inputs from Update() to this FixedUpdate() tick
+      fixed_input.history[fixed_input.fixed_tick] = std::move(input.unprocessed_inputs);
+      std::vector<InputEvent>& inputs = fixed_input.history[fixed_input.fixed_tick];
 
-    fixed_input.fixed_tick += 1;
+      simulate(editor, game, inputs, milliseconds_dt);
+      fixed_input.fixed_tick += 1;
 
-    // update_networking_system(r, milliseconds_dt);
-
-    // reset game
-    for (const InputEvent& i : inputs) {
-      if (i.type == InputType::keyboard && i.key == static_cast<uint32_t>(SDL_SCANCODE_R) && !i.release) {
-        game = init_game_state(editor);
+      // reset game
+      for (const InputEvent& i : inputs) {
+        if (i.type == InputType::keyboard && i.key == static_cast<uint32_t>(SDL_SCANCODE_R) && !i.release) {
+          game = init_game_state(editor);
+        }
       }
     }
+
+    // update_networking_system(r, milliseconds_dt);
   }
 }
 
@@ -161,26 +166,16 @@ update(engine::SINGLETON_Application& app, GameEditor& editor, Game& game, float
     auto _ = time_scope(&p, "game_tick");
     update_input_system(app, editor, game);
 
-    auto& input = game.input;
+    // ... systems that update only if viewport is focused or hovered
+    if (ri.viewport_process_events)
+      update_camera_system(editor, game, dt);
 
-    // if (ri.viewport_process_events) {
-    if (get_key_down(input, SDL_SCANCODE_F))
-      app.window.toggle_fullscreen();
-    if (get_key_down(input, SDL_SCANCODE_ESCAPE))
-      app.running = false;
-
-    {
-      // ... systems that update only if viewport is focused or hovered
-      if (ri.viewport_process_events) {
-        update_camera_system(editor, game, dt);
-      }
-
-      // ... systems that always update
-      update_audio_system(editor);
-      update_cursor_system(editor, game);
-      update_ux_hover_system(editor, game);
-    }
+    // ... systems that always update
+    update_audio_system(editor);
+    // update_cursor_system(editor, game);
+    update_ux_hover_system(editor, game);
   };
+
   {
     // put rendering on thread?
     auto _ = time_scope(&p, "rendering");
@@ -189,24 +184,21 @@ update(engine::SINGLETON_Application& app, GameEditor& editor, Game& game, float
   };
 
   {
-    auto _ = time_scope(&p, "ui"); // value always be a frame behind
-    {
-      update_ui_hp_bar(editor, game);
-      update_ui_event_console(editor, game);
-      update_ui_player_inventory_system(editor, game);
-      // update_ui_networking_system(editor, game);
-      // update_ui_main_menu_system(editor, game);
+    auto _ = time_scope(&p, "ui"); // value for ui always be a frame behind
+    update_ui_hp_bar(editor, game);
+    update_ui_event_console(editor, game);
+    update_ui_player_inventory_system(editor, game);
+    update_ui_main_menu_system(app, editor, game);
 
-      static bool show_editor_ui = true;
-      if (show_editor_ui) {
-        update_ui_editor_bar_system(editor, game);
-        update_ui_editor_tilemap_system(editor, game);
-        update_ui_editor_scene_system(editor, game);
-        update_ui_physics_system(editor, game);
-        update_ui_hierarchy_system(editor, game);
-        update_ui_profiler_system(editor, game);
-        update_ui_sprite_searcher_system(editor, game);
-      }
+    static bool show_editor_ui = true;
+    if (show_editor_ui) {
+      update_ui_editor_bar_system(editor, game);
+      update_ui_hierarchy_system(editor, game);
+      update_ui_profiler_system(editor, game);
+      // update_ui_editor_tilemap_system(editor, game);
+      // update_ui_editor_scene_system(editor, game);
+      // update_ui_sprite_searcher_system(editor, game);
+      // update_ui_networking_system(editor, game);
     }
   };
 

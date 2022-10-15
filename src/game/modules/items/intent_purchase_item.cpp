@@ -26,10 +26,6 @@ update_intent_purchase_item_system(GameEditor& editor, Game& game)
         // why are they angry? i dunno man, they're being robbed
         // put it in the entity hands
         backpack->parent = entity;
-
-        // const TagComponent tag = r.get<TagComponent>(item);
-        // const std::string msg = std::format("You purchased: {}", tag.tag.c_str());
-        // game.ui_events.events.push_back(msg);
       }
 
       // If it wasn't in a backpack, put it in a backpack
@@ -38,10 +34,6 @@ update_intent_purchase_item_system(GameEditor& editor, Game& game)
       else {
         InBackpackComponent& new_backpack = r.emplace<InBackpackComponent>(item);
         new_backpack.parent = entity;
-
-        // const TagComponent tag = r.get<TagComponent>(item);
-        // const std::string msg = std::format("You purchased: {}", tag.tag.c_str());
-        // game.ui_events.events.push_back(msg);
       }
     }
   }

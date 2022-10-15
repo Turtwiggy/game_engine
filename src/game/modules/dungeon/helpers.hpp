@@ -13,16 +13,11 @@
 
 namespace game2d {
 
+entt::entity
+create_dungeon_entity(GameEditor& editor, Game& game, EntityType et, glm::ivec2 grid_index);
+
 std::vector<entt::entity>
 grid_entities_at(entt::registry& r, int x, int y);
-
-// e.g. 0, 0 should return {1, 0}, {1, 1}, {0, 1}
-void
-get_neighbour_indicies(const int x,
-                       const int y,
-                       const int x_max,
-                       const int y_max,
-                       std::vector<std::pair<GridDirection, int>>& results);
 
 constexpr glm::ivec2
 room_center(const Room& r)
@@ -46,9 +41,6 @@ create_tunnel(GameEditor& editor, Game& game, const Dungeon& d, int x1, int y1, 
 //
 // Gameplay logic below
 //
-
-entt::entity
-create_dungeon_entity(GameEditor& editor, Game& game, EntityType et, glm::ivec2 grid_index);
 
 void
 set_pathfinding_cost(GameEditor& editor, Game& game);

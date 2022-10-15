@@ -15,6 +15,26 @@ game2d::update_resolve_collisions_system(Game& game)
   auto& r = game.state;
   const auto& physics = game.physics;
 
+  auto clean = [&r](entt::entity& e) {
+    // remove renderable
+    auto* sc = r.try_get<SpriteComponent>(e);
+    if (sc)
+      r.remove<SpriteComponent>(e);
+    auto* scc = r.try_get<SpriteColourComponent>(e);
+    if (scc)
+      r.remove<SpriteColourComponent>(e);
+    auto* tc = r.try_get<TransformComponent>(e);
+    if (tc)
+      r.remove<TransformComponent>(e);
+    // remove physics?
+    if (auto* ptc = r.try_get<PhysicsTransformComponent>(e))
+      r.remove<PhysicsTransformComponent>(e);
+    if (auto* psc = r.try_get<PhysicsSolidComponent>(e))
+      r.remove<PhysicsSolidComponent>(e);
+    if (auto* pac = r.try_get<PhysicsActorComponent>(e))
+      r.remove<PhysicsActorComponent>(e);
+  };
+
   { // take damage on collision
     const auto& view = r.view<const WasCollidedWithComponent, TakeDamageComponent>();
     for (auto [entity, coll, damages] : view.each()) {
@@ -23,8 +43,9 @@ game2d::update_resolve_collisions_system(Game& game)
     }
   }
 
-  { // TODO: flash sprite on collision
-    const auto& view = r.view<WasCollidedWithComponent, HealthComponent>();
+  {
+    // TODO: flash sprite on collision
+    // const auto& view = r.view<WasCollidedWithComponent, HealthComponent>();
   }
 
   {
@@ -50,16 +71,7 @@ game2d::update_resolve_collisions_system(Game& game)
             auto& purchase = r.get_or_emplace<WantsToPurchase>(player_entity);
             purchase.items.push_back(other);
 
-            // remove renderable
-            auto* sc = r.try_get<SpriteComponent>(other);
-            if (sc)
-              r.remove<SpriteComponent>(other);
-            auto* scc = r.try_get<SpriteColourComponent>(other);
-            if (scc)
-              r.remove<SpriteColourComponent>(other);
-            auto* tc = r.try_get<TransformComponent>(other);
-            if (tc)
-              r.remove<TransformComponent>(other);
+            clean(other);
           }
         }
 
@@ -75,16 +87,7 @@ game2d::update_resolve_collisions_system(Game& game)
             auto& purchase = r.get_or_emplace<WantsToPurchase>(player_entity);
             purchase.items.push_back(other);
 
-            // remove renderable
-            auto* sc = r.try_get<SpriteComponent>(other);
-            if (sc)
-              r.remove<SpriteComponent>(other);
-            auto* scc = r.try_get<SpriteColourComponent>(other);
-            if (scc)
-              r.remove<SpriteColourComponent>(other);
-            auto* tc = r.try_get<TransformComponent>(other);
-            if (tc)
-              r.remove<TransformComponent>(other);
+            clean(other);
           }
         }
       }

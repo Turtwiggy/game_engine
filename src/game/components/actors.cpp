@@ -83,8 +83,6 @@ create_sprite(GameEditor& editor, entt::registry& r, const entt::entity& e, cons
     sprite = "WALL_16_0";
   else if (type == EntityType::floor)
     sprite = "CASTLE_FLOOR";
-  else if (type == EntityType::aim_line)
-    sprite = "EMPTY";
   else if (type == EntityType::enemy_orc)
     sprite = "PERSON_25_0";
   else if (type == EntityType::enemy_troll)
@@ -154,8 +152,6 @@ create_colour(GameEditor& editor, entt::registry& r, const entt::entity& e, cons
     srgb = colours.wall;
   else if (type == EntityType::floor)
     srgb = colours.floor;
-  else if (type == EntityType::aim_line)
-    srgb = colours.desat_red;
   else if (type == EntityType::enemy_orc)
     srgb = colours.asteroid;
   else if (type == EntityType::enemy_troll)
@@ -234,9 +230,8 @@ create_gameplay(GameEditor& editor, Game& game, const entt::entity& e, const Ent
     case EntityType::enemy_troll: {
       // physics
       r.emplace<PhysicsTransformComponent>(e);
-      r.emplace<GridMoveComponent>(e);
-      r.emplace<PhysicsSolidComponent>(e);
       r.emplace<PhysicsActorComponent>(e);
+      r.emplace<GridMoveComponent>(e);
       // gameplay
       r.emplace<AiBrainComponent>(e);
       r.emplace<HealthComponent>(e);
@@ -246,9 +241,8 @@ create_gameplay(GameEditor& editor, Game& game, const entt::entity& e, const Ent
     case EntityType::enemy_orc: {
       // physics
       r.emplace<PhysicsTransformComponent>(e);
-      r.emplace<GridMoveComponent>(e);
-      r.emplace<PhysicsSolidComponent>(e);
       r.emplace<PhysicsActorComponent>(e);
+      r.emplace<GridMoveComponent>(e);
       // gameplay
       r.emplace<AiBrainComponent>(e);
       r.emplace<HealthComponent>(e);
@@ -257,17 +251,12 @@ create_gameplay(GameEditor& editor, Game& game, const entt::entity& e, const Ent
     }
     case EntityType::player: {
       r.emplace<PhysicsTransformComponent>(e);
-      r.emplace<GridMoveComponent>(e);
-      r.emplace<PhysicsSolidComponent>(e);
       r.emplace<PhysicsActorComponent>(e);
+      r.emplace<GridMoveComponent>(e);
       // gameplay
+      r.emplace<PlayerComponent>(e);
       r.emplace<HealthComponent>(e);
       r.emplace<TakeDamageComponent>(e);
-
-      PlayerComponent p;
-      p.aim_line = create_gameplay(editor, game, EntityType::aim_line);
-      create_renderable(editor, r, p.aim_line, EntityType::aim_line);
-      r.emplace<PlayerComponent>(e, p);
       break;
     }
     case EntityType::shopkeeper: {
@@ -278,10 +267,29 @@ create_gameplay(GameEditor& editor, Game& game, const entt::entity& e, const Ent
 
       // items
 
+    case EntityType::arrow: {
+      // physics
+      r.emplace<PhysicsTransformComponent>(e);
+      r.emplace<PhysicsActorComponent>(e);
+      r.emplace<VelocityComponent>(e);
+      // gameplay
+      r.emplace<AttackComponent>(e, AttackComponent(10, 20));
+
+      break;
+    }
     case EntityType::stone: {
       r.emplace<AttackComponent>(e, AttackComponent(0, 4));
       break;
     }
+    case EntityType::bolt: {
+      r.emplace<PhysicsTransformComponent>(e);
+      r.emplace<PhysicsActorComponent>(e);
+      r.emplace<VelocityComponent>(e);
+      // gameplay
+      // r.emplace<EntityTimedLifecycle>(e, 20000); // bullet time alive
+      break;
+    }
+
     case EntityType::sword: {
       r.emplace<AttackComponent>(e, AttackComponent(10, 20));
       break;
@@ -292,13 +300,6 @@ create_gameplay(GameEditor& editor, Game& game, const entt::entity& e, const Ent
     }
     case EntityType::crossbow: {
       r.emplace<AttackComponent>(e, AttackComponent(10, 20));
-      break;
-    }
-    case EntityType::bolt: {
-      r.emplace<PhysicsTransformComponent>(e);
-      r.emplace<VelocityComponent>(e);
-      // gameplay
-      // r.emplace<EntityTimedLifecycle>(e, 20000); // bullet time alive
       break;
     }
     case EntityType::shield: {
@@ -321,8 +322,6 @@ create_gameplay(GameEditor& editor, Game& game, const entt::entity& e, const Ent
       r.emplace<PhysicsActorComponent>(e);
       r.emplace<ConsumableComponent>(e);
       r.emplace<AttackComponent>(e, AttackComponent(5, 10));
-      r.emplace<RangedComponent>(e);
-      // r.emplace<GiveDamageComponent>(e);
       break;
     }
 
@@ -332,9 +331,6 @@ create_gameplay(GameEditor& editor, Game& game, const entt::entity& e, const Ent
       break;
     }
 
-    case EntityType::aim_line: {
-      break;
-    }
     case EntityType::free_cursor: {
       const auto& h = r.view<RootNode>().front();
 

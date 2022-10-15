@@ -2,6 +2,7 @@
 #include "system.hpp"
 
 // components
+#include "modules/physics/components.hpp"
 #include "modules/renderer/components.hpp"
 #include "modules/ui_profiler/components.hpp"
 
@@ -22,26 +23,40 @@ game2d::update_ui_profiler_system(GameEditor& editor, Game& game)
   //   std::cout << "(profiler) fps drop?!" << "\n";
 #endif
 
-  auto& p = editor.profiler;
+  auto& profiler = editor.profiler;
+  const auto& registry = game.state;
+  const auto& physics = game.physics;
+  const auto& objs = registry.view<PhysicsTransformComponent>();
+  const auto& solids = registry.view<PhysicsSolidComponent>();
+  const auto& actors = registry.view<PhysicsActorComponent>();
+  const auto& stopped = registry.view<WasCollidedWithComponent>();
 
   // Profiler
   ImGui::Begin("Profiler ", NULL, ImGuiWindowFlags_NoFocusOnAppearing);
   {
-    ImGui::Text("FPS %f", ImGui::GetIO().Framerate);
+    ImGui::Text("¬¬ Physics");
+    ImGui::Text("Objects %i", objs.size());
+    ImGui::Text("Solids %i", solids.size());
+    ImGui::Text("Actors %i", actors.size());
+    ImGui::Text("WasCollidedWithComponent %i", stopped.size());
+    ImGui::Text("collision_enter %i", physics.collision_enter.size());
+    ImGui::Text("collision_stay %i", physics.collision_stay.size());
+    ImGui::Text("collision_exit %i", physics.collision_exit.size());
+
+    ImGui::Text("¬¬ Renderer");
     ImGui::Text("Draw Calls QR %i", engine::quad_renderer::QuadRenderer::draw_calls());
     ImGui::Text("Draw Calls TR %i", engine::triangle_renderer::TriangleRenderer::draw_calls());
     ImGui::Text("Draw Calls TFR %i", engine::triangle_fan_renderer::TriangleFanRenderer::draw_calls());
-    ImGui::Separator();
+    ImGui::Text("FPS %f", ImGui::GetIO().Framerate);
     ImGui::Text("Frame ms total %f", 1000.0f / ImGui::GetIO().Framerate);
 
-    for (const auto& result : p.update_results)
+    for (const auto& result : profiler.update_results)
       ImGui::Text("update: %s %f", result.name.c_str(), result.ms);
-
-    for (const auto& result : p.fixed_update_results)
+    for (const auto& result : profiler.fixed_update_results)
       ImGui::Text("fixed_update: %s %f", result.name.c_str(), result.ms);
 
-    p.update_results.clear();
-    p.fixed_update_results.clear();
+    profiler.update_results.clear();
+    profiler.fixed_update_results.clear();
   }
   ImGui::End();
 };

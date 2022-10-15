@@ -73,6 +73,7 @@ struct Game
   // beginning of the end
   SetOnce<bool> on_start{ true };
   SetOnce<bool> gameover{ false };
+  bool paused = false;
 };
 
 } // namespace game2d

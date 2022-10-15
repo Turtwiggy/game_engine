@@ -22,35 +22,34 @@ update_ux_hover_system(GameEditor& editor, Game& game)
   const auto& cursor = get_first<FreeCursorComponent>(r);
   const auto& cursor_collision_area = cursor.backdrop;
 
-  if (get_mouse_lmb_press())
-    r.clear<SelectableComponent>();
+  // if (get_mouse_lmb_press())
+  //   r.clear<SelectableComponent>();
 
   // const auto& input = game.input;
-  if (get_mouse_lmb_held()) {
+  // if (get_mouse_lmb_held()) {
 
-    for (const auto& coll : physics.collision_stay) {
-      uint32_t id = static_cast<uint32_t>(cursor_collision_area);
-      if (coll.ent_id_0 == id) {
-        auto other = static_cast<entt::entity>(coll.ent_id_1);
-        r.emplace_or_replace<SelectableComponent>(other);
-      }
-      if (coll.ent_id_1 == id) {
-        auto other = static_cast<entt::entity>(coll.ent_id_0);
-        r.emplace_or_replace<SelectableComponent>(other);
-      }
-    }
+  // for (const auto& coll : physics.collision_stay) {
+  //   uint32_t id = static_cast<uint32_t>(cursor_collision_area);
+  //   if (coll.ent_id_0 == id) {
+  //     auto other = static_cast<entt::entity>(coll.ent_id_1);
+  //     r.emplace_or_replace<SelectableComponent>(other);
+  //   }
+  //   if (coll.ent_id_1 == id) {
+  //     auto other = static_cast<entt::entity>(coll.ent_id_0);
+  //     r.emplace_or_replace<SelectableComponent>(other);
+  //   }
+  // }
 
-    //
-    // change colours of all selected entities
-    //
-    const auto& view = r.view<HoverComponent, SpriteColourComponent>();
-    for (auto [entity, hover, sprite] : view.each()) {
-      auto* selected = r.try_get<SelectableComponent>(entity);
-      if (selected)
-        sprite.colour = engine::SRGBToLinear(hover.hover_colour);
-      else
-        sprite.colour = engine::SRGBToLinear(hover.regular_colour);
-    }
+  //
+  // change colours of all selected entities
+  //
+  const auto& view = r.view<HoverComponent, SpriteColourComponent>();
+  for (auto [entity, hover, sprite] : view.each()) {
+    auto* selected = r.try_get<SelectableComponent>(entity);
+    if (selected)
+      sprite.colour = engine::SRGBToLinear(hover.hover_colour);
+    else
+      sprite.colour = engine::SRGBToLinear(hover.regular_colour);
   }
 };
 

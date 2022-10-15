@@ -1,6 +1,7 @@
 #pragma once
 
 #include <entt/entt.hpp>
+#include <nlohmann/json.hpp>
 
 //
 // AI / pathfinding

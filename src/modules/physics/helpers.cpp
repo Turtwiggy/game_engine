@@ -85,9 +85,8 @@ do_move(entt::registry& r,
         transform.position.y += sign;
       amount -= sign;
     }
-
-    return std::nullopt;
   }
+  return std::nullopt;
 };
 
 void
