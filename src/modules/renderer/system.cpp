@@ -10,7 +10,6 @@
 #include "modules/renderer/helpers/helpers.hpp"
 #include "modules/sprites/components.hpp"
 #include "modules/sprites/helpers.hpp"
-#include "modules/ui_hierarchy/components.hpp"
 #include "resources/colour.hpp"
 #include "resources/textures.hpp"
 

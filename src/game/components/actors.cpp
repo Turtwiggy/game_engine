@@ -50,12 +50,9 @@ add_child(entt::registry& r, const entt::entity& e, const entt::entity& child)
 };
 
 entt::entity
-create_item(GameEditor& editor, Game& game, const EntityType& type, const entt::entity& parent)
+create_item(GameEditor& editor, entt::registry& r, const EntityType& type, const entt::entity& parent)
 {
-  auto& r = game.state;
-
-  auto e = create_gameplay(editor, game, type);
-
+  auto e = create_gameplay(editor, r, type);
   r.emplace<InBackpackComponent>(e, parent);
   return e;
 };
@@ -195,9 +192,8 @@ create_renderable(GameEditor& editor, entt::registry& r, const entt::entity& e, 
 };
 
 entt::entity
-create_gameplay(GameEditor& editor, Game& game, const EntityType& type)
+create_gameplay(GameEditor& editor, entt::registry& r, const EntityType& type)
 {
-  auto& r = game.state;
   const auto& h = r.view<RootNode>().front();
   const auto& e = r.create();
 
@@ -206,16 +202,15 @@ create_gameplay(GameEditor& editor, Game& game, const EntityType& type)
   r.emplace<TagComponent>(e, std::string(magic_enum::enum_name(type)));
   r.emplace<EntityTypeComponent>(e, type);
 
-  create_gameplay_existing_entity(editor, game, e, type);
+  create_gameplay_existing_entity(editor, r, e, type);
 
   return e;
 };
 
 void
-create_gameplay_existing_entity(GameEditor& editor, Game& game, const entt::entity& e, const EntityType& type)
+create_gameplay_existing_entity(GameEditor& editor, entt::registry& r, const entt::entity& e, const EntityType& type)
 {
   const auto& colours = editor.colours;
-  auto& r = game.state;
   const auto type_name = std::string(magic_enum::enum_name(type));
 
   switch (type) {
@@ -358,11 +353,11 @@ create_gameplay_existing_entity(GameEditor& editor, Game& game, const entt::enti
     case EntityType::free_cursor: {
       const auto& h = r.view<RootNode>().front();
 
-      auto create = [&r, &editor, &game, &h, &type](const std::string& name) {
+      auto create = [&r, &editor, &h, &type](const std::string& name) {
         auto line = r.create();
         r.emplace<TagComponent>(line, name);
         r.emplace<EntityTypeComponent>(line, type);
-        create_gameplay_existing_entity(editor, game, line, EntityType::empty);
+        create_gameplay_existing_entity(editor, r, line, EntityType::empty);
         create_renderable(editor, r, line, EntityType::free_cursor);
         add_child(r, h, line);
         set_parent(r, line, h);

@@ -155,8 +155,10 @@ check_if_collided_with_exit(Game& game)
   for (auto [player_entity, player] : players.each()) {
     for (const auto& coll : physics.collision_stay) {
       auto [player_coll_ent, other] = collision_of_interest(r, coll, player_entity, valid_types);
-      if (other != entt::null) {
-        std::cout << "colliding with exit \n";
+      if (player_coll_ent != entt::null) {
+        CollidingWithExitComponent c;
+        c.exit = other;
+        r.emplace_or_replace<CollidingWithExitComponent>(player_coll_ent, c);
       }
     }
   }

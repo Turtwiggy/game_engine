@@ -4,14 +4,12 @@
 
 #include "components.hpp"
 
+#include <entt/entt.hpp>
+
 namespace game2d {
 
-// If the room generation algorithm hits "step" rooms
-// the algorithm is stopped. This can be useful for debugging
-// by pausing it at "step" 1, 2, 3, 4 and seeing what the
-// rooms look like at that "step".
 void
-generate_dungeon(GameEditor& editor, Game& game, const Dungeon& d);
+generate_dungeon(GameEditor& editor, entt::registry& r, const Dungeon& d, uint32_t seed);
 
 void
 update_dungeon_system(GameEditor& editor, Game& game);

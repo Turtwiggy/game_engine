@@ -29,10 +29,12 @@ void
 game2d::simulate(GameEditor& editor, Game& game, const std::vector<InputEvent>& inputs, uint64_t milliseconds_dt)
 {
   auto& p = editor.profiler;
-  auto& r = game.state;
 
   // process inputs in FixedUpdateInputHistory
   update_player_controller_system(editor, game, inputs, milliseconds_dt);
+
+  auto _ = time_scope(&p, "(game_logic)-dungeon", true);
+  update_dungeon_system(editor, game);
 
   // destroy objects
   update_lifecycle_system(editor, game, milliseconds_dt);
@@ -40,6 +42,7 @@ game2d::simulate(GameEditor& editor, Game& game, const std::vector<InputEvent>& 
   {
     auto _ = time_scope(&p, "(physics-move-objs)", true);
     // move objects, checking collisions along way
+    auto& r = game.state;
     update_move_objects_system(r, milliseconds_dt);
   }
   {
@@ -58,10 +61,6 @@ game2d::simulate(GameEditor& editor, Game& game, const std::vector<InputEvent>& 
     update_intent_purchase_item_system(editor, game);
     update_intent_drop_item_system(editor, game);
     update_take_damage_system(editor, game);
-  }
-  {
-    auto _ = time_scope(&p, "(game_logic)-dungeon", true);
-    update_dungeon_system(editor, game);
   }
   {
     auto _ = time_scope(&p, "(game_logic)-fov", true);

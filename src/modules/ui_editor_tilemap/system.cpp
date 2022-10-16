@@ -36,7 +36,7 @@ game2d::update_ui_editor_tilemap_system(GameEditor& editor, Game& game)
 
   auto tilemap_opt = game2d::get_first<TilemapComponent>(r);
   if (!tilemap_opt.has_value()) {
-    auto e = create_gameplay(editor, game, EntityType::empty);
+    auto e = create_gameplay(editor, r, EntityType::empty);
     r.emplace<TilemapComponent>(e);
   }
 
@@ -139,7 +139,7 @@ game2d::update_ui_editor_tilemap_system(GameEditor& editor, Game& game)
 
       if (empty_space) {
         // create
-        e = create_gameplay(editor, game, type);
+        e = create_gameplay(editor, r, type);
         create_renderable(editor, r, e, type);
         auto& transform = r.get<TransformComponent>(e);
         transform.position.x = world_position.x;

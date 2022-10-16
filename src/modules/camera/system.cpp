@@ -17,26 +17,6 @@
 
 namespace game2d {
 
-void
-init_camera_system(GameEditor& editor, Game& game)
-{
-  const auto& ri = editor.renderer;
-  auto& registry = game.state;
-
-  // create a camera
-  {
-    auto c = create_gameplay(editor, game, EntityType::camera);
-    registry.emplace<TransformComponent>(c);
-  }
-
-  // center all cameras
-  // const auto& cameras = registry.view<CameraComponent, TransformComponent>();
-  // for (auto [entity, camera, transform] : cameras.each()) {
-  //   transform.position.x = camera_target.x;
-  //   transform.position.y = camera_target.y;
-  // }
-};
-
 // VARS
 const int GRID_SIZE = 16;
 static float damping = 0.5f;

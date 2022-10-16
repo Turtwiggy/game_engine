@@ -3,7 +3,6 @@
 
 #include "modules/camera/components.hpp"
 #include "modules/renderer/components.hpp"
-#include "modules/ui_hierarchy/components.hpp"
 
 #include <glm/gtx/quaternion.hpp>
 

@@ -14,10 +14,7 @@
 namespace game2d {
 
 entt::entity
-create_dungeon_entity(GameEditor& editor, Game& game, EntityType et, glm::ivec2 grid_index);
-
-std::vector<entt::entity>
-grid_entities_at(entt::registry& r, int x, int y);
+create_dungeon_entity(GameEditor& editor, entt::registry& r, EntityType et, const glm::ivec2& grid_index);
 
 constexpr glm::ivec2
 room_center(const Room& r)
@@ -29,29 +26,29 @@ bool
 rooms_overlap(const Room& r0, const Room& r1);
 
 void
-create_room(GameEditor& editor, Game& game, const Room& room);
+create_room(GameEditor& editor, entt::registry& r, const Room& room);
 
 void
-create_tunnel_floor(GameEditor& editor, Game& game, const Dungeon& d, std::vector<std::pair<int, int>>& coords);
+create_tunnel_floor(GameEditor& editor, entt::registry& r, const Dungeon& d, std::vector<std::pair<int, int>>& coords);
 
 // Create an L-shaped tunnel between two points
 void
-create_tunnel(GameEditor& editor, Game& game, const Dungeon& d, int x1, int y1, int x2, int y2);
+create_tunnel(GameEditor& editor, entt::registry& r, const Dungeon& d, int x1, int y1, int x2, int y2);
 
 //
 // Gameplay logic below
 //
 
 void
-set_pathfinding_cost(GameEditor& editor, Game& game);
+set_pathfinding_cost(GameEditor& editor, entt::registry& r);
 
 void
-set_player_positions(GameEditor& editor, Game& game, std::vector<Room>& rooms, engine::RandomState& rnd);
+set_player_positions(GameEditor& editor, entt::registry& r, std::vector<Room>& rooms, engine::RandomState& rnd);
 
 void
-set_enemy_positions(GameEditor& editor, Game& game, std::vector<Room>& rooms, engine::RandomState& rnd);
+set_enemy_positions(GameEditor& editor, entt::registry& r, std::vector<Room>& rooms, engine::RandomState& rnd);
 
 void
-set_item_positions(GameEditor& editor, Game& game, std::vector<Room>& rooms, engine::RandomState& rnd);
+set_item_positions(GameEditor& editor, entt::registry& r, std::vector<Room>& rooms, engine::RandomState& rnd);
 
 } // namespace game2d

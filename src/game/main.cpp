@@ -18,9 +18,9 @@ using namespace engine;
 // fixed tick
 static const int MILLISECONDS_PER_FIXED_TICK = 7; // or ~142 ticks per second
 // static int MILLISECONDS_PER_FIXED_TICK = 16; // or ~62.5 ticks per second
-static uint64_t milliseconds_since_last_tick = 0;
-static uint64_t now = 0;
-static uint64_t last = 0;
+static uint64_t milliseconds_accumulator_since_last_tick = 0;
+static uint64_t new_time = 0;
+static uint64_t cur_time = 0;
 static uint64_t milliseconds_delta_time = 0;
 
 static SINGLETON_Application app;
@@ -34,20 +34,17 @@ main_loop(void* arg)
 
   engine::start_frame(app);
 
-  last = now;
-  now = SDL_GetTicks64();
-  milliseconds_delta_time = now - last;
-
-  // const int max_frames_to_process = 2;
-  // const int cap_ms = (MILLISECONDS_PER_FIXED_TICK * max_frames_to_process) + 1;
+  new_time = SDL_GetTicks64();
+  milliseconds_delta_time = new_time - cur_time;
   if (milliseconds_delta_time > 250)
     milliseconds_delta_time = 250; // avoid spiral
+  cur_time = new_time;
 
   // The physics cycle may happen more than once per frame if
   // the fixed timestep is less than the actual frame update time.
-  milliseconds_since_last_tick += milliseconds_delta_time;
-  while (milliseconds_since_last_tick >= MILLISECONDS_PER_FIXED_TICK) {
-    milliseconds_since_last_tick -= MILLISECONDS_PER_FIXED_TICK;
+  milliseconds_accumulator_since_last_tick += milliseconds_delta_time;
+  while (milliseconds_accumulator_since_last_tick >= MILLISECONDS_PER_FIXED_TICK) {
+    milliseconds_accumulator_since_last_tick -= MILLISECONDS_PER_FIXED_TICK;
 
     game2d::fixed_update(editor, game, MILLISECONDS_PER_FIXED_TICK);
   }

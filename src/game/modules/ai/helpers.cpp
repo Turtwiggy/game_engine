@@ -76,6 +76,10 @@ astar(entt::registry& registry, const vec2i& from, const vec2i& to)
 
   // read-only view of the grid
   const auto& group = registry.group<GridComponent, PathfindableComponent>();
+
+  if (group.empty())
+    return {};
+
   group.sort<GridComponent>([&x_max](const auto& a, const auto& b) {
     int index_a = x_max * a.y + a.x;
     int index_b = x_max * b.y + b.x;

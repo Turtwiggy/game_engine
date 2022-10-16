@@ -11,6 +11,7 @@ struct Dungeon
 {
   int width = 50;
   int height = 50;
+  int seed = 0;
 };
 
 struct Room
@@ -47,6 +48,13 @@ struct GridComponent
   int y = 0;
 
   NLOHMANN_DEFINE_TYPE_INTRUSIVE(GridComponent, x, y);
+};
+
+struct LivesInDungeonComponent
+{
+  bool placeholder = true;
+
+  NLOHMANN_DEFINE_TYPE_INTRUSIVE(LivesInDungeonComponent, placeholder);
 };
 
 } // namespace game2d

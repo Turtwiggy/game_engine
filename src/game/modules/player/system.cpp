@@ -53,7 +53,7 @@ game2d::update_player_controller_system(GameEditor& editor,
               break;
 
             const float bullet_speed = 50.0f;
-            entt::entity bullet = create_gameplay(editor, game, EntityType::arrow);
+            entt::entity bullet = create_gameplay(editor, r, EntityType::arrow);
             create_renderable(editor, r, bullet, EntityType::arrow);
             glm::vec2 dir = { mouse_position.x - transform.position.x, mouse_position.y - transform.position.y };
             if (dir.x != 0.0f && dir.y != 0.0f)

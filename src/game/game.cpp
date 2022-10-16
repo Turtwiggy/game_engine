@@ -54,53 +54,46 @@ init_game_state(GameEditor& editor)
   init_input_system(game);
   game.ui_events.events.push_back("Welcome!");
 
-  // reset editor tools?
-  // auto tilemap_ent = r.create();
-  // r.emplace<TilemapComponent>(tilemap_ent);
-
   create_hierarchy_root_node(r);
 
   EntityType et = EntityType::shopkeeper;
-  auto shopkeeper = create_gameplay(editor, game, et);
+  auto shopkeeper = create_gameplay(editor, r, et);
   // create_renderable(editor, r, shopkeeper, et);
 
   // stock up!
   const auto& view = r.view<ShopKeeperComponent>();
-  view.each([&editor, &game](auto shop_entity, auto& shopkeeper) {
-    create_item(editor, game, EntityType::potion, shop_entity);
-    create_item(editor, game, EntityType::potion, shop_entity);
-    create_item(editor, game, EntityType::potion, shop_entity);
-    create_item(editor, game, EntityType::sword, shop_entity);
-    create_item(editor, game, EntityType::fire_sword, shop_entity);
-    create_item(editor, game, EntityType::shield, shop_entity);
-    create_item(editor, game, EntityType::stone, shop_entity);
-    create_item(editor, game, EntityType::crossbow, shop_entity);
-    create_item(editor, game, EntityType::bolt, shop_entity);
-    create_item(editor, game, EntityType::scroll_damage_nearest, shop_entity);
-    create_item(editor, game, EntityType::scroll_damage_selected_on_grid, shop_entity);
+  view.each([&editor, &r](auto shop_entity, auto& shopkeeper) {
+    create_item(editor, r, EntityType::potion, shop_entity);
+    create_item(editor, r, EntityType::potion, shop_entity);
+    create_item(editor, r, EntityType::potion, shop_entity);
+    create_item(editor, r, EntityType::sword, shop_entity);
+    create_item(editor, r, EntityType::fire_sword, shop_entity);
+    create_item(editor, r, EntityType::shield, shop_entity);
+    create_item(editor, r, EntityType::stone, shop_entity);
+    create_item(editor, r, EntityType::crossbow, shop_entity);
+    create_item(editor, r, EntityType::bolt, shop_entity);
+    create_item(editor, r, EntityType::scroll_damage_nearest, shop_entity);
+    create_item(editor, r, EntityType::scroll_damage_selected_on_grid, shop_entity);
   });
-
-  const int GRID_SIZE = 16;
 
   // players
   for (int i = 0; i < 1; i++) {
     EntityType et = EntityType::player;
-    entt::entity e = create_gameplay(editor, game, et);
+    entt::entity e = create_gameplay(editor, r, et);
     create_renderable(editor, r, e, et);
   }
 
-  std::cout << "creating dungeon...!" << std::endl;
+  int seed = 0;
   Dungeon d;
-  generate_dungeon(editor, game, d);
+  generate_dungeon(editor, r, d, seed);
   entt::entity e = r.create();
+  r.emplace<EntityTypeComponent>(e, EntityType::empty);
+  r.emplace<TagComponent>(e, "dungeon");
   r.emplace<Dungeon>(e, d);
 
-  // const auto& ri = editor.renderer;
-  // glm::ivec2 grid_position{ d.width / 2, d.height / 2 };
-  // glm::ivec2 cam_position = engine::grid::grid_space_to_world_space(grid_position, 16);
-  // cam_position.x = (-ri.viewport_size_render_at.x / 2) + cam_position.x;
-  // cam_position.y = (-ri.viewport_size_render_at.y / 2) + cam_position.y;
-  init_camera_system(editor, game);
+  // camera
+  auto c = create_gameplay(editor, r, EntityType::camera);
+  r.emplace<TransformComponent>(c);
 
   return game;
 };

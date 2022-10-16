@@ -7,7 +7,7 @@
 #include <vector>
 
 void
-game2d::update_lifecycle_system(GameEditor& editor, Game& game, uint64_t milliseconds_dt)
+game2d::update_lifecycle_system(GameEditor& editor, Game& game, const uint64_t& milliseconds_dt)
 {
   auto& eb = game.dead;
   auto& r = game.state;
@@ -21,9 +21,8 @@ game2d::update_lifecycle_system(GameEditor& editor, Game& game, uint64_t millise
   });
 
   // process destroyed objects
-  for (const auto& entity : eb.dead) {
+  for (const auto& entity : eb.dead)
     r.destroy(entity);
-  }
 
   // update hierarchy...
   // update hroot.children if entity is removed

@@ -9,8 +9,6 @@
 #include "modules/renderer/components.hpp"
 #include "modules/sprites/components.hpp"
 #include "modules/ui_editor_tilemap/components.hpp"
-#include "modules/ui_hierarchy/components.hpp"
-#include "modules/ui_hierarchy/helpers.hpp"
 
 #include "magic_enum.hpp"
 
@@ -34,8 +32,6 @@ game2d::save(const entt::registry& registry, std::string path)
       TilemapComponent,
       TagComponent,
       EntityTypeComponent,
-      EntityHierarchyComponent,
-      RootNode,
       TransformComponent,
       SpriteComponent,
       SpriteColourComponent>(json_archive);
@@ -73,15 +69,13 @@ game2d::load(GameEditor& editor, Game& game, std::string path)
       TilemapComponent,
       TagComponent,
       EntityTypeComponent,
-      EntityHierarchyComponent,
-      RootNode,
       TransformComponent,
       SpriteComponent,
       SpriteColourComponent>(json_in);
 
   const auto& view = r.view<const EntityTypeComponent>();
-  view.each([&editor, &game](auto entity, const EntityTypeComponent& type) {
-    create_gameplay_existing_entity(editor, game, entity, type.type);
+  view.each([&editor, &r](auto entity, const EntityTypeComponent& type) {
+    create_gameplay_existing_entity(editor, r, entity, type.type);
   });
 };
 
