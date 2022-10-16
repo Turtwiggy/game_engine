@@ -81,6 +81,8 @@ create_sprite(GameEditor& editor, entt::registry& r, const entt::entity& e, cons
     sprite = "EMPTY";
   else if (type == EntityType::wall)
     sprite = "WALL_16_0";
+  else if (type == EntityType::exit)
+    sprite = "DOOR_16_8";
   else if (type == EntityType::floor)
     sprite = "CASTLE_FLOOR";
   else if (type == EntityType::enemy_orc)
@@ -204,13 +206,13 @@ create_gameplay(GameEditor& editor, Game& game, const EntityType& type)
   r.emplace<TagComponent>(e, std::string(magic_enum::enum_name(type)));
   r.emplace<EntityTypeComponent>(e, type);
 
-  create_gameplay(editor, game, e, type);
+  create_gameplay_existing_entity(editor, game, e, type);
 
   return e;
 };
 
 void
-create_gameplay(GameEditor& editor, Game& game, const entt::entity& e, const EntityType& type)
+create_gameplay_existing_entity(GameEditor& editor, Game& game, const entt::entity& e, const EntityType& type)
 {
   const auto& colours = editor.colours;
   auto& r = game.state;
@@ -227,6 +229,13 @@ create_gameplay(GameEditor& editor, Game& game, const entt::entity& e, const Ent
       break;
     }
     case EntityType::floor: {
+      // gameplay
+      break;
+    }
+    case EntityType::exit: {
+      // physics
+      r.emplace<PhysicsTransformComponent>(e);
+      r.emplace<PhysicsActorComponent>(e);
       // gameplay
       break;
     }
@@ -353,7 +362,7 @@ create_gameplay(GameEditor& editor, Game& game, const entt::entity& e, const Ent
         auto line = r.create();
         r.emplace<TagComponent>(line, name);
         r.emplace<EntityTypeComponent>(line, type);
-        create_gameplay(editor, game, line, EntityType::empty);
+        create_gameplay_existing_entity(editor, game, line, EntityType::empty);
         create_renderable(editor, r, line, EntityType::free_cursor);
         add_child(r, h, line);
         set_parent(r, line, h);

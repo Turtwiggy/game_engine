@@ -9,12 +9,12 @@
 #include "game/components/actors.hpp"
 #include "game/modules/dungeon/system.hpp"
 #include "game/modules/items/components.hpp"
+#include "game/modules/resolve_collisions/system.hpp"
 #include "game/modules/ui_event_console/system.hpp"
 #include "game/modules/ui_health_bar/system.hpp"
 #include "game/modules/ui_main_menu/system.hpp"
 #include "game/modules/ui_player_inventory/system.hpp"
 #include "game/simulate.hpp"
-#include "game/systems/resolve_collisions.hpp"
 #include "modules/audio/system.hpp"
 #include "modules/camera/components.hpp"
 #include "modules/camera/helpers.hpp"
@@ -191,9 +191,9 @@ update(engine::SINGLETON_Application& app, GameEditor& editor, Game& game, float
       update_ui_editor_bar_system(editor, game);
       update_ui_hierarchy_system(editor, game);
       update_ui_profiler_system(editor, game);
-      // update_ui_editor_tilemap_system(editor, game);
       // update_ui_editor_scene_system(editor, game);
-      // update_ui_sprite_searcher_system(editor, game);
+      update_ui_editor_tilemap_system(editor, game);
+      update_ui_sprite_searcher_system(editor, game);
       // update_ui_networking_system(editor, game);
     }
   };

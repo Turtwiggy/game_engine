@@ -83,6 +83,11 @@ generate_dungeon(GameEditor& editor, Game& game, const Dungeon& d)
   set_player_positions(editor, game, rooms, rnd); // limitation: currently all player put in same spot
   set_enemy_positions(editor, game, rooms, rnd);
   set_item_positions(editor, game, rooms, rnd);
+
+  // set exit door position
+  Room& room = rooms[rooms.size() - 1];
+  glm::ivec2 middle = room_center(room);
+  create_dungeon_entity(editor, game, EntityType::exit, middle);
 };
 
 void

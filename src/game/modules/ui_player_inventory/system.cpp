@@ -118,10 +118,6 @@ game2d::update_ui_player_inventory_system(GameEditor& editor, Game& game)
         if (backpack.parent != entity_player)
           continue; // not my item
 
-        ImGui::Text("%s", tag.tag.c_str());
-
-        ImGui::SameLine();
-
         std::string label_use = "Use##" + std::to_string(static_cast<uint32_t>(entity_item));
         if (ImGui::Button(label_use.c_str())) {
 
@@ -162,12 +158,16 @@ game2d::update_ui_player_inventory_system(GameEditor& editor, Game& game)
           u.items.push_back(entity_item);
         }
 
+        // ImGui::SameLine();
+        // std::string label_sell = "Sell##" + std::to_string(static_cast<uint32_t>(entity_item));
+        // if (ImGui::Button(label_sell.c_str())) {
+        //   auto& u = r.get_or_emplace<WantsToSell>(entity_player);
+        //   u.items.push_back(entity_item);
+        // }
+
+        // LABEL
         ImGui::SameLine();
-        std::string label_sell = "Sell##" + std::to_string(static_cast<uint32_t>(entity_item));
-        if (ImGui::Button(label_sell.c_str())) {
-          auto& u = r.get_or_emplace<WantsToSell>(entity_player);
-          u.items.push_back(entity_item);
-        }
+        ImGui::Text("%s", tag.tag.c_str());
       }
     }
 

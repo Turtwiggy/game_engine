@@ -81,7 +81,7 @@ game2d::load(GameEditor& editor, Game& game, std::string path)
 
   const auto& view = r.view<const EntityTypeComponent>();
   view.each([&editor, &game](auto entity, const EntityTypeComponent& type) {
-    create_gameplay(editor, game, entity, type.type);
+    create_gameplay_existing_entity(editor, game, entity, type.type);
   });
 };
 

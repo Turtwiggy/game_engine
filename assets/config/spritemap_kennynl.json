@@ -60,6 +60,8 @@
       
       {"name": "DUCK","frames": [{"x": 25,"y": 7}]},
 
+      {"name": "DOOR_16_8","frames": [{"x": 16,"y": 8}]},
+
       {"name": "WEAPON_PISTOL","frames": [{"x": 37,"y": 9}]},
       {"name": "WEAPON_RAY_PISTOL","frames": [{"x": 38,"y": 9}]},
       {"name": "WEAPON_SHOTGUN","frames": [{"x": 39,"y": 9}]},

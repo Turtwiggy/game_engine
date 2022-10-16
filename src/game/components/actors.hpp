@@ -27,6 +27,7 @@ enum class EntityType
   // tile types
   wall,
   floor,
+  exit,
 
   // melee
   sword,
@@ -80,7 +81,8 @@ create_renderable(GameEditor& editor, entt::registry& r, const entt::entity& e, 
 
 entt::entity
 create_gameplay(GameEditor& editor, Game& game, const EntityType& type);
+
 void
-create_gameplay(GameEditor& editor, Game& game, const entt::entity& e, const EntityType& type);
+create_gameplay_existing_entity(GameEditor& editor, Game& game, const entt::entity& e, const EntityType& type);
 
 } // namespace game2d
