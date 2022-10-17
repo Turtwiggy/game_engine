@@ -5,6 +5,7 @@
 #include "game/modules/combat/components.hpp"
 #include "game/modules/items/components.hpp"
 #include "game/modules/player/components.hpp"
+#include "game/modules/rpg/components.hpp"
 #include "modules/camera/components.hpp"
 #include "modules/cursor/components.hpp"
 #include "modules/lifecycle/components.hpp"
@@ -269,6 +270,8 @@ create_gameplay_existing_entity(GameEditor& editor, entt::registry& r, const ent
       r.emplace<PlayerComponent>(e);
       r.emplace<HealthComponent>(e);
       r.emplace<TakeDamageComponent>(e);
+      r.emplace<XpComponent>(e, 0);
+      r.emplace<StatsComponent>(e);
       break;
     }
     case EntityType::shopkeeper: {

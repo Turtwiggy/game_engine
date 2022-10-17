@@ -54,7 +54,6 @@ game2d::create_dungeon_entity(GameEditor& editor, entt::registry& r, EntityType 
   r.emplace<TransformComponent>(e, t);
   r.emplace<GridComponent>(e, grid_index.x, grid_index.y);
   r.emplace<FovComponent>(e);
-  r.emplace<LivesInDungeonComponent>(e);
 
   return e;
 }

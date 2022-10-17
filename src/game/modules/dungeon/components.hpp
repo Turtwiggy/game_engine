@@ -50,11 +50,4 @@ struct GridComponent
   NLOHMANN_DEFINE_TYPE_INTRUSIVE(GridComponent, x, y);
 };
 
-struct LivesInDungeonComponent
-{
-  bool placeholder = true;
-
-  NLOHMANN_DEFINE_TYPE_INTRUSIVE(LivesInDungeonComponent, placeholder);
-};
-
 } // namespace game2d

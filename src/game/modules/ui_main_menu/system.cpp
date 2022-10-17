@@ -25,6 +25,9 @@ update_ui_main_menu_system(engine::SINGLETON_Application& app, GameEditor& edito
   if (open) {
     ImGui::Begin("Main Menu", &open, flags);
 
+    if (ImGui::Button("Resume"))
+      open = false;
+
     if (ImGui::Button("Toggle Fullscreen"))
       app.window.toggle_fullscreen();
     ImGui::Text("Fullscreen currently: %i", app.window.get_fullscreen());

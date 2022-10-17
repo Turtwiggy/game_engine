@@ -12,6 +12,8 @@
 #include <entt/entt.hpp>
 #include <imgui.h>
 
+#include <map>
+
 namespace game2d {
 
 void
@@ -69,10 +71,6 @@ game2d::update_ui_player_inventory_system(GameEditor& editor, Game& game)
 
     for (auto [entity_player, player] : players.each()) {
 
-      // Hp..!
-      if (auto* hp = r.try_get<HealthComponent>(entity_player))
-        ImGui::Text("Hp: %i", hp->hp);
-
       // UI: selecting units for an item
       if (auto* selecting = r.try_get<WantsToSelectUnitsForItem>(entity_player)) {
         ImGui::Text("¬¬ Select Targets for Item ¬¬");
@@ -111,12 +109,23 @@ game2d::update_ui_player_inventory_system(GameEditor& editor, Game& game)
       }
 
       // Inventory..!
-      ImGui::Text("¬¬ Inventory ¬¬");
-      const auto& items = r.view<const InBackpackComponent, const TagComponent, const EntityTypeComponent>();
-      for (auto [entity_item, backpack, tag, type] : items.each()) {
 
+      ImGui::Text("¬¬ Inventory ¬¬");
+
+      std::map<std::string, std::vector<entt::entity>> compacted_items;
+
+      const auto& items = r.view<const InBackpackComponent, const TagComponent, const EntityTypeComponent>();
+      
+      // Show like potion x1, potion x2 not potions individually
+      for (auto [entity_item, backpack, tag, type] : items.each()) {
         if (backpack.parent != entity_player)
           continue; // not my item
+        compacted_items[tag.tag].push_back(entity_item);
+      }
+
+      for(const auto& [tag, entity_items]: compacted_items ){
+        const auto& entity_item = entity_items[0];
+        const auto& type = r.get<EntityTypeComponent>(entity_item);
 
         std::string label_use = "Use##" + std::to_string(static_cast<uint32_t>(entity_item));
         if (ImGui::Button(label_use.c_str())) {
@@ -167,7 +176,7 @@ game2d::update_ui_player_inventory_system(GameEditor& editor, Game& game)
 
         // LABEL
         ImGui::SameLine();
-        ImGui::Text("%s", tag.tag.c_str());
+        ImGui::Text("%s (x%i)", tag.c_str(), entity_items.size());
       }
     }
 

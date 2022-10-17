@@ -1,11 +1,11 @@
 #include "system.hpp"
 
 #include "game/components/actors.hpp"
+#include "game/modules/combat/components.hpp"
+#include "game/modules/items/components.hpp"
+#include "game/modules/player/components.hpp"
 #include "modules/renderer/components.hpp"
 #include "resources/colour.hpp"
-#include "game/modules/player/components.hpp"
-#include "game/modules/items/components.hpp"
-#include "game/modules/combat/components.hpp"
 
 #include <glm/glm.hpp>
 #include <imgui.h>
@@ -46,12 +46,12 @@ update_ui_hp_bar(GameEditor& editor, Game& game)
     if (canvas_sz.y < 50.0f) canvas_sz.y = 50.0f;
 
     canvas_sz.x *= percent;
-    canvas_sz.y = 10.0f;
+    canvas_sz.y = 12.0f;
 
     ImVec2 canvas_p1 = ImVec2(canvas_p0.x + canvas_sz.x, canvas_p0.y + canvas_sz.y);
     // clang-format on
 
-    draw_list->AddRectFilled(canvas_p0, canvas_p1, IM_COL32(50, 50, 50, 255));
+    draw_list->AddRectFilled(canvas_p0, canvas_p1, IM_COL32(200, 25, 25, 255));
 
     ImGui::SameLine(0.0f);
     ImGui::Text("%i / %i", cur_hp, max_hp);

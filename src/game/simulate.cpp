@@ -11,6 +11,7 @@
 #include "game/modules/items/intent_use_item.hpp"
 #include "game/modules/player/system.hpp"
 #include "game/modules/resolve_collisions/system.hpp"
+#include "game/modules/rpg/system.hpp"
 
 // modules
 #include "modules/events/components.hpp"
@@ -61,6 +62,7 @@ game2d::simulate(GameEditor& editor, Game& game, const std::vector<InputEvent>& 
     update_intent_purchase_item_system(editor, game);
     update_intent_drop_item_system(editor, game);
     update_take_damage_system(editor, game);
+    update_rpg_system(editor, game);
   }
   {
     auto _ = time_scope(&p, "(game_logic)-fov", true);
