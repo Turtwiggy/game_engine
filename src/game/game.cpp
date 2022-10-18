@@ -11,7 +11,6 @@
 #include "game/modules/items/components.hpp"
 #include "game/modules/resolve_collisions/system.hpp"
 #include "game/modules/ui_event_console/system.hpp"
-#include "game/modules/ui_health_bar/system.hpp"
 #include "game/modules/ui_main_menu/system.hpp"
 #include "game/modules/ui_player/system.hpp"
 #include "game/modules/ui_player_inventory/system.hpp"
@@ -175,7 +174,6 @@ update(engine::SINGLETON_Application& app, GameEditor& editor, Game& game, float
 
   {
     auto _ = time_scope(&p, "ui"); // value for ui always be a frame behind
-    update_ui_hp_bar(editor, game);
     update_ui_event_console(editor, game);
     update_ui_player_system(editor, game);
     update_ui_player_inventory_system(editor, game);
