@@ -46,9 +46,10 @@ void
 set_player_positions(GameEditor& editor, entt::registry& r, std::vector<Room>& rooms, engine::RandomState& rnd);
 
 void
-set_enemy_positions(GameEditor& editor, entt::registry& r, std::vector<Room>& rooms, engine::RandomState& rnd);
-
-void
-set_item_positions(GameEditor& editor, entt::registry& r, std::vector<Room>& rooms, engine::RandomState& rnd);
+set_generated_entity_positions(GameEditor& editor,
+                               entt::registry& r,
+                               std::vector<Room>& rooms,
+                               const int floor,
+                               engine::RandomState& rnd);
 
 } // namespace game2d

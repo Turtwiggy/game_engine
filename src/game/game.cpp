@@ -56,7 +56,7 @@ init_game_state(GameEditor& editor)
 
   create_hierarchy_root_node(r);
 
-  EntityType et = EntityType::shopkeeper;
+  EntityType et = EntityType::actor_shopkeeper;
   auto shopkeeper = create_gameplay(editor, r, et);
   // create_renderable(editor, r, shopkeeper, et);
 
@@ -78,13 +78,21 @@ init_game_state(GameEditor& editor)
 
   // players
   for (int i = 0; i < 1; i++) {
-    EntityType et = EntityType::player;
+    EntityType et = EntityType::actor_player;
     entt::entity e = create_gameplay(editor, r, et);
     create_renderable(editor, r, e, et);
+
+    // give the player a sword
+    entt::entity sword = create_item(editor, r, EntityType::sword, e);
+
+    // equip it!
+    r.emplace<WantsToEquip>(e, std::vector<entt::entity>{ sword });
   }
 
   int seed = 0;
   Dungeon d;
+  game.ui_events.events.push_back("You are on floor: 0");
+
   generate_dungeon(editor, r, d, seed);
   entt::entity e = r.create();
   r.emplace<EntityTypeComponent>(e, EntityType::empty);

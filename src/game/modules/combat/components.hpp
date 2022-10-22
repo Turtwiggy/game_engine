@@ -82,6 +82,11 @@ struct WantsToAttack
   NLOHMANN_DEFINE_TYPE_INTRUSIVE(WantsToAttack, placeholder);
 };
 
+struct IsDead
+{
+  bool placeholder = true;
+};
+
 // struct AreaOfEffectComponent
 // {
 //   int radius = 3;
@@ -99,20 +104,6 @@ struct WantsToAttack
 //   AttackComponent attack;
 //   std::vector<UseComponent> moves;
 //   DropComponent loot;
-// };
-
-// enum class EquipmentSlot
-// {
-//   HEAD,
-//   BODY,
-//   HAND_L,
-//   HAND_R,
-//   COUNT,
-// };
-
-// struct EqippableComponent
-// {
-//   EquipmentSlot slot;
 // };
 
 } // namespace game2d

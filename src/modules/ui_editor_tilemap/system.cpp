@@ -34,13 +34,14 @@ game2d::update_ui_editor_tilemap_system(GameEditor& editor, Game& game)
   auto& ss = editor.sprites;
   auto& r = game.state;
 
-  auto tilemap_opt = game2d::get_first<TilemapComponent>(r);
-  if (!tilemap_opt.has_value()) {
+  auto tilemap_entity = game2d::get_first<TilemapComponent>(r);
+  if (tilemap_entity == entt::null) {
     auto e = create_gameplay(editor, r, EntityType::empty);
     r.emplace<TilemapComponent>(e);
   }
+  const auto& made_tilemap_entity = game2d::get_first<TilemapComponent>(r);
+  auto& tilemap = r.get<TilemapComponent>(made_tilemap_entity);
 
-  auto& tilemap = game2d::get_first<TilemapComponent>(r)->get();
   auto& colours = editor.colours;
   const int GRID_SIZE = 16; // hmm
   const glm::ivec2 mouse_position =

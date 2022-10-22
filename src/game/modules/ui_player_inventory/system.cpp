@@ -110,20 +110,28 @@ game2d::update_ui_player_inventory_system(GameEditor& editor, Game& game)
 
       // Inventory..!
 
+      ImGui::Text("¬¬ Equipped Items ¬¬");
+
+      const auto& equipped = r.view<const IsEquipped, const TagComponent, const EntityTypeComponent>();
+      for (auto [entity, equipped, tag, type] : equipped.each()) {
+        if (equipped.parent != entity_player)
+          continue; // not my equipped
+        ImGui::Text(" %s", tag.tag);
+      }
+
       ImGui::Text("¬¬ Inventory ¬¬");
 
-      std::map<std::string, std::vector<entt::entity>> compacted_items;
-
       const auto& items = r.view<const InBackpackComponent, const TagComponent, const EntityTypeComponent>();
-      
+
       // Show like potion x1, potion x2 not potions individually
+      std::map<std::string, std::vector<entt::entity>> compacted_items;
       for (auto [entity_item, backpack, tag, type] : items.each()) {
         if (backpack.parent != entity_player)
           continue; // not my item
         compacted_items[tag.tag].push_back(entity_item);
       }
 
-      for(const auto& [tag, entity_items]: compacted_items ){
+      for (const auto& [tag, entity_items] : compacted_items) {
         const auto& entity_item = entity_items[0];
         const auto& type = r.get<EntityTypeComponent>(entity_item);
 
@@ -167,10 +175,17 @@ game2d::update_ui_player_inventory_system(GameEditor& editor, Game& game)
           u.items.push_back(entity_item);
         }
 
+        ImGui::SameLine();
+        std::string label_sell = "Equip##" + std::to_string(static_cast<uint32_t>(entity_item));
+        if (ImGui::Button(label_sell.c_str())) {
+          auto& u = r.get_or_emplace<WantsToEquip>(entity_player);
+          u.items.push_back(entity_item);
+        }
+
         // ImGui::SameLine();
         // std::string label_sell = "Sell##" + std::to_string(static_cast<uint32_t>(entity_item));
         // if (ImGui::Button(label_sell.c_str())) {
-        //   auto& u = r.get_or_emplace<WantsToSell>(entity_player);
+        //   auto& u = r.get_or_emplace<WantsToEquip>(entity_player);
         //   u.items.push_back(entity_item);
         // }
 

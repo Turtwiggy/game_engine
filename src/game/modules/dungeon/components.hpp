@@ -12,6 +12,7 @@ struct Dungeon
   int width = 50;
   int height = 50;
   int seed = 0;
+  int floor = 0;
 };
 
 struct Room

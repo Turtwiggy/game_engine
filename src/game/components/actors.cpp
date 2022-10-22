@@ -5,7 +5,7 @@
 #include "game/modules/combat/components.hpp"
 #include "game/modules/items/components.hpp"
 #include "game/modules/player/components.hpp"
-#include "game/modules/rpg/components.hpp"
+#include "game/modules/rpg_xp/components.hpp"
 #include "modules/camera/components.hpp"
 #include "modules/cursor/components.hpp"
 #include "modules/lifecycle/components.hpp"
@@ -77,28 +77,30 @@ create_sprite(GameEditor& editor, entt::registry& r, const entt::entity& e, cons
   std::string sprite = "EMPTY";
   if (type == EntityType::empty)
     sprite = "EMPTY";
-  else if (type == EntityType::wall)
+  else if (type == EntityType::tile_type_wall)
     sprite = "WALL_16_0";
-  else if (type == EntityType::exit)
+  else if (type == EntityType::tile_type_exit)
     sprite = "DOOR_16_8";
-  else if (type == EntityType::floor)
+  else if (type == EntityType::tile_type_floor)
     sprite = "CASTLE_FLOOR";
-  else if (type == EntityType::enemy_orc)
+  else if (type == EntityType::actor_shopkeeper)
     sprite = "PERSON_25_0";
-  else if (type == EntityType::enemy_troll)
-    sprite = "PERSON_31_0";
-  else if (type == EntityType::player)
-    sprite = "PERSON_26_0";
+  else if (type == EntityType::actor_orc)
+    sprite = "PERSON_25_2";
+  else if (type == EntityType::actor_troll)
+    sprite = "PERSON_29_2";
+  else if (type == EntityType::actor_player)
+    sprite = "PERSON_25_0";
   else if (type == EntityType::bolt)
-    sprite = "PERSON_25_0";
+    sprite = "DART_35_5";
   else if (type == EntityType::shield)
     sprite = "SHIELD_37_2";
   else if (type == EntityType::potion)
-    sprite = "DUCK";
+    sprite = "FULL_POTION_34_13";
   else if (type == EntityType::scroll_damage_nearest)
-    sprite = "ROCKET_1";
-  else if (type == EntityType::shopkeeper)
-    sprite = "PERSON_25_0";
+    sprite = "SCROLL_33_5";
+  else if (type == EntityType::scroll_damage_selected_on_grid)
+    sprite = "SCROLL_34_5";
   else if (type == EntityType::free_cursor)
     sprite = "EMPTY";
   else if (type == EntityType::grid_cursor)
@@ -108,11 +110,11 @@ create_sprite(GameEditor& editor, entt::registry& r, const entt::entity& e, cons
 
   RenderOrder order = RenderOrder::background;
 
-  if (type == EntityType::enemy_orc)
+  if (type == EntityType::actor_orc)
     order = RenderOrder::foreground;
-  else if (type == EntityType::enemy_troll)
+  else if (type == EntityType::actor_troll)
     order = RenderOrder::foreground;
-  else if (type == EntityType::player)
+  else if (type == EntityType::actor_player)
     order = RenderOrder::foreground;
   else if (type == EntityType::bolt)
     order = RenderOrder::foreground;
@@ -152,15 +154,15 @@ create_colour(GameEditor& editor, entt::registry& r, const entt::entity& e, cons
   engine::SRGBColour srgb = colours.white;
   if (type == EntityType::empty)
     srgb = colours.white;
-  else if (type == EntityType::wall)
+  else if (type == EntityType::tile_type_wall)
     srgb = colours.wall;
-  else if (type == EntityType::floor)
+  else if (type == EntityType::tile_type_floor)
     srgb = colours.floor;
-  else if (type == EntityType::enemy_orc)
+  else if (type == EntityType::actor_orc)
     srgb = colours.asteroid;
-  else if (type == EntityType::enemy_troll)
+  else if (type == EntityType::actor_troll)
     srgb = colours.asteroid;
-  else if (type == EntityType::player)
+  else if (type == EntityType::actor_player)
     srgb = colours.player_unit;
   else if (type == EntityType::bolt)
     srgb = colours.bullet;
@@ -170,7 +172,7 @@ create_colour(GameEditor& editor, entt::registry& r, const entt::entity& e, cons
     srgb = colours.red;
   else if (type == EntityType::scroll_damage_nearest)
     srgb = colours.red;
-  else if (type == EntityType::shopkeeper)
+  else if (type == EntityType::actor_shopkeeper)
     srgb = colours.red;
   else if (type == EntityType::free_cursor)
     srgb = colours.red;
@@ -218,17 +220,17 @@ create_gameplay_existing_entity(GameEditor& editor, entt::registry& r, const ent
     case EntityType::empty: {
       break;
     }
-    case EntityType::wall: {
+    case EntityType::tile_type_wall: {
       // physics
       r.emplace<PhysicsTransformComponent>(e);
       r.emplace<PhysicsSolidComponent>(e);
       break;
     }
-    case EntityType::floor: {
+    case EntityType::tile_type_floor: {
       // gameplay
       break;
     }
-    case EntityType::exit: {
+    case EntityType::tile_type_exit: {
       // physics
       r.emplace<PhysicsTransformComponent>(e);
       r.emplace<PhysicsActorComponent>(e);
@@ -238,7 +240,7 @@ create_gameplay_existing_entity(GameEditor& editor, entt::registry& r, const ent
 
       // pc/npcs
 
-    case EntityType::enemy_troll: {
+    case EntityType::actor_troll: {
       // physics
       r.emplace<PhysicsTransformComponent>(e);
       r.emplace<PhysicsActorComponent>(e);
@@ -248,9 +250,10 @@ create_gameplay_existing_entity(GameEditor& editor, entt::registry& r, const ent
       r.emplace<AiBrainComponent>(e);
       r.emplace<HealthComponent>(e);
       r.emplace<TakeDamageComponent>(e);
+      r.emplace<XpComponent>(e, 50);
       break;
     }
-    case EntityType::enemy_orc: {
+    case EntityType::actor_orc: {
       // physics
       r.emplace<PhysicsTransformComponent>(e);
       r.emplace<PhysicsActorComponent>(e);
@@ -260,9 +263,10 @@ create_gameplay_existing_entity(GameEditor& editor, entt::registry& r, const ent
       r.emplace<AiBrainComponent>(e);
       r.emplace<HealthComponent>(e);
       r.emplace<TakeDamageComponent>(e);
+      r.emplace<XpComponent>(e, 50);
       break;
     }
-    case EntityType::player: {
+    case EntityType::actor_player: {
       r.emplace<PhysicsTransformComponent>(e);
       r.emplace<PhysicsActorComponent>(e);
       r.emplace<GridMoveComponent>(e);
@@ -274,7 +278,7 @@ create_gameplay_existing_entity(GameEditor& editor, entt::registry& r, const ent
       r.emplace<StatsComponent>(e);
       break;
     }
-    case EntityType::shopkeeper: {
+    case EntityType::actor_shopkeeper: {
       // gameplay
       r.emplace<ShopKeeperComponent>(e);
       break;
@@ -289,11 +293,6 @@ create_gameplay_existing_entity(GameEditor& editor, entt::registry& r, const ent
       r.emplace<VelocityComponent>(e);
       // gameplay
       r.emplace<AttackComponent>(e, AttackComponent(10, 20));
-
-      break;
-    }
-    case EntityType::stone: {
-      r.emplace<AttackComponent>(e, AttackComponent(0, 4));
       break;
     }
     case EntityType::bolt: {
@@ -304,27 +303,42 @@ create_gameplay_existing_entity(GameEditor& editor, entt::registry& r, const ent
       // r.emplace<EntityTimedLifecycle>(e, 20000); // bullet time alive
       break;
     }
-
+    case EntityType::stone: {
+      r.emplace<PhysicsTransformComponent>(e);
+      r.emplace<PhysicsActorComponent>(e);
+      r.emplace<Equipment>(e);
+      r.emplace<AttackComponent>(e, AttackComponent(0, 4));
+      break;
+    }
     case EntityType::sword: {
+      r.emplace<PhysicsTransformComponent>(e);
+      r.emplace<PhysicsActorComponent>(e);
+      r.emplace<Equipment>(e);
       r.emplace<AttackComponent>(e, AttackComponent(10, 20));
       break;
     }
     case EntityType::fire_sword: {
+      r.emplace<PhysicsTransformComponent>(e);
+      r.emplace<PhysicsActorComponent>(e);
+      r.emplace<Equipment>(e);
       r.emplace<AttackComponent>(e, AttackComponent(30, 40));
       break;
     }
     case EntityType::crossbow: {
+      r.emplace<PhysicsTransformComponent>(e);
+      r.emplace<PhysicsActorComponent>(e);
+      r.emplace<Equipment>(e);
       r.emplace<AttackComponent>(e, AttackComponent(10, 20));
       break;
     }
     case EntityType::shield: {
+      r.emplace<PhysicsTransformComponent>(e);
+      r.emplace<PhysicsActorComponent>(e);
+      r.emplace<Equipment>(e);
       r.emplace<AttackComponent>(e, AttackComponent(5, 8));
       r.emplace<DefenseComponent>(e, DefenseComponent(10));
       break;
     }
-
-      // consumable items
-
     case EntityType::potion: {
       r.emplace<PhysicsTransformComponent>(e);
       r.emplace<PhysicsActorComponent>(e);

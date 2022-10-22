@@ -1,7 +1,12 @@
 #include "system.hpp"
 
 #include "components.hpp"
+#include "game/modules/combat/components.hpp"
+#include "game/modules/player/components.hpp"
 #include "helpers.hpp"
+#include "modules/entt/helpers.hpp"
+
+#include <format>
 
 #include <entt/entt.hpp>
 
@@ -17,6 +22,16 @@ update_rpg_system(GameEditor& editor, Game& game)
   // When the player gains a level,
   // give the player an option to level a stat.
   //
+
+  // Gives the player XP from a killed enemy
+  const auto& xp_view = r.view<IsDead, XpComponent>();
+  for (auto [entity, dead, xp] : xp_view.each()) {
+    const auto& player_entity = get_first<PlayerComponent>(r);
+    auto& player_xp = r.get<XpComponent>(player_entity);
+    player_xp.amount += xp.amount;
+    std::string msg = std::format("You gained {} xp", xp.amount);
+    game.ui_events.events.push_back(msg);
+  }
 
   // This view uses (and validates) the WantsToLevelStat provided by the UI
   const auto& stats_view = r.view<WantsToLevelStat, StatsComponent, XpComponent>();

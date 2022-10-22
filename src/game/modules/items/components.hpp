@@ -87,4 +87,29 @@ struct WantsToSelectUnitsForItem
   NLOHMANN_DEFINE_TYPE_INTRUSIVE(WantsToSelectUnitsForItem, items);
 };
 
+//
+// equipment
+//
+
+enum class EquipmentSlots
+{
+  left_hand,
+  right_hand,
+};
+
+struct Equipment
+{
+  bool placeholder = true;
+};
+
+struct IsEquipped
+{
+  entt::entity parent = entt::null;
+};
+
+struct WantsToEquip
+{
+  std::vector<entt::entity> items;
+};
+
 } // namespace game2d

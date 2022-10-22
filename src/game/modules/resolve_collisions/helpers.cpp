@@ -96,8 +96,8 @@ check_if_collided_with_cursor(Game& game)
   // Note: this code below seems wrong.
   // .. the constraints
   std::vector<EntityType> valid_types{
-    EntityType::enemy_orc,
-    EntityType::enemy_troll,
+    EntityType::actor_orc,
+    EntityType::actor_troll,
   };
 
   // .. the check
@@ -148,7 +148,7 @@ check_if_collided_with_exit(Game& game)
 
   // .. the constraints
   std::vector<EntityType> valid_types{
-    EntityType::exit,
+    EntityType::tile_type_exit,
   };
 
   const auto& players = r.view<PlayerComponent>();

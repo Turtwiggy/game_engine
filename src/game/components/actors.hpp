@@ -18,29 +18,27 @@ enum class EntityType
   // component to an enemy to turn it in to a projectile?
   // i dunno ecs is weird
 
-  // actors
-  enemy_troll,
-  enemy_orc,
-  player,
-  shopkeeper,
+  actor_player,
+  actor_troll,
+  actor_orc,
+  actor_shopkeeper,
 
-  // tile types
-  wall,
-  floor,
-  exit,
+  tile_type_wall,
+  tile_type_floor,
+  tile_type_exit,
 
-  // melee
+  // equipment
   sword,
   fire_sword,
   crossbow,
-  shield,
-
-  // ballistics
   arrow,
   bolt,
   stone,
+  shield,
+  armour_leather,
+  armour_chainmail,
 
-  // consumable items
+  // consumable
   potion,
   scroll_damage_nearest,
   scroll_damage_selected_on_grid,

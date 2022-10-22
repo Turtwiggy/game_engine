@@ -36,6 +36,7 @@ update_take_damage_system(GameEditor& editor, Game& game)
     // check for deads
     if (health.hp <= 0) {
       eb.dead.emplace(entity);
+      r.emplace<IsDead>(entity);
       game.ui_events.events.push_back(std::format("{} died.", tag.tag.c_str()));
     }
 

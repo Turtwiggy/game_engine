@@ -1,7 +1,7 @@
 #include "system.hpp"
 
 #include "game/modules/player/components.hpp"
-#include "game/modules/rpg/components.hpp"
+#include "game/modules/rpg_xp/components.hpp"
 #include "helpers.hpp"
 
 #include <imgui.h>

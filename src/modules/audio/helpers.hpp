@@ -3,8 +3,6 @@
 #include "game/components/app.hpp"
 #include "resources/audio.hpp"
 
-#include <string>
-
 namespace game2d {
 
 void

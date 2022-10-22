@@ -1,5 +1,7 @@
 #pragma once
 
+#include <vector>
+
 namespace game2d {
 
 // e.g. an "Enemy" can have 100 "xp"

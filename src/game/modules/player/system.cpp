@@ -5,6 +5,9 @@
 #include "engine/maths/maths.hpp"
 #include "game/components/actors.hpp"
 #include "game/helpers/line.hpp"
+#include "game/modules/combat/components.hpp"
+#include "game/modules/player/components.hpp"
+#include "game/modules/rpg_xp/components.hpp"
 #include "modules/entt/helpers.hpp"
 #include "modules/events/components.hpp"
 #include "modules/events/helpers/mouse.hpp"
@@ -24,6 +27,10 @@ game2d::update_player_controller_system(GameEditor& editor,
 {
   auto& r = game.state;
   const glm::ivec2 mouse_position = mouse_position_in_worldspace(editor, game);
+
+  //
+  // player movement
+  //
 
   const auto& view = r.view<PlayerComponent, TransformComponent, GridMoveComponent>();
   view.each([&r, &inputs, &mouse_position, &editor, &game, &milliseconds_dt](
@@ -99,53 +106,13 @@ game2d::update_player_controller_system(GameEditor& editor,
     // const glm::ivec2 pos_mouse = mouse_position;
     // set_line(r, player.aim_line, pos_player, pos_mouse);
   });
-}
 
-// bool
-// Sword::use(entt::registry& r, std::vector<entt::entity>& entities)
-// {
-//   std::cout << "slashin..!" << "\n";
-// s.slash_attack_time_left = s.slash_attack_time;
-// s.attack_left_to_right = !s.attack_left_to_right; // keep swapping left to right to right to left etc
-// if (s.attack_left_to_right)
-//   s.weapon_current_angle = keys.angle_around_player;
-// else
-//   s.weapon_current_angle = keys.angle_around_player;
-// // set angle, but freezes weapon angle throughout slash?
-// weapon.angle_radians = keys.angle_around_player;
-// // remove any other slash attacks from this player
-// std::vector<Attack>::iterator it = attacks.begin();
-// while (it != attacks.end()) {
-//   Attack& att = (*it);
-//   if (att.entity_weapon_owner_id == player_obj.id && att.weapon_type == ShopItem::SHOVEL) {
-//     it = attacks.erase(it);
-//   } else {
-//     ++it;
-//   }
-// }
-// if (s.slash_attack_time_left > 0.0f) {
-//   s.slash_attack_time_left -= delta_time_s;
-//   weapon.do_render = true;
-//   weapon.do_physics = true;
-//   if (s.attack_left_to_right)
-//     s.weapon_current_angle += s.weapon_angle_speed;
-//   else
-//     s.weapon_current_angle -= s.weapon_angle_speed;
-//   glm::ivec2 pos = rotate_b_around_a(player_obj, weapon, s.weapon_radius, s.weapon_current_angle);
-//   s.weapon_target_pos = pos;
-// } else {
-//   weapon.do_physics = false;
-//   s.weapon_target_pos = player_obj.pos;
-// }
-// // Create a new slash with unique attack.id
-// Attack a = Attack(player_obj.id, weapon.id, ShopItem::SHOVEL, s.damage);
-// attacks.push_back(a);
-// lerp weapon to target position
-//   weapon.pos = glm::lerp(glm::vec3(weapon.pos.x, weapon.pos.y, 0.0f),
-//                          glm::vec3(s.weapon_target_pos.x, s.weapon_target_pos.y, 0.0f),
-//                          glm::clamp(delta_time_s * s.weapon_damping, 0.0f, 1.0f));
-//   return true;
-// };
+  const auto& stats_view = r.view<PlayerComponent, StatsComponent, HealthComponent>();
+  stats_view.each([](auto entity, auto& player, auto& stats, auto& hp) {
+    //
+    hp.max_hp = 10 + stats.con_level;
+  });
+}
 
 // // An "Attack" is basically a limiter that prevents collisions
 // // applying damage on every frame. This could end up being super weird.

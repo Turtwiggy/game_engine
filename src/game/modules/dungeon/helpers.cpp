@@ -82,18 +82,18 @@ game2d::create_room(GameEditor& editor, entt::registry& r, const Room& room)
   for (int x = 0; x < room.w; x++) {
     for (int y = 0; y < room.h; y++) {
 
-      EntityType et = EntityType::floor;
+      EntityType et = EntityType::tile_type_floor;
       if (x == 0)
-        et = EntityType::wall;
+        et = EntityType::tile_type_wall;
       if (y == 0)
-        et = EntityType::wall;
+        et = EntityType::tile_type_wall;
       if (x == room.w - 1)
-        et = EntityType::wall;
+        et = EntityType::tile_type_wall;
       if (y == room.h - 1)
-        et = EntityType::wall;
+        et = EntityType::tile_type_wall;
 
       const glm::ivec2 grid_index = { room.x1 + x, room.y1 + y };
-      if (EntityType::floor == et)
+      if (EntityType::tile_type_floor == et)
         create_dungeon_entity_remove_old(editor, r, et, grid_index);
     }
   }
@@ -106,7 +106,7 @@ game2d::create_tunnel_floor(GameEditor& editor,
                             std::vector<std::pair<int, int>>& coords)
 {
   for (const auto& coord : coords)
-    create_dungeon_entity_remove_old(editor, r, EntityType::floor, { coord.first, coord.second });
+    create_dungeon_entity_remove_old(editor, r, EntityType::tile_type_floor, { coord.first, coord.second });
 };
 
 void
@@ -143,9 +143,9 @@ game2d::set_pathfinding_cost(GameEditor& editor, entt::registry& r)
   for (auto [entity, grid, et] : view.each()) {
     PathfindableComponent path;
 
-    if (et.type == EntityType::floor)
+    if (et.type == EntityType::tile_type_floor)
       path.cost = 0;
-    else if (et.type == EntityType::wall)
+    else if (et.type == EntityType::tile_type_wall)
       path.cost = -1; // impassable
     else
       path.cost = 1;
@@ -158,31 +158,143 @@ void
 game2d::set_player_positions(GameEditor& editor, entt::registry& r, std::vector<Room>& rooms, engine::RandomState& rnd)
 {
   const auto& view = r.view<TransformComponent, const PlayerComponent>();
-  view.each([&rooms](auto entity, TransformComponent& t, const PlayerComponent& p) {
+  view.each([&rooms, &r](auto entity, TransformComponent& t, const PlayerComponent& p) {
     if (rooms.size() > 0) {
       auto room = rooms[0];
       auto center = room_center(room);
+
+      // forceapply player
+      // auto entities = grid_entities_at(r, center.x, center.y);
+      // for (const auto& e : entities)
+      //   r.destroy(e);
+
       glm::ivec2 pos = engine::grid::grid_space_to_world_space(center, GRID_SIZE);
       t.position = { pos.x, pos.y, 0 };
     }
   });
 };
 
-void
-game2d::set_enemy_positions(GameEditor& editor, entt::registry& r, std::vector<Room>& rooms, engine::RandomState& rnd)
+namespace game2d {
+
+EntityType
+generate_item(const int floor, engine::RandomState& rnd)
 {
-  const int max_monsters_per_room = 5;
+  const std::vector<std::pair<int, std::pair<EntityType, int>>> difficulty_map{
+    // clang-format off
+    { 0, { EntityType::potion, 80 } },
+    { 1, { EntityType::scroll_damage_nearest, 15 } },
+    { 1, { EntityType::scroll_damage_selected_on_grid, 15 } },
+    { 2, { EntityType::bolt, 15 } },
+    { 2, { EntityType::crossbow, 15 } },
+    // clang-format on
+  };
 
-  for (auto& room : rooms) {
-    int number_of_monsters = static_cast<int>(engine::rand_det_s(rnd.rng, 0, max_monsters_per_room));
-    for (int i = 0; i < number_of_monsters; i++) {
+  std::map<EntityType, int> weights;
+  for (const auto& [dict_floor, dict_type] : difficulty_map) {
 
-      const float random = engine::rand_det_s(rnd.rng, 0.0f, 1.0f);
-      EntityType et = EntityType::enemy_orc;
-      if (random < 0.8f)
-        et = EntityType::enemy_orc;
-      else
-        et = EntityType::enemy_troll;
+    // only interested in weights at our floor
+    if (dict_floor > floor)
+      break;
+
+    // sum the weights!
+    const auto& entity_type = dict_type.first;
+    const auto& entity_weight = dict_type.second;
+    if (weights.contains(entity_type))
+      weights[entity_type] += entity_weight;
+    else
+      weights[entity_type] = entity_weight;
+  }
+
+  int total_weight = 0;
+  for (const auto& [k, w] : weights)
+    total_weight += w;
+
+  const float random = engine::rand_det_s(rnd.rng, 0, total_weight);
+  int weight_acculum = 0;
+  for (const auto& [k, w] : weights) {
+    weight_acculum += w;
+    if (weight_acculum >= random)
+      return k;
+  }
+
+  return EntityType::potion;
+};
+
+EntityType
+generate_monster(const int floor, engine::RandomState& rnd)
+{
+  const std::vector<std::pair<int, std::pair<EntityType, int>>> difficulty_map{
+    // clang-format off
+    { 0, { EntityType::actor_orc, 80 } },
+    { 2, { EntityType::actor_troll, 15 } },
+    { 4, { EntityType::actor_troll, 30 } },
+    { 6, { EntityType::actor_troll, 60 } }
+    // clang-format on
+  };
+
+  std::map<EntityType, int> weights;
+  for (const auto& [dict_floor, dict_type] : difficulty_map) {
+
+    // only interested in weights at our floor
+    if (dict_floor > floor)
+      break;
+
+    // sum the weights!
+    const auto& entity_type = dict_type.first;
+    const auto& entity_weight = dict_type.second;
+    if (weights.contains(entity_type))
+      weights[entity_type] += entity_weight;
+    else
+      weights[entity_type] = entity_weight;
+  }
+
+  int total_weight = 0;
+  for (const auto& [k, w] : weights)
+    total_weight += w;
+
+  const float random = engine::rand_det_s(rnd.rng, 0, total_weight);
+  int weight_acculum = 0;
+  for (const auto& [k, w] : weights) {
+    weight_acculum += w;
+    if (weight_acculum >= random)
+      return k;
+
+    return EntityType::actor_orc;
+  }
+};
+
+} // namespace game2d
+
+void
+game2d::set_generated_entity_positions(GameEditor& editor,
+                                       entt::registry& r,
+                                       std::vector<Room>& rooms,
+                                       const int floor,
+                                       engine::RandomState& rnd)
+{
+  // randomize amount
+  const int amount_of_rooms = rooms.size();
+  const int potential_items_per_room = 5 + ((floor)*2);
+  const int potential_monsters_per_room = 5 + ((floor)*2);
+  std::cout << "floor " << floor << " has max items: " << potential_items_per_room
+            << ", max monsters:" << potential_monsters_per_room << "\n";
+
+  for (int j = 0; auto& room : rooms) {
+    const int number_of_items = engine::rand_det_s(rnd.rng, 0, potential_items_per_room);
+    const int number_of_monsters = engine::rand_det_s(rnd.rng, 0, potential_monsters_per_room);
+    std::cout << "room " << j << " has " << number_of_items << " items, " << number_of_monsters << " monsters\n";
+    j++;
+
+    std::vector<EntityType> generated;
+    for (int i = 0; i < number_of_items; i++)
+      generated.push_back(generate_item(floor, rnd)); // randomize rarity
+    for (int i = 0; i < number_of_monsters; i++)
+      generated.push_back(generate_monster(floor, rnd)); // randomize rarity
+
+    //
+    // place generated entities
+    //
+    for (int i = 0; i < generated.size(); i++) {
 
       const int x = static_cast<int>(engine::rand_det_s(rnd.rng, room.x1 + 1, room.x2 - 1));
       const int y = static_cast<int>(engine::rand_det_s(rnd.rng, room.y1 + 1, room.y2 - 1));
@@ -193,42 +305,10 @@ game2d::set_enemy_positions(GameEditor& editor, entt::registry& r, std::vector<R
         room.occupied.begin(), room.occupied.end(), [&grid_index](const auto& val) { return grid_index == val; });
       if (full != room.occupied.end())
         continue; // entity already at position
+
       room.occupied.push_back(grid_index);
 
-      // randomize brain offset time to make more interesting
-      const auto e = create_dungeon_entity(editor, r, et, grid_index);
-      auto& brain = r.get<AiBrainComponent>(e);
-      brain.milliseconds_between_ai_updates_left = engine::rand_det_s(rnd.rng, 0, k_milliseconds_between_ai_updates);
+      create_dungeon_entity(editor, r, generated[i], grid_index);
     }
   }
 }
-
-void
-game2d::set_item_positions(GameEditor& editor, entt::registry& r, std::vector<Room>& rooms, engine::RandomState& rnd)
-{
-  constexpr int max_items_per_room = 10;
-
-  for (auto& room : rooms) {
-    const int number_of_items = engine::rand_det_s(rnd.rng, 0, max_items_per_room);
-
-    for (int i = 0; i < number_of_items; i++) {
-      const int x = static_cast<int>(engine::rand_det_s(rnd.rng, room.x1 + 1, room.x2 - 1));
-      const int y = static_cast<int>(engine::rand_det_s(rnd.rng, room.y1 + 1, room.y2 - 1));
-      const glm::ivec2 grid_index = { x, y };
-      const glm::ivec2 world_position = engine::grid::grid_space_to_world_space(grid_index, GRID_SIZE);
-
-      // Check the tile isn't occupied
-      auto full = std::find_if(
-        room.occupied.begin(), room.occupied.end(), [&grid_index](const auto& val) { return grid_index == val; });
-      if (full != room.occupied.end())
-        continue; // entity already at position
-      room.occupied.push_back(grid_index);
-
-      float percent = engine::rand_det_s(rnd.rng, 0.0f, 1.0f);
-      if (percent < 0.7f)
-        create_dungeon_entity(editor, r, EntityType::potion, grid_index);
-      else
-        create_dungeon_entity(editor, r, EntityType::scroll_damage_nearest, grid_index);
-    }
-  }
-};

@@ -30,7 +30,7 @@ generate_dungeon(GameEditor& editor, entt::registry& r, const Dungeon& d, uint32
   for (int x = 0; x < d.width; x++) {
     for (int y = 0; y < d.height; y++) {
       const glm::ivec2 grid_index = { offset_x + x, offset_y + y };
-      create_dungeon_entity(editor, r, EntityType::wall, grid_index);
+      create_dungeon_entity(editor, r, EntityType::tile_type_wall, grid_index);
 
       // if (x != 0 && y != 0 && x != d.width - 1 && y != d.height - 1)
       //   r.emplace<HealthComponent>(e, 1, 1); // give inner walls health
@@ -81,15 +81,15 @@ generate_dungeon(GameEditor& editor, entt::registry& r, const Dungeon& d, uint32
   //
   // Steps after initial initialization...
   //
+  const int floor = d.floor;
   set_pathfinding_cost(editor, r);
   set_player_positions(editor, r, rooms, rnd); // limitation: currently all player put in same spot
-  set_enemy_positions(editor, r, rooms, rnd);
-  set_item_positions(editor, r, rooms, rnd);
+  set_generated_entity_positions(editor, r, rooms, floor, rnd);
 
   // set exit door position
   Room& room = rooms[rooms.size() - 1];
   glm::ivec2 middle = room_center(room);
-  create_dungeon_entity(editor, r, EntityType::exit, middle);
+  create_dungeon_entity(editor, r, EntityType::tile_type_exit, middle);
 };
 
 void
@@ -118,7 +118,7 @@ update_dungeon_system(GameEditor& editor, Game& game)
 
   // players
   for (int i = 0; i < 1; i++) {
-    EntityType et = EntityType::player;
+    EntityType et = EntityType::actor_player;
     entt::entity e = create_gameplay(editor, r, et);
     create_renderable(editor, r, e, et);
   }
@@ -134,6 +134,13 @@ update_dungeon_system(GameEditor& editor, Game& game)
 
   Dungeon d; // set dungeon specs
   d.seed = seed;
+  d.floor = seed;
+  std::string floor_msg = std::format("You are on floor: {}", d.floor);
+  game.ui_events.events.push_back(msg);
+
+  if (d.floor == 10)
+    game.ui_events.events.push_back("You win!");
+
   generate_dungeon(editor, r, d, seed);
   entt::entity e = r.create();
   r.emplace<EntityTypeComponent>(e, EntityType::empty);
