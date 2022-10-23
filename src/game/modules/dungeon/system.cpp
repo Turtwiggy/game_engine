@@ -127,21 +127,22 @@ update_dungeon_system(GameEditor& editor, Game& game)
   auto c = create_gameplay(editor, r, EntityType::camera);
   r.emplace<TransformComponent>(c);
 
-  static int seed = 1;
+  static int seed = 0;
   seed += 1;
-  std::string msg = std::format("New dungeon! seed: {}", seed);
-  game.ui_events.events.push_back(msg);
 
   Dungeon d; // set dungeon specs
   d.seed = seed;
   d.floor = seed;
-  std::string floor_msg = std::format("You are on floor: {}", d.floor);
-  game.ui_events.events.push_back(msg);
+  std::string floor_msg = std::format("Exit reached! New floor: {}", d.floor);
+  game.ui_events.events.push_back(floor_msg);
 
   if (d.floor == 10)
     game.ui_events.events.push_back("You win!");
 
+  std::string msg = std::format("Generating new dungeon! seed: {}", seed);
+  game.ui_events.events.push_back(msg);
   generate_dungeon(editor, r, d, seed);
+
   entt::entity e = r.create();
   r.emplace<EntityTypeComponent>(e, EntityType::empty);
   r.emplace<TagComponent>(e, "dungeon");

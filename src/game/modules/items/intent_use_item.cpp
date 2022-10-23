@@ -41,8 +41,9 @@ update_intent_use_item_system(GameEditor& editor, Game& game)
           auto* target_damage_buffer = r.try_get<TakeDamageComponent>(target);
           if (target_damage_buffer) {
             // TEMP: just use min damage
-            int damage = item_damage->min_damage;
-            target_damage_buffer->damage.push_back(damage);
+            RecieveDamageRequest dmg;
+            dmg.base_damage = item_damage->min_damage;
+            target_damage_buffer->damage.push_back(dmg);
           } else {
             std::cerr << "Tried to attack an entity that doesn't have a TakeDamageComponent\n";
           }

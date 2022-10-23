@@ -9,10 +9,12 @@
 #include "modules/renderer/components.hpp"
 #include "modules/ux_hover/components.hpp"
 
+#include "magic_enum.hpp"
 #include <entt/entt.hpp>
 #include <imgui.h>
 
 #include <map>
+#include <string>
 
 namespace game2d {
 
@@ -31,7 +33,7 @@ game2d::update_ui_player_inventory_system(GameEditor& editor, Game& game)
 
   ImGui::SetNextWindowPos(ImVec2{ 100, 100 }, ImGuiCond_FirstUseEver);
   ImGui::SetNextWindowSize(ImVec2{ 100, 100 }, ImGuiCond_FirstUseEver);
-  ImGui::Begin("Shop", &shop_open, flags);
+  ImGui::Begin("(debug) Shop", &shop_open, flags);
   {
     const auto& shops = r.view<ShopKeeperComponent>();
     const auto& items = r.view<InBackpackComponent, const TagComponent>();
@@ -116,7 +118,10 @@ game2d::update_ui_player_inventory_system(GameEditor& editor, Game& game)
       for (auto [entity, equipped, tag, type] : equipped.each()) {
         if (equipped.parent != entity_player)
           continue; // not my equipped
-        ImGui::Text(" %s", tag.tag);
+
+        const std::string slot_str = std::string(magic_enum::enum_name(equipped.slot));
+        const std::string type_str = std::string(magic_enum::enum_name(type.type));
+        ImGui::Text("(%s) %s", slot_str.c_str(), type_str.c_str());
       }
 
       ImGui::Text("¬¬ Inventory ¬¬");
@@ -137,6 +142,11 @@ game2d::update_ui_player_inventory_system(GameEditor& editor, Game& game)
 
         std::string label_use = "Use##" + std::to_string(static_cast<uint32_t>(entity_item));
         if (ImGui::Button(label_use.c_str())) {
+
+          // Limitation: use currently only supports:
+          // "potion",
+          // "scroll_damage_nearest"
+          // "scroll_damage_selected_on_grid"
 
           // USE_TYPE: SELF
           if (type.type == EntityType::potion) {
@@ -179,7 +189,9 @@ game2d::update_ui_player_inventory_system(GameEditor& editor, Game& game)
         std::string label_sell = "Equip##" + std::to_string(static_cast<uint32_t>(entity_item));
         if (ImGui::Button(label_sell.c_str())) {
           auto& u = r.get_or_emplace<WantsToEquip>(entity_player);
-          u.items.push_back(entity_item);
+
+          // LIMITATION: left_hand is wrong here
+          u.requests.push_back({ EquipmentSlot::left_hand, entity_item });
         }
 
         // ImGui::SameLine();

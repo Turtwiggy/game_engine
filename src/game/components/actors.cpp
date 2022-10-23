@@ -179,7 +179,7 @@ create_colour(GameEditor& editor, entt::registry& r, const entt::entity& e, cons
   else if (type == EntityType::grid_cursor)
     srgb = colours.red;
   else
-    std::cerr << "warning! not renderable: " << type_name << "\n";
+    std::cerr << "warning! colour not chosen for: " << type_name << "\n";
 
   SpriteColourComponent scc;
   scc.colour = engine::SRGBToLinear(srgb);
@@ -240,19 +240,6 @@ create_gameplay_existing_entity(GameEditor& editor, entt::registry& r, const ent
 
       // pc/npcs
 
-    case EntityType::actor_troll: {
-      // physics
-      r.emplace<PhysicsTransformComponent>(e);
-      r.emplace<PhysicsActorComponent>(e);
-      r.emplace<PhysicsSolidComponent>(e);
-      r.emplace<GridMoveComponent>(e);
-      // gameplay
-      r.emplace<AiBrainComponent>(e);
-      r.emplace<HealthComponent>(e);
-      r.emplace<TakeDamageComponent>(e);
-      r.emplace<XpComponent>(e, 50);
-      break;
-    }
     case EntityType::actor_orc: {
       // physics
       r.emplace<PhysicsTransformComponent>(e);
@@ -261,11 +248,25 @@ create_gameplay_existing_entity(GameEditor& editor, entt::registry& r, const ent
       r.emplace<GridMoveComponent>(e);
       // gameplay
       r.emplace<AiBrainComponent>(e);
-      r.emplace<HealthComponent>(e);
+      r.emplace<HealthComponent>(e, 3);
       r.emplace<TakeDamageComponent>(e);
       r.emplace<XpComponent>(e, 50);
       break;
     }
+    case EntityType::actor_troll: {
+      // physics
+      r.emplace<PhysicsTransformComponent>(e);
+      r.emplace<PhysicsActorComponent>(e);
+      r.emplace<PhysicsSolidComponent>(e);
+      r.emplace<GridMoveComponent>(e);
+      // gameplay
+      r.emplace<AiBrainComponent>(e);
+      r.emplace<HealthComponent>(e, 10);
+      r.emplace<TakeDamageComponent>(e);
+      r.emplace<XpComponent>(e, 50);
+      break;
+    }
+
     case EntityType::actor_player: {
       r.emplace<PhysicsTransformComponent>(e);
       r.emplace<PhysicsActorComponent>(e);
@@ -291,14 +292,16 @@ create_gameplay_existing_entity(GameEditor& editor, entt::registry& r, const ent
       r.emplace<PhysicsTransformComponent>(e);
       r.emplace<PhysicsActorComponent>(e);
       r.emplace<VelocityComponent>(e);
+      r.emplace<AbleToBePickedUp>(e);
       // gameplay
-      r.emplace<AttackComponent>(e, AttackComponent(10, 20));
+      r.emplace<AttackComponent>(e, AttackComponent(1, 5));
       break;
     }
     case EntityType::bolt: {
       r.emplace<PhysicsTransformComponent>(e);
       r.emplace<PhysicsActorComponent>(e);
       r.emplace<VelocityComponent>(e);
+      r.emplace<AbleToBePickedUp>(e);
       // gameplay
       // r.emplace<EntityTimedLifecycle>(e, 20000); // bullet time alive
       break;
@@ -307,6 +310,7 @@ create_gameplay_existing_entity(GameEditor& editor, entt::registry& r, const ent
       r.emplace<PhysicsTransformComponent>(e);
       r.emplace<PhysicsActorComponent>(e);
       r.emplace<Equipment>(e);
+      r.emplace<AbleToBePickedUp>(e);
       r.emplace<AttackComponent>(e, AttackComponent(0, 4));
       break;
     }
@@ -314,35 +318,39 @@ create_gameplay_existing_entity(GameEditor& editor, entt::registry& r, const ent
       r.emplace<PhysicsTransformComponent>(e);
       r.emplace<PhysicsActorComponent>(e);
       r.emplace<Equipment>(e);
-      r.emplace<AttackComponent>(e, AttackComponent(10, 20));
+      r.emplace<AbleToBePickedUp>(e);
+      r.emplace<AttackComponent>(e, AttackComponent(1, 4));
       break;
     }
     case EntityType::fire_sword: {
       r.emplace<PhysicsTransformComponent>(e);
       r.emplace<PhysicsActorComponent>(e);
       r.emplace<Equipment>(e);
-      r.emplace<AttackComponent>(e, AttackComponent(30, 40));
+      r.emplace<AttackComponent>(e, AttackComponent(5, 10));
       break;
     }
     case EntityType::crossbow: {
       r.emplace<PhysicsTransformComponent>(e);
       r.emplace<PhysicsActorComponent>(e);
       r.emplace<Equipment>(e);
-      r.emplace<AttackComponent>(e, AttackComponent(10, 20));
+      r.emplace<AbleToBePickedUp>(e);
+      r.emplace<AttackComponent>(e, AttackComponent(5, 10));
       break;
     }
     case EntityType::shield: {
       r.emplace<PhysicsTransformComponent>(e);
       r.emplace<PhysicsActorComponent>(e);
       r.emplace<Equipment>(e);
+      r.emplace<AbleToBePickedUp>(e);
       r.emplace<AttackComponent>(e, AttackComponent(5, 8));
-      r.emplace<DefenseComponent>(e, DefenseComponent(10));
+      r.emplace<DefenseComponent>(e, DefenseComponent(1));
       break;
     }
     case EntityType::potion: {
       r.emplace<PhysicsTransformComponent>(e);
       r.emplace<PhysicsActorComponent>(e);
       r.emplace<ConsumableComponent>(e);
+      r.emplace<AbleToBePickedUp>(e);
       r.emplace<GiveHealsComponent>(e);
       break;
     }
@@ -350,6 +358,7 @@ create_gameplay_existing_entity(GameEditor& editor, entt::registry& r, const ent
       r.emplace<PhysicsTransformComponent>(e);
       r.emplace<PhysicsActorComponent>(e);
       r.emplace<ConsumableComponent>(e);
+      r.emplace<AbleToBePickedUp>(e);
       r.emplace<AttackComponent>(e, AttackComponent(5, 10));
       break;
     }
@@ -357,6 +366,7 @@ create_gameplay_existing_entity(GameEditor& editor, entt::registry& r, const ent
       r.emplace<PhysicsTransformComponent>(e);
       r.emplace<PhysicsActorComponent>(e);
       r.emplace<ConsumableComponent>(e);
+      r.emplace<AbleToBePickedUp>(e);
       r.emplace<AttackComponent>(e, AttackComponent(5, 10));
       break;
     }

@@ -19,8 +19,8 @@ enum class EntityType
   // i dunno ecs is weird
 
   actor_player,
-  actor_troll,
   actor_orc,
+  actor_troll,
   actor_shopkeeper,
 
   tile_type_wall,

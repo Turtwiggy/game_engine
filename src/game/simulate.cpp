@@ -10,7 +10,8 @@
 #include "game/modules/items/intent_purchase_item.hpp"
 #include "game/modules/items/intent_select_units_for_item.hpp"
 #include "game/modules/items/intent_use_item.hpp"
-#include "game/modules/player/system.hpp"
+#include "game/modules/player/player_controller.hpp"
+#include "game/modules/player/player_stats.hpp"
 #include "game/modules/resolve_collisions/system.hpp"
 #include "game/modules/rpg_xp/system.hpp"
 
@@ -58,6 +59,7 @@ game2d::simulate(GameEditor& editor, Game& game, const std::vector<InputEvent>& 
 
   // game logic
   {
+    auto _ = time_scope(&p, "(game_logic)-misc", true);
     update_select_units_for_item_system(editor, game);
     update_intent_use_item_system(editor, game);
     update_intent_purchase_item_system(editor, game);
@@ -65,6 +67,7 @@ game2d::simulate(GameEditor& editor, Game& game, const std::vector<InputEvent>& 
     update_intent_equip_item_system(editor, game);
     update_take_damage_system(editor, game);
     update_rpg_system(editor, game);
+    update_player_stats_system(editor, game);
   }
   {
     auto _ = time_scope(&p, "(game_logic)-fov", true);

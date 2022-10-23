@@ -43,11 +43,17 @@ game2d::update_move_objects_system(entt::registry& r, const uint64_t millisecond
     ptc.y_tl = static_cast<int>(transform.position.y - (ptc.h / 2.0f));
 
     // LIMITATION: this only emplaces one component, and an entity could be collided with multiple times.
-    if (coll_x)
-      r.emplace_or_replace<WasCollidedWithComponent>(static_cast<entt::entity>(coll_x->ent_id_1));
+    if (coll_x) {
+      const auto instigator = static_cast<entt::entity>(coll_x->ent_id_0);
+      const auto other = static_cast<entt::entity>(coll_x->ent_id_1);
+      r.emplace_or_replace<WasCollidedWithComponent>(other, instigator);
+    }
     // LIMITATION: this only emplaces one component, and an entity could be collided with multiple times.
-    if (coll_y)
-      r.emplace_or_replace<WasCollidedWithComponent>(static_cast<entt::entity>(coll_y->ent_id_1));
+    if (coll_y) {
+      const auto instigator = static_cast<entt::entity>(coll_y->ent_id_0);
+      const auto other = static_cast<entt::entity>(coll_y->ent_id_1);
+      r.emplace_or_replace<WasCollidedWithComponent>(other, instigator);
+    }
   });
 
   // move velocity actors,
@@ -65,13 +71,6 @@ game2d::update_move_objects_system(entt::registry& r, const uint64_t millisecond
     int move_y = static_cast<int>(transform.position_dxdy.y);
     const auto coll_y = do_move(r, entity, move_y, transform, ptc, CollisionAxis::y);
     ptc.y_tl = static_cast<int>(transform.position.y - (ptc.h / 2.0f));
-
-    // LIMITATION: this only emplaces one component, and an entity could be collided with multiple times.
-    // if (coll_x)
-    //   r.emplace_or_replace<WasCollidedWithComponent>(static_cast<entt::entity>(coll_x->ent_id_1));
-    // // LIMITATION: this only emplaces one component, and an entity could be collided with multiple times.
-    // if (coll_y)
-    //   r.emplace_or_replace<WasCollidedWithComponent>(static_cast<entt::entity>(coll_y->ent_id_1));
   }
 
   // move solids

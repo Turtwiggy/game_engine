@@ -1,10 +1,12 @@
 #pragma once
 
+#include <entt/entt.hpp>
+
 namespace game2d {
 
 struct WasCollidedWithComponent
 {
-  bool placeholder = true;
+  entt::entity instigator;
 };
 
 struct CollidingWithCursorComponent

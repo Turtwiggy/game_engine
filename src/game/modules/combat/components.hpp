@@ -67,9 +67,18 @@ struct HealthComponent
 //   NLOHMANN_DEFINE_TYPE_INTRUSIVE(RangedComponent, placeholder);
 // };
 
+struct RecieveDamageRequest
+{
+  int base_damage = 0;
+  int extra_damage = 0;
+  int mitigated_damage = 0;
+
+  NLOHMANN_DEFINE_TYPE_INTRUSIVE(RecieveDamageRequest, base_damage, extra_damage, mitigated_damage);
+};
+
 struct TakeDamageComponent
 {
-  std::vector<int> damage;
+  std::vector<RecieveDamageRequest> damage;
 
   NLOHMANN_DEFINE_TYPE_INTRUSIVE(TakeDamageComponent, damage);
 };

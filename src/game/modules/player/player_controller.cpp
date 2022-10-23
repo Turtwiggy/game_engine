@@ -1,13 +1,9 @@
-#include "system.hpp"
+#include "player_controller.hpp"
 
 #include "components.hpp"
-
 #include "engine/maths/maths.hpp"
 #include "game/components/actors.hpp"
-#include "game/helpers/line.hpp"
-#include "game/modules/combat/components.hpp"
 #include "game/modules/player/components.hpp"
-#include "game/modules/rpg_xp/components.hpp"
 #include "modules/entt/helpers.hpp"
 #include "modules/events/components.hpp"
 #include "modules/events/helpers/mouse.hpp"
@@ -15,9 +11,6 @@
 #include "modules/physics/components.hpp"
 
 #include <SDL2/SDL_mouse.h>
-
-#include <iostream>
-#include <vector>
 
 void
 game2d::update_player_controller_system(GameEditor& editor,
@@ -106,13 +99,4 @@ game2d::update_player_controller_system(GameEditor& editor,
     // const glm::ivec2 pos_mouse = mouse_position;
     // set_line(r, player.aim_line, pos_player, pos_mouse);
   });
-
-  const auto& stats_view = r.view<PlayerComponent, StatsComponent, HealthComponent>();
-  stats_view.each([](auto entity, auto& player, auto& stats, auto& hp) {
-    //
-    hp.max_hp = 10 + stats.con_level;
-  });
 }
-
-// // An "Attack" is basically a limiter that prevents collisions
-// // applying damage on every frame. This could end up being super weird.

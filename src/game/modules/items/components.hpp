@@ -18,6 +18,11 @@ struct ShopKeeperComponent
   NLOHMANN_DEFINE_TYPE_INTRUSIVE(ShopKeeperComponent, placeholder);
 };
 
+struct AbleToBePickedUp
+{
+  bool placeholder = true;
+};
+
 struct InBackpackComponent
 {
   entt::entity parent = entt::null;
@@ -67,6 +72,7 @@ struct WantsToDrop
 
   NLOHMANN_DEFINE_TYPE_INTRUSIVE(WantsToDrop, items);
 };
+
 struct WantsToPurchase
 {
   std::vector<entt::entity> items;
@@ -91,7 +97,7 @@ struct WantsToSelectUnitsForItem
 // equipment
 //
 
-enum class EquipmentSlots
+enum class EquipmentSlot
 {
   left_hand,
   right_hand,
@@ -104,12 +110,19 @@ struct Equipment
 
 struct IsEquipped
 {
+  EquipmentSlot slot;
   entt::entity parent = entt::null;
+};
+
+struct EquipmentRequest
+{
+  EquipmentSlot slot;
+  entt::entity item;
 };
 
 struct WantsToEquip
 {
-  std::vector<entt::entity> items;
+  std::vector<EquipmentRequest> requests;
 };
 
 } // namespace game2d

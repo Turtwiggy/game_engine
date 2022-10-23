@@ -82,17 +82,17 @@ init_game_state(GameEditor& editor)
     entt::entity e = create_gameplay(editor, r, et);
     create_renderable(editor, r, e, et);
 
-    // give the player a sword
-    entt::entity sword = create_item(editor, r, EntityType::sword, e);
-
-    // equip it!
-    r.emplace<WantsToEquip>(e, std::vector<entt::entity>{ sword });
+    // debug: give the player a sword
+    // entt::entity sword = create_item(editor, r, EntityType::sword, e);
+    // entt::entity shield = create_item(editor, r, EntityType::shield, e);
+    // WantsToEquip& equip = r.get_or_emplace<WantsToEquip>(e);
+    // equip.requests.push_back({ EquipmentSlot::left_hand, sword });
+    // equip.requests.push_back({ EquipmentSlot::right_hand, shield });
   }
 
   int seed = 0;
   Dungeon d;
   game.ui_events.events.push_back("You are on floor: 0");
-
   generate_dungeon(editor, r, d, seed);
   entt::entity e = r.create();
   r.emplace<EntityTypeComponent>(e, EntityType::empty);
@@ -109,8 +109,8 @@ init_game_state(GameEditor& editor)
 void
 init(engine::SINGLETON_Application& app, GameEditor& editor, Game& game)
 {
+  // init_networking_system(editor);
   init_sprite_system(editor);
-  init_networking_system(editor);
   init_audio_system(editor);
   init_render_system(app, editor);
 
@@ -193,7 +193,7 @@ update(engine::SINGLETON_Application& app, GameEditor& editor, Game& game, float
       update_ui_hierarchy_system(editor, game);
       update_ui_profiler_system(editor, game);
       // update_ui_editor_scene_system(editor, game);
-      update_ui_editor_tilemap_system(editor, game);
+      // update_ui_editor_tilemap_system(editor, game);
       update_ui_sprite_searcher_system(editor, game);
       // update_ui_networking_system(editor, game);
     }

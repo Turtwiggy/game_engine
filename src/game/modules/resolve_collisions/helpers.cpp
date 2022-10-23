@@ -2,12 +2,15 @@
 
 #include "game/components/actors.hpp"
 #include "game/components/events.hpp"
+#include "game/helpers/check_equipment.hpp"
 #include "game/modules/combat/components.hpp"
 #include "game/modules/items/components.hpp"
 #include "game/modules/player/components.hpp"
 #include "modules/cursor/components.hpp"
 #include "modules/lifecycle/components.hpp"
 #include "modules/physics/components.hpp"
+
+#include <glm/glm.hpp>
 
 #include <optional>
 #include <utility>
@@ -56,6 +59,7 @@ contains(entt::registry& r,
 };
 
 // returns [check, other]
+// This does the check based on valid EntityTypes (rather than entt components)
 std::tuple<entt::entity, entt::entity>
 collision_of_interest(entt::registry& r,
                       const Collision2D& coll,
@@ -81,14 +85,48 @@ check_if_damageable_received_collision(Game& game)
   const auto& view = r.view<const WasCollidedWithComponent, TakeDamageComponent>();
   for (auto [entity, coll, damages] : view.each()) {
     // FIX: damage actually given here! (seems wrong)
-    const int collision_damage = 1;
-    damages.damage.push_back(collision_damage);
+
+    const int base_damage = 1;
+    int extra_damage = 0;
+    int mitigated_damage = 0;
+
+    const auto& attacker = coll.instigator;
+    const auto& defender = entity;
+
+    // Check everyone's equipment?
+
+    // If the attacker had a weapon, deal extra damage.
+    const auto potential_weapon = has_equipped(game, attacker, EquipmentSlot::left_hand);
+    if (potential_weapon != entt::null) {
+      const auto* attack = r.try_get<AttackComponent>(potential_weapon);
+      if (attack) {
+        // BUG: dont use min damage.
+        extra_damage = attack->min_damage;
+      }
+    }
+
+    // If the defender had a shield, mitigate some damage.
+    const auto potential_shield = has_equipped(game, defender, EquipmentSlot::right_hand);
+    if (potential_shield != entt::null) {
+      const auto* defense = r.try_get<DefenseComponent>(potential_shield);
+      if (defense) {
+        // TODO: improve defense.
+        mitigated_damage = defense->ac;
+      }
+    }
+
+    RecieveDamageRequest dmg;
+    dmg.base_damage = base_damage;
+    dmg.extra_damage = extra_damage;
+    dmg.mitigated_damage = mitigated_damage;
+
+    damages.damage.push_back(dmg);
   }
 };
 
 // Want to know if an enemy collided with the cursor
 void
-check_if_collided_with_cursor(Game& game)
+check_if_enemy_collided_with_cursor(Game& game)
 {
   auto& r = game.state;
   auto& physics = game.physics;
@@ -112,28 +150,30 @@ check_if_collided_with_cursor(Game& game)
 
 // Want to know if a player collided with a pickup
 void
-check_if_collided_with_pickup(Game& game)
+check_if_player_collided_with_pickup(Game& game)
 {
   auto& r = game.state;
   auto& physics = game.physics;
-
-  // .. the constraints
-  std::vector<EntityType> valid_types{
-    EntityType::potion,
-    EntityType::scroll_damage_nearest,
-    EntityType::scroll_damage_selected_on_grid,
-  };
 
   // .. the check
   const auto& players = r.view<PlayerComponent>();
   for (auto [player_entity, player] : players.each()) {
     for (const auto& coll : physics.collision_stay) {
-      auto [player_coll_ent, other] = collision_of_interest(r, coll, player_entity, valid_types);
-      if (other != entt::null) {
+      auto a = static_cast<entt::entity>(coll.ent_id_0);
+      auto b = static_cast<entt::entity>(coll.ent_id_1);
+      auto* pickup_a = r.try_get<AbleToBePickedUp>(a);
+      auto* pickup_b = r.try_get<AbleToBePickedUp>(b);
+      if (a == player_entity && pickup_b) {
         // purchase from the floor?
         auto& purchase = r.get_or_emplace<WantsToPurchase>(player_entity);
-        purchase.items.push_back(other);
-        clean(game, other);
+        purchase.items.push_back(b);
+        clean(game, b);
+      }
+      if (b == player_entity && pickup_a) {
+        // purchase from the floor?
+        auto& purchase = r.get_or_emplace<WantsToPurchase>(player_entity);
+        purchase.items.push_back(a);
+        clean(game, a);
       }
     }
   }
@@ -141,7 +181,7 @@ check_if_collided_with_pickup(Game& game)
 
 // Want to know if a player collided with the exit
 void
-check_if_collided_with_exit(Game& game)
+check_if_player_collided_with_exit(Game& game)
 {
   auto& r = game.state;
   auto& physics = game.physics;
