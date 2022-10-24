@@ -7,6 +7,8 @@
 #include "game/modules/player/components.hpp"
 #include "modules/physics/helpers.hpp"
 
+#include "magic_enum.hpp"
+
 #include <vector>
 
 namespace game2d {
@@ -14,8 +16,9 @@ namespace game2d {
 const int GRID_SIZE = 16;
 
 std::vector<entt::entity>
-grid_entities_at(entt::registry& r, int x, int y)
+grid_entities_at(Game& game, int x, int y)
 {
+  auto& r = game.state;
   std::vector<entt::entity> results;
   const auto& view = r.view<const GridComponent>();
   view.each([&results, &x, &y](auto entity, const auto& grid) {
@@ -26,23 +29,25 @@ grid_entities_at(entt::registry& r, int x, int y)
 };
 
 entt::entity
-create_dungeon_entity_remove_old(GameEditor& editor, entt::registry& r, EntityType et, const glm::ivec2& grid_index)
+create_dungeon_entity_remove_old(GameEditor& editor, Game& game, EntityType et, const glm::ivec2& grid_index)
 {
-  std::vector<entt::entity> entities = grid_entities_at(r, grid_index.x, grid_index.y);
+  auto& r = game.state;
+  std::vector<entt::entity> entities = grid_entities_at(game, grid_index.x, grid_index.y);
   for (const auto& entity : entities)
     r.destroy(entity);
 
-  return create_dungeon_entity(editor, r, et, grid_index);
+  return create_dungeon_entity(editor, game, et, grid_index);
 };
 
 } // namespace game2d
 
 entt::entity
-game2d::create_dungeon_entity(GameEditor& editor, entt::registry& r, EntityType et, const glm::ivec2& grid_index)
+game2d::create_dungeon_entity(GameEditor& editor, Game& game, EntityType et, const glm::ivec2& grid_index)
 {
+  auto& r = game.state;
   glm::ivec2 world_position = engine::grid::grid_space_to_world_space(grid_index, GRID_SIZE);
 
-  entt::entity e = create_gameplay(editor, r, et);
+  entt::entity e = create_gameplay(editor, game, et);
   SpriteComponent s = create_sprite(editor, r, e, et);
   TransformComponent t = create_transform(r, e);
   SpriteColourComponent scc = create_colour(editor, r, e, et);
@@ -77,7 +82,7 @@ game2d::rooms_overlap(const Room& r0, const Room& r1)
 };
 
 void
-game2d::create_room(GameEditor& editor, entt::registry& r, const Room& room)
+game2d::create_room(GameEditor& editor, Game& game, const Room& room)
 {
   for (int x = 0; x < room.w; x++) {
     for (int y = 0; y < room.h; y++) {
@@ -94,23 +99,20 @@ game2d::create_room(GameEditor& editor, entt::registry& r, const Room& room)
 
       const glm::ivec2 grid_index = { room.x1 + x, room.y1 + y };
       if (EntityType::tile_type_floor == et)
-        create_dungeon_entity_remove_old(editor, r, et, grid_index);
+        create_dungeon_entity_remove_old(editor, game, et, grid_index);
     }
   }
 };
 
 void
-game2d::create_tunnel_floor(GameEditor& editor,
-                            entt::registry& r,
-                            const Dungeon& d,
-                            std::vector<std::pair<int, int>>& coords)
+game2d::create_tunnel_floor(GameEditor& editor, Game& game, const Dungeon& d, std::vector<std::pair<int, int>>& coords)
 {
   for (const auto& coord : coords)
-    create_dungeon_entity_remove_old(editor, r, EntityType::tile_type_floor, { coord.first, coord.second });
+    create_dungeon_entity_remove_old(editor, game, EntityType::tile_type_floor, { coord.first, coord.second });
 };
 
 void
-game2d::create_tunnel(GameEditor& editor, entt::registry& r, const Dungeon& d, int x1, int y1, int x2, int y2)
+game2d::create_tunnel(GameEditor& editor, Game& game, const Dungeon& d, int x1, int y1, int x2, int y2)
 {
   int corner_x = 0;
   int corner_y = 0;
@@ -128,17 +130,18 @@ game2d::create_tunnel(GameEditor& editor, entt::registry& r, const Dungeon& d, i
   // a) x1, y1 to corner_x, corner_y
   std::vector<std::pair<int, int>> line_0;
   create_line(x1, y1, corner_x, corner_y, line_0);
-  create_tunnel_floor(editor, r, d, line_0);
+  create_tunnel_floor(editor, game, d, line_0);
 
   // b) corner_x, corner_y to x2, y2
   std::vector<std::pair<int, int>> line_1;
   create_line(corner_x, corner_y, x2, y2, line_1);
-  create_tunnel_floor(editor, r, d, line_1);
+  create_tunnel_floor(editor, game, d, line_1);
 };
 
 void
-game2d::set_pathfinding_cost(GameEditor& editor, entt::registry& r)
+game2d::set_pathfinding_cost(GameEditor& editor, Game& game)
 {
+  auto& r = game.state;
   const auto& view = r.view<const GridComponent, const EntityTypeComponent>();
   for (auto [entity, grid, et] : view.each()) {
     PathfindableComponent path;
@@ -155,18 +158,32 @@ game2d::set_pathfinding_cost(GameEditor& editor, entt::registry& r)
 };
 
 void
-game2d::set_player_positions(GameEditor& editor, entt::registry& r, std::vector<Room>& rooms, engine::RandomState& rnd)
+game2d::set_player_positions(GameEditor& editor, Game& game, std::vector<Room>& rooms, engine::RandomState& rnd)
 {
+  auto& r = game.state;
   const auto& view = r.view<TransformComponent, const PlayerComponent>();
-  view.each([&rooms, &r](auto entity, TransformComponent& t, const PlayerComponent& p) {
+  view.each([&rooms, &game, &r](auto entity, TransformComponent& t, const PlayerComponent& p) {
     if (rooms.size() > 0) {
       auto room = rooms[0];
       auto center = room_center(room);
 
       // forceapply player
-      // auto entities = grid_entities_at(r, center.x, center.y);
-      // for (const auto& e : entities)
-      //   r.destroy(e);
+      auto entities = grid_entities_at(game, center.x, center.y);
+      for (const auto& e : entities) {
+        const auto& type = r.get<EntityTypeComponent>(e);
+        const auto& entity_type = type.type;
+        std::string value_str = std::string(magic_enum::enum_name(entity_type));
+
+        if (entity_type == EntityType::tile_type_exit)
+          continue;
+        if (entity_type == EntityType::tile_type_floor)
+          continue;
+        if (entity_type == EntityType::tile_type_wall)
+          continue;
+
+        std::cout << "player deleted generated entity " << value_str << " as it was spawned on it\n";
+        r.destroy(e);
+      }
 
       glm::ivec2 pos = engine::grid::grid_space_to_world_space(center, GRID_SIZE);
       t.position = { pos.x, pos.y, 0 };
@@ -267,15 +284,16 @@ generate_monster(const int floor, engine::RandomState& rnd)
 
 void
 game2d::set_generated_entity_positions(GameEditor& editor,
-                                       entt::registry& r,
+                                       Game& game,
                                        std::vector<Room>& rooms,
                                        const int floor,
                                        engine::RandomState& rnd)
 {
-  // randomize amount
+  auto& r = game.state;
+  // randomize things
   const int amount_of_rooms = rooms.size();
-  const int potential_items_per_room = 5 + ((floor)*2);
-  const int potential_monsters_per_room = 5 + ((floor)*2);
+  const int potential_items_per_room = 5 + (floor);
+  const int potential_monsters_per_room = 5 + (floor);
   std::cout << "floor " << floor << " has max items: " << potential_items_per_room
             << ", max monsters:" << potential_monsters_per_room << "\n";
 
@@ -308,7 +326,7 @@ game2d::set_generated_entity_positions(GameEditor& editor,
 
       room.occupied.push_back(grid_index);
 
-      create_dungeon_entity(editor, r, generated[i], grid_index);
+      create_dungeon_entity(editor, game, generated[i], grid_index);
     }
   }
 }

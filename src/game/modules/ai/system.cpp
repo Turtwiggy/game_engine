@@ -25,6 +25,7 @@ update_ai_system(GameEditor& editor, Game& game, const uint64_t& milliseconds_dt
 {
   auto& colours = editor.colours;
   auto& r = game.state;
+  static engine::RandomState rnd;
 
   // hack: only one dungeon at the moment
   const auto dungeon = r.view<Dungeon>().front();
@@ -69,13 +70,21 @@ update_ai_system(GameEditor& editor, Game& game, const uint64_t& milliseconds_dt
 
       // next door to entity...
       if (path.size() == 2)
-        r.emplace<WasCollidedWithComponent>(player_entity);
+        r.emplace_or_replace<WasCollidedWithComponent>(player_entity);
 
       // in range of entity...
       if (path.size() > 2 && path.size() < 6) {
         const auto& next_step = path[1]; // path[0] is current
         move.x = ((next_step.x - from.x) * GRID_SIZE);
         move.y = ((next_step.y - from.y) * GRID_SIZE);
+      }
+
+      if (path.size() >= 6) {
+        // .. choose a random direction
+        int rnd_x = static_cast<int>(engine::rand_det_s(rnd.rng, 0, 3)) - 1;
+        int rnd_y = static_cast<int>(engine::rand_det_s(rnd.rng, 0, 3)) - 1;
+        move.x = rnd_x * GRID_SIZE;
+        move.y = rnd_y * GRID_SIZE;
       }
 
       // debugging

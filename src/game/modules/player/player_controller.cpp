@@ -48,23 +48,22 @@ game2d::update_player_controller_system(GameEditor& editor,
         case InputType::mouse: {
           if (input.key == SDL_BUTTON_LEFT && input.state == InputState::press) {
 
-            bool do_fire = false;
-            if (!do_fire)
-              break;
+            // pathfind to location!
 
-            const float bullet_speed = 50.0f;
-            entt::entity bullet = create_gameplay(editor, r, EntityType::arrow);
-            create_renderable(editor, r, bullet, EntityType::arrow);
-            glm::vec2 dir = { mouse_position.x - transform.position.x, mouse_position.y - transform.position.y };
-            if (dir.x != 0.0f && dir.y != 0.0f)
-              dir = glm::normalize(dir);
-
-            TransformComponent& bullet_transform = r.get<TransformComponent>(bullet);
-            bullet_transform.position = transform.position;
-
-            VelocityComponent& vel = r.get<VelocityComponent>(bullet);
-            vel.x = dir.x * bullet_speed;
-            vel.y = dir.y * bullet_speed;
+            // bool do_fire = false;
+            // if (!do_fire)
+            //   break;
+            // const float bullet_speed = 50.0f;
+            // entt::entity bullet = create_gameplay(editor, r, EntityType::arrow);
+            // create_renderable(editor, r, bullet, EntityType::arrow);
+            // glm::vec2 dir = { mouse_position.x - transform.position.x, mouse_position.y - transform.position.y };
+            // if (dir.x != 0.0f && dir.y != 0.0f)
+            //   dir = glm::normalize(dir);
+            // TransformComponent& bullet_transform = r.get<TransformComponent>(bullet);
+            // bullet_transform.position = transform.position;
+            // VelocityComponent& vel = r.get<VelocityComponent>(bullet);
+            // vel.x = dir.x * bullet_speed;
+            // vel.y = dir.y * bullet_speed;
 
             //  bullet_transform.rotation.z = angle - engine::HALF_PI;
             // // add some randomness to the bullet's direction

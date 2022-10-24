@@ -63,7 +63,7 @@ void
 from_json(const json& j, EntityTypeComponent& et);
 
 entt::entity
-create_item(GameEditor& editor, entt::registry& r, const EntityType& type, const entt::entity& parent);
+create_item(GameEditor& editor, Game& game, const EntityType& type, const entt::entity& parent);
 // void
 // create_item(entt::registry& r, const entt::entity& e, const EntityType& type, const entt::entity& parent);
 
@@ -78,9 +78,8 @@ void
 create_renderable(GameEditor& editor, entt::registry& r, const entt::entity& e, const EntityType& type);
 
 entt::entity
-create_gameplay(GameEditor& editor, entt::registry& r, const EntityType& type);
-
+create_gameplay(GameEditor& editor, Game& game, const EntityType& type);
 void
-create_gameplay_existing_entity(GameEditor& editor, entt::registry& r, const entt::entity& e, const EntityType& type);
+create_gameplay_existing_entity(GameEditor& editor, Game& game, const entt::entity& e, const EntityType& type);
 
 } // namespace game2d

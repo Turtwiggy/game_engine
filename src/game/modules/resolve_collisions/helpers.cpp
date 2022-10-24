@@ -6,10 +6,12 @@
 #include "game/modules/combat/components.hpp"
 #include "game/modules/items/components.hpp"
 #include "game/modules/player/components.hpp"
+#include "game/modules/rpg_xp/components.hpp"
 #include "modules/cursor/components.hpp"
 #include "modules/lifecycle/components.hpp"
 #include "modules/physics/components.hpp"
 
+#include "magic_enum.hpp"
 #include <glm/glm.hpp>
 
 #include <optional>
@@ -84,34 +86,62 @@ check_if_damageable_received_collision(Game& game)
   auto& r = game.state;
   const auto& view = r.view<const WasCollidedWithComponent, TakeDamageComponent>();
   for (auto [entity, coll, damages] : view.each()) {
-    // FIX: damage actually given here! (seems wrong)
 
-    const int base_damage = 1;
+    int base_damage = 0;
     int extra_damage = 0;
     int mitigated_damage = 0;
 
     const auto& attacker = coll.instigator;
     const auto& defender = entity;
 
-    // Check everyone's equipment?
+    // Check everyone's stats?
 
-    // If the attacker had a weapon, deal extra damage.
-    const auto potential_weapon = has_equipped(game, attacker, EquipmentSlot::left_hand);
-    if (potential_weapon != entt::null) {
-      const auto* attack = r.try_get<AttackComponent>(potential_weapon);
-      if (attack) {
-        // BUG: dont use min damage.
-        extra_damage = attack->min_damage;
+    // check attacker str
+    {
+      const auto* attacker_stats = r.try_get<StatsComponent>(attacker);
+      if (attacker_stats) {
+        const auto& attacker_str = attacker_stats->str_level;
+        base_damage += attacker_str;
       }
     }
 
-    // If the defender had a shield, mitigate some damage.
-    const auto potential_shield = has_equipped(game, defender, EquipmentSlot::right_hand);
-    if (potential_shield != entt::null) {
-      const auto* defense = r.try_get<DefenseComponent>(potential_shield);
-      if (defense) {
-        // TODO: improve defense.
-        mitigated_damage = defense->ac;
+    // check defender agi
+    {
+      const auto* defender_stats = r.try_get<StatsComponent>(defender);
+      if (defender_stats) {
+        const auto& defender_agi = defender_stats->agi_level;
+        mitigated_damage += defender_agi;
+      }
+    }
+
+    // Check everyone's equipment?
+
+    // check all equipment slots
+    for (int i = 0; i < magic_enum::enum_count<EquipmentSlot>(); i++) {
+      const auto slot = magic_enum::enum_value<EquipmentSlot>(i);
+
+      // If the attacker had a weapon, deal extra damage.
+      {
+        const auto potential_weapon = has_equipped(game, attacker, slot);
+        if (potential_weapon != entt::null) {
+          const auto* attack = r.try_get<AttackComponent>(potential_weapon);
+          if (attack) {
+            // BUG: dont use min damage.
+            extra_damage = attack->min_damage;
+          }
+        }
+      }
+
+      // If the defender had a shield, mitigate some damage.
+      {
+        const auto potential_shield = has_equipped(game, defender, slot);
+        if (potential_shield != entt::null) {
+          const auto* defense = r.try_get<DefenseComponent>(potential_shield);
+          if (defense) {
+            // TODO: improve defense.
+            mitigated_damage = defense->ac;
+          }
+        }
       }
     }
 

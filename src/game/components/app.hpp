@@ -1,5 +1,6 @@
 #pragma once
 
+#include "engine/maths/maths.hpp"
 #include "game/modules/ui_event_console/components.hpp"
 #include "modules/events/components.hpp"
 #include "modules/lifecycle/components.hpp"
@@ -40,6 +41,7 @@ struct GameEditor
 struct Game
 {
   entt::registry state;
+  engine::RandomState rnd;
   SINGLETON_EntityBinComponent dead;
   SINGLETON_EventConsoleLogComponent ui_events;
   SINGLETON_FixedUpdateInputHistory fixed_update_input;

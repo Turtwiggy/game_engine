@@ -50,36 +50,39 @@ init_game_state(GameEditor& editor)
   const auto& colours = editor.colours;
 
   Game game;
-  auto& r = game.state;
   init_input_system(game);
   game.ui_events.events.push_back("Welcome!");
 
-  create_hierarchy_root_node(r);
+  {
+    auto& r = game.state;
+    create_hierarchy_root_node(r);
+  }
 
   EntityType et = EntityType::actor_shopkeeper;
-  auto shopkeeper = create_gameplay(editor, r, et);
+  auto shopkeeper = create_gameplay(editor, game, et);
   // create_renderable(editor, r, shopkeeper, et);
 
+  auto& r = game.state;
   // stock up!
   const auto& view = r.view<ShopKeeperComponent>();
-  view.each([&editor, &r](auto shop_entity, auto& shopkeeper) {
-    create_item(editor, r, EntityType::potion, shop_entity);
-    create_item(editor, r, EntityType::potion, shop_entity);
-    create_item(editor, r, EntityType::potion, shop_entity);
-    create_item(editor, r, EntityType::sword, shop_entity);
-    create_item(editor, r, EntityType::fire_sword, shop_entity);
-    create_item(editor, r, EntityType::shield, shop_entity);
-    create_item(editor, r, EntityType::stone, shop_entity);
-    create_item(editor, r, EntityType::crossbow, shop_entity);
-    create_item(editor, r, EntityType::bolt, shop_entity);
-    create_item(editor, r, EntityType::scroll_damage_nearest, shop_entity);
-    create_item(editor, r, EntityType::scroll_damage_selected_on_grid, shop_entity);
+  view.each([&editor, &game](auto shop_entity, auto& shopkeeper) {
+    create_item(editor, game, EntityType::potion, shop_entity);
+    create_item(editor, game, EntityType::potion, shop_entity);
+    create_item(editor, game, EntityType::potion, shop_entity);
+    create_item(editor, game, EntityType::sword, shop_entity);
+    create_item(editor, game, EntityType::fire_sword, shop_entity);
+    create_item(editor, game, EntityType::shield, shop_entity);
+    create_item(editor, game, EntityType::stone, shop_entity);
+    create_item(editor, game, EntityType::crossbow, shop_entity);
+    create_item(editor, game, EntityType::bolt, shop_entity);
+    create_item(editor, game, EntityType::scroll_damage_nearest, shop_entity);
+    create_item(editor, game, EntityType::scroll_damage_selected_on_grid, shop_entity);
   });
 
   // players
   for (int i = 0; i < 1; i++) {
     EntityType et = EntityType::actor_player;
-    entt::entity e = create_gameplay(editor, r, et);
+    entt::entity e = create_gameplay(editor, game, et);
     create_renderable(editor, r, e, et);
 
     // debug: give the player a sword
@@ -93,14 +96,14 @@ init_game_state(GameEditor& editor)
   int seed = 0;
   Dungeon d;
   game.ui_events.events.push_back("You are on floor: 0");
-  generate_dungeon(editor, r, d, seed);
+  generate_dungeon(editor, game, d, seed);
   entt::entity e = r.create();
   r.emplace<EntityTypeComponent>(e, EntityType::empty);
   r.emplace<TagComponent>(e, "dungeon");
   r.emplace<Dungeon>(e, d);
 
   // camera
-  auto c = create_gameplay(editor, r, EntityType::camera);
+  auto c = create_gameplay(editor, game, EntityType::camera);
   r.emplace<TransformComponent>(c);
 
   return game;

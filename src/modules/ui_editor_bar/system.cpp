@@ -21,7 +21,7 @@ game2d::update_ui_editor_bar_system(GameEditor& editor, Game& game)
   if (r.view<WantsToSelectUnitsForItem>().size() > 0) {
     show_free_cursor = true;
     if (r.view<FreeCursorComponent>().size() == 0) {
-      auto e = create_gameplay(editor, r, EntityType::free_cursor);
+      auto e = create_gameplay(editor, game, EntityType::free_cursor);
       create_renderable(editor, r, e, EntityType::free_cursor);
     }
   }
