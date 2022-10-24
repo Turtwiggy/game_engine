@@ -42,7 +42,7 @@ update_take_damage_system(GameEditor& editor, Game& game)
     const int damage_taken = glm::abs(health.hp - old_hp);
     const std::string msg = std::format("{} hits. {} damage. {} blocked. new_hp: {}, ({})",
                                         damages.damage.size(),
-                                        damage_taken,
+                                        final_damage,
                                         mitigated_damages,
                                         health.hp,
                                         tag.tag.c_str());

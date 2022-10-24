@@ -2,6 +2,7 @@
 
 #include "game/components/actors.hpp"
 #include "game/components/events.hpp"
+#include "game/helpers/check_equipment.hpp"
 #include "game/helpers/distance.hpp"
 #include "game/modules/combat/components.hpp"
 #include "game/modules/items/components.hpp"
@@ -29,7 +30,7 @@ game2d::update_ui_player_inventory_system(GameEditor& editor, Game& game)
 
   ImGuiWindowFlags flags = 0;
   flags |= ImGuiWindowFlags_NoFocusOnAppearing;
-  static bool shop_open = true;
+  static bool shop_open = false;
 
   ImGui::SetNextWindowPos(ImVec2{ 100, 100 }, ImGuiCond_FirstUseEver);
   ImGui::SetNextWindowSize(ImVec2{ 100, 100 }, ImGuiCond_FirstUseEver);
@@ -114,14 +115,25 @@ game2d::update_ui_player_inventory_system(GameEditor& editor, Game& game)
 
       ImGui::Text("¬¬ Equipped Items ¬¬");
 
+      for (int i = 0; i < magic_enum::enum_count<EquipmentSlot>(); i++) {
+        EquipmentSlot slot = magic_enum::enum_value<EquipmentSlot>(i);
+        entt::entity equipped = has_equipped(game, entity_player, slot);
+
+        std::string type_str = "fists";
+        if (equipped != entt::null) {
+          // const auto& info = r.get<const IsEquipped>(equipped);
+          const auto& type = r.get<const EntityTypeComponent>(equipped);
+          type_str = std::string(magic_enum::enum_name(type.type));
+        }
+
+        const std::string slot_str = std::string(magic_enum::enum_name(slot));
+        ImGui::Text("(%s) %s", slot_str.c_str(), type_str.c_str());
+      }
+
       const auto& equipped = r.view<const IsEquipped, const TagComponent, const EntityTypeComponent>();
       for (auto [entity, equipped, tag, type] : equipped.each()) {
         if (equipped.parent != entity_player)
           continue; // not my equipped
-
-        const std::string slot_str = std::string(magic_enum::enum_name(equipped.slot));
-        const std::string type_str = std::string(magic_enum::enum_name(type.type));
-        ImGui::Text("(%s) %s", slot_str.c_str(), type_str.c_str());
       }
 
       ImGui::Text("¬¬ Inventory ¬¬");
@@ -178,20 +190,24 @@ game2d::update_ui_player_inventory_system(GameEditor& editor, Game& game)
           }
         }
 
-        ImGui::SameLine();
-        std::string label_drop = "Drop##" + std::to_string(static_cast<uint32_t>(entity_item));
-        if (ImGui::Button(label_drop.c_str())) {
-          auto& u = r.get_or_emplace<WantsToDrop>(entity_player);
-          u.items.push_back(entity_item);
-        }
+        // ImGui::SameLine();
+        // std::string label_drop = "Drop##" + std::to_string(static_cast<uint32_t>(entity_item));
+        // if (ImGui::Button(label_drop.c_str())) {
+        //   auto& u = r.get_or_emplace<WantsToDrop>(entity_player);
+        //   u.items.push_back(entity_item);
+        // }
 
         ImGui::SameLine();
-        std::string label_sell = "Equip##" + std::to_string(static_cast<uint32_t>(entity_item));
-        if (ImGui::Button(label_sell.c_str())) {
+        std::string label_equip_l = "Equip(L)##" + std::to_string(static_cast<uint32_t>(entity_item));
+        if (ImGui::Button(label_equip_l.c_str())) {
           auto& u = r.get_or_emplace<WantsToEquip>(entity_player);
-
-          // LIMITATION: left_hand is wrong here
           u.requests.push_back({ EquipmentSlot::left_hand, entity_item });
+        }
+        ImGui::SameLine();
+        std::string label_equip_r = "Equip(R)##" + std::to_string(static_cast<uint32_t>(entity_item));
+        if (ImGui::Button(label_equip_r.c_str())) {
+          auto& u = r.get_or_emplace<WantsToEquip>(entity_player);
+          u.requests.push_back({ EquipmentSlot::right_hand, entity_item });
         }
 
         // ImGui::SameLine();

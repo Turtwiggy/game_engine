@@ -70,7 +70,7 @@ update_ai_system(GameEditor& editor, Game& game, const uint64_t& milliseconds_dt
 
       // next door to entity...
       if (path.size() == 2)
-        r.emplace_or_replace<WasCollidedWithComponent>(player_entity);
+        r.emplace_or_replace<WasCollidedWithComponent>(player_entity, entity);
 
       // in range of entity...
       if (path.size() > 2 && path.size() < 6) {

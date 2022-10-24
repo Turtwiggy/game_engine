@@ -127,7 +127,7 @@ check_if_damageable_received_collision(Game& game)
           const auto* attack = r.try_get<AttackComponent>(potential_weapon);
           if (attack) {
             // BUG: dont use min damage.
-            extra_damage = attack->min_damage;
+            extra_damage += attack->min_damage;
           }
         }
       }
@@ -139,7 +139,7 @@ check_if_damageable_received_collision(Game& game)
           const auto* defense = r.try_get<DefenseComponent>(potential_shield);
           if (defense) {
             // TODO: improve defense.
-            mitigated_damage = defense->ac;
+            mitigated_damage += defense->ac;
           }
         }
       }

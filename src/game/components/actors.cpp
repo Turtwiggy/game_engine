@@ -255,6 +255,11 @@ create_gameplay_existing_entity(GameEditor& editor, Game& g, const entt::entity&
       r.emplace<HealthComponent>(e, 3);
       r.emplace<TakeDamageComponent>(e);
       r.emplace<XpComponent>(e, 50);
+
+      StatsComponent stats;
+      stats.str_level = 2;
+      stats.agi_level = 0;
+      r.emplace<StatsComponent>(e, stats);
       break;
     }
     case EntityType::actor_troll: {
@@ -269,6 +274,11 @@ create_gameplay_existing_entity(GameEditor& editor, Game& g, const entt::entity&
       r.emplace<HealthComponent>(e, 10);
       r.emplace<TakeDamageComponent>(e);
       r.emplace<XpComponent>(e, 50);
+
+      StatsComponent stats;
+      stats.str_level = 4;
+      stats.agi_level = 1;
+      r.emplace<StatsComponent>(e, stats);
       break;
     }
     case EntityType::actor_player: {
