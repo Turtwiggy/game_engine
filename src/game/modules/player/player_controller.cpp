@@ -7,7 +7,6 @@
 #include "modules/entt/helpers.hpp"
 #include "modules/events/components.hpp"
 #include "modules/events/helpers/mouse.hpp"
-#include "modules/networking/components.hpp"
 #include "modules/physics/components.hpp"
 
 #include <SDL2/SDL_mouse.h>
@@ -44,6 +43,8 @@ game2d::update_player_controller_system(GameEditor& editor,
             dx = -1;
           if (input.key == player.D && (input.state == InputState::held || input.state == InputState::press))
             dx = 1;
+
+          break;
         }
         case InputType::mouse: {
           if (input.key == SDL_BUTTON_LEFT && input.state == InputState::press) {
@@ -78,6 +79,12 @@ game2d::update_player_controller_system(GameEditor& editor,
 
           if (input.key == SDL_BUTTON_RIGHT) {
           };
+
+          break;
+        }
+        case InputType::controller: {
+          // nada
+          break;
         }
       }
     }

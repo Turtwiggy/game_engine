@@ -21,7 +21,6 @@
 #include "modules/events/system.hpp"
 #include "modules/lifecycle/components.hpp"
 #include "modules/lifecycle/system.hpp"
-#include "modules/networking/system.hpp"
 #include "modules/physics/components.hpp"
 #include "modules/physics/process_actor_actor.hpp"
 #include "modules/physics/process_move_objects.hpp"

@@ -8,6 +8,10 @@ using namespace game2d;
 #include "engine/app/io.hpp"
 using namespace engine;
 
+#if defined(__EMSCRIPTEN__)
+#include <emscripten.h>
+#endif
+
 // other libs
 #include <entt/entt.hpp>
 #include <imgui.h>
@@ -31,6 +35,10 @@ void
 main_loop(void* arg)
 {
   IM_UNUSED(arg); // do nothing with it
+
+#if defined(__EMSCRIPTEN_PTHREADS__)
+  std::cout << " Emscripten pthreads defined\n";
+#endif
 
   engine::start_frame(app);
 
@@ -75,8 +83,12 @@ main(int argc, char* argv[])
   game2d::init(app, editor, game);
   log_time_since("(INFO) End init()", start);
 
+#ifdef __EMSCRIPTEN__
+  emscripten_set_main_loop_arg(main_loop, NULL, 0, true);
+#else
   while (app.running)
     main_loop(nullptr);
+#endif
 
   return 0;
 }

@@ -9,7 +9,7 @@
 namespace game2d {
 
 void
-game2d::update_ui_player_system(GameEditor& editor, Game& game)
+update_ui_player_system(GameEditor& editor, Game& game)
 {
   auto& r = game.state;
 
@@ -29,18 +29,18 @@ game2d::update_ui_player_system(GameEditor& editor, Game& game)
     if (ImGui::Button("(debug) Give 50 XP"))
       xp.amount += 50;
 
-    auto* xp = r.try_get<WantsToLevelUp>(entity);
-    auto* lv_stat = r.try_get<WantsToLevelStat>(entity);
-    if (xp) {
+    auto* xp_ptr = r.try_get<WantsToLevelUp>(entity);
+    if (xp_ptr) {
       ImGui::Text("Level Up Required!");
 
-      if (lv_stat) {
+      auto* lv_stat_ptr = r.try_get<WantsToLevelStat>(entity);
+      if (lv_stat_ptr) {
         if (ImGui::Button("(CON)"))
-          lv_stat->con.push_back(1);
+          lv_stat_ptr->con.push_back(1);
         if (ImGui::Button("(STR)"))
-          lv_stat->str.push_back(1);
+          lv_stat_ptr->str.push_back(1);
         if (ImGui::Button("(AGI)"))
-          lv_stat->agi.push_back(1);
+          lv_stat_ptr->agi.push_back(1);
       } else {
         WantsToLevelStat stat;
         if (ImGui::Button("(CON)"))

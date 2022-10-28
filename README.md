@@ -6,20 +6,34 @@
 - cmake e.g. `choco install cmake`, `brew install cmake`
 - ninja e.g. `choco install ninja`, `brew install ninja`
 
-windows
-```bash 
+Windows
+
+```bash
 git clone
 git submodule update --init --recursive
 thirdparty/vcpkg/bootstrap-vcpkg.bat
 thirdparty/vcpkg/vcpkg.exe install @vcpkg-x64-windows.txt
 ```
 
-mac
+Mac
+
 ```bash
 git clone
 git submodule update --init --recursive
-thirdparty/vcpkg/bootstrap-vcpkg.sh
+thirdparty/vcpkg/bootstrap-vcpkg.bat
 thirdparty/vcpkg/vcpkg.exe install @vcpkg-x64-osx.txt
+
+```
+
+Emscripten
+
+```bash
+git clone
+git submodule update --init --recursive
+thirdparty/emsdk/emsdk install latest
+thirdparty/emsdk/emsdk activate latest
+thirdparty/vcpkg/bootstrap-vcpkg.bat
+thirdparty/vcpkg/vcpkg.exe install @vcpkg-wasm32-emscripten.txt
 ```
 
 note: Not used vcpkg.json as it seems

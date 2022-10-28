@@ -4,15 +4,9 @@
 [submodule "thirdparty/imgui"]
     path = thirdparty/imgui
     url = https://github.com/ocornut/imgui
-[submodule "thirdparty/imguizmo"]
-    path = thirdparty/imguizmo
-    url = https://github.com/CedricGuillemet/ImGuizmo.git
-[submodule "thirdparty/vcpkg"]
-	path = thirdparty/vcpkg
-	url = https://github.com/microsoft/vcpkg.git
-[submodule "thirdparty/sdl"]
-	path = thirdparty/sdl
-	url = https://github.com/libsdl-org/SDL
 [submodule "thirdparty/entt"]
 	path = thirdparty/entt
 	url = https://github.com/skypjack/entt.git
+[submodule "thirdparty/vcpkg"]
+	path = thirdparty/vcpkg
+	url = https://github.com/microsoft/vcpkg.git

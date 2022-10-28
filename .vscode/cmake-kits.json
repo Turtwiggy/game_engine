@@ -1,0 +1,11 @@
+[
+  {
+    "name": "Emscripten-Windows",
+    "environmentSetupScript": "${workspaceFolder}/thirdparty/emsdk/emsdk_env.bat",
+    "cmakeSettings": {
+      "VCPKG_TARGET_TRIPLET": "wasm32-emscripten",
+      "CMAKE_TOOLCHAIN_FILE": "${workspaceFolder}/thirdparty/vcpkg/scripts/buildsystems/vcpkg.cmake",
+      "VCPKG_CHAINLOAD_TOOLCHAIN_FILE": "${workspaceFolder}/thirdparty/emsdk/upstream/emscripten/cmake/Modules/Platform/Emscripten.cmake"
+    }
+  }
+]

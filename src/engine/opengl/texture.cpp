@@ -8,14 +8,18 @@
 #include "engine/opengl/util.hpp"
 
 // other lib headers
+#if defined(__EMSCRIPTEN__)
+#include <SDL2/SDL_opengles2.h>
+#else
 #include <GL/glew.h>
+#endif
 #include <stb_image.h>
 
 // std lib
 #include <algorithm>
 #include <iostream>
 #include <string.h>
-#include <thread>
+// #include <thread> // wahh emscripten
 #include <utility>
 
 namespace engine {
@@ -110,19 +114,26 @@ load_textures_threaded(std::vector<std::pair<int, std::string>>& textures_to_loa
   std::vector<unsigned int> texture_ids;
 
   {
+// Try and work out threads on emscrtipten
+#if !defined(__EMSCRIPTEN__)
     std::vector<std::thread> threads;
+#endif
     std::vector<LinearTexture> loaded_textures(textures_to_load.size());
 
     for (int i = 0; const auto& texture : textures_to_load) {
-      threads.emplace_back([&texture, i, &loaded_textures]() {
-        //
-        loaded_textures[i] = load_texture_linear(texture.first, texture.second);
-      });
+#if !defined(__EMSCRIPTEN__)
+      threads.emplace_back(
+        [&texture, i, &loaded_textures]() { loaded_textures[i] = load_texture_linear(texture.first, texture.second); });
+#else
+      loaded_textures[i] = load_texture_linear(texture.first, texture.second);
+#endif
       i++;
     }
 
+#if !defined(__EMSCRIPTEN__)
     for (auto& thread : threads)
       thread.join();
+#endif
 
     // sort by texture unit
     std::sort(loaded_textures.begin(), loaded_textures.end(), [](LinearTexture a, LinearTexture b) {

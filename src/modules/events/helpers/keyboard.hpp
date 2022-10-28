@@ -3,7 +3,7 @@
 #include "modules/events/components.hpp"
 
 // other library
-#include <SDL2/SDL_keycode.h>
+#include "SDL2/SDL_keycode.h"
 
 namespace game2d {
 

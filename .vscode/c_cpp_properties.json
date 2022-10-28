@@ -6,7 +6,8 @@
         "${workspaceFolder}/src",
         "${workspaceFolder}/thirdparty/entt/single_include",
         "${workspaceFolder}/thirdparty/imgui",
-        "${workspaceFolder}/thirdparty/magic_enum"
+        "${workspaceFolder}/thirdparty/magic_enum",
+        "${workspaceFolder}/thirdparty/emsdk/upstream/emscripten/cache/sysroot/include"
       ],
       "defines": ["UNICODE", "_UNICODE"],
       "windowsSdkVersion": "10.0.19041.0",
@@ -23,6 +24,7 @@
         "${workspaceFolder}/thirdparty/entt/single_include",
         "${workspaceFolder}/thirdparty/imgui",
         "${workspaceFolder}/thirdparty/magic_enum"
+        // "${workspaceFolder}/thirdparty/emsdk/upstream/emscripten/cache/sysroot/include/"
       ],
       "defines": ["UNICODE", "_UNICODE"],
       "windowsSdkVersion": "10.0.19041.0",

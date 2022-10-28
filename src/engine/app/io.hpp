@@ -4,7 +4,6 @@
 
 #include <chrono>
 #include <string>
-#include <thread>
 #include <vector>
 
 namespace engine {

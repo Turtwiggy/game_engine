@@ -4,7 +4,34 @@ cmake_minimum_required(VERSION 3.0.0)
 set(CMAKE_CXX_STANDARD 20)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 
-# set(CMAKE_VERBOSE_MAKEFILE on)
+project(game_2d VERSION 0.1.0)
+message("game_2d: CMAKE_SYSTEM_NAME ${CMAKE_SYSTEM_NAME}")
+message("game_2d: CMAKE_BUILD_TYPE ${CMAKE_BUILD_TYPE}")
+message("game_2d: C: ${CMAKE_C_COMPILER_ID}")
+message("game_2d: CXX: ${CMAKE_CXX_COMPILER_ID}")
+message("game_2d: current_list_dir: ${CMAKE_CURRENT_LIST_DIR}")
+message("game_2d: source_dir: ${CMAKE_SOURCE_DIR}")
+
+if(EMSCRIPTEN)
+  message("Compiling for emscripten (toolkit set in cmake-kits.json)")
+
+  # https://emscripten.org/docs/tools_reference/emcc.html
+  # add_compile_definitions("-s ALLOW_MEMORY_GROWTH=1")
+  # add_compile_definitions(" --shell-file shell_minimal.html")
+  set(USE_FLAGS "-s USE_SDL=2 -s USE_SDL_MIXER=2 -s DISABLE_EXCEPTION_CATCHING=1 -s WASM=1 -s NO_EXIT_RUNTIME=0 -s ASSERTIONS=1")
+  set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} ${USE_FLAGS}")
+  set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++20 -stdlib=libc++")
+  set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} ${USE_FLAGS}")
+  set(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} ${USE_FLAGS}")
+
+  # set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -shell-file ${CMAKE_SOURCE_DIR}/assets/emscripten/shell_minimal.html")
+  set(CMAKE_EXECUTABLE_SUFFIX ".html")
+endif()
+
+message("index CMAKE_TOOLCHAIN_FILE: ${CMAKE_TOOLCHAIN_FILE}")
+message("index VCPKG_CHAINLOAD_TOOLCHAIN_FILE: ${VCPKG_CHAINLOAD_TOOLCHAIN_FILE}")
+message("index CMAKE_EXECUTABLE_SUFFIX: ${CMAKE_EXECUTABLE_SUFFIX}")
+
 if(CMAKE_CXX_COMPILER_ID MATCHES GNU)
   add_definitions("-std=c++20")
   add_definitions("-Wall")
@@ -13,38 +40,29 @@ if(CMAKE_CXX_COMPILER_ID MATCHES GNU)
 endif()
 
 if(CMAKE_CXX_COMPILER_ID MATCHES MSVC)
-  set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} /MP /fp:fast")
-  set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} /std:c++20 /permissive-")
-
   # set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} /Bt+")
   # set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} /d1reportTime") # debug compiler frontend???
   # set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} /d2cgsummary") # debug compiler backend???
   # set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS}/WX /W3 /wd4275 /wd4251")
+  set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} /MP /fp:fast")
+  set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} /std:c++20 /permissive-")
 endif()
 
-project(game_2d VERSION 0.1.0)
-message("game_2d: ${CMAKE_SYSTEM_NAME}")
-message("game_2d: ${CMAKE_BUILD_TYPE}")
-message("game_2d: C: ${CMAKE_C_COMPILER_ID}")
-message("game_2d: CXX: ${CMAKE_CXX_COMPILER_ID}")
-message("game_2d: current_list_dir: ${CMAKE_CURRENT_LIST_DIR}")
-message("game_2d: source_dir: ${CMAKE_SOURCE_DIR}")
-
-# build the engine
-include(${CMAKE_SOURCE_DIR}/cmake/imgui.cmake)
-
 # Add VCPKG packages
-find_package(GameNetworkingSockets CONFIG REQUIRED)
-find_package(GLEW REQUIRED)
-find_package(glm CONFIG REQUIRED)
-find_package(nlohmann_json CONFIG REQUIRED)
-find_package(SDL2 CONFIG REQUIRED)
-find_package(sdl2-mixer CONFIG REQUIRED)
+if(!EMSCRIPTEN)
+  # packages not supported or needed by emscripten
+  find_package(GameNetworkingSockets CONFIG REQUIRED)
+  find_package(SDL2 CONFIG REQUIRED)
+  find_package(sdl2-mixer CONFIG REQUIRED)
+  find_package(GLEW REQUIRED)
+endif()
 
-# find_package(OpenGL REQUIRED)
+find_package(nlohmann_json CONFIG REQUIRED)
+find_package(glm CONFIG REQUIRED)
 find_path(STB_INCLUDE_DIRS "stb_c_lexer.h")
 
 # Add source files
+include(${CMAKE_SOURCE_DIR}/cmake/imgui.cmake)
 file(GLOB_RECURSE SRC_FILES
   ${IMGUI_SOURCE}
   ${CMAKE_SOURCE_DIR}/src/*.cpp
@@ -78,15 +96,20 @@ target_include_directories(game_2d PRIVATE
   ${CMAKE_SOURCE_DIR}/thirdparty/imgui-filebrowser
 )
 
-target_link_libraries(game_2d PRIVATE GameNetworkingSockets::shared)
-target_link_libraries(game_2d PRIVATE GLEW::GLEW)
+if(!EMSCRIPTEN)
+  target_link_libraries(game_2d PRIVATE GameNetworkingSockets::shared)
+  target_link_libraries(game_2d PRIVATE GLEW::GLEW)
+  target_link_libraries(game_2d PRIVATE SDL2::SDL2 SDL2::SDL2main)
+  target_link_libraries(game_2d PRIVATE SDL2::SDL2_mixer)
+else()
+  # target_link_libraries(game_2d PRIVATE openal)
+endif()
+
 target_link_libraries(game_2d PRIVATE glm::glm)
 target_link_libraries(game_2d PRIVATE nlohmann_json::nlohmann_json)
-target_link_libraries(game_2d PRIVATE SDL2::SDL2 SDL2::SDL2main)
-target_link_libraries(game_2d PRIVATE SDL2::SDL2_mixer)
 
 # target_link_libraries(game_2d PRIVATE opengl32)
-if(${CMAKE_SYSTEM_NAME} STREQUAL "Windows")
+if(${CMAKE_SYSTEM_NAME} STREQUAL "Windows" OR ${CMAKE_SYSTEM_NAME} STREQUAL "Emscripten")
   # create symlink assets for build
   set(src ${CMAKE_SOURCE_DIR}/assets)
   set(dst ${CMAKE_CURRENT_BINARY_DIR}/assets)
@@ -115,6 +138,21 @@ if(${CMAKE_SYSTEM_NAME} STREQUAL "Windows")
   # DEPENDS ${server_asset_dst}
   # COMMENT "symbolic link resources folder from ${server_asset_src} => ${server_asset_dst}"
   # )
+endif()
+
+if(EMSCRIPTEN)
+  # create symlink assets for build
+  set(src ${CMAKE_SOURCE_DIR}/assets)
+  set(dst ${CMAKE_CURRENT_BINARY_DIR}/../assets)
+  add_custom_command(
+    TARGET ${PROJECT_NAME} PRE_BUILD
+    COMMAND ${CMAKE_COMMAND} -E create_symlink ${src} ${dst}
+    DEPENDS ${dst}
+    COMMENT "symbolic link resources folder from ${src} => ${dst}"
+  )
+
+  # See documentation for more details: https://emscripten.org/docs/porting/files/packaging_files.html
+  set_target_properties(game_2d PROPERTIES LINK_FLAGS "-s DEMANGLE_SUPPORT=1 --preload-file assets --bind")
 endif()
 
 set(CPACK_PROJECT_NAME ${PROJECT_NAME})

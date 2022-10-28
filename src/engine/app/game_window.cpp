@@ -5,13 +5,13 @@
 // other library headers
 
 #if defined(__EMSCRIPTEN__)
-#include <SDL.h>
-#include <SDL_opengles2.h>
+#include <SDL2/SDL_opengles2.h>
 #include <emscripten.h>
 #else
 #include <GL/glew.h>
-#include <SDL2/SDL_syswm.h>
 #endif
+#include <SDL2/SDL.h>
+#include <SDL2/SDL_syswm.h>
 
 // c++ standard library headers
 #include <iostream>
@@ -73,23 +73,14 @@ GameWindow::GameWindow(const std::string& title, int width, int height, DisplayM
   const int x = SDL_WINDOWPOS_UNDEFINED;
   const int y = SDL_WINDOWPOS_UNDEFINED;
 
-  SDL_Window* window = SDL_CreateWindow(title.c_str(), x, y, width, height, flags);
-
-  if (window == nullptr) {
-    std::cerr << "Failed to create SDL2 window: " << SDL_GetError() << "\n";
-  }
-
-  SDL_SetWindowMinimumSize(window, 500, 300);
-  SDL_ShowCursor(SDL_ENABLE);
-  SDL_SetRelativeMouseMode(SDL_FALSE);
-
   // OpenGL--------------------------------------
 
 // emscripten
 #if defined(__EMSCRIPTEN__)
-  opengl_major = 3;
+  opengl_major = 2;
   opengl_minor = 0;
   SDL_GL_SetAttribute(SDL_GL_CONTEXT_PROFILE_MASK, SDL_GL_CONTEXT_PROFILE_ES);
+  SDL_GL_SetAttribute(SDL_GL_CONTEXT_FLAGS, 0);
 
 // mac
 #elif defined(SDL_VIDEO_DRIVER_COCOA)
@@ -105,9 +96,17 @@ GameWindow::GameWindow(const std::string& title, int width, int height, DisplayM
   SDL_GL_SetAttribute(SDL_GL_CONTEXT_PROFILE_MASK, SDL_GL_CONTEXT_PROFILE_CORE);
 #endif
 
-  // SDL_GL_SetAttribute(SDL_GL_CONTEXT_FLAGS, 0);
+  SDL_GL_SetAttribute(SDL_GL_DOUBLEBUFFER, 1);
+  SDL_GL_SetAttribute(SDL_GL_DEPTH_SIZE, 24);
+  SDL_GL_SetAttribute(SDL_GL_STENCIL_SIZE, 8);
   SDL_GL_SetAttribute(SDL_GL_CONTEXT_MAJOR_VERSION, opengl_major);
   SDL_GL_SetAttribute(SDL_GL_CONTEXT_MINOR_VERSION, opengl_minor);
+
+  // SDL2 Create Window --------------------------------------
+
+  SDL_Window* window = SDL_CreateWindow(title.c_str(), x, y, width, height, flags);
+  if (window == nullptr)
+    std::cerr << "Failed to create SDL2 window: " << SDL_GetError() << "\n";
 
   gl_context = SDL_GL_CreateContext(window);
   SDL_GL_MakeCurrent(window, gl_context);
@@ -115,14 +114,20 @@ GameWindow::GameWindow(const std::string& title, int width, int height, DisplayM
   if (gl_context == NULL) {
     printf("OpenGL context could not be created! SDL Error: %s\n", SDL_GetError());
   } else {
+#if !defined(__EMSCRIPTEN__)
     // Initialize GLEW
     glewExperimental = GL_TRUE;
     GLenum glewError = glewInit();
     if (glewError != GLEW_OK) {
       printf("Error initializing GLEW! %s\n", glewGetErrorString(glewError));
     }
+#endif
   }
 
+  // Settings...
+  SDL_SetWindowMinimumSize(window, 500, 300);
+  SDL_ShowCursor(SDL_ENABLE);
+  SDL_SetRelativeMouseMode(SDL_FALSE);
   set_vsync_opengl(vsync);
 
   auto window_ptr = std::unique_ptr<SDL_Window, SDLDestroyer>(window);
@@ -138,19 +143,18 @@ GameWindow::get_handle() const
 void
 GameWindow::get_native_handles(void*& native_window) const
 {
+#if defined(__EMSCRIPTEN__)
+  static const char* canvas = "#canvas";
+  native_window = const_cast<void*>(reinterpret_cast<const void*>(canvas));
+  return;
+#endif
+
   SDL_SysWMinfo wmi;
   SDL_VERSION(&wmi.version);
   if (!SDL_GetWindowWMInfo(this->get_handle(), &wmi)) {
     std::cerr << "Failed getting native window handles: : " << std::string(SDL_GetError()) << "\n";
     exit(0);
   }
-
-  // emscripten
-#if defined(__EMSCRIPTEN__)
-  static const char* canvas = "#canvas";
-  nativeWindow = const_cast<void*>(reinterpret_cast<const void*>(canvas));
-  return;
-#endif
 
   // windows
 #if defined(SDL_VIDEO_DRIVER_WINDOWS)
@@ -161,6 +165,8 @@ GameWindow::get_native_handles(void*& native_window) const
 
   // Mac
 #if defined(SDL_VIDEO_DRIVER_COCOA)
+  {
+  }
 #endif // defined(SDL_VIDEO_DRIVER_COCOA)
 
   {

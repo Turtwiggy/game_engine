@@ -6,16 +6,14 @@
 #include "game/components/actors.hpp"
 #include "game/components/events.hpp"
 #include "game/modules/ai/components.hpp"
-#include "game/modules/dungeon/helpers.hpp"
 #include "game/modules/combat/components.hpp"
+#include "game/modules/dungeon/helpers.hpp"
 #include "game/modules/items/components.hpp"
 #include "game/modules/player/components.hpp"
 #include "game/modules/rpg_xp/components.hpp"
 #include "helpers.hpp"
 #include "modules/camera/components.hpp"
 #include "modules/ui_hierarchy/helpers.hpp"
-
-#include <format>
 
 namespace game2d {
 
@@ -195,7 +193,7 @@ update_dungeon_system(GameEditor& editor, Game& game)
   Dungeon d; // set dungeon specs
   d.seed = seed;
   d.floor = seed;
-  std::string floor_msg = std::format("Exit reached! New floor: {}", d.floor);
+  std::string floor_msg = "Exit reached! New floor:" + std::to_string(d.floor);
   game.ui_events.events.push_back(floor_msg);
 
   if (d.floor == 10) {
@@ -203,7 +201,7 @@ update_dungeon_system(GameEditor& editor, Game& game)
     game.gameover = true;
   }
 
-  std::string msg = std::format("Generating new dungeon! seed: {}", seed);
+  std::string msg = "Generating new dungeon! seed: " + std::to_string(seed);
   game.ui_events.events.push_back(msg);
   generate_dungeon(editor, game, d, seed);
 

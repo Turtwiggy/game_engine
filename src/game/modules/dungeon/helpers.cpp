@@ -235,7 +235,6 @@ generate_item(const int floor, engine::RandomState& rnd)
     if (weight_acculum >= random)
       return k;
   }
-
   return EntityType::potion;
 };
 
@@ -277,9 +276,8 @@ generate_monster(const int floor, engine::RandomState& rnd)
     weight_acculum += w;
     if (weight_acculum >= random)
       return k;
-
-    return EntityType::actor_orc;
   }
+  return EntityType::actor_orc;
 };
 
 } // namespace game2d

@@ -1,6 +1,7 @@
 #pragma once
 
-#include <SDL2/SDL_mixer.h>
+#include "SDL2/SDL_mixer.h"
+
 #include <string>
 #include <vector>
 
@@ -50,6 +51,5 @@ get_music(SINGLETON_AudioComponent& audio, AvailableMusic type);
 
 Sfx&
 get_sfx(SINGLETON_AudioComponent& audio, AvailableSfx type);
-
 
 } // namespace game2d

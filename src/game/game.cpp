@@ -15,25 +15,24 @@
 #include "game/modules/ui_player/system.hpp"
 #include "game/modules/ui_player_inventory/system.hpp"
 #include "game/simulate.hpp"
-#include "modules/audio/system.hpp"
+// #include "modules/audio/system.hpp"
 #include "modules/camera/components.hpp"
 #include "modules/camera/helpers.hpp"
 #include "modules/camera/system.hpp"
 #include "modules/cursor/system.hpp"
 #include "modules/events/helpers/keyboard.hpp"
 #include "modules/events/system.hpp"
-#include "modules/networking/system.hpp"
 #include "modules/renderer/system.hpp"
 #include "modules/sprites/system.hpp"
 #include "modules/ui_editor_bar/system.hpp"
-#include "modules/ui_editor_scene/system.hpp"
-#include "modules/ui_editor_tilemap/components.hpp"
-#include "modules/ui_editor_tilemap/system.hpp"
+// #include "modules/ui_editor_scene/system.hpp"
+// #include "modules/ui_editor_tilemap/components.hpp"
+// #include "modules/ui_editor_tilemap/system.hpp"
 #include "modules/ui_hierarchy/helpers.hpp"
 #include "modules/ui_hierarchy/system.hpp"
 #include "modules/ui_profiler/helpers.hpp"
 #include "modules/ui_profiler/system.hpp"
-#include "modules/ui_sprite_searcher/system.hpp"
+// #include "modules/ui_sprite_searcher/system.hpp"
 #include "modules/ux_hover/components.hpp"
 #include "modules/ux_hover/system.hpp"
 
@@ -114,7 +113,7 @@ init(engine::SINGLETON_Application& app, GameEditor& editor, Game& game)
 {
   // init_networking_system(editor);
   init_sprite_system(editor);
-  init_audio_system(editor);
+  // init_audio_system(editor);
   init_render_system(app, editor);
 
   // GOAL: remove init_game_state with the
@@ -171,7 +170,7 @@ update(engine::SINGLETON_Application& app, GameEditor& editor, Game& game, float
     auto _ = time_scope(&p, "game_tick");
     update_input_system(app, editor, game);
     update_camera_system(editor, game, dt);
-    update_audio_system(editor);
+    // update_audio_system(editor);
     update_cursor_system(editor, game);
     update_ux_hover_system(editor, game);
   };
@@ -192,12 +191,12 @@ update(engine::SINGLETON_Application& app, GameEditor& editor, Game& game, float
 
     static bool show_editor_ui = true;
     if (show_editor_ui) {
-      update_ui_editor_bar_system(editor, game);
-      update_ui_hierarchy_system(editor, game);
+      // update_ui_editor_bar_system(editor, game);
+      // update_ui_hierarchy_system(editor, game);
       update_ui_profiler_system(editor, game);
       // update_ui_editor_scene_system(editor, game);
       // update_ui_editor_tilemap_system(editor, game);
-      update_ui_sprite_searcher_system(editor, game);
+      // update_ui_sprite_searcher_system(editor, game);
       // update_ui_networking_system(editor, game);
     }
   };

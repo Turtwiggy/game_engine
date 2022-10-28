@@ -6,8 +6,6 @@
 #include "helpers.hpp"
 #include "modules/entt/helpers.hpp"
 
-#include <format>
-
 #include <entt/entt.hpp>
 
 namespace game2d {
@@ -29,7 +27,7 @@ update_rpg_system(GameEditor& editor, Game& game)
     const auto& player_entity = get_first<PlayerComponent>(r);
     auto& player_xp = r.get<XpComponent>(player_entity);
     player_xp.amount += xp.amount;
-    std::string msg = std::format("You gained {} xp", xp.amount);
+    std::string msg = "You gained xp! " + std::to_string(xp.amount);
     game.ui_events.events.push_back(msg);
   }
 

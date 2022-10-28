@@ -4,7 +4,6 @@
 
 #include <entt/entt.hpp>
 
-#include <format>
 #include <string>
 
 namespace game2d {
@@ -35,24 +34,25 @@ update_take_damage_system(GameEditor& editor, Game& game)
       mitigated_damages += dmg_request.mitigated_damage;
     }
 
-    int final_damage = glm::max(0, base_damages + extra_damages - mitigated_damages);
+    const int final_damage = glm::max(0, base_damages + extra_damages - mitigated_damages);
     health.hp -= final_damage;
 
     // log the damage event
     const int damage_taken = glm::abs(health.hp - old_hp);
-    const std::string msg = std::format("{} hits. {} damage. {} blocked. new_hp: {}, ({})",
-                                        damages.damage.size(),
-                                        final_damage,
-                                        mitigated_damages,
-                                        health.hp,
-                                        tag.tag.c_str());
+
+    std::string msg = std::to_string(damages.damage.size()) + " hits.";
+    msg += std::to_string(final_damage) + " damage.";
+    msg += std::to_string(mitigated_damages) + " blocked.";
+    msg += std::to_string(health.hp) + " hp. ";
     game.ui_events.events.push_back(msg);
 
     // check for deads
     if (health.hp <= 0) {
       eb.dead.emplace(entity);
       r.emplace<IsDead>(entity);
-      game.ui_events.events.push_back(std::format("{} died.", tag.tag.c_str()));
+
+      std::string dead_msg = tag.tag + " died.";
+      game.ui_events.events.push_back(dead_msg);
     }
 
     damages.damage.clear();
