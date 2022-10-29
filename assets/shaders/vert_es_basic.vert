@@ -1,6 +1,6 @@
-#version 300 es
+#version 110
 
-layout(location = 0) in vec4 pos;
+attribute vec4 pos;
 
 void
 main()

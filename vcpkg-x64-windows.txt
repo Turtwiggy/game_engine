@@ -1,7 +1,7 @@
 glew
 glm
 sdl2
-sdl2-mixer[core, mpg123]
+openal-soft
 stb
 nlohmann-json
 gamenetworkingsockets

@@ -4,21 +4,13 @@ cmake_minimum_required(VERSION 3.0.0)
 set(CMAKE_CXX_STANDARD 20)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 
-project(game_2d VERSION 0.1.0)
-message("game_2d: CMAKE_SYSTEM_NAME ${CMAKE_SYSTEM_NAME}")
-message("game_2d: CMAKE_BUILD_TYPE ${CMAKE_BUILD_TYPE}")
-message("game_2d: C: ${CMAKE_C_COMPILER_ID}")
-message("game_2d: CXX: ${CMAKE_CXX_COMPILER_ID}")
-message("game_2d: current_list_dir: ${CMAKE_CURRENT_LIST_DIR}")
-message("game_2d: source_dir: ${CMAKE_SOURCE_DIR}")
-
 if(EMSCRIPTEN)
   message("Compiling for emscripten (toolkit set in cmake-kits.json)")
 
   # https://emscripten.org/docs/tools_reference/emcc.html
   # add_compile_definitions("-s ALLOW_MEMORY_GROWTH=1")
   # add_compile_definitions(" --shell-file shell_minimal.html")
-  set(USE_FLAGS "-s USE_SDL=2 -s USE_SDL_MIXER=2 -s DISABLE_EXCEPTION_CATCHING=1 -s WASM=1 -s NO_EXIT_RUNTIME=0 -s ASSERTIONS=1")
+  set(USE_FLAGS "-s USE_SDL=2 -s DISABLE_EXCEPTION_CATCHING=1 -s WASM=1 -s NO_EXIT_RUNTIME=0 -s ASSERTIONS=1")
   set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} ${USE_FLAGS}")
   set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++20 -stdlib=libc++")
   set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} ${USE_FLAGS}")
@@ -26,11 +18,10 @@ if(EMSCRIPTEN)
 
   # set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -shell-file ${CMAKE_SOURCE_DIR}/assets/emscripten/shell_minimal.html")
   set(CMAKE_EXECUTABLE_SUFFIX ".html")
-endif()
 
-message("index CMAKE_TOOLCHAIN_FILE: ${CMAKE_TOOLCHAIN_FILE}")
-message("index VCPKG_CHAINLOAD_TOOLCHAIN_FILE: ${VCPKG_CHAINLOAD_TOOLCHAIN_FILE}")
-message("index CMAKE_EXECUTABLE_SUFFIX: ${CMAKE_EXECUTABLE_SUFFIX}")
+  message("index VCPKG_CHAINLOAD_TOOLCHAIN_FILE: ${VCPKG_CHAINLOAD_TOOLCHAIN_FILE}")
+  message("index CMAKE_EXECUTABLE_SUFFIX: ${CMAKE_EXECUTABLE_SUFFIX}")
+endif()
 
 if(CMAKE_CXX_COMPILER_ID MATCHES GNU)
   add_definitions("-std=c++20")
@@ -48,13 +39,23 @@ if(CMAKE_CXX_COMPILER_ID MATCHES MSVC)
   set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} /std:c++20 /permissive-")
 endif()
 
+project(game_2d VERSION 0.1.0)
+message("game_2d: CMAKE_SYSTEM_NAME ${CMAKE_SYSTEM_NAME}")
+message("game_2d: CMAKE_BUILD_TYPE ${CMAKE_BUILD_TYPE}")
+message("game_2d: C: ${CMAKE_C_COMPILER_ID}")
+message("game_2d: CXX: ${CMAKE_CXX_COMPILER_ID}")
+message("game_2d: current_list_dir: ${CMAKE_CURRENT_LIST_DIR}")
+message("game_2d: source_dir: ${CMAKE_SOURCE_DIR}")
+message("index CMAKE_TOOLCHAIN_FILE: ${CMAKE_TOOLCHAIN_FILE}")
+
 # Add VCPKG packages
-if(!EMSCRIPTEN)
+if(EMSCRIPTEN)
+else()
   # packages not supported or needed by emscripten
-  find_package(GameNetworkingSockets CONFIG REQUIRED)
+  # find_package(GameNetworkingSockets CONFIG REQUIRED)
   find_package(SDL2 CONFIG REQUIRED)
-  find_package(sdl2-mixer CONFIG REQUIRED)
   find_package(GLEW REQUIRED)
+  find_package(OpenAL CONFIG REQUIRED)
 endif()
 
 find_package(nlohmann_json CONFIG REQUIRED)
@@ -96,20 +97,19 @@ target_include_directories(game_2d PRIVATE
   ${CMAKE_SOURCE_DIR}/thirdparty/imgui-filebrowser
 )
 
-if(!EMSCRIPTEN)
-  target_link_libraries(game_2d PRIVATE GameNetworkingSockets::shared)
+if(EMSCRIPTEN)
+  target_link_libraries(game_2d PRIVATE openal)
+else()
+  # target_link_libraries(game_2d PRIVATE GameNetworkingSockets::shared)
   target_link_libraries(game_2d PRIVATE GLEW::GLEW)
   target_link_libraries(game_2d PRIVATE SDL2::SDL2 SDL2::SDL2main)
-  target_link_libraries(game_2d PRIVATE SDL2::SDL2_mixer)
-else()
-  # target_link_libraries(game_2d PRIVATE openal)
+  target_link_libraries(game_2d PRIVATE OpenAL::OpenAL)
 endif()
 
 target_link_libraries(game_2d PRIVATE glm::glm)
 target_link_libraries(game_2d PRIVATE nlohmann_json::nlohmann_json)
 
-# target_link_libraries(game_2d PRIVATE opengl32)
-if(${CMAKE_SYSTEM_NAME} STREQUAL "Windows" OR ${CMAKE_SYSTEM_NAME} STREQUAL "Emscripten")
+if(${CMAKE_SYSTEM_NAME} STREQUAL "Windows")
   # create symlink assets for build
   set(src ${CMAKE_SOURCE_DIR}/assets)
   set(dst ${CMAKE_CURRENT_BINARY_DIR}/assets)

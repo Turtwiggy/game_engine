@@ -4,18 +4,17 @@
 // other library headers
 // clang-format off
 #include <imgui.h>
-#include <backends/imgui_impl_opengl3.h>
 #include <backends/imgui_impl_sdl.h>
+#include <backends/imgui_impl_opengl3.h>
 #include <imgui_internal.h>
+#include <SDL2/SDL.h>
+#include <SDL2/SDL_syswm.h>
 // clang-format on
-#include <glm/glm.hpp>
 
 #if defined(IMGUI_IMPL_OPENGL_LOADER_GLEW)
 #include <GL/glew.h>
-#endif
-
-#ifdef _WIN32
-#include <SDL2/SDL_syswm.h>
+#else
+#include <SDL2/SDL_opengles2.h>
 #endif
 
 namespace engine {
@@ -89,9 +88,11 @@ ImGui_Manager::initialize(GameWindow& window)
   colors[ImGuiCol_TitleBgActive] = ImVec4{ 0.15f, 0.1505f, 0.151f, 1.0f };
   colors[ImGuiCol_TitleBgCollapsed] = ImVec4{ 0.15f, 0.1505f, 0.151f, 1.0f };
 
-  // Setup Platform/Renderer backends
+  // const char* glsl_version = "#version 100"; // target WebGL1
+  const char* glsl_version = "#version 300 es"; // target WebGL2
+
   ImGui_ImplSDL2_InitForOpenGL(window.get_handle(), window.get_gl_context());
-  ImGui_ImplOpenGL3_Init();
+  ImGui_ImplOpenGL3_Init(glsl_version);
 }
 
 void

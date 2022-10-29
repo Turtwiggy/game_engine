@@ -1,5 +1,5 @@
 // your header
-#include "modules/renderer/system.hpp"
+#include "system.hpp"
 
 // components/systems
 #include "modules/camera/components.hpp"
@@ -20,7 +20,7 @@
 #include "engine/opengl/shader.hpp"
 #include "engine/opengl/texture.hpp"
 #include "engine/opengl/util.hpp"
-using namespace engine;
+using namespace engine; // used for macro
 
 // other lib
 #include <SDL2/SDL.h>
@@ -124,6 +124,7 @@ game2d::init_render_system(const engine::SINGLETON_Application& app, GameEditor&
   ri.instanced = Shader("assets/shaders/2d_instanced.vert", "assets/shaders/2d_instanced.frag");
   ri.fan = Shader("assets/shaders/2d_basic_with_proj.vert", "assets/shaders/2d_colour.frag");
   ri.linear_to_srgb = Shader("assets/shaders/2d_instanced.vert", "assets/shaders/2d_linear_to_srgb.frag");
+
   ri.viewport_size_render_at = screen_wh;
   ri.viewport_size_current = screen_wh;
 
@@ -133,19 +134,19 @@ game2d::init_render_system(const engine::SINGLETON_Application& app, GameEditor&
   // initialize renderer
   SDL_GL_SetAttribute(SDL_GL_MULTISAMPLEBUFFERS, 1);
   SDL_GL_SetAttribute(SDL_GL_MULTISAMPLESAMPLES, 4);
+  SDL_GL_SetAttribute(SDL_GL_DOUBLEBUFFER, 1);
+  SDL_GL_SetAttribute(SDL_GL_DEPTH_SIZE, 24);
+  SDL_GL_SetAttribute(SDL_GL_STENCIL_SIZE, 8);
   glEnable(GL_MULTISAMPLE);
   glEnable(GL_BLEND);
-  glEnable(GL_DEPTH_TEST); // maybe not needed for 2d
+  glEnable(GL_DEPTH_TEST);
   glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 
   print_gpu_info();
   quad_renderer::QuadRenderer::init();
 
-#ifdef _DEBUG
-  CHECK_OPENGL_ERROR(0);
-#endif
-
   game2d::rebind(editor, screen_wh);
+  CHECK_OPENGL_ERROR(2);
 };
 
 void
@@ -159,6 +160,8 @@ game2d::update_render_system(GameEditor& editor, Game& game)
   const auto& background_colour = colours.background;
   const auto background_colour_linear = engine::SRGBToLinear(background_colour);
   glm::ivec2 viewport_wh = ri.viewport_size_render_at;
+  CHECK_OPENGL_ERROR(3);
+
   check_if_viewport_resize(editor, viewport_wh);
 
   // FBO: Render sprites in to this fbo with linear colour
@@ -241,6 +244,8 @@ game2d::update_render_system(GameEditor& editor, Game& game)
   ri.viewport_pos = glm::vec2(vi.pos.x, vi.pos.y);
   ri.viewport_size_current = { vi.size.x, vi.size.y };
   ri.viewport_process_events = vi.hovered || (vi.focused);
+
+  CHECK_OPENGL_ERROR(4);
 };
 
 void

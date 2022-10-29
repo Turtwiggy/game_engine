@@ -1,8 +1,8 @@
-#version 300 es
+#version 110
 
-layout(location = 0) in vec4 vertex; // <vec2 position, vec2 texCoords>
+attribute vec4 vertex; // <vec2 position, vec2 texCoords>
 
-out vec2 v_tex;
+varying vec2 v_tex;
 
 uniform mat4 projection;
 uniform mat4 model;

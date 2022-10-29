@@ -1,20 +1,19 @@
-#version 300 es
+#version 110
 
-layout(location = 0) in vec4 vertex;
-layout(location = 1) in vec4 colour;
-layout(location = 2) in vec4 sprite_pos_and_spritesheet;
-layout(location = 3) in float tex_unit;
-layout(location = 4) in mat4 model;
+attribute vec4 vertex;
+attribute vec4 colour;
+attribute vec4 sprite_pos_and_spritesheet;
+attribute float tex_unit;
+attribute mat4 model;
 
-out vec2 v_tex;
-out vec4 v_colour;
-out vec2 v_sprite_pos;
-out vec2 v_sprites;
-out float v_tex_unit;
+varying vec2 v_tex;
+varying vec4 v_colour;
+varying vec2 v_sprite_pos;
+varying vec2 v_sprites;
+varying float v_tex_unit;
 
 uniform mat4 view;
 uniform mat4 projection;
-
 uniform float screenshake_trauma;
 
 void

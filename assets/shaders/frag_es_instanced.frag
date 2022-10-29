@@ -1,14 +1,14 @@
-#version 300 es
+#version 110
+
+// https://stackoverflow.com/a/9422605/5930380
 
 precision mediump float;
 
-out vec4 out_colour;
-
-in vec2 v_tex;
-in vec4 v_colour;
-in vec2 v_sprite_pos; // x, y location of sprite
-in vec2 v_sprites;    // amount of sprites (x, y)
-in float v_tex_unit;
+varying vec2 v_tex;
+varying vec4 v_colour;
+varying vec2 v_sprite_pos;
+varying vec2 v_sprites;
+varying float v_tex_unit;
 
 uniform sampler2D textures[5];
 
@@ -17,28 +17,27 @@ main()
 {
   int index = int(v_tex_unit);
 
-  // Sample texture directly
-  if (v_sprite_pos.x == 0.0f && v_sprite_pos.y == 0.0f) { // a whole texture
-    out_colour = v_colour;
+  if (v_sprite_pos.x == 0.0 && v_sprite_pos.y == 0.0) { // a whole texture
+    gl_FragColor = v_colour;
     return;
   } 
 
   // A spritesheet texture
-  if(v_sprites.x > 0.0f || v_sprites.y > 0.0f)
+  if(v_sprites.x > 0.0 || v_sprites.y > 0.0)
   {
-    float scale_x = 1.0f / v_sprites.x;
-    float scale_y = 1.0f / v_sprites.y;
+    float scale_x = 1.0 / v_sprites.x;
+    float scale_y = 1.0 / v_sprites.y;
 
     vec2 sprite_uv = vec2(
       v_tex.x / v_sprites.x + v_sprite_pos.x * scale_x,
       v_tex.y / v_sprites.y + v_sprite_pos.y * scale_y      
     );
-    out_colour = v_colour * texture(textures[index], sprite_uv);
+    gl_FragColor = v_colour * texture2D(textures[index], sprite_uv);
     return;
   }
 
-  out_colour = v_colour;
-  
+  gl_FragColor = v_colour;
+
   // all other textures
   // out_colour = v_colour * texture(textures[index], v_tex);
 }

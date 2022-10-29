@@ -1,4 +1,7 @@
-#version 330 core
+#version 300 es
+
+precision mediump float;
+
 out vec4 out_colour;
 
 in vec2 v_tex;
@@ -34,4 +37,5 @@ main()
     rgb.b,
     lin.a
   );
+
 }

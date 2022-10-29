@@ -88,6 +88,8 @@ QuadRenderer::init()
   glBindBuffer(GL_ARRAY_BUFFER, data.VBO);
   glBufferData(GL_ARRAY_BUFFER, max_quad_vert_count * sizeof(Vertex), nullptr, GL_DYNAMIC_DRAW); // dynamic
 
+  // specific to the game...
+
   glEnableVertexAttribArray(0);
   glVertexAttribPointer(0, 4, GL_FLOAT, GL_FALSE, sizeof(Vertex), (const void*)offsetof(Vertex, pos_and_uv));
 

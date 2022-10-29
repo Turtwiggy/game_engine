@@ -59,6 +59,7 @@ game2d::simulate(GameEditor& editor, Game& game, const std::vector<InputEvent>& 
   // game logic
   {
     auto _ = time_scope(&p, "(game_logic)-misc", true);
+
     update_select_units_for_item_system(editor, game);
     update_intent_use_item_system(editor, game);
     update_intent_purchase_item_system(editor, game);
@@ -70,7 +71,7 @@ game2d::simulate(GameEditor& editor, Game& game, const std::vector<InputEvent>& 
   }
   {
     auto _ = time_scope(&p, "(game_logic)-fov", true);
-    update_tile_fov_system(editor, game);
+    // update_tile_fov_system(editor, game);
   }
   {
     auto _ = time_scope(&p, "(game_logic)-pathfinding/ai)", true);

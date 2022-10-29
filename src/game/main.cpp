@@ -6,6 +6,7 @@ using namespace game2d;
 
 #include "engine/app/application.hpp"
 #include "engine/app/io.hpp"
+#include "engine/opengl/util.hpp"
 using namespace engine;
 
 #if defined(__EMSCRIPTEN__)
@@ -81,6 +82,7 @@ main(int argc, char* argv[])
   //   engine::hide_windows_console();
 
   game2d::init(app, editor, game);
+  CHECK_OPENGL_ERROR(1);
   log_time_since("(INFO) End init()", start);
 
 #ifdef __EMSCRIPTEN__

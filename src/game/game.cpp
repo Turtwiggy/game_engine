@@ -6,6 +6,7 @@
 // systems&components&helpers
 #include "engine/app/application.hpp"
 #include "engine/maths/grid.hpp"
+
 #include "game/components/actors.hpp"
 #include "game/modules/dungeon/system.hpp"
 #include "game/modules/items/components.hpp"
@@ -25,16 +26,17 @@
 #include "modules/renderer/system.hpp"
 #include "modules/sprites/system.hpp"
 #include "modules/ui_editor_bar/system.hpp"
-// #include "modules/ui_editor_scene/system.hpp"
-// #include "modules/ui_editor_tilemap/components.hpp"
-// #include "modules/ui_editor_tilemap/system.hpp"
+#include "modules/ui_editor_scene/system.hpp"
+#include "modules/ui_editor_tilemap/components.hpp"
+#include "modules/ui_editor_tilemap/system.hpp"
 #include "modules/ui_hierarchy/helpers.hpp"
 #include "modules/ui_hierarchy/system.hpp"
 #include "modules/ui_profiler/helpers.hpp"
 #include "modules/ui_profiler/system.hpp"
-// #include "modules/ui_sprite_searcher/system.hpp"
+#include "modules/ui_sprite_searcher/system.hpp"
 #include "modules/ux_hover/components.hpp"
 #include "modules/ux_hover/system.hpp"
+#include "resources/textures.hpp"
 
 // other lib
 #include <algorithm>
@@ -191,12 +193,12 @@ update(engine::SINGLETON_Application& app, GameEditor& editor, Game& game, float
 
     static bool show_editor_ui = true;
     if (show_editor_ui) {
-      // update_ui_editor_bar_system(editor, game);
-      // update_ui_hierarchy_system(editor, game);
+      update_ui_editor_bar_system(editor, game);
+      update_ui_hierarchy_system(editor, game);
       update_ui_profiler_system(editor, game);
-      // update_ui_editor_scene_system(editor, game);
-      // update_ui_editor_tilemap_system(editor, game);
-      // update_ui_sprite_searcher_system(editor, game);
+      update_ui_editor_scene_system(editor, game);
+      update_ui_editor_tilemap_system(editor, game);
+      update_ui_sprite_searcher_system(editor, game);
       // update_ui_networking_system(editor, game);
     }
   };

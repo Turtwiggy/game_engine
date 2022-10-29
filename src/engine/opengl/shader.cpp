@@ -16,7 +16,7 @@
 namespace engine {
 
 void
-check_compile_errors(unsigned int shader, std::string type)
+check_compile_errors(unsigned int shader, std::string type, std::string path)
 {
   GLint success;
   GLchar infoLog[1024];
@@ -24,17 +24,15 @@ check_compile_errors(unsigned int shader, std::string type)
     glGetShaderiv(shader, GL_COMPILE_STATUS, &success);
     if (!success) {
       glGetShaderInfoLog(shader, 1024, NULL, infoLog);
-      std::cout << "ERROR::SHADER_COMPILATION_ERROR of type: " << type << "\n"
-                << infoLog << "\n -- --------------------------------------------------- -- "
-                << "\n";
+      std::cout << "ERROR::SHADER_COMPILATION_ERROR of type: " << type << " " << path << "\n"
+                << infoLog << "\n ------------------------------------------------------- \n";
     }
   } else {
     glGetProgramiv(shader, GL_LINK_STATUS, &success);
     if (!success) {
       glGetProgramInfoLog(shader, 1024, NULL, infoLog);
-      std::cout << "ERROR::PROGRAM_LINKING_ERROR of type: " << type << "\n"
-                << infoLog << "\n -- --------------------------------------------------- -- "
-                << "\n";
+      std::cout << "ERROR::PROGRAM_LINKING_ERROR of type: " << type << " " << path << "\n"
+                << infoLog << "\n ------------------------------------------------------- \n";
     }
   }
 }
@@ -70,7 +68,7 @@ create_opengl_shader(const std::string& vert_path, const std::string& frag_path)
   glAttachShader(ID, frag_shader);
 
   glLinkProgram(ID);
-  check_compile_errors(ID, "PROGRAM");
+  check_compile_errors(ID, "PROGRAM", "");
 
   glDeleteShader(vert_shader);
   glDeleteShader(frag_shader);
@@ -110,7 +108,7 @@ load_shader_from_disk(const std::string& path, unsigned int gl_shader_type, std:
   shader_id = glCreateShader(gl_shader_type);
   glShaderSource(shader_id, 1, &csCode, NULL);
   glCompileShader(shader_id);
-  check_compile_errors(shader_id, type);
+  check_compile_errors(shader_id, type, path);
 
   return shader_id;
 }

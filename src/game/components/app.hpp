@@ -10,7 +10,6 @@
 #include "modules/ui_editor_bar/components.hpp"
 #include "modules/ui_profiler/components.hpp"
 #include "modules/ui_sprite_searcher/components.hpp"
-#include "resources/audio.hpp"
 #include "resources/colour.hpp"
 #include "resources/textures.hpp"
 
@@ -22,7 +21,6 @@ namespace game2d {
 struct GameEditor
 {
   Profiler profiler;
-  SINGLETON_AudioComponent audio;
   SINGLETON_Animations animations;
   SINGLETON_ColoursComponent colours;
   SINGLETON_EditorComponent editor;

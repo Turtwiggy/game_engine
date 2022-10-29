@@ -3,6 +3,7 @@
 
 #include "engine/maths/maths.hpp"
 #include "engine/opengl/texture.hpp"
+
 #include "modules/physics/components.hpp"
 #include "modules/sprites/helpers.hpp"
 #include "resources/textures.hpp"
@@ -24,12 +25,18 @@ init_sprite_system(GameEditor& editor)
       textures_to_load.emplace_back(texture.tex_unit, texture.path);
   }
 
+#if defined(__EMSCRIPTEN__)
+  auto tex_ids = engine::load_textures(textures_to_load);
+#else
   auto tex_ids = engine::load_textures_threaded(textures_to_load);
+#endif
 
   for (int i = 0; auto& texture : tex.textures) {
     // set texture ids
-    if (texture.path != "")
+    if (texture.path != "") {
       texture.tex_id = tex_ids[i];
+      std::cout << "set " << texture.path << " to tex_id: " << tex_ids[i] << "unit: " << texture.tex_unit << "\n";
+    }
 
     // load sprite info from texture if it exists
     if (texture.spritesheet_path != "")

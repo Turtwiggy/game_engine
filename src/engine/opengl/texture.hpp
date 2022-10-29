@@ -1,13 +1,14 @@
 #pragma once
 
 // other lib headers
-#include <glm/glm.hpp>
 #if !defined(STB_IMAGE_IMPLEMENTATION)
 #define STB_IMAGE_IMPLEMENTATION
 #endif
+#include <glm/glm.hpp>
 
 // c++ standard library headers
 #include <string>
+#include <utility>
 #include <vector>
 
 namespace engine {
@@ -31,7 +32,7 @@ struct LinearTexture
   int nr_components;
   int texture_unit;
   std::string path;
-  float* data; // linear colour
+  unsigned char* data; // linear colour 0-255
 };
 
 void
@@ -47,7 +48,10 @@ unbind_tex();
 // load_texture_linear(const int tex_unit, const std::string& path);
 
 [[nodiscard]] std::vector<unsigned int>
-load_textures_threaded(std::vector<std::pair<int, std::string>>& textures_to_load);
+load_textures(const std::vector<std::pair<int, std::string>>& textures_to_load);
+
+[[nodiscard]] std::vector<unsigned int>
+load_textures_threaded(const std::vector<std::pair<int, std::string>>& textures_to_load);
 
 [[nodiscard]] unsigned int
 bind_linear_texture(const LinearTexture& texture);
