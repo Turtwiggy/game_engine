@@ -58,8 +58,10 @@ print_gpu_info()
   // -------------------------------
   // GPU Info
   printf("(INFO) OpenGL version supported by this platform (%s): \n", glGetString(GL_VERSION));
+
   int params[1];
-  glGetIntegerv(GL_MAX_SHADER_STORAGE_BUFFER_BINDINGS, params);
+  // glGetIntegerv(GL_MAX_SHADER_STORAGE_BUFFER_BINDINGS, params);
+
   // printf("(INFO) GPU: Max shader storage buffer bindings: %i \n", params[0]);
   glGetIntegerv(GL_MAX_TEXTURE_IMAGE_UNITS, params);
   printf("(INFO) GPU: Max texture image units: %i \n", params[0]);

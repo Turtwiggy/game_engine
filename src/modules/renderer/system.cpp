@@ -50,14 +50,14 @@ rebind(GameEditor& editor, const glm::ivec2& wh)
                         get_tex_unit(tex, AvailableTexture::map_0) };
     ri.instanced.bind();
     ri.instanced.set_mat4("projection", projection);
-    ri.instanced.set_int_array("textures", textures, sizeof(textures));
+    ri.instanced.set_int_array("textures", textures, 5);
   }
 
   {
     int textures[1] = { get_tex_unit(tex, AvailableTexture::linear_main) };
     ri.linear_to_srgb.bind();
     ri.linear_to_srgb.set_mat4("projection", projection);
-    ri.linear_to_srgb.set_int_array("textures", textures, sizeof(textures));
+    ri.linear_to_srgb.set_int_array("textures", textures, 1);
   }
 };
 
@@ -132,21 +132,21 @@ game2d::init_render_system(const engine::SINGLETON_Application& app, GameEditor&
   ri.linear_to_srgb.set_mat4("view", glm::mat4(1.0f));
 
   // initialize renderer
-  SDL_GL_SetAttribute(SDL_GL_MULTISAMPLEBUFFERS, 1);
-  SDL_GL_SetAttribute(SDL_GL_MULTISAMPLESAMPLES, 4);
+  // SDL_GL_SetAttribute(SDL_GL_MULTISAMPLEBUFFERS, 1);
+  // SDL_GL_SetAttribute(SDL_GL_MULTISAMPLESAMPLES, 4);
+  // glEnable(GL_MULTISAMPLE);
   SDL_GL_SetAttribute(SDL_GL_DOUBLEBUFFER, 1);
   SDL_GL_SetAttribute(SDL_GL_DEPTH_SIZE, 24);
   SDL_GL_SetAttribute(SDL_GL_STENCIL_SIZE, 8);
-  glEnable(GL_MULTISAMPLE);
   glEnable(GL_BLEND);
   glEnable(GL_DEPTH_TEST);
   glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 
   print_gpu_info();
+
   quad_renderer::QuadRenderer::init();
 
   game2d::rebind(editor, screen_wh);
-  CHECK_OPENGL_ERROR(2);
 };
 
 void
@@ -160,7 +160,6 @@ game2d::update_render_system(GameEditor& editor, Game& game)
   const auto& background_colour = colours.background;
   const auto background_colour_linear = engine::SRGBToLinear(background_colour);
   glm::ivec2 viewport_wh = ri.viewport_size_render_at;
-  CHECK_OPENGL_ERROR(3);
 
   check_if_viewport_resize(editor, viewport_wh);
 
@@ -244,8 +243,6 @@ game2d::update_render_system(GameEditor& editor, Game& game)
   ri.viewport_pos = glm::vec2(vi.pos.x, vi.pos.y);
   ri.viewport_size_current = { vi.size.x, vi.size.y };
   ri.viewport_process_events = vi.hovered || (vi.focused);
-
-  CHECK_OPENGL_ERROR(4);
 };
 
 void

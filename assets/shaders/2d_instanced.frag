@@ -1,6 +1,6 @@
 #version 300 es
 
-precision mediump float;
+precision highp float;
 
 out vec4 out_colour;
 
@@ -33,14 +33,24 @@ main()
       v_tex.x / v_sprites.x + v_sprite_pos.x * scale_x,
       v_tex.y / v_sprites.y + v_sprite_pos.y * scale_y      
     );
-    out_colour = v_colour * texture(textures[index], sprite_uv);
-    return;
-  }
 
-  out_colour = v_colour;
-  
-  // all other textures
-  // out_colour = v_colour * texture(textures[index], v_tex);
+    out_colour = v_colour;
+    if(index == 0) {
+      out_colour *= texture(textures[0], sprite_uv);
+    }
+    else if(index == 1) {
+      out_colour *= texture(textures[1], sprite_uv);
+    }
+    else if(index == 2) {
+      out_colour *= texture(textures[2], sprite_uv);
+    }
+    else if(index == 3) {
+      out_colour *= texture(textures[3], sprite_uv);
+    }
+    else if(index == 4) {
+      out_colour *= texture(textures[4], sprite_uv);
+    }
+  }
 }
 
 // if (do_lighting) {

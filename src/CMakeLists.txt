@@ -10,7 +10,8 @@ if(EMSCRIPTEN)
   # https://emscripten.org/docs/tools_reference/emcc.html
   # add_compile_definitions("-s ALLOW_MEMORY_GROWTH=1")
   # add_compile_definitions(" --shell-file shell_minimal.html")
-  set(USE_FLAGS "-s USE_SDL=2 -s DISABLE_EXCEPTION_CATCHING=1 -s WASM=1 -s NO_EXIT_RUNTIME=0 -s ASSERTIONS=1")
+  set(USE_FLAGS "-sMIN_WEBGL_VERSION=2 -sMAX_WEBGL_VERSION=2") # use webgl2
+  set(USE_FLAGS "${USE_FLAGS} -sUSE_SDL=2 -sDISABLE_EXCEPTION_CATCHING=1 -sWASM=1 -sNO_EXIT_RUNTIME=0 -sASSERTIONS=1")
   set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} ${USE_FLAGS}")
   set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++20 -stdlib=libc++")
   set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} ${USE_FLAGS}")

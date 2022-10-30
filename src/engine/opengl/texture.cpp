@@ -6,15 +6,16 @@
 #include "engine/opengl/framebuffer.hpp"
 #include "engine/opengl/render_command.hpp"
 #include "engine/opengl/util.hpp"
+using namespace engine; // used for macro
 
 // other lib headers
 #if defined(__EMSCRIPTEN__)
 #include <SDL2/SDL_opengles2.h>
 #else
 #include <GL/glew.h>
-#include <thread>
 #endif
 #include <stb_image.h>
+#include <thread>
 
 // std lib
 #include <algorithm>
@@ -182,6 +183,7 @@ engine::new_texture_to_fbo(unsigned int& out_fbo_id, int& out_tex_id, const int 
 
   if (glCheckFramebufferStatus(GL_FRAMEBUFFER) != GL_FRAMEBUFFER_COMPLETE) {
     std::cerr << "(FBO: main_scene) ERROR: Framebuffer not complete!\n";
+    CHECK_OPENGL_ERROR(1);
     exit(1);
   }
 
@@ -198,9 +200,9 @@ engine::load_textures(const std::vector<std::pair<int, std::string>>& textures_t
   std::vector<unsigned int> texture_ids;
 
   std::vector<LinearTexture> loaded_textures(textures_to_load.size());
-
   for (int i = 0; const auto& texture : textures_to_load) {
     loaded_textures[i] = load_texture_linear(texture.first, texture.second);
+    i++;
   }
 
   // sort by texture unit
