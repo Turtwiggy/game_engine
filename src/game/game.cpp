@@ -74,9 +74,7 @@ init_game_state(GameEditor& editor)
     create_item(editor, game, EntityType::potion, shop_entity);
     create_item(editor, game, EntityType::potion, shop_entity);
     create_item(editor, game, EntityType::sword, shop_entity);
-    create_item(editor, game, EntityType::fire_sword, shop_entity);
     create_item(editor, game, EntityType::shield, shop_entity);
-    create_item(editor, game, EntityType::stone, shop_entity);
     create_item(editor, game, EntityType::crossbow, shop_entity);
     create_item(editor, game, EntityType::bolt, shop_entity);
     create_item(editor, game, EntityType::scroll_damage_nearest, shop_entity);

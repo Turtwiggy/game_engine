@@ -67,7 +67,7 @@ game2d::simulate(GameEditor& editor,
   }
   {
     auto _ = time_scope(&p, "(game_logic)-fov", true);
-    update_tile_fov_system(editor, game);
+    // update_tile_fov_system(editor, game);
   }
   {
     auto _ = time_scope(&p, "(game_logic)-pathfinding/ai)", true);

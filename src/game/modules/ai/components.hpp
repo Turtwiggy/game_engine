@@ -20,6 +20,12 @@ struct vec2i
 
 const int k_milliseconds_between_ai_updates = 1000;
 
+// struct Action
+// {
+//   int milliseconds_before_action_left = 1000;
+//   int milliseconds_before_action = 1000;
+// };
+
 struct AiBrainComponent
 {
   int milliseconds_between_ai_updates_left = 1000;

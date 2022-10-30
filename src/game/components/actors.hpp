@@ -29,14 +29,14 @@ enum class EntityType
 
   // equipment
   sword,
-  fire_sword,
   crossbow,
-  arrow,
   bolt,
-  stone,
   shield,
-  armour_leather,
-  armour_chainmail,
+  // fire_sword,
+  // arrow,
+  // stone,
+  // armour_leather,
+  // armour_chainmail,
 
   // consumable
   potion,

@@ -3,6 +3,7 @@
 
 // components
 #include "game/components/actors.hpp"
+#include "helpers.hpp"
 #include "modules/physics/components.hpp"
 #include "modules/renderer/components.hpp"
 #include "modules/ui_profiler/components.hpp"
@@ -41,12 +42,11 @@ game2d::update_ui_profiler_system(GameEditor& editor, Game& game)
     ImGui::Text("collision_enter %i", physics.collision_enter.size());
     ImGui::Text("collision_stay %i", physics.collision_stay.size());
     ImGui::Text("collision_exit %i", physics.collision_exit.size());
-
-    for (const auto& p : physics.collision_stay) {
-      EntityType e0 = registry.get<EntityTypeComponent>(static_cast<entt::entity>(p.ent_id_0)).type;
-      EntityType e1 = registry.get<EntityTypeComponent>(static_cast<entt::entity>(p.ent_id_1)).type;
-      ImGui::Text("CollisionStay between types %i, %i", static_cast<int>(e0), static_cast<int>(e1));
-    }
+    // for (const auto& p : physics.collision_stay) {
+    //   EntityType e0 = registry.get<EntityTypeComponent>(static_cast<entt::entity>(p.ent_id_0)).type;
+    //   EntityType e1 = registry.get<EntityTypeComponent>(static_cast<entt::entity>(p.ent_id_1)).type;
+    //   ImGui::Text("CollisionStay between types %i, %i", static_cast<int>(e0), static_cast<int>(e1));
+    // }
 
     ImGui::Text("¬¬ Renderer");
     ImGui::Text("Draw Calls QR %i", engine::quad_renderer::QuadRenderer::draw_calls());

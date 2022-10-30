@@ -94,6 +94,10 @@ create_sprite(GameEditor& editor, entt::registry& r, const entt::entity& e, cons
     sprite = "PERSON_25_0";
   else if (type == EntityType::bolt)
     sprite = "DART_35_5";
+  else if (type == EntityType::crossbow)
+    sprite = "CROSSBOW_37_5";
+  else if (type == EntityType::sword)
+    sprite = "SWORD_32_7";
   else if (type == EntityType::shield)
     sprite = "SHIELD_37_2";
   else if (type == EntityType::potion)
@@ -167,6 +171,10 @@ create_colour(GameEditor& editor, entt::registry& r, const entt::entity& e, cons
     srgb = colours.player_unit;
   else if (type == EntityType::bolt)
     srgb = colours.bullet;
+  else if (type == EntityType::crossbow)
+    srgb = colours.crossbow;
+  else if (type == EntityType::sword)
+    srgb = colours.sword;
   else if (type == EntityType::shield)
     srgb = colours.shield;
   else if (type == EntityType::potion)
@@ -301,16 +309,6 @@ create_gameplay_existing_entity(GameEditor& editor, Game& g, const entt::entity&
 
       // items
 
-    case EntityType::arrow: {
-      // physics
-      r.emplace<PhysicsTransformComponent>(e);
-      r.emplace<PhysicsActorComponent>(e);
-      r.emplace<VelocityComponent>(e);
-      r.emplace<AbleToBePickedUp>(e);
-      // gameplay
-      r.emplace<AttackComponent>(e, AttackComponent(1, 5));
-      break;
-    }
     case EntityType::bolt: {
       r.emplace<PhysicsTransformComponent>(e);
       r.emplace<PhysicsActorComponent>(e);
@@ -320,12 +318,12 @@ create_gameplay_existing_entity(GameEditor& editor, Game& g, const entt::entity&
       // r.emplace<EntityTimedLifecycle>(e, 20000); // bullet time alive
       break;
     }
-    case EntityType::stone: {
+    case EntityType::crossbow: {
       r.emplace<PhysicsTransformComponent>(e);
       r.emplace<PhysicsActorComponent>(e);
       r.emplace<Equipment>(e);
       r.emplace<AbleToBePickedUp>(e);
-      r.emplace<AttackComponent>(e, AttackComponent(0, 4));
+      r.emplace<AttackComponent>(e, AttackComponent(5, 10));
       break;
     }
     case EntityType::sword: {
@@ -334,21 +332,6 @@ create_gameplay_existing_entity(GameEditor& editor, Game& g, const entt::entity&
       r.emplace<Equipment>(e);
       r.emplace<AbleToBePickedUp>(e);
       r.emplace<AttackComponent>(e, AttackComponent(1, 4));
-      break;
-    }
-    case EntityType::fire_sword: {
-      r.emplace<PhysicsTransformComponent>(e);
-      r.emplace<PhysicsActorComponent>(e);
-      r.emplace<Equipment>(e);
-      r.emplace<AttackComponent>(e, AttackComponent(5, 10));
-      break;
-    }
-    case EntityType::crossbow: {
-      r.emplace<PhysicsTransformComponent>(e);
-      r.emplace<PhysicsActorComponent>(e);
-      r.emplace<Equipment>(e);
-      r.emplace<AbleToBePickedUp>(e);
-      r.emplace<AttackComponent>(e, AttackComponent(5, 10));
       break;
     }
     case EntityType::shield: {

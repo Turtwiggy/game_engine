@@ -45,13 +45,13 @@
       {"name": "PERSON_30_1","frames": [{"x": 30,"y": 1}]},
       {"name": "PERSON_31_1","frames": [{"x": 31,"y": 1}]},
 
-      {"name": "SHIELD_37_2","frames": [{"x": 37,"y": 2}]},
       {"name": "PERSON_25_2","frames": [{"x": 25,"y": 2}]},
       {"name": "PERSON_29_2","frames": [{"x": 29,"y": 2}]},
+      {"name": "SHIELD_37_2","frames": [{"x": 37,"y": 2}]},
       
       {"name": "WALL_BIG","frames": [{"x": 2,"y": 3}]},
       
-      {"name": "DART_35_5","frames": [{"x": 35,"y": 5}]},
+      {"name": "DART_35_5","frames": [{"x": 35,"y": 5}],"angle": -45.0},
       {"name": "HOOK_36_5","frames": [{"x": 36,"y": 5}]},
       {"name": "CROSSBOW_37_5","frames": [{"x": 37,"y": 5}]},
       {"name": "CROSSBOW_38_5","frames": [{"x": 38,"y": 5}]},
@@ -66,6 +66,11 @@
       {"name": "WEAPON_DAGGER_SOLID_3","frames": [{"x": 34,"y": 6}],"angle": -45.0},
       
       {"name": "DUCK","frames": [{"x": 25,"y": 7}]},
+      {"name": "SWORD_32_7","frames": [{"x": 32,"y": 7}],"angle": -45.0},
+      {"name": "SWORD_33_7","frames": [{"x": 33,"y": 7}],"angle": -45.0},
+      {"name": "SWORD_34_7","frames": [{"x": 34,"y": 7}],"angle": -45.0},
+      {"name": "SWORD_35_7","frames": [{"x": 35,"y": 7}],"angle": -45.0},
+      {"name": "SWORD_36_7","frames": [{"x": 36,"y": 7}],"angle": -45.0},
 
       {"name": "DOOR_16_8","frames": [{"x": 16,"y": 8}]},
 

@@ -57,6 +57,8 @@ struct SINGLETON_ColoursComponent
   const engine::SRGBColour turret = cyan;
   const engine::SRGBColour shield = cyan;
   const engine::SRGBColour floor = feint_white;
+  const engine::SRGBColour crossbow = red;
+  const engine::SRGBColour sword = red;
 
   // linear
   const engine::LinearColour lin_background = engine::SRGBToLinear(background);
