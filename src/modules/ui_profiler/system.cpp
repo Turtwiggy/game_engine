@@ -32,7 +32,7 @@ game2d::update_ui_profiler_system(GameEditor& editor, Game& game)
   const auto& actors = registry.view<PhysicsActorComponent>();
 
   // Profiler
-  ImGui::Begin("Profiler ", NULL, ImGuiWindowFlags_NoFocusOnAppearing);
+  ImGui::Begin("Profiler", NULL, ImGuiWindowFlags_NoFocusOnAppearing);
   {
     ImGui::Text("¬¬ Physics");
     ImGui::Text("Objects %i", objs.size());

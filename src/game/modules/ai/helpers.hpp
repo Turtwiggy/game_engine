@@ -1,5 +1,6 @@
 #pragma once
 
+#include "components.hpp"
 #include "game/helpers/priority_queue.hpp"
 #include "game/modules/dungeon/components.hpp"
 
@@ -9,15 +10,6 @@
 #include <vector>
 
 namespace game2d {
-
-struct vec2i
-{
-  int x = 0;
-  int y = 0;
-
-  // spaceship operator
-  auto operator<=>(const vec2i&) const = default;
-};
 
 // astar pathfinding
 

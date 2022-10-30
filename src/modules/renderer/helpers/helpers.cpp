@@ -38,6 +38,7 @@ game2d::render_texture_to_imgui_viewport(const int64_t& tex_unit)
 
   // Dockspace
   ImGuiIO& io = ImGui::GetIO();
+
   if (io.ConfigFlags & ImGuiConfigFlags_DockingEnable) {
     ImGuiID dockspace_id = ImGui::GetID("RootDockSpace");
 
@@ -48,17 +49,20 @@ game2d::render_texture_to_imgui_viewport(const int64_t& tex_unit)
       ImGui::DockBuilderSetNodeSize(dockspace_id, vps);
 
       ImGuiID dock_id_main = dockspace_id;
-      ImGuiID dock_id_top = ImGui::DockBuilderSplitNode(dock_id_main, ImGuiDir_Up, 0.15f, nullptr, &dock_id_main);
-      ImGuiID dock_id_down = ImGui::DockBuilderSplitNode(dock_id_main, ImGuiDir_Down, 0.15f, nullptr, &dock_id_main);
+      // ImGuiID dock_id_down = ImGui::DockBuilderSplitNode(dock_id_main, ImGuiDir_Down, 0.15f, nullptr, &dock_id_main);
       ImGuiID dock_id_left = ImGui::DockBuilderSplitNode(dock_id_main, ImGuiDir_Left, 0.15f, nullptr, &dock_id_main);
       ImGuiID dock_id_right = ImGui::DockBuilderSplitNode(dock_id_main, ImGuiDir_Right, 0.15f, nullptr, &dock_id_main);
+      ImGuiID dock_id_right_bottom =
+        ImGui::DockBuilderSplitNode(dock_id_right, ImGuiDir_Down, 0.5f, nullptr, &dock_id_right);
+      ImGuiID dock_id_top = ImGui::DockBuilderSplitNode(dock_id_main, ImGuiDir_Up, 0.15f, nullptr, &dock_id_main);
 
       // TODO: improve this
       ImGui::DockBuilderDockWindow("Viewport", dock_id_main);
-      ImGui::DockBuilderDockWindow("Game Events", dock_id_top);
       ImGui::DockBuilderDockWindow("Profiler", dock_id_left);
       // ImGui::DockBuilderDockWindow("Hierarchy", dock_id_left);
-      // ImGui::DockBuilderDockWindow("Properties", dock_id_right);
+      ImGui::DockBuilderDockWindow("Player UI", dock_id_right);
+      ImGui::DockBuilderDockWindow("Player(s) UI", dock_id_right_bottom);
+      ImGui::DockBuilderDockWindow("Game Events", dock_id_top);
       // ImGui::DockBuilderDockWindow("Physics", dock_id_right);
 
       ImGui::DockBuilderFinish(dock_id_main);

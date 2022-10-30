@@ -8,6 +8,6 @@
 namespace game2d {
 
 void
-simulate(GameEditor& editor, Game& game, const std::vector<InputEvent>& inputs, uint64_t milliseconds_dt);
+simulate(GameEditor& editor, Game& game, const std::vector<InputEvent>& inputs, uint64_t milliseconds_dt, uint32_t& dungeon_seed);
 
 } // namespace game2d

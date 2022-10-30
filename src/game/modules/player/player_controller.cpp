@@ -1,15 +1,20 @@
 #include "player_controller.hpp"
 
 #include "components.hpp"
+#include "engine/maths/grid.hpp"
 #include "engine/maths/maths.hpp"
 #include "game/components/actors.hpp"
+#include "game/modules/ai/components.hpp"
+#include "game/modules/ai/helpers.hpp"
 #include "game/modules/player/components.hpp"
 #include "modules/entt/helpers.hpp"
 #include "modules/events/components.hpp"
 #include "modules/events/helpers/mouse.hpp"
 #include "modules/physics/components.hpp"
 
+#include <SDL2/SDL_keyboard.h>
 #include <SDL2/SDL_mouse.h>
+#include <glm/glm.hpp>
 
 void
 game2d::update_player_controller_system(GameEditor& editor,
@@ -18,17 +23,25 @@ game2d::update_player_controller_system(GameEditor& editor,
                                         const uint64_t& milliseconds_dt)
 {
   auto& r = game.state;
-  const glm::ivec2 mouse_position = mouse_position_in_worldspace(editor, game);
+  const auto& colours = editor.colours;
+  const int GRID_SIZE = 16;
+  const auto offset = glm::ivec2(GRID_SIZE / 2, GRID_SIZE / 2);
+  const auto mouse_position = mouse_position_in_worldspace(editor, game) + offset;
+  const auto mouse_grid = engine::grid::world_space_to_grid_space(mouse_position, GRID_SIZE);
+  const auto dungeon = r.view<Dungeon>().front();
+  const auto& d = r.get<Dungeon>(dungeon);
+  const auto& group = r.group<GridComponent, PathfindableComponent>();
+
+  // static bool ctrl_held = std::find_if(inputs.begin(), inputs.end(), [](const InputEvent& e){
+  //   return e.type == InputType::keyboard && e.key == SDL_SCANCODE_LCTRL && e.state == InputState::held;
+  // } ) != inputs.end();
+  // std::cout << "ctrl_held" << ctrl_held << "\n";
 
   //
   // player movement
   //
-
   const auto& view = r.view<PlayerComponent, TransformComponent, GridMoveComponent>();
-  view.each([&r, &inputs, &mouse_position, &editor, &game, &milliseconds_dt](
-              entt::entity entity, PlayerComponent& player, TransformComponent& transform, GridMoveComponent& grid) {
-    //
-
+  for (auto [entity, player, transform, grid_move] : view.each()) {
     int dx = 0;
     int dy = 0;
 
@@ -44,12 +57,37 @@ game2d::update_player_controller_system(GameEditor& editor,
           if (input.key == player.D && (input.state == InputState::held || input.state == InputState::press))
             dx = 1;
 
+          FollowPathComponent* potential_path = r.try_get<FollowPathComponent>(entity);
+          // let keyboard overwrite path
+          if ((dx != 0 || dy) != 0 && potential_path)
+            r.remove<FollowPathComponent>(entity);
+
           break;
         }
         case InputType::mouse: {
           if (input.key == SDL_BUTTON_LEFT && input.state == InputState::press) {
 
-            // pathfind to location!
+            // player position
+            const auto player_grid =
+              engine::grid::world_space_to_grid_space({ transform.position.x, transform.position.y }, GRID_SIZE);
+            vec2i from = { glm::clamp(player_grid.x, 0, d.width - 1), glm::clamp(player_grid.y, 0, d.height - 1) };
+
+            // mouse position
+            vec2i to = { glm::clamp(mouse_grid.x, 0, d.width - 1), glm::clamp(mouse_grid.y, 0, d.height - 1) };
+            std::cout << "pathfinding player to..." << to.x << " " << to.y << "\n";
+
+            // pathfind to location
+            const auto path = astar(r, from, to);
+
+            // Set new destination
+            FollowPathComponent* potential_path = r.try_get<FollowPathComponent>(entity);
+            if (potential_path) {
+              potential_path->calculated_path.clear();
+              potential_path->calculated_path = path;
+            } else {
+              FollowPathComponent& new_path = r.emplace<FollowPathComponent>(entity);
+              new_path.calculated_path = path;
+            }
 
             // bool do_fire = false;
             // if (!do_fire)
@@ -77,9 +115,6 @@ game2d::update_player_controller_system(GameEditor& editor,
             // gs.attacks.push_back(a);
           };
 
-          if (input.key == SDL_BUTTON_RIGHT) {
-          };
-
           break;
         }
         case InputType::controller: {
@@ -96,13 +131,40 @@ game2d::update_player_controller_system(GameEditor& editor,
     //   player.milliseconds_move_cooldown = k_milliseconds_move_cooldown;
 
     // do the move
-    grid.x += 16 * dx;
-    grid.y += 16 * dy;
+    if (auto* path = r.try_get<FollowPathComponent>(entity)) {
+      if (!path)
+        continue;
+
+      path->k_milliseconds_between_path_updates_left -= milliseconds_dt;
+
+      bool do_action = false;
+      if (path->k_milliseconds_between_path_updates_left <= 0) {
+        path->k_milliseconds_between_path_updates_left += k_milliseconds_between_ai_updates;
+        do_action = true;
+      }
+
+      if (!do_action)
+        continue;
+
+      if (path->calculated_path.size() > 0) {
+        const auto& from = path->calculated_path[0]; // path[0] is current
+        const auto& to = path->calculated_path[1];
+        int dx = to.x - from.x;
+        int dy = to.y - from.y;
+        grid_move.x += 16 * dx;
+        grid_move.y += 16 * dy;
+        path->calculated_path.erase(path->calculated_path.begin());
+      }
+
+    } else {
+      grid_move.x += 16 * dx;
+      grid_move.y += 16 * dy;
+    }
 
     // gameplay: update player's line position
     // note: this probably doesn't belong here
     // const glm::ivec2& pos_player = transform.position;
     // const glm::ivec2 pos_mouse = mouse_position;
     // set_line(r, player.aim_line, pos_player, pos_mouse);
-  });
+  };
 }

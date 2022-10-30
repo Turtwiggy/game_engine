@@ -16,6 +16,8 @@ namespace game2d {
 void
 update_tile_fov_system(GameEditor& editor, Game& game)
 {
+  const int FOV_DST = 8;
+
   const auto& colours = editor.colours;
   auto& r = game.state;
 
@@ -30,7 +32,7 @@ update_tile_fov_system(GameEditor& editor, Game& game)
   const int GRID_SIZE = 16;
 
   const auto& view_transforms = r.view<const TransformComponent, const FovComponent>();
-  view_transforms.each([&r, &player_grid_pos, &player_entity](auto e, const auto& t, const auto& fov) {
+  view_transforms.each([&r, &player_grid_pos, &player_entity, &FOV_DST](auto e, const auto& t, const auto& fov) {
     // skip self
     if (e == player_entity)
       return;
@@ -38,9 +40,7 @@ update_tile_fov_system(GameEditor& editor, Game& game)
     const auto grid = engine::grid::world_space_to_grid_space({ t.position.x, t.position.y }, GRID_SIZE);
     const int distance_x = glm::abs(grid.x - player_grid_pos.x);
     const int distance_y = glm::abs(grid.y - player_grid_pos.y);
-    const int dst = 4;
-    // const int dst = 10; // debug to see whole map
-    const bool within_distance = distance_x < dst && distance_y < dst;
+    const bool within_distance = distance_x < FOV_DST && distance_y < FOV_DST;
 
     // If it's within the distance, make it visible
     if (within_distance) {

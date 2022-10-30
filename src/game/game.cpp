@@ -8,6 +8,7 @@
 #include "engine/maths/grid.hpp"
 
 #include "game/components/actors.hpp"
+#include "game/modules/dungeon/helpers.hpp"
 #include "game/modules/dungeon/system.hpp"
 #include "game/modules/items/components.hpp"
 #include "game/modules/resolve_collisions/system.hpp"
@@ -44,6 +45,8 @@
 #include <vector>
 
 namespace game2d {
+
+static uint32_t dungeon_seed = 1;
 
 Game
 init_game_state(GameEditor& editor)
@@ -94,14 +97,9 @@ init_game_state(GameEditor& editor)
     // equip.requests.push_back({ EquipmentSlot::right_hand, shield });
   }
 
-  int seed = 0;
-  Dungeon d;
-  game.ui_events.events.push_back("You are on floor: 0");
-  generate_dungeon(editor, game, d, seed);
-  entt::entity e = r.create();
-  r.emplace<EntityTypeComponent>(e, EntityType::empty);
-  r.emplace<TagComponent>(e, "dungeon");
-  r.emplace<Dungeon>(e, d);
+  Dungeon d; // set dungeon specs
+  game.ui_events.events.push_back("New dungeon. Floor: 0");
+  entt::entity dungeon = generate_dungeon(editor, game, d, dungeon_seed);
 
   // camera
   auto c = create_gameplay(editor, game, EntityType::camera);
@@ -147,16 +145,17 @@ fixed_update(GameEditor& editor, Game& game, uint64_t milliseconds_dt)
       fixed_input.history[fixed_input.fixed_tick] = std::move(input.unprocessed_inputs);
       std::vector<InputEvent>& inputs = fixed_input.history[fixed_input.fixed_tick];
 
-      simulate(editor, game, inputs, milliseconds_dt);
-      fixed_input.fixed_tick += 1;
-
       // reset game
       for (const InputEvent& i : inputs) {
         if (i.type == InputType::keyboard && i.key == static_cast<uint32_t>(SDL_SCANCODE_R) &&
             i.state == InputState::press) {
+          dungeon_seed = 1; // global state
           game = init_game_state(editor);
         }
       }
+
+      simulate(editor, game, inputs, milliseconds_dt, dungeon_seed);
+      fixed_input.fixed_tick += 1;
     }
 
     // update_networking_system(r, milliseconds_dt);

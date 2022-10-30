@@ -1,9 +1,9 @@
 #pragma once
 
+#include "components.hpp"
 #include "engine/maths/maths.hpp"
 #include "game/components/actors.hpp"
 #include "game/components/app.hpp"
-#include "game/modules/dungeon/components.hpp"
 
 #include <entt/entt.hpp>
 #include <glm/glm.hpp>
@@ -51,5 +51,13 @@ set_generated_entity_positions(GameEditor& editor,
                                std::vector<Room>& rooms,
                                const int floor,
                                engine::RandomState& rnd);
+
+// generate functions
+
+entt::entity
+generate_dungeon(GameEditor& editor, Game& game, const Dungeon& d, const uint32_t seed);
+
+entt::entity
+generate_dungeon_transfer_old_state(GameEditor& editor, Game& game, uint32_t& seed);
 
 } // namespace game2d
