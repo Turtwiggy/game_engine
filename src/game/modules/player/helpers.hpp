@@ -14,9 +14,9 @@ std::pair<int, int>
 next_dir_along_path(const std::vector<vec2i>& path);
 
 void
-pathfind_unit_to_mouse_position(GameEditor& editor, Game& game, const entt::entity& e);
+pathfind_unit_to_mouse_position(GameEditor& editor, Game& game, const entt::entity& unit);
 
 void
-shoot(GameEditor& editor, Game& game, const entt::entity& e);
+shoot(GameEditor& editor, Game& game, const entt::entity& player);
 
 } // namespace game2d

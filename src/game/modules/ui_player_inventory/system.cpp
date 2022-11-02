@@ -3,7 +3,6 @@
 #include "game/components/actors.hpp"
 #include "game/components/events.hpp"
 #include "game/helpers/check_equipment.hpp"
-#include "game/helpers/distance.hpp"
 #include "game/modules/combat/components.hpp"
 #include "game/modules/items/components.hpp"
 #include "game/modules/player/components.hpp"
@@ -119,7 +118,7 @@ game2d::update_ui_player_inventory_system(GameEditor& editor, Game& game)
         EquipmentSlot slot = magic_enum::enum_value<EquipmentSlot>(i);
         entt::entity equipped = has_equipped(game, entity_player, slot);
 
-        std::string type_str = "fists";
+        std::string type_str = "hand";
         if (equipped != entt::null) {
           // const auto& info = r.get<const IsEquipped>(equipped);
           const auto& type = r.get<const EntityTypeComponent>(equipped);
@@ -128,6 +127,16 @@ game2d::update_ui_player_inventory_system(GameEditor& editor, Game& game)
 
         const std::string slot_str = std::string(magic_enum::enum_name(slot));
         ImGui::Text("(%s) %s", slot_str.c_str(), type_str.c_str());
+
+        // able to unequip item?
+        if (equipped != entt::null) {
+          ImGui::SameLine();
+          const std::string eid = std::to_string(static_cast<uint32_t>(equipped));
+          const std::string label = "Unequip##" + eid;
+          if (ImGui::Button(label.c_str())) {
+            // TODO: want to unequip?
+          }
+        }
       }
 
       const auto& equipped = r.view<const IsEquipped, const TagComponent, const EntityTypeComponent>();
@@ -150,45 +159,6 @@ game2d::update_ui_player_inventory_system(GameEditor& editor, Game& game)
 
       for (const auto& [tag, entity_items] : compacted_items) {
         const auto& entity_item = entity_items[0];
-        const auto& type = r.get<EntityTypeComponent>(entity_item);
-
-        std::string label_use = "Use##" + std::to_string(static_cast<uint32_t>(entity_item));
-        if (ImGui::Button(label_use.c_str())) {
-
-          // Limitation: use currently only supports:
-          // "potion",
-          // "scroll_damage_nearest"
-          // "scroll_damage_selected_on_grid"
-
-          // USE_TYPE: SELF
-          if (type.type == EntityType::potion) {
-            auto& u = r.get_or_emplace<WantsToUse>(entity_player);
-            Use info;
-            info.entity = entity_item;
-            info.targets = { entity_player };
-            u.items.push_back(info);
-          }
-
-          // USE_TYPE: NEAREST
-          if (type.type == EntityType::scroll_damage_nearest) {
-            entt::entity nearest = get_nearest_attackable(game, entity_player);
-            auto& u = r.get_or_emplace<WantsToUse>(entity_player);
-            Use info;
-            info.entity = entity_item;
-            if (nearest != entt::null)
-              info.targets = { nearest };
-            u.items.push_back(info);
-          }
-
-          // USE_TYPE: SELECT ENTITIES
-          if (type.type == EntityType::scroll_damage_selected_on_grid) {
-            auto& a = r.get_or_emplace<WantsToSelectUnitsForItem>(entity_player);
-            Use info;
-            info.entity = entity_item;
-            // info.targets; // unknown until user selects
-            a.items.push_back(info);
-          }
-        }
 
         // ImGui::SameLine();
         // std::string label_drop = "Drop##" + std::to_string(static_cast<uint32_t>(entity_item));
@@ -197,7 +167,6 @@ game2d::update_ui_player_inventory_system(GameEditor& editor, Game& game)
         //   u.items.push_back(entity_item);
         // }
 
-        ImGui::SameLine();
         std::string label_equip_l = "Equip(L)##" + std::to_string(static_cast<uint32_t>(entity_item));
         if (ImGui::Button(label_equip_l.c_str())) {
           auto& u = r.get_or_emplace<WantsToEquip>(entity_player);

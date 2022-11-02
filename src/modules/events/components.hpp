@@ -37,6 +37,8 @@ struct InputEvent
   // SDL_GameControllerButton button;
   // SDL_GameControllerAxis axis;
 
+  bool hovering_over_ui = false;
+
   // Note: not player, as no need to send that across the network
   NLOHMANN_DEFINE_TYPE_INTRUSIVE(InputEvent, type, state, key);
 };

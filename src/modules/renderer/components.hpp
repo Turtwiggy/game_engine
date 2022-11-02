@@ -53,7 +53,9 @@ struct SINGLETON_RendererInfo
   glm::ivec2 viewport_size_render_at = { 0, 0 };
   glm::ivec2 viewport_size_current = { 0, 0 };
   glm::ivec2 viewport_pos = { 0, 0 };
-  bool viewport_process_events = false;
+
+  bool viewport_hovered = false;
+  bool viewport_focused = false;
 };
 
 } // namespace game2d

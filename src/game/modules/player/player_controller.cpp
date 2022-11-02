@@ -2,7 +2,9 @@
 
 #include "components.hpp"
 #include "engine/maths/maths.hpp"
+#include "game/helpers/check_equipment.hpp"
 #include "game/modules/ai/components.hpp"
+#include "game/modules/items/helpers.hpp"
 #include "game/modules/player/components.hpp"
 #include "helpers.hpp"
 #include "modules/events/components.hpp"
@@ -56,11 +58,19 @@ game2d::update_player_controller_system(GameEditor& editor,
         }
 
         case InputType::mouse: {
-          if (input.key == SDL_BUTTON_LEFT && input.state == InputState::press)
-            pathfind_unit_to_mouse_position(editor, game, entity);
+          if (input.key == SDL_BUTTON_LEFT && input.state == InputState::press) {
+            // pathfind_unit_to_mouse_position(editor, game, entity);
+            entt::entity l_equipped = has_equipped(game, entity, EquipmentSlot::left_hand);
+            if (l_equipped != entt::null && !input.hovering_over_ui)
+              use_item(editor, game, entity, l_equipped);
+          }
 
-          if (input.key == SDL_BUTTON_RIGHT && input.state == InputState::press)
-            shoot(editor, game, entity);
+          if (input.key == SDL_BUTTON_RIGHT && input.state == InputState::press) {
+            // shoot(editor, game, entity);
+            entt::entity r_equipped = has_equipped(game, entity, EquipmentSlot::right_hand);
+            if (r_equipped != entt::null && !input.hovering_over_ui)
+              use_item(editor, game, entity, r_equipped);
+          }
 
           break;
         }

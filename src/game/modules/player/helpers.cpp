@@ -25,7 +25,7 @@ next_dir_along_path(const std::vector<vec2i>& path)
 }
 
 void
-pathfind_unit_to_mouse_position(GameEditor& editor, Game& game, const entt::entity& e)
+pathfind_unit_to_mouse_position(GameEditor& editor, Game& game, const entt::entity& unit)
 {
   auto& r = game.state;
   const int GRID_SIZE = 16;
@@ -35,7 +35,7 @@ pathfind_unit_to_mouse_position(GameEditor& editor, Game& game, const entt::enti
   const auto dungeon = r.view<Dungeon>().front();
   const auto& d = r.get<Dungeon>(dungeon);
   const auto& group = r.group<GridComponent, PathfindableComponent>();
-  auto& transform = r.get<TransformComponent>(e);
+  auto& transform = r.get<TransformComponent>(unit);
 
   // position
   const auto grid = engine::grid::world_space_to_grid_space({ transform.position.x, transform.position.y }, GRID_SIZE);
@@ -48,22 +48,22 @@ pathfind_unit_to_mouse_position(GameEditor& editor, Game& game, const entt::enti
   const auto path = astar(r, from, to);
 
   // Set new destination
-  FollowPathComponent* potential_path = r.try_get<FollowPathComponent>(e);
+  FollowPathComponent* potential_path = r.try_get<FollowPathComponent>(unit);
   if (potential_path) {
     potential_path->calculated_path.clear();
     potential_path->calculated_path = path;
   } else {
-    FollowPathComponent& new_path = r.emplace<FollowPathComponent>(e);
+    FollowPathComponent& new_path = r.emplace<FollowPathComponent>(unit);
     new_path.calculated_path = path;
   }
 };
 
 void
-shoot(GameEditor& editor, Game& game, const entt::entity& e)
+shoot(GameEditor& editor, Game& game, const entt::entity& player)
 {
   auto& r = game.state;
   const auto mouse_position = mouse_position_in_worldspace(editor, game);
-  auto& transform = r.get<TransformComponent>(e);
+  auto& transform = r.get<TransformComponent>(player);
 
   const float bullet_speed = 50.0f;
   entt::entity bullet = create_gameplay(editor, game, EntityType::bolt);

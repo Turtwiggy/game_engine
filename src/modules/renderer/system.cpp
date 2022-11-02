@@ -242,7 +242,8 @@ game2d::update_render_system(GameEditor& editor, Game& game)
   // (or if a user is moving the viewport, they likely dont need that one frame?)
   ri.viewport_pos = glm::vec2(vi.pos.x, vi.pos.y);
   ri.viewport_size_current = { vi.size.x, vi.size.y };
-  ri.viewport_process_events = vi.hovered || (vi.focused);
+  ri.viewport_hovered = vi.hovered;
+  ri.viewport_focused = vi.focused;
 };
 
 void

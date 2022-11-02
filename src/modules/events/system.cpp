@@ -76,29 +76,53 @@ game2d::update_input_system(engine::SINGLETON_Application& app, const GameEditor
 
   }; // finished polling events
 
+  const auto& ri = editor.renderer;
+  InputEvent ie;
+  ie.hovering_over_ui = !ri.viewport_hovered;
+
+  ie.type = InputType::keyboard;
+
   //
   // capture inputs incase FixedUpdate() wants to know about them
   //
   for (const SDL_Event& evt : input.sdl_events) {
     if (evt.type == SDL_KEYDOWN && get_key_down(input, evt.key.keysym.scancode)) {
-      InputEvent ie{ InputType::keyboard, InputState::press, static_cast<uint32_t>(evt.key.keysym.scancode) };
+      ie.key = static_cast<uint32_t>(evt.key.keysym.scancode);
+      ie.state = InputState::press;
       input.unprocessed_inputs.push_back(ie);
     }
     if (evt.type == SDL_KEYUP && get_key_up(input, evt.key.keysym.scancode)) {
-      InputEvent ie{ InputType::keyboard, InputState::release, static_cast<uint32_t>(evt.key.keysym.scancode) };
+      ie.key = static_cast<uint32_t>(evt.key.keysym.scancode);
+      ie.state = InputState::release;
       input.unprocessed_inputs.push_back(ie);
     }
     if (evt.type == SDL_KEYDOWN && get_key_held(input, evt.key.keysym.scancode)) {
-      InputEvent ie{ InputType::keyboard, InputState::held, static_cast<uint32_t>(evt.key.keysym.scancode) };
+      ie.key = static_cast<uint32_t>(evt.key.keysym.scancode);
+      ie.state = InputState::held;
       input.unprocessed_inputs.push_back(ie);
     }
   }
-  if (get_mouse_lmb_press())
-    input.unprocessed_inputs.push_back({ InputType::mouse, InputState::press, SDL_BUTTON_LEFT });
-  if (get_mouse_lmb_release())
-    input.unprocessed_inputs.push_back({ InputType::mouse, InputState::release, SDL_BUTTON_LEFT });
-  if (get_mouse_rmb_press())
-    input.unprocessed_inputs.push_back({ InputType::mouse, InputState::press, SDL_BUTTON_RIGHT });
-  if (get_mouse_rmb_release())
-    input.unprocessed_inputs.push_back({ InputType::mouse, InputState::release, SDL_BUTTON_RIGHT });
+
+  ie.type = InputType::mouse;
+
+  if (get_mouse_lmb_press()) {
+    ie.key = SDL_BUTTON_LEFT;
+    ie.state = InputState::press;
+    input.unprocessed_inputs.push_back(ie);
+  }
+  if (get_mouse_lmb_release()) {
+    ie.key = SDL_BUTTON_LEFT;
+    ie.state = InputState::release;
+    input.unprocessed_inputs.push_back(ie);
+  }
+  if (get_mouse_rmb_press()) {
+    ie.key = SDL_BUTTON_RIGHT;
+    ie.state = InputState::press;
+    input.unprocessed_inputs.push_back(ie);
+  }
+  if (get_mouse_rmb_release()) {
+    ie.key = SDL_BUTTON_RIGHT;
+    ie.state = InputState::release;
+    input.unprocessed_inputs.push_back(ie);
+  }
 };

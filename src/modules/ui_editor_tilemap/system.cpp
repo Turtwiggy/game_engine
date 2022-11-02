@@ -124,8 +124,8 @@ game2d::update_ui_editor_tilemap_system(GameEditor& editor, Game& game)
   //
   {
     const auto& ri = editor.renderer;
-    if (!ri.viewport_process_events)
-      return; // dont place sprites if selecting ui
+    if (ri.viewport_hovered)
+      return;
 
     bool place_mode = get_mouse_rmb_held();
     bool delete_mode = get_mouse_mmb_held();
