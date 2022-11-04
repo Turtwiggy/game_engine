@@ -23,6 +23,11 @@ struct AbleToBePickedUp
   bool placeholder = true;
 };
 
+struct ThrowableComponent
+{
+  bool placeholder = true;
+};
+
 struct InBackpackComponent
 {
   entt::entity parent = entt::null;
@@ -124,5 +129,16 @@ struct WantsToEquip
 {
   std::vector<EquipmentRequest> requests;
 };
+
+//
+// Types of usable components
+//
+
+// enum class UseType
+// {
+//   SELF,
+//   NEAREST,
+//   USE_ON_SELECTED,
+// };
 
 } // namespace game2d

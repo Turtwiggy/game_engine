@@ -75,16 +75,7 @@ astar(entt::registry& registry, const vec2i& from, const vec2i& to)
   cost_so_far[from] = 0;
 
   // read-only view of the grid
-  const auto& group = registry.group<GridComponent, PathfindableComponent>();
-
-  if (group.empty())
-    return {};
-
-  group.sort<GridComponent>([&x_max](const auto& a, const auto& b) {
-    int index_a = x_max * a.y + a.x;
-    int index_b = x_max * b.y + b.x;
-    return index_a < index_b;
-  });
+  const auto& group = dungeon.walls_and_floors;
 
   while (frontier.size() > 0) {
     vec2i current = frontier.dequeue();
@@ -97,9 +88,9 @@ astar(entt::registry& registry, const vec2i& from, const vec2i& to)
 
     for (const auto& neighbour_idx : results) {
       const auto& entity = group[neighbour_idx.second];
-      const auto [grid, path] = group.get<GridComponent, PathfindableComponent>(entity);
+      const PathfindableComponent& path = registry.get<PathfindableComponent>(entity.entity);
 
-      const vec2i neighbour = { grid.x, grid.y };
+      const vec2i neighbour = { entity.x, entity.y };
       const int neighbour_cost = path.cost;
       evaluate_neighbour<vec2i>(came_from, cost_so_far, frontier, current, neighbour, neighbour_cost, to);
     }

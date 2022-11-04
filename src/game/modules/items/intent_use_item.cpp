@@ -3,6 +3,7 @@
 #include "components.hpp"
 #include "game/components/actors.hpp"
 #include "game/modules/combat/components.hpp"
+#include "game/modules/player/helpers.hpp"
 #include "modules/renderer/components.hpp"
 
 #include <entt/entt.hpp>
@@ -20,7 +21,7 @@ update_intent_use_item_system(GameEditor& editor, Game& game)
   //
   // WantsToUse
   const auto& use_view = r.view<WantsToUse>();
-  use_view.each([&r, &eb](auto entity, WantsToUse& intent) {
+  use_view.each([&editor, &game, &r, &eb](auto user, WantsToUse& intent) {
     //
     for (const Use& item : intent.items) {
 
@@ -50,6 +51,12 @@ update_intent_use_item_system(GameEditor& editor, Game& game)
         }
       }
 
+      // Is the item throwable?
+      auto* throwable = r.try_get<ThrowableComponent>(item.entity);
+      if (throwable) {
+        shoot(editor, game, user);
+      }
+
       // Is the item consumable?
       auto* item_consumable = r.try_get<ConsumableComponent>(item.entity);
       if (item_consumable)
@@ -57,7 +64,7 @@ update_intent_use_item_system(GameEditor& editor, Game& game)
     }
 
     // Done processing all the items
-    r.remove<WantsToUse>(entity);
+    r.remove<WantsToUse>(user);
   });
 };
 

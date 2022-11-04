@@ -21,6 +21,26 @@
 namespace game2d {
 
 void
+init_ai_system(GameEditor& editor, Game& game, const Dungeon& d)
+{
+  auto& r = game.state;
+
+  for (const auto& tile : d.walls_and_floors) {
+    const auto& entity = tile.entity;
+    const auto& et = r.get<EntityTypeComponent>(entity);
+    PathfindableComponent path;
+    if (et.type == EntityType::tile_type_floor)
+      path.cost = 0;
+    else if (et.type == EntityType::tile_type_wall)
+      path.cost = -1; // impassable
+    else
+      path.cost = 1;
+
+    r.emplace<PathfindableComponent>(entity, path);
+  }
+}
+
+void
 update_ai_system(GameEditor& editor, Game& game, const uint64_t& milliseconds_dt)
 {
   auto& colours = editor.colours;

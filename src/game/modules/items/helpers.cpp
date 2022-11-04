@@ -29,6 +29,15 @@ game2d::use_item(GameEditor& editor, Game& game, const entt::entity& user, const
     u.items.push_back(info);
   }
 
+  // HMM: check if ranged component?
+  if (type.type == EntityType::bolt) {
+    auto& u = r.get_or_emplace<WantsToUse>(user);
+    Use info;
+    info.entity = item;
+    // info.targets = { }; // just throw it
+    u.items.push_back(info);
+  }
+
   // USE_TYPE: NEAREST
   if (type.type == EntityType::scroll_damage_nearest) {
     entt::entity nearest = get_nearest_attackable(game, user);

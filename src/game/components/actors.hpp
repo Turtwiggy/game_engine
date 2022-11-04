@@ -64,13 +64,13 @@ from_json(const json& j, EntityTypeComponent& et);
 
 entt::entity
 create_item(GameEditor& editor, Game& game, const EntityType& type, const entt::entity& parent);
-// void
-// create_item(entt::registry& r, const entt::entity& e, const EntityType& type, const entt::entity& parent);
 
 TransformComponent
 create_transform(entt::registry& r, const entt::entity& e);
+
 SpriteComponent
 create_sprite(GameEditor& editor, entt::registry& r, const entt::entity& e, const EntityType& type);
+
 SpriteColourComponent
 create_colour(GameEditor& editor, entt::registry& r, const entt::entity& e, const EntityType& type);
 
@@ -79,6 +79,7 @@ create_renderable(GameEditor& editor, entt::registry& r, const entt::entity& e, 
 
 entt::entity
 create_gameplay(GameEditor& editor, Game& game, const EntityType& type);
+
 void
 create_gameplay_existing_entity(GameEditor& editor, Game& game, const entt::entity& e, const EntityType& type);
 

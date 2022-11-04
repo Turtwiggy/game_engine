@@ -314,6 +314,7 @@ create_gameplay_existing_entity(GameEditor& editor, Game& g, const entt::entity&
       r.emplace<PhysicsActorComponent>(e);
       r.emplace<VelocityComponent>(e);
       r.emplace<AbleToBePickedUp>(e);
+      r.emplace<ThrowableComponent>(e);
       // gameplay
       // r.emplace<EntityTimedLifecycle>(e, 20000); // bullet time alive
       break;

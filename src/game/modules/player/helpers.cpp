@@ -34,28 +34,28 @@ pathfind_unit_to_mouse_position(GameEditor& editor, Game& game, const entt::enti
   const auto mouse_grid = engine::grid::world_space_to_grid_space(mouse_position, GRID_SIZE);
   const auto dungeon = r.view<Dungeon>().front();
   const auto& d = r.get<Dungeon>(dungeon);
-  const auto& group = r.group<GridComponent, PathfindableComponent>();
-  auto& transform = r.get<TransformComponent>(unit);
+  // const auto& group = r.group<GridComponent, PathfindableComponent>();
+  // auto& transform = r.get<TransformComponent>(unit);
 
-  // position
-  const auto grid = engine::grid::world_space_to_grid_space({ transform.position.x, transform.position.y }, GRID_SIZE);
-  vec2i from = { glm::clamp(grid.x, 0, d.width - 1), glm::clamp(grid.y, 0, d.height - 1) };
+  // // position
+  // const auto grid = engine::grid::world_space_to_grid_space({ transform.position.x, transform.position.y },
+  // GRID_SIZE); vec2i from = { glm::clamp(grid.x, 0, d.width - 1), glm::clamp(grid.y, 0, d.height - 1) };
 
-  // mouse position
-  vec2i to = { glm::clamp(mouse_grid.x, 0, d.width - 1), glm::clamp(mouse_grid.y, 0, d.height - 1) };
+  // // mouse position
+  // vec2i to = { glm::clamp(mouse_grid.x, 0, d.width - 1), glm::clamp(mouse_grid.y, 0, d.height - 1) };
 
-  // pathfind to location
-  const auto path = astar(r, from, to);
+  // // pathfind to location
+  // const auto path = astar(r, from, to);
 
-  // Set new destination
-  FollowPathComponent* potential_path = r.try_get<FollowPathComponent>(unit);
-  if (potential_path) {
-    potential_path->calculated_path.clear();
-    potential_path->calculated_path = path;
-  } else {
-    FollowPathComponent& new_path = r.emplace<FollowPathComponent>(unit);
-    new_path.calculated_path = path;
-  }
+  // // Set new destination
+  // FollowPathComponent* potential_path = r.try_get<FollowPathComponent>(unit);
+  // if (potential_path) {
+  //   potential_path->calculated_path.clear();
+  //   potential_path->calculated_path = path;
+  // } else {
+  //   FollowPathComponent& new_path = r.emplace<FollowPathComponent>(unit);
+  //   new_path.calculated_path = path;
+  // }
 };
 
 void

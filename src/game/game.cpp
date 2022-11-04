@@ -8,8 +8,10 @@
 #include "engine/maths/grid.hpp"
 
 #include "game/components/actors.hpp"
+#include "game/modules/ai/system.hpp"
 #include "game/modules/dungeon/helpers.hpp"
 #include "game/modules/dungeon/system.hpp"
+#include "game/modules/fov/system.hpp"
 #include "game/modules/items/components.hpp"
 #include "game/modules/resolve_collisions/system.hpp"
 #include "game/modules/ui_event_console/system.hpp"
@@ -17,7 +19,6 @@
 #include "game/modules/ui_player/system.hpp"
 #include "game/modules/ui_player_inventory/system.hpp"
 #include "game/simulate.hpp"
-// #include "modules/audio/system.hpp"
 #include "modules/camera/components.hpp"
 #include "modules/camera/helpers.hpp"
 #include "modules/camera/system.hpp"
@@ -95,9 +96,13 @@ init_game_state(GameEditor& editor)
     // equip.requests.push_back({ EquipmentSlot::right_hand, shield });
   }
 
-  Dungeon d; // set dungeon specs
   game.ui_events.events.push_back("New dungeon. Floor: 0");
-  entt::entity dungeon = generate_dungeon(editor, game, d, dungeon_seed);
+  generate_dungeon_transfer_old_state(editor, game, dungeon_seed);
+
+  const auto d = r.view<Dungeon>().front();
+  const auto& dungeon = r.get<Dungeon>(d);
+  init_ai_system(editor, game, dungeon);
+  init_tile_fov_system(editor, game);
 
   // camera
   auto c = create_gameplay(editor, game, EntityType::camera);

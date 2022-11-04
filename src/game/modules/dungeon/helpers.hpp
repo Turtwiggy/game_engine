@@ -13,51 +13,7 @@
 
 namespace game2d {
 
-entt::entity
-create_dungeon_entity(GameEditor& editor, Game& game, EntityType et, const glm::ivec2& grid_index);
-
-constexpr glm::ivec2
-room_center(const Room& r)
-{
-  return { (r.x1 + r.x2) / 2, (r.y1 + r.y2) / 2 };
-};
-
-bool
-rooms_overlap(const Room& r0, const Room& r1);
-
 void
-create_room(GameEditor& editor, Game& game, const Room& room);
-
-void
-create_tunnel_floor(GameEditor& editor, Game& game, const Dungeon& d, std::vector<std::pair<int, int>>& coords);
-
-// Create an L-shaped tunnel between two points
-void
-create_tunnel(GameEditor& editor, Game& game, const Dungeon& d, int x1, int y1, int x2, int y2);
-
-//
-// Gameplay logic below
-//
-
-void
-set_pathfinding_cost(GameEditor& editor, Game& game);
-
-void
-set_player_positions(GameEditor& editor, Game& game, std::vector<Room>& rooms, engine::RandomState& rnd);
-
-void
-set_generated_entity_positions(GameEditor& editor,
-                               Game& game,
-                               std::vector<Room>& rooms,
-                               const int floor,
-                               engine::RandomState& rnd);
-
-// generate functions
-
-entt::entity
-generate_dungeon(GameEditor& editor, Game& game, const Dungeon& d, const uint32_t seed);
-
-entt::entity
 generate_dungeon_transfer_old_state(GameEditor& editor, Game& game, uint32_t& seed);
 
 } // namespace game2d

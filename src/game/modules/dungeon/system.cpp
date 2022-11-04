@@ -24,12 +24,13 @@ update_dungeon_system(GameEditor& editor, Game& game, uint32_t& dungeon_seed)
   auto& r = game.state;
   auto existing_dungeon = get_first<Dungeon>(r);
   if (r.get<Dungeon>(existing_dungeon).floor == 7) {
-    game.ui_events.events.push_back("You win! Thanks for playing :)");
+    game.ui_events.events.push_back("You win! Thanks for playing.");
     game.gameover = true;
     return;
   }
 
-  entt::entity dungeon = generate_dungeon_transfer_old_state(editor, game, dungeon_seed);
+  printf("todo: generate new dungeon");
+  // entt::entity dungeon = generate_dungeon_transfer_old_state(editor, game, dungeon_seed);
 };
 
 } // namespace game2d
