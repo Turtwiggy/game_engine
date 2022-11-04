@@ -1,8 +1,10 @@
 #pragma once
 
 #include "game/components/app.hpp"
+#include "game/modules/dungeon/components.hpp"
 
 #include <entt/entt.hpp>
+#include <glm/glm.hpp>
 
 #include <vector>
 
@@ -28,7 +30,7 @@ struct Tile
 };
 
 void
-mark_visible(Game& game, const entt::entity& e);
+mark_visible(Game& game, const entt::entity& e, int x, int y);
 
 // is_symmetric checks if a given floor tile
 // can be seen symmetrically from the origin.
@@ -50,5 +52,8 @@ round_up(const float n);
 
 int
 round_down(const float n);
+
+void
+do_symmetric_shadowcasting(Game& game, const glm::ivec2 origin);
 
 } // namespace game2d
