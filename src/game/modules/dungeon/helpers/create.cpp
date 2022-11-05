@@ -2,8 +2,8 @@
 
 #include "engine/maths/grid.hpp"
 #include "game/helpers/line.hpp"
-#include "game/modules/fov/components.hpp"
 #include "game/modules/dungeon/helpers/rooms.hpp"
+#include "game/modules/fov/components.hpp"
 namespace game2d {
 
 const int GRID_SIZE = 16;

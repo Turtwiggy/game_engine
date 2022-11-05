@@ -36,6 +36,7 @@ void
 init_tile_fov_system(GameEditor& editor, Game& game)
 {
   auto& r = game.state;
+  const auto& colours = editor.colours;
   const auto d = r.view<Dungeon>().front();
   const auto& dungeon = r.get<Dungeon>(d);
 
@@ -43,10 +44,18 @@ init_tile_fov_system(GameEditor& editor, Game& game)
   const std::vector<StaticDungeonEntity>& group = dungeon.walls_and_floors;
 
   // hide all walls and floor
-  for (const auto& tile : group)
+  for (const auto& tile : group) {
+    EntityTypeComponent& et = r.get<EntityTypeComponent>(tile.entity);
+    if (tile.x == 0 || tile.x == dungeon.width - 1 || tile.y == 0 || tile.y == dungeon.height - 1) {
+      // Change colours of edge tiles
+      // auto& scc = r.get<SpriteColourComponent>(tile.entity);
+      // scc.colour = colours.lin_red;
+      continue;
+    }
     r.emplace_or_replace<NotVisibleComponent>(tile.entity);
+  }
   // hide all actors
-  for (const auto [entity, transform] : r.view<TransformComponent>().each())
+  for (const auto [entity, transform, actor] : r.view<TransformComponent, PhysicsActorComponent>().each())
     r.emplace_or_replace<NotVisibleComponent>(entity);
 }
 
@@ -87,9 +96,10 @@ update_tile_fov_system(GameEditor& editor, Game& game)
   {
     auto visible_no_hp_view = r.view<const VisibleComponent, SpriteColourComponent, const EntityTypeComponent>();
     visible_no_hp_view.each(
-      [&r, &colours](const VisibleComponent& v, SpriteColourComponent& scc, const EntityTypeComponent& et) {
-        //
-        scc.colour = colours.lin_red;
+      [&r, &colours, &editor](
+        auto entity, const VisibleComponent& v, SpriteColourComponent& scc, const EntityTypeComponent& et) {
+        const auto col = create_colour(editor, r, entity, et.type);
+        scc.colour = col.colour;
       });
   }
 

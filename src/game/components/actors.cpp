@@ -163,6 +163,8 @@ create_colour(GameEditor& editor, entt::registry& r, const entt::entity& e, cons
     srgb = colours.wall;
   else if (type == EntityType::tile_type_floor)
     srgb = colours.floor;
+  else if (type == EntityType::tile_type_exit)
+    srgb = colours.white;
   else if (type == EntityType::actor_orc)
     srgb = colours.asteroid;
   else if (type == EntityType::actor_troll)
