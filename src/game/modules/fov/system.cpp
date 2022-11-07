@@ -94,30 +94,50 @@ update_tile_fov_system(GameEditor& editor, Game& game)
 
   // visible
   {
-    auto visible_no_hp_view = r.view<const VisibleComponent, SpriteColourComponent, const EntityTypeComponent>();
-    visible_no_hp_view.each(
-      [&r, &colours, &editor](
-        auto entity, const VisibleComponent& v, SpriteColourComponent& scc, const EntityTypeComponent& et) {
-        const auto col = create_colour(editor, r, entity, et.type);
-        scc.colour = col.colour;
-      });
+    auto visible_no_hp_view =
+      r.view<const VisibleComponent, SpriteColourComponent, const EntityTypeComponent, SpriteComponent>();
+    visible_no_hp_view.each([&r, &colours, &editor](auto entity,
+                                                    const VisibleComponent& v,
+                                                    SpriteColourComponent& scc,
+                                                    const EntityTypeComponent& et,
+                                                    SpriteComponent& sprite) {
+      // set as defaults
+      const auto col = create_colour(editor, r, entity, et.type);
+      scc.colour = col.colour;
+      const SpriteComponent spr = create_sprite(editor, r, entity, et.type);
+      sprite.x = spr.x;
+      sprite.y = spr.y;
+    });
   }
 
   // not visible
   {
-    auto not_visible_view = r.view<const NotVisibleComponent, SpriteColourComponent>();
-    not_visible_view.each([&colours](const NotVisibleComponent& v, SpriteColourComponent& scc) {
-      //
-      scc.colour = colours.lin_black;
-    });
+    auto not_visible_view = r.view<const NotVisibleComponent, SpriteColourComponent, SpriteComponent>();
+    not_visible_view.each(
+      [&colours](const NotVisibleComponent& v, SpriteColourComponent& scc, SpriteComponent& sprite) {
+        // hidden
+        scc.colour = colours.lin_black;
+        sprite.x = 0;
+        sprite.y = 0;
+      });
   }
 
   // was visible
   {
-    auto was_visible_view = r.view<const NotVisibleButPreviouslySeenComponent, SpriteColourComponent>();
-    was_visible_view.each([&colours](const NotVisibleButPreviouslySeenComponent& v, SpriteColourComponent& scc) {
+    auto was_visible_view =
+      r.view<const NotVisibleButPreviouslySeenComponent, SpriteColourComponent, SpriteComponent>();
+    was_visible_view.each([&r, &colours](auto entity,
+                                         const NotVisibleButPreviouslySeenComponent& v,
+                                         SpriteColourComponent& scc,
+                                         SpriteComponent& sprite) {
       //
       scc.colour = colours.lin_feint_white;
+
+      // make it an obfuscated sprite?
+      if (auto* is_actor = r.try_get<PhysicsActorComponent>(entity)) {
+        sprite.x = 30;
+        sprite.y = 11;
+      };
     });
   }
 }

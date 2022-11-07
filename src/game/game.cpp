@@ -199,7 +199,7 @@ update(engine::SINGLETON_Application& app, GameEditor& editor, Game& game, float
       // update_ui_hierarchy_system(editor, game);
       update_ui_profiler_system(editor, game);
       // update_ui_editor_scene_system(editor, game);
-      // update_ui_editor_tilemap_system(editor, game);
+      update_ui_editor_tilemap_system(editor, game);
       update_ui_sprite_searcher_system(editor, game);
       // update_ui_networking_system(editor, game);
     }
