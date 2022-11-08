@@ -2,7 +2,6 @@
 
 #include "components.hpp"
 #include "game/components/app.hpp"
-#include "game/modules/dungeon/helpers.hpp"
 
 namespace game2d {
 

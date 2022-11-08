@@ -4,6 +4,7 @@
 #include "engine/maths/maths.hpp"
 #include "game/components/actors.hpp"
 #include "game/components/events.hpp"
+#include "game/modules/ai/helpers.hpp"
 #include "game/modules/combat/components.hpp"
 #include "game/modules/dungeon/helpers/create.hpp"
 #include "game/modules/dungeon/helpers/generate.hpp"
@@ -15,6 +16,7 @@
 #include "modules/ui_hierarchy/helpers.hpp"
 
 #include "magic_enum.hpp"
+#include <entt/entt.hpp>
 
 #include <vector>
 
@@ -93,6 +95,114 @@ set_generated_entity_positions(GameEditor& editor, Game& game, Dungeon& d, engin
 }
 
 void
+work_out_sprite_for_wall(Game& game, entt::entity& e, int x, int y, Dungeon& d)
+{
+  auto& r = game.state;
+
+  EntityTypeComponent& type = r.get<EntityTypeComponent>(e);
+  if (type.type != EntityType::tile_type_wall)
+    return; // only interested in walls;
+
+  std::vector<std::pair<GridDirection, int>> results;
+  get_neighbour_indicies(x, y, d.width, d.height, results);
+
+  int bit = 0;
+
+  for (int i = 0; i < results.size(); i++) {
+    int index = results[i].second;
+    StaticDungeonEntity se = d.walls_and_floors[index];
+    EntityTypeComponent e = r.get<EntityTypeComponent>(se.entity);
+    if (e.type == EntityType::tile_type_floor)
+      bit |= static_cast<int>(results[i].first);
+  }
+
+  SpriteComponent& sprite = r.get<SpriteComponent>(e);
+
+  // Marching squares time!
+  switch (bit) {
+
+      // triangles
+
+    case 0: {
+      sprite.x = 0;
+      sprite.y = 0;
+      break;
+    }
+    case 1: {
+      sprite.x = 1;
+      sprite.y = 1;
+      break;
+    }
+    case 2: {
+      sprite.x = 2;
+      sprite.y = 2;
+      break;
+    }
+    case 4: {
+      sprite.x = 4;
+      sprite.y = 4;
+      break;
+    }
+    case 8: {
+      sprite.x = 8;
+      sprite.y = 8;
+      break;
+    }
+
+      // quads
+
+    case 3: {
+      sprite.x = 3;
+      sprite.y = 3;
+      break;
+    }
+    case 5: {
+      sprite.x = 5;
+      sprite.y = 5;
+      break;
+    }
+    case 10: {
+      sprite.x = 10;
+      sprite.y = 10;
+      break;
+    }
+    case 12: {
+      sprite.x = 12;
+      sprite.y = 12;
+      break;
+    }
+    case 15: {
+      sprite.x = 15;
+      sprite.y = 15;
+      break;
+    }
+
+      // pentagons
+
+    case 7: {
+      sprite.x = 7;
+      sprite.y = 7;
+      break;
+    }
+    case 11: {
+      sprite.x = 11;
+      sprite.y = 11;
+      break;
+    }
+    case 13: {
+      sprite.x = 13;
+      sprite.y = 13;
+      break;
+    }
+    case 14: {
+      sprite.x = 14;
+      sprite.y = 14;
+      break;
+    }
+  }
+};
+
+void
 generate_dungeon(GameEditor& editor, Game& game, const int size_x, const int size_y, uint32_t seed)
 {
   const auto& colours = editor.colours;
@@ -117,6 +227,10 @@ generate_dungeon(GameEditor& editor, Game& game, const int size_x, const int siz
   Room& room = d.rooms[d.rooms.size() - 1];
   glm::ivec2 middle = room_center(room);
   create_dungeon_entity(editor, game, EntityType::tile_type_exit, middle);
+
+  // // update all wall sprites
+  // for (const StaticDungeonEntity& wall_or_floor : d.walls_and_floors) {
+  // }
 
   entt::entity e = r.create();
   r.emplace<EntityTypeComponent>(e, EntityType::empty);

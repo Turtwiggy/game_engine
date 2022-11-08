@@ -104,6 +104,8 @@ update_tile_fov_system(GameEditor& editor, Game& game)
       // set as defaults
       const auto col = create_colour(editor, r, entity, et.type);
       scc.colour = col.colour;
+
+      // replaces the sprite with the default sprite
       const SpriteComponent spr = create_sprite(editor, r, entity, et.type);
       sprite.x = spr.x;
       sprite.y = spr.y;
@@ -131,7 +133,7 @@ update_tile_fov_system(GameEditor& editor, Game& game)
                                          SpriteColourComponent& scc,
                                          SpriteComponent& sprite) {
       //
-      scc.colour = colours.lin_feint_white;
+      scc.colour = colours.lin_grey;
 
       // make it an obfuscated sprite?
       if (auto* is_actor = r.try_get<PhysicsActorComponent>(entity)) {

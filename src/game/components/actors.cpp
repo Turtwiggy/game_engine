@@ -160,25 +160,25 @@ create_colour(GameEditor& editor, entt::registry& r, const entt::entity& e, cons
   if (type == EntityType::empty)
     srgb = colours.white;
   else if (type == EntityType::tile_type_wall)
-    srgb = colours.wall;
+    srgb = colours.red;
   else if (type == EntityType::tile_type_floor)
-    srgb = colours.floor;
+    srgb = colours.feint_white;
   else if (type == EntityType::tile_type_exit)
     srgb = colours.white;
   else if (type == EntityType::actor_orc)
-    srgb = colours.asteroid;
+    srgb = colours.red;
   else if (type == EntityType::actor_troll)
-    srgb = colours.asteroid;
+    srgb = colours.red;
   else if (type == EntityType::actor_player)
-    srgb = colours.player_unit;
+    srgb = colours.white;
   else if (type == EntityType::bolt)
-    srgb = colours.bullet;
+    srgb = colours.lightyellow;
   else if (type == EntityType::crossbow)
-    srgb = colours.crossbow;
+    srgb = colours.red;
   else if (type == EntityType::sword)
-    srgb = colours.sword;
+    srgb = colours.red;
   else if (type == EntityType::shield)
-    srgb = colours.shield;
+    srgb = colours.red;
   else if (type == EntityType::potion)
     srgb = colours.red;
   else if (type == EntityType::scroll_damage_nearest)

@@ -157,8 +157,7 @@ game2d::update_render_system(GameEditor& editor, Game& game)
   auto& ri = editor.renderer;
   auto& registry = game.state;
 
-  const auto& background_colour = colours.background;
-  const auto background_colour_linear = engine::SRGBToLinear(background_colour);
+  const auto background_colour_linear = colours.lin_background;
   glm::ivec2 viewport_wh = ri.viewport_size_render_at;
 
   check_if_viewport_resize(editor, viewport_wh);
@@ -166,7 +165,7 @@ game2d::update_render_system(GameEditor& editor, Game& game)
   // FBO: Render sprites in to this fbo with linear colour
   Framebuffer::bind_fbo(ri.fbo_linear_main_scene);
   RenderCommand::set_viewport(0, 0, viewport_wh.x, viewport_wh.y);
-  RenderCommand::set_clear_colour_linear(engine::SRGBToLinear(background_colour));
+  RenderCommand::set_clear_colour_linear(background_colour_linear);
   RenderCommand::clear();
 
   // Do quad stuff
@@ -232,7 +231,7 @@ game2d::update_render_system(GameEditor& editor, Game& game)
   // default fbo
   Framebuffer::default_fbo();
   RenderCommand::set_viewport(0, 0, viewport_wh.x, viewport_wh.y);
-  RenderCommand::set_clear_colour_srgb(background_colour);
+  RenderCommand::set_clear_colour_srgb(colours.background);
   RenderCommand::clear();
 
   // Note: ImGui::Image takes in TexID not TexUnit

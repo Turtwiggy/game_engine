@@ -44,10 +44,10 @@ struct Dungeon
 
 enum class GridDirection : size_t
 {
-  north,
-  south,
-  east,
-  west,
+  north = 1,
+  south = 2,
+  east = 4,
+  west = 8,
 
   // allow diagonals?
   // north_east,
