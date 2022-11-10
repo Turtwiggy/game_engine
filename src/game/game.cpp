@@ -28,9 +28,11 @@
 #include "modules/renderer/system.hpp"
 #include "modules/sprites/system.hpp"
 #include "modules/ui_editor_bar/system.hpp"
+#include "modules/ui_editor_colour_palette/system.hpp"
 #include "modules/ui_editor_scene/system.hpp"
 #include "modules/ui_editor_tilemap/components.hpp"
 #include "modules/ui_editor_tilemap/system.hpp"
+#include "modules/ui_gameover/system.hpp"
 #include "modules/ui_hierarchy/helpers.hpp"
 #include "modules/ui_hierarchy/system.hpp"
 #include "modules/ui_profiler/helpers.hpp"
@@ -52,62 +54,8 @@ static uint32_t dungeon_seed = 1;
 Game
 init_game_state(GameEditor& editor)
 {
-  const auto& colours = editor.colours;
-
   Game game;
-  init_input_system(game);
-  game.ui_events.events.push_back("Welcome!");
-
-  {
-    auto& r = game.state;
-    create_hierarchy_root_node(r);
-  }
-
-  EntityType et = EntityType::actor_shopkeeper;
-  auto shopkeeper = create_gameplay(editor, game, et);
-  // create_renderable(editor, r, shopkeeper, et);
-
-  auto& r = game.state;
-  // stock up!
-  const auto& view = r.view<ShopKeeperComponent>();
-  view.each([&editor, &game](auto shop_entity, auto& shopkeeper) {
-    create_item(editor, game, EntityType::potion, shop_entity);
-    create_item(editor, game, EntityType::potion, shop_entity);
-    create_item(editor, game, EntityType::potion, shop_entity);
-    create_item(editor, game, EntityType::sword, shop_entity);
-    create_item(editor, game, EntityType::shield, shop_entity);
-    create_item(editor, game, EntityType::crossbow, shop_entity);
-    create_item(editor, game, EntityType::bolt, shop_entity);
-    create_item(editor, game, EntityType::scroll_damage_nearest, shop_entity);
-    create_item(editor, game, EntityType::scroll_damage_selected_on_grid, shop_entity);
-  });
-
-  // players
-  for (int i = 0; i < 1; i++) {
-    EntityType et = EntityType::actor_player;
-    entt::entity e = create_gameplay(editor, game, et);
-    create_renderable(editor, r, e, et);
-
-    // debug: give the player a sword
-    // entt::entity sword = create_item(editor, r, EntityType::sword, e);
-    // entt::entity shield = create_item(editor, r, EntityType::shield, e);
-    // WantsToEquip& equip = r.get_or_emplace<WantsToEquip>(e);
-    // equip.requests.push_back({ EquipmentSlot::left_hand, sword });
-    // equip.requests.push_back({ EquipmentSlot::right_hand, shield });
-  }
-
-  game.ui_events.events.push_back("New dungeon. Floor: 0");
-  generate_dungeon_transfer_old_state(editor, game, dungeon_seed);
-
-  const auto d = r.view<Dungeon>().front();
-  const auto& dungeon = r.get<Dungeon>(d);
-  init_ai_system(editor, game, dungeon);
-  init_tile_fov_system(editor, game);
-
-  // camera
-  auto c = create_gameplay(editor, game, EntityType::camera);
-  r.emplace<TransformComponent>(c);
-
+  transfer_old_state_generate_dungeon(editor, game, dungeon_seed);
   return game;
 };
 
@@ -149,13 +97,13 @@ fixed_update(GameEditor& editor, Game& game, uint64_t milliseconds_dt)
       std::vector<InputEvent>& inputs = fixed_input.history[fixed_input.fixed_tick];
 
       // reset game
-      for (const InputEvent& i : inputs) {
-        if (i.type == InputType::keyboard && i.key == static_cast<uint32_t>(SDL_SCANCODE_R) &&
-            i.state == InputState::press) {
-          dungeon_seed = 1; // global state
-          game = init_game_state(editor);
-        }
-      }
+      // for (const InputEvent& i : inputs) {
+      //   if (i.type == InputType::keyboard && i.key == static_cast<uint32_t>(SDL_SCANCODE_R) &&
+      //       i.state == InputState::press) {
+      //     dungeon_seed = 1; // global state
+      //     game = init_game_state(editor);
+      //   }
+      // }
 
       simulate(editor, game, inputs, milliseconds_dt, dungeon_seed);
       fixed_input.fixed_tick += 1;
@@ -191,15 +139,17 @@ update(engine::SINGLETON_Application& app, GameEditor& editor, Game& game, float
     update_ui_event_console(editor, game);
     update_ui_player_system(editor, game);
     update_ui_player_inventory_system(editor, game);
-    update_ui_main_menu_system(app, editor, game);
+    update_ui_main_menu_system(app, editor, game, dungeon_seed);
+    update_ui_gameover_system(editor, game, dungeon_seed);
 
-    static bool show_editor_ui = true;
+    static bool show_editor_ui = false;
     if (show_editor_ui) {
       // update_ui_editor_bar_system(editor, game);
       // update_ui_hierarchy_system(editor, game);
       update_ui_profiler_system(editor, game);
       // update_ui_editor_scene_system(editor, game);
       update_ui_editor_tilemap_system(editor, game);
+      update_ui_editor_colour_palette_system(editor, game);
       update_ui_sprite_searcher_system(editor, game);
       // update_ui_networking_system(editor, game);
     }

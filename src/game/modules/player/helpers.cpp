@@ -66,9 +66,11 @@ shoot(GameEditor& editor, Game& game, const entt::entity& player)
   auto& transform = r.get<TransformComponent>(player);
 
   const float bullet_speed = 50.0f;
-  entt::entity bullet = create_gameplay(editor, game, EntityType::bolt);
-  r.remove<AbleToBePickedUp>(bullet);
-  create_renderable(editor, r, bullet, EntityType::bolt);
+  entt::entity bullet = entt::null;
+
+  // entt::entity bullet = create_gameplay(editor, game, EntityType::bolt);
+  // r.remove<AbleToBePickedUp>(bullet);
+  // create_renderable(editor, r, bullet, EntityType::bolt);
 
   glm::vec2 dir = { mouse_position.x - transform.position.x, mouse_position.y - transform.position.y };
   if (dir.x != 0.0f && dir.y != 0.0f)

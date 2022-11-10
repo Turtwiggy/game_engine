@@ -30,13 +30,13 @@ game2d::use_item(GameEditor& editor, Game& game, const entt::entity& user, const
   }
 
   // HMM: check if ranged component?
-  if (type.type == EntityType::bolt) {
-    auto& u = r.get_or_emplace<WantsToUse>(user);
-    Use info;
-    info.entity = item;
-    // info.targets = { }; // just throw it
-    u.items.push_back(info);
-  }
+  // if (type.type == EntityType::bolt) {
+  //   auto& u = r.get_or_emplace<WantsToUse>(user);
+  //   Use info;
+  //   info.entity = item;
+  //   // info.targets = { }; // just throw it
+  //   u.items.push_back(info);
+  // }
 
   // USE_TYPE: NEAREST
   if (type.type == EntityType::scroll_damage_nearest) {
@@ -50,11 +50,11 @@ game2d::use_item(GameEditor& editor, Game& game, const entt::entity& user, const
   }
 
   // USE_TYPE: SELECT ENTITIES
-  if (type.type == EntityType::scroll_damage_selected_on_grid) {
-    auto& a = r.get_or_emplace<WantsToSelectUnitsForItem>(user);
-    Use info;
-    info.entity = item;
-    // info.targets; // unknown until user selects
-    a.items.push_back(info);
-  }
+  // if (type.type == EntityType::scroll_damage_selected_on_grid) {
+  //   auto& a = r.get_or_emplace<WantsToSelectUnitsForItem>(user);
+  //   Use info;
+  //   info.entity = item;
+  //   // info.targets; // unknown until user selects
+  //   a.items.push_back(info);
+  // }
 }

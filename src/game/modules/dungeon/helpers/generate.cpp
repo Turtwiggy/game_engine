@@ -10,12 +10,12 @@ generate_item(const int floor, engine::RandomState& rnd)
   const std::vector<std::pair<int, std::pair<EntityType, int>>> difficulty_map{
     // clang-format off
     { 0, { EntityType::potion, 80 } },
-    { 0, { EntityType::sword, 15 } },
-    { 0, { EntityType::shield, 15 } },
-    { 1, { EntityType::scroll_damage_nearest, 5 } },
-    { 1, { EntityType::scroll_damage_selected_on_grid, 5 } },
-    { 2, { EntityType::crossbow, 15 } },
-    { 2, { EntityType::bolt, 15 } },
+    { 1, { EntityType::sword, 15 } },
+    { 2, { EntityType::shield, 15 } },
+    { 3, { EntityType::scroll_damage_nearest, 5 } },
+    // { 1, { EntityType::scroll_damage_selected_on_grid, 5 } },
+    // { 2, { EntityType::crossbow, 15 } },
+    // { 2, { EntityType::bolt, 15 } },
     // clang-format on
   };
 

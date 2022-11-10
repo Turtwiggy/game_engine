@@ -97,4 +97,11 @@ get_neighbour_indicies(const int x,
                        const int y_max,
                        std::vector<std::pair<GridDirection, int>>& results);
 
+void
+get_neighbour_indicies_with_diagonals(const int x,
+                                              const int y,
+                                              const int x_max,
+                                              const int y_max,
+                                              std::vector<std::pair<GridDirection, int>>& results);
+
 } // namespace game2d

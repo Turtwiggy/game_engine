@@ -14,9 +14,6 @@
 namespace game2d {
 
 void
-generate_dungeon_transfer_old_state(GameEditor& editor, Game& game, uint32_t& seed);
-
-void
-work_out_sprite_for_wall();
+transfer_old_state_generate_dungeon(GameEditor& editor, Game& game, uint32_t& seed);
 
 } // namespace game2d

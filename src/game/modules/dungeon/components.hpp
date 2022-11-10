@@ -50,12 +50,10 @@ enum class GridDirection : size_t
   west = 8,
 
   // allow diagonals?
-  // north_east,
-  // south_east,
-  // south_west,
-  // north_west,
-
-  count,
+  north_east = north | east,
+  south_east = south | east,
+  north_west = north | west,
+  south_west = south | west,
 };
 
 } // namespace game2d

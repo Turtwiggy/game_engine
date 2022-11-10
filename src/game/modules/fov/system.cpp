@@ -3,34 +3,11 @@
 #include "components.hpp"
 #include "engine/maths/grid.hpp"
 #include "game/components/actors.hpp"
-#include "game/modules/ai/components.hpp"
-#include "game/modules/combat/components.hpp"
-#include "game/modules/dungeon/components.hpp"
-#include "game/modules/dungeon/helpers.hpp"
 #include "game/modules/fov/helpers.hpp"
+#include "game/modules/fov/helpers/symmetric_shadowcasting.hpp"
 #include "game/modules/player/components.hpp"
-#include "modules/renderer/components.hpp"
-#include "modules/sprites/components.hpp"
-#include "resources/colour.hpp"
-
-#include <glm/glm.hpp>
-
-#include <vector>
 
 namespace game2d {
-
-std::vector<entt::entity>
-grid_entities_at(Game& game, int x, int y)
-{
-  auto& r = game.state;
-  std::vector<entt::entity> results;
-  for (const auto [entity, transform] : r.view<const TransformComponent>().each()) {
-    glm::ivec2 point = engine::grid::world_space_to_grid_space({ transform.position.x, transform.position.y }, 16);
-    if (point.x == x && point.y == y)
-      results.push_back(entity);
-  }
-  return results;
-};
 
 void
 init_tile_fov_system(GameEditor& editor, Game& game)
@@ -48,23 +25,24 @@ init_tile_fov_system(GameEditor& editor, Game& game)
     EntityTypeComponent& et = r.get<EntityTypeComponent>(tile.entity);
     if (tile.x == 0 || tile.x == dungeon.width - 1 || tile.y == 0 || tile.y == dungeon.height - 1) {
       // Change colours of edge tiles
-      // auto& scc = r.get<SpriteColourComponent>(tile.entity);
-      // scc.colour = colours.lin_red;
+      auto& scc = r.get<SpriteColourComponent>(tile.entity);
+      scc.colour = colours.lin_tertiary; // not visible colour
       continue;
     }
     r.emplace_or_replace<NotVisibleComponent>(tile.entity);
   }
+
   // hide all actors
   for (const auto [entity, transform, actor] : r.view<TransformComponent, PhysicsActorComponent>().each())
     r.emplace_or_replace<NotVisibleComponent>(entity);
+
+  work_out_sprite_for_walls(game, dungeon);
 }
 
 void
 update_tile_fov_system(GameEditor& editor, Game& game)
 {
-  const auto& colours = editor.colours;
   auto& r = game.state;
-
   const auto player_view = r.view<PlayerComponent>();
   if (player_view.size() == 0)
     return;
@@ -81,67 +59,11 @@ update_tile_fov_system(GameEditor& editor, Game& game)
 
   do_symmetric_shadowcasting(game, origin);
 
-  // check if any actors are on a visible tile
-  for (const auto [entity, visible, transform] : r.view<const VisibleComponent, const TransformComponent>().each()) {
-    std::vector<entt::entity> actors = grid_entities_at(game, visible.grid_x, visible.grid_y);
-    for (const auto& actor : actors)
-      mark_visible(game, actor, visible.grid_x, visible.grid_y);
-  }
+  set_actors_on_visible_tiles_as_visible(game);
 
-  //
-  // set colours
-  //
-
-  // visible
-  {
-    auto visible_no_hp_view =
-      r.view<const VisibleComponent, SpriteColourComponent, const EntityTypeComponent, SpriteComponent>();
-    visible_no_hp_view.each([&r, &colours, &editor](auto entity,
-                                                    const VisibleComponent& v,
-                                                    SpriteColourComponent& scc,
-                                                    const EntityTypeComponent& et,
-                                                    SpriteComponent& sprite) {
-      // set as defaults
-      const auto col = create_colour(editor, r, entity, et.type);
-      scc.colour = col.colour;
-
-      // replaces the sprite with the default sprite
-      const SpriteComponent spr = create_sprite(editor, r, entity, et.type);
-      sprite.x = spr.x;
-      sprite.y = spr.y;
-    });
-  }
-
-  // not visible
-  {
-    auto not_visible_view = r.view<const NotVisibleComponent, SpriteColourComponent, SpriteComponent>();
-    not_visible_view.each(
-      [&colours](const NotVisibleComponent& v, SpriteColourComponent& scc, SpriteComponent& sprite) {
-        // hidden
-        scc.colour = colours.lin_black;
-        sprite.x = 0;
-        sprite.y = 0;
-      });
-  }
-
-  // was visible
-  {
-    auto was_visible_view =
-      r.view<const NotVisibleButPreviouslySeenComponent, SpriteColourComponent, SpriteComponent>();
-    was_visible_view.each([&r, &colours](auto entity,
-                                         const NotVisibleButPreviouslySeenComponent& v,
-                                         SpriteColourComponent& scc,
-                                         SpriteComponent& sprite) {
-      //
-      scc.colour = colours.lin_grey;
-
-      // make it an obfuscated sprite?
-      if (auto* is_actor = r.try_get<PhysicsActorComponent>(entity)) {
-        sprite.x = 30;
-        sprite.y = 11;
-      };
-    });
-  }
+  update_visible(editor, game);
+  update_hidden(editor, game);
+  update_was_visible(editor, game);
 }
 
 } // namespace game2d

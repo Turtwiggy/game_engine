@@ -1,6 +1,7 @@
 #include "take_damage.hpp"
 
 #include "components.hpp"
+#include "game/modules/player/components.hpp"
 
 #include <entt/entt.hpp>
 
@@ -53,6 +54,12 @@ update_take_damage_system(GameEditor& editor, Game& game)
 
       std::string dead_msg = tag.tag + " died.";
       game.ui_events.events.push_back(dead_msg);
+
+      auto* player = r.try_get<PlayerComponent>(entity);
+      if (player) {
+        game.ui_events.events.push_back("You died!");
+        game.gameover = true;
+      }
     }
 
     damages.damage.clear();

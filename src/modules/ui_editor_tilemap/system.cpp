@@ -124,7 +124,7 @@ game2d::update_ui_editor_tilemap_system(GameEditor& editor, Game& game)
   //
   {
     const auto& ri = editor.renderer;
-    if (ri.viewport_hovered)
+    if (!ri.viewport_hovered)
       return;
 
     bool place_mode = get_mouse_rmb_held();

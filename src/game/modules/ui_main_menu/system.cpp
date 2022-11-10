@@ -1,5 +1,6 @@
 #include "system.hpp"
 
+#include "game/modules/ui_gameover/helpers.hpp"
 #include "modules/events/helpers/keyboard.hpp"
 
 #include <imgui.h>
@@ -7,12 +8,16 @@
 namespace game2d {
 
 void
-update_ui_main_menu_system(engine::SINGLETON_Application& app, GameEditor& editor, Game& game)
+update_ui_main_menu_system(engine::SINGLETON_Application& app, GameEditor& editor, Game& game, uint32_t& seed)
 {
   auto& input = game.input;
 
   ImGuiWindowFlags flags = 0;
   flags |= ImGuiWindowFlags_NoFocusOnAppearing;
+  flags |= ImGuiDockNodeFlags_PassthruCentralNode;
+  flags |= ImGuiWindowFlags_NoCollapse;
+  flags |= ImGuiWindowFlags_NoResize;
+  flags |= ImGuiDockNodeFlags_NoResize;
 
   static bool open = false;
 
@@ -23,14 +28,44 @@ update_ui_main_menu_system(engine::SINGLETON_Application& app, GameEditor& edito
   game.paused = open;
 
   if (open) {
+    // auto& io = ImGui::GetIO();
+    // const auto& size = ImVec2(io.DisplaySize.x * 0.5f, io.DisplaySize.y * 0.5f);
+    // ImGui::SetNextWindowPos(size, ImGuiCond_FirstUseEver, ImVec2(0.5f, 0.5f));
+    // const auto& viewport = ImGui::GetWindowViewport();
+    // ImGui::SetNextWindowPos(viewport->GetCenter());
+    // ImGui::SetNextWindowSize(ImVec2{ 200, 200 });
+
     ImGui::Begin("Main Menu", &open, flags);
+
+    ImGui::Text("Menu FPS: %0.2f", ImGui::GetIO().Framerate);
 
     if (ImGui::Button("Resume"))
       open = false;
 
-    if (ImGui::Button("Toggle Fullscreen"))
+    static bool value = false;
+    if (ImGui::Checkbox("Fullscreen", &value))
       app.window.toggle_fullscreen();
-    ImGui::Text("Fullscreen currently: %i", app.window.get_fullscreen());
+
+    static bool borderless = false;
+    if (ImGui::Checkbox("Borderless", &borderless))
+      app.window.set_bordered(!borderless);
+
+    static bool vsync = app.vsync;
+    if (ImGui::Checkbox("VSync", &vsync))
+      app.window.set_bordered(!vsync);
+
+    const char* items[] = { "1600x900", "1920x1080", "2560x1440", "3840x2160" };
+    static int item_current = 0;
+    if (ImGui::Combo("##resolutions", &item_current, items, IM_ARRAYSIZE(items))) {
+      if (item_current == 0)
+        app.window.set_size({ 1600, 900 });
+      if (item_current == 1)
+        app.window.set_size({ 1920, 1080 });
+      if (item_current == 2)
+        app.window.set_size({ 2560, 1440 });
+      if (item_current == 3)
+        app.window.set_size({ 3840, 2160 });
+    }
 
     if (ImGui::Button("Quit"))
       app.running = false;

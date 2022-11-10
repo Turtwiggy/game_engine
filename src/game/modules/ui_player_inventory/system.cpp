@@ -7,7 +7,6 @@
 #include "game/modules/items/components.hpp"
 #include "game/modules/player/components.hpp"
 #include "modules/renderer/components.hpp"
-#include "modules/ux_hover/components.hpp"
 
 #include "magic_enum.hpp"
 #include <entt/entt.hpp>
@@ -27,183 +26,45 @@ game2d::update_ui_player_inventory_system(GameEditor& editor, Game& game)
   // Budget Shop
   //
 
-  ImGuiWindowFlags flags = 0;
-  flags |= ImGuiWindowFlags_NoFocusOnAppearing;
   static bool shop_open = false;
 
-  ImGui::SetNextWindowPos(ImVec2{ 100, 100 }, ImGuiCond_FirstUseEver);
-  ImGui::SetNextWindowSize(ImVec2{ 100, 100 }, ImGuiCond_FirstUseEver);
-  ImGui::Begin("(debug) Shop", &shop_open, flags);
-  {
-    const auto& shops = r.view<ShopKeeperComponent>();
-    const auto& items = r.view<InBackpackComponent, const TagComponent>();
+  if (shop_open) {
+    ImGui::SetNextWindowPos(ImVec2{ 100, 100 }, ImGuiCond_FirstUseEver);
+    ImGui::SetNextWindowSize(ImVec2{ 100, 100 }, ImGuiCond_FirstUseEver);
 
-    for (auto [entity_shopkeeper, shopkeeper] : shops.each()) {
-      for (auto [entity_item, backpack, tag] : items.each()) {
+    ImGuiWindowFlags flags = 0;
+    flags |= ImGuiWindowFlags_NoFocusOnAppearing;
+    flags |= ImGuiWindowFlags_NoMove;
+    flags |= ImGuiWindowFlags_NoTitleBar;
+    flags |= ImGuiWindowFlags_NoResize;
+    ImGui::Begin("(debug) Shop", &shop_open, flags);
+    {
+      const auto& shops = r.view<ShopKeeperComponent>();
+      const auto& items = r.view<InBackpackComponent, const TagComponent>();
 
-        if (backpack.parent != entity_shopkeeper)
-          continue; // not shopkeepers item
+      for (auto [entity_shopkeeper, shopkeeper] : shops.each()) {
+        for (auto [entity_item, backpack, tag] : items.each()) {
 
-        // Hack: buy for the first player at the moment
-        const auto& players = r.view<PlayerComponent>();
-        const auto& player0 = players.front();
+          if (backpack.parent != entity_shopkeeper)
+            continue; // not shopkeepers item
 
-        std::string label_buy = "Buy##" + std::to_string(static_cast<uint32_t>(entity_item));
+          // Hack: buy for the first player at the moment
+          const auto& players = r.view<PlayerComponent>();
+          const auto& player0 = players.front();
 
-        if (ImGui::Button(label_buy.c_str())) {
-          auto& purchase = r.get_or_emplace<WantsToPurchase>(player0);
-          purchase.items.push_back(entity_item);
-        }
-        ImGui::SameLine();
-        ImGui::Text("%s", tag.tag.c_str());
-      }
-    }
-  }
-  ImGui::End();
+          std::string label_buy = "Buy##" + std::to_string(static_cast<uint32_t>(entity_item));
 
-  //
-  // Budget Inventory Display
-  //
-  const auto& colours = editor.colours;
-
-  static bool player_ui_open = true;
-  ImGui::Begin("Player(s) UI", &player_ui_open, flags);
-  {
-    const auto& players = r.view<const PlayerComponent>();
-
-    for (auto [entity_player, player] : players.each()) {
-
-      // UI: selecting units for an item
-      if (auto* selecting = r.try_get<WantsToSelectUnitsForItem>(entity_player)) {
-        ImGui::Text("¬¬ Select Targets for Item ¬¬");
-
-        for (auto& item : selecting->items) {
-          ImGui::Text("Item: %s", r.get<TagComponent>(item.entity).tag.c_str());
-          for (const auto& target : item.targets)
-            ImGui::Text("Target: %s", r.get<TagComponent>(target).tag.c_str());
-
-          if (ImGui::Button("Clear Targets")) {
-            item.targets.clear();                    // item state
-            r.clear<CollidingWithCursorComponent>(); // coll state
+          if (ImGui::Button(label_buy.c_str())) {
+            auto& purchase = r.get_or_emplace<WantsToPurchase>(player0);
+            purchase.items.push_back(entity_item);
           }
-          ImGui::Separator();
-
-          std::string label_confirm = "Confirm Use##" + std::to_string(static_cast<uint32_t>(item.entity));
-          std::string label_cancel = "Cancel Use##" + std::to_string(static_cast<uint32_t>(item.entity));
-
-          // If confirm: apply item to targets
-          if (ImGui::Button(label_confirm.c_str())) {
-            {
-              auto& u = r.get_or_emplace<WantsToUse>(entity_player);
-              Use info;
-              info.entity = item.entity;
-              for (const auto& target : item.targets)
-                info.targets.push_back(target);
-              u.items.push_back(info);
-            }
-            r.remove<WantsToSelectUnitsForItem>(entity_player);
-          }
-          // If cancel: dont select any units
-          else if (ImGui::Button(label_cancel.c_str())) {
-            r.remove<WantsToSelectUnitsForItem>(entity_player);
-          }
-        }
-      }
-
-      // Inventory..!
-
-      ImGui::Text("¬¬ Equipped Items ¬¬");
-
-      for (int i = 0; i < magic_enum::enum_count<EquipmentSlot>(); i++) {
-        EquipmentSlot slot = magic_enum::enum_value<EquipmentSlot>(i);
-        entt::entity equipped = has_equipped(game, entity_player, slot);
-
-        std::string type_str = "hand";
-        if (equipped != entt::null) {
-          // const auto& info = r.get<const IsEquipped>(equipped);
-          const auto& type = r.get<const EntityTypeComponent>(equipped);
-          type_str = std::string(magic_enum::enum_name(type.type));
-        }
-
-        const std::string slot_str = std::string(magic_enum::enum_name(slot));
-        ImGui::Text("(%s) %s", slot_str.c_str(), type_str.c_str());
-
-        // able to unequip item?
-        if (equipped != entt::null) {
           ImGui::SameLine();
-          const std::string eid = std::to_string(static_cast<uint32_t>(equipped));
-          const std::string label = "Unequip##" + eid;
-          if (ImGui::Button(label.c_str())) {
-            // TODO: want to unequip?
-          }
+          ImGui::Text("%s", tag.tag.c_str());
         }
-      }
-
-      const auto& equipped = r.view<const IsEquipped, const TagComponent, const EntityTypeComponent>();
-      for (auto [entity, equipped, tag, type] : equipped.each()) {
-        if (equipped.parent != entity_player)
-          continue; // not my equipped
-      }
-
-      ImGui::Text("¬¬ Inventory ¬¬");
-
-      const auto& items = r.view<const InBackpackComponent, const TagComponent, const EntityTypeComponent>();
-
-      // Show like potion x1, potion x2 not potions individually
-      std::map<std::string, std::vector<entt::entity>> compacted_items;
-      for (auto [entity_item, backpack, tag, type] : items.each()) {
-        if (backpack.parent != entity_player)
-          continue; // not my item
-        compacted_items[tag.tag].push_back(entity_item);
-      }
-
-      for (const auto& [tag, entity_items] : compacted_items) {
-        const auto& entity_item = entity_items[0];
-
-        // ImGui::SameLine();
-        // std::string label_drop = "Drop##" + std::to_string(static_cast<uint32_t>(entity_item));
-        // if (ImGui::Button(label_drop.c_str())) {
-        //   auto& u = r.get_or_emplace<WantsToDrop>(entity_player);
-        //   u.items.push_back(entity_item);
-        // }
-
-        std::string label_equip_l = "Equip(L)##" + std::to_string(static_cast<uint32_t>(entity_item));
-        if (ImGui::Button(label_equip_l.c_str())) {
-          auto& u = r.get_or_emplace<WantsToEquip>(entity_player);
-          u.requests.push_back({ EquipmentSlot::left_hand, entity_item });
-        }
-        ImGui::SameLine();
-        std::string label_equip_r = "Equip(R)##" + std::to_string(static_cast<uint32_t>(entity_item));
-        if (ImGui::Button(label_equip_r.c_str())) {
-          auto& u = r.get_or_emplace<WantsToEquip>(entity_player);
-          u.requests.push_back({ EquipmentSlot::right_hand, entity_item });
-        }
-
-        // ImGui::SameLine();
-        // std::string label_sell = "Sell##" + std::to_string(static_cast<uint32_t>(entity_item));
-        // if (ImGui::Button(label_sell.c_str())) {
-        //   auto& u = r.get_or_emplace<WantsToEquip>(entity_player);
-        //   u.items.push_back(entity_item);
-        // }
-
-        // LABEL
-        ImGui::SameLine();
-        ImGui::Text("%s (x%i)", tag.c_str(), entity_items.size());
       }
     }
-
-    // DEBUG: highlight the nearest enemy
-    // entt::entity nearest = get_nearest_attackable(game, entity_player);
-    // if (nearest != entt::null) {
-    //   r.emplace_or_replace<SelectableComponent>(nearest, true);
-    //   SpriteColourComponent& sc = r.get<SpriteColourComponent>(nearest);
-    //   HoverComponent hc;
-    //   hc.regular_colour = engine::LinearToSRGB(sc.colour);
-    //   hc.hover_colour = colours.green;
-    //   r.emplace_or_replace<HoverComponent>(nearest, hc);
-    // }
+    ImGui::End();
   }
-  ImGui::End();
 }
 
 } // namespace game2d

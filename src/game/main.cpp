@@ -74,12 +74,14 @@ main(int argc, char* argv[])
   IM_UNUSED(argv);
 
   const auto start = std::chrono::high_resolution_clock::now();
-  app.window = GameWindow("Fighting Game", app.width, app.height, app.display, app.vsync);
+  app.window = GameWindow("Rogabit", app.width, app.height, app.display, app.vsync);
   app.imgui.initialize(app.window);
 
-  // bool hide_windows_console = false;
-  // if (hide_windows_console)
-  //   engine::hide_windows_console();
+#ifdef WIN32
+  bool hide_windows_console = false;
+  if (hide_windows_console)
+    engine::hide_windows_console();
+#endif
 
   game2d::init(app, editor, game);
   CHECK_OPENGL_ERROR(0);

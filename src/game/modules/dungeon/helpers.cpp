@@ -4,7 +4,6 @@
 #include "engine/maths/maths.hpp"
 #include "game/components/actors.hpp"
 #include "game/components/events.hpp"
-#include "game/modules/ai/helpers.hpp"
 #include "game/modules/combat/components.hpp"
 #include "game/modules/dungeon/helpers/create.hpp"
 #include "game/modules/dungeon/helpers/generate.hpp"
@@ -13,11 +12,18 @@
 #include "game/modules/player/components.hpp"
 #include "game/modules/rpg_xp/components.hpp"
 #include "modules/camera/components.hpp"
+#include "modules/events/system.hpp"
+
+// headers that probably shouldnt be in this file
+#include "game/modules/ai/components.hpp"
+#include "game/modules/ai/helpers.hpp"
+#include "game/modules/fov/system.hpp"
 #include "modules/ui_hierarchy/helpers.hpp"
 
 #include "magic_enum.hpp"
 #include <entt/entt.hpp>
 
+#include <string>
 #include <vector>
 
 namespace game2d {
@@ -95,114 +101,6 @@ set_generated_entity_positions(GameEditor& editor, Game& game, Dungeon& d, engin
 }
 
 void
-work_out_sprite_for_wall(Game& game, entt::entity& e, int x, int y, Dungeon& d)
-{
-  auto& r = game.state;
-
-  EntityTypeComponent& type = r.get<EntityTypeComponent>(e);
-  if (type.type != EntityType::tile_type_wall)
-    return; // only interested in walls;
-
-  std::vector<std::pair<GridDirection, int>> results;
-  get_neighbour_indicies(x, y, d.width, d.height, results);
-
-  int bit = 0;
-
-  for (int i = 0; i < results.size(); i++) {
-    int index = results[i].second;
-    StaticDungeonEntity se = d.walls_and_floors[index];
-    EntityTypeComponent e = r.get<EntityTypeComponent>(se.entity);
-    if (e.type == EntityType::tile_type_floor)
-      bit |= static_cast<int>(results[i].first);
-  }
-
-  SpriteComponent& sprite = r.get<SpriteComponent>(e);
-
-  // Marching squares time!
-  switch (bit) {
-
-      // triangles
-
-    case 0: {
-      sprite.x = 0;
-      sprite.y = 0;
-      break;
-    }
-    case 1: {
-      sprite.x = 1;
-      sprite.y = 1;
-      break;
-    }
-    case 2: {
-      sprite.x = 2;
-      sprite.y = 2;
-      break;
-    }
-    case 4: {
-      sprite.x = 4;
-      sprite.y = 4;
-      break;
-    }
-    case 8: {
-      sprite.x = 8;
-      sprite.y = 8;
-      break;
-    }
-
-      // quads
-
-    case 3: {
-      sprite.x = 3;
-      sprite.y = 3;
-      break;
-    }
-    case 5: {
-      sprite.x = 5;
-      sprite.y = 5;
-      break;
-    }
-    case 10: {
-      sprite.x = 10;
-      sprite.y = 10;
-      break;
-    }
-    case 12: {
-      sprite.x = 12;
-      sprite.y = 12;
-      break;
-    }
-    case 15: {
-      sprite.x = 15;
-      sprite.y = 15;
-      break;
-    }
-
-      // pentagons
-
-    case 7: {
-      sprite.x = 7;
-      sprite.y = 7;
-      break;
-    }
-    case 11: {
-      sprite.x = 11;
-      sprite.y = 11;
-      break;
-    }
-    case 13: {
-      sprite.x = 13;
-      sprite.y = 13;
-      break;
-    }
-    case 14: {
-      sprite.x = 14;
-      sprite.y = 14;
-      break;
-    }
-  }
-};
-
-void
 generate_dungeon(GameEditor& editor, Game& game, const int size_x, const int size_y, uint32_t seed)
 {
   const auto& colours = editor.colours;
@@ -211,6 +109,7 @@ generate_dungeon(GameEditor& editor, Game& game, const int size_x, const int siz
   Dungeon d;
   d.width = size_x;
   d.height = size_y;
+  d.floor = seed;
   d.walls_and_floors.resize(d.width * d.height);
 
   engine::RandomState rnd;
@@ -232,110 +131,131 @@ generate_dungeon(GameEditor& editor, Game& game, const int size_x, const int siz
   // for (const StaticDungeonEntity& wall_or_floor : d.walls_and_floors) {
   // }
 
+  // Set the cost for all of the tiles
+  for (const auto& tile : d.walls_and_floors) {
+    const auto& entity = tile.entity;
+    const auto& et = r.get<EntityTypeComponent>(entity);
+    PathfindableComponent path;
+    if (et.type == EntityType::tile_type_floor)
+      path.cost = 0;
+    else if (et.type == EntityType::tile_type_wall)
+      path.cost = -1; // impassable
+    else
+      path.cost = 1;
+    r.emplace<PathfindableComponent>(entity, path);
+  }
+
   entt::entity e = r.create();
   r.emplace<EntityTypeComponent>(e, EntityType::empty);
   r.emplace<TagComponent>(e, "dungeon");
   r.emplace<Dungeon>(e, d);
+
+  std::cout << "Dungeon generated!" << std::endl;
+  size_t dungeons = game.state.view<Dungeon>().size();
+  std::cout << "Dungeons: " << dungeons << " (should be only 1!)\n";
 };
 
-// void
-// transfer_old_state(GameEditor& editor, Game& game)
-// {
-//   // old gamestate of interest...
-//   std::vector<HealthComponent> old_hp;
-//   std::vector<XpComponent> old_xp;
-//   std::vector<StatsComponent> old_stats;
-//   std::vector<std::pair<IsEquipped, EntityType>> old_equipped_items;
-//   std::vector<EntityType> old_items;
-//   {
-//     auto& old_r = game.state;
-//     // ... player data
-//     for (const auto [entity_player, player, xp, stats, type, hp] :
-//          old_r.view<PlayerComponent, XpComponent, StatsComponent, EntityTypeComponent, HealthComponent>().each()) {
-//       old_xp.push_back(xp);
-//       old_stats.push_back(stats);
-//       old_hp.push_back(hp);
+bool
+transfer_old_state(GameEditor& editor, Game& game)
+{
+  const entt::registry old_r = std::move(game.state);
+  bool did_transfer = false;
+  entt::registry new_r;
+  create_hierarchy_root_node(new_r);
 
-//       // ... equipped items
-//       for (const auto [item_eqp, item, type] : old_r.view<IsEquipped, EntityTypeComponent>().each()) {
-//         if (item.parent != entity_player)
-//           continue; // not player equipment
-//         old_equipped_items.push_back({ item, type.type });
-//       }
+  for (const auto [entity_player, old_player, old_xp, old_stats, old_type, old_hp] :
+       old_r.view<PlayerComponent, XpComponent, StatsComponent, EntityTypeComponent, HealthComponent>().each()) {
+    did_transfer = true;
+    EntityType et = EntityType::actor_player;
+    entt::entity e = create_gameplay(editor, new_r, et);
+    create_renderable(editor, new_r, e, et);
 
-//       // ... items in backpack
-//       for (const auto [item_ibp, item, type] : old_r.view<InBackpackComponent, EntityTypeComponent>().each()) {
-//         if (item.parent != entity_player)
-//           continue; // not a player item
-//         old_items.push_back(type.type);
-//       }
-//     }
-//   }
+    auto& xp = new_r.get<XpComponent>(e);
+    xp.amount = old_xp.amount;
 
-//   game.state = entt::registry();
-//   auto& r = game.state;
+    auto& stats = new_r.get<StatsComponent>(e);
+    stats.agi_level = old_stats.agi_level;
+    stats.con_level = old_stats.con_level;
+    stats.str_level = old_stats.str_level;
+    stats.overall_level = old_stats.overall_level;
 
-//   // WARNING: below code is duplicate of game.cpp
-//   // --------------------------------------------
+    auto& hp = new_r.get<HealthComponent>(e);
+    hp.hp = old_hp.hp;
 
-//   create_hierarchy_root_node(r);
+    // ... equipped
+    for (const auto [entity_item, old_item, old_type] : old_r.view<IsEquipped, EntityTypeComponent>().each()) {
+      if (old_item.parent != entity_player)
+        continue; // not player equipment
+      WantsToEquip& equip = new_r.get_or_emplace<WantsToEquip>(e);
+      auto new_item = create_item(editor, new_r, old_type.type, e);
+      equip.requests.push_back({ old_item.slot, new_item });
+    }
 
-//   // players
-//   for (int i = 0; i < 1; i++) {
-//     EntityType et = EntityType::actor_player;
-//     entt::entity e = create_gameplay(editor, game, et);
-//     create_renderable(editor, r, e, et);
-//   }
+    // ... in backpack
+    for (const auto [entity_item, old_item, old_type] : old_r.view<InBackpackComponent, EntityTypeComponent>().each()) {
+      if (old_item.parent != entity_player)
+        continue; // not player equipment
+      create_item(editor, new_r, old_type.type, e);
+    }
+  }
 
-//   // ... copy over stats
-//   for (int i = 0; const auto [entity, player, xp, stats, type, hp] :
-//                   r.view<PlayerComponent, XpComponent, StatsComponent, EntityTypeComponent,
-//                   HealthComponent>().each()) {
-//     xp.amount = old_xp[i].amount;
-//     stats.agi_level = old_stats[i].agi_level;
-//     stats.con_level = old_stats[i].con_level;
-//     stats.str_level = old_stats[i].str_level;
-//     stats.overall_level = old_stats[i].overall_level;
-//     hp.hp = old_hp[i].hp;
-
-//     // ... give player items
-//     std::cout << "items: " << old_items.size();
-//     for (const auto& item : old_items)
-//       create_item(editor, game, item, entity);
-
-//     // ... equip the same items
-//     WantsToEquip& equip = r.get_or_emplace<WantsToEquip>(entity);
-//     for (const auto& [eitem, type] : old_equipped_items) {
-//       auto new_item = create_item(editor, game, type, entity);
-//       equip.requests.push_back({ eitem.slot, new_item });
-//     }
-
-//     break; // limit to one player for the moment
-//     i++;
-//   }
-
-//   // camera
-//   auto c = create_gameplay(editor, game, EntityType::camera);
-//   r.emplace<TransformComponent>(c);
-// };
+  game.state = std::move(new_r);
+  return did_transfer;
+}
 
 } // namespace game2d
 
 // reset game state. this is because I could not seem to
-// correctly clear the registry AND use entt groups at the same time.
+// correctly clear the registry AND the entt groups at the same time.
 void
-game2d::generate_dungeon_transfer_old_state(GameEditor& editor, Game& game, uint32_t& seed)
+game2d::transfer_old_state_generate_dungeon(GameEditor& editor, Game& game, uint32_t& seed)
 {
-  // transfer_old_state(editor, game);
+  std::cout << "generating dungeon..." << std::endl;
 
   seed += 1;
-
-  std::string floor_msg = "Exit reached! New floor.";
-  game.ui_events.events.push_back(floor_msg);
 
   std::string msg = "Generating new dungeon! seed: " + std::to_string(seed);
   game.ui_events.events.push_back(msg);
 
-  // SET DUNGEON SIZE
-  generate_dungeon(editor, game, 20, 20, seed);
-}
+  bool transfered_player_data = transfer_old_state(editor, game);
+
+  //
+  // first time setup game setup
+  //
+  if (!transfered_player_data) {
+    // players
+    for (int i = 0; i < 1; i++) {
+      EntityType et = EntityType::actor_player;
+      entt::entity e = create_gameplay(editor, game, et);
+      create_renderable(editor, game, e, et);
+
+      // debug: give the player a sword
+      // entt::entity sword = create_item(editor, r, EntityType::sword, e);
+      // entt::entity shield = create_item(editor, r, EntityType::shield, e);
+      // WantsToEquip& equip = r.get_or_emplace<WantsToEquip>(e);
+      // equip.requests.push_back({ EquipmentSlot::left_hand, sword });
+      // equip.requests.push_back({ EquipmentSlot::right_hand, shield });
+    }
+  }
+  init_input_system(game);
+
+  int scale = static_cast<int>(20.0f * (seed / 2.0f));
+  generate_dungeon(editor, game, scale, scale, seed);
+  init_tile_fov_system(editor, game);
+  create_gameplay(editor, game, EntityType::camera);
+  create_gameplay(editor, game, EntityType::actor_shopkeeper);
+
+  // stock up!
+  const auto& view = game.state.view<ShopKeeperComponent>();
+  view.each([&editor, &game](auto shop_entity, auto& shopkeeper) {
+    create_item(editor, game, EntityType::potion, shop_entity);
+    create_item(editor, game, EntityType::potion, shop_entity);
+    create_item(editor, game, EntityType::potion, shop_entity);
+    create_item(editor, game, EntityType::sword, shop_entity);
+    create_item(editor, game, EntityType::shield, shop_entity);
+    create_item(editor, game, EntityType::scroll_damage_nearest, shop_entity);
+    // create_item(editor, game, EntityType::crossbow, shop_entity);
+    // create_item(editor, game, EntityType::bolt, shop_entity);
+    // create_item(editor, game, EntityType::scroll_damage_selected_on_grid, shop_entity);
+  });
+};

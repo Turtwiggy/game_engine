@@ -36,7 +36,7 @@ game2d::simulate(GameEditor& editor,
 {
   auto& p = editor.profiler;
 
-  if (game.gameover)
+  if (game.paused)
     return; // skip all game logic
 
   // process inputs in FixedUpdateInputHistory
