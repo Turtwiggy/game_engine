@@ -3,6 +3,7 @@
 #include "engine/maths/grid.hpp"
 #include "game/components/actors.hpp"
 #include "game/modules/ai/helpers.hpp"
+#include "game/modules/combat/components.hpp"
 #include "game/modules/dungeon/components.hpp"
 #include "game/modules/fov/components.hpp"
 #include "game/modules/fov/helpers/symmetric_shadowcasting.hpp"
@@ -168,15 +169,20 @@ update_visible(GameEditor& editor, Game& game)
 
   auto view = r.view<SpriteColourComponent, SpriteComponent, const VisibleComponent, const EntityTypeComponent>();
   for (const auto [entity, scc, sc, visible, et] : view.each()) {
+
+    // skip if flashing
+    if (auto* flashing = r.try_get<FlashSpriteComponent>(entity))
+      continue;
+
     //
     // set as defaults
-    const auto col = create_colour(editor, r, entity, et.type);
+    const auto col = create_colour(editor, et.type);
     // scc.colour = engine::SRGBToLinear(colours.secondary);
     scc.colour = col.colour;
 
     // replaces the sprite with the default sprite
     if (et.type != EntityType::tile_type_wall) {
-      const SpriteComponent spr = create_sprite(editor, r, entity, et.type);
+      const SpriteComponent spr = create_sprite(editor, et.type);
       sc.x = spr.x;
       sc.y = spr.y;
     } else {

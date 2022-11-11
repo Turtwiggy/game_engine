@@ -15,9 +15,9 @@ create_dungeon_entity(GameEditor& editor, Game& game, EntityType et, const glm::
   glm::ivec2 world_position = engine::grid::grid_space_to_world_space(grid_index, GRID_SIZE);
 
   entt::entity e = create_gameplay(editor, game, et);
-  SpriteComponent s = create_sprite(editor, r, e, et);
-  TransformComponent t = create_transform(r, e);
-  SpriteColourComponent scc = create_colour(editor, r, e, et);
+  SpriteComponent s = create_sprite(editor, et);
+  TransformComponent t = create_transform();
+  SpriteColourComponent scc = create_colour(editor, et);
 
   t.position = { world_position.x, world_position.y, 0 };
 

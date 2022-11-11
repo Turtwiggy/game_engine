@@ -19,7 +19,7 @@ enum class EntityType
   // i dunno ecs is weird
 
   actor_player,
-  actor_orc,
+  actor_bat,
   actor_troll,
   actor_shopkeeper,
 
@@ -62,26 +62,26 @@ to_json(json& j, const EntityTypeComponent& et);
 void
 from_json(const json& j, EntityTypeComponent& et);
 
-TransformComponent
-create_transform(entt::registry& r, const entt::entity& e);
-SpriteComponent
-create_sprite(GameEditor& editor, entt::registry& r, const entt::entity& e, const EntityType& type);
-SpriteColourComponent
-create_colour(GameEditor& editor, entt::registry& r, const entt::entity& e, const EntityType& type);
+[[nodiscard]] TransformComponent
+create_transform();
+[[nodiscard]] SpriteComponent
+create_sprite(GameEditor& editor, const EntityType& type);
+[[nodiscard]] SpriteColourComponent
+create_colour(GameEditor& editor, const EntityType& type);
 
 void
 create_renderable(GameEditor& editor, entt::registry& r, const entt::entity& e, const EntityType& type);
 void
 create_renderable(GameEditor& editor, Game& g, const entt::entity& e, const EntityType& type);
 
-entt::entity
+[[nodiscard]] entt::entity
 create_item(GameEditor& editor, entt::registry& r, const EntityType& type, const entt::entity& parent);
-entt::entity
+[[nodiscard]] entt::entity
 create_item(GameEditor& editor, Game& game, const EntityType& type, const entt::entity& parent);
 
-entt::entity
+[[nodiscard]] entt::entity
 create_gameplay(GameEditor& editor, entt::registry& r, const EntityType& type);
-entt::entity
+[[nodiscard]] entt::entity
 create_gameplay(GameEditor& editor, Game& game, const EntityType& type);
 
 void

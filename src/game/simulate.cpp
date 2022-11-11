@@ -2,6 +2,7 @@
 
 // game
 #include "game/modules/ai/system.hpp"
+#include "game/modules/combat/flash_sprite.hpp"
 #include "game/modules/combat/take_damage.hpp"
 #include "game/modules/dungeon/system.hpp"
 #include "game/modules/items/intent_drop_item.hpp"
@@ -10,8 +11,8 @@
 #include "game/modules/items/intent_select_units_for_item.hpp"
 #include "game/modules/items/intent_use_item.hpp"
 #include "game/modules/player/player_controller.hpp"
-#include "game/modules/player/player_stats.hpp"
 #include "game/modules/resolve_collisions/system.hpp"
+#include "game/modules/rpg_xp/stats.hpp"
 #include "game/modules/rpg_xp/system.hpp"
 
 // modules
@@ -62,7 +63,9 @@ game2d::simulate(GameEditor& editor, Game& game, const std::vector<InputEvent>& 
     update_intent_equip_item_system(editor, game);
     update_take_damage_system(editor, game);
     update_rpg_system(editor, game);
-    update_player_stats_system(editor, game);
+    update_stats_system(editor, game);
+    // flash_sprite after take_damage
+    update_flash_sprite_system(editor, game, milliseconds_dt);
   }
   {
     auto _ = time_scope(&p, "(game_logic)-pathfinding/ai)", true);

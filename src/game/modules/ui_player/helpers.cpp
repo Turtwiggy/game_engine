@@ -2,9 +2,32 @@
 
 #include "game/modules/combat/components.hpp"
 
+#include <entt/entt.hpp>
 #include <imgui.h>
 
 namespace game2d {
+
+std::array<ImVec2, 2>
+convert_sprite_to_uv(GameEditor& editor, Game& game, const int x, const int y)
+{
+  const int size_x = 768;
+  const int size_y = 352;
+  const int cols_x = 48;
+  const int cols_y = 22;
+  const int pixels_x = size_x / cols_x;
+  const int pixels_y = size_y / cols_y;
+
+  // these are for the full texture
+  // ImVec2 tl = ImVec2(0.0f, 0.0f);
+  // ImVec2 br = ImVec2(1.0f, 1.0f);
+
+  // this is for part of the texture
+  const float offset_x = x;
+  const float offset_y = y;
+  const ImVec2 tl = { (offset_x * pixels_x + 0.0f) / size_x, (offset_y * pixels_y + 0.0f) / size_y };
+  const ImVec2 br = { (offset_x * pixels_x + pixels_x) / size_x, (offset_y * pixels_y + pixels_x) / size_y };
+  return { tl, br };
+}
 
 void
 draw_healthbar(Game& game, const entt::entity& entity)

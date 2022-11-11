@@ -34,11 +34,11 @@ update_ui_gameover_system(GameEditor& editor, Game& game)
       ImGui::Text("Dead!!");
     if (game.running_state == GameState::GAMEOVER_WIN)
       ImGui::Text("You won!!");
+    ImGui::Text("");
 
     ImGui::Text("Thanks for playing.");
-
+    ImGui::Text("");
     ImGui::Text("Feedback appreciated at");
-    ImGui::Separator();
     ImGui::Text("Tweet @MarkBerrow");
     ImGui::Text("Discord Turtwiggy#5041");
 

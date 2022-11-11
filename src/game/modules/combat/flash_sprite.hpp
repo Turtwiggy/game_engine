@@ -5,6 +5,6 @@
 namespace game2d {
 
 void
-update_player_stats_system(GameEditor& editor, Game& game);
+update_flash_sprite_system(GameEditor& editor, Game& game, uint64_t milliseconds_dt);
 
 } // namespace game2d

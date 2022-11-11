@@ -22,6 +22,9 @@ update_take_damage_system(GameEditor& editor, Game& game)
     if (damages.damage.size() == 0)
       continue;
 
+    // Took damage..!
+    r.emplace_or_replace<FlashSpriteComponent>(entity);
+
     int old_hp = health.hp;
 
     int base_damages = 0;
@@ -52,12 +55,14 @@ update_take_damage_system(GameEditor& editor, Game& game)
       eb.dead.emplace(entity);
       r.emplace<IsDead>(entity);
 
-      std::string dead_msg = tag.tag + " died.";
-      game.ui_events.events.push_back(dead_msg);
-
       auto* player = r.try_get<PlayerComponent>(entity);
-      if (player)
-        game.ui_events.events.push_back("You died!");
+      if (player) {
+        const std::string dead_msg = "You died!";
+        game.ui_events.events.push_back(dead_msg);
+      } else {
+        std::string dead_msg = tag.tag + " died.";
+        game.ui_events.events.push_back(dead_msg);
+      }
     }
 
     damages.damage.clear();

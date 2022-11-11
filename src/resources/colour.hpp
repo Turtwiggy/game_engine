@@ -29,6 +29,9 @@ struct SINGLETON_ColoursComponent
   const engine::SRGBColour background = pal_0_4;
   const engine::LinearColour lin_background = engine::SRGBToLinear(background);
 
+  const engine::SRGBColour hit = {172, 68, 37, 1.0f};
+  const engine::LinearColour lin_hit = engine::SRGBToLinear(hit);
+
   const engine::SRGBColour white = { 255, 255, 255, 1.0f };
   const engine::LinearColour lin_white = engine::SRGBToLinear(white);
 };

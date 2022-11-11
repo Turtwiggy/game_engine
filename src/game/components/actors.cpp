@@ -51,7 +51,7 @@ add_child(entt::registry& r, const entt::entity& e, const entt::entity& child)
 };
 
 TransformComponent
-create_transform(entt::registry& r, const entt::entity& e)
+create_transform()
 {
   TransformComponent t_comp;
   t_comp.scale.x = SPRITE_SIZE;
@@ -60,7 +60,7 @@ create_transform(entt::registry& r, const entt::entity& e)
 };
 
 SpriteComponent
-create_sprite(GameEditor& editor, entt::registry& r, const entt::entity& e, const EntityType& type)
+create_sprite(GameEditor& editor, const EntityType& type)
 {
   const auto& sprites = editor.animations;
   const auto& textures = editor.textures;
@@ -77,7 +77,7 @@ create_sprite(GameEditor& editor, entt::registry& r, const entt::entity& e, cons
     sprite = "CASTLE_FLOOR";
   else if (type == EntityType::actor_shopkeeper)
     sprite = "PERSON_25_0";
-  else if (type == EntityType::actor_orc)
+  else if (type == EntityType::actor_bat)
     sprite = "BAT_26_8";
   else if (type == EntityType::actor_troll)
     sprite = "PERSON_29_2";
@@ -106,7 +106,7 @@ create_sprite(GameEditor& editor, entt::registry& r, const entt::entity& e, cons
 
   RenderOrder order = RenderOrder::background;
 
-  if (type == EntityType::actor_orc)
+  if (type == EntityType::actor_bat)
     order = RenderOrder::foreground;
   else if (type == EntityType::actor_troll)
     order = RenderOrder::foreground;
@@ -142,7 +142,7 @@ create_sprite(GameEditor& editor, entt::registry& r, const entt::entity& e, cons
 };
 
 SpriteColourComponent
-create_colour(GameEditor& editor, entt::registry& r, const entt::entity& e, const EntityType& type)
+create_colour(GameEditor& editor, const EntityType& type)
 {
   const auto type_name = std::string(magic_enum::enum_name(type));
   const auto& primary = editor.colours.primary;
@@ -159,7 +159,7 @@ create_colour(GameEditor& editor, entt::registry& r, const entt::entity& e, cons
     srgb = secondary;
   else if (type == EntityType::tile_type_exit)
     srgb = primary;
-  else if (type == EntityType::actor_orc)
+  else if (type == EntityType::actor_bat)
     srgb = primary;
   else if (type == EntityType::actor_troll)
     srgb = primary;
@@ -200,9 +200,9 @@ create_renderable(GameEditor& editor, Game& g, const entt::entity& e, const Enti
 void
 create_renderable(GameEditor& editor, entt::registry& r, const entt::entity& e, const EntityType& type)
 {
-  r.emplace<SpriteComponent>(e, create_sprite(editor, r, e, type));
-  r.emplace<SpriteColourComponent>(e, create_colour(editor, r, e, type));
-  r.emplace<TransformComponent>(e, create_transform(r, e));
+  r.emplace<SpriteComponent>(e, create_sprite(editor, type));
+  r.emplace<SpriteColourComponent>(e, create_colour(editor, type));
+  r.emplace<TransformComponent>(e, create_transform());
 };
 
 entt::entity
@@ -277,7 +277,7 @@ create_gameplay_existing_entity(GameEditor& editor, entt::registry& r, const ent
 
       // pc/npcs
 
-    case EntityType::actor_orc: {
+    case EntityType::actor_bat: {
       // physics
       r.emplace<PhysicsTransformComponent>(e);
       r.emplace<PhysicsActorComponent>(e);
@@ -290,6 +290,7 @@ create_gameplay_existing_entity(GameEditor& editor, entt::registry& r, const ent
       r.emplace<XpComponent>(e, 50);
 
       StatsComponent stats;
+      stats.con_level = 2;
       stats.str_level = 2;
       stats.agi_level = 0;
       r.emplace<StatsComponent>(e, stats);
@@ -305,9 +306,10 @@ create_gameplay_existing_entity(GameEditor& editor, entt::registry& r, const ent
       r.emplace<AiBrainComponent>(e);
       r.emplace<HealthComponent>(e, 10);
       r.emplace<TakeDamageComponent>(e);
-      r.emplace<XpComponent>(e, 50);
+      r.emplace<XpComponent>(e, 100);
 
       StatsComponent stats;
+      stats.con_level = 4;
       stats.str_level = 4;
       stats.agi_level = 1;
       r.emplace<StatsComponent>(e, stats);
@@ -322,7 +324,12 @@ create_gameplay_existing_entity(GameEditor& editor, entt::registry& r, const ent
       r.emplace<HealthComponent>(e);
       r.emplace<TakeDamageComponent>(e);
       r.emplace<XpComponent>(e, 0);
-      r.emplace<StatsComponent>(e);
+
+      StatsComponent stats;
+      stats.con_level = 1;
+      stats.agi_level = 1;
+      stats.str_level = 1;
+      r.emplace<StatsComponent>(e, stats);
       break;
     }
     case EntityType::actor_shopkeeper: {

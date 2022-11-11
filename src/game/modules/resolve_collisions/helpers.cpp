@@ -94,6 +94,13 @@ check_if_damageable_received_collision(Game& game)
     const auto& attacker = coll.instigator;
     const auto& defender = entity;
 
+    // Only take damage if player involved
+    // i.e. prevent enemy-enemy damages
+    auto* player_was_attacker = r.try_get<PlayerComponent>(attacker);
+    auto* player_was_defender = r.try_get<PlayerComponent>(defender);
+    if (!(player_was_attacker || player_was_defender))
+      continue;
+
     // Check everyone's stats?
 
     // check attacker str
@@ -164,7 +171,7 @@ check_if_enemy_collided_with_cursor(Game& game)
   // Note: this code below seems wrong.
   // .. the constraints
   std::vector<EntityType> valid_types{
-    EntityType::actor_orc,
+    EntityType::actor_bat,
     EntityType::actor_troll,
   };
 

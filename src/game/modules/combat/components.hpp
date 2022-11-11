@@ -1,5 +1,7 @@
 #pragma once
 
+#include "engine/colour.hpp"
+
 #include <entt/entt.hpp>
 #include <nlohmann/json.hpp>
 
@@ -94,6 +96,12 @@ struct WantsToAttack
 struct IsDead
 {
   bool placeholder = true;
+};
+
+struct FlashSpriteComponent
+{
+  bool started = false;
+  int milliseconds_left = 200;
 };
 
 // struct AreaOfEffectComponent

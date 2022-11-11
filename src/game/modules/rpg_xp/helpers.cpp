@@ -7,7 +7,7 @@ convert_xp_to_level(const int xp)
 {
   // 0xp will return lv1
   const int base_level = 1;
-  const int base = 150;
+  const int base = 100;
   const int factor = 200;
 
   int level = base_level;

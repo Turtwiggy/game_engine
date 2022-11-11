@@ -11,6 +11,7 @@
 #include "helpers.hpp"
 #include "modules/renderer/components.hpp"
 #include "modules/ux_hover/components.hpp"
+#include "resources/textures.hpp"
 
 #include "magic_enum.hpp"
 #include <entt/entt.hpp>
@@ -36,6 +37,8 @@ update_ui_player_system(GameEditor& editor, Game& game)
 
   static bool show_player = true;
   ImGui::Begin("Player", &show_player, flags);
+  ImGui::Text("FPS: %0.2f", ImGui::GetIO().Framerate);
+
   {
     // Player Info
     for (auto [entity, player, stats, xp] : r.view<PlayerComponent, StatsComponent, XpComponent>().each()) {
@@ -46,7 +49,6 @@ update_ui_player_system(GameEditor& editor, Game& game)
       ImGui::Text("STR: %i", stats.str_level);
       ImGui::Text("AGI: %i", stats.agi_level);
       ImGui::Text("You have %i xp", xp.amount);
-      ImGui::Separator();
 
       // if (ImGui::Button("(debug) Give 50 XP"))
       //   xp.amount += 50;
@@ -59,16 +61,20 @@ update_ui_player_system(GameEditor& editor, Game& game)
         if (lv_stat_ptr) {
           if (ImGui::Button("(CON)"))
             lv_stat_ptr->con.push_back(1);
+          ImGui::SameLine();
           if (ImGui::Button("(STR)"))
             lv_stat_ptr->str.push_back(1);
+          ImGui::SameLine();
           if (ImGui::Button("(AGI)"))
             lv_stat_ptr->agi.push_back(1);
         } else {
           WantsToLevelStat stat;
           if (ImGui::Button("(CON)"))
             stat.con.push_back(1);
+          ImGui::SameLine();
           if (ImGui::Button("(STR)"))
             stat.str.push_back(1);
+          ImGui::SameLine();
           if (ImGui::Button("(AGI)"))
             stat.agi.push_back(1);
           r.emplace<WantsToLevelStat>(entity, stat);
@@ -108,20 +114,35 @@ update_ui_player_system(GameEditor& editor, Game& game)
       //   }
       // }
 
+      ImGui::Separator();
       ImGui::Text("Equipped Items:");
       for (int i = 0; i < magic_enum::enum_count<EquipmentSlot>(); i++) {
         EquipmentSlot slot = magic_enum::enum_value<EquipmentSlot>(i);
         entt::entity equipped = has_equipped(game, entity, slot);
 
-        std::string type_str = "hand";
+        std::string type_str = "[empty]";
         if (equipped != entt::null) {
           // const auto& info = r.get<const IsEquipped>(equipped);
           const auto& type = r.get<const EntityTypeComponent>(equipped);
           type_str = std::string(magic_enum::enum_name(type.type));
         }
 
-        const std::string slot_str = std::string(magic_enum::enum_name(slot));
-        ImGui::Text("(%s) %s", slot_str.c_str(), type_str.c_str());
+        // cut this sprite in half
+        const auto& slots = editor.textures;
+        const ImTextureID tex_id = (ImTextureID)get_tex_id(slots, AvailableTexture::kenny);
+        const ImVec2 icon_size = { 8.0f, 16.0f };
+        const int spr_x = 42;
+        const int spr_y = 0;
+        auto l_hand_uv = convert_sprite_to_uv(editor, game, spr_x, spr_y);
+        l_hand_uv[1].x = { (static_cast<float>(spr_x) * 16 + 8) / 768 };
+        auto r_hand_uv = convert_sprite_to_uv(editor, game, spr_x, spr_y);
+        r_hand_uv[0].x = { (static_cast<float>(spr_x) * 16 + 8) / 768 };
+        if (slot == EquipmentSlot::left_hand)
+          ImGui::Image(tex_id, icon_size, l_hand_uv[0], l_hand_uv[1]);
+        if (slot == EquipmentSlot::right_hand)
+          ImGui::Image(tex_id, icon_size, r_hand_uv[0], r_hand_uv[1]);
+        ImGui::SameLine();
+        ImGui::Text("%s", type_str.c_str());
 
         // able to unequip item?
         // if (equipped != entt::null) {
@@ -157,16 +178,36 @@ update_ui_player_system(GameEditor& editor, Game& game)
         const auto& entity_item = entity_items[0];
 
         if (auto* equipment = r.try_get<Equipment>(entity_item)) {
-          std::string label_equip_l = "Equip(L)##" + std::to_string(static_cast<uint32_t>(entity_item));
-          if (ImGui::Button(label_equip_l.c_str())) {
-            auto& u = r.get_or_emplace<WantsToEquip>(entity);
-            u.requests.push_back({ EquipmentSlot::left_hand, entity_item });
+
+          // cut this sprite in half
+          const auto& slots = editor.textures;
+          const ImTextureID tex_id = (ImTextureID)get_tex_id(slots, AvailableTexture::kenny);
+          const ImVec2 icon_size = { 8, 16 };
+          const int spr_x = 42;
+          const int spr_y = 0;
+          auto l_hand_uv = convert_sprite_to_uv(editor, game, spr_x, spr_y);
+          l_hand_uv[1].x = { (static_cast<float>(spr_x) * 16 + 8) / 768 };
+          auto r_hand_uv = convert_sprite_to_uv(editor, game, spr_x, spr_y);
+          r_hand_uv[0].x = { (static_cast<float>(spr_x) * 16 + 8) / 768 };
+
+          ImGui::Text("Equip ");
+          ImGui::SameLine();
+          {
+            char l_hand_buffer[64];
+            sprintf(l_hand_buffer, "lhand_x%iy%i", spr_x, spr_y);
+            if (ImGui::ImageButton(l_hand_buffer, tex_id, icon_size, l_hand_uv[0], l_hand_uv[1])) {
+              auto& u = r.get_or_emplace<WantsToEquip>(entity);
+              u.requests.push_back({ EquipmentSlot::left_hand, entity_item });
+            }
           }
           ImGui::SameLine();
-          std::string label_equip_r = "Equip(R)##" + std::to_string(static_cast<uint32_t>(entity_item));
-          if (ImGui::Button(label_equip_r.c_str())) {
-            auto& u = r.get_or_emplace<WantsToEquip>(entity);
-            u.requests.push_back({ EquipmentSlot::right_hand, entity_item });
+          {
+            char r_hand_buffer[64];
+            sprintf(r_hand_buffer, "rhand_x%iy%i", spr_x, spr_y);
+            if (ImGui::ImageButton(r_hand_buffer, tex_id, icon_size, r_hand_uv[0], r_hand_uv[1])) {
+              auto& u = r.get_or_emplace<WantsToEquip>(entity);
+              u.requests.push_back({ EquipmentSlot::right_hand, entity_item });
+            }
           }
         }
         if (auto* usable = r.try_get<ConsumableComponent>(entity_item)) {

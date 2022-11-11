@@ -9,10 +9,10 @@ generate_item(const int floor, engine::RandomState& rnd)
 {
   const std::vector<std::pair<int, std::pair<EntityType, int>>> difficulty_map{
     // clang-format off
-    { 0, { EntityType::potion, 80 } },
-    { 1, { EntityType::sword, 15 } },
-    { 2, { EntityType::shield, 15 } },
-    { 3, { EntityType::scroll_damage_nearest, 5 } },
+    { 1, { EntityType::potion, 80 } },
+    { 2, { EntityType::sword, 15 } },
+    { 3, { EntityType::shield, 15 } },
+    { 4, { EntityType::scroll_damage_nearest, 5 } },
     // { 1, { EntityType::scroll_damage_selected_on_grid, 5 } },
     // { 2, { EntityType::crossbow, 15 } },
     // { 2, { EntityType::bolt, 15 } },
@@ -54,10 +54,10 @@ generate_monster(const int floor, engine::RandomState& rnd)
 {
   const std::vector<std::pair<int, std::pair<EntityType, int>>> difficulty_map{
     // clang-format off
-    { 0, { EntityType::actor_orc, 80 } },
+    { 1, { EntityType::actor_bat, 80 } },
     { 2, { EntityType::actor_troll, 15 } },
-    { 4, { EntityType::actor_troll, 30 } },
-    { 6, { EntityType::actor_troll, 60 } }
+    { 3, { EntityType::actor_troll, 30 } },
+    { 4, { EntityType::actor_troll, 60 } }
     // clang-format on
   };
 
@@ -88,7 +88,7 @@ generate_monster(const int floor, engine::RandomState& rnd)
     if (weight_acculum >= random)
       return k;
   }
-  return EntityType::actor_orc;
+  return EntityType::actor_bat;
 };
 
 } // namespace game2d

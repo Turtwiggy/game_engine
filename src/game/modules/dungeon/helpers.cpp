@@ -95,6 +95,15 @@ set_generated_entity_positions(GameEditor& editor, Game& game, Dungeon& d, engin
         continue; // entity already at position
 
       auto entity = create_dungeon_entity(editor, game, generated[i], grid_index);
+
+      // increase the generated monsters items stats per floor
+      if (auto* stats = r.try_get<StatsComponent>(entity)) {
+        // stats->str_level += (floor / 3);
+        // stats->agi_level += (floor / 3);
+        stats->con_level += (floor / 2);
+        printf("new monsters stats: (con)%i (str)%i (agi)%i\n", stats->con_level, stats->str_level, stats->agi_level);
+      }
+
       d.occupied.push_back({ entity, grid_index });
     }
   }
@@ -211,6 +220,7 @@ game2d::transfer_old_state_generate_dungeon(GameEditor& editor, Game& game, cons
   game.ui_events.events.push_back(msg);
 
   bool transfered_player_data = transfer_old_state(editor, game);
+  std::cout << "transferred: " << transfered_player_data << "\n";
 
   //
   // first time setup game setup
