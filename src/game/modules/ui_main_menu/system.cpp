@@ -33,7 +33,7 @@ update_ui_main_menu_system(engine::SINGLETON_Application& app, GameEditor& edito
     // ImGui::SetNextWindowPos(size, ImGuiCond_FirstUseEver, ImVec2(0.5f, 0.5f));
     // const auto& viewport = ImGui::GetWindowViewport();
     // ImGui::SetNextWindowPos(viewport->GetCenter());
-    // ImGui::SetNextWindowSize(ImVec2{ 200, 200 });
+    ImGui::SetNextWindowSize(ImVec2{ 300, 350 });
 
     ImGui::Begin("Main Menu", &open, flags);
 
@@ -52,7 +52,15 @@ update_ui_main_menu_system(engine::SINGLETON_Application& app, GameEditor& edito
 
     static bool vsync = app.vsync;
     if (ImGui::Checkbox("VSync", &vsync))
-      app.window.set_bordered(!vsync);
+      app.window.set_vsync_opengl(vsync);
+
+    static bool limit_fps = app.vsync;
+    if (ImGui::Checkbox("Limit FPS", &limit_fps))
+      app.limit_fps = limit_fps;
+
+    static int i0 = 60;
+    if (ImGui::InputInt("Target FPS", &i0))
+      app.fps_limit = static_cast<float>(i0);
 
     const char* items[] = { "1600x900", "1920x1080", "2560x1440", "3840x2160" };
     static int item_current = 0;

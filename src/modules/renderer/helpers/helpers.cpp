@@ -61,7 +61,7 @@ game2d::render_texture_to_imgui_viewport(const int64_t& tex_unit)
       // ImGui::DockBuilderDockWindow("Profiler", dock_id_left);
       // ImGui::DockBuilderDockWindow("Hierarchy", dock_id_left);
       ImGui::DockBuilderDockWindow("Player", dock_id_left);
-      ImGui::DockBuilderDockWindow("Game Events", dock_id_top);
+      ImGui::DockBuilderDockWindow("GameEvents", dock_id_top);
       // ImGui::DockBuilderDockWindow("Physics", dock_id_right);
 
       ImGui::DockBuilderFinish(dock_id_main);

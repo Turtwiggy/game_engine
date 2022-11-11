@@ -17,6 +17,7 @@ engine::end_frame(SINGLETON_Application& app)
   uint64_t frame_end_time = SDL_GetPerformanceCounter();
   float elapsed_ms =
     (frame_end_time - app.frame_start_time) / static_cast<float>(SDL_GetPerformanceFrequency()) * 1000.0f;
+
   if (app.limit_fps) {
     auto delay = floor(1000.0f / app.fps_limit - elapsed_ms);
     if (delay > 0.0f)

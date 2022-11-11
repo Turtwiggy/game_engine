@@ -24,13 +24,13 @@ update_ui_event_console(GameEditor& editor, Game& game)
   ImGuiWindowFlags flags = 0;
   flags |= ImGuiWindowFlags_NoFocusOnAppearing;
   flags |= ImGuiWindowFlags_NoMove;
-  flags |= ImGuiWindowFlags_NoTitleBar;
-  flags |= ImGuiWindowFlags_NoResize;
-  flags |= ImGuiDockNodeFlags_AutoHideTabBar;
-  flags |= ImGuiDockNodeFlags_NoResize;
 
-  static bool show = true;
-  ImGui::Begin("Game Events", &show, flags);
+  ImGuiWindowClass window_class;
+  window_class.DockNodeFlagsOverrideSet = ImGuiDockNodeFlags_AutoHideTabBar;
+  ImGui::SetNextWindowClass(&window_class);
+
+  static bool show_events = true;
+  ImGui::Begin("GameEvents", &show_events, flags);
 
   for (const auto& evt : game.ui_events.events)
     ImGui::Text("[event] %s", evt.c_str());
