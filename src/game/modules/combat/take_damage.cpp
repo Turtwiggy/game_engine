@@ -56,10 +56,8 @@ update_take_damage_system(GameEditor& editor, Game& game)
       game.ui_events.events.push_back(dead_msg);
 
       auto* player = r.try_get<PlayerComponent>(entity);
-      if (player) {
+      if (player)
         game.ui_events.events.push_back("You died!");
-        game.gameover = true;
-      }
     }
 
     damages.damage.clear();

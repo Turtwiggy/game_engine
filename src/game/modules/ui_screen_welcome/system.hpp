@@ -5,6 +5,6 @@
 namespace game2d {
 
 void
-restart_game(GameEditor& editor, Game& game, uint32_t& seed);
+update_ui_welcome_system(GameEditor& editor, Game& game);
 
 } // namespace game2d

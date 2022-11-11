@@ -11,7 +11,6 @@ void
 simulate(GameEditor& editor,
          Game& game,
          const std::vector<InputEvent>& inputs,
-         uint64_t milliseconds_dt,
-         uint32_t& dungeon_seed);
+         uint64_t milliseconds_dt);
 
 } // namespace game2d

@@ -4,7 +4,6 @@
 #include "game/modules/ai/system.hpp"
 #include "game/modules/combat/take_damage.hpp"
 #include "game/modules/dungeon/system.hpp"
-#include "game/modules/fov/system.hpp"
 #include "game/modules/items/intent_drop_item.hpp"
 #include "game/modules/items/intent_equip_item.hpp"
 #include "game/modules/items/intent_purchase_item.hpp"
@@ -28,15 +27,11 @@
 #include "modules/ui_profiler/helpers.hpp"
 
 void
-game2d::simulate(GameEditor& editor,
-                 Game& game,
-                 const std::vector<InputEvent>& inputs,
-                 uint64_t milliseconds_dt,
-                 uint32_t& dungeon_seed)
+game2d::simulate(GameEditor& editor, Game& game, const std::vector<InputEvent>& inputs, uint64_t milliseconds_dt)
 {
   auto& p = editor.profiler;
 
-  if (game.paused)
+  if (game.running_state == GameState::START || game.running_state == GameState::PAUSED)
     return; // skip all game logic
 
   // process inputs in FixedUpdateInputHistory
@@ -66,15 +61,11 @@ game2d::simulate(GameEditor& editor,
     update_player_stats_system(editor, game);
   }
   {
-    auto _ = time_scope(&p, "(game_logic)-fov", true);
-    update_tile_fov_system(editor, game);
-  }
-  {
     auto _ = time_scope(&p, "(game_logic)-pathfinding/ai)", true);
     update_ai_system(editor, game, milliseconds_dt);
   }
   {
     auto _ = time_scope(&p, "(game_logic)-dungeon)", true);
-    update_dungeon_system(editor, game, dungeon_seed);
+    update_dungeon_system(editor, game);
   }
 };

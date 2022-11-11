@@ -5,6 +5,7 @@
 #include "game/helpers/check_equipment.hpp"
 #include "game/modules/combat/components.hpp"
 #include "game/modules/items/components.hpp"
+#include "game/modules/items/helpers.hpp"
 #include "game/modules/player/components.hpp"
 #include "game/modules/rpg_xp/components.hpp"
 #include "helpers.hpp"
@@ -140,6 +141,7 @@ update_ui_player_system(GameEditor& editor, Game& game)
       }
 
       ImGui::Text("Inventory");
+
       const auto& items = r.view<const InBackpackComponent, const TagComponent, const EntityTypeComponent>();
 
       // Show like potion x1, potion x2 not potions individually
@@ -151,18 +153,28 @@ update_ui_player_system(GameEditor& editor, Game& game)
       }
 
       for (const auto& [tag, entity_items] : compacted_items) {
+
         const auto& entity_item = entity_items[0];
-        std::string label_equip_l = "Equip(L)##" + std::to_string(static_cast<uint32_t>(entity_item));
-        if (ImGui::Button(label_equip_l.c_str())) {
-          auto& u = r.get_or_emplace<WantsToEquip>(entity);
-          u.requests.push_back({ EquipmentSlot::left_hand, entity_item });
+
+        if (auto* equipment = r.try_get<Equipment>(entity_item)) {
+          std::string label_equip_l = "Equip(L)##" + std::to_string(static_cast<uint32_t>(entity_item));
+          if (ImGui::Button(label_equip_l.c_str())) {
+            auto& u = r.get_or_emplace<WantsToEquip>(entity);
+            u.requests.push_back({ EquipmentSlot::left_hand, entity_item });
+          }
+          ImGui::SameLine();
+          std::string label_equip_r = "Equip(R)##" + std::to_string(static_cast<uint32_t>(entity_item));
+          if (ImGui::Button(label_equip_r.c_str())) {
+            auto& u = r.get_or_emplace<WantsToEquip>(entity);
+            u.requests.push_back({ EquipmentSlot::right_hand, entity_item });
+          }
         }
-        ImGui::SameLine();
-        std::string label_equip_r = "Equip(R)##" + std::to_string(static_cast<uint32_t>(entity_item));
-        if (ImGui::Button(label_equip_r.c_str())) {
-          auto& u = r.get_or_emplace<WantsToEquip>(entity);
-          u.requests.push_back({ EquipmentSlot::right_hand, entity_item });
+        if (auto* usable = r.try_get<ConsumableComponent>(entity_item)) {
+          std::string label_use = "use##" + std::to_string(static_cast<uint32_t>(entity_item));
+          if (ImGui::Button(label_use.c_str()))
+            use_item(editor, game, entity, entity_item);
         }
+
         // ImGui::SameLine();
         // std::string label_drop = "Drop##" + std::to_string(static_cast<uint32_t>(entity_item));
         // if (ImGui::Button(label_drop.c_str())) {

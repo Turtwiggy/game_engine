@@ -18,7 +18,7 @@
 namespace game2d {
 
 void
-game2d::update_ui_player_inventory_system(GameEditor& editor, Game& game)
+game2d::update_ui_shop_system(GameEditor& editor, Game& game)
 {
   auto& r = game.state;
 

@@ -13,11 +13,12 @@
 #include "game/modules/dungeon/system.hpp"
 #include "game/modules/fov/system.hpp"
 #include "game/modules/items/components.hpp"
+#include "game/modules/player/components.hpp"
 #include "game/modules/resolve_collisions/system.hpp"
 #include "game/modules/ui_event_console/system.hpp"
 #include "game/modules/ui_main_menu/system.hpp"
 #include "game/modules/ui_player/system.hpp"
-#include "game/modules/ui_player_inventory/system.hpp"
+#include "game/modules/ui_shop/system.hpp"
 #include "game/simulate.hpp"
 #include "modules/camera/components.hpp"
 #include "modules/camera/helpers.hpp"
@@ -32,11 +33,12 @@
 #include "modules/ui_editor_scene/system.hpp"
 #include "modules/ui_editor_tilemap/components.hpp"
 #include "modules/ui_editor_tilemap/system.hpp"
-#include "modules/ui_gameover/system.hpp"
 #include "modules/ui_hierarchy/helpers.hpp"
 #include "modules/ui_hierarchy/system.hpp"
 #include "modules/ui_profiler/helpers.hpp"
 #include "modules/ui_profiler/system.hpp"
+#include "modules/ui_screen_gameover/system.hpp"
+#include "modules/ui_screen_welcome/system.hpp"
 #include "modules/ui_sprite_searcher/system.hpp"
 #include "modules/ux_hover/components.hpp"
 #include "modules/ux_hover/system.hpp"
@@ -49,13 +51,20 @@
 
 namespace game2d {
 
-static uint32_t dungeon_seed = 1;
-
 Game
 init_game_state(GameEditor& editor)
 {
   Game game;
-  transfer_old_state_generate_dungeon(editor, game, dungeon_seed);
+
+  transfer_old_state_generate_dungeon(editor, game, game.live_dungeon_seed, game.live_dungeon_floor);
+
+  // just because this is the demo i.e. menu screen:
+
+  for (const auto [entity, type] : game.state.view<EntityTypeComponent>().each()) {
+    if (type.type == EntityType::tile_type_exit)
+      game.state.destroy(entity);
+  }
+
   return game;
 };
 
@@ -83,7 +92,7 @@ fixed_update(GameEditor& editor, Game& game, uint64_t milliseconds_dt)
     auto& input = game.input;
     auto& fixed_input = game.fixed_update_input;
 
-    if (game.paused) {
+    if (game.running_state != GameState::RUNNING) {
       // ignore inputs
       input.unprocessed_inputs.clear();
     } else {
@@ -96,16 +105,7 @@ fixed_update(GameEditor& editor, Game& game, uint64_t milliseconds_dt)
       fixed_input.history[fixed_input.fixed_tick] = std::move(input.unprocessed_inputs);
       std::vector<InputEvent>& inputs = fixed_input.history[fixed_input.fixed_tick];
 
-      // reset game
-      // for (const InputEvent& i : inputs) {
-      //   if (i.type == InputType::keyboard && i.key == static_cast<uint32_t>(SDL_SCANCODE_R) &&
-      //       i.state == InputState::press) {
-      //     dungeon_seed = 1; // global state
-      //     game = init_game_state(editor);
-      //   }
-      // }
-
-      simulate(editor, game, inputs, milliseconds_dt, dungeon_seed);
+      simulate(editor, game, inputs, milliseconds_dt);
       fixed_input.fixed_tick += 1;
     }
 
@@ -125,6 +125,7 @@ update(engine::SINGLETON_Application& app, GameEditor& editor, Game& game, float
     // update_audio_system(editor);
     update_cursor_system(editor, game);
     update_ux_hover_system(editor, game);
+    update_tile_fov_system(editor, game);
   };
 
   {
@@ -138,12 +139,13 @@ update(engine::SINGLETON_Application& app, GameEditor& editor, Game& game, float
     auto _ = time_scope(&p, "ui"); // value for ui always be a frame behind
     update_ui_event_console(editor, game);
     update_ui_player_system(editor, game);
-    update_ui_player_inventory_system(editor, game);
-    update_ui_main_menu_system(app, editor, game, dungeon_seed);
-    update_ui_gameover_system(editor, game, dungeon_seed);
+    update_ui_welcome_system(editor, game);
+    update_ui_main_menu_system(app, editor, game);
+    update_ui_gameover_system(editor, game);
 
     static bool show_editor_ui = false;
     if (show_editor_ui) {
+      update_ui_shop_system(editor, game);
       // update_ui_editor_bar_system(editor, game);
       // update_ui_hierarchy_system(editor, game);
       update_ui_profiler_system(editor, game);

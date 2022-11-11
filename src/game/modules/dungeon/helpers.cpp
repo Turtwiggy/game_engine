@@ -101,7 +101,7 @@ set_generated_entity_positions(GameEditor& editor, Game& game, Dungeon& d, engin
 }
 
 void
-generate_dungeon(GameEditor& editor, Game& game, const int size_x, const int size_y, uint32_t seed)
+generate_dungeon(GameEditor& editor, Game& game, const int size_x, const int size_y, const int seed, const int floor)
 {
   const auto& colours = editor.colours;
   auto& r = game.state;
@@ -109,7 +109,7 @@ generate_dungeon(GameEditor& editor, Game& game, const int size_x, const int siz
   Dungeon d;
   d.width = size_x;
   d.height = size_y;
-  d.floor = seed;
+  d.floor = floor;
   d.walls_and_floors.resize(d.width * d.height);
 
   engine::RandomState rnd;
@@ -126,10 +126,6 @@ generate_dungeon(GameEditor& editor, Game& game, const int size_x, const int siz
   Room& room = d.rooms[d.rooms.size() - 1];
   glm::ivec2 middle = room_center(room);
   create_dungeon_entity(editor, game, EntityType::tile_type_exit, middle);
-
-  // // update all wall sprites
-  // for (const StaticDungeonEntity& wall_or_floor : d.walls_and_floors) {
-  // }
 
   // Set the cost for all of the tiles
   for (const auto& tile : d.walls_and_floors) {
@@ -150,9 +146,7 @@ generate_dungeon(GameEditor& editor, Game& game, const int size_x, const int siz
   r.emplace<TagComponent>(e, "dungeon");
   r.emplace<Dungeon>(e, d);
 
-  std::cout << "Dungeon generated!" << std::endl;
-  size_t dungeons = game.state.view<Dungeon>().size();
-  std::cout << "Dungeons: " << dungeons << " (should be only 1!)\n";
+  std::cout << "Dungeon generated!\n\n";
 };
 
 bool
@@ -166,6 +160,7 @@ transfer_old_state(GameEditor& editor, Game& game)
   for (const auto [entity_player, old_player, old_xp, old_stats, old_type, old_hp] :
        old_r.view<PlayerComponent, XpComponent, StatsComponent, EntityTypeComponent, HealthComponent>().each()) {
     did_transfer = true;
+
     EntityType et = EntityType::actor_player;
     entt::entity e = create_gameplay(editor, new_r, et);
     create_renderable(editor, new_r, e, et);
@@ -208,16 +203,15 @@ transfer_old_state(GameEditor& editor, Game& game)
 // reset game state. this is because I could not seem to
 // correctly clear the registry AND the entt groups at the same time.
 void
-game2d::transfer_old_state_generate_dungeon(GameEditor& editor, Game& game, uint32_t& seed)
+game2d::transfer_old_state_generate_dungeon(GameEditor& editor, Game& game, const int seed, const int floor)
 {
   std::cout << "generating dungeon..." << std::endl;
 
-  seed += 1;
-
-  std::string msg = "Generating new dungeon! seed: " + std::to_string(seed);
+  std::string msg = "Generating new dungeon! seed: " + std::to_string(seed) + ", floor: " + std::to_string(floor);
   game.ui_events.events.push_back(msg);
 
   bool transfered_player_data = transfer_old_state(editor, game);
+  std::cout << "transfered_old_state: " << transfered_player_data << "\n";
 
   //
   // first time setup game setup
@@ -239,23 +233,26 @@ game2d::transfer_old_state_generate_dungeon(GameEditor& editor, Game& game, uint
   }
   init_input_system(game);
 
-  int scale = static_cast<int>(20.0f * (seed / 2.0f));
-  generate_dungeon(editor, game, scale, scale, seed);
+  int players = game.state.view<PlayerComponent>().size();
+  std::cout << "players: " << players << "\n";
+
+  int scale = static_cast<int>(20.0f * (floor / 2.0f));
+  generate_dungeon(editor, game, scale, scale, seed, floor);
   init_tile_fov_system(editor, game);
   create_gameplay(editor, game, EntityType::camera);
-  create_gameplay(editor, game, EntityType::actor_shopkeeper);
 
-  // stock up!
-  const auto& view = game.state.view<ShopKeeperComponent>();
-  view.each([&editor, &game](auto shop_entity, auto& shopkeeper) {
-    create_item(editor, game, EntityType::potion, shop_entity);
-    create_item(editor, game, EntityType::potion, shop_entity);
-    create_item(editor, game, EntityType::potion, shop_entity);
-    create_item(editor, game, EntityType::sword, shop_entity);
-    create_item(editor, game, EntityType::shield, shop_entity);
-    create_item(editor, game, EntityType::scroll_damage_nearest, shop_entity);
-    // create_item(editor, game, EntityType::crossbow, shop_entity);
-    // create_item(editor, game, EntityType::bolt, shop_entity);
-    // create_item(editor, game, EntityType::scroll_damage_selected_on_grid, shop_entity);
-  });
+  // create_gameplay(editor, game, EntityType::actor_shopkeeper);
+  // // stock up!
+  // const auto& view = game.state.view<ShopKeeperComponent>();
+  // view.each([&editor, &game](auto shop_entity, auto& shopkeeper) {
+  //   create_item(editor, game, EntityType::potion, shop_entity);
+  //   create_item(editor, game, EntityType::potion, shop_entity);
+  //   create_item(editor, game, EntityType::potion, shop_entity);
+  //   create_item(editor, game, EntityType::sword, shop_entity);
+  //   create_item(editor, game, EntityType::shield, shop_entity);
+  //   create_item(editor, game, EntityType::scroll_damage_nearest, shop_entity);
+  //   // create_item(editor, game, EntityType::crossbow, shop_entity);
+  //   // create_item(editor, game, EntityType::bolt, shop_entity);
+  //   // create_item(editor, game, EntityType::scroll_damage_selected_on_grid, shop_entity);
+  // });
 };

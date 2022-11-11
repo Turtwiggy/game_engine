@@ -10,9 +10,14 @@
 namespace game2d {
 
 void
-update_dungeon_system(GameEditor& editor, Game& game, uint32_t& dungeon_seed)
+update_dungeon_system(GameEditor& editor, Game& game)
 {
   auto& r = game.state;
+  if (r.view<PlayerComponent>().size() == 0) {
+    game.running_state = GameState::GAMEOVER_LOSE;
+    return;
+  }
+
   {
     const auto& view = r.view<const PlayerComponent, const CollidingWithExitComponent>();
     bool collision_occured = view.size_hint() > 0;
@@ -23,12 +28,14 @@ update_dungeon_system(GameEditor& editor, Game& game, uint32_t& dungeon_seed)
   // check gameover condition
   auto existing_dungeon = get_first<Dungeon>(r);
   if (r.get<Dungeon>(existing_dungeon).floor == 6) {
-    game.ui_events.events.push_back("You win! Thanks for playing.");
-    game.gameover = true;
+    game.running_state = GameState::GAMEOVER_WIN;
     return;
   }
 
-  transfer_old_state_generate_dungeon(editor, game, dungeon_seed);
+  // The game needs to generate a new dungeon, increase the seed!
+  game.live_dungeon_seed += 1;
+  game.live_dungeon_floor += 1;
+  transfer_old_state_generate_dungeon(editor, game, game.live_dungeon_seed, game.live_dungeon_floor);
 };
 
 } // namespace game2d

@@ -33,6 +33,15 @@ struct GameEditor
   // SINGLETON_ClientComponent client;
 };
 
+enum class GameState
+{
+  START,
+  RUNNING,
+  PAUSED,
+  GAMEOVER_LOSE,
+  GAMEOVER_WIN,
+};
+
 // reset on gameover
 struct Game
 {
@@ -44,10 +53,9 @@ struct Game
   SINGLETON_InputComponent input;
   SINGLETON_PhysicsComponent physics;
 
-  // beginning of the end
-  bool on_start = true;
-  bool gameover = false;
-  bool paused = false;
+  GameState running_state = GameState::START;
+  int live_dungeon_seed = 1;
+  int live_dungeon_floor = 1;
 };
 
 } // namespace game2d

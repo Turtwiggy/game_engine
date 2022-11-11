@@ -1,6 +1,5 @@
 #include "system.hpp"
 
-#include "game/modules/ui_gameover/helpers.hpp"
 #include "modules/events/helpers/keyboard.hpp"
 
 #include <imgui.h>
@@ -8,7 +7,7 @@
 namespace game2d {
 
 void
-update_ui_main_menu_system(engine::SINGLETON_Application& app, GameEditor& editor, Game& game, uint32_t& seed)
+update_ui_main_menu_system(engine::SINGLETON_Application& app, GameEditor& editor, Game& game)
 {
   auto& input = game.input;
 
@@ -24,8 +23,9 @@ update_ui_main_menu_system(engine::SINGLETON_Application& app, GameEditor& edito
   if (get_key_down(input, SDL_SCANCODE_ESCAPE))
     open = !open;
 
-  // pause the game if the menu is open
-  game.paused = open;
+  // only update state if it was running or paused
+  if (game.running_state == GameState::RUNNING || game.running_state == GameState::PAUSED)
+    game.running_state = open ? GameState::PAUSED : GameState::RUNNING;
 
   if (open) {
     // auto& io = ImGui::GetIO();
