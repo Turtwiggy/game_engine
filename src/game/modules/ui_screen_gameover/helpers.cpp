@@ -19,7 +19,7 @@ restart_game(GameEditor& editor, Game& game, const int& seed)
   game.live_dungeon_seed = seed;
   game.live_dungeon_floor = 1;
   transfer_old_state_generate_dungeon(editor, game, game.live_dungeon_seed, game.live_dungeon_floor);
-  game.running_state = GameState::START;
+  game.running_state = GameState::RUNNING;
 };
 
 } // namespace game2d

@@ -7,7 +7,6 @@
 #include "modules/physics/components.hpp"
 #include "modules/renderer/components.hpp"
 #include "modules/sprites/components.hpp"
-#include "modules/ui_editor_bar/components.hpp"
 #include "modules/ui_profiler/components.hpp"
 #include "modules/ui_sprite_searcher/components.hpp"
 #include "resources/colour.hpp"
@@ -23,7 +22,6 @@ struct GameEditor
   Profiler profiler;
   SINGLETON_Animations animations;
   SINGLETON_ColoursComponent colours;
-  SINGLETON_EditorComponent editor;
   SINGLETON_SpriteSearcher sprites;
   SINGLETON_Textures textures;
   SINGLETON_RendererInfo renderer;
@@ -54,7 +52,7 @@ struct Game
   SINGLETON_PhysicsComponent physics;
 
   GameState running_state = GameState::START;
-  int live_dungeon_seed = 1;
+  int live_dungeon_seed = 2;
   int live_dungeon_floor = 1;
 };
 

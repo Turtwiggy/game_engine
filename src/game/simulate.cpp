@@ -31,7 +31,11 @@ game2d::simulate(GameEditor& editor, Game& game, const std::vector<InputEvent>& 
 {
   auto& p = editor.profiler;
 
-  if (game.running_state == GameState::START || game.running_state == GameState::PAUSED)
+  if (game.running_state == GameState::PAUSED)
+    return; // skip all game logic
+  if (game.running_state == GameState::GAMEOVER_LOSE)
+    return; // skip all game logic
+  if (game.running_state == GameState::GAMEOVER_WIN)
     return; // skip all game logic
 
   // process inputs in FixedUpdateInputHistory

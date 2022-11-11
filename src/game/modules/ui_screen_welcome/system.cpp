@@ -26,7 +26,7 @@ update_ui_welcome_system(GameEditor& editor, Game& game)
   if (game.running_state == GameState::START) {
     auto& io = ImGui::GetIO();
     ImGui::SetNextWindowPos(
-      ImVec2(io.DisplaySize.x * 0.5f, io.DisplaySize.y * 0.5f), ImGuiCond_Always, ImVec2(0.5f, 0.5f));
+      ImVec2(io.DisplaySize.x * 0.25f, io.DisplaySize.y * 0.5f), ImGuiCond_Always, ImVec2(0.5f, 0.5f));
 
     bool show = true;
     ImGui::Begin("Welcome", &show, flags);
@@ -51,13 +51,14 @@ update_ui_welcome_system(GameEditor& editor, Game& game)
 
     ImGui::Text("");
     ImGui::Text("Dungeon Seed:");
-    static int seed = 1;
-    if (ImGui::InputInt("Seed", &seed))
+    static int seed = 2;
+    if (ImGui::InputInt("Seed", &seed)) {
       game.live_dungeon_seed = glm::abs(seed);
+    }
 
     ImGui::Text("");
     if (ImGui::Button("Begin Adventure!")) {
-      std::cout << "restart game button clicked\n";
+      std::cout << "\nrestart game button clicked\n";
       restart_game(editor, game, seed);
       game.running_state = GameState::RUNNING;
     }

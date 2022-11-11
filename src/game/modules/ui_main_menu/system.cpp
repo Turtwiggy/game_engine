@@ -75,6 +75,9 @@ update_ui_main_menu_system(engine::SINGLETON_Application& app, GameEditor& edito
         app.window.set_size({ 3840, 2160 });
     }
 
+    // if (ImGui::Button("Restart"))
+    //   game.running_state = GameState::START;
+
     if (ImGui::Button("Quit"))
       app.running = false;
 

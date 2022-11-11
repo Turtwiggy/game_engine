@@ -211,7 +211,6 @@ game2d::transfer_old_state_generate_dungeon(GameEditor& editor, Game& game, cons
   game.ui_events.events.push_back(msg);
 
   bool transfered_player_data = transfer_old_state(editor, game);
-  std::cout << "transfered_old_state: " << transfered_player_data << "\n";
 
   //
   // first time setup game setup
@@ -236,7 +235,7 @@ game2d::transfer_old_state_generate_dungeon(GameEditor& editor, Game& game, cons
   int players = game.state.view<PlayerComponent>().size();
   std::cout << "players: " << players << "\n";
 
-  int scale = static_cast<int>(20.0f * (floor / 2.0f));
+  int scale = static_cast<int>(20.0f * ((floor + 1) / 2.0f));
   generate_dungeon(editor, game, scale, scale, seed, floor);
   init_tile_fov_system(editor, game);
   create_gameplay(editor, game, EntityType::camera);

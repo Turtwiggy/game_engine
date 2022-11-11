@@ -13,7 +13,12 @@ void
 update_dungeon_system(GameEditor& editor, Game& game)
 {
   auto& r = game.state;
+
+  if (game.running_state == GameState::START)
+    return;
+
   if (r.view<PlayerComponent>().size() == 0) {
+    std::cout << "updating to lose state! \n";
     game.running_state = GameState::GAMEOVER_LOSE;
     return;
   }
@@ -28,6 +33,7 @@ update_dungeon_system(GameEditor& editor, Game& game)
   // check gameover condition
   auto existing_dungeon = get_first<Dungeon>(r);
   if (r.get<Dungeon>(existing_dungeon).floor == 6) {
+    std::cout << "updating to win state! \n";
     game.running_state = GameState::GAMEOVER_WIN;
     return;
   }

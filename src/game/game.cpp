@@ -28,7 +28,6 @@
 #include "modules/events/system.hpp"
 #include "modules/renderer/system.hpp"
 #include "modules/sprites/system.hpp"
-#include "modules/ui_editor_bar/system.hpp"
 #include "modules/ui_editor_colour_palette/system.hpp"
 #include "modules/ui_editor_scene/system.hpp"
 #include "modules/ui_editor_tilemap/components.hpp"
@@ -55,8 +54,9 @@ Game
 init_game_state(GameEditor& editor)
 {
   Game game;
-
-  transfer_old_state_generate_dungeon(editor, game, game.live_dungeon_seed, game.live_dungeon_floor);
+  int default_seed = 1;
+  int default_floor = 0;
+  transfer_old_state_generate_dungeon(editor, game, default_seed, default_floor);
 
   // just because this is the demo i.e. menu screen:
 
@@ -92,11 +92,11 @@ fixed_update(GameEditor& editor, Game& game, uint64_t milliseconds_dt)
     auto& input = game.input;
     auto& fixed_input = game.fixed_update_input;
 
-    if (game.running_state != GameState::RUNNING) {
-      // ignore inputs
-      input.unprocessed_inputs.clear();
-    } else {
-
+    // if (game.running_state != GameState::RUNNING) {
+    //   // ignore inputs
+    //   input.unprocessed_inputs.clear();
+    // } else
+    {
       // while offline, just clear out anything older than a tick
       // (until a gameplay system needs older input)
       fixed_input.history.clear();
