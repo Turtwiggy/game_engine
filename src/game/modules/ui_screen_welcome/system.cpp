@@ -40,7 +40,7 @@ update_ui_welcome_system(GameEditor& editor, Game& game)
     ImGui::Text("Collide with enemy to damage.");
     ImGui::Text("");
     ImGui::Text("¬¬ LEVEL STATS ¬¬");
-    ImGui::Text("CON: +1 MAX HP");
+    ImGui::Text("CON: +4 MAX HP");
     ImGui::Text("STR: +1 ATK");
     ImGui::Text("AGI: +1 DEF");
     ImGui::Text("");
