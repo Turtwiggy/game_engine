@@ -9,12 +9,18 @@
 #include "modules/sprites/components.hpp"
 #include "modules/ui_profiler/components.hpp"
 #include "modules/ui_sprite_searcher/components.hpp"
+#include "resources/audio.hpp"
 #include "resources/colour.hpp"
 #include "resources/textures.hpp"
 
 #include <entt/entt.hpp>
 
 namespace game2d {
+
+// Note: these arn't true singletons, as in the sense that they are
+// single instances of components that could exist in the entt::registry
+// where only the EntitySystem that is allowed to mutate the state.
+// Everything else is allowed to read the data, but not mutate it.
 
 // persistent between games
 struct GameEditor
@@ -25,6 +31,7 @@ struct GameEditor
   SINGLETON_SpriteSearcher sprites;
   SINGLETON_Textures textures;
   SINGLETON_RendererInfo renderer;
+  SINGLETON_AudioComponent audio;
   // networking
   // SINGLETON_NetworkingUIComponent networking_ui;
   // SINGLETON_ServerComponent server;

@@ -4,20 +4,12 @@
 
 namespace game2d {
 
-// Music&
-// get_music(SINGLETON_AudioComponent& audio, AvailableMusic type)
-// {
-//   auto& res = audio.music;
-//   auto it = std::find_if(res.begin(), res.end(), [&type](const auto& a) { return a.type == type; });
-//   return *it;
-// };
-
-// Sfx&
-// get_sfx(SINGLETON_AudioComponent& audio, AvailableSfx type)
-// {
-//   auto& res = audio.sfx;
-//   auto it = std::find_if(res.begin(), res.end(), [&type](const auto& a) { return a.type == type; });
-//   return *it;
-// };
+ALuint
+get_sound_id(const SINGLETON_AudioComponent& audio, const AvailableSound type)
+{
+  const auto& res = audio.sounds;
+  auto it = std::find_if(res.begin(), res.end(), [&type](const auto& a) { return a.type == type; });
+  return it->loaded_id;
+}
 
 } // namespace game2d

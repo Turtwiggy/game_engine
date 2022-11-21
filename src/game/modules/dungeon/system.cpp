@@ -32,7 +32,7 @@ update_dungeon_system(GameEditor& editor, Game& game)
 
   // check gameover condition
   auto existing_dungeon = get_first<Dungeon>(r);
-  if (r.get<Dungeon>(existing_dungeon).floor == 6) {
+  if (r.get<Dungeon>(existing_dungeon).floor == 5) {
     std::cout << "updating to win state! \n";
     game.running_state = GameState::GAMEOVER_WIN;
     return;

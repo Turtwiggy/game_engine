@@ -11,7 +11,7 @@ if(EMSCRIPTEN)
   # add_compile_definitions("-s ALLOW_MEMORY_GROWTH=1")
   # add_compile_definitions(" --shell-file shell_minimal.html")
   set(USE_FLAGS "-sMIN_WEBGL_VERSION=2 -sMAX_WEBGL_VERSION=2") # use webgl2
-  set(USE_FLAGS "${USE_FLAGS} -sUSE_SDL=2 -sDISABLE_EXCEPTION_CATCHING=1 -sWASM=1 -sNO_EXIT_RUNTIME=0 -sASSERTIONS=1")
+  set(USE_FLAGS "${USE_FLAGS} -sUSE_SDL=2 -sDISABLE_EXCEPTION_CATCHING=1 -sWASM=1 -sNO_EXIT_RUNTIME=0 -sASSERTIONS=1 -sALLOW_MEMORY_GROWTH=1")
   set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} ${USE_FLAGS}")
   set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++20 -stdlib=libc++")
   set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} ${USE_FLAGS}")
@@ -145,14 +145,14 @@ endif()
 
 if(EMSCRIPTEN)
   # create symlink assets for build
-  # set(src ${CMAKE_SOURCE_DIR}/assets)
-  # set(dst ${CMAKE_CURRENT_BINARY_DIR}/../assets)
-  # add_custom_command(
-  # TARGET ${PROJECT_NAME} PRE_BUILD
-  # COMMAND ${CMAKE_COMMAND} -E create_symlink ${src} ${dst}
-  # DEPENDS ${dst}
-  # COMMENT "symbolic link resources folder from ${src} => ${dst}"
-  # )
+  set(src ${CMAKE_SOURCE_DIR}/assets)
+  set(dst ${CMAKE_CURRENT_BINARY_DIR}/../assets)
+  add_custom_command(
+    TARGET ${PROJECT_NAME} PRE_BUILD
+    COMMAND ${CMAKE_COMMAND} -E create_symlink ${src} ${dst}
+    DEPENDS ${dst}
+    COMMENT "symbolic link resources folder from ${src} => ${dst}"
+  )
 
   # See documentation for more details: https://emscripten.org/docs/porting/files/packaging_files.html
   set_target_properties(game_2d PROPERTIES LINK_FLAGS "-s DEMANGLE_SUPPORT=1 --preload-file assets --bind")

@@ -2,7 +2,6 @@ glew
 glm
 sdl2
 openal-soft
-libsndfile
 stb
 nlohmann-json
 gamenetworkingsockets

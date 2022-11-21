@@ -2,6 +2,8 @@
 
 #include "components.hpp"
 #include "game/modules/player/components.hpp"
+#include "modules/audio/components.hpp"
+#include "resources/audio.hpp"
 
 #include <entt/entt.hpp>
 
@@ -23,7 +25,15 @@ update_take_damage_system(GameEditor& editor, Game& game)
       continue;
 
     // Took damage..!
+    // .. show flash
     r.emplace_or_replace<FlashSpriteComponent>(entity);
+    // .. play audio
+    if (auto* audio_source = r.try_get<AudioSource>(entity)) {
+      if (audio_source->audio_selection.size() > 0) {
+        const auto& tmp = audio_source->audio_selection[0];
+        audio_source->wants_to_play.push_back(tmp);
+      }
+    }
 
     int old_hp = health.hp;
 

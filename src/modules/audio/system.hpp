@@ -8,6 +8,6 @@ void
 init_audio_system(GameEditor& editor);
 
 void
-update_audio_system(GameEditor& editor);
+update_audio_system(GameEditor& editor, Game& game);
 
 } // namespace game2d

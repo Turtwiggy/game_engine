@@ -20,6 +20,7 @@
 #include "game/modules/ui_player/system.hpp"
 #include "game/modules/ui_shop/system.hpp"
 #include "game/simulate.hpp"
+#include "modules/audio/system.hpp"
 #include "modules/camera/components.hpp"
 #include "modules/camera/helpers.hpp"
 #include "modules/camera/system.hpp"
@@ -73,7 +74,7 @@ init(engine::SINGLETON_Application& app, GameEditor& editor, Game& game)
 {
   // init_networking_system(editor);
   init_sprite_system(editor);
-  // init_audio_system(editor);
+  init_audio_system(editor);
   init_render_system(app, editor);
 
   // GOAL: remove init_game_state with the
@@ -120,9 +121,11 @@ update(engine::SINGLETON_Application& app, GameEditor& editor, Game& game, float
   const auto& ri = editor.renderer;
   {
     auto _ = time_scope(&p, "game_tick");
+    // general
     update_input_system(app, editor, game);
     update_camera_system(editor, game, dt);
-    // update_audio_system(editor);
+    update_audio_system(editor, game);
+    // game
     update_cursor_system(editor, game);
     update_ux_hover_system(editor, game);
     update_tile_fov_system(editor, game);

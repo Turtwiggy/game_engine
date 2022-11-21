@@ -35,7 +35,7 @@ init_sprite_system(GameEditor& editor)
     // set texture ids
     if (texture.path != "") {
       texture.tex_id = tex_ids[i];
-      std::cout << "set " << texture.path << " to tex_id: " << tex_ids[i] << "unit: " << texture.tex_unit << "\n";
+      std::cout << "set " << texture.path << " to tex_id: " << tex_ids[i] << " unit: " << texture.tex_unit << "\n";
     }
 
     // load sprite info from texture if it exists
