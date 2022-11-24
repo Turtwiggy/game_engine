@@ -8,16 +8,16 @@ if(EMSCRIPTEN)
   message("Compiling for emscripten (toolkit set in cmake-kits.json)")
 
   # https://emscripten.org/docs/tools_reference/emcc.html
-  # add_compile_definitions("-s ALLOW_MEMORY_GROWTH=1")
-  # add_compile_definitions(" --shell-file shell_minimal.html")
-  set(USE_FLAGS "-sMIN_WEBGL_VERSION=2 -sMAX_WEBGL_VERSION=2") # use webgl2
-  set(USE_FLAGS "${USE_FLAGS} -sUSE_SDL=2 -sDISABLE_EXCEPTION_CATCHING=1 -sWASM=1 -sNO_EXIT_RUNTIME=0 -sASSERTIONS=1 -sALLOW_MEMORY_GROWTH=1")
-  set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} ${USE_FLAGS}")
-  set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++20 -stdlib=libc++")
-  set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} ${USE_FLAGS}")
-  set(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} ${USE_FLAGS}")
+  # https://emscripten.org/docs/porting/files/packaging_files.html
+  set(EMS "-sUSE_SDL=2 -sDISABLE_EXCEPTION_CATCHING=1")
+  set(LD_FLAGS "-sWASM=1 -sALLOW_MEMORY_GROWTH=1 -sNO_EXIT_RUNTIME=0 -sASSERTIONS=1")
+  set(LD_FLAGS "${LD_FLAGS} -sMIN_WEBGL_VERSION=2 -sMAX_WEBGL_VERSION=2")
+  set(LD_FLAGS "${LD_FLAGS} -sDEMANGLE_SUPPORT=1 --preload-file assets --bind")
+  set(LD_FLAGS "${LD_FLAGS} --shell-file assets/emscripten/shell_minimal.html")
+  set(LD_FLAGS "${LD_FLAGS} ${EMS}")
 
-  # set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -shell-file ${CMAKE_SOURCE_DIR}/assets/emscripten/shell_minimal.html")
+  set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} ${EMS}")
+  set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++20 -stdlib=libc++ ${EMS}")
   set(CMAKE_EXECUTABLE_SUFFIX ".html")
 
   message("index VCPKG_CHAINLOAD_TOOLCHAIN_FILE: ${VCPKG_CHAINLOAD_TOOLCHAIN_FILE}")
@@ -144,18 +144,19 @@ if(${CMAKE_SYSTEM_NAME} STREQUAL "Windows")
 endif()
 
 if(EMSCRIPTEN)
-  # create symlink assets for build
-  set(src ${CMAKE_SOURCE_DIR}/assets)
-  set(dst ${CMAKE_CURRENT_BINARY_DIR}/../assets)
-  add_custom_command(
-    TARGET ${PROJECT_NAME} PRE_BUILD
-    COMMAND ${CMAKE_COMMAND} -E create_symlink ${src} ${dst}
-    DEPENDS ${dst}
-    COMMENT "symbolic link resources folder from ${src} => ${dst}"
-  )
+  IF(CMAKE_BUILD_TYPE MATCHES DEBUG)
+    # create symlink assets for build
+    set(src ${CMAKE_SOURCE_DIR}/assets)
+    set(dst ${CMAKE_CURRENT_BINARY_DIR}/../assets)
+    add_custom_command(
+      TARGET ${PROJECT_NAME} PRE_BUILD
+      COMMAND ${CMAKE_COMMAND} -E create_symlink ${src} ${dst}
+      DEPENDS ${dst}
+      COMMENT "symbolic link resources folder from ${src} => ${dst}"
+    )
+  endif()
 
-  # See documentation for more details: https://emscripten.org/docs/porting/files/packaging_files.html
-  set_target_properties(game_2d PROPERTIES LINK_FLAGS "-s DEMANGLE_SUPPORT=1 --preload-file assets --bind")
+  set_target_properties(game_2d PROPERTIES LINK_FLAGS "${LD_FLAGS}")
 endif()
 
 set(CPACK_PROJECT_NAME ${PROJECT_NAME})
