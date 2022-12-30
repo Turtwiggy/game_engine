@@ -6,7 +6,7 @@
 - cmake e.g. `choco install cmake`, `brew install cmake`
 - ninja e.g. `choco install ninja`, `brew install ninja`
 
-Windows
+Windows (MSVC)
 
 ```bash
 git clone

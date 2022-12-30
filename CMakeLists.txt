@@ -12,7 +12,7 @@ endif()
 project(subprojects VERSION 0.1.0)
 
 # projects
-add_subdirectory(src)
+add_subdirectory(game_roguelike)
 
 # add_subdirectory(tests)
 set(CPACK_PROJECT_NAME ${PROJECT_NAME})
