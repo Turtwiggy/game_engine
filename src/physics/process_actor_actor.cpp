@@ -11,14 +11,11 @@
 #include <vector>
 
 void
-game2d::update_actor_actor_system(GameEditor& editor, Game& game)
+game2d::update_actor_actor_system(entt::registry& registry, SINGLETON_PhysicsComponent& p)
 {
   // 1. get all the actors
   // 2. generate all possible collisions
   // 3. generate collision enter, exit, stay
-
-  auto& p = game.physics;
-  auto& registry = game.state;
 
   generate_filtered_broadphase_collisions(registry, p.frame_collisions);
 

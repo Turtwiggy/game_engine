@@ -13,16 +13,14 @@
 #include <vector>
 
 void
-game2d::init_input_system(Game& g)
+game2d::init_input_system(SINGLETON_InputComponent& input)
 {
-  auto& input = g.input;
   input.state = SDL_GetKeyboardState(NULL);
 };
 
 void
-game2d::update_input_system(engine::SINGLETON_Application& app, const GameEditor& editor, Game& game)
+game2d::update_input_system(engine::SINGLETON_Application& app, SINGLETON_InputComponent& input)
 {
-  auto& input = game.input;
   input.keys_pressed.clear();
   input.keys_released.clear();
   input.sdl_events.clear();
@@ -76,9 +74,7 @@ game2d::update_input_system(engine::SINGLETON_Application& app, const GameEditor
 
   }; // finished polling events
 
-  const auto& ri = editor.renderer;
   InputEvent ie;
-  ie.hovering_over_ui = !ri.viewport_hovered;
 
   ie.type = InputType::keyboard;
 

@@ -5,7 +5,7 @@
       "includePath": [
         "${workspaceFolder}/src",
         "${workspaceFolder}/game_roguelike/src",
-        "${workspaceFolder}/game_monsters/src",
+        "${workspaceFolder}/game_defence/src",
         "${workspaceFolder}/thirdparty/entt/single_include",
         "${workspaceFolder}/thirdparty/imgui",
         "${workspaceFolder}/thirdparty/magic_enum",

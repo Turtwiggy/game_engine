@@ -10,7 +10,7 @@ in vec2 v_sprite_pos; // x, y location of sprite
 in vec2 v_sprites;    // amount of sprites (x, y)
 in float v_tex_unit;
 
-uniform sampler2D textures[5];
+uniform sampler2D tex;
 
 void
 main()
@@ -35,21 +35,7 @@ main()
     );
 
     out_colour = v_colour;
-    if(index == 0) {
-      out_colour *= texture(textures[0], sprite_uv);
-    }
-    else if(index == 1) {
-      out_colour *= texture(textures[1], sprite_uv);
-    }
-    else if(index == 2) {
-      out_colour *= texture(textures[2], sprite_uv);
-    }
-    else if(index == 3) {
-      out_colour *= texture(textures[3], sprite_uv);
-    }
-    else if(index == 4) {
-      out_colour *= texture(textures[4], sprite_uv);
-    }
+    out_colour *= texture(tex, sprite_uv);
   }
 }
 

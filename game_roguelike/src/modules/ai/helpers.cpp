@@ -91,7 +91,6 @@ astar(entt::registry& registry, const vec2i& from, const vec2i& to)
   // hack: only one dungeon at the moment
   const auto d = registry.view<Dungeon>().front();
   const auto& dungeon = registry.get<Dungeon>(d);
-  const int x_max = dungeon.width;
 
   if (equal<vec2i>(from, to))
     return {};

@@ -1,8 +1,8 @@
 #pragma once
 
 #include "app/application.hpp"
+#include "colour/colour.hpp"
 #include "components.hpp"
-#include "resources/colour.hpp"
 
 #include <entt/entt.hpp>
 
@@ -15,7 +15,7 @@ init_render_system(const engine::SINGLETON_Application& app, SINGLETON_RendererI
 
 void
 update_render_system(SINGLETON_RendererInfo& ri,
-                     const SINGLETON_ColoursComponent& colours,
+                     const engine::LinearColour& lin_background,
                      std::vector<Texture>& tex,
                      entt::registry& registry);
 

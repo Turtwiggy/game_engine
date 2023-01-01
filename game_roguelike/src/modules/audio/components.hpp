@@ -2,6 +2,8 @@
 
 #include "resources/audio.hpp"
 
+#include <vector>
+
 namespace game2d {
 
 // sources can be positioned and played.

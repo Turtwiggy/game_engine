@@ -10,7 +10,7 @@ in vec2 v_sprite_pos;
 in vec2 v_sprites;
 in float v_tex_unit;
 
-uniform sampler2D textures[1];
+uniform sampler2D tex;
 
 float
 linear_to_srgb(float f)
@@ -23,7 +23,7 @@ linear_to_srgb(float f)
 void
 main()
 {
-  vec4 lin = texture(textures[0], v_tex);
+  vec4 lin = texture(tex, v_tex);
 
   vec3 rgb = vec3(
     linear_to_srgb(lin.r),

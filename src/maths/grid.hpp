@@ -4,7 +4,6 @@
 #include <glm/glm.hpp>
 
 // c++ lib headers
-#include <iostream>
 #include <vector>
 
 namespace engine {
@@ -126,14 +125,6 @@ get_unique_cells(glm::vec2 pos, glm::vec2 size, int grid_size, std::vector<glm::
     results.push_back(gc);
   }
 }
-
-// template<typename T>
-// [[nodiscard]] inline T&
-// in_bounds(const std::vector<T>& t, int x, int y, int x_max)
-// {
-//   int index = x_max * y + x;
-//   return index >= 0 && index < t.size();
-// }
 
 } // namespace grid
 

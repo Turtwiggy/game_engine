@@ -1,7 +1,5 @@
 #pragma once
 
-#include "components/app.hpp"
-
 // other lib headers
 #include <entt/entt.hpp>
 #include <glm/glm.hpp>
@@ -40,8 +38,5 @@ get_mouse_mmb_release();
 
 [[nodiscard]] glm::ivec2
 get_mouse_pos();
-
-[[nodiscard]] glm::ivec2
-mouse_position_in_worldspace(GameEditor& editor, Game& game);
 
 } // namespace game2d

@@ -7,6 +7,8 @@
 #include <map>
 #include <vector>
 
+#include <entt/entt.hpp>
+
 namespace game2d {
 
 struct PhysicsTransformComponent
@@ -53,8 +55,6 @@ struct GridMoveComponent
   NLOHMANN_DEFINE_TYPE_INTRUSIVE(GridMoveComponent, x, y);
 };
 
-// events
-
 // A collision occurs between two entities
 struct Collision2D
 {
@@ -63,6 +63,13 @@ struct Collision2D
   bool collision_x = false;
   bool collision_y = false;
   bool dirty = false; // dirty means it occurred last frame
+};
+
+// events
+
+struct WasCollidedWithComponent
+{
+  entt::entity instigator;
 };
 
 // -- singleton components

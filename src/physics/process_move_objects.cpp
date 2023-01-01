@@ -2,7 +2,6 @@
 #include "physics/process_move_objects.hpp"
 
 // components
-#include "components/events.hpp"
 #include "physics/components.hpp"
 #include "physics/helpers.hpp"
 #include "renderer/components.hpp"
