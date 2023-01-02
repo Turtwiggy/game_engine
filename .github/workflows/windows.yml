@@ -45,8 +45,8 @@ jobs:
 
     - name: Restore artifacts, or setup vcpkg for building artifacts
       uses: lukka/run-vcpkg@v10
+      id: runvcpkg
       with:
-        setupOnly: true
         vcpkgDirectory: '${{ github.workspace }}/thirdparty/vcpkg'
     - run: |
         ${{ env.VCPKG_ROOT }}/vcpkg.exe install @${{ matrix.vcpkg-response-file }}
