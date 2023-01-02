@@ -1,0 +1,55 @@
+name: game_defence msvc build
+
+on:
+  push:
+    branches: [ master ]
+
+jobs:
+  build:
+    runs-on: ${{ matrix.os }}
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [windows-latest]
+        include:
+          - os: windows-latest
+            vcpkg-response-file: vcpkg-x64-windows.txt
+
+    steps:
+
+    - uses: actions/checkout@v2
+      with:
+        submodules: 'recursive'
+
+    # Cache/Restore the vcpkg's build artifacts.
+    - name: Cache vcpkg's artifacts
+      uses: actions/cache@v1
+      with:
+        path: ${{ github.workspace }}/thirdparty/vcpkg/
+        # The key will be different each time a different version of vcpkg is used, or different ports are installed.
+        key: ${{ hashFiles( format('{0}/{1}', github.workspace, matrix.vcpkg-response-file )) }}-${{ hashFiles('.git/modules/vcpkg/HEAD') }}-${{ runner.os }}
+    
+    # Download, build vcpkg, install requested ports. 
+    - name: Run vcpkg
+      uses: lukka/run-vcpkg@v1
+      id: runvcpkg
+      with:
+       # Response file stored in source control, it provides the list of ports and triplet(s).
+        vcpkgArguments: '@${{ github.workspace }}/${{ matrix.vcpkg-response-file }}'
+       # Location of the vcpkg as submodule of the repository.
+        vcpkgDirectory: '${{ github.workspace }}/thirdparty/vcpkg'
+
+    - uses: ilammy/msvc-dev-cmd@v1.4.1 # gets msvc
+    - uses: lukka/get-cmake@latest     # gets cmake and ninja
+
+    - name: configure
+      run: cmake --no-warn-unused-cli -DCMAKE_EXPORT_COMPILE_COMMANDS:BOOL=TRUE -DCMAKE_BUILD_TYPE:STRING=Release -S . -B build -G Ninja
+
+    - name: Build
+      run: cmake --build build --config Release --target game_defence_tests --parallel 10
+
+    - name: Make
+      run: cd build && make
+
+    - name: Tests
+      run: ./build/game_defence_tests/game_defence_tests.exe

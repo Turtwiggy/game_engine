@@ -14,11 +14,8 @@ using namespace engine;
 // std lib
 #include <chrono>
 
-bool
-function_returns_true()
-{
-  return true;
-}
+// TEST
+#include "example_function.hpp"
 
 int
 main(int argc, char* argv[])
@@ -28,7 +25,7 @@ main(int argc, char* argv[])
 
   printf("Hello, World!");
 
-  function_returns_true();
+  game2d::function_returns_true();
 
   return 0;
 }
