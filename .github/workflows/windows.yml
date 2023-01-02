@@ -49,7 +49,7 @@ jobs:
         setupOnly: true
         vcpkgDirectory: '${{ github.workspace }}/thirdparty/vcpkg'
     - run: |
-        $VCPKG_ROOT/vcpkg.exe install @${{ matrix.vcpkg-response-file }}
+        ${{ env.VCPKG_ROOT }}/vcpkg.exe install @${{ matrix.vcpkg-response-file }}
 
     - name: configure
       run: cmake --no-warn-unused-cli -DCMAKE_EXPORT_COMPILE_COMMANDS:BOOL=TRUE -DCMAKE_BUILD_TYPE:STRING=Release -S . -B build -G Ninja
