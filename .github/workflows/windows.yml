@@ -1,11 +1,11 @@
-name: game_defence msvc build
+name: game_defence Tests
 
 on:
   push:
     branches: [ develop ]
 
 jobs:
-  build:
+  test:
     runs-on: ${{ matrix.os }}
     strategy:
       fail-fast: false
@@ -37,7 +37,7 @@ jobs:
           !${{ env.VCPKG_ROOT }}/packages
           !${{ env.VCPKG_ROOT }}/downloads
           !${{ env.VCPKG_ROOT }}/installed
-        key: ${{ hashFiles( format('{0}/{1}', github.workspace, matrix.vcpkg-response-file )) }}-${{ hashFiles('.git/modules/vcpkg/HEAD') }}-${{ runner.os }}
+        key: ${{ hashFiles( format('{0}/{1}', github.workspace, matrix.vcpkg-response-file )) }}-${{ hashFiles('.git/modules/thirdparty/vcpkg/HEAD') }}-${{ runner.os }}
     
     - uses: lukka/get-cmake@latest
     
@@ -45,17 +45,16 @@ jobs:
 
     - name: Restore artifacts, or setup vcpkg for building artifacts
       uses: lukka/run-vcpkg@v10
-      id: runvcpkg
       with:
+        setupOnly: true
         vcpkgDirectory: '${{ github.workspace }}/thirdparty/vcpkg'
-        vcpkgArguments: '@${{ github.workspace }}/${{ matrix.vcpkg-response-file }}'
+    - run: |
+        $VCPKG_ROOT/vcpkg.exe install @${{ matrix.vcpkg-response-file }}
 
     - name: configure
       run: cmake --no-warn-unused-cli -DCMAKE_EXPORT_COMPILE_COMMANDS:BOOL=TRUE -DCMAKE_BUILD_TYPE:STRING=Release -S . -B build -G Ninja
-
     - name: Build
       run: cmake --build build --config Release --target game_defence_tests --parallel 10
-
     - name: Make
       run: cd build && make
 

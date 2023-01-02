@@ -1,5 +1,7 @@
 [![License](https://img.shields.io/badge/License-Apache%202.0-blue.svg)](https://opensource.org/licenses/Apache-2.0)
 
+[![game_defence Tests](https://github.com/Turtwiggy/game_engine/actions/workflows/windows.yml/badge.svg?branch=develop)](https://github.com/Turtwiggy/game_engine/actions/workflows/windows.yml)
+
 ### Install
 
 - c++ compiler (MSVC, gcc, clang)
