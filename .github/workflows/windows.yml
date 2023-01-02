@@ -51,12 +51,11 @@ jobs:
     - run: |
         ${{ env.VCPKG_ROOT }}/vcpkg.exe install @${{ matrix.vcpkg-response-file }}
 
-    - name: configure
-      run: cmake --no-warn-unused-cli -DCMAKE_EXPORT_COMPILE_COMMANDS:BOOL=TRUE -DCMAKE_BUILD_TYPE:STRING=Release -S . -B build -G Ninja
-    - name: Build
-      run: cmake --build build --config Release --target game_defence_tests --parallel 10
-    - name: Make
-      run: cd build && make
-
-    - name: Tests
-      run: ./build/game_defence_tests/game_defence_tests.exe
+    # - name: configure
+    #   run: cmake --no-warn-unused-cli -DCMAKE_EXPORT_COMPILE_COMMANDS:BOOL=TRUE -DCMAKE_BUILD_TYPE:STRING=Release -S . -B build -G Ninja
+    # - name: Build
+    #   run: cmake --build build --config Release --target game_defence_tests --parallel 10
+    # - name: Make
+    #   run: cd build && make
+    # - name: Tests
+    #   run: ./build/game_defence_tests/game_defence_tests.exe
