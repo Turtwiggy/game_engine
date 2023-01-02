@@ -14,33 +14,41 @@ jobs:
         include:
           - os: windows-latest
             vcpkg-response-file: vcpkg-x64-windows.txt
+            triplet: x64-windows
+    env:
+      # Indicates the location of the vcpkg as a Git submodule of the project repository.
+      VCPKG_ROOT: ${{ github.workspace }}/thirdparty/vcpkg
 
     steps:
 
-    - uses: actions/checkout@v2
+    - uses: actions/checkout@v3
       with:
-        submodules: 'recursive'
+        submodules: true
 
-    # Cache/Restore the vcpkg's build artifacts.
-    - name: Cache vcpkg's artifacts
-      uses: actions/cache@v1
+    - name: Restore vcpkg and its artifacts.
+      uses: actions/cache@v3
       with:
-        path: ${{ github.workspace }}/thirdparty/vcpkg/
-        # The key will be different each time a different version of vcpkg is used, or different ports are installed.
+        # The first path is the location of vcpkg: it contains the vcpkg executable and data files, as long as the
+        # built package archives (aka binary cache) which are located by VCPKG_DEFAULT_BINARY_CACHE env var.
+        # The other paths starting with '!' are exclusions: they contain termporary files generated during the build of the installed packages.
+        path: |
+          ${{ env.VCPKG_ROOT }}
+          !${{ env.VCPKG_ROOT }}/buildtrees
+          !${{ env.VCPKG_ROOT }}/packages
+          !${{ env.VCPKG_ROOT }}/downloads
+          !${{ env.VCPKG_ROOT }}/installed
         key: ${{ hashFiles( format('{0}/{1}', github.workspace, matrix.vcpkg-response-file )) }}-${{ hashFiles('.git/modules/vcpkg/HEAD') }}-${{ runner.os }}
     
-    # Download, build vcpkg, install requested ports. 
-    - name: Run vcpkg
-      uses: lukka/run-vcpkg@v1
+    - uses: lukka/get-cmake@latest
+    
+    - uses: ilammy/msvc-dev-cmd@v1.4.1
+
+    - name: Restore artifacts, or setup vcpkg for building artifacts
+      uses: lukka/run-vcpkg@v10
       id: runvcpkg
       with:
-       # Response file stored in source control, it provides the list of ports and triplet(s).
-        vcpkgArguments: '@${{ github.workspace }}/${{ matrix.vcpkg-response-file }}'
-       # Location of the vcpkg as submodule of the repository.
         vcpkgDirectory: '${{ github.workspace }}/thirdparty/vcpkg'
-
-    - uses: ilammy/msvc-dev-cmd@v1.4.1 # gets msvc
-    - uses: lukka/get-cmake@latest     # gets cmake and ninja
+        vcpkgArguments: '@${{ github.workspace }}/${{ matrix.vcpkg-response-file }}'
 
     - name: configure
       run: cmake --no-warn-unused-cli -DCMAKE_EXPORT_COMPILE_COMMANDS:BOOL=TRUE -DCMAKE_BUILD_TYPE:STRING=Release -S . -B build -G Ninja
