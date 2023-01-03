@@ -21,35 +21,19 @@ jobs:
 
     steps:
 
+    - uses: lukka/get-cmake@latest
+    - uses: ilammy/msvc-dev-cmd@v1.4.1
     - uses: actions/checkout@v3
       with:
         submodules: true
 
-    - name: Restore vcpkg and its artifacts.
-      uses: actions/cache@v3
-      with:
-        # The first path is the location of vcpkg: it contains the vcpkg executable and data files, as long as the
-        # built package archives (aka binary cache) which are located by VCPKG_DEFAULT_BINARY_CACHE env var.
-        # The other paths starting with '!' are exclusions: they contain termporary files generated during the build of the installed packages.
-        path: |
-          ${{ env.VCPKG_ROOT }}
-          !${{ env.VCPKG_ROOT }}/buildtrees
-          !${{ env.VCPKG_ROOT }}/packages
-          !${{ env.VCPKG_ROOT }}/downloads
-          !${{ env.VCPKG_ROOT }}/installed
-        key: ${{ hashFiles( format('{0}/{1}', github.workspace, matrix.vcpkg-response-file )) }}-${{ hashFiles('.git/modules/thirdparty/vcpkg/HEAD') }}-${{ runner.os }}
-    
-    - uses: lukka/get-cmake@latest
-    
-    - uses: ilammy/msvc-dev-cmd@v1.4.1
-
     - name: Restore artifacts, or setup vcpkg for building artifacts
-      uses: lukka/run-vcpkg@v10
+      uses: lukka/run-vcpkg@v5
       id: runvcpkg
       with:
+        vcpkgArguments: '@${{ env.vcpkgResponseFile }}'
         vcpkgDirectory: '${{ github.workspace }}/thirdparty/vcpkg'
-    - run: |
-        ${{ env.VCPKG_ROOT }}/vcpkg.exe install @${{ matrix.vcpkg-response-file }}
+        appendedCacheKey: ${{ hashFiles(matrix.vcpkg-response-file) }}
 
     - name: configure
       run: |
