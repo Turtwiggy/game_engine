@@ -1,11 +1,11 @@
-name: game_defence Tests
+name: game_defence
 
 on:
   push:
     branches: [ develop ]
 
 jobs:
-  test:
+  test-then-upload-game:
     runs-on: ${{ matrix.os }}
     strategy:
       fail-fast: false
@@ -59,6 +59,12 @@ jobs:
 
     - name: copy-assets
       run: cp -r ${{ github.workspace }}/game_defence/assets ./build/game_defence/
+
+    - name: cleanup-build-dir
+      run: |
+        rm ./build/game_defence/cmake_install.cmake 
+        rm ./build/game_defence/game_defence.exe.manifest
+        rm -r ./build/game_defence/CMakeFiles
 
     - name: upload-game
       uses: actions/upload-artifact@v3
