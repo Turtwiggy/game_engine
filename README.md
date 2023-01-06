@@ -1,14 +1,14 @@
 [![License](https://img.shields.io/badge/License-Apache%202.0-blue.svg)](https://opensource.org/licenses/Apache-2.0)
 
-[![game_defence Tests](https://github.com/Turtwiggy/game_engine/actions/workflows/windows.yml/badge.svg?branch=develop)](https://github.com/Turtwiggy/game_engine/actions/workflows/windows.yml)
+[![game_defence_tests](https://github.com/Turtwiggy/game_engine/actions/workflows/windows.yml/badge.svg?branch=develop)](https://github.com/Turtwiggy/game_engine/actions/workflows/windows.yml)
 
 ### Install
 
-- c++ compiler (MSVC, gcc, clang)
+- c++ compiler (MSVC, g++, clang)
 - cmake e.g. `choco install cmake`, `brew install cmake`
 - ninja e.g. `choco install ninja`, `brew install ninja`
 
-Windows (MSVC) & Mac & Linux
+Windows & Mac & Linux
 
 ```bash
 git clone
