@@ -40,8 +40,29 @@ jobs:
         mkdir build
         cmake --no-warn-unused-cli -DCMAKE_EXPORT_COMPILE_COMMANDS:BOOL=TRUE -DCMAKE_BUILD_TYPE:STRING=Release -S . -B build -G Ninja
     
-    - name: Build
-      run: cmake --build build --config Release --target game_defence_tests --parallel 10
+    #
+    # Tests
+    #
 
-    - name: Test
+    - name: build-tests
+      run: cmake --build build --config Release --target game_defence_tests --parallel 10
+    
+    - name: run-tests
       run: ./build/game_defence_tests/game_defence_tests.exe
+
+    #
+    # Release
+    # 
+
+    - name: build-game
+      run: cmake --build build --config Release --target game_defence --parallel 10
+
+    - name: copy-assets
+      run: cp -r ${{ github.workspace }}/game_defence/assets ./build/game_defence/
+
+    - name: upload-game
+      uses: actions/upload-artifact@v3
+      with:
+        name: game_defence
+        path: ./build/game_defence
+
