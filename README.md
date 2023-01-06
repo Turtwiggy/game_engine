@@ -8,23 +8,13 @@
 - cmake e.g. `choco install cmake`, `brew install cmake`
 - ninja e.g. `choco install ninja`, `brew install ninja`
 
-Windows (MSVC)
+Windows (MSVC) & Mac & Linux
 
 ```bash
 git clone
 git submodule update --init --recursive
 thirdparty/vcpkg/bootstrap-vcpkg.bat
-thirdparty/vcpkg/vcpkg.exe install @vcpkg-x64-windows.txt
-```
-
-Mac
-
-```bash
-git clone
-git submodule update --init --recursive
-thirdparty/vcpkg/bootstrap-vcpkg.bat
-thirdparty/vcpkg/vcpkg.exe install @vcpkg-x64-osx.txt
-
+thirdparty/vcpkg/vcpkg.exe install
 ```
 
 Emscripten
@@ -37,10 +27,6 @@ thirdparty/emsdk/emsdk activate latest
 thirdparty/vcpkg/bootstrap-vcpkg.bat
 thirdparty/vcpkg/vcpkg.exe install @vcpkg-wasm32-emscripten.txt
 ```
-
-note: Not used vcpkg.json as it seems
-to slow down build time by ~5s as the vscode c++ extention
-seems to reload / check dependencies when building ( every time )
 
 ### Develop
 
