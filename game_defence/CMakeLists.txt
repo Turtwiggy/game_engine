@@ -112,19 +112,21 @@ endif()
 target_link_libraries(game_defence PRIVATE glm::glm)
 target_link_libraries(game_defence PRIVATE nlohmann_json::nlohmann_json)
 
-if(${CMAKE_SYSTEM_NAME} STREQUAL "Windows")
-  # create symlink assets for build
-  set(src ${CMAKE_SOURCE_DIR}/game_defence/assets)
-  set(dst ${CMAKE_CURRENT_BINARY_DIR}/assets)
-  add_custom_command(
-    TARGET ${PROJECT_NAME} PRE_BUILD
-    COMMAND ${CMAKE_COMMAND} -E create_symlink ${src} ${dst}
-    DEPENDS ${dst}
-    COMMENT "symbolic link resources folder from ${src} => ${dst}"
-  )
+IF(${CMAKE_SYSTEM_NAME} STREQUAL "Windows")
+  IF(CMAKE_BUILD_TYPE MATCHES DEBUG)
+    # create symlink assets for build
+    set(src ${CMAKE_SOURCE_DIR}/game_defence/assets)
+    set(dst ${CMAKE_CURRENT_BINARY_DIR}/assets)
+    add_custom_command(
+      TARGET ${PROJECT_NAME} PRE_BUILD
+      COMMAND ${CMAKE_COMMAND} -E create_symlink ${src} ${dst}
+      DEPENDS ${dst}
+      COMMENT "symbolic link resources folder from ${src} => ${dst}"
+    )
+  endif()
 endif()
 
-if(EMSCRIPTEN)
+IF(EMSCRIPTEN)
   IF(CMAKE_BUILD_TYPE MATCHES DEBUG)
     # create symlink assets for build
     set(src ${CMAKE_SOURCE_DIR}/game_defence/assets)
