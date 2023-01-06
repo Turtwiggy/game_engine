@@ -30,7 +30,7 @@ main(int argc, char** argv)
 
 TEST(TestSuite, HelloTest)
 {
-  ASSERT_EQ(0.0f, 0.0f);
+  ASSERT_TRUE(game2d::function_returns_true());
 }
 
 TEST(TestSuite, HelloTest2)

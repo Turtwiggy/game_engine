@@ -16,8 +16,8 @@ jobs:
             vcpkg-response-file: vcpkg-x64-windows.txt
             triplet: x64-windows
     env:
-      # Indicates the location of the vcpkg as a Git submodule of the project repository.
       VCPKG_ROOT: ${{ github.workspace }}/thirdparty/vcpkg
+      VCPKG_DEFAULT_TRIPLET: ${{ matrix.triplet }}
 
     steps:
 
@@ -28,21 +28,23 @@ jobs:
         submodules: true
 
     - name: Restore artifacts, or setup vcpkg for building artifacts
-      uses: lukka/run-vcpkg@v5
+      uses: lukka/run-vcpkg@v10
       id: runvcpkg
       with:
-        vcpkgArguments: '@${{ env.vcpkgResponseFile }}'
         vcpkgDirectory: '${{ github.workspace }}/thirdparty/vcpkg'
-        appendedCacheKey: ${{ hashFiles(matrix.vcpkg-response-file) }}
+        vcpkgJsonGlob: "**/vcpkg.json"
+        runVcpkgInstall: true
 
     - name: configure
       run: |
         mkdir build
         cmake --no-warn-unused-cli -DCMAKE_EXPORT_COMPILE_COMMANDS:BOOL=TRUE -DCMAKE_BUILD_TYPE:STRING=Release -S . -B build -G Ninja
     
-    # - name: Build
-    #   run: cmake --build build --config Release --target game_defence_tests --parallel 10
-    # - name: Make
-    #   run: cd build && make
-    # - name: Tests
-    #   run: ./build/game_defence_tests/game_defence_tests.exe
+    - name: Build
+      run: cmake --build build --config Release --target game_defence_tests --parallel 10
+
+    - name: Make
+      run: cd build && make
+
+    - name: Tests
+      run: ./build/game_defence_tests/game_defence_tests.exe

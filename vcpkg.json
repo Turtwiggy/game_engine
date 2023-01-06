@@ -1,0 +1,14 @@
+{
+  "name": "default",
+  "version-string": "0.0.1",
+  "dependencies": [
+    "glew",
+    "glm",
+    "sdl2",
+    "openal-soft",
+    "stb",
+    "nlohmann-json",
+    "gamenetworkingsockets",
+    "gtest"
+  ]
+}
