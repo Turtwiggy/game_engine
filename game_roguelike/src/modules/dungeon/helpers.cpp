@@ -235,10 +235,20 @@ game2d::transfer_old_state_generate_dungeon(GameEditor& editor, Game& game, cons
       entt::entity e = create_gameplay(editor, game, et);
       create_renderable(editor, game, e, et);
 
-      // debug: give the player a sword
-      // entt::entity sword = create_item(editor, r, EntityType::sword, e);
-      // entt::entity shield = create_item(editor, r, EntityType::shield, e);
-      // WantsToEquip& equip = r.get_or_emplace<WantsToEquip>(e);
+      // debug: give the player starting equipment
+      // entt::entity sword_0 = create_item(editor, game.state, EntityType::sword, e);
+      // entt::entity sword_1 = create_item(editor, game.state, EntityType::sword, e);
+      // entt::entity shield_0 = create_item(editor, game.state, EntityType::shield, e);
+      // entt::entity shield_1 = create_item(editor, game.state, EntityType::shield, e);
+      // auto& purchase = game.state.get_or_emplace<WantsToPurchase>(e);
+      // std::vector<entt::entity> items{
+      //   sword_0, sword_1, shield_0, shield_1,
+      // };
+      // purchase.items.insert(purchase.items.end(), items.begin(), items.end());
+
+      // entt::entity sword = create_item(editor, game.state, EntityType::sword, e);
+      // entt::entity shield = create_item(editor, game.state, EntityType::shield, e);
+      // WantsToEquip& equip = game.state.get_or_emplace<WantsToEquip>(e);
       // equip.requests.push_back({ EquipmentSlot::left_hand, sword });
       // equip.requests.push_back({ EquipmentSlot::right_hand, shield });
     }

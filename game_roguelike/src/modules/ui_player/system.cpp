@@ -2,15 +2,15 @@
 
 #include "components/actors.hpp"
 #include "components/events.hpp"
+#include "helpers.hpp"
 #include "helpers/check_equipment.hpp"
 #include "modules/combat/components.hpp"
 #include "modules/items/components.hpp"
 #include "modules/items/helpers.hpp"
 #include "modules/player/components.hpp"
 #include "modules/rpg_xp/components.hpp"
-#include "helpers.hpp"
-#include "renderer/components.hpp"
 #include "modules/ux_hover/components.hpp"
+#include "renderer/components.hpp"
 
 #include "magic_enum.hpp"
 #include <entt/entt.hpp>
@@ -174,9 +174,16 @@ update_ui_player_system(GameEditor& editor, Game& game)
 
       for (const auto& [tag, entity_items] : compacted_items) {
 
+        // assume all the compacted items have the same state
+        // this could break if potions had internal state,
+        // e.g. usages left
         const auto& entity_item = entity_items[0];
 
         if (auto* equipment = r.try_get<Equipment>(entity_item)) {
+          const auto ent_id = static_cast<uint32_t>(entity_item);
+          const auto ent_id_as_str = std::to_string(ent_id);
+          const auto id_lhand = std::string("l-hand-") + ent_id_as_str;
+          const auto id_rhand = std::string("r-hand-") + ent_id_as_str;
 
           // cut this sprite in half
           const auto& slots = editor.textures;
@@ -192,18 +199,14 @@ update_ui_player_system(GameEditor& editor, Game& game)
           ImGui::Text("Equip ");
           ImGui::SameLine();
           {
-            char l_hand_buffer[64];
-            sprintf(l_hand_buffer, "lhand_x%iy%i", spr_x, spr_y);
-            if (ImGui::ImageButton(l_hand_buffer, tex_id, icon_size, l_hand_uv[0], l_hand_uv[1])) {
+            if (ImGui::ImageButton(id_lhand.c_str(), tex_id, icon_size, l_hand_uv[0], l_hand_uv[1])) {
               auto& u = r.get_or_emplace<WantsToEquip>(entity);
               u.requests.push_back({ EquipmentSlot::left_hand, entity_item });
             }
           }
           ImGui::SameLine();
           {
-            char r_hand_buffer[64];
-            sprintf(r_hand_buffer, "rhand_x%iy%i", spr_x, spr_y);
-            if (ImGui::ImageButton(r_hand_buffer, tex_id, icon_size, r_hand_uv[0], r_hand_uv[1])) {
+            if (ImGui::ImageButton(id_rhand.c_str(), tex_id, icon_size, r_hand_uv[0], r_hand_uv[1])) {
               auto& u = r.get_or_emplace<WantsToEquip>(entity);
               u.requests.push_back({ EquipmentSlot::right_hand, entity_item });
             }

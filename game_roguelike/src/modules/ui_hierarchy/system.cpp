@@ -2,11 +2,11 @@
 
 // components
 #include "colour/colour.hpp"
+#include "modules/ui_hierarchy/components.hpp"
+#include "modules/ui_hierarchy/helpers.hpp"
 #include "physics/components.hpp"
 #include "renderer/components.hpp"
 #include "sprites/components.hpp"
-#include "modules/ui_hierarchy/components.hpp"
-#include "modules/ui_hierarchy/helpers.hpp"
 
 // other lib headers
 #include <glm/gtc/type_ptr.hpp>
@@ -70,7 +70,8 @@ game2d::update_ui_hierarchy_system(GameEditor& editor, Game& game)
       selected_entity = entt::null;
 
     // Right click on menu
-    if (ImGui::BeginPopupContextWindow(0, 1, false)) {
+    ImGuiPopupFlags popup_flags = ImGuiPopupFlags_None;
+    if (ImGui::BeginPopupContextWindow("##hierarchycontext", popup_flags)) {
       if (ImGui::MenuItem("A wild uselss menu item appeared...!")) {
         // do nothing
       }

@@ -19,11 +19,11 @@
 void
 game2d::update_ui_profiler_system(GameEditor& editor, Game& game)
 {
-#ifdef _DEBUG
+  // #ifdef _DEBUG
   // less than X-fps?! what is this?!
   // if (ImGui::GetIO().Framerate <= 45 && ImGui::GetFrameCount() > 120)
   //   std::cout << "(profiler) fps drop?!" << "\n";
-#endif
+  // #endif
 
   auto& profiler = editor.profiler;
   const auto& registry = game.state;

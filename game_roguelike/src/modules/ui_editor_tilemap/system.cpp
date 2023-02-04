@@ -22,15 +22,6 @@
 void
 game2d::update_ui_editor_tilemap_system(GameEditor& editor, Game& game)
 {
-  // #ifdef _DEBUG
-  //   bool show_imgui_demo_window = true;
-  //   ImGui::ShowDemoWindow(&show_imgui_demo_window);
-  // #endif
-
-  //
-  // Prefab GameEditor
-  //
-
   auto& ss = editor.sprites;
   auto& r = game.state;
 
