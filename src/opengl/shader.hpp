@@ -5,8 +5,8 @@
 
 // c++ standard library headers
 #include <iostream>
+#include <span>
 #include <string>
-#include <vector>
 
 namespace engine {
 
@@ -36,7 +36,7 @@ public:
 
   void set_bool(const std::string& name, bool value) const;
   void set_int(const std::string& name, int value) const;
-  void set_int_array(const std::string& name, int* values, int count) const;
+  void set_int_array(const std::string& name, std::span<const int> values) const;
   void set_uint(const std::string& name, unsigned int value) const;
   void set_float(const std::string& name, float value) const;
   void set_vec2(const std::string& name, const glm::vec2& value) const;
@@ -51,7 +51,7 @@ public:
 
   [[nodiscard]] int get_uniform_binding_location(const std::string& name) const;
 
-  [[nodiscard]] int get_compute_buffer_binding_location(const std::string& name) const;
+  [[nodiscard]] int get_compute_buffer_bind_location(const std::string& name) const;
   void set_compute_buffer_bind_location(const std::string& name);
 
 private:

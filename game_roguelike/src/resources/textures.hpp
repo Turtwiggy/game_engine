@@ -1,8 +1,8 @@
 #pragma once
 
+#include "modules/sprites/helpers.hpp"
 #include "opengl/texture.hpp"
 #include "renderer/helpers.hpp"
-#include "sprites/helpers.hpp"
 
 #include <string>
 #include <vector>

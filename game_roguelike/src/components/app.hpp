@@ -4,6 +4,7 @@
 #include "lifecycle/components.hpp"
 #include "maths/maths.hpp"
 #include "modules/ui_event_console/components.hpp"
+#include "modules/ui_profiler/components.hpp"
 #include "modules/ui_sprite_searcher/components.hpp"
 #include "physics/components.hpp"
 #include "renderer/components.hpp"
@@ -11,7 +12,6 @@
 #include "resources/colour.hpp"
 #include "resources/textures.hpp"
 #include "sprites/components.hpp"
-#include "ui_profiler/components.hpp"
 
 #include <entt/entt.hpp>
 

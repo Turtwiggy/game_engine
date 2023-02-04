@@ -8,13 +8,13 @@
 - cmake e.g. `choco install cmake`, `brew install cmake`
 - ninja e.g. `choco install ninja`, `brew install ninja`
 
-Windows & Mac & Linux
+Windows & Mac & Linux (see triplet in file)
 
 ```bash
 git clone
 git submodule update --init --recursive
 thirdparty/vcpkg/bootstrap-vcpkg.bat
-thirdparty/vcpkg/vcpkg.exe install
+thirdparty/vcpkg/vcpkg.exe install @vcpkg-x64-windows.txt
 ```
 
 Emscripten

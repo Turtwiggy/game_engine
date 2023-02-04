@@ -1,7 +1,5 @@
 #pragma once
 
-#include "ui_hierarchy/components.hpp"
-
 // other lib headers
 #include <entt/entt.hpp>
 #include <nlohmann/json.hpp>

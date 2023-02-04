@@ -1,9 +1,9 @@
 #include "take_damage.hpp"
 
 #include "components.hpp"
+#include "modules/audio/components.hpp"
 #include "modules/player/components.hpp"
 #include "resources/audio.hpp"
-#include "audio/components.hpp"
 
 #include <entt/entt.hpp>
 

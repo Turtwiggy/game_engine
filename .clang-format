@@ -1,3 +1,4 @@
 BasedOnStyle: Mozilla
 ColumnLimit: 120
 IndentWidth: 2
+# AlignConsecutiveDeclarations: true

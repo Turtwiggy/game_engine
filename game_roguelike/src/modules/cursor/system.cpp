@@ -1,8 +1,9 @@
 // your header
 #include "system.hpp"
 
-#include "helpers.hpp"
 #include "events/helpers/mouse.hpp"
+#include "helpers.hpp"
+#include "modules/camera/helpers.hpp"
 
 // other lib headers
 #include <glm/glm.hpp>

@@ -1,5 +1,5 @@
 // header
-#include "sprites/helpers.hpp"
+#include "modules/sprites/helpers.hpp"
 
 // other libs
 #include <nlohmann/json.hpp>
@@ -36,24 +36,20 @@ load_sprites(std::vector<SpriteAnimation>& sprites, const std::string path)
   // int ny = ss["ny"];
 
   auto s = data["sprites"];
-
   for (auto& el : s) {
-    SpriteAnimation s;
-    s.name = el["name"];
-
+    auto name = el["name"];
     auto frames = el["frames"];
-    for (auto& frame : frames) {
-      Frame f;
-      f.x = frame["x"];
-      f.y = frame["y"];
-      s.animation_frames.push_back({ f.x, f.y });
-    }
 
-    if (el.contains("angle")) {
-      s.animation_angle_degrees = el["angle"];
-    }
+    SpriteAnimation anim;
+    anim.name = name;
 
-    sprites.push_back(s);
+    for (auto& frame : frames)
+      anim.animation_frames.push_back({ frame["x"], frame["y"] });
+
+    if (el.contains("angle"))
+      anim.animation_angle_degrees = el["angle"];
+
+    sprites.push_back(anim);
   }
 };
 

@@ -1,9 +1,12 @@
 #include "helpers.hpp"
 
-#include "maths/grid.hpp"
-#include "maths/maths.hpp"
+#include "camera/components.hpp"
+#include "components.hpp"
 #include "components/actors.hpp"
 #include "components/events.hpp"
+#include "events/system.hpp"
+#include "maths/grid.hpp"
+#include "maths/maths.hpp"
 #include "modules/combat/components.hpp"
 #include "modules/dungeon/helpers/create.hpp"
 #include "modules/dungeon/helpers/generate.hpp"
@@ -11,25 +14,20 @@
 #include "modules/items/components.hpp"
 #include "modules/player/components.hpp"
 #include "modules/rpg_xp/components.hpp"
-#include "camera/components.hpp"
-#include "events/system.hpp"
-#include "components.hpp"
-#include "maths/maths.hpp"
-#include "components/actors.hpp"
 
 // headers that probably shouldnt be in this file
 #include "modules/ai/components.hpp"
 #include "modules/ai/helpers.hpp"
 #include "modules/fov/system.hpp"
-#include "ui_hierarchy/helpers.hpp"
+#include "modules/ui_hierarchy/helpers.hpp"
 
 #include "magic_enum.hpp"
 #include <entt/entt.hpp>
 #include <glm/glm.hpp>
 
 #include <string>
-#include <vector>
 #include <utility>
+#include <vector>
 
 namespace game2d {
 
@@ -245,7 +243,7 @@ game2d::transfer_old_state_generate_dungeon(GameEditor& editor, Game& game, cons
       // equip.requests.push_back({ EquipmentSlot::right_hand, shield });
     }
   }
-  init_input_system(game);
+  init_input_system(game.input);
 
   int players = game.state.view<PlayerComponent>().size();
   std::cout << "players: " << players << "\n";

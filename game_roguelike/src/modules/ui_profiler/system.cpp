@@ -4,9 +4,9 @@
 // components
 #include "components/actors.hpp"
 #include "helpers.hpp"
+#include "modules/ui_profiler/components.hpp"
 #include "physics/components.hpp"
 #include "renderer/components.hpp"
-#include "ui_profiler/components.hpp"
 
 // helpers
 #include "renderer/helpers/batch_quad.hpp"

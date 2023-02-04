@@ -1,6 +1,6 @@
 #include "system.hpp"
 
-#include "sprites/helpers.hpp"
+#include "modules/sprites/helpers.hpp"
 #include "modules/ui_sprite_searcher/components.hpp"
 
 #include <imgui.h>

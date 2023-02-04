@@ -14,6 +14,8 @@
 #include "modules/resolve_collisions/system.hpp"
 #include "modules/rpg_xp/stats.hpp"
 #include "modules/rpg_xp/system.hpp"
+#include "modules/ui_profiler/components.hpp"
+#include "modules/ui_profiler/helpers.hpp"
 
 #include "events/components.hpp"
 #include "events/helpers/keyboard.hpp"
@@ -23,8 +25,6 @@
 #include "physics/components.hpp"
 #include "physics/process_actor_actor.hpp"
 #include "physics/process_move_objects.hpp"
-#include "ui_profiler/components.hpp"
-#include "ui_profiler/helpers.hpp"
 
 void
 game2d::simulate(GameEditor& editor, Game& game, const std::vector<InputEvent>& inputs, uint64_t milliseconds_dt)
@@ -48,7 +48,7 @@ game2d::simulate(GameEditor& editor, Game& game, const std::vector<InputEvent>& 
     auto _ = time_scope(&p, "(physics)", true);
     auto& r = game.state;
     update_move_objects_system(r, milliseconds_dt); // move objects, checking collisions along way
-    update_actor_actor_system(editor, game);
+    update_actor_actor_system(game.state, game.physics);
     update_resolve_collisions_system(game); // resolve collisions immediately
   }
 

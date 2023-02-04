@@ -1,11 +1,13 @@
 #include "helpers.hpp"
 
-#include "maths/grid.hpp"
 #include "components/actors.hpp"
-#include "modules/ai/helpers.hpp"
-#include "modules/items/components.hpp"
 #include "entt/helpers.hpp"
+#include "events/components.hpp"
 #include "events/helpers/mouse.hpp"
+#include "maths/grid.hpp"
+#include "modules/ai/helpers.hpp"
+#include "modules/camera/helpers.hpp"
+#include "modules/items/components.hpp"
 
 #include <glm/glm.hpp>
 

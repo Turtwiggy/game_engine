@@ -32,41 +32,29 @@ jobs:
       id: runvcpkg
       with:
         vcpkgDirectory: '${{ github.workspace }}/thirdparty/vcpkg'
-        vcpkgJsonGlob: "**/vcpkg.json"
+        vcpkgJsonGlob: "**/vcpkg-github.json"
         runVcpkgInstall: true
 
-    - name: Configure
-      run: |
-        mkdir build
-        cmake --no-warn-unused-cli -DCMAKE_EXPORT_COMPILE_COMMANDS:BOOL=TRUE -DCMAKE_BUILD_TYPE:STRING=Release -S . -B build -G Ninja
-    
-    #
-    # Tests
-    #
+    - name: configure
+      run: mkdir build && cmake --no-warn-unused-cli -DCMAKE_EXPORT_COMPILE_COMMANDS:BOOL=TRUE -DCMAKE_BUILD_TYPE:STRING=Release -S . -B build -G Ninja
 
-    - name: build-tests
+    - name: tests-build
       run: cmake --build build --config Release --target game_defence_tests --parallel 10
     
-    - name: run-tests
+    - name: tests-run
       run: ./build/game_defence_tests/game_defence_tests.exe
 
-    #
-    # Release
-    # 
-
-    - name: build-game
+    - name: game-build
       run: cmake --build build --config Release --target game_defence --parallel 10
 
-    - name: copy-assets
-      run: cp -r ${{ github.workspace }}/game_defence/assets ./build/game_defence/
-
-    - name: cleanup-build-dir
-      run: |
+    - name: game-assets
+      run: | 
+        cp -r ${{ github.workspace }}/game_defence/assets ./build/game_defence/
         rm ./build/game_defence/cmake_install.cmake 
         rm ./build/game_defence/game_defence.exe.manifest
         rm -r ./build/game_defence/CMakeFiles
 
-    - name: upload-game
+    - name: game-release
       uses: actions/upload-artifact@v3
       with:
         name: game_defence

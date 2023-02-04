@@ -1,5 +1,8 @@
 #include "helpers.hpp"
 
+#include "camera/components.hpp"
+#include "events/helpers/mouse.hpp"
+
 namespace game2d {
 
 glm::ivec2

@@ -5,16 +5,15 @@
 
 // systems&components&helpers
 #include "app/application.hpp"
-#include "maths/grid.hpp"
-
-#include "audio/system.hpp"
 #include "camera/components.hpp"
 #include "camera/helpers.hpp"
-#include "camera/system.hpp"
 #include "components/actors.hpp"
 #include "events/helpers/keyboard.hpp"
 #include "events/system.hpp"
+#include "maths/grid.hpp"
 #include "modules/ai/system.hpp"
+#include "modules/audio/system.hpp"
+#include "modules/camera/system.hpp"
 #include "modules/cursor/system.hpp"
 #include "modules/dungeon/helpers.hpp"
 #include "modules/dungeon/system.hpp"
@@ -22,13 +21,18 @@
 #include "modules/items/components.hpp"
 #include "modules/player/components.hpp"
 #include "modules/resolve_collisions/system.hpp"
+#include "modules/sprites/system.hpp"
 #include "modules/ui_editor_colour_palette/system.hpp"
 #include "modules/ui_editor_scene/system.hpp"
 #include "modules/ui_editor_tilemap/components.hpp"
 #include "modules/ui_editor_tilemap/system.hpp"
 #include "modules/ui_event_console/system.hpp"
+#include "modules/ui_hierarchy/helpers.hpp"
+#include "modules/ui_hierarchy/system.hpp"
 #include "modules/ui_main_menu/system.hpp"
 #include "modules/ui_player/system.hpp"
+#include "modules/ui_profiler/helpers.hpp"
+#include "modules/ui_profiler/system.hpp"
 #include "modules/ui_screen_gameover/system.hpp"
 #include "modules/ui_screen_welcome/system.hpp"
 #include "modules/ui_shop/system.hpp"
@@ -39,11 +43,6 @@
 #include "renderer/system.hpp"
 #include "resources/textures.hpp"
 #include "simulate.hpp"
-#include "sprites/system.hpp"
-#include "ui_hierarchy/helpers.hpp"
-#include "ui_hierarchy/system.hpp"
-#include "ui_profiler/helpers.hpp"
-#include "ui_profiler/system.hpp"
 
 #include <glm/glm.hpp>
 #include <imgui.h>
@@ -126,7 +125,7 @@ update(engine::SINGLETON_Application& app, GameEditor& editor, Game& game, float
   {
     auto _ = time_scope(&p, "game_tick");
     // general
-    update_input_system(app, editor, game);
+    update_input_system(app, game.input);
     update_camera_system(editor, game, dt);
     update_audio_system(editor, game);
     // game
@@ -154,7 +153,7 @@ update(engine::SINGLETON_Application& app, GameEditor& editor, Game& game, float
     auto _ = time_scope(&p, "rendering");
     update_sprite_system(editor, game, dt);
     auto texs = convert_tag_textures_to_textures(editor.textures);
-    update_render_system(editor.renderer, editor.colours, texs, game.state);
+    update_render_system(editor.renderer, editor.colours.lin_background, texs, game.state);
   };
 
   {

@@ -2,17 +2,17 @@
 #include "components.hpp"
 
 #include "colour/colour.hpp"
-#include "maths/grid.hpp"
 #include "components/actors.hpp"
-#include "colour/colour.hpp"
 #include "entt/helpers.hpp"
 #include "events/components.hpp"
 #include "events/helpers/mouse.hpp"
+#include "maths/grid.hpp"
+#include "modules/camera/helpers.hpp"
+#include "modules/ui_hierarchy/helpers.hpp"
+#include "modules/ui_sprite_searcher/components.hpp"
 #include "physics/components.hpp"
 #include "renderer/components.hpp"
 #include "sprites/components.hpp"
-#include "ui_hierarchy/helpers.hpp"
-#include "modules/ui_sprite_searcher/components.hpp"
 
 #include "magic_enum.hpp"
 #include <imgui.h>
@@ -45,7 +45,7 @@ game2d::update_ui_editor_tilemap_system(GameEditor& editor, Game& game)
   auto& colours = editor.colours;
   const int GRID_SIZE = 16; // hmm
   const glm::ivec2 mouse_position =
-    mouse_position_in_worldspace(editor, game) + glm::ivec2(GRID_SIZE / 2, GRID_SIZE / 2);
+    game2d::mouse_position_in_worldspace(editor, game) + glm::ivec2(GRID_SIZE / 2, GRID_SIZE / 2);
   const glm::ivec2 grid_position = engine::grid::world_space_to_grid_space(mouse_position, GRID_SIZE);
   const glm::ivec2 world_position = engine::grid::grid_space_to_world_space(grid_position, GRID_SIZE);
 

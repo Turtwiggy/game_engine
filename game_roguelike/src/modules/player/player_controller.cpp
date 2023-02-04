@@ -1,14 +1,14 @@
 #include "player_controller.hpp"
 
 #include "components.hpp"
-#include "maths/maths.hpp"
+#include "events/components.hpp"
+#include "events/helpers/mouse.hpp"
 #include "helpers/check_equipment.hpp"
+#include "maths/maths.hpp"
 #include "modules/ai/components.hpp"
 #include "modules/items/helpers.hpp"
 #include "modules/player/components.hpp"
 #include "modules/player/helpers.hpp"
-#include "events/components.hpp"
-#include "events/helpers/mouse.hpp"
 #include "physics/components.hpp"
 
 #include <SDL2/SDL_keyboard.h>
@@ -58,16 +58,16 @@ game2d::update_player_controller_system(GameEditor& editor,
         }
 
         case InputType::mouse: {
-          if (input.key == SDL_BUTTON_LEFT && input.state == InputState::press) {
-            entt::entity l_equipped = has_equipped(game, entity, EquipmentSlot::left_hand);
-            if (l_equipped != entt::null && !input.hovering_over_ui)
-              use_item(editor, game, entity, l_equipped);
-          }
-          if (input.key == SDL_BUTTON_RIGHT && input.state == InputState::press) {
-            entt::entity r_equipped = has_equipped(game, entity, EquipmentSlot::right_hand);
-            if (r_equipped != entt::null && !input.hovering_over_ui)
-              use_item(editor, game, entity, r_equipped);
-          }
+          // if (input.key == SDL_BUTTON_LEFT && input.state == InputState::press) {
+          //   entt::entity l_equipped = has_equipped(game, entity, EquipmentSlot::left_hand);
+          //   if (l_equipped != entt::null && !input.hovering_over_ui)
+          //     use_item(editor, game, entity, l_equipped);
+          // }
+          // if (input.key == SDL_BUTTON_RIGHT && input.state == InputState::press) {
+          //   entt::entity r_equipped = has_equipped(game, entity, EquipmentSlot::right_hand);
+          //   if (r_equipped != entt::null && !input.hovering_over_ui)
+          //     use_item(editor, game, entity, r_equipped);
+          // }
           break;
         }
 

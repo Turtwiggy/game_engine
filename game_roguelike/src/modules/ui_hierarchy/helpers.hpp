@@ -1,7 +1,8 @@
 #pragma once
 
+#include "components.hpp"
+
 #include "components/app.hpp"
-#include "ui_hierarchy/components.hpp"
 
 // other lib
 #include <entt/entt.hpp>

@@ -18,7 +18,7 @@ namespace engine {
 void
 check_compile_errors(unsigned int shader, std::string type, std::string path)
 {
-  GLint success;
+  GLint  success;
   GLchar infoLog[1024];
   if (type != "PROGRAM") {
     glGetShaderiv(shader, GL_COMPILE_STATUS, &success);
@@ -80,7 +80,7 @@ unsigned int
 load_shader_from_disk(const std::string& path, unsigned int gl_shader_type, std::string type)
 {
   unsigned int shader_id;
-  std::string code;
+  std::string  code;
   {
     const char* compute_shader_path = path.c_str();
 
@@ -153,10 +153,11 @@ Shader::set_int(const std::string& name, int value) const
   glUniform1i(glGetUniformLocation(ID, name.c_str()), value);
 }
 void
-Shader::set_int_array(const std::string& name, int* values, int count) const
+Shader::set_int_array(const std::string& name, std::span<const int> values) const
 {
   GLint location = glGetUniformLocation(ID, name.c_str());
-  glUniform1iv(location, count, values);
+  int   count = values.size();
+  glUniform1iv(location, count, values.data());
 }
 void
 Shader::set_uint(const std::string& name, unsigned int value) const
@@ -230,10 +231,10 @@ Shader::get_uniform_binding_location(const std::string& name) const
 }
 
 int
-Shader::get_compute_buffer_binding_location(const std::string& name) const
+Shader::get_compute_buffer_bind_location(const std::string& name) const
 {
-  int index = glGetProgramResourceIndex(ID, GL_SHADER_STORAGE_BLOCK, name.c_str());
-  int params[1];
+  int    index = glGetProgramResourceIndex(ID, GL_SHADER_STORAGE_BLOCK, name.c_str());
+  int    params[1];
   GLenum props[1] = { GL_BUFFER_BINDING };
   glGetProgramResourceiv(ID, GL_SHADER_STORAGE_BLOCK, index, 1, props, 1, NULL, params);
   return params[0];
@@ -244,7 +245,7 @@ Shader::set_compute_buffer_bind_location(const std::string& name)
 {
   int index = glGetProgramResourceIndex(ID, GL_SHADER_STORAGE_BLOCK, name.c_str());
 
-  int location = get_compute_buffer_binding_location(name);
+  int location = get_compute_buffer_bind_location(name);
 
   glShaderStorageBlockBinding(ID, index, location);
 }

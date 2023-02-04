@@ -25,8 +25,8 @@ struct SpriteAnimation
 {
   std::string name;
   std::vector<glm::ivec2> animation_frames;
-  float animation_frames_per_second = 1; // UNUSED
   float animation_angle_degrees = 0.0f;
+  // float animation_frames_per_second = 1;
 };
 
 // This contains the current state of the animation frame

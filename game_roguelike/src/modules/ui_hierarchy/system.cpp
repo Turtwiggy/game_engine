@@ -1,12 +1,12 @@
-#include "ui_hierarchy/system.hpp"
+#include "system.hpp"
 
 // components
 #include "colour/colour.hpp"
 #include "physics/components.hpp"
 #include "renderer/components.hpp"
 #include "sprites/components.hpp"
-#include "ui_hierarchy/components.hpp"
-#include "ui_hierarchy/helpers.hpp"
+#include "modules/ui_hierarchy/components.hpp"
+#include "modules/ui_hierarchy/helpers.hpp"
 
 // other lib headers
 #include <glm/gtc/type_ptr.hpp>
