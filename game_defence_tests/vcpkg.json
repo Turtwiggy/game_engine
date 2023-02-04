@@ -8,7 +8,6 @@
     "openal-soft",
     "stb",
     "nlohmann-json",
-    "gamenetworkingsockets",
     "gtest"
   ]
 }
