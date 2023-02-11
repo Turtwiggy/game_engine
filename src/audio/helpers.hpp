@@ -1,9 +1,9 @@
 #pragma once
 
-#include "AL/al.h"
-
 #include "components.hpp"
 #include "helpers.hpp"
+
+#include <AL/al.h>
 
 namespace game2d {
 

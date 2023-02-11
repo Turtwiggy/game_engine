@@ -21,7 +21,7 @@ namespace game2d {
 //   fprintf(stdout, "----------\n");
 // }
 
-void
+ALCdevice*
 audio::init_al()
 {
   const ALchar* name;
@@ -32,7 +32,7 @@ audio::init_al()
 
   if (!device) {
     std::cout << "(Audio) Could not open a device!" << std::endl;
-    return;
+    return nullptr;
   }
 
   context = alcCreateContext(device, 0);
@@ -42,7 +42,7 @@ audio::init_al()
       alcDestroyContext(context);
     alcCloseDevice(device);
     std::cout << "(Audio) Could not set a context!" << std::endl;
-    return;
+    return nullptr;
   }
 
   alcMakeContextCurrent(context);
@@ -57,6 +57,8 @@ audio::init_al()
   printf("OpenAL vendor: %s\n", alGetString(AL_VENDOR));
   printf("OpenAL renderer: %s\n", alGetString(AL_RENDERER));
   std::cout << "(Audio) Opened: " << name << "\n";
+
+  return device;
 };
 
 void

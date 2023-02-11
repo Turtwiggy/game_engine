@@ -1,10 +1,16 @@
 #include "simulate.hpp"
 
 // game
+#include "events/components.hpp"
+#include "events/helpers/keyboard.hpp"
+#include "events/system.hpp"
+#include "lifecycle/components.hpp"
+#include "lifecycle/system.hpp"
 #include "modules/ai/system.hpp"
 #include "modules/combat/flash_sprite.hpp"
 #include "modules/combat/take_damage.hpp"
 #include "modules/dungeon/system.hpp"
+#include "modules/fov/system.hpp"
 #include "modules/items/intent_drop_item.hpp"
 #include "modules/items/intent_equip_item.hpp"
 #include "modules/items/intent_purchase_item.hpp"
@@ -16,12 +22,6 @@
 #include "modules/rpg_xp/system.hpp"
 #include "modules/ui_profiler/components.hpp"
 #include "modules/ui_profiler/helpers.hpp"
-
-#include "events/components.hpp"
-#include "events/helpers/keyboard.hpp"
-#include "events/system.hpp"
-#include "lifecycle/components.hpp"
-#include "lifecycle/system.hpp"
 #include "physics/components.hpp"
 #include "physics/process_actor_actor.hpp"
 #include "physics/process_move_objects.hpp"
@@ -63,12 +63,15 @@ game2d::simulate(GameEditor& editor, Game& game, const std::vector<InputEvent>& 
     update_take_damage_system(editor, game);
     update_rpg_system(editor, game);
     update_stats_system(editor, game);
-    // flash_sprite after take_damage
     update_flash_sprite_system(editor, game, milliseconds_dt);
   }
   {
+    auto _ = time_scope(&p, "(game_logic)-fov)", true);
+    // update_tile_fov_system(editor, game);
+  }
+  {
     auto _ = time_scope(&p, "(game_logic)-pathfinding/ai)", true);
-    update_ai_system(editor, game, milliseconds_dt);
+    // update_ai_system(editor, game, milliseconds_dt);
   }
   {
     auto _ = time_scope(&p, "(game_logic)-dungeon)", true);

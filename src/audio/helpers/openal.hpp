@@ -26,7 +26,7 @@ namespace audio {
 // the function to open a device, alcOpenDevice, takes a strin as an input
 // The string should contain either a name of OpenAL rendering device, or NULL to request the default device.
 
-void
+ALCdevice*
 init_al();
 
 void

@@ -17,12 +17,11 @@
 #include "modules/cursor/system.hpp"
 #include "modules/dungeon/helpers.hpp"
 #include "modules/dungeon/system.hpp"
-#include "modules/fov/system.hpp"
 #include "modules/items/components.hpp"
 #include "modules/player/components.hpp"
 #include "modules/resolve_collisions/system.hpp"
 #include "modules/sprites/system.hpp"
-#include "modules/ui_editor_colour_palette/system.hpp"
+#include "modules/ui_colours/system.hpp"
 #include "modules/ui_editor_scene/system.hpp"
 #include "modules/ui_editor_tilemap/components.hpp"
 #include "modules/ui_editor_tilemap/system.hpp"
@@ -74,7 +73,7 @@ void
 init(engine::SINGLETON_Application& app, GameEditor& editor, Game& game)
 {
   // init_networking_system(editor);
-  init_audio_system(editor.audio);
+  init_audio_system(editor.audio_state, editor.audio);
   init_textures(editor.animations, editor.textures);
   {
     auto texs = convert_tag_textures_to_textures(editor.textures);
@@ -93,7 +92,7 @@ fixed_update(GameEditor& editor, Game& game, uint64_t milliseconds_dt)
 {
   auto& p = editor.profiler;
   {
-    auto _ = time_scope(&p, "(all)", true);
+    auto _ = time_scope(&p, "fixed_update()", true);
     auto& input = game.input;
     auto& fixed_input = game.fixed_update_input;
 
@@ -113,8 +112,6 @@ fixed_update(GameEditor& editor, Game& game, uint64_t milliseconds_dt)
       simulate(editor, game, inputs, milliseconds_dt);
       fixed_input.fixed_tick += 1;
     }
-
-    // update_networking_system(r, milliseconds_dt);
   }
 }
 
@@ -122,38 +119,40 @@ void
 update(engine::SINGLETON_Application& app, GameEditor& editor, Game& game, float dt)
 {
   auto& p = editor.profiler;
+  auto _ = time_scope(&p, "update()");
+
   {
     auto _ = time_scope(&p, "game_tick");
     // general
     update_input_system(app, game.input);
     update_camera_system(editor, game, dt);
-    update_audio_system(game.state, editor.audio);
+    update_audio_system(editor.audio_state, editor.audio);
     // game
     update_cursor_system(editor, game);
     update_ux_hover_system(editor, game);
-    update_tile_fov_system(editor, game);
   };
 
   {
-    {
-      auto& ri = editor.renderer;
-      if (get_key_held(game.input, SDL_SCANCODE_T)) {
-        float seconds_since_launch = app.ms_since_launch / 1000.0f;
-        ri.instanced.bind();
-        ri.instanced.set_bool("shake", true);
-        ri.instanced.set_float("time", seconds_since_launch);
-      };
-      if (get_key_up(game.input, SDL_SCANCODE_T)) {
-        ri.instanced.bind();
-        ri.instanced.set_bool("shake", false);
-      };
-    }
+    auto _ = time_scope(&p, "rendering");
+
+    // {
+    //   auto& ri = editor.renderer;
+    //   if (get_key_held(game.input, SDL_SCANCODE_T)) {
+    //     float seconds_since_launch = app.ms_since_launch / 1000.0f;
+    //     ri.instanced.bind();
+    //     ri.instanced.set_bool("shake", true);
+    //     ri.instanced.set_float("time", seconds_since_launch);
+    //   };
+    //   if (get_key_up(game.input, SDL_SCANCODE_T)) {
+    //     ri.instanced.bind();
+    //     ri.instanced.set_bool("shake", false);
+    //   };
+    // }
 
     // put rendering on thread?
-    auto _ = time_scope(&p, "rendering");
-    update_sprite_system(editor, game, dt);
+    // update_sprite_system(editor, game, dt);
     auto texs = convert_tag_textures_to_textures(editor.textures);
-    update_render_system(editor.renderer, editor.colours.lin_background, texs, game.state);
+    update_render_system(editor, texs, game.state);
   };
 
   {
@@ -164,15 +163,15 @@ update(engine::SINGLETON_Application& app, GameEditor& editor, Game& game, float
     update_ui_main_menu_system(app, editor, game);
     update_ui_gameover_system(editor, game);
 
-    static bool show_editor_ui = false;
+    static bool show_editor_ui = true;
     if (show_editor_ui) {
       update_ui_shop_system(editor, game);
+      update_ui_colours_system(editor.colours);
       // update_ui_editor_bar_system(editor, game);
       // update_ui_hierarchy_system(editor, game);
       update_ui_profiler_system(editor, game);
       // update_ui_editor_scene_system(editor, game);
       update_ui_editor_tilemap_system(editor, game);
-      update_ui_editor_colour_palette_system(editor, game);
       update_ui_sprite_searcher_system(editor, game);
       // update_ui_networking_system(editor, game);
     }

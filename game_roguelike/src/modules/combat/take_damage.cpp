@@ -31,12 +31,9 @@ update_take_damage_system(GameEditor& editor, Game& game)
     {
       AudioRequestPlayEvent evt;
       evt.tag = "HIT";
-      evt.position_x = 0;
-      evt.position_y = 0;
-      evt.position_z = 0;
-      auto audio_entity = r.create();
-      r.emplace<AudioRequestPlayEvent>(audio_entity, evt);
-      r.emplace<TagComponent>(audio_entity, "AudioPlayEvent");
+      const auto& audio_entity = editor.audio_state.create();
+      editor.audio_state.emplace<AudioRequestPlayEvent>(audio_entity, evt);
+      editor.audio_state.emplace<TagComponent>(audio_entity, "AudioPlayEvent");
     }
 
     int old_hp = health.hp;

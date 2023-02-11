@@ -7,17 +7,19 @@
 
 namespace game2d {
 
+// classes external System() should emplace
+
 struct AudioRequestPlayEvent
 {
   std::string tag;
-  int position_x = 0;
-  int position_y = 0;
-  int position_z = 0;
 };
 
-struct AudioPlayingEvent
+// classes to support System()
+
+enum class AudioSourceState
 {
-  ALuint source_id;
+  FREE,
+  PLAYING,
 };
 
 // sources can be positioned and played.
@@ -25,7 +27,8 @@ struct AudioPlayingEvent
 // orientation relative to the listener object.
 struct AudioSource
 {
-  ALuint source_id = 0; // should be generated
+  ALuint source_id = 0; // generated
+  AudioSourceState state = AudioSourceState::FREE;
 };
 
 struct AudioListener

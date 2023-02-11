@@ -23,6 +23,8 @@ using namespace engine; // used for macro
 #include <glm/glm.hpp>
 #include <glm/gtc/type_ptr.hpp>
 
+namespace game2d {
+
 void
 game2d::init_render_system(const engine::SINGLETON_Application& app,
                            SINGLETON_RendererInfo& ri,
@@ -75,11 +77,11 @@ game2d::init_render_system(const engine::SINGLETON_Application& app,
 };
 
 void
-game2d::update_render_system(SINGLETON_RendererInfo& ri,
-                             const engine::LinearColour& lin_background,
-                             std::vector<Texture>& tex,
-                             entt::registry& registry)
+game2d::update_render_system(GameEditor& editor, std::vector<Texture>& tex, entt::registry& registry)
 {
+  auto& ri = editor.renderer;
+  const engine::LinearColour lin_background = editor.colours.lin_background;
+
   glm::ivec2 viewport_wh = ri.viewport_size_render_at;
 
   check_if_viewport_resize(ri, tex, viewport_wh);
@@ -173,3 +175,5 @@ game2d::end_frame_render_system(entt::registry& registry)
 {
   quad_renderer::QuadRenderer::end_frame();
 };
+
+} // namespace game2d

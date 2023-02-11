@@ -26,16 +26,18 @@ namespace game2d {
 struct GameEditor
 {
   Profiler profiler;
+  SINGLETON_Animations animations;
   SINGLETON_ColoursComponent colours;
-  SINGLETON_SpriteSearcher sprites;
   SINGLETON_RendererInfo renderer;
+  SINGLETON_SpriteSearcher sprites;
+  SINGLETON_Textures textures;
+
   SINGLETON_AudioComponent audio{ {
     { "MENU", "assets/audio/usfx_1_4/WEAPONS/Melee/Hammer/HAMMER_Hit_Body_stereo.wav" },
     { "HIT", "assets/audio/usfx_1_4/VOICES/Martial_Arts_Male/VOICE_Martial_Art_Shout_03_mono.wav" },
     { "ATTACKED", "assets/audio/usfx_1_4/WEAPONS/Melee/Hammer/HAMMER_Hit_Body_stereo.wav" },
   } };
-  SINGLETON_Textures textures;
-  SINGLETON_Animations animations;
+  entt::registry audio_state;
 
   // networking
   // SINGLETON_NetworkingUIComponent networking_ui;

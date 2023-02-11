@@ -123,11 +123,6 @@ game2d::update_ui_hierarchy_system(GameEditor& editor, Game& game)
       engine::SRGBColour rgba = engine::LinearToSRGB(scc.colour);
 
       float colours[4] = { rgba.r / 255.0f, rgba.g / 255.0f, rgba.b / 255.0f, rgba.a };
-      // colours[0] = glm::min(rgba.r, 255.0f);
-      // colours[1] = glm::min(rgba.g, 255.0f);
-      // colours[2] = glm::min(rgba.b, 255.0f);
-      // colours[3] = glm::min(rgba.a, 1.0f);
-
       if (ImGui::ColorEdit4("##colour", colours)) {
         engine::SRGBColour result;
         result.r = static_cast<int>(colours[0] * 255.0f);

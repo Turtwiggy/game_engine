@@ -142,16 +142,6 @@ update_ui_player_system(GameEditor& editor, Game& game)
           ImGui::Image(tex_id, icon_size, r_hand_uv[0], r_hand_uv[1]);
         ImGui::SameLine();
         ImGui::Text("%s", type_str.c_str());
-
-        // able to unequip item?
-        // if (equipped != entt::null) {
-        //   ImGui::SameLine();
-        //   const std::string eid = std::to_string(static_cast<uint32_t>(equipped));
-        //   const std::string label = "Unequip##" + eid;
-        //   if (ImGui::Button(label.c_str())) {
-        //     // TODO: want to unequip?
-        //   }
-        // }
       }
 
       const auto& equipped = r.view<const IsEquipped, const TagComponent, const EntityTypeComponent>();
