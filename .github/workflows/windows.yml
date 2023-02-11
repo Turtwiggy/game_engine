@@ -18,6 +18,7 @@ jobs:
     env:
       VCPKG_ROOT: ${{ github.workspace }}/thirdparty/vcpkg
       VCPKG_DEFAULT_TRIPLET: ${{ matrix.triplet }}
+      VCPKG_INSTALLED_DIR: ${{ github.workspace }}/thirdparty/vcpkg/installed
 
     steps:
 
