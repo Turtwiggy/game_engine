@@ -74,7 +74,7 @@ main(int argc, char* argv[])
   IM_UNUSED(argv);
 
   const auto start = std::chrono::high_resolution_clock::now();
-  app.window = GameWindow("Rogabit", app.width, app.height, app.display, app.vsync);
+  app.window = GameWindow("Dungeon", app.width, app.height, app.display, app.vsync);
   app.imgui.initialize(app.window);
 
 #ifdef WIN32

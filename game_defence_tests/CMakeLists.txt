@@ -82,11 +82,11 @@ add_executable(game_defence_tests
 
 if(${CMAKE_SYSTEM_NAME} STREQUAL "Windows")
   set(VCPKG_INCLUDES
-    ${CMAKE_CURRENT_LIST_DIR}/thirdparty/vcpkg/installed/x64-windows/include
+    ${CMAKE_CURRENT_LIST_DIR}/build/vcpkg_installed/x64-windows/include
   )
 elseif(${CMAKE_SYSTEM_NAME} STREQUAL "Linux")
   set(VCPKG_INCLUDES
-    ${CMAKE_CURRENT_LIST_DIR}/thirdparty/vcpkg/installed/x64-linux/include
+    ${CMAKE_CURRENT_LIST_DIR}/build/vcpkg_installed/x64-linux/include
   )
 endif()
 

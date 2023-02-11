@@ -5,17 +5,16 @@
 #include "lifecycle/components.hpp"
 #include "maths/maths.hpp"
 #include "modules/ai/components.hpp"
-#include "modules/audio/components.hpp"
 #include "modules/combat/components.hpp"
 #include "modules/cursor/components.hpp"
 #include "modules/items/components.hpp"
 #include "modules/player/components.hpp"
 #include "modules/rpg_xp/components.hpp"
 #include "modules/sprites/helpers.hpp"
+#include "modules/ui_hierarchy/components.hpp"
 #include "physics/components.hpp"
 #include "renderer/components.hpp"
 #include "sprites/components.hpp"
-#include "modules/ui_hierarchy/components.hpp"
 
 #include "magic_enum.hpp"
 
@@ -191,22 +190,6 @@ create_colour(GameEditor& editor, const EntityType& type)
   return scc;
 }
 
-AudioSource
-create_audio(GameEditor& editor, const EntityType& type)
-{
-  AudioSource source;
-
-  if (type == EntityType::empty) {
-    source.audio_selection = {};
-  } else if (type == EntityType::actor_player) {
-    source.audio_selection = { AvailableSound::player_got_hit };
-  } else if (type == EntityType::actor_bat) {
-    source.audio_selection = { AvailableSound::player_attacked };
-  }
-
-  return source;
-}
-
 void
 create_renderable(GameEditor& editor, Game& g, const entt::entity& e, const EntityType& type)
 {
@@ -300,7 +283,6 @@ create_gameplay_existing_entity(GameEditor& editor, entt::registry& r, const ent
       r.emplace<PhysicsSolidComponent>(e);
       r.emplace<GridMoveComponent>(e);
       // gameplay
-      r.emplace<AudioSource>(e, create_audio(editor, type));
       r.emplace<AiBrainComponent>(e);
       r.emplace<HealthComponent>(e, 3);
       r.emplace<TakeDamageComponent>(e);
@@ -320,7 +302,6 @@ create_gameplay_existing_entity(GameEditor& editor, entt::registry& r, const ent
       r.emplace<PhysicsSolidComponent>(e);
       r.emplace<GridMoveComponent>(e);
       // gameplay
-      r.emplace<AudioSource>(e, create_audio(editor, type));
       r.emplace<AiBrainComponent>(e);
       r.emplace<HealthComponent>(e, 10);
       r.emplace<TakeDamageComponent>(e);
@@ -338,7 +319,6 @@ create_gameplay_existing_entity(GameEditor& editor, entt::registry& r, const ent
       r.emplace<PhysicsActorComponent>(e);
       r.emplace<GridMoveComponent>(e);
       // gameplay
-      r.emplace<AudioSource>(e, create_audio(editor, type));
       r.emplace<PlayerComponent>(e);
       r.emplace<HealthComponent>(e);
       r.emplace<TakeDamageComponent>(e);

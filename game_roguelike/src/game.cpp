@@ -5,6 +5,7 @@
 
 // systems&components&helpers
 #include "app/application.hpp"
+#include "audio/system.hpp"
 #include "camera/components.hpp"
 #include "camera/helpers.hpp"
 #include "components/actors.hpp"
@@ -12,7 +13,6 @@
 #include "events/system.hpp"
 #include "maths/grid.hpp"
 #include "modules/ai/system.hpp"
-#include "modules/audio/system.hpp"
 #include "modules/camera/system.hpp"
 #include "modules/cursor/system.hpp"
 #include "modules/dungeon/helpers.hpp"
@@ -74,7 +74,7 @@ void
 init(engine::SINGLETON_Application& app, GameEditor& editor, Game& game)
 {
   // init_networking_system(editor);
-  init_audio_system(editor);
+  init_audio_system(editor.audio);
   init_textures(editor.animations, editor.textures);
   {
     auto texs = convert_tag_textures_to_textures(editor.textures);
@@ -127,7 +127,7 @@ update(engine::SINGLETON_Application& app, GameEditor& editor, Game& game, float
     // general
     update_input_system(app, game.input);
     update_camera_system(editor, game, dt);
-    update_audio_system(editor, game);
+    update_audio_system(game.state, editor.audio);
     // game
     update_cursor_system(editor, game);
     update_ux_hover_system(editor, game);

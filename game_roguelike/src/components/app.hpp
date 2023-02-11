@@ -1,5 +1,6 @@
 #pragma once
 
+#include "audio/components.hpp"
 #include "events/components.hpp"
 #include "lifecycle/components.hpp"
 #include "maths/maths.hpp"
@@ -8,7 +9,6 @@
 #include "modules/ui_sprite_searcher/components.hpp"
 #include "physics/components.hpp"
 #include "renderer/components.hpp"
-#include "resources/audio.hpp"
 #include "resources/colour.hpp"
 #include "resources/textures.hpp"
 #include "sprites/components.hpp"
@@ -29,7 +29,11 @@ struct GameEditor
   SINGLETON_ColoursComponent colours;
   SINGLETON_SpriteSearcher sprites;
   SINGLETON_RendererInfo renderer;
-  SINGLETON_AudioComponent audio;
+  SINGLETON_AudioComponent audio{ {
+    { "MENU", "assets/audio/usfx_1_4/WEAPONS/Melee/Hammer/HAMMER_Hit_Body_stereo.wav" },
+    { "HIT", "assets/audio/usfx_1_4/VOICES/Martial_Arts_Male/VOICE_Martial_Art_Shout_03_mono.wav" },
+    { "ATTACKED", "assets/audio/usfx_1_4/WEAPONS/Melee/Hammer/HAMMER_Hit_Body_stereo.wav" },
+  } };
   SINGLETON_Textures textures;
   SINGLETON_Animations animations;
 

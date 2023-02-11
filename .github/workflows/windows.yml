@@ -36,7 +36,9 @@ jobs:
         runVcpkgInstall: true
 
     - name: configure
-      run: mkdir build && cmake --no-warn-unused-cli -DCMAKE_EXPORT_COMPILE_COMMANDS:BOOL=TRUE -DCMAKE_BUILD_TYPE:STRING=Release -S . -B build -G Ninja
+      run: |
+        mkdir build
+        cmake --no-warn-unused-cli -DCMAKE_EXPORT_COMPILE_COMMANDS:BOOL=TRUE -DCMAKE_BUILD_TYPE:STRING=Release -S . -B build -G Ninja
 
     - name: build-tests
       run: cmake --build build --config Release --target game_defence_tests --parallel 10

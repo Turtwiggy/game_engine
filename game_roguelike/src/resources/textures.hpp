@@ -9,11 +9,13 @@
 
 namespace game2d {
 
+// textures loaded from disk
 enum class AvailableTexture
 {
   kenny,
 };
 
+// a texture with a tag wrapper
 struct ReferenceTexture
 {
   AvailableTexture tag;

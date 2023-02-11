@@ -1,9 +1,8 @@
 #include "take_damage.hpp"
 
+#include "audio/components.hpp"
 #include "components.hpp"
-#include "modules/audio/components.hpp"
 #include "modules/player/components.hpp"
-#include "resources/audio.hpp"
 
 #include <entt/entt.hpp>
 
@@ -27,12 +26,17 @@ update_take_damage_system(GameEditor& editor, Game& game)
     // Took damage..!
     // .. show flash
     r.emplace_or_replace<FlashSpriteComponent>(entity);
+
     // .. play audio
-    if (auto* audio_source = r.try_get<AudioSource>(entity)) {
-      if (audio_source->audio_selection.size() > 0) {
-        const auto& tmp = audio_source->audio_selection[0];
-        audio_source->wants_to_play.push_back(tmp);
-      }
+    {
+      AudioRequestPlayEvent evt;
+      evt.tag = "HIT";
+      evt.position_x = 0;
+      evt.position_y = 0;
+      evt.position_z = 0;
+      auto audio_entity = r.create();
+      r.emplace<AudioRequestPlayEvent>(audio_entity, evt);
+      r.emplace<TagComponent>(audio_entity, "AudioPlayEvent");
     }
 
     int old_hp = health.hp;
