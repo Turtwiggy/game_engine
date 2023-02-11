@@ -32,7 +32,7 @@ jobs:
       id: runvcpkg
       with:
         vcpkgDirectory: '${{ github.workspace }}/thirdparty/vcpkg'
-        vcpkgJsonGlob: '${{ github.workspace }}/game_defence_tests/vcpkg.json'
+        vcpkgJsonGlob: '**/game_defence_tests/vcpkg.json'
         runVcpkgInstall: true
 
     - name: configure
