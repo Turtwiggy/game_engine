@@ -144,49 +144,50 @@ SpriteColourComponent
 create_colour(GameEditor& editor, const EntityType& type)
 {
   const auto type_name = std::string(magic_enum::enum_name(type));
-  const auto& primary = editor.colours.primary;
-  const auto& secondary = editor.colours.secondary;
-  const auto& tertiary = editor.colours.tertiary;
-  const auto& quaternary = editor.colours.quaternary;
 
-  engine::SRGBColour srgb = primary;
+  const lin_ptr& primary = editor.colours.lin_primary;
+  const lin_ptr& secondary = editor.colours.lin_secondary;
+  const lin_ptr& tertiary = editor.colours.lin_tertiary;
+  const lin_ptr& quaternary = editor.colours.lin_quaternary;
+
+  lin_ptr chosen_col = primary;
   if (type == EntityType::empty)
-    srgb = primary;
+    chosen_col = primary;
   else if (type == EntityType::tile_type_wall)
-    srgb = secondary;
+    chosen_col = secondary;
   else if (type == EntityType::tile_type_floor)
-    srgb = secondary;
+    chosen_col = secondary;
   else if (type == EntityType::tile_type_exit)
-    srgb = primary;
+    chosen_col = primary;
   else if (type == EntityType::actor_bat)
-    srgb = primary;
+    chosen_col = primary;
   else if (type == EntityType::actor_troll)
-    srgb = primary;
+    chosen_col = primary;
   else if (type == EntityType::actor_player)
-    srgb = primary;
+    chosen_col = primary;
   // else if (type == EntityType::bolt)
   //   srgb = colours.lightyellow;
   // else if (type == EntityType::crossbow)
   //   srgb = colours.red;
   else if (type == EntityType::sword)
-    srgb = primary;
+    chosen_col = primary;
   else if (type == EntityType::shield)
-    srgb = primary;
+    chosen_col = primary;
   else if (type == EntityType::potion)
-    srgb = primary;
+    chosen_col = primary;
   else if (type == EntityType::scroll_damage_nearest)
-    srgb = primary;
+    chosen_col = primary;
   else if (type == EntityType::actor_shopkeeper)
-    srgb = primary;
+    chosen_col = primary;
   else if (type == EntityType::free_cursor)
-    srgb = primary;
+    chosen_col = primary;
   else if (type == EntityType::grid_cursor)
-    srgb = primary;
+    chosen_col = primary;
   else
     std::cerr << "warning! colour not chosen for: " << type_name << "\n";
 
   SpriteColourComponent scc;
-  scc.colour = engine::SRGBToLinear(srgb);
+  scc.colour = chosen_col;
   return scc;
 }
 

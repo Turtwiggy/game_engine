@@ -62,15 +62,6 @@ game2d::update_ui_editor_tilemap_system(GameEditor& editor, Game& game)
   imgui_draw_float("angle", angle);
   ImGui::Separator();
 
-  static bool overwrite_colour = false;
-  static engine::SRGBColour rgba = colours.white;
-  ImGui::Checkbox("colour##overwrite", &overwrite_colour);
-  ImGui::SameLine();
-  static float rgba_cols[4] = { rgba.r / 255.0f, rgba.g / 255.0f, rgba.b / 255.0f, rgba.a };
-  if (ImGui::ColorEdit4("##overwritecolouredit", rgba_cols))
-    rgba = { rgba_cols[0] * 255.0f, rgba_cols[1] * 255.0f, rgba_cols[2] * 255.0f, rgba_cols[3] };
-  ImGui::Separator();
-
   static bool overwrite_size = false;
   static int size = 16;
   ImGui::Checkbox("size##overwrite", &overwrite_size);
@@ -151,11 +142,6 @@ game2d::update_ui_editor_tilemap_system(GameEditor& editor, Game& game)
       if (overwrite_angle) {
         auto& sprite = r.get<SpriteComponent>(e);
         sprite.angle_radians = glm::radians(angle);
-      }
-
-      if (overwrite_colour) {
-        auto& sprite = r.get<SpriteColourComponent>(e);
-        sprite.colour = engine::SRGBToLinear(rgba);
       }
 
       if (overwrite_size) {

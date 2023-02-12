@@ -1,8 +1,8 @@
 #include "system.hpp"
 
 #include "components.hpp"
-#include "maths/grid.hpp"
 #include "components/actors.hpp"
+#include "maths/grid.hpp"
 #include "modules/fov/helpers.hpp"
 #include "modules/fov/helpers/symmetric_shadowcasting.hpp"
 #include "modules/player/components.hpp"
@@ -21,16 +21,16 @@ init_tile_fov_system(GameEditor& editor, Game& game)
   const std::vector<StaticDungeonEntity>& group = dungeon.walls_and_floors;
 
   // hide all walls and floor
-  for (const auto& tile : group) {
-    EntityTypeComponent& et = r.get<EntityTypeComponent>(tile.entity);
-    if (tile.x == 0 || tile.x == dungeon.width - 1 || tile.y == 0 || tile.y == dungeon.height - 1) {
-      // Change colours of edge tiles
-      auto& scc = r.get<SpriteColourComponent>(tile.entity);
-      scc.colour = colours.lin_tertiary; // not visible colour
-      continue;
-    }
-    r.emplace_or_replace<NotVisibleComponent>(tile.entity);
-  }
+  // for (const auto& tile : group) {
+  //   EntityTypeComponent& et = r.get<EntityTypeComponent>(tile.entity);
+  //   if (tile.x == 0 || tile.x == dungeon.width - 1 || tile.y == 0 || tile.y == dungeon.height - 1) {
+  //     // Change colours of edge tiles
+  //     auto& scc = r.get<SpriteColourComponent>(tile.entity);
+  //     scc.colour = colours.lin_tertiary; // not visible colour
+  //     continue;
+  //   }
+  //   r.emplace_or_replace<NotVisibleComponent>(tile.entity);
+  // }
 
   // hide all actors
   for (const auto [entity, transform, actor] : r.view<TransformComponent, PhysicsActorComponent>().each())

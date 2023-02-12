@@ -200,13 +200,14 @@ update_hidden(GameEditor& editor, Game& game)
   auto& r = game.state;
   auto& colours = editor.colours;
 
-  auto not_visible_view = r.view<const NotVisibleComponent, SpriteColourComponent, SpriteComponent>();
-  not_visible_view.each([&colours](const NotVisibleComponent& v, SpriteColourComponent& scc, SpriteComponent& sprite) {
-    // hidden
-    scc.colour = colours.lin_background;
-    sprite.x = 0;
-    sprite.y = 0;
-  });
+  // auto not_visible_view = r.view<const NotVisibleComponent, SpriteColourComponent, SpriteComponent>();
+  // not_visible_view.each([&colours](const NotVisibleComponent& v, SpriteColourComponent& scc, SpriteComponent& sprite)
+  // {
+  //   // hidden
+  //   scc.colour = colours.lin_background;
+  //   sprite.x = 0;
+  //   sprite.y = 0;
+  // });
 };
 
 void
@@ -215,19 +216,20 @@ update_was_visible(GameEditor& editor, Game& game)
   auto& r = game.state;
   auto& colours = editor.colours;
 
-  auto was_visible_view = r.view<const NotVisibleButPreviouslySeenComponent, SpriteColourComponent, SpriteComponent>();
-  was_visible_view.each(
-    [&r, &colours](
-      auto entity, const NotVisibleButPreviouslySeenComponent& v, SpriteColourComponent& scc, SpriteComponent& sprite) {
-      //
-      scc.colour = engine::SRGBToLinear(colours.tertiary);
+  // auto was_visible_view = r.view<const NotVisibleButPreviouslySeenComponent, SpriteColourComponent,
+  // SpriteComponent>(); was_visible_view.each(
+  //   [&r, &colours](
+  //     auto entity, const NotVisibleButPreviouslySeenComponent& v, SpriteColourComponent& scc, SpriteComponent&
+  //     sprite) {
+  //     //
+  //     scc.colour = engine::SRGBToLinear(colours.tertiary);
 
-      // make it an obfuscated sprite?
-      if (auto* is_actor = r.try_get<PhysicsActorComponent>(entity)) {
-        sprite.x = 30;
-        sprite.y = 11;
-      };
-    });
+  //     // make it an obfuscated sprite?
+  //     if (auto* is_actor = r.try_get<PhysicsActorComponent>(entity)) {
+  //       sprite.x = 30;
+  //       sprite.y = 11;
+  //     };
+  //   });
 };
 
 } // namespace game2d

@@ -46,14 +46,14 @@ update_ux_hover_system(GameEditor& editor, Game& game)
   //
   // change colours of all selected entities
   //
-  const auto& view = r.view<HoverComponent, SpriteColourComponent>();
-  for (auto [entity, hover, sprite] : view.each()) {
-    auto* selected = r.try_get<SelectableComponent>(entity);
-    if (selected)
-      sprite.colour = engine::SRGBToLinear(hover.hover_colour);
-    else
-      sprite.colour = engine::SRGBToLinear(hover.regular_colour);
-  }
+  // const auto& view = r.view<HoverComponent, SpriteColourComponent>();
+  // for (auto [entity, hover, sprite] : view.each()) {
+  //   auto* selected = r.try_get<SelectableComponent>(entity);
+  //   if (selected)
+  //     sprite.colour = engine::SRGBToLinear(hover.hover_colour);
+  //   else
+  //     sprite.colour = engine::SRGBToLinear(hover.regular_colour);
+  // }
 };
 
 } // namespace game2d

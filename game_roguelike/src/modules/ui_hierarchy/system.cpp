@@ -117,21 +117,6 @@ game2d::update_ui_hierarchy_system(GameEditor& editor, Game& game)
       SpriteComponent& sc = registry.get<SpriteComponent>(eid);
       SpriteColourComponent& scc = registry.get<SpriteColourComponent>(eid);
 
-      // colour component
-      ImGui::Text("Colour: ");
-      ImGui::SameLine();
-      engine::SRGBColour rgba = engine::LinearToSRGB(scc.colour);
-
-      float colours[4] = { rgba.r / 255.0f, rgba.g / 255.0f, rgba.b / 255.0f, rgba.a };
-      if (ImGui::ColorEdit4("##colour", colours)) {
-        engine::SRGBColour result;
-        result.r = static_cast<int>(colours[0] * 255.0f);
-        result.g = static_cast<int>(colours[1] * 255.0f);
-        result.b = static_cast<int>(colours[2] * 255.0f);
-        result.a = colours[3];
-        scc.colour = engine::SRGBToLinear(result);
-      }
-
       // select sprite
       imgui_draw_ivec2("Sprite: ", sc.x, sc.y);
     }

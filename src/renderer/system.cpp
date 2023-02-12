@@ -80,7 +80,7 @@ void
 game2d::update_render_system(GameEditor& editor, std::vector<Texture>& tex, entt::registry& registry)
 {
   auto& ri = editor.renderer;
-  const engine::LinearColour lin_background = editor.colours.lin_background;
+  const auto& lin_background = editor.colours.lin_background;
 
   glm::ivec2 viewport_wh = ri.viewport_size_render_at;
 
@@ -89,7 +89,7 @@ game2d::update_render_system(GameEditor& editor, std::vector<Texture>& tex, entt
   // FBO: Render sprites in to this fbo with linear colour
   Framebuffer::bind_fbo(ri.fbo_linear_main_scene);
   RenderCommand::set_viewport(0, 0, viewport_wh.x, viewport_wh.y);
-  RenderCommand::set_clear_colour_linear(lin_background);
+  RenderCommand::set_clear_colour_linear(*lin_background);
   RenderCommand::clear();
 
   // Do quad stuff
@@ -117,7 +117,7 @@ game2d::update_render_system(GameEditor& editor, std::vector<Texture>& tex, entt
       desc.pos_tl = transform.position - transform.scale / 2;
       desc.size = transform.scale;
       desc.angle_radians = sc.angle_radians + transform.rotation_radians.z;
-      desc.colour = scc.colour;
+      desc.colour = *scc.colour;
       desc.tex_unit = sc.tex_unit;
       desc.sprite_offset_and_spritesheet = { sc.x, sc.y, sc.sx, sc.sy };
       quad_renderer::QuadRenderer::draw_sprite(desc, ri.instanced);
@@ -130,7 +130,7 @@ game2d::update_render_system(GameEditor& editor, std::vector<Texture>& tex, entt
   // FBO: LINEAR->SRGB
   Framebuffer::bind_fbo(ri.fbo_srgb_main_scene);
   RenderCommand::set_viewport(0, 0, viewport_wh.x, viewport_wh.y);
-  RenderCommand::set_clear_colour_linear(lin_background);
+  RenderCommand::set_clear_colour_linear(*lin_background);
   RenderCommand::clear();
 
   // Render the linear colour main scene in to this texture
@@ -155,7 +155,7 @@ game2d::update_render_system(GameEditor& editor, std::vector<Texture>& tex, entt
   // default fbo
   Framebuffer::default_fbo();
   RenderCommand::set_viewport(0, 0, viewport_wh.x, viewport_wh.y);
-  RenderCommand::set_clear_colour_srgb(engine::LinearToSRGB(lin_background));
+  RenderCommand::set_clear_colour_srgb(*editor.colours.background);
   RenderCommand::clear();
 
   // Note: ImGui::Image takes in TexID not TexUnit

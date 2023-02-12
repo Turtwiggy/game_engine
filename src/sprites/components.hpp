@@ -8,6 +8,7 @@
 #include <nlohmann/json.hpp>
 
 #include <string>
+#include <thread>
 #include <vector>
 
 namespace game2d {
@@ -42,9 +43,9 @@ struct SpriteAnimationComponent
 
 struct SpriteColourComponent
 {
-  engine::LinearColour colour;
+  std::shared_ptr<engine::LinearColour> colour = nullptr;
 
-  NLOHMANN_DEFINE_TYPE_INTRUSIVE(SpriteColourComponent, colour.r, colour.g, colour.b, colour.a);
+  NLOHMANN_DEFINE_TYPE_INTRUSIVE(SpriteColourComponent, colour->r, colour->g, colour->b, colour->a);
 };
 
 enum class RenderOrder
