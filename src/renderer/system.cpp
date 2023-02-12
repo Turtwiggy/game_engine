@@ -5,6 +5,7 @@
 #include "camera/components.hpp"
 #include "camera/helpers.hpp"
 #include "entt/helpers.hpp"
+#include "modules/ui_profiler/helpers.hpp"
 #include "renderer/components.hpp"
 #include "renderer/helpers.hpp"
 #include "renderer/helpers/batch_quad.hpp"
@@ -77,97 +78,112 @@ game2d::init_render_system(const engine::SINGLETON_Application& app,
 };
 
 void
-game2d::update_render_system(GameEditor& editor, std::vector<Texture>& tex, entt::registry& registry)
+game2d::update_render_system(SINGLETON_RendererInfo& ri,
+                             const engine::LinearColour& lin_background,
+                             const engine::SRGBColour& srgb_background,
+                             std::vector<Texture>& tex,
+                             entt::registry& registry,
+                             Profiler& p)
 {
-  auto& ri = editor.renderer;
-  const auto& lin_background = editor.colours.lin_background;
+  auto _ = time_scope(&p, "update_render_system()");
 
   glm::ivec2 viewport_wh = ri.viewport_size_render_at;
-
   check_if_viewport_resize(ri, tex, viewport_wh);
 
-  // FBO: Render sprites in to this fbo with linear colour
-  Framebuffer::bind_fbo(ri.fbo_linear_main_scene);
-  RenderCommand::set_viewport(0, 0, viewport_wh.x, viewport_wh.y);
-  RenderCommand::set_clear_colour_linear(*lin_background);
-  RenderCommand::clear();
-
-  // Do quad stuff
   {
-    quad_renderer::QuadRenderer::reset_quad_vert_count();
-    quad_renderer::QuadRenderer::begin_batch();
+    auto _ = time_scope(&p, "main_scene_pass()");
 
-    // camera
+    // FBO: Render sprites in to this fbo with linear colour
+    Framebuffer::bind_fbo(ri.fbo_linear_main_scene);
+    RenderCommand::set_viewport(0, 0, viewport_wh.x, viewport_wh.y);
+    RenderCommand::set_clear_colour_linear(lin_background);
+    RenderCommand::clear();
+
+    // Do quad stuff
     {
-      const auto& camera_entity = game2d::get_first<CameraComponent>(registry);
-      const auto& camera = registry.get<CameraComponent>(camera_entity);
-      const auto& view = camera.view;
-      ri.instanced.bind();
-      ri.instanced.set_mat4("view", view);
+      quad_renderer::QuadRenderer::reset_quad_vert_count();
+      quad_renderer::QuadRenderer::begin_batch();
+
+      // camera
+      {
+        const auto& camera_entity = game2d::get_first<CameraComponent>(registry);
+        const auto& camera = registry.get<CameraComponent>(camera_entity);
+        const auto& view = camera.view;
+        ri.instanced.bind();
+        ri.instanced.set_mat4("view", view);
+      }
+
+      // adds 0.5ms
+      // const auto& group = registry.group<TransformComponent, SpriteComponent, SpriteColourComponent>();
+      // sort by z-index
+      // group.sort<SpriteComponent>([](const auto& a, const auto& b) { return a.render_order < b.render_order; });
+
+      const auto& view = registry.group<TransformComponent, SpriteComponent, SpriteColourComponent>();
+
+      for (const auto [entity, transform, sc, scc] : view.each()) {
+        quad_renderer::RenderDescriptor desc;
+        // desc.pos_tl = camera_transform.position + transform.position - transform.scale / 2;
+        desc.pos_tl = transform.position - transform.scale / 2;
+        desc.size = transform.scale;
+        desc.angle_radians = sc.angle_radians + transform.rotation_radians.z;
+        desc.colour = *scc.colour;
+        desc.tex_unit = sc.tex_unit;
+        desc.sprite_offset_and_spritesheet = { sc.x, sc.y, sc.sx, sc.sy };
+        quad_renderer::QuadRenderer::draw_sprite(desc, ri.instanced);
+      }
+
+      quad_renderer::QuadRenderer::end_batch();
+      quad_renderer::QuadRenderer::flush(ri.instanced);
     }
-
-    const auto& group = registry.group<TransformComponent, SpriteComponent, SpriteColourComponent>();
-
-    // sort by z-index
-    group.sort<SpriteComponent>([](const auto& a, const auto& b) { return a.render_order < b.render_order; });
-
-    for (const auto [entity, transform, sc, scc] : group.each()) {
-      quad_renderer::RenderDescriptor desc;
-      // desc.pos_tl = camera_transform.position + transform.position - transform.scale / 2;
-      desc.pos_tl = transform.position - transform.scale / 2;
-      desc.size = transform.scale;
-      desc.angle_radians = sc.angle_radians + transform.rotation_radians.z;
-      desc.colour = *scc.colour;
-      desc.tex_unit = sc.tex_unit;
-      desc.sprite_offset_and_spritesheet = { sc.x, sc.y, sc.sx, sc.sy };
-      quad_renderer::QuadRenderer::draw_sprite(desc, ri.instanced);
-    }
-
-    quad_renderer::QuadRenderer::end_batch();
-    quad_renderer::QuadRenderer::flush(ri.instanced);
   }
 
-  // FBO: LINEAR->SRGB
-  Framebuffer::bind_fbo(ri.fbo_srgb_main_scene);
-  RenderCommand::set_viewport(0, 0, viewport_wh.x, viewport_wh.y);
-  RenderCommand::set_clear_colour_linear(*lin_background);
-  RenderCommand::clear();
-
-  // Render the linear colour main scene in to this texture
-  // and perform the linear->srgb conversion in the fragment shader.
+  // linear_to_srgb_pass
   {
-    quad_renderer::QuadRenderer::reset_quad_vert_count();
-    quad_renderer::QuadRenderer::begin_batch();
+    // FBO: LINEAR->SRGB
+    Framebuffer::bind_fbo(ri.fbo_srgb_main_scene);
+    RenderCommand::set_viewport(0, 0, viewport_wh.x, viewport_wh.y);
+    RenderCommand::set_clear_colour_linear(lin_background);
+    RenderCommand::clear();
+
+    // Render the linear colour main scene in to this texture
+    // and perform the linear->srgb conversion in the fragment shader.
     {
-      quad_renderer::RenderDescriptor desc;
-      desc.pos_tl = { 0, 0 };
-      desc.size = viewport_wh;
-      desc.angle_radians = 0.0f;
-      // desc.colour = // not needed
-      desc.tex_unit = ri.tex_unit_main;
-      desc.sprite_offset_and_spritesheet = { 0, 0, 0, 0 };
-      quad_renderer::QuadRenderer::draw_sprite(desc, ri.linear_to_srgb);
+      quad_renderer::QuadRenderer::reset_quad_vert_count();
+      quad_renderer::QuadRenderer::begin_batch();
+      {
+        quad_renderer::RenderDescriptor desc;
+        desc.pos_tl = { 0, 0 };
+        desc.size = viewport_wh;
+        desc.angle_radians = 0.0f;
+        // desc.colour = // not needed
+        desc.tex_unit = ri.tex_unit_main;
+        desc.sprite_offset_and_spritesheet = { 0, 0, 0, 0 };
+        quad_renderer::QuadRenderer::draw_sprite(desc, ri.linear_to_srgb);
+      }
+      quad_renderer::QuadRenderer::end_batch();
+      quad_renderer::QuadRenderer::flush(ri.linear_to_srgb);
     }
-    quad_renderer::QuadRenderer::end_batch();
-    quad_renderer::QuadRenderer::flush(ri.linear_to_srgb);
   }
 
-  // default fbo
-  Framebuffer::default_fbo();
-  RenderCommand::set_viewport(0, 0, viewport_wh.x, viewport_wh.y);
-  RenderCommand::set_clear_colour_srgb(*editor.colours.background);
-  RenderCommand::clear();
+  // render_texture_to_imgui
+  {
+    // default fbo
+    Framebuffer::default_fbo();
+    RenderCommand::set_viewport(0, 0, viewport_wh.x, viewport_wh.y);
+    RenderCommand::set_clear_colour_srgb(srgb_background);
+    RenderCommand::clear();
 
-  // Note: ImGui::Image takes in TexID not TexUnit
-  ViewportInfo vi = render_texture_to_imgui_viewport(ri.tex_id_srgb);
+    // Note: ImGui::Image takes in TexID not TexUnit
+    ViewportInfo vi = render_texture_to_imgui_viewport(ri.tex_id_srgb);
 
-  // If the viewport moves - viewport position will be a frame behind.
-  // This would mainly affect an editor, a game viewport probably(?) wouldn't move that much
-  // (or if a user is moving the viewport, they likely dont need that one frame?)
-  ri.viewport_pos = glm::vec2(vi.pos.x, vi.pos.y);
-  ri.viewport_size_current = { vi.size.x, vi.size.y };
-  ri.viewport_hovered = vi.hovered;
-  ri.viewport_focused = vi.focused;
+    // If the viewport moves - viewport position will be a frame behind.
+    // This would mainly affect an editor, a game viewport probably(?) wouldn't move that much
+    // (or if a user is moving the viewport, they likely dont need that one frame?)
+    ri.viewport_pos = glm::vec2(vi.pos.x, vi.pos.y);
+    ri.viewport_size_current = { vi.size.x, vi.size.y };
+    ri.viewport_hovered = vi.hovered;
+    ri.viewport_focused = vi.focused;
+  }
 };
 
 void

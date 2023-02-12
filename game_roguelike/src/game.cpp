@@ -151,8 +151,10 @@ update(engine::SINGLETON_Application& app, GameEditor& editor, Game& game, float
 
     // put rendering on thread?
     // update_sprite_system(editor, game, dt);
+
     auto texs = convert_tag_textures_to_textures(editor.textures);
-    update_render_system(editor, texs, game.state);
+    update_render_system(
+      editor.renderer, *editor.colours.lin_background, *editor.colours.background, texs, game.state, p);
   };
 
   {
