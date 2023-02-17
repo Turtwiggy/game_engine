@@ -5,7 +5,7 @@
 #include "camera/components.hpp"
 #include "camera/helpers.hpp"
 #include "entt/helpers.hpp"
-#include "modules/ui_profiler/helpers.hpp"
+#include "ui_profiler/helpers.hpp"
 #include "renderer/components.hpp"
 #include "renderer/helpers.hpp"
 #include "renderer/helpers/batch_quad.hpp"

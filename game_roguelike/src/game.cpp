@@ -30,8 +30,6 @@
 #include "modules/ui_hierarchy/system.hpp"
 #include "modules/ui_main_menu/system.hpp"
 #include "modules/ui_player/system.hpp"
-#include "modules/ui_profiler/helpers.hpp"
-#include "modules/ui_profiler/system.hpp"
 #include "modules/ui_screen_gameover/system.hpp"
 #include "modules/ui_screen_welcome/system.hpp"
 #include "modules/ui_shop/system.hpp"
@@ -42,6 +40,8 @@
 #include "renderer/system.hpp"
 #include "resources/textures.hpp"
 #include "simulate.hpp"
+#include "ui_profiler/helpers.hpp"
+#include "ui_profiler/system.hpp"
 
 #include <glm/glm.hpp>
 #include <imgui.h>
@@ -171,7 +171,7 @@ update(engine::SINGLETON_Application& app, GameEditor& editor, Game& game, float
       update_ui_colours_system(editor.colours);
       // update_ui_editor_bar_system(editor, game);
       // update_ui_hierarchy_system(editor, game);
-      update_ui_profiler_system(editor, game);
+      update_ui_profiler_system(editor.profiler, game.physics, game.state);
       // update_ui_editor_scene_system(editor, game);
       update_ui_editor_tilemap_system(editor, game);
       update_ui_sprite_searcher_system(editor, game);

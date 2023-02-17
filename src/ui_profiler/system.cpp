@@ -2,11 +2,9 @@
 #include "system.hpp"
 
 // components
-#include "components/actors.hpp"
 #include "helpers.hpp"
-#include "modules/ui_profiler/components.hpp"
-#include "physics/components.hpp"
 #include "renderer/components.hpp"
+#include "ui_profiler/components.hpp"
 
 // helpers
 #include "renderer/helpers/batch_quad.hpp"
@@ -17,7 +15,7 @@
 #include <imgui.h>
 
 void
-game2d::update_ui_profiler_system(GameEditor& editor, Game& game)
+game2d::update_ui_profiler_system(Profiler& profiler, const SINGLETON_PhysicsComponent& physics, entt::registry& r)
 {
   // #ifdef _DEBUG
   // less than X-fps?! what is this?!
@@ -25,9 +23,7 @@ game2d::update_ui_profiler_system(GameEditor& editor, Game& game)
   //   std::cout << "(profiler) fps drop?!" << "\n";
   // #endif
 
-  auto& profiler = editor.profiler;
-  const auto& registry = game.state;
-  const auto& physics = game.physics;
+  const auto& registry = r;
   const auto& objs = registry.view<PhysicsTransformComponent>();
   const auto& solids = registry.view<PhysicsSolidComponent>();
   const auto& actors = registry.view<PhysicsActorComponent>();

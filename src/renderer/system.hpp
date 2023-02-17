@@ -3,8 +3,8 @@
 #include "app/application.hpp"
 #include "colour/colour.hpp"
 #include "components.hpp"
-#include "modules/ui_profiler/components.hpp"
 #include "renderer/components.hpp"
+#include "ui_profiler/components.hpp"
 
 #include <entt/entt.hpp>
 
