@@ -49,37 +49,6 @@ update_ui_player_system(GameEditor& editor, Game& game)
       ImGui::Text("AGI: %i", stats.agi_level);
       ImGui::Text("You have %i xp", xp.amount);
 
-      // if (ImGui::Button("(debug) Give 50 XP"))
-      //   xp.amount += 50;
-
-      auto* xp_ptr = r.try_get<WantsToLevelUp>(entity);
-      if (xp_ptr) {
-        ImGui::Text("Level Up Required!");
-
-        auto* lv_stat_ptr = r.try_get<WantsToLevelStat>(entity);
-        if (lv_stat_ptr) {
-          if (ImGui::Button("(CON)"))
-            lv_stat_ptr->con.push_back(1);
-          ImGui::SameLine();
-          if (ImGui::Button("(STR)"))
-            lv_stat_ptr->str.push_back(1);
-          ImGui::SameLine();
-          if (ImGui::Button("(AGI)"))
-            lv_stat_ptr->agi.push_back(1);
-        } else {
-          WantsToLevelStat stat;
-          if (ImGui::Button("(CON)"))
-            stat.con.push_back(1);
-          ImGui::SameLine();
-          if (ImGui::Button("(STR)"))
-            stat.str.push_back(1);
-          ImGui::SameLine();
-          if (ImGui::Button("(AGI)"))
-            stat.agi.push_back(1);
-          r.emplace<WantsToLevelStat>(entity, stat);
-        }
-      }
-
       // UI: selecting units for an item
       // if (auto* selecting = r.try_get<WantsToSelectUnitsForItem>(entity)) {
       //   ImGui::Text("¬¬ Select Targets for Item ¬¬");
@@ -222,6 +191,75 @@ update_ui_player_system(GameEditor& editor, Game& game)
         // }
         ImGui::SameLine();
         ImGui::Text("%s (x%i)", tag.c_str(), entity_items.size()); // label
+      }
+
+      if (ImGui::TreeNode("Drag and drop to copy/swap items")) {
+        enum Mode
+        {
+          Mode_Copy,
+          Mode_Move,
+          Mode_Swap
+        };
+        static int mode = 0;
+        if (ImGui::RadioButton("Copy", mode == Mode_Copy)) {
+          mode = Mode_Copy;
+        }
+        ImGui::SameLine();
+        if (ImGui::RadioButton("Move", mode == Mode_Move)) {
+          mode = Mode_Move;
+        }
+        ImGui::SameLine();
+        if (ImGui::RadioButton("Swap", mode == Mode_Swap)) {
+          mode = Mode_Swap;
+        }
+        static const char* names[9] = { "Bobby",   "Beatrice", "Betty",  "Brianna", "Barry",
+                                        "Bernard", "Bibi",     "Blaine", "Bryn" };
+        for (int n = 0; n < IM_ARRAYSIZE(names); n++) {
+          ImGui::PushID(n);
+          if ((n % 3) != 0)
+            ImGui::SameLine();
+          ImGui::Button(names[n], ImVec2(60, 60));
+
+          // Our buttons are both drag sources and drag targets here!
+          if (ImGui::BeginDragDropSource(ImGuiDragDropFlags_None)) {
+            // Set payload to carry the index of our item (could be anything)
+            ImGui::SetDragDropPayload("DND_DEMO_CELL", &n, sizeof(int));
+
+            // Display preview (could be anything, e.g. when dragging an image we could decide to display
+            // the filename and a small preview of the image, etc.)
+            if (mode == Mode_Copy) {
+              ImGui::Text("Copy %s", names[n]);
+            }
+            if (mode == Mode_Move) {
+              ImGui::Text("Move %s", names[n]);
+            }
+            if (mode == Mode_Swap) {
+              ImGui::Text("Swap %s", names[n]);
+            }
+            ImGui::EndDragDropSource();
+          }
+          if (ImGui::BeginDragDropTarget()) {
+            if (const ImGuiPayload* payload = ImGui::AcceptDragDropPayload("DND_DEMO_CELL")) {
+              IM_ASSERT(payload->DataSize == sizeof(int));
+              int payload_n = *(const int*)payload->Data;
+              if (mode == Mode_Copy) {
+                names[n] = names[payload_n];
+              }
+              if (mode == Mode_Move) {
+                names[n] = names[payload_n];
+                names[payload_n] = "";
+              }
+              if (mode == Mode_Swap) {
+                const char* tmp = names[n];
+                names[n] = names[payload_n];
+                names[payload_n] = tmp;
+              }
+            }
+            ImGui::EndDragDropTarget();
+          }
+          ImGui::PopID();
+        }
+        ImGui::TreePop();
       }
     }
   }

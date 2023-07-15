@@ -47,7 +47,7 @@ game2d::update_ui_editor_tilemap_system(GameEditor& editor, Game& game)
   // TODO: be able to update sprite colour
   // TODO: be able to select sprite game behaviour
   // TODO: save the configs above as prefabs
-  ImGui::Begin("Prefabs innit");
+  ImGui::Begin("Prefabs");
 
   static bool overwrite_sprite = false;
   ImGui::Checkbox("sprite##overwrite", &overwrite_sprite);

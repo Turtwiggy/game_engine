@@ -18,9 +18,9 @@ void
 game2d::update_ui_profiler_system(Profiler& profiler, const SINGLETON_PhysicsComponent& physics, entt::registry& r)
 {
   // #ifdef _DEBUG
-  // less than X-fps?! what is this?!
-  // if (ImGui::GetIO().Framerate <= 45 && ImGui::GetFrameCount() > 120)
-  //   std::cout << "(profiler) fps drop?!" << "\n";
+  //   // less than X-fps?! what is this?!
+  //   if (ImGui::GetIO().Framerate <= 45 && ImGui::GetFrameCount() > 120)
+  //     std::cout << "(profiler) fps drop?! \n";
   // #endif
 
   const auto& registry = r;

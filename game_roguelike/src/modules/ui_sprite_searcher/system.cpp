@@ -29,7 +29,7 @@ game2d::update_ui_sprite_searcher_system(GameEditor& editor, Game& game)
   // searchbar input
   static std::string value = "";
 
-  ImGui::Begin("Sprite Searcher");
+  ImGui::Begin("SpriteSearcher");
   std::string label = "Search: ";
   ImGui::Text(label.c_str());
   ImGui::SameLine();

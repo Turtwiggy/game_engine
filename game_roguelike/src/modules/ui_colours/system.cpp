@@ -7,7 +7,7 @@
 void
 game2d::update_ui_colours_system(SINGLETON_ColoursComponent& colours)
 {
-  ImGui::Begin("Colour Editor");
+  ImGui::Begin("ColourEditor");
 
   const auto colour_widget = [](const std::string& tag, engine::SRGBColour& col, engine::LinearColour& lin_col) {
     float cols[4] = { col.r / 255.0f, col.g / 255.0f, col.b / 255.0f, col.a };

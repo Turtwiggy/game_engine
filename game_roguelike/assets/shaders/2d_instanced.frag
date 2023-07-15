@@ -6,7 +6,7 @@ out vec4 out_colour;
 
 in vec2 v_tex;
 in vec4 v_colour;
-in vec2 v_sprite_pos; // x, y location of sprite
+in vec2 v_sprite_pos; // x, y location of sprite e.g. 0, 0 on spritesheet is top left
 in vec2 v_sprites;    // amount of sprites (x, y)
 in float v_tex_unit;
 

@@ -19,32 +19,27 @@ update_ui_welcome_system(GameEditor& editor, Game& game)
   flags |= ImGuiDockNodeFlags_AutoHideTabBar;
   flags |= ImGuiDockNodeFlags_NoResize;
 
-  const auto& viewport = ImGui::GetWindowViewport();
-  float x = viewport->Pos.x + (viewport->Size.x / 2.0f);
-  float y = viewport->Pos.y + (viewport->Size.y / 2.0f);
-
   if (game.running_state == GameState::START) {
     auto& io = ImGui::GetIO();
-    ImGui::SetNextWindowPos(
-      ImVec2(io.DisplaySize.x * 0.25f, io.DisplaySize.y * 0.5f), ImGuiCond_Always, ImVec2(0.5f, 0.5f));
+
+    const auto& window_pos = ImGui::GetWindowViewport()->GetCenter();
+    const auto window_size_half = ImVec2(ImGui::GetWindowSize().x * 0.5f, ImGui::GetWindowSize().y * 0.5f);
+    const auto pos = ImVec2(window_pos.x, window_pos.y);
+    ImGui::SetNextWindowPos(pos, ImGuiCond_Always, ImVec2(0.5f, 0.5f));
 
     bool show = true;
     ImGui::Begin("Welcome", &show, flags);
 
     ImGui::Text("Welcome!");
     ImGui::Text("");
-    ImGui::Text("¬¬ MOVE ¬¬");
-    ImGui::Text("Move with WASD.");
+    ImGui::Text("Move with the WASD keys. Collide with the enemies to damage them.");
     ImGui::Text("");
-    ImGui::Text("¬¬ ATTACK ¬¬");
-    ImGui::Text("Collide with enemy to damage.");
-    ImGui::Text("");
-    ImGui::Text("¬¬ LEVEL STATS ¬¬");
+    ImGui::Text("¬¬ LEVELLING INFORMATION ¬¬");
     ImGui::Text("CON: +4 MAX HP");
     ImGui::Text("STR: +1 ATK");
     ImGui::Text("AGI: +1 DEF");
     ImGui::Text("");
-    ImGui::Text("¬¬ ITEMS ¬¬");
+    ImGui::Text("¬¬ Available Items ¬¬");
     ImGui::Text("sword: +1 ATK");
     ImGui::Text("shield: +1 DEF");
     ImGui::Text("potion: +1 HP");

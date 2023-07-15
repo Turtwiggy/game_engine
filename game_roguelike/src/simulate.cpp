@@ -20,11 +20,11 @@
 #include "modules/resolve_collisions/system.hpp"
 #include "modules/rpg_xp/stats.hpp"
 #include "modules/rpg_xp/system.hpp"
-#include "ui_profiler/components.hpp"
-#include "ui_profiler/helpers.hpp"
 #include "physics/components.hpp"
 #include "physics/process_actor_actor.hpp"
 #include "physics/process_move_objects.hpp"
+#include "ui_profiler/components.hpp"
+#include "ui_profiler/helpers.hpp"
 
 void
 game2d::simulate(GameEditor& editor, Game& game, const std::vector<InputEvent>& inputs, uint64_t milliseconds_dt)

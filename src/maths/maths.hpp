@@ -27,6 +27,7 @@ struct RandomState
 /// unfortunately the distributions in <random> are unspecified, so will not get
 /// the same results across platforms, making them useless for anything which
 /// needs reproducible random numbers, aka everything
+
 template<typename T>
 inline float
 rand_det_s(T& rnd, float M, float MN)

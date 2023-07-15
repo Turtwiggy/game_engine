@@ -10,9 +10,9 @@ struct SRGBColour
   int b = 0;
   float a = 0.0f;
 
-  SRGBColour() = default;
+  constexpr SRGBColour() = default;
 
-  SRGBColour(float r, float g, float b, float a)
+  constexpr SRGBColour(float r, float g, float b, float a)
     : r(static_cast<int>(r * 255.0f))
     , g(static_cast<int>(g * 255.0f))
     , b(static_cast<int>(b * 255.0f))
@@ -20,7 +20,7 @@ struct SRGBColour
   {
   }
 
-  SRGBColour(int r, int g, int b, float a)
+  constexpr SRGBColour(int r, int g, int b, float a)
     : r(r)
     , g(g)
     , b(b)

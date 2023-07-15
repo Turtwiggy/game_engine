@@ -27,6 +27,7 @@ game2d::render_texture_to_imgui_viewport(const int64_t& tex_id)
 
   ImGuiWindowFlags window_flags = ImGuiWindowFlags_NoDocking;
   window_flags |= ImGuiWindowFlags_NoFocusOnAppearing;
+
   {
     const ImGuiViewport* viewport = ImGui::GetMainViewport();
     ImGui::SetNextWindowPos(viewport->WorkPos);
@@ -63,20 +64,23 @@ game2d::render_texture_to_imgui_viewport(const int64_t& tex_id)
       ImGui::DockBuilderSetNodeSize(dockspace_id, vps);
 
       ImGuiID dock_id_main = dockspace_id;
-      // ImGuiID dock_id_down = ImGui::DockBuilderSplitNode(dock_id_main, ImGuiDir_Down, 0.15f, nullptr, &dock_id_main);
       ImGuiID dock_id_left = ImGui::DockBuilderSplitNode(dock_id_main, ImGuiDir_Left, 0.15f, nullptr, &dock_id_main);
       ImGuiID dock_id_right = ImGui::DockBuilderSplitNode(dock_id_main, ImGuiDir_Right, 0.15f, nullptr, &dock_id_main);
-      ImGuiID dock_id_right_bottom =
-        ImGui::DockBuilderSplitNode(dock_id_right, ImGuiDir_Down, 0.5f, nullptr, &dock_id_right);
       ImGuiID dock_id_top = ImGui::DockBuilderSplitNode(dock_id_main, ImGuiDir_Up, 0.15f, nullptr, &dock_id_main);
+      ImGuiID dock_id_down = ImGui::DockBuilderSplitNode(dock_id_main, ImGuiDir_Down, 0.15f, nullptr, &dock_id_main);
 
+      // HACK: hard coded names for windows
       // TODO: improve this
       ImGui::DockBuilderDockWindow("Viewport", dock_id_main);
-      // ImGui::DockBuilderDockWindow("Profiler", dock_id_left);
-      // ImGui::DockBuilderDockWindow("Hierarchy", dock_id_left);
       ImGui::DockBuilderDockWindow("Player", dock_id_left);
       ImGui::DockBuilderDockWindow("GameEvents", dock_id_top);
-      // ImGui::DockBuilderDockWindow("Physics", dock_id_right);
+
+      // tools
+      ImGui::DockBuilderDockWindow("Profiler", dock_id_down);
+      ImGui::DockBuilderDockWindow("ColourEditor", dock_id_down);
+      ImGui::DockBuilderDockWindow("Prefabs", dock_id_down);
+      ImGui::DockBuilderDockWindow("Shop", dock_id_down);
+      ImGui::DockBuilderDockWindow("SpriteSearcher", dock_id_down);
 
       ImGui::DockBuilderFinish(dock_id_main);
     }

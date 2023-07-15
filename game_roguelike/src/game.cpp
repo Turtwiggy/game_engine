@@ -28,6 +28,7 @@
 #include "modules/ui_event_console/system.hpp"
 #include "modules/ui_hierarchy/helpers.hpp"
 #include "modules/ui_hierarchy/system.hpp"
+#include "modules/ui_level_up/system.hpp"
 #include "modules/ui_main_menu/system.hpp"
 #include "modules/ui_player/system.hpp"
 #include "modules/ui_screen_gameover/system.hpp"
@@ -164,6 +165,7 @@ update(engine::SINGLETON_Application& app, GameEditor& editor, Game& game, float
     update_ui_welcome_system(editor, game);
     update_ui_main_menu_system(app, editor, game);
     update_ui_gameover_system(editor, game);
+    update_ui_level_up_system(editor, game);
 
     static bool show_editor_ui = true;
     if (show_editor_ui) {

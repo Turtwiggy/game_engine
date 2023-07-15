@@ -13,10 +13,10 @@ update_ui_main_menu_system(engine::SINGLETON_Application& app, GameEditor& edito
 
   ImGuiWindowFlags flags = 0;
   flags |= ImGuiWindowFlags_NoFocusOnAppearing;
-  flags |= ImGuiDockNodeFlags_PassthruCentralNode;
   flags |= ImGuiWindowFlags_NoCollapse;
   flags |= ImGuiWindowFlags_NoResize;
   flags |= ImGuiDockNodeFlags_NoResize;
+  flags |= ImGuiDockNodeFlags_PassthruCentralNode;
 
   static bool open = false;
 

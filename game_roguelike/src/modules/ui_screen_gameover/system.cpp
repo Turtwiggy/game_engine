@@ -39,7 +39,7 @@ update_ui_gameover_system(GameEditor& editor, Game& game)
     ImGui::Text("Thanks for playing.");
     ImGui::Text("");
     ImGui::Text("Feedback appreciated at");
-    ImGui::Text("Tweet @MarkBerrow");
+    ImGui::Text("Tweet @Wiggy_dev");
     ImGui::Text("Discord Turtwiggy#5041");
 
     ImGui::Separator();

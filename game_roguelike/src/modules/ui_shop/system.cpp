@@ -37,7 +37,7 @@ game2d::update_ui_shop_system(GameEditor& editor, Game& game)
     flags |= ImGuiWindowFlags_NoMove;
     flags |= ImGuiWindowFlags_NoTitleBar;
     flags |= ImGuiWindowFlags_NoResize;
-    ImGui::Begin("(debug) Shop", &shop_open, flags);
+    ImGui::Begin("Shop", &shop_open, flags);
     {
       const auto& shops = r.view<ShopKeeperComponent>();
       const auto& items = r.view<InBackpackComponent, const TagComponent>();

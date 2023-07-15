@@ -96,31 +96,13 @@ create_sprite(GameEditor& editor, const EntityType& type)
     sprite = "SCROLL_33_5";
   // else if (type == EntityType::scroll_damage_selected_on_grid)
   //   sprite = "SCROLL_34_5";
-  else if (type == EntityType::free_cursor)
-    sprite = "EMPTY";
-  else if (type == EntityType::grid_cursor)
-    sprite = "EMPTY";
   else
     std::cerr << "warning! renderable not implemented: " << type_name << "\n";
 
-  RenderOrder order = RenderOrder::background;
+  RenderOrder order = RenderOrder::foreground;
 
-  if (type == EntityType::actor_bat)
-    order = RenderOrder::foreground;
-  else if (type == EntityType::actor_troll)
-    order = RenderOrder::foreground;
-  else if (type == EntityType::actor_player)
-    order = RenderOrder::foreground;
-  // else if (type == EntityType::bolt)
-  //   order = RenderOrder::foreground;
-  else if (type == EntityType::shield)
-    order = RenderOrder::foreground;
-  else if (type == EntityType::potion)
-    order = RenderOrder::foreground;
-  else if (type == EntityType::scroll_damage_nearest)
-    order = RenderOrder::foreground;
-  // else if (type == EntityType::scroll_damage_selected_on_grid)
-  //   order = RenderOrder::foreground;
+  if (type == EntityType::tile_type_floor)
+    order = RenderOrder::background;
 
   SpriteComponent sc;
   sc.render_order = order;
@@ -151,38 +133,11 @@ create_colour(GameEditor& editor, const EntityType& type)
   const lin_ptr& quaternary = editor.colours.lin_quaternary;
 
   lin_ptr chosen_col = primary;
-  if (type == EntityType::empty)
-    chosen_col = primary;
-  else if (type == EntityType::tile_type_wall)
+
+  if (type == EntityType::tile_type_wall)
     chosen_col = secondary;
   else if (type == EntityType::tile_type_floor)
     chosen_col = secondary;
-  else if (type == EntityType::tile_type_exit)
-    chosen_col = primary;
-  else if (type == EntityType::actor_bat)
-    chosen_col = primary;
-  else if (type == EntityType::actor_troll)
-    chosen_col = primary;
-  else if (type == EntityType::actor_player)
-    chosen_col = primary;
-  // else if (type == EntityType::bolt)
-  //   srgb = colours.lightyellow;
-  // else if (type == EntityType::crossbow)
-  //   srgb = colours.red;
-  else if (type == EntityType::sword)
-    chosen_col = primary;
-  else if (type == EntityType::shield)
-    chosen_col = primary;
-  else if (type == EntityType::potion)
-    chosen_col = primary;
-  else if (type == EntityType::scroll_damage_nearest)
-    chosen_col = primary;
-  else if (type == EntityType::actor_shopkeeper)
-    chosen_col = primary;
-  else if (type == EntityType::free_cursor)
-    chosen_col = primary;
-  else if (type == EntityType::grid_cursor)
-    chosen_col = primary;
   else
     std::cerr << "warning! colour not chosen for: " << type_name << "\n";
 
