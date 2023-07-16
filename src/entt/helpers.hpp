@@ -17,4 +17,12 @@ get_first(entt::registry& r)
   return view.front();
 };
 
+template<class T>
+T&
+get_first_component(entt::registry& r)
+{
+  const auto& e = get_first<T>(r);
+  return r.get<T>(e);
+};
+
 }; // namespace game2d

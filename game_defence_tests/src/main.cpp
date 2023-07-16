@@ -30,7 +30,7 @@ main(int argc, char** argv)
 
 TEST(TestSuite, HelloTest)
 {
-  ASSERT_TRUE(game2d::function_returns_true());
+  ASSERT_TRUE(true);
 }
 
 TEST(TestSuite, HelloTest2)

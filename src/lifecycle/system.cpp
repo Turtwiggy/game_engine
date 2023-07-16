@@ -16,17 +16,5 @@ game2d::update_lifecycle_system(SINGLETON_EntityBinComponent& dead, entt::regist
   for (const auto& entity : dead.dead)
     r.destroy(entity);
 
-  // update hierarchy...
-  // update hroot.children if entity is removed
-  // const auto& h = r.view<RootNode>().front();
-  // auto& hroot = r.get<EntityHierarchyComponent>(h);
-  // std::vector<entt::entity>::iterator it = hroot.children.begin();
-  // while (it != hroot.children.end()) {
-  //   if (!r.valid(*it))
-  //     it = hroot.children.erase(it);
-  //   else
-  //     ++it;
-  // }
-
   dead.dead.clear();
 };

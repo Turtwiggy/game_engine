@@ -14,9 +14,8 @@ SRGBFloatToLinearFloat(const float f)
   return pow((f + 0.055f) / 1.055f, 2.4f);
 };
 
-// This function really should be constexpr
-// cmath pow isnt constexpr
-float
+// This function really should be constexpr but math pow isnt constexpr
+constexpr float
 LinearFloatToSRGBFloat(const float f)
 {
   if (f <= 0.0031308f)

@@ -5,11 +5,11 @@
 #include "camera/components.hpp"
 #include "camera/helpers.hpp"
 #include "entt/helpers.hpp"
-#include "ui_profiler/helpers.hpp"
 #include "renderer/components.hpp"
 #include "renderer/helpers.hpp"
 #include "renderer/helpers/batch_quad.hpp"
 #include "sprites/components.hpp"
+#include "ui_profiler/helpers.hpp"
 
 // engine headers
 #include "opengl/framebuffer.hpp"
@@ -27,9 +27,7 @@ using namespace engine; // used for macro
 namespace game2d {
 
 void
-game2d::init_render_system(const engine::SINGLETON_Application& app,
-                           SINGLETON_RendererInfo& ri,
-                           std::vector<Texture>& tex)
+game2d::init_render_system(const engine::SINGLETON_Application& app, SINGLETON_RendererInfo& ri, std::vector<Texture>& tex)
 {
   const glm::ivec2 screen_wh = { app.width, app.height };
 
@@ -106,8 +104,7 @@ game2d::update_render_system(SINGLETON_RendererInfo& ri,
 
       // camera
       {
-        const auto& camera_entity = game2d::get_first<CameraComponent>(registry);
-        const auto& camera = registry.get<CameraComponent>(camera_entity);
+        const auto& camera = game2d::get_first_component<CameraComponent>(registry);
         const auto& view = camera.view;
         ri.instanced.bind();
         ri.instanced.set_mat4("view", view);

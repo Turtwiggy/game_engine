@@ -1,4 +1,4 @@
 BasedOnStyle: Mozilla
-ColumnLimit: 120
+ColumnLimit: 125
 IndentWidth: 2
 # AlignConsecutiveDeclarations: true

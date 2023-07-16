@@ -30,9 +30,7 @@ game2d::update_ui_editor_tilemap_system(GameEditor& editor, Game& game)
     auto e = create_gameplay(editor, game, EntityType::empty);
     r.emplace<TilemapComponent>(e);
   }
-  const auto& made_tilemap_entity = game2d::get_first<TilemapComponent>(r);
-  auto& tilemap = r.get<TilemapComponent>(made_tilemap_entity);
-
+  auto& tilemap = game2d::get_first_component<TilemapComponent>(r);
   auto& colours = editor.colours;
   const int GRID_SIZE = 16; // hmm
   const glm::ivec2 mouse_position =
