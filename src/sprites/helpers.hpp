@@ -1,7 +1,7 @@
 #pragma once
 
 // my libs
-#include "sprites/components.hpp"
+#include "components.hpp"
 
 // std libs
 #include <string>

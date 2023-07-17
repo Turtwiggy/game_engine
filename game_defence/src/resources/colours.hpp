@@ -10,23 +10,33 @@ namespace game2d {
 using srgb_ptr = std::shared_ptr<engine::SRGBColour>;
 using lin_ptr = std::shared_ptr<engine::LinearColour>;
 
-constexpr engine::SRGBColour
-convert_hex_to_rgb(const int hex)
-{
-  return engine::SRGBColour(static_cast<int>(((hex >> 16) & 0xFF)), // r
-                            static_cast<int>(((hex >> 8) & 0xFF)),  // g
-                            static_cast<int>((hex & 0xFF)),         // b
-                            1.0f);                                  // a
-}
+// engine::SRGBColour
+// convert_hex_to_rgb(const int hex)
+// {
+//   return engine::SRGBColour(static_cast<int>(((hex >> 16) & 0xFF)), // r
+//                             static_cast<int>(((hex >> 8) & 0xFF)),  // g
+//                             static_cast<int>((hex & 0xFF)),         // b
+//                             1.0f);                                  // a
+// }
+
+// https://colorhunt.co/palette/fff8ea9e7676815b5b594545
+static const engine::SRGBColour pal_0_1{ 255, 248, 234, 1.0f }; // lightest
+static const engine::SRGBColour pal_0_2{ 158, 118, 118, 1.0f };
+static const engine::SRGBColour pal_0_3{ 129, 91, 91, 1.0f };
+static const engine::SRGBColour pal_0_4{ 89, 69, 69, 1.0f }; // darkest
+static const engine::LinearColour lin_pal_0_1 = engine::SRGBToLinear(pal_0_1);
+static const engine::LinearColour lin_pal_0_2 = engine::SRGBToLinear(pal_0_2);
+static const engine::LinearColour lin_pal_0_3 = engine::SRGBToLinear(pal_0_3);
+static const engine::LinearColour lin_pal_0_4 = engine::SRGBToLinear(pal_0_4);
+static const engine::SRGBColour pal_background = pal_0_4;
+static const engine::SRGBColour pal_hit = { 172, 68, 37, 1.0f };
+static const engine::SRGBColour pal_white = { 255, 255, 255, 1.0f };
+static const engine::LinearColour lin_pal_hit = engine::SRGBToLinear(pal_hit);
+static const engine::LinearColour lin_pal_white = engine::SRGBToLinear(pal_white);
+static const engine::LinearColour lin_pal_background = engine::SRGBToLinear(pal_background);
 
 struct SINGLETON_ColoursComponent
 {
-  // https://colorhunt.co/palette/fff8ea9e7676815b5b594545
-  const engine::SRGBColour pal_0_1 = { 255, 248, 234, 1.0f }; // lightest
-  const engine::SRGBColour pal_0_2 = { 158, 118, 118, 1.0f };
-  const engine::SRGBColour pal_0_3 = { 129, 91, 91, 1.0f };
-  const engine::SRGBColour pal_0_4 = { 89, 69, 69, 1.0f }; // darkest
-
   // Gonna have to develop somthing to cycle through these
   // https://colorhunt.co/palette/4a55a27895cba0bfe0c5dff8
   // https://colorhunt.co/palette/2d4356435b66a76f6feab2a0
@@ -49,18 +59,6 @@ struct SINGLETON_ColoursComponent
   // https://colorhunt.co/palette/a75d5dd3756bf0997dffc3a1
   // https://colorhunt.co/palette/00000052057b892cdcbc6ff1
   // https://colorhunt.co/palette/7579e79ab3f5a3d8f4b9fffc
-
-  const engine::LinearColour lin_pal_0_1 = engine::SRGBToLinear(pal_0_1);
-  const engine::LinearColour lin_pal_0_2 = engine::SRGBToLinear(pal_0_2);
-  const engine::LinearColour lin_pal_0_3 = engine::SRGBToLinear(pal_0_3);
-  const engine::LinearColour lin_pal_0_4 = engine::SRGBToLinear(pal_0_4);
-
-  const engine::SRGBColour pal_background = pal_0_4;
-  const engine::SRGBColour pal_hit = { 172, 68, 37, 1.0f };
-  const engine::SRGBColour pal_white = { 255, 255, 255, 1.0f };
-  const engine::LinearColour lin_pal_hit = engine::SRGBToLinear(pal_hit);
-  const engine::LinearColour lin_pal_white = engine::SRGBToLinear(pal_white);
-  const engine::LinearColour lin_pal_background = engine::SRGBToLinear(pal_background);
 
   // the game's live palette
   srgb_ptr primary = std::make_shared<engine::SRGBColour>(pal_0_1);

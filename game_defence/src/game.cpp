@@ -1,5 +1,6 @@
 #include "game.hpp"
 
+#include "actors.hpp"
 #include "audio/components.hpp"
 #include "audio/system.hpp"
 #include "entt/helpers.hpp"
@@ -9,13 +10,14 @@
 #include "lifecycle/components.hpp"
 #include "lifecycle/system.hpp"
 #include "maths/maths.hpp"
+#include "modules/camera/orthographic.hpp"
 #include "modules/camera/system.hpp"
 #include "modules/player/system.hpp"
 #include "modules/ui_main_menu/system.hpp"
 #include "physics/components.hpp"
 #include "renderer/components.hpp"
 #include "renderer/system.hpp"
-#include "resources/colour.hpp"
+#include "resources/colours.hpp"
 #include "resources/textures.hpp"
 #include "ui_profiler/components.hpp"
 #include "ui_profiler/helpers.hpp"
@@ -27,6 +29,17 @@
 #include "opengl/shader.hpp"
 #include "opengl/texture.hpp"
 #include "opengl/util.hpp"
+
+namespace game2d {
+
+void
+init_game(entt::registry& r)
+{
+  r.emplace<OrthographicCamera>(r.create());
+  create_gameplay(r, EntityType::actor_player);
+}
+
+} // namespace game2d
 
 void
 game2d::init(engine::SINGLETON_Application& app, entt::registry& r)
@@ -48,7 +61,6 @@ game2d::init(engine::SINGLETON_Application& app, entt::registry& r)
     r.emplace<SINGLETON_AudioComponent>(r.create(), audio);
   }
 
-  // editor
   r.emplace<Profiler>(r.create());
   r.emplace<SINGLETON_RendererInfo>(r.create());
   r.emplace<engine::RandomState>(r.create());
@@ -57,6 +69,7 @@ game2d::init(engine::SINGLETON_Application& app, entt::registry& r)
   r.emplace<SINGLETON_InputComponent>(r.create());
   r.emplace<SINGLETON_PhysicsComponent>(r.create());
   r.emplace<GameStateComponent>(r.create());
+  r.emplace<SINGLETON_ColoursComponent>(r.create());
 
   auto& textures = get_first_component<SINGLETON_Textures>(r).textures;
   auto& audio = get_first_component<SINGLETON_AudioComponent>(r);
@@ -65,6 +78,8 @@ game2d::init(engine::SINGLETON_Application& app, entt::registry& r)
   init_audio_system(audio);
   init_render_system(app, ri, textures);
   init_input_system(input);
+
+  init_game(r);
 }
 
 void
@@ -114,24 +129,8 @@ game2d::update(engine::SINGLETON_Application& app, entt::registry& r, float dt)
     auto _ = time_scope(&p, "rendering");
     auto& ri = get_first_component<SINGLETON_RendererInfo>(r);
     auto& texs = get_first_component<SINGLETON_Textures>(r).textures;
-    // auto& colours = get_first_component<SINGLETON_ColoursComponent>(r);
-    // update_render_system(ri, *colours.lin_background, *colours.background, texs, r, p);
-
-    // FBO: Render sprites in to this fbo with linear colour
-    glm::ivec2 viewport_wh = ri.viewport_size_render_at;
-    check_if_viewport_resize(ri, texs, viewport_wh);
-
-    engine::Framebuffer::default_fbo();
-    engine::RenderCommand::set_viewport(0, 0, viewport_wh.x, viewport_wh.y);
-    engine::RenderCommand::set_clear_colour_srgb(engine::SRGBColour(255, 0, 0, 1.0f));
-    engine::RenderCommand::clear();
-
-    ViewportInfo vi = render_texture_to_imgui_viewport(ri.tex_id_srgb);
-
-    ri.viewport_pos = glm::vec2(vi.pos.x, vi.pos.y);
-    ri.viewport_size_current = { vi.size.x, vi.size.y };
-    ri.viewport_hovered = vi.hovered;
-    ri.viewport_focused = vi.focused;
+    auto& colours = get_first_component<SINGLETON_ColoursComponent>(r);
+    update_render_system(ri, *colours.lin_background, *colours.background, texs, r, p);
   }
 
   // UI

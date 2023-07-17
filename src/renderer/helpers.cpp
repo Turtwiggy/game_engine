@@ -2,12 +2,13 @@
 #include "helpers.hpp"
 
 // other lib
-#include "camera/helpers.hpp"
 #include "opengl/framebuffer.hpp"
 #include "opengl/render_command.hpp"
 #include "opengl/texture.hpp"
 #include "opengl/util.hpp"
 using namespace engine; // used for macro
+
+#include "modules/camera/orthographic.hpp"
 
 #include <imgui.h>
 #include <imgui_internal.h>
@@ -144,7 +145,7 @@ game2d::rebind(const SINGLETON_RendererInfo& ri, const std::vector<Texture>& tex
     glBindTexture(GL_TEXTURE_2D, texture.tex_id.id);
   }
 
-  glm::mat4 projection = calculate_projection(wh.x, wh.y);
+  glm::mat4 projection = calculate_ortho_projection(wh.x, wh.y);
 
   {
     std::vector<int> tex_units;

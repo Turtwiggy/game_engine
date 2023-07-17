@@ -10,7 +10,7 @@
 #include "modules/items/components.hpp"
 #include "modules/player/components.hpp"
 #include "modules/rpg_xp/components.hpp"
-#include "sprites/helpers.hpp"
+#include "modules/sprites/helpers.hpp"
 #include "modules/ui_hierarchy/components.hpp"
 #include "physics/components.hpp"
 #include "renderer/components.hpp"

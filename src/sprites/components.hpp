@@ -26,7 +26,6 @@ struct SpriteAnimation
 {
   std::string name;
   std::vector<glm::ivec2> animation_frames;
-  float animation_angle_degrees = 0.0f;
   // float animation_frames_per_second = 1;
 };
 

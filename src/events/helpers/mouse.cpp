@@ -1,7 +1,6 @@
 // header
 #include "mouse.hpp"
 
-#include "camera/components.hpp"
 #include "entt/helpers.hpp"
 #include "renderer/components.hpp"
 

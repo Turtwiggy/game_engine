@@ -1,5 +1,5 @@
 // header
-#include "modules/sprites/helpers.hpp"
+#include "sprites/helpers.hpp"
 
 // other libs
 #include <nlohmann/json.hpp>
@@ -19,8 +19,10 @@ struct Frame
   int y = 0;
 };
 
+}
+
 void
-load_sprites(std::vector<SpriteAnimation>& sprites, const std::string path)
+game2d::load_sprites(std::vector<SpriteAnimation>& sprites, const std::string path)
 {
   std::cout << "loading sprite config: " << path << "\n";
   std::ifstream f(path);
@@ -54,10 +56,9 @@ load_sprites(std::vector<SpriteAnimation>& sprites, const std::string path)
 };
 
 SpriteAnimation
-find_animation(const std::vector<SpriteAnimation>& sprites, const std::string name)
+game2d::find_animation(const std::vector<SpriteAnimation>& sprites, const std::string name)
 {
-  auto s =
-    std::find_if(sprites.begin(), sprites.end(), [&name](const SpriteAnimation& spr) { return spr.name == name; });
+  auto s = std::find_if(sprites.begin(), sprites.end(), [&name](const SpriteAnimation& spr) { return spr.name == name; });
   if (s != std::end(sprites))
     return *s;
   else {
@@ -65,8 +66,6 @@ find_animation(const std::vector<SpriteAnimation>& sprites, const std::string na
     exit(1); // explode!
   }
 }
-
-} // namespace game2d
 
 // std::vector<sprite::type>
 // convert_int_to_sprites(int damage)

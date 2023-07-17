@@ -2,9 +2,8 @@
 #include "system.hpp"
 
 // components/systems
-#include "camera/components.hpp"
-#include "camera/helpers.hpp"
 #include "entt/helpers.hpp"
+#include "modules/camera/orthographic.hpp"
 #include "renderer/components.hpp"
 #include "renderer/helpers.hpp"
 #include "renderer/helpers/batch_quad.hpp"
@@ -80,7 +79,7 @@ game2d::update_render_system(SINGLETON_RendererInfo& ri,
                              const engine::LinearColour& lin_background,
                              const engine::SRGBColour& srgb_background,
                              std::vector<Texture>& tex,
-                             entt::registry& registry,
+                             entt::registry& r,
                              Profiler& p)
 {
   auto _ = time_scope(&p, "update_render_system()");
@@ -104,7 +103,7 @@ game2d::update_render_system(SINGLETON_RendererInfo& ri,
 
       // camera
       {
-        const auto& camera = game2d::get_first_component<CameraComponent>(registry);
+        const auto& camera = game2d::get_first_component<OrthographicCamera>(r);
         const auto& view = camera.view;
         ri.instanced.bind();
         ri.instanced.set_mat4("view", view);
@@ -115,7 +114,7 @@ game2d::update_render_system(SINGLETON_RendererInfo& ri,
       // sort by z-index
       // group.sort<SpriteComponent>([](const auto& a, const auto& b) { return a.render_order < b.render_order; });
 
-      const auto& view = registry.group<TransformComponent, SpriteComponent, SpriteColourComponent>();
+      const auto& view = r.group<TransformComponent, SpriteComponent, SpriteColourComponent>();
 
       for (const auto [entity, transform, sc, scc] : view.each()) {
         quad_renderer::RenderDescriptor desc;
