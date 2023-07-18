@@ -33,10 +33,6 @@ game2d::init_textures(SINGLETON_Textures& textures)
 
     std::cout << "set " << tex.path << " to tex_id: " << tex.tex_id.id << " unit: " << tex.tex_unit.unit << "\n";
 
-    // load sprite info from texture if it exists
-    // if (ref.tex.spritesheet_path != "")
-    //   load_sprites(anims.animations, ref.tex.spritesheet_path);
-
     i++;
   }
 }

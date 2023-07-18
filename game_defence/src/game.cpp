@@ -19,6 +19,8 @@
 #include "renderer/system.hpp"
 #include "resources/colours.hpp"
 #include "resources/textures.hpp"
+#include "sprites/components.hpp"
+#include "sprites/helpers.hpp"
 #include "ui_profiler/components.hpp"
 #include "ui_profiler/helpers.hpp"
 
@@ -36,7 +38,10 @@ void
 init_game(entt::registry& r)
 {
   r.emplace<OrthographicCamera>(r.create());
-  create_gameplay(r, EntityType::actor_player);
+
+  const auto player_type = EntityType::actor_player;
+  const auto player = create_gameplay(r, player_type);
+  create_renderable(r, player, player_type);
 }
 
 } // namespace game2d
@@ -45,13 +50,18 @@ void
 game2d::init(engine::SINGLETON_Application& app, entt::registry& r)
 {
   {
+    SINGLETON_Animations anims;
     SINGLETON_Textures textures;
-    Texture kenny_texture;
-    kenny_texture.path = std::string("assets/textures/kennynl_1bit_pack/monochrome_transparent_packed.png");
-    kenny_texture.spritesheet_path = std::string("assets/config/spritemap_kennynl.json");
-    textures.textures.push_back(kenny_texture);
+    {
+      Texture kenny_texture;
+      kenny_texture.path = std::string("assets/textures/kennynl_1bit_pack/monochrome_transparent_packed.png");
+      kenny_texture.spritesheet_path = std::string("assets/config/spritemap_kennynl.json");
+      load_sprites(anims.animations, kenny_texture.spritesheet_path);
+      textures.textures.push_back(kenny_texture);
+    }
     init_textures(textures);
     r.emplace<SINGLETON_Textures>(r.create(), textures);
+    r.emplace<SINGLETON_Animations>(r.create(), anims);
   }
   {
     SINGLETON_AudioComponent audio;

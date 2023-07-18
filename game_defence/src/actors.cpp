@@ -9,6 +9,9 @@
 #include "sprites/components.hpp"
 #include "sprites/helpers.hpp"
 
+#include "events/components.hpp"
+#include "modules/player/components.hpp"
+
 namespace game2d {
 
 static int SPRITE_SIZE = 16;
@@ -63,12 +66,12 @@ create_sprite(entt::registry& r, const EntityType& type)
   sc.x = anim.animation_frames[0].x;
   sc.y = anim.animation_frames[0].y;
 
-  // limitation: all sprites are now kenny sprites
   sc.tex_unit = get_tex_unit(textures, AvailableTexture::kenny);
   if (sc.tex_unit == get_tex_unit(textures, AvailableTexture::kenny)) {
     sc.sx = 48;
     sc.sy = 22;
-  }
+  } else
+    std::cerr << "warning! spritesize not implemented for: " << type_name << "\n";
 
   return sc;
 };
@@ -126,7 +129,8 @@ create_gameplay_existing_entity(entt::registry& r, const entt::entity& e, const 
       // r.emplace<PhysicsActorComponent>(e);
       // r.emplace<GridMoveComponent>(e);
       // // gameplay
-      // r.emplace<PlayerComponent>(e);
+      r.emplace<PlayerComponent>(e);
+      r.emplace<InputComponent>(e);
       // r.emplace<HealthComponent>(e);
       // r.emplace<TakeDamageComponent>(e);
       // r.emplace<XpComponent>(e, 0);

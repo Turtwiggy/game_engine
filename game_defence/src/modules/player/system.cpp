@@ -25,14 +25,16 @@ game2d::update_player_controller_system(entt::registry& r,
   // player movement
   const auto& view = r.view<PlayerComponent, TransformComponent, InputComponent>();
   for (auto [entity, player, transform, input] : view.each()) {
-    int dx = 0;
-    int dy = 0;
+
+    int& dx = input.dir.x;
+    int& dy = input.dir.y;
 
     for (const InputEvent& i : inputs) {
       switch (i.type) {
         case InputType::keyboard: {
           auto held = i.state == InputState::held;
           auto press = i.state == InputState::press;
+          auto release = i.state == InputState::release;
 
           if (i.key == player.W && (held || press))
             dy = -1;
@@ -42,6 +44,12 @@ game2d::update_player_controller_system(entt::registry& r,
             dx = -1;
           if (i.key == player.D && (held || press))
             dx = 1;
+
+          if ((i.key == player.W || i.key == player.S) && release)
+            dy = 0;
+          if ((i.key == player.A || i.key == player.D) && release)
+            dx = 0;
+
           break;
         }
 
@@ -63,18 +71,12 @@ game2d::update_player_controller_system(entt::registry& r,
           break; // nada
         }
       }
-
     } // end input each()
 
-    // player.able_to_move = player.milliseconds_move_cooldown <= 0;
-    // if (!player.able_to_move)
-    //   player.milliseconds_move_cooldown -= milliseconds_dt;
-    // if (player.able_to_move)
-    //   player.milliseconds_move_cooldown = k_milliseconds_move_cooldown;
-
-    // // do the move
-    // grid_move.x += 16 * dx;
-    // grid_move.y += 16 * dy;
+    // do the move
+    float speed = 1000.0f;
+    transform.position.x += dx * speed * (milliseconds_dt / 1000.0f);
+    transform.position.y += dy * speed * (milliseconds_dt / 1000.0f);
 
   } // end player each()
 }
