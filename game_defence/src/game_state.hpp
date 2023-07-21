@@ -11,7 +11,7 @@ enum class GameState
   GAMEOVER_WIN,
 };
 
-struct GameStateComponent
+struct SINGLETON_GameStateComponent
 {
   GameState state = GameState::START;
 };

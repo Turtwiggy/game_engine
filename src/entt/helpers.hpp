@@ -8,7 +8,7 @@
 namespace game2d {
 
 template<class T>
-entt::entity
+[[nodiscard]] entt::entity
 get_first(entt::registry& r)
 {
   const auto& view = r.view<T>();
@@ -18,7 +18,7 @@ get_first(entt::registry& r)
 };
 
 template<class T>
-T&
+[[nodiscard]] T&
 get_first_component(entt::registry& r)
 {
   const auto& e = get_first<T>(r);

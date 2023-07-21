@@ -24,9 +24,9 @@ game2d::update_ui_profiler_system(Profiler& profiler, const SINGLETON_PhysicsCom
   // #endif
 
   const auto& registry = r;
-  const auto& objs = registry.view<PhysicsTransformComponent>();
-  const auto& solids = registry.view<PhysicsSolidComponent>();
-  const auto& actors = registry.view<PhysicsActorComponent>();
+  const auto& objs = registry.view<const PhysicsTransformComponent>();
+  const auto& solids = registry.view<const PhysicsSolidComponent>();
+  const auto& actors = registry.view<const PhysicsActorComponent>();
 
   // Profiler
   ImGui::Begin("Profiler", NULL, ImGuiWindowFlags_NoFocusOnAppearing);
@@ -50,6 +50,9 @@ game2d::update_ui_profiler_system(Profiler& profiler, const SINGLETON_PhysicsCom
     ImGui::Text("Draw Calls TFR %i", engine::triangle_fan_renderer::TriangleFanRenderer::draw_calls());
     ImGui::Text("FPS %f", ImGui::GetIO().Framerate);
     ImGui::Text("Frame ms total %f", 1000.0f / ImGui::GetIO().Framerate);
+
+    const auto& transforms = r.view<TransformComponent>();
+    ImGui::Text("Transforms: %i", transforms.size());
 
     for (const auto& result : profiler.update_results)
       ImGui::Text("update: %s %f", result.name.c_str(), result.ms);

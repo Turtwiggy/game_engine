@@ -10,7 +10,7 @@
 #include <SDL2/SDL_mouse.h>
 #include <glm/glm.hpp>
 
-#include <iostream> // temp
+#include "physics/components.hpp"
 
 void
 game2d::update_player_controller_system(entt::registry& r,
@@ -23,8 +23,8 @@ game2d::update_player_controller_system(entt::registry& r,
   // std::cout << "(FIXEDTICK) ctrl_held: " << ctrl_held << "\n";
 
   // player movement
-  const auto& view = r.view<PlayerComponent, TransformComponent, InputComponent>();
-  for (auto [entity, player, transform, input] : view.each()) {
+  const auto& view = r.view<const PlayerComponent, GridMoveComponent, InputComponent>();
+  for (auto [entity, player, grid, input] : view.each()) {
 
     int& dx = input.dir.x;
     int& dy = input.dir.y;
@@ -75,8 +75,8 @@ game2d::update_player_controller_system(entt::registry& r,
 
     // do the move
     float speed = 1000.0f;
-    transform.position.x += dx * speed * (milliseconds_dt / 1000.0f);
-    transform.position.y += dy * speed * (milliseconds_dt / 1000.0f);
+    grid.x += static_cast<int>(dx * speed * (milliseconds_dt / 1000.0f));
+    grid.y += static_cast<int>(dy * speed * (milliseconds_dt / 1000.0f));
 
   } // end player each()
 }

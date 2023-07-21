@@ -2,6 +2,7 @@
 
 #include "colour/colour.hpp"
 #include "entt/helpers.hpp"
+#include "events/components.hpp"
 #include "magic_enum.hpp"
 #include "renderer/components.hpp"
 #include "resources/colours.hpp"
@@ -9,8 +10,12 @@
 #include "sprites/components.hpp"
 #include "sprites/helpers.hpp"
 
-#include "events/components.hpp"
+#include "modules/camera/orthographic.hpp"
+#include "modules/enemy/components.hpp"
 #include "modules/player/components.hpp"
+#include "modules/spawner/components.hpp"
+#include "modules/turret/components.hpp"
+#include "physics/components.hpp"
 
 namespace game2d {
 
@@ -28,15 +33,6 @@ from_json(const json& j, EntityTypeComponent& et)
   j.at("type").get_to(et.type);
 };
 
-TransformComponent
-create_transform()
-{
-  TransformComponent t_comp;
-  t_comp.scale.x = SPRITE_SIZE;
-  t_comp.scale.y = SPRITE_SIZE;
-  return t_comp;
-};
-
 SpriteComponent
 create_sprite(entt::registry& r, const EntityType& type)
 {
@@ -47,6 +43,12 @@ create_sprite(entt::registry& r, const EntityType& type)
     sprite = "EMPTY";
   else if (type == EntityType::actor_player)
     sprite = "PERSON_25_0";
+  else if (type == EntityType::actor_enemy)
+    sprite = "PERSON_29_2";
+  else if (type == EntityType::actor_turret)
+    sprite = "EMPTY";
+  else if (type == EntityType::spawner)
+    sprite = "CASTLE_FLOOR";
   else
     std::cerr << "warning! sprite not implemented: " << type_name << "\n";
 
@@ -94,41 +96,32 @@ create_colour(entt::registry& r, const EntityType& type)
   return scc;
 }
 
-void
-create_renderable(entt::registry& r, const entt::entity& e, const EntityType& type)
-{
-  r.emplace<SpriteComponent>(e, create_sprite(r, type));
-  r.emplace<SpriteColourComponent>(e, create_colour(r, type));
-  r.emplace<TransformComponent>(e, create_transform());
-};
-
 entt::entity
 create_gameplay(entt::registry& r, const EntityType& type)
 {
   const auto type_name = std::string(magic_enum::enum_name(type));
 
   const auto& e = r.create();
-  r.emplace<TagComponent>(e, std::string(magic_enum::enum_name(type)));
+  r.emplace<TagComponent>(e, type_name);
   r.emplace<EntityTypeComponent>(e, type);
-  create_gameplay_existing_entity(r, e, type);
 
-  return e;
-};
-
-void
-create_gameplay_existing_entity(entt::registry& r, const entt::entity& e, const EntityType& type)
-{
-  const auto type_name = std::string(magic_enum::enum_name(type));
+  r.emplace<SpriteComponent>(e, create_sprite(r, type));
+  r.emplace<SpriteColourComponent>(e, create_colour(r, type));
+  r.emplace<TransformComponent>(e);
+  auto& transform = r.get<TransformComponent>(e);
+  transform.scale.x = SPRITE_SIZE;
+  transform.scale.y = SPRITE_SIZE;
 
   switch (type) {
     case EntityType::empty: {
       break;
     }
     case EntityType::actor_player: {
-      // r.emplace<PhysicsTransformComponent>(e);
-      // r.emplace<PhysicsActorComponent>(e);
-      // r.emplace<GridMoveComponent>(e);
-      // // gameplay
+      r.emplace<PhysicsTransformComponent>(e);
+      r.emplace<PhysicsActorComponent>(e);
+      r.emplace<PhysicsSolidComponent>(e);
+      r.emplace<GridMoveComponent>(e);
+      // gameplay
       r.emplace<PlayerComponent>(e);
       r.emplace<InputComponent>(e);
       // r.emplace<HealthComponent>(e);
@@ -141,10 +134,33 @@ create_gameplay_existing_entity(entt::registry& r, const entt::entity& e, const 
       // r.emplace<StatsComponent>(e, stats);
       break;
     }
+    case EntityType::actor_enemy: {
+      r.emplace<PhysicsTransformComponent>(e);
+      r.emplace<PhysicsSolidComponent>(e);
+      r.emplace<PhysicsActorComponent>(e);
+      r.emplace<GridMoveComponent>(e);
+      r.emplace<EnemyComponent>(e);
+      break;
+    }
+    case EntityType::actor_turret: {
+      r.emplace<PhysicsTransformComponent>(e);
+      r.emplace<PhysicsSolidComponent>(e);
+      r.emplace<TurretComponent>(e);
+      break;
+    }
+    case EntityType::spawner: {
+      r.emplace<SpawnerComponent>(e);
+      break;
+    }
+    case EntityType::camera: {
+      r.emplace<OrthographicCamera>(e);
+    }
     default: {
       std::cout << "warning: no gameplay implemented for: " << type_name;
     }
   }
+
+  return e;
 };
 
 } // namespace game2d

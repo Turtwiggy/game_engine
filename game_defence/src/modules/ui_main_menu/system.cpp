@@ -17,15 +17,19 @@ game2d::update_ui_main_menu_system(engine::SINGLETON_Application& app, entt::reg
   flags |= ImGuiDockNodeFlags_PassthruCentralNode;
 
   auto& input = get_first_component<SINGLETON_InputComponent>(r);
-  auto& state = get_first_component<GameStateComponent>(r);
+  auto& state = get_first_component<SINGLETON_GameStateComponent>(r);
 
   static bool open = false;
   if (get_key_down(input, SDL_SCANCODE_ESCAPE))
     open = !open;
 
   // only update state if it was running or paused
-  if (state.state == GameState::RUNNING || state.state == GameState::PAUSED)
-    state.state = open ? GameState::PAUSED : GameState::RUNNING;
+  if (state.state == GameState::START) // HACK
+    state.state = GameState::RUNNING;
+  if (open)
+    state.state = state.state == GameState::RUNNING ? GameState::PAUSED : state.state;
+  if (!open)
+    state.state = state.state == GameState::PAUSED ? GameState::RUNNING : state.state;
 
   if (open) {
     // auto& io = ImGui::GetIO();
