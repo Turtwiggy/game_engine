@@ -1,6 +1,10 @@
 // header
 #include "system.hpp"
 
+#include "actors.hpp"
+#include "physics/components.hpp"
+#include "renderer/components.hpp"
+
 void
 game2d::update_lifecycle_system(SINGLETON_EntityBinComponent& dead, entt::registry& r, const uint64_t& milliseconds_dt)
 {
@@ -17,4 +21,23 @@ game2d::update_lifecycle_system(SINGLETON_EntityBinComponent& dead, entt::regist
     r.destroy(entity);
 
   dead.dead.clear();
+
+  // process create requests
+  const auto requests = r.view<CreateEntityRequest>();
+  for (auto [entity, request] : requests.each()) {
+    auto e = create_gameplay(r, request.entity_type);
+
+    // set position
+    auto& new_transform = r.get<TransformComponent>(e);
+    new_transform.position = request.position;
+
+    // set velocity
+    auto* vel_ptr = r.try_get<VelocityComponent>(e);
+    if (vel_ptr) {
+      vel_ptr->x = request.velocity.x;
+      vel_ptr->y = request.velocity.y;
+    }
+
+    r.destroy(entity);
+  }
 };

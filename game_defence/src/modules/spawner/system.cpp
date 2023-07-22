@@ -2,6 +2,7 @@
 
 #include "actors.hpp"
 #include "components.hpp"
+#include "lifecycle/components.hpp"
 #include "renderer/components.hpp"
 
 namespace game2d {
@@ -27,11 +28,12 @@ update_spawner_system(entt::registry& r, const uint64_t milliseconds_dt)
 
     if (spawner.time_between_spawns_left < 0.0f) {
 
-      // spawn something!
-      const auto& type = spawner.type_to_spawn;
-      auto e = create_gameplay(r, type);
-      auto& new_transform = r.get<TransformComponent>(e);
-      new_transform.position = transform.position;
+      // create spawn request
+      CreateEntityRequest req;
+      req.entity_type = spawner.type_to_spawn;
+      req.position = transform.position;
+      auto e = r.create();
+      r.emplace<CreateEntityRequest>(e, req);
 
       // reset timer
       spawner.time_between_spawns_left = time_between_spawns;

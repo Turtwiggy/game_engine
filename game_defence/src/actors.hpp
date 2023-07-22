@@ -11,6 +11,7 @@ enum class EntityType
   actor_player,
   actor_enemy,
   actor_turret,
+  actor_bullet,
 
   // misc
   spawner,

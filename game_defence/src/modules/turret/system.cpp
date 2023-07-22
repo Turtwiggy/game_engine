@@ -4,6 +4,7 @@
 
 #include "actors.hpp"
 #include "entt/helpers.hpp"
+#include "lifecycle/components.hpp"
 #include "maths/maths.hpp"
 #include "modules/enemy/components.hpp"
 #include "physics/components.hpp"
@@ -23,9 +24,10 @@ struct ClosestInfo
 void
 update_turret_system(entt::registry& r, const uint64_t& ms_dt)
 {
+  const float dt = ms_dt / 1000.0f;
   const auto& physics = get_first_component<SINGLETON_PhysicsComponent>(r);
   const auto& enemies = r.view<const EnemyComponent, const TransformComponent>();
-  const auto& turrets = r.view<const TurretComponent, TransformComponent>();
+  const auto& turrets = r.view<TurretComponent, TransformComponent>();
   for (auto [t_entity, turret, t_transform] : turrets.each()) {
 
     ClosestInfo info;
@@ -58,8 +60,8 @@ update_turret_system(entt::registry& r, const uint64_t& ms_dt)
         return oinfo; // early exit
 
       // calculate distance
-      auto other_pos = r.get<TransformComponent>(other_entity);
-      glm::ivec3 d = t_transform.position - other_pos.position;
+      const auto& other_pos = r.get<TransformComponent>(other_entity);
+      auto d = t_transform.position - other_pos.position;
       int d2 = d.x * d.x + d.y + d.y;
 
       // update info
@@ -121,6 +123,26 @@ update_turret_system(entt::registry& r, const uint64_t& ms_dt)
 
     // rotation is not handled properly, so its only visual atm
     t_transform.rotation_radians.z = angle;
+
+    //
+    // Spawn bullet logic
+    //
+    turret.time_between_bullets_left -= dt;
+    if (turret.time_between_bullets_left < 0.0f) {
+
+      const float bullet_speed = 200.0f;
+
+      // create spawn request
+      CreateEntityRequest req;
+      req.entity_type = turret.type_to_spawn;
+      req.position = t_transform.position;
+      req.velocity = glm::ivec3(-nrm_dir.x * bullet_speed, -nrm_dir.y * bullet_speed, 0);
+      auto e = r.create();
+      r.emplace<CreateEntityRequest>(e, req);
+
+      // reset timer
+      turret.time_between_bullets_left = turret.time_between_bullets;
+    }
   }
 };
 

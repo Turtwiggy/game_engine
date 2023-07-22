@@ -119,12 +119,9 @@ game2d::fixed_update(entt::registry& game, const uint64_t milliseconds_dt)
   if (state.state == GameState::PAUSED)
     return; // note: this ignores inputs
 
-  // destroy objects
+  // destroy/create objects
   auto& dead = get_first_component<SINGLETON_EntityBinComponent>(game);
   update_lifecycle_system(dead, game, milliseconds_dt);
-
-  // create new objects
-  update_spawner_system(game, milliseconds_dt);
 
   // update physics/collisions
   {
@@ -135,9 +132,13 @@ game2d::fixed_update(entt::registry& game, const uint64_t milliseconds_dt)
   }
 
   // update gamelogic
-  update_player_controller_system(game, inputs, milliseconds_dt);
-  update_enemy_system(game, milliseconds_dt);
-  update_turret_system(game, milliseconds_dt);
+  {
+    auto _ = time_scope(&p, "(game-tick)", true);
+    update_player_controller_system(game, inputs, milliseconds_dt);
+    update_enemy_system(game, milliseconds_dt);
+    update_turret_system(game, milliseconds_dt);
+    update_spawner_system(game, milliseconds_dt);
+  }
 }
 
 void

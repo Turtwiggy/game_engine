@@ -28,8 +28,10 @@ update_enemy_system(entt::registry& r, const uint64_t& ms_dt)
     if (dir.x != 0.0f && dir.y != 0.0f)
       n = normalize(dir);
 
-    grid.x += static_cast<int>(n.x * 1000.0f * (ms_dt / 1000.0f));
-    grid.y += static_cast<int>(n.y * 1000.0f * (ms_dt / 1000.0f));
+    const float speed = 2.0f;
+
+    grid.x += static_cast<int>(n.x * speed);
+    grid.y += static_cast<int>(n.y * speed);
   }
 }
 

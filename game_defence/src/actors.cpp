@@ -3,19 +3,19 @@
 #include "colour/colour.hpp"
 #include "entt/helpers.hpp"
 #include "events/components.hpp"
+#include "lifecycle/components.hpp"
 #include "magic_enum.hpp"
-#include "renderer/components.hpp"
-#include "resources/colours.hpp"
-#include "resources/textures.hpp"
-#include "sprites/components.hpp"
-#include "sprites/helpers.hpp"
-
 #include "modules/camera/orthographic.hpp"
 #include "modules/enemy/components.hpp"
 #include "modules/player/components.hpp"
 #include "modules/spawner/components.hpp"
 #include "modules/turret/components.hpp"
 #include "physics/components.hpp"
+#include "renderer/components.hpp"
+#include "resources/colours.hpp"
+#include "resources/textures.hpp"
+#include "sprites/components.hpp"
+#include "sprites/helpers.hpp"
 
 namespace game2d {
 
@@ -46,6 +46,8 @@ create_sprite(entt::registry& r, const EntityType& type)
   else if (type == EntityType::actor_enemy)
     sprite = "PERSON_29_2";
   else if (type == EntityType::actor_turret)
+    sprite = "EMPTY";
+  else if (type == EntityType::actor_bullet)
     sprite = "EMPTY";
   else if (type == EntityType::spawner)
     sprite = "CASTLE_FLOOR";
@@ -144,9 +146,15 @@ create_gameplay(entt::registry& r, const EntityType& type)
     }
     case EntityType::actor_turret: {
       r.emplace<PhysicsTransformComponent>(e);
-      r.emplace<PhysicsSolidComponent>(e);
       r.emplace<PhysicsActorComponent>(e);
       r.emplace<TurretComponent>(e);
+      break;
+    }
+    case EntityType::actor_bullet: {
+      r.emplace<PhysicsTransformComponent>(e);
+      r.emplace<PhysicsActorComponent>(e);
+      r.emplace<VelocityComponent>(e);
+      r.emplace<EntityTimedLifecycle>(e);
       break;
     }
     case EntityType::spawner: {

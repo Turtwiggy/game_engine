@@ -1,7 +1,9 @@
 #pragma once
 
-#include <entt/entt.hpp>
+#include "actors.hpp"
 
+#include "glm/glm.hpp"
+#include <entt/entt.hpp>
 #include <unordered_set>
 
 namespace game2d {
@@ -12,13 +14,20 @@ namespace game2d {
 
 struct EntityTimedLifecycle
 {
-  int milliseconds_alive_max = 10 * 1000;
+  int milliseconds_alive_max = 5 * 1000; // seconds
   int milliseconds_alive = 0;
 };
 
 struct SINGLETON_EntityBinComponent
 {
   std::unordered_set<entt::entity> dead;
+};
+
+struct CreateEntityRequest
+{
+  EntityType entity_type;
+  glm::ivec3 position;
+  glm::ivec3 velocity;
 };
 
 };
