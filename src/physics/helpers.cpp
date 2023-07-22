@@ -41,58 +41,63 @@ do_move(entt::registry& r,
         entt::entity& entity,
         int amount,
         TransformComponent& transform,
-        const PhysicsTransformComponent& ptc,
+        PhysicsTransformComponent& ptc,
         const CollisionAxis& axis)
 {
+  if (amount == 0)
+    return std::nullopt;
+
   constexpr auto Sign = [](const int& x) { return x == 0 ? 0 : (x > 0 ? 1 : -1); };
   const auto& blocking_objects_view = r.view<const PhysicsSolidComponent, const PhysicsTransformComponent>();
 
-  if (amount != 0) {
+  if (axis == CollisionAxis::x)
+    transform.position_dxdy.x -= amount;
+  if (axis == CollisionAxis::y)
+    transform.position_dxdy.y -= amount;
+  int sign = Sign(amount);
+
+  while (amount != 0) {
+
+    // updated position
+    PhysicsTransformComponent updated_pos;
+    updated_pos.x_tl = ptc.x_tl;
+    updated_pos.y_tl = ptc.y_tl;
+    updated_pos.w = ptc.w;
+    updated_pos.h = ptc.h;
     if (axis == CollisionAxis::x)
-      transform.position_dxdy.x -= amount;
+      updated_pos.x_tl += sign;
     if (axis == CollisionAxis::y)
-      transform.position_dxdy.y -= amount;
-    int sign = Sign(amount);
+      updated_pos.y_tl += sign;
 
-    while (amount != 0) {
-
-      // updated position
-      PhysicsTransformComponent po;
-      po.x_tl = ptc.x_tl;
-      po.y_tl = ptc.y_tl;
-      po.w = ptc.w;
-      po.h = ptc.h;
-      if (axis == CollisionAxis::x)
-        po.x_tl += sign;
-      if (axis == CollisionAxis::y)
-        po.y_tl += sign;
-
-      // Check if the updated position would collide with anything
-      for (auto [o_entity, o_block, o_ptransform] : blocking_objects_view.each()) {
-        bool same = entity == o_entity;
-        if (!same && collide(po, o_ptransform)) {
-          Collision2D collision;
-          collision.ent_id_0 = static_cast<uint32_t>(entity);
-          collision.ent_id_1 = static_cast<uint32_t>(o_entity);
-          return collision;
-        }
+    // Check if the updated position would collide with anything
+    for (auto [o_entity, o_psolid, o_ptransform] : blocking_objects_view.each()) {
+      bool same = entity == o_entity;
+      if (!same && collide(updated_pos, o_ptransform)) {
+        Collision2D collision;
+        collision.ent_id_0 = static_cast<uint32_t>(entity);
+        collision.ent_id_1 = static_cast<uint32_t>(o_entity);
+        return collision;
       }
-
-      // Move player if empty space
-      if (axis == CollisionAxis::x)
-        transform.position.x += sign;
-      if (axis == CollisionAxis::y)
-        transform.position.y += sign;
-      amount -= sign;
     }
+
+    // Move player if empty space
+    if (axis == CollisionAxis::x)
+      transform.position.x += sign;
+    if (axis == CollisionAxis::y)
+      transform.position.y += sign;
+
+    amount -= sign;
+
+    // Update the physics transform component
+    ptc.x_tl = transform.position.x - (ptc.w / 2);
+    ptc.y_tl = transform.position.y - (ptc.h / 2);
   }
+
   return std::nullopt;
 };
 
 void
-generate_broadphase_collisions(entt::registry& r,
-                               const CollisionAxis& axis,
-                               std::map<uint64_t, Collision2D>& collisions)
+generate_broadphase_collisions(entt::registry& r, const CollisionAxis& axis, std::map<uint64_t, Collision2D>& collisions)
 {
   // Sort by axis
   const auto& sorted_aabb = r.group<PhysicsTransformComponent, PhysicsActorComponent>();

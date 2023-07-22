@@ -94,7 +94,7 @@ game2d::update_ui_hierarchy_system(entt::registry& r)
 
     if (r.all_of<PhysicsTransformComponent>(eid)) {
       PhysicsTransformComponent& ptc = r.get<PhysicsTransformComponent>(eid);
-      imgui_draw_ivec2("Physics Pos (tl/tr): ", ptc.x_tl, ptc.y_tl);
+      imgui_draw_ivec2("Physics Pos (x_tl, y_tl): ", ptc.x_tl, ptc.y_tl);
       imgui_draw_ivec2("Physics Size: ", ptc.w, ptc.h);
     }
 

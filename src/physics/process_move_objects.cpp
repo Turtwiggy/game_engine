@@ -26,20 +26,18 @@ game2d::update_move_objects_system(entt::registry& r, const uint64_t millisecond
 
   // move grid actors,
   // stop if collides with an entity with the blocking component
-  const auto& grid_actors = r.view<TransformComponent, GridMoveComponent, PhysicsTransformComponent>();
-  grid_actors.each([&r](entt::entity entity, auto& transform, auto& grid, auto& ptc) {
-    transform.position_dxdy.x += grid.x;
-    transform.position_dxdy.y += grid.y;
-    grid.x = 0;
-    grid.y = 0;
+  const auto& grid_actors = r.view<const TagComponent, TransformComponent, GridMoveComponent, PhysicsTransformComponent>();
+  for (auto [entity, tag, transform, move, ptc] : grid_actors.each()) {
+    transform.position_dxdy.x += move.x;
+    transform.position_dxdy.y += move.y;
+    move.x = 0;
+    move.y = 0;
 
     int move_x = static_cast<int>(transform.position_dxdy.x);
     const auto coll_x = do_move(r, entity, move_x, transform, ptc, CollisionAxis::x);
-    ptc.x_tl = static_cast<int>(transform.position.x - (ptc.w / 2.0f));
 
     int move_y = static_cast<int>(transform.position_dxdy.y);
     const auto coll_y = do_move(r, entity, move_y, transform, ptc, CollisionAxis::y);
-    ptc.y_tl = static_cast<int>(transform.position.y - (ptc.h / 2.0f));
 
     // LIMITATION: this only emplaces one component, and an entity could be collided with multiple times.
     if (coll_x) {
@@ -53,7 +51,7 @@ game2d::update_move_objects_system(entt::registry& r, const uint64_t millisecond
       const auto other = static_cast<entt::entity>(coll_y->ent_id_1);
       r.emplace_or_replace<WasCollidedWithComponent>(other, instigator);
     }
-  });
+  }
 
   // move velocity actors,
   // stop if collides with an entity with the blocking component

@@ -34,7 +34,7 @@ do_move(entt::registry& r,
         entt::entity& entity,
         int amount,
         TransformComponent& transform,
-        const PhysicsTransformComponent& ptc,
+        PhysicsTransformComponent& ptc,
         const CollisionAxis& axis);
 
 // Checks collisions between actor-actors.
