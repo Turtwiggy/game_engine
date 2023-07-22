@@ -86,6 +86,9 @@ struct SINGLETON_PhysicsComponent
   std::vector<Collision2D> collision_enter;
   std::vector<Collision2D> collision_stay;
   std::vector<Collision2D> collision_exit;
+
+  std::vector<entt::entity> sorted_x;
+  std::vector<entt::entity> sorted_y;
 };
 
 } // game2d

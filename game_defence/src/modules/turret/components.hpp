@@ -4,7 +4,9 @@ namespace game2d {
 
 struct TurretComponent
 {
-  bool placeholder = true;
+  // after this cutoff, no longer target enemies
+  // tilesize * tilesize * tiles
+  int distance2_cutoff = 16 * 16 * 100;
 };
 
 } // namespace game2d

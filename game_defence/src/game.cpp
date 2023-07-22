@@ -123,6 +123,9 @@ game2d::fixed_update(entt::registry& game, const uint64_t milliseconds_dt)
   auto& dead = get_first_component<SINGLETON_EntityBinComponent>(game);
   update_lifecycle_system(dead, game, milliseconds_dt);
 
+  // create new objects
+  update_spawner_system(game, milliseconds_dt);
+
   // update physics/collisions
   {
     auto _ = time_scope(&p, "(physics)", true);
@@ -133,7 +136,6 @@ game2d::fixed_update(entt::registry& game, const uint64_t milliseconds_dt)
 
   // update gamelogic
   update_player_controller_system(game, inputs, milliseconds_dt);
-  update_spawner_system(game, milliseconds_dt);
   update_enemy_system(game, milliseconds_dt);
   update_turret_system(game, milliseconds_dt);
 }

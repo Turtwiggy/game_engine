@@ -118,8 +118,8 @@ create_gameplay(entt::registry& r, const EntityType& type)
     }
     case EntityType::actor_player: {
       r.emplace<PhysicsTransformComponent>(e);
-      r.emplace<PhysicsActorComponent>(e);
       r.emplace<PhysicsSolidComponent>(e);
+      r.emplace<PhysicsActorComponent>(e);
       r.emplace<GridMoveComponent>(e);
       // gameplay
       r.emplace<PlayerComponent>(e);
@@ -145,6 +145,7 @@ create_gameplay(entt::registry& r, const EntityType& type)
     case EntityType::actor_turret: {
       r.emplace<PhysicsTransformComponent>(e);
       r.emplace<PhysicsSolidComponent>(e);
+      r.emplace<PhysicsActorComponent>(e);
       r.emplace<TurretComponent>(e);
       break;
     }

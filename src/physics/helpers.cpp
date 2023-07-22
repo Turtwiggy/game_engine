@@ -2,6 +2,7 @@
 #include "helpers.hpp"
 
 // engine headers
+#include "entt/helpers.hpp"
 #include "maths/maths.hpp"
 #include "renderer/components.hpp"
 
@@ -99,6 +100,13 @@ do_move(entt::registry& r,
 void
 generate_broadphase_collisions(entt::registry& r, const CollisionAxis& axis, std::map<uint64_t, Collision2D>& collisions)
 {
+  // store results of sorted aabb
+  auto& physics = get_first_component<SINGLETON_PhysicsComponent>(r);
+  if (axis == CollisionAxis::x)
+    physics.sorted_x.clear();
+  else if (axis == CollisionAxis::y)
+    physics.sorted_y.clear();
+
   // Sort by axis
   const auto& sorted_aabb = r.group<PhysicsTransformComponent, PhysicsActorComponent>();
   if (axis == CollisionAxis::x)
@@ -109,6 +117,12 @@ generate_broadphase_collisions(entt::registry& r, const CollisionAxis& axis, std
   std::vector<std::reference_wrapper<const PhysicsTransformComponent>> active_list;
 
   for (int i = 0; auto [entity, ptransform, pactor] : sorted_aabb.each()) {
+
+    // store sorted results
+    if (axis == CollisionAxis::x)
+      physics.sorted_x.push_back(entity);
+    else if (axis == CollisionAxis::y)
+      physics.sorted_y.push_back(entity);
 
     // begin on the left of sorted_aabb.
     // add the first item from sorted_aabb to active_list.

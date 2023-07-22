@@ -35,8 +35,6 @@ update_spawner_system(entt::registry& r, const uint64_t milliseconds_dt)
 
       // reset timer
       spawner.time_between_spawns_left = time_between_spawns;
-
-      printf("spawned eid: %i", static_cast<int>(e));
     }
   }
 }
