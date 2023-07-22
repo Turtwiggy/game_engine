@@ -75,7 +75,7 @@ shoot(GameEditor& editor, Game& game, const entt::entity& player)
   // create_renderable(editor, r, bullet, EntityType::bolt);
 
   glm::vec2 dir = { mouse_position.x - transform.position.x, mouse_position.y - transform.position.y };
-  if (dir.x != 0.0f && dir.y != 0.0f)
+  if (dir.x != 0.0f || dir.y != 0.0f)
     dir = glm::normalize(dir);
 
   TransformComponent& bullet_transform = r.get<TransformComponent>(bullet);

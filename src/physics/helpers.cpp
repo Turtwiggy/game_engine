@@ -37,7 +37,7 @@ collides(const PhysicsTransformComponent& one, const std::vector<PhysicsTransfor
   return false;
 };
 
-std::optional<Collision2D>
+std::vector<Collision2D>
 do_move(entt::registry& r,
         entt::entity& entity,
         int amount,
@@ -45,8 +45,10 @@ do_move(entt::registry& r,
         PhysicsTransformComponent& ptc,
         const CollisionAxis& axis)
 {
+  std::vector<Collision2D> collisions;
+
   if (amount == 0)
-    return std::nullopt;
+    return collisions;
 
   constexpr auto Sign = [](const int& x) { return x == 0 ? 0 : (x > 0 ? 1 : -1); };
   const auto& blocking_objects_view = r.view<const PhysicsSolidComponent, const PhysicsTransformComponent>();
@@ -77,9 +79,13 @@ do_move(entt::registry& r,
         Collision2D collision;
         collision.ent_id_0 = static_cast<uint32_t>(entity);
         collision.ent_id_1 = static_cast<uint32_t>(o_entity);
-        return collision;
+        collision.collision_x = true;
+        collision.collision_y = true;
+        collisions.push_back(collision);
       }
     }
+    if (collisions.size() > 0)
+      return collisions;
 
     // Move player if empty space
     if (axis == CollisionAxis::x)
@@ -94,7 +100,7 @@ do_move(entt::registry& r,
     ptc.y_tl = transform.position.y - (ptc.h / 2);
   }
 
-  return std::nullopt;
+  return collisions;
 };
 
 void
@@ -192,8 +198,6 @@ generate_broadphase_collisions(entt::registry& r, const CollisionAxis& axis, std
 void
 generate_filtered_broadphase_collisions(entt::registry& r, std::map<uint64_t, Collision2D>& collision_results)
 {
-  collision_results.clear();
-
   // Do broad-phase check.
   std::map<uint64_t, Collision2D> collisions;
   generate_broadphase_collisions(r, CollisionAxis::x, collisions);

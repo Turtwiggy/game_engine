@@ -66,7 +66,15 @@ main(int argc, char* argv[])
   IM_UNUSED(argv);
 
   const auto start = std::chrono::high_resolution_clock::now();
-  app.window = GameWindow("Space", app.width, app.height, app.display, app.vsync);
+
+  std::string name = "Space";
+#if defined(_DEBUG)
+  name += " [DEBUG]";
+#else
+  name += " [RELEASE]";
+#endif
+
+  app.window = GameWindow(name, app.width, app.height, app.display, app.vsync);
   app.imgui.initialize(app.window);
 
 #if defined(WIN32) && !defined(_DEBUG)

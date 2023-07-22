@@ -2,6 +2,8 @@
 #include "physics/process_move_objects.hpp"
 
 // components
+#include "entt/helpers.hpp"
+#include "maths/maths.hpp"
 #include "physics/components.hpp"
 #include "physics/helpers.hpp"
 #include "renderer/components.hpp"
@@ -14,6 +16,8 @@
 void
 game2d::update_move_objects_system(entt::registry& r, const uint64_t milliseconds_dt)
 {
+  auto& physics = get_first_component<SINGLETON_PhysicsComponent>(r);
+
   // update the physics view of the world
   auto physics_objects_view = r.view<PhysicsTransformComponent, const TransformComponent>();
   physics_objects_view.each([](auto entity, PhysicsTransformComponent& ptc, const TransformComponent& tc) {
@@ -24,33 +28,25 @@ game2d::update_move_objects_system(entt::registry& r, const uint64_t millisecond
     ptc.ent_id = static_cast<uint32_t>(entity);
   });
 
+  // generates actor-solid collisions
+  std::vector<Collision2D> collisions;
+
   // move grid actors,
   // stop if collides with an entity with the blocking component
   const auto& grid_actors = r.view<TransformComponent, GridMoveComponent, PhysicsTransformComponent>();
-  for (auto [entity, transform, move, ptc] : grid_actors.each()) {
-    transform.position_dxdy.x += move.x;
-    transform.position_dxdy.y += move.y;
-    move.x = 0;
-    move.y = 0;
+  for (auto [entity, transform, grid, ptc] : grid_actors.each()) {
+    transform.position_dxdy.x += grid.x;
+    transform.position_dxdy.y += grid.y;
+    grid.x = 0;
+    grid.y = 0;
 
     int move_x = static_cast<int>(transform.position_dxdy.x);
-    const auto coll_x = do_move(r, entity, move_x, transform, ptc, CollisionAxis::x);
+    const auto colls_x = do_move(r, entity, move_x, transform, ptc, CollisionAxis::x);
+    collisions.insert(collisions.end(), colls_x.begin(), colls_x.end());
 
     int move_y = static_cast<int>(transform.position_dxdy.y);
-    const auto coll_y = do_move(r, entity, move_y, transform, ptc, CollisionAxis::y);
-
-    // LIMITATION: this only emplaces one component, and an entity could be collided with multiple times.
-    if (coll_x) {
-      const auto instigator = static_cast<entt::entity>(coll_x->ent_id_0);
-      const auto other = static_cast<entt::entity>(coll_x->ent_id_1);
-      r.emplace_or_replace<WasCollidedWithComponent>(other, instigator);
-    }
-    // LIMITATION: this only emplaces one component, and an entity could be collided with multiple times.
-    if (coll_y) {
-      const auto instigator = static_cast<entt::entity>(coll_y->ent_id_0);
-      const auto other = static_cast<entt::entity>(coll_y->ent_id_1);
-      r.emplace_or_replace<WasCollidedWithComponent>(other, instigator);
-    }
+    const auto colls_y = do_move(r, entity, move_y, transform, ptc, CollisionAxis::y);
+    collisions.insert(collisions.end(), colls_y.begin(), colls_y.end());
   }
 
   // move velocity actors,
@@ -62,12 +58,20 @@ game2d::update_move_objects_system(entt::registry& r, const uint64_t millisecond
     transform.position_dxdy.y += velocity.y * (seconds_dt);
 
     int move_x = static_cast<int>(transform.position_dxdy.x);
-    const auto coll_x = do_move(r, entity, move_x, transform, ptc, CollisionAxis::x);
-    ptc.x_tl = static_cast<int>(transform.position.x - (ptc.w / 2.0f));
+    const auto colls_x = do_move(r, entity, move_x, transform, ptc, CollisionAxis::x);
+    collisions.insert(collisions.end(), colls_x.begin(), colls_x.end());
 
     int move_y = static_cast<int>(transform.position_dxdy.y);
-    const auto coll_y = do_move(r, entity, move_y, transform, ptc, CollisionAxis::y);
-    ptc.y_tl = static_cast<int>(transform.position.y - (ptc.h / 2.0f));
+    const auto colls_y = do_move(r, entity, move_y, transform, ptc, CollisionAxis::y);
+    collisions.insert(collisions.end(), colls_y.begin(), colls_y.end());
+  }
+
+  // add collision info
+  for (const auto& coll : collisions) {
+    uint32_t old_ent_id = coll.ent_id_0;
+    uint32_t new_ent_id = coll.ent_id_1;
+    uint64_t unique_collision_id = engine::encode_cantor_pairing_function(old_ent_id, new_ent_id);
+    physics.frame_collisions[unique_collision_id] = coll;
   }
 
   // move solids

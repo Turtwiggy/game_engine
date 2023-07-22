@@ -49,8 +49,8 @@ struct VelocityComponent
 
 struct GridMoveComponent
 {
-  int x = 0;
-  int y = 0;
+  float x = 0.0f;
+  float y = 0.0f;
 
   NLOHMANN_DEFINE_TYPE_INTRUSIVE(GridMoveComponent, x, y);
 };
@@ -63,13 +63,6 @@ struct Collision2D
   bool collision_x = false;
   bool collision_y = false;
   bool dirty = false; // dirty means it occurred last frame
-};
-
-// events
-
-struct WasCollidedWithComponent
-{
-  entt::entity instigator;
 };
 
 // -- singleton components

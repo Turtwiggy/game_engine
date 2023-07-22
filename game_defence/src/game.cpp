@@ -127,8 +127,39 @@ game2d::fixed_update(entt::registry& game, const uint64_t milliseconds_dt)
   {
     auto _ = time_scope(&p, "(physics)", true);
     auto& physics = get_first_component<SINGLETON_PhysicsComponent>(game);
-    update_move_objects_system(game, milliseconds_dt); // move objects, checking collisions along way
+    physics.frame_collisions.clear();
+    // move actors,
+    // generate actor-solid collisions
+    update_move_objects_system(game, milliseconds_dt);
+    // generate actor-actor collisions
     update_actor_actor_system(game, physics);
+
+    const auto resolve_collisions = [&game, &physics]() {
+      auto& r = game;
+      auto& dead = get_first_component<SINGLETON_EntityBinComponent>(r);
+      for (const auto& coll : physics.collision_stay) {
+        const auto a = static_cast<entt::entity>(coll.ent_id_0);
+        const auto b = static_cast<entt::entity>(coll.ent_id_1);
+        const auto a_type = r.get<EntityTypeComponent>(a).type;
+        const auto b_type = r.get<EntityTypeComponent>(b).type;
+
+        // bullet-enemy collision
+        if (a_type == EntityType::actor_enemy && b_type == EntityType::actor_bullet) {
+          dead.dead.emplace(a);
+          dead.dead.emplace(b);
+        } else if (a_type == EntityType::actor_bullet && b_type == EntityType::actor_enemy) {
+          dead.dead.emplace(b);
+          dead.dead.emplace(a);
+        }
+
+        // Hack: fix solid-solid enemy collision
+        if (a_type == EntityType::actor_enemy && b_type == EntityType::actor_enemy) {
+          dead.dead.emplace(a);
+          dead.dead.emplace(b);
+        }
+      }
+    };
+    resolve_collisions();
   }
 
   // update gamelogic

@@ -12,7 +12,6 @@
 
 // c++ lib headers
 #include <map>
-#include <optional>
 #include <vector>
 
 namespace game2d {
@@ -29,7 +28,7 @@ collide(const PhysicsTransformComponent& one, const PhysicsTransformComponent& t
 [[nodiscard]] bool
 collides(const PhysicsTransformComponent& one, const std::vector<PhysicsTransformComponent>& others);
 
-[[nodiscard]] std::optional<Collision2D>
+[[nodiscard]] std::vector<Collision2D>
 do_move(entt::registry& r,
         entt::entity& entity,
         int amount,

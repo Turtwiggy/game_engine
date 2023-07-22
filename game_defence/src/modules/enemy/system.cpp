@@ -11,7 +11,7 @@
 namespace game2d {
 
 void
-update_enemy_system(entt::registry& r, const uint64_t& ms_dt)
+update_enemy_system(entt::registry& r, const uint64_t& milliseconds_dt)
 {
   const auto& first_player = get_first<PlayerComponent>(r);
   const auto& first_player_transform = r.get<const TransformComponent>(first_player);
@@ -25,13 +25,13 @@ update_enemy_system(entt::registry& r, const uint64_t& ms_dt)
 
     glm::vec2 dir = glm::vec2(d.x, d.y);
     glm::vec2 n = dir;
-    if (dir.x != 0.0f && dir.y != 0.0f)
+
+    if (dir.x != 0.0f || dir.y != 0.0f)
       n = normalize(dir);
 
-    const float speed = 2.0f;
-
-    grid.x += static_cast<int>(n.x * speed);
-    grid.y += static_cast<int>(n.y * speed);
+    const float enemy_speed = 500.0f;
+    grid.x += n.x * enemy_speed * (milliseconds_dt / 1000.0f);
+    grid.y += n.y * enemy_speed * (milliseconds_dt / 1000.0f);
   }
 }
 

@@ -74,9 +74,9 @@ game2d::update_player_controller_system(entt::registry& r,
     } // end input each()
 
     // do the move
-    float speed = 1000.0f;
-    grid.x += static_cast<int>(dx * speed * (milliseconds_dt / 1000.0f));
-    grid.y += static_cast<int>(dy * speed * (milliseconds_dt / 1000.0f));
+    const float speed = 500.0f;
+    grid.x += dx * speed * (milliseconds_dt / 1000.0f);
+    grid.y += dy * speed * (milliseconds_dt / 1000.0f);
 
   } // end player each()
 }

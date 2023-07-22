@@ -70,38 +70,40 @@ update_turret_system(entt::registry& r, const uint64_t& ms_dt)
       return oinfo;
     };
 
+    auto turret_target_type = EntityType::actor_enemy;
+
     // check left...
     for (int i = idx_x.value() - 1; i >= 0; i--) {
-      auto oinfo = evaluate_closest(physics.sorted_x, EntityType::actor_enemy, i);
-      if (oinfo.distance2 > turret.distance2_cutoff)
-        break;
+      auto oinfo = evaluate_closest(physics.sorted_x, turret_target_type, i);
+      // if (oinfo.distance2 > turret.distance2_cutoff)
+      //   break;
       if (oinfo.distance2 < info.distance2)
         info = oinfo;
     }
 
     // check right...
     for (int i = idx_x.value() + 1; i < physics.sorted_x.size(); i++) {
-      auto oinfo = evaluate_closest(physics.sorted_x, EntityType::actor_enemy, i);
-      if (oinfo.distance2 > turret.distance2_cutoff)
-        break;
+      auto oinfo = evaluate_closest(physics.sorted_x, turret_target_type, i);
+      // if (oinfo.distance2 > turret.distance2_cutoff)
+      //   break;
       if (oinfo.distance2 < info.distance2)
         info = oinfo;
     }
 
     // check up... (y gets less)
     for (int i = idx_y.value() - 1; i >= 0; i--) {
-      auto oinfo = evaluate_closest(physics.sorted_x, EntityType::actor_enemy, i);
-      if (oinfo.distance2 > turret.distance2_cutoff)
-        break;
+      auto oinfo = evaluate_closest(physics.sorted_x, turret_target_type, i);
+      // if (oinfo.distance2 > turret.distance2_cutoff)
+      //   break;
       if (oinfo.distance2 < info.distance2)
         info = oinfo;
     }
 
     // check down... (y gets greater)
     for (int i = idx_y.value() + 1; i < physics.sorted_y.size(); i++) {
-      auto oinfo = evaluate_closest(physics.sorted_x, EntityType::actor_enemy, i);
-      if (oinfo.distance2 > turret.distance2_cutoff)
-        break;
+      auto oinfo = evaluate_closest(physics.sorted_x, turret_target_type, i);
+      // if (oinfo.distance2 > turret.distance2_cutoff)
+      //   break;
       if (oinfo.distance2 < info.distance2)
         info = oinfo;
     }
@@ -116,7 +118,7 @@ update_turret_system(entt::registry& r, const uint64_t& ms_dt)
     const auto& b = t_transform.position;
     glm::vec2 raw_dir = { b.x - a.x, b.y - a.y };
     glm::vec2 nrm_dir = raw_dir;
-    if (raw_dir.x != 0.0f && raw_dir.y != 0.0f)
+    if (raw_dir.x != 0.0f || raw_dir.y != 0.0f)
       nrm_dir = glm::normalize(raw_dir);
     float angle = engine::dir_to_angle_radians(nrm_dir);
     // std::cout << angle << "\n";

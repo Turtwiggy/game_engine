@@ -12,7 +12,7 @@ set_line(entt::registry& r, const entt::entity& e, const glm::ivec2& a, const gl
   if (t) {
     glm::vec2 raw_dir = { b.x - a.x, b.y - a.y };
     glm::vec2 nrm_dir = raw_dir;
-    if (raw_dir.x != 0.0f && raw_dir.y != 0.0f)
+    if (raw_dir.x != 0.0f || raw_dir.y != 0.0f)
       nrm_dir = glm::normalize(raw_dir);
     float angle = engine::dir_to_angle_radians(nrm_dir);
 
