@@ -46,10 +46,10 @@ init_game(entt::registry& r)
   player_pos.position.x = 50;
   player_pos.position.y = 50;
 
-  const auto spawner = create_gameplay(r, EntityType::spawner);
-  auto& spawner_pos = r.get<TransformComponent>(spawner);
-  spawner_pos.position.x = 200;
-  spawner_pos.position.y = 200;
+  // const auto spawner = create_gameplay(r, EntityType::spawner);
+  // auto& spawner_pos = r.get<TransformComponent>(spawner);
+  // spawner_pos.position.x = 200;
+  // spawner_pos.position.y = 200;
 }
 
 } // namespace game2d

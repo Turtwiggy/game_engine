@@ -124,7 +124,10 @@ create_gameplay(entt::registry& r, const EntityType& type)
       r.emplace<PhysicsActorComponent>(e);
       r.emplace<GridMoveComponent>(e);
       // gameplay
-      r.emplace<PlayerComponent>(e);
+
+      PlayerComponent pc;
+      pc.line = create_gameplay(r, EntityType::line);
+      r.emplace<PlayerComponent>(e, pc);
       r.emplace<InputComponent>(e);
       r.emplace<KeyboardComponent>(e);
       r.emplace<ControllerComponent>(e);
@@ -165,6 +168,10 @@ create_gameplay(entt::registry& r, const EntityType& type)
     }
     case EntityType::camera: {
       r.emplace<OrthographicCamera>(e);
+      break;
+    }
+    case EntityType::line: {
+      break;
     }
     default: {
       std::cout << "warning: no gameplay implemented for: " << type_name;

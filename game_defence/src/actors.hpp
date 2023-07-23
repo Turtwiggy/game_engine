@@ -16,6 +16,7 @@ enum class EntityType
   // misc
   spawner,
   camera,
+  line,
 
   count
 };

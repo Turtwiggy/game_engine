@@ -11,6 +11,7 @@ namespace game2d {
 struct PlayerComponent
 {
   bool placeholder = true;
+  entt::entity line;
 };
 
 struct KeyboardComponent

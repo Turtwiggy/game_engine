@@ -47,6 +47,8 @@ game2d::update_ui_hierarchy_system(entt::registry& r)
       if (!valid)
         continue;
 
+      ImGui::Text("eid: %i", entity);
+      ImGui::SameLine();
       game2d::imgui_draw_entity(r, tag.tag, entity, selected_entity);
     }
 

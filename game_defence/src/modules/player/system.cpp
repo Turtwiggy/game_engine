@@ -5,7 +5,10 @@
 #include "events/components.hpp"
 #include "events/helpers/controller.hpp"
 #include "events/helpers/mouse.hpp"
+#include "helpers/line.hpp"
 #include "modules/player/components.hpp"
+#include "modules/turret/helpers.hpp"
+#include "physics/components.hpp"
 #include "renderer/components.hpp"
 
 #include <SDL2/SDL_keyboard.h>
@@ -20,15 +23,11 @@ game2d::update_player_controller_system(entt::registry& r,
                                         const uint64_t& milliseconds_dt)
 {
   const auto& sdl_inputs = get_first_component<SINGLETON_InputComponent>(r);
-
-  // bool ctrl_held = std::find_if(inputs.begin(), inputs.end(), [](const InputEvent& e) {
-  //                    return e.type == InputType::keyboard && e.key == SDL_SCANCODE_LCTRL && e.state == InputState::held;
-  //                  }) != std::end(inputs);
-  // std::cout << "(FIXEDTICK) ctrl_held: " << ctrl_held << "\n";
+  const auto& physics = get_first_component<SINGLETON_PhysicsComponent>(r);
 
   // player movement
-  const auto& view = r.view<const PlayerComponent, GridMoveComponent, InputComponent>();
-  for (auto [entity, player, grid, input] : view.each()) {
+  const auto& view = r.view<const PlayerComponent, const TransformComponent, GridMoveComponent, InputComponent>();
+  for (auto [entity, player, transform, grid, input] : view.each()) {
 
     auto* keyboard = r.try_get<KeyboardComponent>(entity);
     auto* controller = r.try_get<ControllerComponent>(entity);
@@ -55,6 +54,7 @@ game2d::update_player_controller_system(entt::registry& r,
           dx = 0;
       }
     }
+
     const auto& available_controllers = sdl_inputs.controllers;
     if (controller && available_controllers.size() > 0) {
       auto* c = available_controllers[0];
@@ -66,5 +66,16 @@ game2d::update_player_controller_system(entt::registry& r,
     const float speed = 250.0f;
     grid.x += dx * speed * (milliseconds_dt / 1000.0f);
     grid.y += dy * speed * (milliseconds_dt / 1000.0f);
+
+    // is there a turret near-by?
+    const auto& info = get_closest(r, entity, transform, physics, EntityType::actor_turret);
+    if (info.e != entt::null) {
+      // draw a line from player to turret
+      const auto a = glm::ivec2{ transform.position.x, transform.position.y };
+      const auto& turret_transform = r.get<TransformComponent>(info.e);
+      const auto b = glm::ivec2{ turret_transform.position.x, turret_transform.position.y };
+      auto& line_transform = r.get<TransformComponent>(player.line);
+      set_line(r, line_transform, a, b);
+    }
   }
 };
