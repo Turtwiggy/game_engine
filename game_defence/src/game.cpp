@@ -17,6 +17,7 @@
 #include "modules/spawner/components.hpp"
 #include "modules/spawner/system.hpp"
 #include "modules/turret/system.hpp"
+#include "modules/ui_controllers/system.hpp"
 #include "modules/ui_hierarchy/system.hpp"
 #include "modules/ui_main_menu/system.hpp"
 #include "modules/ui_prefabs/system.hpp"
@@ -94,7 +95,7 @@ game2d::init(engine::SINGLETON_Application& app, entt::registry& r)
   auto& input = get_first_component<SINGLETON_InputComponent>(r);
   init_audio_system(audio);
   init_render_system(app, ri, textures);
-  init_input_system(input);
+  init_input_system(input, r);
 
   init_game(r);
 }
@@ -199,6 +200,7 @@ game2d::update(engine::SINGLETON_Application& app, entt::registry& r, const floa
   update_ui_main_menu_system(app, r);
   update_ui_prefabs_system(r);
   update_ui_hierarchy_system(r);
+  update_ui_controller_system(r);
   static bool show_editor_ui = true;
   if (show_editor_ui) {
     auto& profiler = get_first_component<Profiler>(r);

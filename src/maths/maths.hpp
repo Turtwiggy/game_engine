@@ -59,7 +59,7 @@ void
 decode_cantor_pairing_function(uint64_t p, uint32_t& x, uint32_t& y);
 
 // scale x from [min,max] to [a,b]
-[[nodiscard]] constexpr float
+[[nodiscard]] float
 scale(float x, float min, float max, float a, float b);
 
 [[nodiscard]] glm::vec2

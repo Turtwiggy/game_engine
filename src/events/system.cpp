@@ -2,6 +2,7 @@
 
 #include "app/application.hpp"
 #include "events/components.hpp"
+#include "events/helpers/controller.hpp"
 #include "events/helpers/keyboard.hpp"
 #include "events/helpers/mouse.hpp"
 
@@ -13,9 +14,11 @@
 #include <vector>
 
 void
-game2d::init_input_system(SINGLETON_InputComponent& input)
+game2d::init_input_system(SINGLETON_InputComponent& input, entt::registry& r)
 {
   input.state = SDL_GetKeyboardState(NULL);
+
+  open_controllers(input);
 };
 
 void
@@ -62,15 +65,15 @@ game2d::update_input_system(engine::SINGLETON_Application& app, SINGLETON_InputC
 
     // controller specific
     // if (e.type == SDL_JOYHATMOTION)
-    //   input_manager.process_controller_dpad(e.jhat);
+    //   process_controller_dpad(e.jhat);
     // if (e.type == SDL_JOYBUTTONDOWN)
-    //   input_manager.process_controller_button_down(e.jbutton);
+    //   process_controller_button_down(input, e.jbutton);
     // if (e.type == SDL_JOYBUTTONUP)
-    //   input_manager.process_controller_button_up(e.jbutton);
-    //   if (e.type == SDL_JOYDEVICEADDED)
-    //     input_manager.process_controller_added();
-    //   if (e.type == SDL_JOYDEVICEREMOVED)
-    //     input_manager.process_controller_removed();
+    //   process_controller_button_up(input, e.jbutton);
+    if (e.type == SDL_JOYDEVICEADDED)
+      process_controller_added(input);
+    if (e.type == SDL_JOYDEVICEREMOVED)
+      process_controller_removed(input);
 
   }; // finished polling events
 

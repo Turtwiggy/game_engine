@@ -29,7 +29,7 @@ update_enemy_system(entt::registry& r, const uint64_t& milliseconds_dt)
     if (dir.x != 0.0f || dir.y != 0.0f)
       n = normalize(dir);
 
-    const float enemy_speed = 500.0f;
+    const float enemy_speed = 120.0f;
     grid.x += n.x * enemy_speed * (milliseconds_dt / 1000.0f);
     grid.y += n.y * enemy_speed * (milliseconds_dt / 1000.0f);
   }

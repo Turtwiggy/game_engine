@@ -126,6 +126,8 @@ create_gameplay(entt::registry& r, const EntityType& type)
       // gameplay
       r.emplace<PlayerComponent>(e);
       r.emplace<InputComponent>(e);
+      r.emplace<KeyboardComponent>(e);
+      r.emplace<ControllerComponent>(e);
       // r.emplace<HealthComponent>(e);
       // r.emplace<TakeDamageComponent>(e);
       // r.emplace<XpComponent>(e, 0);

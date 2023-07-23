@@ -18,8 +18,8 @@ using namespace engine;
 #include <chrono>
 
 // fixed tick
-static const int MILLISECONDS_PER_FIXED_TICK = 7; // or ~142 ticks per second
-// static int MILLISECONDS_PER_FIXED_TICK = 16; // or ~62.5 ticks per second
+// static const int MILLISECONDS_PER_FIXED_TICK = 7; // or ~142 ticks per second
+static int MILLISECONDS_PER_FIXED_TICK = 16; // or ~62.5 ticks per second
 static uint64_t milliseconds_accumulator_since_last_tick = 0;
 static uint64_t new_time = 0;
 static uint64_t cur_time = 0;
@@ -77,11 +77,11 @@ main(int argc, char* argv[])
   app.window = GameWindow(name, app.width, app.height, app.display, app.vsync);
   app.imgui.initialize(app.window);
 
-#if defined(WIN32) && !defined(_DEBUG)
-  bool hide_windows_console = false;
-  if (hide_windows_console)
-    engine::hide_windows_console();
-#endif
+// #if defined(WIN32) && !defined(_DEBUG)
+//   bool hide_windows_console = false;
+//   if (hide_windows_console)
+//     engine::hide_windows_console();
+// #endif
 
   game2d::init(app, game);
   CHECK_OPENGL_ERROR(0);
