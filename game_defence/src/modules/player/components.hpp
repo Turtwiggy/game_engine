@@ -10,8 +10,8 @@ namespace game2d {
 
 struct PlayerComponent
 {
-  bool placeholder = true;
-  entt::entity line;
+  entt::entity line = entt::null;
+  entt::entity connected_turret = entt::null;
 };
 
 struct KeyboardComponent

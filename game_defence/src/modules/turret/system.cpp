@@ -43,10 +43,11 @@ update_turret_system(entt::registry& r, const uint64_t& ms_dt)
     // rotation is not handled properly, so its only visual atm
     t_transform.rotation_radians.z = angle;
 
-    //
     // Spawn bullet logic
-    //
-    turret.time_between_bullets_left -= dt;
+
+    if (turret.active)
+      turret.time_between_bullets_left -= dt;
+
     if (turret.time_between_bullets_left < 0.0f) {
 
       const float bullet_speed = 200.0f;

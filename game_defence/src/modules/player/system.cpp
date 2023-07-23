@@ -7,9 +7,12 @@
 #include "events/helpers/mouse.hpp"
 #include "helpers/line.hpp"
 #include "modules/player/components.hpp"
+#include "modules/turret/components.hpp"
 #include "modules/turret/helpers.hpp"
 #include "physics/components.hpp"
 #include "renderer/components.hpp"
+#include "resources/colours.hpp"
+#include "sprites/components.hpp"
 
 #include <SDL2/SDL_keyboard.h>
 #include <SDL2/SDL_mouse.h>
@@ -24,9 +27,10 @@ game2d::update_player_controller_system(entt::registry& r,
 {
   const auto& sdl_inputs = get_first_component<SINGLETON_InputComponent>(r);
   const auto& physics = get_first_component<SINGLETON_PhysicsComponent>(r);
+  const auto& colours = get_first_component<SINGLETON_ColoursComponent>(r);
 
   // player movement
-  const auto& view = r.view<const PlayerComponent, const TransformComponent, GridMoveComponent, InputComponent>();
+  const auto& view = r.view<PlayerComponent, const TransformComponent, GridMoveComponent, InputComponent>();
   for (auto [entity, player, transform, grid, input] : view.each()) {
 
     auto* keyboard = r.try_get<KeyboardComponent>(entity);
@@ -34,6 +38,9 @@ game2d::update_player_controller_system(entt::registry& r,
 
     float& dx = input.dir.x;
     float& dy = input.dir.y;
+
+    bool lmb_held = false;
+    lmb_held |= get_mouse_lmb_held();
 
     if (keyboard) {
       for (const InputEvent& i : inputs) {
@@ -60,6 +67,7 @@ game2d::update_player_controller_system(entt::registry& r,
       auto* c = available_controllers[0];
       dx = get_axis_01(c, SDL_CONTROLLER_AXIS_LEFTX);
       dy = get_axis_01(c, SDL_CONTROLLER_AXIS_LEFTY);
+      lmb_held = get_button_held(c, SDL_CONTROLLER_BUTTON_A);
     }
 
     // do the move
@@ -76,6 +84,27 @@ game2d::update_player_controller_system(entt::registry& r,
       const auto b = glm::ivec2{ turret_transform.position.x, turret_transform.position.y };
       auto& line_transform = r.get<TransformComponent>(player.line);
       set_line(r, line_transform, a, b);
+
+      // old turret
+      if (player.connected_turret != entt::null) {
+        // reset state
+        auto& connected_turret = r.get<TurretComponent>(player.connected_turret);
+        connected_turret.active = false;
+        // reset colour
+        auto& scc = r.get<SpriteColourComponent>(player.connected_turret);
+        scc.colour = colours.lin_primary;
+      }
+
+      // new turret
+      player.connected_turret = info.e;
+      auto& turret = r.get<TurretComponent>(player.connected_turret);
+      if (lmb_held)
+        turret.active = true;
+      auto& scc = r.get<SpriteColourComponent>(info.e);
+      if (turret.active)
+        scc.colour = colours.lin_secondary;
+      else
+        scc.colour = colours.lin_primary;
     }
   }
 };
