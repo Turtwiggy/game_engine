@@ -6,10 +6,10 @@
 #include "events/helpers/controller.hpp"
 #include "events/helpers/mouse.hpp"
 #include "helpers/line.hpp"
+#include "modules/physics_box2d/components.hpp"
 #include "modules/player/components.hpp"
 #include "modules/turret/components.hpp"
 #include "modules/turret/helpers.hpp"
-#include "physics/components.hpp"
 #include "renderer/components.hpp"
 #include "resources/colours.hpp"
 #include "sprites/components.hpp"
@@ -18,20 +18,17 @@
 #include <SDL2/SDL_mouse.h>
 #include <glm/glm.hpp>
 
-#include "physics/components.hpp"
-
 void
 game2d::update_player_controller_system(entt::registry& r,
                                         const std::vector<InputEvent>& inputs,
                                         const uint64_t& milliseconds_dt)
 {
   const auto& sdl_inputs = get_first_component<SINGLETON_InputComponent>(r);
-  const auto& physics = get_first_component<SINGLETON_PhysicsComponent>(r);
   const auto& colours = get_first_component<SINGLETON_ColoursComponent>(r);
 
   // player movement
-  const auto& view = r.view<PlayerComponent, const TransformComponent, GridMoveComponent, InputComponent>();
-  for (auto [entity, player, transform, grid, input] : view.each()) {
+  const auto& view = r.view<const PlayerComponent, ActorComponent, const TransformComponent, InputComponent>();
+  for (auto [entity, player, actor, transform, input] : view.each()) {
 
     auto* keyboard = r.try_get<KeyboardComponent>(entity);
     auto* controller = r.try_get<ControllerComponent>(entity);
@@ -71,40 +68,25 @@ game2d::update_player_controller_system(entt::registry& r,
     }
 
     // do the move
-    const float speed = 250.0f;
-    grid.x += dx * speed * (milliseconds_dt / 1000.0f);
-    grid.y += dy * speed * (milliseconds_dt / 1000.0f);
+    const float speed = 1000.0f;
+
+    b2Vec2 dir = { dx * speed, dy * speed };
+    // printf("applying force: %f %f", dir.x, dir.y);
+    // actor.body->ApplyForceToCenter(dir, true);
+    actor.body->SetLinearVelocity(dir);
+
+    // grid.x += dx * speed * (milliseconds_dt / 1000.0f);
+    // grid.y += dy * speed * (milliseconds_dt / 1000.0f);
 
     // is there a turret near-by?
-    const auto& info = get_closest(r, entity, transform, physics, EntityType::actor_turret);
-    if (info.e != entt::null) {
-      // draw a line from player to turret
-      const auto a = glm::ivec2{ transform.position.x, transform.position.y };
-      const auto& turret_transform = r.get<TransformComponent>(info.e);
-      const auto b = glm::ivec2{ turret_transform.position.x, turret_transform.position.y };
-      auto& line_transform = r.get<TransformComponent>(player.line);
-      set_line(r, line_transform, a, b);
-
-      // old turret
-      if (player.connected_turret != entt::null) {
-        // reset state
-        auto& connected_turret = r.get<TurretComponent>(player.connected_turret);
-        connected_turret.active = false;
-        // reset colour
-        auto& scc = r.get<SpriteColourComponent>(player.connected_turret);
-        scc.colour = colours.lin_primary;
-      }
-
-      // new turret
-      player.connected_turret = info.e;
-      auto& turret = r.get<TurretComponent>(player.connected_turret);
-      if (lmb_held)
-        turret.active = true;
-      auto& scc = r.get<SpriteColourComponent>(info.e);
-      if (turret.active)
-        scc.colour = colours.lin_secondary;
-      else
-        scc.colour = colours.lin_primary;
-    }
+    // const auto& info = get_closest(r, entity, transform, physics, EntityType::actor_turret);
+    // if (info.e != entt::null) {
+    //   // draw a line from player to turret
+    //   const auto a = glm::ivec2{ transform.position.x, transform.position.y };
+    //   const auto& turret_transform = r.get<TransformComponent>(info.e);
+    //   const auto b = glm::ivec2{ turret_transform.position.x, turret_transform.position.y };
+    //   auto& line_transform = r.get<TransformComponent>(player.line);
+    //   set_line(r, line_transform, a, b);
+    // }
   }
 };

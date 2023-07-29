@@ -10,7 +10,7 @@ struct TurretComponent
   float time_between_bullets = 0.25f;
   float time_between_bullets_left = 0.25f;
 
-  bool active = false;
+  bool active = true;
 };
 
 } // namespace game2d

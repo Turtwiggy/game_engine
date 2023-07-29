@@ -1,7 +1,10 @@
 #pragma once
 
-#include <entt/entt.hpp>
-
 namespace game2d {
+
+struct HealthComponent
+{
+  int hp = 100;
+};
 
 } // namespace game2d

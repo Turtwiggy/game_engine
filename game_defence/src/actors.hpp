@@ -2,6 +2,7 @@
 
 #include <entt/entt.hpp>
 #include <nlohmann/json.hpp>
+#include <box2d/box2d.h>
 
 namespace game2d {
 
@@ -33,6 +34,6 @@ void
 from_json(const json& j, EntityTypeComponent& et);
 
 [[nodiscard]] entt::entity
-create_gameplay(entt::registry& r, const EntityType& type);
+create_gameplay(entt::registry& r, b2World& world, const EntityType& type);
 
 } // namespace game2d

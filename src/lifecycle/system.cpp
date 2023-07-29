@@ -2,18 +2,22 @@
 #include "system.hpp"
 
 #include "actors.hpp"
-#include "physics/components.hpp"
+#include "components.hpp"
+#include "entt/helpers.hpp"
+#include "modules/physics_box2d/components.hpp"
 #include "renderer/components.hpp"
 
 void
-game2d::update_lifecycle_system(SINGLETON_EntityBinComponent& dead, entt::registry& r, const uint64_t& milliseconds_dt)
+game2d::update_lifecycle_system(entt::registry& r, b2World& world, const uint64_t& milliseconds_dt)
 {
+  auto& dead = get_first_component<SINGLETON_EntityBinComponent>(r);
+
   // update all components with timed lifecycle
   const auto& view = r.view<EntityTimedLifecycle>();
   view.each([&dead, &milliseconds_dt](auto entity, auto& lifecycle) {
     if (lifecycle.milliseconds_alive > lifecycle.milliseconds_alive_max)
       dead.dead.emplace(entity);
-    lifecycle.milliseconds_alive += milliseconds_dt;
+    lifecycle.milliseconds_alive += static_cast<int>(milliseconds_dt);
   });
 
   // process destroyed objects
@@ -25,17 +29,17 @@ game2d::update_lifecycle_system(SINGLETON_EntityBinComponent& dead, entt::regist
   // process create requests
   const auto requests = r.view<CreateEntityRequest>();
   for (auto [entity, request] : requests.each()) {
-    auto e = create_gameplay(r, request.entity_type);
+    auto e = create_gameplay(r, world, request.type);
 
-    // set position
-    auto& new_transform = r.get<TransformComponent>(e);
-    new_transform.position = request.position;
-
-    // set velocity
-    auto* vel_ptr = r.try_get<VelocityComponent>(e);
-    if (vel_ptr) {
-      vel_ptr->x = request.velocity.x;
-      vel_ptr->y = request.velocity.y;
+    auto* act_ptr = r.try_get<ActorComponent>(e);
+    if (act_ptr) {
+      // set position by physics
+      b2Vec2 pos{ static_cast<float>(request.position.x), static_cast<float>(request.position.y) };
+      act_ptr->body->SetTransform(pos, 0.0f);
+    } else {
+      // set position by transform
+      auto& transform = r.get<TransformComponent>(e);
+      transform.position = request.position;
     }
 
     r.destroy(entity);

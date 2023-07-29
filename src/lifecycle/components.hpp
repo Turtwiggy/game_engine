@@ -25,7 +25,7 @@ struct SINGLETON_EntityBinComponent
 
 struct CreateEntityRequest
 {
-  EntityType entity_type;
+  EntityType type;
   glm::ivec3 position;
   glm::ivec3 velocity;
 };

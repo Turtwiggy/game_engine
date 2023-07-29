@@ -4,18 +4,20 @@
 #include "entt/helpers.hpp"
 #include "events/components.hpp"
 #include "lifecycle/components.hpp"
-#include "magic_enum.hpp"
 #include "modules/camera/orthographic.hpp"
 #include "modules/enemy/components.hpp"
+#include "modules/health/components.hpp"
+#include "modules/physics_box2d/components.hpp"
 #include "modules/player/components.hpp"
 #include "modules/spawner/components.hpp"
 #include "modules/turret/components.hpp"
-#include "physics/components.hpp"
 #include "renderer/components.hpp"
 #include "resources/colours.hpp"
 #include "resources/textures.hpp"
 #include "sprites/components.hpp"
 #include "sprites/helpers.hpp"
+
+#include "magic_enum.hpp"
 
 namespace game2d {
 
@@ -98,8 +100,41 @@ create_colour(entt::registry& r, const EntityType& type)
   return scc;
 }
 
+void
+create_physics(entt::registry& r, b2World& world, const entt::entity& e)
+{
+  b2Body* body = nullptr;
+
+  // create a body
+  {
+    b2BodyDef body_def;
+    body_def.position.Set(0.0f, 0.0f);
+    body_def.angle = 0.0f;
+    // body_def.bullet = false;
+    body_def.fixedRotation = true;
+    body_def.type = b2_dynamicBody; // if you want body to move
+    body = world.CreateBody(&body_def);
+  }
+
+  // create a fixture
+  {
+    b2PolygonShape box;
+    box.SetAsBox(8.0f, 8.0f); // half-size
+
+    b2FixtureDef fixture_def;
+    fixture_def.friction = 0.0f;
+    fixture_def.density = 1.0f;
+    fixture_def.shape = &box;
+    body->CreateFixture(&fixture_def);
+  }
+
+  ActorComponent pcomp;
+  pcomp.body = body;
+  r.emplace<ActorComponent>(e, pcomp);
+}
+
 entt::entity
-create_gameplay(entt::registry& r, const EntityType& type)
+create_gameplay(entt::registry& r, b2World& world, const EntityType& type)
 {
   const auto type_name = std::string(magic_enum::enum_name(type));
 
@@ -119,19 +154,16 @@ create_gameplay(entt::registry& r, const EntityType& type)
       break;
     }
     case EntityType::actor_player: {
-      r.emplace<PhysicsTransformComponent>(e);
-      r.emplace<PhysicsSolidComponent>(e);
-      r.emplace<PhysicsActorComponent>(e);
-      r.emplace<GridMoveComponent>(e);
+
+      create_physics(r, world, e);
       // gameplay
 
       PlayerComponent pc;
-      pc.line = create_gameplay(r, EntityType::line);
       r.emplace<PlayerComponent>(e, pc);
       r.emplace<InputComponent>(e);
       r.emplace<KeyboardComponent>(e);
       r.emplace<ControllerComponent>(e);
-      // r.emplace<HealthComponent>(e);
+      r.emplace<HealthComponent>(e);
       // r.emplace<TakeDamageComponent>(e);
       // r.emplace<XpComponent>(e, 0);
       // StatsComponent stats;
@@ -142,23 +174,18 @@ create_gameplay(entt::registry& r, const EntityType& type)
       break;
     }
     case EntityType::actor_enemy: {
-      r.emplace<PhysicsTransformComponent>(e);
-      r.emplace<PhysicsSolidComponent>(e);
-      r.emplace<PhysicsActorComponent>(e);
-      r.emplace<GridMoveComponent>(e);
+      create_physics(r, world, e);
       r.emplace<EnemyComponent>(e);
+      r.emplace<HealthComponent>(e);
       break;
     }
     case EntityType::actor_turret: {
-      r.emplace<PhysicsTransformComponent>(e);
-      r.emplace<PhysicsActorComponent>(e);
+      create_physics(r, world, e);
       r.emplace<TurretComponent>(e);
       break;
     }
     case EntityType::actor_bullet: {
-      r.emplace<PhysicsTransformComponent>(e);
-      r.emplace<PhysicsActorComponent>(e);
-      r.emplace<VelocityComponent>(e);
+      create_physics(r, world, e);
       r.emplace<EntityTimedLifecycle>(e);
       break;
     }
