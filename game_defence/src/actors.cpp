@@ -101,7 +101,7 @@ create_colour(entt::registry& r, const EntityType& type)
 }
 
 void
-create_physics(entt::registry& r, b2World& world, const entt::entity& e)
+create_physics(entt::registry& r, b2World& world, const entt::entity& e, b2BodyType type)
 {
   b2Body* body = nullptr;
 
@@ -112,7 +112,8 @@ create_physics(entt::registry& r, b2World& world, const entt::entity& e)
     body_def.angle = 0.0f;
     // body_def.bullet = false;
     body_def.fixedRotation = true;
-    body_def.type = b2_dynamicBody; // if you want body to move
+    body_def.type = type;
+    body_def.linearVelocity = b2Vec2_zero;
     body = world.CreateBody(&body_def);
   }
 
@@ -155,7 +156,7 @@ create_gameplay(entt::registry& r, b2World& world, const EntityType& type)
     }
     case EntityType::actor_player: {
 
-      create_physics(r, world, e);
+      create_physics(r, world, e, b2_dynamicBody);
       // gameplay
 
       PlayerComponent pc;
@@ -174,18 +175,18 @@ create_gameplay(entt::registry& r, b2World& world, const EntityType& type)
       break;
     }
     case EntityType::actor_enemy: {
-      create_physics(r, world, e);
+      create_physics(r, world, e, b2_dynamicBody);
       r.emplace<EnemyComponent>(e);
       r.emplace<HealthComponent>(e);
       break;
     }
     case EntityType::actor_turret: {
-      create_physics(r, world, e);
+      create_physics(r, world, e, b2_staticBody);
       r.emplace<TurretComponent>(e);
       break;
     }
     case EntityType::actor_bullet: {
-      create_physics(r, world, e);
+      create_physics(r, world, e, b2_dynamicBody);
       r.emplace<EntityTimedLifecycle>(e);
       break;
     }

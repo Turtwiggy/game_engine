@@ -21,8 +21,12 @@ game2d::update_lifecycle_system(entt::registry& r, b2World& world, const uint64_
   });
 
   // process destroyed objects
-  for (const auto& entity : dead.dead)
+  for (const auto& entity : dead.dead) {
+    auto* act_ptr = r.try_get<ActorComponent>(entity);
+    if (act_ptr)
+      world.DestroyBody(act_ptr->body);
     r.destroy(entity);
+  }
 
   dead.dead.clear();
 
@@ -36,6 +40,11 @@ game2d::update_lifecycle_system(entt::registry& r, b2World& world, const uint64_
       // set position by physics
       b2Vec2 pos{ static_cast<float>(request.position.x), static_cast<float>(request.position.y) };
       act_ptr->body->SetTransform(pos, 0.0f);
+
+      // set linear velocity
+      b2Vec2 vel{ static_cast<float>(request.velocity.x), static_cast<float>(request.velocity.y) };
+      act_ptr->body->SetLinearVelocity(vel);
+
     } else {
       // set position by transform
       auto& transform = r.get<TransformComponent>(e);

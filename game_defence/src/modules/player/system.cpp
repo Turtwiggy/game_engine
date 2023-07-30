@@ -9,7 +9,6 @@
 #include "modules/physics_box2d/components.hpp"
 #include "modules/player/components.hpp"
 #include "modules/turret/components.hpp"
-#include "modules/turret/helpers.hpp"
 #include "renderer/components.hpp"
 #include "resources/colours.hpp"
 #include "sprites/components.hpp"

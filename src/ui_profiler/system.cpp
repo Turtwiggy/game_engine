@@ -16,7 +16,7 @@
 #include <imgui.h>
 
 void
-game2d::update_ui_profiler_system(entt::registry& r)
+game2d::update_ui_profiler_system(entt::registry& r, const b2World& world)
 {
   // #ifdef _DEBUG
   //   // less than X-fps?! what is this?!
@@ -31,7 +31,8 @@ game2d::update_ui_profiler_system(entt::registry& r)
   ImGui::Begin("Profiler", NULL, ImGuiWindowFlags_NoFocusOnAppearing);
   {
     ImGui::Text("¬¬ Physics");
-    // box2d
+    ImGui::Text("Bodies: %i", world.GetBodyCount());
+    ImGui::Text("Contacts: %i", world.GetContactCount());
 
     ImGui::Text("¬¬ Renderer");
     ImGui::Text("Draw Calls QR %i", engine::quad_renderer::QuadRenderer::draw_calls());

@@ -28,7 +28,7 @@ static uint64_t milliseconds_delta_time = 0;
 
 static SINGLETON_Application app;
 static entt::registry game;
-static b2Vec2 gravity = { 0.0f, -10.0f };
+static b2Vec2 gravity = { 0.0f, 0.0f };
 static b2World world{ gravity };
 
 void
@@ -57,7 +57,7 @@ main_loop(void* arg)
     game2d::fixed_update(game, world, MILLISECONDS_PER_FIXED_TICK);
   }
 
-  game2d::update(app, game, milliseconds_delta_time / 1000.0f);
+  game2d::update(app, game, world, milliseconds_delta_time / 1000.0f);
 
   engine::end_frame(app);
 }

@@ -13,6 +13,6 @@ void
 fixed_update(entt::registry& game, b2World& world, const uint64_t milliseconds_dt);
 
 void
-update(engine::SINGLETON_Application& app, entt::registry& game, const float dt);
+update(engine::SINGLETON_Application& app, entt::registry& game, const b2World& world, const float dt);
 
 } // namespace game2d

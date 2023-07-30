@@ -118,6 +118,11 @@ game2d::fixed_update(entt::registry& game, b2World& world, const uint64_t millis
   {
     auto _ = time_scope(&p, "(physics)", true);
     update_physics_box2d_system(game, world, milliseconds_dt);
+
+    // for (b2Contact* contact = world.GetContactList(); contact; contact = contact->GetNext()) {
+    // printf("first contact");
+    // contact->IsTouching()
+    // }
   }
 
   // auto& physics = get_first_component<SINGLETON_PhysicsComponent>(game);
@@ -170,7 +175,7 @@ game2d::fixed_update(entt::registry& game, b2World& world, const uint64_t millis
 }
 
 void
-game2d::update(engine::SINGLETON_Application& app, entt::registry& r, const float dt)
+game2d::update(engine::SINGLETON_Application& app, entt::registry& r, const b2World& world, const float dt)
 {
   auto& p = get_first_component<Profiler>(r);
   auto _ = time_scope(&p, "update()");
@@ -201,7 +206,7 @@ game2d::update(engine::SINGLETON_Application& app, entt::registry& r, const floa
 
   static bool show_editor_ui = true;
   if (show_editor_ui) {
-    update_ui_profiler_system(r);
+    update_ui_profiler_system(r, world);
   }
 
   end_frame_render_system(r);
