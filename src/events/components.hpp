@@ -67,7 +67,7 @@ struct SINGLETON_InputComponent
   std::vector<InputEvent> unprocessed_inputs;
 
   // keyboard
-  const Uint8* state = SDL_GetKeyboardState(NULL);
+  const Uint8* state;
   std::vector<SDL_Scancode> keys_pressed;
   std::vector<SDL_Scancode> keys_released;
 

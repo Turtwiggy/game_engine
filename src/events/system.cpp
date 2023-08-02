@@ -16,6 +16,7 @@
 void
 game2d::init_input_system(SINGLETON_InputComponent& input, entt::registry& r)
 {
+  input.state = SDL_GetKeyboardState(NULL);
   open_controllers(input);
 };
 
@@ -122,4 +123,8 @@ game2d::update_input_system(engine::SINGLETON_Application& app, SINGLETON_InputC
     ie.state = InputState::release;
     input.unprocessed_inputs.push_back(ie);
   }
+
+  ie.type = InputType::controller;
+
+  // float dx = get_axis_01()
 };

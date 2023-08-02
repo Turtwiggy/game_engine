@@ -235,12 +235,12 @@ game2d::update(engine::SINGLETON_Application& app, entt::registry& r, const b2Wo
   // UI
   update_ui_main_menu_system(app, r);
   update_ui_prefabs_system(r);
-  update_ui_hierarchy_system(r);
   update_ui_controller_system(r);
   update_ui_economy_system(r);
   update_ui_gameover_system(r);
+  update_ui_hierarchy_system(r);
 
-  static bool show_editor_ui = true;
+  static bool show_editor_ui = false;
   if (show_editor_ui) {
     update_ui_profiler_system(r, world);
   }

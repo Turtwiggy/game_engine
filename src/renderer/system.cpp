@@ -106,9 +106,8 @@ game2d::update_render_system(entt::registry& r, const std::vector<Texture>& tex)
       // camera
       {
         const auto& camera = game2d::get_first_component<OrthographicCamera>(r);
-        const auto& view = camera.view;
         ri.instanced.bind();
-        ri.instanced.set_mat4("view", view);
+        ri.instanced.set_mat4("view", camera.view);
       }
 
       // adds 0.5ms

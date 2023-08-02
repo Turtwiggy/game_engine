@@ -8,11 +8,11 @@
 #include "maths/grid.hpp"
 #include "modules/camera/helpers.hpp"
 #include "modules/health/components.hpp"
+#include "modules/hearth/components.hpp"
 #include "modules/player/components.hpp"
 #include "modules/turret/components.hpp"
 #include "renderer/components.hpp"
 #include "sprites/components.hpp"
-#include "modules/hearth/components.hpp"
 
 #include "glm/glm.hpp"
 #include "imgui.h"
@@ -26,10 +26,7 @@ void
 update_ui_economy_system(entt::registry& r)
 {
   auto& econ = get_first_component<SINGLETON_Economy>(r);
-  const int GRID_SIZE = 16; // hmm
-  const glm::ivec2 mouse_position = mouse_position_in_worldspace(r) + glm::ivec2(GRID_SIZE / 2, GRID_SIZE / 2);
-  const glm::ivec2 grid_position = engine::grid::world_space_to_grid_space(mouse_position, GRID_SIZE);
-  const glm::ivec2 world_position = engine::grid::grid_space_to_world_space(grid_position, GRID_SIZE);
+  const glm::ivec2 mouse_position = mouse_position_in_worldspace(r);
 
   const std::vector<std::string> items{
     //
@@ -40,7 +37,11 @@ update_ui_economy_system(entt::registry& r)
   const auto& first_player = get_first<PlayerComponent>(r);
   const auto& first_hearth = get_first<HearthComponent>(r);
 
-  ImGui::Begin("Economy");
+  ImGuiWindowFlags flags = 0;
+  flags |= ImGuiWindowFlags_NoFocusOnAppearing;
+  flags |= ImGuiDockNodeFlags_AutoHideTabBar;
+
+  ImGui::Begin("Economy", NULL, flags);
   ImGui::Text("Money: %i", econ.kills);
 
   // hack showing player hp
@@ -99,7 +100,7 @@ update_ui_economy_system(entt::registry& r)
     turrets_bought--;
     CreateEntityRequest request;
     request.type = type;
-    request.position = { world_position.x, world_position.y, 0 };
+    request.position = { mouse_position.x, mouse_position.y, 0 };
     r.emplace<CreateEntityRequest>(r.create(), request);
   }
 };

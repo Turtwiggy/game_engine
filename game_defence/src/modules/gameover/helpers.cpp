@@ -19,9 +19,8 @@ restart_game(entt::registry& r, b2World& world)
     world.DestroyBody(actor.body);
     r.destroy(entity);
   }
-  for (const auto& [entity, transform] : r.view<TransformComponent>().each()) {
+  for (const auto& [entity, transform] : r.view<TransformComponent>().each())
     r.destroy(entity);
-  }
 
   destroy_and_create<SINGLETON_EntityBinComponent>(r);
   destroy_and_create<SINGLETON_GameStateComponent>(r);
@@ -35,17 +34,13 @@ restart_game(entt::registry& r, b2World& world)
   const auto& hearth_actor = r.get<ActorComponent>(hearth);
   hearth_actor.body->SetTransform({ 500.0f, 500.0f }, 0.0f);
 
-  const auto& turret_0 = create_gameplay(r, world, EntityType::actor_turret);
-  const auto& turret_0_actor = r.get<ActorComponent>(turret_0);
-  turret_0_actor.body->SetTransform({ 600.0f, 600.0f }, 0.0f);
+  // const auto& spawner0 = create_gameplay(r, world, EntityType::spawner);
+  // auto& spawner0_actor = r.get<TransformComponent>(spawner0);
+  // spawner0_actor.position = { 0, 0, 0 };
 
-  const auto& turret_1 = create_gameplay(r, world, EntityType::actor_turret);
-  const auto& turret_1_actor = r.get<ActorComponent>(turret_1);
-  turret_1_actor.body->SetTransform({ 400.0f, 400.0f }, 0.0f);
-
-  const auto& spawner = create_gameplay(r, world, EntityType::spawner);
-  auto& spawner_actor = r.get<TransformComponent>(spawner);
-  spawner_actor.position = { 0, 0, 0 };
+  // const auto& spawner1 = create_gameplay(r, world, EntityType::spawner);
+  // auto& spawner1_actor = r.get<TransformComponent>(spawner1);
+  // spawner1_actor.position = { 1000, 1000, 0 };
 
   const auto player = create_gameplay(r, world, EntityType::actor_player);
   const auto& player_actor = r.get<ActorComponent>(player);

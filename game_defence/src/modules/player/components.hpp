@@ -10,7 +10,8 @@ namespace game2d {
 
 struct PlayerComponent
 {
-  bool placeholder = true;
+  float time_between_bullets_left = 0.0f;
+  entt::entity debug_gun_spot = entt::null;
 };
 
 struct KeyboardComponent
@@ -26,8 +27,6 @@ struct KeyboardComponent
 
 struct ControllerComponent
 {
-  SDL_GameController* controller = nullptr;
-
   SDL_GameControllerAxis c_left_stick_x = SDL_GameControllerAxis::SDL_CONTROLLER_AXIS_LEFTX;
   SDL_GameControllerAxis c_left_stick_y = SDL_GameControllerAxis::SDL_CONTROLLER_AXIS_LEFTY;
   SDL_GameControllerAxis c_right_stick_x = SDL_GameControllerAxis::SDL_CONTROLLER_AXIS_RIGHTX;
@@ -47,7 +46,8 @@ struct ControllerComponent
 
 struct InputComponent
 {
-  glm::vec2 dir;
+  glm::vec2 stick_l;
+  glm::vec2 stick_r;
 };
 
 } // namespace game2d

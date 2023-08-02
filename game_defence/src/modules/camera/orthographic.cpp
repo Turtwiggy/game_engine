@@ -13,7 +13,7 @@ calculate_ortho_projection(int w, int h)
 }
 
 glm::mat4
-calculate_ortho_view(const TransformComponent& transform, const OrthographicCamera& camera)
+calculate_ortho_view(const TransformComponent& transform)
 {
   const auto identity = glm::mat4(1.0f);
   const auto position = glm::vec3(transform.position.x, transform.position.y, transform.position.z);

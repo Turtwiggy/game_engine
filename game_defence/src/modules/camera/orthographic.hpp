@@ -16,6 +16,6 @@ glm::mat4
 calculate_ortho_projection(int w, int h);
 
 glm::mat4
-calculate_ortho_view(const TransformComponent& transform, const OrthographicCamera& camera);
+calculate_ortho_view(const TransformComponent& transform);
 
 } // namespace game2d

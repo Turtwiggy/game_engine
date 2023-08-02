@@ -183,6 +183,8 @@ create_gameplay(entt::registry& r, b2World& world, const EntityType& type)
       // gameplay
 
       PlayerComponent pc;
+      pc.debug_gun_spot = create_gameplay(r, world, EntityType::empty);
+
       r.emplace<PlayerComponent>(e, pc);
       r.emplace<InputComponent>(e);
       r.emplace<KeyboardComponent>(e);

@@ -25,14 +25,10 @@ update_ui_prefabs_system(entt::registry& r)
   const auto& colours = get_first_component<SINGLETON_ColoursComponent>(r);
   // auto& ss = get_first_component<SINGLETON_SpriteSearcher>(r);
 
-  const int GRID_SIZE = 16; // hmm
-  const glm::ivec2 mouse_position = mouse_position_in_worldspace(r) + glm::ivec2(GRID_SIZE / 2, GRID_SIZE / 2);
-  const glm::ivec2 grid_position = engine::grid::world_space_to_grid_space(mouse_position, GRID_SIZE);
-  const glm::ivec2 world_position = engine::grid::grid_space_to_world_space(grid_position, GRID_SIZE);
+  const glm::ivec2 mouse_position = mouse_position_in_worldspace(r);
 
   // this seems weird, but it's because std::pair is serializable
   // by the std::map type, whereas the glm::ivec2 isn't by default
-  std::pair<int, int> key = { world_position.x, world_position.y };
 
   // TODO: be able to update sprite colour
   // TODO: be able to select sprite game behaviour
@@ -96,7 +92,7 @@ update_ui_prefabs_system(entt::registry& r)
     if (place_mode) {
       CreateEntityRequest request;
       request.type = type;
-      request.position = { world_position.x, world_position.y, 0 };
+      request.position = { mouse_position.x, mouse_position.y, 0 };
       r.emplace<CreateEntityRequest>(r.create(), request);
     }
   }
