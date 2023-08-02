@@ -24,6 +24,9 @@ update_physics_box2d_system(entt::registry& r, b2World& world, const uint64_t& m
       const float& angle = actor.body->GetAngle();
       transform.position.x = static_cast<int>(position.x);
       transform.position.y = static_cast<int>(position.y);
+
+      transform.scale.x = static_cast<int>(actor.size.x);
+      transform.scale.y = static_cast<int>(actor.size.y);
     }
   }
 }

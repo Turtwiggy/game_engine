@@ -1,8 +1,8 @@
 #pragma once
 
+#include <box2d/box2d.h>
 #include <entt/entt.hpp>
 #include <nlohmann/json.hpp>
-#include <box2d/box2d.h>
 
 namespace game2d {
 
@@ -13,6 +13,7 @@ enum class EntityType
   actor_enemy,
   actor_turret,
   actor_bullet,
+  actor_hearth,
 
   // misc
   spawner,

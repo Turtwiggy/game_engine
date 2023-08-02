@@ -7,9 +7,12 @@
 #include "lifecycle/components.hpp"
 #include "maths/grid.hpp"
 #include "modules/camera/helpers.hpp"
+#include "modules/health/components.hpp"
+#include "modules/player/components.hpp"
 #include "modules/turret/components.hpp"
 #include "renderer/components.hpp"
 #include "sprites/components.hpp"
+#include "modules/hearth/components.hpp"
 
 #include "glm/glm.hpp"
 #include "imgui.h"
@@ -22,7 +25,7 @@ namespace game2d {
 void
 update_ui_economy_system(entt::registry& r)
 {
-  const auto& econ = get_first_component<SINGLETON_Economy>(r);
+  auto& econ = get_first_component<SINGLETON_Economy>(r);
   const int GRID_SIZE = 16; // hmm
   const glm::ivec2 mouse_position = mouse_position_in_worldspace(r) + glm::ivec2(GRID_SIZE / 2, GRID_SIZE / 2);
   const glm::ivec2 grid_position = engine::grid::world_space_to_grid_space(mouse_position, GRID_SIZE);
@@ -34,20 +37,33 @@ update_ui_economy_system(entt::registry& r)
     //
   };
 
+  const auto& first_player = get_first<PlayerComponent>(r);
+  const auto& first_hearth = get_first<HearthComponent>(r);
+
   ImGui::Begin("Economy");
   ImGui::Text("Money: %i", econ.kills);
 
-  const auto& view = r.view<TurretComponent>();
-  if (view.size() > 0) {
-    const auto& first_turret = get_first_component<TurretComponent>(r);
-    ImGui::Text("time_between_bullets %f", first_turret.time_between_bullets);
+  // hack showing player hp
+  if (first_player != entt::null) {
+    const auto& first_player_hp = r.get<HealthComponent>(first_player);
+    ImGui::Text("HP: %i", first_player_hp.hp);
   }
 
-  if (ImGui::Button("Upgrade all turrets")) {
-    for (auto [entity, turret] : view.each()) {
-      turret.time_between_bullets -= 0.01f;
-      turret.time_between_bullets = glm::max(0.05f, turret.time_between_bullets);
-    }
+  // hack showing hearth hp
+  if (first_hearth != entt::null) {
+    const auto& first_hearth_hp = r.get<HealthComponent>(first_hearth);
+    ImGui::Text("Hearth HP: %i", first_hearth_hp.hp);
+  }
+
+  // hack buying turrets
+  static int turrets_bought = 0;
+  static int turret_cost = 10;
+  bool can_buy_turret = econ.kills > turret_cost;
+  ImGui::Text("Turret Cost: %i", turret_cost);
+  ImGui::Text("Turrets Owned: %i", turrets_bought);
+  if (ImGui::Button("Buy Turret##buyturret") && can_buy_turret) {
+    econ.kills -= turret_cost;
+    turrets_bought++;
   }
 
   // Here we store our selection data as an index.
@@ -77,7 +93,10 @@ update_ui_economy_system(entt::registry& r)
     return;
 
   bool place = get_mouse_rmb_press();
-  if (place) {
+  bool allowed_to_place = turrets_bought > 0;
+
+  if (place && allowed_to_place) {
+    turrets_bought--;
     CreateEntityRequest request;
     request.type = type;
     request.position = { world_position.x, world_position.y, 0 };

@@ -12,7 +12,12 @@
 #include "maths/maths.hpp"
 #include "modules/camera/orthographic.hpp"
 #include "modules/camera/system.hpp"
+#include "modules/combat/components.hpp"
 #include "modules/enemy/system.hpp"
+#include "modules/gameover/components.hpp"
+#include "modules/gameover/helpers.hpp"
+#include "modules/gameover/system.hpp"
+#include "modules/health/components.hpp"
 #include "modules/physics_box2d/components.hpp"
 #include "modules/physics_box2d/system.hpp"
 #include "modules/player/system.hpp"
@@ -22,6 +27,7 @@
 #include "modules/ui_controllers/system.hpp"
 #include "modules/ui_economy/components.hpp"
 #include "modules/ui_economy/system.hpp"
+#include "modules/ui_gameover/system.hpp"
 #include "modules/ui_hierarchy/system.hpp"
 #include "modules/ui_main_menu/system.hpp"
 #include "modules/ui_prefabs/system.hpp"
@@ -34,16 +40,6 @@
 #include "ui_profiler/components.hpp"
 #include "ui_profiler/helpers.hpp"
 #include "ui_profiler/system.hpp"
-
-namespace game2d {
-
-void
-init_game(entt::registry& r, b2World& world)
-{
-  const auto camera = create_gameplay(r, world, EntityType::camera);
-}
-
-} // namespace game2d
 
 void
 game2d::init(engine::SINGLETON_Application& app, b2World& world, entt::registry& r)
@@ -73,12 +69,8 @@ game2d::init(engine::SINGLETON_Application& app, b2World& world, entt::registry&
   r.emplace<engine::RandomState>(r.create());
   r.emplace<Profiler>(r.create());
   r.emplace<SINGLETON_RendererInfo>(r.create());
-  r.emplace<SINGLETON_EntityBinComponent>(r.create());
   r.emplace<SINGLETON_FixedUpdateInputHistory>(r.create());
   r.emplace<SINGLETON_InputComponent>(r.create());
-  r.emplace<SINGLETON_GameStateComponent>(r.create());
-  r.emplace<SINGLETON_ColoursComponent>(r.create());
-  r.emplace<SINGLETON_Economy>(r.create());
 
   auto& textures = get_first_component<SINGLETON_Textures>(r).textures;
   auto& audio = get_first_component<SINGLETON_AudioComponent>(r);
@@ -88,7 +80,7 @@ game2d::init(engine::SINGLETON_Application& app, b2World& world, entt::registry&
   init_render_system(app, ri, textures);
   init_input_system(input, r);
 
-  init_game(r, world);
+  restart_game(r, world);
 }
 
 void
@@ -104,74 +96,119 @@ game2d::fixed_update(entt::registry& game, b2World& world, const uint64_t millis
   // move inputs from Update() to this FixedUpdate() tick
   fixed_input.history[fixed_input.fixed_tick] = std::move(input.unprocessed_inputs);
   const auto& inputs = fixed_input.history[fixed_input.fixed_tick];
-  fixed_input.fixed_tick += 1;
+
+  // allow gameover/restart requests to be processed
+  update_gameover_system(game, world);
 
   // dont tick game logic if paused
   auto& state = get_first_component<SINGLETON_GameStateComponent>(game);
   if (state.state == GameState::PAUSED)
     return; // note: this ignores inputs
+  auto& gameover = get_first_component<SINGLETON_GameOver>(game);
+  if (gameover.game_is_over)
+    return;
 
   // destroy/create objects
   update_lifecycle_system(game, world, milliseconds_dt);
 
-  // update physics/collisions
+  // update physics
   {
-    auto _ = time_scope(&p, "(physics)", true);
+    auto _ = time_scope(&p, "(physics)-tick", true);
     update_physics_box2d_system(game, world, milliseconds_dt);
-
-    // for (b2Contact* contact = world.GetContactList(); contact; contact = contact->GetNext()) {
-    // printf("first contact");
-    // contact->IsTouching()
-    // }
   }
+  // resolve collisions
+  {
+    auto _ = time_scope(&p, "(physics)-collisions", true);
+    auto& dead = get_first_component<SINGLETON_EntityBinComponent>(game);
+    auto& econ = get_first_component<SINGLETON_Economy>(game);
 
-  // auto& physics = get_first_component<SINGLETON_PhysicsComponent>(game);
-  // physics.frame_collisions.clear();
-  // // move actors,
-  // // generate actor-solid collisions
-  // update_move_objects_system(game, milliseconds_dt);
-  // // generate actor-actor collisions
-  // update_actor_actor_system(game, physics);
+    for (b2Contact* contact = world.GetContactList(); contact; contact = contact->GetNext()) {
+      // contact->IsTouching() // should check this if using anything other than aabb
 
-  // const auto resolve_collisions = [&game, &physics]() {
-  //   auto& r = game;
-  //   auto& dead = get_first_component<SINGLETON_EntityBinComponent>(r);
-  //   auto& econ = get_first_component<SINGLETON_Economy>(r);
+      entt::entity a = (entt::entity)contact->GetFixtureA()->GetBody()->GetUserData().pointer;
+      entt::entity b = (entt::entity)contact->GetFixtureB()->GetBody()->GetUserData().pointer;
 
-  //   for (const auto& coll : physics.collision_stay) {
-  //     const auto a = static_cast<entt::entity>(coll.ent_id_0);
-  //     const auto b = static_cast<entt::entity>(coll.ent_id_1);
-  //     const auto a_type = r.get<EntityTypeComponent>(a).type;
-  //     const auto b_type = r.get<EntityTypeComponent>(b).type;
+      if (!game.valid(a) || !game.valid(b))
+        continue;
 
-  //     // bullet-enemy collision
-  //     if (a_type == EntityType::actor_enemy && b_type == EntityType::actor_bullet) {
-  //       dead.dead.emplace(a);
-  //       dead.dead.emplace(b);
-  //       econ.kills += 1;
-  //     } else if (a_type == EntityType::actor_bullet && b_type == EntityType::actor_enemy) {
-  //       dead.dead.emplace(b);
-  //       dead.dead.emplace(a);
-  //       econ.kills += 1;
-  //     }
+      const auto& a_type = game.get<EntityTypeComponent>(a).type;
+      const auto& b_type = game.get<EntityTypeComponent>(b).type;
 
-  //     // Hack: fix solid-solid enemy collision
-  //     // if (a_type == EntityType::actor_enemy && b_type == EntityType::actor_enemy) {
-  //     //   dead.dead.emplace(a);
-  //     // dead.dead.emplace(b);
-  //     // }
-  //   }
-  // };
-  // resolve_collisions();
+      const auto& collision_of_interest = [](const entt::entity& a_ent,
+                                             const entt::entity& b_ent,
+                                             const EntityType& a,
+                                             const EntityType& b,
+                                             const EntityType& a_actual,
+                                             const EntityType& b_actual) -> std::pair<entt::entity, entt::entity> {
+        if (a == a_actual && b == b_actual)
+          return { a_ent, b_ent };
+        if (a == b_actual && b == a_actual)
+          return { b_ent, a_ent };
+        return { entt::null, entt::null };
+      };
+
+      // bullet-enemy collision
+      {
+        const auto& [actor_enemy, actor_bullet] =
+          collision_of_interest(a, b, a_type, b_type, EntityType::actor_enemy, EntityType::actor_bullet);
+        if (actor_enemy != entt::null && actor_bullet != entt::null) {
+          dead.dead.emplace(actor_enemy);
+          dead.dead.emplace(actor_bullet);
+          econ.kills += 1;
+        }
+      }
+
+      // bullet-player collision
+      {
+        const auto& [actor_bullet, actor_player] =
+          collision_of_interest(a, b, a_type, b_type, EntityType::actor_bullet, EntityType::actor_player);
+        if (actor_bullet != entt::null && actor_player != entt::null) {
+          dead.dead.emplace(actor_bullet);
+        }
+      }
+
+      // player-enemy collision
+      {
+        const auto& [actor_player, actor_enemy] =
+          collision_of_interest(a, b, a_type, b_type, EntityType::actor_player, EntityType::actor_enemy);
+        if (actor_player != entt::null && actor_enemy != entt::null) {
+          {
+            const auto& enemy_atk = game.get<AttackComponent>(actor_enemy);
+            // kill enemy
+            dead.dead.emplace(actor_enemy);
+            // player takes damage
+            auto& hp = game.get<HealthComponent>(actor_player);
+            hp.hp -= enemy_atk.damage;
+            hp.hp = glm::max(0, hp.hp);
+          }
+        }
+      }
+
+      // hearth-enemy collision
+      {
+        const auto& [actor_hearth, actor_enemy] =
+          collision_of_interest(a, b, a_type, b_type, EntityType::actor_hearth, EntityType::actor_enemy);
+        if (actor_hearth != entt::null && actor_enemy != entt::null) {
+          const auto& enemy_atk = game.get<AttackComponent>(actor_enemy);
+          auto& hearth_hp = game.get<HealthComponent>(actor_hearth);
+          hearth_hp.hp -= enemy_atk.damage;
+          hearth_hp.hp = glm::max(0, hearth_hp.hp);
+          dead.dead.emplace(actor_enemy);
+        }
+      }
+    }
+  }
 
   // update gamelogic
   {
-    auto _ = time_scope(&p, "(game-tick)", true);
-    update_player_controller_system(game, inputs, milliseconds_dt);
+    auto _ = time_scope(&p, "fixed-update-game-logic", true);
+    update_player_controller_system(game, milliseconds_dt);
     update_enemy_system(game, milliseconds_dt);
     update_turret_system(game, milliseconds_dt);
     update_spawner_system(game, milliseconds_dt);
   }
+
+  fixed_input.fixed_tick += 1;
 }
 
 void
@@ -190,11 +227,9 @@ game2d::update(engine::SINGLETON_Application& app, entt::registry& r, const b2Wo
   };
 
   {
-    auto _ = time_scope(&p, "rendering");
     auto& ri = get_first_component<SINGLETON_RendererInfo>(r);
     auto& texs = get_first_component<SINGLETON_Textures>(r).textures;
-    auto& colours = get_first_component<SINGLETON_ColoursComponent>(r);
-    update_render_system(ri, *colours.lin_background, *colours.background, texs, r, p);
+    update_render_system(r, texs);
   }
 
   // UI
@@ -203,6 +238,7 @@ game2d::update(engine::SINGLETON_Application& app, entt::registry& r, const b2Wo
   update_ui_hierarchy_system(r);
   update_ui_controller_system(r);
   update_ui_economy_system(r);
+  update_ui_gameover_system(r);
 
   static bool show_editor_ui = true;
   if (show_editor_ui) {

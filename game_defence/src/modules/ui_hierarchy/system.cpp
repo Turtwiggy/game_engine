@@ -1,7 +1,6 @@
 #include "system.hpp"
 
 // components
-#include "colour/colour.hpp"
 #include "modules/ui_hierarchy/helpers.hpp"
 #include "renderer/components.hpp"
 #include "sprites/components.hpp"
@@ -96,13 +95,13 @@ game2d::update_ui_hierarchy_system(entt::registry& r)
     //   imgui_draw_ivec2("Physics Size: ", ptc.w, ptc.h);
     // }
 
-    if (r.all_of<SpriteComponent, SpriteColourComponent>(eid)) {
-      SpriteComponent& sc = r.get<SpriteComponent>(eid);
-      SpriteColourComponent& scc = r.get<SpriteColourComponent>(eid);
+    // if (r.all_of<SpriteComponent, SpriteColourComponent>(eid)) {
+    //   SpriteComponent& sc = r.get<SpriteComponent>(eid);
+    //   SpriteColourComponent& scc = r.get<SpriteColourComponent>(eid);
 
-      // select sprite
-      imgui_draw_ivec2("Sprite: ", sc.x, sc.y);
-    }
+    //   // select sprite
+    //   imgui_draw_ivec2("Sprite: ", sc.x, sc.y);
+    // }
 
     // if (r.all_of<VelocityComponent>(eid)) {
     //   const VelocityComponent& c = r.get<VelocityComponent>(eid);

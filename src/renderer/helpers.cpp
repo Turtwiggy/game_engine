@@ -167,7 +167,7 @@ game2d::rebind(const SINGLETON_RendererInfo& ri, const std::vector<Texture>& tex
 };
 
 void
-game2d::check_if_viewport_resize(SINGLETON_RendererInfo& ri, std::vector<Texture>& tex, glm::ivec2& viewport_wh)
+game2d::check_if_viewport_resize(SINGLETON_RendererInfo& ri, const std::vector<Texture>& tex, glm::ivec2& viewport_wh)
 {
   if (ri.viewport_size_current.x > 0.0f && ri.viewport_size_current.y > 0.0f &&
       (viewport_wh.x != ri.viewport_size_current.x || viewport_wh.y != ri.viewport_size_current.y)) {

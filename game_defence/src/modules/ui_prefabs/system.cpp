@@ -22,7 +22,7 @@ namespace game2d {
 void
 update_ui_prefabs_system(entt::registry& r)
 {
-  auto& colours = get_first_component<SINGLETON_ColoursComponent>(r);
+  const auto& colours = get_first_component<SINGLETON_ColoursComponent>(r);
   // auto& ss = get_first_component<SINGLETON_SpriteSearcher>(r);
 
   const int GRID_SIZE = 16; // hmm

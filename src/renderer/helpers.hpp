@@ -31,6 +31,6 @@ void
 rebind(const SINGLETON_RendererInfo& ri, const std::vector<Texture>& tex, const glm::ivec2& wh);
 
 void
-check_if_viewport_resize(SINGLETON_RendererInfo& ri, std::vector<Texture>& tex, glm::ivec2& viewport_wh);
+check_if_viewport_resize(SINGLETON_RendererInfo& ri, const std::vector<Texture>& tex, glm::ivec2& viewport_wh);
 
 }; // namespace game2d

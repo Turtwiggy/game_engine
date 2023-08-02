@@ -16,8 +16,6 @@
 void
 game2d::init_input_system(SINGLETON_InputComponent& input, entt::registry& r)
 {
-  input.state = SDL_GetKeyboardState(NULL);
-
   open_controllers(input);
 };
 

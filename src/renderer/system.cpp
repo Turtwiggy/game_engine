@@ -7,6 +7,7 @@
 #include "renderer/components.hpp"
 #include "renderer/helpers.hpp"
 #include "renderer/helpers/batch_quad.hpp"
+#include "resources/colours.hpp"
 #include "sprites/components.hpp"
 #include "ui_profiler/helpers.hpp"
 
@@ -75,25 +76,26 @@ game2d::init_render_system(const engine::SINGLETON_Application& app, SINGLETON_R
 };
 
 void
-game2d::update_render_system(SINGLETON_RendererInfo& ri,
-                             const engine::LinearColour& lin_background,
-                             const engine::SRGBColour& srgb_background,
-                             std::vector<Texture>& tex,
-                             entt::registry& r,
-                             Profiler& p)
+game2d::update_render_system(entt::registry& r, const std::vector<Texture>& tex)
 {
+  auto& p = get_first_component<Profiler>(r);
+  auto& ri = get_first_component<SINGLETON_RendererInfo>(r);
+  const auto& colours = get_first_component<SINGLETON_ColoursComponent>(r);
+  const auto& lin_background = colours.lin_background;
+  const auto& srgb_background = colours.background;
+
   auto _ = time_scope(&p, "update_render_system()");
 
   glm::ivec2 viewport_wh = ri.viewport_size_render_at;
   check_if_viewport_resize(ri, tex, viewport_wh);
 
   {
-    auto _ = time_scope(&p, "main_scene_pass()");
+    auto _ = time_scope(&p, "renderer: main_scene_pass");
 
     // FBO: Render sprites in to this fbo with linear colour
     Framebuffer::bind_fbo(ri.fbo_linear_main_scene);
     RenderCommand::set_viewport(0, 0, viewport_wh.x, viewport_wh.y);
-    RenderCommand::set_clear_colour_linear(lin_background);
+    RenderCommand::set_clear_colour_linear(*lin_background);
     RenderCommand::clear();
 
     // Do quad stuff
@@ -138,7 +140,7 @@ game2d::update_render_system(SINGLETON_RendererInfo& ri,
     // FBO: LINEAR->SRGB
     Framebuffer::bind_fbo(ri.fbo_srgb_main_scene);
     RenderCommand::set_viewport(0, 0, viewport_wh.x, viewport_wh.y);
-    RenderCommand::set_clear_colour_linear(lin_background);
+    RenderCommand::set_clear_colour_linear(*lin_background);
     RenderCommand::clear();
 
     // Render the linear colour main scene in to this texture
@@ -166,7 +168,7 @@ game2d::update_render_system(SINGLETON_RendererInfo& ri,
     // default fbo
     Framebuffer::default_fbo();
     RenderCommand::set_viewport(0, 0, viewport_wh.x, viewport_wh.y);
-    RenderCommand::set_clear_colour_srgb(srgb_background);
+    RenderCommand::set_clear_colour_srgb(*srgb_background);
     RenderCommand::clear();
 
     // Note: ImGui::Image takes in TexID not TexUnit

@@ -1,20 +1,14 @@
 #pragma once
 
-#include <optional>
-
-#include "box2d/box2d.h"
+#include <box2d/box2d.h>
+#include <glm/glm.hpp>
 
 namespace game2d {
-
-// Bodies are built using the following steps:
-// Define a body with position, damping, etc.
-// Use the world object to create the body.
-// Define fixtures with a shape, friction, density, etc.
-// Create fixtures on the body.
 
 struct ActorComponent
 {
   b2Body* body;
+  glm::ivec2 size;
 };
 
 } // namespace game2d
