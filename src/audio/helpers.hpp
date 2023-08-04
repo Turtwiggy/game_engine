@@ -7,7 +7,7 @@
 
 namespace game2d {
 
-ALuint
-get_sound_id(const SINGLETON_AudioComponent& audio, const std::string& tag);
+Sound
+get_sound(const SINGLETON_AudioComponent& audio, const std::string& tag);
 
 } // namespace game2d

@@ -1,13 +1,11 @@
 #pragma once
 
-#include "physics/components.hpp"
-#include "ui_profiler/components.hpp"
-
+#include <box2d/box2d.h>
 #include <entt/entt.hpp>
 
 namespace game2d {
 
 void
-update_ui_profiler_system(Profiler& profiler, const SINGLETON_PhysicsComponent& physics, entt::registry& r);
+update_ui_profiler_system(entt::registry& r, const b2World& world);
 
 } // namespace game2d

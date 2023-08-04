@@ -7,9 +7,6 @@
 
 namespace game2d {
 
-using srgb_ptr = std::shared_ptr<engine::SRGBColour>;
-using lin_ptr = std::shared_ptr<engine::LinearColour>;
-
 // engine::SRGBColour
 // convert_hex_to_rgb(const int hex)
 // {
@@ -20,20 +17,29 @@ using lin_ptr = std::shared_ptr<engine::LinearColour>;
 // }
 
 // https://colorhunt.co/palette/fff8ea9e7676815b5b594545
-static const engine::SRGBColour pal_0_1{ 255, 248, 234, 1.0f }; // lightest
-static const engine::SRGBColour pal_0_2{ 158, 118, 118, 1.0f };
-static const engine::SRGBColour pal_0_3{ 129, 91, 91, 1.0f };
-static const engine::SRGBColour pal_0_4{ 89, 69, 69, 1.0f }; // darkest
-static const engine::LinearColour lin_pal_0_1 = engine::SRGBToLinear(pal_0_1);
-static const engine::LinearColour lin_pal_0_2 = engine::SRGBToLinear(pal_0_2);
-static const engine::LinearColour lin_pal_0_3 = engine::SRGBToLinear(pal_0_3);
-static const engine::LinearColour lin_pal_0_4 = engine::SRGBToLinear(pal_0_4);
-static const engine::SRGBColour pal_background = pal_0_4;
+static const engine::SRGBColour pal_0{ 255, 248, 234, 1.0f }; // lightest
+static const engine::SRGBColour pal_1{ 158, 118, 118, 1.0f };
+static const engine::SRGBColour pal_2{ 129, 91, 91, 1.0f };
+static const engine::SRGBColour pal_3{ 89, 69, 69, 1.0f }; // darkest
+static const engine::LinearColour lin_pal_0 = engine::SRGBToLinear(pal_0);
+static const engine::LinearColour lin_pal_1 = engine::SRGBToLinear(pal_1);
+static const engine::LinearColour lin_pal_2 = engine::SRGBToLinear(pal_2);
+static const engine::LinearColour lin_pal_3 = engine::SRGBToLinear(pal_3);
+static const engine::SRGBColour pal_background = pal_3;
 static const engine::SRGBColour pal_hit = { 172, 68, 37, 1.0f };
 static const engine::SRGBColour pal_white = { 255, 255, 255, 1.0f };
 static const engine::LinearColour lin_pal_hit = engine::SRGBToLinear(pal_hit);
 static const engine::LinearColour lin_pal_white = engine::SRGBToLinear(pal_white);
 static const engine::LinearColour lin_pal_background = engine::SRGBToLinear(pal_background);
+
+static const engine::SRGBColour pal_hot_pink = { 251, 161, 183, 1.0f };
+static const engine::SRGBColour pal_light_pink = { 255, 209, 218, 1.0f };
+static const engine::SRGBColour pal_lighter_pink = { 255, 240, 245, 1.0f };
+static const engine::SRGBColour pal_yellow = { 255, 219, 170, 1.0f };
+static const engine::LinearColour lin_pal_hot_pink = engine::SRGBToLinear(pal_hot_pink);
+static const engine::LinearColour lin_pal_light_pink = engine::SRGBToLinear(pal_light_pink);
+static const engine::LinearColour lin_pal_lighter_pink = engine::SRGBToLinear(pal_lighter_pink);
+static const engine::LinearColour lin_pal_yellow = engine::SRGBToLinear(pal_yellow);
 
 struct SINGLETON_ColoursComponent
 {
@@ -61,20 +67,30 @@ struct SINGLETON_ColoursComponent
   // https://colorhunt.co/palette/7579e79ab3f5a3d8f4b9fffc
 
   // the game's live palette
-  srgb_ptr primary = std::make_shared<engine::SRGBColour>(pal_0_1);
-  srgb_ptr secondary = std::make_shared<engine::SRGBColour>(pal_0_2);
-  srgb_ptr tertiary = std::make_shared<engine::SRGBColour>(pal_0_3);
-  srgb_ptr quaternary = std::make_shared<engine::SRGBColour>(pal_0_4);
-  srgb_ptr background = std::make_shared<engine::SRGBColour>(pal_background);
-  srgb_ptr hit = std::make_shared<engine::SRGBColour>(pal_hit);
-  srgb_ptr white = std::make_shared<engine::SRGBColour>(pal_white);
-  lin_ptr lin_primary = std::make_shared<engine::LinearColour>(lin_pal_0_1);
-  lin_ptr lin_secondary = std::make_shared<engine::LinearColour>(lin_pal_0_2);
-  lin_ptr lin_tertiary = std::make_shared<engine::LinearColour>(lin_pal_0_3);
-  lin_ptr lin_quaternary = std::make_shared<engine::LinearColour>(lin_pal_0_4);
-  lin_ptr lin_background = std::make_shared<engine::LinearColour>(lin_pal_background);
-  lin_ptr lin_hit = std::make_shared<engine::LinearColour>(lin_pal_hit);
-  lin_ptr lin_white = std::make_shared<engine::LinearColour>(lin_pal_white);
+  std::shared_ptr<engine::SRGBColour> primary = std::make_shared<engine::SRGBColour>(pal_0);
+  std::shared_ptr<engine::SRGBColour> secondary = std::make_shared<engine::SRGBColour>(pal_1);
+  std::shared_ptr<engine::SRGBColour> tertiary = std::make_shared<engine::SRGBColour>(pal_2);
+  std::shared_ptr<engine::SRGBColour> quaternary = std::make_shared<engine::SRGBColour>(pal_3);
+  std::shared_ptr<engine::SRGBColour> background = std::make_shared<engine::SRGBColour>(pal_background);
+  std::shared_ptr<engine::SRGBColour> hit = std::make_shared<engine::SRGBColour>(pal_hit);
+  std::shared_ptr<engine::SRGBColour> white = std::make_shared<engine::SRGBColour>(pal_white);
+  std::shared_ptr<engine::LinearColour> lin_primary = std::make_shared<engine::LinearColour>(lin_pal_0);
+  std::shared_ptr<engine::LinearColour> lin_secondary = std::make_shared<engine::LinearColour>(lin_pal_1);
+  std::shared_ptr<engine::LinearColour> lin_tertiary = std::make_shared<engine::LinearColour>(lin_pal_2);
+  std::shared_ptr<engine::LinearColour> lin_quaternary = std::make_shared<engine::LinearColour>(lin_pal_3);
+  std::shared_ptr<engine::LinearColour> lin_background = std::make_shared<engine::LinearColour>(lin_pal_background);
+  std::shared_ptr<engine::LinearColour> lin_hit = std::make_shared<engine::LinearColour>(lin_pal_hit);
+  std::shared_ptr<engine::LinearColour> lin_white = std::make_shared<engine::LinearColour>(lin_pal_white);
+
+  // another palette
+  std::shared_ptr<engine::SRGBColour> hot_pink = std::make_shared<engine::SRGBColour>(pal_hot_pink);
+  std::shared_ptr<engine::SRGBColour> light_pink = std::make_shared<engine::SRGBColour>(pal_light_pink);
+  std::shared_ptr<engine::SRGBColour> lighter_pink = std::make_shared<engine::SRGBColour>(pal_lighter_pink);
+  std::shared_ptr<engine::SRGBColour> yellow = std::make_shared<engine::SRGBColour>(pal_yellow);
+  std::shared_ptr<engine::LinearColour> lin_hot_pink = std::make_shared<engine::LinearColour>(lin_pal_hot_pink);
+  std::shared_ptr<engine::LinearColour> lin_light_pink = std::make_shared<engine::LinearColour>(lin_pal_light_pink);
+  std::shared_ptr<engine::LinearColour> lin_lighter_pink = std::make_shared<engine::LinearColour>(lin_pal_lighter_pink);
+  std::shared_ptr<engine::LinearColour> lin_yellow = std::make_shared<engine::LinearColour>(lin_pal_yellow);
 };
 
 } // namespace game2d

@@ -2,10 +2,9 @@
 #include "select_objects_move.hpp"
 
 // components
+#include "camera/components.hpp"
 #include "components/pathfinding.hpp"
 #include "components/selectable.hpp"
-#include "resources/colour/colour.hpp"
-#include "camera/components.hpp"
 #include "events/components.hpp"
 #include "events/helpers/mouse.hpp"
 #include "physics/components.hpp"

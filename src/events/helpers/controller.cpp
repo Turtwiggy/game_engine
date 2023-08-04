@@ -120,7 +120,7 @@ get_button_held(SDL_GameController* controller, SDL_GameControllerButton button)
 float
 get_axis_01(SDL_GameController* controller, SDL_GameControllerAxis axis)
 {
-  const int JOYSTICK_DEAD_ZONE = 8000;
+  const int JOYSTICK_DEAD_ZONE = 2000;
 
   Sint16 val = SDL_GameControllerGetAxis(controller, axis);
 

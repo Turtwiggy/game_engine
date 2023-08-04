@@ -20,11 +20,18 @@ mouse_position_in_worldspace(entt::registry& r)
 
   const auto mouse_pos = get_mouse_pos() - ri.viewport_pos;
 
-  const glm::ivec2 mouse_pos_in_worldpsace = {
-    mouse_pos.x + (camera_position.x),
-    mouse_pos.y + (camera_position.y),
+  const glm::ivec2 xy{
+    //
+    ri.viewport_size_render_at.x / 2.0f,
+    ri.viewport_size_render_at.y / 2.0f
+    //
   };
-  return mouse_pos_in_worldpsace;
+
+  const glm::ivec2 mouse_pos_in_worldspace = {
+    camera_position.x + mouse_pos.x - xy.x,
+    camera_position.y + mouse_pos.y - xy.y,
+  };
+  return mouse_pos_in_worldspace;
 };
 
 } // namespace game2d

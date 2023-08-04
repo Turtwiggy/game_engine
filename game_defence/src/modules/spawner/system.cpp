@@ -28,12 +28,10 @@ update_spawner_system(entt::registry& r, const uint64_t milliseconds_dt)
 
     if (spawner.time_between_spawns_left < 0.0f) {
 
-      // create spawn request
       CreateEntityRequest req;
-      req.entity_type = spawner.type_to_spawn;
+      req.type = spawner.type_to_spawn;
       req.position = transform.position;
-      auto e = r.create();
-      r.emplace<CreateEntityRequest>(e, req);
+      r.emplace<CreateEntityRequest>(r.create(), req);
 
       // reset timer
       spawner.time_between_spawns_left = time_between_spawns;

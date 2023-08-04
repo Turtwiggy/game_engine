@@ -1,17 +1,13 @@
 #include "system.hpp"
 
 // components
-#include "colour/colour.hpp"
 #include "modules/ui_hierarchy/helpers.hpp"
-#include "physics/components.hpp"
 #include "renderer/components.hpp"
 #include "sprites/components.hpp"
 
 // other lib headers
 #include <glm/gtc/type_ptr.hpp>
 #include <imgui.h>
-
-// TODO: look to improve this
 
 void
 game2d::update_ui_hierarchy_system(entt::registry& r)
@@ -21,7 +17,6 @@ game2d::update_ui_hierarchy_system(entt::registry& r)
 
   ImGui::Begin("Hierarchy", NULL, ImGuiWindowFlags_NoFocusOnAppearing);
   {
-    // Note: root is 1
     ImGui::Text("Total alive: %i", entities);
 
     // optimisation: paginate the shown entities
@@ -94,26 +89,26 @@ game2d::update_ui_hierarchy_system(entt::registry& r)
         "Render Angle:", transform.rotation_radians.x, transform.rotation_radians.y, transform.rotation_radians.z);
     }
 
-    if (r.all_of<PhysicsTransformComponent>(eid)) {
-      PhysicsTransformComponent& ptc = r.get<PhysicsTransformComponent>(eid);
-      imgui_draw_ivec2("Physics Pos (x_tl, y_tl): ", ptc.x_tl, ptc.y_tl);
-      imgui_draw_ivec2("Physics Size: ", ptc.w, ptc.h);
-    }
+    // if (r.all_of<PhysicsTransformComponent>(eid)) {
+    //   PhysicsTransformComponent& ptc = r.get<PhysicsTransformComponent>(eid);
+    //   imgui_draw_ivec2("Physics Pos (x_tl, y_tl): ", ptc.x_tl, ptc.y_tl);
+    //   imgui_draw_ivec2("Physics Size: ", ptc.w, ptc.h);
+    // }
 
-    if (r.all_of<SpriteComponent, SpriteColourComponent>(eid)) {
-      SpriteComponent& sc = r.get<SpriteComponent>(eid);
-      SpriteColourComponent& scc = r.get<SpriteColourComponent>(eid);
+    // if (r.all_of<SpriteComponent, SpriteColourComponent>(eid)) {
+    //   SpriteComponent& sc = r.get<SpriteComponent>(eid);
+    //   SpriteColourComponent& scc = r.get<SpriteColourComponent>(eid);
 
-      // select sprite
-      imgui_draw_ivec2("Sprite: ", sc.x, sc.y);
-    }
+    //   // select sprite
+    //   imgui_draw_ivec2("Sprite: ", sc.x, sc.y);
+    // }
 
-    if (r.all_of<VelocityComponent>(eid)) {
-      const VelocityComponent& c = r.get<VelocityComponent>(eid);
-      float x = c.x;
-      float y = c.y;
-      imgui_draw_vec2("Vel: ", x, y);
-    }
+    // if (r.all_of<VelocityComponent>(eid)) {
+    //   const VelocityComponent& c = r.get<VelocityComponent>(eid);
+    //   float x = c.x;
+    //   float y = c.y;
+    //   imgui_draw_vec2("Vel: ", x, y);
+    // }
 
     // Add component
     // if (ImGui::Button("Add component")) {

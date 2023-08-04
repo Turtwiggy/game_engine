@@ -2,6 +2,7 @@
 #include "system.hpp"
 
 // components
+#include "entt/helpers.hpp"
 #include "helpers.hpp"
 #include "renderer/components.hpp"
 #include "ui_profiler/components.hpp"
@@ -15,7 +16,7 @@
 #include <imgui.h>
 
 void
-game2d::update_ui_profiler_system(Profiler& profiler, const SINGLETON_PhysicsComponent& physics, entt::registry& r)
+game2d::update_ui_profiler_system(entt::registry& r, const b2World& world)
 {
   // #ifdef _DEBUG
   //   // less than X-fps?! what is this?!
@@ -24,25 +25,14 @@ game2d::update_ui_profiler_system(Profiler& profiler, const SINGLETON_PhysicsCom
   // #endif
 
   const auto& registry = r;
-  const auto& objs = registry.view<const PhysicsTransformComponent>();
-  const auto& solids = registry.view<const PhysicsSolidComponent>();
-  const auto& actors = registry.view<const PhysicsActorComponent>();
+  auto& profiler = get_first_component<Profiler>(r);
 
   // Profiler
   ImGui::Begin("Profiler", NULL, ImGuiWindowFlags_NoFocusOnAppearing);
   {
     ImGui::Text("¬¬ Physics");
-    ImGui::Text("Objects %i", objs.size());
-    ImGui::Text("Solids %i", solids.size());
-    ImGui::Text("Actors %i", actors.size());
-    ImGui::Text("collision_enter %i", physics.collision_enter.size());
-    ImGui::Text("collision_stay %i", physics.collision_stay.size());
-    ImGui::Text("collision_exit %i", physics.collision_exit.size());
-    // for (const auto& p : physics.collision_stay) {
-    //   EntityType e0 = registry.get<EntityTypeComponent>(static_cast<entt::entity>(p.ent_id_0)).type;
-    //   EntityType e1 = registry.get<EntityTypeComponent>(static_cast<entt::entity>(p.ent_id_1)).type;
-    //   ImGui::Text("CollisionStay between types %i, %i", static_cast<int>(e0), static_cast<int>(e1));
-    // }
+    ImGui::Text("Bodies: %i", world.GetBodyCount());
+    ImGui::Text("Contacts: %i", world.GetContactCount());
 
     ImGui::Text("¬¬ Renderer");
     ImGui::Text("Draw Calls QR %i", engine::quad_renderer::QuadRenderer::draw_calls());

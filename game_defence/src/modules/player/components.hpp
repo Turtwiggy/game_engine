@@ -10,8 +10,8 @@ namespace game2d {
 
 struct PlayerComponent
 {
-  entt::entity line = entt::null;
-  entt::entity connected_turret = entt::null;
+  float time_between_bullets_left = 0.0f;
+  entt::entity debug_gun_spot = entt::null;
 };
 
 struct KeyboardComponent
@@ -46,7 +46,8 @@ struct ControllerComponent
 
 struct InputComponent
 {
-  glm::vec2 dir;
+  glm::vec2 stick_l;
+  glm::vec2 stick_r;
 };
 
 } // namespace game2d

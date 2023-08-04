@@ -3,6 +3,7 @@ using namespace game2d;
 
 #include "app/application.hpp"
 #include "app/io.hpp"
+#include "box2d/box2d.h"
 #include "opengl/util.hpp"
 using namespace engine;
 
@@ -18,8 +19,8 @@ using namespace engine;
 #include <chrono>
 
 // fixed tick
-// static const int MILLISECONDS_PER_FIXED_TICK = 7; // or ~142 ticks per second
-static int MILLISECONDS_PER_FIXED_TICK = 16; // or ~62.5 ticks per second
+static const int MILLISECONDS_PER_FIXED_TICK = 7; // or ~142 ticks per second
+// static int MILLISECONDS_PER_FIXED_TICK = 16; // or ~62.5 ticks per second
 static uint64_t milliseconds_accumulator_since_last_tick = 0;
 static uint64_t new_time = 0;
 static uint64_t cur_time = 0;
@@ -27,6 +28,8 @@ static uint64_t milliseconds_delta_time = 0;
 
 static SINGLETON_Application app;
 static entt::registry game;
+static b2Vec2 gravity = { 0.0f, 0.0f };
+static b2World world{ gravity };
 
 void
 main_loop(void* arg)
@@ -51,10 +54,10 @@ main_loop(void* arg)
   while (milliseconds_accumulator_since_last_tick >= MILLISECONDS_PER_FIXED_TICK) {
     milliseconds_accumulator_since_last_tick -= MILLISECONDS_PER_FIXED_TICK;
 
-    game2d::fixed_update(game, MILLISECONDS_PER_FIXED_TICK);
+    game2d::fixed_update(game, world, MILLISECONDS_PER_FIXED_TICK);
   }
 
-  game2d::update(app, game, milliseconds_delta_time / 1000.0f);
+  game2d::update(app, game, world, milliseconds_delta_time / 1000.0f);
 
   engine::end_frame(app);
 }
@@ -77,13 +80,13 @@ main(int argc, char* argv[])
   app.window = GameWindow(name, app.width, app.height, app.display, app.vsync);
   app.imgui.initialize(app.window);
 
-// #if defined(WIN32) && !defined(_DEBUG)
-//   bool hide_windows_console = false;
-//   if (hide_windows_console)
-//     engine::hide_windows_console();
-// #endif
+  // #if defined(WIN32) && !defined(_DEBUG)
+  //   bool hide_windows_console = false;
+  //   if (hide_windows_console)
+  //     engine::hide_windows_console();
+  // #endif
 
-  game2d::init(app, game);
+  game2d::init(app, world, game);
   CHECK_OPENGL_ERROR(0);
 
 #ifdef __EMSCRIPTEN__

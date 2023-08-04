@@ -15,7 +15,7 @@ SRGBFloatToLinearFloat(const float f)
 };
 
 // This function really should be constexpr but math pow isnt constexpr
-constexpr float
+float
 LinearFloatToSRGBFloat(const float f)
 {
   if (f <= 0.0031308f)

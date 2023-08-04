@@ -3,6 +3,9 @@
 #include "entt/helpers.hpp"
 #include "events/components.hpp"
 #include "events/helpers/controller.hpp"
+#include "events/helpers/mouse.hpp"
+#include "modules/camera/helpers.hpp"
+#include "renderer/components.hpp"
 
 #include <SDL2/SDL_gamecontroller.h>
 #include <algorithm>
@@ -16,7 +19,11 @@ update_ui_controller_system(entt::registry& r)
 {
   auto& input = get_first_component<SINGLETON_InputComponent>(r);
 
-  ImGui::Begin("Controller");
+  ImGuiWindowFlags flags = 0;
+  flags |= ImGuiWindowFlags_NoFocusOnAppearing;
+  flags |= ImGuiDockNodeFlags_AutoHideTabBar;
+
+  ImGui::Begin("Controller", NULL, flags);
 
   if (ImGui::Button("Re-open all controllers"))
     open_controllers(input);
@@ -58,6 +65,19 @@ update_ui_controller_system(entt::registry& r)
 
     // clang-format on
   }
+  ImGui::End();
+
+  const auto& ri = get_first_component<SINGLETON_RendererInfo>(r);
+
+  ImGui::Begin("Mouse/Keyboard");
+  ImGui::Text("imgui: %f, %f", ImGui::GetIO().MousePos.x, ImGui::GetIO().MousePos.y);
+
+  const glm::ivec2 mouse_pos = get_mouse_pos() - ri.viewport_pos;
+  ImGui::Text("mouse_pos: %i, %i", mouse_pos.x, mouse_pos.y);
+
+  const glm::ivec2 worldspace_pos = mouse_position_in_worldspace(r);
+  ImGui::Text("worldspace: %i, %i", worldspace_pos.x, worldspace_pos.y);
+
   ImGui::End();
 };
 

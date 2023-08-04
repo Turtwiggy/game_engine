@@ -1,5 +1,6 @@
 #pragma once
 
+#include <box2d/box2d.h>
 #include <entt/entt.hpp>
 #include <nlohmann/json.hpp>
 
@@ -12,6 +13,7 @@ enum class EntityType
   actor_enemy,
   actor_turret,
   actor_bullet,
+  actor_hearth,
 
   // misc
   spawner,
@@ -33,6 +35,6 @@ void
 from_json(const json& j, EntityTypeComponent& et);
 
 [[nodiscard]] entt::entity
-create_gameplay(entt::registry& r, const EntityType& type);
+create_gameplay(entt::registry& r, b2World& world, const EntityType& type);
 
 } // namespace game2d

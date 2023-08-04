@@ -12,18 +12,26 @@
 #include "maths/maths.hpp"
 #include "modules/camera/orthographic.hpp"
 #include "modules/camera/system.hpp"
+#include "modules/combat/components.hpp"
 #include "modules/enemy/system.hpp"
+#include "modules/gameover/components.hpp"
+#include "modules/gameover/helpers.hpp"
+#include "modules/gameover/system.hpp"
+#include "modules/health/components.hpp"
+#include "modules/physics_box2d/components.hpp"
+#include "modules/physics_box2d/system.hpp"
 #include "modules/player/system.hpp"
 #include "modules/spawner/components.hpp"
 #include "modules/spawner/system.hpp"
 #include "modules/turret/system.hpp"
+#include "modules/ui_audio/system.hpp"
 #include "modules/ui_controllers/system.hpp"
+#include "modules/ui_economy/components.hpp"
+#include "modules/ui_economy/system.hpp"
+#include "modules/ui_gameover/system.hpp"
 #include "modules/ui_hierarchy/system.hpp"
 #include "modules/ui_main_menu/system.hpp"
 #include "modules/ui_prefabs/system.hpp"
-#include "physics/components.hpp"
-#include "physics/process_actor_actor.hpp"
-#include "physics/process_move_objects.hpp"
 #include "renderer/components.hpp"
 #include "renderer/system.hpp"
 #include "resources/colours.hpp"
@@ -34,28 +42,8 @@
 #include "ui_profiler/helpers.hpp"
 #include "ui_profiler/system.hpp"
 
-namespace game2d {
-
 void
-init_game(entt::registry& r)
-{
-  const auto camera = create_gameplay(r, EntityType::camera);
-
-  const auto player = create_gameplay(r, EntityType::actor_player);
-  auto& player_pos = r.get<TransformComponent>(player);
-  player_pos.position.x = 50;
-  player_pos.position.y = 50;
-
-  // const auto spawner = create_gameplay(r, EntityType::spawner);
-  // auto& spawner_pos = r.get<TransformComponent>(spawner);
-  // spawner_pos.position.x = 200;
-  // spawner_pos.position.y = 200;
-}
-
-} // namespace game2d
-
-void
-game2d::init(engine::SINGLETON_Application& app, entt::registry& r)
+game2d::init(engine::SINGLETON_Application& app, b2World& world, entt::registry& r)
 {
   {
     SINGLETON_Animations anims;
@@ -71,37 +59,38 @@ game2d::init(engine::SINGLETON_Application& app, entt::registry& r)
     r.emplace<SINGLETON_Textures>(r.create(), textures);
     r.emplace<SINGLETON_Animations>(r.create(), anims);
   }
+
   {
+    const std::string shoot_01{ "assets/audio/usfx_1_4/WEAPONS/Firearms/Fire_Real_Time_Strategy_RTS/"
+                                "FIREARM_RTS_Machine_Gun_Model_01_Fire_Single_RR1_mono.wav" };
+    const std::string shoot_02{ "assets/audio/usfx_1_4/WEAPONS/Firearms/Fire_First_Person_Shooter_FPS/"
+                                "FIREARM_Handgun_H_P30L_9mm_Fire_RR1_stereo.wav" };
+
     SINGLETON_AudioComponent audio;
-    // audio.sounds.push_back({ "MENU", "assets/audio/usfx_1_4/WEAPONS/Melee/Hammer/HAMMER_Hit_Body_stereo.wav" });
-    // audio.sounds.push_back({ "HIT", "assets/audio/usfx_1_4/VOICES/Martial_Arts_Male/VOICE_Martial_Art_Shout_03_mono.wav"
-    // }); audio.sounds.push_back({ "ATTACKED", "assets/audio/usfx_1_4/WEAPONS/Melee/Hammer/HAMMER_Hit_Body_stereo.wav" });
+    audio.sounds.push_back({ "SHOOT_01", shoot_01 });
+    audio.sounds.push_back({ "SHOOT_02", shoot_02 });
     r.emplace<SINGLETON_AudioComponent>(r.create(), audio);
   }
 
   r.emplace<engine::RandomState>(r.create());
   r.emplace<Profiler>(r.create());
   r.emplace<SINGLETON_RendererInfo>(r.create());
-  r.emplace<SINGLETON_EntityBinComponent>(r.create());
   r.emplace<SINGLETON_FixedUpdateInputHistory>(r.create());
   r.emplace<SINGLETON_InputComponent>(r.create());
-  r.emplace<SINGLETON_PhysicsComponent>(r.create());
-  r.emplace<SINGLETON_GameStateComponent>(r.create());
-  r.emplace<SINGLETON_ColoursComponent>(r.create());
 
   auto& textures = get_first_component<SINGLETON_Textures>(r).textures;
   auto& audio = get_first_component<SINGLETON_AudioComponent>(r);
   auto& ri = get_first_component<SINGLETON_RendererInfo>(r);
   auto& input = get_first_component<SINGLETON_InputComponent>(r);
-  init_audio_system(audio);
+  init_audio_system(r);
   init_render_system(app, ri, textures);
   init_input_system(input, r);
 
-  init_game(r);
+  restart_game(r, world);
 }
 
 void
-game2d::fixed_update(entt::registry& game, const uint64_t milliseconds_dt)
+game2d::fixed_update(entt::registry& game, b2World& world, const uint64_t milliseconds_dt)
 {
   auto& p = get_first_component<Profiler>(game);
   auto _ = time_scope(&p, "fixed_update()", true);
@@ -113,68 +102,127 @@ game2d::fixed_update(entt::registry& game, const uint64_t milliseconds_dt)
   // move inputs from Update() to this FixedUpdate() tick
   fixed_input.history[fixed_input.fixed_tick] = std::move(input.unprocessed_inputs);
   const auto& inputs = fixed_input.history[fixed_input.fixed_tick];
-  fixed_input.fixed_tick += 1;
+
+  // allow gameover/restart requests to be processed
+  update_gameover_system(game, world);
 
   // dont tick game logic if paused
   auto& state = get_first_component<SINGLETON_GameStateComponent>(game);
   if (state.state == GameState::PAUSED)
     return; // note: this ignores inputs
+  auto& gameover = get_first_component<SINGLETON_GameOver>(game);
+  if (gameover.game_is_over)
+    return;
 
   // destroy/create objects
-  auto& dead = get_first_component<SINGLETON_EntityBinComponent>(game);
-  update_lifecycle_system(dead, game, milliseconds_dt);
+  update_lifecycle_system(game, world, milliseconds_dt);
 
-  // update physics/collisions
+  // update physics
   {
-    auto _ = time_scope(&p, "(physics)", true);
-    auto& physics = get_first_component<SINGLETON_PhysicsComponent>(game);
-    physics.frame_collisions.clear();
-    // move actors,
-    // generate actor-solid collisions
-    update_move_objects_system(game, milliseconds_dt);
-    // generate actor-actor collisions
-    update_actor_actor_system(game, physics);
+    auto _ = time_scope(&p, "(physics)-tick", true);
+    update_physics_box2d_system(game, world, milliseconds_dt);
+  }
+  // resolve collisions
+  {
+    auto _ = time_scope(&p, "(physics)-collisions", true);
+    auto& dead = get_first_component<SINGLETON_EntityBinComponent>(game);
+    auto& econ = get_first_component<SINGLETON_Economy>(game);
 
-    const auto resolve_collisions = [&game, &physics]() {
-      auto& r = game;
-      auto& dead = get_first_component<SINGLETON_EntityBinComponent>(r);
-      for (const auto& coll : physics.collision_stay) {
-        const auto a = static_cast<entt::entity>(coll.ent_id_0);
-        const auto b = static_cast<entt::entity>(coll.ent_id_1);
-        const auto a_type = r.get<EntityTypeComponent>(a).type;
-        const auto b_type = r.get<EntityTypeComponent>(b).type;
+    for (b2Contact* contact = world.GetContactList(); contact; contact = contact->GetNext()) {
+      // contact->IsTouching() // should check this if using anything other than aabb
 
-        // bullet-enemy collision
-        if (a_type == EntityType::actor_enemy && b_type == EntityType::actor_bullet) {
-          dead.dead.emplace(a);
-          dead.dead.emplace(b);
-        } else if (a_type == EntityType::actor_bullet && b_type == EntityType::actor_enemy) {
-          dead.dead.emplace(b);
-          dead.dead.emplace(a);
-        }
+      entt::entity a = (entt::entity)contact->GetFixtureA()->GetBody()->GetUserData().pointer;
+      entt::entity b = (entt::entity)contact->GetFixtureB()->GetBody()->GetUserData().pointer;
 
-        // Hack: fix solid-solid enemy collision
-        if (a_type == EntityType::actor_enemy && b_type == EntityType::actor_enemy) {
-          dead.dead.emplace(a);
-          dead.dead.emplace(b);
+      if (!game.valid(a) || !game.valid(b))
+        continue;
+
+      const auto& a_type = game.get<EntityTypeComponent>(a).type;
+      const auto& b_type = game.get<EntityTypeComponent>(b).type;
+
+      const auto& collision_of_interest = [](const entt::entity& a_ent,
+                                             const entt::entity& b_ent,
+                                             const EntityType& a,
+                                             const EntityType& b,
+                                             const EntityType& a_actual,
+                                             const EntityType& b_actual) -> std::pair<entt::entity, entt::entity> {
+        if (a == a_actual && b == b_actual)
+          return { a_ent, b_ent };
+        if (a == b_actual && b == a_actual)
+          return { b_ent, a_ent };
+        return { entt::null, entt::null };
+      };
+
+      // bullet-enemy collision
+      {
+        const auto& [actor_enemy, actor_bullet] =
+          collision_of_interest(a, b, a_type, b_type, EntityType::actor_enemy, EntityType::actor_bullet);
+        if (actor_enemy != entt::null && actor_bullet != entt::null) {
+          dead.dead.emplace(actor_enemy);
+          dead.dead.emplace(actor_bullet);
+          econ.kills += 1;
         }
       }
-    };
-    resolve_collisions();
+
+      // bullet-player collision
+      // {
+      //   const auto& [actor_bullet, actor_player] =
+      //     collision_of_interest(a, b, a_type, b_type, EntityType::actor_bullet, EntityType::actor_player);
+      //   if (actor_bullet != entt::null && actor_player != entt::null) {
+      //     dead.dead.emplace(actor_bullet);
+      //   }
+      // }
+
+      // player-enemy collision
+      {
+        const auto& [actor_player, actor_enemy] =
+          collision_of_interest(a, b, a_type, b_type, EntityType::actor_player, EntityType::actor_enemy);
+        if (actor_player != entt::null && actor_enemy != entt::null) {
+          {
+            const auto& enemy_atk = game.get<AttackComponent>(actor_enemy);
+            // kill enemy
+            dead.dead.emplace(actor_enemy);
+            // player takes damage
+            auto& hp = game.get<HealthComponent>(actor_player);
+            hp.hp -= enemy_atk.damage;
+            hp.hp = glm::max(0, hp.hp);
+          }
+        }
+      }
+
+      // hearth-enemy collision
+      {
+        const auto& [actor_hearth, actor_enemy] =
+          collision_of_interest(a, b, a_type, b_type, EntityType::actor_hearth, EntityType::actor_enemy);
+        if (actor_hearth != entt::null && actor_enemy != entt::null) {
+          const auto& enemy_atk = game.get<AttackComponent>(actor_enemy);
+          auto& hearth_hp = game.get<HealthComponent>(actor_hearth);
+          hearth_hp.hp -= enemy_atk.damage;
+          hearth_hp.hp = glm::max(0, hearth_hp.hp);
+          dead.dead.emplace(actor_enemy);
+        }
+      }
+    }
   }
 
   // update gamelogic
   {
-    auto _ = time_scope(&p, "(game-tick)", true);
-    update_player_controller_system(game, inputs, milliseconds_dt);
-    update_enemy_system(game, milliseconds_dt);
-    update_turret_system(game, milliseconds_dt);
-    update_spawner_system(game, milliseconds_dt);
+    auto _ = time_scope(&p, "fixed-update-game-logic", true);
+
+    const auto& ri = get_first_component<SINGLETON_RendererInfo>(game);
+    if (ri.viewport_hovered) {
+      update_player_controller_system(game, milliseconds_dt);
+      update_enemy_system(game, milliseconds_dt);
+      update_turret_system(game, milliseconds_dt);
+      update_spawner_system(game, milliseconds_dt);
+    }
   }
+
+  fixed_input.fixed_tick += 1;
 }
 
 void
-game2d::update(engine::SINGLETON_Application& app, entt::registry& r, const float dt)
+game2d::update(engine::SINGLETON_Application& app, entt::registry& r, const b2World& world, const float dt)
 {
   auto& p = get_first_component<Profiler>(r);
   auto _ = time_scope(&p, "update()");
@@ -185,27 +233,27 @@ game2d::update(engine::SINGLETON_Application& app, entt::registry& r, const floa
     auto& audio = get_first_component<SINGLETON_AudioComponent>(r);
     update_input_system(app, input);
     update_camera_system(r, dt);
-    update_audio_system(audio);
+    update_audio_system(r);
   };
 
   {
-    auto _ = time_scope(&p, "rendering");
     auto& ri = get_first_component<SINGLETON_RendererInfo>(r);
     auto& texs = get_first_component<SINGLETON_Textures>(r).textures;
-    auto& colours = get_first_component<SINGLETON_ColoursComponent>(r);
-    update_render_system(ri, *colours.lin_background, *colours.background, texs, r, p);
+    update_render_system(r, texs);
   }
 
   // UI
   update_ui_main_menu_system(app, r);
   update_ui_prefabs_system(r);
-  update_ui_hierarchy_system(r);
   update_ui_controller_system(r);
+  update_ui_economy_system(r);
+  update_ui_gameover_system(r);
+  update_ui_hierarchy_system(r);
+  update_ui_audio_system(r);
+
   static bool show_editor_ui = true;
   if (show_editor_ui) {
-    auto& profiler = get_first_component<Profiler>(r);
-    auto& physics = get_first_component<SINGLETON_PhysicsComponent>(r);
-    update_ui_profiler_system(profiler, physics, r);
+    update_ui_profiler_system(r, world);
   }
 
   end_frame_render_system(r);
