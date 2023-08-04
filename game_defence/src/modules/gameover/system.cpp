@@ -17,14 +17,14 @@ update_gameover_system(entt::registry& r, b2World& world)
   auto& gameover = get_first_component<SINGLETON_GameOver>(r);
 
   // Check if the game is over (base explodes)
-  const auto& first_hearth = get_first<HearthComponent>(r);
-  if (first_hearth != entt::null) {
-    const auto& first_hearth_hp = r.get<HealthComponent>(first_hearth);
-    if (first_hearth_hp.hp <= 0) {
-      gameover.game_is_over = true;
-      gameover.reason = "Your hearth exploded!";
-    }
-  }
+  // const auto& first_hearth = get_first<HearthComponent>(r);
+  // if (first_hearth != entt::null) {
+  //   const auto& first_hearth_hp = r.get<HealthComponent>(first_hearth);
+  //   if (first_hearth_hp.hp <= 0) {
+  //     gameover.game_is_over = true;
+  //     gameover.reason = "Your hearth exploded!";
+  //   }
+  // }
 
   // Check if the game is over (all players are ded)
   const auto& first_player = get_first<PlayerComponent>(r);

@@ -1,6 +1,7 @@
 #include "system.hpp"
 
 #include "actors.hpp"
+#include "audio/components.hpp"
 #include "components.hpp"
 #include "entt/helpers.hpp"
 #include "events/components.hpp"
@@ -114,10 +115,13 @@ game2d::update_player_controller_system(entt::registry& r, const uint64_t& milli
       req.position = { offset_pos.x, offset_pos.y, 0 };
       req.velocity = glm::ivec3(
         //
-        player_velocity.x + nrm_dir.x * bullet_speed,
-        player_velocity.y + nrm_dir.y * bullet_speed,
+        nrm_dir.x * bullet_speed,
+        nrm_dir.y * bullet_speed,
         0);
       r.emplace<CreateEntityRequest>(r.create(), req);
+
+      // request sound
+      // r.emplace<AudioRequestPlayEvent>(r.create());
 
       // reset timer
       player.time_between_bullets_left = time_between_bullets;

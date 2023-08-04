@@ -36,10 +36,10 @@ static const engine::SRGBColour pal_hot_pink = { 251, 161, 183, 1.0f };
 static const engine::SRGBColour pal_light_pink = { 255, 209, 218, 1.0f };
 static const engine::SRGBColour pal_lighter_pink = { 255, 240, 245, 1.0f };
 static const engine::SRGBColour pal_yellow = { 255, 219, 170, 1.0f };
-static const engine::LinearColour lin_pal_hot_pink = engine::SRGBToLinear(pal_hit);
-static const engine::LinearColour lin_pal_light_pink = engine::SRGBToLinear(pal_white);
-static const engine::LinearColour lin_pal_lighter_pink = engine::SRGBToLinear(pal_background);
-static const engine::LinearColour lin_pal_yellow = engine::SRGBToLinear(pal_background);
+static const engine::LinearColour lin_pal_hot_pink = engine::SRGBToLinear(pal_hot_pink);
+static const engine::LinearColour lin_pal_light_pink = engine::SRGBToLinear(pal_light_pink);
+static const engine::LinearColour lin_pal_lighter_pink = engine::SRGBToLinear(pal_lighter_pink);
+static const engine::LinearColour lin_pal_yellow = engine::SRGBToLinear(pal_yellow);
 
 struct SINGLETON_ColoursComponent
 {

@@ -1,6 +1,7 @@
 #pragma once
 
 #include "AL/al.h"
+#include "AL/alc.h"
 
 #include <string>
 #include <vector>
@@ -40,7 +41,7 @@ struct Sound
 {
   std::string tag;
   std::string path;
-  ALuint loaded_id = 0;
+  ALuint result;
 };
 
 struct SINGLETON_AudioComponent
@@ -48,6 +49,10 @@ struct SINGLETON_AudioComponent
   std::vector<Sound> sounds;
 
   float master_volume = 1.0f;
+
+  bool refresh_devices = true;
+  std::vector<std::string> playback_devices;
+  std::vector<std::string> captured_devices;
 };
 
 } // namespace game2d

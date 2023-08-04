@@ -105,13 +105,15 @@ create_colour(const SINGLETON_ColoursComponent& colours, const EntityType& type)
   return scc;
 }
 
+struct PhysicsInfo
+{
+  b2BodyType type = b2_staticBody;
+  bool is_bullet = false;
+  float density = 1.0f;
+};
+
 void
-create_physics(entt::registry& r,
-               b2World& world,
-               const entt::entity& e,
-               const b2BodyType& type,
-               const glm::ivec2& size,
-               const bool is_bullet = false)
+create_physics(entt::registry& r, b2World& world, const entt::entity& e, const glm::ivec2& size, const PhysicsInfo& info)
 {
   // Bodies are built using the following steps:
   // Define a body with position, damping, etc.
@@ -125,9 +127,9 @@ create_physics(entt::registry& r,
     b2BodyDef body_def;
     body_def.position.Set(0.0f, 0.0f);
     body_def.angle = 0.0f;
-    body_def.bullet = is_bullet;
     body_def.fixedRotation = true;
-    body_def.type = type;
+    body_def.bullet = info.is_bullet;
+    body_def.type = info.type;
     body_def.linearVelocity = b2Vec2_zero;
     body = world.CreateBody(&body_def);
 
@@ -142,7 +144,7 @@ create_physics(entt::registry& r,
 
     b2FixtureDef fixture_def;
     fixture_def.friction = 0.0f;
-    fixture_def.density = 1.0f;
+    fixture_def.density = info.density;
     fixture_def.shape = &box;
     body->CreateFixture(&fixture_def);
   }
@@ -179,12 +181,15 @@ create_gameplay(entt::registry& r, b2World& world, const EntityType& type)
     }
     case EntityType::actor_player: {
 
-      create_physics(r, world, e, b2_dynamicBody, DEFAULT_SIZE);
-      // gameplay
+      PhysicsInfo info;
+      info.is_bullet = false;
+      info.density = 1.0f;
+      info.type = b2_dynamicBody;
+      create_physics(r, world, e, DEFAULT_SIZE, info);
 
+      // gameplay
       PlayerComponent pc;
       pc.debug_gun_spot = create_gameplay(r, world, EntityType::empty);
-
       r.emplace<PlayerComponent>(e, pc);
       r.emplace<InputComponent>(e);
       r.emplace<KeyboardComponent>(e);
@@ -200,24 +205,48 @@ create_gameplay(entt::registry& r, b2World& world, const EntityType& type)
       break;
     }
     case EntityType::actor_enemy: {
-      create_physics(r, world, e, b2_dynamicBody, DEFAULT_SIZE);
+
+      PhysicsInfo info;
+      info.is_bullet = false;
+      info.density = 0.0f;
+      info.type = b2_dynamicBody;
+      create_physics(r, world, e, DEFAULT_SIZE, info);
+
       r.emplace<EnemyComponent>(e);
       r.emplace<HealthComponent>(e);
       r.emplace<AttackComponent>(e);
       break;
     }
     case EntityType::actor_turret: {
-      create_physics(r, world, e, b2_staticBody, DEFAULT_SIZE);
+
+      PhysicsInfo info;
+      info.is_bullet = false;
+      info.density = 1.0f;
+      info.type = b2_staticBody;
+      create_physics(r, world, e, DEFAULT_SIZE, info);
+
       r.emplace<TurretComponent>(e);
       break;
     }
     case EntityType::actor_bullet: {
-      create_physics(r, world, e, b2_dynamicBody, HALF_SIZE, true);
+
+      PhysicsInfo info;
+      info.is_bullet = true;
+      info.density = 0.0f;
+      info.type = b2_dynamicBody;
+      create_physics(r, world, e, HALF_SIZE, info);
+
       r.emplace<EntityTimedLifecycle>(e);
       break;
     }
     case EntityType::actor_hearth: {
-      create_physics(r, world, e, b2_staticBody, DEFAULT_SIZE, true);
+
+      PhysicsInfo info;
+      info.is_bullet = false;
+      info.density = 1.0f;
+      info.type = b2_staticBody;
+      create_physics(r, world, e, DEFAULT_SIZE, info);
+
       r.emplace<HearthComponent>(e);
       r.emplace<HealthComponent>(e, 50);
       break;

@@ -24,6 +24,7 @@
 #include "modules/spawner/components.hpp"
 #include "modules/spawner/system.hpp"
 #include "modules/turret/system.hpp"
+#include "modules/ui_audio/system.hpp"
 #include "modules/ui_controllers/system.hpp"
 #include "modules/ui_economy/components.hpp"
 #include "modules/ui_economy/system.hpp"
@@ -58,11 +59,16 @@ game2d::init(engine::SINGLETON_Application& app, b2World& world, entt::registry&
     r.emplace<SINGLETON_Textures>(r.create(), textures);
     r.emplace<SINGLETON_Animations>(r.create(), anims);
   }
+
   {
+    const std::string shoot_01{ "assets/audio/usfx_1_4/WEAPONS/Firearms/Fire_Real_Time_Strategy_RTS/"
+                                "FIREARM_RTS_Machine_Gun_Model_01_Fire_Single_RR1_mono.wav" };
+    const std::string shoot_02{ "assets/audio/usfx_1_4/WEAPONS/Firearms/Fire_First_Person_Shooter_FPS/"
+                                "FIREARM_Handgun_H_P30L_9mm_Fire_RR1_stereo.wav" };
+
     SINGLETON_AudioComponent audio;
-    // audio.sounds.push_back({ "MENU", "assets/audio/usfx_1_4/WEAPONS/Melee/Hammer/HAMMER_Hit_Body_stereo.wav" });
-    // audio.sounds.push_back({ "HIT", "assets/audio/usfx_1_4/VOICES/Martial_Arts_Male/VOICE_Martial_Art_Shout_03_mono.wav"
-    // }); audio.sounds.push_back({ "ATTACKED", "assets/audio/usfx_1_4/WEAPONS/Melee/Hammer/HAMMER_Hit_Body_stereo.wav" });
+    audio.sounds.push_back({ "SHOOT_01", shoot_01 });
+    audio.sounds.push_back({ "SHOOT_02", shoot_02 });
     r.emplace<SINGLETON_AudioComponent>(r.create(), audio);
   }
 
@@ -76,7 +82,7 @@ game2d::init(engine::SINGLETON_Application& app, b2World& world, entt::registry&
   auto& audio = get_first_component<SINGLETON_AudioComponent>(r);
   auto& ri = get_first_component<SINGLETON_RendererInfo>(r);
   auto& input = get_first_component<SINGLETON_InputComponent>(r);
-  init_audio_system(audio);
+  init_audio_system(r);
   init_render_system(app, ri, textures);
   init_input_system(input, r);
 
@@ -159,13 +165,13 @@ game2d::fixed_update(entt::registry& game, b2World& world, const uint64_t millis
       }
 
       // bullet-player collision
-      {
-        const auto& [actor_bullet, actor_player] =
-          collision_of_interest(a, b, a_type, b_type, EntityType::actor_bullet, EntityType::actor_player);
-        if (actor_bullet != entt::null && actor_player != entt::null) {
-          dead.dead.emplace(actor_bullet);
-        }
-      }
+      // {
+      //   const auto& [actor_bullet, actor_player] =
+      //     collision_of_interest(a, b, a_type, b_type, EntityType::actor_bullet, EntityType::actor_player);
+      //   if (actor_bullet != entt::null && actor_player != entt::null) {
+      //     dead.dead.emplace(actor_bullet);
+      //   }
+      // }
 
       // player-enemy collision
       {
@@ -202,10 +208,14 @@ game2d::fixed_update(entt::registry& game, b2World& world, const uint64_t millis
   // update gamelogic
   {
     auto _ = time_scope(&p, "fixed-update-game-logic", true);
-    update_player_controller_system(game, milliseconds_dt);
-    update_enemy_system(game, milliseconds_dt);
-    update_turret_system(game, milliseconds_dt);
-    update_spawner_system(game, milliseconds_dt);
+
+    const auto& ri = get_first_component<SINGLETON_RendererInfo>(game);
+    if (ri.viewport_hovered) {
+      update_player_controller_system(game, milliseconds_dt);
+      update_enemy_system(game, milliseconds_dt);
+      update_turret_system(game, milliseconds_dt);
+      update_spawner_system(game, milliseconds_dt);
+    }
   }
 
   fixed_input.fixed_tick += 1;
@@ -223,7 +233,7 @@ game2d::update(engine::SINGLETON_Application& app, entt::registry& r, const b2Wo
     auto& audio = get_first_component<SINGLETON_AudioComponent>(r);
     update_input_system(app, input);
     update_camera_system(r, dt);
-    update_audio_system(audio);
+    update_audio_system(r);
   };
 
   {
@@ -239,8 +249,9 @@ game2d::update(engine::SINGLETON_Application& app, entt::registry& r, const b2Wo
   update_ui_economy_system(r);
   update_ui_gameover_system(r);
   update_ui_hierarchy_system(r);
+  update_ui_audio_system(r);
 
-  static bool show_editor_ui = false;
+  static bool show_editor_ui = true;
   if (show_editor_ui) {
     update_ui_profiler_system(r, world);
   }

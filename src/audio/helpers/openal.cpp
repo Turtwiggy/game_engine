@@ -5,34 +5,40 @@
 
 namespace game2d {
 
-// void
-// list_audio_devices(const ALCchar* devices)
-// {
-//   const ALCchar *device = devices, *next = devices + 1;
-//   size_t len = 0;
-//   fprintf(stdout, "(Audio) Devices list:\n");
-//   fprintf(stdout, "----------\n");
-//   while (device && *device != '\0' && next && *next != '\0') {
-//     fprintf(stdout, "%s\n", device);
-//     len = strlen(device);
-//     device += (len + 1);
-//     next += (len + 2);
-//   }
-//   fprintf(stdout, "----------\n");
-// }
+std::vector<std::string>
+audio::list_devices(const ALCchar* devices)
+{
+  ALboolean enumeration = alcIsExtensionPresent(NULL, "ALC_ENUMERATION_EXT");
+  if (enumeration == AL_FALSE) {
+    fprintf(stdout, "Audio device enumeration not supported");
+    return {};
+  }
 
-ALCdevice*
+  std::vector<std::string> devices_vec;
+  const ALCchar *device = devices, *next = devices + 1;
+  size_t len = 0;
+  while (device && *device != '\0' && next && *next != '\0') {
+    devices_vec.push_back(std::string(device));
+    len = strlen(device);
+    device += (len + 1);
+    next += (len + 2);
+  }
+
+  return devices_vec;
+}
+
+// https://github.com/kcat/openal-soft/blob/master/examples/common/alhelpers.c
+void
 audio::init_al()
 {
-  const ALchar* name;
-  ALCdevice* device;
   ALCcontext* context;
+  ALCdevice* device;
 
   device = alcOpenDevice(0); // select the "preferred device"
 
   if (!device) {
     std::cout << "(Audio) Could not open a device!" << std::endl;
-    return nullptr;
+    return;
   }
 
   context = alcCreateContext(device, 0);
@@ -42,23 +48,14 @@ audio::init_al()
       alcDestroyContext(context);
     alcCloseDevice(device);
     std::cout << "(Audio) Could not set a context!" << std::endl;
-    return nullptr;
+    return;
   }
 
   alcMakeContextCurrent(context);
 
-  name = 0;
-  if (alcIsExtensionPresent(device, "ALC_ENUMERATE_ALL_EXT"))
-    name = alcGetString(device, ALC_ALL_DEVICES_SPECIFIER);
-  if (!name || alcGetError(device) != AL_NO_ERROR)
-    name = alcGetString(device, ALC_DEVICE_SPECIFIER);
-
   printf("OpenAL version: %s\n", alGetString(AL_VERSION));
   printf("OpenAL vendor: %s\n", alGetString(AL_VENDOR));
   printf("OpenAL renderer: %s\n", alGetString(AL_RENDERER));
-  std::cout << "(Audio) Opened: " << name << "\n";
-
-  return device;
 };
 
 void
@@ -83,50 +80,22 @@ audio::close_al()
 ALuint
 audio::load_sound(const std::string& filename)
 {
-  // Audio source state.
-  unsigned char* data = NULL;
-  unsigned int size = 0;
-  unsigned int offset = 0;
-  unsigned int channels = 0;
-  unsigned int frequency = 0;
-  unsigned int bits = 0;
-  ALenum format = 0;
-  ALuint source = 0;
-
-  {
-    FILE* fp = fopen(filename.c_str(), "rb");
-    fseek(fp, 0, SEEK_END);
-    size = ftell(fp);
-    fseek(fp, 0, SEEK_SET);
-    data = (unsigned char*)malloc(size);
-    fread(data, size, 1, fp);
-    fclose(fp);
+  SDL_AudioSpec wav_spec;
+  Uint32 wav_length;
+  Uint8* wav_buffer;
+  if (SDL_LoadWAV(filename.c_str(), &wav_spec, &wav_buffer, &wav_length) == NULL) {
+    fprintf(stderr, "Could not open .wav: %s\n", SDL_GetError());
   }
+  std::cout << "(Audio) Loaded Sound:" << filename << "\n";
 
-  offset = 12; // ignore the RIFF header
-  offset += 8; // ignore the fmt header
-  offset += 2; // ignore the format type
+  const int bits = SDL_AUDIO_BITSIZE(wav_spec.format);
+  const int channels = wav_spec.channels;
 
-  channels = data[offset + 1] << 8;
-  channels |= data[offset];
-  offset += 2;
-  // printf("Channels: %u ", channels);
+  ALuint buffer;
+  alGenBuffers(1, &buffer);
 
-  frequency = data[offset + 3] << 24;
-  frequency |= data[offset + 2] << 16;
-  frequency |= data[offset + 1] << 8;
-  frequency |= data[offset];
-  offset += 4;
-  // printf("Frequency: %u ", frequency);
-
-  offset += 6; // ignore block size and bps
-
-  bits = data[offset + 1] << 8;
-  bits |= data[offset];
-  offset += 2;
-  // printf("Bits: %u ", bits);
-
-  format = AL_NONE;
+  // const auto& sdl_format = wav_spec.format;
+  ALenum format = AL_NONE;
   if (bits == 8) {
     if (channels == 1) {
       format = AL_FORMAT_MONO8;
@@ -140,14 +109,8 @@ audio::load_sound(const std::string& filename)
       format = AL_FORMAT_STEREO16;
     }
   }
-  offset += 8; // ignore the data chunk
-
-  /* Decode the whole audio file to a buffer. */
-
-  ALuint buffer;
-  alGenBuffers(1, &buffer);
-  alBufferData(buffer, format, &data[offset], size - offset, frequency);
-  free(data);
+  alBufferData(buffer, format, wav_buffer, wav_length, wav_spec.freq);
+  SDL_FreeWAV(wav_buffer);
 
   // Check if an error occured, and clean up if so.
   ALenum err = alGetError();
@@ -158,9 +121,9 @@ audio::load_sound(const std::string& filename)
     return 0;
   }
 
-  std::cout << "(Audio) Loaded Sound:" << filename << "\n";
+  std::cout << "(Audio) Successfully config Sound:" << filename << "\n";
   return buffer;
-}
+};
 
 void
 audio::play_sound(ALint source_id)
