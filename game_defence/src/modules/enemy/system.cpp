@@ -1,13 +1,20 @@
 #include "system.hpp"
 
+#include "actors.hpp"
 #include "components.hpp"
 #include "entt/helpers.hpp"
 #include "glm/glm.hpp"
+#include "lifecycle/components.hpp"
 #include "maths/maths.hpp"
+#include "modules/combat/components.hpp"
+#include "modules/combat/helpers.hpp"
 #include "modules/hearth/components.hpp"
 #include "modules/physics_box2d/components.hpp"
 #include "modules/player/components.hpp"
+#include "modules/ui_economy/components.hpp"
 #include "renderer/components.hpp"
+
+#include <iostream>
 
 namespace game2d {
 
@@ -20,6 +27,23 @@ update_enemy_system(entt::registry& r, const uint64_t& milliseconds_dt)
   if (first_target == entt::null)
     return;
   const auto& first_target_transform = r.get<const TransformComponent>(first_target);
+
+  const auto& ui_econ = get_first_component<SINGLETON_UiEconomy>(r);
+
+  // Attach a class to a newly created enemy
+  const auto& lifecycle = get_first_component<SINGLETON_EntityBinComponent>(r);
+  for (int i = 0; i < lifecycle.created_this_frame.size(); i++) {
+    entt::entity e = lifecycle.created_this_frame[i];
+    const auto& type = r.get<EntityTypeComponent>(e);
+    if (type.type == EntityType::actor_enemy) {
+      if (ui_econ.add_weapon) {
+        create_class(r, e, type.type, ui_econ.weapon_to_add);
+      } else {
+        // create as spawner's class?
+        create_class(r, e, type.type, Weapon::grunt);
+      }
+    }
+  }
 
   const auto& view = r.view<const TransformComponent, ActorComponent, const EnemyComponent>();
   for (auto [entity, transform, physics, enemy] : view.each()) {

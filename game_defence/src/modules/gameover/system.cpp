@@ -2,9 +2,9 @@
 
 #include "entt/helpers.hpp"
 #include "events/helpers/keyboard.hpp"
+#include "modules/combat/components.hpp"
 #include "modules/gameover/components.hpp"
 #include "modules/gameover/helpers.hpp"
-#include "modules/health/components.hpp"
 #include "modules/hearth/components.hpp"
 #include "modules/player/components.hpp"
 #include "modules/ui_gameover/components.hpp"
@@ -29,8 +29,8 @@ update_gameover_system(entt::registry& r, b2World& world)
   // Check if the game is over (all players are ded)
   const auto& first_player = get_first<PlayerComponent>(r);
   if (first_player != entt::null) {
-    const auto& first_player_hp = r.get<HealthComponent>(first_player);
-    if (first_player_hp.hp <= 0) {
+    const auto& health = r.try_get<HealthComponent>(first_player);
+    if (health && health->hp <= 0) {
       gameover.game_is_over = true;
       gameover.reason = "Player ded!";
     }

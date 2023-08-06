@@ -35,10 +35,18 @@ static const engine::LinearColour lin_pal_background = engine::SRGBToLinear(pal_
 static const engine::SRGBColour pal_hot_pink = { 251, 161, 183, 1.0f };
 static const engine::SRGBColour pal_light_pink = { 255, 209, 218, 1.0f };
 static const engine::SRGBColour pal_lighter_pink = { 255, 240, 245, 1.0f };
-static const engine::SRGBColour pal_yellow = { 255, 219, 170, 1.0f };
+// static const engine::SRGBColour pal_yellow = { 255, 219, 170, 1.0f };
 static const engine::LinearColour lin_pal_hot_pink = engine::SRGBToLinear(pal_hot_pink);
 static const engine::LinearColour lin_pal_light_pink = engine::SRGBToLinear(pal_light_pink);
 static const engine::LinearColour lin_pal_lighter_pink = engine::SRGBToLinear(pal_lighter_pink);
+// static const engine::LinearColour lin_pal_yellow = engine::SRGBToLinear(pal_yellow);
+
+// misc
+static const engine::SRGBColour pal_blue = { 68, 119, 206, 1.0f };
+static const engine::SRGBColour pal_orange = { 253, 141, 20, 1.0f };
+static const engine::SRGBColour pal_yellow = { 255, 225, 123, 1.0f };
+static const engine::LinearColour lin_pal_blue = engine::SRGBToLinear(pal_blue);
+static const engine::LinearColour lin_pal_orange = engine::SRGBToLinear(pal_orange);
 static const engine::LinearColour lin_pal_yellow = engine::SRGBToLinear(pal_yellow);
 
 struct SINGLETON_ColoursComponent
@@ -86,10 +94,18 @@ struct SINGLETON_ColoursComponent
   std::shared_ptr<engine::SRGBColour> hot_pink = std::make_shared<engine::SRGBColour>(pal_hot_pink);
   std::shared_ptr<engine::SRGBColour> light_pink = std::make_shared<engine::SRGBColour>(pal_light_pink);
   std::shared_ptr<engine::SRGBColour> lighter_pink = std::make_shared<engine::SRGBColour>(pal_lighter_pink);
-  std::shared_ptr<engine::SRGBColour> yellow = std::make_shared<engine::SRGBColour>(pal_yellow);
+  // std::shared_ptr<engine::SRGBColour> yellow = std::make_shared<engine::SRGBColour>(pal_yellow);
   std::shared_ptr<engine::LinearColour> lin_hot_pink = std::make_shared<engine::LinearColour>(lin_pal_hot_pink);
   std::shared_ptr<engine::LinearColour> lin_light_pink = std::make_shared<engine::LinearColour>(lin_pal_light_pink);
   std::shared_ptr<engine::LinearColour> lin_lighter_pink = std::make_shared<engine::LinearColour>(lin_pal_lighter_pink);
+  // std::shared_ptr<engine::LinearColour> lin_yellow = std::make_shared<engine::LinearColour>(lin_pal_yellow);
+
+  // misc colours
+  std::shared_ptr<engine::SRGBColour> blue = std::make_shared<engine::SRGBColour>(pal_blue);
+  std::shared_ptr<engine::SRGBColour> orange = std::make_shared<engine::SRGBColour>(pal_orange);
+  std::shared_ptr<engine::SRGBColour> yellow = std::make_shared<engine::SRGBColour>(pal_yellow);
+  std::shared_ptr<engine::LinearColour> lin_blue = std::make_shared<engine::LinearColour>(lin_pal_blue);
+  std::shared_ptr<engine::LinearColour> lin_orange = std::make_shared<engine::LinearColour>(lin_pal_orange);
   std::shared_ptr<engine::LinearColour> lin_yellow = std::make_shared<engine::LinearColour>(lin_pal_yellow);
 };
 

@@ -17,7 +17,6 @@
 #include "modules/gameover/components.hpp"
 #include "modules/gameover/helpers.hpp"
 #include "modules/gameover/system.hpp"
-#include "modules/health/components.hpp"
 #include "modules/physics_box2d/components.hpp"
 #include "modules/physics_box2d/system.hpp"
 #include "modules/player/system.hpp"
@@ -61,10 +60,8 @@ game2d::init(engine::SINGLETON_Application& app, b2World& world, entt::registry&
   }
 
   {
-    const std::string shoot_01{ "assets/audio/usfx_1_4/WEAPONS/Firearms/Fire_Real_Time_Strategy_RTS/"
-                                "FIREARM_RTS_Machine_Gun_Model_01_Fire_Single_RR1_mono.wav" };
-    const std::string shoot_02{ "assets/audio/usfx_1_4/WEAPONS/Firearms/Fire_First_Person_Shooter_FPS/"
-                                "FIREARM_Handgun_H_P30L_9mm_Fire_RR1_stereo.wav" };
+    const std::string shoot_01{ "assets/audio/FIREARM_RTS_Machine_Gun_Model_01_Fire_Single_RR1_mono.wav" };
+    const std::string shoot_02{ "assets/audio/FIREARM_Handgun_B_FS92_9mm_Fire_RR1_stereo.wav" };
 
     SINGLETON_AudioComponent audio;
     audio.sounds.push_back({ "SHOOT_01", shoot_01 });
@@ -125,7 +122,11 @@ game2d::fixed_update(entt::registry& game, b2World& world, const uint64_t millis
   // resolve collisions
   {
     auto _ = time_scope(&p, "(physics)-collisions", true);
+
+    // some collisions result in dead entities
     auto& dead = get_first_component<SINGLETON_EntityBinComponent>(game);
+
+    // some collisions result in extra money
     auto& econ = get_first_component<SINGLETON_Economy>(game);
 
     for (b2Contact* contact = world.GetContactList(); contact; contact = contact->GetNext()) {
@@ -164,14 +165,22 @@ game2d::fixed_update(entt::registry& game, b2World& world, const uint64_t millis
         }
       }
 
-      // bullet-player collision
-      // {
-      //   const auto& [actor_bullet, actor_player] =
-      //     collision_of_interest(a, b, a_type, b_type, EntityType::actor_bullet, EntityType::actor_player);
-      //   if (actor_bullet != entt::null && actor_player != entt::null) {
-      //     dead.dead.emplace(actor_bullet);
-      //   }
-      // }
+      // bullet-spawner collision
+      {
+        const auto& [actor_spawner, actor_bullet] =
+          collision_of_interest(a, b, a_type, b_type, EntityType::spawner, EntityType::actor_bullet);
+        if (actor_spawner != entt::null && actor_bullet != entt::null) {
+          dead.dead.emplace(actor_bullet);
+
+          auto* hp = game.try_get<HealthComponent>(actor_spawner);
+          if (hp) {
+            hp->hp -= 1;
+            hp->hp = glm::max(0, hp->hp);
+            if (hp->hp <= 0)
+              dead.dead.emplace(actor_spawner);
+          }
+        }
+      }
 
       // player-enemy collision
       {
@@ -183,9 +192,11 @@ game2d::fixed_update(entt::registry& game, b2World& world, const uint64_t millis
             // kill enemy
             dead.dead.emplace(actor_enemy);
             // player takes damage
-            auto& hp = game.get<HealthComponent>(actor_player);
-            hp.hp -= enemy_atk.damage;
-            hp.hp = glm::max(0, hp.hp);
+            auto* hp = game.try_get<HealthComponent>(actor_player);
+            if (hp) {
+              hp->hp -= enemy_atk.damage;
+              hp->hp = glm::max(0, hp->hp);
+            }
           }
         }
       }
@@ -195,11 +206,13 @@ game2d::fixed_update(entt::registry& game, b2World& world, const uint64_t millis
         const auto& [actor_hearth, actor_enemy] =
           collision_of_interest(a, b, a_type, b_type, EntityType::actor_hearth, EntityType::actor_enemy);
         if (actor_hearth != entt::null && actor_enemy != entt::null) {
-          const auto& enemy_atk = game.get<AttackComponent>(actor_enemy);
-          auto& hearth_hp = game.get<HealthComponent>(actor_hearth);
-          hearth_hp.hp -= enemy_atk.damage;
-          hearth_hp.hp = glm::max(0, hearth_hp.hp);
-          dead.dead.emplace(actor_enemy);
+          const auto* atk = game.try_get<AttackComponent>(actor_enemy);
+          auto* hp = game.try_get<HealthComponent>(actor_hearth);
+          if (hp && atk) {
+            hp->hp -= atk->damage;
+            hp->hp = glm::max(0, hp->hp);
+            dead.dead.emplace(actor_enemy);
+          }
         }
       }
     }
@@ -208,14 +221,10 @@ game2d::fixed_update(entt::registry& game, b2World& world, const uint64_t millis
   // update gamelogic
   {
     auto _ = time_scope(&p, "fixed-update-game-logic", true);
-
-    const auto& ri = get_first_component<SINGLETON_RendererInfo>(game);
-    if (ri.viewport_hovered) {
-      update_player_controller_system(game, milliseconds_dt);
-      update_enemy_system(game, milliseconds_dt);
-      update_turret_system(game, milliseconds_dt);
-      update_spawner_system(game, milliseconds_dt);
-    }
+    update_player_controller_system(game, milliseconds_dt);
+    update_enemy_system(game, milliseconds_dt);
+    update_turret_system(game, milliseconds_dt);
+    update_spawner_system(game, milliseconds_dt);
   }
 
   fixed_input.fixed_tick += 1;

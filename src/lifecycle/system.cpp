@@ -11,6 +11,7 @@ void
 game2d::update_lifecycle_system(entt::registry& r, b2World& world, const uint64_t& milliseconds_dt)
 {
   auto& dead = get_first_component<SINGLETON_EntityBinComponent>(r);
+  dead.created_this_frame.clear();
 
   // update all components with timed lifecycle
   const auto& view = r.view<EntityTimedLifecycle>();
@@ -51,6 +52,10 @@ game2d::update_lifecycle_system(entt::registry& r, b2World& world, const uint64_
       transform.position = request.position;
     }
 
+    // capture new entity
+    dead.created_this_frame.push_back(e);
+
+    // destroy request
     r.destroy(entity);
   }
 };

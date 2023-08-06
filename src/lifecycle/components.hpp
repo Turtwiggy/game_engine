@@ -5,6 +5,7 @@
 #include "glm/glm.hpp"
 #include <entt/entt.hpp>
 #include <unordered_set>
+#include <vector>
 
 namespace game2d {
 
@@ -21,6 +22,8 @@ struct EntityTimedLifecycle
 struct SINGLETON_EntityBinComponent
 {
   std::unordered_set<entt::entity> dead;
+
+  std::vector<entt::entity> created_this_frame;
 };
 
 struct CreateEntityRequest

@@ -9,11 +9,12 @@ namespace game2d {
 enum class EntityType
 {
   empty,
+  empty_with_physics,
   actor_player,
-  actor_enemy,
   actor_turret,
   actor_bullet,
   actor_hearth,
+  actor_enemy,
 
   // misc
   spawner,

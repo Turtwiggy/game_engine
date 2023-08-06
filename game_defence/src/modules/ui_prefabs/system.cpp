@@ -5,6 +5,7 @@
 #include "entt/helpers.hpp"
 #include "events/components.hpp"
 #include "events/helpers/mouse.hpp"
+#include "imgui/helpers.hpp"
 #include "lifecycle/components.hpp"
 #include "maths/grid.hpp"
 #include "modules/camera/helpers.hpp"
@@ -44,35 +45,25 @@ update_ui_prefabs_system(entt::registry& r)
     size = in_size;
   ImGui::Separator();
 
+  static int item_current_idx = 0;
+
+  // all of the enums for EntityType
   std::vector<std::string> items;
   for (int i = 0; i < static_cast<int>(EntityType::count); i++) {
     EntityType value = magic_enum::enum_value<EntityType>(i);
     std::string value_str = std::string(magic_enum::enum_name(value));
     items.push_back(value_str);
   }
-  ImGui::Text("Size: %i", items.size());
-  ImGui::Separator();
 
-  static ImGuiComboFlags flags = 0;
-  static int item_current_idx = 0; // Here we store our selection data as an index.
-
-  // Pass in the preview value visible before opening the combo (it could be anything)
-  const char* combo_preview_value = items[item_current_idx].c_str();
-  if (ImGui::BeginCombo("wombocombo", combo_preview_value, flags)) {
-    for (int n = 0; n < items.size(); n++) {
-      const bool is_selected = (item_current_idx == n);
-      if (ImGui::Selectable(items[n].c_str(), is_selected))
-        item_current_idx = n;
-      // Set the initial focus when opening the combo (scrolling + keyboard navigation focus)
-      if (is_selected)
-        ImGui::SetItemDefaultFocus();
-    }
-    ImGui::EndCombo();
-  }
+  WomboComboIn in(items);
+  in.label = "label";
+  in.current_index = item_current_idx;
+  const auto out = draw_wombo_combo(in);
+  item_current_idx = out.selected;
   ImGui::End();
 
   // Entity To place!
-  EntityType type = magic_enum::enum_value<EntityType>(item_current_idx);
+  EntityType type = magic_enum::enum_cast<EntityType>(items[item_current_idx]).value();
 
   //
   // Tilemap GameEditor

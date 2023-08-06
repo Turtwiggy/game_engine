@@ -62,6 +62,8 @@
     {"name": "PERSON_31_1","frames": [{"x": 31,"y": 1}]},
 
     {"name": "PERSON_25_2","frames": [{"x": 25,"y": 2}]},
+    {"name": "PERSON_25_6","frames": [{"x": 25,"y": 6}]},
+    {"name": "PERSON_28_1","frames": [{"x": 28,"y": 1}]},
     {"name": "PERSON_29_2","frames": [{"x": 29,"y": 2}]},
     {"name": "SHIELD_37_2","frames": [{"x": 37,"y": 2}]},
     

@@ -1,9 +1,9 @@
 #include "system.hpp"
 
 #include "entt/helpers.hpp"
+#include "modules/combat/components.hpp"
 #include "modules/gameover/components.hpp"
 #include "modules/gameover/helpers.hpp"
-#include "modules/health/components.hpp"
 #include "modules/ui_gameover/components.hpp"
 #include "renderer/components.hpp"
 

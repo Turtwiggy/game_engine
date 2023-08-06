@@ -7,7 +7,6 @@
 #include "modules/camera/orthographic.hpp"
 #include "modules/combat/components.hpp"
 #include "modules/enemy/components.hpp"
-#include "modules/health/components.hpp"
 #include "modules/hearth/components.hpp"
 #include "modules/physics_box2d/components.hpp"
 #include "modules/player/components.hpp"
@@ -47,8 +46,6 @@ create_sprite(entt::registry& r, const EntityType& type)
     sprite = "EMPTY";
   else if (type == EntityType::actor_player)
     sprite = "PERSON_25_0";
-  else if (type == EntityType::actor_enemy)
-    sprite = "PERSON_29_2";
   else if (type == EntityType::actor_turret)
     sprite = "EMPTY";
   else if (type == EntityType::actor_bullet)
@@ -57,8 +54,8 @@ create_sprite(entt::registry& r, const EntityType& type)
     sprite = "CASTLE_FLOOR";
   else if (type == EntityType::actor_hearth)
     sprite = "CAMPFIRE";
-  else
-    std::cerr << "warning! sprite not implemented: " << type_name << "\n";
+  // else
+  // std::cerr << "warning! sprite not implemented: " << type_name << "\n";
 
   RenderOrder order = RenderOrder::foreground;
 
@@ -179,6 +176,14 @@ create_gameplay(entt::registry& r, b2World& world, const EntityType& type)
     case EntityType::empty: {
       break;
     }
+    case EntityType::empty_with_physics: {
+      PhysicsInfo info;
+      info.is_bullet = false;
+      info.density = 1.0f;
+      info.type = b2_staticBody;
+      create_physics(r, world, e, DEFAULT_SIZE, info);
+      break;
+    }
     case EntityType::actor_player: {
 
       PhysicsInfo info;
@@ -194,7 +199,12 @@ create_gameplay(entt::registry& r, b2World& world, const EntityType& type)
       r.emplace<InputComponent>(e);
       r.emplace<KeyboardComponent>(e);
       r.emplace<ControllerComponent>(e);
-      r.emplace<HealthComponent>(e);
+
+      // hmm
+      r.emplace<HealthComponent>(e, 100);
+      r.emplace<AttackComponent>(e, 10);
+      r.emplace<RangeComponent>(e, 10);
+
       // r.emplace<TakeDamageComponent>(e);
       // r.emplace<XpComponent>(e, 0);
       // StatsComponent stats;
@@ -204,19 +214,17 @@ create_gameplay(entt::registry& r, b2World& world, const EntityType& type)
       // r.emplace<StatsComponent>(e, stats);
       break;
     }
-    case EntityType::actor_enemy: {
 
+    case EntityType::actor_enemy: {
       PhysicsInfo info;
       info.is_bullet = false;
-      info.density = 0.0f;
+      info.density = 0.1f;
       info.type = b2_dynamicBody;
       create_physics(r, world, e, DEFAULT_SIZE, info);
-
       r.emplace<EnemyComponent>(e);
-      r.emplace<HealthComponent>(e);
-      r.emplace<AttackComponent>(e);
       break;
     }
+
     case EntityType::actor_turret: {
 
       PhysicsInfo info;
@@ -232,7 +240,7 @@ create_gameplay(entt::registry& r, b2World& world, const EntityType& type)
 
       PhysicsInfo info;
       info.is_bullet = true;
-      info.density = 0.0f;
+      info.density = 0.1f;
       info.type = b2_dynamicBody;
       create_physics(r, world, e, HALF_SIZE, info);
 
@@ -252,7 +260,15 @@ create_gameplay(entt::registry& r, b2World& world, const EntityType& type)
       break;
     }
     case EntityType::spawner: {
+
+      PhysicsInfo info;
+      info.is_bullet = false;
+      info.density = 1.0f;
+      info.type = b2_staticBody;
+      create_physics(r, world, e, DEFAULT_SIZE, info);
+
       r.emplace<SpawnerComponent>(e);
+      r.emplace<HealthComponent>(e, 10);
       break;
     }
     case EntityType::camera: {

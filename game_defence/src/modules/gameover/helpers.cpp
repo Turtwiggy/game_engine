@@ -4,6 +4,7 @@
 #include "entt/helpers.hpp"
 #include "game_state.hpp"
 #include "lifecycle/components.hpp"
+#include "modules/combat/helpers.hpp"
 #include "modules/gameover/components.hpp"
 #include "modules/physics_box2d/components.hpp"
 #include "modules/ui_economy/components.hpp"
@@ -25,6 +26,7 @@ restart_game(entt::registry& r, b2World& world)
   destroy_and_create<SINGLETON_EntityBinComponent>(r);
   destroy_and_create<SINGLETON_GameStateComponent>(r);
   destroy_and_create<SINGLETON_Economy>(r);
+  destroy_and_create<SINGLETON_UiEconomy>(r);
   destroy_and_create<SINGLETON_ColoursComponent>(r);
   destroy_and_create<SINGLETON_GameOver>(r);
 

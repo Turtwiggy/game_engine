@@ -74,7 +74,7 @@ game2d::update_player_controller_system(entt::registry& r, const uint64_t& milli
     };
 
     // do the move
-    const float speed = 1000.0f;
+    const float speed = 500.0f;
     const b2Vec2 move_dir = { lx * speed, ly * speed };
     actor.body->SetLinearVelocity(move_dir);
 
@@ -121,7 +121,7 @@ game2d::update_player_controller_system(entt::registry& r, const uint64_t& milli
       r.emplace<CreateEntityRequest>(r.create(), req);
 
       // request sound
-      // r.emplace<AudioRequestPlayEvent>(r.create());
+      r.emplace<AudioRequestPlayEvent>(r.create(), "SHOOT_01");
 
       // reset timer
       player.time_between_bullets_left = time_between_bullets;

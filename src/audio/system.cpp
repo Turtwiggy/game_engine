@@ -54,6 +54,7 @@ update_audio_system(entt::registry& r)
 
   // state: playing -> free
   for (const auto& [entity, source] : r.view<AudioSource>().each()) {
+
     ALint source_state;
     alGetSourcei(source.source_id, AL_SOURCE_STATE, &source_state);
 
@@ -74,7 +75,6 @@ update_audio_system(entt::registry& r)
   for (const auto& [tag, entities] : compacted_requests) {
     const auto& entity = entities[0]; // assume audio request with same tag are the same
     const auto& request = r.get<AudioRequestPlayEvent>(entity);
-    std::cout << "processing play audio request\n";
 
     if (free_audio_sources.size() == 0) {
       std::cout << "no free audio sources!\n";
@@ -82,14 +82,12 @@ update_audio_system(entt::registry& r)
     }
     AudioSource& audio_source = free_audio_sources.front();
     free_audio_sources.erase(free_audio_sources.begin());
+    audio_source.state = AudioSourceState::PLAYING;
 
-    // set as playing
+    ALint id = (ALint)get_sound(audio, request.tag).result;
     const auto& source_id = audio_source.source_id;
-    printf("trying to play: %s\n", request.tag.c_str());
-
-    Sound sound_id = get_sound(audio, request.tag);
-    alSourcei(source_id, AL_BUFFER, (ALint)sound_id.result); // attach buffer
-    alSourcef(source_id, AL_GAIN, audio.master_volume);      // set volume
+    alSourcei(source_id, AL_BUFFER, id);                // attach buffer
+    alSourcef(source_id, AL_GAIN, audio.master_volume); // set volume
     alSourceStop(source_id);
     alSourcePlay(source_id);
 
