@@ -9,6 +9,7 @@
 #include "lifecycle/components.hpp"
 #include "maths/grid.hpp"
 #include "modules/camera/helpers.hpp"
+#include "modules/spawner/components.hpp"
 #include "renderer/components.hpp"
 #include "resources/colours.hpp"
 #include "sprites/components.hpp"
@@ -60,10 +61,37 @@ update_ui_prefabs_system(entt::registry& r)
   in.current_index = item_current_idx;
   const auto out = draw_wombo_combo(in);
   item_current_idx = out.selected;
-  ImGui::End();
 
   // Entity To place!
   EntityType type = magic_enum::enum_cast<EntityType>(items[item_current_idx]).value();
+
+  //
+  // Choose spawner type
+  //
+  if (type == EntityType::spawner) {
+    static int spawner_item_current_idx = 0;
+    WomboComboIn in(items);
+    in.label = "spawner-items";
+    in.current_index = spawner_item_current_idx;
+    const auto out = draw_wombo_combo(in);
+    spawner_item_current_idx = out.selected;
+
+    const auto& spawned_items = get_first_component<SINGLETON_EntityBinComponent>(r);
+    if (spawned_items.created_this_frame.size() > 0) {
+      for (int i = 0; i < spawned_items.created_this_frame.size(); i++) {
+        // check if we spawned a spawner
+        const auto& e_item = spawned_items.created_this_frame[i];
+        const auto& e_type = r.get<EntityTypeComponent>(e_item);
+        if (e_type.type == EntityType::spawner) {
+          auto& e_spawner = r.get<SpawnerComponent>(e_item);
+
+          e_spawner.type_to_spawn = magic_enum::enum_value<EntityType>(spawner_item_current_idx);
+        }
+      }
+    }
+  }
+
+  ImGui::End();
 
   //
   // Tilemap GameEditor

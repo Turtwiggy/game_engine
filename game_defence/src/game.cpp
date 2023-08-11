@@ -13,6 +13,8 @@
 #include "modules/camera/orthographic.hpp"
 #include "modules/camera/system.hpp"
 #include "modules/combat/components.hpp"
+#include "modules/combat/flash_sprite.hpp"
+#include "modules/combat/take_damage.hpp"
 #include "modules/enemy/system.hpp"
 #include "modules/gameover/components.hpp"
 #include "modules/gameover/helpers.hpp"
@@ -20,6 +22,7 @@
 #include "modules/physics_box2d/components.hpp"
 #include "modules/physics_box2d/system.hpp"
 #include "modules/player/system.hpp"
+#include "modules/respawn/system.hpp"
 #include "modules/spawner/components.hpp"
 #include "modules/spawner/system.hpp"
 #include "modules/turret/system.hpp"
@@ -176,8 +179,6 @@ game2d::fixed_update(entt::registry& game, b2World& world, const uint64_t millis
           if (hp) {
             hp->hp -= 1;
             hp->hp = glm::max(0, hp->hp);
-            if (hp->hp <= 0)
-              dead.dead.emplace(actor_spawner);
           }
         }
       }
@@ -191,12 +192,10 @@ game2d::fixed_update(entt::registry& game, b2World& world, const uint64_t millis
             const auto& enemy_atk = game.get<AttackComponent>(actor_enemy);
             // kill enemy
             dead.dead.emplace(actor_enemy);
-            // player takes damage
-            auto* hp = game.try_get<HealthComponent>(actor_player);
-            if (hp) {
-              hp->hp -= enemy_atk.damage;
-              hp->hp = glm::max(0, hp->hp);
-            }
+
+            const auto& from = actor_enemy;
+            const auto& to = actor_player;
+            game.emplace<DealDamageRequest>(game.create(), from, to);
           }
         }
       }
@@ -224,6 +223,11 @@ game2d::fixed_update(entt::registry& game, b2World& world, const uint64_t millis
     update_player_controller_system(game, milliseconds_dt);
     update_enemy_system(game, milliseconds_dt);
     update_turret_system(game, milliseconds_dt);
+
+    update_take_damage_system(game);
+    update_flash_sprite_system(game, milliseconds_dt);
+
+    update_respawn_system(game);
     update_spawner_system(game, milliseconds_dt);
   }
 

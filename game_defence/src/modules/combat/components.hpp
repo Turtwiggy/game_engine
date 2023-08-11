@@ -1,5 +1,7 @@
 #pragma once
 
+#include <optional>
+
 namespace game2d {
 
 enum class Weapon
@@ -24,6 +26,22 @@ struct RangeComponent
 struct HealthComponent
 {
   int hp = 100;
+};
+
+//
+// When attacking,
+// create a DealDamageRequest
+//
+struct DealDamageRequest
+{
+  entt::entity from;
+  entt::entity to;
+};
+
+struct FlashOnDamageComponent
+{
+  bool started = false;
+  int milliseconds_left = 200;
 };
 
 } // namespace game2d

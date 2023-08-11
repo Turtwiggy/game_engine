@@ -17,32 +17,33 @@ update_gameover_system(entt::registry& r, b2World& world)
   auto& gameover = get_first_component<SINGLETON_GameOver>(r);
 
   // Check if the game is over (base explodes)
-  // const auto& first_hearth = get_first<HearthComponent>(r);
-  // if (first_hearth != entt::null) {
-  //   const auto& first_hearth_hp = r.get<HealthComponent>(first_hearth);
-  //   if (first_hearth_hp.hp <= 0) {
-  //     gameover.game_is_over = true;
-  //     gameover.reason = "Your hearth exploded!";
-  //   }
-  // }
-
-  // Check if the game is over (all players are ded)
-  const auto& first_player = get_first<PlayerComponent>(r);
-  if (first_player != entt::null) {
-    const auto& health = r.try_get<HealthComponent>(first_player);
-    if (health && health->hp <= 0) {
+  const auto& first_hearth = get_first<HearthComponent>(r);
+  if (first_hearth != entt::null) {
+    const auto& first_hearth_hp = r.get<HealthComponent>(first_hearth);
+    if (first_hearth_hp.hp <= 0) {
       gameover.game_is_over = true;
-      gameover.reason = "Player ded!";
+      gameover.reason = "Your hearth exploded!";
     }
   }
 
-  // process new-game requests
-  bool new_game = false;
+  // Check if the game is over (all players are ded)
+  // const auto& first_player = get_first<PlayerComponent>(r);
+  // if (first_player != entt::null) {
+  //   const auto& health = r.try_get<HealthComponent>(first_player);
+  //   if (health && health->hp <= 0) {
+  //     gameover.game_is_over = true;
+  //     gameover.reason = "Player ded!";
+  //   }
+  // }
+
   const auto& view = r.view<NewGameRequest>();
-  for (const auto& [entity, req] : view.each()) {
+  bool new_game = view.size() > 0;
+
+  // destroy all new game requests
+  for (const auto& [entity, req] : view.each())
     r.destroy(entity);
-    new_game = true;
-  }
+
+  // do the restart
   if (new_game)
     restart_game(r, world);
 

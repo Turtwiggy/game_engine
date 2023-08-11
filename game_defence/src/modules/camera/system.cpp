@@ -36,12 +36,6 @@ update_camera_system(entt::registry& r, float dt)
   camera_transform.scale.x = 1;
   camera_transform.scale.y = 1;
 
-  static bool done_first_time = false;
-  if (!done_first_time) {
-    done_first_time = true;
-    camera_transform.position = target_transform.position;
-  }
-
   if (get_key_down(input, SDL_SCANCODE_RETURN))
     camera_transform.position = target_transform.position;
 

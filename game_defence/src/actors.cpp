@@ -10,10 +10,10 @@
 #include "modules/hearth/components.hpp"
 #include "modules/physics_box2d/components.hpp"
 #include "modules/player/components.hpp"
+#include "modules/respawn/components.hpp"
 #include "modules/spawner/components.hpp"
 #include "modules/turret/components.hpp"
 #include "renderer/components.hpp"
-#include "resources/colours.hpp"
 #include "resources/textures.hpp"
 #include "sprites/components.hpp"
 #include "sprites/helpers.hpp"
@@ -200,6 +200,9 @@ create_gameplay(entt::registry& r, b2World& world, const EntityType& type)
       r.emplace<KeyboardComponent>(e);
       r.emplace<ControllerComponent>(e);
 
+      // more hmm
+      r.emplace<InfiniteLivesComponent>(e);
+
       // hmm
       r.emplace<HealthComponent>(e, 100);
       r.emplace<AttackComponent>(e, 10);
@@ -257,6 +260,13 @@ create_gameplay(entt::registry& r, b2World& world, const EntityType& type)
 
       r.emplace<HearthComponent>(e);
       r.emplace<HealthComponent>(e, 50);
+
+      // spawn the player at the hearth
+      SpawnerComponent hearth_spawner;
+      hearth_spawner.type_to_spawn = EntityType::actor_player;
+      hearth_spawner.continuous_spawn = false;
+      r.emplace<SpawnerComponent>(e, hearth_spawner);
+
       break;
     }
     case EntityType::spawner: {

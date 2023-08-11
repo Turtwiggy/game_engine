@@ -31,18 +31,15 @@ restart_game(entt::registry& r, b2World& world)
   destroy_and_create<SINGLETON_GameOver>(r);
 
   const auto camera = create_gameplay(r, world, EntityType::camera);
+  auto& camera_transform = r.get<TransformComponent>(camera);
+
+  // load a map?
 
   const auto hearth = create_gameplay(r, world, EntityType::actor_hearth);
   const auto& hearth_actor = r.get<ActorComponent>(hearth);
-  hearth_actor.body->SetTransform({ 500.0f, 500.0f }, 0.0f);
-
-  // const auto& spawner0 = create_gameplay(r, world, EntityType::spawner);
-  // auto& spawner0_actor = r.get<TransformComponent>(spawner0);
-  // spawner0_actor.position = { 0, 0, 0 };
-
-  // const auto& spawner1 = create_gameplay(r, world, EntityType::spawner);
-  // auto& spawner1_actor = r.get<TransformComponent>(spawner1);
-  // spawner1_actor.position = { 1000, 1000, 0 };
+  const glm::vec2 spawn_pos = { 500.0f, 500.0f };
+  hearth_actor.body->SetTransform({ spawn_pos.x, spawn_pos.y }, 0.0f);
+  camera_transform.position = { spawn_pos.x, spawn_pos.y, 0.0f };
 
   const auto player = create_gameplay(r, world, EntityType::actor_player);
   const auto& player_actor = r.get<ActorComponent>(player);

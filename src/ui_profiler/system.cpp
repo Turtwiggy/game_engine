@@ -35,14 +35,12 @@ game2d::update_ui_profiler_system(entt::registry& r, const b2World& world)
     ImGui::Text("Contacts: %i", world.GetContactCount());
 
     ImGui::Text("¬¬ Renderer");
+    ImGui::Text("Renderables: %i", r.view<TransformComponent>().size());
     ImGui::Text("Draw Calls QR %i", engine::quad_renderer::QuadRenderer::draw_calls());
     ImGui::Text("Draw Calls TR %i", engine::triangle_renderer::TriangleRenderer::draw_calls());
     ImGui::Text("Draw Calls TFR %i", engine::triangle_fan_renderer::TriangleFanRenderer::draw_calls());
     ImGui::Text("FPS %f", ImGui::GetIO().Framerate);
     ImGui::Text("Frame ms total %f", 1000.0f / ImGui::GetIO().Framerate);
-
-    const auto& transforms = r.view<TransformComponent>();
-    ImGui::Text("Transforms: %i", transforms.size());
 
     for (const auto& result : profiler.update_results)
       ImGui::Text("update: %s %f", result.name.c_str(), result.ms);

@@ -16,6 +16,9 @@ namespace game2d {
 //                             1.0f);                                  // a
 // }
 
+// https://colorhunt.co/palette/4a55a27895cba0bfe0c5dff8
+static const engine::SRGBColour pal_blue_0{84, 85, 162, 1.0f}; // darkest
+
 // https://colorhunt.co/palette/fff8ea9e7676815b5b594545
 static const engine::SRGBColour pal_0{ 255, 248, 234, 1.0f }; // lightest
 static const engine::SRGBColour pal_1{ 158, 118, 118, 1.0f };
@@ -25,7 +28,7 @@ static const engine::LinearColour lin_pal_0 = engine::SRGBToLinear(pal_0);
 static const engine::LinearColour lin_pal_1 = engine::SRGBToLinear(pal_1);
 static const engine::LinearColour lin_pal_2 = engine::SRGBToLinear(pal_2);
 static const engine::LinearColour lin_pal_3 = engine::SRGBToLinear(pal_3);
-static const engine::SRGBColour pal_background = pal_3;
+static const engine::SRGBColour pal_background = pal_blue_0;
 static const engine::SRGBColour pal_hit = { 172, 68, 37, 1.0f };
 static const engine::SRGBColour pal_white = { 255, 255, 255, 1.0f };
 static const engine::LinearColour lin_pal_hit = engine::SRGBToLinear(pal_hit);
@@ -52,7 +55,7 @@ static const engine::LinearColour lin_pal_yellow = engine::SRGBToLinear(pal_yell
 struct SINGLETON_ColoursComponent
 {
   // Gonna have to develop somthing to cycle through these
-  // https://colorhunt.co/palette/4a55a27895cba0bfe0c5dff8
+  // 
   // https://colorhunt.co/palette/2d4356435b66a76f6feab2a0
   // https://colorhunt.co/palette/222831393e4600adb5eeeeee
   // https://colorhunt.co/palette/f9f7f7dbe2ef3f72af112d4e

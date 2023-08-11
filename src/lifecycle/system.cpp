@@ -11,7 +11,6 @@ void
 game2d::update_lifecycle_system(entt::registry& r, b2World& world, const uint64_t& milliseconds_dt)
 {
   auto& dead = get_first_component<SINGLETON_EntityBinComponent>(r);
-  dead.created_this_frame.clear();
 
   // update all components with timed lifecycle
   const auto& view = r.view<EntityTimedLifecycle>();
@@ -31,7 +30,11 @@ game2d::update_lifecycle_system(entt::registry& r, b2World& world, const uint64_
 
   dead.dead.clear();
 
+  //
   // process create requests
+  //
+  dead.created_this_frame.clear();
+
   const auto requests = r.view<CreateEntityRequest>();
   for (auto [entity, request] : requests.each()) {
     auto e = create_gameplay(r, world, request.type);

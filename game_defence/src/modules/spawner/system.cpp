@@ -24,9 +24,10 @@ update_spawner_system(entt::registry& r, const uint64_t milliseconds_dt)
   const auto& view = r.view<const TransformComponent, SpawnerComponent>();
   for (auto [entity, transform, spawner] : view.each()) {
 
-    spawner.time_between_spawns_left -= dt;
+    if (spawner.continuous_spawn)
+      spawner.time_between_spawns_left -= dt;
 
-    if (spawner.time_between_spawns_left < 0.0f) {
+    if (spawner.continuous_spawn && spawner.time_between_spawns_left < 0.0f) {
 
       CreateEntityRequest req;
       req.type = spawner.type_to_spawn;

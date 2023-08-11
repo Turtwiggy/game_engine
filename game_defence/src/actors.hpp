@@ -1,5 +1,8 @@
 #pragma once
 
+#include "resources/colours.hpp"
+#include "sprites/components.hpp"
+
 #include <box2d/box2d.h>
 #include <entt/entt.hpp>
 #include <nlohmann/json.hpp>
@@ -37,5 +40,8 @@ from_json(const json& j, EntityTypeComponent& et);
 
 [[nodiscard]] entt::entity
 create_gameplay(entt::registry& r, b2World& world, const EntityType& type);
+
+[[nodiscard]] SpriteColourComponent
+create_colour(const SINGLETON_ColoursComponent& colours, const EntityType& type);
 
 } // namespace game2d
