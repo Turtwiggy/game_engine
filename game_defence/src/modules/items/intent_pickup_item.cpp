@@ -3,6 +3,7 @@
 #include "components.hpp"
 #include "modules/physics/components.hpp"
 #include "modules/player/components.hpp"
+#include "renderer/components.hpp"
 
 #include <iostream>
 
@@ -13,12 +14,10 @@ update_intent_pickup_system(entt::registry& r)
 {
 
   // update pickup zone positions...
-  for (const auto& [entity, player, body] : r.view<const PlayerComponent, const PhysicsActorComponent>().each()) {
-    // const auto& zone = player.pickup_area;
-    // if (r.valid(zone) && zone != entt::null) {
-    //   const auto& zone_physics = r.get<ActorComponent>(zone);
-    //   zone_physics.body->SetTransform(body.body->GetPosition(), 0.0f);
-    // }
+  for (const auto& [entity, player, player_t] : r.view<const PlayerComponent, const TransformComponent>().each()) {
+    const auto& zone = player.pickup_area;
+    auto& zone_transform = r.get<TransformComponent>(zone);
+    zone_transform.position = player_t.position;
   }
 
   for (const auto& [entity, request] : r.view<WantsToPickUp>().each()) {

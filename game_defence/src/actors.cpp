@@ -20,10 +20,9 @@
 #include "sprites/helpers.hpp"
 
 #include "magic_enum.hpp"
+#include <thread>
 
 namespace game2d {
-
-static int SPRITE_SIZE = 16;
 
 void
 to_json(json& j, const EntityTypeComponent& et)
@@ -93,6 +92,14 @@ create_colour(const SINGLETON_ColoursComponent& colours, const EntityType& type)
 
   if (type == EntityType::actor_hearth)
     scc.colour = colours.lin_hot_pink;
+  if (type == EntityType::pickup_zone) {
+    engine::LinearColour off;
+    off.r = 1.0f;
+    off.g = 1.0f;
+    off.b = 1.0f;
+    off.a = 0.1f;
+    scc.colour = std::make_shared<engine::LinearColour>(off);
+  }
 
   return scc;
 }
@@ -102,6 +109,7 @@ create_gameplay(entt::registry& r, const EntityType& type)
 {
   const auto& colours = get_first_component<SINGLETON_ColoursComponent>(r);
 
+  const int SPRITE_SIZE = 16;
   const glm::ivec2 DEFAULT_SIZE{ 16, 16 };
   const glm::ivec2 HALF_SIZE{ 8, 8 };
 
@@ -127,6 +135,14 @@ create_gameplay(entt::registry& r, const EntityType& type)
       r.emplace<PhysicsSolidComponent>(e);
       break;
     }
+    case EntityType::pickup_zone: {
+      transform.scale.y = 100;
+      transform.scale.x = 100;
+      r.emplace<PickupZone>(e);
+      r.emplace<PhysicsTransformComponent>(e);
+      r.emplace<PhysicsActorComponent>(e);
+      break;
+    }
     case EntityType::actor_player: {
 
       r.emplace<PhysicsTransformComponent>(e);
@@ -137,6 +153,8 @@ create_gameplay(entt::registry& r, const EntityType& type)
       // gameplay
       PlayerComponent pc;
       pc.debug_gun_spot = create_gameplay(r, EntityType::empty);
+      pc.pickup_area = create_gameplay(r, EntityType::pickup_zone);
+      r.emplace<PlayerComponent>(e, pc);
       r.emplace<InputComponent>(e);
       r.emplace<KeyboardComponent>(e);
       r.emplace<ControllerComponent>(e);
@@ -148,20 +166,6 @@ create_gameplay(entt::registry& r, const EntityType& type)
       r.emplace<HealthComponent>(e, 100);
       r.emplace<AttackComponent>(e, 10);
       r.emplace<RangeComponent>(e, 10);
-
-      // pickup zone
-      {
-        pc.pickup_area = create_gameplay(r, EntityType::empty);
-
-        // hack: change sprite to circle
-        // auto& sprite = r.get<SpriteComponent>(pc.pickup_area);
-        // sprite.x = 39;
-        // sprite.y = 2;
-
-        r.emplace<PickupZone>(pc.pickup_area);
-        // todo: add collisions to this
-      }
-      r.emplace<PlayerComponent>(e, pc);
 
       // r.emplace<TakeDamageComponent>(e);
       // r.emplace<XpComponent>(e, 0);
@@ -198,7 +202,7 @@ create_gameplay(entt::registry& r, const EntityType& type)
     }
     case EntityType::actor_hearth: {
       r.emplace<PhysicsTransformComponent>(e);
-      r.emplace<PhysicsSolidComponent>(e);
+      r.emplace<PhysicsActorComponent>(e);
       r.emplace<HearthComponent>(e);
       r.emplace<HealthComponent>(e, 50);
 
@@ -213,7 +217,6 @@ create_gameplay(entt::registry& r, const EntityType& type)
     case EntityType::spawner: {
       r.emplace<PhysicsTransformComponent>(e);
       r.emplace<PhysicsActorComponent>(e);
-
       r.emplace<SpawnerComponent>(e);
       r.emplace<HealthComponent>(e, 10);
       break;

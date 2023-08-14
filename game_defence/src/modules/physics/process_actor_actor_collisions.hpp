@@ -7,6 +7,6 @@
 namespace game2d {
 
 void
-update_actor_actor_system(entt::registry& registry, SINGLETON_PhysicsComponent& p);
+update_actor_actor_collisions_system(entt::registry& registry, SINGLETON_PhysicsComponent& p);
 
 }; // namespace game2d

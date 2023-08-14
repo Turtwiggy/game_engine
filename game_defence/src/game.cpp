@@ -21,7 +21,7 @@
 #include "modules/gameover/system.hpp"
 #include "modules/items/intent_pickup_item.hpp"
 #include "modules/physics/components.hpp"
-#include "modules/physics/process_actor_actor.hpp"
+#include "modules/physics/process_actor_actor_collisions.hpp"
 #include "modules/physics/process_move_objects.hpp"
 #include "modules/player/system.hpp"
 #include "modules/respawn/system.hpp"
@@ -127,8 +127,7 @@ game2d::fixed_update(entt::registry& game, const uint64_t milliseconds_dt)
     physics.frame_collisions.clear();
 
     update_move_objects_system(game, milliseconds_dt);
-    // generate actor-actor collisions
-    update_actor_actor_system(game, physics);
+    update_actor_actor_collisions_system(game, physics);
   }
 
   // resolve collisions
@@ -194,21 +193,21 @@ game2d::fixed_update(entt::registry& game, const uint64_t milliseconds_dt)
       }
 
       // player-enemy collision
-      // {
-      //   const auto& [actor_player, actor_enemy] =
-      //     collision_of_interest(a, b, a_type, b_type, EntityType::actor_player, EntityType::actor_enemy);
-      //   if (actor_player != entt::null && actor_enemy != entt::null) {
-      //     {
-      //       const auto& enemy_atk = game.get<AttackComponent>(actor_enemy);
-      //       // kill enemy
-      //       dead.dead.emplace(actor_enemy);
+      {
+        const auto& [actor_player, actor_enemy] =
+          collision_of_interest(a, b, a_type, b_type, EntityType::actor_player, EntityType::actor_enemy);
+        if (actor_player != entt::null && actor_enemy != entt::null) {
+          {
+            const auto& enemy_atk = game.get<AttackComponent>(actor_enemy);
+            // kill enemy
+            dead.dead.emplace(actor_enemy);
 
-      //       const auto& from = actor_enemy;
-      //       const auto& to = actor_player;
-      //       game.emplace<DealDamageRequest>(game.create(), from, to);
-      //     }
-      //   }
-      // }
+            const auto& from = actor_enemy;
+            const auto& to = actor_player;
+            game.emplace<DealDamageRequest>(game.create(), from, to);
+          }
+        }
+      }
 
       // hearth-enemy collision
       {

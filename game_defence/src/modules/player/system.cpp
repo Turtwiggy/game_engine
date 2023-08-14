@@ -74,10 +74,13 @@ game2d::update_player_controller_system(entt::registry& r, const uint64_t& milli
       lmb_press = get_axis_01(c, controller->c_right_trigger) > 0.7f;
     };
 
-    // TODO: do the move
-    const float speed = 500.0f;
-    // const b2Vec2 move_dir = { lx * speed, ly * speed };
-    // actor.body->SetLinearVelocity(move_dir);
+    // do the move
+    const float speed = 2.0f;
+    if (auto* move = r.try_get<GridMoveComponent>(entity)) {
+      const glm::vec2 move_dir = { lx * speed, ly * speed };
+      move->x += move_dir.x;
+      move->y += move_dir.y;
+    }
 
     // work out analogue direction
     const glm::vec2 analog_dir = { rx, ry };
@@ -106,7 +109,7 @@ game2d::update_player_controller_system(entt::registry& r, const uint64_t& milli
     //
     // request to shoot
     //
-    const float bullet_speed = 200.0f;
+    const float bullet_speed = 250.0f;
     {
       if (player.time_between_bullets_left > 0.0f)
         player.time_between_bullets_left -= dt;

@@ -33,15 +33,14 @@ restart_game(entt::registry& r)
   // load a map?
 
   const auto hearth = create_gameplay(r, EntityType::actor_hearth);
-  const glm::vec2 spawn_pos = { 500.0f, 500.0f };
-
-  // TODO: this
-  // hearth_actor.body->SetTransform({ spawn_pos.x, spawn_pos.y }, 0.0f);
-  // camera_transform.position = { spawn_pos.x, spawn_pos.y, 0.0f };
+  auto& hearth_transform = r.get<TransformComponent>(hearth);
+  const glm::ivec2 spawn_pos = { 500, 500 };
+  hearth_transform.position = { spawn_pos.x, spawn_pos.y, 0 };
+  camera_transform.position = { spawn_pos.x, spawn_pos.y, 0 };
 
   const auto player = create_gameplay(r, EntityType::actor_player);
-  // TODO: this
-  // player_actor.body->SetTransform({ 550.0f, 550.0f }, 0.0f);
+  auto& player_transform = r.get<TransformComponent>(player);
+  player_transform.position = { 550, 550, 0 };
 }
 
 } // namespace game2d

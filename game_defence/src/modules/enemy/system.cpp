@@ -45,8 +45,8 @@ update_enemy_system(entt::registry& r, const uint64_t& milliseconds_dt)
     }
   }
 
-  const auto& view = r.view<const TransformComponent, PhysicsActorComponent, const EnemyComponent>();
-  for (auto [entity, transform, physics, enemy] : view.each()) {
+  const auto& view = r.view<const TransformComponent, GridMoveComponent, EnemyComponent>();
+  for (auto [entity, transform, grid, enemy] : view.each()) {
     // move towards player
     glm::ivec3 d = first_target_transform.position - transform.position;
     if (d.x == 0 && d.y == 0 && d.z == 0) // check same spot not clicked
@@ -58,10 +58,10 @@ update_enemy_system(entt::registry& r, const uint64_t& milliseconds_dt)
     if (dir.x != 0.0f || dir.y != 0.0f)
       n = normalize(dir);
 
-    const float enemy_speed = 120.0f;
-    // TODO: reimplement this
-    // b2Vec2 pdir{ n.x * enemy_speed, n.y * enemy_speed };
-    // physics.body->SetLinearVelocity(pdir);
+    const float enemy_speed = 1.0f;
+    glm::vec2 pdir{ n.x * enemy_speed, n.y * enemy_speed };
+    grid.x += pdir.x;
+    grid.y += pdir.y;
   }
 }
 

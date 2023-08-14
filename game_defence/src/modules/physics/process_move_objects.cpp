@@ -18,7 +18,9 @@ game2d::update_move_objects_system(entt::registry& r, const uint64_t millisecond
 {
   auto& physics = get_first_component<SINGLETON_PhysicsComponent>(r);
 
-  // update the physics view of the world
+  // moves all physics transforms to where the visual transform is
+  // this seems the wrong way round
+
   auto physics_objects_view = r.view<PhysicsTransformComponent, const TransformComponent>();
   physics_objects_view.each([](auto entity, PhysicsTransformComponent& ptc, const TransformComponent& tc) {
     ptc.w = glm::abs(tc.scale.x);

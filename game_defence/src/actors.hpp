@@ -18,6 +18,8 @@ enum class EntityType
   actor_hearth,
   actor_enemy,
 
+  pickup_zone,
+
   // misc
   spawner,
   camera,

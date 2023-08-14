@@ -35,22 +35,14 @@ game2d::update_lifecycle_system(entt::registry& r, const uint64_t& milliseconds_
   for (auto [entity, request] : requests.each()) {
     auto e = create_gameplay(r, request.type);
 
-    // auto* act_ptr = r.try_get<ActorComponent>(e);
-    // if (act_ptr) {
-    //   // set position by physics
-    //   b2Vec2 pos{ static_cast<float>(request.position.x), static_cast<float>(request.position.y) };
-    //   act_ptr->body->SetTransform(pos, 0.0f);
-
-    //   // set linear velocity
-    //   b2Vec2 vel{ static_cast<float>(request.velocity.x), static_cast<float>(request.velocity.y) };
-    //   act_ptr->body->SetLinearVelocity(vel);
-
-    // } else {
+    if (auto* vel = r.try_get<VelocityComponent>(e)) {
+      vel->x = request.velocity.x;
+      vel->y = request.velocity.y;
+    }
 
     // set position by transform
     auto& transform = r.get<TransformComponent>(e);
     transform.position = request.position;
-    // }
 
     // capture new entity
     dead.created_this_frame.push_back(e);
