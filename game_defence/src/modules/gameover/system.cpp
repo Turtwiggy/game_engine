@@ -12,7 +12,7 @@
 namespace game2d {
 
 void
-update_gameover_system(entt::registry& r, b2World& world)
+update_gameover_system(entt::registry& r)
 {
   auto& gameover = get_first_component<SINGLETON_GameOver>(r);
 
@@ -45,7 +45,7 @@ update_gameover_system(entt::registry& r, b2World& world)
 
   // do the restart
   if (new_game)
-    restart_game(r, world);
+    restart_game(r);
 
   // HACK: restart game if r is pressed
   const auto& finput = get_first_component<SINGLETON_FixedUpdateInputHistory>(r);
@@ -54,7 +54,7 @@ update_gameover_system(entt::registry& r, b2World& world)
                      return e.type == InputType::keyboard && e.key == SDL_SCANCODE_R && e.state == InputState::held;
                    }) != std::end(inputs);
   if (r_pressed)
-    restart_game(r, world);
+    restart_game(r);
 }
 
 } // namespace game2d

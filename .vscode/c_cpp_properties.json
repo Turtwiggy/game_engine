@@ -10,7 +10,6 @@
         "${workspaceFolder}/thirdparty/entt/single_include",
         "${workspaceFolder}/thirdparty/imgui",
         "${workspaceFolder}/thirdparty/magic_enum",
-        "${workspaceFolder}/thirdparty/box2d/include",
         "${workspaceFolder}/thirdparty/emsdk/upstream/emscripten/cache/sysroot/include"
       ],
       "defines": ["UNICODE", "_UNICODE"],

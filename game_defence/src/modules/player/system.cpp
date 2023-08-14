@@ -9,7 +9,8 @@
 #include "events/helpers/mouse.hpp"
 #include "helpers/line.hpp"
 #include "lifecycle/components.hpp"
-#include "modules/physics_box2d/components.hpp"
+#include "modules/items/components.hpp"
+#include "modules/physics/components.hpp"
 #include "modules/player/components.hpp"
 #include "modules/turret/components.hpp"
 #include "renderer/components.hpp"
@@ -29,8 +30,8 @@ game2d::update_player_controller_system(entt::registry& r, const uint64_t& milli
   const float time_between_bullets = 0.25f;
 
   // player movement
-  const auto& view = r.view<PlayerComponent, const ActorComponent, const TransformComponent, InputComponent>();
-  for (auto [entity, player, actor, t, input] : view.each()) {
+  const auto& view = r.view<PlayerComponent, InputComponent, const PhysicsActorComponent, const TransformComponent>();
+  for (auto [entity, player, input, actor, t] : view.each()) {
 
     auto* keyboard = r.try_get<KeyboardComponent>(entity);
     auto* controller = r.try_get<ControllerComponent>(entity);
@@ -74,12 +75,12 @@ game2d::update_player_controller_system(entt::registry& r, const uint64_t& milli
     };
 
     // do the move
-    const float speed = 500.0f;
-    const b2Vec2 move_dir = { lx * speed, ly * speed };
-    actor.body->SetLinearVelocity(move_dir);
-
-    // do a shoot
-    const float bullet_speed = 200.0f;
+    const float speed = 2.0f;
+    if (auto* move = r.try_get<GridMoveComponent>(entity)) {
+      const glm::vec2 move_dir = { lx * speed, ly * speed };
+      move->x += move_dir.x;
+      move->y += move_dir.y;
+    }
 
     // work out analogue direction
     const glm::vec2 analog_dir = { rx, ry };
@@ -89,7 +90,8 @@ game2d::update_player_controller_system(entt::registry& r, const uint64_t& milli
 
     // offset the bullet by a distance
     // to stop the bullet spawning inside the entity
-    glm::ivec2 offset_pos = { t.position.x + nrm_dir.x * 30.0f, t.position.y + nrm_dir.y * 30.0f };
+    const float offset_distance = 30.0f;
+    glm::ivec2 offset_pos = { t.position.x + nrm_dir.x * offset_distance, t.position.y + nrm_dir.y * offset_distance };
 
     // visually display the gun angle
     // note: this should be in update() not fixedupdate()
@@ -104,27 +106,39 @@ game2d::update_player_controller_system(entt::registry& r, const uint64_t& milli
         r.remove<TransformComponent>(player.debug_gun_spot);
     }
 
-    if (player.time_between_bullets_left > 0.0f)
-      player.time_between_bullets_left -= dt;
-    if (lmb_press && player.time_between_bullets_left <= 0.0f) {
-      const auto& player_velocity = actor.body->GetLinearVelocity();
+    //
+    // request to shoot
+    //
+    const float bullet_speed = 250.0f;
+    {
+      if (player.time_between_bullets_left > 0.0f)
+        player.time_between_bullets_left -= dt;
+      if (lmb_press && player.time_between_bullets_left <= 0.0f) {
+        CreateEntityRequest req;
+        req.type = EntityType::actor_bullet;
+        req.position = { offset_pos.x, offset_pos.y, 0 };
+        req.velocity = glm::ivec3(nrm_dir.x * bullet_speed, nrm_dir.y * bullet_speed, 0);
+        r.emplace<CreateEntityRequest>(r.create(), req);
 
-      // create a bullet
-      CreateEntityRequest req;
-      req.type = EntityType::actor_bullet;
-      req.position = { offset_pos.x, offset_pos.y, 0 };
-      req.velocity = glm::ivec3(
-        //
-        nrm_dir.x * bullet_speed,
-        nrm_dir.y * bullet_speed,
-        0);
-      r.emplace<CreateEntityRequest>(r.create(), req);
+        // request audio
+        // r.emplace<AudioRequestPlayEvent>(r.create(), "SHOOT_01");
 
-      // request sound
-      r.emplace<AudioRequestPlayEvent>(r.create(), "SHOOT_01");
+        // reset timer
+        player.time_between_bullets_left = time_between_bullets;
+      }
+    }
 
-      // reset timer
-      player.time_between_bullets_left = time_between_bullets;
+    // pickup objects?
+    {
+      bool pickup_objects_pressed = false;
+      bool e_pressed = std::find_if(inputs.begin(), inputs.end(), [](const InputEvent& e) {
+                         return e.type == InputType::keyboard && e.key == SDL_SCANCODE_E && e.state == InputState::held;
+                       }) != std::end(inputs);
+      pickup_objects_pressed = e_pressed;
+      if (pickup_objects_pressed) {
+        std::cout << "Pickup pressed!\n";
+        r.emplace_or_replace<WantsToPickUp>(entity);
+      }
     }
   }
 };

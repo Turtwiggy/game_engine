@@ -19,8 +19,10 @@
 #include "modules/gameover/components.hpp"
 #include "modules/gameover/helpers.hpp"
 #include "modules/gameover/system.hpp"
-#include "modules/physics_box2d/components.hpp"
-#include "modules/physics_box2d/system.hpp"
+#include "modules/items/intent_pickup_item.hpp"
+#include "modules/physics/components.hpp"
+#include "modules/physics/process_actor_actor_collisions.hpp"
+#include "modules/physics/process_move_objects.hpp"
 #include "modules/player/system.hpp"
 #include "modules/respawn/system.hpp"
 #include "modules/spawner/components.hpp"
@@ -45,7 +47,7 @@
 #include "ui_profiler/system.hpp"
 
 void
-game2d::init(engine::SINGLETON_Application& app, b2World& world, entt::registry& r)
+game2d::init(engine::SINGLETON_Application& app, entt::registry& r)
 {
   {
     SINGLETON_Animations anims;
@@ -86,11 +88,11 @@ game2d::init(engine::SINGLETON_Application& app, b2World& world, entt::registry&
   init_render_system(app, ri, textures);
   init_input_system(input, r);
 
-  restart_game(r, world);
+  restart_game(r);
 }
 
 void
-game2d::fixed_update(entt::registry& game, b2World& world, const uint64_t milliseconds_dt)
+game2d::fixed_update(entt::registry& game, const uint64_t milliseconds_dt)
 {
   auto& p = get_first_component<Profiler>(game);
   auto _ = time_scope(&p, "fixed_update()", true);
@@ -104,7 +106,7 @@ game2d::fixed_update(entt::registry& game, b2World& world, const uint64_t millis
   const auto& inputs = fixed_input.history[fixed_input.fixed_tick];
 
   // allow gameover/restart requests to be processed
-  update_gameover_system(game, world);
+  update_gameover_system(game);
 
   // dont tick game logic if paused
   auto& state = get_first_component<SINGLETON_GameStateComponent>(game);
@@ -115,16 +117,24 @@ game2d::fixed_update(entt::registry& game, b2World& world, const uint64_t millis
     return;
 
   // destroy/create objects
-  update_lifecycle_system(game, world, milliseconds_dt);
+  update_lifecycle_system(game, milliseconds_dt);
 
   // update physics
   {
     auto _ = time_scope(&p, "(physics)-tick", true);
-    update_physics_box2d_system(game, world, milliseconds_dt);
+
+    auto& physics = get_first_component<SINGLETON_PhysicsComponent>(game);
+    physics.frame_collisions.clear();
+
+    update_move_objects_system(game, milliseconds_dt);
+    update_actor_actor_collisions_system(game, physics);
   }
+
   // resolve collisions
   {
     auto _ = time_scope(&p, "(physics)-collisions", true);
+
+    const auto& physics = get_first_component<SINGLETON_PhysicsComponent>(game);
 
     // some collisions result in dead entities
     auto& dead = get_first_component<SINGLETON_EntityBinComponent>(game);
@@ -132,30 +142,29 @@ game2d::fixed_update(entt::registry& game, b2World& world, const uint64_t millis
     // some collisions result in extra money
     auto& econ = get_first_component<SINGLETON_Economy>(game);
 
-    for (b2Contact* contact = world.GetContactList(); contact; contact = contact->GetNext()) {
-      // contact->IsTouching() // should check this if using anything other than aabb
+    const auto& collision_of_interest = [](const entt::entity& a_ent,
+                                           const entt::entity& b_ent,
+                                           const EntityType& a,
+                                           const EntityType& b,
+                                           const EntityType& a_actual,
+                                           const EntityType& b_actual) -> std::pair<entt::entity, entt::entity> {
+      if (a == a_actual && b == b_actual)
+        return { a_ent, b_ent };
+      if (a == b_actual && b == a_actual)
+        return { b_ent, a_ent };
+      return { entt::null, entt::null };
+    };
 
-      entt::entity a = (entt::entity)contact->GetFixtureA()->GetBody()->GetUserData().pointer;
-      entt::entity b = (entt::entity)contact->GetFixtureB()->GetBody()->GetUserData().pointer;
+    for (const auto& coll : physics.collision_stay) {
+
+      const auto a = static_cast<entt::entity>(coll.ent_id_0);
+      const auto b = static_cast<entt::entity>(coll.ent_id_1);
 
       if (!game.valid(a) || !game.valid(b))
         continue;
 
       const auto& a_type = game.get<EntityTypeComponent>(a).type;
       const auto& b_type = game.get<EntityTypeComponent>(b).type;
-
-      const auto& collision_of_interest = [](const entt::entity& a_ent,
-                                             const entt::entity& b_ent,
-                                             const EntityType& a,
-                                             const EntityType& b,
-                                             const EntityType& a_actual,
-                                             const EntityType& b_actual) -> std::pair<entt::entity, entt::entity> {
-        if (a == a_actual && b == b_actual)
-          return { a_ent, b_ent };
-        if (a == b_actual && b == a_actual)
-          return { b_ent, a_ent };
-        return { entt::null, entt::null };
-      };
 
       // bullet-enemy collision
       {
@@ -229,13 +238,14 @@ game2d::fixed_update(entt::registry& game, b2World& world, const uint64_t millis
 
     update_respawn_system(game);
     update_spawner_system(game, milliseconds_dt);
+    update_intent_pickup_system(game);
   }
 
   fixed_input.fixed_tick += 1;
 }
 
 void
-game2d::update(engine::SINGLETON_Application& app, entt::registry& r, const b2World& world, const float dt)
+game2d::update(engine::SINGLETON_Application& app, entt::registry& r, const float dt)
 {
   auto& p = get_first_component<Profiler>(r);
   auto _ = time_scope(&p, "update()");
@@ -261,12 +271,12 @@ game2d::update(engine::SINGLETON_Application& app, entt::registry& r, const b2Wo
   update_ui_controller_system(r);
   update_ui_economy_system(r);
   update_ui_gameover_system(r);
-  update_ui_hierarchy_system(r);
   update_ui_audio_system(r);
 
   static bool show_editor_ui = true;
   if (show_editor_ui) {
-    update_ui_profiler_system(r, world);
+    update_ui_hierarchy_system(r);
+    update_ui_profiler_system(r);
   }
 
   end_frame_render_system(r);

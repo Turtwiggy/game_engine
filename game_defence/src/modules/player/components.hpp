@@ -4,6 +4,7 @@
 #include <SDL2/SDL_scancode.h>
 
 #include <entt/entt.hpp>
+#include <glm/glm.hpp>
 #include <nlohmann/json.hpp>
 
 namespace game2d {
@@ -12,6 +13,7 @@ struct PlayerComponent
 {
   float time_between_bullets_left = 0.0f;
   entt::entity debug_gun_spot = entt::null;
+  entt::entity pickup_area = entt::null;
 };
 
 struct KeyboardComponent

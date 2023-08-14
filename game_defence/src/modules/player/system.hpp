@@ -1,8 +1,6 @@
 #pragma once
 
-#include "events/components.hpp"
 #include <entt/entt.hpp>
-#include <vector>
 
 namespace game2d {
 
