@@ -35,7 +35,7 @@ update_turret_system(entt::registry& r, const uint64_t& ms_dt)
     //
     // Get Closest Entity to turret
     //
-    const auto info = get_closest(r, t_entity, physics, EntityType::actor_enemy);
+    const auto info = get_closest(r, t_entity, EntityType::actor_enemy);
 
     if (info.e == entt::null)
       continue; // no enemy

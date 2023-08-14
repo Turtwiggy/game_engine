@@ -34,6 +34,14 @@ game2d::update_ui_profiler_system(entt::registry& r)
   // Profiler
   ImGui::Begin("Profiler", NULL, ImGuiWindowFlags_NoFocusOnAppearing);
   {
+    ImGui::Text("¬¬ Renderer");
+    ImGui::Text("Renderables: %i", r.view<TransformComponent>().size());
+    ImGui::Text("Draw Calls QR %i", engine::quad_renderer::QuadRenderer::draw_calls());
+    ImGui::Text("Draw Calls TR %i", engine::triangle_renderer::TriangleRenderer::draw_calls());
+    ImGui::Text("Draw Calls TFR %i", engine::triangle_fan_renderer::TriangleFanRenderer::draw_calls());
+    ImGui::Text("FPS %f", ImGui::GetIO().Framerate);
+    ImGui::Text("Frame ms total %f", 1000.0f / ImGui::GetIO().Framerate);
+
     ImGui::Text("¬¬ Physics");
     ImGui::Text("Objects %i", objs.size());
     ImGui::Text("Solids %i", solids.size());
@@ -46,14 +54,6 @@ game2d::update_ui_profiler_system(entt::registry& r)
     //   EntityType e1 = registry.get<EntityTypeComponent>(static_cast<entt::entity>(p.ent_id_1)).type;
     //   ImGui::Text("CollisionStay between types %i, %i", static_cast<int>(e0), static_cast<int>(e1));
     // }
-
-    ImGui::Text("¬¬ Renderer");
-    ImGui::Text("Renderables: %i", r.view<TransformComponent>().size());
-    ImGui::Text("Draw Calls QR %i", engine::quad_renderer::QuadRenderer::draw_calls());
-    ImGui::Text("Draw Calls TR %i", engine::triangle_renderer::TriangleRenderer::draw_calls());
-    ImGui::Text("Draw Calls TFR %i", engine::triangle_fan_renderer::TriangleFanRenderer::draw_calls());
-    ImGui::Text("FPS %f", ImGui::GetIO().Framerate);
-    ImGui::Text("Frame ms total %f", 1000.0f / ImGui::GetIO().Framerate);
 
     for (const auto& result : profiler.update_results)
       ImGui::Text("update: %s %f", result.name.c_str(), result.ms);

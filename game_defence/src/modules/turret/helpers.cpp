@@ -1,6 +1,8 @@
 #include "helpers.hpp"
 
+#include "entt/helpers.hpp"
 #include "modules/physics/components.hpp"
+#include "renderer/components.hpp"
 
 #include <algorithm>
 #include <optional>
@@ -8,9 +10,9 @@
 namespace game2d {
 
 ClosestInfo
-get_closest(const entt::registry& r, const entt::entity& e, const EntityType& type)
+get_closest(entt::registry& r, const entt::entity& e, const EntityType& type)
 {
-  const auto& physics = get_first_component<SINGLETON_PhysicsComponent>(r);
+  const auto& physics = get_first_component<const SINGLETON_PhysicsComponent>(r);
   const auto& t = r.get<TransformComponent>(e);
 
   ClosestInfo info;

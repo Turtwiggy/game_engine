@@ -30,7 +30,7 @@ game2d::update_player_controller_system(entt::registry& r, const uint64_t& milli
   const float time_between_bullets = 0.25f;
 
   // player movement
-  const auto& view = r.view<PlayerComponent, InputComponent, const ActorComponent, const TransformComponent>();
+  const auto& view = r.view<PlayerComponent, InputComponent, const PhysicsActorComponent, const TransformComponent>();
   for (auto [entity, player, input, actor, t] : view.each()) {
 
     auto* keyboard = r.try_get<KeyboardComponent>(entity);

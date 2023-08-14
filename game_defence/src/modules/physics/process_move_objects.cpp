@@ -1,11 +1,11 @@
 // your header
-#include "physics/process_move_objects.hpp"
+#include "modules/physics/process_move_objects.hpp"
 
 // components
 #include "entt/helpers.hpp"
 #include "maths/maths.hpp"
-#include "physics/components.hpp"
-#include "physics/helpers.hpp"
+#include "modules/physics/components.hpp"
+#include "modules/physics/helpers.hpp"
 #include "renderer/components.hpp"
 
 // c++ lib headers

@@ -1,7 +1,6 @@
 #pragma once
 
-// components
-#include "physics/components.hpp"
+#include "components.hpp"
 #include "renderer/components.hpp"
 
 // other lib headers

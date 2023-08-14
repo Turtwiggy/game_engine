@@ -33,7 +33,6 @@ restart_game(entt::registry& r)
   // load a map?
 
   const auto hearth = create_gameplay(r, EntityType::actor_hearth);
-  const auto& hearth_actor = r.get<PhysicsActorComponent>(hearth);
   const glm::vec2 spawn_pos = { 500.0f, 500.0f };
 
   // TODO: this
@@ -41,7 +40,6 @@ restart_game(entt::registry& r)
   // camera_transform.position = { spawn_pos.x, spawn_pos.y, 0.0f };
 
   const auto player = create_gameplay(r, EntityType::actor_player);
-  const auto& player_actor = r.get<PhysicsActorComponent>(player);
   // TODO: this
   // player_actor.body->SetTransform({ 550.0f, 550.0f }, 0.0f);
 }

@@ -4,6 +4,7 @@
 #include <SDL2/SDL_scancode.h>
 
 #include <entt/entt.hpp>
+#include <glm/glm.hpp>
 #include <nlohmann/json.hpp>
 
 namespace game2d {

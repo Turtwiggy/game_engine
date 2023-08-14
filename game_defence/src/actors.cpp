@@ -97,13 +97,6 @@ create_colour(const SINGLETON_ColoursComponent& colours, const EntityType& type)
   return scc;
 }
 
-struct PhysicsInfo
-{
-  b2BodyType type = b2_staticBody;
-  bool is_bullet = false;
-  float density = 1.0f;
-};
-
 entt::entity
 create_gameplay(entt::registry& r, const EntityType& type)
 {
@@ -143,7 +136,7 @@ create_gameplay(entt::registry& r, const EntityType& type)
 
       // gameplay
       PlayerComponent pc;
-      pc.debug_gun_spot = create_gameplay(r, world, EntityType::empty);
+      pc.debug_gun_spot = create_gameplay(r, EntityType::empty);
       r.emplace<InputComponent>(e);
       r.emplace<KeyboardComponent>(e);
       r.emplace<ControllerComponent>(e);
@@ -158,7 +151,7 @@ create_gameplay(entt::registry& r, const EntityType& type)
 
       // pickup zone
       {
-        pc.pickup_area = create_gameplay(r, world, EntityType::empty);
+        pc.pickup_area = create_gameplay(r, EntityType::empty);
 
         // hack: change sprite to circle
         // auto& sprite = r.get<SpriteComponent>(pc.pickup_area);

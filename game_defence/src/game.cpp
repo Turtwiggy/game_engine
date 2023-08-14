@@ -21,6 +21,8 @@
 #include "modules/gameover/system.hpp"
 #include "modules/items/intent_pickup_item.hpp"
 #include "modules/physics/components.hpp"
+#include "modules/physics/process_actor_actor.hpp"
+#include "modules/physics/process_move_objects.hpp"
 #include "modules/player/system.hpp"
 #include "modules/respawn/system.hpp"
 #include "modules/spawner/components.hpp"
@@ -34,9 +36,6 @@
 #include "modules/ui_hierarchy/system.hpp"
 #include "modules/ui_main_menu/system.hpp"
 #include "modules/ui_prefabs/system.hpp"
-#include "physics/components.hpp"
-#include "physics/process_actor_actor.hpp"
-#include "physics/process_move_objects.hpp"
 #include "renderer/components.hpp"
 #include "renderer/system.hpp"
 #include "resources/colours.hpp"
@@ -118,7 +117,7 @@ game2d::fixed_update(entt::registry& game, const uint64_t milliseconds_dt)
     return;
 
   // destroy/create objects
-  update_lifecycle_system(game, world, milliseconds_dt);
+  update_lifecycle_system(game, milliseconds_dt);
 
   // update physics
   {
@@ -135,6 +134,8 @@ game2d::fixed_update(entt::registry& game, const uint64_t milliseconds_dt)
   // resolve collisions
   {
     auto _ = time_scope(&p, "(physics)-collisions", true);
+
+    const auto& physics = get_first_component<SINGLETON_PhysicsComponent>(game);
 
     // some collisions result in dead entities
     auto& dead = get_first_component<SINGLETON_EntityBinComponent>(game);
@@ -276,7 +277,7 @@ game2d::update(engine::SINGLETON_Application& app, entt::registry& r, const floa
   static bool show_editor_ui = true;
   if (show_editor_ui) {
     update_ui_hierarchy_system(r);
-    update_ui_profiler_system(r, world);
+    update_ui_profiler_system(r);
   }
 
   end_frame_render_system(r);

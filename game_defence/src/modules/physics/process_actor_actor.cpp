@@ -2,8 +2,8 @@
 #include "process_actor_actor.hpp"
 
 // game2d
-#include "physics/components.hpp"
-#include "physics/helpers.hpp"
+#include "modules/physics/components.hpp"
+#include "modules/physics/helpers.hpp"
 #include "renderer/components.hpp"
 
 // other lib headers
