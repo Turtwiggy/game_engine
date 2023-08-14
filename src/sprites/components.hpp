@@ -61,8 +61,8 @@ struct SpriteComponent
   float angle_radians = 0.0f;
   int x = 0;
   int y = 0;
-  RenderOrder render_order = RenderOrder::background;
   int tex_unit = 0; // do not serialize
+  // RenderOrder render_order = RenderOrder::background;
 
   // spritesheet info
   int sx = 0;

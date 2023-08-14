@@ -9,7 +9,7 @@
 #include "modules/combat/components.hpp"
 #include "modules/combat/helpers.hpp"
 #include "modules/hearth/components.hpp"
-#include "modules/physics_box2d/components.hpp"
+#include "modules/physics/components.hpp"
 #include "modules/player/components.hpp"
 #include "modules/ui_economy/components.hpp"
 #include "renderer/components.hpp"
@@ -45,7 +45,7 @@ update_enemy_system(entt::registry& r, const uint64_t& milliseconds_dt)
     }
   }
 
-  const auto& view = r.view<const TransformComponent, ActorComponent, const EnemyComponent>();
+  const auto& view = r.view<const TransformComponent, PhysicsActorComponent, const EnemyComponent>();
   for (auto [entity, transform, physics, enemy] : view.each()) {
     // move towards player
     glm::ivec3 d = first_target_transform.position - transform.position;
@@ -59,8 +59,9 @@ update_enemy_system(entt::registry& r, const uint64_t& milliseconds_dt)
       n = normalize(dir);
 
     const float enemy_speed = 120.0f;
-    b2Vec2 pdir{ n.x * enemy_speed, n.y * enemy_speed };
-    physics.body->SetLinearVelocity(pdir);
+    // TODO: reimplement this
+    // b2Vec2 pdir{ n.x * enemy_speed, n.y * enemy_speed };
+    // physics.body->SetLinearVelocity(pdir);
   }
 }
 

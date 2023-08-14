@@ -4,11 +4,11 @@
 #include "actors.hpp"
 #include "components.hpp"
 #include "entt/helpers.hpp"
-#include "modules/physics_box2d/components.hpp"
+#include "modules/physics/components.hpp"
 #include "renderer/components.hpp"
 
 void
-game2d::update_lifecycle_system(entt::registry& r, b2World& world, const uint64_t& milliseconds_dt)
+game2d::update_lifecycle_system(entt::registry& r, const uint64_t& milliseconds_dt)
 {
   auto& dead = get_first_component<SINGLETON_EntityBinComponent>(r);
 
@@ -21,12 +21,8 @@ game2d::update_lifecycle_system(entt::registry& r, b2World& world, const uint64_
   });
 
   // process destroyed objects
-  for (const auto& entity : dead.dead) {
-    auto* act_ptr = r.try_get<ActorComponent>(entity);
-    if (act_ptr)
-      world.DestroyBody(act_ptr->body);
+  for (const auto& entity : dead.dead)
     r.destroy(entity);
-  }
 
   dead.dead.clear();
 
@@ -37,23 +33,24 @@ game2d::update_lifecycle_system(entt::registry& r, b2World& world, const uint64_
 
   const auto requests = r.view<CreateEntityRequest>();
   for (auto [entity, request] : requests.each()) {
-    auto e = create_gameplay(r, world, request.type);
+    auto e = create_gameplay(r, request.type);
 
-    auto* act_ptr = r.try_get<ActorComponent>(e);
-    if (act_ptr) {
-      // set position by physics
-      b2Vec2 pos{ static_cast<float>(request.position.x), static_cast<float>(request.position.y) };
-      act_ptr->body->SetTransform(pos, 0.0f);
+    // auto* act_ptr = r.try_get<ActorComponent>(e);
+    // if (act_ptr) {
+    //   // set position by physics
+    //   b2Vec2 pos{ static_cast<float>(request.position.x), static_cast<float>(request.position.y) };
+    //   act_ptr->body->SetTransform(pos, 0.0f);
 
-      // set linear velocity
-      b2Vec2 vel{ static_cast<float>(request.velocity.x), static_cast<float>(request.velocity.y) };
-      act_ptr->body->SetLinearVelocity(vel);
+    //   // set linear velocity
+    //   b2Vec2 vel{ static_cast<float>(request.velocity.x), static_cast<float>(request.velocity.y) };
+    //   act_ptr->body->SetLinearVelocity(vel);
 
-    } else {
-      // set position by transform
-      auto& transform = r.get<TransformComponent>(e);
-      transform.position = request.position;
-    }
+    // } else {
+
+    // set position by transform
+    auto& transform = r.get<TransformComponent>(e);
+    transform.position = request.position;
+    // }
 
     // capture new entity
     dead.created_this_frame.push_back(e);

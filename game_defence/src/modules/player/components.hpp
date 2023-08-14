@@ -12,6 +12,7 @@ struct PlayerComponent
 {
   float time_between_bullets_left = 0.0f;
   entt::entity debug_gun_spot = entt::null;
+  entt::entity pickup_area = entt::null;
 };
 
 struct KeyboardComponent

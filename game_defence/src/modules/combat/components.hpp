@@ -32,6 +32,7 @@ struct HealthComponent
 // When attacking,
 // create a DealDamageRequest
 //
+
 struct DealDamageRequest
 {
   entt::entity from;

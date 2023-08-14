@@ -59,7 +59,6 @@ else()
   find_package(OpenAL CONFIG REQUIRED)
 endif()
 
-find_package(box2d CONFIG REQUIRED)
 find_package(nlohmann_json CONFIG REQUIRED)
 find_package(glm CONFIG REQUIRED)
 find_path(STB_INCLUDE_DIRS "stb_c_lexer.h")
@@ -112,7 +111,6 @@ endif()
 
 target_link_libraries(game_defence PRIVATE glm::glm)
 target_link_libraries(game_defence PRIVATE nlohmann_json::nlohmann_json)
-target_link_libraries(game_defence PRIVATE box2d::box2d)
 
 IF(${CMAKE_SYSTEM_NAME} STREQUAL "Windows")
   # create symlink assets for build

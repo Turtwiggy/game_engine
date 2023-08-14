@@ -8,7 +8,8 @@
 #include "modules/combat/components.hpp"
 #include "modules/enemy/components.hpp"
 #include "modules/hearth/components.hpp"
-#include "modules/physics_box2d/components.hpp"
+#include "modules/items/components.hpp"
+#include "modules/physics/components.hpp"
 #include "modules/player/components.hpp"
 #include "modules/respawn/components.hpp"
 #include "modules/spawner/components.hpp"
@@ -57,13 +58,7 @@ create_sprite(entt::registry& r, const EntityType& type)
   // else
   // std::cerr << "warning! sprite not implemented: " << type_name << "\n";
 
-  RenderOrder order = RenderOrder::foreground;
-
-  //   if (type == EntityType::tile_type_floor)
-  //     order = RenderOrder::background;
-
   SpriteComponent sc;
-  sc.render_order = order;
 
   auto& textures = get_first_component<SINGLETON_Textures>(r);
   auto& anims = get_first_component<SINGLETON_Animations>(r);
@@ -109,53 +104,11 @@ struct PhysicsInfo
   float density = 1.0f;
 };
 
-void
-create_physics(entt::registry& r, b2World& world, const entt::entity& e, const glm::ivec2& size, const PhysicsInfo& info)
-{
-  // Bodies are built using the following steps:
-  // Define a body with position, damping, etc.
-  // Use the world object to create the body.
-  // Define fixtures with a shape, friction, density, etc.
-  // Create fixtures on the body.
-  b2Body* body = nullptr;
-
-  // create a body
-  {
-    b2BodyDef body_def;
-    body_def.position.Set(0.0f, 0.0f);
-    body_def.angle = 0.0f;
-    body_def.fixedRotation = true;
-    body_def.bullet = info.is_bullet;
-    body_def.type = info.type;
-    body_def.linearVelocity = b2Vec2_zero;
-    body = world.CreateBody(&body_def);
-
-    // set user data as the entity id
-    body->GetUserData().pointer = (uintptr_t)e;
-  }
-
-  // create a fixture
-  {
-    b2PolygonShape box;
-    box.SetAsBox(size.x / 2.0f, size.y / 2.0f);
-
-    b2FixtureDef fixture_def;
-    fixture_def.friction = 0.0f;
-    fixture_def.density = info.density;
-    fixture_def.shape = &box;
-    body->CreateFixture(&fixture_def);
-  }
-
-  ActorComponent pcomp;
-  pcomp.body = body;
-  pcomp.size = size;
-  r.emplace<ActorComponent>(e, pcomp);
-}
-
 entt::entity
-create_gameplay(entt::registry& r, b2World& world, const EntityType& type)
+create_gameplay(entt::registry& r, const EntityType& type)
 {
   const auto& colours = get_first_component<SINGLETON_ColoursComponent>(r);
+
   const glm::ivec2 DEFAULT_SIZE{ 16, 16 };
   const glm::ivec2 HALF_SIZE{ 8, 8 };
 
@@ -177,25 +130,20 @@ create_gameplay(entt::registry& r, b2World& world, const EntityType& type)
       break;
     }
     case EntityType::empty_with_physics: {
-      PhysicsInfo info;
-      info.is_bullet = false;
-      info.density = 1.0f;
-      info.type = b2_staticBody;
-      create_physics(r, world, e, DEFAULT_SIZE, info);
+      r.emplace<PhysicsTransformComponent>(e);
+      r.emplace<PhysicsSolidComponent>(e);
       break;
     }
     case EntityType::actor_player: {
 
-      PhysicsInfo info;
-      info.is_bullet = false;
-      info.density = 1.0f;
-      info.type = b2_dynamicBody;
-      create_physics(r, world, e, DEFAULT_SIZE, info);
+      r.emplace<PhysicsTransformComponent>(e);
+      r.emplace<PhysicsSolidComponent>(e);
+      r.emplace<PhysicsActorComponent>(e);
+      r.emplace<GridMoveComponent>(e);
 
       // gameplay
       PlayerComponent pc;
       pc.debug_gun_spot = create_gameplay(r, world, EntityType::empty);
-      r.emplace<PlayerComponent>(e, pc);
       r.emplace<InputComponent>(e);
       r.emplace<KeyboardComponent>(e);
       r.emplace<ControllerComponent>(e);
@@ -208,6 +156,20 @@ create_gameplay(entt::registry& r, b2World& world, const EntityType& type)
       r.emplace<AttackComponent>(e, 10);
       r.emplace<RangeComponent>(e, 10);
 
+      // pickup zone
+      {
+        pc.pickup_area = create_gameplay(r, world, EntityType::empty);
+
+        // hack: change sprite to circle
+        // auto& sprite = r.get<SpriteComponent>(pc.pickup_area);
+        // sprite.x = 39;
+        // sprite.y = 2;
+
+        r.emplace<PickupZone>(pc.pickup_area);
+        // todo: add collisions to this
+      }
+      r.emplace<PlayerComponent>(e, pc);
+
       // r.emplace<TakeDamageComponent>(e);
       // r.emplace<XpComponent>(e, 0);
       // StatsComponent stats;
@@ -219,45 +181,31 @@ create_gameplay(entt::registry& r, b2World& world, const EntityType& type)
     }
 
     case EntityType::actor_enemy: {
-      PhysicsInfo info;
-      info.is_bullet = false;
-      info.density = 0.1f;
-      info.type = b2_dynamicBody;
-      create_physics(r, world, e, DEFAULT_SIZE, info);
+      r.emplace<PhysicsTransformComponent>(e);
+      r.emplace<PhysicsActorComponent>(e);
+      r.emplace<GridMoveComponent>(e);
       r.emplace<EnemyComponent>(e);
       break;
     }
 
     case EntityType::actor_turret: {
-
-      PhysicsInfo info;
-      info.is_bullet = false;
-      info.density = 1.0f;
-      info.type = b2_staticBody;
-      create_physics(r, world, e, DEFAULT_SIZE, info);
-
+      r.emplace<PhysicsTransformComponent>(e);
+      r.emplace<PhysicsSolidComponent>(e);
       r.emplace<TurretComponent>(e);
       break;
     }
     case EntityType::actor_bullet: {
 
-      PhysicsInfo info;
-      info.is_bullet = true;
-      info.density = 0.1f;
-      info.type = b2_dynamicBody;
-      create_physics(r, world, e, HALF_SIZE, info);
+      r.emplace<PhysicsTransformComponent>(e);
+      r.emplace<PhysicsActorComponent>(e);
+      r.emplace<VelocityComponent>(e);
 
       r.emplace<EntityTimedLifecycle>(e);
       break;
     }
     case EntityType::actor_hearth: {
-
-      PhysicsInfo info;
-      info.is_bullet = false;
-      info.density = 1.0f;
-      info.type = b2_staticBody;
-      create_physics(r, world, e, DEFAULT_SIZE, info);
-
+      r.emplace<PhysicsTransformComponent>(e);
+      r.emplace<PhysicsSolidComponent>(e);
       r.emplace<HearthComponent>(e);
       r.emplace<HealthComponent>(e, 50);
 
@@ -270,12 +218,8 @@ create_gameplay(entt::registry& r, b2World& world, const EntityType& type)
       break;
     }
     case EntityType::spawner: {
-
-      PhysicsInfo info;
-      info.is_bullet = false;
-      info.density = 1.0f;
-      info.type = b2_staticBody;
-      create_physics(r, world, e, DEFAULT_SIZE, info);
+      r.emplace<PhysicsTransformComponent>(e);
+      r.emplace<PhysicsActorComponent>(e);
 
       r.emplace<SpawnerComponent>(e);
       r.emplace<HealthComponent>(e, 10);

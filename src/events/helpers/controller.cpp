@@ -12,7 +12,7 @@ void
 open_controllers(SINGLETON_InputComponent& input)
 {
   int controllers = SDL_NumJoysticks();
-  std::cout << "(InputManager) controllers available: " << controllers << "\n";
+  std::cout << "(InputManager) controllers available: " << controllers << std::endl;
 
   for (int i = 0; i < controllers; ++i) {
     if (SDL_IsGameController(i)) {
@@ -20,7 +20,7 @@ open_controllers(SINGLETON_InputComponent& input)
       SDL_GameController* controller = SDL_GameControllerOpen(i);
       if (controller) {
         input.controllers.push_back(controller);
-        std::cout << "(InputManager) controller loaded... " << i << "\n";
+        std::cout << "(InputManager) controller loaded... " << i << std::endl;
       } else {
         std::cerr << "Could not open gamecontroller " << i << " " << SDL_GetError() << "\n";
       }

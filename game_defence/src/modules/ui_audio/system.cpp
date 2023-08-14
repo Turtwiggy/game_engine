@@ -30,6 +30,7 @@ update_ui_audio_system(entt::registry& r)
   if (audio.refresh_devices) {
     audio.playback_devices = audio::list_devices(alcGetString(NULL, ALC_ALL_DEVICES_SPECIFIER));
     audio.captured_devices = audio::list_devices(alcGetString(NULL, ALC_DEVICE_SPECIFIER));
+    audio.refresh_devices = false;
   }
 
   ImGui::Text("Audio Devices");

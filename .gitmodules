@@ -10,6 +10,3 @@
 [submodule "thirdparty/vcpkg"]
 	path = thirdparty/vcpkg
 	url = https://github.com/microsoft/vcpkg.git
-[submodule "thirdparty/box2d"]
-	path = thirdparty/box2d
-	url = https://github.com/erincatto/box2d.git
