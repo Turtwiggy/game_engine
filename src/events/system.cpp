@@ -65,10 +65,15 @@ game2d::update_input_system(engine::SINGLETON_Application& app, SINGLETON_InputC
     // controller specific
     // if (e.type == SDL_JOYHATMOTION)
     //   process_controller_dpad(e.jhat);
-    // if (e.type == SDL_JOYBUTTONDOWN)
+
     //   process_controller_button_down(input, e.jbutton);
-    // if (e.type == SDL_JOYBUTTONUP)
+    if (e.type == SDL_JOYBUTTONDOWN)
+      std::cout << "down " << static_cast<int>(e.jbutton.button) << std::endl;
+
     //   process_controller_button_up(input, e.jbutton);
+    if (e.type == SDL_JOYBUTTONUP)
+      std::cout << "up " << static_cast<int>(e.jbutton.button) << std::endl;
+
     if (e.type == SDL_JOYDEVICEADDED)
       process_controller_added(input);
     if (e.type == SDL_JOYDEVICEREMOVED)

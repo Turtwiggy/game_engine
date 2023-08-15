@@ -1,35 +1,35 @@
 #include "intent_drop_item.hpp"
 
 #include "components.hpp"
+#include "entt/helpers.hpp"
+#include "lifecycle/components.hpp"
 
 namespace game2d {
 
 void
-update_intent_drop_item_system(entt::registry& r){
-  // // WantsToDrop
-  // const auto& drop_view = r.view<const TransformComponent, WantsToDrop>();
-  // drop_view.each([&r, &editor, &game](auto entity, const auto& actor, auto& intent) {
-  //   //
-  //   for (const entt::entity& item : intent.items) {
-  //     const EntityTypeComponent type = r.get<EntityTypeComponent>(item);
+update_intent_drop_item_system(entt::registry& r)
+{
 
-  //     // note, the two below are the opposite of the
-  //     // clean() function which removes renderable and physics
+  // enemies drop some xp
+  const auto& dead = get_first_component<SINGLETON_EntityBinComponent>(r);
+  for (const auto& dead : dead.dead) {
+    const auto& type = r.get<EntityTypeComponent>(dead);
+    if (type.type == EntityType::actor_enemy)
+      r.emplace<WantsToDrop>(dead);
+  }
 
-  //     // // add physics
-  //     // create_gameplay_existing_entity(editor, game, item, type.type);
+  // WantsToDrop
+  const auto& view = r.view<const TransformComponent, WantsToDrop>();
+  for (const auto& [entity, transform, request] : view.each()) {
 
-  //     // // make renderable
-  //     // create_renderable(editor, r, item, type.type);
+    CreateEntityRequest create;
+    create.type = EntityType::pickup_xp;
+    create.position = transform.position;
+    r.emplace<CreateEntityRequest>(r.create(), create);
 
-  //     // auto& transform = r.get<TransformComponent>(item);
-  //     // transform.position.x = actor.position.x;
-  //     // transform.position.y = actor.position.y;
-
-  //     // r.remove<InBackpackComponent>(item);
-  //   }
-  //   // r.remove<WantsToDrop>(entity);
-  // });
+    // request is done... but entity will die next frame anyway
+    r.remove<WantsToDrop>(entity);
+  }
 };
 
 } // namespace game2d

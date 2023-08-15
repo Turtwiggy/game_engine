@@ -19,6 +19,7 @@
 #include "modules/gameover/components.hpp"
 #include "modules/gameover/helpers.hpp"
 #include "modules/gameover/system.hpp"
+#include "modules/items/intent_drop_item.hpp"
 #include "modules/items/intent_pickup_item.hpp"
 #include "modules/physics/components.hpp"
 #include "modules/physics/process_actor_actor_collisions.hpp"
@@ -239,6 +240,7 @@ game2d::fixed_update(entt::registry& game, const uint64_t milliseconds_dt)
     update_respawn_system(game);
     update_spawner_system(game, milliseconds_dt);
     update_intent_pickup_system(game);
+    update_intent_drop_item_system(game);
   }
 
   fixed_input.fixed_tick += 1;

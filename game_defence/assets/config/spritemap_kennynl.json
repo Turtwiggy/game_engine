@@ -104,6 +104,8 @@
 
     {"name": "CAMPFIRE","frames": [{"x": 14,"y": 10}]},
     {"name": "FIRE","frames": [{"x": 15,"y": 10}]},
+    {"name": "GEM","frames": [{"x": 32,"y": 10}]},
+    {"name": "GEM_SMALLER","frames": [{"x": 33,"y": 10}]},
     {"name": "ICON_HEART","frames": [{"x": 39,"y": 10}]},
     {"name": "ICON_HEART_OUTLINE","frames": [{"x": 40,"y": 10}]},
     {"name": "ICON_HEART_HALF_FULL","frames": [{"x": 41,"y": 10}]},

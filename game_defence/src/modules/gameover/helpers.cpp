@@ -18,6 +18,8 @@ restart_game(entt::registry& r)
 {
   for (const auto& [entity, transform] : r.view<TransformComponent>().each())
     r.destroy(entity);
+  for (const auto& [entity, requests] : r.view<CreateEntityRequest>().each())
+    r.destroy(entity);
 
   destroy_and_create<SINGLETON_PhysicsComponent>(r);
   destroy_and_create<SINGLETON_EntityBinComponent>(r);
@@ -41,6 +43,10 @@ restart_game(entt::registry& r)
   const auto player = create_gameplay(r, EntityType::actor_player);
   auto& player_transform = r.get<TransformComponent>(player);
   player_transform.position = { 550, 550, 0 };
+
+  const auto spawner = create_gameplay(r, EntityType::spawner);
+  auto& spawner_transform = r.get<TransformComponent>(spawner);
+  spawner_transform.position = { 700, 700, 0 };
 }
 
 } // namespace game2d

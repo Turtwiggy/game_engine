@@ -11,11 +11,13 @@
 
 namespace game2d {
 
+// attached to entity
 struct WantsToPickUp
 {
   bool placeholder = true;
 };
 
+// attached to entity
 struct WantsToDrop
 {
   std::vector<entt::entity> items;
@@ -24,6 +26,11 @@ struct WantsToDrop
 };
 
 struct PickupZone
+{
+  bool placeholder = true;
+};
+
+struct AbleToBePickedUp
 {
   bool placeholder = true;
 };

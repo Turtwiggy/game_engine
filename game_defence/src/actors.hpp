@@ -19,6 +19,7 @@ enum class EntityType
   actor_enemy,
 
   pickup_zone,
+  pickup_xp,
 
   // misc
   spawner,

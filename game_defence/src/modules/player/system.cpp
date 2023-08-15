@@ -41,6 +41,7 @@ game2d::update_player_controller_system(entt::registry& r, const uint64_t& milli
     float& rx = input.stick_r.x;
     float& ry = input.stick_r.y;
 
+    bool right_bumper_pressed = false;
     bool lmb_press = false;
     lmb_press |= get_mouse_lmb_press();
 
@@ -72,6 +73,7 @@ game2d::update_player_controller_system(entt::registry& r, const uint64_t& milli
       rx = get_axis_01(c, controller->c_right_stick_x);
       ry = get_axis_01(c, controller->c_right_stick_y);
       lmb_press = get_axis_01(c, controller->c_right_trigger) > 0.7f;
+      right_bumper_pressed = get_button_held(c, controller->c_r_bumper);
     };
 
     // do the move
@@ -134,7 +136,8 @@ game2d::update_player_controller_system(entt::registry& r, const uint64_t& milli
       bool e_pressed = std::find_if(inputs.begin(), inputs.end(), [](const InputEvent& e) {
                          return e.type == InputType::keyboard && e.key == SDL_SCANCODE_E && e.state == InputState::held;
                        }) != std::end(inputs);
-      pickup_objects_pressed = e_pressed;
+      pickup_objects_pressed = e_pressed;             // keyboard
+      pickup_objects_pressed |= right_bumper_pressed; // controller
       if (pickup_objects_pressed) {
         std::cout << "Pickup pressed!\n";
         r.emplace_or_replace<WantsToPickUp>(entity);

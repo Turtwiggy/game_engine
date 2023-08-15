@@ -40,9 +40,11 @@ update_ui_economy_system(entt::registry& r)
   // hack showing player hp
   const auto& first_player = get_first<PlayerComponent>(r);
   if (first_player != entt::null) {
+    const auto& player = r.get<PlayerComponent>(first_player);
     const auto& health = r.try_get<HealthComponent>(first_player);
     if (health)
       ImGui::Text("Player HP: %i", health->hp);
+    ImGui::Text("Picked up XP: %i", player.picked_up_xp);
   }
 
   // hack showing hearth hp

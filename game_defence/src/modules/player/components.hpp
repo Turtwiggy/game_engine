@@ -14,6 +14,7 @@ struct PlayerComponent
   float time_between_bullets_left = 0.0f;
   entt::entity debug_gun_spot = entt::null;
   entt::entity pickup_area = entt::null;
+  int picked_up_xp = 0;
 };
 
 struct KeyboardComponent
@@ -44,6 +45,8 @@ struct ControllerComponent
   SDL_GameControllerButton c_dpad_down = SDL_GameControllerButton::SDL_CONTROLLER_BUTTON_DPAD_DOWN;
   SDL_GameControllerButton c_dpad_left = SDL_GameControllerButton::SDL_CONTROLLER_BUTTON_DPAD_LEFT;
   SDL_GameControllerButton c_dpad_right = SDL_GameControllerButton::SDL_CONTROLLER_BUTTON_DPAD_RIGHT;
+  SDL_GameControllerButton c_l_bumper = SDL_GameControllerButton::SDL_CONTROLLER_BUTTON_LEFTSHOULDER;
+  SDL_GameControllerButton c_r_bumper = SDL_GameControllerButton::SDL_CONTROLLER_BUTTON_RIGHTSHOULDER;
 };
 
 struct InputComponent

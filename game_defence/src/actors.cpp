@@ -54,6 +54,8 @@ create_sprite(entt::registry& r, const EntityType& type)
     sprite = "CASTLE_FLOOR";
   else if (type == EntityType::actor_hearth)
     sprite = "CAMPFIRE";
+  else if (type == EntityType::pickup_xp)
+    sprite = "GEM";
   // else
   // std::cerr << "warning! sprite not implemented: " << type_name << "\n";
 
@@ -143,8 +145,14 @@ create_gameplay(entt::registry& r, const EntityType& type)
       r.emplace<PhysicsActorComponent>(e);
       break;
     }
-    case EntityType::actor_player: {
+    case EntityType::pickup_xp: {
+      r.emplace<PhysicsTransformComponent>(e);
+      r.emplace<PhysicsActorComponent>(e);
+      r.emplace<AbleToBePickedUp>(e);
+      break;
+    }
 
+    case EntityType::actor_player: {
       r.emplace<PhysicsTransformComponent>(e);
       r.emplace<PhysicsSolidComponent>(e);
       r.emplace<PhysicsActorComponent>(e);
