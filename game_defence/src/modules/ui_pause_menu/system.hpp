@@ -7,6 +7,6 @@
 namespace game2d {
 
 void
-update_ui_main_menu_system(engine::SINGLETON_Application& app, entt::registry& r);
+update_ui_pause_menu_system(engine::SINGLETON_Application& app, entt::registry& r);
 
 } // namespace game2d

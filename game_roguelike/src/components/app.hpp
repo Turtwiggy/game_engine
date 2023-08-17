@@ -25,7 +25,7 @@ namespace game2d {
 // persistent between games
 struct GameEditor
 {
-  Profiler profiler;
+  SINGLETON_Profiler profiler;
   SINGLETON_Animations animations;
   SINGLETON_ColoursComponent colours;
   SINGLETON_RendererInfo renderer;

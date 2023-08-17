@@ -13,17 +13,12 @@
 #include "modules/player/components.hpp"
 #include "renderer/components.hpp"
 #include "sprites/components.hpp"
-#include "ui_profiler/components.hpp"
-#include "ui_profiler/helpers.hpp"
 
 namespace game2d {
 
 void
 update_turret_system(entt::registry& r, const uint64_t& ms_dt)
 {
-  auto& p = get_first_component<Profiler>(r);
-  auto _ = time_scope(&p, "update_turret_system", true);
-
   const float dt = ms_dt / 1000.0f;
   const auto& physics = get_first_component<SINGLETON_PhysicsComponent>(r);
   const auto& enemies = r.view<const EnemyComponent, const TransformComponent>();

@@ -1,6 +1,7 @@
 #include "system.hpp"
 
 #include "app/application.hpp"
+#include "entt/helpers.hpp"
 #include "events/components.hpp"
 #include "events/helpers/controller.hpp"
 #include "events/helpers/keyboard.hpp"
@@ -14,8 +15,9 @@
 #include <vector>
 
 void
-game2d::init_input_system(SINGLETON_InputComponent& input, entt::registry& r)
+game2d::init_input_system(entt::registry& r)
 {
+  auto& input = get_first_component<SINGLETON_InputComponent>(r);
   input.state = SDL_GetKeyboardState(NULL);
   open_controllers(input);
 };

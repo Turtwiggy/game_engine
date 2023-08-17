@@ -13,7 +13,7 @@ struct ProfileResult
   float ms = 0.0f;
 };
 
-struct Profiler
+struct SINGLETON_Profiler
 {
   std::vector<ProfileResult> update_results;
   std::vector<ProfileResult> fixed_update_results;

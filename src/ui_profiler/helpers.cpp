@@ -21,7 +21,7 @@ Timer::elapsed_ms() const
   return elapsed() * 1000.0f;
 };
 
-ScopedTime::ScopedTime(Profiler* p, const std::string& n, bool fu)
+ScopedTime::ScopedTime(SINGLETON_Profiler* p, const std::string& n, bool fu)
   : profiler(p)
   , name(n)
   , fixed_update(fu){};
@@ -35,7 +35,7 @@ ScopedTime::~ScopedTime()
 };
 
 ScopedTime
-time_scope(Profiler* p, const std::string& name, bool fixed_update)
+time_scope(SINGLETON_Profiler* p, const std::string& name, bool fixed_update)
 {
   return ScopedTime(p, name, fixed_update);
 };

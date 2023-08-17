@@ -33,11 +33,9 @@ init_audio_system(entt::registry& r)
 
   const int max_audio_sources = 16;
   for (int i = 0; i < max_audio_sources; i++) {
-    const auto& e = r.create();
     ALuint source_id;
     alGenSources(1, &source_id);
-    r.emplace<TagComponent>(e, "Audio Source");
-    r.emplace<AudioSource>(e, source_id);
+    r.emplace<AudioSource>(r.create(), source_id);
     // alSourcef(music, AL_PITCH, 1.0f); // pitch
     // alGetSourcei(music, AL_SOURCE_STATE, &audio_state); // state
     // alGetSourcef(music, AL_SEC_OFFSET, &audio_offset); // offset

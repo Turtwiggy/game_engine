@@ -10,7 +10,6 @@ namespace game2d {
 void
 update_take_damage_system(entt::registry& r)
 {
-  auto& dead = get_first_component<SINGLETON_EntityBinComponent>(r);
 
   const auto& view = r.view<DealDamageRequest>();
   for (auto [e_req, request] : view.each()) {
@@ -38,11 +37,16 @@ update_take_damage_system(entt::registry& r)
     // .. take damage
     hp->hp -= glm::max(0, atk->damage);
 
-    // check if dead
-    if (hp->hp <= 0)
-      dead.dead.emplace(request.to);
-
     r.destroy(e_req); // done request
+  }
+
+  //
+  // check if anything is dead
+  //
+  auto& dead = get_first_component<SINGLETON_EntityBinComponent>(r);
+  for (const auto& [e, hp] : r.view<const HealthComponent>().each()) {
+    if (hp.hp <= 0)
+      dead.dead.emplace(e);
   }
 };
 

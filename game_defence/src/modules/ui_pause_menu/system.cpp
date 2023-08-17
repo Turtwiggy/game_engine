@@ -3,11 +3,12 @@
 #include "entt/helpers.hpp"
 #include "events/helpers/keyboard.hpp"
 #include "game_state.hpp"
+#include "modules/scene/helpers.hpp"
 
 #include <imgui.h>
 
 void
-game2d::update_ui_main_menu_system(engine::SINGLETON_Application& app, entt::registry& r)
+game2d::update_ui_pause_menu_system(engine::SINGLETON_Application& app, entt::registry& r)
 {
   ImGuiWindowFlags flags = 0;
   flags |= ImGuiWindowFlags_NoFocusOnAppearing;
@@ -24,8 +25,6 @@ game2d::update_ui_main_menu_system(engine::SINGLETON_Application& app, entt::reg
     open = !open;
 
   // only update state if it was running or paused
-  if (state.state == GameState::START) // HACK
-    state.state = GameState::RUNNING;
   if (open)
     state.state = state.state == GameState::RUNNING ? GameState::PAUSED : state.state;
   if (!open)
@@ -37,9 +36,9 @@ game2d::update_ui_main_menu_system(engine::SINGLETON_Application& app, entt::reg
     // ImGui::SetNextWindowPos(size, ImGuiCond_FirstUseEver, ImVec2(0.5f, 0.5f));
     // const auto& viewport = ImGui::GetWindowViewport();
     // ImGui::SetNextWindowPos(viewport->GetCenter());
-    ImGui::SetNextWindowSize(ImVec2{ 300, 350 });
+    // ImGui::SetNextWindowSize(ImVec2{ 300, 350 });
 
-    ImGui::Begin("Main Menu", &open, flags);
+    ImGui::Begin("Pause Menu", &open, flags);
 
     ImGui::Text("Menu FPS: %0.2f", ImGui::GetIO().Framerate);
 
@@ -79,8 +78,8 @@ game2d::update_ui_main_menu_system(engine::SINGLETON_Application& app, entt::reg
         app.window.set_size({ 3840, 2160 });
     }
 
-    // if (ImGui::Button("Restart"))
-    //   game.running_state = GameState::START;
+    if (ImGui::Button("Back to Menu"))
+      move_to_scene_start(r, Scene::menu);
 
     if (ImGui::Button("Quit"))
       app.running = false;

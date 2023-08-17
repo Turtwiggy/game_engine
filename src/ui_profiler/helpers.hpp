@@ -21,16 +21,16 @@ private:
 // Adds an instance to the profiler
 struct ScopedTime
 {
-  ScopedTime(Profiler* p, const std::string& n, bool fixed_update = false);
+  ScopedTime(SINGLETON_Profiler* p, const std::string& n, bool fixed_update = false);
   ~ScopedTime();
 
-  Profiler* const profiler;
+  SINGLETON_Profiler* const profiler;
   std::string name;
   Timer t;
   bool fixed_update = false;
 };
 
 ScopedTime
-time_scope(Profiler* p, const std::string& name, bool fixed_update = false);
+time_scope(SINGLETON_Profiler* p, const std::string& name, bool fixed_update = false);
 
 } // namespace game2d

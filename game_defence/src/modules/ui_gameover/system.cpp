@@ -3,7 +3,7 @@
 #include "entt/helpers.hpp"
 #include "modules/combat/components.hpp"
 #include "modules/gameover/components.hpp"
-#include "modules/gameover/helpers.hpp"
+#include "modules/scene/helpers.hpp"
 #include "modules/ui_gameover/components.hpp"
 #include "renderer/components.hpp"
 
@@ -31,12 +31,16 @@ update_ui_gameover_system(entt::registry& r)
     const auto pos = ImVec2(viewport_pos.x + viewport_size_half.x, viewport_pos.y + viewport_size_half.y);
     ImGui::SetNextWindowPos(pos, ImGuiCond_Always, ImVec2(0.5f, 0.5f));
 
-    bool show = true;
-    ImGui::Begin("GameOver!", &show, flags);
+    ImGui::Begin("GameOver!", NULL, flags);
     ImGui::Text("%s", gameover.reason.c_str());
     ImGui::Text("Thanks for playing.");
+
     if (ImGui::Button("Restart"))
       r.emplace<NewGameRequest>(r.create());
+
+    if (ImGui::Button("Main Menu"))
+      move_to_scene_start(r, Scene::menu); // hack: impl shouldnt be here
+
     ImGui::End();
   }
 }

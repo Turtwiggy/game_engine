@@ -25,7 +25,7 @@ game2d::update_ui_profiler_system(entt::registry& r)
   //     std::cout << "(profiler) fps drop?! \n";
   // #endif
 
-  auto& profiler = get_first_component<Profiler>(r);
+  auto& profiler = get_first_component<SINGLETON_Profiler>(r);
   const auto& physics = get_first_component<const SINGLETON_PhysicsComponent>(r);
   const auto& objs = r.view<const PhysicsTransformComponent>();
   const auto& solids = r.view<const PhysicsSolidComponent>();
