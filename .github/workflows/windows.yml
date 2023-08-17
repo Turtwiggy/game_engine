@@ -2,7 +2,7 @@ name: game_defence
 
 on:
   push:
-    branches: [ develop ]
+    branches: [ '*' ]
 
 jobs:
   test-then-upload-game:
