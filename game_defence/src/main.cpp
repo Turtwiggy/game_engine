@@ -16,6 +16,7 @@ using namespace engine;
 
 // std lib
 #include <chrono>
+#include <iostream>
 
 // fixed tick
 static const int MILLISECONDS_PER_FIXED_TICK = 7; // or ~142 ticks per second
@@ -24,6 +25,7 @@ static uint64_t milliseconds_accumulator_since_last_tick = 0;
 static uint64_t new_time = 0;
 static uint64_t cur_time = 0;
 static uint64_t milliseconds_delta_time = 0;
+static uint64_t MAX_SPIRAL_TICKS_PER_FRAME = 5;
 
 static SINGLETON_Application app;
 static entt::registry game;
@@ -41,8 +43,11 @@ main_loop(void* arg)
 
   new_time = SDL_GetTicks64();
   milliseconds_delta_time = new_time - cur_time;
-  if (milliseconds_delta_time > 250)
-    milliseconds_delta_time = 250; // avoid spiral
+  if (milliseconds_delta_time > MILLISECONDS_PER_FIXED_TICK * MAX_SPIRAL_TICKS_PER_FRAME) {
+    // just to make sure we really do spiral, add some logging
+    std::cout << "app is running slowwwwwww\n";
+    milliseconds_delta_time = MILLISECONDS_PER_FIXED_TICK * MAX_SPIRAL_TICKS_PER_FRAME; // avoid spiral
+  }
   cur_time = new_time;
 
   // The physics cycle may happen more than once per frame if

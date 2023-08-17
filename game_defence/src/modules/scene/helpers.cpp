@@ -6,6 +6,7 @@
 #include "events/components.hpp"
 #include "game_state.hpp"
 #include "lifecycle/components.hpp"
+#include "maths/maths.hpp"
 #include "modules/combat/helpers.hpp"
 #include "modules/gameover/components.hpp"
 #include "modules/physics/components.hpp"
@@ -48,6 +49,7 @@ move_to_scene_start(entt::registry& r, const Scene& s)
   destroy_and_create<SINGLETON_UiEconomy>(r);
   destroy_and_create<SINGLETON_ColoursComponent>(r);
   destroy_and_create<SINGLETON_GameOver>(r);
+  destroy_and_create<SINGLETON_Wave>(r);
   const auto camera = create_gameplay(r, EntityType::camera);
   auto& camera_transform = r.get<TransformComponent>(camera);
   camera_transform.position = { 50, 50, 0 };
@@ -58,17 +60,15 @@ move_to_scene_start(entt::registry& r, const Scene& s)
 
     const auto hearth = create_gameplay(r, EntityType::actor_hearth);
     auto& hearth_transform = r.get<TransformComponent>(hearth);
-    const glm::ivec2 spawn_pos = { 500, 500 };
+    const glm::ivec2 spawn_pos = { 0, 0 };
     hearth_transform.position = { spawn_pos.x, spawn_pos.y, 0 };
     camera_transform.position = { spawn_pos.x, spawn_pos.y, 0 };
 
     const auto player = create_gameplay(r, EntityType::actor_player);
     auto& player_transform = r.get<TransformComponent>(player);
-    player_transform.position = { 550, 550, 0 };
+    player_transform.position = { 32, 32, 0 };
 
-    const auto spawner = create_gameplay(r, EntityType::spawner);
-    auto& spawner_transform = r.get<TransformComponent>(spawner);
-    spawner_transform.position = { 700, 700, 0 };
+    // todo: generate random spawns
   }
 
   auto& scene = get_first_component<SINGLETON_CurrentScene>(r);

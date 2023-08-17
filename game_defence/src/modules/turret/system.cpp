@@ -25,12 +25,17 @@ update_turret_system(entt::registry& r, const uint64_t& ms_dt)
   const auto& turrets = r.view<TurretComponent, TransformComponent>();
   const auto& player = get_first<PlayerComponent>(r); // assume one player for now
 
+  const std::vector<EntityType> valid_types{
+    EntityType::actor_enemy,
+    EntityType::spawner,
+  };
+
   for (auto [t_entity, turret, t] : turrets.each()) {
 
     //
     // Get Closest Entity to turret
     //
-    const auto info = get_closest(r, t_entity, EntityType::actor_enemy);
+    const auto info = get_closest(r, t_entity, valid_types);
 
     if (info.e == entt::null)
       continue; // no enemy

@@ -35,7 +35,14 @@ rand_det_s(T& rnd, float M, float MN)
   float scaled = (rnd() - rnd.min()) / (float)(rnd.max() - rnd.min() + 1.f);
 
   return scaled * (MN - M) + M;
-}
+};
+
+template<typename T>
+inline float
+rand_01(T& rnd)
+{
+  return rand_det_s(rnd, 0.0f, 1.0f);
+};
 
 [[nodiscard]] glm::vec2
 angle_radians_to_direction(const float angle);

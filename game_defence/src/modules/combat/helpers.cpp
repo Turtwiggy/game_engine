@@ -36,19 +36,19 @@ create_class(entt::registry& r, entt::entity& e, const EntityType& type, const W
 
   switch (weapon) {
     case Weapon::sniper: {
-      r.emplace<HealthComponent>(e, 10);
+      r.emplace<HealthComponent>(e, 3);
       r.emplace<AttackComponent>(e, 20);
       r.emplace<RangeComponent>(e, 20);
       break;
     }
     case Weapon::shotgun: {
-      r.emplace<HealthComponent>(e, 25);
+      r.emplace<HealthComponent>(e, 4);
       r.emplace<AttackComponent>(e, 50);
       r.emplace<RangeComponent>(e, 10);
       break;
     }
     case Weapon::grunt: {
-      r.emplace<HealthComponent>(e, 10);
+      r.emplace<HealthComponent>(e, 3);
       r.emplace<AttackComponent>(e, 10);
       r.emplace<RangeComponent>(e, 10);
       break;

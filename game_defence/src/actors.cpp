@@ -172,7 +172,6 @@ create_gameplay(entt::registry& r, const EntityType& type)
 
       // hmm
       r.emplace<HealthComponent>(e, 100);
-      r.emplace<AttackComponent>(e, 10);
       r.emplace<RangeComponent>(e, 10);
 
       // r.emplace<TakeDamageComponent>(e);
@@ -190,16 +189,25 @@ create_gameplay(entt::registry& r, const EntityType& type)
       r.emplace<PhysicsActorComponent>(e);
       r.emplace<GridMoveComponent>(e);
       r.emplace<EnemyComponent>(e);
+      // health, attack, range set on class
       break;
     }
 
     case EntityType::actor_turret: {
       r.emplace<PhysicsTransformComponent>(e);
-      r.emplace<PhysicsSolidComponent>(e);
+      r.emplace<PhysicsActorComponent>(e);
       r.emplace<TurretComponent>(e);
+
+      // todo: if make turret solid,
+      // spawn bullets outside of turret
+      // r.emplace<PhysicsSolidComponent>(e);
       break;
     }
     case EntityType::actor_bullet: {
+      transform.scale.x = HALF_SIZE.x;
+      transform.scale.y = HALF_SIZE.y;
+
+      r.emplace<AttackComponent>(e, 1);
 
       r.emplace<PhysicsTransformComponent>(e);
       r.emplace<PhysicsActorComponent>(e);

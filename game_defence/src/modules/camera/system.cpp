@@ -33,26 +33,26 @@ update_camera_system(entt::registry& r, float dt)
 
   auto& camera = r.get<OrthographicCamera>(camera_ent);
   auto& camera_transform = r.get<TransformComponent>(camera_ent);
-  camera_transform.scale.x = 1;
-  camera_transform.scale.y = 1;
 
-  if (get_key_down(input, SDL_SCANCODE_RETURN))
-    camera_transform.position = target_transform.position;
-
-  float CAM_SPEED = 500.0f;
-  if (get_key_held(input, SDL_SCANCODE_LSHIFT))
-    CAM_SPEED *= 2.0f;
-
-  const int mul = static_cast<int>(CAM_SPEED * dt);
-
-  if (get_key_held(input, SDL_SCANCODE_LEFT))
-    camera_transform.position.x -= mul;
-  if (get_key_held(input, SDL_SCANCODE_RIGHT))
-    camera_transform.position.x += mul;
-  if (get_key_held(input, SDL_SCANCODE_UP))
-    camera_transform.position.y -= mul;
-  if (get_key_held(input, SDL_SCANCODE_DOWN))
-    camera_transform.position.y += mul;
+  //
+  // debugging camera
+  //
+  // camera_transform.scale.x = 1;
+  // camera_transform.scale.y = 1;
+  // if (get_key_down(input, SDL_SCANCODE_RETURN))
+  //   camera_transform.position = target_transform.position;
+  // float CAM_SPEED = 500.0f;
+  // if (get_key_held(input, SDL_SCANCODE_LSHIFT))
+  //   CAM_SPEED *= 2.0f;
+  // const int mul = static_cast<int>(CAM_SPEED * dt);
+  // if (get_key_held(input, SDL_SCANCODE_LEFT))
+  //   camera_transform.position.x -= mul;
+  // if (get_key_held(input, SDL_SCANCODE_RIGHT))
+  //   camera_transform.position.x += mul;
+  // if (get_key_held(input, SDL_SCANCODE_UP))
+  //   camera_transform.position.y -= mul;
+  // if (get_key_held(input, SDL_SCANCODE_DOWN))
+  //   camera_transform.position.y += mul;
 
   //   glm::vec3 lerp_pos = glm::lerp(pos_as_vec3, target_position, glm::clamp(dt * damping, 0.0f, 1.0f));
 

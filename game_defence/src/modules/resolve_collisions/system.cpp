@@ -48,9 +48,10 @@ update_resolve_collisions_system(entt::registry& r)
       const auto& [actor_enemy, actor_bullet] =
         collision_of_interest(a, b, a_type, b_type, EntityType::actor_enemy, EntityType::actor_bullet);
       if (actor_enemy != entt::null && actor_bullet != entt::null) {
-        dead.dead.emplace(actor_enemy);
-        dead.dead.emplace(actor_bullet);
-        econ.kills += 1;
+        dead.dead.emplace(actor_bullet); // kill bullet
+        const auto& from = actor_bullet;
+        const auto& to = actor_enemy;
+        r.emplace<DealDamageRequest>(r.create(), from, to);
       }
     }
 
@@ -59,11 +60,10 @@ update_resolve_collisions_system(entt::registry& r)
       const auto& [actor_spawner, actor_bullet] =
         collision_of_interest(a, b, a_type, b_type, EntityType::spawner, EntityType::actor_bullet);
       if (actor_spawner != entt::null && actor_bullet != entt::null) {
-        dead.dead.emplace(actor_bullet);
-
-        auto& hp = r.get<HealthComponent>(actor_spawner);
-        hp.hp -= 1;
-        hp.hp = glm::max(0, hp.hp);
+        dead.dead.emplace(actor_bullet); // kill bullet
+        const auto& from = actor_bullet;
+        const auto& to = actor_spawner;
+        r.emplace<DealDamageRequest>(r.create(), from, to);
       }
     }
 
@@ -73,10 +73,7 @@ update_resolve_collisions_system(entt::registry& r)
         collision_of_interest(a, b, a_type, b_type, EntityType::actor_player, EntityType::actor_enemy);
       if (actor_player != entt::null && actor_enemy != entt::null) {
         {
-          const auto& enemy_atk = r.get<AttackComponent>(actor_enemy);
-          // kill enemy
-          dead.dead.emplace(actor_enemy);
-
+          dead.dead.emplace(actor_enemy); // kill enemy
           const auto& from = actor_enemy;
           const auto& to = actor_player;
           r.emplace<DealDamageRequest>(r.create(), from, to);
@@ -89,13 +86,10 @@ update_resolve_collisions_system(entt::registry& r)
       const auto& [actor_hearth, actor_enemy] =
         collision_of_interest(a, b, a_type, b_type, EntityType::actor_hearth, EntityType::actor_enemy);
       if (actor_hearth != entt::null && actor_enemy != entt::null) {
-        const auto* atk = r.try_get<AttackComponent>(actor_enemy);
-        auto* hp = r.try_get<HealthComponent>(actor_hearth);
-        if (hp && atk) {
-          hp->hp -= atk->damage;
-          hp->hp = glm::max(0, hp->hp);
-          dead.dead.emplace(actor_enemy);
-        }
+        dead.dead.emplace(actor_enemy); // kill enemy
+        const auto& from = actor_enemy;
+        const auto& to = actor_hearth;
+        r.emplace<DealDamageRequest>(r.create(), from, to);
       }
     }
   }

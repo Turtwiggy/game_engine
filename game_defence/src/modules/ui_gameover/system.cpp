@@ -18,8 +18,8 @@ update_ui_gameover_system(entt::registry& r)
   const auto& ri = get_first_component<SINGLETON_RendererInfo>(r);
 
   if (gameover.game_is_over) {
+
     ImGuiWindowFlags flags = 0;
-    flags |= ImGuiWindowFlags_NoFocusOnAppearing;
     flags |= ImGuiWindowFlags_NoMove;
     flags |= ImGuiWindowFlags_NoTitleBar;
     flags |= ImGuiWindowFlags_NoResize;
