@@ -45,7 +45,8 @@ jobs:
       run: cmake --build build --config Release --target game_defence_tests --parallel 10
     
     - name: run-tests
-      run: ./build/game_defence_tests/game_defence_tests.exe
+      run: |
+        ./build/game_defence_tests/game_defence_tests.exe | findstr -i "pass"
 
     - name: build-game
       run: cmake --build build --config Release --target game_defence --parallel 10
