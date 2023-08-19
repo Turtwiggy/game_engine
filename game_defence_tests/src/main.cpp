@@ -2,8 +2,6 @@
 #include <cstdio>
 #include <gtest/gtest.h>
 
-#include "example_function.hpp"
-
 #undef main
 
 // Logical	    ASSERT_TRUE(condition)

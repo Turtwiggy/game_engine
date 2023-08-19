@@ -41,6 +41,7 @@ game2d::update_player_controller_system(entt::registry& r, const uint64_t& milli
     float& rx = input.stick_r.x;
     float& ry = input.stick_r.y;
 
+    bool left_bumper_pressed = false;
     bool right_bumper_pressed = false;
     bool lmb_press = false;
     lmb_press |= get_mouse_lmb_press();
@@ -134,7 +135,7 @@ game2d::update_player_controller_system(entt::registry& r, const uint64_t& milli
     {
       bool pickup_objects_pressed = false;
       bool e_pressed = std::find_if(inputs.begin(), inputs.end(), [](const InputEvent& e) {
-                         return e.type == InputType::keyboard && e.key == SDL_SCANCODE_E && e.state == InputState::held;
+                         return e.type == InputType::keyboard && e.key == SDL_SCANCODE_E && e.state == InputState::press;
                        }) != std::end(inputs);
       pickup_objects_pressed = e_pressed;             // keyboard
       pickup_objects_pressed |= right_bumper_pressed; // controller
@@ -142,6 +143,26 @@ game2d::update_player_controller_system(entt::registry& r, const uint64_t& milli
         std::cout << "Pickup pressed!\n";
         r.emplace_or_replace<WantsToPickUp>(entity);
       }
+    }
+
+    //
+    // hack: place turret?
+    // bug: turrets_placed not reset on scene reset
+    //
+    static int turrets_placed = 0;
+    bool place_turret_pressed = false;
+    bool space_pressed =
+      std::find_if(inputs.begin(), inputs.end(), [](const InputEvent& e) {
+        return e.type == InputType::keyboard && e.key == SDL_SCANCODE_SPACE && e.state == InputState::press;
+      }) != std::end(inputs);
+
+    place_turret_pressed |= space_pressed; // keyboard
+    if (place_turret_pressed && turrets_placed < 4) {
+      turrets_placed++;
+      CreateEntityRequest req;
+      req.type = EntityType::actor_turret;
+      req.position = t.position;
+      r.emplace<CreateEntityRequest>(r.create(), req);
     }
   }
 };

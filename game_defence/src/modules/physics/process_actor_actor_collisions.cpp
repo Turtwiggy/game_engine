@@ -8,16 +8,17 @@
 
 // other lib headers
 #include <glm/glm.hpp>
+#include <ranges>
 #include <vector>
 
 void
-game2d::update_actor_actor_collisions_system(entt::registry& registry, SINGLETON_PhysicsComponent& p)
+game2d::update_actor_actor_collisions_system(entt::registry& r, SINGLETON_PhysicsComponent& p)
 {
   // 1. get all the actors
   // 2. generate all possible collisions
   // 3. generate collision enter, exit, stay
 
-  generate_filtered_broadphase_collisions(registry, p.frame_collisions);
+  generate_filtered_broadphase_collisions(r, p.frame_collisions);
 
   {
     // There's 3 states needed to capture:
@@ -32,36 +33,32 @@ game2d::update_actor_actor_collisions_system(entt::registry& registry, SINGLETON
 
     // Set any persistent collisions to dirty, as they're from last frame
     for (auto& persistent_collision : p.persistent_collisions)
-      persistent_collision.second.dirty = true;
+      persistent_collision.dirty = true;
 
     // Check the new collisions
-    for (const auto& frame_collision : p.frame_collisions) {
-      const auto& val = frame_collision.first;
+    for (const auto& coll : p.frame_collisions) {
       const auto& pmap = p.persistent_collisions;
-      auto result = std::find_if(pmap.begin(), pmap.end(), [val](const auto& col) { return col.first == val; });
+      auto result = std::find_if(pmap.begin(), pmap.end(), [&coll](const Collision2D& new_col) {
+        return new_col.ent_id_0 == coll.ent_id_0 && new_col.ent_id_1 == coll.ent_id_1;
+      });
       if (result == pmap.end()) {
         // New collision
         // std::cout << "ents: new coll" << "\n";
-        p.collision_enter.push_back(frame_collision.second);
-        p.collision_stay.push_back(frame_collision.second);
+        p.collision_enter.push_back(coll);
+        p.collision_stay.push_back(coll);
       } else {
         // Update collision
-        p.collision_stay.push_back(frame_collision.second);
+        p.collision_stay.push_back(coll);
       }
-      p.persistent_collisions[frame_collision.first] = frame_collision.second;
-      p.persistent_collisions[frame_collision.first].dirty = false;
+
+      // Set as new persistent collision with dirty: false
+      p.persistent_collisions.push_back(coll);
     }
 
     // Check stale collisions
-    std::map<uint64_t, Collision2D>::iterator it;
-    for (it = p.persistent_collisions.begin(); it != p.persistent_collisions.end();) {
-      if (!it->second.dirty) {
-        ++it;
-        continue;
-      }
-      // std::cout << "ents: exit coll" << "\n";
-      p.collision_exit.push_back(it->second);
-      p.persistent_collisions.erase(it++);
-    }
+    const auto is_dirty = [](const Collision2D& coll) { return coll.dirty; };
+    const auto [first, last] = std::ranges::remove_if(p.persistent_collisions, is_dirty);
+    p.collision_exit.insert(p.collision_exit.end(), first, last);
+    p.persistent_collisions.erase(first, last);
   }
 };

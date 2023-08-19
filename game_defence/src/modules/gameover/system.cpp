@@ -46,17 +46,11 @@ update_gameover_system(entt::registry& r)
         }
       }
 
-      // Check if the game is over (all spanwers are ded)
-
-      bool enemy_spawner_exists = false;
-      const auto& spawners = r.view<SpawnerComponent>();
-      for (const auto [entity, spawner] : spawners.each()) {
-        enemy_spawner_exists |= spawner.type_to_spawn == EntityType::actor_enemy;
-      }
-
-      if (!enemy_spawner_exists) {
+      // Check if the game is over (you beat wave 10)
+      const auto& wave = get_first_component<SINGLETON_Wave>(r);
+      if (wave.wave == 10) {
         gameover.game_is_over = true;
-        gameover.reason = "Defeated all spawners!";
+        gameover.reason = "You made it to wave 10!";
       }
     }
   }

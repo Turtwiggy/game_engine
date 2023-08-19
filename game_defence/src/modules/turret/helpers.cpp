@@ -2,6 +2,7 @@
 
 #include "entt/helpers.hpp"
 #include "modules/physics/components.hpp"
+#include "modules/spawner/components.hpp" // hack: shouldnt be here
 #include "renderer/components.hpp"
 
 #include <algorithm>
@@ -10,7 +11,7 @@
 namespace game2d {
 
 ClosestInfo
-get_closest(entt::registry& r, const entt::entity& e, const EntityType& type)
+get_closest(entt::registry& r, const entt::entity& e, const std::vector<EntityType>& types)
 {
   const auto& physics = get_first_component<const SINGLETON_PhysicsComponent>(r);
   const auto& t = r.get<TransformComponent>(e);
@@ -35,14 +36,22 @@ get_closest(entt::registry& r, const entt::entity& e, const EntityType& type)
   if (!idx_y.has_value())
     return info; // this turret missing from the sorted entity list?
 
-  auto evaluate_closest = [&r, &t](const std::vector<entt::entity>& sorted, EntityType type, int i) -> ClosestInfo {
+  auto evaluate_closest = [&r, &t, &types](const std::vector<entt::entity>& sorted, int i) -> ClosestInfo {
     ClosestInfo oinfo;
     auto other_entity = sorted[i];
     auto other_type = r.get<EntityTypeComponent>(other_entity);
 
-    // check type is of interest
-    if (other_type.type != type)
+    const bool type_of_interest = std::find(types.begin(), types.end(), other_type.type) != types.end();
+    if (!type_of_interest)
       return oinfo; // early exit
+
+    // HACK....
+    // make sure to only target enemy spawners
+    if (other_type.type == EntityType::spawner) {
+      const auto& spawning = r.get<SpawnerComponent>(other_entity);
+      if (spawning.type_to_spawn != EntityType::actor_enemy)
+        return oinfo; // early exit
+    }
 
     // calculate distance
     const auto& other_pos = r.get<TransformComponent>(other_entity);
@@ -57,28 +66,28 @@ get_closest(entt::registry& r, const entt::entity& e, const EntityType& type)
 
   // check left...
   for (int i = idx_x.value() - 1; i >= 0; i--) {
-    const auto oinfo = evaluate_closest(physics.sorted_x, type, i);
+    const auto oinfo = evaluate_closest(physics.sorted_x, i);
     if (oinfo.distance2 < info.distance2)
       info = oinfo;
   }
 
   // check right...
   for (int i = idx_x.value() + 1; i < physics.sorted_x.size(); i++) {
-    const auto oinfo = evaluate_closest(physics.sorted_x, type, i);
+    const auto oinfo = evaluate_closest(physics.sorted_x, i);
     if (oinfo.distance2 < info.distance2)
       info = oinfo;
   }
 
   // check up... (y gets less)
   for (int i = idx_y.value() - 1; i >= 0; i--) {
-    const auto oinfo = evaluate_closest(physics.sorted_y, type, i);
+    const auto oinfo = evaluate_closest(physics.sorted_y, i);
     if (oinfo.distance2 < info.distance2)
       info = oinfo;
   }
 
   // check down... (y gets greater)
   for (int i = idx_y.value() + 1; i < physics.sorted_y.size(); i++) {
-    const auto oinfo = evaluate_closest(physics.sorted_y, type, i);
+    const auto oinfo = evaluate_closest(physics.sorted_y, i);
     if (oinfo.distance2 < info.distance2)
       info = oinfo;
   }

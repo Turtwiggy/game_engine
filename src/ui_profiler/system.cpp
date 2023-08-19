@@ -27,7 +27,7 @@ game2d::update_ui_profiler_system(entt::registry& r)
 
   auto& profiler = get_first_component<SINGLETON_Profiler>(r);
   const auto& physics = get_first_component<const SINGLETON_PhysicsComponent>(r);
-  const auto& objs = r.view<const PhysicsTransformComponent>();
+  const auto& objs = r.view<const PhysicsTransformXComponent>();
   const auto& solids = r.view<const PhysicsSolidComponent>();
   const auto& actors = r.view<const PhysicsActorComponent>();
 

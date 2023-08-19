@@ -21,8 +21,10 @@ game2d::update_ui_pause_menu_system(engine::SINGLETON_Application& app, entt::re
   auto& state = get_first_component<SINGLETON_GameStateComponent>(r);
 
   static bool open = false;
-  if (get_key_down(input, SDL_SCANCODE_ESCAPE))
+  if (get_key_down(input, SDL_SCANCODE_ESCAPE)) {
     open = !open;
+    ImGui::SetNextWindowFocus();
+  }
 
   // only update state if it was running or paused
   if (open)

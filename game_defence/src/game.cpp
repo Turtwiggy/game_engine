@@ -37,6 +37,7 @@
 #include "modules/ui_economy/system.hpp"
 #include "modules/ui_gameover/system.hpp"
 #include "modules/ui_hierarchy/system.hpp"
+#include "modules/ui_next_wave/system.hpp"
 #include "modules/ui_pause_menu/system.hpp"
 #include "modules/ui_prefabs/system.hpp"
 #include "modules/ui_scene_main_menu/system.hpp"
@@ -92,6 +93,9 @@ game2d::init(engine::SINGLETON_Application& app, entt::registry& r)
 void
 game2d::fixed_update(entt::registry& game, const uint64_t milliseconds_dt)
 {
+  auto& p = get_first_component<SINGLETON_Profiler>(game);
+  auto _ = time_scope(&p, "fixed_update()", true);
+
   auto& input = get_first_component<SINGLETON_InputComponent>(game);
   auto& fixed_input = get_first_component<SINGLETON_FixedUpdateInputHistory>(game);
   fixed_input.history.clear();
@@ -115,18 +119,28 @@ game2d::fixed_update(entt::registry& game, const uint64_t milliseconds_dt)
   update_lifecycle_system(game, milliseconds_dt);
 
   {
-    auto& p = get_first_component<SINGLETON_Profiler>(game);
     auto _ = time_scope(&p, "(physics)-tick", true);
+    auto& p = get_first_component<SINGLETON_Profiler>(game);
     auto& physics = get_first_component<SINGLETON_PhysicsComponent>(game);
     physics.frame_collisions.clear();
-    update_move_objects_system(game, milliseconds_dt);
-    update_actor_actor_collisions_system(game, physics);
-    update_resolve_collisions_system(game);
+
+    {
+      auto _ = time_scope(&p, "(physics)-tick-move", true);
+      update_move_objects_system(game, milliseconds_dt);
+    }
+    {
+      auto _ = time_scope(&p, "(physics)-actor-actor-colls", true);
+      update_actor_actor_collisions_system(game, physics);
+    }
+    {
+      auto _ = time_scope(&p, "(physics)-resolve-collisions", true);
+      update_resolve_collisions_system(game);
+    }
   }
 
   {
     auto& p = get_first_component<SINGLETON_Profiler>(game);
-    auto _ = time_scope(&p, "fixed-update-game-logic", true);
+    auto _ = time_scope(&p, "(fixed-tick)-game-logic", true);
     update_player_controller_system(game, milliseconds_dt);
     update_enemy_system(game, milliseconds_dt);
     update_turret_system(game, milliseconds_dt);
@@ -162,13 +176,18 @@ game2d::update(engine::SINGLETON_Application& app, entt::registry& r, const floa
     update_render_system(r, texs);
   }
 
+  // static bool show = true;
+  // ImGui::ShowDemoWindow(&show);
+
   const auto& scene = get_first_component<SINGLETON_CurrentScene>(r);
   if (scene.s == Scene::menu)
-    update_ui_scene_main_menu(r);
+    update_ui_scene_main_menu(app, r);
   else if (scene.s == Scene::game) {
+    update_ui_next_wave_system(r);
   }
   update_ui_pause_menu_system(app, r);
   update_ui_gameover_system(r);
+  update_ui_profiler_system(r);
 
   static bool show_editor_ui = false;
   if (show_editor_ui) {
@@ -177,7 +196,6 @@ game2d::update(engine::SINGLETON_Application& app, entt::registry& r, const floa
     update_ui_economy_system(r);
     update_ui_audio_system(r);
     update_ui_hierarchy_system(r);
-    update_ui_profiler_system(r);
   }
 
   end_frame_render_system(r);
