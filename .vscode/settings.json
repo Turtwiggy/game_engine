@@ -97,6 +97,10 @@
     "xtree": "cpp",
     "xutility": "cpp",
     "csignal": "cpp",
-    "*.inc": "cpp"
+    "*.inc": "cpp",
+    "deque": "cpp",
+    "memory_resource": "cpp",
+    "queue": "cpp",
+    "*.rh": "cpp"
   }
 }

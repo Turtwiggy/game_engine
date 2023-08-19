@@ -3,6 +3,7 @@
 #include "components.hpp"
 #include "entt/helpers.hpp"
 #include "flash_sprite.hpp"
+#include "helpers.hpp"
 #include "lifecycle/components.hpp"
 
 namespace game2d {
@@ -32,7 +33,19 @@ update_take_damage_system(entt::registry& r)
     // r.emplace<AudioRequestPlayEvent>(r.create(), "HIT");
 
     // .. popup some numbers as vfx
-    // ..
+    const int text_seperation = 6;
+    const auto sprites = convert_int_to_sprites(atk->damage);
+    const auto def_pos = r.get<TransformComponent>(request.to).position;
+    for (int i = 0; i < sprites.size(); i++) {
+      CreateEntityRequest vfx_req;
+      vfx_req.type = EntityType::empty_with_physics;
+      vfx_req.velocity = { 0, -45, 0 }; // make damage numbers travel up
+      vfx_req.sprite = sprites[i];
+      glm::ivec3 offset_pos = def_pos;
+      offset_pos.x += (i + 1) * text_seperation;
+      vfx_req.position = offset_pos;
+      r.emplace<CreateEntityRequest>(r.create(), vfx_req);
+    }
 
     // .. take damage
     hp->hp -= glm::max(0, atk->damage);

@@ -6,81 +6,82 @@
 #include "maths/maths.hpp"
 #include "renderer/components.hpp"
 
+#include <algorithm>
+
 namespace game2d {
 
-glm::vec2
-convert_tl_to_center(const PhysicsTransformComponent& po)
-{
-  glm::ivec2 half = glm::ivec2(int(po.w / 2.0f), int(po.h / 2.0f));
-  return { po.x_tl + half.x, po.y_tl + half.y };
-};
+// glm::vec2
+// convert_tl_to_center(const PhysicsTransformComponent& po)
+// {
+//   glm::ivec2 half = glm::ivec2(int(po.w / 2.0f), int(po.h / 2.0f));
+//   return { po.x_tl + half.x, po.y_tl + half.y };
+// };
 
 bool
-collide(const PhysicsTransformComponent& one, const PhysicsTransformComponent& two)
+collide(const AABB& one, const AABB& two)
 {
+  const int one_w = one.x.r - one.x.l;
+  const int two_w = two.x.r - two.x.l;
+  const int one_h = one.y.t - one.y.b;
+  const int two_h = two.y.t - two.y.b;
+
   // collision x-axis?
-  bool collision_x = one.x_tl + one.w > two.x_tl && two.x_tl + two.w > one.x_tl;
+  bool collision_x = one.x.l + one_w > two.x.l && two.x.l + two_w > one.x.l;
+
   // collision y-axis?
-  bool collision_y = one.y_tl + one.h > two.y_tl && two.y_tl + two.h > one.y_tl;
+  bool collision_y = one.y.t + one_h > two.y.t && two.y.t + two_h > one.y.t;
 
   return collision_x && collision_y;
 };
 
-bool
-collides(const PhysicsTransformComponent& one, const std::vector<PhysicsTransformComponent>& others)
-{
-  for (const auto& two : others) {
-    bool collides = collide(one, two);
-    if (collides)
-      return true;
-  }
-  return false;
-};
+// bool
+// collides(const PhysicsTransformComponent& one, const std::vector<PhysicsTransformComponent>& others)
+// {
+//   for (const auto& two : others) {
+//     bool collides = collide(one, two);
+//     if (collides)
+//       return true;
+//   }
+//   return false;
+// };
 
 std::vector<Collision2D>
-do_move(entt::registry& r,
-        entt::entity& entity,
-        int amount,
-        TransformComponent& transform,
-        PhysicsTransformComponent& ptc,
-        const CollisionAxis& axis)
+do_move_x(entt::registry& r,
+          entt::entity& entity,
+          int amount,
+          TransformComponent& transform,
+          PhysicsTransformXComponent& x,
+          const PhysicsTransformYComponent& y)
 {
   std::vector<Collision2D> collisions;
 
   if (amount == 0)
     return collisions;
 
-  constexpr auto Sign = [](const int& x) { return x == 0 ? 0 : (x > 0 ? 1 : -1); };
-  const auto& blocking_objects_view = r.view<const PhysicsSolidComponent, const PhysicsTransformComponent>();
+  const auto& solids =
+    r.view<const PhysicsSolidComponent, const PhysicsTransformXComponent, const PhysicsTransformYComponent>();
 
-  if (axis == CollisionAxis::x)
-    transform.position_dxdy.x -= amount;
-  if (axis == CollisionAxis::y)
-    transform.position_dxdy.y -= amount;
-  int sign = Sign(amount);
+  transform.position_dxdy.x -= amount;
+  int sign = glm::sign(amount);
 
   while (amount != 0) {
 
     // updated position
-    PhysicsTransformComponent updated_pos;
-    updated_pos.x_tl = ptc.x_tl;
-    updated_pos.y_tl = ptc.y_tl;
-    updated_pos.w = ptc.w;
-    updated_pos.h = ptc.h;
-    if (axis == CollisionAxis::x)
-      updated_pos.x_tl += sign;
-    if (axis == CollisionAxis::y)
-      updated_pos.y_tl += sign;
+    PhysicsTransformXComponent updated_pos;
+    updated_pos.l = x.l + sign;
+    updated_pos.r = x.r + sign;
 
     // Check if the updated position would collide with anything
-    for (auto [o_entity, o_psolid, o_ptransform] : blocking_objects_view.each()) {
+    for (auto [o_entity, o_psolid, o_x, o_y] : solids.each()) {
       bool same = entity == o_entity;
-      if (!same && collide(updated_pos, o_ptransform)) {
+
+      const AABB one{ x, y };
+      const AABB two{ o_x, o_y };
+
+      if (!same && collide(one, two)) {
         Collision2D collision;
         collision.ent_id_0 = static_cast<uint32_t>(entity);
         collision.ent_id_1 = static_cast<uint32_t>(o_entity);
-        collision.collision_x = true;
-        collision.collision_y = true;
         collisions.push_back(collision);
       }
     }
@@ -88,79 +89,105 @@ do_move(entt::registry& r,
       return collisions;
 
     // Move player if empty space
-    if (axis == CollisionAxis::x)
-      transform.position.x += sign;
-    if (axis == CollisionAxis::y)
-      transform.position.y += sign;
-
+    transform.position.x += sign;
     amount -= sign;
 
     // Update the physics transform component
-    ptc.x_tl = transform.position.x - (ptc.w / 2);
-    ptc.y_tl = transform.position.y - (ptc.h / 2);
+    x.l = transform.position.x - glm::abs(transform.scale.x) / 2.0f;
+    x.r = transform.position.x + glm::abs(transform.scale.x) / 2.0f;
+  }
+
+  return collisions;
+};
+
+std::vector<Collision2D>
+do_move_y(entt::registry& r,
+          entt::entity& entity,
+          int amount,
+          TransformComponent& transform,
+          const PhysicsTransformXComponent& x,
+          PhysicsTransformYComponent& y)
+{
+  std::vector<Collision2D> collisions;
+
+  if (amount == 0)
+    return collisions;
+
+  const auto& solids =
+    r.view<const PhysicsSolidComponent, const PhysicsTransformXComponent, const PhysicsTransformYComponent>();
+
+  transform.position_dxdy.y -= amount;
+  int sign = glm::sign(amount);
+
+  while (amount != 0) {
+
+    // updated position
+    PhysicsTransformYComponent updated_pos;
+    updated_pos.b = y.b + sign;
+    updated_pos.t = y.t + sign;
+
+    // Check if the updated position would collide with anything
+    for (auto [o_entity, o_psolid, o_x, o_y] : solids.each()) {
+      bool same = entity == o_entity;
+
+      const AABB one{ x, y };
+      const AABB two{ o_x, o_y };
+
+      if (!same && collide(one, two)) {
+        Collision2D collision;
+        collision.ent_id_0 = static_cast<uint32_t>(entity);
+        collision.ent_id_1 = static_cast<uint32_t>(o_entity);
+        collisions.push_back(collision);
+      }
+    }
+    if (collisions.size() > 0)
+      return collisions;
+
+    // Move player if empty space
+    transform.position.y += sign;
+    amount -= sign;
+
+    // Update the physics transform component
+    y.b = transform.position.y - glm::abs(transform.scale.y) / 2.0f;
+    y.t = transform.position.y + glm::abs(transform.scale.y) / 2.0f;
   }
 
   return collisions;
 };
 
 void
-generate_broadphase_collisions(entt::registry& r, const CollisionAxis& axis, std::map<uint64_t, Collision2D>& collisions)
+generate_broadphase_collisions_x(entt::registry& r, std::vector<Collision2D>& collisions)
 {
   // store results of sorted aabb
   auto& physics = get_first_component<SINGLETON_PhysicsComponent>(r);
-  if (axis == CollisionAxis::x)
-    physics.sorted_x.clear();
-  else if (axis == CollisionAxis::y)
-    physics.sorted_y.clear();
+  physics.sorted_x.clear();
 
-  // Sort by axis
-  const auto& sorted_aabb = r.group<PhysicsTransformComponent, PhysicsActorComponent>();
-  if (axis == CollisionAxis::x)
-    sorted_aabb.sort<PhysicsTransformComponent>([&r](const auto& a, const auto& b) { return a.x_tl < b.x_tl; });
-  else if (axis == CollisionAxis::y)
-    sorted_aabb.sort<PhysicsTransformComponent>([&r](const auto& a, const auto& b) { return a.y_tl < b.y_tl; });
+  // sort by axis
+  const auto& sorted_x = r.group<PhysicsTransformXComponent>(entt::get<PhysicsTransformYComponent>);
+  sorted_x.sort<PhysicsTransformXComponent>([](const auto& a, const auto& b) { return a.l < b.l; });
 
-  std::vector<std::reference_wrapper<const PhysicsTransformComponent>> active_list;
+  std::vector<entt::entity> active_list;
+  for (int i = 0; const auto& [new_obj, new_x, new_y] : sorted_x.each()) {
 
-  for (int i = 0; auto [entity, ptransform, pactor] : sorted_aabb.each()) {
-
-    // store sorted results
-    if (axis == CollisionAxis::x)
-      physics.sorted_x.push_back(entity);
-    else if (axis == CollisionAxis::y)
-      physics.sorted_y.push_back(entity);
+    physics.sorted_x.push_back(new_obj); // store sorted results
 
     // begin on the left of sorted_aabb.
     // add the first item from sorted_aabb to active_list.
     if (i == 0) {
-      active_list.push_back(ptransform);
+      active_list.push_back(new_obj);
       ++i;
       continue;
     }
 
     // have a look at the next item in axis_list,
-    const auto& new_obj = ptransform;
-
     // compare it with all the items currently in active_list. (currently just 1)
     auto it_1 = active_list.begin();
     while (it_1 != active_list.end()) {
       const auto& old_obj = *it_1;
+      const auto& [old_x, old_y] = sorted_x.get(old_obj);
 
-      int new_item_left = 0;
-      int old_item_right = 0;
-
-      if (axis == CollisionAxis::x) {
-        // if the new item's left is > than the active_item's right
-        new_item_left = new_obj.x_tl;
-        old_item_right = old_obj.get().x_tl + old_obj.get().w;
-      }
-      if (axis == CollisionAxis::y) {
-        // if the new item's top is > than the active_item's bottom
-        new_item_left = new_obj.y_tl;
-        old_item_right = old_obj.get().y_tl + old_obj.get().h;
-      }
-
-      if (new_item_left >= old_item_right) {
+      // if the new item's left is > than the active_item's right
+      if (new_x.l >= old_x.r) {
         // no possible collision!
         // remove the active_list item from the active list
         it_1 = active_list.erase(it_1);
@@ -168,48 +195,93 @@ generate_broadphase_collisions(entt::registry& r, const CollisionAxis& axis, std
         // possible collision!
         // between new axis_list item and the current active_list item
 
-        // Check existing collisions
-        uint32_t old_ent_id = old_obj.get().ent_id;
-        uint32_t new_ent_id = new_obj.ent_id;
-        uint64_t unique_collision_id = engine::encode_cantor_pairing_function(old_ent_id, new_ent_id);
+        // Just do the AABB collision check
+        const AABB one{ new_x, new_y };
+        const AABB two{ old_x, old_y };
+        if (collide(one, two)) {
+          Collision2D coll;
+          coll.ent_id_0 = static_cast<uint32_t>(old_obj);
+          coll.ent_id_1 = static_cast<uint32_t>(new_obj);
+          collisions.push_back(coll);
+        }
 
-        Collision2D& coll = collisions[unique_collision_id];
-        coll.ent_id_0 = old_ent_id;
-        coll.ent_id_1 = new_ent_id;
-
-        // update collision
-        if (axis == CollisionAxis::x)
-          coll.collision_x = true;
-        if (axis == CollisionAxis::y)
-          coll.collision_y = true;
-
-        collisions[unique_collision_id] = coll;
         ++it_1;
       }
     }
 
     // Add the new item itself to active_list and continue with the next item in axis_list
     active_list.push_back(new_obj);
-
-    ++i; // next
   }
 };
 
 void
-generate_filtered_broadphase_collisions(entt::registry& r, std::map<uint64_t, Collision2D>& collision_results)
+generate_broadphase_collisions_y(entt::registry& r, std::vector<Collision2D>& collisions)
 {
-  // Do broad-phase check.
-  std::map<uint64_t, Collision2D> collisions;
-  generate_broadphase_collisions(r, CollisionAxis::x, collisions);
-  generate_broadphase_collisions(r, CollisionAxis::y, collisions);
+  // store results of sorted aabb
+  auto& physics = get_first_component<SINGLETON_PhysicsComponent>(r);
+  physics.sorted_y.clear();
 
-  // Use broad-phase results.
-  for (const auto& coll : collisions) {
-    const Collision2D& c = coll.second;
-    if (c.collision_x && c.collision_y) {
-      collision_results[coll.first] = coll.second;
+  // sort by axis
+  const auto& sorted_y = r.group<PhysicsTransformYComponent>(entt::get<PhysicsTransformXComponent>);
+  sorted_y.sort<PhysicsTransformYComponent>([](const auto& a, const auto& b) { return a.t < b.t; });
+
+  std::vector<entt::entity> active_list;
+  for (int i = 0; const auto& [new_obj, new_y, new_x] : sorted_y.each()) {
+
+    physics.sorted_y.push_back(new_obj); // store sorted results
+
+    // begin on the left of sorted_aabb.
+    // add the first item from sorted_aabb to active_list.
+    if (i == 0) {
+      active_list.push_back(new_obj);
+      ++i;
+      continue;
     }
+
+    // have a look at the next item in axis_list,
+    // compare it with all the items currently in active_list. (currently just 1)
+    auto it_1 = active_list.begin();
+    while (it_1 != active_list.end()) {
+      const auto& old_obj = *it_1;
+      const auto& [old_y, old_x] = sorted_y.get(old_obj);
+
+      // if the new item's top is > than the active_item's bottom
+      if (new_y.b >= old_y.t) {
+        // no possible collision!
+        // remove the active_list item from the active list
+        it_1 = active_list.erase(it_1);
+      } else {
+        // possible collision!
+        // between new axis_list item and the current active_list item
+
+        // Just do the AABB collision check
+        const AABB one{ new_x, new_y };
+        const AABB two{ old_x, old_y };
+        if (collide(one, two)) {
+          Collision2D coll;
+          coll.ent_id_0 = static_cast<uint32_t>(old_obj);
+          coll.ent_id_1 = static_cast<uint32_t>(new_obj);
+          collisions.push_back(coll);
+        }
+
+        ++it_1;
+      }
+    }
+
+    // Add the new item itself to active_list and continue with the next item in axis_list
+    active_list.push_back(new_obj);
   }
 };
 
+void
+generate_filtered_broadphase_collisions(entt::registry& r, std::vector<Collision2D>& collisions)
+{
+  // Do broad-phase check.
+  collisions.clear();
+  generate_broadphase_collisions_x(r, collisions);
+  generate_broadphase_collisions_y(r, collisions);
+
+  // remove duplicates
+  collisions.erase(std::unique(collisions.begin(), collisions.end()), collisions.end());
+};
 }; // namespace game2d

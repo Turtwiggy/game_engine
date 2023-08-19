@@ -119,13 +119,23 @@ game2d::fixed_update(entt::registry& game, const uint64_t milliseconds_dt)
   update_lifecycle_system(game, milliseconds_dt);
 
   {
-    auto& p = get_first_component<SINGLETON_Profiler>(game);
     auto _ = time_scope(&p, "(physics)-tick", true);
+    auto& p = get_first_component<SINGLETON_Profiler>(game);
     auto& physics = get_first_component<SINGLETON_PhysicsComponent>(game);
     physics.frame_collisions.clear();
-    update_move_objects_system(game, milliseconds_dt);
-    update_actor_actor_collisions_system(game, physics);
-    update_resolve_collisions_system(game);
+
+    {
+      auto _ = time_scope(&p, "(physics)-tick-move", true);
+      update_move_objects_system(game, milliseconds_dt);
+    }
+    {
+      auto _ = time_scope(&p, "(physics)-actor-actor-colls", true);
+      update_actor_actor_collisions_system(game, physics);
+    }
+    {
+      auto _ = time_scope(&p, "(physics)-resolve-collisions", true);
+      update_resolve_collisions_system(game);
+    }
   }
 
   {

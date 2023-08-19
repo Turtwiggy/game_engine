@@ -6,6 +6,8 @@
 #include <entt/entt.hpp>
 #include <unordered_set>
 #include <vector>
+#include <string>
+#include <optional>
 
 namespace game2d {
 
@@ -31,6 +33,7 @@ struct CreateEntityRequest
   EntityType type;
   glm::ivec3 position;
   glm::ivec3 velocity;
+  std::optional<std::string> sprite;
 };
 
 };

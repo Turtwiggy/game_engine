@@ -6,6 +6,7 @@
 #include "entt/helpers.hpp"
 #include "modules/physics/components.hpp"
 #include "renderer/components.hpp"
+#include "sprites/helpers.hpp"
 
 void
 game2d::update_lifecycle_system(entt::registry& r, const uint64_t& milliseconds_dt)
@@ -38,6 +39,14 @@ game2d::update_lifecycle_system(entt::registry& r, const uint64_t& milliseconds_
     if (auto* vel = r.try_get<VelocityComponent>(e)) {
       vel->x = request.velocity.x;
       vel->y = request.velocity.y;
+    }
+
+    auto* sc = r.try_get<SpriteComponent>(e);
+    if (sc && request.sprite.has_value()) {
+      const auto& anims = get_first_component<SINGLETON_Animations>(r);
+      const auto anim = find_animation(anims.animations, request.sprite.value());
+      sc->x = anim.animation_frames[0].x;
+      sc->y = anim.animation_frames[0].y;
     }
 
     // set position by transform
