@@ -30,7 +30,7 @@ game2d::update_move_objects_system(entt::registry& r, const uint64_t millisecond
   }
 
   // generates actor-solid collisions
-  // std::vector<Collision2D> collisions;
+  std::vector<Collision2D> collisions;
 
   // move grid actors,
   // stop if collides with an entity with the blocking component
@@ -44,11 +44,11 @@ game2d::update_move_objects_system(entt::registry& r, const uint64_t millisecond
 
     int move_x = static_cast<int>(transform.position_dxdy.x);
     const auto colls_x = do_move_x(r, entity, move_x, transform, x, y);
-    // collisions.insert(collisions.end(), colls_x.begin(), colls_x.end());
+    collisions.insert(collisions.end(), colls_x.begin(), colls_x.end());
 
     int move_y = static_cast<int>(transform.position_dxdy.y);
     const auto colls_y = do_move_y(r, entity, move_y, transform, x, y);
-    // collisions.insert(collisions.end(), colls_y.begin(), colls_y.end());
+    collisions.insert(collisions.end(), colls_y.begin(), colls_y.end());
   }
 
   // move velocity actors,
@@ -62,20 +62,16 @@ game2d::update_move_objects_system(entt::registry& r, const uint64_t millisecond
 
     int move_x = static_cast<int>(transform.position_dxdy.x);
     const auto colls_x = do_move_x(r, entity, move_x, transform, x, y);
-    // collisions.insert(collisions.end(), colls_x.begin(), colls_x.end());
+    collisions.insert(collisions.end(), colls_x.begin(), colls_x.end());
 
     int move_y = static_cast<int>(transform.position_dxdy.y);
     const auto colls_y = do_move_y(r, entity, move_y, transform, x, y);
-    // collisions.insert(collisions.end(), colls_y.begin(), colls_y.end());
+    collisions.insert(collisions.end(), colls_y.begin(), colls_y.end());
   }
 
   // add collision info
-  // for (const auto& coll : collisions) {
-  //   const uint32_t& old_ent_id = coll.ent_id_0;
-  //   const uint32_t& new_ent_id = coll.ent_id_1;
-  //   const uint64_t unique_collision_id = engine::encode_cantor_pairing_function(old_ent_id, new_ent_id);
-  //   physics.frame_collisions[unique_collision_id] = coll;
-  // }
+  for (const auto& coll : collisions)
+    physics.frame_collisions.push_back(coll);
 
   // move solids
   // A solid interacts with an actor by carrying or pushing

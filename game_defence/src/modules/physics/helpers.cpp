@@ -17,6 +17,17 @@ namespace game2d {
 //   return { po.x_tl + half.x, po.y_tl + half.y };
 // };
 
+// bool
+// collides(const PhysicsTransformComponent& one, const std::vector<PhysicsTransformComponent>& others)
+// {
+//   for (const auto& two : others) {
+//     bool collides = collide(one, two);
+//     if (collides)
+//       return true;
+//   }
+//   return false;
+// };
+
 bool
 collide(const AABB& one, const AABB& two)
 {
@@ -33,17 +44,6 @@ collide(const AABB& one, const AABB& two)
 
   return collision_x && collision_y;
 };
-
-// bool
-// collides(const PhysicsTransformComponent& one, const std::vector<PhysicsTransformComponent>& others)
-// {
-//   for (const auto& two : others) {
-//     bool collides = collide(one, two);
-//     if (collides)
-//       return true;
-//   }
-//   return false;
-// };
 
 std::vector<Collision2D>
 do_move_x(entt::registry& r,
@@ -80,8 +80,10 @@ do_move_x(entt::registry& r,
 
       if (!same && collide(one, two)) {
         Collision2D collision;
-        collision.ent_id_0 = static_cast<uint32_t>(entity);
-        collision.ent_id_1 = static_cast<uint32_t>(o_entity);
+        const auto id_0 = static_cast<uint32_t>(entity);
+        const auto id_1 = static_cast<uint32_t>(o_entity);
+        collision.ent_id_0 = glm::min(id_0, id_1);
+        collision.ent_id_1 = glm::max(id_0, id_1);
         collisions.push_back(collision);
       }
     }
@@ -135,8 +137,10 @@ do_move_y(entt::registry& r,
 
       if (!same && collide(one, two)) {
         Collision2D collision;
-        collision.ent_id_0 = static_cast<uint32_t>(entity);
-        collision.ent_id_1 = static_cast<uint32_t>(o_entity);
+        const auto id_0 = static_cast<uint32_t>(entity);
+        const auto id_1 = static_cast<uint32_t>(o_entity);
+        collision.ent_id_0 = glm::min(id_0, id_1);
+        collision.ent_id_1 = glm::max(id_0, id_1);
         collisions.push_back(collision);
       }
     }
