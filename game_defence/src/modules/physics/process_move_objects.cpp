@@ -22,12 +22,12 @@ game2d::update_move_objects_system(entt::registry& r, const uint64_t millisecond
   // this seems the wrong way round
 
   auto physics_objects_view = r.view<PhysicsTransformXComponent, PhysicsTransformYComponent, const TransformComponent>();
-  physics_objects_view.each([](auto entity, auto& x, auto& y, const auto& tc) {
-    x.l = tc.position.x - (glm::abs(tc.scale.x) / 2.0f);
-    x.r = tc.position.x + (glm::abs(tc.scale.x) / 2.0f);
-    y.b = tc.position.y - (glm::abs(tc.scale.y) / 2.0f);
-    y.t = tc.position.y + (glm::abs(tc.scale.y) / 2.0f);
-  });
+  for (const auto& [entity, x, y, t] : physics_objects_view.each()) {
+    x.l = t.position.x - (glm::abs(t.scale.x) / 2.0f);
+    x.r = t.position.x + (glm::abs(t.scale.x) / 2.0f);
+    y.b = t.position.y - (glm::abs(t.scale.y) / 2.0f);
+    y.t = t.position.y + (glm::abs(t.scale.y) / 2.0f);
+  }
 
   // generates actor-solid collisions
   // std::vector<Collision2D> collisions;

@@ -200,8 +200,10 @@ generate_broadphase_collisions_x(entt::registry& r, std::vector<Collision2D>& co
         const AABB two{ old_x, old_y };
         if (collide(one, two)) {
           Collision2D coll;
-          coll.ent_id_0 = static_cast<uint32_t>(old_obj);
-          coll.ent_id_1 = static_cast<uint32_t>(new_obj);
+          const auto id_0 = static_cast<uint32_t>(old_obj);
+          const auto id_1 = static_cast<uint32_t>(new_obj);
+          coll.ent_id_0 = glm::min(id_0, id_1);
+          coll.ent_id_1 = glm::max(id_0, id_1);
           collisions.push_back(coll);
         }
 
@@ -258,9 +260,11 @@ generate_broadphase_collisions_y(entt::registry& r, std::vector<Collision2D>& co
         const AABB one{ new_x, new_y };
         const AABB two{ old_x, old_y };
         if (collide(one, two)) {
+          const auto id_0 = static_cast<uint32_t>(old_obj);
+          const auto id_1 = static_cast<uint32_t>(new_obj);
           Collision2D coll;
-          coll.ent_id_0 = static_cast<uint32_t>(old_obj);
-          coll.ent_id_1 = static_cast<uint32_t>(new_obj);
+          coll.ent_id_0 = glm::min(id_0, id_1);
+          coll.ent_id_1 = glm::max(id_0, id_1);
           collisions.push_back(coll);
         }
 
@@ -284,4 +288,5 @@ generate_filtered_broadphase_collisions(entt::registry& r, std::vector<Collision
   // remove duplicates
   collisions.erase(std::unique(collisions.begin(), collisions.end()), collisions.end());
 };
+
 }; // namespace game2d
