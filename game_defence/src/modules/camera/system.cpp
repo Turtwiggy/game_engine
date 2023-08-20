@@ -24,15 +24,20 @@ update_camera_system(entt::registry& r, float dt)
   const auto& input = get_first_component<SINGLETON_InputComponent>(r);
   const auto camera_ent = get_first<OrthographicCamera>(r);
 
-  // camera to follow a target
-  const auto& target_view = r.view<HearthComponent>();
-  if (target_view.size() == 0)
-    return; // no target to home in on
-  const auto target_entity = target_view.front();
-  const auto& target_transform = r.get<TransformComponent>(target_entity);
-
+  // update ortho
   auto& camera = r.get<OrthographicCamera>(camera_ent);
   auto& camera_transform = r.get<TransformComponent>(camera_ent);
+  TransformComponent offset_transform = camera_transform;
+  offset_transform.position.x = static_cast<int>(-ri.viewport_size_render_at.x / 2.0f) + camera_transform.position.x;
+  offset_transform.position.y = static_cast<int>(-ri.viewport_size_render_at.y / 2.0f) + camera_transform.position.y;
+  camera.view = calculate_ortho_view(offset_transform);
+
+  // camera to follow a target
+  // const auto& target_view = r.view<HearthComponent>();
+  // if (target_view.size() == 0)
+  //   return; // no target to home in on
+  // const auto target_entity = target_view.front();
+  // const auto& target_transform = r.get<TransformComponent>(target_entity);
 
   //
   // debugging camera
@@ -55,12 +60,6 @@ update_camera_system(entt::registry& r, float dt)
   //   camera_transform.position.y += mul;
 
   //   glm::vec3 lerp_pos = glm::lerp(pos_as_vec3, target_position, glm::clamp(dt * damping, 0.0f, 1.0f));
-
-  TransformComponent offset_transform = camera_transform;
-  offset_transform.position.x = static_cast<int>(-ri.viewport_size_render_at.x / 2.0f) + camera_transform.position.x;
-  offset_transform.position.y = static_cast<int>(-ri.viewport_size_render_at.y / 2.0f) + camera_transform.position.y;
-
-  camera.view = calculate_ortho_view(offset_transform);
 
   // if (get_mouse_mmb_held()) { // pan
   // if (get_mouse_lmb_held()) { // rotate

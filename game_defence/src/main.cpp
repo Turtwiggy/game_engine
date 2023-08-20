@@ -81,11 +81,11 @@ main(int argc, char* argv[])
   app.window = GameWindow(name, app.width, app.height, app.display, app.vsync);
   app.imgui.initialize(app.window);
 
-  // #if defined(WIN32) && !defined(_DEBUG)
-  //   bool hide_windows_console = false;
-  //   if (hide_windows_console)
-  //     engine::hide_windows_console();
-  // #endif
+#if defined(WIN32) && !defined(_DEBUG)
+  bool hide_windows_console = true;
+  if (hide_windows_console)
+    engine::hide_windows_console();
+#endif
 
   game2d::init(app, game);
   CHECK_OPENGL_ERROR(0);

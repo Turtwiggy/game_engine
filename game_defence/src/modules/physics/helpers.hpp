@@ -20,8 +20,9 @@ enum class CollisionAxis
   y
 };
 
-// [[nodiscard]] bool
-// collide(const PhysicsTransformComponent& one, const PhysicsTransformComponent& two);
+[[nodiscard]]
+bool
+collide(const AABB& one, const AABB& two);
 
 // [[nodiscard]] bool
 // collides(const PhysicsTransformComponent& one, const std::vector<PhysicsTransformComponent>& others);

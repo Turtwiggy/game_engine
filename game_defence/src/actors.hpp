@@ -22,9 +22,11 @@ enum class EntityType
   pickup_xp,
 
   // misc
+  cursor,
   spawner,
   camera,
   line,
+  particle,
 
   count
 };

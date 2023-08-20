@@ -32,8 +32,8 @@ bool
 collide(const AABB& one, const AABB& two)
 {
   const int one_w = one.x.r - one.x.l;
-  const int two_w = two.x.r - two.x.l;
   const int one_h = one.y.t - one.y.b;
+  const int two_w = two.x.r - two.x.l;
   const int two_h = two.y.t - two.y.b;
 
   // collision x-axis?

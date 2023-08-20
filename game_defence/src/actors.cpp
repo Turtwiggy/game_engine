@@ -4,6 +4,7 @@
 #include "entt/helpers.hpp"
 #include "events/components.hpp"
 #include "lifecycle/components.hpp"
+#include "modules/animation/components.hpp"
 #include "modules/camera/orthographic.hpp"
 #include "modules/combat/components.hpp"
 #include "modules/enemy/components.hpp"
@@ -94,6 +95,23 @@ create_colour(const SINGLETON_ColoursComponent& colours, const EntityType& type)
 
   if (type == EntityType::actor_hearth)
     scc.colour = colours.lin_hot_pink;
+
+  if (type == EntityType::cursor) {
+    engine::LinearColour off;
+    off.r = 1.0f;
+    off.g = 1.0f;
+    off.b = 1.0f;
+    off.a = 0.5f;
+    scc.colour = std::make_shared<engine::LinearColour>(off);
+  }
+  if (type == EntityType::actor_bullet) {
+    engine::LinearColour off;
+    off.r = 1.0f;
+    off.g = 0.0f;
+    off.b = 0.0f;
+    off.a = 0.25f;
+    scc.colour = std::make_shared<engine::LinearColour>(off);
+  }
   if (type == EntityType::pickup_zone) {
     engine::LinearColour off;
     off.r = 1.0f;
@@ -132,14 +150,26 @@ create_gameplay(entt::registry& r, const EntityType& type)
     case EntityType::empty: {
       break;
     }
+
     case EntityType::empty_with_physics: {
       r.emplace<PhysicsTransformXComponent>(e);
       r.emplace<PhysicsTransformYComponent>(e);
       r.emplace<PhysicsActorComponent>(e);
+
+      break;
+    }
+
+    case EntityType::cursor: {
+      r.emplace<PlayerCursor>(e);
+      break;
+    }
+
+    case EntityType::particle: {
       r.emplace<VelocityComponent>(e);
       r.emplace<EntityTimedLifecycle>(e, 1 * 1000);
       break;
     }
+
     case EntityType::pickup_zone: {
       transform.scale.y = 100;
       transform.scale.x = 100;
@@ -149,6 +179,7 @@ create_gameplay(entt::registry& r, const EntityType& type)
       r.emplace<PhysicsActorComponent>(e);
       break;
     }
+
     case EntityType::pickup_xp: {
       r.emplace<PhysicsTransformXComponent>(e);
       r.emplace<PhysicsTransformYComponent>(e);
@@ -211,6 +242,7 @@ create_gameplay(entt::registry& r, const EntityType& type)
       // r.emplace<PhysicsSolidComponent>(e);
       break;
     }
+
     case EntityType::actor_bullet: {
       transform.scale.x = HALF_SIZE.x;
       transform.scale.y = HALF_SIZE.y;
@@ -222,9 +254,17 @@ create_gameplay(entt::registry& r, const EntityType& type)
       r.emplace<PhysicsActorComponent>(e);
       r.emplace<VelocityComponent>(e);
 
+      ScaleTransformByVelocity s;
+      s.debug_a = create_gameplay(r, EntityType::empty);
+      s.debug_b = create_gameplay(r, EntityType::empty);
+      s.debug_c = create_gameplay(r, EntityType::empty);
+      s.debug_d = create_gameplay(r, EntityType::empty);
+      r.emplace<ScaleTransformByVelocity>(e, s);
+
       r.emplace<EntityTimedLifecycle>(e);
       break;
     }
+
     case EntityType::actor_hearth: {
       r.emplace<PhysicsTransformXComponent>(e);
       r.emplace<PhysicsTransformYComponent>(e);
@@ -240,6 +280,7 @@ create_gameplay(entt::registry& r, const EntityType& type)
 
       break;
     }
+
     case EntityType::spawner: {
       r.emplace<PhysicsTransformXComponent>(e);
       r.emplace<PhysicsTransformYComponent>(e);
@@ -248,10 +289,12 @@ create_gameplay(entt::registry& r, const EntityType& type)
       r.emplace<HealthComponent>(e, 10);
       break;
     }
+
     case EntityType::camera: {
       r.emplace<OrthographicCamera>(e);
       break;
     }
+
     case EntityType::line: {
       break;
     }

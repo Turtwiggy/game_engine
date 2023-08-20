@@ -41,6 +41,17 @@ random_in_hemisphere(RandomState& rnd, glm::vec3& normal)
     return -in_unit_sphere;
 }
 
+glm::vec2
+rotate_point(const glm::vec2& point, const float angle)
+{
+  const float cos_angle = std::cos(angle);
+  const float sin_angle = std::sin(angle);
+  return {
+    point.x * cos_angle - point.y * sin_angle,
+    point.x * sin_angle + point.y * cos_angle,
+  };
+}
+
 uint64_t
 encode_cantor_pairing_function(int x, int y)
 {

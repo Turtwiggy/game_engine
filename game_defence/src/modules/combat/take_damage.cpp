@@ -38,7 +38,7 @@ update_take_damage_system(entt::registry& r)
     const auto def_pos = r.get<TransformComponent>(request.to).position;
     for (int i = 0; i < sprites.size(); i++) {
       CreateEntityRequest vfx_req;
-      vfx_req.type = EntityType::empty_with_physics;
+      vfx_req.type = EntityType::particle;
       vfx_req.velocity = { 0, -45, 0 }; // make damage numbers travel up
       vfx_req.sprite = sprites[i];
       glm::ivec3 offset_pos = def_pos;
