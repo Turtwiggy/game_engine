@@ -113,13 +113,11 @@ game2d::update_player_controller_system(entt::registry& r, const uint64_t& milli
     // request to shoot
     //
 
-    static bool shot = false;
-
     const float bullet_speed = 250.0f;
     {
       if (player.time_between_bullets_left > 0.0f)
         player.time_between_bullets_left -= dt;
-      if (!shot && lmb_press && player.time_between_bullets_left <= 0.0f) {
+      if (lmb_press && player.time_between_bullets_left <= 0.0f) {
         CreateEntityRequest req;
         req.type = EntityType::actor_bullet;
         req.position = { offset_pos.x, offset_pos.y, 0 };
@@ -131,8 +129,6 @@ game2d::update_player_controller_system(entt::registry& r, const uint64_t& milli
 
         // reset timer
         player.time_between_bullets_left = time_between_bullets;
-
-        shot = true;
       }
     }
 

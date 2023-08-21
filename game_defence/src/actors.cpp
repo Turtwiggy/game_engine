@@ -266,10 +266,6 @@ create_gameplay(entt::registry& r, const EntityType& type)
 
       ScaleTransformByVelocity s;
       s.debug_aabb = create_gameplay(r, EntityType::empty);
-      s.debug_a = create_gameplay(r, EntityType::empty);
-      s.debug_b = create_gameplay(r, EntityType::empty);
-      s.debug_c = create_gameplay(r, EntityType::empty);
-      s.debug_d = create_gameplay(r, EntityType::empty);
       r.emplace<ScaleTransformByVelocity>(e, s);
 
       r.emplace<EntityTimedLifecycle>(e, 100 * 1000);

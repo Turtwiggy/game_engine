@@ -8,10 +8,6 @@ namespace game2d {
 struct ScaleTransformByVelocity
 {
   entt::entity debug_aabb = entt::null;
-  entt::entity debug_a = entt::null;
-  entt::entity debug_b = entt::null;
-  entt::entity debug_c = entt::null;
-  entt::entity debug_d = entt::null;
 };
 
 struct RotatedSquare

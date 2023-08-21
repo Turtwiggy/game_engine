@@ -42,6 +42,9 @@ update_scale_by_velocity_system(entt::registry& r, float dt)
     r.get<TransformComponent>(cursor_component.debug_cursor).scale = { w, h, 1 };
   }
 
+  static float bullet_rotation = 0.0f;
+  bullet_rotation += 2 * dt * 10;
+
   const auto& view = r.view<TransformComponent, const VelocityComponent, ScaleTransformByVelocity>();
   for (const auto& [entity, transform, velocity, scale] : view.each()) {
 
@@ -50,8 +53,7 @@ update_scale_by_velocity_system(entt::registry& r, float dt)
     if (dir.x != 0.0f || dir.y != 0.0f)
       dir = glm::normalize(dir);
     // transform.rotation_radians.z = engine::dir_to_angle_radians(dir);
-    transform.rotation_radians.z = glm::radians(45.0f);
-    transform.position = { 114, 90, 0 };
+    transform.rotation_radians.z = glm::radians(bullet_rotation);
 
     // HMM
     transform.scale.x = 10;
@@ -65,17 +67,8 @@ update_scale_by_velocity_system(entt::registry& r, float dt)
     {
       const int w = glm::abs(aabb_square.x.r - aabb_square.x.l);
       const int h = glm::abs(aabb_square.y.t - aabb_square.y.b);
-      // r.get<TransformComponent>(scale.debug_aabb).position = { aabb_square.center.x, aabb_square.center.y, 0 };
-      // r.get<TransformComponent>(scale.debug_aabb).scale = { w, h, 1 };
-
-      r.get<TransformComponent>(scale.debug_a).position = square.points[0];
-      r.get<TransformComponent>(scale.debug_a).scale = { 3, 3, 1 };
-      r.get<TransformComponent>(scale.debug_b).position = square.points[1];
-      r.get<TransformComponent>(scale.debug_b).scale = { 3, 3, 1 };
-      r.get<TransformComponent>(scale.debug_c).position = square.points[2];
-      r.get<TransformComponent>(scale.debug_c).scale = { 3, 3, 1 };
-      r.get<TransformComponent>(scale.debug_d).position = square.points[3];
-      r.get<TransformComponent>(scale.debug_d).scale = { 3, 3, 1 };
+      r.get<TransformComponent>(scale.debug_aabb).position = { aabb_square.center.x, aabb_square.center.y, 0 };
+      r.get<TransformComponent>(scale.debug_aabb).scale = { w, h, 1 };
     }
 
     auto& col = r.get<SpriteColourComponent>(entity);
@@ -83,12 +76,12 @@ update_scale_by_velocity_system(entt::registry& r, float dt)
     bool any_collision = false;
 
     // Broadphase: Check AABB
-    // if (collide(aabb_square, aabb_cursor)) {
-    //   col.colour->r = 1.0f;
-    //   col.colour->g = 0.6f;
-    //   col.colour->b = 0.6f;
-    //   any_collision = true;
-    // }
+    if (collide(aabb_square, aabb_cursor)) {
+      col.colour->r = 0.0f;
+      col.colour->g = 0.5f;
+      col.colour->b = 0.0f;
+      any_collision = true;
+    }
 
     // Narrowphase: GJK
     if (gjk_squares_collide(square, cursor_square)) {
