@@ -7,27 +7,25 @@ namespace game2d {
 
 struct ScaleTransformByVelocity
 {
-  entt::entity debug_a;
-  entt::entity debug_b;
-  entt::entity debug_c;
-  entt::entity debug_d;
+  entt::entity debug_aabb = entt::null;
+  entt::entity debug_a = entt::null;
+  entt::entity debug_b = entt::null;
+  entt::entity debug_c = entt::null;
+  entt::entity debug_d = entt::null;
 };
 
 struct RotatedSquare
 {
-  float theta;
-  int w;
-  int h;
-  glm::vec2 center;
-  glm::vec2 tl;
-  glm::vec2 tr;
-  glm::vec2 br;
-  glm::vec2 bl;
+  float theta = 0.0f;
+  int unrotated_w = 0;
+  int unrotated_h = 0;
+  glm::vec3 center;
+  std::vector<glm::vec3> points;
 };
 
 struct PlayerCursor
 {
-  bool placeholder = true;
+  entt::entity debug_cursor = entt::null;
 };
 
 } // namespace game2d

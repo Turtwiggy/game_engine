@@ -14,18 +14,8 @@
 
 namespace game2d {
 
-enum class CollisionAxis
-{
-  x,
-  y
-};
-
-[[nodiscard]]
-bool
+[[nodiscard]] bool
 collide(const AABB& one, const AABB& two);
-
-// [[nodiscard]] bool
-// collides(const PhysicsTransformComponent& one, const std::vector<PhysicsTransformComponent>& others);
 
 [[nodiscard]] std::vector<Collision2D>
 do_move_x(entt::registry& r,

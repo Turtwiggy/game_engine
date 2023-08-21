@@ -10,13 +10,6 @@
 
 namespace game2d {
 
-// glm::vec2
-// convert_tl_to_center(const PhysicsTransformComponent& po)
-// {
-//   glm::ivec2 half = glm::ivec2(int(po.w / 2.0f), int(po.h / 2.0f));
-//   return { po.x_tl + half.x, po.y_tl + half.y };
-// };
-
 // bool
 // collides(const PhysicsTransformComponent& one, const std::vector<PhysicsTransformComponent>& others)
 // {
@@ -31,16 +24,14 @@ namespace game2d {
 bool
 collide(const AABB& one, const AABB& two)
 {
-  const int one_w = one.x.r - one.x.l;
-  const int one_h = one.y.t - one.y.b;
-  const int two_w = two.x.r - two.x.l;
-  const int two_h = two.y.t - two.y.b;
+  const glm::ivec2 one_tl_pos = { one.x.l, one.y.b };
+  const glm::ivec2 two_tl_pos = { two.x.l, two.y.b };
 
   // collision x-axis?
-  bool collision_x = one.x.l + one_w > two.x.l && two.x.l + two_w > one.x.l;
+  bool collision_x = one_tl_pos.x + one.size.x >= two_tl_pos.x && two_tl_pos.x + two.size.x >= one_tl_pos.x;
 
   // collision y-axis?
-  bool collision_y = one.y.t + one_h > two.y.t && two.y.t + two_h > one.y.t;
+  bool collision_y = one_tl_pos.y + one.size.y >= two_tl_pos.y && two_tl_pos.y + two.size.y >= one_tl_pos.y;
 
   return collision_x && collision_y;
 };

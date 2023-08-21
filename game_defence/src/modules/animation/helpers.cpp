@@ -3,144 +3,195 @@
 #include "maths/maths.hpp"
 #include "modules/physics/helpers.hpp"
 
-namespace game2d {
+#include <algorithm>
 
-// generate_aabb IS BROKEN
+namespace game2d {
 
 AABB
 generate_aabb(const RotatedSquare& square)
 {
+  const auto& center = square.center;
+  const auto& theta = square.theta;
+  const float degrees = glm::degrees(square.theta); // for debugging
+
+  // https://stackoverflow.com/questions/6657479/aabb-of-rotated-sprite
+  const float w0 = square.unrotated_h * std::sin(theta);
+  const float w1 = square.unrotated_w * std::cos(theta);
+  const float h0 = square.unrotated_w * std::sin(theta);
+  const float h1 = square.unrotated_h * std::cos(theta);
+  const float rotated_w = glm::abs(w0) + glm::abs(w1);
+  const float rotated_h = glm::abs(h0) + glm::abs(h1);
+
   AABB new_aabb;
-  new_aabb.x.l = square.bl.x;
-  new_aabb.x.r = square.bl.x;
-  new_aabb.y.t = square.tl.y;
-  new_aabb.y.b = square.tl.y;
-
-  // What is the left-most x?
-  new_aabb.x.l = square.tl.x < new_aabb.x.l ? square.tl.x : new_aabb.x.l;
-  new_aabb.x.l = square.tr.x < new_aabb.x.l ? square.tr.x : new_aabb.x.l;
-  new_aabb.x.l = square.br.x < new_aabb.x.l ? square.br.x : new_aabb.x.l;
-  new_aabb.x.l = square.bl.x < new_aabb.x.l ? square.bl.x : new_aabb.x.l;
-
-  // What is the right-most x?
-  new_aabb.x.r = square.tl.x > new_aabb.x.r ? square.tl.x : new_aabb.x.r;
-  new_aabb.x.r = square.tr.x > new_aabb.x.r ? square.tr.x : new_aabb.x.r;
-  new_aabb.x.r = square.br.x > new_aabb.x.r ? square.br.x : new_aabb.x.r;
-  new_aabb.x.r = square.bl.x > new_aabb.x.r ? square.bl.x : new_aabb.x.r;
-
-  // What is the top-most y?
-  new_aabb.y.t = square.tl.y > new_aabb.y.t ? square.tl.y : new_aabb.y.t;
-  new_aabb.y.t = square.tr.y > new_aabb.y.t ? square.tr.y : new_aabb.y.t;
-  new_aabb.y.t = square.br.y > new_aabb.y.t ? square.br.y : new_aabb.y.t;
-  new_aabb.y.t = square.bl.y > new_aabb.y.t ? square.bl.y : new_aabb.y.t;
-
-  // What is the bottom-most y?
-  new_aabb.y.b = square.tl.y < new_aabb.y.b ? square.tl.y : new_aabb.y.b;
-  new_aabb.y.b = square.tr.y < new_aabb.y.b ? square.tr.y : new_aabb.y.b;
-  new_aabb.y.b = square.br.y < new_aabb.y.b ? square.br.y : new_aabb.y.b;
-  new_aabb.y.b = square.bl.y < new_aabb.y.b ? square.bl.y : new_aabb.y.b;
-
+  new_aabb.x.l = center.x - (rotated_w / 2.0f);
+  new_aabb.x.r = center.x + (rotated_w / 2.0f);
+  new_aabb.y.b = center.y - (rotated_h / 2.0f);
+  new_aabb.y.t = center.y + (rotated_h / 2.0f);
+  new_aabb.center = center;
+  new_aabb.size = { rotated_w, rotated_h };
   return new_aabb;
 };
 
-struct Edge
+glm::vec3
+triple_product(const glm::vec3& a, const glm::vec3& b, const glm::vec3& c)
 {
-  glm::ivec2 a;
-  glm::ivec2 b;
+  return glm::cross(glm::cross(a, b), c);
+}
+
+glm::vec3
+support(const std::vector<glm::vec3>& a, const std::vector<glm::vec3>& b, const glm::vec3& dir)
+{
+  const auto furthest_point = [](const auto& points, const glm::vec3& d) -> glm::vec3 {
+    glm::vec3 furthest_point_so_far;
+    float highest_dot_product_so_far = -FLT_MAX;
+
+    for (const auto& point : points) {
+      const float result = glm::dot(point, d);
+      if (result > highest_dot_product_so_far) {
+        highest_dot_product_so_far = result;
+        furthest_point_so_far = point;
+      }
+    }
+    return furthest_point_so_far;
+  };
+
+  const auto furthest_point_a = furthest_point(a, dir);
+  const auto furthest_point_b = furthest_point(b, -dir);
+  return furthest_point_a - furthest_point_b;
 };
 
 bool
-rotated_squares_collide(const RotatedSquare& a, const RotatedSquare& b)
+line_case(const std::vector<glm::vec3>& simplex, glm::vec3& dir)
 {
-  // Broadphase: Check AABB
-  // if (!collide(generate_aabb(a), generate_aabb(b)))
-  //   return false;
+  const auto& B = simplex[0];
+  const auto& A = simplex[1];
 
-  // Narrowphase:
-  // alternative: GJK algorithm?
+  const auto AB = B - A;
+  const auto AO = glm::vec3{ 0, 0, 0 } - A;
 
-  const Edge edges_a[4] = { { a.tl, a.tr }, { a.tr, a.br }, { a.br, a.bl }, { a.bl, a.tl } };
-  const Edge edges_b[4] = { { b.tl, b.tr }, { b.tr, b.br }, { b.br, b.bl }, { b.bl, b.tl } };
+  // known as the triple product
+  const auto ABperp = triple_product(AB, AO, AB);
 
-  const auto all_points_on_same_side = [](const Edge& e, const std::vector<glm::ivec2>& points) {
-    const glm::vec2 eVec = { e.b.x - e.a.x, e.b.y - e.a.y };
-    const glm::vec2 nVec = { -eVec.y, eVec.x }; // perpendicular to generate normal
-    for (const glm::ivec2& point : points) {
-      const glm::vec2 vector_to_point = { point.x - e.a.x, point.y - e.a.y };
-      if (glm::dot(nVec, vector_to_point) < 0)
-        return false;
-    }
-    return true;
-  };
-
-  for (int i = 0; i < 4; ++i) {
-    const bool c0 = all_points_on_same_side(edges_a[i], { b.tl, b.tr, b.br, b.bl });
-    const bool c1 = all_points_on_same_side(edges_b[i], { a.tl, a.tr, a.br, a.bl });
-    if (c0 || c1) {
-      return false; // No collision detected
-    }
-  }
-  return true; // collision detected
-
-  // One approach:
-  // Test if any of the points is in the rectangle
-  // This isnt a particularly quick approach
-  // bool collision = false;
-  // collision |= point_in_rectangle(a, b.tl);
-  // if (collision)
-  //   return true;
-  // collision |= point_in_rectangle(a, b.tr);
-  // if (collision)
-  //   return true;
-  // collision |= point_in_rectangle(a, b.br);
-  // if (collision)
-  //   return true;
-  // collision |= point_in_rectangle(a, b.bl);
-  // if (collision)
-  //   return true;
+  dir = glm::normalize(ABperp);
 
   return false;
 };
 
 bool
-point_in_rectangle(const RotatedSquare& square, glm::vec2 point)
+triangle_case(std::vector<glm::vec3>& simplex, glm::vec3& dir)
 {
-  const auto& w = square.w;
-  const auto& h = square.h;
+  const auto& C = simplex[0];
+  const auto& B = simplex[1];
+  const auto& A = simplex[2];
 
-  // center the point and rectangle to the origin
-  const glm::vec2 tl = square.tl - square.center;
-  const glm::vec2 tr = square.tr - square.center;
-  const glm::vec2 br = square.br - square.center;
-  const glm::vec2 bl = square.bl - square.center;
-  const glm::vec2 t = point - square.center;
+  const auto AB = B - A;
+  const auto AC = C - A;
+  const auto AO = -A;
 
-  // rotate the point around the origin
-  const glm::ivec2 r = { t.x * std::cos(-square.theta) - t.y * std::sin(-square.theta),
-                         t.x * std::sin(-square.theta) + t.y * std::cos(-square.theta) };
+  {
+    const auto ABperp = triple_product(AC, AB, AB);
+    if (dot(ABperp, AO) > 0) {
+      simplex.erase(simplex.begin()); // remove c
+      dir = ABperp;
+      return false;
+    }
+  }
 
-  return r.x >= -w / 2.0f && r.x <= w / 2.0f && r.y >= -h / 2.0f && r.y <= h / 2.0f;
+  {
+    const auto ACperp = triple_product(AB, AC, AC);
+    if (dot(ACperp, AO) > 0) {
+      simplex.erase(simplex.begin() + 1); // remove b
+      dir = ACperp;
+      return false;
+    }
+  }
+
+  // triangle contains the origin...
+  // intersection occured
+  return true;
+}
+
+bool
+handle_simplex(std::vector<glm::vec3>& simplex, glm::vec3& dir)
+{
+  if (simplex.size() == 2)
+    return line_case(simplex, dir);
+  return triangle_case(simplex, dir);
+};
+
+// GJK algorithm
+bool
+gjk_squares_collide(const RotatedSquare& a, const RotatedSquare& b)
+{
+  // starting direction
+  glm::vec3 dir = glm::normalize(b.center - a.center);
+
+  // find the first point on simplex
+  const auto minkow_point = support(a.points, b.points, dir);
+
+  std::vector<glm::vec3> simplex{ minkow_point };
+
+  // next direction is towards the origin
+  dir = glm::vec3{ 0, 0, 0 } - simplex[0];
+
+  while (true) {
+    const auto A = support(a.points, b.points, dir);
+
+    const float dprod = glm::dot(A, dir);
+    if (dprod < 0)
+      return false; // break: point did not pass the origin
+
+    simplex.push_back(A);
+
+    if (handle_simplex(simplex, dir))
+      return true; // break: found collision
+  }
+};
+
+bool
+point_in_rotated_rectangle(const RotatedSquare& square, glm::vec2 point)
+{
+  // const auto& w = square.unrotated_w;
+  // const auto& h = square.unrotated_h;
+
+  // // center the point and rectangle to the origin
+  // const glm::vec2 tl = square.tl - square.center;
+  // const glm::vec2 tr = square.tr - square.center;
+  // const glm::vec2 br = square.br - square.center;
+  // const glm::vec2 bl = square.bl - square.center;
+  // const glm::vec2 t = point - square.center;
+
+  // // rotate the point around the origin
+  // const glm::ivec2 r = { t.x * std::cos(-square.theta) - t.y * std::sin(-square.theta),
+  //                        t.x * std::sin(-square.theta) + t.y * std::cos(-square.theta) };
+
+  // return r.x >= -w / 2.0f && r.x <= w / 2.0f && r.y >= -h / 2.0f && r.y <= h / 2.0f;
+  return false;
 };
 
 RotatedSquare
 transform_to_rotated_square(const TransformComponent& t)
 {
-  const auto& x = t.position.x;
-  const auto& y = t.position.y;
   const auto& w = t.scale.x;
   const auto& h = t.scale.y;
   const auto& theta = t.rotation_radians.z;
+  const auto degrees = glm::degrees(theta);
+  const glm::vec3 a = engine::rotate_point({ -w / 2.0f, h / 2.0f, 0.0f }, theta);
+  const glm::vec3 b = engine::rotate_point({ w / 2.0f, h / 2.0f, 0.0f }, theta);
+  const glm::vec3 c = engine::rotate_point({ w / 2.0f, -h / 2.0f, 0.0f }, theta);
+  const glm::vec3 d = engine::rotate_point({ -w / 2.0f, -h / 2.0f, 0.0f }, theta);
 
   RotatedSquare square;
   square.theta = theta;
-  square.center = { x, y };
-  square.tl = engine::rotate_point({ -w / 2, h / 2 }, theta) + square.center;
-  square.tr = engine::rotate_point({ w / 2, h / 2 }, theta) + square.center;
-  square.br = engine::rotate_point({ w / 2, -h / 2 }, theta) + square.center;
-  square.bl = engine::rotate_point({ -w / 2, -h / 2 }, theta) + square.center;
-  square.w = w;
-  square.h = h;
-
+  square.center = t.position;
+  square.unrotated_w = w;
+  square.unrotated_h = h;
+  square.points = {
+    { a + square.center },
+    { b + square.center },
+    { c + square.center },
+    { d + square.center },
+  };
   return square;
 }
 

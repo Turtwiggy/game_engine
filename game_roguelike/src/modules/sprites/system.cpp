@@ -65,7 +65,7 @@ update_sprite_system(const GameEditor& editor, Game& game, float dt)
   //       animation.frame %= frames;
   //       sprite.x = current_animation.animation_frames[animation.frame].x;
   //       sprite.y = current_animation.animation_frames[animation.frame].y;
-  //       sprite.angle_radians = current_animation.animation_angle_degrees * engine::PI / 180.0f;
+  //       sprite.angle_radians = glm::radians(current_animation.animation_angle_degrees);
   //     }
   //   });
   // }

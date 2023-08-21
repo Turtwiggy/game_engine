@@ -3,10 +3,10 @@
 #include <nlohmann/json.hpp>
 
 // c++ headers
-#include <cstdint>
 #include <vector>
 
 #include <entt/entt.hpp>
+#include <glm/glm.hpp>
 
 namespace game2d {
 
@@ -26,6 +26,10 @@ struct AABB
 {
   PhysicsTransformXComponent x;
   PhysicsTransformYComponent y;
+  // note: could calculate from e.g. x.r-x.l but
+  // int inaccuracies mean value can be slightly off
+  glm::ivec2 center;
+  glm::ivec2 size;
 };
 
 struct PhysicsSolidComponent

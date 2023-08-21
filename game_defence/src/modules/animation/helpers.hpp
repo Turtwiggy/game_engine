@@ -14,7 +14,7 @@ bool
 point_in_rectangle(const RotatedSquare& square, glm::ivec2 point);
 
 bool
-rotated_squares_collide(const RotatedSquare& a, const RotatedSquare& b);
+gjk_squares_collide(const RotatedSquare& a, const RotatedSquare& b);
 
 RotatedSquare
 transform_to_rotated_square(const TransformComponent& t);
