@@ -104,14 +104,6 @@ create_colour(const SINGLETON_ColoursComponent& colours, const EntityType& type)
     off.a = 0.5f;
     scc.colour = std::make_shared<engine::LinearColour>(off);
   }
-  if (type == EntityType::empty) {
-    engine::LinearColour off;
-    off.r = 0.4f;
-    off.g = 0.4f;
-    off.b = 0.4f;
-    off.a = 0.25f;
-    scc.colour = std::make_shared<engine::LinearColour>(off);
-  }
   if (type == EntityType::actor_bullet) {
     engine::LinearColour off;
     off.r = 1.0f;
@@ -168,9 +160,7 @@ create_gameplay(entt::registry& r, const EntityType& type)
     }
 
     case EntityType::cursor: {
-      PlayerCursor cursor;
-      cursor.debug_cursor = create_gameplay(r, EntityType::empty);
-      r.emplace<PlayerCursor>(e, cursor);
+      r.emplace<PlayerCursor>(e);
       break;
     }
 
@@ -263,12 +253,8 @@ create_gameplay(entt::registry& r, const EntityType& type)
       r.emplace<PhysicsTransformYComponent>(e);
       r.emplace<PhysicsActorComponent>(e);
       r.emplace<VelocityComponent>(e);
-
-      ScaleTransformByVelocity s;
-      s.debug_aabb = create_gameplay(r, EntityType::empty);
-      r.emplace<ScaleTransformByVelocity>(e, s);
-
-      r.emplace<EntityTimedLifecycle>(e, 100 * 1000);
+      r.emplace<ScaleTransformByVelocity>(e);
+      r.emplace<EntityTimedLifecycle>(e);
       break;
     }
 

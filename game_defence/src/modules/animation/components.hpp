@@ -7,7 +7,7 @@ namespace game2d {
 
 struct ScaleTransformByVelocity
 {
-  entt::entity debug_aabb = entt::null;
+  bool placeholder = true;
 };
 
 struct RotatedSquare
@@ -21,7 +21,7 @@ struct RotatedSquare
 
 struct PlayerCursor
 {
-  entt::entity debug_cursor = entt::null;
+  bool placeholder = true;
 };
 
 } // namespace game2d
