@@ -32,7 +32,7 @@ update_resolve_collisions_system(entt::registry& r)
     return { entt::null, entt::null };
   };
 
-  for (const auto& coll : physics.collision_stay) {
+  for (const auto& coll : physics.collision_enter) {
 
     const auto a = static_cast<entt::entity>(coll.ent_id_0);
     const auto b = static_cast<entt::entity>(coll.ent_id_1);

@@ -21,6 +21,8 @@ namespace game2d {
 void
 update_enemy_system(entt::registry& r, const uint64_t& milliseconds_dt)
 {
+  const float enemy_speed = 2.0f;
+
   // SET TARGET
   // Note: this should be closest target
   const auto& first_target = get_first<HearthComponent>(r);
@@ -33,7 +35,7 @@ update_enemy_system(entt::registry& r, const uint64_t& milliseconds_dt)
   // Attach a class to a newly created enemy
   const auto& lifecycle = get_first_component<SINGLETON_EntityBinComponent>(r);
   for (int i = 0; i < lifecycle.created_this_frame.size(); i++) {
-    entt::entity e = lifecycle.created_this_frame[i];
+    const auto& e = lifecycle.created_this_frame[i];
     const auto& type = r.get<EntityTypeComponent>(e);
     if (type.type == EntityType::actor_enemy) {
       if (ui_econ.add_weapon) {
@@ -45,23 +47,21 @@ update_enemy_system(entt::registry& r, const uint64_t& milliseconds_dt)
     }
   }
 
-  const auto& view = r.view<const TransformComponent, GridMoveComponent, EnemyComponent>();
-  for (auto [entity, transform, grid, enemy] : view.each()) {
+  const auto& view = r.view<const TransformComponent, VelocityComponent, EnemyComponent>();
+  for (auto [entity, transform, vel, enemy] : view.each()) {
     // move towards player
     glm::ivec3 d = first_target_transform.position - transform.position;
     if (d.x == 0 && d.y == 0 && d.z == 0) // check same spot not clicked
       continue;
 
     glm::vec2 dir = glm::vec2(d.x, d.y);
-
     glm::vec2 n = dir;
     if (dir.x != 0.0f || dir.y != 0.0f)
       n = normalize(dir);
 
-    const float enemy_speed = 1.0f;
     glm::vec2 pdir{ n.x * enemy_speed, n.y * enemy_speed };
-    grid.x += pdir.x;
-    grid.y += pdir.y;
+    vel.x = pdir.x;
+    vel.y = pdir.y;
   }
 }
 

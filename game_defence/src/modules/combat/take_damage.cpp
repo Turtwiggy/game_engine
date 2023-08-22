@@ -37,14 +37,14 @@ update_take_damage_system(entt::registry& r)
     const auto sprites = convert_int_to_sprites(atk->damage);
     const auto def_pos = r.get<TransformComponent>(request.to).position;
     for (int i = 0; i < sprites.size(); i++) {
-      CreateEntityRequest vfx_req;
-      vfx_req.type = EntityType::empty_with_physics;
-      vfx_req.velocity = { 0, -45, 0 }; // make damage numbers travel up
-      vfx_req.sprite = sprites[i];
+      CreateEntityRequest req;
+      req.type = EntityType::particle;
+      req.velocity = { 0, -10, 0 }; // todo: make damage numbers travel up
+      req.sprite = sprites[i];
       glm::ivec3 offset_pos = def_pos;
       offset_pos.x += (i + 1) * text_seperation;
-      vfx_req.position = offset_pos;
-      r.emplace<CreateEntityRequest>(r.create(), vfx_req);
+      req.position = offset_pos;
+      r.emplace<CreateEntityRequest>(r.create(), req);
     }
 
     // .. take damage

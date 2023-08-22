@@ -52,9 +52,11 @@ move_to_scene_start(entt::registry& r, const Scene& s)
   destroy_and_create<SINGLETON_Wave>(r);
   const auto camera = create_gameplay(r, EntityType::camera);
   auto& camera_transform = r.get<TransformComponent>(camera);
-  camera_transform.position = { 50, 50, 0 };
+  camera_transform.position = { 0, 0, 0 };
   camera_transform.scale.x = 0;
   camera_transform.scale.y = 0;
+
+  // const auto cursor = create_gameplay(r, EntityType::cursor);
 
   if (s == Scene::game) {
 

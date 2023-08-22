@@ -20,10 +20,8 @@ struct TagComponent
 struct TransformComponent
 {
   glm::ivec3 position{ 0, 0, 0 };
-  glm::vec3 position_dxdy{ 0.0f, 0.0f, 0.0f };
   glm::vec3 rotation_radians = { 0, 0, 0 };
   glm::ivec3 scale{ 0, 0, 0 };
-  glm::vec3 scale_dxdy{ 0.0f, 0.0f, 0.0f };
 
   NLOHMANN_DEFINE_TYPE_INTRUSIVE(TransformComponent,
                                  position.x,
@@ -62,7 +60,9 @@ struct Texture
   TextureId tex_id;
 
   Texture() = default;
-  Texture(const std::string& p, const std::string& sp): path(p), spritesheet_path(sp) {};
+  Texture(const std::string& p, const std::string& sp)
+    : path(p)
+    , spritesheet_path(sp){};
 };
 
 // Attributes only updated by renderer system, read by anything.

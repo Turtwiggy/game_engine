@@ -10,6 +10,7 @@
 #include "lifecycle/components.hpp"
 #include "lifecycle/system.hpp"
 #include "maths/maths.hpp"
+#include "modules/animation/angle_to_velocity.hpp"
 #include "modules/camera/orthographic.hpp"
 #include "modules/camera/system.hpp"
 #include "modules/combat/components.hpp"
@@ -168,6 +169,7 @@ game2d::update(engine::SINGLETON_Application& app, entt::registry& r, const floa
     update_input_system(app, input);
     update_camera_system(r, dt);
     update_audio_system(r);
+    update_scale_by_velocity_system(r, dt);
   };
 
   {
@@ -187,10 +189,10 @@ game2d::update(engine::SINGLETON_Application& app, entt::registry& r, const floa
   }
   update_ui_pause_menu_system(app, r);
   update_ui_gameover_system(r);
-  update_ui_profiler_system(r);
 
-  static bool show_editor_ui = false;
+  static bool show_editor_ui = true;
   if (show_editor_ui) {
+    update_ui_profiler_system(r);
     update_ui_prefabs_system(r);
     update_ui_controller_system(r);
     update_ui_economy_system(r);

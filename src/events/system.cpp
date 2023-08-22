@@ -65,16 +65,20 @@ game2d::update_input_system(engine::SINGLETON_Application& app, SINGLETON_InputC
       process_key_up(input, e.key.keysym.scancode, e.key.repeat);
 
     // controller specific
-    // if (e.type == SDL_JOYHATMOTION)
     //   process_controller_dpad(e.jhat);
+    if (e.type == SDL_JOYHATMOTION)
+      std::cout << "jid: " << static_cast<int>(e.jhat.which) << " jhat: " << static_cast<int>(e.jhat.hat) << std::endl;
 
     //   process_controller_button_down(input, e.jbutton);
     if (e.type == SDL_JOYBUTTONDOWN)
-      std::cout << "down " << static_cast<int>(e.jbutton.button) << std::endl;
+      std::cout << "jid: " << static_cast<int>(e.jhat.which) << " down " << static_cast<int>(e.jbutton.button) << std::endl;
 
     //   process_controller_button_up(input, e.jbutton);
     if (e.type == SDL_JOYBUTTONUP)
-      std::cout << "up " << static_cast<int>(e.jbutton.button) << std::endl;
+      std::cout << "jid: " << static_cast<int>(e.jhat.which) << " up " << static_cast<int>(e.jbutton.button) << std::endl;
+
+    // if (e.type == SDL_JOYAXISMOTION)
+    //   std::cout << "jid: " << static_cast<int>(e.jhat.which) << " axis: " << static_cast<int>(e.jaxis.axis) << std::endl;
 
     if (e.type == SDL_JOYDEVICEADDED)
       process_controller_added(input);

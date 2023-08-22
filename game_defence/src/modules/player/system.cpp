@@ -29,6 +29,10 @@ game2d::update_player_controller_system(entt::registry& r, const uint64_t& milli
   const auto dt = milliseconds_dt / 1000.0f;
   const float time_between_bullets = 0.25f;
 
+  const float player_speed = 10.0f;
+  const float bullet_speed = 10.0f;
+  const float gun_offset_distance = 30.0f;
+
   // player movement
   const auto& view = r.view<PlayerComponent, InputComponent, const PhysicsActorComponent, const TransformComponent>();
   for (auto [entity, player, input, actor, t] : view.each()) {
@@ -77,28 +81,31 @@ game2d::update_player_controller_system(entt::registry& r, const uint64_t& milli
       right_bumper_pressed = get_button_held(c, controller->c_r_bumper);
     };
 
-    // do the move
-    const float speed = 2.0f;
-    if (auto* move = r.try_get<GridMoveComponent>(entity)) {
-      const glm::vec2 move_dir = { lx * speed, ly * speed };
-      move->x += move_dir.x;
-      move->y += move_dir.y;
-    }
+    const glm::vec2 r_analog_dir = { rx, ry };
+    glm::vec2 r_nrm_dir = r_analog_dir;
+    if (r_nrm_dir.x != 0.0f || r_nrm_dir.y != 0.0f)
+      r_nrm_dir = glm::normalize(r_nrm_dir);
 
-    // work out analogue direction
-    const glm::vec2 analog_dir = { rx, ry };
-    glm::vec2 nrm_dir = analog_dir;
-    if (analog_dir.x != 0.0f || analog_dir.y != 0.0f)
-      nrm_dir = glm::normalize(analog_dir);
+    const glm::vec2 l_analog_dir = { lx, ly };
+    glm::vec2 l_nrm_dir = l_analog_dir;
+    if (l_nrm_dir.x != 0.0f || l_nrm_dir.y != 0.0f)
+      l_nrm_dir = glm::normalize(l_nrm_dir);
+
+    // do the move
+    if (auto* vel = r.try_get<VelocityComponent>(entity)) {
+      const glm::vec2 move_dir = l_nrm_dir * player_speed;
+      vel->x = move_dir.x;
+      vel->y = move_dir.y;
+    }
 
     // offset the bullet by a distance
     // to stop the bullet spawning inside the entity
-    const float offset_distance = 30.0f;
-    glm::ivec2 offset_pos = { t.position.x + nrm_dir.x * offset_distance, t.position.y + nrm_dir.y * offset_distance };
+    glm::ivec2 offset_pos = { t.position.x + r_nrm_dir.x * gun_offset_distance,
+                              t.position.y + r_nrm_dir.y * gun_offset_distance };
 
     // visually display the gun angle
     // note: this should be in update() not fixedupdate()
-    if (glm::abs(nrm_dir.x) + glm::abs(nrm_dir.y) > 0.001f) {
+    if (glm::abs(r_nrm_dir.x) + glm::abs(r_nrm_dir.y) > 0.001f) {
       auto& debug_gunspot_transform = r.emplace_or_replace<TransformComponent>(player.debug_gun_spot);
       debug_gunspot_transform.position.x = offset_pos.x;
       debug_gunspot_transform.position.y = offset_pos.y;
@@ -112,15 +119,15 @@ game2d::update_player_controller_system(entt::registry& r, const uint64_t& milli
     //
     // request to shoot
     //
-    const float bullet_speed = 250.0f;
     {
       if (player.time_between_bullets_left > 0.0f)
         player.time_between_bullets_left -= dt;
       if (lmb_press && player.time_between_bullets_left <= 0.0f) {
+
         CreateEntityRequest req;
         req.type = EntityType::actor_bullet;
         req.position = { offset_pos.x, offset_pos.y, 0 };
-        req.velocity = glm::ivec3(nrm_dir.x * bullet_speed, nrm_dir.y * bullet_speed, 0);
+        req.velocity = glm::vec3(r_nrm_dir.x * bullet_speed, r_nrm_dir.y * bullet_speed, 0);
         r.emplace<CreateEntityRequest>(r.create(), req);
 
         // request audio

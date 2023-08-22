@@ -6,6 +6,7 @@
 // hack below
 #include "actors.hpp"
 #include "events/components.hpp"
+#include "lifecycle/components.hpp"
 #include "maths/maths.hpp"
 #include "modules/gameover/components.hpp"
 #include "modules/scene/components.hpp"
@@ -56,22 +57,23 @@ game2d::update_ui_next_wave_system(entt::registry& r)
       rnd.rng.seed(fixed.fixed_tick);
 
       auto create_rnd_spawner = [&rnd, &r, &ri]() {
-        const auto spawner = create_gameplay(r, EntityType::spawner);
-        auto& spawner_transform = r.get<TransformComponent>(spawner);
-
+        //
         // hack: using screen size is bad, oh well
-
+        // random pos on screen
         const glm::ivec2 half_size = { ri.viewport_size_current.x / 2.0f, ri.viewport_size_current.y / 2.0f };
         int rnd_x = static_cast<int>(engine::rand_det_s(rnd.rng, -half_size.x + 100, half_size.x - 100));
         int rnd_y = static_cast<int>(engine::rand_det_s(rnd.rng, -half_size.y + 100, half_size.y - 100));
-
         // give the hearth a chance
         if (glm::abs(rnd_x) < 250)
           rnd_x = 250 * glm::sign(rnd_x);
         if (glm::abs(rnd_y) < 250)
           rnd_y = 250 * glm::sign(rnd_y);
 
-        spawner_transform.position = { rnd_x, rnd_y, 0 };
+        CreateEntityRequest req;
+        req.position.x = rnd_x;
+        req.position.y = rnd_y;
+        req.type = EntityType::spawner;
+        r.emplace<CreateEntityRequest>(r.create(), req);
       };
 
       for (int i = 0; i < wave.wave; i++)

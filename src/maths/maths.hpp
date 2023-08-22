@@ -59,6 +59,9 @@ rand_unit_vector(RandomState& rnd);
 [[nodiscard]] glm::vec3
 random_in_hemisphere(RandomState& rnd, glm::vec3& normal);
 
+[[nodiscard]] glm::vec3
+rotate_point(const glm::vec3& point, const float angle_radians);
+
 [[nodiscard]] uint64_t
 encode_cantor_pairing_function(int x, int y);
 

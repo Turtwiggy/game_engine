@@ -14,32 +14,11 @@
 
 namespace game2d {
 
-enum class CollisionAxis
-{
-  x,
-  y
-};
-
-// [[nodiscard]] bool
-// collide(const PhysicsTransformComponent& one, const PhysicsTransformComponent& two);
-
-// [[nodiscard]] bool
-// collides(const PhysicsTransformComponent& one, const std::vector<PhysicsTransformComponent>& others);
+[[nodiscard]] std::vector<Collision2D>
+do_move_x(entt::registry& r, const entt::entity& e, AABB& aabb, VelocityComponent& vel);
 
 [[nodiscard]] std::vector<Collision2D>
-do_move_x(entt::registry& r,
-          entt::entity& entity,
-          int amount,
-          TransformComponent& transform,
-          PhysicsTransformXComponent& x,
-          const PhysicsTransformYComponent& y);
-[[nodiscard]] std::vector<Collision2D>
-do_move_y(entt::registry& r,
-          entt::entity& entity,
-          int amount,
-          TransformComponent& transform,
-          const PhysicsTransformXComponent& x,
-          PhysicsTransformYComponent& y);
+do_move_y(entt::registry& r, const entt::entity& e, AABB& aabb, VelocityComponent& vel);
 
 // Checks collisions between actor-actors.
 void

@@ -11,7 +11,6 @@ namespace game2d {
 enum class EntityType
 {
   empty,
-  empty_with_physics,
   actor_player,
   actor_turret,
   actor_bullet,
@@ -22,9 +21,11 @@ enum class EntityType
   pickup_xp,
 
   // misc
+  cursor,
   spawner,
   camera,
   line,
+  particle,
 
   count
 };

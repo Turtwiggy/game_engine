@@ -1,6 +1,7 @@
 #include "system.hpp"
 
 // components
+#include "modules/physics/components.hpp"
 #include "modules/ui_hierarchy/helpers.hpp"
 #include "renderer/components.hpp"
 #include "sprites/components.hpp"
@@ -89,26 +90,33 @@ game2d::update_ui_hierarchy_system(entt::registry& r)
         "Render Angle:", transform.rotation_radians.x, transform.rotation_radians.y, transform.rotation_radians.z);
     }
 
-    // if (r.all_of<PhysicsTransformComponent>(eid)) {
-    //   PhysicsTransformComponent& ptc = r.get<PhysicsTransformComponent>(eid);
-    //   imgui_draw_ivec2("Physics Pos (x_tl, y_tl): ", ptc.x_tl, ptc.y_tl);
-    //   imgui_draw_ivec2("Physics Size: ", ptc.w, ptc.h);
-    // }
-
-    // if (r.all_of<SpriteComponent, SpriteColourComponent>(eid)) {
-    //   SpriteComponent& sc = r.get<SpriteComponent>(eid);
-    //   SpriteColourComponent& scc = r.get<SpriteColourComponent>(eid);
-
-    //   // select sprite
-    //   imgui_draw_ivec2("Sprite: ", sc.x, sc.y);
-    // }
-
+    if (r.all_of<PhysicsTransformXComponent>(eid)) {
+      PhysicsTransformXComponent& ptc = r.get<PhysicsTransformXComponent>(eid);
+      imgui_draw_ivec2("PhysX (l, r): ", ptc.l, ptc.r);
+    }
+    if (r.all_of<PhysicsTransformYComponent>(eid)) {
+      PhysicsTransformYComponent& ptc = r.get<PhysicsTransformYComponent>(eid);
+      imgui_draw_ivec2("PhysY (b, t): ", ptc.b, ptc.t);
+    }
+    if (r.all_of<AABB>(eid)) {
+      AABB& aabb = r.get<AABB>(eid);
+      imgui_draw_ivec2("AABB (center): ", aabb.center.x, aabb.center.y);
+      imgui_draw_ivec2("AABB (size): ", aabb.size.x, aabb.size.y);
+    }
     // if (r.all_of<VelocityComponent>(eid)) {
     //   const VelocityComponent& c = r.get<VelocityComponent>(eid);
     //   float x = c.x;
     //   float y = c.y;
     //   imgui_draw_vec2("Vel: ", x, y);
     // }
+
+    if (r.all_of<SpriteComponent, SpriteColourComponent>(eid)) {
+      SpriteComponent& sc = r.get<SpriteComponent>(eid);
+      // SpriteColourComponent& scc = r.get<SpriteColourComponent>(eid);
+
+      // select sprite
+      imgui_draw_ivec2("Sprite: ", sc.x, sc.y);
+    }
 
     // Add component
     // if (ImGui::Button("Add component")) {

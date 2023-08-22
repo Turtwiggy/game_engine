@@ -3,12 +3,19 @@
 #include <nlohmann/json.hpp>
 
 // c++ headers
-#include <cstdint>
 #include <vector>
 
 #include <entt/entt.hpp>
+#include <glm/glm.hpp>
 
 namespace game2d {
+
+struct AABB
+{
+  glm::ivec2 center{ 0, 0 };
+  glm::ivec2 size{ 0, 0 }; // width and height
+  // entt::entity debug_aabb = entt::null;
+};
 
 struct PhysicsTransformXComponent
 {
@@ -20,12 +27,6 @@ struct PhysicsTransformYComponent
 {
   int t = 0;
   int b = 0;
-};
-
-struct AABB
-{
-  PhysicsTransformXComponent x;
-  PhysicsTransformYComponent y;
 };
 
 struct PhysicsSolidComponent
@@ -41,18 +42,10 @@ struct PhysicsActorComponent
 
 struct VelocityComponent
 {
-  int x = 0;
-  int y = 0;
-
-  NLOHMANN_DEFINE_TYPE_INTRUSIVE(VelocityComponent, x, y);
-};
-
-struct GridMoveComponent
-{
   float x = 0.0f;
   float y = 0.0f;
-
-  NLOHMANN_DEFINE_TYPE_INTRUSIVE(GridMoveComponent, x, y);
+  float remainder_x = 0.0f;
+  float remainder_y = 0.0f;
 };
 
 // A collision occurs between two entities
