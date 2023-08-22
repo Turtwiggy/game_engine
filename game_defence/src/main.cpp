@@ -24,7 +24,6 @@ static uint64_t milliseconds_accumulator_since_last_tick = 0;
 static uint64_t new_time = 0;
 static uint64_t cur_time = 0;
 static uint64_t milliseconds_delta_time = 0;
-static const uint64_t MAX_TICKS_PER_FRAME = 2;
 
 static SINGLETON_Application app;
 static entt::registry game;
@@ -42,14 +41,14 @@ main_loop(void* arg)
 
   new_time = SDL_GetTicks64();
   milliseconds_delta_time = new_time - cur_time;
-  if (milliseconds_delta_time > MILLISECONDS_PER_FIXED_TICK * MAX_TICKS_PER_FRAME) {
-    milliseconds_delta_time = MILLISECONDS_PER_FIXED_TICK * MAX_TICKS_PER_FRAME; // avoid spiral
-  }
+  if (milliseconds_delta_time > 250)
+    milliseconds_delta_time = 250; // avoid spiral
   cur_time = new_time;
+
+  milliseconds_accumulator_since_last_tick += milliseconds_delta_time;
 
   // The physics cycle may happen more than once per frame if
   // the fixed timestep is less than the actual frame update time.
-  milliseconds_accumulator_since_last_tick += milliseconds_delta_time;
   while (milliseconds_accumulator_since_last_tick >= MILLISECONDS_PER_FIXED_TICK) {
     milliseconds_accumulator_since_last_tick -= MILLISECONDS_PER_FIXED_TICK;
 

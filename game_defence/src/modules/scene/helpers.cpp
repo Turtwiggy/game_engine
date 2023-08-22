@@ -56,7 +56,7 @@ move_to_scene_start(entt::registry& r, const Scene& s)
   camera_transform.scale.x = 0;
   camera_transform.scale.y = 0;
 
-  const auto cursor = create_gameplay(r, EntityType::cursor);
+  // const auto cursor = create_gameplay(r, EntityType::cursor);
 
   if (s == Scene::game) {
 

@@ -1,36 +1,6 @@
-#include "helpers.hpp"
-
-#include "maths/maths.hpp"
-#include "modules/physics/helpers.hpp"
-
-#include <algorithm>
+#include "gjk.hpp"
 
 namespace game2d {
-
-AABB
-generate_aabb(const RotatedSquare& square)
-{
-  const auto& center = square.center;
-  const auto& theta = square.theta;
-  const float degrees = glm::degrees(square.theta); // for debugging
-
-  // https://stackoverflow.com/questions/6657479/aabb-of-rotated-sprite
-  const float w0 = square.unrotated_h * std::sin(theta);
-  const float w1 = square.unrotated_w * std::cos(theta);
-  const float h0 = square.unrotated_w * std::sin(theta);
-  const float h1 = square.unrotated_h * std::cos(theta);
-  const float rotated_w = glm::abs(w0) + glm::abs(w1);
-  const float rotated_h = glm::abs(h0) + glm::abs(h1);
-
-  AABB new_aabb;
-  new_aabb.x.l = center.x - (rotated_w / 2.0f);
-  new_aabb.x.r = center.x + (rotated_w / 2.0f);
-  new_aabb.y.b = center.y - (rotated_h / 2.0f);
-  new_aabb.y.t = center.y + (rotated_h / 2.0f);
-  new_aabb.center = center;
-  new_aabb.size = { rotated_w, rotated_h };
-  return new_aabb;
-};
 
 glm::vec3
 triple_product(const glm::vec3& a, const glm::vec3& b, const glm::vec3& c)
@@ -148,51 +118,51 @@ gjk_squares_collide(const RotatedSquare& a, const RotatedSquare& b)
   }
 };
 
-bool
-point_in_rotated_rectangle(const RotatedSquare& square, glm::vec2 point)
-{
-  // const auto& w = square.unrotated_w;
-  // const auto& h = square.unrotated_h;
+// bool
+// point_in_rotated_rectangle(const RotatedSquare& square, glm::vec2 point)
+// {
+//   // const auto& w = square.unrotated_w;
+//   // const auto& h = square.unrotated_h;
 
-  // // center the point and rectangle to the origin
-  // const glm::vec2 tl = square.tl - square.center;
-  // const glm::vec2 tr = square.tr - square.center;
-  // const glm::vec2 br = square.br - square.center;
-  // const glm::vec2 bl = square.bl - square.center;
-  // const glm::vec2 t = point - square.center;
+//   // // center the point and rectangle to the origin
+//   // const glm::vec2 tl = square.tl - square.center;
+//   // const glm::vec2 tr = square.tr - square.center;
+//   // const glm::vec2 br = square.br - square.center;
+//   // const glm::vec2 bl = square.bl - square.center;
+//   // const glm::vec2 t = point - square.center;
 
-  // // rotate the point around the origin
-  // const glm::ivec2 r = { t.x * std::cos(-square.theta) - t.y * std::sin(-square.theta),
-  //                        t.x * std::sin(-square.theta) + t.y * std::cos(-square.theta) };
+//   // // rotate the point around the origin
+//   // const glm::ivec2 r = { t.x * std::cos(-square.theta) - t.y * std::sin(-square.theta),
+//   //                        t.x * std::sin(-square.theta) + t.y * std::cos(-square.theta) };
 
-  // return r.x >= -w / 2.0f && r.x <= w / 2.0f && r.y >= -h / 2.0f && r.y <= h / 2.0f;
-  return false;
-};
+//   // return r.x >= -w / 2.0f && r.x <= w / 2.0f && r.y >= -h / 2.0f && r.y <= h / 2.0f;
+//   return false;
+// };
 
-RotatedSquare
-transform_to_rotated_square(const TransformComponent& t)
-{
-  const auto& w = t.scale.x;
-  const auto& h = t.scale.y;
-  const auto& theta = t.rotation_radians.z;
-  const auto degrees = glm::degrees(theta);
-  const glm::vec3 a = engine::rotate_point({ -w / 2.0f, h / 2.0f, 0.0f }, theta);
-  const glm::vec3 b = engine::rotate_point({ w / 2.0f, h / 2.0f, 0.0f }, theta);
-  const glm::vec3 c = engine::rotate_point({ w / 2.0f, -h / 2.0f, 0.0f }, theta);
-  const glm::vec3 d = engine::rotate_point({ -w / 2.0f, -h / 2.0f, 0.0f }, theta);
+// RotatedSquare
+// transform_to_rotated_square(const TransformComponent& t)
+// {
+//   const auto& w = t.scale.x;
+//   const auto& h = t.scale.y;
+//   const auto& theta = t.rotation_radians.z;
+//   const auto degrees = glm::degrees(theta);
+//   const glm::vec3 a = engine::rotate_point({ -w / 2.0f, h / 2.0f, 0.0f }, theta);
+//   const glm::vec3 b = engine::rotate_point({ w / 2.0f, h / 2.0f, 0.0f }, theta);
+//   const glm::vec3 c = engine::rotate_point({ w / 2.0f, -h / 2.0f, 0.0f }, theta);
+//   const glm::vec3 d = engine::rotate_point({ -w / 2.0f, -h / 2.0f, 0.0f }, theta);
 
-  RotatedSquare square;
-  square.theta = theta;
-  square.center = t.position;
-  square.unrotated_w = w;
-  square.unrotated_h = h;
-  square.points = {
-    { a + square.center },
-    { b + square.center },
-    { c + square.center },
-    { d + square.center },
-  };
-  return square;
-}
+//   RotatedSquare square;
+//   square.theta = theta;
+//   square.center = t.position;
+//   square.unrotated_w = w;
+//   square.unrotated_h = h;
+//   square.points = {
+//     { a + square.center },
+//     { b + square.center },
+//     { c + square.center },
+//     { d + square.center },
+//   };
+//   return square;
+// };
 
 } // namespace game2d

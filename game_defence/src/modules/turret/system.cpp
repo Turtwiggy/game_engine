@@ -24,6 +24,7 @@ update_turret_system(entt::registry& r, const uint64_t& ms_dt)
   const auto& enemies = r.view<const EnemyComponent, const TransformComponent>();
   const auto& turrets = r.view<TurretComponent, TransformComponent>();
   const auto& player = get_first<PlayerComponent>(r); // assume one player for now
+  const float turret_bullet_speed = 20.0f;
 
   const std::vector<EntityType> valid_types{
     EntityType::actor_enemy,
@@ -66,12 +67,10 @@ update_turret_system(entt::registry& r, const uint64_t& ms_dt)
 
     if (turret.time_between_bullets_left < 0.0f) {
 
-      const float bullet_speed = 200.0f;
-
       CreateEntityRequest req;
       req.type = turret.type_to_spawn;
       req.position = { offset_pos.x, offset_pos.y, 0 };
-      req.velocity = glm::ivec3(-nrm_dir.x * bullet_speed, -nrm_dir.y * bullet_speed, 0);
+      req.velocity = glm::vec3(-nrm_dir.x * turret_bullet_speed, -nrm_dir.y * turret_bullet_speed, 0);
       r.emplace<CreateEntityRequest>(r.create(), req);
 
       // request audio

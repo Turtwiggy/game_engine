@@ -21,10 +21,8 @@ game2d::update_lifecycle_system(entt::registry& r, const uint64_t& milliseconds_
     lifecycle.milliseconds_alive += static_cast<int>(milliseconds_dt);
   });
 
-  // process destroyed objects
-  for (const auto& entity : dead.dead)
-    r.destroy(entity);
-
+  // destroy all dead objects
+  r.destroy(dead.dead.begin(), dead.dead.end());
   dead.dead.clear();
 
   //
@@ -49,14 +47,17 @@ game2d::update_lifecycle_system(entt::registry& r, const uint64_t& milliseconds_
       sc->y = anim.animation_frames[0].y;
     }
 
-    // set position by transform
-    auto& transform = r.get<TransformComponent>(e);
-    transform.position = request.position;
+    // set position for aabb
+    if (auto* aabb = r.try_get<AABB>(e))
+      aabb->center = { request.position.x, request.position.y };
+
+    // set position for transform
+    r.get<TransformComponent>(e).position = request.position;
 
     // capture new entity
     dead.created_this_frame.push_back(e);
-
-    // destroy request
-    r.destroy(entity);
   }
+
+  // done with all requests
+  r.destroy(requests.begin(), requests.end());
 };

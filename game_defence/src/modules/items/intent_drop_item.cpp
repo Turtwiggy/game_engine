@@ -22,10 +22,10 @@ update_intent_drop_item_system(entt::registry& r)
   const auto& view = r.view<const TransformComponent, WantsToDrop>();
   for (const auto& [entity, transform, request] : view.each()) {
 
-    CreateEntityRequest create;
-    create.type = EntityType::pickup_xp;
-    create.position = transform.position;
-    r.emplace<CreateEntityRequest>(r.create(), create);
+    CreateEntityRequest req;
+    req.type = EntityType::pickup_xp;
+    req.position = transform.position;
+    r.emplace<CreateEntityRequest>(r.create(), req);
 
     // request is done... but entity will die next frame anyway
     r.remove<WantsToDrop>(entity);

@@ -16,10 +16,10 @@ namespace game2d {
 // Attach this to have the SpriteAnimationComponent
 // automatically have the SpriteAnimation updated (walk cycles)
 // based on velocity. There's scope to expand this.
-struct AnimationSetByVelocityComponent
-{
-  bool placeholder = true;
-};
+// struct AnimationSetByVelocityComponent
+// {
+//   bool placeholder = true;
+// };
 
 // This is the loaded yml sprite information
 struct SpriteAnimation

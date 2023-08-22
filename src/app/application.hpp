@@ -14,6 +14,7 @@ struct SINGLETON_Application
   int width = 1600;
   int height = 900;
   DisplayMode display = DisplayMode::windowed;
+
   GameWindow window;
   ImGui_Manager imgui;
 

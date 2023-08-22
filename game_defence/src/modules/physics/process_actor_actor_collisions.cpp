@@ -18,7 +18,12 @@ game2d::update_actor_actor_collisions_system(entt::registry& r, SINGLETON_Physic
   // 2. generate all possible collisions
   // 3. generate collision enter, exit, stay
 
+  p.frame_collisions.clear();
   generate_filtered_broadphase_collisions(r, p.frame_collisions);
+
+  // TODO: filter with narrowphase collisions
+  // std::vector<Collision2D> narrowphase_collisions;
+  // generate_narrowphase_collisons(r, broadphase_collisions, narrowphase_collisions)
 
   {
     // There's 3 states needed to capture:

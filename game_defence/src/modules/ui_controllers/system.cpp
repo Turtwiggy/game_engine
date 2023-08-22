@@ -54,10 +54,14 @@ update_ui_controller_system(entt::registry& r)
     ImGui::Text("SDL_CONTROLLER_AXIS_TRIGGERLEFT %f", get_axis_01(c, SDL_GameControllerAxis::SDL_CONTROLLER_AXIS_TRIGGERLEFT));
     ImGui::Text("SDL_CONTROLLER_AXIS_TRIGGERRIGHT %f", get_axis_01(c, SDL_GameControllerAxis::SDL_CONTROLLER_AXIS_TRIGGERRIGHT));
     ImGui::Text("SDL_CONTROLLER_BUTTON_START %i", get_button_held(c, SDL_GameControllerButton::SDL_CONTROLLER_BUTTON_START));
+    ImGui::Text("SDL_CONTROLLER_BUTTON_BACK %i", get_button_held(c, SDL_GameControllerButton::SDL_CONTROLLER_BUTTON_BACK));
+    ImGui::Text("SDL_CONTROLLER_BUTTON_GUIDE %i", get_button_held(c, SDL_GameControllerButton::SDL_CONTROLLER_BUTTON_GUIDE));
     ImGui::Text("SDL_CONTROLLER_BUTTON_A %i", get_button_held(c, SDL_GameControllerButton::SDL_CONTROLLER_BUTTON_A));
     ImGui::Text("SDL_CONTROLLER_BUTTON_B %i", get_button_held(c, SDL_GameControllerButton::SDL_CONTROLLER_BUTTON_B));
     ImGui::Text("SDL_CONTROLLER_BUTTON_X %i", get_button_held(c, SDL_GameControllerButton::SDL_CONTROLLER_BUTTON_X));
     ImGui::Text("SDL_CONTROLLER_BUTTON_Y %i", get_button_held(c, SDL_GameControllerButton::SDL_CONTROLLER_BUTTON_Y));
+    ImGui::Text("SDL_CONTROLLER_BUTTON_LEFTSHOULDER %i", get_button_held(c, SDL_GameControllerButton::SDL_CONTROLLER_BUTTON_LEFTSHOULDER));
+    ImGui::Text("SDL_CONTROLLER_BUTTON_RIGHTSHOULDER %i", get_button_held(c, SDL_GameControllerButton::SDL_CONTROLLER_BUTTON_RIGHTSHOULDER));
     ImGui::Text("SDL_CONTROLLER_BUTTON_DPAD_UP %i", get_button_held(c, SDL_GameControllerButton::SDL_CONTROLLER_BUTTON_DPAD_UP));
     ImGui::Text("SDL_CONTROLLER_BUTTON_DPAD_DOWN %i", get_button_held(c, SDL_GameControllerButton::SDL_CONTROLLER_BUTTON_DPAD_DOWN));
     ImGui::Text("SDL_CONTROLLER_BUTTON_DPAD_LEFT %i", get_button_held(c, SDL_GameControllerButton::SDL_CONTROLLER_BUTTON_DPAD_LEFT));

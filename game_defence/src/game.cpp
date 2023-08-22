@@ -10,7 +10,7 @@
 #include "lifecycle/components.hpp"
 #include "lifecycle/system.hpp"
 #include "maths/maths.hpp"
-#include "modules/animation/scale_by_velocity.hpp"
+#include "modules/animation/angle_to_velocity.hpp"
 #include "modules/camera/orthographic.hpp"
 #include "modules/camera/system.hpp"
 #include "modules/combat/components.hpp"

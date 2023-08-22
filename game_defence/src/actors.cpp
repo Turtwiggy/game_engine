@@ -88,18 +88,16 @@ create_colour(const SINGLETON_ColoursComponent& colours, const EntityType& type)
   const auto& tertiary = colours.lin_tertiary;
   const auto& quaternary = colours.lin_quaternary;
 
-  auto chosen_col = primary;
-
   SpriteColourComponent scc;
-  scc.colour = chosen_col;
+  scc.colour = primary;
 
   if (type == EntityType::actor_hearth)
-    scc.colour = colours.lin_hot_pink;
+    scc.colour = secondary;
 
-  if (type == EntityType::cursor) {
+  if (type == EntityType::empty) {
     engine::LinearColour off;
-    off.r = 0.0f;
-    off.g = 0.0f;
+    off.r = 1.0f;
+    off.g = 1.0f;
     off.b = 1.0f;
     off.a = 0.5f;
     scc.colour = std::make_shared<engine::LinearColour>(off);
@@ -123,6 +121,15 @@ create_colour(const SINGLETON_ColoursComponent& colours, const EntityType& type)
 
   return scc;
 }
+
+void
+create_physics_actor(entt::registry& r, const entt::entity& e)
+{
+  r.emplace<PhysicsTransformXComponent>(e);
+  r.emplace<PhysicsTransformYComponent>(e);
+  r.emplace<AABB>(e);
+  r.emplace<PhysicsActorComponent>(e);
+};
 
 entt::entity
 create_gameplay(entt::registry& r, const EntityType& type)
@@ -151,16 +158,8 @@ create_gameplay(entt::registry& r, const EntityType& type)
       break;
     }
 
-    case EntityType::empty_with_physics: {
-      r.emplace<PhysicsTransformXComponent>(e);
-      r.emplace<PhysicsTransformYComponent>(e);
-      r.emplace<PhysicsActorComponent>(e);
-
-      break;
-    }
-
     case EntityType::cursor: {
-      r.emplace<PlayerCursor>(e);
+      // r.emplace<PlayerCursor>(e);
       break;
     }
 
@@ -174,26 +173,20 @@ create_gameplay(entt::registry& r, const EntityType& type)
       transform.scale.y = 100;
       transform.scale.x = 100;
       r.emplace<PickupZone>(e);
-      r.emplace<PhysicsTransformXComponent>(e);
-      r.emplace<PhysicsTransformYComponent>(e);
-      r.emplace<PhysicsActorComponent>(e);
+      create_physics_actor(r, e);
       break;
     }
 
     case EntityType::pickup_xp: {
-      r.emplace<PhysicsTransformXComponent>(e);
-      r.emplace<PhysicsTransformYComponent>(e);
-      r.emplace<PhysicsActorComponent>(e);
+      create_physics_actor(r, e);
       r.emplace<AbleToBePickedUp>(e);
       break;
     }
 
     case EntityType::actor_player: {
-      r.emplace<PhysicsTransformXComponent>(e);
-      r.emplace<PhysicsTransformYComponent>(e);
+      create_physics_actor(r, e);
       r.emplace<PhysicsSolidComponent>(e);
-      r.emplace<PhysicsActorComponent>(e);
-      r.emplace<GridMoveComponent>(e);
+      r.emplace<VelocityComponent>(e);
 
       // gameplay
       PlayerComponent pc;
@@ -222,19 +215,15 @@ create_gameplay(entt::registry& r, const EntityType& type)
     }
 
     case EntityType::actor_enemy: {
-      r.emplace<PhysicsTransformXComponent>(e);
-      r.emplace<PhysicsTransformYComponent>(e);
-      r.emplace<PhysicsActorComponent>(e);
-      r.emplace<GridMoveComponent>(e);
+      create_physics_actor(r, e);
       r.emplace<EnemyComponent>(e);
+      r.emplace<VelocityComponent>(e);
       // health, attack, range set on class
       break;
     }
 
     case EntityType::actor_turret: {
-      r.emplace<PhysicsTransformXComponent>(e);
-      r.emplace<PhysicsTransformYComponent>(e);
-      r.emplace<PhysicsActorComponent>(e);
+      create_physics_actor(r, e);
       r.emplace<TurretComponent>(e);
 
       // todo: if make turret solid,
@@ -249,19 +238,15 @@ create_gameplay(entt::registry& r, const EntityType& type)
 
       r.emplace<AttackComponent>(e, 3);
 
-      r.emplace<PhysicsTransformXComponent>(e);
-      r.emplace<PhysicsTransformYComponent>(e);
-      r.emplace<PhysicsActorComponent>(e);
+      create_physics_actor(r, e);
       r.emplace<VelocityComponent>(e);
-      r.emplace<ScaleTransformByVelocity>(e);
+      r.emplace<SetTransformAngleToVelocity>(e);
       r.emplace<EntityTimedLifecycle>(e);
       break;
     }
 
     case EntityType::actor_hearth: {
-      r.emplace<PhysicsTransformXComponent>(e);
-      r.emplace<PhysicsTransformYComponent>(e);
-      r.emplace<PhysicsActorComponent>(e);
+      create_physics_actor(r, e);
       r.emplace<HearthComponent>(e);
       r.emplace<HealthComponent>(e, 50);
 
@@ -275,9 +260,7 @@ create_gameplay(entt::registry& r, const EntityType& type)
     }
 
     case EntityType::spawner: {
-      r.emplace<PhysicsTransformXComponent>(e);
-      r.emplace<PhysicsTransformYComponent>(e);
-      r.emplace<PhysicsActorComponent>(e);
+      create_physics_actor(r, e);
       r.emplace<SpawnerComponent>(e);
       r.emplace<HealthComponent>(e, 10);
       break;

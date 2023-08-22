@@ -8,7 +8,7 @@
 namespace game2d {
 
 void
-create_class(entt::registry& r, entt::entity& e, const EntityType& type, const Weapon& weapon)
+create_class(entt::registry& r, const entt::entity& e, const EntityType& type, const Weapon& weapon)
 {
   const auto& colours = get_first_component<SINGLETON_ColoursComponent>(r);
   const auto& anims = get_first_component<SINGLETON_Animations>(r);

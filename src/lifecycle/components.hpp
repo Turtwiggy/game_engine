@@ -4,10 +4,10 @@
 
 #include "glm/glm.hpp"
 #include <entt/entt.hpp>
+#include <optional>
+#include <string>
 #include <unordered_set>
 #include <vector>
-#include <string>
-#include <optional>
 
 namespace game2d {
 
@@ -30,10 +30,10 @@ struct SINGLETON_EntityBinComponent
 
 struct CreateEntityRequest
 {
-  EntityType type;
-  glm::ivec3 position;
-  glm::ivec3 velocity;
-  std::optional<std::string> sprite;
+  EntityType type = EntityType::empty;
+  glm::ivec3 position{ 0, 0, 0 };
+  glm::vec3 velocity{ 0, 0, 0 };
+  std::optional<std::string> sprite = std::nullopt;
 };
 
 };
