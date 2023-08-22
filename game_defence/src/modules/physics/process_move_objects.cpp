@@ -49,8 +49,6 @@ game2d::update_move_objects_system(entt::registry& r, const uint64_t millisecond
   const auto& vel_actors = r.view<AABB, VelocityComponent>();
   for (const auto& [entity, aabb, vel] : vel_actors.each()) {
 
-    const auto et = r.get<EntityTypeComponent>(entity);
-
     const auto colls_x = do_move_x(r, entity, aabb, vel);
     // collisions.insert(collisions.end(), colls_x.begin(), colls_x.end());
 

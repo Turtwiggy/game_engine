@@ -39,7 +39,7 @@ update_take_damage_system(entt::registry& r)
     for (int i = 0; i < sprites.size(); i++) {
       CreateEntityRequest req;
       req.type = EntityType::particle;
-      // vfx_req.velocity = { 0, -45, 0 }; // make damage numbers travel up
+      req.velocity = { 0, -10, 0 }; // todo: make damage numbers travel up
       req.sprite = sprites[i];
       glm::ivec3 offset_pos = def_pos;
       offset_pos.x += (i + 1) * text_seperation;
