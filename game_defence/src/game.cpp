@@ -164,16 +164,13 @@ game2d::update(engine::SINGLETON_Application& app, entt::registry& r, const floa
 
   {
     auto _ = time_scope(&p, "update()-tick");
-    auto& input = get_first_component<SINGLETON_InputComponent>(r);
-    auto& audio = get_first_component<SINGLETON_AudioComponent>(r);
-    update_input_system(app, input);
+    update_input_system(app, r);
     update_camera_system(r, dt);
     update_audio_system(r);
     update_scale_by_velocity_system(r, dt);
   };
 
   {
-    auto& ri = get_first_component<SINGLETON_RendererInfo>(r);
     auto& texs = get_first_component<SINGLETON_Textures>(r).textures;
     update_render_system(r, texs);
   }
@@ -190,13 +187,21 @@ game2d::update(engine::SINGLETON_Application& app, entt::registry& r, const floa
   update_ui_pause_menu_system(app, r);
   update_ui_gameover_system(r);
 
+#if defined(_DEBUG)
+  static bool show_demo_window = true;
+  ImGui::ShowDemoWindow(&show_demo_window);
+#endif
+
   static bool show_editor_ui = true;
   if (show_editor_ui) {
-    update_ui_profiler_system(r);
-    update_ui_prefabs_system(r);
-    update_ui_controller_system(r);
-    update_ui_economy_system(r);
+
+    // put these in to setting
     update_ui_audio_system(r);
+    update_ui_controller_system(r);
+
+    update_ui_profiler_system(r);
+    update_ui_economy_system(r);
+    update_ui_prefabs_system(r);
     update_ui_hierarchy_system(r);
   }
 

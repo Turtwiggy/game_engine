@@ -29,16 +29,33 @@ enum class InputState
   release,
 };
 
+enum class JoystickEventType
+{
+  axis,
+  button,
+  hat,
+};
+
 struct InputEvent
 {
   InputType type;
   InputState state;
-  uint32_t key;
-  // SDL_GameControllerButton button;
-  // SDL_GameControllerAxis axis;
 
-  // Note: not player, as no need to send that across the network
-  NLOHMANN_DEFINE_TYPE_INTRUSIVE(InputEvent, type, state, key);
+  uint32_t mouse = 0;
+
+  SDL_Scancode keyboard;
+
+  JoystickEventType joystick_event;
+  SDL_JoystickID joystick_id = 0;
+
+  // axis
+  Uint8 controller_axis = 0;
+  float controller_axis_value_01 = 0;
+  // button
+  Uint8 controller_button = 0;
+  // hat
+  Uint8 controller_hat = 0;
+  Uint8 controller_hat_value = 0;
 };
 
 struct SINGLETON_FixedUpdateInputHistory
@@ -53,14 +70,11 @@ struct SINGLETON_FixedUpdateInputHistory
 
   std::map<uint32_t, std::vector<InputEvent>> history;
 
-  NLOHMANN_DEFINE_TYPE_INTRUSIVE(SINGLETON_FixedUpdateInputHistory, fixed_tick_since_ack, history);
+  // NLOHMANN_DEFINE_TYPE_INTRUSIVE(SINGLETON_FixedUpdateInputHistory, fixed_tick_since_ack, history);
 };
 
 struct SINGLETON_InputComponent
 {
-  // all sdl events this frame e.g. in Update()
-  std::vector<SDL_Event> sdl_events;
-
   // keys pressed in Update() to be processed in FixedUpdate()
   // note: this is deliberately not a Set incase a user e.g.
   // press W, release W, press W before one FixedUpdate() occurs.
@@ -73,8 +87,8 @@ struct SINGLETON_InputComponent
 
   // connected controllers
   std::vector<SDL_GameController*> controllers;
-  // joystick-id, to button associaton
-  // std::map<SDL_JoystickID, std::vector<std::pair<uint64_t, Uint8>>> controller_buttons_pressed;
+  std::vector<std::pair<SDL_JoystickID, SDL_GameControllerButton>> button_down;
+  std::vector<std::pair<SDL_JoystickID, SDL_GameControllerButton>> button_released;
 };
 
 } // namespace game2d

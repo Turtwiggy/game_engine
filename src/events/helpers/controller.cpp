@@ -56,66 +56,42 @@ process_controller_removed(SINGLETON_InputComponent& input)
   open_controllers(input);
 };
 
-// bool
-// get_button_down(SDL_GameController* controller, SDL_GameControllerButton button)
-// {
-// not ideal, but the joy_event buttons dont seem
-// to align with SDL_GameControllerButton enum
-//   bool held = get_button_held(controller, button);
+void
+process_button_down(SINGLETON_InputComponent& input, const SDL_JoystickID& id, const SDL_GameControllerButton button)
+{
+  std::pair<SDL_JoystickID, SDL_GameControllerButton> evt = std::make_pair(id, button);
+  input.button_down.push_back(evt);
 
-//   SDL_Joystick* joystick = SDL_GameControllerGetJoystick(controller);
-//   SDL_JoystickID joystick_id = SDL_JoystickInstanceID(joystick);
-//   bool has_joystick = controller_buttons_pressed.find(joystick_id) != controller_buttons_pressed.end();
-//   if (!has_joystick)
-//     controller_buttons_pressed.insert({ joystick_id, {} });
+  InputEvent e;
+  e.type = InputType::controller;
+  e.state = InputState::press;
+  e.controller_button = button;
+  e.joystick_id = id;
+  e.joystick_event = JoystickEventType::button;
+  input.unprocessed_inputs.push_back(e);
+};
 
-//   auto& buttons = controller_buttons_pressed[joystick_id];
-//   auto button_location = std::find_if(
-//     buttons.begin(), buttons.end(), [&button](const std::pair<uint64_t, Uint8> obj) { return obj.second == button;
-//     });
+void
+process_button_up(SINGLETON_InputComponent& input, const SDL_JoystickID& id, const SDL_GameControllerButton button)
+{
+  std::pair<SDL_JoystickID, SDL_GameControllerButton> evt = std::make_pair(id, button);
+  input.button_released.push_back(evt);
 
-//   // Button was pressed this frame, no recollection
-//   if (held && button_location == buttons.end()) {
-//     buttons.push_back({ this->frame, button });
-//     return true;
-//   }
-
-//   // Button exists this frame
-//   if (button_location != buttons.end()) {
-//     // If its still the same frame, return true
-//     const auto& button_added_frame = (*button_location).first;
-//     if (button_added_frame == this->frame)
-//       return true;
-//     // If its a different frame, remove it
-//     if (!held)
-//       buttons.erase(button_location);
-//   }
-//   return false;
-// }
-
-// bool
-// get_button_up(SDL_GameController* controller, SDL_GameControllerButton button)
-// {
-// bool pressed = get_button_down(controller, button);
-
-//   SDL_Joystick* joystick = SDL_GameControllerGetJoystick(controller);
-//   SDL_JoystickID joystick_id = SDL_JoystickInstanceID(joystick);
-//   auto& buttons = controller_buttons_pressed[joystick_id];
-//   auto button_location = std::find_if(
-//     buttons.begin(), buttons.end(), [&button](const std::pair<uint64_t, Uint8> obj) { return obj.second == button;
-//     });
-//   if (!pressed && button_location != buttons.end()) {
-//     return true;
-//   }
-//   return false;
-// }
+  InputEvent e;
+  e.type = InputType::controller;
+  e.state = InputState::release;
+  e.controller_button = button;
+  e.joystick_id = id;
+  e.joystick_event = JoystickEventType::button;
+  input.unprocessed_inputs.push_back(e);
+};
 
 bool
 get_button_held(SDL_GameController* controller, SDL_GameControllerButton button)
 {
   Uint8 val = SDL_GameControllerGetButton(controller, button);
   return val != 0;
-}
+};
 
 float
 get_axis_01(SDL_GameController* controller, SDL_GameControllerAxis axis)

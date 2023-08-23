@@ -19,11 +19,10 @@ update_ui_controller_system(entt::registry& r)
 {
   auto& input = get_first_component<SINGLETON_InputComponent>(r);
 
-  ImGuiWindowFlags flags = 0;
-  flags |= ImGuiWindowFlags_NoFocusOnAppearing;
-  flags |= ImGuiDockNodeFlags_AutoHideTabBar;
+  // ImGuiWindowFlags flags = 0;
+  // flags |= ImGuiDockNodeFlags_AutoHideTabBar;
 
-  ImGui::Begin("Controller", NULL, flags);
+  ImGui::Begin("Controller");
 
   if (ImGui::Button("Re-open all controllers"))
     open_controllers(input);

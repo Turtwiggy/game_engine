@@ -12,9 +12,20 @@ namespace game2d {
 struct PlayerComponent
 {
   float time_between_bullets_left = 0.0f;
+  float time_between_bullets = 0.10f;
+
   entt::entity debug_gun_spot = entt::null;
   entt::entity pickup_area = entt::null;
   int picked_up_xp = 0;
+
+  // reload info
+  int bullets_in_clip = 6;
+  int bullets_in_clip_left = 6;
+  float time_between_reloads = 0.25f;
+  float time_between_reloads_left = 0.25f;
+
+  // build info
+  int turrets_placed = 0;
 };
 
 struct KeyboardComponent
@@ -51,8 +62,7 @@ struct ControllerComponent
 
 struct InputComponent
 {
-  glm::vec2 stick_l;
-  glm::vec2 stick_r;
+  bool placeholder = true;
 };
 
 } // namespace game2d

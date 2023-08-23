@@ -22,24 +22,11 @@ namespace game2d {
 void
 init_audio_system(entt::registry& r)
 {
-  auto& audio = get_first_component<SINGLETON_AudioComponent>(r);
-
-  audio::init_al();
-
-  for (Sound& sound : audio.sounds) {
-    const auto& result = audio::load_sound(sound.path);
-    sound.result = std::move(result);
-  }
-
   const int max_audio_sources = 16;
-  for (int i = 0; i < max_audio_sources; i++) {
-    ALuint source_id;
-    alGenSources(1, &source_id);
-    r.emplace<AudioSource>(r.create(), source_id);
-    // alSourcef(music, AL_PITCH, 1.0f); // pitch
-    // alGetSourcei(music, AL_SOURCE_STATE, &audio_state); // state
-    // alGetSourcef(music, AL_SEC_OFFSET, &audio_offset); // offset
-  }
+  for (int i = 0; i < max_audio_sources; i++)
+    r.emplace<AudioSource>(r.create());
+
+  open_audio_new_device(r, std::nullopt);
 }
 
 void

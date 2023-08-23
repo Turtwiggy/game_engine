@@ -28,12 +28,6 @@ namespace audio {
 // the function to open a device, alcOpenDevice, takes a strin as an input
 // The string should contain either a name of OpenAL rendering device, or NULL to request the default device.
 
-void
-init_al();
-
-void
-close_al();
-
 /* LoadBuffer loads the named audio file into an OpenAL buffer object, and
  * returns the new buffer ID. */
 ALuint
@@ -43,7 +37,10 @@ void
 play_sound(ALint source_id);
 
 std::vector<std::string>
-list_devices(const ALCchar* devices);
+list_playback_devices();
+
+std::vector<std::string>
+list_captured_devices();
 
 } // namespace audio
 

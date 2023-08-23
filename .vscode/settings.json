@@ -12,6 +12,7 @@
     "**/.vs": true
   },
   "editor.bracketPairColorization.enabled": true,
+  "debug.focusEditorOnBreak": false,
   // "editor.guides.bracketPairs": "active",
   "files.associations": {
     "*.glsl": "c",

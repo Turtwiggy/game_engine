@@ -27,67 +27,114 @@ game2d::update_player_controller_system(entt::registry& r, const uint64_t& milli
   const auto& inputs = finputs.history.at(finputs.fixed_tick);
   const auto& i = get_first_component<SINGLETON_InputComponent>(r);
   const auto dt = milliseconds_dt / 1000.0f;
-  const float time_between_bullets = 0.25f;
 
+  const auto fixed_input_keyboard_press = [&inputs](const SDL_Scancode& key) -> bool {
+    const auto l = [&key](const InputEvent& e) {
+      return (e.type == InputType::keyboard && e.keyboard == key && e.state == InputState::press);
+    };
+    return std::find_if(inputs.begin(), inputs.end(), l) != std::end(inputs);
+  };
+
+  const auto fixed_input_keyboard_held = [&inputs](const SDL_Scancode& key) -> bool {
+    const auto l = [&key](const InputEvent& e) {
+      return (e.type == InputType::keyboard && e.keyboard == key && e.state == InputState::held);
+    };
+    return std::find_if(inputs.begin(), inputs.end(), l) != std::end(inputs);
+  };
+
+  // SDL_BUTTON_LEFT = 1; SDL_BUTTON_MIDDLE = 2; SDL_BUTTON_RIGHT = 3;
+  const auto fixed_input_mouse_press = [&inputs](const int& button) -> bool {
+    const auto& l = [&button](const InputEvent& e) {
+      return (e.type == InputType::mouse && e.mouse == button && e.state == InputState::press);
+    };
+    return std::find_if(inputs.begin(), inputs.end(), l) != std::end(inputs);
+  };
+
+  const auto fixed_input_controller_button_press = [&inputs](const SDL_GameControllerButton& button) -> bool {
+    const auto& l = [&button](const InputEvent& e) {
+      return (e.type == InputType::controller && e.state == InputState::press &&
+              e.joystick_event == JoystickEventType::button &&
+              // e.joystick_id ==  // any id
+              e.controller_button == button);
+    };
+    return std::find_if(inputs.begin(), inputs.end(), l) != std::end(inputs);
+  };
+
+  const auto fixed_input_controller_button_held = [&inputs](const SDL_GameControllerButton& button) -> bool {
+    const auto& l = [&button](const InputEvent& e) {
+      return (e.type == InputType::controller && e.state == InputState::held &&
+              e.joystick_event == JoystickEventType::button && e.controller_button == button);
+    };
+    return std::find_if(inputs.begin(), inputs.end(), l) != std::end(inputs);
+  };
+
+  const auto fixed_input_controller_axis_held = [&inputs](const SDL_GameControllerAxis& axis) -> float {
+    // process more recent inputs first
+    for (int i = inputs.size() - 1; i >= 0; i--) {
+      const auto& e = inputs[i];
+      const bool is_controller = e.type == InputType::controller;
+      const bool is_axis = e.joystick_event == JoystickEventType::axis;
+      const bool your_axis = e.controller_axis == axis;
+      if (is_controller && is_axis && your_axis)
+        return e.controller_axis_value_01;
+    }
+    return 0.0f;
+  };
+
+  // todo: move these values in to player component
   const float player_speed = 10.0f;
   const float bullet_speed = 10.0f;
   const float gun_offset_distance = 30.0f;
 
   // player movement
-  const auto& view = r.view<PlayerComponent, InputComponent, const PhysicsActorComponent, const TransformComponent>();
-  for (auto [entity, player, input, actor, t] : view.each()) {
+  const auto& view = r.view<PlayerComponent, const AABB>();
+  for (auto [entity, player, aabb] : view.each()) {
 
     auto* keyboard = r.try_get<KeyboardComponent>(entity);
     auto* controller = r.try_get<ControllerComponent>(entity);
 
-    float& lx = input.stick_l.x;
-    float& ly = input.stick_l.y;
-    float& rx = input.stick_r.x;
-    float& ry = input.stick_r.y;
+    float lx = 0;
+    float ly = 0;
+    float rx = 0;
+    float ry = 0;
 
-    bool left_bumper_pressed = false;
-    bool right_bumper_pressed = false;
-    bool lmb_press = false;
-    lmb_press |= get_mouse_lmb_press();
+    // actions
+    bool shoot = false;
+    bool pickup = false;
+    bool sprint = false;
+    bool reload = false;
+    bool place_turret = false;
 
     if (keyboard) {
-      for (const InputEvent& i : inputs) {
-        auto held = i.state == InputState::held;
-        auto press = i.state == InputState::press;
-        auto release = i.state == InputState::release;
-        if (i.key == keyboard->W && (held || press))
-          ly = -1;
-        if (i.key == keyboard->S && (held || press))
-          ly = 1;
-        if (i.key == keyboard->A && (held || press))
-          lx = -1;
-        if (i.key == keyboard->D && (held || press))
-          lx = 1;
-        if ((i.key == keyboard->W || i.key == keyboard->S) && release)
-          ly = 0;
-        if ((i.key == keyboard->A || i.key == keyboard->D) && release)
-          lx = 0;
-      }
+      // todo: rx for keyboard
+      ly = fixed_input_keyboard_held(SDL_SCANCODE_W) ? -1 : 0;
+      ly = fixed_input_keyboard_held(SDL_SCANCODE_S) ? 1 : 0;
+      lx = fixed_input_keyboard_held(SDL_SCANCODE_A) ? -1 : 0;
+      lx = fixed_input_keyboard_held(SDL_SCANCODE_D) ? 1 : 0;
+      shoot |= fixed_input_mouse_press(SDL_BUTTON_LEFT);
+      pickup |= fixed_input_keyboard_press(SDL_SCANCODE_E);
+      sprint |= fixed_input_keyboard_press(SDL_SCANCODE_LSHIFT);
+      reload |= fixed_input_keyboard_press(SDL_SCANCODE_R);
+      place_turret |= fixed_input_keyboard_press(SDL_SCANCODE_SPACE);
     }
 
-    // hack: should used the fixed-input inputs
-    if (controller && i.controllers.size() > 0) {
-      SDL_GameController* c = i.controllers[0];
-      lx = get_axis_01(c, controller->c_left_stick_x);
-      ly = get_axis_01(c, controller->c_left_stick_y);
-      rx = get_axis_01(c, controller->c_right_stick_x);
-      ry = get_axis_01(c, controller->c_right_stick_y);
-      lmb_press = get_axis_01(c, controller->c_right_trigger) > 0.7f;
-      right_bumper_pressed = get_button_held(c, controller->c_r_bumper);
-    };
+    if (controller) {
+      lx = fixed_input_controller_axis_held(controller->c_left_stick_x);
+      ly = fixed_input_controller_axis_held(controller->c_left_stick_y);
+      rx = fixed_input_controller_axis_held(controller->c_right_stick_x);
+      ry = fixed_input_controller_axis_held(controller->c_right_stick_y);
+      shoot |= fixed_input_controller_axis_held(controller->c_right_trigger) != 0.0f;
+      pickup |= fixed_input_controller_button_held(controller->c_a);
+      sprint |= fixed_input_controller_button_held(controller->c_l_bumper);
+      reload |= fixed_input_controller_button_held(controller->c_r_bumper);
+      place_turret |= fixed_input_controller_button_press(controller->c_y);
+    }
 
-    const glm::vec2 r_analog_dir = { rx, ry };
-    glm::vec2 r_nrm_dir = r_analog_dir;
+    glm::vec2 r_nrm_dir = { rx, ry };
     if (r_nrm_dir.x != 0.0f || r_nrm_dir.y != 0.0f)
       r_nrm_dir = glm::normalize(r_nrm_dir);
 
-    const glm::vec2 l_analog_dir = { lx, ly };
-    glm::vec2 l_nrm_dir = l_analog_dir;
+    glm::vec2 l_nrm_dir = { lx, ly };
     if (l_nrm_dir.x != 0.0f || l_nrm_dir.y != 0.0f)
       l_nrm_dir = glm::normalize(l_nrm_dir);
 
@@ -96,12 +143,17 @@ game2d::update_player_controller_system(entt::registry& r, const uint64_t& milli
       const glm::vec2 move_dir = l_nrm_dir * player_speed;
       vel->x = move_dir.x;
       vel->y = move_dir.y;
+
+      if (sprint) {
+        vel->x *= 2.0f;
+        vel->y *= 2.0f;
+      }
     }
 
     // offset the bullet by a distance
     // to stop the bullet spawning inside the entity
-    glm::ivec2 offset_pos = { t.position.x + r_nrm_dir.x * gun_offset_distance,
-                              t.position.y + r_nrm_dir.y * gun_offset_distance };
+    glm::ivec2 offset_pos = { aabb.center.x + r_nrm_dir.x * gun_offset_distance,
+                              aabb.center.y + r_nrm_dir.y * gun_offset_distance };
 
     // visually display the gun angle
     // note: this should be in update() not fixedupdate()
@@ -120,9 +172,22 @@ game2d::update_player_controller_system(entt::registry& r, const uint64_t& milli
     // request to shoot
     //
     {
+      // hack: reload
+      if (player.time_between_reloads_left > 0.0f)
+        player.time_between_reloads_left -= dt;
+      if (reload && player.time_between_reloads_left <= 0.0f) {
+        player.bullets_in_clip_left = player.bullets_in_clip;
+        player.time_between_reloads_left = player.time_between_reloads;
+      }
       if (player.time_between_bullets_left > 0.0f)
         player.time_between_bullets_left -= dt;
-      if (lmb_press && player.time_between_bullets_left <= 0.0f) {
+
+      bool allowed_to_shoot = true;
+      allowed_to_shoot &= player.bullets_in_clip_left > 0;          // enough bullets
+      allowed_to_shoot &= player.time_between_bullets_left <= 0.0f; // not on cooldown
+
+      if (shoot && allowed_to_shoot) {
+        player.bullets_in_clip_left--;
 
         CreateEntityRequest req;
         req.type = EntityType::actor_bullet;
@@ -134,41 +199,24 @@ game2d::update_player_controller_system(entt::registry& r, const uint64_t& milli
         // r.emplace<AudioRequestPlayEvent>(r.create(), "SHOOT_01");
 
         // reset timer
-        player.time_between_bullets_left = time_between_bullets;
+        player.time_between_bullets_left = player.time_between_bullets;
       }
     }
 
-    // pickup objects?
-    {
-      bool pickup_objects_pressed = false;
-      bool e_pressed = std::find_if(inputs.begin(), inputs.end(), [](const InputEvent& e) {
-                         return e.type == InputType::keyboard && e.key == SDL_SCANCODE_E && e.state == InputState::press;
-                       }) != std::end(inputs);
-      pickup_objects_pressed = e_pressed;             // keyboard
-      pickup_objects_pressed |= right_bumper_pressed; // controller
-      if (pickup_objects_pressed) {
-        std::cout << "Pickup pressed!\n";
-        r.emplace_or_replace<WantsToPickUp>(entity);
-      }
+    if (pickup) {
+      std::cout << "Pickup pressed!\n";
+      r.emplace_or_replace<WantsToPickUp>(entity);
     }
 
     //
     // hack: place turret?
     // bug: turrets_placed not reset on scene reset
     //
-    static int turrets_placed = 0;
-    bool place_turret_pressed = false;
-    bool space_pressed =
-      std::find_if(inputs.begin(), inputs.end(), [](const InputEvent& e) {
-        return e.type == InputType::keyboard && e.key == SDL_SCANCODE_SPACE && e.state == InputState::press;
-      }) != std::end(inputs);
-
-    place_turret_pressed |= space_pressed; // keyboard
-    if (place_turret_pressed && turrets_placed < 4) {
-      turrets_placed++;
+    if (place_turret && player.turrets_placed < 4) {
+      player.turrets_placed++;
       CreateEntityRequest req;
       req.type = EntityType::actor_turret;
-      req.position = t.position;
+      req.position = { aabb.center.x, aabb.center.y, 0 };
       r.emplace<CreateEntityRequest>(r.create(), req);
     }
   }

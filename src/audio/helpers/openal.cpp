@@ -6,7 +6,7 @@
 namespace game2d {
 
 std::vector<std::string>
-audio::list_devices(const ALCchar* devices)
+list_devices(const ALCchar* devices)
 {
   ALboolean enumeration = alcIsExtensionPresent(NULL, "ALC_ENUMERATION_EXT");
   if (enumeration == AL_FALSE) {
@@ -27,53 +27,17 @@ audio::list_devices(const ALCchar* devices)
   return devices_vec;
 }
 
-// https://github.com/kcat/openal-soft/blob/master/examples/common/alhelpers.c
-void
-audio::init_al()
+std::vector<std::string>
+audio::list_playback_devices()
 {
-  ALCcontext* context;
-  ALCdevice* device;
-
-  device = alcOpenDevice(0); // select the "preferred device"
-
-  if (!device) {
-    std::cout << "(Audio) Could not open a device!" << std::endl;
-    return;
-  }
-
-  context = alcCreateContext(device, 0);
-
-  if (context == 0 || alcMakeContextCurrent(context) == ALC_FALSE) {
-    if (context != 0)
-      alcDestroyContext(context);
-    alcCloseDevice(device);
-    std::cout << "(Audio) Could not set a context!" << std::endl;
-    return;
-  }
-
-  alcMakeContextCurrent(context);
-
-  printf("OpenAL version: %s\n", alGetString(AL_VERSION));
-  printf("OpenAL vendor: %s\n", alGetString(AL_VENDOR));
-  printf("OpenAL renderer: %s\n", alGetString(AL_RENDERER));
+  return list_devices(alcGetString(NULL, ALC_ALL_DEVICES_SPECIFIER));
 };
 
-void
-audio::close_al()
+std::vector<std::string>
+audio::list_captured_devices()
 {
-  ALCdevice* device;
-  ALCcontext* ctx;
-
-  ctx = alcGetCurrentContext();
-  if (ctx == 0)
-    return;
-
-  device = alcGetContextsDevice(ctx);
-
-  alcMakeContextCurrent(0);
-  alcDestroyContext(ctx);
-  alcCloseDevice(device);
-}
+  return list_devices(alcGetString(NULL, ALC_DEVICE_SPECIFIER));
+};
 
 // based on:
 // https://github.com/emscripten-core/emscripten/blob/main/test/openal_buffers.c

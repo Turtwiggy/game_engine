@@ -47,10 +47,10 @@ update_intent_pickup_system(entt::registry& r)
   }
 
   // update pickup zone positions for collisions next frmae
-  for (const auto& [entity, player, player_t] : r.view<const PlayerComponent, const TransformComponent>().each()) {
+  for (const auto& [entity, player, player_aabb] : r.view<const PlayerComponent, const AABB>().each()) {
     const auto& zone = player.pickup_area;
-    auto& zone_transform = r.get<TransformComponent>(zone);
-    zone_transform.position = player_t.position;
+    auto& zone_aabb = r.get<AABB>(zone);
+    zone_aabb.center = player_aabb.center;
   }
 }
 
