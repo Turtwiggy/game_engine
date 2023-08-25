@@ -86,8 +86,35 @@ process_button_up(SINGLETON_InputComponent& input, const SDL_JoystickID& id, con
   input.unprocessed_inputs.push_back(e);
 };
 
+[[nodiscard]] bool
+get_button_down(const SINGLETON_InputComponent& input, SDL_GameController* c, const SDL_GameControllerButton& b)
+{
+  const auto& in = input.button_down;
+  SDL_Joystick* joystick = SDL_GameControllerGetJoystick(c);
+  const int32_t id = SDL_JoystickInstanceID(joystick);
+  const auto& pressed =
+    std::find_if(in.begin(), in.end(), [&id, &b](const std::pair<SDL_JoystickID, SDL_GameControllerButton>& e) {
+      return (static_cast<int32_t>(e.first) == id && e.second == b);
+    });
+  return pressed != in.end();
+}
+
+[[nodiscard]] bool
+get_button_up(const SINGLETON_InputComponent& input, SDL_GameController* c, const SDL_GameControllerButton& b)
+{
+  const auto& in = input.button_released;
+  SDL_Joystick* joystick = SDL_GameControllerGetJoystick(c);
+  const int32_t id = SDL_JoystickInstanceID(joystick);
+
+  const auto& release =
+    std::find_if(in.begin(), in.end(), [&id, &b](const std::pair<SDL_JoystickID, SDL_GameControllerButton>& e) {
+      return (static_cast<int32_t>(e.first) == id && e.second == b);
+    });
+  return release != in.end();
+}
+
 bool
-get_button_held(SDL_GameController* controller, SDL_GameControllerButton button)
+get_button_held(SDL_GameController* controller, const SDL_GameControllerButton& button)
 {
   Uint8 val = SDL_GameControllerGetButton(controller, button);
   return val != 0;

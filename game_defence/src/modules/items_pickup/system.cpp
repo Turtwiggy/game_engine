@@ -1,11 +1,11 @@
-#include "intent_pickup_item.hpp"
+#include "system.hpp"
 
 #include "actors.hpp"
 #include "components.hpp"
 #include "entt/helpers.hpp"
 #include "lifecycle/components.hpp"
+#include "modules/actor_player/components.hpp"
 #include "modules/physics/components.hpp"
-#include "modules/player/components.hpp"
 #include "renderer/components.hpp"
 
 #include <iostream>

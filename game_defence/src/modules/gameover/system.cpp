@@ -4,11 +4,11 @@
 #include "events/helpers/keyboard.hpp"
 #include "modules/combat/components.hpp"
 #include "modules/gameover/components.hpp"
-#include "modules/hearth/components.hpp"
-#include "modules/player/components.hpp"
+#include "modules/actor_hearth/components.hpp"
+#include "modules/actor_player/components.hpp"
 #include "modules/scene/components.hpp"
 #include "modules/scene/helpers.hpp"
-#include "modules/spawner/components.hpp"
+#include "modules/actor_spawner/components.hpp"
 #include "modules/ui_gameover/components.hpp"
 
 namespace game2d {

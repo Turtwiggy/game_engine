@@ -4,17 +4,18 @@
 #include "entt/helpers.hpp"
 #include "events/components.hpp"
 #include "lifecycle/components.hpp"
+#include "modules/actor_bow/components.hpp"
+#include "modules/actor_enemy/components.hpp"
+#include "modules/actor_hearth/components.hpp"
+#include "modules/actor_player/components.hpp"
+#include "modules/actor_spawner/components.hpp"
+#include "modules/actor_turret/components.hpp"
 #include "modules/animation/components.hpp"
 #include "modules/camera/orthographic.hpp"
 #include "modules/combat/components.hpp"
-#include "modules/enemy/components.hpp"
-#include "modules/hearth/components.hpp"
-#include "modules/items/components.hpp"
+#include "modules/items_pickup/components.hpp"
 #include "modules/physics/components.hpp"
-#include "modules/player/components.hpp"
 #include "modules/respawn/components.hpp"
-#include "modules/spawner/components.hpp"
-#include "modules/turret/components.hpp"
 #include "renderer/components.hpp"
 #include "resources/textures.hpp"
 #include "sprites/components.hpp"
@@ -57,6 +58,9 @@ create_sprite(entt::registry& r, const EntityType& type)
     sprite = "CAMPFIRE";
   else if (type == EntityType::pickup_xp)
     sprite = "GEM";
+  else if (type == EntityType::actor_bow)
+    sprite = "WEAPON_BOW_0";
+
   // else
   // std::cerr << "warning! sprite not implemented: " << type_name << "\n";
 
@@ -69,6 +73,9 @@ create_sprite(entt::registry& r, const EntityType& type)
   const auto anim = find_animation(anims.animations, sprite);
   sc.x = anim.animation_frames[0].x;
   sc.y = anim.animation_frames[0].y;
+
+  if (anim.angle_degrees != 0.0f)
+    sc.angle_radians = glm::radians(anim.angle_degrees);
 
   sc.tex_unit = get_tex_unit(textures, AvailableTexture::kenny);
   if (sc.tex_unit == get_tex_unit(textures, AvailableTexture::kenny)) {
@@ -219,6 +226,11 @@ create_gameplay(entt::registry& r, const EntityType& type)
       r.emplace<EnemyComponent>(e);
       r.emplace<VelocityComponent>(e);
       // health, attack, range set on class
+      break;
+    }
+
+    case EntityType::actor_bow: {
+      r.emplace<BowComponent>(e);
       break;
     }
 

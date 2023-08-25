@@ -3,9 +3,9 @@
 #include "actors.hpp"
 #include "entt/helpers.hpp"
 #include "lifecycle/components.hpp"
+#include "modules/actor_spawner/components.hpp"
 #include "modules/combat/components.hpp"
 #include "modules/respawn/components.hpp"
-#include "modules/spawner/components.hpp"
 #include "renderer/components.hpp"
 
 namespace game2d {
@@ -41,7 +41,8 @@ update_respawn_system(entt::registry& r)
         // design question: kill off the old player,
         // or just move its position and reset its state?
         // kill it off for now
-        dead.dead.emplace(e);
+        // dead.dead.emplace(e);
+        std::cerr << "ur ded; what do with bow?" << std::endl;
 
       } else {
         dead.dead.emplace(e);

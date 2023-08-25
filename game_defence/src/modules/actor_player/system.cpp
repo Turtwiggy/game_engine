@@ -9,10 +9,10 @@
 #include "events/helpers/mouse.hpp"
 #include "helpers/line.hpp"
 #include "lifecycle/components.hpp"
-#include "modules/items/components.hpp"
+#include "modules/actor_player/components.hpp"
+#include "modules/actor_turret/components.hpp"
+#include "modules/items_pickup/components.hpp"
 #include "modules/physics/components.hpp"
-#include "modules/player/components.hpp"
-#include "modules/turret/components.hpp"
 #include "renderer/components.hpp"
 #include "sprites/components.hpp"
 
@@ -82,8 +82,8 @@ game2d::update_player_controller_system(entt::registry& r, const uint64_t& milli
   };
 
   // todo: move these values in to player component
-  const float player_speed = 10.0f;
-  const float bullet_speed = 10.0f;
+  const float player_speed = 50.0f;
+  const float bullet_speed = 20.0f;
   const float gun_offset_distance = 30.0f;
 
   // player movement
@@ -102,32 +102,32 @@ game2d::update_player_controller_system(entt::registry& r, const uint64_t& milli
     bool shoot = false;
     bool pickup = false;
     bool sprint = false;
-    bool reload = false;
     bool place_turret = false;
+    // bool reload = false;
 
     if (keyboard) {
       // todo: rx for keyboard
-      ly = fixed_input_keyboard_held(SDL_SCANCODE_W) ? -1 : 0;
-      ly = fixed_input_keyboard_held(SDL_SCANCODE_S) ? 1 : 0;
-      lx = fixed_input_keyboard_held(SDL_SCANCODE_A) ? -1 : 0;
-      lx = fixed_input_keyboard_held(SDL_SCANCODE_D) ? 1 : 0;
+      ly += fixed_input_keyboard_held(SDL_SCANCODE_W) ? -1 : ly;
+      ly += fixed_input_keyboard_held(SDL_SCANCODE_S) ? 1 : ly;
+      lx += fixed_input_keyboard_held(SDL_SCANCODE_A) ? -1 : lx;
+      lx += fixed_input_keyboard_held(SDL_SCANCODE_D) ? 1 : lx;
       shoot |= fixed_input_mouse_press(SDL_BUTTON_LEFT);
       pickup |= fixed_input_keyboard_press(SDL_SCANCODE_E);
       sprint |= fixed_input_keyboard_press(SDL_SCANCODE_LSHIFT);
-      reload |= fixed_input_keyboard_press(SDL_SCANCODE_R);
       place_turret |= fixed_input_keyboard_press(SDL_SCANCODE_SPACE);
+      // reload |= fixed_input_keyboard_press(SDL_SCANCODE_R);
     }
 
     if (controller) {
-      lx = fixed_input_controller_axis_held(controller->c_left_stick_x);
-      ly = fixed_input_controller_axis_held(controller->c_left_stick_y);
-      rx = fixed_input_controller_axis_held(controller->c_right_stick_x);
-      ry = fixed_input_controller_axis_held(controller->c_right_stick_y);
+      lx += fixed_input_controller_axis_held(controller->c_left_stick_x);
+      ly += fixed_input_controller_axis_held(controller->c_left_stick_y);
+      rx += fixed_input_controller_axis_held(controller->c_right_stick_x);
+      ry += fixed_input_controller_axis_held(controller->c_right_stick_y);
       shoot |= fixed_input_controller_axis_held(controller->c_right_trigger) != 0.0f;
-      pickup |= fixed_input_controller_button_held(controller->c_a);
+      pickup |= fixed_input_controller_button_held(controller->c_r_bumper);
       sprint |= fixed_input_controller_button_held(controller->c_l_bumper);
-      reload |= fixed_input_controller_button_held(controller->c_r_bumper);
       place_turret |= fixed_input_controller_button_press(controller->c_y);
+      // reload |=
     }
 
     glm::vec2 r_nrm_dir = { rx, ry };
@@ -152,17 +152,18 @@ game2d::update_player_controller_system(entt::registry& r, const uint64_t& milli
 
     // offset the bullet by a distance
     // to stop the bullet spawning inside the entity
-    glm::ivec2 offset_pos = { aabb.center.x + r_nrm_dir.x * gun_offset_distance,
-                              aabb.center.y + r_nrm_dir.y * gun_offset_distance };
+    glm::ivec2 offset_pos = { r_nrm_dir.x * gun_offset_distance, r_nrm_dir.y * gun_offset_distance };
+    player.offset = offset_pos;
 
     // visually display the gun angle
     // note: this should be in update() not fixedupdate()
     if (glm::abs(r_nrm_dir.x) + glm::abs(r_nrm_dir.y) > 0.001f) {
       auto& debug_gunspot_transform = r.emplace_or_replace<TransformComponent>(player.debug_gun_spot);
-      debug_gunspot_transform.position.x = offset_pos.x;
-      debug_gunspot_transform.position.y = offset_pos.y;
+      debug_gunspot_transform.position.x = aabb.center.x + offset_pos.x;
+      debug_gunspot_transform.position.y = aabb.center.y + offset_pos.y;
       debug_gunspot_transform.scale.x = 5.0f;
       debug_gunspot_transform.scale.y = 5.0f;
+
     } else {
       if (auto* gun_transform = r.try_get<TransformComponent>(player.debug_gun_spot))
         r.remove<TransformComponent>(player.debug_gun_spot);
@@ -172,26 +173,29 @@ game2d::update_player_controller_system(entt::registry& r, const uint64_t& milli
     // request to shoot
     //
     {
+      bool allowed_to_shoot = true;
+
       // hack: reload
-      if (player.time_between_reloads_left > 0.0f)
-        player.time_between_reloads_left -= dt;
-      if (reload && player.time_between_reloads_left <= 0.0f) {
-        player.bullets_in_clip_left = player.bullets_in_clip;
-        player.time_between_reloads_left = player.time_between_reloads;
-      }
+      // if (player.time_between_reloads_left > 0.0f)
+      //   player.time_between_reloads_left -= dt;
+      // if (reload && player.time_between_reloads_left <= 0.0f) {
+      //   player.bullets_in_clip_left = player.bullets_in_clip;
+      //   player.time_between_reloads_left = player.time_between_reloads;
+      // }
+      // allowed_to_shoot &= player.bullets_in_clip_left > 0;          // enough bullets
+      // if(shoot && allowed_to_shoot)
+      //   player.bullets_in_clip_left--;
+
+      // bullet cooldown
       if (player.time_between_bullets_left > 0.0f)
         player.time_between_bullets_left -= dt;
-
-      bool allowed_to_shoot = true;
-      allowed_to_shoot &= player.bullets_in_clip_left > 0;          // enough bullets
-      allowed_to_shoot &= player.time_between_bullets_left <= 0.0f; // not on cooldown
+      allowed_to_shoot &= player.time_between_bullets_left <= 0.0f;
 
       if (shoot && allowed_to_shoot) {
-        player.bullets_in_clip_left--;
 
         CreateEntityRequest req;
         req.type = EntityType::actor_bullet;
-        req.position = { offset_pos.x, offset_pos.y, 0 };
+        req.position = { aabb.center.x + offset_pos.x, aabb.center.y + offset_pos.y, 0 };
         req.velocity = glm::vec3(r_nrm_dir.x * bullet_speed, r_nrm_dir.y * bullet_speed, 0);
         r.emplace<CreateEntityRequest>(r.create(), req);
 

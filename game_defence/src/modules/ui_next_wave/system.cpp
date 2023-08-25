@@ -6,6 +6,7 @@
 // hack below
 #include "actors.hpp"
 #include "events/components.hpp"
+#include "events/helpers/controller.hpp"
 #include "lifecycle/components.hpp"
 #include "maths/maths.hpp"
 #include "modules/gameover/components.hpp"
@@ -20,6 +21,17 @@
 void
 game2d::update_ui_next_wave_system(entt::registry& r)
 {
+  const auto& input = get_first_component<SINGLETON_InputComponent>(r);
+
+  // todo: do this properly, however that is
+  bool do_ui_action = false;
+  const auto& controllers = input.controllers;
+  if (controllers.size() > 0) {
+    auto* c = controllers[0];
+    if (get_button_down(input, c, SDL_GameControllerButton::SDL_CONTROLLER_BUTTON_A))
+      do_ui_action = true;
+  }
+
   ImGuiWindowFlags flags = 0;
   flags |= ImGuiWindowFlags_NoCollapse;
   flags |= ImGuiWindowFlags_NoTitleBar;
@@ -48,7 +60,7 @@ game2d::update_ui_next_wave_system(entt::registry& r)
     ImGui::Begin("Wave Complete", NULL, flags);
 
     ImVec2 button_size = { 100, 100 };
-    if (ImGui::Button("Next Wave", button_size)) {
+    if (ImGui::Button("Next Wave", button_size) || do_ui_action) {
       auto& wave = get_first_component<SINGLETON_Wave>(r);
 
       // give the spawner a random position

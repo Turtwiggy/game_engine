@@ -2,7 +2,6 @@
 
 // other library headers
 #include <glm/glm.hpp>
-#include <glm/gtx/compatibility.hpp>
 
 // c++ standard lib headers
 #include <random>
@@ -70,13 +69,13 @@ decode_cantor_pairing_function(uint64_t p, uint32_t& x, uint32_t& y);
 
 // scale x from [min,max] to [a,b]
 [[nodiscard]] float
-scale(float x, float min, float max, float a, float b);
+scale(const float x, const float min, const float max, const float a, const float b);
 
 [[nodiscard]] glm::vec2
-lerp_a_to_b_clamped_between_0_and_1(glm::vec2 a, glm::vec2 b, float t);
+lerp_a_to_b_clamped_between_0_and_1(const glm::vec2 a, const glm::vec2 b, float t);
 
 [[nodiscard]] glm::vec2
-quadratic_curve(glm::vec2 a, glm::vec2 b, glm::vec2 c, float t);
+quadratic_curve(const glm::vec2 a, const glm::vec2 b, const glm::vec2 c, float t);
 
 // any line can be written in parametric form as:
 // point + direction * t

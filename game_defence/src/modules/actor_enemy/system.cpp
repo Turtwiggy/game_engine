@@ -6,11 +6,11 @@
 #include "glm/glm.hpp"
 #include "lifecycle/components.hpp"
 #include "maths/maths.hpp"
+#include "modules/actor_hearth/components.hpp"
+#include "modules/actor_player/components.hpp"
 #include "modules/combat/components.hpp"
 #include "modules/combat/helpers.hpp"
-#include "modules/hearth/components.hpp"
 #include "modules/physics/components.hpp"
-#include "modules/player/components.hpp"
 #include "modules/ui_economy/components.hpp"
 #include "renderer/components.hpp"
 

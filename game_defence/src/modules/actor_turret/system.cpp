@@ -8,9 +8,9 @@
 #include "entt/helpers.hpp"
 #include "lifecycle/components.hpp"
 #include "maths/maths.hpp"
-#include "modules/enemy/components.hpp"
+#include "modules/actor_enemy/components.hpp"
 #include "modules/physics/components.hpp"
-#include "modules/player/components.hpp"
+#include "modules/actor_player/components.hpp"
 #include "renderer/components.hpp"
 #include "sprites/components.hpp"
 

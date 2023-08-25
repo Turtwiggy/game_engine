@@ -33,8 +33,8 @@ GameWindow::GameWindow(const std::string& title, int width, int height, DisplayM
 
   std::cout << "Initializing SDL..."
             << "\n";
-  std::cout << "SDL Version/Compiled " << unsigned(compiledVersion.major) << "." << unsigned(compiledVersion.minor)
-            << "." << unsigned(compiledVersion.patch) << "\n";
+  std::cout << "SDL Version/Compiled " << unsigned(compiledVersion.major) << "." << unsigned(compiledVersion.minor) << "."
+            << unsigned(compiledVersion.patch) << "\n";
   std::cout << "SDL Version/Linked " << unsigned(linkedVersion.major) << "." << unsigned(linkedVersion.minor) << "."
             << unsigned(linkedVersion.patch) << "\n";
 
@@ -103,11 +103,13 @@ GameWindow::GameWindow(const std::string& title, int width, int height, DisplayM
   // opengl_minor = 3;
   // SDL_GL_SetAttribute(SDL_GL_CONTEXT_PROFILE_MASK, SDL_GL_CONTEXT_PROFILE_CORE);
 
-  // TEMPORARY: use opengl 3.0 es
+  // use opengl 3.0 es
   opengl_major = 3;
   opengl_minor = 0;
   SDL_GL_SetAttribute(SDL_GL_CONTEXT_PROFILE_MASK, SDL_GL_CONTEXT_PROFILE_ES);
   SDL_GL_SetAttribute(SDL_GL_CONTEXT_FLAGS, SDL_GL_CONTEXT_FORWARD_COMPATIBLE_FLAG);
+  // SDL_SetHint(SDL_HINT_RENDER_SCALE_QUALITY, "1");
+
 #endif
   SDL_GL_SetAttribute(SDL_GL_CONTEXT_MAJOR_VERSION, opengl_major);
   SDL_GL_SetAttribute(SDL_GL_CONTEXT_MINOR_VERSION, opengl_minor);

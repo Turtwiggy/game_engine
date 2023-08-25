@@ -16,6 +16,7 @@ enum class EntityType
   actor_bullet,
   actor_hearth,
   actor_enemy,
+  actor_bow,
 
   pickup_zone,
   pickup_xp,

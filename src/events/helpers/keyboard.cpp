@@ -22,15 +22,15 @@ process_key_up(SINGLETON_InputComponent& input, const SDL_Scancode button, const
 bool
 get_key_down(const SINGLETON_InputComponent& input, const SDL_Scancode button)
 {
-  const auto& button_pressed = std::find(input.keys_pressed.begin(), input.keys_pressed.end(), button);
-  return button_pressed != input.keys_pressed.end();
+  const auto& press = std::find(input.keys_pressed.begin(), input.keys_pressed.end(), button);
+  return press != input.keys_pressed.end();
 }
 
 bool
 get_key_up(const SINGLETON_InputComponent& input, const SDL_Scancode button)
 {
-  const auto& button_pressed = std::find(input.keys_released.begin(), input.keys_released.end(), button);
-  return button_pressed != input.keys_released.end();
+  const auto& release = std::find(input.keys_released.begin(), input.keys_released.end(), button);
+  return release != input.keys_released.end();
 }
 
 bool

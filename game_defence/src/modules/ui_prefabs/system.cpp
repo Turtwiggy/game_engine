@@ -9,7 +9,7 @@
 #include "lifecycle/components.hpp"
 #include "maths/grid.hpp"
 #include "modules/camera/helpers.hpp"
-#include "modules/spawner/components.hpp"
+#include "modules/actor_spawner/components.hpp"
 #include "renderer/components.hpp"
 #include "resources/colours.hpp"
 #include "sprites/components.hpp"

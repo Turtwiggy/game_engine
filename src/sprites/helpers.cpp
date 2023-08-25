@@ -46,8 +46,8 @@ game2d::load_sprites(std::vector<SpriteAnimation>& sprites, const std::string pa
     for (auto& frame : frames)
       anim.animation_frames.push_back({ frame["x"], frame["y"] });
 
-    // if (el.contains("angle"))
-    //   anim.animation_angle_degrees = el["angle"];
+    if (el.contains("angle"))
+      anim.angle_degrees = el["angle"];
 
     sprites.push_back(anim);
   }

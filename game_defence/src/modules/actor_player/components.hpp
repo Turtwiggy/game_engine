@@ -24,6 +24,10 @@ struct PlayerComponent
   float time_between_reloads = 0.25f;
   float time_between_reloads_left = 0.25f;
 
+  // input-offset for gun
+  // probably doenst belong here
+  glm::ivec2 offset{ 0, 0 };
+
   // build info
   int turrets_placed = 0;
 };

@@ -128,7 +128,7 @@ game2d::update_select_objects_move_system(GameEditor& editor, Game& game)
       return;
     float& group_angle = transform.rotation.z;
 
-    // TEMP: slowly rotate
+    // slowly rotate
     // group_angle += engine::PI / 8.0f * dt;
 
     int half_units = group_units / 2;

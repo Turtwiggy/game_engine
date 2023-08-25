@@ -7,11 +7,13 @@
 #include "imgui/helpers.hpp"
 #include "lifecycle/components.hpp"
 #include "maths/grid.hpp"
+#include "modules/actor_bow/components.hpp"
+#include "modules/actor_hearth/components.hpp"
+#include "modules/actor_player/components.hpp"
+#include "modules/actor_turret/components.hpp"
 #include "modules/camera/helpers.hpp"
 #include "modules/combat/components.hpp"
-#include "modules/hearth/components.hpp"
-#include "modules/player/components.hpp"
-#include "modules/turret/components.hpp"
+#include "modules/ui_hierarchy/helpers.hpp"
 #include "renderer/components.hpp"
 #include "sprites/components.hpp"
 
@@ -26,6 +28,14 @@ namespace game2d {
 void
 update_ui_economy_system(entt::registry& r)
 {
+  ImGui::Begin("Bow UI");
+  const auto& view = r.view<BowComponent>();
+  for (const auto& [entity, bow] : view.each()) {
+    ImGui::Text("Bow...");
+    imgui_draw_float("Bow Lerp Speed: ", bow.lerp_speed);
+  }
+  ImGui::End();
+
   auto& econ = get_first_component<SINGLETON_Economy>(r);
   auto& ui_econ = get_first_component<SINGLETON_UiEconomy>(r);
   const glm::ivec2 mouse_position = mouse_position_in_worldspace(r);
@@ -123,6 +133,8 @@ update_ui_economy_system(entt::registry& r)
     request.position = { mouse_position.x, mouse_position.y, 0 };
     r.emplace<CreateEntityRequest>(r.create(), request);
   }
+
+
 };
 
 } // namespace game2d

@@ -7,6 +7,7 @@
 #include "game_state.hpp"
 #include "lifecycle/components.hpp"
 #include "maths/maths.hpp"
+#include "modules/actor_bow/components.hpp"
 #include "modules/combat/helpers.hpp"
 #include "modules/gameover/components.hpp"
 #include "modules/physics/components.hpp"
@@ -67,8 +68,12 @@ move_to_scene_start(entt::registry& r, const Scene& s)
     camera_transform.position = { spawn_pos.x, spawn_pos.y, 0 };
 
     const auto player = create_gameplay(r, EntityType::actor_player);
-    auto& player_transform = r.get<TransformComponent>(player);
-    player_transform.position = { 32, 32, 0 };
+    auto& player_aabb = r.get<AABB>(player);
+    player_aabb.center = { 32, 32 };
+
+    const auto bow = create_gameplay(r, EntityType::actor_bow);
+    auto& bow_comp = r.get<BowComponent>(bow);
+    bow_comp.parent = player;
 
     // todo: generate random spawns
   }

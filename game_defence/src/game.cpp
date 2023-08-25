@@ -10,28 +10,29 @@
 #include "lifecycle/components.hpp"
 #include "lifecycle/system.hpp"
 #include "maths/maths.hpp"
+#include "modules/actor_bow/system.hpp"
+#include "modules/actor_enemy/system.hpp"
+#include "modules/actor_player/system.hpp"
+#include "modules/actor_spawner/components.hpp"
+#include "modules/actor_spawner/system.hpp"
+#include "modules/actor_turret/system.hpp"
 #include "modules/animation/angle_to_velocity.hpp"
 #include "modules/camera/orthographic.hpp"
 #include "modules/camera/system.hpp"
 #include "modules/combat/components.hpp"
 #include "modules/combat/flash_sprite.hpp"
 #include "modules/combat/take_damage.hpp"
-#include "modules/enemy/system.hpp"
 #include "modules/gameover/components.hpp"
 #include "modules/gameover/system.hpp"
-#include "modules/items/intent_drop_item.hpp"
-#include "modules/items/intent_pickup_item.hpp"
+#include "modules/items_drop/system.hpp"
+#include "modules/items_pickup/system.hpp"
 #include "modules/physics/components.hpp"
 #include "modules/physics/process_actor_actor_collisions.hpp"
 #include "modules/physics/process_move_objects.hpp"
-#include "modules/player/system.hpp"
 #include "modules/resolve_collisions/system.hpp"
 #include "modules/respawn/system.hpp"
 #include "modules/scene/components.hpp"
 #include "modules/scene/helpers.hpp"
-#include "modules/spawner/components.hpp"
-#include "modules/spawner/system.hpp"
-#include "modules/turret/system.hpp"
 #include "modules/ui_audio/system.hpp"
 #include "modules/ui_controllers/system.hpp"
 #include "modules/ui_economy/components.hpp"
@@ -151,6 +152,7 @@ game2d::fixed_update(entt::registry& game, const uint64_t milliseconds_dt)
     update_spawner_system(game, milliseconds_dt);
     update_intent_pickup_system(game);
     update_intent_drop_item_system(game);
+    update_bow_system(game, milliseconds_dt);
   }
 
   fixed_input.fixed_tick += 1;
@@ -188,19 +190,21 @@ game2d::update(engine::SINGLETON_Application& app, entt::registry& r, const floa
   update_ui_gameover_system(r);
 
 #if defined(_DEBUG)
-  static bool show_demo_window = true;
+  static bool show_demo_window = false;
   ImGui::ShowDemoWindow(&show_demo_window);
 #endif
 
-  static bool show_editor_ui = true;
-  if (show_editor_ui) {
+  update_ui_economy_system(r);
 
-    // put these in to setting
+  static bool show_settings_ui = false;
+  if (show_settings_ui) {
     update_ui_audio_system(r);
     update_ui_controller_system(r);
+  }
 
+  static bool show_editor_ui = false;
+  if (show_editor_ui) {
     update_ui_profiler_system(r);
-    update_ui_economy_system(r);
     update_ui_prefabs_system(r);
     update_ui_hierarchy_system(r);
   }

@@ -8,8 +8,8 @@
 #include "events/helpers/keyboard.hpp"
 #include "events/helpers/mouse.hpp"
 #include "modules/camera/orthographic.hpp"
-#include "modules/hearth/components.hpp"
-#include "modules/player/components.hpp"
+#include "modules/actor_hearth/components.hpp"
+#include "modules/actor_player/components.hpp"
 #include "renderer/components.hpp"
 
 #include <glm/glm.hpp>

@@ -2,7 +2,7 @@
 
 #include "entt/helpers.hpp"
 #include "modules/physics/components.hpp"
-#include "modules/spawner/components.hpp" // hack: shouldnt be here
+#include "modules/actor_spawner/components.hpp" // hack: shouldnt be here
 #include "renderer/components.hpp"
 
 #include <algorithm>

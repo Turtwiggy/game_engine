@@ -16,13 +16,15 @@ process_button_down(SINGLETON_InputComponent& input, const SDL_JoystickID& id, c
 void
 process_button_up(SINGLETON_InputComponent& input, const SDL_JoystickID& id, const SDL_GameControllerButton button);
 
-// [[nodiscard]] bool
-// get_button_down(SDL_GameController* controller, SDL_GameControllerButton button);
-// [[nodiscard]] bool
-// get_button_up(SDL_GameController* controller, SDL_GameControllerButton button);
-
+// use in Update() not FixedUpdate()
 [[nodiscard]] bool
-get_button_held(SDL_GameController* controller, SDL_GameControllerButton button);
+get_button_down(const SINGLETON_InputComponent& input,
+                SDL_GameController* controller,
+                const SDL_GameControllerButton& button);
+[[nodiscard]] bool
+get_button_up(const SINGLETON_InputComponent& input, SDL_GameController* controller, const SDL_GameControllerButton& button);
+[[nodiscard]] bool
+get_button_held(SDL_GameController* controller, const SDL_GameControllerButton& button);
 [[nodiscard]] float
 get_axis_01(SDL_GameController* controller, SDL_GameControllerAxis axis);
 [[nodiscard]] Sint16
