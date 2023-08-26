@@ -68,7 +68,7 @@ update_ui_prefabs_system(entt::registry& r)
   //
   // Choose spawner type
   //
-  if (type == EntityType::spawner) {
+  if (type == EntityType::actor_spawner) {
     static int spawner_item_current_idx = 0;
     WomboComboIn in(items);
     in.label = "spawner-items";
@@ -82,7 +82,7 @@ update_ui_prefabs_system(entt::registry& r)
         // check if we spawned a spawner
         const auto& e_item = spawned_items.created_this_frame[i];
         const auto& e_type = r.get<EntityTypeComponent>(e_item);
-        if (e_type.type == EntityType::spawner) {
+        if (e_type.type == EntityType::actor_spawner) {
           auto& e_spawner = r.get<SpawnerComponent>(e_item);
 
           e_spawner.type_to_spawn = magic_enum::enum_value<EntityType>(spawner_item_current_idx);

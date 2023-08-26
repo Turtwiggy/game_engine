@@ -53,6 +53,9 @@
 #include "ui_profiler/helpers.hpp"
 #include "ui_profiler/system.hpp"
 
+#include <ranges>
+#include <vector>
+
 void
 game2d::init(engine::SINGLETON_Application& app, entt::registry& r)
 {
@@ -97,14 +100,35 @@ game2d::fixed_update(entt::registry& game, const uint64_t milliseconds_dt)
 {
   auto& p = get_first_component<SINGLETON_Profiler>(game);
   auto _ = time_scope(&p, "fixed_update()", true);
-
   auto& input = get_first_component<SINGLETON_InputComponent>(game);
   auto& fixed_input = get_first_component<SINGLETON_FixedUpdateInputHistory>(game);
-  fixed_input.history.clear();
 
   // move inputs from Update() to this FixedUpdate() tick
   fixed_input.history[fixed_input.fixed_tick] = std::move(input.unprocessed_inputs);
-  const auto& inputs = fixed_input.history[fixed_input.fixed_tick];
+
+  // If there's no new Update since the last FixedUpdate(),
+  // held state wont be generated for the fixed tick.
+  // Duplicate the held inputs for the last frame.
+  if (!input.update_since_last_fixed_update) {
+    if (fixed_input.history.find(fixed_input.fixed_tick - 1) != fixed_input.history.end()) {
+
+      // get last tick held inputs
+      auto& last_tick_inputs = fixed_input.history[fixed_input.fixed_tick - 1];
+      const auto is_held = [](const InputEvent& e) { return e.state == InputState::held; };
+      const auto [first, last] = std::ranges::remove_if(last_tick_inputs, is_held);
+
+      // append them to this tick
+      auto& i = fixed_input.history[fixed_input.fixed_tick];
+      i.insert(i.end(), first, last);
+      std::cout << "multiple fixed tick in a row; appending held inputs" << std::endl;
+    }
+  }
+  input.update_since_last_fixed_update = false;
+
+  // move unprocessed inputs from Update() to this FixedUpdate() tick
+  const auto inputs = std::move(fixed_input.history[fixed_input.fixed_tick]);
+  fixed_input.history.clear();
+  fixed_input.history[fixed_input.fixed_tick] = std::move(inputs);
 
   // allow gameover/restart requests to be processed
   update_gameover_system(game);

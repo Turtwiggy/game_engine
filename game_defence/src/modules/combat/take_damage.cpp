@@ -11,7 +11,6 @@ namespace game2d {
 void
 update_take_damage_system(entt::registry& r)
 {
-
   const auto& view = r.view<DealDamageRequest>();
   for (auto [e_req, request] : view.each()) {
 
@@ -49,9 +48,10 @@ update_take_damage_system(entt::registry& r)
 
     // .. take damage
     hp->hp -= glm::max(0, atk->damage);
-
-    r.destroy(e_req); // done request
   }
+
+  // done all damage requests
+  r.destroy(view.begin(), view.end());
 
   //
   // check if anything is dead

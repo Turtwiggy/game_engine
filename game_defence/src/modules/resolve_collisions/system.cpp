@@ -54,14 +54,36 @@ update_resolve_collisions_system(entt::registry& r)
         r.emplace<DealDamageRequest>(r.create(), from, to);
       }
     }
+    // arrow-enemy collision
+    {
+      const auto& [actor_enemy, actor_arrow] =
+        collision_of_interest(a, b, a_type, b_type, EntityType::actor_enemy, EntityType::actor_arrow);
+      if (actor_enemy != entt::null && actor_arrow != entt::null) {
+        dead.dead.emplace(actor_arrow); // kill arrow
+        const auto& from = actor_arrow;
+        const auto& to = actor_enemy;
+        r.emplace<DealDamageRequest>(r.create(), from, to);
+      }
+    }
 
     // bullet-spawner collision
     {
       const auto& [actor_spawner, actor_bullet] =
-        collision_of_interest(a, b, a_type, b_type, EntityType::spawner, EntityType::actor_bullet);
+        collision_of_interest(a, b, a_type, b_type, EntityType::actor_spawner, EntityType::actor_bullet);
       if (actor_spawner != entt::null && actor_bullet != entt::null) {
         dead.dead.emplace(actor_bullet); // kill bullet
         const auto& from = actor_bullet;
+        const auto& to = actor_spawner;
+        r.emplace<DealDamageRequest>(r.create(), from, to);
+      }
+    }
+    // arrow-spawner collision
+    {
+      const auto& [actor_spawner, actor_arrow] =
+        collision_of_interest(a, b, a_type, b_type, EntityType::actor_spawner, EntityType::actor_arrow);
+      if (actor_spawner != entt::null && actor_arrow != entt::null) {
+        dead.dead.emplace(actor_arrow); // kill arrow
+        const auto& from = actor_arrow;
         const auto& to = actor_spawner;
         r.emplace<DealDamageRequest>(r.create(), from, to);
       }

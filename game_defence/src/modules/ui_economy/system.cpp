@@ -55,7 +55,6 @@ update_ui_economy_system(entt::registry& r)
     if (health)
       ImGui::Text("Player HP: %i", health->hp);
     ImGui::Text("Picked up XP: %i", player.picked_up_xp);
-    ImGui::Text("Bullets Left: %i", player.bullets_in_clip_left);
   }
 
   // hack showing hearth hp
@@ -133,8 +132,6 @@ update_ui_economy_system(entt::registry& r)
     request.position = { mouse_position.x, mouse_position.y, 0 };
     r.emplace<CreateEntityRequest>(r.create(), request);
   }
-
-
 };
 
 } // namespace game2d

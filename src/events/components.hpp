@@ -89,6 +89,8 @@ struct SINGLETON_InputComponent
   std::vector<SDL_GameController*> controllers;
   std::vector<std::pair<SDL_JoystickID, SDL_GameControllerButton>> button_down;
   std::vector<std::pair<SDL_JoystickID, SDL_GameControllerButton>> button_released;
+
+  bool update_since_last_fixed_update = false;
 };
 
 } // namespace game2d

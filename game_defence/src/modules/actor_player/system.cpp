@@ -82,132 +82,69 @@ game2d::update_player_controller_system(entt::registry& r, const uint64_t& milli
   };
 
   // todo: move these values in to player component
-  const float player_speed = 50.0f;
-  const float bullet_speed = 20.0f;
-  const float gun_offset_distance = 30.0f;
+  const float player_speed = 20.0f;
 
   // player movement
-  const auto& view = r.view<PlayerComponent, const AABB>();
-  for (auto [entity, player, aabb] : view.each()) {
+  const auto& view = r.view<PlayerComponent, InputComponent, const AABB>();
+  for (const auto& [entity, player, input, aabb] : view.each()) {
 
     auto* keyboard = r.try_get<KeyboardComponent>(entity);
     auto* controller = r.try_get<ControllerComponent>(entity);
 
-    float lx = 0;
-    float ly = 0;
-    float rx = 0;
-    float ry = 0;
-
-    // actions
-    bool shoot = false;
-    bool pickup = false;
-    bool sprint = false;
-    bool place_turret = false;
-    // bool reload = false;
+    input.rx = 0.0f;
+    input.ry = 0.0f;
+    input.lx = 0.0f;
+    input.ly = 0.0f;
+    input.shoot = false;
+    input.pickup = false;
+    input.sprint = false;
+    input.place_turret = false;
 
     if (keyboard) {
       // todo: rx for keyboard
-      ly += fixed_input_keyboard_held(SDL_SCANCODE_W) ? -1 : ly;
-      ly += fixed_input_keyboard_held(SDL_SCANCODE_S) ? 1 : ly;
-      lx += fixed_input_keyboard_held(SDL_SCANCODE_A) ? -1 : lx;
-      lx += fixed_input_keyboard_held(SDL_SCANCODE_D) ? 1 : lx;
-      shoot |= fixed_input_mouse_press(SDL_BUTTON_LEFT);
-      pickup |= fixed_input_keyboard_press(SDL_SCANCODE_E);
-      sprint |= fixed_input_keyboard_press(SDL_SCANCODE_LSHIFT);
-      place_turret |= fixed_input_keyboard_press(SDL_SCANCODE_SPACE);
+      input.ly += fixed_input_keyboard_held(SDL_SCANCODE_W) ? -1 : 0;
+      input.ly += fixed_input_keyboard_held(SDL_SCANCODE_S) ? 1 : 0;
+      input.lx += fixed_input_keyboard_held(SDL_SCANCODE_A) ? -1 : 0;
+      input.lx += fixed_input_keyboard_held(SDL_SCANCODE_D) ? 1 : 0;
+      input.shoot |= fixed_input_mouse_press(SDL_BUTTON_LEFT);
+      input.pickup |= fixed_input_keyboard_press(SDL_SCANCODE_E);
+      input.sprint |= fixed_input_keyboard_press(SDL_SCANCODE_LSHIFT);
+      input.place_turret |= fixed_input_keyboard_press(SDL_SCANCODE_SPACE);
       // reload |= fixed_input_keyboard_press(SDL_SCANCODE_R);
     }
 
     if (controller) {
-      lx += fixed_input_controller_axis_held(controller->c_left_stick_x);
-      ly += fixed_input_controller_axis_held(controller->c_left_stick_y);
-      rx += fixed_input_controller_axis_held(controller->c_right_stick_x);
-      ry += fixed_input_controller_axis_held(controller->c_right_stick_y);
-      shoot |= fixed_input_controller_axis_held(controller->c_right_trigger) != 0.0f;
-      pickup |= fixed_input_controller_button_held(controller->c_r_bumper);
-      sprint |= fixed_input_controller_button_held(controller->c_l_bumper);
-      place_turret |= fixed_input_controller_button_press(controller->c_y);
+      input.lx += fixed_input_controller_axis_held(controller->c_left_stick_x);
+      input.ly += fixed_input_controller_axis_held(controller->c_left_stick_y);
+      input.rx += fixed_input_controller_axis_held(controller->c_right_stick_x);
+      input.ry += fixed_input_controller_axis_held(controller->c_right_stick_y);
+      input.shoot |= fixed_input_controller_axis_held(controller->c_right_trigger) > 0.5f;
+      input.pickup |= fixed_input_controller_button_held(controller->c_r_bumper);
+      input.sprint |= fixed_input_controller_button_held(controller->c_l_bumper);
+      input.place_turret |= fixed_input_controller_button_press(controller->c_y);
       // reload |=
     }
 
-    glm::vec2 r_nrm_dir = { rx, ry };
-    if (r_nrm_dir.x != 0.0f || r_nrm_dir.y != 0.0f)
-      r_nrm_dir = glm::normalize(r_nrm_dir);
-
-    glm::vec2 l_nrm_dir = { lx, ly };
-    if (l_nrm_dir.x != 0.0f || l_nrm_dir.y != 0.0f)
-      l_nrm_dir = glm::normalize(l_nrm_dir);
-
+    //
     // do the move
+    //
     if (auto* vel = r.try_get<VelocityComponent>(entity)) {
+
+      glm::vec2 l_nrm_dir = { input.lx, input.ly };
+      if (l_nrm_dir.x != 0.0f || l_nrm_dir.y != 0.0f)
+        l_nrm_dir = glm::normalize(l_nrm_dir);
+
       const glm::vec2 move_dir = l_nrm_dir * player_speed;
       vel->x = move_dir.x;
       vel->y = move_dir.y;
 
-      if (sprint) {
+      if (input.sprint) {
         vel->x *= 2.0f;
         vel->y *= 2.0f;
       }
     }
 
-    // offset the bullet by a distance
-    // to stop the bullet spawning inside the entity
-    glm::ivec2 offset_pos = { r_nrm_dir.x * gun_offset_distance, r_nrm_dir.y * gun_offset_distance };
-    player.offset = offset_pos;
-
-    // visually display the gun angle
-    // note: this should be in update() not fixedupdate()
-    if (glm::abs(r_nrm_dir.x) + glm::abs(r_nrm_dir.y) > 0.001f) {
-      auto& debug_gunspot_transform = r.emplace_or_replace<TransformComponent>(player.debug_gun_spot);
-      debug_gunspot_transform.position.x = aabb.center.x + offset_pos.x;
-      debug_gunspot_transform.position.y = aabb.center.y + offset_pos.y;
-      debug_gunspot_transform.scale.x = 5.0f;
-      debug_gunspot_transform.scale.y = 5.0f;
-
-    } else {
-      if (auto* gun_transform = r.try_get<TransformComponent>(player.debug_gun_spot))
-        r.remove<TransformComponent>(player.debug_gun_spot);
-    }
-
-    //
-    // request to shoot
-    //
-    {
-      bool allowed_to_shoot = true;
-
-      // hack: reload
-      // if (player.time_between_reloads_left > 0.0f)
-      //   player.time_between_reloads_left -= dt;
-      // if (reload && player.time_between_reloads_left <= 0.0f) {
-      //   player.bullets_in_clip_left = player.bullets_in_clip;
-      //   player.time_between_reloads_left = player.time_between_reloads;
-      // }
-      // allowed_to_shoot &= player.bullets_in_clip_left > 0;          // enough bullets
-      // if(shoot && allowed_to_shoot)
-      //   player.bullets_in_clip_left--;
-
-      // bullet cooldown
-      if (player.time_between_bullets_left > 0.0f)
-        player.time_between_bullets_left -= dt;
-      allowed_to_shoot &= player.time_between_bullets_left <= 0.0f;
-
-      if (shoot && allowed_to_shoot) {
-
-        CreateEntityRequest req;
-        req.type = EntityType::actor_bullet;
-        req.position = { aabb.center.x + offset_pos.x, aabb.center.y + offset_pos.y, 0 };
-        req.velocity = glm::vec3(r_nrm_dir.x * bullet_speed, r_nrm_dir.y * bullet_speed, 0);
-        r.emplace<CreateEntityRequest>(r.create(), req);
-
-        // request audio
-        // r.emplace<AudioRequestPlayEvent>(r.create(), "SHOOT_01");
-
-        // reset timer
-        player.time_between_bullets_left = player.time_between_bullets;
-      }
-    }
-
-    if (pickup) {
+    if (input.pickup) {
       std::cout << "Pickup pressed!\n";
       r.emplace_or_replace<WantsToPickUp>(entity);
     }
@@ -216,11 +153,24 @@ game2d::update_player_controller_system(entt::registry& r, const uint64_t& milli
     // hack: place turret?
     // bug: turrets_placed not reset on scene reset
     //
-    if (place_turret && player.turrets_placed < 4) {
+    if (input.place_turret && player.turrets_placed < 4) {
       player.turrets_placed++;
+
       CreateEntityRequest req;
       req.type = EntityType::actor_turret;
       req.position = { aabb.center.x, aabb.center.y, 0 };
+      r.emplace<CreateEntityRequest>(r.create(), req);
+    }
+
+    //
+    // hack: give player a weapon on spawn
+    //
+    if (!player.has_weapon) {
+      player.has_weapon = true;
+
+      CreateEntityRequest req;
+      req.type = player.weapon_to_spawn_with;
+      req.parent = entity;
       r.emplace<CreateEntityRequest>(r.create(), req);
     }
   }

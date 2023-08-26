@@ -28,7 +28,7 @@ update_turret_system(entt::registry& r, const uint64_t& ms_dt)
 
   const std::vector<EntityType> valid_types{
     EntityType::actor_enemy,
-    EntityType::spawner,
+    EntityType::actor_spawner,
   };
 
   for (auto [t_entity, turret, t] : turrets.each()) {

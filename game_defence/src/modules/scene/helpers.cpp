@@ -36,11 +36,11 @@ move_to_scene_start(entt::registry& r, const Scene& s)
   }
 
   for (const auto& [entity, comp] : r.view<TransformComponent>().each())
-    r.destroy(entity);
+    r.destroy(entity); // visuals
   for (const auto& [entity, comp] : r.view<EntityTypeComponent>().each())
-    r.destroy(entity);
+    r.destroy(entity); // actors
   for (const auto& [entity, comp] : r.view<CreateEntityRequest>().each())
-    r.destroy(entity);
+    r.destroy(entity); // new actors
 
   destroy_and_create<SINGLETON_CurrentScene>(r);
   destroy_and_create<SINGLETON_PhysicsComponent>(r);
@@ -70,10 +70,6 @@ move_to_scene_start(entt::registry& r, const Scene& s)
     const auto player = create_gameplay(r, EntityType::actor_player);
     auto& player_aabb = r.get<AABB>(player);
     player_aabb.center = { 32, 32 };
-
-    const auto bow = create_gameplay(r, EntityType::actor_bow);
-    auto& bow_comp = r.get<BowComponent>(bow);
-    bow_comp.parent = player;
 
     // todo: generate random spawns
   }

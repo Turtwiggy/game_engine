@@ -74,8 +74,8 @@
     { "name": "CROSSBOW_37_5", "frames": [ { "x": 37, "y": 5 } ] },
     { "name": "CROSSBOW_38_5", "frames": [ { "x": 38, "y": 5 } ] },
     { "name": "CROSSBOW_39_5", "frames": [ { "x": 39, "y": 5 } ] },
-    { "name": "ARROW_1", "frames": [ { "x": 40, "y": 5 } ], "angle": -45.0 },
-    { "name": "ARROW_2", "frames": [ { "x": 41, "y": 5 } ], "angle": -45.0 },
+    { "name": "ARROW_1", "frames": [ { "x": 40, "y": 5 } ], "angle": -135.0 },
+    { "name": "ARROW_2", "frames": [ { "x": 41, "y": 5 } ], "angle": -135.0 },
     { "name": "SHOVEL", "frames": [ { "x": 42, "y": 5 } ], "angle": -45.0 },
     { "name": "PICKAXE", "frames": [ { "x": 42, "y": 5 } ], "angle": -30.0 },
 
@@ -89,11 +89,11 @@
     { "name": "WEAPON_BOW_4", "frames": [ { "x": 41, "y": 6 } ], "angle": -45.0 },
 
     { "name": "DUCK", "frames": [ { "x": 25, "y": 7 } ] },
-    { "name": "SWORD_32_7", "frames": [ { "x": 32, "y": 7 } ], "angle": -135.0 },
-    { "name": "SWORD_33_7", "frames": [ { "x": 33, "y": 7 } ], "angle": -135.0 },
-    { "name": "SWORD_34_7", "frames": [ { "x": 34, "y": 7 } ], "angle": -135.0 },
-    { "name": "SWORD_35_7", "frames": [ { "x": 35, "y": 7 } ], "angle": -135.0 },
-    { "name": "SWORD_36_7", "frames": [ { "x": 36, "y": 7 } ], "angle": -135.0 },
+    { "name": "SWORD_32_7", "frames": [ { "x": 32, "y": 7 } ], "angle": -45.0 },
+    { "name": "SWORD_33_7", "frames": [ { "x": 33, "y": 7 } ], "angle": -45.0 },
+    { "name": "SWORD_34_7", "frames": [ { "x": 34, "y": 7 } ], "angle": -45.0 },
+    { "name": "SWORD_35_7", "frames": [ { "x": 35, "y": 7 } ], "angle": -45.0 },
+    { "name": "SWORD_36_7", "frames": [ { "x": 36, "y": 7 } ], "angle": -45.0 },
 
     { "name": "DOOR_16_8", "frames": [ { "x": 16, "y": 8 } ] },
     { "name": "BAT_26_8", "frames": [ { "x": 26, "y": 8 } ] },

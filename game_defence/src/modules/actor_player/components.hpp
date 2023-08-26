@@ -1,35 +1,29 @@
 #pragma once
 
+#include "actors.hpp"
+
 #include <SDL2/SDL_gamecontroller.h>
 #include <SDL2/SDL_scancode.h>
-
 #include <entt/entt.hpp>
 #include <glm/glm.hpp>
 #include <nlohmann/json.hpp>
 
 namespace game2d {
 
+// Anything that gets put in this component
+// is probably temporary and should
+// probably be moved to a more generic component
+// as/when it makes sense
 struct PlayerComponent
 {
-  float time_between_bullets_left = 0.0f;
-  float time_between_bullets = 0.10f;
-
-  entt::entity debug_gun_spot = entt::null;
   entt::entity pickup_area = entt::null;
   int picked_up_xp = 0;
 
-  // reload info
-  int bullets_in_clip = 6;
-  int bullets_in_clip_left = 6;
-  float time_between_reloads = 0.25f;
-  float time_between_reloads_left = 0.25f;
-
-  // input-offset for gun
-  // probably doenst belong here
-  glm::ivec2 offset{ 0, 0 };
-
   // build info
   int turrets_placed = 0;
+
+  bool has_weapon = false;
+  EntityType weapon_to_spawn_with = EntityType::actor_bow;
 };
 
 struct KeyboardComponent
@@ -66,7 +60,18 @@ struct ControllerComponent
 
 struct InputComponent
 {
-  bool placeholder = true;
+  // player actions?
+  bool shoot = false;
+  bool pickup = false;
+  bool sprint = false;
+  bool place_turret = false;
+  // bool reload = false;
+
+  // player analogues?
+  float lx = 0.0f;
+  float ly = 0.0f;
+  float rx = 0.0f;
+  float ry = 0.0f;
 };
 
 } // namespace game2d

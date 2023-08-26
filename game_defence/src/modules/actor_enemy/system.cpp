@@ -65,4 +65,27 @@ update_enemy_system(entt::registry& r, const uint64_t& milliseconds_dt)
   }
 }
 
+// void
+// enemy_ai::enemy_arc_angles_to_player(GameObject2D& obj, GameObject2D& player, float delta_time_s)
+// {
+//   // calculate a vector ab
+//   glm::vec2 ab = player.pos - obj.pos;
+//   // calculate the point halfway between ab
+//   glm::vec2 half_point = obj.pos + (ab / 2.0f);
+//   // calculate the vector at a right angle
+//   glm::vec2 normal = glm::vec2(-ab.y, ab.x);
+
+//   // expensive(?) distance calc
+//   float distance = glm::distance(obj.pos, player.pos);
+//   float half_distance = distance / 2.0f;
+
+//   // offset the midpoint via normal
+//   float amplitude = half_distance * sin(glm::radians(obj.approach_theta_degrees));
+//   half_point += (glm::normalize(normal) * amplitude);
+
+//   glm::vec2 dir = glm::normalize(half_point - obj.pos);
+
+//   move_along_vector(obj, dir, delta_time_s);
+// };
+
 } // namespace game2d

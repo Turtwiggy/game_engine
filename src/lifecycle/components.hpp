@@ -34,6 +34,12 @@ struct CreateEntityRequest
   glm::ivec3 position{ 0, 0, 0 };
   glm::vec3 velocity{ 0, 0, 0 };
   std::optional<std::string> sprite = std::nullopt;
+  entt::entity parent = entt::null;
+};
+
+struct HasParentComponent
+{
+  entt::entity parent = entt::null;
 };
 
 };

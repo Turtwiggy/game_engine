@@ -47,7 +47,7 @@ get_closest(entt::registry& r, const entt::entity& e, const std::vector<EntityTy
 
     // HACK....
     // make sure to only target enemy spawners
-    if (other_type.type == EntityType::spawner) {
+    if (other_type.type == EntityType::actor_spawner) {
       const auto& spawning = r.get<SpawnerComponent>(other_entity);
       if (spawning.type_to_spawn != EntityType::actor_enemy)
         return oinfo; // early exit

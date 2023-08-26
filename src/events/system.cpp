@@ -29,6 +29,7 @@ game2d::update_input_system(engine::SINGLETON_Application& app, entt::registry& 
 {
   const auto& ri = get_first_component<SINGLETON_RendererInfo>(r);
   auto& input = get_first_component<SINGLETON_InputComponent>(r);
+  input.update_since_last_fixed_update = true;
 
   input.keys_pressed.clear();
   input.keys_released.clear();

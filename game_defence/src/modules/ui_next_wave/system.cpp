@@ -43,7 +43,7 @@ game2d::update_ui_next_wave_system(entt::registry& r)
   for (const auto& [entity, hp, type] : r.view<const HealthComponent, const EntityTypeComponent>().each()) {
     if (type.type == EntityType::actor_enemy)
       wave_complete = false;
-    if (type.type == EntityType::spawner)
+    if (type.type == EntityType::actor_spawner)
       wave_complete = false;
   }
 
@@ -84,7 +84,7 @@ game2d::update_ui_next_wave_system(entt::registry& r)
         CreateEntityRequest req;
         req.position.x = rnd_x;
         req.position.y = rnd_y;
-        req.type = EntityType::spawner;
+        req.type = EntityType::actor_spawner;
         r.emplace<CreateEntityRequest>(r.create(), req);
       };
 

@@ -39,12 +39,19 @@ game2d::update_lifecycle_system(entt::registry& r, const uint64_t& milliseconds_
       vel->y = request.velocity.y;
     }
 
+    if (request.parent != entt::null) {
+      auto& p = r.get_or_emplace<HasParentComponent>(e);
+      p.parent = request.parent;
+    }
+
     auto* sc = r.try_get<SpriteComponent>(e);
     if (sc && request.sprite.has_value()) {
       const auto& anims = get_first_component<SINGLETON_Animations>(r);
       const auto anim = find_animation(anims.animations, request.sprite.value());
       sc->x = anim.animation_frames[0].x;
       sc->y = anim.animation_frames[0].y;
+      if (anim.angle_degrees != 0.0f)
+        sc->angle_radians = glm::radians(anim.angle_degrees);
     }
 
     // set position for aabb

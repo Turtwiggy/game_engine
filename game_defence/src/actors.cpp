@@ -52,7 +52,7 @@ create_sprite(entt::registry& r, const EntityType& type)
     sprite = "EMPTY";
   else if (type == EntityType::actor_bullet)
     sprite = "EMPTY";
-  else if (type == EntityType::spawner)
+  else if (type == EntityType::actor_spawner)
     sprite = "CASTLE_FLOOR";
   else if (type == EntityType::actor_hearth)
     sprite = "CAMPFIRE";
@@ -60,6 +60,8 @@ create_sprite(entt::registry& r, const EntityType& type)
     sprite = "GEM";
   else if (type == EntityType::actor_bow)
     sprite = "WEAPON_BOW_0";
+  else if (type == EntityType::actor_arrow)
+    sprite = "ARROW_1";
 
   // else
   // std::cerr << "warning! sprite not implemented: " << type_name << "\n";
@@ -112,8 +114,8 @@ create_colour(const SINGLETON_ColoursComponent& colours, const EntityType& type)
   if (type == EntityType::actor_bullet) {
     engine::LinearColour off;
     off.r = 1.0f;
-    off.g = 1.0f;
-    off.b = 1.0f;
+    off.g = 0.5f;
+    off.b = 0.5f;
     off.a = 0.25f;
     scc.colour = std::make_shared<engine::LinearColour>(off);
   }
@@ -197,7 +199,6 @@ create_gameplay(entt::registry& r, const EntityType& type)
 
       // gameplay
       PlayerComponent pc;
-      pc.debug_gun_spot = create_gameplay(r, EntityType::empty);
       pc.pickup_area = create_gameplay(r, EntityType::pickup_zone);
       r.emplace<PlayerComponent>(e, pc);
       r.emplace<InputComponent>(e);
@@ -244,16 +245,22 @@ create_gameplay(entt::registry& r, const EntityType& type)
       break;
     }
 
+    case EntityType::actor_arrow: {
+      r.emplace<ArrowComponent>(e);
+      create_physics_actor(r, e);
+      r.emplace<VelocityComponent>(e);
+      break;
+    }
+
     case EntityType::actor_bullet: {
       transform.scale.x = HALF_SIZE.x;
       transform.scale.y = HALF_SIZE.y;
-
-      r.emplace<AttackComponent>(e, 3);
 
       create_physics_actor(r, e);
       r.emplace<VelocityComponent>(e);
       r.emplace<SetTransformAngleToVelocity>(e);
       r.emplace<EntityTimedLifecycle>(e);
+      r.emplace<AttackComponent>(e, 3);
       break;
     }
 
@@ -271,7 +278,7 @@ create_gameplay(entt::registry& r, const EntityType& type)
       break;
     }
 
-    case EntityType::spawner: {
+    case EntityType::actor_spawner: {
       create_physics_actor(r, e);
       r.emplace<SpawnerComponent>(e);
       r.emplace<HealthComponent>(e, 10);
