@@ -4,7 +4,6 @@
 #include "lifecycle/components.hpp"
 #include "modules/physics/components.hpp"
 #include "modules/ui_economy/components.hpp"
-#include "ui_profiler/helpers.hpp"
 
 namespace game2d {
 

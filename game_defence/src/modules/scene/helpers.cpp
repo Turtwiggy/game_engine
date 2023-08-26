@@ -8,6 +8,7 @@
 #include "lifecycle/components.hpp"
 #include "maths/maths.hpp"
 #include "modules/actor_bow/components.hpp"
+#include "modules/camera/orthographic.hpp"
 #include "modules/combat/helpers.hpp"
 #include "modules/gameover/components.hpp"
 #include "modules/physics/components.hpp"
@@ -15,7 +16,6 @@
 #include "renderer/components.hpp"
 #include "resources/colours.hpp"
 #include "resources/textures.hpp"
-#include "ui_profiler/components.hpp"
 
 namespace game2d {
 
@@ -27,7 +27,6 @@ move_to_scene_start(entt::registry& r, const Scene& s)
     // transfer<SINGLETON_Animations>(r, new_r);
     // transfer<SINGLETON_Textures>(r, new_r);
     // transfer<SINGLETON_AudioComponent>(r, new_r);
-    // transfer<SINGLETON_Profiler>(r, new_r);
     // transfer<SINGLETON_RendererInfo>(r, new_r);
     // transfer<SINGLETON_InputComponent>(r, new_r);
     // transfer<SINGLETON_FixedUpdateInputHistory>(r, new_r);
@@ -35,8 +34,11 @@ move_to_scene_start(entt::registry& r, const Scene& s)
     // r = std::move(new_r);
   }
 
-  for (const auto& [entity, comp] : r.view<TransformComponent>().each())
-    r.destroy(entity); // visuals
+  for (const auto& [entity, comp] : r.view<TransformComponent>().each()) {
+    if (auto* camera = r.try_get<OrthographicCamera>(entity))
+      continue; // dont destroy camera
+    r.destroy(entity);
+  }
   for (const auto& [entity, comp] : r.view<EntityTypeComponent>().each())
     r.destroy(entity); // actors
   for (const auto& [entity, comp] : r.view<CreateEntityRequest>().each())
@@ -51,11 +53,9 @@ move_to_scene_start(entt::registry& r, const Scene& s)
   destroy_and_create<SINGLETON_ColoursComponent>(r);
   destroy_and_create<SINGLETON_GameOver>(r);
   destroy_and_create<SINGLETON_Wave>(r);
-  const auto camera = create_gameplay(r, EntityType::camera);
-  auto& camera_transform = r.get<TransformComponent>(camera);
-  camera_transform.position = { 0, 0, 0 };
-  camera_transform.scale.x = 0;
-  camera_transform.scale.y = 0;
+
+  const auto& camera = get_first<OrthographicCamera>(r);
+  auto& camera_transform = get_first_component<TransformComponent>(r);
 
   // const auto cursor = create_gameplay(r, EntityType::cursor);
 

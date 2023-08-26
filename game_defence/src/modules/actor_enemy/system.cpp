@@ -19,10 +19,8 @@
 namespace game2d {
 
 void
-update_enemy_system(entt::registry& r, const uint64_t& milliseconds_dt)
+update_enemy_system(entt::registry& r)
 {
-  const float enemy_speed = 2.0f;
-
   // SET TARGET
   // Note: this should be closest target
   const auto& first_target = get_first<HearthComponent>(r);
@@ -59,7 +57,7 @@ update_enemy_system(entt::registry& r, const uint64_t& milliseconds_dt)
     if (dir.x != 0.0f || dir.y != 0.0f)
       n = normalize(dir);
 
-    glm::vec2 pdir{ n.x * enemy_speed, n.y * enemy_speed };
+    glm::vec2 pdir{ n.x * vel.base_speed, n.y * vel.base_speed };
     vel.x = pdir.x;
     vel.y = pdir.y;
   }

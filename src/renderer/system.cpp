@@ -9,7 +9,6 @@
 #include "renderer/helpers/batch_quad.hpp"
 #include "resources/colours.hpp"
 #include "sprites/components.hpp"
-#include "ui_profiler/helpers.hpp"
 
 // engine headers
 #include "opengl/framebuffer.hpp"
@@ -27,7 +26,10 @@ using namespace engine; // used for macro
 namespace game2d {
 
 void
-game2d::init_render_system(const engine::SINGLETON_Application& app, SINGLETON_RendererInfo& ri, std::vector<Texture>& tex)
+game2d::init_render_system(const engine::SINGLETON_Application& app,
+                           entt::registry& r,
+                           SINGLETON_RendererInfo& ri,
+                           std::vector<Texture>& tex)
 {
   const glm::ivec2 screen_wh = { app.width, app.height };
 
@@ -78,7 +80,6 @@ game2d::init_render_system(const engine::SINGLETON_Application& app, SINGLETON_R
 void
 game2d::update_render_system(entt::registry& r, const std::vector<Texture>& tex)
 {
-  auto& p = get_first_component<SINGLETON_Profiler>(r);
   auto& ri = get_first_component<SINGLETON_RendererInfo>(r);
   const auto& colours = get_first_component<SINGLETON_ColoursComponent>(r);
   const auto& lin_background = colours.lin_background;
@@ -88,25 +89,23 @@ game2d::update_render_system(entt::registry& r, const std::vector<Texture>& tex)
   check_if_viewport_resize(ri, tex, viewport_wh);
 
   {
-    auto _ = time_scope(&p, "renderer: main_scene_pass");
-
     // FBO: Render sprites in to this fbo with linear colour
     Framebuffer::bind_fbo(ri.fbo_linear_main_scene);
     RenderCommand::set_viewport(0, 0, viewport_wh.x, viewport_wh.y);
     RenderCommand::set_clear_colour_linear(*lin_background);
     RenderCommand::clear();
 
+    // camera
+    {
+      const auto& camera = game2d::get_first_component<OrthographicCamera>(r);
+      ri.instanced.bind();
+      ri.instanced.set_mat4("view", camera.view);
+    }
+
     // Do quad stuff
     {
       quad_renderer::QuadRenderer::reset_quad_vert_count();
       quad_renderer::QuadRenderer::begin_batch();
-
-      // camera
-      {
-        const auto& camera = game2d::get_first_component<OrthographicCamera>(r);
-        ri.instanced.bind();
-        ri.instanced.set_mat4("view", camera.view);
-      }
 
       // adds 0.5ms
       // const auto& group = registry.group<TransformComponent, SpriteComponent, SpriteColourComponent>();

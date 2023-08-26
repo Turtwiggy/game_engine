@@ -10,3 +10,6 @@
 [submodule "thirdparty/vcpkg"]
 	path = thirdparty/vcpkg
 	url = https://github.com/microsoft/vcpkg.git
+[submodule "thirdparty/optick"]
+	path = thirdparty/optick
+	url = https://github.com/bombomby/optick.git

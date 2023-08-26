@@ -25,7 +25,6 @@ enum class EntityType
 
   // misc
   cursor,
-  camera,
   line,
   particle,
 

@@ -5,6 +5,6 @@
 namespace game2d {
 
 void
-update_enemy_system(entt::registry& r, const uint64_t& ms_dt);
+update_enemy_system(entt::registry& r);
 
 } // namespace game2d

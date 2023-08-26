@@ -21,12 +21,11 @@
 #include <glm/glm.hpp>
 
 void
-game2d::update_player_controller_system(entt::registry& r, const uint64_t& milliseconds_dt)
+game2d::update_player_controller_system(entt::registry& r)
 {
   const auto& finputs = get_first_component<SINGLETON_FixedUpdateInputHistory>(r);
   const auto& inputs = finputs.history.at(finputs.fixed_tick);
   const auto& i = get_first_component<SINGLETON_InputComponent>(r);
-  const auto dt = milliseconds_dt / 1000.0f;
 
   const auto fixed_input_keyboard_press = [&inputs](const SDL_Scancode& key) -> bool {
     const auto l = [&key](const InputEvent& e) {
@@ -81,9 +80,6 @@ game2d::update_player_controller_system(entt::registry& r, const uint64_t& milli
     return 0.0f;
   };
 
-  // todo: move these values in to player component
-  const float player_speed = 20.0f;
-
   // player movement
   const auto& view = r.view<PlayerComponent, InputComponent, const AABB>();
   for (const auto& [entity, player, input, aabb] : view.each()) {
@@ -134,7 +130,7 @@ game2d::update_player_controller_system(entt::registry& r, const uint64_t& milli
       if (l_nrm_dir.x != 0.0f || l_nrm_dir.y != 0.0f)
         l_nrm_dir = glm::normalize(l_nrm_dir);
 
-      const glm::vec2 move_dir = l_nrm_dir * player_speed;
+      const glm::vec2 move_dir = l_nrm_dir * vel->base_speed;
       vel->x = move_dir.x;
       vel->y = move_dir.y;
 

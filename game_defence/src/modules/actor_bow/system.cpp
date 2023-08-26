@@ -41,7 +41,9 @@ update_bow_system(entt::registry& r, const uint64_t milliseconds_dt)
     const glm::vec2 start_pos = { bow_transform.position.x, bow_transform.position.y };
     const glm::vec2 target_pos = parent_pos + offset;
 
-    float t = bow.lerp_speed * dt;
+    // note: this lerp would not work in an update() function where dt is variable
+    // const float t = dt * bow.lerp_speed;
+    const float t = 1.0f - glm::pow(0.5f, dt * bow.lerp_speed); // ?
     const auto new_pos = glm::lerp(start_pos, target_pos, t);
 
     bow_transform.position.x = static_cast<int>(new_pos.x);

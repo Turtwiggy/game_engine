@@ -69,6 +69,7 @@ file(GLOB_RECURSE SRC_FILES
   ${IMGUI_SOURCE}
   ${CMAKE_SOURCE_DIR}/src/*.cpp
   ${CMAKE_SOURCE_DIR}/game_defence/src/*.cpp
+  ${CMAKE_SOURCE_DIR}/thirdparty/optick/src/*.cpp
 )
 
 add_executable(game_defence
@@ -98,6 +99,7 @@ target_include_directories(game_defence PRIVATE
   ${CMAKE_SOURCE_DIR}/thirdparty/entt/single_include
   ${CMAKE_SOURCE_DIR}/thirdparty/magic_enum
   ${CMAKE_SOURCE_DIR}/thirdparty/imgui-filebrowser
+  ${CMAKE_SOURCE_DIR}/thirdparty/optick/src
 )
 
 if(EMSCRIPTEN)

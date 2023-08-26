@@ -14,11 +14,8 @@
 
 namespace game2d {
 
-[[nodiscard]] std::vector<Collision2D>
-do_move_x(entt::registry& r, const entt::entity& e, AABB& aabb, VelocityComponent& vel);
-
-[[nodiscard]] std::vector<Collision2D>
-do_move_y(entt::registry& r, const entt::entity& e, AABB& aabb, VelocityComponent& vel);
+bool
+collide(const AABB& one, const AABB& two);
 
 // Checks collisions between actor-actors.
 void

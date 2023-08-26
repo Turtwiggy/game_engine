@@ -9,19 +9,22 @@
 #include "modules/physics/helpers.hpp"
 #include "renderer/components.hpp"
 
+#include "optick.h"
+
 // c++ lib headers
 #include <algorithm>
 #include <set>
 #include <vector>
 
 void
-game2d::update_move_objects_system(entt::registry& r, const uint64_t milliseconds_dt)
+game2d::update_move_objects_system(entt::registry& r, const uint64_t& milliseconds_dt)
 {
   // auto& physics = get_first_component<SINGLETON_PhysicsComponent>(r);
 
   //
   // update all aabb based on rotation
   //
+
   const auto& physics_rot_objects = r.view<const TransformComponent, AABB>();
   for (const auto& [entity, t, aabb] : physics_rot_objects.each()) {
     const float& theta = t.rotation_radians.z;
@@ -46,14 +49,77 @@ game2d::update_move_objects_system(entt::registry& r, const uint64_t millisecond
 
   // move velocity actors,
   // stop if collides with an entity with the blocking component
-  const auto& vel_actors = r.view<AABB, VelocityComponent>();
-  for (const auto& [entity, aabb, vel] : vel_actors.each()) {
+  {
+    OPTICK_EVENT("Move Actors");
 
-    const auto colls_x = do_move_x(r, entity, aabb, vel);
-    // collisions.insert(collisions.end(), colls_x.begin(), colls_x.end());
+    const auto& vel_actors = r.view<AABB, VelocityComponent>();
+    const auto& solids = r.group<const PhysicsSolidComponent, const AABB>();
+    const float dt = milliseconds_dt / 1000.0f;
 
-    const auto colls_y = do_move_y(r, entity, aabb, vel);
-    // collisions.insert(collisions.end(), colls_x.begin(), colls_x.end());
+    for (const auto& [entity, aabb, vel] : vel_actors.each()) {
+      //
+      // move_x
+      //
+      {
+        vel.remainder_x += vel.x * dt;
+        int amount = static_cast<int>(vel.remainder_x);
+        if (amount != 0) {
+          vel.remainder_x -= amount; // consume so no frame jump
+          const int sign = glm::sign(amount);
+          while (amount != 0) {
+            // would-be updated position
+            AABB updated_pos = aabb;
+            updated_pos.center.x += sign;
+            // Check if the updated position would collide with anything
+            for (const auto& [o_entity, o_psolid, o_aabb] : solids.each()) {
+              const bool same = entity == o_entity;
+              if (!same && collide(updated_pos, o_aabb)) {
+                Collision2D collision;
+                const auto id_0 = static_cast<uint32_t>(entity);
+                const auto id_1 = static_cast<uint32_t>(o_entity);
+                collision.ent_id_0 = glm::min(id_0, id_1);
+                collision.ent_id_1 = glm::max(id_0, id_1);
+                // collisions.push_back(collision);
+              }
+            }
+            // Move player if empty space
+            aabb.center.x += sign;
+            amount -= sign;
+          }
+        }
+      } // end move x
+      //
+      // move_y
+      //
+      {
+        vel.remainder_y += vel.y * dt;
+        int amount = static_cast<int>(vel.remainder_y);
+        if (amount != 0) {
+          vel.remainder_y -= amount; // consume so no frame jump
+          const int sign = glm::sign(amount);
+          while (amount != 0) {
+            // would-be updated position
+            AABB updated_pos = aabb;
+            updated_pos.center.x += sign;
+            // Check if the updated position would collide with anything
+            for (const auto& [o_entity, o_psolid, o_aabb] : solids.each()) {
+              const bool same = entity == o_entity;
+              if (!same && collide(updated_pos, o_aabb)) {
+                Collision2D collision;
+                const auto id_0 = static_cast<uint32_t>(entity);
+                const auto id_1 = static_cast<uint32_t>(o_entity);
+                collision.ent_id_0 = glm::min(id_0, id_1);
+                collision.ent_id_1 = glm::max(id_0, id_1);
+                // collisions.push_back(collision);
+              }
+            }
+            // Move player if empty space
+            aabb.center.y += sign;
+            amount -= sign;
+          }
+        }
+      } // end move y
+    }
   }
 
   // move solids

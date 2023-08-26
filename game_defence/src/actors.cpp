@@ -285,11 +285,6 @@ create_gameplay(entt::registry& r, const EntityType& type)
       break;
     }
 
-    case EntityType::camera: {
-      r.emplace<OrthographicCamera>(e);
-      break;
-    }
-
     case EntityType::line: {
       break;
     }

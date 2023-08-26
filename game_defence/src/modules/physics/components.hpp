@@ -46,6 +46,8 @@ struct VelocityComponent
   float y = 0.0f;
   float remainder_x = 0.0f;
   float remainder_y = 0.0f;
+
+  float base_speed = 100.0f; // influences velocity
 };
 
 // A collision occurs between two entities

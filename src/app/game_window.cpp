@@ -99,18 +99,18 @@ GameWindow::GameWindow(const std::string& title, int width, int height, DisplayM
 
 // windows
 #elif defined(SDL_VIDEO_DRIVER_WINDOWS)
-  // opengl_major = 3;
-  // opengl_minor = 3;
-  // SDL_GL_SetAttribute(SDL_GL_CONTEXT_PROFILE_MASK, SDL_GL_CONTEXT_PROFILE_CORE);
-
-  // use opengl 3.0 es
+  // renderdoc requires opengl 3.2+
   opengl_major = 3;
-  opengl_minor = 0;
-  SDL_GL_SetAttribute(SDL_GL_CONTEXT_PROFILE_MASK, SDL_GL_CONTEXT_PROFILE_ES);
-  SDL_GL_SetAttribute(SDL_GL_CONTEXT_FLAGS, SDL_GL_CONTEXT_FORWARD_COMPATIBLE_FLAG);
-  // SDL_SetHint(SDL_HINT_RENDER_SCALE_QUALITY, "1");
+  opengl_minor = 3;
+  SDL_GL_SetAttribute(SDL_GL_CONTEXT_PROFILE_MASK, SDL_GL_CONTEXT_PROFILE_CORE);
+
+  // opengl_major = 3;
+  // opengl_minor = 0;
+  // SDL_GL_SetAttribute(SDL_GL_CONTEXT_PROFILE_MASK, SDL_GL_CONTEXT_PROFILE_ES);
+  // SDL_GL_SetAttribute(SDL_GL_CONTEXT_FLAGS, SDL_GL_CONTEXT_FORWARD_COMPATIBLE_FLAG);
 
 #endif
+  SDL_SetHint(SDL_HINT_RENDER_SCALE_QUALITY, "1");
   SDL_GL_SetAttribute(SDL_GL_CONTEXT_MAJOR_VERSION, opengl_major);
   SDL_GL_SetAttribute(SDL_GL_CONTEXT_MINOR_VERSION, opengl_minor);
 

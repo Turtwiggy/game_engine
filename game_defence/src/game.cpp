@@ -49,9 +49,8 @@
 #include "resources/textures.hpp"
 #include "sprites/components.hpp"
 #include "sprites/helpers.hpp"
-#include "ui_profiler/components.hpp"
-#include "ui_profiler/helpers.hpp"
-#include "ui_profiler/system.hpp"
+
+#include "optick.h"
 
 #include <ranges>
 #include <vector>
@@ -81,15 +80,19 @@ game2d::init(engine::SINGLETON_Application& app, entt::registry& r)
     r.emplace<SINGLETON_AudioComponent>(r.create(), audio);
   }
 
-  r.emplace<SINGLETON_Profiler>(r.create());
   r.emplace<SINGLETON_RendererInfo>(r.create());
   r.emplace<SINGLETON_FixedUpdateInputHistory>(r.create());
   r.emplace<SINGLETON_InputComponent>(r.create());
 
+  const auto camera = r.create();
+  r.emplace<TagComponent>(camera, "camera");
+  r.emplace<OrthographicCamera>(camera);
+  r.emplace<TransformComponent>(camera);
+
   auto& textures = get_first_component<SINGLETON_Textures>(r).textures;
   auto& ri = get_first_component<SINGLETON_RendererInfo>(r);
   init_audio_system(r);
-  init_render_system(app, ri, textures);
+  init_render_system(app, r, ri, textures);
   init_input_system(r);
 
   move_to_scene_start(r, Scene::menu);
@@ -98,8 +101,8 @@ game2d::init(engine::SINGLETON_Application& app, entt::registry& r)
 void
 game2d::fixed_update(entt::registry& game, const uint64_t milliseconds_dt)
 {
-  auto& p = get_first_component<SINGLETON_Profiler>(game);
-  auto _ = time_scope(&p, "fixed_update()", true);
+  OPTICK_EVENT("FixedUpdate()");
+
   auto& input = get_first_component<SINGLETON_InputComponent>(game);
   auto& fixed_input = get_first_component<SINGLETON_FixedUpdateInputHistory>(game);
 
@@ -110,18 +113,15 @@ game2d::fixed_update(entt::registry& game, const uint64_t milliseconds_dt)
   // held state wont be generated for the fixed tick.
   // Duplicate the held inputs for the last frame.
   if (!input.update_since_last_fixed_update) {
-    if (fixed_input.history.find(fixed_input.fixed_tick - 1) != fixed_input.history.end()) {
+    // get last tick held inputs
+    auto& last_tick_inputs = fixed_input.history[fixed_input.fixed_tick - 1];
+    const auto is_held = [](const InputEvent& e) { return e.state == InputState::held; };
+    const auto [first, last] = std::ranges::remove_if(last_tick_inputs, is_held);
 
-      // get last tick held inputs
-      auto& last_tick_inputs = fixed_input.history[fixed_input.fixed_tick - 1];
-      const auto is_held = [](const InputEvent& e) { return e.state == InputState::held; };
-      const auto [first, last] = std::ranges::remove_if(last_tick_inputs, is_held);
-
-      // append them to this tick
-      auto& i = fixed_input.history[fixed_input.fixed_tick];
-      i.insert(i.end(), first, last);
-      std::cout << "multiple fixed tick in a row; appending held inputs" << std::endl;
-    }
+    // append them to this tick
+    auto& i = fixed_input.history[fixed_input.fixed_tick];
+    i.insert(i.end(), first, last);
+    // std::cout << "multiple fixed tick in a row; appending held inputs" << std::endl;
   }
   input.update_since_last_fixed_update = false;
 
@@ -145,30 +145,18 @@ game2d::fixed_update(entt::registry& game, const uint64_t milliseconds_dt)
   update_lifecycle_system(game, milliseconds_dt);
 
   {
-    auto _ = time_scope(&p, "(physics)-tick", true);
-    auto& p = get_first_component<SINGLETON_Profiler>(game);
+    OPTICK_EVENT("(physics-tick)");
     auto& physics = get_first_component<SINGLETON_PhysicsComponent>(game);
     physics.frame_collisions.clear();
-
-    {
-      auto _ = time_scope(&p, "(physics)-tick-move", true);
-      update_move_objects_system(game, milliseconds_dt);
-    }
-    {
-      auto _ = time_scope(&p, "(physics)-actor-actor-colls", true);
-      update_actor_actor_collisions_system(game, physics);
-    }
-    {
-      auto _ = time_scope(&p, "(physics)-resolve-collisions", true);
-      update_resolve_collisions_system(game);
-    }
+    update_move_objects_system(game, milliseconds_dt);
+    update_actor_actor_collisions_system(game, physics);
+    update_resolve_collisions_system(game);
   }
 
   {
-    auto& p = get_first_component<SINGLETON_Profiler>(game);
-    auto _ = time_scope(&p, "(fixed-tick)-game-logic", true);
-    update_player_controller_system(game, milliseconds_dt);
-    update_enemy_system(game, milliseconds_dt);
+    OPTICK_EVENT("(fixed-tick)-game-logic");
+    update_player_controller_system(game);
+    update_enemy_system(game);
     update_turret_system(game, milliseconds_dt);
     update_take_damage_system(game);
     update_flash_sprite_system(game, milliseconds_dt);
@@ -185,52 +173,52 @@ game2d::fixed_update(entt::registry& game, const uint64_t milliseconds_dt)
 void
 game2d::update(engine::SINGLETON_Application& app, entt::registry& r, const float dt)
 {
-  auto& p = get_first_component<SINGLETON_Profiler>(r);
-  auto _ = time_scope(&p, "update()");
+  OPTICK_EVENT("(update)");
 
   {
-    auto _ = time_scope(&p, "update()-tick");
+    OPTICK_EVENT("(update)-gametick");
     update_input_system(app, r);
     update_camera_system(r, dt);
     update_audio_system(r);
     update_scale_by_velocity_system(r, dt);
+    // todo: update animations...
   };
 
   {
+    OPTICK_EVENT("(update)-update-render-system");
     auto& texs = get_first_component<SINGLETON_Textures>(r).textures;
     update_render_system(r, texs);
   }
 
-  // static bool show = true;
-  // ImGui::ShowDemoWindow(&show);
-
-  const auto& scene = get_first_component<SINGLETON_CurrentScene>(r);
-  if (scene.s == Scene::menu)
-    update_ui_scene_main_menu(app, r);
-  else if (scene.s == Scene::game) {
-    update_ui_next_wave_system(r);
-  }
-  update_ui_pause_menu_system(app, r);
-  update_ui_gameover_system(r);
+  {
+    OPTICK_EVENT("(update)-update-ui");
 
 #if defined(_DEBUG)
-  static bool show_demo_window = false;
-  ImGui::ShowDemoWindow(&show_demo_window);
+    // static bool show_demo_window = false;
+    // ImGui::ShowDemoWindow(&show_demo_window);
 #endif
 
-  update_ui_economy_system(r);
+    const auto& scene = get_first_component<SINGLETON_CurrentScene>(r);
+    if (scene.s == Scene::menu)
+      update_ui_scene_main_menu(app, r);
+    else if (scene.s == Scene::game)
+      update_ui_next_wave_system(r);
 
-  static bool show_settings_ui = false;
-  if (show_settings_ui) {
-    update_ui_audio_system(r);
-    update_ui_controller_system(r);
-  }
+    update_ui_pause_menu_system(app, r);
+    update_ui_gameover_system(r);
 
-  static bool show_editor_ui = false;
-  if (show_editor_ui) {
-    update_ui_profiler_system(r);
-    update_ui_prefabs_system(r);
-    update_ui_hierarchy_system(r);
+    static bool show_settings_ui = false;
+    if (show_settings_ui) {
+      update_ui_audio_system(r);
+      update_ui_controller_system(r);
+    }
+
+    static bool show_editor_ui = false;
+    if (show_editor_ui) {
+      update_ui_economy_system(r);
+      update_ui_prefabs_system(r);
+      update_ui_hierarchy_system(r);
+    }
   }
 
   end_frame_render_system(r);

@@ -77,7 +77,6 @@ game2d::render_texture_to_imgui_viewport(const int64_t& tex_id)
       ImGui::DockBuilderDockWindow("GameEvents", dock_id_top);
 
       // tools
-      ImGui::DockBuilderDockWindow("Profiler", dock_id_down);
       ImGui::DockBuilderDockWindow("ColourEditor", dock_id_down);
       ImGui::DockBuilderDockWindow("Prefabs", dock_id_down);
       ImGui::DockBuilderDockWindow("Shop", dock_id_down);
