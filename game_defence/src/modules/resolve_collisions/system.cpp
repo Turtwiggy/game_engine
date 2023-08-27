@@ -39,44 +39,38 @@ update_resolve_collisions_system(entt::registry& r)
     const auto& a_type = r.get<EntityTypeComponent>(a).type;
     const auto& b_type = r.get<EntityTypeComponent>(b).type;
 
-    {
-      auto* a_atk = r.try_get<AttackComponent>(a);
-      auto* a_def = r.try_get<HealthComponent>(a);
-      auto* b_atk = r.try_get<AttackComponent>(b);
-      auto* b_def = r.try_get<HealthComponent>(b);
-
-      // deal damage to b
-      if (a_atk && b_def) {
-        const entt::entity from = a;
-        const entt::entity to = b;
-        r.emplace<DealDamageRequest>(r.create(), from, to);
-      }
-
-      // deal damage to a
-      if (b_atk && a_def) {
-        const entt::entity from = b;
-        const entt::entity to = a;
-        r.emplace<DealDamageRequest>(r.create(), from, to);
-      }
-    }
+    auto* a_atk = r.try_get<AttackComponent>(a);
+    auto* a_def = r.try_get<HealthComponent>(a);
+    auto* a_team = r.try_get<TeamComponent>(a);
+    auto* b_atk = r.try_get<AttackComponent>(b);
+    auto* b_def = r.try_get<HealthComponent>(b);
+    auto* b_team = r.try_get<TeamComponent>(b);
 
     // todo: dont just *kill* enemies immediately on collision
     // should do something more interesting give the enemy damage
     // from the attack but then dont take any more damage from it
 
-    std::vector<EntityType> types_to_destroy{
-      EntityType::bullet_bow,
-      EntityType::bullet_default,
-      EntityType::enemy_grunt,
-      EntityType::enemy_shotgunner,
-      EntityType::enemy_sniper //
-    };
-    bool a_is_of_type = std::find(types_to_destroy.begin(), types_to_destroy.end(), a_type) != types_to_destroy.end();
-    if (a_is_of_type)
+    // deal damage to b
+    if (a_atk && b_def && a_team && b_team) {
+      if (a_team->team == b_team->team)
+        continue; // no team damage
+
       dead.dead.emplace(a);
-    bool b_is_of_type = std::find(types_to_destroy.begin(), types_to_destroy.end(), b_type) != types_to_destroy.end();
-    if (b_is_of_type)
+      const entt::entity from = a;
+      const entt::entity to = b;
+      r.emplace<DealDamageRequest>(r.create(), from, to);
+    }
+
+    // deal damage to a
+    if (b_atk && a_def && a_team && b_team) {
+      if (a_team->team == b_team->team)
+        continue; // no team damage
+
       dead.dead.emplace(b);
+      const entt::entity from = b;
+      const entt::entity to = a;
+      r.emplace<DealDamageRequest>(r.create(), from, to);
+    }
   }
 }
 

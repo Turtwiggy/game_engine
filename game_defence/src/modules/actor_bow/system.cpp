@@ -22,7 +22,6 @@ void
 update_bow_system(entt::registry& r, const uint64_t milliseconds_dt)
 {
   const float dt = milliseconds_dt / 1000.0f;
-  const float bullet_speed = 30.0f;
 
   //
   // get bow to follow player
@@ -138,8 +137,8 @@ update_bow_system(entt::registry& r, const uint64_t milliseconds_dt)
         r.emplace<AttackComponent>(val, 3);
 
         auto& arrow_vel = r.get<VelocityComponent>(val);
-        arrow_vel.x = r_nrm_dir.x * bullet_speed;
-        arrow_vel.y = r_nrm_dir.y * bullet_speed;
+        arrow_vel.x = r_nrm_dir.x * bow.bow_bullet_speed;
+        arrow_vel.y = r_nrm_dir.y * bow.bow_bullet_speed;
 
         std::cout << "arrow released" << std::endl;
         it = bow.arrows.erase(it);

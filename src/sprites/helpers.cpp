@@ -60,7 +60,7 @@ find_animation(const std::vector<SpriteAnimation>& sprites, const std::string na
   if (s != std::end(sprites))
     return *s;
   else {
-    std::cerr << "sprite not found: " << name << "\n";
+    std::cerr << "CONFIG ERROR: sprite not found: " << name << "\n";
     exit(1); // explode!
   }
 }

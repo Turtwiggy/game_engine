@@ -14,8 +14,8 @@ update_intent_drop_item_system(entt::registry& r)
   // enemies drop some xp
   const auto& dead = get_first_component<SINGLETON_EntityBinComponent>(r);
   for (const auto& dead : dead.dead) {
-    const auto& team = r.get<TeamComponent>(dead);
-    if (team.team == AvailableTeams::enemy)
+    const auto* team = r.try_get<TeamComponent>(dead);
+    if (team && team->team == AvailableTeams::enemy)
       r.emplace<WantsToDrop>(dead);
   }
 

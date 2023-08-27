@@ -59,7 +59,7 @@ create_sprite(entt::registry& r, const EntityType& type)
   else if (type == EntityType::actor_pickup_xp)
     sprite = "GEM";
   else if (type == EntityType::actor_pickup_zone)
-    sprite = "E<PTY";
+    sprite = "EMPTY";
   // weapons...
   else if (type == EntityType::weapon_bow)
     sprite = "WEAPON_BOW_0";
@@ -171,8 +171,9 @@ create_gameplay(entt::registry& r, const EntityType& type)
   transform.scale.y = SPRITE_SIZE;
 
   switch (type) {
-    case EntityType::empty:
+    case EntityType::empty: {
       break;
+    }
 
       //
       // actors with only one type
@@ -182,6 +183,7 @@ create_gameplay(entt::registry& r, const EntityType& type)
       create_physics_actor(r, e);
       r.emplace<HearthComponent>(e);
       r.emplace<HealthComponent>(e, 50);
+      r.emplace<TeamComponent>(e, AvailableTeams::player);
 
       // spawn the player at the hearth
       SpawnerComponent hearth_spawner;
@@ -278,6 +280,7 @@ create_gameplay(entt::registry& r, const EntityType& type)
     case EntityType::bullet_bow: {
       create_physics_actor(r, e);
       r.emplace<VelocityComponent>(e);
+      r.emplace<TeamComponent>(e, AvailableTeams::player);
       // no attack component as arrows are inactive sometimes
       break;
     }
@@ -300,25 +303,26 @@ create_gameplay(entt::registry& r, const EntityType& type)
       create_physics_actor(r, e);
       r.emplace<EnemyComponent>(e);
       r.emplace<TeamComponent>(e, AvailableTeams::enemy);
-      r.emplace<AIGoDirectComponent>(e);
       r.emplace<VelocityComponent>(e);
       r.emplace<HealthComponent>(e, 3);
       r.emplace<AttackComponent>(e, 10);
       break;
     }
+
     case EntityType::enemy_sniper: {
+      create_physics_actor(r, e);
       r.emplace<EnemyComponent>(e);
       r.emplace<TeamComponent>(e, AvailableTeams::enemy);
-      r.emplace<AIGoDirectComponent>(e);
       r.emplace<VelocityComponent>(e);
       r.emplace<HealthComponent>(e, 3);
       r.emplace<AttackComponent>(e, 20);
       break;
     }
+
     case EntityType::enemy_shotgunner: {
+      create_physics_actor(r, e);
       r.emplace<EnemyComponent>(e);
       r.emplace<TeamComponent>(e, AvailableTeams::enemy);
-      r.emplace<AIGoDirectComponent>(e);
       r.emplace<VelocityComponent>(e);
       r.emplace<HealthComponent>(e, 4);
       r.emplace<AttackComponent>(e, 50);
@@ -341,9 +345,11 @@ create_gameplay(entt::registry& r, const EntityType& type)
     }
 
     default: {
-      std::cout << "warning: no gameplay implemented for: " << type_name;
+      std::cout << "warning: no gameplay implemented for: " << type_name << std::endl;
     }
-  }
+  } // end switch
+
+  return e;
 };
 
 } // namespace game2d
