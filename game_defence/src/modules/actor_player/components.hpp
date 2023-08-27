@@ -22,8 +22,10 @@ struct PlayerComponent
   // build info
   int turrets_placed = 0;
 
+  // weapon
   bool has_weapon = false;
-  EntityType weapon_to_spawn_with = EntityType::actor_bow;
+  EntityType weapon_to_spawn_with = EntityType::weapon_bow;
+  float weapon_offset = 30.0f;
 };
 
 struct KeyboardComponent

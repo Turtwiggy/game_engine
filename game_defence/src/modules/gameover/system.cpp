@@ -2,7 +2,7 @@
 
 #include "entt/helpers.hpp"
 #include "events/helpers/keyboard.hpp"
-#include "modules/combat/components.hpp"
+#include "modules/combat_damage/components.hpp"
 #include "modules/gameover/components.hpp"
 #include "modules/actor_hearth/components.hpp"
 #include "modules/actor_player/components.hpp"

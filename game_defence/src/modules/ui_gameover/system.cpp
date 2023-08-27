@@ -1,7 +1,6 @@
 #include "system.hpp"
 
 #include "entt/helpers.hpp"
-#include "modules/combat/components.hpp"
 #include "modules/gameover/components.hpp"
 #include "modules/scene/helpers.hpp"
 #include "modules/ui_gameover/components.hpp"

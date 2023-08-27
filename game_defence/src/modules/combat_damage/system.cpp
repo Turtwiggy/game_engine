@@ -1,10 +1,10 @@
-#include "take_damage.hpp"
+#include "system.hpp"
 
 #include "components.hpp"
 #include "entt/helpers.hpp"
-#include "flash_sprite.hpp"
-#include "helpers.hpp"
 #include "lifecycle/components.hpp"
+#include "modules/combat_flash_on_damage/components.hpp"
+#include "modules/combat_flash_on_damage/helpers.hpp"
 
 namespace game2d {
 

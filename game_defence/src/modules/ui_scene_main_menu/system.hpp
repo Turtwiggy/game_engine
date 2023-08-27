@@ -9,4 +9,4 @@ namespace game2d {
 void
 update_ui_scene_main_menu(engine::SINGLETON_Application& app, entt::registry& r);
 
-} // namespace game2d
+}; // namespace game2d

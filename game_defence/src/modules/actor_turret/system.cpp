@@ -9,8 +9,9 @@
 #include "lifecycle/components.hpp"
 #include "maths/maths.hpp"
 #include "modules/actor_enemy/components.hpp"
+#include "modules/combat_attack_cooldown/components.hpp"
+#include "modules/combat_attack_cooldown/helpers.hpp"
 #include "modules/physics/components.hpp"
-#include "modules/actor_player/components.hpp"
 #include "renderer/components.hpp"
 #include "sprites/components.hpp"
 
@@ -21,17 +22,17 @@ update_turret_system(entt::registry& r, const uint64_t& ms_dt)
 {
   const float dt = ms_dt / 1000.0f;
   const auto& physics = get_first_component<SINGLETON_PhysicsComponent>(r);
-  const auto& enemies = r.view<const EnemyComponent, const TransformComponent>();
-  const auto& turrets = r.view<TurretComponent, TransformComponent>();
-  const auto& player = get_first<PlayerComponent>(r); // assume one player for now
   const float turret_bullet_speed = 20.0f;
 
   const std::vector<EntityType> valid_types{
-    EntityType::actor_enemy,
     EntityType::actor_spawner,
+    EntityType::enemy_grunt,
+    EntityType::enemy_shotgunner,
+    EntityType::enemy_sniper,
   };
 
-  for (auto [t_entity, turret, t] : turrets.each()) {
+  const auto& turrets = r.view<TurretComponent, TransformComponent, AttackCooldownComponent>();
+  for (auto [t_entity, turret, t, cooldown] : turrets.each()) {
 
     //
     // Get Closest Entity to turret
@@ -62,13 +63,10 @@ update_turret_system(entt::registry& r, const uint64_t& ms_dt)
     // request to shoot
     //
 
-    if (turret.active)
-      turret.time_between_bullets_left -= dt;
-
-    if (turret.time_between_bullets_left < 0.0f) {
+    if (!cooldown.on_cooldown) {
 
       CreateEntityRequest req;
-      req.type = turret.type_to_spawn;
+      req.type = EntityType::bullet_default;
       req.position = { offset_pos.x, offset_pos.y, 0 };
       req.velocity = glm::vec3(-nrm_dir.x * turret_bullet_speed, -nrm_dir.y * turret_bullet_speed, 0);
       r.emplace<CreateEntityRequest>(r.create(), req);
@@ -76,8 +74,7 @@ update_turret_system(entt::registry& r, const uint64_t& ms_dt)
       // request audio
       // r.emplace<AudioRequestPlayEvent>(r.create(), "SHOOT_02");
 
-      // reset timer
-      turret.time_between_bullets_left = turret.time_between_bullets;
+      reset_cooldown(cooldown);
     }
   }
 };

@@ -12,8 +12,10 @@
 #include "modules/actor_turret/components.hpp"
 #include "modules/animation/components.hpp"
 #include "modules/camera/orthographic.hpp"
-#include "modules/combat/components.hpp"
+#include "modules/combat_attack_cooldown/components.hpp"
+#include "modules/combat_damage/components.hpp"
 #include "modules/items_pickup/components.hpp"
+#include "modules/lerp_to_target/components.hpp"
 #include "modules/physics/components.hpp"
 #include "modules/respawn/components.hpp"
 #include "renderer/components.hpp"
@@ -46,22 +48,33 @@ create_sprite(entt::registry& r, const EntityType& type)
   std::string sprite = "EMPTY";
   if (type == EntityType::empty)
     sprite = "EMPTY";
-  else if (type == EntityType::actor_player)
-    sprite = "PERSON_25_0";
-  else if (type == EntityType::actor_turret)
-    sprite = "EMPTY";
-  else if (type == EntityType::actor_bullet)
-    sprite = "EMPTY";
-  else if (type == EntityType::actor_spawner)
-    sprite = "CASTLE_FLOOR";
   else if (type == EntityType::actor_hearth)
     sprite = "CAMPFIRE";
-  else if (type == EntityType::pickup_xp)
+  else if (type == EntityType::actor_player)
+    sprite = "PERSON_25_0";
+  else if (type == EntityType::actor_spawner)
+    sprite = "CASTLE_FLOOR";
+  else if (type == EntityType::actor_turret)
+    sprite = "EMPTY";
+  else if (type == EntityType::actor_pickup_xp)
     sprite = "GEM";
-  else if (type == EntityType::actor_bow)
+  else if (type == EntityType::actor_pickup_zone)
+    sprite = "E<PTY";
+  // weapons...
+  else if (type == EntityType::weapon_bow)
     sprite = "WEAPON_BOW_0";
-  else if (type == EntityType::actor_arrow)
+  // bullets...
+  else if (type == EntityType::bullet_default)
+    sprite = "EMPTY";
+  else if (type == EntityType::bullet_bow)
     sprite = "ARROW_1";
+  // enemies...
+  else if (type == EntityType::enemy_grunt)
+    sprite = "PERSON_25_1";
+  else if (type == EntityType::enemy_sniper)
+    sprite = "PERSON_25_6";
+  else if (type == EntityType::enemy_shotgunner)
+    sprite = "PERSON_28_1";
 
   // else
   // std::cerr << "warning! sprite not implemented: " << type_name << "\n";
@@ -102,8 +115,7 @@ create_colour(const SINGLETON_ColoursComponent& colours, const EntityType& type)
 
   if (type == EntityType::actor_hearth)
     scc.colour = secondary;
-
-  if (type == EntityType::empty) {
+  else if (type == EntityType::actor_pickup_zone) {
     engine::LinearColour off;
     off.r = 1.0f;
     off.g = 1.0f;
@@ -111,22 +123,18 @@ create_colour(const SINGLETON_ColoursComponent& colours, const EntityType& type)
     off.a = 0.5f;
     scc.colour = std::make_shared<engine::LinearColour>(off);
   }
-  if (type == EntityType::actor_bullet) {
-    engine::LinearColour off;
-    off.r = 1.0f;
-    off.g = 0.5f;
-    off.b = 0.5f;
-    off.a = 0.25f;
-    scc.colour = std::make_shared<engine::LinearColour>(off);
-  }
-  if (type == EntityType::pickup_zone) {
-    engine::LinearColour off;
-    off.r = 1.0f;
-    off.g = 1.0f;
-    off.b = 1.0f;
-    off.a = 0.1f;
-    scc.colour = std::make_shared<engine::LinearColour>(off);
-  }
+  // bullets...
+  else if (type == EntityType::bullet_default)
+    scc.colour = secondary;
+  else if (type == EntityType::bullet_bow)
+    scc.colour = primary;
+  // enemies...
+  else if (type == EntityType::enemy_grunt)
+    scc.colour = colours.lin_yellow;
+  else if (type == EntityType::enemy_sniper)
+    scc.colour = colours.lin_blue;
+  else if (type == EntityType::enemy_shotgunner)
+    scc.colour = colours.lin_orange;
 
   return scc;
 }
@@ -163,106 +171,12 @@ create_gameplay(entt::registry& r, const EntityType& type)
   transform.scale.y = SPRITE_SIZE;
 
   switch (type) {
-    case EntityType::empty: {
+    case EntityType::empty:
       break;
-    }
 
-    case EntityType::cursor: {
-      // r.emplace<PlayerCursor>(e);
-      break;
-    }
-
-    case EntityType::particle: {
-      r.emplace<VelocityComponent>(e);
-      r.emplace<EntityTimedLifecycle>(e, 1 * 1000);
-      break;
-    }
-
-    case EntityType::pickup_zone: {
-      transform.scale.y = 100;
-      transform.scale.x = 100;
-      r.emplace<PickupZone>(e);
-      create_physics_actor(r, e);
-      break;
-    }
-
-    case EntityType::pickup_xp: {
-      create_physics_actor(r, e);
-      r.emplace<AbleToBePickedUp>(e);
-      break;
-    }
-
-    case EntityType::actor_player: {
-      create_physics_actor(r, e);
-      r.emplace<PhysicsSolidComponent>(e);
-      r.emplace<VelocityComponent>(e);
-
-      // gameplay
-      PlayerComponent pc;
-      pc.pickup_area = create_gameplay(r, EntityType::pickup_zone);
-      r.emplace<PlayerComponent>(e, pc);
-      r.emplace<InputComponent>(e);
-      r.emplace<KeyboardComponent>(e);
-      r.emplace<ControllerComponent>(e);
-
-      // more hmm
-      r.emplace<InfiniteLivesComponent>(e);
-
-      // hmm
-      r.emplace<HealthComponent>(e, 100);
-      r.emplace<RangeComponent>(e, 10);
-
-      // r.emplace<TakeDamageComponent>(e);
-      // r.emplace<XpComponent>(e, 0);
-      // StatsComponent stats;
-      // stats.con_level = 1;
-      // stats.agi_level = 1;
-      // stats.str_level = 1;
-      // r.emplace<StatsComponent>(e, stats);
-      break;
-    }
-
-    case EntityType::actor_enemy: {
-      create_physics_actor(r, e);
-      r.emplace<EnemyComponent>(e);
-      r.emplace<VelocityComponent>(e);
-      // health, attack, range set on class
-      break;
-    }
-
-    case EntityType::actor_bow: {
-      r.emplace<BowComponent>(e);
-      break;
-    }
-
-    case EntityType::actor_turret: {
-      create_physics_actor(r, e);
-      r.emplace<TurretComponent>(e);
-
-      // todo: if make turret solid,
-      // spawn bullets outside of turret
-      // r.emplace<PhysicsSolidComponent>(e);
-      break;
-    }
-
-    case EntityType::actor_arrow: {
-      r.emplace<ArrowComponent>(e);
-      create_physics_actor(r, e);
-      r.emplace<VelocityComponent>(e);
-      break;
-    }
-
-    case EntityType::actor_bullet: {
-      transform.scale.x = HALF_SIZE.x;
-      transform.scale.y = HALF_SIZE.y;
-
-      create_physics_actor(r, e);
-      r.emplace<VelocityComponent>(e);
-      r.emplace<SetTransformAngleToVelocity>(e);
-      r.emplace<EntityTimedLifecycle>(e);
-      r.emplace<AttackComponent>(e, 3);
-      break;
-    }
+      //
+      // actors with only one type
+      //
 
     case EntityType::actor_hearth: {
       create_physics_actor(r, e);
@@ -278,22 +192,158 @@ create_gameplay(entt::registry& r, const EntityType& type)
       break;
     }
 
-    case EntityType::actor_spawner: {
+    case EntityType::actor_player: {
       create_physics_actor(r, e);
-      r.emplace<SpawnerComponent>(e);
-      r.emplace<HealthComponent>(e, 10);
+      r.emplace<PhysicsSolidComponent>(e);
+      r.emplace<VelocityComponent>(e);
+
+      // gameplay
+      PlayerComponent pc;
+      pc.pickup_area = create_gameplay(r, EntityType::actor_pickup_zone);
+      r.emplace<PlayerComponent>(e, pc);
+      r.emplace<InputComponent>(e);
+      r.emplace<KeyboardComponent>(e);
+      r.emplace<ControllerComponent>(e);
+
+      r.emplace<HealthComponent>(e, 100);
+      r.emplace<InfiniteLivesComponent>(e);
+
+      // r.emplace<TakeDamageComponent>(e);
+      // r.emplace<XpComponent>(e, 0);
+      // StatsComponent stats;
+      // stats.con_level = 1;
+      // stats.agi_level = 1;
+      // stats.str_level = 1;
+      // r.emplace<StatsComponent>(e, stats);
       break;
     }
 
-    case EntityType::line: {
+    case EntityType::actor_spawner: {
+      create_physics_actor(r, e);
+      r.emplace<HealthComponent>(e, 10);
+
+      // 1 second between spawning
+      r.emplace<AttackCooldownComponent>(e, 1.0f);
+
+      // if spawning enemies...
+      // its on the enemy team
+      // remember to update this?
+      r.emplace<SpawnerComponent>(e);
+      r.emplace<TeamComponent>(e, AvailableTeams::enemy);
+
       break;
     }
+
+    case EntityType::actor_turret: {
+      create_physics_actor(r, e);
+      r.emplace<TurretComponent>(e);
+      r.emplace<AttackCooldownComponent>(e);
+
+      // todo: if make turret solid,
+      // spawn bullets outside of turret
+      // r.emplace<PhysicsSolidComponent>(e);
+      break;
+    }
+
+    case EntityType::actor_pickup_xp: {
+      create_physics_actor(r, e);
+      r.emplace<AbleToBePickedUp>(e);
+      break;
+    }
+
+    case EntityType::actor_pickup_zone: {
+      transform.scale.y = 100;
+      transform.scale.x = 100;
+      r.emplace<PickupZone>(e);
+      create_physics_actor(r, e);
+      break;
+    }
+
+      //
+      // actor_weapons
+      //
+
+    case EntityType::weapon_bow: {
+      r.emplace<BowComponent>(e);
+      r.emplace<HasTargetPositionComponent>(e);
+      r.emplace<LerpToTargetComponent>(e);
+      r.emplace<AttackCooldownComponent>(e);
+      break;
+    }
+
+      //
+      // actors_bullets
+      //
+
+    case EntityType::bullet_bow: {
+      create_physics_actor(r, e);
+      r.emplace<VelocityComponent>(e);
+      // no attack component as arrows are inactive sometimes
+      break;
+    }
+
+    case EntityType::bullet_default: {
+      transform.scale.x = HALF_SIZE.x;
+      transform.scale.y = HALF_SIZE.y;
+      create_physics_actor(r, e);
+      r.emplace<VelocityComponent>(e);
+      r.emplace<SetTransformAngleToVelocity>(e);
+      r.emplace<EntityTimedLifecycle>(e);
+      r.emplace<AttackComponent>(e, 3);
+      break;
+    }
+
+    //
+    // actors_enemies
+    //
+    case EntityType::enemy_grunt: {
+      create_physics_actor(r, e);
+      r.emplace<EnemyComponent>(e);
+      r.emplace<TeamComponent>(e, AvailableTeams::enemy);
+      r.emplace<AIGoDirectComponent>(e);
+      r.emplace<VelocityComponent>(e);
+      r.emplace<HealthComponent>(e, 3);
+      r.emplace<AttackComponent>(e, 10);
+      break;
+    }
+    case EntityType::enemy_sniper: {
+      r.emplace<EnemyComponent>(e);
+      r.emplace<TeamComponent>(e, AvailableTeams::enemy);
+      r.emplace<AIGoDirectComponent>(e);
+      r.emplace<VelocityComponent>(e);
+      r.emplace<HealthComponent>(e, 3);
+      r.emplace<AttackComponent>(e, 20);
+      break;
+    }
+    case EntityType::enemy_shotgunner: {
+      r.emplace<EnemyComponent>(e);
+      r.emplace<TeamComponent>(e, AvailableTeams::enemy);
+      r.emplace<AIGoDirectComponent>(e);
+      r.emplace<VelocityComponent>(e);
+      r.emplace<HealthComponent>(e, 4);
+      r.emplace<AttackComponent>(e, 50);
+      break;
+    }
+
+      //
+      // misc
+      //
+
+    case EntityType::cursor: {
+      // r.emplace<PlayerCursor>(e);
+      break;
+    }
+
+    case EntityType::particle: {
+      r.emplace<VelocityComponent>(e);
+      r.emplace<EntityTimedLifecycle>(e, 1 * 1000);
+      break;
+    }
+
     default: {
       std::cout << "warning: no gameplay implemented for: " << type_name;
     }
   }
-
-  return e;
 };
 
 } // namespace game2d

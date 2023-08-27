@@ -5,6 +5,6 @@
 namespace game2d {
 
 void
-update_ui_economy_system(entt::registry& r);
+update_lerp_to_target_system(entt::registry& r, const uint64_t& milliseconds_dt);
 
 } // namespace game2d

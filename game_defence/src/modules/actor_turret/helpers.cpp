@@ -1,8 +1,8 @@
 #include "helpers.hpp"
 
 #include "entt/helpers.hpp"
-#include "modules/physics/components.hpp"
 #include "modules/actor_spawner/components.hpp" // hack: shouldnt be here
+#include "modules/physics/components.hpp"
 #include "renderer/components.hpp"
 
 #include <algorithm>
@@ -45,11 +45,12 @@ get_closest(entt::registry& r, const entt::entity& e, const std::vector<EntityTy
     if (!type_of_interest)
       return oinfo; // early exit
 
-    // HACK....
     // make sure to only target enemy spawners
     if (other_type.type == EntityType::actor_spawner) {
       const auto& spawning = r.get<SpawnerComponent>(other_entity);
-      if (spawning.type_to_spawn != EntityType::actor_enemy)
+      // check if spawning a targetable type
+      bool targetable_spawner = std::find(types.begin(), types.end(), spawning.type_to_spawn) != types.end();
+      if (!targetable_spawner)
         return oinfo; // early exit
     }
 

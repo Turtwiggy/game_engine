@@ -1,7 +1,7 @@
 #include "system.hpp"
 
 #include "entt/helpers.hpp"
-#include "modules/combat/components.hpp"
+#include "modules/combat_damage/components.hpp"
 
 // hack below
 #include "actors.hpp"
@@ -40,11 +40,11 @@ game2d::update_ui_next_wave_system(entt::registry& r)
 
   // hack: this should be in a system in fixedupdate() not here
   bool wave_complete = true;
-  for (const auto& [entity, hp, type] : r.view<const HealthComponent, const EntityTypeComponent>().each()) {
-    if (type.type == EntityType::actor_enemy)
+  for (const auto& [entity, hp, team] : r.view<const HealthComponent, const TeamComponent>().each()) {
+    if (team.team == AvailableTeams::enemy) {
       wave_complete = false;
-    if (type.type == EntityType::actor_spawner)
-      wave_complete = false;
+      break;
+    }
   }
 
   if (wave_complete) {

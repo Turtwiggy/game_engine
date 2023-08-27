@@ -19,29 +19,27 @@
 #include "modules/animation/angle_to_velocity.hpp"
 #include "modules/camera/orthographic.hpp"
 #include "modules/camera/system.hpp"
-#include "modules/combat/components.hpp"
-#include "modules/combat/flash_sprite.hpp"
-#include "modules/combat/take_damage.hpp"
+#include "modules/combat_attack_cooldown/system.hpp"
+#include "modules/combat_damage/system.hpp"
+#include "modules/combat_flash_on_damage/system.hpp"
 #include "modules/gameover/components.hpp"
 #include "modules/gameover/system.hpp"
 #include "modules/items_drop/system.hpp"
 #include "modules/items_pickup/system.hpp"
+#include "modules/lerp_to_target/system.hpp"
 #include "modules/physics/components.hpp"
 #include "modules/physics/process_actor_actor_collisions.hpp"
 #include "modules/physics/process_move_objects.hpp"
 #include "modules/resolve_collisions/system.hpp"
 #include "modules/respawn/system.hpp"
-#include "modules/scene/components.hpp"
 #include "modules/scene/helpers.hpp"
 #include "modules/ui_audio/system.hpp"
+#include "modules/ui_colours/system.hpp"
 #include "modules/ui_controllers/system.hpp"
-#include "modules/ui_economy/components.hpp"
-#include "modules/ui_economy/system.hpp"
 #include "modules/ui_gameover/system.hpp"
 #include "modules/ui_hierarchy/system.hpp"
 #include "modules/ui_next_wave/system.hpp"
 #include "modules/ui_pause_menu/system.hpp"
-#include "modules/ui_prefabs/system.hpp"
 #include "modules/ui_scene_main_menu/system.hpp"
 #include "renderer/components.hpp"
 #include "renderer/system.hpp"
@@ -155,6 +153,7 @@ game2d::fixed_update(entt::registry& game, const uint64_t milliseconds_dt)
 
   {
     OPTICK_EVENT("(fixed-tick)-game-logic");
+    update_attack_cooldown_system(game, milliseconds_dt);
     update_player_controller_system(game);
     update_enemy_system(game);
     update_turret_system(game, milliseconds_dt);
@@ -165,6 +164,7 @@ game2d::fixed_update(entt::registry& game, const uint64_t milliseconds_dt)
     update_intent_pickup_system(game);
     update_intent_drop_item_system(game);
     update_bow_system(game, milliseconds_dt);
+    update_lerp_to_target_system(game, milliseconds_dt);
   }
 
   fixed_input.fixed_tick += 1;
@@ -213,11 +213,12 @@ game2d::update(engine::SINGLETON_Application& app, entt::registry& r, const floa
       update_ui_controller_system(r);
     }
 
-    static bool show_editor_ui = false;
+    static bool show_editor_ui = true;
     if (show_editor_ui) {
-      update_ui_economy_system(r);
-      update_ui_prefabs_system(r);
       update_ui_hierarchy_system(r);
+
+      auto& colours = get_first_component<SINGLETON_ColoursComponent>(r);
+      update_ui_colours_system(colours);
     }
   }
 

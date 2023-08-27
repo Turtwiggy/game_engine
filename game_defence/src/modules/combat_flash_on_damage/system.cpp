@@ -1,4 +1,4 @@
-#include "flash_sprite.hpp"
+#include "system.hpp"
 
 #include "actors.hpp"
 #include "components.hpp"

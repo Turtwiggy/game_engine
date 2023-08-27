@@ -6,12 +6,9 @@
 
 namespace game2d {
 
+// turret currently basically means "shoot at nearest"
 struct TurretComponent
 {
-  EntityType type_to_spawn = EntityType::actor_bullet;
-  float time_between_bullets = 0.25f;
-  float time_between_bullets_left = 0.25f;
-
   bool active = true;
 };
 

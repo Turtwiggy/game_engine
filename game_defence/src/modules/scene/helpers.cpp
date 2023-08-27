@@ -9,10 +9,8 @@
 #include "maths/maths.hpp"
 #include "modules/actor_bow/components.hpp"
 #include "modules/camera/orthographic.hpp"
-#include "modules/combat/helpers.hpp"
 #include "modules/gameover/components.hpp"
 #include "modules/physics/components.hpp"
-#include "modules/ui_economy/components.hpp"
 #include "renderer/components.hpp"
 #include "resources/colours.hpp"
 #include "resources/textures.hpp"
@@ -34,28 +32,29 @@ move_to_scene_start(entt::registry& r, const Scene& s)
     // r = std::move(new_r);
   }
 
-  for (const auto& [entity, comp] : r.view<TransformComponent>().each()) {
-    if (auto* camera = r.try_get<OrthographicCamera>(entity))
-      continue; // dont destroy camera
+  const auto& camera = get_first<OrthographicCamera>(r);
+  auto& camera_transform = get_first_component<TransformComponent>(r);
+
+  for (const auto& [entity, _] : r.view<TransformComponent>().each()) {
+    if (entity == camera)
+      continue;
     r.destroy(entity);
   }
-  for (const auto& [entity, comp] : r.view<EntityTypeComponent>().each())
+  for (const auto& [entity, _] : r.view<EntityTypeComponent>().each()) {
+    if (entity == camera)
+      continue;
     r.destroy(entity); // actors
-  for (const auto& [entity, comp] : r.view<CreateEntityRequest>().each())
-    r.destroy(entity); // new actors
+  }
+  const auto& reqs = r.view<CreateEntityRequest>();
+  r.destroy(reqs.begin(), reqs.end());
 
   destroy_and_create<SINGLETON_CurrentScene>(r);
   destroy_and_create<SINGLETON_PhysicsComponent>(r);
   destroy_and_create<SINGLETON_EntityBinComponent>(r);
   destroy_and_create<SINGLETON_GameStateComponent>(r);
-  destroy_and_create<SINGLETON_Economy>(r);
-  destroy_and_create<SINGLETON_UiEconomy>(r);
   destroy_and_create<SINGLETON_ColoursComponent>(r);
   destroy_and_create<SINGLETON_GameOver>(r);
   destroy_and_create<SINGLETON_Wave>(r);
-
-  const auto& camera = get_first<OrthographicCamera>(r);
-  auto& camera_transform = get_first_component<TransformComponent>(r);
 
   // const auto cursor = create_gameplay(r, EntityType::cursor);
 

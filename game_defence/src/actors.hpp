@@ -11,21 +11,32 @@ namespace game2d {
 enum class EntityType
 {
   empty,
-  actor_arrow,
-  actor_bow,
-  actor_bullet,
-  actor_enemy,
+
+  // actors with only one type (so far)
   actor_hearth,
   actor_player,
   actor_spawner,
   actor_turret,
+  actor_pickup_xp,
+  actor_pickup_zone,
 
-  pickup_zone,
-  pickup_xp,
+  // actor_weapons,
+  weapon_bow,
+  // weapon_pistol,
+  // weapon_sniper,
+  // weapon_shotgun,
+
+  // actor_bullets,
+  bullet_default,
+  bullet_bow,
+
+  // actor_enemy,
+  enemy_grunt,
+  enemy_sniper,
+  enemy_shotgunner,
 
   // misc
   cursor,
-  line,
   particle,
 
   count

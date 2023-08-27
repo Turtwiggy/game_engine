@@ -74,6 +74,7 @@ file(GLOB_RECURSE SRC_FILES
   ${CMAKE_SOURCE_DIR}/src/*.cpp
   ${CMAKE_SOURCE_DIR}/game_defence/*.cpp
   ${CMAKE_SOURCE_DIR}/game_defence_tests/src/*.cpp
+  ${CMAKE_SOURCE_DIR}/thirdparty/optick/src/*.cpp
 )
 
 add_executable(game_defence_tests
@@ -101,6 +102,7 @@ target_include_directories(game_defence_tests PRIVATE
   ${CMAKE_SOURCE_DIR}/thirdparty/entt/single_include
   ${CMAKE_SOURCE_DIR}/thirdparty/magic_enum
   ${CMAKE_SOURCE_DIR}/thirdparty/imgui-filebrowser
+  ${CMAKE_SOURCE_DIR}/thirdparty/optick/src
 )
 
 if(EMSCRIPTEN)
