@@ -5,6 +5,6 @@
 namespace game2d {
 
 void
-update_ui_prefabs_system(entt::registry& r);
+update_ui_level_editor_system(entt::registry& r);
 
 } // namespace game2d

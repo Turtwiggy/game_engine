@@ -56,23 +56,6 @@ move_to_scene_start(entt::registry& r, const Scene& s)
   destroy_and_create<SINGLETON_GameOver>(r);
   destroy_and_create<SINGLETON_Wave>(r);
 
-  // const auto cursor = create_gameplay(r, EntityType::cursor);
-
-  if (s == Scene::game) {
-
-    const auto hearth = create_gameplay(r, EntityType::actor_hearth);
-    auto& hearth_transform = r.get<TransformComponent>(hearth);
-    const glm::ivec2 spawn_pos = { 0, 0 };
-    hearth_transform.position = { spawn_pos.x, spawn_pos.y, 0 };
-    camera_transform.position = { spawn_pos.x, spawn_pos.y, 0 };
-
-    const auto player = create_gameplay(r, EntityType::actor_player);
-    auto& player_aabb = r.get<AABB>(player);
-    player_aabb.center = { 32, 32 };
-
-    // todo: generate random spawns
-  }
-
   auto& scene = get_first_component<SINGLETON_CurrentScene>(r);
   scene.s = s; // done
 }

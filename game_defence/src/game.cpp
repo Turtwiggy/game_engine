@@ -38,6 +38,8 @@
 #include "modules/ui_controllers/system.hpp"
 #include "modules/ui_gameover/system.hpp"
 #include "modules/ui_hierarchy/system.hpp"
+#include "modules/ui_level_editor/components.hpp"
+#include "modules/ui_level_editor/system.hpp"
 #include "modules/ui_next_wave/system.hpp"
 #include "modules/ui_pause_menu/system.hpp"
 #include "modules/ui_scene_main_menu/system.hpp"
@@ -81,6 +83,10 @@ game2d::init(engine::SINGLETON_Application& app, entt::registry& r)
   r.emplace<SINGLETON_RendererInfo>(r.create());
   r.emplace<SINGLETON_FixedUpdateInputHistory>(r.create());
   r.emplace<SINGLETON_InputComponent>(r.create());
+  r.emplace<SINGLETON_LevelEditor>(r.create());
+
+  // TODO: add a cursor
+  // const auto cursor = create_gameplay(r, EntityType::cursor);
 
   const auto camera = r.create();
   r.emplace<TagComponent>(camera, "camera");
@@ -141,6 +147,12 @@ game2d::fixed_update(entt::registry& game, const uint64_t milliseconds_dt)
 
   // destroy/create objects
   update_lifecycle_system(game, milliseconds_dt);
+
+#if defined(_DEBUG)
+  const auto& level_editor = get_first_component<SINGLETON_LevelEditor>(game);
+  if (level_editor.mode == LevelEditorMode::place)
+    return; // dont run the game
+#endif
 
   {
     OPTICK_EVENT("(physics-tick)");
@@ -207,19 +219,22 @@ game2d::update(engine::SINGLETON_Application& app, entt::registry& r, const floa
     update_ui_pause_menu_system(app, r);
     update_ui_gameover_system(r);
 
+    // todo: put in to a settings menu
     static bool show_settings_ui = false;
     if (show_settings_ui) {
       update_ui_audio_system(r);
       update_ui_controller_system(r);
     }
 
+#if defined(_DEBUG)
     static bool show_editor_ui = true;
     if (show_editor_ui) {
       update_ui_hierarchy_system(r);
-
+      update_ui_level_editor_system(r);
       auto& colours = get_first_component<SINGLETON_ColoursComponent>(r);
       update_ui_colours_system(colours);
     }
+#endif
   }
 
   end_frame_render_system(r);
