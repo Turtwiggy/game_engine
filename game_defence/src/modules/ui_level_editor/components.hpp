@@ -4,7 +4,7 @@ namespace game2d {
 
 enum class LevelEditorMode
 {
-  place,
+  edit,
   play,
 
   count,
@@ -12,7 +12,7 @@ enum class LevelEditorMode
 
 struct SINGLETON_LevelEditor
 {
-  LevelEditorMode mode = LevelEditorMode::place;
+  LevelEditorMode mode = LevelEditorMode::edit;
 };
 
 } // namespace game2d

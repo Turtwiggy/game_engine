@@ -3,7 +3,7 @@
 #include "entt/helpers.hpp"
 #include "lifecycle/components.hpp"
 #include "modules/combat_damage/components.hpp"
-#include "modules/physics/components.hpp"
+#include "physics//components.hpp"
 
 namespace game2d {
 

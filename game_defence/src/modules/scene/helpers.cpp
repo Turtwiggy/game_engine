@@ -8,9 +8,10 @@
 #include "lifecycle/components.hpp"
 #include "maths/maths.hpp"
 #include "modules/actor_bow/components.hpp"
+#include "modules/actor_cursor/components.hpp"
 #include "modules/camera/orthographic.hpp"
 #include "modules/gameover/components.hpp"
-#include "modules/physics/components.hpp"
+#include "physics//components.hpp"
 #include "renderer/components.hpp"
 #include "resources/colours.hpp"
 #include "resources/textures.hpp"
@@ -32,19 +33,12 @@ move_to_scene_start(entt::registry& r, const Scene& s)
     // r = std::move(new_r);
   }
 
-  const auto& camera = get_first<OrthographicCamera>(r);
-  auto& camera_transform = get_first_component<TransformComponent>(r);
+  const auto& transforms = r.view<TransformComponent>(entt::exclude<OrthographicCamera>);
+  r.destroy(transforms.begin(), transforms.end());
 
-  for (const auto& [entity, _] : r.view<TransformComponent>().each()) {
-    if (entity == camera)
-      continue;
-    r.destroy(entity);
-  }
-  for (const auto& [entity, _] : r.view<EntityTypeComponent>().each()) {
-    if (entity == camera)
-      continue;
-    r.destroy(entity); // actors
-  }
+  const auto& actors = r.view<EntityTypeComponent>(entt::exclude<OrthographicCamera>);
+  r.destroy(actors.begin(), actors.end());
+
   const auto& reqs = r.view<CreateEntityRequest>();
   r.destroy(reqs.begin(), reqs.end());
 
@@ -55,6 +49,8 @@ move_to_scene_start(entt::registry& r, const Scene& s)
   destroy_and_create<SINGLETON_ColoursComponent>(r);
   destroy_and_create<SINGLETON_GameOver>(r);
   destroy_and_create<SINGLETON_Wave>(r);
+
+  const auto cursor = create_gameplay(r, EntityType::cursor);
 
   auto& scene = get_first_component<SINGLETON_CurrentScene>(r);
   scene.s = s; // done

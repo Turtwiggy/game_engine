@@ -2,6 +2,7 @@
 
 #include "actors.hpp"
 #include "components.hpp"
+#include "modules/combat_damage/components.hpp"
 
 #include <entt/entt.hpp>
 
@@ -9,7 +10,7 @@
 
 namespace game2d {
 
-[[nodiscard]] ClosestInfo
+[[nodiscard]] TargetInfo
 get_closest(entt::registry& r, const entt::entity& e, const std::vector<EntityType>& types);
 
 } // namespace game2d

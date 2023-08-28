@@ -11,12 +11,14 @@
 #include "lifecycle/system.hpp"
 #include "maths/maths.hpp"
 #include "modules/actor_bow/system.hpp"
+#include "modules/actor_cursor/system.hpp"
 #include "modules/actor_enemy/system.hpp"
 #include "modules/actor_player/system.hpp"
 #include "modules/actor_spawner/components.hpp"
 #include "modules/actor_spawner/system.hpp"
 #include "modules/actor_turret/system.hpp"
 #include "modules/animation/angle_to_velocity.hpp"
+#include "modules/camera/helpers.hpp"
 #include "modules/camera/orthographic.hpp"
 #include "modules/camera/system.hpp"
 #include "modules/combat_attack_cooldown/system.hpp"
@@ -27,9 +29,6 @@
 #include "modules/items_drop/system.hpp"
 #include "modules/items_pickup/system.hpp"
 #include "modules/lerp_to_target/system.hpp"
-#include "modules/physics/components.hpp"
-#include "modules/physics/process_actor_actor_collisions.hpp"
-#include "modules/physics/process_move_objects.hpp"
 #include "modules/resolve_collisions/system.hpp"
 #include "modules/respawn/system.hpp"
 #include "modules/scene/helpers.hpp"
@@ -43,6 +42,9 @@
 #include "modules/ui_next_wave/system.hpp"
 #include "modules/ui_pause_menu/system.hpp"
 #include "modules/ui_scene_main_menu/system.hpp"
+#include "physics//components.hpp"
+#include "physics//process_actor_actor_collisions.hpp"
+#include "physics//process_move_objects.hpp"
 #include "renderer/components.hpp"
 #include "renderer/system.hpp"
 #include "resources/colours.hpp"
@@ -84,9 +86,6 @@ game2d::init(engine::SINGLETON_Application& app, entt::registry& r)
   r.emplace<SINGLETON_FixedUpdateInputHistory>(r.create());
   r.emplace<SINGLETON_InputComponent>(r.create());
   r.emplace<SINGLETON_LevelEditor>(r.create());
-
-  // TODO: add a cursor
-  // const auto cursor = create_gameplay(r, EntityType::cursor);
 
   const auto camera = r.create();
   r.emplace<TagComponent>(camera, "camera");
@@ -150,16 +149,22 @@ game2d::fixed_update(entt::registry& game, const uint64_t milliseconds_dt)
 
 #if defined(_DEBUG)
   const auto& level_editor = get_first_component<SINGLETON_LevelEditor>(game);
-  if (level_editor.mode == LevelEditorMode::place)
-    return; // dont run the game
 #endif
 
   {
     OPTICK_EVENT("(physics-tick)");
     auto& physics = get_first_component<SINGLETON_PhysicsComponent>(game);
     physics.frame_collisions.clear();
+
+    // todo: split out updating aabb from move_objects sysstem
     update_move_objects_system(game, milliseconds_dt);
     update_actor_actor_collisions_system(game, physics);
+
+#if defined(_DEBUG)
+    if (level_editor.mode == LevelEditorMode::edit)
+      return;
+#endif
+
     update_resolve_collisions_system(game);
   }
 
@@ -187,14 +192,18 @@ game2d::update(engine::SINGLETON_Application& app, entt::registry& r, const floa
 {
   OPTICK_EVENT("(update)");
 
+  // one frame behind
+  const glm::ivec2 mouse_pos = mouse_position_in_worldspace(r);
+
   {
-    OPTICK_EVENT("(update)-gametick");
+    OPTICK_EVENT("(update)-game-tick");
     update_input_system(app, r);
     update_camera_system(r, dt);
     update_audio_system(r);
+    update_cursor_system(r, mouse_pos);
     update_scale_by_velocity_system(r, dt);
-    // todo: update animations...
-  };
+    // todo: update sprite animations...
+  }
 
   {
     OPTICK_EVENT("(update)-update-render-system");
@@ -230,7 +239,7 @@ game2d::update(engine::SINGLETON_Application& app, entt::registry& r, const floa
     static bool show_editor_ui = true;
     if (show_editor_ui) {
       update_ui_hierarchy_system(r);
-      update_ui_level_editor_system(r);
+      update_ui_level_editor_system(r, mouse_pos);
       auto& colours = get_first_component<SINGLETON_ColoursComponent>(r);
       update_ui_colours_system(colours);
     }

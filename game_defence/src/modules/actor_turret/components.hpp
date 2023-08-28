@@ -12,10 +12,4 @@ struct TurretComponent
   bool active = true;
 };
 
-struct ClosestInfo
-{
-  entt::entity e = entt::null;
-  int distance2 = std::numeric_limits<int>::max();
-};
-
 } // namespace game2d

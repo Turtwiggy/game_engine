@@ -1,16 +1,9 @@
 #include "helpers.hpp"
 
-#include "serialize.hpp"
-
-// #include "components/actors.hpp"
-// #include "events/components.hpp"
-// #include "lifecycle/components.hpp"
-// #include "modules/ui_editor_tilemap/components.hpp"
-// #include "physics/components.hpp"
-// #include "renderer/components.hpp"
-// #include "sprites/components.hpp"
-
-#include "magic_enum.hpp"
+#include "actors.hpp"
+#include "lifecycle/components.hpp"
+#include "modules/scene/helpers.hpp"
+// #include "serialize.hpp"
 
 #include <fstream>
 #include <iostream>
@@ -18,68 +11,120 @@
 #include <string>
 #include <vector>
 
+namespace game2d {
+
+// What to serialize?
+// bow
+// player
+// enemy
+// hearth
+// spawner
+// turret
+// camera
+
+// what about "inbetween" state info?
+// basically, any state that deviates from the start state
+// of create_gameobject
+// e.g. combat state
+// AttackCooldownComponent
+// ClosestInfo
+// Attack, Range, HoldAndReleaseShoot, Burnable, TeamComponent
+// Health,DamageRequests,  CreateEntityRequests
+// FlashOnDamageComponent
+// e.g. item/death state
+// WantsToDrop
+// WantsToPickup, PickupZone, Abletopickedup
+// HasTargetPositionComponent, LerpToTargetComponent
+// physics info?
+// current collisions?
+// infinitelives component
+// app preferences?
+// audio preferences?
+// colour preferences?
+// deadthings?
+// animation state
+
+// probably no to:
+// cursor
+// SINGLETON_gameover
+// controllers
+// ui
+// audio?
+// input events?
+
 void
-game2d::save(const entt::registry& registry, std::string path){
-  // std::cout << "saving...\n";
+save(const entt::registry& r, const std::string& path)
+{
+  std::cout << "saving...\n";
 
-  // // convert entt registry to string(or bson)
-  // NJSONOutputArchive json_archive;
-  // entt::basic_snapshot{ registry }
-  //   .entities(json_archive)
-  //   .component<
-  //     //
-  //     TilemapComponent,
-  //     TagComponent,
-  //     EntityTypeComponent,
-  //     TransformComponent,
-  //     SpriteComponent,
-  //     SpriteColourComponent>(json_archive);
-  // json_archive.close();
+  // limit snapshots to actors
+  const auto v = r.view<EntityTypeComponent, TransformComponent>();
 
-  // std::string data = json_archive.as_string();
+  nlohmann::json root = nlohmann::json::array();
+  for (const auto& [entity, type, transform] : v.each()) {
 
-  // // save to disk
-  // std::ofstream fout(path);
-  // fout << data.c_str();
+    nlohmann::json j; // create an empty structure
+
+    // conversions
+
+    nlohmann::json entity_type_component_json = type;
+    j.push_back(entity_type_component_json);
+
+    nlohmann::json transform_component_json = transform;
+    j.push_back(transform_component_json);
+
+    root.push_back(j);
+  }
+
+  // NJSONOutputArchive o;
+  // entt::snapshot{ r } //
+  //   .get<EntityTypeComponent>(o, v.begin(), v.end())
+  //   .get<TransformComponent>(o, v.begin(), v.end());
+  // o.close();
+
+  std::string data = root.dump();
+  std::cout << data << std::endl;
+
+  // save to disk
+  std::ofstream fout(path);
+  fout << data.c_str();
 };
 
 void
-game2d::load(GameEditor& editor, Game& game, std::string path){
-  // std::cout << "loading...\n";
+load(entt::registry& r, const std::string& path)
+{
+  std::cout << "loading...\n";
 
-  // auto& r = game.state;
-  // r.each([&r](auto entity) { r.destroy(entity); });
-
-  // // load from disk
-  // std::ifstream t(path);
-  // std::stringstream buffer;
-  // buffer << t.rdbuf();
-  // const std::string data = buffer.str();
-
-  // // convert string (or bson) to entt registry
-  // auto& registry_to_load_in_to = r;
+  // load from disk
+  std::ifstream t(path);
+  std::stringstream buffer;
+  buffer << t.rdbuf();
+  const std::string data = buffer.str();
 
   // NJSONInputArchive json_in(data);
-  // entt::basic_snapshot_loader{ registry_to_load_in_to }
-  //   .entities(json_in)
-  //   .component<
-  //     // editor
-  //     TilemapComponent,
-  //     TagComponent,
-  //     EntityTypeComponent,
-  //     TransformComponent,
-  //     SpriteComponent,
-  //     SpriteColourComponent>(json_in);
+  // entt::snapshot_loader{ r } //
+  //   .get<EntityTypeComponent>(json_in)
+  //   .get<TransformComponent>(json_in);
 
-  // const auto& view = r.view<const EntityTypeComponent>();
-  // view.each([&editor, &game](auto entity, const EntityTypeComponent& type) {
-  //   create_gameplay_existing_entity(editor, game, entity, type.type);
-  // });
+  nlohmann::json root = nlohmann::json::parse(data);
+
+  // populate the registry
+  for (auto& element : root) {
+    const EntityTypeComponent type = element[0].template get<EntityTypeComponent>();
+    const TransformComponent transform = element[1].template get<TransformComponent>();
+
+    CreateEntityRequest req;
+    req.type = type.type;
+    req.position = transform.position;
+    r.emplace<CreateEntityRequest>(r.create(), req);
+  }
 };
 
 void
-game2d::load_if_exists(entt::registry& registry, std::string path){
+load_if_exists(entt::registry& registry, std::string path){
   //   std::ifstream file(path.c_str());
   //   if (file)
   //     load(registry, path);
 };
+
+} // namespace game2d

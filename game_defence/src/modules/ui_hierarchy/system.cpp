@@ -1,7 +1,7 @@
 #include "system.hpp"
 
 // components
-#include "modules/physics/components.hpp"
+#include "physics//components.hpp"
 #include "modules/ui_hierarchy/helpers.hpp"
 #include "renderer/components.hpp"
 #include "sprites/components.hpp"

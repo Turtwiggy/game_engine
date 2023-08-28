@@ -6,19 +6,26 @@
 
 namespace game2d {
 
-//
-// weapon components
-//
+struct HealthComponent
+{
+  int hp = 100;
+};
 
 struct AttackComponent
 {
   int damage = 5;
 };
 
-struct RangeComponent
+struct TargetInfo
 {
-  int range = 1;
+  entt::entity e = entt::null;
+  int distance2 = std::numeric_limits<int>::max();
 };
+
+// struct RangeComponent
+// {
+//   int range = 1;
+// };
 
 struct HoldAndReleaseShootComponent
 {
@@ -56,13 +63,6 @@ struct TeamComponent
 //   // float time_between_reloads = 0.25f;
 //   // float time_between_reloads_left = 0.25f;
 // };
-
-// player/entity components
-
-struct HealthComponent
-{
-  int hp = 100;
-};
 
 //
 // When attacking,

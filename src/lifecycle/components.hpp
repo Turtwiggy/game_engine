@@ -2,8 +2,8 @@
 
 #include "actors.hpp"
 
-#include "glm/glm.hpp"
 #include "entt/entt.hpp"
+#include "glm/glm.hpp"
 
 #include <optional>
 #include <string>
@@ -36,7 +36,7 @@ struct SINGLETON_EntityBinComponent
 
 struct CreateEntityRequest
 {
-  EntityType type = EntityType::empty;
+  EntityType type;
   glm::ivec3 position{ 0, 0, 0 };
   glm::vec3 velocity{ 0, 0, 0 };
   std::optional<std::string> sprite = std::nullopt;

@@ -2,8 +2,8 @@
 #include "process_actor_actor_collisions.hpp"
 
 // game2d
-#include "modules/physics/components.hpp"
-#include "modules/physics/helpers.hpp"
+#include "physics//components.hpp"
+#include "physics//helpers.hpp"
 #include "renderer/components.hpp"
 
 // other lib headers

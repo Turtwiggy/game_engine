@@ -3,6 +3,7 @@
 #include "entt/helpers.hpp"
 #include "events/helpers/controller.hpp"
 #include "modules/scene/helpers.hpp"
+#include "modules/ui_level_editor/helpers.hpp"
 #include "renderer/components.hpp"
 
 #include <glm/glm.hpp>
@@ -58,8 +59,11 @@ update_ui_scene_main_menu(engine::SINGLETON_Application& app, entt::registry& r)
     do_ui_action = true;
     selected = 0;
   }
-  if (selected == 0 && do_ui_action)
+  if (selected == 0 && do_ui_action) {
     move_to_scene_start(r, Scene::game);
+    // hack: load a level
+    load(r, "assets/maps/temp.json");
+  }
 
   ImGui::Selectable("Quit", selected == 1, 0, size);
   if (ImGui::IsItemClicked()) {

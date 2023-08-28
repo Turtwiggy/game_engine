@@ -7,7 +7,7 @@
 #include "maths/maths.hpp"
 #include "modules/actor_hearth/components.hpp"
 #include "modules/actor_player/components.hpp"
-#include "modules/physics/components.hpp"
+#include "physics//components.hpp"
 #include "renderer/components.hpp"
 
 #include <iostream>

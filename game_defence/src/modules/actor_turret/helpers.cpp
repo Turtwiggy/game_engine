@@ -2,7 +2,7 @@
 
 #include "entt/helpers.hpp"
 #include "modules/actor_spawner/components.hpp" // hack: shouldnt be here
-#include "modules/physics/components.hpp"
+#include "physics//components.hpp"
 #include "renderer/components.hpp"
 
 #include <algorithm>
@@ -10,13 +10,13 @@
 
 namespace game2d {
 
-ClosestInfo
+TargetInfo
 get_closest(entt::registry& r, const entt::entity& e, const std::vector<EntityType>& types)
 {
   const auto& physics = get_first_component<const SINGLETON_PhysicsComponent>(r);
   const auto& t = r.get<TransformComponent>(e);
 
-  ClosestInfo info;
+  TargetInfo info;
 
   std::optional<int> idx_x;
   std::optional<int> idx_y;
@@ -36,8 +36,8 @@ get_closest(entt::registry& r, const entt::entity& e, const std::vector<EntityTy
   if (!idx_y.has_value())
     return info; // this turret missing from the sorted entity list?
 
-  auto evaluate_closest = [&r, &t, &types](const std::vector<entt::entity>& sorted, int i) -> ClosestInfo {
-    ClosestInfo oinfo;
+  auto evaluate_closest = [&r, &t, &types](const std::vector<entt::entity>& sorted, int i) -> TargetInfo {
+    TargetInfo oinfo;
     auto other_entity = sorted[i];
     auto other_type = r.get<EntityTypeComponent>(other_entity);
 

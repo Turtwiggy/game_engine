@@ -5,9 +5,13 @@
 #include "entt/helpers.hpp"
 #include "events/components.hpp"
 #include "events/helpers/keyboard.hpp"
+#include "helpers.hpp"
 #include "imgui/helpers.hpp"
 #include "lifecycle/components.hpp"
-#include "modules/camera/helpers.hpp"
+#include "modules/actor_cursor/components.hpp"
+#include "modules/scene/components.hpp"
+#include "modules/scene/helpers.hpp"
+#include "physics//components.hpp"
 #include "renderer/components.hpp"
 
 #include "glm/glm.hpp"
@@ -23,61 +27,72 @@ namespace game2d {
 /* TODO:
 What else do i need a level editor to do?
 How to do scripts and events?
-Serializing internal states?
+
+Serializing hierarchical states?
 e.g. a player has a backpack with 13 rocks in it
+
+click and drag objects
+
 */
 
 void
-update_ui_level_editor_system(entt::registry& r)
+update_ui_level_editor_system(entt::registry& r, const glm::ivec2& mouse_pos)
 {
-  const glm::ivec2 mouse_position = mouse_position_in_worldspace(r);
+  const auto& physics = get_first_component<SINGLETON_PhysicsComponent>(r);
   auto& level_editor = get_first_component<SINGLETON_LevelEditor>(r);
+  auto& lifecycle = get_first_component<SINGLETON_EntityBinComponent>(r);
 
   ImGui::Begin("Level Editor");
+  ImGui::Text("Cursor: %i %i", mouse_pos.x, mouse_pos.y);
 
   ImGui::Text("¬¬ Editor Mode ¬¬");
-  {
-    std::vector<std::string> modes;
-    for (int i = 0; i < static_cast<int>(LevelEditorMode::count); i++) {
-      LevelEditorMode value = magic_enum::enum_value<LevelEditorMode>(i);
-      std::string value_str = std::string(magic_enum::enum_name(value));
-      modes.push_back(value_str);
-    }
 
-    // which mode to run editor in?
-    static int mode_current_idx = 0;
-    {
-      WomboComboIn in(modes);
-      in.label = "select-mode";
-      in.current_index = mode_current_idx;
-      const auto out = draw_wombo_combo(in);
-      if (out.selected != mode_current_idx) {
-        const auto new_mode = magic_enum::enum_cast<LevelEditorMode>(modes[out.selected]).value();
-        ;
-        level_editor.mode = new_mode;
-
-        // todo: if went from place to play,
-        // keep a list of the entire state of the world during place
-
-        // todo: if went from play to place,
-        // do we have a list of the entire state of the previous world?
-        // if so, go back to it
-      }
-      mode_current_idx = out.selected;
-    }
-    ImGui::Text("Running as %s", modes[mode_current_idx].c_str());
+  static int mode_current_idx = 0;
+  std::vector<std::string> modes;
+  for (int i = 0; i < static_cast<int>(LevelEditorMode::count); i++) {
+    LevelEditorMode value = magic_enum::enum_value<LevelEditorMode>(i);
+    std::string value_str = std::string(magic_enum::enum_name(value));
+    modes.push_back(value_str);
   }
 
-  // TODO: load from disk
-  // std::string path = "assets/maps/";
-  // for (const auto& entry : std::filesystem::directory_iterator(path))
-  //   maps.push_back(entry.path().generic_string());
+  //
+  // which mode to run editor in?
+  //
+  {
+    WomboComboIn in(modes);
+    in.label = "select-mode";
+    in.current_index = mode_current_idx;
+    const auto out = draw_wombo_combo(in);
+    if (out.selected != mode_current_idx) {
+      const auto new_mode = magic_enum::enum_cast<LevelEditorMode>(modes[out.selected]).value();
 
-  std::vector<std::string> levels{
-    "assets/maps/map_0.json",
-    "assets/maps/map_1.json",
-    "assets/maps/map_2.json",
-  };
+      // todo: if went from place to play,
+      // keep a list of the entire state of the world during place
+      if (new_mode == LevelEditorMode::play) {
+        // ah!
+      }
+
+      // todo: if went from play to place,
+      // do we have a list of the entire state of the previous world?
+      // if so, go back to it
+      if (new_mode == LevelEditorMode::edit) {
+        // oh!
+      }
+
+      level_editor.mode = new_mode;
+    }
+    mode_current_idx = out.selected;
+  }
+
+  const LevelEditorMode mode = magic_enum::enum_cast<LevelEditorMode>(modes[mode_current_idx]).value();
+
+  //
+  // scan disk for levels
+  //
+  std::string path = "assets/maps/";
+  std::vector<std::string> levels;
+  for (const auto& entry : std::filesystem::directory_iterator(path))
+    levels.push_back(entry.path().generic_string());
 
   ImGui::Text("¬¬ Levels ¬¬");
   {
@@ -87,21 +102,43 @@ update_ui_level_editor_system(entt::registry& r)
       if (ImGui::Selectable(level.c_str(), selected == i))
         selected = i;
     }
-    if (ImGui::Button("Refresh")) {
-      // todo: refresh levels on disk
-      selected = 0;
+    if (levels.size() == 0)
+      ImGui::Text("No levels on disk!");
+
+    if (ImGui::Button("Create")) {
+      // todo: create new level
     }
-    ImGui::SameLine();
+
+    // only be able to save if you're in edit-mode
+    if (mode == LevelEditorMode::edit) {
+      ImGui::SameLine();
+      if (ImGui::Button("Save"))
+        save(r, "assets/maps/temp.json");
+      ImGui::SameLine();
+    } else
+      ImGui::Text("Please go to edit mode to save level");
+
     if (ImGui::Button("Load")) {
       if (levels.size() > 0) {
         const auto& level = levels[selected];
-        // todo: load level
-        // todo: are you sure prompt
+        // todo: use that level string
+        load(r, "assets/maps/temp.json");
       }
     }
+    ImGui::SameLine();
 
-    // TODO: only be able to save if you're in place-mode
-    if (ImGui::Button("Save")) {
+    if (ImGui::Button("Clear")) {
+      // todo: are you sure
+
+      const auto& scene = get_first_component<SINGLETON_CurrentScene>(r);
+      move_to_scene_start(r, scene.s);
+    }
+
+    if (ImGui::Button("Refresh")) {
+      levels.clear();
+      for (const auto& entry : std::filesystem::directory_iterator(path))
+        levels.push_back(entry.path().generic_string());
+      selected = 0;
     }
   }
 
@@ -138,24 +175,41 @@ update_ui_level_editor_system(entt::registry& r)
 
     const auto& ri = get_first_component<SINGLETON_RendererInfo>(r);
     const auto& input = get_first_component<SINGLETON_InputComponent>(r);
-    const auto place_key = SDL_SCANCODE_T;
-    const auto drag_key = SDL_SCANCODE_Y;
+    const auto place_key = SDL_SCANCODE_R;
+    const auto drag_key = SDL_SCANCODE_T;
+    const auto delete_key = SDL_SCANCODE_F;
+    const auto select_entities_under_cursor_key = SDL_SCANCODE_E;
     const auto* place_key_name = SDL_GetScancodeName(place_key);
     const auto* drag_key_name = SDL_GetScancodeName(drag_key);
+    const auto* delete_key_name = SDL_GetScancodeName(delete_key);
     ImGui::Text("Place Key: %s", place_key_name);
     ImGui::Text("Dragging Key: %s", drag_key_name);
+    ImGui::Text("Delete Key: %s", delete_key_name);
 
     if (ri.viewport_hovered) {
       if (get_key_down(input, place_key)) {
         CreateEntityRequest request;
         request.type = type;
-        request.position = { mouse_position.x, mouse_position.y, 0 };
+        request.position = { mouse_pos.x, mouse_pos.y, 0 };
         r.emplace<CreateEntityRequest>(r.create(), request);
       }
       if (get_key_held(input, drag_key)) {
-        // dragging...
+        // todo: dragging...
       }
-    }
+
+      // delete anything that collides with the cursor
+
+      if (get_key_held(input, delete_key)) {
+        ImGui::Text("deleting objects...");
+        const auto cursor_entity = get_first<CursorComponent>(r);
+        for (const auto& coll : physics.collision_stay) {
+          if (coll.ent_id_0 == static_cast<uint32_t>(cursor_entity))
+            lifecycle.dead.emplace(static_cast<entt::entity>(coll.ent_id_1));
+          else if (coll.ent_id_1 == static_cast<uint32_t>(cursor_entity))
+            lifecycle.dead.emplace(static_cast<entt::entity>(coll.ent_id_0));
+        }
+      }
+    } // end hovered check
   }
 
   ImGui::End();

@@ -5,6 +5,7 @@
 #include "events/components.hpp"
 #include "lifecycle/components.hpp"
 #include "modules/actor_bow/components.hpp"
+#include "modules/actor_cursor/components.hpp"
 #include "modules/actor_enemy/components.hpp"
 #include "modules/actor_hearth/components.hpp"
 #include "modules/actor_player/components.hpp"
@@ -16,8 +17,8 @@
 #include "modules/combat_damage/components.hpp"
 #include "modules/items_pickup/components.hpp"
 #include "modules/lerp_to_target/components.hpp"
-#include "modules/physics/components.hpp"
 #include "modules/respawn/components.hpp"
+#include "physics//components.hpp"
 #include "renderer/components.hpp"
 #include "resources/textures.hpp"
 #include "sprites/components.hpp"
@@ -28,27 +29,14 @@
 
 namespace game2d {
 
-void
-to_json(json& j, const EntityTypeComponent& et)
-{
-  j = json{ { "type", static_cast<int>(et.type) } };
-};
-
-void
-from_json(const json& j, EntityTypeComponent& et)
-{
-  j.at("type").get_to(et.type);
-};
-
 SpriteComponent
 create_sprite(entt::registry& r, const EntityType& type)
 {
   const auto type_name = std::string(magic_enum::enum_name(type));
 
   std::string sprite = "EMPTY";
-  if (type == EntityType::empty)
-    sprite = "EMPTY";
-  else if (type == EntityType::actor_hearth)
+
+  if (type == EntityType::actor_hearth)
     sprite = "CAMPFIRE";
   else if (type == EntityType::actor_player)
     sprite = "PERSON_25_0";
@@ -171,9 +159,6 @@ create_gameplay(entt::registry& r, const EntityType& type)
   transform.scale.y = SPRITE_SIZE;
 
   switch (type) {
-    case EntityType::empty: {
-      break;
-    }
 
       //
       // actors with only one type
@@ -334,7 +319,9 @@ create_gameplay(entt::registry& r, const EntityType& type)
       //
 
     case EntityType::cursor: {
-      // r.emplace<PlayerCursor>(e);
+      r.emplace<CursorComponent>(e);
+      create_physics_actor(r, e);
+      r.emplace<VelocityComponent>(e);
       break;
     }
 
