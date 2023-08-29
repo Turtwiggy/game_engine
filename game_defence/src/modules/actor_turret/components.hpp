@@ -10,6 +10,7 @@ namespace game2d {
 struct TurretComponent
 {
   bool active = true;
+  entt::entity target = entt::null;
 };
 
 } // namespace game2d

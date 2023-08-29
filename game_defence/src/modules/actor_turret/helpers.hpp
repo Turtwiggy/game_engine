@@ -10,7 +10,7 @@
 
 namespace game2d {
 
-[[nodiscard]] TargetInfo
-get_closest(entt::registry& r, const entt::entity& e, const std::vector<EntityType>& types);
+[[nodiscard]] entt::entity
+get_closest(entt::registry& r, const entt::entity& e);
 
 } // namespace game2d

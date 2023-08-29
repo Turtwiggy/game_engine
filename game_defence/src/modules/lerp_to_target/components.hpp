@@ -9,11 +9,6 @@ namespace game2d {
 // weapon components
 //
 
-// struct HasTargetComponent
-// {
-//   entt::entity target = entt::null;
-// };
-
 struct HasTargetPositionComponent
 {
   glm::vec2 position{ 0, 0 };

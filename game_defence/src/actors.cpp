@@ -8,6 +8,7 @@
 #include "modules/actor_cursor/components.hpp"
 #include "modules/actor_enemy/components.hpp"
 #include "modules/actor_hearth/components.hpp"
+#include "modules/actor_pickup_zone/components.hpp"
 #include "modules/actor_player/components.hpp"
 #include "modules/actor_spawner/components.hpp"
 #include "modules/actor_turret/components.hpp"
@@ -183,11 +184,10 @@ create_gameplay(entt::registry& r, const EntityType& type)
       create_physics_actor(r, e);
       r.emplace<PhysicsSolidComponent>(e);
       r.emplace<VelocityComponent>(e);
+      r.emplace<TeamComponent>(e, AvailableTeams::player);
 
       // gameplay
-      PlayerComponent pc;
-      pc.pickup_area = create_gameplay(r, EntityType::actor_pickup_zone);
-      r.emplace<PlayerComponent>(e, pc);
+      r.emplace<PlayerComponent>(e);
       r.emplace<InputComponent>(e);
       r.emplace<KeyboardComponent>(e);
       r.emplace<ControllerComponent>(e);
@@ -241,7 +241,7 @@ create_gameplay(entt::registry& r, const EntityType& type)
     case EntityType::actor_pickup_zone: {
       transform.scale.y = 100;
       transform.scale.x = 100;
-      r.emplace<PickupZone>(e);
+      r.emplace<PickupZoneComponent>(e);
       create_physics_actor(r, e);
       break;
     }
@@ -274,6 +274,7 @@ create_gameplay(entt::registry& r, const EntityType& type)
       transform.scale.x = HALF_SIZE.x;
       transform.scale.y = HALF_SIZE.y;
       create_physics_actor(r, e);
+      r.emplace<TeamComponent>(e, AvailableTeams::player);
       r.emplace<VelocityComponent>(e);
       r.emplace<SetTransformAngleToVelocity>(e);
       r.emplace<EntityTimedLifecycle>(e);

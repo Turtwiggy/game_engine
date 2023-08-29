@@ -33,9 +33,6 @@ update_resolve_collisions_system(entt::registry& r)
     const auto a = static_cast<entt::entity>(coll.ent_id_0);
     const auto b = static_cast<entt::entity>(coll.ent_id_1);
 
-    if (!r.valid(a) || !r.valid(b))
-      continue;
-
     const auto& a_type = r.get<EntityTypeComponent>(a).type;
     const auto& b_type = r.get<EntityTypeComponent>(b).type;
 

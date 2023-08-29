@@ -2,6 +2,7 @@
 
 #include "actors.hpp"
 #include "lifecycle/components.hpp"
+#include "modules/actor_cursor/components.hpp"
 #include "modules/scene/helpers.hpp"
 // #include "serialize.hpp"
 
@@ -58,7 +59,7 @@ save(const entt::registry& r, const std::string& path)
   std::cout << "saving...\n";
 
   // limit snapshots to actors
-  const auto v = r.view<EntityTypeComponent, TransformComponent>();
+  const auto v = r.view<const EntityTypeComponent, const TransformComponent>(entt::exclude<CursorComponent>);
 
   nlohmann::json root = nlohmann::json::array();
   for (const auto& [entity, type, transform] : v.each()) {

@@ -16,7 +16,6 @@ namespace game2d {
 // as/when it makes sense
 struct PlayerComponent
 {
-  entt::entity pickup_area = entt::null;
   int picked_up_xp = 0;
 
   // build info

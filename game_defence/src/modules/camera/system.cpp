@@ -52,13 +52,13 @@ update_camera_system(entt::registry& r, float dt)
   float CAM_SPEED = 500.0f;
   const int mul = static_cast<int>(CAM_SPEED * dt);
 
-  if (get_key_held(input, SDL_SCANCODE_LEFT))
+  if (get_key_held(input, SDL_SCANCODE_A))
     camera_transform.position.x -= mul;
-  if (get_key_held(input, SDL_SCANCODE_RIGHT))
+  if (get_key_held(input, SDL_SCANCODE_D))
     camera_transform.position.x += mul;
-  if (get_key_held(input, SDL_SCANCODE_UP))
+  if (get_key_held(input, SDL_SCANCODE_W))
     camera_transform.position.y -= mul;
-  if (get_key_held(input, SDL_SCANCODE_DOWN))
+  if (get_key_held(input, SDL_SCANCODE_S))
     camera_transform.position.y += mul;
 
   //   glm::vec3 lerp_pos = glm::lerp(pos_as_vec3, target_position, glm::clamp(dt * damping, 0.0f, 1.0f));

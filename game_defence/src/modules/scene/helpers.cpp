@@ -19,7 +19,7 @@
 namespace game2d {
 
 void
-move_to_scene_start(entt::registry& r, const Scene& s)
+move_to_scene_start(entt::registry& r, const Scene s)
 {
   {
     // entt::registry new_r;

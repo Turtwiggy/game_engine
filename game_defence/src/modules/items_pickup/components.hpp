@@ -12,11 +12,7 @@ struct WantsToPickUp
   bool placeholder = true;
 };
 
-struct PickupZone
-{
-  bool placeholder = true;
-};
-
+// attached to item
 struct AbleToBePickedUp
 {
   bool placeholder = true;

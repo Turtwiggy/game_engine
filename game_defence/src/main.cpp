@@ -25,7 +25,7 @@ static uint64_t milliseconds_accumulator_since_last_tick = 0;
 static uint64_t new_time = 0;
 static uint64_t cur_time = 0;
 static uint64_t milliseconds_delta_time = 0;
-static const int allowed_ticks_per_frame = 3;
+static const int allowed_ticks_per_frame = 2;
 
 static SINGLETON_Application app;
 static entt::registry game;

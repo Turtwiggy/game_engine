@@ -26,20 +26,26 @@ collide(const AABB& one, const AABB& two)
 };
 
 void
-generate_broadphase_collisions_x(entt::registry& r, std::vector<Collision2D>& collisions)
+generate_broadphase_collisions_xy(entt::registry& r, std::vector<Collision2D>& collisions)
 {
   // store results of sorted aabb
   auto& physics = get_first_component<SINGLETON_PhysicsComponent>(r);
   physics.sorted_x.clear();
+  physics.sorted_y.clear();
 
-  // sort by axis
-  const auto& sorted_x = r.group<PhysicsTransformXComponent>(entt::get<PhysicsTransformYComponent, AABB>);
-  sorted_x.sort<PhysicsTransformXComponent>([](const auto& a, const auto& b) { return a.l < b.l; });
+  // sort physics
+  r.sort<PhysicsTransformXComponent>([](const auto& a, const auto& b) { return a.l < b.l; });
+  r.sort<PhysicsTransformYComponent>([](const auto& a, const auto& b) { return a.t < b.t; });
+
+  auto view = r.view<const PhysicsTransformXComponent, const PhysicsTransformYComponent, const AABB>();
 
   std::vector<entt::entity> active_list;
-  for (int i = 0; const auto& [new_obj, new_x, new_y, new_aabb] : sorted_x.each()) {
+  active_list.reserve(view.size_hint());
 
-    physics.sorted_x.push_back(new_obj); // store sorted results
+  active_list.clear();
+  view.use<const PhysicsTransformXComponent>();
+  for (int i = 0; const auto& [new_obj, new_x, new_y, new_aabb] : view.each()) {
+    physics.sorted_x.push_back(new_obj);
 
     // begin on the left of sorted_aabb.
     // add the first item from sorted_aabb to active_list.
@@ -54,7 +60,7 @@ generate_broadphase_collisions_x(entt::registry& r, std::vector<Collision2D>& co
     auto it_1 = active_list.begin();
     while (it_1 != active_list.end()) {
       const auto& old_obj = *it_1;
-      const auto& [old_x, old_y, old_aabb] = sorted_x.get(old_obj);
+      const auto& [old_x, old_y, old_aabb] = view.get(old_obj);
 
       // if the new item's left is > than the active_item's right
       if (new_x.l >= old_x.r) {
@@ -82,23 +88,11 @@ generate_broadphase_collisions_x(entt::registry& r, std::vector<Collision2D>& co
     // Add the new item itself to active_list and continue with the next item in axis_list
     active_list.push_back(new_obj);
   }
-};
 
-void
-generate_broadphase_collisions_y(entt::registry& r, std::vector<Collision2D>& collisions)
-{
-  // store results of sorted aabb
-  auto& physics = get_first_component<SINGLETON_PhysicsComponent>(r);
-  physics.sorted_y.clear();
-
-  // sort by axis
-  const auto& sorted_y = r.group<PhysicsTransformYComponent>(entt::get<PhysicsTransformXComponent, AABB>);
-  sorted_y.sort<PhysicsTransformYComponent>([](const auto& a, const auto& b) { return a.t < b.t; });
-
-  std::vector<entt::entity> active_list;
-  for (int i = 0; const auto& [new_obj, new_y, new_x, new_aabb] : sorted_y.each()) {
-
-    physics.sorted_y.push_back(new_obj); // store sorted results
+  active_list.clear();
+  view.use<const PhysicsTransformYComponent>();
+  for (int i = 0; const auto& [new_obj, new_x, new_y, new_aabb] : view.each()) {
+    physics.sorted_y.push_back(new_obj);
 
     // begin on the left of sorted_aabb.
     // add the first item from sorted_aabb to active_list.
@@ -113,7 +107,7 @@ generate_broadphase_collisions_y(entt::registry& r, std::vector<Collision2D>& co
     auto it_1 = active_list.begin();
     while (it_1 != active_list.end()) {
       const auto& old_obj = *it_1;
-      const auto& [old_y, old_x, old_aabb] = sorted_y.get(old_obj);
+      const auto& [old_x, old_y, old_aabb] = view.get(old_obj);
 
       // if the new item's top is > than the active_item's bottom
       if (new_y.b >= old_y.t) {
@@ -147,8 +141,7 @@ void
 generate_filtered_broadphase_collisions(entt::registry& r, std::vector<Collision2D>& collisions)
 {
   // Do broad-phase check.
-  generate_broadphase_collisions_x(r, collisions);
-  generate_broadphase_collisions_y(r, collisions);
+  generate_broadphase_collisions_xy(r, collisions);
 
   // remove duplicates
   collisions.erase(std::unique(collisions.begin(), collisions.end()), collisions.end());

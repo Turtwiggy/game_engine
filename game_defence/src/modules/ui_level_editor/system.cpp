@@ -16,8 +16,8 @@
 
 #include "glm/glm.hpp"
 // #include "imfilebrowser.h"
-#include "imgui.h"
 #include "magic_enum.hpp"
+#include <imgui.h>
 
 #include <string>
 #include <vector>
@@ -26,13 +26,10 @@ namespace game2d {
 
 /* TODO:
 What else do i need a level editor to do?
-How to do scripts and events?
-
-Serializing hierarchical states?
-e.g. a player has a backpack with 13 rocks in it
-
-click and drag objects
-
+- scripts and events?
+- serializing hierarchical states?
+- player has a backpack with 13 rocks in it, what do?
+- click and drag object placements
 */
 
 void
@@ -42,12 +39,21 @@ update_ui_level_editor_system(entt::registry& r, const glm::ivec2& mouse_pos)
   auto& level_editor = get_first_component<SINGLETON_LevelEditor>(r);
   auto& lifecycle = get_first_component<SINGLETON_EntityBinComponent>(r);
 
-  ImGui::Begin("Level Editor");
+  const auto& scene = get_first_component<SINGLETON_CurrentScene>(r);
+  if (scene.s == Scene::menu)
+    return;
+
+  ImGuiWindowFlags flags = 0;
+  flags |= ImGuiDockNodeFlags_PassthruCentralNode;
+
+  ImGui::Begin("Level Editor", NULL, flags);
   ImGui::Text("Cursor: %i %i", mouse_pos.x, mouse_pos.y);
 
   ImGui::Text("¬¬ Editor Mode ¬¬");
 
-  static int mode_current_idx = 0;
+  auto& mode = level_editor.mode;
+  int mode_current_index = magic_enum::enum_index(mode).value();
+
   std::vector<std::string> modes;
   for (int i = 0; i < static_cast<int>(LevelEditorMode::count); i++) {
     LevelEditorMode value = magic_enum::enum_value<LevelEditorMode>(i);
@@ -61,9 +67,9 @@ update_ui_level_editor_system(entt::registry& r, const glm::ivec2& mouse_pos)
   {
     WomboComboIn in(modes);
     in.label = "select-mode";
-    in.current_index = mode_current_idx;
+    in.current_index = mode_current_index;
     const auto out = draw_wombo_combo(in);
-    if (out.selected != mode_current_idx) {
+    if (out.selected != mode_current_index) {
       const auto new_mode = magic_enum::enum_cast<LevelEditorMode>(modes[out.selected]).value();
 
       // todo: if went from place to play,
@@ -81,10 +87,9 @@ update_ui_level_editor_system(entt::registry& r, const glm::ivec2& mouse_pos)
 
       level_editor.mode = new_mode;
     }
-    mode_current_idx = out.selected;
+    mode_current_index = out.selected;
   }
-
-  const LevelEditorMode mode = magic_enum::enum_cast<LevelEditorMode>(modes[mode_current_idx]).value();
+  mode = magic_enum::enum_cast<LevelEditorMode>(modes[mode_current_index]).value();
 
   //
   // scan disk for levels
@@ -102,35 +107,54 @@ update_ui_level_editor_system(entt::registry& r, const glm::ivec2& mouse_pos)
       if (ImGui::Selectable(level.c_str(), selected == i))
         selected = i;
     }
-    if (levels.size() == 0)
+
+    if (levels.size() > 0) {
+      const std::string& level = levels[selected];
+
+      //
+      // save
+      //
+      if (mode == LevelEditorMode::edit) {
+        if (ImGui::Button("Save"))
+          save(r, level);
+        ImGui::SameLine();
+      } else
+        ImGui::Text("Please go to edit mode to save level");
+
+      //
+      // load
+      //
+      if (ImGui::Button("Load")) {
+        if (levels.size() > 0) {
+          move_to_scene_start(r, scene.s);
+          load(r, level);
+        }
+      }
+
+    } else
       ImGui::Text("No levels on disk!");
 
+    //
+    // Create a new level
+    //
     if (ImGui::Button("Create")) {
-      // todo: create new level
+      // move_to_scene_start(r, scene.s);
+
+      std::string new_level_path = path + "level" + std::to_string(levels.size() - 1) + ".json";
+      save(r, new_level_path);
+
+      // refresh levels
+      levels.clear();
+      for (const auto& entry : std::filesystem::directory_iterator(path))
+        levels.push_back(entry.path().generic_string());
+      selected = levels.size() - 1;
     }
 
-    // only be able to save if you're in edit-mode
-    if (mode == LevelEditorMode::edit) {
-      ImGui::SameLine();
-      if (ImGui::Button("Save"))
-        save(r, "assets/maps/temp.json");
-      ImGui::SameLine();
-    } else
-      ImGui::Text("Please go to edit mode to save level");
-
-    if (ImGui::Button("Load")) {
-      if (levels.size() > 0) {
-        const auto& level = levels[selected];
-        // todo: use that level string
-        load(r, "assets/maps/temp.json");
-      }
-    }
-    ImGui::SameLine();
-
+    //
+    // Clear existing level
+    //
     if (ImGui::Button("Clear")) {
       // todo: are you sure
-
-      const auto& scene = get_first_component<SINGLETON_CurrentScene>(r);
       move_to_scene_start(r, scene.s);
     }
 

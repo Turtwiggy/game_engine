@@ -2,13 +2,13 @@
 
 #include "entt/helpers.hpp"
 #include "events/helpers/keyboard.hpp"
-#include "modules/combat_damage/components.hpp"
-#include "modules/gameover/components.hpp"
 #include "modules/actor_hearth/components.hpp"
 #include "modules/actor_player/components.hpp"
+#include "modules/actor_spawner/components.hpp"
+#include "modules/combat_damage/components.hpp"
+#include "modules/gameover/components.hpp"
 #include "modules/scene/components.hpp"
 #include "modules/scene/helpers.hpp"
-#include "modules/actor_spawner/components.hpp"
 #include "modules/ui_gameover/components.hpp"
 
 namespace game2d {
@@ -65,6 +65,7 @@ update_gameover_system(entt::registry& r)
     for (const auto& [entity, req] : view.each())
       r.destroy(entity);
   }
+
   // do the restart
   if (new_game)
     move_to_scene_start(r, Scene::game);

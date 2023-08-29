@@ -3,6 +3,7 @@
 #include "entt/helpers.hpp"
 #include "events/helpers/keyboard.hpp"
 #include "game_state.hpp"
+#include "modules/scene/components.hpp"
 #include "modules/scene/helpers.hpp"
 
 #include <imgui.h>
@@ -21,6 +22,14 @@ game2d::update_ui_pause_menu_system(engine::SINGLETON_Application& app, entt::re
   auto& state = get_first_component<SINGLETON_GameStateComponent>(r);
 
   static bool open = false;
+
+  // dont open pause menu in the main menu
+  const auto& scene = get_first_component<SINGLETON_CurrentScene>(r);
+  if (scene.s == Scene::menu) {
+    open = false;
+    return;
+  }
+
   if (get_key_down(input, SDL_SCANCODE_ESCAPE)) {
     open = !open;
     ImGui::SetNextWindowFocus();

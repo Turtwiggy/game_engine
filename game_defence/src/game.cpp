@@ -13,6 +13,7 @@
 #include "modules/actor_bow/system.hpp"
 #include "modules/actor_cursor/system.hpp"
 #include "modules/actor_enemy/system.hpp"
+#include "modules/actor_pickup_zone/system.hpp"
 #include "modules/actor_player/system.hpp"
 #include "modules/actor_spawner/components.hpp"
 #include "modules/actor_spawner/system.hpp"
@@ -182,6 +183,7 @@ game2d::fixed_update(entt::registry& game, const uint64_t milliseconds_dt)
     update_intent_drop_item_system(game);
     update_bow_system(game, milliseconds_dt);
     update_lerp_to_target_system(game, milliseconds_dt);
+    update_actor_pickup_zone_system(game);
   }
 
   fixed_input.fixed_tick += 1;
