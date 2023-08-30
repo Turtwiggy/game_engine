@@ -79,12 +79,16 @@ game2d::update_move_objects_system(entt::registry& r, const uint64_t& millisecon
                 // collision.ent_id_0 = glm::min(id_0, id_1);
                 // collision.ent_id_1 = glm::max(id_0, id_1);
                 // collisions.push_back(collision);
+                amount = 0;
                 break; // a collision
               }
             }
-            // Move player if empty space
-            aabb.center.x += sign;
-            amount -= sign;
+
+            if (amount != 0) {
+              // Move player if empty space
+              aabb.center.x += sign;
+              amount -= sign;
+            }
           }
         }
       } // end move x
@@ -100,7 +104,7 @@ game2d::update_move_objects_system(entt::registry& r, const uint64_t& millisecon
           while (amount != 0) {
             // would-be updated position
             AABB updated_pos = aabb;
-            updated_pos.center.x += sign;
+            updated_pos.center.y += sign;
             // Check if the updated position would collide with anything
             for (const auto& [o_entity, o_psolid, o_aabb] : solids.each()) {
               const bool same = entity == o_entity;
@@ -111,12 +115,16 @@ game2d::update_move_objects_system(entt::registry& r, const uint64_t& millisecon
                 // collision.ent_id_0 = glm::min(id_0, id_1);
                 // collision.ent_id_1 = glm::max(id_0, id_1);
                 // collisions.push_back(collision);
+                amount = 0;
                 break; // a collision
               }
             }
-            // Move player if empty space
-            aabb.center.y += sign;
-            amount -= sign;
+
+            if (amount != 0) {
+              // Move player if empty space
+              aabb.center.y += sign;
+              amount -= sign;
+            }
           }
         }
       } // end move y

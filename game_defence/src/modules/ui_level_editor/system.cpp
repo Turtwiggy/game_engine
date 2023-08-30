@@ -258,25 +258,25 @@ update_ui_level_editor_system(entt::registry& r, const glm::ivec2& input_mouse_p
         initial_pos = mouse_pos;
         chosen_e = create_gameplay(r, type);
       }
+      if (get_key_up(input, place_and_drag_key))
+        chosen_e = entt::null;
+
       if (get_key_held(input, place_and_drag_key)) {
         if (chosen_e != entt::null) {
 
-          // set position for transform
-          // auto& t = r.get<TransformComponent>(chosen_e);
-          // set_line(r, t, initial_pos, mouse_pos);
-
           const auto line = generate_line(initial_pos, mouse_pos);
-
+          
           // set position for aabb
           if (auto* aabb = r.try_get<AABB>(chosen_e))
             aabb->center = line.position;
+
+          // set transform
           auto& transform = r.get<TransformComponent>(chosen_e);
+          transform.position = { line.position.x, line.position.y, 0 };
           transform.scale = { line.scale.x, line.scale.y, 0 };
           transform.rotation_radians.z = line.rotation;
         }
       }
-      if (get_key_up(input, place_and_drag_key))
-        chosen_e = entt::null;
 
       // delete anything that collides with the cursor
       if (get_key_held(input, delete_key)) {

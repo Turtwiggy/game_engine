@@ -50,7 +50,7 @@ move_to_scene_start(entt::registry& r, const Scene s)
   destroy_and_create<SINGLETON_GameOver>(r);
   destroy_and_create<SINGLETON_Wave>(r);
 
-  const auto cursor = create_gameplay(r, EntityType::cursor);
+  // const auto cursor = create_gameplay(r, EntityType::cursor);
 
   auto& scene = get_first_component<SINGLETON_CurrentScene>(r);
   scene.s = s; // done

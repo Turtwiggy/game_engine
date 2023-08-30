@@ -160,17 +160,17 @@ game2d::fixed_update(entt::registry& game, const uint64_t milliseconds_dt)
     // todo: split out updating aabb from move_objects sysstem
     update_move_objects_system(game, milliseconds_dt);
     update_actor_actor_collisions_system(game, physics);
-
-#if defined(_DEBUG)
-    if (level_editor.mode == LevelEditorMode::edit)
-      return;
-#endif
-
-    update_resolve_collisions_system(game);
   }
+
+  // dont do game tick if in edit mode
+#if defined(_DEBUG)
+  if (level_editor.mode == LevelEditorMode::edit)
+    return;
+#endif
 
   {
     OPTICK_EVENT("(fixed-tick)-game-logic");
+    update_resolve_collisions_system(game);
     update_attack_cooldown_system(game, milliseconds_dt);
     update_player_controller_system(game);
     update_enemy_system(game);

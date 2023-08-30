@@ -182,7 +182,7 @@ create_gameplay(entt::registry& r, const EntityType& type)
 
     case EntityType::actor_player: {
       create_physics_actor(r, e);
-      r.emplace<PhysicsSolidComponent>(e);
+      // r.emplace<PhysicsSolidComponent>(e);
       r.emplace<VelocityComponent>(e);
       r.emplace<TeamComponent>(e, AvailableTeams::player);
 

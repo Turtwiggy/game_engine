@@ -32,7 +32,7 @@ game2d::update_lifecycle_system(entt::registry& r, const uint64_t& milliseconds_
   dead.created_this_frame.clear();
 
   const auto requests = r.view<CreateEntityRequest>();
-  for (auto [entity, request] : requests.each()) {
+  for (const auto& [entity, request] : requests.each()) {
     auto e = create_gameplay(r, request.type);
 
     if (auto* vel = r.try_get<VelocityComponent>(e)) {
@@ -61,7 +61,7 @@ game2d::update_lifecycle_system(entt::registry& r, const uint64_t& milliseconds_
 
     // set position for transform
     auto& transform = r.get<TransformComponent>(e);
-    transform.position = request.transform.position;
+    transform.position = { request.transform.position.x, request.transform.position.y, 0 };
     transform.rotation_radians = request.transform.rotation_radians;
     // dont set scale?
 
