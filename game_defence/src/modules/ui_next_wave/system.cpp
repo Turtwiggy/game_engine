@@ -82,8 +82,9 @@ game2d::update_ui_next_wave_system(entt::registry& r)
           rnd_y = 250 * glm::sign(rnd_y);
 
         CreateEntityRequest req;
-        req.position.x = rnd_x;
-        req.position.y = rnd_y;
+        TransformComponent t;
+        t.position = { rnd_x, rnd_y, 0 };
+        req.transform = t;
         req.type = EntityType::actor_spawner;
         r.emplace<CreateEntityRequest>(r.create(), req);
       };

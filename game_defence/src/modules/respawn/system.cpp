@@ -28,10 +28,10 @@ update_respawn_system(entt::registry& r)
           if (spawner.type_to_spawn == type.type) {
 
             // spawn new entity at this spawner
-            const auto& spawner_pos = r.get<TransformComponent>(e_spawner);
+            const auto& spawner_transform = r.get<TransformComponent>(e_spawner);
             CreateEntityRequest req;
             req.type = spawner.type_to_spawn;
-            req.position = spawner_pos.position;
+            req.transform = spawner_transform;
             r.emplace<CreateEntityRequest>(r.create(), req);
 
             break; // just choose the first spawner

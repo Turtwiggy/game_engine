@@ -33,8 +33,7 @@ update_spawner_system(entt::registry& r, const uint64_t milliseconds_dt)
 
       CreateEntityRequest req;
       req.type = spawner.type_to_spawn;
-      // spawn at current position
-      req.position = transform.position;
+      req.transform = transform; // at current pos
       r.emplace<CreateEntityRequest>(r.create(), req);
 
       reset_cooldown(cooldown);

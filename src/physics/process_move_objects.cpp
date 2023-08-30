@@ -24,7 +24,6 @@ game2d::update_move_objects_system(entt::registry& r, const uint64_t& millisecon
   //
   // update all aabb based on rotation
   //
-
   const auto& physics_rot_objects = r.view<const TransformComponent, AABB>();
   for (const auto& [entity, t, aabb] : physics_rot_objects.each()) {
     const float& theta = t.rotation_radians.z;
@@ -74,12 +73,13 @@ game2d::update_move_objects_system(entt::registry& r, const uint64_t& millisecon
             for (const auto& [o_entity, o_psolid, o_aabb] : solids.each()) {
               const bool same = entity == o_entity;
               if (!same && collide(updated_pos, o_aabb)) {
-                Collision2D collision;
-                const auto id_0 = static_cast<uint32_t>(entity);
-                const auto id_1 = static_cast<uint32_t>(o_entity);
-                collision.ent_id_0 = glm::min(id_0, id_1);
-                collision.ent_id_1 = glm::max(id_0, id_1);
+                // Collision2D collision;
+                // const auto id_0 = static_cast<uint32_t>(entity);
+                // const auto id_1 = static_cast<uint32_t>(o_entity);
+                // collision.ent_id_0 = glm::min(id_0, id_1);
+                // collision.ent_id_1 = glm::max(id_0, id_1);
                 // collisions.push_back(collision);
+                break; // a collision
               }
             }
             // Move player if empty space
@@ -105,12 +105,13 @@ game2d::update_move_objects_system(entt::registry& r, const uint64_t& millisecon
             for (const auto& [o_entity, o_psolid, o_aabb] : solids.each()) {
               const bool same = entity == o_entity;
               if (!same && collide(updated_pos, o_aabb)) {
-                Collision2D collision;
-                const auto id_0 = static_cast<uint32_t>(entity);
-                const auto id_1 = static_cast<uint32_t>(o_entity);
-                collision.ent_id_0 = glm::min(id_0, id_1);
-                collision.ent_id_1 = glm::max(id_0, id_1);
+                // Collision2D collision;
+                // const auto id_0 = static_cast<uint32_t>(entity);
+                // const auto id_1 = static_cast<uint32_t>(o_entity);
+                // collision.ent_id_0 = glm::min(id_0, id_1);
+                // collision.ent_id_1 = glm::max(id_0, id_1);
                 // collisions.push_back(collision);
+                break; // a collision
               }
             }
             // Move player if empty space

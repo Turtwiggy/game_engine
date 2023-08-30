@@ -80,7 +80,9 @@ update_turret_system(entt::registry& r, const uint64_t& ms_dt)
 
       CreateEntityRequest req;
       req.type = EntityType::bullet_default;
-      req.position = { offset_pos.x, offset_pos.y, 0 };
+      TransformComponent t;
+      t.position = { offset_pos.x, offset_pos.y, 0 };
+      req.transform = t;
       req.velocity = glm::vec3(-nrm_dir.x * turret_bullet_speed, -nrm_dir.y * turret_bullet_speed, 0);
       r.emplace<CreateEntityRequest>(r.create(), req);
 

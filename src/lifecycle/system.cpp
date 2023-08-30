@@ -57,10 +57,13 @@ game2d::update_lifecycle_system(entt::registry& r, const uint64_t& milliseconds_
 
     // set position for aabb
     if (auto* aabb = r.try_get<AABB>(e))
-      aabb->center = { request.position.x, request.position.y };
+      aabb->center = { request.transform.position.x, request.transform.position.y };
 
     // set position for transform
-    r.get<TransformComponent>(e).position = request.position;
+    auto& transform = r.get<TransformComponent>(e);
+    transform.position = request.transform.position;
+    transform.rotation_radians = request.transform.rotation_radians;
+    // dont set scale?
 
     // capture new entity
     dead.created_this_frame.push_back(e);

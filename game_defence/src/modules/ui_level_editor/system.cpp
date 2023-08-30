@@ -6,8 +6,10 @@
 #include "events/components.hpp"
 #include "events/helpers/keyboard.hpp"
 #include "helpers.hpp"
+#include "helpers/line.hpp"
 #include "imgui/helpers.hpp"
 #include "lifecycle/components.hpp"
+#include "maths/grid.hpp"
 #include "modules/actor_cursor/components.hpp"
 #include "modules/scene/components.hpp"
 #include "modules/scene/helpers.hpp"
@@ -19,6 +21,7 @@
 #include "magic_enum.hpp"
 #include <imgui.h>
 
+#include <cstdio>
 #include <string>
 #include <vector>
 
@@ -33,11 +36,30 @@ What else do i need a level editor to do?
 */
 
 void
-update_ui_level_editor_system(entt::registry& r, const glm::ivec2& mouse_pos)
+update_ui_level_editor_system(entt::registry& r, const glm::ivec2& input_mouse_pos)
 {
   const auto& physics = get_first_component<SINGLETON_PhysicsComponent>(r);
+  const auto& ri = get_first_component<SINGLETON_RendererInfo>(r);
+  const auto& input = get_first_component<SINGLETON_InputComponent>(r);
   auto& level_editor = get_first_component<SINGLETON_LevelEditor>(r);
   auto& lifecycle = get_first_component<SINGLETON_EntityBinComponent>(r);
+
+  const auto place_key = SDL_SCANCODE_R;
+  const auto place_and_drag_key = SDL_SCANCODE_T;
+  const auto delete_key = SDL_SCANCODE_F;
+  const auto snap_to_grid_key = SDL_SCANCODE_LSHIFT;
+  // const auto select_entities_under_cursor_key = SDL_SCANCODE_E;
+  const auto* place_key_name = SDL_GetScancodeName(place_key);
+  const auto* place_and_drag_key_name = SDL_GetScancodeName(place_and_drag_key);
+  const auto* delete_key_name = SDL_GetScancodeName(delete_key);
+  const auto* snap_to_grid_key_name = SDL_GetScancodeName(snap_to_grid_key);
+
+  glm::ivec2 mouse_pos = input_mouse_pos;
+  if (get_key_held(input, snap_to_grid_key)) {
+    const int grid_size = 5;
+    const auto grid_pos = engine::grid::world_space_to_grid_space(mouse_pos, grid_size);
+    mouse_pos = engine::grid::grid_space_to_world_space(grid_pos, grid_size);
+  }
 
   const auto& scene = get_first_component<SINGLETON_CurrentScene>(r);
   if (scene.s == Scene::menu)
@@ -48,6 +70,10 @@ update_ui_level_editor_system(entt::registry& r, const glm::ivec2& mouse_pos)
 
   ImGui::Begin("Level Editor", NULL, flags);
   ImGui::Text("Cursor: %i %i", mouse_pos.x, mouse_pos.y);
+  ImGui::Text("Place Key: %s", place_key_name);
+  ImGui::Text("Place/Drag Key: %s", place_and_drag_key_name);
+  ImGui::Text("Delete Key: %s", delete_key_name);
+  ImGui::Text("Snap To Grid Key: %s", snap_to_grid_key_name);
 
   ImGui::Text("¬¬ Editor Mode ¬¬");
 
@@ -115,6 +141,7 @@ update_ui_level_editor_system(entt::registry& r, const glm::ivec2& mouse_pos)
       // save
       //
       if (mode == LevelEditorMode::edit) {
+        // todo: are you sure
         if (ImGui::Button("Save"))
           save(r, level);
         ImGui::SameLine();
@@ -125,10 +152,28 @@ update_ui_level_editor_system(entt::registry& r, const glm::ivec2& mouse_pos)
       // load
       //
       if (ImGui::Button("Load")) {
+        // todo: are you sure
         if (levels.size() > 0) {
           move_to_scene_start(r, scene.s);
           load(r, level);
         }
+      }
+      ImGui::SameLine();
+
+      //
+      // Delete
+      //
+      if (ImGui::Button("Delete")) {
+        // TODO: are you sure
+        move_to_scene_start(r, scene.s);
+
+        std::remove(level.c_str());
+
+        // refresh levels
+        levels.clear();
+        for (const auto& entry : std::filesystem::directory_iterator(path))
+          levels.push_back(entry.path().generic_string());
+        selected = 0;
       }
 
     } else
@@ -197,32 +242,43 @@ update_ui_level_editor_system(entt::registry& r, const glm::ivec2& mouse_pos)
     // Entity To place!
     EntityType type = magic_enum::enum_cast<EntityType>(items[item_current_idx]).value();
 
-    const auto& ri = get_first_component<SINGLETON_RendererInfo>(r);
-    const auto& input = get_first_component<SINGLETON_InputComponent>(r);
-    const auto place_key = SDL_SCANCODE_R;
-    const auto drag_key = SDL_SCANCODE_T;
-    const auto delete_key = SDL_SCANCODE_F;
-    const auto select_entities_under_cursor_key = SDL_SCANCODE_E;
-    const auto* place_key_name = SDL_GetScancodeName(place_key);
-    const auto* drag_key_name = SDL_GetScancodeName(drag_key);
-    const auto* delete_key_name = SDL_GetScancodeName(delete_key);
-    ImGui::Text("Place Key: %s", place_key_name);
-    ImGui::Text("Dragging Key: %s", drag_key_name);
-    ImGui::Text("Delete Key: %s", delete_key_name);
-
     if (ri.viewport_hovered) {
+
       if (get_key_down(input, place_key)) {
         CreateEntityRequest request;
         request.type = type;
-        request.position = { mouse_pos.x, mouse_pos.y, 0 };
+        request.transform = { { mouse_pos.x, mouse_pos.y, 0 } };
         r.emplace<CreateEntityRequest>(r.create(), request);
       }
-      if (get_key_held(input, drag_key)) {
-        // todo: dragging...
+
+      static entt::entity chosen_e;
+      static glm::ivec2 initial_pos;
+
+      if (get_key_down(input, place_and_drag_key)) {
+        initial_pos = mouse_pos;
+        chosen_e = create_gameplay(r, type);
       }
+      if (get_key_held(input, place_and_drag_key)) {
+        if (chosen_e != entt::null) {
+
+          // set position for transform
+          // auto& t = r.get<TransformComponent>(chosen_e);
+          // set_line(r, t, initial_pos, mouse_pos);
+
+          const auto line = generate_line(initial_pos, mouse_pos);
+
+          // set position for aabb
+          if (auto* aabb = r.try_get<AABB>(chosen_e))
+            aabb->center = line.position;
+          auto& transform = r.get<TransformComponent>(chosen_e);
+          transform.scale = { line.scale.x, line.scale.y, 0 };
+          transform.rotation_radians.z = line.rotation;
+        }
+      }
+      if (get_key_up(input, place_and_drag_key))
+        chosen_e = entt::null;
 
       // delete anything that collides with the cursor
-
       if (get_key_held(input, delete_key)) {
         ImGui::Text("deleting objects...");
         const auto cursor_entity = get_first<CursorComponent>(r);
@@ -233,6 +289,8 @@ update_ui_level_editor_system(entt::registry& r, const glm::ivec2& mouse_pos)
             lifecycle.dead.emplace(static_cast<entt::entity>(coll.ent_id_0));
         }
       }
+
+      //
     } // end hovered check
   }
 

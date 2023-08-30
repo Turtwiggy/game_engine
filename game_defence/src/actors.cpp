@@ -247,6 +247,17 @@ create_gameplay(entt::registry& r, const EntityType& type)
     }
 
       //
+      // solids
+      //
+
+    case EntityType::solid_wall: {
+      r.emplace<PhysicsTransformXComponent>(e);
+      r.emplace<PhysicsTransformYComponent>(e);
+      r.emplace<AABB>(e);
+      r.emplace<PhysicsSolidComponent>(e);
+    }
+
+      //
       // actor_weapons
       //
 

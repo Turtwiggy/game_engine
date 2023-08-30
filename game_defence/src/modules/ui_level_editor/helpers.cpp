@@ -116,7 +116,7 @@ load(entt::registry& r, const std::string& path)
 
     CreateEntityRequest req;
     req.type = type.type;
-    req.position = transform.position;
+    req.transform = transform;
     r.emplace<CreateEntityRequest>(r.create(), req);
   }
 };

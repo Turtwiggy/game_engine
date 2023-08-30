@@ -25,7 +25,7 @@ update_intent_drop_item_system(entt::registry& r)
 
     CreateEntityRequest req;
     req.type = EntityType::actor_pickup_xp;
-    req.position = transform.position;
+    req.transform = transform;
     r.emplace<CreateEntityRequest>(r.create(), req);
 
     // request is done... but entity will die next frame anyway

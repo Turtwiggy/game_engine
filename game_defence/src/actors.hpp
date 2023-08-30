@@ -15,6 +15,9 @@ enum class EntityType
   // as the order is used for unique-ids when saved to disk
   // probably should do something else
 
+  // transform-only
+  empty,
+
   // actors with only one type (so far)
   actor_hearth,
   actor_player,
@@ -22,6 +25,9 @@ enum class EntityType
   actor_turret,
   actor_pickup_xp,
   actor_pickup_zone,
+  
+  // solids
+  solid_wall,
 
   // actor_weapons,
   weapon_bow,

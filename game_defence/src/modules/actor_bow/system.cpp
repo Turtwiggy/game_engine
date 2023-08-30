@@ -80,7 +80,7 @@ update_bow_system(entt::registry& r, const uint64_t milliseconds_dt)
     if (input.shoot && allowed_to_shoot) {
       CreateEntityRequest req;
       req.type = EntityType::bullet_bow;
-      req.position = transform.position;
+      req.transform = transform;
       req.parent = entity; // set arrow's parent as the bow
       r.emplace<CreateEntityRequest>(r.create(), req);
 
@@ -135,6 +135,7 @@ update_bow_system(entt::registry& r, const uint64_t milliseconds_dt)
 
         // Turn the arrow Live!
         r.emplace<AttackComponent>(val, 3);
+        r.emplace<EntityTimedLifecycle>(val);
 
         auto& arrow_vel = r.get<VelocityComponent>(val);
         arrow_vel.x = r_nrm_dir.x * bow.bow_bullet_speed;

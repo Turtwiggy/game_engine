@@ -4,6 +4,7 @@
 
 #include "entt/entt.hpp"
 #include "glm/glm.hpp"
+#include "renderer/components.hpp"
 
 #include <optional>
 #include <string>
@@ -37,7 +38,7 @@ struct SINGLETON_EntityBinComponent
 struct CreateEntityRequest
 {
   EntityType type;
-  glm::ivec3 position{ 0, 0, 0 };
+  TransformComponent transform;
   glm::vec3 velocity{ 0, 0, 0 };
   std::optional<std::string> sprite = std::nullopt;
   entt::entity parent = entt::null;

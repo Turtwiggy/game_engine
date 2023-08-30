@@ -10,8 +10,15 @@
 
 namespace game2d {
 
-void
-set_line(entt::registry& r, TransformComponent& t, const glm::ivec2& a, const glm::ivec2& b);
+struct LineInfo
+{
+  glm::vec2 position{ 0, 0 };
+  float rotation = 0.0f;
+  glm::vec2 scale;
+};
+
+LineInfo
+generate_line(const glm::ivec2& a, const glm::ivec2& b);
 
 // inspired by:
 // https://github.com/scikit-image/scikit-image/blob/main/skimage/draw/_draw.pyx

@@ -42,7 +42,10 @@ update_take_damage_system(entt::registry& r)
       req.sprite = sprites[i];
       glm::ivec3 offset_pos = def_pos;
       offset_pos.x += (i + 1) * text_seperation;
-      req.position = offset_pos;
+
+      TransformComponent t;
+      t.position = offset_pos;
+      req.transform = t;
       r.emplace<CreateEntityRequest>(r.create(), req);
     }
 
