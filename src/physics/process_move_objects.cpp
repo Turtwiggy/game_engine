@@ -52,7 +52,7 @@ game2d::update_move_objects_system(entt::registry& r, const uint64_t& millisecon
     OPTICK_EVENT("Move Actors");
 
     const auto& vel_actors = r.view<AABB, VelocityComponent>();
-    const auto& solids = r.group<const PhysicsSolidComponent, const AABB>();
+    const auto& solids = r.view<const PhysicsSolidComponent, const AABB>();
     const float dt = milliseconds_dt / 1000.0f;
 
     for (const auto& [entity, aabb, vel] : vel_actors.each()) {

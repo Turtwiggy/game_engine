@@ -24,7 +24,7 @@ struct HasParentComponent
 
 struct EntityTimedLifecycle
 {
-  int milliseconds_alive_max = 5 * 1000; // seconds
+  int milliseconds_alive_max = 3 * 1000; // seconds
   int milliseconds_alive = 0;
 };
 

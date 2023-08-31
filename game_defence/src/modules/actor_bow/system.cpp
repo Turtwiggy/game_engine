@@ -46,6 +46,11 @@ update_bow_system(entt::registry& r, const uint64_t milliseconds_dt)
     // Set Angle of bow
     const float bow_angle = engine::dir_to_angle_radians(offset) - engine::PI;
     t.rotation_radians.z = bow_angle;
+
+    const auto d = glm::ivec2{ target.position.x, target.position.y } - player_aabb.center;
+    const auto d2 = d.x * d.x + d.y * d.y;
+    if (d2 < 10)
+      t.rotation_radians.z = 45.0f * engine::Deg2Rad;
   }
 
   //
@@ -54,7 +59,10 @@ update_bow_system(entt::registry& r, const uint64_t milliseconds_dt)
   // release arrow & make arrow "live"
   //
   auto& lifecycle = get_first_component<SINGLETON_EntityBinComponent>(r);
+
+  // BUG: shouldnt use created_this_frame
   const auto& created = lifecycle.created_this_frame;
+
   const auto& view = r.view<BowComponent, HasParentComponent, AttackCooldownComponent, const TransformComponent>();
   for (const auto& [entity, bow, parent, cooldown, transform] : view.each()) {
     const auto& p = parent.parent;

@@ -18,7 +18,7 @@ struct LineInfo
 };
 
 LineInfo
-generate_line(const glm::ivec2& a, const glm::ivec2& b);
+generate_line(const glm::ivec2& a, const glm::ivec2& b, int width);
 
 // inspired by:
 // https://github.com/scikit-image/scikit-image/blob/main/skimage/draw/_draw.pyx

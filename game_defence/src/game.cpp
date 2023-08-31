@@ -240,10 +240,10 @@ game2d::update(engine::SINGLETON_Application& app, entt::registry& r, const floa
 #if defined(_DEBUG)
     static bool show_editor_ui = true;
     if (show_editor_ui) {
-      update_ui_hierarchy_system(r);
+      // update_ui_hierarchy_system(r);
       update_ui_level_editor_system(r, mouse_pos);
       auto& colours = get_first_component<SINGLETON_ColoursComponent>(r);
-      update_ui_colours_system(colours);
+      // update_ui_colours_system(colours);
     }
 #endif
   }

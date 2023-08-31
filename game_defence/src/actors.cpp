@@ -109,9 +109,12 @@ create_colour(const SINGLETON_ColoursComponent& colours, const EntityType& type)
     off.r = 1.0f;
     off.g = 1.0f;
     off.b = 1.0f;
-    off.a = 0.5f;
+    off.a = 0.1f;
     scc.colour = std::make_shared<engine::LinearColour>(off);
   }
+  // weapons
+  else if (type == EntityType::weapon_bow)
+    scc.colour = secondary;
   // bullets...
   else if (type == EntityType::bullet_default)
     scc.colour = secondary;
@@ -194,6 +197,7 @@ create_gameplay(entt::registry& r, const EntityType& type)
 
       r.emplace<HealthComponent>(e, 100);
       r.emplace<InfiniteLivesComponent>(e);
+      r.emplace<GeneratePickupZoneComponent>(e);
 
       // r.emplace<TakeDamageComponent>(e);
       // r.emplace<XpComponent>(e, 0);
@@ -255,6 +259,7 @@ create_gameplay(entt::registry& r, const EntityType& type)
       r.emplace<PhysicsTransformYComponent>(e);
       r.emplace<AABB>(e);
       r.emplace<PhysicsSolidComponent>(e);
+      break;
     }
 
       //
@@ -262,6 +267,8 @@ create_gameplay(entt::registry& r, const EntityType& type)
       //
 
     case EntityType::weapon_bow: {
+      transform.scale.x = 20;
+      transform.scale.y = 20;
       r.emplace<BowComponent>(e);
       r.emplace<HasTargetPositionComponent>(e);
       r.emplace<LerpToTargetComponent>(e);

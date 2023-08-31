@@ -2,6 +2,11 @@
 
 namespace game2d {
 
+struct GeneratePickupZoneComponent
+{
+  bool placeholder = true;
+};
+
 struct PickupZoneComponent
 {
   bool placeholder = true;

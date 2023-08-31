@@ -13,6 +13,7 @@
 #include "modules/actor_cursor/components.hpp"
 #include "modules/scene/components.hpp"
 #include "modules/scene/helpers.hpp"
+#include "modules/ui_hierarchy/helpers.hpp"
 #include "physics//components.hpp"
 #include "renderer/components.hpp"
 
@@ -54,11 +55,13 @@ update_ui_level_editor_system(entt::registry& r, const glm::ivec2& input_mouse_p
   const auto* delete_key_name = SDL_GetScancodeName(delete_key);
   const auto* snap_to_grid_key_name = SDL_GetScancodeName(snap_to_grid_key);
 
+  static float grid_snap_size = 5.0f;
+  static float line_width = 10.0f;
+
   glm::ivec2 mouse_pos = input_mouse_pos;
   if (get_key_held(input, snap_to_grid_key)) {
-    const int grid_size = 5;
-    const auto grid_pos = engine::grid::world_space_to_grid_space(mouse_pos, grid_size);
-    mouse_pos = engine::grid::grid_space_to_world_space(grid_pos, grid_size);
+    const auto grid_pos = engine::grid::world_space_to_grid_space(mouse_pos, grid_snap_size);
+    mouse_pos = engine::grid::grid_space_to_world_space(grid_pos, grid_snap_size);
   }
 
   const auto& scene = get_first_component<SINGLETON_CurrentScene>(r);
@@ -76,6 +79,9 @@ update_ui_level_editor_system(entt::registry& r, const glm::ivec2& input_mouse_p
   ImGui::Text("Snap To Grid Key: %s", snap_to_grid_key_name);
 
   ImGui::Text("¬¬ Editor Mode ¬¬");
+
+  imgui_draw_float({ "Grid Snap Size" }, grid_snap_size);
+  imgui_draw_float({ "Line Width" }, line_width);
 
   auto& mode = level_editor.mode;
   int mode_current_index = magic_enum::enum_index(mode).value();
@@ -194,6 +200,7 @@ update_ui_level_editor_system(entt::registry& r, const glm::ivec2& input_mouse_p
         levels.push_back(entry.path().generic_string());
       selected = levels.size() - 1;
     }
+    ImGui::SameLine();
 
     //
     // Clear existing level
@@ -202,6 +209,7 @@ update_ui_level_editor_system(entt::registry& r, const glm::ivec2& input_mouse_p
       // todo: are you sure
       move_to_scene_start(r, scene.s);
     }
+    ImGui::SameLine();
 
     if (ImGui::Button("Refresh")) {
       levels.clear();
@@ -263,18 +271,25 @@ update_ui_level_editor_system(entt::registry& r, const glm::ivec2& input_mouse_p
 
       if (get_key_held(input, place_and_drag_key)) {
         if (chosen_e != entt::null) {
+          const auto& type = r.get<EntityTypeComponent>(chosen_e);
 
-          const auto line = generate_line(initial_pos, mouse_pos);
-          
-          // set position for aabb
-          if (auto* aabb = r.try_get<AABB>(chosen_e))
-            aabb->center = line.position;
+          if(type.type == EntityType::solid_wall)
+          {
+            const auto line = generate_line(initial_pos, mouse_pos, line_width);
+            // set position for aabb
+            if (auto* aabb = r.try_get<AABB>(chosen_e))
+              aabb->center = line.position;
+            // set transform
+            auto& transform = r.get<TransformComponent>(chosen_e);
+            transform.position = { line.position.x, line.position.y, 0 };
+            transform.scale = { line.scale.x, line.scale.y, 0 };
+            transform.rotation_radians.z = line.rotation;
+          }
 
-          // set transform
-          auto& transform = r.get<TransformComponent>(chosen_e);
-          transform.position = { line.position.x, line.position.y, 0 };
-          transform.scale = { line.scale.x, line.scale.y, 0 };
-          transform.rotation_radians.z = line.rotation;
+          if(type.type == EntityType::actor_spawner)
+          {
+            // TODO: drag the spawn go-to location
+          }
         }
       }
 
