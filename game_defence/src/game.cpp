@@ -11,38 +11,41 @@
 #include "lifecycle/system.hpp"
 #include "maths/maths.hpp"
 #include "modules/actor_bow/system.hpp"
+#include "modules/actor_cursor/system.hpp"
 #include "modules/actor_enemy/system.hpp"
+#include "modules/actor_pickup_zone/system.hpp"
 #include "modules/actor_player/system.hpp"
 #include "modules/actor_spawner/components.hpp"
 #include "modules/actor_spawner/system.hpp"
 #include "modules/actor_turret/system.hpp"
 #include "modules/animation/angle_to_velocity.hpp"
+#include "modules/camera/helpers.hpp"
 #include "modules/camera/orthographic.hpp"
 #include "modules/camera/system.hpp"
-#include "modules/combat/components.hpp"
-#include "modules/combat/flash_sprite.hpp"
-#include "modules/combat/take_damage.hpp"
+#include "modules/combat_attack_cooldown/system.hpp"
+#include "modules/combat_damage/system.hpp"
+#include "modules/combat_flash_on_damage/system.hpp"
 #include "modules/gameover/components.hpp"
 #include "modules/gameover/system.hpp"
 #include "modules/items_drop/system.hpp"
 #include "modules/items_pickup/system.hpp"
-#include "modules/physics/components.hpp"
-#include "modules/physics/process_actor_actor_collisions.hpp"
-#include "modules/physics/process_move_objects.hpp"
+#include "modules/lerp_to_target/system.hpp"
 #include "modules/resolve_collisions/system.hpp"
 #include "modules/respawn/system.hpp"
-#include "modules/scene/components.hpp"
 #include "modules/scene/helpers.hpp"
 #include "modules/ui_audio/system.hpp"
+#include "modules/ui_colours/system.hpp"
 #include "modules/ui_controllers/system.hpp"
-#include "modules/ui_economy/components.hpp"
-#include "modules/ui_economy/system.hpp"
 #include "modules/ui_gameover/system.hpp"
 #include "modules/ui_hierarchy/system.hpp"
+#include "modules/ui_level_editor/components.hpp"
+#include "modules/ui_level_editor/system.hpp"
 #include "modules/ui_next_wave/system.hpp"
 #include "modules/ui_pause_menu/system.hpp"
-#include "modules/ui_prefabs/system.hpp"
 #include "modules/ui_scene_main_menu/system.hpp"
+#include "physics/components.hpp"
+#include "physics/process_actor_actor_collisions.hpp"
+#include "physics/process_move_objects.hpp"
 #include "renderer/components.hpp"
 #include "renderer/system.hpp"
 #include "resources/colours.hpp"
@@ -83,6 +86,7 @@ game2d::init(engine::SINGLETON_Application& app, entt::registry& r)
   r.emplace<SINGLETON_RendererInfo>(r.create());
   r.emplace<SINGLETON_FixedUpdateInputHistory>(r.create());
   r.emplace<SINGLETON_InputComponent>(r.create());
+  r.emplace<SINGLETON_LevelEditor>(r.create());
 
   const auto camera = r.create();
   r.emplace<TagComponent>(camera, "camera");
@@ -144,17 +148,30 @@ game2d::fixed_update(entt::registry& game, const uint64_t milliseconds_dt)
   // destroy/create objects
   update_lifecycle_system(game, milliseconds_dt);
 
+#if defined(_DEBUG)
+  const auto& level_editor = get_first_component<SINGLETON_LevelEditor>(game);
+#endif
+
   {
     OPTICK_EVENT("(physics-tick)");
     auto& physics = get_first_component<SINGLETON_PhysicsComponent>(game);
     physics.frame_collisions.clear();
+
+    // todo: split out updating aabb from move_objects sysstem
     update_move_objects_system(game, milliseconds_dt);
     update_actor_actor_collisions_system(game, physics);
-    update_resolve_collisions_system(game);
   }
+
+  // dont do game tick if in edit mode
+#if defined(_DEBUG)
+  if (level_editor.mode == LevelEditorMode::edit)
+    return;
+#endif
 
   {
     OPTICK_EVENT("(fixed-tick)-game-logic");
+    update_resolve_collisions_system(game);
+    update_attack_cooldown_system(game, milliseconds_dt);
     update_player_controller_system(game);
     update_enemy_system(game);
     update_turret_system(game, milliseconds_dt);
@@ -165,6 +182,8 @@ game2d::fixed_update(entt::registry& game, const uint64_t milliseconds_dt)
     update_intent_pickup_system(game);
     update_intent_drop_item_system(game);
     update_bow_system(game, milliseconds_dt);
+    update_lerp_to_target_system(game, milliseconds_dt);
+    update_actor_pickup_zone_system(game);
   }
 
   fixed_input.fixed_tick += 1;
@@ -175,14 +194,18 @@ game2d::update(engine::SINGLETON_Application& app, entt::registry& r, const floa
 {
   OPTICK_EVENT("(update)");
 
+  // one frame behind
+  const glm::ivec2 mouse_pos = mouse_position_in_worldspace(r);
+
   {
-    OPTICK_EVENT("(update)-gametick");
+    OPTICK_EVENT("(update)-game-tick");
     update_input_system(app, r);
     update_camera_system(r, dt);
     update_audio_system(r);
+    update_cursor_system(r, mouse_pos);
     update_scale_by_velocity_system(r, dt);
-    // todo: update animations...
-  };
+    // todo: update sprite animations...
+  }
 
   {
     OPTICK_EVENT("(update)-update-render-system");
@@ -207,18 +230,22 @@ game2d::update(engine::SINGLETON_Application& app, entt::registry& r, const floa
     update_ui_pause_menu_system(app, r);
     update_ui_gameover_system(r);
 
+    // todo: put in to a settings menu
     static bool show_settings_ui = false;
     if (show_settings_ui) {
       update_ui_audio_system(r);
       update_ui_controller_system(r);
     }
 
-    static bool show_editor_ui = false;
+#if defined(_DEBUG)
+    static bool show_editor_ui = true;
     if (show_editor_ui) {
-      update_ui_economy_system(r);
-      update_ui_prefabs_system(r);
-      update_ui_hierarchy_system(r);
+      // update_ui_hierarchy_system(r);
+      update_ui_level_editor_system(r, mouse_pos);
+      auto& colours = get_first_component<SINGLETON_ColoursComponent>(r);
+      // update_ui_colours_system(colours);
     }
+#endif
   }
 
   end_frame_render_system(r);

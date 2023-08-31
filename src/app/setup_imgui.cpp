@@ -38,7 +38,7 @@ ImGui_Manager::initialize(GameWindow& window)
   // io.ConfigFlags |= ImGuiConfigFlags_NavEnableKeyboard; // Enable Keyboard Controls
   // io.ConfigFlags |= ImGuiConfigFlags_NavEnableGamepad;  // Enable Gamepad Controls
   io.ConfigFlags |= ImGuiConfigFlags_DockingEnable; // Enable Docking
-  io.ConfigFlags |= ImGuiConfigFlags_ViewportsEnable;
+  // io.ConfigFlags |= ImGuiConfigFlags_ViewportsEnable;
   // io.ConfigViewportsNoAutoMerge = true;
   // io.ConfigViewportsNoTaskBarIcon = true;
 
@@ -88,11 +88,8 @@ ImGui_Manager::initialize(GameWindow& window)
   colors[ImGuiCol_TitleBgActive] = ImVec4{ 0.15f, 0.1505f, 0.151f, 1.0f };
   colors[ImGuiCol_TitleBgCollapsed] = ImVec4{ 0.15f, 0.1505f, 0.151f, 1.0f };
 
-  // const char* glsl_version = "#version 100"; // target WebGL1
-  const char* glsl_version = "#version 300 es"; // target WebGL2
-
   ImGui_ImplSDL2_InitForOpenGL(window.get_handle(), window.get_gl_context());
-  ImGui_ImplOpenGL3_Init(glsl_version);
+  ImGui_ImplOpenGL3_Init(window.glsl_version.c_str());
 }
 
 void

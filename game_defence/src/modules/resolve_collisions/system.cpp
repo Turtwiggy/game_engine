@@ -2,8 +2,8 @@
 
 #include "entt/helpers.hpp"
 #include "lifecycle/components.hpp"
-#include "modules/physics/components.hpp"
-#include "modules/ui_economy/components.hpp"
+#include "modules/combat_damage/components.hpp"
+#include "physics/components.hpp"
 
 namespace game2d {
 
@@ -14,9 +14,6 @@ update_resolve_collisions_system(entt::registry& r)
 
   // some collisions result in dead entities
   auto& dead = get_first_component<SINGLETON_EntityBinComponent>(r);
-
-  // some collisions result in extra money
-  auto& econ = get_first_component<SINGLETON_Economy>(r);
 
   const auto& collision_of_interest = [](const entt::entity& a_ent,
                                          const entt::entity& b_ent,
@@ -36,82 +33,40 @@ update_resolve_collisions_system(entt::registry& r)
     const auto a = static_cast<entt::entity>(coll.ent_id_0);
     const auto b = static_cast<entt::entity>(coll.ent_id_1);
 
-    if (!r.valid(a) || !r.valid(b))
-      continue;
-
     const auto& a_type = r.get<EntityTypeComponent>(a).type;
     const auto& b_type = r.get<EntityTypeComponent>(b).type;
 
-    // bullet-enemy collision
-    {
-      const auto& [actor_enemy, actor_bullet] =
-        collision_of_interest(a, b, a_type, b_type, EntityType::actor_enemy, EntityType::actor_bullet);
-      if (actor_enemy != entt::null && actor_bullet != entt::null) {
-        dead.dead.emplace(actor_bullet); // kill bullet
-        const auto& from = actor_bullet;
-        const auto& to = actor_enemy;
-        r.emplace<DealDamageRequest>(r.create(), from, to);
-      }
-    }
-    // arrow-enemy collision
-    {
-      const auto& [actor_enemy, actor_arrow] =
-        collision_of_interest(a, b, a_type, b_type, EntityType::actor_enemy, EntityType::actor_arrow);
-      if (actor_enemy != entt::null && actor_arrow != entt::null) {
-        dead.dead.emplace(actor_arrow); // kill arrow
-        const auto& from = actor_arrow;
-        const auto& to = actor_enemy;
-        r.emplace<DealDamageRequest>(r.create(), from, to);
-      }
+    auto* a_atk = r.try_get<AttackComponent>(a);
+    auto* a_def = r.try_get<HealthComponent>(a);
+    auto* a_team = r.try_get<TeamComponent>(a);
+    auto* b_atk = r.try_get<AttackComponent>(b);
+    auto* b_def = r.try_get<HealthComponent>(b);
+    auto* b_team = r.try_get<TeamComponent>(b);
+
+    // todo: dont just *kill* enemies immediately on collision
+    // should do something more interesting give the enemy damage
+    // from the attack but then dont take any more damage from it
+
+    // deal damage to b
+    if (a_atk && b_def && a_team && b_team) {
+      if (a_team->team == b_team->team)
+        continue; // no team damage
+
+      dead.dead.emplace(a);
+      const entt::entity from = a;
+      const entt::entity to = b;
+      r.emplace<DealDamageRequest>(r.create(), from, to);
     }
 
-    // bullet-spawner collision
-    {
-      const auto& [actor_spawner, actor_bullet] =
-        collision_of_interest(a, b, a_type, b_type, EntityType::actor_spawner, EntityType::actor_bullet);
-      if (actor_spawner != entt::null && actor_bullet != entt::null) {
-        dead.dead.emplace(actor_bullet); // kill bullet
-        const auto& from = actor_bullet;
-        const auto& to = actor_spawner;
-        r.emplace<DealDamageRequest>(r.create(), from, to);
-      }
-    }
-    // arrow-spawner collision
-    {
-      const auto& [actor_spawner, actor_arrow] =
-        collision_of_interest(a, b, a_type, b_type, EntityType::actor_spawner, EntityType::actor_arrow);
-      if (actor_spawner != entt::null && actor_arrow != entt::null) {
-        dead.dead.emplace(actor_arrow); // kill arrow
-        const auto& from = actor_arrow;
-        const auto& to = actor_spawner;
-        r.emplace<DealDamageRequest>(r.create(), from, to);
-      }
-    }
+    // deal damage to a
+    if (b_atk && a_def && a_team && b_team) {
+      if (a_team->team == b_team->team)
+        continue; // no team damage
 
-    // player-enemy collision
-    {
-      const auto& [actor_player, actor_enemy] =
-        collision_of_interest(a, b, a_type, b_type, EntityType::actor_player, EntityType::actor_enemy);
-      if (actor_player != entt::null && actor_enemy != entt::null) {
-        {
-          dead.dead.emplace(actor_enemy); // kill enemy
-          const auto& from = actor_enemy;
-          const auto& to = actor_player;
-          r.emplace<DealDamageRequest>(r.create(), from, to);
-        }
-      }
-    }
-
-    // hearth-enemy collision
-    {
-      const auto& [actor_hearth, actor_enemy] =
-        collision_of_interest(a, b, a_type, b_type, EntityType::actor_hearth, EntityType::actor_enemy);
-      if (actor_hearth != entt::null && actor_enemy != entt::null) {
-        dead.dead.emplace(actor_enemy); // kill enemy
-        const auto& from = actor_enemy;
-        const auto& to = actor_hearth;
-        r.emplace<DealDamageRequest>(r.create(), from, to);
-      }
+      dead.dead.emplace(b);
+      const entt::entity from = b;
+      const entt::entity to = a;
+      r.emplace<DealDamageRequest>(r.create(), from, to);
     }
   }
 }

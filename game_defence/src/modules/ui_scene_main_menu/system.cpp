@@ -3,6 +3,8 @@
 #include "entt/helpers.hpp"
 #include "events/helpers/controller.hpp"
 #include "modules/scene/helpers.hpp"
+#include "modules/ui_level_editor/components.hpp"
+#include "modules/ui_level_editor/helpers.hpp"
 #include "renderer/components.hpp"
 
 #include <glm/glm.hpp>
@@ -58,15 +60,36 @@ update_ui_scene_main_menu(engine::SINGLETON_Application& app, entt::registry& r)
     do_ui_action = true;
     selected = 0;
   }
-  if (selected == 0 && do_ui_action)
+  if (selected == 0 && do_ui_action) {
+
+    // If you've clicked the play button, assume the game is playing live for real
+    auto& editor = get_first_component<SINGLETON_LevelEditor>(r);
+    editor.mode = LevelEditorMode::play;
+
     move_to_scene_start(r, Scene::game);
 
-  ImGui::Selectable("Quit", selected == 1, 0, size);
+    // hack: load a level
+    load(r, "assets/maps/main.json");
+  }
+
+  ImGui::Selectable("Map Edit", selected == 1, 0, size);
   if (ImGui::IsItemClicked()) {
     do_ui_action = true;
     selected = 1;
   }
-  if (selected == 1 && do_ui_action)
+  if (selected == 1 && do_ui_action) {
+    // If you've clicked the play button, assume the game is playing live for real
+    auto& editor = get_first_component<SINGLETON_LevelEditor>(r);
+    editor.mode = LevelEditorMode::edit;
+    move_to_scene_start(r, Scene::game);
+  }
+
+  ImGui::Selectable("Quit", selected == 2, 0, size);
+  if (ImGui::IsItemClicked()) {
+    do_ui_action = true;
+    selected = 2;
+  }
+  if (selected == 2 && do_ui_action)
     app.running = false;
 
   ImGui::PopStyleVar();

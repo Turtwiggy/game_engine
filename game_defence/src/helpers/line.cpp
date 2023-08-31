@@ -5,8 +5,8 @@
 
 namespace game2d {
 
-void
-set_line(entt::registry& r, TransformComponent& t, const glm::ivec2& a, const glm::ivec2& b)
+LineInfo
+generate_line(const glm::ivec2& a, const glm::ivec2& b, const int width)
 {
   glm::vec2 raw_dir = { b.x - a.x, b.y - a.y };
   glm::vec2 nrm_dir = raw_dir;
@@ -14,10 +14,12 @@ set_line(entt::registry& r, TransformComponent& t, const glm::ivec2& a, const gl
     nrm_dir = glm::normalize(raw_dir);
   float angle = engine::dir_to_angle_radians(nrm_dir);
 
-  t.rotation_radians.z = angle + engine::HALF_PI;
-  t.scale.x = 4; // width
-  t.scale.y = sqrt(pow(raw_dir.x, 2) + pow(raw_dir.y, 2));
-  t.position = { (a.x + a.x + raw_dir.x) / 2, (a.y + a.y + raw_dir.y) / 2, 0 };
+  LineInfo line;
+  line.position = { (a.x + a.x + raw_dir.x) / 2, (a.y + a.y + raw_dir.y) / 2 };
+  line.rotation = angle + engine::HALF_PI;
+  line.scale.x = width;
+  line.scale.y = sqrt(pow(raw_dir.x, 2) + pow(raw_dir.y, 2));
+  return line;
 };
 
 // void

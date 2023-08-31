@@ -9,8 +9,9 @@
 #include "lifecycle/components.hpp"
 #include "maths/maths.hpp"
 #include "modules/actor_enemy/components.hpp"
-#include "modules/physics/components.hpp"
-#include "modules/actor_player/components.hpp"
+#include "modules/combat_attack_cooldown/components.hpp"
+#include "modules/combat_attack_cooldown/helpers.hpp"
+#include "physics/components.hpp"
 #include "renderer/components.hpp"
 #include "sprites/components.hpp"
 
@@ -21,28 +22,41 @@ update_turret_system(entt::registry& r, const uint64_t& ms_dt)
 {
   const float dt = ms_dt / 1000.0f;
   const auto& physics = get_first_component<SINGLETON_PhysicsComponent>(r);
-  const auto& enemies = r.view<const EnemyComponent, const TransformComponent>();
-  const auto& turrets = r.view<TurretComponent, TransformComponent>();
-  const auto& player = get_first<PlayerComponent>(r); // assume one player for now
-  const float turret_bullet_speed = 20.0f;
+  const float turret_bullet_speed = 200.0f;
 
-  const std::vector<EntityType> valid_types{
-    EntityType::actor_enemy,
-    EntityType::actor_spawner,
-  };
+  const auto& turrets = r.view<TurretComponent, TransformComponent, AttackCooldownComponent>();
+  for (const auto& [t_entity, turret, t, cooldown] : turrets.each()) {
 
-  for (auto [t_entity, turret, t] : turrets.each()) {
+    const auto target = get_closest(r, t_entity);
+    if (target == entt::null)
+      continue;
 
-    //
-    // Get Closest Entity to turret
-    //
-    const auto info = get_closest(r, t_entity, valid_types);
+    // auto& target = turret.target;
 
-    if (info.e == entt::null)
-      continue; // no enemy
+    // // Check the existing target
+    // if (!r.valid(target))
+    //   target = entt::null;
+    // if (target != entt::null) {
+    //   auto* hp = r.try_get<HealthComponent>(target);
+    //   if (!hp)
+    //     target = entt::null;
+    //   if (hp && hp->hp <= 0)
+    //     target = entt::null;
+    // }
+
+    // // Get new target if needed
+    // if (target == entt::null) {
+    //   const auto info = get_closest(r, t_entity);
+    //   if (info != std::nullopt)
+    //     target = info.value();
+    // }
+
+    // // if still no target...
+    // if (target == entt::null)
+    //   continue; // next!
 
     // get the dir to the target
-    auto& e_transform = r.get<TransformComponent>(info.e);
+    auto& e_transform = r.get<TransformComponent>(target);
     const auto& a = e_transform.position;
     const auto& b = t.position;
     glm::vec2 raw_dir = { b.x - a.x, b.y - a.y };
@@ -62,22 +76,20 @@ update_turret_system(entt::registry& r, const uint64_t& ms_dt)
     // request to shoot
     //
 
-    if (turret.active)
-      turret.time_between_bullets_left -= dt;
-
-    if (turret.time_between_bullets_left < 0.0f) {
+    if (!cooldown.on_cooldown) {
 
       CreateEntityRequest req;
-      req.type = turret.type_to_spawn;
-      req.position = { offset_pos.x, offset_pos.y, 0 };
+      req.type = EntityType::bullet_default;
+      TransformComponent t;
+      t.position = { offset_pos.x, offset_pos.y, 0 };
+      req.transform = t;
       req.velocity = glm::vec3(-nrm_dir.x * turret_bullet_speed, -nrm_dir.y * turret_bullet_speed, 0);
       r.emplace<CreateEntityRequest>(r.create(), req);
 
       // request audio
       // r.emplace<AudioRequestPlayEvent>(r.create(), "SHOOT_02");
 
-      // reset timer
-      turret.time_between_bullets_left = turret.time_between_bullets;
+      reset_cooldown(cooldown);
     }
   }
 };

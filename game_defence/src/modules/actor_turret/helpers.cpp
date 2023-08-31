@@ -1,8 +1,8 @@
 #include "helpers.hpp"
 
 #include "entt/helpers.hpp"
-#include "modules/physics/components.hpp"
 #include "modules/actor_spawner/components.hpp" // hack: shouldnt be here
+#include "physics/components.hpp"
 #include "renderer/components.hpp"
 
 #include <algorithm>
@@ -10,13 +10,11 @@
 
 namespace game2d {
 
-ClosestInfo
-get_closest(entt::registry& r, const entt::entity& e, const std::vector<EntityType>& types)
+entt::entity
+get_closest(entt::registry& r, const entt::entity& e)
 {
   const auto& physics = get_first_component<const SINGLETON_PhysicsComponent>(r);
   const auto& t = r.get<TransformComponent>(e);
-
-  ClosestInfo info;
 
   std::optional<int> idx_x;
   std::optional<int> idx_y;
@@ -32,67 +30,55 @@ get_closest(entt::registry& r, const entt::entity& e, const std::vector<EntityTy
     idx_y = it_y - physics.sorted_y.begin();
 
   if (!idx_x.has_value())
-    return info; // this turret missing from the sorted entity list?
+    return entt::null;
   if (!idx_y.has_value())
-    return info; // this turret missing from the sorted entity list?
+    return entt::null;
 
-  auto evaluate_closest = [&r, &t, &types](const std::vector<entt::entity>& sorted, int i) -> ClosestInfo {
-    ClosestInfo oinfo;
-    auto other_entity = sorted[i];
-    auto other_type = r.get<EntityTypeComponent>(other_entity);
-
-    const bool type_of_interest = std::find(types.begin(), types.end(), other_type.type) != types.end();
-    if (!type_of_interest)
-      return oinfo; // early exit
-
-    // HACK....
-    // make sure to only target enemy spawners
-    if (other_type.type == EntityType::actor_spawner) {
-      const auto& spawning = r.get<SpawnerComponent>(other_entity);
-      if (spawning.type_to_spawn != EntityType::actor_enemy)
-        return oinfo; // early exit
-    }
+  const auto evaluate_closest_enemy = [&r, &t](const entt::entity& other, TargetInfo& info) -> bool {
+    auto* team = r.try_get<TeamComponent>(other);
+    if (!team || team->team != AvailableTeams::enemy)
+      return false;
 
     // calculate distance
-    const auto& other_pos = r.get<TransformComponent>(other_entity);
-    auto d = t.position - other_pos.position;
-    int d2 = d.x * d.x + d.y * d.y;
+    const auto& other_pos = r.get<TransformComponent>(other);
+    const auto d = t.position - other_pos.position;
+    const int d2 = d.x * d.x + d.y * d.y;
 
-    // update info
-    oinfo.e = other_entity;
-    oinfo.distance2 = d2;
-    return oinfo;
+    if (d2 < info.distance2) {
+      info.distance2 = d2;
+      info.e = other;
+      return true;
+    }
+    return false;
   };
+
+  TargetInfo info;
 
   // check left...
   for (int i = idx_x.value() - 1; i >= 0; i--) {
-    const auto oinfo = evaluate_closest(physics.sorted_x, i);
-    if (oinfo.distance2 < info.distance2)
-      info = oinfo;
+    if (evaluate_closest_enemy(physics.sorted_x[i], info))
+      break;
   }
 
   // check right...
   for (int i = idx_x.value() + 1; i < physics.sorted_x.size(); i++) {
-    const auto oinfo = evaluate_closest(physics.sorted_x, i);
-    if (oinfo.distance2 < info.distance2)
-      info = oinfo;
+    if (evaluate_closest_enemy(physics.sorted_x[i], info))
+      break;
   }
 
   // check up... (y gets less)
   for (int i = idx_y.value() - 1; i >= 0; i--) {
-    const auto oinfo = evaluate_closest(physics.sorted_y, i);
-    if (oinfo.distance2 < info.distance2)
-      info = oinfo;
+    if (evaluate_closest_enemy(physics.sorted_y[i], info))
+      break;
   }
 
   // check down... (y gets greater)
   for (int i = idx_y.value() + 1; i < physics.sorted_y.size(); i++) {
-    const auto oinfo = evaluate_closest(physics.sorted_y, i);
-    if (oinfo.distance2 < info.distance2)
-      info = oinfo;
+    if (evaluate_closest_enemy(physics.sorted_y[i], info))
+      break;
   }
 
-  return info;
+  return info.e;
 };
 
 } // namespace game2d

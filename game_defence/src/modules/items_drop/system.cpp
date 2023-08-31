@@ -3,6 +3,7 @@
 #include "components.hpp"
 #include "entt/helpers.hpp"
 #include "lifecycle/components.hpp"
+#include "modules/combat_damage/components.hpp"
 
 namespace game2d {
 
@@ -13,8 +14,8 @@ update_intent_drop_item_system(entt::registry& r)
   // enemies drop some xp
   const auto& dead = get_first_component<SINGLETON_EntityBinComponent>(r);
   for (const auto& dead : dead.dead) {
-    const auto& type = r.get<EntityTypeComponent>(dead);
-    if (type.type == EntityType::actor_enemy)
+    const auto* team = r.try_get<TeamComponent>(dead);
+    if (team && team->team == AvailableTeams::enemy)
       r.emplace<WantsToDrop>(dead);
   }
 
@@ -23,8 +24,8 @@ update_intent_drop_item_system(entt::registry& r)
   for (const auto& [entity, transform, request] : view.each()) {
 
     CreateEntityRequest req;
-    req.type = EntityType::pickup_xp;
-    req.position = transform.position;
+    req.type = EntityType::actor_pickup_xp;
+    req.transform = transform;
     r.emplace<CreateEntityRequest>(r.create(), req);
 
     // request is done... but entity will die next frame anyway

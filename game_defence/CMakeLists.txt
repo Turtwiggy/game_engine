@@ -65,11 +65,12 @@ find_path(STB_INCLUDE_DIRS "stb_c_lexer.h")
 
 # Add source files
 include(${CMAKE_SOURCE_DIR}/cmake/imgui.cmake)
+include(${CMAKE_SOURCE_DIR}/cmake/optick.cmake)
 file(GLOB_RECURSE SRC_FILES
   ${IMGUI_SOURCE}
+  ${OPTICK_SOURCE}
   ${CMAKE_SOURCE_DIR}/src/*.cpp
   ${CMAKE_SOURCE_DIR}/game_defence/src/*.cpp
-  ${CMAKE_SOURCE_DIR}/thirdparty/optick/src/*.cpp
 )
 
 add_executable(game_defence
@@ -93,13 +94,13 @@ endif()
 target_include_directories(game_defence PRIVATE
   ${IMGUI_INCLUDES}
   ${VCPKG_INCLUDES}
+  ${OPTICK_INCLUDES}
   ${STB_INCLUDE_DIRS}
   ${CMAKE_SOURCE_DIR}/src
   ${CMAKE_SOURCE_DIR}/game_defence/src
   ${CMAKE_SOURCE_DIR}/thirdparty/entt/single_include
   ${CMAKE_SOURCE_DIR}/thirdparty/magic_enum
   ${CMAKE_SOURCE_DIR}/thirdparty/imgui-filebrowser
-  ${CMAKE_SOURCE_DIR}/thirdparty/optick/src
 )
 
 if(EMSCRIPTEN)

@@ -11,17 +11,14 @@ template<class T>
 [[nodiscard]] entt::entity
 get_first(entt::registry& r)
 {
-  const auto& view = r.view<T>();
-  if (view.size() == 0)
-    return entt::null;
-  return view.front();
+  return r.view<const T>().front();
 };
 
 template<class T>
 [[nodiscard]] T&
 get_first_component(entt::registry& r)
 {
-  const auto& e = get_first<T>(r);
+  const auto e = get_first<T>(r);
   return r.get<T>(e);
 };
 

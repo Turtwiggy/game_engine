@@ -32,7 +32,6 @@ struct PhysicsTransformYComponent
 struct PhysicsSolidComponent
 {
   bool placeholder = true;
-  NLOHMANN_DEFINE_TYPE_INTRUSIVE(PhysicsSolidComponent, placeholder);
 };
 
 struct PhysicsActorComponent

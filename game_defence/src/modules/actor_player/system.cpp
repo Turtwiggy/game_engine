@@ -12,7 +12,7 @@
 #include "modules/actor_player/components.hpp"
 #include "modules/actor_turret/components.hpp"
 #include "modules/items_pickup/components.hpp"
-#include "modules/physics/components.hpp"
+#include "physics/components.hpp"
 #include "renderer/components.hpp"
 #include "sprites/components.hpp"
 
@@ -154,7 +154,10 @@ game2d::update_player_controller_system(entt::registry& r)
 
       CreateEntityRequest req;
       req.type = EntityType::actor_turret;
-      req.position = { aabb.center.x, aabb.center.y, 0 };
+
+      TransformComponent t;
+      t.position = { aabb.center.x, aabb.center.y, 0 };
+      req.transform = t;
       r.emplace<CreateEntityRequest>(r.create(), req);
     }
 

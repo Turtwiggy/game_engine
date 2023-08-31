@@ -16,14 +16,15 @@ namespace game2d {
 // as/when it makes sense
 struct PlayerComponent
 {
-  entt::entity pickup_area = entt::null;
   int picked_up_xp = 0;
 
   // build info
   int turrets_placed = 0;
 
+  // weapon
   bool has_weapon = false;
-  EntityType weapon_to_spawn_with = EntityType::actor_bow;
+  EntityType weapon_to_spawn_with = EntityType::weapon_bow;
+  float weapon_offset = 30.0f;
 };
 
 struct KeyboardComponent

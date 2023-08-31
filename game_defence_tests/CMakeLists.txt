@@ -69,8 +69,10 @@ find_package(GTest CONFIG REQUIRED)
 
 # Add source files
 include(${CMAKE_SOURCE_DIR}/cmake/imgui.cmake)
+include(${CMAKE_SOURCE_DIR}/cmake/optick.cmake)
 file(GLOB_RECURSE SRC_FILES
   ${IMGUI_SOURCE}
+  ${OPTICK_SOURCE}
   ${CMAKE_SOURCE_DIR}/src/*.cpp
   ${CMAKE_SOURCE_DIR}/game_defence/*.cpp
   ${CMAKE_SOURCE_DIR}/game_defence_tests/src/*.cpp
@@ -94,6 +96,7 @@ endif()
 target_include_directories(game_defence_tests PRIVATE
   ${IMGUI_INCLUDES}
   ${VCPKG_INCLUDES}
+  ${OPTICK_INCLUDES}
   ${STB_INCLUDE_DIRS}
   ${CMAKE_SOURCE_DIR}/src
   ${CMAKE_SOURCE_DIR}/game_defence/src

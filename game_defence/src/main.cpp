@@ -25,7 +25,7 @@ static uint64_t milliseconds_accumulator_since_last_tick = 0;
 static uint64_t new_time = 0;
 static uint64_t cur_time = 0;
 static uint64_t milliseconds_delta_time = 0;
-static const int allowed_ticks_per_frame = 3;
+static const int allowed_ticks_per_frame = 2;
 
 static SINGLETON_Application app;
 static entt::registry game;
@@ -55,20 +55,18 @@ main_loop(void* arg)
   while (milliseconds_accumulator_since_last_tick >= MILLISECONDS_PER_FIXED_TICK) {
     milliseconds_accumulator_since_last_tick -= MILLISECONDS_PER_FIXED_TICK;
 
-    // #if defined(_DEBUG)
-    //     const auto before_fixed_update = SDL_GetTicks64();
-    // #endif
+#if defined(_DEBUG)
+    const auto before_fixed_update = SDL_GetTicks64();
+#endif
 
     game2d::fixed_update(game, MILLISECONDS_PER_FIXED_TICK);
 
-    // #if defined(_DEBUG)
-    //     const auto after_fixed_update = SDL_GetTicks64();
-    //     const auto execution_time = after_fixed_update - before_fixed_update;
-    //     if (execution_time > MILLISECONDS_PER_FIXED_TICK) {
-    //       printf("uh oh! we're in trouble! fixedupdate() is SLOW FAM \n");
-    //       break; // stop doing fixed ticks
-    //     }
-    // #endif
+#if defined(_DEBUG)
+    const auto after_fixed_update = SDL_GetTicks64();
+    const auto execution_time = after_fixed_update - before_fixed_update;
+    if (execution_time > MILLISECONDS_PER_FIXED_TICK)
+      printf("uh oh! in trouble! fixedupdate() is taking too long \n");
+#endif
   }
 
   game2d::update(app, game, milliseconds_delta_time / 1000.0f);
@@ -108,13 +106,13 @@ main(int argc, char* argv[])
 #ifdef __EMSCRIPTEN__
   emscripten_set_main_loop_arg(main_loop, NULL, 0, true);
 #else
-  OPTICK_START_CAPTURE();
+  // OPTICK_START_CAPTURE();
 
   while (app.running)
     main_loop(nullptr);
 
-  OPTICK_STOP_CAPTURE();
-  OPTICK_SAVE_CAPTURE("GameCapture");
+    // OPTICK_STOP_CAPTURE();
+    // OPTICK_SAVE_CAPTURE("GameCapture");
 #endif
 
   return 0;

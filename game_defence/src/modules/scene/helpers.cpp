@@ -8,11 +8,10 @@
 #include "lifecycle/components.hpp"
 #include "maths/maths.hpp"
 #include "modules/actor_bow/components.hpp"
+#include "modules/actor_cursor/components.hpp"
 #include "modules/camera/orthographic.hpp"
-#include "modules/combat/helpers.hpp"
 #include "modules/gameover/components.hpp"
-#include "modules/physics/components.hpp"
-#include "modules/ui_economy/components.hpp"
+#include "physics/components.hpp"
 #include "renderer/components.hpp"
 #include "resources/colours.hpp"
 #include "resources/textures.hpp"
@@ -20,7 +19,7 @@
 namespace game2d {
 
 void
-move_to_scene_start(entt::registry& r, const Scene& s)
+move_to_scene_start(entt::registry& r, const Scene s)
 {
   {
     // entt::registry new_r;
@@ -34,45 +33,24 @@ move_to_scene_start(entt::registry& r, const Scene& s)
     // r = std::move(new_r);
   }
 
-  for (const auto& [entity, comp] : r.view<TransformComponent>().each()) {
-    if (auto* camera = r.try_get<OrthographicCamera>(entity))
-      continue; // dont destroy camera
-    r.destroy(entity);
-  }
-  for (const auto& [entity, comp] : r.view<EntityTypeComponent>().each())
-    r.destroy(entity); // actors
-  for (const auto& [entity, comp] : r.view<CreateEntityRequest>().each())
-    r.destroy(entity); // new actors
+  const auto& transforms = r.view<TransformComponent>(entt::exclude<OrthographicCamera>);
+  r.destroy(transforms.begin(), transforms.end());
+
+  const auto& actors = r.view<EntityTypeComponent>(entt::exclude<OrthographicCamera>);
+  r.destroy(actors.begin(), actors.end());
+
+  const auto& reqs = r.view<CreateEntityRequest>();
+  r.destroy(reqs.begin(), reqs.end());
 
   destroy_and_create<SINGLETON_CurrentScene>(r);
   destroy_and_create<SINGLETON_PhysicsComponent>(r);
   destroy_and_create<SINGLETON_EntityBinComponent>(r);
   destroy_and_create<SINGLETON_GameStateComponent>(r);
-  destroy_and_create<SINGLETON_Economy>(r);
-  destroy_and_create<SINGLETON_UiEconomy>(r);
   destroy_and_create<SINGLETON_ColoursComponent>(r);
   destroy_and_create<SINGLETON_GameOver>(r);
   destroy_and_create<SINGLETON_Wave>(r);
 
-  const auto& camera = get_first<OrthographicCamera>(r);
-  auto& camera_transform = get_first_component<TransformComponent>(r);
-
-  // const auto cursor = create_gameplay(r, EntityType::cursor);
-
-  if (s == Scene::game) {
-
-    const auto hearth = create_gameplay(r, EntityType::actor_hearth);
-    auto& hearth_transform = r.get<TransformComponent>(hearth);
-    const glm::ivec2 spawn_pos = { 0, 0 };
-    hearth_transform.position = { spawn_pos.x, spawn_pos.y, 0 };
-    camera_transform.position = { spawn_pos.x, spawn_pos.y, 0 };
-
-    const auto player = create_gameplay(r, EntityType::actor_player);
-    auto& player_aabb = r.get<AABB>(player);
-    player_aabb.center = { 32, 32 };
-
-    // todo: generate random spawns
-  }
+  const auto cursor = create_gameplay(r, EntityType::cursor);
 
   auto& scene = get_first_component<SINGLETON_CurrentScene>(r);
   scene.s = s; // done

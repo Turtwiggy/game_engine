@@ -2,8 +2,8 @@
 #include "process_actor_actor_collisions.hpp"
 
 // game2d
-#include "modules/physics/components.hpp"
-#include "modules/physics/helpers.hpp"
+#include "physics/components.hpp"
+#include "physics/helpers.hpp"
 #include "renderer/components.hpp"
 
 // other lib headers
@@ -19,6 +19,11 @@ game2d::update_actor_actor_collisions_system(entt::registry& r, SINGLETON_Physic
   // 3. generate collision enter, exit, stay
 
   p.frame_collisions.clear();
+
+  //
+  // generate filtered broadphase collisions
+  //
+
   generate_filtered_broadphase_collisions(r, p.frame_collisions);
 
   // TODO: filter with narrowphase collisions

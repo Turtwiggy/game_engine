@@ -3,6 +3,8 @@
 #include "actors.hpp"
 #include "components.hpp"
 #include "lifecycle/components.hpp"
+#include "modules/combat_attack_cooldown/components.hpp"
+#include "modules/combat_attack_cooldown/helpers.hpp"
 #include "renderer/components.hpp"
 
 namespace game2d {
@@ -21,22 +23,20 @@ update_spawner_system(entt::registry& r, const uint64_t milliseconds_dt)
 {
   const float dt = milliseconds_dt / 1000.0f;
 
-  const auto& view = r.view<const TransformComponent, SpawnerComponent>();
-  for (auto [entity, transform, spawner] : view.each()) {
+  const auto& view = r.view<const TransformComponent, SpawnerComponent, AttackCooldownComponent>();
+  for (const auto& [entity, transform, spawner, cooldown] : view.each()) {
 
-    if (spawner.continuous_spawn)
-      spawner.time_between_spawns_left -= dt;
+    if (cooldown.on_cooldown)
+      return;
 
-    if (spawner.continuous_spawn && spawner.time_between_spawns_left < 0.0f) {
+    if (spawner.continuous_spawn) {
 
       CreateEntityRequest req;
       req.type = spawner.type_to_spawn;
-      // spawn at current position
-      req.position = transform.position;
+      req.transform = transform; // at current pos
       r.emplace<CreateEntityRequest>(r.create(), req);
 
-      // reset timer
-      spawner.time_between_spawns_left = time_between_spawns;
+      reset_cooldown(cooldown);
     }
   }
 }

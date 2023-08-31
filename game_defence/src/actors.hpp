@@ -10,22 +10,42 @@ namespace game2d {
 
 enum class EntityType
 {
+  // warning: changing the positions of these elements
+  // could break the level-editor system
+  // as the order is used for unique-ids when saved to disk
+  // probably should do something else
+
+  // transform-only
   empty,
-  actor_arrow,
-  actor_bow,
-  actor_bullet,
-  actor_enemy,
+
+  // actors with only one type (so far)
   actor_hearth,
   actor_player,
   actor_spawner,
   actor_turret,
+  actor_pickup_xp,
+  actor_pickup_zone,
+  
+  // solids
+  solid_wall,
 
-  pickup_zone,
-  pickup_xp,
+  // actor_weapons,
+  weapon_bow,
+  // weapon_pistol,
+  // weapon_sniper,
+  // weapon_shotgun,
+
+  // actor_bullets,
+  bullet_default,
+  bullet_bow,
+
+  // actor_enemy,
+  enemy_grunt,
+  enemy_sniper,
+  enemy_shotgunner,
 
   // misc
   cursor,
-  line,
   particle,
 
   count
@@ -33,14 +53,20 @@ enum class EntityType
 
 struct EntityTypeComponent
 {
-  EntityType type;
-};
+  EntityType type = EntityType::count;
 
-using json = nlohmann::json;
-void
-to_json(json& j, const EntityTypeComponent& et);
-void
-from_json(const json& j, EntityTypeComponent& et);
+  // NLOHMANN_DEFINE_TYPE_INTRUSIVE(EntityTypeComponent, type);
+};
+inline void
+to_json(nlohmann::json& j, const EntityTypeComponent& et)
+{
+  j = nlohmann::json{ { "type", static_cast<int>(et.type) } };
+};
+inline void
+from_json(const nlohmann::json& j, EntityTypeComponent& et)
+{
+  j.at("type").get_to(et.type);
+};
 
 [[nodiscard]] entt::entity
 create_gameplay(entt::registry& r, const EntityType& type);
