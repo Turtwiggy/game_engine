@@ -1,7 +1,7 @@
 #include "system.hpp"
 
 #include "components.hpp"
-#include "physics//components.hpp"
+#include "physics/components.hpp"
 #include "renderer/components.hpp"
 
 namespace game2d {

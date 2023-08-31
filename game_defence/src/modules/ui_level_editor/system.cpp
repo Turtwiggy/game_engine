@@ -14,7 +14,7 @@
 #include "modules/scene/components.hpp"
 #include "modules/scene/helpers.hpp"
 #include "modules/ui_hierarchy/helpers.hpp"
-#include "physics//components.hpp"
+#include "physics/components.hpp"
 #include "renderer/components.hpp"
 
 #include "glm/glm.hpp"

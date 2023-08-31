@@ -88,11 +88,6 @@ ImGui_Manager::initialize(GameWindow& window)
   colors[ImGuiCol_TitleBgActive] = ImVec4{ 0.15f, 0.1505f, 0.151f, 1.0f };
   colors[ImGuiCol_TitleBgCollapsed] = ImVec4{ 0.15f, 0.1505f, 0.151f, 1.0f };
 
-  // Size
-  colors[ImGuiCol_TitleBg] = ImVec4{ 0.15f, 0.1505f, 0.151f, 1.0f };
-  colors[ImGuiCol_TitleBgActive] = ImVec4{ 0.15f, 0.1505f, 0.151f, 1.0f };
-  colors[ImGuiCol_TitleBgCollapsed] = ImVec4{ 0.15f, 0.1505f, 0.151f, 1.0f };
-
   ImGui_ImplSDL2_InitForOpenGL(window.get_handle(), window.get_gl_context());
   ImGui_ImplOpenGL3_Init(window.glsl_version.c_str());
 }

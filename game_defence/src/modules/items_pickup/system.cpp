@@ -6,7 +6,7 @@
 #include "lifecycle/components.hpp"
 #include "modules/actor_pickup_zone/components.hpp"
 #include "modules/actor_player/components.hpp"
-#include "physics//components.hpp"
+#include "physics/components.hpp"
 #include "renderer/components.hpp"
 
 #include <iostream>

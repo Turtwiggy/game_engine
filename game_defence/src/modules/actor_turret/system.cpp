@@ -11,7 +11,7 @@
 #include "modules/actor_enemy/components.hpp"
 #include "modules/combat_attack_cooldown/components.hpp"
 #include "modules/combat_attack_cooldown/helpers.hpp"
-#include "physics//components.hpp"
+#include "physics/components.hpp"
 #include "renderer/components.hpp"
 #include "sprites/components.hpp"
 

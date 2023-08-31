@@ -9,7 +9,7 @@
 #include "modules/combat_attack_cooldown/helpers.hpp"
 #include "modules/combat_damage/components.hpp"
 #include "modules/lerp_to_target/components.hpp"
-#include "physics//components.hpp"
+#include "physics/components.hpp"
 #include "renderer/components.hpp"
 
 #include <algorithm>

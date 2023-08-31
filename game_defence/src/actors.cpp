@@ -19,7 +19,7 @@
 #include "modules/items_pickup/components.hpp"
 #include "modules/lerp_to_target/components.hpp"
 #include "modules/respawn/components.hpp"
-#include "physics//components.hpp"
+#include "physics/components.hpp"
 #include "renderer/components.hpp"
 #include "resources/textures.hpp"
 #include "sprites/components.hpp"

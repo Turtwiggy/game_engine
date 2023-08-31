@@ -12,7 +12,7 @@
 #include "modules/actor_player/components.hpp"
 #include "modules/actor_turret/components.hpp"
 #include "modules/items_pickup/components.hpp"
-#include "physics//components.hpp"
+#include "physics/components.hpp"
 #include "renderer/components.hpp"
 #include "sprites/components.hpp"
 
