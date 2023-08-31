@@ -273,8 +273,7 @@ update_ui_level_editor_system(entt::registry& r, const glm::ivec2& input_mouse_p
         if (chosen_e != entt::null) {
           const auto& type = r.get<EntityTypeComponent>(chosen_e);
 
-          if(type.type == EntityType::solid_wall)
-          {
+          if (type.type == EntityType::solid_wall) {
             const auto line = generate_line(initial_pos, mouse_pos, line_width);
             // set position for aabb
             if (auto* aabb = r.try_get<AABB>(chosen_e))
@@ -286,8 +285,7 @@ update_ui_level_editor_system(entt::registry& r, const glm::ivec2& input_mouse_p
             transform.rotation_radians.z = line.rotation;
           }
 
-          if(type.type == EntityType::actor_spawner)
-          {
+          if (type.type == EntityType::actor_spawner) {
             // TODO: drag the spawn go-to location
           }
         }
