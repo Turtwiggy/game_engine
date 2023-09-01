@@ -26,19 +26,16 @@ void
 init_steam_datagram_connection_sockets()
 {
 #ifdef STEAMNETWORKINGSOCKETS_OPENSOURCE
-  std::cout << "(networking) STEAMNETWORKINGSOCKETS_OPENSOURCE "
-            << "\n";
+  std::cout << "(networking) STEAMNETWORKINGSOCKETS_OPENSOURCE\n";
 
   SteamDatagramErrMsg err;
   if (!GameNetworkingSockets_Init(nullptr, err)) {
-    std::cerr << "Failed to init gamenetworkingsockets"
-              << "\n";
+    std::cerr << "Failed to init gamenetworkingsockets\n";
     exit(0);
   }
 
 #else
-  std::cout << "GAMENETWORKINGSOCKETS init..."
-            << "\n";
+  std::cout << "GAMENETWORKINGSOCKETS init...\n";
 
   // SteamDatagram_SetAppID(570); // Just set something, doesn't matter what
   // SteamDatagram_SetUniverse(false, k_EUniverseDev);

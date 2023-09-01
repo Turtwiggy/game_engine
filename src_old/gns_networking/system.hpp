@@ -1,6 +1,6 @@
 #pragma once
 
-#include "components/app.hpp"
+#include <entt/entt.hpp>
 
 namespace game2d {
 

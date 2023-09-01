@@ -1,10 +1,10 @@
 #pragma once
 
-#include "components/app.hpp"
+#include <entt/entt.hpp>
 
 namespace game2d {
 
 void
-update_ui_networking_system(GameEditor& editor, Game& game);
+update_ui_networking_system(entt::registry& r);
 
 } // namespace game2d

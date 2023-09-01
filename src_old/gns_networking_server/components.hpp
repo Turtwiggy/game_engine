@@ -12,11 +12,6 @@
 
 namespace game2d {
 
-// struct Client
-// {
-//   std::string nickname;
-// };
-
 enum class ServerEvents
 {
   CLIENT_DROPPED,
@@ -27,15 +22,6 @@ struct ClientMessage
 {
   std::string data;
   HSteamNetConnection conn;
-};
-
-struct SINGLETON_ClientComponent
-{
-  int fixed_frame = 0;
-  int simulation_frame = 0;
-
-  ISteamNetworkingSockets* interface;
-  HSteamNetConnection connection;
 };
 
 struct SINGLETON_ServerComponent

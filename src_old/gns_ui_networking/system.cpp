@@ -1,7 +1,8 @@
 #include "system.hpp"
 
-#include "networking/components.hpp"
-#include "ui_networking/components.hpp"
+#include "modules/entt/helpers.hpp"
+#include "modules/networking/components.hpp"
+#include "modules/ui_networking/components.hpp"
 
 #include <imgui.h>
 #include <steam/isteamnetworkingutils.h>
@@ -9,12 +10,9 @@
 namespace game2d {
 
 void
-update_ui_networking_system(GameEditor& editor, Game& game)
+update_ui_networking_system(entt::registry& r)
 {
-  auto& ui = editor.networking_ui;
-
-  if (ui.start_offline)
-    return; // dont show networking panel if playing offline
+  auto& ui = get_first_component<SINGLETON_NetworkingUIComponent>(r);
 
   ImGui::Begin("Networking");
 
@@ -30,23 +28,20 @@ update_ui_networking_system(GameEditor& editor, Game& game)
   if (ImGui::Button("Start Offline"))
     ui.start_offline = true;
 
-  // if (r.ctx().contains<SINGLETON_ServerComponent>()) {
-  //   auto& server = r.ctx().at<SINGLETON_ServerComponent>();
-  //   ImGui::Text("You are a server");
-  //   ImGui::Text("You have %i clients", server.clients.size());
-  // }
+  if (auto* server = r.try_get<SINGLETON_ServerComponent>()) {
+    ImGui::Text("You are a server");
+    ImGui::Text("You have %i clients", server->clients.size());
+  }
 
-  // if (r.ctx().contains<SINGLETON_ClientComponent>()) {
-  //   auto& client = r.ctx().at<SINGLETON_ClientComponent>();
-  //   ImGui::Text("You are a client connected to a server");
-
-  //   SteamNetworkPingLocation_t ping;
-  //   float result = SteamNetworkingUtils()->GetLocalPingLocation(ping);
-  //   if (result == -1.0f)
-  //     ImGui::Text("Your ping is: n/a");
-  //   else
-  //     ImGui::Text("Your ping is: %s", std::to_string(result).c_str());
-  // }
+  if (auto* client = r.try_get<SINGLETON_ClientComponent>()) {
+    ImGui::Text("You are a client connected to a server");
+    SteamNetworkPingLocation_t ping;
+    float result = SteamNetworkingUtils()->GetLocalPingLocation(ping);
+    if (result == -1.0f)
+      ImGui::Text("Your ping is: n/a");
+    else
+      ImGui::Text("Your ping is: %s", std::to_string(result).c_str());
+  }
 
   ImGui::End();
 }

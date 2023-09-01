@@ -1,11 +1,11 @@
 #include "client.hpp"
 
 #include "app/application.hpp"
-#include "maths/grid.hpp"
-#include "simulate.hpp"
 #include "events/components.hpp"
 #include "events/helpers/keyboard.hpp"
 #include "events/helpers/mouse.hpp"
+#include "maths/grid.hpp"
+#include "simulate.hpp"
 
 #include <nlohmann/json.hpp>
 
@@ -36,8 +36,7 @@ start_client(GameEditor& editor, Game& game, const std::string& addr)
     serverAddr.ToString(szAddr, sizeof(szAddr), true);
 
     SteamNetworkingConfigValue_t opt;
-    opt.SetPtr(k_ESteamNetworkingConfig_Callback_ConnectionStatusChanged,
-               (void*)SteamNetConnectionStatusChangedCallback);
+    opt.SetPtr(k_ESteamNetworkingConfig_Callback_ConnectionStatusChanged, (void*)SteamNetConnectionStatusChangedCallback);
     auto conn = client.interface->ConnectByIPAddress(serverAddr, 1, &opt);
     if (conn == k_HSteamNetConnection_Invalid) {
       std::cerr << "(client) invalid server addr: " << szAddr << "\n";
@@ -45,10 +44,8 @@ start_client(GameEditor& editor, Game& game, const std::string& addr)
       // successfully connected
       client.connection = conn;
     }
-  } else {
-    std::cerr << "Failed to parse server's address for the client"
-              << "\n";
-  }
+  } else
+    std::cerr << "Failed to parse server's address for the client\n";
 }
 
 void
@@ -109,8 +106,7 @@ game2d::client_poll_connections(SINGLETON_ClientComponent& client)
           std::cout << "We sought the remote host, yet our efforts were met with defeat." << info.m_info.m_szEndDebug
                     << "\n";
         } else if (info.m_info.m_eState == k_ESteamNetworkingConnectionState_ProblemDetectedLocally) {
-          std::cout << "Alas, troubles beset us; we have lost contact with the host. " << info.m_info.m_szEndDebug
-                    << "\n";
+          std::cout << "Alas, troubles beset us; we have lost contact with the host. " << info.m_info.m_szEndDebug << "\n";
         } else {
           // NOTE: We could check the reason code for a normal disconnection
           std::cout << "The host hath bidden us farewell. " << info.m_info.m_szEndDebug << "\n";
