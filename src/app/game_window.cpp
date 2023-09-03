@@ -31,8 +31,7 @@ GameWindow::GameWindow(const std::string& title, int width, int height, DisplayM
   SDL_VERSION(&compiledVersion);
   SDL_GetVersion(&linkedVersion);
 
-  std::cout << "Initializing SDL..."
-            << "\n";
+  std::cout << "Initializing SDL...\n";
   std::cout << "SDL Version/Compiled " << unsigned(compiledVersion.major) << "." << unsigned(compiledVersion.minor) << "."
             << unsigned(compiledVersion.patch) << "\n";
   std::cout << "SDL Version/Linked " << unsigned(linkedVersion.major) << "." << unsigned(linkedVersion.minor) << "."
@@ -100,8 +99,8 @@ GameWindow::GameWindow(const std::string& title, int width, int height, DisplayM
 // windows
 #elif defined(SDL_VIDEO_DRIVER_WINDOWS)
   // renderdoc requires opengl 3.2+
-  opengl_major = 3;
-  opengl_minor = 3;
+  opengl_major = 4;
+  opengl_minor = 6;
   SDL_GL_SetAttribute(SDL_GL_CONTEXT_PROFILE_MASK, SDL_GL_CONTEXT_PROFILE_CORE);
 
   // opengl_major = 3;

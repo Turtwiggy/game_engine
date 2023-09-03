@@ -53,6 +53,9 @@ load_textures(const std::vector<std::pair<int, std::string>>& textures_to_load);
 [[nodiscard]] std::vector<unsigned int>
 load_textures_threaded(const std::vector<std::pair<int, std::string>>& textures_to_load);
 
+[[nodiscard]] LinearTexture
+load_texture_linear(const int tex_unit, const std::string& path);
+
 [[nodiscard]] unsigned int
 bind_linear_texture(const LinearTexture& texture);
 

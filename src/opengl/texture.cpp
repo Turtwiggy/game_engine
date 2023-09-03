@@ -167,10 +167,13 @@ engine::new_texture_to_fbo(unsigned int& out_fbo_id, int& out_tex_id, const int 
   Framebuffer::bind_fbo(fbo_id);
   RenderCommand::set_viewport(0, 0, size.x, size.y);
 
+  // add a colour texture
   unsigned int tex_id;
   glGenTextures(1, &tex_id);
   glBindTexture(GL_TEXTURE_2D, tex_id);
-  glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, size.x, size.y, 0, GL_RGB, GL_UNSIGNED_BYTE, NULL);
+
+  // create a texture for the colour attachment
+  glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, size.x, size.y, 0, GL_RGBA, GL_UNSIGNED_BYTE, NULL);
   glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
   glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
   glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
@@ -180,7 +183,6 @@ engine::new_texture_to_fbo(unsigned int& out_fbo_id, int& out_tex_id, const int 
   // tell opengl which colour attachments we'll use of this framebuffer
   unsigned int attachments[1] = { GL_COLOR_ATTACHMENT0 };
   glDrawBuffers(1, attachments);
-
   if (glCheckFramebufferStatus(GL_FRAMEBUFFER) != GL_FRAMEBUFFER_COMPLETE) {
     std::cerr << "(FBO: main_scene) ERROR: Framebuffer not complete!\n";
     CHECK_OPENGL_ERROR(1);

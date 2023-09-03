@@ -18,13 +18,12 @@
 namespace game2d {
 
 void
-update_camera_system(entt::registry& r, float dt)
+update_camera_system(entt::registry& r, const float dt)
 {
   const auto& ri = get_first_component<SINGLETON_RendererInfo>(r);
   const auto& input = get_first_component<SINGLETON_InputComponent>(r);
   const auto camera_ent = get_first<OrthographicCamera>(r);
 
-  // update ortho
   auto& camera = r.get<OrthographicCamera>(camera_ent);
   auto& camera_transform = r.get<TransformComponent>(camera_ent);
   TransformComponent offset_transform = camera_transform;
@@ -49,9 +48,8 @@ update_camera_system(entt::registry& r, float dt)
   // if (get_key_held(input, SDL_SCANCODE_LSHIFT))
   //   CAM_SPEED *= 2.0f;
 
-  float CAM_SPEED = 500.0f;
+  const float CAM_SPEED = 500.0f;
   const int mul = static_cast<int>(CAM_SPEED * dt);
-
   if (get_key_held(input, SDL_SCANCODE_A))
     camera_transform.position.x -= mul;
   if (get_key_held(input, SDL_SCANCODE_D))
@@ -60,8 +58,6 @@ update_camera_system(entt::registry& r, float dt)
     camera_transform.position.y -= mul;
   if (get_key_held(input, SDL_SCANCODE_S))
     camera_transform.position.y += mul;
-
-  //   glm::vec3 lerp_pos = glm::lerp(pos_as_vec3, target_position, glm::clamp(dt * damping, 0.0f, 1.0f));
 
   // if (get_mouse_mmb_held()) { // pan
   // if (get_mouse_lmb_held()) { // rotate

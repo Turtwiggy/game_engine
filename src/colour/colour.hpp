@@ -34,7 +34,15 @@ struct LinearColour
   float b = 0.0f;
   float a = 0.0f;
 
-  LinearColour() = default;
+  constexpr LinearColour() = default;
+
+  constexpr LinearColour(float cr, float cg, float cb, float ca)
+    : r(cr)
+    , g(cg)
+    , b(cb)
+    , a(ca)
+  {
+  }
 };
 
 LinearColour

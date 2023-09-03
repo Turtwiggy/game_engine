@@ -114,86 +114,14 @@ game2d::render_texture_to_imgui_viewport(const int64_t& tex_id)
   return vi;
 }
 
-game2d::TextureUnit
-game2d::request_texture(std::vector<Texture>& textures,
-                        const std::optional<std::string>& path,
-                        const std::optional<std::string>& spritesheet)
+bool
+game2d::check_if_viewport_resize(const SINGLETON_RendererInfo& ri)
 {
-  game2d::Texture t;
-  if (path.has_value())
-    t.path = path.value();
-  if (spritesheet.has_value())
-    t.spritesheet_path = spritesheet.value();
+  auto viewport_wh = ri.viewport_size_render_at;
 
-  // The main point of this function is to keep a track of "assigned" textures.
-  // In this case, we just increment the tex_unit based on the number
-  // of textures in the array. This use case falls apart if a texture would
-  // be "unassigned" but that currently does not need to happen at runtime.
-  t.tex_unit = game2d::TextureUnit(static_cast<int>(textures.size()));
-
-  textures.push_back(t);
-
-  return t.tex_unit;
-};
-
-void
-game2d::rebind(const SINGLETON_RendererInfo& ri, const std::vector<Texture>& tex, const glm::ivec2& wh)
-{
-  for (const Texture& texture : tex) {
-    glActiveTexture(GL_TEXTURE0 + texture.tex_unit.unit);
-    glBindTexture(GL_TEXTURE_2D, texture.tex_id.id);
-  }
-
-  glm::mat4 projection = calculate_ortho_projection(wh.x, wh.y);
-
-  {
-    std::vector<int> tex_units;
-    for (int i = 0; i < tex.size(); i++) {
-      if (tex[i].path != "")
-        tex_units.push_back(tex[i].tex_unit.unit);
-    }
-
-    ri.instanced.bind();
-    ri.instanced.set_mat4("projection", projection);
-    ri.instanced.set_int("tex", tex_units[0]);
-  }
-
-  {
-    ri.linear_to_srgb.bind();
-    ri.linear_to_srgb.set_mat4("projection", projection);
-    ri.linear_to_srgb.set_int("tex", ri.tex_unit_main);
-  }
-};
-
-void
-game2d::check_if_viewport_resize(SINGLETON_RendererInfo& ri, const std::vector<Texture>& tex, glm::ivec2& viewport_wh)
-{
   if (ri.viewport_size_current.x > 0.0f && ri.viewport_size_current.y > 0.0f &&
       (viewport_wh.x != ri.viewport_size_current.x || viewport_wh.y != ri.viewport_size_current.y)) {
-
-    // A resize occured!
-
-    ri.viewport_size_render_at = ri.viewport_size_current;
-    viewport_wh = ri.viewport_size_render_at;
-
-    // update fbo textures
-    {
-      engine::bind_tex(ri.tex_id_main);
-      engine::update_bound_texture_size(viewport_wh);
-      engine::unbind_tex();
-    }
-    {
-      engine::bind_tex(ri.tex_id_lighting);
-      engine::update_bound_texture_size(viewport_wh);
-      engine::unbind_tex();
-    }
-    {
-      engine::bind_tex(ri.tex_id_srgb);
-      engine::update_bound_texture_size(viewport_wh);
-      engine::unbind_tex();
-    }
-
-    engine::RenderCommand::set_viewport(0, 0, viewport_wh.x, viewport_wh.y);
-    game2d::rebind(ri, tex, viewport_wh);
+    return true;
   }
+  return false;
 }

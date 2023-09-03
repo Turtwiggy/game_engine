@@ -49,7 +49,6 @@
 #include "renderer/components.hpp"
 #include "renderer/system.hpp"
 #include "resources/colours.hpp"
-#include "resources/textures.hpp"
 #include "sprites/components.hpp"
 #include "sprites/helpers.hpp"
 
@@ -63,16 +62,7 @@ game2d::init(engine::SINGLETON_Application& app, entt::registry& r)
 {
   {
     SINGLETON_Animations anims;
-    SINGLETON_Textures textures;
-    {
-      Texture kenny_texture;
-      kenny_texture.path = std::string("assets/textures/kennynl_1bit_pack/monochrome_transparent_packed.png");
-      kenny_texture.spritesheet_path = std::string("assets/config/spritemap_kennynl.json");
-      load_sprites(anims.animations, kenny_texture.spritesheet_path);
-      textures.textures.push_back(kenny_texture);
-    }
-    init_textures(textures);
-    r.emplace<SINGLETON_Textures>(r.create(), textures);
+    load_sprites(anims.animations, "assets/config/spritemap_kennynl.json");
     r.emplace<SINGLETON_Animations>(r.create(), anims);
   }
 
@@ -90,13 +80,14 @@ game2d::init(engine::SINGLETON_Application& app, entt::registry& r)
 
   const auto camera = r.create();
   r.emplace<TagComponent>(camera, "camera");
-  r.emplace<OrthographicCamera>(camera);
+  OrthographicCamera camera_info;
+  camera_info.projection = calculate_ortho_projection(app.width, app.height);
+  r.emplace<OrthographicCamera>(camera, camera_info);
   r.emplace<TransformComponent>(camera);
 
-  auto& textures = get_first_component<SINGLETON_Textures>(r).textures;
   auto& ri = get_first_component<SINGLETON_RendererInfo>(r);
+  init_render_system(app, r, ri); // init after camera
   init_audio_system(r);
-  init_render_system(app, r, ri, textures);
   init_input_system(r);
 
   move_to_scene_start(r, Scene::menu);
@@ -209,8 +200,7 @@ game2d::update(engine::SINGLETON_Application& app, entt::registry& r, const floa
 
   {
     OPTICK_EVENT("(update)-update-render-system");
-    auto& texs = get_first_component<SINGLETON_Textures>(r).textures;
-    update_render_system(r, texs);
+    update_render_system(r);
   }
 
   {
@@ -240,7 +230,7 @@ game2d::update(engine::SINGLETON_Application& app, entt::registry& r, const floa
 #if defined(_DEBUG)
     static bool show_editor_ui = true;
     if (show_editor_ui) {
-      // update_ui_hierarchy_system(r);
+      update_ui_hierarchy_system(r);
       update_ui_level_editor_system(r, mouse_pos);
       auto& colours = get_first_component<SINGLETON_ColoursComponent>(r);
       // update_ui_colours_system(colours);

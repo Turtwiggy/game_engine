@@ -56,6 +56,7 @@ struct TextureUnit
 };
 
 // known after bind
+// i.e. chosen by opengl
 struct TextureId
 {
   int id = 0;
@@ -80,17 +81,31 @@ struct SINGLETON_RendererInfo
   // fbo
   unsigned int fbo_linear_main_scene = 0;
   unsigned int fbo_linear_lighting = 0;
+  unsigned int fbo_voronoi_seed = 0;
+  unsigned int fbo_jump_flood = 0;
   unsigned int fbo_srgb_main_scene = 0;
-  int tex_unit_main = 0;
-  int tex_unit_lighting = 0;
-  int tex_unit_srgb = 0;
+
+  int tex_unit_kennynl = 0;
+  int tex_unit_main_FBO = 1;
+  int tex_unit_lighting_FBO = 2;
+  int tex_unit_voronoi_seed_FBO = 3;
+  int tex_unit_jump_flood_FBO = 4;
+  int tex_unit_srgb_FBO = 5;
+
+  int tex_id_kenny = 0;
   int tex_id_main = 0;
   int tex_id_lighting = 0;
+  int tex_id_voronoi_seed = 0;
+  int tex_id_jump_flood = 0;
   int tex_id_srgb = 0;
+
   // shaders
   engine::Shader instanced;
-  engine::Shader fan;
+  engine::Shader lighting;
+  engine::Shader voronoi_seed;
+  engine::Shader jump_flood;
   engine::Shader linear_to_srgb;
+
   // viewport
   // note: values are updated in render
   glm::ivec2 viewport_size_render_at = { 0, 0 };

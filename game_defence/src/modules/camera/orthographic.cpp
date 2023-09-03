@@ -17,8 +17,7 @@ calculate_ortho_view(const TransformComponent& transform)
 {
   const auto identity = glm::mat4(1.0f);
   const auto position = glm::vec3(transform.position.x, transform.position.y, transform.position.z);
-  auto view = glm::translate(identity, position) *
-              glm::rotate(identity, glm::radians(transform.rotation_radians.z), glm::vec3(0, 0, 1));
+  auto view = glm::translate(identity, position) * glm::rotate(identity, transform.rotation_radians.z, glm::vec3(0, 0, 1));
   return glm::inverse(view);
 };
 

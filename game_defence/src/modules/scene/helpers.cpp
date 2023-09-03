@@ -14,7 +14,6 @@
 #include "physics/components.hpp"
 #include "renderer/components.hpp"
 #include "resources/colours.hpp"
-#include "resources/textures.hpp"
 
 namespace game2d {
 
