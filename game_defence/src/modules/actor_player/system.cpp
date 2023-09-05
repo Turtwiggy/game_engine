@@ -8,12 +8,12 @@
 #include "events/helpers/controller.hpp"
 #include "events/helpers/mouse.hpp"
 #include "helpers/line.hpp"
-#include "lifecycle/components.hpp"
+#include "modules/lifecycle/components.hpp"
 #include "modules/actor_player/components.hpp"
 #include "modules/actor_turret/components.hpp"
 #include "modules/items_pickup/components.hpp"
 #include "physics/components.hpp"
-#include "renderer/components.hpp"
+#include "modules/renderer/components.hpp"
 #include "sprites/components.hpp"
 
 #include <SDL2/SDL_keyboard.h>

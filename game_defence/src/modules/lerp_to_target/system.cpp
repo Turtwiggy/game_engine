@@ -1,7 +1,7 @@
 #include "system.hpp"
 
 #include "components.hpp"
-#include "renderer/components.hpp"
+#include "modules/renderer/components.hpp"
 #include <glm/gtx/compatibility.hpp> // lerp
 
 namespace game2d {

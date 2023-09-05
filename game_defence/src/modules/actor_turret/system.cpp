@@ -6,13 +6,13 @@
 #include "actors.hpp"
 #include "audio/components.hpp"
 #include "entt/helpers.hpp"
-#include "lifecycle/components.hpp"
+#include "modules/lifecycle/components.hpp"
 #include "maths/maths.hpp"
 #include "modules/actor_enemy/components.hpp"
 #include "modules/combat_attack_cooldown/components.hpp"
 #include "modules/combat_attack_cooldown/helpers.hpp"
 #include "physics/components.hpp"
-#include "renderer/components.hpp"
+#include "modules/renderer/components.hpp"
 #include "sprites/components.hpp"
 
 namespace game2d {

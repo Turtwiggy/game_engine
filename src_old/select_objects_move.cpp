@@ -8,7 +8,7 @@
 #include "events/components.hpp"
 #include "events/helpers/mouse.hpp"
 #include "physics/components.hpp"
-#include "renderer/components.hpp"
+#include "modules/renderer/components.hpp"
 #include "sprites/components.hpp"
 
 // engine headers

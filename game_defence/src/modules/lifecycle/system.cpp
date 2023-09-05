@@ -5,8 +5,8 @@
 #include "components.hpp"
 #include "entt/helpers.hpp"
 #include "modules/combat_damage/components.hpp"
+#include "modules/renderer/components.hpp"
 #include "physics/components.hpp"
-#include "renderer/components.hpp"
 #include "sprites/helpers.hpp"
 
 void

@@ -4,7 +4,6 @@
 // engine headers
 #include "entt/helpers.hpp"
 #include "maths/maths.hpp"
-#include "renderer/components.hpp"
 
 #include <algorithm>
 

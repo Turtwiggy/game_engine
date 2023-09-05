@@ -1,10 +1,9 @@
 #pragma once
 
 #include "actors.hpp"
-
 #include "entt/entt.hpp"
 #include "glm/glm.hpp"
-#include "renderer/components.hpp"
+#include "modules/renderer/components.hpp"
 
 #include <optional>
 #include <string>

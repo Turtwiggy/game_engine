@@ -2,11 +2,11 @@
 
 #include "actors.hpp"
 #include "entt/helpers.hpp"
-#include "lifecycle/components.hpp"
+#include "modules/lifecycle/components.hpp"
 #include "modules/actor_spawner/components.hpp"
 #include "modules/combat_damage/components.hpp"
 #include "modules/respawn/components.hpp"
-#include "renderer/components.hpp"
+#include "modules/renderer/components.hpp"
 
 namespace game2d {
 

@@ -3,7 +3,7 @@
 #include "colour/colour.hpp"
 #include "entt/helpers.hpp"
 #include "events/components.hpp"
-#include "lifecycle/components.hpp"
+#include "modules/lifecycle/components.hpp"
 #include "modules/actor_bow/components.hpp"
 #include "modules/actor_cursor/components.hpp"
 #include "modules/actor_enemy/components.hpp"
@@ -21,7 +21,7 @@
 #include "modules/lighting/components.hpp"
 #include "modules/respawn/components.hpp"
 #include "physics/components.hpp"
-#include "renderer/components.hpp"
+#include "modules/renderer/components.hpp"
 #include "sprites/components.hpp"
 #include "sprites/helpers.hpp"
 

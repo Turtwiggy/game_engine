@@ -1,6 +1,6 @@
 #pragma once
 
-#include "renderer/components.hpp"
+#include "modules/renderer/components.hpp"
 
 #include <glm/glm.hpp>
 

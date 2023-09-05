@@ -5,9 +5,9 @@
 #include "entt/helpers.hpp"
 #include "modules/camera/orthographic.hpp"
 #include "modules/lighting/components.hpp"
-#include "renderer/components.hpp"
-#include "renderer/helpers.hpp"
-#include "renderer/helpers/batch_quad.hpp"
+#include "modules/renderer//components.hpp"
+#include "modules/renderer//helpers.hpp"
+#include "modules/renderer//helpers/batch_quad.hpp"
 #include "resources/colours.hpp"
 #include "sprites/components.hpp"
 
@@ -256,6 +256,22 @@ game2d::update_render_system(entt::registry& r)
     RenderCommand::set_viewport(0, 0, viewport_wh.x, viewport_wh.y);
     RenderCommand::set_clear_colour_linear(background_col);
     RenderCommand::clear();
+
+    const auto passes = glm::ceil(glm::log(glm::max(viewport_wh.x, viewport_wh.y) / log(2.0)));
+    for (int i = 0; i < passes; i++) {
+      // offset for each pass is half the previous one, starting at half the square resolution rounded up to nearest power 2.
+      // i.e. for 768x512 we round up to 1024x1024 and the offset for the first pass is 512x512, then 256x256, etc.
+      const auto offset = glm::pow(2, passes - i - 1);
+
+      // on the first pass, use our existing render pass,
+      // on subsequent passes we duplicate the existing render pass.
+      // var render_pass;
+      // if(i == 0):
+      //    render_pass = $JumpFloodPass
+      // else:
+      //    render_pass = $JumpFloodPass.duplicate(0)
+    }
+
     {
       quad_renderer::QuadRenderer::reset_quad_vert_count();
       quad_renderer::QuadRenderer::begin_batch();

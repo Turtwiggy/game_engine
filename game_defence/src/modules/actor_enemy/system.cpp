@@ -8,7 +8,7 @@
 #include "modules/actor_hearth/components.hpp"
 #include "modules/actor_player/components.hpp"
 #include "physics/components.hpp"
-#include "renderer/components.hpp"
+#include "modules/renderer/components.hpp"
 
 #include <iostream>
 

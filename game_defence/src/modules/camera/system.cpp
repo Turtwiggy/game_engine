@@ -10,7 +10,7 @@
 #include "modules/actor_hearth/components.hpp"
 #include "modules/actor_player/components.hpp"
 #include "modules/camera/orthographic.hpp"
-#include "renderer/components.hpp"
+#include "modules/renderer/components.hpp"
 
 #include <glm/glm.hpp>
 #include <glm/gtx/compatibility.hpp>

@@ -2,7 +2,7 @@
 
 #include "components.hpp"
 #include "entt/helpers.hpp"
-#include "lifecycle/components.hpp"
+#include "modules/lifecycle/components.hpp"
 #include "modules/combat_flash_on_damage/components.hpp"
 #include "modules/combat_flash_on_damage/helpers.hpp"
 

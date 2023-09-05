@@ -2,12 +2,11 @@
 #include "physics/process_move_objects.hpp"
 
 // components
-#include "actors.hpp"
 #include "entt/helpers.hpp"
 #include "maths/maths.hpp"
 #include "physics/components.hpp"
 #include "physics/helpers.hpp"
-#include "renderer/components.hpp"
+#include "renderer/transform.hpp"
 
 #include "optick.h"
 

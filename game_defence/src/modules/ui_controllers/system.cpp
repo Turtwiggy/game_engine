@@ -5,7 +5,7 @@
 #include "events/helpers/controller.hpp"
 #include "events/helpers/mouse.hpp"
 #include "modules/camera/helpers.hpp"
-#include "renderer/components.hpp"
+#include "modules/renderer/components.hpp"
 
 #include <SDL2/SDL_gamecontroller.h>
 #include <algorithm>

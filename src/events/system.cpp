@@ -7,7 +7,6 @@
 #include "events/helpers/controller.hpp"
 #include "events/helpers/keyboard.hpp"
 #include "events/helpers/mouse.hpp"
-#include "renderer/components.hpp"
 
 #include <SDL2/SDL.h>
 #include <SDL2/SDL_events.h>
@@ -27,7 +26,6 @@ game2d::init_input_system(entt::registry& r)
 void
 game2d::update_input_system(engine::SINGLETON_Application& app, entt::registry& r)
 {
-  const auto& ri = get_first_component<SINGLETON_RendererInfo>(r);
   auto& input = get_first_component<SINGLETON_InputComponent>(r);
   input.update_since_last_fixed_update = true;
 

@@ -4,7 +4,6 @@
 // game2d
 #include "physics/components.hpp"
 #include "physics/helpers.hpp"
-#include "renderer/components.hpp"
 
 // other lib headers
 #include <glm/glm.hpp>

@@ -2,7 +2,7 @@
 
 #include "app/application.hpp"
 #include "colour/colour.hpp"
-#include "renderer/components.hpp"
+#include "modules/renderer/components.hpp"
 
 #include <entt/entt.hpp>
 

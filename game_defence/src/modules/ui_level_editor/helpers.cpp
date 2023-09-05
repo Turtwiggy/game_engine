@@ -1,7 +1,7 @@
 #include "helpers.hpp"
 
 #include "actors.hpp"
-#include "lifecycle/components.hpp"
+#include "modules/lifecycle/components.hpp"
 #include "modules/actor_cursor/components.hpp"
 #include "modules/scene/helpers.hpp"
 // #include "serialize.hpp"

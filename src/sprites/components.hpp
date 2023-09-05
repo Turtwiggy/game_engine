@@ -1,7 +1,6 @@
 #pragma once
 
 #include "colour/colour.hpp"
-#include "renderer/components.hpp"
 
 #include <entt/entt.hpp>
 #include <glm/glm.hpp>

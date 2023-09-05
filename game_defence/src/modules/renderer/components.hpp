@@ -1,5 +1,7 @@
 #pragma once
 
+#include "renderer/transform.hpp"
+
 // engine headers
 #include "opengl/shader.hpp"
 
@@ -13,13 +15,6 @@ namespace game2d {
 struct TagComponent
 {
   std::string tag;
-};
-
-struct TransformComponent
-{
-  glm::ivec3 position{ 0, 0, 0 };
-  glm::vec3 rotation_radians = { 0, 0, 0 };
-  glm::ivec3 scale{ 0, 0, 0 };
 };
 
 inline void
