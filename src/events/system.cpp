@@ -101,14 +101,14 @@ game2d::update_input_system(engine::SINGLETON_Application& app, entt::registry& 
         process_controller_removed(input);
       }
 
-      if (e.type == SDL_AUDIODEVICEADDED) {
-        // std::cout << "audio added" << std::endl;
-        process_audio_added(r);
-      }
-      if (e.type == SDL_AUDIODEVICEREMOVED) {
-        // std::cout << "audio removed" << std::endl;
-        process_audio_removed(r);
-      }
+      // if (e.type == SDL_AUDIODEVICEADDED) {
+      //   // std::cout << "audio added" << std::endl;
+      //   process_audio_added(r);
+      // }
+      // if (e.type == SDL_AUDIODEVICEREMOVED) {
+      //   // std::cout << "audio removed" << std::endl;
+      //   process_audio_removed(r);
+      // }
     };
   } // finished polling events
 

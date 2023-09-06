@@ -118,7 +118,7 @@ target_link_libraries(game_defence PRIVATE nlohmann_json::nlohmann_json)
 IF(${CMAKE_SYSTEM_NAME} STREQUAL "Windows")
   # Only do this for debug builds,
   # as release builds should copy the folder over (not symlink)
-  IF(CMAKE_BUILD_TYPE MATCHES DEBUG)
+  IF(CMAKE_BUILD_TYPE MATCHES Debug)
     # create symlink assets for build
     set(src ${CMAKE_SOURCE_DIR}/game_defence/assets)
     set(dst ${CMAKE_CURRENT_BINARY_DIR}/assets)
@@ -132,7 +132,7 @@ IF(${CMAKE_SYSTEM_NAME} STREQUAL "Windows")
 endif()
 
 IF(EMSCRIPTEN)
-  IF(CMAKE_BUILD_TYPE MATCHES DEBUG)
+  IF(CMAKE_BUILD_TYPE MATCHES Debug)
     # create symlink assets for build
     set(src ${CMAKE_SOURCE_DIR}/game_defence/assets)
     set(dst ${CMAKE_CURRENT_BINARY_DIR}/../assets)

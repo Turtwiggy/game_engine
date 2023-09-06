@@ -1,5 +1,5 @@
 #include "game.hpp"
-using namespace game3d;
+using namespace game2d;
 
 #include "app/application.hpp"
 #include "app/io.hpp"
@@ -55,10 +55,10 @@ main_loop(void* arg)
   while (milliseconds_accumulator_since_last_tick >= MILLISECONDS_PER_FIXED_TICK) {
     milliseconds_accumulator_since_last_tick -= MILLISECONDS_PER_FIXED_TICK;
 
-    game3d::fixed_update(game, MILLISECONDS_PER_FIXED_TICK);
+    game2d::fixed_update(game, MILLISECONDS_PER_FIXED_TICK);
   }
 
-  game3d::update(app, game, milliseconds_delta_time / 1000.0f);
+  game2d::update(app, game, milliseconds_delta_time / 1000.0f);
 
   engine::end_frame(app);
 }
@@ -89,7 +89,7 @@ main(int argc, char* argv[])
     engine::hide_windows_console();
 #endif
 
-  game3d::init(app, game);
+  game2d::init(app, game);
   CHECK_OPENGL_ERROR(0);
 
 #ifdef __EMSCRIPTEN__
