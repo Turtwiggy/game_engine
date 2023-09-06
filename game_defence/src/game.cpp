@@ -52,6 +52,7 @@
 #include "sprites/components.hpp"
 #include "sprites/helpers.hpp"
 
+#include "imgui.h"
 #include "optick.h"
 
 #include <ranges>
@@ -200,7 +201,7 @@ game2d::update(engine::SINGLETON_Application& app, entt::registry& r, const floa
 
   {
     OPTICK_EVENT("(update)-update-render-system");
-    update_render_system(r);
+    update_render_system(r, dt);
   }
 
   {
@@ -219,6 +220,27 @@ game2d::update(engine::SINGLETON_Application& app, entt::registry& r, const floa
 
     update_ui_pause_menu_system(app, r);
     update_ui_gameover_system(r);
+
+    // if (ImGui::BeginMainMenuBar()) {
+    //   // const auto& ri = get_first_component<SINGLETON_RendererInfo>(r);
+    //   // const auto screen_wh = ri.viewport_size_render_at;
+
+    //   float framerate = ImGui::GetIO().Framerate;
+    //   float framerate_ms = 1000.0f / ImGui::GetIO().Framerate;
+    //   std::stringstream stream;
+    //   stream << std::fixed << std::setprecision(2) << framerate;
+    //   std::string framerate_str = stream.str();
+    //   stream.str(std::string());
+    //   stream << std::fixed << std::setprecision(2) << framerate;
+    //   std::string framerate_ms_str = stream.str();
+    //   std::string framerate_label = framerate_str + std::string(" FPS (") + framerate_ms_str + std::string(" ms)");
+    //   ImGui::Text(framerate_label.c_str());
+
+    //   if (ImGui::MenuItem("Quit", "Esc"))
+    //     app.running = false;
+
+    //   ImGui::EndMainMenuBar();
+    // }
 
     // todo: put in to a settings menu
     static bool show_settings_ui = false;

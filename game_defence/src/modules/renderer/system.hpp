@@ -14,7 +14,7 @@ void
 init_render_system(const engine::SINGLETON_Application& app, entt::registry& r, SINGLETON_RendererInfo& ri);
 
 void
-update_render_system(entt::registry& r);
+update_render_system(entt::registry& r, const float dt);
 
 void
 end_frame_render_system(entt::registry& registry);

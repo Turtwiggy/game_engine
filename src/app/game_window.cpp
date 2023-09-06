@@ -109,7 +109,7 @@ GameWindow::GameWindow(const std::string& title, int width, int height, DisplayM
   // SDL_GL_SetAttribute(SDL_GL_CONTEXT_FLAGS, SDL_GL_CONTEXT_FORWARD_COMPATIBLE_FLAG);
 
 #endif
-  SDL_SetHint(SDL_HINT_RENDER_SCALE_QUALITY, "1");
+  // SDL_SetHint(SDL_HINT_RENDER_SCALE_QUALITY, "1");
   SDL_GL_SetAttribute(SDL_GL_CONTEXT_MAJOR_VERSION, opengl_major);
   SDL_GL_SetAttribute(SDL_GL_CONTEXT_MINOR_VERSION, opengl_minor);
 

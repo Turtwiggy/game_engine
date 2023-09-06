@@ -1,4 +1,4 @@
-#version 330 core
+#version 460
 
 out vec4 out_color;
 
@@ -15,10 +15,8 @@ main()
 {
   vec4 scene_col = texture(tex, v_uv);
 
-  if(scene_col.r > 0.0) // emitter
-    out_color = vec4(v_uv.x * scene_col.a, v_uv.y * scene_col.a, 0.0, 1.0);
+  // any pixel with .a > 0 will be recognised as an emitter or occluder
+  out_color = vec4(v_uv.x * scene_col.a, v_uv.y * scene_col.a, 0.0, 1.0);
 
-  if(scene_col.g > 0.0) // occluder
-    out_color = vec4(v_uv.x * scene_col.a, v_uv.y * scene_col.a, 0.0, 1.0);
-
+  // out_color = vec4(v_uv.x, v_uv.y, 0.0, 1.0);
 }

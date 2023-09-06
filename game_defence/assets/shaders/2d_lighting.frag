@@ -1,4 +1,4 @@
-#version 330 core
+#version 460 core
 
 out vec4 out_colour;
 
@@ -13,26 +13,28 @@ uniform sampler2D tex;
 void
 main()
 {
-  // Sample texture directly
-  if (v_sprite_pos.x == 0.0f && v_sprite_pos.y == 0.0f) { // a whole texture
-    out_colour = v_colour;
-    return;
-  } 
+  // out_colour = vec4(v_uv.x, v_uv.y, 0.0, 1.0);
+  out_colour = v_colour;
 
-  // A spritesheet texture
-  if(v_sprites.x > 0.0f || v_sprites.y > 0.0f)
-  {
-    float scale_x = 1.0f / v_sprites.x;
-    float scale_y = 1.0f / v_sprites.y;
+  // // Sample texture directly
+  // if (v_sprite_pos.x == 0.0f && v_sprite_pos.y == 0.0f) { // a whole texture
+  //   return;
+  // } 
 
-    vec2 sprite_uv = vec2(
-      v_uv.x / v_sprites.x + v_sprite_pos.x * scale_x,
-      v_uv.y / v_sprites.y + v_sprite_pos.y * scale_y      
-    );
+  // // A spritesheet texture
+  // if(v_sprites.x > 0.0f || v_sprites.y > 0.0f)
+  // {
+  //   float scale_x = 1.0f / v_sprites.x;
+  //   float scale_y = 1.0f / v_sprites.y;
 
-    out_colour = v_colour;
-    out_colour *= texture(tex, sprite_uv);
-  }
+  //   vec2 sprite_uv = vec2(
+  //     v_uv.x / v_sprites.x + v_sprite_pos.x * scale_x,
+  //     v_uv.y / v_sprites.y + v_sprite_pos.y * scale_y      
+  //   );
+
+  //   out_colour = v_colour;
+  //   out_colour *= texture(tex, sprite_uv);
+  // }
 }
 
 // if (do_lighting) {

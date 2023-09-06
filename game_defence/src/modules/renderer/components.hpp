@@ -10,6 +10,8 @@
 #include <glm/gtc/quaternion.hpp>
 #include <nlohmann/json.hpp>
 
+#include <vector>
+
 namespace game2d {
 
 struct TagComponent
@@ -73,33 +75,45 @@ struct Texture
 // Attributes only updated by renderer system, read by anything.
 struct SINGLETON_RendererInfo
 {
+  // loaded textures
+  // int tex_unit_kennynl = 0;
+  // int tex_id_kenny = 0;
+
   // fbo
-  unsigned int fbo_linear_main_scene = 0;
-  unsigned int fbo_linear_lighting = 0;
+  // unsigned int fbo_linear_main = 0;
+  // unsigned int fbo_srgb_main = 0;
+  unsigned int fbo_emitters_and_occluders = 0;
   unsigned int fbo_voronoi_seed = 0;
-  unsigned int fbo_jump_flood = 0;
-  unsigned int fbo_srgb_main_scene = 0;
+  unsigned int fbo_voronoi_distance = 0;
+  unsigned int fbo_gi = 0;
+  std::vector<unsigned int> fbos_jump_flood;
 
-  int tex_unit_kennynl = 0;
-  int tex_unit_main_FBO = 1;
-  int tex_unit_lighting_FBO = 2;
-  int tex_unit_voronoi_seed_FBO = 3;
-  int tex_unit_jump_flood_FBO = 4;
-  int tex_unit_srgb_FBO = 5;
+  // int tex_unit_main = 0;
+  // int tex_unit_srgb = 0;
+  int tex_unit_emitters_and_occluders = 0;
+  int tex_unit_voronoi_seed = 0;
+  int tex_unit_voronoi_distance = 0;
+  int tex_unit_gi = 0;
+  std::vector<int> tex_units_jump_flood;
 
-  int tex_id_kenny = 0;
-  int tex_id_main = 0;
-  int tex_id_lighting = 0;
+  // int tex_id_main = 0;
+  // int tex_id_srgb = 0;
+  int tex_id_emitters_and_occluders = 0;
   int tex_id_voronoi_seed = 0;
-  int tex_id_jump_flood = 0;
-  int tex_id_srgb = 0;
+  int tex_id_voronoi_distance = 0;
+  int tex_id_gi = 0;
+  std::vector<int> tex_ids_jump_flood;
+
+  int passes = 0;
 
   // shaders
-  engine::Shader instanced;
-  engine::Shader lighting;
+  // engine::Shader instanced;
+  // engine::Shader linear_to_srgb;
+  engine::Shader emitters_and_occluders;
   engine::Shader voronoi_seed;
   engine::Shader jump_flood;
-  engine::Shader linear_to_srgb;
+  engine::Shader voronoi_distance;
+  engine::Shader gi;
 
   // viewport
   // note: values are updated in render

@@ -3,7 +3,6 @@
 #include "colour/colour.hpp"
 #include "entt/helpers.hpp"
 #include "events/components.hpp"
-#include "modules/lifecycle/components.hpp"
 #include "modules/actor_bow/components.hpp"
 #include "modules/actor_cursor/components.hpp"
 #include "modules/actor_enemy/components.hpp"
@@ -18,10 +17,11 @@
 #include "modules/combat_damage/components.hpp"
 #include "modules/items_pickup/components.hpp"
 #include "modules/lerp_to_target/components.hpp"
+#include "modules/lifecycle/components.hpp"
 #include "modules/lighting/components.hpp"
+#include "modules/renderer/components.hpp"
 #include "modules/respawn/components.hpp"
 #include "physics/components.hpp"
-#include "modules/renderer/components.hpp"
 #include "sprites/components.hpp"
 #include "sprites/helpers.hpp"
 
@@ -81,12 +81,17 @@ create_sprite(entt::registry& r, const EntityType& type)
   if (anim.angle_degrees != 0.0f)
     sc.angle_radians = glm::radians(anim.angle_degrees);
 
-  sc.tex_unit = ri.tex_unit_kennynl;
-  if (sc.tex_unit == ri.tex_unit_kennynl) {
+  // sc.tex_unit = ri.tex_un
+  sc.tex_unit = 0;
+
+  // sc.tex_unit = ri.tex_unit_kennynl;
+  // if (sc.tex_unit == ri.tex_unit_kennynl)
+  {
     sc.sx = 48;
     sc.sy = 22;
-  } else
-    std::cerr << "warning! spritesize not implemented for: " << type_name << "\n";
+  }
+  // else
+  //   std::cerr << "warning! spritesize not implemented for: " << type_name << "\n";
 
   return sc;
 };

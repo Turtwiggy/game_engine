@@ -7,8 +7,8 @@ calculate_ortho_projection(int w, int h)
 {
   const float left = 0.0f;
   const float right = static_cast<float>(w);
-  const float bottom = static_cast<float>(h);
-  const float top = 0.0f;
+  const float top = static_cast<float>(h);
+  const float bottom = 0.0f;
   return glm::ortho(left, right, bottom, top, -1.0f, 1.0f);
 }
 

@@ -8,14 +8,14 @@
 #include "helpers.hpp"
 #include "helpers/line.hpp"
 #include "imgui/helpers.hpp"
-#include "modules/lifecycle/components.hpp"
 #include "maths/grid.hpp"
 #include "modules/actor_cursor/components.hpp"
+#include "modules/lifecycle/components.hpp"
+#include "modules/renderer/components.hpp"
 #include "modules/scene/components.hpp"
 #include "modules/scene/helpers.hpp"
 #include "modules/ui_hierarchy/helpers.hpp"
 #include "physics/components.hpp"
-#include "modules/renderer/components.hpp"
 
 #include "glm/glm.hpp"
 // #include "imfilebrowser.h"
@@ -250,61 +250,61 @@ update_ui_level_editor_system(entt::registry& r, const glm::ivec2& input_mouse_p
     // Entity To place!
     EntityType type = magic_enum::enum_cast<EntityType>(items[item_current_idx]).value();
 
-    if (ri.viewport_hovered) {
+    // if (ri.viewport_hovered) {
 
-      if (get_key_down(input, place_key)) {
-        CreateEntityRequest request;
-        request.type = type;
-        request.transform = { { mouse_pos.x, mouse_pos.y, 0 } };
-        r.emplace<CreateEntityRequest>(r.create(), request);
-      }
+    if (get_key_down(input, place_key)) {
+      CreateEntityRequest request;
+      request.type = type;
+      request.transform = { { mouse_pos.x, mouse_pos.y, 0 } };
+      r.emplace<CreateEntityRequest>(r.create(), request);
+    }
 
-      static entt::entity chosen_e;
-      static glm::ivec2 initial_pos;
+    static entt::entity chosen_e;
+    static glm::ivec2 initial_pos;
 
-      if (get_key_down(input, place_and_drag_key)) {
-        initial_pos = mouse_pos;
-        chosen_e = create_gameplay(r, type);
-      }
-      if (get_key_up(input, place_and_drag_key))
-        chosen_e = entt::null;
+    if (get_key_down(input, place_and_drag_key)) {
+      initial_pos = mouse_pos;
+      chosen_e = create_gameplay(r, type);
+    }
+    if (get_key_up(input, place_and_drag_key))
+      chosen_e = entt::null;
 
-      if (get_key_held(input, place_and_drag_key)) {
-        if (chosen_e != entt::null) {
-          const auto& type = r.get<EntityTypeComponent>(chosen_e);
+    if (get_key_held(input, place_and_drag_key)) {
+      if (chosen_e != entt::null) {
+        const auto& type = r.get<EntityTypeComponent>(chosen_e);
 
-          if (type.type == EntityType::solid_wall) {
-            const auto line = generate_line(initial_pos, mouse_pos, line_width);
-            // set position for aabb
-            if (auto* aabb = r.try_get<AABB>(chosen_e))
-              aabb->center = line.position;
-            // set transform
-            auto& transform = r.get<TransformComponent>(chosen_e);
-            transform.position = { line.position.x, line.position.y, 0 };
-            transform.scale = { line.scale.x, line.scale.y, 0 };
-            transform.rotation_radians.z = line.rotation;
-          }
+        if (type.type == EntityType::solid_wall) {
+          const auto line = generate_line(initial_pos, mouse_pos, line_width);
+          // set position for aabb
+          if (auto* aabb = r.try_get<AABB>(chosen_e))
+            aabb->center = line.position;
+          // set transform
+          auto& transform = r.get<TransformComponent>(chosen_e);
+          transform.position = { line.position.x, line.position.y, 0 };
+          transform.scale = { line.scale.x, line.scale.y, 0 };
+          transform.rotation_radians.z = line.rotation;
+        }
 
-          if (type.type == EntityType::actor_spawner) {
-            // TODO: drag the spawn go-to location
-          }
+        if (type.type == EntityType::actor_spawner) {
+          // TODO: drag the spawn go-to location
         }
       }
+    }
 
-      // delete anything that collides with the cursor
-      if (get_key_held(input, delete_key)) {
-        ImGui::Text("deleting objects...");
-        const auto cursor_entity = get_first<CursorComponent>(r);
-        for (const auto& coll : physics.collision_stay) {
-          if (coll.ent_id_0 == static_cast<uint32_t>(cursor_entity))
-            lifecycle.dead.emplace(static_cast<entt::entity>(coll.ent_id_1));
-          else if (coll.ent_id_1 == static_cast<uint32_t>(cursor_entity))
-            lifecycle.dead.emplace(static_cast<entt::entity>(coll.ent_id_0));
-        }
+    // delete anything that collides with the cursor
+    if (get_key_held(input, delete_key)) {
+      ImGui::Text("deleting objects...");
+      const auto cursor_entity = get_first<CursorComponent>(r);
+      for (const auto& coll : physics.collision_stay) {
+        if (coll.ent_id_0 == static_cast<uint32_t>(cursor_entity))
+          lifecycle.dead.emplace(static_cast<entt::entity>(coll.ent_id_1));
+        else if (coll.ent_id_1 == static_cast<uint32_t>(cursor_entity))
+          lifecycle.dead.emplace(static_cast<entt::entity>(coll.ent_id_0));
       }
+    }
 
-      //
-    } // end hovered check
+    //
+    // } // end hovered check
   }
 
   ImGui::End();
