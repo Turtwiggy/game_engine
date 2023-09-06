@@ -13,10 +13,15 @@ uniform sampler2D tex;
 void
 main()
 {
-  vec4 scene_col = texture(tex, v_uv);
-
+  // translate uvs from rectangular input texture to square voronoi texture.
+	ivec2 tex_size = textureSize(tex, 0);
+	vec2 uv = v_uv;
+	if(tex_size.x > tex_size.y)
+		uv.y = ((uv.y - 0.5) * (float(tex_size.x) / float(tex_size.y))) + 0.5;
+	else
+		uv.x = ((uv.x - 0.5) * (float(tex_size.y) / float(tex_size.x))) + 0.5;
+		
   // any pixel with .a > 0 will be recognised as an emitter or occluder
+  vec4 scene_col = texture(tex, uv);
   out_color = vec4(v_uv.x * scene_col.a, v_uv.y * scene_col.a, 0.0, 1.0);
-
-  // out_color = vec4(v_uv.x, v_uv.y, 0.0, 1.0);
 }

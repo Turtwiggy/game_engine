@@ -85,24 +85,34 @@ struct SINGLETON_RendererInfo
   unsigned int fbo_emitters_and_occluders = 0;
   unsigned int fbo_voronoi_seed = 0;
   unsigned int fbo_voronoi_distance = 0;
-  unsigned int fbo_gi = 0;
+  unsigned int fbo_gi_0 = 0;
+  unsigned int fbo_gi_1 = 0;
   std::vector<unsigned int> fbos_jump_flood;
+  unsigned int fbo_denoise = 0;
 
   // int tex_unit_main = 0;
   // int tex_unit_srgb = 0;
   int tex_unit_emitters_and_occluders = 0;
   int tex_unit_voronoi_seed = 0;
   int tex_unit_voronoi_distance = 0;
-  int tex_unit_gi = 0;
+  int tex_unit_gi_0 = 0;
+  int tex_unit_gi_1 = 0;
   std::vector<int> tex_units_jump_flood;
+  int tex_unit_denoise = 0;
 
   // int tex_id_main = 0;
   // int tex_id_srgb = 0;
   int tex_id_emitters_and_occluders = 0;
   int tex_id_voronoi_seed = 0;
   int tex_id_voronoi_distance = 0;
-  int tex_id_gi = 0;
+  int tex_id_gi_0 = 0;
+  int tex_id_gi_1 = 0;
   std::vector<int> tex_ids_jump_flood;
+  int tex_id_denoise = 0;
+
+  // loaded textures
+  int tex_unit_bluenoise = 0;
+  int tex_id_bluenoise = 0;
 
   int passes = 0;
 
@@ -114,6 +124,7 @@ struct SINGLETON_RendererInfo
   engine::Shader jump_flood;
   engine::Shader voronoi_distance;
   engine::Shader gi;
+  engine::Shader denoise;
 
   // viewport
   // note: values are updated in render

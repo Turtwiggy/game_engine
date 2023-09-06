@@ -12,6 +12,7 @@ struct SRGBColour
 
   constexpr SRGBColour() = default;
 
+  // assumes converting 0-1 to 0-255
   constexpr SRGBColour(float r, float g, float b, float a)
     : r(static_cast<int>(r * 255.0f))
     , g(static_cast<int>(g * 255.0f))
@@ -20,6 +21,7 @@ struct SRGBColour
   {
   }
 
+  // assumes 0-255 as input
   constexpr SRGBColour(int r, int g, int b, float a)
     : r(r)
     , g(g)

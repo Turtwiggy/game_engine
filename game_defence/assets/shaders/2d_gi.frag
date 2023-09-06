@@ -10,8 +10,8 @@ in float v_tex_unit;
 
 // constants
 #define PI 3.141596
-#define RAYS_PER_PIXEL 32
-#define MAX_STEPS 64
+#define RAYS_PER_PIXEL 1
+#define MAX_STEPS 16
 #define EPSILON 0.001
 
 // uniforms
@@ -64,17 +64,6 @@ void get_surface(vec2 uv, out float emissive, out vec3 colour)
    colour = emissive_data.rgb;
 }
 
-vec3 lin_to_srgb(vec3 color)
-{
-   vec3 x = color.rgb * 12.92;
-   vec3 y = 1.055 * pow(clamp(color.rgb, 0.0, 1.0), vec3(0.4166667)) - 0.055;
-   vec3 clr = color.rgb;
-   clr.r = (color.r < 0.0031308) ? x.r : y.r;
-   clr.g = (color.g < 0.0031308) ? x.g : y.g;
-   clr.b = (color.b < 0.0031308) ? x.b : y.b;
-   return clr.rgb;
-}
-
 void
 main()
 {
@@ -112,6 +101,6 @@ main()
   pixel_col /= pixel_emis;
   pixel_emis /= float(RAYS_PER_PIXEL);
   
-  vec3 res = lin_to_srgb(pixel_emis * pixel_col);
+  vec3 res = pixel_emis * pixel_col;
   out_color = vec4(res, 1.0);
 }

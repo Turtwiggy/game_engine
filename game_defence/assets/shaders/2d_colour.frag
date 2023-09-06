@@ -1,7 +1,5 @@
 #version 460
 
-precision highp float;
-
 out vec4 out_colour;
 
 uniform vec4 colour;
