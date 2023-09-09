@@ -37,6 +37,10 @@ update_camera_system(engine::GameWindow& window, entt::registry& r, const float 
     camera_transform.position -= get_right_dir(camera) * velocity;
   if (get_key_held(input, SDL_SCANCODE_D))
     camera_transform.position += get_right_dir(camera) * velocity;
+  if (get_key_held(input, SDL_SCANCODE_SPACE))
+    camera_transform.position += get_up_dir(camera) * velocity;
+  if (get_key_held(input, SDL_SCANCODE_LSHIFT))
+    camera_transform.position -= get_up_dir(camera) * velocity;
 
   if (window.get_mouse_captured()) {
     const float mouse_sens = 0.01f;
