@@ -63,6 +63,16 @@ find_package(nlohmann_json CONFIG REQUIRED)
 find_package(glm CONFIG REQUIRED)
 find_path(STB_INCLUDE_DIRS "stb_c_lexer.h")
 
+# Assimp
+set(BUILD_SHARED_LIBS OFF CACHE INTERNAL "" FORCE)
+set(ASSIMP_BUILD_TESTS OFF CACHE INTERNAL "" FORCE)
+set(ASSIMP_NO_EXPORT ON CACHE INTERNAL "" FORCE)
+set(ASSIMP_BUILD_TESTS OFF CACHE INTERNAL "" FORCE)
+set(ASSIMP_BUILD_ASSIMP_TOOLS OFF CACHE INTERNAL "" FORCE)
+configure_file("${CMAKE_SOURCE_DIR}/thirdparty/assimp/include/assimp/config.h.in" "${CMAKE_SOURCE_DIR}/thirdparty/assimp/include/assimp/config.h")
+configure_file("${CMAKE_SOURCE_DIR}/thirdparty/assimp/contrib/zlib/zconf.h.cmakein" "thirdparty/assimp/contrib/zlib/zconf.h")
+add_subdirectory(${CMAKE_SOURCE_DIR}/thirdparty/assimp ${CMAKE_SOURCE_DIR}/assimp)
+
 # Add source files
 include(${CMAKE_SOURCE_DIR}/cmake/imgui.cmake)
 include(${CMAKE_SOURCE_DIR}/cmake/optick.cmake)
@@ -101,6 +111,7 @@ target_include_directories(game_3d PRIVATE
   ${CMAKE_SOURCE_DIR}/thirdparty/entt/single_include
   ${CMAKE_SOURCE_DIR}/thirdparty/magic_enum
   ${CMAKE_SOURCE_DIR}/thirdparty/imgui-filebrowser
+  ${CMAKE_SOURCE_DIR}/thirdparty/assimp/include
 )
 
 if(EMSCRIPTEN)
@@ -114,6 +125,7 @@ endif()
 
 target_link_libraries(game_3d PRIVATE glm::glm)
 target_link_libraries(game_3d PRIVATE nlohmann_json::nlohmann_json)
+target_link_libraries(game_3d PRIVATE assimp)
 
 IF(${CMAKE_SYSTEM_NAME} STREQUAL "Windows")
   message("build type: ${CMAKE_BUILD_TYPE}")

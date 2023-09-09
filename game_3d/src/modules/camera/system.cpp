@@ -38,17 +38,19 @@ update_camera_system(engine::GameWindow& window, entt::registry& r, const float 
   if (get_key_held(input, SDL_SCANCODE_D))
     camera_transform.position += get_right_dir(camera) * velocity;
 
-  const float mouse_sens = 0.01f;
-  const float mouse_input_x = mouse_input.x * mouse_sens;
-  camera.yaw += mouse_input_x;
+  if (window.get_mouse_captured()) {
+    const float mouse_sens = 0.01f;
+    const float mouse_input_x = mouse_input.x * mouse_sens;
+    camera.yaw += mouse_input_x;
 
-  const float mouse_input_y = mouse_input.y * mouse_sens;
-  camera.pitch += mouse_input_y;
+    const float mouse_input_y = mouse_input.y * mouse_sens;
+    camera.pitch += mouse_input_y;
 
-  if (camera.pitch > 89.0f)
-    camera.pitch = 89.0f;
-  if (camera.pitch < -89.0f)
-    camera.pitch = -89.0f;
+    if (camera.pitch > 89.0f)
+      camera.pitch = 89.0f;
+    if (camera.pitch < -89.0f)
+      camera.pitch = -89.0f;
+  }
 
   camera.view = calculate_perspective_view(camera_transform, camera);
 

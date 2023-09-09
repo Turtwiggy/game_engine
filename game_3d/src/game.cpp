@@ -5,8 +5,12 @@
 #include "entt/helpers.hpp"
 #include "events/components.hpp"
 #include "events/system.hpp"
+#include "modules/animator/components.hpp"
+#include "modules/animator/helpers.hpp"
 #include "modules/camera/perspective.hpp"
 #include "modules/camera/system.hpp"
+#include "modules/models/components.hpp"
+#include "modules/models/helpers.hpp"
 #include "modules/renderer/components.hpp"
 
 // engine headers
@@ -27,6 +31,66 @@ using namespace engine; // also used for macro
 namespace game2d {
 
 void
+opengl_message_callback(GLenum source,
+                        GLenum type,
+                        GLuint id,
+                        GLenum severity,
+                        GLsizei length,
+                        GLchar const* message,
+                        void const* user_param)
+{
+  auto const src_str = [source]() {
+    switch (source) {
+      case GL_DEBUG_SOURCE_API:
+        return "API";
+      case GL_DEBUG_SOURCE_WINDOW_SYSTEM:
+        return "WINDOW SYSTEM";
+      case GL_DEBUG_SOURCE_SHADER_COMPILER:
+        return "SHADER COMPILER";
+      case GL_DEBUG_SOURCE_THIRD_PARTY:
+        return "THIRD PARTY";
+      case GL_DEBUG_SOURCE_APPLICATION:
+        return "APPLICATION";
+      case GL_DEBUG_SOURCE_OTHER:
+        return "OTHER";
+    }
+  }();
+
+  auto const type_str = [type]() {
+    switch (type) {
+      case GL_DEBUG_TYPE_ERROR:
+        return "ERROR";
+      case GL_DEBUG_TYPE_DEPRECATED_BEHAVIOR:
+        return "DEPRECATED_BEHAVIOR";
+      case GL_DEBUG_TYPE_UNDEFINED_BEHAVIOR:
+        return "UNDEFINED_BEHAVIOR";
+      case GL_DEBUG_TYPE_PORTABILITY:
+        return "PORTABILITY";
+      case GL_DEBUG_TYPE_PERFORMANCE:
+        return "PERFORMANCE";
+      case GL_DEBUG_TYPE_MARKER:
+        return "MARKER";
+      case GL_DEBUG_TYPE_OTHER:
+        return "OTHER";
+    }
+  }();
+
+  auto const severity_str = [severity]() {
+    switch (severity) {
+      case GL_DEBUG_SEVERITY_NOTIFICATION:
+        return "NOTIFICATION";
+      case GL_DEBUG_SEVERITY_LOW:
+        return "LOW";
+      case GL_DEBUG_SEVERITY_MEDIUM:
+        return "MEDIUM";
+      case GL_DEBUG_SEVERITY_HIGH:
+        return "HIGH";
+    }
+  }();
+  std::cout << src_str << ", " << type_str << ", " << severity_str << ", " << id << ": " << message << '\n';
+};
+
+void
 init(engine::SINGLETON_Application& app, entt::registry& r)
 {
   // r.emplace<SINGLETON_AudioComponent>(r.create());
@@ -38,11 +102,25 @@ init(engine::SINGLETON_Application& app, entt::registry& r)
   auto camera_entity = r.create();
   PerspectiveCamera c;
   c.projection = calculate_perspective_projection(app.width, app.height);
+  c.pitch = 0.37f;
+  c.yaw = 1.0f;
   r.emplace<PerspectiveCamera>(camera_entity, c);
-  r.emplace<TransformComponent>(camera_entity);
+  TransformComponent camera_transform;
+  camera_transform.position.x = -3.8;
+  camera_transform.position.y = 2.4;
+  camera_transform.position.z = 2.85;
+  r.emplace<TransformComponent>(camera_entity, camera_transform);
 
+  SINGLE_ModelsComponent models;
+  load_models(models);
+  r.emplace<SINGLE_ModelsComponent>(r.create(), models);
+  r.emplace<SINGLE_AnimationsComponent>(r.create());
+  r.emplace<SINGLE_AnimatorComponent>(r.create());
+
+  // glEnable(GL_DEBUG_OUTPUT);
+  // glDebugMessageCallback(opengl_message_callback, nullptr);
   glEnable(GL_DEPTH_TEST);
-
+  // glBindTextureUnit(tex_unit, tex_id);
   // glEnable(GL_BLEND);
   // glEnable(GL_DEPTH_TEST);
   // glEnable(GL_MULTISAMPLE);
@@ -163,16 +241,37 @@ update(engine::SINGLETON_Application& app, entt::registry& r, const float dt)
     shaders.basic.set_mat4("view", camera.view);
 
     // draw sum cubes
-    glBindVertexArray(renderer.cube_vao);
-    for (int i = 0; auto& cube : renderer.cubes) {
-      i++;
-      glm::mat4 model(1.0f);
-      model = glm::translate(model, cube);
-      float angle = 20.0f * i;
-      model = glm::rotate(model, glm::radians(angle), glm::vec3(1.0f, 0.3f, 0.5f));
-      shaders.basic.set_mat4("model", model);
-      glDrawArrays(GL_TRIANGLES, 0, 36);
-    }
+    // glBindVertexArray(renderer.cube_vao);
+    // for (int i = 0; auto& cube : renderer.cubes) {
+    //   i++;
+    //   glm::mat4 model(1.0f);
+    //   model = glm::translate(model, cube);
+    //   float angle = 20.0f * i;
+    //   model = glm::rotate(model, glm::radians(angle), glm::vec3(1.0f, 0.3f, 0.5f));
+    //   shaders.basic.set_mat4("model", model);
+    //   glDrawArrays(GL_TRIANGLES, 0, 36);
+    // }
+
+    // draw an animated model
+    const auto& animator = get_first_component<SINGLE_AnimatorComponent>(r);
+    const auto& models = get_first_component<SINGLE_ModelsComponent>(r);
+
+    shaders.animated.bind();
+    shaders.animated.set_mat4("projection", camera.projection);
+    shaders.animated.set_mat4("view", camera.view);
+    const auto& transforms = animator.final_bone_matrices;
+    // for (int i = 0; i < transforms.size(); ++i)
+    //   shaders.animated.set_mat4("final_bone_matrices[" + std::to_string(i) + "]", transforms[i]);
+
+    glm::mat4 model(1.0f);
+    glm::vec3 position(0.0f, 0.0f, 0.0f);
+    glm::vec3 scale(0.5f, 0.5f, 0.5f);
+
+    model = glm::translate(model, position);
+    model = glm::scale(model, scale);
+
+    shaders.animated.set_mat4("model", model);
+    draw_model(models.low_poly_car);
 
     //
   }

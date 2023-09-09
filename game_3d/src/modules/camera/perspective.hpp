@@ -10,8 +10,8 @@ struct PerspectiveCamera
 {
   glm::mat4 view = glm::mat4(1.0f);
   glm::mat4 projection = glm::mat4(1.0f);
-  float pitch = 0.0f; // euler_angles
-  float yaw = 0.0f;   // euler_angles
+  float pitch = 0.0f;
+  float yaw = 0.0f;
   float speed = 2.5f;
 };
 

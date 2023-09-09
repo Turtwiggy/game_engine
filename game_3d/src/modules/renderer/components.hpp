@@ -18,6 +18,7 @@ struct TransformComponent
 struct SINGLE_ShadersComponent
 {
   engine::Shader basic{ "assets/shaders/basic.vert", "assets/shaders/basic.frag" };
+  engine::Shader animated{ "assets/shaders/animated.vert", "assets/shaders/animated.frag" };
 };
 
 struct SINGLE_RendererComponent

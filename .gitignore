@@ -11,3 +11,6 @@ imgui.ini
 
 # Modules
 vcpkg_installed/
+
+# Generated from CMake
+assimp
