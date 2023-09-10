@@ -4,8 +4,7 @@
 
 namespace engine {
 
-// This function really should be constexpr
-// cmath pow isnt constexpr
+// This function really should be constexpr but math pow isnt constexpr
 float
 SRGBFloatToLinearFloat(const float f)
 {

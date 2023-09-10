@@ -3,7 +3,7 @@
 
 // // my libs
 // #include "lighting/components.hpp"
-// #include "renderer/components.hpp"
+// #include "modules/renderer/components.hpp"
 
 // // std libs
 // #include <array>

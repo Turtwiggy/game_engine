@@ -13,3 +13,9 @@
 [submodule "thirdparty/optick"]
 	path = thirdparty/optick
 	url = https://github.com/bombomby/optick.git
+[submodule "thirdparty/tinyobjloader"]
+	path = thirdparty/tinyobjloader
+	url = https://github.com/tinyobjloader/tinyobjloader.git
+[submodule "thirdparty/assimp"]
+	path = thirdparty/assimp
+	url = https://github.com/assimp/assimp.git

@@ -5,16 +5,15 @@
 #include "entt/helpers.hpp"
 #include "events/components.hpp"
 #include "game_state.hpp"
-#include "lifecycle/components.hpp"
+#include "modules/lifecycle/components.hpp"
 #include "maths/maths.hpp"
 #include "modules/actor_bow/components.hpp"
 #include "modules/actor_cursor/components.hpp"
 #include "modules/camera/orthographic.hpp"
 #include "modules/gameover/components.hpp"
 #include "physics/components.hpp"
-#include "renderer/components.hpp"
+#include "modules/renderer/components.hpp"
 #include "resources/colours.hpp"
-#include "resources/textures.hpp"
 
 namespace game2d {
 

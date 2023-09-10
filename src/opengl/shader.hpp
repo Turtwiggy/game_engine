@@ -14,7 +14,7 @@ void
 check_compile_errors(unsigned int shader, std::string type);
 
 void
-reload_shader_program(unsigned int* id, const std::string& vert_path, const std::string& frag_path);
+reload_shader_program(unsigned int& id, const std::string& vert_path, const std::string& frag_path);
 
 [[nodiscard]] unsigned int
 create_opengl_shader(const std::string& vert_path, const std::string& frag_path);

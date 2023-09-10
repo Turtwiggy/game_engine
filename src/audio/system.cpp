@@ -3,7 +3,6 @@
 #include "audio/helpers/openal.hpp"
 #include "components.hpp"
 #include "helpers.hpp"
-#include "renderer/components.hpp"
 
 #include "entt/helpers.hpp"
 #include <entt/entt.hpp>

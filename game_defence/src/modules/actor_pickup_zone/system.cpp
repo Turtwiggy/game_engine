@@ -1,9 +1,10 @@
 #include "system.hpp"
 
+#include "actors.hpp"
 #include "components.hpp"
 #include "entt/helpers.hpp"
-#include "lifecycle/components.hpp"
 #include "modules/actor_player/components.hpp"
+#include "modules/lifecycle/components.hpp"
 
 namespace game2d {
 

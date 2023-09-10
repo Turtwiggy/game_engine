@@ -3,7 +3,6 @@
 #include "colour/colour.hpp"
 #include "entt/helpers.hpp"
 #include "events/components.hpp"
-#include "lifecycle/components.hpp"
 #include "modules/actor_bow/components.hpp"
 #include "modules/actor_cursor/components.hpp"
 #include "modules/actor_enemy/components.hpp"
@@ -18,10 +17,11 @@
 #include "modules/combat_damage/components.hpp"
 #include "modules/items_pickup/components.hpp"
 #include "modules/lerp_to_target/components.hpp"
+#include "modules/lifecycle/components.hpp"
+#include "modules/lighting/components.hpp"
+#include "modules/renderer/components.hpp"
 #include "modules/respawn/components.hpp"
 #include "physics/components.hpp"
-#include "renderer/components.hpp"
-#include "resources/textures.hpp"
 #include "sprites/components.hpp"
 #include "sprites/helpers.hpp"
 
@@ -70,8 +70,8 @@ create_sprite(entt::registry& r, const EntityType& type)
 
   SpriteComponent sc;
 
-  auto& textures = get_first_component<SINGLETON_Textures>(r);
   auto& anims = get_first_component<SINGLETON_Animations>(r);
+  const auto& ri = get_first_component<SINGLETON_RendererInfo>(r);
 
   // search spritesheet
   const auto anim = find_animation(anims.animations, sprite);
@@ -81,12 +81,17 @@ create_sprite(entt::registry& r, const EntityType& type)
   if (anim.angle_degrees != 0.0f)
     sc.angle_radians = glm::radians(anim.angle_degrees);
 
-  sc.tex_unit = get_tex_unit(textures, AvailableTexture::kenny);
-  if (sc.tex_unit == get_tex_unit(textures, AvailableTexture::kenny)) {
+  // sc.tex_unit = ri.tex_un
+  sc.tex_unit = 0;
+
+  // sc.tex_unit = ri.tex_unit_kennynl;
+  // if (sc.tex_unit == ri.tex_unit_kennynl)
+  {
     sc.sx = 48;
     sc.sy = 22;
-  } else
-    std::cerr << "warning! spritesize not implemented for: " << type_name << "\n";
+  }
+  // else
+  //   std::cerr << "warning! spritesize not implemented for: " << type_name << "\n";
 
   return sc;
 };
@@ -206,6 +211,9 @@ create_gameplay(entt::registry& r, const EntityType& type)
       // stats.agi_level = 1;
       // stats.str_level = 1;
       // r.emplace<StatsComponent>(e, stats);
+
+      r.emplace<LightEmitterComponent>(e);
+
       break;
     }
 
@@ -259,6 +267,7 @@ create_gameplay(entt::registry& r, const EntityType& type)
       r.emplace<PhysicsTransformYComponent>(e);
       r.emplace<AABB>(e);
       r.emplace<PhysicsSolidComponent>(e);
+      r.emplace<LightOccluderComponent>(e);
       break;
     }
 
@@ -341,6 +350,7 @@ create_gameplay(entt::registry& r, const EntityType& type)
       r.emplace<CursorComponent>(e);
       create_physics_actor(r, e);
       r.emplace<VelocityComponent>(e);
+      r.emplace<LightEmitterComponent>(e);
       break;
     }
 

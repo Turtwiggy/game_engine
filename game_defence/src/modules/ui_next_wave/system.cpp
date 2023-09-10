@@ -7,7 +7,7 @@
 #include "actors.hpp"
 #include "events/components.hpp"
 #include "events/helpers/controller.hpp"
-#include "lifecycle/components.hpp"
+#include "modules/lifecycle/components.hpp"
 #include "maths/maths.hpp"
 #include "modules/gameover/components.hpp"
 #include "modules/scene/components.hpp"

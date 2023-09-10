@@ -5,6 +5,7 @@
 #define STB_IMAGE_IMPLEMENTATION
 #endif
 #include <glm/glm.hpp>
+#include "opengl/framebuffer.hpp"
 
 // c++ standard library headers
 #include <string>
@@ -53,6 +54,9 @@ load_textures(const std::vector<std::pair<int, std::string>>& textures_to_load);
 [[nodiscard]] std::vector<unsigned int>
 load_textures_threaded(const std::vector<std::pair<int, std::string>>& textures_to_load);
 
+[[nodiscard]] LinearTexture
+load_texture_linear(const int tex_unit, const std::string& path);
+
 [[nodiscard]] unsigned int
 bind_linear_texture(const LinearTexture& texture);
 
@@ -60,6 +64,6 @@ void
 update_bound_texture_size(const glm::ivec2 size);
 
 void
-new_texture_to_fbo(unsigned int& out_fbo_id, int& out_tex_id, const int tex_unit, const glm::ivec2 size);
+new_texture_to_fbo(FramebufferID& out_fbo_id, int& out_tex_id, const int tex_unit, const glm::ivec2 size);
 
 } // namespace engine

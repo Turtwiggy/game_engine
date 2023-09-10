@@ -3,11 +3,11 @@
 #include "actors.hpp"
 #include "components.hpp"
 #include "entt/helpers.hpp"
-#include "lifecycle/components.hpp"
+#include "modules/lifecycle/components.hpp"
 #include "modules/actor_pickup_zone/components.hpp"
 #include "modules/actor_player/components.hpp"
 #include "physics/components.hpp"
-#include "renderer/components.hpp"
+#include "modules/renderer/components.hpp"
 
 #include <iostream>
 

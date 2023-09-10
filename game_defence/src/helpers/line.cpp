@@ -1,7 +1,7 @@
 #include "line.hpp"
 
 #include "maths/maths.hpp"
-#include "renderer/components.hpp"
+#include "modules/renderer/components.hpp"
 
 namespace game2d {
 

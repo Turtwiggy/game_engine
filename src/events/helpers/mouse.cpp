@@ -2,7 +2,6 @@
 #include "mouse.hpp"
 
 #include "entt/helpers.hpp"
-#include "renderer/components.hpp"
 
 // other lib headers
 #include <imgui.h>

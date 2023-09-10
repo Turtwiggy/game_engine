@@ -2,7 +2,7 @@
 
 #include "events/helpers/mouse.hpp"
 #include "orthographic.hpp"
-#include "renderer/components.hpp"
+#include "modules/renderer/components.hpp"
 
 #include "entt/helpers.hpp"
 

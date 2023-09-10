@@ -2,11 +2,16 @@
 
 namespace engine {
 
+struct FramebufferID
+{
+  unsigned int id = 0;
+};
+
 class Framebuffer
 {
 public:
-  static unsigned int create_fbo();
-  static void bind_fbo(const unsigned int fbo);
+  static FramebufferID create_fbo();
+  static void bind_fbo(const FramebufferID& fbo);
   static void default_fbo();
 
   static void fbo_enable_writing(unsigned int fbo);

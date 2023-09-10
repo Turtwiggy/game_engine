@@ -55,11 +55,11 @@ audio::load_sound(const std::string& filename)
   const int bits = SDL_AUDIO_BITSIZE(wav_spec.format);
   const int channels = wav_spec.channels;
 
-  std::cout << "bits: " << bits << " ";
-  std::cout << "freq: " << wav_spec.freq << " ";
-  std::cout << "chan: " << channels << " ";
-  std::cout << "format: " << wav_spec.format << " ";
-  std::cout << "samples: " << wav_spec.samples << "\n";
+  // std::cout << "bits: " << bits << " ";
+  // std::cout << "freq: " << wav_spec.freq << " ";
+  // std::cout << "chan: " << channels << " ";
+  // std::cout << "format: " << wav_spec.format << " ";
+  // std::cout << "samples: " << wav_spec.samples << "\n";
 
   ALuint buffer;
   alGenBuffers(1, &buffer);

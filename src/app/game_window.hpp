@@ -28,9 +28,9 @@ class GameWindow
 
 public:
   // Note: 4, 3 when compute shaders were introduced
-  int opengl_major = 0;
-  int opengl_minor = 0;
-  std::string glsl_version = "#version 300 es";
+  int opengl_major = 4;
+  int opengl_minor = 6;
+  std::string glsl_version = "#version 460";
 
 private:
   // SDL2 window

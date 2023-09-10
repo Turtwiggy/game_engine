@@ -3,7 +3,7 @@
 #include "entt/helpers.hpp"
 #include "modules/actor_spawner/components.hpp" // hack: shouldnt be here
 #include "physics/components.hpp"
-#include "renderer/components.hpp"
+#include "modules/renderer/components.hpp"
 
 #include <algorithm>
 #include <optional>

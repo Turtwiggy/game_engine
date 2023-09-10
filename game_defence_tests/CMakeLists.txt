@@ -132,7 +132,7 @@ if(${CMAKE_SYSTEM_NAME} STREQUAL "Windows")
 endif()
 
 if(EMSCRIPTEN)
-  IF(CMAKE_BUILD_TYPE MATCHES DEBUG)
+  IF(CMAKE_BUILD_TYPE MATCHES Debug)
     # create symlink assets for build
     set(src ${CMAKE_SOURCE_DIR}/game_defence_tests/assets)
     set(dst ${CMAKE_CURRENT_BINARY_DIR}/../assets)

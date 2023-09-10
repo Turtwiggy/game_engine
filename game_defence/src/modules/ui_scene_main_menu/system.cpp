@@ -5,7 +5,7 @@
 #include "modules/scene/helpers.hpp"
 #include "modules/ui_level_editor/components.hpp"
 #include "modules/ui_level_editor/helpers.hpp"
-#include "renderer/components.hpp"
+#include "modules/renderer/components.hpp"
 
 #include <glm/glm.hpp>
 #include <imgui.h>

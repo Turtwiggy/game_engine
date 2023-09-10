@@ -1,6 +1,4 @@
-#version 300 es
-
-precision highp float;
+#version 460
 
 out vec4 out_colour;
 

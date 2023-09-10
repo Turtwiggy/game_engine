@@ -7,8 +7,6 @@
 #include "events/components.hpp"
 #include "events/system.hpp"
 #include "game_state.hpp"
-#include "lifecycle/components.hpp"
-#include "lifecycle/system.hpp"
 #include "maths/maths.hpp"
 #include "modules/actor_bow/system.hpp"
 #include "modules/actor_cursor/system.hpp"
@@ -30,6 +28,10 @@
 #include "modules/items_drop/system.hpp"
 #include "modules/items_pickup/system.hpp"
 #include "modules/lerp_to_target/system.hpp"
+#include "modules/lifecycle/components.hpp"
+#include "modules/lifecycle/system.hpp"
+#include "modules/renderer/components.hpp"
+#include "modules/renderer/system.hpp"
 #include "modules/resolve_collisions/system.hpp"
 #include "modules/respawn/system.hpp"
 #include "modules/scene/helpers.hpp"
@@ -46,13 +48,11 @@
 #include "physics/components.hpp"
 #include "physics/process_actor_actor_collisions.hpp"
 #include "physics/process_move_objects.hpp"
-#include "renderer/components.hpp"
-#include "renderer/system.hpp"
 #include "resources/colours.hpp"
-#include "resources/textures.hpp"
 #include "sprites/components.hpp"
 #include "sprites/helpers.hpp"
 
+#include "imgui.h"
 #include "optick.h"
 
 #include <ranges>
@@ -63,16 +63,7 @@ game2d::init(engine::SINGLETON_Application& app, entt::registry& r)
 {
   {
     SINGLETON_Animations anims;
-    SINGLETON_Textures textures;
-    {
-      Texture kenny_texture;
-      kenny_texture.path = std::string("assets/textures/kennynl_1bit_pack/monochrome_transparent_packed.png");
-      kenny_texture.spritesheet_path = std::string("assets/config/spritemap_kennynl.json");
-      load_sprites(anims.animations, kenny_texture.spritesheet_path);
-      textures.textures.push_back(kenny_texture);
-    }
-    init_textures(textures);
-    r.emplace<SINGLETON_Textures>(r.create(), textures);
+    load_sprites(anims.animations, "assets/config/spritemap_kennynl.json");
     r.emplace<SINGLETON_Animations>(r.create(), anims);
   }
 
@@ -90,13 +81,14 @@ game2d::init(engine::SINGLETON_Application& app, entt::registry& r)
 
   const auto camera = r.create();
   r.emplace<TagComponent>(camera, "camera");
-  r.emplace<OrthographicCamera>(camera);
+  OrthographicCamera camera_info;
+  camera_info.projection = calculate_ortho_projection(app.width, app.height);
+  r.emplace<OrthographicCamera>(camera, camera_info);
   r.emplace<TransformComponent>(camera);
 
-  auto& textures = get_first_component<SINGLETON_Textures>(r).textures;
   auto& ri = get_first_component<SINGLETON_RendererInfo>(r);
+  init_render_system(app, r, ri); // init after camera
   init_audio_system(r);
-  init_render_system(app, r, ri, textures);
   init_input_system(r);
 
   move_to_scene_start(r, Scene::menu);
@@ -209,8 +201,7 @@ game2d::update(engine::SINGLETON_Application& app, entt::registry& r, const floa
 
   {
     OPTICK_EVENT("(update)-update-render-system");
-    auto& texs = get_first_component<SINGLETON_Textures>(r).textures;
-    update_render_system(r, texs);
+    update_render_system(r, dt);
   }
 
   {
@@ -230,6 +221,27 @@ game2d::update(engine::SINGLETON_Application& app, entt::registry& r, const floa
     update_ui_pause_menu_system(app, r);
     update_ui_gameover_system(r);
 
+    // if (ImGui::BeginMainMenuBar()) {
+    //   // const auto& ri = get_first_component<SINGLETON_RendererInfo>(r);
+    //   // const auto screen_wh = ri.viewport_size_render_at;
+
+    //   float framerate = ImGui::GetIO().Framerate;
+    //   float framerate_ms = 1000.0f / ImGui::GetIO().Framerate;
+    //   std::stringstream stream;
+    //   stream << std::fixed << std::setprecision(2) << framerate;
+    //   std::string framerate_str = stream.str();
+    //   stream.str(std::string());
+    //   stream << std::fixed << std::setprecision(2) << framerate;
+    //   std::string framerate_ms_str = stream.str();
+    //   std::string framerate_label = framerate_str + std::string(" FPS (") + framerate_ms_str + std::string(" ms)");
+    //   ImGui::Text(framerate_label.c_str());
+
+    //   if (ImGui::MenuItem("Quit", "Esc"))
+    //     app.running = false;
+
+    //   ImGui::EndMainMenuBar();
+    // }
+
     // todo: put in to a settings menu
     static bool show_settings_ui = false;
     if (show_settings_ui) {
@@ -240,7 +252,7 @@ game2d::update(engine::SINGLETON_Application& app, entt::registry& r, const floa
 #if defined(_DEBUG)
     static bool show_editor_ui = true;
     if (show_editor_ui) {
-      // update_ui_hierarchy_system(r);
+      update_ui_hierarchy_system(r);
       update_ui_level_editor_system(r, mouse_pos);
       auto& colours = get_first_component<SINGLETON_ColoursComponent>(r);
       // update_ui_colours_system(colours);

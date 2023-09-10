@@ -1,7 +1,7 @@
 #include "system.hpp"
 
 #include "entt/helpers.hpp"
-#include "lifecycle/components.hpp"
+#include "modules/lifecycle/components.hpp"
 #include "modules/combat_damage/components.hpp"
 #include "physics/components.hpp"
 

@@ -1,7 +1,6 @@
 #pragma once
 
 #include "components.hpp"
-#include "renderer/components.hpp"
 
 // other lib headers
 #include <glm/glm.hpp>
