@@ -40,12 +40,12 @@ check_compile_errors(unsigned int shader, std::string type, std::string path)
 void
 reload_shader_program(unsigned int* id, const std::string& vert_path, const std::string& frag_path)
 {
-  printf("Reloading shader: %s %s\n", vert_path.c_str(), frag_path.c_str());
-
   // Create a new shader program from the given file names. Halt on failure.
-  unsigned int new_id = create_opengl_shader(vert_path, frag_path);
+  auto new_id = create_opengl_shader(vert_path, frag_path);
+  std::cout << "reloading shader, new_id: " << new_id << std::endl;
 
   if (new_id) {
+    std::cout << "deleting old shader program" << std::endl;
     glDeleteProgram(*id);
     *id = new_id;
   }
@@ -140,6 +140,7 @@ void
 Shader::reload()
 {
   reload_shader_program(&ID, vert_path, frag_path);
+  std::cout << "shader new id: " << ID << std::endl;
 }
 
 void

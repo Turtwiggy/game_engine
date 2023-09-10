@@ -3,6 +3,7 @@
 #include "renderer/transform.hpp"
 
 // engine headers
+#include "opengl/framebuffer.hpp"
 #include "opengl/shader.hpp"
 
 // other
@@ -75,23 +76,18 @@ struct Texture
 // Attributes only updated by renderer system, read by anything.
 struct SINGLETON_RendererInfo
 {
-  // loaded textures
-  // int tex_unit_kennynl = 0;
-  // int tex_id_kenny = 0;
-
   // fbo
-  // unsigned int fbo_linear_main = 0;
-  // unsigned int fbo_srgb_main = 0;
-  unsigned int fbo_emitters_and_occluders = 0;
-  unsigned int fbo_voronoi_seed = 0;
-  unsigned int fbo_voronoi_distance = 0;
-  unsigned int fbo_gi_0 = 0;
-  unsigned int fbo_gi_1 = 0;
-  std::vector<unsigned int> fbos_jump_flood;
-  unsigned int fbo_denoise = 0;
+  engine::FramebufferID fbo_emitters_and_occluders;
+  engine::FramebufferID fbo_voronoi_seed;
+  engine::FramebufferID fbo_voronoi_distance;
+  engine::FramebufferID fbo_gi_0;
+  engine::FramebufferID fbo_gi_1;
+  std::vector<engine::FramebufferID> fbos_jump_flood;
+  engine::FramebufferID fbo_denoise;
+  engine::FramebufferID fbo_linear_main;
+  engine::FramebufferID fbo_mix_lighting_and_scene;
+  engine::FramebufferID fbo_srgb_main;
 
-  // int tex_unit_main = 0;
-  // int tex_unit_srgb = 0;
   int tex_unit_emitters_and_occluders = 0;
   int tex_unit_voronoi_seed = 0;
   int tex_unit_voronoi_distance = 0;
@@ -99,9 +95,10 @@ struct SINGLETON_RendererInfo
   int tex_unit_gi_1 = 0;
   std::vector<int> tex_units_jump_flood;
   int tex_unit_denoise = 0;
+  int tex_unit_linear_main = 0;
+  int tex_unit_mix_lighting_and_scene = 0;
+  int tex_unit_srgb = 0;
 
-  // int tex_id_main = 0;
-  // int tex_id_srgb = 0;
   int tex_id_emitters_and_occluders = 0;
   int tex_id_voronoi_seed = 0;
   int tex_id_voronoi_distance = 0;
@@ -109,22 +106,28 @@ struct SINGLETON_RendererInfo
   int tex_id_gi_1 = 0;
   std::vector<int> tex_ids_jump_flood;
   int tex_id_denoise = 0;
+  int tex_id_linear_main = 0;
+  int tex_id_mix_lighting_and_scene = 0;
+  int tex_id_srgb = 0;
 
   // loaded textures
+  int tex_unit_kennynl = 0;
+  int tex_id_kenny = 0;
   int tex_unit_bluenoise = 0;
   int tex_id_bluenoise = 0;
 
   int passes = 0;
 
   // shaders
-  // engine::Shader instanced;
-  // engine::Shader linear_to_srgb;
   engine::Shader emitters_and_occluders;
   engine::Shader voronoi_seed;
   engine::Shader jump_flood;
   engine::Shader voronoi_distance;
   engine::Shader gi;
   engine::Shader denoise;
+  engine::Shader instanced;
+  engine::Shader mix_lighting_and_scene;
+  engine::Shader linear_to_srgb;
 
   // viewport
   // note: values are updated in render

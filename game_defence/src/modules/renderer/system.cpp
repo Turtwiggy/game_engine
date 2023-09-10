@@ -3,11 +3,13 @@
 
 // components/systems
 #include "entt/helpers.hpp"
+#include "maths/maths.hpp"
 #include "modules/camera/orthographic.hpp"
 #include "modules/lighting/components.hpp"
-#include "modules/renderer//components.hpp"
-#include "modules/renderer//helpers.hpp"
-#include "modules/renderer//helpers/batch_quad.hpp"
+#include "modules/renderer/components.hpp"
+#include "modules/renderer/helpers.hpp"
+#include "modules/renderer/helpers/batch_quad.hpp"
+#include "modules/ui_hierarchy/helpers.hpp"
 #include "resources/colours.hpp"
 #include "sprites/components.hpp"
 
@@ -93,20 +95,15 @@ rebind(entt::registry& r, const SINGLETON_RendererInfo& ri)
   //   glBindTexture(GL_TEXTURE_2D, ri.tex_ids_jump_flood[i]);
   // }
 
+  glActiveTexture(GL_TEXTURE0 + ri.tex_unit_kennynl);
+  glBindTexture(GL_TEXTURE_2D, ri.tex_id_kenny);
+  glActiveTexture(GL_TEXTURE0 + ri.tex_unit_bluenoise);
+  glBindTexture(GL_TEXTURE_2D, ri.tex_id_bluenoise);
+
   const auto wh = ri.viewport_size_render_at;
-  const glm::ivec2 wh_expanded = { ri.viewport_size_render_at.x + 250, ri.viewport_size_render_at.y + 250 };
 
   auto& camera = game2d::get_first_component<OrthographicCamera>(r);
-  camera.projection = calculate_ortho_projection(wh_expanded.x, wh_expanded.y);
-
-  // // ri.instanced.bind();
-  // // ri.instanced.set_mat4("projection", camera.projection);
-  // // ri.instanced.set_int("tex", ri.tex_unit_kennynl);
-
-  // // ri.linear_to_srgb.bind();
-  // // ri.linear_to_srgb.set_mat4("projection", camera.projection);
-  // // ri.linear_to_srgb.set_mat4("view", glm::mat4(1.0f)); // whole texture
-  // // ri.linear_to_srgb.set_int("tex", ri.tex_unit_main_FBO);
+  camera.projection = calculate_ortho_projection(wh.x, wh.y);
 
   ri.emitters_and_occluders.bind();
   ri.emitters_and_occluders.set_mat4("projection", camera.projection);
@@ -131,6 +128,21 @@ rebind(entt::registry& r, const SINGLETON_RendererInfo& ri)
   ri.denoise.bind();
   ri.denoise.set_mat4("projection", camera.projection);
   ri.denoise.set_mat4("view", glm::mat4(1.0f)); // whole texture
+
+  ri.instanced.bind();
+  ri.instanced.set_mat4("projection", camera.projection);
+  ri.instanced.set_int("tex", ri.tex_unit_kennynl);
+
+  ri.mix_lighting_and_scene.bind();
+  ri.mix_lighting_and_scene.set_mat4("projection", camera.projection);
+  ri.mix_lighting_and_scene.set_mat4("view", glm::mat4(1.0f)); // whole texture
+  ri.mix_lighting_and_scene.set_int("lighting", ri.tex_unit_denoise);
+  ri.mix_lighting_and_scene.set_int("scene", ri.tex_unit_linear_main);
+
+  ri.linear_to_srgb.bind();
+  ri.linear_to_srgb.set_mat4("projection", camera.projection);
+  ri.linear_to_srgb.set_mat4("view", glm::mat4(1.0f)); // whole texture
+  ri.linear_to_srgb.set_int("tex", ri.tex_unit_mix_lighting_and_scene);
 };
 
 void
@@ -139,15 +151,13 @@ game2d::init_render_system(const engine::SINGLETON_Application& app, entt::regis
   const glm::ivec2 screen_wh = { app.width, app.height };
   ri.viewport_size_render_at = screen_wh;
   ri.viewport_size_current = screen_wh;
+  const auto& fbo_lighting_size = ri.viewport_size_render_at;
 
   Framebuffer::default_fbo();
 
-  const glm::ivec2 fbo_lighting_size = { app.width + 250, app.height + 250 };
-
   // number of passes required is the log2 of the largest viewport
-  // dimension rounded up to the nearest power of 2.
-  // i.e. 768x512 is log2(1024) == 10
-  ri.passes = static_cast<int>(glm::ceil(glm::log(glm::max(fbo_lighting_size.x, fbo_lighting_size.y) / log(2.0))));
+  // dimension rounded up to the nearest power of 2. i.e. 768x512 is log2(1024) == 10
+  ri.passes = glm::ceil(glm::log(glm::max(fbo_lighting_size.x, fbo_lighting_size.y)) / std::log(2.0f));
 
   // assign texture units
   int tex_units = 0;
@@ -156,7 +166,13 @@ game2d::init_render_system(const engine::SINGLETON_Application& app, entt::regis
   ri.tex_unit_voronoi_distance = tex_units++;
   ri.tex_unit_gi_0 = tex_units++;
   ri.tex_unit_gi_1 = tex_units++;
+  for (int i = 0; i < ri.passes; i++)
+    ri.tex_units_jump_flood.push_back(tex_units++);
   ri.tex_unit_denoise = tex_units++;
+  ri.tex_unit_linear_main = tex_units++;
+  ri.tex_unit_mix_lighting_and_scene = tex_units++;
+  ri.tex_unit_srgb = tex_units++;
+  ri.tex_unit_kennynl = tex_units++;
   ri.tex_unit_bluenoise = tex_units++;
 
   // create FBO textures
@@ -167,32 +183,35 @@ game2d::init_render_system(const engine::SINGLETON_Application& app, entt::regis
   new_texture_to_fbo(ri.fbo_gi_0, ri.tex_id_gi_0, ri.tex_unit_gi_0, fbo_lighting_size);
   new_texture_to_fbo(ri.fbo_gi_1, ri.tex_id_gi_1, ri.tex_unit_gi_1, fbo_lighting_size);
   for (int i = 0; i < ri.passes; i++) {
-    ri.tex_units_jump_flood.push_back(tex_units++);
-    ri.fbos_jump_flood.push_back(0);
+    ri.fbos_jump_flood.push_back(FramebufferID{});
     ri.tex_ids_jump_flood.push_back(0);
     new_texture_to_fbo(ri.fbos_jump_flood[i], ri.tex_ids_jump_flood[i], ri.tex_units_jump_flood[i], fbo_lighting_size);
   }
   new_texture_to_fbo(ri.fbo_denoise, ri.tex_id_denoise, ri.tex_unit_denoise, fbo_lighting_size);
-
-  // load texture
-  // const auto kenny_path = "assets/textures/kennynl_1bit_pack/monochrome_transparent_packed.png";
-  // const auto kenny_texture = engine::load_texture_linear(ri.tex_unit_kennynl, kenny_path);
-  // ri.tex_id_kenny = bind_linear_texture(kenny_texture);
-
+  new_texture_to_fbo(ri.fbo_linear_main, ri.tex_id_linear_main, ri.tex_unit_linear_main, fbo_lighting_size);
+  new_texture_to_fbo(
+    ri.fbo_mix_lighting_and_scene, ri.tex_id_mix_lighting_and_scene, ri.tex_unit_mix_lighting_and_scene, fbo_lighting_size);
+  new_texture_to_fbo(ri.fbo_srgb_main, ri.tex_id_srgb, ri.tex_unit_srgb, fbo_lighting_size);
   {
     const auto path = "assets/textures/spr_bluenoise.png";
     const auto tex = engine::load_texture_linear(ri.tex_unit_bluenoise, path);
     ri.tex_id_bluenoise = bind_linear_texture(tex);
   }
+  {
+    const auto path = "assets/textures/kennynl_1bit_pack/monochrome_transparent_packed.png";
+    const auto tex = engine::load_texture_linear(ri.tex_unit_kennynl, path);
+    ri.tex_id_kenny = bind_linear_texture(tex);
+  }
 
-  // ri.instanced = Shader("assets/shaders/2d_instanced.vert", "assets/shaders/2d_instanced.frag");
-  // ri.linear_to_srgb = Shader("assets/shaders/2d_instanced.vert", "assets/shaders/2d_linear_to_srgb.frag");
   ri.emitters_and_occluders = Shader("assets/shaders/2d_instanced.vert", "assets/shaders/2d_lighting.frag");
   ri.voronoi_seed = Shader("assets/shaders/2d_instanced.vert", "assets/shaders/2d_voronoi_seed.frag");
   ri.jump_flood = Shader("assets/shaders/2d_instanced.vert", "assets/shaders/2d_jump_flood.frag");
   ri.voronoi_distance = Shader("assets/shaders/2d_instanced.vert", "assets/shaders/2d_voronoi_distance.frag");
   ri.gi = Shader("assets/shaders/2d_instanced.vert", "assets/shaders/2d_gi.frag");
   ri.denoise = Shader("assets/shaders/2d_instanced.vert", "assets/shaders/2d_denoise.frag");
+  ri.instanced = Shader("assets/shaders/2d_instanced.vert", "assets/shaders/2d_instanced.frag");
+  ri.mix_lighting_and_scene = Shader("assets/shaders/2d_instanced.vert", "assets/shaders/2d_mix_lighting_and_scene.frag");
+  ri.linear_to_srgb = Shader("assets/shaders/2d_instanced.vert", "assets/shaders/2d_linear_to_srgb.frag");
 
   // initialize renderer
   SDL_GL_SetAttribute(SDL_GL_MULTISAMPLEBUFFERS, 1);
@@ -212,8 +231,6 @@ game2d::init_render_system(const engine::SINGLETON_Application& app, entt::regis
   rebind(r, ri);
 }
 
-// https://forum.gamemaker.io/index.php?threads/all-about-2d-global-illumination.97941/
-
 void
 game2d::update_render_system(entt::registry& r, const float dt)
 {
@@ -225,14 +242,14 @@ game2d::update_render_system(entt::registry& r, const float dt)
     rebind(r, ri);
   }
   const auto viewport_wh = ri.viewport_size_render_at;
-  const glm::ivec2 fbo_lighting_size = { viewport_wh.x + 250, viewport_wh.y + 250 };
+  const glm::ivec2 fbo_lighting_size = { viewport_wh.x, viewport_wh.y };
 
   // Camera
-  {
-    const auto& camera = game2d::get_first_component<OrthographicCamera>(r);
-    ri.emitters_and_occluders.bind();
-    ri.emitters_and_occluders.set_mat4("view", camera.view);
-  }
+  const auto& camera = game2d::get_first_component<OrthographicCamera>(r);
+  ri.emitters_and_occluders.bind();
+  ri.emitters_and_occluders.set_mat4("view", camera.view);
+  ri.instanced.bind();
+  ri.instanced.set_mat4("view", camera.view);
 
   // emitters should be anything but black
   const engine::LinearColour background_col(0.0f, 0.0f, 0.0f, 0.0f);
@@ -321,9 +338,11 @@ game2d::update_render_system(entt::registry& r, const float dt)
 
   // FBO: Jump Flood Pass
   {
-    const int ideal_passes = glm::ceil(glm::log(glm::max(fbo_lighting_size.x, fbo_lighting_size.y) / log(2.0)));
-    if (ideal_passes != ri.passes)
-      std::cerr << "need to handle viewport resize for JFA\n";
+    const int passes = glm::ceil(glm::log(glm::max(fbo_lighting_size.x, fbo_lighting_size.y)) / std::log(2.0f));
+    if (passes != ri.passes) {
+      std::cerr << "need to handle viewport resize for JFA" << std::endl;
+      exit(1);
+    }
 
     for (int i = 0; i < ri.passes; i++) {
 
@@ -335,9 +354,8 @@ game2d::update_render_system(entt::registry& r, const float dt)
       quad_renderer::QuadRenderer::begin_batch();
 
       // offset for each pass is half the previous one, starting at half the square resolution rounded up to nearest
-      // power 2. #i.e.for 768x512 we round up to 1024x1024 and the offset for the first pass is 512x512, then 256x256,
-      // etc.
-      const auto offset = glm::pow(2, ri.passes - i - 1);
+      // power 2. #i.e.for 768x512 we round up to 1024x1024 and the offset for the first pass is 512x512, then 256x256, etc.
+      const auto offset = std::pow(2, ri.passes - i - 1);
 
       int tex_unit = ri.tex_unit_voronoi_seed;
       if (i > 0)
@@ -391,35 +409,32 @@ game2d::update_render_system(entt::registry& r, const float dt)
     quad_renderer::QuadRenderer::flush(ri.voronoi_distance);
   }
 
+  // Debug lighting with some inputs
   static bool initial = true;
-  const auto& input = get_first_component<SINGLETON_InputComponent>(r);
-  if (get_key_down(input, SDL_SCANCODE_1)) // hack
-    initial = true;
+  {
+    const auto& input = get_first_component<SINGLETON_InputComponent>(r);
+    if (get_key_down(input, SDL_SCANCODE_1))
+      initial = true;
+    if (get_key_down(input, SDL_SCANCODE_V)) // hack
+    {
+      ri.mix_lighting_and_scene.reload();
+      ri.mix_lighting_and_scene.bind();
+      ri.mix_lighting_and_scene.set_mat4("projection", camera.projection);
+      ri.mix_lighting_and_scene.set_mat4("view", glm::mat4(1.0f)); // whole texture
+    }
+  }
 
-  static float time = 0;
-  time += dt;
-
-  // static int i = 0;
-  // unsigned int current_fbo = 0;
-  // int tex_unit_next_fbo = 0;
-  // if (i == 0) {
-  //   // FBO: 2d gi current
-  //   // current should contain INITIAL scene seed
-  //   // light calculated from previous frame
-  //   current_fbo = ri.fbo_gi_0;
-  //   tex_unit_next_fbo = ri.tex_unit_gi_1;
-  // } else {
-  //   // FBO: 2d gi next
-  //   current_fbo = ri.fbo_gi_1;
-  //   tex_unit_next_fbo = ri.tex_unit_gi_0;
-  // }
-  // // double buffer
-  // i += 1;
-  // i %= 2;
+  // double buffer
+  static int i = 0;
+  FramebufferID current_fbo = i == 0 ? ri.fbo_gi_0 : ri.fbo_gi_1;
+  unsigned int tex_unit_current_fbo = i == 0 ? ri.tex_unit_gi_0 : ri.tex_unit_gi_1;
+  unsigned int tex_unit_next_fbo = i == 0 ? ri.tex_unit_gi_1 : ri.tex_unit_gi_0;
+  i += 1;
+  i %= 2;
 
   // FBO: gi
   {
-    Framebuffer::bind_fbo(ri.fbo_gi_0);
+    Framebuffer::bind_fbo(current_fbo);
     RenderCommand::set_viewport(0, 0, fbo_lighting_size.x, fbo_lighting_size.y);
     RenderCommand::set_clear_colour_linear(background_col);
     RenderCommand::clear();
@@ -430,14 +445,8 @@ game2d::update_render_system(entt::registry& r, const float dt)
     ri.gi.set_vec2("screen_wh", fbo_lighting_size);
     ri.gi.set_int("u_distance_data", ri.tex_unit_voronoi_distance);
     ri.gi.set_int("u_noise", ri.tex_unit_bluenoise);
-    ri.gi.set_float("time", time);
-
-    if (initial) {
-      ri.gi.set_int("u_scene_data", ri.tex_unit_emitters_and_occluders);
-      // initial = false;
-    }
-    //  else
-    //   ri.gi.set_int("u_scene_data", tex_unit_next_fbo);
+    ri.gi.set_int("u_emitters_and_occluders", ri.tex_unit_emitters_and_occluders);
+    ri.gi.set_int("u_emission_last_frame", tex_unit_next_fbo);
 
     quad_renderer::RenderDescriptor desc;
     desc.pos_tl = { 0, 0 };
@@ -453,98 +462,122 @@ game2d::update_render_system(entt::registry& r, const float dt)
   }
   glEnable(GL_BLEND);
 
-  // FBO: denoise
-  // {
-  //   Framebuffer::bind_fbo(ri.fbo_denoise);
-  //   RenderCommand::set_viewport(0, 0, fbo_lighting_size.x, fbo_lighting_size.y);
-  //   RenderCommand::set_clear_colour_linear(background_col);
-  //   RenderCommand::clear();
+  // FBO: denoise lighting
+  {
+    Framebuffer::bind_fbo(ri.fbo_denoise);
+    RenderCommand::set_viewport(0, 0, fbo_lighting_size.x, fbo_lighting_size.y);
+    RenderCommand::set_clear_colour_linear(background_col);
+    RenderCommand::clear();
 
-  //   ri.denoise.bind();
-  //   ri.denoise.set_int("tex", ri.tex_unit_gi);
+    ri.denoise.bind();
+    ri.denoise.set_int("tex", tex_unit_current_fbo);
 
-  //   {
-  //     quad_renderer::QuadRenderer::reset_quad_vert_count();
-  //     quad_renderer::QuadRenderer::begin_batch();
-  //     {
-  //       quad_renderer::RenderDescriptor desc;
-  //       desc.pos_tl = { 0, 0 };
-  //       desc.size = fbo_lighting_size;
-  //       desc.angle_radians = 0.0f;
-  //       // desc.colour = background_col; // not needed
-  //       // desc.tex_unit = // not needed
-  //       desc.sprite_offset_and_spritesheet = { 0, 0, 0, 0 };
-  //       quad_renderer::QuadRenderer::draw_sprite(desc, ri.denoise);
-  //     }
-  //     quad_renderer::QuadRenderer::end_batch();
-  //     quad_renderer::QuadRenderer::flush(ri.denoise);
-  //   }
-  // }
+    {
+      quad_renderer::QuadRenderer::reset_quad_vert_count();
+      quad_renderer::QuadRenderer::begin_batch();
+      {
+        quad_renderer::RenderDescriptor desc;
+        desc.pos_tl = { 0, 0 };
+        desc.size = fbo_lighting_size;
+        desc.angle_radians = 0.0f;
+        // desc.colour = background_col; // not needed
+        // desc.tex_unit = // not needed
+        desc.sprite_offset_and_spritesheet = { 0, 0, 0, 0 };
+        quad_renderer::QuadRenderer::draw_sprite(desc, ri.denoise);
+      }
+      quad_renderer::QuadRenderer::end_batch();
+      quad_renderer::QuadRenderer::flush(ri.denoise);
+    }
+  }
 
   const auto& colours = get_first_component<SINGLETON_ColoursComponent>(r);
-  const auto& lin_background = colours.lin_background;
+  // const auto& lin_background = colours.lin_background;
   const auto& srgb_background = colours.background;
 
-  // // FBO: Render sprites in to this fbo with linear colour
-  // {
-  //   Framebuffer::bind_fbo(ri.fbo_linear_main_scene);
-  //   RenderCommand::set_viewport(0, 0, viewport_wh.x, viewport_wh.y);
-  //   RenderCommand::set_clear_colour_linear(*lin_background);
-  //   RenderCommand::clear();
-  //   {
-  //     quad_renderer::QuadRenderer::reset_quad_vert_count();
-  //     quad_renderer::QuadRenderer::begin_batch();
+  // FBO: Render sprites in to this fbo with linear colour
+  {
+    Framebuffer::bind_fbo(ri.fbo_linear_main);
+    RenderCommand::set_viewport(0, 0, viewport_wh.x, viewport_wh.y);
+    RenderCommand::set_clear_colour_linear(background_col);
+    RenderCommand::clear();
+    {
+      quad_renderer::QuadRenderer::reset_quad_vert_count();
+      quad_renderer::QuadRenderer::begin_batch();
 
-  //     // adds 0.5ms
-  //     // const auto& group = registry.group<TransformComponent, SpriteComponent, SpriteColourComponent>();
-  //     // sort by z-index
-  //     // group.sort<SpriteComponent>([](const auto& a, const auto& b) { return a.render_order < b.render_order; });
+      // adds 0.5ms
+      // const auto& group = registry.group<TransformComponent, SpriteComponent, SpriteColourComponent>();
+      // sort by z-index
+      // group.sort<SpriteComponent>([](const auto& a, const auto& b) { return a.render_order < b.render_order; });
 
-  //     const auto& view = r.group<TransformComponent, SpriteComponent, SpriteColourComponent>();
+      const auto& view = r.group<TransformComponent, SpriteComponent, SpriteColourComponent>();
 
-  //     for (const auto& [entity, transform, sc, scc] : view.each()) {
-  //       quad_renderer::RenderDescriptor desc;
-  //       // desc.pos_tl = camera_transform.position + transform.position - transform.scale / 2;
-  //       desc.pos_tl = transform.position - transform.scale / 2;
-  //       desc.size = transform.scale;
-  //       desc.angle_radians = sc.angle_radians + transform.rotation_radians.z;
-  //       desc.colour = *scc.colour;
-  //       desc.tex_unit = sc.tex_unit;
-  //       desc.sprite_offset_and_spritesheet = { sc.x, sc.y, sc.sx, sc.sy };
-  //       quad_renderer::QuadRenderer::draw_sprite(desc, ri.instanced);
-  //     }
+      for (const auto& [entity, transform, sc, scc] : view.each()) {
+        quad_renderer::RenderDescriptor desc;
+        // desc.pos_tl = camera_transform.position + transform.position - transform.scale / 2;
+        desc.pos_tl = transform.position - transform.scale / 2;
+        desc.size = transform.scale;
+        desc.angle_radians = sc.angle_radians + transform.rotation_radians.z;
+        desc.colour = *scc.colour;
+        desc.tex_unit = sc.tex_unit;
+        desc.sprite_offset_and_spritesheet = { sc.x, sc.y, sc.sx, sc.sy };
+        quad_renderer::QuadRenderer::draw_sprite(desc, ri.instanced);
+      }
 
-  //     quad_renderer::QuadRenderer::end_batch();
-  //     quad_renderer::QuadRenderer::flush(ri.instanced);
-  //   }
-  // }
+      quad_renderer::QuadRenderer::end_batch();
+      quad_renderer::QuadRenderer::flush(ri.instanced);
+    }
+  }
 
-  // // FBO: linear_to_srgb_pass
-  // {
-  //   Framebuffer::bind_fbo(ri.fbo_srgb_main_scene);
-  //   RenderCommand::set_viewport(0, 0, viewport_wh.x, viewport_wh.y);
-  //   RenderCommand::set_clear_colour_linear(*lin_background);
-  //   RenderCommand::clear();
+  // FBO: mix lighting and scene
+  {
+    Framebuffer::bind_fbo(ri.fbo_mix_lighting_and_scene);
+    RenderCommand::set_viewport(0, 0, viewport_wh.x, viewport_wh.y);
+    RenderCommand::set_clear_colour_linear(background_col);
+    RenderCommand::clear();
+    {
+      quad_renderer::QuadRenderer::reset_quad_vert_count();
+      quad_renderer::QuadRenderer::begin_batch();
+      {
+        quad_renderer::RenderDescriptor desc;
+        desc.pos_tl = { 0, 0 };
+        desc.size = viewport_wh;
+        desc.angle_radians = 0.0f;
+        // desc.colour = // not needed
+        // desc.tex_unit = ri.tex_unit_main_FBO;
+        desc.sprite_offset_and_spritesheet = { 0, 0, 0, 0 };
+        quad_renderer::QuadRenderer::draw_sprite(desc, ri.mix_lighting_and_scene);
+      }
+      quad_renderer::QuadRenderer::end_batch();
+      quad_renderer::QuadRenderer::flush(ri.mix_lighting_and_scene);
+    }
+  }
 
-  //   // Render the linear colour main scene in to this texture
-  //   // and perform the linear->srgb conversion in the fragment shader.
-  //   {
-  //     quad_renderer::QuadRenderer::reset_quad_vert_count();
-  //     quad_renderer::QuadRenderer::begin_batch();
-  //     {
-  //       quad_renderer::RenderDescriptor desc;
-  //       desc.pos_tl = { 0, 0 };
-  //       desc.size = viewport_wh;
-  //       desc.angle_radians = 0.0f;
-  //       // desc.colour = // not needed
-  //       // desc.tex_unit = ri.tex_unit_main_FBO;
-  //       desc.sprite_offset_and_spritesheet = { 0, 0, 0, 0 };
-  //       quad_renderer::QuadRenderer::draw_sprite(desc, ri.linear_to_srgb);
-  //     }
-  //     quad_renderer::QuadRenderer::end_batch();
-  //     quad_renderer::QuadRenderer::flush(ri.linear_to_srgb);
-  //   }
-  // }
+  // FBO: linear_to_srgb_pass
+  {
+    Framebuffer::bind_fbo(ri.fbo_srgb_main);
+    RenderCommand::set_viewport(0, 0, viewport_wh.x, viewport_wh.y);
+    RenderCommand::set_clear_colour_linear(background_col);
+    RenderCommand::clear();
+
+    // Render the linear colour main scene in to this texture
+    // and perform the linear->srgb conversion in the fragment shader.
+    {
+      quad_renderer::QuadRenderer::reset_quad_vert_count();
+      quad_renderer::QuadRenderer::begin_batch();
+      {
+        quad_renderer::RenderDescriptor desc;
+        desc.pos_tl = { 0, 0 };
+        desc.size = viewport_wh;
+        desc.angle_radians = 0.0f;
+        // desc.colour = // not needed
+        // desc.tex_unit = ri.tex_unit_main_FBO;
+        desc.sprite_offset_and_spritesheet = { 0, 0, 0, 0 };
+        quad_renderer::QuadRenderer::draw_sprite(desc, ri.linear_to_srgb);
+      }
+      quad_renderer::QuadRenderer::end_batch();
+      quad_renderer::QuadRenderer::flush(ri.linear_to_srgb);
+    }
+  }
 
   // Default FBO: render_texture_to_imgui
   {
@@ -554,7 +587,7 @@ game2d::update_render_system(entt::registry& r, const float dt)
     RenderCommand::clear();
 
     // Note: ImGui::Image takes in TexID not TexUnit
-    ViewportInfo vi = render_texture_to_imgui_viewport(ri.tex_id_emitters_and_occluders);
+    ViewportInfo vi = render_texture_to_imgui_viewport(ri.tex_id_srgb);
 
     // If the viewport moves - viewport position will be a frame behind.
     // This would mainly affect an editor, a game viewport probably(?) wouldn't move that much
@@ -571,7 +604,7 @@ game2d::update_render_system(entt::registry& r, const float dt)
 
   ImVec2 viewport_size;
 
-  ImGui::Begin("DebugLighting");
+  ImGui::Begin("tex_id_emitters_and_occluders");
   viewport_size = ImGui::GetContentRegionAvail();
   ImGui::Image((ImTextureID)ri.tex_id_emitters_and_occluders, viewport_size, ImVec2(0, 0), ImVec2(1, 1));
   ImGui::End();
@@ -604,11 +637,6 @@ game2d::update_render_system(entt::registry& r, const float dt)
   ImGui::Image((ImTextureID)ri.tex_id_gi_1, viewport_size, ImVec2(0, 0), ImVec2(1, 1));
   ImGui::End();
 
-  // ImGui::Begin("DebugDenoise");
-  // viewport_size = ImGui::GetContentRegionAvail();
-  // ImGui::Image((ImTextureID)ri.tex_id_denoise, viewport_size, ImVec2(0, 0), ImVec2(1, 1));
-  // ImGui::End();
-
   ImGui::Begin("Debug Emitter Colour");
   float col[4] = { emitter_col.r / 255.0f, emitter_col.g / 255.0f, emitter_col.b / 255.0f, emitter_col.a };
   if (ImGui::ColorEdit4("Emitter", col)) {
@@ -619,10 +647,41 @@ game2d::update_render_system(entt::registry& r, const float dt)
   }
   ImGui::End();
 
-  // ImGui::Begin("DebugBlueNoise");
-  // viewport_size = ImGui::GetContentRegionAvail();
-  // ImGui::Image((ImTextureID)ri.tex_id_bluenoise, viewport_size, ImVec2(0, 0), ImVec2(1, 1));
-  // ImGui::End();
+  ImGui::Begin("DebugDenoise");
+  viewport_size = ImGui::GetContentRegionAvail();
+
+  // viewport_size.y - 100;
+  // static float sigma = 5.0f;
+  // static float kSigma = 1.0f;
+  // static float threshold = 0.1f;
+  // imgui_draw_float(std::string("sigma"), sigma);
+  // imgui_draw_float(std::string("kSigma"), kSigma);
+  // imgui_draw_float(std::string("threshold"), threshold);
+  // ri.gi.bind();
+  // ri.gi.set_float("sigma", sigma);
+  // ri.gi.set_float("kSigma", kSigma);
+  // ri.gi.set_float("threshold", threshold);
+
+  ImGui::Image((ImTextureID)ri.tex_id_denoise, viewport_size, ImVec2(0, 0), ImVec2(1, 1));
+  ImGui::End();
+
+  ImGui::Begin("DebugBlueNoise");
+  viewport_size = ImGui::GetContentRegionAvail();
+  ImGui::Image((ImTextureID)ri.tex_id_bluenoise, viewport_size, ImVec2(0, 0), ImVec2(1, 1));
+  ImGui::End();
+
+  ImGui::Begin("tex_id_linear_main");
+  viewport_size = ImGui::GetContentRegionAvail();
+  ImGui::Image((ImTextureID)ri.tex_id_linear_main, viewport_size, ImVec2(0, 0), ImVec2(1, 1));
+  ImGui::End();
+  ImGui::Begin("tex_id_mix_lighting_and_scene");
+  viewport_size = ImGui::GetContentRegionAvail();
+  ImGui::Image((ImTextureID)ri.tex_id_mix_lighting_and_scene, viewport_size, ImVec2(0, 0), ImVec2(1, 1));
+  ImGui::End();
+  ImGui::Begin("tex_id_srgb");
+  viewport_size = ImGui::GetContentRegionAvail();
+  ImGui::Image((ImTextureID)ri.tex_id_srgb, viewport_size, ImVec2(0, 0), ImVec2(1, 1));
+  ImGui::End();
 };
 
 void

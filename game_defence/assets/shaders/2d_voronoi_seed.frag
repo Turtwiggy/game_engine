@@ -10,18 +10,13 @@ in float v_tex_unit;
 
 uniform sampler2D tex;
 
+vec2 F16_V2(float f) { return vec2(floor(f * 255.0) / 255.0, fract(f * 255.0)); }
+
 void
 main()
 {
-  // translate uvs from rectangular input texture to square voronoi texture.
-	ivec2 tex_size = textureSize(tex, 0);
-	vec2 uv = v_uv;
-	if(tex_size.x > tex_size.y)
-		uv.y = ((uv.y - 0.5) * (float(tex_size.x) / float(tex_size.y))) + 0.5;
-	else
-		uv.x = ((uv.x - 0.5) * (float(tex_size.y) / float(tex_size.x))) + 0.5;
-		
+  vec4 scene = texture(tex, v_uv);
+
   // any pixel with .a > 0 will be recognised as an emitter or occluder
-  vec4 scene_col = texture(tex, uv);
-  out_color = vec4(v_uv.x * scene_col.a, v_uv.y * scene_col.a, 0.0, 1.0);
+  out_color = vec4(F16_V2(v_uv.x * scene.a), F16_V2(v_uv.y * scene.a));
 }

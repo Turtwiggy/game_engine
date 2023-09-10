@@ -9,98 +9,81 @@ in vec2 v_sprites;    // amount of sprites (x, y)
 in float v_tex_unit;
 
 // constants
-#define PI 3.141596
-#define RAYS_PER_PIXEL 1
-#define MAX_STEPS 16
+#define PI 3.14159265359
+#define TAU 6.2831853071795864769252867665590
+#define MAX_STEPS 32
+#define RAYS_PER_PIXEL 32
 #define EPSILON 0.001
 
 // uniforms
 uniform sampler2D u_distance_data;
-uniform sampler2D u_scene_data;
-uniform float u_emission_multi = 1.0;
-uniform float u_dist_mod = 1.0;
+uniform sampler2D u_noise;
+uniform sampler2D u_emitters_and_occluders;
+uniform sampler2D u_emission_last_frame;
 uniform vec2 screen_wh;
-uniform float time;
 
-float random (vec2 st) 
-{
-   return fract(sin(dot(st.xy, vec2(12.9898,78.233))) * 43758.5453123);
-}
+float V2_F16(vec2 v) { return v.x + (v.y / 255.0); }
+bool RANGE(float v, float lo, float hi) { return (v - hi) * (v - lo) > 0.0; }
+bool surfacemarch(vec2 pix, vec2 dir, float noise, out vec2 hitpos, out vec3 hitcol) {
+  float aspect = screen_wh.x / screen_wh.y;
+  vec2 pixel = vec2(pix.x * aspect, pix.y);
 
-bool raymarch(vec2 origin, vec2 dir, float aspect, out vec2 hit_pos)
-{
-  float current_dist = 0.0;
-  for(int i = 0; i < MAX_STEPS; i++)
-  {
-    vec2 sample_point = origin + dir * current_dist;
+  for(float ray = 0.0, dst = 0.0, i = 0.0; i < MAX_STEPS; i += 1.0) {
+    vec2 raypos = pixel + (dir * ray);
+    raypos.x /= aspect;
+    ray += (dst = V2_F16(texture2D(u_distance_data, raypos).rg));
 
-    // when we sample the distance field we need to convert back to uv space.
-    sample_point.x /= aspect; 
+    if (RANGE(raypos.x, 0.0, 1.0) || RANGE(raypos.y, 0.0, 1.0)) return false;
+    if (dst <= EPSILON) {
+      // Random sample either surface emitters or previous frame emission pixel.
+      vec3 srceCol = texture2D(u_emission_last_frame, raypos).rgb;
+      vec3 eCol = texture2D(u_emitters_and_occluders, raypos).rgb;
+      float srceValue = max(srceCol.r, max(srceCol.g, srceCol.b));
+      vec2 srcePos = raypos;
 
-    // early exit if we hit the edge of the screen.
-    if(sample_point.x > 1.0 || sample_point.x < 0.0 || sample_point.y > 1.0 || sample_point.y < 0.0)
-        return false;
+      raypos *= aspect;
+      raypos -= (dir * ray * noise);
+      raypos /= aspect;
+            
+      vec3 destCol = texture2D(u_emission_last_frame, raypos).rgb;
+      float destValue = max(destCol.r, max(destCol.g, destCol.b));
+      vec2 destPos = raypos;
 
-    float dist_to_surface = texture(u_distance_data, sample_point).r / u_dist_mod;
-
-    // we've hit a surface if distance field returns 0 or close to 0 (due to our distance field using a 16-bit float
-    // the precision isn't enough to just check against 0).
-    if(dist_to_surface < EPSILON)
-    {
-        hit_pos = sample_point;
-        return true;
+      float check = step(destValue, srceValue);
+      hitcol = (check > 0.0)? srceCol : mix(destCol, srceCol, 0.5);
+      hitpos = (check > 0.0)? srcePos : destPos;
+      return true;
     }
-
-    // if we don't hit a surface, continue marching along the ray.
-    current_dist += dist_to_surface;
   }
   return false;
 }
 
-void get_surface(vec2 uv, out float emissive, out vec3 colour)
-{	
-   vec4 emissive_data = texture(u_scene_data, uv);
-   emissive = max(emissive_data.r, max(emissive_data.g, emissive_data.b)) * u_emission_multi;
-   colour = emissive_data.rgb;
+vec3 tonemap(vec3 color, float dist) {
+  // INVERSE SQR LAW FOR LIGHT: (not my preferred, visually)
+  //return color * (1.0 / (1.0 + dot(dist / min(screen_wh.x, screen_wh.y))));
+  
+  // LINEAR DROP OFF:
+  return color * (1.0 - (dist / min(screen_wh.x, screen_wh.y)));
 }
 
 void
 main()
 {
-  vec3 pixel_col = vec3(0.0);
-  float pixel_emis = 0.0;
+  vec3  colors = vec3(0.0);
+  float emissv = 0.0,
+  gnoise = texture2D(u_noise, v_uv).r,
+  gangle = gnoise * TAU;
 
-  vec2 uv = v_uv;
-  float aspect = screen_wh.y / screen_wh.x;
-  uv.x *= aspect;
-  
-  float rand2pi = random(v_uv * vec2(time, -time)) * 2.0 * PI;
-  // magic number that gives us a good ray distribution.
-  float golden_angle = PI * 0.7639320225;
-
-  for(int i = 0; i < RAYS_PER_PIXEL; i++)
-  {
-    // get our ray dir by taking the random angle and adding golden_angle * ray number.
-    float cur_angle = rand2pi + golden_angle * float(i);
-    vec2 ray_dir = normalize(vec2(cos(cur_angle), sin(cur_angle)));
-    vec2 ray_origin = uv;
-
-   vec2 hit_pos;
-   bool hit = raymarch(ray_origin, ray_dir, aspect, hit_pos);
-   if(hit)
-   {
-      float mat_emissive;
-      vec3 mat_colour;
-      get_surface(hit_pos, mat_emissive, mat_colour);
-
-      pixel_emis += mat_emissive;
-      pixel_col += mat_colour;
-   }
+  const float RAY_DELTA = TAU * (1.0/RAYS_PER_PIXEL);
+  for(float i = 0.0; i < TAU; i += RAY_DELTA) {
+    vec2 hitpos = v_uv; 
+    vec3 hitcol = vec3(0.0);
+    surfacemarch(v_uv, vec2(cos(gangle + i), -sin(gangle + i)), gnoise, hitpos, hitcol);
+    hitcol = tonemap(hitcol, distance(v_uv * screen_wh, hitpos * screen_wh));
+    emissv += max(hitcol.r, max(hitcol.g, hitcol.b));
+    colors += hitcol;
   }
 
-  pixel_col /= pixel_emis;
-  pixel_emis /= float(RAYS_PER_PIXEL);
-  
-  vec3 res = pixel_emis * pixel_col;
-  out_color = vec4(res, 1.0);
+  vec3 color = (colors / emissv) * (emissv / RAYS_PER_PIXEL);
+  out_color = vec4(color, 1.0);
 }

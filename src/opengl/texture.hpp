@@ -5,6 +5,7 @@
 #define STB_IMAGE_IMPLEMENTATION
 #endif
 #include <glm/glm.hpp>
+#include "opengl/framebuffer.hpp"
 
 // c++ standard library headers
 #include <string>
@@ -63,6 +64,6 @@ void
 update_bound_texture_size(const glm::ivec2 size);
 
 void
-new_texture_to_fbo(unsigned int& out_fbo_id, int& out_tex_id, const int tex_unit, const glm::ivec2 size);
+new_texture_to_fbo(FramebufferID& out_fbo_id, int& out_tex_id, const int tex_unit, const glm::ivec2 size);
 
 } // namespace engine

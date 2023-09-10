@@ -23,16 +23,16 @@ main()
 {
   vec4 lin = texture(tex, v_uv);
 
-  vec3 rgb = vec3(
-    linear_to_srgb(lin.r),
-    linear_to_srgb(lin.g),
-    linear_to_srgb(lin.b)
-  );
+  // vec3 rgb = vec3(
+  //   linear_to_srgb(lin.r),
+  //   linear_to_srgb(lin.g),
+  //   linear_to_srgb(lin.b)
+  // );
 
   out_colour = vec4(
-    rgb.r,
-    rgb.g,
-    rgb.b,
+    lin.r,
+    lin.g,
+    lin.b,
     lin.a
   );
 

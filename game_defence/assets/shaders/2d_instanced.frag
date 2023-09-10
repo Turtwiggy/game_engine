@@ -14,10 +14,12 @@ void
 main()
 {
   // int index = int(v_tex_unit);
+  out_colour = v_colour;
+  return;
 
   // Sample texture directly
   if (v_sprite_pos.x == 0.0f && v_sprite_pos.y == 0.0f) { // a whole texture
-    out_colour = v_colour;
+  out_colour = v_colour;
     return;
   } 
 

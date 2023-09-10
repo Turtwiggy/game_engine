@@ -159,11 +159,11 @@ engine::update_bound_texture_size(const glm::ivec2 size)
 };
 
 void
-engine::new_texture_to_fbo(unsigned int& out_fbo_id, int& out_tex_id, const int tex_unit, glm::ivec2 size)
+engine::new_texture_to_fbo(FramebufferID& out_fbo_id, int& out_tex_id, const int tex_unit, glm::ivec2 size)
 {
   glActiveTexture(GL_TEXTURE0 + tex_unit);
 
-  unsigned int fbo_id = Framebuffer::create_fbo();
+  auto fbo_id = Framebuffer::create_fbo();
   Framebuffer::bind_fbo(fbo_id);
   RenderCommand::set_viewport(0, 0, size.x, size.y);
 

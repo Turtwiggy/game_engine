@@ -350,6 +350,7 @@ create_gameplay(entt::registry& r, const EntityType& type)
       r.emplace<CursorComponent>(e);
       create_physics_actor(r, e);
       r.emplace<VelocityComponent>(e);
+      r.emplace<LightEmitterComponent>(e);
       break;
     }
 

@@ -70,12 +70,12 @@ in vec2 v_sprites;    // amount of sprites (x, y)
 in float v_tex_unit;
 
 uniform sampler2D tex;
+uniform float sigma = 5.0f;
+uniform float kSigma = 2.0f;
+uniform float threshold = 0.2f;
 
 void
 main()
 {
-  const float sigma = 5.0;
-  const float kSigma = 1.0;
-  const float threshold = 0.1;
   out_colour = smartDeNoise(tex, v_uv, sigma, kSigma, threshold);
 }

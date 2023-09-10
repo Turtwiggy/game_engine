@@ -7,18 +7,20 @@
 
 namespace engine {
 
-unsigned int
+FramebufferID
 Framebuffer::create_fbo()
 {
   unsigned int fbo;
   glGenFramebuffers(1, &fbo);
-  return fbo;
+  FramebufferID fbo_id;
+  fbo_id.id = fbo;
+  return fbo_id;
 }
 
 void
-Framebuffer::bind_fbo(const unsigned int fbo)
+Framebuffer::bind_fbo(const FramebufferID& fbo)
 {
-  glBindFramebuffer(GL_FRAMEBUFFER, fbo);
+  glBindFramebuffer(GL_FRAMEBUFFER, fbo.id);
 }
 
 void
