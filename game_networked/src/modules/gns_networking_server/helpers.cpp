@@ -22,7 +22,7 @@ SteamNetConnectionStatusChangedCallback(SteamNetConnectionStatusChangedCallback_
 void
 start_server_or_quit(entt::registry& r, int port)
 {
-  auto& server = get_first_component<SINGLETON_ServerComponent>(r);
+  SINGLETON_ServerComponent server;
 
   // Select instance to use.  For now we'll always use the default.
   // But we could use SteamGameServerNetworkingSockets() on Steam.
@@ -44,24 +44,22 @@ start_server_or_quit(entt::registry& r, int port)
 
   server.group = server.interface->CreatePollGroup();
   if (server.socket == k_HSteamNetPollGroup_Invalid) {
-    std::cerr << "Failed to listen on port: "
-              << "\n";
+    std::cerr << "Failed to listen on port: " << port << "\n";
     exit(0);
   }
 
   std::cout << "Server listening on port: " << port << "\n";
+  r.emplace<SINGLETON_ServerComponent>(r.create(), std::move(server));
 }
 
 void
-game2d::server_receive_messages_on_poll_group(SINGLETON_ServerComponent& server, std::vector<ClientMessage>& result)
+server_receive_messages_on_poll_group(SINGLETON_ServerComponent& server, std::vector<ClientMessage>& result)
 {
   constexpr int max_messages = 32;
   ISteamNetworkingMessage* all_msgs[max_messages] = {};
   int num_msgs = server.interface->ReceiveMessagesOnPollGroup(server.group, all_msgs, max_messages);
-
   if (num_msgs < 0)
-    std::cerr << "Error checking for messages"
-              << "\n";
+    std::cerr << "Error checking for messages" << std::endl;
 
   for (int i = 0; i < num_msgs; i++) {
     ISteamNetworkingMessage* msg = all_msgs[i];
@@ -79,19 +77,14 @@ game2d::server_receive_messages_on_poll_group(SINGLETON_ServerComponent& server,
 }
 
 void
-game2d::server_poll_connections(SINGLETON_ServerComponent& server)
+server_poll_connections(SINGLETON_ServerComponent& server)
 {
   // PollConnectionStateChanges
-  //
   server.interface->RunCallbacks();
-  server.events.clear();
+  // server.events.clear();
 
   // Process Callbacks
-  //
   for (auto& info : conn_event) {
-    //
-    // Process event
-    //
     switch (info.m_info.m_eState) {
       case k_ESteamNetworkingConnectionState_None: {
         // NOTE: We will get callbacks here when we destroy connections.
@@ -101,6 +94,10 @@ game2d::server_poll_connections(SINGLETON_ServerComponent& server)
       case k_ESteamNetworkingConnectionState_Connected: {
         // We will get a callback immediately after accepting the connection.
         // Since we are the server, we can ignore this, it's not news to us.
+
+        // send a welcome message because why not
+        send_string_to_client(server.interface, info.m_hConn, std::string("Welcome!"));
+
         break;
       }
       case k_ESteamNetworkingConnectionState_ClosedByPeer:
@@ -125,12 +122,11 @@ game2d::server_poll_connections(SINGLETON_ServerComponent& server)
           // Send a message so everybody else knows what happened
           // send_string_to_all_clients(temp);
           server.clients.erase(client_it);
-          server.events.push_back(ServerEvents::CLIENT_DROPPED);
-        } else {
+          // server.events.push_back(ServerEvents::CLIENT_DROPPED);
+        } else
           assert(info.m_eOldState == k_ESteamNetworkingConnectionState_Connecting);
-        }
 
-        // Clean up the connection.  This is important!
+        // Clean up the connection. This is important!
         // The connection is "closed" in the network sense, but
         // it has not been destroyed.  We must close it on our end, too
         // to finish up.  The reason information do not matter in this case,
@@ -144,14 +140,13 @@ game2d::server_poll_connections(SINGLETON_ServerComponent& server)
         auto conn = std::find(server.clients.begin(), server.clients.end(), info.m_hConn);
         assert(conn == server.clients.end());
 
-        std::cout << "Connection request from " << info.m_info.m_szConnectionDescription << "\n";
+        std::cout << "Connection request from " << info.m_info.m_szConnectionDescription << std::endl;
 
         // Arbitrarily limit slots on server
         // until I'm better at understanding networking stuff
         bool slots_available = server.clients.size() <= server.max_clients;
         if (!slots_available) {
-          std::cout << "Can't accept connection. (Server Full)"
-                    << "\n";
+          std::cout << "Cant accept connection. (Server Full)" << std::endl;
           int reason = 1;
           server.interface->CloseConnection(info.m_hConn, reason, nullptr, false);
           break;
@@ -164,24 +159,19 @@ game2d::server_poll_connections(SINGLETON_ServerComponent& server)
           // disconnected, the connection may already be half closed.  Just
           // destroy whatever we have on our side.
           server.interface->CloseConnection(info.m_hConn, 0, nullptr, false);
-          std::cout << "Can't accept connection.  (Already closed?)"
-                    << "\n";
+          std::cout << "Can't accept connection. (Already closed?)" << std::endl;
           break;
         }
 
         // Assign the poll group
         if (!server.interface->SetConnectionPollGroup(info.m_hConn, server.group)) {
           server.interface->CloseConnection(info.m_hConn, 0, nullptr, false);
-          std::cout << "Failed to set poll group?"
-                    << "\n";
+          std::cout << "Failed to set poll group?" << std::endl;
           break;
         }
 
-        // send_string_to_client(server.interface, info.m_hConn, std::string("Welcome!"));
-
         // Add them to the client list
         server.clients.push_back(info.m_hConn);
-        server.events.push_back(ServerEvents::CLIENT_JOINED);
         break;
       }
     }
@@ -194,51 +184,17 @@ game2d::tick_server(entt::registry& r, uint64_t milliseconds_dt)
 {
   auto& server = get_first_component<SINGLETON_ServerComponent>(r);
   server_poll_connections(server);
-  server.fixed_frame += 1;
 
   // PollIncomingMessages()
   std::vector<ClientMessage> client_messages;
   server_receive_messages_on_poll_group(server, client_messages);
 
   // ProcessClientMessage()
-  std::cout << "(server) waiting for client to send ft: " << server.fixed_frame << "\n";
-  if (client_messages.size() == 0)
-    return;
-  // for (int i = 0; i < client_messages.size(); i++) {
-  ClientMessage message = client_messages[0];
-
-  // Assume all messages are input, so ProcessClientInput()
-  //   SINGLETON_FixedUpdateInputHistory player_input_history;
-  //   player_input_history = nlohmann::json::from_cbor(message.data);
-
-  //   int difference = player_input_history.fixed_tick - server.fixed_frame;
-  //   std::cout << "(server) client is " << difference << " ahead" << "\n";
-  //   std::cout << "(server) has " << player_input_history.history.size() << " to search" << "\n";
-
-  // #ifdef _DEBUG
-  //   if (difference > 200) {
-  //     std::cerr << "(server) client is 200 ticks ahead??" << "\n";
-  //   }
-  // #endif
-
-  //   // remove duds
-  //   if (player_input_history.history.size() - difference > 0) {
-  //     std::vector<std::vector<InputEvent>>::iterator it = player_input_history.history.end() - difference;
-  //     while (it != player_input_history.history.end()) {
-
-  //       const auto& inputs = it;
-
-  //       // HACK: just set entity to the only player entity the server has.
-  //       auto player_id = r.view<const PlayerComponent>().front();
-  //       for (int i = 0; i < (*inputs).size(); i++) {
-  //         (*inputs)[i].player = player_id;
-  //       }
-
-  //       simulate(r, *inputs, milliseconds_dt);
-  //       ++it;
-  //     }
-
-  //     send_string_to_client(server.interface, message.conn, std::to_string(server.fixed_frame));
+  for (int i = 0; i < client_messages.size(); i++) {
+    ClientMessage message = client_messages[i];
+    std::cout << "(server) from client " << message.conn << " recieved:" << message.data << std::endl;
+    server.incoming_messages.push_back(message.data);
+  }
 };
 
 //
@@ -254,12 +210,17 @@ send_string_to_client(ISteamNetworkingSockets* interface, HSteamNetConnection co
 
 void
 send_string_to_all_clients(ISteamNetworkingSockets* interface,
-                           std::vector<HSteamNetConnection>& clients,
-                           const char* str,
-                           HSteamNetConnection except)
+                           const std::vector<HSteamNetConnection>& clients,
+                           const char* str)
 {
-  for (auto& c : clients)
+  for (const auto& c : clients)
     send_string_to_client(interface, c, str);
+}
+
+void
+send_string_to_all_clients(const SINGLETON_ServerComponent& server, const std::string& s)
+{
+  send_string_to_all_clients(server.interface, server.clients, s.c_str());
 }
 
 } // namespace game2d

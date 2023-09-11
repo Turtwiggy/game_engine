@@ -78,8 +78,8 @@ main(int argc, char* argv[])
   name += " [RELEASE]";
 #endif
 
-  app.height = 720;
-  app.width = 1280;
+  app.height = 480;
+  app.width = app.height * 16 / 9;
   app.window = engine::GameWindow(name, app.width, app.height, app.display, app.vsync);
   app.imgui.initialize(app.window);
 

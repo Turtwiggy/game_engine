@@ -4,26 +4,6 @@ cmake_minimum_required(VERSION 3.0.0)
 set(CMAKE_CXX_STANDARD 20)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 
-if(EMSCRIPTEN)
-  message("Compiling for emscripten (toolkit set in cmake-kits.json)")
-
-  # https://emscripten.org/docs/tools_reference/emcc.html
-  # https://emscripten.org/docs/porting/files/packaging_files.html
-  set(EMS "-sUSE_SDL=2 -sDISABLE_EXCEPTION_CATCHING=1")
-  set(LD_FLAGS "-sWASM=1 -sALLOW_MEMORY_GROWTH=1 -sNO_EXIT_RUNTIME=0 -sASSERTIONS=1")
-  set(LD_FLAGS "${LD_FLAGS} -sMIN_WEBGL_VERSION=2 -sMAX_WEBGL_VERSION=2")
-  set(LD_FLAGS "${LD_FLAGS} -sDEMANGLE_SUPPORT=1 --preload-file assets --bind")
-  set(LD_FLAGS "${LD_FLAGS} --shell-file assets/emscripten/shell_minimal.html")
-  set(LD_FLAGS "${LD_FLAGS} ${EMS}")
-
-  set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} ${EMS}")
-  set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++20 -stdlib=libc++ ${EMS}")
-  set(CMAKE_EXECUTABLE_SUFFIX ".html")
-
-  message("index VCPKG_CHAINLOAD_TOOLCHAIN_FILE: ${VCPKG_CHAINLOAD_TOOLCHAIN_FILE}")
-  message("index CMAKE_EXECUTABLE_SUFFIX: ${CMAKE_EXECUTABLE_SUFFIX}")
-endif()
-
 if(CMAKE_CXX_COMPILER_ID MATCHES GNU)
   add_definitions("-std=c++20")
   add_definitions("-Wall")
@@ -50,15 +30,10 @@ message("game_networked: source_dir: ${CMAKE_SOURCE_DIR}")
 message("index CMAKE_TOOLCHAIN_FILE: ${CMAKE_TOOLCHAIN_FILE}")
 
 # Add VCPKG packages
-if(EMSCRIPTEN)
-else()
-  # packages not supported or needed by emscripten
-  find_package(GameNetworkingSockets CONFIG REQUIRED)
-  find_package(GLEW REQUIRED)
-  find_package(OpenAL CONFIG REQUIRED)
-  find_package(SDL2 CONFIG REQUIRED)
-endif()
-
+find_package(GameNetworkingSockets CONFIG REQUIRED)
+find_package(GLEW REQUIRED)
+find_package(OpenAL CONFIG REQUIRED)
+find_package(SDL2 CONFIG REQUIRED)
 find_package(glm CONFIG REQUIRED)
 find_package(nlohmann_json CONFIG REQUIRED)
 find_path(STB_INCLUDE_DIRS "stb_c_lexer.h")
@@ -77,7 +52,7 @@ add_executable(game_networked
   ${SRC_FILES}
 
   # add icon to executable
-  # ${CMAKE_SOURCE_DIR}/game_networked/assets/textures/resource.rc
+  ${CMAKE_SOURCE_DIR}/game_networked/assets/textures/default_resource.rc
 )
 
 if(${CMAKE_SYSTEM_NAME} STREQUAL "Windows")
@@ -117,7 +92,7 @@ IF(${CMAKE_SYSTEM_NAME} STREQUAL "Windows")
 
   # Only do this for debug builds,
   # as release builds should copy the folder over (not symlink)
-  IF(CMAKE_BUILD_TYPE MATCHES Debug)
+  IF(${CMAKE_BUILD_TYPE} MATCHES Debug)
     message("creating symlink...")
 
     # create symlink assets for build
@@ -129,6 +104,38 @@ IF(${CMAKE_SYSTEM_NAME} STREQUAL "Windows")
       DEPENDS ${dst}
       COMMENT "symbolic link resources folder from ${src} => ${dst}"
     )
+
+    # (server) delete server dir
+    file(REMOVE_RECURSE ${CMAKE_BINARY_DIR}../server)
+
+    # (server) delete assets
+    file(REMOVE_RECURSE ${CMAKE_BINARY_DIR}../server/assets)
+
+    # (server) copy files
+    set(server_src ${CMAKE_CURRENT_BINARY_DIR}/)
+    set(server_dst ${CMAKE_CURRENT_BINARY_DIR}/../server)
+    add_custom_command(
+      TARGET ${PROJECT_NAME} POST_BUILD
+      COMMAND ${CMAKE_COMMAND} -E copy_directory ${server_src} ${server_dst}
+      COMMENT "copy files from ${server_src} => ${server_dst}"
+    )
+
+    # (server) copy assets
+    set(server_asset_src ${CMAKE_SOURCE_DIR}/game_networked/assets)
+    set(server_asset_dst ${CMAKE_CURRENT_BINARY_DIR}/../server/assets)
+    add_custom_command(
+      TARGET ${PROJECT_NAME} POST_BUILD
+      COMMAND ${CMAKE_COMMAND} -E copy_directory ${server_asset_src} ${server_asset_dst}
+      COMMENT "copy files from ${server_src} => ${server_dst}"
+    )
+
+    # (server) remove client icon, set server icon
+    message("server asset dst: ${server_asset_dst}")
+    file(REMOVE ${server_asset_dst}/textures/default_resource.rc)
+    file(REMOVE ${server_asset_dst}/textures/client_resource.rc)
+    file(REMOVE ${server_asset_dst}/textures/server_resource.rc)
+    file(REMOVE ${server_asset_dst}/textures/client.ico)
+    configure_file(${server_asset_src}/textures/server_resource.rc ${server_asset_dst}/textures/default_resource.rc)
   endif()
 endif()
 

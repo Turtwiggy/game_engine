@@ -21,10 +21,11 @@ start_client(entt::registry& r, const std::string& addr);
 void
 tick_client(entt::registry& r, uint64_t milliseconds_dt);
 
-void
-client_receive_messages_on_connection(SINGLETON_ClientComponent& client, std::vector<std::string>& result);
+//
+// Client -> Server
+//
 
 void
-client_poll_connections(SINGLETON_ClientComponent& client);
+send_message_to_server(const SINGLETON_ClientComponent& client, const std::string& packet);
 
 } // namespace game2d

@@ -9,6 +9,7 @@
 #include "maths/maths.hpp"
 #include "modules/camera/perspective.hpp"
 #include "modules/camera/system.hpp"
+#include "modules/gns_networking/system.hpp"
 #include "modules/gns_ui_networking/components.hpp"
 #include "modules/gns_ui_networking/system.hpp"
 #include "modules/renderer/components.hpp"
@@ -38,7 +39,9 @@ init(engine::SINGLETON_Application& app, entt::registry& r)
   // init_audio_system(r);
   init_input_system(r);
   r.emplace<SINGLE_ShadersComponent>(r.create());
+
   r.emplace<SINGLETON_NetworkingUIComponent>(r.create());
+  init_networking_system(r);
 
   auto camera_entity = r.create();
   PerspectiveCamera c;
@@ -64,7 +67,7 @@ init(engine::SINGLETON_Application& app, entt::registry& r)
 void
 fixed_update(entt::registry& r, const uint64_t milliseconds_dt)
 {
-  //
+  update_networking_system(r, milliseconds_dt);
 }
 
 void
@@ -80,7 +83,6 @@ update(engine::SINGLETON_Application& app, entt::registry& r, const float dt)
   // rendering
   {
     const engine::LinearColour background_col(0.8f, 0.8f, 0.8f, 1.0f);
-
     Framebuffer::default_fbo();
     RenderCommand::set_viewport(0, 0, app.width, app.height);
     RenderCommand::set_clear_colour_linear(background_col);

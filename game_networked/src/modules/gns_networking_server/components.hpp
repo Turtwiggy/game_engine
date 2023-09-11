@@ -26,16 +26,15 @@ struct ClientMessage
 
 struct SINGLETON_ServerComponent
 {
-  int fixed_frame = 0;
-  int simulation_frame = 0;
-
   ISteamNetworkingSockets* interface;
   HSteamListenSocket socket;
   HSteamNetPollGroup group;
 
   const int max_clients = 4; // arbitrarily chosen
   std::vector<HSteamNetConnection> clients;
-  std::vector<ServerEvents> events;
+  // std::vector<ServerEvents> events;
+
+  std::vector<std::string> incoming_messages;
 };
 
 } // namespace game2d

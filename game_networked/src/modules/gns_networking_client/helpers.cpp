@@ -23,7 +23,7 @@ SteamNetConnectionStatusChangedCallback(SteamNetConnectionStatusChangedCallback_
 void
 start_client(entt::registry& r, const std::string& addr)
 {
-  auto& client = get_first_component<SINGLETON_ClientComponent>(r);
+  SINGLETON_ClientComponent client;
   client.interface = SteamNetworkingSockets();
 
   SteamNetworkingIPAddr serverAddr;
@@ -44,35 +44,33 @@ start_client(entt::registry& r, const std::string& addr)
     }
   } else
     std::cerr << "Failed to parse server's address for the client\n";
+
+  r.emplace<SINGLETON_ClientComponent>(r.create(), std::move(client));
 }
 
 void
-game2d::client_receive_messages_on_connection(SINGLETON_ClientComponent& client, std::vector<std::string>& result)
+client_receive_messages_on_connection(SINGLETON_ClientComponent& client, std::vector<std::string>& result)
 {
   constexpr int max_messages = 32;
   ISteamNetworkingMessage* all_msgs[max_messages] = {};
   int num_msgs = client.interface->ReceiveMessagesOnConnection(client.connection, all_msgs, max_messages);
 
   if (num_msgs < 0)
-    std::cerr << "(client) error checking for messages"
-              << "\n";
+    std::cerr << "(client) error checking for messages" << std::endl;
+  for (int i = 0; i < num_msgs; i++) {
+    ISteamNetworkingMessage* msg = all_msgs[i];
+    assert(msg);
 
-  {
-    for (int i = 0; i < num_msgs; i++) {
-      ISteamNetworkingMessage* msg = all_msgs[i];
-      assert(msg);
+    std::string data;
+    data.assign((const char*)msg->m_pData, msg->m_cbSize);
+    msg->Release(); // We don't need this anymore.
 
-      std::string data;
-      data.assign((const char*)msg->m_pData, msg->m_cbSize);
-      msg->Release(); // We don't need this anymore.
-
-      result.push_back(data);
-    }
+    result.push_back(data);
   }
 }
 
 void
-game2d::client_poll_connections(SINGLETON_ClientComponent& client)
+client_poll_connections(SINGLETON_ClientComponent& client)
 {
   // PollConnectionStateChanges
   //
@@ -87,12 +85,10 @@ game2d::client_poll_connections(SINGLETON_ClientComponent& client)
         // NOTE: We will get callbacks here when we destroy connections.  You can ignore these.
         break;
       case k_ESteamNetworkingConnectionState_Connecting:
-        std::cout << "Connecting to server..."
-                  << "\n";
+        std::cout << "Connecting to server...\n";
         break;
       case k_ESteamNetworkingConnectionState_Connected:
-        std::cout << "Connected to server OK!"
-                  << "\n";
+        std::cout << "Connected to server OK!\n";
         break;
 
       case k_ESteamNetworkingConnectionState_ClosedByPeer:
@@ -128,85 +124,42 @@ game2d::client_poll_connections(SINGLETON_ClientComponent& client)
 }
 
 void
-game2d::tick_client(entt::registry& r, uint64_t milliseconds_dt)
+tick_client(entt::registry& r, uint64_t milliseconds_dt)
 {
+  // PollConnectionStateChanges()
   auto& client = get_first_component<SINGLETON_ClientComponent>(r);
-  // auto& fixed_inputs = get_first_component<SINGLETON_FixedUpdateInputHistory>(r);
   client_poll_connections(client);
-  client.fixed_frame += 1;
 
   // PollIncomingMessages()
   std::vector<std::string> server_messages;
   client_receive_messages_on_connection(client, server_messages);
 
-  // HACK: move all unprocessed inputs from Update() to FixedUpdate()?
-  // {
-  //   auto& input = r.ctx().at<SINGLETON_InputComponent>();
-  //   auto& fixed_input = r.ctx().at<SINGLETON_FixedUpdateInputHistory>();
-  //   fixed_input.history.push_back(std::move(input.unprocessed_update_inputs));
-
-  //   // As a client, just simulate immediately
-  //   simulate(r, fixed_input.history.back(), milliseconds_dt);
-  //   client.simulation_frame += 1;
-  // }
-
-  // for (int i = 0; i < server_messages.size(); i++) {
-  if (server_messages.size() > 0) {
-    std::string message = server_messages[0];
+  // Debug Messages
+  client.messages.clear();
+  for (int i = 0; i < server_messages.size(); i++) {
+    std::string message = server_messages[i];
     std::cout << "(client) received: " << message << "\n";
-
-    // HACK: assume the message was an int containing an ack frame the server received...
-    // int server_tick = std::stoi(message);
-    // int client_tick = fixed_inputs.history.back();
-    // fixed_inputs.fixed_tick_since_ack = fixed_inputs.fixed_tick - server_tick;
-
-    // std::cout << "(client) tick: " << fixed_inputs.fixed_tick << " , ticks_ahead: " <<
-    // fixed_inputs.fixed_tick_since_ack
-    //           << "\n";
-
-    // discard any unneeded inputs
-    // while (fixed_inputs.history.size() < fixed_inputs.fixed_tick_since_ack)
-    //   fixed_inputs.history.erase(fixed_inputs.history.begin());
-
-    //     int excess = fixed_inputs.history.size() - fixed_inputs.fixed_tick_since_ack;
-    //     if (excess > 0)
-    //       fixed_inputs.history.erase(fixed_inputs.history.begin(), fixed_inputs.history.begin() + excess);
-    // #ifdef _DEBUG
-    //     assert(fixed_inputs.history.size() == fixed_inputs.fixed_tick_since_ack);
-    // #endif
-    // std::cout << "(client) inputs size: " << fixed_inputs.history.size() << "\n";
+    client.messages.push_back(message);
   }
-
-  // ... do client things ...
 
   // PollLocalUserInput()
   // TODO: https://gafferongames.com/post/deterministic_lockstep/
   // TODO: https://gafferongames.com/post/what_every_programmer_needs_to_know_about_game_networking/
+}
 
-  //   {
-  //     auto json = fixed_inputs;
-  //     auto data = nlohmann::json::to_cbor(json);
-  //     std::string packet;
-  //     packet.assign(data.begin(), data.end());
+void
+send_message_to_server(const SINGLETON_ClientComponent& client, const std::string& packet)
+{
+  // auto data = nlohmann::json::to_cbor(message);
+  // std::string packet;
+  // packet.assign(data.begin(), data.end());
+  const int protocol = k_nSteamNetworkingSend_Unreliable;
+  const int max_size = k_cbMaxSteamNetworkingSocketsMessageSizeSend;
 
-  //     const int protocol = k_nSteamNetworkingSend_Unreliable;
-  //     const int max_size = k_cbMaxSteamNetworkingSocketsMessageSizeSend;
+  if (packet.size() >= max_size)
+    std::cerr << "packet wanting to send is too large, sending anyway..." << std::endl;
 
-  //     if (packet.size() >= max_size)
-  //       std::cerr << "packet wanting to send is too large, sending anyway..." << "\n";
-
-  //     client.interface->SendMessageToConnection(
-  //       client.connection, packet.c_str(), (uint32_t)packet.size(), protocol, nullptr);
-
-  //     fixed_inputs.fixed_tick += 1;
-  //     fixed_inputs.fixed_tick_since_ack += 1;
-
-  // #ifdef _DEBUG
-  //     if (fixed_inputs.fixed_tick_since_ack > 200) {
-  //       std::cerr << "(client) server is 200 ticks behind??" << "\n";
-  //     }
-  // #endif
-  //   }
+  client.interface->SendMessageToConnection(client.connection, packet.c_str(), (uint32_t)packet.size(), protocol, nullptr);
 }
 
 } // namespace game2d

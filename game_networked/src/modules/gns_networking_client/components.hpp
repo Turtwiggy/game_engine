@@ -14,11 +14,10 @@ namespace game2d {
 
 struct SINGLETON_ClientComponent
 {
-  int fixed_frame = 0;
-  int simulation_frame = 0;
-
   ISteamNetworkingSockets* interface;
   HSteamNetConnection connection;
+
+  std::vector<std::string> messages;
 };
 
 } // namespace game2d
