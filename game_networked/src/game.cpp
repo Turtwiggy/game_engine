@@ -35,17 +35,20 @@ namespace game2d {
 void
 init(engine::SINGLETON_Application& app, entt::registry& r, const Cli& cli)
 {
-  r.emplace<SINGLE_ShadersComponent>(r.create());
-  r.emplace<SINGLETON_AudioComponent>(r.create());
-  r.emplace<SINGLETON_InputComponent>(r.create());
-  init_audio_system(r);
-  init_input_system(r);
-
   SINGLETON_NetworkingUIComponent networking_ui;
   networking_ui.start_server |= cli.server;
   networking_ui.server_port = cli.server_port;
   r.emplace<SINGLETON_NetworkingUIComponent>(r.create(), networking_ui);
   init_networking_system(r);
+
+  if (cli.headless)
+    return; // dont init any of the graphics stuff
+
+  r.emplace<SINGLE_ShadersComponent>(r.create());
+  r.emplace<SINGLETON_AudioComponent>(r.create());
+  r.emplace<SINGLETON_InputComponent>(r.create());
+  init_audio_system(r);
+  init_input_system(r);
 
   auto camera_entity = r.create();
   PerspectiveCamera c;
@@ -75,8 +78,11 @@ fixed_update(entt::registry& r, const uint64_t milliseconds_dt)
 }
 
 void
-update(engine::SINGLETON_Application& app, entt::registry& r, const float dt)
+update(engine::SINGLETON_Application& app, entt::registry& r, const Cli& cli, const float dt)
 {
+  if (cli.headless)
+    return; // work out how game logic fits in to headless
+
   // poll for inputs
   {
     OPTICK_EVENT("(update)-game-tick");

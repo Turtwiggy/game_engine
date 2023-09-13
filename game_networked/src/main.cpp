@@ -29,6 +29,7 @@ static const int allowed_ticks_per_frame = 2;
 
 static engine::SINGLETON_Application app;
 static entt::registry game;
+static Cli cli;
 
 void
 main_loop(void* arg)
@@ -40,7 +41,8 @@ main_loop(void* arg)
   std::cout << " Emscripten pthreads defined\n";
 #endif
 
-  engine::start_frame(app);
+  if (!cli.headless)
+    engine::start_frame(app);
 
   new_time = SDL_GetTicks64();
   milliseconds_delta_time = new_time - cur_time;
@@ -58,9 +60,19 @@ main_loop(void* arg)
     game2d::fixed_update(game, MILLISECONDS_PER_FIXED_TICK);
   }
 
-  game2d::update(app, game, milliseconds_delta_time / 1000.0f);
+  game2d::update(app, game, cli, milliseconds_delta_time / 1000.0f);
 
-  engine::end_frame(app);
+  if (!cli.headless)
+    engine::end_frame(app);
+  else {
+    uint64_t frame_end_time = SDL_GetPerformanceCounter();
+    float elapsed_ms = (frame_end_time - app.frame_start_time) / static_cast<float>(SDL_GetPerformanceFrequency()) * 1000.0f;
+    app.ms_since_launch = SDL_GetTicks64();
+    // run headless at 45fps?
+    auto delay = floor((1000.0f / 45.0f) - elapsed_ms);
+    if (delay > 0.0f)
+      SDL_Delay(static_cast<Uint32>(delay));
+  }
 }
 
 int
@@ -78,22 +90,22 @@ main(int argc, char* argv[])
   name += " [RELEASE]";
 #endif
 
-  app.height = 480;
-  app.width = app.height * 16 / 9;
-  app.window = engine::GameWindow(name, app.width, app.height, app.display, app.vsync);
-  app.imgui.initialize(app.window);
+  parse_args(argc, argv, cli);
+
+  if (!cli.headless) {
+    app.height = 480;
+    app.width = app.height * 16 / 9;
+    app.window = engine::GameWindow(name, app.width, app.height, app.display, app.vsync);
+    app.imgui.initialize(app.window);
+    CHECK_OPENGL_ERROR(0);
+  }
+  game2d::init(app, game, cli);
 
 #if defined(WIN32)
-  bool hide_windows_console = true;
+  bool hide_windows_console = false;
   if (hide_windows_console)
     engine::hide_windows_console();
 #endif
-
-  Cli cli;
-  parse_args(argc, argv, cli);
-
-  game2d::init(app, game, cli);
-  CHECK_OPENGL_ERROR(0);
 
 #ifdef __EMSCRIPTEN__
   emscripten_set_main_loop_arg(main_loop, NULL, 0, true);

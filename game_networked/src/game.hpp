@@ -14,6 +14,6 @@ void
 fixed_update(entt::registry& r, const uint64_t milliseconds_dt);
 
 void
-update(engine::SINGLETON_Application& app, entt::registry& r, const float dt);
+update(engine::SINGLETON_Application& app, entt::registry& r, const Cli& cli, const float dt);
 
 } // namespace

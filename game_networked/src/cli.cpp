@@ -17,6 +17,11 @@ parse_args(int argc, char* argv[], Cli& out_cli)
       std::cout << "starting as server" << std::endl;
     }
 
+    if (input.compare("--headless") == 0) {
+      out_cli.headless = true;
+      std::cout << "starting as headless" << std::endl;
+    }
+
     std::string identifier{ "--server-port=" };
     std::size_t contains = input.find(identifier);
     if (contains != std::string::npos) {

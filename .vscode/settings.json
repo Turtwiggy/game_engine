@@ -4,7 +4,8 @@
     "args": [
       //
       // "--server",
-      // "--server-port=27020"
+      // "--server-port=27020",
+      "--headless"
     ]
   },
   "editor.formatOnSave": true,

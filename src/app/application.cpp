@@ -15,8 +15,7 @@ engine::end_frame(SINGLETON_Application& app)
   SDL_GL_SwapWindow(app.window.get_handle());
 
   uint64_t frame_end_time = SDL_GetPerformanceCounter();
-  float elapsed_ms =
-    (frame_end_time - app.frame_start_time) / static_cast<float>(SDL_GetPerformanceFrequency()) * 1000.0f;
+  float elapsed_ms = (frame_end_time - app.frame_start_time) / static_cast<float>(SDL_GetPerformanceFrequency()) * 1000.0f;
 
   app.ms_since_launch = SDL_GetTicks64();
 

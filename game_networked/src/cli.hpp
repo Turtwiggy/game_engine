@@ -6,6 +6,9 @@ struct Cli
 {
   bool server = false;
   int server_port = 27020;
+
+  // no graphics
+  bool headless = false;
 };
 
 void

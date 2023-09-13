@@ -109,38 +109,58 @@ IF(${CMAKE_SYSTEM_NAME} STREQUAL "Windows")
   IF(${CMAKE_BUILD_TYPE} MATCHES Release)
     message("creating server build...")
 
+    set(server_dst ${CMAKE_BINARY_DIR}/server)
+    message("server_dst: ${server_dst}")
+
     # (server) delete server dir
-    file(REMOVE_RECURSE ${CMAKE_BINARY_DIR}../server)
+    add_custom_command(
+      TARGET ${PROJECT_NAME} POST_BUILD
+      COMMAND ${CMAKE_COMMAND} -E remove_directory ${server_dst}
+    )
 
     # (server) delete assets
-    file(REMOVE_RECURSE ${CMAKE_BINARY_DIR}../server/assets)
+    add_custom_command(
+      TARGET ${PROJECT_NAME} POST_BUILD
+      COMMAND ${CMAKE_COMMAND} -E remove_directory ${server_dst}/assets
+    )
 
     # (server) copy files
     set(server_src ${CMAKE_CURRENT_BINARY_DIR}/)
-    set(server_dst ${CMAKE_CURRENT_BINARY_DIR}/../server)
+    message("server_src: ${server_src}")
     add_custom_command(
       TARGET ${PROJECT_NAME} POST_BUILD
       COMMAND ${CMAKE_COMMAND} -E copy_directory ${server_src} ${server_dst}
       COMMENT "copy files from ${server_src} => ${server_dst}"
     )
 
-    # (server) delete debug files if they exist
-    file(REMOVE_RECURSE ${CMAKE_BINARY_DIR}../server/*.cmake)
-    file(REMOVE_RECURSE ${CMAKE_BINARY_DIR}../server/*.pdb)
-    file(REMOVE_RECURSE ${CMAKE_BINARY_DIR}../server/*.manifest)
-    file(REMOVE_RECURSE ${CMAKE_BINARY_DIR}../server/CMakeFiles)
+    # (Server) remove unwanted build files
+    file(GLOB_RECURSE FILES_TO_REMOVE
+      "${server_dst}/*.manifest"
+      "${server_dst}/*.pdb"
+      "${server_dst}/*.cmake"
+      "${server_dst}/*d.dll"
+      "${server_dst}/CMakeFiles/"
+    )
+
+    if("${FILES_TO_REMOVE}" STREQUAL "")
+      message("Files to remove was empty")
+    else()
+      message(" Files to remove: ${FILES_TO_REMOVE} ")
+      file(REMOVE ${FILES_TO_REMOVE})
+    endif()
 
     # (server) copy assets
     set(server_asset_src ${CMAKE_SOURCE_DIR}/game_networked/assets)
     set(server_asset_dst ${CMAKE_CURRENT_BINARY_DIR}/../server/assets)
+    message(" server_asset_src: ${server_asset_src} ")
+    message(" server_asset_dst: ${server_asset_dst} ")
     add_custom_command(
       TARGET ${PROJECT_NAME} POST_BUILD
       COMMAND ${CMAKE_COMMAND} -E copy_directory ${server_asset_src} ${server_asset_dst}
-      COMMENT "copy files from ${server_src} => ${server_dst}"
+      COMMENT " copy files from ${server_src} => ${server_dst} "
     )
 
     # (server) remove client icon, set server icon
-    message("server asset dst: ${server_asset_dst}")
     file(REMOVE ${server_asset_dst}/textures/default_resource.rc)
     file(REMOVE ${server_asset_dst}/textures/client_resource.rc)
     file(REMOVE ${server_asset_dst}/textures/server_resource.rc)
