@@ -18,15 +18,13 @@ game2d::update_networking_system(entt::registry& r, uint64_t milliseconds_dt)
   auto& ui = get_first_component<SINGLETON_NetworkingUIComponent>(r);
 
   if (ui.start_server) {
-    int port = 27020;
-    start_server_or_quit(r, port);
+    start_server_or_quit(r, ui.server_port);
     ui.start_server = false;
     ui.server_was_started = true;
   }
 
   if (ui.start_client) {
-    static std::string localhost = "127.0.0.1:27020";
-    start_client(r, localhost);
+    start_client(r, ui.host);
     ui.start_client = false;
     ui.client_was_started = true;
   }

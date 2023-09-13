@@ -25,8 +25,13 @@ update_ui_networking_system(entt::registry& r)
   if (client_entity == entt::null && server_entity == entt::null) {
     if (ImGui::Button("Start Server"))
       ui.start_server = true;
+
     if (ImGui::Button("Start Client"))
       ui.start_client = true;
+
+    static char host[128] = "127.0.0.1:27020";
+    if (ImGui::InputText("server host", host, IM_ARRAYSIZE(host)))
+      ui.host = std::string(host);
   }
 
   if (client_entity != entt::null || server_entity != entt::null) {

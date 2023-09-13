@@ -1,4 +1,5 @@
 #include "game.hpp"
+#include "cli.hpp"
 
 #include "audio/components.hpp"
 #include "audio/system.hpp"
@@ -32,15 +33,18 @@ using namespace engine; // also used for macro
 namespace game2d {
 
 void
-init(engine::SINGLETON_Application& app, entt::registry& r)
+init(engine::SINGLETON_Application& app, entt::registry& r, const Cli& cli)
 {
-  // r.emplace<SINGLETON_AudioComponent>(r.create());
-  r.emplace<SINGLETON_InputComponent>(r.create());
-  // init_audio_system(r);
-  init_input_system(r);
   r.emplace<SINGLE_ShadersComponent>(r.create());
+  r.emplace<SINGLETON_AudioComponent>(r.create());
+  r.emplace<SINGLETON_InputComponent>(r.create());
+  init_audio_system(r);
+  init_input_system(r);
 
-  r.emplace<SINGLETON_NetworkingUIComponent>(r.create());
+  SINGLETON_NetworkingUIComponent networking_ui;
+  networking_ui.start_server |= cli.server;
+  networking_ui.server_port = cli.server_port;
+  r.emplace<SINGLETON_NetworkingUIComponent>(r.create(), networking_ui);
   init_networking_system(r);
 
   auto camera_entity = r.create();

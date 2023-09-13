@@ -1,5 +1,12 @@
 {
   "cmake.preferredGenerators": ["Ninja"],
+  "cmake.debugConfig": {
+    "args": [
+      //
+      // "--server",
+      // "--server-port=27020"
+    ]
+  },
   "editor.formatOnSave": true,
   "editor.showUnused": true,
   "editor.showDeprecated": true,

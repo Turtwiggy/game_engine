@@ -104,6 +104,10 @@ IF(${CMAKE_SYSTEM_NAME} STREQUAL "Windows")
       DEPENDS ${dst}
       COMMENT "symbolic link resources folder from ${src} => ${dst}"
     )
+  endif()
+
+  IF(${CMAKE_BUILD_TYPE} MATCHES Release)
+    message("creating server build...")
 
     # (server) delete server dir
     file(REMOVE_RECURSE ${CMAKE_BINARY_DIR}../server)
@@ -119,6 +123,12 @@ IF(${CMAKE_SYSTEM_NAME} STREQUAL "Windows")
       COMMAND ${CMAKE_COMMAND} -E copy_directory ${server_src} ${server_dst}
       COMMENT "copy files from ${server_src} => ${server_dst}"
     )
+
+    # (server) delete debug files if they exist
+    file(REMOVE_RECURSE ${CMAKE_BINARY_DIR}../server/*.cmake)
+    file(REMOVE_RECURSE ${CMAKE_BINARY_DIR}../server/*.pdb)
+    file(REMOVE_RECURSE ${CMAKE_BINARY_DIR}../server/*.manifest)
+    file(REMOVE_RECURSE ${CMAKE_BINARY_DIR}../server/CMakeFiles)
 
     # (server) copy assets
     set(server_asset_src ${CMAKE_SOURCE_DIR}/game_networked/assets)

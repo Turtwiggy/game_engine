@@ -66,8 +66,8 @@ main_loop(void* arg)
 int
 main(int argc, char* argv[])
 {
-  IM_UNUSED(argc);
-  IM_UNUSED(argv);
+  // IM_UNUSED(argc);
+  // IM_UNUSED(argv);
 
   const auto start = std::chrono::high_resolution_clock::now();
 
@@ -89,7 +89,10 @@ main(int argc, char* argv[])
     engine::hide_windows_console();
 #endif
 
-  game2d::init(app, game);
+  Cli cli;
+  parse_args(argc, argv, cli);
+
+  game2d::init(app, game, cli);
   CHECK_OPENGL_ERROR(0);
 
 #ifdef __EMSCRIPTEN__
