@@ -48,26 +48,25 @@ message("game_3d: CXX: ${CMAKE_CXX_COMPILER_ID}")
 message("game_3d: current_list_dir: ${CMAKE_CURRENT_LIST_DIR}")
 message("game_3d: source_dir: ${CMAKE_SOURCE_DIR}")
 message("index CMAKE_TOOLCHAIN_FILE: ${CMAKE_TOOLCHAIN_FILE}")
+message("Target Triplet: ${VCPKG_TARGET_TRIPLET}")
 
 if(${CMAKE_SYSTEM_NAME} MATCHES "Linux")
   message("setting linux opengl policy...")
   cmake_policy(SET CMP0072 NEW)
   set(OpenGL_GL_PREFERENCE "LEGACY")
+  find_package(OpenGL REQUIRED COMPONENTS OpenGL)
 endif()
 
 # Add VCPKG packages
 if(EMSCRIPTEN)
 else()
   message("Finding packages...")
+
   # packages not supported or needed by emscripten
   # find_package(GameNetworkingSockets CONFIG REQUIRED)
   find_package(SDL2 CONFIG REQUIRED)
   find_package(GLEW REQUIRED)
   find_package(OpenAL CONFIG REQUIRED)
-endif()
-if(CMAKE_CXX_COMPILER_ID MATCHES GNU)
-  message("Finding opengl...")
-  find_package(OpenGL REQUIRED COMPONENTS OpenGL)
 endif()
 
 find_package(nlohmann_json CONFIG REQUIRED)
@@ -109,11 +108,14 @@ elseif(${CMAKE_SYSTEM_NAME} STREQUAL "Linux")
   set(VCPKG_INCLUDES
     ${CMAKE_CURRENT_LIST_DIR}/thirdparty/vcpkg/installed/x64-linux/include
   )
+elseif(${CMAKE_SYSTEM_NAME} STREQUAL "Darwin")
+  set(VCPKG_INCLUDES
+    ${CMAKE_CURRENT_LIST_DIR}/thirdparty/vcpkg/installed/x64-osx/include
+  )
 endif()
 
 # includes
 target_include_directories(game_3d PRIVATE
-  ${CMAKE_CURRENT_LIST_DIR}/thirdparty/vcpkg/installed/x64-linux/include/SDL2
   ${SDL2_INCLUDE_DIRS}
   ${VCPKG_INCLUDES}
   ${IMGUI_INCLUDES}
@@ -127,13 +129,13 @@ target_include_directories(game_3d PRIVATE
   ${CMAKE_SOURCE_DIR}/thirdparty/assimp/include
 )
 
-  message ("linking libs...")
-  target_link_libraries(game_3d PRIVATE GLEW::GLEW)
-  target_link_libraries(game_3d PRIVATE SDL2::SDL2 SDL2::SDL2main)
-  target_link_libraries(game_3d PRIVATE OpenAL::OpenAL)
+message("linking libs...")
+target_link_libraries(game_3d PRIVATE GLEW::GLEW)
+target_link_libraries(game_3d PRIVATE SDL2::SDL2 SDL2::SDL2main)
+target_link_libraries(game_3d PRIVATE OpenAL::OpenAL)
 
 if(${CMAKE_SYSTEM_NAME} STREQUAL "Linux")
-  message ("linking linux libs...")
+  message("linking linux libs...")
   target_link_libraries(game_3d PRIVATE OpenGL::GL)
 endif()
 
@@ -141,6 +143,7 @@ target_link_libraries(game_3d PRIVATE glm::glm)
 target_link_libraries(game_3d PRIVATE nlohmann_json::nlohmann_json)
 target_link_libraries(game_3d PRIVATE assimp)
 
+# target_link_libraries(game_2d PRIVATE opengl32)
 IF(${CMAKE_SYSTEM_NAME} STREQUAL "Windows")
   message("build type: ${CMAKE_BUILD_TYPE}")
 

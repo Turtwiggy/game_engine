@@ -5,11 +5,11 @@
 ### Install
 
 - c++ compiler (MSVC, g++, clang)
-    - sudo apt install build-essential
+  - `sudo apt install build-essential`
 - cmake e.g. `choco install cmake`, `brew install cmake`, `sudo apt-get install cmake`
 - ninja e.g. `choco install ninja`, `brew install ninja`, `sudo apt-get install ninja-build`
 
-Windows (see triplet in file)
+Windows
 
 ```bash
 git clone
@@ -18,7 +18,29 @@ thirdparty/vcpkg/bootstrap-vcpkg.bat
 thirdparty/vcpkg/vcpkg.exe install @vcpkg-x64-windows.txt
 ```
 
+Mac
+
+```bash
+git clone
+git submodule update --init --recursive
+thirdparty/vcpkg/bootstrap-vcpkg.sh
+thirdparty/vcpkg/vcpkg install @vcpkg-arm64-osx.txt
+```
+
+Emscripten
+
+```bash
+git clone
+git submodule update --init --recursive
+thirdparty/emsdk/emsdk install latest
+thirdparty/emsdk/emsdk activate latest
+thirdparty/vcpkg/bootstrap-vcpkg.bat
+thirdparty/vcpkg/vcpkg.exe install @vcpkg-wasm32-emscripten.txt
+```
+
 Linux
+
+https://github.com/ValveSoftware/GameNetworkingSockets/blob/master/BUILDING.md#linux
 
 ```bash
 git clone
@@ -44,21 +66,6 @@ sudo apt install libsdl2-dev libsdl2-2.0-0 -y
 thirdparty/vcpkg/bootstrap-vcpkg.sh
 thirdparty/vcpkg/vcpkg install @vcpkg-x64-linux.txt
 ```
-
-Emscripten
-
-```bash
-git clone
-git submodule update --init --recursive
-thirdparty/emsdk/emsdk install latest
-thirdparty/emsdk/emsdk activate latest
-thirdparty/vcpkg/bootstrap-vcpkg.bat
-thirdparty/vcpkg/vcpkg.exe install @vcpkg-wasm32-emscripten.txt
-```
-
-### Linux
-
-https://github.com/ValveSoftware/GameNetworkingSockets/blob/master/BUILDING.md#linux
 
 ### Develop
 

@@ -45,16 +45,22 @@
       "name": "Mac Clang",
       "includePath": [
         "${workspaceFolder}/src",
+        "${workspaceFolder}/game_3d/src",
+        "${workspaceFolder}/game_defence/src",
+        "${workspaceFolder}/thirdparty/vcpkg/installed/x64-osx/include",
+        "${workspaceFolder}/thirdparty/vcpkg/installed/x64-osx/include/SDL2",
+        "${workspaceFolder}/thirdparty/assimp/include",
         "${workspaceFolder}/thirdparty/entt/single_include",
         "${workspaceFolder}/thirdparty/imgui",
-        "${workspaceFolder}/thirdparty/magic_enum"
+        "${workspaceFolder}/thirdparty/magic_enum",
+        "${workspaceFolder}/thirdparty/optick/src"
       ],
       "defines": ["UNICODE", "_UNICODE"],
       "macFrameworkPath": [],
       "compilerPath": "/usr/bin/clang",
       "cStandard": "c17",
       "cppStandard": "c++20",
-      "intelliSenseMode": "macos-clang-x64",
+      "intelliSenseMode": "macos-clang-arm64",
       "configurationProvider": "ms-vscode.cmake-tools"
     }
   ],
