@@ -101,6 +101,7 @@ game2d::update_networking_system(entt::registry& r, uint64_t milliseconds_dt)
     LocalUserInput_GetNext(result);
     if (!result.empty()) {
       auto& server = get_first_component<SINGLETON_ServerComponent>(r);
+      std::cout << "sending message to clients: " << result << std::endl;
       send_string_to_all_clients(server, result);
     }
   }
