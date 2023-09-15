@@ -16,7 +16,7 @@
 namespace game2d {
 
 void
-start_server_or_quit(entt::registry& r, int port);
+start_server_or_quit(entt::registry& r, uint16 port);
 
 void
 tick_server(entt::registry& r, uint64_t milliseconds_dt);

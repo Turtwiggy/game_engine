@@ -45,7 +45,7 @@ update_ui_networking_system(entt::registry& r)
   if (server_entity != entt::null) {
     auto& server = r.get<SINGLETON_ServerComponent>(server_entity);
     ImGui::Text("You are a server");
-    ImGui::Text("You have %i clients", server.clients.size());
+    ImGui::Text("You have %i clients", static_cast<int>(server.clients.size()));
 
     static char str1[128] = "Hello, world!";
     ImGui::InputText("input server", str1, IM_ARRAYSIZE(str1));
@@ -60,7 +60,7 @@ update_ui_networking_system(entt::registry& r)
     server_messages.insert(server_messages.end(), server.incoming_messages.begin(), server.incoming_messages.end());
     // hack: because this is is update, and the messages are in fixedupate
     server.incoming_messages.clear();
-    for (int i = 0; i < server_messages.size(); i++)
+    for (auto i = 0; i < server_messages.size(); i++)
       ImGui::Text("%s", server_messages[i].c_str());
   }
 
@@ -87,7 +87,7 @@ update_ui_networking_system(entt::registry& r)
     client_messages.insert(client_messages.end(), client.messages.begin(), client.messages.end());
     // hack: because this is is update, and the messages are in fixedupate
     client.messages.clear();
-    for (int i = 0; i < client_messages.size(); i++)
+    for (auto i = 0; i < client_messages.size(); i++)
       ImGui::Text("%s", client_messages[i].c_str());
   }
 

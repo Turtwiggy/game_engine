@@ -6,10 +6,38 @@
 #include "modules/gns_networking_server/helpers.hpp"
 #include "modules/gns_ui_networking/components.hpp"
 
+#include <queue>
+#include <thread>
+
+// input via terminal
+std::thread* s_pThreadUserInput = nullptr;
+std::mutex mutexUserInputQueue;
+std::queue<std::string> queueUserInput;
+
+void
+LocalUserInput_Init()
+{
+  s_pThreadUserInput = new std::thread([]() {
+    while (true) { // should be app.running
+      char szLine[4000];
+      if (!fgets(szLine, sizeof(szLine), stdin)) {
+        // Well, you would hope that you could close the handle
+        // from the other thread to trigger this.  Nope.
+        break;
+      }
+
+      mutexUserInputQueue.lock();
+      queueUserInput.push(std::string(szLine));
+      mutexUserInputQueue.unlock();
+    }
+  });
+}
+
 void
 game2d::init_networking_system(entt::registry& r)
 {
   init_steam_datagram_connection_sockets();
+  LocalUserInput_Init();
 };
 
 void
@@ -24,7 +52,7 @@ game2d::update_networking_system(entt::registry& r, uint64_t milliseconds_dt)
   }
 
   if (ui.start_client) {
-    start_client(r, ui.host);
+    start_client(r, ui.host, ui.server_port);
     ui.start_client = false;
     ui.client_was_started = true;
   }

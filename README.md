@@ -5,16 +5,44 @@
 ### Install
 
 - c++ compiler (MSVC, g++, clang)
-- cmake e.g. `choco install cmake`, `brew install cmake`
-- ninja e.g. `choco install ninja`, `brew install ninja`
+    - sudo apt install build-essential
+- cmake e.g. `choco install cmake`, `brew install cmake`, `sudo apt-get install cmake`
+- ninja e.g. `choco install ninja`, `brew install ninja`, `sudo apt-get install ninja-build`
 
-Windows & Mac & Linux (see triplet in file)
+Windows (see triplet in file)
 
 ```bash
 git clone
 git submodule update --init --recursive
 thirdparty/vcpkg/bootstrap-vcpkg.bat
 thirdparty/vcpkg/vcpkg.exe install @vcpkg-x64-windows.txt
+```
+
+Linux
+
+```bash
+git clone
+git submodule update --init --recursive
+sudo apt-get update
+
+# gdb
+sudo apt install gdb -y
+
+# vcpkg
+sudo apt-get install curl zip unzip tar pkg-config -y
+sudo apt install autoconf libtool linux-libc-dev -y
+
+# opengl
+sudo apt install libglu1-mesa-dev freeglut3-dev mesa-common-dev -y
+
+# glew
+sudo apt-get install libglew-dev -y
+
+# sdl2
+sudo apt install libsdl2-dev libsdl2-2.0-0 -y
+
+thirdparty/vcpkg/bootstrap-vcpkg.sh
+thirdparty/vcpkg/vcpkg install @vcpkg-x64-linux.txt
 ```
 
 Emscripten
@@ -27,6 +55,10 @@ thirdparty/emsdk/emsdk activate latest
 thirdparty/vcpkg/bootstrap-vcpkg.bat
 thirdparty/vcpkg/vcpkg.exe install @vcpkg-wasm32-emscripten.txt
 ```
+
+### Linux
+
+https://github.com/ValveSoftware/GameNetworkingSockets/blob/master/BUILDING.md#linux
 
 ### Develop
 

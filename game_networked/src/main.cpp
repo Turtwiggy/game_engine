@@ -17,6 +17,8 @@ using namespace engine;
 
 // std lib
 #include <chrono>
+#include <queue>
+#include <thread>
 
 // fixed tick
 static const int MILLISECONDS_PER_FIXED_TICK = 7; // or ~142 ticks per second
@@ -30,6 +32,44 @@ static const int allowed_ticks_per_frame = 2;
 static engine::SINGLETON_Application app;
 static entt::registry game;
 static Cli cli;
+
+// server input via terminal
+std::thread* s_pThreadUserInput = nullptr;
+std::mutex mutexUserInputQueue;
+std::queue<std::string> queueUserInput;
+
+void
+LocalUserInput_Init()
+{
+  s_pThreadUserInput = new std::thread([]() {
+    while (app.running) {
+      char szLine[4000];
+      if (!fgets(szLine, sizeof(szLine), stdin)) {
+        // Well, you would hope that you could close the handle
+        // from the other thread to trigger this.  Nope.
+        break;
+      }
+
+      mutexUserInputQueue.lock();
+      queueUserInput.push(std::string(szLine));
+      mutexUserInputQueue.unlock();
+    }
+  });
+}
+
+// trim from start (in place)
+static inline void
+ltrim(std::string& s)
+{
+  s.erase(s.begin(), std::find_if(s.begin(), s.end(), [](int ch) { return !std::isspace(ch); }));
+}
+
+// trim from end (in place)
+static inline void
+rtrim(std::string& s)
+{
+  s.erase(std::find_if(s.rbegin(), s.rend(), [](int ch) { return !std::isspace(ch); }).base(), s.end());
+}
 
 void
 main_loop(void* arg)

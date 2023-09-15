@@ -25,7 +25,7 @@ if(EMSCRIPTEN)
 endif()
 
 if(CMAKE_CXX_COMPILER_ID MATCHES GNU)
-  add_definitions("-std=c++20")
+  # add_definitions("-std=c++20")
   add_definitions("-Wall")
   add_definitions("-Wformat")
   add_definitions("-O2")
@@ -49,14 +49,25 @@ message("game_3d: current_list_dir: ${CMAKE_CURRENT_LIST_DIR}")
 message("game_3d: source_dir: ${CMAKE_SOURCE_DIR}")
 message("index CMAKE_TOOLCHAIN_FILE: ${CMAKE_TOOLCHAIN_FILE}")
 
+if(${CMAKE_SYSTEM_NAME} MATCHES "Linux")
+  message("setting linux opengl policy...")
+  cmake_policy(SET CMP0072 NEW)
+  set(OpenGL_GL_PREFERENCE "LEGACY")
+endif()
+
 # Add VCPKG packages
 if(EMSCRIPTEN)
 else()
+  message("Finding packages...")
   # packages not supported or needed by emscripten
   # find_package(GameNetworkingSockets CONFIG REQUIRED)
   find_package(SDL2 CONFIG REQUIRED)
   find_package(GLEW REQUIRED)
   find_package(OpenAL CONFIG REQUIRED)
+endif()
+if(CMAKE_CXX_COMPILER_ID MATCHES GNU)
+  message("Finding opengl...")
+  find_package(OpenGL REQUIRED COMPONENTS OpenGL)
 endif()
 
 find_package(nlohmann_json CONFIG REQUIRED)
@@ -102,8 +113,10 @@ endif()
 
 # includes
 target_include_directories(game_3d PRIVATE
-  ${IMGUI_INCLUDES}
+  ${CMAKE_CURRENT_LIST_DIR}/thirdparty/vcpkg/installed/x64-linux/include/SDL2
+  ${SDL2_INCLUDE_DIRS}
   ${VCPKG_INCLUDES}
+  ${IMGUI_INCLUDES}
   ${OPTICK_INCLUDES}
   ${STB_INCLUDE_DIRS}
   ${CMAKE_SOURCE_DIR}/src
@@ -114,13 +127,14 @@ target_include_directories(game_3d PRIVATE
   ${CMAKE_SOURCE_DIR}/thirdparty/assimp/include
 )
 
-if(EMSCRIPTEN)
-  target_link_libraries(game_3d PRIVATE openal)
-else()
-  # target_link_libraries(game_3d PRIVATE GameNetworkingSockets::shared)
+  message ("linking libs...")
   target_link_libraries(game_3d PRIVATE GLEW::GLEW)
   target_link_libraries(game_3d PRIVATE SDL2::SDL2 SDL2::SDL2main)
   target_link_libraries(game_3d PRIVATE OpenAL::OpenAL)
+
+if(${CMAKE_SYSTEM_NAME} STREQUAL "Linux")
+  message ("linking linux libs...")
+  target_link_libraries(game_3d PRIVATE OpenGL::GL)
 endif()
 
 target_link_libraries(game_3d PRIVATE glm::glm)

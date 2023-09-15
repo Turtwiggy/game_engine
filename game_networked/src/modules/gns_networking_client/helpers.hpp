@@ -16,7 +16,7 @@
 namespace game2d {
 
 void
-start_client(entt::registry& r, const std::string& addr);
+start_client(entt::registry& r, const std::string& addr, uint16 port);
 
 void
 tick_client(entt::registry& r, uint64_t milliseconds_dt);
