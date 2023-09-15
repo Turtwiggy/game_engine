@@ -6,6 +6,7 @@
 #include "physics/helpers.hpp"
 
 // other lib headers
+#include <algorithm>
 #include <glm/glm.hpp>
 #include <ranges>
 #include <vector>

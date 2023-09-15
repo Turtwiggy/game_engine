@@ -30,6 +30,8 @@ using namespace engine; // also used for macro
 #include <imgui.h>
 #include <optick.h>
 
+#include <sstream>
+
 namespace game2d {
 
 void
