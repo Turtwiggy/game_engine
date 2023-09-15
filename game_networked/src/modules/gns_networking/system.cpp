@@ -6,6 +6,7 @@
 #include "modules/gns_networking_server/helpers.hpp"
 #include "modules/gns_ui_networking/components.hpp"
 
+#include <iostream>
 #include <queue>
 #include <thread>
 
@@ -13,6 +14,20 @@
 std::thread* s_pThreadUserInput = nullptr;
 std::mutex mutexUserInputQueue;
 std::queue<std::string> queueUserInput;
+
+// trim from start (in place)
+static inline void
+ltrim(std::string& s)
+{
+  s.erase(s.begin(), std::find_if(s.begin(), s.end(), [](int ch) { return !std::isspace(ch); }));
+}
+
+// trim from end (in place)
+static inline void
+rtrim(std::string& s)
+{
+  s.erase(std::find_if(s.rbegin(), s.rend(), [](int ch) { return !std::isspace(ch); }).base(), s.end());
+}
 
 void
 LocalUserInput_Init()
@@ -31,6 +46,23 @@ LocalUserInput_Init()
       mutexUserInputQueue.unlock();
     }
   });
+}
+
+// Read the next line of input from stdin, if anything is available.
+bool
+LocalUserInput_GetNext(std::string& result)
+{
+  bool got_input = false;
+  mutexUserInputQueue.lock();
+  while (!queueUserInput.empty() && !got_input) {
+    result = queueUserInput.front();
+    queueUserInput.pop();
+    ltrim(result);
+    rtrim(result);
+    got_input = !result.empty(); // ignore blank lines
+  }
+  mutexUserInputQueue.unlock();
+  return got_input;
 }
 
 void
@@ -62,8 +94,16 @@ game2d::update_networking_system(entt::registry& r, uint64_t milliseconds_dt)
     ui.close_networking = false;
   }
 
-  if (ui.server_was_started)
+  if (ui.server_was_started) {
     tick_server(r, milliseconds_dt);
+
+    std::string result;
+    LocalUserInput_GetNext(result);
+    if (!result.empty()) {
+      auto& server = get_first_component<SINGLETON_ServerComponent>(r);
+      send_string_to_all_clients(server, result);
+    }
+  }
 
   if (ui.client_was_started)
     tick_client(r, milliseconds_dt);

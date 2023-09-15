@@ -17,7 +17,6 @@ using namespace engine;
 
 // std lib
 #include <chrono>
-#include <queue>
 #include <thread>
 
 // fixed tick
@@ -32,44 +31,6 @@ static const int allowed_ticks_per_frame = 2;
 static engine::SINGLETON_Application app;
 static entt::registry game;
 static Cli cli;
-
-// server input via terminal
-std::thread* s_pThreadUserInput = nullptr;
-std::mutex mutexUserInputQueue;
-std::queue<std::string> queueUserInput;
-
-void
-LocalUserInput_Init()
-{
-  s_pThreadUserInput = new std::thread([]() {
-    while (app.running) {
-      char szLine[4000];
-      if (!fgets(szLine, sizeof(szLine), stdin)) {
-        // Well, you would hope that you could close the handle
-        // from the other thread to trigger this.  Nope.
-        break;
-      }
-
-      mutexUserInputQueue.lock();
-      queueUserInput.push(std::string(szLine));
-      mutexUserInputQueue.unlock();
-    }
-  });
-}
-
-// trim from start (in place)
-static inline void
-ltrim(std::string& s)
-{
-  s.erase(s.begin(), std::find_if(s.begin(), s.end(), [](int ch) { return !std::isspace(ch); }));
-}
-
-// trim from end (in place)
-static inline void
-rtrim(std::string& s)
-{
-  s.erase(std::find_if(s.rbegin(), s.rend(), [](int ch) { return !std::isspace(ch); }).base(), s.end());
-}
 
 void
 main_loop(void* arg)
@@ -104,15 +65,8 @@ main_loop(void* arg)
 
   if (!cli.headless)
     engine::end_frame(app);
-  else {
-    const int headless_framerate = 30;
-    uint64_t frame_end_time = SDL_GetPerformanceCounter();
-    float elapsed_ms = (frame_end_time - app.frame_start_time) / static_cast<float>(SDL_GetPerformanceFrequency()) * 1000.0f;
-    app.ms_since_launch = SDL_GetTicks64();
-    auto delay = floor((1000.0f / headless_framerate) - elapsed_ms);
-    if (delay > 0.0f)
-      SDL_Delay(static_cast<Uint32>(delay));
-  }
+  else
+    std::this_thread::sleep_for(std::chrono::milliseconds(10));
 }
 
 int
