@@ -65,11 +65,11 @@ main_loop(void* arg)
   if (!cli.headless)
     engine::end_frame(app);
   else {
+    const int headless_framerate = 30;
     uint64_t frame_end_time = SDL_GetPerformanceCounter();
     float elapsed_ms = (frame_end_time - app.frame_start_time) / static_cast<float>(SDL_GetPerformanceFrequency()) * 1000.0f;
     app.ms_since_launch = SDL_GetTicks64();
-    // run headless at 45fps?
-    auto delay = floor((1000.0f / 45.0f) - elapsed_ms);
+    auto delay = floor((1000.0f / headless_framerate) - elapsed_ms);
     if (delay > 0.0f)
       SDL_Delay(static_cast<Uint32>(delay));
   }

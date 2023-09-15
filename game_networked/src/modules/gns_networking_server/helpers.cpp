@@ -22,6 +22,8 @@ SteamNetConnectionStatusChangedCallback(SteamNetConnectionStatusChangedCallback_
 void
 start_server_or_quit(entt::registry& r, int port)
 {
+  std::cout << "starting server..." << std::endl;
+
   SINGLETON_ServerComponent server;
 
   // Select instance to use.  For now we'll always use the default.
@@ -38,18 +40,18 @@ start_server_or_quit(entt::registry& r, int port)
 
   server.socket = server.interface->CreateListenSocketIP(addr, 1, &opt);
   if (server.socket == k_HSteamListenSocket_Invalid) {
-    std::cerr << "Failed to listen on port: " << port << "\n";
+    std::cerr << "Failed to listen on port: " << port << std::endl;
     exit(0);
   }
 
   server.group = server.interface->CreatePollGroup();
   if (server.socket == k_HSteamNetPollGroup_Invalid) {
-    std::cerr << "Failed to listen on port: " << port << "\n";
+    std::cerr << "Failed to listen on port: " << port << std::endl;
     exit(0);
   }
 
-  std::cout << "Server listening on port: " << port << "\n";
-  r.emplace<SINGLETON_ServerComponent>(r.create(), std::move(server));
+  std::cout << "Server listening on port: " << port << std::endl;
+  r.emplace<SINGLETON_ServerComponent>(r.create(), server);
 }
 
 void

@@ -133,13 +133,18 @@ IF(${CMAKE_SYSTEM_NAME} STREQUAL "Windows")
       COMMENT "copy files from ${server_src} => ${server_dst}"
     )
 
-    # (Server) remove unwanted build files
+    # (server) delete CMakeFiles dir
+    add_custom_command(
+      TARGET ${PROJECT_NAME} POST_BUILD
+      COMMAND ${CMAKE_COMMAND} -E remove_directory ${server_dst}/CMakeFiles
+    )
+
+    # (Server) remove unwanted files
     file(GLOB_RECURSE FILES_TO_REMOVE
       "${server_dst}/*.manifest"
       "${server_dst}/*.pdb"
       "${server_dst}/*.cmake"
       "${server_dst}/*d.dll"
-      "${server_dst}/CMakeFiles/"
     )
 
     if("${FILES_TO_REMOVE}" STREQUAL "")

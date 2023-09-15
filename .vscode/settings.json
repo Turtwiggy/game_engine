@@ -5,7 +5,7 @@
       //
       // "--server",
       // "--server-port=27020",
-      "--headless"
+      // "--headless"
     ]
   },
   "editor.formatOnSave": true,

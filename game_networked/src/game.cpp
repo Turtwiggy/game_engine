@@ -35,11 +35,14 @@ namespace game2d {
 void
 init(engine::SINGLETON_Application& app, entt::registry& r, const Cli& cli)
 {
-  SINGLETON_NetworkingUIComponent networking_ui;
-  networking_ui.start_server |= cli.server;
-  networking_ui.server_port = cli.server_port;
-  r.emplace<SINGLETON_NetworkingUIComponent>(r.create(), networking_ui);
+  {
+    SINGLETON_NetworkingUIComponent networking_ui;
+    networking_ui.start_server = cli.server;
+    networking_ui.server_port = cli.server_port;
+    r.emplace<SINGLETON_NetworkingUIComponent>(r.create(), networking_ui);
+  }
   init_networking_system(r);
+  std::cout << "init_networking_system()" << std::endl;
 
   if (cli.headless)
     return; // dont init any of the graphics stuff

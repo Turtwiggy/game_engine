@@ -28,6 +28,7 @@ start_client(entt::registry& r, const std::string& addr)
 
   SteamNetworkingIPAddr serverAddr;
   serverAddr.Clear();
+
   if (serverAddr.ParseString(addr.c_str())) {
     // Start connecting
     char szAddr[SteamNetworkingIPAddr::k_cchMaxString];
@@ -45,7 +46,7 @@ start_client(entt::registry& r, const std::string& addr)
   } else
     std::cerr << "Failed to parse server's address for the client\n";
 
-  r.emplace<SINGLETON_ClientComponent>(r.create(), std::move(client));
+  r.emplace<SINGLETON_ClientComponent>(r.create(), client);
 }
 
 void
@@ -85,25 +86,28 @@ client_poll_connections(SINGLETON_ClientComponent& client)
         // NOTE: We will get callbacks here when we destroy connections.  You can ignore these.
         break;
       case k_ESteamNetworkingConnectionState_Connecting:
-        std::cout << "Connecting to server...\n";
+        std::cout << "Connecting to server..." << std::endl;
         break;
       case k_ESteamNetworkingConnectionState_Connected:
-        std::cout << "Connected to server OK!\n";
+        std::cout << "Connected to server OK!" << std::endl;
         break;
 
       case k_ESteamNetworkingConnectionState_ClosedByPeer:
       case k_ESteamNetworkingConnectionState_ProblemDetectedLocally: {
+
         // Print an appropriate message
         if (info.m_eOldState == k_ESteamNetworkingConnectionState_Connecting) {
           // Note: we could distinguish between a timeout, a rejected connection,
           // or some other transport problem.
           std::cout << "We sought the remote host, yet our efforts were met with defeat." << info.m_info.m_szEndDebug
-                    << "\n";
+                    << std::endl;
+
         } else if (info.m_info.m_eState == k_ESteamNetworkingConnectionState_ProblemDetectedLocally) {
-          std::cout << "Alas, troubles beset us; we have lost contact with the host. " << info.m_info.m_szEndDebug << "\n";
+          std::cout << "Alas, troubles beset us; we have lost contact with the host. " << info.m_info.m_szEndDebug
+                    << std::endl;
         } else {
           // NOTE: We could check the reason code for a normal disconnection
-          std::cout << "The host hath bidden us farewell. " << info.m_info.m_szEndDebug << "\n";
+          std::cout << "The host hath bidden us farewell. " << info.m_info.m_szEndDebug << std::endl;
         }
 
         // Clean up the connection.  This is important!
