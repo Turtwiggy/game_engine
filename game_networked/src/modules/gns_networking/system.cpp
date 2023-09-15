@@ -7,13 +7,14 @@
 #include "modules/gns_ui_networking/components.hpp"
 
 #include <iostream>
+#include <mutex>
 #include <queue>
 #include <thread>
 
 // input via terminal
-std::thread* s_pThreadUserInput = nullptr;
-std::mutex mutexUserInputQueue;
-std::queue<std::string> queueUserInput;
+static std::thread* s_pThreadUserInput = nullptr;
+static std::mutex mutexUserInputQueue;
+static std::queue<std::string> queueUserInput;
 
 // trim from start (in place)
 static inline void

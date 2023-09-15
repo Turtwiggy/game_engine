@@ -13,6 +13,7 @@
 namespace game2d {
 
 static std::vector<SteamNetConnectionStatusChangedCallback_t> conn_event;
+
 static void
 SteamNetConnectionStatusChangedCallback(SteamNetConnectionStatusChangedCallback_t* pInfo)
 {
@@ -31,21 +32,21 @@ start_server_or_quit(entt::registry& r, uint16 port)
   server.interface = SteamNetworkingSockets();
 
   // Start Listening
-  SteamNetworkingIPAddr addr;
-  addr.Clear();
-  addr.m_port = port;
+  SteamNetworkingIPAddr server_local_adr;
+  server_local_adr.Clear();
+  server_local_adr.m_port = port;
 
   SteamNetworkingConfigValue_t opt;
   opt.SetPtr(k_ESteamNetworkingConfig_Callback_ConnectionStatusChanged, (void*)SteamNetConnectionStatusChangedCallback);
 
-  server.socket = server.interface->CreateListenSocketIP(addr, 1, &opt);
+  server.socket = server.interface->CreateListenSocketIP(server_local_adr, 1, &opt);
   if (server.socket == k_HSteamListenSocket_Invalid) {
     std::cerr << "Failed to listen on port: " << port << std::endl;
     exit(0);
   }
 
   server.group = server.interface->CreatePollGroup();
-  if (server.socket == k_HSteamNetPollGroup_Invalid) {
+  if (server.group == k_HSteamNetPollGroup_Invalid) {
     std::cerr << "Failed to listen on port: " << port << std::endl;
     exit(0);
   }
@@ -81,10 +82,6 @@ server_receive_messages_on_poll_group(SINGLETON_ServerComponent& server, std::ve
 void
 server_poll_connections(SINGLETON_ServerComponent& server)
 {
-  // PollConnectionStateChanges
-  server.interface->RunCallbacks();
-  // server.events.clear();
-
   // Process Callbacks
   for (auto& info : conn_event) {
     switch (info.m_info.m_eState) {
@@ -185,11 +182,14 @@ void
 tick_server(entt::registry& r, uint64_t milliseconds_dt)
 {
   auto& server = get_first_component<SINGLETON_ServerComponent>(r);
-  server_poll_connections(server);
 
   // PollIncomingMessages()
   std::vector<ClientMessage> client_messages;
   server_receive_messages_on_poll_group(server, client_messages);
+
+  // PollConnectionStateChanges();
+  server.interface->RunCallbacks();
+  server_poll_connections(server);
 
   // ProcessClientMessage()
   for (auto i = 0; i < client_messages.size(); i++) {
