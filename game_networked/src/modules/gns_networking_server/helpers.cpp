@@ -13,6 +13,7 @@
 namespace game2d {
 
 static std::vector<SteamNetConnectionStatusChangedCallback_t> conn_event;
+
 static void
 SteamNetConnectionStatusChangedCallback(SteamNetConnectionStatusChangedCallback_t* pInfo)
 {
@@ -20,7 +21,7 @@ SteamNetConnectionStatusChangedCallback(SteamNetConnectionStatusChangedCallback_
 };
 
 void
-start_server_or_quit(entt::registry& r, int port)
+start_server_or_quit(entt::registry& r, uint16 port)
 {
   std::cout << "starting server..." << std::endl;
 
@@ -31,21 +32,21 @@ start_server_or_quit(entt::registry& r, int port)
   server.interface = SteamNetworkingSockets();
 
   // Start Listening
-  SteamNetworkingIPAddr addr;
-  addr.Clear();
-  addr.m_port = port;
+  SteamNetworkingIPAddr server_local_adr;
+  server_local_adr.Clear();
+  server_local_adr.m_port = port;
 
   SteamNetworkingConfigValue_t opt;
   opt.SetPtr(k_ESteamNetworkingConfig_Callback_ConnectionStatusChanged, (void*)SteamNetConnectionStatusChangedCallback);
 
-  server.socket = server.interface->CreateListenSocketIP(addr, 1, &opt);
+  server.socket = server.interface->CreateListenSocketIP(server_local_adr, 1, &opt);
   if (server.socket == k_HSteamListenSocket_Invalid) {
     std::cerr << "Failed to listen on port: " << port << std::endl;
     exit(0);
   }
 
   server.group = server.interface->CreatePollGroup();
-  if (server.socket == k_HSteamNetPollGroup_Invalid) {
+  if (server.group == k_HSteamNetPollGroup_Invalid) {
     std::cerr << "Failed to listen on port: " << port << std::endl;
     exit(0);
   }
@@ -81,10 +82,6 @@ server_receive_messages_on_poll_group(SINGLETON_ServerComponent& server, std::ve
 void
 server_poll_connections(SINGLETON_ServerComponent& server)
 {
-  // PollConnectionStateChanges
-  server.interface->RunCallbacks();
-  // server.events.clear();
-
   // Process Callbacks
   for (auto& info : conn_event) {
     switch (info.m_info.m_eState) {
@@ -119,7 +116,7 @@ server_poll_connections(SINGLETON_ServerComponent& server)
             pszDebugLogAction = "closed by peer";
 
           std::cout << "Connection: " << info.m_info.m_szConnectionDescription << " " << pszDebugLogAction << " "
-                    << std::to_string(info.m_info.m_eEndReason) << " " << info.m_info.m_szEndDebug << "\n";
+                    << std::to_string(info.m_info.m_eEndReason) << " " << info.m_info.m_szEndDebug << std::endl;
 
           // Send a message so everybody else knows what happened
           // send_string_to_all_clients(temp);
@@ -182,22 +179,51 @@ server_poll_connections(SINGLETON_ServerComponent& server)
 }
 
 void
-game2d::tick_server(entt::registry& r, uint64_t milliseconds_dt)
+tick_server(entt::registry& r, uint64_t milliseconds_dt)
 {
   auto& server = get_first_component<SINGLETON_ServerComponent>(r);
-  server_poll_connections(server);
 
   // PollIncomingMessages()
   std::vector<ClientMessage> client_messages;
   server_receive_messages_on_poll_group(server, client_messages);
 
+  // PollConnectionStateChanges();
+  server.interface->RunCallbacks();
+  server_poll_connections(server);
+
   // ProcessClientMessage()
-  for (int i = 0; i < client_messages.size(); i++) {
+  for (auto i = 0; i < client_messages.size(); i++) {
     ClientMessage message = client_messages[i];
     std::cout << "(server) from client " << message.conn << " recieved:" << message.data << std::endl;
     server.incoming_messages.push_back(message.data);
   }
 };
+
+void
+shutdown(SINGLETON_ServerComponent& server)
+{
+  // 	// Close all the connections
+  // Printf( "Closing connections...\n" );
+  // for ( auto it: m_mapClients )
+  // {
+  // 	// Send them one more goodbye message.  Note that we also have the
+  // 	// connection close reason as a place to send final data.  However,
+  // 	// that's usually best left for more diagnostic/debug text not actual
+  // 	// protocol strings.
+  // 	SendStringToClient( it.first, "Server is shutting down.  Goodbye." );
+
+  // 	// Close the connection.  We use "linger mode" to ask SteamNetworkingSockets
+  // 	// to flush this out and close gracefully.
+  // 	m_pInterface->CloseConnection( it.first, 0, "Server Shutdown", true );
+  // }
+  // m_mapClients.clear();
+
+  // m_pInterface->CloseListenSocket( m_hListenSock );
+  // m_hListenSock = k_HSteamListenSocket_Invalid;
+
+  // m_pInterface->DestroyPollGroup( m_hPollGroup );
+  // m_hPollGroup = k_HSteamNetPollGroup_Invalid;
+}
 
 //
 // Server -> Client

@@ -21,7 +21,7 @@ SteamNetConnectionStatusChangedCallback(SteamNetConnectionStatusChangedCallback_
 };
 
 void
-start_client(entt::registry& r, const std::string& addr)
+start_client(entt::registry& r, const std::string& addr, uint16 port)
 {
   SINGLETON_ClientComponent client;
   client.interface = SteamNetworkingSockets();
@@ -29,23 +29,26 @@ start_client(entt::registry& r, const std::string& addr)
   SteamNetworkingIPAddr serverAddr;
   serverAddr.Clear();
 
-  if (serverAddr.ParseString(addr.c_str())) {
-    // Start connecting
-    char szAddr[SteamNetworkingIPAddr::k_cchMaxString];
-    serverAddr.ToString(szAddr, sizeof(szAddr), true);
+  if (!serverAddr.ParseString(addr.c_str())) {
+    std::cerr << "Invalid server address: " << addr << std::endl;
+    return;
+  }
+  if (serverAddr.m_port == 0)
+    serverAddr.m_port = port;
 
-    SteamNetworkingConfigValue_t opt;
-    opt.SetPtr(k_ESteamNetworkingConfig_Callback_ConnectionStatusChanged, (void*)SteamNetConnectionStatusChangedCallback);
-    auto conn = client.interface->ConnectByIPAddress(serverAddr, 1, &opt);
-    if (conn == k_HSteamNetConnection_Invalid) {
-      std::cerr << "(client) invalid server addr: " << szAddr << "\n";
-    } else {
-      // successfully connected
-      client.connection = conn;
-    }
-  } else
-    std::cerr << "Failed to parse server's address for the client\n";
+  // Start connecting
+  char szAddr[SteamNetworkingIPAddr::k_cchMaxString];
+  serverAddr.ToString(szAddr, sizeof(szAddr), true);
+  std::cout << "connecting to server at: " << addr << std::endl;
 
+  SteamNetworkingConfigValue_t opt;
+  opt.SetPtr(k_ESteamNetworkingConfig_Callback_ConnectionStatusChanged, (void*)SteamNetConnectionStatusChangedCallback);
+  client.connection = client.interface->ConnectByIPAddress(serverAddr, 1, &opt);
+
+  if (client.connection == k_HSteamNetConnection_Invalid) {
+    std::cerr << "(client) failed to create connection" << std::endl;
+    return;
+  }
   r.emplace<SINGLETON_ClientComponent>(r.create(), client);
 }
 

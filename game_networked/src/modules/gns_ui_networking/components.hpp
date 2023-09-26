@@ -15,7 +15,7 @@ struct SINGLETON_NetworkingUIComponent
   int server_port = 27020;
 
   bool start_client = false;
-  std::string host = "127.0.0.1:27020";
+  std::string host = "127.0.0.1";
 
   bool close_networking = false;
   bool start_offline = false;

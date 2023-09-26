@@ -25,7 +25,7 @@ close_audio(entt::registry& r)
     alDeleteSources(1, &source.source_id);
 
   // delete buffers
-  for (int i = 0; i < audio.sounds.size(); i++)
+  for (auto i = 0; i < audio.sounds.size(); i++)
     alDeleteBuffers(1, &audio.sounds[i].result);
 
   // delete context

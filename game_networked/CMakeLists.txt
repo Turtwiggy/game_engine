@@ -63,6 +63,10 @@ elseif(${CMAKE_SYSTEM_NAME} STREQUAL "Linux")
   set(VCPKG_INCLUDES
     ${CMAKE_CURRENT_LIST_DIR}/thirdparty/vcpkg/installed/x64-linux/include
   )
+elseif(${CMAKE_SYSTEM_NAME} STREQUAL "Darwin")
+  set(VCPKG_INCLUDES
+    ${CMAKE_CURRENT_LIST_DIR}/thirdparty/vcpkg/installed/x64-osx/include
+  )
 endif()
 
 # includes
@@ -76,7 +80,6 @@ target_include_directories(game_networked PRIVATE
   ${CMAKE_SOURCE_DIR}/thirdparty/entt/single_include
   ${CMAKE_SOURCE_DIR}/thirdparty/magic_enum
   ${CMAKE_SOURCE_DIR}/thirdparty/imgui-filebrowser
-  ${CMAKE_SOURCE_DIR}/thirdparty/assimp/include
 )
 
 target_link_libraries(game_networked PRIVATE GameNetworkingSockets::shared)
@@ -85,7 +88,6 @@ target_link_libraries(game_networked PRIVATE SDL2::SDL2 SDL2::SDL2main)
 target_link_libraries(game_networked PRIVATE OpenAL::OpenAL)
 target_link_libraries(game_networked PRIVATE glm::glm)
 target_link_libraries(game_networked PRIVATE nlohmann_json::nlohmann_json)
-target_link_libraries(game_networked PRIVATE assimp)
 
 IF(${CMAKE_SYSTEM_NAME} STREQUAL "Windows")
   message("build type: ${CMAKE_BUILD_TYPE}")

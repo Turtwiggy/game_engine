@@ -20,7 +20,7 @@ struct Frame
 };
 
 void
-game2d::load_sprites(std::vector<SpriteAnimation>& sprites, const std::string path)
+load_sprites(std::vector<SpriteAnimation>& sprites, const std::string path)
 {
   std::cout << "loading sprite config: " << path << "\n";
   std::ifstream f(path);

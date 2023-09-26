@@ -1,0 +1,10 @@
+glew
+glm
+sdl2
+openal-soft
+stb
+nlohmann-json
+gamenetworkingsockets
+gtest
+--triplet
+arm64-osx
