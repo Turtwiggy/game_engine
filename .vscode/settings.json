@@ -3,9 +3,9 @@
   "cmake.debugConfig": {
     "args": [
       //
-      "--server",
-      "--server-port=27020",
-      "--headless"
+      // "--server",
+      // "--server-port=27020",
+      // "--headless"
     ]
   },
   "editor.formatOnSave": true,

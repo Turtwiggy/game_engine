@@ -116,7 +116,7 @@ server_poll_connections(SINGLETON_ServerComponent& server)
             pszDebugLogAction = "closed by peer";
 
           std::cout << "Connection: " << info.m_info.m_szConnectionDescription << " " << pszDebugLogAction << " "
-                    << std::to_string(info.m_info.m_eEndReason) << " " << info.m_info.m_szEndDebug << "\n";
+                    << std::to_string(info.m_info.m_eEndReason) << " " << info.m_info.m_szEndDebug << std::endl;
 
           // Send a message so everybody else knows what happened
           // send_string_to_all_clients(temp);

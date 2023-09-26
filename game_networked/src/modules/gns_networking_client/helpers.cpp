@@ -28,12 +28,13 @@ start_client(entt::registry& r, const std::string& addr, uint16 port)
 
   SteamNetworkingIPAddr serverAddr;
   serverAddr.Clear();
-  serverAddr.m_port = port;
 
   if (!serverAddr.ParseString(addr.c_str())) {
-    std::cerr << "Invalid server address: " << addr;
+    std::cerr << "Invalid server address: " << addr << std::endl;
     return;
   }
+  if (serverAddr.m_port == 0)
+    serverAddr.m_port = port;
 
   // Start connecting
   char szAddr[SteamNetworkingIPAddr::k_cchMaxString];
