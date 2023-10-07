@@ -15,6 +15,7 @@
 
 namespace game2d {
 
+// Converts GridComponoent to std::vector<astar_cell>
 std::vector<astar_cell>
 generate_map_view(entt::registry& r, const GridComponent& grid)
 {
@@ -30,9 +31,8 @@ generate_map_view(entt::registry& r, const GridComponent& grid)
     // If the cell contains entites with cost info,
     // add that cost info to the cost
     for (const auto& ent : grid.grid[xy]) {
-      if (auto* cost = r.try_get<PathfindComponent>(ent)) {
+      if (auto* cost = r.try_get<PathfindComponent>(ent))
         cell.cost = cost->cost;
-      }
     }
 
     result.push_back(cell);
@@ -163,7 +163,11 @@ generate_flow_field(entt::registry& r, const GridComponent& grid, const int from
   for (int xy = 0; xy < grid.width * grid.height; xy++) {
     if (map[xy].cost == -1)
       continue;
-    map[xy].distance = cost_so_far[xy];
+    if (auto it{ cost_so_far.find(xy) }; it != std::end(cost_so_far)) {
+      const auto& [key, val]{ *it };
+      map[xy].distance = val;
+    } else
+      map[xy].distance = INT_MAX;
   }
   map[0].distance = INT_MAX;
 

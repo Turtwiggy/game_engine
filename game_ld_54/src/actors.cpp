@@ -9,7 +9,9 @@
 #include "modules/actor_player/components.hpp"
 #include "modules/actor_spawner/components.hpp"
 #include "modules/actor_turret/components.hpp"
+#include "modules/ai_pathfinding/components.hpp"
 #include "modules/animation/components.hpp"
+#include "modules/blocks/components.hpp"
 #include "modules/camera/orthographic.hpp"
 #include "modules/combat_attack_cooldown/components.hpp"
 #include "modules/combat_damage/components.hpp"
@@ -20,7 +22,6 @@
 #include "physics/components.hpp"
 #include "sprites/components.hpp"
 #include "sprites/helpers.hpp"
-#include "modules/ai_pathfinding/components.hpp"
 
 #include "magic_enum.hpp"
 #include <thread>
@@ -36,6 +37,8 @@ create_sprite(entt::registry& r, const EntityType& type)
 
   if (type == EntityType::actor_hearth)
     sprite = "CAMPFIRE";
+  else if (type == EntityType::actor_enemy)
+    sprite = "PERSON_25_1";
   else if (type == EntityType::actor_player)
     sprite = "PERSON_25_0";
   else if (type == EntityType::actor_spawner)
@@ -48,14 +51,6 @@ create_sprite(entt::registry& r, const EntityType& type)
     sprite = "EMPTY";
   else if (type == EntityType::bullet_bow)
     sprite = "ARROW_1";
-  // enemies...
-  else if (type == EntityType::enemy_grunt)
-    sprite = "PERSON_25_1";
-  else if (type == EntityType::enemy_sniper)
-    sprite = "PERSON_25_6";
-  else if (type == EntityType::enemy_shotgunner)
-    sprite = "PERSON_28_1";
-
   else if (type == EntityType::cursor)
     sprite = "CURSOR_0";
 
@@ -100,17 +95,12 @@ create_colour(const SINGLETON_ColoursComponent& colours, const EntityType& type)
     scc.colour = secondary;
   // weapons
   // bullets...
+  else if (type == EntityType::actor_enemy)
+    scc.colour = secondary;
   else if (type == EntityType::bullet_default)
     scc.colour = secondary;
   else if (type == EntityType::bullet_bow)
-    scc.colour = primary;
-  // enemies...
-  else if (type == EntityType::enemy_grunt)
-    scc.colour = colours.lin_yellow;
-  else if (type == EntityType::enemy_sniper)
-    scc.colour = colours.lin_blue;
-  else if (type == EntityType::enemy_shotgunner)
-    scc.colour = colours.lin_orange;
+    scc.colour = secondary;
 
   return scc;
 }
@@ -149,8 +139,18 @@ create_gameplay(entt::registry& r, const EntityType& type)
   switch (type) {
 
       //
-      // actors with only one type
+      // actors
       //
+
+    case EntityType::actor_enemy: {
+      create_physics_actor(r, e);
+      r.emplace<EnemyComponent>(e);
+      r.emplace<TeamComponent>(e, AvailableTeams::enemy);
+      r.emplace<VelocityComponent>(e);
+      r.emplace<HealthComponent>(e, 3);
+      r.emplace<AttackComponent>(e, 10);
+      break;
+    }
 
     case EntityType::actor_hearth: {
       create_physics_actor(r, e);
@@ -195,9 +195,9 @@ create_gameplay(entt::registry& r, const EntityType& type)
 
     case EntityType::actor_spawner: {
       create_physics_actor(r, e);
-      r.emplace<HealthComponent>(e, 10);
+      // r.emplace<HealthComponent>(e, 10);
 
-      // 1 second between spawning
+      // seconds between spawning
       r.emplace<AttackCooldownComponent>(e, 5.0f);
 
       // if spawning enemies...
@@ -212,13 +212,14 @@ create_gameplay(entt::registry& r, const EntityType& type)
     case EntityType::actor_turret: {
       create_physics_actor(r, e);
       r.emplace<TurretComponent>(e);
-      r.emplace<AttackCooldownComponent>(e);
+      r.emplace<AttackCooldownComponent>(e, 2.0f);
 
       // todo: if make turret solid,
       // spawn bullets outside of turret
       // r.emplace<PhysicsSolidComponent>(e);
 
       r.emplace<PathfindComponent>(e, -1);
+      r.emplace<BaseTurretStatsComponent>(e);
       break;
     }
 
@@ -255,39 +256,6 @@ create_gameplay(entt::registry& r, const EntityType& type)
       r.emplace<SetTransformAngleToVelocity>(e);
       r.emplace<EntityTimedLifecycle>(e);
       r.emplace<AttackComponent>(e, 3);
-      break;
-    }
-
-    //
-    // actors_enemies
-    //
-    case EntityType::enemy_grunt: {
-      create_physics_actor(r, e);
-      r.emplace<EnemyComponent>(e);
-      r.emplace<TeamComponent>(e, AvailableTeams::enemy);
-      r.emplace<VelocityComponent>(e);
-      r.emplace<HealthComponent>(e, 3);
-      r.emplace<AttackComponent>(e, 10);
-      break;
-    }
-
-    case EntityType::enemy_sniper: {
-      create_physics_actor(r, e);
-      r.emplace<EnemyComponent>(e);
-      r.emplace<TeamComponent>(e, AvailableTeams::enemy);
-      r.emplace<VelocityComponent>(e);
-      r.emplace<HealthComponent>(e, 3);
-      r.emplace<AttackComponent>(e, 20);
-      break;
-    }
-
-    case EntityType::enemy_shotgunner: {
-      create_physics_actor(r, e);
-      r.emplace<EnemyComponent>(e);
-      r.emplace<TeamComponent>(e, AvailableTeams::enemy);
-      r.emplace<VelocityComponent>(e);
-      r.emplace<HealthComponent>(e, 4);
-      r.emplace<AttackComponent>(e, 50);
       break;
     }
 

@@ -12,13 +12,17 @@ struct GridComponent
   int size = 64; // worldspace size e.g. pixels
   int width = 10;
   int height = 10;
+
+  // entities on grid
   std::vector<std::vector<entt::entity>> grid;
+
+  // pathfinding
   std::vector<astar_cell> flow_field;
   std::vector<std::vector<entt::entity>> debug_flow_field;
 
-  // hmmmmmmmmmmmmmmmm
-  std::vector<entt::entity> debug_cell_ents;
-  std::vector<int> cell_grid;
+  // generated obstacles
+  std::vector<int> generated_obstacles;
+  std::vector<entt::entity> debug_generated_obstacles;
 };
 
 } // namespace game2d

@@ -37,24 +37,9 @@ update_ui_scene_main_menu(engine::SINGLETON_Application& app, entt::registry& r)
   const ImVec2 pivot = { 0.5f, 0.5f };
   ImGui::PushStyleVar(ImGuiStyleVar_ButtonTextAlign, pivot);
 
-  if (ImGui::Button("Instructions", size)) {
-    // TODO
-  }
-  if (ImGui::Button("Play Level 1", size)) {
-    editor.mode = LevelEditorMode::play;
-    move_to_scene_start(r, Scene::game);
-    // load(r, "assets/maps/main.json");
-  }
-  if (ImGui::Button("Play Level 2", size)) {
-    editor.mode = LevelEditorMode::play;
-    move_to_scene_start(r, Scene::game);
-    // load(r, "assets/maps/main.json");
-  }
-  if (ImGui::Button("Play Level 3", size)) {
-    editor.mode = LevelEditorMode::play;
-    move_to_scene_start(r, Scene::game);
-    // load(r, "assets/maps/main.json");
-  }
+  // if (ImGui::Button("Instructions", size)) {
+  //   // TODO
+  // }
   if (ImGui::Button("Endless", size)) {
     editor.mode = LevelEditorMode::play;
     move_to_scene_start(r, Scene::game);

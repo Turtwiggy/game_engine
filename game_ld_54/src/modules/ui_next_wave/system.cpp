@@ -39,13 +39,13 @@ game2d::update_ui_next_wave_system(entt::registry& r)
   flags |= ImGuiWindowFlags_NoBackground;
 
   // hack: this should be in a system in fixedupdate() not here
-  bool wave_complete = true;
-  for (const auto& [entity, hp, team] : r.view<const HealthComponent, const TeamComponent>().each()) {
-    if (team.team == AvailableTeams::enemy) {
-      wave_complete = false;
-      break;
-    }
-  }
+  bool wave_complete = false;
+  // for (const auto& [entity, hp, team] : r.view<const HealthComponent, const TeamComponent>().each()) {
+  //   if (team.team == AvailableTeams::enemy) {
+  //     wave_complete = false;
+  //     break;
+  //   }
+  // }
 
   if (wave_complete) {
 

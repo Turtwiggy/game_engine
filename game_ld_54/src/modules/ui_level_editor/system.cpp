@@ -126,10 +126,18 @@ update_ui_level_editor_system(entt::registry& r, const glm::ivec2& input_mouse_p
   //
   // scan disk for levels
   //
+
+  bool refresh_maps = false;
+  if (ImGui::Button("Refresh Maps"))
+    refresh_maps = true;
+
   std::string path = "assets/maps/";
-  std::vector<std::string> levels;
-  for (const auto& entry : std::filesystem::directory_iterator(path))
-    levels.push_back(entry.path().generic_string());
+  static std::vector<std::string> levels;
+  if (refresh_maps) {
+    levels.clear();
+    for (const auto& entry : std::filesystem::directory_iterator(path))
+      levels.push_back(entry.path().generic_string());
+  }
 
   ImGui::Text("¬¬ Levels ¬¬");
   {

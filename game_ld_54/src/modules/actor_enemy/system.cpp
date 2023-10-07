@@ -45,6 +45,8 @@ update_enemy_get_new_target(const GridComponent& grid, const TransformComponent&
     }
   }
 
+  std::cout << "getting new target..." << std::endl;
+
   // center of the next grid square
   glm::ivec3 target_position{ grid_xy.x * grid.size, grid_xy.y * grid.size, 0 };
 
@@ -68,9 +70,10 @@ update_enemy_to_target(const TransformComponent& transform, EnemyComponent& enem
   const glm::ivec3 d = enemy.target - transform.position;
 
   // check if within some acceptable distance
-  if (d.x <= 2 && d.y <= 2)
+  if (glm::abs(d.x) <= 2 && glm::abs(d.y) <= 2) {
+    std::cout << "removing target pos" << std::endl;
     enemy.has_target = false;
-  else {
+  } else {
     glm::vec2 dir = glm::vec2(d.x, d.y);
     glm::vec2 n = dir;
     if (dir.x != 0.0f || dir.y != 0.0f)

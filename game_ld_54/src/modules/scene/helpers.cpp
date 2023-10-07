@@ -70,8 +70,10 @@ move_to_scene_start(entt::registry& r, const Scene s)
       const auto grid_idx = engine::grid::grid_position_to_index(grid_pos, grid.width);
       const auto pos = engine::grid::grid_space_to_world_space(grid_pos, grid.size);
       const auto e = create_gameplay(r, EntityType::actor_spawner);
-      auto& t = r.get<AABB>(e);
-      t.center = pos;
+      // auto& t = r.get<AABB>(e);
+      // t.center = pos;
+      auto& t = r.get<TransformComponent>(e);
+      t.position = { pos.x, pos.y, 0.0 };
 
       grid.grid[grid_idx].push_back(e);
     }
@@ -88,7 +90,7 @@ move_to_scene_start(entt::registry& r, const Scene s)
       grid.grid[hearth_idx].push_back(e);
     }
 
-    // create points at grid
+    // create points on grid
     auto& anims = get_first_component<SINGLETON_Animations>(r);
     for (int xy = 0; xy < grid.width * grid.height; xy++) {
       const auto gpos = engine::grid::index_to_grid_position(xy, grid.width, grid.height);

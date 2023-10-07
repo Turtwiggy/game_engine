@@ -23,7 +23,6 @@
 #include "modules/combat_flash_on_damage/system.hpp"
 #include "modules/gameover/components.hpp"
 #include "modules/gameover/system.hpp"
-#include "modules/grid_interaction/system.hpp"
 #include "modules/items_drop/system.hpp"
 #include "modules/lerp_to_target/system.hpp"
 #include "modules/lifecycle/components.hpp"
@@ -37,12 +36,14 @@
 #include "modules/ui_colours/system.hpp"
 #include "modules/ui_controllers/system.hpp"
 #include "modules/ui_gameover/system.hpp"
+#include "modules/ui_grid_interaction/system.hpp"
 #include "modules/ui_hierarchy/system.hpp"
 #include "modules/ui_level_editor/components.hpp"
 #include "modules/ui_level_editor/system.hpp"
 #include "modules/ui_next_wave/system.hpp"
 #include "modules/ui_pause_menu/system.hpp"
 #include "modules/ui_scene_main_menu/system.hpp"
+#include "modules/ui_spawner_editor/system.hpp"
 #include "physics/components.hpp"
 #include "physics/process_actor_actor_collisions.hpp"
 #include "physics/process_move_objects.hpp"
@@ -214,8 +215,10 @@ game2d::update(engine::SINGLETON_Application& app, entt::registry& r, const floa
     const auto& scene = get_first_component<SINGLETON_CurrentScene>(r);
     if (scene.s == Scene::menu)
       update_ui_scene_main_menu(app, r);
-    else if (scene.s == Scene::game)
+    else if (scene.s == Scene::game) {
       update_ui_next_wave_system(r);
+      update_ui_spawner_system(r);
+    }
 
     update_ui_pause_menu_system(app, r);
     update_ui_gameover_system(r);

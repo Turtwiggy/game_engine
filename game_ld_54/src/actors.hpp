@@ -18,14 +18,15 @@ enum class EntityType
   // transform-only
   empty,
 
-  // actors with only one type (so far)
+  // actors
+  actor_enemy,
   actor_hearth,
   actor_player,
   actor_spawner,
   actor_turret,
   actor_pickup_xp,
   actor_pickup_zone,
-  
+
   // solids
   solid_wall,
 
@@ -38,11 +39,6 @@ enum class EntityType
   // actor_bullets,
   bullet_default,
   bullet_bow,
-
-  // actor_enemy,
-  enemy_grunt,
-  enemy_sniper,
-  enemy_shotgunner,
 
   // misc
   cursor,
