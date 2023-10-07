@@ -5,7 +5,7 @@
 
 namespace game2d {
 
-template<T>
+template<class T>
 class PriorityQueue
 {
 private:

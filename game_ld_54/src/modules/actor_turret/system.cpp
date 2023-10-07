@@ -6,13 +6,13 @@
 #include "actors.hpp"
 #include "audio/components.hpp"
 #include "entt/helpers.hpp"
-#include "modules/lifecycle/components.hpp"
 #include "maths/maths.hpp"
 #include "modules/actor_enemy/components.hpp"
 #include "modules/combat_attack_cooldown/components.hpp"
 #include "modules/combat_attack_cooldown/helpers.hpp"
-#include "physics/components.hpp"
+#include "modules/lifecycle/components.hpp"
 #include "modules/renderer/components.hpp"
+#include "physics/components.hpp"
 #include "sprites/components.hpp"
 
 namespace game2d {
@@ -22,7 +22,7 @@ update_turret_system(entt::registry& r, const uint64_t& ms_dt)
 {
   const float dt = ms_dt / 1000.0f;
   const auto& physics = get_first_component<SINGLETON_PhysicsComponent>(r);
-  const float turret_bullet_speed = 200.0f;
+  const float turret_bullet_speed = 100.0f;
 
   const auto& turrets = r.view<TurretComponent, TransformComponent, AttackCooldownComponent>();
   for (const auto& [t_entity, turret, t, cooldown] : turrets.each()) {

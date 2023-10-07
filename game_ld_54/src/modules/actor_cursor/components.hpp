@@ -4,7 +4,7 @@ namespace game2d {
 
 struct CursorComponent
 {
-  bool placeholder = true;
+  int grid_index = -1;
 };
 
 } // namespace game2d

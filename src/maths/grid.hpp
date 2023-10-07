@@ -10,6 +10,34 @@ namespace engine {
 
 namespace grid {
 
+enum class GridDirection : size_t
+{
+  north,
+  south,
+  east,
+  west,
+
+  // diagonals
+  north_east,
+  south_east,
+  north_west,
+  south_west,
+};
+
+void
+get_neighbour_indicies(const int x,
+                       const int y,
+                       const int x_max,
+                       const int y_max,
+                       std::vector<std::pair<GridDirection, int>>& results);
+
+void
+get_neighbour_indicies_with_diagonals(const int x,
+                                      const int y,
+                                      const int x_max,
+                                      const int y_max,
+                                      std::vector<std::pair<GridDirection, int>>& results);
+
 [[nodiscard]] inline glm::vec2
 grid_space_to_world_space(glm::ivec2 pos, int grid_size)
 {
@@ -21,7 +49,7 @@ world_space_to_grid_space(const glm::vec2& pos, int grid_size)
 {
   int grid_x = static_cast<int>(pos.x / grid_size);
   int grid_y = static_cast<int>(pos.y / grid_size);
-  return glm::ivec2{ grid_x, grid_y };
+  return { grid_x, grid_y };
 }
 
 inline int
@@ -36,6 +64,13 @@ index_to_grid_position(const int index, const int x_max, const int y_max)
   const int x = index % x_max;
   const int y = static_cast<int>(index / static_cast<float>(y_max));
   return { x, y };
+}
+
+inline glm::ivec2
+index_to_world_position(const int index, const int x_max, const int y_max, const int size)
+{
+  const auto grid_position = index_to_grid_position(index, x_max, y_max);
+  return grid_position * size;
 }
 
 // a grid shaped

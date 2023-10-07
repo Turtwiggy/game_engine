@@ -19,6 +19,9 @@ convert_int_to_sprites(int damage)
   std::vector<std::string> numbers;
 
   int number = damage;
+  if (number == 0)
+    numbers.push_back(number_0);
+
   // this iterates over number from right to left.
   // e.g. 1230 will iterate as 0, 3, 2, 1
   while (number > 0) {

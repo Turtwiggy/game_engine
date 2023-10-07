@@ -2,9 +2,9 @@
 
 #include "actors.hpp"
 #include "components.hpp"
-#include "modules/lifecycle/components.hpp"
 #include "modules/combat_attack_cooldown/components.hpp"
 #include "modules/combat_attack_cooldown/helpers.hpp"
+#include "modules/lifecycle/components.hpp"
 #include "modules/renderer/components.hpp"
 
 namespace game2d {
@@ -13,10 +13,6 @@ namespace game2d {
 // static std::map<int, float> wave_damage{};
 // static std::map<int, float> wave_speed{};
 // const float safe_radius_around_player = 8000.0f;
-
-// should be in something
-static const float time_between_spawns = 2.0f;
-static float time_between_spawns_left = time_between_spawns;
 
 void
 update_spawner_system(entt::registry& r, const uint64_t milliseconds_dt)

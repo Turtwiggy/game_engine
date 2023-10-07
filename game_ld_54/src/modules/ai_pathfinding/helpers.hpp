@@ -1,5 +1,7 @@
 #pragma once
 
+#include "maths/grid.hpp"
+#include "modules/ai_pathfinding/components.hpp"
 #include "modules/grid/components.hpp"
 
 #include <glm/glm.hpp>
@@ -38,53 +40,12 @@ get_neighbour_indicies(const int x,
                        const int y,
                        const int x_max,
                        const int y_max,
-                       std::vector<std::pair<GridDirection, int>>& results);
+                       std::vector<std::pair<engine::grid::GridDirection, int>>& results);
 
-struct astar_cell
-{
-  glm::ivec2 pos;
-  int path_cost = 1;
-  int distance = INT_MAX;
-};
+[[nodiscard]] std::vector<glm::ivec2>
+generate_direct(entt::registry& r, const GridComponent& grid, const int from_idx, const int to_idx);
 
-std::vector<astar_cell>
-generate_flow_field(const GridComponent& map, const int from_idx)
-{
-  std::vector<astar_cell> field;
-  field.resize(map.width * map.height);
-
-  auto from = field[from_idx];
-  from.distance = 0;
-
-  std::vector<astar_cell> frontier;
-  frontier.push_back(from);
-
-  // std::vector<entt::entity> ents = map.grid[from_idx];
-
-  while (frontier.size() > 0) {
-    astar_cell current = frontier.front();
-    frontier.erase(frontier.begin());
-
-    // visible_cell.Add(current);
-
-    std::vector<std::pair<GridDirection, index>> neighbours;
-    get_neighbour_indicies(current.pos.x, current.pos.y, grid.width, grid.height, neighbours);
-
-    for (const auto& [dir, idx] : neighbours) {
-      auto neighbour = map[idx];
-
-      if (neighbour.cost == -1)
-        continue; // skip
-
-      int distance = current.distance + 1;
-
-      if (neighbour.distance == MAX_VALUE) {
-        neighbour.distance = distance;
-        frontier.push_back(neighbour)
-      } else if (distance < neighbour.distance)
-        neighbour.distance = distance;
-    }
-  }
-};
+[[nodiscard]] std::vector<astar_cell>
+generate_flow_field(entt::registry& r, const GridComponent& grid, const int from_idx);
 
 } // namespace game2d

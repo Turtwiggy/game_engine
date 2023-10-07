@@ -8,12 +8,11 @@
 #include "events/helpers/controller.hpp"
 #include "events/helpers/mouse.hpp"
 #include "helpers/line.hpp"
-#include "modules/lifecycle/components.hpp"
 #include "modules/actor_player/components.hpp"
 #include "modules/actor_turret/components.hpp"
-#include "modules/items_pickup/components.hpp"
-#include "physics/components.hpp"
+#include "modules/lifecycle/components.hpp"
 #include "modules/renderer/components.hpp"
+#include "physics/components.hpp"
 #include "sprites/components.hpp"
 
 #include <SDL2/SDL_keyboard.h>
@@ -138,11 +137,6 @@ game2d::update_player_controller_system(entt::registry& r)
         vel->x *= 2.0f;
         vel->y *= 2.0f;
       }
-    }
-
-    if (input.pickup) {
-      std::cout << "Pickup pressed!\n";
-      r.emplace_or_replace<WantsToPickUp>(entity);
     }
 
     //

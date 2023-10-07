@@ -116,6 +116,11 @@
     { "name": "ICON_HEART_HALF_FULL", "frames": [ { "x": 41, "y": 10 } ] },
     { "name": "ICON_HEART_FULL", "frames": [ { "x": 42, "y": 10 } ] },
 
+    { "name": "CURSOR_0", "frames": [ { "x": 38, "y": 12 } ] },
+    { "name": "CURSOR_1", "frames": [ { "x": 39, "y": 12 } ] },
+    { "name": "CURSOR_2", "frames": [ { "x": 40, "y": 12 } ] },
+    { "name": "CURSOR_3", "frames": [ { "x": 41, "y": 12 } ] },
+
     { "name": "DOOR_4_13", "frames": [ { "x": 4, "y": 13 } ] },
     { "name": "FULL_POTION_32_13", "frames": [ { "x": 32, "y": 13 } ] },
     { "name": "FULL_POTION_33_13", "frames": [ { "x": 33, "y": 13 } ] },

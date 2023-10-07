@@ -25,7 +25,6 @@
 #include "modules/gameover/system.hpp"
 #include "modules/grid_interaction/system.hpp"
 #include "modules/items_drop/system.hpp"
-#include "modules/items_pickup/system.hpp"
 #include "modules/lerp_to_target/system.hpp"
 #include "modules/lifecycle/components.hpp"
 #include "modules/lifecycle/system.hpp"
@@ -151,6 +150,7 @@ game2d::fixed_update(entt::registry& game, const uint64_t milliseconds_dt)
     // todo: split out updating aabb from move_objects sysstem
     update_move_objects_system(game, milliseconds_dt);
     update_actor_actor_collisions_system(game, physics);
+    update_resolve_collisions_system(game);
   }
 
   // dont do game tick if in edit mode
@@ -158,23 +158,6 @@ game2d::fixed_update(entt::registry& game, const uint64_t milliseconds_dt)
   if (level_editor.mode == LevelEditorMode::edit)
     return;
 #endif
-
-  {
-    OPTICK_EVENT("(fixed-tick)-game-logic");
-    update_resolve_collisions_system(game);
-    update_attack_cooldown_system(game, milliseconds_dt);
-    // update_player_controller_system(game);
-    update_enemy_system(game);
-    update_turret_system(game, milliseconds_dt);
-    update_take_damage_system(game);
-    update_flash_sprite_system(game, milliseconds_dt);
-    update_respawn_system(game);
-    update_spawner_system(game, milliseconds_dt);
-    update_intent_pickup_system(game);
-    update_intent_drop_item_system(game);
-    // update_bow_system(game, milliseconds_dt);
-    update_lerp_to_target_system(game, milliseconds_dt);
-  }
 
   fixed_input.fixed_tick += 1;
 }
@@ -191,8 +174,28 @@ game2d::update(engine::SINGLETON_Application& app, entt::registry& r, const floa
     update_audio_system(r);
     const glm::ivec2 mouse_pos = mouse_position_in_worldspace(r);
     update_cursor_system(r, mouse_pos);
-    update_grid_interaction_system(r, mouse_pos);
+    update_grid_interaction_system(r);
     update_scale_by_velocity_system(r, dt);
+  }
+
+  {
+    OPTICK_EVENT("(tick)-game-logic");
+    auto& state = get_first_component<SINGLETON_GameStateComponent>(r);
+    if (state.state != GameState::PAUSED) {
+      auto& game = r;
+      const auto milliseconds_dt = dt * 1000.0f;
+      update_attack_cooldown_system(game, milliseconds_dt);
+      // update_player_controller_system(game);
+      update_enemy_system(game);
+      update_turret_system(game, milliseconds_dt);
+      update_take_damage_system(game);
+      update_flash_sprite_system(game, milliseconds_dt);
+      update_respawn_system(game);
+      update_spawner_system(game, milliseconds_dt);
+      // update_intent_drop_item_system(game);
+      // update_bow_system(game, milliseconds_dt);
+      update_lerp_to_target_system(game, milliseconds_dt);
+    }
   }
 
   {

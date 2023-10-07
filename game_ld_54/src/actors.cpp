@@ -3,11 +3,9 @@
 #include "colour/colour.hpp"
 #include "entt/helpers.hpp"
 #include "events/components.hpp"
-#include "modules/actor_bow/components.hpp"
 #include "modules/actor_cursor/components.hpp"
 #include "modules/actor_enemy/components.hpp"
 #include "modules/actor_hearth/components.hpp"
-#include "modules/actor_pickup_zone/components.hpp"
 #include "modules/actor_player/components.hpp"
 #include "modules/actor_spawner/components.hpp"
 #include "modules/actor_turret/components.hpp"
@@ -15,7 +13,6 @@
 #include "modules/camera/orthographic.hpp"
 #include "modules/combat_attack_cooldown/components.hpp"
 #include "modules/combat_damage/components.hpp"
-#include "modules/items_pickup/components.hpp"
 #include "modules/lerp_to_target/components.hpp"
 #include "modules/lifecycle/components.hpp"
 #include "modules/renderer/components.hpp"
@@ -23,6 +20,7 @@
 #include "physics/components.hpp"
 #include "sprites/components.hpp"
 #include "sprites/helpers.hpp"
+#include "modules/ai_pathfinding/components.hpp"
 
 #include "magic_enum.hpp"
 #include <thread>
@@ -44,13 +42,7 @@ create_sprite(entt::registry& r, const EntityType& type)
     sprite = "CASTLE_FLOOR";
   else if (type == EntityType::actor_turret)
     sprite = "EMPTY";
-  else if (type == EntityType::actor_pickup_xp)
-    sprite = "GEM";
-  else if (type == EntityType::actor_pickup_zone)
-    sprite = "EMPTY";
   // weapons...
-  else if (type == EntityType::weapon_bow)
-    sprite = "WEAPON_BOW_0";
   // bullets...
   else if (type == EntityType::bullet_default)
     sprite = "EMPTY";
@@ -63,6 +55,9 @@ create_sprite(entt::registry& r, const EntityType& type)
     sprite = "PERSON_25_6";
   else if (type == EntityType::enemy_shotgunner)
     sprite = "PERSON_28_1";
+
+  else if (type == EntityType::cursor)
+    sprite = "CURSOR_0";
 
   // else
   // std::cerr << "warning! sprite not implemented: " << type_name << "\n";
@@ -103,17 +98,7 @@ create_colour(const SINGLETON_ColoursComponent& colours, const EntityType& type)
 
   if (type == EntityType::actor_hearth)
     scc.colour = secondary;
-  else if (type == EntityType::actor_pickup_zone) {
-    engine::LinearColour off;
-    off.r = 1.0f;
-    off.g = 1.0f;
-    off.b = 1.0f;
-    off.a = 0.1f;
-    scc.colour = std::make_shared<engine::LinearColour>(off);
-  }
   // weapons
-  else if (type == EntityType::weapon_bow)
-    scc.colour = secondary;
   // bullets...
   else if (type == EntityType::bullet_default)
     scc.colour = secondary;
@@ -196,7 +181,6 @@ create_gameplay(entt::registry& r, const EntityType& type)
 
       r.emplace<HealthComponent>(e, 100);
       r.emplace<InfiniteLivesComponent>(e);
-      r.emplace<GeneratePickupZoneComponent>(e);
 
       // r.emplace<TakeDamageComponent>(e);
       // r.emplace<XpComponent>(e, 0);
@@ -214,7 +198,7 @@ create_gameplay(entt::registry& r, const EntityType& type)
       r.emplace<HealthComponent>(e, 10);
 
       // 1 second between spawning
-      r.emplace<AttackCooldownComponent>(e, 1.0f);
+      r.emplace<AttackCooldownComponent>(e, 5.0f);
 
       // if spawning enemies...
       // its on the enemy team
@@ -233,20 +217,8 @@ create_gameplay(entt::registry& r, const EntityType& type)
       // todo: if make turret solid,
       // spawn bullets outside of turret
       // r.emplace<PhysicsSolidComponent>(e);
-      break;
-    }
 
-    case EntityType::actor_pickup_xp: {
-      create_physics_actor(r, e);
-      r.emplace<AbleToBePickedUp>(e);
-      break;
-    }
-
-    case EntityType::actor_pickup_zone: {
-      transform.scale.y = 100;
-      transform.scale.x = 100;
-      r.emplace<PickupZoneComponent>(e);
-      create_physics_actor(r, e);
+      r.emplace<PathfindComponent>(e, -1);
       break;
     }
 
@@ -259,20 +231,6 @@ create_gameplay(entt::registry& r, const EntityType& type)
       r.emplace<PhysicsTransformYComponent>(e);
       r.emplace<AABB>(e);
       r.emplace<PhysicsSolidComponent>(e);
-      break;
-    }
-
-      //
-      // actor_weapons
-      //
-
-    case EntityType::weapon_bow: {
-      transform.scale.x = 20;
-      transform.scale.y = 20;
-      r.emplace<BowComponent>(e);
-      r.emplace<HasTargetPositionComponent>(e);
-      r.emplace<LerpToTargetComponent>(e);
-      r.emplace<AttackCooldownComponent>(e);
       break;
     }
 
