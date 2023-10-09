@@ -120,6 +120,7 @@ GameWindow::GameWindow(const std::string& title, int width, int height, DisplayM
   // SDL_SetHint(SDL_HINT_RENDER_SCALE_QUALITY, "1");
   SDL_GL_SetAttribute(SDL_GL_CONTEXT_MAJOR_VERSION, opengl_major);
   SDL_GL_SetAttribute(SDL_GL_CONTEXT_MINOR_VERSION, opengl_minor);
+  SDL_GL_SetAttribute(SDL_GL_STENCIL_SIZE, 1);
 
   // SDL2 Create Window --------------------------------------
 

@@ -14,6 +14,9 @@ struct SpawnerComponent
 
   bool continuous_spawn = true;
 
+  // wave information
+  int enemies_to_spawn = 0;
+
   // default class
   bool class_set = false;
   int hp = 1;

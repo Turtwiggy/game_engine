@@ -22,7 +22,7 @@ update_turret_system(entt::registry& r, const uint64_t& ms_dt)
 {
   const float dt = ms_dt / 1000.0f;
   const auto& physics = get_first_component<SINGLETON_PhysicsComponent>(r);
-  const float turret_bullet_speed = 200.0f;
+  const float turret_bullet_speed = 150.0f;
 
   const auto& turrets = r.view<TurretComponent, TransformComponent, AttackCooldownComponent>();
   for (const auto& [t_entity, turret, t, cooldown] : turrets.each()) {

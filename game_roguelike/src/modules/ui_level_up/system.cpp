@@ -16,9 +16,6 @@ update_ui_level_up_system(const GameEditor& editor, Game& game)
   const auto& ri = editor.renderer;
   auto& r = game.state;
 
-  // static bool show = true;
-  // ImGui::ShowDemoWindow(&show);
-
   int i = 0;
   for (auto [entity, player, stats, xp] : r.view<PlayerComponent, StatsComponent, XpComponent>().each()) {
     i++;

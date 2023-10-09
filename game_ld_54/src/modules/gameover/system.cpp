@@ -47,10 +47,20 @@ update_gameover_system(entt::registry& r)
       }
 
       // Check if the game is over (you beat wave 10)
-      const auto& wave = get_first_component<SINGLETON_Wave>(r);
-      if (wave.wave == 10) {
+      // const auto& wave = get_first_component<SINGLETON_Wave>(r);
+      // if (wave.wave == 10) {
+      //   gameover.game_is_over = true;
+      //   gameover.reason = "You made it to wave 10!";
+      // }
+
+      // Check if the game is over (spawners all depleated)
+      const auto& spawners_view = r.view<SpawnerComponent>();
+      int enemies_left = 0;
+      for (const auto& [entity, spawner] : spawners_view.each())
+        enemies_left += spawner.enemies_to_spawn;
+      if (enemies_left <= 0) {
         gameover.game_is_over = true;
-        gameover.reason = "You made it to wave 10!";
+        gameover.reason = "You defeated all the enemies!";
       }
     }
   }

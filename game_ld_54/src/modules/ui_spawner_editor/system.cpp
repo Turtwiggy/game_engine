@@ -56,6 +56,7 @@ update_ui_spawner_system(entt::registry& r)
     ImGui::Text("Cooldown: %f", cooldown.time_between_attack_left);
     ImGui::Text("HP: %i", spawner.hp);
     ImGui::Text("Attack: %i", spawner.attack);
+    ImGui::Text("EnemiesToSpawn: %i", spawner.enemies_to_spawn);
 
     // grunt
     // hp 3

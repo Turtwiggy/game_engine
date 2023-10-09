@@ -208,8 +208,8 @@ game2d::update(engine::SINGLETON_Application& app, entt::registry& r, const floa
     OPTICK_EVENT("(update)-update-ui");
 
 #if defined(_DEBUG)
-    // static bool show_demo_window = false;
-    // ImGui::ShowDemoWindow(&show_demo_window);
+    static bool show_demo_window = false;
+    ImGui::ShowDemoWindow(&show_demo_window);
 #endif
 
     const auto& scene = get_first_component<SINGLETON_CurrentScene>(r);

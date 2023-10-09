@@ -271,6 +271,16 @@ update_grid_interaction_system(entt::registry& r)
       //
     }
 
+    if (ImGui::Button("Destroy")) {
+
+      // destroy entity
+      r.destroy(grid.grid[idx].begin(), grid.grid[idx].end());
+      grid.grid[idx].clear();
+
+      show_inventory = false;
+      show_inventory_idx = -1;
+    }
+
     if (ImGui::Button("Close##inventory")) {
       show_inventory = false;
       show_inventory_idx = -1;
@@ -278,9 +288,6 @@ update_grid_interaction_system(entt::registry& r)
 
     ImGui::End();
   }
-
-  static bool show_demo = true;
-  ImGui::ShowDemoWindow(&show_demo);
 }
 
 } // namespace game2d

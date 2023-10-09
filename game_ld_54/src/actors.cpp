@@ -198,7 +198,7 @@ create_gameplay(entt::registry& r, const EntityType& type)
       // r.emplace<HealthComponent>(e, 10);
 
       // seconds between spawning
-      r.emplace<AttackCooldownComponent>(e, 5.0f);
+      r.emplace<AttackCooldownComponent>(e, 2.5f);
 
       // if spawning enemies...
       // its on the enemy team
@@ -254,7 +254,7 @@ create_gameplay(entt::registry& r, const EntityType& type)
       r.emplace<TeamComponent>(e, AvailableTeams::player);
       r.emplace<VelocityComponent>(e);
       r.emplace<SetTransformAngleToVelocity>(e);
-      r.emplace<EntityTimedLifecycle>(e);
+      r.emplace<EntityTimedLifecycle>(e, 1 * 1000); // seconds
       r.emplace<AttackComponent>(e, 3);
       break;
     }

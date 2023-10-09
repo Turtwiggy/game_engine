@@ -225,16 +225,7 @@ game2d::update(engine::SINGLETON_Application& app, entt::registry& r, const floa
     //   // const auto& ri = get_first_component<SINGLETON_RendererInfo>(r);
     //   // const auto screen_wh = ri.viewport_size_render_at;
 
-    //   float framerate = ImGui::GetIO().Framerate;
-    //   float framerate_ms = 1000.0f / ImGui::GetIO().Framerate;
-    //   std::stringstream stream;
-    //   stream << std::fixed << std::setprecision(2) << framerate;
-    //   std::string framerate_str = stream.str();
-    //   stream.str(std::string());
-    //   stream << std::fixed << std::setprecision(2) << framerate;
-    //   std::string framerate_ms_str = stream.str();
-    //   std::string framerate_label = framerate_str + std::string(" FPS (") + framerate_ms_str + std::string(" ms)");
-    //   ImGui::Text(framerate_label.c_str());
+    // ImGui::Text("%0.2f FPS", ImGui::GetIO().Framerate);
 
     //   if (ImGui::MenuItem("Quit", "Esc"))
     //     app.running = false;

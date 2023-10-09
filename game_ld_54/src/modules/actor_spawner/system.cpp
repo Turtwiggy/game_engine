@@ -42,8 +42,14 @@ update_spawner_system(entt::registry& r, const uint64_t milliseconds_dt)
 
     if (spawner.continuous_spawn) {
 
+      // must set a class for the type of unit to spawn
       if (!spawner.class_set)
         continue;
+
+      if (spawner.enemies_to_spawn > 0)
+        spawner.enemies_to_spawn--;
+      else
+        continue; // spawner is done
 
       auto e = create_gameplay(r, spawner.type_to_spawn);
 
