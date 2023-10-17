@@ -39,12 +39,14 @@
 #include "modules/ui_colours/system.hpp"
 #include "modules/ui_controllers/system.hpp"
 #include "modules/ui_gameover/system.hpp"
+#include "modules/ui_grid_interaction/system.hpp"
 #include "modules/ui_hierarchy/system.hpp"
 #include "modules/ui_level_editor/components.hpp"
 #include "modules/ui_level_editor/system.hpp"
 #include "modules/ui_next_wave/system.hpp"
 #include "modules/ui_pause_menu/system.hpp"
 #include "modules/ui_scene_main_menu/system.hpp"
+#include "modules/ui_spawner_editor/system.hpp"
 #include "physics/components.hpp"
 #include "physics/process_actor_actor_collisions.hpp"
 #include "physics/process_move_objects.hpp"
@@ -111,13 +113,14 @@ game2d::fixed_update(entt::registry& game, const uint64_t milliseconds_dt)
   if (!input.update_since_last_fixed_update) {
     // get last tick held inputs
     auto& last_tick_inputs = fixed_input.history[fixed_input.fixed_tick - 1];
-    const auto is_held = [](const InputEvent& e) { return e.state == InputState::held; };
-    const auto [first, last] = std::ranges::remove_if(last_tick_inputs, is_held);
 
     // append them to this tick
     auto& i = fixed_input.history[fixed_input.fixed_tick];
+
+    // only append the held states
+    const auto is_held = [](const InputEvent& e) { return e.state == InputState::held; };
+    const auto [first, last] = std::ranges::remove_if(last_tick_inputs, is_held);
     i.insert(i.end(), first, last);
-    // std::cout << "multiple fixed tick in a row; appending held inputs" << std::endl;
   }
   input.update_since_last_fixed_update = false;
 
@@ -161,7 +164,7 @@ game2d::fixed_update(entt::registry& game, const uint64_t milliseconds_dt)
 #endif
 
   {
-    OPTICK_EVENT("(fixed-tick)-game-logic");
+    OPTICK_EVENT("fixed-game-tick");
     update_resolve_collisions_system(game);
     update_attack_cooldown_system(game, milliseconds_dt);
     update_player_controller_system(game);
@@ -207,31 +210,17 @@ game2d::update(engine::SINGLETON_Application& app, entt::registry& r, const floa
   {
     OPTICK_EVENT("(update)-update-ui");
 
-#if defined(_DEBUG)
-    // static bool show_demo_window = false;
-    // ImGui::ShowDemoWindow(&show_demo_window);
-#endif
-
     const auto& scene = get_first_component<SINGLETON_CurrentScene>(r);
     if (scene.s == Scene::menu)
       update_ui_scene_main_menu(app, r);
-    else if (scene.s == Scene::game)
+    else if (scene.s == Scene::game) {
       update_ui_next_wave_system(r);
+      // update_ui_spawner_system(r);
+      update_ui_grid_interaction_system(r);
+    }
 
     update_ui_pause_menu_system(app, r);
     update_ui_gameover_system(r);
-
-    // if (ImGui::BeginMainMenuBar()) {
-    //   // const auto& ri = get_first_component<SINGLETON_RendererInfo>(r);
-    //   // const auto screen_wh = ri.viewport_size_render_at;
-
-    // ImGui::Text("%0.2f FPS", ImGui::GetIO().Framerate);
-
-    //   if (ImGui::MenuItem("Quit", "Esc"))
-    //     app.running = false;
-
-    //   ImGui::EndMainMenuBar();
-    // }
 
     // todo: put in to a settings menu
     static bool show_settings_ui = false;
@@ -241,6 +230,9 @@ game2d::update(engine::SINGLETON_Application& app, entt::registry& r, const floa
     }
 
 #if defined(_DEBUG)
+    // static bool show_demo_window = false;
+    // ImGui::ShowDemoWindow(&show_demo_window);
+
     static bool show_editor_ui = true;
     if (show_editor_ui) {
       update_ui_hierarchy_system(r);

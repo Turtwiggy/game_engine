@@ -8,12 +8,12 @@
 #include "events/helpers/controller.hpp"
 #include "events/helpers/mouse.hpp"
 #include "helpers/line.hpp"
-#include "modules/lifecycle/components.hpp"
 #include "modules/actor_player/components.hpp"
 #include "modules/actor_turret/components.hpp"
 #include "modules/items_pickup/components.hpp"
-#include "physics/components.hpp"
+#include "modules/lifecycle/components.hpp"
 #include "modules/renderer/components.hpp"
+#include "physics/components.hpp"
 #include "sprites/components.hpp"
 
 #include <SDL2/SDL_keyboard.h>
@@ -143,22 +143,6 @@ game2d::update_player_controller_system(entt::registry& r)
     if (input.pickup) {
       std::cout << "Pickup pressed!\n";
       r.emplace_or_replace<WantsToPickUp>(entity);
-    }
-
-    //
-    // hack: place turret?
-    // bug: turrets_placed not reset on scene reset
-    //
-    if (input.place_turret && player.turrets_placed < 4) {
-      player.turrets_placed++;
-
-      CreateEntityRequest req;
-      req.type = EntityType::actor_turret;
-
-      TransformComponent t;
-      t.position = { aabb.center.x, aabb.center.y, 0 };
-      req.transform = t;
-      r.emplace<CreateEntityRequest>(r.create(), req);
     }
 
     //

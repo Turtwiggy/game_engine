@@ -18,9 +18,6 @@ struct PlayerComponent
 {
   int picked_up_xp = 0;
 
-  // build info
-  int turrets_placed = 0;
-
   // weapon
   bool has_weapon = false;
   EntityType weapon_to_spawn_with = EntityType::weapon_bow;
@@ -68,7 +65,7 @@ struct InputComponent
   bool place_turret = false;
   // bool reload = false;
 
-  // player analogues?
+  // player analogues
   float lx = 0.0f;
   float ly = 0.0f;
   float rx = 0.0f;

@@ -50,13 +50,13 @@ update_camera_system(entt::registry& r, const float dt)
 
   const float CAM_SPEED = 500.0f;
   const int mul = static_cast<int>(CAM_SPEED * dt);
-  if (get_key_held(input, SDL_SCANCODE_A))
+  if (get_key_held(input, SDL_SCANCODE_LEFT))
     camera_transform.position.x -= mul;
-  if (get_key_held(input, SDL_SCANCODE_D))
+  if (get_key_held(input, SDL_SCANCODE_RIGHT))
     camera_transform.position.x += mul;
-  if (get_key_held(input, SDL_SCANCODE_W))
+  if (get_key_held(input, SDL_SCANCODE_UP))
     camera_transform.position.y -= mul;
-  if (get_key_held(input, SDL_SCANCODE_S))
+  if (get_key_held(input, SDL_SCANCODE_DOWN))
     camera_transform.position.y += mul;
 
   // if (get_mouse_mmb_held()) { // pan
