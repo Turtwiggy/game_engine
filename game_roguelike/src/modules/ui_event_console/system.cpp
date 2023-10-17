@@ -10,9 +10,6 @@ namespace game2d {
 void
 update_ui_event_console(GameEditor& editor, Game& game)
 {
-  // static bool show = true;
-  // ImGui::ShowDemoWindow(&show);
-
   // debug
   // if (get_mouse_mmb_press())
   //   game.ui_events.events.push_back("MMB clicked");

@@ -48,4 +48,10 @@ struct SINGLE_ModelsComponent
   Model low_poly_car{ "assets/models/low_poly_car.obj" };
 };
 
+// hack: remove this component
+struct CarComponent
+{
+  bool placeholder = true;
+};
+
 } // namespace game2d
