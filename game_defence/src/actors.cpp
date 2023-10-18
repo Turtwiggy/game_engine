@@ -110,6 +110,13 @@ create_colour(const SINGLETON_ColoursComponent& colours, const EntityType& type)
     off.b = 1.0f;
     off.a = 0.1f;
     scc.colour = std::make_shared<engine::LinearColour>(off);
+  } else if (type == EntityType::actor_dispencer) {
+    engine::LinearColour off;
+    off.r = 1.0f;
+    off.g = 1.0f;
+    off.b = 1.0f;
+    off.a = 0.1f;
+    scc.colour = std::make_shared<engine::LinearColour>(off);
   }
   // weapons
   else if (type == EntityType::weapon_bow)
@@ -246,6 +253,11 @@ create_gameplay(entt::registry& r, const EntityType& type)
       transform.scale.y = 100;
       transform.scale.x = 100;
       r.emplace<PickupZoneComponent>(e);
+      create_physics_actor(r, e);
+      break;
+    }
+
+    case EntityType::actor_dispencer: {
       create_physics_actor(r, e);
       break;
     }

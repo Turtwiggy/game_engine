@@ -36,6 +36,7 @@
 #include "modules/respawn/system.hpp"
 #include "modules/scene/helpers.hpp"
 #include "modules/ui_audio/system.hpp"
+#include "modules/ui_collisions/system.hpp"
 #include "modules/ui_colours/system.hpp"
 #include "modules/ui_controllers/system.hpp"
 #include "modules/ui_gameover/system.hpp"
@@ -167,7 +168,7 @@ game2d::fixed_update(entt::registry& game, const uint64_t milliseconds_dt)
     OPTICK_EVENT("fixed-game-tick");
     update_resolve_collisions_system(game);
     update_attack_cooldown_system(game, milliseconds_dt);
-    update_player_controller_system(game);
+    update_player_controller_system(game, milliseconds_dt);
     update_enemy_system(game);
     update_turret_system(game, milliseconds_dt);
     update_take_damage_system(game);
@@ -237,6 +238,7 @@ game2d::update(engine::SINGLETON_Application& app, entt::registry& r, const floa
     if (show_editor_ui) {
       update_ui_hierarchy_system(r);
       update_ui_level_editor_system(r, mouse_pos);
+      update_ui_collisions_system(r);
       auto& colours = get_first_component<SINGLETON_ColoursComponent>(r);
       // update_ui_colours_system(colours);
     }

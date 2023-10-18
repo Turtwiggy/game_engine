@@ -1,8 +1,8 @@
 #include "system.hpp"
 
 #include "entt/helpers.hpp"
-#include "modules/lifecycle/components.hpp"
 #include "modules/combat_damage/components.hpp"
+#include "modules/lifecycle/components.hpp"
 #include "physics/components.hpp"
 
 namespace game2d {

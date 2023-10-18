@@ -21,7 +21,7 @@
 #include <glm/glm.hpp>
 
 void
-game2d::update_player_controller_system(entt::registry& r)
+game2d::update_player_controller_system(entt::registry& r, const uint64_t& milliseconds_dt)
 {
   const auto& finputs = get_first_component<SINGLETON_FixedUpdateInputHistory>(r);
   const auto& inputs = finputs.history.at(finputs.fixed_tick);
@@ -83,6 +83,7 @@ game2d::update_player_controller_system(entt::registry& r)
   // player movement
   const auto& view = r.view<PlayerComponent, InputComponent, const AABB>();
   for (const auto& [entity, player, input, aabb] : view.each()) {
+    std::cout << "fixedtick move" << std::endl;
 
     auto* keyboard = r.try_get<KeyboardComponent>(entity);
     auto* controller = r.try_get<ControllerComponent>(entity);
@@ -97,7 +98,6 @@ game2d::update_player_controller_system(entt::registry& r)
     input.place_turret = false;
 
     if (keyboard) {
-      // todo: rx for keyboard
       input.ly += fixed_input_keyboard_held(SDL_SCANCODE_W) ? -1 : 0;
       input.ly += fixed_input_keyboard_held(SDL_SCANCODE_S) ? 1 : 0;
       input.lx += fixed_input_keyboard_held(SDL_SCANCODE_A) ? -1 : 0;
@@ -108,6 +108,11 @@ game2d::update_player_controller_system(entt::registry& r)
       input.place_turret |= fixed_input_keyboard_press(SDL_SCANCODE_SPACE);
       // reload |= fixed_input_keyboard_press(SDL_SCANCODE_R);
     }
+
+    if (input.ly != 0)
+      std::cout << "doing fixedtick move" << std::endl;
+
+    // todo: rx via mouse
 
     if (controller) {
       input.lx += fixed_input_controller_axis_held(controller->c_left_stick_x);
@@ -130,7 +135,8 @@ game2d::update_player_controller_system(entt::registry& r)
       if (l_nrm_dir.x != 0.0f || l_nrm_dir.y != 0.0f)
         l_nrm_dir = glm::normalize(l_nrm_dir);
 
-      const glm::vec2 move_dir = l_nrm_dir * vel->base_speed;
+      const float dt = milliseconds_dt / 1000.0f;
+      const glm::vec2 move_dir = (l_nrm_dir * vel->base_speed) / dt;
       vel->x = move_dir.x;
       vel->y = move_dir.y;
 
@@ -146,15 +152,14 @@ game2d::update_player_controller_system(entt::registry& r)
     }
 
     //
-    // hack: give player a weapon on spawn
+    // give player a weapon on spawn
     //
-    if (!player.has_weapon) {
-      player.has_weapon = true;
-
-      CreateEntityRequest req;
-      req.type = player.weapon_to_spawn_with;
-      req.parent = entity;
-      r.emplace<CreateEntityRequest>(r.create(), req);
-    }
+    // if (!player.has_weapon) {
+    //   player.has_weapon = true;
+    //   CreateEntityRequest req;
+    //   req.type = player.weapon_to_spawn_with;
+    //   req.parent = entity;
+    //   r.emplace<CreateEntityRequest>(r.create(), req);
+    // }
   }
 };

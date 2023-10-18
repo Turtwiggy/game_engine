@@ -2,9 +2,6 @@
 
 #include <entt/entt.hpp>
 
-#include <optional>
-#include <utility>
-
 namespace game2d {
 
 template<class T>

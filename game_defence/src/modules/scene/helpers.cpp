@@ -51,32 +51,38 @@ move_to_scene_start(entt::registry& r, const Scene s)
   destroy_and_create<SINGLETON_GameOver>(r);
   destroy_and_create<SINGLETON_Wave>(r);
 
-  const auto cursor = create_gameplay(r, EntityType::cursor);
-
-  //
   if (s == Scene::game) {
+    // create a cursor
+    const auto cursor = create_gameplay(r, EntityType::cursor);
+
     // create a player
     auto e = create_gameplay(r, EntityType::actor_player);
 
     // create points on grid
-    GridComponent grid;
-    grid.width = 100;
-    grid.height = 100;
-    // grid.size = 32;
-    grid.grid.resize(grid.width * grid.height);
-
-    // show a grid
-    for (int xy = 0; xy < grid.width * grid.height; xy++) {
-      //   const auto gpos = engine::grid::index_to_grid_position(xy, grid.width, grid.height);
-      //   const auto sprite = create_gameplay(r, EntityType::empty);
-      //   auto& spr_t = r.get<TransformComponent>(sprite);
-      //   spr_t.position = { gpos.x * grid.size, gpos.y * grid.size, 0.0 };
-      //   spr_t.scale = { 4, 4, 1 };
-      // grid.grid[xy] = {};
+    {
+      GridComponent grid;
+      grid.width = 100;
+      grid.height = 100;
+      // grid.size = 32;
+      grid.grid.resize(grid.width * grid.height);
+      // show a grid
+      for (int xy = 0; xy < grid.width * grid.height; xy++) {
+        //   const auto gpos = engine::grid::index_to_grid_position(xy, grid.width, grid.height);
+        //   const auto sprite = create_gameplay(r, EntityType::empty);
+        //   auto& spr_t = r.get<TransformComponent>(sprite);
+        //   spr_t.position = { gpos.x * grid.size, gpos.y * grid.size, 0.0 };
+        //   spr_t.scale = { 4, 4, 1 };
+        // grid.grid[xy] = {};
+      }
+      // grid.flow_field = generate_flow_field(r, grid, hearth_idx);
+      r.emplace<GridComponent>(r.create(), grid);
     }
 
-    // grid.flow_field = generate_flow_field(r, grid, hearth_idx);
-    r.emplace<GridComponent>(r.create(), grid);
+    // create food/item dispencers
+    for (int i = 0; i < 5; i++) {
+      const auto e = create_gameplay(r, EntityType::actor_dispencer);
+      r.get<AABB>(e).center = glm::ivec2{ 50, 0 } * i;
+    }
   }
 
   auto& scene = get_first_component<SINGLETON_CurrentScene>(r);

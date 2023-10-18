@@ -84,6 +84,7 @@ struct SINGLETON_InputComponent
   const Uint8* state;
   std::vector<SDL_Scancode> keys_pressed;
   std::vector<SDL_Scancode> keys_released;
+  std::vector<SDL_Scancode> keys_held;
 
   // connected controllers
   std::vector<SDL_GameController*> controllers;

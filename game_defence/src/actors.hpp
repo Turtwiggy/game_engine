@@ -23,9 +23,13 @@ enum class EntityType
   actor_player,
   actor_spawner,
   actor_turret,
+
+  // in progress
   actor_pickup_xp,
   actor_pickup_zone,
-  
+  actor_dispencer,
+  actor_customer_area,
+
   // solids
   solid_wall,
 

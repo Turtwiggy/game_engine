@@ -110,36 +110,15 @@ game2d::update_input_system(engine::SINGLETON_Application& app, entt::registry& 
       //   process_audio_removed(r);
       // }
     };
+
   } // finished polling events
 
-  //
-  // capture inputs incase FixedUpdate() wants to know about them
-  //
-  for (const SDL_Event& evt : sdl_events) {
-    InputEvent ie;
-    ie.type = InputType::keyboard;
-
-    if (evt.type == SDL_KEYDOWN && get_key_down(input, evt.key.keysym.scancode)) {
-      ie.keyboard = evt.key.keysym.scancode;
-      ie.state = InputState::press;
-      input.unprocessed_inputs.push_back(ie);
-    }
-    if (evt.type == SDL_KEYUP && get_key_up(input, evt.key.keysym.scancode)) {
-      ie.keyboard = evt.key.keysym.scancode;
-      ie.state = InputState::release;
-      input.unprocessed_inputs.push_back(ie);
-    }
-    // the held state is only possible because SDL_KEYDOWN is repeating
-    if (evt.type == SDL_KEYDOWN && get_key_held(input, evt.key.keysym.scancode)) {
-      ie.keyboard = evt.key.keysym.scancode;
-      ie.state = InputState::held;
-      input.unprocessed_inputs.push_back(ie);
-    }
-  }
+  process_held_buttons(input);
 
   {
     InputEvent ie;
     ie.type = InputType::mouse;
+
     if (get_mouse_lmb_press()) {
       ie.mouse = SDL_BUTTON_LEFT;
       ie.state = InputState::press;
@@ -172,7 +151,7 @@ game2d::update_input_system(engine::SINGLETON_Application& app, entt::registry& 
     }
   }
 
-  // generate HELD state for contorller
+  // generate HELD state for controller
   {
     InputEvent ie;
     ie.type = InputType::controller;

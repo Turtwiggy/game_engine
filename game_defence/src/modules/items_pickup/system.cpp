@@ -3,11 +3,11 @@
 #include "actors.hpp"
 #include "components.hpp"
 #include "entt/helpers.hpp"
-#include "modules/lifecycle/components.hpp"
 #include "modules/actor_pickup_zone/components.hpp"
 #include "modules/actor_player/components.hpp"
-#include "physics/components.hpp"
+#include "modules/lifecycle/components.hpp"
 #include "modules/renderer/components.hpp"
+#include "physics/components.hpp"
 
 #include <iostream>
 
@@ -20,6 +20,7 @@ update_intent_pickup_system(entt::registry& r)
   auto& dead = get_first_component<SINGLETON_EntityBinComponent>(r);
 
   const auto& zones = r.view<PickupZoneComponent, HasParentComponent, AABB>();
+
   for (const auto& [entity, zone, parent, aabb] : zones.each()) {
     const auto& player = parent.parent;
     const auto& player_aabb = r.get<AABB>(player);

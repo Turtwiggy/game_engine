@@ -13,6 +13,9 @@ process_key_down(SINGLETON_InputComponent& input, const SDL_Scancode button, con
 void
 process_key_up(SINGLETON_InputComponent& input, const SDL_Scancode button, const Uint8 is_repeat);
 
+void
+process_held_buttons(SINGLETON_InputComponent& input);
+
 [[nodiscard]] bool
 get_key_down(const SINGLETON_InputComponent& input, const SDL_Scancode button);
 
