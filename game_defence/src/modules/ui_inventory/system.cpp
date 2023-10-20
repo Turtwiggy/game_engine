@@ -14,20 +14,20 @@ void
 update_ui_inventory(entt::registry& r)
 {
   ImGui::Begin("Inventory");
+  {
+    const auto& view = r.view<ItemComponent, HasParentComponent>(entt::exclude<WaitForInitComponent>);
 
-  const auto& view = r.view<ItemComponent, HasParentComponent>(entt::exclude<WaitForInitComponent>);
+    for (const auto& [entity, item, parent] : view.each()) {
+      ImGui::Text("Item id: %i", item.item_id);
 
-  for (const auto& [entity, item, parent] : view.each()) {
-    ImGui::Text("Item id: %i", item.item_id);
+      ImGui::SameLine();
 
-    ImGui::SameLine();
-
-    auto eid = static_cast<uint32_t>(entity);
-    std::string label = "delete##"s + std::to_string(eid);
-    if (ImGui::Button(label.c_str()))
-      r.destroy(entity);
+      auto eid = static_cast<uint32_t>(entity);
+      std::string label = "delete##"s + std::to_string(eid);
+      if (ImGui::Button(label.c_str()))
+        r.destroy(entity);
+    }
   }
-
   ImGui::End();
 }
 

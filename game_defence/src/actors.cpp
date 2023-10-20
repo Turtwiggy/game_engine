@@ -5,6 +5,7 @@
 #include "events/components.hpp"
 #include "modules/actor_bow/components.hpp"
 #include "modules/actor_cursor/components.hpp"
+#include "modules/actor_dropoff_zone/components.hpp"
 #include "modules/actor_enemy/components.hpp"
 #include "modules/actor_hearth/components.hpp"
 #include "modules/actor_pickup_zone/components.hpp"

@@ -9,6 +9,7 @@
 #include "maths/maths.hpp"
 #include "modules/actor_bow/components.hpp"
 #include "modules/actor_cursor/components.hpp"
+#include "modules/actor_dropoff_zone/components.hpp"
 #include "modules/actor_pickup_zone/components.hpp"
 #include "modules/camera/orthographic.hpp"
 #include "modules/gameover/components.hpp"
@@ -69,9 +70,9 @@ move_to_scene_start(entt::registry& r, const Scene s)
     // create food/item dispencers
     for (int i = 0; i < 5; i++) {
       const auto e = create_gameplay(r, EntityType::actor_dispencer);
-      r.get<AABB>(e).center = glm::ivec2{ 100, 0 } * i;
-      r.get<AABB>(e).size = glm::ivec2{ 50, 50 };
-      r.get<TransformComponent>(e).scale = glm::ivec3{ 50, 50, 50 };
+      r.get<AABB>(e).center = glm::ivec2{ (-250 + (50 * i)), 0 };
+      r.get<AABB>(e).size = glm::ivec2{ 40, 40 };
+      r.get<TransformComponent>(e).scale = glm::ivec3{ 40, 40, 1 };
 
       auto& pz = r.get<PickupZoneComponent>(e);
       pz.spawn_item_with_id = i;
@@ -79,10 +80,12 @@ move_to_scene_start(entt::registry& r, const Scene s)
 
     // create delivery points
     {
-      const auto e = create_gameplay(r, EntityType::actor_customer_area);
-      r.get<AABB>(e).center = glm::ivec2{ -250, -250 };
-      r.get<AABB>(e).size = glm::ivec2{ 50, 50 };
-      r.get<TransformComponent>(e).scale = glm::ivec3{ 50, 50, 50 };
+      for (int i = 0; i < 2; i++) {
+        const auto e = create_gameplay(r, EntityType::actor_customer_area);
+        r.get<AABB>(e).center = glm::ivec2{ -250 + (250 * i), -250 };
+        r.get<AABB>(e).size = glm::ivec2{ 50, 50 };
+        r.get<TransformComponent>(e).scale = glm::ivec3{ 50, 50, 50 };
+      }
     }
   }
 

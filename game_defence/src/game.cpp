@@ -10,6 +10,7 @@
 #include "maths/maths.hpp"
 #include "modules/actor_bow/system.hpp"
 #include "modules/actor_cursor/system.hpp"
+#include "modules/actor_dropoff_zone_requets_items/system.hpp"
 #include "modules/actor_enemy/system.hpp"
 #include "modules/actor_player/system.hpp"
 #include "modules/actor_spawner/components.hpp"
@@ -38,6 +39,7 @@
 #include "modules/ui_collisions/system.hpp"
 #include "modules/ui_colours/system.hpp"
 #include "modules/ui_controllers/system.hpp"
+#include "modules/ui_dropoff_zone/system.hpp"
 #include "modules/ui_gameover/system.hpp"
 #include "modules/ui_grid_interaction/system.hpp"
 #include "modules/ui_hierarchy/system.hpp"
@@ -179,6 +181,7 @@ game2d::fixed_update(entt::registry& game, const uint64_t milliseconds_dt)
     update_intent_drop_item_system(game);
     update_bow_system(game, milliseconds_dt);
     update_lerp_to_target_system(game, milliseconds_dt);
+    update_actor_dropoffzone_request_items(game, milliseconds_dt);
   }
 
   fixed_input.fixed_tick += 1;
@@ -218,6 +221,7 @@ game2d::update(engine::SINGLETON_Application& app, entt::registry& r, const floa
       // update_ui_spawner_system(r);
       update_ui_grid_interaction_system(r);
       update_ui_inventory(r);
+      update_ui_dropoff_zone_system(r);
     }
 
     update_ui_pause_menu_system(app, r);
@@ -231,8 +235,8 @@ game2d::update(engine::SINGLETON_Application& app, entt::registry& r, const floa
     }
 
 #if defined(_DEBUG)
-    // static bool show_demo_window = false;
-    // ImGui::ShowDemoWindow(&show_demo_window);
+    static bool show_demo_window = false;
+    ImGui::ShowDemoWindow(&show_demo_window);
 
     static bool show_editor_ui = true;
     if (show_editor_ui) {
