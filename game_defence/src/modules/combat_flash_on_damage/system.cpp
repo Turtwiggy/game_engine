@@ -3,6 +3,7 @@
 #include "actors.hpp"
 #include "components.hpp"
 #include "entt/helpers.hpp"
+#include "modules/lifecycle/components.hpp"
 #include "resources/colours.hpp"
 
 namespace game2d {
@@ -12,7 +13,8 @@ update_flash_sprite_system(entt::registry& r, uint64_t milliseconds_dt)
 {
   const auto& colours = get_first_component<SINGLETON_ColoursComponent>(r);
 
-  const auto& view = r.view<SpriteColourComponent, FlashOnDamageComponent, const EntityTypeComponent>();
+  const auto& view =
+    r.view<SpriteColourComponent, FlashOnDamageComponent, const EntityTypeComponent>(entt::exclude<WaitForInitComponent>);
   for (const auto [entity, scc, flash, etc] : view.each()) {
 
     if (!flash.started) {

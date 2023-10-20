@@ -1,9 +1,10 @@
 #pragma once
 
 #include "actors.hpp"
+#include "modules/renderer/components.hpp"
+
 #include "entt/entt.hpp"
 #include "glm/glm.hpp"
-#include "modules/renderer/components.hpp"
 
 #include <optional>
 #include <string>
@@ -30,17 +31,13 @@ struct EntityTimedLifecycle
 struct SINGLETON_EntityBinComponent
 {
   std::unordered_set<entt::entity> dead;
-
-  std::vector<entt::entity> created_this_frame;
 };
 
-struct CreateEntityRequest
+// added to an entity when made via create_gameplay()
+// removed at the next FixedUpdate()
+struct WaitForInitComponent
 {
-  EntityType type;
-  TransformComponent transform;
-  glm::vec3 velocity{ 0, 0, 0 };
-  std::optional<std::string> sprite = std::nullopt;
-  entt::entity parent = entt::null;
+  bool placeholder = true;
 };
 
 };

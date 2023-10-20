@@ -81,9 +81,8 @@ game2d::update_player_controller_system(entt::registry& r, const uint64_t& milli
   };
 
   // player movement
-  const auto& view = r.view<PlayerComponent, InputComponent, const AABB>();
+  const auto& view = r.view<PlayerComponent, InputComponent, const AABB>(entt::exclude<WaitForInitComponent>);
   for (const auto& [entity, player, input, aabb] : view.each()) {
-    std::cout << "fixedtick move" << std::endl;
 
     auto* keyboard = r.try_get<KeyboardComponent>(entity);
     auto* controller = r.try_get<ControllerComponent>(entity);
@@ -95,7 +94,6 @@ game2d::update_player_controller_system(entt::registry& r, const uint64_t& milli
     input.shoot = false;
     input.pickup = false;
     input.sprint = false;
-    input.place_turret = false;
 
     if (keyboard) {
       input.ly += fixed_input_keyboard_held(SDL_SCANCODE_W) ? -1 : 0;
@@ -105,12 +103,9 @@ game2d::update_player_controller_system(entt::registry& r, const uint64_t& milli
       input.shoot |= fixed_input_mouse_press(SDL_BUTTON_LEFT);
       input.pickup |= fixed_input_keyboard_press(SDL_SCANCODE_E);
       input.sprint |= fixed_input_keyboard_press(SDL_SCANCODE_LSHIFT);
-      input.place_turret |= fixed_input_keyboard_press(SDL_SCANCODE_SPACE);
+      // input.place_turret |= fixed_input_keyboard_press(SDL_SCANCODE_SPACE);
       // reload |= fixed_input_keyboard_press(SDL_SCANCODE_R);
     }
-
-    if (input.ly != 0)
-      std::cout << "doing fixedtick move" << std::endl;
 
     // todo: rx via mouse
 
@@ -122,7 +117,7 @@ game2d::update_player_controller_system(entt::registry& r, const uint64_t& milli
       input.shoot |= fixed_input_controller_axis_held(controller->c_right_trigger) > 0.5f;
       input.pickup |= fixed_input_controller_button_held(controller->c_r_bumper);
       input.sprint |= fixed_input_controller_button_held(controller->c_l_bumper);
-      input.place_turret |= fixed_input_controller_button_press(controller->c_y);
+      // input.place_turret |= fixed_input_controller_button_press(controller->c_y);
       // reload |=
     }
 
@@ -147,7 +142,7 @@ game2d::update_player_controller_system(entt::registry& r, const uint64_t& milli
     }
 
     if (input.pickup) {
-      std::cout << "Pickup pressed!\n";
+      std::cout << "Pickup pressed!" << std::endl;
       r.emplace_or_replace<WantsToPickUp>(entity);
     }
 

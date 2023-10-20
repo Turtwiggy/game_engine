@@ -27,7 +27,8 @@ update_bow_system(entt::registry& r, const uint64_t milliseconds_dt)
   //
   // get bow to follow player
   //
-  const auto& v = r.view<const BowComponent, const HasParentComponent, HasTargetPositionComponent, TransformComponent>();
+  const auto& v = r.view<const BowComponent, const HasParentComponent, HasTargetPositionComponent, TransformComponent>(
+    entt::exclude<WaitForInitComponent>);
   for (const auto& [e, bow, parent, target, t] : v.each()) {
     const auto& p = parent.parent;
     if (p == entt::null)
@@ -61,10 +62,8 @@ update_bow_system(entt::registry& r, const uint64_t milliseconds_dt)
   //
   auto& lifecycle = get_first_component<SINGLETON_EntityBinComponent>(r);
 
-  // BUG: shouldnt use created_this_frame
-  const auto& created = lifecycle.created_this_frame;
-
-  const auto& view = r.view<BowComponent, HasParentComponent, AttackCooldownComponent, const TransformComponent>();
+  const auto& view = r.view<BowComponent, HasParentComponent, AttackCooldownComponent, const TransformComponent>(
+    entt::exclude<WaitForInitComponent>);
   for (const auto& [entity, bow, parent, cooldown, transform] : view.each()) {
     const auto& p = parent.parent;
     if (p == entt::null)
@@ -87,11 +86,11 @@ update_bow_system(entt::registry& r, const uint64_t milliseconds_dt)
     allowed_to_shoot &= !bow.in_windup; // not already held
 
     if (input.shoot && allowed_to_shoot) {
-      CreateEntityRequest req;
-      req.type = EntityType::bullet_bow;
-      req.transform = transform;
-      req.parent = entity; // set arrow's parent as the bow
-      r.emplace<CreateEntityRequest>(r.create(), req);
+
+      const auto req = create_gameplay(r, EntityType::bullet_bow);
+      r.get<TransformComponent>(req).position = transform.position;
+      r.get_or_emplace<HasParentComponent>(req).parent = entity;
+      bow.arrows.push_back(req);
 
       // why bother resetting the cooldown if the bow is in windup?
       // incase spam hold & unhold button
@@ -99,14 +98,6 @@ update_bow_system(entt::registry& r, const uint64_t milliseconds_dt)
 
       bow.in_windup = true;
     }
-
-    // grab the created arrows for this bow
-    // (if the bow was the parent)
-    std::copy_if(created.begin(), created.end(), std::back_inserter(bow.arrows), [&r, &entity](const entt::entity& e) {
-      const auto* p = r.try_get<HasParentComponent>(e);
-      const auto& t = r.get<EntityTypeComponent>(e);
-      return p && p->parent == entity && t.type == EntityType::bullet_bow;
-    });
 
     //
     // release the arrows

@@ -9,6 +9,7 @@
 #include "modules/actor_player/components.hpp"
 #include "modules/renderer/components.hpp"
 #include "physics/components.hpp"
+#include "modules/lifecycle/components.hpp"
 
 #include <iostream>
 
@@ -24,7 +25,7 @@ update_enemy_system(entt::registry& r)
     return;
   const auto& first_target_transform = r.get<const TransformComponent>(first_target);
 
-  const auto& view = r.view<const TransformComponent, VelocityComponent, EnemyComponent>();
+  const auto& view = r.view<const TransformComponent, VelocityComponent, EnemyComponent>(entt::exclude<WaitForInitComponent>);
   for (auto [entity, transform, vel, enemy] : view.each()) {
     // move towards player
     glm::ivec3 d = first_target_transform.position - transform.position;

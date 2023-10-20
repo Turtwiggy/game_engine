@@ -1,8 +1,9 @@
 #include "helpers.hpp"
 
 #include "events/helpers/mouse.hpp"
-#include "orthographic.hpp"
+#include "modules/lifecycle/components.hpp"
 #include "modules/renderer/components.hpp"
+#include "orthographic.hpp"
 
 #include "entt/helpers.hpp"
 
@@ -12,7 +13,7 @@ glm::ivec2
 mouse_position_in_worldspace(entt::registry& r)
 {
   const auto& ri = get_first_component<SINGLETON_RendererInfo>(r);
-  const auto& cameras = r.view<OrthographicCamera, TransformComponent>();
+  const auto& cameras = r.view<OrthographicCamera, TransformComponent>(entt::exclude<WaitForInitComponent>);
 
   glm::ivec2 camera_position;
   for (auto [entity, camera, transform] : cameras.each())

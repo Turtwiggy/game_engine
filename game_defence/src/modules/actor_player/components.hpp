@@ -60,9 +60,9 @@ struct InputComponent
 {
   // player actions?
   bool shoot = false;
-  bool pickup = false;
   bool sprint = false;
-  bool place_turret = false;
+  bool pickup = false;
+  // bool place_turret = false;
   // bool reload = false;
 
   // player analogues

@@ -9,6 +9,7 @@
 #include "maths/maths.hpp"
 #include "modules/actor_bow/components.hpp"
 #include "modules/actor_cursor/components.hpp"
+#include "modules/actor_pickup_zone/components.hpp"
 #include "modules/camera/orthographic.hpp"
 #include "modules/gameover/components.hpp"
 #include "modules/grid/components.hpp"
@@ -40,9 +41,6 @@ move_to_scene_start(entt::registry& r, const Scene s)
   const auto& actors = r.view<EntityTypeComponent>(entt::exclude<OrthographicCamera>);
   r.destroy(actors.begin(), actors.end());
 
-  const auto& reqs = r.view<CreateEntityRequest>();
-  r.destroy(reqs.begin(), reqs.end());
-
   destroy_and_create<SINGLETON_CurrentScene>(r);
   destroy_and_create<SINGLETON_PhysicsComponent>(r);
   destroy_and_create<SINGLETON_EntityBinComponent>(r);
@@ -65,23 +63,26 @@ move_to_scene_start(entt::registry& r, const Scene s)
       grid.height = 100;
       // grid.size = 32;
       grid.grid.resize(grid.width * grid.height);
-      // show a grid
-      for (int xy = 0; xy < grid.width * grid.height; xy++) {
-        //   const auto gpos = engine::grid::index_to_grid_position(xy, grid.width, grid.height);
-        //   const auto sprite = create_gameplay(r, EntityType::empty);
-        //   auto& spr_t = r.get<TransformComponent>(sprite);
-        //   spr_t.position = { gpos.x * grid.size, gpos.y * grid.size, 0.0 };
-        //   spr_t.scale = { 4, 4, 1 };
-        // grid.grid[xy] = {};
-      }
-      // grid.flow_field = generate_flow_field(r, grid, hearth_idx);
       r.emplace<GridComponent>(r.create(), grid);
     }
 
     // create food/item dispencers
     for (int i = 0; i < 5; i++) {
       const auto e = create_gameplay(r, EntityType::actor_dispencer);
-      r.get<AABB>(e).center = glm::ivec2{ 50, 0 } * i;
+      r.get<AABB>(e).center = glm::ivec2{ 100, 0 } * i;
+      r.get<AABB>(e).size = glm::ivec2{ 50, 50 };
+      r.get<TransformComponent>(e).scale = glm::ivec3{ 50, 50, 50 };
+
+      auto& pz = r.get<PickupZoneComponent>(e);
+      pz.spawn_item_with_id = i;
+    }
+
+    // create delivery points
+    {
+      const auto e = create_gameplay(r, EntityType::actor_customer_area);
+      r.get<AABB>(e).center = glm::ivec2{ -250, -250 };
+      r.get<AABB>(e).size = glm::ivec2{ 50, 50 };
+      r.get<TransformComponent>(e).scale = glm::ivec3{ 50, 50, 50 };
     }
   }
 

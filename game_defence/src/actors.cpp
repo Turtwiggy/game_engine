@@ -44,10 +44,10 @@ create_sprite(entt::registry& r, const EntityType& type)
     sprite = "CASTLE_FLOOR";
   else if (type == EntityType::actor_turret)
     sprite = "EMPTY";
-  else if (type == EntityType::actor_pickup_xp)
-    sprite = "GEM";
-  else if (type == EntityType::actor_pickup_zone)
-    sprite = "EMPTY";
+  // else if (type == EntityType::actor_pickup_xp)
+  //   sprite = "GEM";
+  // else if (type == EntityType::actor_pickup_zone)
+  //   sprite = "EMPTY";
   // weapons...
   else if (type == EntityType::weapon_bow)
     sprite = "WEAPON_BOW_0";
@@ -103,14 +103,15 @@ create_colour(const SINGLETON_ColoursComponent& colours, const EntityType& type)
 
   if (type == EntityType::actor_hearth)
     scc.colour = secondary;
-  else if (type == EntityType::actor_pickup_zone) {
-    engine::LinearColour off;
-    off.r = 1.0f;
-    off.g = 1.0f;
-    off.b = 1.0f;
-    off.a = 0.1f;
-    scc.colour = std::make_shared<engine::LinearColour>(off);
-  } else if (type == EntityType::actor_dispencer) {
+  // else if (type == EntityType::actor_pickup_zone) {
+  //   engine::LinearColour off;
+  //   off.r = 1.0f;
+  //   off.g = 1.0f;
+  //   off.b = 1.0f;
+  //   off.a = 0.1f;
+  //   scc.colour = std::make_shared<engine::LinearColour>(off);
+  // }
+  else if (type == EntityType::actor_dispencer) {
     engine::LinearColour off;
     off.r = 1.0f;
     off.g = 1.0f;
@@ -149,6 +150,7 @@ create_physics_actor(entt::registry& r, const entt::entity& e)
 entt::entity
 create_gameplay(entt::registry& r, const EntityType& type)
 {
+
   const auto& colours = get_first_component<SINGLETON_ColoursComponent>(r);
 
   const int SPRITE_SIZE = 16;
@@ -160,6 +162,7 @@ create_gameplay(entt::registry& r, const EntityType& type)
   const auto& e = r.create();
   r.emplace<TagComponent>(e, type_name);
   r.emplace<EntityTypeComponent>(e, type);
+  r.emplace<WaitForInitComponent>(e);
 
   r.emplace<SpriteComponent>(e, create_sprite(r, type));
   r.emplace<SpriteColourComponent>(e, create_colour(colours, type));
@@ -203,7 +206,7 @@ create_gameplay(entt::registry& r, const EntityType& type)
 
       r.emplace<HealthComponent>(e, 100);
       r.emplace<InfiniteLivesComponent>(e);
-      r.emplace<GeneratePickupZoneComponent>(e);
+      // r.emplace<GeneratePickupZoneComponent>(e);
 
       // r.emplace<TakeDamageComponent>(e);
       // r.emplace<XpComponent>(e, 0);
@@ -243,22 +246,39 @@ create_gameplay(entt::registry& r, const EntityType& type)
       break;
     }
 
-    case EntityType::actor_pickup_xp: {
-      create_physics_actor(r, e);
-      r.emplace<AbleToBePickedUp>(e);
-      break;
-    }
+      // case EntityType::actor_pickup_xp: {
+      //   create_physics_actor(r, e);
+      //   r.emplace<AbleToBePickedUp>(e);
+      //   break;
+      // }
 
-    case EntityType::actor_pickup_zone: {
-      transform.scale.y = 100;
-      transform.scale.x = 100;
-      r.emplace<PickupZoneComponent>(e);
-      create_physics_actor(r, e);
-      break;
-    }
+      // case EntityType::actor_pickup_zone: {
+      //   transform.scale.y = 100;
+      //   transform.scale.x = 100;
+      //   r.emplace<PickupZoneComponent>(e);
+      //   create_physics_actor(r, e);
+      //   break;
+      // }
 
     case EntityType::actor_dispencer: {
       create_physics_actor(r, e);
+      r.emplace<PickupZoneComponent>(e);
+      break;
+    }
+
+    case EntityType::actor_customer_area: {
+      create_physics_actor(r, e);
+      r.emplace<DropoffZoneComponent>(e);
+      break;
+    }
+
+      //
+      // item
+      //
+
+    case EntityType::item: {
+      // should have a HasParent already attached
+      r.emplace<ItemComponent>(e);
       break;
     }
 

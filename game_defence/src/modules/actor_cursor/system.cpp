@@ -4,6 +4,7 @@
 #include "entt/helpers.hpp"
 #include "maths/grid.hpp"
 #include "modules/grid/components.hpp"
+#include "modules/lifecycle/components.hpp"
 #include "modules/renderer/components.hpp"
 #include "physics/components.hpp"
 
@@ -20,7 +21,7 @@ update_cursor_system(entt::registry& r, const glm::ivec2& mouse_pos)
     return;
   const auto& grid = r.get<GridComponent>(grid_e);
 
-  const auto& view = r.view<TransformComponent, AABB, CursorComponent>();
+  const auto& view = r.view<TransformComponent, AABB, CursorComponent>(entt::exclude<WaitForInitComponent>);
   for (const auto& [entity, transform, aabb, cursor] : view.each()) {
 
     auto pos = mouse_pos;

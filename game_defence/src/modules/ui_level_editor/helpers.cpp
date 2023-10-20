@@ -1,8 +1,8 @@
 #include "helpers.hpp"
 
 #include "actors.hpp"
-#include "modules/lifecycle/components.hpp"
 #include "modules/actor_cursor/components.hpp"
+#include "modules/lifecycle/components.hpp"
 #include "modules/scene/helpers.hpp"
 // #include "serialize.hpp"
 
@@ -59,7 +59,8 @@ save(const entt::registry& r, const std::string& path)
   std::cout << "saving...\n";
 
   // limit snapshots to actors
-  const auto v = r.view<const EntityTypeComponent, const TransformComponent>(entt::exclude<CursorComponent>);
+  const auto v =
+    r.view<const EntityTypeComponent, const TransformComponent>(entt::exclude<CursorComponent, WaitForInitComponent>);
 
   nlohmann::json root = nlohmann::json::array();
   for (const auto& [entity, type, transform] : v.each()) {
@@ -114,10 +115,8 @@ load(entt::registry& r, const std::string& path)
     const EntityTypeComponent type = element[0].template get<EntityTypeComponent>();
     const TransformComponent transform = element[1].template get<TransformComponent>();
 
-    CreateEntityRequest req;
-    req.type = type.type;
-    req.transform = transform;
-    r.emplace<CreateEntityRequest>(r.create(), req);
+    const auto req = create_gameplay(r, type.type);
+    r.emplace_or_replace<TransformComponent>(req, transform);
   }
 };
 

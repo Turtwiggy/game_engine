@@ -11,7 +11,6 @@
 #include "modules/actor_bow/system.hpp"
 #include "modules/actor_cursor/system.hpp"
 #include "modules/actor_enemy/system.hpp"
-#include "modules/actor_pickup_zone/system.hpp"
 #include "modules/actor_player/system.hpp"
 #include "modules/actor_spawner/components.hpp"
 #include "modules/actor_spawner/system.hpp"
@@ -42,6 +41,7 @@
 #include "modules/ui_gameover/system.hpp"
 #include "modules/ui_grid_interaction/system.hpp"
 #include "modules/ui_hierarchy/system.hpp"
+#include "modules/ui_inventory/system.hpp"
 #include "modules/ui_level_editor/components.hpp"
 #include "modules/ui_level_editor/system.hpp"
 #include "modules/ui_next_wave/system.hpp"
@@ -179,7 +179,6 @@ game2d::fixed_update(entt::registry& game, const uint64_t milliseconds_dt)
     update_intent_drop_item_system(game);
     update_bow_system(game, milliseconds_dt);
     update_lerp_to_target_system(game, milliseconds_dt);
-    update_actor_pickup_zone_system(game);
   }
 
   fixed_input.fixed_tick += 1;
@@ -218,6 +217,7 @@ game2d::update(engine::SINGLETON_Application& app, entt::registry& r, const floa
       update_ui_next_wave_system(r);
       // update_ui_spawner_system(r);
       update_ui_grid_interaction_system(r);
+      update_ui_inventory(r);
     }
 
     update_ui_pause_menu_system(app, r);

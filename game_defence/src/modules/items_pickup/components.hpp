@@ -18,4 +18,15 @@ struct AbleToBePickedUp
   bool placeholder = true;
 };
 
+struct ItemComponent
+{
+  int item_id = 0;
+};
+
+struct Beer
+{
+  int id = 0;
+  std::string icon = "BEER_01";
+};
+
 } // namespace game2d

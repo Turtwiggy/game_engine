@@ -20,9 +20,9 @@ update_intent_drop_item_system(entt::registry& r)
       std::vector<entt::entity> items;
 
       // add an xp item
-      auto e = r.create();
-      r.emplace<EntityTypeComponent>(e, EntityType::actor_pickup_xp);
-      items.push_back(e);
+      // auto e = r.create();
+      // r.emplace<EntityTypeComponent>(e, EntityType::actor_pickup_xp);
+      // items.push_back(e);
 
       req.items = items;
       r.emplace<WantsToDrop>(dead, req);
@@ -30,13 +30,12 @@ update_intent_drop_item_system(entt::registry& r)
   }
 
   // WantsToDrop
-  const auto& view = r.view<const TransformComponent, WantsToDrop>();
+  const auto& view = r.view<const TransformComponent, WantsToDrop>(entt::exclude<WaitForInitComponent>);
   for (const auto& [entity, transform, request] : view.each()) {
     for (const auto& item : request.items) {
-      CreateEntityRequest req;
-      req.type = r.get<EntityTypeComponent>(item).type;
-      req.transform = transform;
-      r.emplace<CreateEntityRequest>(r.create(), req);
+
+      const auto req = create_gameplay(r, r.get<EntityTypeComponent>(item).type);
+      r.get<TransformComponent>(req).position = transform.position;
     }
   }
 

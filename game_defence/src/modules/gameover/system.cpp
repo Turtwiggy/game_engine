@@ -7,6 +7,7 @@
 #include "modules/actor_spawner/components.hpp"
 #include "modules/combat_damage/components.hpp"
 #include "modules/gameover/components.hpp"
+#include "modules/lifecycle/components.hpp"
 #include "modules/scene/components.hpp"
 #include "modules/scene/helpers.hpp"
 #include "modules/ui_gameover/components.hpp"
@@ -60,10 +61,14 @@ update_gameover_system(entt::registry& r)
   //
   bool new_game = false;
   {
-    const auto& view = r.view<NewGameRequest>();
-    new_game = view.size() > 0;
-    for (const auto& [entity, req] : view.each())
-      r.destroy(entity);
+    const auto& view = r.view<NewGameRequest>(entt::exclude<WaitForInitComponent>);
+
+    for (const auto& [entity, request] : view.each()) {
+      new_game = true;
+      break;
+    }
+
+    r.destroy(view.begin(), view.end()); // requests are processed
   }
 
   // do the restart

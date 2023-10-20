@@ -1,6 +1,8 @@
 // header
 #include "events/helpers/keyboard.hpp"
 
+#include <algorithm>
+
 namespace game2d {
 
 void
@@ -45,12 +47,25 @@ process_key_up(SINGLETON_InputComponent& input, const SDL_Scancode button, const
 void
 process_held_buttons(SINGLETON_InputComponent& input)
 {
-  for (const auto& held : input.keys_held) {
+  for (const auto& held_key : input.keys_held) {
     InputEvent ie;
     ie.type = InputType::keyboard;
-    ie.keyboard = held;
+    ie.keyboard = held_key;
     ie.state = InputState::held;
-    input.unprocessed_inputs.push_back(ie);
+
+    auto already_held = [&held_key](const InputEvent& evt) {
+      // clang-format off
+      return
+        evt.type == InputType::keyboard && 
+        evt.state == InputState::held && 
+        evt.keyboard == held_key;
+      // clang-format on
+    };
+
+    // only add another unprocessed held event if it doesnt exist
+    const auto held = std::find_if(input.unprocessed_inputs.begin(), input.unprocessed_inputs.end(), already_held);
+    if (held == input.unprocessed_inputs.end())
+      input.unprocessed_inputs.push_back(ie);
   }
 }
 

@@ -18,8 +18,6 @@
 void
 game2d::update_move_objects_system(entt::registry& r, const uint64_t& milliseconds_dt)
 {
-  // auto& physics = get_first_component<SINGLETON_PhysicsComponent>(r);
-
   //
   // update all aabb based on rotation
   //

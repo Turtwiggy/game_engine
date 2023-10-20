@@ -10,56 +10,93 @@
 #include "physics/components.hpp"
 
 #include <iostream>
+#include <optional>
 
 namespace game2d {
+
+std::optional<entt::entity>
+check_zone_and_player_collision(entt::registry& r,
+                                const SINGLETON_PhysicsComponent& physics,
+                                const entt::entity& zone_e,
+                                SpriteColourComponent& colour)
+{
+  // no collison between zone <= => player
+  colour.colour->r = 0.0f;
+
+  for (const auto& coll : physics.collision_stay) {
+    const auto a = static_cast<entt::entity>(coll.ent_id_0);
+    const auto b = static_cast<entt::entity>(coll.ent_id_1);
+
+    // collision between pickup zone <= => player
+    //
+    const auto a_player = r.try_get<PlayerComponent>(a);
+    const auto b_player = r.try_get<PlayerComponent>(b);
+    if (a == zone_e && b_player) {
+      colour.colour->r = 1.0f;
+
+      // player and zone are colliding...
+      if (const auto* pickup = r.try_get<WantsToPickUp>(b))
+        return b;
+    }
+    if (b == zone_e && a_player) {
+      colour.colour->r = 1.0f;
+
+      // player and zone are colliding...
+      if (const auto* pickup = r.try_get<WantsToPickUp>(a))
+        return a;
+    }
+  }
+
+  return std::nullopt;
+}
 
 void
 update_intent_pickup_system(entt::registry& r)
 {
   const auto& physics = get_first_component<SINGLETON_PhysicsComponent>(r);
-  auto& dead = get_first_component<SINGLETON_EntityBinComponent>(r);
 
-  const auto& zones = r.view<PickupZoneComponent, HasParentComponent, AABB>();
+  const auto& reqs = r.view<WantsToPickUp>(entt::exclude<WaitForInitComponent>);
 
-  for (const auto& [entity, zone, parent, aabb] : zones.each()) {
-    const auto& player = parent.parent;
-    const auto& player_aabb = r.get<AABB>(player);
-    auto& player_comp = r.get<PlayerComponent>(player);
+  const auto& pickup_zones =
+    r.view<PickupZoneComponent, const AABB, SpriteColourComponent>(entt::exclude<WaitForInitComponent>);
+  for (const auto& [zone_e, pickup, aabb, colour] : pickup_zones.each()) {
 
-    // update pickup zone positions for collisions next frmae
-    aabb.center = player_aabb.center;
-
-    // check for pickup collisions
-    auto* wants_to_pickup_request = r.try_get<WantsToPickUp>(player);
-    if (!wants_to_pickup_request)
+    const auto other_e = check_zone_and_player_collision(r, physics, zone_e, colour);
+    if (other_e == std::nullopt)
       continue;
-    r.remove<WantsToPickUp>(player); // processed request
 
-    // if colliding with any entities,
-    for (const auto& coll : physics.collision_stay) {
+    // give the entity an item
+    //
+    const auto req = create_gameplay(r, EntityType::item);
+    r.get<ItemComponent>(req).item_id = pickup.spawn_item_with_id;
 
-      const auto a = static_cast<entt::entity>(coll.ent_id_0);
-      const auto b = static_cast<entt::entity>(coll.ent_id_1);
+    HasParentComponent hpc;
+    hpc.parent = other_e.value();
+    r.emplace_or_replace<HasParentComponent>(req, hpc);
+  }
 
-      const auto* a_pickupabble = r.try_get<AbleToBePickedUp>(a);
-      const auto* b_pickupabble = r.try_get<AbleToBePickedUp>(b);
+  const auto& dropoff_zones =
+    r.view<DropoffZoneComponent, const AABB, SpriteColourComponent>(entt::exclude<WaitForInitComponent>);
+  for (const auto& [zone_e, zone, aabb, colour] : dropoff_zones.each()) {
 
-      if (a == entity && b_pickupabble) {
-        dead.dead.emplace(b); // picked up item
-        // todo: something interesting with item pickup
-        // hack: just add xp counter for moment
-        player_comp.picked_up_xp++;
-      }
-      if (b == entity && b_pickupabble) {
-        dead.dead.emplace(a); // picked up item
-        // todo: something interesting with item pickup
-        // hack: just add xp counter for moment
-        player_comp.picked_up_xp++;
+    const auto other_e = check_zone_and_player_collision(r, physics, zone_e, colour);
+    if (other_e == std::nullopt)
+      continue;
+
+    // remove an item from the entity
+    //
+    const auto items_view = r.view<HasParentComponent, ItemComponent>(entt::exclude<WaitForInitComponent>);
+    for (const auto& [item_e, parent, item] : items_view.each()) {
+      if (parent.parent == other_e) {
+        std::cout << "dropping off item..." << std::endl;
+        r.destroy(item_e);
+        break; // drop one at a time
       }
     }
-
-    //
   }
+
+  // done with requests
+  r.remove<WantsToPickUp>(reqs.begin(), reqs.end());
 }
 
 } // namespace game2d

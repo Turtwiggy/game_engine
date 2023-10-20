@@ -6,13 +6,13 @@
 #include "actors.hpp"
 #include "audio/components.hpp"
 #include "entt/helpers.hpp"
-#include "modules/lifecycle/components.hpp"
 #include "maths/maths.hpp"
 #include "modules/actor_enemy/components.hpp"
 #include "modules/combat_attack_cooldown/components.hpp"
 #include "modules/combat_attack_cooldown/helpers.hpp"
-#include "physics/components.hpp"
+#include "modules/lifecycle/components.hpp"
 #include "modules/renderer/components.hpp"
+#include "physics/components.hpp"
 #include "sprites/components.hpp"
 
 namespace game2d {
@@ -24,7 +24,8 @@ update_turret_system(entt::registry& r, const uint64_t& ms_dt)
   const auto& physics = get_first_component<SINGLETON_PhysicsComponent>(r);
   const float turret_bullet_speed = 200.0f;
 
-  const auto& turrets = r.view<TurretComponent, TransformComponent, AttackCooldownComponent>();
+  const auto& turrets =
+    r.view<TurretComponent, TransformComponent, AttackCooldownComponent>(entt::exclude<WaitForInitComponent>);
   for (const auto& [t_entity, turret, t, cooldown] : turrets.each()) {
 
     const auto target = get_closest(r, t_entity);
@@ -78,13 +79,16 @@ update_turret_system(entt::registry& r, const uint64_t& ms_dt)
 
     if (!cooldown.on_cooldown) {
 
-      CreateEntityRequest req;
-      req.type = EntityType::bullet_default;
+      entt::entity req = create_gameplay(r, EntityType::bullet_default);
+
+      VelocityComponent vel;
+      vel.x = offset_pos.x;
+      vel.y = offset_pos.y;
+      r.emplace_or_replace<VelocityComponent>(req, vel);
+
       TransformComponent t;
       t.position = { offset_pos.x, offset_pos.y, 0 };
-      req.transform = t;
-      req.velocity = glm::vec3(-nrm_dir.x * turret_bullet_speed, -nrm_dir.y * turret_bullet_speed, 0);
-      r.emplace<CreateEntityRequest>(r.create(), req);
+      r.emplace_or_replace<TransformComponent>(req, t);
 
       // request audio
       // r.emplace<AudioRequestPlayEvent>(r.create(), "SHOOT_02");

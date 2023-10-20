@@ -2,6 +2,7 @@
 
 #include "modules/actor_spawner/components.hpp"
 #include "modules/combat_attack_cooldown/components.hpp"
+#include "modules/lifecycle/components.hpp"
 
 #include "entt/helpers.hpp"
 #include "imgui/helpers.hpp"
@@ -19,7 +20,7 @@ update_ui_spawner_system(entt::registry& r)
 
   ImGui::Begin("Spawner Editor");
 
-  const auto& view = r.view<SpawnerComponent, AttackCooldownComponent>();
+  const auto& view = r.view<SpawnerComponent, AttackCooldownComponent>(entt::exclude<WaitForInitComponent>);
 
   for (const auto& [entity, spawner, cooldown] : view.each()) {
 

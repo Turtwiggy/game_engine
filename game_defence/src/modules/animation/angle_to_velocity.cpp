@@ -2,8 +2,9 @@
 
 #include "components.hpp"
 #include "maths/maths.hpp"
-#include "physics/components.hpp"
+#include "modules/lifecycle/components.hpp"
 #include "modules/renderer/components.hpp"
+#include "physics/components.hpp"
 
 namespace game2d {
 
@@ -19,7 +20,8 @@ update_scale_by_velocity_system(entt::registry& r, float dt)
   // const auto cursor_square = transform_to_rotated_square(cursor_transform);
   // const auto cursor_aabb = generate_aabb(cursor_square);
 
-  const auto& view = r.view<TransformComponent, const VelocityComponent, const SetTransformAngleToVelocity>();
+  const auto& view = r.view<TransformComponent, const VelocityComponent, const SetTransformAngleToVelocity>(
+    entt::exclude<WaitForInitComponent>);
   for (const auto& [entity, transform, velocity, scale] : view.each()) {
     // set angle
     glm::vec2 dir = { velocity.x, velocity.y };

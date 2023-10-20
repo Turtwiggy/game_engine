@@ -2,11 +2,11 @@
 
 #include "actors.hpp"
 #include "entt/helpers.hpp"
-#include "modules/lifecycle/components.hpp"
 #include "modules/actor_spawner/components.hpp"
 #include "modules/combat_damage/components.hpp"
-#include "modules/respawn/components.hpp"
+#include "modules/lifecycle/components.hpp"
 #include "modules/renderer/components.hpp"
+#include "modules/respawn/components.hpp"
 
 namespace game2d {
 
@@ -15,7 +15,7 @@ update_respawn_system(entt::registry& r)
 {
   auto& dead = get_first_component<SINGLETON_EntityBinComponent>(r);
 
-  const auto& view = r.view<const HealthComponent, const EntityTypeComponent>();
+  const auto& view = r.view<const HealthComponent, const EntityTypeComponent>(entt::exclude<WaitForInitComponent>);
   for (const auto& [e, hp, type] : view.each()) {
     if (hp.hp <= 0) {
       // is the unit able to respawn?
@@ -24,15 +24,15 @@ update_respawn_system(entt::registry& r)
         // yeah.. respawn it
 
         // find a spawner of the type that died and spawn it there
-        for (const auto& [e_spawner, spawner] : r.view<SpawnerComponent>().each()) {
+        for (const auto& [e_spawner, spawner] : r.view<SpawnerComponent>(entt::exclude<WaitForInitComponent>).each()) {
           if (spawner.type_to_spawn == type.type) {
 
             // spawn new entity at this spawner
             const auto& spawner_transform = r.get<TransformComponent>(e_spawner);
-            CreateEntityRequest req;
-            req.type = spawner.type_to_spawn;
-            req.transform = spawner_transform;
-            r.emplace<CreateEntityRequest>(r.create(), req);
+
+            // the entity
+            const auto req = create_gameplay(r, spawner.type_to_spawn);
+            r.get<TransformComponent>(req).position = spawner_transform.position;
 
             break; // just choose the first spawner
           }

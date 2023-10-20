@@ -16,6 +16,7 @@
 #include "modules/scene/helpers.hpp"
 #include "modules/ui_hierarchy/helpers.hpp"
 #include "physics/components.hpp"
+#include "modules/lifecycle/components.hpp"
 
 #include "glm/glm.hpp"
 // #include "imfilebrowser.h"
@@ -253,10 +254,10 @@ update_ui_level_editor_system(entt::registry& r, const glm::ivec2& input_mouse_p
     // if (ri.viewport_hovered) {
 
     if (get_key_down(input, place_key)) {
-      CreateEntityRequest request;
-      request.type = type;
-      request.transform = { { mouse_pos.x, mouse_pos.y, 0 } };
-      r.emplace<CreateEntityRequest>(r.create(), request);
+
+      const auto req =  create_gameplay(r, type);
+      TransformComponent tc{ { mouse_pos.x, mouse_pos.y, 0 } };
+      r.emplace_or_replace<TransformComponent>(req, tc);
     }
 
     static entt::entity chosen_e;

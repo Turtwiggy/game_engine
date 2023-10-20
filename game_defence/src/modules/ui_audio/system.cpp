@@ -4,6 +4,7 @@
 #include "audio/helpers.hpp"
 #include "audio/helpers/openal.hpp"
 #include "entt/helpers.hpp"
+#include "modules/lifecycle/components.hpp"
 
 #include <imgui.h>
 #include <iostream>

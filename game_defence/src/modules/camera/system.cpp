@@ -32,7 +32,7 @@ update_camera_system(entt::registry& r, const float dt)
   camera.view = calculate_ortho_view(offset_transform);
 
   // camera to follow a target
-  // const auto& target_view = r.view<HearthComponent>();
+  // const auto& target_view = r.view<HearthComponent>(entt::exclude<WaitForInitComponent>);
   // if (target_view.size() == 0)
   //   return; // no target to home in on
   // const auto target_entity = target_view.front();

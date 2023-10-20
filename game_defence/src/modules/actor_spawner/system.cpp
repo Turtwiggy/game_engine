@@ -27,7 +27,8 @@ update_spawner_system(entt::registry& r, const uint64_t milliseconds_dt)
 {
   const float dt = milliseconds_dt / 1000.0f;
 
-  const auto& view = r.view<const TransformComponent, SpawnerComponent, AttackCooldownComponent>();
+  const auto& view =
+    r.view<const TransformComponent, SpawnerComponent, AttackCooldownComponent>(entt::exclude<WaitForInitComponent>);
   for (const auto& [entity, transform, spawner, cooldown] : view.each()) {
 
     if (cooldown.on_cooldown)
@@ -70,10 +71,8 @@ update_spawner_system(entt::registry& r, const uint64_t milliseconds_dt)
       // if (auto* hp = r.try_get<HealthComponent>(e))
       //   hp->hp = spawner.hp;
 
-      CreateEntityRequest req;
-      req.type = spawner.type_to_spawn;
-      req.transform = transform; // at current pos
-      r.emplace<CreateEntityRequest>(r.create(), req);
+      const auto req = create_gameplay(r, spawner.type_to_spawn);
+      r.get<TransformComponent>(req).position = transform.position;
 
       reset_cooldown(cooldown);
     }

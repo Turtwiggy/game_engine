@@ -7,9 +7,9 @@
 #include "actors.hpp"
 #include "events/components.hpp"
 #include "events/helpers/controller.hpp"
-#include "modules/lifecycle/components.hpp"
 #include "maths/maths.hpp"
 #include "modules/gameover/components.hpp"
+#include "modules/lifecycle/components.hpp"
 #include "modules/scene/components.hpp"
 
 #include <imgui.h>
@@ -40,7 +40,8 @@ game2d::update_ui_next_wave_system(entt::registry& r)
 
   // hack: this should be in a system in fixedupdate() not here
   bool wave_complete = true;
-  for (const auto& [entity, hp, team] : r.view<const HealthComponent, const TeamComponent>().each()) {
+  for (const auto& [entity, hp, team] :
+       r.view<const HealthComponent, const TeamComponent>(entt::exclude<WaitForInitComponent>).each()) {
     if (team.team == AvailableTeams::enemy) {
       wave_complete = false;
       break;
@@ -81,12 +82,10 @@ game2d::update_ui_next_wave_system(entt::registry& r)
         if (glm::abs(rnd_y) < 250)
           rnd_y = 250 * glm::sign(rnd_y);
 
-        CreateEntityRequest req;
+        const auto req = create_gameplay(r, EntityType::actor_spawner);
         TransformComponent t;
         t.position = { rnd_x, rnd_y, 0 };
-        req.transform = t;
-        req.type = EntityType::actor_spawner;
-        r.emplace<CreateEntityRequest>(r.create(), req);
+        r.emplace_or_replace<TransformComponent>(req, t);
       };
 
       for (int i = 0; i < wave.wave; i++)
