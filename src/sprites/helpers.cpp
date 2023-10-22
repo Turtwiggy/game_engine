@@ -1,9 +1,12 @@
 // header
 #include "sprites/helpers.hpp"
 
+#include "components.hpp"
+#include "entt/helpers.hpp"
+
 // other libs
+#include "entt/entt.hpp"
 #include <nlohmann/json.hpp>
-using json = nlohmann::json;
 
 // std libs
 #include <fstream>
@@ -12,6 +15,7 @@ using json = nlohmann::json;
 #include <vector>
 
 namespace game2d {
+using json = nlohmann::json;
 
 struct Frame
 {
@@ -20,8 +24,10 @@ struct Frame
 };
 
 void
-load_sprites(std::vector<SpriteAnimation>& sprites, const std::string path)
+load_sprites(SINGLE_Animations& anims, const std::string path)
 {
+  auto& sprites = anims.animations;
+
   std::cout << "loading sprite config: " << path << "\n";
   std::ifstream f(path);
   json data = json::parse(f);
@@ -43,8 +49,16 @@ load_sprites(std::vector<SpriteAnimation>& sprites, const std::string path)
     SpriteAnimation anim;
     anim.name = name;
 
-    for (auto& frame : frames)
-      anim.animation_frames.push_back({ frame["x"], frame["y"] });
+    for (auto& frame : frames) {
+      SpritePosition pos;
+      pos.x = frame["x"];
+      pos.y = frame["y"];
+      if (frame.contains("w"))
+        pos.w = frame["w"];
+      if (frame.contains("h"))
+        pos.h = frame["h"];
+      anim.animation_frames.push_back(pos);
+    }
 
     if (el.contains("angle"))
       anim.angle_degrees = el["angle"];
@@ -54,8 +68,9 @@ load_sprites(std::vector<SpriteAnimation>& sprites, const std::string path)
 };
 
 SpriteAnimation
-find_animation(const std::vector<SpriteAnimation>& sprites, const std::string name)
+find_animation(const SINGLE_Animations& anims, const std::string name)
 {
+  auto& sprites = anims.animations;
   auto s = std::find_if(sprites.begin(), sprites.end(), [&name](const SpriteAnimation& spr) { return spr.name == name; });
   if (s != std::end(sprites))
     return *s;
@@ -63,6 +78,18 @@ find_animation(const std::vector<SpriteAnimation>& sprites, const std::string na
     std::cerr << "CONFIG ERROR: sprite not found: " << name << "\n";
     exit(1); // explode!
   }
+}
+
+void
+set_sprite(entt::registry& r, const entt::entity& e, const std::string& sprite)
+{
+  auto& anims = get_first_component<SINGLE_Animations>(r);
+
+  // set anim
+  const auto anim = find_animation(anims, sprite);
+  auto& sprc = r.get<SpriteComponent>(e);
+  sprc.tex_pos.x = anim.animation_frames[0].x;
+  sprc.tex_pos.y = anim.animation_frames[0].y;
 }
 
 } // namespace game2d

@@ -7,10 +7,46 @@
 #include <nlohmann/json.hpp>
 
 #include <string>
-#include <thread>
 #include <vector>
 
 namespace game2d {
+
+struct SpritePosition
+{
+  int x = 0;
+  int y = 0;
+  int w = 1;
+  int h = 1;
+};
+
+// This is the loaded yml sprite information
+struct SpriteAnimation
+{
+  std::string name;
+  std::vector<SpritePosition> animation_frames;
+  float angle_degrees = 0;
+  // float animation_frames_per_second = 1;
+};
+
+// Contains sprite frame data from assets/config/spritemap_X.json
+struct SINGLE_Animations
+{
+  std::vector<SpriteAnimation> animations;
+};
+
+struct SpriteComponent
+{
+  engine::LinearColour colour;
+  float angle_radians = 0.0f;
+
+  SpritePosition tex_pos;
+  int tex_unit = 0; // do not serialize
+
+  // spritesheet info
+  int total_sx = 0;
+  int total_sy = 0;
+  // NLOHMANN_DEFINE_TYPE_INTRUSIVE(SpriteComponent, x, y, angle_radians, sx, sy);
+};
 
 // Attach this to have the SpriteAnimationComponent
 // automatically have the SpriteAnimation updated (walk cycles)
@@ -20,61 +56,15 @@ namespace game2d {
 //   bool placeholder = true;
 // };
 
-// This is the loaded yml sprite information
-struct SpriteAnimation
-{
-  std::string name;
-  std::vector<glm::ivec2> animation_frames;
-  float angle_degrees = 0;
-  // float animation_frames_per_second = 1;
-};
-
 // This contains the current state of the animation frame
-struct SpriteAnimationComponent
-{
-  std::string playing_animation_name;
-  int frame = 0;
-  float frame_dt = 0.0f;
-  float speed = 1.0f;
-  bool playing = true;
-  bool looping = true;
-};
-
-struct SpriteColourComponent
-{
-  std::shared_ptr<engine::LinearColour> colour = nullptr;
-
-  NLOHMANN_DEFINE_TYPE_INTRUSIVE(SpriteColourComponent, colour->r, colour->g, colour->b, colour->a);
-};
-
-enum class RenderOrder
-{
-  background,
-  foreground,
-
-  count,
-};
-
-// Information required by the renderer
-struct SpriteComponent
-{
-  float angle_radians = 0.0f;
-  int x = 0;
-  int y = 0;
-  int tex_unit = 0; // do not serialize
-  // RenderOrder render_order = RenderOrder::background;
-
-  // spritesheet info
-  int sx = 0;
-  int sy = 0;
-
-  NLOHMANN_DEFINE_TYPE_INTRUSIVE(SpriteComponent, x, y, angle_radians, sx, sy);
-};
-
-// Contains sprite frame data from assets/config/spritemap_X.json
-struct SINGLETON_Animations
-{
-  std::vector<SpriteAnimation> animations;
-};
+// struct SpriteAnimationComponent
+// {
+//   std::string playing_animation_name;
+//   int frame = 0;
+//   float frame_dt = 0.0f;
+//   float speed = 1.0f;
+//   bool playing = true;
+//   bool looping = true;
+// };
 
 } // namespace game2d

@@ -9,26 +9,26 @@
 namespace game2d {
 
 void
-update_flash_sprite_system(entt::registry& r, uint64_t milliseconds_dt)
+update_flash_sprite_system(entt::registry& r, const uint64_t milliseconds_dt)
 {
   const auto& colours = get_first_component<SINGLETON_ColoursComponent>(r);
 
   const auto& view =
-    r.view<SpriteColourComponent, FlashOnDamageComponent, const EntityTypeComponent>(entt::exclude<WaitForInitComponent>);
-  for (const auto [entity, scc, flash, etc] : view.each()) {
+    r.view<SpriteComponent, FlashOnDamageComponent, const EntityTypeComponent>(entt::exclude<WaitForInitComponent>);
+  for (const auto [entity, sc, flash, etc] : view.each()) {
 
     if (!flash.started) {
       flash.started = true;
-      scc.colour = colours.lin_hit;
-      continue;
+      sc.colour = *colours.lin_hit;
     }
 
     flash.milliseconds_left -= milliseconds_dt;
 
     if (flash.milliseconds_left <= 0) {
-      // set to original colour
-      SpriteColourComponent spr = create_colour(colours, etc.type);
-      scc.colour = spr.colour;
+
+      // todo: set back to original colour
+      sc.colour = *colours.lin_primary;
+
       r.remove<FlashOnDamageComponent>(entity);
     }
   }

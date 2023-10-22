@@ -62,8 +62,7 @@ vec3 lin_to_srgb(vec3 color)
 
 void main()
 {
-  vec3 l = lin_to_srgb(texture(lighting, v_uv).rgb);
-  vec3 s = lin_to_srgb(texture(scene, v_uv).rgb);
+  vec3 mixed = mix(texture(lighting, v_uv).rgb, texture(scene, v_uv).rgb, 0.5f);
 
-  out_color = vec4(mix(l, s, 0.5f), 1.0f);
+  out_color = vec4(lin_to_srgb(mixed), 1.0f);
 }

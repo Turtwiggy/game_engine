@@ -67,17 +67,19 @@ void
 game2d::init(engine::SINGLETON_Application& app, entt::registry& r)
 {
   {
-    SINGLETON_Animations anims;
-    load_sprites(anims.animations, "assets/config/spritemap_kennynl.json");
-    r.emplace<SINGLETON_Animations>(r.create(), anims);
+    SINGLE_Animations anims;
+    load_sprites(anims, "assets/config/spritemap_kennynl.json");
+    load_sprites(anims, "assets/config/spritemap_custom.json");
+    r.emplace<SINGLE_Animations>(r.create(), anims);
   }
 
-  {
-    SINGLETON_AudioComponent audio;
-    audio.sounds.push_back({ "SHOOT_01", "assets/audio/FIREARM_RTS_Machine_Gun_Model_01_Fire_Single_RR1_mono.wav" });
-    audio.sounds.push_back({ "SHOOT_02", "assets/audio/FIREARM_Handgun_B_FS92_9mm_Fire_RR1_stereo.wav" });
-    r.emplace<SINGLETON_AudioComponent>(r.create(), audio);
-  }
+  // {
+  //   SINGLETON_AudioComponent audio;
+  //   audio.sounds.push_back({ "SHOOT_01", "assets/audio/FIREARM_RTS_Machine_Gun_Model_01_Fire_Single_RR1_mono.wav" });
+  //   audio.sounds.push_back({ "SHOOT_02", "assets/audio/FIREARM_Handgun_B_FS92_9mm_Fire_RR1_stereo.wav" });
+  //   r.emplace<SINGLETON_AudioComponent>(r.create(), audio);
+  // }
+  // init_audio_system(r);
 
   r.emplace<SINGLETON_RendererInfo>(r.create());
   r.emplace<SINGLETON_FixedUpdateInputHistory>(r.create());
@@ -93,7 +95,6 @@ game2d::init(engine::SINGLETON_Application& app, entt::registry& r)
 
   auto& ri = get_first_component<SINGLETON_RendererInfo>(r);
   init_render_system(app, r, ri); // init after camera
-  init_audio_system(r);
   init_input_system(r);
 
   move_to_scene_start(r, Scene::menu);
@@ -199,7 +200,7 @@ game2d::update(engine::SINGLETON_Application& app, entt::registry& r, const floa
     OPTICK_EVENT("(update)-game-tick");
     update_input_system(app, r);
     update_camera_system(r, dt);
-    update_audio_system(r);
+    // update_audio_system(r);
     update_cursor_system(r, mouse_pos);
     update_scale_by_velocity_system(r, dt);
     // todo: update sprite animations...
@@ -230,13 +231,13 @@ game2d::update(engine::SINGLETON_Application& app, entt::registry& r, const floa
     // todo: put in to a settings menu
     static bool show_settings_ui = false;
     if (show_settings_ui) {
-      update_ui_audio_system(r);
+      // update_ui_audio_system(r);
       update_ui_controller_system(r);
     }
 
 #if defined(_DEBUG)
-    static bool show_demo_window = false;
-    ImGui::ShowDemoWindow(&show_demo_window);
+    // static bool show_demo_window = false;
+    // ImGui::ShowDemoWindow(&show_demo_window);
 
     static bool show_editor_ui = true;
     if (show_editor_ui) {

@@ -78,7 +78,7 @@ from_json(const nlohmann::json& j, EntityTypeComponent& et)
 [[nodiscard]] entt::entity
 create_gameplay(entt::registry& r, const EntityType& type);
 
-[[nodiscard]] SpriteColourComponent
-create_colour(const SINGLETON_ColoursComponent& colours, const EntityType& type);
+[[nodiscard]] SpriteComponent
+create_sprite(entt::registry& r, const EntityType& type);
 
 } // namespace game2d

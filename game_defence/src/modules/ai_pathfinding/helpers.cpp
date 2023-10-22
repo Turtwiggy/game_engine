@@ -7,6 +7,7 @@
 #include "entt/helpers.hpp"
 #include "maths/grid.hpp"
 #include "modules/combat_flash_on_damage/helpers.hpp"
+#include "renderer/helpers.hpp"
 #include "renderer/transform.hpp"
 #include "sprites/helpers.hpp"
 
@@ -187,7 +188,6 @@ display_flow_field_with_visuals(entt::registry& r, GridComponent& grid)
   grid.debug_flow_field.clear();
   grid.debug_flow_field.resize(grid.width * grid.height);
 
-  auto& anims = get_first_component<SINGLETON_Animations>(r);
   for (int xy = 0; xy < grid.width * grid.height; xy++) {
     const auto gpos = engine::grid::index_to_grid_position(xy, grid.width, grid.height);
 
@@ -198,17 +198,13 @@ display_flow_field_with_visuals(entt::registry& r, GridComponent& grid)
     const auto sprites = convert_int_to_sprites(distance);
     auto& sprite_vfxs = grid.debug_flow_field[xy];
     for (int i = 0; i < sprites.size(); i++) {
-      const auto& spr = sprites[i];
       const auto sprite = create_gameplay(r, EntityType::empty);
-      // set anim
-      const auto anim = find_animation(anims.animations, spr);
-      auto& sprc = r.get<SpriteComponent>(sprite);
-      sprc.x = anim.animation_frames[0].x;
-      sprc.y = anim.animation_frames[0].y;
-      // set position
-      auto& spr_t = r.get<TransformComponent>(sprite);
-      spr_t.position = { gpos.x * grid.size, gpos.y * grid.size, 0.0 };
-      spr_t.position.x += (i + 1) * text_seperation;
+      set_sprite(r, sprite, sprites[i]);
+
+      glm::vec3 position = { gpos.x * grid.size, gpos.y * grid.size, 0.0f };
+      position.x += (i + 1) * text_seperation;
+      set_position(r, sprite, position);
+
       sprite_vfxs.push_back(sprite);
     }
   }

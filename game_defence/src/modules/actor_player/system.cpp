@@ -96,13 +96,13 @@ game2d::update_player_controller_system(entt::registry& r, const uint64_t& milli
     input.sprint = false;
 
     if (keyboard) {
-      input.ly += fixed_input_keyboard_held(SDL_SCANCODE_W) ? -1 : 0;
-      input.ly += fixed_input_keyboard_held(SDL_SCANCODE_S) ? 1 : 0;
-      input.lx += fixed_input_keyboard_held(SDL_SCANCODE_A) ? -1 : 0;
-      input.lx += fixed_input_keyboard_held(SDL_SCANCODE_D) ? 1 : 0;
+      input.ly += fixed_input_keyboard_held(keyboard->W) ? -1 : 0;
+      input.ly += fixed_input_keyboard_held(keyboard->S) ? 1 : 0;
+      input.lx += fixed_input_keyboard_held(keyboard->A) ? -1 : 0;
+      input.lx += fixed_input_keyboard_held(keyboard->D) ? 1 : 0;
       input.shoot |= fixed_input_mouse_press(SDL_BUTTON_LEFT);
-      input.pickup |= fixed_input_keyboard_press(SDL_SCANCODE_E);
-      input.sprint |= fixed_input_keyboard_press(SDL_SCANCODE_LSHIFT);
+      input.pickup |= fixed_input_keyboard_press(keyboard->pickup);
+      input.sprint |= fixed_input_keyboard_press(keyboard->sprint);
       // input.place_turret |= fixed_input_keyboard_press(SDL_SCANCODE_SPACE);
       // reload |= fixed_input_keyboard_press(SDL_SCANCODE_R);
     }

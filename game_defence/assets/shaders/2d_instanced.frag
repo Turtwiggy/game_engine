@@ -5,35 +5,50 @@ out vec4 out_colour;
 in vec2 v_uv;
 in vec4 v_colour;
 in vec2 v_sprite_pos; // x, y location of sprite
-in vec2 v_sprites;    // amount of sprites (x, y)
+in vec2 v_sprite_wh;  // sprite width and height e.g. 1/22 sprites
+in vec2 v_sprite_max; // 22 sprites
 in float v_tex_unit;
 
-uniform sampler2D tex;
+uniform sampler2D tex_kenny;
+uniform sampler2D tex_custom;
 
 void
 main()
 {
-  // int index = int(v_tex_unit);
-
+  int index = int(v_tex_unit);
+  
   // Sample texture directly
-  if (v_sprite_pos.x == 0.0f && v_sprite_pos.y == 0.0f) { // a whole texture
+  if ((v_sprite_pos.x == 0.0f && v_sprite_pos.y == 0.0f)) { // a whole texture
     out_colour = v_colour;
     return;
   }
 
   // A spritesheet texture
-  if(v_sprites.x > 0.0f || v_sprites.y > 0.0f)
+  // if(v_sprites.x > 0.0f || v_sprites.y > 0.0f)
   {
-    float scale_x = 1.0f / v_sprites.x;
-    float scale_y = 1.0f / v_sprites.y;
+    // vec2 sprite_uv = vec2(
+    //   v_uv.x / v_sprites.x + v_sprite_pos.x * (1.0f / v_sprites.x),
+    //   v_uv.y / v_sprites.y + v_sprite_pos.y * (1.0f / v_sprites.y)      
+    // );
 
+    // v_uv goes from 0 to 1
     vec2 sprite_uv = vec2(
-      v_uv.x / v_sprites.x + v_sprite_pos.x * scale_x,
-      v_uv.y / v_sprites.y + v_sprite_pos.y * scale_y      
+      v_uv.x / v_sprite_max.x + v_sprite_pos.x * (1.0f / v_sprite_max.x),
+      v_uv.y / v_sprite_max.y + v_sprite_pos.y * (1.0f / v_sprite_max.y)
+    );
+
+    sprite_uv = vec2(
+      v_uv.x / v_sprite_max.x + v_sprite_pos.x * v_sprite_wh.x, 
+      v_uv.y / v_sprite_max.y + v_sprite_pos.y * v_sprite_wh.y
     );
 
     out_colour = v_colour;
-    out_colour *= texture(tex, sprite_uv);
+
+    // index set on cpu side...
+    if(index == 2)
+      out_colour *= texture(tex_kenny, sprite_uv);
+    else if(index == 3)
+      out_colour *= texture(tex_custom, sprite_uv);
   }
 }
 

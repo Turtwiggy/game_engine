@@ -79,23 +79,20 @@ struct SINGLETON_RendererInfo
   // fbo
   engine::FramebufferID fbo_linear_main;
   engine::FramebufferID fbo_mix_lighting_and_scene;
-  engine::FramebufferID fbo_srgb_main;
 
   int tex_unit_linear_main = 0;
   int tex_unit_mix_lighting_and_scene = 1;
-  int tex_unit_srgb = 2;
-  // put loaded last?
-  int tex_unit_kennynl = 3;
+  int tex_unit_kennynl = 2;
+  int tex_unit_custom = 3;
 
   int tex_id_linear_main = 0;
   int tex_id_mix_lighting_and_scene = 0;
-  int tex_id_srgb = 0;
   int tex_id_kenny = 0;
+  int tex_id_custom = 0;
 
   // shaders
   engine::Shader instanced;
   engine::Shader mix_lighting_and_scene;
-  engine::Shader linear_to_srgb;
 
   // viewport
   // note: values are updated in render

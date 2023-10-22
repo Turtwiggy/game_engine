@@ -13,7 +13,7 @@
 void
 game2d::update_ui_hierarchy_system(entt::registry& r)
 {
-  size_t entities = r.alive();
+  const size_t entities = r.alive();
   static entt::entity selected_entity = entt::null;
 
   ImGui::Begin("Hierarchy", NULL, ImGuiWindowFlags_NoFocusOnAppearing);
@@ -110,12 +110,9 @@ game2d::update_ui_hierarchy_system(entt::registry& r)
     //   imgui_draw_vec2("Vel: ", x, y);
     // }
 
-    if (r.all_of<SpriteComponent, SpriteColourComponent>(eid)) {
-      SpriteComponent& sc = r.get<SpriteComponent>(eid);
-      // SpriteColourComponent& scc = r.get<SpriteColourComponent>(eid);
-
+    if (auto* sc = r.try_get<SpriteComponent>(eid)) {
       // select sprite
-      imgui_draw_ivec2("Sprite: ", sc.x, sc.y);
+      imgui_draw_ivec2("Sprite: ", sc->tex_pos.x, sc->tex_pos.y);
     }
 
     // Add component

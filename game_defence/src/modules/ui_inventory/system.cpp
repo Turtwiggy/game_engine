@@ -1,5 +1,6 @@
 #include "system.hpp"
 
+#include "modules/items/helpers.hpp"
 #include "modules/items_pickup/components.hpp"
 #include "modules/lifecycle/components.hpp"
 
@@ -18,7 +19,9 @@ update_ui_inventory(entt::registry& r)
     const auto& view = r.view<ItemComponent, HasParentComponent>(entt::exclude<WaitForInitComponent>);
 
     for (const auto& [entity, item, parent] : view.each()) {
-      ImGui::Text("Item id: %i", item.item_id);
+
+      const auto info = item_id_to_sprite(r, item.item_id);
+      ImGui::Text("%s", info.display.c_str());
 
       ImGui::SameLine();
 
