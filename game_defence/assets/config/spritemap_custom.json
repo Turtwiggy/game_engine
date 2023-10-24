@@ -19,6 +19,12 @@
     { "name": "icon_cheese", "frames": [ { "x": 3, "y": 1, "w": 1, "h": 1 } ] },
     { "name": "icon_gun", "frames": [ { "x": 4, "y": 1, "w": 1, "h": 1 } ] },
     { "name": "icon_beer", "frames": [ { "x": 5, "y": 1, "w": 1, "h": 1 } ] },
-    { "name": "icon_meat", "frames": [ { "x": 7, "y": 1, "w": 1, "h": 1 } ] }
+    { "name": "icon_meat", "frames": [ { "x": 7, "y": 1, "w": 1, "h": 1 } ] },
+
+    { "name": "icon_table_green", "frames": [ { "x": 0, "y": 2, "w": 2, "h": 1 } ] },
+    { "name": "icon_grass", "frames": [ { "x": 4, "y": 2, "w": 1, "h": 1 } ] },
+
+    { "name": "icon_sign_active", "frames": [ { "x": 0, "y": 3, "w": 4, "h": 1 } ] },
+    { "name": "icon_sign_inactive", "frames": [ { "x": 0, "y": 3, "w": 4, "h": 1 } ] }
   ]
 }

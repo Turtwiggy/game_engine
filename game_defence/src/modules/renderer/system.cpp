@@ -168,7 +168,7 @@ game2d::update_render_system(entt::registry& r, const float dt)
         desc.tex_unit = sc.tex_unit;
 
         desc.sprite_offset = { sc.tex_pos.x, sc.tex_pos.y };
-        desc.sprite_width = { (1.0f / sc.total_sx) * sc.tex_pos.w, (1.0f / sc.total_sy) * sc.tex_pos.h };
+        desc.sprite_width = { sc.tex_pos.w, sc.tex_pos.h };
         desc.sprites_max = { sc.total_sx, sc.total_sy };
 
         quad_renderer::QuadRenderer::draw_sprite(desc, ri.instanced);

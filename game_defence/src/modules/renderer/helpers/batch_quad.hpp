@@ -24,7 +24,7 @@ struct RenderDescriptor
 
   // sprite info
   glm::ivec2 sprite_offset = { 0, 0 }; // e.g. pos 0, 5
-  glm::vec2 sprite_width = { 0, 0 };   // e.g. 1/22 * 2
+  glm::ivec2 sprite_width = { 0, 0 };  // e.g. 2, 2
   glm::ivec2 sprites_max = { 0, 0 };   // e.g. 22
 
   int tex_unit = 0;

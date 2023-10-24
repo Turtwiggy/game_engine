@@ -218,7 +218,7 @@ game2d::update(engine::SINGLETON_Application& app, entt::registry& r, const floa
     if (scene.s == Scene::menu)
       update_ui_scene_main_menu(app, r);
     else if (scene.s == Scene::game) {
-      update_ui_next_wave_system(r);
+      // update_ui_next_wave_system(r);
       // update_ui_spawner_system(r);
       update_ui_grid_interaction_system(r);
       update_ui_inventory(r);

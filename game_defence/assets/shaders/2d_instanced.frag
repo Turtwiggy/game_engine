@@ -5,7 +5,7 @@ out vec4 out_colour;
 in vec2 v_uv;
 in vec4 v_colour;
 in vec2 v_sprite_pos; // x, y location of sprite
-in vec2 v_sprite_wh;  // sprite width and height e.g. 1/22 sprites
+in vec2 v_sprite_wh;  // desired sprites e.g. 2, 2
 in vec2 v_sprite_max; // 22 sprites
 in float v_tex_unit;
 
@@ -32,14 +32,10 @@ main()
     // );
 
     // v_uv goes from 0 to 1
+    // convert from 0 to 1 to the width/height desired 
     vec2 sprite_uv = vec2(
-      v_uv.x / v_sprite_max.x + v_sprite_pos.x * (1.0f / v_sprite_max.x),
-      v_uv.y / v_sprite_max.y + v_sprite_pos.y * (1.0f / v_sprite_max.y)
-    );
-
-    sprite_uv = vec2(
-      v_uv.x / v_sprite_max.x + v_sprite_pos.x * v_sprite_wh.x, 
-      v_uv.y / v_sprite_max.y + v_sprite_pos.y * v_sprite_wh.y
+      (v_sprite_wh.x * v_uv.x) / v_sprite_max.x + v_sprite_pos.x * (1.0f/v_sprite_max.x),
+      (v_sprite_wh.y * v_uv.y) / v_sprite_max.y + v_sprite_pos.y * (1.0f/v_sprite_max.y)
     );
 
     out_colour = v_colour;
