@@ -24,8 +24,8 @@ QuadRenderer::draw_sprite(const RenderDescriptor& r, const Shader& s)
     begin_batch();
   }
 
-  const glm::vec2 sprite_offset = { r.sprite_offset_and_spritesheet.x, r.sprite_offset_and_spritesheet.y };
-  const glm::vec2 spritesheet = { r.sprite_offset_and_spritesheet.z, r.sprite_offset_and_spritesheet.w };
+  const glm::vec4 sprite_offset = { r.sprite_offset.x, r.sprite_offset.y, 0.0f, 0.0f };
+  const glm::vec4 sprite_width_and_max = { r.sprite_width.x, r.sprite_width.y, r.sprites_max.x, r.sprites_max.y };
   const float tex_unit = static_cast<float>(r.tex_unit);
   const glm::vec4 colour = { r.colour.r, r.colour.g, r.colour.b, r.colour.a };
 
@@ -42,7 +42,8 @@ QuadRenderer::draw_sprite(const RenderDescriptor& r, const Shader& s)
   // tl
   data.buffer_ptr->pos_and_uv = { 0.0f, 0.0f, 0.0f, 0.0f };
   data.buffer_ptr->colour = colour;
-  data.buffer_ptr->sprite_offset_and_spritesheet = { sprite_offset, spritesheet };
+  data.buffer_ptr->sprite_offset = sprite_offset;
+  data.buffer_ptr->sprite_width_and_max = sprite_width_and_max;
   data.buffer_ptr->tex_unit = tex_unit;
   data.buffer_ptr->model = model;
   data.buffer_ptr++;
@@ -50,7 +51,8 @@ QuadRenderer::draw_sprite(const RenderDescriptor& r, const Shader& s)
   // tr
   data.buffer_ptr->pos_and_uv = { 1.0f, 0.0f, 1.0f, 0.0f };
   data.buffer_ptr->colour = colour;
-  data.buffer_ptr->sprite_offset_and_spritesheet = { sprite_offset, spritesheet };
+  data.buffer_ptr->sprite_offset = sprite_offset;
+  data.buffer_ptr->sprite_width_and_max = sprite_width_and_max;
   data.buffer_ptr->tex_unit = tex_unit;
   data.buffer_ptr->model = model;
   data.buffer_ptr++;
@@ -58,7 +60,8 @@ QuadRenderer::draw_sprite(const RenderDescriptor& r, const Shader& s)
   // br
   data.buffer_ptr->pos_and_uv = { 1.0f, 1.0f, 1.0f, 1.0f };
   data.buffer_ptr->colour = colour;
-  data.buffer_ptr->sprite_offset_and_spritesheet = { sprite_offset, spritesheet };
+  data.buffer_ptr->sprite_offset = sprite_offset;
+  data.buffer_ptr->sprite_width_and_max = sprite_width_and_max;
   data.buffer_ptr->tex_unit = tex_unit;
   data.buffer_ptr->model = model;
   data.buffer_ptr++;
@@ -66,7 +69,8 @@ QuadRenderer::draw_sprite(const RenderDescriptor& r, const Shader& s)
   // bl
   data.buffer_ptr->pos_and_uv = { 0.0f, 1.0f, 0.0f, 1.0f };
   data.buffer_ptr->colour = colour;
-  data.buffer_ptr->sprite_offset_and_spritesheet = { sprite_offset, spritesheet };
+  data.buffer_ptr->sprite_offset = sprite_offset;
+  data.buffer_ptr->sprite_width_and_max = sprite_width_and_max;
   data.buffer_ptr->tex_unit = tex_unit;
   data.buffer_ptr->model = model;
   data.buffer_ptr++;
@@ -97,26 +101,28 @@ QuadRenderer::init()
   glVertexAttribPointer(1, 4, GL_FLOAT, GL_FALSE, sizeof(Vertex), (const void*)offsetof(Vertex, colour));
 
   glEnableVertexAttribArray(2);
-  glVertexAttribPointer(
-    2, 4, GL_FLOAT, GL_FALSE, sizeof(Vertex), (const void*)offsetof(Vertex, sprite_offset_and_spritesheet));
+  glVertexAttribPointer(2, 4, GL_FLOAT, GL_FALSE, sizeof(Vertex), (const void*)offsetof(Vertex, sprite_offset));
 
   glEnableVertexAttribArray(3);
-  glVertexAttribPointer(3, 4, GL_FLOAT, GL_FALSE, sizeof(Vertex), (const void*)offsetof(Vertex, tex_unit));
+  glVertexAttribPointer(3, 4, GL_FLOAT, GL_FALSE, sizeof(Vertex), (const void*)offsetof(Vertex, sprite_width_and_max));
 
   glEnableVertexAttribArray(4);
-  glVertexAttribPointer(4, 4, GL_FLOAT, GL_FALSE, sizeof(Vertex), (const void*)offsetof(Vertex, model));
+  glVertexAttribPointer(4, 4, GL_FLOAT, GL_FALSE, sizeof(Vertex), (const void*)offsetof(Vertex, tex_unit));
 
   glEnableVertexAttribArray(5);
-  glVertexAttribPointer(
-    5, 4, GL_FLOAT, GL_FALSE, sizeof(Vertex), (const void*)(offsetof(Vertex, model) + 1 * sizeof(glm::vec4)));
+  glVertexAttribPointer(5, 4, GL_FLOAT, GL_FALSE, sizeof(Vertex), (const void*)offsetof(Vertex, model));
 
   glEnableVertexAttribArray(6);
   glVertexAttribPointer(
-    6, 4, GL_FLOAT, GL_FALSE, sizeof(Vertex), (const void*)(offsetof(Vertex, model) + 2 * sizeof(glm::vec4)));
+    6, 4, GL_FLOAT, GL_FALSE, sizeof(Vertex), (const void*)(offsetof(Vertex, model) + 1 * sizeof(glm::vec4)));
 
   glEnableVertexAttribArray(7);
   glVertexAttribPointer(
-    7, 4, GL_FLOAT, GL_FALSE, sizeof(Vertex), (const void*)(offsetof(Vertex, model) + 3 * sizeof(glm::vec4)));
+    7, 4, GL_FLOAT, GL_FALSE, sizeof(Vertex), (const void*)(offsetof(Vertex, model) + 2 * sizeof(glm::vec4)));
+
+  glEnableVertexAttribArray(8);
+  glVertexAttribPointer(
+    8, 4, GL_FLOAT, GL_FALSE, sizeof(Vertex), (const void*)(offsetof(Vertex, model) + 3 * sizeof(glm::vec4)));
 
   uint32_t indices[max_quad_index_count];
   uint32_t index_offset = 0;

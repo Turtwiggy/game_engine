@@ -28,10 +28,13 @@ static const engine::LinearColour lin_pal_0 = engine::SRGBToLinear(pal_0);
 static const engine::LinearColour lin_pal_1 = engine::SRGBToLinear(pal_1);
 static const engine::LinearColour lin_pal_2 = engine::SRGBToLinear(pal_2);
 static const engine::LinearColour lin_pal_3 = engine::SRGBToLinear(pal_3);
-static const engine::SRGBColour pal_background = { static_cast<int>(0.28f * 255),
-                                                   static_cast<int>(0.2805f * 255),
-                                                   static_cast<int>(0.281f * 255),
-                                                   1.0f };
+static const engine::SRGBColour pal_background = {
+  //
+  static_cast<int>(34),
+  static_cast<int>(28),
+  static_cast<int>(26),
+  1.0f
+};
 static const engine::SRGBColour pal_hit = { 172, 68, 37, 1.0f };
 static const engine::SRGBColour pal_white = { 255, 255, 255, 1.0f };
 static const engine::LinearColour lin_pal_hit = engine::SRGBToLinear(pal_hit);

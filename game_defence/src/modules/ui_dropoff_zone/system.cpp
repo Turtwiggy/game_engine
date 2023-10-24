@@ -3,6 +3,7 @@
 #include "entt/helpers.hpp"
 #include "modules/actor_dropoff_zone/components.hpp"
 #include "modules/camera/helpers.hpp"
+#include "modules/items/helpers.hpp"
 #include "modules/lifecycle/components.hpp"
 #include "modules/renderer/components.hpp"
 
@@ -35,8 +36,6 @@ update_ui_dropoff_zone_system(entt::registry& r)
     pos.x = glm::clamp(static_cast<int>(pos.x), 0, ri.viewport_size_render_at.x);
     pos.y = glm::clamp(static_cast<int>(pos.y), 0, ri.viewport_size_render_at.y);
 
-    // todo: if off screen, dont display
-
     ImGui::SetNextWindowPos(pos, ImGuiCond_Always, ImVec2(0.5f, 0.5f));
 
     // ImGui::PushStyleColor(ImGuiCol_, (ImVec4)ImColor::HSV(1 / 7.0f, 0.6f, 0.6f));
@@ -57,7 +56,8 @@ update_ui_dropoff_zone_system(entt::registry& r)
     for (int i = 0; i < zone.requested_items.size(); i++) {
       if (i > 0)
         ImGui::SameLine();
-      ImGui::Text("%i", zone.requested_items[i]);
+      const auto info = item_id_to_sprite(r, zone.requested_items[i]);
+      ImGui::Text("%s", info.display.c_str());
     }
 
     ImGui::End();

@@ -31,6 +31,8 @@ struct KeyboardComponent
   SDL_Scancode A = SDL_SCANCODE_A;
   SDL_Scancode S = SDL_SCANCODE_S;
   SDL_Scancode D = SDL_SCANCODE_D;
+  SDL_Scancode pickup = SDL_SCANCODE_SPACE;
+  SDL_Scancode sprint = SDL_SCANCODE_LSHIFT;
 
   NLOHMANN_DEFINE_TYPE_INTRUSIVE(KeyboardComponent, W, A, S, D);
 };

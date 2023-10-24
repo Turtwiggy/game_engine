@@ -5,6 +5,6 @@
 namespace game2d {
 
 void
-update_flash_sprite_system(entt::registry& r, uint64_t milliseconds_dt);
+update_flash_sprite_system(entt::registry& r, const uint64_t milliseconds_dt);
 
 } // namespace game2d

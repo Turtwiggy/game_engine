@@ -21,7 +21,12 @@ struct RenderDescriptor
   glm::ivec2 size = { 1, 1 };
   float angle_radians = 0.0f;
   LinearColour colour;
-  glm::ivec4 sprite_offset_and_spritesheet = { 0, 0, 0, 0 };
+
+  // sprite info
+  glm::ivec2 sprite_offset = { 0, 0 }; // e.g. pos 0, 5
+  glm::ivec2 sprite_width = { 0, 0 };  // e.g. 2, 2
+  glm::ivec2 sprites_max = { 0, 0 };   // e.g. 22
+
   int tex_unit = 0;
 };
 
@@ -30,7 +35,8 @@ struct Vertex
 {
   glm::vec4 pos_and_uv;
   glm::vec4 colour;
-  glm::vec4 sprite_offset_and_spritesheet;
+  glm::vec4 sprite_offset;
+  glm::vec4 sprite_width_and_max;
   float tex_unit;
   glm::mat4 model;
 };

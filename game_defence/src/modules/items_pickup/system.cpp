@@ -20,10 +20,10 @@ std::optional<entt::entity>
 check_zone_and_player_collision(entt::registry& r,
                                 const SINGLETON_PhysicsComponent& physics,
                                 const entt::entity& zone_e,
-                                SpriteColourComponent& colour)
+                                SpriteComponent& sc)
 {
   // no collison between zone <= => pickup entity
-  colour.colour->r = 0.0f;
+  sc.colour.r = 0.0f;
 
   for (const auto& coll : physics.collision_stay) {
     const auto a = static_cast<entt::entity>(coll.ent_id_0);
@@ -34,11 +34,11 @@ check_zone_and_player_collision(entt::registry& r,
     const auto a_other = r.try_get<WantsToPickUp>(a);
     const auto b_other = r.try_get<WantsToPickUp>(b);
     if (a == zone_e && b_other) {
-      colour.colour->r = 1.0f;
+      sc.colour.r = 1.0f;
       return b;
     }
     if (b == zone_e && a_other) {
-      colour.colour->r = 1.0f;
+      sc.colour.r = 1.0f;
       return a;
     }
   }
@@ -53,10 +53,8 @@ update_intent_pickup_system(entt::registry& r)
 
   const auto& reqs = r.view<WantsToPickUp>(entt::exclude<WaitForInitComponent>);
 
-  const auto& pickup_zones =
-    r.view<PickupZoneComponent, const AABB, SpriteColourComponent>(entt::exclude<WaitForInitComponent>);
-
-  for (const auto& [zone_e, pickup, aabb, colour] : pickup_zones.each()) {
+  const auto& pickup_view = r.view<PickupZoneComponent, const AABB, SpriteComponent>(entt::exclude<WaitForInitComponent>);
+  for (const auto& [zone_e, pickup, aabb, colour] : pickup_view.each()) {
 
     const auto other_e = check_zone_and_player_collision(r, physics, zone_e, colour);
     if (other_e == std::nullopt)
@@ -75,10 +73,8 @@ update_intent_pickup_system(entt::registry& r)
   }
 
   const auto items_view = r.view<HasParentComponent, ItemComponent>(entt::exclude<WaitForInitComponent>);
-
-  const auto& dropoff_zones =
-    r.view<DropoffZoneComponent, const AABB, SpriteColourComponent>(entt::exclude<WaitForInitComponent>);
-  for (const auto& [zone_e, zone, aabb, colour] : dropoff_zones.each()) {
+  const auto& dropoff_view = r.view<DropoffZoneComponent, const AABB, SpriteComponent>(entt::exclude<WaitForInitComponent>);
+  for (const auto& [zone_e, zone, aabb, colour] : dropoff_view.each()) {
 
     const auto other_e = check_zone_and_player_collision(r, physics, zone_e, colour);
     if (other_e == std::nullopt)

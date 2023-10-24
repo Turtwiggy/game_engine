@@ -68,76 +68,35 @@ create_sprite(entt::registry& r, const EntityType& type)
   // else
   // std::cerr << "warning! sprite not implemented: " << type_name << "\n";
 
-  SpriteComponent sc;
-
-  auto& anims = get_first_component<SINGLETON_Animations>(r);
+  const auto& anims = get_first_component<SINGLE_Animations>(r);
   const auto& ri = get_first_component<SINGLETON_RendererInfo>(r);
+  const auto& colours = get_first_component<SINGLETON_ColoursComponent>(r);
 
-  // search spritesheet
-  const auto anim = find_animation(anims.animations, sprite);
-  sc.x = anim.animation_frames[0].x;
-  sc.y = anim.animation_frames[0].y;
-
-  if (anim.angle_degrees != 0.0f)
-    sc.angle_radians = glm::radians(anim.angle_degrees);
-
-  // hacK: all sprites one texture
-  sc.tex_unit = ri.tex_unit_kennynl;
-  sc.sx = 48;
-  sc.sy = 22;
-  // else
-  //   std::cerr << "warning! spritesize not implemented for: " << type_name << "\n";
-
-  return sc;
-};
-
-SpriteColourComponent
-create_colour(const SINGLETON_ColoursComponent& colours, const EntityType& type)
-{
   const auto& primary = colours.lin_primary;
   const auto& secondary = colours.lin_secondary;
   const auto& tertiary = colours.lin_tertiary;
   const auto& quaternary = colours.lin_quaternary;
 
-  SpriteColourComponent scc;
-  scc.colour = primary;
+  SpriteComponent sc;
+  sc.colour = *primary;
 
-  if (type == EntityType::actor_hearth)
-    scc.colour = secondary;
-  // else if (type == EntityType::actor_pickup_zone) {
-  //   engine::LinearColour off;
-  //   off.r = 1.0f;
-  //   off.g = 1.0f;
-  //   off.b = 1.0f;
-  //   off.a = 0.1f;
-  //   scc.colour = std::make_shared<engine::LinearColour>(off);
-  // }
-  else if (type == EntityType::actor_dispencer) {
-    engine::LinearColour off;
-    off.r = 1.0f;
-    off.g = 1.0f;
-    off.b = 1.0f;
-    off.a = 0.1f;
-    scc.colour = std::make_shared<engine::LinearColour>(off);
-  }
-  // weapons
-  else if (type == EntityType::weapon_bow)
-    scc.colour = secondary;
-  // bullets...
-  else if (type == EntityType::bullet_default)
-    scc.colour = secondary;
-  else if (type == EntityType::bullet_bow)
-    scc.colour = primary;
-  // enemies...
-  else if (type == EntityType::enemy_grunt)
-    scc.colour = colours.lin_yellow;
-  else if (type == EntityType::enemy_sniper)
-    scc.colour = colours.lin_blue;
-  else if (type == EntityType::enemy_shotgunner)
-    scc.colour = colours.lin_orange;
+  // search spritesheet
+  const auto anim = find_animation(anims, sprite);
+  sc.tex_pos.x = anim.animation_frames[0].x;
+  sc.tex_pos.y = anim.animation_frames[0].y;
 
-  return scc;
-}
+  if (anim.angle_degrees != 0.0f)
+    sc.angle_radians = glm::radians(anim.angle_degrees);
+
+  //
+  // kennynl texture
+  //
+  sc.tex_unit = ri.tex_unit_kennynl;
+  sc.total_sx = 48;
+  sc.total_sy = 22;
+
+  return sc;
+};
 
 void
 create_physics_actor(entt::registry& r, const entt::entity& e)
@@ -166,7 +125,6 @@ create_gameplay(entt::registry& r, const EntityType& type)
   r.emplace<WaitForInitComponent>(e);
 
   r.emplace<SpriteComponent>(e, create_sprite(r, type));
-  r.emplace<SpriteColourComponent>(e, create_colour(colours, type));
   r.emplace<TransformComponent>(e);
   auto& transform = r.get<TransformComponent>(e);
   transform.scale.x = SPRITE_SIZE;

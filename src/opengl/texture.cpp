@@ -68,9 +68,9 @@ LinearTexture
 load_texture_linear(const int tex_unit, const std::string& path)
 {
   SRGBTexture srgb = load_texture_srgb(tex_unit, path);
-  int width = srgb.width;
-  int height = srgb.height;
-  int nr_components = srgb.nr_components;
+  const int width = srgb.width;
+  const int height = srgb.height;
+  const int nr_components = srgb.nr_components;
 
   LinearTexture linear;
   linear.width = width;
@@ -117,10 +117,10 @@ load_texture_linear(const int tex_unit, const std::string& path)
 unsigned int
 engine::bind_linear_texture(const LinearTexture& texture)
 {
-  int tex_unit = texture.texture_unit;
-  int width = texture.width;
-  int height = texture.height;
-  int nr_components = texture.nr_components;
+  const int tex_unit = texture.texture_unit;
+  const int width = texture.width;
+  const int height = texture.height;
+  const int nr_components = texture.nr_components;
   unsigned char* data = texture.data;
 
   unsigned int texture_id;

@@ -25,6 +25,7 @@
 using namespace engine; // used for macro
 
 // other lib
+#include "imgui.h"
 #include <SDL2/SDL.h>
 #include <glm/glm.hpp>
 #include <glm/gtc/type_ptr.hpp>
@@ -34,73 +35,43 @@ namespace game2d {
 void
 rebind(entt::registry& r, const SINGLETON_RendererInfo& ri)
 {
-  // engine::bind_tex(ri.tex_id_main);
-  // engine::update_bound_texture_size(wh);
-  // engine::unbind_tex();
+  const auto& wh = ri.viewport_size_render_at;
 
-  // engine::bind_tex(ri.tex_id_srgb);
-  // engine::update_bound_texture_size(wh);
-  // engine::unbind_tex();
+  engine::RenderCommand::set_viewport(0, 0, wh.x, wh.y);
 
-  // engine::bind_tex(ri.tex_id_emitters_and_occluders);
-  // engine::update_bound_texture_size(wh);
-  // engine::unbind_tex();
+  engine::bind_tex(ri.tex_unit_linear_main);
+  engine::update_bound_texture_size(wh);
+  engine::unbind_tex();
 
-  // engine::bind_tex(ri.tex_id_voronoi_seed);
-  // engine::update_bound_texture_size(wh);
-  // engine::unbind_tex();
+  engine::bind_tex(ri.tex_unit_mix_lighting_and_scene);
+  engine::update_bound_texture_size(wh);
+  engine::unbind_tex();
 
-  // engine::bind_tex(ri.tex_id_voronoi_distance);
-  // engine::update_bound_texture_size(wh);
-  // engine::unbind_tex();
+  glActiveTexture(GL_TEXTURE0 + ri.tex_unit_linear_main);
+  glBindTexture(GL_TEXTURE_2D, ri.tex_id_linear_main);
 
-  // engine::bind_tex(ri.tex_id_gi);
-  // engine::update_bound_texture_size(wh);
-  // engine::unbind_tex();
-
-  // // bug: ri.passes doesnt update on screensize, when it should
-  // for (int i = 0; i < ri.passes; i++) {
-  //   engine::bind_tex(ri.tex_ids_jump_flood[i]);
-  //   engine::update_bound_texture_size(wh);
-  //   engine::unbind_tex();
-  // }
-
-  // engine::RenderCommand::set_viewport(0, 0, wh.x, wh.y);
-
-  // // glActiveTexture(GL_TEXTURE0 + ri.tex_unit_kennynl);
-  // // glBindTexture(GL_TEXTURE_2D, ri.tex_id_kenny);
-
-  // // glActiveTexture(GL_TEXTURE0 + ri.tex_unit_main_FBO);
-  // // glBindTexture(GL_TEXTURE_2D, ri.tex_id_main);
-
-  // // glActiveTexture(GL_TEXTURE0 + ri.tex_unit_srgb_FBO);
-  // // glBindTexture(GL_TEXTURE_2D, ri.tex_id_srgb);
-
-  // glActiveTexture(GL_TEXTURE0 + ri.tex_unit_emitters_and_occluders);
-  // glBindTexture(GL_TEXTURE_2D, ri.tex_id_emitters_and_occluders);
+  glActiveTexture(GL_TEXTURE0 + ri.tex_unit_mix_lighting_and_scene);
+  glBindTexture(GL_TEXTURE_2D, ri.tex_id_mix_lighting_and_scene);
 
   glActiveTexture(GL_TEXTURE0 + ri.tex_unit_kennynl);
   glBindTexture(GL_TEXTURE_2D, ri.tex_id_kenny);
 
-  const auto wh = ri.viewport_size_render_at;
+  glActiveTexture(GL_TEXTURE0 + ri.tex_unit_custom);
+  glBindTexture(GL_TEXTURE_2D, ri.tex_id_custom);
 
   auto& camera = game2d::get_first_component<OrthographicCamera>(r);
   camera.projection = calculate_ortho_projection(wh.x, wh.y);
 
   ri.instanced.bind();
   ri.instanced.set_mat4("projection", camera.projection);
-  ri.instanced.set_int("tex", ri.tex_unit_kennynl);
+  ri.instanced.set_int("tex_kenny", ri.tex_unit_kennynl);
+  ri.instanced.set_int("tex_custom", ri.tex_unit_custom);
 
   ri.mix_lighting_and_scene.bind();
   ri.mix_lighting_and_scene.set_mat4("projection", camera.projection);
   ri.mix_lighting_and_scene.set_mat4("view", glm::mat4(1.0f)); // whole texture
   // ri.mix_lighting_and_scene.set_int("lighting", ri.tex_unit_denoise);
   ri.mix_lighting_and_scene.set_int("scene", ri.tex_unit_linear_main);
-
-  ri.linear_to_srgb.bind();
-  ri.linear_to_srgb.set_mat4("projection", camera.projection);
-  ri.linear_to_srgb.set_mat4("view", glm::mat4(1.0f)); // whole texture
-  ri.linear_to_srgb.set_int("tex", ri.tex_unit_mix_lighting_and_scene);
 };
 
 void
@@ -111,22 +82,26 @@ game2d::init_render_system(const engine::SINGLETON_Application& app, entt::regis
   ri.viewport_size_current = screen_wh;
   const auto& fbo_lighting_size = ri.viewport_size_render_at;
 
+  // FBO textures
   Framebuffer::default_fbo();
-
-  // create FBO textures
   new_texture_to_fbo(ri.fbo_linear_main, ri.tex_id_linear_main, ri.tex_unit_linear_main, fbo_lighting_size);
   new_texture_to_fbo(
     ri.fbo_mix_lighting_and_scene, ri.tex_id_mix_lighting_and_scene, ri.tex_unit_mix_lighting_and_scene, fbo_lighting_size);
-  new_texture_to_fbo(ri.fbo_srgb_main, ri.tex_id_srgb, ri.tex_unit_srgb, fbo_lighting_size);
+
+  // Load textures
   {
     const auto path = "assets/textures/kennynl_1bit_pack/monochrome_transparent_packed.png";
     const auto tex = engine::load_texture_linear(ri.tex_unit_kennynl, path);
     ri.tex_id_kenny = bind_linear_texture(tex);
   }
+  {
+    const auto path = "assets/textures/bargame_aseprite.png";
+    const auto tex = engine::load_texture_linear(ri.tex_unit_custom, path);
+    ri.tex_id_custom = bind_linear_texture(tex);
+  }
 
   ri.instanced = Shader("assets/shaders/2d_instanced.vert", "assets/shaders/2d_instanced.frag");
   ri.mix_lighting_and_scene = Shader("assets/shaders/2d_instanced.vert", "assets/shaders/2d_mix_lighting_and_scene.frag");
-  ri.linear_to_srgb = Shader("assets/shaders/2d_instanced.vert", "assets/shaders/2d_linear_to_srgb.frag");
 
   // initialize renderer
   SDL_GL_SetAttribute(SDL_GL_MULTISAMPLEBUFFERS, 1);
@@ -181,17 +156,21 @@ game2d::update_render_system(entt::registry& r, const float dt)
       // sort by z-index
       // group.sort<SpriteComponent>([](const auto& a, const auto& b) { return a.render_order < b.render_order; });
 
-      const auto& view = r.group<TransformComponent, SpriteComponent, SpriteColourComponent>();
+      const auto& view = r.group<TransformComponent, SpriteComponent>();
 
-      for (const auto& [entity, transform, sc, scc] : view.each()) {
+      for (const auto& [entity, transform, sc] : view.each()) {
         quad_renderer::RenderDescriptor desc;
         // desc.pos_tl = camera_transform.position + transform.position - transform.scale / 2;
         desc.pos_tl = transform.position - transform.scale / 2;
         desc.size = transform.scale;
         desc.angle_radians = sc.angle_radians + transform.rotation_radians.z;
-        desc.colour = *scc.colour;
+        desc.colour = sc.colour;
         desc.tex_unit = sc.tex_unit;
-        desc.sprite_offset_and_spritesheet = { sc.x, sc.y, sc.sx, sc.sy };
+
+        desc.sprite_offset = { sc.tex_pos.x, sc.tex_pos.y };
+        desc.sprite_width = { sc.tex_pos.w, sc.tex_pos.h };
+        desc.sprites_max = { sc.total_sx, sc.total_sy };
+
         quad_renderer::QuadRenderer::draw_sprite(desc, ri.instanced);
       }
 
@@ -200,7 +179,7 @@ game2d::update_render_system(entt::registry& r, const float dt)
     }
   }
 
-  // FBO: mix lighting and scene
+  // FBO: mix lighting and scene, and convert to srgb
   {
     Framebuffer::bind_fbo(ri.fbo_mix_lighting_and_scene);
     RenderCommand::set_viewport(0, 0, viewport_wh.x, viewport_wh.y);
@@ -216,38 +195,11 @@ game2d::update_render_system(entt::registry& r, const float dt)
         desc.angle_radians = 0.0f;
         // desc.colour = // not needed
         // desc.tex_unit = ri.tex_unit_main_FBO;
-        desc.sprite_offset_and_spritesheet = { 0, 0, 0, 0 };
+        // desc.sprite_offset_and_width = { 0, 0, 0, 0 };
         quad_renderer::QuadRenderer::draw_sprite(desc, ri.mix_lighting_and_scene);
       }
       quad_renderer::QuadRenderer::end_batch();
       quad_renderer::QuadRenderer::flush(ri.mix_lighting_and_scene);
-    }
-  }
-
-  // FBO: linear_to_srgb_pass
-  {
-    Framebuffer::bind_fbo(ri.fbo_srgb_main);
-    RenderCommand::set_viewport(0, 0, viewport_wh.x, viewport_wh.y);
-    RenderCommand::set_clear_colour_linear(*colours.lin_background);
-    RenderCommand::clear();
-
-    // Render the linear colour main scene in to this texture
-    // and perform the linear->srgb conversion in the fragment shader.
-    {
-      quad_renderer::QuadRenderer::reset_quad_vert_count();
-      quad_renderer::QuadRenderer::begin_batch();
-      {
-        quad_renderer::RenderDescriptor desc;
-        desc.pos_tl = { 0, 0 };
-        desc.size = viewport_wh;
-        desc.angle_radians = 0.0f;
-        // desc.colour = // not needed
-        // desc.tex_unit = ri.tex_unit_main_FBO;
-        desc.sprite_offset_and_spritesheet = { 0, 0, 0, 0 };
-        quad_renderer::QuadRenderer::draw_sprite(desc, ri.linear_to_srgb);
-      }
-      quad_renderer::QuadRenderer::end_batch();
-      quad_renderer::QuadRenderer::flush(ri.linear_to_srgb);
     }
   }
 
@@ -259,7 +211,7 @@ game2d::update_render_system(entt::registry& r, const float dt)
     RenderCommand::clear();
 
     // Note: ImGui::Image takes in TexID not TexUnit
-    ViewportInfo vi = render_texture_to_imgui_viewport(ri.tex_id_srgb);
+    ViewportInfo vi = render_texture_to_imgui_viewport(ri.tex_id_mix_lighting_and_scene);
 
     // If the viewport moves - viewport position will be a frame behind.
     // This would mainly affect an editor, a game viewport probably(?) wouldn't move that much
@@ -269,6 +221,28 @@ game2d::update_render_system(entt::registry& r, const float dt)
     ri.viewport_hovered = vi.hovered;
     ri.viewport_focused = vi.focused;
   }
+
+  //
+  // debug textures
+  //
+
+  ImVec2 viewport_size;
+  ImGui::Begin("Debug0");
+  viewport_size = ImGui::GetContentRegionAvail();
+  ImGui::Image((ImTextureID)ri.tex_id_kenny, viewport_size, ImVec2(0, 0), ImVec2(1, 1));
+  ImGui::End();
+  ImGui::Begin("Debug1");
+  viewport_size = ImGui::GetContentRegionAvail();
+  ImGui::Image((ImTextureID)ri.tex_id_custom, viewport_size, ImVec2(0, 0), ImVec2(1, 1));
+  ImGui::End();
+  ImGui::Begin("Debug2");
+  viewport_size = ImGui::GetContentRegionAvail();
+  ImGui::Image((ImTextureID)ri.tex_id_linear_main, viewport_size, ImVec2(0, 0), ImVec2(1, 1));
+  ImGui::End();
+  ImGui::Begin("Debug3");
+  viewport_size = ImGui::GetContentRegionAvail();
+  ImGui::Image((ImTextureID)ri.tex_id_mix_lighting_and_scene, viewport_size, ImVec2(0, 0), ImVec2(1, 1));
+  ImGui::End();
 };
 
 void
