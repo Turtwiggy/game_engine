@@ -17,6 +17,7 @@ enum class EntityType
 
   // transform-only
   empty,
+  empty_with_physics,
 
   // actors with only one type (so far)
   actor_hearth,

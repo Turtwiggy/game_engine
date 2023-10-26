@@ -17,13 +17,10 @@
 namespace game2d {
 
 std::optional<entt::entity>
-check_zone_and_player_collision(entt::registry& r,
-                                const SINGLETON_PhysicsComponent& physics,
-                                const entt::entity& zone_e,
-                                SpriteComponent& sc)
+check_zone_and_player_collision(entt::registry& r, const SINGLETON_PhysicsComponent& physics, const entt::entity& zone_e)
 {
   // no collison between zone <= => pickup entity
-  sc.colour.r = 0.0f;
+  // sc.colour.r = .0f;
 
   for (const auto& coll : physics.collision_stay) {
     const auto a = static_cast<entt::entity>(coll.ent_id_0);
@@ -33,14 +30,10 @@ check_zone_and_player_collision(entt::registry& r,
     //
     const auto a_other = r.try_get<WantsToPickUp>(a);
     const auto b_other = r.try_get<WantsToPickUp>(b);
-    if (a == zone_e && b_other) {
-      sc.colour.r = 1.0f;
+    if (a == zone_e && b_other)
       return b;
-    }
-    if (b == zone_e && a_other) {
-      sc.colour.r = 1.0f;
+    if (b == zone_e && a_other)
       return a;
-    }
   }
 
   return std::nullopt;
@@ -51,32 +44,40 @@ update_intent_pickup_system(entt::registry& r)
 {
   const auto& physics = get_first_component<SINGLETON_PhysicsComponent>(r);
 
-  const auto& reqs = r.view<WantsToPickUp>(entt::exclude<WaitForInitComponent>);
+  const auto& items_view = r.view<HasParentComponent, ItemComponent>(entt::exclude<WaitForInitComponent>);
 
-  const auto& pickup_view = r.view<PickupZoneComponent, const AABB, SpriteComponent>(entt::exclude<WaitForInitComponent>);
-  for (const auto& [zone_e, pickup, aabb, colour] : pickup_view.each()) {
+  const auto& pickup_view = r.view<PickupZoneComponent, const AABB>(entt::exclude<WaitForInitComponent>);
+  for (const auto& [zone_e, pickup, aabb] : pickup_view.each()) {
 
-    const auto other_e = check_zone_and_player_collision(r, physics, zone_e, colour);
+    const auto other_e = check_zone_and_player_collision(r, physics, zone_e);
     if (other_e == std::nullopt)
       continue;
 
-    // give the entity an item
-    //
-    const auto req = create_gameplay(r, EntityType::item);
-    r.get<ItemComponent>(req).item_id = pickup.spawn_item_with_id;
+    // limit amount of items a player can have picked up
+    bool hit_limit = false;
+    if (auto* limit = r.try_get<InventoryLimit>(other_e.value())) {
+      int items = 0;
+      for (const auto& [item_e, parent, item] : items_view.each()) {
+        const bool item_belongs_to_entity = parent.parent == other_e;
+        if (item_belongs_to_entity)
+          items++;
+      }
+      hit_limit = items >= limit->amount;
+    }
 
-    HasParentComponent hpc;
-    hpc.parent = other_e.value();
-    r.emplace_or_replace<HasParentComponent>(req, hpc);
-
-    r.remove<TransformComponent>(req);
+    if (!hit_limit) {
+      // give the entity an item
+      const auto req = create_gameplay(r, EntityType::item);
+      r.emplace_or_replace<HasParentComponent>(req, other_e.value());
+      r.get<ItemComponent>(req).item_id = pickup.spawn_item_with_id;
+      r.remove<TransformComponent>(req);
+    }
   }
 
-  const auto items_view = r.view<HasParentComponent, ItemComponent>(entt::exclude<WaitForInitComponent>);
-  const auto& dropoff_view = r.view<DropoffZoneComponent, const AABB, SpriteComponent>(entt::exclude<WaitForInitComponent>);
-  for (const auto& [zone_e, zone, aabb, colour] : dropoff_view.each()) {
+  const auto& dropoff_view = r.view<DropoffZoneComponent, const AABB>(entt::exclude<WaitForInitComponent>);
+  for (const auto& [zone_e, zone, aabb] : dropoff_view.each()) {
 
-    const auto other_e = check_zone_and_player_collision(r, physics, zone_e, colour);
+    const auto other_e = check_zone_and_player_collision(r, physics, zone_e);
     if (other_e == std::nullopt)
       continue;
     // there is a something standing in the dropoff zone that wanted to pick something up
@@ -107,6 +108,7 @@ update_intent_pickup_system(entt::registry& r)
   }
 
   // done with requests
+  const auto& reqs = r.view<WantsToPickUp>(entt::exclude<WaitForInitComponent>);
   r.remove<WantsToPickUp>(reqs.begin(), reqs.end());
 }
 

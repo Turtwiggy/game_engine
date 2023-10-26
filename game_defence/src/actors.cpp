@@ -13,6 +13,7 @@
 #include "modules/actor_spawner/components.hpp"
 #include "modules/actor_turret/components.hpp"
 #include "modules/animation/components.hpp"
+#include "modules/camera/components.hpp"
 #include "modules/camera/orthographic.hpp"
 #include "modules/combat_attack_cooldown/components.hpp"
 #include "modules/combat_damage/components.hpp"
@@ -72,13 +73,13 @@ create_sprite(entt::registry& r, const EntityType& type)
   const auto& ri = get_first_component<SINGLETON_RendererInfo>(r);
   const auto& colours = get_first_component<SINGLETON_ColoursComponent>(r);
 
-  const auto& primary = colours.lin_primary;
-  const auto& secondary = colours.lin_secondary;
-  const auto& tertiary = colours.lin_tertiary;
-  const auto& quaternary = colours.lin_quaternary;
+  // const auto& primary = colours.lin_primary;
+  // const auto& secondary = colours.lin_secondary;
+  // const auto& tertiary = colours.lin_tertiary;
+  // const auto& quaternary = colours.lin_quaternary;
 
   SpriteComponent sc;
-  sc.colour = *primary;
+  sc.colour = *colours.lin_white;
 
   // search spritesheet
   const auto anim = find_animation(anims, sprite);
@@ -132,6 +133,14 @@ create_gameplay(entt::registry& r, const EntityType& type)
 
   switch (type) {
 
+    case EntityType::empty: {
+      break;
+    }
+    case EntityType::empty_with_physics: {
+      create_physics_actor(r, e);
+      break;
+    }
+
       //
       // actors with only one type
       //
@@ -165,6 +174,8 @@ create_gameplay(entt::registry& r, const EntityType& type)
 
       r.emplace<HealthComponent>(e, 100);
       r.emplace<InfiniteLivesComponent>(e);
+      r.emplace<InventoryLimit>(e);
+      r.emplace<CameraFollow>(e);
       // r.emplace<GeneratePickupZoneComponent>(e);
 
       // r.emplace<TakeDamageComponent>(e);

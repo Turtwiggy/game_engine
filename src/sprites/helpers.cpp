@@ -90,6 +90,24 @@ set_sprite(entt::registry& r, const entt::entity& e, const std::string& sprite)
   auto& sprc = r.get<SpriteComponent>(e);
   sprc.tex_pos.x = anim.animation_frames[0].x;
   sprc.tex_pos.y = anim.animation_frames[0].y;
-}
+};
+
+glm::ivec2
+set_sprite_custom(entt::registry& r, const entt::entity& e, const std::string& sprite, int tex_unit)
+{
+  const auto& anims = get_first_component<SINGLE_Animations>(r);
+  const auto anim = find_animation(anims, sprite);
+
+  auto& sc = r.get<SpriteComponent>(e);
+  sc.tex_unit = tex_unit;
+  sc.total_sx = 32;
+  sc.total_sy = 32;
+  sc.tex_pos.x = anim.animation_frames[0].x;
+  sc.tex_pos.y = anim.animation_frames[0].y;
+  sc.tex_pos.w = anim.animation_frames[0].w;
+  sc.tex_pos.h = anim.animation_frames[0].h;
+
+  return { anim.animation_frames[0].w, anim.animation_frames[0].h };
+};
 
 } // namespace game2d

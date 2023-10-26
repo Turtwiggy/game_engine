@@ -5,6 +5,6 @@
 namespace game2d {
 
 void
-update_lerp_to_target_system(entt::registry& r, const float& dt);
+update_wiggle_up_and_down_system(entt::registry& r, float dt);
 
 } // namespace game2d

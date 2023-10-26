@@ -6,6 +6,11 @@
 
 namespace game2d {
 
+struct InventoryLimit
+{
+  int amount = 1;
+};
+
 // attached to entity
 struct WantsToPickUp
 {

@@ -17,6 +17,7 @@
 #include "modules/actor_spawner/system.hpp"
 #include "modules/actor_turret/system.hpp"
 #include "modules/animation/angle_to_velocity.hpp"
+#include "modules/animation/wiggle_up_and_down.hpp"
 #include "modules/camera/helpers.hpp"
 #include "modules/camera/orthographic.hpp"
 #include "modules/camera/system.hpp"
@@ -27,6 +28,7 @@
 #include "modules/gameover/system.hpp"
 #include "modules/items_drop/system.hpp"
 #include "modules/items_pickup/system.hpp"
+#include "modules/lerp_to_target/components.hpp"
 #include "modules/lerp_to_target/system.hpp"
 #include "modules/lifecycle/components.hpp"
 #include "modules/lifecycle/system.hpp"
@@ -92,6 +94,8 @@ game2d::init(engine::SINGLETON_Application& app, entt::registry& r)
   camera_info.projection = calculate_ortho_projection(app.width, app.height);
   r.emplace<OrthographicCamera>(camera, camera_info);
   r.emplace<TransformComponent>(camera);
+  // r.emplace<HasTargetPositionComponent>(camera);
+  // r.emplace<LerpToTargetComponent>(camera, 0.5f);
 
   auto& ri = get_first_component<SINGLETON_RendererInfo>(r);
   init_render_system(app, r, ri); // init after camera
@@ -172,16 +176,14 @@ game2d::fixed_update(entt::registry& game, const uint64_t milliseconds_dt)
     update_resolve_collisions_system(game);
     update_attack_cooldown_system(game, milliseconds_dt);
     update_player_controller_system(game, milliseconds_dt);
-    update_enemy_system(game);
-    update_turret_system(game, milliseconds_dt);
+    // update_enemy_system(game);
+    // update_turret_system(game, milliseconds_dt);
     update_take_damage_system(game);
-    update_flash_sprite_system(game, milliseconds_dt);
     update_respawn_system(game);
     update_spawner_system(game, milliseconds_dt);
     update_intent_pickup_system(game);
     update_intent_drop_item_system(game);
     update_bow_system(game, milliseconds_dt);
-    update_lerp_to_target_system(game, milliseconds_dt);
     update_actor_dropoffzone_request_items(game, milliseconds_dt);
   }
 
@@ -202,8 +204,12 @@ game2d::update(engine::SINGLETON_Application& app, entt::registry& r, const floa
     update_camera_system(r, dt);
     // update_audio_system(r);
     update_cursor_system(r, mouse_pos);
+
+    // systems dont affect AABB
     update_scale_by_velocity_system(r, dt);
-    // todo: update sprite animations...
+    update_wiggle_up_and_down_system(r, dt);
+    update_lerp_to_target_system(r, dt);
+    // update_flash_sprite_system(game, milliseconds_dt);
   }
 
   {

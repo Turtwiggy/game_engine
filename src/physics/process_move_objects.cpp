@@ -19,7 +19,7 @@ void
 game2d::update_move_objects_system(entt::registry& r, const uint64_t& milliseconds_dt)
 {
   //
-  // update all aabb based on rotation
+  // update all aabb size based on transform size
   //
   const auto& physics_rot_objects = r.view<const TransformComponent, AABB>();
   for (const auto& [entity, t, aabb] : physics_rot_objects.each()) {

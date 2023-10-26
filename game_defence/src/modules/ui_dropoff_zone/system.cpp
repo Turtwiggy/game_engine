@@ -6,6 +6,7 @@
 #include "modules/items/helpers.hpp"
 #include "modules/lifecycle/components.hpp"
 #include "modules/renderer/components.hpp"
+#include "physics/components.hpp"
 
 #include "entt/entt.hpp"
 #include "glm/glm.hpp"
@@ -21,17 +22,18 @@ update_ui_dropoff_zone_system(entt::registry& r)
 {
   const auto& ri = get_first_component<SINGLETON_RendererInfo>(r);
 
-  const auto& view = r.view<DropoffZoneComponent, TransformComponent>(entt::exclude<WaitForInitComponent>);
-  for (const auto& [entity, zone, transform] : view.each()) {
+  const auto& view = r.view<DropoffZoneComponent, AABB>(entt::exclude<WaitForInitComponent>);
+  for (const auto& [entity, zone, aabb] : view.each()) {
 
     const auto eid = std::to_string(static_cast<uint32_t>(entity));
     std::string beginlabel = "DropoffZone##"s + eid;
 
-    const auto worldspace = position_in_worldspace(r, { transform.position.x, transform.position.y });
+    const auto worldspace = position_in_worldspace(r, aabb.center);
     ImVec2 pos = { static_cast<float>(worldspace.x), static_cast<float>(worldspace.y) };
 
-    // offset by transform size
-    pos.y += transform.scale.y;
+    // offset
+    // pos.y -= aabb.size.y;
+    pos.y -= 100.0f;
 
     pos.x = glm::clamp(static_cast<int>(pos.x), 0, ri.viewport_size_render_at.x);
     pos.y = glm::clamp(static_cast<int>(pos.y), 0, ri.viewport_size_render_at.y);
@@ -58,6 +60,22 @@ update_ui_dropoff_zone_system(entt::registry& r)
         ImGui::SameLine();
       const auto info = item_id_to_sprite(r, zone.requested_items[i]);
       ImGui::Text("%s", info.display.c_str());
+    }
+
+    ImGui::NewLine();
+    std::string add = "+##"s + eid;
+    if (ImGui::Button(add.c_str())) {
+      zone.cur_customers++;
+      zone.cur_customers = glm::clamp(zone.cur_customers, 0, zone.max_customers);
+      std::cout << "newcustomers: " << zone.cur_customers << std::endl;
+    }
+
+    ImGui::SameLine();
+    std::string del = "-##"s + eid;
+    if (ImGui::Button(del.c_str())) {
+      zone.cur_customers--;
+      zone.cur_customers = glm::clamp(zone.cur_customers, 0, zone.max_customers);
+      std::cout << "newcustomers: " << zone.cur_customers << std::endl;
     }
 
     ImGui::End();

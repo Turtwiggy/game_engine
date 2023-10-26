@@ -226,23 +226,23 @@ game2d::update_render_system(entt::registry& r, const float dt)
   // debug textures
   //
 
-  ImVec2 viewport_size;
-  ImGui::Begin("Debug0");
-  viewport_size = ImGui::GetContentRegionAvail();
-  ImGui::Image((ImTextureID)ri.tex_id_kenny, viewport_size, ImVec2(0, 0), ImVec2(1, 1));
-  ImGui::End();
-  ImGui::Begin("Debug1");
-  viewport_size = ImGui::GetContentRegionAvail();
-  ImGui::Image((ImTextureID)ri.tex_id_custom, viewport_size, ImVec2(0, 0), ImVec2(1, 1));
-  ImGui::End();
-  ImGui::Begin("Debug2");
-  viewport_size = ImGui::GetContentRegionAvail();
-  ImGui::Image((ImTextureID)ri.tex_id_linear_main, viewport_size, ImVec2(0, 0), ImVec2(1, 1));
-  ImGui::End();
-  ImGui::Begin("Debug3");
-  viewport_size = ImGui::GetContentRegionAvail();
-  ImGui::Image((ImTextureID)ri.tex_id_mix_lighting_and_scene, viewport_size, ImVec2(0, 0), ImVec2(1, 1));
-  ImGui::End();
+  // ImVec2 viewport_size;
+  // ImGui::Begin("Debug0");
+  // viewport_size = ImGui::GetContentRegionAvail();
+  // ImGui::Image((ImTextureID)ri.tex_id_kenny, viewport_size, ImVec2(0, 0), ImVec2(1, 1));
+  // ImGui::End();
+  // ImGui::Begin("Debug1");
+  // viewport_size = ImGui::GetContentRegionAvail();
+  // ImGui::Image((ImTextureID)ri.tex_id_custom, viewport_size, ImVec2(0, 0), ImVec2(1, 1));
+  // ImGui::End();
+  // ImGui::Begin("Debug2");
+  // viewport_size = ImGui::GetContentRegionAvail();
+  // ImGui::Image((ImTextureID)ri.tex_id_linear_main, viewport_size, ImVec2(0, 0), ImVec2(1, 1));
+  // ImGui::End();
+  // ImGui::Begin("Debug3");
+  // viewport_size = ImGui::GetContentRegionAvail();
+  // ImGui::Image((ImTextureID)ri.tex_id_mix_lighting_and_scene, viewport_size, ImVec2(0, 0), ImVec2(1, 1));
+  // ImGui::End();
 };
 
 void

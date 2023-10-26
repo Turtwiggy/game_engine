@@ -36,7 +36,7 @@ struct SINGLE_Animations
 
 struct SpriteComponent
 {
-  engine::LinearColour colour;
+  engine::LinearColour colour = engine::SRGBToLinear(engine::SRGBColour(1.0f, 1.0f, 1.0f, 1.0f));
   float angle_radians = 0.0f;
 
   SpritePosition tex_pos;

@@ -25,6 +25,18 @@
     { "name": "icon_grass", "frames": [ { "x": 4, "y": 2, "w": 1, "h": 1 } ] },
 
     { "name": "icon_sign_active", "frames": [ { "x": 0, "y": 3, "w": 4, "h": 1 } ] },
-    { "name": "icon_sign_inactive", "frames": [ { "x": 0, "y": 3, "w": 4, "h": 1 } ] }
+    { "name": "icon_start_wine", "frames": [ { "x": 4, "y": 3, "w": 1, "h": 1 } ] },
+    { "name": "icon_start_cheese", "frames": [ { "x": 5, "y": 3, "w": 1, "h": 1 } ] },
+    { "name": "icon_start_beer", "frames": [ { "x": 6, "y": 3, "w": 1, "h": 1 } ] },
+    { "name": "icon_start_meat", "frames": [ { "x": 7, "y": 3, "w": 1, "h": 1 } ] },
+
+    { "name": "icon_sign_inactive", "frames": [ { "x": 0, "y": 4, "w": 4, "h": 1 } ] },
+
+    { "name": "dog", "frames": [ { "x": 0, "y": 5, "w": 1, "h": 1 } ] },
+
+    { "name": "campfire_empty", "frames": [ { "x": 0, "y": 6, "w": 3, "h": 3 } ] },
+    { "name": "campfire_full", "frames": [ { "x": 3, "y": 6, "w": 3, "h": 3 } ] },
+
+    { "name": "customer_0", "frames": [ { "x": 6, "y": 6, "w": 1, "h": 1 } ] }
   ]
 }

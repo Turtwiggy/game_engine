@@ -3,6 +3,7 @@
 
 // components/systems
 #include "actors.hpp"
+#include "components.hpp"
 #include "entt/helpers.hpp"
 #include "events/components.hpp"
 #include "events/helpers/keyboard.hpp"
@@ -10,7 +11,9 @@
 #include "modules/actor_hearth/components.hpp"
 #include "modules/actor_player/components.hpp"
 #include "modules/camera/orthographic.hpp"
+#include "modules/lerp_to_target/components.hpp"
 #include "modules/renderer/components.hpp"
+#include "renderer/transform.hpp"
 
 #include <glm/glm.hpp>
 #include <glm/gtx/compatibility.hpp>
@@ -31,22 +34,23 @@ update_camera_system(entt::registry& r, const float dt)
   offset_transform.position.y = static_cast<int>(-ri.viewport_size_render_at.y / 2.0f) + camera_transform.position.y;
   camera.view = calculate_ortho_view(offset_transform);
 
-  // camera to follow a target
-  // const auto& target_view = r.view<HearthComponent>(entt::exclude<WaitForInitComponent>);
-  // if (target_view.size() == 0)
-  //   return; // no target to home in on
-  // const auto target_entity = target_view.front();
-  // const auto& target_transform = r.get<TransformComponent>(target_entity);
+  // calculate center of all targets
+  auto target_position = camera_transform.position;
+  const auto& targets_view = r.view<CameraFollow, TransformComponent>();
+  for (const auto& [entity, follow, target_transform] : targets_view.each()) {
+    target_position.x += target_transform.position.x;
+    target_position.x /= 2.0f;
+    target_position.y += target_transform.position.y;
+    target_position.y /= 2.0f;
+  }
 
-  //
-  // debugging camera
-  //
-  // camera_transform.scale.x = 1;
-  // camera_transform.scale.y = 1;
-  // if (get_key_down(input, SDL_SCANCODE_RETURN))
-  //   camera_transform.position = target_transform.position;
-  // if (get_key_held(input, SDL_SCANCODE_LSHIFT))
-  //   CAM_SPEED *= 2.0f;
+  // update lerp
+  // if (auto* target = r.try_get<HasTargetPositionComponent>(camera_ent))
+  //   target->position = { target_position.x, target_position.y };
+
+  const glm::ivec2 allowed_bounds{ 100, 100 };
+  const glm::ivec2 offset = allowed_bounds;
+  // camera_transform.position = target_position;
 
   const float CAM_SPEED = 500.0f;
   const int mul = static_cast<int>(CAM_SPEED * dt);
