@@ -14,9 +14,7 @@
 #include "modules/renderer/components.hpp"
 #include "modules/scene/components.hpp"
 #include "modules/scene/helpers.hpp"
-#include "modules/ui_hierarchy/helpers.hpp"
 #include "physics/components.hpp"
-#include "modules/lifecycle/components.hpp"
 
 #include "glm/glm.hpp"
 // #include "imfilebrowser.h"
@@ -255,7 +253,7 @@ update_ui_level_editor_system(entt::registry& r, const glm::ivec2& input_mouse_p
 
     if (get_key_down(input, place_key)) {
 
-      const auto req =  create_gameplay(r, type);
+      const auto req = create_gameplay(r, type);
       TransformComponent tc{ { mouse_pos.x, mouse_pos.y, 0 } };
       r.emplace_or_replace<TransformComponent>(req, tc);
     }

@@ -23,7 +23,7 @@ calculate_perspective_view(const TransformComponent& transform, const Perspectiv
   view = glm::inverse(view);
   return view;
 
-  return glm::lookAt(transform.position, transform.position + get_forward_dir(camera), get_up_dir(camera));
+  // return glm::lookAt(transform.position, transform.position + get_forward_dir(camera), get_up_dir(camera));
 };
 
 glm::quat

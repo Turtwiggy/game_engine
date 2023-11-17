@@ -3,7 +3,7 @@
 // components
 #include "colour/colour.hpp"
 #include "modules/ui_hierarchy/components.hpp"
-#include "modules/ui_hierarchy/helpers.hpp"
+#include "imgui/helpers.hpp"
 #include "physics/components.hpp"
 #include "renderer/components.hpp"
 #include "sprites/components.hpp"

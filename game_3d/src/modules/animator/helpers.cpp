@@ -155,7 +155,7 @@ void
 read_hierachy_data(AssimpNodeData& dest, const aiNode* src)
 {
   const auto name = src->mName.C_Str();
-  std::cout << "found animation: " << name << std::endl;
+  std::cout << "found: " << name << std::endl;
 
   const auto transformation = src->mTransformation;
   for (int i = 0; i < src->mNumChildren; i++) {
@@ -168,23 +168,22 @@ read_hierachy_data(AssimpNodeData& dest, const aiNode* src)
 void
 read_missing_bones(Animation& a, const aiAnimation* anim, Model& m)
 {
-  int size = anim->mNumChannels;
+  const int size = anim->mNumChannels;
 
   // Get info from Model class
   auto& bone_info = m.bone_info;
   auto bone_count = m.bone_info.size();
 
-  for (int i = 0; i < bone_count; i++) {
-    auto channel = anim->mChannels[i];
+  for (int i = 0; i < size; i++) {
+    const auto channel = anim->mChannels[i];
     const std::string name = channel->mNodeName.data;
 
-    const auto bone = std::find_if(bone_info.begin(), bone_info.end(), [&name](const BoneInfo& b) {
-      //
-      return b.name == name;
-    });
+    const auto bone =
+      std::find_if(bone_info.begin(), bone_info.end(), [&name](const BoneInfo& b) { return b.name == name; });
+
     if (bone == bone_info.end()) {
       // missin bone info?
-      // ?
+      continue;
     }
 
     BoneInfo new_bone;
@@ -196,10 +195,10 @@ read_missing_bones(Animation& a, const aiAnimation* anim, Model& m)
 };
 
 Animation
-load_animation(const std::string& path, Model& model)
+load_animation(Model& model)
 {
   Assimp::Importer importer;
-  const aiScene* scene = importer.ReadFile(path, aiProcess_Triangulate);
+  const aiScene* scene = importer.ReadFile(model.path, aiProcess_Triangulate);
 
   Animation data;
   auto anim = scene->mAnimations[0];
@@ -217,7 +216,7 @@ load_animation(const std::string& path, Model& model)
 void
 load_animations(SINGLE_AnimatorComponent& anims, SINGLE_ModelsComponent& models)
 {
-  // anims.animation_0_data = load_animation(anims.animation_0_path, models.low_poly_car);
+  anims.animation_0_data = load_animation(models.low_poly_car);
 
   anims.final_bone_matrices.reserve(100);
   for (int i = 0; i < 100; i++)
@@ -231,6 +230,7 @@ load_animations(SINGLE_AnimatorComponent& anims, SINGLE_ModelsComponent& models)
 void
 play_animation(SINGLE_AnimatorComponent& anims, Animation* a)
 {
+  std::cout << "playing new animation" << std::endl;
   anims.current_animation = a;
   anims.current_time = 0.0f;
 }
@@ -247,6 +247,7 @@ calculate_bone_transforms(SINGLE_AnimatorComponent& anims,
   const auto bone = std::find_if(anims.current_animation->bones.begin(),
                                  anims.current_animation->bones.end(),
                                  [&name](const Bone& b) { return b.name == name; });
+
   if (bone != anims.current_animation->bones.end()) {
     update_bone((*bone), dt);
     transform = bone->local_transform;
@@ -258,8 +259,8 @@ calculate_bone_transforms(SINGLE_AnimatorComponent& anims,
   const auto has_bone_info =
     std::find_if(bone_info.begin(), bone_info.end(), [&name](const BoneInfo& bi) { return bi.name == name; });
   if (has_bone_info != bone_info.end()) {
-    auto index = (*has_bone_info).id;
-    auto offset = (*has_bone_info).offset;
+    const auto index = (*has_bone_info).id;
+    const auto offset = (*has_bone_info).offset;
     anims.final_bone_matrices[index] = global_transformation * offset;
   }
 

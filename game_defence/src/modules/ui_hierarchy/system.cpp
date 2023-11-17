@@ -1,8 +1,8 @@
 #include "system.hpp"
 
 // components
+#include "imgui/helpers.hpp"
 #include "modules/renderer/components.hpp"
-#include "modules/ui_hierarchy/helpers.hpp"
 #include "physics/components.hpp"
 #include "sprites/components.hpp"
 

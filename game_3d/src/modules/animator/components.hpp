@@ -57,15 +57,16 @@ struct Animation
   std::vector<BoneInfo> bone_info;
 };
 
-struct SINGLE_AnimationsComponent
-{
-  bool placeholder = true;
-};
+// struct SINGLE_AnimationsComponent
+// {
+//   bool placeholder = true;
+// };
 
 struct SINGLE_AnimatorComponent
 {
-  std::string animation_0_path;
-  Animation animation_0_data;
+  // result of loading
+  // this shouldnt be here
+  Animation animation_0_data; 
 
   // should be on a per-model basis?
   float current_time = 0.0f;

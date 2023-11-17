@@ -72,8 +72,11 @@ move_to_scene_start(entt::registry& r, const Scene s)
     {
       const auto e = create_gameplay(r, EntityType::actor_player);
       auto& e_aabb = r.get<AABB>(e);
-      // e_aabb.size = default_size * 10;
+      e_aabb.size = default_size * 1;
       e_aabb.center = { -88, -30 };
+
+      const auto icon_xy = set_sprite_custom(r, e, "player_0", ri.tex_unit_custom);
+      r.get<TransformComponent>(e).scale = { e_aabb.size.x, e_aabb.size.y, 1.0f };
     }
 
     // create food/item dispencers

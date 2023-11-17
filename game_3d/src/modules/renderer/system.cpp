@@ -8,6 +8,7 @@
 #include "modules/camera/perspective.hpp"
 #include "modules/models/components.hpp"
 #include "modules/models/helpers.hpp"
+#include "modules/renderer/helpers.hpp"
 
 // engine headers
 #include "opengl/framebuffer.hpp"
@@ -21,6 +22,7 @@ using namespace engine; // also used for macro
 #include <glm/glm.hpp>
 #include <glm/gtc/matrix_transform.hpp>
 #include <glm/gtc/type_ptr.hpp>
+#include <glm/gtx/quaternion.hpp>
 
 namespace game2d {
 
@@ -192,18 +194,18 @@ update_renderer_system(engine::SINGLETON_Application& app, entt::registry& r)
     shaders.animated.set_mat4("projection", camera.projection);
     shaders.animated.set_mat4("view", camera.view);
 
-    // const auto& transforms = animator.final_bone_matrices;
-    // for (int i = 0; i < transforms.size(); ++i)
-    //   shaders.animated.set_mat4("final_bone_matrices[" + std::to_string(i) + "]", transforms[i]);
-
-    const auto& view = r.view<TransformComponent, CarComponent>();
+    const auto& view = r.view<const TransformComponent, const CarComponent>();
     for (const auto& [entity, t, car] : view.each()) {
 
       glm::mat4 model(1.0f);
       model = glm::translate(model, t.position);
       model = glm::scale(model, t.scale);
-      model = glm::rotate(model, t.rotation.x, glm::vec3(0.0f, 1.0f, 0.0f));
+      model *= glm::toMat4(vec3_to_quat(t.rotation));
       shaders.animated.set_mat4("model", model);
+
+      const auto& transforms = animator.final_bone_matrices;
+      for (int i = 0; i < transforms.size(); ++i)
+        shaders.animated.set_mat4("final_bone_matrices[" + std::to_string(i) + "]", transforms[i]);
 
       draw_model(models.low_poly_car);
     }
@@ -231,7 +233,7 @@ update_renderer_system(engine::SINGLETON_Application& app, entt::registry& r)
       glm::mat4 model(1.0f);
       model = glm::translate(model, t.position);
       model = glm::scale(model, scale_big);
-      model = glm::rotate(model, t.rotation.x, glm::vec3(0.0f, 1.0f, 0.0f));
+      model *= glm::toMat4(vec3_to_quat(t.rotation));
       shaders.solid_colour.set_mat4("model", model);
       draw_model(models.low_poly_car);
     }

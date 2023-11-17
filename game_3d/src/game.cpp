@@ -6,13 +6,16 @@
 #include "events/components.hpp"
 #include "events/helpers/keyboard.hpp"
 #include "events/system.hpp"
+#include "imgui/helpers.hpp"
 #include "maths/maths.hpp"
 #include "modules/animator/components.hpp"
+#include "modules/animator/helpers.hpp"
 #include "modules/camera/perspective.hpp"
 #include "modules/camera/system.hpp"
 #include "modules/models/components.hpp"
 #include "modules/models/helpers.hpp"
 #include "modules/renderer/components.hpp"
+#include "modules/renderer/helpers.hpp"
 #include "modules/renderer/system.hpp"
 
 #include <glm/glm.hpp>
@@ -44,11 +47,15 @@ init(engine::SINGLETON_Application& app, entt::registry& r)
   camera_transform.position.z = 2.85;
   r.emplace<TransformComponent>(camera_entity, camera_transform);
 
-  SINGLE_ModelsComponent models;
-  load_models(models);
-  r.emplace<SINGLE_ModelsComponent>(r.create(), models);
-  r.emplace<SINGLE_AnimationsComponent>(r.create());
+  r.emplace<SINGLE_ModelsComponent>(r.create());
+  // r.emplace<SINGLE_AnimationsComponent>(r.create());
   r.emplace<SINGLE_AnimatorComponent>(r.create());
+
+  auto& models = get_first_component<SINGLE_ModelsComponent>(r);
+  auto& animator = get_first_component<SINGLE_AnimatorComponent>(r);
+  load_models(models);
+  load_animations(animator, models);
+  play_animation(animator, &animator.animation_0_data);
 
   init_renderer_system(r);
 
@@ -57,8 +64,8 @@ init(engine::SINGLETON_Application& app, entt::registry& r)
 
   TransformComponent tc;
   tc.position = { 0.0f, 0.0f, 0.0f };
-  tc.rotation = { 0.0f, 0.0f, 0.0f };
-  tc.scale = { 0.5f, 0.5f, 0.5f };
+  tc.rotation = { -engine::HALF_PI, 0.0f, 0.0f };
+  tc.scale = { 1.0f, 1.0f, 1.0f };
   r.emplace<TransformComponent>(e, tc);
   r.emplace<CarComponent>(e);
 }
@@ -97,26 +104,39 @@ update(engine::SINGLETON_Application& app, entt::registry& r, const float dt)
     const float move_velocity = car_speed * dt;
     const float turn_velocity = car_turn_speed * dt;
 
-    const glm::vec2 xy = engine::angle_radians_to_direction(t.rotation.x);
-    const glm::vec3 dir = { xy.x, 0.0f, -xy.y };
-
-    if (get_key_held(input, SDL_SCANCODE_UP))
-      t.position -= dir * move_velocity;
-    if (get_key_held(input, SDL_SCANCODE_DOWN))
-      t.position += dir * move_velocity;
+    // update rotation
     if (get_key_held(input, SDL_SCANCODE_LEFT))
-      t.rotation.x += turn_velocity;
+      t.rotation.z += turn_velocity;
     if (get_key_held(input, SDL_SCANCODE_RIGHT))
-      t.rotation.x -= turn_velocity;
+      t.rotation.z -= turn_velocity;
+
+    // get direction from rotation
+    const auto fwd_dir = glm::rotate(vec3_to_quat(t.rotation), glm::vec3(1.0f, 0.0f, 0.0f));
+    if (get_key_held(input, SDL_SCANCODE_UP))
+      t.position += fwd_dir * move_velocity;
+    if (get_key_held(input, SDL_SCANCODE_DOWN))
+      t.position -= fwd_dir * move_velocity;
   }
 
   // rendering
   {
+    auto& animator = get_first_component<SINGLE_AnimatorComponent>(r);
+    update_animation(animator, dt);
+
     update_renderer_system(app, r);
   }
 
   // ui
   {
+    const auto& models = r.view<CarComponent, TransformComponent>();
+    ImGui::Begin("Models");
+    for (const auto& [e, car, transform] : models.each()) {
+      game2d::imgui_draw_vec3("Pos: ", transform.position.x, transform.position.y, transform.position.z);
+      game2d::imgui_draw_vec3("Render Size: ", transform.scale.x, transform.scale.y, transform.scale.z);
+      game2d::imgui_draw_vec3("Render Angle:", transform.rotation.x, transform.rotation.y, transform.rotation.z);
+    }
+    ImGui::End();
+
     const auto& camera = get_first<PerspectiveCamera>(r);
     const auto& camera_p = r.get<PerspectiveCamera>(camera);
     const auto& camera_t = r.get<TransformComponent>(camera);

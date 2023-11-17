@@ -222,7 +222,7 @@ load_models(SINGLE_ModelsComponent& models)
     glBindVertexArray(0);
   }
 
-  std::cout << "loaded car model..." << std::endl;
+  std::cout << "loaded model..." << std::endl;
 };
 
 // if want textures, bind textures to shader/texture-unit

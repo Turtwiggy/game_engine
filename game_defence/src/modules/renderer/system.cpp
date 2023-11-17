@@ -8,7 +8,7 @@
 #include "modules/renderer/components.hpp"
 #include "modules/renderer/helpers.hpp"
 #include "modules/renderer/helpers/batch_quad.hpp"
-#include "modules/ui_hierarchy/helpers.hpp"
+#include "imgui/helpers.hpp"
 #include "resources/colours.hpp"
 #include "sprites/components.hpp"
 

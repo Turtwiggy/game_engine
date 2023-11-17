@@ -19,7 +19,7 @@
 #include "modules/ai/components.hpp"
 #include "modules/ai/helpers.hpp"
 #include "modules/fov/system.hpp"
-#include "modules/ui_hierarchy/helpers.hpp"
+#include "imgui/helpers.hpp"
 
 #include "magic_enum.hpp"
 #include <entt/entt.hpp>

@@ -5,11 +5,11 @@
 
 namespace game2d {
 
-Animation
-load_animation(const std::string& path, const Model& model);
 void
-load_animations(SINGLE_AnimatorComponent& anims);
+load_animations(SINGLE_AnimatorComponent& anims, SINGLE_ModelsComponent& models);
 
+void
+play_animation(SINGLE_AnimatorComponent& anims, Animation* a);
 void
 update_animation(SINGLE_AnimatorComponent& anims, float dt);
 
