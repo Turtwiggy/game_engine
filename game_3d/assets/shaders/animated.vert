@@ -34,7 +34,7 @@ main()
     }
     vec4 local_pos = final_bone_matrices[v_bone_ids[i]] * vec4(v_pos, 1.0f);
     total_pos += local_pos * v_weights[i];
-    vec3 local_normal = mat3(final_bone_matrices[v_bone_ids[i]]) * v_normal;
+    // vec3 local_normal = mat3(final_bone_matrices[v_bone_ids[i]]) * v_normal;
   }
 
   // gl_Position = projection * view * model * vec4(v_pos, 1.0f);

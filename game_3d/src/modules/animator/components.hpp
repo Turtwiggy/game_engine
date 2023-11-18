@@ -66,7 +66,7 @@ struct SINGLE_AnimatorComponent
 {
   // result of loading
   // this shouldnt be here
-  Animation animation_0_data; 
+  Animation animation_0_data;
 
   // should be on a per-model basis?
   float current_time = 0.0f;

@@ -45,7 +45,7 @@ struct Model
 
 struct SINGLE_ModelsComponent
 {
-  Model low_poly_car{ "assets/models/wiggy_mech_2d4b.dae" };
+  Model low_poly_car{ "assets/models/wiggy_mech_2d4b.fbx" };
 };
 
 // hack: remove this component

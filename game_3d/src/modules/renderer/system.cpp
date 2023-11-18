@@ -197,15 +197,15 @@ update_renderer_system(engine::SINGLETON_Application& app, entt::registry& r)
     const auto& view = r.view<const TransformComponent, const CarComponent>();
     for (const auto& [entity, t, car] : view.each()) {
 
+      const auto& transforms = animator.final_bone_matrices;
+      for (int i = 0; i < transforms.size(); ++i)
+        shaders.animated.set_mat4("final_bone_matrices[" + std::to_string(i) + "]", transforms[i]);
+
       glm::mat4 model(1.0f);
       model = glm::translate(model, t.position);
       model = glm::scale(model, t.scale);
       model *= glm::toMat4(vec3_to_quat(t.rotation));
       shaders.animated.set_mat4("model", model);
-
-      const auto& transforms = animator.final_bone_matrices;
-      for (int i = 0; i < transforms.size(); ++i)
-        shaders.animated.set_mat4("final_bone_matrices[" + std::to_string(i) + "]", transforms[i]);
 
       draw_model(models.low_poly_car);
     }

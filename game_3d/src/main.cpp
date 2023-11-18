@@ -60,6 +60,10 @@ main_loop(void* arg)
 
   game2d::update(app, game, milliseconds_delta_time / 1000.0f);
 
+#if defined(_DEBUG)
+  CHECK_OPENGL_ERROR(1);
+#endif
+
   engine::end_frame(app);
 }
 

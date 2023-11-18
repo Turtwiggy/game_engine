@@ -57,6 +57,9 @@ init(engine::SINGLETON_Application& app, entt::registry& r)
   load_animations(animator, models);
   play_animation(animator, &animator.animation_0_data);
 
+  // TEMP: for debugging
+  auto& model = models.low_poly_car;
+
   init_renderer_system(r);
 
   // create a car
@@ -64,8 +67,8 @@ init(engine::SINGLETON_Application& app, entt::registry& r)
 
   TransformComponent tc;
   tc.position = { 0.0f, 0.0f, 0.0f };
-  tc.rotation = { -engine::HALF_PI, 0.0f, 0.0f };
-  tc.scale = { 1.0f, 1.0f, 1.0f };
+  tc.rotation = { 0.0f, 0.0f, 0.0f };
+  tc.scale = { 0.01f, 0.01f, 0.01f };
   r.emplace<TransformComponent>(e, tc);
   r.emplace<CarComponent>(e);
 }
@@ -100,18 +103,18 @@ update(engine::SINGLETON_Application& app, entt::registry& r, const float dt)
   const auto& view = r.view<TransformComponent, CarComponent>();
   for (const auto& [entity, t, car] : view.each()) {
     const float car_turn_speed = 5.0f;
-    const float car_speed = 10.0f;
+    const float car_speed = 2.0f;
     const float move_velocity = car_speed * dt;
     const float turn_velocity = car_turn_speed * dt;
 
     // update rotation
     if (get_key_held(input, SDL_SCANCODE_LEFT))
-      t.rotation.z += turn_velocity;
+      t.rotation.y += turn_velocity;
     if (get_key_held(input, SDL_SCANCODE_RIGHT))
-      t.rotation.z -= turn_velocity;
+      t.rotation.y -= turn_velocity;
 
     // get direction from rotation
-    const auto fwd_dir = glm::rotate(vec3_to_quat(t.rotation), glm::vec3(1.0f, 0.0f, 0.0f));
+    const auto fwd_dir = glm::rotate(vec3_to_quat(t.rotation), glm::vec3(0.0f, 0.0f, -1.0f));
     if (get_key_held(input, SDL_SCANCODE_UP))
       t.position += fwd_dir * move_velocity;
     if (get_key_held(input, SDL_SCANCODE_DOWN))
@@ -121,7 +124,17 @@ update(engine::SINGLETON_Application& app, entt::registry& r, const float dt)
   // rendering
   {
     auto& animator = get_first_component<SINGLE_AnimatorComponent>(r);
+
+    static float timer = 0.0f;
+    static float speed = 4.0f;
+    timer += dt * speed;
     update_animation(animator, dt);
+
+    // reset
+    if (get_key_down(input, SDL_SCANCODE_P)) {
+      std::cout << "restarting anim" << std::endl;
+      play_animation(animator, &animator.animation_0_data);
+    }
 
     update_renderer_system(app, r);
   }

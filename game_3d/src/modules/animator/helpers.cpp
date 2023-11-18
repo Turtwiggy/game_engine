@@ -148,16 +148,27 @@ update_bone(Bone& b, float time)
   const glm::mat4 translation = interpolate_position(b, time);
   const glm::mat4 rotation = interpolate_rotation(b, time);
   const glm::mat4 scale = interpolate_scale(b, time);
-  b.local_transform = translation * rotation * scale;
+  b.local_transform = translation * rotation;
 };
 
 void
 read_hierachy_data(AssimpNodeData& dest, const aiNode* src)
 {
   const auto name = src->mName.C_Str();
-  std::cout << "found: " << name << std::endl;
+  dest.name = name;
+  // std::cout << "found: " << name << std::endl;
 
-  const auto transformation = src->mTransformation;
+  // convert from aiMatrix4x4 to glm::mat4
+  // clang-format off
+  auto& from = src->mTransformation;
+  auto& to = dest.transformation;
+  //the a,b,c,d in assimp is the row ; the 1,2,3,4 is the column
+  to[0][0] = from.a1; to[1][0] = from.a2; to[2][0] = from.a3; to[3][0] = from.a4;
+  to[0][1] = from.b1; to[1][1] = from.b2; to[2][1] = from.b3; to[3][1] = from.b4;
+  to[0][2] = from.c1; to[1][2] = from.c2; to[2][2] = from.c3; to[3][2] = from.c4;
+  to[0][3] = from.d1; to[1][3] = from.d2; to[2][3] = from.d3; to[3][3] = from.d4;
+  // clang-format on
+
   for (int i = 0; i < src->mNumChildren; i++) {
     AssimpNodeData new_data;
     read_hierachy_data(new_data, src->mChildren[i]);
@@ -166,13 +177,13 @@ read_hierachy_data(AssimpNodeData& dest, const aiNode* src)
 };
 
 void
-read_missing_bones(Animation& a, const aiAnimation* anim, Model& m)
+read_missing_bones(Animation& a, const aiAnimation* anim, const Model& m)
 {
   const int size = anim->mNumChannels;
 
-  // Get info from Model class
-  auto& bone_info = m.bone_info;
-  auto bone_count = m.bone_info.size();
+  const auto& bone_info = m.bone_info; // get bone info from model class
+  const auto bone_count = m.bone_info.size();
+  std::cout << "When loading animation, model has " << bone_count << " bones" << std::endl;
 
   for (int i = 0; i < size; i++) {
     const auto channel = anim->mChannels[i];
@@ -182,16 +193,14 @@ read_missing_bones(Animation& a, const aiAnimation* anim, Model& m)
       std::find_if(bone_info.begin(), bone_info.end(), [&name](const BoneInfo& b) { return b.name == name; });
 
     if (bone == bone_info.end()) {
-      // missin bone info?
+      std::cerr << "(WARNING) Bone:" << name << "missing from model?" << std::endl;
       continue;
     }
 
-    BoneInfo new_bone;
-    create_bone(name, (*bone).id, channel);
-    bone_info.push_back(new_bone);
+    a.bones.push_back(create_bone(name, (*bone).id, channel));
   }
 
-  a.bone_info = bone_info;
+  a.bone_info = m.bone_info;
 };
 
 Animation
@@ -199,6 +208,7 @@ load_animation(Model& model)
 {
   Assimp::Importer importer;
   const aiScene* scene = importer.ReadFile(model.path, aiProcess_Triangulate);
+  assert(scene && scene->mRootNode);
 
   Animation data;
   auto anim = scene->mAnimations[0];
@@ -206,9 +216,13 @@ load_animation(Model& model)
   data.ticks = anim->mTicksPerSecond;
 
   AssimpNodeData root_node;
-  aiNode* root = scene->mRootNode;
-  read_hierachy_data(root_node, root);
+  read_hierachy_data(root_node, scene->mRootNode);
+  data.root = root_node;
+
   read_missing_bones(data, anim, model);
+
+  // check animation bones & check model bones
+  assert(model.bone_info.size() == data.bone_info.size());
 
   return data;
 }
@@ -233,23 +247,22 @@ play_animation(SINGLE_AnimatorComponent& anims, Animation* a)
   std::cout << "playing new animation" << std::endl;
   anims.current_animation = a;
   anims.current_time = 0.0f;
+
+  anims.final_bone_matrices.clear();
+  for (int i = 0; i < 100; i++)
+    anims.final_bone_matrices.push_back(glm::mat4(1.0f));
 }
 
 void
-calculate_bone_transforms(SINGLE_AnimatorComponent& anims,
-                          const AssimpNodeData* node,
-                          const glm::mat4& parent,
-                          const float dt)
+calculate_bone_transforms(SINGLE_AnimatorComponent& anims, const AssimpNodeData* node, const glm::mat4& parent)
 {
   const auto& name = node->name;
   auto transform = node->transformation;
-
   const auto bone = std::find_if(anims.current_animation->bones.begin(),
                                  anims.current_animation->bones.end(),
                                  [&name](const Bone& b) { return b.name == name; });
-
   if (bone != anims.current_animation->bones.end()) {
-    update_bone((*bone), dt);
+    update_bone((*bone), anims.current_time);
     transform = bone->local_transform;
   }
 
@@ -265,7 +278,7 @@ calculate_bone_transforms(SINGLE_AnimatorComponent& anims,
   }
 
   for (int i = 0; i < node->children.size(); i++)
-    calculate_bone_transforms(anims, &node->children[i], global_transformation, dt);
+    calculate_bone_transforms(anims, &node->children[i], global_transformation);
 }
 
 void
@@ -274,7 +287,10 @@ update_animation(SINGLE_AnimatorComponent& anims, float dt)
   if (anims.current_animation) {
     anims.current_time += anims.current_animation->ticks * dt;
     anims.current_time = fmod(anims.current_time, anims.current_animation->duration);
-    calculate_bone_transforms(anims, &anims.current_animation->root, glm::mat4(1.0f), dt);
+
+    std::cout << "animation current time: " << anims.current_time << std::endl;
+
+    calculate_bone_transforms(anims, &anims.current_animation->root, glm::mat4(1.0f));
   }
 }
 

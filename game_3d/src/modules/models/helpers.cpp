@@ -11,6 +11,19 @@
 
 namespace game2d {
 
+glm::mat4
+assimp_mat4_to_glm_mat4(const aiMatrix4x4& from)
+{
+  glm::mat4 to;
+  // clang-format off
+  to[0][0] = from.a1; to[1][0] = from.a2; to[2][0] = from.a3; to[3][0] = from.a4;
+  to[0][1] = from.b1; to[1][1] = from.b2; to[2][1] = from.b3; to[3][1] = from.b4;
+  to[0][2] = from.c1; to[1][2] = from.c2; to[2][2] = from.c3; to[3][2] = from.c4;
+  to[0][3] = from.d1; to[1][3] = from.d2; to[2][3] = from.d3; to[3][3] = from.d4;
+  // clang-format on
+  return to;
+}
+
 void
 set_vertex_bonedata_to_default(Vertex& v)
 {
@@ -23,8 +36,8 @@ set_vertex_bonedata_to_default(Vertex& v)
 void
 set_vertex_bonedata(Vertex& v, int bone_id, float weight)
 {
-  for (int i = 0; i < MAX_BONE_INFLUENCE; i++) {
-    if (v.bone_ids[i] < 0) {
+  for (int i = 0; i < MAX_BONE_INFLUENCE; ++i) {
+    if (v.bone_ids[i] < 0) { // not yet set
       v.bone_ids[i] = bone_id;
       v.weights[i] = weight;
       break;
@@ -36,6 +49,7 @@ void
 extract_bone_weight_for_vertices(Model& model, std::vector<Vertex>& vertices, aiMesh* mesh, const aiScene* scene)
 {
   auto& bone_info = model.bone_info;
+  int bone_counter = 0;
 
   for (int i = 0; i < mesh->mNumBones; i++) {
     int bone_id = -1;
@@ -46,30 +60,32 @@ extract_bone_weight_for_vertices(Model& model, std::vector<Vertex>& vertices, ai
       std::find_if(bone_info.begin(), bone_info.end(), [&bone_name](const BoneInfo& b) { return b.name == bone_name; });
 
     if (exiting_bone == bone_info.end()) {
-      BoneInfo new_bone;
-      new_bone.id = bone_info.size();
-      bone_id = new_bone.id;
-
-      // convert from aiMatrix4x4 to glm::mat4
-      // clang-format off
-      auto& from = bone->mOffsetMatrix;
-      auto& to = new_bone.offset;
-      //the a,b,c,d in assimp is the row ; the 1,2,3,4 is the column
-      to[0][0] = from.a1; to[1][0] = from.a2; to[2][0] = from.a3; to[3][0] = from.a4;
-      to[0][1] = from.b1; to[1][1] = from.b2; to[2][1] = from.b3; to[3][1] = from.b4;
-      to[0][2] = from.c1; to[1][2] = from.c2; to[2][2] = from.c3; to[3][2] = from.c4;
-      to[0][3] = from.d1; to[1][3] = from.d2; to[2][3] = from.d3; to[3][3] = from.d4;
-      // clang-format on
-
-      bone_info.push_back(new_bone);
-    } else
+      BoneInfo new_bone_info;
+      new_bone_info.name = bone_name;
+      new_bone_info.id = bone_info.size();
+      new_bone_info.offset = assimp_mat4_to_glm_mat4(bone->mOffsetMatrix);
+      bone_info.push_back(new_bone_info);
+      bone_id = bone_counter++;
+    } else {
       bone_id = (*exiting_bone).id;
+    }
+    assert(bone_id != -1);
+
+    int count = 0;
 
     for (int i = 0; i < bone->mNumWeights; i++) {
-      int vertex_id = bone->mWeights[i].mVertexId;
-      int weight = bone->mWeights[i].mWeight;
+      const int vertex_id = bone->mWeights[i].mVertexId;
+      const int weight = bone->mWeights[i].mWeight;
+      assert(vertex_id <= vertices.size());
+
+      if (weight == 1)
+        count++;
+
       set_vertex_bonedata(vertices[vertex_id], bone_id, weight);
     }
+
+    if (count > 0)
+      std::cout << "bone " << bone->mName.C_Str() << " influencing " << count << " verts" << std::endl;
   }
 }
 
@@ -99,9 +115,8 @@ process_mesh(Model& model, aiMesh* mesh, const aiScene* scene)
     {
       v.uv.x = mesh->mTextureCoords[0][i].x;
       v.uv.y = mesh->mTextureCoords[0][i].y;
-    } else {
+    } else
       v.uv = glm::vec2(0.0f, 0.0f);
-    }
 
     if (mesh->mMaterialIndex >= 0) {
       aiMaterial* mat = scene->mMaterials[mesh->mMaterialIndex];
@@ -118,7 +133,7 @@ process_mesh(Model& model, aiMesh* mesh, const aiScene* scene)
   // indices
   for (int i = 0; i < mesh->mNumFaces; i++) {
     aiFace face = mesh->mFaces[i];
-    for (unsigned int j = 0; j < face.mNumIndices; j++)
+    for (auto j = 0; j < face.mNumIndices; j++)
       indices.push_back(face.mIndices[j]);
   }
 
@@ -223,6 +238,7 @@ load_models(SINGLE_ModelsComponent& models)
   }
 
   std::cout << "loaded model..." << std::endl;
+  std::cout << "It has " << model.bone_info.size() << "bones" << std::endl;
 };
 
 // if want textures, bind textures to shader/texture-unit
