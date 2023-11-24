@@ -75,7 +75,7 @@ move_to_scene_start(entt::registry& r, const Scene s)
       e_aabb.size = default_size * 1;
       e_aabb.center = { -88, -30 };
 
-      const auto icon_xy = set_sprite_custom(r, e, "player_0", ri.tex_unit_custom);
+      const auto icon_xy = set_sprite_custom(r, e, "player_0");
       r.get<TransformComponent>(e).scale = { e_aabb.size.x, e_aabb.size.y, 1.0f };
     }
 
@@ -100,7 +100,7 @@ move_to_scene_start(entt::registry& r, const Scene s)
         r.get<TransformComponent>(icon).scale = { e_aabb.size.x, e_aabb.size.y, 1.0f };
 
         const auto info = item_id_to_sprite(r, i);
-        set_sprite_custom(r, icon, info.sprite, ri.tex_unit_custom);
+        set_sprite_custom(r, icon, info.sprite);
 
         WiggleUpAndDown wiggle;
         wiggle.base_position = e_aabb.center;
@@ -112,7 +112,7 @@ move_to_scene_start(entt::registry& r, const Scene s)
       {
         const auto info = item_id_to_sprite(r, i);
         const auto icon = create_gameplay(r, EntityType::empty);
-        const auto icon_xy = set_sprite_custom(r, icon, info.sprite_text, ri.tex_unit_custom);
+        const auto icon_xy = set_sprite_custom(r, icon, info.sprite_text);
 
         r.get<TransformComponent>(icon).position = { e_aabb.center.x, e_aabb.center.y - 30, 0.0f };
         r.get<TransformComponent>(icon).scale = { e_aabb.size.x * icon_xy.x, e_aabb.size.y, 1.0f };
@@ -121,7 +121,7 @@ move_to_scene_start(entt::registry& r, const Scene s)
       // create delivery table
       {
         const auto icon = create_gameplay(r, EntityType::empty);
-        const auto icon_xy = set_sprite_custom(r, icon, "icon_table_green"s, ri.tex_unit_custom);
+        const auto icon_xy = set_sprite_custom(r, icon, "icon_table_green"s);
 
         auto& t = r.get<TransformComponent>(icon);
         t.position = { e_aabb.center.x, e_aabb.center.y + 30, 0.0f };
@@ -142,7 +142,7 @@ move_to_scene_start(entt::registry& r, const Scene s)
           e_aabb.center = glm::ivec2{ -150, -150 };
           e_aabb.size = default_size;
 
-          const auto icon_xy = set_sprite_custom(r, e, "campfire_empty"s, ri.tex_unit_custom);
+          const auto icon_xy = set_sprite_custom(r, e, "campfire_empty"s);
           auto& icon_transform = r.get<TransformComponent>(e);
           icon_transform.position = { e_aabb.center.x, e_aabb.center.y, 0.0f };
           icon_transform.scale = { e_aabb.size.x * icon_xy.x, e_aabb.size.y * icon_xy.y, 1.0f };
@@ -151,7 +151,7 @@ move_to_scene_start(entt::registry& r, const Scene s)
         // show sign above delivery point
         {
           const auto icon = create_gameplay(r, EntityType::empty);
-          const auto icon_xy = set_sprite_custom(r, icon, "icon_sign_inactive"s, ri.tex_unit_custom);
+          const auto icon_xy = set_sprite_custom(r, icon, "icon_sign_inactive"s);
 
           auto& icon_transform = r.get<TransformComponent>(icon);
           icon_transform.position = { e_aabb.center.x, e_aabb.center.y - 100.0f, 0.0f };
@@ -170,11 +170,16 @@ move_to_scene_start(entt::registry& r, const Scene s)
 
     for (const auto& p : poisson) {
       const auto icon = create_gameplay(r, EntityType::empty);
-      const auto icon_xy = set_sprite_custom(r, icon, "icon_grass"s, ri.tex_unit_custom);
+      const auto icon_xy = set_sprite_custom(r, icon, "icon_grass"s);
 
       r.get<TransformComponent>(icon).position = { offset.x + p.x, offset.y + p.y, 0.0f };
       r.get<TransformComponent>(icon).scale = { default_size.x, default_size.y, 1.0f };
       r.get<TagComponent>(icon).tag = "grass"s;
+    }
+
+    // create an animated sprite
+    {
+      const auto e = create_gameplay(r, EntityType::vfx_muzzleflash);
     }
   }
 

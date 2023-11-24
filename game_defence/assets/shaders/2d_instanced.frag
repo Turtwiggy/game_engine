@@ -11,26 +11,15 @@ in float v_tex_unit;
 
 uniform sampler2D tex_kenny;
 uniform sampler2D tex_custom;
+uniform sampler2D tex_muzzle;
 
 void
 main()
 {
   int index = int(v_tex_unit);
   
-  // Sample texture directly
-  if ((v_sprite_pos.x == 0.0f && v_sprite_pos.y == 0.0f)) { // a whole texture
-    out_colour = v_colour;
-    return;
-  }
-
   // A spritesheet texture
-  // if(v_sprites.x > 0.0f || v_sprites.y > 0.0f)
   {
-    // vec2 sprite_uv = vec2(
-    //   v_uv.x / v_sprites.x + v_sprite_pos.x * (1.0f / v_sprites.x),
-    //   v_uv.y / v_sprites.y + v_sprite_pos.y * (1.0f / v_sprites.y)      
-    // );
-
     // v_uv goes from 0 to 1
     // convert from 0 to 1 to the width/height desired 
     vec2 sprite_uv = vec2(
@@ -41,11 +30,23 @@ main()
     out_colour = v_colour;
 
     // index set on cpu side...
+    // WARNING: seems bad
     if(index == 2)
       out_colour *= texture(tex_kenny, sprite_uv);
     else if(index == 3)
       out_colour *= texture(tex_custom, sprite_uv);
+    else if(index == 4){
+      out_colour *= texture(tex_muzzle, sprite_uv);
+      return; // texture uses 0, 0
+    }
   }
+
+  // Sample texture directly
+  if ((v_sprite_pos.x == 0.0f && v_sprite_pos.y == 0.0f)) { // a whole texture
+    out_colour = v_colour;
+    return;
+  }
+
 }
 
 // vec2

@@ -18,6 +18,7 @@
 #include "modules/actor_turret/system.hpp"
 #include "modules/animation/angle_to_velocity.hpp"
 #include "modules/animation/wiggle_up_and_down.hpp"
+#include "modules/animator/system.hpp"
 #include "modules/camera/helpers.hpp"
 #include "modules/camera/orthographic.hpp"
 #include "modules/camera/system.hpp"
@@ -37,6 +38,7 @@
 #include "modules/resolve_collisions/system.hpp"
 #include "modules/respawn/system.hpp"
 #include "modules/scene/helpers.hpp"
+#include "modules/screenshake/system.hpp"
 #include "modules/ui_audio/system.hpp"
 #include "modules/ui_collisions/system.hpp"
 #include "modules/ui_colours/system.hpp"
@@ -69,21 +71,40 @@ void
 game2d::init(engine::SINGLETON_Application& app, entt::registry& r)
 {
   {
+    SINGLETON_AudioComponent audio;
+    audio.sounds.push_back({ "SHOOT_01", "assets/audio/FIREARM_RTS_Machine_Gun_Model_01_Fire_Single_RR1_mono.wav" });
+    audio.sounds.push_back({ "SHOOT_02", "assets/audio/FIREARM_Handgun_B_FS92_9mm_Fire_RR1_stereo.wav" });
+    r.emplace<SINGLETON_AudioComponent>(r.create(), audio);
+  }
+  init_audio_system(r);
+
+  {
+    SINGLETON_RendererInfo ri;
+
+    Texture kennynl;
+    kennynl.path = "assets/textures/kennynl_1bit_pack/monochrome_transparent_packed.png";
+    kennynl.spritesheet_path = "assets/config/spritemap_kennynl.json";
+    ri.user_textures.push_back(kennynl);
+
+    Texture custom;
+    custom.path = "assets/textures/bargame_aseprite.png";
+    custom.spritesheet_path = "assets/config/spritemap_custom.json";
+    ri.user_textures.push_back(custom);
+
+    Texture kennynl_particle;
+    kennynl_particle.path = "assets/textures/kenny_particle_pack/kenny_muzzle_spritesheet.png";
+    kennynl_particle.spritesheet_path = "assets/config/spritemap_kennynl_particle.json";
+    ri.user_textures.push_back(kennynl_particle);
+
+    // load spritesheet info
     SINGLE_Animations anims;
-    load_sprites(anims, "assets/config/spritemap_kennynl.json");
-    load_sprites(anims, "assets/config/spritemap_custom.json");
+    for (const auto& tex : ri.user_textures)
+      load_sprites(anims, tex.spritesheet_path);
     r.emplace<SINGLE_Animations>(r.create(), anims);
+
+    r.emplace<SINGLETON_RendererInfo>(r.create(), ri);
   }
 
-  // {
-  //   SINGLETON_AudioComponent audio;
-  //   audio.sounds.push_back({ "SHOOT_01", "assets/audio/FIREARM_RTS_Machine_Gun_Model_01_Fire_Single_RR1_mono.wav" });
-  //   audio.sounds.push_back({ "SHOOT_02", "assets/audio/FIREARM_Handgun_B_FS92_9mm_Fire_RR1_stereo.wav" });
-  //   r.emplace<SINGLETON_AudioComponent>(r.create(), audio);
-  // }
-  // init_audio_system(r);
-
-  r.emplace<SINGLETON_RendererInfo>(r.create());
   r.emplace<SINGLETON_FixedUpdateInputHistory>(r.create());
   r.emplace<SINGLETON_InputComponent>(r.create());
   r.emplace<SINGLETON_LevelEditor>(r.create());
@@ -197,33 +218,38 @@ game2d::update(engine::SINGLETON_Application& app, entt::registry& r, const floa
 
   // one frame behind
   const glm::ivec2 mouse_pos = mouse_position_in_worldspace(r);
+  const auto& scene = get_first_component<SINGLETON_CurrentScene>(r);
 
   {
     OPTICK_EVENT("(update)-game-tick");
     update_input_system(app, r);
     update_camera_system(r, dt);
-    // update_audio_system(r);
+    update_audio_system(r);
     update_cursor_system(r, mouse_pos);
 
-    // systems dont affect AABB
-    update_scale_by_velocity_system(r, dt);
-    update_wiggle_up_and_down_system(r, dt);
-    update_lerp_to_target_system(r, dt);
-    // update_flash_sprite_system(game, milliseconds_dt);
+    if (scene.s == Scene::game) {
+      // systems dont affect AABB
+      update_scale_by_velocity_system(r, dt);
+      update_wiggle_up_and_down_system(r, dt);
+      update_lerp_to_target_system(r, dt);
+      // update_flash_sprite_system(game, milliseconds_dt);
+      const float timer = app.ms_since_launch / 1000.0f;
+      update_screenshake_system(r, timer, dt);
+    }
   }
 
   {
     OPTICK_EVENT("(update)-update-render-system");
+    update_animator_system(r, dt);
     update_render_system(r, dt);
   }
 
   {
     OPTICK_EVENT("(update)-update-ui");
 
-    const auto& scene = get_first_component<SINGLETON_CurrentScene>(r);
-    if (scene.s == Scene::menu)
+    if (scene.s == Scene::menu) {
       update_ui_scene_main_menu(app, r);
-    else if (scene.s == Scene::game) {
+    } else if (scene.s == Scene::game) {
       // update_ui_next_wave_system(r);
       // update_ui_spawner_system(r);
       update_ui_grid_interaction_system(r);

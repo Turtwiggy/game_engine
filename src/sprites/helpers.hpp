@@ -19,6 +19,6 @@ void
 set_sprite(entt::registry& r, const entt::entity& e, const std::string& sprite);
 
 glm::ivec2
-set_sprite_custom(entt::registry& r, const entt::entity& e, const std::string& sprite, int tex_unit);
+set_sprite_custom(entt::registry& r, const entt::entity& e, const std::string& sprite);
 
 }; // namespace game2d

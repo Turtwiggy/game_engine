@@ -27,17 +27,17 @@ update_actor_dropoffzone_request_items(entt::registry& r, uint64_t ms_dt)
 
     // change sprite based on customers at zone
     if (zone.cur_customers == 0) {
-      set_sprite_custom(r, e, "campfire_empty"s, ri.tex_unit_custom);
-      set_sprite_custom(r, zone.sign, "icon_sign_inactive"s, ri.tex_unit_custom);
+      set_sprite_custom(r, e, "campfire_empty"s);
+      set_sprite_custom(r, zone.sign, "icon_sign_inactive"s);
     } else {
-      set_sprite_custom(r, e, "campfire_full"s, ri.tex_unit_custom);
-      set_sprite_custom(r, zone.sign, "icon_sign_active"s, ri.tex_unit_custom);
+      set_sprite_custom(r, e, "campfire_full"s);
+      set_sprite_custom(r, zone.sign, "icon_sign_active"s);
     }
 
     // create people
     for (int i = zone.cur_customers; i > zone.instantiated_customers.size(); i--) {
       const auto new_customer = create_gameplay(r, EntityType::empty);
-      set_sprite_custom(r, new_customer, "customer_0", ri.tex_unit_custom);
+      set_sprite_custom(r, new_customer, "customer_0");
 
       auto& new_transform = r.get<TransformComponent>(new_customer);
       new_transform.position = { aabb.center.x + aabb.size.x / 2, aabb.center.y, 0.0f };

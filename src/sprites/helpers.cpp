@@ -3,6 +3,8 @@
 
 #include "components.hpp"
 #include "entt/helpers.hpp"
+#include "modules/renderer/components.hpp"
+#include "modules/renderer/helpers.hpp"
 
 // other libs
 #include "entt/entt.hpp"
@@ -93,13 +95,15 @@ set_sprite(entt::registry& r, const entt::entity& e, const std::string& sprite)
 };
 
 glm::ivec2
-set_sprite_custom(entt::registry& r, const entt::entity& e, const std::string& sprite, int tex_unit)
+set_sprite_custom(entt::registry& r, const entt::entity& e, const std::string& sprite)
 {
   const auto& anims = get_first_component<SINGLE_Animations>(r);
   const auto anim = find_animation(anims, sprite);
+  const auto& ri = get_first_component<SINGLETON_RendererInfo>(r);
+  const auto tex = search_for_texture_by_path(ri, "bargame");
 
   auto& sc = r.get<SpriteComponent>(e);
-  sc.tex_unit = tex_unit;
+  sc.tex_unit = tex->unit;
   sc.total_sx = 32;
   sc.total_sy = 32;
   sc.tex_pos.x = anim.animation_frames[0].x;

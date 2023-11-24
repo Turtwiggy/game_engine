@@ -56,15 +56,15 @@ struct SpriteComponent
 //   bool placeholder = true;
 // };
 
-// This contains the current state of the animation frame
-// struct SpriteAnimationComponent
-// {
-//   std::string playing_animation_name;
-//   int frame = 0;
-//   float frame_dt = 0.0f;
-//   float speed = 1.0f;
-//   bool playing = true;
-//   bool looping = true;
-// };
+// This contains the current state of the animation
+struct SpriteAnimationComponent
+{
+  std::string playing_animation_name;
+  float timer = 0.0f;
+  float duration = 10.0f;
+  // float speed = 1.0f;
+  bool playing = true;
+  bool looping = true;
+};
 
 } // namespace game2d

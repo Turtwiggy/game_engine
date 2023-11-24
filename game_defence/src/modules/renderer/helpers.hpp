@@ -7,6 +7,7 @@
 #include <imgui.h>
 
 #include <optional>
+#include <string>
 #include <vector>
 
 namespace game2d {
@@ -24,5 +25,8 @@ render_texture_to_imgui_viewport(const int64_t& tex_unit);
 
 bool
 check_if_viewport_resize(const SINGLETON_RendererInfo& ri);
+
+std::optional<TextureUnit>
+search_for_texture_by_path(const SINGLETON_RendererInfo& ri, const std::string& search);
 
 }; // namespace game2d

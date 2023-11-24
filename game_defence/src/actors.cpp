@@ -21,6 +21,7 @@
 #include "modules/lerp_to_target/components.hpp"
 #include "modules/lifecycle/components.hpp"
 #include "modules/renderer/components.hpp"
+#include "modules/renderer/helpers.hpp"
 #include "modules/respawn/components.hpp"
 #include "physics/components.hpp"
 #include "sprites/components.hpp"
@@ -66,6 +67,9 @@ create_sprite(entt::registry& r, const EntityType& type)
   else if (type == EntityType::enemy_shotgunner)
     sprite = "PERSON_28_1";
 
+  if (type == EntityType::vfx_muzzleflash)
+    sprite = "MUZZLE_FLASH";
+
   // else
   // std::cerr << "warning! sprite not implemented: " << type_name << "\n";
 
@@ -92,9 +96,20 @@ create_sprite(entt::registry& r, const EntityType& type)
   //
   // kennynl texture
   //
-  sc.tex_unit = ri.tex_unit_kennynl;
+  sc.tex_unit = search_for_texture_by_path(ri, "monochrome")->unit;
   sc.total_sx = 48;
   sc.total_sy = 22;
+
+  //
+  // muzzleflash texture
+  //
+  if (type == EntityType::vfx_muzzleflash) {
+    sc.tex_unit = search_for_texture_by_path(ri, "muzzle")->unit;
+    sc.total_sx = 5;
+    sc.total_sy = 1;
+    sc.tex_pos.x = anim.animation_frames[0].x;
+    sc.tex_pos.y = anim.animation_frames[0].y;
+  }
 
   return sc;
 };
@@ -349,6 +364,15 @@ create_gameplay(entt::registry& r, const EntityType& type)
     case EntityType::particle: {
       r.emplace<VelocityComponent>(e);
       r.emplace<EntityTimedLifecycle>(e, 1 * 1000);
+      break;
+    }
+
+    case EntityType::vfx_muzzleflash: {
+      SpriteAnimationComponent anim;
+      anim.playing_animation_name = "MUZZLE_FLASH";
+      anim.duration = 0.2f;
+      anim.looping = false;
+      r.emplace<SpriteAnimationComponent>(e, anim);
       break;
     }
 

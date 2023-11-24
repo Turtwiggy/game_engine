@@ -55,6 +55,7 @@ enum class EntityType
   // misc
   cursor,
   particle,
+  vfx_muzzleflash,
 
   count
 };

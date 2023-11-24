@@ -3,12 +3,12 @@
 
 // components/systems
 #include "entt/helpers.hpp"
+#include "imgui/helpers.hpp"
 #include "maths/maths.hpp"
 #include "modules/camera/orthographic.hpp"
 #include "modules/renderer/components.hpp"
 #include "modules/renderer/helpers.hpp"
 #include "modules/renderer/helpers/batch_quad.hpp"
-#include "imgui/helpers.hpp"
 #include "resources/colours.hpp"
 #include "sprites/components.hpp"
 
@@ -53,19 +53,23 @@ rebind(entt::registry& r, const SINGLETON_RendererInfo& ri)
   glActiveTexture(GL_TEXTURE0 + ri.tex_unit_mix_lighting_and_scene);
   glBindTexture(GL_TEXTURE_2D, ri.tex_id_mix_lighting_and_scene);
 
-  glActiveTexture(GL_TEXTURE0 + ri.tex_unit_kennynl);
-  glBindTexture(GL_TEXTURE_2D, ri.tex_id_kenny);
-
-  glActiveTexture(GL_TEXTURE0 + ri.tex_unit_custom);
-  glBindTexture(GL_TEXTURE_2D, ri.tex_id_custom);
+  for (const auto& tex : ri.user_textures) {
+    glActiveTexture(GL_TEXTURE0 + tex.tex_unit.unit);
+    glBindTexture(GL_TEXTURE_2D, tex.tex_id.id);
+  }
 
   auto& camera = game2d::get_first_component<OrthographicCamera>(r);
   camera.projection = calculate_ortho_projection(wh.x, wh.y);
 
+  const int tex_unit_kenny = search_for_texture_by_path(ri, "monochrome")->unit;
+  const int tex_unit_custom = search_for_texture_by_path(ri, "bargame")->unit;
+  const int tex_unit_muzzle = search_for_texture_by_path(ri, "muzzle")->unit;
+
   ri.instanced.bind();
   ri.instanced.set_mat4("projection", camera.projection);
-  ri.instanced.set_int("tex_kenny", ri.tex_unit_kennynl);
-  ri.instanced.set_int("tex_custom", ri.tex_unit_custom);
+  ri.instanced.set_int("tex_kenny", tex_unit_kenny);
+  ri.instanced.set_int("tex_custom", tex_unit_custom);
+  ri.instanced.set_int("tex_muzzle", tex_unit_muzzle);
 
   ri.mix_lighting_and_scene.bind();
   ri.mix_lighting_and_scene.set_mat4("projection", camera.projection);
@@ -89,15 +93,15 @@ game2d::init_render_system(const engine::SINGLETON_Application& app, entt::regis
     ri.fbo_mix_lighting_and_scene, ri.tex_id_mix_lighting_and_scene, ri.tex_unit_mix_lighting_and_scene, fbo_lighting_size);
 
   // Load textures
-  {
-    const auto path = "assets/textures/kennynl_1bit_pack/monochrome_transparent_packed.png";
-    const auto tex = engine::load_texture_linear(ri.tex_unit_kennynl, path);
-    ri.tex_id_kenny = bind_linear_texture(tex);
-  }
-  {
-    const auto path = "assets/textures/bargame_aseprite.png";
-    const auto tex = engine::load_texture_linear(ri.tex_unit_custom, path);
-    ri.tex_id_custom = bind_linear_texture(tex);
+  const int base_tex_unit = ri.RENDERER_TEX_UNIT_COUNT;
+  int next_tex_unit = base_tex_unit;
+
+  for (auto& tex : ri.user_textures) {
+    tex.tex_unit = next_tex_unit;
+    const auto loaded_tex = engine::load_texture_linear(tex.tex_unit.unit, tex.path);
+    tex.tex_id.id = bind_linear_texture(loaded_tex);
+
+    next_tex_unit++;
   }
 
   ri.instanced = Shader("assets/shaders/2d_instanced.vert", "assets/shaders/2d_instanced.frag");
@@ -226,15 +230,18 @@ game2d::update_render_system(entt::registry& r, const float dt)
   // debug textures
   //
 
-  // ImVec2 viewport_size;
-  // ImGui::Begin("Debug0");
-  // viewport_size = ImGui::GetContentRegionAvail();
-  // ImGui::Image((ImTextureID)ri.tex_id_kenny, viewport_size, ImVec2(0, 0), ImVec2(1, 1));
-  // ImGui::End();
-  // ImGui::Begin("Debug1");
-  // viewport_size = ImGui::GetContentRegionAvail();
-  // ImGui::Image((ImTextureID)ri.tex_id_custom, viewport_size, ImVec2(0, 0), ImVec2(1, 1));
-  // ImGui::End();
+  ImVec2 viewport_size;
+
+  int i = 0;
+  for (const auto& tex : ri.user_textures) {
+    const std::string label = std::string("Debug") + std::to_string(i);
+    ImGui::Begin(label.c_str());
+    viewport_size = ImGui::GetContentRegionAvail();
+    ImGui::Image((ImTextureID)tex.tex_id.id, viewport_size, ImVec2(0, 0), ImVec2(1, 1));
+    ImGui::End();
+
+    i++;
+  }
   // ImGui::Begin("Debug2");
   // viewport_size = ImGui::GetContentRegionAvail();
   // ImGui::Image((ImTextureID)ri.tex_id_linear_main, viewport_size, ImVec2(0, 0), ImVec2(1, 1));

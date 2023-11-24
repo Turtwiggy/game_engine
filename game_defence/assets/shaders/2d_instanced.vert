@@ -16,6 +16,8 @@ out float v_tex_unit;
 
 uniform mat4 view;
 uniform mat4 projection;
+uniform bool shake;
+uniform float time;
 
 void
 main()
@@ -30,12 +32,12 @@ main()
 
   gl_Position = projection * view * model * vec4(vertex.xy, 0.0, 1.0);
 
-  // if(shake)
-  // {
-  //   // todo: translational and rotational screenshake
-  //   float strength = 0.01f;
-  //   gl_Position.x += cos(time * 10.0f) * strength;        
-  //   gl_Position.y += cos(time * 15.0f) * strength;    
-  //   // gl_Position.z *= cos(time * 100.0f) * strength; 
-  // }
+  if(shake)
+  {
+    // todo: translational and rotational screenshake
+    float strength = 0.01f;
+    gl_Position.x += cos(time * 10.0f) * strength;        
+    gl_Position.y += cos(time * 15.0f) * strength;    
+    // gl_Position.z *= cos(time * 100.0f) * strength; 
+  }
 }

@@ -87,38 +87,43 @@ game2d::update_player_controller_system(entt::registry& r, const uint64_t& milli
     auto* keyboard = r.try_get<KeyboardComponent>(entity);
     auto* controller = r.try_get<ControllerComponent>(entity);
 
-    input.rx = 0.0f;
-    input.ry = 0.0f;
-    input.lx = 0.0f;
-    input.ly = 0.0f;
-    input.shoot = false;
-    input.pickup = false;
-    input.sprint = false;
+    //
+    // convert input to actions
+    //
+    {
+      input.rx = 0.0f;
+      input.ry = 0.0f;
+      input.lx = 0.0f;
+      input.ly = 0.0f;
+      input.shoot = false;
+      input.pickup = false;
+      input.sprint = false;
 
-    if (keyboard) {
-      input.ly += fixed_input_keyboard_held(keyboard->W) ? -1 : 0;
-      input.ly += fixed_input_keyboard_held(keyboard->S) ? 1 : 0;
-      input.lx += fixed_input_keyboard_held(keyboard->A) ? -1 : 0;
-      input.lx += fixed_input_keyboard_held(keyboard->D) ? 1 : 0;
-      input.shoot |= fixed_input_mouse_press(SDL_BUTTON_LEFT);
-      input.pickup |= fixed_input_keyboard_press(keyboard->pickup);
-      input.sprint |= fixed_input_keyboard_press(keyboard->sprint);
-      // input.place_turret |= fixed_input_keyboard_press(SDL_SCANCODE_SPACE);
-      // reload |= fixed_input_keyboard_press(SDL_SCANCODE_R);
-    }
+      if (keyboard) {
+        input.ly += fixed_input_keyboard_held(keyboard->W) ? -1 : 0;
+        input.ly += fixed_input_keyboard_held(keyboard->S) ? 1 : 0;
+        input.lx += fixed_input_keyboard_held(keyboard->A) ? -1 : 0;
+        input.lx += fixed_input_keyboard_held(keyboard->D) ? 1 : 0;
+        input.shoot |= fixed_input_mouse_press(SDL_BUTTON_LEFT);
+        input.pickup |= fixed_input_keyboard_press(keyboard->pickup);
+        input.sprint |= fixed_input_keyboard_press(keyboard->sprint);
+        // input.place_turret |= fixed_input_keyboard_press(SDL_SCANCODE_SPACE);
+        // reload |= fixed_input_keyboard_press(SDL_SCANCODE_R);
+      }
 
-    // todo: rx via mouse
+      // todo: rx via mouse
 
-    if (controller) {
-      input.lx += fixed_input_controller_axis_held(controller->c_left_stick_x);
-      input.ly += fixed_input_controller_axis_held(controller->c_left_stick_y);
-      input.rx += fixed_input_controller_axis_held(controller->c_right_stick_x);
-      input.ry += fixed_input_controller_axis_held(controller->c_right_stick_y);
-      input.shoot |= fixed_input_controller_axis_held(controller->c_right_trigger) > 0.5f;
-      input.pickup |= fixed_input_controller_button_held(controller->c_r_bumper);
-      input.sprint |= fixed_input_controller_button_held(controller->c_l_bumper);
-      // input.place_turret |= fixed_input_controller_button_press(controller->c_y);
-      // reload |=
+      if (controller) {
+        input.lx += fixed_input_controller_axis_held(controller->c_left_stick_x);
+        input.ly += fixed_input_controller_axis_held(controller->c_left_stick_y);
+        input.rx += fixed_input_controller_axis_held(controller->c_right_stick_x);
+        input.ry += fixed_input_controller_axis_held(controller->c_right_stick_y);
+        input.shoot |= fixed_input_controller_axis_held(controller->c_right_trigger) > 0.5f;
+        input.pickup |= fixed_input_controller_button_held(controller->c_r_bumper);
+        input.sprint |= fixed_input_controller_button_held(controller->c_l_bumper);
+        // input.place_turret |= fixed_input_controller_button_press(controller->c_y);
+        // reload |=
+      }
     }
 
     //
@@ -144,6 +149,15 @@ game2d::update_player_controller_system(entt::registry& r, const uint64_t& milli
     if (input.pickup) {
       std::cout << "Pickup pressed!" << std::endl;
       r.emplace_or_replace<WantsToPickUp>(entity);
+    }
+
+    //
+    // shoot action
+    //
+    {
+      if (input.shoot) {
+        r.emplace<AudioRequestPlayEvent>(r.create(), "SHOOT_01");
+      }
     }
 
     //

@@ -18,6 +18,7 @@ using namespace engine; // used for macro
 #include <GL/glew.h>
 #endif
 
+#include <algorithm>
 #include <array>
 
 game2d::ViewportInfo
@@ -125,3 +126,16 @@ game2d::check_if_viewport_resize(const SINGLETON_RendererInfo& ri)
   }
   return false;
 }
+
+std::optional<game2d::TextureUnit>
+game2d::search_for_texture_by_path(const game2d::SINGLETON_RendererInfo& ri, const std::string& search)
+{
+  const auto result = std::find_if(ri.user_textures.begin(), ri.user_textures.end(), [&search](const Texture& tex) {
+    return tex.path.find(search) != std::string::npos;
+  });
+
+  if (result != ri.user_textures.end())
+    return result->tex_unit;
+
+  return std::nullopt;
+};

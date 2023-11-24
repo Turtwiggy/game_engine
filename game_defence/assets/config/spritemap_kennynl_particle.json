@@ -1,0 +1,19 @@
+{
+  "spritesheet": {
+    "name": "kennynl_particle",
+    "px_total": 2560,
+    "py_total": 512,
+    "px": 512,
+    "py": 512,
+    "nx": 5,
+    "ny": 1
+  },
+  "sprites": [
+    { "name": "MUZZLE_FLASH", "frames": [ { "x": 0, "y": 0 }, { "x": 1, "y": 0 }, { "x": 2, "y": 0 }, { "x": 3, "y": 0 }, { "x": 4, "y": 0 } ] },
+    { "name": "MUZZLE_01", "frames": [ { "x": 1, "y": 0 } ] },
+    { "name": "MUZZLE_02", "frames": [ { "x": 1, "y": 0 } ] },
+    { "name": "MUZZLE_03", "frames": [ { "x": 2, "y": 0 } ] },
+    { "name": "MUZZLE_04", "frames": [ { "x": 3, "y": 0 } ] },
+    { "name": "MUZZLE_05", "frames": [ { "x": 4, "y": 0 } ] }
+  ]
+}

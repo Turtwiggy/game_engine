@@ -82,13 +82,12 @@ struct SINGLETON_RendererInfo
 
   int tex_unit_linear_main = 0;
   int tex_unit_mix_lighting_and_scene = 1;
-  int tex_unit_kennynl = 2;
-  int tex_unit_custom = 3;
+  int RENDERER_TEX_UNIT_COUNT = 2; // should be the number used by renderer
 
   int tex_id_linear_main = 0;
   int tex_id_mix_lighting_and_scene = 0;
-  int tex_id_kenny = 0;
-  int tex_id_custom = 0;
+
+  std::vector<Texture> user_textures;
 
   // shaders
   engine::Shader instanced;
