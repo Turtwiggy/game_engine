@@ -8,12 +8,14 @@
 #include "events/helpers/controller.hpp"
 #include "events/helpers/mouse.hpp"
 #include "helpers/line.hpp"
+#include "modules/actor_cursor/components.hpp"
 #include "modules/actor_player/components.hpp"
 #include "modules/actor_turret/components.hpp"
 #include "modules/items_pickup/components.hpp"
 #include "modules/lifecycle/components.hpp"
 #include "modules/renderer/components.hpp"
 #include "physics/components.hpp"
+#include "renderer/transform.hpp"
 #include "sprites/components.hpp"
 
 #include <SDL2/SDL_keyboard.h>
@@ -26,6 +28,8 @@ game2d::update_player_controller_system(entt::registry& r, const uint64_t& milli
   const auto& finputs = get_first_component<SINGLETON_FixedUpdateInputHistory>(r);
   const auto& inputs = finputs.history.at(finputs.fixed_tick);
   const auto& i = get_first_component<SINGLETON_InputComponent>(r);
+  const auto cursor = get_first<CursorComponent>(r);
+  const auto& cursor_transform = r.get<TransformComponent>(cursor);
 
   const auto fixed_input_keyboard_press = [&inputs](const SDL_Scancode& key) -> bool {
     const auto l = [&key](const InputEvent& e) {
@@ -81,8 +85,9 @@ game2d::update_player_controller_system(entt::registry& r, const uint64_t& milli
   };
 
   // player movement
-  const auto& view = r.view<PlayerComponent, InputComponent, const AABB>(entt::exclude<WaitForInitComponent>);
-  for (const auto& [entity, player, input, aabb] : view.each()) {
+  const auto& view =
+    r.view<PlayerComponent, InputComponent, const AABB, const TransformComponent>(entt::exclude<WaitForInitComponent>);
+  for (const auto& [entity, player, input, aabb, transform] : view.each()) {
 
     auto* keyboard = r.try_get<KeyboardComponent>(entity);
     auto* controller = r.try_get<ControllerComponent>(entity);
@@ -109,9 +114,15 @@ game2d::update_player_controller_system(entt::registry& r, const uint64_t& milli
         input.sprint |= fixed_input_keyboard_press(keyboard->sprint);
         // input.place_turret |= fixed_input_keyboard_press(SDL_SCANCODE_SPACE);
         // reload |= fixed_input_keyboard_press(SDL_SCANCODE_R);
-      }
 
-      // todo: rx via mouse
+        // rx via mouse
+        const auto dir = transform.position - cursor_transform.position;
+        glm::vec2 r_nrm_dir = { dir.x, dir.y };
+        if (r_nrm_dir.x != 0.0f || r_nrm_dir.y != 0.0f)
+          r_nrm_dir = glm::normalize(r_nrm_dir);
+        input.rx = r_nrm_dir.x;
+        input.ry = r_nrm_dir.y;
+      }
 
       if (controller) {
         input.lx += fixed_input_controller_axis_held(controller->c_left_stick_x);
@@ -154,21 +165,34 @@ game2d::update_player_controller_system(entt::registry& r, const uint64_t& milli
     //
     // shoot action
     //
-    {
-      if (input.shoot) {
-        r.emplace<AudioRequestPlayEvent>(r.create(), "SHOOT_01");
-      }
+    if (input.shoot && player.weapon != entt::null) {
+      // request to play audio
+      // r.emplace<AudioRequestPlayEvent>(r.create(), "SHOOT_01");
+
+      // request to show a flash effect
+      const auto flash = create_gameplay(r, EntityType::vfx_muzzleflash);
+      auto& flash_transform = r.get<TransformComponent>(flash);
+      auto& weapon_transform = r.get<TransformComponent>(player.weapon);
+
+      // from the weapon position, offset the flash by a tiny bit
+      const float scale = 10.0f;
+      const glm::vec2 dir = { input.rx * scale, input.ry * scale };
+
+      flash_transform.position = { weapon_transform.position.x + dir.x,
+                                   weapon_transform.position.y + dir.y,
+                                   weapon_transform.position.z };
     }
 
     //
     // give player a weapon on spawn
     //
-    // if (!player.has_weapon) {
-    //   player.has_weapon = true;
-    //   CreateEntityRequest req;
-    //   req.type = player.weapon_to_spawn_with;
-    //   req.parent = entity;
-    //   r.emplace<CreateEntityRequest>(r.create(), req);
-    // }
+    if (!player.has_weapon) {
+      auto bow = create_gameplay(r, player.weapon_to_spawn_with);
+      auto& parent = r.get<HasParentComponent>(bow);
+      parent.parent = entity;
+
+      player.has_weapon = true;
+      player.weapon = bow;
+    }
   }
 };

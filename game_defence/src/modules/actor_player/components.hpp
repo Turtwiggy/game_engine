@@ -20,6 +20,7 @@ struct PlayerComponent
 
   // weapon
   bool has_weapon = false;
+  entt::entity weapon = entt::null;
   EntityType weapon_to_spawn_with = EntityType::weapon_bow;
   float weapon_offset = 30.0f;
 };

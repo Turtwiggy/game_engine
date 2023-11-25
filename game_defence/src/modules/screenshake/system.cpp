@@ -18,19 +18,14 @@ update_screenshake_system(entt::registry& r, float timer, float dt)
   const float time_screenshake = 0.1f;
   static float time_screenshake_left = 0.0f;
 
+  //
+  // Check if any player shot and shake the screen
+
   const auto& view =
     r.view<const PlayerComponent, const TransformComponent, const InputComponent>(entt::exclude<WaitForInitComponent>);
   for (const auto& [entity, player, player_transform, input] : view.each()) {
-    if (input.shoot) {
+    if (input.shoot)
       time_screenshake_left = time_screenshake;
-
-      // TEMP: create a sprite at player
-      {
-        const auto flash = create_gameplay(r, EntityType::vfx_muzzleflash);
-        auto& flash_transform = r.get<TransformComponent>(flash);
-        flash_transform.position = player_transform.position;
-      }
-    }
   }
 
   do_screenshake = time_screenshake_left > 0;

@@ -290,6 +290,7 @@ create_gameplay(entt::registry& r, const EntityType& type)
       r.emplace<HasTargetPositionComponent>(e);
       r.emplace<LerpToTargetComponent>(e);
       r.emplace<AttackCooldownComponent>(e);
+      r.emplace<HasParentComponent>(e);
       break;
     }
 

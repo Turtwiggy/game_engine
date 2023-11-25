@@ -35,7 +35,7 @@ main()
   if(shake)
   {
     // todo: translational and rotational screenshake
-    float strength = 0.01f;
+    float strength = 0.005f;
     gl_Position.x += cos(time * 10.0f) * strength;        
     gl_Position.y += cos(time * 15.0f) * strength;    
     // gl_Position.z *= cos(time * 100.0f) * strength; 
