@@ -6,6 +6,7 @@
   ],
   "settings": {
     "files.associations": {
+      "*.yarnproject": "jsonc",
       "*.glsl": "c",
       "chrono": "cpp",
       "ostream": "cpp",
@@ -81,7 +82,36 @@
       "streambuf": "cpp",
       "typeinfo": "cpp",
       "valarray": "cpp",
-      "variant": "cpp"
+      "variant": "cpp",
+      "xlocbuf": "cpp",
+      "*.inc": "cpp",
+      "cfenv": "cpp",
+      "charconv": "cpp",
+      "csetjmp": "cpp",
+      "cuchar": "cpp",
+      "rope": "cpp",
+      "slist": "cpp",
+      "scoped_allocator": "cpp",
+      "typeindex": "cpp",
+      "filesystem": "cpp",
+      "format": "cpp",
+      "ios": "cpp",
+      "locale": "cpp",
+      "queue": "cpp",
+      "xfacet": "cpp",
+      "xhash": "cpp",
+      "xiosbase": "cpp",
+      "xlocale": "cpp",
+      "xlocinfo": "cpp",
+      "xlocmes": "cpp",
+      "xlocmon": "cpp",
+      "xlocnum": "cpp",
+      "xloctime": "cpp",
+      "xmemory": "cpp",
+      "xstring": "cpp",
+      "xtr1common": "cpp",
+      "xtree": "cpp",
+      "xutility": "cpp"
     }
   }
 }

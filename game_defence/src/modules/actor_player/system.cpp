@@ -6,6 +6,7 @@
 #include "entt/helpers.hpp"
 #include "events/components.hpp"
 #include "events/helpers/controller.hpp"
+#include "events/helpers/fixed_update.hpp"
 #include "events/helpers/mouse.hpp"
 #include "helpers/line.hpp"
 #include "modules/actor_cursor/components.hpp"
@@ -14,6 +15,7 @@
 #include "modules/items_pickup/components.hpp"
 #include "modules/lifecycle/components.hpp"
 #include "modules/renderer/components.hpp"
+#include "modules/screenshake/components.hpp"
 #include "physics/components.hpp"
 #include "renderer/transform.hpp"
 #include "sprites/components.hpp"
@@ -28,61 +30,9 @@ game2d::update_player_controller_system(entt::registry& r, const uint64_t& milli
   const auto& finputs = get_first_component<SINGLETON_FixedUpdateInputHistory>(r);
   const auto& inputs = finputs.history.at(finputs.fixed_tick);
   const auto& i = get_first_component<SINGLETON_InputComponent>(r);
+
   const auto cursor = get_first<CursorComponent>(r);
   const auto& cursor_transform = r.get<TransformComponent>(cursor);
-
-  const auto fixed_input_keyboard_press = [&inputs](const SDL_Scancode& key) -> bool {
-    const auto l = [&key](const InputEvent& e) {
-      return (e.type == InputType::keyboard && e.keyboard == key && e.state == InputState::press);
-    };
-    return std::find_if(inputs.begin(), inputs.end(), l) != std::end(inputs);
-  };
-
-  const auto fixed_input_keyboard_held = [&inputs](const SDL_Scancode& key) -> bool {
-    const auto l = [&key](const InputEvent& e) {
-      return (e.type == InputType::keyboard && e.keyboard == key && e.state == InputState::held);
-    };
-    return std::find_if(inputs.begin(), inputs.end(), l) != std::end(inputs);
-  };
-
-  // SDL_BUTTON_LEFT = 1; SDL_BUTTON_MIDDLE = 2; SDL_BUTTON_RIGHT = 3;
-  const auto fixed_input_mouse_press = [&inputs](const int& button) -> bool {
-    const auto& l = [&button](const InputEvent& e) {
-      return (e.type == InputType::mouse && e.mouse == button && e.state == InputState::press);
-    };
-    return std::find_if(inputs.begin(), inputs.end(), l) != std::end(inputs);
-  };
-
-  const auto fixed_input_controller_button_press = [&inputs](const SDL_GameControllerButton& button) -> bool {
-    const auto& l = [&button](const InputEvent& e) {
-      return (e.type == InputType::controller && e.state == InputState::press &&
-              e.joystick_event == JoystickEventType::button &&
-              // e.joystick_id ==  // any id
-              e.controller_button == button);
-    };
-    return std::find_if(inputs.begin(), inputs.end(), l) != std::end(inputs);
-  };
-
-  const auto fixed_input_controller_button_held = [&inputs](const SDL_GameControllerButton& button) -> bool {
-    const auto& l = [&button](const InputEvent& e) {
-      return (e.type == InputType::controller && e.state == InputState::held &&
-              e.joystick_event == JoystickEventType::button && e.controller_button == button);
-    };
-    return std::find_if(inputs.begin(), inputs.end(), l) != std::end(inputs);
-  };
-
-  const auto fixed_input_controller_axis_held = [&inputs](const SDL_GameControllerAxis& axis) -> float {
-    // process more recent inputs first
-    for (int i = inputs.size() - 1; i >= 0; i--) {
-      const auto& e = inputs[i];
-      const bool is_controller = e.type == InputType::controller;
-      const bool is_axis = e.joystick_event == JoystickEventType::axis;
-      const bool your_axis = e.controller_axis == axis;
-      if (is_controller && is_axis && your_axis)
-        return e.controller_axis_value_01;
-    }
-    return 0.0f;
-  };
 
   // player movement
   const auto& view =
@@ -92,7 +42,6 @@ game2d::update_player_controller_system(entt::registry& r, const uint64_t& milli
     auto* keyboard = r.try_get<KeyboardComponent>(entity);
     auto* controller = r.try_get<ControllerComponent>(entity);
 
-    //
     // convert input to actions
     //
     {
@@ -104,40 +53,45 @@ game2d::update_player_controller_system(entt::registry& r, const uint64_t& milli
       input.pickup = false;
       input.sprint = false;
 
+      // rx via mouse
+      const auto dir = transform.position - cursor_transform.position;
+      glm::vec2 r_nrm_dir = { dir.x, dir.y };
+      if (r_nrm_dir.x != 0.0f || r_nrm_dir.y != 0.0f)
+        r_nrm_dir = glm::normalize(r_nrm_dir);
+      input.rx += r_nrm_dir.x;
+      input.ry += r_nrm_dir.y;
+
       if (keyboard) {
-        input.ly += fixed_input_keyboard_held(keyboard->W) ? -1 : 0;
-        input.ly += fixed_input_keyboard_held(keyboard->S) ? 1 : 0;
-        input.lx += fixed_input_keyboard_held(keyboard->A) ? -1 : 0;
-        input.lx += fixed_input_keyboard_held(keyboard->D) ? 1 : 0;
-        input.shoot |= fixed_input_mouse_press(SDL_BUTTON_LEFT);
-        input.pickup |= fixed_input_keyboard_press(keyboard->pickup);
-        input.sprint |= fixed_input_keyboard_press(keyboard->sprint);
+        input.ly += fixed_input_keyboard_held(inputs, keyboard->W) ? -1 : 0;
+        input.ly += fixed_input_keyboard_held(inputs, keyboard->S) ? 1 : 0;
+        input.lx += fixed_input_keyboard_held(inputs, keyboard->A) ? -1 : 0;
+        input.lx += fixed_input_keyboard_held(inputs, keyboard->D) ? 1 : 0;
+        input.shoot |= fixed_input_mouse_press(inputs, SDL_BUTTON_LEFT);
+        input.pickup |= fixed_input_keyboard_press(inputs, keyboard->pickup);
+        input.sprint |= fixed_input_keyboard_press(inputs, keyboard->sprint);
         // input.place_turret |= fixed_input_keyboard_press(SDL_SCANCODE_SPACE);
         // reload |= fixed_input_keyboard_press(SDL_SCANCODE_R);
-
-        // rx via mouse
-        const auto dir = transform.position - cursor_transform.position;
-        glm::vec2 r_nrm_dir = { dir.x, dir.y };
-        if (r_nrm_dir.x != 0.0f || r_nrm_dir.y != 0.0f)
-          r_nrm_dir = glm::normalize(r_nrm_dir);
-        input.rx = r_nrm_dir.x;
-        input.ry = r_nrm_dir.y;
       }
 
       if (controller) {
-        input.lx += fixed_input_controller_axis_held(controller->c_left_stick_x);
-        input.ly += fixed_input_controller_axis_held(controller->c_left_stick_y);
-        input.rx += fixed_input_controller_axis_held(controller->c_right_stick_x);
-        input.ry += fixed_input_controller_axis_held(controller->c_right_stick_y);
-        input.shoot |= fixed_input_controller_axis_held(controller->c_right_trigger) > 0.5f;
-        input.pickup |= fixed_input_controller_button_held(controller->c_r_bumper);
-        input.sprint |= fixed_input_controller_button_held(controller->c_l_bumper);
+        input.lx += fixed_input_controller_axis_held(inputs, controller->c_left_stick_x);
+        input.ly += fixed_input_controller_axis_held(inputs, controller->c_left_stick_y);
+        input.rx += fixed_input_controller_axis_held(inputs, controller->c_right_stick_x);
+        input.ry += fixed_input_controller_axis_held(inputs, controller->c_right_stick_y);
+        input.shoot |= fixed_input_controller_axis_held(inputs, controller->c_right_trigger) > 0.5f;
+        input.pickup |= fixed_input_controller_button_held(inputs, controller->c_r_bumper);
+        input.sprint |= fixed_input_controller_button_held(inputs, controller->c_l_bumper);
         // input.place_turret |= fixed_input_controller_button_press(controller->c_y);
         // reload |=
       }
+
+      if (input.rx != 0.0f || input.ry != 0.0f) {
+        const glm::vec2 r_nrm_dir = glm::normalize(glm::vec2(input.rx, input.ry));
+        input.rx = r_nrm_dir.x;
+        input.ry = r_nrm_dir.y;
+      }
     }
 
-    //
     // do the move
     //
     if (auto* vel = r.try_get<VelocityComponent>(entity)) {
@@ -162,14 +116,20 @@ game2d::update_player_controller_system(entt::registry& r, const uint64_t& milli
       r.emplace_or_replace<WantsToPickUp>(entity);
     }
 
-    //
     // shoot action
     //
     if (input.shoot && player.weapon != entt::null) {
       // request to play audio
       // r.emplace<AudioRequestPlayEvent>(r.create(), "SHOOT_01");
 
+      r.emplace<WantsToShoot>(r.create());
+
+      // add screenshake
+      auto& screenshake = get_first_component<SINGLE_ScreenshakeComponent>(r);
+      screenshake.time_left = screenshake.time;
+
       // request to show a flash effect
+      // TODO: make this a request dont create the entity here
       const auto flash = create_gameplay(r, EntityType::vfx_muzzleflash);
       auto& flash_transform = r.get<TransformComponent>(flash);
       auto& weapon_transform = r.get<TransformComponent>(player.weapon);
@@ -177,13 +137,11 @@ game2d::update_player_controller_system(entt::registry& r, const uint64_t& milli
       // from the weapon position, offset the flash by a tiny bit
       const float scale = 10.0f;
       const glm::vec2 dir = { input.rx * scale, input.ry * scale };
-
       flash_transform.position = { weapon_transform.position.x + dir.x,
                                    weapon_transform.position.y + dir.y,
                                    weapon_transform.position.z };
     }
 
-    //
     // give player a weapon on spawn
     //
     if (!player.has_weapon) {

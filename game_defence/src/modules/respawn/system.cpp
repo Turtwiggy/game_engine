@@ -42,7 +42,7 @@ update_respawn_system(entt::registry& r)
         // or just move its position and reset its state?
         // kill it off for now
         // dead.dead.emplace(e);
-        std::cerr << "ur ded; what do with bow?" << std::endl;
+        std::cout << "ur ded; what do with bow?" << std::endl;
 
       } else {
         dead.dead.emplace(e);

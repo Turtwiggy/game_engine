@@ -59,7 +59,7 @@ main_loop(void* arg)
     const auto before_fixed_update = SDL_GetTicks64();
 #endif
 
-    game2d::fixed_update(game, MILLISECONDS_PER_FIXED_TICK);
+    game2d::fixed_update(app, game, MILLISECONDS_PER_FIXED_TICK);
 
 #if defined(_DEBUG)
     const auto after_fixed_update = SDL_GetTicks64();

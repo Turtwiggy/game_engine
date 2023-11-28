@@ -184,11 +184,11 @@ process_node(Model& model, aiNode* node, const aiScene* scene)
 void
 load_models(SINGLE_ModelsComponent& models)
 {
-  Assimp::Importer importer;
-
   // choose models
   // HACK: only chooses one specific one
   auto& model = models.low_poly_car;
+
+  Assimp::Importer importer;
 
   // load
   const auto flags = aiProcess_Triangulate | aiProcess_FlipUVs;

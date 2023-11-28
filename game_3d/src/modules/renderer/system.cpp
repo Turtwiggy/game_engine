@@ -29,6 +29,8 @@ namespace game2d {
 void
 init_renderer_system(entt::registry& r)
 {
+  auto& renderer = get_first_component<SINGLE_RendererComponent>(r);
+
   // glEnable(GL_DEBUG_OUTPUT);
   // glDebugMessageCallback(opengl_message_callback, nullptr);
 
@@ -48,8 +50,6 @@ init_renderer_system(entt::registry& r)
   // SDL_GL_SetAttribute(SDL_GL_DOUBLEBUFFER, 1);
   // SDL_GL_SetAttribute(SDL_GL_DEPTH_SIZE, 24);
   // SDL_GL_SetAttribute(SDL_GL_STENCIL_SIZE, 8);
-
-  SINGLE_RendererComponent renderer;
 
   // set up vertex data (and buffer(s)) and configure vertex attributes
   // ------------------------------------------------------------------
@@ -100,18 +100,6 @@ init_renderer_system(entt::registry& r)
     // clang-format on
   };
 
-  engine::RandomState rnd;
-  for (int i = 0; i < 100; i++) {
-    float rnd_x = engine::rand_det_s(rnd.rng, -50, 50);
-    float rnd_z = engine::rand_det_s(rnd.rng, -50, 50);
-    renderer.cubes.push_back({ rnd_x, 0.5f, rnd_z });
-  }
-  for (int i = 0; i < 100; i++) {
-    float rnd_x = engine::rand_det_s(rnd.rng, -50, 50);
-    float rnd_z = engine::rand_det_s(rnd.rng, -50, 50);
-    renderer.lights.push_back({ rnd_x, 0.5f, rnd_z });
-  }
-
   auto& VAO = renderer.cube_vao;
   auto& VBO = renderer.cube_vbo;
   glGenVertexArrays(1, &VAO);
@@ -131,7 +119,6 @@ init_renderer_system(entt::registry& r)
   CHECK_OPENGL_ERROR(0);
 
   r.emplace<SINGLE_ShadersComponent>(r.create());
-  r.emplace<SINGLE_RendererComponent>(r.create(), renderer);
 }
 
 void
@@ -197,9 +184,9 @@ update_renderer_system(engine::SINGLETON_Application& app, entt::registry& r)
     const auto& view = r.view<const TransformComponent, const CarComponent>();
     for (const auto& [entity, t, car] : view.each()) {
 
-      const auto& transforms = animator.final_bone_matrices;
-      for (int i = 0; i < transforms.size(); ++i)
-        shaders.animated.set_mat4("final_bone_matrices[" + std::to_string(i) + "]", transforms[i]);
+      // const auto& transforms = animator.final_bone_matrices;
+      // for (int i = 0; i < transforms.size(); ++i)
+      //   shaders.animated.set_mat4("final_bone_matrices[" + std::to_string(i) + "]", transforms[i]);
 
       glm::mat4 model(1.0f);
       model = glm::translate(model, t.position);

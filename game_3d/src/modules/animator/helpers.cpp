@@ -211,6 +211,10 @@ load_animation(Model& model)
   assert(scene && scene->mRootNode);
 
   Animation data;
+
+  // if (scene->mNumAnimations == 0)
+  //   return data; // exit
+
   auto anim = scene->mAnimations[0];
   data.duration = anim->mDuration;
   data.ticks = anim->mTicksPerSecond;
@@ -230,7 +234,7 @@ load_animation(Model& model)
 void
 load_animations(SINGLE_AnimatorComponent& anims, SINGLE_ModelsComponent& models)
 {
-  anims.animation_0_data = load_animation(models.low_poly_car);
+  // anims.animation_0_data = load_animation(models.low_poly_car);
 
   anims.final_bone_matrices.reserve(100);
   for (int i = 0; i < 100; i++)

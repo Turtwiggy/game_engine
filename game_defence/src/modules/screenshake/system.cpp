@@ -10,26 +10,14 @@
 namespace game2d {
 
 void
-update_screenshake_system(entt::registry& r, float timer, float dt)
+update_screenshake_system(entt::registry& r, const float timer, const float dt)
 {
   const auto& input = get_first_component<SINGLETON_InputComponent>(r);
+  auto& screenshake = get_first_component<SINGLE_ScreenshakeComponent>(r);
 
-  bool do_screenshake = false;
-  const float time_screenshake = 0.1f;
-  static float time_screenshake_left = 0.0f;
-
-  //
-  // Check if any player shot and shake the screen
-
-  const auto& view =
-    r.view<const PlayerComponent, const TransformComponent, const InputComponent>(entt::exclude<WaitForInitComponent>);
-  for (const auto& [entity, player, player_transform, input] : view.each()) {
-    if (input.shoot)
-      time_screenshake_left = time_screenshake;
-  }
-
-  do_screenshake = time_screenshake_left > 0;
-  time_screenshake_left -= dt;
+  bool do_screenshake = screenshake.time_left > 0;
+  screenshake.time_left -= dt;
+  screenshake.time_left = glm::max(screenshake.time_left, 0.0f);
 
   auto& ri = get_first_component<SINGLETON_RendererInfo>(r);
   ri.instanced.bind();

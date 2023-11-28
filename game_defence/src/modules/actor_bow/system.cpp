@@ -19,47 +19,16 @@
 
 namespace game2d {
 
+//
+// Bow:
+// click: create arrow
+// release: releases arrow
+//
+
 void
 update_bow_system(entt::registry& r, const uint64_t milliseconds_dt)
 {
   const float dt = milliseconds_dt / 1000.0f;
-
-  //
-  // get bow to follow player
-  //
-  const auto& v = r.view<const BowComponent, const HasParentComponent, HasTargetPositionComponent, TransformComponent>(
-    entt::exclude<WaitForInitComponent>);
-  for (const auto& [e, bow, parent, target, t] : v.each()) {
-    const auto& p = parent.parent;
-    if (p == entt::null)
-      continue;
-    const auto& [player, player_aabb, input] = r.get<const PlayerComponent, const AABB, InputComponent>(p);
-
-    // get the right analogue input of the player
-    // and multiply it by the offset of the weapon
-    glm::vec2 r_nrm_dir = { input.rx, input.ry };
-    if (r_nrm_dir.x != 0.0f || r_nrm_dir.y != 0.0f)
-      r_nrm_dir = glm::normalize(r_nrm_dir);
-    const glm::ivec2 offset = { r_nrm_dir.x * player.weapon_offset, r_nrm_dir.y * player.weapon_offset };
-
-    // Set Lerp Target
-    target.position = player_aabb.center + offset;
-
-    // Set Angle of bow
-    const float bow_angle = engine::dir_to_angle_radians(offset) - engine::PI;
-    t.rotation_radians.z = bow_angle;
-
-    const auto d = glm::ivec2{ target.position.x, target.position.y } - player_aabb.center;
-    const auto d2 = d.x * d.x + d.y * d.y;
-    if (d2 < 10)
-      t.rotation_radians.z = 45.0f * engine::Deg2Rad;
-  }
-
-  //
-  // Update bow behaviour:
-  // hold arrow
-  // release arrow & make arrow "live"
-  //
   auto& lifecycle = get_first_component<SINGLETON_EntityBinComponent>(r);
 
   const auto& view = r.view<BowComponent, HasParentComponent, AttackCooldownComponent, const TransformComponent>(
