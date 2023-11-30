@@ -24,8 +24,8 @@ update_ui_spawner_system(entt::registry& r)
 
   for (const auto& [entity, spawner, cooldown] : view.each()) {
 
-    const EntityType& type = spawner.type_to_spawn;
-    const auto type_name = std::string(magic_enum::enum_name(type));
+    // const EntityType& type = spawner.type_to_spawn;
+    // const auto type_name = std::string(magic_enum::enum_name(type));
 
     // std::vector<std::string> enemies{
     //   std::string(magic_enum::enum_name(EntityType::enemy_grunt)),
@@ -53,7 +53,7 @@ update_ui_spawner_system(entt::registry& r)
 
     // view stats
     ImGui::Text("¬¬");
-    ImGui::Text("Currently spawning: %s", type_name.c_str());
+    // ImGui::Text("Currently spawning: %s", type_name.c_str());
     ImGui::Text("Cooldown: %f", cooldown.time_between_attack_left);
     // ImGui::Text("HP: %i", spawner.hp);
     // ImGui::Text("Attack: %i", spawner.attack);

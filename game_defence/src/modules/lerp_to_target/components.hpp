@@ -16,7 +16,7 @@ struct HasTargetPositionComponent
 
 struct LerpToTargetComponent
 {
-  float speed = 45.0f;
+  float speed = 150.0f;
 };
 
 } // namespace game2d

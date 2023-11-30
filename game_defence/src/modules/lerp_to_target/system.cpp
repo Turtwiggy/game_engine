@@ -3,25 +3,29 @@
 #include "components.hpp"
 #include "modules/lifecycle/components.hpp"
 #include "modules/renderer/components.hpp"
-#include <glm/gtx/compatibility.hpp> // lerp
+#include "physics/components.hpp"
+// #include <glm/gtx/compatibility.hpp> // lerp
 
 namespace game2d {
 
 void
-update_lerp_to_target_system(entt::registry& r, const float& dt)
+update_set_velocity_to_target_system(entt::registry& r, const float& dt)
 {
   // lerp to position
-  const auto& view = r.view<TransformComponent, const HasTargetPositionComponent, const LerpToTargetComponent>(
+  const auto& view = r.view<VelocityComponent, const AABB, const HasTargetPositionComponent, const LerpToTargetComponent>(
     entt::exclude<WaitForInitComponent>);
-  for (const auto& [entity, transform, target_t, lerp] : view.each()) {
-    const glm::vec2 start = { transform.position.x, transform.position.y };
-    const glm::vec2 end = target_t.position;
+  for (const auto& [e, vel, aabb, target, lerp] : view.each()) {
 
-    const float t = 1.0f - glm::pow(0.5f, dt * lerp.speed);
-    const glm::vec2 new_pos = glm::lerp(start, end, t);
-    transform.position = { new_pos.x, new_pos.y, 0.0f };
+    const glm::vec2 a = { aabb.center.x, aabb.center.y };
+    const glm::vec2 b = target.position;
 
-    //
+    glm::vec2 dir = b - a;
+    if (dir.x != 0.0f || dir.y != 0.0f)
+      dir = glm::normalize(dir);
+
+    vel.x = dir.x * lerp.speed;
+    vel.y = dir.y * lerp.speed;
+    // std::cout << "vel x " << vel.x << " y: " << vel.y << std::endl;
   }
 };
 

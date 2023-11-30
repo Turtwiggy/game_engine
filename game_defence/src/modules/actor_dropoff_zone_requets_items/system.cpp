@@ -6,6 +6,7 @@
 #include "modules/animation/components.hpp"
 #include "modules/lifecycle/components.hpp"
 #include "modules/renderer/components.hpp"
+#include "modules/renderer/helpers.hpp"
 #include "physics/components.hpp"
 #include "sprites/components.hpp"
 #include "sprites/helpers.hpp"
@@ -25,24 +26,48 @@ update_actor_dropoffzone_request_items(entt::registry& r, uint64_t ms_dt)
   const auto& view = r.view<DropoffZoneComponent, SpriteComponent, const AABB>(entt::exclude<WaitForInitComponent>);
   for (const auto& [e, zone, sprite, aabb] : view.each()) {
 
+    const auto& ri = get_first_component<SINGLETON_RendererInfo>(r);
+    const auto tex_unit = search_for_texture_by_path(ri, "bargame")->unit;
+
     // change sprite based on customers at zone
     if (zone.cur_customers == 0) {
-      set_sprite_custom(r, e, "campfire_empty"s);
-      set_sprite_custom(r, zone.sign, "icon_sign_inactive"s);
+      set_sprite_custom(r, e, "campfire_empty"s, tex_unit);
+      set_sprite_custom(r, zone.sign, "icon_sign_inactive"s, tex_unit);
     } else {
-      set_sprite_custom(r, e, "campfire_full"s);
-      set_sprite_custom(r, zone.sign, "icon_sign_active"s);
+      set_sprite_custom(r, e, "campfire_full"s, tex_unit);
+      set_sprite_custom(r, zone.sign, "icon_sign_active"s, tex_unit);
     }
 
     // create people
     for (int i = zone.cur_customers; i > zone.instantiated_customers.size(); i--) {
+      std::cout << "new i " << i << std::endl;
       const auto new_customer = create_gameplay(r, EntityType::empty);
-      set_sprite_custom(r, new_customer, "customer_0");
+      set_sprite_custom(r, new_customer, "customer_0", tex_unit);
 
       auto& new_transform = r.get<TransformComponent>(new_customer);
-      new_transform.position = { aabb.center.x + aabb.size.x / 2, aabb.center.y, 0.0f };
+      new_transform.position = { aabb.center.x, aabb.center.y, 0.0f };
       new_transform.scale = { 32, 32, 1 };
-      new_transform.position.x += 50 * i;
+
+      // top left
+      if (i == 1) {
+        new_transform.position.x -= aabb.size.x / 4.0f;
+        new_transform.position.y -= aabb.size.y / 4.0f;
+      }
+      // top right
+      if (i == 2) {
+        new_transform.position.x += aabb.size.x / 4.0f;
+        new_transform.position.y -= aabb.size.y / 4.0f;
+      }
+      // bottom right
+      if (i == 3) {
+        new_transform.position.x += aabb.size.x / 4.0f;
+        new_transform.position.y += aabb.size.y / 4.0f;
+      }
+      // bottom left
+      if (i == 4) {
+        new_transform.position.x -= aabb.size.x / 4.0f;
+        new_transform.position.y += aabb.size.y / 4.0f;
+      }
 
       WiggleUpAndDown wiggle;
       wiggle.base_position = { new_transform.position.x, new_transform.position.y };
@@ -54,7 +79,7 @@ update_actor_dropoffzone_request_items(entt::registry& r, uint64_t ms_dt)
     }
 
     // destroy people
-    for (int i = zone.instantiated_customers.size(); i > zone.cur_customers; i--) {
+    for (auto i = zone.instantiated_customers.size(); i > zone.cur_customers; i--) {
       const auto idx = i - 1;
       auto customer_entity = zone.instantiated_customers[idx];
       r.destroy(customer_entity);

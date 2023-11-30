@@ -7,10 +7,11 @@
 #include "game_state.hpp"
 #include "maths/grid.hpp"
 #include "maths/maths.hpp"
-#include "modules/actor_bow/components.hpp"
 #include "modules/actor_cursor/components.hpp"
 #include "modules/actor_dropoff_zone/components.hpp"
 #include "modules/actor_pickup_zone/components.hpp"
+#include "modules/actor_player/components.hpp"
+#include "modules/actor_weapon_bow/components.hpp"
 #include "modules/animation/components.hpp"
 #include "modules/camera/orthographic.hpp"
 #include "modules/gameover/components.hpp"
@@ -20,6 +21,9 @@
 #include "modules/procedural/poisson.hpp"
 #include "modules/procedural/voronoi.hpp"
 #include "modules/renderer/components.hpp"
+#include "modules/renderer/helpers.hpp"
+#include "modules/screenshake/components.hpp"
+#include "modules/ux_hoverable/components.hpp"
 #include "physics/components.hpp"
 #include "resources/colours.hpp"
 #include "sprites/helpers.hpp"
@@ -57,6 +61,10 @@ move_to_scene_start(entt::registry& r, const Scene s)
   destroy_and_create<SINGLETON_ColoursComponent>(r);
   destroy_and_create<SINGLETON_GameOver>(r);
   destroy_and_create<SINGLETON_Wave>(r);
+  destroy_and_create<SINGLE_ScreenshakeComponent>(r);
+
+  // create a cursor
+  const auto cursor = create_gameplay(r, EntityType::cursor);
 
   if (s == Scene::game) {
     const auto& anims = get_first_component<SINGLE_Animations>(r);
@@ -64,19 +72,39 @@ move_to_scene_start(entt::registry& r, const Scene s)
     const auto& colours = get_first_component<SINGLETON_ColoursComponent>(r);
     const int pixel_scale_up_size = 2;
     const auto default_size = glm::ivec2{ 16 * pixel_scale_up_size, 16 * pixel_scale_up_size };
+    const auto tex_unit = search_for_texture_by_path(ri, "bargame")->unit;
 
-    // create a cursor
-    const auto cursor = create_gameplay(r, EntityType::cursor);
+    {
+    }
 
     // create a player
     {
+      // create a weapon for a player
+      const auto weapon = create_gameplay(r, EntityType::weapon_shotgun);
+      auto& weapon_parent = r.get<HasParentComponent>(weapon);
+
       const auto e = create_gameplay(r, EntityType::actor_player);
+
+      // link player & weapon
+      weapon_parent.parent = e;
+      auto& player = r.get<PlayerComponent>(e);
+      player.weapon = weapon;
+
       auto& e_aabb = r.get<AABB>(e);
       e_aabb.size = default_size * 1;
       e_aabb.center = { -88, -30 };
 
-      const auto icon_xy = set_sprite_custom(r, e, "player_0");
+      const auto icon_xy = set_sprite_custom(r, e, "player_0", tex_unit);
       r.get<TransformComponent>(e).scale = { e_aabb.size.x, e_aabb.size.y, 1.0f };
+    }
+
+    // create a hostile dummy
+    {
+      const auto e = create_gameplay(r, EntityType::enemy_dummy);
+
+      auto& e_aabb = r.get<AABB>(e);
+      e_aabb.size = default_size * 1;
+      e_aabb.center = { -235, 150 };
     }
 
     // create food/item dispencers
@@ -100,7 +128,7 @@ move_to_scene_start(entt::registry& r, const Scene s)
         r.get<TransformComponent>(icon).scale = { e_aabb.size.x, e_aabb.size.y, 1.0f };
 
         const auto info = item_id_to_sprite(r, i);
-        set_sprite_custom(r, icon, info.sprite);
+        set_sprite_custom(r, icon, info.sprite, tex_unit);
 
         WiggleUpAndDown wiggle;
         wiggle.base_position = e_aabb.center;
@@ -112,7 +140,7 @@ move_to_scene_start(entt::registry& r, const Scene s)
       {
         const auto info = item_id_to_sprite(r, i);
         const auto icon = create_gameplay(r, EntityType::empty);
-        const auto icon_xy = set_sprite_custom(r, icon, info.sprite_text);
+        const auto icon_xy = set_sprite_custom(r, icon, info.sprite_text, tex_unit);
 
         r.get<TransformComponent>(icon).position = { e_aabb.center.x, e_aabb.center.y - 30, 0.0f };
         r.get<TransformComponent>(icon).scale = { e_aabb.size.x * icon_xy.x, e_aabb.size.y, 1.0f };
@@ -121,7 +149,7 @@ move_to_scene_start(entt::registry& r, const Scene s)
       // create delivery table
       {
         const auto icon = create_gameplay(r, EntityType::empty);
-        const auto icon_xy = set_sprite_custom(r, icon, "icon_table_green"s);
+        const auto icon_xy = set_sprite_custom(r, icon, "icon_table_green"s, tex_unit);
 
         auto& t = r.get<TransformComponent>(icon);
         t.position = { e_aabb.center.x, e_aabb.center.y + 30, 0.0f };
@@ -142,7 +170,7 @@ move_to_scene_start(entt::registry& r, const Scene s)
           e_aabb.center = glm::ivec2{ -150, -150 };
           e_aabb.size = default_size;
 
-          const auto icon_xy = set_sprite_custom(r, e, "campfire_empty"s);
+          const auto icon_xy = set_sprite_custom(r, e, "campfire_empty"s, tex_unit);
           auto& icon_transform = r.get<TransformComponent>(e);
           icon_transform.position = { e_aabb.center.x, e_aabb.center.y, 0.0f };
           icon_transform.scale = { e_aabb.size.x * icon_xy.x, e_aabb.size.y * icon_xy.y, 1.0f };
@@ -151,7 +179,7 @@ move_to_scene_start(entt::registry& r, const Scene s)
         // show sign above delivery point
         {
           const auto icon = create_gameplay(r, EntityType::empty);
-          const auto icon_xy = set_sprite_custom(r, icon, "icon_sign_inactive"s);
+          const auto icon_xy = set_sprite_custom(r, icon, "icon_sign_inactive"s, tex_unit);
 
           auto& icon_transform = r.get<TransformComponent>(icon);
           icon_transform.position = { e_aabb.center.x, e_aabb.center.y - 100.0f, 0.0f };
@@ -170,16 +198,11 @@ move_to_scene_start(entt::registry& r, const Scene s)
 
     for (const auto& p : poisson) {
       const auto icon = create_gameplay(r, EntityType::empty);
-      const auto icon_xy = set_sprite_custom(r, icon, "icon_grass"s);
+      const auto icon_xy = set_sprite_custom(r, icon, "icon_grass"s, tex_unit);
 
       r.get<TransformComponent>(icon).position = { offset.x + p.x, offset.y + p.y, 0.0f };
       r.get<TransformComponent>(icon).scale = { default_size.x, default_size.y, 1.0f };
       r.get<TagComponent>(icon).tag = "grass"s;
-    }
-
-    // create an animated sprite
-    {
-      const auto e = create_gameplay(r, EntityType::vfx_muzzleflash);
     }
   }
 

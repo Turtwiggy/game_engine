@@ -28,6 +28,15 @@ update_scale_by_velocity_system(entt::registry& r, float dt)
     if (dir.x != 0.0f || dir.y != 0.0f)
       dir = glm::normalize(dir);
     transform.rotation_radians.z = engine::dir_to_angle_radians(dir);
+
+    //   // Set Angle of bow
+    //   const float bow_angle = engine::dir_to_angle_radians(offset) - engine::PI;
+    //   t.rotation_radians.z = bow_angle;
+    //   const auto d = glm::ivec2{ target.position.x, target.position.y } - player_aabb.center;
+    //   const auto d2 = d.x * d.x + d.y * d.y;
+    //   if (d2 < 10)
+    //     t.rotation_radians.z = 45.0f * engine::Deg2Rad;
+    // }
   }
 }
 

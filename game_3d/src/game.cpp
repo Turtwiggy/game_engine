@@ -54,21 +54,37 @@ init(engine::SINGLETON_Application& app, entt::registry& r)
   auto& models = get_first_component<SINGLE_ModelsComponent>(r);
   auto& animator = get_first_component<SINGLE_AnimatorComponent>(r);
   load_models(models);
-  load_animations(animator, models);
-  play_animation(animator, &animator.animation_0_data);
+  // load_animations(animator, models);
 
   // TEMP: for debugging
   auto& model = models.low_poly_car;
 
-  init_renderer_system(r);
+  {
+    SINGLE_RendererComponent renderer;
+
+    engine::RandomState rnd;
+    for (int i = 0; i < 100; i++) {
+      float rnd_x = engine::rand_det_s(rnd.rng, -50, 50);
+      float rnd_z = engine::rand_det_s(rnd.rng, -50, 50);
+      renderer.cubes.push_back({ rnd_x, 0.5f, rnd_z });
+    }
+    for (int i = 0; i < 100; i++) {
+      float rnd_x = engine::rand_det_s(rnd.rng, -50, 50);
+      float rnd_z = engine::rand_det_s(rnd.rng, -50, 50);
+      renderer.lights.push_back({ rnd_x, 0.5f, rnd_z });
+    }
+    r.emplace<SINGLE_RendererComponent>(r.create(), renderer);
+    init_renderer_system(r);
+  }
 
   // create a car
   auto e = r.create();
 
   TransformComponent tc;
   tc.position = { 0.0f, 0.0f, 0.0f };
-  tc.rotation = { 0.0f, 0.0f, 0.0f };
-  tc.scale = { 0.01f, 0.01f, 0.01f };
+  tc.rotation = { -engine::HALF_PI, 0.0f, 0.0f };
+  // tc.scale = { 0.01f, 0.01f, 0.01f };
+  tc.scale = { 0.5f, 0.5f, 0.5f };
   r.emplace<TransformComponent>(e, tc);
   r.emplace<CarComponent>(e);
 }
@@ -99,6 +115,12 @@ update(engine::SINGLETON_Application& app, entt::registry& r, const float dt)
   // }
 
   // game logic
+
+  // using opengl right-handed system
+  const glm::vec3 up = glm::vec3(0.0f, 1.0f, 0.0f);
+  const glm::vec3 forward = glm::vec3(0.0f, 0.0f, -1.0f);
+  const glm::vec3 right = glm::vec3(1.0f, 0.0f, 0.0f);
+
   const auto& input = get_first_component<SINGLETON_InputComponent>(r);
   const auto& view = r.view<TransformComponent, CarComponent>();
   for (const auto& [entity, t, car] : view.each()) {
@@ -114,7 +136,7 @@ update(engine::SINGLETON_Application& app, entt::registry& r, const float dt)
       t.rotation.y -= turn_velocity;
 
     // get direction from rotation
-    const auto fwd_dir = glm::rotate(vec3_to_quat(t.rotation), glm::vec3(0.0f, 0.0f, -1.0f));
+    const auto fwd_dir = glm::rotate(vec3_to_quat(t.rotation), forward);
     if (get_key_held(input, SDL_SCANCODE_UP))
       t.position += fwd_dir * move_velocity;
     if (get_key_held(input, SDL_SCANCODE_DOWN))
@@ -132,8 +154,8 @@ update(engine::SINGLETON_Application& app, entt::registry& r, const float dt)
 
     // reset
     if (get_key_down(input, SDL_SCANCODE_P)) {
-      std::cout << "restarting anim" << std::endl;
-      play_animation(animator, &animator.animation_0_data);
+      // std::cout << "restarting anim" << std::endl;
+      // play_animation(animator, &animator.animation_0_data);
     }
 
     update_renderer_system(app, r);

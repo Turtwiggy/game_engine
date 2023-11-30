@@ -2,6 +2,7 @@
 
 #include "components.hpp"
 #include "entt/helpers.hpp"
+#include "events/helpers/mouse.hpp"
 #include "maths/grid.hpp"
 #include "modules/grid/components.hpp"
 #include "modules/lifecycle/components.hpp"
@@ -21,10 +22,17 @@ update_cursor_system(entt::registry& r, const glm::ivec2& mouse_pos)
   //   return;
   // const auto& grid = r.get<GridComponent>(grid_e);
 
+  // warning: doesnt work with controller currently
+  const bool click = get_mouse_lmb_press();
+  const bool held = get_mouse_lmb_held();
+  const bool release = get_mouse_lmb_release();
+
+  static glm::ivec2 click_location = { 0, 0 };
+  if (click)
+    click_location = mouse_pos;
+
   const auto& view = r.view<TransformComponent, AABB, CursorComponent>(entt::exclude<WaitForInitComponent>);
   for (const auto& [entity, transform, aabb, cursor] : view.each()) {
-
-    auto pos = mouse_pos;
 
     // if (clamp_to_grid) {
     //   // so that the grid cursor doesnt swap around the center of the tile,
@@ -47,16 +55,23 @@ update_cursor_system(entt::registry& r, const glm::ivec2& mouse_pos)
     // } else
     //   cursor.grid_index = std::nullopt;
 
-    const int size = 32;
-    // size = grid.size;
+    // defaults
+    glm::ivec2 size{ 32, 32 };
+    glm::ivec2 pos = mouse_pos;
+
+    // expand cursor when cursor is held
+    if (held) {
+      pos = (click_location + mouse_pos) / 2;
+      size = glm::abs(mouse_pos - click_location);
+    }
 
     transform.position.x = pos.x;
     transform.position.y = pos.y;
-    transform.scale.x = size;
-    transform.scale.y = size;
     aabb.center.x = pos.x;
     aabb.center.y = pos.y;
-    aabb.size = { size, size };
+    transform.scale.x = size.x;
+    transform.scale.y = size.y;
+    aabb.size = { size.x, size.y };
   }
 }
 

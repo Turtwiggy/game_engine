@@ -3,7 +3,6 @@
 #include "colour/colour.hpp"
 #include "entt/helpers.hpp"
 #include "events/components.hpp"
-#include "modules/actor_bow/components.hpp"
 #include "modules/actor_cursor/components.hpp"
 #include "modules/actor_dropoff_zone/components.hpp"
 #include "modules/actor_enemy/components.hpp"
@@ -12,6 +11,8 @@
 #include "modules/actor_player/components.hpp"
 #include "modules/actor_spawner/components.hpp"
 #include "modules/actor_turret/components.hpp"
+#include "modules/actor_weapon_bow/components.hpp"
+#include "modules/actor_weapon_shotgun/components.hpp"
 #include "modules/animation/components.hpp"
 #include "modules/camera/components.hpp"
 #include "modules/camera/orthographic.hpp"
@@ -23,6 +24,7 @@
 #include "modules/renderer/components.hpp"
 #include "modules/renderer/helpers.hpp"
 #include "modules/respawn/components.hpp"
+#include "modules/ux_hoverable/components.hpp"
 #include "physics/components.hpp"
 #include "sprites/components.hpp"
 #include "sprites/helpers.hpp"
@@ -39,7 +41,10 @@ create_sprite(entt::registry& r, const EntityType& type)
 
   std::string sprite = "EMPTY";
 
-  if (type == EntityType::actor_hearth)
+  if (type == EntityType::cursor)
+    sprite = "EMPTY";
+
+  else if (type == EntityType::actor_hearth)
     sprite = "CAMPFIRE";
   else if (type == EntityType::actor_player)
     sprite = "PERSON_25_0";
@@ -54,20 +59,25 @@ create_sprite(entt::registry& r, const EntityType& type)
   // weapons...
   else if (type == EntityType::weapon_bow)
     sprite = "WEAPON_BOW_0";
+  else if (type == EntityType::weapon_shotgun)
+    sprite = "WEAPON_SHOTGUN";
   // bullets...
   else if (type == EntityType::bullet_default)
     sprite = "EMPTY";
   else if (type == EntityType::bullet_bow)
     sprite = "ARROW_1";
-  // enemies...
-  else if (type == EntityType::enemy_grunt)
-    sprite = "PERSON_25_1";
-  else if (type == EntityType::enemy_sniper)
-    sprite = "PERSON_25_6";
-  else if (type == EntityType::enemy_shotgunner)
-    sprite = "PERSON_28_1";
 
-  if (type == EntityType::vfx_muzzleflash)
+  // enemies...
+  else if (type == EntityType::enemy_dummy)
+    sprite = "PERSON_25_1";
+  // else if (type == EntityType::enemy_grunt)
+  //   sprite = "PERSON_25_1";
+  // else if (type == EntityType::enemy_sniper)
+  //   sprite = "PERSON_25_6";
+  // else if (type == EntityType::enemy_shotgunner)
+  //   sprite = "PERSON_28_1";
+
+  else if (type == EntityType::vfx_muzzleflash)
     sprite = "MUZZLE_FLASH";
 
   // else
@@ -84,6 +94,11 @@ create_sprite(entt::registry& r, const EntityType& type)
 
   SpriteComponent sc;
   sc.colour = *colours.lin_white;
+
+  if (type == EntityType::weapon_shotgun)
+    sc.colour = *colours.lin_yellow;
+  if (type == EntityType::enemy_dummy)
+    sc.colour = *colours.lin_orange;
 
   // search spritesheet
   const auto anim = find_animation(anims, sprite);
@@ -167,18 +182,19 @@ create_gameplay(entt::registry& r, const EntityType& type)
       r.emplace<TeamComponent>(e, AvailableTeams::player);
 
       // spawn the player at the hearth
-      SpawnerComponent hearth_spawner;
-      hearth_spawner.type_to_spawn = EntityType::actor_player;
-      hearth_spawner.continuous_spawn = false;
-      r.emplace<SpawnerComponent>(e, hearth_spawner);
+      // SpawnerComponent hearth_spawner;
+      // hearth_spawner.type_to_spawn = EntityType::actor_player;
+      // hearth_spawner.continuous_spawn = false;
+      // r.emplace<SpawnerComponent>(e, hearth_spawner);
 
       break;
     }
 
     case EntityType::actor_player: {
+      const float player_speed = 100.0f;
+
       create_physics_actor(r, e);
       // r.emplace<PhysicsSolidComponent>(e);
-      r.emplace<VelocityComponent>(e);
       r.emplace<TeamComponent>(e, AvailableTeams::player);
 
       // gameplay
@@ -187,10 +203,16 @@ create_gameplay(entt::registry& r, const EntityType& type)
       r.emplace<KeyboardComponent>(e);
       r.emplace<ControllerComponent>(e);
 
+      // movement
+      r.emplace<VelocityComponent>(e);
+      r.emplace<HasTargetPositionComponent>(e);
+      r.emplace<LerpToTargetComponent>(e, player_speed);
+
       r.emplace<HealthComponent>(e, 100);
       r.emplace<InfiniteLivesComponent>(e);
       r.emplace<InventoryLimit>(e);
       r.emplace<CameraFollow>(e);
+      r.emplace<HoverableComponent>(e);
       // r.emplace<GeneratePickupZoneComponent>(e);
 
       // r.emplace<TakeDamageComponent>(e);
@@ -284,12 +306,27 @@ create_gameplay(entt::registry& r, const EntityType& type)
       //
 
     case EntityType::weapon_bow: {
+      create_physics_actor(r, e);
       transform.scale.x = 20;
       transform.scale.y = 20;
       r.emplace<BowComponent>(e);
+      r.emplace<VelocityComponent>(e);
       r.emplace<HasTargetPositionComponent>(e);
       r.emplace<LerpToTargetComponent>(e);
       r.emplace<AttackCooldownComponent>(e);
+      r.emplace<HasParentComponent>(e);
+      break;
+    }
+
+    case EntityType::weapon_shotgun: {
+      create_physics_actor(r, e);
+      transform.scale.x = 20;
+      transform.scale.y = 20;
+      r.emplace<ShotgunComponent>(e);
+      r.emplace<VelocityComponent>(e);
+      r.emplace<HasTargetPositionComponent>(e);
+      r.emplace<LerpToTargetComponent>(e);
+      r.emplace<AttackCooldownComponent>(e, 1.2f); // seconds between spawning
       r.emplace<HasParentComponent>(e);
       break;
     }
@@ -321,35 +358,45 @@ create_gameplay(entt::registry& r, const EntityType& type)
     //
     // actors_enemies
     //
-    case EntityType::enemy_grunt: {
+    case EntityType::enemy_dummy: {
       create_physics_actor(r, e);
       r.emplace<EnemyComponent>(e);
       r.emplace<TeamComponent>(e, AvailableTeams::enemy);
       r.emplace<VelocityComponent>(e);
-      r.emplace<HealthComponent>(e, 3);
-      r.emplace<AttackComponent>(e, 10);
+      r.emplace<HealthComponent>(e, 100);
+      r.emplace<HoverableComponent>(e);
       break;
     }
 
-    case EntityType::enemy_sniper: {
-      create_physics_actor(r, e);
-      r.emplace<EnemyComponent>(e);
-      r.emplace<TeamComponent>(e, AvailableTeams::enemy);
-      r.emplace<VelocityComponent>(e);
-      r.emplace<HealthComponent>(e, 3);
-      r.emplace<AttackComponent>(e, 20);
-      break;
-    }
+      // case EntityType::enemy_grunt: {
+      //   create_physics_actor(r, e);
+      //   r.emplace<EnemyComponent>(e);
+      //   r.emplace<TeamComponent>(e, AvailableTeams::enemy);
+      //   r.emplace<VelocityComponent>(e);
+      //   r.emplace<HealthComponent>(e, 3);
+      //   r.emplace<AttackComponent>(e, 10);
+      //   break;
+      // }
 
-    case EntityType::enemy_shotgunner: {
-      create_physics_actor(r, e);
-      r.emplace<EnemyComponent>(e);
-      r.emplace<TeamComponent>(e, AvailableTeams::enemy);
-      r.emplace<VelocityComponent>(e);
-      r.emplace<HealthComponent>(e, 4);
-      r.emplace<AttackComponent>(e, 50);
-      break;
-    }
+      // case EntityType::enemy_sniper: {
+      //   create_physics_actor(r, e);
+      //   r.emplace<EnemyComponent>(e);
+      //   r.emplace<TeamComponent>(e, AvailableTeams::enemy);
+      //   r.emplace<VelocityComponent>(e);
+      //   r.emplace<HealthComponent>(e, 3);
+      //   r.emplace<AttackComponent>(e, 20);
+      //   break;
+      // }
+
+      // case EntityType::enemy_shotgunner: {
+      //   create_physics_actor(r, e);
+      //   r.emplace<EnemyComponent>(e);
+      //   r.emplace<TeamComponent>(e, AvailableTeams::enemy);
+      //   r.emplace<VelocityComponent>(e);
+      //   r.emplace<HealthComponent>(e, 4);
+      //   r.emplace<AttackComponent>(e, 50);
+      //   break;
+      // }
 
       //
       // misc
