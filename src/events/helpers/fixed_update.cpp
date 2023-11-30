@@ -22,12 +22,30 @@ fixed_input_keyboard_held(const std::vector<InputEvent>& inputs, const SDL_Scanc
   return std::find_if(inputs.begin(), inputs.end(), l) != std::end(inputs);
 };
 
+bool
+fixed_input_keyboard_release(const std::vector<InputEvent>& inputs, const SDL_Scancode& key)
+{
+  const auto l = [&key](const InputEvent& e) {
+    return (e.type == InputType::keyboard && e.keyboard == key && e.state == InputState::release);
+  };
+  return std::find_if(inputs.begin(), inputs.end(), l) != std::end(inputs);
+};
+
 // SDL_BUTTON_LEFT = 1; SDL_BUTTON_MIDDLE = 2; SDL_BUTTON_RIGHT = 3;
 bool
 fixed_input_mouse_press(const std::vector<InputEvent>& inputs, const int& button)
 {
   const auto& l = [&button](const InputEvent& e) {
     return (e.type == InputType::mouse && e.mouse == button && e.state == InputState::press);
+  };
+  return std::find_if(inputs.begin(), inputs.end(), l) != std::end(inputs);
+};
+
+bool
+fixed_input_mouse_release(const std::vector<InputEvent>& inputs, const int& button)
+{
+  const auto& l = [&button](const InputEvent& e) {
+    return (e.type == InputType::mouse && e.mouse == button && e.state == InputState::release);
   };
   return std::find_if(inputs.begin(), inputs.end(), l) != std::end(inputs);
 };

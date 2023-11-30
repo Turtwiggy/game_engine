@@ -24,19 +24,19 @@ update_respawn_system(entt::registry& r)
         // yeah.. respawn it
 
         // find a spawner of the type that died and spawn it there
-        for (const auto& [e_spawner, spawner] : r.view<SpawnerComponent>(entt::exclude<WaitForInitComponent>).each()) {
-          if (spawner.type_to_spawn == type.type) {
+        // for (const auto& [e_spawner, spawner] : r.view<SpawnerComponent>(entt::exclude<WaitForInitComponent>).each()) {
+        //   if (spawner.type_to_spawn == type.type) {
 
-            // spawn new entity at this spawner
-            const auto& spawner_transform = r.get<TransformComponent>(e_spawner);
+        //     // spawn new entity at this spawner
+        //     const auto& spawner_transform = r.get<TransformComponent>(e_spawner);
 
-            // the entity
-            const auto req = create_gameplay(r, spawner.type_to_spawn);
-            r.get<TransformComponent>(req).position = spawner_transform.position;
+        //     // the entity
+        //     const auto req = create_gameplay(r, spawner.type_to_spawn);
+        //     r.get<TransformComponent>(req).position = spawner_transform.position;
 
-            break; // just choose the first spawner
-          }
-        }
+        //     break; // just choose the first spawner
+        //   }
+        // }
 
         // design question: kill off the old player,
         // or just move its position and reset its state?

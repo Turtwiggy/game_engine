@@ -71,8 +71,9 @@ update_spawner_system(entt::registry& r, const uint64_t milliseconds_dt)
       // if (auto* hp = r.try_get<HealthComponent>(e))
       //   hp->hp = spawner.hp;
 
-      const auto req = create_gameplay(r, spawner.type_to_spawn);
-      r.get<TransformComponent>(req).position = transform.position;
+      // TODO: fix this
+      // const auto req = create_gameplay(r, spawner.type_to_spawn);
+      // r.get<TransformComponent>(req).position = transform.position;
 
       reset_cooldown(cooldown);
     }

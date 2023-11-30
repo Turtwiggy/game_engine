@@ -16,7 +16,19 @@ bool
 fixed_input_keyboard_held(const std::vector<InputEvent>& inputs, const SDL_Scancode& key);
 
 bool
+fixed_input_keyboard_release(const std::vector<InputEvent>& inputs, const SDL_Scancode& key);
+
+//
+//
+
+bool
 fixed_input_mouse_press(const std::vector<InputEvent>& inputs, const int& button);
+
+bool
+fixed_input_mouse_release(const std::vector<InputEvent>& inputs, const int& button);
+
+//
+//
 
 bool
 fixed_input_controller_button_press(const std::vector<InputEvent>& inputs, const SDL_GameControllerButton& button);

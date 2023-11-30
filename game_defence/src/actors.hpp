@@ -41,16 +41,16 @@ enum class EntityType
   weapon_bow,
   // weapon_pistol,
   // weapon_sniper,
-  // weapon_shotgun,
+  weapon_shotgun,
 
   // actor_bullets,
   bullet_default,
   bullet_bow,
 
   // actor_enemy,
-  enemy_grunt,
-  enemy_sniper,
-  enemy_shotgunner,
+  // enemy_grunt,
+  // enemy_sniper,
+  // enemy_shotgunner,
 
   // misc
   cursor,

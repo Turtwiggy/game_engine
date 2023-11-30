@@ -12,10 +12,10 @@
 #include "modules/actor_cursor/components.hpp"
 #include "modules/actor_player/components.hpp"
 #include "modules/actor_turret/components.hpp"
+#include "modules/combat_wants_to_shoot/components.hpp"
 #include "modules/items_pickup/components.hpp"
 #include "modules/lifecycle/components.hpp"
 #include "modules/renderer/components.hpp"
-#include "modules/screenshake/components.hpp"
 #include "physics/components.hpp"
 #include "renderer/transform.hpp"
 #include "sprites/components.hpp"
@@ -50,6 +50,7 @@ game2d::update_player_controller_system(entt::registry& r, const uint64_t& milli
       input.lx = 0.0f;
       input.ly = 0.0f;
       input.shoot = false;
+      input.shoot_release = false;
       input.pickup = false;
       input.sprint = false;
 
@@ -67,6 +68,7 @@ game2d::update_player_controller_system(entt::registry& r, const uint64_t& milli
         input.lx += fixed_input_keyboard_held(inputs, keyboard->A) ? -1 : 0;
         input.lx += fixed_input_keyboard_held(inputs, keyboard->D) ? 1 : 0;
         input.shoot |= fixed_input_mouse_press(inputs, SDL_BUTTON_LEFT);
+        input.shoot_release |= fixed_input_mouse_release(inputs, SDL_BUTTON_LEFT);
         input.pickup |= fixed_input_keyboard_press(inputs, keyboard->pickup);
         input.sprint |= fixed_input_keyboard_press(inputs, keyboard->sprint);
         // input.place_turret |= fixed_input_keyboard_press(SDL_SCANCODE_SPACE);
@@ -79,6 +81,7 @@ game2d::update_player_controller_system(entt::registry& r, const uint64_t& milli
         input.rx += fixed_input_controller_axis_held(inputs, controller->c_right_stick_x);
         input.ry += fixed_input_controller_axis_held(inputs, controller->c_right_stick_y);
         input.shoot |= fixed_input_controller_axis_held(inputs, controller->c_right_trigger) > 0.5f;
+        // input.shoot_release |= fixed_input_controller_axis_held(inputs, controller->c_right_trigger) <= 0.1f;
         input.pickup |= fixed_input_controller_button_held(inputs, controller->c_r_bumper);
         input.sprint |= fixed_input_controller_button_held(inputs, controller->c_l_bumper);
         // input.place_turret |= fixed_input_controller_button_press(controller->c_y);
@@ -118,39 +121,20 @@ game2d::update_player_controller_system(entt::registry& r, const uint64_t& milli
 
     // shoot action
     //
-    if (input.shoot && player.weapon != entt::null) {
-      // request to play audio
-      // r.emplace<AudioRequestPlayEvent>(r.create(), "SHOOT_01");
-
-      r.emplace<WantsToShoot>(r.create());
-
-      // add screenshake
-      auto& screenshake = get_first_component<SINGLE_ScreenshakeComponent>(r);
-      screenshake.time_left = screenshake.time;
-
-      // request to show a flash effect
-      // TODO: make this a request dont create the entity here
-      const auto flash = create_gameplay(r, EntityType::vfx_muzzleflash);
-      auto& flash_transform = r.get<TransformComponent>(flash);
-      auto& weapon_transform = r.get<TransformComponent>(player.weapon);
-
-      // from the weapon position, offset the flash by a tiny bit
-      const float scale = 10.0f;
-      const glm::vec2 dir = { input.rx * scale, input.ry * scale };
-      flash_transform.position = { weapon_transform.position.x + dir.x,
-                                   weapon_transform.position.y + dir.y,
-                                   weapon_transform.position.z };
-    }
+    if (input.shoot)
+      r.emplace_or_replace<WantsToShoot>(entity);
+    if (input.shoot_release)
+      r.emplace_or_replace<WantsToReleaseShot>(entity);
 
     // give player a weapon on spawn
     //
     if (!player.has_weapon) {
-      auto bow = create_gameplay(r, player.weapon_to_spawn_with);
-      auto& parent = r.get<HasParentComponent>(bow);
+      const auto weapon = create_gameplay(r, player.weapon_to_spawn_with);
+      auto& parent = r.get<HasParentComponent>(weapon);
       parent.parent = entity;
 
       player.has_weapon = true;
-      player.weapon = bow;
+      player.weapon = weapon;
     }
   }
 };

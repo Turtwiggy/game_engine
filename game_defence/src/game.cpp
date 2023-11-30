@@ -16,6 +16,7 @@
 #include "modules/actor_spawner/components.hpp"
 #include "modules/actor_spawner/system.hpp"
 #include "modules/actor_turret/system.hpp"
+#include "modules/actor_weapon_shotgun/system.hpp"
 #include "modules/animation/angle_to_velocity.hpp"
 #include "modules/animation/wiggle_up_and_down.hpp"
 #include "modules/animator/system.hpp"
@@ -220,15 +221,15 @@ game2d::update(engine::SINGLETON_Application& app, entt::registry& r, const floa
 
       //
       // ai
-      // update_set_velocity_to_target_system(r, dt); // TODO: FIX THIS
+      update_set_velocity_to_target_system(r, dt);
       //
       // combat
       update_attack_cooldown_system(r, milliseconds_dt);
       update_take_damage_system(r);
       //
       // spawners
-      update_respawn_system(r);
-      update_spawner_system(r, milliseconds_dt);
+      // update_respawn_system(r);
+      // update_spawner_system(r, milliseconds_dt);
       //
       // items
       update_intent_pickup_system(r);
@@ -247,6 +248,7 @@ game2d::update(engine::SINGLETON_Application& app, entt::registry& r, const floa
       // so update() could never recieve the input.shoot event
       update_screenshake_system(r, app.ms_since_launch / 1000.0f, dt);
       update_bow_system(r, milliseconds_dt);
+      update_weapon_shotgun_system(r, milliseconds_dt);
 
       // update_flash_sprite_system(game, milliseconds_dt);
       // update_enemy_system(game);

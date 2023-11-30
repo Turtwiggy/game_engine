@@ -6,6 +6,12 @@
 
 namespace engine {
 
+[[nodiscard]] float
+deg2rad(const float& deg)
+{
+  return (deg * engine::PI) / 180.0f;
+}
+
 glm::vec2
 angle_radians_to_direction(const float angle)
 {

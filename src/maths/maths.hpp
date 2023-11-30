@@ -45,6 +45,9 @@ rand_01(T& rnd)
   return rand_det_s(rnd, 0.0f, 1.0f);
 };
 
+[[nodiscard]] float
+deg2rad(const float& deg);
+
 [[nodiscard]] glm::vec2
 angle_radians_to_direction(const float angle);
 

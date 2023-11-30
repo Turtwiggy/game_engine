@@ -13,9 +13,4 @@ struct BowComponent
   std::vector<entt::entity> arrows;
 };
 
-struct WantsToShoot
-{
-  //
-};
-
 } // namespace game2d

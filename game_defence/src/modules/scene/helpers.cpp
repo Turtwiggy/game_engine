@@ -180,11 +180,6 @@ move_to_scene_start(entt::registry& r, const Scene s)
       r.get<TransformComponent>(icon).scale = { default_size.x, default_size.y, 1.0f };
       r.get<TagComponent>(icon).tag = "grass"s;
     }
-
-    // create an animated sprite
-    {
-      const auto e = create_gameplay(r, EntityType::vfx_muzzleflash);
-    }
   }
 
   auto& scene = get_first_component<SINGLETON_CurrentScene>(r);

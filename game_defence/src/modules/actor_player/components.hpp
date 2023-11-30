@@ -21,7 +21,7 @@ struct PlayerComponent
   // weapon
   bool has_weapon = false;
   entt::entity weapon = entt::null;
-  EntityType weapon_to_spawn_with = EntityType::weapon_bow;
+  EntityType weapon_to_spawn_with = EntityType::weapon_shotgun;
   float weapon_offset = 30.0f;
 };
 
@@ -61,18 +61,19 @@ struct ControllerComponent
 
 struct InputComponent
 {
-  // player actions?
-  bool shoot = false;
-  bool sprint = false;
-  bool pickup = false;
-  // bool place_turret = false;
-  // bool reload = false;
-
   // player analogues
   float lx = 0.0f;
   float ly = 0.0f;
   float rx = 0.0f;
   float ry = 0.0f;
+
+  // player actions?
+  bool shoot;
+  bool shoot_release;
+  bool sprint;
+  bool pickup;
+  // bool place_turret = false;
+  // bool reload = false;
 };
 
 } // namespace game2d
