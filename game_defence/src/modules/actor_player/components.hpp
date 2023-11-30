@@ -19,10 +19,8 @@ struct PlayerComponent
   int picked_up_xp = 0;
 
   // weapon
-  bool has_weapon = false;
   entt::entity weapon = entt::null;
-  EntityType weapon_to_spawn_with = EntityType::weapon_shotgun;
-  float weapon_offset = 30.0f;
+  float weapon_offset = 10.0f;
 };
 
 struct KeyboardComponent

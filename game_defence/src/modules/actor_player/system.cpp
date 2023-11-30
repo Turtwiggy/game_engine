@@ -67,8 +67,8 @@ game2d::update_player_controller_system(entt::registry& r, const uint64_t& milli
         input.ly += fixed_input_keyboard_held(inputs, keyboard->S) ? 1 : 0;
         input.lx += fixed_input_keyboard_held(inputs, keyboard->A) ? -1 : 0;
         input.lx += fixed_input_keyboard_held(inputs, keyboard->D) ? 1 : 0;
-        input.shoot |= fixed_input_mouse_press(inputs, SDL_BUTTON_LEFT);
-        input.shoot_release |= fixed_input_mouse_release(inputs, SDL_BUTTON_LEFT);
+        input.shoot |= fixed_input_mouse_press(inputs, SDL_BUTTON_RIGHT);
+        input.shoot_release |= fixed_input_mouse_release(inputs, SDL_BUTTON_RIGHT);
         input.pickup |= fixed_input_keyboard_press(inputs, keyboard->pickup);
         input.sprint |= fixed_input_keyboard_press(inputs, keyboard->sprint);
         // input.place_turret |= fixed_input_keyboard_press(SDL_SCANCODE_SPACE);
@@ -125,16 +125,5 @@ game2d::update_player_controller_system(entt::registry& r, const uint64_t& milli
       r.emplace_or_replace<WantsToShoot>(entity);
     if (input.shoot_release)
       r.emplace_or_replace<WantsToReleaseShot>(entity);
-
-    // give player a weapon on spawn
-    //
-    if (!player.has_weapon) {
-      const auto weapon = create_gameplay(r, player.weapon_to_spawn_with);
-      auto& parent = r.get<HasParentComponent>(weapon);
-      parent.parent = entity;
-
-      player.has_weapon = true;
-      player.weapon = weapon;
-    }
   }
 };

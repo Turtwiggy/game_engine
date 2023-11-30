@@ -37,7 +37,6 @@ namespace game2d {
 // const auto flash = create_gameplay(r, EntityType::vfx_muzzleflash);
 // auto& flash_transform = r.get<TransformComponent>(flash);
 // auto& weapon_transform = r.get<TransformComponent>(player.weapon);
-
 // // from the weapon position, offset the flash by a tiny bit
 // const float scale = 10.0f;
 // const glm::vec2 dir = { input.rx * scale, input.ry * scale };
@@ -51,13 +50,18 @@ update_bow_system(entt::registry& r, const uint64_t milliseconds_dt)
   const float dt = milliseconds_dt / 1000.0f;
   auto& lifecycle = get_first_component<SINGLETON_EntityBinComponent>(r);
 
-  const auto& view = r.view<BowComponent, HasParentComponent, AttackCooldownComponent, const TransformComponent>(
-    entt::exclude<WaitForInitComponent>);
-  for (const auto& [entity, bow, parent, cooldown, transform] : view.each()) {
+  const auto& view =
+    r.view<BowComponent, HasParentComponent, AttackCooldownComponent, HasTargetPositionComponent, const TransformComponent>(
+      entt::exclude<WaitForInitComponent>);
+  for (const auto& [entity, bow, parent, cooldown, target, transform] : view.each()) {
     const auto& p = parent.parent;
     if (p == entt::null)
       continue;
-    const auto& [player, input] = r.get<PlayerComponent, InputComponent>(p);
+    const auto& [player, input, player_aabb] = r.get<const PlayerComponent, const InputComponent, const AABB>(p);
+
+    // where does this weapon want to be?
+    const glm::ivec2 offset = { input.rx * player.weapon_offset, input.ry * player.weapon_offset };
+    target.position = player_aabb.center + offset;
 
     // check if input was pressed
     bool shoot_pressed = false;
@@ -78,7 +82,6 @@ update_bow_system(entt::registry& r, const uint64_t milliseconds_dt)
     //
 
     glm::vec2 r_nrm_dir = { input.rx, input.ry };
-    const glm::ivec2 offset = { r_nrm_dir.x * player.weapon_offset, r_nrm_dir.y * player.weapon_offset };
 
     const bool aiming = glm::abs(input.rx) > 0.3f || glm::abs(input.ry) > 0.3f;
 

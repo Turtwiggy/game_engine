@@ -6,6 +6,7 @@
 #include "modules/combat_attack_cooldown/components.hpp"
 #include "modules/combat_damage/components.hpp"
 #include "modules/combat_wants_to_shoot/components.hpp"
+#include "modules/lerp_to_target/components.hpp"
 #include "modules/lifecycle/components.hpp"
 #include "physics/components.hpp"
 
@@ -16,15 +17,29 @@ update_weapon_shotgun_system(entt::registry& r, const uint64_t milliseconds_dt)
 {
   const float dt = milliseconds_dt / 1000.0f;
 
-  const auto& view = r.view<ShotgunComponent, HasParentComponent, AttackCooldownComponent, const TransformComponent>(
-    entt::exclude<WaitForInitComponent>);
+  const auto& view = r.view<ShotgunComponent,
+                            HasParentComponent,
+                            AttackCooldownComponent,
+                            HasTargetPositionComponent,
+                            SpriteComponent,
+                            TransformComponent>(entt::exclude<WaitForInitComponent>);
 
-  for (const auto& [entity, shotgun, parent, cooldown, transform] : view.each()) {
+  for (const auto& [entity, shotgun, parent, cooldown, target, sprite, transform] : view.each()) {
 
     const auto& p = parent.parent;
     if (p == entt::null)
       continue;
-    const auto& [player, input] = r.get<PlayerComponent, InputComponent>(p);
+    const auto& [player, input, player_aabb] = r.get<const PlayerComponent, const InputComponent, const AABB>(p);
+
+    // where does this weapon want to be?
+    const glm::ivec2 offset = { -input.rx * player.weapon_offset, -input.ry * player.weapon_offset };
+    target.position = player_aabb.center + offset;
+
+    // Is this weapon on the left or right of the player?
+    if (transform.position.x - player_aabb.center.x < 0)
+      transform.scale.x = -glm::abs(transform.scale.x);
+    else
+      transform.scale.x = glm::abs(transform.scale.x);
 
     // check if input was pressed
     bool shoot_pressed = false;
@@ -43,12 +58,7 @@ update_weapon_shotgun_system(entt::registry& r, const uint64_t milliseconds_dt)
     //
     // fire shots in a spread
     //
-
-    glm::vec2 r_nrm_dir = { input.rx, input.ry };
-    const glm::ivec2 offset = { r_nrm_dir.x * player.weapon_offset, r_nrm_dir.y * player.weapon_offset };
-
     const bool aiming = glm::abs(input.rx) > 0.3f || glm::abs(input.ry) > 0.3f;
-
     bool allowed_to_shoot = !cooldown.on_cooldown;
     allowed_to_shoot &= aiming;        // must be aiming
     allowed_to_shoot &= shoot_pressed; // input
@@ -59,6 +69,7 @@ update_weapon_shotgun_system(entt::registry& r, const uint64_t milliseconds_dt)
       cooldown.time_between_attack_left = cooldown.time_between_attack;
 
       // spread the bullets out in an arc
+      const glm::vec2 r_nrm_dir = { input.rx, input.ry };
       const float angle_radians = atan2(-r_nrm_dir.y, -r_nrm_dir.x) + engine::HALF_PI;
       const float bullet_angle_degrees = 5.0f;
       const float bullet_angle_radians = engine::deg2rad(bullet_angle_degrees);

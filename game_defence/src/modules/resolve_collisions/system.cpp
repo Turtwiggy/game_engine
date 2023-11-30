@@ -15,18 +15,18 @@ update_resolve_collisions_system(entt::registry& r)
   // some collisions result in dead entities
   auto& dead = get_first_component<SINGLETON_EntityBinComponent>(r);
 
-  const auto& collision_of_interest = [](const entt::entity& a_ent,
-                                         const entt::entity& b_ent,
-                                         const EntityType& a,
-                                         const EntityType& b,
-                                         const EntityType& a_actual,
-                                         const EntityType& b_actual) -> std::pair<entt::entity, entt::entity> {
-    if (a == a_actual && b == b_actual)
-      return { a_ent, b_ent };
-    if (a == b_actual && b == a_actual)
-      return { b_ent, a_ent };
-    return { entt::null, entt::null };
-  };
+  // const auto& collision_of_interest = [](const entt::entity& a_ent,
+  //                                        const entt::entity& b_ent,
+  //                                        const EntityType& a,
+  //                                        const EntityType& b,
+  //                                        const EntityType& a_actual,
+  //                                        const EntityType& b_actual) -> std::pair<entt::entity, entt::entity> {
+  //   if (a == a_actual && b == b_actual)
+  //     return { a_ent, b_ent };
+  //   if (a == b_actual && b == a_actual)
+  //     return { b_ent, a_ent };
+  //   return { entt::null, entt::null };
+  // };
 
   for (const auto& coll : physics.collision_enter) {
 
@@ -36,12 +36,12 @@ update_resolve_collisions_system(entt::registry& r)
     const auto& a_type = r.get<EntityTypeComponent>(a).type;
     const auto& b_type = r.get<EntityTypeComponent>(b).type;
 
-    auto* a_atk = r.try_get<AttackComponent>(a);
-    auto* a_def = r.try_get<HealthComponent>(a);
-    auto* a_team = r.try_get<TeamComponent>(a);
-    auto* b_atk = r.try_get<AttackComponent>(b);
-    auto* b_def = r.try_get<HealthComponent>(b);
-    auto* b_team = r.try_get<TeamComponent>(b);
+    const auto* a_atk = r.try_get<AttackComponent>(a);
+    const auto* a_def = r.try_get<HealthComponent>(a);
+    const auto* a_team = r.try_get<TeamComponent>(a);
+    const auto* b_atk = r.try_get<AttackComponent>(b);
+    const auto* b_def = r.try_get<HealthComponent>(b);
+    const auto* b_team = r.try_get<TeamComponent>(b);
 
     // todo: dont just *kill* enemies immediately on collision
     // should do something more interesting give the enemy damage

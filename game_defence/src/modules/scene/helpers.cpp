@@ -7,10 +7,11 @@
 #include "game_state.hpp"
 #include "maths/grid.hpp"
 #include "maths/maths.hpp"
-#include "modules/actor_bow/components.hpp"
 #include "modules/actor_cursor/components.hpp"
 #include "modules/actor_dropoff_zone/components.hpp"
 #include "modules/actor_pickup_zone/components.hpp"
+#include "modules/actor_player/components.hpp"
+#include "modules/actor_weapon_bow/components.hpp"
 #include "modules/animation/components.hpp"
 #include "modules/camera/orthographic.hpp"
 #include "modules/gameover/components.hpp"
@@ -22,6 +23,7 @@
 #include "modules/renderer/components.hpp"
 #include "modules/renderer/helpers.hpp"
 #include "modules/screenshake/components.hpp"
+#include "modules/ux_hoverable/components.hpp"
 #include "physics/components.hpp"
 #include "resources/colours.hpp"
 #include "sprites/helpers.hpp"
@@ -60,6 +62,7 @@ move_to_scene_start(entt::registry& r, const Scene s)
   destroy_and_create<SINGLETON_GameOver>(r);
   destroy_and_create<SINGLETON_Wave>(r);
   destroy_and_create<SINGLE_ScreenshakeComponent>(r);
+  destroy_and_create<SINGLE_HoverInfo>(r);
 
   // create a cursor
   const auto cursor = create_gameplay(r, EntityType::cursor);
@@ -72,15 +75,37 @@ move_to_scene_start(entt::registry& r, const Scene s)
     const auto default_size = glm::ivec2{ 16 * pixel_scale_up_size, 16 * pixel_scale_up_size };
     const auto tex_unit = search_for_texture_by_path(ri, "bargame")->unit;
 
+    {
+    }
+
     // create a player
     {
+      // create a weapon for a player
+      const auto weapon = create_gameplay(r, EntityType::weapon_shotgun);
+      auto& weapon_parent = r.get<HasParentComponent>(weapon);
+
       const auto e = create_gameplay(r, EntityType::actor_player);
+
+      // link player & weapon
+      weapon_parent.parent = e;
+      auto& player = r.get<PlayerComponent>(e);
+      player.weapon = weapon;
+
       auto& e_aabb = r.get<AABB>(e);
       e_aabb.size = default_size * 1;
       e_aabb.center = { -88, -30 };
 
       const auto icon_xy = set_sprite_custom(r, e, "player_0", tex_unit);
       r.get<TransformComponent>(e).scale = { e_aabb.size.x, e_aabb.size.y, 1.0f };
+    }
+
+    // create a hostile dummy
+    {
+      const auto e = create_gameplay(r, EntityType::enemy_dummy);
+
+      auto& e_aabb = r.get<AABB>(e);
+      e_aabb.size = default_size * 1;
+      e_aabb.center = { 50, -30 };
     }
 
     // create food/item dispencers

@@ -8,7 +8,6 @@
 #include "events/system.hpp"
 #include "game_state.hpp"
 #include "maths/maths.hpp"
-#include "modules/actor_bow/system.hpp"
 #include "modules/actor_cursor/system.hpp"
 #include "modules/actor_dropoff_zone_requets_items/system.hpp"
 #include "modules/actor_enemy/system.hpp"
@@ -16,6 +15,7 @@
 #include "modules/actor_spawner/components.hpp"
 #include "modules/actor_spawner/system.hpp"
 #include "modules/actor_turret/system.hpp"
+#include "modules/actor_weapon_bow/system.hpp"
 #include "modules/actor_weapon_shotgun/system.hpp"
 #include "modules/animation/angle_to_velocity.hpp"
 #include "modules/animation/wiggle_up_and_down.hpp"
@@ -55,6 +55,7 @@
 #include "modules/ui_pause_menu/system.hpp"
 #include "modules/ui_scene_main_menu/system.hpp"
 #include "modules/ui_spawner_editor/system.hpp"
+#include "modules/ux_hoverable/system.hpp"
 #include "physics/components.hpp"
 #include "physics/process_actor_actor_collisions.hpp"
 #include "physics/process_move_objects.hpp"
@@ -249,6 +250,8 @@ game2d::update(engine::SINGLETON_Application& app, entt::registry& r, const floa
       update_screenshake_system(r, app.ms_since_launch / 1000.0f, dt);
       update_bow_system(r, milliseconds_dt);
       update_weapon_shotgun_system(r, milliseconds_dt);
+
+      update_ux_hoverable(r);
 
       // update_flash_sprite_system(game, milliseconds_dt);
       // update_enemy_system(game);
