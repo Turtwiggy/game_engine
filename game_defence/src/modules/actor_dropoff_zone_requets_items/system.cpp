@@ -40,13 +40,34 @@ update_actor_dropoffzone_request_items(entt::registry& r, uint64_t ms_dt)
 
     // create people
     for (int i = zone.cur_customers; i > zone.instantiated_customers.size(); i--) {
+      std::cout << "new i " << i << std::endl;
       const auto new_customer = create_gameplay(r, EntityType::empty);
       set_sprite_custom(r, new_customer, "customer_0", tex_unit);
 
       auto& new_transform = r.get<TransformComponent>(new_customer);
-      new_transform.position = { aabb.center.x + aabb.size.x / 2, aabb.center.y, 0.0f };
+      new_transform.position = { aabb.center.x, aabb.center.y, 0.0f };
       new_transform.scale = { 32, 32, 1 };
-      new_transform.position.x += 50 * i;
+
+      // top left
+      if (i == 1) {
+        new_transform.position.x -= aabb.size.x / 4.0f;
+        new_transform.position.y -= aabb.size.y / 4.0f;
+      }
+      // top right
+      if (i == 2) {
+        new_transform.position.x += aabb.size.x / 4.0f;
+        new_transform.position.y -= aabb.size.y / 4.0f;
+      }
+      // bottom right
+      if (i == 3) {
+        new_transform.position.x += aabb.size.x / 4.0f;
+        new_transform.position.y += aabb.size.y / 4.0f;
+      }
+      // bottom left
+      if (i == 4) {
+        new_transform.position.x -= aabb.size.x / 4.0f;
+        new_transform.position.y += aabb.size.y / 4.0f;
+      }
 
       WiggleUpAndDown wiggle;
       wiggle.base_position = { new_transform.position.x, new_transform.position.y };

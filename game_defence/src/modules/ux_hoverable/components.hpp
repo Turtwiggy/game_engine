@@ -7,13 +7,17 @@
 
 namespace game2d {
 
-struct SINGLE_HoverInfo
+struct HoverableComponent
 {
-  std::set<entt::entity> hovered;
-  std::vector<entt::entity> selected;
+  bool placeholder = true;
 };
 
-struct HoverableComponent
+struct HoveredComponent
+{
+  bool placeholder = true;
+};
+
+struct SelectedComponent
 {
   bool placeholder = true;
 };

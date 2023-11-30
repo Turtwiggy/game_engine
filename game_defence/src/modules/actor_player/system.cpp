@@ -97,22 +97,19 @@ game2d::update_player_controller_system(entt::registry& r, const uint64_t& milli
 
     // do the move
     //
-    if (auto* vel = r.try_get<VelocityComponent>(entity)) {
-
-      glm::vec2 l_nrm_dir = { input.lx, input.ly };
-      if (l_nrm_dir.x != 0.0f || l_nrm_dir.y != 0.0f)
-        l_nrm_dir = glm::normalize(l_nrm_dir);
-
-      const float dt = milliseconds_dt / 1000.0f;
-      const glm::vec2 move_dir = (l_nrm_dir * vel->base_speed) / dt;
-      vel->x = move_dir.x;
-      vel->y = move_dir.y;
-
-      if (input.sprint) {
-        vel->x *= 2.0f;
-        vel->y *= 2.0f;
-      }
-    }
+    // if (auto* vel = r.try_get<VelocityComponent>(entity)) {
+    //   glm::vec2 l_nrm_dir = { input.lx, input.ly };
+    //   if (l_nrm_dir.x != 0.0f || l_nrm_dir.y != 0.0f)
+    //     l_nrm_dir = glm::normalize(l_nrm_dir);
+    //   const float dt = milliseconds_dt / 1000.0f;
+    //   const glm::vec2 move_dir = (l_nrm_dir * vel->base_speed) / dt;
+    //   vel->x = move_dir.x;
+    //   vel->y = move_dir.y;
+    //   if (input.sprint) {
+    //     vel->x *= 2.0f;
+    //     vel->y *= 2.0f;
+    //   }
+    // }
 
     if (input.pickup) {
       std::cout << "Pickup pressed!" << std::endl;
@@ -121,9 +118,9 @@ game2d::update_player_controller_system(entt::registry& r, const uint64_t& milli
 
     // shoot action
     //
-    if (input.shoot)
-      r.emplace_or_replace<WantsToShoot>(entity);
-    if (input.shoot_release)
-      r.emplace_or_replace<WantsToReleaseShot>(entity);
+    // if (input.shoot)
+    //   r.emplace_or_replace<WantsToShoot>(entity);
+    // if (input.shoot_release)
+    //   r.emplace_or_replace<WantsToReleaseShot>(entity);
   }
 };

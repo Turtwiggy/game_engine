@@ -62,7 +62,6 @@ move_to_scene_start(entt::registry& r, const Scene s)
   destroy_and_create<SINGLETON_GameOver>(r);
   destroy_and_create<SINGLETON_Wave>(r);
   destroy_and_create<SINGLE_ScreenshakeComponent>(r);
-  destroy_and_create<SINGLE_HoverInfo>(r);
 
   // create a cursor
   const auto cursor = create_gameplay(r, EntityType::cursor);
@@ -105,7 +104,7 @@ move_to_scene_start(entt::registry& r, const Scene s)
 
       auto& e_aabb = r.get<AABB>(e);
       e_aabb.size = default_size * 1;
-      e_aabb.center = { 50, -30 };
+      e_aabb.center = { -235, 150 };
     }
 
     // create food/item dispencers

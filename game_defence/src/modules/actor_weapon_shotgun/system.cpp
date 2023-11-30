@@ -8,6 +8,7 @@
 #include "modules/combat_wants_to_shoot/components.hpp"
 #include "modules/lerp_to_target/components.hpp"
 #include "modules/lifecycle/components.hpp"
+#include "modules/ux_hoverable/components.hpp"
 #include "physics/components.hpp"
 
 namespace game2d {
@@ -31,9 +32,19 @@ update_weapon_shotgun_system(entt::registry& r, const uint64_t milliseconds_dt)
       continue;
     const auto& [player, input, player_aabb] = r.get<const PlayerComponent, const InputComponent, const AABB>(p);
 
+    const auto* selected = r.try_get<SelectedComponent>(p);
+
     // where does this weapon want to be?
     const glm::ivec2 offset = { -input.rx * player.weapon_offset, -input.ry * player.weapon_offset };
-    target.position = player_aabb.center + offset;
+
+    if (selected) // simulate "picking up the gun"
+      target.position = player_aabb.center + offset;
+    else
+      target.position = player_aabb.center;
+
+    // Only let the weapon do things if the player is selected
+    if (selected == nullptr)
+      continue;
 
     // Is this weapon on the left or right of the player?
     if (transform.position.x - player_aabb.center.x < 0)

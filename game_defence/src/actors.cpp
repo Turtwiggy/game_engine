@@ -191,9 +191,10 @@ create_gameplay(entt::registry& r, const EntityType& type)
     }
 
     case EntityType::actor_player: {
+      const float player_speed = 100.0f;
+
       create_physics_actor(r, e);
       // r.emplace<PhysicsSolidComponent>(e);
-      r.emplace<VelocityComponent>(e);
       r.emplace<TeamComponent>(e, AvailableTeams::player);
 
       // gameplay
@@ -201,6 +202,11 @@ create_gameplay(entt::registry& r, const EntityType& type)
       r.emplace<InputComponent>(e);
       r.emplace<KeyboardComponent>(e);
       r.emplace<ControllerComponent>(e);
+
+      // movement
+      r.emplace<VelocityComponent>(e);
+      r.emplace<HasTargetPositionComponent>(e);
+      r.emplace<LerpToTargetComponent>(e, player_speed);
 
       r.emplace<HealthComponent>(e, 100);
       r.emplace<InfiniteLivesComponent>(e);

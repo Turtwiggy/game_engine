@@ -40,6 +40,7 @@
 #include "modules/respawn/system.hpp"
 #include "modules/scene/helpers.hpp"
 #include "modules/screenshake/system.hpp"
+#include "modules/selected_interactions/system.hpp"
 #include "modules/ui_audio/system.hpp"
 #include "modules/ui_collisions/system.hpp"
 #include "modules/ui_colours/system.hpp"
@@ -250,7 +251,7 @@ game2d::update(engine::SINGLETON_Application& app, entt::registry& r, const floa
       update_screenshake_system(r, app.ms_since_launch / 1000.0f, dt);
       update_bow_system(r, milliseconds_dt);
       update_weapon_shotgun_system(r, milliseconds_dt);
-
+      update_selected_interactions_system(r, mouse_pos);
       update_ux_hoverable(r);
 
       // update_flash_sprite_system(game, milliseconds_dt);
