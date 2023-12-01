@@ -37,7 +37,7 @@ update_take_damage_system(entt::registry& r)
     // .. popup some numbers as vfx
     const int text_seperation = 6;
     const auto sprites = convert_int_to_sprites(atk->damage);
-    const auto def_pos = r.get<TransformComponent>(request.to).position;
+    const auto def_transform = r.get<TransformComponent>(request.to);
     for (int i = 0; i < sprites.size(); i++) {
 
       const auto req = create_gameplay(r, EntityType::particle);
@@ -47,8 +47,9 @@ update_take_damage_system(entt::registry& r)
       vel.y = 10; // travel up
       r.emplace_or_replace<VelocityComponent>(req, vel);
 
-      glm::vec3 offset_pos = def_pos;
+      glm::vec3 offset_pos = def_transform.position;
       offset_pos.x += (i + 1) * text_seperation;
+      offset_pos.y -= def_transform.scale.y; // show above unit
       set_position(r, req, offset_pos);
       set_sprite(r, req, sprites[i]);
     }
@@ -63,11 +64,12 @@ update_take_damage_system(entt::registry& r)
   //
   // check if anything is dead
   //
-  auto& dead = get_first_component<SINGLETON_EntityBinComponent>(r);
-  for (const auto& [e, hp] : r.view<const HealthComponent>(entt::exclude<WaitForInitComponent>).each()) {
-    if (hp.hp <= 0)
-      dead.dead.emplace(e);
-  }
+  // note: this is done in the respawn system
+  // auto& dead = get_first_component<SINGLETON_EntityBinComponent>(r);
+  // for (const auto& [e, hp] : r.view<const HealthComponent>(entt::exclude<WaitForInitComponent>).each()) {
+  //   if (hp.hp <= 0)
+  //     dead.dead.emplace(e);
+  // }
 };
 
 } // namespace game2d

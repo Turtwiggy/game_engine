@@ -22,6 +22,14 @@ generate_line(const glm::ivec2& a, const glm::ivec2& b, const int width)
   return line;
 };
 
+void
+set_transform_with_line(TransformComponent& t, const LineInfo& line)
+{
+  t.position = { line.position.x, line.position.y, 0 };
+  t.scale = { line.scale.x, line.scale.y, 0 };
+  t.rotation_radians.z = line.rotation;
+}
+
 // void
 // create_line(int r0, int c0, int r1, int c1, std::vector<std::pair<int, int>>& results)
 // {

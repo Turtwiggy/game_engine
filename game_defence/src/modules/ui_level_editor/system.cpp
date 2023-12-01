@@ -277,11 +277,9 @@ update_ui_level_editor_system(entt::registry& r, const glm::ivec2& input_mouse_p
           // set position for aabb
           if (auto* aabb = r.try_get<AABB>(chosen_e))
             aabb->center = line.position;
-          // set transform
+
           auto& transform = r.get<TransformComponent>(chosen_e);
-          transform.position = { line.position.x, line.position.y, 0 };
-          transform.scale = { line.scale.x, line.scale.y, 0 };
-          transform.rotation_radians.z = line.rotation;
+          set_transform_with_line(transform, line);
         }
 
         if (type.type == EntityType::actor_spawner) {

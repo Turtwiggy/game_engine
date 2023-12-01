@@ -11,7 +11,7 @@ namespace game2d {
 
 struct HasTargetPositionComponent
 {
-  glm::vec2 position{ 0, 0 };
+  glm::ivec2 position{ 0, 0 };
 };
 
 struct LerpToTargetComponent

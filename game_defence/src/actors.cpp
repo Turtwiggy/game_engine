@@ -95,10 +95,13 @@ create_sprite(entt::registry& r, const EntityType& type)
   SpriteComponent sc;
   sc.colour = *colours.lin_white;
 
+  if (type == EntityType::actor_player)
+    sc.colour = *colours.lin_primary;
+
   if (type == EntityType::weapon_shotgun)
-    sc.colour = *colours.lin_yellow;
+    sc.colour = *colours.lin_secondary;
   if (type == EntityType::enemy_dummy)
-    sc.colour = *colours.lin_orange;
+    sc.colour = *colours.lin_tertiary;
 
   // search spritesheet
   const auto anim = find_animation(anims, sprite);
@@ -141,12 +144,10 @@ create_physics_actor(entt::registry& r, const entt::entity& e)
 entt::entity
 create_gameplay(entt::registry& r, const EntityType& type)
 {
-
   const auto& colours = get_first_component<SINGLETON_ColoursComponent>(r);
 
-  const int SPRITE_SIZE = 16;
-  const glm::ivec2 DEFAULT_SIZE{ 16, 16 };
-  const glm::ivec2 HALF_SIZE{ 8, 8 };
+  const glm::ivec3 DEFAULT_SIZE{ 32, 32, 1 };
+  const glm::ivec2 SMALL_SIZE{ 8, 8 };
 
   const auto type_name = std::string(magic_enum::enum_name(type));
 
@@ -158,8 +159,7 @@ create_gameplay(entt::registry& r, const EntityType& type)
   r.emplace<SpriteComponent>(e, create_sprite(r, type));
   r.emplace<TransformComponent>(e);
   auto& transform = r.get<TransformComponent>(e);
-  transform.scale.x = SPRITE_SIZE;
-  transform.scale.y = SPRITE_SIZE;
+  transform.scale = DEFAULT_SIZE;
 
   switch (type) {
 
@@ -178,7 +178,7 @@ create_gameplay(entt::registry& r, const EntityType& type)
     case EntityType::actor_hearth: {
       create_physics_actor(r, e);
       r.emplace<HearthComponent>(e);
-      r.emplace<HealthComponent>(e, 50);
+      r.emplace<HealthComponent>(e, 50, 50);
       r.emplace<TeamComponent>(e, AvailableTeams::player);
 
       // spawn the player at the hearth
@@ -208,7 +208,7 @@ create_gameplay(entt::registry& r, const EntityType& type)
       r.emplace<HasTargetPositionComponent>(e);
       r.emplace<LerpToTargetComponent>(e, player_speed);
 
-      r.emplace<HealthComponent>(e, 100);
+      r.emplace<HealthComponent>(e, 100, 100);
       r.emplace<InfiniteLivesComponent>(e);
       r.emplace<InventoryLimit>(e);
       r.emplace<CameraFollow>(e);
@@ -228,7 +228,7 @@ create_gameplay(entt::registry& r, const EntityType& type)
 
     case EntityType::actor_spawner: {
       create_physics_actor(r, e);
-      r.emplace<HealthComponent>(e, 10);
+      r.emplace<HealthComponent>(e, 10, 10);
 
       // 1 second between spawning
       r.emplace<AttackCooldownComponent>(e, 1.0f);
@@ -307,8 +307,6 @@ create_gameplay(entt::registry& r, const EntityType& type)
 
     case EntityType::weapon_bow: {
       create_physics_actor(r, e);
-      transform.scale.x = 20;
-      transform.scale.y = 20;
       r.emplace<BowComponent>(e);
       r.emplace<VelocityComponent>(e);
       r.emplace<HasTargetPositionComponent>(e);
@@ -320,8 +318,6 @@ create_gameplay(entt::registry& r, const EntityType& type)
 
     case EntityType::weapon_shotgun: {
       create_physics_actor(r, e);
-      transform.scale.x = 20;
-      transform.scale.y = 20;
       r.emplace<ShotgunComponent>(e);
       r.emplace<VelocityComponent>(e);
       r.emplace<HasTargetPositionComponent>(e);
@@ -344,9 +340,11 @@ create_gameplay(entt::registry& r, const EntityType& type)
     }
 
     case EntityType::bullet_default: {
-      transform.scale.x = HALF_SIZE.x;
-      transform.scale.y = HALF_SIZE.y;
       create_physics_actor(r, e);
+      auto& aabb = r.get<AABB>(e);
+      aabb.size = SMALL_SIZE;
+      transform.scale.x = SMALL_SIZE.x;
+      transform.scale.y = SMALL_SIZE.y;
       r.emplace<TeamComponent>(e, AvailableTeams::player);
       r.emplace<VelocityComponent>(e);
       r.emplace<SetTransformAngleToVelocity>(e);
@@ -363,8 +361,9 @@ create_gameplay(entt::registry& r, const EntityType& type)
       r.emplace<EnemyComponent>(e);
       r.emplace<TeamComponent>(e, AvailableTeams::enemy);
       r.emplace<VelocityComponent>(e);
-      r.emplace<HealthComponent>(e, 100);
+      r.emplace<HealthComponent>(e, 100, 100);
       r.emplace<HoverableComponent>(e);
+      r.emplace<InfiniteLivesComponent>(e);
       break;
     }
 
@@ -373,7 +372,7 @@ create_gameplay(entt::registry& r, const EntityType& type)
       //   r.emplace<EnemyComponent>(e);
       //   r.emplace<TeamComponent>(e, AvailableTeams::enemy);
       //   r.emplace<VelocityComponent>(e);
-      //   r.emplace<HealthComponent>(e, 3);
+      //   r.emplace<HealthComponent>(e, 3, 3);
       //   r.emplace<AttackComponent>(e, 10);
       //   break;
       // }
@@ -383,7 +382,7 @@ create_gameplay(entt::registry& r, const EntityType& type)
       //   r.emplace<EnemyComponent>(e);
       //   r.emplace<TeamComponent>(e, AvailableTeams::enemy);
       //   r.emplace<VelocityComponent>(e);
-      //   r.emplace<HealthComponent>(e, 3);
+      //   r.emplace<HealthComponent>(e, 3, 3);
       //   r.emplace<AttackComponent>(e, 20);
       //   break;
       // }
@@ -393,7 +392,7 @@ create_gameplay(entt::registry& r, const EntityType& type)
       //   r.emplace<EnemyComponent>(e);
       //   r.emplace<TeamComponent>(e, AvailableTeams::enemy);
       //   r.emplace<VelocityComponent>(e);
-      //   r.emplace<HealthComponent>(e, 4);
+      //   r.emplace<HealthComponent>(e, 4, 4);
       //   r.emplace<AttackComponent>(e, 50);
       //   break;
       // }

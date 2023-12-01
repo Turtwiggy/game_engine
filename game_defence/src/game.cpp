@@ -230,7 +230,7 @@ game2d::update(engine::SINGLETON_Application& app, entt::registry& r, const floa
       update_take_damage_system(r);
       //
       // spawners
-      // update_respawn_system(r);
+      update_respawn_system(r);
       // update_spawner_system(r, milliseconds_dt);
       //
       // items

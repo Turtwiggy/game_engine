@@ -20,7 +20,7 @@ struct PlayerComponent
 
   // weapon
   entt::entity weapon = entt::null;
-  float weapon_offset = 10.0f;
+  float weapon_offset = 20.0f;
 };
 
 struct KeyboardComponent

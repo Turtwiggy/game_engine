@@ -8,6 +8,7 @@ namespace game2d {
 
 struct HealthComponent
 {
+  int max_hp = 100;
   int hp = 100;
 };
 

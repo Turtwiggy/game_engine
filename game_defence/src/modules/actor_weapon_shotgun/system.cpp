@@ -25,32 +25,43 @@ update_weapon_shotgun_system(entt::registry& r, const uint64_t milliseconds_dt)
                             SpriteComponent,
                             TransformComponent>(entt::exclude<WaitForInitComponent>);
 
-  for (const auto& [entity, shotgun, parent, cooldown, target, sprite, transform] : view.each()) {
+  for (const auto& [entity, shotgun, parent, cooldown, target, sprite, shotgun_transform] : view.each()) {
 
     const auto& p = parent.parent;
     if (p == entt::null)
       continue;
     const auto& [player, input, player_aabb] = r.get<const PlayerComponent, const InputComponent, const AABB>(p);
 
+    // Set default position this would want to be
+    target.position = player_aabb.center;
+    shotgun_transform.rotation_radians.z = 0.0f;
+
+    // Is this unit currently selected?
     const auto* selected = r.try_get<SelectedComponent>(p);
 
-    // where does this weapon want to be?
-    const glm::ivec2 offset = { -input.rx * player.weapon_offset, -input.ry * player.weapon_offset };
-
-    if (selected) // simulate "picking up the gun"
-      target.position = player_aabb.center + offset;
-    else
-      target.position = player_aabb.center;
-
-    // Only let the weapon do things if the player is selected
-    if (selected == nullptr)
+    // Get the location of the target
+    const auto* tgt = r.try_get<TargetComponent>(p);
+    if (tgt == nullptr)
       continue;
+    const auto target_aabb = r.get<AABB>(tgt->target);
+    glm::ivec2 r_nrm_dir_i = glm::ivec2(shotgun_transform.position.x, shotgun_transform.position.y) - target_aabb.center;
+    glm::vec2 r_nrm_dir = { static_cast<float>(r_nrm_dir_i.x), static_cast<float>(r_nrm_dir_i.y) };
+    if (r_nrm_dir.x != 0.0f || r_nrm_dir.y != 0.0f)
+      r_nrm_dir = glm::normalize(r_nrm_dir);
+
+    // simulate "picking up the gun"
+    const glm::ivec2 offset = { -r_nrm_dir.x * player.weapon_offset, -r_nrm_dir.y * player.weapon_offset };
+    target.position += offset;
+
+    // Rotate the gun axis to the target
+    const float angle = engine::dir_to_angle_radians(r_nrm_dir);
+    shotgun_transform.rotation_radians.z = angle;
 
     // Is this weapon on the left or right of the player?
-    if (transform.position.x - player_aabb.center.x < 0)
-      transform.scale.x = -glm::abs(transform.scale.x);
+    if (shotgun_transform.position.x - player_aabb.center.x < 0)
+      shotgun_transform.scale.y = -glm::abs(shotgun_transform.scale.y);
     else
-      transform.scale.x = glm::abs(transform.scale.x);
+      shotgun_transform.scale.y = glm::abs(shotgun_transform.scale.y);
 
     // check if input was pressed
     bool shoot_pressed = false;
@@ -66,13 +77,12 @@ update_weapon_shotgun_system(entt::registry& r, const uint64_t milliseconds_dt)
       r.remove<WantsToReleaseShot>(p);
     }
 
-    //
     // fire shots in a spread
     //
-    const bool aiming = glm::abs(input.rx) > 0.3f || glm::abs(input.ry) > 0.3f;
+    // const bool aiming = glm::abs(input.rx) > 0.3f || glm::abs(input.ry) > 0.3f;
     bool allowed_to_shoot = !cooldown.on_cooldown;
-    allowed_to_shoot &= aiming;        // must be aiming
     allowed_to_shoot &= shoot_pressed; // input
+    // allowed_to_shoot &= aiming;        // must be aiming
 
     if (allowed_to_shoot) {
       // put gun on cooldown
@@ -80,13 +90,14 @@ update_weapon_shotgun_system(entt::registry& r, const uint64_t milliseconds_dt)
       cooldown.time_between_attack_left = cooldown.time_between_attack;
 
       // spread the bullets out in an arc
-      const glm::vec2 r_nrm_dir = { input.rx, input.ry };
+      // const glm::vec2 r_nrm_dir = { input.rx, input.ry };
       const float angle_radians = atan2(-r_nrm_dir.y, -r_nrm_dir.x) + engine::HALF_PI;
       const float bullet_angle_degrees = 5.0f;
       const float bullet_angle_radians = engine::deg2rad(bullet_angle_degrees);
 
       for (int i = 0; i < 3; i++) {
         float angle_to_fire_at = angle_radians;
+        //
         // adjust bullets in a spread
         if (i == 0) // left bullet
           angle_to_fire_at += bullet_angle_radians;
@@ -96,13 +107,13 @@ update_weapon_shotgun_system(entt::registry& r, const uint64_t milliseconds_dt)
         const auto new_dir = engine::angle_radians_to_direction(angle_to_fire_at);
 
         const auto req = create_gameplay(r, EntityType::bullet_default);
-        r.get<TransformComponent>(req).position = transform.position;
+        r.get<TransformComponent>(req).position = shotgun_transform.position;
         r.get_or_emplace<HasParentComponent>(req).parent = entity;
 
         auto& bullet_aabb = r.get<AABB>(req);
-        bullet_aabb.center = { transform.position.x, transform.position.y };
+        bullet_aabb.center = { shotgun_transform.position.x, shotgun_transform.position.y };
         auto& bullet_transform = r.get<TransformComponent>(req);
-        bullet_transform.rotation_radians.z = transform.rotation_radians.z;
+        bullet_transform.rotation_radians.z = shotgun_transform.rotation_radians.z;
 
         // Turn the bullet Live!
         r.emplace_or_replace<AttackComponent>(req, 3);

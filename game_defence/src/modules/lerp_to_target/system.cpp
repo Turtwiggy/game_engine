@@ -16,11 +16,11 @@ update_set_velocity_to_target_system(entt::registry& r, const float& dt)
     entt::exclude<WaitForInitComponent>);
   for (const auto& [e, vel, aabb, target, lerp] : view.each()) {
 
-    const glm::vec2 a = { aabb.center.x, aabb.center.y };
-    const glm::vec2 b = target.position;
+    const glm::ivec2 a = { aabb.center.x, aabb.center.y };
+    const glm::ivec2 b = target.position;
 
     glm::vec2 dir = b - a;
-    if (dir.x != 0.0f || dir.y != 0.0f)
+    if (dir.x != 0 || dir.y != 0.0f)
       dir = glm::normalize(dir);
 
     vel.x = dir.x * lerp.speed;

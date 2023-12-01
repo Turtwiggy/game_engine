@@ -8,6 +8,8 @@
 #include "modules/renderer/components.hpp"
 #include "modules/respawn/components.hpp"
 
+#include <algorithm>
+
 namespace game2d {
 
 void
@@ -15,14 +17,23 @@ update_respawn_system(entt::registry& r)
 {
   auto& dead = get_first_component<SINGLETON_EntityBinComponent>(r);
 
-  const auto& view = r.view<const HealthComponent, const EntityTypeComponent>(entt::exclude<WaitForInitComponent>);
-  for (const auto& [e, hp, type] : view.each()) {
+  const auto& view = r.view<HealthComponent>(entt::exclude<WaitForInitComponent>);
+  for (const auto& [e, hp] : view.each()) {
     if (hp.hp <= 0) {
       // is the unit able to respawn?
 
-      if (auto* infinte_lives = r.try_get<InfiniteLivesComponent>(e)) {
-        // yeah.. respawn it
+      if (const auto* infinte_lives = r.try_get<InfiniteLivesComponent>(e)) {
+        // just set its hp back to full
+        hp.hp = hp.max_hp;
+        std::cout << "unit died; set back to full hp" << std::endl;
 
+        // if it was in the dead list, un-dead it
+        // const auto in_dead_list =
+        //   std::find_if(dead.dead.begin(), dead.dead.end(), [&e](const auto& dead_e) { return dead_e == e; });
+        // if (in_dead_list != dead.dead.end())
+        //   dead.dead.erase(in_dead_list);
+
+        // yeah.. respawn it
         // find a spawner of the type that died and spawn it there
         // for (const auto& [e_spawner, spawner] : r.view<SpawnerComponent>(entt::exclude<WaitForInitComponent>).each()) {
         //   if (spawner.type_to_spawn == type.type) {

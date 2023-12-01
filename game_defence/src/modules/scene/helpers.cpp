@@ -17,6 +17,7 @@
 #include "modules/gameover/components.hpp"
 #include "modules/grid/components.hpp"
 #include "modules/items/helpers.hpp"
+#include "modules/lerp_to_target/components.hpp"
 #include "modules/lifecycle/components.hpp"
 #include "modules/procedural/poisson.hpp"
 #include "modules/procedural/voronoi.hpp"
@@ -70,32 +71,52 @@ move_to_scene_start(entt::registry& r, const Scene s)
     const auto& anims = get_first_component<SINGLE_Animations>(r);
     const auto& ri = get_first_component<SINGLETON_RendererInfo>(r);
     const auto& colours = get_first_component<SINGLETON_ColoursComponent>(r);
-    const int pixel_scale_up_size = 2;
-    const auto default_size = glm::ivec2{ 16 * pixel_scale_up_size, 16 * pixel_scale_up_size };
     const auto tex_unit = search_for_texture_by_path(ri, "bargame")->unit;
 
+    const int pixel_scale_up_size = 2;
+    const auto default_size = glm::ivec2{ 16 * pixel_scale_up_size, 16 * pixel_scale_up_size };
+
+    // create cursor debugs
     {
+      const auto cursor = get_first<CursorComponent>(r);
+      auto& cursorc = get_first_component<CursorComponent>(r);
+      r.get<SpriteComponent>(cursor).colour.a = 0.1f;
+
+      cursorc.click_ent = create_gameplay(r, EntityType::empty);
+      r.get<SpriteComponent>(cursorc.click_ent).colour = engine::SRGBToLinear(engine::SRGBColour(1.0f, 0.0f, 0.0f, 1.0f));
+      r.get<TransformComponent>(cursorc.click_ent).scale = { 8, 8, 1 };
+
+      cursorc.held_ent = create_gameplay(r, EntityType::empty);
+      r.get<SpriteComponent>(cursorc.held_ent).colour = engine::SRGBToLinear(engine::SRGBColour(1.0f, 0.0f, 0.0f, 1.0f));
+      r.get<TransformComponent>(cursorc.held_ent).scale = { 8, 8, 1 };
+
+      cursorc.line_ent = create_gameplay(r, EntityType::empty);
+      r.get<SpriteComponent>(cursorc.line_ent).colour = engine::SRGBToLinear(engine::SRGBColour(1.0f, 0.0f, 0.0f, 1.0f));
     }
 
     // create a player
-    {
-      // create a weapon for a player
+    for (int i = 0; i < 4; i++) {
+
+      // player
+      const auto e = create_gameplay(r, EntityType::actor_player);
+      auto& e_aabb = r.get<AABB>(e);
+      e_aabb.size = default_size;
+      e_aabb.center = { -88, -30 + (10 * i) };
+      auto& target_pos = r.get<HasTargetPositionComponent>(e);
+      target_pos.position = e_aabb.center;
+      // const auto icon_xy = set_sprite_custom(r, e, "player_0", tex_unit);
+      r.get<TransformComponent>(e).scale = { e_aabb.size.x, e_aabb.size.y, 1.0f };
+
+      // set colour
+      auto& sc = r.get<SpriteComponent>(e);
+      sc.colour = engine::SRGBToLinear(engine::SRGBColour(i / 5.0f, 0.6f, i / 5.0f, 1.0f));
+
+      // weapon
       const auto weapon = create_gameplay(r, EntityType::weapon_shotgun);
       auto& weapon_parent = r.get<HasParentComponent>(weapon);
-
-      const auto e = create_gameplay(r, EntityType::actor_player);
-
-      // link player & weapon
       weapon_parent.parent = e;
       auto& player = r.get<PlayerComponent>(e);
       player.weapon = weapon;
-
-      auto& e_aabb = r.get<AABB>(e);
-      e_aabb.size = default_size * 1;
-      e_aabb.center = { -88, -30 };
-
-      const auto icon_xy = set_sprite_custom(r, e, "player_0", tex_unit);
-      r.get<TransformComponent>(e).scale = { e_aabb.size.x, e_aabb.size.y, 1.0f };
     }
 
     // create a hostile dummy

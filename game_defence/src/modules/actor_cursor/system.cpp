@@ -4,10 +4,13 @@
 #include "entt/helpers.hpp"
 #include "events/helpers/mouse.hpp"
 #include "maths/grid.hpp"
+#include "modules/combat_damage/components.hpp"
 #include "modules/grid/components.hpp"
 #include "modules/lifecycle/components.hpp"
 #include "modules/renderer/components.hpp"
+#include "modules/ux_hoverable/components.hpp"
 #include "physics/components.hpp"
+#include "sprites/helpers.hpp"
 
 namespace game2d {
 
@@ -27,12 +30,31 @@ update_cursor_system(entt::registry& r, const glm::ivec2& mouse_pos)
   const bool held = get_mouse_lmb_held();
   const bool release = get_mouse_lmb_release();
 
+  // What are we hovering?
+  //
+
   static glm::ivec2 click_location = { 0, 0 };
   if (click)
     click_location = mouse_pos;
 
   const auto& view = r.view<TransformComponent, AABB, CursorComponent>(entt::exclude<WaitForInitComponent>);
   for (const auto& [entity, transform, aabb, cursor] : view.each()) {
+
+    // Is the cursor hovering any enemies?
+    auto& enemies = cursor.hovering_enemies;
+    enemies.clear();
+    const auto& hovering_view = r.view<HoveredComponent, TeamComponent>(entt::exclude<WaitForInitComponent>);
+    for (const auto& [e, hovered, team] : hovering_view.each()) {
+      if (team.team == AvailableTeams::enemy)
+        enemies.push_back(e);
+    }
+
+    // Update cursor if hovering enemies
+    //
+    if (enemies.size() > 0 && !held)
+      set_sprite(r, entity, "CURSOR_3");
+    else
+      set_sprite(r, entity, "EMPTY");
 
     // if (clamp_to_grid) {
     //   // so that the grid cursor doesnt swap around the center of the tile,
