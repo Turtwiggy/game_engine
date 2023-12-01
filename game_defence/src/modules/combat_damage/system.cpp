@@ -9,6 +9,8 @@
 #include "renderer/helpers.hpp"
 #include "sprites/helpers.hpp"
 
+#include "maths/maths.hpp"
+
 namespace game2d {
 
 void
@@ -42,9 +44,12 @@ update_take_damage_system(entt::registry& r)
 
       const auto req = create_gameplay(r, EntityType::particle);
 
+      static engine::RandomState rnd;
+      const float rnd_x = engine::rand_det_s(rnd.rng, -50, 50);
+
       VelocityComponent vel;
-      vel.x = 0;
-      vel.y = 10; // travel up
+      vel.x = rnd_x;
+      vel.y = -50.0f; // travel up
       r.emplace_or_replace<VelocityComponent>(req, vel);
 
       glm::vec3 offset_pos = def_transform.position;

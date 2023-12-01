@@ -24,6 +24,7 @@
 #include "modules/renderer/components.hpp"
 #include "modules/renderer/helpers.hpp"
 #include "modules/screenshake/components.hpp"
+#include "modules/ui_selected/components.hpp"
 #include "modules/ux_hoverable/components.hpp"
 #include "physics/components.hpp"
 #include "resources/colours.hpp"
@@ -63,6 +64,7 @@ move_to_scene_start(entt::registry& r, const Scene s)
   destroy_and_create<SINGLETON_GameOver>(r);
   destroy_and_create<SINGLETON_Wave>(r);
   destroy_and_create<SINGLE_ScreenshakeComponent>(r);
+  destroy_and_create<SINGLE_SelectedUI>(r);
 
   // create a cursor
   const auto cursor = create_gameplay(r, EntityType::cursor);

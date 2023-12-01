@@ -55,6 +55,7 @@
 #include "modules/ui_next_wave/system.hpp"
 #include "modules/ui_pause_menu/system.hpp"
 #include "modules/ui_scene_main_menu/system.hpp"
+#include "modules/ui_selected/system.hpp"
 #include "modules/ui_spawner_editor/system.hpp"
 #include "modules/ux_hoverable/system.hpp"
 #include "physics/components.hpp"
@@ -277,6 +278,7 @@ game2d::update(engine::SINGLETON_Application& app, entt::registry& r, const floa
       update_ui_grid_interaction_system(r);
       update_ui_inventory(r);
       update_ui_dropoff_zone_system(r);
+      update_ui_selected(r);
     }
 
     update_ui_pause_menu_system(app, r);

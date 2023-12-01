@@ -147,6 +147,7 @@ create_gameplay(entt::registry& r, const EntityType& type)
   const auto& colours = get_first_component<SINGLETON_ColoursComponent>(r);
 
   const glm::ivec3 DEFAULT_SIZE{ 32, 32, 1 };
+  const glm::ivec3 HALF_SIZE{ 16, 16, 1 };
   const glm::ivec2 SMALL_SIZE{ 8, 8 };
 
   const auto type_name = std::string(magic_enum::enum_name(type));
@@ -409,6 +410,8 @@ create_gameplay(entt::registry& r, const EntityType& type)
     }
 
     case EntityType::particle: {
+      transform.scale.x = HALF_SIZE.x;
+      transform.scale.y = HALF_SIZE.y;
       r.emplace<VelocityComponent>(e);
       r.emplace<EntityTimedLifecycle>(e, 1 * 1000);
       break;

@@ -27,6 +27,25 @@ update_set_velocity_to_target_system(entt::registry& r, const float& dt)
     vel.y = dir.y * lerp.speed;
     // std::cout << "vel x " << vel.x << " y: " << vel.y << std::endl;
   }
+
+  //
+  // hmm, this moves transforms based on velocity
+  //
+  const auto& t_view = r.view<VelocityComponent, TransformComponent>(entt::exclude<WaitForInitComponent, AABB>);
+  for (const auto& [e, vel, t] : t_view.each()) {
+
+    vel.remainder_x += vel.x * dt;
+    vel.remainder_y += vel.y * dt;
+
+    const int x = static_cast<int>(vel.remainder_x);
+    const int y = static_cast<int>(vel.remainder_y);
+
+    vel.remainder_x -= x;
+    vel.remainder_y -= y;
+
+    t.position.x += x;
+    t.position.y += y;
+  }
 };
 
 } // namespace game2d
