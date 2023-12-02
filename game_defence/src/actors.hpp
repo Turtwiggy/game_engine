@@ -47,9 +47,9 @@ enum class EntityType
   bullet_default,
   bullet_bow,
 
-  enemy_dummy,
   // actor_enemy,
-  // enemy_grunt,
+  enemy_dummy,
+  enemy_grunt,
   // enemy_sniper,
   // enemy_shotgunner,
 

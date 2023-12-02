@@ -40,9 +40,16 @@ update_weapon_shotgun_system(entt::registry& r, const uint64_t milliseconds_dt)
     const auto* selected = r.try_get<SelectedComponent>(p);
 
     // Get the location of the target
-    const auto* tgt = r.try_get<TargetComponent>(p);
+    auto* tgt = r.try_get<TargetComponent>(p);
     if (tgt == nullptr)
       continue;
+
+    // target died
+    if (!r.valid(tgt->target)) {
+      tgt->target = entt::null;
+      continue;
+    }
+
     const auto target_aabb = r.get<AABB>(tgt->target);
     glm::ivec2 r_nrm_dir_i = glm::ivec2(shotgun_transform.position.x, shotgun_transform.position.y) - target_aabb.center;
     glm::vec2 r_nrm_dir = { static_cast<float>(r_nrm_dir_i.x), static_cast<float>(r_nrm_dir_i.y) };

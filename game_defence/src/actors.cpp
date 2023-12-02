@@ -18,6 +18,7 @@
 #include "modules/camera/orthographic.hpp"
 #include "modules/combat_attack_cooldown/components.hpp"
 #include "modules/combat_damage/components.hpp"
+#include "modules/combat_wants_to_shoot/components.hpp"
 #include "modules/items_pickup/components.hpp"
 #include "modules/lerp_to_target/components.hpp"
 #include "modules/lifecycle/components.hpp"
@@ -70,8 +71,8 @@ create_sprite(entt::registry& r, const EntityType& type)
   // enemies...
   else if (type == EntityType::enemy_dummy)
     sprite = "PERSON_25_1";
-  // else if (type == EntityType::enemy_grunt)
-  //   sprite = "PERSON_25_1";
+  else if (type == EntityType::enemy_grunt)
+    sprite = "PERSON_25_1";
   // else if (type == EntityType::enemy_sniper)
   //   sprite = "PERSON_25_6";
   // else if (type == EntityType::enemy_shotgunner)
@@ -97,10 +98,11 @@ create_sprite(entt::registry& r, const EntityType& type)
 
   if (type == EntityType::actor_player)
     sc.colour = *colours.lin_primary;
-
-  if (type == EntityType::weapon_shotgun)
+  else if (type == EntityType::weapon_shotgun)
     sc.colour = *colours.lin_secondary;
-  if (type == EntityType::enemy_dummy)
+  else if (type == EntityType::enemy_dummy)
+    sc.colour = *colours.lin_tertiary;
+  else if (type == EntityType::enemy_grunt)
     sc.colour = *colours.lin_tertiary;
 
   // search spritesheet
@@ -148,7 +150,7 @@ create_gameplay(entt::registry& r, const EntityType& type)
 
   const glm::ivec3 DEFAULT_SIZE{ 32, 32, 1 };
   const glm::ivec3 HALF_SIZE{ 16, 16, 1 };
-  const glm::ivec2 SMALL_SIZE{ 8, 8 };
+  const glm::ivec2 SMALL_SIZE{ 4, 4 };
 
   const auto type_name = std::string(magic_enum::enum_name(type));
 
@@ -181,6 +183,7 @@ create_gameplay(entt::registry& r, const EntityType& type)
       r.emplace<HearthComponent>(e);
       r.emplace<HealthComponent>(e, 50, 50);
       r.emplace<TeamComponent>(e, AvailableTeams::player);
+      r.emplace<HoverableComponent>(e);
 
       // spawn the player at the hearth
       // SpawnerComponent hearth_spawner;
@@ -239,6 +242,7 @@ create_gameplay(entt::registry& r, const EntityType& type)
       // remember to update this?
       r.emplace<SpawnerComponent>(e);
       r.emplace<TeamComponent>(e, AvailableTeams::enemy);
+      r.emplace<HoverableComponent>(e);
 
       break;
     }
@@ -359,24 +363,32 @@ create_gameplay(entt::registry& r, const EntityType& type)
     //
     case EntityType::enemy_dummy: {
       create_physics_actor(r, e);
+      r.emplace<VelocityComponent>(e);
       r.emplace<EnemyComponent>(e);
       r.emplace<TeamComponent>(e, AvailableTeams::enemy);
-      r.emplace<VelocityComponent>(e);
       r.emplace<HealthComponent>(e, 100, 100);
       r.emplace<HoverableComponent>(e);
       r.emplace<InfiniteLivesComponent>(e);
       break;
     }
+    case EntityType::enemy_grunt: {
+      create_physics_actor(r, e);
+      r.emplace<EnemyComponent>(e);
+      r.emplace<HoverableComponent>(e);
 
-      // case EntityType::enemy_grunt: {
-      //   create_physics_actor(r, e);
-      //   r.emplace<EnemyComponent>(e);
-      //   r.emplace<TeamComponent>(e, AvailableTeams::enemy);
-      //   r.emplace<VelocityComponent>(e);
-      //   r.emplace<HealthComponent>(e, 3, 3);
-      //   r.emplace<AttackComponent>(e, 10);
-      //   break;
-      // }
+      // movement
+      const float speed = 50.0f;
+      r.emplace<VelocityComponent>(e);
+      r.emplace<HasTargetPositionComponent>(e);
+      r.emplace<LerpToTargetComponent>(e, speed);
+
+      // combat
+      r.emplace<TargetComponent>(e);
+      r.emplace<TeamComponent>(e, AvailableTeams::enemy);
+      r.emplace<HealthComponent>(e, 10, 10);
+      r.emplace<AttackComponent>(e, 10);
+      break;
+    }
 
       // case EntityType::enemy_sniper: {
       //   create_physics_actor(r, e);
@@ -414,6 +426,9 @@ create_gameplay(entt::registry& r, const EntityType& type)
       transform.scale.y = HALF_SIZE.y;
       r.emplace<VelocityComponent>(e);
       r.emplace<EntityTimedLifecycle>(e, 1 * 1000);
+
+      auto& sc = r.get<SpriteComponent>(e);
+      sc.colour.a = 0.1f;
       break;
     }
 

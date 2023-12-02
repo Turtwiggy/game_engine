@@ -52,7 +52,7 @@ update_cursor_system(entt::registry& r, const glm::ivec2& mouse_pos)
     // Update cursor if hovering enemies
     //
     if (enemies.size() > 0 && !held)
-      set_sprite(r, entity, "CURSOR_3");
+      set_sprite(r, entity, "CURSOR_1");
     else
       set_sprite(r, entity, "EMPTY");
 

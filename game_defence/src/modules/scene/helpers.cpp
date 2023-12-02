@@ -103,7 +103,7 @@ move_to_scene_start(entt::registry& r, const Scene s)
       const auto e = create_gameplay(r, EntityType::actor_player);
       auto& e_aabb = r.get<AABB>(e);
       e_aabb.size = default_size;
-      e_aabb.center = { -88, -30 + (10 * i) };
+      e_aabb.center = { 0, 0 + (32 * i) };
       auto& target_pos = r.get<HasTargetPositionComponent>(e);
       target_pos.position = e_aabb.center;
       // const auto icon_xy = set_sprite_custom(r, e, "player_0", tex_unit);
@@ -122,94 +122,19 @@ move_to_scene_start(entt::registry& r, const Scene s)
     }
 
     // create a hostile dummy
-    {
-      const auto e = create_gameplay(r, EntityType::enemy_dummy);
+    // {
+    //   const auto e = create_gameplay(r, EntityType::enemy_dummy);
+    //   auto& e_aabb = r.get<AABB>(e);
+    //   e_aabb.size = default_size * 1;
+    //   e_aabb.center = { 200, 0 };
+    // }
 
+    // create a spawner
+    {
+      const auto e = create_gameplay(r, EntityType::actor_spawner);
       auto& e_aabb = r.get<AABB>(e);
       e_aabb.size = default_size * 1;
-      e_aabb.center = { -235, 150 };
-    }
-
-    // create food/item dispencers
-    for (int i = 0; i < 5; i++) {
-      const auto e = create_gameplay(r, EntityType::actor_dispencer);
-      auto& e_aabb = r.get<AABB>(e);
-      e_aabb.center = glm::ivec2{ ((80 * i)), 0 };
-      e_aabb.size = default_size;
-      auto& pz = r.get<PickupZoneComponent>(e);
-      pz.spawn_item_with_id = i;
-      r.get<TransformComponent>(e).scale = glm::ivec3{ e_aabb.size.x, e_aabb.size.y, 1 };
-      r.remove<SpriteComponent>(e);
-      // r.get<SpriteComponent>(e).colour = engine::SRGBToLinear(engine::SRGBColour(1.0f, 1.0f, 1.0f, 0.5f));
-      // r.get<SpriteComponent>(e).colour.a = 0.0f;
-      // r.remove<TransformComponent>(e);
-
-      // create delivery icon
-      {
-        const auto icon = create_gameplay(r, EntityType::empty);
-        r.get<TransformComponent>(icon).position = { e_aabb.center.x, e_aabb.center.y, 0.0f };
-        r.get<TransformComponent>(icon).scale = { e_aabb.size.x, e_aabb.size.y, 1.0f };
-
-        const auto info = item_id_to_sprite(r, i);
-        set_sprite_custom(r, icon, info.sprite, tex_unit);
-
-        WiggleUpAndDown wiggle;
-        wiggle.base_position = e_aabb.center;
-        wiggle.offset = i; // offset the wiggles!
-        r.emplace<WiggleUpAndDown>(icon, wiggle);
-      }
-
-      // create delivery text
-      {
-        const auto info = item_id_to_sprite(r, i);
-        const auto icon = create_gameplay(r, EntityType::empty);
-        const auto icon_xy = set_sprite_custom(r, icon, info.sprite_text, tex_unit);
-
-        r.get<TransformComponent>(icon).position = { e_aabb.center.x, e_aabb.center.y - 30, 0.0f };
-        r.get<TransformComponent>(icon).scale = { e_aabb.size.x * icon_xy.x, e_aabb.size.y, 1.0f };
-      }
-
-      // create delivery table
-      {
-        const auto icon = create_gameplay(r, EntityType::empty);
-        const auto icon_xy = set_sprite_custom(r, icon, "icon_table_green"s, tex_unit);
-
-        auto& t = r.get<TransformComponent>(icon);
-        t.position = { e_aabb.center.x, e_aabb.center.y + 30, 0.0f };
-        t.scale = { (e_aabb.size.x * icon_xy.x), e_aabb.size.y, 1.0f };
-        // auto& aabb = r.get<AABB>(icon);
-        // aabb.center = { t.position.x, t.position.y };
-        // aabb.size = { t.scale.x - 50, t.scale.y };
-        r.emplace<PhysicsSolidComponent>(icon);
-      }
-    }
-
-    // create delivery points
-    {
-      for (int i = 0; i < 1; i++) {
-        const auto e = create_gameplay(r, EntityType::actor_customer_area);
-        auto& e_aabb = r.get<AABB>(e);
-        {
-          e_aabb.center = glm::ivec2{ -150, -150 };
-          e_aabb.size = default_size;
-
-          const auto icon_xy = set_sprite_custom(r, e, "campfire_empty"s, tex_unit);
-          auto& icon_transform = r.get<TransformComponent>(e);
-          icon_transform.position = { e_aabb.center.x, e_aabb.center.y, 0.0f };
-          icon_transform.scale = { e_aabb.size.x * icon_xy.x, e_aabb.size.y * icon_xy.y, 1.0f };
-        }
-
-        // show sign above delivery point
-        {
-          const auto icon = create_gameplay(r, EntityType::empty);
-          const auto icon_xy = set_sprite_custom(r, icon, "icon_sign_inactive"s, tex_unit);
-
-          auto& icon_transform = r.get<TransformComponent>(icon);
-          icon_transform.position = { e_aabb.center.x, e_aabb.center.y - 100.0f, 0.0f };
-          icon_transform.scale = { e_aabb.size.x * icon_xy.x, e_aabb.size.y * icon_xy.y, 1.0f };
-          r.get<DropoffZoneComponent>(e).sign = icon;
-        }
-      }
+      e_aabb.center = { 0, 500 };
     }
 
     // use poisson for grass

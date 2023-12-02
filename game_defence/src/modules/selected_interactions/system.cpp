@@ -1,9 +1,11 @@
 #include "system.hpp"
 
 #include "entt/helpers.hpp"
+#include "events/helpers/keyboard.hpp"
 #include "events/helpers/mouse.hpp"
 #include "helpers/line.hpp"
 #include "modules/actor_cursor/components.hpp"
+#include "modules/actor_player/components.hpp"
 #include "modules/combat_damage/components.hpp"
 #include "modules/combat_wants_to_shoot/components.hpp"
 #include "modules/lerp_to_target/components.hpp"
@@ -40,19 +42,41 @@ update_selected_interactions_system(entt::registry& r, const glm::ivec2& mouse_p
   const bool held = get_mouse_rmb_held();
   const bool release = get_mouse_rmb_release();
 
+  // hack: just to test stopping people firing
+  const auto& input = get_first_component<SINGLETON_InputComponent>(r);
+  if (get_key_down(input, SDL_SCANCODE_S)) {
+    const auto& view = r.view<TargetComponent>();
+    r.remove<TargetComponent>(view.begin(), view.end());
+  }
+
   static std::optional<glm::ivec2> click_position;
   static std::optional<glm::ivec2> held_position;
   if (click) {
+    std::cout << "click" << std::endl;
+    auto& click_t = r.emplace_or_replace<TransformComponent>(cursor_comp.click_ent);
+    auto& held_t = r.emplace_or_replace<TransformComponent>(cursor_comp.held_ent);
+    auto& line_t = r.emplace_or_replace<TransformComponent>(cursor_comp.line_ent);
+
     click_position = mouse_pos;
-    r.get<TransformComponent>(cursor_comp.click_ent).position = glm::ivec3(mouse_pos.x, mouse_pos.y, 0);
+    click_t.position = glm::ivec3(mouse_pos.x, mouse_pos.y, 0);
+    click_t.scale = { 8, 8, 1 };
+    held_t.scale = { 8, 8, 1 };
   }
   if (held && enemies.size() == 0) {
+    std::cout << "held" << std::endl;
+
     held_position = mouse_pos;
     r.get<TransformComponent>(cursor_comp.held_ent).position = glm::ivec3(mouse_pos.x, mouse_pos.y, 0);
 
     const auto line = generate_line(click_position.value(), held_position.value(), 2);
     auto& line_transform = r.get<TransformComponent>(cursor_comp.line_ent);
     set_transform_with_line(line_transform, line);
+  }
+  if (release) {
+    std::cout << "release" << std::endl;
+    r.remove<TransformComponent>(cursor_comp.click_ent);
+    r.remove<TransformComponent>(cursor_comp.held_ent);
+    r.remove<TransformComponent>(cursor_comp.line_ent);
   }
 
   // move all the selected units and try to keep them in formation
@@ -128,9 +152,11 @@ update_selected_interactions_system(entt::registry& r, const glm::ivec2& mouse_p
 
   // continuously shoot if a target is set
   //
-  const auto& auto_shoot_view = r.view<TargetComponent>();
-  for (const auto& [e, target] : auto_shoot_view.each()) {
+  const auto& auto_shoot_view = r.view<TargetComponent, PlayerComponent>();
+
+  for (const auto& [e, target, player] : auto_shoot_view.each()) {
     const auto& t = target.target;
+
     if (!r.valid(t) || t == entt::null) {
       r.remove<TargetComponent>(e);
       continue;
@@ -143,7 +169,7 @@ update_selected_interactions_system(entt::registry& r, const glm::ivec2& mouse_p
     }
 
     // otherwise, shoot it
-    r.emplace<WantsToShoot>(e);
+    r.emplace_or_replace<WantsToShoot>(e);
   }
 }
 

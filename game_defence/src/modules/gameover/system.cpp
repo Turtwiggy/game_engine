@@ -2,6 +2,7 @@
 
 #include "entt/helpers.hpp"
 #include "events/helpers/keyboard.hpp"
+#include "modules/actor_enemy/components.hpp"
 #include "modules/actor_hearth/components.hpp"
 #include "modules/actor_player/components.hpp"
 #include "modules/actor_spawner/components.hpp"
@@ -48,10 +49,25 @@ update_gameover_system(entt::registry& r)
       }
 
       // Check if the game is over (you beat wave 10)
-      const auto& wave = get_first_component<SINGLETON_Wave>(r);
-      if (wave.wave == 10) {
+      // const auto& wave = get_first_component<SINGLETON_Wave>(r);
+      // if (wave.wave == 10) {
+      //   gameover.game_is_over = true;
+      //   gameover.reason = "You made it to wave 10!";
+      // }
+
+      // Check if all enemies are dead, and there are no spawners
+      const bool no_enemies = r.view<EnemyComponent>().size() == 0;
+      bool no_enemy_spawners = true;
+      {
+        for (const auto& [e, spawner] : r.view<SpawnerComponent>().each()) {
+          if (spawner.type_to_spawn == EntityType::enemy_grunt)
+            no_enemy_spawners = false;
+        }
+      }
+
+      if (no_enemies && no_enemy_spawners) {
         gameover.game_is_over = true;
-        gameover.reason = "You made it to wave 10!";
+        gameover.reason = "Level Complete!";
       }
     }
   }

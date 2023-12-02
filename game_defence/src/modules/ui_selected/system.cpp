@@ -24,7 +24,8 @@ update_ui_selected(entt::registry& r)
   for (int i = selected; i > ui.instantiated_ui.size(); i--) {
     const auto new_ui = create_gameplay(r, EntityType::empty);
 
-    set_sprite(r, new_ui, "CURSOR_3");
+    // set outline sprite
+    set_sprite(r, new_ui, "CURSOR_1");
 
     r.emplace<SelectedUIComponent>(new_ui);
     ui.instantiated_ui.push_back(new_ui);

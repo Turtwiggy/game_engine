@@ -46,15 +46,16 @@ update_take_damage_system(entt::registry& r)
 
       static engine::RandomState rnd;
       const float rnd_x = engine::rand_det_s(rnd.rng, -50, 50);
+      const float rnd_y = engine::rand_det_s(rnd.rng, -50, 50);
 
       VelocityComponent vel;
       vel.x = rnd_x;
-      vel.y = -50.0f; // travel up
+      vel.y = rnd_y;
       r.emplace_or_replace<VelocityComponent>(req, vel);
 
       glm::vec3 offset_pos = def_transform.position;
-      offset_pos.x += (i + 1) * text_seperation;
-      offset_pos.y -= def_transform.scale.y; // show above unit
+      offset_pos.x += (i)*text_seperation;
+      // offset_pos.y -= def_transform.scale.y; // show above unit
       set_position(r, req, offset_pos);
       set_sprite(r, req, sprites[i]);
     }

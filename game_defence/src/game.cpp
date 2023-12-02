@@ -199,29 +199,30 @@ void
 game2d::update(engine::SINGLETON_Application& app, entt::registry& r, const float dt)
 {
   OPTICK_EVENT("(update)");
-
-  // one frame behind
-  const glm::ivec2 mouse_pos = mouse_position_in_worldspace(r);
   const auto& scene = get_first_component<SINGLETON_CurrentScene>(r);
+
+  update_input_system(app, r); // sets update_since_last_fixed_update
+
+  // After update_input_system
+  //
+  const glm::ivec2 mouse_pos = mouse_position_in_worldspace(r);
 
   {
     OPTICK_EVENT("(update)-game-tick");
-    update_input_system(app, r); // sets update_since_last_fixed_update
     update_camera_system(r, dt);
     update_audio_system(r);
     update_cursor_system(r, mouse_pos);
 
-    if (scene.s == Scene::game) {
+    const auto& state = get_first_component<SINGLETON_GameStateComponent>(r);
+    const auto& gameover = get_first_component<SINGLETON_GameOver>(r);
+    if (scene.s == Scene::game && state.state == GameState::RUNNING && !gameover.game_is_over) {
 
-      // Check if there's a new fixed tick that occured
-      // static int last_processed_fixed_tick = 0;
-      // const auto& fixed_input = get_first_component<SINGLETON_FixedUpdateInputHistory>(r);
-      // const bool new_fixed_tick = last_processed_fixed_tick != fixed_input.fixed_tick;
-      // if (new_fixed_tick)
-      //   last_processed_fixed_tick = fixed_input.fixed_tick;
-
+      // Only keeping this here until I'm convinced that
+      // putting all these systems in update isn't a mistake
       const uint64_t milliseconds_dt = dt * 1000.0f;
 
+      // update_flash_sprite_system(game, milliseconds_dt);
+      // update_turret_system(game, milliseconds_dt);
       //
       // ai
       update_set_velocity_to_target_system(r, dt);
@@ -229,10 +230,11 @@ game2d::update(engine::SINGLETON_Application& app, entt::registry& r, const floa
       // combat
       update_attack_cooldown_system(r, milliseconds_dt);
       update_take_damage_system(r);
+      update_enemy_system(r);
       //
       // spawners
       update_respawn_system(r);
-      // update_spawner_system(r, milliseconds_dt);
+      update_spawner_system(r, milliseconds_dt);
       //
       // items
       update_intent_pickup_system(r);
@@ -241,23 +243,28 @@ game2d::update(engine::SINGLETON_Application& app, entt::registry& r, const floa
       //
       // effects
       update_scale_by_velocity_system(r, dt);
+      update_screenshake_system(r, app.ms_since_launch / 1000.0f, dt);
       update_wiggle_up_and_down_system(r, dt);
+      //
+      // systems using inputs or inputs from fixedupate
 
-      // update() systems that want to use fixedupdate() input
       // problem:
       // update() generates a ton of inputs
       // fixedupdate() collates those, and decides on an action e.g. shoot
       // two fixedupdates() could occur back-to-back,
       // so update() could never recieve the input.shoot event
-      update_screenshake_system(r, app.ms_since_launch / 1000.0f, dt);
+
+      // solution:
+      // fixedupdate() collates inputs, then adds an e.g.
+      // WantsToShoot event
+      // this is then processed in the next update()
+
+      // Does this mean networked-clients operate differently?
+
       update_bow_system(r, milliseconds_dt);
       update_weapon_shotgun_system(r, milliseconds_dt);
-      update_selected_interactions_system(r, mouse_pos);
       update_ux_hoverable(r);
-
-      // update_flash_sprite_system(game, milliseconds_dt);
-      // update_enemy_system(game);
-      // update_turret_system(game, milliseconds_dt);
+      update_selected_interactions_system(r, mouse_pos);
     }
   }
 
@@ -273,8 +280,6 @@ game2d::update(engine::SINGLETON_Application& app, entt::registry& r, const floa
     if (scene.s == Scene::menu) {
       update_ui_scene_main_menu(app, r);
     } else if (scene.s == Scene::game) {
-      // update_ui_next_wave_system(r);
-      // update_ui_spawner_system(r);
       update_ui_grid_interaction_system(r);
       update_ui_inventory(r);
       update_ui_dropoff_zone_system(r);

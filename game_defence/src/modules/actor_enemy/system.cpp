@@ -1,17 +1,12 @@
 #include "system.hpp"
 
-#include "actors.hpp"
-#include "components.hpp"
 #include "entt/helpers.hpp"
-#include "glm/glm.hpp"
-#include "maths/maths.hpp"
-#include "modules/actor_hearth/components.hpp"
+#include "modules/actor_enemy/components.hpp"
 #include "modules/actor_player/components.hpp"
-#include "modules/renderer/components.hpp"
-#include "physics/components.hpp"
+#include "modules/combat_wants_to_shoot/components.hpp"
+#include "modules/lerp_to_target/components.hpp"
 #include "modules/lifecycle/components.hpp"
-
-#include <iostream>
+#include "renderer/transform.hpp"
 
 namespace game2d {
 
@@ -19,27 +14,22 @@ void
 update_enemy_system(entt::registry& r)
 {
   // SET TARGET
+
   // Note: this should be closest target
-  const auto& first_target = get_first<HearthComponent>(r);
+  const auto& first_target = get_first<PlayerComponent>(r);
   if (first_target == entt::null)
     return;
   const auto& first_target_transform = r.get<const TransformComponent>(first_target);
 
-  const auto& view = r.view<const TransformComponent, VelocityComponent, EnemyComponent>(entt::exclude<WaitForInitComponent>);
-  for (auto [entity, transform, vel, enemy] : view.each()) {
-    // move towards player
-    glm::ivec3 d = first_target_transform.position - transform.position;
-    if (d.x == 0 && d.y == 0 && d.z == 0) // check same spot not clicked
-      continue;
+  const auto& view =
+    r.view<const EnemyComponent, TargetComponent, HasTargetPositionComponent>(entt::exclude<WaitForInitComponent>);
+  for (auto [e, enemy, target, target_position] : view.each()) {
 
-    glm::vec2 dir = glm::vec2(d.x, d.y);
-    glm::vec2 n = dir;
-    if (dir.x != 0.0f || dir.y != 0.0f)
-      n = normalize(dir);
+    // set target
+    target.target = first_target;
 
-    glm::vec2 pdir{ n.x * vel.base_speed, n.y * vel.base_speed };
-    vel.x = pdir.x;
-    vel.y = pdir.y;
+    // set position
+    target_position.position = first_target_transform.position;
   }
 }
 
@@ -90,26 +80,6 @@ update_enemy_system(entt::registry& r)
 
 //   enemy.target = target_position;
 //   enemy.has_target = true;
-// }
-
-// void
-// update_enemy_to_target(const TransformComponent& transform, EnemyComponent& enemy, VelocityComponent& vel)
-// {
-//   const glm::ivec3 d = enemy.target - transform.position;
-
-//   // check if within some acceptable distance
-//   if (glm::abs(d.x) <= 2 && glm::abs(d.y) <= 2) {
-//     std::cout << "removing target pos" << std::endl;
-//     enemy.has_target = false;
-//   } else {
-//     glm::vec2 dir = glm::vec2(d.x, d.y);
-//     glm::vec2 n = dir;
-//     if (dir.x != 0.0f || dir.y != 0.0f)
-//       n = normalize(dir);
-//     glm::vec2 pdir{ n.x * vel.base_speed, n.y * vel.base_speed };
-//     vel.x = pdir.x;
-//     vel.y = pdir.y;
-//   }
 // }
 
 // void
