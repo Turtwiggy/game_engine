@@ -11,6 +11,7 @@
 #include "components/actors.hpp"
 #include "events/helpers/keyboard.hpp"
 #include "events/system.hpp"
+#include "imgui/helpers.hpp"
 #include "maths/grid.hpp"
 #include "modules/ai/system.hpp"
 #include "modules/camera/system.hpp"
@@ -26,7 +27,6 @@
 #include "modules/ui_editor_tilemap/components.hpp"
 #include "modules/ui_editor_tilemap/system.hpp"
 #include "modules/ui_event_console/system.hpp"
-#include "imgui/helpers.hpp"
 #include "modules/ui_hierarchy/system.hpp"
 #include "modules/ui_level_up/system.hpp"
 #include "modules/ui_main_menu/system.hpp"
@@ -154,8 +154,7 @@ update(engine::SINGLETON_Application& app, GameEditor& editor, Game& game, float
     // update_sprite_system(editor, game, dt);
 
     auto texs = convert_tag_textures_to_textures(editor.textures);
-    update_render_system(
-      editor.renderer, *editor.colours.lin_background, *editor.colours.background, texs, game.state, p);
+    update_render_system(editor.renderer, *editor.colours.lin_background, *editor.colours.background, texs, game.state, p);
   };
 
   {

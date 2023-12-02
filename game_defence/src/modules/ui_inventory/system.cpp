@@ -1,5 +1,6 @@
 #include "system.hpp"
 
+#include "entt/helpers.hpp"
 #include "modules/items/helpers.hpp"
 #include "modules/items_pickup/components.hpp"
 #include "modules/lifecycle/components.hpp"
@@ -14,6 +15,8 @@ using namespace std::literals;
 void
 update_ui_inventory(entt::registry& r)
 {
+  auto& dead = get_first_component<SINGLETON_EntityBinComponent>(r);
+
   ImGui::Begin("Inventory");
   {
     const auto& view = r.view<ItemComponent, HasParentComponent>(entt::exclude<WaitForInitComponent>);
@@ -28,7 +31,7 @@ update_ui_inventory(entt::registry& r)
       auto eid = static_cast<uint32_t>(entity);
       std::string label = "delete##"s + std::to_string(eid);
       if (ImGui::Button(label.c_str()))
-        r.destroy(entity);
+        dead.dead.emplace(entity);
     }
   }
   ImGui::End();

@@ -1,6 +1,7 @@
 #include "system.hpp"
 
 #include "components.hpp"
+#include "entt/helpers.hpp"
 #include "maths/maths.hpp"
 #include "modules/actor_player/components.hpp"
 #include "modules/combat_attack_cooldown/components.hpp"
@@ -17,6 +18,7 @@ void
 update_weapon_shotgun_system(entt::registry& r, const uint64_t milliseconds_dt)
 {
   const float dt = milliseconds_dt / 1000.0f;
+  auto& dead = get_first_component<SINGLETON_EntityBinComponent>(r);
 
   const auto& view = r.view<ShotgunComponent,
                             HasParentComponent,
@@ -28,8 +30,10 @@ update_weapon_shotgun_system(entt::registry& r, const uint64_t milliseconds_dt)
   for (const auto& [entity, shotgun, parent, cooldown, target, sprite, shotgun_transform] : view.each()) {
 
     const auto& p = parent.parent;
-    if (p == entt::null)
+    if (p == entt::null || !r.valid(p)) {
+      dead.dead.emplace(entity); // kill this parentless entity (soz)
       continue;
+    }
     const auto& [player, input, player_aabb] = r.get<const PlayerComponent, const InputComponent, const AABB>(p);
 
     // Set default position this would want to be

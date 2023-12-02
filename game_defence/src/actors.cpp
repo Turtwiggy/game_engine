@@ -213,10 +213,10 @@ create_gameplay(entt::registry& r, const EntityType& type)
       r.emplace<LerpToTargetComponent>(e, player_speed);
 
       r.emplace<HealthComponent>(e, 100, 100);
-      r.emplace<InfiniteLivesComponent>(e);
       r.emplace<InventoryLimit>(e);
       r.emplace<CameraFollow>(e);
       r.emplace<HoverableComponent>(e);
+      // r.emplace<InfiniteLivesComponent>(e);
       // r.emplace<GeneratePickupZoneComponent>(e);
 
       // r.emplace<TakeDamageComponent>(e);

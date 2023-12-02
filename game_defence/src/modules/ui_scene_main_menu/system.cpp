@@ -1,5 +1,7 @@
 #include "system.hpp"
 
+#include "components.hpp"
+
 #include "entt/helpers.hpp"
 #include "events/helpers/controller.hpp"
 #include "modules/renderer/components.hpp"
@@ -20,6 +22,7 @@ update_ui_scene_main_menu(engine::SINGLETON_Application& app, entt::registry& r)
   const auto& ri = get_first_component<SINGLETON_RendererInfo>(r);
   const auto& input = get_first_component<SINGLETON_InputComponent>(r);
   const auto& controllers = input.controllers;
+  auto& ui = get_first_component<SINGLE_MainMenuUI>(r);
 
   ImGuiWindowFlags flags = 0;
   flags |= ImGuiWindowFlags_NoCollapse;
@@ -67,6 +70,9 @@ update_ui_scene_main_menu(engine::SINGLETON_Application& app, entt::registry& r)
     // If you've clicked the play button, assume the game is playing live for real
     auto& editor = get_first_component<SINGLETON_LevelEditor>(r);
     editor.mode = LevelEditorMode::play;
+
+    // configure params
+    ui.level = 1;
 
     move_to_scene_start(r, Scene::game);
 
@@ -119,6 +125,9 @@ update_ui_scene_main_menu(engine::SINGLETON_Application& app, entt::registry& r)
 
     std::string tag = "Lv"s + std::to_string(i);
     if (ImGui::Button(tag.c_str())) {
+
+      ui.level = i;
+
       // editor.mode = LevelEditorMode::play;
       move_to_scene_start(r, Scene::game);
 

@@ -35,7 +35,7 @@ update_ui_selected(entt::registry& r)
   for (auto i = ui.instantiated_ui.size(); i > selected; i--) {
     const auto idx = i - 1;
     auto entity = ui.instantiated_ui[idx];
-    r.destroy(entity);
+    r.destroy(entity); // fine because no aabb
     ui.instantiated_ui.erase(ui.instantiated_ui.begin() + idx);
   }
 

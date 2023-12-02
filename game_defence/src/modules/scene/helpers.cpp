@@ -24,6 +24,7 @@
 #include "modules/renderer/components.hpp"
 #include "modules/renderer/helpers.hpp"
 #include "modules/screenshake/components.hpp"
+#include "modules/ui_scene_main_menu/components.hpp"
 #include "modules/ui_selected/components.hpp"
 #include "modules/ux_hoverable/components.hpp"
 #include "physics/components.hpp"
@@ -66,14 +67,22 @@ move_to_scene_start(entt::registry& r, const Scene s)
   destroy_and_create<SINGLE_ScreenshakeComponent>(r);
   destroy_and_create<SINGLE_SelectedUI>(r);
 
+  // HACK: the first and only transform should be the camera
+  auto& camera = get_first_component<TransformComponent>(r);
+  camera.position = glm::ivec3(0, 0, 0);
+
   // create a cursor
   const auto cursor = create_gameplay(r, EntityType::cursor);
+
+  if (s == Scene::menu)
+    destroy_and_create<SINGLE_MainMenuUI>(r);
 
   if (s == Scene::game) {
     const auto& anims = get_first_component<SINGLE_Animations>(r);
     const auto& ri = get_first_component<SINGLETON_RendererInfo>(r);
     const auto& colours = get_first_component<SINGLETON_ColoursComponent>(r);
     const auto tex_unit = search_for_texture_by_path(ri, "bargame")->unit;
+    const auto& menu_ui = get_first_component<SINGLE_MainMenuUI>(r);
 
     const int pixel_scale_up_size = 2;
     const auto default_size = glm::ivec2{ 16 * pixel_scale_up_size, 16 * pixel_scale_up_size };
@@ -86,14 +95,15 @@ move_to_scene_start(entt::registry& r, const Scene s)
 
       cursorc.click_ent = create_gameplay(r, EntityType::empty);
       r.get<SpriteComponent>(cursorc.click_ent).colour = engine::SRGBToLinear(engine::SRGBColour(1.0f, 0.0f, 0.0f, 1.0f));
-      r.get<TransformComponent>(cursorc.click_ent).scale = { 8, 8, 1 };
+      r.remove<TransformComponent>(cursorc.click_ent);
 
       cursorc.held_ent = create_gameplay(r, EntityType::empty);
       r.get<SpriteComponent>(cursorc.held_ent).colour = engine::SRGBToLinear(engine::SRGBColour(1.0f, 0.0f, 0.0f, 1.0f));
-      r.get<TransformComponent>(cursorc.held_ent).scale = { 8, 8, 1 };
+      r.remove<TransformComponent>(cursorc.held_ent);
 
       cursorc.line_ent = create_gameplay(r, EntityType::empty);
       r.get<SpriteComponent>(cursorc.line_ent).colour = engine::SRGBToLinear(engine::SRGBColour(1.0f, 0.0f, 0.0f, 1.0f));
+      r.remove<TransformComponent>(cursorc.line_ent);
     }
 
     // create a player
@@ -129,12 +139,21 @@ move_to_scene_start(entt::registry& r, const Scene s)
     //   e_aabb.center = { 200, 0 };
     // }
 
-    // create a spawner
-    {
+    // create a spawner given the level difficulty
+
+    for (int i = 0; i < menu_ui.level; i++) {
       const auto e = create_gameplay(r, EntityType::actor_spawner);
       auto& e_aabb = r.get<AABB>(e);
       e_aabb.size = default_size * 1;
-      e_aabb.center = { 0, 500 };
+
+      if (i == 0) // b
+        e_aabb.center = { 0, 500 };
+      if (i == 1) // r
+        e_aabb.center = { 500, 0 };
+      if (i == 2) // l
+        e_aabb.center = { -500, 0 };
+      if (i == 3) // t
+        e_aabb.center = { 0, -500 };
     }
 
     // use poisson for grass

@@ -14,6 +14,7 @@
 #include "modules/ui_gameover/components.hpp"
 
 namespace game2d {
+using namespace std::literals;
 
 void
 update_gameover_system(entt::registry& r)
@@ -39,13 +40,11 @@ update_gameover_system(entt::registry& r)
       }
 
       // Check if the game is over (all players are ded)
-      const auto& first_player = get_first<PlayerComponent>(r);
-      if (first_player != entt::null) {
-        const auto& health = r.try_get<HealthComponent>(first_player);
-        if (health && health->hp <= 0) {
-          gameover.game_is_over = true;
-          gameover.reason = "Player ded!";
-        }
+      const auto& players_view = r.view<PlayerComponent>();
+      const bool all_players_ded = players_view.size() == 0;
+      if (all_players_ded) {
+        gameover.game_is_over = true;
+        gameover.reason = "All Players ded!";
       }
 
       // Check if the game is over (you beat wave 10)
@@ -67,7 +66,7 @@ update_gameover_system(entt::registry& r)
 
       if (no_enemies && no_enemy_spawners) {
         gameover.game_is_over = true;
-        gameover.reason = "Level Complete!";
+        gameover.reason = "Level Complete! You survived with "s + std::to_string(players_view.size()) + " players"s;
       }
     }
   }

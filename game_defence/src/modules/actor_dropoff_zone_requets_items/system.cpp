@@ -22,6 +22,7 @@ update_actor_dropoffzone_request_items(entt::registry& r, uint64_t ms_dt)
 {
   const float dt = ms_dt / 1000.0f;
   const auto& ri = get_first_component<SINGLETON_RendererInfo>(r);
+  auto& dead = get_first_component<SINGLETON_EntityBinComponent>(r);
 
   const auto& view = r.view<DropoffZoneComponent, SpriteComponent, const AABB>(entt::exclude<WaitForInitComponent>);
   for (const auto& [e, zone, sprite, aabb] : view.each()) {
@@ -82,7 +83,7 @@ update_actor_dropoffzone_request_items(entt::registry& r, uint64_t ms_dt)
     for (auto i = zone.instantiated_customers.size(); i > zone.cur_customers; i--) {
       const auto idx = i - 1;
       auto customer_entity = zone.instantiated_customers[idx];
-      r.destroy(customer_entity);
+      dead.dead.emplace(customer_entity);
       zone.instantiated_customers.erase(zone.instantiated_customers.begin() + idx);
     }
 
