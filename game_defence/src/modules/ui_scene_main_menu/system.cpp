@@ -144,6 +144,11 @@ update_ui_scene_main_menu(engine::SINGLETON_Application& app, entt::registry& r)
     ImGui::PopID();
   }
 
+  ImGui::Separator();
+  ImGui::Text("Squad");
+  for (int i = 0; i < ui.random_names.size(); i++)
+    ImGui::Text("Name: %s", ui.random_names[i].c_str());
+
   ImGui::End();
 };
 

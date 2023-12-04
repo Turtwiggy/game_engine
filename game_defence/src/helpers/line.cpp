@@ -12,11 +12,11 @@ generate_line(const glm::ivec2& a, const glm::ivec2& b, const int width)
   glm::vec2 nrm_dir = raw_dir;
   if (raw_dir.x != 0.0f || raw_dir.y != 0.0f)
     nrm_dir = glm::normalize(raw_dir);
-  float angle = engine::dir_to_angle_radians(nrm_dir);
+  float angle = engine::dir_to_angle_radians(nrm_dir) + engine::HALF_PI;
 
   LineInfo line;
   line.position = { (a.x + a.x + raw_dir.x) / 2, (a.y + a.y + raw_dir.y) / 2 };
-  line.rotation = angle + engine::HALF_PI;
+  line.rotation = angle;
   line.scale.x = width;
   line.scale.y = sqrt(pow(raw_dir.x, 2) + pow(raw_dir.y, 2));
   return line;

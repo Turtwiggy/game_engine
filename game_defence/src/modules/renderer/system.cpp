@@ -230,8 +230,8 @@ game2d::update_render_system(entt::registry& r, const float dt)
   // debug textures
   //
 
+#ifdef _DEBUG
   ImVec2 viewport_size;
-
   int i = 0;
   for (const auto& tex : ri.user_textures) {
     const std::string label = std::string("Debug") + std::to_string(i);
@@ -242,6 +242,8 @@ game2d::update_render_system(entt::registry& r, const float dt)
 
     i++;
   }
+#endif
+
   // ImGui::Begin("Debug2");
   // viewport_size = ImGui::GetContentRegionAvail();
   // ImGui::Image((ImTextureID)ri.tex_id_linear_main, viewport_size, ImVec2(0, 0), ImVec2(1, 1));

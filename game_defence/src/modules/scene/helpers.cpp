@@ -24,6 +24,7 @@
 #include "modules/renderer/components.hpp"
 #include "modules/renderer/helpers.hpp"
 #include "modules/screenshake/components.hpp"
+#include "modules/ui_inverse_kinematics/components.hpp"
 #include "modules/ui_scene_main_menu/components.hpp"
 #include "modules/ui_selected/components.hpp"
 #include "modules/ux_hoverable/components.hpp"
@@ -31,10 +32,14 @@
 #include "resources/colours.hpp"
 #include "sprites/helpers.hpp"
 
+#include <nlohmann/json.hpp>
+
+#include <fstream>
 #include <string>
 
 namespace game2d {
 using namespace std::literals;
+using json = nlohmann::json;
 
 void
 move_to_scene_start(entt::registry& r, const Scene s)
@@ -66,6 +71,7 @@ move_to_scene_start(entt::registry& r, const Scene s)
   destroy_and_create<SINGLETON_Wave>(r);
   destroy_and_create<SINGLE_ScreenshakeComponent>(r);
   destroy_and_create<SINGLE_SelectedUI>(r);
+  destroy_and_create<SINGLE_IKLines>(r);
 
   // HACK: the first and only transform should be the camera
   auto& camera = get_first_component<TransformComponent>(r);
@@ -73,10 +79,28 @@ move_to_scene_start(entt::registry& r, const Scene s)
 
   // create a cursor
   const auto cursor = create_gameplay(r, EntityType::cursor);
+  r.remove<TransformComponent>(cursor);
 
-  if (s == Scene::menu)
-    destroy_and_create<SINGLE_MainMenuUI>(r);
+  if (s == Scene::menu) {
+    auto& ui = destroy_and_create<SINGLE_MainMenuUI>(r);
 
+    // Load randoms name file
+    const auto path = "assets/config/random_names.json";
+    std::ifstream f(path);
+    json data = json::parse(f);
+    const auto names = data["names"]; // list of names
+
+    // choose X random names, display them on the menu
+    static engine::RandomState rnd;
+    for (int i = 0; i < 4; i++) {
+      const float rnd_f = engine::rand_det_s(rnd.rng, 0, names.size());
+      const int rnd = static_cast<int>(rnd_f);
+      const auto name = names[rnd];
+      ui.random_names.push_back(name);
+    }
+
+    //
+  }
   if (s == Scene::game) {
     const auto& anims = get_first_component<SINGLE_Animations>(r);
     const auto& ri = get_first_component<SINGLETON_RendererInfo>(r);

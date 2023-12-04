@@ -31,8 +31,8 @@ game2d::update_player_controller_system(entt::registry& r, const uint64_t& milli
   const auto& inputs = finputs.history.at(finputs.fixed_tick);
   const auto& i = get_first_component<SINGLETON_InputComponent>(r);
 
-  const auto cursor = get_first<CursorComponent>(r);
-  const auto& cursor_transform = r.get<TransformComponent>(cursor);
+  // const auto cursor = get_first<CursorComponent>(r);
+  // const auto& cursor_transform = r.get<TransformComponent>(cursor);
 
   // player movement
   const auto& view =
@@ -55,12 +55,12 @@ game2d::update_player_controller_system(entt::registry& r, const uint64_t& milli
       input.sprint = false;
 
       // rx via mouse
-      const auto dir = transform.position - cursor_transform.position;
-      glm::vec2 r_nrm_dir = { dir.x, dir.y };
-      if (r_nrm_dir.x != 0.0f || r_nrm_dir.y != 0.0f)
-        r_nrm_dir = glm::normalize(r_nrm_dir);
-      input.rx += r_nrm_dir.x;
-      input.ry += r_nrm_dir.y;
+      // const auto dir = transform.position - cursor_transform.position;
+      // glm::vec2 r_nrm_dir = { dir.x, dir.y };
+      // if (r_nrm_dir.x != 0.0f || r_nrm_dir.y != 0.0f)
+      //   r_nrm_dir = glm::normalize(r_nrm_dir);
+      // input.rx += r_nrm_dir.x;
+      // input.ry += r_nrm_dir.y;
 
       if (keyboard) {
         input.ly += fixed_input_keyboard_held(inputs, keyboard->W) ? -1 : 0;

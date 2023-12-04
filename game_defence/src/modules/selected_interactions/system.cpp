@@ -52,7 +52,7 @@ update_selected_interactions_system(entt::registry& r, const glm::ivec2& mouse_p
   static std::optional<glm::ivec2> click_position;
   static std::optional<glm::ivec2> held_position;
   if (click) {
-    std::cout << "click" << std::endl;
+    // std::cout << "click" << std::endl;
     auto& click_t = r.emplace_or_replace<TransformComponent>(cursor_comp.click_ent);
     auto& held_t = r.emplace_or_replace<TransformComponent>(cursor_comp.held_ent);
     auto& line_t = r.emplace_or_replace<TransformComponent>(cursor_comp.line_ent);
@@ -63,7 +63,7 @@ update_selected_interactions_system(entt::registry& r, const glm::ivec2& mouse_p
     held_t.scale = { 8, 8, 1 };
   }
   if (held && enemies.size() == 0) {
-    std::cout << "held" << std::endl;
+    // std::cout << "held" << std::endl;
 
     held_position = mouse_pos;
     r.get<TransformComponent>(cursor_comp.held_ent).position = glm::ivec3(mouse_pos.x, mouse_pos.y, 0);
@@ -73,7 +73,7 @@ update_selected_interactions_system(entt::registry& r, const glm::ivec2& mouse_p
     set_transform_with_line(line_transform, line);
   }
   if (release) {
-    std::cout << "release" << std::endl;
+    // std::cout << "release" << std::endl;
     r.remove<TransformComponent>(cursor_comp.click_ent);
     r.remove<TransformComponent>(cursor_comp.held_ent);
     r.remove<TransformComponent>(cursor_comp.line_ent);

@@ -45,8 +45,8 @@ load_sprites(SINGLE_Animations& anims, const std::string path)
 
   auto s = data["sprites"];
   for (auto& el : s) {
-    auto name = el["name"];
-    auto frames = el["frames"];
+    const auto name = el["name"];
+    const auto frames = el["frames"];
 
     SpriteAnimation anim;
     anim.name = name;

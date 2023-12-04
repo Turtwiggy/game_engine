@@ -80,6 +80,12 @@ main(int argc, char* argv[])
   IM_UNUSED(argc);
   IM_UNUSED(argv);
 
+#if defined(WIN32)
+  bool hide_windows_console = true;
+  if (hide_windows_console)
+    engine::hide_windows_console();
+#endif
+
   const auto start = std::chrono::high_resolution_clock::now();
 
   std::string name = "Space";
@@ -93,12 +99,6 @@ main(int argc, char* argv[])
   app.width = 1280;
   app.window = GameWindow(name, app.width, app.height, app.display, app.vsync);
   app.imgui.initialize(app.window);
-
-#if defined(WIN32)
-  bool hide_windows_console = true;
-  if (hide_windows_console)
-    engine::hide_windows_console();
-#endif
 
   game2d::init(app, game);
   CHECK_OPENGL_ERROR(0);

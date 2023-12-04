@@ -50,6 +50,7 @@
 #include "modules/ui_grid_interaction/system.hpp"
 #include "modules/ui_hierarchy/system.hpp"
 #include "modules/ui_inventory/system.hpp"
+#include "modules/ui_inverse_kinematics/system.hpp"
 #include "modules/ui_level_editor/components.hpp"
 #include "modules/ui_level_editor/system.hpp"
 #include "modules/ui_next_wave/system.hpp"
@@ -276,6 +277,7 @@ game2d::update(engine::SINGLETON_Application& app, entt::registry& r, const floa
 
   {
     OPTICK_EVENT("(update)-update-ui");
+    update_ui_inverse_kinematics_system(r, mouse_pos);
 
     if (scene.s == Scene::menu) {
       update_ui_scene_main_menu(app, r);

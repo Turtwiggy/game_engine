@@ -33,9 +33,17 @@ update_cursor_system(entt::registry& r, const glm::ivec2& mouse_pos)
   // What are we hovering?
   //
 
+  const auto& first_cursor = get_first<CursorComponent>(r);
+
   static glm::ivec2 click_location = { 0, 0 };
-  if (click)
+  if (click) {
     click_location = mouse_pos;
+    auto& t = r.emplace<TransformComponent>(first_cursor);
+    t.scale = { 16, 16, 1 };
+  }
+  if (release) {
+    r.remove<TransformComponent>(first_cursor);
+  }
 
   const auto& view = r.view<TransformComponent, AABB, CursorComponent>(entt::exclude<WaitForInitComponent>);
   for (const auto& [entity, transform, aabb, cursor] : view.each()) {

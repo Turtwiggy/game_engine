@@ -20,13 +20,13 @@ get_first_component(entt::registry& r)
 };
 
 template<class T>
-void
+T&
 destroy_and_create(entt::registry& r)
 {
   const entt::entity ent = get_first<T>(r);
   if (ent != entt::null)
     r.destroy(ent);
-  r.emplace<T>(r.create());
+  return r.emplace<T>(r.create());
 };
 
 }; // namespace game2d

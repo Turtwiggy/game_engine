@@ -18,6 +18,7 @@ angle_radians_to_direction(const float angle)
   return glm::vec2(glm::sin(angle), -glm::cos(angle));
 }
 
+// returns the angle from (WHICH) axis?
 float
 dir_to_angle_radians(const glm::vec2& dir)
 {
