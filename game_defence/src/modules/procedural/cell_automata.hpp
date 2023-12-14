@@ -13,7 +13,7 @@ generate_50_50(const glm::ivec2 xy, const int seed);
 // iteratively apply the cellular automata rules
 // second parameter is the x, y size of the vector
 std::vector<int>
-iterate_with_cell_automata(const std::vector<int>& in, const glm::ivec2& grid_size);
+iterate_with_cell_automata(const std::vector<int>& in, const glm::ivec2& xy);
 
 // remove any isolated obstacles
 // void

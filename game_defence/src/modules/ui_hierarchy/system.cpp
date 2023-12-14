@@ -10,6 +10,8 @@
 #include <glm/gtc/type_ptr.hpp>
 #include <imgui.h>
 
+#include <utility>
+
 void
 game2d::update_ui_hierarchy_system(entt::registry& r)
 {
@@ -20,11 +22,21 @@ game2d::update_ui_hierarchy_system(entt::registry& r)
   {
     ImGui::Text("Total alive: %i", entities);
 
+    // Filter the Hierarchy
+    static std::string filter = "";
+    bool new_filter_input = false;
+    std::string filter_input = filter;
+    imgui_draw_string("Filter", filter_input);
+    if (filter_input != filter) {
+      filter = filter_input;
+      new_filter_input = true;
+    }
+
     // optimisation: paginate the shown entities
     static int SHOWING_INDEX = 0;
+    if (new_filter_input)
+      SHOWING_INDEX = 0;
     const int MAX_TO_SHOW = 10;
-    const int min_show = SHOWING_INDEX * MAX_TO_SHOW;
-    const int max_show = (SHOWING_INDEX + 1) * MAX_TO_SHOW;
     std::string next_label = std::string("Next " + std::to_string(MAX_TO_SHOW));
     std::string prev_label = std::string("prev " + std::to_string(MAX_TO_SHOW));
     if (ImGui::Button(prev_label.c_str()))
@@ -32,20 +44,43 @@ game2d::update_ui_hierarchy_system(entt::registry& r)
     ImGui::SameLine();
     if (ImGui::Button(next_label.c_str()))
       SHOWING_INDEX += 1;
-    ImGui::Text("Showing between %i %i", min_show, max_show);
 
-    const auto& view = r.view<TagComponent>();
-    for (int i = 0; auto [entity, tag] : view.each()) {
+    const int min_show = SHOWING_INDEX * MAX_TO_SHOW;
+    const int max_show = (SHOWING_INDEX + 1) * MAX_TO_SHOW;
 
-      // optimisation; only show MAX_TO_SHOW in hierachy at one time
-      bool valid = i >= min_show && i <= max_show;
-      ++i;
-      if (!valid)
-        continue;
+    if (filter == "") {
 
-      ImGui::Text("eid: %i", entity);
-      ImGui::SameLine();
-      game2d::imgui_draw_entity(r, tag.tag, entity, selected_entity);
+      for (int i = 0; const auto& [e, tag] : r.view<TagComponent>().each()) {
+        //
+        // optimisation; only show MAX_TO_SHOW in hierachy at one time
+        bool valid = i >= min_show && i <= max_show;
+        ++i;
+        if (!valid)
+          continue;
+        ImGui::Text("eid: %i", e);
+        ImGui::SameLine();
+        game2d::imgui_draw_entity(r, tag.tag, e, selected_entity);
+      }
+
+    } else {
+      //
+      // Show the paginated filtered entities
+      //
+      std::vector<std::pair<entt::entity, std::string>> ents;
+      for (const auto& [entity, tag] : r.view<TagComponent>().each()) {
+        if (tag.tag.find(filter) != std::string::npos)
+          ents.push_back({ entity, tag.tag });
+      }
+
+      ImGui::Text("Showing between %i %i", min_show, max_show);
+      for (int i = 0; const auto& [entity, tag] : ents) {
+        if (i >= min_show && i <= max_show) {
+          ImGui::Text("eid: %i", entity);
+          ImGui::SameLine();
+          game2d::imgui_draw_entity(r, tag, entity, selected_entity);
+        }
+        i++;
+      }
     }
 
     // If select anywhere in the window, make entity unselected

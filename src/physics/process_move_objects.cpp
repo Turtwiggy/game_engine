@@ -15,10 +15,11 @@
 #include <set>
 #include <vector>
 
+namespace game2d {
+
 void
-game2d::update_move_objects_system(entt::registry& r, const uint64_t& milliseconds_dt)
+update_aabb_based_on_rotation(entt::registry& r)
 {
-  //
   // update all aabb size based on transform size
   //
   const auto& physics_rot_objects = r.view<const TransformComponent, AABB>();
@@ -39,9 +40,17 @@ game2d::update_move_objects_system(entt::registry& r, const uint64_t& millisecon
     const float rotated_h = glm::abs(h0) + glm::abs(h1);
     aabb.size = { rotated_w, rotated_h };
   }
+}
 
-  // generates actor-solid collisions
-  // std::vector<Collision2D> collisions;
+}
+
+void
+game2d::update_move_objects_system(entt::registry& r, const uint64_t& milliseconds_dt)
+{
+  update_aabb_based_on_rotation(r);
+
+  // generates actor-solid collisions. note: touching, not inside each other (illegal)
+  std::set<Collision2D> actor_solid_collisions;
 
   // move velocity actors,
   // stop if collides with an entity with the blocking component
@@ -53,7 +62,6 @@ game2d::update_move_objects_system(entt::registry& r, const uint64_t& millisecon
     const float dt = milliseconds_dt / 1000.0f;
 
     for (const auto& [entity, aabb, vel] : vel_actors.each()) {
-      //
       // move_x
       //
       {
@@ -70,12 +78,14 @@ game2d::update_move_objects_system(entt::registry& r, const uint64_t& millisecon
             for (const auto& [o_entity, o_psolid, o_aabb] : solids.each()) {
               const bool same = entity == o_entity;
               if (!same && collide(updated_pos, o_aabb)) {
-                // Collision2D collision;
-                // const auto id_0 = static_cast<uint32_t>(entity);
-                // const auto id_1 = static_cast<uint32_t>(o_entity);
-                // collision.ent_id_0 = glm::min(id_0, id_1);
-                // collision.ent_id_1 = glm::max(id_0, id_1);
-                // collisions.push_back(collision);
+
+                Collision2D collision;
+                const auto id_0 = static_cast<uint32_t>(entity);
+                const auto id_1 = static_cast<uint32_t>(o_entity);
+                collision.ent_id_0 = glm::min(id_0, id_1);
+                collision.ent_id_1 = glm::max(id_0, id_1);
+                actor_solid_collisions.emplace(collision);
+
                 amount = 0;
                 break; // a collision
               }
@@ -106,12 +116,14 @@ game2d::update_move_objects_system(entt::registry& r, const uint64_t& millisecon
             for (const auto& [o_entity, o_psolid, o_aabb] : solids.each()) {
               const bool same = entity == o_entity;
               if (!same && collide(updated_pos, o_aabb)) {
-                // Collision2D collision;
-                // const auto id_0 = static_cast<uint32_t>(entity);
-                // const auto id_1 = static_cast<uint32_t>(o_entity);
-                // collision.ent_id_0 = glm::min(id_0, id_1);
-                // collision.ent_id_1 = glm::max(id_0, id_1);
-                // collisions.push_back(collision);
+
+                Collision2D collision;
+                const auto id_0 = static_cast<uint32_t>(entity);
+                const auto id_1 = static_cast<uint32_t>(o_entity);
+                collision.ent_id_0 = glm::min(id_0, id_1);
+                collision.ent_id_1 = glm::max(id_0, id_1);
+                actor_solid_collisions.emplace(collision);
+
                 amount = 0;
                 break; // a collision
               }
@@ -134,7 +146,8 @@ game2d::update_move_objects_system(entt::registry& r, const uint64_t& millisecon
   // An actor is pushed if the solid's movement results in them overlapping
   // Pushing takes priority over carrying
 
-  //
+  // check if any actor-solids are overlapping... this is illegal
+
   // Update PhysicsTransform View (for sweep-and-prune view)
   //
   const auto& physics_transform_view = r.view<const AABB, PhysicsTransformXComponent, PhysicsTransformYComponent>();
@@ -145,7 +158,6 @@ game2d::update_move_objects_system(entt::registry& r, const uint64_t& millisecon
     py.t = aabb.center.y + (glm::abs(aabb.size.y) / 2);
   };
 
-  //
   // Update all transforms
   //
   const auto& physics_objects_view = r.view<const AABB, TransformComponent>();
@@ -161,4 +173,8 @@ game2d::update_move_objects_system(entt::registry& r, const uint64_t& millisecon
   //   transform.position = { aabb.center.x, aabb.center.y, 0 };
   //   transform.scale = { aabb.size.x, aabb.size.y, 0 };
   // }
+
+  // add actor-solid collisions
+  auto& p = get_first_component<SINGLETON_PhysicsComponent>(r);
+  p.frame_solid_collisions = actor_solid_collisions;
 };

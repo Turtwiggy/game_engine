@@ -66,6 +66,7 @@ struct SINGLETON_PhysicsComponent
 {
   // resulting collisions from all registered objects
   std::vector<Collision2D> frame_collisions;
+  std::set<Collision2D> frame_solid_collisions;
 
   // persistent buffer, meaning the events enter, stay and exit can be tracked.
   std::vector<Collision2D> persistent_collisions;

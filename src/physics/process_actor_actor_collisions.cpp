@@ -18,13 +18,12 @@ game2d::update_actor_actor_collisions_system(entt::registry& r, SINGLETON_Physic
   // 2. generate all possible collisions
   // 3. generate collision enter, exit, stay
 
-  p.frame_collisions.clear();
-
-  //
   // generate filtered broadphase collisions
   //
-
   generate_filtered_broadphase_collisions(r, p.frame_collisions);
+
+  // add actor-solid collisions
+  std::move(p.frame_solid_collisions.begin(), p.frame_solid_collisions.end(), std::back_inserter(p.frame_collisions));
 
   // TODO: filter with narrowphase collisions
   // std::vector<Collision2D> narrowphase_collisions;
@@ -48,9 +47,11 @@ game2d::update_actor_actor_collisions_system(entt::registry& r, SINGLETON_Physic
     // Check the new collisions
     for (const auto& coll : p.frame_collisions) {
       const auto& pmap = p.persistent_collisions;
-      auto result = std::find_if(pmap.begin(), pmap.end(), [&coll](const Collision2D& new_col) {
+
+      const auto result = std::find_if(pmap.begin(), pmap.end(), [&coll](const Collision2D& new_col) {
         return new_col.ent_id_0 == coll.ent_id_0 && new_col.ent_id_1 == coll.ent_id_1;
       });
+
       if (result == pmap.end()) {
         // New collision
         // std::cout << "ents: new coll" << "\n";

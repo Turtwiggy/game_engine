@@ -19,11 +19,13 @@
 #include "modules/items/helpers.hpp"
 #include "modules/lerp_to_target/components.hpp"
 #include "modules/lifecycle/components.hpp"
+#include "modules/procedural/cell_automata.hpp"
 #include "modules/procedural/poisson.hpp"
 #include "modules/procedural/voronoi.hpp"
 #include "modules/renderer/components.hpp"
 #include "modules/renderer/helpers.hpp"
 #include "modules/screenshake/components.hpp"
+#include "modules/selected_interactions/components.hpp"
 #include "modules/ui_inverse_kinematics/components.hpp"
 #include "modules/ui_scene_main_menu/components.hpp"
 #include "modules/ui_selected/components.hpp"
@@ -38,6 +40,7 @@
 #include <string>
 
 namespace game2d {
+
 using namespace std::literals;
 using json = nlohmann::json;
 
@@ -79,10 +82,24 @@ move_to_scene_start(entt::registry& r, const Scene s)
 
   // create a cursor
   const auto cursor = create_gameplay(r, EntityType::cursor);
-  r.remove<TransformComponent>(cursor);
+  // r.remove<TransformComponent>(cursor);
+
+  // Stop all Audio
+  // auto& audio = get_first_component<SINGLETON_AudioComponent>(r);
+  const auto& audio_view = r.view<AudioSource>();
+  for (const auto& [e, source] : audio_view.each()) {
+    ALint source_state;
+    alGetSourcei(source.source_id, AL_SOURCE_STATE, &source_state);
+    if (source_state == AL_PLAYING)
+      alSourceStop(source.source_id);
+  }
 
   if (s == Scene::menu) {
+
     auto& ui = destroy_and_create<SINGLE_MainMenuUI>(r);
+
+    // Play some audio
+    r.emplace<AudioRequestPlayEvent>(r.create(), "MENU_01");
 
     // Load randoms name file
     const auto path = "assets/config/random_names.json";
@@ -111,6 +128,9 @@ move_to_scene_start(entt::registry& r, const Scene s)
     const int pixel_scale_up_size = 2;
     const auto default_size = glm::ivec2{ 16 * pixel_scale_up_size, 16 * pixel_scale_up_size };
 
+    // Play some audio
+    r.emplace<AudioRequestPlayEvent>(r.create(), "GAME_01");
+
     // create cursor debugs
     {
       const auto cursor = get_first<CursorComponent>(r);
@@ -128,6 +148,17 @@ move_to_scene_start(entt::registry& r, const Scene s)
       cursorc.line_ent = create_gameplay(r, EntityType::empty);
       r.get<SpriteComponent>(cursorc.line_ent).colour = engine::SRGBToLinear(engine::SRGBColour(1.0f, 0.0f, 0.0f, 1.0f));
       r.remove<TransformComponent>(cursorc.line_ent);
+
+      cursorc.dda_start = create_gameplay(r, EntityType::empty);
+      cursorc.dda_intersection = create_gameplay(r, EntityType::empty);
+      cursorc.dda_end = create_gameplay(r, EntityType::empty);
+      r.get<SpriteComponent>(cursorc.dda_start).colour = engine::SRGBToLinear(engine::SRGBColour(1.0f, 0.0f, 0.0f, 1.0f));
+      r.get<SpriteComponent>(cursorc.dda_intersection).colour =
+        engine::SRGBToLinear(engine::SRGBColour(0.0f, 1.0f, 0.0f, 1.0f));
+      r.get<SpriteComponent>(cursorc.dda_end).colour = engine::SRGBToLinear(engine::SRGBColour(0.0f, 0.0f, 1.0f, 1.0f));
+      r.get<TransformComponent>(cursorc.dda_start).scale = { 8, 8, 1 };
+      r.get<TransformComponent>(cursorc.dda_intersection).scale = { 8, 8, 1 };
+      r.get<TransformComponent>(cursorc.dda_end).scale = { 8, 8, 1 };
     }
 
     // create a player
@@ -137,7 +168,7 @@ move_to_scene_start(entt::registry& r, const Scene s)
       const auto e = create_gameplay(r, EntityType::actor_player);
       auto& e_aabb = r.get<AABB>(e);
       e_aabb.size = default_size;
-      e_aabb.center = { 0, 0 + (32 * i) };
+      e_aabb.center = { -50, 0 + (32 * i) };
       auto& target_pos = r.get<HasTargetPositionComponent>(e);
       target_pos.position = e_aabb.center;
       // const auto icon_xy = set_sprite_custom(r, e, "player_0", tex_unit);
@@ -163,42 +194,87 @@ move_to_scene_start(entt::registry& r, const Scene s)
     //   e_aabb.center = { 200, 0 };
     // }
 
-    // create a spawner given the level difficulty
-
+    // TEMP: create a spawner given the level difficulty
     for (int i = 0; i < menu_ui.level; i++) {
       const auto e = create_gameplay(r, EntityType::actor_spawner);
       auto& e_aabb = r.get<AABB>(e);
       e_aabb.size = default_size * 1;
 
       if (i == 0) // b
-        e_aabb.center = { 0, 500 };
+        e_aabb.center = { -100, 500 };
       if (i == 1) // r
         e_aabb.center = { 500, 0 };
       if (i == 2) // l
         e_aabb.center = { -500, 0 };
       if (i == 3) // t
-        e_aabb.center = { 0, -500 };
+        e_aabb.center = { -100, -500 };
     }
 
-    // use poisson for grass
-    const int width = 1920;
-    const int height = 1080;
-    const auto poisson = generate_poisson(width, height, 150, 0);
-    const glm::ivec2 offset = { -width / 2, -height / 2 };
-    std::cout << "generated " << poisson.size() << " poisson points" << std::endl;
+    // VISUAL: use poisson for grass
+    {
+      const int width = 1920;
+      const int height = 1080;
+      const auto poisson = generate_poisson(width, height, 150, 0);
+      const glm::ivec2 offset = { -width / 2, -height / 2 };
+      std::cout << "generated " << poisson.size() << " poisson points" << std::endl;
+      for (const auto& p : poisson) {
+        const auto icon = create_gameplay(r, EntityType::empty);
+        const auto icon_xy = set_sprite_custom(r, icon, "icon_grass"s, tex_unit);
 
-    for (const auto& p : poisson) {
-      const auto icon = create_gameplay(r, EntityType::empty);
-      const auto icon_xy = set_sprite_custom(r, icon, "icon_grass"s, tex_unit);
+        r.get<TransformComponent>(icon).position = { offset.x + p.x, offset.y + p.y, 0.0f };
+        r.get<TransformComponent>(icon).scale = { default_size.x, default_size.y, 1.0f };
+        r.get<TagComponent>(icon).tag = "grass"s;
+      }
+    }
 
-      r.get<TransformComponent>(icon).position = { offset.x + p.x, offset.y + p.y, 0.0f };
-      r.get<TransformComponent>(icon).scale = { default_size.x, default_size.y, 1.0f };
-      r.get<TagComponent>(icon).tag = "grass"s;
+    // generate some walls
+
+    MapComponent map_c;
+    const glm::ivec2 tilesize{ map_c.tilesize, map_c.tilesize };
+    map_c.map = generate_50_50(tilesize, 0);
+    map_c.map = iterate_with_cell_automata(map_c.map, tilesize);
+    map_c.map = iterate_with_cell_automata(map_c.map, tilesize);
+    map_c.map = iterate_with_cell_automata(map_c.map, tilesize);
+
+    // unblock spawn point
+    if (map_c.map[0] == 1)
+      map_c.map[0] = 0;
+
+    r.emplace<MapComponent>(r.create(), map_c);
+
+    {
+      const auto& xmax = map_c.xmax;
+      const auto& ymax = map_c.ymax;
+      const auto& maap = map_c.map;
+      const glm::ivec2 offset = { tilesize.x / 2.0f, tilesize.y / 2.0f };
+
+      for (int i = 0; i < maap.size(); i++) {
+        const auto xy = engine::grid::index_to_grid_position(i, xmax, ymax);
+        auto xy_world = engine::grid::index_to_world_position(i, xmax, ymax, map_c.tilesize);
+        xy_world += offset;
+
+        // wall
+        if (maap[i] == 1) {
+          const auto e = create_gameplay(r, EntityType::solid_wall);
+          const auto icon_xy = set_sprite_custom(r, e, "icon_beer"s, tex_unit);
+          r.get<AABB>(e).center = xy_world;
+          r.get<TransformComponent>(e).scale = { default_size.x, default_size.y, 1.0f };
+          r.get<TagComponent>(e).tag = "wall"s;
+        }
+        // floor
+        else {
+          const auto e = create_gameplay(r, EntityType::empty);
+          const auto icon_xy = set_sprite_custom(r, e, "icon_grass"s, tex_unit);
+          r.get<TransformComponent>(e).position = { xy_world.x, xy_world.y, 0.0f };
+          r.get<TransformComponent>(e).scale = { default_size.x, default_size.y, 1.0f };
+          r.get<TagComponent>(e).tag = "grass"s;
+        }
+      }
+
+      auto& scene = get_first_component<SINGLETON_CurrentScene>(r);
+      scene.s = s; // done
     }
   }
-
-  auto& scene = get_first_component<SINGLETON_CurrentScene>(r);
-  scene.s = s; // done
 }
 
 } // namespace game2d

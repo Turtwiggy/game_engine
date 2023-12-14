@@ -26,6 +26,7 @@
 #include "modules/combat_attack_cooldown/system.hpp"
 #include "modules/combat_damage/system.hpp"
 #include "modules/combat_flash_on_damage/system.hpp"
+#include "modules/combat_wants_to_shoot/system.hpp"
 #include "modules/gameover/components.hpp"
 #include "modules/gameover/system.hpp"
 #include "modules/items_drop/system.hpp"
@@ -77,8 +78,12 @@ game2d::init(engine::SINGLETON_Application& app, entt::registry& r)
 {
   {
     SINGLETON_AudioComponent audio;
-    // audio.sounds.push_back({ "SHOOT_01", "assets/audio/FIREARM_RTS_Machine_Gun_Model_01_Fire_Single_RR1_mono.wav" });
-    // audio.sounds.push_back({ "SHOOT_02", "assets/audio/FIREARM_Handgun_B_FS92_9mm_Fire_RR1_stereo.wav" });
+    audio.sounds.push_back({ "SHOTGUN_SHOOT_01", "assets/audio/FIREARM_Shotgun_Model_02_Fire_Single_RR1_stereo.wav" });
+    audio.sounds.push_back({ "SHOTGUN_SHOOT_02", "assets/audio/FIREARM_Shotgun_Model_02_Fire_Single_RR2_stereo.wav" });
+    audio.sounds.push_back({ "SHOTGUN_SHOOT_03", "assets/audio/FIREARM_Shotgun_Model_02_Fire_Single_RR3_stereo.wav" });
+    audio.sounds.push_back({ "SHOTGUN_RELOAD_01", "assets/audio/RELOAD_Pump_stereo.wav" });
+    audio.sounds.push_back({ "MENU_01", "assets/audio/8-bit-menu-david-renda.wav" });
+    audio.sounds.push_back({ "GAME_01", "assets/audio/8-bit-adventure-david-renda.wav" });
     r.emplace<SINGLETON_AudioComponent>(r.create(), audio);
   }
   init_audio_system(r);
@@ -232,6 +237,7 @@ game2d::update(engine::SINGLETON_Application& app, entt::registry& r, const floa
       update_attack_cooldown_system(r, milliseconds_dt);
       update_take_damage_system(r);
       update_enemy_system(r);
+      update_wants_to_shoot_system(r);
       //
       // spawners
       update_respawn_system(r);
@@ -277,7 +283,7 @@ game2d::update(engine::SINGLETON_Application& app, entt::registry& r, const floa
 
   {
     OPTICK_EVENT("(update)-update-ui");
-    update_ui_inverse_kinematics_system(r, mouse_pos);
+    // update_ui_inverse_kinematics_system(r, mouse_pos);
 
     if (scene.s == Scene::menu) {
       update_ui_scene_main_menu(app, r);

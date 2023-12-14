@@ -13,7 +13,7 @@ IKSolver::set_points_and_length(int points, float length)
   total_lengths = 0;
 
   for (int i = 0; i < points; i++) {
-    p[i] = { 0, 0 }; // doesnt matter
+    p[i] = { 500, 500 }; // doesnt matter
     lengths[i] = length;
     total_lengths += length;
   }

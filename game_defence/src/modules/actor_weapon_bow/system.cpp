@@ -26,8 +26,6 @@ namespace game2d {
 // release: releases arrow
 //
 
-// request to play audio
-// r.emplace<AudioRequestPlayEvent>(r.create(), "SHOOT_01");
 // put the request on the player
 // add screenshake
 // auto& screenshake = get_first_component<SINGLE_ScreenshakeComponent>(r);

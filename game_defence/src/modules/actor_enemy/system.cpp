@@ -21,12 +21,11 @@ update_enemy_system(entt::registry& r)
     return;
   const auto& first_target_transform = r.get<const TransformComponent>(first_target);
 
-  const auto& view =
-    r.view<const EnemyComponent, TargetComponent, HasTargetPositionComponent>(entt::exclude<WaitForInitComponent>);
-  for (auto [e, enemy, target, target_position] : view.each()) {
+  const auto& view = r.view<const EnemyComponent, HasTargetPositionComponent>(entt::exclude<WaitForInitComponent>);
+  for (auto [e, enemy, target_position] : view.each()) {
 
     // set target
-    target.target = first_target;
+    // target.target = first_target;
 
     // set position
     target_position.position = first_target_transform.position;

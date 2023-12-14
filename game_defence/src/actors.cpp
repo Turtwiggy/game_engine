@@ -383,7 +383,6 @@ create_gameplay(entt::registry& r, const EntityType& type)
       r.emplace<LerpToTargetComponent>(e, speed);
 
       // combat
-      r.emplace<TargetComponent>(e);
       r.emplace<TeamComponent>(e, AvailableTeams::enemy);
       r.emplace<HealthComponent>(e, 10, 10);
       r.emplace<AttackComponent>(e, 10);
