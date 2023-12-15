@@ -28,4 +28,7 @@ process_audio_added(entt::registry& r);
 void
 process_audio_removed(entt::registry& r);
 
+void
+stop_all_audio(entt::registry& r);
+
 } // namespace game2d

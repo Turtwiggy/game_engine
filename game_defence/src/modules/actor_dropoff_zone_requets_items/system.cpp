@@ -28,7 +28,7 @@ update_actor_dropoffzone_request_items(entt::registry& r, uint64_t ms_dt)
   for (const auto& [e, zone, sprite, aabb] : view.each()) {
 
     const auto& ri = get_first_component<SINGLETON_RendererInfo>(r);
-    const auto tex_unit = search_for_texture_by_path(ri, "bargame")->unit;
+    const auto tex_unit = search_for_texture_unit_by_path(ri, "bargame")->unit;
 
     // change sprite based on customers at zone
     if (zone.cur_customers == 0) {

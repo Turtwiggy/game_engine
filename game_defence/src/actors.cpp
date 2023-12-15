@@ -116,7 +116,7 @@ create_sprite(entt::registry& r, const EntityType& type)
   //
   // kennynl texture
   //
-  sc.tex_unit = search_for_texture_by_path(ri, "monochrome")->unit;
+  sc.tex_unit = search_for_texture_unit_by_path(ri, "monochrome")->unit;
   sc.total_sx = 48;
   sc.total_sy = 22;
 
@@ -124,7 +124,7 @@ create_sprite(entt::registry& r, const EntityType& type)
   // muzzleflash texture
   //
   if (type == EntityType::vfx_muzzleflash) {
-    sc.tex_unit = search_for_texture_by_path(ri, "muzzle")->unit;
+    sc.tex_unit = search_for_texture_unit_by_path(ri, "muzzle")->unit;
     sc.total_sx = 5;
     sc.total_sy = 1;
     sc.tex_pos.x = anim.animation_frames[0].x;

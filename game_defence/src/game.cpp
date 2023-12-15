@@ -60,6 +60,7 @@
 #include "modules/ui_selected/system.hpp"
 #include "modules/ui_spawner_editor/system.hpp"
 #include "modules/ux_hoverable/system.hpp"
+#include "modules/ux_hoverable_change_colour/system.hpp"
 #include "physics/components.hpp"
 #include "physics/process_actor_actor_collisions.hpp"
 #include "physics/process_move_objects.hpp"
@@ -105,6 +106,11 @@ game2d::init(engine::SINGLETON_Application& app, entt::registry& r)
     kennynl_particle.path = "assets/textures/kenny_particle_pack/kenny_muzzle_spritesheet.png";
     kennynl_particle.spritesheet_path = "assets/config/spritemap_kennynl_particle.json";
     ri.user_textures.push_back(kennynl_particle);
+
+    Texture misc;
+    misc.path = "assets/textures/kennynl_gameicons/Spritesheet/sheet_white1x_adjusted.png";
+    misc.spritesheet_path = "assets/config/spritemap_kennynl_icons.json";
+    ri.user_textures.push_back(misc);
 
     // load spritesheet info
     SINGLE_Animations anims;
@@ -219,6 +225,15 @@ game2d::update(engine::SINGLETON_Application& app, entt::registry& r, const floa
     update_audio_system(r);
     update_cursor_system(r, mouse_pos);
 
+    // systems
+    update_ux_hoverable(r);
+
+    // effects
+    update_scale_by_velocity_system(r, dt);
+    update_screenshake_system(r, app.ms_since_launch / 1000.0f, dt);
+    update_wiggle_up_and_down_system(r, dt);
+    update_ux_hoverable_change_colour_system(r);
+
     const auto& state = get_first_component<SINGLETON_GameStateComponent>(r);
     const auto& gameover = get_first_component<SINGLETON_GameOver>(r);
     if (scene.s == Scene::game && state.state == GameState::RUNNING && !gameover.game_is_over) {
@@ -247,11 +262,7 @@ game2d::update(engine::SINGLETON_Application& app, entt::registry& r, const floa
       update_intent_pickup_system(r);
       update_intent_drop_item_system(r);
       update_actor_dropoffzone_request_items(r, milliseconds_dt);
-      //
-      // effects
-      update_scale_by_velocity_system(r, dt);
-      update_screenshake_system(r, app.ms_since_launch / 1000.0f, dt);
-      update_wiggle_up_and_down_system(r, dt);
+
       //
       // systems using inputs or inputs from fixedupate
 
@@ -270,7 +281,6 @@ game2d::update(engine::SINGLETON_Application& app, entt::registry& r, const floa
 
       update_bow_system(r, milliseconds_dt);
       update_weapon_shotgun_system(r, milliseconds_dt);
-      update_ux_hoverable(r);
       update_selected_interactions_system(r, mouse_pos);
     }
   }

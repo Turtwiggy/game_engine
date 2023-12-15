@@ -48,6 +48,7 @@ struct SINGLETON_AudioComponent
 {
   std::vector<Sound> sounds;
 
+  bool all_mute = false;
   float master_volume = 1.0f;
 
   bool refresh_devices = true;

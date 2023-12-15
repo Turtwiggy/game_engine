@@ -106,13 +106,13 @@ main(int argc, char* argv[])
 #ifdef __EMSCRIPTEN__
   emscripten_set_main_loop_arg(main_loop, NULL, 0, true);
 #else
-  // OPTICK_START_CAPTURE();
+  OPTICK_START_CAPTURE();
 
   while (app.running)
     main_loop(nullptr);
 
-    // OPTICK_STOP_CAPTURE();
-    // OPTICK_SAVE_CAPTURE("GameCapture");
+  OPTICK_STOP_CAPTURE();
+  OPTICK_SAVE_CAPTURE("GameCapture");
 #endif
 
   return 0;

@@ -61,9 +61,9 @@ rebind(entt::registry& r, const SINGLETON_RendererInfo& ri)
   auto& camera = game2d::get_first_component<OrthographicCamera>(r);
   camera.projection = calculate_ortho_projection(wh.x, wh.y);
 
-  const int tex_unit_kenny = search_for_texture_by_path(ri, "monochrome")->unit;
-  const int tex_unit_custom = search_for_texture_by_path(ri, "bargame")->unit;
-  const int tex_unit_muzzle = search_for_texture_by_path(ri, "muzzle")->unit;
+  const int tex_unit_kenny = search_for_texture_unit_by_path(ri, "monochrome")->unit;
+  const int tex_unit_custom = search_for_texture_unit_by_path(ri, "bargame")->unit;
+  const int tex_unit_muzzle = search_for_texture_unit_by_path(ri, "muzzle")->unit;
 
   ri.instanced.bind();
   ri.instanced.set_mat4("projection", camera.projection);

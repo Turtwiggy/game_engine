@@ -33,6 +33,12 @@ update_audio_system(entt::registry& r)
 {
   const auto& audio = get_first_component<SINGLETON_AudioComponent>(r);
 
+  // If muted, destroy all requests
+  if (audio.all_mute) {
+    const auto& view = r.view<AudioRequestPlayEvent>();
+    r.destroy(view.begin(), view.end());
+  }
+
   // a vector of free audio sources, populated every frame
   std::vector<AudioSource> free_audio_sources;
 

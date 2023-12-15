@@ -2,6 +2,7 @@
 
 #include "actors.hpp"
 #include "audio/components.hpp"
+#include "audio/helpers.hpp"
 #include "entt/helpers.hpp"
 #include "events/components.hpp"
 #include "game_state.hpp"
@@ -28,8 +29,10 @@
 #include "modules/selected_interactions/components.hpp"
 #include "modules/ui_inverse_kinematics/components.hpp"
 #include "modules/ui_scene_main_menu/components.hpp"
+#include "modules/ui_scene_main_menu/system.hpp"
 #include "modules/ui_selected/components.hpp"
 #include "modules/ux_hoverable/components.hpp"
+#include "modules/ux_hoverable_change_colour/components.hpp"
 #include "physics/components.hpp"
 #include "resources/colours.hpp"
 #include "sprites/helpers.hpp"
@@ -84,18 +87,11 @@ move_to_scene_start(entt::registry& r, const Scene s)
   const auto cursor = create_gameplay(r, EntityType::cursor);
   // r.remove<TransformComponent>(cursor);
 
-  // Stop all Audio
-  // auto& audio = get_first_component<SINGLETON_AudioComponent>(r);
-  const auto& audio_view = r.view<AudioSource>();
-  for (const auto& [e, source] : audio_view.each()) {
-    ALint source_state;
-    alGetSourcei(source.source_id, AL_SOURCE_STATE, &source_state);
-    if (source_state == AL_PLAYING)
-      alSourceStop(source.source_id);
-  }
+  stop_all_audio(r);
 
   if (s == Scene::menu) {
 
+    // Display some UI
     auto& ui = destroy_and_create<SINGLE_MainMenuUI>(r);
 
     // Play some audio
@@ -116,13 +112,38 @@ move_to_scene_start(entt::registry& r, const Scene s)
       ui.random_names.push_back(name);
     }
 
-    //
+    // draw 4 inactive-soliders wiggling
+    const int pixel_scale_up_size = 2;
+    const auto default_size = glm::ivec2{ 16 * pixel_scale_up_size, 16 * pixel_scale_up_size };
+    for (int i = 0; i < 4; i++) {
+      const auto e = create_gameplay(r, EntityType::actor_player);
+      r.remove<PlayerComponent>(e);
+      r.remove<PhysicsActorComponent>(e);
+      r.emplace<ChangeColourOnHoverComponent>(e);
+
+      // e.g. i=0,-200, i=1,0, i=2,200, i=3,400
+      const auto scale = [](int i, int min, int increment) -> int { return min + increment * i; };
+      const float val = scale(i, -200, 120);
+
+      auto& aabb = r.get<AABB>(e);
+      aabb.center = { val, 140 };
+
+      auto& t = r.get<TransformComponent>(e);
+      t.scale = { default_size.x, default_size.y, 0.0f };
+      t.position = { aabb.center.x, aabb.center.y, 0.0f };
+
+      WiggleUpAndDown wiggle;
+      wiggle.base_position = aabb.center;
+      wiggle.amplitude = 2.0f;
+      r.emplace<WiggleUpAndDown>(e, wiggle);
+    }
   }
+
   if (s == Scene::game) {
     const auto& anims = get_first_component<SINGLE_Animations>(r);
     const auto& ri = get_first_component<SINGLETON_RendererInfo>(r);
     const auto& colours = get_first_component<SINGLETON_ColoursComponent>(r);
-    const auto tex_unit = search_for_texture_by_path(ri, "bargame")->unit;
+    const auto tex_unit = search_for_texture_unit_by_path(ri, "bargame")->unit;
     const auto& menu_ui = get_first_component<SINGLE_MainMenuUI>(r);
 
     const int pixel_scale_up_size = 2;
@@ -228,21 +249,20 @@ move_to_scene_start(entt::registry& r, const Scene s)
     }
 
     // generate some walls
-
-    MapComponent map_c;
-    const glm::ivec2 tilesize{ map_c.tilesize, map_c.tilesize };
-    map_c.map = generate_50_50(tilesize, 0);
-    map_c.map = iterate_with_cell_automata(map_c.map, tilesize);
-    map_c.map = iterate_with_cell_automata(map_c.map, tilesize);
-    map_c.map = iterate_with_cell_automata(map_c.map, tilesize);
-
-    // unblock spawn point
-    if (map_c.map[0] == 1)
-      map_c.map[0] = 0;
-
-    r.emplace<MapComponent>(r.create(), map_c);
-
     {
+      MapComponent map_c;
+      const glm::ivec2 tilesize{ map_c.tilesize, map_c.tilesize };
+      map_c.map = generate_50_50(tilesize, 0);
+      map_c.map = iterate_with_cell_automata(map_c.map, tilesize);
+      map_c.map = iterate_with_cell_automata(map_c.map, tilesize);
+      map_c.map = iterate_with_cell_automata(map_c.map, tilesize);
+
+      // unblock spawn point
+      if (map_c.map[0] == 1)
+        map_c.map[0] = 0;
+
+      r.emplace<MapComponent>(r.create(), map_c);
+
       const auto& xmax = map_c.xmax;
       const auto& ymax = map_c.ymax;
       const auto& maap = map_c.map;
@@ -270,10 +290,10 @@ move_to_scene_start(entt::registry& r, const Scene s)
           r.get<TagComponent>(e).tag = "grass"s;
         }
       }
-
-      auto& scene = get_first_component<SINGLETON_CurrentScene>(r);
-      scene.s = s; // done
     }
+
+    auto& scene = get_first_component<SINGLETON_CurrentScene>(r);
+    scene.s = s; // done
   }
 }
 

@@ -128,7 +128,7 @@ game2d::check_if_viewport_resize(const SINGLETON_RendererInfo& ri)
 }
 
 std::optional<game2d::TextureUnit>
-game2d::search_for_texture_by_path(const game2d::SINGLETON_RendererInfo& ri, const std::string& search)
+game2d::search_for_texture_unit_by_path(const game2d::SINGLETON_RendererInfo& ri, const std::string& search)
 {
   const auto result = std::find_if(ri.user_textures.begin(), ri.user_textures.end(), [&search](const Texture& tex) {
     return tex.path.find(search) != std::string::npos;
@@ -139,3 +139,16 @@ game2d::search_for_texture_by_path(const game2d::SINGLETON_RendererInfo& ri, con
 
   return std::nullopt;
 };
+
+std::optional<game2d::TextureId>
+game2d::search_for_texture_id_by_path(const game2d::SINGLETON_RendererInfo& ri, const std::string& search)
+{
+  const auto result = std::find_if(ri.user_textures.begin(), ri.user_textures.end(), [&search](const Texture& tex) {
+    return tex.path.find(search) != std::string::npos;
+  });
+
+  if (result != ri.user_textures.end())
+    return result->tex_id;
+
+  return std::nullopt;
+}

@@ -1,0 +1,15 @@
+{
+  "spritesheet": {
+    "name": "kennynl_icons",
+    "px_total": 1000,
+    "py_total": 500,
+    "px": 50,
+    "py": 50,
+    "nx": 20,
+    "ny": 10
+  },
+  "sprites": [
+    { "name": "AUDIO", "frames": [ { "x": 5, "y": 0 } ] },
+    { "name": "AUDIO_MUTE", "frames": [ { "x": 5, "y": 1 } ] }
+  ]
+}

@@ -104,4 +104,16 @@ process_audio_removed(entt::registry& r)
   }
 };
 
+void
+stop_all_audio(entt::registry& r)
+{
+  const auto& audio_view = r.view<AudioSource>();
+  for (const auto& [e, source] : audio_view.each()) {
+    ALint source_state;
+    alGetSourcei(source.source_id, AL_SOURCE_STATE, &source_state);
+    if (source_state == AL_PLAYING)
+      alSourceStop(source.source_id);
+  }
+}
+
 } // namespace game2d

@@ -24,7 +24,14 @@ update_ux_hoverable(entt::registry& r)
 
   // clear anything thats hovered
   {
-    const auto& view = r.view<HoveredComponent>();
+    const auto& view = r.view<HoveredComponent, SpriteComponent, EntityTypeComponent>();
+
+    // revert colours on anything hovered
+    {
+      for (const auto& [e, hov, sc, t] : view.each())
+        sc.colour = create_sprite(r, t.type).colour;
+    }
+
     r.remove<HoveredComponent>(view.begin(), view.end());
   }
 
