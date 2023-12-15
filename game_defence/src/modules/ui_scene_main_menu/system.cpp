@@ -124,6 +124,7 @@ update_ui_scene_main_menu(engine::SINGLETON_Application& app, entt::registry& r)
   //   if (focused_element == 1)
   //     ImGui::PopStyleColor();
 
+  ImGui::NewLine();
   for (int i = 0; i < 4; i++) {
     if (i > 0)
       ImGui::SameLine();
@@ -162,7 +163,7 @@ update_ui_scene_main_menu(engine::SINGLETON_Application& app, entt::registry& r)
   // ImGui::SameLine(300); ImGui::SmallButton("x=300");
   // clang-format on
 
-  ImGui::Separator();
+  ImGui::NewLine();
   ImGui::Text("Squad");
   ImGui::NewLine();
   for (int i = 0; i < ui.random_names.size(); i++) {

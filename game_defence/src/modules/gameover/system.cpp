@@ -1,5 +1,7 @@
 #include "system.hpp"
 
+#include "audio/components.hpp"
+#include "audio/helpers.hpp"
 #include "entt/helpers.hpp"
 #include "events/helpers/keyboard.hpp"
 #include "modules/actor_enemy/components.hpp"
@@ -66,7 +68,22 @@ update_gameover_system(entt::registry& r)
 
       if (no_enemies && no_enemy_spawners) {
         gameover.game_is_over = true;
+        gameover.win_condition = true;
         gameover.reason = "Level Complete! You survived with "s + std::to_string(players_view.size()) + " players"s;
+      }
+    }
+
+    if (gameover.game_is_over && !gameover.activated_gameover) {
+      gameover.activated_gameover = true;
+
+      if (gameover.win_condition) {
+        stop_all_audio(r);
+        // play win music
+        r.emplace<AudioRequestPlayEvent>(r.create(), "WIN_01");
+      } else {
+        stop_all_audio(r);
+        // play loss music
+        r.emplace<AudioRequestPlayEvent>(r.create(), "LOSS_01");
       }
     }
   }

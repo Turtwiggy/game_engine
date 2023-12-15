@@ -85,6 +85,8 @@ game2d::init(engine::SINGLETON_Application& app, entt::registry& r)
     audio.sounds.push_back({ "SHOTGUN_RELOAD_01", "assets/audio/RELOAD_Pump_stereo.wav" });
     audio.sounds.push_back({ "MENU_01", "assets/audio/8-bit-menu-david-renda.wav" });
     audio.sounds.push_back({ "GAME_01", "assets/audio/8-bit-adventure-david-renda.wav" });
+    audio.sounds.push_back({ "WIN_01", "assets/audio/8-bit-win-funk-david-renda.wav" });
+    audio.sounds.push_back({ "LOSS_01", "assets/audio/8-bit-loss-david-renda.wav" });
     r.emplace<SINGLETON_AudioComponent>(r.create(), audio);
   }
   init_audio_system(r);

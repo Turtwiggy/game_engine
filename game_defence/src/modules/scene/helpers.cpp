@@ -108,8 +108,11 @@ move_to_scene_start(entt::registry& r, const Scene s)
     for (int i = 0; i < 4; i++) {
       const float rnd_f = engine::rand_det_s(rnd.rng, 0, names.size());
       const int rnd = static_cast<int>(rnd_f);
-      const auto name = names[rnd];
-      ui.random_names.push_back(name);
+      const std::string name = names[rnd];
+      const std::string delimiter = " ";
+      const auto first_name = name.substr(0, name.find(delimiter));
+
+      ui.random_names.push_back(first_name);
     }
 
     // draw 4 inactive-soliders wiggling
@@ -123,10 +126,10 @@ move_to_scene_start(entt::registry& r, const Scene s)
 
       // e.g. i=0,-200, i=1,0, i=2,200, i=3,400
       const auto scale = [](int i, int min, int increment) -> int { return min + increment * i; };
-      const float val = scale(i, -200, 120);
+      const float val = scale(i, -120, 75);
 
       auto& aabb = r.get<AABB>(e);
-      aabb.center = { val, 140 };
+      aabb.center = { val, 150 };
 
       auto& t = r.get<TransformComponent>(e);
       t.scale = { default_size.x, default_size.y, 0.0f };
@@ -251,26 +254,32 @@ move_to_scene_start(entt::registry& r, const Scene s)
     // generate some walls
     {
       MapComponent map_c;
+      map_c.tilesize = 64;
+      map_c.xmax = 10;
+      map_c.ymax = 10;
       const glm::ivec2 tilesize{ map_c.tilesize, map_c.tilesize };
-      map_c.map = generate_50_50(tilesize, 0);
-      map_c.map = iterate_with_cell_automata(map_c.map, tilesize);
-      map_c.map = iterate_with_cell_automata(map_c.map, tilesize);
-      map_c.map = iterate_with_cell_automata(map_c.map, tilesize);
-
-      // unblock spawn point
-      if (map_c.map[0] == 1)
-        map_c.map[0] = 0;
-
-      r.emplace<MapComponent>(r.create(), map_c);
-
-      const auto& xmax = map_c.xmax;
-      const auto& ymax = map_c.ymax;
-      const auto& maap = map_c.map;
       const glm::ivec2 offset = { tilesize.x / 2.0f, tilesize.y / 2.0f };
 
+      // generate a map
+      {
+        map_c.map = generate_50_50({ map_c.xmax, map_c.ymax }, 0);
+        map_c.map = iterate_with_cell_automata(map_c.map, { map_c.xmax, map_c.ymax });
+        map_c.map = iterate_with_cell_automata(map_c.map, { map_c.xmax, map_c.ymax });
+        map_c.map = iterate_with_cell_automata(map_c.map, { map_c.xmax, map_c.ymax });
+      }
+
+      // unblock spawn point
+      {
+        if (map_c.map[0] == 1)
+          map_c.map[0] = 0;
+        r.emplace<MapComponent>(r.create(), map_c);
+      }
+
+      const auto& maap = map_c.map;
       for (int i = 0; i < maap.size(); i++) {
-        const auto xy = engine::grid::index_to_grid_position(i, xmax, ymax);
-        auto xy_world = engine::grid::index_to_world_position(i, xmax, ymax, map_c.tilesize);
+
+        const auto xy = engine::grid::index_to_grid_position(i, map_c.xmax, map_c.ymax);
+        auto xy_world = engine::grid::index_to_world_position(i, map_c.xmax, map_c.ymax, map_c.tilesize);
         xy_world += offset;
 
         // wall

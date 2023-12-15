@@ -20,17 +20,6 @@
 
 #include <glm/glm.hpp>
 
-// calculate average position of selected objects
-//
-// const int count = hi.seleced.size();
-// glm::ivec2 avg_pos{ 0, 0 };
-// for (const auto& e : hi.selected) {
-//   const auto& aabb = r.get<AABB>(e);
-//   avg_pos += aabb.center;
-// }
-// if (count != 0)
-//   avg_pos /= count;
-
 namespace game2d {
 
 void
@@ -148,10 +137,10 @@ void
 update_selected_interactions_system(entt::registry& r, const glm::ivec2& mouse_pos)
 {
   const auto& input = get_first_component<SINGLETON_InputComponent>(r);
-
   const auto& cursor = get_first<CursorComponent>(r);
   const auto& cursor_comp = r.get<CursorComponent>(cursor);
   const auto& enemies = cursor_comp.hovering_enemies;
+  const auto& map = get_first_component<MapComponent>(r);
 
   // warning: doesnt work with controller currently
   const bool click = get_mouse_rmb_press();
@@ -172,10 +161,10 @@ update_selected_interactions_system(entt::registry& r, const glm::ivec2& mouse_p
   }
 
   // hack: just to test stopping people firing
-  // if (get_key_down(input, SDL_SCANCODE_S)) {
-  //   const auto& view = r.view<TargetComponent>();
-  //   r.remove<TargetComponent>(view.begin(), view.end());
-  // }
+  if (get_key_down(input, SDL_SCANCODE_S)) {
+    const auto& view = r.view<DynamicTargetComponent>();
+    r.remove<DynamicTargetComponent>(view.begin(), view.end());
+  }
 
   static std::optional<glm::ivec2> click_position;
   static std::optional<glm::ivec2> held_position;
@@ -187,7 +176,6 @@ update_selected_interactions_system(entt::registry& r, const glm::ivec2& mouse_p
   ///
   // TRY OUT DDA
   ///
-  const auto& map = get_first_component<MapComponent>(r);
 
   const glm::vec2 tile_vec = glm::vec2(map.tilesize, map.tilesize);
   const glm::vec2 mouse_cell = glm::vec2(mouse_pos.x, mouse_pos.y) / tile_vec;
