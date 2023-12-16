@@ -21,7 +21,14 @@ update_screenshake_system(entt::registry& r, const float timer, const float dt)
 
   auto& ri = get_first_component<SINGLETON_RendererInfo>(r);
   ri.instanced.bind();
-  ri.instanced.set_bool("shake", do_screenshake);
+
+  // cache the value to avoid set_bool
+  static bool shake = do_screenshake;
+  if (shake != do_screenshake) {
+    shake = do_screenshake;
+    ri.instanced.set_bool("shake", do_screenshake);
+  }
+
   ri.instanced.set_float("time", timer);
 };
 

@@ -67,4 +67,9 @@ struct SpriteAnimationComponent
   bool looping = true;
 };
 
+struct CircleComponent
+{
+  //
+};
+
 } // namespace game2d

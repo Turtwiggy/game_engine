@@ -71,6 +71,9 @@ rebind(entt::registry& r, const SINGLETON_RendererInfo& ri)
   ri.instanced.set_int("tex_custom", tex_unit_custom);
   ri.instanced.set_int("tex_muzzle", tex_unit_muzzle);
 
+  ri.circle.bind();
+  ri.circle.set_mat4("projection", camera.projection);
+
   ri.mix_lighting_and_scene.bind();
   ri.mix_lighting_and_scene.set_mat4("projection", camera.projection);
   ri.mix_lighting_and_scene.set_mat4("view", glm::mat4(1.0f)); // whole texture
@@ -106,6 +109,7 @@ game2d::init_render_system(const engine::SINGLETON_Application& app, entt::regis
 
   ri.instanced = Shader("assets/shaders/2d_instanced.vert", "assets/shaders/2d_instanced.frag");
   ri.mix_lighting_and_scene = Shader("assets/shaders/2d_instanced.vert", "assets/shaders/2d_mix_lighting_and_scene.frag");
+  ri.circle = Shader("assets/shaders/2d_circle.vert", "assets/shaders/2d_circle.frag");
 
   // initialize renderer
   SDL_GL_SetAttribute(SDL_GL_MULTISAMPLEBUFFERS, 1);
@@ -117,7 +121,9 @@ game2d::init_render_system(const engine::SINGLETON_Application& app, entt::regis
 
   glEnable(GL_BLEND);
   glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+  glBlendFuncSeparate(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA, GL_ONE, GL_ZERO);
   // glEnable(GL_DEPTH_TEST);
+  // glEnable(GL_LINE_SMOOTH);
 
   print_gpu_info();
 
@@ -144,6 +150,18 @@ game2d::update_render_system(entt::registry& r, const float dt)
   const auto& camera = game2d::get_first_component<OrthographicCamera>(r);
   ri.instanced.bind();
   ri.instanced.set_mat4("view", camera.view);
+  ri.circle.bind();
+  ri.circle.set_mat4("view", camera.view);
+
+  // DEBUG A SHADER...
+  const auto& input = get_first_component<SINGLETON_InputComponent>(r);
+  if (get_key_down(input, SDL_SCANCODE_R)) {
+    std::cout << "rebinding shader..." << std::endl;
+    ri.circle.reload();
+    ri.circle.bind();
+    ri.circle.set_mat4("projection", camera.projection);
+    ri.circle.set_mat4("view", camera.view);
+  }
 
   // FBO: Render sprites in to this fbo with linear colour
   {
@@ -151,6 +169,8 @@ game2d::update_render_system(entt::registry& r, const float dt)
     RenderCommand::set_viewport(0, 0, viewport_wh.x, viewport_wh.y);
     RenderCommand::set_clear_colour_linear(*colours.lin_background);
     RenderCommand::clear();
+
+    // Render some quads
     {
       quad_renderer::QuadRenderer::reset_quad_vert_count();
       quad_renderer::QuadRenderer::begin_batch();
@@ -161,7 +181,6 @@ game2d::update_render_system(entt::registry& r, const float dt)
       // group.sort<SpriteComponent>([](const auto& a, const auto& b) { return a.render_order < b.render_order; });
 
       const auto& view = r.group<TransformComponent, SpriteComponent>();
-
       for (const auto& [entity, transform, sc] : view.each()) {
         quad_renderer::RenderDescriptor desc;
         // desc.pos_tl = camera_transform.position + transform.position - transform.scale / 2;
@@ -180,6 +199,31 @@ game2d::update_render_system(entt::registry& r, const float dt)
 
       quad_renderer::QuadRenderer::end_batch();
       quad_renderer::QuadRenderer::flush(ri.instanced);
+    }
+
+    // Render some circles
+    {
+      quad_renderer::QuadRenderer::reset_quad_vert_count();
+      quad_renderer::QuadRenderer::begin_batch();
+
+      const auto& view = r.view<TransformComponent, SpriteComponent, CircleComponent>();
+      for (const auto& [entity, transform, sc] : view.each()) {
+        quad_renderer::RenderDescriptor desc;
+        desc.pos_tl = transform.position - transform.scale / 2;
+        desc.size = transform.scale;
+        desc.angle_radians = sc.angle_radians + transform.rotation_radians.z;
+        desc.colour = sc.colour;
+        desc.tex_unit = sc.tex_unit;
+
+        desc.sprite_offset = { sc.tex_pos.x, sc.tex_pos.y };
+        desc.sprite_width = { sc.tex_pos.w, sc.tex_pos.h };
+        desc.sprites_max = { sc.total_sx, sc.total_sy };
+
+        quad_renderer::QuadRenderer::draw_sprite(desc, ri.circle);
+      }
+
+      quad_renderer::QuadRenderer::end_batch();
+      quad_renderer::QuadRenderer::flush(ri.circle);
     }
   }
 
@@ -207,7 +251,7 @@ game2d::update_render_system(entt::registry& r, const float dt)
     }
   }
 
-  // Default FBO: render_texture_to_imgui
+  // Default: render_texture_to_imgui
   {
     Framebuffer::default_fbo();
     RenderCommand::set_viewport(0, 0, viewport_wh.x, viewport_wh.y);
@@ -227,9 +271,8 @@ game2d::update_render_system(entt::registry& r, const float dt)
   }
 
   //
-  // debug textures
+  // debug user textures
   //
-
 #ifdef _DEBUG
   ImVec2 viewport_size;
   int i = 0;
@@ -243,15 +286,6 @@ game2d::update_render_system(entt::registry& r, const float dt)
     i++;
   }
 #endif
-
-  // ImGui::Begin("Debug2");
-  // viewport_size = ImGui::GetContentRegionAvail();
-  // ImGui::Image((ImTextureID)ri.tex_id_linear_main, viewport_size, ImVec2(0, 0), ImVec2(1, 1));
-  // ImGui::End();
-  // ImGui::Begin("Debug3");
-  // viewport_size = ImGui::GetContentRegionAvail();
-  // ImGui::Image((ImTextureID)ri.tex_id_mix_lighting_and_scene, viewport_size, ImVec2(0, 0), ImVec2(1, 1));
-  // ImGui::End();
 };
 
 void

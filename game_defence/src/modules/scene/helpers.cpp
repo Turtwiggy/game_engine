@@ -139,6 +139,16 @@ move_to_scene_start(entt::registry& r, const Scene s)
       wiggle.base_position = aabb.center;
       wiggle.amplitude = 2.0f;
       r.emplace<WiggleUpAndDown>(e, wiggle);
+
+      // create a circle around the player
+      {
+        const auto circle = create_gameplay(r, EntityType::empty);
+        r.emplace<CircleComponent>(circle);
+        auto& circle_transform = r.get<TransformComponent>(circle);
+        circle_transform.position = t.position;
+        circle_transform.scale = { 64, 64, 1 };
+        r.get<SpriteComponent>(circle).colour = engine::SRGBToLinear(engine::SRGBColour(1.0f, 0.0f, 0.0f, 0.0f));
+      }
     }
   }
 
