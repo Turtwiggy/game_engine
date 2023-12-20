@@ -5,6 +5,7 @@
 #include "entt/helpers.hpp"
 #include "imgui/helpers.hpp"
 #include "maths/maths.hpp"
+#include "modules/actor_player/components.hpp"
 #include "modules/camera/orthographic.hpp"
 #include "modules/renderer/components.hpp"
 #include "modules/renderer/helpers.hpp"
@@ -31,6 +32,7 @@ using namespace engine; // used for macro
 #include <glm/gtc/type_ptr.hpp>
 
 namespace game2d {
+using namespace std::literals;
 
 void
 rebind(entt::registry& r, const SINGLETON_RendererInfo& ri)
@@ -133,7 +135,7 @@ game2d::init_render_system(const engine::SINGLETON_Application& app, entt::regis
 }
 
 void
-game2d::update_render_system(entt::registry& r, const float dt)
+game2d::update_render_system(entt::registry& r, const float dt, const glm::vec2& mouse_pos)
 {
   auto& ri = get_first_component<SINGLETON_RendererInfo>(r);
   const auto& colours = get_first_component<SINGLETON_ColoursComponent>(r);
@@ -147,11 +149,19 @@ game2d::update_render_system(entt::registry& r, const float dt)
   const glm::ivec2 fbo_lighting_size = { viewport_wh.x, viewport_wh.y };
 
   // Camera
-  const auto& camera = game2d::get_first_component<OrthographicCamera>(r);
+  const auto camera_e = game2d::get_first<OrthographicCamera>(r);
+  const auto& camera = r.get<OrthographicCamera>(camera_e);
+  const auto& camera_t = r.get<TransformComponent>(camera_e);
   ri.instanced.bind();
   ri.instanced.set_mat4("view", camera.view);
   ri.circle.bind();
   ri.circle.set_mat4("view", camera.view);
+  ri.circle.set_vec2("viewport_wh", ri.viewport_size_render_at);
+  ri.circle.set_vec2("camera_pos", { camera_t.position.x, camera_t.position.y });
+
+  static float time = 0.0f;
+  time += dt;
+  ri.circle.set_float("time", time);
 
   // DEBUG A SHADER...
   const auto& input = get_first_component<SINGLETON_InputComponent>(r);
@@ -206,10 +216,34 @@ game2d::update_render_system(entt::registry& r, const float dt)
       quad_renderer::QuadRenderer::reset_quad_vert_count();
       quad_renderer::QuadRenderer::begin_batch();
 
+      // set the positions of the player units
+      {
+        ri.circle.bind();
+
+        const auto& player_view = r.view<TransformComponent, PlayerComponent>();
+        for (int i = 0; const auto& [e, transform, player] : player_view.each()) {
+
+          const glm::vec2 pos = { float(transform.position.x), float(transform.position.y) };
+
+          std::string label = "points["s + std::to_string(i) + "].pos"s;
+          ri.circle.set_vec2(label, pos);
+
+          i++;
+        }
+
+        // const auto& io = ImGui::GetIO();
+        // ri.circle.set_vec2("points[4].pos", { io.MousePos.x, io.MousePos.y });
+      }
+
       const auto& view = r.view<TransformComponent, SpriteComponent, CircleComponent>();
       for (const auto& [entity, transform, sc] : view.each()) {
+
         quad_renderer::RenderDescriptor desc;
-        desc.pos_tl = transform.position - transform.scale / 2;
+
+        // render completely over screen
+        const glm::vec2 offset = { ri.viewport_size_render_at.x / 2.0, ri.viewport_size_render_at.y / 2.0f };
+        desc.pos_tl = glm::vec2(camera_t.position.x, camera_t.position.y) - offset;
+
         desc.size = transform.scale;
         desc.angle_radians = sc.angle_radians + transform.rotation_radians.z;
         desc.colour = sc.colour;

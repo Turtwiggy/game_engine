@@ -52,6 +52,11 @@ dda_raycast(const DDAInput& input, const std::vector<int>& map)
   bool tile_found = false;
   float distance = 0.0f;
   while (!tile_found && distance < max_distance) {
+
+    // exit conditions
+    if (map_check.x > input.map_size.x || map_check.x < 0 || map_check.y > input.map_size.y || map_check.y < 0)
+      break;
+
     // Walk
     if (ray_length.x < ray_length.y) {
       map_check.x += step.x;

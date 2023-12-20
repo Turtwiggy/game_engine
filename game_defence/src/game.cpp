@@ -290,7 +290,7 @@ game2d::update(engine::SINGLETON_Application& app, entt::registry& r, const floa
   {
     OPTICK_EVENT("(update)-update-render-system");
     update_animator_system(r, dt);
-    update_render_system(r, dt);
+    update_render_system(r, dt, mouse_pos);
   }
 
   {

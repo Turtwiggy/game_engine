@@ -120,7 +120,6 @@ move_to_scene_start(entt::registry& r, const Scene s)
     const auto default_size = glm::ivec2{ 16 * pixel_scale_up_size, 16 * pixel_scale_up_size };
     for (int i = 0; i < 4; i++) {
       const auto e = create_gameplay(r, EntityType::actor_player);
-      r.remove<PlayerComponent>(e);
       r.remove<PhysicsActorComponent>(e);
       r.emplace<ChangeColourOnHoverComponent>(e);
 
@@ -139,16 +138,13 @@ move_to_scene_start(entt::registry& r, const Scene s)
       wiggle.base_position = aabb.center;
       wiggle.amplitude = 2.0f;
       r.emplace<WiggleUpAndDown>(e, wiggle);
+    }
 
-      // create a circle around the player
-      {
-        const auto circle = create_gameplay(r, EntityType::empty);
-        r.emplace<CircleComponent>(circle);
-        auto& circle_transform = r.get<TransformComponent>(circle);
-        circle_transform.position = t.position;
-        circle_transform.scale = { 64, 64, 1 };
-        r.get<SpriteComponent>(circle).colour = engine::SRGBToLinear(engine::SRGBColour(1.0f, 0.0f, 0.0f, 0.0f));
-      }
+    // create a circle post processing texture
+    {
+      const auto circle = create_gameplay(r, EntityType::empty);
+      r.emplace<CircleComponent>(circle);
+      r.get<SpriteComponent>(circle).colour = engine::SRGBToLinear(engine::SRGBColour(1.0f, 0.0f, 0.0f, 0.0f));
     }
   }
 
@@ -161,6 +157,19 @@ move_to_scene_start(entt::registry& r, const Scene s)
 
     const int pixel_scale_up_size = 2;
     const auto default_size = glm::ivec2{ 16 * pixel_scale_up_size, 16 * pixel_scale_up_size };
+
+    // create a circle texture
+    {
+      const auto circle = create_gameplay(r, EntityType::empty);
+      r.emplace<CircleComponent>(circle);
+      r.get<SpriteComponent>(circle).colour = engine::SRGBToLinear(engine::SRGBColour(1.0f, 0.0f, 0.0f, 0.0f));
+      auto& circle_transform = r.get<TransformComponent>(circle);
+      circle_transform.position.x = 0;
+      circle_transform.position.y = 0;
+      circle_transform.position.z = 0;
+      circle_transform.scale.x = 1280;
+      circle_transform.scale.y = 720;
+    }
 
     // Play some audio
     r.emplace<AudioRequestPlayEvent>(r.create(), "GAME_01");

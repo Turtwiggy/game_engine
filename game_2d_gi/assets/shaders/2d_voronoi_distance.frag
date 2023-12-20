@@ -9,8 +9,8 @@ in vec2 v_sprites;    // amount of sprites (x, y)
 in float v_tex_unit;
 
 uniform sampler2D tex;
-uniform float u_dist_mod = 1.0;
-uniform vec2 screen_wh;
+// uniform float u_dist_mod = 1.0;
+// uniform vec2 screen_wh;
 
 float V2_F16(vec2 v) { return v.x + (v.y / 255.0); }
 vec2 F16_V2(float f) { return vec2(floor(f * 255.0) / 255.0, fract(f * 255.0)); }

@@ -9,23 +9,87 @@ in vec2 v_sprite_wh;  // desired sprites e.g. 2, 2
 in vec2 v_sprite_max; // 22 sprites
 in float v_tex_unit;
 
-// https://www.shadertoy.com/view/ssdSD2
+uniform float time;
+uniform vec2 viewport_wh;
+uniform vec2 camera_pos;
+
+struct Points
+{
+  vec2 pos;
+};
+#define NR_MAX_CIRCLES 4
+uniform Points points[NR_MAX_CIRCLES];
+
+// todo: move to v
+// float thickness = 0.05;
+// float fade = 0.1;
+
+// https://www.shadertoy.com/view/3ltSW2
+float sdCircle( in vec2 p, in float r ) 
+{
+    return length(p)-r;
+}
+
+// https://www.shadertoy.com/view/lt3BW2
+float opSmoothUnion( float d1, float d2, float k )
+{
+    float h = max(k-abs(d1-d2),0.0);
+    return min(d1, d2) - h*h*0.25/k;
+}
+
 void
 main()
 {
-  // todo: move to v
-  float thickness = 0.05;
-  float fade = 0.1;
 
-  // -1 -> 1 local space
-  vec2 uv = (v_uv * 2.0) - 1.0;
-    
-  // Calculate distance and fill circle with white
-  float distance = 1.0 - length(uv);
-  float circle = smoothstep(0.0, fade, distance);
-  circle *= smoothstep(thickness + fade, thickness, distance);
+  vec2 half_wh = viewport_wh / 2.0;
+  float screen_min_x = camera_pos.x - half_wh.x; // e.g. -960
+  float screen_max_x = camera_pos.x + half_wh.x; // e.g. 960
+  float screen_min_y = camera_pos.y - half_wh.y; // e.g. -540
+  float screen_max_y = camera_pos.y + half_wh.y; // e.g. 540
+  float range_x = screen_max_x - screen_min_x;
+  float range_y = screen_max_y - screen_min_y;
 
-  // Set output colour
-  o_colour = v_colour;
-  o_colour.a = circle;
+  // convert uv to -1 and 1
+  vec2 uv = 2.0 * v_uv - 1.0;
+  uv.x *= -1;
+  uv.y *= -1;
+
+  float aspect = viewport_wh.x / viewport_wh.y;
+  uv.x *= aspect;
+
+  float d = 1e10;
+
+  for(int i = 0; i < NR_MAX_CIRCLES; i++)
+  {
+    vec2 pos = points[i].pos;         // values in worldspace
+
+    // convert worldspace to between -1 and 1.
+    float ss_x = (((pos.x - screen_min_x)/viewport_wh.x) * 2.0) - 1.0;
+    float ss_y = (((pos.y - screen_min_y)/viewport_wh.y) * 2.0) - 1.0;
+    ss_x *= aspect;
+    // ss_y *= aspect;
+
+    vec2 p = vec2(uv.x + ss_x, uv.y + ss_y);
+    float d0 = sdCircle(p, 0.2);
+
+    // If not the first circle, smooth it in
+    float dt = opSmoothUnion(d, d0, 0.1);
+    d = min(d, dt);
+  }
+
+  // colouring
+  // vec3 col = (d>0.0) ? vec3(0.9,0.6,0.3) : vec3(0.65,0.85,1.0); // colour
+	// col *= 0.8 + 0.2*cos(150.0*d);                                // waves
+  // col *= 1.0 - exp(-6.0*abs(d));                                // shadow
+
+  // float thickness = 0.0015;
+  float thickness = 0.005;
+	vec3 col = mix( vec3(0.0), vec3(1.0), 1.0-smoothstep(0.0,thickness,abs(d)) ); // border
+
+  o_colour = vec4(col, 1.0);
+
+  if(col == vec3(0.0))
+    o_colour.a = 0.0;
+  else
+    o_colour = vec4(0.5f);
 }

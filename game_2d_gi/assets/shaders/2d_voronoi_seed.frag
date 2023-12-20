@@ -12,6 +12,8 @@ uniform sampler2D tex;
 
 vec2 F16_V2(float f) { return vec2(floor(f * 255.0) / 255.0, fract(f * 255.0)); }
 
+// this shader stores the uv coordinates in the texture
+
 void
 main()
 {
