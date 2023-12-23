@@ -147,7 +147,7 @@ update_ui_level_editor_system(entt::registry& r, const glm::ivec2& input_mouse_p
       //
       if (mode == LevelEditorMode::edit) {
         // todo: are you sure
-        if (ImGui::Button("Save"))
+        if (ImGui::Button("Save##savelevel"))
           save(r, level);
         ImGui::SameLine();
       } else
@@ -156,7 +156,7 @@ update_ui_level_editor_system(entt::registry& r, const glm::ivec2& input_mouse_p
       //
       // load
       //
-      if (ImGui::Button("Load")) {
+      if (ImGui::Button("Load##loadlevel")) {
         // todo: are you sure
         if (levels.size() > 0) {
           move_to_scene_start(r, scene.s);

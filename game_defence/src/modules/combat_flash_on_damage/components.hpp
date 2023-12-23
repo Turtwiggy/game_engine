@@ -2,9 +2,8 @@
 
 namespace game2d {
 
-struct FlashOnDamageComponent
+struct RequestFlashComponent
 {
-  bool started = false;
   int milliseconds_left = 200;
 };
 

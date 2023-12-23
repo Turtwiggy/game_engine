@@ -43,10 +43,6 @@ update_resolve_collisions_system(entt::registry& r)
     const auto* b_def = r.try_get<HealthComponent>(b);
     const auto* b_team = r.try_get<TeamComponent>(b);
 
-    // todo: dont just *kill* enemies immediately on collision
-    // should do something more interesting give the enemy damage
-    // from the attack but then dont take any more damage from it
-
     // deal damage to b
     if (a_atk && b_def && a_team && b_team) {
       if (a_team->team == b_team->team)

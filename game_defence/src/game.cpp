@@ -64,7 +64,6 @@
 #include "physics/components.hpp"
 #include "physics/process_actor_actor_collisions.hpp"
 #include "physics/process_move_objects.hpp"
-#include "resources/colours.hpp"
 #include "sprites/components.hpp"
 #include "sprites/helpers.hpp"
 
@@ -87,6 +86,7 @@ game2d::init(engine::SINGLETON_Application& app, entt::registry& r)
     audio.sounds.push_back({ "GAME_01", "assets/audio/8-bit-adventure-david-renda.wav" });
     audio.sounds.push_back({ "WIN_01", "assets/audio/8-bit-win-funk-david-renda.wav" });
     audio.sounds.push_back({ "LOSS_01", "assets/audio/8-bit-loss-david-renda.wav" });
+    audio.sounds.push_back({ "TAKE_DAMAGE_01", "assets/audio/GRUNT_Male_Subtle_Hurt_mono.wav" });
     r.emplace<SINGLETON_AudioComponent>(r.create(), audio);
   }
   init_audio_system(r);
@@ -126,6 +126,7 @@ game2d::init(engine::SINGLETON_Application& app, entt::registry& r)
   r.emplace<SINGLETON_FixedUpdateInputHistory>(r.create());
   r.emplace<SINGLETON_InputComponent>(r.create());
   r.emplace<SINGLETON_LevelEditor>(r.create());
+  init_ui_colour_palette_system(r);
 
   const auto camera = r.create();
   r.emplace<TagComponent>(camera, "camera");
@@ -244,7 +245,7 @@ game2d::update(engine::SINGLETON_Application& app, entt::registry& r, const floa
       // putting all these systems in update isn't a mistake
       const uint64_t milliseconds_dt = dt * 1000.0f;
 
-      // update_flash_sprite_system(game, milliseconds_dt);
+      update_flash_sprite_system(r, milliseconds_dt);
       // update_turret_system(game, milliseconds_dt);
       //
       // ai
@@ -325,8 +326,7 @@ game2d::update(engine::SINGLETON_Application& app, entt::registry& r, const floa
       update_ui_hierarchy_system(r);
       update_ui_level_editor_system(r, mouse_pos);
       update_ui_collisions_system(r);
-      auto& colours = get_first_component<SINGLETON_ColoursComponent>(r);
-      // update_ui_colours_system(colours);
+      update_ui_colour_palette_system(r);
     }
 
 #endif

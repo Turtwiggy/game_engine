@@ -17,7 +17,7 @@ struct Points
 {
   vec2 pos;
 };
-#define NR_MAX_CIRCLES 4
+#define NR_MAX_CIRCLES 20
 uniform Points points[NR_MAX_CIRCLES];
 
 // todo: move to v
@@ -40,7 +40,6 @@ float opSmoothUnion( float d1, float d2, float k )
 void
 main()
 {
-
   vec2 half_wh = viewport_wh / 2.0;
   float screen_min_x = camera_pos.x - half_wh.x; // e.g. -960
   float screen_max_x = camera_pos.x + half_wh.x; // e.g. 960
@@ -62,6 +61,10 @@ main()
   for(int i = 0; i < NR_MAX_CIRCLES; i++)
   {
     vec2 pos = points[i].pos;         // values in worldspace
+    
+    // should really check if something is active or not...
+    if(pos == vec2(0.0)) 
+      continue;
 
     // convert worldspace to between -1 and 1.
     float ss_x = (((pos.x - screen_min_x)/viewport_wh.x) * 2.0) - 1.0;

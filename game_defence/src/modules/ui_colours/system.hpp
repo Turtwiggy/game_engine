@@ -1,10 +1,13 @@
 #pragma once
 
-#include "resources/colours.hpp"
+#include "entt/entt.hpp"
 
 namespace game2d {
 
 void
-update_ui_colours_system(SINGLETON_ColoursComponent& colours);
+init_ui_colour_palette_system(entt::registry& r);
+
+void
+update_ui_colour_palette_system(entt::registry& r);
 
 } // namespace game2d

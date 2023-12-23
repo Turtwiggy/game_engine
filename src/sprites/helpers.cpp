@@ -99,8 +99,10 @@ set_sprite_custom(entt::registry& r, const entt::entity& e, const std::string& s
 {
   const auto& anims = get_first_component<SINGLE_Animations>(r);
   const auto anim = find_animation(anims, sprite);
+  // const auto& tag = r.get<TagComponent>(e);
 
   auto& sc = r.get<SpriteComponent>(e);
+  // sc.colour = get_lin_colour_by_tag(r, tag);
   sc.tex_unit = tex_unit;
   sc.total_sx = 32;
   sc.total_sy = 32;

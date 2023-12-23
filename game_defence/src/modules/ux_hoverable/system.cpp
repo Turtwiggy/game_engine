@@ -6,6 +6,8 @@
 #include "events/helpers/mouse.hpp"
 #include "modules/actor_cursor/components.hpp"
 #include "modules/combat_damage/components.hpp"
+#include "modules/renderer/components.hpp"
+#include "modules/ui_colours/helpers.hpp"
 #include "physics/components.hpp"
 
 #include "imgui.h"
@@ -24,12 +26,12 @@ update_ux_hoverable(entt::registry& r)
 
   // clear anything thats hovered
   {
-    const auto& view = r.view<HoveredComponent, SpriteComponent, EntityTypeComponent>();
+    const auto& view = r.view<HoveredComponent, SpriteComponent, TagComponent>();
 
     // revert colours on anything hovered
     {
-      for (const auto& [e, hov, sc, t] : view.each())
-        sc.colour = create_sprite(r, t.type).colour;
+      for (const auto& [e, hov, sc, tag] : view.each())
+        sc.colour = get_lin_colour_by_tag(r, tag.tag);
     }
 
     r.remove<HoveredComponent>(view.begin(), view.end());

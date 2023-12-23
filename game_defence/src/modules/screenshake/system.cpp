@@ -1,5 +1,7 @@
 #include "system.hpp"
 
+#include "components.hpp"
+
 #include "entt/helpers.hpp"
 #include "events/components.hpp"
 #include "events/helpers/keyboard.hpp"
@@ -15,7 +17,19 @@ update_screenshake_system(entt::registry& r, const float timer, const float dt)
   const auto& input = get_first_component<SINGLETON_InputComponent>(r);
   auto& screenshake = get_first_component<SINGLE_ScreenshakeComponent>(r);
 
-  bool do_screenshake = screenshake.time_left > 0;
+  //
+  // process requests
+  //
+  const auto& view = r.view<const RequestScreenshakeComponent>();
+  for (const auto& [e, req] : view.each()) {
+    screenshake.time_left += 0.025f;
+  }
+  r.destroy(view.begin(), view.end()); // done requests
+
+  //
+  // Do the actual screenshake
+  //
+  const bool do_screenshake = screenshake.time_left > 0;
   screenshake.time_left -= dt;
   screenshake.time_left = glm::max(screenshake.time_left, 0.0f);
 
@@ -27,6 +41,7 @@ update_screenshake_system(entt::registry& r, const float timer, const float dt)
   if (shake != do_screenshake) {
     shake = do_screenshake;
     ri.instanced.set_bool("shake", do_screenshake);
+    ri.instanced.set_float("strength", 0.002f);
   }
 
   ri.instanced.set_float("time", timer);

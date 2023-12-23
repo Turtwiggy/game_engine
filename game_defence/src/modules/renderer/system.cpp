@@ -7,10 +7,10 @@
 #include "maths/maths.hpp"
 #include "modules/actor_player/components.hpp"
 #include "modules/camera/orthographic.hpp"
+#include "modules/gameplay_circle/components.hpp"
 #include "modules/renderer/components.hpp"
 #include "modules/renderer/helpers.hpp"
 #include "modules/renderer/helpers/batch_quad.hpp"
-#include "resources/colours.hpp"
 #include "sprites/components.hpp"
 
 // hack
@@ -138,7 +138,10 @@ void
 game2d::update_render_system(entt::registry& r, const float dt, const glm::vec2& mouse_pos)
 {
   auto& ri = get_first_component<SINGLETON_RendererInfo>(r);
-  const auto& colours = get_first_component<SINGLETON_ColoursComponent>(r);
+  // const auto& colours = get_first_component<SINGLETON_ColoursComponent>(r);
+
+  static const engine::SRGBColour pal_background = { int(34), int(28), int(26), 1.0f };
+  static const engine::LinearColour lin_pal_background = engine::SRGBToLinear(pal_background);
 
   const auto viewport_resized = check_if_viewport_resize(ri);
   if (viewport_resized) {
@@ -177,7 +180,7 @@ game2d::update_render_system(entt::registry& r, const float dt, const glm::vec2&
   {
     Framebuffer::bind_fbo(ri.fbo_linear_main);
     RenderCommand::set_viewport(0, 0, viewport_wh.x, viewport_wh.y);
-    RenderCommand::set_clear_colour_linear(*colours.lin_background);
+    RenderCommand::set_clear_colour_linear(lin_pal_background);
     RenderCommand::clear();
 
     // Render some quads
@@ -220,8 +223,8 @@ game2d::update_render_system(entt::registry& r, const float dt, const glm::vec2&
       {
         ri.circle.bind();
 
-        const auto& player_view = r.view<TransformComponent, PlayerComponent>();
-        for (int i = 0; const auto& [e, transform, player] : player_view.each()) {
+        const auto& player_view = r.view<TransformComponent, CircleComponent>();
+        for (int i = 0; const auto& [e, transform, c] : player_view.each()) {
 
           const glm::vec2 pos = { float(transform.position.x), float(transform.position.y) };
 
@@ -235,24 +238,14 @@ game2d::update_render_system(entt::registry& r, const float dt, const glm::vec2&
         // ri.circle.set_vec2("points[4].pos", { io.MousePos.x, io.MousePos.y });
       }
 
-      const auto& view = r.view<TransformComponent, SpriteComponent, CircleComponent>();
-      for (const auto& [entity, transform, sc] : view.each()) {
-
+      // circle post-processing
+      // render completely over screen
+      {
         quad_renderer::RenderDescriptor desc;
-
-        // render completely over screen
         const glm::vec2 offset = { ri.viewport_size_render_at.x / 2.0, ri.viewport_size_render_at.y / 2.0f };
         desc.pos_tl = glm::vec2(camera_t.position.x, camera_t.position.y) - offset;
-
-        desc.size = transform.scale;
-        desc.angle_radians = sc.angle_radians + transform.rotation_radians.z;
-        desc.colour = sc.colour;
-        desc.tex_unit = sc.tex_unit;
-
-        desc.sprite_offset = { sc.tex_pos.x, sc.tex_pos.y };
-        desc.sprite_width = { sc.tex_pos.w, sc.tex_pos.h };
-        desc.sprites_max = { sc.total_sx, sc.total_sy };
-
+        desc.size = ri.viewport_size_render_at;
+        desc.angle_radians = 0;
         quad_renderer::QuadRenderer::draw_sprite(desc, ri.circle);
       }
 
@@ -265,7 +258,7 @@ game2d::update_render_system(entt::registry& r, const float dt, const glm::vec2&
   {
     Framebuffer::bind_fbo(ri.fbo_mix_lighting_and_scene);
     RenderCommand::set_viewport(0, 0, viewport_wh.x, viewport_wh.y);
-    RenderCommand::set_clear_colour_linear(*colours.lin_background);
+    RenderCommand::set_clear_colour_linear(lin_pal_background);
     RenderCommand::clear();
     {
       quad_renderer::QuadRenderer::reset_quad_vert_count();
@@ -289,7 +282,7 @@ game2d::update_render_system(entt::registry& r, const float dt, const glm::vec2&
   {
     Framebuffer::default_fbo();
     RenderCommand::set_viewport(0, 0, viewport_wh.x, viewport_wh.y);
-    RenderCommand::set_clear_colour_srgb(*colours.background);
+    RenderCommand::set_clear_colour_srgb(pal_background);
     RenderCommand::clear();
 
     // Note: ImGui::Image takes in TexID not TexUnit
@@ -304,9 +297,9 @@ game2d::update_render_system(entt::registry& r, const float dt, const glm::vec2&
     ri.viewport_focused = vi.focused;
   }
 
-  //
-  // debug user textures
-  //
+//
+// debug user textures
+//
 #ifdef _DEBUG
   ImVec2 viewport_size;
   int i = 0;

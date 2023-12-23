@@ -1,0 +1,40 @@
+{
+  "colours": [
+    {
+      "r": 255, "g": 255, "b": 255,
+      "name": "white",
+      "tags": [
+        "empty",
+        "solid_wall",
+        "actor_spawner",
+        "bullet_default",
+        "particle"
+      ]
+    },
+    {
+      "r": 234, "g": 178, "b": 160,
+      "name": "pal_0",
+      "tags": [ "actor_player", "cursor" ]
+    },
+    {
+      "r": 167, "g": 111, "b": 111,
+      "name": "pal_1",
+      "tags": [ "weapon_shotgun" ]
+    },
+    {
+      "r": 67, "g": 91, "b": 102,
+      "name": "pal_2",
+      "tags": [ "enemy_grunt" ]
+    },
+    {
+      "r": 45, "g": 67, "b": 86,
+      "name": "pal_3",
+      "tags": [ ]
+    },
+    {
+      "r": 0, "g": 255, "b": 192,
+      "name": "hit",
+      "tags": [ "hovered", "enemy_flash" ]
+    }
+  ]
+}

@@ -71,17 +71,15 @@ game2d::render_texture_to_imgui_viewport(const int64_t& tex_id)
       ImGuiID dock_id_top = ImGui::DockBuilderSplitNode(dock_id_main, ImGuiDir_Up, 0.15f, nullptr, &dock_id_main);
       ImGuiID dock_id_down = ImGui::DockBuilderSplitNode(dock_id_main, ImGuiDir_Down, 0.15f, nullptr, &dock_id_main);
 
-      // HACK: hard coded names for windows
-      // TODO: improve this
       ImGui::DockBuilderDockWindow("Viewport", dock_id_main);
-      ImGui::DockBuilderDockWindow("Player", dock_id_left);
-      ImGui::DockBuilderDockWindow("GameEvents", dock_id_top);
+      // ImGui::DockBuilderDockWindow("Player", dock_id_left);
+      // ImGui::DockBuilderDockWindow("GameEvents", dock_id_top);
 
       // tools
-      ImGui::DockBuilderDockWindow("ColourEditor", dock_id_down);
-      ImGui::DockBuilderDockWindow("Prefabs", dock_id_down);
-      ImGui::DockBuilderDockWindow("Shop", dock_id_down);
-      ImGui::DockBuilderDockWindow("SpriteSearcher", dock_id_down);
+      // ImGui::DockBuilderDockWindow("ColourEditor", dock_id_down);
+      // ImGui::DockBuilderDockWindow("Prefabs", dock_id_down);
+      // ImGui::DockBuilderDockWindow("Shop", dock_id_down);
+      // ImGui::DockBuilderDockWindow("SpriteSearcher", dock_id_down);
 
       ImGui::DockBuilderFinish(dock_id_main);
     }

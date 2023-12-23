@@ -27,9 +27,6 @@ namespace game2d {
 //
 
 // put the request on the player
-// add screenshake
-// auto& screenshake = get_first_component<SINGLE_ScreenshakeComponent>(r);
-// screenshake.time_left = screenshake.time;
 // request to show a flash effect
 // // TODO: make this a request dont create the entity here
 // const auto flash = create_gameplay(r, EntityType::vfx_muzzleflash);

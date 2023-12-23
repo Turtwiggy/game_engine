@@ -1,6 +1,5 @@
 #pragma once
 
-#include "resources/colours.hpp"
 #include "sprites/components.hpp"
 
 #include <entt/entt.hpp>
@@ -80,8 +79,5 @@ from_json(const nlohmann::json& j, EntityTypeComponent& et)
 
 [[nodiscard]] entt::entity
 create_gameplay(entt::registry& r, const EntityType& type);
-
-[[nodiscard]] SpriteComponent
-create_sprite(entt::registry& r, const EntityType& type);
 
 } // namespace game2d

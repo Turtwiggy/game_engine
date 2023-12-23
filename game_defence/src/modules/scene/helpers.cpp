@@ -34,7 +34,6 @@
 #include "modules/ux_hoverable/components.hpp"
 #include "modules/ux_hoverable_change_colour/components.hpp"
 #include "physics/components.hpp"
-#include "resources/colours.hpp"
 #include "sprites/helpers.hpp"
 
 #include <nlohmann/json.hpp>
@@ -72,7 +71,6 @@ move_to_scene_start(entt::registry& r, const Scene s)
   destroy_and_create<SINGLETON_PhysicsComponent>(r);
   destroy_and_create<SINGLETON_EntityBinComponent>(r);
   destroy_and_create<SINGLETON_GameStateComponent>(r);
-  destroy_and_create<SINGLETON_ColoursComponent>(r);
   destroy_and_create<SINGLETON_GameOver>(r);
   destroy_and_create<SINGLETON_Wave>(r);
   destroy_and_create<SINGLE_ScreenshakeComponent>(r);
@@ -139,37 +137,16 @@ move_to_scene_start(entt::registry& r, const Scene s)
       wiggle.amplitude = 2.0f;
       r.emplace<WiggleUpAndDown>(e, wiggle);
     }
-
-    // create a circle post processing texture
-    {
-      const auto circle = create_gameplay(r, EntityType::empty);
-      r.emplace<CircleComponent>(circle);
-      r.get<SpriteComponent>(circle).colour = engine::SRGBToLinear(engine::SRGBColour(1.0f, 0.0f, 0.0f, 0.0f));
-    }
   }
 
   if (s == Scene::game) {
     const auto& anims = get_first_component<SINGLE_Animations>(r);
     const auto& ri = get_first_component<SINGLETON_RendererInfo>(r);
-    const auto& colours = get_first_component<SINGLETON_ColoursComponent>(r);
     const auto tex_unit = search_for_texture_unit_by_path(ri, "bargame")->unit;
     const auto& menu_ui = get_first_component<SINGLE_MainMenuUI>(r);
 
     const int pixel_scale_up_size = 2;
     const auto default_size = glm::ivec2{ 16 * pixel_scale_up_size, 16 * pixel_scale_up_size };
-
-    // create a circle texture
-    {
-      const auto circle = create_gameplay(r, EntityType::empty);
-      r.emplace<CircleComponent>(circle);
-      r.get<SpriteComponent>(circle).colour = engine::SRGBToLinear(engine::SRGBColour(1.0f, 0.0f, 0.0f, 0.0f));
-      auto& circle_transform = r.get<TransformComponent>(circle);
-      circle_transform.position.x = 0;
-      circle_transform.position.y = 0;
-      circle_transform.position.z = 0;
-      circle_transform.scale.x = 1280;
-      circle_transform.scale.y = 720;
-    }
 
     // Play some audio
     r.emplace<AudioRequestPlayEvent>(r.create(), "GAME_01");

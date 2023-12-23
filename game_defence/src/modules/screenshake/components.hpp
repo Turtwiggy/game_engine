@@ -8,4 +8,9 @@ struct SINGLE_ScreenshakeComponent
   float time_left = 0.0f;
 };
 
+struct RequestScreenshakeComponent
+{
+  bool placeholder = true;
+};
+
 } // namespace game2d

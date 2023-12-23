@@ -6,7 +6,6 @@
 
 #include "entt/helpers.hpp"
 #include "imgui/helpers.hpp"
-#include "resources/colours.hpp"
 
 #include "imgui.h"
 #include "magic_enum.hpp"
@@ -16,7 +15,7 @@ namespace game2d {
 void
 update_ui_spawner_system(entt::registry& r)
 {
-  const auto& colours = get_first_component<SINGLETON_ColoursComponent>(r);
+  // const auto& colours = get_first_component<SINGLETON_ColoursComponent>(r);
 
   ImGui::Begin("Spawner Editor");
 

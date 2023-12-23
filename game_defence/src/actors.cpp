@@ -19,12 +19,14 @@
 #include "modules/combat_attack_cooldown/components.hpp"
 #include "modules/combat_damage/components.hpp"
 #include "modules/combat_wants_to_shoot/components.hpp"
+#include "modules/gameplay_circle/components.hpp"
 #include "modules/items_pickup/components.hpp"
 #include "modules/lerp_to_target/components.hpp"
 #include "modules/lifecycle/components.hpp"
 #include "modules/renderer/components.hpp"
 #include "modules/renderer/helpers.hpp"
 #include "modules/respawn/components.hpp"
+#include "modules/ui_colours/helpers.hpp"
 #include "modules/ux_hoverable/components.hpp"
 #include "physics/components.hpp"
 #include "sprites/components.hpp"
@@ -39,6 +41,8 @@ SpriteComponent
 create_sprite(entt::registry& r, const EntityType& type)
 {
   const auto type_name = std::string(magic_enum::enum_name(type));
+  const auto& anims = get_first_component<SINGLE_Animations>(r);
+  const auto& ri = get_first_component<SINGLETON_RendererInfo>(r);
 
   std::string sprite = "EMPTY";
 
@@ -84,26 +88,8 @@ create_sprite(entt::registry& r, const EntityType& type)
   // else
   // std::cerr << "warning! sprite not implemented: " << type_name << "\n";
 
-  const auto& anims = get_first_component<SINGLE_Animations>(r);
-  const auto& ri = get_first_component<SINGLETON_RendererInfo>(r);
-  const auto& colours = get_first_component<SINGLETON_ColoursComponent>(r);
-
-  // const auto& primary = colours.lin_primary;
-  // const auto& secondary = colours.lin_secondary;
-  // const auto& tertiary = colours.lin_tertiary;
-  // const auto& quaternary = colours.lin_quaternary;
-
   SpriteComponent sc;
-  sc.colour = *colours.lin_white;
-
-  if (type == EntityType::actor_player)
-    sc.colour = *colours.lin_primary;
-  else if (type == EntityType::weapon_shotgun)
-    sc.colour = *colours.lin_secondary;
-  else if (type == EntityType::enemy_dummy)
-    sc.colour = *colours.lin_tertiary;
-  else if (type == EntityType::enemy_grunt)
-    sc.colour = *colours.lin_tertiary;
+  sc.colour = get_lin_colour_by_tag(r, type_name);
 
   // search spritesheet
   const auto anim = find_animation(anims, sprite);
@@ -146,8 +132,6 @@ create_physics_actor(entt::registry& r, const entt::entity& e)
 entt::entity
 create_gameplay(entt::registry& r, const EntityType& type)
 {
-  const auto& colours = get_first_component<SINGLETON_ColoursComponent>(r);
-
   const glm::ivec3 DEFAULT_SIZE{ 32, 32, 1 };
   const glm::ivec3 HALF_SIZE{ 16, 16, 1 };
   const glm::ivec2 SMALL_SIZE{ 4, 4 };
@@ -216,6 +200,7 @@ create_gameplay(entt::registry& r, const EntityType& type)
       r.emplace<InventoryLimit>(e);
       r.emplace<CameraFollow>(e);
       r.emplace<HoverableComponent>(e);
+      r.emplace<CircleComponent>(e);
       // r.emplace<InfiniteLivesComponent>(e);
       // r.emplace<GeneratePickupZoneComponent>(e);
 
