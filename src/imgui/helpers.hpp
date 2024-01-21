@@ -47,4 +47,7 @@ imgui_draw_ivec3(const std::string& label, int& x, int& y, int& z);
 void
 imgui_draw_vec2(const std::string& label, float& x, float& y);
 
+std::string
+append_eid_to_label(const std::string& label, const entt::entity& e);
+
 } // namespace game2d

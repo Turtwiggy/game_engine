@@ -18,7 +18,17 @@ game2d::update_ui_hierarchy_system(entt::registry& r)
   const size_t entities = r.alive();
   static entt::entity selected_entity = entt::null;
 
-  ImGui::Begin("Hierarchy", NULL, ImGuiWindowFlags_NoFocusOnAppearing);
+  ImGuiWindowFlags flags = 0;
+  // flags |= ImGuiDockNodeFlags_PassthruCentralNode;
+  // flags |= ImGuiWindowFlags_NoMove;
+  // flags |= ImGuiWindowFlags_NoTitleBar;
+  // flags |= ImGuiWindowFlags_NoBackground;
+  // flags |= ImGuiWindowFlags_NoResize;
+  flags |= ImGuiWindowFlags_NoFocusOnAppearing;
+  // flags |= ImGuiDockNodeFlags_AutoHideTabBar;
+  // flags |= ImGuiDockNodeFlags_NoResize;
+
+  ImGui::Begin("Hierarchy", NULL, flags);
   {
     ImGui::Text("Total alive: %i", entities);
 

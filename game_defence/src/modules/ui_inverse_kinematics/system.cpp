@@ -56,11 +56,11 @@ update_ui_inverse_kinematics_system(entt::registry& r, const glm::ivec2& mouse_p
 
   ImGui::End();
 
-  const int selected = points.size();
-  const int starting_size = ui.lines.size();
+  const int cur_size = points.size();
+  const int old_size = ui.lines.size();
 
   // Create UI
-  for (int i = points.size(); i > starting_size; i--) {
+  for (int i = cur_size; i > old_size; i--) {
     const auto new_line = create_gameplay(r, EntityType::empty);
     auto& transform = r.get<TransformComponent>(new_line);
     transform.scale = { 0, 0, 0 };
@@ -68,7 +68,7 @@ update_ui_inverse_kinematics_system(entt::registry& r, const glm::ivec2& mouse_p
   }
 
   // Destroy UI
-  for (auto i = ui.lines.size(); i > selected; i--) {
+  for (auto i = old_size; i > cur_size; i--) {
     const auto idx = i - 1;
     auto entity = ui.lines[idx];
     r.destroy(entity); // fine because no aabb
@@ -76,7 +76,7 @@ update_ui_inverse_kinematics_system(entt::registry& r, const glm::ivec2& mouse_p
   }
 
   // Update State
-  for (int i = 0; i < selected - 1; i++) {
+  for (int i = 0; i < cur_size - 1; i++) {
     const auto line = generate_line(points[i], points[i + 1], 2);
     auto& transform = r.get<TransformComponent>(ui.lines[i]);
     set_transform_with_line(transform, line);

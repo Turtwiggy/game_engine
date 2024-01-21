@@ -23,6 +23,13 @@ draw_wombo_combo(const WomboComboIn& in)
   const auto& items = in.items;
   const auto& cur_idx = in.current_index;
 
+  if (items.size() == 0) {
+    ImGui::Text("Empty WomboCombo: %s", in.label.c_str());
+    WomboComboOut out;
+    out.selected = 0;
+    return out;
+  }
+
   WomboComboOut out;
   out.selected = in.current_index;
 
@@ -146,6 +153,13 @@ game2d::imgui_draw_entity(entt::registry& r,        //
     ImGui::Text(label.c_str());
     ImGui::EndDragDropSource();
   }
+};
+
+std::string
+game2d::append_eid_to_label(const std::string& label, const entt::entity& e)
+{
+  const auto eid = static_cast<uint32_t>(e);
+  return label + std::string("##") + std::to_string(eid);
 };
 
 } // namespace game2d

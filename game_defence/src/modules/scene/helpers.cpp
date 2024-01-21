@@ -96,47 +96,22 @@ move_to_scene_start(entt::registry& r, const Scene s)
     r.emplace<AudioRequestPlayEvent>(r.create(), "MENU_01");
 
     // Load randoms name file
-    const auto path = "assets/config/random_names.json";
-    std::ifstream f(path);
-    json data = json::parse(f);
-    const auto names = data["names"]; // list of names
+    // const auto path = "assets/config/random_names.json";
+    // std::ifstream f(path);
+    // json data = json::parse(f);
+    // const auto names = data["names"]; // list of names
 
     // choose X random names, display them on the menu
-    static engine::RandomState rnd;
-    for (int i = 0; i < 4; i++) {
-      const float rnd_f = engine::rand_det_s(rnd.rng, 0, names.size());
-      const int rnd = static_cast<int>(rnd_f);
-      const std::string name = names[rnd];
-      const std::string delimiter = " ";
-      const auto first_name = name.substr(0, name.find(delimiter));
+    // static engine::RandomState rnd;
+    // for (int i = 0; i < 4; i++) {
+    //   const float rnd_f = engine::rand_det_s(rnd.rng, 0, names.size());
+    //   const int rnd = static_cast<int>(rnd_f);
+    //   const std::string name = names[rnd];
+    //   const std::string delimiter = " ";
+    //   const auto first_name = name.substr(0, name.find(delimiter));
 
-      ui.random_names.push_back(first_name);
-    }
-
-    // draw 4 inactive-soliders wiggling
-    const int pixel_scale_up_size = 2;
-    const auto default_size = glm::ivec2{ 16 * pixel_scale_up_size, 16 * pixel_scale_up_size };
-    for (int i = 0; i < 4; i++) {
-      const auto e = create_gameplay(r, EntityType::actor_player);
-      r.remove<PhysicsActorComponent>(e);
-      r.emplace<ChangeColourOnHoverComponent>(e);
-
-      // e.g. i=0,-200, i=1,0, i=2,200, i=3,400
-      const auto scale = [](int i, int min, int increment) -> int { return min + increment * i; };
-      const float val = scale(i, -120, 75);
-
-      auto& aabb = r.get<AABB>(e);
-      aabb.center = { val, 150 };
-
-      auto& t = r.get<TransformComponent>(e);
-      t.scale = { default_size.x, default_size.y, 0.0f };
-      t.position = { aabb.center.x, aabb.center.y, 0.0f };
-
-      WiggleUpAndDown wiggle;
-      wiggle.base_position = aabb.center;
-      wiggle.amplitude = 2.0f;
-      r.emplace<WiggleUpAndDown>(e, wiggle);
-    }
+    //   ui.random_names.push_back(first_name);
+    // }
   }
 
   if (s == Scene::game) {
@@ -215,20 +190,20 @@ move_to_scene_start(entt::registry& r, const Scene s)
     // }
 
     // TEMP: create a spawner given the level difficulty
-    for (int i = 0; i < menu_ui.level; i++) {
-      const auto e = create_gameplay(r, EntityType::actor_spawner);
-      auto& e_aabb = r.get<AABB>(e);
-      e_aabb.size = default_size * 1;
+    // for (int i = 0; i < menu_ui.level; i++) {
+    //   const auto e = create_gameplay(r, EntityType::actor_spawner);
+    //   auto& e_aabb = r.get<AABB>(e);
+    //   e_aabb.size = default_size * 1;
 
-      if (i == 0) // b
-        e_aabb.center = { -100, 500 };
-      if (i == 1) // r
-        e_aabb.center = { 500, 0 };
-      if (i == 2) // l
-        e_aabb.center = { -500, 0 };
-      if (i == 3) // t
-        e_aabb.center = { -100, -500 };
-    }
+    //   if (i == 0) // b
+    //     e_aabb.center = { -100, 500 };
+    //   if (i == 1) // r
+    //     e_aabb.center = { 500, 0 };
+    //   if (i == 2) // l
+    //     e_aabb.center = { -500, 0 };
+    //   if (i == 3) // t
+    //     e_aabb.center = { -100, -500 };
+    // }
 
     // VISUAL: use poisson for grass
     {

@@ -54,9 +54,6 @@ update_respawn_system(entt::registry& r)
         // kill it off for now
         // dead.dead.emplace(e);
         std::cout << "ur ded; what do with bow?" << std::endl;
-
-      } else {
-        dead.dead.emplace(e);
       }
     }
   }

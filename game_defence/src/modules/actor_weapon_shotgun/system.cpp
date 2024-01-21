@@ -54,7 +54,7 @@ update_weapon_shotgun_system(entt::registry& r, const uint64_t milliseconds_dt)
       continue;
     }
 
-    // dir from shotgun to trget
+    // dir from shotgun to target
     const auto target_aabb = r.get<AABB>(tgt->target);
     const auto dir_i = glm::ivec2(shotgun_transform.position.x, shotgun_transform.position.y) - target_aabb.center;
     glm::vec2 dir{ dir_i.x, dir_i.y };
@@ -70,8 +70,8 @@ update_weapon_shotgun_system(entt::registry& r, const uint64_t milliseconds_dt)
     shotgun_transform.rotation_radians.z = angle;
 
     // Is this weapon on the left or right of the player?
-    const float left_or_right = (shotgun_transform.position.x - player_aabb.center.x);
-    if (left_or_right < 0.0f) // left
+    const int left_or_right = (shotgun_transform.position.x - player_aabb.center.x);
+    if (left_or_right < 0) // left
       shotgun_transform.scale.y = -glm::abs(shotgun_transform.scale.y);
     else
       shotgun_transform.scale.y = glm::abs(shotgun_transform.scale.y);
@@ -99,7 +99,8 @@ update_weapon_shotgun_system(entt::registry& r, const uint64_t milliseconds_dt)
 
     if (allowed_to_shoot) {
       // play some audio
-      // r.emplace<AudioRequestPlayEvent>(r.create(), "SHOTGUN_RELOAD_01");
+      // TODO: remove this.
+      // This spams the audio system.
       r.emplace<AudioRequestPlayEvent>(r.create(), "SHOTGUN_SHOOT_01");
 
       // put gun on cooldown
@@ -120,25 +121,26 @@ update_weapon_shotgun_system(entt::registry& r, const uint64_t milliseconds_dt)
           angle_to_fire_at += bullet_angle_radians;
         if (i == 1) // right bullet
           angle_to_fire_at -= bullet_angle_radians;
+        // i = 2 is handled as the forward bullet
 
         const auto new_dir = engine::angle_radians_to_direction(angle_to_fire_at);
 
         const auto req = create_gameplay(r, EntityType::bullet_default);
         r.get<TransformComponent>(req).position = shotgun_transform.position;
-        r.get_or_emplace<HasParentComponent>(req).parent = entity;
+        r.get_or_emplace<HasParentComponent>(req).parent = p;
 
         auto& bullet_aabb = r.get<AABB>(req);
         bullet_aabb.center = { shotgun_transform.position.x, shotgun_transform.position.y };
         auto& bullet_transform = r.get<TransformComponent>(req);
         bullet_transform.rotation_radians.z = shotgun_transform.rotation_radians.z;
 
-        // Turn the bullet Live!
-        r.emplace_or_replace<AttackComponent>(req, 3);
-        r.emplace_or_replace<EntityTimedLifecycle>(req);
-
         auto& bullet_vel = r.get<VelocityComponent>(req);
         bullet_vel.x = new_dir.x * shotgun.bullet_speed;
         bullet_vel.y = new_dir.y * shotgun.bullet_speed;
+
+        // Turn the bullet Live!
+        r.emplace_or_replace<AttackComponent>(req, 3);
+        r.emplace_or_replace<EntityTimedLifecycle>(req);
       }
     }
   }

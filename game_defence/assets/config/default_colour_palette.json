@@ -1,17 +1,6 @@
 {
   "colours": [
     {
-      "r": 255, "g": 255, "b": 255,
-      "name": "white",
-      "tags": [
-        "empty",
-        "solid_wall",
-        "actor_spawner",
-        "bullet_default",
-        "particle"
-      ]
-    },
-    {
       "r": 234, "g": 178, "b": 160,
       "name": "pal_0",
       "tags": [ "actor_player", "cursor" ]
@@ -35,6 +24,37 @@
       "r": 0, "g": 255, "b": 192,
       "name": "hit",
       "tags": [ "hovered", "enemy_flash" ]
+    },
+    {
+      "r": 255, "g": 255, "b": 255,
+      "name": "white",
+      "tags": [
+        "empty",
+        "solid_wall",
+        "actor_spawner",
+        "bullet_default",
+        "particle"
+      ]
+    },
+    {
+      "r": 68, "g": 119, "b": 206,
+      "name": "blue",
+      "tags": [ ]
+    },
+    {
+      "r": 253, "g": 141, "b": 20,
+      "name": "orange",
+      "tags": [ "attack_crit" ]
+    },
+    {
+      "r": 255, "g": 225, "b": 123,
+      "name": "yellow",
+      "tags": [ ]
+    },
+    {
+      "r": 251, "g": 161, "b": 183,
+      "name": "hotpink",
+      "tags": [ "attack_miss" ]
     }
   ]
 }

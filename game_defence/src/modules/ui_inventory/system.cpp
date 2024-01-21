@@ -1,6 +1,7 @@
 #include "system.hpp"
 
 #include "entt/helpers.hpp"
+#include "imgui/helpers.hpp"
 #include "modules/items/helpers.hpp"
 #include "modules/items_pickup/components.hpp"
 #include "modules/lifecycle/components.hpp"
@@ -28,9 +29,7 @@ update_ui_inventory(entt::registry& r)
 
       ImGui::SameLine();
 
-      auto eid = static_cast<uint32_t>(entity);
-      std::string label = "delete##"s + std::to_string(eid);
-      if (ImGui::Button(label.c_str()))
+      if (ImGui::Button(append_eid_to_label("delete", entity).c_str()))
         dead.dead.emplace(entity);
     }
   }

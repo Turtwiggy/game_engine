@@ -68,9 +68,12 @@ update_ui_level_editor_system(entt::registry& r, const glm::ivec2& input_mouse_p
     return;
 
   ImGuiWindowFlags flags = 0;
-  flags |= ImGuiDockNodeFlags_PassthruCentralNode;
+  // flags |= ImGuiDockNodeFlags_PassthruCentralNode;
+  // flags |= ImGuiWindowFlags_NoFocusOnAppearing;
 
-  ImGui::Begin("Level Editor", NULL, flags);
+  // ImGui::SetNextWindowPos(ImVec2(0, 0), ImGuiCond_Always);
+
+  ImGui::Begin("LevelEditor", NULL, flags);
   ImGui::Text("Cursor: %i %i", mouse_pos.x, mouse_pos.y);
   ImGui::Text("Place Key: %s", place_key_name);
   ImGui::Text("Place/Drag Key: %s", place_and_drag_key_name);

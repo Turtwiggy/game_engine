@@ -9,12 +9,17 @@
 #include "events/helpers/controller.hpp"
 #include "maths/grid.hpp"
 #include "maths/maths.hpp"
+#include "modules/animation/components.hpp"
 #include "modules/renderer/components.hpp"
 #include "modules/renderer/helpers.hpp"
 #include "modules/scene/components.hpp"
 #include "modules/scene/helpers.hpp"
 #include "modules/ui_level_editor/components.hpp"
 #include "modules/ui_level_editor/helpers.hpp"
+#include "modules/ui_rpg_character/components.hpp"
+#include "modules/ux_hoverable_change_colour/components.hpp"
+#include "physics/components.hpp"
+#include "sprites/components.hpp"
 
 #include <glm/glm.hpp>
 #include <imgui.h>
@@ -67,48 +72,48 @@ update_ui_scene_main_menu(engine::SINGLETON_Application& app, entt::registry& r)
   const ImVec2 size = { 100, 75 };
   const ImVec2 pivot = { 0.5f, 0.5f };
   ImGui::PushStyleVar(ImGuiStyleVar_SelectableTextAlign, pivot);
+  {
+    ImGui::Selectable("Play", selected == 0, 0, size);
+    if (ImGui::IsItemClicked()) {
+      do_ui_action = true;
+      selected = 0;
+    }
+    if (selected == 0 && do_ui_action) {
 
-  ImGui::Selectable("Play", selected == 0, 0, size);
-  if (ImGui::IsItemClicked()) {
-    do_ui_action = true;
-    selected = 0;
+      // If you've clicked the play button, assume the game is playing live for real
+      auto& editor = get_first_component<SINGLETON_LevelEditor>(r);
+      editor.mode = LevelEditorMode::play;
+
+      // configure params
+      ui.level = 1;
+
+      // create request
+      move_to_scene_start(r, Scene::game);
+
+      // hack: load a level
+      // load(r, "assets/maps/main.json");
+    }
+
+    ImGui::Selectable("Map Edit", selected == 1, 0, size);
+    if (ImGui::IsItemClicked()) {
+      do_ui_action = true;
+      selected = 1;
+    }
+    if (selected == 1 && do_ui_action) {
+      // If you've clicked the play button, assume the game is playing live for real
+      auto& editor = get_first_component<SINGLETON_LevelEditor>(r);
+      editor.mode = LevelEditorMode::edit;
+      move_to_scene_start(r, Scene::game);
+    }
+
+    ImGui::Selectable("Quit", selected == 2, 0, size);
+    if (ImGui::IsItemClicked()) {
+      do_ui_action = true;
+      selected = 2;
+    }
+    if (selected == 2 && do_ui_action)
+      app.running = false;
   }
-  if (selected == 0 && do_ui_action) {
-
-    // If you've clicked the play button, assume the game is playing live for real
-    auto& editor = get_first_component<SINGLETON_LevelEditor>(r);
-    editor.mode = LevelEditorMode::play;
-
-    // configure params
-    ui.level = 1;
-
-    // create request
-    move_to_scene_start(r, Scene::game);
-
-    // hack: load a level
-    // load(r, "assets/maps/main.json");
-  }
-
-  // ImGui::Selectable("Map Edit", selected == 1, 0, size);
-  // if (ImGui::IsItemClicked()) {
-  //   do_ui_action = true;
-  //   selected = 1;
-  // }
-  // if (selected == 1 && do_ui_action) {
-  //   // If you've clicked the play button, assume the game is playing live for real
-  //   auto& editor = get_first_component<SINGLETON_LevelEditor>(r);
-  //   editor.mode = LevelEditorMode::edit;
-  //   move_to_scene_start(r, Scene::game);
-  // }
-
-  ImGui::Selectable("Quit", selected == 2, 0, size);
-  if (ImGui::IsItemClicked()) {
-    do_ui_action = true;
-    selected = 2;
-  }
-  if (selected == 2 && do_ui_action)
-    app.running = false;
-
   ImGui::PopStyleVar();
 
   //   if (focused_element == 0)
@@ -163,20 +168,69 @@ update_ui_scene_main_menu(engine::SINGLETON_Application& app, entt::registry& r)
   // ImGui::SameLine(300); ImGui::SmallButton("x=300");
   // clang-format on
 
+  // draw X inactive-soliders wiggling
+  const auto& monsters = r.view<CharacterStats, InActiveFight>();
+  const int cur_size = monsters.size_hint();
+  const int old_size = ui.instantiated_players.size();
+
+  // Create Person
+  for (int i = cur_size; i > old_size; i--) {
+
+    // Create Wiggly Person
+    const int pixel_scale_up_size = 2;
+    const auto default_size = glm::ivec2{ 16 * pixel_scale_up_size, 16 * pixel_scale_up_size };
+    const auto e = create_gameplay(r, EntityType::actor_player);
+    r.remove<PhysicsActorComponent>(e);
+    r.emplace<ChangeColourOnHoverComponent>(e);
+    // e.g. i=0,-200, i=1,0, i=2,200, i=3,400
+    const auto scale = [](int i, int min, int increment) -> int { return min + increment * i; };
+    const float val = scale(i, -120, 75);
+    auto& aabb = r.get<AABB>(e);
+    aabb.center = { val, 150 };
+    auto& t = r.get<TransformComponent>(e);
+    t.scale = { default_size.x, default_size.y, 0.0f };
+    t.position = { aabb.center.x, aabb.center.y, 0.0f };
+    WiggleUpAndDown wiggle;
+    wiggle.base_position = aabb.center;
+    wiggle.amplitude = 2.0f;
+    r.emplace<WiggleUpAndDown>(e, wiggle);
+
+    // Add stats to character
+    for (int j = cur_size; const auto& [monster_e, stats, fight] : monsters.each()) {
+      if (j == i) {
+        r.emplace<CharacterStats>(e, stats);
+        break;
+      }
+      j--;
+    }
+
+    ui.instantiated_players.push_back(e);
+  }
+
+  // Destroy Person
+  for (auto i = old_size; i > cur_size; i--) {
+    const auto idx = i - 1;
+    // auto entity = ui.instantiated_players[idx];
+    // r.destroy(entity); // fine because no aab
+    // ui.instantiated_players.erase(ui.instantiated_players.begin() + idx);
+  }
+
+  //
+  // SQUAAAAAAAAAD
+  //
   ImGui::NewLine();
   ImGui::Text("Squad");
   ImGui::NewLine();
-  for (int i = 0; i < ui.random_names.size(); i++) {
-
+  // Update State
+  for (int i = 0; i < ui.instantiated_players.size(); i++) {
     if (i > 0) {
       ImGui::SameLine();
       ImGui::Text(" - ");
       ImGui::SameLine();
     }
-    ImGui::Text("%s", ui.random_names[i].c_str());
-
-    // set player location here under this text
-    // ImGui::PopItemWidth();
+    if (auto* stats = r.try_get<CharacterStats>(ui.instantiated_players[i])) {
+      ImGui::Text("%s", stats->name.c_str());
+    }
   }
 
   ImGui::End();
@@ -190,7 +244,7 @@ update_ui_scene_main_menu(engine::SINGLETON_Application& app, entt::registry& r)
   icon_flags |= ImGuiWindowFlags_NoResize;
   icon_flags |= ImGuiWindowFlags_NoMove;
   icon_flags |= ImGuiWindowFlags_NoBringToFrontOnFocus;
-  icon_flags |= ImGuiWindowFlags_NoNavFocus;
+  // icon_flags |= ImGuiWindowFlags_NoNavFocus;
 
   // window settings
   //

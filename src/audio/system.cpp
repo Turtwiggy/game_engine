@@ -67,7 +67,8 @@ update_audio_system(entt::registry& r)
     const auto& request = r.get<AudioRequestPlayEvent>(entity);
 
     if (free_audio_sources.size() == 0) {
-      std::cout << "no free audio sources!\n";
+      std::cout << "no free audio sources!"
+                << "missed request for: " << tag << std::endl;
       continue;
     }
     AudioSource& audio_source = free_audio_sources.front();

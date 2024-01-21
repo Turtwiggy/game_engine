@@ -17,10 +17,11 @@ namespace game2d {
 struct PlayerComponent
 {
   int picked_up_xp = 0;
+  int killed = 0;
 
   // weapon
   entt::entity weapon = entt::null;
-  float weapon_offset = 20.0f;
+  float weapon_offset = 20.0f; // around the player
 };
 
 struct KeyboardComponent
