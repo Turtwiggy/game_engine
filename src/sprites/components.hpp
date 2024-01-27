@@ -65,6 +65,7 @@ struct SpriteAnimationComponent
   // float speed = 1.0f;
   bool playing = true;
   bool looping = true;
+  bool destroy_after_play = true;
 };
 
 } // namespace game2d

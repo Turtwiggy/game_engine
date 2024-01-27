@@ -44,6 +44,7 @@ update_ui_rpg_character_system(entt::registry& r)
     const int prof = convert_stat_to_proficiency(stat);
     return str + " (" + std::to_string(prof) + ")";
   };
+  static bool first_time = true;
 
   ImGui::Begin("Create Character");
   static CharacterStats stats;
@@ -66,6 +67,13 @@ update_ui_rpg_character_system(entt::registry& r)
   ImGui::Begin("Fights");
 
   ImGui::Text("Available Monsters");
+
+  if (first_time) {
+    first_time = false;
+    const auto e = r.create();
+    r.emplace<CharacterStats>(e, stats);
+    r.emplace<CharacterPrefab>(e);
+  }
 
   // Wombo Combo needs labels
   std::vector<std::string> labels;
@@ -117,9 +125,9 @@ update_ui_rpg_character_system(entt::registry& r)
     if (i > 0)
       ImGui::Separator();
     ImGui::Text("Monster: %s", stats.name.c_str());
-    ImGui::Text("HP: %i", stats.hp);
     ImGui::Text("Initiative: %i", stats.initiative);
-    ImGui::Text("Dmg Roll: %i", stats.last_rolled_damage);
+    ImGui::Text("HP: %i", stats.hp);
+    ImGui::Text("XP: %i", stats.xp);
 
     if (ImGui::Button("Remove")) {
       r.destroy(e);
@@ -138,12 +146,14 @@ update_ui_rpg_character_system(entt::registry& r)
     // Damage
     ImGui::SameLine();
     if (ImGui::Button("Roll Dmg")) {
-      stats.last_rolled_damage = engine::rand_det_s(rnd.rng, 1, 12);
-
-      // Create & Consume damage instance
-      const auto e = r.create();
-      r.emplace<DamageInstance>(e, stats.last_rolled_damage);
+      const int damage = int(engine::rand_det_s(rnd.rng, 1, 12));
+      r.emplace<DamageInstance>(r.create(), damage);
     }
+
+    // XP
+    ImGui::SameLine();
+    if (ImGui::Button("Give XP"))
+      stats.xp += 10;
 
     //
     // a drop zone here

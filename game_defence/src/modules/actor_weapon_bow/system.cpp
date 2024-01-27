@@ -26,19 +26,6 @@ namespace game2d {
 // release: releases arrow
 //
 
-// put the request on the player
-// request to show a flash effect
-// // TODO: make this a request dont create the entity here
-// const auto flash = create_gameplay(r, EntityType::vfx_muzzleflash);
-// auto& flash_transform = r.get<TransformComponent>(flash);
-// auto& weapon_transform = r.get<TransformComponent>(player.weapon);
-// // from the weapon position, offset the flash by a tiny bit
-// const float scale = 10.0f;
-// const glm::vec2 dir = { input.rx * scale, input.ry * scale };
-// flash_transform.position = { weapon_transform.position.x + dir.x,
-//                              weapon_transform.position.y + dir.y,
-//                              weapon_transform.position.z };
-
 void
 update_bow_system(entt::registry& r, const uint64_t milliseconds_dt)
 {

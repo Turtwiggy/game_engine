@@ -28,6 +28,7 @@
 #include "modules/screenshake/components.hpp"
 #include "modules/selected_interactions/components.hpp"
 #include "modules/ui_inverse_kinematics/components.hpp"
+#include "modules/ui_rpg_character/components.hpp"
 #include "modules/ui_scene_main_menu/components.hpp"
 #include "modules/ui_scene_main_menu/system.hpp"
 #include "modules/ui_selected/components.hpp"
@@ -144,20 +145,22 @@ move_to_scene_start(entt::registry& r, const Scene s)
       r.get<SpriteComponent>(cursorc.line_ent).colour = engine::SRGBToLinear(engine::SRGBColour(1.0f, 0.0f, 0.0f, 1.0f));
       r.remove<TransformComponent>(cursorc.line_ent);
 
-      cursorc.dda_start = create_gameplay(r, EntityType::empty);
-      cursorc.dda_intersection = create_gameplay(r, EntityType::empty);
-      cursorc.dda_end = create_gameplay(r, EntityType::empty);
-      r.get<SpriteComponent>(cursorc.dda_start).colour = engine::SRGBToLinear(engine::SRGBColour(1.0f, 0.0f, 0.0f, 1.0f));
-      r.get<SpriteComponent>(cursorc.dda_intersection).colour =
-        engine::SRGBToLinear(engine::SRGBColour(0.0f, 1.0f, 0.0f, 1.0f));
-      r.get<SpriteComponent>(cursorc.dda_end).colour = engine::SRGBToLinear(engine::SRGBColour(0.0f, 0.0f, 1.0f, 1.0f));
-      r.get<TransformComponent>(cursorc.dda_start).scale = { 8, 8, 1 };
-      r.get<TransformComponent>(cursorc.dda_intersection).scale = { 8, 8, 1 };
-      r.get<TransformComponent>(cursorc.dda_end).scale = { 8, 8, 1 };
+      // cursorc.dda_start = create_gameplay(r, EntityType::empty);
+      // cursorc.dda_intersection = create_gameplay(r, EntityType::empty);
+      // cursorc.dda_end = create_gameplay(r, EntityType::empty);
+      // r.get<SpriteComponent>(cursorc.dda_start).colour = engine::SRGBToLinear(engine::SRGBColour(1.0f, 0.0f, 0.0f, 1.0f));
+      // r.get<SpriteComponent>(cursorc.dda_intersection).colour =
+      //   engine::SRGBToLinear(engine::SRGBColour(0.0f, 1.0f, 0.0f, 1.0f));
+      // r.get<SpriteComponent>(cursorc.dda_end).colour = engine::SRGBToLinear(engine::SRGBColour(0.0f, 0.0f, 1.0f, 1.0f));
+      // r.get<TransformComponent>(cursorc.dda_start).scale = { 8, 8, 1 };
+      // r.get<TransformComponent>(cursorc.dda_intersection).scale = { 8, 8, 1 };
+      // r.get<TransformComponent>(cursorc.dda_end).scale = { 8, 8, 1 };
     }
 
-    // create a player
-    for (int i = 0; i < 4; i++) {
+    // create players based off main menu ui
+    const auto character_stats_view = r.view<CharacterStats, InActiveFight>();
+
+    for (int i = 0; i < character_stats_view.size_hint(); i++) {
 
       // player
       const auto e = create_gameplay(r, EntityType::actor_player);
@@ -220,6 +223,36 @@ move_to_scene_start(entt::registry& r, const Scene s)
         r.get<TransformComponent>(icon).scale = { default_size.x, default_size.y, 1.0f };
         r.get<TagComponent>(icon).tag = "grass"s;
       }
+    }
+
+    // the spritesheet for a gate
+    {
+      auto set_sprite_blender = [&r](const entt::entity& e, const std::string& sprite, int tex_unit) {
+        const auto& anims = get_first_component<SINGLE_Animations>(r);
+        const auto anim = find_animation(anims, sprite);
+        auto& sc = r.get<SpriteComponent>(e);
+        sc.tex_unit = tex_unit;
+        sc.total_sx = 5;
+        sc.total_sy = 5;
+        sc.tex_pos.x = anim.animation_frames[0].x;
+        sc.tex_pos.y = anim.animation_frames[0].y;
+        sc.tex_pos.w = anim.animation_frames[0].w;
+        sc.tex_pos.h = anim.animation_frames[0].h;
+      };
+      const auto new_e = create_gameplay(r, EntityType::empty);
+      const auto tex_unit_blender = search_for_texture_unit_by_path(ri, "blender")->unit;
+      set_sprite_blender(new_e, "sprite_01"s, tex_unit_blender);
+
+      r.get<TransformComponent>(new_e).position = { 0.0f, 0.0f, 0.0f };
+      r.get<TransformComponent>(new_e).scale = { default_size.x * 2.0f, default_size.y * 2.0f, 1.0f };
+      r.get<TagComponent>(new_e).tag = "gate"s;
+
+      SpriteAnimationComponent anim;
+      anim.playing_animation_name = "GATE_ANIM";
+      anim.duration = 3.0f;
+      anim.looping = false;
+      anim.destroy_after_play = false;
+      r.emplace<SpriteAnimationComponent>(new_e, anim);
     }
 
     // generate some walls

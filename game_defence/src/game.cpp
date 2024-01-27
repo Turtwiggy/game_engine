@@ -112,10 +112,15 @@ game2d::init(engine::SINGLETON_Application& app, entt::registry& r)
     kennynl_particle.spritesheet_path = "assets/config/spritemap_kennynl_particle.json";
     ri.user_textures.push_back(kennynl_particle);
 
-    Texture misc;
-    misc.path = "assets/textures/kennynl_gameicons/Spritesheet/sheet_white1x_adjusted.png";
-    misc.spritesheet_path = "assets/config/spritemap_kennynl_icons.json";
-    ri.user_textures.push_back(misc);
+    Texture gameicons;
+    gameicons.path = "assets/textures/kennynl_gameicons/Spritesheet/sheet_white1x_adjusted.png";
+    gameicons.spritesheet_path = "assets/config/spritemap_kennynl_icons.json";
+    ri.user_textures.push_back(gameicons);
+
+    Texture blender;
+    blender.path = "assets/textures/blender_spritesheet.png";
+    blender.spritesheet_path = "assets/config/spritemap_blender.json";
+    ri.user_textures.push_back(blender);
 
     // load spritesheet info
     SINGLE_Animations anims;
@@ -232,7 +237,7 @@ game2d::update(engine::SINGLETON_Application& app, entt::registry& r, const floa
 
   {
     OPTICK_EVENT("(update)-game-tick");
-    update_camera_system(r, dt);
+    update_camera_system(r, dt, mouse_pos);
     update_audio_system(r);
     update_cursor_system(r, mouse_pos);
 
@@ -273,73 +278,65 @@ game2d::update(engine::SINGLETON_Application& app, entt::registry& r, const floa
       update_actor_dropoffzone_request_items(r, milliseconds_dt);
       update_selected_interactions_system(r, mouse_pos);
 
-      // TODO: randomly spawn enemies at edges of screen
-      // basically, if the camera is at 0,0
-      // the edges of the screen are -width/2, width/2
-      // i need x to be less than -width/2, or greater than width/2.
-      static engine::RandomState rnd;
-      static float cooldown = 0.5f;
-      static float cooldown_left = 0.5f;
-      cooldown_left -= dt;
-      if (cooldown_left <= 0.0f) {
-        cooldown_left = cooldown;
+      // // HACK: randomly spawn enemies at edges of screen
+      // // basically, if the camera is at 0,0
+      // // the edges of the screen are -width/2, width/2
+      // // i need x to be less than -width/2, or greater than width/2.
+      // static engine::RandomState rnd;
+      // static float cooldown = 0.5f;
+      // static float cooldown_left = 0.5f;
+      // cooldown_left -= dt;
+      // if (cooldown_left <= 0.0f) {
+      //   cooldown_left = cooldown;
+      //   const auto camera_e = get_first<OrthographicCamera>(r);
+      //   const auto camera_t = r.get<TransformComponent>(camera_e);
+      //   glm::ivec2 cpos = { camera_t.position.x, camera_t.position.y };
+      //   const auto& ri = get_first_component<SINGLETON_RendererInfo>(r);
+      //   const auto screen_halfsize = ri.viewport_size_render_at / 2;
+      //   const float left_or_right = (engine::rand_01(rnd.rng) * 2.0f) - 1.0f;
+      //   const float up_or_down = (engine::rand_01(rnd.rng) * 2.0f) - 1.0f;
+      //   const float extra = 100.0f;
+      //   const float pos_edge_y = cpos.y + screen_halfsize.y;
+      //   const float neg_edge_y = cpos.y - screen_halfsize.y;
+      //   const float pos_edge_x = cpos.x + screen_halfsize.x;
+      //   const float neg_edge_x = cpos.x - screen_halfsize.x;
+      //   int x_spawn_pos = 0;
+      //   int y_spawn_pos = 0;
+      //   if (up_or_down > 0.0f) // down
+      //     y_spawn_pos = engine::rand_det_s(rnd.rng, pos_edge_y, pos_edge_y + extra);
+      //   else // up
+      //     y_spawn_pos = engine::rand_det_s(rnd.rng, neg_edge_y, neg_edge_y - extra);
+      //   if (left_or_right > 0.0f) // right
+      //     x_spawn_pos = engine::rand_det_s(rnd.rng, pos_edge_x, pos_edge_x + extra);
+      //   else // left
+      //     x_spawn_pos = engine::rand_det_s(rnd.rng, neg_edge_x, neg_edge_x - extra);
+      //   const auto enemy = create_gameplay(r, EntityType::enemy_grunt);
+      //   auto& enemy_aabb = r.get<AABB>(enemy);
+      //   enemy_aabb.center = { x_spawn_pos, y_spawn_pos };
+      // }
 
-        const auto camera_e = get_first<OrthographicCamera>(r);
-        const auto camera_t = r.get<TransformComponent>(camera_e);
-        glm::ivec2 cpos = { camera_t.position.x, camera_t.position.y };
-        const auto& ri = get_first_component<SINGLETON_RendererInfo>(r);
-        const auto screen_halfsize = ri.viewport_size_render_at / 2;
-        const float left_or_right = (engine::rand_01(rnd.rng) * 2.0f) - 1.0f;
-        const float up_or_down = (engine::rand_01(rnd.rng) * 2.0f) - 1.0f;
-
-        const float extra = 100.0f;
-        const float pos_edge_y = cpos.y + screen_halfsize.y;
-        const float neg_edge_y = cpos.y - screen_halfsize.y;
-        const float pos_edge_x = cpos.x + screen_halfsize.x;
-        const float neg_edge_x = cpos.x - screen_halfsize.x;
-        int x_spawn_pos = 0;
-        int y_spawn_pos = 0;
-
-        if (up_or_down > 0.0f) // down
-          y_spawn_pos = engine::rand_det_s(rnd.rng, pos_edge_y, pos_edge_y + extra);
-        else // up
-          y_spawn_pos = engine::rand_det_s(rnd.rng, neg_edge_y, neg_edge_y - extra);
-        if (left_or_right > 0.0f) // right
-          x_spawn_pos = engine::rand_det_s(rnd.rng, pos_edge_x, pos_edge_x + extra);
-        else // left
-          x_spawn_pos = engine::rand_det_s(rnd.rng, neg_edge_x, neg_edge_x - extra);
-
-        const auto enemy = create_gameplay(r, EntityType::enemy_grunt);
-        auto& enemy_aabb = r.get<AABB>(enemy);
-        enemy_aabb.center = { x_spawn_pos, y_spawn_pos };
-      }
-
-      // TODO: gameover condition: X minutes survived
-      {
-        static int minutes = 1;
-        static float gameover_cooldown = minutes * 60;
-        static float gameover_cooldown_left = gameover_cooldown;
-        gameover_cooldown_left -= dt;
-
-        ImGui::Begin("Gameover");
-        ImGui::Text("Survive: %f", gameover_cooldown_left);
-        ImGui::End();
-
-        if (gameover_cooldown_left <= 0.0f) {
-
-          ImGuiWindowFlags flags = ImGuiWindowFlags_NoDocking;
-          flags |= ImGuiWindowFlags_NoFocusOnAppearing;
-          ImGui::Begin("Escape!", NULL, flags);
-
-          // win if survive
-          if (ImGui::Button("Escape")) {
-            gameover.game_is_over = true;
-            gameover.win_condition = true;
-            gameover.reason = std::string("You escaped! Survived for ") + std::to_string(minutes) + std::string(" minutes");
-          }
-          ImGui::End();
-        }
-      }
+      // HACK: gameover condition: X minutes survived
+      // {
+      //   static int minutes = 1;
+      //   static float gameover_cooldown = minutes * 60;
+      //   static float gameover_cooldown_left = gameover_cooldown;
+      //   gameover_cooldown_left -= dt;
+      //   ImGui::Begin("Gameover");
+      //   ImGui::Text("Survive: %f", gameover_cooldown_left);
+      //   ImGui::End();
+      //   if (gameover_cooldown_left <= 0.0f) {
+      //     gameover.game_is_over = true;
+      //     gameover.win_condition = true;
+      //     gameover.reason = std::string("You escaped! Survived for ") + std::to_string(minutes) + std::string(" minutes");
+      //   }
+      //   if (gameover.game_is_over) {
+      //     ImGuiWindowFlags flags = ImGuiWindowFlags_NoDocking;
+      //     flags |= ImGuiWindowFlags_NoFocusOnAppearing;
+      //     ImGui::Begin("Escape!", NULL, flags);
+      //     ImGui::Text("You esacped!");
+      //     ImGui::End();
+      //   }
+      // }
 
       // TODO: xp bar??
       ImGui::Begin("XP");
@@ -378,10 +375,14 @@ game2d::update(engine::SINGLETON_Application& app, entt::registry& r, const floa
     OPTICK_EVENT("(update)-update-ui");
     // update_ui_inverse_kinematics_system(r, mouse_pos);
 
-    if (scene.s == Scene::menu) {
+    // Main menu scene can transition to Game scene
+    if (scene.s == Scene::menu)
       update_ui_scene_main_menu(app, r);
+
+    if (scene.s == Scene::menu)
       update_ui_rpg_character_system(r);
-    } else if (scene.s == Scene::game) {
+
+    if (scene.s == Scene::game) {
       update_ui_grid_interaction_system(r);
       update_ui_inventory(r);
       update_ui_dropoff_zone_system(r);

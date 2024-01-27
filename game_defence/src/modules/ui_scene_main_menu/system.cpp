@@ -153,11 +153,14 @@ update_ui_scene_main_menu(engine::SINGLETON_Application& app, entt::registry& r)
       // spawner.enemies_to_spawn = (i + 1) * 25;
 
       // load(r, "assets/maps/main.json");
+
+      ui.instantiated_players.clear();
     }
 
     ImGui::PopStyleColor(3);
     ImGui::PopID();
   }
+  ImGui::End();
 
   // clang-format off
   // ImGui::Text("Aligned");
@@ -174,7 +177,8 @@ update_ui_scene_main_menu(engine::SINGLETON_Application& app, entt::registry& r)
   const int old_size = ui.instantiated_players.size();
 
   // Create Person
-  for (int i = cur_size; i > old_size; i--) {
+  const int to_create = cur_size - old_size;
+  for (int i = 0; i < to_create; i++) {
 
     // Create Wiggly Person
     const int pixel_scale_up_size = 2;
@@ -182,26 +186,33 @@ update_ui_scene_main_menu(engine::SINGLETON_Application& app, entt::registry& r)
     const auto e = create_gameplay(r, EntityType::actor_player);
     r.remove<PhysicsActorComponent>(e);
     r.emplace<ChangeColourOnHoverComponent>(e);
+
     // e.g. i=0,-200, i=1,0, i=2,200, i=3,400
-    const auto scale = [](int i, int min, int increment) -> int { return min + increment * i; };
-    const float val = scale(i, -120, 75);
+    const auto scale = [](int i, int start_x, int increment) -> int { return start_x + increment * i; };
+
+    // ideal pos's......  0 ---- 1 --(C)-- 2 ---- 3
+    const int offset = old_size + (i); // old e.g. 3 existing + creating 0, 1, 2 as new position
+    const float pos_x = scale(offset, -120, 80);
+
     auto& aabb = r.get<AABB>(e);
-    aabb.center = { val, 150 };
+    aabb.center = { pos_x, 150 };
+
     auto& t = r.get<TransformComponent>(e);
     t.scale = { default_size.x, default_size.y, 0.0f };
     t.position = { aabb.center.x, aabb.center.y, 0.0f };
+
     WiggleUpAndDown wiggle;
     wiggle.base_position = aabb.center;
     wiggle.amplitude = 2.0f;
     r.emplace<WiggleUpAndDown>(e, wiggle);
 
     // Add stats to character
-    for (int j = cur_size; const auto& [monster_e, stats, fight] : monsters.each()) {
+    for (int j = 0; const auto& [monster_e, stats, fight] : monsters.each()) {
       if (j == i) {
         r.emplace<CharacterStats>(e, stats);
         break;
       }
-      j--;
+      j++;
     }
 
     ui.instantiated_players.push_back(e);
@@ -218,9 +229,10 @@ update_ui_scene_main_menu(engine::SINGLETON_Application& app, entt::registry& r)
   //
   // SQUAAAAAAAAAD
   //
-  ImGui::NewLine();
+  ImGui::Begin("Squad");
   ImGui::Text("Squad");
   ImGui::NewLine();
+
   // Update State
   for (int i = 0; i < ui.instantiated_players.size(); i++) {
     if (i > 0) {
@@ -228,14 +240,22 @@ update_ui_scene_main_menu(engine::SINGLETON_Application& app, entt::registry& r)
       ImGui::Text(" - ");
       ImGui::SameLine();
     }
-    if (auto* stats = r.try_get<CharacterStats>(ui.instantiated_players[i])) {
-      ImGui::Text("%s", stats->name.c_str());
-    }
-  }
+    // Get Location of text
+    // Convert location to screenspace
+    auto pos = ImGui::GetCursorPos();
+    ImGui::Text("%f %f", pos.x, pos.y);
 
+    auto pos2 = ImGui::GetCursorScreenPos();
+    ImGui::Text("%f %f", pos2.x, pos2.y);
+
+    if (const auto* stats = r.try_get<CharacterStats>(ui.instantiated_players[i]))
+      ImGui::Text("%s", stats->name.c_str());
+  }
   ImGui::End();
 
+  //
   // In the top right, show a sound icon
+  //
   ImGuiWindowFlags icon_flags = 0;
   icon_flags |= ImGuiWindowFlags_NoDocking;
   icon_flags |= ImGuiWindowFlags_NoFocusOnAppearing;

@@ -18,7 +18,7 @@ struct CharacterStats
   // live combat data, shouldnt be here
   int initiative = 0;
   int hp = 10;
-  int last_rolled_damage = 0;
+  int xp = 0;
 };
 
 struct CharacterPrefab

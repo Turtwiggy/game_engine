@@ -23,18 +23,26 @@ void
 update_animator_system(entt::registry& r, float dt)
 {
   const auto& anims = get_first_component<SINGLE_Animations>(r);
-  const auto& anim = find_animation(anims, "MUZZLE_FLASH");
   auto& dead = get_first_component<SINGLETON_EntityBinComponent>(r);
 
   const auto& view = r.view<SpriteComponent, SpriteAnimationComponent>();
   for (const auto& [e, sprite, animation] : view.each()) {
+    const auto& anim = find_animation(anims, animation.playing_animation_name);
 
     // loop timer between 0 and duration
     animation.timer += dt;
 
     // should end or loop the animation?
-    if (animation.timer >= animation.duration && !animation.looping) {
+    if (animation.timer >= animation.duration && !animation.looping && animation.destroy_after_play) {
       dead.dead.emplace(e); // destroy this effect
+      continue;
+    }
+
+    // pause on final frame if not looping
+    if (animation.timer >= animation.duration && !animation.looping) {
+      const int i0 = anim.animation_frames.size() - 1;
+      const SpritePosition& frame = anim.animation_frames[i0];
+      sprite.tex_pos = frame;
       continue;
     }
 

@@ -10,6 +10,10 @@ struct OrthographicCamera
 {
   glm::mat4 view = glm::mat4(1.0f);
   glm::mat4 projection = glm::mat4(1.0f);
+
+  // stored here instead of TransformComponent
+  glm::ivec2 base_position{ 0, 0 };
+  glm::ivec2 offset_with_mouse{ 0, 0 };
 };
 
 glm::mat4

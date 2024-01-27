@@ -140,7 +140,7 @@ update_selected_interactions_system(entt::registry& r, const glm::ivec2& mouse_p
   const auto& cursor = get_first<CursorComponent>(r);
   const auto& cursor_comp = r.get<CursorComponent>(cursor);
   const auto& enemies = cursor_comp.hovering_enemies;
-  const auto& map = get_first_component<MapComponent>(r);
+  // const auto& map = get_first_component<MapComponent>(r);
 
   // warning: doesnt work with controller currently
   const bool click = get_mouse_rmb_press();
@@ -177,26 +177,26 @@ update_selected_interactions_system(entt::registry& r, const glm::ivec2& mouse_p
   // TRY OUT DDA
   ///
 
-  const glm::vec2 tile_vec = glm::vec2(map.tilesize, map.tilesize);
-  const glm::vec2 mouse_cell = glm::vec2(mouse_pos.x, mouse_pos.y) / tile_vec;
-  const glm::vec2 player_cell = glm::vec2(first_player_t.position.x, first_player_t.position.y) / tile_vec;
+  // const glm::vec2 tile_vec = glm::vec2(map.tilesize, map.tilesize);
+  // const glm::vec2 mouse_cell = glm::vec2(mouse_pos.x, mouse_pos.y) / tile_vec;
+  // const glm::vec2 player_cell = glm::vec2(first_player_t.position.x, first_player_t.position.y) / tile_vec;
 
-  DDAInput dda_input;
-  dda_input.start = player_cell;
-  dda_input.end = mouse_cell;
-  dda_input.map_size = { map.xmax, map.ymax };
+  // DDAInput dda_input;
+  // dda_input.start = player_cell;
+  // dda_input.end = mouse_cell;
+  // dda_input.map_size = { map.xmax, map.ymax };
 
-  const auto output = dda_raycast(dda_input, map.map);
+  // const auto output = dda_raycast(dda_input, map.map);
 
-  auto& dda_start = r.get<TransformComponent>(cursor_comp.dda_start);
-  auto& dda_end = r.get<TransformComponent>(cursor_comp.dda_end);
-  dda_start.position = { dda_input.start.x * tile_vec.x, dda_input.start.y * tile_vec.y, 0.0f };
-  dda_end.position = { dda_input.end.x * tile_vec.x, dda_input.end.y * tile_vec.x, 0.0f };
+  // auto& dda_start = r.get<TransformComponent>(cursor_comp.dda_start);
+  // auto& dda_end = r.get<TransformComponent>(cursor_comp.dda_end);
+  // dda_start.position = { dda_input.start.x * tile_vec.x, dda_input.start.y * tile_vec.y, 0.0f };
+  // dda_end.position = { dda_input.end.x * tile_vec.x, dda_input.end.y * tile_vec.x, 0.0f };
 
-  auto& dda_intersection = r.get<TransformComponent>(cursor_comp.dda_intersection);
-  auto& dda_intersection_spr = r.get<SpriteComponent>(cursor_comp.dda_intersection);
-  dda_intersection.position = { output.intersection.x * tile_vec.x, output.intersection.y * tile_vec.y, 0.0f };
-  dda_intersection_spr.colour = engine::LinearColour(1.0f, 0.0f, 0.0f, 1.0f);
+  // auto& dda_intersection = r.get<TransformComponent>(cursor_comp.dda_intersection);
+  // auto& dda_intersection_spr = r.get<SpriteComponent>(cursor_comp.dda_intersection);
+  // dda_intersection.position = { output.intersection.x * tile_vec.x, output.intersection.y * tile_vec.y, 0.0f };
+  // dda_intersection_spr.colour = engine::LinearColour(1.0f, 0.0f, 0.0f, 1.0f);
 
   update_cursor_ui(r, cursor_comp, click, held, release, mouse_pos, click_position, held_position);
 
@@ -218,8 +218,7 @@ update_selected_interactions_system(entt::registry& r, const glm::ivec2& mouse_p
     attack_action(r, enemies[0]);
   }
   //
-  // release
-  // move
+  // release + move
   //
   else if (release && enemies.size() == 0) {
     move_action(r, click_position.value(), held_position.value());
