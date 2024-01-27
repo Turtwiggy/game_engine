@@ -3,83 +3,101 @@
 #include "entt/helpers.hpp"
 #include "modules/actor_enemy/components.hpp"
 #include "modules/actor_player/components.hpp"
+#include "modules/combat_damage/components.hpp"
 #include "modules/combat_wants_to_shoot/components.hpp"
 #include "modules/lerp_to_target/components.hpp"
 #include "modules/lifecycle/components.hpp"
+#include "physics/components.hpp"
 #include "renderer/transform.hpp"
+
+#include <glm/glm.hpp>
+#include <glm/gtx/compatibility.hpp> // lerp
 
 namespace game2d {
 
 void
-update_enemy_system(entt::registry& r)
+update_enemy_system(entt::registry& r, const float dt)
 {
-  // SET TARGET
-
   // Note: this should be closest target
   const auto& first_target = get_first<PlayerComponent>(r);
   if (first_target == entt::null)
     return;
   const auto& first_target_transform = r.get<const TransformComponent>(first_target);
 
-  const auto& view = r.view<const EnemyComponent, HasTargetPositionComponent>(entt::exclude<WaitForInitComponent>);
+  const auto& view = r.view<EnemyComponent, HasTargetPositionComponent>(entt::exclude<WaitForInitComponent>);
   for (auto [e, enemy, target_position] : view.each()) {
+    auto& t = r.get<TransformComponent>(e);
 
-    // set target
-    // target.target = first_target;
-
-    // set position
+    // Set Target
+    auto& targeting = r.get_or_emplace<DynamicTargetComponent>(e);
+    targeting.target = first_target;
     target_position.position = first_target_transform.position;
+
+    if (enemy.state == EnemyState::CHASING) {
+      // Calculate distance
+      const auto& other = first_target;
+      const auto& other_pos = r.get<TransformComponent>(other);
+      const auto d = t.position - other_pos.position;
+      const int d2 = d.x * d.x + d.y * d.y;
+
+      // Set as Attacking if within range (Melee)
+      constexpr float sprite_width = 16;
+      constexpr float min_distance = sprite_width * sprite_width + sprite_width * sprite_width;
+      if (d2 < min_distance) {
+        enemy.state = EnemyState::ATTACKING;
+        r.emplace_or_replace<SeperateTransformFromAABB>(e);
+      }
+
+      // Set as Attacking if within shooting range (Ranged)
+      // TODO...
+    }
+
+    // Do Attack Stuff?
+    if (enemy.state == EnemyState::ATTACKING) {
+      target_position.position = t.position;
+
+      // Tick the attack
+      if (enemy.attack_percent <= 1.0f) {
+
+        if (enemy.attack_percent >= 0.5f && !enemy.has_applied_damage) {
+
+          // Create a new damage instance
+          const auto instance = r.create();
+          r.emplace<AttackComponent>(instance, 10);
+          r.emplace<TransformComponent>(instance, t); // copy the parent
+
+          // Send the damage request
+          const entt::entity from = instance;
+          const entt::entity to = targeting.target;
+          r.emplace<DealDamageRequest>(r.create(), from, to);
+
+          enemy.has_applied_damage = true;
+        }
+
+        enemy.attack_percent += dt * enemy.attack_speed;
+        const float percent = enemy.attack_percent;
+        const float interpolation = (-pow(percent, 2) + percent) * 4;
+
+        // Update visuals
+        // const glm::vec3 original_position = t.position;
+        // const glm::vec3 attack_position = { target_position.position.x, target_position.position.y, 0.0f };
+        // const glm::vec3 result = glm::lerp(original_position, attack_position, interpolation);
+        // t.position = glm::ivec3(int(result.x), int(result.y), int(result.z));
+      }
+
+      // Attack Done!
+      if (enemy.attack_percent >= 1.0f) {
+        // Reset State
+        enemy.attack_percent = 0;
+        enemy.has_applied_damage = false;
+        enemy.state = EnemyState::CHASING;
+        r.remove<SeperateTransformFromAABB>(e);
+      }
+
+      //
+    }
   }
 }
-
-// void
-// update_enemy_get_new_target(const GridComponent& grid, const TransformComponent& transform, EnemyComponent& enemy)
-// {
-
-//   const glm::ivec2 offset = { grid.size / 2, grid.size / 2 };
-//   const glm::vec2 offset_pos = { transform.position.x + offset.x, transform.position.y + offset.y };
-//   const auto grid_xy = engine::grid::world_space_to_grid_space(offset_pos, grid.size);
-
-//   // auto grid_idx = engine::grid::grid_position_to_index(grid_xy, grid.width);
-//   // grid_idx = glm::clamp(grid_idx, 0, (grid.width * grid.height) - 1);
-//   // auto clamped_grid_pos = engine::grid::index_to_world_position(grid_idx, grid.width, grid.height, grid.size);
-//   // auto clamped_grid_xy = engine::grid::index_to_grid_position(grid_idx, grid.width, grid.height);
-
-//   std::vector<std::pair<engine::grid::GridDirection, int>> results;
-//   engine::grid::get_neighbour_indicies(grid_xy.x, grid_xy.y, grid.width, grid.height, results);
-
-//   int best_distance = INT_MAX;
-//   auto best_dir = results[0].first;
-//   auto best_idx = results[0].second;
-//   const auto& field = grid.flow_field;
-
-//   for (const auto& [dir, idx] : results) {
-//     const int distance = field[idx].distance;
-//     if (distance < best_distance) {
-//       best_distance = distance;
-//       best_dir = dir;
-//       best_idx = idx;
-//     }
-//   }
-
-//   std::cout << "getting new target..." << std::endl;
-
-//   // center of the next grid square
-//   glm::ivec3 target_position{ grid_xy.x * grid.size, grid_xy.y * grid.size, 0 };
-
-//   // update the spot
-//   if (best_dir == engine::grid::GridDirection::east)
-//     target_position.x += grid.size;
-//   if (best_dir == engine::grid::GridDirection::west)
-//     target_position.x -= grid.size;
-//   if (best_dir == engine::grid::GridDirection::north)
-//     target_position.y -= grid.size;
-//   if (best_dir == engine::grid::GridDirection::south)
-//     target_position.y += grid.size;
-
-//   enemy.target = target_position;
-//   enemy.has_target = true;
-// }
 
 // void
 // update_enemy_system(entt::registry& r)
@@ -105,28 +123,5 @@ update_enemy_system(entt::registry& r)
 //       update_enemy_to_target(transform, enemy, vel);
 //   }
 // }
-
-// void
-// enemy_ai::enemy_arc_angles_to_player(GameObject2D& obj, GameObject2D& player, float delta_time_s)
-// {
-//   // calculate a vector ab
-//   glm::vec2 ab = player.pos - obj.pos;
-//   // calculate the point halfway between ab
-//   glm::vec2 half_point = obj.pos + (ab / 2.0f);
-//   // calculate the vector at a right angle
-//   glm::vec2 normal = glm::vec2(-ab.y, ab.x);
-
-//   // expensive(?) distance calc
-//   float distance = glm::distance(obj.pos, player.pos);
-//   float half_distance = distance / 2.0f;
-
-//   // offset the midpoint via normal
-//   float amplitude = half_distance * sin(glm::radians(obj.approach_theta_degrees));
-//   half_point += (glm::normalize(normal) * amplitude);
-
-//   glm::vec2 dir = glm::normalize(half_point - obj.pos);
-
-//   move_along_vector(obj, dir, delta_time_s);
-// };
 
 } // namespace game2d

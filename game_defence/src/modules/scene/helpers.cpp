@@ -193,20 +193,20 @@ move_to_scene_start(entt::registry& r, const Scene s)
     // }
 
     // TEMP: create a spawner given the level difficulty
-    // for (int i = 0; i < menu_ui.level; i++) {
-    //   const auto e = create_gameplay(r, EntityType::actor_spawner);
-    //   auto& e_aabb = r.get<AABB>(e);
-    //   e_aabb.size = default_size * 1;
+    for (int i = 0; i < menu_ui.level; i++) {
+      const auto e = create_gameplay(r, EntityType::actor_spawner);
+      auto& e_aabb = r.get<AABB>(e);
+      e_aabb.size = default_size * 1;
 
-    //   if (i == 0) // b
-    //     e_aabb.center = { -100, 500 };
-    //   if (i == 1) // r
-    //     e_aabb.center = { 500, 0 };
-    //   if (i == 2) // l
-    //     e_aabb.center = { -500, 0 };
-    //   if (i == 3) // t
-    //     e_aabb.center = { -100, -500 };
-    // }
+      if (i == 0) // b
+        e_aabb.center = { -100, 500 };
+      if (i == 1) // r
+        e_aabb.center = { 500, 0 };
+      if (i == 2) // l
+        e_aabb.center = { -500, 0 };
+      if (i == 3) // t
+        e_aabb.center = { -100, -500 };
+    }
 
     // VISUAL: use poisson for grass
     {

@@ -265,7 +265,7 @@ game2d::update(engine::SINGLETON_Application& app, entt::registry& r, const floa
       update_set_velocity_to_target_system(r, dt);
       //
       // combat
-      update_enemy_system(r);
+      update_enemy_system(r, dt);
       update_wants_to_shoot_system(r);
       //
       // spawners

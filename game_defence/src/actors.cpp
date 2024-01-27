@@ -370,7 +370,7 @@ create_gameplay(entt::registry& r, const EntityType& type)
       // combat
       r.emplace<TeamComponent>(e, AvailableTeams::enemy);
       r.emplace<HealthComponent>(e, 10, 10);
-      r.emplace<AttackComponent>(e, 10);
+      // r.emplace<AttackComponent>(e, 10); // on the equipped weapon?
       break;
     }
 

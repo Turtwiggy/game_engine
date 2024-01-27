@@ -2,9 +2,20 @@
 
 namespace game2d {
 
+enum class EnemyState
+{
+  CHASING,
+  ATTACKING,
+};
+
 struct EnemyComponent
 {
-  bool placeholder = true;
+  EnemyState state = EnemyState::CHASING;
+
+  // attack state
+  float attack_speed = 3.0f;
+  float attack_percent = 0.0f;
+  bool has_applied_damage = false;
 };
 
 } // namespace game2d
