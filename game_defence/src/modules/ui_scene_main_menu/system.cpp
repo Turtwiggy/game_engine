@@ -85,7 +85,7 @@ update_ui_scene_main_menu(engine::SINGLETON_Application& app, entt::registry& r)
       editor.mode = LevelEditorMode::play;
 
       // configure params
-      ui.level = 1;
+      // ui.level = 1;
 
       // create request
       move_to_scene_start(r, Scene::game);
@@ -141,7 +141,8 @@ update_ui_scene_main_menu(engine::SINGLETON_Application& app, entt::registry& r)
     std::string tag = "Lv"s + std::to_string(i);
     if (ImGui::Button(tag.c_str())) {
 
-      ui.level = i;
+      // DISABLED
+      // ui.level = i;
 
       // editor.mode = LevelEditorMode::play;
       move_to_scene_start(r, Scene::game);

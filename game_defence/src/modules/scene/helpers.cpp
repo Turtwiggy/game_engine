@@ -12,6 +12,7 @@
 #include "modules/actor_dropoff_zone/components.hpp"
 #include "modules/actor_pickup_zone/components.hpp"
 #include "modules/actor_player/components.hpp"
+#include "modules/actor_spawner/components.hpp"
 #include "modules/actor_weapon_bow/components.hpp"
 #include "modules/animation/components.hpp"
 #include "modules/camera/orthographic.hpp"
@@ -192,21 +193,39 @@ move_to_scene_start(entt::registry& r, const Scene s)
     //   e_aabb.center = { 200, 0 };
     // }
 
-    // TEMP: create a spawner given the level difficulty
-    for (int i = 0; i < menu_ui.level; i++) {
+    // TEMP: create spawners
+
+    {
       const auto e = create_gameplay(r, EntityType::actor_spawner);
       auto& e_aabb = r.get<AABB>(e);
       e_aabb.size = default_size * 1;
+      e_aabb.center = { 250, -500 };
 
-      if (i == 0) // b
-        e_aabb.center = { -100, 500 };
-      if (i == 1) // r
-        e_aabb.center = { 500, 0 };
-      if (i == 2) // l
-        e_aabb.center = { -500, 0 };
-      if (i == 3) // t
-        e_aabb.center = { -100, -500 };
+      auto& spawner = r.get<SpawnerComponent>(e);
+      spawner.type_to_spawn = EntityType::enemy_grunt;
     }
+    {
+      const auto e = create_gameplay(r, EntityType::actor_spawner);
+      auto& e_aabb = r.get<AABB>(e);
+      e_aabb.size = default_size * 1;
+      e_aabb.center = { -250, 500 };
+
+      auto& spawner = r.get<SpawnerComponent>(e);
+      spawner.type_to_spawn = EntityType::enemy_ranged;
+    }
+    // for (int i = 0; i < menu_ui.level; i++) {
+    //   const auto e = create_gameplay(r, EntityType::actor_spawner);
+    //   auto& e_aabb = r.get<AABB>(e);
+    //   e_aabb.size = default_size * 1;
+    //   if (i == 0) // b
+    //     e_aabb.center = { -100, 500 };
+    //   if (i == 1) // r
+    //     e_aabb.center = { 500, 0 };
+    //   if (i == 2) // l
+    //     e_aabb.center = { -500, 0 };
+    //   if (i == 3) // t
+    //     e_aabb.center = { -100, -500 };
+    // }
 
     // VISUAL: use poisson for grass
     {

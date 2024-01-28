@@ -13,7 +13,7 @@
     {
       "r": 67, "g": 91, "b": 102,
       "name": "pal_2",
-      "tags": [ "enemy_grunt" ]
+      "tags": [ "enemy_grunt", "bullet_enemy", "enemy_ranged" ]
     },
     {
       "r": 45, "g": 67, "b": 86,

@@ -7,7 +7,7 @@ namespace game2d {
 
 struct SINGLE_MainMenuUI
 {
-  int level = 1;
+  // int level = 1;
 
   // probably shouldnt be here
   // std::vector<std::string> random_names;

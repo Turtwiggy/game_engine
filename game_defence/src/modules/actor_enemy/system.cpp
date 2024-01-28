@@ -3,6 +3,7 @@
 #include "entt/helpers.hpp"
 #include "modules/actor_enemy/components.hpp"
 #include "modules/actor_player/components.hpp"
+#include "modules/combat_attack_cooldown/components.hpp"
 #include "modules/combat_damage/components.hpp"
 #include "modules/combat_wants_to_shoot/components.hpp"
 #include "modules/lerp_to_target/components.hpp"
@@ -24,37 +25,41 @@ update_enemy_system(entt::registry& r, const float dt)
     return;
   const auto& first_target_transform = r.get<const TransformComponent>(first_target);
 
-  const auto& view = r.view<EnemyComponent, HasTargetPositionComponent>(entt::exclude<WaitForInitComponent>);
-  for (auto [e, enemy, target_position] : view.each()) {
-    auto& t = r.get<TransformComponent>(e);
+  const auto& view =
+    r.view<EnemyComponent, HasTargetPositionComponent, TransformComponent>(entt::exclude<WaitForInitComponent>);
+  for (auto [e, enemy, target_position, enemy_t] : view.each()) {
 
     // Set Target
     auto& targeting = r.get_or_emplace<DynamicTargetComponent>(e);
     targeting.target = first_target;
     target_position.position = first_target_transform.position;
 
+    // Calculate distance
+    const auto& other_pos = r.get<TransformComponent>(first_target);
+    glm::vec3 dir_raw = other_pos.position - enemy_t.position;
+    glm::vec2 dir_nrm = dir_raw;
+    if (dir_nrm.x != 0.0f || dir_nrm.y != 0.0f)
+      dir_nrm = glm::normalize(dir_nrm);
+    const int d2 = dir_raw.x * dir_raw.x + dir_raw.y * dir_raw.y;
+
+    // Components of interest?
+    const auto* melee = r.try_get<MeleeComponent>(e);
+    const auto* ranged = r.try_get<RangedComponent>(e);
+
     if (enemy.state == EnemyState::CHASING) {
-      // Calculate distance
-      const auto& other = first_target;
-      const auto& other_pos = r.get<TransformComponent>(other);
-      const auto d = t.position - other_pos.position;
-      const int d2 = d.x * d.x + d.y * d.y;
 
       // Set as Attacking if within range (Melee)
-      constexpr float sprite_width = 16;
-      constexpr float min_distance = sprite_width * sprite_width + sprite_width * sprite_width;
-      if (d2 < min_distance) {
-        enemy.state = EnemyState::ATTACKING;
+      if (melee && d2 < melee->distance2) {
+        enemy.state = EnemyState::MELEE_ATTACKING;
         r.emplace_or_replace<SeperateTransformFromAABB>(e);
       }
 
       // Set as Attacking if within shooting range (Ranged)
-      // TODO...
+      if (ranged && d2 < ranged->distance2)
+        enemy.state = EnemyState::RANGED_ATTACKING;
     }
 
-    // Do Attack Stuff?
-    if (enemy.state == EnemyState::ATTACKING) {
-      target_position.position = t.position;
+    if (enemy.state == EnemyState::MELEE_ATTACKING) {
 
       // Tick the attack
       if (enemy.attack_percent <= 1.0f) {
@@ -64,7 +69,7 @@ update_enemy_system(entt::registry& r, const float dt)
           // Create a new damage instance
           const auto instance = r.create();
           r.emplace<AttackComponent>(instance, 10);
-          r.emplace<TransformComponent>(instance, t); // copy the parent
+          r.emplace<TransformComponent>(instance, enemy_t); // copy the parent
 
           // Send the damage request
           const entt::entity from = instance;
@@ -95,6 +100,51 @@ update_enemy_system(entt::registry& r, const float dt)
       }
 
       //
+    }
+
+    if (enemy.state == EnemyState::RANGED_ATTACKING) {
+      // Stand your ground!
+      target_position.position = enemy_t.position;
+
+      auto& cooldown = r.get<AttackCooldownComponent>(e);
+
+      const bool allowed_to_shoot = !cooldown.on_cooldown;
+
+      if (!allowed_to_shoot) {
+        // you shot and you're waiting to shoot again....
+      }
+
+      if (allowed_to_shoot) {
+        // TODO: audio?
+
+        // put gun on cooldown
+        cooldown.on_cooldown = true;
+        cooldown.time_between_attack_left = cooldown.time_between_attack;
+
+        // create a bullet at enemy location
+        const auto req = create_gameplay(r, EntityType::bullet_enemy);
+        r.get<TransformComponent>(req).position = enemy_t.position;
+        r.get_or_emplace<HasParentComponent>(req).parent = e;
+
+        auto& bullet_aabb = r.get<AABB>(req);
+        bullet_aabb.center = { enemy_t.position.x, enemy_t.position.y };
+        auto& bullet_transform = r.get<TransformComponent>(req);
+        bullet_transform.rotation_radians.z = enemy_t.rotation_radians.z;
+
+        const float bullet_speed = 100.0f;
+        auto& bullet_vel = r.get<VelocityComponent>(req);
+        bullet_vel.x = dir_nrm.x * bullet_speed;
+        bullet_vel.y = dir_nrm.y * bullet_speed;
+
+        // Turn the bullet Live!
+        r.emplace_or_replace<AttackComponent>(req, 3);
+        r.emplace_or_replace<EntityTimedLifecycle>(req);
+
+        // Reset State
+        enemy.attack_percent = 0;
+        enemy.has_applied_damage = false;
+        enemy.state = EnemyState::CHASING;
+      }
     }
   }
 }

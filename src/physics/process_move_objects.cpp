@@ -4,6 +4,7 @@
 // components
 #include "entt/helpers.hpp"
 #include "maths/maths.hpp"
+#include "modules/lifecycle/components.hpp"
 #include "physics/components.hpp"
 #include "physics/helpers.hpp"
 #include "renderer/transform.hpp"
@@ -57,8 +58,8 @@ game2d::update_move_objects_system(entt::registry& r, const uint64_t& millisecon
   {
     OPTICK_EVENT("Move Actors");
 
-    const auto& vel_actors = r.view<AABB, VelocityComponent>();
-    const auto& solids = r.view<const PhysicsSolidComponent, const AABB>();
+    const auto& vel_actors = r.view<AABB, VelocityComponent>(entt::exclude<WaitForInitComponent>);
+    const auto& solids = r.view<const PhysicsSolidComponent, const AABB>(entt::exclude<WaitForInitComponent>);
     const float dt = milliseconds_dt / 1000.0f;
 
     for (const auto& [entity, aabb, vel] : vel_actors.each()) {
@@ -66,36 +67,38 @@ game2d::update_move_objects_system(entt::registry& r, const uint64_t& millisecon
       //
       {
         vel.remainder_x += vel.x * dt;
-        int amount = static_cast<int>(vel.remainder_x);
-        if (amount != 0) {
-          vel.remainder_x -= amount; // consume so no frame jump
-          const int sign = glm::sign(amount);
-          while (amount != 0) {
+
+        int move = static_cast<int>(vel.remainder_x);
+
+        if (move != 0) {
+          vel.remainder_x -= move; // consume so no frame jump
+          const int sign = glm::sign(move);
+
+          while (move != 0) {
+
             // would-be updated position
             AABB updated_pos = aabb;
             updated_pos.center.x += sign;
+
             // Check if the updated position would collide with anything
-            for (const auto& [o_entity, o_psolid, o_aabb] : solids.each()) {
-              const bool same = entity == o_entity;
-              if (!same && collide(updated_pos, o_aabb)) {
+            // for (const auto& [o_entity, o_psolid, o_aabb] : solids.each()) {
+            //   const bool same = entity == o_entity;
+            //   if (!same && collide(updated_pos, o_aabb)) {
+            //     // Collision2D collision;
+            //     // const auto id_0 = static_cast<uint32_t>(entity);
+            //     // const auto id_1 = static_cast<uint32_t>(o_entity);
+            //     // collision.ent_id_0 = glm::min(id_0, id_1);
+            //     // collision.ent_id_1 = glm::max(id_0, id_1);
+            //     // actor_solid_collisions.emplace(collision);
 
-                // Collision2D collision;
-                // const auto id_0 = static_cast<uint32_t>(entity);
-                // const auto id_1 = static_cast<uint32_t>(o_entity);
-                // collision.ent_id_0 = glm::min(id_0, id_1);
-                // collision.ent_id_1 = glm::max(id_0, id_1);
-                // actor_solid_collisions.emplace(collision);
+            //     amount = 0;
+            //     break; // a collision
+            //   }
+            // }
 
-                amount = 0;
-                break; // a collision
-              }
-            }
-
-            if (amount != 0) {
-              // Move player if empty space
-              aabb.center.x += sign;
-              amount -= sign;
-            }
+            // If no collision...
+            aabb.center.x += sign;
+            move -= sign;
           }
         }
       } // end move x
@@ -109,31 +112,31 @@ game2d::update_move_objects_system(entt::registry& r, const uint64_t& millisecon
           vel.remainder_y -= amount; // consume so no frame jump
           const int sign = glm::sign(amount);
           while (amount != 0) {
+
             // would-be updated position
             AABB updated_pos = aabb;
             updated_pos.center.y += sign;
+
             // Check if the updated position would collide with anything
-            for (const auto& [o_entity, o_psolid, o_aabb] : solids.each()) {
-              const bool same = entity == o_entity;
-              if (!same && collide(updated_pos, o_aabb)) {
+            // for (const auto& [o_entity, o_psolid, o_aabb] : solids.each()) {
+            //   const bool same = entity == o_entity;
+            //   if (!same && collide(updated_pos, o_aabb)) {
 
-                // Collision2D collision;
-                // const auto id_0 = static_cast<uint32_t>(entity);
-                // const auto id_1 = static_cast<uint32_t>(o_entity);
-                // collision.ent_id_0 = glm::min(id_0, id_1);
-                // collision.ent_id_1 = glm::max(id_0, id_1);
-                // actor_solid_collisions.emplace(collision);
+            //     // Collision2D collision;
+            //     // const auto id_0 = static_cast<uint32_t>(entity);
+            //     // const auto id_1 = static_cast<uint32_t>(o_entity);
+            //     // collision.ent_id_0 = glm::min(id_0, id_1);
+            //     // collision.ent_id_1 = glm::max(id_0, id_1);
+            //     // actor_solid_collisions.emplace(collision);
 
-                amount = 0;
-                break; // a collision
-              }
-            }
+            //     amount = 0;
+            //     break; // a collision
+            //   }
+            // }
 
-            if (amount != 0) {
-              // Move player if empty space
-              aabb.center.y += sign;
-              amount -= sign;
-            }
+            // Move player if empty space
+            aabb.center.y += sign;
+            amount -= sign;
           }
         }
       } // end move y
