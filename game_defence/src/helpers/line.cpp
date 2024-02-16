@@ -8,11 +8,11 @@ namespace game2d {
 LineInfo
 generate_line(const glm::ivec2& a, const glm::ivec2& b, const int width)
 {
-  glm::vec2 raw_dir = { b.x - a.x, b.y - a.y };
+  const glm::vec2 raw_dir = { b.x - a.x, b.y - a.y };
   glm::vec2 nrm_dir = raw_dir;
   if (raw_dir.x != 0.0f || raw_dir.y != 0.0f)
     nrm_dir = glm::normalize(raw_dir);
-  float angle = engine::dir_to_angle_radians(nrm_dir) + engine::HALF_PI;
+  const float angle = engine::dir_to_angle_radians(nrm_dir) + engine::HALF_PI;
 
   LineInfo line;
   line.position = { (a.x + a.x + raw_dir.x) / 2, (a.y + a.y + raw_dir.y) / 2 };

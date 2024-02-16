@@ -27,8 +27,11 @@ endif()
 if(CMAKE_CXX_COMPILER_ID MATCHES GNU)
   add_definitions("-std=c++20")
   add_definitions("-Wall")
+  add_definitions("-Wextra")
   add_definitions("-Wformat")
   add_definitions("-O2")
+
+  # add_definitions("-Werror")
 endif()
 
 if(CMAKE_CXX_COMPILER_ID MATCHES MSVC)

@@ -25,7 +25,11 @@ game2d::update_actor_actor_collisions_system(entt::registry& r, SINGLETON_Physic
   // add actor-solid collisions
   // std::move(p.frame_solid_collisions.begin(), p.frame_solid_collisions.end(), std::back_inserter(p.frame_collisions));
 
-  // TODO: filter with narrowphase collisions
+  //  filter with narrowphase collisions
+  // auto colls = std::move(p.frame_collisions);
+  // for (const auto& coll : colls) {
+  // }
+
   // std::vector<Collision2D> narrowphase_collisions;
   // generate_narrowphase_collisons(r, broadphase_collisions, narrowphase_collisions)
 

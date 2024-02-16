@@ -171,14 +171,14 @@ game2d::update_render_system(entt::registry& r, const float dt, const glm::vec2&
   ri.circle.set_float("time", time);
 
   // DEBUG A SHADER...
-  const auto& input = get_first_component<SINGLETON_InputComponent>(r);
-  if (get_key_down(input, SDL_SCANCODE_R)) {
-    std::cout << "rebinding shader..." << std::endl;
-    ri.circle.reload();
-    ri.circle.bind();
-    ri.circle.set_mat4("projection", camera.projection);
-    ri.circle.set_mat4("view", camera.view);
-  }
+  // const auto& input = get_first_component<SINGLETON_InputComponent>(r);
+  // if (get_key_down(input, SDL_SCANCODE_R)) {
+  //   std::cout << "rebinding shader..." << std::endl;
+  //   ri.circle.reload();
+  //   ri.circle.bind();
+  //   ri.circle.set_mat4("projection", camera.projection);
+  //   ri.circle.set_mat4("view", camera.view);
+  // }
 
   // FBO: Render sprites in to this fbo with linear colour
   {

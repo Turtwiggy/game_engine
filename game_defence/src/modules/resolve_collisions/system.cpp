@@ -1,11 +1,32 @@
 #include "system.hpp"
 
 #include "entt/helpers.hpp"
+#include "modules/actor_enemy/components.hpp"
 #include "modules/combat_damage/components.hpp"
+#include "modules/combat_wants_to_shoot/components.hpp"
 #include "modules/lifecycle/components.hpp"
 #include "physics/components.hpp"
 
 namespace game2d {
+
+template<class A, class B>
+std::pair<entt::entity, entt::entity>
+collision_of_interest(const entt::registry& r, const entt::entity& a, const entt::entity& b)
+{
+  {
+    const auto* a_has_type_a = r.try_get<A>(a);
+    const auto* b_has_type_b = r.try_get<B>(b);
+    if (a_has_type_a != nullptr && b_has_type_b != nullptr)
+      return { a, b };
+  }
+  {
+    const auto* a_has_type_b = r.try_get<B>(a);
+    const auto* b_has_type_a = r.try_get<A>(b);
+    if (a_has_type_b != nullptr && b_has_type_a != nullptr)
+      return { b, a };
+  }
+  return { entt::null, entt::null };
+};
 
 void
 update_resolve_collisions_system(entt::registry& r)
@@ -14,19 +35,6 @@ update_resolve_collisions_system(entt::registry& r)
 
   // some collisions result in dead entities
   auto& dead = get_first_component<SINGLETON_EntityBinComponent>(r);
-
-  // const auto& collision_of_interest = [](const entt::entity& a_ent,
-  //                                        const entt::entity& b_ent,
-  //                                        const EntityType& a,
-  //                                        const EntityType& b,
-  //                                        const EntityType& a_actual,
-  //                                        const EntityType& b_actual) -> std::pair<entt::entity, entt::entity> {
-  //   if (a == a_actual && b == b_actual)
-  //     return { a_ent, b_ent };
-  //   if (a == b_actual && b == a_actual)
-  //     return { b_ent, a_ent };
-  //   return { entt::null, entt::null };
-  // };
 
   for (const auto& coll : physics.collision_enter) {
 
@@ -63,6 +71,23 @@ update_resolve_collisions_system(entt::registry& r)
       const entt::entity from = b;
       const entt::entity to = a;
       r.emplace<DealDamageRequest>(r.create(), from, to);
+    }
+  }
+
+  for (const auto& coll : physics.collision_stay) {
+
+    const auto a = static_cast<entt::entity>(coll.ent_id_0);
+    const auto b = static_cast<entt::entity>(coll.ent_id_1);
+
+    const auto& a_type = r.get<EntityTypeComponent>(a).type;
+    const auto& b_type = r.get<EntityTypeComponent>(b).type;
+
+    // check if an enemy is colling with player line of sight
+    const auto [a_ent, b_ent] = collision_of_interest<const LineOfSightComponent, const EnemyComponent>(r, a, b);
+    if (a_ent != entt::null && b_ent != entt::null) {
+      // an enemy is colliding with line of sight!
+      const auto& parent = r.get<HasParentComponent>(a_ent); // type player
+      r.emplace_or_replace<WantsToShoot>(parent.parent);
     }
   }
 }

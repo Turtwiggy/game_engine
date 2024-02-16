@@ -84,8 +84,7 @@ move_to_scene_start(entt::registry& r, const Scene s)
   camera.position = glm::ivec3(0, 0, 0);
 
   // create a cursor
-  const auto cursor = create_gameplay(r, EntityType::cursor);
-  // r.remove<TransformComponent>(cursor);
+  create_gameplay(r, EntityType::cursor);
 
   stop_all_audio(r);
 

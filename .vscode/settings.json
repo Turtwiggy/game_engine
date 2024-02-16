@@ -20,6 +20,8 @@
     "**/.vs": true
   },
   "editor.bracketPairColorization.enabled": true,
-  "debug.focusEditorOnBreak": false
+  "C_Cpp.codeAnalysis.clangTidy.enabled": true,
+  "C_Cpp.default.intelliSenseMode": "windows-msvc-x64",
+  "C_Cpp.formatting": "clangFormat"
   // "editor.guides.bracketPairs": "active",
 }

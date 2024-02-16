@@ -21,6 +21,7 @@ struct PlayerComponent
 
   // weapon
   entt::entity weapon = entt::null;
+  entt::entity weapon_line_of_sight = entt::null;
   float weapon_offset = 20.0f; // around the player
 };
 

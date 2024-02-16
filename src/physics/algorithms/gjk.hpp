@@ -1,5 +1,7 @@
 #pragma once
 
+#include "renderer/transform.hpp"
+
 #include <glm/glm.hpp>
 #include <vector>
 
@@ -17,7 +19,7 @@ struct RotatedSquare
 bool
 gjk_squares_collide(const RotatedSquare& a, const RotatedSquare& b);
 
-// RotatedSquare
-// transform_to_rotated_square(const TransformComponent& t)
+RotatedSquare
+transform_to_rotated_square(const TransformComponent& t);
 
 }; // namespace game2d

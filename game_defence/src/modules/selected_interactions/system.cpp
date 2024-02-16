@@ -41,6 +41,8 @@ update_cursor_ui(entt::registry& r,
     auto& held_t = r.emplace_or_replace<TransformComponent>(cursor_comp.held_ent);
     auto& line_t = r.emplace_or_replace<TransformComponent>(cursor_comp.line_ent);
     click_t.position = glm::ivec3(mouse_pos.x, mouse_pos.y, 0);
+
+    // set scale, because transforms could be created for the first time
     click_t.scale = { 8, 8, 1 };
     held_t.scale = { 8, 8, 1 };
   }
@@ -49,7 +51,8 @@ update_cursor_ui(entt::registry& r,
   if (held && enemies.size() == 0) {
 
     // position the held icon
-    r.get<TransformComponent>(cursor_comp.held_ent).position = glm::ivec3(mouse_pos.x, mouse_pos.y, 0);
+    auto& held_t = r.get<TransformComponent>(cursor_comp.held_ent);
+    held_t.position = glm::ivec3(mouse_pos.x, mouse_pos.y, 0);
 
     // position the line
     const auto line = generate_line(click_position.value(), held_position.value(), 2);
@@ -78,6 +81,11 @@ attack_action(entt::registry& r, const entt::entity& enemy)
     //
     // set target as first enemy target
     r.get_or_emplace<DynamicTargetComponent>(e).target = enemy;
+
+    // remove a static target if it existed
+    if (r.try_get<StaticTargetComponent>(e)) {
+      r.remove<StaticTargetComponent>(e);
+    }
   }
 }
 
@@ -140,6 +148,7 @@ update_selected_interactions_system(entt::registry& r, const glm::ivec2& mouse_p
   const auto& cursor = get_first<CursorComponent>(r);
   const auto& cursor_comp = r.get<CursorComponent>(cursor);
   const auto& enemies = cursor_comp.hovering_enemies;
+  auto& dead = get_first_component<SINGLETON_EntityBinComponent>(r);
   // const auto& map = get_first_component<MapComponent>(r);
 
   // warning: doesnt work with controller currently
@@ -152,10 +161,10 @@ update_selected_interactions_system(entt::registry& r, const glm::ivec2& mouse_p
   const auto& players = r.view<PlayerComponent, TransformComponent>();
   if (players.size_hint() == 0)
     return;
-  entt::entity first_player = entt::null;
+  // entt::entity first_player = entt::null;
   TransformComponent first_player_t;
   for (const auto& [e, player, t] : players.each()) {
-    first_player = e;
+    // first_player = e;
     first_player_t = t;
     break;
   }
@@ -202,17 +211,42 @@ update_selected_interactions_system(entt::registry& r, const glm::ivec2& mouse_p
 
   //
   // ctrl+click
-  // force move
+  // create a line between the player and the selected location
+  // if that line contains or collides with an enemy,
+  // the player should shoot
   //
   if (ctrl_held && click) {
-    move_action(r, click_position.value(), held_position.value());
 
-    click_position = std::nullopt;
-    held_position = std::nullopt;
+    const auto& selected_view =
+      r.view<PlayerComponent, const SelectedComponent, const AABB>(entt::exclude<WaitForInitComponent>);
+    for (const auto& [e, player, selected, aabb] : selected_view.each()) {
+      const auto line_e = create_gameplay(r, EntityType::empty_with_physics);
+      r.emplace<LineOfSightComponent>(line_e);
+      r.emplace<HasParentComponent>(line_e, e); // set player as parent
+
+      // update target
+      r.emplace_or_replace<StaticTargetComponent>(e, mouse_pos);
+      if (r.try_get<DynamicTargetComponent>(e))
+        r.remove<DynamicTargetComponent>(e);
+
+      const auto line_info = generate_line(aabb.center, mouse_pos, 10);
+      auto& line_transform = r.get<TransformComponent>(line_e);
+      set_transform_with_line(line_transform, line_info);
+      auto& line_aabb = r.get<AABB>(line_e);
+      line_aabb.center = line_transform.position;
+      line_aabb.size = { line_transform.scale.x, line_transform.scale.y };
+
+      if (player.weapon_line_of_sight != entt::null) {
+        // remove the old line of sight
+        dead.dead.emplace(player.weapon_line_of_sight);
+      }
+      // set the new line of sight
+      player.weapon_line_of_sight = line_e;
+    }
+
   }
   //
-  // click
-  // attack hovered
+  // click + attack
   //
   else if (click && enemies.size() > 0) {
     attack_action(r, enemies[0]);

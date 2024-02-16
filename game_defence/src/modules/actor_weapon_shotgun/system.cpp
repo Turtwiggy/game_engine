@@ -4,6 +4,7 @@
 #include "audio/helpers.hpp"
 #include "components.hpp"
 #include "entt/helpers.hpp"
+#include "helpers/line.hpp"
 #include "maths/maths.hpp"
 #include "modules/actor_player/components.hpp"
 #include "modules/combat_attack_cooldown/components.hpp"
@@ -36,30 +37,62 @@ update_weapon_shotgun_system(entt::registry& r, const uint64_t milliseconds_dt)
       dead.dead.emplace(entity); // kill this parentless entity (soz)
       continue;
     }
-    const auto& [player, input, player_aabb] = r.get<const PlayerComponent, const InputComponent, const AABB>(p);
+    const auto& [player, input, player_aabb] = r.get<PlayerComponent, const InputComponent, const AABB>(p);
 
     // Set default position this would want to be
     pos.position = player_aabb.center;
     shotgun_transform.rotation_radians.z = 0.0f;
 
     // Is this unit currently selected?
-    const auto* selected = r.try_get<SelectedComponent>(p);
+    // const auto* selected = r.try_get<SelectedComponent>(p);
 
-    // Get Target
-    const auto* tgt = r.try_get<DynamicTargetComponent>(p);
-    if (tgt == nullptr)
-      continue;
-    if (!r.valid(tgt->target)) {
-      r.remove<DynamicTargetComponent>(p);
-      continue;
+    // Get Target: Either an Entity or a Location
+    const auto* dynamic_tgt = r.try_get<DynamicTargetComponent>(p);
+    const auto* static_tgt = r.try_get<StaticTargetComponent>(p);
+
+    // if no valid target, check line of sight
+    if (player.weapon_line_of_sight != entt::null) {
+      if (dynamic_tgt == nullptr && static_tgt == nullptr) {
+        dead.dead.emplace(player.weapon_line_of_sight);
+        player.weapon_line_of_sight = entt::null;
+      }
     }
 
+    if (dynamic_tgt == nullptr && static_tgt == nullptr)
+      continue;
+    // Invalid dynamic target; must have a static target
+    if (dynamic_tgt && !r.valid(dynamic_tgt->target)) {
+      r.remove<DynamicTargetComponent>(p);
+      if (!static_tgt) {
+
+        continue; // If no static target either; skip all together
+      }
+    }
+
+    // Assume a target by here
+    glm::ivec2 target_position{ 0, 0 };
+    if (dynamic_tgt)
+      target_position = r.get<AABB>(dynamic_tgt->target).center;
+    if (static_tgt)
+      target_position = static_tgt->target.value();
+
     // dir from shotgun to target
-    const auto target_aabb = r.get<AABB>(tgt->target);
-    const auto dir_i = glm::ivec2(shotgun_transform.position.x, shotgun_transform.position.y) - target_aabb.center;
+    const auto dir_i = glm::ivec2(shotgun_transform.position.x, shotgun_transform.position.y) - target_position;
     glm::vec2 dir{ dir_i.x, dir_i.y };
     if (dir.x != 0.0f || dir.y != 0.0f)
       dir = glm::normalize(dir);
+
+    // update "line of sight".
+    // probably should not be on the "weapon" system.
+    auto& los_e = player.weapon_line_of_sight;
+    if (los_e != entt::null) {
+      const auto line_info = generate_line(player_aabb.center, target_position, 10);
+      auto& line_transform = r.get<TransformComponent>(los_e);
+      set_transform_with_line(line_transform, line_info);
+      auto& line_aabb = r.get<AABB>(los_e);
+      line_aabb.center = line_transform.position;
+      line_aabb.size = { line_transform.scale.x, line_transform.scale.y };
+    }
 
     // simulate "picking up the gun"
     const glm::ivec2 offset = { -dir.x * player.weapon_offset, -dir.y * player.weapon_offset };
@@ -84,11 +117,11 @@ update_weapon_shotgun_system(entt::registry& r, const uint64_t milliseconds_dt)
     }
 
     // check if input was released
-    bool shoot_released = false;
-    if (const auto* release_request = r.try_get<WantsToReleaseShot>(p)) {
-      shoot_released = true;
-      r.remove<WantsToReleaseShot>(p);
-    }
+    // bool shoot_released = false;
+    // if (const auto* release_request = r.try_get<WantsToReleaseShot>(p)) {
+    //   shoot_released = true;
+    //   r.remove<WantsToReleaseShot>(p);
+    // }
 
     // fire shots in a spread
     //
