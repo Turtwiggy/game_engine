@@ -47,12 +47,19 @@ struct PhysicsActorComponent
 
 struct VelocityComponent
 {
+  // the velocity to update next frame with
   float x = 0.0f;
   float y = 0.0f;
+
+  // pathfinding wants this path
+  float preferred_x = 0.0f;
+  float preferred_y = 0.0f;
+
+  // the velocity * dt, decremented when doing the update
   float remainder_x = 0.0f;
   float remainder_y = 0.0f;
 
-  float base_speed = 1.0f; // influences velocity
+  float base_speed = 50.0f; // influences velocity
 };
 
 // A collision occurs between two entities

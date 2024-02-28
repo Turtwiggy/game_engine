@@ -131,6 +131,7 @@ create_physics_actor(entt::registry& r, const entt::entity& e)
   r.emplace<PhysicsTransformYComponent>(e);
   r.emplace<AABB>(e);
   r.emplace<PhysicsActorComponent>(e);
+  r.emplace<VelocityComponent>(e);
 };
 
 entt::entity
@@ -196,11 +197,10 @@ create_gameplay(entt::registry& r, const EntityType& type)
       r.emplace<ControllerComponent>(e);
 
       // movement
-      r.emplace<VelocityComponent>(e);
       r.emplace<HasTargetPositionComponent>(e);
-      r.emplace<LerpToTargetComponent>(e, player_speed);
+      r.emplace<SetVelocityToTargetComponent>(e, player_speed);
 
-      r.emplace<HealthComponent>(e, 100, 100);
+      r.emplace<HealthComponent>(e, 1000, 1000);
       r.emplace<InventoryLimit>(e);
       r.emplace<CameraFollow>(e);
       r.emplace<HoverableComponent>(e);
@@ -223,8 +223,8 @@ create_gameplay(entt::registry& r, const EntityType& type)
       create_physics_actor(r, e);
       r.emplace<HealthComponent>(e, 10, 10);
 
-      // 1 second between spawning
-      r.emplace<AttackCooldownComponent>(e, 1.0f);
+      // X seconds between spawning
+      r.emplace<AttackCooldownComponent>(e, 5.0f);
 
       // if spawning enemies...
       // its on the enemy team
@@ -302,9 +302,8 @@ create_gameplay(entt::registry& r, const EntityType& type)
     case EntityType::weapon_bow: {
       create_physics_actor(r, e);
       r.emplace<BowComponent>(e);
-      r.emplace<VelocityComponent>(e);
       r.emplace<HasTargetPositionComponent>(e);
-      r.emplace<LerpToTargetComponent>(e);
+      r.emplace<SetVelocityToTargetComponent>(e);
       r.emplace<AttackCooldownComponent>(e);
       r.emplace<HasParentComponent>(e);
       break;
@@ -313,9 +312,8 @@ create_gameplay(entt::registry& r, const EntityType& type)
     case EntityType::weapon_shotgun: {
       create_physics_actor(r, e);
       r.emplace<ShotgunComponent>(e);
-      r.emplace<VelocityComponent>(e);
       r.emplace<HasTargetPositionComponent>(e);
-      r.emplace<LerpToTargetComponent>(e);
+      r.emplace<SetVelocityToTargetComponent>(e);
       r.emplace<AttackCooldownComponent>(e, 1.2f); // seconds between spawning
       r.emplace<HasParentComponent>(e);
       break;
@@ -327,7 +325,6 @@ create_gameplay(entt::registry& r, const EntityType& type)
 
     case EntityType::bullet_bow: {
       create_physics_actor(r, e);
-      r.emplace<VelocityComponent>(e);
       r.emplace<TeamComponent>(e, AvailableTeams::player);
       // no attack component as arrows are inactive sometimes
       break;
@@ -340,7 +337,6 @@ create_gameplay(entt::registry& r, const EntityType& type)
       transform.scale.x = SMALL_SIZE.x;
       transform.scale.y = SMALL_SIZE.y;
       r.emplace<TeamComponent>(e, AvailableTeams::player);
-      r.emplace<VelocityComponent>(e);
       r.emplace<SetTransformAngleToVelocity>(e);
       r.emplace<EntityTimedLifecycle>(e);
       r.emplace<AttackComponent>(e, 3);
@@ -354,7 +350,6 @@ create_gameplay(entt::registry& r, const EntityType& type)
       transform.scale.x = SMALL_SIZE.x;
       transform.scale.y = SMALL_SIZE.y;
       r.emplace<TeamComponent>(e, AvailableTeams::enemy);
-      r.emplace<VelocityComponent>(e);
       r.emplace<SetTransformAngleToVelocity>(e);
       // r.emplace<EntityTimedLifecycle>(e);
       // r.emplace<AttackComponent>(e, 3);
@@ -366,7 +361,6 @@ create_gameplay(entt::registry& r, const EntityType& type)
     //
     case EntityType::enemy_dummy: {
       create_physics_actor(r, e);
-      r.emplace<VelocityComponent>(e);
       r.emplace<EnemyComponent>(e);
       r.emplace<TeamComponent>(e, AvailableTeams::enemy);
       r.emplace<HealthComponent>(e, 100, 100);
@@ -380,10 +374,8 @@ create_gameplay(entt::registry& r, const EntityType& type)
       r.emplace<HoverableComponent>(e);
 
       // movement
-      const float speed = 50.0f;
-      r.emplace<VelocityComponent>(e);
       r.emplace<HasTargetPositionComponent>(e);
-      r.emplace<LerpToTargetComponent>(e, speed);
+      // r.emplace<LerpToTargetComponent>(e, speed);
 
       // combat
       r.emplace<TeamComponent>(e, AvailableTeams::enemy);
@@ -399,10 +391,8 @@ create_gameplay(entt::registry& r, const EntityType& type)
       r.emplace<HoverableComponent>(e);
 
       // movement
-      const float speed = 50.0f;
-      r.emplace<VelocityComponent>(e);
       r.emplace<HasTargetPositionComponent>(e);
-      r.emplace<LerpToTargetComponent>(e, speed);
+      // r.emplace<LerpToTargetComponent>(e, speed);
 
       // combat
       r.emplace<TeamComponent>(e, AvailableTeams::enemy);
@@ -417,7 +407,6 @@ create_gameplay(entt::registry& r, const EntityType& type)
       //   create_physics_actor(r, e);
       //   r.emplace<EnemyComponent>(e);
       //   r.emplace<TeamComponent>(e, AvailableTeams::enemy);
-      //   r.emplace<VelocityComponent>(e);
       //   r.emplace<HealthComponent>(e, 4, 4);
       //   r.emplace<AttackComponent>(e, 50);
       //   break;
@@ -430,7 +419,6 @@ create_gameplay(entt::registry& r, const EntityType& type)
     case EntityType::cursor: {
       r.emplace<CursorComponent>(e);
       create_physics_actor(r, e);
-      r.emplace<VelocityComponent>(e);
       break;
     }
 

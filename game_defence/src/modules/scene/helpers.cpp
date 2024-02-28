@@ -23,7 +23,6 @@
 #include "modules/lifecycle/components.hpp"
 #include "modules/procedural/cell_automata.hpp"
 #include "modules/procedural/poisson.hpp"
-#include "modules/procedural/voronoi.hpp"
 #include "modules/renderer/components.hpp"
 #include "modules/renderer/helpers.hpp"
 #include "modules/screenshake/components.hpp"
@@ -94,6 +93,7 @@ move_to_scene_start(entt::registry& r, const Scene s)
     auto& ui = destroy_and_create<SINGLE_MainMenuUI>(r);
 
     // Play some audio
+    // TODO: check if muted...
     r.emplace<AudioRequestPlayEvent>(r.create(), "MENU_01");
 
     // Load randoms name file
@@ -166,7 +166,7 @@ move_to_scene_start(entt::registry& r, const Scene s)
       const auto e = create_gameplay(r, EntityType::actor_player);
       auto& e_aabb = r.get<AABB>(e);
       e_aabb.size = default_size;
-      e_aabb.center = { -50, 0 + (32 * i) };
+      e_aabb.center = { -200, -200 + (32 * i) };
       auto& target_pos = r.get<HasTargetPositionComponent>(e);
       target_pos.position = e_aabb.center;
       // const auto icon_xy = set_sprite_custom(r, e, "player_0", tex_unit);
@@ -192,46 +192,66 @@ move_to_scene_start(entt::registry& r, const Scene s)
     //   e_aabb.center = { 200, 0 };
     // }
 
-    // TEMP: create spawners
-
+    // TEMP: create enemies on top of eachother,
+    // and hope that they move apart from eachother.
     {
-      const auto e = create_gameplay(r, EntityType::actor_spawner);
-      auto& e_aabb = r.get<AABB>(e);
-      e_aabb.size = default_size * 1;
-      e_aabb.center = { 250, -500 };
+      const glm::vec2 bl{ -100, 100 };
+      const glm::vec2 br{ 100, 100 };
+      const glm::vec2 tl{ -100, -100 };
+      const glm::vec2 tr{ 100, -100 };
 
-      auto& spawner = r.get<SpawnerComponent>(e);
-      spawner.type_to_spawn = EntityType::enemy_grunt;
+      {
+        const auto e = create_gameplay(r, EntityType::enemy_grunt);
+        auto& e_aabb = r.get<AABB>(e);
+        e_aabb.size = default_size * 1;
+        e_aabb.center = bl;
+        auto& target_position = r.get<HasTargetPositionComponent>(e);
+        target_position.position = tr;
+      }
+      {
+        const auto e = create_gameplay(r, EntityType::enemy_grunt);
+        auto& e_aabb = r.get<AABB>(e);
+        e_aabb.size = default_size * 1;
+        e_aabb.center = br;
+        auto& target_position = r.get<HasTargetPositionComponent>(e);
+        target_position.position = tl;
+      }
+      {
+        const auto e = create_gameplay(r, EntityType::enemy_grunt);
+        auto& e_aabb = r.get<AABB>(e);
+        e_aabb.size = default_size * 1;
+        e_aabb.center = tl;
+        auto& target_position = r.get<HasTargetPositionComponent>(e);
+        target_position.position = br;
+      }
+      {
+        const auto e = create_gameplay(r, EntityType::enemy_grunt);
+        auto& e_aabb = r.get<AABB>(e);
+        e_aabb.size = default_size * 1;
+        e_aabb.center = tr;
+        auto& target_position = r.get<HasTargetPositionComponent>(e);
+        target_position.position = bl;
+      }
+      {
+        // static obstacle
+        const auto e = create_gameplay(r, EntityType::enemy_grunt);
+        auto& e_aabb = r.get<AABB>(e);
+        e_aabb.size = default_size * 1;
+        e_aabb.center = glm::vec2(0, 0);
+        auto& target_position = r.get<HasTargetPositionComponent>(e);
+        target_position.position = glm::vec2(0, 0);
+      }
     }
-    {
-      const auto e = create_gameplay(r, EntityType::actor_spawner);
-      auto& e_aabb = r.get<AABB>(e);
-      e_aabb.size = default_size * 1;
-      e_aabb.center = { -250, 500 };
 
-      auto& spawner = r.get<SpawnerComponent>(e);
-      spawner.type_to_spawn = EntityType::enemy_ranged;
-    }
-    // for (int i = 0; i < menu_ui.level; i++) {
-    //   const auto e = create_gameplay(r, EntityType::actor_spawner);
-    //   auto& e_aabb = r.get<AABB>(e);
-    //   e_aabb.size = default_size * 1;
-    //   if (i == 0) // b
-    //     e_aabb.center = { -100, 500 };
-    //   if (i == 1) // r
-    //     e_aabb.center = { 500, 0 };
-    //   if (i == 2) // l
-    //     e_aabb.center = { -500, 0 };
-    //   if (i == 3) // t
-    //     e_aabb.center = { -100, -500 };
-    // }
+    // map width and height
+    // out of which is considered out of bounds
+    const int width = 10000;
+    const int height = 10000;
+    const glm::ivec2 offset = { -width / 2, -height / 2 };
 
     // VISUAL: use poisson for grass
     {
-      const int width = 1920;
-      const int height = 1080;
       const auto poisson = generate_poisson(width, height, 150, 0);
-      const glm::ivec2 offset = { -width / 2, -height / 2 };
       std::cout << "generated " << poisson.size() << " poisson points" << std::endl;
       for (const auto& p : poisson) {
         const auto icon = create_gameplay(r, EntityType::empty);
@@ -243,83 +263,72 @@ move_to_scene_start(entt::registry& r, const Scene s)
       }
     }
 
-    // the spritesheet for a gate
+    // generate some walls
+    // {
+    //   MapComponent map_c;
+    //   map_c.tilesize = 64;
+    //   map_c.xmax = 10;
+    //   map_c.ymax = 10;
+    //   const glm::ivec2 tilesize{ map_c.tilesize, map_c.tilesize };
+    //   const glm::ivec2 offset = { tilesize.x / 2.0f, tilesize.y / 2.0f };
     {
-      auto set_sprite_blender = [&r](const entt::entity& e, const std::string& sprite, int tex_unit) {
-        const auto& anims = get_first_component<SINGLE_Animations>(r);
-        const auto anim = find_animation(anims, sprite);
-        auto& sc = r.get<SpriteComponent>(e);
-        sc.tex_unit = tex_unit;
-        sc.total_sx = 5;
-        sc.total_sy = 5;
-        sc.tex_pos.x = anim.animation_frames[0].x;
-        sc.tex_pos.y = anim.animation_frames[0].y;
-        sc.tex_pos.w = anim.animation_frames[0].w;
-        sc.tex_pos.h = anim.animation_frames[0].h;
-      };
-      const auto new_e = create_gameplay(r, EntityType::empty);
-      const auto tex_unit_blender = search_for_texture_unit_by_path(ri, "blender")->unit;
-      set_sprite_blender(new_e, "sprite_01"s, tex_unit_blender);
+      //   // generate a map
+      //   {
+      //     map_c.map = generate_50_50({ map_c.xmax, map_c.ymax }, 0);
+      //     map_c.map = iterate_with_cell_automata(map_c.map, { map_c.xmax, map_c.ymax });
+      //     map_c.map = iterate_with_cell_automata(map_c.map, { map_c.xmax, map_c.ymax });
+      //     map_c.map = iterate_with_cell_automata(map_c.map, { map_c.xmax, map_c.ymax });
+      //   }
 
-      r.get<TransformComponent>(new_e).position = { 0.0f, 0.0f, 0.0f };
-      r.get<TransformComponent>(new_e).scale = { default_size.x * 2.0f, default_size.y * 2.0f, 1.0f };
-      r.get<TagComponent>(new_e).tag = "gate"s;
+      //   // unblock spawn point
+      //   {
+      //     if (map_c.map[0] == 1)
+      //       map_c.map[0] = 0;
+      //     r.emplace<MapComponent>(r.create(), map_c);
+      //   }
 
-      SpriteAnimationComponent anim;
-      anim.playing_animation_name = "GATE_ANIM";
-      anim.duration = 3.0f;
-      anim.looping = false;
-      anim.destroy_after_play = false;
-      r.emplace<SpriteAnimationComponent>(new_e, anim);
+      //   const auto& maap = map_c.map;
+      //   for (int i = 0; i < maap.size(); i++) {
+
+      //     const auto xy = engine::grid::index_to_grid_position(i, map_c.xmax, map_c.ymax);
+      //     auto xy_world = engine::grid::index_to_world_position(i, map_c.xmax, map_c.ymax, map_c.tilesize);
+      //     xy_world += offset;
+
+      //     // wall
+      //     if (maap[i] == 1) {
+      //       const auto e = create_gameplay(r, EntityType::solid_wall);
+      //       set_sprite_custom(r, e, "icon_beer"s, tex_unit);
+      //       r.get<AABB>(e).center = xy_world;
+      //       r.get<TransformComponent>(e).scale = { default_size.x, default_size.y, 1.0f };
+      //       r.get<TagComponent>(e).tag = "wall"s;
+      //     }
+      //     // floor
+      //     else {
+      //       const auto e = create_gameplay(r, EntityType::empty);
+      //       set_sprite_custom(r, e, "icon_grass"s, tex_unit);
+      //       r.get<TransformComponent>(e).position = { xy_world.x, xy_world.y, 0.0f };
+      //       r.get<TransformComponent>(e).scale = { default_size.x, default_size.y, 1.0f };
+      //       r.get<TagComponent>(e).tag = "grass"s;
+      //     }
+      //   }
     }
 
-    // generate some walls
+    // Generate "seed points" for bases
     {
-      MapComponent map_c;
-      map_c.tilesize = 64;
-      map_c.xmax = 10;
-      map_c.ymax = 10;
-      const glm::ivec2 tilesize{ map_c.tilesize, map_c.tilesize };
-      const glm::ivec2 offset = { tilesize.x / 2.0f, tilesize.y / 2.0f };
 
-      // generate a map
-      {
-        map_c.map = generate_50_50({ map_c.xmax, map_c.ymax }, 0);
-        map_c.map = iterate_with_cell_automata(map_c.map, { map_c.xmax, map_c.ymax });
-        map_c.map = iterate_with_cell_automata(map_c.map, { map_c.xmax, map_c.ymax });
-        map_c.map = iterate_with_cell_automata(map_c.map, { map_c.xmax, map_c.ymax });
-      }
-
-      // unblock spawn point
-      {
-        if (map_c.map[0] == 1)
-          map_c.map[0] = 0;
-        r.emplace<MapComponent>(r.create(), map_c);
-      }
-
-      const auto& maap = map_c.map;
-      for (int i = 0; i < maap.size(); i++) {
-
-        const auto xy = engine::grid::index_to_grid_position(i, map_c.xmax, map_c.ymax);
-        auto xy_world = engine::grid::index_to_world_position(i, map_c.xmax, map_c.ymax, map_c.tilesize);
-        xy_world += offset;
-
-        // wall
-        if (maap[i] == 1) {
-          const auto e = create_gameplay(r, EntityType::solid_wall);
-          const auto icon_xy = set_sprite_custom(r, e, "icon_beer"s, tex_unit);
-          r.get<AABB>(e).center = xy_world;
-          r.get<TransformComponent>(e).scale = { default_size.x, default_size.y, 1.0f };
-          r.get<TagComponent>(e).tag = "wall"s;
-        }
-        // floor
-        else {
-          const auto e = create_gameplay(r, EntityType::empty);
-          const auto icon_xy = set_sprite_custom(r, e, "icon_grass"s, tex_unit);
-          r.get<TransformComponent>(e).position = { xy_world.x, xy_world.y, 0.0f };
-          r.get<TransformComponent>(e).scale = { default_size.x, default_size.y, 1.0f };
-          r.get<TagComponent>(e).tag = "grass"s;
-        }
+      const int seed = 0;
+      const int distance_between_points = 3000;
+      const auto poisson = generate_poisson(width, height, distance_between_points, seed);
+      std::cout << "generated " << poisson.size() << " poisson points for bases" << std::endl;
+      for (const auto& p : poisson) {
+        // create a spawner at these positions
+        const auto e = create_gameplay(r, EntityType::actor_spawner);
+        r.emplace<OnlySpawnInRangeOfAnyPlayerComponent>(e);
+        auto& e_aabb = r.get<AABB>(e);
+        e_aabb.size = default_size * 1;
+        e_aabb.center = { offset.x + p.x, offset.y + p.y };
+        auto& spawner = r.get<SpawnerComponent>(e);
+        spawner.type_to_spawn = EntityType::enemy_grunt;
       }
     }
 

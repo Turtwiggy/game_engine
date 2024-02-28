@@ -91,6 +91,14 @@ update_ui_rpg_character_system(entt::registry& r)
 
   // Active Fight
   static std::vector<entt::entity> active_fight;
+  static bool first_time_done = false;
+  if (!first_time_done) {
+    first_time_done = true;
+    const auto new_e = r.create();
+    r.emplace<CharacterStats>(new_e, stats);
+    r.emplace<InActiveFight>(new_e);
+  }
+
   if (ImGui::Button(("Add Monster"))) {
 
     // probably a better way to do this

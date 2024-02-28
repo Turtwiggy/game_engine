@@ -74,7 +74,7 @@ game2d::update_move_objects_system(entt::registry& r, const uint64_t& millisecon
           vel.remainder_x -= move; // consume so no frame jump
           const int sign = glm::sign(move);
 
-          while (move != 0) {
+          for (int i = 0; i < glm::abs(move); i++) {
 
             // would-be updated position
             AABB updated_pos = aabb;
@@ -111,7 +111,8 @@ game2d::update_move_objects_system(entt::registry& r, const uint64_t& millisecon
         if (amount != 0) {
           vel.remainder_y -= amount; // consume so no frame jump
           const int sign = glm::sign(amount);
-          while (amount != 0) {
+
+          for (int i = 0; i < glm::abs(amount); i++) {
 
             // would-be updated position
             AABB updated_pos = aabb;

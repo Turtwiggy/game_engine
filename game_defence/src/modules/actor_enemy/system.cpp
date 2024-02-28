@@ -1,6 +1,8 @@
 #include "system.hpp"
 
 #include "entt/helpers.hpp"
+#include "helpers/line.hpp"
+#include "maths/maths.hpp"
 #include "modules/actor_enemy/components.hpp"
 #include "modules/actor_player/components.hpp"
 #include "modules/combat_attack_cooldown/components.hpp"
@@ -16,6 +18,109 @@
 
 namespace game2d {
 
+glm::vec2
+abs_squared(const glm::vec2& a)
+{
+  return a * a;
+}
+
+//
+//  Try to perform reciprical velocity obstacle (RVO) avoidance
+//  https://gamma.cs.unc.edu/HRVO/HRVO-T-RO.pdf
+//
+void
+update_velocity_based_on_rvo()
+{
+  // const auto& vel_view = r.view<const AABB, VelocityComponent, const EnemyComponent>();
+
+  // for (const auto& [e, enemy, target_position, enemy_t, vel, aabb] : view.each()) {
+
+  // future optimisation: we do not need to take all the other agents in to account when
+  // selecting a new velocity, as the penalty of the velocities will
+  // not depend on all agents that are far away.
+
+  // {
+  //   for (const auto& [b_e, b_aabb, b_vel, b_enemy] : vel_view.each()) {
+  //     if (e == b_e)
+  //       continue; // avoid yourself, bruh
+
+  //     const auto pos_a = glm::vec2(aabb.center.x, aabb.center.y);     // x: 100
+  //     const auto vel_a = glm::vec2(vel.x, vel.y);                     // x: -10
+  //     const auto pos_b = glm::vec2(b_aabb.center.x, b_aabb.center.y); // x: -100
+  //     const auto vel_b = glm::vec2(b_vel.x, b_vel.y);                 // x: 10
+  //     const auto relative_pos = pos_b - pos_a;                        // -200, 0
+
+  //     // assume circles for the minkowski sum
+  //     const auto combined_radius = ((aabb.size.x / 2.0f) + (b_aabb.size.x / 2.0f)) * 2.0f; // 32
+
+  //     // if this dot product is positive, they're heading towards eachother
+  //     // if its negative, they're heading away from each other (no possible collision)
+  //     //
+  //     const auto relative_vel = vel_a - vel_b; // -10, 0
+  //     const auto dot_product = glm::dot(relative_pos, relative_vel);
+  //     ImGui::Text("DotProduct: %f", dot_product);
+  //     if (dot_product < 0)
+  //       continue; // not headed for a collision, continue along preferred velocity#
+
+  //     // warning: time to collision doesnt take in to account radius
+  //     // const auto speed = glm::length(relative_vel);
+  //     // const auto time_to_collision = dot_product / (speed * speed);
+  //     // ImGui::Text("ttc: %f", time_to_collision);
+
+  //     // Calculate the Velocity Obstacle
+  //     //
+  //     const auto distance = glm::length(relative_pos);
+  //     const auto angle = atan2(relative_pos.y, relative_pos.x); // angle to x-axis
+  //     const auto tangent_angle = atan(combined_radius / distance);
+  //     const auto tangent_angle_left = angle + tangent_angle;
+  //     const auto tangent_angle_right = angle - tangent_angle;
+  //     auto tangent_point_left = pos_a;
+  //     tangent_point_left.x += cos(tangent_angle_left) * distance;
+  //     tangent_point_left.y += sin(tangent_angle_left) * distance;
+  //     auto tangent_point_right = pos_a;
+  //     tangent_point_right.x += cos(tangent_angle_right) * distance;
+  //     tangent_point_right.y += sin(tangent_angle_right) * distance;
+  //     // TODO: calculate the far side of the velocity object
+
+  //     // Translate the VO in to a RVO.
+  //     //
+  //     const glm::vec2 translation = (vel_a + vel_b) / 2.0f;
+  //     const auto a1 = pos_a + translation;
+  //     const auto a2 = tangent_point_left + translation;
+  //     const auto b1 = pos_a + translation;
+  //     const auto b2 = tangent_point_right + translation;
+  //     const auto c1 = tangent_point_left + translation;  // should be far side
+  //     const auto c2 = tangent_point_right + translation; // should be far side
+  //     // set_transform_with_line(r.get<TransformComponent>(enemy.cone_l), generate_line(a1, a2, 2));
+  //     // set_transform_with_line(r.get<TransformComponent>(enemy.cone_r), generate_line(b1, b2, 2));
+  //     // set_transform_with_line(r.get<TransformComponent>(enemy.cone_far), generate_line(c1, c2, 2));
+
+  //     // Pick a velocity outside the RVO
+  //     //
+  //     const auto dir_left = glm::normalize(a2 - a1);
+  //     const auto dir_right = glm::normalize(b2 - b1);
+  //     const auto nrm_vel = glm::normalize(vel_a);
+
+  //     // Is the current velocity already outside the RVO?
+  //     //
+  //     const auto valid_vel_check_a = glm::dot(nrm_vel, dir_left) < 0;
+  //     const auto valid_vel_check_b = glm::dot(nrm_vel, dir_right) < 0;
+  //     if (valid_vel_check_a && valid_vel_check_b)
+  //       continue; // no need to adjust velocity, velocity is fine
+
+  //     // Otherwise, pick a new velocity outside of the RVO.
+  //     //
+  //     // When choosing a new velocity,
+  //     // the average is taken of its current velocity
+  //     // and a velocity outside the veloicty object.
+  //     // Robots are typically required to select the velocity closest to their own preferred velocity.
+
+  //     // TODO...
+  //     vel.x = dir_left.x * vel.base_speed;
+  //     vel.y = dir_left.y * vel.base_speed;
+  //   }
+}
+
 void
 update_enemy_system(entt::registry& r, const float dt)
 {
@@ -25,14 +130,39 @@ update_enemy_system(entt::registry& r, const float dt)
     return;
   const auto& first_target_transform = r.get<const TransformComponent>(first_target);
 
-  const auto& view =
-    r.view<EnemyComponent, HasTargetPositionComponent, TransformComponent>(entt::exclude<WaitForInitComponent>);
-  for (auto [e, enemy, target_position, enemy_t] : view.each()) {
+  const auto& view = r.view<EnemyComponent, HasTargetPositionComponent, TransformComponent, VelocityComponent, AABB>(
+    entt::exclude<WaitForInitComponent>);
 
-    // Set Target
+  //
+  // Update enemies to preferred velocity.
+  //
+  // note: this should probably take in to account
+  // pathfinding, such as using AStar to calculate the next step
+  //
+  for (const auto& [e, enemy, target_position, enemy_t, vel, aabb] : view.each()) {
+
+    // Set Target to player?
     auto& targeting = r.get_or_emplace<DynamicTargetComponent>(e);
     targeting.target = first_target;
     target_position.position = first_target_transform.position;
+
+    // in this case, the preferred velocity is a vector in the direction of the goal
+    const glm::ivec2 a = { aabb.center.x, aabb.center.y };
+    const glm::ivec2 b = target_position.position;
+    glm::vec2 desired_v = b - a;
+    if (desired_v.x != 0 || desired_v.y != 0.0f)
+      desired_v = glm::normalize(desired_v);
+
+    vel.preferred_x = desired_v.x * vel.base_speed;
+    vel.preferred_y = desired_v.y * vel.base_speed;
+    vel.x = vel.preferred_x;
+    vel.y = vel.preferred_y;
+  }
+
+  //
+  // Update AI Actions
+  //
+  for (const auto& [e, enemy, target_position, enemy_t, vel, aabb] : view.each()) {
 
     // Calculate distance
     const auto& other_pos = r.get<TransformComponent>(first_target);
@@ -51,7 +181,7 @@ update_enemy_system(entt::registry& r, const float dt)
       // Set as Attacking if within range (Melee)
       if (melee && d2 < melee->distance2) {
         enemy.state = EnemyState::MELEE_ATTACKING;
-        r.emplace_or_replace<SeperateTransformFromAABB>(e);
+        // r.emplace_or_replace<SeperateTransformFromAABB>(e);
       }
 
       // Set as Attacking if within shooting range (Ranged)
@@ -60,6 +190,7 @@ update_enemy_system(entt::registry& r, const float dt)
     }
 
     if (enemy.state == EnemyState::MELEE_ATTACKING) {
+      const auto& targeting = r.get<DynamicTargetComponent>(e);
 
       // Tick the attack
       if (enemy.attack_percent <= 1.0f) {
@@ -96,9 +227,8 @@ update_enemy_system(entt::registry& r, const float dt)
         enemy.attack_percent = 0;
         enemy.has_applied_damage = false;
         enemy.state = EnemyState::CHASING;
-        r.remove<SeperateTransformFromAABB>(e);
+        // r.remove<SeperateTransformFromAABB>(e);
       }
-
       //
     }
 
@@ -147,31 +277,7 @@ update_enemy_system(entt::registry& r, const float dt)
       }
     }
   }
+
+  //
 }
-
-// void
-// update_enemy_system(entt::registry& r)
-// {
-//   // check grid exists
-//   const auto grid_e = get_first<GridComponent>(r);
-//   if (grid_e == entt::null)
-//     return;
-//   const auto& grid = r.get<GridComponent>(grid_e);
-
-//   // check flowfield exists
-//   const auto& field = grid.flow_field;
-//   if (field.size() == 0)
-//     return; // field not generated yet
-
-//   const auto& view = r.view<const TransformComponent, VelocityComponent, EnemyComponent>();
-//   for (const auto& [entity, transform, vel, enemy] : view.each()) {
-
-//     if (!enemy.has_target)
-//       update_enemy_get_new_target(grid, transform, enemy);
-
-//     if (enemy.has_target)
-//       update_enemy_to_target(transform, enemy, vel);
-//   }
-// }
-
 } // namespace game2d

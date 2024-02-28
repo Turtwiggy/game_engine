@@ -148,12 +148,12 @@ game2d::update_ui_hierarchy_system(entt::registry& r)
       imgui_draw_ivec2("AABB (center): ", aabb.center.x, aabb.center.y);
       imgui_draw_ivec2("AABB (size): ", aabb.size.x, aabb.size.y);
     }
-    // if (r.all_of<VelocityComponent>(eid)) {
-    //   const VelocityComponent& c = r.get<VelocityComponent>(eid);
-    //   float x = c.x;
-    //   float y = c.y;
-    //   imgui_draw_vec2("Vel: ", x, y);
-    // }
+    if (r.all_of<VelocityComponent>(eid)) {
+      const auto& c = r.get<VelocityComponent>(eid);
+      float x = c.x;
+      float y = c.y;
+      imgui_draw_vec2("Vel: ", x, y);
+    }
 
     if (auto* sc = r.try_get<SpriteComponent>(eid)) {
       // select sprite

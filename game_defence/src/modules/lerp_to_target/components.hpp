@@ -14,7 +14,7 @@ struct HasTargetPositionComponent
   glm::ivec2 position{ 0, 0 };
 };
 
-struct LerpToTargetComponent
+struct SetVelocityToTargetComponent
 {
   float speed = 150.0f;
 };
