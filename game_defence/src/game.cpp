@@ -43,6 +43,7 @@
 #include "modules/scene/helpers.hpp"
 #include "modules/screenshake/system.hpp"
 #include "modules/selected_interactions/system.hpp"
+#include "modules/ui_arrows_to_spawners/system.hpp"
 #include "modules/ui_audio/system.hpp"
 #include "modules/ui_collisions/system.hpp"
 #include "modules/ui_colours/system.hpp"
@@ -278,43 +279,6 @@ game2d::update(engine::SINGLETON_Application& app, entt::registry& r, const floa
       update_actor_dropoffzone_request_items(r, milliseconds_dt);
       update_selected_interactions_system(r, mouse_pos);
 
-      // // HACK: randomly spawn enemies at edges of screen
-      // // basically, if the camera is at 0,0
-      // // the edges of the screen are -width/2, width/2
-      // // i need x to be less than -width/2, or greater than width/2.
-      // static engine::RandomState rnd;
-      // static float cooldown = 0.5f;
-      // static float cooldown_left = 0.5f;
-      // cooldown_left -= dt;
-      // if (cooldown_left <= 0.0f) {
-      //   cooldown_left = cooldown;
-      //   const auto camera_e = get_first<OrthographicCamera>(r);
-      //   const auto camera_t = r.get<TransformComponent>(camera_e);
-      //   glm::ivec2 cpos = { camera_t.position.x, camera_t.position.y };
-      //   const auto& ri = get_first_component<SINGLETON_RendererInfo>(r);
-      //   const auto screen_halfsize = ri.viewport_size_render_at / 2;
-      //   const float left_or_right = (engine::rand_01(rnd.rng) * 2.0f) - 1.0f;
-      //   const float up_or_down = (engine::rand_01(rnd.rng) * 2.0f) - 1.0f;
-      //   const float extra = 100.0f;
-      //   const float pos_edge_y = cpos.y + screen_halfsize.y;
-      //   const float neg_edge_y = cpos.y - screen_halfsize.y;
-      //   const float pos_edge_x = cpos.x + screen_halfsize.x;
-      //   const float neg_edge_x = cpos.x - screen_halfsize.x;
-      //   int x_spawn_pos = 0;
-      //   int y_spawn_pos = 0;
-      //   if (up_or_down > 0.0f) // down
-      //     y_spawn_pos = engine::rand_det_s(rnd.rng, pos_edge_y, pos_edge_y + extra);
-      //   else // up
-      //     y_spawn_pos = engine::rand_det_s(rnd.rng, neg_edge_y, neg_edge_y - extra);
-      //   if (left_or_right > 0.0f) // right
-      //     x_spawn_pos = engine::rand_det_s(rnd.rng, pos_edge_x, pos_edge_x + extra);
-      //   else // left
-      //     x_spawn_pos = engine::rand_det_s(rnd.rng, neg_edge_x, neg_edge_x - extra);
-      //   const auto enemy = create_gameplay(r, EntityType::enemy_grunt);
-      //   auto& enemy_aabb = r.get<AABB>(enemy);
-      //   enemy_aabb.center = { x_spawn_pos, y_spawn_pos };
-      // }
-
       // HACK: gameover condition: X minutes survived
       // {
       //   static int minutes = 1;
@@ -376,17 +340,17 @@ game2d::update(engine::SINGLETON_Application& app, entt::registry& r, const floa
     // update_ui_inverse_kinematics_system(r, mouse_pos);
 
     // Main menu scene can transition to Game scene
-    if (scene.s == Scene::menu)
+    if (scene.s == Scene::menu) {
       update_ui_scene_main_menu(app, r);
-
-    if (scene.s == Scene::menu)
       update_ui_rpg_character_system(r);
+    }
 
     if (scene.s == Scene::game) {
       update_ui_grid_interaction_system(r);
       update_ui_inventory(r);
       update_ui_dropoff_zone_system(r);
       update_ui_selected(r);
+      update_ui_arrows_to_spawners_system(r);
     }
     update_ui_game_player_system(r);
     update_ui_pause_menu_system(app, r);

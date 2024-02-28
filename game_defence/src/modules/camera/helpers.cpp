@@ -44,7 +44,7 @@ position_in_worldspace(entt::registry& r, const glm::ivec2& game_pos)
   const auto screen_pos = game_pos - ri.viewport_pos;
 
   glm::ivec2 camera_position;
-  for (auto [entity, camera, transform] : cameras.each())
+  for (const auto& [entity, camera, transform] : cameras.each())
     camera_position = { transform.position.x, transform.position.y };
 
   const glm::ivec2 xy{

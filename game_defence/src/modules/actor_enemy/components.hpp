@@ -31,12 +31,6 @@ struct EnemyComponent
   float attack_speed = 3.0f;
   float attack_percent = 0.0f;
   bool has_applied_damage = false;
-
-  // HACK: show collision cones
-  // entt::entity cone_l = entt::null;
-  // entt::entity cone_r = entt::null;
-  // entt::entity cone_far = entt::null;
-
 };
 
 } // namespace game2d

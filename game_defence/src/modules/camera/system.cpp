@@ -33,7 +33,7 @@ update_camera_system(entt::registry& r, const float dt, const glm::ivec2& mouse_
   const float screen_y = static_cast<int>(-ri.viewport_size_render_at.y / 2.0f);
 
   auto& camera = r.get<OrthographicCamera>(camera_ent);
-  auto& camera_position_worldspace = camera.base_position;
+  auto& camera_transform = r.get<TransformComponent>(camera_ent);
 
   // calculate direction mouse is in, and add that to thes camera
   // nb: mouse_pos is in worldspace, not screenspace.
@@ -60,23 +60,24 @@ update_camera_system(entt::registry& r, const float dt, const glm::ivec2& mouse_
 
   const float CAM_SPEED = 500.0f;
   const int mul = static_cast<int>(CAM_SPEED * dt);
+
+  glm::vec2 movement{ 0, 0 };
   if (get_key_held(input, SDL_SCANCODE_A))
-    camera_position_worldspace.x -= mul;
+    movement.x -= mul;
   if (get_key_held(input, SDL_SCANCODE_D))
-    camera_position_worldspace.x += mul;
+    movement.x += mul;
   if (get_key_held(input, SDL_SCANCODE_W))
-    camera_position_worldspace.y -= mul;
+    movement.y -= mul;
   if (get_key_held(input, SDL_SCANCODE_S))
-    camera_position_worldspace.y += mul;
+    movement.y += mul;
 
   // if (get_mouse_mmb_held()) { // pan
   // if (get_mouse_lmb_held()) { // rotate
   // if (get_mouse_rmb_held()) { // zoom
 
   // update the transform
-  auto& camera_transform = r.get<TransformComponent>(camera_ent);
-  camera_transform.position.x = camera_position_worldspace.x + camera_offset_due_to_mouse.x;
-  camera_transform.position.y = camera_position_worldspace.y + camera_offset_due_to_mouse.y;
+  camera_transform.position.x += movement.x;
+  camera_transform.position.y += movement.y;
   camera_transform.position.z;
 
   // calculate view after updating postiion

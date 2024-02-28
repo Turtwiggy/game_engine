@@ -27,6 +27,7 @@
 #include "modules/renderer/helpers.hpp"
 #include "modules/screenshake/components.hpp"
 #include "modules/selected_interactions/components.hpp"
+#include "modules/ui_arrows_to_spawners/components.hpp"
 #include "modules/ui_inverse_kinematics/components.hpp"
 #include "modules/ui_rpg_character/components.hpp"
 #include "modules/ui_scene_main_menu/components.hpp"
@@ -77,6 +78,7 @@ move_to_scene_start(entt::registry& r, const Scene s)
   destroy_and_create<SINGLE_ScreenshakeComponent>(r);
   destroy_and_create<SINGLE_SelectedUI>(r);
   destroy_and_create<SINGLE_IKLines>(r);
+  destroy_and_create<SINGLE_ArrowsToSpawnerUI>(r);
 
   // HACK: the first and only transform should be the camera
   auto& camera = get_first_component<TransformComponent>(r);
@@ -245,8 +247,9 @@ move_to_scene_start(entt::registry& r, const Scene s)
 
     // map width and height
     // out of which is considered out of bounds
-    const int width = 10000;
-    const int height = 10000;
+    const int width = 2000;
+    const int height = 2000;
+    const int poisson_space_for_spawners = 500;
     const glm::ivec2 offset = { -width / 2, -height / 2 };
 
     // VISUAL: use poisson for grass
@@ -317,7 +320,7 @@ move_to_scene_start(entt::registry& r, const Scene s)
     {
 
       const int seed = 0;
-      const int distance_between_points = 3000;
+      const int distance_between_points = poisson_space_for_spawners;
       const auto poisson = generate_poisson(width, height, distance_between_points, seed);
       std::cout << "generated " << poisson.size() << " poisson points for bases" << std::endl;
       for (const auto& p : poisson) {
