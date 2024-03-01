@@ -51,22 +51,21 @@ update_resolve_collisions_system(entt::registry& r)
     const auto* b_def = r.try_get<HealthComponent>(b);
     const auto* b_team = r.try_get<TeamComponent>(b);
 
+    // Dealing Damage
+    //
     // deal damage to b
     if (a_atk && b_def && a_team && b_team) {
       if (a_team->team == b_team->team)
         continue; // no team damage
-
       dead.dead.emplace(a);
       const entt::entity from = a;
       const entt::entity to = b;
       r.emplace<DealDamageRequest>(r.create(), from, to);
     }
-
     // deal damage to a
     if (b_atk && a_def && a_team && b_team) {
       if (a_team->team == b_team->team)
         continue; // no team damage
-
       dead.dead.emplace(b);
       const entt::entity from = b;
       const entt::entity to = a;
@@ -83,6 +82,7 @@ update_resolve_collisions_system(entt::registry& r)
     const auto& b_type = r.get<EntityTypeComponent>(b).type;
 
     // check if an enemy is colling with player line of sight
+    //
     const auto [a_ent, b_ent] = collision_of_interest<const LineOfSightComponent, const EnemyComponent>(r, a, b);
     if (a_ent != entt::null && b_ent != entt::null) {
       // an enemy is colliding with line of sight!

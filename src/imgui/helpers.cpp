@@ -155,11 +155,4 @@ game2d::imgui_draw_entity(entt::registry& r,        //
   }
 };
 
-std::string
-game2d::append_eid_to_label(const std::string& label, const entt::entity& e)
-{
-  const auto eid = static_cast<uint32_t>(e);
-  return label + std::string("##") + std::to_string(eid);
-};
-
 } // namespace game2d

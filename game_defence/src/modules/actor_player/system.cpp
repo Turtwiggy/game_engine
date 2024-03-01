@@ -1,4 +1,4 @@
-#include "system.hpp"
+#include "modules/actor_player/system.hpp"
 
 #include "actors.hpp"
 #include "audio/components.hpp"
@@ -113,7 +113,6 @@ game2d::update_player_controller_system(entt::registry& r, const uint64_t& milli
 
     if (input.pickup) {
       std::cout << "Pickup pressed!" << std::endl;
-      r.emplace_or_replace<WantsToPickUp>(entity);
     }
 
     // shoot action

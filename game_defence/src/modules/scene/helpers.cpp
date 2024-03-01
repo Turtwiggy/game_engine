@@ -146,24 +146,11 @@ move_to_scene_start(entt::registry& r, const Scene s)
       cursorc.line_ent = create_gameplay(r, EntityType::empty);
       r.get<SpriteComponent>(cursorc.line_ent).colour = engine::SRGBToLinear(engine::SRGBColour(1.0f, 0.0f, 0.0f, 1.0f));
       r.remove<TransformComponent>(cursorc.line_ent);
-
-      // cursorc.dda_start = create_gameplay(r, EntityType::empty);
-      // cursorc.dda_intersection = create_gameplay(r, EntityType::empty);
-      // cursorc.dda_end = create_gameplay(r, EntityType::empty);
-      // r.get<SpriteComponent>(cursorc.dda_start).colour = engine::SRGBToLinear(engine::SRGBColour(1.0f, 0.0f, 0.0f, 1.0f));
-      // r.get<SpriteComponent>(cursorc.dda_intersection).colour =
-      //   engine::SRGBToLinear(engine::SRGBColour(0.0f, 1.0f, 0.0f, 1.0f));
-      // r.get<SpriteComponent>(cursorc.dda_end).colour = engine::SRGBToLinear(engine::SRGBColour(0.0f, 0.0f, 1.0f, 1.0f));
-      // r.get<TransformComponent>(cursorc.dda_start).scale = { 8, 8, 1 };
-      // r.get<TransformComponent>(cursorc.dda_intersection).scale = { 8, 8, 1 };
-      // r.get<TransformComponent>(cursorc.dda_end).scale = { 8, 8, 1 };
     }
 
     // create players based off main menu ui
-    const auto character_stats_view = r.view<CharacterStats, InActiveFight>();
-
-    for (int i = 0; i < character_stats_view.size_hint(); i++) {
-
+    const auto& character_stats_view = r.view<CharacterStats, InActiveFight>();
+    for (int i = 0; const auto& [request_e, stats_e, fight_e] : character_stats_view.each()) {
       // player
       const auto e = create_gameplay(r, EntityType::actor_player);
       auto& e_aabb = r.get<AABB>(e);
@@ -184,6 +171,8 @@ move_to_scene_start(entt::registry& r, const Scene s)
       weapon_parent.parent = e;
       auto& player = r.get<PlayerComponent>(e);
       player.weapon = weapon;
+
+      i++;
     }
 
     // create a hostile dummy
@@ -193,57 +182,6 @@ move_to_scene_start(entt::registry& r, const Scene s)
     //   e_aabb.size = default_size * 1;
     //   e_aabb.center = { 200, 0 };
     // }
-
-    // TEMP: create enemies on top of eachother,
-    // and hope that they move apart from eachother.
-    {
-      const glm::vec2 bl{ -100, 100 };
-      const glm::vec2 br{ 100, 100 };
-      const glm::vec2 tl{ -100, -100 };
-      const glm::vec2 tr{ 100, -100 };
-
-      {
-        const auto e = create_gameplay(r, EntityType::enemy_grunt);
-        auto& e_aabb = r.get<AABB>(e);
-        e_aabb.size = default_size * 1;
-        e_aabb.center = bl;
-        auto& target_position = r.get<HasTargetPositionComponent>(e);
-        target_position.position = tr;
-      }
-      {
-        const auto e = create_gameplay(r, EntityType::enemy_grunt);
-        auto& e_aabb = r.get<AABB>(e);
-        e_aabb.size = default_size * 1;
-        e_aabb.center = br;
-        auto& target_position = r.get<HasTargetPositionComponent>(e);
-        target_position.position = tl;
-      }
-      {
-        const auto e = create_gameplay(r, EntityType::enemy_grunt);
-        auto& e_aabb = r.get<AABB>(e);
-        e_aabb.size = default_size * 1;
-        e_aabb.center = tl;
-        auto& target_position = r.get<HasTargetPositionComponent>(e);
-        target_position.position = br;
-      }
-      {
-        const auto e = create_gameplay(r, EntityType::enemy_grunt);
-        auto& e_aabb = r.get<AABB>(e);
-        e_aabb.size = default_size * 1;
-        e_aabb.center = tr;
-        auto& target_position = r.get<HasTargetPositionComponent>(e);
-        target_position.position = bl;
-      }
-      {
-        // static obstacle
-        const auto e = create_gameplay(r, EntityType::enemy_grunt);
-        auto& e_aabb = r.get<AABB>(e);
-        e_aabb.size = default_size * 1;
-        e_aabb.center = glm::vec2(0, 0);
-        auto& target_position = r.get<HasTargetPositionComponent>(e);
-        target_position.position = glm::vec2(0, 0);
-      }
-    }
 
     // map width and height
     // out of which is considered out of bounds
@@ -268,6 +206,9 @@ move_to_scene_start(entt::registry& r, const Scene s)
 
     // generate some walls
     // {
+    //
+    //
+    //
     //   MapComponent map_c;
     //   map_c.tilesize = 64;
     //   map_c.xmax = 10;

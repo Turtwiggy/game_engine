@@ -23,10 +23,10 @@ update_take_damage_system(entt::registry& r)
   auto& dead = get_first_component<SINGLETON_EntityBinComponent>(r);
 
   const auto& view = r.view<DealDamageRequest>(entt::exclude<WaitForInitComponent>);
-  for (auto [e_req, request] : view.each()) {
+  for (const auto& [e_req, request] : view.each()) {
 
     // Does the attacker have an attack component?
-    auto* atk = r.try_get<AttackComponent>(request.from);
+    const auto* atk = r.try_get<AttackComponent>(request.from);
 
     // Does the defender have health?
     auto* hp = r.try_get<HealthComponent>(request.to);
@@ -66,10 +66,9 @@ update_take_damage_system(entt::registry& r)
     // .. show as flashing
     r.emplace_or_replace<RequestFlashComponent>(request.to);
 
-    // .. play audio
-    // TODO: remove this.
+    // .. play audio // TODO: remove this.
     // This spams the audio system.
-    r.emplace<AudioRequestPlayEvent>(r.create(), "TAKE_DAMAGE_01");
+    // r.emplace<AudioRequestPlayEvent>(r.create(), "TAKE_DAMAGE_01");
 
     // .. screenshake
     r.emplace<RequestScreenshakeComponent>(r.create());
@@ -80,18 +79,19 @@ update_take_damage_system(entt::registry& r)
     // Is this a crit?
     const int rnd_crit = int(engine::rand_det_s(rnd.rng, 0, 100));
     const bool crit = rnd_crit >= 90; // X% chance for crit
-    const bool miss = rnd_crit < 10;  // X% chance to miss
+    const bool miss = rnd_crit < 5;   // X% chance to miss
 
     // mess with the damage
+    int damage = atk->damage;
     if (crit)
-      atk->damage = atk->damage *= 2;
+      damage *= 2;
     if (miss)
-      atk->damage = 0;
+      damage = 0;
 
     // .. popup some numbers as vfx
     const int base_text_separation = 7;
     int text_seperation = base_text_separation;
-    const auto sprites = convert_int_to_sprites(atk->damage);
+    const auto sprites = convert_int_to_sprites(damage);
     const auto def_transform = r.get<TransformComponent>(request.to);
     const float rnd_x = engine::rand_det_s(rnd.rng, -50, 50);
     const float rnd_y = engine::rand_det_s(rnd.rng, -50, 50);
@@ -119,17 +119,25 @@ update_take_damage_system(entt::registry& r)
     }
 
     // .. take damage
-    hp->hp -= glm::max(0, atk->damage);
+    hp->hp -= glm::max(0, damage);
 
     //
     if (hp->hp <= 0) {
       dead.dead.emplace(request.to);
 
-      // TODO: once dead, validate hash or something to only add dead enemy once
+      //
+      // Something Died Events...
+      //
+
+      // Player killed an enemy..!
+      //
       if (player_attacker != std::nullopt) {
         auto& player = r.get<PlayerComponent>(player_attacker.value());
         player.killed += 1;
       }
+
+      // If you're looking for where dead enemies drop items...
+      // that's in the drop item system
     }
   }
 

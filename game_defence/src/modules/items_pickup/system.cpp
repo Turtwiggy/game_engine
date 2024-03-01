@@ -1,4 +1,4 @@
-#include "system.hpp"
+#include "modules/items_pickup/system.hpp"
 
 #include "actors.hpp"
 #include "components.hpp"
@@ -14,102 +14,62 @@
 #include <optional>
 #include <vector>
 
+#include "imgui.h"
+
 namespace game2d {
 
-std::optional<entt::entity>
-check_zone_and_player_collision(entt::registry& r, const SINGLETON_PhysicsComponent& physics, const entt::entity& zone_e)
-{
-  // no collison between zone <= => pickup entity
-  // sc.colour.r = .0f;
-
-  for (const auto& coll : physics.collision_stay) {
-    const auto a = static_cast<entt::entity>(coll.ent_id_0);
-    const auto b = static_cast<entt::entity>(coll.ent_id_1);
-
-    // collision between pickup zone <= => pickup entity
-    //
-    const auto a_other = r.try_get<WantsToPickUp>(a);
-    const auto b_other = r.try_get<WantsToPickUp>(b);
-    if (a == zone_e && b_other)
-      return b;
-    if (b == zone_e && a_other)
-      return a;
-  }
-
-  return std::nullopt;
-}
+// for (const auto& coll : physics.collision_stay) {
+//   const auto a = static_cast<entt::entity>(coll.ent_id_0);
+//   const auto b = static_cast<entt::entity>(coll.ent_id_1);
+// }
 
 void
 update_intent_pickup_system(entt::registry& r)
 {
   const auto& physics = get_first_component<SINGLETON_PhysicsComponent>(r);
+  const auto& items_view =
+    r.view<const ItemComponent, const AABB, const EntityTypeComponent>(entt::exclude<WaitForInitComponent>);
+  const auto& players_view = r.view<PlayerComponent>(entt::exclude<WaitForInitComponent>);
+  auto& dead = get_first_component<SINGLETON_EntityBinComponent>(r);
 
-  const auto& items_view = r.view<HasParentComponent, ItemComponent>(entt::exclude<WaitForInitComponent>);
+  //
+  // System: check collisions between player and dropped items
+  // List them in a ui menu
+  //
 
-  const auto& pickup_view = r.view<PickupZoneComponent, const AABB>(entt::exclude<WaitForInitComponent>);
-  for (const auto& [zone_e, pickup, aabb] : pickup_view.each()) {
+  ImGuiWindowFlags flags = 0;
+  flags |= ImGuiWindowFlags_NoFocusOnAppearing;
 
-    const auto other_e = check_zone_and_player_collision(r, physics, zone_e);
-    if (other_e == std::nullopt)
-      continue;
+  static bool show_pickup_menu = true;
+  ImGui::Begin("Pickup Items Menu", &show_pickup_menu, flags);
 
-    // limit amount of items a player can have picked up
-    bool hit_limit = false;
-    if (auto* limit = r.try_get<InventoryLimit>(other_e.value())) {
-      int items = 0;
-      for (const auto& [item_e, parent, item] : items_view.each()) {
-        const bool item_belongs_to_entity = parent.parent == other_e;
-        if (item_belongs_to_entity)
-          items++;
-      }
-      hit_limit = items >= limit->amount;
-    }
+  for (const auto& [item_e, item_c, item_aabb, item_type] : items_view.each()) {
+    const auto eid = static_cast<uint32_t>(item_e);
+    ImGui::PushID(eid);
 
-    if (!hit_limit) {
-      // give the entity an item
-      const auto req = create_gameplay(r, EntityType::item);
-      r.emplace_or_replace<HasParentComponent>(req, other_e.value());
-      r.get<ItemComponent>(req).item_id = pickup.spawn_item_with_id;
-      r.remove<TransformComponent>(req);
-    }
-  }
+    ImGui::Text("Item");
+    ImGui::SameLine();
 
-  const auto& dropoff_view = r.view<DropoffZoneComponent, const AABB>(entt::exclude<WaitForInitComponent>);
-  for (const auto& [zone_e, zone, aabb] : dropoff_view.each()) {
+    if (ImGui::Button("Pickup")) {
+      for (const auto& [player_e, player_c] : players_view.each()) {
+        //
+        // item implementations? Probably should not be here.
+        // Change if items get more than one type of item.
+        //
+        if (item_type.type == EntityType::actor_pickup_xp)
+          player_c.picked_up_xp += 1;
 
-    const auto other_e = check_zone_and_player_collision(r, physics, zone_e);
-    if (other_e == std::nullopt)
-      continue;
-    // there is a something standing in the dropoff zone that wanted to pick something up
-
-    // remove an item from the entity
-    // (assuming valid criteria are met)
-    //
-    auto& zone_wanted_items = zone.requested_items;
-
-    for (const auto& [item_e, parent, item] : items_view.each()) {
-      const auto& item_id = item.item_id;
-
-      auto item_wanted_by_dropzone_it = std::find(zone_wanted_items.begin(), zone_wanted_items.end(), item_id);
-      const bool item_wanted_by_dropzone = item_wanted_by_dropzone_it != zone_wanted_items.end();
-      const bool item_belongs_to_entity = parent.parent == other_e;
-
-      if (item_belongs_to_entity && item_wanted_by_dropzone) {
-        // accept the item
-        r.destroy(item_e);
-
-        // (gameplay descision)
-        // remove item from the request list
-        zone_wanted_items.erase(item_wanted_by_dropzone_it);
-
-        break; // one at a time
+        // Give the item to the player
+        r.remove<AABB>(item_e);
+        r.remove<TransformComponent>(item_e);
+        r.emplace<HasParentComponent>(item_e, player_e);
+        break; // the first player
       }
     }
+    ImGui::PopID();
   }
 
-  // done with requests
-  const auto& reqs = r.view<WantsToPickUp>(entt::exclude<WaitForInitComponent>);
-  r.remove<WantsToPickUp>(reqs.begin(), reqs.end());
+  ImGui::End();
 }
 
 } // namespace game2d

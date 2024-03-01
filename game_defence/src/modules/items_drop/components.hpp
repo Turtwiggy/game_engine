@@ -11,6 +11,11 @@
 
 namespace game2d {
 
+struct AbleToDropItem
+{
+  bool placeholder = true;
+};
+
 // attached to entity
 struct WantsToDrop
 {

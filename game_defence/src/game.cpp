@@ -214,11 +214,6 @@ game2d::fixed_update(engine::SINGLETON_Application& app, entt::registry& game, c
     OPTICK_EVENT("fixed-game-tick");
     update_resolve_collisions_system(game);
     update_player_controller_system(game, milliseconds_dt); // input => actions
-
-    // systems that need fixed-tick?
-    update_attack_cooldown_system(game, milliseconds_dt);
-    update_take_damage_system(game);
-    update_weapon_shotgun_system(game, milliseconds_dt);
   }
 
   fixed_input.fixed_tick += 1;
@@ -259,6 +254,10 @@ game2d::update(engine::SINGLETON_Application& app, entt::registry& r, const floa
       // putting all these systems in update isn't a mistake
       const uint64_t milliseconds_dt = dt * 1000.0f;
 
+      update_attack_cooldown_system(r, milliseconds_dt);
+      update_take_damage_system(r);
+      update_weapon_shotgun_system(r, milliseconds_dt);
+
       update_flash_sprite_system(r, milliseconds_dt);
       // update_turret_system(game, milliseconds_dt);
       //
@@ -278,6 +277,43 @@ game2d::update(engine::SINGLETON_Application& app, entt::registry& r, const floa
       update_intent_drop_item_system(r);
       update_actor_dropoffzone_request_items(r, milliseconds_dt);
       update_selected_interactions_system(r, mouse_pos);
+
+      // // HACK: randomly spawn enemies at edges of screen
+      // // basically, if the camera is at 0,0
+      // // the edges of the screen are -width/2, width/2
+      // // i need x to be less than -width/2, or greater than width/2.
+      // static engine::RandomState rnd;
+      // static float cooldown = 0.5f;
+      // static float cooldown_left = 0.5f;
+      // cooldown_left -= dt;
+      // if (cooldown_left <= 0.0f) {
+      //   cooldown_left = cooldown;
+      //   const auto camera_e = get_first<OrthographicCamera>(r);
+      //   const auto camera_t = r.get<TransformComponent>(camera_e);
+      //   glm::ivec2 cpos = { camera_t.position.x, camera_t.position.y };
+      //   const auto& ri = get_first_component<SINGLETON_RendererInfo>(r);
+      //   const auto screen_halfsize = ri.viewport_size_render_at / 2;
+      //   const float left_or_right = (engine::rand_01(rnd.rng) * 2.0f) - 1.0f;
+      //   const float up_or_down = (engine::rand_01(rnd.rng) * 2.0f) - 1.0f;
+      //   const float extra = 100.0f;
+      //   const float pos_edge_y = cpos.y + screen_halfsize.y;
+      //   const float neg_edge_y = cpos.y - screen_halfsize.y;
+      //   const float pos_edge_x = cpos.x + screen_halfsize.x;
+      //   const float neg_edge_x = cpos.x - screen_halfsize.x;
+      //   int x_spawn_pos = 0;
+      //   int y_spawn_pos = 0;
+      //   if (up_or_down > 0.0f) // down
+      //     y_spawn_pos = engine::rand_det_s(rnd.rng, pos_edge_y, pos_edge_y + extra);
+      //   else // up
+      //     y_spawn_pos = engine::rand_det_s(rnd.rng, neg_edge_y, neg_edge_y - extra);
+      //   if (left_or_right > 0.0f) // right
+      //     x_spawn_pos = engine::rand_det_s(rnd.rng, pos_edge_x, pos_edge_x + extra);
+      //   else // left
+      //     x_spawn_pos = engine::rand_det_s(rnd.rng, neg_edge_x, neg_edge_x - extra);
+      //   const auto enemy = create_gameplay(r, EntityType::enemy_grunt);
+      //   auto& enemy_aabb = r.get<AABB>(enemy);
+      //   enemy_aabb.center = { x_spawn_pos, y_spawn_pos };
+      // }
 
       // HACK: gameover condition: X minutes survived
       // {

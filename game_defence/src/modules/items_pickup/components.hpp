@@ -6,18 +6,11 @@
 
 namespace game2d {
 
-struct InventoryLimit
-{
-  int amount = 1;
-};
+// struct WantsToPickUp
+// {
+//   bool placeholder = true;
+// };
 
-// attached to entity
-struct WantsToPickUp
-{
-  bool placeholder = true;
-};
-
-// attached to item
 struct AbleToBePickedUp
 {
   bool placeholder = true;
@@ -25,7 +18,7 @@ struct AbleToBePickedUp
 
 struct ItemComponent
 {
-  int item_id = 0;
+  bool placeholder = true;
 };
 
 } // namespace game2d

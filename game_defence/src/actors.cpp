@@ -20,6 +20,7 @@
 #include "modules/combat_damage/components.hpp"
 #include "modules/combat_wants_to_shoot/components.hpp"
 #include "modules/gameplay_circle/components.hpp"
+#include "modules/items_drop/components.hpp"
 #include "modules/items_pickup/components.hpp"
 #include "modules/lerp_to_target/components.hpp"
 #include "modules/lifecycle/components.hpp"
@@ -57,8 +58,8 @@ create_sprite(entt::registry& r, const EntityType& type)
     sprite = "CASTLE_FLOOR";
   else if (type == EntityType::actor_turret)
     sprite = "EMPTY";
-  // else if (type == EntityType::actor_pickup_xp)
-  //   sprite = "GEM";
+  else if (type == EntityType::actor_pickup_xp)
+    sprite = "GEM";
   // else if (type == EntityType::actor_pickup_zone)
   //   sprite = "EMPTY";
   // weapons...
@@ -201,7 +202,7 @@ create_gameplay(entt::registry& r, const EntityType& type)
       r.emplace<SetVelocityToTargetComponent>(e, player_speed);
 
       r.emplace<HealthComponent>(e, 1000, 1000);
-      r.emplace<InventoryLimit>(e);
+      // r.emplace<InventoryLimit>(e);
       r.emplace<CameraFollow>(e);
       r.emplace<HoverableComponent>(e);
       r.emplace<CircleComponent>(e);
@@ -247,11 +248,12 @@ create_gameplay(entt::registry& r, const EntityType& type)
       break;
     }
 
-      // case EntityType::actor_pickup_xp: {
-      //   create_physics_actor(r, e);
-      //   r.emplace<AbleToBePickedUp>(e);
-      //   break;
-      // }
+    case EntityType::actor_pickup_xp: {
+      create_physics_actor(r, e);
+      r.emplace<AbleToBePickedUp>(e);
+      r.emplace<ItemComponent>(e);
+      break;
+    }
 
       // case EntityType::actor_pickup_zone: {
       //   transform.scale.y = 100;
@@ -277,11 +279,11 @@ create_gameplay(entt::registry& r, const EntityType& type)
       // item
       //
 
-    case EntityType::item: {
-      // should have a HasParent already attached
-      r.emplace<ItemComponent>(e);
-      break;
-    }
+      // case EntityType::item: {
+      //   // should have a HasParent already attached
+      //   r.emplace<ItemComponent>(e);
+      //   break;
+      // }
 
       //
       // solids
@@ -373,6 +375,9 @@ create_gameplay(entt::registry& r, const EntityType& type)
       r.emplace<EnemyComponent>(e);
       r.emplace<HoverableComponent>(e);
 
+      // items
+      r.emplace<AbleToDropItem>(e);
+
       // movement
       r.emplace<HasTargetPositionComponent>(e);
       // r.emplace<LerpToTargetComponent>(e, speed);
@@ -389,6 +394,9 @@ create_gameplay(entt::registry& r, const EntityType& type)
       create_physics_actor(r, e);
       r.emplace<EnemyComponent>(e);
       r.emplace<HoverableComponent>(e);
+
+      // items
+      r.emplace<AbleToDropItem>(e);
 
       // movement
       r.emplace<HasTargetPositionComponent>(e);
