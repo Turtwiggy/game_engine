@@ -9,13 +9,11 @@
 #include "game_state.hpp"
 #include "maths/maths.hpp"
 #include "modules/actor_cursor/system.hpp"
-#include "modules/actor_dropoff_zone_requets_items/system.hpp"
 #include "modules/actor_enemy/system.hpp"
 #include "modules/actor_player/system.hpp"
 #include "modules/actor_spawner/components.hpp"
 #include "modules/actor_spawner/system.hpp"
 #include "modules/actor_turret/system.hpp"
-#include "modules/actor_weapon_bow/system.hpp"
 #include "modules/actor_weapon_shotgun/system.hpp"
 #include "modules/animation/angle_to_velocity.hpp"
 #include "modules/animation/wiggle_up_and_down.hpp"
@@ -48,21 +46,15 @@
 #include "modules/ui_collisions/system.hpp"
 #include "modules/ui_colours/system.hpp"
 #include "modules/ui_controllers/system.hpp"
-#include "modules/ui_dropoff_zone/system.hpp"
-#include "modules/ui_game_player/system.hpp"
 #include "modules/ui_gameover/system.hpp"
-#include "modules/ui_grid_interaction/system.hpp"
 #include "modules/ui_hierarchy/system.hpp"
 #include "modules/ui_inventory/system.hpp"
-#include "modules/ui_inverse_kinematics/system.hpp"
 #include "modules/ui_level_editor/components.hpp"
 #include "modules/ui_level_editor/system.hpp"
-#include "modules/ui_next_wave/system.hpp"
 #include "modules/ui_pause_menu/system.hpp"
 #include "modules/ui_rpg_character/system.hpp"
 #include "modules/ui_scene_main_menu/system.hpp"
 #include "modules/ui_selected/system.hpp"
-#include "modules/ui_spawner_editor/system.hpp"
 #include "modules/ux_hoverable/system.hpp"
 #include "modules/ux_hoverable_change_colour/system.hpp"
 #include "physics/components.hpp"
@@ -275,7 +267,7 @@ game2d::update(engine::SINGLETON_Application& app, entt::registry& r, const floa
       // items
       update_intent_pickup_system(r);
       update_intent_drop_item_system(r);
-      update_actor_dropoffzone_request_items(r, milliseconds_dt);
+      // update_actor_dropoffzone_request_items(r, milliseconds_dt);
       update_selected_interactions_system(r, mouse_pos);
 
       // // HACK: randomly spawn enemies at edges of screen
@@ -382,13 +374,10 @@ game2d::update(engine::SINGLETON_Application& app, entt::registry& r, const floa
     }
 
     if (scene.s == Scene::game) {
-      update_ui_grid_interaction_system(r);
       update_ui_inventory(r);
-      update_ui_dropoff_zone_system(r);
       update_ui_selected(r);
       update_ui_arrows_to_spawners_system(r);
     }
-    update_ui_game_player_system(r);
     update_ui_pause_menu_system(app, r);
     update_ui_gameover_system(r);
 

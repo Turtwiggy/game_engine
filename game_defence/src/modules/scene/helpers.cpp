@@ -9,11 +9,10 @@
 #include "maths/grid.hpp"
 #include "maths/maths.hpp"
 #include "modules/actor_cursor/components.hpp"
-#include "modules/actor_dropoff_zone/components.hpp"
-#include "modules/actor_pickup_zone/components.hpp"
 #include "modules/actor_player/components.hpp"
 #include "modules/actor_spawner/components.hpp"
-#include "modules/actor_weapon_bow/components.hpp"
+#include "modules/algorithm_procedural/cell_automata.hpp"
+#include "modules/algorithm_procedural/poisson.hpp"
 #include "modules/animation/components.hpp"
 #include "modules/camera/orthographic.hpp"
 #include "modules/gameover/components.hpp"
@@ -21,14 +20,11 @@
 #include "modules/items/helpers.hpp"
 #include "modules/lerp_to_target/components.hpp"
 #include "modules/lifecycle/components.hpp"
-#include "modules/procedural/cell_automata.hpp"
-#include "modules/procedural/poisson.hpp"
 #include "modules/renderer/components.hpp"
 #include "modules/renderer/helpers.hpp"
 #include "modules/screenshake/components.hpp"
 #include "modules/selected_interactions/components.hpp"
 #include "modules/ui_arrows_to_spawners/components.hpp"
-#include "modules/ui_inverse_kinematics/components.hpp"
 #include "modules/ui_rpg_character/components.hpp"
 #include "modules/ui_scene_main_menu/components.hpp"
 #include "modules/ui_scene_main_menu/system.hpp"
@@ -77,8 +73,8 @@ move_to_scene_start(entt::registry& r, const Scene s)
   destroy_and_create<SINGLETON_Wave>(r);
   destroy_and_create<SINGLE_ScreenshakeComponent>(r);
   destroy_and_create<SINGLE_SelectedUI>(r);
-  destroy_and_create<SINGLE_IKLines>(r);
   destroy_and_create<SINGLE_ArrowsToSpawnerUI>(r);
+  // destroy_and_create<SINGLE_IKLines>(r);
 
   // HACK: the first and only transform should be the camera
   auto& camera = get_first_component<TransformComponent>(r);

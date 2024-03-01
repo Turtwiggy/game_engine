@@ -27,8 +27,8 @@ enum class EntityType
   // in progress
   actor_pickup_xp,
   // actor_pickup_zone,
-  actor_dispencer,
-  actor_customer_area,
+  // actor_dispencer,
+  // actor_customer_area,
 
   // items
   // item,
@@ -37,7 +37,7 @@ enum class EntityType
   solid_wall,
 
   // actor_weapons,
-  weapon_bow,
+  // weapon_bow,
   // weapon_pistol,
   // weapon_sniper,
   weapon_shotgun,

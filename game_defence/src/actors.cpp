@@ -4,14 +4,11 @@
 #include "entt/helpers.hpp"
 #include "events/components.hpp"
 #include "modules/actor_cursor/components.hpp"
-#include "modules/actor_dropoff_zone/components.hpp"
 #include "modules/actor_enemy/components.hpp"
 #include "modules/actor_hearth/components.hpp"
-#include "modules/actor_pickup_zone/components.hpp"
 #include "modules/actor_player/components.hpp"
 #include "modules/actor_spawner/components.hpp"
 #include "modules/actor_turret/components.hpp"
-#include "modules/actor_weapon_bow/components.hpp"
 #include "modules/actor_weapon_shotgun/components.hpp"
 #include "modules/animation/components.hpp"
 #include "modules/camera/components.hpp"
@@ -63,8 +60,8 @@ create_sprite(entt::registry& r, const EntityType& type)
   // else if (type == EntityType::actor_pickup_zone)
   //   sprite = "EMPTY";
   // weapons...
-  else if (type == EntityType::weapon_bow)
-    sprite = "WEAPON_BOW_0";
+  // else if (type == EntityType::weapon_bow)
+  //   sprite = "WEAPON_BOW_0";
   else if (type == EntityType::weapon_shotgun)
     sprite = "WEAPON_SHOTGUN";
   // bullets...
@@ -263,18 +260,6 @@ create_gameplay(entt::registry& r, const EntityType& type)
       //   break;
       // }
 
-    case EntityType::actor_dispencer: {
-      create_physics_actor(r, e);
-      r.emplace<PickupZoneComponent>(e);
-      break;
-    }
-
-    case EntityType::actor_customer_area: {
-      create_physics_actor(r, e);
-      r.emplace<DropoffZoneComponent>(e);
-      break;
-    }
-
       //
       // item
       //
@@ -301,15 +286,15 @@ create_gameplay(entt::registry& r, const EntityType& type)
       // actor_weapons
       //
 
-    case EntityType::weapon_bow: {
-      create_physics_actor(r, e);
-      r.emplace<BowComponent>(e);
-      r.emplace<HasTargetPositionComponent>(e);
-      r.emplace<SetVelocityToTargetComponent>(e);
-      r.emplace<AttackCooldownComponent>(e);
-      r.emplace<HasParentComponent>(e);
-      break;
-    }
+      // case EntityType::weapon_bow: {
+      //   create_physics_actor(r, e);
+      //   r.emplace<BowComponent>(e);
+      //   r.emplace<HasTargetPositionComponent>(e);
+      //   r.emplace<SetVelocityToTargetComponent>(e);
+      //   r.emplace<AttackCooldownComponent>(e);
+      //   r.emplace<HasParentComponent>(e);
+      //   break;
+      // }
 
     case EntityType::weapon_shotgun: {
       create_physics_actor(r, e);

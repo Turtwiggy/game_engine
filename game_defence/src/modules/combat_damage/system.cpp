@@ -17,6 +17,15 @@
 
 namespace game2d {
 
+glm::vec2
+get_position(entt::registry& r, entt::entity& e)
+{
+  if (const auto* aabb = r.try_get<AABB>(e))
+    return aabb->center;
+  const auto& t = r.get<TransformComponent>(e);
+  return { t.position.x, t.position.y };
+}
+
 void
 update_take_damage_system(entt::registry& r)
 {
@@ -38,26 +47,16 @@ update_take_damage_system(entt::registry& r)
 
     // Was the parent of the attacking object a player?
     std::optional<entt::entity> player_attacker = std::nullopt;
-    if (auto* p = r.try_get<HasParentComponent>(request.from)) {
-      if (auto* player = r.try_get<PlayerComponent>(p->parent))
+    if (const auto* p = r.try_get<HasParentComponent>(request.from)) {
+      if (const auto* player = r.try_get<PlayerComponent>(p->parent))
         player_attacker = p->parent;
     }
 
     // Does the defender have the ability to be knocked back?
     if (auto* v = r.try_get<VelocityComponent>(request.to)) {
-      const auto& get_position = [&r](const entt::entity& e) -> glm::ivec2 {
-        auto* aabb = r.try_get<AABB>(e);
-        if (aabb)
-          return aabb->center;
-        else {
-          const auto& t = r.get<TransformComponent>(e);
-          return { t.position.x, t.position.y };
-        }
-      };
-      const glm::vec2 atk_pos = get_position(request.from);
-      const glm::vec2 def_pos = get_position(request.to);
+      const glm::vec2 atk_pos = get_position(r, request.from);
+      const glm::vec2 def_pos = get_position(r, request.to);
       const auto dir = glm::normalize(atk_pos - def_pos);
-
       const float knockback_amount = 5.0f;
       v->remainder_x += -dir.x * knockback_amount;
       v->remainder_y += -dir.y * knockback_amount;

@@ -6,8 +6,8 @@
 #include "modules/actor_cursor/components.hpp"
 #include "modules/actor_hearth/components.hpp"
 #include "modules/ai_pathfinding/helpers.hpp"
+#include "modules/algorithm_procedural/cell_automata.hpp"
 #include "modules/lifecycle/components.hpp"
-#include "modules/procedural/cell_automata.hpp"
 #include "physics/components.hpp"
 
 #include "imgui.h"
