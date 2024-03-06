@@ -26,6 +26,7 @@ enum class EntityType
 
   // in progress
   actor_pickup_xp,
+  actor_pickup_doubledamage,
   // actor_pickup_zone,
   // actor_dispencer,
   // actor_customer_area,

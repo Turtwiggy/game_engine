@@ -6,6 +6,7 @@
 #include "modules/actor_player/components.hpp"
 #include "modules/combat_flash_on_damage/components.hpp"
 #include "modules/combat_flash_on_damage/helpers.hpp"
+#include "modules/combat_powerup_doubledamage/components.hpp"
 #include "modules/lifecycle/components.hpp"
 #include "modules/screenshake/components.hpp"
 #include "modules/ui_colours/helpers.hpp"
@@ -40,24 +41,27 @@ update_take_damage_system(entt::registry& r)
     // Does the defender have health?
     auto* hp = r.try_get<HealthComponent>(request.to);
 
-    if (!atk)
+    if (atk == nullptr)
       continue; // no attack damage given
-    if (!hp)
+    if (hp == nullptr)
       continue; // not able to take damage?
 
-    // Was the parent of the attacking object a player?
+    // Was there a parent of the damage request?
+    std::optional<entt::entity> parent_attacker = std::nullopt;
+    if (const auto* p = r.try_get<HasParentComponent>(request.from))
+      parent_attacker = p->parent;
+
+    // Was the attacking parent a player?
     std::optional<entt::entity> player_attacker = std::nullopt;
-    if (const auto* p = r.try_get<HasParentComponent>(request.from)) {
-      if (const auto* player = r.try_get<PlayerComponent>(p->parent))
-        player_attacker = p->parent;
-    }
+    if (parent_attacker.has_value() && r.try_get<PlayerComponent>(parent_attacker.value()))
+      player_attacker = parent_attacker.value();
 
     // Does the defender have the ability to be knocked back?
     if (auto* v = r.try_get<VelocityComponent>(request.to)) {
       const glm::vec2 atk_pos = get_position(r, request.from);
       const glm::vec2 def_pos = get_position(r, request.to);
       const auto dir = glm::normalize(atk_pos - def_pos);
-      const float knockback_amount = 5.0f;
+      const float knockback_amount = 5.0F;
       v->remainder_x += -dir.x * knockback_amount;
       v->remainder_y += -dir.y * knockback_amount;
     }
@@ -86,6 +90,12 @@ update_take_damage_system(entt::registry& r)
       damage *= 2;
     if (miss)
       damage = 0;
+
+    // Does the attacker have a double damage powerup?
+    if (parent_attacker.has_value() && parent_attacker.value() != entt::null) {
+      if (const auto* dd = r.try_get<PowerupDoubleDamage>(parent_attacker.value()))
+        damage *= 2;
+    }
 
     // .. popup some numbers as vfx
     const int base_text_separation = 7;

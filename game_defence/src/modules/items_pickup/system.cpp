@@ -4,6 +4,7 @@
 #include "components.hpp"
 #include "entt/helpers.hpp"
 #include "modules/actor_player/components.hpp"
+#include "modules/combat_powerup_doubledamage/components.hpp"
 #include "modules/lifecycle/components.hpp"
 #include "modules/renderer/components.hpp"
 #include "modules/resolve_collisions/helpers.hpp"
@@ -18,23 +19,21 @@ namespace game2d {
 void
 give_player_xp_item(entt::registry& r, const entt::entity& player_e, const entt::entity& item_e)
 {
-  if (const auto* able_to_be_picked_up = r.try_get<AbleToBePickedUp>(item_e)) {
-
-    auto& player_c = r.get<PlayerComponent>(player_e);
-
-    const auto item_type = r.get<EntityTypeComponent>(item_e).type;
-    if (item_type == EntityType::actor_pickup_xp)
-      player_c.picked_up_xp += 1;
-
-    // Give the item to the player
-    r.remove<AABB>(item_e);
-    r.remove<TransformComponent>(item_e);
-    r.emplace<HasParentComponent>(item_e, player_e);
-
-    // dont pick up item multiple times
-    r.remove<AbleToBePickedUp>(item_e);
-  }
+  auto& player_c = r.get<PlayerComponent>(player_e);
+  player_c.picked_up_xp += 1;
 };
+
+void
+give_player_doubledamage_item(entt::registry& r, const entt::entity& player_e, const entt::entity& item_e)
+{
+  PowerupDoubleDamage default_powerup;
+
+  // player already had a doubledamage powerup... extend it?
+  if (auto* powered_up = r.try_get<PowerupDoubleDamage>(player_e))
+    powered_up->timeleft += default_powerup.timeleft;
+  else
+    r.emplace<PowerupDoubleDamage>(player_e, default_powerup);
+}
 
 void
 update_intent_pickup_system(entt::registry& r)
@@ -53,7 +52,25 @@ update_intent_pickup_system(entt::registry& r)
     if (a_ent != entt::null && b_ent != entt::null) {
       const auto item = a_ent;
       const auto player = b_ent;
-      give_player_xp_item(r, player, item);
+
+      if (const auto* able_to_be_picked_up = r.try_get<AbleToBePickedUp>(item)) {
+        // The player collided with an item. What type of item is it?
+        const auto& entity_type = r.get<EntityTypeComponent>(item).type;
+
+        if (entity_type == EntityType::actor_pickup_xp)
+          give_player_xp_item(r, player, item);
+
+        if (entity_type == EntityType::actor_pickup_doubledamage)
+          give_player_doubledamage_item(r, player, item);
+
+        // Give the item to the player
+        r.remove<AABB>(item);
+        r.remove<TransformComponent>(item);
+        r.emplace<HasParentComponent>(item, player);
+
+        // dont pick up item multiple times
+        r.remove<AbleToBePickedUp>(item);
+      }
     }
   }
 }

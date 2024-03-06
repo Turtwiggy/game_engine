@@ -24,8 +24,7 @@ generate_poisson(const int w, const int h, const float radius, const int seed = 
   const float grid_size = radius / glm::sqrt(2.0f);
   const auto grid_w = static_cast<int>(glm::ceil(w / grid_size));
   const auto grid_h = static_cast<int>(glm::ceil(h / grid_size));
-  auto rnd = engine::RandomState();
-  rnd.rng.seed(seed);
+  auto rnd = engine::RandomState(seed);
   const auto k = 30; // max attempts bfore making sample inactive
 
   std::vector<std::optional<glm::vec2>> results(grid_w * grid_h, std::nullopt);

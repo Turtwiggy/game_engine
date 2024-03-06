@@ -2,12 +2,50 @@
 
 #include "components.hpp"
 #include "entt/helpers.hpp"
+#include "maths/maths.hpp"
 #include "modules/actor_enemy/components.hpp"
 #include "modules/combat_damage/components.hpp"
 #include "modules/lifecycle/components.hpp"
 #include "physics/components.hpp"
 
+#include "imgui.h"
+
+#include <utility>
+
 namespace game2d {
+
+// What items should this drop on death?
+//
+const std::vector<std::pair<EntityType, int>> item_weight_map{
+  // clang-format off
+      {EntityType::empty, 50}, 
+      {EntityType::actor_pickup_xp, 30},
+      {EntityType::actor_pickup_doubledamage, 20},
+  // clang-format on
+};
+
+std::pair<float, EntityType>
+generate_item()
+{
+  // sum the weights
+  float total_weight = 0;
+  for (const auto& [ent_type, ent_weight] : item_weight_map)
+    total_weight += ent_weight;
+
+  // TODO: BAD. FIX.
+  // choose the item
+  static engine::RandomState rnd(0);
+  const float random = engine::rand_det_s(rnd.rng, 0.0f, total_weight);
+
+  // Create the item
+  int weight_acculum = 0;
+  for (const auto& [k, w] : item_weight_map) {
+    weight_acculum += w;
+    if (weight_acculum >= random)
+      return { random, k };
+  }
+  return { random, EntityType::empty };
+}
 
 void
 update_intent_drop_item_system(entt::registry& r)
@@ -26,20 +64,38 @@ update_intent_drop_item_system(entt::registry& r)
 
   // Dead things drop xp items
   //
+
+  ImGui::Begin("SomethingDiedDebugger");
+
+  // a frame behind
+  static float last_generated_random = 0;
+  ImGui::Text("SomethingDiedRandom: %f", last_generated_random);
+
   const auto killable_view = r.view<HealthComponent, AbleToDropItem>(entt::exclude<WaitForInitComponent>);
   for (const auto& [e, e_hp, enemy_comp] : killable_view.each()) {
-    if (e_hp.hp <= 0) {
-      r.remove<AbleToDropItem>(e); // dont drop items multiple times
+    if (e_hp.hp > 0)
+      continue; // its still allive!
 
-      // create an xp item
-      const auto item_e = r.create();
-      r.emplace<EntityTypeComponent>(item_e, EntityType::actor_pickup_xp);
+    r.remove<AbleToDropItem>(e); // dont drop items multiple times
 
-      // create a new request
-      WantsToDrop req;
-      req.items.push_back(item_e);
-      r.emplace_or_replace<WantsToDrop>(e, req);
-    }
+    const auto [random, item_type] = generate_item();
+
+    // debug the random number
+    last_generated_random = random;
+
+    // Enemy did not drop an item
+    if (item_type == EntityType::empty)
+      continue;
+
+    // create an item
+    const auto item_e = r.create();
+    r.emplace<EntityTypeComponent>(item_e, item_type);
+
+    // create a new request
+    // note: could drop multiple items if wanted
+    WantsToDrop req;
+    req.items.push_back(item_e);
+    r.emplace_or_replace<WantsToDrop>(e, req);
   }
 
   // WantsToDrop Requests
@@ -61,8 +117,9 @@ update_intent_drop_item_system(entt::registry& r)
       r.get<TransformComponent>(e).position = glm::ivec3(dead_aabb.center.x, dead_aabb.center.y, 0);
     }
   }
-
   r.remove<WantsToDrop>(view.begin(), view.end()); // requests done...
+
+  ImGui::End();
 };
 
 } // namespace game2d

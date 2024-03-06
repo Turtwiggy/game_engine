@@ -10,8 +10,7 @@ namespace game2d {
 std::vector<int>
 generate_50_50(const glm::ivec2 xy, const int seed)
 {
-  engine::RandomState rnd;
-  rnd.rng.seed(seed);
+  engine::RandomState rnd(seed);
 
   std::vector<int> results;
 

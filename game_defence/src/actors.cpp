@@ -57,6 +57,8 @@ create_sprite(entt::registry& r, const EntityType& type)
     sprite = "EMPTY";
   else if (type == EntityType::actor_pickup_xp)
     sprite = "GEM";
+  else if (type == EntityType::actor_pickup_doubledamage)
+    sprite = "CARD_HEARTS_2";
   // else if (type == EntityType::actor_pickup_zone)
   //   sprite = "EMPTY";
   // weapons...
@@ -246,6 +248,13 @@ create_gameplay(entt::registry& r, const EntityType& type)
     }
 
     case EntityType::actor_pickup_xp: {
+      create_physics_actor(r, e);
+      r.emplace<AbleToBePickedUp>(e);
+      r.emplace<ItemComponent>(e);
+      break;
+    }
+
+    case EntityType::actor_pickup_doubledamage: {
       create_physics_actor(r, e);
       r.emplace<AbleToBePickedUp>(e);
       r.emplace<ItemComponent>(e);

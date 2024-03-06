@@ -66,8 +66,7 @@ game2d::update_ui_next_wave_system(entt::registry& r)
 
       // give the spawner a random position
       const auto& fixed = get_first_component<SINGLETON_FixedUpdateInputHistory>(r);
-      engine::RandomState rnd;
-      rnd.rng.seed(fixed.fixed_tick);
+      engine::RandomState rnd(fixed.fixed_tick);
 
       auto create_rnd_spawner = [&rnd, &r, &ri]() {
         //

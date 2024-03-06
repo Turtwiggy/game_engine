@@ -71,6 +71,12 @@ update_resolve_collisions_system(entt::registry& r)
       const auto& parent = r.get<HasParentComponent>(a_ent); // type player
       r.emplace_or_replace<WantsToShoot>(parent.parent);
     }
+
+    // MERGE the ENEMIES!
+    //
+    // const auto [a_ent_1, b_ent_1] = collision_of_interest<const EnemyComponent, const EnemyComponent>(r, a, b);
+    // if (a_ent_1 != entt::null && b_ent_1 != entt::null)
+    //   dead.dead.emplace(a_ent_1);
   }
 }
 

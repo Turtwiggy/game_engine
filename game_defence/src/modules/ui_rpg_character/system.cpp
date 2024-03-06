@@ -133,7 +133,13 @@ update_ui_rpg_character_system(entt::registry& r)
     if (i > 0)
       ImGui::Separator();
     ImGui::Text("Monster: %s", stats.name.c_str());
+
+    // Initiative
     ImGui::Text("Initiative: %i", stats.initiative);
+    ImGui::SameLine();
+    if (ImGui::Button("Roll"))
+      stats.initiative = engine::rand_det_s(rnd.rng, 1, 21);
+
     ImGui::Text("HP: %i", stats.hp);
     ImGui::Text("XP: %i", stats.xp);
 
@@ -145,11 +151,6 @@ update_ui_rpg_character_system(entt::registry& r)
       ImGui::PopID();
       continue;
     }
-
-    // Initiative
-    ImGui::SameLine();
-    if (ImGui::Button("Roll Init"))
-      stats.initiative = engine::rand_det_s(rnd.rng, 1, 21);
 
     // Damage
     ImGui::SameLine();
@@ -166,7 +167,7 @@ update_ui_rpg_character_system(entt::registry& r)
     //
     // a drop zone here
     //
-    std::string label = "MONSTER BODY. HP: "s + std::to_string(stats.hp);
+    std::string label = "Main Body."s + std::to_string(stats.hp);
     ImGui::Button(label.c_str());
     if (ImGui::BeginDragDropTarget()) {
       if (const ImGuiPayload* payload = ImGui::AcceptDragDropPayload("MONSTER_BODY")) {

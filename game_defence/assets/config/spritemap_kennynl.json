@@ -130,6 +130,8 @@
     { "name": "SCROLL_33_5", "frames": [ { "x": 33, "y": 15 } ] },
     { "name": "SCROLL_34_5", "frames": [ { "x": 34, "y": 15 } ] },
 
+    { "name": "CARD_HEARTS_2", "frames": [ { "x": 21, "y": 16 } ] },
+
     { "name": "WALL_10_17", "frames": [ { "x": 10, "y": 17 } ] },
     { "name": "NUMBER_0", "frames": [ { "x": 35, "y": 17 } ] },
     { "name": "NUMBER_1", "frames": [ { "x": 36, "y": 17 } ] },

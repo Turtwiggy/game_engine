@@ -3,6 +3,7 @@
 #include "entt/helpers.hpp"
 #include "imgui/helpers.hpp"
 #include "modules/actor_player/components.hpp"
+#include "modules/combat_powerup_doubledamage/components.hpp" // should be removed
 #include "modules/items/helpers.hpp"
 #include "modules/items_pickup/components.hpp"
 #include "modules/lifecycle/components.hpp"
@@ -30,6 +31,7 @@ update_ui_inventory(entt::registry& r)
       ImGui::Text("¬¬ Player ¬¬");
       ImGui::Text("Player has %i XP", player_c.picked_up_xp);
       ImGui::Text("Player has %i kills", player_c.killed);
+      ImGui::Text("Player has doubledamage: %i", r.try_get<PowerupDoubleDamage>(player_e) != nullptr);
 
       // Show like potion x1, potion x2 not potions individually
       std::map<std::string, std::vector<entt::entity>> compacted_items;
@@ -49,6 +51,10 @@ update_ui_inventory(entt::registry& r)
         //
         ImGui::Text("Player has X Item... (%i times)", entity_items.size());
       }
+
+      ImGui::Separator();
+      ImGui::Text("¬¬ Player Upgrades ¬¬");
+      ImGui::Text("TODO");
 
       ImGui::PopID();
     }

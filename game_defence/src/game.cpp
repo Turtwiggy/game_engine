@@ -24,6 +24,7 @@
 #include "modules/combat_attack_cooldown/system.hpp"
 #include "modules/combat_damage/system.hpp"
 #include "modules/combat_flash_on_damage/system.hpp"
+#include "modules/combat_powerup_doubledamage/system.hpp"
 #include "modules/combat_wants_to_shoot/system.hpp"
 #include "modules/gameover/components.hpp"
 #include "modules/gameover/system.hpp"
@@ -247,11 +248,16 @@ game2d::update(engine::SINGLETON_Application& app, entt::registry& r, const floa
       const uint64_t milliseconds_dt = dt * 1000.0f;
 
       update_attack_cooldown_system(r, milliseconds_dt);
+
       update_take_damage_system(r);
       update_weapon_shotgun_system(r, milliseconds_dt);
 
       update_flash_sprite_system(r, milliseconds_dt);
       // update_turret_system(game, milliseconds_dt);
+
+      //
+      // powerup
+      update_combat_powerup_doubledamage_system(r, dt);
       //
       // ai
       update_set_velocity_to_target_system(r, dt);

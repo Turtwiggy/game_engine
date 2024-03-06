@@ -116,7 +116,7 @@ move_to_scene_start(entt::registry& r, const Scene s)
   if (s == Scene::game) {
     const auto& anims = get_first_component<SINGLE_Animations>(r);
     const auto& ri = get_first_component<SINGLETON_RendererInfo>(r);
-    const auto tex_unit = search_for_texture_unit_by_path(ri, "bargame")->unit;
+    const auto tex_unit_for_bargame = search_for_texture_unit_by_path(ri, "bargame")->unit;
     const auto& menu_ui = get_first_component<SINGLE_MainMenuUI>(r);
 
     const int pixel_scale_up_size = 2;
@@ -144,6 +144,18 @@ move_to_scene_start(entt::registry& r, const Scene s)
       r.remove<TransformComponent>(cursorc.line_ent);
     }
 
+    // map width and height
+    // out of which is considered out of bounds
+    const int width = 1024;
+    const int height = 1024;
+    const int poisson_space_for_spawners = 250;
+
+    // set camera
+    const auto& camera = get_first<OrthographicCamera>(r);
+    auto& camera_t = r.get<TransformComponent>(camera);
+    camera_t.position.x = width / 2.0f;
+    camera_t.position.y = height / 2.0f;
+
     // create players based off main menu ui
     const auto& character_stats_view = r.view<CharacterStats, InActiveFight>();
     for (int i = 0; const auto& [request_e, stats_e, fight_e] : character_stats_view.each()) {
@@ -151,7 +163,7 @@ move_to_scene_start(entt::registry& r, const Scene s)
       const auto e = create_gameplay(r, EntityType::actor_player);
       auto& e_aabb = r.get<AABB>(e);
       e_aabb.size = default_size;
-      e_aabb.center = { -200, -200 + (32 * i) };
+      e_aabb.center = { width / 2.0f, height / 2.0f + (32 * i) };
       auto& target_pos = r.get<HasTargetPositionComponent>(e);
       target_pos.position = e_aabb.center;
       // const auto icon_xy = set_sprite_custom(r, e, "player_0", tex_unit);
@@ -165,6 +177,10 @@ move_to_scene_start(entt::registry& r, const Scene s)
       const auto weapon = create_gameplay(r, EntityType::weapon_shotgun);
       auto& weapon_parent = r.get<HasParentComponent>(weapon);
       weapon_parent.parent = e;
+      auto& weapon_aabb = r.get<AABB>(weapon);
+      weapon_aabb.center = e_aabb.center;
+
+      // link player&weapon
       auto& player = r.get<PlayerComponent>(e);
       player.weapon = weapon;
 
@@ -179,83 +195,74 @@ move_to_scene_start(entt::registry& r, const Scene s)
     //   e_aabb.center = { 200, 0 };
     // }
 
-    // map width and height
-    // out of which is considered out of bounds
-    const int width = 2000;
-    const int height = 2000;
-    const int poisson_space_for_spawners = 500;
-    const glm::ivec2 offset = { -width / 2, -height / 2 };
-
     // VISUAL: use poisson for grass
     {
       const auto poisson = generate_poisson(width, height, 150, 0);
       std::cout << "generated " << poisson.size() << " poisson points" << std::endl;
       for (const auto& p : poisson) {
         const auto icon = create_gameplay(r, EntityType::empty);
-        const auto icon_xy = set_sprite_custom(r, icon, "icon_grass"s, tex_unit);
+        set_sprite_custom(r, icon, "icon_grass"s, tex_unit_for_bargame);
 
-        r.get<TransformComponent>(icon).position = { offset.x + p.x, offset.y + p.y, 0.0f };
+        r.get<TransformComponent>(icon).position = { p.x, p.y, 0.0f };
         r.get<TransformComponent>(icon).scale = { default_size.x, default_size.y, 1.0f };
         r.get<TagComponent>(icon).tag = "grass"s;
       }
     }
 
     // generate some walls
-    // {
-    //
-    //
-    //
-    //   MapComponent map_c;
-    //   map_c.tilesize = 64;
-    //   map_c.xmax = 10;
-    //   map_c.ymax = 10;
-    //   const glm::ivec2 tilesize{ map_c.tilesize, map_c.tilesize };
-    //   const glm::ivec2 offset = { tilesize.x / 2.0f, tilesize.y / 2.0f };
     {
-      //   // generate a map
-      //   {
-      //     map_c.map = generate_50_50({ map_c.xmax, map_c.ymax }, 0);
-      //     map_c.map = iterate_with_cell_automata(map_c.map, { map_c.xmax, map_c.ymax });
-      //     map_c.map = iterate_with_cell_automata(map_c.map, { map_c.xmax, map_c.ymax });
-      //     map_c.map = iterate_with_cell_automata(map_c.map, { map_c.xmax, map_c.ymax });
-      //   }
+      MapComponent map_c;
+      map_c.tilesize = 64;
+      map_c.xmax = width / map_c.tilesize;
+      map_c.ymax = height / map_c.tilesize;
+      const glm::ivec2 tilesize{ map_c.tilesize, map_c.tilesize };
+      const glm::ivec2 map_offset = { tilesize.x / 2.0f, tilesize.y / 2.0f };
 
-      //   // unblock spawn point
-      //   {
-      //     if (map_c.map[0] == 1)
-      //       map_c.map[0] = 0;
-      //     r.emplace<MapComponent>(r.create(), map_c);
-      //   }
+      {
+        // generate a map
+        {
+          map_c.map = generate_50_50({ map_c.xmax, map_c.ymax }, 0);
+          map_c.map = iterate_with_cell_automata(map_c.map, { map_c.xmax, map_c.ymax });
+          map_c.map = iterate_with_cell_automata(map_c.map, { map_c.xmax, map_c.ymax });
+          map_c.map = iterate_with_cell_automata(map_c.map, { map_c.xmax, map_c.ymax });
+        }
 
-      //   const auto& maap = map_c.map;
-      //   for (int i = 0; i < maap.size(); i++) {
+        // unblock spawn point
+        {
+          if (map_c.map[0] == 1)
+            map_c.map[0] = 0;
+          r.emplace<MapComponent>(r.create(), map_c);
+        }
 
-      //     const auto xy = engine::grid::index_to_grid_position(i, map_c.xmax, map_c.ymax);
-      //     auto xy_world = engine::grid::index_to_world_position(i, map_c.xmax, map_c.ymax, map_c.tilesize);
-      //     xy_world += offset;
+        const auto& maap = map_c.map;
+        for (int i = 0; i < maap.size(); i++) {
 
-      //     // wall
-      //     if (maap[i] == 1) {
-      //       const auto e = create_gameplay(r, EntityType::solid_wall);
-      //       set_sprite_custom(r, e, "icon_beer"s, tex_unit);
-      //       r.get<AABB>(e).center = xy_world;
-      //       r.get<TransformComponent>(e).scale = { default_size.x, default_size.y, 1.0f };
-      //       r.get<TagComponent>(e).tag = "wall"s;
-      //     }
-      //     // floor
-      //     else {
-      //       const auto e = create_gameplay(r, EntityType::empty);
-      //       set_sprite_custom(r, e, "icon_grass"s, tex_unit);
-      //       r.get<TransformComponent>(e).position = { xy_world.x, xy_world.y, 0.0f };
-      //       r.get<TransformComponent>(e).scale = { default_size.x, default_size.y, 1.0f };
-      //       r.get<TagComponent>(e).tag = "grass"s;
-      //     }
-      //   }
+          const auto xy = engine::grid::index_to_grid_position(i, map_c.xmax, map_c.ymax);
+          auto xy_world = engine::grid::index_to_world_position(i, map_c.xmax, map_c.ymax, map_c.tilesize);
+          xy_world += map_offset;
+
+          // wall
+          if (maap[i] == 1) {
+            const auto e = create_gameplay(r, EntityType::solid_wall);
+            set_sprite_custom(r, e, "icon_beer"s, tex_unit_for_bargame);
+            r.get<AABB>(e).center = xy_world;
+            r.get<TransformComponent>(e).scale = { default_size.x, default_size.y, 1.0f };
+            r.get<TagComponent>(e).tag = "wall"s;
+          }
+          // floor
+          else {
+            const auto e = create_gameplay(r, EntityType::empty);
+            set_sprite_custom(r, e, "icon_grass"s, tex_unit_for_bargame);
+            r.get<TransformComponent>(e).position = { xy_world.x, xy_world.y, 0.0f };
+            r.get<TransformComponent>(e).scale = { default_size.x, default_size.y, 1.0f };
+            r.get<TagComponent>(e).tag = "grass"s;
+          }
+        }
+      }
     }
 
     // Generate "seed points" for bases
     {
-
       const int seed = 0;
       const int distance_between_points = poisson_space_for_spawners;
       const auto poisson = generate_poisson(width, height, distance_between_points, seed);
@@ -266,7 +273,7 @@ move_to_scene_start(entt::registry& r, const Scene s)
         r.emplace<OnlySpawnInRangeOfAnyPlayerComponent>(e);
         auto& e_aabb = r.get<AABB>(e);
         e_aabb.size = default_size * 1;
-        e_aabb.center = { offset.x + p.x, offset.y + p.y };
+        e_aabb.center = { p.x, p.y };
         auto& spawner = r.get<SpawnerComponent>(e);
         spawner.type_to_spawn = EntityType::enemy_grunt;
       }

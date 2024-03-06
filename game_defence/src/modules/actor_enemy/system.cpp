@@ -157,12 +157,12 @@ update_enemy_system(entt::registry& r, const float dt)
     vel.preferred_y = desired_v.y * vel.base_speed;
     vel.x = vel.preferred_x;
     vel.y = vel.preferred_y;
-  }
 
-  //
-  // Update AI Actions
-  //
-  for (const auto& [e, enemy, target_position, enemy_t, vel, aabb] : view.each()) {
+    // }
+    //
+    // Update AI Actions
+    //
+    // for (const auto& [e, enemy, target_position, enemy_t, vel, aabb] : view.each()) {
 
     // Calculate distance
     const auto& other_pos = r.get<TransformComponent>(first_target);
@@ -193,9 +193,9 @@ update_enemy_system(entt::registry& r, const float dt)
       const auto& targeting = r.get<DynamicTargetComponent>(e);
 
       // Tick the attack
-      if (enemy.attack_percent <= 1.0f) {
+      if (enemy.attack_percent <= 1.0F) {
 
-        if (enemy.attack_percent >= 0.5f && !enemy.has_applied_damage) {
+        if (enemy.attack_percent >= 0.5F && !enemy.has_applied_damage) {
 
           // Create a new damage instance
           const auto instance = r.create();
@@ -211,8 +211,8 @@ update_enemy_system(entt::registry& r, const float dt)
         }
 
         enemy.attack_percent += dt * enemy.attack_speed;
-        const float percent = enemy.attack_percent;
-        const float interpolation = (-pow(percent, 2) + percent) * 4;
+        // const float percent = enemy.attack_percent;
+        // const float interpolation = (-pow(percent, 2) + percent) * 4;
 
         // Update visuals
         // const glm::vec3 original_position = t.position;

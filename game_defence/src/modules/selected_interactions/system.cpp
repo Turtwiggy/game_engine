@@ -157,55 +157,12 @@ update_selected_interactions_system(entt::registry& r, const glm::ivec2& mouse_p
   const bool release = get_mouse_rmb_release();
   const bool ctrl_held = get_key_held(input, SDL_SCANCODE_LCTRL);
 
-  // HACK: dda start
-  const auto& players = r.view<PlayerComponent, TransformComponent>();
-  if (players.size_hint() == 0)
-    return;
-  // entt::entity first_player = entt::null;
-  TransformComponent first_player_t;
-  for (const auto& [e, player, t] : players.each()) {
-    // first_player = e;
-    first_player_t = t;
-    break;
-  }
-
-  // hack: just to test stopping people firing
-  if (get_key_down(input, SDL_SCANCODE_S)) {
-    const auto& view = r.view<DynamicTargetComponent>();
-    r.remove<DynamicTargetComponent>(view.begin(), view.end());
-  }
-
   static std::optional<glm::ivec2> click_position;
   static std::optional<glm::ivec2> held_position;
   if (click)
     click_position = mouse_pos;
   if (held)
     held_position = mouse_pos;
-
-  ///
-  // TRY OUT DDA
-  ///
-
-  // const glm::vec2 tile_vec = glm::vec2(map.tilesize, map.tilesize);
-  // const glm::vec2 mouse_cell = glm::vec2(mouse_pos.x, mouse_pos.y) / tile_vec;
-  // const glm::vec2 player_cell = glm::vec2(first_player_t.position.x, first_player_t.position.y) / tile_vec;
-
-  // DDAInput dda_input;
-  // dda_input.start = player_cell;
-  // dda_input.end = mouse_cell;
-  // dda_input.map_size = { map.xmax, map.ymax };
-
-  // const auto output = dda_raycast(dda_input, map.map);
-
-  // auto& dda_start = r.get<TransformComponent>(cursor_comp.dda_start);
-  // auto& dda_end = r.get<TransformComponent>(cursor_comp.dda_end);
-  // dda_start.position = { dda_input.start.x * tile_vec.x, dda_input.start.y * tile_vec.y, 0.0f };
-  // dda_end.position = { dda_input.end.x * tile_vec.x, dda_input.end.y * tile_vec.x, 0.0f };
-
-  // auto& dda_intersection = r.get<TransformComponent>(cursor_comp.dda_intersection);
-  // auto& dda_intersection_spr = r.get<SpriteComponent>(cursor_comp.dda_intersection);
-  // dda_intersection.position = { output.intersection.x * tile_vec.x, output.intersection.y * tile_vec.y, 0.0f };
-  // dda_intersection_spr.colour = engine::LinearColour(1.0f, 0.0f, 0.0f, 1.0f);
 
   update_cursor_ui(r, cursor_comp, click, held, release, mouse_pos, click_position, held_position);
 
@@ -263,3 +220,40 @@ update_selected_interactions_system(entt::registry& r, const glm::ivec2& mouse_p
 }
 
 } // namespace game2d
+
+///
+// TRY OUT DDA
+///
+
+// HACK: dda start
+// const auto& players = r.view<PlayerComponent, TransformComponent>();
+// if (players.size_hint() == 0)
+//   return;
+// // entt::entity first_player = entt::null;
+// TransformComponent first_player_t;
+// for (const auto& [e, player, t] : players.each()) {
+//   // first_player = e;
+//   first_player_t = t;
+//   break;
+// }
+
+// const glm::vec2 tile_vec = glm::vec2(map.tilesize, map.tilesize);
+// const glm::vec2 mouse_cell = glm::vec2(mouse_pos.x, mouse_pos.y) / tile_vec;
+// const glm::vec2 player_cell = glm::vec2(first_player_t.position.x, first_player_t.position.y) / tile_vec;
+
+// DDAInput dda_input;
+// dda_input.start = player_cell;
+// dda_input.end = mouse_cell;
+// dda_input.map_size = { map.xmax, map.ymax };
+
+// const auto output = dda_raycast(dda_input, map.map);
+
+// auto& dda_start = r.get<TransformComponent>(cursor_comp.dda_start);
+// auto& dda_end = r.get<TransformComponent>(cursor_comp.dda_end);
+// dda_start.position = { dda_input.start.x * tile_vec.x, dda_input.start.y * tile_vec.y, 0.0f };
+// dda_end.position = { dda_input.end.x * tile_vec.x, dda_input.end.y * tile_vec.x, 0.0f };
+
+// auto& dda_intersection = r.get<TransformComponent>(cursor_comp.dda_intersection);
+// auto& dda_intersection_spr = r.get<SpriteComponent>(cursor_comp.dda_intersection);
+// dda_intersection.position = { output.intersection.x * tile_vec.x, output.intersection.y * tile_vec.y, 0.0f };
+// dda_intersection_spr.colour = engine::LinearColour(1.0f, 0.0f, 0.0f, 1.0f);

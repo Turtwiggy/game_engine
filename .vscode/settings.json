@@ -22,6 +22,24 @@
   "editor.bracketPairColorization.enabled": true,
   "C_Cpp.codeAnalysis.clangTidy.enabled": true,
   "C_Cpp.default.intelliSenseMode": "windows-msvc-x64",
-  "C_Cpp.formatting": "clangFormat"
+  "C_Cpp.formatting": "clangFormat",
+  "C_Cpp.codeAnalysis.clangTidy.checks.enabled": [
+    "clang-analyzer-*",
+    "cppcoreguidelines-*",
+    "modernize-*",
+    "performance-*",
+    "portability-*",
+    "readability-*",
+    "clang-analyzer-security.insecureAPI.rand",
+    "cppcoreguidelines-avoid-magic-numbers",
+    "modernize-use-trailing-return-type",
+    "readability-function-cognitive-complexity",
+    "readability-magic-numbers"
+  ],
+  "C_Cpp.codeAnalysis.clangTidy.checks.disabled": [
+    "readability-identifier-length",
+    "readability-braces-around-statements",
+    "readability-uppercase-literal-suffix"
+  ]
   // "editor.guides.bracketPairs": "active",
 }

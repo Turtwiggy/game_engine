@@ -20,6 +20,9 @@ constexpr float Rad2Deg = 180.0f / PI;
 struct RandomState
 {
   std::minstd_rand rng;
+
+  RandomState() = default;
+  RandomState(const int seed) { rng.seed(seed); }
 };
 
 // https://github.com/20k/funvectormaths/blob/master/vec.hpp
