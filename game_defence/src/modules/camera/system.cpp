@@ -38,9 +38,7 @@ update_camera_system(entt::registry& r, const float dt, const glm::ivec2& mouse_
   // calculate direction mouse is in, and add that to thes camera
   // nb: mouse_pos is in worldspace, not screenspace.
   glm::vec2 camera_offset_due_to_mouse{ 0, 0 };
-  // glm::vec2 dir = camera_position_worldspace - mouse_pos;
-  // if (dir.x != 0.0f || dir.y != 0.0f)
-  //   dir = glm::normalize(dir);
+  // const glm::vec2 raw_dir = camera_position_worldspace - mouse_pos;
   // camera_offset_due_to_mouse.x = dir.x * 10.0f;
   // camera_offset_due_to_mouse.y = dir.y * 10.0f;
 

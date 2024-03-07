@@ -78,9 +78,8 @@ update_weapon_shotgun_system(entt::registry& r, const uint64_t milliseconds_dt)
 
     // dir from shotgun to target
     const auto dir_i = glm::ivec2(shotgun_transform.position.x, shotgun_transform.position.y) - target_position;
-    glm::vec2 dir{ dir_i.x, dir_i.y };
-    if (dir.x != 0.0f || dir.y != 0.0f)
-      dir = glm::normalize(dir);
+    const glm::vec2 raw_dir{ dir_i.x, dir_i.y };
+    const glm::vec2 nrm_dir = engine::normalize_safe(raw_dir);
 
     // update "line of sight".
     // probably should not be on the "weapon" system.
@@ -95,11 +94,11 @@ update_weapon_shotgun_system(entt::registry& r, const uint64_t milliseconds_dt)
     }
 
     // simulate "picking up the gun"
-    const glm::ivec2 offset = { -dir.x * player.weapon_offset, -dir.y * player.weapon_offset };
+    const glm::ivec2 offset = { -nrm_dir.x * player.weapon_offset, -nrm_dir.y * player.weapon_offset };
     pos.position += offset;
 
     // Rotate the gun axis to the target
-    const float angle = engine::dir_to_angle_radians(dir);
+    const float angle = engine::dir_to_angle_radians(nrm_dir);
     shotgun_transform.rotation_radians.z = angle;
 
     // Is this weapon on the left or right of the player?
@@ -142,7 +141,7 @@ update_weapon_shotgun_system(entt::registry& r, const uint64_t milliseconds_dt)
 
       // spread the bullets out in an arc
       // const glm::vec2 r_nrm_dir = { input.rx, input.ry };
-      const float angle_radians = atan2(-dir.y, -dir.x) + engine::HALF_PI;
+      const float angle_radians = atan2(-nrm_dir.y, -nrm_dir.x) + engine::HALF_PI;
       const float bullet_angle_degrees = 5.0f;
       const float bullet_angle_radians = engine::deg2rad(bullet_angle_degrees);
 

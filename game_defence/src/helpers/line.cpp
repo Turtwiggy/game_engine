@@ -9,9 +9,7 @@ LineInfo
 generate_line(const glm::ivec2& a, const glm::ivec2& b, const int width)
 {
   const glm::vec2 raw_dir = { b.x - a.x, b.y - a.y };
-  glm::vec2 nrm_dir = raw_dir;
-  if (raw_dir.x != 0.0f || raw_dir.y != 0.0f)
-    nrm_dir = glm::normalize(raw_dir);
+  const glm::vec2 nrm_dir = engine::normalize_safe(raw_dir);
   const float angle = engine::dir_to_angle_radians(nrm_dir) + engine::HALF_PI;
 
   LineInfo line;

@@ -121,4 +121,24 @@ quadratic_curve(const glm::vec2 a, const glm::vec2 b, const glm::vec2 c, const f
   return lerp_a_to_b_clamped_between_0_and_1(p0, p1, t);
 }
 
+glm::vec2
+normalize_safe(const glm::vec2& value)
+{
+  const float EPSILON = 0.00001f;
+  const auto& equal = [&EPSILON](const float a, const float b) { return glm::abs(a - b) < EPSILON; };
+  if (equal(value.x, 0.0f) && equal(value.y, 0.0f))
+    return { 0.0f, 0.0f };
+  return glm::normalize(value);
+};
+
+glm::vec3
+normalize_safe(const glm::vec3& value)
+{
+  const float EPSILON = 0.00001f;
+  const auto& equal = [&EPSILON](const float a, const float b) { return glm::abs(a - b) < EPSILON; };
+  if (equal(value.x, 0.0f) && equal(value.y, 0.0f) && equal(value.z, 0.0f))
+    return { 0.0f, 0.0f, 0.0f };
+  return glm::normalize(value);
+};
+
 } // namespace engine

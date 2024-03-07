@@ -7,6 +7,7 @@
 #include "modules/items/helpers.hpp"
 #include "modules/items_pickup/components.hpp"
 #include "modules/lifecycle/components.hpp"
+#include "physics/components.hpp" // should be removed
 
 #include "imgui.h"
 
@@ -32,6 +33,10 @@ update_ui_inventory(entt::registry& r)
       ImGui::Text("Player has %i XP", player_c.picked_up_xp);
       ImGui::Text("Player has %i kills", player_c.killed);
       ImGui::Text("Player has doubledamage: %i", r.try_get<PowerupDoubleDamage>(player_e) != nullptr);
+
+      const auto& player_vel = r.get<VelocityComponent>(player_e);
+      ImGui::Text("Player move amount: %f %f", player_vel.x, player_vel.y);
+      ImGui::Text("Player remainder : %f %f", player_vel.remainder_x, player_vel.remainder_y);
 
       // Show like potion x1, potion x2 not potions individually
       std::map<std::string, std::vector<entt::entity>> compacted_items;

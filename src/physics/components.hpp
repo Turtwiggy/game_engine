@@ -52,8 +52,8 @@ struct VelocityComponent
   float y = 0.0f;
 
   // pathfinding wants this path
-  float preferred_x = 0.0f;
-  float preferred_y = 0.0f;
+  // float preferred_x = 0.0f;
+  // float preferred_y = 0.0f;
 
   // the velocity * dt, decremented when doing the update
   float remainder_x = 0.0f;

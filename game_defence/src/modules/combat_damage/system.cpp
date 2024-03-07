@@ -3,6 +3,7 @@
 #include "audio/components.hpp"
 #include "components.hpp"
 #include "entt/helpers.hpp"
+#include "maths/maths.hpp"
 #include "modules/actor_player/components.hpp"
 #include "modules/combat_flash_on_damage/components.hpp"
 #include "modules/combat_flash_on_damage/helpers.hpp"
@@ -13,8 +14,6 @@
 #include "physics/components.hpp"
 #include "renderer/helpers.hpp"
 #include "sprites/helpers.hpp"
-
-#include "maths/maths.hpp"
 
 namespace game2d {
 
@@ -60,7 +59,7 @@ update_take_damage_system(entt::registry& r)
     if (auto* v = r.try_get<VelocityComponent>(request.to)) {
       const glm::vec2 atk_pos = get_position(r, request.from);
       const glm::vec2 def_pos = get_position(r, request.to);
-      const auto dir = glm::normalize(atk_pos - def_pos);
+      const auto dir = engine::normalize_safe(atk_pos - def_pos);
       const float knockback_amount = 5.0F;
       v->remainder_x += -dir.x * knockback_amount;
       v->remainder_y += -dir.y * knockback_amount;

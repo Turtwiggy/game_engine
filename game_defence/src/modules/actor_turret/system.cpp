@@ -60,10 +60,8 @@ update_turret_system(entt::registry& r, const uint64_t& ms_dt)
     auto& e_transform = r.get<TransformComponent>(target);
     const auto& a = e_transform.position;
     const auto& b = t.position;
-    glm::vec2 raw_dir = { b.x - a.x, b.y - a.y };
-    glm::vec2 nrm_dir = raw_dir;
-    if (raw_dir.x != 0.0f || raw_dir.y != 0.0f)
-      nrm_dir = glm::normalize(raw_dir);
+    const glm::vec2 raw_dir = { b.x - a.x, b.y - a.y };
+    const glm::vec2 nrm_dir = engine::normalize_safe(raw_dir);
 
     // offset the bullet by a distance
     // to stop the bullet spawning inside the turret

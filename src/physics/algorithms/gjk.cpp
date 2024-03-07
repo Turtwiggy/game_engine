@@ -44,7 +44,7 @@ line_case(const std::vector<glm::vec3>& simplex, glm::vec3& dir)
   // known as the triple product
   const auto ABperp = triple_product(AB, AO, AB);
 
-  dir = glm::normalize(ABperp);
+  dir = engine::normalize_safe(ABperp);
 
   return false;
 };
@@ -96,7 +96,8 @@ bool
 gjk_squares_collide(const RotatedSquare& a, const RotatedSquare& b)
 {
   // starting direction
-  glm::vec3 dir = glm::normalize(b.center - a.center);
+  const glm::vec3 raw_dir = glm::normalize(b.center - a.center);
+  glm::vec3 dir = engine::normalize_safe(raw_dir);
 
   // find the first point on simplex
   const auto minkow_point = support(a.points, b.points, dir);

@@ -9,6 +9,7 @@
 #include "events/helpers/fixed_update.hpp"
 #include "events/helpers/mouse.hpp"
 #include "helpers/line.hpp"
+#include "maths/maths.hpp"
 #include "modules/actor_cursor/components.hpp"
 #include "modules/actor_player/components.hpp"
 #include "modules/actor_turret/components.hpp"
@@ -88,32 +89,13 @@ game2d::update_player_controller_system(entt::registry& r, const uint64_t& milli
         // reload |=
       }
 
-      if (input.rx != 0.0f || input.ry != 0.0f) {
-        const glm::vec2 r_nrm_dir = glm::normalize(glm::vec2(input.rx, input.ry));
-        input.rx = r_nrm_dir.x;
-        input.ry = r_nrm_dir.y;
-      }
+      const glm::vec2 r_nrm_dir = engine::normalize_safe({ input.rx, input.ry });
+      input.rx = r_nrm_dir.x;
+      input.ry = r_nrm_dir.y;
     }
 
-    // do the move
-    //
-    // if (auto* vel = r.try_get<VelocityComponent>(entity)) {
-    //   glm::vec2 l_nrm_dir = { input.lx, input.ly };
-    //   if (l_nrm_dir.x != 0.0f || l_nrm_dir.y != 0.0f)
-    //     l_nrm_dir = glm::normalize(l_nrm_dir);
-    //   const float dt = milliseconds_dt / 1000.0f;
-    //   const glm::vec2 move_dir = (l_nrm_dir * vel->base_speed) / dt;
-    //   vel->x = move_dir.x;
-    //   vel->y = move_dir.y;
-    //   if (input.sprint) {
-    //     vel->x *= 2.0f;
-    //     vel->y *= 2.0f;
-    //   }
-    // }
-
-    if (input.pickup) {
+    if (input.pickup)
       std::cout << "Pickup pressed!" << std::endl;
-    }
 
     // shoot action
     //

@@ -99,4 +99,9 @@ ray_at(const Ray r, float t)
   return r.origin + (t * r.dir);
 };
 
+[[nodiscard]] glm::vec2
+normalize_safe(const glm::vec2& value);
+[[nodiscard]] glm::vec3
+normalize_safe(const glm::vec3& value);
+
 } // namespace engine

@@ -6,6 +6,7 @@
 #include "events/helpers/keyboard.hpp"
 #include "events/helpers/mouse.hpp"
 #include "helpers/line.hpp"
+#include "maths/maths.hpp"
 #include "modules/actor_cursor/components.hpp"
 #include "modules/actor_player/components.hpp"
 #include "modules/algorithm_dda/helpers.hpp"
@@ -93,10 +94,9 @@ void
 move_action(entt::registry& r, const glm::ivec2& click_position, const glm::ivec2& held_position)
 {
   // Position units along the line, facing the dir
-  glm::vec2 dir = held_position - click_position;
-  if (dir.x != 0 || dir.y != 0.0f)
-    dir = glm::normalize(dir);
-  const glm::vec2 perp_dir = { -dir.y, dir.x };
+  const glm::vec2 raw_dir = held_position - click_position;
+  const glm::vec2 nrm_dir = engine::normalize_safe(raw_dir);
+  const glm::vec2 perp_dir = { -nrm_dir.y, nrm_dir.x };
 
   const auto center = click_position;
 

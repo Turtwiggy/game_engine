@@ -149,14 +149,16 @@ update_enemy_system(entt::registry& r, const float dt)
     // in this case, the preferred velocity is a vector in the direction of the goal
     const glm::ivec2 a = { aabb.center.x, aabb.center.y };
     const glm::ivec2 b = target_position.position;
-    glm::vec2 desired_v = b - a;
-    if (desired_v.x != 0 || desired_v.y != 0.0f)
-      desired_v = glm::normalize(desired_v);
 
-    vel.preferred_x = desired_v.x * vel.base_speed;
-    vel.preferred_y = desired_v.y * vel.base_speed;
-    vel.x = vel.preferred_x;
-    vel.y = vel.preferred_y;
+    const glm::vec2 raw_v = b - a;
+    const glm::vec2 nrm_v = engine::normalize_safe(raw_v);
+
+    // vel.preferred_x = desired_v.x * vel.base_speed;
+    // vel.preferred_y = desired_v.y * vel.base_speed;
+    // vel.x = vel.preferred_x;
+    // vel.y = vel.preferred_y;
+    vel.x = nrm_v.x * vel.base_speed;
+    vel.y = nrm_v.y * vel.base_speed;
 
     // }
     //
@@ -166,10 +168,8 @@ update_enemy_system(entt::registry& r, const float dt)
 
     // Calculate distance
     const auto& other_pos = r.get<TransformComponent>(first_target);
-    glm::vec3 dir_raw = other_pos.position - enemy_t.position;
-    glm::vec2 dir_nrm = dir_raw;
-    if (dir_nrm.x != 0.0f || dir_nrm.y != 0.0f)
-      dir_nrm = glm::normalize(dir_nrm);
+    const glm::vec3 dir_raw = other_pos.position - enemy_t.position;
+    const glm::vec2 dir_nrm = engine::normalize_safe({ dir_raw.x, dir_raw.y });
     const int d2 = dir_raw.x * dir_raw.x + dir_raw.y * dir_raw.y;
 
     // Components of interest?

@@ -34,9 +34,10 @@ IKSolver::generate_backward_chain(const std::vector<glm::vec2>& points, const gl
     }
 
     // calculate the vector to the previous point
-    const auto dir = glm::normalize(points[i] - results[i + 1]);
+    const auto raw_dir = points[i] - results[i + 1];
+    const auto nrm_dir = engine::normalize_safe(raw_dir);
 
-    const auto new_p = results[i + 1] + (dir * lengths[i]);
+    const auto new_p = results[i + 1] + (nrm_dir * lengths[i]);
     results[i] = new_p;
   }
 
@@ -58,14 +59,15 @@ IKSolver::generate_forward_chain(const std::vector<glm::vec2>& points, const std
     }
 
     // calculate the vector to the next point
-    const auto dir = glm::normalize(back_chain[i] - results[i - 1]);
+    const auto raw_dir = back_chain[i] - results[i - 1];
+    const auto nrm_dir = engine::normalize_safe(raw_dir);
 
     // TODO: Constraint: clamp between desired angles for this joint
     // const float constraint = 30.0f * engine::Deg2Rad;
     // dir.x = glm::clamp(dir.x, -1.0f, 1.0f);
     // dir.y = glm::clamp(dir.y, -1.0f, 1.0f);
 
-    const auto new_p = results[i - 1] + (dir * lengths[i - 1]);
+    const auto new_p = results[i - 1] + (nrm_dir * lengths[i - 1]);
     results[i] = new_p;
   }
 
@@ -92,9 +94,10 @@ IKSolver::Iterate(const std::vector<glm::vec2>& in_points, const glm::vec2& goal
   if (total_distance > total_lengths) {
     std::vector<glm::vec2> ps;
     ps.resize(points.size());
-    const auto dir = goal - points[0];
+    const auto raw_dir = goal - points[0];
+    const auto nrm_dir = engine::normalize_safe(raw_dir);
     for (int i = 1; i < points.size(); i++)
-      ps[i] = points[i - 1] + glm::normalize(dir) * lengths[i - 1];
+      ps[i] = points[i - 1] + nrm_dir * lengths[i - 1];
     return ps;
   }
 

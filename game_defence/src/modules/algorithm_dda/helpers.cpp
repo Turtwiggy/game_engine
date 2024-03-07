@@ -1,5 +1,7 @@
 #include "helpers.hpp"
 
+#include "maths/maths.hpp"
+
 namespace game2d {
 
 DDAOutput
@@ -9,7 +11,7 @@ dda_raycast(const DDAInput& input, const std::vector<int>& map)
   const auto& end = input.end;     // cursor
   const auto& map_size = input.map_size;
 
-  const glm::vec2 dir = glm::normalize(end - start);
+  const glm::vec2 dir = engine::normalize_safe(end - start);
 
   const glm::vec2 unit_step_size = {
     // clang-format off

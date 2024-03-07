@@ -24,10 +24,9 @@ update_scale_by_velocity_system(entt::registry& r, float dt)
     entt::exclude<WaitForInitComponent>);
   for (const auto& [entity, transform, velocity, scale] : view.each()) {
     // set angle
-    glm::vec2 dir = { velocity.x, velocity.y };
-    if (dir.x != 0.0f || dir.y != 0.0f)
-      dir = glm::normalize(dir);
-    transform.rotation_radians.z = engine::dir_to_angle_radians(dir);
+    const glm::vec2 raw_dir = { velocity.x, velocity.y };
+    const glm::vec2 nrm_dir = engine::normalize_safe(raw_dir);
+    transform.rotation_radians.z = engine::dir_to_angle_radians(nrm_dir);
 
     //   // Set Angle of bow
     //   const float bow_angle = engine::dir_to_angle_radians(offset) - engine::PI;

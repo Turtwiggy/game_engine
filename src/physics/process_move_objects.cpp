@@ -4,10 +4,12 @@
 // components
 #include "entt/helpers.hpp"
 #include "maths/maths.hpp"
-#include "modules/lifecycle/components.hpp"
 #include "physics/components.hpp"
 #include "physics/helpers.hpp"
 #include "renderer/transform.hpp"
+
+#include "modules/actor_player/components.hpp" // shouldnt be here
+#include "modules/lifecycle/components.hpp"    // shouldnt be here
 
 #include "optick.h"
 
@@ -63,15 +65,29 @@ game2d::update_move_objects_system(entt::registry& r, const uint64_t& millisecon
     const float dt = milliseconds_dt / 1000.0f;
 
     for (const auto& [entity, aabb, vel] : vel_actors.each()) {
+
+      // debug player
+      if (const auto* p = r.try_get<PlayerComponent>(entity)) {
+        int k = 1;
+      }
+
       // move_x
       //
       {
+        float previous_value = vel.remainder_x;
+
         vel.remainder_x += vel.x * dt;
+
+#if defined(_DEBUG)
+        if (isnan(vel.remainder_x))
+          std::cout << "warning: actor has NaN remainder_x" << std::endl;
+#endif
 
         int move = static_cast<int>(vel.remainder_x);
 
         if (move != 0) {
           vel.remainder_x -= move; // consume so no frame jump
+
           const int sign = glm::sign(move);
 
           for (int i = 0; i < glm::abs(move); i++) {
