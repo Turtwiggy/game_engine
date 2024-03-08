@@ -18,7 +18,7 @@
     {
       "r": 45, "g": 67, "b": 86,
       "name": "pal_3",
-      "tags": [ "actor_pickup_xp", "actor_pickup_doubledamage" ]
+      "tags": [ "actor_pickup_xp", "actor_pickup_doubledamage", "solid_wall" ]
     },
     {
       "r": 0, "g": 255, "b": 192,
@@ -30,7 +30,6 @@
       "name": "white",
       "tags": [
         "empty",
-        "solid_wall",
         "actor_spawner",
         "bullet_default",
         "particle"

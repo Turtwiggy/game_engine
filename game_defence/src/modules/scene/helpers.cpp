@@ -47,18 +47,6 @@ using json = nlohmann::json;
 void
 move_to_scene_start(entt::registry& r, const Scene s)
 {
-  {
-    // entt::registry new_r;
-    // transfer<SINGLE_Animations>(r, new_r);
-    // transfer<SINGLETON_Textures>(r, new_r);
-    // transfer<SINGLETON_AudioComponent>(r, new_r);
-    // transfer<SINGLETON_RendererInfo>(r, new_r);
-    // transfer<SINGLETON_InputComponent>(r, new_r);
-    // transfer<SINGLETON_FixedUpdateInputHistory>(r, new_r);
-    // transfer<AudioSource>(r, new_r); // multiple of these
-    // r = std::move(new_r);
-  }
-
   const auto& transforms = r.view<TransformComponent>(entt::exclude<OrthographicCamera>);
   r.destroy(transforms.begin(), transforms.end());
 
@@ -74,7 +62,6 @@ move_to_scene_start(entt::registry& r, const Scene s)
   destroy_and_create<SINGLE_ScreenshakeComponent>(r);
   destroy_and_create<SINGLE_SelectedUI>(r);
   destroy_and_create<SINGLE_ArrowsToSpawnerUI>(r);
-  // destroy_and_create<SINGLE_IKLines>(r);
 
   // HACK: the first and only transform should be the camera
   auto& camera = get_first_component<TransformComponent>(r);
@@ -144,26 +131,18 @@ move_to_scene_start(entt::registry& r, const Scene s)
       r.remove<TransformComponent>(cursorc.line_ent);
     }
 
-    // map width and height
-    // out of which is considered out of bounds
-    const int width = 1024;
-    const int height = 1024;
-    const int poisson_space_for_spawners = 250;
-
-    // set camera
-    const auto& camera = get_first<OrthographicCamera>(r);
-    auto& camera_t = r.get<TransformComponent>(camera);
-    camera_t.position.x = width / 2.0f;
-    camera_t.position.y = height / 2.0f;
-
     // create players based off main menu ui
+    // note: create player before other sprites to render on top
+    //
+    // todo: put player at first free slot in map.
+    //
     const auto& character_stats_view = r.view<CharacterStats, InActiveFight>();
     for (int i = 0; const auto& [request_e, stats_e, fight_e] : character_stats_view.each()) {
       // player
       const auto e = create_gameplay(r, EntityType::actor_player);
       auto& e_aabb = r.get<AABB>(e);
       e_aabb.size = default_size;
-      e_aabb.center = { width / 2.0f, height / 2.0f + (32 * i) };
+      e_aabb.center = { 0, 0 + (32 * i) };
       auto& target_pos = r.get<HasTargetPositionComponent>(e);
       target_pos.position = e_aabb.center;
       // const auto icon_xy = set_sprite_custom(r, e, "player_0", tex_unit);
@@ -186,6 +165,18 @@ move_to_scene_start(entt::registry& r, const Scene s)
 
       i++;
     }
+
+    // map width and height
+    // out of which is considered out of bounds
+    const int width = 1024;
+    const int height = 1024;
+    const int poisson_space_for_spawners = 250;
+
+    // set camera
+    const auto& camera = get_first<OrthographicCamera>(r);
+    auto& camera_t = r.get<TransformComponent>(camera);
+    camera_t.position.x = width / 2.0f;
+    camera_t.position.y = height / 2.0f;
 
     // create a hostile dummy
     // {
@@ -219,65 +210,66 @@ move_to_scene_start(entt::registry& r, const Scene s)
       const glm::ivec2 map_offset = { tilesize.x / 2.0f, tilesize.y / 2.0f };
 
       {
-        // generate a map
-        {
-          map_c.map = generate_50_50({ map_c.xmax, map_c.ymax }, 0);
-          map_c.map = iterate_with_cell_automata(map_c.map, { map_c.xmax, map_c.ymax });
-          map_c.map = iterate_with_cell_automata(map_c.map, { map_c.xmax, map_c.ymax });
-          map_c.map = iterate_with_cell_automata(map_c.map, { map_c.xmax, map_c.ymax });
-        }
+        // generate a map for 0s and 1s
+        auto map = generate_50_50({ map_c.xmax, map_c.ymax }, 0);
+        map = iterate_with_cell_automata(map, { map_c.xmax, map_c.ymax });
+        map = iterate_with_cell_automata(map, { map_c.xmax, map_c.ymax });
+        map = iterate_with_cell_automata(map, { map_c.xmax, map_c.ymax });
 
-        // unblock spawn point
-        {
-          if (map_c.map[0] == 1)
-            map_c.map[0] = 0;
-          r.emplace<MapComponent>(r.create(), map_c);
-        }
-
-        const auto& maap = map_c.map;
+        // conver map 0s and 1s to entity map
+        map_c.map.resize(map.size());
+        auto& maap = map_c.map;
         for (int i = 0; i < maap.size(); i++) {
-
           const auto xy = engine::grid::index_to_grid_position(i, map_c.xmax, map_c.ymax);
           auto xy_world = engine::grid::index_to_world_position(i, map_c.xmax, map_c.ymax, map_c.tilesize);
           xy_world += map_offset;
 
           // wall
-          if (maap[i] == 1) {
+          if (map[i] == 1) {
             const auto e = create_gameplay(r, EntityType::solid_wall);
-            set_sprite_custom(r, e, "icon_beer"s, tex_unit_for_bargame);
+            // set_sprite_custom(r, e, "icon_beer"s, tex_unit_for_bargame);
             r.get<AABB>(e).center = xy_world;
-            r.get<TransformComponent>(e).scale = { default_size.x, default_size.y, 1.0f };
+            r.get<TransformComponent>(e).scale = { map_c.tilesize, map_c.tilesize, 1.0f };
             r.get<TagComponent>(e).tag = "wall"s;
+            r.emplace<PathfindComponent>(e, -1);
+
+            maap[i].push_back(e);
           }
           // floor
           else {
             const auto e = create_gameplay(r, EntityType::empty);
+            r.emplace<PathfindComponent>(e, 0);
             set_sprite_custom(r, e, "icon_grass"s, tex_unit_for_bargame);
             r.get<TransformComponent>(e).position = { xy_world.x, xy_world.y, 0.0f };
             r.get<TransformComponent>(e).scale = { default_size.x, default_size.y, 1.0f };
             r.get<TagComponent>(e).tag = "grass"s;
+
+            maap[i].push_back(e);
           }
         }
+        r.emplace<MapComponent>(r.create(), map_c);
       }
     }
 
     // Generate "seed points" for bases
-    {
-      const int seed = 0;
-      const int distance_between_points = poisson_space_for_spawners;
-      const auto poisson = generate_poisson(width, height, distance_between_points, seed);
-      std::cout << "generated " << poisson.size() << " poisson points for bases" << std::endl;
-      for (const auto& p : poisson) {
-        // create a spawner at these positions
-        const auto e = create_gameplay(r, EntityType::actor_spawner);
-        r.emplace<OnlySpawnInRangeOfAnyPlayerComponent>(e);
-        auto& e_aabb = r.get<AABB>(e);
-        e_aabb.size = default_size * 1;
-        e_aabb.center = { p.x, p.y };
-        auto& spawner = r.get<SpawnerComponent>(e);
-        spawner.type_to_spawn = EntityType::enemy_grunt;
-      }
-    }
+    // TODO: make sure seed points are in "free grid space" in map
+    //
+    // {
+    //   const int seed = 0;
+    //   const int distance_between_points = poisson_space_for_spawners;
+    //   const auto poisson = generate_poisson(width, height, distance_between_points, seed);
+    //   std::cout << "generated " << poisson.size() << " poisson points for bases" << std::endl;
+    //   for (const auto& p : poisson) {
+    //     // create a spawner at these positions
+    //     const auto e = create_gameplay(r, EntityType::actor_spawner);
+    //     r.emplace<OnlySpawnInRangeOfAnyPlayerComponent>(e);
+    //     auto& e_aabb = r.get<AABB>(e);
+    //     e_aabb.size = default_size * 1;
+    //     e_aabb.center = { p.x, p.y };
+    //     auto& spawner = r.get<SpawnerComponent>(e);
+    //     spawner.type_to_spawn = EntityType::enemy_grunt;
+    //   }
+    // }
 
     auto& scene = get_first_component<SINGLETON_CurrentScene>(r);
     scene.s = s; // done

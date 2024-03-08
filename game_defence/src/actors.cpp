@@ -23,7 +23,6 @@
 #include "modules/lifecycle/components.hpp"
 #include "modules/renderer/components.hpp"
 #include "modules/renderer/helpers.hpp"
-#include "modules/respawn/components.hpp"
 #include "modules/ui_colours/helpers.hpp"
 #include "modules/ux_hoverable/components.hpp"
 #include "physics/components.hpp"
@@ -361,7 +360,6 @@ create_gameplay(entt::registry& r, const EntityType& type)
       r.emplace<TeamComponent>(e, AvailableTeams::enemy);
       r.emplace<HealthComponent>(e, 100, 100);
       r.emplace<HoverableComponent>(e);
-      r.emplace<InfiniteLivesComponent>(e);
       break;
     }
     case EntityType::enemy_grunt: {

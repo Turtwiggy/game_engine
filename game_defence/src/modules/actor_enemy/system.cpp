@@ -141,7 +141,7 @@ update_enemy_system(entt::registry& r, const float dt)
   //
   for (const auto& [e, enemy, target_position, enemy_t, vel, aabb] : view.each()) {
 
-    // Set Target to player?
+    // Set Target to player
     auto& targeting = r.get_or_emplace<DynamicTargetComponent>(e);
     targeting.target = first_target;
     target_position.position = first_target_transform.position;

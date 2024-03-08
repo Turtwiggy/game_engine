@@ -24,4 +24,9 @@ struct astar_cell
   int cost = 1;
 };
 
+struct GeneratedPathComponent
+{
+  std::vector<glm::ivec2> path;
+};
+
 } // namespace game2d

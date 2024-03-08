@@ -9,6 +9,7 @@
 #include "maths/maths.hpp"
 #include "modules/actor_cursor/components.hpp"
 #include "modules/actor_player/components.hpp"
+#include "modules/ai_pathfinding/helpers.hpp"
 #include "modules/algorithm_dda/helpers.hpp"
 #include "modules/combat_damage/components.hpp"
 #include "modules/combat_wants_to_shoot/components.hpp"
@@ -20,6 +21,7 @@
 #include "sprites/helpers.hpp"
 
 #include <glm/glm.hpp>
+#include <imgui.h>
 
 namespace game2d {
 
@@ -93,63 +95,72 @@ attack_action(entt::registry& r, const entt::entity& enemy)
 void
 move_action(entt::registry& r, const glm::ivec2& click_position, const glm::ivec2& held_position)
 {
+  const auto& map = get_first_component<MapComponent>(r);
+
+  GridComponent grid;
+  grid.size = map.tilesize;
+  grid.width = map.xmax;
+  grid.height = map.ymax;
+  grid.grid = map.map;
+
   // Position units along the line, facing the dir
-  const glm::vec2 raw_dir = held_position - click_position;
-  const glm::vec2 nrm_dir = engine::normalize_safe(raw_dir);
-  const glm::vec2 perp_dir = { -nrm_dir.y, nrm_dir.x };
+  // const glm::vec2 raw_dir = held_position - click_position;
+  // const glm::vec2 nrm_dir = engine::normalize_safe(raw_dir);
+  // const glm::vec2 perp_dir = { -nrm_dir.y, nrm_dir.x };
 
-  const auto center = click_position;
+  const auto& view = r.view<const SelectedComponent, const AABB, const HasTargetPositionComponent>();
 
-  const auto& selected_view =
-    r.view<SelectedComponent, AABB, HasTargetPositionComponent>(entt::exclude<WaitForInitComponent>);
+  for (const auto& [e, selected, aabb, target_position] : view.each()) {
+    const auto& src = aabb.center;
+    const auto src_gridpos = engine::grid::world_space_to_grid_space(glm::vec2(src.x, src.y), map.tilesize);
+    const auto src_idx = engine::grid::grid_position_to_index(src_gridpos, map.xmax);
 
-  // Get unit info
-  //
-  int total_targets = 0;
-  float total_length = 0;
-  for (const auto& [e, selected, aabb, target] : selected_view.each()) {
-    total_length += aabb.size.x;
-    total_targets++;
+    const auto& dst = click_position;
+    const auto dst_gridpos = engine::grid::world_space_to_grid_space(glm::vec2(dst.x, dst.y), map.tilesize);
+    const auto dst_idx = engine::grid::grid_position_to_index(dst_gridpos, map.ymax);
+
+    // update the path
+    auto path = generate_direct(r, grid, src_idx, dst_idx);
+    r.emplace_or_replace<GeneratedPathComponent>(e, path);
   }
-  const glm::vec2 total_targets_vec = glm::vec2(total_targets, total_targets);
 
-  // Where is the middle unit?
-  const bool is_even = total_targets % 2 == 0;
-  float mid_idx = 0;
-  if (total_length != 0)
-    mid_idx = (total_targets + 1) / 2.0f;
+  // // Get unit info
+  // //
+  // int total_targets = 0;
+  // float total_length = 0;
+  // for (const auto& [e, selected, aabb, target] : selected_view.each()) {
+  //   total_length += aabb.size.x;
+  //   total_targets++;
+  // }
+  // const glm::vec2 total_targets_vec{ total_targets, total_targets };
 
-  const float size_of_each_unit = total_length / total_targets;
-  const glm::vec2 size{ size_of_each_unit, size_of_each_unit };
+  // const float size_of_each_unit = total_length / total_targets;
+  // const glm::vec2 size{ size_of_each_unit, size_of_each_unit };
 
-  // if is even...
-  const int min_idx = glm::floor(mid_idx);
-  const float half_range = size_of_each_unit * min_idx;
-  const glm::vec2 min = glm::vec2(-half_range, -half_range);
+  // // Update selcted units target position
+  // //
+  // for (int i = 1; const auto& [e, selected, aabb, target_pos] : selected_view.each()) {
 
-  // Update selcted units target position
-  //
-  for (int i = 1; const auto& [e, selected, aabb, target_pos] : selected_view.each()) {
+  //   glm::vec2 pos = click_position;
 
-    glm::vec2 pos = center;
+  //   pos += perp_dir * ((glm::vec2(i, i) * size) - (size / 2.0f) - (size * total_targets_vec / 2.0f));
 
-    pos += perp_dir * ((glm::vec2(i, i) * size) - (size / 2.0f) - (size * total_targets_vec / 2.0f));
+  //   target_pos.position = pos;
 
-    target_pos.position = pos;
-
-    i++;
-  }
+  //   i++;
+  // }
 }
 
 void
 update_selected_interactions_system(entt::registry& r, const glm::ivec2& mouse_pos)
 {
+  ImGui::Begin("SelectedInteractions");
+
   const auto& input = get_first_component<SINGLETON_InputComponent>(r);
   const auto& cursor = get_first<CursorComponent>(r);
   const auto& cursor_comp = r.get<CursorComponent>(cursor);
   const auto& enemies = cursor_comp.hovering_enemies;
   auto& dead = get_first_component<SINGLETON_EntityBinComponent>(r);
-  // const auto& map = get_first_component<MapComponent>(r);
 
   // warning: doesnt work with controller currently
   const bool click = get_mouse_rmb_press();
@@ -165,6 +176,32 @@ update_selected_interactions_system(entt::registry& r, const glm::ivec2& mouse_p
     held_position = mouse_pos;
 
   update_cursor_ui(r, cursor_comp, click, held, release, mouse_pos, click_position, held_position);
+
+  {
+    const auto& map = get_first_component<MapComponent>(r);
+    const auto& map_tilesize = map.tilesize;
+    ImGui::Text("regular %i %i", mouse_pos.x, mouse_pos.y);
+
+    const auto mouse_gridspace = engine::grid::world_space_to_grid_space(glm::vec2(mouse_pos.x, mouse_pos.y), map_tilesize);
+    ImGui::Text("gridspace %i %i", mouse_gridspace.x, mouse_gridspace.y);
+
+    // check out of bounds
+    const float min_x = 0;
+    const float max_x = map.xmax * map.tilesize;
+    const float min_y = 0;
+    const float max_y = map.ymax * map.tilesize;
+    const auto within_range = [](const float v, const float a, const float b) { return (v >= a && v <= b); };
+    if (within_range(mouse_pos.x, min_x, max_x) && within_range(mouse_pos.y, min_y, max_y)) {
+      const auto mouse_gridspace_idx = engine::grid::grid_position_to_index(mouse_gridspace, map.xmax);
+      const auto mouse_gridspace_idx_clamped = glm::clamp(mouse_gridspace_idx, 0, (map.xmax * map.ymax) - 1);
+      const auto& map_entries = map.map[mouse_gridspace_idx_clamped];
+      for (const auto& path_e : map_entries) {
+        const auto& pathfind = r.get<PathfindComponent>(path_e);
+        ImGui::Text("Hovered object pathfinding cost: %i", pathfind.cost);
+      }
+    } else
+      ImGui::Text("Mouse out of grid");
+  }
 
   //
   // ctrl+click
@@ -217,6 +254,8 @@ update_selected_interactions_system(entt::registry& r, const glm::ivec2& mouse_p
     click_position = std::nullopt;
     held_position = std::nullopt;
   }
+
+  ImGui::End();
 }
 
 } // namespace game2d

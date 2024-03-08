@@ -2,11 +2,13 @@
 
 #include "actors.hpp"
 
+#include <vector>
+
 namespace game2d {
 
 struct SpawnerComponent
 {
-  EntityType type_to_spawn = EntityType::enemy_grunt;
+  std::vector<EntityType> types_to_spawn{ EntityType::enemy_grunt };
 
   bool continuous_spawn = true;
 };

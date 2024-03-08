@@ -38,7 +38,6 @@
 #include "modules/renderer/helpers.hpp"
 #include "modules/renderer/system.hpp"
 #include "modules/resolve_collisions/system.hpp"
-#include "modules/respawn/system.hpp"
 #include "modules/scene/helpers.hpp"
 #include "modules/screenshake/system.hpp"
 #include "modules/selected_interactions/system.hpp"
@@ -267,7 +266,6 @@ game2d::update(engine::SINGLETON_Application& app, entt::registry& r, const floa
       update_wants_to_shoot_system(r);
       //
       // spawners
-      // update_respawn_system(r);
       update_spawner_system(r, milliseconds_dt);
       //
       // items
