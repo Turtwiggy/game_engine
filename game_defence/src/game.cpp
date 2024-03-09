@@ -52,9 +52,11 @@
 #include "modules/ui_level_editor/components.hpp"
 #include "modules/ui_level_editor/system.hpp"
 #include "modules/ui_pause_menu/system.hpp"
+#include "modules/ui_player_name_above_player/system.hpp"
 #include "modules/ui_rpg_character/system.hpp"
 #include "modules/ui_scene_main_menu/system.hpp"
 #include "modules/ui_selected/system.hpp"
+#include "modules/ui_worldspace_text/system.hpp"
 #include "modules/ux_hoverable/system.hpp"
 #include "modules/ux_hoverable_change_colour/system.hpp"
 #include "physics/components.hpp"
@@ -381,7 +383,9 @@ game2d::update(engine::SINGLETON_Application& app, entt::registry& r, const floa
       update_ui_inventory(r);
       update_ui_selected(r);
       update_ui_arrows_to_spawners_system(r);
+      update_ui_player_name_above_player_system(r);
     }
+    update_ui_worldspace_text_system(r);
     update_ui_pause_menu_system(app, r);
     update_ui_gameover_system(r);
 

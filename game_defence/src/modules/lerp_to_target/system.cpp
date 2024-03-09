@@ -31,24 +31,59 @@ update_set_velocity_to_target_system(entt::registry& r, const float& dt)
     cur_gridpos.x = glm::clamp(cur_gridpos.x, 0, map.xmax - 1);
     cur_gridpos.y = glm::clamp(cur_gridpos.y, 0, map.ymax - 1);
     ImGui::Text("CurrentGridPos: %i %i", cur_gridpos.x, cur_gridpos.y);
+    ImGui::Text("Path Size: %i", path.path.size());
 
     // const auto cur_idx = engine::grid::grid_position_to_index(cur_gridpos, map.xmax);
     // const auto cur_idx_clamped = glm::clamp(cur_idx, 0, (map.xmax * map.ymax) - 1);
 
-    for (int i = 0; const auto p : path.path) {
-      // if we're on a gridpos, we're interested in the next gridpos
-      if (p == cur_gridpos) {
+    // probably clicked either on invalid spot, or spot in same gridspace
+    if (path.path.size() == 0)
+      target.position = path.dst_pos;
 
+    for (int i = 0; const auto p : path.path) {
+
+      // not on our section in the path
+      if (p != cur_gridpos) {
+        i++;
+        continue;
+      }
+
+      // cut corners
+      // path.path_cleared[i] = true;
+
+      // move towards center of the current tile
+      if (!path.path_cleared[i]) {
+        const auto target_pos = engine::grid::grid_space_to_world_space(cur_gridpos, map.tilesize);
+        target.position = target_pos;
+        target.position += glm::vec2(map.tilesize / 2.0f, map.tilesize / 2.0f);
+      }
+
+      // check if within distance of the center of the gridpos
+      if (!path.path_cleared[i]) {
+        const auto d = aabb.center - target.position;
+        const float d2 = d.x * d.x + d.y * d.y;
+        const float threshold = 10;
+        if (d2 < threshold)
+          path.path_cleared[i] = true;
+      }
+
+      // if we've cleared this current gridtile path,
+      // aim for the next gridtile path
+      if (path.path_cleared[i]) {
         const int next_idx = i + 1;
         const bool is_valid_next_index = next_idx <= path.path.size() - 1;
         if (is_valid_next_index) {
           const auto next_pos = path.path[next_idx];
           const auto target_pos = engine::grid::grid_space_to_world_space(next_pos, map.tilesize);
-
+          // center, not top left
           target.position = target_pos;
-          target.position += glm::vec2(map.tilesize / 2.0f, map.tilesize / 2.0f); // center, not top left
+          target.position += glm::vec2(map.tilesize / 2.0f, map.tilesize / 2.0f);
         }
       }
+
+      // if we're at the end of the path, aim for the original position
+      if (i == path.path.size() - 1)
+        target.position = path.dst_pos;
 
       i++;
     }

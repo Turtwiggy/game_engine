@@ -26,7 +26,10 @@ struct astar_cell
 
 struct GeneratedPathComponent
 {
+  glm::vec2 src_pos;
+  glm::vec2 dst_pos;
   std::vector<glm::ivec2> path;
+  std::vector<bool> path_cleared;
 };
 
 } // namespace game2d

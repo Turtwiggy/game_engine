@@ -39,7 +39,9 @@
   "C_Cpp.codeAnalysis.clangTidy.checks.disabled": [
     "readability-identifier-length",
     "readability-braces-around-statements",
-    "readability-uppercase-literal-suffix"
+    "readability-uppercase-literal-suffix",
+    "clang-diagnostic-error",
+    "clang-diagnostic-error"
   ]
   // "editor.guides.bracketPairs": "active",
 }

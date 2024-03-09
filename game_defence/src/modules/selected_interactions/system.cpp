@@ -121,7 +121,13 @@ move_action(entt::registry& r, const glm::ivec2& click_position, const glm::ivec
 
     // update the path
     auto path = generate_direct(r, grid, src_idx, dst_idx);
-    r.emplace_or_replace<GeneratedPathComponent>(e, path);
+
+    GeneratedPathComponent path_c;
+    path_c.path = path;
+    path_c.src_pos = src;
+    path_c.dst_pos = dst;
+    path_c.path_cleared.resize(path.size());
+    r.emplace_or_replace<GeneratedPathComponent>(e, path_c);
   }
 
   // // Get unit info
@@ -154,8 +160,6 @@ move_action(entt::registry& r, const glm::ivec2& click_position, const glm::ivec
 void
 update_selected_interactions_system(entt::registry& r, const glm::ivec2& mouse_pos)
 {
-  ImGui::Begin("SelectedInteractions");
-
   const auto& input = get_first_component<SINGLETON_InputComponent>(r);
   const auto& cursor = get_first<CursorComponent>(r);
   const auto& cursor_comp = r.get<CursorComponent>(cursor);
@@ -177,7 +181,10 @@ update_selected_interactions_system(entt::registry& r, const glm::ivec2& mouse_p
 
   update_cursor_ui(r, cursor_comp, click, held, release, mouse_pos, click_position, held_position);
 
+  bool valid_move_action_for_hovered_object = false;
   {
+    ImGui::Begin("SelectedInteractions");
+
     const auto& map = get_first_component<MapComponent>(r);
     const auto& map_tilesize = map.tilesize;
     ImGui::Text("regular %i %i", mouse_pos.x, mouse_pos.y);
@@ -198,9 +205,12 @@ update_selected_interactions_system(entt::registry& r, const glm::ivec2& mouse_p
       for (const auto& path_e : map_entries) {
         const auto& pathfind = r.get<PathfindComponent>(path_e);
         ImGui::Text("Hovered object pathfinding cost: %i", pathfind.cost);
+        if (pathfind.cost != -1)
+          valid_move_action_for_hovered_object = true;
       }
     } else
       ImGui::Text("Mouse out of grid");
+    ImGui::End();
   }
 
   //
@@ -248,14 +258,12 @@ update_selected_interactions_system(entt::registry& r, const glm::ivec2& mouse_p
   //
   // release + move
   //
-  else if (release && enemies.size() == 0) {
+  else if (release && enemies.size() == 0 && valid_move_action_for_hovered_object) {
     move_action(r, click_position.value(), held_position.value());
 
     click_position = std::nullopt;
     held_position = std::nullopt;
   }
-
-  ImGui::End();
 }
 
 } // namespace game2d
