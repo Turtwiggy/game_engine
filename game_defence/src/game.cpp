@@ -51,6 +51,8 @@
 #include "modules/ui_inventory/system.hpp"
 #include "modules/ui_level_editor/components.hpp"
 #include "modules/ui_level_editor/system.hpp"
+#include "modules/ui_level_up/components.hpp"
+#include "modules/ui_level_up/system.hpp"
 #include "modules/ui_pause_menu/system.hpp"
 #include "modules/ui_player_name_above_player/system.hpp"
 #include "modules/ui_rpg_character/system.hpp"
@@ -190,6 +192,10 @@ game2d::fixed_update(engine::SINGLETON_Application& app, entt::registry& game, c
   auto& gameover = get_first_component<SINGLETON_GameOver>(game);
   if (gameover.game_is_over)
     return;
+
+  const auto& leveling_up = get_first_component<SINGLE_UILevelUpComponent>(game);
+  if (leveling_up.show_menu)
+    return; // dont progress game while leveling up
 
   // destroy/create objects
   update_lifecycle_system(game, milliseconds_dt);
@@ -331,7 +337,7 @@ game2d::update(engine::SINGLETON_Application& app, entt::registry& r, const floa
       //     ImGuiWindowFlags flags = ImGuiWindowFlags_NoDocking;
       //     flags |= ImGuiWindowFlags_NoFocusOnAppearing;
       //     ImGui::Begin("Escape!", NULL, flags);
-      //     ImGui::Text("You esacped!");
+      //     ImGui::Text("You escaped!");
       //     ImGui::End();
       //   }
       // }
@@ -384,6 +390,7 @@ game2d::update(engine::SINGLETON_Application& app, entt::registry& r, const floa
       update_ui_selected(r);
       update_ui_arrows_to_spawners_system(r);
       update_ui_player_name_above_player_system(r);
+      update_ui_level_up_system(r);
     }
     update_ui_worldspace_text_system(r);
     update_ui_pause_menu_system(app, r);

@@ -74,8 +74,6 @@ game2d::update_move_objects_system(entt::registry& r, const uint64_t& millisecon
       // move_x
       //
       {
-        float previous_value = vel.remainder_x;
-
         vel.remainder_x += vel.x * dt;
 
 #if defined(_DEBUG)
@@ -91,26 +89,31 @@ game2d::update_move_objects_system(entt::registry& r, const uint64_t& millisecon
           const int sign = glm::sign(move);
 
           for (int i = 0; i < glm::abs(move); i++) {
+            bool hit_solid = false;
 
             // would-be updated position
             AABB updated_pos = aabb;
             updated_pos.center.x += sign;
 
             // Check if the updated position would collide with anything
-            // for (const auto& [o_entity, o_psolid, o_aabb] : solids.each()) {
-            //   const bool same = entity == o_entity;
-            //   if (!same && collide(updated_pos, o_aabb)) {
-            //     // Collision2D collision;
-            //     // const auto id_0 = static_cast<uint32_t>(entity);
-            //     // const auto id_1 = static_cast<uint32_t>(o_entity);
-            //     // collision.ent_id_0 = glm::min(id_0, id_1);
-            //     // collision.ent_id_1 = glm::max(id_0, id_1);
-            //     // actor_solid_collisions.emplace(collision);
+            for (const auto& [o_entity, o_psolid, o_aabb] : solids.each()) {
+              const bool same = entity == o_entity;
+              if (!same && collide(updated_pos, o_aabb)) {
+                // Collision2D collision;
+                // const auto id_0 = static_cast<uint32_t>(entity);
+                // const auto id_1 = static_cast<uint32_t>(o_entity);
+                // collision.ent_id_0 = glm::min(id_0, id_1);
+                // collision.ent_id_1 = glm::max(id_0, id_1);
+                // actor_solid_collisions.emplace(collision);
 
-            //     amount = 0;
-            //     break; // a collision
-            //   }
-            // }
+                move = 0;
+                hit_solid = true;
+                break; // a collision
+              }
+            }
+
+            if (hit_solid)
+              break;
 
             // If no collision...
             aabb.center.x += sign;
@@ -129,27 +132,32 @@ game2d::update_move_objects_system(entt::registry& r, const uint64_t& millisecon
           const int sign = glm::sign(amount);
 
           for (int i = 0; i < glm::abs(amount); i++) {
+            bool hit_solid = false;
 
             // would-be updated position
             AABB updated_pos = aabb;
             updated_pos.center.y += sign;
 
             // Check if the updated position would collide with anything
-            // for (const auto& [o_entity, o_psolid, o_aabb] : solids.each()) {
-            //   const bool same = entity == o_entity;
-            //   if (!same && collide(updated_pos, o_aabb)) {
+            for (const auto& [o_entity, o_psolid, o_aabb] : solids.each()) {
+              const bool same = entity == o_entity;
+              if (!same && collide(updated_pos, o_aabb)) {
 
-            //     // Collision2D collision;
-            //     // const auto id_0 = static_cast<uint32_t>(entity);
-            //     // const auto id_1 = static_cast<uint32_t>(o_entity);
-            //     // collision.ent_id_0 = glm::min(id_0, id_1);
-            //     // collision.ent_id_1 = glm::max(id_0, id_1);
-            //     // actor_solid_collisions.emplace(collision);
+                // Collision2D collision;
+                // const auto id_0 = static_cast<uint32_t>(entity);
+                // const auto id_1 = static_cast<uint32_t>(o_entity);
+                // collision.ent_id_0 = glm::min(id_0, id_1);
+                // collision.ent_id_1 = glm::max(id_0, id_1);
+                // actor_solid_collisions.emplace(collision);
 
-            //     amount = 0;
-            //     break; // a collision
-            //   }
-            // }
+                amount = 0;
+                hit_solid = true;
+                break; // a collision
+              }
+            }
+
+            if (hit_solid)
+              break;
 
             // Move player if empty space
             aabb.center.y += sign;

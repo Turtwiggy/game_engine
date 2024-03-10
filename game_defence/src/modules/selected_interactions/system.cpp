@@ -198,7 +198,9 @@ update_selected_interactions_system(entt::registry& r, const glm::ivec2& mouse_p
     const float min_y = 0;
     const float max_y = map.ymax * map.tilesize;
     const auto within_range = [](const float v, const float a, const float b) { return (v >= a && v <= b); };
-    if (within_range(mouse_pos.x, min_x, max_x) && within_range(mouse_pos.y, min_y, max_y)) {
+    const bool mouse_in_grid = within_range(mouse_pos.x, min_x, max_x) && within_range(mouse_pos.y, min_y, max_y);
+
+    if (mouse_in_grid) {
       const auto mouse_gridspace_idx = engine::grid::grid_position_to_index(mouse_gridspace, map.xmax);
       const auto mouse_gridspace_idx_clamped = glm::clamp(mouse_gridspace_idx, 0, (map.xmax * map.ymax) - 1);
       const auto& map_entries = map.map[mouse_gridspace_idx_clamped];
@@ -208,8 +210,11 @@ update_selected_interactions_system(entt::registry& r, const glm::ivec2& mouse_p
         if (pathfind.cost != -1)
           valid_move_action_for_hovered_object = true;
       }
-    } else
+    } else {
       ImGui::Text("Mouse out of grid");
+      // let player move out of grid?
+      valid_move_action_for_hovered_object = true;
+    }
     ImGui::End();
   }
 
@@ -220,6 +225,7 @@ update_selected_interactions_system(entt::registry& r, const glm::ivec2& mouse_p
   // the player should shoot
   //
   if (ctrl_held && click) {
+    std::cout << "ctrl+click.." << std::endl;
 
     const auto& selected_view =
       r.view<PlayerComponent, const SelectedComponent, const AABB>(entt::exclude<WaitForInitComponent>);
@@ -249,16 +255,16 @@ update_selected_interactions_system(entt::registry& r, const glm::ivec2& mouse_p
     }
 
   }
-  //
   // click + attack
   //
   else if (click && enemies.size() > 0) {
     attack_action(r, enemies[0]);
   }
-  //
   // release + move
+  // note: release is happening the frame after or so with ctrl+click
   //
-  else if (release && enemies.size() == 0 && valid_move_action_for_hovered_object) {
+  else if (!ctrl_held && release && enemies.size() == 0 && valid_move_action_for_hovered_object) {
+    std::cout << "moving..." << std::endl;
     move_action(r, click_position.value(), held_position.value());
 
     click_position = std::nullopt;

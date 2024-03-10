@@ -39,7 +39,7 @@ generate_map_view(entt::registry& r, const GridComponent& grid)
     result.push_back(cell);
   }
 
-  std::cout << "map size: " << result.size() << std::endl;
+  // std::cout << "map size: " << result.size() << std::endl;
   return result;
 }
 

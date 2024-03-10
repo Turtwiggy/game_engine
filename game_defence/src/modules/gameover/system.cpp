@@ -59,20 +59,20 @@ update_gameover_system(entt::registry& r)
       // }
 
       // Check if all enemies are dead, and there are no spawners
-      //   const bool no_enemies = r.view<EnemyComponent>().size() == 0;
-      //   bool no_enemy_spawners = true;
-      //   {
-      //     for (const auto& [e, spawner] : r.view<SpawnerComponent>().each()) {
-      //       if (spawner.type_to_spawn == EntityType::enemy_grunt)
-      //         no_enemy_spawners = false;
-      //     }
-      //   }
+      const bool no_enemies = r.view<EnemyComponent>().size() == 0;
+      bool no_enemy_spawners = true;
+      {
+        for (const auto& [e, spawner] : r.view<SpawnerComponent>().each()) {
+          // if (spawner.type_to_spawn == EntityType::enemy_grunt)
+          no_enemy_spawners = false;
+        }
+      }
 
-      //   if (no_enemies && no_enemy_spawners) {
-      //     gameover.game_is_over = true;
-      //     gameover.win_condition = true;
-      //     gameover.reason = "Level Complete! You survived with "s + std::to_string(players_view.size()) + " players"s;
-      //   }
+      if (no_enemies && no_enemy_spawners) {
+        gameover.game_is_over = true;
+        gameover.win_condition = true;
+        gameover.reason = "Level Complete! You survived with "s + std::to_string(players_view.size()) + " players"s;
+      }
     }
 
     if (gameover.game_is_over && !gameover.activated_gameover) {

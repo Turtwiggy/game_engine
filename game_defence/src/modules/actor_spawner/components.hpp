@@ -15,7 +15,7 @@ struct SpawnerComponent
 
 struct OnlySpawnInRangeOfAnyPlayerComponent
 {
-  float distance2 = 500000; // sqrt(distance2) is the x or y distance
+  float distance2 = 50000; // sqrt(distance2) is the x or y distance
 };
 
 } // namespace game2d

@@ -23,7 +23,7 @@ update_ui_inventory(entt::registry& r)
 
   ImGui::Begin("Inventory");
   {
-    const auto& players_view = r.view<const PlayerComponent>(entt::exclude<WaitForInitComponent>);
+    const auto& players_view = r.view<PlayerComponent>(entt::exclude<WaitForInitComponent>);
     const auto& items_view = r.view<ItemComponent, HasParentComponent, TagComponent>(entt::exclude<WaitForInitComponent>);
 
     for (const auto& [player_e, player_c] : players_view.each()) {
@@ -33,6 +33,11 @@ update_ui_inventory(entt::registry& r)
       ImGui::Text("Player has %i XP", player_c.picked_up_xp);
       ImGui::Text("Player has %i kills", player_c.killed);
       ImGui::Text("Player has doubledamage: %i", r.try_get<PowerupDoubleDamage>(player_e) != nullptr);
+
+      // HACK: give player xp
+      if (ImGui::Button("Give XP")) {
+        player_c.picked_up_xp += 1;
+      }
 
       // Show like potion x1, potion x2 not potions individually
       std::map<std::string, std::vector<entt::entity>> compacted_items;

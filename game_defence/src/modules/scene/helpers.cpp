@@ -25,6 +25,7 @@
 #include "modules/screenshake/components.hpp"
 #include "modules/selected_interactions/components.hpp"
 #include "modules/ui_arrows_to_spawners/components.hpp"
+#include "modules/ui_level_up/components.hpp"
 #include "modules/ui_rpg_character/components.hpp"
 #include "modules/ui_scene_main_menu/components.hpp"
 #include "modules/ui_scene_main_menu/system.hpp"
@@ -62,6 +63,7 @@ move_to_scene_start(entt::registry& r, const Scene s)
   destroy_and_create<SINGLE_ScreenshakeComponent>(r);
   destroy_and_create<SINGLE_SelectedUI>(r);
   destroy_and_create<SINGLE_ArrowsToSpawnerUI>(r);
+  destroy_and_create<SINGLE_UILevelUpComponent>(r);
 
   // HACK: the first and only transform should be the camera
   auto& camera = get_first_component<TransformComponent>(r);
@@ -142,7 +144,7 @@ move_to_scene_start(entt::registry& r, const Scene s)
       const auto e = create_gameplay(r, EntityType::actor_player);
       auto& e_aabb = r.get<AABB>(e);
       e_aabb.size = default_size;
-      e_aabb.center = { 0, 0 + (32 * i) };
+      e_aabb.center = { 32, 32 + (32 * i) };
       auto& target_pos = r.get<HasTargetPositionComponent>(e);
       target_pos.position = e_aabb.center;
       // const auto icon_xy = set_sprite_custom(r, e, "player_0", tex_unit);
@@ -252,24 +254,43 @@ move_to_scene_start(entt::registry& r, const Scene s)
     }
 
     // Generate "seed points" for bases
-    // TODO: make sure seed points are in "free grid space" in map
     //
-    // {
-    //   const int seed = 0;
-    //   const int distance_between_points = poisson_space_for_spawners;
-    //   const auto poisson = generate_poisson(width, height, distance_between_points, seed);
-    //   std::cout << "generated " << poisson.size() << " poisson points for bases" << std::endl;
-    //   for (const auto& p : poisson) {
-    //     // create a spawner at these positions
-    //     const auto e = create_gameplay(r, EntityType::actor_spawner);
-    //     r.emplace<OnlySpawnInRangeOfAnyPlayerComponent>(e);
-    //     auto& e_aabb = r.get<AABB>(e);
-    //     e_aabb.size = default_size * 1;
-    //     e_aabb.center = { p.x, p.y };
-    //     auto& spawner = r.get<SpawnerComponent>(e);
-    //     spawner.type_to_spawn = EntityType::enemy_grunt;
-    //   }
-    // }
+    {
+      const auto& map = get_first_component<MapComponent>(r);
+      const int seed = 0;
+      const int distance_between_points = poisson_space_for_spawners;
+      const auto poisson = generate_poisson(width, height, distance_between_points, seed);
+      std::cout << "generated " << poisson.size() << " poisson points for bases" << std::endl;
+      for (const auto& p : poisson) {
+
+        // check if gridspace is in a wall...
+        const auto poisson_point_gridspace = engine::grid::world_space_to_grid_space(p, map.tilesize);
+        const auto poisson_point_idx = engine::grid::grid_position_to_index(poisson_point_gridspace, map.xmax);
+        const auto map_entity = map.map[poisson_point_idx];
+        const auto fist_map_entity = map_entity[0];
+        if (r.get<PathfindComponent>(fist_map_entity).cost == -1) {
+          // do not spawn on this point... its blocked
+          std::cout << "not spawning spawnpoint on blocked gridspace" << std::endl;
+          continue;
+        }
+
+        // create a spawner at these positions
+        const auto e = create_gameplay(r, EntityType::actor_spawner);
+        r.emplace<OnlySpawnInRangeOfAnyPlayerComponent>(e);
+        auto& e_aabb = r.get<AABB>(e);
+        e_aabb.size = default_size * 1;
+
+        // make sure seed points are clamped to grid space
+        auto poisson_point_clamped = engine::grid::grid_space_to_world_space(poisson_point_gridspace, map.tilesize);
+        poisson_point_clamped.x += map.tilesize / 2.0f; // center, not top left
+        poisson_point_clamped.y += map.tilesize / 2.0f; // center, not top left
+        e_aabb.center = { poisson_point_clamped.x, poisson_point_clamped.y };
+
+        auto& spawner = r.get<SpawnerComponent>(e);
+        spawner.types_to_spawn.push_back(EntityType::enemy_grunt);
+        spawner.types_to_spawn.push_back(EntityType::enemy_ranged);
+      }
+    }
 
     auto& scene = get_first_component<SINGLETON_CurrentScene>(r);
     scene.s = s; // done
