@@ -31,6 +31,7 @@ game2d::update_player_controller_system(entt::registry& r, const uint64_t& milli
   const auto& finputs = get_first_component<SINGLETON_FixedUpdateInputHistory>(r);
   const auto& inputs = finputs.history.at(finputs.fixed_tick);
   const auto& i = get_first_component<SINGLETON_InputComponent>(r);
+  const float dt = milliseconds_dt / 1000.0f;
 
   // const auto cursor = get_first<CursorComponent>(r);
   // const auto& cursor_transform = r.get<TransformComponent>(cursor);
@@ -68,8 +69,8 @@ game2d::update_player_controller_system(entt::registry& r, const uint64_t& milli
         input.ly += fixed_input_keyboard_held(inputs, keyboard->S) ? 1 : 0;
         input.lx += fixed_input_keyboard_held(inputs, keyboard->A) ? -1 : 0;
         input.lx += fixed_input_keyboard_held(inputs, keyboard->D) ? 1 : 0;
-        input.shoot |= fixed_input_mouse_press(inputs, SDL_BUTTON_RIGHT);
-        input.shoot_release |= fixed_input_mouse_release(inputs, SDL_BUTTON_RIGHT);
+        input.shoot |= fixed_input_mouse_press(inputs, SDL_BUTTON_LEFT);
+        input.shoot_release |= fixed_input_mouse_release(inputs, SDL_BUTTON_LEFT);
         input.pickup |= fixed_input_keyboard_press(inputs, keyboard->pickup);
         input.sprint |= fixed_input_keyboard_press(inputs, keyboard->sprint);
         // input.place_turret |= fixed_input_keyboard_press(SDL_SCANCODE_SPACE);
@@ -99,9 +100,25 @@ game2d::update_player_controller_system(entt::registry& r, const uint64_t& milli
 
     // shoot action
     //
-    // if (input.shoot)
-    //   r.emplace_or_replace<WantsToShoot>(entity);
-    // if (input.shoot_release)
-    //   r.emplace_or_replace<WantsToReleaseShot>(entity);
+    if (input.shoot)
+      r.emplace_or_replace<WantsToShoot>(entity);
+    if (input.shoot_release)
+      r.emplace_or_replace<WantsToReleaseShot>(entity);
+
+    // do the move..
+    //
+    //
+
+    // if (auto* vel = r.try_get<VelocityComponent>(entity)) {
+    //   const glm::vec2 l_nrm_raw = { input.lx, input.ly };
+    //   const glm::vec2 l_nrm_dir = engine::normalize_safe(l_nrm_raw);
+    //   const glm::vec2 move_dir = (l_nrm_dir * vel->base_speed) / dt;
+    //   vel->x = move_dir.x;
+    //   vel->y = move_dir.y;
+    //   if (input.sprint) {
+    //     vel->x *= 2.0f;
+    //     vel->y *= 2.0f;
+    //   }
+    // }
   }
 };

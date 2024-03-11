@@ -45,6 +45,41 @@ namespace game2d {
 using namespace std::literals;
 using json = nlohmann::json;
 
+const int pixel_scale_up_size = 2;
+const auto default_size = glm::ivec2{ 16 * pixel_scale_up_size, 16 * pixel_scale_up_size };
+
+entt::entity
+create_player(entt::registry& r, const entt::entity& group)
+{
+  const auto& group_pos = r.get<AABB>(group);
+
+  // player
+  const auto e = create_gameplay(r, EntityType::actor_player);
+  auto& e_aabb = r.get<AABB>(e);
+  e_aabb.size = default_size;
+  e_aabb.center = group_pos.center;
+  // auto& target_pos = r.get<HasTargetPositionComponent>(e);
+  // target_pos.position = e_aabb.center;
+  // const auto icon_xy = set_sprite_custom(r, e, "player_0", tex_unit);
+  r.get<TransformComponent>(e).scale = { e_aabb.size.x, e_aabb.size.y, 1.0f };
+
+  // link group&player
+  r.emplace<HasParentComponent>(e, group);
+
+  // weapon
+  const auto weapon = create_gameplay(r, EntityType::weapon_shotgun);
+  auto& weapon_parent = r.get<HasParentComponent>(weapon);
+  weapon_parent.parent = e;
+  auto& weapon_aabb = r.get<AABB>(weapon);
+  weapon_aabb.center = e_aabb.center;
+
+  // link player&weapon
+  auto& player = r.get<PlayerComponent>(e);
+  player.weapon = weapon;
+
+  return e;
+};
+
 void
 move_to_scene_start(entt::registry& r, const Scene s)
 {
@@ -108,9 +143,6 @@ move_to_scene_start(entt::registry& r, const Scene s)
     const auto tex_unit_for_bargame = search_for_texture_unit_by_path(ri, "bargame")->unit;
     const auto& menu_ui = get_first_component<SINGLE_MainMenuUI>(r);
 
-    const int pixel_scale_up_size = 2;
-    const auto default_size = glm::ivec2{ 16 * pixel_scale_up_size, 16 * pixel_scale_up_size };
-
     // Play some audio
     r.emplace<AudioRequestPlayEvent>(r.create(), "GAME_01");
 
@@ -136,36 +168,16 @@ move_to_scene_start(entt::registry& r, const Scene s)
     // create players based off main menu ui
     // note: create player before other sprites to render on top
     //
-    // todo: put player at first free slot in map.
+    // todo: put group at first free slot in map.
     //
+    const auto& player_group = create_gameplay(r, EntityType::actor_grouplocation);
+    auto& group_aabb = r.get<AABB>(player_group);
+    group_aabb.size = default_size;
+    group_aabb.center = { 32, 32 };
+
     const auto& character_stats_view = r.view<CharacterStats, InActiveFight>();
-    for (int i = 0; const auto& [request_e, stats_e, fight_e] : character_stats_view.each()) {
-      // player
-      const auto e = create_gameplay(r, EntityType::actor_player);
-      auto& e_aabb = r.get<AABB>(e);
-      e_aabb.size = default_size;
-      e_aabb.center = { 32, 32 + (32 * i) };
-      auto& target_pos = r.get<HasTargetPositionComponent>(e);
-      target_pos.position = e_aabb.center;
-      // const auto icon_xy = set_sprite_custom(r, e, "player_0", tex_unit);
-      r.get<TransformComponent>(e).scale = { e_aabb.size.x, e_aabb.size.y, 1.0f };
-
-      // set colour
-      auto& sc = r.get<SpriteComponent>(e);
-      sc.colour = engine::SRGBToLinear(engine::SRGBColour(i / 5.0f, 0.6f, i / 5.0f, 1.0f));
-
-      // weapon
-      const auto weapon = create_gameplay(r, EntityType::weapon_shotgun);
-      auto& weapon_parent = r.get<HasParentComponent>(weapon);
-      weapon_parent.parent = e;
-      auto& weapon_aabb = r.get<AABB>(weapon);
-      weapon_aabb.center = e_aabb.center;
-
-      // link player&weapon
-      auto& player = r.get<PlayerComponent>(e);
-      player.weapon = weapon;
-
-      i++;
+    for (const auto& [request_e, stats_e, fight_e] : character_stats_view.each()) {
+      create_player(r, player_group);
     }
 
     // map width and height
@@ -189,18 +201,18 @@ move_to_scene_start(entt::registry& r, const Scene s)
     // }
 
     // VISUAL: use poisson for grass
-    {
-      const auto poisson = generate_poisson(width, height, 150, 0);
-      std::cout << "generated " << poisson.size() << " poisson points" << std::endl;
-      for (const auto& p : poisson) {
-        const auto icon = create_gameplay(r, EntityType::empty);
-        set_sprite_custom(r, icon, "icon_grass"s, tex_unit_for_bargame);
+    // {
+    //   const auto poisson = generate_poisson(width, height, 150, 0);
+    //   std::cout << "generated " << poisson.size() << " poisson points" << std::endl;
+    //   for (const auto& p : poisson) {
+    //     const auto icon = create_gameplay(r, EntityType::empty);
+    //     set_sprite_custom(r, icon, "icon_grass"s, tex_unit_for_bargame);
 
-        r.get<TransformComponent>(icon).position = { p.x, p.y, 0.0f };
-        r.get<TransformComponent>(icon).scale = { default_size.x, default_size.y, 1.0f };
-        r.get<TagComponent>(icon).tag = "grass"s;
-      }
-    }
+    //     r.get<TransformComponent>(icon).position = { p.x, p.y, 0.0f };
+    //     r.get<TransformComponent>(icon).scale = { default_size.x, default_size.y, 1.0f };
+    //     r.get<TagComponent>(icon).tag = "grass"s;
+    //   }
+    // }
 
     // generate some walls
     {
@@ -241,11 +253,11 @@ move_to_scene_start(entt::registry& r, const Scene s)
           else {
             const auto e = create_gameplay(r, EntityType::empty);
             r.emplace<PathfindComponent>(e, 0);
-            set_sprite_custom(r, e, "icon_grass"s, tex_unit_for_bargame);
-            r.get<TransformComponent>(e).position = { xy_world.x, xy_world.y, 0.0f };
-            r.get<TransformComponent>(e).scale = { default_size.x, default_size.y, 1.0f };
-            r.get<TagComponent>(e).tag = "grass"s;
-
+            r.remove<TransformComponent>(e);
+            // set_sprite_custom(r, e, "empty"s, tex_unit_for_bargame);
+            // r.get<TransformComponent>(e).position = { xy_world.x, xy_world.y, 0.0f };
+            // r.get<TransformComponent>(e).scale = { 0, 0, 1.0f };
+            r.get<TagComponent>(e).tag = "floor"s;
             maap[i].push_back(e);
           }
         }

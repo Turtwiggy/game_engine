@@ -32,7 +32,8 @@
         "empty",
         "actor_spawner",
         "bullet_default",
-        "particle"
+        "particle",
+        "actor_grouplocation"
       ]
     },
     {

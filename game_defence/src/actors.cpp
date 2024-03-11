@@ -5,6 +5,7 @@
 #include "events/components.hpp"
 #include "modules/actor_cursor/components.hpp"
 #include "modules/actor_enemy/components.hpp"
+#include "modules/actor_group/components.hpp"
 #include "modules/actor_hearth/components.hpp"
 #include "modules/actor_player/components.hpp"
 #include "modules/actor_spawner/components.hpp"
@@ -58,6 +59,8 @@ create_sprite(entt::registry& r, const EntityType& type)
     sprite = "GEM";
   else if (type == EntityType::actor_pickup_doubledamage)
     sprite = "CARD_HEARTS_2";
+  else if (type == EntityType::actor_grouplocation)
+    sprite = "SHIELD_2_2";
   // else if (type == EntityType::actor_pickup_zone)
   //   sprite = "EMPTY";
   // weapons...
@@ -182,10 +185,19 @@ create_gameplay(entt::registry& r, const EntityType& type)
       break;
     }
 
+    case EntityType::actor_grouplocation: {
+      create_physics_actor(r, e);
+      r.emplace<GroupComponent>(e);
+      break;
+    }
+
     case EntityType::actor_player: {
       const float player_speed = 100.0f;
 
       create_physics_actor(r, e);
+      auto& vel = r.get<VelocityComponent>(e);
+      vel.base_speed = 1.0f;
+
       // r.emplace<PhysicsSolidComponent>(e);
       r.emplace<TeamComponent>(e, AvailableTeams::player);
 
@@ -203,7 +215,7 @@ create_gameplay(entt::registry& r, const EntityType& type)
       // r.emplace<InventoryLimit>(e);
       r.emplace<CameraFollow>(e);
       r.emplace<HoverableComponent>(e);
-      r.emplace<CircleComponent>(e);
+      // r.emplace<CircleComponent>(e);
       // r.emplace<InfiniteLivesComponent>(e);
       // r.emplace<GeneratePickupZoneComponent>(e);
 
@@ -260,24 +272,6 @@ create_gameplay(entt::registry& r, const EntityType& type)
       break;
     }
 
-      // case EntityType::actor_pickup_zone: {
-      //   transform.scale.y = 100;
-      //   transform.scale.x = 100;
-      //   r.emplace<PickupZoneComponent>(e);
-      //   create_physics_actor(r, e);
-      //   break;
-      // }
-
-      //
-      // item
-      //
-
-      // case EntityType::item: {
-      //   // should have a HasParent already attached
-      //   r.emplace<ItemComponent>(e);
-      //   break;
-      // }
-
       //
       // solids
       //
@@ -311,6 +305,7 @@ create_gameplay(entt::registry& r, const EntityType& type)
       r.emplace<SetVelocityToTargetComponent>(e);
       r.emplace<AttackCooldownComponent>(e, 1.2f); // seconds between spawning
       r.emplace<HasParentComponent>(e);
+      r.emplace<WeaponBulletTypeToSpawnComponent>(e);
       break;
     }
 
@@ -334,7 +329,6 @@ create_gameplay(entt::registry& r, const EntityType& type)
       r.emplace<TeamComponent>(e, AvailableTeams::player);
       r.emplace<SetTransformAngleToVelocity>(e);
       r.emplace<EntityTimedLifecycle>(e);
-      r.emplace<AttackComponent>(e, 3);
       break;
     }
 

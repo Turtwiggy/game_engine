@@ -40,7 +40,6 @@
     "readability-identifier-length",
     "readability-braces-around-statements",
     "readability-uppercase-literal-suffix",
-    "clang-diagnostic-error",
     "clang-diagnostic-error"
   ]
   // "editor.guides.bracketPairs": "active",

@@ -65,7 +65,19 @@
     { "name": "PERSON_25_6", "frames": [ { "x": 25, "y": 6 } ] },
     { "name": "PERSON_28_1", "frames": [ { "x": 28, "y": 1 } ] },
     { "name": "PERSON_29_2", "frames": [ { "x": 29, "y": 2 } ] },
-    { "name": "SHIELD_37_2", "frames": [ { "x": 37, "y": 2 } ] },
+
+    { "name": "SHIELD_0_0", "frames": [ { "x": 37, "y": 2 } ] },
+    { "name": "SHIELD_1_0", "frames": [ { "x": 38, "y": 2 } ] },
+    { "name": "SHIELD_2_0", "frames": [ { "x": 39, "y": 2 } ] },
+    { "name": "SHIELD_3_0", "frames": [ { "x": 40, "y": 2 } ] },
+    { "name": "SHIELD_0_1", "frames": [ { "x": 37, "y": 3 } ] },
+    { "name": "SHIELD_1_1", "frames": [ { "x": 38, "y": 3 } ] },
+    { "name": "SHIELD_2_1", "frames": [ { "x": 39, "y": 3 } ] },
+    { "name": "SHIELD_3_1", "frames": [ { "x": 40, "y": 3 } ] },
+    { "name": "SHIELD_0_2", "frames": [ { "x": 37, "y": 4 } ] },
+    { "name": "SHIELD_1_2", "frames": [ { "x": 38, "y": 4 } ] },
+    { "name": "SHIELD_2_2", "frames": [ { "x": 39, "y": 4 } ] },
+    { "name": "SHIELD_3_2", "frames": [ { "x": 40, "y": 4 } ] },
 
     { "name": "WALL_BIG", "frames": [ { "x": 2, "y": 3 } ] },
 

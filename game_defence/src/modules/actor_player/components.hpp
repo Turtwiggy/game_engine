@@ -17,7 +17,6 @@ namespace game2d {
 struct PlayerComponent
 {
   int picked_up_xp = 0;
-  int killed = 0;
 
   // weapon
   entt::entity weapon = entt::null;

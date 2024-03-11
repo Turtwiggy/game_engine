@@ -23,14 +23,11 @@ update_weapon_shotgun_system(entt::registry& r, const uint64_t milliseconds_dt)
   const float dt = milliseconds_dt / 1000.0f;
   auto& dead = get_first_component<SINGLETON_EntityBinComponent>(r);
 
-  const auto& view = r.view<ShotgunComponent,
-                            HasParentComponent,
-                            AttackCooldownComponent,
-                            HasTargetPositionComponent,
-                            SpriteComponent,
-                            TransformComponent>(entt::exclude<WaitForInitComponent>);
+  const auto& view =
+    r.view<ShotgunComponent, HasParentComponent, AttackCooldownComponent, AABB, SpriteComponent, TransformComponent>(
+      entt::exclude<WaitForInitComponent>);
 
-  for (const auto& [entity, shotgun, parent, cooldown, pos, sprite, shotgun_transform] : view.each()) {
+  for (const auto& [entity, shotgun, parent, cooldown, aabb, sprite, shotgun_transform] : view.each()) {
 
     const auto& p = parent.parent;
     if (p == entt::null || !r.valid(p)) {
@@ -40,7 +37,9 @@ update_weapon_shotgun_system(entt::registry& r, const uint64_t milliseconds_dt)
     const auto& [player, input, player_aabb] = r.get<PlayerComponent, const InputComponent, const AABB>(p);
 
     // Set default position this would want to be
-    pos.position = player_aabb.center;
+    // pos.position = player_aabb.center;
+    // WARNING: hard-set the shotguns position as the player position
+    aabb.center = player_aabb.center;
     shotgun_transform.rotation_radians.z = 0.0f;
 
     // Is this unit currently selected?
@@ -64,7 +63,6 @@ update_weapon_shotgun_system(entt::registry& r, const uint64_t milliseconds_dt)
     if (dynamic_tgt && !r.valid(dynamic_tgt->target)) {
       r.remove<DynamicTargetComponent>(p);
       if (!static_tgt) {
-
         continue; // If no static target either; skip all together
       }
     }
@@ -95,7 +93,8 @@ update_weapon_shotgun_system(entt::registry& r, const uint64_t milliseconds_dt)
 
     // simulate "picking up the gun"
     const glm::ivec2 offset = { -nrm_dir.x * player.weapon_offset, -nrm_dir.y * player.weapon_offset };
-    pos.position += offset;
+    // pos.position += offset;
+    aabb.center += offset;
 
     // Rotate the gun axis to the target
     const float angle = engine::dir_to_angle_radians(nrm_dir);
@@ -145,7 +144,9 @@ update_weapon_shotgun_system(entt::registry& r, const uint64_t milliseconds_dt)
       const float bullet_angle_degrees = 5.0f;
       const float bullet_angle_radians = engine::deg2rad(bullet_angle_degrees);
 
+      const auto& gun_info = r.get<WeaponBulletTypeToSpawnComponent>(entity);
       for (int i = 0; i < 3; i++) {
+
         float angle_to_fire_at = angle_radians;
         //
         // adjust bullets in a spread
@@ -157,7 +158,7 @@ update_weapon_shotgun_system(entt::registry& r, const uint64_t milliseconds_dt)
 
         const auto new_dir = engine::angle_radians_to_direction(angle_to_fire_at);
 
-        const auto req = create_gameplay(r, EntityType::bullet_default);
+        const auto req = create_gameplay(r, gun_info.bullet_type);
         r.get<TransformComponent>(req).position = shotgun_transform.position;
         r.get_or_emplace<HasParentComponent>(req).parent = p;
 
@@ -167,11 +168,11 @@ update_weapon_shotgun_system(entt::registry& r, const uint64_t milliseconds_dt)
         bullet_transform.rotation_radians.z = shotgun_transform.rotation_radians.z;
 
         auto& bullet_vel = r.get<VelocityComponent>(req);
-        bullet_vel.x = new_dir.x * shotgun.bullet_speed;
-        bullet_vel.y = new_dir.y * shotgun.bullet_speed;
+        bullet_vel.x = new_dir.x * gun_info.bullet_speed;
+        bullet_vel.y = new_dir.y * gun_info.bullet_speed;
 
         // Turn the bullet Live!
-        r.emplace_or_replace<AttackComponent>(req, 3);
+        r.emplace_or_replace<AttackComponent>(req, int(gun_info.bullet_damage));
         r.emplace_or_replace<EntityTimedLifecycle>(req);
       }
     }

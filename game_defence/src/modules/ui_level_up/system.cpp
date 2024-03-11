@@ -1,9 +1,15 @@
 #include "system.hpp"
 
+#include "actors.hpp"
 #include "components.hpp"
 #include "entt/helpers.hpp"
 #include "modules/actor_player/components.hpp"
+#include "modules/actor_weapon_shotgun/components.hpp"
+#include "modules/combat_attack_cooldown/components.hpp"
+#include "modules/lifecycle/components.hpp"
 #include "modules/renderer/components.hpp"
+#include "modules/scene/helpers.hpp"
+#include "physics/components.hpp"
 
 #include "imgui.h"
 
@@ -16,7 +22,8 @@ update_ui_level_up_system(entt::registry& r)
   auto& levelup = get_first_component<SINGLE_UILevelUpComponent>(r);
 
   // HACK: test leveling up window.
-  auto& first_player = get_first_component<PlayerComponent>(r);
+  const auto& first_player_e = get_first<PlayerComponent>(r);
+  auto& first_player = r.get<PlayerComponent>(first_player_e);
   if (first_player.picked_up_xp >= 10)
     levelup.show_menu = true;
 
@@ -41,7 +48,14 @@ update_ui_level_up_system(entt::registry& r)
     ImGui::TableNextRow();
 
     ImGui::TableNextColumn();
+    const auto& weapon = first_player.weapon;
+    auto& weapon_info = r.get<WeaponBulletTypeToSpawnComponent>(weapon);
+    auto& weapon_cooldown = r.get<AttackCooldownComponent>(weapon);
+
+    ImGui::Text("Current Damage: %f", weapon_info.bullet_damage);
     if (ImGui::Button("GAIN DAMAGE\n+1 Damage", ImVec2(-FLT_MIN, -FLT_MIN))) {
+
+      weapon_info.bullet_damage += 1.0f;
 
       // HACK
       first_player.picked_up_xp -= 10;
@@ -49,7 +63,10 @@ update_ui_level_up_system(entt::registry& r)
     }
 
     ImGui::TableNextColumn();
+    ImGui::Text("Current Firerate: %f", weapon_cooldown.time_between_attack);
     if (ImGui::Button("GAIN FIRERATE\n+0.01 Firerate", ImVec2(-FLT_MIN, -FLT_MIN))) {
+      weapon_cooldown.time_between_attack -= 0.1;
+      weapon_cooldown.time_between_attack = glm::max(weapon_cooldown.time_between_attack, 0.1f);
 
       // HACK
       first_player.picked_up_xp -= 10;
@@ -58,6 +75,8 @@ update_ui_level_up_system(entt::registry& r)
 
     ImGui::TableNextColumn();
     if (ImGui::Button("GAIN UNIT\n+1 Unit", ImVec2(-FLT_MIN, -FLT_MIN))) {
+      const auto first_player_group = r.get<HasParentComponent>(first_player_e).parent;
+      const auto new_player = create_player(r, first_player_group);
 
       // HACK
       first_player.picked_up_xp -= 10;

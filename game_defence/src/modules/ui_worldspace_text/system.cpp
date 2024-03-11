@@ -1,4 +1,4 @@
-#include "system.hpp"
+#include "modules/ui_worldspace_text/system.hpp"
 
 #include "components.hpp"
 #include "entt/helpers.hpp"
@@ -41,7 +41,7 @@ update_ui_worldspace_text_system(entt::registry& r)
     flags |= ImGuiDockNodeFlags_NoResize;
 
     ImGui::PushID(eid);
-    std::string beginlabel = "WorldspaceText"s;
+    std::string beginlabel = "WorldspaceText##"s + std::to_string(eid);
     ImGui::Begin(beginlabel.c_str(), NULL, flags);
     ImGui::Text("%s", wst_c.text.c_str());
     ImGui::End();

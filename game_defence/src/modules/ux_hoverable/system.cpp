@@ -5,6 +5,7 @@
 #include "entt/helpers.hpp"
 #include "events/helpers/mouse.hpp"
 #include "modules/actor_cursor/components.hpp"
+#include "modules/actor_group/components.hpp"
 #include "modules/combat_damage/components.hpp"
 #include "modules/renderer/components.hpp"
 #include "modules/ui_colours/helpers.hpp"
@@ -64,12 +65,15 @@ update_ux_hoverable(entt::registry& r)
     }
 
     // ... move hovering to selected
-    const auto& view = r.view<HoveredComponent, TeamComponent>();
+    const auto& view = r.view<HoveredComponent, GroupComponent>();
     for (const auto& [e, hovered, team] : view.each()) {
       //
-      // For the moment, limit selected to players
-      if (team.team == AvailableTeams::player)
-        r.emplace_or_replace<SelectedComponent>(e);
+      // For the moment, limit selected to groupos
+      r.emplace_or_replace<SelectedComponent>(e);
+
+      // limit to players
+      // if (team.team == AvailableTeams::player)
+      // r.emplace_or_replace<SelectedComponent>(e);
     }
   }
 }

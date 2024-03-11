@@ -31,7 +31,6 @@ update_ui_inventory(entt::registry& r)
       ImGui::PushID(eid);
       ImGui::Text("¬¬ Player ¬¬");
       ImGui::Text("Player has %i XP", player_c.picked_up_xp);
-      ImGui::Text("Player has %i kills", player_c.killed);
       ImGui::Text("Player has doubledamage: %i", r.try_get<PowerupDoubleDamage>(player_e) != nullptr);
 
       // HACK: give player xp
