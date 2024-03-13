@@ -57,22 +57,6 @@ update_gameover_system(entt::registry& r)
       //   gameover.game_is_over = true;
       //   gameover.reason = "You made it to wave 10!";
       // }
-
-      // Check if all enemies are dead, and there are no spawners
-      const bool no_enemies = r.view<EnemyComponent>().size() == 0;
-      bool no_enemy_spawners = true;
-      {
-        for (const auto& [e, spawner] : r.view<SpawnerComponent>().each()) {
-          // if (spawner.type_to_spawn == EntityType::enemy_grunt)
-          no_enemy_spawners = false;
-        }
-      }
-
-      if (no_enemies && no_enemy_spawners) {
-        gameover.game_is_over = true;
-        gameover.win_condition = true;
-        gameover.reason = "Level Complete! You survived with "s + std::to_string(players_view.size()) + " players"s;
-      }
     }
 
     if (gameover.game_is_over && !gameover.activated_gameover) {
@@ -107,3 +91,41 @@ update_gameover_system(entt::registry& r)
 }
 
 } // namespace game2d
+
+// HACK: gameover condition: All enemies are dead and no spawners
+// const bool no_enemies = r.view<EnemyComponent>().size() == 0;
+// bool no_enemy_spawners = true;
+// {
+//   for (const auto& [e, spawner] : r.view<SpawnerComponent>().each()) {
+//     // if (spawner.type_to_spawn == EntityType::enemy_grunt)
+//     no_enemy_spawners = false;
+//   }
+// }
+// if (no_enemies && no_enemy_spawners) {
+//   gameover.game_is_over = true;
+//   gameover.win_condition = true;
+//   gameover.reason = "Level Complete! You survived with "s + std::to_string(players_view.size()) + " players"s;
+// }
+
+// HACK: gameover condition: X minutes survived
+// {
+//   static int minutes = 1;
+//   static float gameover_cooldown = minutes * 60;
+//   static float gameover_cooldown_left = gameover_cooldown;
+//   gameover_cooldown_left -= dt;
+//   ImGui::Begin("Gameover");
+//   ImGui::Text("Survive: %f", gameover_cooldown_left);
+//   ImGui::End();
+//   if (gameover_cooldown_left <= 0.0f) {
+//     gameover.game_is_over = true;
+//     gameover.win_condition = true;
+//     gameover.reason = std::string("You escaped! Survived for ") + std::to_string(minutes) + std::string(" minutes");
+//   }
+//   if (gameover.game_is_over) {
+//     ImGuiWindowFlags flags = ImGuiWindowFlags_NoDocking;
+//     flags |= ImGuiWindowFlags_NoFocusOnAppearing;
+//     ImGui::Begin("Escape!", NULL, flags);
+//     ImGui::Text("You escaped!");
+//     ImGui::End();
+//   }
+// }

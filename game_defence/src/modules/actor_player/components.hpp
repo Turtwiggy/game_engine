@@ -16,8 +16,6 @@ namespace game2d {
 // as/when it makes sense
 struct PlayerComponent
 {
-  int picked_up_xp = 0;
-
   // weapon
   entt::entity weapon = entt::null;
   entt::entity weapon_line_of_sight = entt::null;

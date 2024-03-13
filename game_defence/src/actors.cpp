@@ -188,6 +188,10 @@ create_gameplay(entt::registry& r, const EntityType& type)
     case EntityType::actor_grouplocation: {
       create_physics_actor(r, e);
       r.emplace<GroupComponent>(e);
+
+      auto& vel = r.get<VelocityComponent>(e);
+      vel.base_speed = 50000.0f;
+
       break;
     }
 

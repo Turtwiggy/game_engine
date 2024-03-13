@@ -126,25 +126,24 @@ update_selected_interactions_system(entt::registry& r, const glm::ivec2& mouse_p
   }
 
   // move group
-  const float CAM_SPEED = 500.0f;
-  const int mul = static_cast<int>(CAM_SPEED * dt);
+  //
   glm::vec2 movement{ 0, 0 };
   if (get_key_held(input, SDL_SCANCODE_A))
-    movement.x -= mul;
+    movement.x -= 1;
   if (get_key_held(input, SDL_SCANCODE_D))
-    movement.x += mul;
+    movement.x += 1;
   if (get_key_held(input, SDL_SCANCODE_W))
-    movement.y -= mul;
+    movement.y -= 1;
   if (get_key_held(input, SDL_SCANCODE_S))
-    movement.y += mul;
+    movement.y += 1;
 
-  const auto& group_view = r.view<const GroupComponent, AABB>();
+  const auto& group_view = r.view<const GroupComponent, VelocityComponent, const AABB>();
   const auto& player_view =
     r.view<PlayerComponent, AABB, HasParentComponent, HasTargetPositionComponent>(entt::exclude<WaitForInitComponent>);
 
-  for (const auto& [e, group, aabb] : group_view.each()) {
-    aabb.center.x += int(movement.x);
-    aabb.center.y += int(movement.y);
+  for (const auto& [e, group, vel, aabb] : group_view.each()) {
+    vel.x = movement.x * dt * vel.base_speed;
+    vel.y = movement.y * dt * vel.base_speed;
 
     // work out info about the group
     //

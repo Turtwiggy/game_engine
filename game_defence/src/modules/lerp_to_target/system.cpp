@@ -20,9 +20,8 @@ update_set_velocity_to_target_system(entt::registry& r, const float& dt)
 {
   const auto& map = get_first_component<MapComponent>(r);
 
-  ImGui::Begin("DebugPathfinding");
-
   // set target to next in generated path
+  ImGui::Begin("DebugPathfinding");
   const auto& pathfinding = r.view<const AABB, HasTargetPositionComponent, GeneratedPathComponent>();
   for (const auto& [e, aabb, target, path] : pathfinding.each()) {
     const auto& cur = aabb.center;
@@ -96,7 +95,6 @@ update_set_velocity_to_target_system(entt::registry& r, const float& dt)
     for (const auto& p : path.path)
       ImGui::Text("Path %i %i", p.x, p.y);
   }
-
   ImGui::End();
 
   // set velocity to target

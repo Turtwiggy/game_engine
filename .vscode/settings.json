@@ -41,6 +41,8 @@
     "readability-braces-around-statements",
     "readability-uppercase-literal-suffix",
     "clang-diagnostic-error"
-  ]
+  ],
+  "C_Cpp.codeAnalysis.clangTidy.useBuildPath": true
+
   // "editor.guides.bracketPairs": "active",
 }

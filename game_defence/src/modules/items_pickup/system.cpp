@@ -17,13 +17,6 @@
 namespace game2d {
 
 void
-give_player_xp_item(entt::registry& r, const entt::entity& player_e, const entt::entity& item_e)
-{
-  auto& player_c = r.get<PlayerComponent>(player_e);
-  player_c.picked_up_xp += 1;
-};
-
-void
 give_player_doubledamage_item(entt::registry& r, const entt::entity& player_e, const entt::entity& item_e)
 {
   PowerupDoubleDamage default_powerup;
@@ -56,9 +49,6 @@ update_intent_pickup_system(entt::registry& r)
       if (const auto* able_to_be_picked_up = r.try_get<AbleToBePickedUp>(item)) {
         // The player collided with an item. What type of item is it?
         const auto& entity_type = r.get<EntityTypeComponent>(item).type;
-
-        if (entity_type == EntityType::actor_pickup_xp)
-          give_player_xp_item(r, player, item);
 
         if (entity_type == EntityType::actor_pickup_doubledamage)
           give_player_doubledamage_item(r, player, item);
