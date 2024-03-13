@@ -133,17 +133,6 @@ update_take_damage_system(entt::registry& r)
     if (hp->hp <= 0) {
       dead.dead.emplace(request.to);
 
-      //
-      // Something Died Events...
-      //
-
-      // Player killed an enemy..!
-      //
-      if (player_attacker != std::nullopt) {
-        auto& player = r.get<PlayerComponent>(player_attacker.value());
-        player.killed += 1;
-      }
-
       // If you're looking for where dead enemies drop items...
       // that's in the drop item system
     }

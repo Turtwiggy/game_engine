@@ -38,14 +38,13 @@ void
 rebind(entt::registry& r, const SINGLETON_RendererInfo& ri)
 {
   const auto& wh = ri.viewport_size_render_at;
-
   engine::RenderCommand::set_viewport(0, 0, wh.x, wh.y);
 
-  engine::bind_tex(ri.tex_unit_linear_main);
+  engine::bind_tex(ri.tex_id_linear_main);
   engine::update_bound_texture_size(wh);
   engine::unbind_tex();
 
-  engine::bind_tex(ri.tex_unit_mix_lighting_and_scene);
+  engine::bind_tex(ri.tex_id_mix_lighting_and_scene);
   engine::update_bound_texture_size(wh);
   engine::unbind_tex();
 
@@ -147,8 +146,7 @@ game2d::update_render_system(entt::registry& r, const float dt, const glm::vec2&
   static const engine::SRGBColour pal_background = { int(34), int(28), int(26), 1.0f };
   static const engine::LinearColour lin_pal_background = engine::SRGBToLinear(pal_background);
 
-  const auto viewport_resized = check_if_viewport_resize(ri);
-  if (viewport_resized) {
+  if (check_if_viewport_resize(ri)) {
     ri.viewport_size_render_at = ri.viewport_size_current;
     rebind(r, ri);
   }

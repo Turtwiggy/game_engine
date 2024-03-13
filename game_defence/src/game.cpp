@@ -10,8 +10,8 @@
 #include "maths/maths.hpp"
 #include "modules/actor_cursor/system.hpp"
 #include "modules/actor_enemy/system.hpp"
+#include "modules/actor_player/components.hpp"
 #include "modules/actor_player/system.hpp"
-#include "modules/actor_spawner/components.hpp"
 #include "modules/actor_spawner/system.hpp"
 #include "modules/actor_turret/system.hpp"
 #include "modules/actor_weapon_shotgun/system.hpp"
@@ -59,6 +59,7 @@
 #include "modules/ui_scene_main_menu/system.hpp"
 #include "modules/ui_selected/system.hpp"
 #include "modules/ui_worldspace_text/system.hpp"
+#include "modules/ui_xp_bar/system.hpp"
 #include "modules/ux_hoverable/system.hpp"
 #include "modules/ux_hoverable_change_colour/system.hpp"
 #include "physics/components.hpp"
@@ -71,7 +72,6 @@
 #include "optick.h"
 
 #include <ranges>
-#include <vector>
 
 void
 game2d::init(engine::SINGLETON_Application& app, entt::registry& r)
@@ -255,10 +255,8 @@ game2d::update(engine::SINGLETON_Application& app, entt::registry& r, const floa
       const uint64_t milliseconds_dt = dt * 1000.0f;
 
       update_attack_cooldown_system(r, milliseconds_dt);
-
       update_take_damage_system(r);
       update_weapon_shotgun_system(r, milliseconds_dt);
-
       update_flash_sprite_system(r, milliseconds_dt);
       // update_turret_system(game, milliseconds_dt);
 
@@ -279,93 +277,7 @@ game2d::update(engine::SINGLETON_Application& app, entt::registry& r, const floa
       // items
       update_intent_pickup_system(r);
       update_intent_drop_item_system(r);
-      // update_actor_dropoffzone_request_items(r, milliseconds_dt);
-      update_selected_interactions_system(r, mouse_pos);
-
-      // // HACK: randomly spawn enemies at edges of screen
-      // // basically, if the camera is at 0,0
-      // // the edges of the screen are -width/2, width/2
-      // // i need x to be less than -width/2, or greater than width/2.
-      // static engine::RandomState rnd;
-      // static float cooldown = 0.5f;
-      // static float cooldown_left = 0.5f;
-      // cooldown_left -= dt;
-      // if (cooldown_left <= 0.0f) {
-      //   cooldown_left = cooldown;
-      //   const auto camera_e = get_first<OrthographicCamera>(r);
-      //   const auto camera_t = r.get<TransformComponent>(camera_e);
-      //   glm::ivec2 cpos = { camera_t.position.x, camera_t.position.y };
-      //   const auto& ri = get_first_component<SINGLETON_RendererInfo>(r);
-      //   const auto screen_halfsize = ri.viewport_size_render_at / 2;
-      //   const float left_or_right = (engine::rand_01(rnd.rng) * 2.0f) - 1.0f;
-      //   const float up_or_down = (engine::rand_01(rnd.rng) * 2.0f) - 1.0f;
-      //   const float extra = 100.0f;
-      //   const float pos_edge_y = cpos.y + screen_halfsize.y;
-      //   const float neg_edge_y = cpos.y - screen_halfsize.y;
-      //   const float pos_edge_x = cpos.x + screen_halfsize.x;
-      //   const float neg_edge_x = cpos.x - screen_halfsize.x;
-      //   int x_spawn_pos = 0;
-      //   int y_spawn_pos = 0;
-      //   if (up_or_down > 0.0f) // down
-      //     y_spawn_pos = engine::rand_det_s(rnd.rng, pos_edge_y, pos_edge_y + extra);
-      //   else // up
-      //     y_spawn_pos = engine::rand_det_s(rnd.rng, neg_edge_y, neg_edge_y - extra);
-      //   if (left_or_right > 0.0f) // right
-      //     x_spawn_pos = engine::rand_det_s(rnd.rng, pos_edge_x, pos_edge_x + extra);
-      //   else // left
-      //     x_spawn_pos = engine::rand_det_s(rnd.rng, neg_edge_x, neg_edge_x - extra);
-      //   const auto enemy = create_gameplay(r, EntityType::enemy_grunt);
-      //   auto& enemy_aabb = r.get<AABB>(enemy);
-      //   enemy_aabb.center = { x_spawn_pos, y_spawn_pos };
-      // }
-
-      // HACK: gameover condition: X minutes survived
-      // {
-      //   static int minutes = 1;
-      //   static float gameover_cooldown = minutes * 60;
-      //   static float gameover_cooldown_left = gameover_cooldown;
-      //   gameover_cooldown_left -= dt;
-      //   ImGui::Begin("Gameover");
-      //   ImGui::Text("Survive: %f", gameover_cooldown_left);
-      //   ImGui::End();
-      //   if (gameover_cooldown_left <= 0.0f) {
-      //     gameover.game_is_over = true;
-      //     gameover.win_condition = true;
-      //     gameover.reason = std::string("You escaped! Survived for ") + std::to_string(minutes) + std::string(" minutes");
-      //   }
-      //   if (gameover.game_is_over) {
-      //     ImGuiWindowFlags flags = ImGuiWindowFlags_NoDocking;
-      //     flags |= ImGuiWindowFlags_NoFocusOnAppearing;
-      //     ImGui::Begin("Escape!", NULL, flags);
-      //     ImGui::Text("You escaped!");
-      //     ImGui::End();
-      //   }
-      // }
-
-      // TODO: xp bar??
-      ImGui::Begin("XP");
-
-      const int size_x = 768;
-      const int size_y = 352;
-      const float cols_x = 48;
-      const float cols_y = 22;
-      const float pixels_x = size_x / cols_x;
-      const float pixels_y = size_y / cols_y;
-      const ImVec2 icon_size = { 500, 50 };
-      const float distance_from_right_side_of_screen = 75;
-      static glm::ivec2 offset = { 1, 0 };
-
-      // convert desired icon to uv coordinates
-      // clang-format off
-      ImVec2 tl = ImVec2(((offset.x * pixels_x + 0.0f    ) / size_x), ((offset.y * pixels_y + 0.0f    ) / size_y));
-      ImVec2 br = ImVec2(((offset.x * pixels_x + pixels_x) / size_x), ((offset.y * pixels_y + pixels_y) / size_y));
-      // clang-format on
-
-      const auto& ri = get_first_component<SINGLETON_RendererInfo>(r);
-      const auto tex_id = search_for_texture_id_by_path(ri, "monochrome_transparent_packed")->id;
-      ImTextureID id = (ImTextureID)tex_id;
-      ImGui::Image(id, icon_size, tl, br, ImVec4(1.0, 0.0, 0.0, 1.0));
-      ImGui::End();
+      update_selected_interactions_system(r, mouse_pos, dt);
     }
   }
 
@@ -384,13 +296,13 @@ game2d::update(engine::SINGLETON_Application& app, entt::registry& r, const floa
       update_ui_scene_main_menu(app, r);
       update_ui_rpg_character_system(r);
     }
-
     if (scene.s == Scene::game) {
       update_ui_inventory(r);
       update_ui_selected(r);
       update_ui_arrows_to_spawners_system(r);
       update_ui_player_name_above_player_system(r);
       update_ui_level_up_system(r);
+      update_ui_xp_bar_system(r);
     }
     update_ui_worldspace_text_system(r);
     update_ui_pause_menu_system(app, r);

@@ -129,38 +129,31 @@ update_ui_scene_main_menu(engine::SINGLETON_Application& app, entt::registry& r)
   //   if (focused_element == 1)
   //     ImGui::PopStyleColor();
 
-  ImGui::NewLine();
-  for (int i = 0; i < 4; i++) {
-    if (i > 0)
-      ImGui::SameLine();
-    ImGui::PushID(i);
-    ImGui::PushStyleColor(ImGuiCol_Button, (ImVec4)ImColor::HSV(i / 7.0f, 0.6f, 0.6f));
-    ImGui::PushStyleColor(ImGuiCol_ButtonHovered, (ImVec4)ImColor::HSV(i / 7.0f, 0.7f, 0.7f));
-    ImGui::PushStyleColor(ImGuiCol_ButtonActive, (ImVec4)ImColor::HSV(i / 7.0f, 0.8f, 0.8f));
-
-    std::string tag = "Lv"s + std::to_string(i);
-    if (ImGui::Button(tag.c_str())) {
-
-      // DISABLED
-      // ui.level = i;
-
-      // editor.mode = LevelEditorMode::play;
-      move_to_scene_start(r, Scene::game);
-
-      // configure spawner for level
-      // auto& grid = get_first_component<GridComponent>(r);
-      // entt::entity spawner_e = grid.grid[0][0];
-      // auto& spawner = r.get<SpawnerComponent>(spawner_e);
-      // spawner.enemies_to_spawn = (i + 1) * 25;
-
-      // load(r, "assets/maps/main.json");
-
-      ui.instantiated_players.clear();
-    }
-
-    ImGui::PopStyleColor(3);
-    ImGui::PopID();
-  }
+  // ImGui::NewLine();
+  // for (int i = 0; i < 4; i++) {
+  //   if (i > 0)
+  //     ImGui::SameLine();
+  //   ImGui::PushID(i);
+  //   ImGui::PushStyleColor(ImGuiCol_Button, (ImVec4)ImColor::HSV(i / 7.0f, 0.6f, 0.6f));
+  //   ImGui::PushStyleColor(ImGuiCol_ButtonHovered, (ImVec4)ImColor::HSV(i / 7.0f, 0.7f, 0.7f));
+  //   ImGui::PushStyleColor(ImGuiCol_ButtonActive, (ImVec4)ImColor::HSV(i / 7.0f, 0.8f, 0.8f));
+  //   std::string tag = "Lv"s + std::to_string(i);
+  //   if (ImGui::Button(tag.c_str())) {
+  //     // DISABLED
+  //     // ui.level = i;
+  //     // editor.mode = LevelEditorMode::play;
+  //     move_to_scene_start(r, Scene::game);
+  //     // configure spawner for level
+  //     // auto& grid = get_first_component<GridComponent>(r);
+  //     // entt::entity spawner_e = grid.grid[0][0];
+  //     // auto& spawner = r.get<SpawnerComponent>(spawner_e);
+  //     // spawner.enemies_to_spawn = (i + 1) * 25;
+  //     // load(r, "assets/maps/main.json");
+  //     ui.instantiated_players.clear();
+  //   }
+  //   ImGui::PopStyleColor(3);
+  //   ImGui::PopID();
+  // }
   ImGui::End();
 
   // clang-format off
@@ -227,32 +220,27 @@ update_ui_scene_main_menu(engine::SINGLETON_Application& app, entt::registry& r)
     // ui.instantiated_players.erase(ui.instantiated_players.begin() + idx);
   }
 
-  //
   // SQUAAAAAAAAAD
   //
-  ImGui::Begin("Squad");
-  ImGui::Text("Squad");
-  ImGui::NewLine();
-
-  // Update State
-  for (int i = 0; i < ui.instantiated_players.size(); i++) {
-    if (i > 0) {
-      ImGui::SameLine();
-      ImGui::Text(" - ");
-      ImGui::SameLine();
-    }
-    // Get Location of text
-    // Convert location to screenspace
-    auto pos = ImGui::GetCursorPos();
-    ImGui::Text("%f %f", pos.x, pos.y);
-
-    auto pos2 = ImGui::GetCursorScreenPos();
-    ImGui::Text("%f %f", pos2.x, pos2.y);
-
-    if (const auto* stats = r.try_get<CharacterStats>(ui.instantiated_players[i]))
-      ImGui::Text("%s", stats->name.c_str());
-  }
-  ImGui::End();
+  // ImGui::Begin("Squad");
+  // ImGui::Text("Squad");
+  // ImGui::NewLine();
+  // for (int i = 0; i < ui.instantiated_players.size(); i++) {
+  //   if (i > 0) {
+  //     ImGui::SameLine();
+  //     ImGui::Text(" - ");
+  //     ImGui::SameLine();
+  //   }
+  //   // Get Location of text
+  //   // Convert location to screenspace
+  //   auto pos = ImGui::GetCursorPos();
+  //   ImGui::Text("%f %f", pos.x, pos.y);
+  //   auto pos2 = ImGui::GetCursorScreenPos();
+  //   ImGui::Text("%f %f", pos2.x, pos2.y);
+  //   if (const auto* stats = r.try_get<CharacterStats>(ui.instantiated_players[i]))
+  //     ImGui::Text("%s", stats->name.c_str());
+  // }
+  // ImGui::End();
 
   //
   // In the top right, show a sound icon
@@ -280,8 +268,8 @@ update_ui_scene_main_menu(engine::SINGLETON_Application& app, entt::registry& r)
   const ImVec2 icon_size = { 50, 50 };
   const float distance_from_right_side_of_screen = 75;
   static glm::ivec2 offset = unmute_icon_offset;
-  static int toggle = 0;
-  static bool toggle_changed = false;
+  static int toggle = 1;
+  static bool toggle_changed = true;
   const ImGuiViewport* viewport = ImGui::GetMainViewport();
 
   ImGui::SetNextWindowPos(
@@ -298,7 +286,6 @@ update_ui_scene_main_menu(engine::SINGLETON_Application& app, entt::registry& r)
 
   // draw an audio icon
   // ImGui::Image((ImTextureID)tex_id, { icon_size.x, icon_size.y }, tl, br);
-
   ImTextureID id = (ImTextureID)tex_id;
   int frame_padding = -1;
   if (ImGui::ImageButton(id, icon_size, tl, br, frame_padding, ImColor(0, 0, 0, 255))) {

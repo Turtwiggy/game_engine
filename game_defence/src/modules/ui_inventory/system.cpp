@@ -1,5 +1,6 @@
 #include "system.hpp"
 
+#include "actors.hpp"
 #include "entt/helpers.hpp"
 #include "imgui/helpers.hpp"
 #include "modules/actor_player/components.hpp"
@@ -7,6 +8,7 @@
 #include "modules/items/helpers.hpp"
 #include "modules/items_pickup/components.hpp"
 #include "modules/lifecycle/components.hpp"
+#include "physics/components.hpp"
 
 #include "imgui.h"
 #include "magic_enum.hpp"
@@ -30,13 +32,15 @@ update_ui_inventory(entt::registry& r)
       const auto eid = static_cast<uint32_t>(player_e);
       ImGui::PushID(eid);
       ImGui::Text("¬¬ Player ¬¬");
-      ImGui::Text("Player has %i XP", player_c.picked_up_xp);
-      ImGui::Text("Player has %i kills", player_c.killed);
       ImGui::Text("Player has doubledamage: %i", r.try_get<PowerupDoubleDamage>(player_e) != nullptr);
 
       // HACK: give player xp
       if (ImGui::Button("Give XP")) {
-        player_c.picked_up_xp += 1;
+        auto xp = create_gameplay(r, EntityType::actor_pickup_xp);
+        r.remove<AABB>(xp);
+        r.remove<TransformComponent>(xp);
+        r.emplace<HasParentComponent>(xp, player_e);
+        r.remove<AbleToBePickedUp>(xp);
       }
 
       // Show like potion x1, potion x2 not potions individually
