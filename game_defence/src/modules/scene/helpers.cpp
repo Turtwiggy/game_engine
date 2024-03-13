@@ -14,7 +14,9 @@
 #include "modules/algorithm_procedural/cell_automata.hpp"
 #include "modules/algorithm_procedural/poisson.hpp"
 #include "modules/animation/components.hpp"
+#include "modules/camera/components.hpp"
 #include "modules/camera/orthographic.hpp"
+#include "modules/combat_damage/components.hpp"
 #include "modules/gameover/components.hpp"
 #include "modules/grid/components.hpp"
 #include "modules/items/helpers.hpp"
@@ -49,12 +51,40 @@ const int pixel_scale_up_size = 2;
 const auto default_size = glm::ivec2{ 16 * pixel_scale_up_size, 16 * pixel_scale_up_size };
 
 entt::entity
-create_player(entt::registry& r, const entt::entity& group)
+create_player(entt::registry& r)
+{
+  // player
+  const auto e = create_gameplay(r, EntityType::actor_player);
+  auto& e_aabb = r.get<AABB>(e);
+  e_aabb.size = default_size;
+  // auto& target_pos = r.get<HasTargetPositionComponent>(e);
+  // target_pos.position = e_aabb.center;
+  // const auto icon_xy = set_sprite_custom(r, e, "player_0", tex_unit);
+  r.get<TransformComponent>(e).scale = { e_aabb.size.x, e_aabb.size.y, 1.0f };
+
+  // weapon
+  const auto weapon = create_gameplay(r, EntityType::weapon_shotgun);
+  auto& weapon_parent = r.get<HasParentComponent>(weapon);
+  weapon_parent.parent = e;
+  auto& weapon_aabb = r.get<AABB>(weapon);
+  weapon_aabb.center = e_aabb.center;
+
+  // link player&weapon
+  HasWeaponComponent has_weapon;
+  has_weapon.instance = weapon;
+  r.emplace<HasWeaponComponent>(e, has_weapon);
+
+  return e;
+}
+
+entt::entity
+create_player_ally(entt::registry& r, const entt::entity& group)
 {
   const auto& group_pos = r.get<AABB>(group);
 
   // player
-  const auto e = create_gameplay(r, EntityType::actor_player);
+  const auto e = create_gameplay(r, EntityType::actor_player_ally);
+
   auto& e_aabb = r.get<AABB>(e);
   e_aabb.size = default_size;
   e_aabb.center = group_pos.center;
@@ -74,8 +104,9 @@ create_player(entt::registry& r, const entt::entity& group)
   weapon_aabb.center = e_aabb.center;
 
   // link player&weapon
-  auto& player = r.get<PlayerComponent>(e);
-  player.weapon = weapon;
+  HasWeaponComponent has_weapon;
+  has_weapon.instance = weapon;
+  r.emplace<HasWeaponComponent>(e, has_weapon);
 
   return e;
 };
@@ -165,19 +196,27 @@ move_to_scene_start(entt::registry& r, const Scene s)
       r.remove<TransformComponent>(cursorc.line_ent);
     }
 
+    // create a group with one unit in
+    {
+      const auto& player_group = create_gameplay(r, EntityType::actor_unitgroup);
+      auto& group_aabb = r.get<AABB>(player_group);
+      group_aabb.size = default_size;
+      group_aabb.center = { 32, 32 };
+      create_player_ally(r, player_group);
+      create_player_ally(r, player_group);
+    }
+
     // create players based off main menu ui
     // note: create player before other sprites to render on top
     //
-    // todo: put group at first free slot in map.
-    //
-    const auto& player_group = create_gameplay(r, EntityType::actor_grouplocation);
-    auto& group_aabb = r.get<AABB>(player_group);
-    group_aabb.size = default_size;
-    group_aabb.center = { 32, 32 };
-
     const auto& character_stats_view = r.view<CharacterStats, InActiveFight>();
     for (const auto& [request_e, stats_e, fight_e] : character_stats_view.each()) {
-      create_player(r, player_group);
+      auto player = create_player(r);
+      auto& player_aabb = r.get<AABB>(player);
+      player_aabb.center = { 32, 32 };
+
+      // if in game...
+      r.emplace<CameraFollow>(player);
     }
 
     // map width and height

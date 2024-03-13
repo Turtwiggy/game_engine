@@ -40,7 +40,7 @@
     "readability-identifier-length",
     "readability-braces-around-statements",
     "readability-uppercase-literal-suffix",
-    "clang-diagnostic-error"
+    "modernize-use-trailing-return-type"
   ],
   "C_Cpp.codeAnalysis.clangTidy.useBuildPath": true
 

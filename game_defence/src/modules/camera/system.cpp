@@ -13,6 +13,7 @@
 #include "modules/camera/orthographic.hpp"
 #include "modules/lerp_to_target/components.hpp"
 #include "modules/renderer/components.hpp"
+#include "physics/components.hpp"
 #include "renderer/transform.hpp"
 
 #include <glm/glm.hpp>
@@ -43,13 +44,15 @@ update_camera_system(entt::registry& r, const float dt, const glm::ivec2& mouse_
   // camera_offset_due_to_mouse.y = dir.y * 10.0f;
 
   // calculate center of all targets
-  // auto target_position = camera_transform.position;
-  // const auto& targets_view = r.view<CameraFollow, TransformComponent>();
-  // for (const auto& [entity, follow, target_transform] : targets_view.each()) {
-  //   target_position.x += target_transform.position.x;
-  //   target_position.x /= 2.0f;
-  //   target_position.y += target_transform.position.y;
-  //   target_position.y /= 2.0f;
+  auto& target_position = camera_transform.position;
+  const auto& targets_view = r.view<const CameraFollow, const AABB>();
+  for (const auto& [e, follow, target] : targets_view.each()) {
+    target_position.x = target.center.x;
+    target_position.y = target.center.y;
+  }
+  // if (targets_view.size_hint() > 0) {
+  //   target_position.x /= targets_view.size_hint();
+  //   target_position.y /= targets_view.size_hint();
   // }
 
   // update lerp

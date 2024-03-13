@@ -8,7 +8,7 @@
     {
       "r": 167, "g": 111, "b": 111,
       "name": "pal_1",
-      "tags": [ "weapon_shotgun" ]
+      "tags": [ "weapon_shotgun", "actor_player_ally" ]
     },
     {
       "r": 67, "g": 91, "b": 102,
@@ -30,10 +30,10 @@
       "name": "white",
       "tags": [
         "empty",
-        "actor_spawner",
         "bullet_default",
         "particle",
-        "actor_grouplocation"
+        "actor_spawner",
+        "actor_unitgroup"
       ]
     },
     {

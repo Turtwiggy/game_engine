@@ -16,10 +16,7 @@ namespace game2d {
 // as/when it makes sense
 struct PlayerComponent
 {
-  // weapon
-  entt::entity weapon = entt::null;
-  entt::entity weapon_line_of_sight = entt::null;
-  float weapon_offset = 20.0f; // around the player
+  bool placeholder = true;
 };
 
 struct KeyboardComponent
@@ -30,6 +27,7 @@ struct KeyboardComponent
   SDL_Scancode S = SDL_SCANCODE_S;
   SDL_Scancode D = SDL_SCANCODE_D;
   SDL_Scancode pickup = SDL_SCANCODE_SPACE;
+  SDL_Scancode drop = SDL_SCANCODE_R;
   SDL_Scancode sprint = SDL_SCANCODE_LSHIFT;
 
   NLOHMANN_DEFINE_TYPE_INTRUSIVE(KeyboardComponent, W, A, S, D);
@@ -69,8 +67,7 @@ struct InputComponent
   bool shoot_release;
   bool sprint;
   bool pickup;
-  // bool place_turret = false;
-  // bool reload = false;
+  bool drop;
 };
 
 } // namespace game2d

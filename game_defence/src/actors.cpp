@@ -46,11 +46,12 @@ create_sprite(entt::registry& r, const EntityType& type)
 
   if (type == EntityType::cursor)
     sprite = "EMPTY";
-
   else if (type == EntityType::actor_hearth)
     sprite = "CAMPFIRE";
   else if (type == EntityType::actor_player)
     sprite = "PERSON_25_0";
+  else if (type == EntityType::actor_player_ally)
+    sprite = "PERSON_26_0";
   else if (type == EntityType::actor_spawner)
     sprite = "CASTLE_FLOOR";
   else if (type == EntityType::actor_turret)
@@ -59,7 +60,7 @@ create_sprite(entt::registry& r, const EntityType& type)
     sprite = "GEM";
   else if (type == EntityType::actor_pickup_doubledamage)
     sprite = "CARD_HEARTS_2";
-  else if (type == EntityType::actor_grouplocation)
+  else if (type == EntityType::actor_unitgroup)
     sprite = "SHIELD_2_2";
   // else if (type == EntityType::actor_pickup_zone)
   //   sprite = "EMPTY";
@@ -185,22 +186,10 @@ create_gameplay(entt::registry& r, const EntityType& type)
       break;
     }
 
-    case EntityType::actor_grouplocation: {
+    case EntityType::actor_player: {
       create_physics_actor(r, e);
-      r.emplace<GroupComponent>(e);
-
       auto& vel = r.get<VelocityComponent>(e);
       vel.base_speed = 50000.0f;
-
-      break;
-    }
-
-    case EntityType::actor_player: {
-      const float player_speed = 100.0f;
-
-      create_physics_actor(r, e);
-      auto& vel = r.get<VelocityComponent>(e);
-      vel.base_speed = 1.0f;
 
       // r.emplace<PhysicsSolidComponent>(e);
       r.emplace<TeamComponent>(e, AvailableTeams::player);
@@ -212,12 +201,11 @@ create_gameplay(entt::registry& r, const EntityType& type)
       r.emplace<ControllerComponent>(e);
 
       // movement
-      r.emplace<HasTargetPositionComponent>(e);
-      r.emplace<SetVelocityToTargetComponent>(e, player_speed);
+      // r.emplace<HasTargetPositionComponent>(e);
+      // r.emplace<SetVelocityToTargetComponent>(e);
 
-      r.emplace<HealthComponent>(e, 1000, 1000);
+      r.emplace<HealthComponent>(e, 200, 200);
       // r.emplace<InventoryLimit>(e);
-      r.emplace<CameraFollow>(e);
       r.emplace<HoverableComponent>(e);
       // r.emplace<CircleComponent>(e);
       // r.emplace<InfiniteLivesComponent>(e);
@@ -231,6 +219,36 @@ create_gameplay(entt::registry& r, const EntityType& type)
       // stats.str_level = 1;
       // r.emplace<StatsComponent>(e, stats);
 
+      break;
+    }
+
+    case EntityType::actor_player_ally: {
+      create_physics_actor(r, e);
+      auto& vel = r.get<VelocityComponent>(e);
+      vel.base_speed = 50.0f;
+
+      // movement
+      r.emplace<HasTargetPositionComponent>(e);
+      r.emplace<SetVelocityToTargetComponent>(e);
+
+      // gameplay
+      r.emplace<PartOfGroupComponent>(e);
+      r.emplace<TeamComponent>(e, AvailableTeams::player);
+      r.emplace<HealthComponent>(e, 100, 100);
+      r.emplace<HoverableComponent>(e);
+
+      break;
+    }
+
+    case EntityType::actor_unitgroup: {
+      create_physics_actor(r, e);
+      r.emplace<GroupComponent>(e);
+
+      r.emplace<AbleToBePickedUp>(e);
+
+      // if picked up as a banner, we pretty much want it to be stuck to the holder
+      auto& vel = r.get<VelocityComponent>(e);
+      vel.base_speed = 200.0f;
       break;
     }
 

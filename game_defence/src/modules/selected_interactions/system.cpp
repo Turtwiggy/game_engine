@@ -6,24 +6,16 @@
 #include "events/helpers/keyboard.hpp"
 #include "events/helpers/mouse.hpp"
 #include "helpers/line.hpp"
-#include "maths/maths.hpp"
 #include "modules/actor_cursor/components.hpp"
-#include "modules/actor_group/components.hpp"
 #include "modules/actor_player/components.hpp"
-#include "modules/ai_pathfinding/helpers.hpp"
-#include "modules/algorithm_dda/helpers.hpp"
-#include "modules/camera/orthographic.hpp"
-#include "modules/combat_damage/components.hpp"
 #include "modules/combat_wants_to_shoot/components.hpp"
-#include "modules/lerp_to_target/components.hpp"
 #include "modules/lifecycle/components.hpp"
-#include "modules/ux_hoverable/components.hpp"
 #include "physics/components.hpp"
 #include "renderer/transform.hpp"
-#include "sprites/helpers.hpp"
 
-#include <glm/glm.hpp>
 #include <imgui.h>
+
+#include <optional>
 
 namespace game2d {
 
@@ -100,82 +92,12 @@ update_selected_interactions_system(entt::registry& r, const glm::ivec2& mouse_p
 
   update_cursor_ui(r, cursor_comp, click, held, release, mouse_pos, click_position, held_position);
 
-  {
-    const auto& player_view = r.view<PlayerComponent, AABB>(entt::exclude<WaitForInitComponent>);
-
-    // update camera to player-midpoint
-    //
-    glm::vec2 player_midpoint{ 0, 0 };
-    for (const auto& [e, player, player_aabb] : player_view.each()) {
-      player_midpoint.x += player_aabb.center.x;
-      player_midpoint.y += player_aabb.center.y;
-    }
-    player_midpoint.x /= player_view.size_hint();
-    player_midpoint.y /= player_view.size_hint();
-    const auto& camera_e = get_first<OrthographicCamera>(r);
-    auto& camera_t = r.get<TransformComponent>(camera_e);
-    camera_t.position.x = int(player_midpoint.x);
-    camera_t.position.y = int(player_midpoint.y);
-
-    // aim gun
-    //
-    for (const auto& [e, player, player_aabb] : player_view.each()) {
-      auto& static_tgt = r.get_or_emplace<StaticTargetComponent>(e);
-      static_tgt.target = { mouse_pos.x, mouse_pos.y };
-    }
-  }
-
-  // move group
+  // aim gun
   //
-  glm::vec2 movement{ 0, 0 };
-  if (get_key_held(input, SDL_SCANCODE_A))
-    movement.x -= 1;
-  if (get_key_held(input, SDL_SCANCODE_D))
-    movement.x += 1;
-  if (get_key_held(input, SDL_SCANCODE_W))
-    movement.y -= 1;
-  if (get_key_held(input, SDL_SCANCODE_S))
-    movement.y += 1;
-
-  const auto& group_view = r.view<const GroupComponent, VelocityComponent, const AABB>();
-  const auto& player_view =
-    r.view<PlayerComponent, AABB, HasParentComponent, HasTargetPositionComponent>(entt::exclude<WaitForInitComponent>);
-
-  for (const auto& [e, group, vel, aabb] : group_view.each()) {
-    vel.x = movement.x * dt * vel.base_speed;
-    vel.y = movement.y * dt * vel.base_speed;
-
-    // work out info about the group
-    //
-    int total_targets = 0;
-    float total_length = 0;
-    for (const auto& [player_e, player_c, player_aabb, player_parent, player_target] : player_view.each()) {
-      if (player_parent.parent != e)
-        continue; // not your group
-      total_targets++;
-      total_length += player_aabb.size.x;
-    }
-
-    // set group-unit position
-    //
-    const glm::vec2 total_targets_vec{ total_targets, total_targets };
-    const float size_of_each_unit = total_length / total_targets;
-    const glm::vec2 size{ size_of_each_unit, size_of_each_unit };
-    for (int i = 1; const auto& [player_e, player_c, player_aabb, player_parent, player_target] : player_view.each()) {
-      if (player_parent.parent != e)
-        continue; // not your group
-
-      // set the player to try and cohesively stick to the group
-      player_target.position = aabb.center;
-
-      const glm::vec2 raw_dir = mouse_pos - aabb.center;
-      const glm::vec2 nrm_dir = engine::normalize_safe(raw_dir);
-      const glm::vec2 perp_dir = { -nrm_dir.y, nrm_dir.x };
-
-      player_target.position += perp_dir * ((glm::vec2(i, i) * size) - (size / 2.0f) - (size * total_targets_vec / 2.0f));
-
-      i++;
-    }
+  const auto& player_view = r.view<PlayerComponent, AABB>(entt::exclude<WaitForInitComponent>);
+  for (const auto& [e, player, player_aabb] : player_view.each()) {
+    auto& static_tgt = r.get_or_emplace<StaticTargetComponent>(e);
+    static_tgt.target = { mouse_pos.x, mouse_pos.y };
   }
 }
 

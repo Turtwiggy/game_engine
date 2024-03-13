@@ -37,10 +37,10 @@ struct HoldAndReleaseShootComponent
   std::vector<entt::entity> my_bullets;
 };
 
-struct BurnableComponent
-{
-  bool placeholder = true;
-};
+// struct BurnableComponent
+// {
+//   bool placeholder = true;
+// };
 
 enum class AvailableTeams
 {
@@ -74,6 +74,13 @@ struct DealDamageRequest
 {
   entt::entity from;
   entt::entity to;
+};
+
+struct HasWeaponComponent
+{
+  entt::entity instance = entt::null;
+  entt::entity line_of_sight = entt::null;
+  float offset = 20.0f; // around the player
 };
 
 } // namespace game2d

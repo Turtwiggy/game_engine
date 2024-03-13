@@ -25,15 +25,12 @@ enum class EntityType
   actor_turret,
 
   // in progress
+  actor_player_ally,
+  actor_unitgroup,
+
+  // pickups
   actor_pickup_xp,
   actor_pickup_doubledamage,
-  actor_grouplocation,
-  // actor_pickup_zone,
-  // actor_dispencer,
-  // actor_customer_area,
-
-  // items
-  // item,
 
   // solids
   solid_wall,

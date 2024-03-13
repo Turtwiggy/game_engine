@@ -97,6 +97,17 @@ update_set_velocity_to_target_system(entt::registry& r, const float& dt)
   }
   ImGui::End();
 
+  //
+  // If follow parent...
+  // Set your target position as your parents target position.
+  //
+  const auto& follow_view = r.view<FollowTargetComponent, HasTargetPositionComponent>();
+  for (const auto& [e, follow, target] : follow_view.each()) {
+    const auto& p_pos = r.get<AABB>(follow.target);
+    target.position = p_pos.center;
+  }
+
+  //
   // set velocity to target
   //
   const auto& view =
@@ -106,8 +117,8 @@ update_set_velocity_to_target_system(entt::registry& r, const float& dt)
     const glm::ivec2 a = { aabb.center.x, aabb.center.y };
     const glm::ivec2 b = target.position;
     const glm::vec2 nrm_dir = engine::normalize_safe(b - a);
-    vel.x = nrm_dir.x * lerp.speed;
-    vel.y = nrm_dir.y * lerp.speed;
+    vel.x = nrm_dir.x * vel.base_speed;
+    vel.y = nrm_dir.y * vel.base_speed;
   }
 
   //

@@ -9,6 +9,11 @@ namespace game2d {
 // weapon components
 //
 
+struct FollowTargetComponent
+{
+  entt::entity target;
+};
+
 struct HasTargetPositionComponent
 {
   glm::ivec2 position{ 0, 0 };
@@ -16,7 +21,7 @@ struct HasTargetPositionComponent
 
 struct SetVelocityToTargetComponent
 {
-  float speed = 150.0f;
+  bool placeholder = true;
 };
 
 } // namespace game2d

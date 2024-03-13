@@ -5,6 +5,8 @@
 #include "maths/maths.hpp"
 #include "modules/actor_enemy/components.hpp"
 #include "modules/combat_damage/components.hpp"
+#include "modules/items_pickup/components.hpp"
+#include "modules/lerp_to_target/components.hpp"
 #include "modules/lifecycle/components.hpp"
 #include "physics/components.hpp"
 
@@ -65,12 +67,12 @@ update_intent_drop_item_system(entt::registry& r)
   // Dead things drop xp items
   //
 
-  ImGui::Begin("SomethingDiedDebugger");
-
   // a frame behind
   static float last_generated_random = 0;
-  ImGui::Text("SomethingDiedRandom: %f", last_generated_random);
 
+  //
+  // Something died and wants to drop an item
+  //
   const auto killable_view = r.view<HealthComponent, AbleToDropItem>(entt::exclude<WaitForInitComponent>);
   for (const auto& [e, e_hp, enemy_comp] : killable_view.each()) {
     if (e_hp.hp > 0)
@@ -98,28 +100,52 @@ update_intent_drop_item_system(entt::registry& r)
     r.emplace_or_replace<WantsToDrop>(e, req);
   }
 
-  // WantsToDrop Requests
+  //
+  // Process WantsToDrop Requests
   //
   const auto& view = r.view<const AABB, WantsToDrop>(entt::exclude<WaitForInitComponent>);
-  if (view.size_hint() > 0)
-    std::cout << view.size_hint() << " entities want to drop items" << std::endl;
+  const auto& picked_up_items_view = r.view<PickedUpByComponent>(entt::exclude<WaitForInitComponent>);
 
   for (const auto& [entity, dead_aabb, request] : view.each()) {
+    //
+    // Check all items in the request
+    // Create that item new
+    //
     for (const auto& item : request.items) {
-
       const auto e = create_gameplay(r, r.get<EntityTypeComponent>(item).type);
-
       // set aabb
       if (auto* aabb = r.try_get<AABB>(e))
         aabb->center = dead_aabb.center;
-
       // set transform
       r.get<TransformComponent>(e).position = glm::ivec3(dead_aabb.center.x, dead_aabb.center.y, 0);
     }
+    //
+    // Check if this entity is holding any item
+    // Stop this item being carried
+    //
+    for (const auto& [e, picked_up] : picked_up_items_view.each()) {
+      if (picked_up.entity != entity)
+        continue; // picked up by someone else
+      //
+      // you're picked up by picked_up.entity
+      // and that parent entity wants to drop you
+      //
+      r.remove<PickedUpByComponent>(e);
+      r.remove<FollowTargetComponent>(e);
+      r.remove<HasTargetPositionComponent>(e);
+      r.remove<SetVelocityToTargetComponent>(e);
+
+      // hmm
+      auto& vel = r.get<VelocityComponent>(e);
+      vel.x = 0;
+      vel.y = 0;
+      vel.remainder_x = 0;
+      vel.remainder_y = 0;
+
+      r.emplace<AbleToBePickedUp>(e);
+    }
   }
   r.remove<WantsToDrop>(view.begin(), view.end()); // requests done...
-
-  ImGui::End();
 };
 
 } // namespace game2d

@@ -34,12 +34,13 @@ update_weapon_shotgun_system(entt::registry& r, const uint64_t milliseconds_dt)
       dead.dead.emplace(entity); // kill this parentless entity (soz)
       continue;
     }
-    const auto& [player, input, player_aabb] = r.get<PlayerComponent, const InputComponent, const AABB>(p);
+
+    const auto& [parent_aabb, parent_weapon] = r.get<const AABB, HasWeaponComponent>(p);
 
     // Set default position this would want to be
     // pos.position = player_aabb.center;
     // WARNING: hard-set the shotguns position as the player position
-    aabb.center = player_aabb.center;
+    aabb.center = parent_aabb.center;
     shotgun_transform.rotation_radians.z = 0.0f;
 
     // Is this unit currently selected?
@@ -50,10 +51,10 @@ update_weapon_shotgun_system(entt::registry& r, const uint64_t milliseconds_dt)
     const auto* static_tgt = r.try_get<StaticTargetComponent>(p);
 
     // if no valid target, check line of sight
-    if (player.weapon_line_of_sight != entt::null) {
+    if (parent_weapon.line_of_sight != entt::null) {
       if (dynamic_tgt == nullptr && static_tgt == nullptr) {
-        dead.dead.emplace(player.weapon_line_of_sight);
-        player.weapon_line_of_sight = entt::null;
+        dead.dead.emplace(parent_weapon.line_of_sight);
+        parent_weapon.line_of_sight = entt::null;
       }
     }
 
@@ -69,7 +70,7 @@ update_weapon_shotgun_system(entt::registry& r, const uint64_t milliseconds_dt)
 
     // Assume a target by here
     glm::ivec2 target_position{ 0, 0 };
-    if (dynamic_tgt)
+    if (dynamic_tgt != nullptr)
       target_position = r.get<AABB>(dynamic_tgt->target).center;
     if (static_tgt)
       target_position = static_tgt->target.value();
@@ -81,9 +82,9 @@ update_weapon_shotgun_system(entt::registry& r, const uint64_t milliseconds_dt)
 
     // update "line of sight".
     // probably should not be on the "weapon" system.
-    auto& los_e = player.weapon_line_of_sight;
+    auto& los_e = parent_weapon.line_of_sight;
     if (los_e != entt::null) {
-      const auto line_info = generate_line(player_aabb.center, target_position, 10);
+      const auto line_info = generate_line(parent_aabb.center, target_position, 10);
       auto& line_transform = r.get<TransformComponent>(los_e);
       set_transform_with_line(line_transform, line_info);
       auto& line_aabb = r.get<AABB>(los_e);
@@ -92,16 +93,19 @@ update_weapon_shotgun_system(entt::registry& r, const uint64_t milliseconds_dt)
     }
 
     // simulate "picking up the gun"
-    const glm::ivec2 offset = { -nrm_dir.x * player.weapon_offset, -nrm_dir.y * player.weapon_offset };
+    const glm::ivec2 offset = { -nrm_dir.x * parent_weapon.offset, -nrm_dir.y * parent_weapon.offset };
     // pos.position += offset;
     aabb.center += offset;
+
+    // BUG: if the distance from the target to the shotgun is too close,
+    // the shotgun bugs out
 
     // Rotate the gun axis to the target
     const float angle = engine::dir_to_angle_radians(nrm_dir);
     shotgun_transform.rotation_radians.z = angle;
 
     // Is this weapon on the left or right of the player?
-    const int left_or_right = (shotgun_transform.position.x - player_aabb.center.x);
+    const int left_or_right = (shotgun_transform.position.x - parent_aabb.center.x);
     if (left_or_right < 0) // left
       shotgun_transform.scale.y = -glm::abs(shotgun_transform.scale.y);
     else

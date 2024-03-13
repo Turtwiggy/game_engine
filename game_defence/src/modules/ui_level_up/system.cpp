@@ -87,8 +87,8 @@ update_ui_level_up_system(entt::registry& r)
     ImGui::TableNextRow();
 
     ImGui::TableNextColumn();
-    const auto& player_c = r.get<PlayerComponent>(first_player);
-    const auto& weapon = player_c.weapon;
+    const auto& player_weapon = r.get<HasWeaponComponent>(first_player);
+    const auto& weapon = player_weapon.instance;
     auto& weapon_info = r.get<WeaponBulletTypeToSpawnComponent>(weapon);
     auto& weapon_cooldown = r.get<AttackCooldownComponent>(weapon);
     ImGui::Text("Current Damage: %f", weapon_info.bullet_damage);
@@ -109,8 +109,8 @@ update_ui_level_up_system(entt::registry& r)
 
     ImGui::TableNextColumn();
     if (ImGui::Button("GAIN UNIT\n+1 Unit", ImVec2(-FLT_MIN, -FLT_MIN))) {
-      const auto first_player_group = r.get<HasParentComponent>(first_player).parent;
-      const auto new_player = create_player(r, first_player_group);
+      // const auto first_player_group = r.get<HasParentComponent>(first_player).parent;
+      // const auto new_player = create_player(r, first_player_group);
       use_xp_items(10);
       levelup.show_menu = false;
     }

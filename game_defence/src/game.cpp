@@ -10,6 +10,7 @@
 #include "maths/maths.hpp"
 #include "modules/actor_cursor/system.hpp"
 #include "modules/actor_enemy/system.hpp"
+#include "modules/actor_group/system.hpp"
 #include "modules/actor_player/components.hpp"
 #include "modules/actor_player/system.hpp"
 #include "modules/actor_spawner/system.hpp"
@@ -266,6 +267,7 @@ game2d::update(engine::SINGLETON_Application& app, entt::registry& r, const floa
       //
       // ai
       update_set_velocity_to_target_system(r, dt);
+      update_actor_group_system(r, mouse_pos);
       //
       // combat
       update_enemy_system(r, dt);
