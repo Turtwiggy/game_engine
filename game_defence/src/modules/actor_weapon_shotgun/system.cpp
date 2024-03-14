@@ -15,6 +15,8 @@
 #include "modules/ux_hoverable/components.hpp"
 #include "physics/components.hpp"
 
+#include "imgui.h"
+
 namespace game2d {
 
 void
@@ -22,6 +24,8 @@ update_weapon_shotgun_system(entt::registry& r, const uint64_t milliseconds_dt)
 {
   const float dt = milliseconds_dt / 1000.0f;
   auto& dead = get_first_component<SINGLETON_EntityBinComponent>(r);
+
+  ImGui::Begin("Debug Shotgun");
 
   const auto& view =
     r.view<ShotgunComponent, HasParentComponent, AttackCooldownComponent, AABB, SpriteComponent, TransformComponent>(
@@ -92,13 +96,15 @@ update_weapon_shotgun_system(entt::registry& r, const uint64_t milliseconds_dt)
       line_aabb.size = { line_transform.scale.x, line_transform.scale.y };
     }
 
-    // simulate "picking up the gun"
-    const glm::ivec2 offset = { -nrm_dir.x * parent_weapon.offset, -nrm_dir.y * parent_weapon.offset };
-    // pos.position += offset;
-    aabb.center += offset;
+    // BUGFIX: if the distance from the target to the shotgun is too close, the shotgun bugs out
+    const float d2 = glm::length(raw_dir);
+    ImGui::Text("D2: %f", d2);
 
-    // BUG: if the distance from the target to the shotgun is too close,
-    // the shotgun bugs out
+    if (d2 >= parent_weapon.offset) {
+      // simulate "picking up the gun"
+      const glm::ivec2 offset = { -nrm_dir.x * parent_weapon.offset, -nrm_dir.y * parent_weapon.offset };
+      aabb.center += offset;
+    }
 
     // Rotate the gun axis to the target
     const float angle = engine::dir_to_angle_radians(nrm_dir);
@@ -181,6 +187,8 @@ update_weapon_shotgun_system(entt::registry& r, const uint64_t milliseconds_dt)
       }
     }
   }
+
+  ImGui::End();
 };
 
 } // namespace game2d

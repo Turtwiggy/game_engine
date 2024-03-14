@@ -9,7 +9,6 @@ in vec2 v_sprite_wh;  // desired sprites e.g. 2, 2
 in vec2 v_sprite_max; // 22 sprites
 in float v_tex_unit;
 
-uniform float time;
 uniform vec2 viewport_wh;
 uniform vec2 camera_pos;
 
@@ -60,7 +59,8 @@ main()
 
   for(int i = 0; i < NR_MAX_CIRCLES; i++)
   {
-    vec2 pos = points[i].pos;         // values in worldspace
+    // values in worldspace
+    vec2 pos = points[i].pos;         
     
     // should really check if something is active or not...
     if(pos == vec2(0.0)) 
@@ -70,7 +70,6 @@ main()
     float ss_x = (((pos.x - screen_min_x)/viewport_wh.x) * 2.0) - 1.0;
     float ss_y = (((pos.y - screen_min_y)/viewport_wh.y) * 2.0) - 1.0;
     ss_x *= aspect;
-    // ss_y *= aspect;
 
     vec2 p = vec2(uv.x + ss_x, uv.y + ss_y);
     float d0 = sdCircle(p, 0.2);

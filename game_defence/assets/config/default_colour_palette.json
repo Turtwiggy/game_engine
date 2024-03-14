@@ -1,25 +1,73 @@
 {
   "colours": [
     {
-      "r": 234, "g": 178, "b": 160,
-      "name": "pal_0",
+      "r": 33, "g": 33, "b": 33,
+      "name": "background",
+      "tags": [ "background" ]
+    },
+    {
+      "r": 15, "g": 76, "b": 117,
+      "name": "pal_player_0",
       "tags": [ "actor_player", "cursor" ]
     },
     {
-      "r": 167, "g": 111, "b": 111,
-      "name": "pal_1",
-      "tags": [ "weapon_shotgun", "actor_player_ally" ]
+      "r": 50, "g": 130, "b": 184,
+      "name": "pal_player_1",
+      "tags": [ "weapon_shotgun" ]
     },
     {
-      "r": 67, "g": 91, "b": 102,
-      "name": "pal_2",
-      "tags": [ "enemy_grunt", "bullet_enemy", "enemy_ranged" ]
+      "r": 187, "g": 225, "b": 250,
+      "name": "pal_player_2",
+      "tags": [ ]
     },
     {
-      "r": 45, "g": 67, "b": 86,
-      "name": "pal_3",
-      "tags": [ "actor_pickup_xp", "actor_pickup_doubledamage", "solid_wall" ]
+      "r": 234, "g": 84, "b": 85,
+      "name": "pal_enemy_0",
+      "tags": [ "enemy_grunt", "enemy_ranged" ]
     },
+    {
+      "r": 240, "g": 123, "b": 63,
+      "name": "pal_enemy_1",
+      "tags": [ "bullet_enemy" ]
+    },
+    {
+      "r": 255, "g": 212, "b": 96,
+      "name": "pal_enemy_2",
+      "tags": [ ]
+    },
+    {
+      "r": 82, "g": 5, "b": 123,
+      "name": "pal_neutral_0",
+      "tags": [ "actor_player_ally" ]
+    },
+    {
+      "r": 137, "g": 44, "b": 220,
+      "name": "pal_neutral_1",
+      "tags": [ ]
+    },
+    {
+      "r": 188, "g": 111, "b": 241,
+      "name": "pal_neutral_2",
+      "tags": [ ]
+    },
+
+
+    {
+      "r": 96, "g": 153, "b": 102,
+      "name": "level_palette_1",
+      "tags": [ "solid_wall" ]
+    },
+    {
+      "r": 157, "g": 192, "b": 139,
+      "name": "level_palette_2",
+      "tags": [ ]
+    },
+    {
+      "r": 237, "g": 241, "b": 214,
+      "name": "level_palette_3",
+      "tags": [ "actor_pickup_xp", "actor_pickup_doubledamage" ]
+    },
+
     {
       "r": 0, "g": 255, "b": 192,
       "name": "hit",
@@ -36,6 +84,7 @@
         "actor_unitgroup"
       ]
     },
+
     {
       "r": 68, "g": 119, "b": 206,
       "name": "blue",

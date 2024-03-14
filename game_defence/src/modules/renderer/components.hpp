@@ -93,6 +93,7 @@ struct SINGLETON_RendererInfo
   engine::Shader instanced;
   engine::Shader mix_lighting_and_scene;
   engine::Shader circle;
+  engine::Shader grid;
 
   // viewport
   // note: values are updated in render

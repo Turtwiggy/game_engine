@@ -23,27 +23,38 @@ using json = nlohmann::json;
 
 static std::string path = "assets/config/default_colour_palette.json";
 
-// https://colorhunt.co/palette/fff8ea9e7676815b5b594545
-// https://colorhunt.co/palette/2d4356435b66a76f6feab2a0
-// https://colorhunt.co/palette/222831393e4600adb5eeeeee
-// https://colorhunt.co/palette/f9f7f7dbe2ef3f72af112d4e
-// https://colorhunt.co/palette/f4eeffdcd6f7a6b1e1424874
+// palette: player
 // https://colorhunt.co/palette/1b262c0f4c753282b8bbe1fa
 // https://colorhunt.co/palette/2121213232320d737714ffec
-// https://colorhunt.co/palette/f0f5f9c9d6df52616b1e2022
-// https://colorhunt.co/palette/ffc8c8ff9999444f5a3e4149
-// https://colorhunt.co/palette/0000004e4feb068fffeeeeee
 // https://colorhunt.co/palette/164b601b6b934fc0d0a2ff86
-// https://colorhunt.co/palette/ff9b9bffd6a5fffec4cbffa9
-// https://colorhunt.co/palette/331d2c3f2e3ea78295efe1d1
-// https://colorhunt.co/palette/78c1f39be8d8e2f6caf8fdcf
-// https://colorhunt.co/palette/2d4059ea5455f07b3fffd460
-// https://colorhunt.co/palette/ffc8c8ff9999444f5a3e4149
 // https://colorhunt.co/palette/14285027496d0c7b9300a8cc
-// https://colorhunt.co/palette/edf1d69dc08b60996640513b
+
+// palette: enemy
+// https://colorhunt.co/palette/2d4059ea5455f07b3fffd460
+// https://colorhunt.co/palette/ff9b9bffd6a5fffec4cbffa9
 // https://colorhunt.co/palette/a75d5dd3756bf0997dffc3a1
+
+// palette: neutral faction
 // https://colorhunt.co/palette/00000052057b892cdcbc6ff1
+
+// mud palette:
+// https://colorhunt.co/palette/fff8ea9e7676815b5b594545
+
+// snow palette
+// https://colorhunt.co/palette/f9f7f7dbe2ef3f72af112d4e
+// https://colorhunt.co/palette/f4eeffdcd6f7a6b1e1424874
+// https://colorhunt.co/palette/f0f5f9c9d6df52616b1e2022
 // https://colorhunt.co/palette/7579e79ab3f5a3d8f4b9fffc
+
+// floral palette:
+// https://colorhunt.co/palette/ffc8c8ff9999444f5a3e4149
+// https://colorhunt.co/palette/78c1f39be8d8e2f6caf8fdcf
+
+// dark/gloomy palette:
+// https://colorhunt.co/palette/331d2c3f2e3ea78295efe1d1
+
+// trees palette
+// https://colorhunt.co/palette/edf1d69dc08b60996640513b
 
 void
 init_ui_colour_palette_system(entt::registry& r)

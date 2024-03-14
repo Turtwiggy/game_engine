@@ -306,7 +306,8 @@ move_to_scene_start(entt::registry& r, const Scene s)
 
     // Generate "seed points" for bases
     //
-    {
+    bool seed_spawners = true;
+    if (seed_spawners) {
       const auto& map = get_first_component<MapComponent>(r);
       const int seed = 0;
       const int distance_between_points = poisson_space_for_spawners;

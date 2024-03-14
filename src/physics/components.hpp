@@ -13,7 +13,7 @@ namespace game2d {
 // aabb wont update transform
 struct SeperateTransformFromAABB
 {
-  //
+  bool placeholder = true;
 };
 
 struct AABB

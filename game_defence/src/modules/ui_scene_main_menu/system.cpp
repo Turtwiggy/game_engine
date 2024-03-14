@@ -9,6 +9,7 @@
 #include "events/helpers/controller.hpp"
 #include "maths/grid.hpp"
 #include "maths/maths.hpp"
+#include "modules/actor_player/components.hpp"
 #include "modules/animation/components.hpp"
 #include "modules/renderer/components.hpp"
 #include "modules/renderer/helpers.hpp"
@@ -178,7 +179,10 @@ update_ui_scene_main_menu(engine::SINGLETON_Application& app, entt::registry& r)
     const int pixel_scale_up_size = 2;
     const auto default_size = glm::ivec2{ 16 * pixel_scale_up_size, 16 * pixel_scale_up_size };
     const auto e = create_gameplay(r, EntityType::actor_player);
+    r.remove<InputComponent>(e);
     r.remove<PhysicsActorComponent>(e);
+    r.remove<AABB>(e);
+    r.emplace<SeperateTransformFromAABB>(e);
     r.emplace<ChangeColourOnHoverComponent>(e);
 
     // e.g. i=0,-200, i=1,0, i=2,200, i=3,400
@@ -188,15 +192,12 @@ update_ui_scene_main_menu(engine::SINGLETON_Application& app, entt::registry& r)
     const int offset = old_size + (i); // old e.g. 3 existing + creating 0, 1, 2 as new position
     const float pos_x = scale(offset, -120, 80);
 
-    auto& aabb = r.get<AABB>(e);
-    aabb.center = { pos_x, 150 };
-
     auto& t = r.get<TransformComponent>(e);
     t.scale = { default_size.x, default_size.y, 0.0f };
-    t.position = { aabb.center.x, aabb.center.y, 0.0f };
+    t.position = { pos_x, 150, 0.0f };
 
     WiggleUpAndDown wiggle;
-    wiggle.base_position = aabb.center;
+    wiggle.base_position = { t.position.x, t.position.y };
     wiggle.amplitude = 2.0f;
     r.emplace<WiggleUpAndDown>(e, wiggle);
 
