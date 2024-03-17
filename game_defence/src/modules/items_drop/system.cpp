@@ -20,7 +20,7 @@ namespace game2d {
 //
 const std::vector<std::pair<EntityType, int>> item_weight_map{
   // clang-format off
-      {EntityType::empty, 50}, 
+      {EntityType::empty_no_transform, 50}, 
       {EntityType::actor_pickup_xp, 30},
       {EntityType::actor_pickup_doubledamage, 20},
   // clang-format on
@@ -46,7 +46,7 @@ generate_item()
     if (weight_acculum >= random)
       return { random, k };
   }
-  return { random, EntityType::empty };
+  return { random, EntityType::empty_no_transform };
 }
 
 void
@@ -86,7 +86,7 @@ update_intent_drop_item_system(entt::registry& r)
     last_generated_random = random;
 
     // Enemy did not drop an item
-    if (item_type == EntityType::empty)
+    if (item_type == EntityType::empty_no_transform)
       continue;
 
     // create an item

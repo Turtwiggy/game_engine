@@ -4,6 +4,7 @@
 #include "entt/helpers.hpp"
 #include "events/helpers/mouse.hpp"
 #include "maths/grid.hpp"
+#include "modules/actor_enemy/components.hpp"
 #include "modules/combat_damage/components.hpp"
 #include "modules/grid/components.hpp"
 #include "modules/lifecycle/components.hpp"
@@ -49,17 +50,13 @@ update_cursor_system(entt::registry& r, const glm::ivec2& mouse_pos)
   for (const auto& [entity, transform, aabb, cursor] : view.each()) {
 
     // Is the cursor hovering any enemies?
-    auto& enemies = cursor.hovering_enemies;
-    enemies.clear();
-    const auto& hovering_view = r.view<HoveredComponent, TeamComponent>(entt::exclude<WaitForInitComponent>);
-    for (const auto& [e, hovered, team] : hovering_view.each()) {
-      if (team.team == AvailableTeams::enemy)
-        enemies.push_back(e);
-    }
+    // auto& enemies = cursor.hovering_enemies;
+    // enemies.clear();
+    const auto& hovering_view = r.view<const HoveredComponent, const EnemyComponent>(entt::exclude<WaitForInitComponent>);
 
     // Update cursor if hovering enemies
     //
-    if (enemies.size() > 0 && !held)
+    if (hovering_view.size_hint() > 0 && !held)
       set_sprite(r, entity, "CURSOR_1");
     else
       set_sprite(r, entity, "EMPTY");

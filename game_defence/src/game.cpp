@@ -11,6 +11,7 @@
 #include "modules/actor_cursor/system.hpp"
 #include "modules/actor_enemy/system.hpp"
 #include "modules/actor_group/system.hpp"
+#include "modules/actor_legs/system.hpp"
 #include "modules/actor_player/components.hpp"
 #include "modules/actor_player/system.hpp"
 #include "modules/actor_spawner/system.hpp"
@@ -42,6 +43,7 @@
 #include "modules/scene/helpers.hpp"
 #include "modules/screenshake/system.hpp"
 #include "modules/selected_interactions/system.hpp"
+#include "modules/sprite_spritestack/system.hpp"
 #include "modules/ui_arrows_to_spawners/system.hpp"
 #include "modules/ui_audio/system.hpp"
 #include "modules/ui_collisions/system.hpp"
@@ -115,10 +117,10 @@ game2d::init(engine::SINGLETON_Application& app, entt::registry& r)
     gameicons.spritesheet_path = "assets/config/spritemap_kennynl_icons.json";
     ri.user_textures.push_back(gameicons);
 
-    Texture blender;
-    blender.path = "assets/textures/blender_spritesheet.png";
-    blender.spritesheet_path = "assets/config/spritemap_blender.json";
-    ri.user_textures.push_back(blender);
+    Texture car0;
+    car0.path = "assets/textures/voxel/gun0.png";
+    car0.spritesheet_path = "assets/config/spritemap_voxel_gun0.json";
+    ri.user_textures.push_back(car0);
 
     // load spritesheet info
     SINGLE_Animations anims;
@@ -259,6 +261,7 @@ game2d::update(engine::SINGLETON_Application& app, entt::registry& r, const floa
       update_take_damage_system(r);
       update_weapon_shotgun_system(r, milliseconds_dt);
       update_flash_sprite_system(r, milliseconds_dt);
+      update_sprite_spritestack_system(r, dt);
       // update_turret_system(game, milliseconds_dt);
 
       //
@@ -268,6 +271,8 @@ game2d::update(engine::SINGLETON_Application& app, entt::registry& r, const floa
       // ai
       update_set_velocity_to_target_system(r, dt);
       update_actor_group_system(r, mouse_pos);
+      update_actor_legs_system(r, dt);
+
       //
       // combat
       update_enemy_system(r, dt);

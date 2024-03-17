@@ -22,7 +22,7 @@ update_ui_selected(entt::registry& r)
 
   // create ui
   for (int i = selected; i > ui.instantiated_ui.size(); i--) {
-    const auto new_ui = create_gameplay(r, EntityType::empty);
+    const auto new_ui = create_gameplay(r, EntityType::empty_with_transform);
 
     // set outline sprite
     set_sprite(r, new_ui, "CURSOR_1");

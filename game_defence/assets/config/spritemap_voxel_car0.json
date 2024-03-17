@@ -1,0 +1,26 @@
+{
+  "spritesheet": {
+    "name": "spritemap_car0",
+    "px_total": 15,
+    "py_total": 442,
+    "px": 15,
+    "py": 34,
+    "nx": 1,
+    "ny": 13
+  },
+  "sprites": [
+    { "name": "carframe_0", "frames": [ { "x": 0, "y": 0 } ] },
+    { "name": "carframe_1", "frames": [ { "x": 0, "y": 1 } ] },
+    { "name": "carframe_2", "frames": [ { "x": 0, "y": 2 } ] },
+    { "name": "carframe_3", "frames": [ { "x": 0, "y": 3 } ] },
+    { "name": "carframe_4", "frames": [ { "x": 0, "y": 4 } ] },
+    { "name": "carframe_5", "frames": [ { "x": 0, "y": 5 } ] },
+    { "name": "carframe_6", "frames": [ { "x": 0, "y": 6 } ] },
+    { "name": "carframe_7", "frames": [ { "x": 0, "y": 7 } ] },
+    { "name": "carframe_8", "frames": [ { "x": 0, "y": 8 } ] },
+    { "name": "carframe_9", "frames": [ { "x": 0, "y": 9 } ] },
+    { "name": "carframe_10", "frames": [ { "x": 0, "y": 10 } ] },
+    { "name": "carframe_11", "frames": [ { "x": 0, "y": 11 } ] },
+    { "name": "carframe_12", "frames": [ { "x": 0, "y": 12 } ] }
+  ]
+}

@@ -67,7 +67,7 @@ update_weapon_shotgun_system(entt::registry& r, const uint64_t milliseconds_dt)
     // Invalid dynamic target; must have a static target
     if (dynamic_tgt && !r.valid(dynamic_tgt->target)) {
       r.remove<DynamicTargetComponent>(p);
-      if (!static_tgt) {
+      if (!static_tgt || !static_tgt->target.has_value()) {
         continue; // If no static target either; skip all together
       }
     }
@@ -76,7 +76,7 @@ update_weapon_shotgun_system(entt::registry& r, const uint64_t milliseconds_dt)
     glm::ivec2 target_position{ 0, 0 };
     if (dynamic_tgt != nullptr)
       target_position = r.get<AABB>(dynamic_tgt->target).center;
-    if (static_tgt)
+    if (static_tgt != nullptr)
       target_position = static_tgt->target.value();
 
     // dir from shotgun to target

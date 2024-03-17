@@ -48,8 +48,8 @@ create_sprite(entt::registry& r, const EntityType& type)
     sprite = "EMPTY";
   else if (type == EntityType::actor_hearth)
     sprite = "CAMPFIRE";
-  else if (type == EntityType::actor_player)
-    sprite = "PERSON_25_0";
+  // else if (type == EntityType::actor_player)
+  //   sprite = "PERSON_25_0";
   else if (type == EntityType::actor_player_ally)
     sprite = "PERSON_26_0";
   else if (type == EntityType::actor_spawner)
@@ -99,7 +99,7 @@ create_sprite(entt::registry& r, const EntityType& type)
   sc.colour = get_lin_colour_by_tag(r, type_name);
 
   // search spritesheet
-  const auto anim = find_animation(anims, sprite);
+  const auto [spritesheet, anim] = find_animation(anims, sprite);
   sc.tex_pos.x = anim.animation_frames[0].x;
   sc.tex_pos.y = anim.animation_frames[0].y;
 
@@ -151,14 +151,40 @@ create_gameplay(entt::registry& r, const EntityType& type)
   r.emplace<EntityTypeComponent>(e, type);
   r.emplace<WaitForInitComponent>(e);
 
-  r.emplace<SpriteComponent>(e, create_sprite(r, type));
-  r.emplace<TransformComponent>(e);
-  auto& transform = r.get<TransformComponent>(e);
-  transform.scale = DEFAULT_SIZE;
+  if (type != EntityType::empty_no_transform) {
+    r.emplace<SpriteComponent>(e, create_sprite(r, type));
+    r.emplace<TransformComponent>(e);
+    auto& transform = r.get<TransformComponent>(e);
+    transform.scale = DEFAULT_SIZE;
+
+    // Adjust sizes of entities
+    switch (type) {
+      case EntityType::bullet_default: {
+        transform.scale.x = SMALL_SIZE.x;
+        transform.scale.y = SMALL_SIZE.y;
+        break;
+      }
+      case EntityType::bullet_enemy: {
+        transform.scale.x = SMALL_SIZE.x;
+        transform.scale.y = SMALL_SIZE.y;
+        break;
+      }
+      case EntityType::particle: {
+        transform.scale.x = HALF_SIZE.x;
+        transform.scale.y = HALF_SIZE.y;
+        break;
+      }
+      default:
+        transform.scale = DEFAULT_SIZE;
+    }
+  }
 
   switch (type) {
 
-    case EntityType::empty: {
+    case EntityType::empty_no_transform: {
+      break;
+    }
+    case EntityType::empty_with_transform: {
       break;
     }
     case EntityType::empty_with_physics: {
@@ -186,6 +212,9 @@ create_gameplay(entt::registry& r, const EntityType& type)
       break;
     }
 
+    case EntityType::actor_leg: {
+      break;
+    }
     case EntityType::actor_player: {
       create_physics_actor(r, e);
       auto& vel = r.get<VelocityComponent>(e);
@@ -346,8 +375,6 @@ create_gameplay(entt::registry& r, const EntityType& type)
       create_physics_actor(r, e);
       auto& aabb = r.get<AABB>(e);
       aabb.size = SMALL_SIZE;
-      transform.scale.x = SMALL_SIZE.x;
-      transform.scale.y = SMALL_SIZE.y;
       r.emplace<TeamComponent>(e, AvailableTeams::player);
       r.emplace<SetTransformAngleToVelocity>(e);
       r.emplace<EntityTimedLifecycle>(e);
@@ -358,8 +385,6 @@ create_gameplay(entt::registry& r, const EntityType& type)
       create_physics_actor(r, e);
       auto& aabb = r.get<AABB>(e);
       aabb.size = SMALL_SIZE;
-      transform.scale.x = SMALL_SIZE.x;
-      transform.scale.y = SMALL_SIZE.y;
       r.emplace<TeamComponent>(e, AvailableTeams::enemy);
       r.emplace<SetTransformAngleToVelocity>(e);
       // r.emplace<EntityTimedLifecycle>(e);
@@ -439,8 +464,6 @@ create_gameplay(entt::registry& r, const EntityType& type)
     }
 
     case EntityType::particle: {
-      transform.scale.x = HALF_SIZE.x;
-      transform.scale.y = HALF_SIZE.y;
       r.emplace<VelocityComponent>(e);
       r.emplace<EntityTimedLifecycle>(e, 1 * 1000);
 

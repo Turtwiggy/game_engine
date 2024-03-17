@@ -20,78 +20,8 @@
 namespace game2d {
 
 void
-update_cursor_ui(entt::registry& r,
-                 const CursorComponent& cursor_comp,
-                 const bool click,
-                 const bool held,
-                 const bool release,
-                 const glm::ivec2& mouse_pos,
-                 const std::optional<glm::ivec2> click_position,
-                 const std::optional<glm::ivec2> held_position)
-{
-  const auto& enemies = cursor_comp.hovering_enemies;
-
-  // UI: Click action
-  //
-  if (click) {
-    auto& click_t = r.emplace_or_replace<TransformComponent>(cursor_comp.click_ent);
-    auto& held_t = r.emplace_or_replace<TransformComponent>(cursor_comp.held_ent);
-    auto& line_t = r.emplace_or_replace<TransformComponent>(cursor_comp.line_ent);
-    click_t.position = glm::ivec3(mouse_pos.x, mouse_pos.y, 0);
-
-    // set scale, because transforms could be created for the first time
-    click_t.scale = { 8, 8, 1 };
-    held_t.scale = { 8, 8, 1 };
-  }
-  // UI: Held Action and not hovering enemies
-  //
-  if (held && enemies.size() == 0) {
-
-    // position the held icon
-    auto* held_t = r.try_get<TransformComponent>(cursor_comp.held_ent);
-    if (held_t) {
-      held_t->position = glm::ivec3(mouse_pos.x, mouse_pos.y, 0);
-
-      // position the line
-      const auto line = generate_line(click_position.value(), held_position.value(), 2);
-      auto& line_transform = r.get<TransformComponent>(cursor_comp.line_ent);
-      set_transform_with_line(line_transform, line);
-    }
-  }
-
-  // UI: Release Action
-  //
-  if (release) {
-    r.remove<TransformComponent>(cursor_comp.click_ent);
-    r.remove<TransformComponent>(cursor_comp.held_ent);
-    r.remove<TransformComponent>(cursor_comp.line_ent);
-  }
-}
-
-void
 update_selected_interactions_system(entt::registry& r, const glm::ivec2& mouse_pos, const float dt)
 {
-  const auto& input = get_first_component<SINGLETON_InputComponent>(r);
-  const auto& cursor = get_first<CursorComponent>(r);
-  const auto& cursor_comp = r.get<CursorComponent>(cursor);
-  const auto& enemies = cursor_comp.hovering_enemies;
-  auto& dead = get_first_component<SINGLETON_EntityBinComponent>(r);
-
-  // warning: doesnt work with controller currently
-  const bool click = get_mouse_lmb_press();
-  const bool held = get_mouse_lmb_held();
-  const bool release = get_mouse_lmb_release();
-  const bool ctrl_held = get_key_held(input, SDL_SCANCODE_LCTRL);
-
-  static std::optional<glm::ivec2> click_position = std::nullopt;
-  static std::optional<glm::ivec2> held_position = std::nullopt;
-  if (click)
-    click_position = mouse_pos;
-  if (held)
-    held_position = mouse_pos;
-
-  update_cursor_ui(r, cursor_comp, click, held, release, mouse_pos, click_position, held_position);
-
   // aim gun
   //
   const auto& player_view = r.view<PlayerComponent, AABB>(entt::exclude<WaitForInitComponent>);

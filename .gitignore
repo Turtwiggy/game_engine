@@ -5,6 +5,7 @@
 *.dll
 build/
 .vs/
+.cache/
 
 # Configs
 imgui.ini

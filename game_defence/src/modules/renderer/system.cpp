@@ -67,7 +67,7 @@ rebind(entt::registry& r, const SINGLETON_RendererInfo& ri)
   const int tex_unit_custom = search_for_texture_unit_by_path(ri, "bargame")->unit;
   const int tex_unit_muzzle = search_for_texture_unit_by_path(ri, "muzzle")->unit;
   const int tex_unit_gameicons = search_for_texture_unit_by_path(ri, "gameicons")->unit;
-  const int tex_unit_blender = search_for_texture_unit_by_path(ri, "blender")->unit;
+  const int tex_unit_car0 = search_for_texture_unit_by_path(ri, "voxel")->unit;
 
   ri.instanced.bind();
   ri.instanced.set_mat4("projection", camera.projection);
@@ -75,7 +75,7 @@ rebind(entt::registry& r, const SINGLETON_RendererInfo& ri)
   ri.instanced.set_int("tex_custom", tex_unit_custom);
   ri.instanced.set_int("tex_muzzle", tex_unit_muzzle);
   ri.instanced.set_int("tex_gameicons", tex_unit_gameicons);
-  ri.instanced.set_int("tex_blender", tex_unit_blender);
+  ri.instanced.set_int("tex_voxel", tex_unit_car0);
 
   ri.circle.bind();
   ri.circle.set_mat4("projection", camera.projection);

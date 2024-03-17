@@ -50,8 +50,6 @@
       "name": "pal_neutral_2",
       "tags": [ ]
     },
-
-
     {
       "r": 96, "g": 153, "b": 102,
       "name": "level_palette_1",
@@ -67,7 +65,6 @@
       "name": "level_palette_3",
       "tags": [ "actor_pickup_xp", "actor_pickup_doubledamage" ]
     },
-
     {
       "r": 0, "g": 255, "b": 192,
       "name": "hit",
@@ -77,14 +74,14 @@
       "r": 255, "g": 255, "b": 255,
       "name": "white",
       "tags": [
-        "empty",
+        "empty_with_transform",
         "bullet_default",
         "particle",
         "actor_spawner",
-        "actor_unitgroup"
+        "actor_unitgroup",
+        "actor_leg"
       ]
     },
-
     {
       "r": 68, "g": 119, "b": 206,
       "name": "blue",

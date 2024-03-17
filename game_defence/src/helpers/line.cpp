@@ -26,7 +26,14 @@ set_transform_with_line(TransformComponent& t, const LineInfo& line)
   t.position = { line.position.x, line.position.y, 0 };
   t.scale = { line.scale.x, line.scale.y, 0 };
   t.rotation_radians.z = line.rotation;
-}
+};
+
+void
+set_transform_with_line(entt::registry& r, const entt::entity& e, const LineInfo& li)
+{
+  auto& t = r.get<TransformComponent>(e);
+  set_transform_with_line(t, li);
+};
 
 // void
 // create_line(int r0, int c0, int r1, int c1, std::vector<std::pair<int, int>>& results)

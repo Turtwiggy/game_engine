@@ -15,7 +15,7 @@ namespace game2d {
 void
 create_ui_arrow(entt::registry& r, SINGLE_ArrowsToSpawnerUI& ui, const int i)
 {
-  const auto e = create_gameplay(r, EntityType::empty);
+  const auto e = create_gameplay(r, EntityType::empty_with_transform);
   set_sprite(r, e, "ARROW_UP");
   ui.instantiated.push_back(e);
 };

@@ -5,8 +5,6 @@
 #include "sprites/components.hpp"
 #include "sprites/helpers.hpp"
 
-#include "glm/glm.hpp"
-
 namespace game2d {
 
 int
@@ -27,7 +25,7 @@ update_animator_system(entt::registry& r, float dt)
 
   const auto& view = r.view<SpriteComponent, SpriteAnimationComponent>();
   for (const auto& [e, sprite, animation] : view.each()) {
-    const auto& anim = find_animation(anims, animation.playing_animation_name);
+    const auto& [spritesheet, anim] = find_animation(anims, animation.playing_animation_name);
 
     // loop timer between 0 and duration
     animation.timer += dt;

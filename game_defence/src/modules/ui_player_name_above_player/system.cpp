@@ -42,9 +42,14 @@ update_ui_player_name_above_player_system(entt::registry& r)
 
   // create the player a ui element
   for (const auto& player : no_ui) {
-    const auto e = create_gameplay(r, EntityType::empty);
+    const auto e = create_gameplay(r, EntityType::empty_with_transform);
     r.emplace<WorldspaceTextComponent>(e, "steve");
     r.emplace<HasParentComponent>(e, player);
+
+    auto& tag = r.get<TagComponent>(e);
+    tag.tag = "worldspace-ui";
+
+    // the transform is used to position the world-space text for the ui
     auto& t = r.get<TransformComponent>(e);
     t.scale.x = 0;
     t.scale.y = 0;

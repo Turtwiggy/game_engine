@@ -14,8 +14,8 @@ enum class EntityType
   // as the order is used for unique-ids when saved to disk
   // probably should do something else
 
-  // transform-only
-  empty,
+  empty_no_transform,
+  empty_with_transform,
   empty_with_physics,
 
   // actors with only one type (so far)
@@ -27,6 +27,7 @@ enum class EntityType
   // in progress
   actor_player_ally,
   actor_unitgroup,
+  actor_leg,
 
   // pickups
   actor_pickup_xp,

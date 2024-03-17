@@ -4,42 +4,34 @@
 #include "audio/components.hpp"
 #include "audio/helpers.hpp"
 #include "entt/helpers.hpp"
-#include "events/components.hpp"
 #include "game_state.hpp"
 #include "maths/grid.hpp"
-#include "maths/maths.hpp"
 #include "modules/actor_cursor/components.hpp"
-#include "modules/actor_player/components.hpp"
+#include "modules/actor_legs/components.hpp"
 #include "modules/actor_spawner/components.hpp"
+#include "modules/ai_pathfinding/components.hpp"
 #include "modules/algorithm_procedural/cell_automata.hpp"
 #include "modules/algorithm_procedural/poisson.hpp"
-#include "modules/animation/components.hpp"
 #include "modules/camera/components.hpp"
 #include "modules/camera/orthographic.hpp"
 #include "modules/combat_damage/components.hpp"
 #include "modules/gameover/components.hpp"
-#include "modules/grid/components.hpp"
-#include "modules/items/helpers.hpp"
-#include "modules/lerp_to_target/components.hpp"
 #include "modules/lifecycle/components.hpp"
 #include "modules/renderer/components.hpp"
 #include "modules/renderer/helpers.hpp"
 #include "modules/screenshake/components.hpp"
 #include "modules/selected_interactions/components.hpp"
+#include "modules/sprite_spritestack/components.hpp"
 #include "modules/ui_arrows_to_spawners/components.hpp"
 #include "modules/ui_level_up/components.hpp"
 #include "modules/ui_rpg_character/components.hpp"
 #include "modules/ui_scene_main_menu/components.hpp"
-#include "modules/ui_scene_main_menu/system.hpp"
 #include "modules/ui_selected/components.hpp"
-#include "modules/ux_hoverable/components.hpp"
-#include "modules/ux_hoverable_change_colour/components.hpp"
 #include "physics/components.hpp"
 #include "sprites/helpers.hpp"
 
 #include <nlohmann/json.hpp>
 
-#include <fstream>
 #include <string>
 
 namespace game2d {
@@ -53,17 +45,16 @@ const auto default_size = glm::ivec2{ 16 * pixel_scale_up_size, 16 * pixel_scale
 entt::entity
 create_player(entt::registry& r)
 {
+  // create weapon before player to draw on top
+  const auto weapon = create_gameplay(r, EntityType::weapon_shotgun);
+
   // player
   const auto e = create_gameplay(r, EntityType::actor_player);
   auto& e_aabb = r.get<AABB>(e);
   e_aabb.size = default_size;
-  // auto& target_pos = r.get<HasTargetPositionComponent>(e);
-  // target_pos.position = e_aabb.center;
-  // const auto icon_xy = set_sprite_custom(r, e, "player_0", tex_unit);
   r.get<TransformComponent>(e).scale = { e_aabb.size.x, e_aabb.size.y, 1.0f };
 
-  // weapon
-  const auto weapon = create_gameplay(r, EntityType::weapon_shotgun);
+  // position and parent weapon
   auto& weapon_parent = r.get<HasParentComponent>(weapon);
   weapon_parent.parent = e;
   auto& weapon_aabb = r.get<AABB>(weapon);
@@ -74,6 +65,15 @@ create_player(entt::registry& r)
   has_weapon.instance = weapon;
   r.emplace<HasWeaponComponent>(e, has_weapon);
 
+  // give legs
+  LegsComponent legs;
+  legs.body = e;
+  entt::entity leg_0 = create_gameplay(r, EntityType::actor_leg);
+  entt::entity leg_1 = create_gameplay(r, EntityType::actor_leg);
+  legs.lines.push_back(leg_0);
+  legs.lines.push_back(leg_1);
+  r.emplace<LegsComponent>(e, legs);
+
   return e;
 }
 
@@ -82,22 +82,22 @@ create_player_ally(entt::registry& r, const entt::entity& group)
 {
   const auto& group_pos = r.get<AABB>(group);
 
-  // player
+  // create weapon before player to draw on top
+  const auto weapon = create_gameplay(r, EntityType::weapon_shotgun);
+
+  // player ally
   const auto e = create_gameplay(r, EntityType::actor_player_ally);
 
+  // position and parent weapon
   auto& e_aabb = r.get<AABB>(e);
   e_aabb.size = default_size;
   e_aabb.center = group_pos.center;
-  // auto& target_pos = r.get<HasTargetPositionComponent>(e);
-  // target_pos.position = e_aabb.center;
-  // const auto icon_xy = set_sprite_custom(r, e, "player_0", tex_unit);
   r.get<TransformComponent>(e).scale = { e_aabb.size.x, e_aabb.size.y, 1.0f };
 
   // link group&player
   r.emplace<HasParentComponent>(e, group);
 
   // weapon
-  const auto weapon = create_gameplay(r, EntityType::weapon_shotgun);
   auto& weapon_parent = r.get<HasParentComponent>(weapon);
   weapon_parent.parent = e;
   auto& weapon_aabb = r.get<AABB>(weapon);
@@ -171,7 +171,6 @@ move_to_scene_start(entt::registry& r, const Scene s)
   if (s == Scene::game) {
     const auto& anims = get_first_component<SINGLE_Animations>(r);
     const auto& ri = get_first_component<SINGLETON_RendererInfo>(r);
-    const auto tex_unit_for_bargame = search_for_texture_unit_by_path(ri, "bargame")->unit;
     const auto& menu_ui = get_first_component<SINGLE_MainMenuUI>(r);
 
     // Play some audio
@@ -180,30 +179,43 @@ move_to_scene_start(entt::registry& r, const Scene s)
     // create cursor debugs
     {
       const auto cursor = get_first<CursorComponent>(r);
-      auto& cursorc = get_first_component<CursorComponent>(r);
+      const auto& cursorc = get_first_component<CursorComponent>(r);
       r.get<SpriteComponent>(cursor).colour.a = 0.1f;
-
-      cursorc.click_ent = create_gameplay(r, EntityType::empty);
-      r.get<SpriteComponent>(cursorc.click_ent).colour = engine::SRGBToLinear(engine::SRGBColour(1.0f, 0.0f, 0.0f, 1.0f));
-      r.remove<TransformComponent>(cursorc.click_ent);
-
-      cursorc.held_ent = create_gameplay(r, EntityType::empty);
-      r.get<SpriteComponent>(cursorc.held_ent).colour = engine::SRGBToLinear(engine::SRGBColour(1.0f, 0.0f, 0.0f, 1.0f));
-      r.remove<TransformComponent>(cursorc.held_ent);
-
-      cursorc.line_ent = create_gameplay(r, EntityType::empty);
-      r.get<SpriteComponent>(cursorc.line_ent).colour = engine::SRGBToLinear(engine::SRGBColour(1.0f, 0.0f, 0.0f, 1.0f));
-      r.remove<TransformComponent>(cursorc.line_ent);
     }
 
     // create a group with one unit in
+    // {
+    //   const auto& player_group = create_gameplay(r, EntityType::actor_unitgroup);
+    //   auto& group_aabb = r.get<AABB>(player_group);
+    //   group_aabb.size = default_size;
+    //   group_aabb.center = { 32, 32 };
+    //   create_player_ally(r, player_group);
+    //   create_player_ally(r, player_group);
+    // }
+
+    // draw a sprite-stacked rotating car
     {
-      const auto& player_group = create_gameplay(r, EntityType::actor_unitgroup);
-      auto& group_aabb = r.get<AABB>(player_group);
-      group_aabb.size = default_size;
-      group_aabb.center = { 32, 32 };
-      create_player_ally(r, player_group);
-      create_player_ally(r, player_group);
+      const auto tex_unit = search_for_texture_unit_by_path(ri, "voxel").value();
+
+      // sprites are from top to bottom
+      const int sprites_for_total_sprite = 10;
+      for (int i = 0; i < sprites_for_total_sprite; i++) {
+        const auto i_as_str = std::to_string(i);
+        const auto e = create_gameplay(r, EntityType::empty_with_transform);
+        set_sprite_custom(r, e, "carframe_"s + i_as_str, tex_unit.unit);
+
+        SpritestackComponent ssc;
+        // ssc.base_position = ;
+        ssc.spritestack_position = i;
+        r.emplace<SpritestackComponent>(e, ssc);
+        r.emplace<RotateOnSpotComponent>(e);
+
+        // auto& sc = r.get<SpriteComponent>(e);
+        // sc.colour = engine::SRGBToLinear(engine::SRGBColour(1.0f, 0.0f, 0.0f, 1.0));
+
+        auto& tag = r.get<TagComponent>(e);
+        tag.tag = "car"s + i_as_str;
+      }
     }
 
     // create players based off main menu ui
@@ -211,7 +223,7 @@ move_to_scene_start(entt::registry& r, const Scene s)
     //
     const auto& character_stats_view = r.view<CharacterStats, InActiveFight>();
     for (const auto& [request_e, stats_e, fight_e] : character_stats_view.each()) {
-      auto player = create_player(r);
+      const auto player = create_player(r);
       auto& player_aabb = r.get<AABB>(player);
       player_aabb.center = { 32, 32 };
 
@@ -289,16 +301,8 @@ move_to_scene_start(entt::registry& r, const Scene s)
             maap[i].push_back(e);
           }
           // floor
-          else {
-            const auto e = create_gameplay(r, EntityType::empty);
-            r.emplace<PathfindComponent>(e, 0);
-            r.remove<TransformComponent>(e);
-            // set_sprite_custom(r, e, "empty"s, tex_unit_for_bargame);
-            // r.get<TransformComponent>(e).position = { xy_world.x, xy_world.y, 0.0f };
-            // r.get<TransformComponent>(e).scale = { 0, 0, 1.0f };
-            r.get<TagComponent>(e).tag = "floor"s;
-            maap[i].push_back(e);
-          }
+          else
+            maap[i].push_back(entt::null);
         }
         r.emplace<MapComponent>(r.create(), map_c);
       }
@@ -306,7 +310,7 @@ move_to_scene_start(entt::registry& r, const Scene s)
 
     // Generate "seed points" for bases
     //
-    bool seed_spawners = true;
+    bool seed_spawners = false;
     if (seed_spawners) {
       const auto& map = get_first_component<MapComponent>(r);
       const int seed = 0;

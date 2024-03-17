@@ -11,6 +11,7 @@
 #include "helpers/line.hpp"
 #include "maths/maths.hpp"
 #include "modules/actor_cursor/components.hpp"
+#include "modules/actor_group/components.hpp"
 #include "modules/actor_player/components.hpp"
 #include "modules/actor_turret/components.hpp"
 #include "modules/combat_wants_to_shoot/components.hpp"
@@ -103,8 +104,39 @@ game2d::update_player_controller_system(entt::registry& r, const uint64_t& milli
       r.emplace_or_replace<WantsToPickUp>(entity);
     if (input.drop)
       r.emplace_or_replace<WantsToDrop>(entity);
-    if (input.shoot)
+    if (input.shoot) {
       r.emplace_or_replace<WantsToShoot>(entity);
+
+      // identify groups thats units are a part of
+      std::map<entt::entity, std::vector<entt::entity>> groups;
+      const auto& part_of_group_view = r.view<const PartOfGroupComponent, const HasParentComponent>();
+      for (const auto& [group_e, group_c, group_parent] : part_of_group_view.each())
+        groups[group_parent.parent].push_back(group_e);
+
+      // identify if the player is currently holding a group object.
+      entt::entity held_group = entt::null;
+      const auto& picked_up = r.view<const GroupComponent, const PickedUpByComponent>();
+      for (const auto& [pick_e, pick_g, pick_c] : picked_up.each()) {
+        if (pick_c.entity != entity)
+          continue; // a group, but not our entity
+        held_group = pick_e;
+        break;
+      }
+
+      // if holding the flag, get all the children to shoot (haha)
+      if (held_group != entt::null && groups.contains(held_group)) {
+        const auto& player_target = r.get<StaticTargetComponent>(entity);
+        const auto& children = groups[held_group];
+        for (const auto& c : children) {
+          if (player_target.target.has_value()) {
+            StaticTargetComponent new_target;
+            new_target.target = player_target.target.value();
+            r.emplace_or_replace<StaticTargetComponent>(c, new_target);
+          }
+          r.emplace_or_replace<WantsToShoot>(c);
+        }
+      }
+    }
     if (input.shoot_release)
       r.emplace_or_replace<WantsToReleaseShot>(entity);
 

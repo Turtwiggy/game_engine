@@ -198,7 +198,7 @@ display_flow_field_with_visuals(entt::registry& r, GridComponent& grid)
     const auto sprites = convert_int_to_sprites(distance);
     auto& sprite_vfxs = grid.debug_flow_field[xy];
     for (int i = 0; i < sprites.size(); i++) {
-      const auto sprite = create_gameplay(r, EntityType::empty);
+      const auto sprite = create_gameplay(r, EntityType::empty_with_transform);
       set_sprite(r, sprite, sprites[i]);
 
       glm::vec3 position = { gpos.x * grid.size, gpos.y * grid.size, 0.0f };

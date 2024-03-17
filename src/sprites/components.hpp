@@ -7,9 +7,28 @@
 #include <nlohmann/json.hpp>
 
 #include <string>
+#include <utility>
 #include <vector>
 
 namespace game2d {
+
+struct Spritesheet
+{
+  std::string name;
+  std::string path;
+
+  // texture size in pixels
+  int px_total = 0;
+  int py_total = 0;
+
+  // number of pixels per sprite
+  int px = 32;
+  int py = 32;
+
+  // number of sprites
+  int nx = 1;
+  int ny = 1;
+};
 
 struct SpritePosition
 {
@@ -31,7 +50,8 @@ struct SpriteAnimation
 // Contains sprite frame data from assets/config/spritemap_X.json
 struct SINGLE_Animations
 {
-  std::vector<SpriteAnimation> animations;
+  // key: spritesheet path. value: vector of loaded animations
+  std::vector<std::pair<Spritesheet, std::vector<SpriteAnimation>>> animations;
 };
 
 struct SpriteComponent
@@ -42,7 +62,6 @@ struct SpriteComponent
   SpritePosition tex_pos;
   int tex_unit = 0; // do not serialize
 
-  // spritesheet info
   int total_sx = 0;
   int total_sy = 0;
   // NLOHMANN_DEFINE_TYPE_INTRUSIVE(SpriteComponent, x, y, angle_radians, sx, sy);

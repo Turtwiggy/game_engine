@@ -1,5 +1,7 @@
 {
+  "cmake.configureArgs": ["-DCMAKE_EXPORT_COMPILE_COMMANDS:BOOL=TRUE"],
   "cmake.preferredGenerators": ["Ninja"],
+  "cmake.generator": "Ninja",
   "cmake.debugConfig": {
     "args": [
       //
@@ -17,12 +19,16 @@
     "**/thirdparty": true
   },
   "files.exclude": {
-    "**/.vs": true
+    "**/.vs": true,
+    "**/.cache": true
   },
   "editor.bracketPairColorization.enabled": true,
-  "C_Cpp.codeAnalysis.clangTidy.enabled": true,
+
   "C_Cpp.default.intelliSenseMode": "windows-msvc-x64",
-  "C_Cpp.formatting": "clangFormat",
+  "C_Cpp.intelliSenseEngine": "disabled",
+
+  "C_Cpp.codeAnalysis.clangTidy.enabled": true,
+  "C_Cpp.codeAnalysis.runAutomatically": true,
   "C_Cpp.codeAnalysis.clangTidy.checks.enabled": [
     "clang-analyzer-*",
     "cppcoreguidelines-*",
@@ -42,7 +48,7 @@
     "readability-uppercase-literal-suffix",
     "modernize-use-trailing-return-type"
   ],
-  "C_Cpp.codeAnalysis.clangTidy.useBuildPath": true
+  "C_Cpp.codeAnalysis.clangTidy.useBuildPath": false
 
   // "editor.guides.bracketPairs": "active",
 }
