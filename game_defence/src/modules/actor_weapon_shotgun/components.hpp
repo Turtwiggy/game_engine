@@ -15,7 +15,7 @@ struct WeaponBulletTypeToSpawnComponent
 
 struct ShotgunComponent
 {
-  bool placeholder = true;
+  int bullets_to_spawn = 3;
 };
 
 } // namespace game2d

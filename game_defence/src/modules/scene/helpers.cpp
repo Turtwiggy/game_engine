@@ -39,9 +39,6 @@ namespace game2d {
 using namespace std::literals;
 using json = nlohmann::json;
 
-const int pixel_scale_up_size = 2;
-const auto default_size = glm::ivec2{ 16 * pixel_scale_up_size, 16 * pixel_scale_up_size };
-
 entt::entity
 create_player(entt::registry& r)
 {
@@ -51,7 +48,6 @@ create_player(entt::registry& r)
   // player
   const auto e = create_gameplay(r, EntityType::actor_player);
   auto& e_aabb = r.get<AABB>(e);
-  e_aabb.size = default_size;
   r.get<TransformComponent>(e).scale = { e_aabb.size.x, e_aabb.size.y, 1.0f };
 
   // position and parent weapon
@@ -68,10 +64,10 @@ create_player(entt::registry& r)
   // give legs
   LegsComponent legs;
   legs.body = e;
-  entt::entity leg_0 = create_gameplay(r, EntityType::actor_leg);
-  entt::entity leg_1 = create_gameplay(r, EntityType::actor_leg);
-  legs.lines.push_back(leg_0);
-  legs.lines.push_back(leg_1);
+  legs.lines.push_back(create_gameplay(r, EntityType::actor_leg));
+  legs.lines.push_back(create_gameplay(r, EntityType::actor_leg));
+  legs.lines.push_back(create_gameplay(r, EntityType::actor_leg));
+  legs.lines.push_back(create_gameplay(r, EntityType::actor_leg));
   r.emplace<LegsComponent>(e, legs);
 
   return e;
@@ -90,7 +86,6 @@ create_player_ally(entt::registry& r, const entt::entity& group)
 
   // position and parent weapon
   auto& e_aabb = r.get<AABB>(e);
-  e_aabb.size = default_size;
   e_aabb.center = group_pos.center;
   r.get<TransformComponent>(e).scale = { e_aabb.size.x, e_aabb.size.y, 1.0f };
 
@@ -139,6 +134,14 @@ move_to_scene_start(entt::registry& r, const Scene s)
   create_gameplay(r, EntityType::cursor);
 
   stop_all_audio(r);
+
+  // create a hostile dummy
+  // {
+  //   const auto e = create_gameplay(r, EntityType::enemy_dummy);
+  //   auto& e_aabb = r.get<AABB>(e);
+  //   e_aabb.size = default_size * 1;
+  //   e_aabb.center = { 200, 0 };
+  // }
 
   if (s == Scene::menu) {
 
@@ -193,31 +196,6 @@ move_to_scene_start(entt::registry& r, const Scene s)
     //   create_player_ally(r, player_group);
     // }
 
-    // draw a sprite-stacked rotating car
-    {
-      const auto tex_unit = search_for_texture_unit_by_path(ri, "voxel").value();
-
-      // sprites are from top to bottom
-      const int sprites_for_total_sprite = 10;
-      for (int i = 0; i < sprites_for_total_sprite; i++) {
-        const auto i_as_str = std::to_string(i);
-        const auto e = create_gameplay(r, EntityType::empty_with_transform);
-        set_sprite_custom(r, e, "carframe_"s + i_as_str, tex_unit.unit);
-
-        SpritestackComponent ssc;
-        // ssc.base_position = ;
-        ssc.spritestack_position = i;
-        r.emplace<SpritestackComponent>(e, ssc);
-        r.emplace<RotateOnSpotComponent>(e);
-
-        // auto& sc = r.get<SpriteComponent>(e);
-        // sc.colour = engine::SRGBToLinear(engine::SRGBColour(1.0f, 0.0f, 0.0f, 1.0));
-
-        auto& tag = r.get<TagComponent>(e);
-        tag.tag = "car"s + i_as_str;
-      }
-    }
-
     // create players based off main menu ui
     // note: create player before other sprites to render on top
     //
@@ -242,14 +220,6 @@ move_to_scene_start(entt::registry& r, const Scene s)
     auto& camera_t = r.get<TransformComponent>(camera);
     camera_t.position.x = width / 2.0f;
     camera_t.position.y = height / 2.0f;
-
-    // create a hostile dummy
-    // {
-    //   const auto e = create_gameplay(r, EntityType::enemy_dummy);
-    //   auto& e_aabb = r.get<AABB>(e);
-    //   e_aabb.size = default_size * 1;
-    //   e_aabb.center = { 200, 0 };
-    // }
 
     // VISUAL: use poisson for grass
     // {
@@ -309,7 +279,6 @@ move_to_scene_start(entt::registry& r, const Scene s)
     }
 
     // Generate "seed points" for bases
-    //
     bool seed_spawners = false;
     if (seed_spawners) {
       const auto& map = get_first_component<MapComponent>(r);
@@ -334,7 +303,7 @@ move_to_scene_start(entt::registry& r, const Scene s)
         const auto e = create_gameplay(r, EntityType::actor_spawner);
         r.emplace<OnlySpawnInRangeOfAnyPlayerComponent>(e);
         auto& e_aabb = r.get<AABB>(e);
-        e_aabb.size = default_size * 1;
+        e_aabb.size = { 32, 32 };
 
         // make sure seed points are clamped to grid space
         auto poisson_point_clamped = engine::grid::grid_space_to_world_space(poisson_point_gridspace, map.tilesize);

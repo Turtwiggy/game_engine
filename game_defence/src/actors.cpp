@@ -2,7 +2,6 @@
 
 #include "colour/colour.hpp"
 #include "entt/helpers.hpp"
-#include "events/components.hpp"
 #include "modules/actor_cursor/components.hpp"
 #include "modules/actor_enemy/components.hpp"
 #include "modules/actor_group/components.hpp"
@@ -12,28 +11,28 @@
 #include "modules/actor_turret/components.hpp"
 #include "modules/actor_weapon_shotgun/components.hpp"
 #include "modules/animation/components.hpp"
-#include "modules/camera/components.hpp"
-#include "modules/camera/orthographic.hpp"
 #include "modules/combat_attack_cooldown/components.hpp"
 #include "modules/combat_damage/components.hpp"
-#include "modules/combat_wants_to_shoot/components.hpp"
-#include "modules/gameplay_circle/components.hpp"
 #include "modules/items_drop/components.hpp"
 #include "modules/items_pickup/components.hpp"
 #include "modules/lerp_to_target/components.hpp"
 #include "modules/lifecycle/components.hpp"
 #include "modules/renderer/components.hpp"
 #include "modules/renderer/helpers.hpp"
+#include "modules/sprite_spritestack/components.hpp"
 #include "modules/ui_colours/helpers.hpp"
 #include "modules/ux_hoverable/components.hpp"
 #include "physics/components.hpp"
+#include "renderer/transform.hpp"
 #include "sprites/components.hpp"
 #include "sprites/helpers.hpp"
 
 #include "magic_enum.hpp"
-#include <thread>
+
+#include <string>
 
 namespace game2d {
+using namespace std::literals;
 
 SpriteComponent
 create_sprite(entt::registry& r, const EntityType& type)
@@ -48,8 +47,8 @@ create_sprite(entt::registry& r, const EntityType& type)
     sprite = "EMPTY";
   else if (type == EntityType::actor_hearth)
     sprite = "CAMPFIRE";
-  // else if (type == EntityType::actor_player)
-  //   sprite = "PERSON_25_0";
+  else if (type == EntityType::actor_player)
+    sprite = "PERSON_25_0";
   else if (type == EntityType::actor_player_ally)
     sprite = "PERSON_26_0";
   else if (type == EntityType::actor_spawner)
@@ -68,7 +67,7 @@ create_sprite(entt::registry& r, const EntityType& type)
   // else if (type == EntityType::weapon_bow)
   //   sprite = "WEAPON_BOW_0";
   else if (type == EntityType::weapon_shotgun)
-    sprite = "WEAPON_SHOTGUN";
+    sprite = "EMPTY";
   // bullets...
   else if (type == EntityType::bullet_default)
     sprite = "EMPTY";
@@ -143,6 +142,7 @@ create_gameplay(entt::registry& r, const EntityType& type)
   const glm::ivec3 DEFAULT_SIZE{ 32, 32, 1 };
   const glm::ivec3 HALF_SIZE{ 16, 16, 1 };
   const glm::ivec2 SMALL_SIZE{ 4, 4 };
+  const auto& ri = get_first_component<SINGLETON_RendererInfo>(r);
 
   const auto type_name = std::string(magic_enum::enum_name(type));
 
@@ -219,6 +219,15 @@ create_gameplay(entt::registry& r, const EntityType& type)
       create_physics_actor(r, e);
       auto& vel = r.get<VelocityComponent>(e);
       vel.base_speed = 50000.0f;
+
+      const float squash_amount = 8;
+
+      auto& aabb = r.get<AABB>(e);
+      aabb.size = DEFAULT_SIZE;
+      aabb.size.x -= squash_amount;
+      auto& transform = r.get<TransformComponent>(e);
+      transform.scale.x = DEFAULT_SIZE.x - squash_amount;
+      transform.scale.y = DEFAULT_SIZE.y;
 
       // r.emplace<PhysicsSolidComponent>(e);
       r.emplace<TeamComponent>(e, AvailableTeams::player);
@@ -352,11 +361,38 @@ create_gameplay(entt::registry& r, const EntityType& type)
     case EntityType::weapon_shotgun: {
       create_physics_actor(r, e);
       r.emplace<ShotgunComponent>(e);
-      r.emplace<HasTargetPositionComponent>(e);
-      r.emplace<SetVelocityToTargetComponent>(e);
+
       r.emplace<AttackCooldownComponent>(e, 1.2f); // seconds between spawning
       r.emplace<HasParentComponent>(e);
       r.emplace<WeaponBulletTypeToSpawnComponent>(e);
+
+      // movement
+      // auto& vel = r.get<VelocityComponent>(e);
+      // vel.base_speed = 400.0f;
+      // r.emplace<HasTargetPositionComponent>(e);
+      // r.emplace<SetVelocityToTargetComponent>(e);
+
+      // create a spritestack sprite for the model of the shotgun
+      auto& tc = r.get<TransformComponent>(e);
+      tc.scale.x = 10;
+      tc.scale.y = 10;
+      {
+        // create a ton of sprites for a sprite-stacked entity
+        // sprites are from top to bottom
+
+        // TODO: replace with config info
+        const int sprites_for_total_sprite = 10;
+        const auto tex_unit = search_for_texture_unit_by_path(ri, "voxel").value();
+        for (int i = 0; i < sprites_for_total_sprite; i++) {
+          const auto i_as_str = std::to_string(i);
+          const auto sprite_e = create_gameplay(r, EntityType::empty_with_transform);
+          set_sprite_custom(r, sprite_e, "frame_"s + i_as_str, tex_unit.unit);
+          r.emplace<SpritestackComponent>(sprite_e, SpritestackComponent{ i });
+          r.emplace<HasParentComponent>(sprite_e, e);
+          r.get<TagComponent>(sprite_e).tag = "ss_frame_"s + i_as_str;
+        }
+      }
+
       break;
     }
 

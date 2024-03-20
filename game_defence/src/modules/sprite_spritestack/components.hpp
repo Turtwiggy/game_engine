@@ -6,9 +6,9 @@ namespace game2d {
 
 struct SpritestackComponent
 {
-  glm::ivec2 base_position{ 0, 0 };
-  int spritestack_position = 0;
-  int layer_height = 5;
+  int spritestack_index = 0;
+  SpritestackComponent(int index)
+    : spritestack_index(index){};
 };
 
 struct RotateOnSpotComponent

@@ -6,7 +6,6 @@
 #include "maths/maths.hpp"
 #include "modules/ai_pathfinding/components.hpp"
 #include "modules/lifecycle/components.hpp"
-#include "modules/renderer/components.hpp"
 #include "modules/selected_interactions/components.hpp"
 #include "physics/components.hpp"
 

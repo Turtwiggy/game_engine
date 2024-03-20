@@ -1,7 +1,6 @@
 {
-  "cmake.configureArgs": ["-DCMAKE_EXPORT_COMPILE_COMMANDS:BOOL=TRUE"],
+  // "cmake.configureArgs": ["-DCMAKE_EXPORT_COMPILE_COMMANDS:BOOL=TRUE"],
   "cmake.preferredGenerators": ["Ninja"],
-  "cmake.generator": "Ninja",
   "cmake.debugConfig": {
     "args": [
       //
@@ -20,7 +19,8 @@
   },
   "files.exclude": {
     "**/.vs": true,
-    "**/.cache": true
+    "**/.cache": true,
+    "**/thirdparty/": true
   },
   "editor.bracketPairColorization.enabled": true,
 
@@ -47,8 +47,8 @@
     "readability-braces-around-statements",
     "readability-uppercase-literal-suffix",
     "modernize-use-trailing-return-type"
-  ],
-  "C_Cpp.codeAnalysis.clangTidy.useBuildPath": false
+  ]
+  // "C_Cpp.codeAnalysis.clangTidy.useBuildPath": false
 
   // "editor.guides.bracketPairs": "active",
 }

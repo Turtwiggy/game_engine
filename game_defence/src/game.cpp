@@ -117,10 +117,22 @@ game2d::init(engine::SINGLETON_Application& app, entt::registry& r)
     gameicons.spritesheet_path = "assets/config/spritemap_kennynl_icons.json";
     ri.user_textures.push_back(gameicons);
 
-    Texture car0;
-    car0.path = "assets/textures/voxel/gun0.png";
-    car0.spritesheet_path = "assets/config/spritemap_voxel_gun0.json";
-    ri.user_textures.push_back(car0);
+    // TODO: Should merge all the gun textures in to one texture
+    //
+    Texture gun_smg;
+    gun_smg.path = "assets/textures/voxel/gun_smg.png";
+    gun_smg.spritesheet_path = "assets/config/spritemap_voxel_gun_smg.json";
+    ri.user_textures.push_back(gun_smg);
+
+    Texture gun_pistol;
+    gun_pistol.path = "assets/textures/voxel/gun_pistol.png";
+    gun_pistol.spritesheet_path = "assets/config/spritemap_voxel_gun_pistol.json";
+    ri.user_textures.push_back(gun_pistol);
+
+    Texture gun_shotgun;
+    gun_shotgun.path = "assets/textures/voxel/gun_shotgun.png";
+    gun_shotgun.spritesheet_path = "assets/config/spritemap_voxel_gun_shotgun.json";
+    ri.user_textures.push_back(gun_shotgun);
 
     // load spritesheet info
     SINGLE_Animations anims;
@@ -271,7 +283,7 @@ game2d::update(engine::SINGLETON_Application& app, entt::registry& r, const floa
       // ai
       update_set_velocity_to_target_system(r, dt);
       update_actor_group_system(r, mouse_pos);
-      update_actor_legs_system(r, dt);
+      update_actor_legs_system(r, dt, mouse_pos);
 
       //
       // combat

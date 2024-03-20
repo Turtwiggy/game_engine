@@ -1,0 +1,23 @@
+{
+  "spritesheet": {
+    "name": "spritemap_gun_pistol",
+    "px_total": 6,
+    "py_total": 160,
+    "px": 6,
+    "py": 16,
+    "nx": 1,
+    "ny": 10
+  },
+  "sprites": [
+    { "name": "frame_0", "frames": [ { "x": 0, "y": 0 } ] },
+    { "name": "frame_1", "frames": [ { "x": 0, "y": 1 } ] },
+    { "name": "frame_2", "frames": [ { "x": 0, "y": 2 } ] },
+    { "name": "frame_3", "frames": [ { "x": 0, "y": 3 } ] },
+    { "name": "frame_4", "frames": [ { "x": 0, "y": 4 } ] },
+    { "name": "frame_5", "frames": [ { "x": 0, "y": 5 } ] },
+    { "name": "frame_6", "frames": [ { "x": 0, "y": 6 } ] },
+    { "name": "frame_7", "frames": [ { "x": 0, "y": 7 } ] },
+    { "name": "frame_8", "frames": [ { "x": 0, "y": 8 } ] },
+    { "name": "frame_9", "frames": [ { "x": 0, "y": 9 } ] }
+  ]
+}

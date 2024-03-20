@@ -12,8 +12,18 @@ struct LegsComponent
   entt::entity body = entt::null;
 
   std::vector<entt::entity> lines;
-  glm::ivec2 hip{ 0, 0 };
-  glm::ivec2 feet{ 0, 0 };
+
+  float timer = 0;
+
+  glm::vec2 r_hip{ 0, 0 };
+  glm::vec2 r_knee{ 0, 0 };
+  glm::vec2 r_foot{ 0, 0 };
+  glm::vec2 r_foot_target{ 0, 0 };
+
+  glm::vec2 l_hip{ 0, 0 };
+  glm::vec2 l_knee{ 0, 0 };
+  glm::vec2 l_foot{ 0, 0 };
+  glm::vec2 l_foot_target{ 0, 0 };
 };
 
 } // namespace game2d
