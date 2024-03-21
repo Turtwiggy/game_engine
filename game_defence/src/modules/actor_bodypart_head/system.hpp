@@ -6,6 +6,6 @@
 namespace game2d {
 
 void
-update_actor_legs_system(entt::registry& r, const float dt, const glm::ivec2& mouse_position);
+update_actor_bodypart_head_system(entt::registry& r, const float dt, const glm::ivec2& mouse_position);
 
 } // namespace game2d

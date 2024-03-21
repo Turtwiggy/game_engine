@@ -16,7 +16,7 @@ namespace game2d {
 void
 update_sprite_spritestack_system(entt::registry& r, const float dt)
 {
-  static float scale_up_by = 2.0f;
+  static float scale_up_by = 3.0f;
   static int sprite_height = 1;
   static int center_y_offset = 0;
 

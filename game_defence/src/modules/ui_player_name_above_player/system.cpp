@@ -18,10 +18,11 @@ update_ui_player_name_above_player_system(entt::registry& r)
   std::vector<entt::entity> no_ui;
 
   // get a list of all players
-  const auto& view = r.view<PlayerComponent, AABB>();
-  for (const auto& [e, player, player_aabb] : view.each()) {
-    no_ui.push_back(e);
-  }
+  // automatically position UI above them
+  // const auto& view = r.view<PlayerComponent, AABB>();
+  // for (const auto& [e, player, player_aabb] : view.each()) {
+  //   no_ui.push_back(e);
+  // }
 
   // get a list of all the ui
   const auto& ui_view = r.view<TransformComponent, WorldspaceTextComponent, HasParentComponent>();
@@ -43,7 +44,7 @@ update_ui_player_name_above_player_system(entt::registry& r)
   // create the player a ui element
   for (const auto& player : no_ui) {
     const auto e = create_gameplay(r, EntityType::empty_with_transform);
-    r.emplace<WorldspaceTextComponent>(e, "steve");
+    r.emplace<WorldspaceTextComponent>(e, "(playerX)");
     r.emplace<HasParentComponent>(e, player);
 
     auto& tag = r.get<TagComponent>(e);

@@ -27,7 +27,8 @@ enum class EntityType
   // in progress
   actor_player_ally,
   actor_unitgroup,
-  actor_leg,
+  actor_bodypart_leg,
+  actor_bodypart_head,
 
   // pickups
   actor_pickup_xp,

@@ -2,6 +2,8 @@
 
 #include "colour/colour.hpp"
 #include "entt/helpers.hpp"
+#include "modules/actor_bodypart_head/components.hpp"
+#include "modules/actor_bodypart_legs/components.hpp"
 #include "modules/actor_cursor/components.hpp"
 #include "modules/actor_enemy/components.hpp"
 #include "modules/actor_group/components.hpp"
@@ -47,8 +49,8 @@ create_sprite(entt::registry& r, const EntityType& type)
     sprite = "EMPTY";
   else if (type == EntityType::actor_hearth)
     sprite = "CAMPFIRE";
-  else if (type == EntityType::actor_player)
-    sprite = "PERSON_25_0";
+  // else if (type == EntityType::actor_player)
+  //   sprite = "PERSON_25_0";
   else if (type == EntityType::actor_player_ally)
     sprite = "PERSON_26_0";
   else if (type == EntityType::actor_spawner)
@@ -212,7 +214,17 @@ create_gameplay(entt::registry& r, const EntityType& type)
       break;
     }
 
-    case EntityType::actor_leg: {
+    case EntityType::actor_bodypart_head: {
+      r.emplace<HeadComponent>(e);
+      break;
+    }
+    case EntityType::actor_bodypart_leg: {
+      LegsComponent legs;
+      legs.lines.push_back(create_gameplay(r, EntityType::empty_with_transform));
+      legs.lines.push_back(create_gameplay(r, EntityType::empty_with_transform));
+      legs.lines.push_back(create_gameplay(r, EntityType::empty_with_transform));
+      legs.lines.push_back(create_gameplay(r, EntityType::empty_with_transform));
+      r.emplace<LegsComponent>(e, legs);
       break;
     }
     case EntityType::actor_player: {
@@ -220,8 +232,7 @@ create_gameplay(entt::registry& r, const EntityType& type)
       auto& vel = r.get<VelocityComponent>(e);
       vel.base_speed = 50000.0f;
 
-      const float squash_amount = 8;
-
+      const float squash_amount = 10;
       auto& aabb = r.get<AABB>(e);
       aabb.size = DEFAULT_SIZE;
       aabb.size.x -= squash_amount;
@@ -374,8 +385,8 @@ create_gameplay(entt::registry& r, const EntityType& type)
 
       // create a spritestack sprite for the model of the shotgun
       auto& tc = r.get<TransformComponent>(e);
-      tc.scale.x = 10;
-      tc.scale.y = 10;
+      tc.scale.x = 0;
+      tc.scale.y = 0;
       {
         // create a ton of sprites for a sprite-stacked entity
         // sprites are from top to bottom

@@ -6,8 +6,8 @@
 #include "entt/helpers.hpp"
 #include "game_state.hpp"
 #include "maths/grid.hpp"
+#include "modules/actor_bodypart_legs/components.hpp"
 #include "modules/actor_cursor/components.hpp"
-#include "modules/actor_legs/components.hpp"
 #include "modules/actor_spawner/components.hpp"
 #include "modules/ai_pathfinding/components.hpp"
 #include "modules/algorithm_procedural/cell_automata.hpp"
@@ -18,10 +18,8 @@
 #include "modules/gameover/components.hpp"
 #include "modules/lifecycle/components.hpp"
 #include "modules/renderer/components.hpp"
-#include "modules/renderer/helpers.hpp"
 #include "modules/screenshake/components.hpp"
 #include "modules/selected_interactions/components.hpp"
-#include "modules/sprite_spritestack/components.hpp"
 #include "modules/ui_arrows_to_spawners/components.hpp"
 #include "modules/ui_level_up/components.hpp"
 #include "modules/ui_rpg_character/components.hpp"
@@ -29,7 +27,6 @@
 #include "modules/ui_selected/components.hpp"
 #include "physics/components.hpp"
 #include "sprites/helpers.hpp"
-
 #include <nlohmann/json.hpp>
 
 #include <string>
@@ -62,13 +59,13 @@ create_player(entt::registry& r)
   r.emplace<HasWeaponComponent>(e, has_weapon);
 
   // give legs
-  LegsComponent legs;
+  auto legs_e = create_gameplay(r, EntityType::actor_bodypart_leg);
+  auto& legs = r.get<LegsComponent>(legs_e);
   legs.body = e;
-  legs.lines.push_back(create_gameplay(r, EntityType::actor_leg));
-  legs.lines.push_back(create_gameplay(r, EntityType::actor_leg));
-  legs.lines.push_back(create_gameplay(r, EntityType::actor_leg));
-  legs.lines.push_back(create_gameplay(r, EntityType::actor_leg));
-  r.emplace<LegsComponent>(e, legs);
+
+  // give head
+  auto head = create_gameplay(r, EntityType::actor_bodypart_head);
+  r.emplace<HasParentComponent>(head, e);
 
   return e;
 }

@@ -16,7 +16,7 @@
 namespace game2d {
 
 void
-update_actor_legs_system(entt::registry& r, const float dt, const glm::ivec2& mouse_position)
+update_actor_bodypart_legs_system(entt::registry& r, const float dt, const glm::ivec2& mouse_position)
 {
   // borrowed from gamemaker
   const auto lengthdir_x = [](const float dst, const float angle_rad) { return dst * glm::cos(angle_rad); };

@@ -8,10 +8,11 @@
 #include "events/system.hpp"
 #include "game_state.hpp"
 #include "maths/maths.hpp"
+#include "modules/actor_bodypart_head/system.hpp"
+#include "modules/actor_bodypart_legs/system.hpp"
 #include "modules/actor_cursor/system.hpp"
 #include "modules/actor_enemy/system.hpp"
 #include "modules/actor_group/system.hpp"
-#include "modules/actor_legs/system.hpp"
 #include "modules/actor_player/components.hpp"
 #include "modules/actor_player/system.hpp"
 #include "modules/actor_spawner/system.hpp"
@@ -119,15 +120,15 @@ game2d::init(engine::SINGLETON_Application& app, entt::registry& r)
 
     // TODO: Should merge all the gun textures in to one texture
     //
-    Texture gun_smg;
-    gun_smg.path = "assets/textures/voxel/gun_smg.png";
-    gun_smg.spritesheet_path = "assets/config/spritemap_voxel_gun_smg.json";
-    ri.user_textures.push_back(gun_smg);
+    // Texture gun_smg;
+    // gun_smg.path = "assets/textures/voxel/gun_smg.png";
+    // gun_smg.spritesheet_path = "assets/config/spritemap_voxel_gun_smg.json";
+    // ri.user_textures.push_back(gun_smg);
 
-    Texture gun_pistol;
-    gun_pistol.path = "assets/textures/voxel/gun_pistol.png";
-    gun_pistol.spritesheet_path = "assets/config/spritemap_voxel_gun_pistol.json";
-    ri.user_textures.push_back(gun_pistol);
+    // Texture gun_pistol;
+    // gun_pistol.path = "assets/textures/voxel/gun_pistol.png";
+    // gun_pistol.spritesheet_path = "assets/config/spritemap_voxel_gun_pistol.json";
+    // ri.user_textures.push_back(gun_pistol);
 
     Texture gun_shotgun;
     gun_shotgun.path = "assets/textures/voxel/gun_shotgun.png";
@@ -280,11 +281,13 @@ game2d::update(engine::SINGLETON_Application& app, entt::registry& r, const floa
       // powerup
       update_combat_powerup_doubledamage_system(r, dt);
       //
+      // animation
+      update_actor_bodypart_head_system(r, dt, mouse_pos);
+      update_actor_bodypart_legs_system(r, dt, mouse_pos);
+      //
       // ai
       update_set_velocity_to_target_system(r, dt);
       update_actor_group_system(r, mouse_pos);
-      update_actor_legs_system(r, dt, mouse_pos);
-
       //
       // combat
       update_enemy_system(r, dt);
