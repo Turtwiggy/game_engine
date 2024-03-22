@@ -125,15 +125,15 @@ game2d::init(engine::SINGLETON_Application& app, entt::registry& r)
     // gun_smg.spritesheet_path = "assets/config/spritemap_voxel_gun_smg.json";
     // ri.user_textures.push_back(gun_smg);
 
-    // Texture gun_pistol;
-    // gun_pistol.path = "assets/textures/voxel/gun_pistol.png";
-    // gun_pistol.spritesheet_path = "assets/config/spritemap_voxel_gun_pistol.json";
-    // ri.user_textures.push_back(gun_pistol);
+    Texture gun_pistol;
+    gun_pistol.path = "assets/textures/voxel/gun_pistol.png";
+    gun_pistol.spritesheet_path = "assets/config/spritemap_voxel_gun_pistol.json";
+    ri.user_textures.push_back(gun_pistol);
 
-    Texture gun_shotgun;
-    gun_shotgun.path = "assets/textures/voxel/gun_shotgun.png";
-    gun_shotgun.spritesheet_path = "assets/config/spritemap_voxel_gun_shotgun.json";
-    ri.user_textures.push_back(gun_shotgun);
+    // Texture gun_shotgun;
+    // gun_shotgun.path = "assets/textures/voxel/gun_shotgun.png";
+    // gun_shotgun.spritesheet_path = "assets/config/spritemap_voxel_gun_shotgun.json";
+    // ri.user_textures.push_back(gun_shotgun);
 
     // load spritesheet info
     SINGLE_Animations anims;

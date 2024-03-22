@@ -8,6 +8,7 @@
 #include "physics/components.hpp"
 
 #include "imgui.h"
+#include "renderer/transform.hpp"
 #include <glm/gtx/compatibility.hpp> // lerp
 
 namespace game2d {
@@ -23,6 +24,16 @@ update_actor_bodypart_head_system(entt::registry& r, const float dt, const glm::
 
     const auto& parent = p.parent;
     const auto& parent_aabb = r.get<AABB>(parent);
+
+    ImGui::Text("BodySize");
+    auto& parent_transform = r.get<TransformComponent>(parent);
+    int parent_scale_x = parent_transform.scale.x;
+    int parent_scale_y = parent_transform.scale.y;
+    imgui_draw_ivec2("bodysize", parent_scale_x, parent_scale_y);
+    parent_transform.scale.x = parent_scale_x;
+    parent_transform.scale.y = parent_scale_y;
+    ImGui::Separator();
+
     const auto& parent_velocity = r.get<VelocityComponent>(parent);
     const auto normalized_vel = engine::normalize_safe({ parent_velocity.x, parent_velocity.y });
     ImGui::Text("NormalisedVel: %f %f", normalized_vel.x, normalized_vel.y);

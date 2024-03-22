@@ -16,16 +16,20 @@
 #include "modules/camera/orthographic.hpp"
 #include "modules/combat_damage/components.hpp"
 #include "modules/gameover/components.hpp"
+#include "modules/lerp_to_target/components.hpp"
 #include "modules/lifecycle/components.hpp"
 #include "modules/renderer/components.hpp"
+#include "modules/renderer/helpers.hpp"
 #include "modules/screenshake/components.hpp"
 #include "modules/selected_interactions/components.hpp"
+#include "modules/sprite_spritestack/components.hpp"
 #include "modules/ui_arrows_to_spawners/components.hpp"
 #include "modules/ui_level_up/components.hpp"
 #include "modules/ui_rpg_character/components.hpp"
 #include "modules/ui_scene_main_menu/components.hpp"
 #include "modules/ui_selected/components.hpp"
 #include "physics/components.hpp"
+#include "renderer/transform.hpp"
 #include "sprites/helpers.hpp"
 #include <nlohmann/json.hpp>
 
@@ -177,11 +181,8 @@ move_to_scene_start(entt::registry& r, const Scene s)
     r.emplace<AudioRequestPlayEvent>(r.create(), "GAME_01");
 
     // create cursor debugs
-    {
-      const auto cursor = get_first<CursorComponent>(r);
-      const auto& cursorc = get_first_component<CursorComponent>(r);
-      r.get<SpriteComponent>(cursor).colour.a = 0.1f;
-    }
+    const auto cursor = get_first<CursorComponent>(r);
+    r.get<SpriteComponent>(cursor).colour.a = 0.1f;
 
     // create a group with one unit in
     // {
@@ -192,6 +193,23 @@ move_to_scene_start(entt::registry& r, const Scene s)
     //   create_player_ally(r, player_group);
     //   create_player_ally(r, player_group);
     // }
+
+    // create a spritestack for testing
+    {
+      // create a ton of sprites for a sprite-stacked entity
+      // sprites are from top to bottom
+      // TODO: replace with config info
+      const int sprites_for_total_sprite = 10;
+      const auto tex_unit = search_for_texture_unit_by_path(ri, "voxel").value();
+      for (int i = 0; i < sprites_for_total_sprite; i++) {
+        const auto i_as_str = std::to_string(i);
+        const auto sprite_e = create_gameplay(r, EntityType::empty_with_transform);
+        set_sprite_custom(r, sprite_e, "frame_"s + i_as_str, tex_unit.unit);
+        r.emplace<SpritestackComponent>(sprite_e, SpritestackComponent{ i });
+        r.emplace<HasTargetPositionComponent>(sprite_e);
+        r.get<TagComponent>(sprite_e).tag = "ss_frame_"s + i_as_str;
+      }
+    }
 
     // create players based off main menu ui
     // note: create player before other sprites to render on top
@@ -220,14 +238,14 @@ move_to_scene_start(entt::registry& r, const Scene s)
 
     // VISUAL: use poisson for grass
     // {
+    //   const int tex_unit_for_bargame = search_for_texture_unit_by_path(ri, "bargame")->unit;
     //   const auto poisson = generate_poisson(width, height, 150, 0);
     //   std::cout << "generated " << poisson.size() << " poisson points" << std::endl;
     //   for (const auto& p : poisson) {
-    //     const auto icon = create_gameplay(r, EntityType::empty);
+    //     const auto icon = create_gameplay(r, EntityType::empty_with_transform);
     //     set_sprite_custom(r, icon, "icon_grass"s, tex_unit_for_bargame);
 
     //     r.get<TransformComponent>(icon).position = { p.x, p.y, 0.0f };
-    //     r.get<TransformComponent>(icon).scale = { default_size.x, default_size.y, 1.0f };
     //     r.get<TagComponent>(icon).tag = "grass"s;
     //   }
     // }
@@ -276,7 +294,7 @@ move_to_scene_start(entt::registry& r, const Scene s)
     }
 
     // Generate "seed points" for bases
-    bool seed_spawners = false;
+    bool seed_spawners = true;
     if (seed_spawners) {
       const auto& map = get_first_component<MapComponent>(r);
       const int seed = 0;
@@ -289,8 +307,8 @@ move_to_scene_start(entt::registry& r, const Scene s)
         const auto poisson_point_gridspace = engine::grid::world_space_to_grid_space(p, map.tilesize);
         const auto poisson_point_idx = engine::grid::grid_position_to_index(poisson_point_gridspace, map.xmax);
         const auto map_entity = map.map[poisson_point_idx];
-        const auto fist_map_entity = map_entity[0];
-        if (r.get<PathfindComponent>(fist_map_entity).cost == -1) {
+        const auto first_map_entity = map_entity[0];
+        if (first_map_entity != entt::null && r.get<PathfindComponent>(first_map_entity).cost == -1) {
           // do not spawn on this point... its blocked
           std::cout << "not spawning spawnpoint on blocked gridspace" << std::endl;
           continue;
@@ -311,6 +329,42 @@ move_to_scene_start(entt::registry& r, const Scene s)
         auto& spawner = r.get<SpawnerComponent>(e);
         spawner.types_to_spawn.push_back(EntityType::enemy_grunt);
         spawner.types_to_spawn.push_back(EntityType::enemy_ranged);
+      }
+    }
+
+    // Create 4 edges to the map
+    {
+      const auto set_position = [&r](const entt::entity& e, const glm::ivec2& pos) {
+        r.get<AABB>(e).center = pos;
+        r.get<TransformComponent>(e).position = { pos.x, pos.y, 0.0f };
+      };
+      const auto set_size = [&r](const entt::entity& e, const glm::ivec2& size) {
+        r.get<AABB>(e).size = size;
+        r.get<TransformComponent>(e).scale = { size.x, size.y, 0.0f };
+      };
+
+      {
+        const auto wall_l = create_gameplay(r, EntityType::solid_wall);
+        set_position(wall_l, { 0, height / 2.0f });
+        set_size(wall_l, { 32, height });
+      }
+
+      {
+        const auto wall_r = create_gameplay(r, EntityType::solid_wall);
+        set_position(wall_r, { width, height / 2.0f });
+        set_size(wall_r, { 32, height });
+      }
+
+      {
+        const auto wall_u = create_gameplay(r, EntityType::solid_wall);
+        set_position(wall_u, { width / 2.0f, 0 });
+        set_size(wall_u, { width, 32 });
+      }
+
+      {
+        const auto wall_d = create_gameplay(r, EntityType::solid_wall);
+        set_position(wall_d, { width / 2.0f, height });
+        set_size(wall_d, { width, 32 });
       }
     }
 

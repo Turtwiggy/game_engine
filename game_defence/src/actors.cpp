@@ -69,7 +69,7 @@ create_sprite(entt::registry& r, const EntityType& type)
   // else if (type == EntityType::weapon_bow)
   //   sprite = "WEAPON_BOW_0";
   else if (type == EntityType::weapon_shotgun)
-    sprite = "EMPTY";
+    sprite = "WEAPON_SHOTGUN";
   // bullets...
   else if (type == EntityType::bullet_default)
     sprite = "EMPTY";
@@ -224,6 +224,10 @@ create_gameplay(entt::registry& r, const EntityType& type)
       legs.lines.push_back(create_gameplay(r, EntityType::empty_with_transform));
       legs.lines.push_back(create_gameplay(r, EntityType::empty_with_transform));
       legs.lines.push_back(create_gameplay(r, EntityType::empty_with_transform));
+
+      for (const auto& leg : legs.lines)
+        r.emplace_or_replace<SpriteComponent>(leg, create_sprite(r, EntityType::actor_bodypart_leg));
+
       r.emplace<LegsComponent>(e, legs);
       break;
     }
@@ -232,13 +236,16 @@ create_gameplay(entt::registry& r, const EntityType& type)
       auto& vel = r.get<VelocityComponent>(e);
       vel.base_speed = 50000.0f;
 
-      const float squash_amount = 10;
+      const int size_x = 12;
+      const int size_y = 20;
+
       auto& aabb = r.get<AABB>(e);
-      aabb.size = DEFAULT_SIZE;
-      aabb.size.x -= squash_amount;
+      aabb.size.x = size_x;
+      aabb.size.y = size_y;
+
       auto& transform = r.get<TransformComponent>(e);
-      transform.scale.x = DEFAULT_SIZE.x - squash_amount;
-      transform.scale.y = DEFAULT_SIZE.y;
+      transform.scale.x = size_x;
+      transform.scale.y = size_y;
 
       // r.emplace<PhysicsSolidComponent>(e);
       r.emplace<TeamComponent>(e, AvailableTeams::player);
@@ -348,9 +355,7 @@ create_gameplay(entt::registry& r, const EntityType& type)
       //
 
     case EntityType::solid_wall: {
-      r.emplace<PhysicsTransformXComponent>(e);
-      r.emplace<PhysicsTransformYComponent>(e);
-      r.emplace<AABB>(e);
+      create_physics_actor(r, e);
       r.emplace<PhysicsSolidComponent>(e);
       break;
     }
@@ -384,25 +389,9 @@ create_gameplay(entt::registry& r, const EntityType& type)
       // r.emplace<SetVelocityToTargetComponent>(e);
 
       // create a spritestack sprite for the model of the shotgun
-      auto& tc = r.get<TransformComponent>(e);
-      tc.scale.x = 0;
-      tc.scale.y = 0;
-      {
-        // create a ton of sprites for a sprite-stacked entity
-        // sprites are from top to bottom
-
-        // TODO: replace with config info
-        const int sprites_for_total_sprite = 10;
-        const auto tex_unit = search_for_texture_unit_by_path(ri, "voxel").value();
-        for (int i = 0; i < sprites_for_total_sprite; i++) {
-          const auto i_as_str = std::to_string(i);
-          const auto sprite_e = create_gameplay(r, EntityType::empty_with_transform);
-          set_sprite_custom(r, sprite_e, "frame_"s + i_as_str, tex_unit.unit);
-          r.emplace<SpritestackComponent>(sprite_e, SpritestackComponent{ i });
-          r.emplace<HasParentComponent>(sprite_e, e);
-          r.get<TagComponent>(sprite_e).tag = "ss_frame_"s + i_as_str;
-        }
-      }
+      // auto& tc = r.get<TransformComponent>(e);
+      // tc.scale.x = 0;
+      // tc.scale.y = 0;
 
       break;
     }

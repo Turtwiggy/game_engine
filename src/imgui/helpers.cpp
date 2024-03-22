@@ -81,6 +81,19 @@ game2d::imgui_draw_float(const std::string& label, float& v)
 };
 
 void
+game2d::imgui_draw_ivec2(const std::string& label, glm::ivec2& xy)
+{
+  glm::ivec2 v_temp = xy;
+
+  ImGui::Text(label.c_str());
+  ImGui::SameLine();
+  if (ImGui::DragInt2((std::string("##") + label).c_str(), glm::value_ptr(v_temp), 0.5f)) {
+    xy.x = v_temp.x;
+    xy.y = v_temp.y;
+  }
+}
+
+void
 game2d::imgui_draw_ivec2(const std::string& label, int& x, int& y)
 {
   glm::ivec2 v_temp = { x, y };
@@ -120,6 +133,19 @@ game2d::imgui_draw_ivec3(const std::string& label, int& x, int& y, int& z)
     z = v_temp.z;
   }
 };
+
+void
+game2d::imgui_draw_vec2(const std::string label, glm::vec2& xy)
+{
+  glm::vec2 v_temp = xy;
+
+  ImGui::Text(label.c_str());
+  ImGui::SameLine();
+  if (ImGui::DragFloat2((std::string("##") + label).c_str(), glm::value_ptr(v_temp), 0.5f)) {
+    xy.x = v_temp.x;
+    xy.y = v_temp.y;
+  }
+}
 
 void
 game2d::imgui_draw_vec2(const std::string& label, float& x, float& y)

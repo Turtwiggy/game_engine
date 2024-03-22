@@ -26,10 +26,10 @@ update_actor_bodypart_legs_system(entt::registry& r, const float dt, const glm::
   static bool debug_leg_actors = true;
   ImGui::Begin("Debug_ActorLegs", &debug_leg_actors);
 
-  static float hip_to_knee_length = 16;
-  static float knee_to_foot_length = 16;
-  static float hip_offset_x = 5.5;
-  static float hip_offset_y = 14;
+  static float hip_to_knee_length = 13;
+  static float knee_to_foot_length = 13;
+  static float hip_offset_x = 4;
+  static float hip_offset_y = 12;
   imgui_draw_float("hip_to_knee", hip_to_knee_length);
   imgui_draw_float("knee_to_foot_length", knee_to_foot_length);
   imgui_draw_float("hip_offset_x", hip_offset_x);
@@ -37,13 +37,13 @@ update_actor_bodypart_legs_system(entt::registry& r, const float dt, const glm::
   float total_length = hip_to_knee_length + knee_to_foot_length;
 
   static float gait_size = 4;
-  static float speed = 10;
-  static float foot_extention = 25;
+  static float speed = 10.5;
+  static float foot_extention = 24;
   imgui_draw_float("gait_size", gait_size);
   imgui_draw_float("speed", speed);
   imgui_draw_float("foot_extention", foot_extention);
 
-  static int hip_to_knee_width = 8;
+  static int hip_to_knee_width = 5;
   static int knee_to_foot_width = 2;
   imgui_draw_int("hip_to_knee_width", hip_to_knee_width);
   imgui_draw_int("knee_to_foot_width", knee_to_foot_width);

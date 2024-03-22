@@ -116,8 +116,8 @@ update_weapon_shotgun_system(entt::registry& r, const uint64_t milliseconds_dt)
       // spread the bullets out in an arc
       // const glm::vec2 r_nrm_dir = { input.rx, input.ry };
       const float angle_radians = engine::dir_to_angle_radians(nrm_dir);
-      const float bullet_angle_degrees = 5.0f;
-      const float bullet_angle_radians = engine::deg2rad(bullet_angle_degrees);
+      constexpr float bullet_angle_degrees = 5.0f;
+      constexpr float bullet_angle_radians = bullet_angle_degrees * engine::Deg2Rad;
 
       const auto& bullet_info = r.get<WeaponBulletTypeToSpawnComponent>(entity);
       for (int i = 0; i < shotgun.bullets_to_spawn; i++) {
@@ -132,13 +132,15 @@ update_weapon_shotgun_system(entt::registry& r, const uint64_t milliseconds_dt)
         const auto new_dir = engine::angle_radians_to_direction(angle_to_fire_at);
 
         const auto req = create_gameplay(r, bullet_info.bullet_type);
-        r.get<TransformComponent>(req).position = shotgun_transform.position;
         r.get_or_emplace<HasParentComponent>(req).parent = p;
 
-        auto& bullet_aabb = r.get<AABB>(req);
-        bullet_aabb.center = { shotgun_transform.position.x, shotgun_transform.position.y };
+        const glm::ivec2 bullet_position = gun_aabb.center + offset;
+
         auto& bullet_transform = r.get<TransformComponent>(req);
+        bullet_transform.position = { bullet_position.x, bullet_position.y, 0.0f };
         bullet_transform.rotation_radians.z = shotgun_transform.rotation_radians.z;
+        auto& bullet_aabb = r.get<AABB>(req);
+        bullet_aabb.center = bullet_position;
 
         auto& bullet_vel = r.get<VelocityComponent>(req);
         bullet_vel.x = (new_dir.x * bullet_info.bullet_speed);
