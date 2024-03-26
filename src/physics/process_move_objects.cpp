@@ -8,8 +8,7 @@
 #include "physics/helpers.hpp"
 #include "renderer/transform.hpp"
 
-#include "modules/actor_player/components.hpp" // shouldnt be here
-#include "modules/lifecycle/components.hpp"    // shouldnt be here
+#include "modules/lifecycle/components.hpp"
 
 #include "optick.h"
 
@@ -45,7 +44,7 @@ update_aabb_based_on_rotation(entt::registry& r)
   }
 }
 
-}
+} // namespace game2d
 
 void
 game2d::update_move_objects_system(entt::registry& r, const uint64_t& milliseconds_dt)
@@ -53,7 +52,7 @@ game2d::update_move_objects_system(entt::registry& r, const uint64_t& millisecon
   update_aabb_based_on_rotation(r);
 
   // generates actor-solid collisions. note: touching, not inside each other (illegal)
-  // std::set<Collision2D> actor_solid_collisions;
+  std::set<Collision2D> actor_solid_collisions;
 
   // move velocity actors,
   // stop if collides with an entity with the blocking component
@@ -65,24 +64,13 @@ game2d::update_move_objects_system(entt::registry& r, const uint64_t& millisecon
     const float dt = milliseconds_dt / 1000.0f;
 
     for (const auto& [entity, aabb, vel] : vel_actors.each()) {
-
-      // debug player
-      if (const auto* p = r.try_get<PlayerComponent>(entity)) {
-        int k = 1;
-      }
-
+      //
       // move_x
       //
       {
         vel.remainder_x += vel.x * dt;
 
-#if defined(_DEBUG)
-        if (isnan(vel.remainder_x))
-          std::cout << "warning: actor has NaN remainder_x" << std::endl;
-#endif
-
         int move = static_cast<int>(vel.remainder_x);
-
         if (move != 0) {
           vel.remainder_x -= move; // consume so no frame jump
 
@@ -99,15 +87,16 @@ game2d::update_move_objects_system(entt::registry& r, const uint64_t& millisecon
             for (const auto& [o_entity, o_psolid, o_aabb] : solids.each()) {
               const bool same = entity == o_entity;
               if (!same && collide(updated_pos, o_aabb)) {
-                // Collision2D collision;
-                // const auto id_0 = static_cast<uint32_t>(entity);
-                // const auto id_1 = static_cast<uint32_t>(o_entity);
-                // collision.ent_id_0 = glm::min(id_0, id_1);
-                // collision.ent_id_1 = glm::max(id_0, id_1);
-                // actor_solid_collisions.emplace(collision);
+                hit_solid = true;
+
+                Collision2D collision;
+                const auto id_0 = static_cast<uint32_t>(entity);
+                const auto id_1 = static_cast<uint32_t>(o_entity);
+                collision.ent_id_0 = glm::min(id_0, id_1);
+                collision.ent_id_1 = glm::max(id_0, id_1);
+                actor_solid_collisions.emplace(collision);
 
                 move = 0;
-                hit_solid = true;
                 break; // a collision
               }
             }
@@ -121,16 +110,17 @@ game2d::update_move_objects_system(entt::registry& r, const uint64_t& millisecon
           }
         }
       } // end move x
+
       //
       // move_y
       //
       {
         vel.remainder_y += vel.y * dt;
+
         int amount = static_cast<int>(vel.remainder_y);
         if (amount != 0) {
           vel.remainder_y -= amount; // consume so no frame jump
           const int sign = glm::sign(amount);
-
           for (int i = 0; i < glm::abs(amount); i++) {
             bool hit_solid = false;
 
@@ -142,16 +132,17 @@ game2d::update_move_objects_system(entt::registry& r, const uint64_t& millisecon
             for (const auto& [o_entity, o_psolid, o_aabb] : solids.each()) {
               const bool same = entity == o_entity;
               if (!same && collide(updated_pos, o_aabb)) {
+                hit_solid = true;
 
-                // Collision2D collision;
-                // const auto id_0 = static_cast<uint32_t>(entity);
-                // const auto id_1 = static_cast<uint32_t>(o_entity);
-                // collision.ent_id_0 = glm::min(id_0, id_1);
-                // collision.ent_id_1 = glm::max(id_0, id_1);
-                // actor_solid_collisions.emplace(collision);
+                Collision2D collision;
+                const auto id_0 = static_cast<uint32_t>(entity);
+                const auto id_1 = static_cast<uint32_t>(o_entity);
+                collision.ent_id_0 = glm::min(id_0, id_1);
+                collision.ent_id_1 = glm::max(id_0, id_1);
+
+                actor_solid_collisions.emplace(collision);
 
                 amount = 0;
-                hit_solid = true;
                 break; // a collision
               }
             }
@@ -203,6 +194,6 @@ game2d::update_move_objects_system(entt::registry& r, const uint64_t& millisecon
   // }
 
   // add actor-solid collisions
-  // auto& p = get_first_component<SINGLETON_PhysicsComponent>(r);
-  // p.frame_solid_collisions = actor_solid_collisions;
+  auto& p = get_first_component<SINGLETON_PhysicsComponent>(r);
+  p.frame_solid_collisions = actor_solid_collisions;
 };

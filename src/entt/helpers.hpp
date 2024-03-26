@@ -21,12 +21,19 @@ get_first_component(entt::registry& r)
 };
 
 template<class T>
-T&
-destroy_and_create(entt::registry& r, const std::optional<T> val = std::nullopt)
+void
+destroy(entt::registry& r, const std::optional<T> val = std::nullopt)
 {
   const entt::entity ent = get_first<T>(r);
   if (ent != entt::null)
     r.destroy(ent);
+};
+
+template<class T>
+T&
+destroy_and_create(entt::registry& r, const std::optional<T> val = std::nullopt)
+{
+  destroy<T>(r, val);
 
   if (val.has_value())
     return r.emplace<T>(r.create(), val.value());

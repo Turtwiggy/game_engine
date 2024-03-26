@@ -5,6 +5,7 @@
 #include "audio/helpers.hpp"
 #include "entt/helpers.hpp"
 #include "game_state.hpp"
+#include "magic_enum.hpp"
 #include "maths/grid.hpp"
 #include "modules/actor_bodypart_legs/components.hpp"
 #include "modules/actor_cursor/components.hpp"
@@ -28,6 +29,7 @@
 #include "modules/ui_rpg_character/components.hpp"
 #include "modules/ui_scene_main_menu/components.hpp"
 #include "modules/ui_selected/components.hpp"
+#include "modules/vfx_grid/components.hpp"
 #include "physics/components.hpp"
 #include "renderer/transform.hpp"
 #include "sprites/helpers.hpp"
@@ -41,7 +43,7 @@ using namespace std::literals;
 using json = nlohmann::json;
 
 entt::entity
-create_player(entt::registry& r)
+create_player(entt::registry& r, const glm::ivec2& pos)
 {
   // create weapon before player to draw on top
   const auto weapon = create_gameplay(r, EntityType::weapon_shotgun);
@@ -49,9 +51,12 @@ create_player(entt::registry& r)
   // player
   const auto e = create_gameplay(r, EntityType::actor_player);
   auto& e_aabb = r.get<AABB>(e);
-  r.get<TransformComponent>(e).scale = { e_aabb.size.x, e_aabb.size.y, 1.0f };
+  e_aabb.center = pos;
+  auto& e_transform = r.get<TransformComponent>(e);
+  e_transform.scale = { e_aabb.size.x, e_aabb.size.y, 1.0f };
+  e_transform.position = { pos.x, pos.y, 0.0f };
 
-  // position and parent weapon
+  // position weapon
   auto& weapon_parent = r.get<HasParentComponent>(weapon);
   weapon_parent.parent = e;
   auto& weapon_aabb = r.get<AABB>(weapon);
@@ -121,11 +126,11 @@ move_to_scene_start(entt::registry& r, const Scene s)
   destroy_and_create<SINGLETON_EntityBinComponent>(r);
   destroy_and_create<SINGLETON_GameStateComponent>(r);
   destroy_and_create<SINGLETON_GameOver>(r);
-  destroy_and_create<SINGLETON_Wave>(r);
   destroy_and_create<SINGLE_ScreenshakeComponent>(r);
   destroy_and_create<SINGLE_SelectedUI>(r);
   destroy_and_create<SINGLE_ArrowsToSpawnerUI>(r);
   destroy_and_create<SINGLE_UILevelUpComponent>(r);
+  destroy<Effect_GridComponent>(r);
 
   // HACK: the first and only transform should be the camera
   auto& camera = get_first_component<TransformComponent>(r);
@@ -184,6 +189,9 @@ move_to_scene_start(entt::registry& r, const Scene s)
     const auto cursor = get_first<CursorComponent>(r);
     r.get<SpriteComponent>(cursor).colour.a = 0.1f;
 
+    // create background effect
+    r.emplace<Effect_GridComponent>(r.create());
+
     // create a group with one unit in
     // {
     //   const auto& player_group = create_gameplay(r, EntityType::actor_unitgroup);
@@ -196,19 +204,19 @@ move_to_scene_start(entt::registry& r, const Scene s)
 
     // create a spritestack for testing
     {
-      // create a ton of sprites for a sprite-stacked entity
-      // sprites are from top to bottom
-      // TODO: replace with config info
-      const int sprites_for_total_sprite = 10;
-      const auto tex_unit = search_for_texture_unit_by_path(ri, "voxel").value();
-      for (int i = 0; i < sprites_for_total_sprite; i++) {
-        const auto i_as_str = std::to_string(i);
-        const auto sprite_e = create_gameplay(r, EntityType::empty_with_transform);
-        set_sprite_custom(r, sprite_e, "frame_"s + i_as_str, tex_unit.unit);
-        r.emplace<SpritestackComponent>(sprite_e, SpritestackComponent{ i });
-        r.emplace<HasTargetPositionComponent>(sprite_e);
-        r.get<TagComponent>(sprite_e).tag = "ss_frame_"s + i_as_str;
-      }
+      // // create a ton of sprites for a sprite-stacked entity
+      // // sprites are from top to bottom
+      // // TODO: replace with config info
+      // const int sprites_for_total_sprite = 10;
+      // const auto tex_unit = search_for_texture_unit_by_path(ri, "voxel").value();
+      // for (int i = 0; i < sprites_for_total_sprite; i++) {
+      //   const auto i_as_str = std::to_string(i);
+      //   const auto sprite_e = create_gameplay(r, EntityType::empty_with_transform);
+      //   set_sprite_custom(r, sprite_e, "frame_"s + i_as_str, tex_unit.unit);
+      //   r.emplace<SpritestackComponent>(sprite_e, SpritestackComponent{ i });
+      //   r.emplace<HasTargetPositionComponent>(sprite_e);
+      //   r.get<TagComponent>(sprite_e).tag = "ss_frame_"s + i_as_str;
+      // }
     }
 
     // create players based off main menu ui
@@ -216,9 +224,8 @@ move_to_scene_start(entt::registry& r, const Scene s)
     //
     const auto& character_stats_view = r.view<CharacterStats, InActiveFight>();
     for (const auto& [request_e, stats_e, fight_e] : character_stats_view.each()) {
-      const auto player = create_player(r);
-      auto& player_aabb = r.get<AABB>(player);
-      player_aabb.center = { 32, 32 };
+
+      const auto player = create_player(r, { 32, 32 });
 
       // if in game...
       r.emplace<CameraFollow>(player);
@@ -238,7 +245,7 @@ move_to_scene_start(entt::registry& r, const Scene s)
 
     // VISUAL: use poisson for grass
     // {
-    //   const int tex_unit_for_bargame = search_for_texture_unit_by_path(ri, "bargame")->unit;
+    //   const int tex_unit_for_bargame = search_for_texture_unit_by_texture_path(ri, "bargame")->unit;
     //   const auto poisson = generate_poisson(width, height, 150, 0);
     //   std::cout << "generated " << poisson.size() << " poisson points" << std::endl;
     //   for (const auto& p : poisson) {
@@ -270,7 +277,6 @@ move_to_scene_start(entt::registry& r, const Scene s)
         map_c.map.resize(map.size());
         auto& maap = map_c.map;
         for (int i = 0; i < maap.size(); i++) {
-          const auto xy = engine::grid::index_to_grid_position(i, map_c.xmax, map_c.ymax);
           auto xy_world = engine::grid::index_to_world_position(i, map_c.xmax, map_c.ymax, map_c.tilesize);
           xy_world += map_offset;
 
@@ -367,10 +373,12 @@ move_to_scene_start(entt::registry& r, const Scene s)
         set_size(wall_d, { width, 32 });
       }
     }
-
-    auto& scene = get_first_component<SINGLETON_CurrentScene>(r);
-    scene.s = s; // done
   }
+
+  const auto scene_name = std::string(magic_enum::enum_name(s));
+  std::cout << "setting scene to: " << scene_name << std::endl;
+  auto& scene = get_first_component<SINGLETON_CurrentScene>(r);
+  scene.s = s; // done
 }
 
 } // namespace game2d

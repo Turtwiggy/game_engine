@@ -57,7 +57,6 @@ enum class EntityType
   // misc
   cursor,
   particle,
-  vfx_muzzleflash,
 
   count
 };
@@ -78,6 +77,9 @@ from_json(const nlohmann::json& j, EntityTypeComponent& et)
 {
   j.at("type").get_to(et.type);
 };
+
+SpriteComponent
+create_sprite(entt::registry& r, const std::string& sprite, const EntityType& type);
 
 [[nodiscard]] entt::entity
 create_gameplay(entt::registry& r, const EntityType& type);

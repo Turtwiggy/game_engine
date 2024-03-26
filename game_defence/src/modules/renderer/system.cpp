@@ -12,6 +12,7 @@
 #include "modules/renderer/helpers.hpp"
 #include "modules/renderer/helpers/batch_quad.hpp"
 #include "modules/ui_colours/helpers.hpp"
+#include "modules/vfx_grid/components.hpp"
 #include "sprites/components.hpp"
 
 // hack
@@ -63,17 +64,17 @@ rebind(entt::registry& r, const SINGLETON_RendererInfo& ri)
   auto& camera = game2d::get_first_component<OrthographicCamera>(r);
   camera.projection = calculate_ortho_projection(wh.x, wh.y);
 
-  const int tex_unit_kenny = search_for_texture_unit_by_path(ri, "monochrome")->unit;
-  const int tex_unit_custom = search_for_texture_unit_by_path(ri, "bargame")->unit;
-  const int tex_unit_muzzle = search_for_texture_unit_by_path(ri, "muzzle")->unit;
-  const int tex_unit_gameicons = search_for_texture_unit_by_path(ri, "gameicons")->unit;
-  const int tex_unit_car0 = search_for_texture_unit_by_path(ri, "voxel")->unit;
+  const int tex_unit_kenny = search_for_texture_unit_by_texture_path(ri, "monochrome")->unit;
+  const int tex_unit_custom = search_for_texture_unit_by_texture_path(ri, "bargame")->unit;
+  const int tex_unit_particles = search_for_texture_unit_by_texture_path(ri, "particles")->unit;
+  const int tex_unit_gameicons = search_for_texture_unit_by_texture_path(ri, "gameicons")->unit;
+  const int tex_unit_car0 = search_for_texture_unit_by_texture_path(ri, "voxel")->unit;
 
   ri.instanced.bind();
   ri.instanced.set_mat4("projection", camera.projection);
   ri.instanced.set_int("tex_kenny", tex_unit_kenny);
   ri.instanced.set_int("tex_custom", tex_unit_custom);
-  ri.instanced.set_int("tex_muzzle", tex_unit_muzzle);
+  ri.instanced.set_int("tex_particles", tex_unit_particles);
   ri.instanced.set_int("tex_gameicons", tex_unit_gameicons);
   ri.instanced.set_int("tex_voxel", tex_unit_car0);
 
@@ -179,17 +180,17 @@ game2d::update_render_system(entt::registry& r, const float dt, const glm::vec2&
   ri.grid.set_float("time", time);
 
   // DEBUG A SHADER...
-  const auto& input = get_first_component<SINGLETON_InputComponent>(r);
-  if (get_key_down(input, SDL_SCANCODE_1)) {
-    std::cout << "rebinding shader..." << std::endl;
-    ri.grid.reload();
-    ri.grid.bind();
-    ri.grid.set_mat4("projection", camera.projection);
-    ri.grid.set_mat4("view", camera.view);
-    ri.grid.set_vec2("viewport_wh", ri.viewport_size_render_at);
-    ri.grid.set_vec2("camera_pos", { camera_t.position.x, camera_t.position.y });
-    ri.grid.set_float("time", time);
-  }
+  // const auto& input = get_first_component<SINGLETON_InputComponent>(r);
+  // if (get_key_down(input, SDL_SCANCODE_1)) {
+  //   std::cout << "rebinding shader..." << std::endl;
+  //   ri.grid.reload();
+  //   ri.grid.bind();
+  //   ri.grid.set_mat4("projection", camera.projection);
+  //   ri.grid.set_mat4("view", camera.view);
+  //   ri.grid.set_vec2("viewport_wh", ri.viewport_size_render_at);
+  //   ri.grid.set_vec2("camera_pos", { camera_t.position.x, camera_t.position.y });
+  //   ri.grid.set_float("time", time);
+  // }
 
   // FBO: Render sprites in to this fbo with linear colour
   {
@@ -200,22 +201,25 @@ game2d::update_render_system(entt::registry& r, const float dt, const glm::vec2&
 
     // Render grid shader
     {
-      quad_renderer::QuadRenderer::reset_quad_vert_count();
-      quad_renderer::QuadRenderer::begin_batch();
+      const auto& grid = r.view<Effect_GridComponent>();
+      if (grid.size() > 0) {
+        quad_renderer::QuadRenderer::reset_quad_vert_count();
+        quad_renderer::QuadRenderer::begin_batch();
 
-      // grid post-processing
-      // render completely over screen
-      {
-        quad_renderer::RenderDescriptor desc;
-        const glm::vec2 offset = { ri.viewport_size_render_at.x / 2.0, ri.viewport_size_render_at.y / 2.0f };
-        desc.pos_tl = glm::vec2(camera_t.position.x, camera_t.position.y) - offset;
-        desc.size = ri.viewport_size_render_at;
-        desc.angle_radians = 0;
-        quad_renderer::QuadRenderer::draw_sprite(desc, ri.grid);
+        // grid post-processing
+        // render completely over screen
+        {
+          quad_renderer::RenderDescriptor desc;
+          const glm::vec2 offset = { ri.viewport_size_render_at.x / 2.0, ri.viewport_size_render_at.y / 2.0f };
+          desc.pos_tl = glm::vec2(camera_t.position.x, camera_t.position.y) - offset;
+          desc.size = ri.viewport_size_render_at;
+          desc.angle_radians = 0;
+          quad_renderer::QuadRenderer::draw_sprite(desc, ri.grid);
+        }
+
+        quad_renderer::QuadRenderer::end_batch();
+        quad_renderer::QuadRenderer::flush(ri.grid);
       }
-
-      quad_renderer::QuadRenderer::end_batch();
-      quad_renderer::QuadRenderer::flush(ri.grid);
     }
 
     // Render some quads

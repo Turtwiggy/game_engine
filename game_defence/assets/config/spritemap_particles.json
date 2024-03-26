@@ -1,0 +1,29 @@
+{
+  "spritesheet": {
+    "name": "particles",
+    "px_total": 1024,
+    "py_total": 1024,
+    "px": 32,
+    "py": 32,
+    "nx": 32,
+    "ny": 32
+  },
+  "sprites": [
+    { "name": "SMOKE_IMPACT", "frames": [
+        { "x": 0, "y": 1 },
+        { "x": 1, "y": 1 },
+        { "x": 2, "y": 1 },
+        { "x": 3, "y": 1 },
+        { "x": 4, "y": 1 },
+        { "x": 5, "y": 1 },
+        { "x": 6, "y": 1 }
+      ]
+    },
+    { "name": "LINE_IMPACT", "frames": [
+        { "x": 0, "y": 2 },
+        { "x": 1, "y": 2 },
+        { "x": 2, "y": 2 }
+      ]
+    }
+  ]
+}

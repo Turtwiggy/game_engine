@@ -19,7 +19,7 @@ void
 set_sprite(entt::registry& r, const entt::entity& e, const std::string& sprite);
 
 // const auto& ri = get_first_component<SINGLETON_RendererInfo>(r);
-// const auto tex_unit = search_for_texture_unit_by_path(ri, "bargame");
+// const auto tex_unit = search_for_texture_unit_by_texture_path(ri, "bargame");
 void
 set_sprite_custom(entt::registry& r, const entt::entity& e, const std::string& sprite, int tex_unit);
 

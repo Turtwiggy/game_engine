@@ -8,6 +8,7 @@
 #include "modules/actor_enemy/components.hpp"
 #include "modules/actor_group/components.hpp"
 #include "modules/actor_hearth/components.hpp"
+#include "modules/actor_particle/components.hpp"
 #include "modules/actor_player/components.hpp"
 #include "modules/actor_spawner/components.hpp"
 #include "modules/actor_turret/components.hpp"
@@ -21,7 +22,6 @@
 #include "modules/lifecycle/components.hpp"
 #include "modules/renderer/components.hpp"
 #include "modules/renderer/helpers.hpp"
-#include "modules/sprite_spritestack/components.hpp"
 #include "modules/ui_colours/helpers.hpp"
 #include "modules/ux_hoverable/components.hpp"
 #include "physics/components.hpp"
@@ -36,12 +36,36 @@
 namespace game2d {
 using namespace std::literals;
 
+//
 SpriteComponent
-create_sprite(entt::registry& r, const EntityType& type)
+create_sprite(entt::registry& r, const std::string& sprite, const EntityType& type)
 {
   const auto type_name = std::string(magic_enum::enum_name(type));
   const auto& anims = get_first_component<SINGLE_Animations>(r);
   const auto& ri = get_first_component<SINGLETON_RendererInfo>(r);
+
+  SpriteComponent sc;
+  sc.colour = get_lin_colour_by_tag(r, type_name);
+
+  // search spritesheet
+  const auto [spritesheet, anim] = find_animation(anims, sprite);
+  sc.tex_pos.x = anim.animation_frames[0].x;
+  sc.tex_pos.y = anim.animation_frames[0].y;
+
+  if (anim.angle_degrees != 0.0f)
+    sc.angle_radians = glm::radians(anim.angle_degrees);
+
+  sc.tex_unit = search_for_texture_unit_by_spritesheet_path(ri, spritesheet.path)->unit;
+  sc.total_sx = spritesheet.nx; // number of sprites
+  sc.total_sy = spritesheet.ny;
+
+  return sc;
+};
+
+std::string
+sprite_type_to_sprite(entt::registry& r, const EntityType& type)
+{
+  const auto type_name = std::string(magic_enum::enum_name(type));
 
   std::string sprite = "EMPTY";
 
@@ -63,8 +87,6 @@ create_sprite(entt::registry& r, const EntityType& type)
     sprite = "CARD_HEARTS_2";
   else if (type == EntityType::actor_unitgroup)
     sprite = "SHIELD_2_2";
-  // else if (type == EntityType::actor_pickup_zone)
-  //   sprite = "EMPTY";
   // weapons...
   // else if (type == EntityType::weapon_bow)
   //   sprite = "WEAPON_BOW_0";
@@ -90,42 +112,10 @@ create_sprite(entt::registry& r, const EntityType& type)
   // else if (type == EntityType::enemy_shotgunner)
   //   sprite = "PERSON_28_1";
 
-  else if (type == EntityType::vfx_muzzleflash)
-    sprite = "MUZZLE_FLASH";
+  else
+    std::cout << "warning! sprite set to empty: " << type_name << ".\n";
 
-  // else
-  // std::cerr << "warning! sprite not implemented: " << type_name << "\n";
-
-  SpriteComponent sc;
-  sc.colour = get_lin_colour_by_tag(r, type_name);
-
-  // search spritesheet
-  const auto [spritesheet, anim] = find_animation(anims, sprite);
-  sc.tex_pos.x = anim.animation_frames[0].x;
-  sc.tex_pos.y = anim.animation_frames[0].y;
-
-  if (anim.angle_degrees != 0.0f)
-    sc.angle_radians = glm::radians(anim.angle_degrees);
-
-  //
-  // kennynl texture
-  //
-  sc.tex_unit = search_for_texture_unit_by_path(ri, "monochrome")->unit;
-  sc.total_sx = 48;
-  sc.total_sy = 22;
-
-  //
-  // muzzleflash texture
-  //
-  if (type == EntityType::vfx_muzzleflash) {
-    sc.tex_unit = search_for_texture_unit_by_path(ri, "muzzle")->unit;
-    sc.total_sx = 5;
-    sc.total_sy = 1;
-    sc.tex_pos.x = anim.animation_frames[0].x;
-    sc.tex_pos.y = anim.animation_frames[0].y;
-  }
-
-  return sc;
+  return sprite;
 };
 
 void
@@ -144,7 +134,6 @@ create_gameplay(entt::registry& r, const EntityType& type)
   const glm::ivec3 DEFAULT_SIZE{ 32, 32, 1 };
   const glm::ivec3 HALF_SIZE{ 16, 16, 1 };
   const glm::ivec2 SMALL_SIZE{ 4, 4 };
-  const auto& ri = get_first_component<SINGLETON_RendererInfo>(r);
 
   const auto type_name = std::string(magic_enum::enum_name(type));
 
@@ -154,7 +143,9 @@ create_gameplay(entt::registry& r, const EntityType& type)
   r.emplace<WaitForInitComponent>(e);
 
   if (type != EntityType::empty_no_transform) {
-    r.emplace<SpriteComponent>(e, create_sprite(r, type));
+    const auto sprite_name = sprite_type_to_sprite(r, type);
+    const auto sc = create_sprite(r, sprite_name, type);
+    r.emplace<SpriteComponent>(e, sc);
     r.emplace<TransformComponent>(e);
     auto& transform = r.get<TransformComponent>(e);
     transform.scale = DEFAULT_SIZE;
@@ -225,8 +216,11 @@ create_gameplay(entt::registry& r, const EntityType& type)
       legs.lines.push_back(create_gameplay(r, EntityType::empty_with_transform));
       legs.lines.push_back(create_gameplay(r, EntityType::empty_with_transform));
 
-      for (const auto& leg : legs.lines)
-        r.emplace_or_replace<SpriteComponent>(leg, create_sprite(r, EntityType::actor_bodypart_leg));
+      for (const auto& leg : legs.lines) {
+        const auto sprite_name = sprite_type_to_sprite(r, EntityType::actor_bodypart_leg);
+        const auto sc = create_sprite(r, sprite_name, EntityType::actor_bodypart_leg);
+        r.emplace_or_replace<SpriteComponent>(leg, sc);
+      }
 
       r.emplace<LegsComponent>(e, legs);
       break;
@@ -378,20 +372,9 @@ create_gameplay(entt::registry& r, const EntityType& type)
       create_physics_actor(r, e);
       r.emplace<ShotgunComponent>(e);
 
-      r.emplace<AttackCooldownComponent>(e, 1.2f); // seconds between spawning
+      r.emplace<AttackCooldownComponent>(e, 1.2f); // seconds between shooting
       r.emplace<HasParentComponent>(e);
       r.emplace<WeaponBulletTypeToSpawnComponent>(e);
-
-      // movement
-      // auto& vel = r.get<VelocityComponent>(e);
-      // vel.base_speed = 400.0f;
-      // r.emplace<HasTargetPositionComponent>(e);
-      // r.emplace<SetVelocityToTargetComponent>(e);
-
-      // create a spritestack sprite for the model of the shotgun
-      // auto& tc = r.get<TransformComponent>(e);
-      // tc.scale.x = 0;
-      // tc.scale.y = 0;
 
       break;
     }
@@ -414,6 +397,7 @@ create_gameplay(entt::registry& r, const EntityType& type)
       r.emplace<TeamComponent>(e, AvailableTeams::player);
       r.emplace<SetTransformAngleToVelocity>(e);
       r.emplace<EntityTimedLifecycle>(e);
+      r.emplace<BulletComponent>(e);
       break;
     }
 
@@ -500,20 +484,9 @@ create_gameplay(entt::registry& r, const EntityType& type)
     }
 
     case EntityType::particle: {
+      r.emplace<ParticleComponent>(e);
       r.emplace<VelocityComponent>(e);
-      r.emplace<EntityTimedLifecycle>(e, 1 * 1000);
-
-      auto& sc = r.get<SpriteComponent>(e);
-      sc.colour.a = 0.1f;
-      break;
-    }
-
-    case EntityType::vfx_muzzleflash: {
-      SpriteAnimationComponent anim;
-      anim.playing_animation_name = "MUZZLE_FLASH";
-      anim.duration = 0.2f;
-      anim.looping = false;
-      r.emplace<SpriteAnimationComponent>(e, anim);
+      r.emplace<EntityTimedLifecycle>(e, 3 * 1000);
       break;
     }
 

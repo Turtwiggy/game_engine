@@ -51,68 +51,65 @@ update_ui_scene_main_menu(engine::SINGLETON_Application& app, entt::registry& r)
 
   ImGui::Begin("Main Menu", nullptr, flags);
 
+  // // TODO: keyboard to update ui? mouse could just click.
+  // // Controller to update UI
+  // if (controllers.size() > 0) {
+  //   auto* c = controllers[0];
+  //   if (get_button_down(input, c, SDL_GameControllerButton::SDL_CONTROLLER_BUTTON_X))
+  //     selected++;
+  //   if (get_button_down(input, c, SDL_GameControllerButton::SDL_CONTROLLER_BUTTON_Y))
+  //     selected--;
+  //   if (get_button_down(input, c, SDL_GameControllerButton::SDL_CONTROLLER_BUTTON_A))
+  //     do_ui_action = true;
+  // }
+
   static int selected = 0;
   bool do_ui_action = false;
+  // selected = selected < 0 ? buttons - 1 : selected;
+  // selected %= buttons;
 
-  // TODO: keyboard to update ui? mouse could just click.
-  // Controller to update UI
-  if (controllers.size() > 0) {
-    auto* c = controllers[0];
-    if (get_button_down(input, c, SDL_GameControllerButton::SDL_CONTROLLER_BUTTON_X))
-      selected++;
-    if (get_button_down(input, c, SDL_GameControllerButton::SDL_CONTROLLER_BUTTON_Y))
-      selected--;
-    if (get_button_down(input, c, SDL_GameControllerButton::SDL_CONTROLLER_BUTTON_A))
+  const auto selectable_button = [&do_ui_action](const std::string& label, int& selected, const int index) {
+    const ImVec2 size = { 100, 75 };
+
+    // ImGui::Text("selected: %i", selected);
+    // ImGui::Text("Index: %i", index);
+
+    // draw a button. highlight it if the selected index is over this button already
+    ImGui::Selectable(label.c_str(), selected == index, 0, size);
+
+    // update the selected index if this button is clicked
+    if (ImGui::IsItemClicked()) {
       do_ui_action = true;
-  }
+      selected = index;
+    }
 
-  const int buttons = 2;
-  selected = selected < 0 ? buttons - 1 : selected;
-  selected %= buttons;
+    // Do the callback for the button
+    if (selected == index && do_ui_action)
+      return true;
 
-  const ImVec2 size = { 100, 75 };
+    return false;
+  };
+
   const ImVec2 pivot = { 0.5f, 0.5f };
   ImGui::PushStyleVar(ImGuiStyleVar_SelectableTextAlign, pivot);
   {
-    ImGui::Selectable("Play", selected == 0, 0, size);
-    if (ImGui::IsItemClicked()) {
-      do_ui_action = true;
-      selected = 0;
-    }
-    if (selected == 0 && do_ui_action) {
-
-      // If you've clicked the play button, assume the game is playing live for real
+    int index = 0;
+    if (selectable_button("Play", selected, index++)) {
       auto& editor = get_first_component<SINGLETON_LevelEditor>(r);
       editor.mode = LevelEditorMode::play;
-
-      // configure params
-      // ui.level = 1;
-
-      // create request
       move_to_scene_start(r, Scene::game);
-
-      // hack: load a level
-      // load(r, "assets/maps/main.json");
     }
-
-    ImGui::Selectable("Map Edit", selected == 1, 0, size);
-    if (ImGui::IsItemClicked()) {
-      do_ui_action = true;
-      selected = 1;
-    }
-    if (selected == 1 && do_ui_action) {
-      // If you've clicked the play button, assume the game is playing live for real
+    if (selectable_button("Map Edit", selected, index++)) {
       auto& editor = get_first_component<SINGLETON_LevelEditor>(r);
       editor.mode = LevelEditorMode::edit;
       move_to_scene_start(r, Scene::game);
     }
-
-    ImGui::Selectable("Quit", selected == 2, 0, size);
-    if (ImGui::IsItemClicked()) {
-      do_ui_action = true;
-      selected = 2;
+    if (selectable_button("Test Scene", selected, index++)) {
+      auto& editor = get_first_component<SINGLETON_LevelEditor>(r);
+      editor.mode = LevelEditorMode::play;
+      move_to_scene_start(r, Scene::test_scene_gun);
     }
-    if (selected == 2 && do_ui_action)
+    if (selectable_button("Quit", selected, index++))
       app.running = false;
   }
   ImGui::PopStyleVar();
@@ -156,15 +153,6 @@ update_ui_scene_main_menu(engine::SINGLETON_Application& app, entt::registry& r)
   //   ImGui::PopID();
   // }
   ImGui::End();
-
-  // clang-format off
-  // ImGui::Text("Aligned");
-  // ImGui::SameLine(150); ImGui::Text("x=150");
-  // ImGui::SameLine(300); ImGui::Text("x=300");
-  // ImGui::Text("AlignedPotatoPotato");
-  // ImGui::SameLine(150); ImGui::SmallButton("x=150");
-  // ImGui::SameLine(300); ImGui::SmallButton("x=300");
-  // clang-format on
 
   // draw X inactive-soliders wiggling
   const auto& monsters = r.view<CharacterStats, InActiveFight>();
@@ -221,28 +209,6 @@ update_ui_scene_main_menu(engine::SINGLETON_Application& app, entt::registry& r)
     // ui.instantiated_players.erase(ui.instantiated_players.begin() + idx);
   }
 
-  // SQUAAAAAAAAAD
-  //
-  // ImGui::Begin("Squad");
-  // ImGui::Text("Squad");
-  // ImGui::NewLine();
-  // for (int i = 0; i < ui.instantiated_players.size(); i++) {
-  //   if (i > 0) {
-  //     ImGui::SameLine();
-  //     ImGui::Text(" - ");
-  //     ImGui::SameLine();
-  //   }
-  //   // Get Location of text
-  //   // Convert location to screenspace
-  //   auto pos = ImGui::GetCursorPos();
-  //   ImGui::Text("%f %f", pos.x, pos.y);
-  //   auto pos2 = ImGui::GetCursorScreenPos();
-  //   ImGui::Text("%f %f", pos2.x, pos2.y);
-  //   if (const auto* stats = r.try_get<CharacterStats>(ui.instantiated_players[i]))
-  //     ImGui::Text("%s", stats->name.c_str());
-  // }
-  // ImGui::End();
-
   //
   // In the top right, show a sound icon
   //
@@ -283,7 +249,7 @@ update_ui_scene_main_menu(engine::SINGLETON_Application& app, entt::registry& r)
   ImVec2 br = ImVec2(((offset.x * pixels_x + pixels_x) / size_x), ((offset.y * pixels_y + pixels_y) / size_y));
   // clang-format on
 
-  const auto tex_id = search_for_texture_id_by_path(ri, "kennynl_gameicons")->id;
+  const auto tex_id = search_for_texture_id_by_texture_path(ri, "kennynl_gameicons")->id;
 
   // draw an audio icon
   // ImGui::Image((ImTextureID)tex_id, { icon_size.x, icon_size.y }, tl, br);

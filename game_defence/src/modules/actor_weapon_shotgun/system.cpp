@@ -7,6 +7,7 @@
 #include "modules/combat_attack_cooldown/components.hpp"
 #include "modules/combat_damage/components.hpp"
 #include "modules/combat_wants_to_shoot/components.hpp"
+#include "modules/lerp_to_target/components.hpp"
 #include "modules/lifecycle/components.hpp"
 #include "physics/components.hpp"
 
@@ -42,12 +43,16 @@ get_target_position(entt::registry& r, const entt::entity& e, const entt::entity
 void
 update_weapon_shotgun_system(entt::registry& r, const uint64_t milliseconds_dt)
 {
-  const float dt = milliseconds_dt / 1000.0f;
   auto& dead = get_first_component<SINGLETON_EntityBinComponent>(r);
+  const float dt = milliseconds_dt / 1000.0f;
 
-  const auto& view =
-    r.view<ShotgunComponent, HasParentComponent, AttackCooldownComponent, AABB, TransformComponent, VelocityComponent>(
-      entt::exclude<WaitForInitComponent>);
+  const auto& view = r.view<ShotgunComponent,
+                            HasParentComponent,
+                            AttackCooldownComponent,
+                            AABB,
+                            // HasTargetPositionComponent,
+                            TransformComponent,
+                            VelocityComponent>(entt::exclude<WaitForInitComponent>);
 
   for (const auto& [entity, shotgun, parent, cooldown, gun_aabb, shotgun_transform, gun_velocity] : view.each()) {
 
@@ -59,28 +64,37 @@ update_weapon_shotgun_system(entt::registry& r, const uint64_t milliseconds_dt)
 
     const auto& [parent_aabb, parent_weapon] = r.get<const AABB, HasWeaponComponent>(p);
 
-    // Move this weapon to its parent
-    // move_target.position = parent_aabb.center;
-    gun_aabb.center = parent_aabb.center;
-
     // Get the position this gun is aiming
     const auto target_position_opt = get_target_position(r, entity, p);
     if (target_position_opt == std::nullopt)
       continue;
     const glm::ivec2 target_position = target_position_opt.value();
 
-    // dir from shotgun to target
-    const auto dir_i = gun_aabb.center - target_position;
-    const glm::vec2 raw_dir{ dir_i.x, dir_i.y };
-    const glm::vec2 nrm_dir = engine::normalize_safe(raw_dir);
+    // set gun position
+    gun_aabb.center = glm::ivec2(parent_aabb.center);
 
-    // BUGFIX: if the distance from the target to the shotgun is too close, the shotgun bugs out
-    // const float d = glm::length(raw_dir);
-    // // simulate "picking up the gun"
-    // if (d > 20 && (glm::abs(nrm_dir.x) > 0 || glm::abs(nrm_dir.y) > 0)) {
-    const glm::ivec2 offset = { -nrm_dir.x * parent_weapon.offset, -nrm_dir.y * parent_weapon.offset };
+    // distance from parent
+    auto dir_i = gun_aabb.center - target_position;
+    auto raw_dir = glm::vec2{ dir_i.x, dir_i.y };
+    auto nrm_dir = engine::normalize_safe(raw_dir);
+
+    // Add an offset.
+    auto offset = glm::ivec2{ 0, 0 };
+    offset = glm::vec2{ -nrm_dir.x * shotgun.offset_amount, -nrm_dir.y * shotgun.offset_amount };
+
+    // Add an offset due to recoil.
+    shotgun.recoil_amount -= dt * shotgun.recoil_regain_speed;
+    shotgun.recoil_amount = glm::max(shotgun.recoil_amount, 0.0f); // clamp above 0
+    if (shotgun.recoil_amount > 0.0f)
+      offset += glm::vec2{ nrm_dir.x * shotgun.recoil_amount, nrm_dir.y * shotgun.recoil_amount };
+
     gun_aabb.center += offset;
-    // }
+
+    // recalculate
+    //
+    dir_i = gun_aabb.center - target_position;
+    raw_dir = glm::vec2{ dir_i.x, dir_i.y };
+    nrm_dir = engine::normalize_safe(raw_dir);
 
     // Rotate the gun axis to the target
     const float angle = engine::dir_to_angle_radians(nrm_dir);
@@ -109,6 +123,9 @@ update_weapon_shotgun_system(entt::registry& r, const uint64_t milliseconds_dt)
       // TODO: improve this. This spams the audio system.
       r.emplace<AudioRequestPlayEvent>(r.create(), "SHOTGUN_SHOOT_01");
 
+      // Add knockback to the shotgun
+      shotgun.recoil_amount = shotgun.recoil_amount_max;
+
       // put gun on cooldown
       cooldown.on_cooldown = true;
       cooldown.time_between_attack_left = cooldown.time_between_attack;
@@ -134,7 +151,7 @@ update_weapon_shotgun_system(entt::registry& r, const uint64_t milliseconds_dt)
         const auto req = create_gameplay(r, bullet_info.bullet_type);
         r.get_or_emplace<HasParentComponent>(req).parent = p;
 
-        const glm::ivec2 bullet_position = gun_aabb.center + offset;
+        const glm::ivec2 bullet_position = gun_aabb.center + glm::ivec2(offset.x, offset.y);
 
         auto& bullet_transform = r.get<TransformComponent>(req);
         bullet_transform.position = { bullet_position.x, bullet_position.y, 0.0f };

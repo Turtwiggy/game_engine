@@ -1,22 +1,19 @@
 #include "game.hpp"
 
-#include "actors.hpp"
 #include "audio/components.hpp"
 #include "audio/system.hpp"
 #include "entt/helpers.hpp"
 #include "events/components.hpp"
 #include "events/system.hpp"
 #include "game_state.hpp"
-#include "maths/maths.hpp"
 #include "modules/actor_bodypart_head/system.hpp"
 #include "modules/actor_bodypart_legs/system.hpp"
 #include "modules/actor_cursor/system.hpp"
 #include "modules/actor_enemy/system.hpp"
 #include "modules/actor_group/system.hpp"
-#include "modules/actor_player/components.hpp"
+#include "modules/actor_particle/system.hpp"
 #include "modules/actor_player/system.hpp"
 #include "modules/actor_spawner/system.hpp"
-#include "modules/actor_turret/system.hpp"
 #include "modules/actor_weapon_shotgun/system.hpp"
 #include "modules/animation/angle_to_velocity.hpp"
 #include "modules/animation/wiggle_up_and_down.hpp"
@@ -33,12 +30,9 @@
 #include "modules/gameover/system.hpp"
 #include "modules/items_drop/system.hpp"
 #include "modules/items_pickup/system.hpp"
-#include "modules/lerp_to_target/components.hpp"
 #include "modules/lerp_to_target/system.hpp"
-#include "modules/lifecycle/components.hpp"
 #include "modules/lifecycle/system.hpp"
 #include "modules/renderer/components.hpp"
-#include "modules/renderer/helpers.hpp"
 #include "modules/renderer/system.hpp"
 #include "modules/resolve_collisions/system.hpp"
 #include "modules/scene/helpers.hpp"
@@ -108,32 +102,20 @@ game2d::init(engine::SINGLETON_Application& app, entt::registry& r)
     custom.spritesheet_path = "assets/config/spritemap_custom.json";
     ri.user_textures.push_back(custom);
 
-    Texture kennynl_particle;
-    kennynl_particle.path = "assets/textures/kenny_particle_pack/kenny_muzzle_spritesheet.png";
-    kennynl_particle.spritesheet_path = "assets/config/spritemap_kennynl_particle.json";
-    ri.user_textures.push_back(kennynl_particle);
+    Texture particles;
+    particles.path = "assets/textures/particles.png";
+    particles.spritesheet_path = "assets/config/spritemap_particles.json";
+    ri.user_textures.push_back(particles);
 
     Texture gameicons;
     gameicons.path = "assets/textures/kennynl_gameicons/Spritesheet/sheet_white1x_adjusted.png";
     gameicons.spritesheet_path = "assets/config/spritemap_kennynl_icons.json";
     ri.user_textures.push_back(gameicons);
 
-    // TODO: Should merge all the gun textures in to one texture
-    //
-    // Texture gun_smg;
-    // gun_smg.path = "assets/textures/voxel/gun_smg.png";
-    // gun_smg.spritesheet_path = "assets/config/spritemap_voxel_gun_smg.json";
-    // ri.user_textures.push_back(gun_smg);
-
     Texture gun_pistol;
     gun_pistol.path = "assets/textures/voxel/gun_pistol.png";
     gun_pistol.spritesheet_path = "assets/config/spritemap_voxel_gun_pistol.json";
     ri.user_textures.push_back(gun_pistol);
-
-    // Texture gun_shotgun;
-    // gun_shotgun.path = "assets/textures/voxel/gun_shotgun.png";
-    // gun_shotgun.spritesheet_path = "assets/config/spritemap_voxel_gun_shotgun.json";
-    // ri.user_textures.push_back(gun_shotgun);
 
     // load spritesheet info
     SINGLE_Animations anims;
@@ -261,6 +243,7 @@ game2d::update(engine::SINGLETON_Application& app, entt::registry& r, const floa
     update_screenshake_system(r, app.ms_since_launch / 1000.0f, dt);
     update_wiggle_up_and_down_system(r, dt);
     update_ux_hoverable_change_colour_system(r);
+    update_particle_system(r, dt);
 
     const auto& state = get_first_component<SINGLETON_GameStateComponent>(r);
     auto& gameover = get_first_component<SINGLETON_GameOver>(r);

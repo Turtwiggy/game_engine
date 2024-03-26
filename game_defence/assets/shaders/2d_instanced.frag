@@ -11,7 +11,7 @@ in float v_tex_unit;
 
 uniform sampler2D tex_kenny;
 uniform sampler2D tex_custom;
-uniform sampler2D tex_muzzle;
+uniform sampler2D tex_particles;
 uniform sampler2D tex_gameicons;
 uniform sampler2D tex_voxel;
 
@@ -38,7 +38,7 @@ main()
     }else if(index == 3){
       out_colour *= texture(tex_custom, sprite_uv);
     }else if(index == 4){
-      out_colour *= texture(tex_muzzle, sprite_uv);
+      out_colour *= texture(tex_particles, sprite_uv);
       return; // texture uses 0, 0
     }
     else if(index == 5){

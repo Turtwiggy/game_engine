@@ -5,6 +5,8 @@
 #include "sprites/components.hpp"
 #include "sprites/helpers.hpp"
 
+#include "imgui.h"
+
 namespace game2d {
 
 int
@@ -18,10 +20,13 @@ get_index(const float time, const float duration, const int size)
 };
 
 void
-update_animator_system(entt::registry& r, float dt)
+update_animator_system(entt::registry& r, const float& dt)
 {
   const auto& anims = get_first_component<SINGLE_Animations>(r);
   auto& dead = get_first_component<SINGLETON_EntityBinComponent>(r);
+
+  static bool debug_animator = true;
+  ImGui::Begin("Debug__Animator", &debug_animator);
 
   const auto& view = r.view<SpriteComponent, SpriteAnimationComponent>();
   for (const auto& [e, sprite, animation] : view.each()) {
@@ -46,6 +51,8 @@ update_animator_system(entt::registry& r, float dt)
 
     // loop the timer
     animation.timer = fmod(animation.timer, animation.duration);
+    ImGui::Text("Timer: %f", animation.timer);
+    ImGui::Text("Duration: %f", animation.duration);
 
     // get the index of the frame to play
     const int i0 = get_index(animation.timer, animation.duration, anim.animation_frames.size());
@@ -54,6 +61,8 @@ update_animator_system(entt::registry& r, float dt)
     const SpritePosition& frame = anim.animation_frames[i0];
     sprite.tex_pos = frame;
   }
+
+  ImGui::End();
 }
 
 } // namespace game2d

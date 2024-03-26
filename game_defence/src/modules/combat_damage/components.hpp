@@ -79,7 +79,6 @@ struct DealDamageRequest
 struct HasWeaponComponent
 {
   entt::entity instance = entt::null;
-  float offset = 25.0f; // around the parent
 };
 
 } // namespace game2d

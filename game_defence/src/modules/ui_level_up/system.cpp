@@ -109,6 +109,8 @@ update_ui_level_up_system(entt::registry& r)
 
     ImGui::TableNextColumn();
     if (ImGui::Button("GAIN UNIT\n+1 Unit", ImVec2(-FLT_MIN, -FLT_MIN))) {
+      std::cout << "TODO: implement gaining a unit" << std::endl;
+
       // const auto first_player_group = r.get<HasParentComponent>(first_player).parent;
       // const auto new_player = create_player(r, first_player_group);
       use_xp_items(10);
