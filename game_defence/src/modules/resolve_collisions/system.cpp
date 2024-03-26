@@ -2,6 +2,7 @@
 
 #include "actors.hpp"
 #include "entt/helpers.hpp"
+#include "maths/maths.hpp"
 #include "modules/actor_enemy/components.hpp"
 #include "modules/actor_particle/components.hpp"
 #include "modules/actor_weapon_shotgun/components.hpp"
@@ -19,6 +20,7 @@ namespace game2d {
 void
 update_resolve_collisions_system(entt::registry& r)
 {
+  static engine::RandomState rnd;
   const auto& physics = get_first_component<SINGLETON_PhysicsComponent>(r);
 
   // some collisions result in dead entities
@@ -104,49 +106,61 @@ update_resolve_collisions_system(entt::registry& r)
       const auto& bullet_aabb = r.get<AABB>(bullet);
       const float sign_x = glm::sign(bullet_vel.x);
       const float sign_y = glm::sign(bullet_vel.y);
-      const int collision_point_x = bullet_aabb.center.x + (sign_x * (bullet_aabb.size.x / 2.0f));
-      const int collision_point_y = bullet_aabb.center.y + (sign_y * (bullet_aabb.size.y / 2.0f));
+      const auto impact_point_x = bullet_aabb.center.x + (sign_x * (bullet_aabb.size.x / 2.0f));
+      const auto impact_point_y = bullet_aabb.center.y + (sign_y * (bullet_aabb.size.y / 2.0f));
 
-      // todo: spawn impact vfx...
       // todo: 6 dust clouds
       // todo: 3 sparks
-      // todo: spawn permanant debris. look in to gamemaker surface system.
-      // todo: slow the particle down over timez
-      // todo: give the particle a random rotation
-      // const float rnd_x = engine::rand_det_s(rnd.rng, -50, 50);
-      // const float rnd_y = engine::rand_det_s(rnd.rng, -50, 50);
-
+      // todo: spawn permanant debris. look in to gamemaker surface system?
+      // todo: slow the particle down over time
       // todo: give the particle a limited range to bounce off at with some randomness
 
       // root particle for collision
-      const float particle_seconds_to_live = 1;
-      const auto coll_e = create_gameplay(r, EntityType::particle);
-      auto& life = r.get<EntityTimedLifecycle>(coll_e);
-      life.milliseconds_alive_max = particle_seconds_to_live * 1000;
-      auto& collpoint_t = r.get<TransformComponent>(coll_e);
-      collpoint_t.position.x = collision_point_x;
-      collpoint_t.position.y = collision_point_y;
-      auto& collpoint_vel = r.get<VelocityComponent>(coll_e);
-      collpoint_vel.x = -(bullet_vel.x / 10.0f);
-      collpoint_vel.y = -(bullet_vel.y / 10.0f);
+      {
+        const float particle_seconds_to_live = 1;
+        const auto coll_e = create_gameplay(r, EntityType::particle);
+        auto& life = r.get<EntityTimedLifecycle>(coll_e);
+        life.milliseconds_alive_max = particle_seconds_to_live * 1000;
 
-      // create impact effect
-      auto sc = create_sprite(r, "SMOKE_IMPACT", EntityType::particle);
-      r.emplace_or_replace<SpriteComponent>(coll_e, sc);
+        auto& collpoint_t = r.get<TransformComponent>(coll_e);
+        collpoint_t.position = { impact_point_x, impact_point_y, 0.0f };
+        // choose a random rotation for the sprite to be less same-y
+        collpoint_t.rotation_radians.z = engine::rand_det_s(rnd.rng, 0.0f, 2.0f * engine::PI);
 
-      // make it an animation
-      SpriteAnimationComponent anim;
-      anim.playing_animation_name = "SMOKE_IMPACT";
-      anim.duration = particle_seconds_to_live;
-      anim.looping = false;
-      r.emplace<SpriteAnimationComponent>(coll_e, anim);
+        // Set the velocity of the particle
+        //
+        float impact_vel_amount_x = 0.0f;
+        float impact_vel_amount_y = 0.0f;
+        const float momentum_loss = 5.0f; // e.g. particles return at 1/5th the speed
+        // going more horizontal than vertical
+        // just set impact-vel as perpendicular to the impact point
+        if (glm::abs(bullet_vel.x) >= glm::abs(bullet_vel.y))
+          impact_vel_amount_x = (-bullet_vel.x) / momentum_loss;
+        // going more vertical than horizontal
+        // just set impact-vel as perpendicular to the impact point
+        else
+          impact_vel_amount_y = (-bullet_vel.y) / momentum_loss;
+        auto& collpoint_vel = r.get<VelocityComponent>(coll_e);
+        collpoint_vel = { impact_vel_amount_x, impact_vel_amount_y };
 
-      // make it shrink
-      // ScaleOverTimeComponent sotc;
-      // sotc.seconds_until_complete = particle_seconds_to_live;
-      // sotc.start_size = 6.0f;
-      // sotc.end_size = 0.0f;
-      // r.emplace<ScaleOverTimeComponent>(collpoint, sotc);
+        // update particle sprite to the correct sprite
+        auto sc = create_sprite(r, "SMOKE_IMPACT", EntityType::particle);
+        r.emplace_or_replace<SpriteComponent>(coll_e, sc);
+
+        // make it an animation
+        SpriteAnimationComponent anim;
+        anim.playing_animation_name = "SMOKE_IMPACT";
+        anim.duration = particle_seconds_to_live;
+        anim.looping = false;
+        r.emplace<SpriteAnimationComponent>(coll_e, anim);
+
+        // make it shrink
+        ScaleOverTimeComponent sotc;
+        sotc.seconds_until_complete = particle_seconds_to_live;
+        sotc.start_size = 10.0f;
+        sotc.end_size = 0.0f;
+        r.emplace<ScaleOverTimeComponent>(coll_e, sotc);
+      }
     }
   }
 }
