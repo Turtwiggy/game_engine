@@ -2,24 +2,16 @@
 #include "system.hpp"
 
 // components/systems
-#include "actors.hpp"
 #include "components.hpp"
 #include "entt/helpers.hpp"
 #include "events/components.hpp"
-#include "events/helpers/keyboard.hpp"
-#include "events/helpers/mouse.hpp"
-#include "modules/actor_hearth/components.hpp"
-#include "modules/actor_player/components.hpp"
+#include "modules/actors/helpers.hpp"
 #include "modules/camera/orthographic.hpp"
-#include "modules/lerp_to_target/components.hpp"
 #include "modules/renderer/components.hpp"
-#include "physics/components.hpp"
 #include "renderer/transform.hpp"
 
 #include <glm/glm.hpp>
 #include <glm/gtx/compatibility.hpp>
-
-#include "imgui.h"
 
 namespace game2d {
 
@@ -38,18 +30,19 @@ update_camera_system(entt::registry& r, const float dt, const glm::ivec2& mouse_
 
   // calculate direction mouse is in, and add that to thes camera
   // nb: mouse_pos is in worldspace, not screenspace.
-  glm::vec2 camera_offset_due_to_mouse{ 0, 0 };
+  // glm::vec2 camera_offset_due_to_mouse{ 0, 0 };
   // const glm::vec2 raw_dir = camera_position_worldspace - mouse_pos;
   // camera_offset_due_to_mouse.x = dir.x * 10.0f;
   // camera_offset_due_to_mouse.y = dir.y * 10.0f;
 
-  // calculate center of all targets
-  auto& target_position = camera_transform.position;
-  const auto& targets_view = r.view<const CameraFollow, const AABB>();
-  for (const auto& [e, follow, target] : targets_view.each()) {
-    target_position.x = target.center.x;
-    target_position.y = target.center.y;
+  // Set position as first position of target
+  const auto& targets_view = r.view<const CameraFollow>();
+  for (const auto& [e, follow] : targets_view.each()) {
+    const auto pos = get_position(r, e);
+    camera_transform.position.x = pos.x;
+    camera_transform.position.y = pos.y;
   }
+
   // if (targets_view.size_hint() > 0) {
   //   target_position.x /= targets_view.size_hint();
   //   target_position.y /= targets_view.size_hint();

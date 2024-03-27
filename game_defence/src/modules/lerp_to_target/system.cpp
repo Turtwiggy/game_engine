@@ -17,6 +17,9 @@ namespace game2d {
 void
 update_set_velocity_to_target_system(entt::registry& r, const float& dt)
 {
+  const auto map_e = get_first<MapComponent>(r);
+  if (map_e == entt::null)
+    return;
   const auto& map = get_first_component<MapComponent>(r);
 
   // set target to next in generated path

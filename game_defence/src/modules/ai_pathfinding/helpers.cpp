@@ -1,17 +1,12 @@
 #include "helpers.hpp"
 
-#include "modules/ai_pathfinding/priority_queue.hpp"
-
-// visuals
 #include "actors.hpp"
-#include "entt/helpers.hpp"
 #include "maths/grid.hpp"
+#include "modules/actors/helpers.hpp"
+#include "modules/ai_pathfinding/priority_queue.hpp"
 #include "modules/combat_flash_on_damage/helpers.hpp"
-#include "renderer/helpers.hpp"
-#include "renderer/transform.hpp"
 #include "sprites/helpers.hpp"
 
-#include <iostream>
 #include <map>
 
 namespace game2d {
@@ -201,7 +196,7 @@ display_flow_field_with_visuals(entt::registry& r, GridComponent& grid)
       const auto sprite = create_gameplay(r, EntityType::empty_with_transform);
       set_sprite(r, sprite, sprites[i]);
 
-      glm::vec3 position = { gpos.x * grid.size, gpos.y * grid.size, 0.0f };
+      glm::ivec2 position = { gpos.x * grid.size, gpos.y * grid.size };
       position.x += (i + 1) * text_seperation;
       set_position(r, sprite, position);
 

@@ -13,6 +13,7 @@
 #include "modules/actor_spawner/components.hpp"
 #include "modules/actor_turret/components.hpp"
 #include "modules/actor_weapon_shotgun/components.hpp"
+#include "modules/actors/helpers.hpp"
 #include "modules/animation/components.hpp"
 #include "modules/combat_attack_cooldown/components.hpp"
 #include "modules/combat_damage/components.hpp"
@@ -112,8 +113,8 @@ sprite_type_to_sprite(entt::registry& r, const EntityType& type)
   // else if (type == EntityType::enemy_shotgunner)
   //   sprite = "PERSON_28_1";
 
-  else
-    std::cout << "warning! sprite set to empty: " << type_name << ".\n";
+  // else
+  //   std::cout << "warning! sprite set to empty: " << type_name << ".\n";
 
   return sprite;
 };
@@ -222,24 +223,19 @@ create_gameplay(entt::registry& r, const EntityType& type)
         r.emplace_or_replace<SpriteComponent>(leg, sc);
       }
 
+      auto& leg_transform = r.get<TransformComponent>(e);
+      leg_transform.scale.x = 0;
+      leg_transform.scale.y = 0;
+
       r.emplace<LegsComponent>(e, legs);
       break;
     }
     case EntityType::actor_player: {
       create_physics_actor(r, e);
+      set_size(r, e, { 12, 20 });
+
       auto& vel = r.get<VelocityComponent>(e);
       vel.base_speed = 50000.0f;
-
-      const int size_x = 12;
-      const int size_y = 20;
-
-      auto& aabb = r.get<AABB>(e);
-      aabb.size.x = size_x;
-      aabb.size.y = size_y;
-
-      auto& transform = r.get<TransformComponent>(e);
-      transform.scale.x = size_x;
-      transform.scale.y = size_y;
 
       // r.emplace<PhysicsSolidComponent>(e);
       r.emplace<TeamComponent>(e, AvailableTeams::player);
@@ -392,8 +388,8 @@ create_gameplay(entt::registry& r, const EntityType& type)
 
     case EntityType::bullet_default: {
       create_physics_actor(r, e);
-      auto& aabb = r.get<AABB>(e);
-      aabb.size = SMALL_SIZE;
+      set_size(r, e, SMALL_SIZE);
+
       r.emplace<TeamComponent>(e, AvailableTeams::player);
       r.emplace<SetTransformAngleToVelocity>(e);
       r.emplace<EntityTimedLifecycle>(e);
@@ -403,8 +399,8 @@ create_gameplay(entt::registry& r, const EntityType& type)
 
     case EntityType::bullet_enemy: {
       create_physics_actor(r, e);
-      auto& aabb = r.get<AABB>(e);
-      aabb.size = SMALL_SIZE;
+      set_size(r, e, SMALL_SIZE);
+
       r.emplace<TeamComponent>(e, AvailableTeams::enemy);
       r.emplace<SetTransformAngleToVelocity>(e);
       // r.emplace<EntityTimedLifecycle>(e);

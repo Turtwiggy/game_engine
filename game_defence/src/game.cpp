@@ -69,6 +69,7 @@
 #include "imgui.h"
 #include "optick.h"
 
+#include <algorithm>
 #include <ranges>
 
 void
@@ -244,35 +245,39 @@ game2d::update(engine::SINGLETON_Application& app, entt::registry& r, const floa
     update_wiggle_up_and_down_system(r, dt);
     update_ux_hoverable_change_colour_system(r);
     update_particle_system(r, dt);
+    update_sprite_spritestack_system(r, dt);
 
     const auto& state = get_first_component<SINGLETON_GameStateComponent>(r);
     auto& gameover = get_first_component<SINGLETON_GameOver>(r);
-    if (scene.s == Scene::game && state.state == GameState::RUNNING && !gameover.game_is_over) {
+
+    const std::vector<Scene> valid_scenes{
+      Scene::game,
+      Scene::test_scene_gun,
+    };
+    const bool in_scene_of_interest = std::find(valid_scenes.begin(), valid_scenes.end(), scene.s) != valid_scenes.end();
+    if (in_scene_of_interest && state.state == GameState::RUNNING && !gameover.game_is_over) {
 
       // Only keeping this here until I'm convinced that
       // putting all these systems in update isn't a mistake
       const uint64_t milliseconds_dt = dt * 1000.0f;
 
-      update_attack_cooldown_system(r, milliseconds_dt);
-      update_take_damage_system(r);
-      update_weapon_shotgun_system(r, milliseconds_dt);
-      update_flash_sprite_system(r, milliseconds_dt);
-      update_sprite_spritestack_system(r, dt);
-      // update_turret_system(game, milliseconds_dt);
-
-      //
-      // powerup
-      update_combat_powerup_doubledamage_system(r, dt);
       //
       // animation
       update_actor_bodypart_head_system(r, dt, mouse_pos);
       update_actor_bodypart_legs_system(r, dt, mouse_pos);
+      //
+      // powerup
+      update_combat_powerup_doubledamage_system(r, dt);
       //
       // ai
       update_set_velocity_to_target_system(r, dt);
       update_actor_group_system(r, mouse_pos);
       //
       // combat
+      update_attack_cooldown_system(r, milliseconds_dt);
+      update_take_damage_system(r);
+      update_weapon_shotgun_system(r, milliseconds_dt);
+      update_flash_sprite_system(r, milliseconds_dt);
       update_enemy_system(r, dt);
       update_wants_to_shoot_system(r);
       //

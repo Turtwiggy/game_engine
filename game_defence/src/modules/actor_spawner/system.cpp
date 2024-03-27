@@ -2,15 +2,11 @@
 
 #include "actors.hpp"
 #include "components.hpp"
-#include "entt/helpers.hpp"
 #include "modules/actor_player/components.hpp"
 #include "modules/combat_attack_cooldown/components.hpp"
 #include "modules/combat_attack_cooldown/helpers.hpp"
-#include "modules/combat_damage/components.hpp"
 #include "modules/lifecycle/components.hpp"
-#include "modules/renderer/components.hpp"
 #include "physics/components.hpp"
-#include "sprites/helpers.hpp"
 
 namespace game2d {
 
@@ -65,7 +61,7 @@ update_spawner_system(entt::registry& r, const uint64_t milliseconds_dt)
 
 } // namespace game2d
 
-// // HACK: randomly spawn enemies at edges of screen
+// HACK: randomly spawn enemies at edges of screen
 // // basically, if the camera is at 0,0
 // // the edges of the screen are -width/2, width/2
 // // i need x to be less than -width/2, or greater than width/2.

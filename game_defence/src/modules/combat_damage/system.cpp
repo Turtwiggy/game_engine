@@ -5,6 +5,7 @@
 #include "entt/helpers.hpp"
 #include "maths/maths.hpp"
 #include "modules/actor_player/components.hpp"
+#include "modules/actors/helpers.hpp"
 #include "modules/combat_flash_on_damage/components.hpp"
 #include "modules/combat_flash_on_damage/helpers.hpp"
 #include "modules/combat_powerup_doubledamage/components.hpp"
@@ -12,19 +13,9 @@
 #include "modules/screenshake/components.hpp"
 #include "modules/ui_colours/helpers.hpp"
 #include "physics/components.hpp"
-#include "renderer/helpers.hpp"
 #include "sprites/helpers.hpp"
 
 namespace game2d {
-
-glm::vec2
-get_position(entt::registry& r, entt::entity& e)
-{
-  if (const auto* aabb = r.try_get<AABB>(e))
-    return aabb->center;
-  const auto& t = r.get<TransformComponent>(e);
-  return { t.position.x, t.position.y };
-}
 
 void
 update_take_damage_system(entt::registry& r)
@@ -57,8 +48,8 @@ update_take_damage_system(entt::registry& r)
 
     // Does the defender have the ability to be knocked back?
     if (auto* v = r.try_get<VelocityComponent>(request.to)) {
-      const glm::vec2 atk_pos = get_position(r, request.from);
-      const glm::vec2 def_pos = get_position(r, request.to);
+      const auto atk_pos = get_position(r, request.from);
+      const auto def_pos = get_position(r, request.to);
       const auto dir = engine::normalize_safe(atk_pos - def_pos);
       const float knockback_amount = 5.0F;
       v->remainder_x += -dir.x * knockback_amount;

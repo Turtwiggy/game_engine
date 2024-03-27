@@ -10,6 +10,7 @@
 #include "modules/actor_bodypart_legs/components.hpp"
 #include "modules/actor_cursor/components.hpp"
 #include "modules/actor_spawner/components.hpp"
+#include "modules/actors/helpers.hpp"
 #include "modules/ai_pathfinding/components.hpp"
 #include "modules/algorithm_procedural/cell_automata.hpp"
 #include "modules/algorithm_procedural/poisson.hpp"
@@ -141,13 +142,8 @@ move_to_scene_start(entt::registry& r, const Scene s)
 
   stop_all_audio(r);
 
-  // create a hostile dummy
-  // {
-  //   const auto e = create_gameplay(r, EntityType::enemy_dummy);
-  //   auto& e_aabb = r.get<AABB>(e);
-  //   e_aabb.size = default_size * 1;
-  //   e_aabb.center = { 200, 0 };
-  // }
+  const auto& anims = get_first_component<SINGLE_Animations>(r);
+  const auto& ri = get_first_component<SINGLETON_RendererInfo>(r);
 
   if (s == Scene::menu) {
 
@@ -178,8 +174,6 @@ move_to_scene_start(entt::registry& r, const Scene s)
   }
 
   if (s == Scene::game) {
-    const auto& anims = get_first_component<SINGLE_Animations>(r);
-    const auto& ri = get_first_component<SINGLETON_RendererInfo>(r);
     const auto& menu_ui = get_first_component<SINGLE_MainMenuUI>(r);
 
     // Play some audio
@@ -192,6 +186,14 @@ move_to_scene_start(entt::registry& r, const Scene s)
     // create background effect
     r.emplace<Effect_GridComponent>(r.create());
 
+    // create a hostile dummy
+    // {
+    //   const auto e = create_gameplay(r, EntityType::enemy_dummy);
+    //   auto& e_aabb = r.get<AABB>(e);
+    //   e_aabb.size = default_size * 1;
+    //   e_aabb.center = { 200, 0 };
+    // }
+
     // create a group with one unit in
     // {
     //   const auto& player_group = create_gameplay(r, EntityType::actor_unitgroup);
@@ -201,23 +203,6 @@ move_to_scene_start(entt::registry& r, const Scene s)
     //   create_player_ally(r, player_group);
     //   create_player_ally(r, player_group);
     // }
-
-    // create a spritestack for testing
-    {
-      // // create a ton of sprites for a sprite-stacked entity
-      // // sprites are from top to bottom
-      // // TODO: replace with config info
-      // const int sprites_for_total_sprite = 10;
-      // const auto tex_unit = search_for_texture_unit_by_path(ri, "voxel").value();
-      // for (int i = 0; i < sprites_for_total_sprite; i++) {
-      //   const auto i_as_str = std::to_string(i);
-      //   const auto sprite_e = create_gameplay(r, EntityType::empty_with_transform);
-      //   set_sprite_custom(r, sprite_e, "frame_"s + i_as_str, tex_unit.unit);
-      //   r.emplace<SpritestackComponent>(sprite_e, SpritestackComponent{ i });
-      //   r.emplace<HasTargetPositionComponent>(sprite_e);
-      //   r.get<TagComponent>(sprite_e).tag = "ss_frame_"s + i_as_str;
-      // }
-    }
 
     // create players based off main menu ui
     // note: create player before other sprites to render on top
@@ -340,39 +325,62 @@ move_to_scene_start(entt::registry& r, const Scene s)
 
     // Create 4 edges to the map
     {
-      const auto set_position = [&r](const entt::entity& e, const glm::ivec2& pos) {
-        r.get<AABB>(e).center = pos;
-        r.get<TransformComponent>(e).position = { pos.x, pos.y, 0.0f };
-      };
-      const auto set_size = [&r](const entt::entity& e, const glm::ivec2& size) {
-        r.get<AABB>(e).size = size;
-        r.get<TransformComponent>(e).scale = { size.x, size.y, 0.0f };
-      };
+      const auto wall_l = create_gameplay(r, EntityType::solid_wall);
+      set_position(r, wall_l, { 0, height / 2.0f });
+      set_size(r, wall_l, { 32, height });
 
-      {
-        const auto wall_l = create_gameplay(r, EntityType::solid_wall);
-        set_position(wall_l, { 0, height / 2.0f });
-        set_size(wall_l, { 32, height });
-      }
+      const auto wall_r = create_gameplay(r, EntityType::solid_wall);
+      set_position(r, wall_r, { width, height / 2.0f });
+      set_size(r, wall_r, { 32, height });
 
-      {
-        const auto wall_r = create_gameplay(r, EntityType::solid_wall);
-        set_position(wall_r, { width, height / 2.0f });
-        set_size(wall_r, { 32, height });
-      }
+      const auto wall_u = create_gameplay(r, EntityType::solid_wall);
+      set_position(r, wall_u, { width / 2.0f, 0 });
+      set_size(r, wall_u, { width, 32 });
 
-      {
-        const auto wall_u = create_gameplay(r, EntityType::solid_wall);
-        set_position(wall_u, { width / 2.0f, 0 });
-        set_size(wall_u, { width, 32 });
-      }
-
-      {
-        const auto wall_d = create_gameplay(r, EntityType::solid_wall);
-        set_position(wall_d, { width / 2.0f, height });
-        set_size(wall_d, { width, 32 });
-      }
+      const auto wall_d = create_gameplay(r, EntityType::solid_wall);
+      set_position(r, wall_d, { width / 2.0f, height });
+      set_size(r, wall_d, { width, 32 });
     }
+  }
+
+  if (s == Scene::test_scene_gun) {
+
+    const auto player = create_player(r, { 128, 128 });
+    r.emplace<CameraFollow>(player);
+
+    const auto tex_unit = search_for_texture_unit_by_texture_path(ri, "monochrome").value();
+    const auto create_wall_piece = [&r, &tex_unit](const glm::vec2& pos) {
+      const int sprites_for_total_sprite = 5;
+      entt::entity root_entity = entt::null;
+      for (int i = 0; i < sprites_for_total_sprite; i++) {
+        const auto i_as_str = std::to_string(i);
+        entt::entity sprite_e = entt::null;
+        if (i == 0) {
+          sprite_e = create_gameplay(r, EntityType::solid_wall);
+          root_entity = sprite_e;
+          set_position(r, sprite_e, pos);
+        } else
+          sprite_e = create_gameplay(r, EntityType::empty_with_transform);
+        set_sprite_custom(r, sprite_e, "EMPTY", tex_unit.unit);
+        SpritestackComponent spritestack(i);
+        spritestack.spritestack_total = sprites_for_total_sprite;
+        if (i > 0)
+          spritestack.root = root_entity;
+        r.emplace<SpritestackComponent>(sprite_e, spritestack);
+      }
+    };
+
+    // create a spritestack sprite
+
+    // x-walls
+    create_wall_piece({ 64 * 0, 64 * 0 });
+    create_wall_piece({ 64 * 1, 64 * 0 });
+    create_wall_piece({ 64 * 2, 64 * 0 });
+
+    // y-walls
+    create_wall_piece({ 64 * 0, 64 * 0 });
+    create_wall_piece({ 64 * 0, 64 * 1 });
+    create_wall_piece({ 64 * 0, 64 * 2 });
   }
 
   const auto scene_name = std::string(magic_enum::enum_name(s));

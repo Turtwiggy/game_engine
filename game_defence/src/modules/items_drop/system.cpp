@@ -4,6 +4,7 @@
 #include "entt/helpers.hpp"
 #include "maths/maths.hpp"
 #include "modules/actor_enemy/components.hpp"
+#include "modules/actors/helpers.hpp"
 #include "modules/combat_damage/components.hpp"
 #include "modules/items_pickup/components.hpp"
 #include "modules/lerp_to_target/components.hpp"
@@ -113,11 +114,7 @@ update_intent_drop_item_system(entt::registry& r)
     //
     for (const auto& item : request.items) {
       const auto e = create_gameplay(r, r.get<EntityTypeComponent>(item).type);
-      // set aabb
-      if (auto* aabb = r.try_get<AABB>(e))
-        aabb->center = dead_aabb.center;
-      // set transform
-      r.get<TransformComponent>(e).position = glm::ivec3(dead_aabb.center.x, dead_aabb.center.y, 0);
+      set_position(r, e, dead_aabb.center);
     }
     //
     // Check if this entity is holding any item
