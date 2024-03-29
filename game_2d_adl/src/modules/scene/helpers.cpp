@@ -9,6 +9,7 @@
 #include "maths/maths.hpp"
 #include "modules/camera/orthographic.hpp"
 #include "modules/renderer/components.hpp"
+#include "modules/ui_level_editor/components.hpp"
 #include "physics/components.hpp"
 #include "resources/colours.hpp"
 
@@ -28,6 +29,7 @@ move_to_scene_start(entt::registry& r, const Scene s)
   destroy_and_create<SINGLETON_EntityBinComponent>(r);
   destroy_and_create<SINGLETON_GameStateComponent>(r);
   destroy_and_create<SINGLETON_ColoursComponent>(r);
+  destroy_and_create<SINGLETON_LevelEditor>(r);
 
   // HACK: the first and only transform should be the camera
   auto& camera = get_first_component<TransformComponent>(r);

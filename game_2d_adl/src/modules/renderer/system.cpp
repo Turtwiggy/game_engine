@@ -60,18 +60,10 @@ rebind(entt::registry& r, const SINGLETON_RendererInfo& ri)
   camera.projection = calculate_ortho_projection(wh.x, wh.y);
 
   const int tex_unit_kenny = search_for_texture_unit_by_texture_path(ri, "monochrome")->unit;
-  // const int tex_unit_custom = search_for_texture_unit_by_texture_path(ri, "bargame")->unit;
-  // const int tex_unit_particles = search_for_texture_unit_by_texture_path(ri, "particles")->unit;
-  // const int tex_unit_gameicons = search_for_texture_unit_by_texture_path(ri, "gameicons")->unit;
-  // const int tex_unit_car0 = search_for_texture_unit_by_texture_path(ri, "voxel")->unit;
 
   ri.instanced.bind();
   ri.instanced.set_mat4("projection", camera.projection);
   ri.instanced.set_int("tex_kenny", tex_unit_kenny);
-  // ri.instanced.set_int("tex_custom", tex_unit_custom);
-  // ri.instanced.set_int("tex_particles", tex_unit_particles);
-  // ri.instanced.set_int("tex_gameicons", tex_unit_gameicons);
-  // ri.instanced.set_int("tex_voxel", tex_unit_car0);
 
   ri.mix_lighting_and_scene.bind();
   ri.mix_lighting_and_scene.set_mat4("projection", camera.projection);

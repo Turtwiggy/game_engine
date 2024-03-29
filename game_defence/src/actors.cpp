@@ -30,7 +30,6 @@
 #include "sprites/components.hpp"
 #include "sprites/helpers.hpp"
 
-
 #include "magic_enum.hpp"
 
 #include <string>
@@ -149,24 +148,20 @@ create_gameplay(entt::registry& r, const EntityType& type)
     const auto sc = create_sprite(r, sprite_name, type);
     r.emplace<SpriteComponent>(e, sc);
     r.emplace<TransformComponent>(e);
-    auto& transform = r.get<TransformComponent>(e);
-    transform.scale = DEFAULT_SIZE;
+    set_size(r, e, DEFAULT_SIZE);
 
     // Adjust sizes of entities
     switch (type) {
       case EntityType::bullet_default: {
-        transform.scale.x = SMALL_SIZE.x;
-        transform.scale.y = SMALL_SIZE.y;
+        set_size(r, e, SMALL_SIZE);
         break;
       }
       case EntityType::bullet_enemy: {
-        transform.scale.x = SMALL_SIZE.x;
-        transform.scale.y = SMALL_SIZE.y;
+        set_size(r, e, SMALL_SIZE);
         break;
       }
       case EntityType::particle: {
-        transform.scale.x = HALF_SIZE.x;
-        transform.scale.y = HALF_SIZE.y;
+        set_size(r, e, HALF_SIZE);
         break;
       }
       default:

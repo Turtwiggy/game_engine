@@ -4,6 +4,8 @@
 #include "entt/helpers.hpp"
 #include "events/components.hpp"
 #include "lifecycle/components.hpp"
+#include "modules/actor_cursor/components.hpp"
+#include "modules/actors/helpers.hpp"
 #include "modules/camera/orthographic.hpp"
 #include "modules/lighting/components.hpp"
 #include "modules/renderer/components.hpp"
@@ -31,8 +33,14 @@ create_sprite(entt::registry& r, const EntityType& type)
   // else
   // std::cerr << "warning! sprite not implemented: " << type_name << "\n";
 
+  const auto& colours = get_first_component<SINGLETON_ColoursComponent>(r);
+  const auto& primary = colours.lin_primary;
+  const auto& secondary = colours.lin_secondary;
+  const auto& tertiary = colours.lin_tertiary;
+  const auto& quaternary = colours.lin_quaternary;
+
   SpriteComponent sc;
-  // sc.colour = get_lin_colour_by_tag(r, type_name);
+  sc.colour = *primary;
 
   // search spritesheet
   const auto [spritesheet, anim] = find_animation(anims, sprite);
@@ -56,12 +64,12 @@ create_physics_actor(entt::registry& r, const entt::entity& e)
   r.emplace<PhysicsTransformYComponent>(e);
   r.emplace<AABB>(e);
   r.emplace<PhysicsActorComponent>(e);
+  r.emplace<VelocityComponent>(e);
 };
 
 entt::entity
 create_gameplay(entt::registry& r, const EntityType& type)
 {
-  const auto& colours = get_first_component<SINGLETON_ColoursComponent>(r);
 
   const int SPRITE_SIZE = 16;
   const glm::ivec2 DEFAULT_SIZE{ 16, 16 };
@@ -81,15 +89,14 @@ create_gameplay(entt::registry& r, const EntityType& type)
 
   switch (type) {
 
-      //
-      // actors with only one type
-      //
+    case EntityType::actor_cursor: {
+      r.emplace<CursorComponent>(e);
+      create_physics_actor(r, e);
+      break;
+    }
 
     case EntityType::actor_player: {
       create_physics_actor(r, e);
-      // r.emplace<PhysicsSolidComponent>(e);
-      r.emplace<VelocityComponent>(e);
-
       r.emplace<LightEmitterComponent>(e);
 
       break;
@@ -100,9 +107,9 @@ create_gameplay(entt::registry& r, const EntityType& type)
       //
 
     case EntityType::solid_wall: {
-      r.emplace<PhysicsTransformXComponent>(e);
-      r.emplace<PhysicsTransformYComponent>(e);
-      r.emplace<AABB>(e);
+      create_physics_actor(r, e);
+      set_size(r, e, DEFAULT_SIZE);
+
       r.emplace<PhysicsSolidComponent>(e);
       r.emplace<LightOccluderComponent>(e);
       break;

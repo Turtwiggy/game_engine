@@ -14,6 +14,8 @@
 #include "modules/renderer/components.hpp"
 #include "modules/renderer/system.hpp"
 #include "modules/scene/helpers.hpp"
+#include "modules/ui_hierarchy//system.hpp"
+#include "modules/ui_level_editor/system.hpp"
 #include "modules/ui_pause_menu/system.hpp"
 #include "modules/ui_scene_main_menu/system.hpp"
 #include "physics/components.hpp"
@@ -148,8 +150,9 @@ game2d::update(engine::SINGLETON_Application& app, entt::registry& r, const floa
     if (scene.s == Scene::menu)
       update_ui_scene_main_menu(app, r);
     else if (scene.s == Scene::game) {
-      //
+      update_ui_level_editor_system(r, mouse_pos);
     }
+    update_ui_hierarchy_system(r);
     update_ui_pause_menu_system(app, r);
   }
 

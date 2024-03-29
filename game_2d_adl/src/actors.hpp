@@ -18,7 +18,7 @@ enum class EntityType
   // transform-only
   empty,
 
-  // actors with only one type (so far)
+  actor_cursor,
   actor_player,
 
   // solids
