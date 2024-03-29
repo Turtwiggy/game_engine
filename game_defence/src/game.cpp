@@ -6,6 +6,7 @@
 #include "events/components.hpp"
 #include "events/system.hpp"
 #include "game_state.hpp"
+#include "lifecycle/system.hpp"
 #include "modules/actor_bodypart_head/system.hpp"
 #include "modules/actor_bodypart_legs/system.hpp"
 #include "modules/actor_cursor/system.hpp"
@@ -31,7 +32,6 @@
 #include "modules/items_drop/system.hpp"
 #include "modules/items_pickup/system.hpp"
 #include "modules/lerp_to_target/system.hpp"
-#include "modules/lifecycle/system.hpp"
 #include "modules/renderer/components.hpp"
 #include "modules/renderer/system.hpp"
 #include "modules/resolve_collisions/system.hpp"
@@ -227,7 +227,6 @@ game2d::update(engine::SINGLETON_Application& app, entt::registry& r, const floa
   update_input_system(app, r); // sets update_since_last_fixed_update
 
   // After update_input_system
-  //
   const glm::ivec2 mouse_pos = mouse_position_in_worldspace(r);
 
   {

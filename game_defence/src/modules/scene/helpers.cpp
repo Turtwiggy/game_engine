@@ -5,6 +5,7 @@
 #include "audio/helpers.hpp"
 #include "entt/helpers.hpp"
 #include "game_state.hpp"
+#include "lifecycle/components.hpp"
 #include "magic_enum.hpp"
 #include "maths/grid.hpp"
 #include "modules/actor_bodypart_legs/components.hpp"
@@ -19,7 +20,6 @@
 #include "modules/combat_damage/components.hpp"
 #include "modules/gameover/components.hpp"
 #include "modules/lerp_to_target/components.hpp"
-#include "modules/lifecycle/components.hpp"
 #include "modules/renderer/components.hpp"
 #include "modules/renderer/helpers.hpp"
 #include "modules/screenshake/components.hpp"
@@ -35,6 +35,7 @@
 #include "renderer/transform.hpp"
 #include "sprites/helpers.hpp"
 #include <nlohmann/json.hpp>
+
 
 #include <string>
 
@@ -350,7 +351,7 @@ move_to_scene_start(entt::registry& r, const Scene s)
 
     const auto tex_unit = search_for_texture_unit_by_texture_path(ri, "monochrome").value();
     const auto create_wall_piece = [&r, &tex_unit](const glm::vec2& pos) {
-      const int sprites_for_total_sprite = 5;
+      const int sprites_for_total_sprite = 4;
       entt::entity root_entity = entt::null;
       for (int i = 0; i < sprites_for_total_sprite; i++) {
         const auto i_as_str = std::to_string(i);

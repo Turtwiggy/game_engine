@@ -132,7 +132,7 @@ game2d::init_render_system(const engine::SINGLETON_Application& app, entt::regis
 
   glEnable(GL_BLEND);
   glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
-  glBlendFuncSeparate(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA, GL_ONE, GL_ZERO);
+  // glBlendFuncSeparate(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA, GL_ONE, GL_ZERO);
   // glEnable(GL_DEPTH_TEST);
   // glEnable(GL_LINE_SMOOTH);
 
@@ -336,7 +336,6 @@ game2d::update_render_system(entt::registry& r, const float dt, const glm::vec2&
     ri.viewport_focused = vi.focused;
   }
 
-//
 // debug user textures
 //
 #ifdef _DEBUG

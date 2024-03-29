@@ -3,15 +3,16 @@
 #include "components.hpp"
 #include "entt/helpers.hpp"
 #include "events/helpers/mouse.hpp"
+#include "lifecycle/components.hpp"
 #include "maths/grid.hpp"
 #include "modules/actor_enemy/components.hpp"
 #include "modules/combat_damage/components.hpp"
 #include "modules/grid/components.hpp"
-#include "modules/lifecycle/components.hpp"
 #include "modules/renderer/components.hpp"
 #include "modules/ux_hoverable/components.hpp"
 #include "physics/components.hpp"
 #include "sprites/helpers.hpp"
+
 
 namespace game2d {
 

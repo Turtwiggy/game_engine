@@ -2,14 +2,15 @@
 
 #include "components.hpp"
 #include "entt/helpers.hpp"
+#include "lifecycle/components.hpp"
 #include "maths/maths.hpp"
 #include "modules/actor_enemy/components.hpp"
 #include "modules/actors/helpers.hpp"
 #include "modules/combat_damage/components.hpp"
 #include "modules/items_pickup/components.hpp"
 #include "modules/lerp_to_target/components.hpp"
-#include "modules/lifecycle/components.hpp"
 #include "physics/components.hpp"
+
 
 #include "imgui.h"
 

@@ -5,9 +5,10 @@
 #include "entt/helpers.hpp"
 #include "events/components.hpp"
 #include "events/helpers/keyboard.hpp"
+#include "lifecycle/components.hpp"
 #include "modules/actor_player/components.hpp"
-#include "modules/lifecycle/components.hpp"
 #include "renderer/transform.hpp"
+
 
 namespace game2d {
 

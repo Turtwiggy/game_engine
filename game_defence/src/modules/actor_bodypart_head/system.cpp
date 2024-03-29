@@ -3,9 +3,10 @@
 #include "components.hpp"
 
 #include "imgui/helpers.hpp"
+#include "lifecycle/components.hpp"
 #include "maths/maths.hpp"
-#include "modules/lifecycle/components.hpp"
 #include "physics/components.hpp"
+
 
 #include "imgui.h"
 #include "renderer/transform.hpp"

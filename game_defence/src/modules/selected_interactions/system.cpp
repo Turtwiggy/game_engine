@@ -6,12 +6,13 @@
 #include "events/helpers/keyboard.hpp"
 #include "events/helpers/mouse.hpp"
 #include "helpers/line.hpp"
+#include "lifecycle/components.hpp"
 #include "modules/actor_cursor/components.hpp"
 #include "modules/actor_player/components.hpp"
 #include "modules/combat_wants_to_shoot/components.hpp"
-#include "modules/lifecycle/components.hpp"
 #include "physics/components.hpp"
 #include "renderer/transform.hpp"
+
 
 #include <imgui.h>
 

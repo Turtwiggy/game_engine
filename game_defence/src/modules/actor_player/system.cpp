@@ -9,6 +9,7 @@
 #include "events/helpers/fixed_update.hpp"
 #include "events/helpers/mouse.hpp"
 #include "helpers/line.hpp"
+#include "lifecycle/components.hpp"
 #include "maths/maths.hpp"
 #include "modules/actor_cursor/components.hpp"
 #include "modules/actor_group/components.hpp"
@@ -17,11 +18,11 @@
 #include "modules/combat_wants_to_shoot/components.hpp"
 #include "modules/items_drop/components.hpp"
 #include "modules/items_pickup/components.hpp"
-#include "modules/lifecycle/components.hpp"
 #include "modules/renderer/components.hpp"
 #include "physics/components.hpp"
 #include "renderer/transform.hpp"
 #include "sprites/components.hpp"
+
 
 #include <SDL2/SDL_keyboard.h>
 #include <SDL2/SDL_mouse.h>

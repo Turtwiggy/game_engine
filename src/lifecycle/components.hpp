@@ -1,15 +1,8 @@
 #pragma once
 
-#include "actors.hpp"
-#include "modules/renderer/components.hpp"
-
 #include "entt/entt.hpp"
-#include "glm/glm.hpp"
 
-#include <optional>
-#include <string>
 #include <unordered_set>
-#include <vector>
 
 namespace game2d {
 

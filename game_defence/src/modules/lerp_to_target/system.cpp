@@ -2,12 +2,13 @@
 
 #include "components.hpp"
 #include "entt/helpers.hpp"
+#include "lifecycle/components.hpp"
 #include "maths/grid.hpp"
 #include "maths/maths.hpp"
 #include "modules/ai_pathfinding/components.hpp"
-#include "modules/lifecycle/components.hpp"
 #include "modules/selected_interactions/components.hpp"
 #include "physics/components.hpp"
+
 
 #include "imgui.h" // hack
 // #include <glm/gtx/compatibility.hpp> // lerp

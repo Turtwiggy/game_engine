@@ -2,11 +2,12 @@
 
 #include "actors.hpp"
 #include "components.hpp"
+#include "lifecycle/components.hpp"
 #include "modules/actor_player/components.hpp"
 #include "modules/combat_attack_cooldown/components.hpp"
 #include "modules/combat_attack_cooldown/helpers.hpp"
-#include "modules/lifecycle/components.hpp"
 #include "physics/components.hpp"
+
 
 namespace game2d {
 

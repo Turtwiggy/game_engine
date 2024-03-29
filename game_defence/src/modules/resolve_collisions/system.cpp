@@ -2,18 +2,19 @@
 
 #include "actors.hpp"
 #include "entt/helpers.hpp"
+#include "lifecycle/components.hpp"
 #include "maths/maths.hpp"
 #include "modules/actor_enemy/components.hpp"
 #include "modules/actor_particle/components.hpp"
 #include "modules/actor_weapon_shotgun/components.hpp"
 #include "modules/combat_damage/components.hpp"
 #include "modules/combat_wants_to_shoot/components.hpp"
-#include "modules/lifecycle/components.hpp"
 #include "modules/renderer/helpers.hpp"
 #include "modules/resolve_collisions/helpers.hpp"
 #include "physics/components.hpp"
 #include "renderer/transform.hpp"
 #include "sprites/components.hpp"
+
 
 namespace game2d {
 

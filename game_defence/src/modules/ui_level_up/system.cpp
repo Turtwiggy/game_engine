@@ -3,15 +3,16 @@
 #include "actors.hpp"
 #include "components.hpp"
 #include "entt/helpers.hpp"
+#include "lifecycle/components.hpp"
 #include "modules/actor_player/components.hpp"
 #include "modules/actor_weapon_shotgun/components.hpp"
 #include "modules/combat_attack_cooldown/components.hpp"
 #include "modules/combat_damage/components.hpp"
 #include "modules/items_pickup/components.hpp"
-#include "modules/lifecycle/components.hpp"
 #include "modules/renderer/components.hpp"
 #include "modules/scene/helpers.hpp"
 #include "physics/components.hpp"
+
 
 #include "imgui.h"
 

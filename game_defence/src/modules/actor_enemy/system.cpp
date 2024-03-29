@@ -2,6 +2,7 @@
 
 #include "entt/helpers.hpp"
 #include "helpers/line.hpp"
+#include "lifecycle/components.hpp"
 #include "maths/maths.hpp"
 #include "modules/actor_enemy/components.hpp"
 #include "modules/actor_player/components.hpp"
@@ -9,9 +10,9 @@
 #include "modules/combat_damage/components.hpp"
 #include "modules/combat_wants_to_shoot/components.hpp"
 #include "modules/lerp_to_target/components.hpp"
-#include "modules/lifecycle/components.hpp"
 #include "physics/components.hpp"
 #include "renderer/transform.hpp"
+
 
 #include <glm/glm.hpp>
 #include <glm/gtx/compatibility.hpp> // lerp

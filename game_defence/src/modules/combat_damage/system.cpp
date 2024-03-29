@@ -3,17 +3,18 @@
 #include "audio/components.hpp"
 #include "components.hpp"
 #include "entt/helpers.hpp"
+#include "lifecycle/components.hpp"
 #include "maths/maths.hpp"
 #include "modules/actor_player/components.hpp"
 #include "modules/actors/helpers.hpp"
 #include "modules/combat_flash_on_damage/components.hpp"
 #include "modules/combat_flash_on_damage/helpers.hpp"
 #include "modules/combat_powerup_doubledamage/components.hpp"
-#include "modules/lifecycle/components.hpp"
 #include "modules/screenshake/components.hpp"
 #include "modules/ui_colours/helpers.hpp"
 #include "physics/components.hpp"
 #include "sprites/helpers.hpp"
+
 
 namespace game2d {
 

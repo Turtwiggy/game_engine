@@ -3,12 +3,12 @@
 
 // components
 #include "entt/helpers.hpp"
+#include "lifecycle/components.hpp"
 #include "maths/maths.hpp"
 #include "physics/components.hpp"
 #include "physics/helpers.hpp"
 #include "renderer/transform.hpp"
 
-#include "modules/lifecycle/components.hpp"
 
 #include "optick.h"
 

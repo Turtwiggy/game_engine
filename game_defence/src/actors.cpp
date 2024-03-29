@@ -2,6 +2,7 @@
 
 #include "colour/colour.hpp"
 #include "entt/helpers.hpp"
+#include "lifecycle/components.hpp"
 #include "modules/actor_bodypart_head/components.hpp"
 #include "modules/actor_bodypart_legs/components.hpp"
 #include "modules/actor_cursor/components.hpp"
@@ -20,7 +21,6 @@
 #include "modules/items_drop/components.hpp"
 #include "modules/items_pickup/components.hpp"
 #include "modules/lerp_to_target/components.hpp"
-#include "modules/lifecycle/components.hpp"
 #include "modules/renderer/components.hpp"
 #include "modules/renderer/helpers.hpp"
 #include "modules/ui_colours/helpers.hpp"
@@ -29,6 +29,7 @@
 #include "renderer/transform.hpp"
 #include "sprites/components.hpp"
 #include "sprites/helpers.hpp"
+
 
 #include "magic_enum.hpp"
 

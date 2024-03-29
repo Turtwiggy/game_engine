@@ -1,7 +1,7 @@
 #include "system.hpp"
 
 #include "components.hpp"
-#include "modules/lifecycle/components.hpp"
+#include "lifecycle/components.hpp"
 #include "renderer/transform.hpp"
 
 #include <glm/gtx/compatibility.hpp> // lerp
