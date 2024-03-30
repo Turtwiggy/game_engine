@@ -150,7 +150,6 @@ create_gameplay(entt::registry& r, const EntityType& type)
     r.emplace<TransformComponent>(e);
     set_size(r, e, DEFAULT_SIZE);
 
-    // Adjust sizes of entities
     switch (type) {
       case EntityType::bullet_default: {
         set_size(r, e, SMALL_SIZE);
@@ -164,8 +163,6 @@ create_gameplay(entt::registry& r, const EntityType& type)
         set_size(r, e, HALF_SIZE);
         break;
       }
-      default:
-        transform.scale = DEFAULT_SIZE;
     }
   }
 

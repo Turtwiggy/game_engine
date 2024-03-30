@@ -98,18 +98,12 @@ create_gameplay(entt::registry& r, const EntityType& type)
     case EntityType::actor_player: {
       create_physics_actor(r, e);
       r.emplace<LightEmitterComponent>(e);
-
       break;
     }
-
-      //
-      // solids
-      //
 
     case EntityType::solid_wall: {
       create_physics_actor(r, e);
       set_size(r, e, DEFAULT_SIZE);
-
       r.emplace<PhysicsSolidComponent>(e);
       r.emplace<LightOccluderComponent>(e);
       break;
