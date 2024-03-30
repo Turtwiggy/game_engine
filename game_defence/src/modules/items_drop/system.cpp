@@ -1,5 +1,6 @@
 #include "system.hpp"
 
+#include "actors.hpp"
 #include "components.hpp"
 #include "entt/helpers.hpp"
 #include "lifecycle/components.hpp"
@@ -10,11 +11,11 @@
 #include "modules/items_pickup/components.hpp"
 #include "modules/lerp_to_target/components.hpp"
 #include "physics/components.hpp"
+#include "renderer/transform.hpp"
 
-
-#include "imgui.h"
 
 #include <utility>
+#include <vector>
 
 namespace game2d {
 

@@ -153,7 +153,7 @@ game2d::update_render_system(entt::registry& r, const float dt)
   const auto& camera = r.get<OrthographicCamera>(camera_e);
   const auto& camera_t = r.get<TransformComponent>(camera_e);
   ri.instanced.bind();
-  // ri.instanced.set_mat4("view", camera.view);
+  ri.instanced.set_mat4("view", camera.view);
 
   // DEBUG A SHADER...
   const auto& input = get_first_component<SINGLETON_InputComponent>(r);
@@ -168,7 +168,6 @@ game2d::update_render_system(entt::registry& r, const float dt)
     // ri.lighting.set_float("time", time);
   }
   ri.lighting.bind();
-  ri.lighting.set_mat4("projection", camera.projection);
   ri.lighting.set_mat4("view", camera.view);
   ri.lighting.set_vec2("viewport_wh", viewport_wh);
 
@@ -200,6 +199,14 @@ game2d::update_render_system(entt::registry& r, const float dt)
     // clang-format on
   };
 
+  // make a flashing light
+  static float time = 0.0f;
+  time += dt;
+  emissive[12].r = 0.0f + sin(time);
+  emissive[12].r = glm::abs(emissive[12].r);
+  emissive[12].r = fmod(emissive[12].r, 1.0f); // clamp between 0 and 1
+  emissive[12].r = glm::clamp(emissive[12].r, 0.0f, 1.0f);
+
   const int lines = points.size() / 2;
   ri.lighting.set_int("active_lines", lines);
 
@@ -217,9 +224,11 @@ game2d::update_render_system(entt::registry& r, const float dt)
     const std::string b = "points["s + b_idx_str + "].p"s;
     // const std::string b_e = "points["s + b_idx_str + "].emissiveColor"s;
 
+    ImGui::Separator();
+    ImGui::Text("%i", i);
     imgui_draw_vec2("pA##"s + a_idx_str, points[a_idx], 0.1f);
+    imgui_draw_vec3("pAE##"s + a_idx_str, emissive[e_idx]);
     imgui_draw_vec2("pB##"s + b_idx_str, points[b_idx], 0.1f);
-
     ri.lighting.set_vec2(a, points[a_idx]);
     ri.lighting.set_vec3(a_e, emissive[e_idx]); // set emissive for a
     ri.lighting.set_vec2(b, points[b_idx]);
@@ -276,7 +285,6 @@ game2d::update_render_system(entt::registry& r, const float dt)
   }
 
   // FBO: lighting
-  // Use the emitters / occluders to setup the voronoi seed texture.
   {
     Framebuffer::bind_fbo(ri.fbo_lighting);
     RenderCommand::set_viewport(0, 0, viewport_wh.x, viewport_wh.y);

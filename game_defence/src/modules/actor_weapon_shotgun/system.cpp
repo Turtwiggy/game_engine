@@ -10,7 +10,7 @@
 #include "modules/combat_wants_to_shoot/components.hpp"
 #include "modules/lerp_to_target/components.hpp"
 #include "physics/components.hpp"
-
+#include "renderer/transform.hpp"
 
 namespace game2d {
 

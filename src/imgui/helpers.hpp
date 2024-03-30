@@ -44,6 +44,8 @@ void
 imgui_draw_ivec2(const std::string& label, int& x, int& y);
 
 void
+imgui_draw_vec3(const std::string& label, glm::vec3& xyz);
+void
 imgui_draw_vec3(const std::string& label, float& x, float& y, float& z);
 
 void

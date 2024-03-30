@@ -149,8 +149,6 @@ main()
         segments[i].p1 = (points[2 * i + 1].p.xy * viewport_wh.xy) - fragCoord;
         segments[i].emissiveColor = points[2 * i + 0].emissiveColor; // on point a
     }
-    // segments[10].emissiveColor = vec3(0.0, 0.1, 0.3);
-    // segments[11].emissiveColor = vec3(0.1, 0.6, 0.9);
 
   sortAngles();
   const vec3 fluence = calculateFluence();

@@ -3,6 +3,7 @@
 #include "actors.hpp"
 #include "lifecycle/components.hpp"
 #include "modules/actor_cursor/components.hpp"
+#include "modules/renderer/components.hpp"
 #include "modules/scene/helpers.hpp"
 
 // #include "serialize.hpp"

@@ -5,9 +5,10 @@
 #include "entt/helpers.hpp"
 #include "lifecycle/components.hpp"
 #include "modules/actor_player/components.hpp"
+#include "modules/renderer/components.hpp"
 #include "modules/ui_worldspace_text/components.hpp"
 #include "physics/components.hpp"
-
+#include "renderer/transform.hpp"
 
 #include <algorithm>
 

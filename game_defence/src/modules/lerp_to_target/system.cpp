@@ -8,7 +8,7 @@
 #include "modules/ai_pathfinding/components.hpp"
 #include "modules/selected_interactions/components.hpp"
 #include "physics/components.hpp"
-
+#include "renderer/transform.hpp"
 
 #include "imgui.h" // hack
 // #include <glm/gtx/compatibility.hpp> // lerp

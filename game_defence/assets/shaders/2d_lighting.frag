@@ -13,8 +13,8 @@ uniform sampler2D tex;
 void
 main()
 {
-  // out_colour = vec4(v_uv.x, v_uv.y, 0.0, 1.0);
-  out_colour = v_colour;
+  out_colour = vec4(v_uv.x, v_uv.y, 0.0, 1.0);
+  // out_colour = v_colour;
 
   // // Sample texture directly
   // if (v_sprite_pos.x == 0.0f && v_sprite_pos.y == 0.0f) { // a whole texture

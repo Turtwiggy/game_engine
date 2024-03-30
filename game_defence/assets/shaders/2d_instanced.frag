@@ -33,19 +33,19 @@ main()
 
     // index set on cpu side...
     // WARNING: seems bad
-    if(index == 2){
+    if(index == 3){
       out_colour *= texture(tex_kenny, sprite_uv);
-    }else if(index == 3){
-      out_colour *= texture(tex_custom, sprite_uv);
     }else if(index == 4){
+      out_colour *= texture(tex_custom, sprite_uv);
+    }else if(index == 5){
       out_colour *= texture(tex_particles, sprite_uv);
       return; // texture uses 0, 0
     }
-    else if(index == 5){
+    else if(index == 6){
       out_colour *= texture(tex_gameicons, sprite_uv);
       return; // texture uses 0, 0
     }
-    else if(index == 6){
+    else if(index == 7){
       out_colour *= texture(tex_voxel, sprite_uv);
       return; // texture uses 0, 0
     }
