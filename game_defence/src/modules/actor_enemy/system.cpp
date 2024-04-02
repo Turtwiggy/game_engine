@@ -13,7 +13,6 @@
 #include "physics/components.hpp"
 #include "renderer/transform.hpp"
 
-
 #include <glm/glm.hpp>
 #include <glm/gtx/compatibility.hpp> // lerp
 
@@ -22,51 +21,49 @@ namespace game2d {
 void
 update_enemy_system(entt::registry& r, const float dt)
 {
-  // Note: this should be closest target
-  const auto& first_target = get_first<PlayerComponent>(r);
-  if (first_target == entt::null)
-    return;
-  const auto& first_target_transform = r.get<const TransformComponent>(first_target);
-
-  const auto& view = r.view<EnemyComponent, HasTargetPositionComponent, TransformComponent, VelocityComponent, AABB>(
-    entt::exclude<WaitForInitComponent>);
-
   //
   // Update enemies to preferred velocity.
   //
   // note: this should probably take in to account
   // pathfinding, such as using AStar to calculate the next step
   //
+
+  const auto& view = r.view<EnemyComponent, HasTargetPositionComponent, TransformComponent, VelocityComponent, AABB>(
+    entt::exclude<WaitForInitComponent>);
+
   for (const auto& [e, enemy, target_position, enemy_t, vel, aabb] : view.each()) {
 
-    // Set Target to player
-    auto& targeting = r.get_or_emplace<DynamicTargetComponent>(e);
-    targeting.target = first_target;
-    target_position.position = first_target_transform.position;
+    // if you have a target, set that as your position
+    if (const auto* targeting = r.try_get<DynamicTargetComponent>(e)) {
+      bool target_valid = r.valid(targeting->target);
+      target_valid &= targeting->target != entt::null;
+      if (target_valid)
+        target_position.position = r.get<TransformComponent>(targeting->target).position;
+      else {
+        // target died or became invalid. Hold your position.
+        target_position.position = aabb.center;
+      }
+    } else {
+      // no dynamic target
+      auto& new_target = r.emplace<DynamicTargetComponent>(e);
+      // Note: this should be closest target
+      const auto& first_target = get_first<PlayerComponent>(r);
+      if (first_target == entt::null)
+        continue;
+      new_target.target = first_target;
+      target_position.position = r.get<TransformComponent>(new_target.target).position;
+    }
 
     // in this case, the preferred velocity is a vector in the direction of the goal
     const glm::ivec2 a = { aabb.center.x, aabb.center.y };
     const glm::ivec2 b = target_position.position;
-
-    const glm::vec2 raw_v = b - a;
-    const glm::vec2 nrm_v = engine::normalize_safe(raw_v);
-
-    // vel.preferred_x = desired_v.x * vel.base_speed;
-    // vel.preferred_y = desired_v.y * vel.base_speed;
-    // vel.x = vel.preferred_x;
-    // vel.y = vel.preferred_y;
+    const glm::vec2 nrm_v = engine::normalize_safe(b - a);
     vel.x = nrm_v.x * vel.base_speed;
     vel.y = nrm_v.y * vel.base_speed;
 
-    // }
-    //
-    // Update AI Actions
-    //
-    // for (const auto& [e, enemy, target_position, enemy_t, vel, aabb] : view.each()) {
-
     // Calculate distance
-    const auto& other_pos = r.get<TransformComponent>(first_target);
-    const glm::vec3 dir_raw = other_pos.position - enemy_t.position;
+    const auto tgt_as_vec3 = glm::vec3(target_position.position.x, target_position.position.y, 0.0f);
+    const glm::vec3 dir_raw = tgt_as_vec3 - glm::vec3(enemy_t.position);
     const glm::vec2 dir_nrm = engine::normalize_safe({ dir_raw.x, dir_raw.y });
     const int d2 = dir_raw.x * dir_raw.x + dir_raw.y * dir_raw.y;
 

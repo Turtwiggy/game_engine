@@ -13,12 +13,16 @@
     {
       "r": 50, "g": 130, "b": 184,
       "name": "pal_player_1",
-      "tags": [ "weapon_shotgun" ]
+      "tags": [
+        "weapon_shotgun"
+      ]
     },
     {
       "r": 187, "g": 225, "b": 250,
       "name": "pal_player_2",
-      "tags": [ ]
+      "tags": [
+        "actor_barricade"
+      ]
     },
     {
       "r": 234, "g": 84, "b": 85,
@@ -78,14 +82,13 @@
         "bullet_default",
         "particle",
         "actor_spawner",
-        "actor_unitgroup",
-        "solid_wall"
+        "actor_unitgroup"
       ]
     },
     {
       "r": 68, "g": 119, "b": 206,
       "name": "blue",
-      "tags": [ ]
+      "tags": [ "solid_wall" ]
     },
     {
       "r": 253, "g": 141, "b": 20,

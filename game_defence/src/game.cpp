@@ -212,6 +212,11 @@ game2d::fixed_update(engine::SINGLETON_Application& app, entt::registry& game, c
   {
     OPTICK_EVENT("fixed-game-tick");
     update_resolve_collisions_system(game);
+
+    // put immediately after collisions,
+    // otherwise the DealDamageRequest the entity removed
+    update_take_damage_system(game);
+
     update_player_controller_system(game, milliseconds_dt); // input => actions
   }
 
@@ -274,7 +279,6 @@ game2d::update(engine::SINGLETON_Application& app, entt::registry& r, const floa
       //
       // combat
       update_attack_cooldown_system(r, milliseconds_dt);
-      update_take_damage_system(r);
       update_weapon_shotgun_system(r, milliseconds_dt);
       update_flash_sprite_system(r, milliseconds_dt);
       update_enemy_system(r, dt);
@@ -320,7 +324,7 @@ game2d::update(engine::SINGLETON_Application& app, entt::registry& r, const floa
     // todo: put in to a settings menu
     static bool show_settings_ui = false;
     if (show_settings_ui) {
-      // update_ui_audio_system(r);
+      update_ui_audio_system(r);
       update_ui_controller_system(r);
     }
 

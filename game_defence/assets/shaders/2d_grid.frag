@@ -9,7 +9,6 @@ in vec2 v_sprite_wh;  // desired sprites e.g. 2, 2
 in vec2 v_sprite_max; // 22 sprites
 in float v_tex_unit;
 
-uniform float time;
 uniform vec2 viewport_wh;
 uniform vec2 camera_pos;
 

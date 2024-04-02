@@ -13,6 +13,7 @@ out vec2 v_sprite_pos;
 out vec2 v_sprite_wh;
 out vec2 v_sprite_max;
 out float v_tex_unit;
+out vec2 v_vertex;
 
 uniform mat4 view;
 uniform mat4 projection;
@@ -23,13 +24,13 @@ uniform float strength;
 void
 main()
 {
-  // FragPos = vec3(model * vec4(vertex.xy, 0.0, 1.0));
   v_uv = vertex.zw;
   v_colour = colour;
   v_sprite_pos = sprite_pos.xy;
   v_sprite_wh = sprite_width_and_max.xy;
   v_sprite_max = sprite_width_and_max.zw;
   v_tex_unit = tex_unit;
+  v_vertex = vec4( model * vec4(vertex.xy, 1.0, 1.0)).xy;
 
   gl_Position = projection * view * model * vec4(vertex.xy, 0.0, 1.0);
 

@@ -4,6 +4,7 @@
 #include "components.hpp"
 #include "lifecycle/components.hpp"
 #include "modules/actor_player/components.hpp"
+#include "modules/actors/helpers.hpp"
 #include "modules/combat_attack_cooldown/components.hpp"
 #include "modules/combat_attack_cooldown/helpers.hpp"
 #include "physics/components.hpp"
@@ -48,12 +49,11 @@ update_spawner_system(entt::registry& r, const uint64_t milliseconds_dt)
 
     if (spawner.continuous_spawn) {
 
-      // TODO: replace
+      // TODO: replace to spawn with multiple types
       const auto& first_type = spawner.types_to_spawn[0];
 
       const auto e = create_gameplay(r, first_type);
-      r.get<AABB>(e).center = aabb.center;
-      r.get<TransformComponent>(e).position = transform.position;
+      set_position(r, e, aabb.center);
 
       reset_cooldown(cooldown);
     }

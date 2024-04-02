@@ -23,6 +23,7 @@ enum class EntityType
   actor_player,
   actor_spawner,
   actor_turret,
+  actor_barricade,
 
   // in progress
   actor_player_ally,

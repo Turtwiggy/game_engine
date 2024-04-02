@@ -6,6 +6,7 @@
 
 // other lib headers
 #include <GL/glew.h>
+#include <glm/gtc/matrix_transform.hpp>
 
 namespace engine {
 
@@ -23,11 +24,11 @@ TriangleFanRenderer::add_point_to_fan(const glm::ivec2 point, Shader& s)
   }
 
   glm::mat4 model = glm::mat4(1.0f);
-  // model = glm::translate(model, glm::vec3(glm::vec2(worldspace_pos.x, worldspace_pos.y), 0.0f));
-  // model = glm::translate(model, glm::vec3(0.5f * go.render_size.x, 0.5f * go.render_size.y, 0.0f));
-  // model = glm::rotate(model, go.angle_radians, glm::vec3(0.0f, 0.0f, 1.0f));
-  // model = glm::translate(model, glm::vec3(-0.5f * go.render_size.x, -0.5f * go.render_size.y, 0.0f));
-  // model = glm::scale(model, glm::vec3(go.render_size, 1.0f));
+  // model = glm::translate(model, glm::vec3(point.x, point.y, 0.0f));
+  // model = glm::translate(model, glm::vec3(0.5f * size.x, 0.5f * size.y, 0.0f));
+  // model = glm::rotate(model, angle, glm::vec3(0.0f, 0.0f, 1.0f));
+  // model = glm::translate(model, glm::vec3(-0.5f * size.x, -0.5f * size.y, 0.0f));
+  // model = glm::scale(model, glm::vec3(size, 1.0f));
 
   data.buffer_ptr->pos = { point.x, point.y, 0.0f, 0.0f };
   data.buffer_ptr->model = model;

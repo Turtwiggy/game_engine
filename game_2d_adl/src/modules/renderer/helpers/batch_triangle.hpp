@@ -48,22 +48,6 @@ struct ITriangleRenderable
 class TriangleRenderer
 {
 public:
-  inline static std::vector<std::unique_ptr<ITriangleRenderable>> interfaces;
-
-public:
-  // Note: I'm not sure how to move this template function
-  // to the cpp file, as I was getting link errors.
-  // have put as inline for the moment :/
-  template<class T>
-  inline static void register_interface()
-  {
-    std::cout << "(BatchTriangle) Registering interface..."
-              << "\n";
-    std::unique_ptr p = std::make_unique<T>();
-    interfaces.push_back(std::move(p));
-  }
-
-public:
   static void init();
   static void shutdown();
 

@@ -16,11 +16,11 @@ static RenderData<Vertex> data;
 void
 TriangleFanRenderer::add_point_to_fan(const glm::ivec2 point, Shader& s)
 {
-  if (data.index_count >= max_quad_index_count) {
-    end_batch();
-    flush(s);
-    begin_batch();
-  }
+  // if (data.index_count >= max_quad_index_count) {
+  //   end_batch();
+  //   flush(s);
+  //   begin_batch();
+  // }
 
   glm::mat4 model = glm::mat4(1.0f);
   // model = glm::translate(model, glm::vec3(glm::vec2(worldspace_pos.x, worldspace_pos.y), 0.0f));

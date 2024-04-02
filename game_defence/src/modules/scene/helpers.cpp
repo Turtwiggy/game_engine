@@ -36,7 +36,6 @@
 #include "sprites/helpers.hpp"
 #include <nlohmann/json.hpp>
 
-
 #include <string>
 
 namespace game2d {
@@ -185,7 +184,7 @@ move_to_scene_start(entt::registry& r, const Scene s)
     r.get<SpriteComponent>(cursor).colour.a = 0.1f;
 
     // create background effect
-    r.emplace<Effect_GridComponent>(r.create());
+    // r.emplace<Effect_GridComponent>(r.create());
 
     // create a hostile dummy
     // {
@@ -221,7 +220,6 @@ move_to_scene_start(entt::registry& r, const Scene s)
     // out of which is considered out of bounds
     const int width = 1024;
     const int height = 1024;
-    const int poisson_space_for_spawners = 250;
 
     // set camera
     const auto& camera = get_first<OrthographicCamera>(r);
@@ -287,9 +285,13 @@ move_to_scene_start(entt::registry& r, const Scene s)
 
     // Generate "seed points" for bases
     bool seed_spawners = true;
+    MapComponent spawners;
     if (seed_spawners) {
       const auto& map = get_first_component<MapComponent>(r);
+      spawners.map.resize((map.map.size()));
+
       const int seed = 0;
+      const int poisson_space_for_spawners = 250;
       const int distance_between_points = poisson_space_for_spawners;
       const auto poisson = generate_poisson(width, height, distance_between_points, seed);
       std::cout << "generated " << poisson.size() << " poisson points for bases" << std::endl;
@@ -298,8 +300,8 @@ move_to_scene_start(entt::registry& r, const Scene s)
         // check if gridspace is in a wall...
         const auto poisson_point_gridspace = engine::grid::world_space_to_grid_space(p, map.tilesize);
         const auto poisson_point_idx = engine::grid::grid_position_to_index(poisson_point_gridspace, map.xmax);
-        const auto map_entity = map.map[poisson_point_idx];
-        const auto first_map_entity = map_entity[0];
+        const auto& map_entity = map.map[poisson_point_idx];
+        const auto& first_map_entity = map_entity[0];
         if (first_map_entity != entt::null && r.get<PathfindComponent>(first_map_entity).cost == -1) {
           // do not spawn on this point... its blocked
           std::cout << "not spawning spawnpoint on blocked gridspace" << std::endl;
@@ -321,23 +323,63 @@ move_to_scene_start(entt::registry& r, const Scene s)
         auto& spawner = r.get<SpawnerComponent>(e);
         spawner.types_to_spawn.push_back(EntityType::enemy_grunt);
         spawner.types_to_spawn.push_back(EntityType::enemy_ranged);
+
+        // Create a spawner map, just so e.g. "barricades" dont spawn in the same place
+        spawners.map[poisson_point_idx].push_back(e);
+      }
+    }
+
+    // Generate "seed points" for bases
+    bool seed_barricades = true;
+    if (seed_barricades) {
+      const auto& map = get_first_component<MapComponent>(r);
+      const int seed = 1;
+      const int poisson_space_for_barricades = 200;
+      const int distance_between_points = poisson_space_for_barricades;
+      const auto poisson = generate_poisson(width, height, distance_between_points, seed);
+      std::cout << "generated " << poisson.size() << " poisson points for bases" << std::endl;
+      for (const auto& p : poisson) {
+
+        // check if map gridspace is full with wall...
+        const auto poisson_point_gridspace = engine::grid::world_space_to_grid_space(p, map.tilesize);
+        const auto poisson_point_idx = engine::grid::grid_position_to_index(poisson_point_gridspace, map.xmax);
+        const auto& map_entity = map.map[poisson_point_idx];
+        const auto& first_map_entity = map_entity[0];
+        if (first_map_entity != entt::null && r.get<PathfindComponent>(first_map_entity).cost == -1) {
+          std::cout << "not spawning barricade on blocked gridspace" << std::endl;
+          continue;
+        }
+
+        // check if map gridspace is full with spawner...
+        const auto& map_entity_spawner = spawners.map[poisson_point_idx];
+        if (map_entity_spawner.size() > 0)
+          continue;
+
+        // create at these positions
+        const auto e = create_gameplay(r, EntityType::actor_barricade);
+        auto& e_aabb = r.get<AABB>(e);
+        e_aabb.size = { 64, 64 };
+
+        // make sure seed points are clamped to grid space
+        auto poisson_point_clamped = engine::grid::grid_space_to_world_space(poisson_point_gridspace, map.tilesize);
+        poisson_point_clamped.x += map.tilesize / 2.0f; // center, not top left
+        poisson_point_clamped.y += map.tilesize / 2.0f; // center, not top left
+        e_aabb.center = { poisson_point_clamped.x, poisson_point_clamped.y };
       }
     }
 
     // Create 4 edges to the map
-    {
+    bool create_edges = false;
+    if (create_edges) {
       const auto wall_l = create_gameplay(r, EntityType::solid_wall);
       set_position(r, wall_l, { 0, height / 2.0f });
       set_size(r, wall_l, { 32, height });
-
       const auto wall_r = create_gameplay(r, EntityType::solid_wall);
       set_position(r, wall_r, { width, height / 2.0f });
       set_size(r, wall_r, { 32, height });
-
       const auto wall_u = create_gameplay(r, EntityType::solid_wall);
       set_position(r, wall_u, { width / 2.0f, 0 });
       set_size(r, wall_u, { width, 32 });
-
       const auto wall_d = create_gameplay(r, EntityType::solid_wall);
       set_position(r, wall_d, { width / 2.0f, height });
       set_size(r, wall_d, { width, 32 });

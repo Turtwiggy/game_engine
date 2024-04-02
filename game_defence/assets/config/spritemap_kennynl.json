@@ -79,7 +79,8 @@
     { "name": "SHIELD_2_2", "frames": [ { "x": 39, "y": 4 } ] },
     { "name": "SHIELD_3_2", "frames": [ { "x": 40, "y": 4 } ] },
 
-    { "name": "WALL_BIG", "frames": [ { "x": 2, "y": 3 } ] },
+    { "name": "WOOD_WALL_SMALL", "frames": [ { "x": 2, "y": 3 } ] },
+    { "name": "WOOD_WALL_BIG", "frames": [ { "x": 2, "y": 3 } ] },
 
     { "name": "DART_35_5", "frames": [ { "x": 35, "y": 5 } ], "angle": -45.0 },
     { "name": "HOOK_36_5", "frames": [ { "x": 36, "y": 5 } ] },

@@ -15,8 +15,19 @@
 #include "renderer/transform.hpp"
 #include "sprites/components.hpp"
 
-
 namespace game2d {
+
+void
+enemy_barricade_collision(entt::registry& r, const entt::entity& a, const entt::entity& b)
+{
+  const auto [a_ent_enemy, b_ent_other] = collision_of_interest<const EnemyComponent, const EntityTypeComponent>(r, a, b);
+  if (a_ent_enemy != entt::null && b_ent_other != entt::null) {
+    // If an enemy collides with a barricade, set that as the new target
+    const auto& b_type = r.get<EntityTypeComponent>(b_ent_other).type;
+    if (b_type == EntityType::actor_barricade)
+      r.get<DynamicTargetComponent>(a_ent_enemy).target = b_ent_other;
+  }
+}
 
 void
 update_resolve_collisions_system(entt::registry& r)
@@ -62,30 +73,8 @@ update_resolve_collisions_system(entt::registry& r)
       const entt::entity to = a;
       r.emplace<DealDamageRequest>(r.create(), from, to);
     }
-  }
 
-  for (const auto& coll : physics.collision_stay) {
-
-    const auto a = static_cast<entt::entity>(coll.ent_id_0);
-    const auto b = static_cast<entt::entity>(coll.ent_id_1);
-
-    const auto& a_type = r.get<EntityTypeComponent>(a).type;
-    const auto& b_type = r.get<EntityTypeComponent>(b).type;
-
-    // check if an enemy is colling with player line of sight
-    //
-    const auto [a_ent, b_ent] = collision_of_interest<const LineOfSightComponent, const EnemyComponent>(r, a, b);
-    if (a_ent != entt::null && b_ent != entt::null) {
-      // an enemy is colliding with line of sight!
-      const auto& parent = r.get<HasParentComponent>(a_ent); // type player
-      r.emplace_or_replace<WantsToShoot>(parent.parent);
-    }
-
-    // MERGE the ENEMIES!
-    //
-    // const auto [a_ent_1, b_ent_1] = collision_of_interest<const EnemyComponent, const EnemyComponent>(r, a, b);
-    // if (a_ent_1 != entt::null && b_ent_1 != entt::null)
-    //   dead.dead.emplace(a_ent_1);
+    enemy_barricade_collision(r, a, b);
   }
 
   for (const Collision2D& coll : physics.frame_solid_collisions) {
