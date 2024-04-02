@@ -3,14 +3,15 @@
 #include "components.hpp"
 #include "entt/helpers.hpp"
 #include "imgui/helpers.hpp"
+#include "lifecycle/components.hpp"
 #include "maths/maths.hpp"
 #include "modules/actors/helpers.hpp"
 #include "modules/camera/orthographic.hpp"
 #include "modules/lerp_to_target/components.hpp"
-#include "modules/lifecycle/components.hpp"
 #include "physics/components.hpp"
 #include "renderer/transform.hpp"
 #include "sprites/components.hpp"
+
 
 #include <entt/entt.hpp>
 #include <glm/gtx/compatibility.hpp> // lerp
@@ -22,7 +23,7 @@ void
 update_sprite_spritestack_system(entt::registry& r, const float dt)
 {
   static float scale_up_by = 1.0f;
-  static int sprite_height = 0;
+  static int sprite_height = -6;
   static int sprite_scale_x = 64;
   static int sprite_scale_y = 64;
   static int parallax_offset_amount = 6;
@@ -52,17 +53,6 @@ update_sprite_spritestack_system(entt::registry& r, const float dt)
     }
 
     t.position.y += int(scale_up_by) * (sprite_height * idx);
-
-    // TODO: work out why this is the middle index
-    // middle-index is the middle-layer, or the visually center layer?
-
-    // set first frame, but then every frame after let ui control it
-    // if (first_time) {
-    //   const int middle_index = 5;
-    //   center_y_offset = -1 * scale_up_by * middle_index;
-    //   first_time = false;
-    // }
-    // t.position.y += center_y_offset;
 
     t.scale = { sprite_scale_x, sprite_scale_y, 1.0f };
 

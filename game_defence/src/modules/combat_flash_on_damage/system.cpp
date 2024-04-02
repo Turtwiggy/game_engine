@@ -3,7 +3,7 @@
 #include "actors.hpp"
 #include "components.hpp"
 #include "entt/helpers.hpp"
-#include "modules/lifecycle/components.hpp"
+#include "lifecycle/components.hpp"
 #include "modules/renderer/components.hpp"
 #include "modules/ui_colours/helpers.hpp"
 

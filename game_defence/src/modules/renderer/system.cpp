@@ -2,17 +2,22 @@
 #include "system.hpp"
 
 // components/systems
+#include "colour/colour.hpp"
 #include "entt/helpers.hpp"
 #include "imgui/helpers.hpp"
 #include "maths/maths.hpp"
 #include "modules/actor_player/components.hpp"
 #include "modules/camera/orthographic.hpp"
 #include "modules/gameplay_circle/components.hpp"
+#include "modules/lighting/helpers.hpp"
 #include "modules/renderer/components.hpp"
 #include "modules/renderer/helpers.hpp"
 #include "modules/renderer/helpers/batch_quad.hpp"
+#include "modules/renderer/helpers/batch_triangle_fan.hpp"
 #include "modules/ui_colours/helpers.hpp"
 #include "modules/vfx_grid/components.hpp"
+#include "physics/components.hpp"
+#include "renderer/transform.hpp"
 #include "sprites/components.hpp"
 
 // hack
@@ -46,12 +51,19 @@ rebind(entt::registry& r, const SINGLETON_RendererInfo& ri)
   engine::update_bound_texture_size(wh);
   engine::unbind_tex();
 
+  engine::bind_tex(ri.tex_id_lighting);
+  engine::update_bound_texture_size(wh);
+  engine::unbind_tex();
+
   engine::bind_tex(ri.tex_id_mix_lighting_and_scene);
   engine::update_bound_texture_size(wh);
   engine::unbind_tex();
 
   glActiveTexture(GL_TEXTURE0 + ri.tex_unit_linear_main);
   glBindTexture(GL_TEXTURE_2D, ri.tex_id_linear_main);
+
+  glActiveTexture(GL_TEXTURE0 + ri.tex_unit_lighting);
+  glBindTexture(GL_TEXTURE_2D, ri.tex_id_lighting);
 
   glActiveTexture(GL_TEXTURE0 + ri.tex_unit_mix_lighting_and_scene);
   glBindTexture(GL_TEXTURE_2D, ri.tex_id_mix_lighting_and_scene);
@@ -78,13 +90,18 @@ rebind(entt::registry& r, const SINGLETON_RendererInfo& ri)
   ri.instanced.set_int("tex_gameicons", tex_unit_gameicons);
   ri.instanced.set_int("tex_voxel", tex_unit_car0);
 
+  ri.lighting.bind();
+  ri.lighting.set_mat4("view", camera.view);
+  ri.lighting.set_mat4("projection", camera.projection);
+  ri.lighting.set_vec4("colour", glm::vec4(1.0f, 1.0f, 1.0f, 1.0f));
+
   ri.circle.bind();
   ri.circle.set_mat4("projection", camera.projection);
 
   ri.mix_lighting_and_scene.bind();
   ri.mix_lighting_and_scene.set_mat4("projection", camera.projection);
   ri.mix_lighting_and_scene.set_mat4("view", glm::mat4(1.0f)); // whole texture
-  // ri.mix_lighting_and_scene.set_int("lighting", ri.tex_unit_denoise);
+  ri.mix_lighting_and_scene.set_int("lighting", ri.tex_unit_lighting);
   ri.mix_lighting_and_scene.set_int("scene", ri.tex_unit_linear_main);
 
   ri.grid.bind();
@@ -97,13 +114,14 @@ game2d::init_render_system(const engine::SINGLETON_Application& app, entt::regis
   const glm::ivec2 screen_wh = { app.width, app.height };
   ri.viewport_size_render_at = screen_wh;
   ri.viewport_size_current = screen_wh;
-  const auto& fbo_lighting_size = ri.viewport_size_render_at;
+  const auto& fbo_size = ri.viewport_size_render_at;
 
   // FBO textures
   Framebuffer::default_fbo();
-  new_texture_to_fbo(ri.fbo_linear_main, ri.tex_id_linear_main, ri.tex_unit_linear_main, fbo_lighting_size);
+  new_texture_to_fbo(ri.fbo_linear_main, ri.tex_id_linear_main, ri.tex_unit_linear_main, fbo_size);
+  new_texture_to_fbo(ri.fbo_lighting, ri.tex_id_lighting, ri.tex_unit_lighting, fbo_size);
   new_texture_to_fbo(
-    ri.fbo_mix_lighting_and_scene, ri.tex_id_mix_lighting_and_scene, ri.tex_unit_mix_lighting_and_scene, fbo_lighting_size);
+    ri.fbo_mix_lighting_and_scene, ri.tex_id_mix_lighting_and_scene, ri.tex_unit_mix_lighting_and_scene, fbo_size);
 
   // Load textures
   const int base_tex_unit = ri.RENDERER_TEX_UNIT_COUNT;
@@ -118,6 +136,7 @@ game2d::init_render_system(const engine::SINGLETON_Application& app, entt::regis
   }
 
   ri.instanced = Shader("assets/shaders/2d_instanced.vert", "assets/shaders/2d_instanced.frag");
+  ri.lighting = Shader("assets/shaders/2d_basic_with_proj.vert", "assets/shaders/2d_colour.frag");
   ri.mix_lighting_and_scene = Shader("assets/shaders/2d_instanced.vert", "assets/shaders/2d_mix_lighting_and_scene.frag");
   ri.circle = Shader("assets/shaders/2d_circle.vert", "assets/shaders/2d_circle.frag");
   ri.grid = Shader("assets/shaders/2d_grid.vert", "assets/shaders/2d_grid.frag");
@@ -132,13 +151,14 @@ game2d::init_render_system(const engine::SINGLETON_Application& app, entt::regis
 
   glEnable(GL_BLEND);
   glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
-  glBlendFuncSeparate(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA, GL_ONE, GL_ZERO);
+  // glBlendFuncSeparate(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA, GL_ONE, GL_ZERO);
   // glEnable(GL_DEPTH_TEST);
   // glEnable(GL_LINE_SMOOTH);
 
   print_gpu_info();
 
   quad_renderer::QuadRenderer::init();
+  triangle_fan_renderer::TriangleFanRenderer::init();
 
   rebind(r, ri);
 }
@@ -147,8 +167,7 @@ void
 game2d::update_render_system(entt::registry& r, const float dt, const glm::vec2& mouse_pos)
 {
   auto& ri = get_first_component<SINGLETON_RendererInfo>(r);
-  const auto lin_pal_background = get_lin_colour_by_tag(r, "background");
-  const auto pal_background = get_srgb_colour_by_tag(r, "background");
+  static const engine::SRGBColour black(0, 0, 0, 1.0f);
 
   static float time = 0.0f;
   time += dt;
@@ -167,36 +186,49 @@ game2d::update_render_system(entt::registry& r, const float dt, const glm::vec2&
   ri.instanced.bind();
   ri.instanced.set_mat4("view", camera.view);
 
+  ri.lighting.bind();
+  ri.lighting.set_mat4("view", camera.view);
+
   ri.circle.bind();
   ri.circle.set_mat4("view", camera.view);
   ri.circle.set_vec2("viewport_wh", ri.viewport_size_render_at);
   ri.circle.set_vec2("camera_pos", { camera_t.position.x, camera_t.position.y });
-  // ri.circle.set_float("time", time);
 
   ri.grid.bind();
   ri.grid.set_mat4("view", camera.view);
   ri.grid.set_vec2("viewport_wh", ri.viewport_size_render_at);
   ri.grid.set_vec2("camera_pos", { camera_t.position.x, camera_t.position.y });
-  ri.grid.set_float("time", time);
 
-  // DEBUG A SHADER...
-  // const auto& input = get_first_component<SINGLETON_InputComponent>(r);
-  // if (get_key_down(input, SDL_SCANCODE_1)) {
-  //   std::cout << "rebinding shader..." << std::endl;
-  //   ri.grid.reload();
-  //   ri.grid.bind();
-  //   ri.grid.set_mat4("projection", camera.projection);
-  //   ri.grid.set_mat4("view", camera.view);
-  //   ri.grid.set_vec2("viewport_wh", ri.viewport_size_render_at);
-  //   ri.grid.set_vec2("camera_pos", { camera_t.position.x, camera_t.position.y });
-  //   ri.grid.set_float("time", time);
-  // }
+  ri.mix_lighting_and_scene.bind();
+  const glm::vec2 screen_tl = { 0, 0 };
+  const glm::vec2 screen_br = ri.viewport_size_render_at;
+  // TODO...convert light_pos to screen_space
+  const glm::vec2 light_pos = { camera_t.position.x, camera_t.position.y };
+  // light_pos.x should be 0 < viewport_wh.x
+  // light_pos.y should be 0 < viewport_wh.y
+  const glm::vec2 middle_of_screen = { viewport_wh.x / 2.0f, viewport_wh.y / 2.0f };
+  const glm::vec2 light_pos_in_screenspace = middle_of_screen;
+  ri.mix_lighting_and_scene.set_vec2("light_pos", light_pos_in_screenspace);
+
+// DEBUG A SHADER...
+#ifdef _DEBUG
+  const auto& input = get_first_component<SINGLETON_InputComponent>(r);
+  if (get_key_down(input, SDL_SCANCODE_1)) {
+    std::cout << "rebinding shader..." << std::endl;
+    ri.mix_lighting_and_scene.reload();
+    ri.mix_lighting_and_scene.bind();
+    ri.mix_lighting_and_scene.set_mat4("projection", camera.projection);
+    ri.mix_lighting_and_scene.set_mat4("view", glm::mat4(1.0f)); // whole texture
+    ri.mix_lighting_and_scene.set_int("lighting", ri.tex_unit_lighting);
+    ri.mix_lighting_and_scene.set_int("scene", ri.tex_unit_linear_main);
+  }
+#endif
 
   // FBO: Render sprites in to this fbo with linear colour
   {
     Framebuffer::bind_fbo(ri.fbo_linear_main);
     RenderCommand::set_viewport(0, 0, viewport_wh.x, viewport_wh.y);
-    RenderCommand::set_clear_colour_linear(lin_pal_background);
+    RenderCommand::set_clear_colour_srgb(black);
     RenderCommand::clear();
 
     // Render grid shader
@@ -261,15 +293,11 @@ game2d::update_render_system(entt::registry& r, const float dt, const glm::vec2&
       // set the positions of the player units
       {
         ri.circle.bind();
-
         const auto& player_view = r.view<TransformComponent, CircleComponent>();
         for (int i = 0; const auto& [e, transform, c] : player_view.each()) {
-
           const glm::vec2 pos = { float(transform.position.x), float(transform.position.y) };
-
           std::string label = "points["s + std::to_string(i) + "].pos"s;
           ri.circle.set_vec2(label, pos);
-
           i++;
         }
 
@@ -293,11 +321,48 @@ game2d::update_render_system(entt::registry& r, const float dt, const glm::vec2&
     }
   }
 
+  // FBO: lighting: simple shadowcasting 2d
+  {
+    Framebuffer::bind_fbo(ri.fbo_lighting);
+    RenderCommand::set_viewport(0, 0, viewport_wh.x, viewport_wh.y);
+    RenderCommand::set_clear_colour_srgb(black);
+    RenderCommand::clear();
+    {
+      engine::triangle_fan_renderer::TriangleFanRenderer::reset_quad_vert_count();
+      engine::triangle_fan_renderer::TriangleFanRenderer::begin_batch();
+      {
+        // Create a triangle fan
+        //
+        // hack: get position of first player
+
+        std::vector<std::tuple<float, float, float>> intersections;
+        generate_intersections(r, light_pos, intersections);
+
+        if (intersections.size() > 0) {
+          // start point
+          engine::triangle_fan_renderer::TriangleFanRenderer::add_point_to_fan(light_pos, ri.lighting);
+
+          // lighting points
+          for (int i = 0; i < intersections.size(); i++) {
+            const auto pos = glm::vec2(std::get<1>(intersections[i]), std::get<2>(intersections[i]));
+            engine::triangle_fan_renderer::TriangleFanRenderer::add_point_to_fan(pos, ri.lighting);
+          }
+
+          // end point
+          const auto pos = glm::vec2(std::get<1>(intersections[0]), std::get<2>(intersections[0]));
+          engine::triangle_fan_renderer::TriangleFanRenderer::add_point_to_fan(pos, ri.lighting);
+        }
+      }
+    }
+    engine::triangle_fan_renderer::TriangleFanRenderer::end_batch();
+    engine::triangle_fan_renderer::TriangleFanRenderer::flush(ri.lighting);
+  }
+
   // FBO: mix lighting and scene, and convert to srgb
   {
     Framebuffer::bind_fbo(ri.fbo_mix_lighting_and_scene);
     RenderCommand::set_viewport(0, 0, viewport_wh.x, viewport_wh.y);
-    RenderCommand::set_clear_colour_linear(lin_pal_background);
+    RenderCommand::set_clear_colour_srgb(black);
     RenderCommand::clear();
     {
       quad_renderer::QuadRenderer::reset_quad_vert_count();
@@ -307,7 +372,11 @@ game2d::update_render_system(entt::registry& r, const float dt, const glm::vec2&
         desc.pos_tl = { 0, 0 };
         desc.size = viewport_wh;
         desc.angle_radians = 0.0f;
-        // desc.colour = // not needed
+
+        RenderCommand::set_clear_colour_srgb(black);
+        const auto lin_pal_background = get_lin_colour_by_tag(r, "background");
+        desc.colour = lin_pal_background;
+
         // desc.tex_unit = ri.tex_unit_main_FBO;
         // desc.sprite_offset_and_width = { 0, 0, 0, 0 };
         quad_renderer::QuadRenderer::draw_sprite(desc, ri.mix_lighting_and_scene);
@@ -321,7 +390,7 @@ game2d::update_render_system(entt::registry& r, const float dt, const glm::vec2&
   {
     Framebuffer::default_fbo();
     RenderCommand::set_viewport(0, 0, viewport_wh.x, viewport_wh.y);
-    RenderCommand::set_clear_colour_srgb(pal_background);
+    RenderCommand::set_clear_colour_srgb(black);
     RenderCommand::clear();
 
     // Note: ImGui::Image takes in TexID not TexUnit
@@ -336,7 +405,6 @@ game2d::update_render_system(entt::registry& r, const float dt, const glm::vec2&
     ri.viewport_focused = vi.focused;
   }
 
-//
 // debug user textures
 //
 #ifdef _DEBUG
@@ -351,6 +419,16 @@ game2d::update_render_system(entt::registry& r, const float dt, const glm::vec2&
 
     i++;
   }
+
+  ImGui::Begin("DebugLighting");
+  viewport_size = ImGui::GetContentRegionAvail();
+  ImGui::Image((ImTextureID)ri.tex_id_lighting, viewport_size, ImVec2(0, 0), ImVec2(1, 1));
+  ImGui::End();
+  ImGui::Begin("DebugScene");
+  viewport_size = ImGui::GetContentRegionAvail();
+  ImGui::Image((ImTextureID)ri.tex_id_linear_main, viewport_size, ImVec2(0, 0), ImVec2(1, 1));
+  ImGui::End();
+
 #endif
 };
 
@@ -358,6 +436,7 @@ void
 game2d::end_frame_render_system(entt::registry& registry)
 {
   quad_renderer::QuadRenderer::end_frame();
+  triangle_fan_renderer::TriangleFanRenderer::end_frame();
 };
 
 } // namespace game2d

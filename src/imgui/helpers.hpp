@@ -44,14 +44,16 @@ void
 imgui_draw_ivec2(const std::string& label, int& x, int& y);
 
 void
+imgui_draw_vec3(const std::string& label, glm::vec3& xyz);
+void
 imgui_draw_vec3(const std::string& label, float& x, float& y, float& z);
 
 void
 imgui_draw_ivec3(const std::string& label, int& x, int& y, int& z);
 
 void
-imgui_draw_vec2(const std::string label, glm::vec2& xy);
+imgui_draw_vec2(const std::string label, glm::vec2& xy, const float v_speed = 0.5f);
 void
-imgui_draw_vec2(const std::string& label, float& x, float& y);
+imgui_draw_vec2(const std::string& label, float& x, float& y, const float v_speed = 0.5f);
 
 } // namespace game2d

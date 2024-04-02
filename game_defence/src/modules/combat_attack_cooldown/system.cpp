@@ -1,7 +1,7 @@
 #include "system.hpp"
 
 #include "components.hpp"
-#include "modules/lifecycle/components.hpp"
+#include "lifecycle/components.hpp"
 
 namespace game2d {
 

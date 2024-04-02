@@ -2,6 +2,7 @@
 
 #include "colour/colour.hpp"
 #include "entt/helpers.hpp"
+#include "lifecycle/components.hpp"
 #include "modules/actor_bodypart_head/components.hpp"
 #include "modules/actor_bodypart_legs/components.hpp"
 #include "modules/actor_cursor/components.hpp"
@@ -20,7 +21,6 @@
 #include "modules/items_drop/components.hpp"
 #include "modules/items_pickup/components.hpp"
 #include "modules/lerp_to_target/components.hpp"
-#include "modules/lifecycle/components.hpp"
 #include "modules/renderer/components.hpp"
 #include "modules/renderer/helpers.hpp"
 #include "modules/ui_colours/helpers.hpp"
@@ -88,7 +88,11 @@ sprite_type_to_sprite(entt::registry& r, const EntityType& type)
     sprite = "CARD_HEARTS_2";
   else if (type == EntityType::actor_unitgroup)
     sprite = "SHIELD_2_2";
+  else if (type == EntityType::actor_barricade)
+    sprite = "WOOD_WALL_SMALL";
+
   // weapons...
+  //
   // else if (type == EntityType::weapon_bow)
   //   sprite = "WEAPON_BOW_0";
   else if (type == EntityType::weapon_shotgun)
@@ -148,28 +152,21 @@ create_gameplay(entt::registry& r, const EntityType& type)
     const auto sc = create_sprite(r, sprite_name, type);
     r.emplace<SpriteComponent>(e, sc);
     r.emplace<TransformComponent>(e);
-    auto& transform = r.get<TransformComponent>(e);
-    transform.scale = DEFAULT_SIZE;
+    set_size(r, e, DEFAULT_SIZE);
 
-    // Adjust sizes of entities
     switch (type) {
       case EntityType::bullet_default: {
-        transform.scale.x = SMALL_SIZE.x;
-        transform.scale.y = SMALL_SIZE.y;
+        set_size(r, e, SMALL_SIZE);
         break;
       }
       case EntityType::bullet_enemy: {
-        transform.scale.x = SMALL_SIZE.x;
-        transform.scale.y = SMALL_SIZE.y;
+        set_size(r, e, SMALL_SIZE);
         break;
       }
       case EntityType::particle: {
-        transform.scale.x = HALF_SIZE.x;
-        transform.scale.y = HALF_SIZE.y;
+        set_size(r, e, HALF_SIZE);
         break;
       }
-      default:
-        transform.scale = DEFAULT_SIZE;
     }
   }
 
@@ -320,7 +317,7 @@ create_gameplay(entt::registry& r, const EntityType& type)
       r.emplace<TurretComponent>(e);
       r.emplace<AttackCooldownComponent>(e);
 
-      // todo: if make turret solid,
+      // if make turret solid,
       // spawn bullets outside of turret
       // r.emplace<PhysicsSolidComponent>(e);
       break;
@@ -340,6 +337,19 @@ create_gameplay(entt::registry& r, const EntityType& type)
       break;
     }
 
+    case EntityType::actor_barricade: {
+      create_physics_actor(r, e);
+      // r.emplace<PhysicsSolidComponent>(e);
+
+      // can be killed
+      r.emplace<HealthComponent>(e, 10, 10);
+
+      // assume all barricades are player barricades?
+      r.emplace<TeamComponent>(e, AvailableTeams::player);
+
+      break;
+    }
+
       //
       // solids
       //
@@ -347,6 +357,10 @@ create_gameplay(entt::registry& r, const EntityType& type)
     case EntityType::solid_wall: {
       create_physics_actor(r, e);
       r.emplace<PhysicsSolidComponent>(e);
+
+      // can be killed
+      r.emplace<HealthComponent>(e, 10, 10);
+
       break;
     }
 
@@ -429,7 +443,6 @@ create_gameplay(entt::registry& r, const EntityType& type)
 
       // movement
       r.emplace<HasTargetPositionComponent>(e);
-      // r.emplace<LerpToTargetComponent>(e, speed);
 
       // combat
       r.emplace<TeamComponent>(e, AvailableTeams::enemy);
@@ -459,15 +472,6 @@ create_gameplay(entt::registry& r, const EntityType& type)
       // r.emplace<AttackComponent>(e, 10); // on the equipped weapon?
       break;
     }
-
-      // case EntityType::enemy_shotgunner: {
-      //   create_physics_actor(r, e);
-      //   r.emplace<EnemyComponent>(e);
-      //   r.emplace<TeamComponent>(e, AvailableTeams::enemy);
-      //   r.emplace<HealthComponent>(e, 4, 4);
-      //   r.emplace<AttackComponent>(e, 50);
-      //   break;
-      // }
 
       //
       // misc

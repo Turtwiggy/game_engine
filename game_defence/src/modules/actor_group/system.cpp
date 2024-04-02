@@ -6,6 +6,7 @@
 #include "events/helpers/keyboard.hpp"
 #include "events/helpers/mouse.hpp"
 #include "helpers/line.hpp"
+#include "lifecycle/components.hpp"
 #include "maths/maths.hpp"
 #include "modules/actor_cursor/components.hpp"
 #include "modules/actor_group/components.hpp"
@@ -16,11 +17,11 @@
 #include "modules/combat_damage/components.hpp"
 #include "modules/combat_wants_to_shoot/components.hpp"
 #include "modules/lerp_to_target/components.hpp"
-#include "modules/lifecycle/components.hpp"
 #include "modules/ux_hoverable/components.hpp"
 #include "physics/components.hpp"
 #include "renderer/transform.hpp"
 #include "sprites/helpers.hpp"
+
 
 #include <glm/glm.hpp>
 

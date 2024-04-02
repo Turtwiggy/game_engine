@@ -6,6 +6,7 @@
 #include "events/components.hpp"
 #include "events/system.hpp"
 #include "game_state.hpp"
+#include "lifecycle/system.hpp"
 #include "modules/actor_bodypart_head/system.hpp"
 #include "modules/actor_bodypart_legs/system.hpp"
 #include "modules/actor_cursor/system.hpp"
@@ -31,7 +32,6 @@
 #include "modules/items_drop/system.hpp"
 #include "modules/items_pickup/system.hpp"
 #include "modules/lerp_to_target/system.hpp"
-#include "modules/lifecycle/system.hpp"
 #include "modules/renderer/components.hpp"
 #include "modules/renderer/system.hpp"
 #include "modules/resolve_collisions/system.hpp"
@@ -212,6 +212,11 @@ game2d::fixed_update(engine::SINGLETON_Application& app, entt::registry& game, c
   {
     OPTICK_EVENT("fixed-game-tick");
     update_resolve_collisions_system(game);
+
+    // put immediately after collisions,
+    // otherwise the DealDamageRequest the entity removed
+    update_take_damage_system(game);
+
     update_player_controller_system(game, milliseconds_dt); // input => actions
   }
 
@@ -227,7 +232,6 @@ game2d::update(engine::SINGLETON_Application& app, entt::registry& r, const floa
   update_input_system(app, r); // sets update_since_last_fixed_update
 
   // After update_input_system
-  //
   const glm::ivec2 mouse_pos = mouse_position_in_worldspace(r);
 
   {
@@ -275,7 +279,6 @@ game2d::update(engine::SINGLETON_Application& app, entt::registry& r, const floa
       //
       // combat
       update_attack_cooldown_system(r, milliseconds_dt);
-      update_take_damage_system(r);
       update_weapon_shotgun_system(r, milliseconds_dt);
       update_flash_sprite_system(r, milliseconds_dt);
       update_enemy_system(r, dt);
@@ -321,7 +324,7 @@ game2d::update(engine::SINGLETON_Application& app, entt::registry& r, const floa
     // todo: put in to a settings menu
     static bool show_settings_ui = false;
     if (show_settings_ui) {
-      // update_ui_audio_system(r);
+      update_ui_audio_system(r);
       update_ui_controller_system(r);
     }
 

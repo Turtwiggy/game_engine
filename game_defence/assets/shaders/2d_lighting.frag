@@ -13,8 +13,8 @@ uniform sampler2D tex;
 void
 main()
 {
-  // out_colour = vec4(v_uv.x, v_uv.y, 0.0, 1.0);
-  out_colour = v_colour;
+  out_colour = vec4(v_uv.x, v_uv.y, 0.0, 1.0);
+  // out_colour = v_colour;
 
   // // Sample texture directly
   // if (v_sprite_pos.x == 0.0f && v_sprite_pos.y == 0.0f) { // a whole texture
@@ -26,12 +26,10 @@ main()
   // {
   //   float scale_x = 1.0f / v_sprites.x;
   //   float scale_y = 1.0f / v_sprites.y;
-
   //   vec2 sprite_uv = vec2(
   //     v_uv.x / v_sprites.x + v_sprite_pos.x * scale_x,
   //     v_uv.y / v_sprites.y + v_sprite_pos.y * scale_y      
   //   );
-
   //   out_colour = v_colour;
   //   out_colour *= texture(tex, sprite_uv);
   // }
@@ -58,9 +56,8 @@ main()
 //   vec4 c = r;
 //   // vec4 c = tex_main;
 //   // pixel is in shadow
-//   if (tex_shadow.r == 0.0f) {
+//   if (tex_shadow.r == 0.0f)
 //     c = c * vec4(0.92f, 0.92f, 0.92f, 1.0f);
-//   }
 //   out_colour = c;
 //   out_colour.a = 1.0f;
 //   return;

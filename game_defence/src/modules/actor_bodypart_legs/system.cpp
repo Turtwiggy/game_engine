@@ -78,7 +78,7 @@ update_actor_bodypart_legs_system(entt::registry& r, const float dt, const glm::
     auto r_foot = legs.r_foot;
 
     // SET YOUR HIPS MAKE SURE THEY DONT POP
-    // TODO: swap hip position dending on dir
+    // TODO: swap hip position depending on dir
     const float x = float(body_position.center.x);
     const float y = float(body_position.center.y);
     l_hip = { x - hip_offset_x, y + hip_offset_y };

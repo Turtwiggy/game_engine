@@ -1,10 +1,11 @@
 #include "angle_to_velocity.hpp"
 
 #include "components.hpp"
+#include "lifecycle/components.hpp"
 #include "maths/maths.hpp"
-#include "modules/lifecycle/components.hpp"
 #include "modules/renderer/components.hpp"
 #include "physics/components.hpp"
+
 
 namespace game2d {
 

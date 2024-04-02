@@ -1,16 +1,8 @@
 // header
 #include "system.hpp"
 
-#include "actors.hpp"
-#include "components.hpp"
 #include "entt/helpers.hpp"
-#include "modules/combat_damage/components.hpp"
-#include "modules/renderer/components.hpp"
-#include "physics/components.hpp"
-#include "sprites/helpers.hpp"
-
-// hmm
-#include "modules/items_pickup/components.hpp"
+#include "lifecycle/components.hpp"
 
 void
 game2d::update_lifecycle_system(entt::registry& r, const uint64_t& milliseconds_dt)

@@ -1,7 +1,7 @@
 #include "helpers.hpp"
 
 #include "events/helpers/mouse.hpp"
-#include "modules/lifecycle/components.hpp"
+#include "lifecycle/components.hpp"
 #include "modules/renderer/components.hpp"
 #include "orthographic.hpp"
 

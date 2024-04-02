@@ -107,6 +107,20 @@ game2d::imgui_draw_ivec2(const std::string& label, int& x, int& y)
 };
 
 void
+game2d::imgui_draw_vec3(const std::string& label, glm::vec3& xyz)
+{
+  glm::vec3 v_temp = xyz;
+
+  ImGui::Text(label.c_str());
+  ImGui::SameLine();
+  if (ImGui::DragFloat3((std::string("##") + label).c_str(), glm::value_ptr(v_temp), 0.5f)) {
+    xyz.x = v_temp.x;
+    xyz.y = v_temp.y;
+    xyz.z = v_temp.z;
+  }
+};
+
+void
 game2d::imgui_draw_vec3(const std::string& label, float& x, float& y, float& z)
 {
   glm::vec3 v_temp = { x, y, z };
@@ -135,26 +149,26 @@ game2d::imgui_draw_ivec3(const std::string& label, int& x, int& y, int& z)
 };
 
 void
-game2d::imgui_draw_vec2(const std::string label, glm::vec2& xy)
+game2d::imgui_draw_vec2(const std::string label, glm::vec2& xy, const float v_speed)
 {
   glm::vec2 v_temp = xy;
 
   ImGui::Text(label.c_str());
   ImGui::SameLine();
-  if (ImGui::DragFloat2((std::string("##") + label).c_str(), glm::value_ptr(v_temp), 0.5f)) {
+  if (ImGui::DragFloat2((std::string("##") + label).c_str(), glm::value_ptr(v_temp), v_speed)) {
     xy.x = v_temp.x;
     xy.y = v_temp.y;
   }
 }
 
 void
-game2d::imgui_draw_vec2(const std::string& label, float& x, float& y)
+game2d::imgui_draw_vec2(const std::string& label, float& x, float& y, const float v_speed)
 {
   glm::vec2 v_temp = { x, y };
 
   ImGui::Text(label.c_str());
   ImGui::SameLine();
-  if (ImGui::DragFloat2((std::string("##") + label).c_str(), glm::value_ptr(v_temp), 0.5f)) {
+  if (ImGui::DragFloat2((std::string("##") + label).c_str(), glm::value_ptr(v_temp), v_speed)) {
     x = v_temp.x;
     y = v_temp.y;
   }

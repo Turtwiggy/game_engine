@@ -78,19 +78,23 @@ struct SINGLETON_RendererInfo
 {
   // fbo
   engine::FramebufferID fbo_linear_main;
+  engine::FramebufferID fbo_lighting;
   engine::FramebufferID fbo_mix_lighting_and_scene;
 
   int tex_unit_linear_main = 0;
-  int tex_unit_mix_lighting_and_scene = 1;
-  int RENDERER_TEX_UNIT_COUNT = 2; // should be the number used by renderer
+  int tex_unit_lighting = 1;
+  int tex_unit_mix_lighting_and_scene = 2;
+  int RENDERER_TEX_UNIT_COUNT = 3; // should be the number used by renderer
 
   int tex_id_linear_main = 0;
+  int tex_id_lighting = 0;
   int tex_id_mix_lighting_and_scene = 0;
 
   std::vector<Texture> user_textures;
 
   // shaders
   engine::Shader instanced;
+  engine::Shader lighting;
   engine::Shader mix_lighting_and_scene;
   engine::Shader circle;
   engine::Shader grid;
