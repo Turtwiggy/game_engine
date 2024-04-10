@@ -1,15 +1,18 @@
 #include "system.hpp"
 
 #include "entt/helpers.hpp"
-#include "helpers/line.hpp"
 #include "lifecycle/components.hpp"
+#include "maths/grid.hpp"
 #include "maths/maths.hpp"
 #include "modules/actor_enemy/components.hpp"
 #include "modules/actor_player/components.hpp"
+#include "modules/ai_pathfinding/components.hpp"
+#include "modules/ai_pathfinding/helpers.hpp"
 #include "modules/combat_attack_cooldown/components.hpp"
 #include "modules/combat_damage/components.hpp"
 #include "modules/combat_wants_to_shoot/components.hpp"
 #include "modules/lerp_to_target/components.hpp"
+#include "modules/selected_interactions/components.hpp"
 #include "physics/components.hpp"
 #include "renderer/transform.hpp"
 
@@ -28,43 +31,60 @@ update_enemy_system(entt::registry& r, const float dt)
   // pathfinding, such as using AStar to calculate the next step
   //
 
-  const auto& view = r.view<EnemyComponent, HasTargetPositionComponent, TransformComponent, VelocityComponent, AABB>(
-    entt::exclude<WaitForInitComponent>);
+  const auto& map = get_first_component<MapComponent>(r);
 
-  for (const auto& [e, enemy, target_position, enemy_t, vel, aabb] : view.each()) {
+  // Convert Map to Grid (?)
+  GridComponent grid;
+  grid.size = map.tilesize;
+  grid.width = map.xmax;
+  grid.height = map.ymax;
+  grid.grid = map.map;
 
-    // if you have a target, set that as your position
-    if (const auto* targeting = r.try_get<DynamicTargetComponent>(e)) {
-      bool target_valid = r.valid(targeting->target);
-      target_valid &= targeting->target != entt::null;
-      if (target_valid)
-        target_position.position = r.get<TransformComponent>(targeting->target).position;
-      else {
-        // target died or became invalid. Hold your position.
-        target_position.position = aabb.center;
-      }
-    } else {
-      // no dynamic target
-      auto& new_target = r.emplace<DynamicTargetComponent>(e);
-      // Note: this should be closest target
-      const auto& first_target = get_first<PlayerComponent>(r);
-      if (first_target == entt::null)
-        continue;
-      new_target.target = first_target;
-      target_position.position = r.get<TransformComponent>(new_target.target).position;
+  const auto& default_target = get_first<PlayerComponent>(r);
+  const auto& default_target_aabb = r.get<AABB>(default_target);
+  const auto& view =
+    r.view<EnemyComponent, const HasTargetPositionComponent, TransformComponent, AABB>(entt::exclude<WaitForInitComponent>);
+
+  const auto convert_position_to_index = [&map](const glm::ivec2& src) -> int {
+    auto src_gridpos = engine::grid::world_space_to_grid_space(src, map.tilesize);
+    src_gridpos.x = glm::clamp(src_gridpos.x, 0, map.xmax - 1);
+    src_gridpos.y = glm::clamp(src_gridpos.y, 0, map.ymax - 1);
+    return engine::grid::grid_position_to_index(src_gridpos, map.xmax);
+  };
+
+  for (const auto& [e, enemy, target_position, enemy_t, aabb] : view.each()) {
+
+    const auto src = aabb.center;
+    const auto dst = default_target_aabb.center;
+    const int src_idx = convert_position_to_index(src);
+    const int dst_idx = convert_position_to_index(dst);
+
+    const auto update_pathfinding = [&r, &e, &grid, &src_idx, &dst_idx, &src, &dst, &default_target]() {
+      const auto path = generate_direct(r, grid, src_idx, dst_idx);
+      GeneratedPathComponent path_c;
+      path_c.path = path;
+      path_c.src_pos = src;
+      path_c.dst_pos = dst;
+      path_c.dst_ent = default_target;
+      path_c.path_cleared.resize(path.size());
+      r.emplace_or_replace<GeneratedPathComponent>(e, path_c);
+    };
+
+    // Attach a GeneratedPath to the enemy unit. HasTargetPosition gets overwritten.
+    const auto& existing_path = r.try_get<GeneratedPathComponent>(e);
+    if (existing_path == NULL)
+      update_pathfinding();
+    else {
+      // When to update path? Only if target moves?
+      const auto existing_idx = convert_position_to_index(existing_path->dst_pos);
+      if (existing_idx != dst_idx)
+        update_pathfinding();
     }
 
-    // in this case, the preferred velocity is a vector in the direction of the goal
-    const glm::ivec2 a = { aabb.center.x, aabb.center.y };
-    const glm::ivec2 b = target_position.position;
-    const glm::vec2 nrm_v = engine::normalize_safe(b - a);
-    vel.x = nrm_v.x * vel.base_speed;
-    vel.y = nrm_v.y * vel.base_speed;
-
     // Calculate distance
-    const auto tgt_as_vec3 = glm::vec3(target_position.position.x, target_position.position.y, 0.0f);
-    const glm::vec3 dir_raw = tgt_as_vec3 - glm::vec3(enemy_t.position);
-    const glm::vec2 dir_nrm = engine::normalize_safe({ dir_raw.x, dir_raw.y });
+    const auto tgt_as_vec2 = glm::vec2(target_position.position.x, target_position.position.y);
+    const auto dir_raw = tgt_as_vec2 - glm::vec2(aabb.center);
+    const auto dir_nrm = engine::normalize_safe({ dir_raw.x, dir_raw.y });
     const int d2 = dir_raw.x * dir_raw.x + dir_raw.y * dir_raw.y;
 
     // Components of interest?
@@ -72,11 +92,9 @@ update_enemy_system(entt::registry& r, const float dt)
     const auto* ranged = r.try_get<RangedComponent>(e);
 
     if (enemy.state == EnemyState::CHASING) {
-
       // Set as Attacking if within range (Melee)
       if (melee && d2 < melee->distance2) {
         enemy.state = EnemyState::MELEE_ATTACKING;
-        // r.emplace_or_replace<SeperateTransformFromAABB>(e);
       }
 
       // Set as Attacking if within shooting range (Ranged)
@@ -85,7 +103,7 @@ update_enemy_system(entt::registry& r, const float dt)
     }
 
     if (enemy.state == EnemyState::MELEE_ATTACKING) {
-      const auto& targeting = r.get<DynamicTargetComponent>(e);
+      // const auto& targeting = r.get<DynamicTargetComponent>(e);
 
       // Tick the attack
       if (enemy.attack_percent <= 1.0F) {
@@ -98,9 +116,9 @@ update_enemy_system(entt::registry& r, const float dt)
           r.emplace<TransformComponent>(instance, enemy_t); // copy the parent
 
           // Send the damage request
-          const entt::entity from = instance;
-          const entt::entity to = targeting.target;
-          r.emplace<DealDamageRequest>(r.create(), from, to);
+          // const entt::entity from = instance;
+          // const entt::entity to = targeting.target;
+          // r.emplace<DealDamageRequest>(r.create(), from, to);
 
           enemy.has_applied_damage = true;
         }
@@ -129,7 +147,7 @@ update_enemy_system(entt::registry& r, const float dt)
 
     if (enemy.state == EnemyState::RANGED_ATTACKING) {
       // Stand your ground!
-      target_position.position = enemy_t.position;
+      // target_position.position = enemy_t.position;
 
       auto& cooldown = r.get<AttackCooldownComponent>(e);
 

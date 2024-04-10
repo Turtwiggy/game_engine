@@ -9,7 +9,6 @@
 #include "modules/actor_weapon_shotgun/components.hpp"
 #include "modules/combat_damage/components.hpp"
 #include "modules/combat_wants_to_shoot/components.hpp"
-#include "modules/renderer/helpers.hpp"
 #include "modules/resolve_collisions/helpers.hpp"
 #include "physics/components.hpp"
 #include "renderer/transform.hpp"
@@ -20,12 +19,14 @@ namespace game2d {
 void
 enemy_barricade_collision(entt::registry& r, const entt::entity& a, const entt::entity& b)
 {
-  const auto [a_ent_enemy, b_ent_other] = collision_of_interest<const EnemyComponent, const EntityTypeComponent>(r, a, b);
-  if (a_ent_enemy != entt::null && b_ent_other != entt::null) {
+  const auto [a_ent, b_ent] = collision_of_interest<const EnemyComponent, const EntityTypeComponent>(r, a, b);
+
+  if (a_ent != entt::null && b_ent != entt::null) {
     // If an enemy collides with a barricade, set that as the new target
-    const auto& b_type = r.get<EntityTypeComponent>(b_ent_other).type;
-    if (b_type == EntityType::actor_barricade)
-      r.get<DynamicTargetComponent>(a_ent_enemy).target = b_ent_other;
+    const auto& b_type = r.get<EntityTypeComponent>(b_ent).type;
+    if (b_type == EntityType::actor_barricade) {
+      r.get_or_emplace<DynamicTargetComponent>(a_ent).target = b_ent;
+    }
   }
 }
 

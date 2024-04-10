@@ -63,11 +63,11 @@ struct InputComponent
   float ry = 0.0f;
 
   // player actions?
-  bool shoot;
-  bool shoot_release;
-  bool sprint;
-  bool pickup;
-  bool drop;
+  bool shoot = false;
+  bool shoot_release = false;
+  bool sprint = false;
+  bool pickup = false;
+  bool drop = false;
 };
 
 } // namespace game2d

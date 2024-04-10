@@ -7,6 +7,7 @@ enum class Scene
   menu,
   test_scene_gun,
   game,
+  spaceship_designer,
 
   count
 };

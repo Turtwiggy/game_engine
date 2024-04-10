@@ -24,6 +24,7 @@ enum class EntityType
   actor_spawner,
   actor_turret,
   actor_barricade,
+  actor_spaceship,
 
   // in progress
   actor_player_ally,
@@ -37,6 +38,7 @@ enum class EntityType
 
   // solids
   solid_wall,
+  solid_spaceship_point,
 
   // actor_weapons,
   // weapon_bow,

@@ -23,8 +23,11 @@
 #include "modules/lerp_to_target/components.hpp"
 #include "modules/renderer/components.hpp"
 #include "modules/renderer/helpers.hpp"
+#include "modules/system_knockback/components.hpp"
 #include "modules/ui_colours/helpers.hpp"
+#include "modules/ui_spaceship_designer/components.hpp"
 #include "modules/ux_hoverable/components.hpp"
+#include "modules/ux_hoverable_change_colour/components.hpp"
 #include "physics/components.hpp"
 #include "renderer/transform.hpp"
 #include "sprites/components.hpp"
@@ -187,6 +190,23 @@ create_gameplay(entt::registry& r, const EntityType& type)
       // actors with only one type
       //
 
+    case EntityType::actor_spaceship: {
+      r.emplace<SpaceshipComponent>(e);
+      // spaceship is a container for other sprites
+      r.remove<TransformComponent>(e);
+      r.remove<SpriteComponent>(e);
+      break;
+    }
+    case EntityType::solid_spaceship_point: {
+      create_physics_actor(r, e);
+      r.emplace<PhysicsSolidComponent>(e);
+
+      r.emplace<SpaceshipPointComponent>(e);
+      r.emplace<HoverableComponent>(e);
+      r.emplace<ChangeColourOnHoverComponent>(e);
+      break;
+    }
+
     case EntityType::actor_hearth: {
       create_physics_actor(r, e);
       r.emplace<HearthComponent>(e);
@@ -233,6 +253,7 @@ create_gameplay(entt::registry& r, const EntityType& type)
 
       auto& vel = r.get<VelocityComponent>(e);
       vel.base_speed = 50000.0f;
+      r.emplace<KnockbackComponent>(e);
 
       // r.emplace<PhysicsSolidComponent>(e);
       r.emplace<TeamComponent>(e, AvailableTeams::player);
@@ -269,6 +290,7 @@ create_gameplay(entt::registry& r, const EntityType& type)
       create_physics_actor(r, e);
       auto& vel = r.get<VelocityComponent>(e);
       vel.base_speed = 50.0f;
+      r.emplace<KnockbackComponent>(e);
 
       // movement
       r.emplace<HasTargetPositionComponent>(e);
@@ -342,10 +364,13 @@ create_gameplay(entt::registry& r, const EntityType& type)
       // r.emplace<PhysicsSolidComponent>(e);
 
       // can be killed
-      r.emplace<HealthComponent>(e, 10, 10);
+      const int hp = 100;
+      r.emplace<HealthComponent>(e, hp, hp);
 
       // assume all barricades are player barricades?
       r.emplace<TeamComponent>(e, AvailableTeams::player);
+
+      r.emplace<KnockbackComponent>(e);
 
       break;
     }
@@ -431,10 +456,15 @@ create_gameplay(entt::registry& r, const EntityType& type)
       r.emplace<TeamComponent>(e, AvailableTeams::enemy);
       r.emplace<HealthComponent>(e, 100, 100);
       r.emplace<HoverableComponent>(e);
+      r.emplace<KnockbackComponent>(e);
       break;
     }
     case EntityType::enemy_grunt: {
       create_physics_actor(r, e);
+      float base_speed = 50.0f; // influences velocity
+      auto& vel = r.get<VelocityComponent>(e);
+      vel.base_speed = base_speed;
+
       r.emplace<EnemyComponent>(e);
       r.emplace<HoverableComponent>(e);
 
@@ -443,11 +473,13 @@ create_gameplay(entt::registry& r, const EntityType& type)
 
       // movement
       r.emplace<HasTargetPositionComponent>(e);
+      r.emplace<SetVelocityToTargetComponent>(e);
 
       // combat
       r.emplace<TeamComponent>(e, AvailableTeams::enemy);
       r.emplace<HealthComponent>(e, 10, 10);
       r.emplace<MeleeComponent>(e);
+      r.emplace<KnockbackComponent>(e);
       // r.emplace<AttackComponent>(e, 10); // on the equipped weapon?
       break;
     }
@@ -469,6 +501,7 @@ create_gameplay(entt::registry& r, const EntityType& type)
       r.emplace<HealthComponent>(e, 10, 10);
       r.emplace<RangedComponent>(e);
       r.emplace<AttackCooldownComponent>(e, 1.2f);
+      r.emplace<KnockbackComponent>(e);
       // r.emplace<AttackComponent>(e, 10); // on the equipped weapon?
       break;
     }

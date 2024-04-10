@@ -1,5 +1,10 @@
 #pragma once
 
+#include <entt/entt.hpp>
+#include <glm/glm.hpp>
+
+#include <vector>
+
 namespace game2d {
 
 struct PathfindComponent
@@ -28,6 +33,7 @@ struct GeneratedPathComponent
 {
   glm::vec2 src_pos;
   glm::vec2 dst_pos;
+  entt::entity dst_ent;
   std::vector<glm::ivec2> path;
   std::vector<bool> path_cleared;
 };

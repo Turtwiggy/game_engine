@@ -4,6 +4,8 @@
 #include "audio/components.hpp"
 #include "audio/helpers.hpp"
 #include "entt/helpers.hpp"
+#include "events/components.hpp"
+#include "events/system.hpp"
 #include "game_state.hpp"
 #include "lifecycle/components.hpp"
 #include "magic_enum.hpp"
@@ -87,14 +89,11 @@ create_player_ally(entt::registry& r, const entt::entity& group)
 
   // create weapon before player to draw on top
   const auto weapon = create_gameplay(r, EntityType::weapon_shotgun);
+  set_position(r, weapon, group_pos.center);
 
   // player ally
   const auto e = create_gameplay(r, EntityType::actor_player_ally);
-
-  // position and parent weapon
-  auto& e_aabb = r.get<AABB>(e);
-  e_aabb.center = group_pos.center;
-  r.get<TransformComponent>(e).scale = { e_aabb.size.x, e_aabb.size.y, 1.0f };
+  set_position(r, e, group_pos.center);
 
   // link group&player
   r.emplace<HasParentComponent>(e, group);
@@ -102,8 +101,6 @@ create_player_ally(entt::registry& r, const entt::entity& group)
   // weapon
   auto& weapon_parent = r.get<HasParentComponent>(weapon);
   weapon_parent.parent = e;
-  auto& weapon_aabb = r.get<AABB>(weapon);
-  weapon_aabb.center = e_aabb.center;
 
   // link player&weapon
   HasWeaponComponent has_weapon;
@@ -132,6 +129,10 @@ move_to_scene_start(entt::registry& r, const Scene s)
   destroy_and_create<SINGLE_ArrowsToSpawnerUI>(r);
   destroy_and_create<SINGLE_UILevelUpComponent>(r);
   destroy<Effect_GridComponent>(r);
+
+  // Clear out any old input
+  destroy_and_create<SINGLETON_InputComponent>(r);
+  init_input_system(r);
 
   // HACK: the first and only transform should be the camera
   auto& camera = get_first_component<TransformComponent>(r);
@@ -195,14 +196,13 @@ move_to_scene_start(entt::registry& r, const Scene s)
     // }
 
     // create a group with one unit in
-    // {
-    //   const auto& player_group = create_gameplay(r, EntityType::actor_unitgroup);
-    //   auto& group_aabb = r.get<AABB>(player_group);
-    //   group_aabb.size = default_size;
-    //   group_aabb.center = { 32, 32 };
-    //   create_player_ally(r, player_group);
-    //   create_player_ally(r, player_group);
-    // }
+    {
+      const auto& player_group = create_gameplay(r, EntityType::actor_unitgroup);
+      set_position(r, player_group, { 128, 128 });
+      // group_aabb.center = { 32, 32 };
+      create_player_ally(r, player_group);
+      create_player_ally(r, player_group);
+    }
 
     // create players based off main menu ui
     // note: create player before other sprites to render on top
@@ -226,20 +226,6 @@ move_to_scene_start(entt::registry& r, const Scene s)
     auto& camera_t = r.get<TransformComponent>(camera);
     camera_t.position.x = width / 2.0f;
     camera_t.position.y = height / 2.0f;
-
-    // VISUAL: use poisson for grass
-    // {
-    //   const int tex_unit_for_bargame = search_for_texture_unit_by_texture_path(ri, "bargame")->unit;
-    //   const auto poisson = generate_poisson(width, height, 150, 0);
-    //   std::cout << "generated " << poisson.size() << " poisson points" << std::endl;
-    //   for (const auto& p : poisson) {
-    //     const auto icon = create_gameplay(r, EntityType::empty_with_transform);
-    //     set_sprite_custom(r, icon, "icon_grass"s, tex_unit_for_bargame);
-
-    //     r.get<TransformComponent>(icon).position = { p.x, p.y, 0.0f };
-    //     r.get<TagComponent>(icon).tag = "grass"s;
-    //   }
-    // }
 
     // generate some walls
     {
@@ -283,8 +269,14 @@ move_to_scene_start(entt::registry& r, const Scene s)
       }
     }
 
+    // Create an enemy
+    {
+      const auto e = create_gameplay(r, EntityType::enemy_grunt);
+      set_position(r, e, { 64, 64 });
+    }
+
     // Generate "seed points" for bases
-    bool seed_spawners = true;
+    bool seed_spawners = false;
     MapComponent spawners;
     if (seed_spawners) {
       const auto& map = get_first_component<MapComponent>(r);
@@ -330,7 +322,7 @@ move_to_scene_start(entt::registry& r, const Scene s)
     }
 
     // Generate "seed points" for bases
-    bool seed_barricades = true;
+    bool seed_barricades = false;
     if (seed_barricades) {
       const auto& map = get_first_component<MapComponent>(r);
       const int seed = 1;
@@ -369,7 +361,7 @@ move_to_scene_start(entt::registry& r, const Scene s)
     }
 
     // Create 4 edges to the map
-    bool create_edges = false;
+    bool create_edges = true;
     if (create_edges) {
       const auto wall_l = create_gameplay(r, EntityType::solid_wall);
       set_position(r, wall_l, { 0, height / 2.0f });
@@ -384,9 +376,32 @@ move_to_scene_start(entt::registry& r, const Scene s)
       set_position(r, wall_d, { width / 2.0f, height });
       set_size(r, wall_d, { width, 32 });
     }
+
+    // VISUAL: use poisson for grass
+    {
+      const int tex_unit_for_bargame = search_for_texture_unit_by_texture_path(ri, "bargame")->unit;
+      const auto poisson = generate_poisson(width, height, 150, 0);
+      std::cout << "generated " << poisson.size() << " poisson points" << std::endl;
+      for (const auto& p : poisson) {
+        const auto icon = create_gameplay(r, EntityType::empty_with_transform);
+        set_sprite_custom(r, icon, "icon_grass"s, tex_unit_for_bargame);
+
+        r.get<TransformComponent>(icon).position = { p.x, p.y, 0.0f };
+        r.get<TagComponent>(icon).tag = "grass"s;
+      }
+    }
   }
 
   if (s == Scene::test_scene_gun) {
+    int width = 1000;
+    int height = 1000;
+    MapComponent map_c;
+    map_c.tilesize = 64;
+    map_c.xmax = width / map_c.tilesize;
+    map_c.ymax = height / map_c.tilesize;
+    const glm::ivec2 tilesize{ map_c.tilesize, map_c.tilesize };
+    const glm::ivec2 map_offset = { tilesize.x / 2.0f, tilesize.y / 2.0f };
+    r.emplace<MapComponent>(r.create());
 
     const auto player = create_player(r, { 128, 128 });
     r.emplace<CameraFollow>(player);

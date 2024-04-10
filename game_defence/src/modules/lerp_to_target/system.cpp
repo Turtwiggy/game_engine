@@ -27,22 +27,41 @@ update_set_velocity_to_target_system(entt::registry& r, const float& dt)
   ImGui::Begin("DebugPathfinding");
   const auto& pathfinding = r.view<const AABB, HasTargetPositionComponent, GeneratedPathComponent>();
   for (const auto& [e, aabb, target, path] : pathfinding.each()) {
-    const auto& cur = aabb.center;
+    ImGui::Text("Path Size: %i", path.path.size());
 
+    const auto& cur = aabb.center;
     auto cur_gridpos = engine::grid::world_space_to_grid_space(glm::vec2(cur.x, cur.y), map.tilesize);
     cur_gridpos.x = glm::clamp(cur_gridpos.x, 0, map.xmax - 1);
     cur_gridpos.y = glm::clamp(cur_gridpos.y, 0, map.ymax - 1);
-    ImGui::Text("CurrentGridPos: %i %i", cur_gridpos.x, cur_gridpos.y);
-    ImGui::Text("Path Size: %i", path.path.size());
+    ImGui::Text("cur_gridpos: %i %i", cur_gridpos.x, cur_gridpos.y);
 
-    // const auto cur_idx = engine::grid::grid_position_to_index(cur_gridpos, map.xmax);
-    // const auto cur_idx_clamped = glm::clamp(cur_idx, 0, (map.xmax * map.ymax) - 1);
+    // get target grid position at the time which the pathfinding was calculated
+    const auto dst_static = path.dst_pos;
+    auto dst_gridpos_static = engine::grid::world_space_to_grid_space(dst_static, map.tilesize);
+    dst_gridpos_static.x = glm::clamp(dst_gridpos_static.x, 0, map.xmax - 1);
+    dst_gridpos_static.y = glm::clamp(dst_gridpos_static.y, 0, map.ymax - 1);
+    ImGui::Text("dst_gridpos_static: %i %i", dst_gridpos_static.x, dst_gridpos_static.y);
+
+    // get live target grid position
+    const auto dst_dynamic = r.get<AABB>(path.dst_ent).center;
+    auto dst_gridpos_dyanmic = engine::grid::world_space_to_grid_space(dst_dynamic, map.tilesize);
+    dst_gridpos_dyanmic.x = glm::clamp(dst_gridpos_dyanmic.x, 0, map.xmax - 1);
+    dst_gridpos_dyanmic.y = glm::clamp(dst_gridpos_dyanmic.y, 0, map.ymax - 1);
+    ImGui::Text("dst_gridpos: %i %i", dst_gridpos_dyanmic.x, dst_gridpos_dyanmic.y);
+
+    if (dst_gridpos_static != dst_gridpos_dyanmic) {
+      // the target has moved!
+      ImGui::Text("Target has moved outside pathfinding??");
+    }
 
     // probably clicked either on invalid spot, or spot in same gridspace
-    if (path.path.size() == 0)
-      target.position = path.dst_pos;
+    const bool in_same_gridspace = cur_gridpos == dst_gridpos_dyanmic;
+    if (path.path.size() == 0 || in_same_gridspace)
+      target.position = dst_dynamic;
 
     for (int i = 0; const auto p : path.path) {
+      if (in_same_gridspace)
+        continue; // probably shouldnt be in this for loop
 
       // not on our section in the path
       if (p != cur_gridpos) {
@@ -50,50 +69,42 @@ update_set_velocity_to_target_system(entt::registry& r, const float& dt)
         continue;
       }
 
-      // cut corners
-      path.path_cleared[i] = true;
-
       // move towards center of the current tile
-      // if (!path.path_cleared[i]) {
-      //   const auto target_pos = engine::grid::grid_space_to_world_space(cur_gridpos, map.tilesize);
-      //   target.position = target_pos;
-      //   target.position += glm::vec2(map.tilesize / 2.0f, map.tilesize / 2.0f);
-      // }
+      if (!path.path_cleared[i]) {
+        const auto target_pos = engine::grid::grid_space_to_world_space(cur_gridpos, map.tilesize);
+        target.position = target_pos;
+        target.position += glm::vec2(map.tilesize / 2.0f, map.tilesize / 2.0f);
+      }
 
-      // // check if within distance of the center of the gridpos
-      // if (!path.path_cleared[i]) {
-      //   const auto d = aabb.center - target.position;
-      //   const float d2 = d.x * d.x + d.y * d.y;
-      //   const float threshold = 10;
-      //   if (d2 < threshold)
-      //     path.path_cleared[i] = true;
-      // }
+      // check if within distance of the center of the gridpos
+      if (!path.path_cleared[i]) {
+        const auto d = aabb.center - target.position;
+        const float d2 = d.x * d.x + d.y * d.y;
+        const float threshold = 10;
+        if (d2 < threshold)
+          path.path_cleared[i] = true;
+      }
 
       // if we've cleared this current gridtile path,
       // aim for the next gridtile path
-      // if (path.path_cleared[i]) {
-      //   const int next_idx = i + 1;
-      //   const bool is_valid_next_index = next_idx <= path.path.size() - 1;
-      //   if (is_valid_next_index) {
-      //     const auto next_pos = path.path[next_idx];
-      //     const auto target_pos = engine::grid::grid_space_to_world_space(next_pos, map.tilesize);
-      //     // center, not top left
-      //     target.position = target_pos;
-      //     target.position += glm::vec2(map.tilesize / 2.0f, map.tilesize / 2.0f);
-      //   }
-      // }
-
-      // // if we're at the end of the path, aim for the original position
-      // if (i == path.path.size() - 1)
-      //   target.position = path.dst_pos;
-
-      // skip all pathfinding...
-      target.position = path.dst_pos;
+      if (path.path_cleared[i]) {
+        const int next_idx = i + 1;
+        const bool is_valid_next_index = next_idx <= path.path.size() - 1;
+        if (is_valid_next_index) {
+          const auto next_pos = path.path[next_idx];
+          const auto target_pos = engine::grid::grid_space_to_world_space(next_pos, map.tilesize);
+          // center, not top left
+          target.position = target_pos;
+          target.position += glm::vec2(map.tilesize / 2.0f, map.tilesize / 2.0f);
+          break;
+        }
+      }
 
       i++;
     }
 
     // Debug path
+    ImGui::Text("TargetPos: %i %i", target.position.x, target.position.y);
     ImGui::Separator();
     for (const auto& p : path.path)
       ImGui::Text("Path %i %i", p.x, p.y);

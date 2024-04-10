@@ -47,9 +47,24 @@ grid_space_to_world_space(const glm::ivec2 pos, const int grid_size)
 [[nodiscard]] inline glm::ivec2
 world_space_to_grid_space(const glm::vec2& pos, const float grid_size)
 {
-  const int grid_x = static_cast<int>(pos.x / grid_size);
-  const int grid_y = static_cast<int>(pos.y / grid_size);
-  return { grid_x, grid_y };
+  const int grid_x = static_cast<int>(glm::abs(pos.x) / grid_size);
+  const int grid_y = static_cast<int>(glm::abs(pos.y) / grid_size);
+  if (pos.x >= 0 && pos.y >= 0)
+    return { grid_x, grid_y };
+
+  // Brain Hurty.
+  // But basically, if x (or y) was < 0,
+  // It was the case that it was incorrectly returning
+  // e.g. {-10, 0} with a gridsize 32 as {0, 0} where it should've been {-1, 0}.
+  // The below shifts the negative grid scale by 1 in the direction if that
+  // pos.x or pos.y is less than 0.
+  int final_grid_x = grid_x;
+  int final_grid_y = grid_y;
+  if (pos.x < 0)
+    final_grid_x = -(grid_x + 1);
+  if (pos.y < 0)
+    final_grid_y = -(grid_y + 1);
+  return { final_grid_x, final_grid_y };
 }
 
 inline int

@@ -13,7 +13,6 @@
 #include "physics/components.hpp"
 #include "renderer/transform.hpp"
 
-
 #include <imgui.h>
 
 #include <optional>
@@ -52,31 +51,6 @@ update_selected_interactions_system(entt::registry& r, const glm::ivec2& mouse_p
 // auto& dda_intersection_spr = r.get<SpriteComponent>(cursor_comp.dda_intersection);
 // dda_intersection.position = { output.intersection.x * tile_vec.x, output.intersection.y * tile_vec.y, 0.0f };
 // dda_intersection_spr.colour = engine::LinearColour(1.0f, 0.0f, 0.0f, 1.0f);
-
-// HACK: pathfinding start
-// const auto& map = get_first_component<MapComponent>(r);
-// GridComponent grid;
-// grid.size = map.tilesize;
-// grid.width = map.xmax;
-// grid.height = map.ymax;
-// grid.grid = map.map;
-// const auto& view = r.view<const SelectedComponent, const AABB, HasTargetPositionComponent>();
-// for (const auto& [e, selected, aabb, target_position] : view.each()) {
-//   const auto& src = aabb.center;
-//   const auto src_gridpos = engine::grid::world_space_to_grid_space(glm::vec2(src.x, src.y), map.tilesize);
-//   const auto src_idx = engine::grid::grid_position_to_index(src_gridpos, map.xmax);
-//   const auto& dst = click_position;
-//   const auto dst_gridpos = engine::grid::world_space_to_grid_space(glm::vec2(dst.x, dst.y), map.tilesize);
-//   const auto dst_idx = engine::grid::grid_position_to_index(dst_gridpos, map.ymax);
-//   // update the path
-//   auto path = generate_direct(r, grid, src_idx, dst_idx);
-//   GeneratedPathComponent path_c;
-//   path_c.path = path;
-//   path_c.src_pos = src;
-//   path_c.dst_pos = dst;
-//   path_c.path_cleared.resize(path.size());
-//   r.emplace_or_replace<GeneratedPathComponent>(e, path_c);
-// }
 
 // HACK: set aim waypoint
 //

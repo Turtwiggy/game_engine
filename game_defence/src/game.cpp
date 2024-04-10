@@ -56,6 +56,7 @@
 #include "modules/ui_rpg_character/system.hpp"
 #include "modules/ui_scene_main_menu/system.hpp"
 #include "modules/ui_selected/system.hpp"
+#include "modules/ui_spaceship_designer/system.hpp"
 #include "modules/ui_worldspace_text/system.hpp"
 #include "modules/ui_xp_bar/system.hpp"
 #include "modules/ux_hoverable/system.hpp"
@@ -128,7 +129,6 @@ game2d::init(engine::SINGLETON_Application& app, entt::registry& r)
   }
 
   r.emplace<SINGLETON_FixedUpdateInputHistory>(r.create());
-  r.emplace<SINGLETON_InputComponent>(r.create());
   r.emplace<SINGLETON_LevelEditor>(r.create());
   init_ui_colour_palette_system(r);
 
@@ -143,7 +143,10 @@ game2d::init(engine::SINGLETON_Application& app, entt::registry& r)
 
   auto& ri = get_first_component<SINGLETON_RendererInfo>(r);
   init_render_system(app, r, ri); // init after camera
-  init_input_system(r);
+
+  // TRIAL: moved in to scene_start
+  // r.emplace<SINGLETON_InputComponent>(r.create());
+  // init_input_system(r);
 
   move_to_scene_start(r, Scene::menu);
 }
@@ -214,7 +217,7 @@ game2d::fixed_update(engine::SINGLETON_Application& app, entt::registry& game, c
     update_resolve_collisions_system(game);
 
     // put immediately after collisions,
-    // otherwise the DealDamageRequest the entity removed
+    // otherwise the DealDamageRequest entity could be removed
     update_take_damage_system(game);
 
     update_player_controller_system(game, milliseconds_dt); // input => actions
@@ -317,6 +320,9 @@ game2d::update(engine::SINGLETON_Application& app, entt::registry& r, const floa
       update_ui_level_up_system(r);
       update_ui_xp_bar_system(r);
     }
+    if (scene.s == Scene::spaceship_designer) {
+      update_ui_spaceship_designer_system(r, mouse_pos);
+    }
     update_ui_worldspace_text_system(r);
     update_ui_pause_menu_system(app, r);
     update_ui_gameover_system(r);
@@ -335,9 +341,9 @@ game2d::update(engine::SINGLETON_Application& app, entt::registry& r, const floa
     static bool show_editor_ui = true;
     if (show_editor_ui) {
       update_ui_hierarchy_system(r);
-      update_ui_level_editor_system(r, mouse_pos);
+      // update_ui_level_editor_system(r, mouse_pos);
       update_ui_collisions_system(r);
-      update_ui_colour_palette_system(r);
+      // update_ui_colour_palette_system(r);
     }
 
 #endif

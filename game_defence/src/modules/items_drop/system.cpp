@@ -13,12 +13,12 @@
 #include "physics/components.hpp"
 #include "renderer/transform.hpp"
 
-
 #include <utility>
 #include <vector>
 
 namespace game2d {
 
+//
 // What items should this drop on death?
 //
 const std::vector<std::pair<EntityType, int>> item_weight_map{
@@ -70,9 +70,6 @@ update_intent_drop_item_system(entt::registry& r)
   // Dead things drop xp items
   //
 
-  // a frame behind
-  static float last_generated_random = 0;
-
   //
   // Something died and wants to drop an item
   //
@@ -84,9 +81,6 @@ update_intent_drop_item_system(entt::registry& r)
     r.remove<AbleToDropItem>(e); // dont drop items multiple times
 
     const auto [random, item_type] = generate_item();
-
-    // debug the random number
-    last_generated_random = random;
 
     // Enemy did not drop an item
     if (item_type == EntityType::empty_no_transform)
@@ -109,14 +103,25 @@ update_intent_drop_item_system(entt::registry& r)
   const auto& view = r.view<const AABB, WantsToDrop>(entt::exclude<WaitForInitComponent>);
   const auto& picked_up_items_view = r.view<PickedUpByComponent>(entt::exclude<WaitForInitComponent>);
 
-  for (const auto& [entity, dead_aabb, request] : view.each()) {
+  for (const auto& [entity, entity_aabb, request] : view.each()) {
     //
     // Check all items in the request
     // Create that item new
     //
+
+    // HACK: player drop a barricade
+    const auto& et = r.get<EntityTypeComponent>(entity);
+    if (et.type == EntityType::actor_player) {
+
+      // create an item
+      const auto item_e = r.create();
+      r.emplace<EntityTypeComponent>(item_e, EntityType::actor_barricade);
+      request.items.push_back(item_e);
+    }
+
     for (const auto& item : request.items) {
       const auto e = create_gameplay(r, r.get<EntityTypeComponent>(item).type);
-      set_position(r, e, dead_aabb.center);
+      set_position(r, e, entity_aabb.center);
     }
     //
     // Check if this entity is holding any item

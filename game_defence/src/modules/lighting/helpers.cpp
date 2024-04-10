@@ -88,12 +88,12 @@ generate_intersections(entt::registry& r,
         bool is_valid = false;
 
         // check for ray intersection with edges
-        for (auto& e2 : edges) {
+        for (const auto& e2 : edges) {
           const float sdx = e2[1].x - e2[0].x;
           const float sdy = e2[1].y - e2[0].y;
 
           // make sure ray isn't colinear
-          if (fabs(sdx - rdx) > 0.0f && fabs(sdy - rdy) > 0.0f) {
+          if (glm::abs(sdx - rdx) > 0.0f && glm::abs(sdy - rdy) > 0.0f) {
             // t2 is normalised distance from line segment start to line segment end of intersect point
             const float t2 = (rdx * (e2[0].y - light_pos.y) + (rdy * (light_pos.x - e2[0].x))) / (sdx * rdy - sdy * rdx);
             // t1 is normalised distance from source along ray to ray length of intersect point
@@ -131,8 +131,8 @@ generate_intersections(entt::registry& r,
   const auto it = std::unique(intersections.begin(),
                               intersections.end(),
                               [&](const std::tuple<float, float, float>& t1, const std::tuple<float, float, float>& t2) {
-                                return std::fabs(std::get<1>(t1) - std::get<1>(t2)) < 0.1f &&
-                                       std::fabs(std::get<2>(t1) - std::get<2>(t2)) < 0.1f;
+                                return glm::abs(std::get<1>(t1) - std::get<1>(t2)) < 0.1f &&
+                                       glm::abs(std::get<2>(t1) - std::get<2>(t2)) < 0.1f;
                               });
 
   intersections.resize(std::distance(intersections.begin(), it));

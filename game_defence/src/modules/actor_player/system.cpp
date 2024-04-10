@@ -23,7 +23,6 @@
 #include "renderer/transform.hpp"
 #include "sprites/components.hpp"
 
-
 #include <SDL2/SDL_keyboard.h>
 #include <SDL2/SDL_mouse.h>
 #include <glm/glm.hpp>

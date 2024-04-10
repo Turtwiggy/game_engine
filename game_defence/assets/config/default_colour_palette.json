@@ -8,7 +8,13 @@
     {
       "r": 15, "g": 76, "b": 117,
       "name": "pal_player_0",
-      "tags": [ "actor_player", "cursor", "actor_bodypart_head", "actor_bodypart_leg" ]
+      "tags": [
+        "actor_player",
+        "cursor",
+        "actor_bodypart_head",
+        "actor_bodypart_leg",
+        "actor_spaceship"
+      ]
     },
     {
       "r": 50, "g": 130, "b": 184,
@@ -82,7 +88,8 @@
         "bullet_default",
         "particle",
         "actor_spawner",
-        "actor_unitgroup"
+        "actor_unitgroup",
+        "solid_spaceship_point"
       ]
     },
     {

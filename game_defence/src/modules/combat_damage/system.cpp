@@ -11,6 +11,7 @@
 #include "modules/combat_flash_on_damage/helpers.hpp"
 #include "modules/combat_powerup_doubledamage/components.hpp"
 #include "modules/screenshake/components.hpp"
+#include "modules/system_knockback/components.hpp"
 #include "modules/ui_colours/helpers.hpp"
 #include "physics/components.hpp"
 #include "renderer/transform.hpp"
@@ -34,6 +35,7 @@ update_take_damage_system(entt::registry& r)
 
     if (atk == nullptr)
       continue; // no attack damage given
+
     if (hp == nullptr)
       continue; // not able to take damage?
 
@@ -48,7 +50,9 @@ update_take_damage_system(entt::registry& r)
       player_attacker = parent_attacker.value();
 
     // Does the defender have the ability to be knocked back?
-    if (auto* v = r.try_get<VelocityComponent>(request.to)) {
+    auto* v = r.try_get<VelocityComponent>(request.to);
+    const auto* kb = r.try_get<KnockbackComponent>(request.to);
+    if (v && kb) {
       const auto atk_pos = get_position(r, request.from);
       const auto def_pos = get_position(r, request.to);
       const auto dir = engine::normalize_safe(atk_pos - def_pos);
