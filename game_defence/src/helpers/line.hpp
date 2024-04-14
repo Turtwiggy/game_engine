@@ -27,6 +27,9 @@ set_transform_with_line(TransformComponent& t, const LineInfo& li);
 void
 set_transform_with_line(entt::registry& r, const entt::entity& e, const LineInfo& li);
 
+void
+set_position_with_line(entt::registry& r, const entt::entity& e, const LineInfo& li);
+
 // inspired by:
 // https://github.com/scikit-image/scikit-image/blob/main/skimage/draw/_draw.pyx
 // void

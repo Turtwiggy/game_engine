@@ -45,7 +45,7 @@ update_ui_selected(entt::registry& r)
     positions.push_back(transform.position);
 
   // update positions
-  const auto& ui_view = r.view<SelectedUIComponent, TransformComponent>();
+  const auto& ui_view = r.view<const SelectedUIComponent, TransformComponent>();
   for (int i = 0; const auto& [e, instance, transform] : ui_view.each()) {
     transform.position = positions[i];
     i++;

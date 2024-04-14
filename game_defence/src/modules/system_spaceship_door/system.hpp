@@ -4,9 +4,7 @@
 
 namespace game2d {
 
-struct Effect_GridComponent
-{
-  int gridsize = 128;
-};
+void
+update_spaceship_door_system(entt::registry& r);
 
 } // namespace game2d

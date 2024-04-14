@@ -31,7 +31,15 @@ update_enemy_system(entt::registry& r, const float dt)
   // pathfinding, such as using AStar to calculate the next step
   //
 
+  const auto& map_e = get_first<MapComponent>(r);
+  if (map_e == entt::null)
+    return;
   const auto& map = get_first_component<MapComponent>(r);
+
+  const auto& default_target = get_first<PlayerComponent>(r);
+  if (default_target == entt::null)
+    return;
+  const auto& default_target_aabb = r.get<AABB>(default_target);
 
   // Convert Map to Grid (?)
   GridComponent grid;
@@ -40,8 +48,6 @@ update_enemy_system(entt::registry& r, const float dt)
   grid.height = map.ymax;
   grid.grid = map.map;
 
-  const auto& default_target = get_first<PlayerComponent>(r);
-  const auto& default_target_aabb = r.get<AABB>(default_target);
   const auto& view =
     r.view<EnemyComponent, const HasTargetPositionComponent, TransformComponent, AABB>(entt::exclude<WaitForInitComponent>);
 

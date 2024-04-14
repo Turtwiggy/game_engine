@@ -2,6 +2,7 @@
 
 #include "maths/maths.hpp"
 #include "modules/renderer/components.hpp"
+#include "physics/components.hpp"
 
 namespace game2d {
 
@@ -34,6 +35,16 @@ set_transform_with_line(entt::registry& r, const entt::entity& e, const LineInfo
   auto& t = r.get<TransformComponent>(e);
   set_transform_with_line(t, li);
 };
+
+void
+game2d::set_position_with_line(entt::registry& r, const entt::entity& e, const LineInfo& li)
+{
+  if (auto* aabb = r.try_get<AABB>(e)) {
+    aabb->center = { li.position.x, li.position.y };
+    aabb->size = { li.scale.x, li.scale.y };
+  }
+  set_transform_with_line(r, e, li);
+}
 
 // void
 // create_line(int r0, int c0, int r1, int c1, std::vector<std::pair<int, int>>& results)

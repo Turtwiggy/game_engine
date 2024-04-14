@@ -22,6 +22,15 @@ set_position(entt::registry& r, const entt::entity& e, const glm::ivec2& pos)
   r.get<TransformComponent>(e).position = { pos.x, pos.y, 0.0f };
 }
 
+glm::ivec2
+get_size(entt::registry& r, const entt::entity& e)
+{
+  if (auto* aabb = r.try_get<AABB>(e))
+    return aabb->size;
+  const auto& transform = r.get<TransformComponent>(e);
+  return { transform.scale.x, transform.scale.y };
+};
+
 void
 set_size(entt::registry& r, const entt::entity& e, const glm::ivec2& size)
 {

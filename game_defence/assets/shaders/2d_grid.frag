@@ -11,6 +11,7 @@ in float v_tex_unit;
 
 uniform vec2 viewport_wh;
 uniform vec2 camera_pos;
+uniform float gridsize;
 
 vec2 tile(vec2 uv, float amount){
   uv *= amount;
@@ -51,13 +52,13 @@ vec2 offset(vec2 _st, vec2 _offset){
 void
 main()
 {
-  vec2 half_wh = viewport_wh / 2.0;
-  float screen_min_x = camera_pos.x - half_wh.x; // e.g. -960
-  float screen_max_x = camera_pos.x + half_wh.x; // e.g. 960
-  float screen_min_y = camera_pos.y - half_wh.y; // e.g. -540
-  float screen_max_y = camera_pos.y + half_wh.y; // e.g. 540
-  float range_x = screen_max_x - screen_min_x;
-  float range_y = screen_max_y - screen_min_y;
+  const vec2 half_wh = viewport_wh / 2.0;
+  const float screen_min_x = camera_pos.x - half_wh.x; // e.g. -960
+  const float screen_max_x = camera_pos.x + half_wh.x; // e.g. 960
+  const float screen_min_y = camera_pos.y - half_wh.y; // e.g. -540
+  const float screen_max_y = camera_pos.y + half_wh.y; // e.g. 540
+  const float range_x = screen_max_x - screen_min_x;
+  const float range_y = screen_max_y - screen_min_y;
 
   //
   // the screen overlay quad is moving with camera_position..
@@ -66,11 +67,11 @@ main()
 
   // camera position is in worldspace.
   //
-  vec2 camera_uv_screen = vec2(
+  const vec2 camera_uv_screen = vec2(
     camera_pos.x / half_wh.x,
     camera_pos.y / half_wh.y
   );
-  vec2 camera_uv = camera_uv_screen; 
+  const vec2 camera_uv = camera_uv_screen; 
   //
   // here, camera_uv_screen should be in the range 0, 1
   // e.g. 0 < camera_pos.x < half_wh.x
@@ -89,7 +90,7 @@ main()
   uv.y *= aspect;
 
   // if tiles are e.g. 64 pixels wide.......
-  float tile_amount = float(viewport_wh.x / 128);
+  float tile_amount = float(viewport_wh.x / gridsize);
 
   vec2 grid_uv = tile(uv, tile_amount);
   vec3 colour = vec3(box(grid_uv, vec2(0.96), 0.0));
@@ -98,7 +99,7 @@ main()
   if(colour == vec3(1.0, 1.0, 1.0)) // background
     colour = vec3(0.0, 0.0, 0.0);
   else if(colour == vec3(0.0, 0.0, 0.0)) // line
-    colour = vec3(0.0075, 0.0075, 0.0075);
+    colour = vec3(1.0, 1.0, 1.0);
 
   o_colour = vec4(colour, 1.0);
   // o_colour = v_colour;

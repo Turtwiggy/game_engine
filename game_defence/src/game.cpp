@@ -39,6 +39,7 @@
 #include "modules/screenshake/system.hpp"
 #include "modules/selected_interactions/system.hpp"
 #include "modules/sprite_spritestack/system.hpp"
+#include "modules/system_spaceship_door/system.hpp"
 #include "modules/ui_arrows_to_spawners/system.hpp"
 #include "modules/ui_audio/system.hpp"
 #include "modules/ui_collisions/system.hpp"
@@ -260,6 +261,7 @@ game2d::update(engine::SINGLETON_Application& app, entt::registry& r, const floa
     const std::vector<Scene> valid_scenes{
       Scene::game,
       Scene::test_scene_gun,
+      Scene::spaceship_designer,
     };
     const bool in_scene_of_interest = std::find(valid_scenes.begin(), valid_scenes.end(), scene.s) != valid_scenes.end();
     if (in_scene_of_interest && state.state == GameState::RUNNING && !gameover.game_is_over) {
@@ -294,6 +296,9 @@ game2d::update(engine::SINGLETON_Application& app, entt::registry& r, const floa
       update_intent_pickup_system(r);
       update_intent_drop_item_system(r);
       update_selected_interactions_system(r, mouse_pos, dt);
+      //
+      //
+      update_spaceship_door_system(r);
     }
   }
 
@@ -314,7 +319,7 @@ game2d::update(engine::SINGLETON_Application& app, entt::registry& r, const floa
     }
     if (scene.s == Scene::game) {
       update_ui_inventory(r);
-      update_ui_selected(r);
+      // update_ui_selected(r);
       update_ui_arrows_to_spawners_system(r);
       update_ui_player_name_above_player_system(r);
       update_ui_level_up_system(r);

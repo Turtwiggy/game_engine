@@ -38,6 +38,7 @@ enum class EntityType
 
   // solids
   solid_wall,
+  solid_spaceship_door,
   solid_spaceship_point,
 
   // actor_weapons,

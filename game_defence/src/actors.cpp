@@ -24,6 +24,7 @@
 #include "modules/renderer/components.hpp"
 #include "modules/renderer/helpers.hpp"
 #include "modules/system_knockback/components.hpp"
+#include "modules/system_spaceship_door/components.hpp"
 #include "modules/ui_colours/helpers.hpp"
 #include "modules/ui_spaceship_designer/components.hpp"
 #include "modules/ux_hoverable/components.hpp"
@@ -32,6 +33,7 @@
 #include "renderer/transform.hpp"
 #include "sprites/components.hpp"
 #include "sprites/helpers.hpp"
+
 
 #include "magic_enum.hpp"
 
@@ -204,6 +206,16 @@ create_gameplay(entt::registry& r, const EntityType& type)
       r.emplace<SpaceshipPointComponent>(e);
       r.emplace<HoverableComponent>(e);
       r.emplace<ChangeColourOnHoverComponent>(e);
+      break;
+    }
+    case EntityType::solid_spaceship_door: {
+      create_physics_actor(r, e);
+      r.emplace<PhysicsSolidComponent>(e);
+
+      r.emplace<HoverableComponent>(e);
+      r.emplace<ChangeColourOnHoverComponent>(e);
+
+      r.emplace<SpaceshipDoorComponent>(e);
       break;
     }
 

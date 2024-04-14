@@ -4,9 +4,9 @@
 
 namespace game2d {
 
-struct Effect_GridComponent
+struct SpaceshipDoorComponent
 {
-  int gridsize = 128;
+  bool placeholder = true;
 };
 
 } // namespace game2d
