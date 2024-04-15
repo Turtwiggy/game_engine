@@ -13,26 +13,18 @@ uniform vec2 viewport_wh;
 uniform vec2 camera_pos;
 uniform float gridsize;
 
-vec2 tile(vec2 uv, float amount){
-  uv *= amount;
-  return fract(uv);
-}
+float sdGrid(in vec2 position, in float margin) {
 
-float box(vec2 _st, vec2 _size, float _smoothEdges){
-    _size = vec2(0.5)-_size*0.5;
-    vec2 aa = vec2(_smoothEdges*0.5);
-    vec2 uv = smoothstep(_size,_size+aa,_st);
-    uv *= smoothstep(_size,_size+aa,vec2(1.0)-_st);
-    return uv.x*uv.y;
+	// Calculate per-axis distance from 0.5 to position mod 1
+	vec2 gridDist = abs(fract(position) - 0.5) - margin;
+	
+	// Calculate length for round outer corners, ripped from Inigo Quilez
+	float outsideDist = length(max(gridDist, 0.0));
+	// Calculate inside separately, ripped from Inigo Quilez
+	float insideDist = min(max(gridDist.x, gridDist.y), 0.0);
+	
+	return outsideDist + insideDist;
 }
-
-// vec2 rotate2D(vec2 _st, float _angle){
-//     _st -= 0.5;
-//     _st =  mat2(cos(_angle),-sin(_angle),
-//       sin(_angle),cos(_angle)) * _st;
-//     _st += 0.5;
-//     return _st;
-// }
 
 vec2 offset(vec2 _st, vec2 _offset){
   vec2 uv;
@@ -89,19 +81,26 @@ main()
   float aspect = viewport_wh.y / viewport_wh.x;
   uv.y *= aspect;
 
-  // if tiles are e.g. 64 pixels wide.......
-  float tile_amount = float(viewport_wh.x / gridsize);
+  vec2 p = (viewport_wh.x / gridsize / 2.0) * uv;
+  float margin = 0.5;
+  float d = sdGrid(p, margin);
 
-  vec2 grid_uv = tile(uv, tile_amount);
-  vec3 colour = vec3(box(grid_uv, vec2(0.96), 0.0));
-  // colour = vec3(1.0) - colour;
+  // vec3 colour = vec3(1.0) - sign(d) * vec3(0.1, 0.4, 0.7);
+  vec3 colour = vec3(1.0, 0.0, 0.0);
 
-  if(colour == vec3(1.0, 1.0, 1.0)) // background
-    colour = vec3(0.0, 0.0, 0.0);
-  else if(colour == vec3(0.0, 0.0, 0.0)) // line
-    colour = vec3(1.0, 1.0, 1.0);
+  // if the gridsize gets too small
+  // and the gridwidth isnt large enough, 
+  // the grid appears to dissapear.
+  // the value 0.05 seems to work until gridsize<10
+  const float grid_width = 0.05; 
+  if(abs(d) >= grid_width)
+    colour = vec3(0.0); // background
+  else
+    colour = vec3(0.05, 0.05, 0.05); // line
+
+	// colour *= 1.0 - exp(-6.0 * abs(d));
+	// colour *= 0.8 + 0.2 * cos(120.0 * d);
+	// colour = mix(colour, vec3(1.0), 1.0 - smoothstep(0.0, 0.015, abs(d)));
 
   o_colour = vec4(colour, 1.0);
-  // o_colour = v_colour;
-  // o_colour = vec4(0.0f, 0.5f, 0.0f, 1.0f);
 }

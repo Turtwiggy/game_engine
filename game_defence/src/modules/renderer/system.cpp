@@ -4,9 +4,6 @@
 // components/systems
 #include "colour/colour.hpp"
 #include "entt/helpers.hpp"
-#include "imgui/helpers.hpp"
-#include "maths/maths.hpp"
-#include "modules/actor_player/components.hpp"
 #include "modules/camera/orthographic.hpp"
 #include "modules/gameplay_circle/components.hpp"
 #include "modules/lighting/helpers.hpp"
@@ -107,8 +104,10 @@ rebind(entt::registry& r, const SINGLETON_RendererInfo& ri)
   const auto grid_e = get_first<Effect_GridComponent>(r);
   ri.grid.bind();
   ri.grid.set_mat4("projection", camera.projection);
-  if (grid_e != entt::null)
-    ri.grid.set_float("gridsize", r.get<Effect_GridComponent>(grid_e).gridsize);
+  if (grid_e != entt::null) {
+    const float gridsize = r.get<Effect_GridComponent>(grid_e).gridsize;
+    ri.grid.set_float("gridsize", gridsize);
+  }
 };
 
 void
@@ -202,8 +201,10 @@ game2d::update_render_system(entt::registry& r, const float dt, const glm::vec2&
   ri.grid.set_vec2("viewport_wh", ri.viewport_size_render_at);
   ri.grid.set_vec2("camera_pos", { camera_t.position.x, camera_t.position.y });
   const auto grid_e = get_first<Effect_GridComponent>(r);
-  if (grid_e != entt::null)
-    ri.grid.set_float("gridsize", r.get<Effect_GridComponent>(grid_e).gridsize);
+  if (grid_e != entt::null) {
+    const float gridsize = r.get<Effect_GridComponent>(grid_e).gridsize;
+    ri.grid.set_float("gridsize", gridsize);
+  }
 
   ri.mix_lighting_and_scene.bind();
   const glm::vec2 screen_tl = { 0, 0 };
@@ -221,20 +222,17 @@ game2d::update_render_system(entt::registry& r, const float dt, const glm::vec2&
   const auto& input = get_first_component<SINGLETON_InputComponent>(r);
   if (get_key_down(input, SDL_SCANCODE_1)) {
     std::cout << "rebinding shader..." << std::endl;
-    // ri.mix_lighting_and_scene.reload();
-    // ri.mix_lighting_and_scene.bind();
-    // ri.mix_lighting_and_scene.set_mat4("projection", camera.projection);
-    // ri.mix_lighting_and_scene.set_mat4("view", glm::mat4(1.0f)); // whole texture
-    // ri.mix_lighting_and_scene.set_int("lighting", ri.tex_unit_lighting);
-    // ri.mix_lighting_and_scene.set_int("scene", ri.tex_unit_linear_main);
-
+    ri.grid.reload();
     ri.grid.bind();
+    ri.grid.set_mat4("projection", camera.projection);
     ri.grid.set_mat4("view", camera.view);
     ri.grid.set_vec2("viewport_wh", ri.viewport_size_render_at);
     ri.grid.set_vec2("camera_pos", { camera_t.position.x, camera_t.position.y });
     const auto grid_e = get_first<Effect_GridComponent>(r);
-    if (grid_e != entt::null)
-      ri.grid.set_float("gridsize", r.get<Effect_GridComponent>(grid_e).gridsize);
+    if (grid_e != entt::null) {
+      const float gridsize = r.get<Effect_GridComponent>(grid_e).gridsize;
+      ri.grid.set_float("gridsize", gridsize);
+    }
   }
 #endif
 
@@ -247,8 +245,8 @@ game2d::update_render_system(entt::registry& r, const float dt, const glm::vec2&
 
     // Render grid shader
     {
-      const auto& grid = r.view<Effect_GridComponent>();
-      if (grid.size() > 0) {
+      const auto& grid_effect_e = get_first<Effect_GridComponent>(r);
+      if (grid_effect_e != entt::null) {
         quad_renderer::QuadRenderer::reset_quad_vert_count();
         quad_renderer::QuadRenderer::begin_batch();
 

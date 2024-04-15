@@ -23,6 +23,12 @@ set_position(entt::registry& r, const entt::entity& e, const glm::ivec2& pos)
 }
 
 void
+set_size(entt::registry& r, const entt::entity& e, const float& size)
+{
+  set_size(r, e, glm::ivec2(size, size));
+};
+
+void
 set_size(entt::registry& r, const entt::entity& e, const glm::ivec2& size)
 {
   if (auto* aabb = r.try_get<AABB>(e))

@@ -446,20 +446,20 @@ move_to_scene_start(entt::registry& r, const Scene s)
     r.emplace<Effect_GridComponent>(r.create());
 
     // VISUAL: use poisson for grass
-    {
-      int width = 1000;
-      int height = 1000;
-      const int tex_unit_for_bargame = search_for_texture_unit_by_texture_path(ri, "bargame")->unit;
-      const auto poisson = generate_poisson(width, height, 150, 0);
-      std::cout << "generated " << poisson.size() << " poisson points" << std::endl;
-      for (const auto& p : poisson) {
-        const auto icon = create_gameplay(r, EntityType::empty_with_transform);
-        set_sprite_custom(r, icon, "icon_grass"s, tex_unit_for_bargame);
+    // {
+    //   int width = 1000;
+    //   int height = 1000;
+    //   const int tex_unit_for_bargame = search_for_texture_unit_by_texture_path(ri, "bargame")->unit;
+    //   const auto poisson = generate_poisson(width, height, 150, 0);
+    //   std::cout << "generated " << poisson.size() << " poisson points" << std::endl;
+    //   for (const auto& p : poisson) {
+    //     const auto icon = create_gameplay(r, EntityType::empty_with_transform);
+    //     set_sprite_custom(r, icon, "icon_grass"s, tex_unit_for_bargame);
 
-        r.get<TransformComponent>(icon).position = { p.x, p.y, 0.0f };
-        r.get<TagComponent>(icon).tag = "grass"s;
-      }
-    }
+    //     r.get<TransformComponent>(icon).position = { p.x, p.y, 0.0f };
+    //     r.get<TagComponent>(icon).tag = "grass"s;
+    //   }
+    // }
   }
 
   const auto scene_name = std::string(magic_enum::enum_name(s));

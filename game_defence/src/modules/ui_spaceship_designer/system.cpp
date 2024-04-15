@@ -6,11 +6,13 @@
 #include "events/components.hpp"
 #include "events/helpers/keyboard.hpp"
 #include "helpers/line.hpp"
+#include "imgui/helpers.hpp"
 #include "lifecycle/components.hpp"
 #include "maths/grid.hpp"
 #include "modules/actors/helpers.hpp"
 #include "modules/ui_colours/helpers.hpp"
 #include "modules/ux_hoverable/components.hpp"
+#include "modules/vfx_grid/components.hpp"
 #include "renderer/transform.hpp"
 #include "sprites/components.hpp"
 
@@ -34,8 +36,12 @@ update_ui_spaceship_designer_system(entt::registry& r, const glm::ivec2& input_m
   const auto delete_points_key = SDL_SCANCODE_DELETE;
   const auto create_door_key = SDL_SCANCODE_G;
 
-  static float grid_snap_size = 32.0f;
+  static int grid_snap_size = 32;
   static float line_width = 4.0f;
+
+  imgui_draw_int("edit_gridsize", grid_snap_size);
+  auto& grid_effect = get_first_component<Effect_GridComponent>(r);
+  grid_effect.gridsize = grid_snap_size;
 
   // Clamp mouse positiion to grid
   //
@@ -85,6 +91,7 @@ update_ui_spaceship_designer_system(entt::registry& r, const glm::ivec2& input_m
   if (get_key_down(input, create_point_key)) {
     const auto wall_e = create_gameplay(r, EntityType::solid_spaceship_point);
     set_position(r, wall_e, { mouse_pos });
+    set_size(r, wall_e, grid_snap_size);
     spaceship_to_edit.points.push_back(wall_e);
   }
 
@@ -113,13 +120,9 @@ update_ui_spaceship_designer_system(entt::registry& r, const glm::ivec2& input_m
     selected_size = i;
   }
 
-  bool join_pressed = false;
-  if (get_key_down(input, join_points_key))
-    join_pressed = true;
-
   // join selected points
   //
-  if (selected_size == 2 && join_pressed) {
+  if (selected_size == 2 && get_key_down(input, join_points_key)) {
     if (selected_0 != entt::null && selected_1 != entt::null) {
       const auto& a_t = r.get<TransformComponent>(selected_0);
       const auto& b_t = r.get<TransformComponent>(selected_1);
