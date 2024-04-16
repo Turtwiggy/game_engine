@@ -74,7 +74,6 @@ void main()
   const float linear =  0.0001f;
   const float quadratic = 0.00001f;
   const float attenuation = 1.0 / (light_constant + linear * d + quadratic * (d * d));
-
   // const float b_light_constant = 1.0f;
   // const float b_linear =  0.0001f;
   // const float b_quadratic = 0.00001f;

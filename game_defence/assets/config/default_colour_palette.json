@@ -100,7 +100,7 @@
     {
       "r": 253, "g": 141, "b": 20,
       "name": "orange",
-      "tags": [ "attack_crit" ]
+      "tags": [ "attack_crit", "solid_spaceship_door" ]
     },
     {
       "r": 255, "g": 225, "b": 123,

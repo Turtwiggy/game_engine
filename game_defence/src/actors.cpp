@@ -34,7 +34,6 @@
 #include "sprites/components.hpp"
 #include "sprites/helpers.hpp"
 
-
 #include "magic_enum.hpp"
 
 #include <string>

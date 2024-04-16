@@ -13,7 +13,6 @@
 #include "physics/components.hpp"
 #include "sprites/helpers.hpp"
 
-
 namespace game2d {
 
 static bool clamp_to_grid = false;
@@ -84,7 +83,7 @@ update_cursor_system(entt::registry& r, const glm::ivec2& mouse_pos)
     //   cursor.grid_index = std::nullopt;
 
     // defaults
-    glm::ivec2 size{ 32, 32 };
+    glm::ivec2 size{ 0, 0 };
     glm::ivec2 pos = mouse_pos;
 
     // expand cursor when cursor is held

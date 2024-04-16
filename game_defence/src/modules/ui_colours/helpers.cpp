@@ -41,7 +41,7 @@ get_srgb_colour_by_tag(entt::registry& r, const std::string& tag)
 
   // otherwise, return the colour
   std::cout << "warning: no colour tag found for: " << tag << std::endl;
-  return { 0.0f, 0.0f, 0.0f, 1.0f };
+  return engine::SRGBColour{ 1.0f, 1.0f, 1.0f, 1.0f };
 }
 
 } // namespace game2d

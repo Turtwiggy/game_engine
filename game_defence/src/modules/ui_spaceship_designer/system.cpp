@@ -35,25 +35,22 @@ update_ui_spaceship_designer_system(entt::registry& r, const glm::ivec2& input_m
   const auto snap_to_grid_key = SDL_SCANCODE_LSHIFT;
   const auto delete_points_key = SDL_SCANCODE_DELETE;
   const auto create_door_key = SDL_SCANCODE_G;
+  const auto toggle_l_align = SDL_SCANCODE_LEFT;
+  const auto toggle_r_align = SDL_SCANCODE_RIGHT;
+  const auto toggle_u_align = SDL_SCANCODE_UP;
+  const auto toggle_d_align = SDL_SCANCODE_DOWN;
 
-  static int grid_snap_size = 32;
-  static float line_width = 4.0f;
+  static int grid_snap_size = 50;
+  static int grid_object_size = 5;
+  static float line_width = 5.0f;
 
   imgui_draw_int("edit_gridsize", grid_snap_size);
+  imgui_draw_int("edit_grid_object_size", grid_object_size);
   auto& grid_effect = get_first_component<Effect_GridComponent>(r);
   grid_effect.gridsize = grid_snap_size;
 
-  // Clamp mouse positiion to grid
-  //
-  glm::ivec2 mouse_pos = input_mouse_pos;
-  if (get_key_held(input, snap_to_grid_key)) {
-    const auto grid_pos = engine::grid::world_space_to_grid_space(mouse_pos, grid_snap_size);
-    mouse_pos = engine::grid::grid_space_to_world_space(grid_pos, grid_snap_size);
-    mouse_pos += glm::vec2(grid_snap_size / 2.0f, grid_snap_size / 2.0f);
-  }
-
   ImGui::Begin("SpaceshipDesigner");
-  ImGui::Text("Cursor: %i %i", mouse_pos.x, mouse_pos.y);
+  // ImGui::Text("Cursor: %i %i", mouse_pos.x, mouse_pos.y);
   ImGui::Text("create_point_key: %s", SDL_GetScancodeName(create_point_key));
   ImGui::Text("create_linked_point_key: %s", SDL_GetScancodeName(create_linked_point_key));
   ImGui::Text("join_point_key: %s", SDL_GetScancodeName(join_points_key));
@@ -86,12 +83,51 @@ update_ui_spaceship_designer_system(entt::registry& r, const glm::ivec2& input_m
     i++;
   }
 
+  // Alignment for spaceship point
+  static int l_align = 0;
+  static int r_align = 0;
+  static int u_align = 0;
+  static int d_align = 0;
+  // clang-format off
+  if (get_key_down(input, toggle_l_align)) {l_align = l_align == 0 ? 1 : 0;}
+  if (get_key_down(input, toggle_r_align)) {r_align = r_align == 0 ? 1 : 0;}
+  if (get_key_down(input, toggle_u_align)) {u_align = u_align == 0 ? 1 : 0;}
+  if (get_key_down(input, toggle_d_align)) {d_align = d_align == 0 ? 1 : 0;}
+  // clang-format on
+  ImGui::Text("l_align %i", l_align);
+  ImGui::Text("r_align %i", r_align);
+  ImGui::Text("u_align %i", u_align);
+  ImGui::Text("d_align %i", d_align);
+
+  // Clamp mouse positiion to grid
+  //
+  glm::ivec2 mouse_pos = input_mouse_pos;
+  if (get_key_held(input, snap_to_grid_key)) {
+    const auto grid_pos = engine::grid::world_space_to_grid_space(mouse_pos, grid_snap_size);
+    mouse_pos = engine::grid::grid_space_to_world_space(grid_pos, grid_snap_size);
+
+    // center
+    mouse_pos += glm::vec2(grid_snap_size / 2.0f, grid_snap_size / 2.0f);
+
+    // Left or Right
+    if (l_align == 1)
+      mouse_pos += glm::vec2(-grid_snap_size / 2.0f, 0.0f);
+    else if (r_align == 1)
+      mouse_pos += glm::vec2(grid_snap_size / 2.0f, 0.0f);
+
+    // Up or Down
+    if (u_align == 1)
+      mouse_pos += glm::vec2(0.0f, -grid_snap_size / 2.0f);
+    else if (d_align == 1)
+      mouse_pos += glm::vec2(0.0f, grid_snap_size / 2.0f);
+  }
+
   // Create a spaceship point
   //
   if (get_key_down(input, create_point_key)) {
     const auto wall_e = create_gameplay(r, EntityType::solid_spaceship_point);
     set_position(r, wall_e, { mouse_pos });
-    set_size(r, wall_e, grid_snap_size);
+    set_size(r, wall_e, grid_object_size);
     spaceship_to_edit.points.push_back(wall_e);
   }
 
@@ -122,19 +158,16 @@ update_ui_spaceship_designer_system(entt::registry& r, const glm::ivec2& input_m
 
   // join selected points
   //
-  if (selected_size == 2 && get_key_down(input, join_points_key)) {
-    if (selected_0 != entt::null && selected_1 != entt::null) {
-      const auto& a_t = r.get<TransformComponent>(selected_0);
-      const auto& b_t = r.get<TransformComponent>(selected_1);
-      const entt::entity line_e = create_gameplay(r, EntityType::solid_wall);
-      const LineInfo line_info = generate_line(a_t.position, b_t.position, line_width);
+  const bool both_selected_valid = selected_0 != entt::null && selected_1 != entt::null;
+  if (selected_size == 2 && get_key_down(input, join_points_key) && both_selected_valid) {
+    const auto& a_t = r.get<TransformComponent>(selected_0);
+    const auto& b_t = r.get<TransformComponent>(selected_1);
+    const entt::entity line_e = create_gameplay(r, EntityType::solid_wall);
+    const LineInfo line_info = generate_line(a_t.position, b_t.position, line_width);
 
-      set_position_with_line(r, line_e, line_info);
-    }
+    set_position_with_line(r, line_e, line_info);
 
     // finalize... add line to spaceship!
-    //   // spaceship_to_edit.points.push_back(release_pos);
-    //   // spaceship_to_edit.edges.push_back({index_of_press_pos, index_of_release_pos});
   }
 
   // delete selected points
@@ -142,6 +175,25 @@ update_ui_spaceship_designer_system(entt::registry& r, const glm::ivec2& input_m
   if (get_key_down(input, delete_points_key)) {
     for (const auto& [selected_e, selected_c, selected_point, sc] : selected_view.each())
       dead.dead.emplace(selected_e);
+  }
+
+  // Create a door along two points
+  //
+  if (selected_size == 2 && get_key_down(input, create_door_key) && both_selected_valid) {
+    const auto& a_t = r.get<TransformComponent>(selected_0);
+    const auto& b_t = r.get<TransformComponent>(selected_1);
+    const entt::entity door_e = create_gameplay(r, EntityType::solid_spaceship_door);
+
+    const glm::vec3 diff = (b_t.position - a_t.position);
+    const glm::vec3 midpoint = diff / 2.0f;
+    set_position(r, door_e, { a_t.position.x + midpoint.x, a_t.position.y + midpoint.y });
+
+    const int door_width = 4;
+
+    if (glm::abs(diff.x) > glm::abs(diff.y)) // assume horizontal
+      set_size(r, door_e, { glm::abs(diff.x), door_width });
+    else // assume vertical
+      set_size(r, door_e, { door_width, glm::abs(diff.y) });
   }
 
   ImGui::End();
