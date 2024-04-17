@@ -23,14 +23,15 @@ generate_intersections(entt::registry& r,
   intersections.clear();
 
   const auto& solids_view = r.view<PhysicsSolidComponent, AABB>();
-  if (solids_view.size_hint() == 0)
-    return;
 
   // generate edges for all shapes
+  int solids_count = 0;
   std::vector<std::array<glm::ivec2, 2>> edges;
   for (const auto& [e, solid, aabb] : solids_view.each()) {
     const auto& pos = aabb.center;
     const auto& size = aabb.size;
+    if (size == glm::ivec2{ 0, 0 })
+      continue;
     const float half_x = size.x / 2.0f;
     const float half_y = size.y / 2.0f;
 
@@ -43,7 +44,11 @@ generate_intersections(entt::registry& r,
     edges.push_back({ tr, br }); // r
     edges.push_back({ tl, tr }); // u
     edges.push_back({ bl, br }); // d
+
+    solids_count++;
   }
+  if (solids_count == 0)
+    return;
 
   const float epsilon = 0.0001f;
   const float radius = 150.0f;

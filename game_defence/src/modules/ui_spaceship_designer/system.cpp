@@ -10,6 +10,7 @@
 #include "lifecycle/components.hpp"
 #include "maths/grid.hpp"
 #include "modules/actors/helpers.hpp"
+#include "modules/system_spaceship_door/components.hpp"
 #include "modules/ui_colours/helpers.hpp"
 #include "modules/ux_hoverable/components.hpp"
 #include "modules/vfx_grid/components.hpp"
@@ -188,12 +189,16 @@ update_ui_spaceship_designer_system(entt::registry& r, const glm::ivec2& input_m
     const glm::vec3 midpoint = diff / 2.0f;
     set_position(r, door_e, { a_t.position.x + midpoint.x, a_t.position.y + midpoint.y });
 
+    auto& door_info = r.get<SpaceshipDoorComponent>(door_e);
     const int door_width = 4;
+    glm::vec2 door_size = { 0, 0 };
+    if (glm::abs(diff.x) > glm::abs(diff.y))
+      door_size = { glm::abs(diff.x), door_width }; // horizontal
+    else                                            //
+      door_size = { door_width, glm::abs(diff.y) }; // vertical
 
-    if (glm::abs(diff.x) > glm::abs(diff.y)) // assume horizontal
-      set_size(r, door_e, { glm::abs(diff.x), door_width });
-    else // assume vertical
-      set_size(r, door_e, { door_width, glm::abs(diff.y) });
+    door_info.closed_size = door_size;
+    set_size(r, door_e, door_size);
   }
 
   ImGui::End();

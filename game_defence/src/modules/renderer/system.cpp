@@ -208,20 +208,18 @@ game2d::update_render_system(entt::registry& r, const float dt, const glm::vec2&
   }
 
   ri.mix_lighting_and_scene.bind();
-  // const glm::vec2 screen_tl = { 0, 0 };
-  // const glm::vec2 screen_br = ri.viewport_size_render_at;
-  // const glm::vec2 ri_size = ri.viewport_size_render_at;
-  // TODO...convert light_pos to screen_space
+
+  const glm::vec2 light_pos = mouse_pos;
+  // const glm::vec2 light_pos = { camera_t.position.x, camera_t.position.y };
+
+  // convert light_pos to screen_space
+  //
   const auto mouse_raw = get_mouse_pos() - ri.viewport_pos;
   const glm::vec2 light_pos_in_screenspace = { mouse_raw.x, mouse_raw.y };
-  // const glm::vec2 light_pos = { camera_t.position.x, camera_t.position.y };
-  const glm::vec2 light_pos = mouse_pos;
-  // light_pos.x should be 0 < viewport_wh.x
-  // light_pos.y should be 0 < viewport_wh.y
   // const glm::vec2 middle_of_screen = { viewport_wh.x / 2.0f, viewport_wh.y / 2.0f };
   // const glm::vec2 light_pos_in_screenspace = middle_of_screen;
-
-  ImGui::Text("raw %f %f", light_pos_in_screenspace.x, light_pos_in_screenspace.y);
+  // light_pos.x should be 0 < viewport_wh.x
+  // light_pos.y should be 0 < viewport_wh.y
   ri.mix_lighting_and_scene.set_vec2("light_pos", light_pos_in_screenspace);
 
 // DEBUG A SHADER...

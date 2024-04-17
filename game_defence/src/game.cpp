@@ -298,7 +298,7 @@ game2d::update(engine::SINGLETON_Application& app, entt::registry& r, const floa
       update_selected_interactions_system(r, mouse_pos, dt);
       //
       //
-      update_spaceship_door_system(r);
+      update_spaceship_door_system(r, dt);
     }
   }
 
