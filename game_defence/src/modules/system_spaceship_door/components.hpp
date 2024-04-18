@@ -20,4 +20,16 @@ struct SpaceshipDoorComponent
   SpaceshipDoorState state = SpaceshipDoorState::CLOSED;
 };
 
+enum class PressurePlateType
+{
+  OPEN,
+  CLOSE,
+};
+
+struct SpaceshipPressureplateComponent
+{
+  entt::entity door = entt::null;
+  PressurePlateType type = PressurePlateType::OPEN;
+};
+
 } // namespace game2d

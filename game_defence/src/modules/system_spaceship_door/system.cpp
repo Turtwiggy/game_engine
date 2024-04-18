@@ -4,8 +4,9 @@
 #include "entt/helpers.hpp"
 #include "events/components.hpp"
 #include "events/helpers/keyboard.hpp"
+#include "modules/actor_cursor/components.hpp"
 #include "modules/actors/helpers.hpp"
-#include "modules/ux_hoverable/components.hpp"
+#include "modules/resolve_collisions/helpers.hpp"
 #include "physics/components.hpp"
 
 #include "imgui.h"
@@ -19,10 +20,35 @@ update_spaceship_door_system(entt::registry& r, const float& dt)
 {
   const auto& input = get_first_component<SINGLETON_InputComponent>(r);
 
-  const auto open_hovered_door_key = SDL_SCANCODE_O;
-  const auto close_hovered_door_key = SDL_SCANCODE_P;
-  const bool open = get_key_held(input, open_hovered_door_key);
-  const bool close = get_key_held(input, close_hovered_door_key);
+  // const auto open_hovered_door_key = SDL_SCANCODE_O;
+  // const auto close_hovered_door_key = SDL_SCANCODE_P;
+  // bool open = get_key_held(input, open_hovered_door_key);
+  // bool close = get_key_held(input, close_hovered_door_key);
+
+  //
+  // PressurePlate System
+  // Resolve Collisions
+  //
+  const auto& physics = get_first_component<SINGLETON_PhysicsComponent>(r);
+
+  std::vector<entt::entity> doors_to_open;
+  std::vector<entt::entity> doors_to_close;
+  for (const Collision2D& coll : physics.collision_stay) {
+    const auto a = static_cast<entt::entity>(coll.ent_id_0);
+    const auto b = static_cast<entt::entity>(coll.ent_id_1);
+
+    const auto [a_ent, b_ent] = collision_of_interest<CursorComponent, SpaceshipPressureplateComponent>(r, a, b);
+    if (a_ent != entt::null && b_ent != entt::null) {
+      // const auto& cursor = a_ent;
+      const auto& plate = b_ent;
+
+      const auto& plate_comp = r.get<SpaceshipPressureplateComponent>(plate);
+      if (plate_comp.type == PressurePlateType::OPEN)
+        doors_to_open.push_back(plate_comp.door);
+      if (plate_comp.type == PressurePlateType::CLOSE)
+        doors_to_close.push_back(plate_comp.door);
+    }
+  }
 
   ImGui::Begin("System_DoorDebug");
 
@@ -33,19 +59,16 @@ update_spaceship_door_system(entt::registry& r, const float& dt)
     const auto door_state_name = std::string(magic_enum::enum_name(door_state));
     ImGui::Text("DoorState: %s", door_state_name.c_str());
 
-    // if (open_hovered_doors) {
-    //   if (door_state == SpaceshipDoorState::OPEN)
-    //     door_state = SpaceshipDoorState::CLOSING;
-    //   else if (door_state == SpaceshipDoorState::CLOSED)
-    //     door_state = SpaceshipDoorState::OPENING;
-    // }
-
     // Process state until it becomes open or closed
     const auto& closed_size = door.closed_size;
     const bool is_horizontal = closed_size.x > closed_size.y;
-    const int closing_speed = 100;
+    const int closing_speed = 50;
     const float amount = closing_speed * dt;
-    if (open) { // by opening, reduce size of door
+
+    // by opening, reduce size of door
+    //
+    const bool open_this_door = std::find(doors_to_open.begin(), doors_to_open.end(), e) != doors_to_open.end();
+    if (open_this_door) {
       ImGui::Text("Opening...!");
       door.state = SpaceshipDoorState::BETWIXT;
 
@@ -54,7 +77,11 @@ update_spaceship_door_system(entt::registry& r, const float& dt)
       else
         door.to_close_increment.y -= amount;
     }
-    if (close) { // by closing, increase size of door
+
+    // by closing, increase size of door
+    //
+    const bool close_this_door = std::find(doors_to_close.begin(), doors_to_close.end(), e) != doors_to_close.end();
+    if (close_this_door) {
       ImGui::Text("Closing...!");
       door.state = SpaceshipDoorState::BETWIXT;
 
@@ -65,6 +92,7 @@ update_spaceship_door_system(entt::registry& r, const float& dt)
     }
 
     // Update the door size
+    //
     {
       const auto store_float_overflow = [](float& amount) -> int {
         const int amount_int = glm::round(amount);
@@ -75,9 +103,9 @@ update_spaceship_door_system(entt::registry& r, const float& dt)
       const int y_change = store_float_overflow(door.to_close_increment.y);
 
       // Set the initial width of the door
-      if (glm::abs(x_change) > 0 && close && is_horizontal)
+      if (glm::abs(x_change) > 0 && close_this_door && is_horizontal)
         door_aabb.size.y = closed_size.y;
-      else if (glm::abs(y_change) > 0 && close && !is_horizontal)
+      else if (glm::abs(y_change) > 0 && close_this_door && !is_horizontal)
         door_aabb.size.x = closed_size.x;
 
       set_size(r, e, { door_aabb.size.x + x_change, door_aabb.size.y + y_change });

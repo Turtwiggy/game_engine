@@ -89,7 +89,8 @@
         "particle",
         "actor_spawner",
         "actor_unitgroup",
-        "solid_spaceship_point"
+        "solid_spaceship_point",
+        "actor_spaceship_pressureplate"
       ]
     },
     {

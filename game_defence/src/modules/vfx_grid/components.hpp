@@ -6,7 +6,7 @@ namespace game2d {
 
 struct Effect_GridComponent
 {
-  int gridsize = 128;
+  int gridsize = 64;
 };
 
 } // namespace game2d

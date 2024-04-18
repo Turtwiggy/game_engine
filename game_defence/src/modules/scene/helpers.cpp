@@ -271,12 +271,12 @@ move_to_scene_start(entt::registry& r, const Scene s)
 
     // Create an enemy
     {
-      const auto e = create_gameplay(r, EntityType::enemy_grunt);
-      set_position(r, e, { 64, 64 });
+      // const auto e = create_gameplay(r, EntityType::enemy_grunt);
+      // set_position(r, e, { 64, 64 });
     }
 
     // Generate "seed points" for bases
-    bool seed_spawners = false;
+    bool seed_spawners = true;
     MapComponent spawners;
     if (seed_spawners) {
       const auto& map = get_first_component<MapComponent>(r);
@@ -322,7 +322,7 @@ move_to_scene_start(entt::registry& r, const Scene s)
     }
 
     // Generate "seed points" for bases
-    bool seed_barricades = false;
+    bool seed_barricades = true;
     if (seed_barricades) {
       const auto& map = get_first_component<MapComponent>(r);
       const int seed = 1;
@@ -408,7 +408,7 @@ move_to_scene_start(entt::registry& r, const Scene s)
 
     const auto tex_unit = search_for_texture_unit_by_texture_path(ri, "monochrome").value();
     const auto create_wall_piece = [&r, &tex_unit](const glm::vec2& pos) {
-      const int sprites_for_total_sprite = 4;
+      const int sprites_for_total_sprite = 10;
       entt::entity root_entity = entt::null;
       for (int i = 0; i < sprites_for_total_sprite; i++) {
         const auto i_as_str = std::to_string(i);
@@ -428,17 +428,21 @@ move_to_scene_start(entt::registry& r, const Scene s)
       }
     };
 
-    // create a spritestack sprite
+    // top row
+    for (int i = 0; i < 10; i++)
+      create_wall_piece({ 32 * i, 0 });
 
-    // x-walls
-    create_wall_piece({ 64 * 0, 64 * 0 });
-    create_wall_piece({ 64 * 1, 64 * 0 });
-    create_wall_piece({ 64 * 2, 64 * 0 });
+    // left row
+    for (int i = 1; i < 10; i++)
+      create_wall_piece({ 0, 32 * i });
 
-    // y-walls
-    create_wall_piece({ 64 * 0, 64 * 0 });
-    create_wall_piece({ 64 * 0, 64 * 1 });
-    create_wall_piece({ 64 * 0, 64 * 2 });
+    // right row
+    for (int i = 1; i < 10; i++)
+      create_wall_piece({ 32 * 10, 32 * i });
+
+    // bottom row
+    for (int i = 0; i < 10; i++)
+      create_wall_piece({ 32 * i, 32 * 10 });
   }
 
   if (s == Scene::spaceship_designer) {

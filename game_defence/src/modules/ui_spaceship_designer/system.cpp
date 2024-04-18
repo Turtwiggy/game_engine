@@ -9,6 +9,7 @@
 #include "imgui/helpers.hpp"
 #include "lifecycle/components.hpp"
 #include "maths/grid.hpp"
+#include "maths/maths.hpp"
 #include "modules/actors/helpers.hpp"
 #include "modules/system_spaceship_door/components.hpp"
 #include "modules/ui_colours/helpers.hpp"
@@ -187,18 +188,71 @@ update_ui_spaceship_designer_system(entt::registry& r, const glm::ivec2& input_m
 
     const glm::vec3 diff = (b_t.position - a_t.position);
     const glm::vec3 midpoint = diff / 2.0f;
-    set_position(r, door_e, { a_t.position.x + midpoint.x, a_t.position.y + midpoint.y });
+    const glm::ivec2 door_position = { a_t.position.x + midpoint.x, a_t.position.y + midpoint.y };
+    set_position(r, door_e, door_position);
 
     auto& door_info = r.get<SpaceshipDoorComponent>(door_e);
     const int door_width = 4;
     glm::vec2 door_size = { 0, 0 };
-    if (glm::abs(diff.x) > glm::abs(diff.y))
-      door_size = { glm::abs(diff.x), door_width }; // horizontal
-    else                                            //
-      door_size = { door_width, glm::abs(diff.y) }; // vertical
-
+    const bool is_horizontal = glm::abs(diff.x) > glm::abs(diff.y);
+    if (is_horizontal)
+      door_size = { glm::abs(diff.x), door_width };
+    else
+      door_size = { door_width, glm::abs(diff.y) };
     door_info.closed_size = door_size;
     set_size(r, door_e, door_size);
+
+    // Create two pressure points either side, open and close
+    //
+    const glm::vec2 nrm_a = engine::normalize_safe({ -diff.y, diff.x });
+    const glm::vec2 nrm_b = engine::normalize_safe({ diff.y, -diff.x });
+
+    const auto pressureplate_e_0 = create_gameplay(r, EntityType::actor_spaceship_pressureplate);
+    const auto pressureplate_e_1 = create_gameplay(r, EntityType::actor_spaceship_pressureplate);
+    const auto pressureplate_e_2 = create_gameplay(r, EntityType::actor_spaceship_pressureplate);
+    const auto pressureplate_e_3 = create_gameplay(r, EntityType::actor_spaceship_pressureplate);
+
+    auto& pressureplate_0 = r.get<SpaceshipPressureplateComponent>(pressureplate_e_0);
+    auto& pressureplate_1 = r.get<SpaceshipPressureplateComponent>(pressureplate_e_1);
+    auto& pressureplate_2 = r.get<SpaceshipPressureplateComponent>(pressureplate_e_2);
+    auto& pressureplate_3 = r.get<SpaceshipPressureplateComponent>(pressureplate_e_3);
+
+    pressureplate_0.type = PressurePlateType::OPEN;
+    pressureplate_1.type = PressurePlateType::CLOSE;
+    pressureplate_2.type = PressurePlateType::OPEN;
+    pressureplate_3.type = PressurePlateType::CLOSE;
+
+    pressureplate_0.door = door_e;
+    pressureplate_1.door = door_e;
+    pressureplate_2.door = door_e;
+    pressureplate_3.door = door_e;
+
+    const float size = 8;
+    const float dst = 10;
+    const float value_away_from_center = (size / 2.0f) + 2; // size/2 + half_pixelgap
+
+    glm::ivec2 dst_away_from_center{ 0, 0 };
+    if (is_horizontal)
+      dst_away_from_center = glm::ivec2{ value_away_from_center, 0 };
+    else
+      dst_away_from_center = glm::ivec2{ 0, value_away_from_center };
+
+    // Positive side
+    const glm::ivec2 pressureplate_0_pos = door_position + glm::ivec2(nrm_a * glm::vec2{ dst, dst }) - dst_away_from_center;
+    const glm::ivec2 pressureplate_1_pos = door_position + glm::ivec2(nrm_a * glm::vec2{ dst, dst }) + dst_away_from_center;
+    // negative side
+    const glm::ivec2 pressureplate_2_pos = door_position + glm::ivec2(nrm_b * glm::vec2{ dst, dst }) - dst_away_from_center;
+    const glm::ivec2 pressureplate_3_pos = door_position + glm::ivec2(nrm_b * glm::vec2{ dst, dst }) + dst_away_from_center;
+
+    set_position(r, pressureplate_e_0, pressureplate_0_pos);
+    set_position(r, pressureplate_e_1, pressureplate_1_pos);
+    set_position(r, pressureplate_e_2, pressureplate_2_pos);
+    set_position(r, pressureplate_e_3, pressureplate_3_pos);
+
+    set_size(r, pressureplate_e_0, { size, size });
+    set_size(r, pressureplate_e_1, { size, size });
+    set_size(r, pressureplate_e_2, { size, size });
+    set_size(r, pressureplate_e_3, { size, size });
   }
 
   ImGui::End();

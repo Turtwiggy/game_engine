@@ -8,7 +8,6 @@
 #include "physics/components.hpp"
 #include "sprites/helpers.hpp"
 
-
 #include <glm/glm.hpp>
 
 namespace game2d {

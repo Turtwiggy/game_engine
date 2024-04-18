@@ -12,7 +12,6 @@
 #include "renderer/transform.hpp"
 #include "sprites/components.hpp"
 
-
 #include <entt/entt.hpp>
 #include <glm/gtx/compatibility.hpp> // lerp
 #include <imgui.h>
@@ -24,8 +23,8 @@ update_sprite_spritestack_system(entt::registry& r, const float dt)
 {
   static float scale_up_by = 1.0f;
   static int sprite_height = -6;
-  static int sprite_scale_x = 64;
-  static int sprite_scale_y = 64;
+  static int sprite_scale_x = 16;
+  static int sprite_scale_y = 16;
   static int parallax_offset_amount = 6;
 
   ImGui::Begin("DebugSpriteStack");

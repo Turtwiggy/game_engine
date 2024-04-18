@@ -198,6 +198,15 @@ create_gameplay(entt::registry& r, const EntityType& type)
       r.remove<SpriteComponent>(e);
       break;
     }
+    case EntityType::actor_spaceship_pressureplate: {
+      create_physics_actor(r, e);
+
+      r.emplace<HoverableComponent>(e);
+      r.emplace<ChangeColourOnHoverComponent>(e);
+
+      r.emplace<SpaceshipPressureplateComponent>(e);
+      break;
+    }
     case EntityType::solid_spaceship_point: {
       create_physics_actor(r, e);
       r.emplace<PhysicsSolidComponent>(e);
