@@ -73,15 +73,23 @@ void main()
   const float light_constant = 1.0f;
   const float linear =  0.0001f;
   const float quadratic = 0.00001f;
+  // const float linear =  0.0000001f;
+  // const float quadratic = 0.000000001f;
+  
   const float attenuation = 1.0 / (light_constant + linear * d + quadratic * (d * d));
   // const float b_light_constant = 1.0f;
   // const float b_linear =  0.0001f;
   // const float b_quadratic = 0.00001f;
   // const float steep_attenuation = 1.0 / (b_light_constant + b_linear * d + b_quadratic * (d * d));
 
-  const vec3 lighting_attenuated = (lighting.rgb * attenuation);
+  // const vec3 lighting_attenuated = (lighting.rgb * attenuation);
+  // const vec3 scene_corrected = lin_to_srgb(scene.rgb);
+  // const vec3 scene_attenuated = (scene_corrected* attenuation);
+
+  // NOTE: no attenuation here, temporarily removed
+  const vec3 lighting_attenuated = (lighting.rgb);
   const vec3 scene_corrected = lin_to_srgb(scene.rgb);
-  const vec3 scene_attenuated = (scene_corrected* attenuation);
+  const vec3 scene_attenuated = (scene_corrected);
 
   // no lighting
   if(lighting.rgb == vec3(0.0f))

@@ -69,7 +69,7 @@ update_ui_scene_main_menu(engine::SINGLETON_Application& app, entt::registry& r)
   // selected %= buttons;
 
   const auto selectable_button = [&do_ui_action](const std::string& label, int& selected, const int index) {
-    const ImVec2 size = { 100, 75 };
+    const ImVec2 size = { 200, 50 };
 
     // ImGui::Text("selected: %i", selected);
     // ImGui::Text("Index: %i", index);
@@ -99,20 +99,25 @@ update_ui_scene_main_menu(engine::SINGLETON_Application& app, entt::registry& r)
       editor.mode = LevelEditorMode::play;
       move_to_scene_start(r, Scene::game);
     }
-    if (selectable_button("Map Edit", selected, index++)) {
-      auto& editor = get_first_component<SINGLETON_LevelEditor>(r);
-      editor.mode = LevelEditorMode::edit;
-      move_to_scene_start(r, Scene::game);
-    }
-    if (selectable_button("Test Scene", selected, index++)) {
-      auto& editor = get_first_component<SINGLETON_LevelEditor>(r);
-      editor.mode = LevelEditorMode::play;
-      move_to_scene_start(r, Scene::test_scene_gun);
-    }
-    if (selectable_button("Spaceship Designer", selected, index++)) {
+    if (selectable_button("Scene: spaceship", selected, index++)) {
       auto& editor = get_first_component<SINGLETON_LevelEditor>(r);
       editor.mode = LevelEditorMode::edit;
       move_to_scene_start(r, Scene::spaceship_designer);
+    }
+    if (selectable_button("Scene: duckgame", selected, index++)) {
+      auto& editor = get_first_component<SINGLETON_LevelEditor>(r);
+      editor.mode = LevelEditorMode::play;
+      move_to_scene_start(r, Scene::duckgame);
+    }
+    if (selectable_button("Scene: warhammer", selected, index++)) {
+      auto& editor = get_first_component<SINGLETON_LevelEditor>(r);
+      editor.mode = LevelEditorMode::play;
+      move_to_scene_start(r, Scene::warhammer);
+    }
+    if (selectable_button("Scene: spritestack", selected, index++)) {
+      auto& editor = get_first_component<SINGLETON_LevelEditor>(r);
+      editor.mode = LevelEditorMode::play;
+      move_to_scene_start(r, Scene::test_scene_gun);
     }
     if (selectable_button("Quit", selected, index++))
       app.running = false;

@@ -466,6 +466,14 @@ move_to_scene_start(entt::registry& r, const Scene s)
     // }
   }
 
+  if (s == Scene::duckgame) {
+    //
+  }
+
+  if (s == Scene::warhammer) {
+    //
+  }
+
   const auto scene_name = std::string(magic_enum::enum_name(s));
   std::cout << "setting scene to: " << scene_name << std::endl;
   auto& scene = get_first_component<SINGLETON_CurrentScene>(r);

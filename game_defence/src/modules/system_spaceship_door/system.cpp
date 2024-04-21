@@ -2,8 +2,6 @@
 
 #include "components.hpp"
 #include "entt/helpers.hpp"
-#include "events/components.hpp"
-#include "events/helpers/keyboard.hpp"
 #include "modules/actor_cursor/components.hpp"
 #include "modules/actors/helpers.hpp"
 #include "modules/resolve_collisions/helpers.hpp"
@@ -18,35 +16,29 @@ namespace game2d {
 void
 update_spaceship_door_system(entt::registry& r, const float& dt)
 {
-  const auto& input = get_first_component<SINGLETON_InputComponent>(r);
-
-  // const auto open_hovered_door_key = SDL_SCANCODE_O;
-  // const auto close_hovered_door_key = SDL_SCANCODE_P;
-  // bool open = get_key_held(input, open_hovered_door_key);
-  // bool close = get_key_held(input, close_hovered_door_key);
-
   //
   // PressurePlate System
   // Resolve Collisions
   //
-  const auto& physics = get_first_component<SINGLETON_PhysicsComponent>(r);
-
   std::vector<entt::entity> doors_to_open;
   std::vector<entt::entity> doors_to_close;
-  for (const Collision2D& coll : physics.collision_stay) {
-    const auto a = static_cast<entt::entity>(coll.ent_id_0);
-    const auto b = static_cast<entt::entity>(coll.ent_id_1);
+  {
+    const auto& physics = get_first_component<SINGLETON_PhysicsComponent>(r);
+    for (const Collision2D& coll : physics.collision_stay) {
+      const auto a = static_cast<entt::entity>(coll.ent_id_0);
+      const auto b = static_cast<entt::entity>(coll.ent_id_1);
 
-    const auto [a_ent, b_ent] = collision_of_interest<CursorComponent, SpaceshipPressureplateComponent>(r, a, b);
-    if (a_ent != entt::null && b_ent != entt::null) {
-      // const auto& cursor = a_ent;
-      const auto& plate = b_ent;
+      const auto [a_ent, b_ent] = collision_of_interest<CursorComponent, SpaceshipPressureplateComponent>(r, a, b);
+      if (a_ent != entt::null && b_ent != entt::null) {
+        // const auto& cursor = a_ent;
+        const auto& plate = b_ent;
 
-      const auto& plate_comp = r.get<SpaceshipPressureplateComponent>(plate);
-      if (plate_comp.type == PressurePlateType::OPEN)
-        doors_to_open.push_back(plate_comp.door);
-      if (plate_comp.type == PressurePlateType::CLOSE)
-        doors_to_close.push_back(plate_comp.door);
+        const auto& plate_comp = r.get<SpaceshipPressureplateComponent>(plate);
+        if (plate_comp.type == PressurePlateType::OPEN)
+          doors_to_open.push_back(plate_comp.door);
+        if (plate_comp.type == PressurePlateType::CLOSE)
+          doors_to_close.push_back(plate_comp.door);
+      }
     }
   }
 

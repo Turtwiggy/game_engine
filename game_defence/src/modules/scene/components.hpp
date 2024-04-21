@@ -8,6 +8,8 @@ enum class Scene
   test_scene_gun,
   game,
   spaceship_designer,
+  duckgame,
+  warhammer,
 
   count
 };
