@@ -13,51 +13,40 @@
 #include "maths/maths.hpp"
 #include "modules/actors/helpers.hpp"
 #include "modules/system_spaceship_door/components.hpp"
-#include "modules/ui_colours/helpers.hpp"
-#include "modules/ux_hoverable/components.hpp"
 #include "modules/vfx_grid/components.hpp"
 #include "physics/components.hpp"
 #include "physics/helpers.hpp"
-#include "renderer/transform.hpp"
-#include "sprites/components.hpp"
 
 #include "imgui.h"
 #include <SDL_keyboard.h>
 #include <SDL_scancode.h>
 
-#include <set>
-
 namespace game2d {
 using namespace std::literals;
 
-struct Line
+const auto create_aabb = [](const glm::ivec2& tl, const int width, const int height) -> AABB {
+  AABB aabb;
+  aabb.center = { tl.x + (width / 2.0f), tl.y + (height / 2.0f) };
+  aabb.size = { glm::abs(width), glm::abs(height) };
+  return aabb;
+};
+
+// Walls are basically "Lines"
+struct Wall
 {
   glm::ivec2 p0{ 0, 0 };
   glm::ivec2 p1{ 0, 0 };
-
-  Line() = default;
-  Line(const glm::ivec2& p0, const glm::ivec2& p1)
-    : p0(p0)
-    , p1(p1){};
+  std::vector<glm::ivec2> intersections; // storage for when this wall is being intersected
 };
 
-struct Wall
-{
-  entt::entity e = entt::null;
-  Line line;
-};
-
+static int global_room_id = 0;
 struct Room
 {
-  std::vector<Wall> walls;
+  int id = 0;
+  std::vector<entt::entity> walls;
   AABB aabb;
-};
 
-const auto create_aabb = [](const glm::ivec2& tl, const int width, const int height) -> AABB {
-  AABB aabb;
-  aabb.center = { tl.x + (width / 2.0), tl.y + (height / 2.0f) };
-  aabb.size = { glm::abs(width), glm::abs(height) };
-  return aabb;
+  Room() { id = global_room_id++; };
 };
 
 // Function to calculate the intersection point of two lines
@@ -85,12 +74,16 @@ line_intersection(const int x1, // p0
   // Calculate intersection point
   const float intersection_x = det_x / static_cast<float>(det);
   const float intersection_y = det_y / static_cast<float>(det);
-  const glm::ivec2 intersection = { intersection_x, intersection_y };
+  const glm::ivec2 intersection = { static_cast<int>(intersection_x), static_cast<int>(intersection_y) };
+
+  ImGui::Separator();
+  ImGui::Text("Potential Intersection! %i %i", intersection.x, intersection.y);
 
   // check the intersection lies within the line segments.
   AABB point;
   point.center = intersection;
   point.size = { 1, 1 };
+  // ImGui::Text("Point. Centre: %i %i. Size: %i %i", point.center.x, point.center.y, point.size.x, point.size.y);
 
   const int l0 = glm::min(x1, x2);
   const int r0 = glm::max(x1, x2);
@@ -99,6 +92,7 @@ line_intersection(const int x1, // p0
   AABB line0 = create_aabb({ l0, t0 }, glm::abs(r0 - l0), glm::abs(b0 - t0));
   line0.size.x = line0.size.x == 0 ? 1 : line0.size.x;
   line0.size.y = line0.size.y == 0 ? 1 : line0.size.y;
+  // ImGui::Text("line0. Centre: %i %i. Size: %i %i", line0.center.x, line0.center.y, line0.size.x, line0.size.y);
 
   const int l = glm::min(x3, x4);
   const int r = glm::max(x3, x4);
@@ -107,14 +101,14 @@ line_intersection(const int x1, // p0
   AABB line1 = create_aabb({ l, t }, glm::abs(r - l), glm::abs(b - t));
   line1.size.x = line1.size.x == 0 ? 1 : line1.size.x;
   line1.size.y = line1.size.y == 0 ? 1 : line1.size.y;
+  // ImGui::Text("line1. Centre: %i %i. Size: %i %i", line1.center.x, line1.center.y, line1.size.x, line1.size.y);
 
   const bool coll_a = collide(point, line0);
   const bool coll_b = collide(point, line1);
   ImGui::Text("coll_a %i coll_b %i", coll_a, coll_b);
-  if (!coll_a || !coll_b) {
-    return std::nullopt; // no intersection
-  }
-  return intersection;
+  if (coll_a && coll_b)
+    return intersection;
+  return std::nullopt;
 }
 
 std::optional<glm::ivec2>
@@ -124,9 +118,94 @@ line_intersection(const glm::ivec2& p0, const glm::ivec2& p1, const glm::ivec2& 
 };
 
 std::optional<glm::ivec2>
-line_intersection(const Line& a, const Line& b)
+line_intersection(const Wall& a, const Wall& b)
 {
   return line_intersection(a.p0, a.p1, b.p0, b.p1);
+};
+
+void
+create_door_along_two_points(entt::registry& r, const glm::ivec2& a, const glm::ivec2& b)
+{
+  const entt::entity door_e = create_gameplay(r, EntityType::solid_spaceship_door);
+
+  const glm::vec2 diff = (b - a);
+  const glm::vec2 midpoint = diff / 2.0f;
+  const glm::ivec2 door_position = { a.x + midpoint.x, a.y + midpoint.y };
+  set_position(r, door_e, door_position);
+
+  auto& door_info = r.get<SpaceshipDoorComponent>(door_e);
+  const int door_width = 4;
+  glm::vec2 door_size = { 0, 0 };
+  const bool is_horizontal = glm::abs(diff.x) > glm::abs(diff.y);
+  if (is_horizontal)
+    door_size = { glm::abs(diff.x), door_width };
+  else
+    door_size = { door_width, glm::abs(diff.y) };
+  door_info.closed_size = door_size;
+  set_size(r, door_e, door_size);
+
+  // Create two pressure points either side, open and close
+  //
+  const glm::vec2 nrm_a = engine::normalize_safe({ -diff.y, diff.x });
+  const glm::vec2 nrm_b = engine::normalize_safe({ diff.y, -diff.x });
+
+  const auto pressureplate_e_0 = create_gameplay(r, EntityType::actor_spaceship_pressureplate);
+  const auto pressureplate_e_1 = create_gameplay(r, EntityType::actor_spaceship_pressureplate);
+  const auto pressureplate_e_2 = create_gameplay(r, EntityType::actor_spaceship_pressureplate);
+  const auto pressureplate_e_3 = create_gameplay(r, EntityType::actor_spaceship_pressureplate);
+
+  auto& pressureplate_0 = r.get<SpaceshipPressureplateComponent>(pressureplate_e_0);
+  auto& pressureplate_1 = r.get<SpaceshipPressureplateComponent>(pressureplate_e_1);
+  auto& pressureplate_2 = r.get<SpaceshipPressureplateComponent>(pressureplate_e_2);
+  auto& pressureplate_3 = r.get<SpaceshipPressureplateComponent>(pressureplate_e_3);
+
+  pressureplate_0.type = PressurePlateType::OPEN;
+  pressureplate_1.type = PressurePlateType::CLOSE;
+  pressureplate_2.type = PressurePlateType::OPEN;
+  pressureplate_3.type = PressurePlateType::CLOSE;
+
+  pressureplate_0.door = door_e;
+  pressureplate_1.door = door_e;
+  pressureplate_2.door = door_e;
+  pressureplate_3.door = door_e;
+
+  const float size = 8;
+  const float dst = 10;
+  const float value_away_from_center = (size / 2.0f) + 2; // size/2 + half_pixelgap
+
+  glm::ivec2 dst_away_from_center{ 0, 0 };
+  if (is_horizontal)
+    dst_away_from_center = glm::ivec2{ value_away_from_center, 0 };
+  else
+    dst_away_from_center = glm::ivec2{ 0, value_away_from_center };
+
+  // Positive side
+  const glm::ivec2 pp0_pos = door_position + glm::ivec2(nrm_a * glm::vec2{ dst, dst }) - dst_away_from_center;
+  const glm::ivec2 pp1_pos = door_position + glm::ivec2(nrm_a * glm::vec2{ dst, dst }) + dst_away_from_center;
+  // negative side
+  const glm::ivec2 pp2_pos = door_position + glm::ivec2(nrm_b * glm::vec2{ dst, dst }) - dst_away_from_center;
+  const glm::ivec2 pp3_pos = door_position + glm::ivec2(nrm_b * glm::vec2{ dst, dst }) + dst_away_from_center;
+
+  set_position(r, pressureplate_e_0, pp0_pos);
+  set_position(r, pressureplate_e_1, pp1_pos);
+  set_position(r, pressureplate_e_2, pp2_pos);
+  set_position(r, pressureplate_e_3, pp3_pos);
+
+  set_size(r, pressureplate_e_0, { size, size });
+  set_size(r, pressureplate_e_1, { size, size });
+  set_size(r, pressureplate_e_2, { size, size });
+  set_size(r, pressureplate_e_3, { size, size });
+};
+
+entt::entity
+create_wall(entt::registry& r, const glm::ivec2 pos, Room& room)
+{
+  const auto wall_e = create_gameplay(r, EntityType::solid_wall);
+  r.emplace<Wall>(wall_e);
+  set_position(r, wall_e, pos);
+  set_size(r, wall_e, { 16, 16 });
+  room.walls.push_back(wall_e);
+  return wall_e;
 };
 
 void
@@ -167,201 +246,52 @@ update_ui_spaceship_designer_system(entt::registry& r, const glm::ivec2& input_m
   ImGui::Text("create_door_key: %s", SDL_GetScancodeName(create_door_key));
   ImGui::Text("delete_segment_key: %s", SDL_GetScancodeName(delete_segment_key));
 
-  static int spaceship_index_to_edit = 0;
-  static SpaceshipComponent default_spaceship = {};
-  static SpaceshipComponent& spaceship_to_edit = default_spaceship;
-  const auto& view = r.view<SpaceshipComponent>();
-
-  if (view.size() == 0) // ensure one spaceship
+  const auto& spaceship_view = r.view<SpaceshipComponent>(entt::exclude<WaitForInitComponent>);
+  if (spaceship_view.size_hint() == 0) // ensure one spaceship
     const auto spaceship_e = create_gameplay(r, EntityType::actor_spaceship);
 
   // Display spaceship info
-  //
-  for (int i = 0; const auto& [e, spaceship] : view.each()) {
-    ImGui::Separator();
-    ImGui::Text("Spaceship %i", i);
-    if (i == spaceship_index_to_edit)
-      spaceship_to_edit = spaceship;
+  for (const auto& [spaceship_e, spaceship_c] : spaceship_view.each())
+    ImGui::Text("Spaceship");
 
-    // for (const auto& p : spaceship.points) {
-    //   const auto& p_t = r.get<TransformComponent>(p);
-    //   ImGui::Text("Point: %i, %i", p_t.position.x, p_t.position.y);
-    // }
-
-    break; // only first for moment
-    i++;
-  }
-
-  // Alignment for spaceship point
-  static int l_align = 0;
-  static int r_align = 0;
-  static int u_align = 0;
-  static int d_align = 0;
-  // clang-format off
-  if (get_key_down(input, toggle_l_align)) {l_align = l_align == 0 ? 1 : 0;}
-  if (get_key_down(input, toggle_r_align)) {r_align = r_align == 0 ? 1 : 0;}
-  if (get_key_down(input, toggle_u_align)) {u_align = u_align == 0 ? 1 : 0;}
-  if (get_key_down(input, toggle_d_align)) {d_align = d_align == 0 ? 1 : 0;}
-  // clang-format on
-  ImGui::Text("l_align %i", l_align);
-  ImGui::Text("r_align %i", r_align);
-  ImGui::Text("u_align %i", u_align);
-  ImGui::Text("d_align %i", d_align);
-
-  // Clamp mouse position to grid
-  //
   glm::ivec2 mouse_pos = engine::grid::grid_space_to_world_space(
     engine::grid::world_space_to_grid_space(input_mouse_pos, grid_snap_size), grid_snap_size);
-  mouse_pos += glm::vec2(grid_snap_size / 2.0f, grid_snap_size / 2.0f); // center
-  mouse_pos += (l_align == 1) ? glm::ivec2(-grid_snap_size / 2.0f, 0.0f) : glm::ivec2{ 0, 0 };
-  mouse_pos += (r_align == 1) ? glm::ivec2(grid_snap_size / 2.0f, 0.0f) : glm::ivec2{ 0, 0 };
-  mouse_pos += (u_align == 1) ? glm::ivec2(0.0f, -grid_snap_size / 2.0f) : glm::ivec2{ 0, 0 };
-  mouse_pos += (d_align == 1) ? glm::ivec2(0.0f, grid_snap_size / 2.0f) : glm::ivec2{ 0, 0 };
 
-  // Free the mouse from the grid
-  if (get_key_held(input, free_from_grid_key))
-    mouse_pos = input_mouse_pos;
-
-  // Work out if any of the spaceship-points are selected.
-  // If they are, change the colour of the point to the hovered colour.
-  //
-  entt::entity selected_0 = entt::null;
-  entt::entity selected_1 = entt::null;
-  int selected_size = 0;
-  const auto& selected_view = r.view<const SelectedComponent, const SpaceshipPointComponent, SpriteComponent>();
-  for (int i = 0; const auto& [selected_e, selected_c, selected_point, sc] : selected_view.each()) {
-
-    const auto se = static_cast<uint32_t>(selected_e);
-    ImGui::Text("Selected: %i", se);
-
-    if (i == 0)
-      selected_0 = selected_e;
-    if (i == 1)
-      selected_1 = selected_e;
-
-    // update colour
-    const auto colour = get_lin_colour_by_tag(r, "hovered");
-    sc.colour = colour;
-
-    i++;
-    selected_size = i;
-  }
-  const bool both_selected_valid = selected_0 != entt::null && selected_1 != entt::null;
-
-  // Point Editor
-  //
+  // Adjust mouse based on grid-alignment
   {
-    const int grid_object_size = 5;
-    //
-    // Create a spaceship point
-    //
-    if (get_key_down(input, create_point_key)) {
-      const auto wall_e = create_gameplay(r, EntityType::solid_spaceship_point);
-      set_position(r, wall_e, { mouse_pos });
-      set_size(r, wall_e, { grid_object_size, grid_object_size });
-      // spaceship_to_edit.points.push_back(wall_e);
-    }
-    //
-    // delete selected points
-    //
-    if (get_key_down(input, delete_points_key)) {
-      for (const auto& [selected_e, selected_c, selected_point, sc] : selected_view.each())
-        dead.dead.emplace(selected_e);
-    }
-    //
-    // join selected points
-    //
-    if (selected_size == 2 && get_key_down(input, join_points_key) && both_selected_valid) {
-      const auto& a_t = r.get<TransformComponent>(selected_0);
-      const auto& b_t = r.get<TransformComponent>(selected_1);
-      const entt::entity line_e = create_gameplay(r, EntityType::solid_wall);
-      const LineInfo line_info = generate_line(a_t.position, b_t.position, 1);
-      set_position_and_size_with_line(r, line_e, line_info);
-      // finalize... add line to spaceship!
-    }
+    static int l_align = 0;
+    static int r_align = 0;
+    static int u_align = 0;
+    static int d_align = 0;
+    if (get_key_down(input, toggle_l_align))
+      l_align = l_align == 0 ? 1 : 0;
+    if (get_key_down(input, toggle_r_align))
+      r_align = r_align == 0 ? 1 : 0;
+    if (get_key_down(input, toggle_u_align))
+      u_align = u_align == 0 ? 1 : 0;
+    if (get_key_down(input, toggle_d_align))
+      d_align = d_align == 0 ? 1 : 0;
+    ImGui::Text("l_align %i", l_align);
+    ImGui::Text("r_align %i", r_align);
+    ImGui::Text("u_align %i", u_align);
+    ImGui::Text("d_align %i", d_align);
+
+    // Clamp mouse position to grid
+    mouse_pos += glm::vec2(grid_snap_size / 2.0f, grid_snap_size / 2.0f); // center
+    mouse_pos += (l_align == 1) ? glm::ivec2(-grid_snap_size / 2.0f, 0.0f) : glm::ivec2{ 0, 0 };
+    mouse_pos += (r_align == 1) ? glm::ivec2(grid_snap_size / 2.0f, 0.0f) : glm::ivec2{ 0, 0 };
+    mouse_pos += (u_align == 1) ? glm::ivec2(0.0f, -grid_snap_size / 2.0f) : glm::ivec2{ 0, 0 };
+    mouse_pos += (d_align == 1) ? glm::ivec2(0.0f, grid_snap_size / 2.0f) : glm::ivec2{ 0, 0 };
+
+    // Free the mouse from the grid
+    if (get_key_held(input, free_from_grid_key))
+      mouse_pos = input_mouse_pos;
   }
 
-  // Create a door along two points
-  //
-  {
-    if (selected_size == 2 && get_key_down(input, create_door_key) && both_selected_valid) {
-      const auto& a_t = r.get<TransformComponent>(selected_0);
-      const auto& b_t = r.get<TransformComponent>(selected_1);
-      const entt::entity door_e = create_gameplay(r, EntityType::solid_spaceship_door);
-
-      const glm::vec3 diff = (b_t.position - a_t.position);
-      const glm::vec3 midpoint = diff / 2.0f;
-      const glm::ivec2 door_position = { a_t.position.x + midpoint.x, a_t.position.y + midpoint.y };
-      set_position(r, door_e, door_position);
-
-      auto& door_info = r.get<SpaceshipDoorComponent>(door_e);
-      const int door_width = 4;
-      glm::vec2 door_size = { 0, 0 };
-      const bool is_horizontal = glm::abs(diff.x) > glm::abs(diff.y);
-      if (is_horizontal)
-        door_size = { glm::abs(diff.x), door_width };
-      else
-        door_size = { door_width, glm::abs(diff.y) };
-      door_info.closed_size = door_size;
-      set_size(r, door_e, door_size);
-
-      // Create two pressure points either side, open and close
-      //
-      const glm::vec2 nrm_a = engine::normalize_safe({ -diff.y, diff.x });
-      const glm::vec2 nrm_b = engine::normalize_safe({ diff.y, -diff.x });
-
-      const auto pressureplate_e_0 = create_gameplay(r, EntityType::actor_spaceship_pressureplate);
-      const auto pressureplate_e_1 = create_gameplay(r, EntityType::actor_spaceship_pressureplate);
-      const auto pressureplate_e_2 = create_gameplay(r, EntityType::actor_spaceship_pressureplate);
-      const auto pressureplate_e_3 = create_gameplay(r, EntityType::actor_spaceship_pressureplate);
-
-      auto& pressureplate_0 = r.get<SpaceshipPressureplateComponent>(pressureplate_e_0);
-      auto& pressureplate_1 = r.get<SpaceshipPressureplateComponent>(pressureplate_e_1);
-      auto& pressureplate_2 = r.get<SpaceshipPressureplateComponent>(pressureplate_e_2);
-      auto& pressureplate_3 = r.get<SpaceshipPressureplateComponent>(pressureplate_e_3);
-
-      pressureplate_0.type = PressurePlateType::OPEN;
-      pressureplate_1.type = PressurePlateType::CLOSE;
-      pressureplate_2.type = PressurePlateType::OPEN;
-      pressureplate_3.type = PressurePlateType::CLOSE;
-
-      pressureplate_0.door = door_e;
-      pressureplate_1.door = door_e;
-      pressureplate_2.door = door_e;
-      pressureplate_3.door = door_e;
-
-      const float size = 8;
-      const float dst = 10;
-      const float value_away_from_center = (size / 2.0f) + 2; // size/2 + half_pixelgap
-
-      glm::ivec2 dst_away_from_center{ 0, 0 };
-      if (is_horizontal)
-        dst_away_from_center = glm::ivec2{ value_away_from_center, 0 };
-      else
-        dst_away_from_center = glm::ivec2{ 0, value_away_from_center };
-
-      // Positive side
-      const glm::ivec2 pressureplate_0_pos =
-        door_position + glm::ivec2(nrm_a * glm::vec2{ dst, dst }) - dst_away_from_center;
-      const glm::ivec2 pressureplate_1_pos =
-        door_position + glm::ivec2(nrm_a * glm::vec2{ dst, dst }) + dst_away_from_center;
-      // negative side
-      const glm::ivec2 pressureplate_2_pos =
-        door_position + glm::ivec2(nrm_b * glm::vec2{ dst, dst }) - dst_away_from_center;
-      const glm::ivec2 pressureplate_3_pos =
-        door_position + glm::ivec2(nrm_b * glm::vec2{ dst, dst }) + dst_away_from_center;
-
-      set_position(r, pressureplate_e_0, pressureplate_0_pos);
-      set_position(r, pressureplate_e_1, pressureplate_1_pos);
-      set_position(r, pressureplate_e_2, pressureplate_2_pos);
-      set_position(r, pressureplate_e_3, pressureplate_3_pos);
-
-      set_size(r, pressureplate_e_0, { size, size });
-      set_size(r, pressureplate_e_1, { size, size });
-      set_size(r, pressureplate_e_2, { size, size });
-      set_size(r, pressureplate_e_3, { size, size });
-    }
-  }
+  // Debug mouse pos
+  const auto grid_pos = engine::grid::world_space_to_grid_space(mouse_pos, grid_snap_size);
+  ImGui::Text("grid_pos: %i %i", grid_pos.x, grid_pos.y);
+  ImGui::Text("cursor_pos: %i %i", input_mouse_pos.x, input_mouse_pos.y);
 
   const auto create_aabb_from_mouse = [&mouse_pos](const glm::ivec2& p) -> AABB {
     // width & height can be negative
@@ -372,11 +302,10 @@ update_ui_spaceship_designer_system(entt::registry& r, const glm::ivec2& input_m
 
   // Drag To Create Rooms
   //
-  static std::vector<Room> rooms;
   {
     const int line_width = 1;
-    static std::vector<Wall> walls;
     static std::optional<glm::ivec2> press_location = std::nullopt;
+    static Room room_to_create;
     static bool room_collision = false;
     ImGui::Text("Room Collision: %i", room_collision);
 
@@ -384,16 +313,13 @@ update_ui_spaceship_designer_system(entt::registry& r, const glm::ivec2& input_m
       // set_keydown_state();
       press_location = mouse_pos;
       room_collision = false;
-      walls.clear();
+      for (const auto& wall : room_to_create.walls)
+        dead.dead.emplace(wall);
+      room_to_create = Room();
 
       // create 4 walls
-      for (int i = 0; i < 4; i++) {
-        Wall w;
-        w.e = create_gameplay(r, EntityType::solid_wall);
-        set_position(r, w.e, press_location.value());
-        set_size(r, w.e, { 16, 16 });
-        walls.push_back(w);
-      }
+      for (int i = 0; i < 4; i++)
+        create_wall(r, press_location.value(), room_to_create);
     }
     if (get_key_held(input, drag_create_room_key) && press_location.has_value()) {
 
@@ -409,60 +335,60 @@ update_ui_spaceship_designer_system(entt::registry& r, const glm::ivec2& input_m
       const glm::ivec2 bl = { p.x, p.y + height };
       const glm::ivec2 br = { p.x + width, p.y + height };
 
-      walls[0].line = { tl, tr };
-      walls[1].line = { tr, br };
-      walls[2].line = { br, bl };
-      walls[3].line = { bl, tl };
-      for (const auto& w : walls)
-        set_position_and_size_with_line(r, w.e, generate_line(w.line.p0, w.line.p1, line_width));
+      r.emplace_or_replace<Wall>(room_to_create.walls[0], Wall{ tl, tr });
+      r.emplace_or_replace<Wall>(room_to_create.walls[1], Wall{ tr, br });
+      r.emplace_or_replace<Wall>(room_to_create.walls[2], Wall{ br, bl });
+      r.emplace_or_replace<Wall>(room_to_create.walls[3], Wall{ bl, tl });
+
+      // Set visuals for the room-to-create
+      for (const entt::entity& e : room_to_create.walls) {
+        const auto& wall_c = r.get<Wall>(e);
+        set_position_and_size_with_line(r, e, generate_line(wall_c.p0, wall_c.p1, line_width));
+      }
 
       // Check if room collides with another existing room
       const AABB r1 = create_aabb_from_mouse(press_location.value());
-      for (const auto& room : rooms)
+      const auto& rooms_view = r.view<Room>(entt::exclude<WaitForInitComponent>);
+      for (const auto& [room_e, room] : rooms_view.each())
         room_collision |= collide(r1, room.aabb);
     }
     if (get_key_up(input, drag_create_room_key)) {
 
       // Clean up old room
-      // if(collision_with_other_rooms
-      // create_doors_at_collision_wall
+      // create_doors_at_collision
       if (room_collision) {
-        for (const auto& wall : walls)
-          dead.dead.emplace(wall.e);
+        for (const auto& wall : room_to_create.walls)
+          dead.dead.emplace(wall);
       }
 
       // finalize room
       if (!room_collision) {
-        Room r;
-        r.walls = std::move(walls);
-        r.aabb = create_aabb_from_mouse(press_location.value());
-        rooms.push_back(r);
+        const auto e = create_gameplay(r, EntityType::empty_no_transform);
+        r.emplace<Room>(e, std::move(room_to_create));
       }
 
       // set_keyup_state();
-      walls.clear();
       press_location = std::nullopt;
       room_collision = false;
     }
   }
 
   // Debug the hovered grid position
+  // This is pretty much a grid-cursor
   //
   AABB aabb_gridbox;
-  std::vector<Line> aabb_gridbox_to_lines;
+  std::vector<Wall> aabb_gridbox_to_lines;
   {
-    static std::vector<entt::entity> wall_debug_lines;
-    if (wall_debug_lines.size() == 0) {
-      for (int i = 0; i < 4; i++) {
-        auto e = create_gameplay(r, EntityType::empty_with_physics);
-        set_position(r, e, mouse_pos);
-        set_size(r, e, { 16, 16 });
-        wall_debug_lines.push_back(e);
-      }
-    }
-    const auto grid_pos = engine::grid::world_space_to_grid_space(mouse_pos, grid_snap_size);
-    ImGui::Text("grid_pos: %i %i", grid_pos.x, grid_pos.y);
-    ImGui::Text("cursor_pos: %i %i", input_mouse_pos.x, input_mouse_pos.y);
+    // static std::vector<entt::entity> wall_debug_lines;
+    // if (wall_debug_lines.size() == 0) {
+    //   for (int i = 0; i < 4; i++) {
+    //     const auto e = create_gameplay(r, EntityType::empty_with_transform);
+    //     set_position(r, e, mouse_pos);
+    //     set_size(r, e, { 16, 16 });
+    //     wall_debug_lines.push_back(e);
+    //   }
+    // }
+
     // Create an AABB for the gridbox.
     const glm::ivec2 grid_tl_worldspace = { grid_pos.x * grid_snap_size, grid_pos.y * grid_snap_size };
     aabb_gridbox = create_aabb(grid_tl_worldspace, grid_snap_size, grid_snap_size);
@@ -477,119 +403,220 @@ update_ui_spaceship_designer_system(entt::registry& r, const glm::ivec2& input_m
     aabb_gridbox_to_lines = { { tl, tr }, { tr, br }, { br, bl }, { bl, tl } };
 
     // debug the grid box
-    for (int i = 0; i < 4; i++) {
-      const auto e = wall_debug_lines[i];
-      const auto line = aabb_gridbox_to_lines[i];
-      set_position_and_size_with_line(r, e, generate_line(line.p0, line.p1, 1));
-    }
+    // for (int i = 0; i < 4; i++) {
+    //   const auto e = wall_debug_lines[i];
+    //   const auto line = aabb_gridbox_to_lines[i];
+    //   set_position_and_size_with_line(r, e, generate_line(line.p0, line.p1, 1));
+    // }
   }
 
-  // Delete Wall Segments
+  // Work out which wall segments to delete
   //
-  // if (get_key_down(input, delete_segment_key)) {
-  {
-    std::set<std::tuple<int, int>> coll_points;
-    static std::vector<entt::entity> debug_coll_points;
+  if (get_key_down(input, delete_segment_key)) {
 
-    // Get all of the lines that cross over this grid_section
-    for (const auto& room : rooms) {
-      for (const Wall& l : room.walls) { // treat each wall as a line
+    for (const auto& [wall_e, wall_c] : r.view<Wall>().each()) {
+      wall_c.intersections.clear();
 
-        // Create an AABB for the wall (line).
-        //
-        const glm::ivec2 line_tl{ l.line.p0.x <= l.line.p1.x ? l.line.p0.x : l.line.p1.x,
-                                  l.line.p0.y <= l.line.p1.y ? l.line.p0.y : l.line.p1.y };
-        // Fix: if a line is directly horizontal, height would be 0, meaning no collision
-        const int start_width = glm::abs(l.line.p1.x - l.line.p0.x);
-        const int start_height = glm::abs(l.line.p1.y - l.line.p0.y);
-        const int width = (start_width == 0 && start_height != 0) ? 1 : start_width;
-        const int height = (start_height == 0 && start_width != 0) ? 1 : start_height;
-        const auto aabb_wall_line = create_aabb(line_tl, width, height);
+      // Create an AABB for the wall (line).
+      //
+      const auto pos_l = wall_c.p0.x <= wall_c.p1.x ? wall_c.p0.x : wall_c.p1.x;
+      const auto pos_t = wall_c.p0.y <= wall_c.p1.y ? wall_c.p0.y : wall_c.p1.y;
+      const auto line_tl = glm::ivec2{ pos_l, pos_t };
+      // Fix: if a line is directly horizontal, height would be 0, meaning no collision
+      const int start_width = glm::abs(wall_c.p1.x - wall_c.p0.x);
+      const int start_height = glm::abs(wall_c.p1.y - wall_c.p0.y);
+      const int width = (start_width == 0 && start_height != 0) ? 1 : start_width;
+      const int height = (start_height == 0 && start_width != 0) ? 1 : start_height;
+      const auto aabb_wall_line = create_aabb(line_tl, width, height);
 
-        // Check if the two collide.
-        if (!collide(aabb_wall_line, aabb_gridbox))
-          continue;
+      // Check if the two collide.
+      if (!collide(aabb_wall_line, aabb_gridbox))
+        continue;
 
-        //
-        // work out if it's a end-line-segment or middle-line-segment case.
-        //
+      // With a Line-Line Intersection Algorithm,
+      // Figure out the intersection point of:
+      // the grid-box boundary & the wall-section.
+      //
 
-        // With a Line-Line Intersection Algorithm,
-        // Figure out the intersection point of:
-        // the grid-box boundary & the wall-section.
-        //
+      for (const auto& aabb_line : aabb_gridbox_to_lines) {
+        const Wall& l0 = aabb_line; // grid box, made of 2 points
+        const Wall& l1 = wall_c;    // wall line, made of 2 points
+        const auto maybe_intersection_point = line_intersection(l0, l1);
+        if (!maybe_intersection_point.has_value())
+          continue; // no intersection point
 
-        for (const auto& aabb_line : aabb_gridbox_to_lines) {
-          ImGui::Separator();
+        const auto i = maybe_intersection_point.value();
+        ImGui::Text("Valid Intersection: %i %i", i.x, i.y);
 
-          const Line& l0 = aabb_line; // grid box, made of 2 points
-          const Line& l1 = l.line;    // wall line, made of 2 points
-          // ImGui::Text("L0: %i %i, %i %i", l0.p0.x, l0.p0.y, l0.p1.x, l0.p1.y);
-          // ImGui::Text("L1: %i %i, %i %i", l1.p0.x, l1.p0.y, l1.p1.x, l1.p1.y);
-
-          const auto maybe_intersection_point = line_intersection(l0, l1);
-          if (maybe_intersection_point.has_value()) {
-            glm::ivec2 i = maybe_intersection_point.value();
-            ImGui::Text("Intersection! %i %i", i.x, i.y);
-            coll_points.emplace(std::make_tuple(i.x, i.y));
-          }
-        }
-
-        // work out collision points between the line and the aabb.
-        // walls.push_back(l);
+        // Create Wall Entry in Map
+        wall_c.intersections.push_back(i);
       }
     }
-
-    // Debug points of intersection
-    for (int i = 0; const std::tuple<int, int>& coll : coll_points) {
-      const auto& [pos_x, pos_y] = coll;
-
-      // create a new debug point
-      if (debug_coll_points.size() == i)
-        debug_coll_points.push_back(create_gameplay(r, EntityType::empty_with_transform));
-
-      const auto& e = debug_coll_points[i];
-      set_position(r, e, { pos_x, pos_y });
-      set_size(r, e, { 6, 6 });
-
-      i++;
-    }
-    ImGui::Text("Intersections: %i", coll_points.size());
   }
 
-  // for (const auto& w : walls)
-  //   ImGui::Text("Wall of interest selected");
+  // Debug points of intersection
+  //
+  {
+    static std::vector<entt::entity> debug_coll_points;
+    for (int i = 0; const auto& [wall_e, wall_c] : r.view<Wall>().each()) {
+      for (const auto& intersection : wall_c.intersections) {
+        // create a new debug point
+        if (debug_coll_points.size() == i)
+          debug_coll_points.push_back(create_gameplay(r, EntityType::empty_with_transform));
+        const auto& e = debug_coll_points[i];
+        set_position(r, e, { intersection.x, intersection.y });
+        set_size(r, e, { 6, 6 });
+        i++;
+      }
+    }
+  }
+
+  // HACK: only do the delete if key pressed
+  static bool clip = false;
+  clip = get_key_down(input, SDL_SCANCODE_P);
+  std::vector<glm::ivec2> intersection_points;
+
+  //
+  // Separate/Update the Wall Segments
+  // work out if lines of interest collide with intersection points in an end-line-segment or middle-line-segment case.
+  //
+  for (const auto& [room_e, room_c] : r.view<Room>().each()) {
+    for (const entt::entity& wall_ent : room_c.walls) {
+      const auto* maybe_wall_c = r.try_get<Wall>(wall_ent);
+      if (maybe_wall_c == nullptr)
+        continue;
+      auto& wall_c = r.get<Wall>(wall_ent);
+      const std::vector<glm::ivec2>& intersections = wall_c.intersections;
+      ImGui::Text("Wall: intersections: %i", intersections.size());
+      const auto p0 = wall_c.p0;
+      const auto p1 = wall_c.p1;
+
+      // Likely on a corner
+      //
+      if (intersections.size() == 1) {
+        ImGui::Text("On a wall line; probably an end piece.");
+        // Shorten the end piece to the intersection point
+        const auto& intersection = intersections[0];
+
+        if (clip) {
+          // work out which point to set
+          // set the point thats closer to the intersection?
+          const auto p0_dir = p0 - intersection;
+          const auto p1_dir = p1 - intersection;
+          const auto p0_d2 = p0_dir.x * p0_dir.x + p0_dir.y * p0_dir.y;
+          const auto p1_d2 = p1_dir.x * p1_dir.x + p1_dir.y * p1_dir.y;
+
+          if (p0_d2 < p1_d2)
+            wall_c.p0 = intersection;
+          else
+            wall_c.p1 = intersection;
+
+          set_position_and_size_with_line(r, wall_ent, generate_line(wall_c.p0, wall_c.p1, 1));
+        }
+      }
+
+      // Likely in the middle line(s)
+      //
+      if (intersections.size() == 2) {
+        ImGui::Text("On a wall line; probably a middle piece.");
+        const auto& i0 = intersections[0];
+        const auto& i1 = intersections[1];
+
+        if (clip) {
+          const auto get_d2 = [](const glm::ivec2& a, const glm::ivec2& b) -> int {
+            const glm::ivec2 dir = b - a;
+            return dir.x * dir.x + dir.y * dir.y;
+          };
+          const auto p0_i0_d2 = get_d2(p0, i0);
+          const auto p1_i0_d2 = get_d2(p1, i0);
+          const auto p0_i1_d2 = get_d2(p0, i1);
+          const auto p1_i1_d2 = get_d2(p1, i1);
+
+          // Here's the situation.
+          // We have a line, containing p0 and p1.
+          // We have two intersection points, i0 and i1.
+          // We're interested in creating 2 new lines that make the most sense.
+
+          // From intersection point 0, choose the point thats closest to it.
+          // From intersection point 1, choose the points thats closest to it.
+          glm::ivec2 px_closer_to_i0 = p0_i0_d2 < p1_i0_d2 ? p0 : p1;
+          glm::ivec2 px_closer_to_i1 = p0_i1_d2 < p1_i1_d2 ? p0 : p1;
+
+          // Here, we're in trouble if both intersection points have chosen the same (p0 or p1).
+          // This is a common case. The intersection point that should have priority
+          // over the chosen point is the intersection point that is closer.
+          //
+          if (px_closer_to_i0 == px_closer_to_i1) {
+            const bool both_ix_chose_p0 = p0_i0_d2 < p1_i0_d2; // given that they both chose the closer
+            if (both_ix_chose_p0) {
+              if (p0_i0_d2 < p0_i1_d2) // ding ding: i0 wins, as it's closer to p0. Sorry i1.
+              {
+                px_closer_to_i1 = p1;
+              }
+            }
+            // both chosen p1
+            else {
+              if (p1_i0_d2 < p1_i1_d2) // ding ding: i0 wins, as it's closer to p1. Sorry i1.
+              {
+                px_closer_to_i1 = p0;
+              }
+            }
+          }
+
+          // Create & Update Existing Line
+          set_position_and_size_with_line(r, wall_ent, generate_line(i0, px_closer_to_i0, 1));
+          wall_c.p0 = i0;
+          wall_c.p1 = px_closer_to_i0;
+
+          // Create & Update New Line
+          const auto new_wall_e = create_gameplay(r, EntityType::solid_wall);
+          set_position_and_size_with_line(r, new_wall_e, generate_line(i1, px_closer_to_i1, 1));
+          Wall new_line;
+          new_line.p0 = i1;
+          new_line.p1 = px_closer_to_i1;
+          r.emplace<Wall>(new_wall_e);
+
+          // Add new wall to the room
+          room_c.walls.push_back(new_wall_e);
+
+          // Where to add door
+          intersection_points = { i0, i1 };
+        }
+      }
+    }
+  }
+
+  // Should be auto, not on "clip"
+  const bool create_door = true;
+  if (create_door && clip && intersection_points.size() == 2)
+    create_door_along_two_points(r, intersection_points[0], intersection_points[1]);
+
+  // done the work
+  if (clip)
+    clip = false;
 
   // Misc
   //
   {
     // HACK: Spawn a Player
-    //
     if (get_mouse_rmb_press()) {
       const auto player = create_gameplay(r, EntityType::actor_player);
       set_position(r, player, mouse_pos);
     }
 
     // Debug Rooms
-    //
-    for (const auto& room : rooms) {
-      ImGui::Text("RoomExists!");
-      for (const Wall& w : room.walls) {
-        ImGui::SameLine();
-        ImGui::Text("Wall");
-      }
-    }
+    const auto& rooms_view = r.view<Room>();
+    for (const auto& [room_e, room_c] : rooms_view.each())
+      ImGui::Text("RoomExists! Walls: %i", room_c.walls.size());
 
     // Generate dungeon base
-    //
     if (get_key_down(input, generate_dungeon_key)) {
       // Delete old Dungeon
-      for (Room& room : rooms) {
-        for (Wall& wall : room.walls)
-          dead.dead.emplace(wall.e);
-        room.walls.clear();
+      for (const auto& [room_e, room_c] : rooms_view.each()) {
+        for (const entt::entity& w : room_c.walls)
+          dead.dead.emplace(w);
+        dead.dead.emplace(room_e);
       }
-      rooms.clear();
 
       const int width = 50;
       const int height = 50;
@@ -623,8 +650,9 @@ update_ui_spaceship_designer_system(entt::registry& r, const glm::ivec2& input_m
       // room.h = room_height;
       // Check if the room overlaps with any of the rooms
       // const auto it =
-      //   std::find_if(d.rooms.begin(), d.rooms.end(), [&room](const Room& other) { return rooms_overlap(room, other); });
-      // if (it != d.rooms.end())
+      //   std::find_if(d.rooms.begin(), d.rooms.linend(), [&room](const Room& other) { return rooms_overlap(room, other);
+      //   });
+      // if (it != d.rooms.linend())
       //   continue; // overlap; skip this room
       // create_room(editor, game, d, room, ++room_index);
       // dig out a tunnel between this room and the previous one
@@ -644,11 +672,11 @@ update_ui_spaceship_designer_system(entt::registry& r, const glm::ivec2& input_m
       // if (y == 0 || y == room.h - 1)
       //   et = EntityType::tile_type_wall;
       // if (EntityType::tile_type_floor == et) {
-      //   if (d.walls_and_floors[index].entity != entt::null)
-      //     r.destroy(d.walls_and_floors[index].entity);
+      //   if (d.walls_and_floors[index].linentity != entt::null)
+      //     r.destroy(d.walls_and_floors[index].linentity);
       //   entt::entity e = create_dungeon_entity(editor, game, et, grid_index);
       //   StaticDungeonEntity se;
-      //   se.entity = e;
+      //   se.linentity = e;
       //   se.x = grid_index.x;
       //   se.y = grid_index.y;
       //   se.room_index = room_index;
