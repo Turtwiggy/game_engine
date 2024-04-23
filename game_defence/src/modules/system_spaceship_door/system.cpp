@@ -103,12 +103,17 @@ update_spaceship_door_system(entt::registry& r, const float& dt)
       set_size(r, e, { door_aabb.size.x + x_change, door_aabb.size.y + y_change });
     }
 
-    // Check if door is closed
+    // Check if door is fully open
     //
     if (door_aabb.size.x <= 0.0f || door_aabb.size.y <= 0.0f) {
       door.state = SpaceshipDoorState::OPEN;
       set_size(r, e, { 0, 0 });
-    }
+
+      // If fully open, remove solid component
+      if (const auto* solid = r.try_get<PhysicsSolidComponent>(e))
+        r.remove<PhysicsSolidComponent>(e);
+    } else
+      r.emplace_or_replace<PhysicsSolidComponent>(e);
 
     // Check if door is open
     //
