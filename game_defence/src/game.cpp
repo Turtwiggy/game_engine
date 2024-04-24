@@ -324,7 +324,7 @@ game2d::update(engine::SINGLETON_Application& app, entt::registry& r, const floa
       update_ui_xp_bar_system(r);
     }
     if (scene.s == Scene::spaceship_designer) {
-      update_ui_spaceship_designer_system(r, mouse_pos);
+      update_ui_spaceship_designer_system(r, mouse_pos, dt);
     }
 
     update_ui_worldspace_text_system(r);

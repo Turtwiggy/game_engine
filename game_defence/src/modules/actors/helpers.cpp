@@ -1,7 +1,10 @@
 #include "helpers.hpp"
 
+#include "colour/colour.hpp"
+#include "modules/ui_colours/helpers.hpp"
 #include "physics/components.hpp"
 #include "renderer/transform.hpp"
+#include "sprites/components.hpp"
 
 namespace game2d {
 
@@ -39,6 +42,20 @@ set_size(entt::registry& r, const entt::entity& e, const glm::ivec2& size)
   auto& transform = r.get<TransformComponent>(e);
   transform.scale.x = size.x;
   transform.scale.y = size.y;
+};
+
+void
+set_colour(entt::registry& r, const entt::entity& e, const engine::SRGBColour& col)
+{
+  auto& sc = r.get<SpriteComponent>(e);
+  sc.colour = engine::SRGBToLinear(col);
+};
+
+void
+set_colour_by_tag(entt::registry& r, const entt::entity& e, const std::string& tag)
+{
+  const engine::SRGBColour col = get_srgb_colour_by_tag(r, tag);
+  set_colour(r, e, col);
 };
 
 } // namespace game2d

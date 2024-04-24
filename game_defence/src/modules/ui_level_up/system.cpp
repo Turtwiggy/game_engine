@@ -10,9 +10,6 @@
 #include "modules/combat_damage/components.hpp"
 #include "modules/items_pickup/components.hpp"
 #include "modules/renderer/components.hpp"
-#include "modules/scene/helpers.hpp"
-#include "physics/components.hpp"
-
 
 #include "imgui.h"
 

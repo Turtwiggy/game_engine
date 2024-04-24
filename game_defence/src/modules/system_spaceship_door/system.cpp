@@ -3,6 +3,7 @@
 #include "components.hpp"
 #include "entt/helpers.hpp"
 #include "modules/actor_cursor/components.hpp"
+#include "modules/actor_player/components.hpp"
 #include "modules/actors/helpers.hpp"
 #include "modules/resolve_collisions/helpers.hpp"
 #include "physics/components.hpp"
@@ -28,7 +29,7 @@ update_spaceship_door_system(entt::registry& r, const float& dt)
       const auto a = static_cast<entt::entity>(coll.ent_id_0);
       const auto b = static_cast<entt::entity>(coll.ent_id_1);
 
-      const auto [a_ent, b_ent] = collision_of_interest<CursorComponent, SpaceshipPressureplateComponent>(r, a, b);
+      const auto [a_ent, b_ent] = collision_of_interest<PlayerComponent, SpaceshipPressureplateComponent>(r, a, b);
       if (a_ent != entt::null && b_ent != entt::null) {
         // const auto& cursor = a_ent;
         const auto& plate = b_ent;

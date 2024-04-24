@@ -6,6 +6,6 @@
 namespace game2d {
 
 void
-update_ui_spaceship_designer_system(entt::registry& r, const glm::ivec2& mouse_pos);
+update_ui_spaceship_designer_system(entt::registry& r, const glm::ivec2& mouse_pos, const float dt);
 
 } // namespace game2d

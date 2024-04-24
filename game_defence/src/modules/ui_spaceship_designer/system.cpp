@@ -1,6 +1,7 @@
 #include "system.hpp"
 
 #include "actors.hpp"
+#include "colour/colour.hpp"
 #include "components.hpp"
 #include "entt/helpers.hpp"
 #include "events/components.hpp"
@@ -11,7 +12,9 @@
 #include "lifecycle/components.hpp"
 #include "maths/grid.hpp"
 #include "maths/maths.hpp"
+#include "modules/actor_player/components.hpp"
 #include "modules/actors/helpers.hpp"
+#include "modules/resolve_collisions/helpers.hpp"
 #include "modules/system_spaceship_door/components.hpp"
 #include "modules/vfx_grid/components.hpp"
 #include "physics/components.hpp"
@@ -20,6 +23,7 @@
 #include "imgui.h"
 #include <SDL_keyboard.h>
 #include <SDL_scancode.h>
+#include <string>
 
 namespace game2d {
 using namespace std::literals;
@@ -43,10 +47,9 @@ struct Wall
   std::vector<entt::entity> debug_intersections;
 };
 
-static int global_room_id = 0;
 struct Room
 {
-  AABB aabb;
+  bool placeholder = true;
 };
 
 class EntityPool
@@ -110,7 +113,7 @@ line_intersection(const int x1, // p0
   AABB point;
   point.center = intersection;
   point.size = { 1, 1 };
-  // ImGui::Text("Point. Centre: %i %i. Size: %i %i", point.center.x, point.center.y, point.size.x, point.size.y);
+  // ImGui::Text("Point. Center: %i %i. Size: %i %i", point.center.x, point.center.y, point.size.x, point.size.y);
 
   const int l0 = glm::min(x1, x2);
   const int r0 = glm::max(x1, x2);
@@ -119,7 +122,7 @@ line_intersection(const int x1, // p0
   AABB line0 = create_aabb({ l0, t0 }, glm::abs(r0 - l0), glm::abs(b0 - t0));
   line0.size.x = line0.size.x == 0 ? 1 : line0.size.x;
   line0.size.y = line0.size.y == 0 ? 1 : line0.size.y;
-  // ImGui::Text("line0. Centre: %i %i. Size: %i %i", line0.center.x, line0.center.y, line0.size.x, line0.size.y);
+  // ImGui::Text("line0. Center: %i %i. Size: %i %i", line0.center.x, line0.center.y, line0.size.x, line0.size.y);
 
   const int l = glm::min(x3, x4);
   const int r = glm::max(x3, x4);
@@ -128,7 +131,7 @@ line_intersection(const int x1, // p0
   AABB line1 = create_aabb({ l, t }, glm::abs(r - l), glm::abs(b - t));
   line1.size.x = line1.size.x == 0 ? 1 : line1.size.x;
   line1.size.y = line1.size.y == 0 ? 1 : line1.size.y;
-  // ImGui::Text("line1. Centre: %i %i. Size: %i %i", line1.center.x, line1.center.y, line1.size.x, line1.size.y);
+  // ImGui::Text("line1. Center: %i %i. Size: %i %i", line1.center.x, line1.center.y, line1.size.x, line1.size.y);
 
   const bool coll_a = collide(point, line0);
   const bool coll_b = collide(point, line1);
@@ -186,10 +189,16 @@ create_door_along_two_points(entt::registry& r, const glm::ivec2& a, const glm::
   auto& pressureplate_2 = r.get<SpaceshipPressureplateComponent>(pressureplate_e_2);
   auto& pressureplate_3 = r.get<SpaceshipPressureplateComponent>(pressureplate_e_3);
 
+  static engine::SRGBColour green{ 0.0f, 1.0f, 0.0f, 1.0f };
+  static engine::SRGBColour red{ 1.0f, 0.0f, 0.0f, 1.0f };
   pressureplate_0.type = PressurePlateType::OPEN;
   pressureplate_1.type = PressurePlateType::CLOSE;
   pressureplate_2.type = PressurePlateType::OPEN;
   pressureplate_3.type = PressurePlateType::CLOSE;
+  set_colour(r, pressureplate_e_0, green);
+  set_colour(r, pressureplate_e_1, red);
+  set_colour(r, pressureplate_e_2, green);
+  set_colour(r, pressureplate_e_3, red);
 
   pressureplate_0.door = door_e;
   pressureplate_1.door = door_e;
@@ -239,8 +248,9 @@ create_wall(entt::registry& r, const glm::ivec2 pos, const entt::entity& parent_
 };
 
 void
-update_ui_spaceship_designer_system(entt::registry& r, const glm::ivec2& input_mouse_pos)
+update_ui_spaceship_designer_system(entt::registry& r, const glm::ivec2& input_mouse_pos, const float dt)
 {
+  const auto& physics = get_first_component<SINGLETON_PhysicsComponent>(r);
   const auto& input = get_first_component<SINGLETON_InputComponent>(r);
   auto& dead = get_first_component<SINGLETON_EntityBinComponent>(r);
 
@@ -326,7 +336,6 @@ update_ui_spaceship_designer_system(entt::registry& r, const glm::ivec2& input_m
   // Drag To Create Rooms
   //
   {
-    const int line_width = 1;
     static std::optional<glm::ivec2> press_location = std::nullopt;
     static entt::entity room_to_create;
     static std::vector<entt::entity> walls;
@@ -338,8 +347,16 @@ update_ui_spaceship_designer_system(entt::registry& r, const glm::ivec2& input_m
       room_collision = false;
 
       // create room
-      room_to_create = create_gameplay(r, EntityType::empty_no_transform);
+      room_to_create = create_gameplay(r, EntityType::empty_with_transform);
+      set_colour(r, room_to_create, { 1.0f, 1.0f, 1.0f, 0.05f });
       r.emplace<Room>(room_to_create);
+
+      // create physics actor
+      r.emplace<PhysicsTransformXComponent>(room_to_create);
+      r.emplace<PhysicsTransformYComponent>(room_to_create);
+      r.emplace<AABB>(room_to_create);
+      r.emplace<PhysicsActorComponent>(room_to_create);
+      r.emplace<VelocityComponent>(room_to_create);
 
       // create room walls
       const auto w0 = create_wall(r, press_location.value(), room_to_create);
@@ -377,12 +394,16 @@ update_ui_spaceship_designer_system(entt::registry& r, const glm::ivec2& input_m
           height = 1;
         return create_aabb(p, width, height);
       };
-      auto& room_to_create_c = r.get<Room>(room_to_create);
-      room_to_create_c.aabb = create_aabb_from_mouse(press_location.value());
-      for (const auto& [room_e, other_room_c] : r.view<Room>().each()) {
+
+      // This here seems wrong, like it's bypassing the physics system.
+      //
+      const auto temp_aabb = create_aabb_from_mouse(press_location.value());
+      set_position(r, room_to_create, temp_aabb.center);
+      set_size(r, room_to_create, temp_aabb.size);
+      for (const auto& [room_e, other_room_c, other_room_aabb] : r.view<Room, AABB>().each()) {
         if (room_e == room_to_create)
           continue; // dont self collide
-        room_collision |= collide(room_to_create_c.aabb, other_room_c.aabb);
+        room_collision |= collide(temp_aabb, other_room_aabb);
       }
     }
     if (get_key_up(input, drag_create_room_key)) {
@@ -537,19 +558,30 @@ update_ui_spaceship_designer_system(entt::registry& r, const glm::ivec2& input_m
         // over the chosen point is the intersection point that is closer.
         //
         if (px_closer_to_i0 == px_closer_to_i1) {
-          const bool both_ix_chose_p0 = p0_i0_d2 < p1_i0_d2; // given that they both chose the closer
+
+          // given both intersections chose the same px,
+          // which intersection did i0 choose?
+          const bool both_ix_chose_p0 = p0_i0_d2 < p1_i0_d2;
+
           if (both_ix_chose_p0) {
-            if (p0_i0_d2 < p0_i1_d2) // ding ding: i0 wins, as it's closer to p0. Sorry i1.
-            {
-              px_closer_to_i1 = p1;
-            }
+
+            // which intersection is closer to p0?
+            const bool i0_closer_to_p0 = p0_i0_d2 < p0_i1_d2;
+
+            // if i0 is closer to p0, it wins (p0).
+            // if i1 is closer to p0, it wins (p0).
+            px_closer_to_i0 = i0_closer_to_p0 ? p0 : p1;
+            px_closer_to_i1 = i0_closer_to_p0 ? p1 : p0;
           }
           // both chosen p1
           else {
-            if (p1_i0_d2 < p1_i1_d2) // ding ding: i0 wins, as it's closer to p1. Sorry i1.
-            {
-              px_closer_to_i1 = p0;
-            }
+            // which intersection is closer to p1?
+            const bool i0_closer_to_p1 = p1_i0_d2 < p1_i1_d2;
+
+            // if i0 is closer to p1, it wins (p1).
+            // if i1 is closer to p1, it wins (p1).
+            px_closer_to_i0 = i0_closer_to_p1 ? p1 : p0;
+            px_closer_to_i1 = i0_closer_to_p1 ? p0 : p1;
           }
         }
 
@@ -631,6 +663,11 @@ update_ui_spaceship_designer_system(entt::registry& r, const glm::ivec2& input_m
     }
   }
 
+  // TODO: Debug Rooms
+  // const auto& rooms_view = r.view<Room>();
+  // for (const auto& [room_e, room_c] : rooms_view.each())
+  //   ImGui::Text("RoomExists! Walls: %i", room_c.walls.size());
+
   // Misc
   //
   {
@@ -639,11 +676,6 @@ update_ui_spaceship_designer_system(entt::registry& r, const glm::ivec2& input_m
       const auto player = create_gameplay(r, EntityType::actor_player);
       set_position(r, player, mouse_pos);
     }
-
-    // Debug Rooms
-    // const auto& rooms_view = r.view<Room>();
-    // for (const auto& [room_e, room_c] : rooms_view.each())
-    //   ImGui::Text("RoomExists! Walls: %i", room_c.walls.size());
 
     // Generate dungeon base
     if (get_key_down(input, generate_dungeon_key)) {
@@ -737,7 +769,85 @@ update_ui_spaceship_designer_system(entt::registry& r, const glm::ivec2& input_m
     } // end generate dungeon
   }
 
+  // If you put your mouse over a new room,
+  // (todo) play some music,
+  // and display the room name.
+  static std::optional<std::string> room_name = std::nullopt;
+  for (const auto& coll : physics.collision_enter) {
+    const auto a = static_cast<entt::entity>(coll.ent_id_0);
+    const auto b = static_cast<entt::entity>(coll.ent_id_1);
+
+    const auto [a_ent, b_ent] = collision_of_interest<PlayerComponent, Room>(r, a, b);
+    if (a_ent == entt::null)
+      continue;
+    if (b_ent == entt::null)
+      continue;
+
+    // Display some fun text
+    // This just displays the entt id atm
+    room_name = "Room "s + std::to_string(static_cast<uint32_t>(b_ent));
+  }
+  if (room_name.has_value())
+    ImGui::Text("Last Entered Room: %s", room_name.value().c_str());
+  else
+    ImGui::Text("No room entered");
   ImGui::End();
+
+  //
+  // Room Name Hover System
+  //
+  const float time_to_display_room_name = 6.0f;
+  static float time_displaying_room_name = 0.0f;
+
+  if (room_name.has_value())
+    time_displaying_room_name += dt;
+  if (time_displaying_room_name > time_to_display_room_name) {
+    room_name = std::nullopt;
+    time_displaying_room_name = 0.0f;
+  }
+
+  bool show_room_ui = time_displaying_room_name <= time_to_display_room_name && time_displaying_room_name != 0.0f;
+  if (show_room_ui) {
+    const auto& ri = get_first_component<SINGLETON_RendererInfo>(r);
+    const auto& viewport_pos = ImVec2(ri.viewport_pos.x, ri.viewport_pos.y);
+    const auto& viewport_size_half = ImVec2(ri.viewport_size_current.x * 0.5f, ri.viewport_size_current.y * 0.5f);
+
+    // text size
+    std::string label = "N/A";
+    if (room_name.has_value())
+      label = room_name.value();
+    ImGuiStyle& style = ImGui::GetStyle();
+    const float alignment = 0.5f;
+    const float size = ImGui::CalcTextSize(label.c_str()).x + style.FramePadding.x * 2.0f;
+
+    // window size
+    const float forced_padding = size / 2.0;
+    const float w = size + forced_padding;
+    const float h = w * (9 / 16.0f) / 2.0f;
+    ImGui::SetNextWindowSizeConstraints(ImVec2(w, h), ImVec2(w, h));
+
+    // position
+    const float center_x = viewport_pos.x + viewport_size_half.x;
+    const float bottom_y = viewport_pos.y + ri.viewport_size_current.y - h;
+    const auto pos = ImVec2(center_x, bottom_y);
+    ImGui::SetNextWindowPos(pos, ImGuiCond_Always, ImVec2(0.5f, 0.5f));
+
+    ImGuiWindowFlags flags = 0;
+    flags |= ImGuiWindowFlags_NoMove;
+    flags |= ImGuiWindowFlags_NoCollapse;
+    flags |= ImGuiWindowFlags_NoTitleBar;
+    flags |= ImGuiWindowFlags_NoResize;
+
+    ImGui::Begin("Last Room Entered", &show_room_ui, flags);
+
+    float avail = ImGui::GetContentRegionAvail().x;
+    float off = (avail - size) * alignment;
+    if (off > 0.0f)
+      ImGui::SetCursorPosX(ImGui::GetCursorPosX() + off);
+    ImGui::Text("%s", label.c_str());
+
+    ImGui::End();
+  }
 }
 
 } // namespace game2d
