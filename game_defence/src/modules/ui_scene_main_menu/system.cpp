@@ -6,9 +6,7 @@
 #include "audio/components.hpp"
 #include "audio/helpers.hpp"
 #include "entt/helpers.hpp"
-#include "events/helpers/controller.hpp"
-#include "maths/grid.hpp"
-#include "maths/maths.hpp"
+#include "events/components.hpp"
 #include "modules/actor_player/components.hpp"
 #include "modules/animation/components.hpp"
 #include "modules/renderer/components.hpp"
@@ -16,11 +14,9 @@
 #include "modules/scene/components.hpp"
 #include "modules/scene/helpers.hpp"
 #include "modules/ui_level_editor/components.hpp"
-#include "modules/ui_level_editor/helpers.hpp"
 #include "modules/ui_rpg_character/components.hpp"
 #include "modules/ux_hoverable_change_colour/components.hpp"
 #include "physics/components.hpp"
-#include "sprites/components.hpp"
 
 #include <glm/glm.hpp>
 #include <imgui.h>
@@ -243,14 +239,15 @@ update_ui_scene_main_menu(engine::SINGLETON_Application& app, entt::registry& r)
   const glm::ivec2 unmute_icon_offset{ 5, 0 };
   const glm::ivec2 mute_icon_offset{ 5, 1 };
   const ImVec2 icon_size = { 50, 50 };
-  const float distance_from_right_side_of_screen = 75;
+  const float distance_from_right_of_screen = 75;
+  const float distance_from_top_of_screen = 75;
   static glm::ivec2 offset = unmute_icon_offset;
   static int toggle = 1;
-  static bool toggle_changed = true;
+  static bool toggle_changed = false;
   const ImGuiViewport* viewport = ImGui::GetMainViewport();
 
-  ImGui::SetNextWindowPos(
-    ImVec2(viewport->WorkPos.x + viewport->WorkSize.x - distance_from_right_side_of_screen, viewport->WorkPos.y));
+  ImGui::SetNextWindowPos(ImVec2(viewport->WorkPos.x + viewport->WorkSize.x - distance_from_right_of_screen,
+                                 viewport->WorkPos.y + viewport->WorkSize.y - distance_from_top_of_screen));
   ImGui::Begin("Mute Sound Icon", nullptr, flags);
 
   // convert desired icon to uv coordinates

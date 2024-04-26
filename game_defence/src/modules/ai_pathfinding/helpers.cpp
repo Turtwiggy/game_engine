@@ -11,7 +11,7 @@
 
 namespace game2d {
 
-// Converts GridComponoent to std::vector<astar_cell>
+// Converts GridComponent to std::vector<astar_cell>
 std::vector<astar_cell>
 generate_map_view(entt::registry& r, const GridComponent& grid)
 {

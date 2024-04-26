@@ -49,6 +49,7 @@ game2d::update_ui_pause_menu_system(engine::SINGLETON_Application& app, entt::re
     // ImGui::SetNextWindowPos(viewport->GetCenter());
     // ImGui::SetNextWindowSize(ImVec2{ 300, 350 });
 
+    ImGui::SetNextWindowSize({ 300, 300 });
     ImGui::Begin("Pause Menu", &open, flags);
 
     ImGui::Text("Menu FPS: %0.2f", ImGui::GetIO().Framerate);

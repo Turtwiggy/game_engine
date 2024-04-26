@@ -1,5 +1,6 @@
 #include "system.hpp"
 
+#include "actors.hpp"
 #include "entt/helpers.hpp"
 #include "lifecycle/components.hpp"
 #include "maths/grid.hpp"
@@ -10,7 +11,6 @@
 #include "modules/ai_pathfinding/helpers.hpp"
 #include "modules/combat_attack_cooldown/components.hpp"
 #include "modules/combat_damage/components.hpp"
-#include "modules/combat_wants_to_shoot/components.hpp"
 #include "modules/lerp_to_target/components.hpp"
 #include "modules/selected_interactions/components.hpp"
 #include "physics/components.hpp"
@@ -48,8 +48,8 @@ update_enemy_system(entt::registry& r, const float dt)
   grid.height = map.ymax;
   grid.grid = map.map;
 
-  const auto& view =
-    r.view<EnemyComponent, const HasTargetPositionComponent, TransformComponent, AABB>(entt::exclude<WaitForInitComponent>);
+  const auto& view = r.view<EnemyComponent, const HasTargetPositionComponent, TransformComponent, AABB, EntityTypeComponent>(
+    entt::exclude<WaitForInitComponent>);
 
   const auto convert_position_to_index = [&map](const glm::ivec2& src) -> int {
     auto src_gridpos = engine::grid::world_space_to_grid_space(src, map.tilesize);
@@ -58,7 +58,16 @@ update_enemy_system(entt::registry& r, const float dt)
     return engine::grid::grid_position_to_index(src_gridpos, map.xmax);
   };
 
-  for (const auto& [e, enemy, target_position, enemy_t, aabb] : view.each()) {
+  for (const auto& [e, enemy, target_position, enemy_t, aabb, entity_type] : view.each()) {
+    //
+    // different enemy have different ai...
+    //
+    const std::vector<EntityType> enemy_type_for_this_system{ EntityType::enemy_ranged, EntityType::enemy_grunt };
+    const bool enemy_type_of_interest =
+      std::find(enemy_type_for_this_system.begin(), enemy_type_for_this_system.end(), entity_type.type) !=
+      enemy_type_for_this_system.end();
+    if (!enemy_type_of_interest)
+      continue;
 
     const auto src = aabb.center;
     const auto dst = default_target_aabb.center;

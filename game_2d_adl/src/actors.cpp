@@ -2,11 +2,8 @@
 
 #include "colour/colour.hpp"
 #include "entt/helpers.hpp"
-#include "events/components.hpp"
-#include "lifecycle/components.hpp"
 #include "modules/actor_cursor/components.hpp"
 #include "modules/actors/helpers.hpp"
-#include "modules/camera/orthographic.hpp"
 #include "modules/lighting/components.hpp"
 #include "modules/renderer/components.hpp"
 #include "modules/renderer/helpers.hpp"

@@ -11,6 +11,7 @@
 #include "modules/actor_bodypart_legs/system.hpp"
 #include "modules/actor_cursor/system.hpp"
 #include "modules/actor_enemy/system.hpp"
+#include "modules/actor_enemy_patrol/system.hpp"
 #include "modules/actor_group/system.hpp"
 #include "modules/actor_particle/system.hpp"
 #include "modules/actor_player/system.hpp"
@@ -297,6 +298,8 @@ game2d::update(engine::SINGLETON_Application& app, entt::registry& r, const floa
       //
       //
       update_spaceship_door_system(r, dt);
+      //
+      update_actor_enemy_patrol_system(r, mouse_pos, dt);
     }
   }
 
@@ -309,6 +312,31 @@ game2d::update(engine::SINGLETON_Application& app, entt::registry& r, const floa
   {
     OPTICK_EVENT("(update)-update-ui");
     // update_ui_inverse_kinematics_system(r, mouse_pos);
+
+    // Display a parented viewport window at the top of the screen, that shows the fps.
+    {
+      ImGuiStyle& style = ImGui::GetStyle();
+      const std::string example = "FPS: 10000.00";
+      const float size_y = ImGui::CalcTextSize(example.c_str()).y;
+
+      ImGuiWindowFlags flags = 0;
+      static bool menubar_open = true;
+      flags |= ImGuiWindowFlags_NoFocusOnAppearing;
+      flags |= ImGuiWindowFlags_NoCollapse;
+      flags |= ImGuiWindowFlags_NoResize;
+      flags |= ImGuiWindowFlags_NoTitleBar;
+      flags |= ImGuiDockNodeFlags_NoResize;
+      // flags |= ImGuiDockNodeFlags_PassthruCentralNode;
+      const auto& ri = get_first_component<SINGLETON_RendererInfo>(r);
+      ImGui::SetNextWindowPos({ 0, 0 }, ImGuiCond_Always, { 0, 0 });
+      ImGui::SetNextWindowSize({ static_cast<float>(ri.viewport_size_render_at.x), size_y }, ImGuiCond_Always);
+
+      const ImGuiID dockspace_id = ImGui::GetID("RootDockSpace");
+      ImGui::SetNextWindowDockID(dockspace_id, ImGuiCond_Always);
+      ImGui::Begin("MenuBar", &menubar_open, flags);
+      ImGui::Text("FPS: %0.2f", ImGui::GetIO().Framerate);
+      ImGui::End();
+    }
 
     // Main menu scene can transition to Game scene
     if (scene.s == Scene::menu) {
@@ -325,6 +353,12 @@ game2d::update(engine::SINGLETON_Application& app, entt::registry& r, const floa
     }
     if (scene.s == Scene::spaceship_designer) {
       update_ui_spaceship_designer_system(r, mouse_pos, dt);
+    }
+    if (scene.s == Scene::duckgame) {
+      //
+    }
+    if (scene.s == Scene::warhammer) {
+      //
     }
 
     update_ui_worldspace_text_system(r);

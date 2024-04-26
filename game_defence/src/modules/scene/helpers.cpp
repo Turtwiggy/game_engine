@@ -12,6 +12,7 @@
 #include "maths/grid.hpp"
 #include "modules/actor_bodypart_legs/components.hpp"
 #include "modules/actor_cursor/components.hpp"
+#include "modules/actor_enemy_patrol/components.hpp"
 #include "modules/actor_spawner/components.hpp"
 #include "modules/actors/helpers.hpp"
 #include "modules/ai_pathfinding/components.hpp"
@@ -21,7 +22,6 @@
 #include "modules/camera/orthographic.hpp"
 #include "modules/combat_damage/components.hpp"
 #include "modules/gameover/components.hpp"
-#include "modules/lerp_to_target/components.hpp"
 #include "modules/renderer/components.hpp"
 #include "modules/renderer/helpers.hpp"
 #include "modules/screenshake/components.hpp"
@@ -53,17 +53,12 @@ create_player(entt::registry& r, const glm::ivec2& pos)
 
   // player
   const auto e = create_gameplay(r, EntityType::actor_player);
-  auto& e_aabb = r.get<AABB>(e);
-  e_aabb.center = pos;
-  auto& e_transform = r.get<TransformComponent>(e);
-  e_transform.scale = { e_aabb.size.x, e_aabb.size.y, 1.0f };
-  e_transform.position = { pos.x, pos.y, 0.0f };
+  set_position(r, e, pos);
 
-  // position weapon
+  // setup weapon
   auto& weapon_parent = r.get<HasParentComponent>(weapon);
   weapon_parent.parent = e;
-  auto& weapon_aabb = r.get<AABB>(weapon);
-  weapon_aabb.center = e_aabb.center;
+  set_position(r, weapon, r.get<AABB>(e).center);
 
   // link player&weapon
   HasWeaponComponent has_weapon;
@@ -401,7 +396,7 @@ move_to_scene_start(entt::registry& r, const Scene s)
     map_c.ymax = height / map_c.tilesize;
     const glm::ivec2 tilesize{ map_c.tilesize, map_c.tilesize };
     const glm::ivec2 map_offset = { tilesize.x / 2.0f, tilesize.y / 2.0f };
-    r.emplace<MapComponent>(r.create());
+    r.emplace<MapComponent>(r.create(), map_c);
 
     const auto player = create_player(r, { 128, 128 });
     r.emplace<CameraFollow>(player);
@@ -467,7 +462,62 @@ move_to_scene_start(entt::registry& r, const Scene s)
   }
 
   if (s == Scene::duckgame) {
+    // core scene design brief:
+    // ---- player ----
+    // the player should be able to sprint with a sprint bar that depletes
+    // the player should consist of a "crew".
+    // the player's model should represent the state of the crew
+    // e.g. if there are 4 units in the crew, 4 units in this scene.
+    // ---- troops ----
+    // lore reasons: all the troops are part of the same federation
+    // lore reasons: this will force me to think about your faction, and why you're fighting
+    // display troop capacity.
+    // the further away from the player's starting point, make them stronger.
+    // create some wandering troops.
+    // troops should periodically respawn.
+    // if in range of the player, chase the player.
+    // the player should be able to sneak up behind the troops.
+    // ---- obstacles ----
+    // create some big squares. (asteroids)
+
+    // stretch
     //
+    // ---- space spations (friendly) (villages)
+    // able to "dock" at space stations.
+    // what to do at space stations?
+    // refuel?
+    // buy new crew?
+    // ---- misc
+    // wormhole -> randomly teleport to place on map
+    // space station (hostile) -> harder, gives more loot, xp, items
+
+    int width = 1000;
+    int height = 1000;
+    MapComponent map_c;
+    map_c.tilesize = 50;
+    map_c.xmax = width / map_c.tilesize;
+    map_c.ymax = height / map_c.tilesize;
+    map_c.map.resize(map_c.xmax * map_c.ymax);
+    r.emplace<MapComponent>(r.create(), map_c);
+
+    // grid effect
+    r.emplace<Effect_GridComponent>(r.create(), map_c.tilesize);
+
+    const glm::ivec2 home_base_position = { 0, 0 };
+
+    const auto player = create_gameplay(r, EntityType::actor_player);
+    set_position(r, player, home_base_position);
+    set_size(r, player, { 16, 16 });
+    r.emplace<CameraFollow>(player);
+
+    for (int i = 0; i < 50; i++) {
+      const auto enemy = create_gameplay(r, EntityType::actor_enemy_patrol);
+      r.emplace<PatrolComponent>(enemy);
+      auto& speed = r.get<VelocityComponent>(enemy);
+      speed.base_speed = 500.0f;
+      set_position(r, enemy, { 0, 0 });
+      set_size(r, enemy, { 16, 16 });
+    }
   }
 
   if (s == Scene::warhammer) {

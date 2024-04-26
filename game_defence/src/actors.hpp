@@ -57,6 +57,7 @@ enum class EntityType
   enemy_dummy,
   enemy_grunt,
   enemy_ranged,
+  actor_enemy_patrol,
   // enemy_shotgunner,
 
   // misc

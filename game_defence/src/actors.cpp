@@ -201,8 +201,8 @@ create_gameplay(entt::registry& r, const EntityType& type)
     case EntityType::actor_spaceship_pressureplate: {
       create_physics_actor(r, e);
 
-      r.emplace<HoverableComponent>(e);
-      r.emplace<ChangeColourOnHoverComponent>(e);
+      // r.emplace<HoverableComponent>(e);
+      // r.emplace<ChangeColourOnHoverComponent>(e);
 
       r.emplace<SpaceshipPressureplateComponent>(e);
       break;
@@ -501,6 +501,19 @@ create_gameplay(entt::registry& r, const EntityType& type)
       r.emplace<MeleeComponent>(e);
       r.emplace<KnockbackComponent>(e);
       // r.emplace<AttackComponent>(e, 10); // on the equipped weapon?
+      break;
+    }
+
+    case EntityType::actor_enemy_patrol: {
+      create_physics_actor(r, e);
+      r.emplace<EnemyComponent>(e);
+      // r.emplace<HoverableComponent>(e);
+
+      // movement
+      r.emplace<HasTargetPositionComponent>(e);
+      r.emplace<SetVelocityToTargetComponent>(e);
+
+      // r.emplace<TeamComponent>(e, AvailableTeams::enemy);
       break;
     }
 

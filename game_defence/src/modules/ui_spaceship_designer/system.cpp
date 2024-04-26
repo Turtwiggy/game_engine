@@ -348,7 +348,8 @@ update_ui_spaceship_designer_system(entt::registry& r, const glm::ivec2& input_m
 
       // create room
       room_to_create = create_gameplay(r, EntityType::empty_with_transform);
-      set_colour(r, room_to_create, { 1.0f, 1.0f, 1.0f, 0.05f });
+      // create room colour
+      set_colour(r, room_to_create, { 1.0f, 1.0f, 1.0f, 0.02f });
       r.emplace<Room>(room_to_create);
 
       // create physics actor

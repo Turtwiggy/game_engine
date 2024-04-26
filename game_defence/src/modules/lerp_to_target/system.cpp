@@ -37,27 +37,29 @@ update_set_velocity_to_target_system(entt::registry& r, const float& dt)
 
     // get target grid position at the time which the pathfinding was calculated
     const auto dst_static = path.dst_pos;
-    auto dst_gridpos_static = engine::grid::world_space_to_grid_space(dst_static, map.tilesize);
+    glm::ivec2 dst_gridpos_static = engine::grid::world_space_to_grid_space(dst_static, map.tilesize);
     dst_gridpos_static.x = glm::clamp(dst_gridpos_static.x, 0, map.xmax - 1);
     dst_gridpos_static.y = glm::clamp(dst_gridpos_static.y, 0, map.ymax - 1);
     ImGui::Text("dst_gridpos_static: %i %i", dst_gridpos_static.x, dst_gridpos_static.y);
 
-    // get live target grid position
-    const auto dst_dynamic = r.get<AABB>(path.dst_ent).center;
-    auto dst_gridpos_dyanmic = engine::grid::world_space_to_grid_space(dst_dynamic, map.tilesize);
-    dst_gridpos_dyanmic.x = glm::clamp(dst_gridpos_dyanmic.x, 0, map.xmax - 1);
-    dst_gridpos_dyanmic.y = glm::clamp(dst_gridpos_dyanmic.y, 0, map.ymax - 1);
-    ImGui::Text("dst_gridpos: %i %i", dst_gridpos_dyanmic.x, dst_gridpos_dyanmic.y);
+    // try to get live target grid position
+    // if no dst_ent is set, assume a static position
+    std::optional<glm::ivec2> dst_gridpos_dynamic = std::nullopt;
+    if (path.dst_ent == entt::null) {
+      const auto dst_dynamic = r.get<AABB>(path.dst_ent).center;
+      dst_gridpos_dynamic = engine::grid::world_space_to_grid_space(dst_dynamic, map.tilesize);
+      dst_gridpos_dynamic.value().x = glm::clamp(dst_gridpos_dynamic.value().x, 0, map.xmax - 1);
+      dst_gridpos_dynamic.value().y = glm::clamp(dst_gridpos_dynamic.value().y, 0, map.ymax - 1);
+      ImGui::Text("dst_gridpos: %i %i", dst_gridpos_dynamic.value().x, dst_gridpos_dynamic.value().y);
 
-    if (dst_gridpos_static != dst_gridpos_dyanmic) {
-      // the target has moved!
-      ImGui::Text("Target has moved outside pathfinding??");
+      if (dst_gridpos_static != dst_gridpos_dynamic)
+        ImGui::Text("Target has moved outside pathfinding??");
     }
 
     // probably clicked either on invalid spot, or spot in same gridspace
-    const bool in_same_gridspace = cur_gridpos == dst_gridpos_dyanmic;
-    if (path.path.size() == 0 || in_same_gridspace)
-      target.position = dst_dynamic;
+    const bool in_same_gridspace = cur_gridpos == dst_gridpos_dynamic;
+    if ((path.path.size() == 0 || in_same_gridspace) && dst_gridpos_dynamic.has_value())
+      target.position = r.get<AABB>(path.dst_ent).center; // dst_dynamic
 
     for (int i = 0; const auto p : path.path) {
       if (in_same_gridspace)
