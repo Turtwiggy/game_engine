@@ -43,6 +43,7 @@
 #include "modules/system_spaceship_door/system.hpp"
 #include "modules/ui_arrows_to_spawners/system.hpp"
 #include "modules/ui_audio/system.hpp"
+#include "modules/ui_backstab_patrol/system.hpp"
 #include "modules/ui_collisions/system.hpp"
 #include "modules/ui_colours/system.hpp"
 #include "modules/ui_controllers/system.hpp"
@@ -68,6 +69,7 @@
 #include "physics/process_move_objects.hpp"
 #include "sprites/components.hpp"
 #include "sprites/helpers.hpp"
+
 
 #include "imgui.h"
 #include "optick.h"
@@ -355,7 +357,7 @@ game2d::update(engine::SINGLETON_Application& app, entt::registry& r, const floa
       update_ui_spaceship_designer_system(r, mouse_pos, dt);
     }
     if (scene.s == Scene::duckgame) {
-      //
+      update_ui_backstab_patrol_system(r);
     }
     if (scene.s == Scene::warhammer) {
       //

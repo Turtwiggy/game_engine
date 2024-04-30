@@ -71,8 +71,8 @@ generate_direct(entt::registry& r, const GridComponent& grid, const int from_idx
 
   const auto from_glm = engine::grid::index_to_grid_position(from_idx, grid.width, grid.height);
   const auto to_glm = engine::grid::index_to_grid_position(to_idx, grid.width, grid.height);
-  vec2i from{ from_glm.x, from_glm.y };
-  vec2i to{ to_glm.x, to_glm.y };
+  const vec2i from{ from_glm.x, from_glm.y };
+  const vec2i to{ to_glm.x, to_glm.y };
 
   if (equal<vec2i>(from, to))
     return {};

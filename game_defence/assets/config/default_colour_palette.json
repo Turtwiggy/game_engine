@@ -33,7 +33,11 @@
     {
       "r": 234, "g": 84, "b": 85,
       "name": "pal_enemy_0",
-      "tags": [ "enemy_grunt", "enemy_ranged" ]
+      "tags": [
+        "enemy_grunt",
+        "enemy_ranged",
+        "actor_enemy_patrol"
+      ]
     },
     {
       "r": 240, "g": 123, "b": 63,
@@ -90,8 +94,7 @@
         "actor_spawner",
         "actor_unitgroup",
         "solid_spaceship_point",
-        "actor_spaceship_pressureplate",
-        "actor_enemy_patrol"
+        "actor_spaceship_pressureplate"
       ]
     },
     {

@@ -510,12 +510,23 @@ move_to_scene_start(entt::registry& r, const Scene s)
     set_size(r, player, { 16, 16 });
     r.emplace<CameraFollow>(player);
 
+    // TODO: BAD. FIX.
+    static engine::RandomState rnd;
+
     for (int i = 0; i < 50; i++) {
       const auto enemy = create_gameplay(r, EntityType::actor_enemy_patrol);
       r.emplace<PatrolComponent>(enemy);
       auto& speed = r.get<VelocityComponent>(enemy);
-      speed.base_speed = 500.0f;
-      set_position(r, enemy, { 0, 0 });
+
+      // random speed
+      const float rnd_speed = int(engine::rand_det_s(rnd.rng, 100, 300));
+      speed.base_speed = rnd_speed;
+
+      // random position
+      const int rnd_x = int(engine::rand_det_s(rnd.rng, 1, width - 1));
+      const int rnd_y = int(engine::rand_det_s(rnd.rng, 1, height - 1));
+      set_position(r, enemy, { rnd_x, rnd_y });
+
       set_size(r, enemy, { 16, 16 });
     }
   }
