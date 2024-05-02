@@ -503,7 +503,7 @@ move_to_scene_start(entt::registry& r, const Scene s)
     // grid effect
     r.emplace<Effect_GridComponent>(r.create(), map_c.tilesize);
 
-    const glm::ivec2 home_base_position = { 0, 0 };
+    const glm::ivec2 home_base_position = { -50, -50 };
 
     const auto player = create_gameplay(r, EntityType::actor_player);
     set_position(r, player, home_base_position);
@@ -523,8 +523,8 @@ move_to_scene_start(entt::registry& r, const Scene s)
       speed.base_speed = rnd_speed;
 
       // random position
-      const int rnd_x = int(engine::rand_det_s(rnd.rng, 1, width - 1));
-      const int rnd_y = int(engine::rand_det_s(rnd.rng, 1, height - 1));
+      const int rnd_x = int(engine::rand_det_s(rnd.rng, 0, width - 1));
+      const int rnd_y = int(engine::rand_det_s(rnd.rng, 0, height - 1));
       set_position(r, enemy, { rnd_x, rnd_y });
 
       set_size(r, enemy, { 16, 16 });

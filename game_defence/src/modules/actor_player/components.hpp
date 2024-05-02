@@ -66,6 +66,7 @@ struct InputComponent
   bool shoot = false;
   bool shoot_release = false;
   bool sprint = false;
+  bool sprint_release = false;
   bool pickup = false;
   bool drop = false;
 };

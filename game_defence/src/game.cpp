@@ -41,6 +41,7 @@
 #include "modules/selected_interactions/system.hpp"
 #include "modules/sprite_spritestack/system.hpp"
 #include "modules/system_spaceship_door/system.hpp"
+#include "modules/system_sprint/system.hpp"
 #include "modules/ui_arrows_to_spawners/system.hpp"
 #include "modules/ui_audio/system.hpp"
 #include "modules/ui_backstab_patrol/system.hpp"
@@ -69,7 +70,6 @@
 #include "physics/process_move_objects.hpp"
 #include "sprites/components.hpp"
 #include "sprites/helpers.hpp"
-
 
 #include "imgui.h"
 #include "optick.h"
@@ -298,10 +298,9 @@ game2d::update(engine::SINGLETON_Application& app, entt::registry& r, const floa
       update_intent_drop_item_system(r);
       update_selected_interactions_system(r, mouse_pos, dt);
       //
-      //
       update_spaceship_door_system(r, dt);
-      //
       update_actor_enemy_patrol_system(r, mouse_pos, dt);
+      update_sprint_system(r, dt);
     }
   }
 

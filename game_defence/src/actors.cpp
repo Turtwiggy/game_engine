@@ -25,6 +25,7 @@
 #include "modules/renderer/helpers.hpp"
 #include "modules/system_knockback/components.hpp"
 #include "modules/system_spaceship_door/components.hpp"
+#include "modules/system_sprint/components.hpp"
 #include "modules/ui_colours/helpers.hpp"
 #include "modules/ui_spaceship_designer/components.hpp"
 #include "modules/ux_hoverable/components.hpp"
@@ -288,6 +289,7 @@ create_gameplay(entt::registry& r, const EntityType& type)
       // r.emplace<HasTargetPositionComponent>(e);
       // r.emplace<SetVelocityToTargetComponent>(e);
 
+      r.emplace<SprintComponent>(e);
       r.emplace<HealthComponent>(e, 200, 200);
       // r.emplace<InventoryLimit>(e);
       r.emplace<HoverableComponent>(e);

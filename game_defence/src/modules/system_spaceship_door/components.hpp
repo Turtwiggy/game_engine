@@ -18,6 +18,7 @@ struct SpaceshipDoorComponent
   glm::vec2 to_close_increment{ 0.0f, 0.0f };
 
   SpaceshipDoorState state = SpaceshipDoorState::CLOSED;
+  entt::entity parent_room = entt::null;
 };
 
 enum class PressurePlateType

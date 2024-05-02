@@ -128,7 +128,7 @@ line_intersection(const Wall& a, const Wall& b)
   return line_intersection(a.p0, a.p1, b.p0, b.p1);
 };
 
-void
+entt::entity
 create_door_along_two_points(entt::registry& r, const glm::ivec2& a, const glm::ivec2& b)
 {
   const entt::entity door_e = create_gameplay(r, EntityType::solid_spaceship_door);
@@ -206,6 +206,8 @@ create_door_along_two_points(entt::registry& r, const glm::ivec2& a, const glm::
   set_size(r, pressureplate_e_1, { size, size });
   set_size(r, pressureplate_e_2, { size, size });
   set_size(r, pressureplate_e_3, { size, size });
+
+  return door_e;
 };
 
 entt::entity
@@ -468,7 +470,7 @@ update_ui_spaceship_designer_system(entt::registry& r, const glm::ivec2& input_m
   // a middle-line-segment (2 collisions?)
   //
   const bool clip = get_key_down(input, delete_segments_key);
-  std::vector<std::tuple<glm::ivec2, glm::ivec2>> clipped_pairs;
+  std::vector<std::tuple<entt::entity, glm::ivec2, glm::ivec2>> clipped_pairs;
 
   for (const auto& [wall_e, wall_c] : r.view<Wall>().each()) {
     const auto& intersections = wall_c.intersections;
@@ -573,7 +575,7 @@ update_ui_spaceship_designer_system(entt::registry& r, const glm::ivec2& input_m
         new_line.parent_room = wall_c.parent_room;
         r.emplace<Wall>(new_wall_e, new_line);
 
-        clipped_pairs.push_back(std::make_tuple(i0, i1));
+        clipped_pairs.push_back(std::make_tuple(wall_c.parent_room, i0, i1));
       }
     }
   }
@@ -587,32 +589,10 @@ update_ui_spaceship_designer_system(entt::registry& r, const glm::ivec2& input_m
   //
   // Create the door based on intersection points
   //
-  for (const auto& [i0, i1] : clipped_pairs) {
-    // glm::ivec2 more_south_intersection_point;
-    // if (intersection_points[0].y > intersection_points[1].y)
-    //   more_south_intersection_point = intersection_points[0];
-    // else
-    //   more_south_intersection_point = intersection_points[1];
-    // // horizontal or vertical
-    // const glm::vec2 dir = intersection_points[1] - intersection_points[0];
-    // const auto horizontal = dir.x > dir.y;
-
-    // glm::ivec2 new_door_point_a;
-    // glm::ivec2 new_door_point_b;
-    // if (horizontal) {
-    //   new_door_point_a = more_south_intersection_point;
-    //   new_door_point_a.x -= 25;
-    //   new_door_point_b = more_south_intersection_point;
-    //   new_door_point_b.x += 25;
-    // } else {
-    //   new_door_point_a = more_south_intersection_point;
-    //   new_door_point_a.y -= 25;
-    //   new_door_point_b = more_south_intersection_point;
-    //   new_door_point_b.y += 25;
-    // }
-    // create_door_along_two_points(r, new_door_point_a, new_door_point_b);
-
-    create_door_along_two_points(r, i0, i1);
+  for (const auto& [room, i0, i1] : clipped_pairs) {
+    const auto door_e = create_door_along_two_points(r, i0, i1);
+    auto& door_c = r.get<SpaceshipDoorComponent>(door_e);
+    door_c.parent_room = room;
   }
   clipped_pairs.clear();
 
@@ -639,11 +619,25 @@ update_ui_spaceship_designer_system(entt::registry& r, const glm::ivec2& input_m
     }
   }
 
-  // TODO: Debug Rooms
-  // const auto& rooms_view = r.view<Room>();
-  // for (const auto& [room_e, room_c] : rooms_view.each())
-  //   ImGui::Text("RoomExists! Walls: %i", room_c.walls.size());
+  std::map<entt::entity, std::vector<entt::entity>> room_to_doors;
+  const auto& doors_view = r.view<SpaceshipDoorComponent>();
+  for (const auto& [door_e, door_c] : doors_view.each()) {
+    room_to_doors[door_c.parent_room].push_back(door_e);
+  };
 
+  // Debug rooms
+  //
+  const auto& rooms_view = r.view<Room>();
+  for (const auto& [room_e, room_c] : rooms_view.each()) {
+    ImGui::Separator();
+    ImGui::Text("¬¬ Room ¬¬");
+
+    const auto& doors = room_to_doors[room_e];
+    ImGui::Text("Room has %i doors", doors.size());
+
+    // Work out the state of the room, based on the state of the doors.
+    // ...
+  }
   // Misc
   //
   {

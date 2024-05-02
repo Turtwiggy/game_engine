@@ -1,13 +1,18 @@
 #include "system.hpp"
 
 #include "entt/helpers.hpp"
+#include "events/helpers/mouse.hpp"
 #include "lifecycle/components.hpp"
 #include "modules/actor_enemy/components.hpp"
 #include "modules/actor_player/components.hpp"
 #include "modules/actor_turret/helpers.hpp"
+#include "modules/resolve_collisions/helpers.hpp"
+#include "modules/scene/components.hpp"
+#include "modules/scene/helpers.hpp"
 #include "modules/ui_worldspace_text/components.hpp"
 
 #include "imgui.h"
+#include "physics/components.hpp"
 
 namespace game2d {
 
@@ -28,6 +33,8 @@ update_ui_backstab_patrol_system(entt::registry& r)
   ImGui::Begin("Debug__BackstabPatrolSystem");
   ImGui::Text("Backstabbable Enemies in range: %i", enemies.size());
 
+  const bool click = get_mouse_lmb_press();
+
   // Assume everything out of range
 
   // BUG: wouuld remove all worldspace-ui including things not being backstabbed
@@ -42,16 +49,23 @@ update_ui_backstab_patrol_system(entt::registry& r)
     auto& ui_txt = r.get_or_emplace<WorldspaceTextComponent>(e);
     ui_txt.text = std::to_string(distance);
 
-    if (distance < 10000) {
-      if (ImGui::Button("Backstab")) {
-        dead.dead.emplace(e);
-      }
-    }
+    if (distance < 10000 && click) // kill them all!
+      dead.dead.emplace(e);
 
     ImGui::PopID();
   }
-
   ImGui::End();
+
+  // HACK: if you collide with anything, lose
+  //
+  const auto& physics = get_first_component<SINGLETON_PhysicsComponent>(r);
+  for (const auto& coll : physics.collision_stay) {
+    const auto a = static_cast<entt::entity>(coll.ent_id_0);
+    const auto b = static_cast<entt::entity>(coll.ent_id_1);
+    const auto [a_player, b_group] = collision_of_interest<PlayerComponent, EnemyComponent>(r, a, b);
+    if (a_player != entt::null && b_group != entt::null)
+      move_to_scene_start(r, Scene::menu);
+  }
 };
 
 } // namespace game2d
