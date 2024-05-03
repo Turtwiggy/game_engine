@@ -106,12 +106,20 @@ get_cell(const std::vector<T>& t, int x, int y, int x_max)
 [[nodiscard]] inline glm::ivec2
 world_space_to_clamped_world_space(const glm::vec2& world_space, int grid_size)
 {
-  float x = world_space.x;
-  float y = world_space.y;
-  int grid_x = x < 0.0f ? static_cast<int>((x - grid_size) / grid_size) : static_cast<int>(x / grid_size);
-  int grid_y = y < 0.0f ? static_cast<int>((y - grid_size) / grid_size) : static_cast<int>(y / grid_size);
+  const float x = world_space.x;
+  const float y = world_space.y;
+  const int grid_x = x < 0.0f ? static_cast<int>((x - grid_size) / grid_size) : static_cast<int>(x / grid_size);
+  const int grid_y = y < 0.0f ? static_cast<int>((y - grid_size) / grid_size) : static_cast<int>(y / grid_size);
   return glm::ivec2{ grid_size * grid_x, grid_size * grid_y };
 }
+
+// e.g. {0, 0}, {1, 0} would return East
+// engine::grid::GridDirection
+// which_quadrant_is_b(const glm::ivec2& a, const glm::ivec2& b);
+
+// // e.g. {1, 0} would return true for East
+// bool
+// dir_is_in_quadrant(const glm::ivec2& dir, const engine::grid::GridDirection& direction);
 
 } // namespace grid
 

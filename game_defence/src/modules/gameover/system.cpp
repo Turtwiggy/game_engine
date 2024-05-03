@@ -15,7 +15,6 @@
 #include "modules/scene/helpers.hpp"
 #include "modules/ui_gameover/components.hpp"
 
-
 namespace game2d {
 using namespace std::literals;
 
@@ -87,6 +86,7 @@ update_gameover_system(entt::registry& r)
   }
 
   // do the restart
+  // bug: should not be scene::game
   if (new_game)
     move_to_scene_start(r, Scene::game);
 }

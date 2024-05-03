@@ -2,9 +2,9 @@
 
 #include "entt/helpers.hpp"
 #include "modules/gameover/components.hpp"
+#include "modules/renderer/components.hpp"
 #include "modules/scene/helpers.hpp"
 #include "modules/ui_gameover/components.hpp"
-#include "modules/renderer/components.hpp"
 
 #include <imgui.h>
 

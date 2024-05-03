@@ -45,7 +45,7 @@ update_set_velocity_to_target_system(entt::registry& r, const float& dt)
     // try to get live target grid position
     // if no dst_ent is set, assume a static position
     std::optional<glm::ivec2> dst_gridpos_dynamic = std::nullopt;
-    if (path.dst_ent == entt::null) {
+    if (path.dst_ent != entt::null) {
       const auto dst_dynamic = r.get<AABB>(path.dst_ent).center;
       dst_gridpos_dynamic = engine::grid::world_space_to_grid_space(dst_dynamic, map.tilesize);
       dst_gridpos_dynamic.value().x = glm::clamp(dst_gridpos_dynamic.value().x, 0, map.xmax - 1);
@@ -72,34 +72,46 @@ update_set_velocity_to_target_system(entt::registry& r, const float& dt)
       }
 
       // move towards center of the current tile
-      if (!path.path_cleared[i]) {
-        const auto target_pos = engine::grid::grid_space_to_world_space(cur_gridpos, map.tilesize);
-        target.position = target_pos;
-        target.position += glm::vec2(map.tilesize / 2.0f, map.tilesize / 2.0f);
-      }
+      // if (!path.path_cleared[i]) {
+      //   const auto target_pos = engine::grid::grid_space_to_world_space(cur_gridpos, map.tilesize);
+      //   target.position = target_pos;
+      //   target.position += glm::vec2(map.tilesize / 2.0f, map.tilesize / 2.0f);
+      // }
 
       // check if within distance of the center of the gridpos
-      if (!path.path_cleared[i]) {
-        const auto d = aabb.center - target.position;
-        const float d2 = d.x * d.x + d.y * d.y;
-        const float threshold = 10;
-        if (d2 < threshold)
-          path.path_cleared[i] = true;
-      }
+      // if (!path.path_cleared[i]) {
+      //   const auto d = aabb.center - target.position;
+      //   const float d2 = d.x * d.x + d.y * d.y;
+      //   const float threshold = 10;
+      //   if (d2 < threshold)
+      //     path.path_cleared[i] = true;
+      // }
 
-      // if we've cleared this current gridtile path,
-      // aim for the next gridtile path
-      if (path.path_cleared[i]) {
-        const int next_idx = i + 1;
-        const bool is_valid_next_index = next_idx <= path.path.size() - 1;
-        if (is_valid_next_index) {
-          const auto next_pos = path.path[next_idx];
-          const auto target_pos = engine::grid::grid_space_to_world_space(next_pos, map.tilesize);
-          // center, not top left
-          target.position = target_pos;
-          target.position += glm::vec2(map.tilesize / 2.0f, map.tilesize / 2.0f);
-          break;
-        }
+      // // if we've cleared this current gridtile path,
+      // // aim for the next gridtile path
+      // if (path.path_cleared[i]) {
+      //   const int next_idx = i + 1;
+      //   const bool is_valid_next_index = next_idx <= path.path.size() - 1;
+      //   if (is_valid_next_index) {
+      //     const auto next_pos = path.path[next_idx];
+      //     const auto target_pos = engine::grid::grid_space_to_world_space(next_pos, map.tilesize);
+      //     // center, not top left
+      //     target.position = target_pos;
+      //     target.position += glm::vec2(map.tilesize / 2.0f, map.tilesize / 2.0f);
+      //     break;
+      //   }
+      // }
+
+      // aim for the next gridtile
+      const int next_idx = i + 1;
+      const bool is_valid_next_index = next_idx <= path.path.size() - 1;
+      if (is_valid_next_index) {
+        const auto next_pos = path.path[next_idx];
+        const auto target_pos = engine::grid::grid_space_to_world_space(next_pos, map.tilesize);
+        // center, not top left
+        target.position = target_pos;
+        target.position += glm::vec2(map.tilesize / 2.0f, map.tilesize / 2.0f);
+        break;
       }
 
       i++;

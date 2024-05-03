@@ -3,10 +3,12 @@
 #include "colour/colour.hpp"
 #include "entt/helpers.hpp"
 #include "lifecycle/components.hpp"
+#include "maths/maths.hpp"
 #include "modules/actor_bodypart_head/components.hpp"
 #include "modules/actor_bodypart_legs/components.hpp"
 #include "modules/actor_cursor/components.hpp"
 #include "modules/actor_enemy/components.hpp"
+#include "modules/actor_enemy_patrol/components.hpp"
 #include "modules/actor_group/components.hpp"
 #include "modules/actor_hearth/components.hpp"
 #include "modules/actor_particle/components.hpp"
@@ -515,6 +517,17 @@ create_gameplay(entt::registry& r, const EntityType& type)
       r.emplace<HasTargetPositionComponent>(e);
       r.emplace<SetVelocityToTargetComponent>(e);
 
+      // gameplay
+      r.emplace<PatrolComponent>(e);
+
+      // TODO. BAD. FIX.
+      static engine::RandomState rnd;
+
+      // random speed
+      auto& speed = r.get<VelocityComponent>(e);
+      speed.base_speed = int(engine::rand_det_s(rnd.rng, 5, 10));
+
+      set_size(r, e, { 16, 16 });
       // r.emplace<TeamComponent>(e, AvailableTeams::enemy);
       break;
     }

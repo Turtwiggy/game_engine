@@ -10,6 +10,8 @@ struct SINGLETON_GameOver
   std::string reason;
 
   bool win_condition = false;
+
+  // activated_gameover: used by the gameover system. do not set
   bool activated_gameover = false;
 };
 

@@ -3,6 +3,7 @@
 #include "actors.hpp"
 #include "components.hpp"
 #include "lifecycle/components.hpp"
+#include "maths/maths.hpp"
 #include "modules/actor_player/components.hpp"
 #include "modules/actors/helpers.hpp"
 #include "modules/combat_attack_cooldown/components.hpp"
@@ -22,12 +23,13 @@ void
 update_spawner_system(entt::registry& r, const uint64_t milliseconds_dt)
 {
   // const float dt = milliseconds_dt / 1000.0f;
+  static engine::RandomState rnd;
 
   const auto& player_view = r.view<const PlayerComponent, const AABB>();
 
-  const auto& view = r.view<const AABB, const TransformComponent, SpawnerComponent, AttackCooldownComponent>(
-    entt::exclude<WaitForInitComponent>);
-  for (const auto& [entity, aabb, transform, spawner, cooldown] : view.each()) {
+  const auto& view = r.view<SpawnerComponent, AttackCooldownComponent>(entt::exclude<WaitForInitComponent>);
+
+  for (const auto& [entity, spawner, cooldown] : view.each()) {
 
     if (cooldown.on_cooldown)
       continue;
@@ -35,12 +37,16 @@ update_spawner_system(entt::registry& r, const uint64_t milliseconds_dt)
     // Check if any players are in range
     bool ok_to_spawn = true;
     if (const auto* player_constraint = r.try_get<OnlySpawnInRangeOfAnyPlayerComponent>(entity)) {
-      for (const auto& [player_e, player_comp, player_aabb] : player_view.each()) {
-        const glm::vec2 d = glm::vec2(player_aabb.center) - glm::vec2(transform.position.x, transform.position.y);
-        const float current_distance2 = d.x * d.x + d.y * d.y;
-        if (current_distance2 > player_constraint->distance2) {
-          ok_to_spawn = false;
-          break;
+      // Assume this spawner has a physical position
+      const auto* transform = r.try_get<TransformComponent>(entity);
+      if (transform != nullptr) {
+        for (const auto& [player_e, player_comp, player_aabb] : player_view.each()) {
+          const glm::vec2 d = glm::vec2(player_aabb.center) - glm::vec2(transform->position.x, transform->position.y);
+          const float current_distance2 = d.x * d.x + d.y * d.y;
+          if (current_distance2 > player_constraint->distance2) {
+            ok_to_spawn = false;
+            break;
+          }
         }
       }
     }
@@ -53,7 +59,22 @@ update_spawner_system(entt::registry& r, const uint64_t milliseconds_dt)
       const auto& first_type = spawner.types_to_spawn[0];
 
       const auto e = create_gameplay(r, first_type);
-      set_position(r, e, aabb.center);
+
+      // Set spawn position as physical position
+      const auto* transform = r.try_get<TransformComponent>(entity);
+      if (transform != nullptr)
+        set_position(r, e, { transform->position.x, transform->position.y });
+
+      // Set position based on a boundingbox
+      // generate a random position in the boundingbox
+      if (spawner.spawn_in_boundingbox) {
+        const auto& aabb = spawner.spawn_area;
+        const float half_size_x = aabb.size.x / 2.0f;
+        const float half_size_y = aabb.size.y / 2.0f;
+        const int rnd_x = engine::rand_det_s(rnd.rng, aabb.center.x - half_size_x, aabb.center.x + half_size_x);
+        const int rnd_y = engine::rand_det_s(rnd.rng, aabb.center.y - half_size_y, aabb.center.y + half_size_y);
+        set_position(r, e, { rnd_x, rnd_y });
+      }
 
       reset_cooldown(cooldown);
     }

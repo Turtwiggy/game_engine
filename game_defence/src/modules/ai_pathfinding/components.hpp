@@ -31,9 +31,9 @@ struct astar_cell
 
 struct GeneratedPathComponent
 {
-  glm::vec2 src_pos;
-  glm::vec2 dst_pos;
-  entt::entity dst_ent;
+  glm::vec2 src_pos{ 0, 0 };
+  glm::vec2 dst_pos{ 0, 0 };
+  entt::entity dst_ent = entt::null;
   std::vector<glm::ivec2> path;
   std::vector<bool> path_cleared;
 };

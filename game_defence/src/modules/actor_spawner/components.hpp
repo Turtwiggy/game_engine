@@ -1,6 +1,7 @@
 #pragma once
 
 #include "actors.hpp"
+#include "physics/components.hpp"
 
 #include <vector>
 
@@ -11,6 +12,9 @@ struct SpawnerComponent
   std::vector<EntityType> types_to_spawn{ EntityType::enemy_grunt };
 
   bool continuous_spawn = true;
+
+  bool spawn_in_boundingbox = false;
+  AABB spawn_area;
 };
 
 struct OnlySpawnInRangeOfAnyPlayerComponent

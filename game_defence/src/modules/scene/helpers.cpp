@@ -462,35 +462,6 @@ move_to_scene_start(entt::registry& r, const Scene s)
   }
 
   if (s == Scene::duckgame) {
-    // core scene design brief:
-    // ---- player ----
-    // the player should be able to sprint with a sprint bar that depletes
-    // the player should consist of a "crew".
-    // the player's model should represent the state of the crew
-    // e.g. if there are 4 units in the crew, 4 units in this scene.
-    // ---- troops ----
-    // lore reasons: all the troops are part of the same federation
-    // lore reasons: this will force me to think about your faction, and why you're fighting
-    // display troop capacity.
-    // the further away from the player's starting point, make them stronger.
-    // create some wandering troops.
-    // troops should periodically respawn.
-    // if in range of the player, chase the player.
-    // the player should be able to sneak up behind the troops.
-    // ---- obstacles ----
-    // create some big squares. (asteroids)
-
-    // stretch
-    //
-    // ---- space spations (friendly) (villages)
-    // able to "dock" at space stations.
-    // what to do at space stations?
-    // refuel?
-    // buy new crew?
-    // ---- misc
-    // wormhole -> randomly teleport to place on map
-    // space station (hostile) -> harder, gives more loot, xp, items
-
     int width = 1000;
     int height = 1000;
     MapComponent map_c;
@@ -513,21 +484,38 @@ move_to_scene_start(entt::registry& r, const Scene s)
     // TODO: BAD. FIX.
     static engine::RandomState rnd;
 
-    for (int i = 0; i < 50; i++) {
+    for (int i = 0; i < 20; i++) {
       const auto enemy = create_gameplay(r, EntityType::actor_enemy_patrol);
-      r.emplace<PatrolComponent>(enemy);
-      auto& speed = r.get<VelocityComponent>(enemy);
-
-      // random speed
-      const float rnd_speed = int(engine::rand_det_s(rnd.rng, 100, 300));
-      speed.base_speed = rnd_speed;
 
       // random position
       const int rnd_x = int(engine::rand_det_s(rnd.rng, 0, width - 1));
       const int rnd_y = int(engine::rand_det_s(rnd.rng, 0, height - 1));
       set_position(r, enemy, { rnd_x, rnd_y });
+    }
 
-      set_size(r, enemy, { 16, 16 });
+    // Add respawner without body
+    {
+      SpawnerComponent spawner_c;
+      spawner_c.types_to_spawn = { EntityType::actor_enemy_patrol };
+      spawner_c.continuous_spawn = true;
+      AABB spawner_area;
+
+      // area: entire map
+      spawner_area.center = { width / 2.0f, height / 2.0f };
+      spawner_area.size = { width, height };
+
+      spawner_c.spawn_in_boundingbox = true;
+      spawner_c.spawn_area = spawner_area;
+      const auto e = create_gameplay(r, EntityType::actor_spawner);
+      r.emplace_or_replace<SpawnerComponent>(e, spawner_c);
+      // not visible
+      r.remove<TransformComponent>(e);
+      // stop being physics actor
+      r.remove<PhysicsTransformXComponent>(e);
+      r.remove<PhysicsTransformYComponent>(e);
+      r.remove<AABB>(e);
+      r.remove<PhysicsActorComponent>(e);
+      r.remove<VelocityComponent>(e);
     }
   }
 

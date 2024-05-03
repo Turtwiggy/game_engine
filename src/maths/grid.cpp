@@ -84,6 +84,54 @@ get_neighbour_indicies_with_diagonals(const int x,
     results.push_back({ GridDirection::north_west, idx_north_west });
 };
 
-}
+};
+
+engine::grid::GridDirection
+which_quadrant_is_b(const glm::ivec2& a, const glm::ivec2& b)
+{
+  const auto dir = b - a;
+  const bool on_diagonal = glm::abs(dir.x == dir.y);
+  const bool north = dir.y < 0;
+  const bool south = dir.y > 0;
+  const bool east = dir.x < 0;
+  const bool west = dir.x > 0;
+  const bool y_pull = glm::abs(dir.y) > glm::abs(dir.x);
+  const bool x_pull = glm::abs(dir.x) > glm::abs(dir.y);
+
+  const bool in_quad_N = y_pull && north;
+  const bool in_quad_S = y_pull && south;
+  const bool in_quad_E = x_pull && east;
+  const bool in_quad_W = x_pull && west;
+  const bool in_quad_NE = on_diagonal && north && east;
+  const bool in_quad_NW = on_diagonal && north && west;
+  const bool in_quad_SE = on_diagonal && south && east;
+  const bool in_quad_SW = on_diagonal && south && west;
+
+  if (in_quad_N)
+    return engine::grid::GridDirection::north;
+  if (in_quad_S)
+    return engine::grid::GridDirection::south;
+  if (in_quad_E)
+    return engine::grid::GridDirection::east;
+  if (in_quad_W)
+    return engine::grid::GridDirection::west;
+
+  if (in_quad_NE)
+    return engine::grid::GridDirection::north_east;
+  if (in_quad_NW)
+    return engine::grid::GridDirection::north_west;
+  if (in_quad_SE)
+    return engine::grid::GridDirection::south_east;
+  if (in_quad_SW)
+    return engine::grid::GridDirection::south_west;
+
+  return engine::grid::GridDirection::east;
+};
+
+bool
+dir_is_in_quadrant(const glm::ivec2& dir, const engine::grid::GridDirection& direction)
+{
+  return which_quadrant_is_b({ 0, 0 }, dir) == direction;
+};
 
 } // namespace game2d

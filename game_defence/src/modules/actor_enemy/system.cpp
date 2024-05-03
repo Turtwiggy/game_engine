@@ -30,7 +30,6 @@ update_enemy_system(entt::registry& r, const float dt)
   // note: this should probably take in to account
   // pathfinding, such as using AStar to calculate the next step
   //
-
   const auto& map_e = get_first<MapComponent>(r);
   if (map_e == entt::null)
     return;
