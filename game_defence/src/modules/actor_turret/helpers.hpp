@@ -18,7 +18,7 @@ namespace game2d {
 get_closest(entt::registry& r, const entt::entity& e);
 
 template<typename... Component>
-std::set<std::pair<entt::entity, int>>
+[[nodiscard]] std::set<std::pair<entt::entity, int>>
 get_within_range(entt::registry& r, const entt::entity& e, const int d2_max)
 {
   const auto& physics = get_first_component<const SINGLETON_PhysicsComponent>(r);

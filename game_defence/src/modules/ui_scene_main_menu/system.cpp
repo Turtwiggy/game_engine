@@ -100,16 +100,16 @@ update_ui_scene_main_menu(engine::SINGLETON_Application& app, entt::registry& r)
       editor.mode = LevelEditorMode::edit;
       move_to_scene_start(r, Scene::spaceship_designer);
     }
-    if (selectable_button("Scene: duckgame", selected, index++)) {
+    if (selectable_button("Scene: duck&dungeon", selected, index++)) {
       auto& editor = get_first_component<SINGLETON_LevelEditor>(r);
       editor.mode = LevelEditorMode::play;
       move_to_scene_start(r, Scene::duckgame);
     }
-    if (selectable_button("Scene: warhammer", selected, index++)) {
-      auto& editor = get_first_component<SINGLETON_LevelEditor>(r);
-      editor.mode = LevelEditorMode::play;
-      move_to_scene_start(r, Scene::warhammer);
-    }
+    // if (selectable_button("Scene: dungeon", selected, index++)) {
+    //   auto& editor = get_first_component<SINGLETON_LevelEditor>(r);
+    //   editor.mode = LevelEditorMode::play;
+    //   move_to_scene_start(r, Scene::dungeon);
+    // }
     if (selectable_button("Scene: spritestack", selected, index++)) {
       auto& editor = get_first_component<SINGLETON_LevelEditor>(r);
       editor.mode = LevelEditorMode::play;

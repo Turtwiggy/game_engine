@@ -9,7 +9,7 @@ enum class Scene
   game,
   spaceship_designer,
   duckgame,
-  warhammer,
+  dungeon,
 
   count
 };

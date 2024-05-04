@@ -48,6 +48,7 @@
 #include "modules/ui_collisions/system.hpp"
 #include "modules/ui_colours/system.hpp"
 #include "modules/ui_controllers/system.hpp"
+#include "modules/ui_dungeon/system.hpp"
 #include "modules/ui_gameover/system.hpp"
 #include "modules/ui_hierarchy/system.hpp"
 #include "modules/ui_inventory/system.hpp"
@@ -262,7 +263,7 @@ game2d::update(engine::SINGLETON_Application& app, entt::registry& r, const floa
     auto& gameover = get_first_component<SINGLETON_GameOver>(r);
 
     const std::vector<Scene> valid_scenes{
-      Scene::game, Scene::test_scene_gun, Scene::spaceship_designer, Scene::duckgame, Scene::warhammer
+      Scene::game, Scene::test_scene_gun, Scene::spaceship_designer, Scene::duckgame, Scene::dungeon
     };
     const bool in_scene_of_interest = std::find(valid_scenes.begin(), valid_scenes.end(), scene.s) != valid_scenes.end();
     if (in_scene_of_interest && state.state == GameState::RUNNING && !gameover.game_is_over) {
@@ -358,8 +359,8 @@ game2d::update(engine::SINGLETON_Application& app, entt::registry& r, const floa
     if (scene.s == Scene::duckgame) {
       update_ui_backstab_patrol_system(r);
     }
-    if (scene.s == Scene::warhammer) {
-      //
+    if (scene.s == Scene::dungeon) {
+      update_ui_dungeon_system(r);
     }
 
     update_ui_worldspace_text_system(r);

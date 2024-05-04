@@ -1,12 +1,10 @@
 #pragma once
 
-#include "maths/grid.hpp"
 #include "modules/ai_pathfinding/components.hpp"
 #include "modules/grid/components.hpp"
 
 #include <glm/glm.hpp>
 
-#include <utility>
 #include <vector>
 
 namespace game2d {
@@ -34,16 +32,14 @@ heuristic(const T& a, const T& b)
   return distance<T>(a, b);
 };
 
-// e.g. 0, 0 should return {1, 0}, {1, 1}, {0, 1}
-void
-get_neighbour_indicies(const int x,
-                       const int y,
-                       const int x_max,
-                       const int y_max,
-                       std::vector<std::pair<engine::grid::GridDirection, int>>& results);
-
 [[nodiscard]] std::vector<glm::ivec2>
 generate_direct(entt::registry& r, const GridComponent& grid, const int from_idx, const int to_idx);
+
+[[nodiscard]] std::vector<glm::ivec2>
+generate_direct_with_diagonals(entt::registry& r, const GridComponent& grid, const int from_idx, const int to_idx);
+
+[[nodiscard]] std::vector<glm::ivec2>
+generate_accessible_areas(entt::registry& r, const GridComponent& grid, const int from_idx, const int range);
 
 [[nodiscard]] std::vector<astar_cell>
 generate_flow_field(entt::registry& r, const GridComponent& grid, const int from_idx);

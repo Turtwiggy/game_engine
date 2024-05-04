@@ -12,7 +12,6 @@
 #include "maths/grid.hpp"
 #include "modules/actor_bodypart_legs/components.hpp"
 #include "modules/actor_cursor/components.hpp"
-#include "modules/actor_enemy_patrol/components.hpp"
 #include "modules/actor_spawner/components.hpp"
 #include "modules/actors/helpers.hpp"
 #include "modules/ai_pathfinding/components.hpp"
@@ -28,6 +27,7 @@
 #include "modules/selected_interactions/components.hpp"
 #include "modules/sprite_spritestack/components.hpp"
 #include "modules/ui_arrows_to_spawners/components.hpp"
+#include "modules/ui_dungeon/components.hpp"
 #include "modules/ui_level_up/components.hpp"
 #include "modules/ui_rpg_character/components.hpp"
 #include "modules/ui_scene_main_menu/components.hpp"
@@ -123,6 +123,7 @@ move_to_scene_start(entt::registry& r, const Scene s)
   destroy_and_create<SINGLE_SelectedUI>(r);
   destroy_and_create<SINGLE_ArrowsToSpawnerUI>(r);
   destroy_and_create<SINGLE_UILevelUpComponent>(r);
+  // SINGLE_MainMenuUI: not destroyed. destroyed if scene is menu.
   destroy<Effect_GridComponent>(r);
 
   // Clear out any old input
@@ -462,19 +463,19 @@ move_to_scene_start(entt::registry& r, const Scene s)
   }
 
   if (s == Scene::duckgame) {
-    int width = 1000;
-    int height = 1000;
+    int map_width = 1000;
+    int map_height = 1000;
     MapComponent map_c;
     map_c.tilesize = 50;
-    map_c.xmax = width / map_c.tilesize;
-    map_c.ymax = height / map_c.tilesize;
+    map_c.xmax = map_width / map_c.tilesize;
+    map_c.ymax = map_height / map_c.tilesize;
     map_c.map.resize(map_c.xmax * map_c.ymax);
     r.emplace<MapComponent>(r.create(), map_c);
 
     // grid effect
     r.emplace<Effect_GridComponent>(r.create(), map_c.tilesize);
 
-    const glm::ivec2 home_base_position = { -50, -50 };
+    const glm::ivec2 home_base_position = { 25, 25 };
 
     const auto player = create_gameplay(r, EntityType::actor_player);
     set_position(r, player, home_base_position);
@@ -487,22 +488,23 @@ move_to_scene_start(entt::registry& r, const Scene s)
     for (int i = 0; i < 20; i++) {
       const auto enemy = create_gameplay(r, EntityType::actor_enemy_patrol);
 
-      // random position
-      const int rnd_x = int(engine::rand_det_s(rnd.rng, 0, width - 1));
-      const int rnd_y = int(engine::rand_det_s(rnd.rng, 0, height - 1));
-      set_position(r, enemy, { rnd_x, rnd_y });
+      // random position, dont spawn at 0, 0
+      const int rnd_x = int(engine::rand_det_s(rnd.rng, 1, (map_c.xmax - 1)));
+      const int rnd_y = int(engine::rand_det_s(rnd.rng, 1, (map_c.xmax - 1)));
+      set_position(r, enemy, { rnd_x * map_c.tilesize, rnd_y * map_c.tilesize });
     }
 
     // Add respawner without body
-    {
+    bool add_spawner = false;
+    if (add_spawner) {
       SpawnerComponent spawner_c;
       spawner_c.types_to_spawn = { EntityType::actor_enemy_patrol };
       spawner_c.continuous_spawn = true;
       AABB spawner_area;
 
       // area: entire map
-      spawner_area.center = { width / 2.0f, height / 2.0f };
-      spawner_area.size = { width, height };
+      spawner_area.center = { map_width / 2.0f, map_height / 2.0f };
+      spawner_area.size = { map_width, map_height };
 
       spawner_c.spawn_in_boundingbox = true;
       spawner_c.spawn_area = spawner_area;
@@ -517,10 +519,28 @@ move_to_scene_start(entt::registry& r, const Scene s)
       r.remove<PhysicsActorComponent>(e);
       r.remove<VelocityComponent>(e);
     }
+
+    // Create 4 edges to the map
+    bool create_edges = true;
+    if (create_edges) {
+      const int half_tile_size = map_c.tilesize / 10.0f;
+      const auto wall_l = create_gameplay(r, EntityType::solid_wall);
+      set_position(r, wall_l, { 0, map_height / 2.0f });
+      set_size(r, wall_l, { half_tile_size, map_height });
+      const auto wall_r = create_gameplay(r, EntityType::solid_wall);
+      set_position(r, wall_r, { map_width, map_height / 2.0f });
+      set_size(r, wall_r, { half_tile_size, map_height });
+      const auto wall_u = create_gameplay(r, EntityType::solid_wall);
+      set_position(r, wall_u, { map_width / 2.0f, 0 });
+      set_size(r, wall_u, { map_width, half_tile_size });
+      const auto wall_d = create_gameplay(r, EntityType::solid_wall);
+      set_position(r, wall_d, { map_width / 2.0f, map_height });
+      set_size(r, wall_d, { map_width, half_tile_size });
+    }
   }
 
-  if (s == Scene::warhammer) {
-    //
+  if (s == Scene::dungeon) {
+    const auto& previous_scene_data = get_first_component<SINGLE_DuckgameToDungeon>(r);
   }
 
   const auto scene_name = std::string(magic_enum::enum_name(s));

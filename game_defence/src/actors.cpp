@@ -275,7 +275,7 @@ create_gameplay(entt::registry& r, const EntityType& type)
       set_size(r, e, { 12, 20 });
 
       auto& vel = r.get<VelocityComponent>(e);
-      vel.base_speed = 50000.0f;
+      vel.base_speed = 10000.0f;
       r.emplace<KnockbackComponent>(e);
 
       // r.emplace<PhysicsSolidComponent>(e);
@@ -525,7 +525,7 @@ create_gameplay(entt::registry& r, const EntityType& type)
 
       // random speed
       auto& speed = r.get<VelocityComponent>(e);
-      speed.base_speed = int(engine::rand_det_s(rnd.rng, 5, 10));
+      speed.base_speed = int(engine::rand_det_s(rnd.rng, 20, 50));
 
       set_size(r, e, { 16, 16 });
       // r.emplace<TeamComponent>(e, AvailableTeams::enemy);

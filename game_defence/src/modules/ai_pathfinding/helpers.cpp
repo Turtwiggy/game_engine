@@ -85,7 +85,7 @@ generate_direct(entt::registry& r, const GridComponent& grid, const int from_idx
   cost_so_far[from] = 0;
 
   while (frontier.size() > 0) {
-    auto current = frontier.dequeue();
+    const auto current = frontier.dequeue();
 
     if (equal<vec2i>(current, to))
       return reconstruct_path(came_from, from, to);
@@ -113,6 +113,103 @@ generate_direct(entt::registry& r, const GridComponent& grid, const int from_idx
 
   return {};
 }
+
+std::vector<glm::ivec2>
+generate_direct_with_diagonals(entt::registry& r, const GridComponent& grid, const int from_idx, const int to_idx)
+{
+  std::vector<astar_cell> map = generate_map_view(r, grid);
+
+  std::vector<vec2i> path;
+
+  const auto from_glm = engine::grid::index_to_grid_position(from_idx, grid.width, grid.height);
+  const auto to_glm = engine::grid::index_to_grid_position(to_idx, grid.width, grid.height);
+  const vec2i from{ from_glm.x, from_glm.y };
+  const vec2i to{ to_glm.x, to_glm.y };
+
+  if (equal<vec2i>(from, to))
+    return {};
+
+  PriorityQueue<vec2i> frontier;
+  frontier.enqueue(from, 0);
+  std::map<vec2i, vec2i> came_from;
+  std::map<vec2i, int> cost_so_far;
+  came_from[from] = from;
+  cost_so_far[from] = 0;
+
+  while (frontier.size() > 0) {
+    const auto current = frontier.dequeue();
+
+    if (equal<vec2i>(current, to))
+      return reconstruct_path(came_from, from, to);
+
+    std::vector<std::pair<engine::grid::GridDirection, int>> neighbours_idxs;
+    engine::grid::get_neighbour_indicies_with_diagonals(current.x, current.y, grid.width, grid.height, neighbours_idxs);
+
+    for (const auto& [dir, idx] : neighbours_idxs) {
+      const auto& neighbour = map[idx].pos;
+      const auto& neighbour_cost = map[idx].cost;
+
+      if (neighbour_cost == -1)
+        continue; // impassable
+
+      int new_cost = cost_so_far[current] + neighbour_cost;
+
+      if (!cost_so_far.contains(neighbour) || new_cost < cost_so_far[neighbour]) {
+        cost_so_far[neighbour] = new_cost;
+        int priority = new_cost + heuristic<vec2i>(neighbour, to);
+        frontier.enqueue(neighbour, priority);
+        came_from[neighbour] = current;
+      }
+    }
+  }
+
+  return {};
+};
+
+[[nodiscard]] std::vector<glm::ivec2>
+generate_accessible_areas(entt::registry& r, const GridComponent& grid, const int from_idx, const int range)
+{
+  std::vector<astar_cell> map = generate_map_view(r, grid);
+  map[from_idx].distance = 0;
+
+  const auto from_glm = engine::grid::index_to_grid_position(from_idx, grid.width, grid.height);
+  const vec2i from{ from_glm.x, from_glm.y };
+
+  PriorityQueue<vec2i> frontier;
+  frontier.enqueue(from, 0);
+
+  std::vector<glm::ivec2> results;
+
+  while (frontier.size() > 0) {
+    const auto current = frontier.dequeue();
+    const auto current_idx = engine::grid::grid_position_to_index({ current.x, current.y }, grid.width);
+    results.push_back({ current.x, current.y });
+
+    // check neighbours
+    std::vector<std::pair<engine::grid::GridDirection, int>> neighbours_idxs;
+    engine::grid::get_neighbour_indicies(current.x, current.y, grid.width, grid.height, neighbours_idxs);
+
+    for (const auto& [dir, idx] : neighbours_idxs) {
+      auto& neighbour = map[idx];
+
+      if (neighbour.cost == -1)
+        continue; // impassable
+
+      int distance = map[current_idx].distance + 1;
+      if (distance > range)
+        continue;
+
+      if (neighbour.distance == INT_MAX) {
+        neighbour.distance = distance;
+        frontier.enqueue(neighbour.pos, 0);
+      } else if (distance < neighbour.distance) {
+        neighbour.distance = distance;
+      }
+    }
+  }
+
+  return results;
+};
 
 std::vector<astar_cell>
 generate_flow_field(entt::registry& r, const GridComponent& grid, const int from_idx)
