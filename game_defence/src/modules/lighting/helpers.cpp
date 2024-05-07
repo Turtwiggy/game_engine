@@ -1,6 +1,7 @@
 #include "helpers.hpp"
 
 #include "entt/helpers.hpp"
+#include "lifecycle/components.hpp"
 #include "modules/camera/orthographic.hpp"
 #include "modules/renderer/components.hpp"
 #include "physics/components.hpp"
@@ -22,7 +23,7 @@ generate_intersections(entt::registry& r,
 
   intersections.clear();
 
-  const auto& solids_view = r.view<PhysicsSolidComponent, AABB>();
+  const auto& solids_view = r.view<PhysicsSolidComponent, AABB>(entt::exclude<WaitForInitComponent>);
 
   // generate edges for all shapes
   int solids_count = 0;

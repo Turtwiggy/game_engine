@@ -22,7 +22,6 @@
 #include "physics/helpers.hpp"
 
 #include "imgui.h"
-#include "renderer/transform.hpp"
 #include <SDL_keyboard.h>
 #include <SDL_scancode.h>
 #include <string>
@@ -648,95 +647,8 @@ update_ui_spaceship_designer_system(entt::registry& r, const glm::ivec2& input_m
     }
 
     // Generate dungeon base
-    if (get_key_down(input, generate_dungeon_key)) {
-      // // Delete old Dungeon
-      // for (const auto& [room_e, room_c] : rooms_view.each()) {
-      //   for (const entt::entity& w : room_c.walls)
-      //     dead.dead.emplace(w);
-      //   dead.dead.emplace(room_e);
-      // }
-
-      const int width = 50;
-      const int height = 50;
-      const int seed = 0;
-      engine::RandomState rnd;
-      rnd.rng.seed(seed);
-
-      std::vector<bool> walls_or_floors; // wall = true
-      walls_or_floors.resize(width * height);
-
-      // Create all as walls
-      for (int xy = 0; xy < width * height; xy++)
-        walls_or_floors[xy] = true;
-
-      // width * y + x
-      // Create some rooms
-      // constexpr int room_min_size = 6;
-      // constexpr int room_max_size = 10;
-      // constexpr int max_rooms = 30;
-      // for (int max_room_idx = 0; max_room_idx < max_rooms; max_room_idx++) {
-      // const int room_width = static_cast<int>(engine::rand_det_s(rnd.rng, room_min_size, room_max_size));
-      // const int room_height = static_cast<int>(engine::rand_det_s(rnd.rng, room_min_size, room_max_size));
-      // const int x = static_cast<int>(engine::rand_det_s(rnd.rng, 0, d.width - room_width - 1));
-      // const int y = static_cast<int>(engine::rand_det_s(rnd.rng, 0, d.height - room_height - 1));
-      // Room room;
-      // room.x1 = x;
-      // room.y1 = y;
-      // room.x2 = room.x1 + room_width;
-      // room.y2 = room.y1 + room_height;
-      // room.w = room_width;
-      // room.h = room_height;
-      // Check if the room overlaps with any of the rooms
-      // const auto it =
-      //   std::find_if(d.rooms.begin(), d.rooms.linend(), [&room](const Room& other) { return rooms_overlap(room, other);
-      //   });
-      // if (it != d.rooms.linend())
-      //   continue; // overlap; skip this room
-      // create_room(editor, game, d, room, ++room_index);
-      // dig out a tunnel between this room and the previous one
-      // bool starting_room = max_room_idx == 0;
-      // if (!starting_room) {
-      //   auto r0_center = room_center(d.rooms[d.rooms.size() - 1]);
-      //   auto r1_center = room_center(room);
-      //   create_tunnel(editor, game, d, r0_center.x, r0_center.y, r1_center.x, r1_center.y);
-      // }
-
-      // create_room
-      // for (int x = 0; x < room.w; x++) {
-      //   for (int y = 0; y < room.h; y++) {
-      // EntityType et = EntityType::tile_type_floor;
-      // if (x == 0 || x == room.w - 1)
-      //   et = EntityType::tile_type_wall;
-      // if (y == 0 || y == room.h - 1)
-      //   et = EntityType::tile_type_wall;
-      // if (EntityType::tile_type_floor == et) {
-      //   if (d.walls_and_floors[index].linentity != entt::null)
-      //     r.destroy(d.walls_and_floors[index].linentity);
-      //   entt::entity e = create_dungeon_entity(editor, game, et, grid_index);
-      //   StaticDungeonEntity se;
-      //   se.linentity = e;
-      //   se.x = grid_index.x;
-      //   se.y = grid_index.y;
-      //   se.room_index = room_index;
-      //   d.walls_and_floors[index] = se;
-      // }
-
-      // create tunnel
-      // int x1, int y1, int x2, int y2
-      // move horisontally, then vertically
-      // corner_x = x2;
-      // corner_y = y1;
-      // std::vector<std::pair<int, int>> line_0;
-      // create_line(x1, y1, corner_x, corner_y, line_0);
-      // create_tunnel_floor(editor, game, d, line_0);
-      // b) corner_x, corner_y to x2, y2
-      // std::vector<std::pair<int, int>> line_1;
-      // create_line(corner_x, corner_y, x2, y2, line_1);
-      // create_tunnel_floor(editor, game, d, line_1);
-      // for (const auto& coord : coords) {
-      // set as floor
-
-    } // end generate dungeon
+    // if (get_key_down(input, generate_dungeon_key))
+    //   generate_dungeon();
   }
 
   // If you put your mouse over a new room,

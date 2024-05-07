@@ -119,34 +119,6 @@ target_link_libraries(game_defence_tests PRIVATE glm::glm)
 target_link_libraries(game_defence_tests PRIVATE nlohmann_json::nlohmann_json)
 target_link_libraries(game_defence_tests PRIVATE GTest::gmock GTest::gtest GTest::gmock_main GTest::gtest_main)
 
-if(${CMAKE_SYSTEM_NAME} STREQUAL "Windows")
-  # create symlink assets for build
-  set(src ${CMAKE_SOURCE_DIR}/game_defence_tests/assets)
-  set(dst ${CMAKE_CURRENT_BINARY_DIR}/assets)
-  add_custom_command(
-    TARGET ${PROJECT_NAME} PRE_BUILD
-    COMMAND ${CMAKE_COMMAND} -E create_symlink ${src} ${dst}
-    DEPENDS ${dst}
-    COMMENT "symbolic link resources folder from ${src} => ${dst}"
-  )
-endif()
-
-if(EMSCRIPTEN)
-  IF(CMAKE_BUILD_TYPE MATCHES Debug)
-    # create symlink assets for build
-    set(src ${CMAKE_SOURCE_DIR}/game_defence_tests/assets)
-    set(dst ${CMAKE_CURRENT_BINARY_DIR}/../assets)
-    add_custom_command(
-      TARGET ${PROJECT_NAME} PRE_BUILD
-      COMMAND ${CMAKE_COMMAND} -E create_symlink ${src} ${dst}
-      DEPENDS ${dst}
-      COMMENT "symbolic link resources folder from ${src} => ${dst}"
-    )
-  endif()
-
-  set_target_properties(game_defence_tests PROPERTIES LINK_FLAGS "${LD_FLAGS}")
-endif()
-
 set(CPACK_PROJECT_NAME ${PROJECT_NAME})
 set(CPACK_PROJECT_VERSION ${PROJECT_VERSION})
 include(CPack)

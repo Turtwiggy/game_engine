@@ -6,6 +6,7 @@
         "${workspaceFolder}/src",
         "${workspaceFolder}/game_3d/src",
         "${workspaceFolder}/game_defence/src",
+        "${workspaceFolder}/game_defence_tests/src",
         "${workspaceFolder}/thirdparty/vcpkg/installed/x64-windows/include",
         "${workspaceFolder}/thirdparty/assimp/include",
         "${workspaceFolder}/thirdparty/entt/single_include",
@@ -14,12 +15,14 @@
         "${workspaceFolder}/thirdparty/optick/src",
         "${workspaceFolder}/thirdparty/emsdk/upstream/emscripten/cache/sysroot/include"
       ],
-      "defines": [ "UNICODE", "_UNICODE" ],
+      "defines": ["UNICODE", "_UNICODE"],
       "windowsSdkVersion": "10.0.19041.0",
       "cStandard": "c17",
       "cppStandard": "c++20",
       "intelliSenseMode": "windows-msvc-x64",
-      "configurationProvider": "ms-vscode.cmake-tools"
+      "configurationProvider": "ms-vscode.cmake-tools",
+      "compileCommands": "${workspaceFolder}/build/compile_commands.json",
+      "mergeConfigurations": false
     },
     {
       "name": "Linux GCC",
@@ -27,6 +30,7 @@
         "${workspaceFolder}/src",
         "${workspaceFolder}/game_3d/src",
         "${workspaceFolder}/game_defence/src",
+        "${workspaceFolder}/game_defence_tests/src",
         "${workspaceFolder}/thirdparty/vcpkg/installed/x64-linux/include",
         "${workspaceFolder}/thirdparty/vcpkg/installed/x64-linux/include/SDL2",
         "${workspaceFolder}/thirdparty/assimp/include",
@@ -39,7 +43,8 @@
       "cStandard": "c17",
       "cppStandard": "c++20",
       "intelliSenseMode": "linux-gcc-x64",
-      "configurationProvider": "ms-vscode.cmake-tools"
+      "configurationProvider": "ms-vscode.cmake-tools",
+      "mergeConfigurations": false
     },
     {
       "name": "Mac Clang",
@@ -47,6 +52,7 @@
         "${workspaceFolder}/src",
         "${workspaceFolder}/game_3d/src",
         "${workspaceFolder}/game_defence/src",
+        "${workspaceFolder}/game_defence_tests/src",
         "${workspaceFolder}/thirdparty/vcpkg/installed/x64-osx/include",
         "${workspaceFolder}/thirdparty/vcpkg/installed/x64-osx/include/SDL2",
         "${workspaceFolder}/thirdparty/assimp/include",
@@ -55,13 +61,14 @@
         "${workspaceFolder}/thirdparty/magic_enum",
         "${workspaceFolder}/thirdparty/optick/src"
       ],
-      "defines": [ "UNICODE", "_UNICODE" ],
-      "macFrameworkPath": [ ],
+      "defines": ["UNICODE", "_UNICODE"],
+      "macFrameworkPath": [],
       "compilerPath": "/usr/bin/clang",
       "cStandard": "c17",
       "cppStandard": "c++20",
       "intelliSenseMode": "macos-clang-arm64",
-      "configurationProvider": "ms-vscode.cmake-tools"
+      "configurationProvider": "ms-vscode.cmake-tools",
+      "mergeConfigurations": false
     }
   ],
   "version": 4

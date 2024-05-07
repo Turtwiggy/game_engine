@@ -27,7 +27,6 @@
 #include "modules/selected_interactions/components.hpp"
 #include "modules/sprite_spritestack/components.hpp"
 #include "modules/ui_arrows_to_spawners/components.hpp"
-#include "modules/ui_dungeon/components.hpp"
 #include "modules/ui_level_up/components.hpp"
 #include "modules/ui_rpg_character/components.hpp"
 #include "modules/ui_scene_main_menu/components.hpp"
@@ -490,7 +489,7 @@ move_to_scene_start(entt::registry& r, const Scene s)
 
       // random position, dont spawn at 0, 0
       const int rnd_x = int(engine::rand_det_s(rnd.rng, 1, (map_c.xmax - 1)));
-      const int rnd_y = int(engine::rand_det_s(rnd.rng, 1, (map_c.xmax - 1)));
+      const int rnd_y = int(engine::rand_det_s(rnd.rng, 1, (map_c.ymax - 1)));
       set_position(r, enemy, { rnd_x * map_c.tilesize, rnd_y * map_c.tilesize });
     }
 
@@ -540,7 +539,22 @@ move_to_scene_start(entt::registry& r, const Scene s)
   }
 
   if (s == Scene::dungeon) {
-    const auto& previous_scene_data = get_first_component<SINGLE_DuckgameToDungeon>(r);
+    // if need it, try_get. could be launched standalone
+    // const auto& previous_scene_data = get_first_component<SINGLE_DuckgameToDungeon>(r);
+
+    // set dungeon constraints
+    int map_width = 500;
+    int map_height = 500;
+    MapComponent map_c;
+    map_c.tilesize = 50;
+    map_c.xmax = map_width / map_c.tilesize;
+    map_c.ymax = map_height / map_c.tilesize;
+    map_c.map.resize(map_c.xmax * map_c.ymax);
+    r.emplace<MapComponent>(r.create(), map_c);
+
+    // create a player
+    const auto player = create_player(r, { 32, 32 });
+    r.emplace<CameraFollow>(player);
   }
 
   const auto scene_name = std::string(magic_enum::enum_name(s));

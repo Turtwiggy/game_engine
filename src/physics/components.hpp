@@ -3,7 +3,6 @@
 #include <nlohmann/json.hpp>
 
 // c++ headers
-#include <optional>
 #include <vector>
 
 #include <entt/entt.hpp>

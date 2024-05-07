@@ -2,6 +2,8 @@
 #include <cstdio>
 #include <gtest/gtest.h>
 
+#include "test_actor_patrol.hpp"
+
 #undef main
 
 // Logical	    ASSERT_TRUE(condition)
@@ -26,12 +28,12 @@ main(int argc, char** argv)
   return RUN_ALL_TESTS();
 }
 
-TEST(TestSuite, HelloTest)
-{
-  ASSERT_TRUE(true);
-}
+// TEST(TestSuite, HelloTest)
+// {
+//   ASSERT_TRUE(true);
+// }
 
-TEST(TestSuite, HelloTest2)
-{
-  ASSERT_EQ(1.0f, 1.0f);
-}
+// TEST(TestSuite, HelloTest2)
+// {
+//   ASSERT_EQ(1.0f, 0.0f);
+// }

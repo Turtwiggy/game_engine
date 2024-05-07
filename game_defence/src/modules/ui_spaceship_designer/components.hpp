@@ -10,11 +10,6 @@ struct SpaceshipComponent
   bool placeholder = true;
 };
 
-struct SpaceshipPointComponent
-{
-  bool placeholder = true;
-};
-
 struct SpaceshipRoomComponent
 {
   // std::vector<entt::entity> corners;
