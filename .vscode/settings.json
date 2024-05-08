@@ -25,7 +25,7 @@
   "editor.bracketPairColorization.enabled": true,
 
   "C_Cpp.default.intelliSenseMode": "windows-msvc-x64",
-  "C_Cpp.intelliSenseEngine": "default",
+  "C_Cpp.intelliSenseEngine": "disabled",
 
   "C_Cpp.codeAnalysis.clangTidy.enabled": true,
   "C_Cpp.codeAnalysis.runAutomatically": true,

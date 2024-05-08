@@ -22,15 +22,11 @@ struct Room
   AABB aabb;
 };
 
-// struct Dungeon
-// {
-//   int width = 50;
-//   int height = 50;
-//   int seed = 0;
-//   int floor = 0;
-//   std::vector<Room> rooms;
-//   std::vector<StaticDungeonEntity> walls_and_floors;
-//   std::vector<std::pair<entt::entity, glm::ivec2>> occupied;
-// };
+struct DungeonGenerationCriteria
+{
+  int max_rooms = 30;
+  int room_size_min = 6;
+  int room_size_max = 10;
+};
 
 } // namespace game2d

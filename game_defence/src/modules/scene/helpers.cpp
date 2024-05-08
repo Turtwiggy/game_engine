@@ -122,6 +122,7 @@ move_to_scene_start(entt::registry& r, const Scene s)
   destroy_and_create<SINGLE_SelectedUI>(r);
   destroy_and_create<SINGLE_ArrowsToSpawnerUI>(r);
   destroy_and_create<SINGLE_UILevelUpComponent>(r);
+  destroy<MapComponent>(r);
   // SINGLE_MainMenuUI: not destroyed. destroyed if scene is menu.
   destroy<Effect_GridComponent>(r);
 
@@ -223,46 +224,45 @@ move_to_scene_start(entt::registry& r, const Scene s)
     camera_t.position.y = height / 2.0f;
 
     // generate some walls
-    {
-      MapComponent map_c;
-      map_c.tilesize = 64;
-      map_c.xmax = width / map_c.tilesize;
-      map_c.ymax = height / map_c.tilesize;
-      const glm::ivec2 tilesize{ map_c.tilesize, map_c.tilesize };
-      const glm::ivec2 map_offset = { tilesize.x / 2.0f, tilesize.y / 2.0f };
+    // {
+    //   MapComponent map_c;
+    //   map_c.tilesize = 64;
+    //   map_c.xmax = width / map_c.tilesize;
+    //   map_c.ymax = height / map_c.tilesize;
+    //   const glm::ivec2 tilesize{ map_c.tilesize, map_c.tilesize };
+    //   const glm::ivec2 map_offset = { tilesize.x / 2.0f, tilesize.y / 2.0f };
+    //   {
+    //     // generate a map for 0s and 1s
+    //     auto map = generate_50_50({ map_c.xmax, map_c.ymax }, 0);
+    //     map = iterate_with_cell_automata(map, { map_c.xmax, map_c.ymax });
+    //     map = iterate_with_cell_automata(map, { map_c.xmax, map_c.ymax });
+    //     map = iterate_with_cell_automata(map, { map_c.xmax, map_c.ymax });
 
-      {
-        // generate a map for 0s and 1s
-        auto map = generate_50_50({ map_c.xmax, map_c.ymax }, 0);
-        map = iterate_with_cell_automata(map, { map_c.xmax, map_c.ymax });
-        map = iterate_with_cell_automata(map, { map_c.xmax, map_c.ymax });
-        map = iterate_with_cell_automata(map, { map_c.xmax, map_c.ymax });
+    //     // conver map 0s and 1s to entity map
+    //     map_c.map.resize(map.size());
+    //     auto& maap = map_c.map;
+    //     for (int i = 0; i < maap.size(); i++) {
+    //       auto xy_world = engine::grid::index_to_world_position(i, map_c.xmax, map_c.ymax, map_c.tilesize);
+    //       xy_world += map_offset;
 
-        // conver map 0s and 1s to entity map
-        map_c.map.resize(map.size());
-        auto& maap = map_c.map;
-        for (int i = 0; i < maap.size(); i++) {
-          auto xy_world = engine::grid::index_to_world_position(i, map_c.xmax, map_c.ymax, map_c.tilesize);
-          xy_world += map_offset;
+    //       // wall
+    //       if (map[i] == 1) {
+    //         const auto e = create_gameplay(r, EntityType::solid_wall);
+    //         // set_sprite_custom(r, e, "icon_beer"s, tex_unit_for_bargame);
+    //         r.get<AABB>(e).center = xy_world;
+    //         r.get<TransformComponent>(e).scale = { map_c.tilesize, map_c.tilesize, 1.0f };
+    //         r.get<TagComponent>(e).tag = "wall"s;
+    //         r.emplace<PathfindComponent>(e, -1);
 
-          // wall
-          if (map[i] == 1) {
-            const auto e = create_gameplay(r, EntityType::solid_wall);
-            // set_sprite_custom(r, e, "icon_beer"s, tex_unit_for_bargame);
-            r.get<AABB>(e).center = xy_world;
-            r.get<TransformComponent>(e).scale = { map_c.tilesize, map_c.tilesize, 1.0f };
-            r.get<TagComponent>(e).tag = "wall"s;
-            r.emplace<PathfindComponent>(e, -1);
-
-            maap[i].push_back(e);
-          }
-          // floor
-          else
-            maap[i].push_back(entt::null);
-        }
-        r.emplace<MapComponent>(r.create(), map_c);
-      }
-    }
+    //         maap[i].push_back(e);
+    //       }
+    //       // floor
+    //       else
+    //         maap[i].push_back(entt::null);
+    //     }
+    //     r.emplace<MapComponent>(r.create(), map_c);
+    //   }
+    // }
 
     // Create an enemy
     {
@@ -444,6 +444,34 @@ move_to_scene_start(entt::registry& r, const Scene s)
     // create background effect
     r.emplace<Effect_GridComponent>(r.create());
 
+    // set dungeon constraints
+    int map_width = 2000;
+    int map_height = 2000;
+    MapComponent map_c;
+    map_c.tilesize = 25;
+    map_c.xmax = map_width / map_c.tilesize;
+    map_c.ymax = map_height / map_c.tilesize;
+    map_c.map.resize(map_c.xmax * map_c.ymax);
+    r.emplace<MapComponent>(r.create(), map_c);
+
+    // Create 4 edges to the map
+    bool create_edges = true;
+    if (create_edges) {
+      const int half_tile_size = map_c.tilesize / 10.0f;
+      const auto wall_l = create_gameplay(r, EntityType::solid_wall);
+      set_position(r, wall_l, { 0, map_height / 2.0f });
+      set_size(r, wall_l, { half_tile_size, map_height });
+      const auto wall_r = create_gameplay(r, EntityType::solid_wall);
+      set_position(r, wall_r, { map_width, map_height / 2.0f });
+      set_size(r, wall_r, { half_tile_size, map_height });
+      const auto wall_u = create_gameplay(r, EntityType::solid_wall);
+      set_position(r, wall_u, { map_width / 2.0f, 0 });
+      set_size(r, wall_u, { map_width, half_tile_size });
+      const auto wall_d = create_gameplay(r, EntityType::solid_wall);
+      set_position(r, wall_d, { map_width / 2.0f, map_height });
+      set_size(r, wall_d, { map_width, half_tile_size });
+    }
+
     // VISUAL: use poisson for grass
     // {
     //   int width = 1000;
@@ -542,19 +570,20 @@ move_to_scene_start(entt::registry& r, const Scene s)
     // if need it, try_get. could be launched standalone
     // const auto& previous_scene_data = get_first_component<SINGLE_DuckgameToDungeon>(r);
 
+    create_gameplay(r, EntityType::cursor);
+
+    const auto player = create_player(r, { 32, 32 });
+    r.emplace<CameraFollow>(player);
+
     // set dungeon constraints
-    int map_width = 500;
-    int map_height = 500;
+    int map_width = 1024;
+    int map_height = 1024;
     MapComponent map_c;
-    map_c.tilesize = 50;
+    map_c.tilesize = 16;
     map_c.xmax = map_width / map_c.tilesize;
     map_c.ymax = map_height / map_c.tilesize;
     map_c.map.resize(map_c.xmax * map_c.ymax);
     r.emplace<MapComponent>(r.create(), map_c);
-
-    // create a player
-    const auto player = create_player(r, { 32, 32 });
-    r.emplace<CameraFollow>(player);
   }
 
   const auto scene_name = std::string(magic_enum::enum_name(s));

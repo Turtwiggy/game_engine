@@ -16,7 +16,7 @@ namespace game2d {
 
 namespace tests {
 
-TEST(TestSuite, ActorEnemyPatrol_Backstabs_PatrolLookingRight)
+TEST(TestSuite, ActorEnemyPatrol_Backstabs)
 {
   entt::registry r;
 
@@ -34,14 +34,14 @@ TEST(TestSuite, ActorEnemyPatrol_Backstabs_PatrolLookingRight)
 
   int i = 0;
   const auto test_patrol =
-    [&r, &player_e, &i](const glm::vec2& lookdir, const glm::ivec2& pos, const bool is_backstabbable) {
+    [&r, &player_e, &i](const glm::vec2& lookdir, const glm::ivec2& player_pos, const bool is_backstabbable) {
       std::cout << "Testing patrol case: " << i++ << std::endl;
 
       // Arrange
       const auto patrol_e = create_gameplay(r, EntityType::actor_enemy_patrol);
       r.remove<WaitForInitComponent>(patrol_e); // init immediate
       r.emplace_or_replace<VelocityComponent>(patrol_e, lookdir.x, lookdir.y);
-      set_position(r, player_e, pos);
+      set_position(r, player_e, player_pos);
 
       // Act
       update_actor_enemy_patrol_system(r, glm::ivec2(0, 0), 0);
@@ -49,7 +49,6 @@ TEST(TestSuite, ActorEnemyPatrol_Backstabs_PatrolLookingRight)
       // Assert
       const auto backstab = r.try_get<BackstabbableComponent>(patrol_e);
       const bool backstab_component_added = backstab != nullptr;
-
       ASSERT_TRUE(backstab_component_added == is_backstabbable);
 
       // Cleanup

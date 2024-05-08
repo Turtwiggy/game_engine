@@ -360,7 +360,7 @@ game2d::update(engine::SINGLETON_Application& app, entt::registry& r, const floa
       update_ui_backstab_patrol_system(r);
     }
     if (scene.s == Scene::dungeon) {
-      update_ui_dungeon_system(r);
+      update_ui_dungeon_system(r, mouse_pos);
     }
 
     update_ui_worldspace_text_system(r);

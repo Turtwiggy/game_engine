@@ -353,7 +353,7 @@ game2d::update_render_system(entt::registry& r, const float dt, const glm::vec2&
         // hack: get position of first player
 
         std::vector<std::tuple<float, float, float>> intersections;
-        generate_intersections(r, light_pos, intersections);
+        // generate_intersections(r, light_pos, intersections);
 
         if (intersections.size() > 0) {
           // start point

@@ -2,6 +2,8 @@
 
 #include "actors.hpp"
 #include "components.hpp"
+#include "events/helpers/mouse.hpp"
+#include "modules/actor_player/components.hpp"
 #include "modules/actors/helpers.hpp"
 #include "modules/gen_dungeons/components.hpp"
 #include "modules/gen_dungeons/helpers.hpp"
@@ -14,7 +16,7 @@
 namespace game2d {
 
 void
-update_ui_dungeon_system(entt::registry& r)
+update_ui_dungeon_system(entt::registry& r, const glm::ivec2& mouse_pos)
 {
   const auto& data_e = get_first<SINGLE_DuckgameToDungeon>(r);
 
@@ -52,6 +54,12 @@ update_ui_dungeon_system(entt::registry& r)
 
     if (ImGui::Button("Back to duckscene")) {
       // TODO: need to reload duckscene state...
+    }
+
+    // HACK: if you clicked rmb, move the player there
+    if (get_mouse_rmb_press()) {
+      const auto player_e = get_first<PlayerComponent>(r);
+      set_position(r, player_e, mouse_pos);
     }
   }
 

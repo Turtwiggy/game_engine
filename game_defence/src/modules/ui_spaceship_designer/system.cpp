@@ -15,7 +15,12 @@
 #include "maths/maths.hpp"
 #include "modules/actor_player/components.hpp"
 #include "modules/actors/helpers.hpp"
+#include "modules/camera/components.hpp"
+#include "modules/gen_dungeons/components.hpp"
+#include "modules/gen_dungeons/helpers.hpp"
 #include "modules/resolve_collisions/helpers.hpp"
+#include "modules/scene/helpers.hpp"
+#include "modules/selected_interactions/components.hpp"
 #include "modules/system_spaceship_door/components.hpp"
 #include "modules/vfx_grid/components.hpp"
 #include "physics/components.hpp"
@@ -24,6 +29,7 @@
 #include "imgui.h"
 #include <SDL_keyboard.h>
 #include <SDL_scancode.h>
+#include <glm/fwd.hpp>
 #include <string>
 
 namespace game2d {
@@ -46,11 +52,6 @@ struct Wall
 
   std::vector<glm::ivec2> intersections; // storage for when this wall is being intersected
   std::vector<entt::entity> debug_intersections;
-};
-
-struct Room
-{
-  bool placeholder = true;
 };
 
 // Function to calculate the intersection point of two lines
@@ -214,7 +215,7 @@ create_wall(entt::registry& r, const glm::ivec2 pos, const entt::entity& parent_
 {
   const auto wall_e = create_gameplay(r, EntityType::solid_wall);
   set_position(r, wall_e, pos);
-  set_size(r, wall_e, { 16, 16 });
+  set_size(r, wall_e, { 0, 0 });
 
   Wall w;
   w.parent_room = parent_room;
@@ -312,92 +313,92 @@ update_ui_spaceship_designer_system(entt::registry& r, const glm::ivec2& input_m
   // Drag To Create Rooms
   //
   {
-    static std::optional<glm::ivec2> press_location = std::nullopt;
-    static entt::entity room_to_create;
-    static std::vector<entt::entity> walls;
-    static bool room_collision = false;
+    //   static std::optional<glm::ivec2> press_location = std::nullopt;
+    //   static entt::entity room_to_create;
+    //   static std::vector<entt::entity> walls;
+    //   static bool room_collision = false;
 
-    if (get_key_down(input, drag_create_room_key)) {
-      // set_keydown_state();
-      press_location = mouse_pos;
-      room_collision = false;
+    //   if (get_key_down(input, drag_create_room_key)) {
+    //     // set_keydown_state();
+    //     press_location = mouse_pos;
+    //     room_collision = false;
 
-      // create room
-      room_to_create = create_gameplay(r, EntityType::empty_with_transform);
-      // create room colour
-      set_colour(r, room_to_create, { 1.0f, 1.0f, 1.0f, 0.02f });
-      r.emplace<Room>(room_to_create);
+    //     // create room
+    //     room_to_create = create_gameplay(r, EntityType::empty_with_transform);
+    //     // create room colour
+    //     set_colour(r, room_to_create, { 1.0f, 1.0f, 1.0f, 0.02f });
+    //     r.emplace<Room>(room_to_create);
 
-      // create physics actor
-      r.emplace<PhysicsTransformXComponent>(room_to_create);
-      r.emplace<PhysicsTransformYComponent>(room_to_create);
-      r.emplace<AABB>(room_to_create);
-      r.emplace<PhysicsActorComponent>(room_to_create);
-      r.emplace<VelocityComponent>(room_to_create);
+    //     // create physics actor
+    //     r.emplace<PhysicsTransformXComponent>(room_to_create);
+    //     r.emplace<PhysicsTransformYComponent>(room_to_create);
+    //     r.emplace<AABB>(room_to_create);
+    //     r.emplace<PhysicsActorComponent>(room_to_create);
+    //     r.emplace<VelocityComponent>(room_to_create);
 
-      // create room walls
-      const auto w0 = create_wall(r, press_location.value(), room_to_create);
-      const auto w1 = create_wall(r, press_location.value(), room_to_create);
-      const auto w2 = create_wall(r, press_location.value(), room_to_create);
-      const auto w3 = create_wall(r, press_location.value(), room_to_create);
-      walls = { w0, w1, w2, w3 };
-    }
-    if (get_key_held(input, drag_create_room_key) && press_location.has_value()) {
+    //     // create room walls
+    //     const auto w0 = create_wall(r, press_location.value(), room_to_create);
+    //     const auto w1 = create_wall(r, press_location.value(), room_to_create);
+    //     const auto w2 = create_wall(r, press_location.value(), room_to_create);
+    //     const auto w3 = create_wall(r, press_location.value(), room_to_create);
+    //     walls = { w0, w1, w2, w3 };
+    //   }
+    //   if (get_key_held(input, drag_create_room_key) && press_location.has_value()) {
 
-      const auto& p = press_location.value();
-      // width & height can be negative
-      const int width = mouse_pos.x - p.x;
-      const int height = mouse_pos.y - p.y;
-      ImGui::Text("Width: %i Height: %i", width, height);
+    //     const auto& p = press_location.value();
+    //     // width & height can be negative
+    //     const int width = mouse_pos.x - p.x;
+    //     const int height = mouse_pos.y - p.y;
+    //     ImGui::Text("Width: %i Height: %i", width, height);
 
-      // set mouse-cursor as top-left
-      const glm::ivec2 tl = p;
-      const glm::ivec2 tr = { p.x + width, p.y };
-      const glm::ivec2 bl = { p.x, p.y + height };
-      const glm::ivec2 br = { p.x + width, p.y + height };
+    //     // set mouse-cursor as top-left
+    //     const glm::ivec2 tl = p;
+    //     const glm::ivec2 tr = { p.x + width, p.y };
+    //     const glm::ivec2 bl = { p.x, p.y + height };
+    //     const glm::ivec2 br = { p.x + width, p.y + height };
 
-      r.replace<Wall>(walls[0], Wall{ tl, tr, room_to_create });
-      r.replace<Wall>(walls[1], Wall{ tr, br, room_to_create });
-      r.replace<Wall>(walls[2], Wall{ br, bl, room_to_create });
-      r.replace<Wall>(walls[3], Wall{ bl, tl, room_to_create });
+    //     r.replace<Wall>(walls[0], Wall{ tl, tr, room_to_create });
+    //     r.replace<Wall>(walls[1], Wall{ tr, br, room_to_create });
+    //     r.replace<Wall>(walls[2], Wall{ br, bl, room_to_create });
+    //     r.replace<Wall>(walls[3], Wall{ bl, tl, room_to_create });
 
-      // Check if room collides with another existing room
-      const auto create_aabb_from_mouse = [&mouse_pos](const glm::ivec2& p) -> AABB {
-        int width = mouse_pos.x - p.x; // width & height can be negative
-        int height = mouse_pos.y - p.y;
-        if (width == 0)
-          width = 1;
-        if (height == 0)
-          height = 1;
-        return create_aabb(p, width, height);
-      };
+    //     // Check if room collides with another existing room
+    //     const auto create_aabb_from_mouse = [&mouse_pos](const glm::ivec2& p) -> AABB {
+    //       int width = mouse_pos.x - p.x; // width & height can be negative
+    //       int height = mouse_pos.y - p.y;
+    //       if (width == 0)
+    //         width = 1;
+    //       if (height == 0)
+    //         height = 1;
+    //       return create_aabb(p, width, height);
+    //     };
 
-      // This here seems wrong, like it's bypassing the physics system.
-      //
-      const auto temp_aabb = create_aabb_from_mouse(press_location.value());
-      set_position(r, room_to_create, temp_aabb.center);
-      set_size(r, room_to_create, temp_aabb.size);
-      for (const auto& [room_e, other_room_c, other_room_aabb] : r.view<Room, AABB>().each()) {
-        if (room_e == room_to_create)
-          continue; // dont self collide
-        room_collision |= collide(temp_aabb, other_room_aabb);
-      }
-    }
-    if (get_key_up(input, drag_create_room_key)) {
+    //     // This here seems wrong, like it's bypassing the physics system.
+    //     //
+    //     const auto temp_aabb = create_aabb_from_mouse(press_location.value());
+    //     set_position(r, room_to_create, temp_aabb.center);
+    //     set_size(r, room_to_create, temp_aabb.size);
+    //     for (const auto& [room_e, other_room_c, other_room_aabb] : r.view<Room, AABB>().each()) {
+    //       if (room_e == room_to_create)
+    //         continue; // dont self collide
+    //       room_collision |= collide(temp_aabb, other_room_aabb);
+    //     }
+    //   }
+    //   if (get_key_up(input, drag_create_room_key)) {
 
-      // cleanup invalid room
-      //
-      if (room_collision) {
-        dead.dead.emplace(room_to_create);
-        for (const auto& wall : walls)
-          dead.dead.emplace(wall);
-        walls.clear();
-      }
+    //     // cleanup invalid room
+    //     //
+    //     if (room_collision) {
+    //       dead.dead.emplace(room_to_create);
+    //       for (const auto& wall : walls)
+    //         dead.dead.emplace(wall);
+    //       walls.clear();
+    //     }
 
-      // set_keyup_state();
-      press_location = std::nullopt;
-      room_collision = false;
-    }
+    //     // set_keyup_state();
+    //     press_location = std::nullopt;
+    //     room_collision = false;
+    //   }
   }
 
   // Convert the gridbox to lines
@@ -644,91 +645,161 @@ update_ui_spaceship_designer_system(entt::registry& r, const glm::ivec2& input_m
     if (get_mouse_rmb_press()) {
       const auto player = create_gameplay(r, EntityType::actor_player);
       set_position(r, player, mouse_pos);
+
+      // hack: camera to follow latest spawned player
+      const auto& follow_view = r.view<CameraFollow>();
+      r.remove<CameraFollow>(follow_view.begin(), follow_view.end());
+      r.emplace<CameraFollow>(player);
     }
 
     // Generate dungeon base
-    // if (get_key_down(input, generate_dungeon_key))
-    //   generate_dungeon();
+    // generate_dungeon();
+    if (get_key_down(input, generate_dungeon_key)) {
+
+      // Mark all rooms as ded, and remove room components.
+      const auto& wall_view = r.view<Wall>();
+      for (const auto& [wall_e, wall_c] : wall_view.each()) {
+        dead.dead.emplace(wall_e);
+        r.remove<Room>(wall_e);
+      }
+      const auto& room_view = r.view<Room>();
+      for (const auto& [room_e, room_c] : room_view.each()) {
+        dead.dead.emplace(room_e);
+        r.remove<Room>(room_e);
+      }
+
+      const auto& map_e = get_first<MapComponent>(r);
+      if (map_e == entt::null) {
+        std::cout << "missing map..." << std::endl;
+      }
+      auto& map = get_first_component<MapComponent>(r);
+
+      static int seed = 0;
+
+      // Increase seed everytime a map is generated
+      seed++;
+
+      engine::RandomState rnd;
+      rnd.rng.seed(seed);
+      std::vector<int> map_gen(map.xmax * map.ymax, 1); // 1: everything as wall
+      DungeonGenerationCriteria dungeon_parameters;
+      const auto rooms = create_all_rooms(dungeon_parameters, map, map_gen, rnd);
+
+      for (const Room& room : rooms) {
+        const auto room_to_create = create_gameplay(r, EntityType::empty_with_physics);
+        set_colour(r, room_to_create, { 1.0f, 1.0f, 1.0f, 0.02f });
+        r.emplace<Room>(room_to_create, room);
+
+        // create room walls
+        const auto w0 = create_wall(r, room.aabb.center, room_to_create);
+        const auto w1 = create_wall(r, room.aabb.center, room_to_create);
+        const auto w2 = create_wall(r, room.aabb.center, room_to_create);
+        const auto w3 = create_wall(r, room.aabb.center, room_to_create);
+
+        const auto& gridspace_tl = room.tl;
+        const auto& worldspace_tl = gridspace_tl * map.tilesize;
+        const auto worldspace_size = room.aabb.size * map.tilesize;
+
+        const int w = worldspace_size.x;
+        const int h = worldspace_size.y;
+        const glm::ivec2 tl = { worldspace_tl };
+        const glm::ivec2 tr = { (worldspace_tl.x + w), (worldspace_tl.y) };
+        const glm::ivec2 bl = { (worldspace_tl.x), (worldspace_tl.y + h) };
+        const glm::ivec2 br = { (worldspace_tl.x + w), (worldspace_tl.y + h) };
+
+        r.replace<Wall>(w0, Wall{ tl, tr, room_to_create });
+        r.replace<Wall>(w1, Wall{ tr, br, room_to_create });
+        r.replace<Wall>(w2, Wall{ br, bl, room_to_create });
+        r.replace<Wall>(w3, Wall{ bl, tl, room_to_create });
+
+        const glm::ivec2 worldspace_center = { (tl.x + tr.x) / 2.0f, (tr.y + br.y) / 2.0f };
+        set_position(r, room_to_create, worldspace_center);
+        set_size(r, room_to_create, worldspace_size);
+      }
+    }
   }
 
   // If you put your mouse over a new room,
   // (todo) play some music,
   // and display the room name.
   static std::optional<std::string> room_name = std::nullopt;
-  for (const auto& coll : physics.collision_enter) {
-    const auto a = static_cast<entt::entity>(coll.ent_id_0);
-    const auto b = static_cast<entt::entity>(coll.ent_id_1);
+  {
+    for (const auto& coll : physics.collision_enter) {
+      const auto a = static_cast<entt::entity>(coll.ent_id_0);
+      const auto b = static_cast<entt::entity>(coll.ent_id_1);
 
-    const auto [a_ent, b_ent] = collision_of_interest<PlayerComponent, Room>(r, a, b);
-    if (a_ent == entt::null)
-      continue;
-    if (b_ent == entt::null)
-      continue;
+      const auto [a_ent, b_ent] = collision_of_interest<PlayerComponent, Room>(r, a, b);
+      if (a_ent == entt::null)
+        continue;
+      if (b_ent == entt::null)
+        continue;
 
-    // Display some fun text
-    // This just displays the entt id atm
-    room_name = "Room "s + std::to_string(static_cast<uint32_t>(b_ent));
+      // Display some fun text
+      // This just displays the entt id atm
+      room_name = "Room "s + std::to_string(static_cast<uint32_t>(b_ent));
+    }
+    if (room_name.has_value())
+      ImGui::Text("Last Entered Room: %s", room_name.value().c_str());
+    else
+      ImGui::Text("No room entered");
+    ImGui::End();
   }
-  if (room_name.has_value())
-    ImGui::Text("Last Entered Room: %s", room_name.value().c_str());
-  else
-    ImGui::Text("No room entered");
-  ImGui::End();
 
-  //
   // Room Name Hover System
   //
-  const float time_to_display_room_name = 6.0f;
-  static float time_displaying_room_name = 0.0f;
+  {
+    const float time_to_display_room_name = 6.0f;
+    static float time_displaying_room_name = 0.0f;
 
-  if (room_name.has_value())
-    time_displaying_room_name += dt;
-  if (time_displaying_room_name > time_to_display_room_name) {
-    room_name = std::nullopt;
-    time_displaying_room_name = 0.0f;
-  }
-
-  bool show_room_ui = time_displaying_room_name <= time_to_display_room_name && time_displaying_room_name != 0.0f;
-  if (show_room_ui) {
-    const auto& ri = get_first_component<SINGLETON_RendererInfo>(r);
-    const auto& viewport_pos = ImVec2(ri.viewport_pos.x, ri.viewport_pos.y);
-    const auto& viewport_size_half = ImVec2(ri.viewport_size_current.x * 0.5f, ri.viewport_size_current.y * 0.5f);
-
-    // text size
-    std::string label = "N/A";
     if (room_name.has_value())
-      label = room_name.value();
-    ImGuiStyle& style = ImGui::GetStyle();
-    const float alignment = 0.5f;
-    const float size = ImGui::CalcTextSize(label.c_str()).x + style.FramePadding.x * 2.0f;
+      time_displaying_room_name += dt;
+    if (time_displaying_room_name > time_to_display_room_name) {
+      room_name = std::nullopt;
+      time_displaying_room_name = 0.0f;
+    }
 
-    // window size
-    const float forced_padding = size / 2.0;
-    const float w = size + forced_padding;
-    const float h = w * (9 / 16.0f) / 2.0f;
-    ImGui::SetNextWindowSizeConstraints(ImVec2(w, h), ImVec2(w, h));
+    bool show_room_ui = time_displaying_room_name <= time_to_display_room_name && time_displaying_room_name != 0.0f;
+    if (show_room_ui) {
+      const auto& ri = get_first_component<SINGLETON_RendererInfo>(r);
+      const auto& viewport_pos = ImVec2(ri.viewport_pos.x, ri.viewport_pos.y);
+      const auto& viewport_size_half = ImVec2(ri.viewport_size_current.x * 0.5f, ri.viewport_size_current.y * 0.5f);
 
-    // position
-    const float center_x = viewport_pos.x + viewport_size_half.x;
-    const float bottom_y = viewport_pos.y + ri.viewport_size_current.y - h;
-    const auto pos = ImVec2(center_x, bottom_y);
-    ImGui::SetNextWindowPos(pos, ImGuiCond_Always, ImVec2(0.5f, 0.5f));
+      // text size
+      std::string label = "N/A";
+      if (room_name.has_value())
+        label = room_name.value();
+      ImGuiStyle& style = ImGui::GetStyle();
+      const float alignment = 0.5f;
+      const float size = ImGui::CalcTextSize(label.c_str()).x + style.FramePadding.x * 2.0f;
 
-    ImGuiWindowFlags flags = 0;
-    flags |= ImGuiWindowFlags_NoMove;
-    flags |= ImGuiWindowFlags_NoCollapse;
-    flags |= ImGuiWindowFlags_NoTitleBar;
-    flags |= ImGuiWindowFlags_NoResize;
+      // window size
+      const float forced_padding = size / 2.0;
+      const float w = size + forced_padding;
+      const float h = w * (9 / 16.0f) / 2.0f;
+      ImGui::SetNextWindowSizeConstraints(ImVec2(w, h), ImVec2(w, h));
 
-    ImGui::Begin("Last Room Entered", &show_room_ui, flags);
+      // position
+      const float center_x = viewport_pos.x + viewport_size_half.x;
+      const float bottom_y = viewport_pos.y + ri.viewport_size_current.y - h;
+      const auto pos = ImVec2(center_x, bottom_y);
+      ImGui::SetNextWindowPos(pos, ImGuiCond_Always, ImVec2(0.5f, 0.5f));
 
-    float avail = ImGui::GetContentRegionAvail().x;
-    float off = (avail - size) * alignment;
-    if (off > 0.0f)
-      ImGui::SetCursorPosX(ImGui::GetCursorPosX() + off);
-    ImGui::Text("%s", label.c_str());
+      ImGuiWindowFlags flags = 0;
+      flags |= ImGuiWindowFlags_NoMove;
+      flags |= ImGuiWindowFlags_NoCollapse;
+      flags |= ImGuiWindowFlags_NoTitleBar;
+      flags |= ImGuiWindowFlags_NoResize;
 
-    ImGui::End();
+      ImGui::Begin("Last Room Entered", &show_room_ui, flags);
+
+      float avail = ImGui::GetContentRegionAvail().x;
+      float off = (avail - size) * alignment;
+      if (off > 0.0f)
+        ImGui::SetCursorPosX(ImGui::GetCursorPosX() + off);
+      ImGui::Text("%s", label.c_str());
+
+      ImGui::End();
+    }
   }
 }
 

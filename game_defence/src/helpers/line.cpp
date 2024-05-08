@@ -45,48 +45,52 @@ game2d::set_position_and_size_with_line(entt::registry& r, const entt::entity& e
   set_transform_with_line(r, e, li);
 }
 
-// void
-// create_line(int r0, int c0, int r1, int c1, std::vector<std::pair<int, int>>& results)
-// {
-//   int r = r0;
-//   int c = c0;
-//   int dr = glm::abs(r1 - r0);
-//   int dc = glm::abs(c1 - c0);
-//   int sc = c1 - c > 0 ? 1 : -1;
-//   int sr = r1 - r > 0 ? 1 : -1;
+std::vector<std::pair<int, int>>
+create_line(int r0, int c0, int r1, int c1)
+{
+  std::vector<std::pair<int, int>> results;
 
-//   int steep = 0;
-//   if (dr > dc) {
-//     steep = 1;
-//     std::swap(c, r);
-//     std::swap(dc, dr);
-//     std::swap(sc, sr);
-//   }
-//   int d = (2 * dr) - dc;
+  int r = r0;
+  int c = c0;
+  int dr = glm::abs(r1 - r0);
+  int dc = glm::abs(c1 - c0);
+  int sc = c1 - c > 0 ? 1 : -1;
+  int sr = r1 - r > 0 ? 1 : -1;
 
-//   std::pair<int, int> res;
+  int steep = 0;
+  if (dr > dc) {
+    steep = 1;
+    std::swap(c, r);
+    std::swap(dc, dr);
+    std::swap(sc, sr);
+  }
+  int d = (2 * dr) - dc;
 
-//   for (int i = 0; i < dc; i++) {
-//     if (steep) {
-//       res.first = c;
-//       res.second = r;
-//       results.push_back(res);
-//     } else {
-//       res.first = r;
-//       res.second = c;
-//       results.push_back(res);
-//     }
-//     while (d >= 0) {
-//       r = r + sr;
-//       d = d - (2 * dc);
-//     }
-//     c = c + sc;
-//     d = d + (2 * dr);
-//   }
+  std::pair<int, int> res;
 
-//   // res.first = r1;
-//   // res.second = c1;
-//   // results.push_back(res);
-// };
+  for (int i = 0; i < dc; i++) {
+    if (steep) {
+      res.first = c;
+      res.second = r;
+      results.push_back(res);
+    } else {
+      res.first = r;
+      res.second = c;
+      results.push_back(res);
+    }
+    while (d >= 0) {
+      r = r + sr;
+      d = d - (2 * dc);
+    }
+    c = c + sc;
+    d = d + (2 * dr);
+  }
+
+  // res.first = r1;
+  // res.second = c1;
+  // results.push_back(res);
+
+  return results;
+};
 
 } // namespace game2d

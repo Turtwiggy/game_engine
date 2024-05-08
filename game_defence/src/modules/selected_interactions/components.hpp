@@ -10,7 +10,7 @@ struct MapComponent
 {
   int xmax = 10;
   int ymax = 10;
-  int tilesize = 64;
+  int tilesize = 50;
 
   std::vector<std::vector<entt::entity>> map;
 };

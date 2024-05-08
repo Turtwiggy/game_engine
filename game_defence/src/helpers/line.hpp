@@ -32,7 +32,7 @@ set_position_and_size_with_line(entt::registry& r, const entt::entity& e, const 
 
 // inspired by:
 // https://github.com/scikit-image/scikit-image/blob/main/skimage/draw/_draw.pyx
-// void
-// create_line(int r0, int c0, int r1, int c1, std::vector<std::pair<int, int>>& results);
+std::vector<std::pair<int, int>>
+create_line(int r0, int c0, int r1, int c1);
 
 } // game2d
