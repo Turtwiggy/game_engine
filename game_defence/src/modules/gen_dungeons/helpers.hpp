@@ -19,4 +19,10 @@ create_all_rooms(DungeonGenerationCriteria& data,
 void
 generate_dungeon(entt::registry& r);
 
+// EntityType
+// generate_monster();
+
+// EntityType
+// generate_item();
+
 } // namespace game2d

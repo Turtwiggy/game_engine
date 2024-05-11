@@ -28,6 +28,7 @@
 #include "modules/combat_flash_on_damage/system.hpp"
 #include "modules/combat_powerup_doubledamage/system.hpp"
 #include "modules/combat_wants_to_shoot/system.hpp"
+#include "modules/debug_pathfinding/system.hpp"
 #include "modules/gameover/components.hpp"
 #include "modules/gameover/system.hpp"
 #include "modules/items_drop/system.hpp"
@@ -47,6 +48,7 @@
 #include "modules/ui_backstab_patrol/system.hpp"
 #include "modules/ui_collisions/system.hpp"
 #include "modules/ui_colours/system.hpp"
+#include "modules/ui_combat_turnbased/system.hpp"
 #include "modules/ui_controllers/system.hpp"
 #include "modules/ui_dungeon/system.hpp"
 #include "modules/ui_gameover/system.hpp"
@@ -262,11 +264,11 @@ game2d::update(engine::SINGLETON_Application& app, entt::registry& r, const floa
     const auto& state = get_first_component<SINGLETON_GameStateComponent>(r);
     auto& gameover = get_first_component<SINGLETON_GameOver>(r);
 
-    const std::vector<Scene> valid_scenes{
-      Scene::game, Scene::test_scene_gun, Scene::spaceship_designer, Scene::duckgame, Scene::dungeon
+    const std::vector<Scene> invalid_scenes{
+      Scene::menu, // dont do game systems in menu
     };
-    const bool in_scene_of_interest = std::find(valid_scenes.begin(), valid_scenes.end(), scene.s) != valid_scenes.end();
-    if (in_scene_of_interest && state.state == GameState::RUNNING && !gameover.game_is_over) {
+    const bool in_invalid_scene = std::find(invalid_scenes.begin(), invalid_scenes.end(), scene.s) != invalid_scenes.end();
+    if (!in_invalid_scene && state.state == GameState::RUNNING && !gameover.game_is_over) {
 
       // Only keeping this here until I'm convinced that
       // putting all these systems in update isn't a mistake
@@ -302,6 +304,9 @@ game2d::update(engine::SINGLETON_Application& app, entt::registry& r, const floa
       update_spaceship_door_system(r, dt);
       update_actor_enemy_patrol_system(r, mouse_pos, dt);
       update_sprint_system(r, dt);
+#ifdef _DEBUG
+      update_debug_pathfinding_system(r, mouse_pos);
+#endif
     }
   }
 
@@ -353,14 +358,15 @@ game2d::update(engine::SINGLETON_Application& app, entt::registry& r, const floa
       update_ui_level_up_system(r);
       update_ui_xp_bar_system(r);
     }
-    if (scene.s == Scene::spaceship_designer) {
+    if (scene.s == Scene::dungeon_designer) {
       update_ui_spaceship_designer_system(r, mouse_pos, dt);
+      update_ui_dungeon_system(r, mouse_pos);
     }
-    if (scene.s == Scene::duckgame) {
+    if (scene.s == Scene::duckgame_overworld) {
       update_ui_backstab_patrol_system(r);
     }
-    if (scene.s == Scene::dungeon) {
-      update_ui_dungeon_system(r, mouse_pos);
+    if (scene.s == Scene::turnbasedcombat) {
+      update_ui_combat_turnbased_system(r);
     }
 
     update_ui_worldspace_text_system(r);

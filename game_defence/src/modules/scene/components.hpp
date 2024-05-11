@@ -5,12 +5,12 @@ namespace game2d {
 enum class Scene
 {
   menu,
-  test_scene_gun,
   game,
-  spaceship_designer,
-  duckgame,
-  dungeon,
+  duckgame_overworld,
+  dungeon_designer,
+  turnbasedcombat,
 
+  test_scene_gun,
   count
 };
 

@@ -31,6 +31,7 @@
 #include "modules/ui_rpg_character/components.hpp"
 #include "modules/ui_scene_main_menu/components.hpp"
 #include "modules/ui_selected/components.hpp"
+#include "modules/ux_hoverable/components.hpp"
 #include "modules/vfx_grid/components.hpp"
 #include "physics/components.hpp"
 #include "renderer/transform.hpp"
@@ -224,45 +225,44 @@ move_to_scene_start(entt::registry& r, const Scene s)
     camera_t.position.y = height / 2.0f;
 
     // generate some walls
-    // {
-    //   MapComponent map_c;
-    //   map_c.tilesize = 64;
-    //   map_c.xmax = width / map_c.tilesize;
-    //   map_c.ymax = height / map_c.tilesize;
-    //   const glm::ivec2 tilesize{ map_c.tilesize, map_c.tilesize };
-    //   const glm::ivec2 map_offset = { tilesize.x / 2.0f, tilesize.y / 2.0f };
-    //   {
-    //     // generate a map for 0s and 1s
-    //     auto map = generate_50_50({ map_c.xmax, map_c.ymax }, 0);
-    //     map = iterate_with_cell_automata(map, { map_c.xmax, map_c.ymax });
-    //     map = iterate_with_cell_automata(map, { map_c.xmax, map_c.ymax });
-    //     map = iterate_with_cell_automata(map, { map_c.xmax, map_c.ymax });
+    {
+      MapComponent map_c;
+      map_c.tilesize = 64;
+      map_c.xmax = width / map_c.tilesize;
+      map_c.ymax = height / map_c.tilesize;
+      const glm::ivec2 tilesize{ map_c.tilesize, map_c.tilesize };
+      const glm::ivec2 map_offset = { tilesize.x / 2.0f, tilesize.y / 2.0f };
+      {
+        // generate a map for 0s and 1s
+        auto map = generate_50_50({ map_c.xmax, map_c.ymax }, 0);
+        map = iterate_with_cell_automata(map, { map_c.xmax, map_c.ymax });
+        map = iterate_with_cell_automata(map, { map_c.xmax, map_c.ymax });
+        map = iterate_with_cell_automata(map, { map_c.xmax, map_c.ymax });
 
-    //     // conver map 0s and 1s to entity map
-    //     map_c.map.resize(map.size());
-    //     auto& maap = map_c.map;
-    //     for (int i = 0; i < maap.size(); i++) {
-    //       auto xy_world = engine::grid::index_to_world_position(i, map_c.xmax, map_c.ymax, map_c.tilesize);
-    //       xy_world += map_offset;
+        // conver map 0s and 1s to entity map
+        map_c.map.resize(map.size());
+        auto& maap = map_c.map;
+        for (int i = 0; i < maap.size(); i++) {
+          auto xy_world = engine::grid::index_to_world_position(i, map_c.xmax, map_c.ymax, map_c.tilesize);
+          xy_world += map_offset;
 
-    //       // wall
-    //       if (map[i] == 1) {
-    //         const auto e = create_gameplay(r, EntityType::solid_wall);
-    //         // set_sprite_custom(r, e, "icon_beer"s, tex_unit_for_bargame);
-    //         r.get<AABB>(e).center = xy_world;
-    //         r.get<TransformComponent>(e).scale = { map_c.tilesize, map_c.tilesize, 1.0f };
-    //         r.get<TagComponent>(e).tag = "wall"s;
-    //         r.emplace<PathfindComponent>(e, -1);
+          // wall
+          if (map[i] == 1) {
+            const auto e = create_gameplay(r, EntityType::solid_wall);
+            // set_sprite_custom(r, e, "icon_beer"s, tex_unit_for_bargame);
+            r.get<AABB>(e).center = xy_world;
+            r.get<TransformComponent>(e).scale = { map_c.tilesize, map_c.tilesize, 1.0f };
+            r.emplace<PathfindComponent>(e, -1);
 
-    //         maap[i].push_back(e);
-    //       }
-    //       // floor
-    //       else
-    //         maap[i].push_back(entt::null);
-    //     }
-    //     r.emplace<MapComponent>(r.create(), map_c);
-    //   }
-    // }
+            maap[i].push_back(e);
+          }
+          // floor
+          else
+            maap[i].push_back(entt::null);
+        }
+        r.emplace<MapComponent>(r.create(), map_c);
+      }
+    }
 
     // Create an enemy
     {
@@ -374,16 +374,16 @@ move_to_scene_start(entt::registry& r, const Scene s)
 
     // VISUAL: use poisson for grass
     {
-      const int tex_unit_for_bargame = search_for_texture_unit_by_texture_path(ri, "bargame")->unit;
-      const auto poisson = generate_poisson(width, height, 150, 0);
-      std::cout << "generated " << poisson.size() << " poisson points" << std::endl;
-      for (const auto& p : poisson) {
-        const auto icon = create_gameplay(r, EntityType::empty_with_transform);
-        set_sprite_custom(r, icon, "icon_grass"s, tex_unit_for_bargame);
+      // const int tex_unit_for_bargame = search_for_texture_unit_by_texture_path(ri, "bargame")->unit;
+      // const auto poisson = generate_poisson(width, height, 150, 0);
+      // std::cout << "generated " << poisson.size() << " poisson points" << std::endl;
+      // for (const auto& p : poisson) {
+      //   const auto icon = create_gameplay(r, EntityType::empty_with_transform);
+      //   set_sprite_custom(r, icon, "icon_grass"s, tex_unit_for_bargame);
 
-        r.get<TransformComponent>(icon).position = { p.x, p.y, 0.0f };
-        r.get<TagComponent>(icon).tag = "grass"s;
-      }
+      //   r.get<TransformComponent>(icon).position = { p.x, p.y, 0.0f };
+      //   r.get<TagComponent>(icon).tag = "grass"s;
+      // }
     }
   }
 
@@ -391,7 +391,7 @@ move_to_scene_start(entt::registry& r, const Scene s)
     int width = 1000;
     int height = 1000;
     MapComponent map_c;
-    map_c.tilesize = 64;
+    map_c.tilesize = 50;
     map_c.xmax = width / map_c.tilesize;
     map_c.ymax = height / map_c.tilesize;
     const glm::ivec2 tilesize{ map_c.tilesize, map_c.tilesize };
@@ -440,15 +440,15 @@ move_to_scene_start(entt::registry& r, const Scene s)
       create_wall_piece({ 32 * i, 32 * 10 });
   }
 
-  if (s == Scene::spaceship_designer) {
+  if (s == Scene::dungeon_designer) {
     // create background effect
     r.emplace<Effect_GridComponent>(r.create());
 
     // set dungeon constraints
-    int map_width = 2000;
-    int map_height = 2000;
+    int map_width = 500;
+    int map_height = 500;
     MapComponent map_c;
-    map_c.tilesize = 25;
+    map_c.tilesize = 50;
     map_c.xmax = map_width / map_c.tilesize;
     map_c.ymax = map_height / map_c.tilesize;
     map_c.map.resize(map_c.xmax * map_c.ymax);
@@ -482,14 +482,13 @@ move_to_scene_start(entt::registry& r, const Scene s)
     //   for (const auto& p : poisson) {
     //     const auto icon = create_gameplay(r, EntityType::empty_with_transform);
     //     set_sprite_custom(r, icon, "icon_grass"s, tex_unit_for_bargame);
-
     //     r.get<TransformComponent>(icon).position = { p.x, p.y, 0.0f };
     //     r.get<TagComponent>(icon).tag = "grass"s;
     //   }
     // }
   }
 
-  if (s == Scene::duckgame) {
+  if (s == Scene::duckgame_overworld) {
     int map_width = 1000;
     int map_height = 1000;
     MapComponent map_c;
@@ -566,24 +565,47 @@ move_to_scene_start(entt::registry& r, const Scene s)
     }
   }
 
-  if (s == Scene::dungeon) {
-    // if need it, try_get. could be launched standalone
-    // const auto& previous_scene_data = get_first_component<SINGLE_DuckgameToDungeon>(r);
+  if (s == Scene::turnbasedcombat) {
+    // scene design brief:
+    //  all squares
+    //  everyone has a pistol
+    //  5v5 team
+    //  everyone roll random initiative
+    //  combat is over when one side is dead
+    // things you can do per turn:
+    // move
+    // shoot (your pistol)
 
-    create_gameplay(r, EntityType::cursor);
+    for (int i = 0; i < 5; i++) // player team
+    {
+      const auto e = create_gameplay(r, EntityType::actor_unit_rtslike);
+      r.get<TeamComponent>(e).team = AvailableTeams::player;
+      set_position(r, e, { 0, i * 50 });
 
-    const auto player = create_player(r, { 32, 32 });
-    r.emplace<CameraFollow>(player);
+      const engine::SRGBColour default_colour = { 0.0f, 0.3f, 0.8f, 1.0f };
+      set_colour(r, e, default_colour);
+      r.emplace<DefaultColour>(e, default_colour);
 
-    // set dungeon constraints
-    int map_width = 1024;
-    int map_height = 1024;
-    MapComponent map_c;
-    map_c.tilesize = 16;
-    map_c.xmax = map_width / map_c.tilesize;
-    map_c.ymax = map_height / map_c.tilesize;
-    map_c.map.resize(map_c.xmax * map_c.ymax);
-    r.emplace<MapComponent>(r.create(), map_c);
+      const engine::SRGBColour hovered_colour = { 0.0f, 1.0f, 1.0f, 1.0f };
+      r.emplace<HoveredColour>(e, hovered_colour);
+    }
+    for (int i = 0; i < 5; i++) // enemy team
+    {
+      const auto e = create_gameplay(r, EntityType::actor_unit_rtslike);
+      r.get<TeamComponent>(e).team = AvailableTeams::enemy;
+
+      // GAMEDESIGN TODO:
+      // set out of range, so that player is free-roaming, then
+      // when they get in range, the "turn-based combat starts"
+      set_position(r, e, { 250, i * 50 });
+
+      const engine::SRGBColour default_colour = { 0.8f, 0.3f, 0.0f, 1.0f };
+      set_colour(r, e, default_colour);
+      r.emplace<DefaultColour>(e, default_colour);
+
+      const engine::SRGBColour hovered_colour = { 1.0f, 1.0f, 0.0f, 1.0f };
+      r.emplace<HoveredColour>(e, hovered_colour);
+    }
   }
 
   const auto scene_name = std::string(magic_enum::enum_name(s));

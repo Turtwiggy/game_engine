@@ -1,5 +1,6 @@
 #pragma once
 
+#include "colour/colour.hpp"
 #include <entt/entt.hpp>
 
 #include <set>
@@ -20,6 +21,16 @@ struct HoveredComponent
 struct SelectedComponent
 {
   bool placeholder = true;
+};
+
+struct DefaultColour
+{
+  engine::SRGBColour colour{ 1.0f, 1.0f, 1.0f, 1.0f };
+};
+
+struct HoveredColour
+{
+  engine::SRGBColour colour{ 1.0f, 1.0f, 1.0f, 1.0f };
 };
 
 } // namespace game2d

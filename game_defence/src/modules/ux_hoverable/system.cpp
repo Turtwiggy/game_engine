@@ -1,20 +1,13 @@
 #include "system.hpp"
 
-#include "actors.hpp"
 #include "components.hpp"
 #include "entt/helpers.hpp"
 #include "events/helpers/keyboard.hpp"
 #include "events/helpers/mouse.hpp"
 #include "modules/actor_cursor/components.hpp"
-#include "modules/actor_group/components.hpp"
-#include "modules/combat_damage/components.hpp"
-#include "modules/renderer/components.hpp"
 #include "modules/resolve_collisions/helpers.hpp"
-#include "modules/ui_colours/helpers.hpp"
 #include "physics/components.hpp"
 
-#include "imgui.h"
-#include "sprites/components.hpp"
 #include <SDL_scancode.h>
 
 namespace game2d {
@@ -31,25 +24,16 @@ update_ux_hoverable(entt::registry& r)
   const bool release = get_mouse_lmb_release();
   const bool shift_held = get_key_held(input, SDL_SCANCODE_LSHIFT);
 
-  // clear anything thats hovered
+  // Clear anything thats hovered
   {
-    const auto& view = r.view<HoveredComponent, SpriteComponent, TagComponent>();
-
-    // revert colours on anything hovered
-    {
-      for (const auto& [e, hov, sc, tag] : view.each())
-        sc.colour = get_lin_colour_by_tag(r, tag.tag);
-    }
-
+    const auto& view = r.view<HoveredComponent>();
     r.remove<HoveredComponent>(view.begin(), view.end());
   }
 
+  // Work out what's being hovered this tick
   for (const auto& coll : physics.collision_stay) {
     const auto a = static_cast<entt::entity>(coll.ent_id_0);
     const auto b = static_cast<entt::entity>(coll.ent_id_1);
-    const auto& a_type = r.get<EntityTypeComponent>(a).type;
-    const auto& b_type = r.get<EntityTypeComponent>(b).type;
-
     const auto [a_ent, b_ent] = collision_of_interest<CursorComponent, HoverableComponent>(r, a, b);
     r.emplace_or_replace<HoveredComponent>(b_ent);
   }
@@ -59,10 +43,8 @@ update_ux_hoverable(entt::registry& r)
 
     // ... clear anything thats already selected (unless shift is held)
     if (!shift_held) {
-      const auto& view_selected = r.view<SelectedComponent, SpriteComponent, TagComponent>();
-      for (const auto& [selected_e, selected_c, sc, tag] : view_selected.each())
-        sc.colour = get_lin_colour_by_tag(r, tag.tag);
-      r.remove<SelectedComponent>(view_selected.begin(), view_selected.end());
+      const auto& view = r.view<SelectedComponent>();
+      r.remove<SelectedComponent>(view.begin(), view.end());
     }
 
     // ... move hovering to selected
@@ -77,5 +59,6 @@ update_ux_hoverable(entt::registry& r)
       // r.emplace_or_replace<SelectedComponent>(e);
     }
   }
-}
 };
+
+} // namespace game2d

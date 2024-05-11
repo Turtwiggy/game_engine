@@ -2,10 +2,13 @@
 
 #include "components.hpp"
 #include "entt/helpers.hpp"
+#include "maths/grid.hpp"
 #include "modules/actor_cursor/components.hpp"
 #include "modules/actor_player/components.hpp"
 #include "modules/actors/helpers.hpp"
+#include "modules/ai_pathfinding/components.hpp"
 #include "modules/resolve_collisions/helpers.hpp"
+#include "modules/selected_interactions/components.hpp"
 #include "physics/components.hpp"
 
 #include "imgui.h"
@@ -48,7 +51,7 @@ update_spaceship_door_system(entt::registry& r, const float& dt)
   const auto& view = r.view<SpaceshipDoorComponent, AABB>();
   for (const auto& [e, door, door_aabb] : view.each()) {
     ImGui::Separator();
-    auto& door_state = door.state;
+    SpaceshipDoorState& door_state = door.state;
     const auto door_state_name = std::string(magic_enum::enum_name(door_state));
     ImGui::Text("DoorState: %s", door_state_name.c_str());
 
@@ -131,6 +134,35 @@ update_spaceship_door_system(entt::registry& r, const float& dt)
     else
       percent_closed = door_aabb.size.y / closed_size.y;
     ImGui::Text("Percentage Closed: %f", percent_closed * 100.0f);
+
+    //
+    // Update pathfinding based on door state.
+    //
+    const auto& map = get_first_component<MapComponent>(r);
+    if (door_state == SpaceshipDoorState::OPEN) {
+      const auto gridspace = engine::grid::world_space_to_grid_space(door_aabb.center, map.tilesize);
+      const auto idx = engine::grid::grid_position_to_clamped_index(gridspace, map.xmax, map.ymax);
+      if (map.map[idx].size() != 0) {
+        const std::vector<entt::entity> pathfinding_es = map.map[idx];
+        for (const auto& pathfinding_e : pathfinding_es) {
+          auto& pathfinding_c = r.get<PathfindComponent>(pathfinding_e);
+          pathfinding_c.cost = 0;
+        }
+      }
+    }
+    if (door_state == SpaceshipDoorState::CLOSED) {
+      const auto gridspace = engine::grid::world_space_to_grid_space(door_aabb.center, map.tilesize);
+      const auto idx = engine::grid::grid_position_to_clamped_index(gridspace, map.xmax, map.ymax);
+      if (map.map[idx].size() != 0) {
+        const std::vector<entt::entity> pathfinding_es = map.map[idx];
+        for (const auto& pathfinding_e : pathfinding_es) {
+          auto& pathfinding_c = r.get<PathfindComponent>(pathfinding_e);
+          pathfinding_c.cost = -1;
+        }
+      }
+    }
+
+    //
   }
 
   ImGui::End();

@@ -34,7 +34,7 @@ update_ui_dungeon_system(entt::registry& r, const glm::ivec2& mouse_pos)
         // TODO: need to reload duckscene state...
 
         // going to "duckscene" scene
-        move_to_scene_start(r, Scene::duckgame);
+        move_to_scene_start(r, Scene::duckgame_overworld);
       }
     }
   } else {

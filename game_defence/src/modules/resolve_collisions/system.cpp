@@ -44,9 +44,6 @@ update_resolve_collisions_system(entt::registry& r)
     const auto a = static_cast<entt::entity>(coll.ent_id_0);
     const auto b = static_cast<entt::entity>(coll.ent_id_1);
 
-    const auto& a_type = r.get<EntityTypeComponent>(a).type;
-    const auto& b_type = r.get<EntityTypeComponent>(b).type;
-
     const auto* a_atk = r.try_get<AttackComponent>(a);
     const auto* a_def = r.try_get<HealthComponent>(a);
     const auto* a_team = r.try_get<TeamComponent>(a);
@@ -81,8 +78,6 @@ update_resolve_collisions_system(entt::registry& r)
   for (const Collision2D& coll : physics.frame_solid_collisions) {
     const auto a = static_cast<entt::entity>(coll.ent_id_0);
     const auto b = static_cast<entt::entity>(coll.ent_id_1);
-    const auto& a_type = r.get<EntityTypeComponent>(a).type;
-    const auto& b_type = r.get<EntityTypeComponent>(b).type;
 
     const auto [a_ent, b_ent] = collision_of_interest<const BulletComponent, const EntityTypeComponent>(r, a, b);
     if (a_ent != entt::null && b_ent != entt::null) {

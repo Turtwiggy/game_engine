@@ -12,7 +12,7 @@ void
 update_flash_sprite_system(entt::registry& r, const uint64_t milliseconds_dt)
 {
   const auto& view = r.view<SpriteComponent, RequestFlashComponent, TagComponent>(entt::exclude<WaitForInitComponent>);
-  for (const auto [e, sc, request, tag] : view.each()) {
+  for (const auto& [e, sc, request, tag] : view.each()) {
 
     if (request.milliseconds_left > 0)
       sc.colour = get_lin_colour_by_tag(r, "enemy_flash");

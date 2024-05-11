@@ -15,6 +15,7 @@
 #include "maths/maths.hpp"
 #include "modules/actor_player/components.hpp"
 #include "modules/actors/helpers.hpp"
+#include "modules/ai_pathfinding/components.hpp"
 #include "modules/camera/components.hpp"
 #include "modules/gen_dungeons/components.hpp"
 #include "modules/gen_dungeons/helpers.hpp"
@@ -22,6 +23,7 @@
 #include "modules/scene/helpers.hpp"
 #include "modules/selected_interactions/components.hpp"
 #include "modules/system_spaceship_door/components.hpp"
+#include "modules/ux_hoverable/components.hpp"
 #include "modules/vfx_grid/components.hpp"
 #include "physics/components.hpp"
 #include "physics/helpers.hpp"
@@ -309,6 +311,18 @@ update_ui_spaceship_designer_system(entt::registry& r, const glm::ivec2& input_m
   const auto grid_pos = engine::grid::world_space_to_grid_space(mouse_pos, grid_snap_size);
   ImGui::Text("grid_pos: %i %i", grid_pos.x, grid_pos.y);
   ImGui::Text("cursor_pos: %i %i", input_mouse_pos.x, input_mouse_pos.y);
+
+  // Hack: debug gridpos pathfinding
+  {
+    const auto& map = get_first_component<MapComponent>(r);
+    const auto grid_idx = engine::grid::grid_position_to_clamped_index(grid_pos, map.xmax, map.ymax);
+    if (map.map[grid_idx].size() > 0) {
+      for (const auto& map_e : map.map[grid_idx]) {
+        const auto& pfc = r.get<PathfindComponent>(map_e);
+        ImGui::Text("Cost: %i", pfc.cost);
+      }
+    }
+  }
 
   // Drag To Create Rooms
   //
@@ -655,6 +669,7 @@ update_ui_spaceship_designer_system(entt::registry& r, const glm::ivec2& input_m
     // Generate dungeon base
     // generate_dungeon();
     if (get_key_down(input, generate_dungeon_key)) {
+      auto& map = get_first_component<MapComponent>(r);
 
       // Mark all rooms as ded, and remove room components.
       const auto& wall_view = r.view<Wall>();
@@ -668,16 +683,8 @@ update_ui_spaceship_designer_system(entt::registry& r, const glm::ivec2& input_m
         r.remove<Room>(room_e);
       }
 
-      const auto& map_e = get_first<MapComponent>(r);
-      if (map_e == entt::null) {
-        std::cout << "missing map..." << std::endl;
-      }
-      auto& map = get_first_component<MapComponent>(r);
-
       static int seed = 0;
-
-      // Increase seed everytime a map is generated
-      seed++;
+      seed++; // Increase seed everytime a map is generated
 
       engine::RandomState rnd;
       rnd.rng.seed(seed);
@@ -687,8 +694,35 @@ update_ui_spaceship_designer_system(entt::registry& r, const glm::ivec2& input_m
 
       for (const Room& room : rooms) {
         const auto room_to_create = create_gameplay(r, EntityType::empty_with_physics);
-        set_colour(r, room_to_create, { 1.0f, 1.0f, 1.0f, 0.02f });
+        const engine::SRGBColour col = { 1.0f, 1.0f, 1.0f, 0.02f };
+        set_colour(r, room_to_create, col);
+        r.emplace<DefaultColour>(room_to_create, col);
         r.emplace<Room>(room_to_create, room);
+
+        // the aabb attached to the room contains aabb in gridspace.
+        {
+          const auto& w = room.aabb.size.x;
+          const auto& h = room.aabb.size.y;
+          for (int y = 0; y <= h; y++) {
+            for (int x = 0; x <= w; x++) {
+              const auto global_grid_pos = glm::ivec2{ room.tl.x + x, room.tl.y + y };
+              const auto global_idx = engine::grid::grid_position_to_index(global_grid_pos, map.xmax);
+
+              bool create_as_wall = false;
+              if (x == 0 || x == w)
+                create_as_wall = true;
+              if (y == 0 || y == h)
+                create_as_wall = true;
+
+              // add blocked grid cell to pathfinding
+              if (create_as_wall) {
+                const auto e = create_gameplay(r, EntityType::empty_no_transform);
+                r.emplace<PathfindComponent>(e, -1);
+                map.map[global_idx].push_back(e);
+              }
+            }
+          }
+        }
 
         // create room walls
         const auto w0 = create_wall(r, room.aabb.center, room_to_create);
@@ -699,13 +733,14 @@ update_ui_spaceship_designer_system(entt::registry& r, const glm::ivec2& input_m
         const auto& gridspace_tl = room.tl;
         const auto& worldspace_tl = gridspace_tl * map.tilesize;
         const auto worldspace_size = room.aabb.size * map.tilesize;
+        const glm::ivec2 offset = { map.tilesize / 2, map.tilesize / 2 };
 
         const int w = worldspace_size.x;
         const int h = worldspace_size.y;
-        const glm::ivec2 tl = { worldspace_tl };
-        const glm::ivec2 tr = { (worldspace_tl.x + w), (worldspace_tl.y) };
-        const glm::ivec2 bl = { (worldspace_tl.x), (worldspace_tl.y + h) };
-        const glm::ivec2 br = { (worldspace_tl.x + w), (worldspace_tl.y + h) };
+        const glm::ivec2 tl = glm::ivec2{ worldspace_tl } + offset;
+        const glm::ivec2 tr = glm::ivec2{ (worldspace_tl.x + w), (worldspace_tl.y) } + offset;
+        const glm::ivec2 bl = glm::ivec2{ (worldspace_tl.x), (worldspace_tl.y + h) } + offset;
+        const glm::ivec2 br = glm::ivec2{ (worldspace_tl.x + w), (worldspace_tl.y + h) } + offset;
 
         r.replace<Wall>(w0, Wall{ tl, tr, room_to_create });
         r.replace<Wall>(w1, Wall{ tr, br, room_to_create });
@@ -715,6 +750,8 @@ update_ui_spaceship_designer_system(entt::registry& r, const glm::ivec2& input_m
         const glm::ivec2 worldspace_center = { (tl.x + tr.x) / 2.0f, (tr.y + br.y) / 2.0f };
         set_position(r, room_to_create, worldspace_center);
         set_size(r, room_to_create, worldspace_size);
+
+        // Create some monstors in the room?
       }
     }
   }

@@ -27,24 +27,23 @@ update_ui_backstab_patrol_system(entt::registry& r)
 
   // get enemies within stabbin" range.
   //
-  const auto enemies = get_within_range<EnemyComponent>(r, player_e, 1000 * 1000);
+  // const auto enemies = get_within_range<EnemyComponent>(r, player_e, 1000 * 1000);
 
   ImGui::Begin("Debug__BackstabPatrolSystem");
-  ImGui::Text("Backstabbable Enemies in range: %i", enemies.size());
+  // ImGui::Text("Backstabbable Enemies in range: %i", enemies.size());
 
   // BUG: updates all worldspace-ui
-  const auto& worldspace_ui_view = r.view<WorldspaceTextComponent>();
-  for (const auto& [e, text] : worldspace_ui_view.each())
-    text.text = "-";
-
+  // const auto& worldspace_ui_view = r.view<WorldspaceTextComponent>();
+  // for (const auto& [e, text] : worldspace_ui_view.each())
+  //   text.text = "-";
   // set some worldspace ui
-  for (const auto& [e, distance] : enemies) {
+
+  const auto enemies_view = r.view<EnemyComponent>();
+  for (const auto& [e, e_c] : enemies_view.each()) {
     const auto eid = static_cast<uint32_t>(e);
     ImGui::PushID(eid);
-
     auto& ui_txt = r.get_or_emplace<WorldspaceTextComponent>(e);
-    ui_txt.text = std::to_string(distance);
-
+    ui_txt.text = std::to_string(eid);
     ImGui::PopID();
   }
 

@@ -348,6 +348,19 @@ create_gameplay(entt::registry& r, const EntityType& type)
       break;
     }
 
+    case EntityType::actor_unit_rtslike: {
+      create_physics_actor(r, e);
+
+      r.emplace<TeamComponent>(e);
+      r.emplace<HoverableComponent>(e); // the selected component gets attached
+      // r.emplace<ChangeColourOnHoverComponent>(e);
+
+      const int hp = 100; // killable
+      r.emplace<HealthComponent>(e, hp, hp);
+
+      break;
+    }
+
     case EntityType::actor_spawner: {
       create_physics_actor(r, e);
       r.emplace<HealthComponent>(e, 10, 10);

@@ -24,7 +24,7 @@ struct Room
 
 struct DungeonGenerationCriteria
 {
-  int max_rooms = 30;
+  int max_rooms = 5;
   int room_size_min = 6;
   int room_size_max = 10;
 };

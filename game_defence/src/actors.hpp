@@ -28,6 +28,7 @@ enum class EntityType
   actor_spaceship_pressureplate,
   solid_spaceship_door,
   solid_spaceship_point,
+  actor_unit_rtslike, // selectable and moveable
 
   // in progress
   actor_player_ally,
