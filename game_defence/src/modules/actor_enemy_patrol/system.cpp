@@ -11,8 +11,8 @@
 #include "modules/algorithm_astar_pathfinding/components.hpp"
 #include "modules/algorithm_astar_pathfinding/helpers.hpp"
 #include "modules/grid/components.hpp"
-#include "modules/selected_interactions/components.hpp"
 #include "physics/components.hpp"
+
 
 // choose a new random position
 // move towards position

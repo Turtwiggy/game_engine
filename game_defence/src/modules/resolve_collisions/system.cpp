@@ -5,11 +5,16 @@
 #include "lifecycle/components.hpp"
 #include "maths/maths.hpp"
 #include "modules/actor_enemy/components.hpp"
+#include "modules/actor_enemy_patrol/components.hpp"
 #include "modules/actor_particle/components.hpp"
+#include "modules/actor_player/components.hpp"
 #include "modules/actor_weapon_shotgun/components.hpp"
 #include "modules/combat_damage/components.hpp"
 #include "modules/combat_wants_to_shoot/components.hpp"
 #include "modules/resolve_collisions/helpers.hpp"
+#include "modules/scene/components.hpp"
+#include "modules/scene/helpers.hpp"
+#include "modules/ui_combat_turnbased/components.hpp"
 #include "physics/components.hpp"
 #include "renderer/transform.hpp"
 #include "sprites/components.hpp"
@@ -27,6 +32,28 @@ enemy_barricade_collision(entt::registry& r, const entt::entity& a, const entt::
     if (b_type == EntityType::actor_barricade) {
       r.get_or_emplace<DynamicTargetComponent>(a_ent).target = b_ent;
     }
+  }
+}
+
+void
+enemy_player_collision(entt::registry& r, const entt::entity& a, const entt::entity& b)
+{
+  const auto [a_player, b_group] = collision_of_interest<PlayerComponent, EnemyComponent>(r, a, b);
+
+  if (a_player != entt::null && b_group != entt::null) {
+
+    // You've collided with an enemy.
+    // Were you on course to backstab it?
+    bool was_backstabbed = false;
+    if (const auto* b = r.try_get<BackstabbableComponent>(b_group))
+      was_backstabbed = true;
+
+    SINGLE_DuckgameToDungeon data;
+    data.backstabbed = was_backstabbed;
+    r.emplace_or_replace<SINGLE_DuckgameToDungeon>(r.create(), data);
+
+    // going to "dungeon" scene
+    move_to_scene_start(r, Scene::dungeon_designer);
   }
 }
 
@@ -73,6 +100,7 @@ update_resolve_collisions_system(entt::registry& r)
     }
 
     enemy_barricade_collision(r, a, b);
+    enemy_player_collision(r, a, b);
   }
 
   for (const Collision2D& coll : physics.frame_solid_collisions) {

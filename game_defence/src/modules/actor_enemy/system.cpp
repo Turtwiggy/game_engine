@@ -11,10 +11,11 @@
 #include "modules/algorithm_astar_pathfinding/helpers.hpp"
 #include "modules/combat_attack_cooldown/components.hpp"
 #include "modules/combat_damage/components.hpp"
+#include "modules/grid/components.hpp"
 #include "modules/lerp_to_target/components.hpp"
-#include "modules/selected_interactions/components.hpp"
 #include "physics/components.hpp"
 #include "renderer/transform.hpp"
+
 
 #include <glm/glm.hpp>
 #include <glm/gtx/compatibility.hpp> // lerp

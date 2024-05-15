@@ -351,7 +351,10 @@ create_gameplay(entt::registry& r, const EntityType& type)
 
     case EntityType::actor_unit_rtslike: {
       create_physics_actor(r, e);
-      r.emplace<PhysicsSolidComponent>(e);
+
+      auto& vel = r.get<VelocityComponent>(e);
+      vel.base_speed = 50.0f;
+      // r.emplace<PhysicsSolidComponent>(e);
 
       r.emplace<TeamComponent>(e);
       r.emplace<HoverableComponent>(e); // the selected component gets attached

@@ -5,7 +5,7 @@
 #include "modules/actor_enemy_patrol/components.hpp"
 #include "modules/actor_enemy_patrol/system.hpp"
 #include "modules/actors/helpers.hpp"
-#include "modules/selected_interactions/components.hpp"
+#include "modules/grid/components.hpp"
 #include "physics/components.hpp"
 
 #include <entt/entt.hpp>

@@ -2,7 +2,7 @@
 
 #include "modules/algorithm_astar_pathfinding/components.hpp"
 #include "modules/grid/components.hpp"
-#include "modules/selected_interactions/components.hpp"
+
 
 #include <glm/glm.hpp>
 

@@ -25,4 +25,13 @@ struct GridComponent
   std::vector<entt::entity> debug_generated_obstacles;
 };
 
+struct MapComponent
+{
+  int xmax = 10;
+  int ymax = 10;
+  int tilesize = 50;
+
+  std::vector<std::vector<entt::entity>> map;
+};
+
 } // namespace game2d

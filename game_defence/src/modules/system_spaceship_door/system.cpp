@@ -7,9 +7,10 @@
 #include "modules/actor_player/components.hpp"
 #include "modules/actors/helpers.hpp"
 #include "modules/algorithm_astar_pathfinding/components.hpp"
+#include "modules/grid/components.hpp"
 #include "modules/resolve_collisions/helpers.hpp"
-#include "modules/selected_interactions/components.hpp"
 #include "physics/components.hpp"
+
 
 #include "imgui.h"
 #include "magic_enum.hpp"

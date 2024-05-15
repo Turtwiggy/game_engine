@@ -19,14 +19,15 @@
 #include "modules/camera/components.hpp"
 #include "modules/gen_dungeons/components.hpp"
 #include "modules/gen_dungeons/helpers.hpp"
+#include "modules/grid/components.hpp"
 #include "modules/resolve_collisions/helpers.hpp"
 #include "modules/scene/helpers.hpp"
-#include "modules/selected_interactions/components.hpp"
 #include "modules/system_spaceship_door/components.hpp"
 #include "modules/ux_hoverable/components.hpp"
 #include "modules/vfx_grid/components.hpp"
 #include "physics/components.hpp"
 #include "physics/helpers.hpp"
+
 
 #include "imgui.h"
 #include <SDL_keyboard.h>
@@ -313,16 +314,16 @@ update_ui_spaceship_designer_system(entt::registry& r, const glm::ivec2& input_m
   ImGui::Text("cursor_pos: %i %i", input_mouse_pos.x, input_mouse_pos.y);
 
   // Hack: debug gridpos pathfinding
-  {
-    const auto& map = get_first_component<MapComponent>(r);
-    const auto grid_idx = engine::grid::grid_position_to_clamped_index(grid_pos, map.xmax, map.ymax);
-    if (map.map[grid_idx].size() > 0) {
-      for (const auto& map_e : map.map[grid_idx]) {
-        const auto& pfc = r.get<PathfindComponent>(map_e);
-        ImGui::Text("Cost: %i", pfc.cost);
-      }
-    }
-  }
+  // {
+  //   const auto& map = get_first_component<MapComponent>(r);
+  //   const auto grid_idx = engine::grid::grid_position_to_clamped_index(grid_pos, map.xmax, map.ymax);
+  //   if (map.map[grid_idx].size() > 0) {
+  //     for (const auto& map_e : map.map[grid_idx]) {
+  //       const auto& pfc = r.get<PathfindComponent>(map_e);
+  //       ImGui::Text("Cost: %i", pfc.cost);
+  //     }
+  //   }
+  // }
 
   // Drag To Create Rooms
   //
@@ -691,6 +692,7 @@ update_ui_spaceship_designer_system(entt::registry& r, const glm::ivec2& input_m
 
       // clamp parameters to map
       DungeonGenerationCriteria dungeon_parameters;
+      dungeon_parameters.max_rooms = 300;
       dungeon_parameters.room_size_min = glm::max(dungeon_parameters.room_size_min, 0);
       dungeon_parameters.room_size_max = glm::min(dungeon_parameters.room_size_max, map.xmax);
 
@@ -741,17 +743,17 @@ update_ui_spaceship_designer_system(entt::registry& r, const glm::ivec2& input_m
 
               // add blocked grid cell to pathfinding
               if (create_as_wall) {
-                const auto e = create_gameplay(r, EntityType::empty_with_transform);
+                // const auto e = create_gameplay(r, EntityType::empty_with_transform);
 
-                const glm::ivec2 pos = engine::grid::grid_space_to_world_space(global_grid_pos, map.tilesize);
-                set_position(r, e, { pos.x, pos.y });
-                set_size(r, e, { 10, 10 });
+                // const glm::ivec2 pos = engine::grid::grid_space_to_world_space(global_grid_pos, map.tilesize);
+                // set_position(r, e, { pos.x, pos.y });
+                // set_size(r, e, { 10, 10 });
 
-                const auto global_idx = engine::grid::grid_position_to_index(global_grid_pos, map.xmax);
-                r.emplace<PathfindComponent>(e, -1);
-                map.map[global_idx].push_back(e);
+                // const auto global_idx = engine::grid::grid_position_to_index(global_grid_pos, map.xmax);
+                // r.emplace<PathfindComponent>(e, -1);
+                // map.map[global_idx].push_back(e);
 
-                debug.push_back(e);
+                // debug.push_back(e);
               }
             }
           }

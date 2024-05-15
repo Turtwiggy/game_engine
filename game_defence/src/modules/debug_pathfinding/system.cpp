@@ -4,7 +4,8 @@
 #include "helpers/entity_pool.hpp"
 #include "helpers/line.hpp"
 #include "modules/algorithm_astar_pathfinding/components.hpp"
-#include "modules/selected_interactions/components.hpp"
+#include "modules/debug_pathfinding/components.hpp"
+#include "modules/grid/components.hpp"
 
 namespace game2d {
 
@@ -16,13 +17,13 @@ update_debug_pathfinding_system(entt::registry& r, const glm::ivec2& mouse_pos)
     return;
   const auto& map = get_first_component<MapComponent>(r);
 
-  static EntityPool lines_pool;
   const auto& view = r.view<GeneratedPathComponent>();
-
-  int lines = 0;
+  int desired_lines = 0;
   for (const auto& [e, path] : view.each())
-    lines += (path.path.size() - 1); // -1, beacuse 1 less line than points
-  lines_pool.update(r, lines);
+    desired_lines += (path.path.size() - 1); // -1, beacuse 1 less line than points
+
+  auto& debug_path_lines = get_first_component<SINGLE_DebugPathLines>(r);
+  debug_path_lines.pool.update(r, desired_lines);
 
   int line_idx = 0;
   for (const auto& [e, path_c] : view.each()) {
@@ -34,10 +35,11 @@ update_debug_pathfinding_system(entt::registry& r, const glm::ivec2& mouse_pos)
       const auto cur = (glm::ivec2{ path[i].x, path[i].y } * map.tilesize) + offset;
       const auto nxt = (glm::ivec2{ path[i + 1].x, path[i + 1].y } * map.tilesize) + offset;
 
-      if (line_idx >= lines)
+      if (line_idx >= desired_lines)
         continue; // why dis happening?
 
-      set_transform_with_line(r, lines_pool.instances[line_idx], generate_line(cur, nxt, 2));
+      const auto debug_e = debug_path_lines.pool.instances[line_idx];
+      set_transform_with_line(r, debug_e, generate_line(cur, nxt, 2));
 
       line_idx++;
     }

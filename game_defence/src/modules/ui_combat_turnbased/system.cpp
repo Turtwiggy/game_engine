@@ -2,18 +2,30 @@
 
 #include "components.hpp"
 
+#include "actors.hpp"
+#include "components.hpp"
 #include "entt/helpers.hpp"
+#include "events/components.hpp"
+#include "events/helpers/keyboard.hpp"
 #include "events/helpers/mouse.hpp"
-#include "imgui.h"
+#include "lifecycle/components.hpp"
 #include "maths/grid.hpp"
+#include "modules/actor_player/components.hpp"
 #include "modules/actors/helpers.hpp"
 #include "modules/algorithm_astar_pathfinding/components.hpp"
 #include "modules/algorithm_astar_pathfinding/helpers.hpp"
+#include "modules/combat_damage/components.hpp"
+#include "modules/combat_wants_to_shoot/components.hpp"
+#include "modules/gen_dungeons/helpers.hpp"
 #include "modules/grid/components.hpp"
-#include "modules/selected_interactions/components.hpp"
+#include "modules/scene/components.hpp"
+#include "modules/scene/helpers.hpp"
+#include "modules/ui_worldspace_text/components.hpp"
 #include "modules/ux_hoverable/components.hpp"
 #include "physics/components.hpp"
 #include "renderer/transform.hpp"
+
+#include "imgui.h"
 
 namespace game2d {
 
@@ -42,18 +54,25 @@ set_hover_debug(entt::registry& r, const bool enabled, const glm::ivec2& positio
 void
 update_ui_combat_turnbased_system(entt::registry& r, const glm::ivec2& input_mouse_pos)
 {
+  const int mouse_grid_increments = 10;
+
   const auto& map_e = get_first<MapComponent>(r);
   if (map_e == entt::null)
     return;
   auto& map = get_first_component<MapComponent>(r);
 
-  // note: this is not the map.tilesize,
-  const int mouse_grid_increments = 10;
-  const int grid_snap_size = mouse_grid_increments;
+  const auto& data_e = get_first<SINGLE_DuckgameToDungeon>(r);
+  if (data_e != entt::null) {
+    // you arrived from a scene
+  }
 
+  const auto& input = get_first_component<SINGLETON_InputComponent>(r);
+  const bool left_ctrl_held = get_key_held(input, SDL_Scancode::SDL_SCANCODE_LCTRL);
+  const bool rmb_click = get_mouse_rmb_press();
+
+  const int grid_snap_size = mouse_grid_increments; // note: this is not the map.tilesize,
   glm::ivec2 mouse_pos = engine::grid::grid_space_to_world_space(
     engine::grid::world_space_to_grid_space(input_mouse_pos, grid_snap_size), grid_snap_size);
-  // center
   mouse_pos += glm::vec2(grid_snap_size / 2.0f, grid_snap_size / 2.0f); // center
 
   // Convert Map to Grid (?)
@@ -63,12 +82,10 @@ update_ui_combat_turnbased_system(entt::registry& r, const glm::ivec2& input_mou
   grid.height = map.ymax;
   grid.grid = map.map;
 
-  const bool rmb_click = get_mouse_rmb_press();
-
   const auto gridpos = engine::grid::world_space_to_grid_space(input_mouse_pos, map.tilesize);
   const auto clamped_gridpos = engine::grid::world_space_to_grid_space(mouse_pos, map.tilesize);
 
-  ImGui::Begin("TurnbasedCombat");
+  ImGui::Begin("UI Combat");
   ImGui::Text("MousePos: %i %i", input_mouse_pos.x, input_mouse_pos.y);
   ImGui::Text("MousePos GridPos: %i %i", gridpos.x, gridpos.y);
   ImGui::Text("MouseClampedPos: %i %i", mouse_pos.x, mouse_pos.y);
@@ -116,6 +133,15 @@ update_ui_combat_turnbased_system(entt::registry& r, const glm::ivec2& input_mou
     }
   }
 
+  // Hack: display all units hp in worldspace
+  {
+    const auto& view = r.view<HealthComponent>();
+    for (const auto& [e, hp] : view.each()) {
+      auto& worldspace_ui = r.get_or_emplace<WorldspaceTextComponent>(e);
+      worldspace_ui.text = std::to_string(hp.hp);
+    }
+  }
+
   ImGui::Text("Hello, Combat!");
 
   const auto& selected_view = r.view<SelectedComponent, AABB>();
@@ -125,17 +151,14 @@ update_ui_combat_turnbased_system(entt::registry& r, const glm::ivec2& input_mou
     count++;
   ImGui::Text("Count: %i", count);
 
-  // limit moving to only one unit
+  // limit to only interacting with 1 selected unit
   if (count != 1) {
     set_hover_debug(r, false, { 0, 0 }, { 0, 0 });
     ImGui::End();
     return;
   }
 
-  ImGui::Text("Count is 1");
-
   for (const auto& [e, selected_c, aabb] : selected_view.each()) {
-    ImGui::Text("Iterating selected...");
     set_hover_debug(r, true, mouse_pos, aabb.size);
 
     const auto src = aabb.center;
@@ -157,12 +180,21 @@ update_ui_combat_turnbased_system(entt::registry& r, const glm::ivec2& input_mou
       r.emplace_or_replace<GeneratedPathComponent>(e, path_c);
     };
 
-    if (rmb_click)
+    // aim gun
+    auto& static_tgt = r.get_or_emplace<StaticTargetComponent>(e);
+    static_tgt.target = { mouse_pos.x, mouse_pos.y };
+
+    // move
+    if (left_ctrl_held && rmb_click)
       update_path_to_mouse();
+
+    // shoot
+    else if (rmb_click)
+      r.emplace_or_replace<WantsToShoot>(e);
   }
 
   if (ImGui::Button("Move Everything")) {
-    //
+    // hmm
   }
 
   ImGui::End();

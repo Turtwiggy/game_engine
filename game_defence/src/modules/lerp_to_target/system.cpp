@@ -6,7 +6,7 @@
 #include "maths/grid.hpp"
 #include "maths/maths.hpp"
 #include "modules/algorithm_astar_pathfinding/components.hpp"
-#include "modules/selected_interactions/components.hpp"
+#include "modules/grid/components.hpp"
 #include "physics/components.hpp"
 #include "renderer/transform.hpp"
 

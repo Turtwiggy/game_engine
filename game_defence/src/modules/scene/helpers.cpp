@@ -20,11 +20,12 @@
 #include "modules/camera/components.hpp"
 #include "modules/camera/orthographic.hpp"
 #include "modules/combat_damage/components.hpp"
+#include "modules/debug_pathfinding/components.hpp"
 #include "modules/gameover/components.hpp"
+#include "modules/grid/components.hpp"
 #include "modules/renderer/components.hpp"
 #include "modules/renderer/helpers.hpp"
 #include "modules/screenshake/components.hpp"
-#include "modules/selected_interactions/components.hpp"
 #include "modules/sprite_spritestack/components.hpp"
 #include "modules/ui_arrows_to_spawners/components.hpp"
 #include "modules/ui_combat_turnbased/components.hpp"
@@ -143,6 +144,7 @@ move_to_scene_start(entt::registry& r, const Scene s)
   destroy_and_create<SINGLE_ArrowsToSpawnerUI>(r);
   destroy_and_create<SINGLE_UILevelUpComponent>(r);
   destroy_and_create<SINGLE_TurnBasedCombatInfo>(r);
+  destroy_and_create<SINGLE_DebugPathLines>(r);
   destroy<MapComponent>(r);
   // SINGLE_MainMenuUI: not destroyed. destroyed if scene is menu.
   destroy<Effect_GridComponent>(r);
@@ -190,6 +192,11 @@ move_to_scene_start(entt::registry& r, const Scene s)
     //   ui.random_names.push_back(first_name);
     // }
   }
+
+  const auto get_seed_from_systemtime = []() -> time_t {
+    auto now = std::chrono::system_clock::now();
+    return std::chrono::system_clock::to_time_t(now);
+  };
 
   if (s == Scene::game) {
     const auto& menu_ui = get_first_component<SINGLE_MainMenuUI>(r);
@@ -254,7 +261,11 @@ move_to_scene_start(entt::registry& r, const Scene s)
       const glm::ivec2 map_offset = { tilesize.x / 2.0f, tilesize.y / 2.0f };
       {
         // generate a map for 0s and 1s
-        auto map = generate_50_50({ map_c.xmax, map_c.ymax }, 0);
+
+        // HACK: just so different every playthrough
+        const int seed = get_seed_from_systemtime();
+
+        auto map = generate_50_50({ map_c.xmax, map_c.ymax }, seed);
         map = iterate_with_cell_automata(map, { map_c.xmax, map_c.ymax });
         map = iterate_with_cell_automata(map, { map_c.xmax, map_c.ymax });
         map = iterate_with_cell_automata(map, { map_c.xmax, map_c.ymax });
@@ -297,7 +308,9 @@ move_to_scene_start(entt::registry& r, const Scene s)
       const auto& map = get_first_component<MapComponent>(r);
       spawners.map.resize((map.map.size()));
 
-      const int seed = 0;
+      // HACK: just so different every playthrough
+      const int seed = get_seed_from_systemtime();
+
       const int poisson_space_for_spawners = 250;
       const int distance_between_points = poisson_space_for_spawners;
       const auto poisson = generate_poisson(width, height, distance_between_points, seed);
@@ -453,8 +466,8 @@ move_to_scene_start(entt::registry& r, const Scene s)
     r.emplace<Effect_GridComponent>(r.create());
 
     // set dungeon constraints
-    int map_width = 500;
-    int map_height = 500;
+    int map_width = 2000;
+    int map_height = 2000;
     MapComponent map_c;
     map_c.tilesize = 50;
     map_c.xmax = map_width / map_c.tilesize;
@@ -564,13 +577,27 @@ move_to_scene_start(entt::registry& r, const Scene s)
 
     // create player team
     for (int i = 0; i < 5; i++) {
+
+      // create weapon before player to draw on top
+      const auto weapon = create_gameplay(r, EntityType::weapon_shotgun);
+
+      // player
       const auto e = create_gameplay(r, EntityType::actor_unit_rtslike);
       r.get<TeamComponent>(e).team = AvailableTeams::player;
-
       const glm::ivec2 offset = { map_c.tilesize / 2, map_c.tilesize / 2 };
       const auto pos = glm::ivec2{ map_c.tilesize * 2, (i + 1) * (map_c.tilesize * 2) } + offset;
       set_position(r, e, pos);
       set_size(r, e, size);
+
+      // setup weapon
+      auto& weapon_parent = r.get<HasParentComponent>(weapon);
+      weapon_parent.parent = e;
+      set_position(r, weapon, r.get<AABB>(e).center);
+
+      // link player&weapon
+      HasWeaponComponent has_weapon;
+      has_weapon.instance = weapon;
+      r.emplace<HasWeaponComponent>(e, has_weapon);
 
       r.emplace<DefaultColour>(e, engine::SRGBColour{ 0.0f, 0.3f, 0.8f, 1.0f });
       r.emplace<HoveredColour>(e, engine::SRGBColour{ 0.0f, 1.0f, 1.0f, 1.0f });

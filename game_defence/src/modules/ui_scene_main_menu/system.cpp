@@ -90,31 +90,32 @@ update_ui_scene_main_menu(engine::SINGLETON_Application& app, entt::registry& r)
   ImGui::PushStyleVar(ImGuiStyleVar_SelectableTextAlign, pivot);
   {
     int index = 0;
+
     if (selectable_button("Play", selected, index++)) {
-      auto& editor = get_first_component<SINGLETON_LevelEditor>(r);
-      editor.mode = LevelEditorMode::play;
-      move_to_scene_start(r, Scene::game);
-    }
-    if (selectable_button("Scene: dungeon designer", selected, index++)) {
-      auto& editor = get_first_component<SINGLETON_LevelEditor>(r);
-      editor.mode = LevelEditorMode::edit;
-      move_to_scene_start(r, Scene::dungeon_designer);
-    }
-    if (selectable_button("Scene: overworld (duckgame)", selected, index++)) {
       auto& editor = get_first_component<SINGLETON_LevelEditor>(r);
       editor.mode = LevelEditorMode::play;
       move_to_scene_start(r, Scene::duckgame_overworld);
     }
-    if (selectable_button("Scene: combat", selected, index++)) {
+    if (selectable_button("(debug) dungeons", selected, index++)) {
+      auto& editor = get_first_component<SINGLETON_LevelEditor>(r);
+      editor.mode = LevelEditorMode::edit;
+      move_to_scene_start(r, Scene::dungeon_designer);
+    }
+    if (selectable_button("(debug) combat", selected, index++)) {
       auto& editor = get_first_component<SINGLETON_LevelEditor>(r);
       editor.mode = LevelEditorMode::play;
       move_to_scene_start(r, Scene::turnbasedcombat);
     }
-    if (selectable_button("Scene: spritestack", selected, index++)) {
-      auto& editor = get_first_component<SINGLETON_LevelEditor>(r);
-      editor.mode = LevelEditorMode::play;
-      move_to_scene_start(r, Scene::test_scene_gun);
-    }
+    // if (selectable_button("Play", selected, index++)) {
+    //   auto& editor = get_first_component<SINGLETON_LevelEditor>(r);
+    //   editor.mode = LevelEditorMode::play;
+    //   move_to_scene_start(r, Scene::game);
+    // }
+    // if (selectable_button("Scene: spritestack", selected, index++)) {
+    //   auto& editor = get_first_component<SINGLETON_LevelEditor>(r);
+    //   editor.mode = LevelEditorMode::play;
+    //   move_to_scene_start(r, Scene::test_scene_gun);
+    // }
     if (selectable_button("Quit", selected, index++))
       app.running = false;
   }

@@ -39,7 +39,6 @@
 #include "modules/resolve_collisions/system.hpp"
 #include "modules/scene/helpers.hpp"
 #include "modules/screenshake/system.hpp"
-#include "modules/selected_interactions/system.hpp"
 #include "modules/sprite_spritestack/system.hpp"
 #include "modules/system_spaceship_door/system.hpp"
 #include "modules/system_sprint/system.hpp"
@@ -50,19 +49,16 @@
 #include "modules/ui_colours/system.hpp"
 #include "modules/ui_combat_turnbased/system.hpp"
 #include "modules/ui_controllers/system.hpp"
-#include "modules/ui_dungeon/system.hpp"
 #include "modules/ui_gameover/system.hpp"
 #include "modules/ui_hierarchy/system.hpp"
 #include "modules/ui_inventory/system.hpp"
 #include "modules/ui_level_editor/components.hpp"
-#include "modules/ui_level_editor/system.hpp"
 #include "modules/ui_level_up/components.hpp"
 #include "modules/ui_level_up/system.hpp"
 #include "modules/ui_pause_menu/system.hpp"
 #include "modules/ui_player_name_above_player/system.hpp"
 #include "modules/ui_rpg_character/system.hpp"
 #include "modules/ui_scene_main_menu/system.hpp"
-#include "modules/ui_selected/system.hpp"
 #include "modules/ui_spaceship_designer/system.hpp"
 #include "modules/ui_worldspace_text/system.hpp"
 #include "modules/ui_xp_bar/system.hpp"
@@ -299,7 +295,6 @@ game2d::update(engine::SINGLETON_Application& app, entt::registry& r, const floa
       // items
       update_intent_pickup_system(r);
       update_intent_drop_item_system(r);
-      update_selected_interactions_system(r, mouse_pos, dt);
       //
       update_spaceship_door_system(r, dt);
       update_actor_enemy_patrol_system(r, mouse_pos, dt);
@@ -360,7 +355,6 @@ game2d::update(engine::SINGLETON_Application& app, entt::registry& r, const floa
     }
     if (scene.s == Scene::dungeon_designer) {
       update_ui_spaceship_designer_system(r, mouse_pos, dt);
-      update_ui_dungeon_system(r, mouse_pos);
     }
     if (scene.s == Scene::duckgame_overworld) {
       update_ui_backstab_patrol_system(r);

@@ -2,7 +2,7 @@
 
 #include "maths/maths.hpp"
 #include "modules/gen_dungeons/components.hpp"
-#include "modules/selected_interactions/components.hpp"
+#include "modules/grid/components.hpp"
 
 #include <entt/entt.hpp>
 
