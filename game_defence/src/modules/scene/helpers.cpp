@@ -14,7 +14,7 @@
 #include "modules/actor_cursor/components.hpp"
 #include "modules/actor_spawner/components.hpp"
 #include "modules/actors/helpers.hpp"
-#include "modules/ai_pathfinding/components.hpp"
+#include "modules/algorithm_astar_pathfinding/components.hpp"
 #include "modules/algorithm_procedural/cell_automata.hpp"
 #include "modules/algorithm_procedural/poisson.hpp"
 #include "modules/camera/components.hpp"
@@ -27,6 +27,7 @@
 #include "modules/selected_interactions/components.hpp"
 #include "modules/sprite_spritestack/components.hpp"
 #include "modules/ui_arrows_to_spawners/components.hpp"
+#include "modules/ui_combat_turnbased/components.hpp"
 #include "modules/ui_level_up/components.hpp"
 #include "modules/ui_rpg_character/components.hpp"
 #include "modules/ui_scene_main_menu/components.hpp"
@@ -106,6 +107,24 @@ create_player_ally(entt::registry& r, const entt::entity& group)
 };
 
 void
+add_boundary_walls(entt::registry& r, const int w, const int h, const int tilesize)
+{
+  const int half_tile_size = tilesize / 10.0f;
+  const auto wall_l = create_gameplay(r, EntityType::solid_wall);
+  set_position(r, wall_l, { 0, h / 2.0f });
+  set_size(r, wall_l, { half_tile_size, h });
+  const auto wall_r = create_gameplay(r, EntityType::solid_wall);
+  set_position(r, wall_r, { w, h / 2.0f });
+  set_size(r, wall_r, { half_tile_size, h });
+  const auto wall_u = create_gameplay(r, EntityType::solid_wall);
+  set_position(r, wall_u, { w / 2.0f, 0 });
+  set_size(r, wall_u, { w, half_tile_size });
+  const auto wall_d = create_gameplay(r, EntityType::solid_wall);
+  set_position(r, wall_d, { w / 2.0f, h });
+  set_size(r, wall_d, { w, half_tile_size });
+}
+
+void
 move_to_scene_start(entt::registry& r, const Scene s)
 {
   const auto& transforms = r.view<TransformComponent>(entt::exclude<OrthographicCamera>);
@@ -123,6 +142,7 @@ move_to_scene_start(entt::registry& r, const Scene s)
   destroy_and_create<SINGLE_SelectedUI>(r);
   destroy_and_create<SINGLE_ArrowsToSpawnerUI>(r);
   destroy_and_create<SINGLE_UILevelUpComponent>(r);
+  destroy_and_create<SINGLE_TurnBasedCombatInfo>(r);
   destroy<MapComponent>(r);
   // SINGLE_MainMenuUI: not destroyed. destroyed if scene is menu.
   destroy<Effect_GridComponent>(r);
@@ -357,20 +377,8 @@ move_to_scene_start(entt::registry& r, const Scene s)
 
     // Create 4 edges to the map
     bool create_edges = true;
-    if (create_edges) {
-      const auto wall_l = create_gameplay(r, EntityType::solid_wall);
-      set_position(r, wall_l, { 0, height / 2.0f });
-      set_size(r, wall_l, { 32, height });
-      const auto wall_r = create_gameplay(r, EntityType::solid_wall);
-      set_position(r, wall_r, { width, height / 2.0f });
-      set_size(r, wall_r, { 32, height });
-      const auto wall_u = create_gameplay(r, EntityType::solid_wall);
-      set_position(r, wall_u, { width / 2.0f, 0 });
-      set_size(r, wall_u, { width, 32 });
-      const auto wall_d = create_gameplay(r, EntityType::solid_wall);
-      set_position(r, wall_d, { width / 2.0f, height });
-      set_size(r, wall_d, { width, 32 });
-    }
+    if (create_edges)
+      add_boundary_walls(r, width, height, 32);
 
     // VISUAL: use poisson for grass
     {
@@ -456,21 +464,8 @@ move_to_scene_start(entt::registry& r, const Scene s)
 
     // Create 4 edges to the map
     bool create_edges = true;
-    if (create_edges) {
-      const int half_tile_size = map_c.tilesize / 10.0f;
-      const auto wall_l = create_gameplay(r, EntityType::solid_wall);
-      set_position(r, wall_l, { 0, map_height / 2.0f });
-      set_size(r, wall_l, { half_tile_size, map_height });
-      const auto wall_r = create_gameplay(r, EntityType::solid_wall);
-      set_position(r, wall_r, { map_width, map_height / 2.0f });
-      set_size(r, wall_r, { half_tile_size, map_height });
-      const auto wall_u = create_gameplay(r, EntityType::solid_wall);
-      set_position(r, wall_u, { map_width / 2.0f, 0 });
-      set_size(r, wall_u, { map_width, half_tile_size });
-      const auto wall_d = create_gameplay(r, EntityType::solid_wall);
-      set_position(r, wall_d, { map_width / 2.0f, map_height });
-      set_size(r, wall_d, { map_width, half_tile_size });
-    }
+    if (create_edges)
+      add_boundary_walls(r, map_width, map_height, map_c.tilesize);
 
     // VISUAL: use poisson for grass
     // {
@@ -548,64 +543,67 @@ move_to_scene_start(entt::registry& r, const Scene s)
 
     // Create 4 edges to the map
     bool create_edges = true;
-    if (create_edges) {
-      const int half_tile_size = map_c.tilesize / 10.0f;
-      const auto wall_l = create_gameplay(r, EntityType::solid_wall);
-      set_position(r, wall_l, { 0, map_height / 2.0f });
-      set_size(r, wall_l, { half_tile_size, map_height });
-      const auto wall_r = create_gameplay(r, EntityType::solid_wall);
-      set_position(r, wall_r, { map_width, map_height / 2.0f });
-      set_size(r, wall_r, { half_tile_size, map_height });
-      const auto wall_u = create_gameplay(r, EntityType::solid_wall);
-      set_position(r, wall_u, { map_width / 2.0f, 0 });
-      set_size(r, wall_u, { map_width, half_tile_size });
-      const auto wall_d = create_gameplay(r, EntityType::solid_wall);
-      set_position(r, wall_d, { map_width / 2.0f, map_height });
-      set_size(r, wall_d, { map_width, half_tile_size });
-    }
+    if (create_edges)
+      add_boundary_walls(r, map_width, map_height, map_c.tilesize);
   }
 
   if (s == Scene::turnbasedcombat) {
-    // scene design brief:
-    //  all squares
-    //  everyone has a pistol
-    //  5v5 team
-    //  everyone roll random initiative
-    //  combat is over when one side is dead
-    // things you can do per turn:
-    // move
-    // shoot (your pistol)
 
-    for (int i = 0; i < 5; i++) // player team
-    {
+    int map_width = 1000;
+    int map_height = 1000;
+    MapComponent map_c;
+    map_c.tilesize = 50;
+    map_c.xmax = map_width / map_c.tilesize;
+    map_c.ymax = map_height / map_c.tilesize;
+    map_c.map.resize(map_c.xmax * map_c.ymax);
+    r.emplace<MapComponent>(r.create(), map_c);
+    r.emplace<Effect_GridComponent>(r.create(), map_c.tilesize);
+
+    // player sizes
+    const glm::ivec2 size{ 20, 20 };
+
+    // create player team
+    for (int i = 0; i < 5; i++) {
       const auto e = create_gameplay(r, EntityType::actor_unit_rtslike);
       r.get<TeamComponent>(e).team = AvailableTeams::player;
-      set_position(r, e, { 0, i * 50 });
 
-      const engine::SRGBColour default_colour = { 0.0f, 0.3f, 0.8f, 1.0f };
-      set_colour(r, e, default_colour);
-      r.emplace<DefaultColour>(e, default_colour);
+      const glm::ivec2 offset = { map_c.tilesize / 2, map_c.tilesize / 2 };
+      const auto pos = glm::ivec2{ map_c.tilesize * 2, (i + 1) * (map_c.tilesize * 2) } + offset;
+      set_position(r, e, pos);
+      set_size(r, e, size);
 
-      const engine::SRGBColour hovered_colour = { 0.0f, 1.0f, 1.0f, 1.0f };
-      r.emplace<HoveredColour>(e, hovered_colour);
+      r.emplace<DefaultColour>(e, engine::SRGBColour{ 0.0f, 0.3f, 0.8f, 1.0f });
+      r.emplace<HoveredColour>(e, engine::SRGBColour{ 0.0f, 1.0f, 1.0f, 1.0f });
+      set_colour(r, e, r.get<DefaultColour>(e).colour);
     }
-    for (int i = 0; i < 5; i++) // enemy team
-    {
+
+    // create enemy team
+    for (int i = 0; i < 5; i++) {
       const auto e = create_gameplay(r, EntityType::actor_unit_rtslike);
       r.get<TeamComponent>(e).team = AvailableTeams::enemy;
 
       // GAMEDESIGN TODO:
       // set out of range, so that player is free-roaming, then
       // when they get in range, the "turn-based combat starts"
-      set_position(r, e, { 250, i * 50 });
 
-      const engine::SRGBColour default_colour = { 0.8f, 0.3f, 0.0f, 1.0f };
-      set_colour(r, e, default_colour);
-      r.emplace<DefaultColour>(e, default_colour);
+      const glm::ivec2 offset = { map_c.tilesize / 2, map_c.tilesize / 2 };
+      const auto pos = glm::ivec2{ map_c.tilesize * 10, (i + 1) * (map_c.tilesize * 2) } + offset;
+      set_position(r, e, pos);
+      set_size(r, e, size);
 
-      const engine::SRGBColour hovered_colour = { 1.0f, 1.0f, 0.0f, 1.0f };
-      r.emplace<HoveredColour>(e, hovered_colour);
+      r.emplace<DefaultColour>(e, engine::SRGBColour{ 0.8f, 0.3f, 0.0f, 1.0f });
+      r.emplace<HoveredColour>(e, engine::SRGBColour{ 1.0f, 1.0f, 0.0f, 1.0f });
+      set_colour(r, e, r.get<DefaultColour>(e).colour);
     }
+
+    // Create 4 edges to the map
+    bool create_edges = true;
+    if (create_edges)
+      add_boundary_walls(r, map_width, map_height, map_c.tilesize);
+
+    // Debug object
+    auto& info = get_first_component<SINGLE_TurnBasedCombatInfo>(r);
+    info.to_place_debug = create_gameplay(r, EntityType::empty_with_transform);
   }
 
   const auto scene_name = std::string(magic_enum::enum_name(s));

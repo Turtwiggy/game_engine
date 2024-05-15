@@ -17,6 +17,14 @@ struct vec2i
   int x = 0;
   int y = 0;
 
+  vec2i() = default;
+  vec2i(const int& ox, const int& oy)
+    : x(ox)
+    , y(oy){};
+  vec2i(const glm::ivec2& xy)
+    : x(xy.x)
+    , y(xy.y){};
+
   // spaceship operator
   auto operator<=>(const vec2i&) const = default;
 };
@@ -35,7 +43,9 @@ struct GeneratedPathComponent
   glm::vec2 dst_pos{ 0, 0 };
   entt::entity dst_ent = entt::null;
   std::vector<glm::ivec2> path;
-  std::vector<bool> path_cleared;
+  // std::vector<bool> path_cleared;
+
+  bool aim_for_exact_position = false;
 };
 
 } // namespace game2d

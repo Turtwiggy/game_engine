@@ -3,7 +3,7 @@
 #include "actors.hpp"
 #include "maths/grid.hpp"
 #include "modules/actors/helpers.hpp"
-#include "modules/ai_pathfinding/priority_queue.hpp"
+#include "modules/algorithm_astar_pathfinding/priority_queue.hpp"
 #include "modules/combat_flash_on_damage/helpers.hpp"
 #include "sprites/helpers.hpp"
 
@@ -300,6 +300,22 @@ display_flow_field_with_visuals(entt::registry& r, GridComponent& grid)
       sprite_vfxs.push_back(sprite);
     }
   }
-}
+};
+
+glm::ivec2
+clamp_worldspace_to_gridspace(const MapComponent& map, const glm::ivec2 pos)
+{
+  auto gridpos = engine::grid::world_space_to_grid_space(pos, map.tilesize);
+  gridpos.x = glm::clamp(gridpos.x, 0, map.xmax - 1);
+  gridpos.y = glm::clamp(gridpos.y, 0, map.ymax - 1);
+  return gridpos;
+};
+
+int
+convert_position_to_index(const MapComponent& map, const glm::ivec2& pos)
+{
+  const auto gridpos = clamp_worldspace_to_gridspace(map, pos);
+  return engine::grid::grid_position_to_index(gridpos, map.xmax);
+};
 
 } // namespace game2d

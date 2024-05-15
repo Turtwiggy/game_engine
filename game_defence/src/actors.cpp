@@ -17,6 +17,7 @@
 #include "modules/actor_turret/components.hpp"
 #include "modules/actor_weapon_shotgun/components.hpp"
 #include "modules/actors/helpers.hpp"
+#include "modules/algorithm_astar_pathfinding/components.hpp"
 #include "modules/animation/components.hpp"
 #include "modules/combat_attack_cooldown/components.hpp"
 #include "modules/combat_damage/components.hpp"
@@ -350,6 +351,7 @@ create_gameplay(entt::registry& r, const EntityType& type)
 
     case EntityType::actor_unit_rtslike: {
       create_physics_actor(r, e);
+      r.emplace<PhysicsSolidComponent>(e);
 
       r.emplace<TeamComponent>(e);
       r.emplace<HoverableComponent>(e); // the selected component gets attached
@@ -357,6 +359,12 @@ create_gameplay(entt::registry& r, const EntityType& type)
 
       const int hp = 100; // killable
       r.emplace<HealthComponent>(e, hp, hp);
+
+      // movement
+      r.emplace<HasTargetPositionComponent>(e);
+      r.emplace<SetVelocityToTargetComponent>(e);
+
+      r.emplace<PathfindComponent>(e, 1000); // pass through units if you must
 
       break;
     }

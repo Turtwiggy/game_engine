@@ -53,7 +53,7 @@ update_actor_group_system(entt::registry& r, const glm::ivec2& mouse_pos)
       const glm::vec2 raw_dir = mouse_pos - aabb.center;
       const glm::vec2 nrm_dir = engine::normalize_safe(raw_dir);
       const glm::vec2 perp_dir = { -nrm_dir.y, nrm_dir.x };
-      target.position += perp_dir * ((glm::vec2(i, i) * size) - (size / 2.0f) - (size * total_targets_vec / 2.0f));
+      target.position.value() += perp_dir * ((glm::vec2(i, i) * size) - (size / 2.0f) - (size * total_targets_vec / 2.0f));
 
       i++;
     }

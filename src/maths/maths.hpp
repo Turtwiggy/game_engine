@@ -34,9 +34,9 @@ struct RandomState
 
 template<typename T>
 inline float
-rand_det_s(T& rnd, float M, float MN)
+rand_det_s(T& rnd, const float M, const float MN)
 {
-  float scaled = (rnd() - rnd.min()) / (float)(rnd.max() - rnd.min() + 1.f);
+  const float scaled = (rnd() - rnd.min()) / (float)(rnd.max() - rnd.min() + 1.f);
 
   return scaled * (MN - M) + M;
 };

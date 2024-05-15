@@ -6,7 +6,7 @@
 #include "helpers/line.hpp"
 #include "maths/grid.hpp"
 #include "modules/actors/helpers.hpp"
-#include "modules/ai_pathfinding/components.hpp"
+#include "modules/algorithm_astar_pathfinding/components.hpp"
 #include "modules/selected_interactions/components.hpp"
 #include "physics/helpers.hpp"
 
@@ -72,11 +72,15 @@ create_all_rooms(DungeonGenerationCriteria& data,
 
   for (int i = 0; i < max_rooms; i++) {
     //
-    const int gen_room_width = glm::roundEven(engine::rand_det_s(rnd.rng, room_size_min, room_size_max));
-    const int gen_room_height = glm::roundEven(engine::rand_det_s(rnd.rng, room_size_min, room_size_max));
-    const int x = int(engine::rand_det_s(rnd.rng, 0, map_width - gen_room_width - 1));
-    const int y = int(engine::rand_det_s(rnd.rng, 0, map_height - gen_room_height - 1));
-    const auto tl = glm::ivec2{ x, y };
+    // the -1 is so that when we offset to center of the tiles, visually the room doesnt go outside the grid
+    const int rnd_width_x = static_cast<int>(engine::rand_det_s(rnd.rng, room_size_min, room_size_max + 1)) - 1;
+    const int rnd_width_y = static_cast<int>(engine::rand_det_s(rnd.rng, room_size_min, room_size_max + 1)) - 1;
+    const int gen_room_width = static_cast<int>(glm::roundEven(static_cast<float>(rnd_width_x)));
+    const int gen_room_height = static_cast<int>(glm::roundEven(static_cast<float>(rnd_width_y)));
+
+    const int rnd_tl_x = engine::rand_det_s(rnd.rng, 0, map_width - gen_room_width - 1);
+    const int rnd_tl_y = engine::rand_det_s(rnd.rng, 0, map_height - gen_room_height - 1);
+    const auto tl = glm::ivec2{ rnd_tl_x, rnd_tl_y };
 
     Room room;
     room.tl = tl;
@@ -172,8 +176,7 @@ generate_dungeon(entt::registry& r)
   const auto& map = get_first_component<MapComponent>(r);
 
   const int seed = 0;
-  engine::RandomState rnd;
-  rnd.rng.seed(seed);
+  static engine::RandomState rnd(seed);
 
   // represents state of the entire grid. set to 1 as everything is a wall
   std::vector<int> map_gen(map.xmax * map.ymax, 1);

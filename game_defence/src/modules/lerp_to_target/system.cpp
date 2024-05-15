@@ -5,7 +5,7 @@
 #include "lifecycle/components.hpp"
 #include "maths/grid.hpp"
 #include "maths/maths.hpp"
-#include "modules/ai_pathfinding/components.hpp"
+#include "modules/algorithm_astar_pathfinding/components.hpp"
 #include "modules/selected_interactions/components.hpp"
 #include "physics/components.hpp"
 #include "renderer/transform.hpp"
@@ -45,21 +45,31 @@ update_set_velocity_to_target_system(entt::registry& r, const float& dt)
     // try to get live target grid position
     // if no dst_ent is set, assume a static position
     std::optional<glm::ivec2> dst_gridpos_dynamic = std::nullopt;
+    std::optional<glm::ivec2> dst_worldpos_dynamic = std::nullopt;
     if (path.dst_ent != entt::null) {
-      const auto dst_dynamic = r.get<AABB>(path.dst_ent).center;
-      dst_gridpos_dynamic = engine::grid::world_space_to_grid_space(dst_dynamic, map.tilesize);
+      dst_worldpos_dynamic = r.get<AABB>(path.dst_ent).center;
+      dst_gridpos_dynamic = engine::grid::world_space_to_grid_space(dst_worldpos_dynamic.value(), map.tilesize);
       dst_gridpos_dynamic.value().x = glm::clamp(dst_gridpos_dynamic.value().x, 0, map.xmax - 1);
       dst_gridpos_dynamic.value().y = glm::clamp(dst_gridpos_dynamic.value().y, 0, map.ymax - 1);
       ImGui::Text("dst_gridpos: %i %i", dst_gridpos_dynamic.value().x, dst_gridpos_dynamic.value().y);
-
-      if (dst_gridpos_static != dst_gridpos_dynamic)
-        ImGui::Text("Target has moved outside pathfinding??");
     }
+
+    if (path.aim_for_exact_position) {
+      dst_worldpos_dynamic = path.dst_pos;
+      dst_gridpos_dynamic = engine::grid::world_space_to_grid_space(dst_worldpos_dynamic.value(), map.tilesize);
+      dst_gridpos_dynamic.value().x = glm::clamp(dst_gridpos_dynamic.value().x, 0, map.xmax - 1);
+      dst_gridpos_dynamic.value().y = glm::clamp(dst_gridpos_dynamic.value().y, 0, map.ymax - 1);
+      ImGui::Text("dst_gridpos: %i %i", dst_gridpos_dynamic.value().x, dst_gridpos_dynamic.value().y);
+    }
+
+    if (dst_gridpos_dynamic.has_value() && dst_gridpos_static != dst_gridpos_dynamic.value())
+      ImGui::Text("Target has moved outside pathfinding??");
 
     // probably clicked either on invalid spot, or spot in same gridspace
     const bool in_same_gridspace = cur_gridpos == dst_gridpos_dynamic;
-    if ((path.path.size() == 0 || in_same_gridspace) && dst_gridpos_dynamic.has_value())
-      target.position = r.get<AABB>(path.dst_ent).center; // dst_dynamic
+    if ((path.path.size() == 0 || in_same_gridspace) && dst_worldpos_dynamic.has_value()) {
+      target.position = dst_worldpos_dynamic.value();
+    }
 
     for (int i = 0; const auto p : path.path) {
       if (in_same_gridspace)
@@ -110,7 +120,7 @@ update_set_velocity_to_target_system(entt::registry& r, const float& dt)
         const auto target_pos = engine::grid::grid_space_to_world_space(next_pos, map.tilesize);
         // center, not top left
         target.position = target_pos;
-        target.position += glm::vec2(map.tilesize / 2.0f, map.tilesize / 2.0f);
+        target.position.value() += glm::vec2(map.tilesize / 2.0f, map.tilesize / 2.0f);
         break;
       }
 
@@ -118,7 +128,8 @@ update_set_velocity_to_target_system(entt::registry& r, const float& dt)
     }
 
     // Debug path
-    ImGui::Text("TargetPos: %i %i", target.position.x, target.position.y);
+    if (target.position.has_value())
+      ImGui::Text("TargetPos: %i %i", target.position.value().x, target.position.value().y);
     ImGui::Separator();
     for (const auto& p : path.path)
       ImGui::Text("Path %i %i", p.x, p.y);
@@ -142,8 +153,10 @@ update_set_velocity_to_target_system(entt::registry& r, const float& dt)
     r.view<VelocityComponent, const AABB, const HasTargetPositionComponent, const SetVelocityToTargetComponent>(
       entt::exclude<WaitForInitComponent>);
   for (const auto& [e, vel, aabb, target, lerp] : view.each()) {
+    if (!target.position.has_value())
+      continue;
     const glm::ivec2 a = { aabb.center.x, aabb.center.y };
-    const glm::ivec2 b = target.position;
+    const glm::ivec2 b = target.position.value();
     const glm::vec2 nrm_dir = engine::normalize_safe(b - a);
     vel.x = nrm_dir.x * vel.base_speed;
     vel.y = nrm_dir.y * vel.base_speed;

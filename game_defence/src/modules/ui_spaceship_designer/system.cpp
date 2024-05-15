@@ -15,7 +15,7 @@
 #include "maths/maths.hpp"
 #include "modules/actor_player/components.hpp"
 #include "modules/actors/helpers.hpp"
-#include "modules/ai_pathfinding/components.hpp"
+#include "modules/algorithm_astar_pathfinding/components.hpp"
 #include "modules/camera/components.hpp"
 #include "modules/gen_dungeons/components.hpp"
 #include "modules/gen_dungeons/helpers.hpp"
@@ -327,92 +327,92 @@ update_ui_spaceship_designer_system(entt::registry& r, const glm::ivec2& input_m
   // Drag To Create Rooms
   //
   {
-    //   static std::optional<glm::ivec2> press_location = std::nullopt;
-    //   static entt::entity room_to_create;
-    //   static std::vector<entt::entity> walls;
-    //   static bool room_collision = false;
+    static std::optional<glm::ivec2> press_location = std::nullopt;
+    static entt::entity room_to_create;
+    static std::vector<entt::entity> walls;
+    static bool room_collision = false;
 
-    //   if (get_key_down(input, drag_create_room_key)) {
-    //     // set_keydown_state();
-    //     press_location = mouse_pos;
-    //     room_collision = false;
+    if (get_key_down(input, drag_create_room_key)) {
+      // set_keydown_state();
+      press_location = mouse_pos;
+      room_collision = false;
 
-    //     // create room
-    //     room_to_create = create_gameplay(r, EntityType::empty_with_transform);
-    //     // create room colour
-    //     set_colour(r, room_to_create, { 1.0f, 1.0f, 1.0f, 0.02f });
-    //     r.emplace<Room>(room_to_create);
+      // create room
+      room_to_create = create_gameplay(r, EntityType::empty_with_transform);
+      // create room colour
+      set_colour(r, room_to_create, { 1.0f, 1.0f, 1.0f, 0.02f });
+      r.emplace<Room>(room_to_create);
 
-    //     // create physics actor
-    //     r.emplace<PhysicsTransformXComponent>(room_to_create);
-    //     r.emplace<PhysicsTransformYComponent>(room_to_create);
-    //     r.emplace<AABB>(room_to_create);
-    //     r.emplace<PhysicsActorComponent>(room_to_create);
-    //     r.emplace<VelocityComponent>(room_to_create);
+      // create physics actor
+      r.emplace<PhysicsTransformXComponent>(room_to_create);
+      r.emplace<PhysicsTransformYComponent>(room_to_create);
+      r.emplace<AABB>(room_to_create);
+      r.emplace<PhysicsActorComponent>(room_to_create);
+      r.emplace<VelocityComponent>(room_to_create);
 
-    //     // create room walls
-    //     const auto w0 = create_wall(r, press_location.value(), room_to_create);
-    //     const auto w1 = create_wall(r, press_location.value(), room_to_create);
-    //     const auto w2 = create_wall(r, press_location.value(), room_to_create);
-    //     const auto w3 = create_wall(r, press_location.value(), room_to_create);
-    //     walls = { w0, w1, w2, w3 };
-    //   }
-    //   if (get_key_held(input, drag_create_room_key) && press_location.has_value()) {
+      // create room walls
+      const auto w0 = create_wall(r, press_location.value(), room_to_create);
+      const auto w1 = create_wall(r, press_location.value(), room_to_create);
+      const auto w2 = create_wall(r, press_location.value(), room_to_create);
+      const auto w3 = create_wall(r, press_location.value(), room_to_create);
+      walls = { w0, w1, w2, w3 };
+    }
+    if (get_key_held(input, drag_create_room_key) && press_location.has_value()) {
 
-    //     const auto& p = press_location.value();
-    //     // width & height can be negative
-    //     const int width = mouse_pos.x - p.x;
-    //     const int height = mouse_pos.y - p.y;
-    //     ImGui::Text("Width: %i Height: %i", width, height);
+      const auto& p = press_location.value();
+      // width & height can be negative
+      const int width = mouse_pos.x - p.x;
+      const int height = mouse_pos.y - p.y;
+      ImGui::Text("Width: %i Height: %i", width, height);
 
-    //     // set mouse-cursor as top-left
-    //     const glm::ivec2 tl = p;
-    //     const glm::ivec2 tr = { p.x + width, p.y };
-    //     const glm::ivec2 bl = { p.x, p.y + height };
-    //     const glm::ivec2 br = { p.x + width, p.y + height };
+      // set mouse-cursor as top-left
+      const glm::ivec2 tl = p;
+      const glm::ivec2 tr = { p.x + width, p.y };
+      const glm::ivec2 bl = { p.x, p.y + height };
+      const glm::ivec2 br = { p.x + width, p.y + height };
 
-    //     r.replace<Wall>(walls[0], Wall{ tl, tr, room_to_create });
-    //     r.replace<Wall>(walls[1], Wall{ tr, br, room_to_create });
-    //     r.replace<Wall>(walls[2], Wall{ br, bl, room_to_create });
-    //     r.replace<Wall>(walls[3], Wall{ bl, tl, room_to_create });
+      r.replace<Wall>(walls[0], Wall{ tl, tr, room_to_create });
+      r.replace<Wall>(walls[1], Wall{ tr, br, room_to_create });
+      r.replace<Wall>(walls[2], Wall{ br, bl, room_to_create });
+      r.replace<Wall>(walls[3], Wall{ bl, tl, room_to_create });
 
-    //     // Check if room collides with another existing room
-    //     const auto create_aabb_from_mouse = [&mouse_pos](const glm::ivec2& p) -> AABB {
-    //       int width = mouse_pos.x - p.x; // width & height can be negative
-    //       int height = mouse_pos.y - p.y;
-    //       if (width == 0)
-    //         width = 1;
-    //       if (height == 0)
-    //         height = 1;
-    //       return create_aabb(p, width, height);
-    //     };
+      // Check if room collides with another existing room
+      const auto create_aabb_from_mouse = [&mouse_pos](const glm::ivec2& p) -> AABB {
+        int width = mouse_pos.x - p.x; // width & height can be negative
+        int height = mouse_pos.y - p.y;
+        if (width == 0)
+          width = 1;
+        if (height == 0)
+          height = 1;
+        return create_aabb(p, width, height);
+      };
 
-    //     // This here seems wrong, like it's bypassing the physics system.
-    //     //
-    //     const auto temp_aabb = create_aabb_from_mouse(press_location.value());
-    //     set_position(r, room_to_create, temp_aabb.center);
-    //     set_size(r, room_to_create, temp_aabb.size);
-    //     for (const auto& [room_e, other_room_c, other_room_aabb] : r.view<Room, AABB>().each()) {
-    //       if (room_e == room_to_create)
-    //         continue; // dont self collide
-    //       room_collision |= collide(temp_aabb, other_room_aabb);
-    //     }
-    //   }
-    //   if (get_key_up(input, drag_create_room_key)) {
+      // This here seems wrong, like it's bypassing the physics system.
+      //
+      const auto temp_aabb = create_aabb_from_mouse(press_location.value());
+      set_position(r, room_to_create, temp_aabb.center);
+      set_size(r, room_to_create, temp_aabb.size);
+      for (const auto& [room_e, other_room_c, other_room_aabb] : r.view<Room, AABB>().each()) {
+        if (room_e == room_to_create)
+          continue; // dont self collide
+        room_collision |= collide(temp_aabb, other_room_aabb);
+      }
+    }
+    if (get_key_up(input, drag_create_room_key)) {
 
-    //     // cleanup invalid room
-    //     //
-    //     if (room_collision) {
-    //       dead.dead.emplace(room_to_create);
-    //       for (const auto& wall : walls)
-    //         dead.dead.emplace(wall);
-    //       walls.clear();
-    //     }
+      // cleanup invalid room
+      //
+      if (room_collision) {
+        dead.dead.emplace(room_to_create);
+        for (const auto& wall : walls)
+          dead.dead.emplace(wall);
+        walls.clear();
+      }
 
-    //     // set_keyup_state();
-    //     press_location = std::nullopt;
-    //     room_collision = false;
-    //   }
+      // set_keyup_state();
+      press_location = std::nullopt;
+      room_collision = false;
+    }
   }
 
   // Convert the gridbox to lines
@@ -652,6 +652,7 @@ update_ui_spaceship_designer_system(entt::registry& r, const glm::ivec2& input_m
     // Work out the state of the room, based on the state of the doors.
     // ...
   }
+
   // Misc
   //
   {
@@ -685,11 +686,34 @@ update_ui_spaceship_designer_system(entt::registry& r, const glm::ivec2& input_m
 
       static int seed = 0;
       seed++; // Increase seed everytime a map is generated
-
-      engine::RandomState rnd;
-      rnd.rng.seed(seed);
+      engine::RandomState rnd(seed);
       std::vector<int> map_gen(map.xmax * map.ymax, 1); // 1: everything as wall
+
+      // clamp parameters to map
       DungeonGenerationCriteria dungeon_parameters;
+      dungeon_parameters.room_size_min = glm::max(dungeon_parameters.room_size_min, 0);
+      dungeon_parameters.room_size_max = glm::min(dungeon_parameters.room_size_max, map.xmax);
+
+      // clear room debugs
+      static std::vector<entt::entity> debug;
+      for (const auto& e : debug) {
+        const auto& t = r.get<TransformComponent>(e);
+        const auto global_grid_pos = engine::grid::world_space_to_grid_space({ t.position.x, t.position.y }, map.tilesize);
+        const auto global_idx = engine::grid::grid_position_to_index(global_grid_pos, map.xmax);
+        map.map[global_idx].clear();
+        r.destroy(e);
+      }
+      debug.clear();
+
+      // clear old map
+      const auto& view = r.view<PathfindComponent, TransformComponent>();
+      for (const auto& [e, pc, t] : view.each()) {
+        const auto global_grid_pos = engine::grid::world_space_to_grid_space({ t.position.x, t.position.y }, map.tilesize);
+        const auto global_idx = engine::grid::grid_position_to_index(global_grid_pos, map.xmax);
+        map.map[global_idx].clear();
+        r.destroy(e);
+      }
+
       const auto rooms = create_all_rooms(dungeon_parameters, map, map_gen, rnd);
 
       for (const Room& room : rooms) {
@@ -701,12 +725,13 @@ update_ui_spaceship_designer_system(entt::registry& r, const glm::ivec2& input_m
 
         // the aabb attached to the room contains aabb in gridspace.
         {
+          // TODO: due to the offset, something is wrong
+
           const auto& w = room.aabb.size.x;
           const auto& h = room.aabb.size.y;
           for (int y = 0; y <= h; y++) {
             for (int x = 0; x <= w; x++) {
               const auto global_grid_pos = glm::ivec2{ room.tl.x + x, room.tl.y + y };
-              const auto global_idx = engine::grid::grid_position_to_index(global_grid_pos, map.xmax);
 
               bool create_as_wall = false;
               if (x == 0 || x == w)
@@ -716,9 +741,17 @@ update_ui_spaceship_designer_system(entt::registry& r, const glm::ivec2& input_m
 
               // add blocked grid cell to pathfinding
               if (create_as_wall) {
-                const auto e = create_gameplay(r, EntityType::empty_no_transform);
+                const auto e = create_gameplay(r, EntityType::empty_with_transform);
+
+                const glm::ivec2 pos = engine::grid::grid_space_to_world_space(global_grid_pos, map.tilesize);
+                set_position(r, e, { pos.x, pos.y });
+                set_size(r, e, { 10, 10 });
+
+                const auto global_idx = engine::grid::grid_position_to_index(global_grid_pos, map.xmax);
                 r.emplace<PathfindComponent>(e, -1);
                 map.map[global_idx].push_back(e);
+
+                debug.push_back(e);
               }
             }
           }
@@ -734,6 +767,7 @@ update_ui_spaceship_designer_system(entt::registry& r, const glm::ivec2& input_m
         const auto& worldspace_tl = gridspace_tl * map.tilesize;
         const auto worldspace_size = room.aabb.size * map.tilesize;
         const glm::ivec2 offset = { map.tilesize / 2, map.tilesize / 2 };
+        // const glm::ivec2 offset = { 0, 0 };
 
         const int w = worldspace_size.x;
         const int h = worldspace_size.y;

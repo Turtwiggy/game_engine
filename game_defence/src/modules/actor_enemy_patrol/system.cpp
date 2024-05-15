@@ -8,8 +8,8 @@
 #include "maths/maths.hpp"
 #include "modules/actor_player/components.hpp"
 #include "modules/actors/helpers.hpp"
-#include "modules/ai_pathfinding/components.hpp"
-#include "modules/ai_pathfinding/helpers.hpp"
+#include "modules/algorithm_astar_pathfinding/components.hpp"
+#include "modules/algorithm_astar_pathfinding/helpers.hpp"
 #include "modules/grid/components.hpp"
 #include "modules/selected_interactions/components.hpp"
 #include "physics/components.hpp"
@@ -19,22 +19,6 @@
 // this behaviour is interrupted if a player gets within range
 
 namespace game2d {
-
-glm::ivec2
-clamp_worldspace_to_gridspace(const MapComponent& map, const glm::ivec2 pos)
-{
-  auto gridpos = engine::grid::world_space_to_grid_space(pos, map.tilesize);
-  gridpos.x = glm::clamp(gridpos.x, 0, map.xmax - 1);
-  gridpos.y = glm::clamp(gridpos.y, 0, map.ymax - 1);
-  return gridpos;
-};
-
-int
-convert_position_to_index(const MapComponent& map, const glm::ivec2& pos)
-{
-  const auto gridpos = clamp_worldspace_to_gridspace(map, pos);
-  return engine::grid::grid_position_to_index(gridpos, map.xmax);
-};
 
 void
 update_actor_enemy_patrol_system(entt::registry& r, const glm::ivec2 mouse_pos, const float dt)
@@ -75,7 +59,7 @@ update_actor_enemy_patrol_system(entt::registry& r, const glm::ivec2 mouse_pos, 
       path_c.src_pos = src;
       path_c.dst_pos = dst;
       path_c.dst_ent = player_e;
-      path_c.path_cleared.resize(path.size());
+      // path_c.path_cleared.resize(path.size());
       r.emplace_or_replace<GeneratedPathComponent>(e, path_c);
     };
     const auto update_path_to_rnd_idx = [&r, &e, &grid, &src_idx, &src, &map]() {
@@ -90,7 +74,7 @@ update_actor_enemy_patrol_system(entt::registry& r, const glm::ivec2 mouse_pos, 
       path_c.src_pos = src;
       path_c.dst_pos = dst;
       path_c.dst_ent = entt::null;
-      path_c.path_cleared.resize(path.size());
+      // path_c.path_cleared.resize(path.size());
       r.emplace_or_replace<GeneratedPathComponent>(e, path_c);
     };
     const auto update_path_to_neighbour_idx = [&r, &e, &grid, &map, &src_idx, &src]() {
@@ -109,7 +93,7 @@ update_actor_enemy_patrol_system(entt::registry& r, const glm::ivec2 mouse_pos, 
       path_c.src_pos = src;
       path_c.dst_pos = dst;
       path_c.dst_ent = entt::null;
-      path_c.path_cleared.resize(path.size());
+      // path_c.path_cleared.resize(path.size());
       r.emplace_or_replace<GeneratedPathComponent>(e, path_c);
     };
 
@@ -141,7 +125,7 @@ update_actor_enemy_patrol_system(entt::registry& r, const glm::ivec2 mouse_pos, 
 
         // has the player moved grid index from the path we've generated?
         // problems:
-        // - the below generates better patcauses "jitter" when the playhs, but er moves gridspace.
+        // - the below generates better patcauses "jitter" when the player moves gridspace.
         // - if we don't do below, the target will continue heading to their destination but the player might have moved
         const auto path_dst_idx = convert_position_to_index(map, existing_path->dst_pos);
         if (dst_idx != path_dst_idx)

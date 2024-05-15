@@ -6,7 +6,7 @@
 #include "modules/actor_cursor/components.hpp"
 #include "modules/actor_player/components.hpp"
 #include "modules/actors/helpers.hpp"
-#include "modules/ai_pathfinding/components.hpp"
+#include "modules/algorithm_astar_pathfinding/components.hpp"
 #include "modules/resolve_collisions/helpers.hpp"
 #include "modules/selected_interactions/components.hpp"
 #include "physics/components.hpp"

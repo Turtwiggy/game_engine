@@ -7,8 +7,8 @@
 #include "maths/maths.hpp"
 #include "modules/actor_enemy/components.hpp"
 #include "modules/actor_player/components.hpp"
-#include "modules/ai_pathfinding/components.hpp"
-#include "modules/ai_pathfinding/helpers.hpp"
+#include "modules/algorithm_astar_pathfinding/components.hpp"
+#include "modules/algorithm_astar_pathfinding/helpers.hpp"
 #include "modules/combat_attack_cooldown/components.hpp"
 #include "modules/combat_damage/components.hpp"
 #include "modules/lerp_to_target/components.hpp"
@@ -47,9 +47,6 @@ update_enemy_system(entt::registry& r, const float dt)
   grid.height = map.ymax;
   grid.grid = map.map;
 
-  const auto& view = r.view<EnemyComponent, const HasTargetPositionComponent, TransformComponent, AABB, EntityTypeComponent>(
-    entt::exclude<WaitForInitComponent>);
-
   const auto convert_position_to_index = [&map](const glm::ivec2& src) -> int {
     auto src_gridpos = engine::grid::world_space_to_grid_space(src, map.tilesize);
     src_gridpos.x = glm::clamp(src_gridpos.x, 0, map.xmax - 1);
@@ -57,6 +54,8 @@ update_enemy_system(entt::registry& r, const float dt)
     return engine::grid::grid_position_to_index(src_gridpos, map.xmax);
   };
 
+  const auto& view = r.view<EnemyComponent, const HasTargetPositionComponent, TransformComponent, AABB, EntityTypeComponent>(
+    entt::exclude<WaitForInitComponent>);
   for (const auto& [e, enemy, target_position, enemy_t, aabb, entity_type] : view.each()) {
     //
     // different enemy have different ai...
@@ -80,7 +79,7 @@ update_enemy_system(entt::registry& r, const float dt)
       path_c.src_pos = src;
       path_c.dst_pos = dst;
       path_c.dst_ent = default_target;
-      path_c.path_cleared.resize(path.size());
+      // path_c.path_cleared.resize(path.size());
       r.emplace_or_replace<GeneratedPathComponent>(e, path_c);
     };
 
@@ -95,8 +94,12 @@ update_enemy_system(entt::registry& r, const float dt)
         update_pathfinding();
     }
 
+    // Must have target position
+    if (!target_position.position.has_value())
+      continue;
+
     // Calculate distance
-    const auto tgt_as_vec2 = glm::vec2(target_position.position.x, target_position.position.y);
+    const auto tgt_as_vec2 = glm::vec2(target_position.position.value().x, target_position.position.value().y);
     const auto dir_raw = tgt_as_vec2 - glm::vec2(aabb.center);
     const auto dir_nrm = engine::normalize_safe({ dir_raw.x, dir_raw.y });
     const int d2 = dir_raw.x * dir_raw.x + dir_raw.y * dir_raw.y;
@@ -207,4 +210,5 @@ update_enemy_system(entt::registry& r, const float dt)
 
   //
 }
+
 } // namespace game2d

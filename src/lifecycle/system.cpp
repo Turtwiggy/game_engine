@@ -21,6 +21,10 @@ game2d::update_lifecycle_system(entt::registry& r, const uint64_t& milliseconds_
   // destroy all dead objects
   //
   r.destroy(dead.dead.begin(), dead.dead.end());
+  // for (const auto& d : dead.dead) {
+  //   if (r.valid(d))
+  //     r.destroy(d);
+  // }
   dead.dead.clear();
 
   // process create requests

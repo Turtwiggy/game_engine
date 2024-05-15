@@ -3,11 +3,9 @@
 #include "glm/glm.hpp"
 #include <entt/entt.hpp>
 
-namespace game2d {
+#include <optional>
 
-//
-// weapon components
-//
+namespace game2d {
 
 struct FollowTargetComponent
 {
@@ -16,7 +14,7 @@ struct FollowTargetComponent
 
 struct HasTargetPositionComponent
 {
-  glm::ivec2 position{ 0, 0 };
+  std::optional<glm::ivec2> position = std::nullopt;
 };
 
 struct SetVelocityToTargetComponent

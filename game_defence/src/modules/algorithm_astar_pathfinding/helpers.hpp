@@ -1,7 +1,8 @@
 #pragma once
 
-#include "modules/ai_pathfinding/components.hpp"
+#include "modules/algorithm_astar_pathfinding/components.hpp"
 #include "modules/grid/components.hpp"
+#include "modules/selected_interactions/components.hpp"
 
 #include <glm/glm.hpp>
 
@@ -46,5 +47,13 @@ generate_flow_field(entt::registry& r, const GridComponent& grid, const int from
 
 void
 display_flow_field_with_visuals(entt::registry& r, GridComponent& grid);
+
+//
+
+glm::ivec2
+clamp_worldspace_to_gridspace(const MapComponent& map, const glm::ivec2 pos);
+
+int
+convert_position_to_index(const MapComponent& map, const glm::ivec2& pos);
 
 } // namespace game2d

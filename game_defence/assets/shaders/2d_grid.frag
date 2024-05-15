@@ -92,7 +92,7 @@ main()
   // and the gridwidth isnt large enough, 
   // the grid appears to dissapear.
   // the value 0.05 seems to work until gridsize<10
-  const float grid_width = 0.025; 
+  const float grid_width = 0.02; 
   if(abs(d) >= grid_width)
     colour = vec3(0.0); // background
   else

@@ -2,8 +2,18 @@
 
 #include "components.hpp"
 
+#include "entt/helpers.hpp"
+#include "events/helpers/mouse.hpp"
 #include "imgui.h"
+#include "maths/grid.hpp"
+#include "modules/actors/helpers.hpp"
+#include "modules/algorithm_astar_pathfinding/components.hpp"
+#include "modules/algorithm_astar_pathfinding/helpers.hpp"
+#include "modules/grid/components.hpp"
+#include "modules/selected_interactions/components.hpp"
 #include "modules/ux_hoverable/components.hpp"
+#include "physics/components.hpp"
+#include "renderer/transform.hpp"
 
 namespace game2d {
 
@@ -15,15 +25,144 @@ namespace game2d {
 // update_combat_turnbased_system(r);
 
 void
-update_ui_combat_turnbased_system(entt::registry& r)
+set_hover_debug(entt::registry& r, const bool enabled, const glm::ivec2& position, const glm::ivec2& size)
 {
+  const auto& info = get_first_component<SINGLE_TurnBasedCombatInfo>(r);
+
+  if (enabled) {
+    r.emplace_or_replace<TransformComponent>(info.to_place_debug);
+    set_position(r, info.to_place_debug, position);
+    set_size(r, info.to_place_debug, size);
+  } else {
+    if (auto* transform = r.try_get<TransformComponent>(info.to_place_debug))
+      r.remove<TransformComponent>(info.to_place_debug);
+  }
+};
+
+void
+update_ui_combat_turnbased_system(entt::registry& r, const glm::ivec2& input_mouse_pos)
+{
+  const auto& map_e = get_first<MapComponent>(r);
+  if (map_e == entt::null)
+    return;
+  auto& map = get_first_component<MapComponent>(r);
+
+  // note: this is not the map.tilesize,
+  const int mouse_grid_increments = 10;
+  const int grid_snap_size = mouse_grid_increments;
+
+  glm::ivec2 mouse_pos = engine::grid::grid_space_to_world_space(
+    engine::grid::world_space_to_grid_space(input_mouse_pos, grid_snap_size), grid_snap_size);
+  // center
+  mouse_pos += glm::vec2(grid_snap_size / 2.0f, grid_snap_size / 2.0f); // center
+
+  // Convert Map to Grid (?)
+  GridComponent grid;
+  grid.size = map.tilesize;
+  grid.width = map.xmax;
+  grid.height = map.ymax;
+  grid.grid = map.map;
+
+  const bool rmb_click = get_mouse_rmb_press();
+
+  const auto gridpos = engine::grid::world_space_to_grid_space(input_mouse_pos, map.tilesize);
+  const auto clamped_gridpos = engine::grid::world_space_to_grid_space(mouse_pos, map.tilesize);
+
   ImGui::Begin("TurnbasedCombat");
+  ImGui::Text("MousePos: %i %i", input_mouse_pos.x, input_mouse_pos.y);
+  ImGui::Text("MousePos GridPos: %i %i", gridpos.x, gridpos.y);
+  ImGui::Text("MouseClampedPos: %i %i", mouse_pos.x, mouse_pos.y);
+  ImGui::Text("MousePos ClampedGridPos: %i %i", clamped_gridpos.x, clamped_gridpos.y);
+
+  // HACK: BAD: clear entity map.
+  {
+    for (int i = 0; i < map.map.size(); i++) {
+      std::vector<entt::entity>& ents = map.map[i];
+      ents.clear();
+    }
+  }
+
+  // HACK: BAD: update the entity map with costs.
+  {
+    const auto& view = r.view<PathfindComponent, AABB>();
+    for (const auto& [e, pc, aabb] : view.each()) {
+      //
+      // work out which gridpos this object is in
+      // check directions l, r, u, d
+      const float half_x = aabb.size.x / 2.0f;
+      const float half_y = aabb.size.y / 2.0f;
+      std::set<vec2i> gridcells;
+      for (int y = aabb.center.y - half_y; y <= aabb.center.y + half_y; y += map.tilesize)
+        for (int x = aabb.center.x - half_x; x <= aabb.center.x + half_x; x += map.tilesize)
+          gridcells.emplace(vec2i(engine::grid::world_space_to_grid_space({ x, y }, map.tilesize)));
+      for (const auto& gc : gridcells) {
+        // ImGui::Text("GridCell %i %i", gc.x, gc.y);
+        const int idx = engine::grid::grid_position_to_clamped_index({ gc.x, gc.y }, map.xmax, map.ymax);
+        map.map[idx].push_back(e);
+      }
+    }
+  }
+
+  // Hack: debug gridpos pathfinding
+  {
+    const auto grid_idx = engine::grid::grid_position_to_clamped_index(gridpos, map.xmax, map.ymax);
+    if (map.map[grid_idx].size() > 0) {
+      for (const auto& map_e : map.map[grid_idx]) {
+        if (const auto* pfc = r.try_get<PathfindComponent>(map_e))
+          ImGui::Text("Cost: %i", pfc->cost);
+        else
+          ImGui::Text("Entity without pathfinding component");
+      }
+    }
+  }
 
   ImGui::Text("Hello, Combat!");
 
-  const auto& selected_view = r.view<SelectedComponent>();
-  for (const auto& [e, selected_c] : selected_view.each()) {
-    ImGui::Text("Something selected");
+  const auto& selected_view = r.view<SelectedComponent, AABB>();
+
+  int count = 0;
+  for (const auto& [e, selected_c, aabb] : selected_view.each())
+    count++;
+  ImGui::Text("Count: %i", count);
+
+  // limit moving to only one unit
+  if (count != 1) {
+    set_hover_debug(r, false, { 0, 0 }, { 0, 0 });
+    ImGui::End();
+    return;
+  }
+
+  ImGui::Text("Count is 1");
+
+  for (const auto& [e, selected_c, aabb] : selected_view.each()) {
+    ImGui::Text("Iterating selected...");
+    set_hover_debug(r, true, mouse_pos, aabb.size);
+
+    const auto src = aabb.center;
+    const auto src_idx = convert_position_to_index(map, src);
+
+    const auto dst = mouse_pos;
+    const int dst_idx = convert_position_to_index(map, dst);
+
+    // Attach a GeneratedPath to the enemy unit. HasTargetPosition gets overwritten.
+    const auto update_path_to_mouse = [&r, &e, &grid, &src_idx, &src, &dst_idx, &dst]() {
+      const auto path = generate_direct_with_diagonals(r, grid, src_idx, dst_idx);
+      GeneratedPathComponent path_c;
+      path_c.path = path;
+      path_c.src_pos = src;
+      path_c.dst_pos = dst;
+      path_c.dst_ent = entt::null;
+      path_c.aim_for_exact_position = true;
+      // path_c.path_cleared.resize(path.size());
+      r.emplace_or_replace<GeneratedPathComponent>(e, path_c);
+    };
+
+    if (rmb_click)
+      update_path_to_mouse();
+  }
+
+  if (ImGui::Button("Move Everything")) {
+    //
   }
 
   ImGui::End();
