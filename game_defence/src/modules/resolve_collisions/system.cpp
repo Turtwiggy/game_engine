@@ -2,6 +2,7 @@
 
 #include "actors.hpp"
 #include "entt/helpers.hpp"
+#include "entt/serialize.hpp"
 #include "lifecycle/components.hpp"
 #include "maths/maths.hpp"
 #include "modules/actor_enemy/components.hpp"
@@ -11,7 +12,6 @@
 #include "modules/actor_weapon_shotgun/components.hpp"
 #include "modules/combat_damage/components.hpp"
 #include "modules/combat_wants_to_shoot/components.hpp"
-#include "modules/entt/serialize.hpp"
 #include "modules/resolve_collisions/helpers.hpp"
 #include "modules/scene/components.hpp"
 #include "modules/scene/helpers.hpp"
@@ -62,7 +62,7 @@ enemy_player_collision(entt::registry& r, const entt::entity& a, const entt::ent
 
     // save the overworld
     // todo: add timestamp to savefile?
-    save(r, "save-overworld.dat");
+    save(r, "save-overworld.json");
 
     // going to "dungeon" scene
     move_to_scene_start(r, Scene::dungeon_designer);

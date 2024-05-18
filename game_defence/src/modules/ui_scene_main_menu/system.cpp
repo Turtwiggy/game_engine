@@ -7,6 +7,7 @@
 #include "audio/helpers.hpp"
 #include "entt/helpers.hpp"
 #include "events/components.hpp"
+#include "io/settings.hpp"
 #include "modules/actor_player/components.hpp"
 #include "modules/animation/components.hpp"
 #include "modules/renderer/components.hpp"
@@ -216,9 +217,9 @@ update_ui_scene_main_menu(engine::SINGLETON_Application& app, entt::registry& r)
     // ui.instantiated_players.erase(ui.instantiated_players.begin() + idx);
   }
 
+  // show a sound icon
   //
-  // In the top right, show a sound icon
-  //
+
   ImGuiWindowFlags icon_flags = 0;
   icon_flags |= ImGuiWindowFlags_NoDocking;
   icon_flags |= ImGuiWindowFlags_NoFocusOnAppearing;
@@ -228,6 +229,8 @@ update_ui_scene_main_menu(engine::SINGLETON_Application& app, entt::registry& r)
   icon_flags |= ImGuiWindowFlags_NoMove;
   icon_flags |= ImGuiWindowFlags_NoBringToFrontOnFocus;
   // icon_flags |= ImGuiWindowFlags_NoNavFocus;
+
+  static auto should_mute = gesert_string(PLAYERPREF_MUTE, "false"s) == "true";
 
   // window settings
   //
@@ -243,8 +246,8 @@ update_ui_scene_main_menu(engine::SINGLETON_Application& app, entt::registry& r)
   const float distance_from_right_of_screen = 75;
   const float distance_from_top_of_screen = 75;
   static glm::ivec2 offset = unmute_icon_offset;
-  static int toggle = 1;
-  static bool toggle_changed = false;
+  static int toggle = should_mute ? 1 : 0; // 1 is muted
+  static bool toggle_changed = true;
   const ImGuiViewport* viewport = ImGui::GetMainViewport();
 
   ImGui::SetNextWindowPos(ImVec2(viewport->WorkPos.x + viewport->WorkSize.x - distance_from_right_of_screen,
@@ -266,6 +269,9 @@ update_ui_scene_main_menu(engine::SINGLETON_Application& app, entt::registry& r)
   if (ImGui::ImageButton(id, icon_size, tl, br, frame_padding, ImColor(0, 0, 0, 255))) {
     toggle = toggle == 1 ? 0 : 1;
     toggle_changed = true;
+
+    std::cout << "toggle changed to: " << toggle << std::endl;
+    save_string(PLAYERPREF_MUTE, toggle == 1 ? "true"s : "false"s);
   }
 
   if (toggle == 0 && toggle_changed) {

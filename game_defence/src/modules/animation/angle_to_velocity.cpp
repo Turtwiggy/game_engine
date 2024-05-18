@@ -21,6 +21,6 @@ update_scale_by_velocity_system(entt::registry& r, float dt)
     if (d2 > 0.0f)
       transform.rotation_radians.z = engine::dir_to_angle_radians(nrm_dir);
   }
-}
+};
 
 } // namespace game2d

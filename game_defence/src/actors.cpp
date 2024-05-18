@@ -158,8 +158,8 @@ create_physics_actor(entt::registry& r, const entt::entity& e)
 entt::entity
 create_gameplay(entt::registry& r, const EntityType& type)
 {
-  const glm::ivec3 DEFAULT_SIZE{ 64, 64, 1 };
-  const glm::ivec3 HALF_SIZE{ 32, 32, 1 };
+  const glm::ivec3 DEFAULT_SIZE{ 32, 32, 1 };
+  const glm::ivec3 HALF_SIZE{ 16, 16, 1 };
   const glm::ivec2 SMALL_SIZE{ 4, 4 };
 
   const auto type_name = std::string(magic_enum::enum_name(type));
