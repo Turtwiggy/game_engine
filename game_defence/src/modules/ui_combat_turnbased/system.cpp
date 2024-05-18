@@ -10,6 +10,7 @@
 #include "events/helpers/mouse.hpp"
 #include "lifecycle/components.hpp"
 #include "maths/grid.hpp"
+#include "modules/actor_enemy/components.hpp"
 #include "modules/actor_player/components.hpp"
 #include "modules/actors/helpers.hpp"
 #include "modules/algorithm_astar_pathfinding/components.hpp"
@@ -18,6 +19,8 @@
 #include "modules/combat_wants_to_shoot/components.hpp"
 #include "modules/gen_dungeons/helpers.hpp"
 #include "modules/grid/components.hpp"
+#include "modules/renderer/components.hpp"
+#include "modules/renderer/helpers.hpp"
 #include "modules/scene/components.hpp"
 #include "modules/scene/helpers.hpp"
 #include "modules/ui_worldspace_text/components.hpp"
@@ -26,8 +29,10 @@
 #include "renderer/transform.hpp"
 
 #include "imgui.h"
+#include "sprites/helpers.hpp"
 
 namespace game2d {
+using namespace std::literals;
 
 // check if in range
 // if in range,
@@ -36,18 +41,47 @@ namespace game2d {
 // update_combat_engagement_system(r);
 // update_combat_turnbased_system(r);
 
+enum class CursorType
+{
+  EMPTY,
+  MOVE,
+  ATTACK,
+};
+
 void
-set_hover_debug(entt::registry& r, const bool enabled, const glm::ivec2& position, const glm::ivec2& size)
+set_hover_debug(entt::registry& r, const bool& enabled, const glm::ivec2& position, const glm::ivec2& size)
 {
   const auto& info = get_first_component<SINGLE_TurnBasedCombatInfo>(r);
 
-  if (enabled) {
-    r.emplace_or_replace<TransformComponent>(info.to_place_debug);
-    set_position(r, info.to_place_debug, position);
-    set_size(r, info.to_place_debug, size);
-  } else {
+  // if (enabled) {
+  // r.emplace_or_replace<TransformComponent>(info.to_place_debug);
+  // set_position(r, info.to_place_debug, position);
+  // set_size(r, info.to_place_debug, size);
+  // } else
+  {
     if (auto* transform = r.try_get<TransformComponent>(info.to_place_debug))
       r.remove<TransformComponent>(info.to_place_debug);
+  }
+};
+
+void
+change_cursor(entt::registry& r, const CursorType& type)
+{
+  const auto& info = get_first_component<SINGLE_TurnBasedCombatInfo>(r);
+  const auto& ri = get_first_component<SINGLETON_RendererInfo>(r);
+  const auto& e = info.action_cursor;
+  const int tex_unit_kenny = search_for_texture_unit_by_texture_path(ri, "monochrome")->unit;
+  const int tex_unit_icons = search_for_texture_unit_by_texture_path(ri, "gameicons")->unit;
+
+  if (type == CursorType::EMPTY) {
+    set_size(r, e, { 0, 0 });
+    set_sprite_custom(r, e, "EMPTY"s, tex_unit_kenny);
+  } else if (type == CursorType::ATTACK) {
+    set_size(r, e, { 16, 16 });
+    set_sprite_custom(r, e, "CURSOR_ATTACK_2"s, tex_unit_kenny);
+  } else if (type == CursorType::MOVE) {
+    set_size(r, e, { 16, 16 });
+    set_sprite_custom(r, e, "ARROW_BOTTOM_RIGHT"s, tex_unit_icons);
   }
 };
 
@@ -68,6 +102,7 @@ update_ui_combat_turnbased_system(entt::registry& r, const glm::ivec2& input_mou
 
   const auto& input = get_first_component<SINGLETON_InputComponent>(r);
   const bool left_ctrl_held = get_key_held(input, SDL_Scancode::SDL_SCANCODE_LCTRL);
+  const bool left_shift_held = get_key_held(input, SDL_Scancode::SDL_SCANCODE_LSHIFT);
   const bool rmb_click = get_mouse_rmb_press();
 
   const int grid_snap_size = mouse_grid_increments; // note: this is not the map.tilesize,
@@ -144,6 +179,20 @@ update_ui_combat_turnbased_system(entt::registry& r, const glm::ivec2& input_mou
 
   ImGui::Text("Hello, Combat!");
 
+  // Check if all enemies are dead.
+  //
+  const auto& enemy_view = r.view<EnemyComponent>();
+  int enemy_count = 0;
+  for (const auto& [e, e_c] : enemy_view.each())
+    enemy_count++;
+  if (enemy_count == 0) {
+    if (ImGui::Button("Back to Overworld")) {
+      ImGui::Text("All enemies dead");
+
+      move_to_scene_start(r, Scene::duckgame_overworld, true);
+    }
+  }
+
   const auto& selected_view = r.view<SelectedComponent, AABB>();
 
   int count = 0;
@@ -158,8 +207,11 @@ update_ui_combat_turnbased_system(entt::registry& r, const glm::ivec2& input_mou
     return;
   }
 
+  // set positon of cursor
+  const auto& info = get_first_component<SINGLE_TurnBasedCombatInfo>(r);
+  set_position(r, info.action_cursor, mouse_pos);
+
   for (const auto& [e, selected_c, aabb] : selected_view.each()) {
-    set_hover_debug(r, true, mouse_pos, aabb.size);
 
     const auto src = aabb.center;
     const auto src_idx = convert_position_to_index(map, src);
@@ -185,19 +237,29 @@ update_ui_combat_turnbased_system(entt::registry& r, const glm::ivec2& input_mou
     static_tgt.target = { mouse_pos.x, mouse_pos.y };
 
     // move
-    if (left_ctrl_held && rmb_click)
-      update_path_to_mouse();
-
+    if (left_shift_held) {
+      set_hover_debug(r, false, { 0, 0 }, { 0, 0 });
+      change_cursor(r, CursorType::MOVE);
+      if (rmb_click)
+        update_path_to_mouse();
+    }
     // shoot
-    else if (rmb_click)
-      r.emplace_or_replace<WantsToShoot>(e);
-  }
+    else if (left_ctrl_held) {
+      set_hover_debug(r, false, { 0, 0 }, { 0, 0 });
+      change_cursor(r, CursorType::ATTACK);
+      if (rmb_click)
+        r.emplace_or_replace<WantsToShoot>(e);
+    } else {
+      set_hover_debug(r, true, mouse_pos, aabb.size);
+      change_cursor(r, CursorType::EMPTY);
+    }
 
-  if (ImGui::Button("Move Everything")) {
-    // hmm
-  }
+    if (ImGui::Button("Move Everything")) {
+      // hmm
+    }
 
-  ImGui::End();
+    ImGui::End();
+  }
 }
 
 } // namespace game2d

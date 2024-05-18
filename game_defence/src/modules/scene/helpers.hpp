@@ -7,7 +7,7 @@
 namespace game2d {
 
 void
-move_to_scene_start(entt::registry& r, const Scene s);
+move_to_scene_start(entt::registry& r, const Scene s, const bool load_saved = false);
 
 entt::entity
 create_player(entt::registry& r);

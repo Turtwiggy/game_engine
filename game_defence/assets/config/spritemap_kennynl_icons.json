@@ -10,6 +10,8 @@
   },
   "sprites": [
     { "name": "AUDIO", "frames": [ { "x": 5, "y": 0 } ] },
-    { "name": "AUDIO_MUTE", "frames": [ { "x": 5, "y": 1 } ] }
+    { "name": "AUDIO_MUTE", "frames": [ { "x": 5, "y": 1 } ] },
+
+    { "name": "ARROW_BOTTOM_RIGHT", "frames": [ { "x": 8, "y": 4 } ] }
   ]
 }

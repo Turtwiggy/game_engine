@@ -11,6 +11,7 @@
 #include "modules/actor_weapon_shotgun/components.hpp"
 #include "modules/combat_damage/components.hpp"
 #include "modules/combat_wants_to_shoot/components.hpp"
+#include "modules/entt/serialize.hpp"
 #include "modules/resolve_collisions/helpers.hpp"
 #include "modules/scene/components.hpp"
 #include "modules/scene/helpers.hpp"
@@ -38,6 +39,8 @@ enemy_barricade_collision(entt::registry& r, const entt::entity& a, const entt::
 void
 enemy_player_collision(entt::registry& r, const entt::entity& a, const entt::entity& b)
 {
+  auto& dead = get_first_component<SINGLETON_EntityBinComponent>(r);
+
   const auto [a_player, b_group] = collision_of_interest<PlayerComponent, EnemyComponent>(r, a, b);
 
   if (a_player != entt::null && b_group != entt::null) {
@@ -51,6 +54,15 @@ enemy_player_collision(entt::registry& r, const entt::entity& a, const entt::ent
     SINGLE_DuckgameToDungeon data;
     data.backstabbed = was_backstabbed;
     r.emplace_or_replace<SINGLE_DuckgameToDungeon>(r.create(), data);
+
+    // Destroy the entity we collided with before moving scene,
+    // so that when the game is loaded it's gone?
+    dead.dead.emplace(b_group);
+    r.emplace_or_replace<WaitForInitComponent>(b_group); // set it as not init again
+
+    // save the overworld
+    // todo: add timestamp to savefile?
+    save(r, "save-overworld.dat");
 
     // going to "dungeon" scene
     move_to_scene_start(r, Scene::dungeon_designer);

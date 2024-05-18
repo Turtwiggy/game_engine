@@ -5,7 +5,6 @@
 #include "entt/helpers.hpp"
 #include "events/components.hpp"
 #include "events/helpers/keyboard.hpp"
-#include "helpers.hpp"
 #include "helpers/line.hpp"
 #include "imgui/helpers.hpp"
 #include "lifecycle/components.hpp"
@@ -150,8 +149,8 @@ update_ui_level_editor_system(entt::registry& r, const glm::ivec2& input_mouse_p
       //
       if (mode == LevelEditorMode::edit) {
         // todo: are you sure
-        if (ImGui::Button("Save##savelevel"))
-          save(r, level);
+        // if (ImGui::Button("Save##savelevel"))
+        //   save(r, level);
         ImGui::SameLine();
       } else
         ImGui::Text("Please go to edit mode to save level");
@@ -163,7 +162,7 @@ update_ui_level_editor_system(entt::registry& r, const glm::ivec2& input_mouse_p
         // todo: are you sure
         if (levels.size() > 0) {
           move_to_scene_start(r, scene.s);
-          load(r, level);
+          // load(r, level);
         }
       }
       ImGui::SameLine();
@@ -194,7 +193,7 @@ update_ui_level_editor_system(entt::registry& r, const glm::ivec2& input_mouse_p
       // move_to_scene_start(r, scene.s);
 
       std::string new_level_path = path + "level" + std::to_string(levels.size() - 1) + ".json";
-      save(r, new_level_path);
+      // save(r, new_level_path);
 
       // refresh levels
       levels.clear();

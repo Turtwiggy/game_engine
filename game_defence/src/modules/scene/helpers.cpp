@@ -21,6 +21,7 @@
 #include "modules/camera/orthographic.hpp"
 #include "modules/combat_damage/components.hpp"
 #include "modules/debug_pathfinding/components.hpp"
+#include "modules/entt/serialize.hpp"
 #include "modules/gameover/components.hpp"
 #include "modules/grid/components.hpp"
 #include "modules/renderer/components.hpp"
@@ -126,7 +127,7 @@ add_boundary_walls(entt::registry& r, const int w, const int h, const int tilesi
 }
 
 void
-move_to_scene_start(entt::registry& r, const Scene s)
+move_to_scene_start(entt::registry& r, const Scene s, const bool load_saved)
 {
   const auto& transforms = r.view<TransformComponent>(entt::exclude<OrthographicCamera>);
   r.destroy(transforms.begin(), transforms.end());
@@ -497,6 +498,7 @@ move_to_scene_start(entt::registry& r, const Scene s)
   }
 
   if (s == Scene::duckgame_overworld) {
+
     int map_width = 1000;
     int map_height = 1000;
     MapComponent map_c;
@@ -509,24 +511,10 @@ move_to_scene_start(entt::registry& r, const Scene s)
     // grid effect
     r.emplace<Effect_GridComponent>(r.create(), map_c.tilesize);
 
-    const glm::ivec2 home_base_position = { 25, 25 };
-
-    const auto player = create_gameplay(r, EntityType::actor_player);
-    set_position(r, player, home_base_position);
-    set_size(r, player, { 16, 16 });
-    r.emplace<CameraFollow>(player);
-
-    // TODO: BAD. FIX.
-    static engine::RandomState rnd;
-
-    for (int i = 0; i < 20; i++) {
-      const auto enemy = create_gameplay(r, EntityType::actor_enemy_patrol);
-
-      // random position, dont spawn at 0, 0
-      const int rnd_x = int(engine::rand_det_s(rnd.rng, 1, (map_c.xmax - 1)));
-      const int rnd_y = int(engine::rand_det_s(rnd.rng, 1, (map_c.ymax - 1)));
-      set_position(r, enemy, { rnd_x * map_c.tilesize, rnd_y * map_c.tilesize });
-    }
+    // Create 4 edges to the map
+    bool create_edges = true;
+    if (create_edges)
+      add_boundary_walls(r, map_width, map_height, map_c.tilesize);
 
     // Add respawner without body
     bool add_spawner = false;
@@ -554,10 +542,34 @@ move_to_scene_start(entt::registry& r, const Scene s)
       r.remove<VelocityComponent>(e);
     }
 
-    // Create 4 edges to the map
-    bool create_edges = true;
-    if (create_edges)
-      add_boundary_walls(r, map_width, map_height, map_c.tilesize);
+    //
+    // spawnables below
+    //
+
+    if (load_saved)
+      load_if_exists(r, "save-overworld.dat");
+    else {
+      const glm::ivec2 home_base_position = { 25, 25 };
+
+      const auto player = create_gameplay(r, EntityType::actor_player);
+      set_position(r, player, home_base_position);
+      set_size(r, player, { 16, 16 });
+      r.emplace<CameraFollow>(player);
+
+      // TODO: BAD. FIX.
+      static engine::RandomState rnd;
+
+      for (int i = 0; i < 20; i++) {
+        const auto enemy = create_gameplay(r, EntityType::actor_enemy_patrol);
+
+        // random position, dont spawn at 0, 0
+        const int rnd_x = int(engine::rand_det_s(rnd.rng, 1, (map_c.xmax - 1)));
+        const int rnd_y = int(engine::rand_det_s(rnd.rng, 1, (map_c.ymax - 1)));
+        set_position(r, enemy, { rnd_x * map_c.tilesize, rnd_y * map_c.tilesize });
+      }
+    }
+
+    //
   }
 
   if (s == Scene::turnbasedcombat) {
@@ -631,6 +643,9 @@ move_to_scene_start(entt::registry& r, const Scene s)
     // Debug object
     auto& info = get_first_component<SINGLE_TurnBasedCombatInfo>(r);
     info.to_place_debug = create_gameplay(r, EntityType::empty_with_transform);
+    info.action_cursor = create_gameplay(r, EntityType::empty_with_transform);
+    set_size(r, info.to_place_debug, { 0, 0 }); // start disabled
+    set_size(r, info.action_cursor, { 0, 0 });  // start disabled
   }
 
   const auto scene_name = std::string(magic_enum::enum_name(s));

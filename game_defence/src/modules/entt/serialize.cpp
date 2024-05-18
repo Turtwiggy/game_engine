@@ -1,29 +1,18 @@
-#include "helpers.hpp"
+#include "serialize.hpp"
 
 #include "actors.hpp"
 #include "lifecycle/components.hpp"
 #include "modules/actor_cursor/components.hpp"
+#include "modules/actors/helpers.hpp"
+#include "modules/camera/components.hpp"
 #include "modules/renderer/components.hpp"
-#include "modules/scene/helpers.hpp"
-
-// #include "serialize.hpp"
 
 #include <fstream>
 #include <iostream>
 #include <sstream>
 #include <string>
-#include <vector>
 
 namespace game2d {
-
-// What to serialize?
-// bow
-// player
-// enemy
-// hearth
-// spawner
-// turret
-// camera
 
 // what about "inbetween" state info?
 // basically, any state that deviates from the start state
@@ -58,14 +47,27 @@ namespace game2d {
 void
 save(const entt::registry& r, const std::string& path)
 {
-  std::cout << "saving...\n";
+  std::cout << "saving... " << path << std::endl;
 
   // limit snapshots to actors
   const auto v =
     r.view<const EntityTypeComponent, const TransformComponent>(entt::exclude<CursorComponent, WaitForInitComponent>);
 
   nlohmann::json root = nlohmann::json::array();
+
+  // Which types to save?
+  // Should probably be outside this function
+  std::vector<EntityType> savetypes{
+    EntityType::actor_player,
+    EntityType::actor_enemy_patrol,
+  };
+
   for (const auto& [entity, type, transform] : v.each()) {
+
+    // our type?
+    const auto interest = std::find(savetypes.begin(), savetypes.end(), type.type) != savetypes.end();
+    if (!interest)
+      continue;
 
     nlohmann::json j; // create an empty structure
 
@@ -87,17 +89,19 @@ save(const entt::registry& r, const std::string& path)
   // o.close();
 
   std::string data = root.dump();
-  std::cout << data << std::endl;
+  // std::cout << data << std::endl;
 
   // save to disk
   std::ofstream fout(path);
-  fout << data.c_str();
+  fout << data;
+
+  std::cout << "saved..." << std::endl;
 };
 
 void
 load(entt::registry& r, const std::string& path)
 {
-  std::cout << "loading...\n";
+  std::cout << "loading..." << std::endl;
 
   // load from disk
   std::ifstream t(path);
@@ -117,16 +121,27 @@ load(entt::registry& r, const std::string& path)
     const EntityTypeComponent type = element[0].template get<EntityTypeComponent>();
     const TransformComponent transform = element[1].template get<TransformComponent>();
 
-    const auto req = create_gameplay(r, type.type);
-    r.emplace_or_replace<TransformComponent>(req, transform);
+    const auto e = create_gameplay(r, type.type);
+    set_position(r, e, { transform.position.x, transform.position.y });
+    set_size(r, e, { transform.scale.x, transform.scale.y });
+
+    if (type.type == EntityType::actor_player) {
+      // ??
+      r.emplace<CameraFollow>(e);
+    }
   }
+
+  std::cout << "loaded..." << std::endl;
 };
 
 void
-load_if_exists(entt::registry& registry, std::string path){
-  //   std::ifstream file(path.c_str());
-  //   if (file)
-  //     load(registry, path);
+load_if_exists(entt::registry& registry, const std::string& path)
+{
+  std::ifstream file(path.c_str());
+  if (file)
+    load(registry, path);
+  else
+    std::cerr << "(error) file did not exist: " << path << std::endl;
 };
 
 } // namespace game2d

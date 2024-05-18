@@ -355,6 +355,7 @@ game2d::update(engine::SINGLETON_Application& app, entt::registry& r, const floa
     }
     if (scene.s == Scene::dungeon_designer) {
       update_ui_spaceship_designer_system(r, mouse_pos, dt);
+      update_ui_combat_turnbased_system(r, mouse_pos);
     }
     if (scene.s == Scene::duckgame_overworld) {
       update_ui_backstab_patrol_system(r);

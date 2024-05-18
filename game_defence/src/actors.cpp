@@ -168,7 +168,6 @@ create_gameplay(entt::registry& r, const EntityType& type)
     const auto sc = create_sprite(r, sprite_name, type);
     r.emplace<SpriteComponent>(e, sc);
     r.emplace<TransformComponent>(e);
-    set_size(r, e, DEFAULT_SIZE);
 
     switch (type) {
       case EntityType::bullet_default: {
@@ -182,6 +181,9 @@ create_gameplay(entt::registry& r, const EntityType& type)
       case EntityType::particle: {
         set_size(r, e, HALF_SIZE);
         break;
+      }
+      default: {
+        set_size(r, e, DEFAULT_SIZE);
       }
     }
   }
@@ -464,7 +466,12 @@ create_gameplay(entt::registry& r, const EntityType& type)
 
       r.emplace<AttackCooldownComponent>(e, 1.2f); // seconds between shooting
       r.emplace<HasParentComponent>(e);
-      r.emplace<WeaponBulletTypeToSpawnComponent>(e);
+
+      WeaponBulletTypeToSpawnComponent bullet_info;
+      bullet_info.bullet_damage = 20;
+      bullet_info.bullet_type = EntityType::bullet_default;
+      bullet_info.bullet_speed = 200.0f;
+      r.emplace<WeaponBulletTypeToSpawnComponent>(e, bullet_info);
 
       break;
     }
@@ -472,13 +479,6 @@ create_gameplay(entt::registry& r, const EntityType& type)
       //
       // actors_bullets
       //
-
-    case EntityType::bullet_bow: {
-      create_physics_actor(r, e);
-      r.emplace<TeamComponent>(e, AvailableTeams::player);
-      // no attack component as arrows are inactive sometimes
-      break;
-    }
 
     case EntityType::bullet_default: {
       create_physics_actor(r, e);
@@ -488,6 +488,13 @@ create_gameplay(entt::registry& r, const EntityType& type)
       r.emplace<SetTransformAngleToVelocity>(e);
       r.emplace<EntityTimedLifecycle>(e);
       r.emplace<BulletComponent>(e);
+      break;
+    }
+
+    case EntityType::bullet_bow: {
+      create_physics_actor(r, e);
+      r.emplace<TeamComponent>(e, AvailableTeams::player);
+      // no attack component as arrows are inactive sometimes
       break;
     }
 
@@ -502,7 +509,6 @@ create_gameplay(entt::registry& r, const EntityType& type)
       break;
     }
 
-    //
     // actors_enemies
     //
     case EntityType::enemy_dummy: {
@@ -538,7 +544,6 @@ create_gameplay(entt::registry& r, const EntityType& type)
       // r.emplace<AttackComponent>(e, 10); // on the equipped weapon?
       break;
     }
-
     case EntityType::actor_enemy_patrol: {
       create_physics_actor(r, e);
       r.emplace<EnemyComponent>(e);
@@ -562,7 +567,6 @@ create_gameplay(entt::registry& r, const EntityType& type)
       // r.emplace<TeamComponent>(e, AvailableTeams::enemy);
       break;
     }
-
     case EntityType::enemy_ranged: {
       create_physics_actor(r, e);
       r.emplace<EnemyComponent>(e);
