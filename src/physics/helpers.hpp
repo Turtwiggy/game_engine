@@ -16,6 +16,9 @@ namespace game2d {
 bool
 collide(const AABB& one, const AABB& two);
 
+bool
+collide(const CircleCollider& a, const CircleCollider& b);
+
 template<class T>
 bool
 contains(const AABB& a, const T& point)

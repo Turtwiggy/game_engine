@@ -3,6 +3,7 @@
 #include <gtest/gtest.h>
 
 #include "test_actor_patrol.hpp"
+#include "test_physics.hpp"
 
 #undef main
 

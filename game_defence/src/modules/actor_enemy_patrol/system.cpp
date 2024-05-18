@@ -13,7 +13,6 @@
 #include "modules/grid/components.hpp"
 #include "physics/components.hpp"
 
-
 // choose a new random position
 // move towards position
 // this behaviour is interrupted if a player gets within range
@@ -31,7 +30,7 @@ update_actor_enemy_patrol_system(entt::registry& r, const glm::ivec2 mouse_pos, 
   const auto& player_e = get_first<PlayerComponent>(r);
   if (player_e == entt::null)
     return;
-  const auto& target_aabb = r.get<AABB>(player_e);
+  const glm::ivec2 target_aabb = get_position(r, player_e);
 
   // TODO: BAD. FIX.
   static engine::RandomState rnd;
@@ -51,7 +50,7 @@ update_actor_enemy_patrol_system(entt::registry& r, const glm::ivec2 mouse_pos, 
 
     // Attach a GeneratedPath to the enemy unit. HasTargetPosition gets overwritten.
     const auto update_path_to_player = [&r, &e, &grid, &map, &src_idx, &src, &target_aabb, &player_e]() {
-      const auto dst = target_aabb.center;
+      const auto dst = target_aabb;
       const int dst_idx = convert_position_to_index(map, dst);
       const auto path = generate_direct_with_diagonals(r, grid, src_idx, dst_idx);
       GeneratedPathComponent path_c;
@@ -98,18 +97,18 @@ update_actor_enemy_patrol_system(entt::registry& r, const glm::ivec2 mouse_pos, 
     };
 
     // Calculate distance from player & chase the player if you're near to the player.
-    const auto dir = glm::vec2(target_aabb.center) - glm::vec2(patrol_aabb.center);
+    const auto dir = glm::vec2(target_aabb) - glm::vec2(patrol_aabb.center);
     const int d2 = dir.x * dir.x + dir.y * dir.y;
     constexpr int distance_threshold_to_chase = 200 * 200;
 
     if (d2 < distance_threshold_to_chase) {
 
       // where is our target currently on the grid?
-      const auto dst = target_aabb.center;
+      const auto dst = target_aabb;
       const auto dst_idx = convert_position_to_index(map, dst);
 
       // check the vision cone for the patrol
-      const glm::vec2 dir = target_aabb.center - patrol_aabb.center;
+      const glm::vec2 dir = target_aabb - patrol_aabb.center;
 
       // Calculate the dot product
       const glm::vec2 a = engine::normalize_safe(glm::vec2{ patrol_vel.x, patrol_vel.y });

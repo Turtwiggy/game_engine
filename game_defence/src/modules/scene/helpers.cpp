@@ -12,6 +12,8 @@
 #include "maths/grid.hpp"
 #include "modules/actor_bodypart_legs/components.hpp"
 #include "modules/actor_cursor/components.hpp"
+#include "modules/actor_enemy_patrol/components.hpp"
+#include "modules/actor_enemy_patrol/helpers.hpp"
 #include "modules/actor_spawner/components.hpp"
 #include "modules/actors/helpers.hpp"
 #include "modules/algorithm_astar_pathfinding/components.hpp"
@@ -517,30 +519,28 @@ move_to_scene_start(entt::registry& r, const Scene s, const bool load_saved)
       add_boundary_walls(r, map_width, map_height, map_c.tilesize);
 
     // Add respawner without body
-    bool add_spawner = false;
-    if (add_spawner) {
-      SpawnerComponent spawner_c;
-      spawner_c.types_to_spawn = { EntityType::actor_enemy_patrol };
-      spawner_c.continuous_spawn = true;
-      AABB spawner_area;
-
-      // area: entire map
-      spawner_area.center = { map_width / 2.0f, map_height / 2.0f };
-      spawner_area.size = { map_width, map_height };
-
-      spawner_c.spawn_in_boundingbox = true;
-      spawner_c.spawn_area = spawner_area;
-      const auto e = create_gameplay(r, EntityType::actor_spawner);
-      r.emplace_or_replace<SpawnerComponent>(e, spawner_c);
-      // not visible
-      r.remove<TransformComponent>(e);
-      // stop being physics actor
-      r.remove<PhysicsTransformXComponent>(e);
-      r.remove<PhysicsTransformYComponent>(e);
-      r.remove<AABB>(e);
-      r.remove<PhysicsActorComponent>(e);
-      r.remove<VelocityComponent>(e);
-    }
+    // bool add_spawner = false;
+    // if (add_spawner) {
+    //   SpawnerComponent spawner_c;
+    //   spawner_c.types_to_spawn = { EntityType::actor_enemy_patrol };
+    //   spawner_c.continuous_spawn = true;
+    //   AABB spawner_area;
+    //   // area: entire map
+    //   spawner_area.center = { map_width / 2.0f, map_height / 2.0f };
+    //   spawner_area.size = { map_width, map_height };
+    //   spawner_c.spawn_in_boundingbox = true;
+    //   spawner_c.spawn_area = spawner_area;
+    //   const auto e = create_gameplay(r, EntityType::actor_spawner);
+    //   r.emplace_or_replace<SpawnerComponent>(e, spawner_c);
+    //   // not visible
+    //   r.remove<TransformComponent>(e);
+    //   // stop being physics actor
+    //   r.remove<PhysicsTransformXComponent>(e);
+    //   r.remove<PhysicsTransformYComponent>(e);
+    //   r.remove<AABB>(e);
+    //   r.remove<PhysicsActorComponent>(e);
+    //   r.remove<VelocityComponent>(e);
+    // }
 
     //
     // spawnables below
@@ -553,7 +553,6 @@ move_to_scene_start(entt::registry& r, const Scene s, const bool load_saved)
 
       const auto player = create_gameplay(r, EntityType::actor_player);
       set_position(r, player, home_base_position);
-      set_size(r, player, { 16, 16 });
       r.emplace<CameraFollow>(player);
 
       // TODO: BAD. FIX.
@@ -561,6 +560,9 @@ move_to_scene_start(entt::registry& r, const Scene s, const bool load_saved)
 
       for (int i = 0; i < 20; i++) {
         const auto enemy = create_gameplay(r, EntityType::actor_enemy_patrol);
+
+        PatrolDescription desc;
+        update_patrol_from_desc(r, enemy, desc);
 
         // random position, dont spawn at 0, 0
         const int rnd_x = int(engine::rand_det_s(rnd.rng, 1, (map_c.xmax - 1)));

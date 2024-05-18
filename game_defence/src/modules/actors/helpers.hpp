@@ -13,6 +13,9 @@ get_position(entt::registry& r, const entt::entity& e);
 void
 set_position(entt::registry& r, const entt::entity& e, const glm::ivec2& pos);
 
+glm::ivec2
+get_size(entt::registry& r, const entt::entity& e);
+
 void
 set_size(entt::registry& r, const entt::entity& e, const glm::ivec2& size);
 

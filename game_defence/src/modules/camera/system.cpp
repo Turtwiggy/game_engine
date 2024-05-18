@@ -53,26 +53,26 @@ update_camera_system(entt::registry& r, const float dt, const glm::ivec2& mouse_
   // if (auto* target = r.try_get<HasTargetPositionComponent>(camera_ent))
   //   target->position = { target_position.x, target_position.y };
 
-  const float CAM_SPEED = 500.0f;
-  const int mul = static_cast<int>(CAM_SPEED * dt);
-  glm::vec2 movement{ 0, 0 };
-  if (get_key_held(input, SDL_SCANCODE_A))
-    movement.x -= mul;
-  if (get_key_held(input, SDL_SCANCODE_D))
-    movement.x += mul;
-  if (get_key_held(input, SDL_SCANCODE_W))
-    movement.y -= mul;
-  if (get_key_held(input, SDL_SCANCODE_S))
-    movement.y += mul;
+  // const float CAM_SPEED = 500.0f;
+  // const int mul = static_cast<int>(CAM_SPEED * dt);
+  // glm::vec2 movement{ 0, 0 };
+  // if (get_key_held(input, SDL_SCANCODE_A))
+  //   movement.x -= mul;
+  // if (get_key_held(input, SDL_SCANCODE_D))
+  //   movement.x += mul;
+  // if (get_key_held(input, SDL_SCANCODE_W))
+  //   movement.y -= mul;
+  // if (get_key_held(input, SDL_SCANCODE_S))
+  //   movement.y += mul;
 
   // if (get_mouse_mmb_held()) { // pan
   // if (get_mouse_lmb_held()) { // rotate
   // if (get_mouse_rmb_held()) { // zoom
 
   // update the transform
-  camera_transform.position.x += movement.x;
-  camera_transform.position.y += movement.y;
-  camera_transform.position.z;
+  // camera_transform.position.x += movement.x;
+  // camera_transform.position.y += movement.y;
+  // camera_transform.position.z;
 
   // calculate view after updating postiion
   TransformComponent screen_offset = camera_transform;

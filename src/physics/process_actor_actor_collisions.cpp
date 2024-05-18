@@ -2,6 +2,7 @@
 #include "process_actor_actor_collisions.hpp"
 
 // game2d
+#include "actors.hpp"
 #include "physics/components.hpp"
 #include "physics/helpers.hpp"
 
@@ -26,9 +27,29 @@ game2d::update_actor_actor_collisions_system(entt::registry& r, SINGLETON_Physic
   // std::move(p.frame_solid_collisions.begin(), p.frame_solid_collisions.end(), std::back_inserter(p.frame_collisions));
 
   //  filter with narrowphase collisions
-  // auto colls = std::move(p.frame_collisions);
-  // for (const auto& coll : colls) {
-  // }
+  //
+  auto colls = std::move(p.frame_collisions);
+  for (const auto& coll : colls) {
+    const auto a = static_cast<entt::entity>(coll.ent_id_0);
+    const auto b = static_cast<entt::entity>(coll.ent_id_1);
+    // const auto& a_type = r.get<EntityTypeComponent>(a).type;
+    // const auto& b_type = r.get<EntityTypeComponent>(b).type;
+
+    auto* a_circle = r.try_get<CircleCollider>(a);
+    auto* b_circle = r.try_get<CircleCollider>(b);
+    if (!a_circle || !b_circle) {
+      p.frame_collisions.push_back(coll);
+      continue;
+    }
+
+    // moving center probably shouldnt be here
+    const auto& a_aabb = r.get<AABB>(a);
+    const auto& b_aabb = r.get<AABB>(b);
+    a_circle->center = a_aabb.center;
+    b_circle->center = b_aabb.center;
+    if (collide(*a_circle, *b_circle))
+      p.frame_collisions.push_back(coll);
+  }
 
   // std::vector<Collision2D> narrowphase_collisions;
   // generate_narrowphase_collisons(r, broadphase_collisions, narrowphase_collisions)

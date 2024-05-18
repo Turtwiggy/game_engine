@@ -24,6 +24,15 @@ collide(const AABB& one, const AABB& two)
   return collision_x && collision_y;
 };
 
+bool
+collide(const CircleCollider& a, const CircleCollider& b)
+{
+  const float dx = a.center.x - b.center.x;
+  const float dy = a.center.y - b.center.y;
+  const float distance = glm::sqrt((dx * dx) + (dy * dy));
+  return distance <= a.radius + b.radius;
+};
+
 void
 generate_broadphase_collisions_xy(entt::registry& r, std::vector<Collision2D>& collisions)
 {

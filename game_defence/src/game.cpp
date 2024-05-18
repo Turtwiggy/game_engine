@@ -299,9 +299,9 @@ game2d::update(engine::SINGLETON_Application& app, entt::registry& r, const floa
       update_spaceship_door_system(r, dt);
       update_actor_enemy_patrol_system(r, mouse_pos, dt);
       update_sprint_system(r, dt);
-#ifdef _DEBUG
-      update_debug_pathfinding_system(r, mouse_pos);
-#endif
+      // #ifdef _DEBUG
+      // update_debug_pathfinding_system(r, mouse_pos);
+      // #endif
     }
   }
 

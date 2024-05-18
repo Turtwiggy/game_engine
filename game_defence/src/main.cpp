@@ -86,9 +86,9 @@ main(int argc, char* argv[])
     engine::hide_windows_console();
 #endif
 
-  const auto start = std::chrono::high_resolution_clock::now();
+  // const auto start = std::chrono::high_resolution_clock::now();
 
-  std::string name = "Space";
+  std::string name = "Solar War";
 #if defined(_DEBUG)
   name += " [DEBUG]";
 #else

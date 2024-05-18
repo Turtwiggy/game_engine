@@ -23,6 +23,12 @@ struct AABB
   // entt::entity debug_aabb = entt::null;
 };
 
+struct CircleCollider
+{
+  glm::ivec2 center{ 0, 0 };
+  int radius = 1;
+};
+
 struct PhysicsTransformXComponent
 {
   int l = 0;

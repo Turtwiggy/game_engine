@@ -3,6 +3,7 @@
 #include "actors.hpp"
 #include "lifecycle/components.hpp"
 #include "modules/actor_cursor/components.hpp"
+#include "modules/actor_enemy_patrol/components.hpp"
 #include "modules/actors/helpers.hpp"
 #include "modules/camera/components.hpp"
 #include "modules/renderer/components.hpp"
@@ -79,6 +80,12 @@ save(const entt::registry& r, const std::string& path)
     nlohmann::json transform_component_json = transform;
     j.push_back(transform_component_json);
 
+    if (const auto* patrol_c = r.try_get<PatrolComponent>(entity)) {
+      const PatrolComponent& pc = (*patrol_c);
+      nlohmann::json patrol_component_json = pc;
+      j.push_back(patrol_component_json);
+    }
+
     root.push_back(j);
   }
 
@@ -124,6 +131,11 @@ load(entt::registry& r, const std::string& path)
     const auto e = create_gameplay(r, type.type);
     set_position(r, e, { transform.position.x, transform.position.y });
     set_size(r, e, { transform.scale.x, transform.scale.y });
+
+    if (type.type == EntityType::actor_enemy_patrol) {
+      const PatrolComponent patrol = element[2].template get<PatrolComponent>();
+      r.emplace_or_replace<PatrolComponent>(e, patrol);
+    }
 
     if (type.type == EntityType::actor_player) {
       // ??

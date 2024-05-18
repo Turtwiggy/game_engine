@@ -7,6 +7,7 @@
 #include "maths/maths.hpp"
 #include "modules/actor_enemy/components.hpp"
 #include "modules/actor_player/components.hpp"
+#include "modules/actors/helpers.hpp"
 #include "modules/algorithm_astar_pathfinding/components.hpp"
 #include "modules/algorithm_astar_pathfinding/helpers.hpp"
 #include "modules/combat_attack_cooldown/components.hpp"
@@ -15,7 +16,6 @@
 #include "modules/lerp_to_target/components.hpp"
 #include "physics/components.hpp"
 #include "renderer/transform.hpp"
-
 
 #include <glm/glm.hpp>
 #include <glm/gtx/compatibility.hpp> // lerp
@@ -39,7 +39,7 @@ update_enemy_system(entt::registry& r, const float dt)
   const auto& default_target = get_first<PlayerComponent>(r);
   if (default_target == entt::null)
     return;
-  const auto& default_target_aabb = r.get<AABB>(default_target);
+  const auto default_target_pos = get_position(r, default_target);
 
   // Convert Map to Grid (?)
   GridComponent grid;
@@ -69,7 +69,7 @@ update_enemy_system(entt::registry& r, const float dt)
       continue;
 
     const auto src = aabb.center;
-    const auto dst = default_target_aabb.center;
+    const auto dst = default_target_pos;
     const int src_idx = convert_position_to_index(src);
     const int dst_idx = convert_position_to_index(dst);
 

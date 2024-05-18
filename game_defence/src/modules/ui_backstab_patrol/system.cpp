@@ -2,12 +2,14 @@
 
 #include "entt/helpers.hpp"
 #include "modules/actor_enemy/components.hpp"
+#include "modules/actor_enemy_patrol/components.hpp"
 #include "modules/actor_player/components.hpp"
 #include "modules/ui_worldspace_text/components.hpp"
 
 #include "imgui.h"
 
 namespace game2d {
+using namespace std::literals;
 
 // show worldspace ui for PatrolComponent when in range
 void
@@ -30,12 +32,14 @@ update_ui_backstab_patrol_system(entt::registry& r)
   //   text.text = "-";
   // set some worldspace ui
 
-  const auto enemies_view = r.view<EnemyComponent>();
-  for (const auto& [e, e_c] : enemies_view.each()) {
+  const auto enemies_view = r.view<EnemyComponent, PatrolComponent>();
+  for (const auto& [e, e_c, p_c] : enemies_view.each()) {
     const auto eid = static_cast<uint32_t>(e);
     ImGui::PushID(eid);
+
     auto& ui_txt = r.get_or_emplace<WorldspaceTextComponent>(e);
-    ui_txt.text = std::to_string(eid);
+    ui_txt.text = std::to_string(p_c.strength);
+
     ImGui::PopID();
   }
 
