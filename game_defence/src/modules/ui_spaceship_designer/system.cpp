@@ -6,7 +6,6 @@
 #include "entt/helpers.hpp"
 #include "events/components.hpp"
 #include "events/helpers/keyboard.hpp"
-#include "events/helpers/mouse.hpp"
 #include "helpers/entity_pool.hpp"
 #include "helpers/line.hpp"
 #include "imgui/helpers.hpp"
@@ -15,19 +14,13 @@
 #include "maths/maths.hpp"
 #include "modules/actor_player/components.hpp"
 #include "modules/actors/helpers.hpp"
-#include "modules/algorithm_astar_pathfinding/components.hpp"
-#include "modules/camera/components.hpp"
 #include "modules/gen_dungeons/components.hpp"
 #include "modules/gen_dungeons/helpers.hpp"
-#include "modules/grid/components.hpp"
 #include "modules/resolve_collisions/helpers.hpp"
-#include "modules/scene/helpers.hpp"
 #include "modules/system_spaceship_door/components.hpp"
-#include "modules/ux_hoverable/components.hpp"
 #include "modules/vfx_grid/components.hpp"
 #include "physics/components.hpp"
 #include "physics/helpers.hpp"
-
 
 #include "imgui.h"
 #include <SDL_keyboard.h>
@@ -43,18 +36,6 @@ const auto create_aabb = [](const glm::ivec2& tl, const int width, const int hei
   aabb.center = { tl.x + (width / 2.0f), tl.y + (height / 2.0f) };
   aabb.size = { glm::abs(width), glm::abs(height) };
   return aabb;
-};
-
-// Walls are basically "Lines"
-struct Wall
-{
-  // order matters for these
-  glm::ivec2 p0{ 0, 0 };
-  glm::ivec2 p1{ 0, 0 };
-  entt::entity parent_room = entt::null;
-
-  std::vector<glm::ivec2> intersections; // storage for when this wall is being intersected
-  std::vector<entt::entity> debug_intersections;
 };
 
 // Function to calculate the intersection point of two lines
@@ -213,31 +194,12 @@ create_door_along_two_points(entt::registry& r, const glm::ivec2& a, const glm::
   return door_e;
 };
 
-entt::entity
-create_wall(entt::registry& r, const glm::ivec2 pos, const entt::entity& parent_room)
-{
-  const auto wall_e = create_gameplay(r, EntityType::solid_wall);
-  set_position(r, wall_e, pos);
-  set_size(r, wall_e, { 0, 0 });
-
-  Wall w;
-  w.parent_room = parent_room;
-  r.emplace<Wall>(wall_e, w);
-
-  return wall_e;
-};
-
 void
 update_ui_spaceship_designer_system(entt::registry& r, const glm::ivec2& input_mouse_pos, const float dt)
 {
   const auto& physics = get_first_component<SINGLETON_PhysicsComponent>(r);
   const auto& input = get_first_component<SINGLETON_InputComponent>(r);
   auto& dead = get_first_component<SINGLETON_EntityBinComponent>(r);
-
-  const auto debug_points_pool_e = get_first<EntityPool>(r);
-  if (debug_points_pool_e == entt::null)
-    r.emplace<EntityPool>(create_gameplay(r, EntityType::empty_no_transform));
-  auto& debug_points_pool_c = get_first_component<EntityPool>(r);
 
   const auto toggle_l_align = SDL_SCANCODE_LEFT;
   const auto toggle_r_align = SDL_SCANCODE_RIGHT;
@@ -312,18 +274,6 @@ update_ui_spaceship_designer_system(entt::registry& r, const glm::ivec2& input_m
   const auto grid_pos = engine::grid::world_space_to_grid_space(mouse_pos, grid_snap_size);
   ImGui::Text("grid_pos: %i %i", grid_pos.x, grid_pos.y);
   ImGui::Text("cursor_pos: %i %i", input_mouse_pos.x, input_mouse_pos.y);
-
-  // Hack: debug gridpos pathfinding
-  // {
-  //   const auto& map = get_first_component<MapComponent>(r);
-  //   const auto grid_idx = engine::grid::grid_position_to_clamped_index(grid_pos, map.xmax, map.ymax);
-  //   if (map.map[grid_idx].size() > 0) {
-  //     for (const auto& map_e : map.map[grid_idx]) {
-  //       const auto& pfc = r.get<PathfindComponent>(map_e);
-  //       ImGui::Text("Cost: %i", pfc.cost);
-  //     }
-  //   }
-  // }
 
   // Drag To Create Rooms
   //
@@ -618,6 +568,11 @@ update_ui_spaceship_designer_system(entt::registry& r, const glm::ivec2& input_m
 
   // Render points of intersection
   {
+    const auto debug_points_pool_e = get_first<EntityPool>(r);
+    if (debug_points_pool_e == entt::null)
+      r.emplace<EntityPool>(create_gameplay(r, EntityType::empty_no_transform));
+    auto& debug_points_pool_c = get_first_component<EntityPool>(r);
+
     // Create debug entities
     size_t total_intersections = 0;
     for (const auto& [wall_e, wall_c] : wall_view.each())
@@ -634,161 +589,20 @@ update_ui_spaceship_designer_system(entt::registry& r, const glm::ivec2& input_m
     }
   }
 
-  std::map<entt::entity, std::vector<entt::entity>> room_to_doors;
-  const auto& doors_view = r.view<SpaceshipDoorComponent>();
-  for (const auto& [door_e, door_c] : doors_view.each()) {
-    room_to_doors[door_c.parent_room].push_back(door_e);
-  };
-
-  // Debug rooms
-  //
-  const auto& rooms_view = r.view<Room>();
-  for (const auto& [room_e, room_c] : rooms_view.each()) {
-    ImGui::Separator();
-    ImGui::Text("¬¬ Room ¬¬");
-
-    const auto& doors = room_to_doors[room_e];
-    ImGui::Text("Room has %i doors", doors.size());
-
-    // Work out the state of the room, based on the state of the doors.
-    // ...
-  }
-
-  // Misc
-  //
   {
-    // HACK: Spawn a Player
-    if (get_mouse_rmb_press()) {
-      const auto player = create_gameplay(r, EntityType::actor_player);
-      set_position(r, player, mouse_pos);
-
-      // hack: camera to follow latest spawned player
-      const auto& follow_view = r.view<CameraFollow>();
-      r.remove<CameraFollow>(follow_view.begin(), follow_view.end());
-      r.emplace<CameraFollow>(player);
-    }
-
-    // Generate dungeon base
-    // generate_dungeon();
-    if (get_key_down(input, generate_dungeon_key)) {
-      auto& map = get_first_component<MapComponent>(r);
-
-      // Mark all rooms as ded, and remove room components.
-      const auto& wall_view = r.view<Wall>();
-      for (const auto& [wall_e, wall_c] : wall_view.each()) {
-        dead.dead.emplace(wall_e);
-        r.remove<Room>(wall_e);
-      }
-      const auto& room_view = r.view<Room>();
-      for (const auto& [room_e, room_c] : room_view.each()) {
-        dead.dead.emplace(room_e);
-        r.remove<Room>(room_e);
-      }
-
-      static int seed = 0;
-      seed++; // Increase seed everytime a map is generated
-      engine::RandomState rnd(seed);
-      std::vector<int> map_gen(map.xmax * map.ymax, 1); // 1: everything as wall
-
-      // clamp parameters to map
-      DungeonGenerationCriteria dungeon_parameters;
-      dungeon_parameters.max_rooms = 300;
-      dungeon_parameters.room_size_min = glm::max(dungeon_parameters.room_size_min, 0);
-      dungeon_parameters.room_size_max = glm::min(dungeon_parameters.room_size_max, map.xmax);
-
-      // clear room debugs
-      static std::vector<entt::entity> debug;
-      for (const auto& e : debug) {
-        const auto& t = r.get<TransformComponent>(e);
-        const auto global_grid_pos = engine::grid::world_space_to_grid_space({ t.position.x, t.position.y }, map.tilesize);
-        const auto global_idx = engine::grid::grid_position_to_index(global_grid_pos, map.xmax);
-        map.map[global_idx].clear();
-        r.destroy(e);
-      }
-      debug.clear();
-
-      // clear old map
-      const auto& view = r.view<PathfindComponent, TransformComponent>();
-      for (const auto& [e, pc, t] : view.each()) {
-        const auto global_grid_pos = engine::grid::world_space_to_grid_space({ t.position.x, t.position.y }, map.tilesize);
-        const auto global_idx = engine::grid::grid_position_to_index(global_grid_pos, map.xmax);
-        map.map[global_idx].clear();
-        r.destroy(e);
-      }
-
-      const auto rooms = create_all_rooms(dungeon_parameters, map, map_gen, rnd);
-
-      for (const Room& room : rooms) {
-        const auto room_to_create = create_gameplay(r, EntityType::empty_with_physics);
-        const engine::SRGBColour col = { 1.0f, 1.0f, 1.0f, 0.02f };
-        set_colour(r, room_to_create, col);
-        r.emplace<DefaultColour>(room_to_create, col);
-        r.emplace<Room>(room_to_create, room);
-
-        // the aabb attached to the room contains aabb in gridspace.
-        {
-          // TODO: due to the offset, something is wrong
-
-          const auto& w = room.aabb.size.x;
-          const auto& h = room.aabb.size.y;
-          for (int y = 0; y <= h; y++) {
-            for (int x = 0; x <= w; x++) {
-              const auto global_grid_pos = glm::ivec2{ room.tl.x + x, room.tl.y + y };
-
-              bool create_as_wall = false;
-              if (x == 0 || x == w)
-                create_as_wall = true;
-              if (y == 0 || y == h)
-                create_as_wall = true;
-
-              // add blocked grid cell to pathfinding
-              if (create_as_wall) {
-                // const auto e = create_gameplay(r, EntityType::empty_with_transform);
-
-                // const glm::ivec2 pos = engine::grid::grid_space_to_world_space(global_grid_pos, map.tilesize);
-                // set_position(r, e, { pos.x, pos.y });
-                // set_size(r, e, { 10, 10 });
-
-                // const auto global_idx = engine::grid::grid_position_to_index(global_grid_pos, map.xmax);
-                // r.emplace<PathfindComponent>(e, -1);
-                // map.map[global_idx].push_back(e);
-
-                // debug.push_back(e);
-              }
-            }
-          }
-        }
-
-        // create room walls
-        const auto w0 = create_wall(r, room.aabb.center, room_to_create);
-        const auto w1 = create_wall(r, room.aabb.center, room_to_create);
-        const auto w2 = create_wall(r, room.aabb.center, room_to_create);
-        const auto w3 = create_wall(r, room.aabb.center, room_to_create);
-
-        const auto& gridspace_tl = room.tl;
-        const auto& worldspace_tl = gridspace_tl * map.tilesize;
-        const auto worldspace_size = room.aabb.size * map.tilesize;
-        const glm::ivec2 offset = { map.tilesize / 2, map.tilesize / 2 };
-        // const glm::ivec2 offset = { 0, 0 };
-
-        const int w = worldspace_size.x;
-        const int h = worldspace_size.y;
-        const glm::ivec2 tl = glm::ivec2{ worldspace_tl } + offset;
-        const glm::ivec2 tr = glm::ivec2{ (worldspace_tl.x + w), (worldspace_tl.y) } + offset;
-        const glm::ivec2 bl = glm::ivec2{ (worldspace_tl.x), (worldspace_tl.y + h) } + offset;
-        const glm::ivec2 br = glm::ivec2{ (worldspace_tl.x + w), (worldspace_tl.y + h) } + offset;
-
-        r.replace<Wall>(w0, Wall{ tl, tr, room_to_create });
-        r.replace<Wall>(w1, Wall{ tr, br, room_to_create });
-        r.replace<Wall>(w2, Wall{ br, bl, room_to_create });
-        r.replace<Wall>(w3, Wall{ bl, tl, room_to_create });
-
-        const glm::ivec2 worldspace_center = { (tl.x + tr.x) / 2.0f, (tr.y + br.y) / 2.0f };
-        set_position(r, room_to_create, worldspace_center);
-        set_size(r, room_to_create, worldspace_size);
-
-        // Create some monstors in the room?
-      }
+    // std::map<entt::entity, std::vector<entt::entity>> room_to_doors;
+    // const auto& doors_view = r.view<SpaceshipDoorComponent>();
+    // for (const auto& [door_e, door_c] : doors_view.each())
+    //   room_to_doors[door_c.parent_room].push_back(door_e);
+    // Debug rooms
+    const auto& rooms_view = r.view<Room>();
+    for (const auto& [room_e, room_c] : rooms_view.each()) {
+      ImGui::Separator();
+      ImGui::Text("¬¬ Room ¬¬");
+      // const auto& doors = room_to_doors[room_e];
+      // ImGui::Text("Room has %i doors", doors.size());
+      // Work out the state of the room, based on the state of the doors.
+      // ...
     }
   }
 

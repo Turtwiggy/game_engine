@@ -38,16 +38,15 @@ update_ux_hoverable_change_colour_system(entt::registry& r)
     // not selected, not hovered: set to default colour?
     if (const auto* preferred_colour = r.try_get<DefaultColour>(e))
       sc.colour = engine::SRGBToLinear(preferred_colour->colour);
-    else if (const auto* tag = r.try_get<TagComponent>(e))
-      sc.colour = get_lin_colour_by_tag(r, tag->tag);
+    // else if (const auto* tag = r.try_get<TagComponent>(e))
+    //   sc.colour = get_lin_colour_by_tag(r, tag->tag);
   }
 
   // Set colour for anything hovered
-
-  const auto& view = r.view<SpriteComponent, HoveredComponent, ChangeColourOnHoverComponent, TagComponent>(
-    entt::exclude<WaitForInitComponent>);
-  for (const auto& [e, sc, hovered, hovered_col, tag] : view.each()) {
-  }
+  // const auto& view = r.view<SpriteComponent, HoveredComponent, ChangeColourOnHoverComponent, TagComponent>(
+  //   entt::exclude<WaitForInitComponent>);
+  // for (const auto& [e, sc, hovered, hovered_col, tag] : view.each()) {
+  // }
 }
 
 } // namespace game2d

@@ -28,50 +28,50 @@ update_gameover_system(entt::registry& r)
     auto& gameover = get_first_component<SINGLETON_GameOver>(r);
     const auto& scene = get_first_component<SINGLETON_CurrentScene>(r);
 
-    // this if statement seems like its in the wrong place
-    if (scene.s == Scene::game) {
+    //   // this if statement seems like its in the wrong place
+    //   if (scene.s != Scene::menu) {
 
-      // Check if the game is over (base explodes)
-      const auto& first_hearth = get_first<HearthComponent>(r);
-      if (first_hearth != entt::null) {
-        const auto& first_hearth_hp = r.get<HealthComponent>(first_hearth);
-        if (first_hearth_hp.hp <= 0) {
-          gameover.game_is_over = true;
-          gameover.win_condition = false;
-          gameover.reason = "Your hearth exploded!";
-        }
-      }
+    //     // Check if the game is over (base explodes)
+    //     const auto& first_hearth = get_first<HearthComponent>(r);
+    //     if (first_hearth != entt::null) {
+    //       const auto& first_hearth_hp = r.get<HealthComponent>(first_hearth);
+    //       if (first_hearth_hp.hp <= 0) {
+    //         gameover.game_is_over = true;
+    //         gameover.win_condition = false;
+    //         gameover.reason = "Your hearth exploded!";
+    //       }
+    //     }
 
-      // Check if the game is over (all players are ded)
-      const auto& players_view = r.view<PlayerComponent>();
-      const bool all_players_ded = players_view.size() == 0;
-      if (all_players_ded) {
-        gameover.game_is_over = true;
-        gameover.win_condition = false;
-        gameover.reason = "All Players ded!";
-      }
+    //     // Check if the game is over (all players are ded)
+    //     const auto& players_view = r.view<PlayerComponent>();
+    //     const bool all_players_ded = players_view.size() == 0;
+    //     if (all_players_ded) {
+    //       gameover.game_is_over = true;
+    //       gameover.win_condition = false;
+    //       gameover.reason = "All Players ded!";
+    //     }
 
-      // Check if the game is over (you beat wave 10)
-      // const auto& wave = get_first_component<SINGLETON_Wave>(r);
-      // if (wave.wave == 10) {
-      //   gameover.game_is_over = true;
-      //   gameover.reason = "You made it to wave 10!";
-      // }
-    }
+    //     // Check if the game is over (you beat wave 10)
+    //     // const auto& wave = get_first_component<SINGLETON_Wave>(r);
+    //     // if (wave.wave == 10) {
+    //     //   gameover.game_is_over = true;
+    //     //   gameover.reason = "You made it to wave 10!";
+    //     // }
+    //   }
 
-    if (gameover.game_is_over && !gameover.activated_gameover) {
-      gameover.activated_gameover = true;
+    //   if (gameover.game_is_over && !gameover.activated_gameover) {
+    //     gameover.activated_gameover = true;
 
-      if (gameover.win_condition) {
-        stop_all_audio(r);
-        // WHOOOOOOOOOOOO!
-        r.emplace<AudioRequestPlayEvent>(r.create(), "WIN_01");
-      } else {
-        stop_all_audio(r);
-        // WAHHHHHHHHHHHHH.
-        r.emplace<AudioRequestPlayEvent>(r.create(), "LOSS_01");
-      }
-    }
+    //     if (gameover.win_condition) {
+    //       stop_all_audio(r);
+    //       // WHOOOOOOOOOOOO!
+    //       r.emplace<AudioRequestPlayEvent>(r.create(), "WIN_01");
+    //     } else {
+    //       stop_all_audio(r);
+    //       // WAHHHHHHHHHHHHH.
+    //       r.emplace<AudioRequestPlayEvent>(r.create(), "LOSS_01");
+    //     }
+    //   }
   }
 
   //
@@ -86,9 +86,9 @@ update_gameover_system(entt::registry& r)
   }
 
   // do the restart
-  // bug: should not be scene::game
+  // bug: should not be scene::
   if (new_game)
-    move_to_scene_start(r, Scene::game);
+    move_to_scene_start(r, Scene::duckgame_overworld, false);
 }
 
 } // namespace game2d

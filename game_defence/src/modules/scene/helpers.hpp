@@ -2,17 +2,22 @@
 
 #include "components.hpp"
 
+#include "modules/combat_damage/components.hpp"
+
 #include "entt/entt.hpp"
+#include <glm/glm.hpp>
 
 namespace game2d {
 
 void
 move_to_scene_start(entt::registry& r, const Scene s, const bool load_saved = false);
 
+struct CombatEntityDescription
+{
+  AvailableTeams team = AvailableTeams::neutral;
+  glm::ivec2 position{ 0, 0 };
+};
 entt::entity
-create_player(entt::registry& r);
-
-entt::entity
-create_player_ally(entt::registry& r, const entt::entity& group);
+create_combat_entity(entt::registry& r, const CombatEntityDescription& desc);
 
 } // namespace game2d

@@ -5,25 +5,22 @@
 #include "entt/helpers.hpp"
 #include "helpers/line.hpp"
 #include "maths/grid.hpp"
+#include "maths/maths.hpp"
 #include "modules/actors/helpers.hpp"
-#include "modules/algorithm_astar_pathfinding/components.hpp"
+#include "modules/camera/orthographic.hpp"
+#include "modules/combat_damage/components.hpp"
 #include "modules/grid/components.hpp"
+#include "modules/scene/helpers.hpp"
+#include "modules/ui_combat_turnbased/components.hpp"
+#include "modules/ui_spaceship_designer/components.hpp"
 #include "physics/helpers.hpp"
+#include "renderer/transform.hpp"
 
 #include <algorithm>
 #include <iostream>
 #include <vector>
 
 namespace game2d {
-
-//
-// create a blank map.
-// https://bfnightly.bracketproductions.com/rustbook/chapter_23.html
-//
-//
-// remember to update map representation to update pathfinding.
-// assume state has been taken care of. (deleting old dungeon)
-//
 
 void
 create_room(const Room& room, std::vector<int>& wall_or_floors, const int xmax)
@@ -53,12 +50,11 @@ create_room(const Room& room, std::vector<int>& wall_or_floors, const int xmax)
   }
 };
 
-std::vector<Room>
-create_all_rooms(DungeonGenerationCriteria& data,
-                 const MapComponent& map,
-                 std::vector<int>& wall_or_floors,
-                 engine::RandomState& rnd)
+DungeonGenerationResults
+create_all_rooms(DungeonGenerationCriteria& data, const MapComponent& map, engine::RandomState& rnd)
 {
+  std::vector<int> wall_or_floors(map.xmax * map.ymax, 1); // 1: everything as wall
+
   const int xmax = map.xmax;
   const int max_rooms = data.max_rooms;
   const int room_size_min = data.room_size_min;
@@ -96,6 +92,7 @@ create_all_rooms(DungeonGenerationCriteria& data,
     const auto& h = gen_room_height;
     std::cout << "gen room. size: " << w << ", " << h << " at " << room.tl.x << ", " << room.tl.y << std::endl;
 
+    // room stored in the wall_of_floors bitmap
     create_room(room, wall_or_floors, xmax);
     rooms.push_back(room);
 
@@ -141,158 +138,164 @@ create_all_rooms(DungeonGenerationCriteria& data,
 
   } // end iterating rooms
 
-  return rooms;
+  DungeonGenerationResults results;
+  results.rooms = rooms;
+  results.wall_or_floors = wall_or_floors;
+  return results;
 };
 
-// void
-// instantiate_map(entt::registry& r, const MapComponent& map, const std::vector<int>& map_gen)
-// {
-//   const auto& xmax = map.xmax;
-//   const auto& ymax = map.ymax;
-//   const auto& tilesize = map.tilesize;
-//   // Create state from the map
-//   for (int i = 0; i < xmax * ymax; i++) {
-//     const auto worldspace = engine::grid::index_to_world_position(i, xmax, ymax, tilesize);
-//     const bool is_wall = map_gen[i] == 1;
-//     if (is_wall) {
-//       const auto wall_e = create_gameplay(r, EntityType::solid_wall);
-//       set_position(r, wall_e, worldspace);
-//       set_size(r, wall_e, { tilesize, tilesize });
-//       r.emplace_or_replace<PathfindComponent>(wall_e, -1);
-//       // add to pathfinding map?
-//       std::vector<entt::entity>& ents = map.map[i];
-//       ents.push_back(wall_e);
-//     }
-//   }
-// };
-
-void
-generate_dungeon(entt::registry& r)
+entt::entity
+create_wall(entt::registry& r, const glm::ivec2 pos, const entt::entity& parent_room)
 {
-  const auto& map_e = get_first<MapComponent>(r);
-  if (map_e == entt::null)
-    return;
-  // the pathfinding map to base dungeon generation on (sizes)
+  const auto wall_e = create_gameplay(r, EntityType::solid_wall);
+  set_position(r, wall_e, pos);
+  set_size(r, wall_e, { 0, 0 });
+
+  Wall w;
+  w.parent_room = parent_room;
+  r.emplace<Wall>(wall_e, w);
+
+  return wall_e;
+};
+
+// TODO: instantiate walls correctly if there is a tunnel wall
+void
+instantiate_walls(entt::registry& r, const DungeonGenerationResults& results)
+{
   const auto& map = get_first_component<MapComponent>(r);
 
-  const int seed = 0;
-  static engine::RandomState rnd(seed);
+  for (int i = 0; i < results.wall_or_floors.size(); i++) {
+    if (results.wall_or_floors[i] == 1) {
+      const glm::ivec2 pos = engine::grid::index_to_world_position(i, map.xmax, map.ymax, map.tilesize);
+      const glm::ivec2 offset = { map.tilesize / 2, map.tilesize / 2 };
 
-  // represents state of the entire grid. set to 1 as everything is a wall
-  std::vector<int> map_gen(map.xmax * map.ymax, 1);
+      const auto e = create_gameplay(r, EntityType::empty_with_physics);
+      set_position(r, e, pos + offset);
+    }
+  }
 
-  DungeonGenerationCriteria dungeon_parameters;
-  const auto rooms = create_all_rooms(dungeon_parameters, map, map_gen, rnd);
-  // pass to the spaceship system?
+  for (const Room& room : results.rooms) {
+    //   const auto room_to_create = create_gameplay(r, EntityType::empty_with_physics);
+    const auto e = create_gameplay(r, EntityType::empty_no_transform);
+    //   const engine::SRGBColour col = { 1.0f, 1.0f, 1.0f, 0.02f };
+    //   set_colour(r, room_to_create, col);
+    //   r.emplace<DefaultColour>(room_to_create, col);
+    r.emplace<Room>(e, room);
+    //   // create room walls
+    //   const auto w0 = create_wall(r, room.aabb.center, room_to_create);
+    //   const auto w1 = create_wall(r, room.aabb.center, room_to_create);
+    //   const auto w2 = create_wall(r, room.aabb.center, room_to_create);
+    //   const auto w3 = create_wall(r, room.aabb.center, room_to_create);
+    //   const auto& gridspace_tl = room.tl;
+    //   const auto& worldspace_tl = gridspace_tl * map.tilesize;
+    //   const auto worldspace_size = room.aabb.size * map.tilesize;
+    //   const glm::ivec2 offset = { map.tilesize / 2, map.tilesize / 2 };
+    //   const int w = worldspace_size.x;
+    //   const int h = worldspace_size.y;
+    //   const glm::ivec2 tl = glm::ivec2{ worldspace_tl } + offset;
+    //   const glm::ivec2 tr = glm::ivec2{ (worldspace_tl.x + w), (worldspace_tl.y) } + offset;
+    //   const glm::ivec2 bl = glm::ivec2{ (worldspace_tl.x), (worldspace_tl.y + h) } + offset;
+    //   const glm::ivec2 br = glm::ivec2{ (worldspace_tl.x + w), (worldspace_tl.y + h) } + offset;
+    //   r.replace<Wall>(w0, Wall{ tl, tr, room_to_create });
+    //   r.replace<Wall>(w1, Wall{ tr, br, room_to_create });
+    //   r.replace<Wall>(w2, Wall{ br, bl, room_to_create });
+    //   r.replace<Wall>(w3, Wall{ bl, tl, room_to_create });
+    //   const glm::ivec2 worldspace_center = { (tl.x + tr.x) / 2.0f, (tr.y + br.y) / 2.0f };
+    //   set_position(r, room_to_create, worldspace_center);
+    //   set_size(r, room_to_create, worldspace_size);
+  }
+};
 
-  // instantiate_map(r, map, map_gen);
+void
+set_generated_entity_positions(entt::registry& r, const DungeonGenerationResults& results, engine::RandomState& rnd)
+{
+  const auto& map_c = get_first_component<MapComponent>(r);
+  const auto& data = get_first_component<SINGLE_DuckgameToDungeon>(r);
+  const int strength = data.patrol_that_you_hit.strength;
 
-  // set_generated_entity_positions(editor, game, d, rnd);
-  // set_player_positions(editor, game, d, rnd);
+  const auto& rooms_view = r.view<Room>();
+  const int amount_of_rooms = rooms_view.size();
+  // const int potential_items_per_room = 5 + (floor);
+  // const int potential_monsters_per_room = 5 + (floor);
+  // printf("floor %i has max items %i, max monsters: %i\n", floor, potential_items_per_room, potential_monsters_per_room);
 
-  // Where's the spawn?
-  // const auto& first_room = rooms[0];
-  // bug: placing player on generated entities.
+  for (int room_idx = 0; const auto& [e, room] : rooms_view.each()) {
+    // first room is player room
+    if (room_idx == 0) {
+      room_idx++;
+      continue;
+    }
+    room_idx++;
 
-  // Where's the exit?
-  // bug: exit placed on generated entities. not so bad?
-  // Room& room = d.rooms[d.rooms.size() - 1];
-  // glm::ivec2 middle = room_center(room);
-  // create_dungeon_entity(editor, game, EntityType::tile_type_exit, middle);
+    // stop spawning entities.
+    // you've spawned enough for your strength.
+    if (room_idx > strength)
+      continue;
 
-}; // end generate dungeon
+    const glm::ivec2 tl = room.tl;
+    const glm::ivec2 br = room.tl + glm::ivec2{ room.aabb.size.x, room.aabb.size.y };
+
+    // place generated entities
+    for (int i = 0; i < 1; i++) {
+      const int x = static_cast<int>(engine::rand_det_s(rnd.rng, tl.x + 1, br.x - 1));
+      const int y = static_cast<int>(engine::rand_det_s(rnd.rng, tl.y + 1, br.y - 1));
+      const glm::ivec2 grid_index = { x, y };
+
+      // // Check the tile isn't occupied
+      // const auto full =
+      //   std::find_if(d.occupied.begin(), d.occupied.end(), [&grid_index](const std::pair<entt::entity, glm::ivec2>&
+      //   other)
+      //   {
+      //     return other.second == grid_index;
+      //   });
+      // if (full != d.occupied.end())
+      //   continue; // entity already at position
+
+      const glm::ivec2 worldspace = engine::grid::grid_space_to_world_space(grid_index, map_c.tilesize);
+
+      CombatEntityDescription desc;
+      desc.position = worldspace;
+      desc.team = AvailableTeams::enemy;
+      const auto e = create_combat_entity(r, desc);
+
+      // increase the generated monsters items stats?
+    }
+  }
+};
+
+// TODO: replace with the number of player's crew
+// TODO: check if occupied
+void
+set_player_positions(entt::registry& r, const DungeonGenerationResults& results, engine::RandomState& rnd)
+{
+  const auto& map_c = get_first_component<MapComponent>(r);
+
+  for (const auto& [e, room] : r.view<Room>().each()) {
+    const glm::ivec2 tl = room.tl;
+    const glm::ivec2 br = room.tl + glm::ivec2{ room.aabb.size.x, room.aabb.size.y };
+    const glm::ivec2 worldspace_center = engine::grid::grid_space_to_world_space(room.aabb.center, map_c.tilesize);
+
+    // set camera on this room center
+    const auto& camera_e = get_first<OrthographicCamera>(r);
+    auto& camera_t = r.get<TransformComponent>(camera_e);
+    camera_t.position = { worldspace_center.x, worldspace_center.y, 0.0 };
+
+    // place players in first room
+
+    for (int i = 0; i < 1; i++) {
+      const int x = static_cast<int>(engine::rand_det_s(rnd.rng, tl.x + 1, br.x - 1));
+      const int y = static_cast<int>(engine::rand_det_s(rnd.rng, tl.y + 1, br.y - 1));
+      const glm::ivec2 grid_index = { x, y };
+      const glm::ivec2 worldspace = engine::grid::grid_space_to_world_space(grid_index, map_c.tilesize);
+
+      CombatEntityDescription desc;
+      desc.position = worldspace;
+      desc.team = AvailableTeams::player;
+      const auto e = create_combat_entity(r, desc);
+    }
+
+    break; // only spawn players in first room
+  }
+};
 
 } // namespace game2d
-
-//
-//
-//
-//
-//
-
-// EntityType
-// generate_item(const int floor, engine::RandomState& rnd)
-// {
-//   const std::vector<std::pair<int, std::pair<EntityType, int>>> difficulty_map{
-//     // clang-format off
-//     { 1, { EntityType::potion, 80 } },
-//     { 2, { EntityType::sword, 15 } },
-//     { 3, { EntityType::shield, 15 } },
-//     { 4, { EntityType::scroll_damage_nearest, 5 } },
-//     // { 1, { EntityType::scroll_damage_selected_on_grid, 5 } },
-//     // { 2, { EntityType::crossbow, 15 } },
-//     // { 2, { EntityType::bolt, 15 } },
-//     // clang-format on
-//   };
-
-//   std::map<EntityType, int> weights;
-//   for (const auto& [dict_floor, dict_type] : difficulty_map) {
-
-//     // only interested in weights at our floor
-//     if (dict_floor > floor)
-//       break;
-
-//     // sum the weights!
-//     const auto& entity_type = dict_type.first;
-//     const auto& entity_weight = dict_type.second;
-//     if (weights.contains(entity_type))
-//       weights[entity_type] += entity_weight;
-//     else
-//       weights[entity_type] = entity_weight;
-//   }
-
-//   int total_weight = 0;
-//   for (const auto& [k, w] : weights)
-//     total_weight += w;
-
-//   const float random = engine::rand_det_s(rnd.rng, 0, total_weight);
-//   int weight_acculum = 0;
-//   for (const auto& [k, w] : weights) {
-//     weight_acculum += w;
-//     if (weight_acculum >= random)
-//       return k;
-//   }
-//   return EntityType::potion;
-// };
-
-// EntityType
-// generate_monster(const int floor, engine::RandomState& rnd)
-// {
-//   const std::vector<std::pair<int, std::pair<EntityType, int>>> difficulty_map{
-//     // clang-format off
-//     { 1, { EntityType::actor_bat, 80 } },
-//     { 2, { EntityType::actor_troll, 15 } },
-//     { 3, { EntityType::actor_troll, 30 } },
-//     { 4, { EntityType::actor_troll, 60 } }
-//     // clang-format on
-//   };
-
-//   std::map<EntityType, int> weights;
-//   for (const auto& [dict_floor, dict_type] : difficulty_map) {
-
-//     // only interested in weights at our floor
-//     if (dict_floor > floor)
-//       break;
-
-//     // sum the weights!
-//     const auto& entity_type = dict_type.first;
-//     const auto& entity_weight = dict_type.second;
-//     if (weights.contains(entity_type))
-//       weights[entity_type] += entity_weight;
-//     else
-//       weights[entity_type] = entity_weight;
-//   }
-
-//   int total_weight = 0;
-//   for (const auto& [k, w] : weights)
-//     total_weight += w;
-
-//   const float random = engine::rand_det_s(rnd.rng, 0, total_weight);
-//   int weight_acculum = 0;
-//   for (const auto& [k, w] : weights) {
-//     weight_acculum += w;
-//     if (weight_acculum >= random)
-//       return k;
-//   }
-//   return EntityType::actor_bat;
-// };

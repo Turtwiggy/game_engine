@@ -41,18 +41,13 @@ enemy_player_collision(entt::registry& r, const entt::entity& a, const entt::ent
 {
   auto& dead = get_first_component<SINGLETON_EntityBinComponent>(r);
 
-  const auto [a_player, b_group] = collision_of_interest<PlayerComponent, EnemyComponent>(r, a, b);
+  const auto [a_player, b_group] = collision_of_interest<PlayerComponent, PatrolComponent>(r, a, b);
 
   if (a_player != entt::null && b_group != entt::null) {
 
-    // You've collided with an enemy.
-    // Were you on course to backstab it?
-    bool was_backstabbed = false;
-    if (const auto* b = r.try_get<BackstabbableComponent>(b_group))
-      was_backstabbed = true;
-
     SINGLE_DuckgameToDungeon data;
-    data.backstabbed = was_backstabbed;
+    data.backstabbed = r.try_get<BackstabbableComponent>(b_group) != nullptr;
+    data.patrol_that_you_hit = r.get<PatrolComponent>(b_group);
     r.emplace_or_replace<SINGLE_DuckgameToDungeon>(r.create(), data);
 
     // Destroy the entity we collided with before moving scene,

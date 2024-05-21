@@ -28,12 +28,10 @@ game2d::update_actor_actor_collisions_system(entt::registry& r, SINGLETON_Physic
 
   //  filter with narrowphase collisions
   //
-  auto colls = std::move(p.frame_collisions);
+  const auto colls = std::move(p.frame_collisions);
   for (const auto& coll : colls) {
     const auto a = static_cast<entt::entity>(coll.ent_id_0);
     const auto b = static_cast<entt::entity>(coll.ent_id_1);
-    // const auto& a_type = r.get<EntityTypeComponent>(a).type;
-    // const auto& b_type = r.get<EntityTypeComponent>(b).type;
 
     auto* a_circle = r.try_get<CircleCollider>(a);
     auto* b_circle = r.try_get<CircleCollider>(b);
@@ -73,9 +71,10 @@ game2d::update_actor_actor_collisions_system(entt::registry& r, SINGLETON_Physic
     for (const auto& coll : p.frame_collisions) {
       const auto& pmap = p.persistent_collisions;
 
-      const auto result = std::find_if(pmap.begin(), pmap.end(), [&coll](const Collision2D& new_col) {
+      const auto l = [&coll](const Collision2D& new_col) {
         return new_col.ent_id_0 == coll.ent_id_0 && new_col.ent_id_1 == coll.ent_id_1;
-      });
+      };
+      const auto result = std::find_if(pmap.begin(), pmap.end(), l);
 
       if (result == pmap.end()) {
         // New collision

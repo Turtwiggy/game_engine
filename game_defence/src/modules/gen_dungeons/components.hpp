@@ -22,11 +22,22 @@ struct Room
   AABB aabb;
 };
 
+struct RequestGenerateDungeonComponent
+{
+  bool placeholder = true;
+};
+
 struct DungeonGenerationCriteria
 {
   int max_rooms = 30;
   int room_size_min = 5;
   int room_size_max = 10;
+};
+
+struct DungeonGenerationResults
+{
+  std::vector<Room> rooms;
+  std::vector<int> wall_or_floors;
 };
 
 } // namespace game2d

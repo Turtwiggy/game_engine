@@ -10,14 +10,20 @@
 
 namespace game2d {
 
-std::vector<Room>
-create_all_rooms(DungeonGenerationCriteria& data,
-                 const MapComponent& map,
-                 std::vector<int>& wall_or_floors,
-                 engine::RandomState& rnd);
+entt::entity
+create_wall(entt::registry& r, const glm::ivec2 pos, const entt::entity& parent_room);
+
+DungeonGenerationResults
+create_all_rooms(DungeonGenerationCriteria& data, const MapComponent& map, engine::RandomState& rnd);
 
 void
-generate_dungeon(entt::registry& r);
+instantiate_walls(entt::registry& r, const DungeonGenerationResults& results);
+
+void
+set_generated_entity_positions(entt::registry& r, const DungeonGenerationResults& results, engine::RandomState& rnd);
+
+void
+set_player_positions(entt::registry& r, const DungeonGenerationResults& results, engine::RandomState& rnd);
 
 // EntityType
 // generate_monster();

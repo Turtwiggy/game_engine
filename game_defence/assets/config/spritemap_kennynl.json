@@ -129,6 +129,12 @@
     { "name": "ICON_HEART_HALF_FULL", "frames": [ { "x": 41, "y": 10 } ] },
     { "name": "ICON_HEART_FULL", "frames": [ { "x": 42, "y": 10 } ] },
 
+    { "name": "KEY_0", "frames": [ { "x": 32, "y": 11 } ] },
+    { "name": "KEY_1", "frames": [ { "x": 33, "y": 11 } ] },
+    { "name": "KEY_2", "frames": [ { "x": 34, "y": 11 } ] },
+    { "name": "EFFECT_BUBBLES", "frames": [ { "x": 35, "y": 11 } ] },
+    { "name": "EFFECT_SPARKLE", "frames": [ { "x": 36, "y": 11 } ] },
+
     { "name": "CURSOR_0", "frames": [ { "x": 35, "y": 12 } ] },
     { "name": "CURSOR_1", "frames": [ { "x": 36, "y": 12 } ] },
     { "name": "CURSOR_2", "frames": [ { "x": 37, "y": 12 } ] },

@@ -31,6 +31,7 @@
 #include "modules/debug_pathfinding/system.hpp"
 #include "modules/gameover/components.hpp"
 #include "modules/gameover/system.hpp"
+#include "modules/gen_dungeons/system.hpp"
 #include "modules/items_drop/system.hpp"
 #include "modules/items_pickup/system.hpp"
 #include "modules/lerp_to_target/system.hpp"
@@ -299,6 +300,7 @@ game2d::update(engine::SINGLETON_Application& app, entt::registry& r, const floa
       update_spaceship_door_system(r, dt);
       update_actor_enemy_patrol_system(r, mouse_pos, dt);
       update_sprint_system(r, dt);
+      update_gen_dungeons_system(r);
       // #ifdef _DEBUG
       // update_debug_pathfinding_system(r, mouse_pos);
       // #endif
@@ -345,16 +347,16 @@ game2d::update(engine::SINGLETON_Application& app, entt::registry& r, const floa
       update_ui_scene_main_menu(app, r);
       update_ui_rpg_character_system(r);
     }
-    if (scene.s == Scene::game) {
-      update_ui_inventory(r);
-      // update_ui_selected(r);
-      update_ui_arrows_to_spawners_system(r);
-      update_ui_player_name_above_player_system(r);
-      update_ui_level_up_system(r);
-      update_ui_xp_bar_system(r);
-    }
+    // if (scene.s == Scene::game) {
+    //   update_ui_inventory(r);
+    //   update_ui_selected(r);
+    //   update_ui_arrows_to_spawners_system(r);
+    //   update_ui_player_name_above_player_system(r);
+    //   update_ui_level_up_system(r);
+    //   update_ui_xp_bar_system(r);
+    // }
     if (scene.s == Scene::dungeon_designer) {
-      update_ui_spaceship_designer_system(r, mouse_pos, dt);
+      // update_ui_spaceship_designer_system(r, mouse_pos, dt);
       update_ui_combat_turnbased_system(r, mouse_pos);
     }
     if (scene.s == Scene::duckgame_overworld) {

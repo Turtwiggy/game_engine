@@ -6,7 +6,7 @@
       "tags": [ "background" ]
     },
     {
-      "r": 15, "g": 76, "b": 117,
+      "r": 255, "g": 255, "b": 117,
       "name": "pal_player_0",
       "tags": [
         "actor_player",
@@ -101,7 +101,7 @@
     {
       "r": 68, "g": 119, "b": 206,
       "name": "blue",
-      "tags": [ "solid_wall" ]
+      "tags": [ ]
     },
     {
       "r": 253, "g": 141, "b": 20,
@@ -111,7 +111,7 @@
     {
       "r": 255, "g": 225, "b": 123,
       "name": "yellow",
-      "tags": [ ]
+      "tags": [ "solid_wall" ]
     },
     {
       "r": 251, "g": 161, "b": 183,

@@ -22,8 +22,11 @@ update_ui_worldspace_text_system(entt::registry& r)
   for (const auto& [e, t, wst_c] : view.each()) {
     const auto eid = static_cast<uint32_t>(e);
 
-    const auto worldspace = position_in_worldspace(r, glm::ivec2(t.position.x, t.position.y));
+    const auto t_pos = glm::ivec2(t.position.x, t.position.y);
+    const auto worldspace = position_in_worldspace(r, t_pos);
     ImVec2 pos = { static_cast<float>(worldspace.x), static_cast<float>(worldspace.y) };
+    pos.x += wst_c.offset.x;
+    pos.y += wst_c.offset.y;
 
     // keeps in screen boundaries?
     pos.x = glm::clamp(static_cast<int>(pos.x), 0, ri.viewport_size_render_at.x);
@@ -40,13 +43,14 @@ update_ui_worldspace_text_system(entt::registry& r)
     flags |= ImGuiDockNodeFlags_AutoHideTabBar;
     flags |= ImGuiDockNodeFlags_NoResize;
 
-    ImGui::PushID(eid);
     std::string beginlabel = "WorldspaceText##"s + std::to_string(eid);
     ImGui::Begin(beginlabel.c_str(), NULL, flags);
+    ImGui::PushID(eid);
+
     ImGui::Text("%s", wst_c.text.c_str());
-    ImGui::End();
+
     ImGui::PopID();
-    //
+    ImGui::End();
   }
 }
 

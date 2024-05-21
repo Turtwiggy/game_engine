@@ -97,11 +97,6 @@ update_ui_scene_main_menu(engine::SINGLETON_Application& app, entt::registry& r)
       editor.mode = LevelEditorMode::play;
       move_to_scene_start(r, Scene::duckgame_overworld);
     }
-    if (selectable_button("(debug) dungeons", selected, index++)) {
-      auto& editor = get_first_component<SINGLETON_LevelEditor>(r);
-      editor.mode = LevelEditorMode::edit;
-      move_to_scene_start(r, Scene::dungeon_designer);
-    }
     if (selectable_button("(debug) combat", selected, index++)) {
       auto& editor = get_first_component<SINGLETON_LevelEditor>(r);
       editor.mode = LevelEditorMode::play;

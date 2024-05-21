@@ -48,21 +48,21 @@ enum class CursorType
   ATTACK,
 };
 
-void
-set_hover_debug(entt::registry& r, const bool& enabled, const glm::ivec2& position, const glm::ivec2& size)
-{
-  const auto& info = get_first_component<SINGLE_TurnBasedCombatInfo>(r);
+// void
+// set_hover_debug(entt::registry& r, const bool& enabled, const glm::ivec2& position, const glm::ivec2& size)
+// {
+//   const auto& info = get_first_component<SINGLE_TurnBasedCombatInfo>(r);
 
-  // if (enabled) {
-  // r.emplace_or_replace<TransformComponent>(info.to_place_debug);
-  // set_position(r, info.to_place_debug, position);
-  // set_size(r, info.to_place_debug, size);
-  // } else
-  {
-    if (auto* transform = r.try_get<TransformComponent>(info.to_place_debug))
-      r.remove<TransformComponent>(info.to_place_debug);
-  }
-};
+//   // if (enabled) {
+//   // r.emplace_or_replace<TransformComponent>(info.to_place_debug);
+//   // set_position(r, info.to_place_debug, position);
+//   // set_size(r, info.to_place_debug, size);
+//   // } else
+//   {
+//     if (auto* transform = r.try_get<TransformComponent>(info.to_place_debug))
+//       r.remove<TransformComponent>(info.to_place_debug);
+//   }
+// };
 
 void
 change_cursor(entt::registry& r, const CursorType& type)
@@ -202,7 +202,6 @@ update_ui_combat_turnbased_system(entt::registry& r, const glm::ivec2& input_mou
 
   // limit to only interacting with 1 selected unit
   if (count != 1) {
-    set_hover_debug(r, false, { 0, 0 }, { 0, 0 });
     ImGui::End();
     return;
   }
@@ -236,30 +235,22 @@ update_ui_combat_turnbased_system(entt::registry& r, const glm::ivec2& input_mou
     auto& static_tgt = r.get_or_emplace<StaticTargetComponent>(e);
     static_tgt.target = { mouse_pos.x, mouse_pos.y };
 
-    // move
-    if (left_shift_held) {
-      set_hover_debug(r, false, { 0, 0 }, { 0, 0 });
-      change_cursor(r, CursorType::MOVE);
-      if (rmb_click)
-        update_path_to_mouse();
-    }
-    // shoot
-    else if (left_ctrl_held) {
-      set_hover_debug(r, false, { 0, 0 }, { 0, 0 });
+    // default cursor
+    change_cursor(r, CursorType::MOVE);
+
+    // shoot mode
+    if (left_ctrl_held) {
       change_cursor(r, CursorType::ATTACK);
       if (rmb_click)
         r.emplace_or_replace<WantsToShoot>(e);
-    } else {
-      set_hover_debug(r, true, mouse_pos, aabb.size);
-      change_cursor(r, CursorType::EMPTY);
     }
 
-    if (ImGui::Button("Move Everything")) {
-      // hmm
-    }
-
-    ImGui::End();
+    // move
+    else if (rmb_click)
+      update_path_to_mouse();
   }
+
+  ImGui::End();
 }
 
 } // namespace game2d

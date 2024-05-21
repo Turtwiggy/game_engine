@@ -5,12 +5,13 @@ namespace game2d {
 enum class Scene
 {
   menu,
-  game,
   duckgame_overworld,
   dungeon_designer,
   turnbasedcombat,
 
+  // old scenes, possibly remove
   test_scene_gun,
+
   count
 };
 

@@ -9,8 +9,8 @@ struct PatrolDescription
 {
   int speed_min = 20;
   int speed_max = 50;
-  int units_min = 1;
-  int units_max = 100;
+  int units_min = 3;
+  int units_max = 10;
 
   PatrolDescription() = default;
 };
