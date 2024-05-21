@@ -11,7 +11,6 @@
 #include "modules/actor_enemy_patrol/components.hpp"
 #include "modules/actor_group/components.hpp"
 #include "modules/actor_hearth/components.hpp"
-#include "modules/actor_particle/components.hpp"
 #include "modules/actor_player/components.hpp"
 #include "modules/actor_spawner/components.hpp"
 #include "modules/actor_turret/components.hpp"
@@ -27,6 +26,7 @@
 #include "modules/renderer/components.hpp"
 #include "modules/renderer/helpers.hpp"
 #include "modules/system_knockback/components.hpp"
+#include "modules/system_particles/components.hpp"
 #include "modules/system_spaceship_door/components.hpp"
 #include "modules/system_sprint/components.hpp"
 #include "modules/ui_colours/helpers.hpp"
@@ -327,6 +327,20 @@ create_gameplay(entt::registry& r, const EntityType& type)
       // stats.str_level = 1;
       // r.emplace<StatsComponent>(e, stats);
 
+      // particle emitter as child
+      const auto particle_e = create_gameplay(r, EntityType::empty_with_transform);
+      set_size(r, particle_e, { 0, 0 }); // no size just script, but need position
+      r.emplace<HasParentComponent>(particle_e, e);
+      r.emplace<SetPositionToParentsPosition>(particle_e);
+      ParticleDescription desc;
+      desc.sprite = "EMPTY";
+      desc.velocity = { 0, 10 };
+      r.emplace<ParticleEmitterComponent>(particle_e, desc);
+      AttackCooldownComponent cooldown;
+      cooldown.time_between_attack = 0.1f;
+      cooldown.time_between_attack_left = cooldown.time_between_attack;
+      r.emplace<AttackCooldownComponent>(particle_e, cooldown);
+
       break;
     }
     case EntityType::actor_enemy_patrol: {
@@ -607,7 +621,6 @@ create_gameplay(entt::registry& r, const EntityType& type)
     }
 
     case EntityType::particle: {
-      r.emplace<ParticleComponent>(e);
       r.emplace<VelocityComponent>(e);
       r.emplace<EntityTimedLifecycle>(e, 3 * 1000);
       break;

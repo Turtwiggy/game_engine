@@ -13,7 +13,6 @@
 #include "modules/actor_enemy/system.hpp"
 #include "modules/actor_enemy_patrol/system.hpp"
 #include "modules/actor_group/system.hpp"
-#include "modules/actor_particle/system.hpp"
 #include "modules/actor_player/system.hpp"
 #include "modules/actor_spawner/system.hpp"
 #include "modules/actor_weapon_shotgun/system.hpp"
@@ -41,6 +40,7 @@
 #include "modules/scene/helpers.hpp"
 #include "modules/screenshake/system.hpp"
 #include "modules/sprite_spritestack/system.hpp"
+#include "modules/system_particles/system.hpp"
 #include "modules/system_spaceship_door/system.hpp"
 #include "modules/system_sprint/system.hpp"
 #include "modules/ui_arrows_to_spawners/system.hpp"
@@ -255,8 +255,8 @@ game2d::update(engine::SINGLETON_Application& app, entt::registry& r, const floa
     update_screenshake_system(r, app.ms_since_launch / 1000.0f, dt);
     update_wiggle_up_and_down_system(r, dt);
     update_ux_hoverable_change_colour_system(r);
-    update_particle_system(r, dt);
     update_sprite_spritestack_system(r, dt);
+    update_particle_system(r, dt);
 
     const auto& state = get_first_component<SINGLETON_GameStateComponent>(r);
     auto& gameover = get_first_component<SINGLETON_GameOver>(r);

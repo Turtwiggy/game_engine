@@ -3,11 +3,11 @@
 #include "actors.hpp"
 #include "entt/helpers.hpp"
 #include "entt/serialize.hpp"
+#include "helpers.hpp"
 #include "lifecycle/components.hpp"
 #include "maths/maths.hpp"
 #include "modules/actor_enemy/components.hpp"
 #include "modules/actor_enemy_patrol/components.hpp"
-#include "modules/actor_particle/components.hpp"
 #include "modules/actor_player/components.hpp"
 #include "modules/actor_weapon_shotgun/components.hpp"
 #include "modules/combat_damage/components.hpp"
@@ -15,6 +15,8 @@
 #include "modules/resolve_collisions/helpers.hpp"
 #include "modules/scene/components.hpp"
 #include "modules/scene/helpers.hpp"
+#include "modules/system_particles/components.hpp"
+#include "modules/system_particles/helpers.hpp"
 #include "modules/ui_combat_turnbased/components.hpp"
 #include "physics/components.hpp"
 #include "renderer/transform.hpp"
@@ -138,18 +140,7 @@ update_resolve_collisions_system(entt::registry& r)
 
       // root particle for collision
       {
-        const float particle_seconds_to_live = 1;
-        const auto coll_e = create_gameplay(r, EntityType::particle);
-        auto& life = r.get<EntityTimedLifecycle>(coll_e);
-        life.milliseconds_alive_max = particle_seconds_to_live * 1000;
-
-        auto& collpoint_t = r.get<TransformComponent>(coll_e);
-        collpoint_t.position = { impact_point_x, impact_point_y, 0.0f };
-        // choose a random rotation for the sprite to be less same-y
-        collpoint_t.rotation_radians.z = engine::rand_det_s(rnd.rng, 0.0f, 2.0f * engine::PI);
-
         // Set the velocity of the particle
-        //
         float impact_vel_amount_x = 0.0f;
         float impact_vel_amount_y = 0.0f;
         const float momentum_loss = 5.0f; // e.g. particles return at 1/5th the speed
@@ -161,26 +152,22 @@ update_resolve_collisions_system(entt::registry& r)
         // just set impact-vel as perpendicular to the impact point
         else
           impact_vel_amount_y = (-bullet_vel.y) / momentum_loss;
-        auto& collpoint_vel = r.get<VelocityComponent>(coll_e);
-        collpoint_vel = { impact_vel_amount_x, impact_vel_amount_y };
 
-        // update particle sprite to the correct sprite
-        auto sc = create_sprite(r, "SMOKE_IMPACT", EntityType::particle);
-        r.emplace_or_replace<SpriteComponent>(coll_e, sc);
+        ParticleDescription desc;
+        desc.time_to_live_ms = 1000;
+        desc.position = { impact_point_x, impact_point_y };
+        desc.velocity = { impact_vel_amount_x, impact_vel_amount_y };
+        desc.start_size = 10;
+        desc.end_size = 0;
+        desc.sprite = "SMOKE_IMPACT";
+        const auto e = create_particle(r, desc);
 
         // make it an animation
         SpriteAnimationComponent anim;
         anim.playing_animation_name = "SMOKE_IMPACT";
-        anim.duration = particle_seconds_to_live;
+        anim.duration = desc.time_to_live_ms / 1000;
         anim.looping = false;
-        r.emplace<SpriteAnimationComponent>(coll_e, anim);
-
-        // make it shrink
-        ScaleOverTimeComponent sotc;
-        sotc.seconds_until_complete = particle_seconds_to_live;
-        sotc.start_size = 10.0f;
-        sotc.end_size = 0.0f;
-        r.emplace<ScaleOverTimeComponent>(coll_e, sotc);
+        r.emplace<SpriteAnimationComponent>(e, anim);
       }
     }
   }

@@ -166,11 +166,23 @@ instantiate_walls(entt::registry& r, const DungeonGenerationResults& results)
 
   for (int i = 0; i < results.wall_or_floors.size(); i++) {
     if (results.wall_or_floors[i] == 1) {
+
+      // optimization: dont create a square if surrounded by walls
+      // std::vector<std::pair<engine::grid::GridDirection, int>> neighbours;
+      // const glm::ivec2 grid_xy = engine::grid::index_to_grid_position(i, map.xmax, map.ymax);
+      // engine::grid::get_neighbour_indicies_with_diagonals(grid_xy.x, grid_xy.y, map.xmax, map.ymax, neighbours);
+      // bool surrounded_by_walls = true;
+      // for (const auto [dir, idx] : neighbours)
+      //   surrounded_by_walls &= results.wall_or_floors[idx] == 1;
+      // if (surrounded_by_walls)
+      //   continue; // dont render
+
       const glm::ivec2 pos = engine::grid::index_to_world_position(i, map.xmax, map.ymax, map.tilesize);
       const glm::ivec2 offset = { map.tilesize / 2, map.tilesize / 2 };
 
-      const auto e = create_gameplay(r, EntityType::empty_with_physics);
+      const auto e = create_gameplay(r, EntityType::solid_wall);
       set_position(r, e, pos + offset);
+      set_size(r, e, glm::ivec2{ map.tilesize, map.tilesize });
     }
   }
 
@@ -229,7 +241,7 @@ set_generated_entity_positions(entt::registry& r, const DungeonGenerationResults
 
     // stop spawning entities.
     // you've spawned enough for your strength.
-    if (room_idx > strength)
+    if ((room_idx - 1) > strength)
       continue;
 
     const glm::ivec2 tl = room.tl;
@@ -252,13 +264,15 @@ set_generated_entity_positions(entt::registry& r, const DungeonGenerationResults
       //   continue; // entity already at position
 
       const glm::ivec2 worldspace = engine::grid::grid_space_to_world_space(grid_index, map_c.tilesize);
+      const glm::ivec2 offset = { map_c.tilesize / 2.0f, map_c.tilesize / 2.0f };
+      const glm::ivec2 pos = worldspace + offset;
 
       CombatEntityDescription desc;
-      desc.position = worldspace;
+      desc.position = pos;
       desc.team = AvailableTeams::enemy;
       const auto e = create_combat_entity(r, desc);
 
-      // increase the generated monsters items stats?
+      // when to increase the generated monsters items stats?
     }
   }
 };
@@ -287,9 +301,11 @@ set_player_positions(entt::registry& r, const DungeonGenerationResults& results,
       const int y = static_cast<int>(engine::rand_det_s(rnd.rng, tl.y + 1, br.y - 1));
       const glm::ivec2 grid_index = { x, y };
       const glm::ivec2 worldspace = engine::grid::grid_space_to_world_space(grid_index, map_c.tilesize);
+      const glm::ivec2 offset = { map_c.tilesize / 2.0f, map_c.tilesize / 2.0f };
+      const glm::ivec2 pos = worldspace + offset;
 
       CombatEntityDescription desc;
-      desc.position = worldspace;
+      desc.position = pos;
       desc.team = AvailableTeams::player;
       const auto e = create_combat_entity(r, desc);
     }

@@ -80,7 +80,7 @@ struct SpriteAnimationComponent
 {
   std::string playing_animation_name;
   float timer = 0.0f;
-  float duration = 10.0f;
+  float duration = 10.0f; // seconds
   // float speed = 1.0f;
   bool playing = true;
   bool looping = true;

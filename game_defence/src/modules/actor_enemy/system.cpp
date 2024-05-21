@@ -11,6 +11,7 @@
 #include "modules/algorithm_astar_pathfinding/components.hpp"
 #include "modules/algorithm_astar_pathfinding/helpers.hpp"
 #include "modules/combat_attack_cooldown/components.hpp"
+#include "modules/combat_attack_cooldown/helpers.hpp"
 #include "modules/combat_damage/components.hpp"
 #include "modules/grid/components.hpp"
 #include "modules/lerp_to_target/components.hpp"
@@ -179,8 +180,7 @@ update_enemy_system(entt::registry& r, const float dt)
         // TODO: audio?
 
         // put gun on cooldown
-        cooldown.on_cooldown = true;
-        cooldown.time_between_attack_left = cooldown.time_between_attack;
+        reset_cooldown(cooldown);
 
         // create a bullet at enemy location
         const auto req = create_gameplay(r, EntityType::bullet_enemy);

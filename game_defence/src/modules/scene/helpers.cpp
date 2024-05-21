@@ -13,6 +13,7 @@
 #include "maths/grid.hpp"
 #include "modules/actor_bodypart_legs/components.hpp"
 #include "modules/actor_cursor/components.hpp"
+#include "modules/actor_enemy/components.hpp"
 #include "modules/actor_enemy_patrol/components.hpp"
 #include "modules/actor_enemy_patrol/helpers.hpp"
 #include "modules/actor_spawner/components.hpp"
@@ -60,7 +61,7 @@ create_combat_entity(entt::registry& r, const CombatEntityDescription& desc)
   // create weapon before player to draw on top
   const auto weapon = create_gameplay(r, EntityType::weapon_shotgun);
 
-  // player
+  // base entity
   const auto e = create_gameplay(r, EntityType::actor_unit_rtslike);
   set_position(r, e, pos);
   r.emplace_or_replace<TeamComponent>(e, desc.team);
@@ -83,8 +84,10 @@ create_combat_entity(entt::registry& r, const CombatEntityDescription& desc)
     r.emplace<DefaultColour>(e, engine::SRGBColour{ 0.8f, 0.3f, 0.0f, 1.0f });
     r.emplace<HoveredColour>(e, engine::SRGBColour{ 1.0f, 1.0f, 0.0f, 1.0f });
     set_colour(r, e, r.get<DefaultColour>(e).colour);
+    r.emplace_or_replace<EnemyComponent>(e);
   }
 
+  set_sprite(r, e, "PERSON_25_2");
   return e;
 }
 
@@ -237,36 +240,6 @@ move_to_scene_start(entt::registry& r, const Scene s, const bool load_saved)
       create_wall_piece({ 32 * i, 32 * 10 });
   }
 
-  if (s == Scene::dungeon_designer) {
-    // create background effect
-    r.emplace<Effect_GridComponent>(r.create());
-
-    // set dungeon constraints
-    const int map_width = 2000;
-    const int map_height = 2000;
-    MapComponent map_c;
-    map_c.tilesize = 50;
-    map_c.xmax = map_width / map_c.tilesize;
-    map_c.ymax = map_height / map_c.tilesize;
-    map_c.map.resize(map_c.xmax * map_c.ymax);
-    r.emplace<MapComponent>(r.create(), map_c);
-
-    // Create 4 edges to the map
-    bool create_edges = true;
-    if (create_edges)
-      add_boundary_walls(r, map_width, map_height, map_c.tilesize);
-
-    // Debug object
-    auto& info = get_first_component<SINGLE_TurnBasedCombatInfo>(r);
-    info.to_place_debug = create_gameplay(r, EntityType::empty_with_transform);
-    info.action_cursor = create_gameplay(r, EntityType::empty_with_transform);
-    set_size(r, info.to_place_debug, { 0, 0 }); // start disabled
-    set_size(r, info.action_cursor, { 0, 0 });  // start disabled
-
-    // request to generate a dungeon
-    r.emplace<RequestGenerateDungeonComponent>(r.create());
-  }
-
   if (s == Scene::duckgame_overworld) {
 
     int map_width = 1000;
@@ -286,9 +259,6 @@ move_to_scene_start(entt::registry& r, const Scene s, const bool load_saved)
       set_position(r, e, { 45, -10 });
       set_size(r, e, { 0, 0 });
     };
-
-    // grid effect
-    // r.emplace<Effect_GridComponent>(r.create(), map_c.tilesize);
 
     // Create 4 edges to the map
     bool create_edges = true;
@@ -324,14 +294,17 @@ move_to_scene_start(entt::registry& r, const Scene s, const bool load_saved)
     if (load_saved)
       load_if_exists(r, "save-overworld.json");
     else {
-      const glm::ivec2 home_base_position = { 25, 25 };
+      const int seed = get_seed_from_systemtime();
+      static engine::RandomState rnd(seed); // TODO: BAD. FIX.
+
+      // spawn the player somewhere random on the map
+      const int rnd_x = int(engine::rand_det_s(rnd.rng, map_c.tilesize, map_width - map_c.tilesize));
+      const int rnd_y = int(engine::rand_det_s(rnd.rng, map_c.tilesize, map_height - map_c.tilesize));
+      const auto pos = glm::ivec2{ rnd_x, rnd_y };
 
       const auto player = create_gameplay(r, EntityType::actor_player);
-      set_position(r, player, home_base_position);
+      set_position(r, player, pos);
       r.emplace<CameraFollow>(player);
-
-      // TODO: BAD. FIX.
-      static engine::RandomState rnd;
 
       for (int i = 0; i < 20; i++) {
         const auto enemy = create_gameplay(r, EntityType::actor_enemy_patrol);
@@ -362,6 +335,36 @@ move_to_scene_start(entt::registry& r, const Scene s, const bool load_saved)
     }
 
     //
+  }
+
+  if (s == Scene::dungeon_designer) {
+    // create background effect
+    r.emplace<Effect_GridComponent>(r.create());
+
+    // set dungeon constraints
+    const int map_width = 600;
+    const int map_height = 600;
+    MapComponent map_c;
+    map_c.tilesize = 50;
+    map_c.xmax = map_width / map_c.tilesize;
+    map_c.ymax = map_height / map_c.tilesize;
+    map_c.map.resize(map_c.xmax * map_c.ymax);
+    r.emplace<MapComponent>(r.create(), map_c);
+
+    // Create 4 edges to the map
+    bool create_edges = true;
+    if (create_edges)
+      add_boundary_walls(r, map_width, map_height, map_c.tilesize);
+
+    // Debug object
+    auto& info = get_first_component<SINGLE_TurnBasedCombatInfo>(r);
+    info.to_place_debug = create_gameplay(r, EntityType::empty_with_transform);
+    info.action_cursor = create_gameplay(r, EntityType::empty_with_transform);
+    set_size(r, info.to_place_debug, { 0, 0 }); // start disabled
+    set_size(r, info.action_cursor, { 0, 0 });  // start disabled
+
+    // request to generate a dungeon
+    r.emplace<RequestGenerateDungeonComponent>(r.create());
   }
 
   if (s == Scene::turnbasedcombat) {

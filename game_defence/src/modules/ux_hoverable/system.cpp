@@ -5,6 +5,7 @@
 #include "events/helpers/keyboard.hpp"
 #include "events/helpers/mouse.hpp"
 #include "modules/actor_cursor/components.hpp"
+#include "modules/combat_damage/components.hpp"
 #include "modules/resolve_collisions/helpers.hpp"
 #include "physics/components.hpp"
 
@@ -48,15 +49,15 @@ update_ux_hoverable(entt::registry& r)
     }
 
     // ... move hovering to selected
-    const auto& view = r.view<HoveredComponent>();
-    for (const auto& [e, hovered] : view.each()) {
+    const auto& view = r.view<HoveredComponent, TeamComponent>();
+    for (const auto& [e, hovered, team] : view.each()) {
       //
-      // For the moment, limit selected to groupos
-      r.emplace_or_replace<SelectedComponent>(e);
+      // For the moment, limit selected to groupo
+      // r.emplace_or_replace<SelectedComponent>(e);
 
       // limit to players
-      // if (team.team == AvailableTeams::player)
-      // r.emplace_or_replace<SelectedComponent>(e);
+      if (team.team == AvailableTeams::player)
+        r.emplace_or_replace<SelectedComponent>(e);
     }
   }
 };

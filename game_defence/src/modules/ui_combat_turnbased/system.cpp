@@ -88,7 +88,7 @@ change_cursor(entt::registry& r, const CursorType& type)
 void
 update_ui_combat_turnbased_system(entt::registry& r, const glm::ivec2& input_mouse_pos)
 {
-  const int mouse_grid_increments = 10;
+  const int mouse_grid_increments = 5;
 
   const auto& map_e = get_first<MapComponent>(r);
   if (map_e == entt::null)
@@ -126,35 +126,6 @@ update_ui_combat_turnbased_system(entt::registry& r, const glm::ivec2& input_mou
   ImGui::Text("MouseClampedPos: %i %i", mouse_pos.x, mouse_pos.y);
   ImGui::Text("MousePos ClampedGridPos: %i %i", clamped_gridpos.x, clamped_gridpos.y);
 
-  // HACK: BAD: clear entity map.
-  {
-    for (int i = 0; i < map.map.size(); i++) {
-      std::vector<entt::entity>& ents = map.map[i];
-      ents.clear();
-    }
-  }
-
-  // HACK: BAD: update the entity map with costs.
-  {
-    const auto& view = r.view<PathfindComponent, AABB>();
-    for (const auto& [e, pc, aabb] : view.each()) {
-      //
-      // work out which gridpos this object is in
-      // check directions l, r, u, d
-      const float half_x = aabb.size.x / 2.0f;
-      const float half_y = aabb.size.y / 2.0f;
-      std::set<vec2i> gridcells;
-      for (int y = aabb.center.y - half_y; y <= aabb.center.y + half_y; y += map.tilesize)
-        for (int x = aabb.center.x - half_x; x <= aabb.center.x + half_x; x += map.tilesize)
-          gridcells.emplace(vec2i(engine::grid::world_space_to_grid_space({ x, y }, map.tilesize)));
-      for (const auto& gc : gridcells) {
-        // ImGui::Text("GridCell %i %i", gc.x, gc.y);
-        const int idx = engine::grid::grid_position_to_clamped_index({ gc.x, gc.y }, map.xmax, map.ymax);
-        map.map[idx].push_back(e);
-      }
-    }
-  }
-
   // Hack: debug gridpos pathfinding
   {
     const auto grid_idx = engine::grid::grid_position_to_clamped_index(gridpos, map.xmax, map.ymax);
@@ -170,10 +141,11 @@ update_ui_combat_turnbased_system(entt::registry& r, const glm::ivec2& input_mou
 
   // Hack: display all units hp in worldspace
   {
-    const auto& view = r.view<HealthComponent>();
-    for (const auto& [e, hp] : view.each()) {
+    const auto& view = r.view<HealthComponent, AABB>();
+    for (const auto& [e, hp, aabb] : view.each()) {
       auto& worldspace_ui = r.get_or_emplace<WorldspaceTextComponent>(e);
       worldspace_ui.text = std::to_string(hp.hp);
+      worldspace_ui.offset.y = -aabb.size.y / 2.0f;
     }
   }
 
@@ -182,19 +154,14 @@ update_ui_combat_turnbased_system(entt::registry& r, const glm::ivec2& input_mou
   // Check if all enemies are dead.
   //
   const auto& enemy_view = r.view<EnemyComponent>();
-  int enemy_count = 0;
-  for (const auto& [e, e_c] : enemy_view.each())
-    enemy_count++;
+  const int enemy_count = enemy_view.size();
+  ImGui::Text("Enemies: %i", enemy_count);
   if (enemy_count == 0) {
-    if (ImGui::Button("Back to Overworld")) {
-      ImGui::Text("All enemies dead");
-
+    if (ImGui::Button("Back to Overworld"))
       move_to_scene_start(r, Scene::duckgame_overworld, true);
-    }
   }
 
   const auto& selected_view = r.view<SelectedComponent, AABB>();
-
   int count = 0;
   for (const auto& [e, selected_c, aabb] : selected_view.each())
     count++;

@@ -29,8 +29,8 @@ struct RequestGenerateDungeonComponent
 
 struct DungeonGenerationCriteria
 {
-  int max_rooms = 30;
-  int room_size_min = 5;
+  int max_rooms = 300;
+  int room_size_min = 4;
   int room_size_max = 10;
 };
 
