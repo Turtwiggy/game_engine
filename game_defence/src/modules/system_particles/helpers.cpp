@@ -1,9 +1,11 @@
 #include "helpers.hpp"
 
 #include "actors.hpp"
+#include "colour/colour.hpp"
 #include "components.hpp"
 #include "lifecycle/components.hpp"
 #include "maths/maths.hpp"
+#include "modules/actors/helpers.hpp"
 #include "physics/components.hpp"
 #include "renderer/transform.hpp"
 
@@ -20,8 +22,8 @@ create_particle(entt::registry& r, const ParticleDescription& desc)
   r.get<EntityTimedLifecycle>(e).milliseconds_alive_max = desc.time_to_live_ms;
 
   // spawn-point
+  set_position(r, e, desc.position);
   auto& t = r.get<TransformComponent>(e);
-  t.position = { desc.position.x, desc.position.y, 0.0f };
   t.rotation_radians.z = engine::rand_det_s(rnd.rng, 0.0f, 2.0f * engine::PI); // rnd rotation
 
   // velocity
@@ -31,14 +33,15 @@ create_particle(entt::registry& r, const ParticleDescription& desc)
 
   // make it shrink
   ScaleOverTimeComponent sotc;
-  sotc.seconds_until_complete = desc.time_to_live_ms;
+  sotc.seconds_until_complete = desc.time_to_live_ms / 1000;
   sotc.start_size = desc.start_size;
   sotc.end_size = desc.end_size;
   r.emplace<ScaleOverTimeComponent>(e, sotc);
 
   // update particle sprite to the correct sprite
-  auto sc = create_sprite(r, desc.sprite, EntityType::particle);
-  r.emplace_or_replace<SpriteComponent>(e, sc);
+  // auto sc = create_sprite(r, desc.sprite, EntityType::particle);
+  // r.emplace_or_replace<SpriteComponent>(e, sc);
+  set_colour(r, e, desc.default_colour);
 
   return e;
 };

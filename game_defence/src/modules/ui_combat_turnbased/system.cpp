@@ -2,22 +2,18 @@
 
 #include "components.hpp"
 
-#include "actors.hpp"
 #include "components.hpp"
 #include "entt/helpers.hpp"
 #include "events/components.hpp"
 #include "events/helpers/keyboard.hpp"
 #include "events/helpers/mouse.hpp"
-#include "lifecycle/components.hpp"
 #include "maths/grid.hpp"
 #include "modules/actor_enemy/components.hpp"
-#include "modules/actor_player/components.hpp"
 #include "modules/actors/helpers.hpp"
 #include "modules/algorithm_astar_pathfinding/components.hpp"
 #include "modules/algorithm_astar_pathfinding/helpers.hpp"
 #include "modules/combat_damage/components.hpp"
 #include "modules/combat_wants_to_shoot/components.hpp"
-#include "modules/gen_dungeons/helpers.hpp"
 #include "modules/grid/components.hpp"
 #include "modules/renderer/components.hpp"
 #include "modules/renderer/helpers.hpp"
@@ -26,7 +22,6 @@
 #include "modules/ui_worldspace_text/components.hpp"
 #include "modules/ux_hoverable/components.hpp"
 #include "physics/components.hpp"
-#include "renderer/transform.hpp"
 
 #include "imgui.h"
 #include "sprites/helpers.hpp"
@@ -48,21 +43,11 @@ enum class CursorType
   ATTACK,
 };
 
-// void
-// set_hover_debug(entt::registry& r, const bool& enabled, const glm::ivec2& position, const glm::ivec2& size)
-// {
-//   const auto& info = get_first_component<SINGLE_TurnBasedCombatInfo>(r);
-
-//   // if (enabled) {
-//   // r.emplace_or_replace<TransformComponent>(info.to_place_debug);
-//   // set_position(r, info.to_place_debug, position);
-//   // set_size(r, info.to_place_debug, size);
-//   // } else
-//   {
-//     if (auto* transform = r.try_get<TransformComponent>(info.to_place_debug))
-//       r.remove<TransformComponent>(info.to_place_debug);
-//   }
-// };
+enum class ActionMode
+{
+  MOVE,
+  ATTACK,
+};
 
 void
 change_cursor(entt::registry& r, const CursorType& type)
@@ -101,8 +86,17 @@ update_ui_combat_turnbased_system(entt::registry& r, const glm::ivec2& input_mou
   }
 
   const auto& input = get_first_component<SINGLETON_InputComponent>(r);
-  const bool left_ctrl_held = get_key_held(input, SDL_Scancode::SDL_SCANCODE_LCTRL);
-  const bool left_shift_held = get_key_held(input, SDL_Scancode::SDL_SCANCODE_LSHIFT);
+
+  static int action = 1;
+  {
+    const bool action_1 = get_key_down(input, SDL_Scancode::SDL_SCANCODE_1);
+    const bool action_2 = get_key_down(input, SDL_Scancode::SDL_SCANCODE_2);
+    if (action_1)
+      action = 1;
+    if (action_2)
+      action = 2;
+  }
+
   const bool rmb_click = get_mouse_rmb_press();
 
   const int grid_snap_size = mouse_grid_increments; // note: this is not the map.tilesize,
@@ -125,6 +119,7 @@ update_ui_combat_turnbased_system(entt::registry& r, const glm::ivec2& input_mou
   ImGui::Text("MousePos GridPos: %i %i", gridpos.x, gridpos.y);
   ImGui::Text("MouseClampedPos: %i %i", mouse_pos.x, mouse_pos.y);
   ImGui::Text("MousePos ClampedGridPos: %i %i", clamped_gridpos.x, clamped_gridpos.y);
+  ImGui::Text("Action: %i", action);
 
   // Hack: debug gridpos pathfinding
   {
@@ -185,16 +180,30 @@ update_ui_combat_turnbased_system(entt::registry& r, const glm::ivec2& input_mou
     const auto dst = mouse_pos;
     const int dst_idx = convert_position_to_index(map, dst);
 
+    // bugfix: only go to destination if the end-tile isn't blocked
+    // check the destination is traversable
+    bool traversable = true;
+    if (map.map[dst_idx].size() > 0) {
+      for (const auto& e : map.map[dst_idx]) {
+        if (const auto* cost = r.try_get<PathfindComponent>(e)) {
+          if (cost->cost == -1)
+            traversable = false;
+        }
+      }
+    }
+    ImGui::Text("Traversable: %i", traversable);
+
     // Attach a GeneratedPath to the enemy unit. HasTargetPosition gets overwritten.
     const auto update_path_to_mouse = [&r, &e, &grid, &src_idx, &src, &dst_idx, &dst]() {
-      const auto path = generate_direct_with_diagonals(r, grid, src_idx, dst_idx);
+      const auto path = generate_direct(r, grid, src_idx, dst_idx);
       GeneratedPathComponent path_c;
       path_c.path = path;
       path_c.src_pos = src;
       path_c.dst_pos = dst;
       path_c.dst_ent = entt::null;
       path_c.aim_for_exact_position = true;
-      // path_c.path_cleared.resize(path.size());
+      path_c.required_to_clear_path = true;
+      path_c.path_cleared.resize(path.size());
       r.emplace_or_replace<GeneratedPathComponent>(e, path_c);
     };
 
@@ -202,19 +211,19 @@ update_ui_combat_turnbased_system(entt::registry& r, const glm::ivec2& input_mou
     auto& static_tgt = r.get_or_emplace<StaticTargetComponent>(e);
     static_tgt.target = { mouse_pos.x, mouse_pos.y };
 
-    // default cursor
-    change_cursor(r, CursorType::MOVE);
+    // move mode
+    if (action == 1) {
+      change_cursor(r, CursorType::MOVE);
+      if (rmb_click && traversable)
+        update_path_to_mouse();
+    }
 
     // shoot mode
-    if (left_ctrl_held) {
+    if (action == 2) {
       change_cursor(r, CursorType::ATTACK);
       if (rmb_click)
         r.emplace_or_replace<WantsToShoot>(e);
     }
-
-    // move
-    else if (rmb_click)
-      update_path_to_mouse();
   }
 
   ImGui::End();

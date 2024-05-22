@@ -14,6 +14,7 @@ uniform sampler2D tex_custom;
 uniform sampler2D tex_particles;
 uniform sampler2D tex_gameicons;
 uniform sampler2D tex_voxel;
+uniform sampler2D tex_unit_space_background_0;
 
 void
 main()
@@ -29,7 +30,7 @@ main()
       (v_sprite_wh.y * v_uv.y) / v_sprite_max.y + v_sprite_pos.y * (1.0f/v_sprite_max.y)
     );
 
-      out_colour = v_colour;
+    out_colour = v_colour;
 
     // index set on cpu side...
     // WARNING: seems bad
@@ -49,6 +50,11 @@ main()
       out_colour *= texture(tex_voxel, sprite_uv);
       return; // texture uses 0, 0
     }
+    else if(index == 8){
+      out_colour *= texture(tex_unit_space_background_0, sprite_uv);
+      return; // texture uses 0, 0
+    }
+
   }
 
   // Sample texture directly

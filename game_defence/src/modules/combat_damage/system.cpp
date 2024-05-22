@@ -115,10 +115,12 @@ update_take_damage_system(entt::registry& r)
       if (crit) {
         auto& sc = r.get<SpriteComponent>(req);
         sc.colour = get_lin_colour_by_tag(r, "attack_crit");
-      }
-      if (miss) {
+      } else if (miss) {
         auto& sc = r.get<SpriteComponent>(req);
         sc.colour = get_lin_colour_by_tag(r, "attack_miss");
+      } else {
+        auto& sc = r.get<SpriteComponent>(req);
+        sc.colour = get_lin_colour_by_tag(r, "attack_hit");
       }
     }
 

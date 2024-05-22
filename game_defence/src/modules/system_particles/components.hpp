@@ -31,10 +31,11 @@ struct ParticleDescription
   glm::ivec2 position{ 0, 0 };
   glm::ivec2 velocity{ 0, 0 };
   std::string sprite = "EMPTY";
+  engine::SRGBColour default_colour{ 1.0f, 1.0f, 1.0f, 1.0f };
 
   // not implemented
-  engine::LinearColour start_colour;
-  engine::LinearColour end_colour;
+  engine::SRGBColour start_colour;
+  engine::SRGBColour end_colour;
 };
 
 // the emitter that spawns the particle

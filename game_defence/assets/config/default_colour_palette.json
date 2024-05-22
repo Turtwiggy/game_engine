@@ -82,7 +82,7 @@
     {
       "r": 0, "g": 255, "b": 192,
       "name": "hit",
-      "tags": [ "hovered", "enemy_flash" ]
+      "tags": [ "hovered", "enemy_flash", "attack_hit" ]
     },
     {
       "r": 255, "g": 255, "b": 255,

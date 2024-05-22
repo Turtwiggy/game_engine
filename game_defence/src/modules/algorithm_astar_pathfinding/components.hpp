@@ -43,7 +43,10 @@ struct GeneratedPathComponent
   glm::vec2 dst_pos{ 0, 0 };
   entt::entity dst_ent = entt::null;
   std::vector<glm::ivec2> path;
-  // std::vector<bool> path_cleared;
+
+  // better for avoiding corners with obstacles
+  bool required_to_clear_path = false;
+  std::vector<bool> path_cleared;
 
   bool aim_for_exact_position = false;
 };

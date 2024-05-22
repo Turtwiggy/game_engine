@@ -41,6 +41,7 @@
 #include "modules/screenshake/system.hpp"
 #include "modules/sprite_spritestack/system.hpp"
 #include "modules/system_particles/system.hpp"
+#include "modules/system_pathfinding/system.hpp"
 #include "modules/system_spaceship_door/system.hpp"
 #include "modules/system_sprint/system.hpp"
 #include "modules/ui_arrows_to_spawners/system.hpp"
@@ -122,6 +123,11 @@ game2d::init(engine::SINGLETON_Application& app, entt::registry& r)
     gun_pistol.path = "assets/textures/voxel/gun_pistol.png";
     gun_pistol.spritesheet_path = "assets/config/spritemap_voxel_gun_pistol.json";
     ri.user_textures.push_back(gun_pistol);
+
+    Texture space_background_0;
+    space_background_0.path = "assets/textures/space_background_0.png";
+    space_background_0.spritesheet_path = "assets/config/spritemap_space_background_0.json";
+    ri.user_textures.push_back(space_background_0);
 
     // load spritesheet info
     SINGLE_Animations anims;
@@ -256,7 +262,6 @@ game2d::update(engine::SINGLETON_Application& app, entt::registry& r, const floa
     update_wiggle_up_and_down_system(r, dt);
     update_ux_hoverable_change_colour_system(r);
     update_sprite_spritestack_system(r, dt);
-    update_particle_system(r, dt);
 
     const auto& state = get_first_component<SINGLETON_GameStateComponent>(r);
     auto& gameover = get_first_component<SINGLETON_GameOver>(r);
@@ -271,6 +276,8 @@ game2d::update(engine::SINGLETON_Application& app, entt::registry& r, const floa
       // putting all these systems in update isn't a mistake
       const uint64_t milliseconds_dt = dt * 1000.0f;
 
+      update_particle_system(r, dt);
+
       //
       // animation
       update_actor_bodypart_head_system(r, dt, mouse_pos);
@@ -280,6 +287,7 @@ game2d::update(engine::SINGLETON_Application& app, entt::registry& r, const floa
       update_combat_powerup_doubledamage_system(r, dt);
       //
       // ai
+      update_pathfinding_system(r, dt);
       update_set_velocity_to_target_system(r, dt);
       update_actor_group_system(r, mouse_pos);
       //

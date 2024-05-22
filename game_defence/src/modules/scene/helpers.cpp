@@ -3,6 +3,7 @@
 #include "actors.hpp"
 #include "audio/components.hpp"
 #include "audio/helpers.hpp"
+#include "colour/colour.hpp"
 #include "entt/helpers.hpp"
 #include "entt/serialize.hpp"
 #include "events/components.hpp"
@@ -260,6 +261,26 @@ move_to_scene_start(entt::registry& r, const Scene s, const bool load_saved)
       set_size(r, e, { 0, 0 });
     };
 
+    // create a background sprite
+    {
+      const auto e = create_gameplay(r, EntityType::empty_with_transform);
+      const auto tex_unit = search_for_texture_unit_by_texture_path(ri, "background_0").value();
+      set_sprite_custom(r, e, "SPACE_BACKGROUND_0", tex_unit.unit);
+      set_size(r, e, { 3000, 3000 });
+      set_position(r, e, { map_width / 2, map_height / 2 }); // center
+      r.get<TransformComponent>(e).position.z = -2;          // behind everything
+    }
+
+    // create an empty sprite on the board sprite
+    {
+      const auto e = create_gameplay(r, EntityType::empty_with_transform);
+      set_sprite(r, e, "EMPTY");
+      set_size(r, e, { map_width, map_height });
+      set_position(r, e, { map_width / 2, map_height / 2 }); // center
+      set_colour(r, e, engine::SRGBColour{ 0.3f, 0.3f, 0.3f, 0.1f });
+      r.get<TransformComponent>(e).position.z = -1; // behind everything
+    }
+
     // Create 4 edges to the map
     bool create_edges = true;
     if (create_edges)
@@ -320,21 +341,19 @@ move_to_scene_start(entt::registry& r, const Scene s, const bool load_saved)
     }
 
     // VISUAL: use poisson for stars?
-    {
-      const int width = map_width;
-      const int height = map_height;
-      const auto poisson = generate_poisson(width, height, 150, 0);
-      for (const auto& p : poisson) {
-        const auto icon = create_gameplay(r, EntityType::empty_with_transform);
-        set_sprite(r, icon, "EMPTY"s);
-        set_size(r, icon, { 8, 8 });
-        set_position(r, icon, { p.x, p.y });
-        set_colour(r, icon, { 255, 225, 123, 0.35f });
-        r.get<TagComponent>(icon).tag = "star"s;
-      }
-    }
-
-    //
+    // {
+    //   const int width = map_width;
+    //   const int height = map_height;
+    //   const auto poisson = generate_poisson(width, height, 150, 0);
+    //   for (const auto& p : poisson) {
+    //     const auto icon = create_gameplay(r, EntityType::empty_with_transform);
+    //     set_sprite(r, icon, "EMPTY"s);
+    //     set_size(r, icon, { 8, 8 });
+    //     set_position(r, icon, { p.x, p.y });
+    //     set_colour(r, icon, { 255, 225, 123, 0.35f });
+    //     r.get<TagComponent>(icon).tag = "star"s;
+    //   }
+    // }
   }
 
   if (s == Scene::dungeon_designer) {

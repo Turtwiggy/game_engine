@@ -328,18 +328,24 @@ create_gameplay(entt::registry& r, const EntityType& type)
       // r.emplace<StatsComponent>(e, stats);
 
       // particle emitter as child
-      const auto particle_e = create_gameplay(r, EntityType::empty_with_transform);
-      set_size(r, particle_e, { 0, 0 }); // no size just script, but need position
-      r.emplace<HasParentComponent>(particle_e, e);
-      r.emplace<SetPositionToParentsPosition>(particle_e);
-      ParticleDescription desc;
-      desc.sprite = "EMPTY";
-      desc.velocity = { 0, 10 };
-      r.emplace<ParticleEmitterComponent>(particle_e, desc);
-      AttackCooldownComponent cooldown;
-      cooldown.time_between_attack = 0.1f;
-      cooldown.time_between_attack_left = cooldown.time_between_attack;
-      r.emplace<AttackCooldownComponent>(particle_e, cooldown);
+      {
+        const auto particle_emitter = create_gameplay(r, EntityType::empty_with_transform);
+        set_size(r, particle_emitter, { 0, 0 }); // no size just script, but need position
+        r.emplace<HasParentComponent>(particle_emitter, e);
+        r.emplace<SetPositionToParentsPosition>(particle_emitter);
+
+        // which particle to spawn?
+        ParticleDescription desc;
+        desc.sprite = "EMPTY";
+        desc.default_colour = engine::SRGBColour(1.0f, 1.0f, 0.0f, 1.0f);
+        r.emplace<ParticleEmitterComponent>(particle_emitter, desc);
+
+        // emit: particles
+        AttackCooldownComponent cooldown;
+        cooldown.time_between_attack = 0.1f;
+        cooldown.time_between_attack_left = cooldown.time_between_attack;
+        r.emplace<AttackCooldownComponent>(particle_emitter, cooldown);
+      }
 
       break;
     }
@@ -354,6 +360,7 @@ create_gameplay(entt::registry& r, const EntityType& type)
       r.emplace<SetTransformAngleToVelocity>(e);
 
       r.emplace<EnemyComponent>(e);
+      r.emplace<TeamComponent>(e, AvailableTeams::enemy);
       // r.emplace<HoverableComponent>(e);
 
       // movement
@@ -363,7 +370,26 @@ create_gameplay(entt::registry& r, const EntityType& type)
       // gameplay
       r.emplace<PatrolComponent>(e);
 
-      // r.emplace<TeamComponent>(e, AvailableTeams::enemy);
+      // particle emitter as child
+      {
+        const auto particle_emitter = create_gameplay(r, EntityType::empty_with_transform);
+        set_size(r, particle_emitter, { 0, 0 }); // no size just script, but need position
+        r.emplace<HasParentComponent>(particle_emitter, e);
+        r.emplace<SetPositionToParentsPosition>(particle_emitter);
+
+        // which particle to spawn?
+        ParticleDescription desc;
+        desc.sprite = "EMPTY";
+        desc.default_colour = engine::SRGBColour(1.0f, 0.0f, 0.0f, 1.0f);
+        r.emplace<ParticleEmitterComponent>(particle_emitter, desc);
+
+        // emit: particles
+        AttackCooldownComponent cooldown;
+        cooldown.time_between_attack = 0.1f;
+        cooldown.time_between_attack_left = cooldown.time_between_attack;
+        r.emplace<AttackCooldownComponent>(particle_emitter, cooldown);
+      }
+
       break;
     }
 
@@ -617,6 +643,7 @@ create_gameplay(entt::registry& r, const EntityType& type)
     case EntityType::cursor: {
       r.emplace<CursorComponent>(e);
       create_physics_actor(r, e);
+      set_size(r, e, { 0, 0 });
       break;
     }
 
