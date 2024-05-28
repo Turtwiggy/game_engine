@@ -7,7 +7,6 @@
 #include "modules/ui_worldspace_text/components.hpp"
 
 #include "imgui.h"
-#include "physics/components.hpp"
 
 namespace game2d {
 using namespace std::literals;
@@ -33,11 +32,11 @@ update_ui_backstab_patrol_system(entt::registry& r)
   //   text.text = "-";
   // set some worldspace ui
 
-  const auto enemies_view = r.view<EnemyComponent, PatrolComponent, AABB>();
-  for (const auto& [e, e_c, p_c, aabb_c] : enemies_view.each()) {
+  const auto enemies_view = r.view<EnemyComponent, PatrolComponent>();
+  for (const auto& [e, e_c, p_c] : enemies_view.each()) {
     const auto eid = static_cast<uint32_t>(e);
     ImGui::PushID(eid);
-    ImGui::Text("AABB: %i %i", aabb_c.size.x, aabb_c.size.y);
+    // ImGui::Text("AABB: %i %i", aabb_c.size.x, aabb_c.size.y);
 
     auto& ui_txt = r.get_or_emplace<WorldspaceTextComponent>(e);
     ui_txt.text = std::to_string(p_c.strength);

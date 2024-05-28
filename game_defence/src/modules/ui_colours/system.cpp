@@ -82,7 +82,7 @@ init_ui_colour_palette_system(entt::registry& r)
     info.colours.push_back(colour);
   }
 
-  destroy_and_create<SINGLE_ColoursInfo>(r, info);
+  destroy_first_and_create<SINGLE_ColoursInfo>(r, info);
   std::cout << info.colours.size() << " colours loaded" << std::endl;
 }
 

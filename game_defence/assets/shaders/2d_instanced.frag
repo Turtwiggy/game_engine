@@ -15,6 +15,8 @@ uniform sampler2D tex_particles;
 uniform sampler2D tex_gameicons;
 uniform sampler2D tex_voxel;
 uniform sampler2D tex_unit_space_background_0;
+uniform sampler2D tex_unit_mainmenu_background;
+uniform sampler2D tex_unit_spacestation_0;
 
 void
 main()
@@ -52,6 +54,14 @@ main()
     }
     else if(index == 8){
       out_colour *= texture(tex_unit_space_background_0, sprite_uv);
+      return; // texture uses 0, 0
+    }
+    else if(index == 9){
+      out_colour *= texture(tex_unit_mainmenu_background, sprite_uv);
+      return; // texture uses 0, 0
+    }
+    else if(index == 10){
+      out_colour *= texture(tex_unit_spacestation_0, sprite_uv);
       return; // texture uses 0, 0
     }
 

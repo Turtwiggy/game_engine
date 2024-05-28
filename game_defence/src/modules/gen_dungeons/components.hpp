@@ -22,6 +22,15 @@ struct Room
   AABB aabb;
 };
 
+struct Tunnel
+{
+  bool horizontal_then_vertical = false;
+  std::vector<std::pair<int, int>> line_0;
+  std::vector<std::pair<int, int>> line_1;
+  Room room;
+  Room prev_room;
+};
+
 struct RequestGenerateDungeonComponent
 {
   bool placeholder = true;
@@ -37,6 +46,7 @@ struct DungeonGenerationCriteria
 struct DungeonGenerationResults
 {
   std::vector<Room> rooms;
+  std::vector<Tunnel> tunnels;
   std::vector<int> wall_or_floors;
 };
 

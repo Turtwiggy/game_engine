@@ -33,6 +33,7 @@
 #include "modules/renderer/helpers.hpp"
 #include "modules/screenshake/components.hpp"
 #include "modules/sprite_spritestack/components.hpp"
+#include "modules/system_minigame_bamboo/components.hpp"
 #include "modules/ui_arrows_to_spawners/components.hpp"
 #include "modules/ui_combat_turnbased/components.hpp"
 #include "modules/ui_level_up/components.hpp"
@@ -119,31 +120,36 @@ move_to_scene_start(entt::registry& r, const Scene s, const bool load_saved)
   const auto& actors = r.view<EntityTypeComponent>(entt::exclude<OrthographicCamera>);
   r.destroy(actors.begin(), actors.end());
 
-  destroy_and_create<SINGLETON_CurrentScene>(r);
-  destroy_and_create<SINGLETON_PhysicsComponent>(r);
-  destroy_and_create<SINGLETON_EntityBinComponent>(r);
-  destroy_and_create<SINGLETON_GameStateComponent>(r);
-  destroy_and_create<SINGLETON_GameOver>(r);
-  destroy_and_create<SINGLE_ScreenshakeComponent>(r);
-  destroy_and_create<SINGLE_SelectedUI>(r);
-  destroy_and_create<SINGLE_ArrowsToSpawnerUI>(r);
-  destroy_and_create<SINGLE_UILevelUpComponent>(r);
-  destroy_and_create<SINGLE_TurnBasedCombatInfo>(r);
-  destroy_and_create<SINGLE_DebugPathLines>(r);
-  destroy<MapComponent>(r);
+  destroy_first_and_create<SINGLETON_CurrentScene>(r);
+  destroy_first_and_create<SINGLETON_PhysicsComponent>(r);
+  destroy_first_and_create<SINGLETON_EntityBinComponent>(r);
+  destroy_first_and_create<SINGLETON_GameStateComponent>(r);
+  destroy_first_and_create<SINGLETON_GameOver>(r);
+  destroy_first_and_create<SINGLE_ScreenshakeComponent>(r);
+  destroy_first_and_create<SINGLE_SelectedUI>(r);
+  destroy_first_and_create<SINGLE_ArrowsToSpawnerUI>(r);
+  destroy_first_and_create<SINGLE_UILevelUpComponent>(r);
+  destroy_first_and_create<SINGLE_TurnBasedCombatInfo>(r);
+  destroy_first_and_create<SINGLE_DebugPathLines>(r);
+  destroy_first<MapComponent>(r);
   // SINGLE_MainMenuUI: not destroyed. destroyed if scene is menu.
-  destroy<Effect_GridComponent>(r);
+  destroy_first<Effect_GridComponent>(r);
+  destroy_first<SINGLE_MinigameBamboo>(r);
 
   // Clear out any old input
-  destroy_and_create<SINGLETON_InputComponent>(r);
+  destroy_first_and_create<SINGLETON_InputComponent>(r);
   init_input_system(r);
 
   // HACK: the first and only transform should be the camera
-  auto& camera = get_first_component<TransformComponent>(r);
+  const auto camera_e = get_first<TransformComponent>(r);
+  if (auto* can_move = r.try_get<CameraFreeMove>(camera_e))
+    r.remove<CameraFreeMove>(camera_e); // reset to default
+  auto& camera = r.get<TransformComponent>(camera_e);
   camera.position = glm::ivec3(0, 0, 0);
 
   // create a cursor
-  create_gameplay(r, EntityType::cursor);
+  const auto cursor_e = create_gameplay(r, EntityType::cursor);
+  set_size(r, cursor_e, { 0, 0 });
 
   stop_all_audio(r);
 
@@ -151,9 +157,7 @@ move_to_scene_start(entt::registry& r, const Scene s, const bool load_saved)
   const auto& ri = get_first_component<SINGLETON_RendererInfo>(r);
 
   if (s == Scene::menu) {
-
-    // Display some UI
-    auto& ui = destroy_and_create<SINGLE_MainMenuUI>(r);
+    auto& ui = destroy_first_and_create<SINGLE_MainMenuUI>(r);
 
     // Play some audio
     // TODO: check if muted...
@@ -176,12 +180,22 @@ move_to_scene_start(entt::registry& r, const Scene s, const bool load_saved)
 
     //   ui.random_names.push_back(first_name);
     // }
+
+    // create a background sprite
+    {
+      const auto e = create_gameplay(r, EntityType::empty_with_transform);
+      const auto tex_unit = search_for_texture_unit_by_texture_path(ri, "background_mainmenu").value();
+      set_sprite_custom(r, e, "SPACE_BACKGROUND_0", tex_unit.unit);
+      set_size(r, e, { 3000, 3000 });
+      set_position(r, e, { 0, -600 });
+      r.get<TransformComponent>(e).position.z = -2; // behind everything
+    }
   }
 
-  const auto get_seed_from_systemtime = []() -> time_t {
-    auto now = std::chrono::system_clock::now();
-    return std::chrono::system_clock::to_time_t(now);
-  };
+  // const auto get_seed_from_systemtime = []() -> time_t {
+  //   auto now = std::chrono::system_clock::now();
+  //   return std::chrono::system_clock::to_time_t(now);
+  // };
 
   if (s == Scene::test_scene_gun) {
     int width = 1000;
@@ -242,9 +256,12 @@ move_to_scene_start(entt::registry& r, const Scene s, const bool load_saved)
   }
 
   if (s == Scene::duckgame_overworld) {
+    // Play some audio
+    // TODO: check if muted...
+    r.emplace<AudioRequestPlayEvent>(r.create(), "GAME_01");
 
-    int map_width = 1000;
-    int map_height = 1000;
+    int map_width = 2000;
+    int map_height = 2000;
     MapComponent map_c;
     map_c.tilesize = 50;
     map_c.xmax = map_width / map_c.tilesize;
@@ -272,14 +289,14 @@ move_to_scene_start(entt::registry& r, const Scene s, const bool load_saved)
     }
 
     // create an empty sprite on the board sprite
-    {
-      const auto e = create_gameplay(r, EntityType::empty_with_transform);
-      set_sprite(r, e, "EMPTY");
-      set_size(r, e, { map_width, map_height });
-      set_position(r, e, { map_width / 2, map_height / 2 }); // center
-      set_colour(r, e, engine::SRGBColour{ 0.3f, 0.3f, 0.3f, 0.1f });
-      r.get<TransformComponent>(e).position.z = -1; // behind everything
-    }
+    // {
+    //   const auto e = create_gameplay(r, EntityType::empty_with_transform);
+    //   set_sprite(r, e, "EMPTY");
+    //   set_size(r, e, { map_width, map_height });
+    //   set_position(r, e, { map_width / 2, map_height / 2 }); // center
+    //   set_colour(r, e, engine::SRGBColour{ 0.3f, 0.3f, 0.3f, 0.1f });
+    //   r.get<TransformComponent>(e).position.z = -1; // behind everything
+    // }
 
     // Create 4 edges to the map
     bool create_edges = true;
@@ -315,7 +332,8 @@ move_to_scene_start(entt::registry& r, const Scene s, const bool load_saved)
     if (load_saved)
       load_if_exists(r, "save-overworld.json");
     else {
-      const int seed = get_seed_from_systemtime();
+      // const int seed = get_seed_from_systemtime();
+      const int seed = 2;
       static engine::RandomState rnd(seed); // TODO: BAD. FIX.
 
       // spawn the player somewhere random on the map
@@ -338,6 +356,14 @@ move_to_scene_start(entt::registry& r, const Scene s, const bool load_saved)
         const int rnd_y = int(engine::rand_det_s(rnd.rng, 1, (map_c.ymax - 1)));
         set_position(r, enemy, { rnd_x * map_c.tilesize, rnd_y * map_c.tilesize });
       }
+
+      // HACK: create a spacestation
+      const auto spacestation_e = create_gameplay(r, EntityType::empty_with_physics);
+      set_size(r, spacestation_e, { 200, 200 });
+      const auto tex_unit = search_for_texture_unit_by_texture_path(ri, "spacestation_0").value();
+      set_sprite_custom(r, spacestation_e, "SPACESTATION_0", tex_unit.unit);
+      set_position(r, spacestation_e, { map_width / 2, map_height / 2 }); // center
+      set_colour(r, spacestation_e, { 1.0f, 1.0f, 1.0f, 1.0f });
     }
 
     // VISUAL: use poisson for stars?
@@ -357,36 +383,20 @@ move_to_scene_start(entt::registry& r, const Scene s, const bool load_saved)
   }
 
   if (s == Scene::dungeon_designer) {
-    // create background effect
-    r.emplace<Effect_GridComponent>(r.create());
-
-    // set dungeon constraints
-    const int map_width = 600;
-    const int map_height = 600;
-    MapComponent map_c;
-    map_c.tilesize = 50;
-    map_c.xmax = map_width / map_c.tilesize;
-    map_c.ymax = map_height / map_c.tilesize;
-    map_c.map.resize(map_c.xmax * map_c.ymax);
-    r.emplace<MapComponent>(r.create(), map_c);
-
-    // Create 4 edges to the map
-    bool create_edges = true;
-    if (create_edges)
-      add_boundary_walls(r, map_width, map_height, map_c.tilesize);
+    r.emplace<CameraFreeMove>(camera_e);
+    r.emplace<Effect_GridComponent>(r.create()); // create grid effect
 
     // Debug object
     auto& info = get_first_component<SINGLE_TurnBasedCombatInfo>(r);
-    info.to_place_debug = create_gameplay(r, EntityType::empty_with_transform);
     info.action_cursor = create_gameplay(r, EntityType::empty_with_transform);
-    set_size(r, info.to_place_debug, { 0, 0 }); // start disabled
-    set_size(r, info.action_cursor, { 0, 0 });  // start disabled
+    set_size(r, info.action_cursor, { 0, 0 }); // start disabled
 
     // request to generate a dungeon
-    r.emplace<RequestGenerateDungeonComponent>(r.create());
+    // r.emplace<RequestGenerateDungeonComponent>(r.create());
   }
 
   if (s == Scene::turnbasedcombat) {
+    r.emplace<CameraFreeMove>(camera_e);
 
     int map_width = 1000;
     int map_height = 1000;
@@ -431,10 +441,14 @@ move_to_scene_start(entt::registry& r, const Scene s, const bool load_saved)
 
     // Debug object
     auto& info = get_first_component<SINGLE_TurnBasedCombatInfo>(r);
-    info.to_place_debug = create_gameplay(r, EntityType::empty_with_transform);
     info.action_cursor = create_gameplay(r, EntityType::empty_with_transform);
-    set_size(r, info.to_place_debug, { 0, 0 }); // start disabled
-    set_size(r, info.action_cursor, { 0, 0 });  // start disabled
+    set_size(r, info.action_cursor, { 0, 0 }); // start disabled
+  }
+
+  if (s == Scene::minigame_bamboo) {
+    r.emplace<SINGLE_MinigameBamboo>(r.create());
+
+    //
   }
 
   const auto scene_name = std::string(magic_enum::enum_name(s));

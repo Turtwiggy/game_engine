@@ -302,10 +302,10 @@ update_ui_spaceship_designer_system(entt::registry& r, const glm::ivec2& input_m
       r.emplace<VelocityComponent>(room_to_create);
 
       // create room walls
-      const auto w0 = create_wall(r, press_location.value(), room_to_create);
-      const auto w1 = create_wall(r, press_location.value(), room_to_create);
-      const auto w2 = create_wall(r, press_location.value(), room_to_create);
-      const auto w3 = create_wall(r, press_location.value(), room_to_create);
+      const auto w0 = create_wall(r, press_location.value(), glm::ivec2{ 0, 0 }, room_to_create);
+      const auto w1 = create_wall(r, press_location.value(), glm::ivec2{ 0, 0 }, room_to_create);
+      const auto w2 = create_wall(r, press_location.value(), glm::ivec2{ 0, 0 }, room_to_create);
+      const auto w3 = create_wall(r, press_location.value(), glm::ivec2{ 0, 0 }, room_to_create);
       walls = { w0, w1, w2, w3 };
     }
     if (get_key_held(input, drag_create_room_key) && press_location.has_value()) {

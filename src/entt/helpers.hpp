@@ -22,7 +22,7 @@ get_first_component(entt::registry& r)
 
 template<class T>
 void
-destroy(entt::registry& r, const std::optional<T> val = std::nullopt)
+destroy_first(entt::registry& r, const std::optional<T> val = std::nullopt)
 {
   const entt::entity ent = get_first<T>(r);
   if (ent != entt::null)
@@ -31,9 +31,9 @@ destroy(entt::registry& r, const std::optional<T> val = std::nullopt)
 
 template<class T>
 T&
-destroy_and_create(entt::registry& r, const std::optional<T> val = std::nullopt)
+destroy_first_and_create(entt::registry& r, const std::optional<T> val = std::nullopt)
 {
-  destroy<T>(r, val);
+  destroy_first<T>(r, val);
 
   if (val.has_value())
     return r.emplace<T>(r.create(), val.value());

@@ -7,12 +7,9 @@
 #include "events/system.hpp"
 #include "game_state.hpp"
 #include "lifecycle/system.hpp"
-#include "modules/actor_bodypart_head/system.hpp"
-#include "modules/actor_bodypart_legs/system.hpp"
 #include "modules/actor_cursor/system.hpp"
 #include "modules/actor_enemy/system.hpp"
 #include "modules/actor_enemy_patrol/system.hpp"
-#include "modules/actor_group/system.hpp"
 #include "modules/actor_player/system.hpp"
 #include "modules/actor_spawner/system.hpp"
 #include "modules/actor_weapon_shotgun/system.hpp"
@@ -25,14 +22,10 @@
 #include "modules/combat_attack_cooldown/system.hpp"
 #include "modules/combat_damage/system.hpp"
 #include "modules/combat_flash_on_damage/system.hpp"
-#include "modules/combat_powerup_doubledamage/system.hpp"
 #include "modules/combat_wants_to_shoot/system.hpp"
-#include "modules/debug_pathfinding/system.hpp"
 #include "modules/gameover/components.hpp"
 #include "modules/gameover/system.hpp"
 #include "modules/gen_dungeons/system.hpp"
-#include "modules/items_drop/system.hpp"
-#include "modules/items_pickup/system.hpp"
 #include "modules/lerp_to_target/system.hpp"
 #include "modules/renderer/components.hpp"
 #include "modules/renderer/system.hpp"
@@ -40,11 +33,10 @@
 #include "modules/scene/helpers.hpp"
 #include "modules/screenshake/system.hpp"
 #include "modules/sprite_spritestack/system.hpp"
+#include "modules/system_minigame_bamboo/system.hpp"
 #include "modules/system_particles/system.hpp"
 #include "modules/system_pathfinding/system.hpp"
-#include "modules/system_spaceship_door/system.hpp"
 #include "modules/system_sprint/system.hpp"
-#include "modules/ui_arrows_to_spawners/system.hpp"
 #include "modules/ui_audio/system.hpp"
 #include "modules/ui_backstab_patrol/system.hpp"
 #include "modules/ui_collisions/system.hpp"
@@ -53,17 +45,12 @@
 #include "modules/ui_controllers/system.hpp"
 #include "modules/ui_gameover/system.hpp"
 #include "modules/ui_hierarchy/system.hpp"
-#include "modules/ui_inventory/system.hpp"
 #include "modules/ui_level_editor/components.hpp"
 #include "modules/ui_level_up/components.hpp"
-#include "modules/ui_level_up/system.hpp"
 #include "modules/ui_pause_menu/system.hpp"
-#include "modules/ui_player_name_above_player/system.hpp"
 #include "modules/ui_rpg_character/system.hpp"
 #include "modules/ui_scene_main_menu/system.hpp"
-#include "modules/ui_spaceship_designer/system.hpp"
 #include "modules/ui_worldspace_text/system.hpp"
-#include "modules/ui_xp_bar/system.hpp"
 #include "modules/ux_hoverable/system.hpp"
 #include "modules/ux_hoverable_change_colour/system.hpp"
 #include "physics/components.hpp"
@@ -129,6 +116,16 @@ game2d::init(engine::SINGLETON_Application& app, entt::registry& r)
     space_background_0.spritesheet_path = "assets/config/spritemap_space_background_0.json";
     ri.user_textures.push_back(space_background_0);
 
+    Texture mainmenu_background;
+    mainmenu_background.path = "assets/textures/background_mainmenu.png";
+    mainmenu_background.spritesheet_path = "assets/config/spritemap_space_background_0.json"; // lazy
+    ri.user_textures.push_back(mainmenu_background);
+
+    Texture spacestation_0;
+    spacestation_0.path = "assets/textures/spacestation_0.png";
+    spacestation_0.spritesheet_path = "assets/config/spritemap_spacestation_0.json";
+    ri.user_textures.push_back(spacestation_0);
+
     // load spritesheet info
     SINGLE_Animations anims;
     for (const auto& tex : ri.user_textures)
@@ -161,6 +158,25 @@ game2d::init(engine::SINGLETON_Application& app, entt::registry& r)
   move_to_scene_start(r, Scene::menu);
 }
 
+namespace game2d {
+
+void
+duplicate_held_input(SINGLETON_FixedUpdateInputHistory& fixed_input)
+{
+  // get last tick held inputs
+  auto& last_tick_inputs = fixed_input.history[fixed_input.fixed_tick - 1];
+
+  // append them to this tick
+  auto& i = fixed_input.history[fixed_input.fixed_tick];
+
+  // only append the held states
+  const auto is_held = [](const InputEvent& e) { return e.state == InputState::held; };
+  const auto [first, last] = std::ranges::remove_if(last_tick_inputs, is_held);
+  i.insert(i.end(), first, last);
+};
+
+} // namespace game2d
+
 void
 game2d::fixed_update(engine::SINGLETON_Application& app, entt::registry& game, const uint64_t milliseconds_dt)
 {
@@ -175,18 +191,8 @@ game2d::fixed_update(engine::SINGLETON_Application& app, entt::registry& game, c
   // If there's no new Update since the last FixedUpdate(),
   // held state wont be generated for the fixed tick.
   // Duplicate the held inputs for the last frame.
-  if (!input.update_since_last_fixed_update) {
-    // get last tick held inputs
-    auto& last_tick_inputs = fixed_input.history[fixed_input.fixed_tick - 1];
-
-    // append them to this tick
-    auto& i = fixed_input.history[fixed_input.fixed_tick];
-
-    // only append the held states
-    const auto is_held = [](const InputEvent& e) { return e.state == InputState::held; };
-    const auto [first, last] = std::ranges::remove_if(last_tick_inputs, is_held);
-    i.insert(i.end(), first, last);
-  }
+  if (!input.update_since_last_fixed_update)
+    duplicate_held_input(fixed_input);
   input.update_since_last_fixed_update = false;
 
   // move unprocessed inputs from Update() to this FixedUpdate() tick
@@ -249,6 +255,8 @@ game2d::update(engine::SINGLETON_Application& app, entt::registry& r, const floa
 
   {
     OPTICK_EVENT("(update)-game-tick");
+
+    // core
     update_camera_system(r, dt, mouse_pos);
     update_audio_system(r);
     update_cursor_system(r, mouse_pos);
@@ -276,42 +284,37 @@ game2d::update(engine::SINGLETON_Application& app, entt::registry& r, const floa
       // putting all these systems in update isn't a mistake
       const uint64_t milliseconds_dt = dt * 1000.0f;
 
-      update_particle_system(r, dt);
+      //
+      // update_actor_bodypart_head_system(r, dt, mouse_pos);
+      // update_actor_bodypart_legs_system(r, dt, mouse_pos);
+      // update_combat_powerup_doubledamage_system(r, dt);
+      // update_actor_group_system(r, mouse_pos);
+      // update_spaceship_door_system(r, dt);
+      // update_intent_pickup_system(r);
+      // update_intent_drop_item_system(r);
+      //
 
-      //
-      // animation
-      update_actor_bodypart_head_system(r, dt, mouse_pos);
-      update_actor_bodypart_legs_system(r, dt, mouse_pos);
-      //
-      // powerup
-      update_combat_powerup_doubledamage_system(r, dt);
-      //
-      // ai
-      update_pathfinding_system(r, dt);
-      update_set_velocity_to_target_system(r, dt);
-      update_actor_group_system(r, mouse_pos);
-      //
-      // combat
+      // potentially common
       update_attack_cooldown_system(r, milliseconds_dt);
-      update_weapon_shotgun_system(r, milliseconds_dt);
       update_flash_sprite_system(r, milliseconds_dt);
-      update_enemy_system(r, dt);
-      update_wants_to_shoot_system(r);
-      //
-      // spawners
+      update_pathfinding_system(r, dt);
+      update_particle_system(r, dt);
+      update_set_velocity_to_target_system(r, dt);
       update_spawner_system(r, milliseconds_dt);
-      //
-      // items
-      update_intent_pickup_system(r);
-      update_intent_drop_item_system(r);
-      //
-      update_spaceship_door_system(r, dt);
-      update_actor_enemy_patrol_system(r, mouse_pos, dt);
       update_sprint_system(r, dt);
+      update_wants_to_shoot_system(r);
+      update_weapon_shotgun_system(r, milliseconds_dt);
+
+      // overworld
+      update_actor_enemy_patrol_system(r, mouse_pos, dt);
+
+      // combat scene
+      update_enemy_system(r, dt);
       update_gen_dungeons_system(r);
-      // #ifdef _DEBUG
-      // update_debug_pathfinding_system(r, mouse_pos);
-      // #endif
+    }
+
+    if (scene.s == Scene::minigame_bamboo) {
+      update_minigame_bamboo_system(r, dt);
     }
   }
 

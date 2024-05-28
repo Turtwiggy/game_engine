@@ -82,6 +82,8 @@ rebind(entt::registry& r, const SINGLETON_RendererInfo& ri)
   const int tex_unit_gameicons = search_for_texture_unit_by_texture_path(ri, "gameicons")->unit;
   const int tex_unit_car0 = search_for_texture_unit_by_texture_path(ri, "voxel")->unit;
   const int tex_unit_space_background_0 = search_for_texture_unit_by_texture_path(ri, "space_background_0")->unit;
+  const int tex_unit_mainmenu_background = search_for_texture_unit_by_texture_path(ri, "background_mainmenu")->unit;
+  const int tex_unit_spacestation_0 = search_for_texture_unit_by_texture_path(ri, "spacestation_0")->unit;
 
   ri.instanced.bind();
   ri.instanced.set_mat4("projection", camera.projection);
@@ -91,6 +93,8 @@ rebind(entt::registry& r, const SINGLETON_RendererInfo& ri)
   ri.instanced.set_int("tex_gameicons", tex_unit_gameicons);
   ri.instanced.set_int("tex_voxel", tex_unit_car0);
   ri.instanced.set_int("tex_unit_space_background_0", tex_unit_space_background_0);
+  ri.instanced.set_int("tex_unit_mainmenu_background", tex_unit_mainmenu_background);
+  ri.instanced.set_int("tex_unit_spacestation_0", tex_unit_spacestation_0);
 
   ri.lighting.bind();
   ri.lighting.set_mat4("view", camera.view);

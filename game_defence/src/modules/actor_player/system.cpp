@@ -37,10 +37,10 @@ game2d::update_player_controller_system(entt::registry& r, const uint64_t& milli
     const auto* keyboard = r.try_get<KeyboardComponent>(entity);
     const auto* controller = r.try_get<ControllerComponent>(entity);
 
-    const auto l = [](const InputEvent& e) { return (e.type == InputType::keyboard && e.state == InputState::release); };
-    const bool release_key = std::find_if(inputs.begin(), inputs.end(), l) != std::end(inputs);
-    if (release_key)
-      int k = 1;
+    // const auto l = [](const InputEvent& e) { return (e.type == InputType::keyboard && e.state == InputState::release); };
+    // const bool release_key = std::find_if(inputs.begin(), inputs.end(), l) != std::end(inputs);
+    // if (release_key)
+    //   int k = 1;
 
     // convert input to actions
     //

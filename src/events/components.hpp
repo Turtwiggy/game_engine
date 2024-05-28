@@ -19,7 +19,9 @@ enum class InputType
 {
   mouse,
   keyboard,
-  controller,
+  controller_axis,
+  controller_button,
+  controller_hat,
 };
 
 enum class InputState
@@ -29,33 +31,22 @@ enum class InputState
   release,
 };
 
-enum class JoystickEventType
-{
-  axis,
-  button,
-  hat,
-};
-
 struct InputEvent
 {
   InputType type;
   InputState state;
 
   uint32_t mouse = 0;
-
   SDL_Scancode keyboard;
 
-  JoystickEventType joystick_event;
   SDL_JoystickID joystick_id = 0;
-
-  // axis
-  Uint8 controller_axis = 0;
+  SDL_GameControllerButton controller_button = SDL_GameControllerButton::SDL_CONTROLLER_BUTTON_INVALID;
+  SDL_GameControllerAxis controller_axis = SDL_GameControllerAxis::SDL_CONTROLLER_AXIS_INVALID;
   float controller_axis_value_01 = 0;
-  // button
-  Uint8 controller_button = 0;
-  // hat
-  Uint8 controller_hat = 0;
-  Uint8 controller_hat_value = 0;
+
+  // hat: not currentely implemented
+  // Uint8 controller_hat = 0;
+  // Uint8 controller_hat_value = 0;
 };
 
 struct SINGLETON_FixedUpdateInputHistory

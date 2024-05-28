@@ -63,11 +63,10 @@ process_button_down(SINGLETON_InputComponent& input, const SDL_JoystickID& id, c
   input.button_down.push_back(evt);
 
   InputEvent e;
-  e.type = InputType::controller;
+  e.type = InputType::controller_button;
   e.state = InputState::press;
   e.controller_button = button;
   e.joystick_id = id;
-  e.joystick_event = JoystickEventType::button;
   input.unprocessed_inputs.push_back(e);
 };
 
@@ -78,11 +77,10 @@ process_button_up(SINGLETON_InputComponent& input, const SDL_JoystickID& id, con
   input.button_released.push_back(evt);
 
   InputEvent e;
-  e.type = InputType::controller;
+  e.type = InputType::controller_button;
   e.state = InputState::release;
   e.controller_button = button;
   e.joystick_id = id;
-  e.joystick_event = JoystickEventType::button;
   input.unprocessed_inputs.push_back(e);
 };
 

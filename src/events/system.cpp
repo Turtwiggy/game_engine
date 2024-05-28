@@ -77,19 +77,21 @@ game2d::update_input_system(engine::SINGLETON_Application& app, entt::registry& 
       if (e.type == SDL_JOYBUTTONUP)
         process_button_up(input, e.jbutton.which, static_cast<SDL_GameControllerButton>(e.jbutton.button));
 
-      // if (evt.type == SDL_JOYHATMOTION)
-      //   const int device = static_cast<int>(evt.jhat.which);
-      //   const int value = static_cast<int>(evt.jhat.value);
-      //   // value may be one of the following:
-      //   // SDL_HAT_LEFTUP
-      //   // SDL_HAT_UP
-      //   // SDL_HAT_RIGHTUP
-      //   // SDL_HAT_LEFT
-      //   // SDL_HAT_CENTERED
-      //   // SDL_HAT_RIGHT
-      //   // SDL_HAT_LEFTDOWN
-      //   // SDL_HAT_DOWN
-      //   // SDL_HAT_RIGHTDOWN
+      if (e.type == SDL_JOYHATMOTION) {
+        //   const int device = static_cast<int>(evt.jhat.which);
+        //   const int value = static_cast<int>(evt.jhat.value);
+        //   // value may be one of the following:
+        //   // SDL_HAT_LEFTUP
+        //   // SDL_HAT_UP
+        //   // SDL_HAT_RIGHTUP
+        //   // SDL_HAT_LEFT
+        //   // SDL_HAT_CENTERED
+        //   // SDL_HAT_RIGHT
+        //   // SDL_HAT_LEFTDOWN
+        //   // SDL_HAT_DOWN
+        //   // SDL_HAT_RIGHTDOWN
+        std::cout << "TODO: process joyhat buttonpress" << std::endl;
+      }
 
       if (e.type == SDL_JOYDEVICEADDED) {
         std::cout << "controller added" << std::endl;
@@ -152,12 +154,8 @@ game2d::update_input_system(engine::SINGLETON_Application& app, entt::registry& 
 
   // generate HELD state for controller
   {
-    InputEvent ie;
-    ie.type = InputType::controller;
+    for (SDL_GameController* c : input.controllers) {
 
-    for (int i = 0; SDL_GameController * c : input.controllers) {
-
-      i++;
       SDL_Joystick* joystick = SDL_GameControllerGetJoystick(c);
       SDL_JoystickID joystick_id = SDL_JoystickInstanceID(joystick);
 
@@ -165,9 +163,8 @@ game2d::update_input_system(engine::SINGLETON_Application& app, entt::registry& 
         const auto val = get_axis_01(c, axis);
         if (val != 0.0f) {
           InputEvent e;
-          e.type = InputType::controller;
+          e.type = InputType::controller_axis;
           e.joystick_id = joystick_id;
-          e.joystick_event = JoystickEventType::axis;
           e.state = InputState::held;
           e.controller_axis = axis;
           e.controller_axis_value_01 = val;
@@ -178,9 +175,8 @@ game2d::update_input_system(engine::SINGLETON_Application& app, entt::registry& 
       const auto generate_held_input = [&joystick_id](auto& input, auto* c, const SDL_GameControllerButton& button) {
         if (get_button_held(c, button)) {
           InputEvent e;
-          e.type = InputType::controller;
+          e.type = InputType::controller_button;
           e.joystick_id = joystick_id;
-          e.joystick_event = JoystickEventType::button;
           e.state = InputState::held;
           e.controller_button = button;
           input.unprocessed_inputs.push_back(e);

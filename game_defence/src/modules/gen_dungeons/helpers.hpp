@@ -10,11 +10,11 @@
 
 namespace game2d {
 
-entt::entity
-create_wall(entt::registry& r, const glm::ivec2 pos, const entt::entity& parent_room);
-
 DungeonGenerationResults
-create_all_rooms(DungeonGenerationCriteria& data, const MapComponent& map, engine::RandomState& rnd);
+generate_rooms(entt::registry& r, const DungeonGenerationCriteria& data, engine::RandomState& rnd);
+
+void
+instantiate_tunnels(entt::registry& r, const DungeonGenerationResults& results);
 
 void
 instantiate_walls(entt::registry& r, const DungeonGenerationResults& results);
@@ -24,6 +24,10 @@ set_generated_entity_positions(entt::registry& r, const DungeonGenerationResults
 
 void
 set_player_positions(entt::registry& r, const DungeonGenerationResults& results, engine::RandomState& rnd);
+
+// helper
+entt::entity
+create_wall(entt::registry& r, const glm::ivec2& pos, const glm::ivec2& size, const entt::entity& parent);
 
 // EntityType
 // generate_monster();

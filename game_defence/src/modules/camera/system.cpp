@@ -54,7 +54,7 @@ update_camera_system(entt::registry& r, const float dt, const glm::ivec2& mouse_
   //   target->position = { target_position.x, target_position.y };
 
   // allow move camera if no targets
-  if (targets_view.size() == 0) {
+  if (get_first<CameraFreeMove>(r) != entt::null) {
     const float CAM_SPEED = 500.0f;
     const int mul = static_cast<int>(CAM_SPEED * dt);
     glm::vec2 movement{ 0, 0 };

@@ -176,6 +176,7 @@ update_ui_combat_turnbased_system(entt::registry& r, const glm::ivec2& input_mou
 
     const auto src = aabb.center;
     const auto src_idx = convert_position_to_index(map, src);
+    const auto src_gridpos = engine::grid::index_to_grid_position(src_idx, map.xmax, map.ymax);
 
     const auto dst = mouse_pos;
     const int dst_idx = convert_position_to_index(map, dst);
@@ -194,7 +195,14 @@ update_ui_combat_turnbased_system(entt::registry& r, const glm::ivec2& input_mou
     ImGui::Text("Traversable: %i", traversable);
 
     // Attach a GeneratedPath to the enemy unit. HasTargetPosition gets overwritten.
-    const auto update_path_to_mouse = [&r, &e, &grid, &src_idx, &src, &dst_idx, &dst]() {
+    const auto update_path_to_mouse = [&r, &e, &grid, &src_idx, &src, &dst_idx, &dst, &src_gridpos]() {
+      if (auto* existing_path = r.try_get<GeneratedPathComponent>(e)) {
+        if (existing_path->path.size() > 0) {
+          const auto last = existing_path->path[existing_path->path.size() - 1];
+          if (last != src_gridpos)
+            return; // already has a path that you've not yet arrived at
+        }
+      }
       const auto path = generate_direct(r, grid, src_idx, dst_idx);
       GeneratedPathComponent path_c;
       path_c.path = path;
