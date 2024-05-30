@@ -34,7 +34,7 @@ update_ui_gameover_system(entt::registry& r)
     ImGui::Text("%s", gameover.reason.c_str());
     ImGui::Text("Thanks for playing.");
 
-    if (ImGui::Button("Restart"))
+    if (ImGui::Button("New Game"))
       r.emplace<NewGameRequest>(r.create());
 
     if (ImGui::Button("Main Menu"))

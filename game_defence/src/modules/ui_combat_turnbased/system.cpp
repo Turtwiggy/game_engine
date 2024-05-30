@@ -107,16 +107,26 @@ update_ui_combat_turnbased_system(entt::registry& r, const glm::ivec2& input_mou
     engine::grid::world_space_to_grid_space(input_mouse_pos, grid_snap_size), grid_snap_size);
   mouse_pos += glm::vec2(grid_snap_size / 2.0f, grid_snap_size / 2.0f); // center
 
-  const auto grid = map_to_grid(r);
   const auto gridpos = engine::grid::world_space_to_grid_space(input_mouse_pos, map.tilesize);
-  const auto clamped_gridpos = engine::grid::world_space_to_grid_space(mouse_pos, map.tilesize);
+  const auto grid_idx = engine::grid::grid_position_to_index(gridpos, map.xmax);
 
   ImGui::Begin("UI Combat");
   ImGui::Text("MousePos: %i %i", input_mouse_pos.x, input_mouse_pos.y);
   ImGui::Text("MousePos GridPos: %i %i", gridpos.x, gridpos.y);
   ImGui::Text("MouseClampedPos: %i %i", mouse_pos.x, mouse_pos.y);
-  ImGui::Text("MousePos ClampedGridPos: %i %i", clamped_gridpos.x, clamped_gridpos.y);
+  ImGui::Text("Mouse GridIndex: %i", grid_idx);
   ImGui::Text("Action: %i", action);
+
+  // check if all enemies are ded.
+  std::map<AvailableTeams, int> team_count;
+  team_count[AvailableTeams::player] = 0; // force team to exist
+  team_count[AvailableTeams::enemy] = 0;  // force team to exist
+  for (const auto& [e, team_c] : r.view<TeamComponent>().each())
+    team_count[team_c.team] += 1; // count teams
+  if (team_count[AvailableTeams::enemy] == 0) {
+    if (ImGui::Button("You won! Back to overworld"))
+      move_to_scene_start(r, Scene::duckgame_overworld, true);
+  }
 
   auto& state = get_first_component<SINGLE_CombatState>(r);
   if (state.team == AvailableTeams::neutral)
@@ -127,6 +137,7 @@ update_ui_combat_turnbased_system(entt::registry& r, const glm::ivec2& input_mou
 
   // Hack: debug gridpos pathfinding
   {
+    const auto gridpos = engine::grid::world_space_to_grid_space(input_mouse_pos, map.tilesize);
     const auto grid_idx = engine::grid::grid_position_to_clamped_index(gridpos, map.xmax, map.ymax);
     if (map.map[grid_idx].size() > 0) {
       for (const auto& map_e : map.map[grid_idx]) {
@@ -149,16 +160,6 @@ update_ui_combat_turnbased_system(entt::registry& r, const glm::ivec2& input_mou
   }
 
   ImGui::Text("Hello, Combat!");
-
-  // Check if all enemies are dead.
-  //
-  const auto& enemy_view = r.view<EnemyComponent>();
-  const int enemy_count = enemy_view.size();
-  ImGui::Text("Enemies: %i", enemy_count);
-  if (enemy_count == 0) {
-    if (ImGui::Button("Back to Overworld"))
-      move_to_scene_start(r, Scene::duckgame_overworld, true);
-  }
 
   const auto& selected_view = r.view<SelectedComponent, AABB>();
   int count = 0;
@@ -186,22 +187,6 @@ update_ui_combat_turnbased_system(entt::registry& r, const glm::ivec2& input_mou
 
   for (const auto& [e, selected_c, aabb] : selected_view.each()) {
 
-    const auto dst = mouse_pos;
-    const int dst_idx = convert_position_to_index(map, dst);
-
-    // bugfix: only go to destination if the end-tile isn't blocked
-    // check the destination is traversable
-    bool traversable = true;
-    if (map.map[dst_idx].size() > 0) {
-      for (const auto& e : map.map[dst_idx]) {
-        if (const auto* cost = r.try_get<PathfindComponent>(e)) {
-          if (cost->cost == -1)
-            traversable = false;
-        }
-      }
-    }
-    ImGui::Text("Traversable: %i", traversable);
-
     // aim gun
     auto& static_tgt = r.get_or_emplace<StaticTargetComponent>(e);
     static_tgt.target = { mouse_pos.x, mouse_pos.y };
@@ -220,8 +205,8 @@ update_ui_combat_turnbased_system(entt::registry& r, const glm::ivec2& input_mou
     // move mode
     if (action == 1 && !has_moved && do_move) {
       change_cursor(r, CursorType::MOVE);
-      if (rmb_click && traversable) {
-        update_path_to_mouse(r, e, dst);
+      if (rmb_click) {
+        update_path_to_mouse(r, e, mouse_pos);
         turn_state.has_moved = true;
       }
     }

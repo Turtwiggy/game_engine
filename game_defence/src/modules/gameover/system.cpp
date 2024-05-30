@@ -3,12 +3,7 @@
 #include "audio/components.hpp"
 #include "audio/helpers.hpp"
 #include "entt/helpers.hpp"
-#include "events/helpers/keyboard.hpp"
 #include "lifecycle/components.hpp"
-#include "modules/actor_enemy/components.hpp"
-#include "modules/actor_hearth/components.hpp"
-#include "modules/actor_player/components.hpp"
-#include "modules/actor_spawner/components.hpp"
 #include "modules/combat_damage/components.hpp"
 #include "modules/gameover/components.hpp"
 #include "modules/scene/components.hpp"
@@ -28,53 +23,39 @@ update_gameover_system(entt::registry& r)
     auto& gameover = get_first_component<SINGLETON_GameOver>(r);
     const auto& scene = get_first_component<SINGLETON_CurrentScene>(r);
 
-    //   // this if statement seems like its in the wrong place
-    //   if (scene.s != Scene::menu) {
+    // When to end this scene?
+    if (scene.s == Scene::turnbasedcombat) {
+      //
+      // sceneover condition: All of one team is daed
+      std::map<AvailableTeams, int> team_count;
+      team_count[AvailableTeams::player] = 0; // force team to exist
 
-    //     // Check if the game is over (base explodes)
-    //     const auto& first_hearth = get_first<HearthComponent>(r);
-    //     if (first_hearth != entt::null) {
-    //       const auto& first_hearth_hp = r.get<HealthComponent>(first_hearth);
-    //       if (first_hearth_hp.hp <= 0) {
-    //         gameover.game_is_over = true;
-    //         gameover.win_condition = false;
-    //         gameover.reason = "Your hearth exploded!";
-    //       }
-    //     }
+      // Count up all teams
+      for (const auto& [e, team_c] : r.view<TeamComponent>().each())
+        team_count[team_c.team] += 1;
 
-    //     // Check if the game is over (all players are ded)
-    //     const auto& players_view = r.view<PlayerComponent>();
-    //     const bool all_players_ded = players_view.size() == 0;
-    //     if (all_players_ded) {
-    //       gameover.game_is_over = true;
-    //       gameover.win_condition = false;
-    //       gameover.reason = "All Players ded!";
-    //     }
+      if (team_count[AvailableTeams::player] == 0) {
+        gameover.game_is_over = true;
+        gameover.win_condition = false;
+        gameover.reason = "Your team wiped out!";
+      }
+    }
 
-    //     // Check if the game is over (you beat wave 10)
-    //     // const auto& wave = get_first_component<SINGLETON_Wave>(r);
-    //     // if (wave.wave == 10) {
-    //     //   gameover.game_is_over = true;
-    //     //   gameover.reason = "You made it to wave 10!";
-    //     // }
-    //   }
+    if (gameover.game_is_over && !gameover.activated_gameover) {
+      gameover.activated_gameover = true;
 
-    //   if (gameover.game_is_over && !gameover.activated_gameover) {
-    //     gameover.activated_gameover = true;
-
-    //     if (gameover.win_condition) {
-    //       stop_all_audio(r);
-    //       // WHOOOOOOOOOOOO!
-    //       r.emplace<AudioRequestPlayEvent>(r.create(), "WIN_01");
-    //     } else {
-    //       stop_all_audio(r);
-    //       // WAHHHHHHHHHHHHH.
-    //       r.emplace<AudioRequestPlayEvent>(r.create(), "LOSS_01");
-    //     }
-    //   }
+      if (gameover.win_condition) {
+        stop_all_audio(r);
+        // WHOOOOOOOOOOOO!
+        r.emplace<AudioRequestPlayEvent>(r.create(), "WIN_01");
+      } else {
+        stop_all_audio(r);
+        // WAHHHHHHHHHHHHH.
+        r.emplace<AudioRequestPlayEvent>(r.create(), "LOSS_01");
+      }
+    }
   }
 
-  //
   // gameover requests
   //
   bool new_game = false;
@@ -92,6 +73,33 @@ update_gameover_system(entt::registry& r)
 }
 
 } // namespace game2d
+
+// HACK: Check if the game is over (base explodes)
+//     const auto& first_hearth = get_first<HearthComponent>(r);
+//     if (first_hearth != entt::null) {
+//       const auto& first_hearth_hp = r.get<HealthComponent>(first_hearth);
+//       if (first_hearth_hp.hp <= 0) {
+//         gameover.game_is_over = true;
+//         gameover.win_condition = false;
+//         gameover.reason = "Your hearth exploded!";
+//       }
+//     }
+
+// HACK: Check if the game is over (all players are ded)
+//     const auto& players_view = r.view<PlayerComponent>();
+//     const bool all_players_ded = players_view.size() == 0;
+//     if (all_players_ded) {
+//       gameover.game_is_over = true;
+//       gameover.win_condition = false;
+//       gameover.reason = "All Players ded!";
+//     }
+
+// HACK: Check if the game is over (you beat wave 10)
+// const auto& wave = get_first_component<SINGLETON_Wave>(r);
+// if (wave.wave == 10) {
+//   gameover.game_is_over = true;
+//   gameover.reason = "You made it to wave 10!";
+// }
 
 // HACK: gameover condition: All enemies are dead and no spawners
 // const bool no_enemies = r.view<EnemyComponent>().size() == 0;

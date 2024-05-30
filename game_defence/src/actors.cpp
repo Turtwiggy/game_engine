@@ -29,6 +29,7 @@
 #include "modules/system_particles/components.hpp"
 #include "modules/system_spaceship_door/components.hpp"
 #include "modules/system_sprint/components.hpp"
+#include "modules/system_turnbased_enemy/components.hpp"
 #include "modules/ui_colours/helpers.hpp"
 #include "modules/ui_spaceship_designer/components.hpp"
 #include "modules/ux_hoverable/components.hpp"
@@ -434,6 +435,7 @@ create_gameplay(entt::registry& r, const EntityType& type)
       r.emplace<TeamComponent>(e);
       r.emplace<HoverableComponent>(e); // the selected component gets attached
       // r.emplace<ChangeColourOnHoverComponent>(e);
+      r.emplace<TurnBasedUnitComponent>(e);
 
       const int hp = 100; // killable
       r.emplace<HealthComponent>(e, hp, hp);

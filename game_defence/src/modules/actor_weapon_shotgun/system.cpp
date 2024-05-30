@@ -15,7 +15,7 @@
 namespace game2d {
 
 std::optional<glm::ivec2>
-get_target_position(entt::registry& r, const entt::entity& e, const entt::entity& p)
+get_parent_target_position(entt::registry& r, const entt::entity& p)
 {
   // Get Target: Either an Entity or a Location
   const auto* dynamic_tgt = r.try_get<DynamicTargetComponent>(p);
@@ -66,7 +66,7 @@ update_weapon_shotgun_system(entt::registry& r, const uint64_t milliseconds_dt)
     const auto& [parent_aabb, parent_team] = r.get<const AABB, const TeamComponent>(p);
 
     // Get the position this gun is aiming
-    const auto target_position_opt = get_target_position(r, entity, p);
+    const auto target_position_opt = get_parent_target_position(r, p);
     if (target_position_opt == std::nullopt)
       continue;
     const glm::ivec2 target_position = target_position_opt.value();
@@ -80,8 +80,7 @@ update_weapon_shotgun_system(entt::registry& r, const uint64_t milliseconds_dt)
     auto nrm_dir = engine::normalize_safe(raw_dir);
 
     // Add an offset.
-    auto offset = glm::ivec2{ 0, 0 };
-    offset = glm::vec2{ -nrm_dir.x * shotgun.offset_amount, -nrm_dir.y * shotgun.offset_amount };
+    auto offset = glm::vec2{ -nrm_dir.x * shotgun.offset_amount, -nrm_dir.y * shotgun.offset_amount };
 
     // Add an offset due to recoil.
     shotgun.recoil_amount -= dt * shotgun.recoil_regain_speed;

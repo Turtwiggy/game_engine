@@ -12,8 +12,8 @@ struct TurnState
   bool has_shot = false;
 
   // hack for debugging enemy ai
-  bool do_move = false;
-  bool do_shoot = false;
+  bool do_move = true;
+  bool do_shoot = true;
 };
 
 // when the team's turn is complete...
@@ -26,6 +26,11 @@ struct RequestToCompleteTurn
 struct SINGLE_CombatState
 {
   AvailableTeams team = AvailableTeams::neutral;
+};
+
+struct TurnBasedUnitComponent
+{
+  bool placeholder = true;
 };
 
 } // namespace game2d

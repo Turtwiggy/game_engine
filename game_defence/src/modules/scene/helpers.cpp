@@ -25,6 +25,7 @@
 #include "modules/camera/components.hpp"
 #include "modules/camera/orthographic.hpp"
 #include "modules/combat_damage/components.hpp"
+#include "modules/combat_wants_to_shoot/components.hpp"
 #include "modules/debug_pathfinding/components.hpp"
 #include "modules/gameover/components.hpp"
 #include "modules/gen_dungeons/components.hpp"
@@ -69,6 +70,9 @@ create_combat_entity(entt::registry& r, const CombatEntityDescription& desc)
   const auto e = create_gameplay(r, EntityType::actor_unit_rtslike);
   set_position(r, e, pos);
   r.emplace_or_replace<TeamComponent>(e, desc.team);
+
+  // set entity to aim by default to the right
+  r.emplace<StaticTargetComponent>(e, glm::ivec2{ desc.position.x + 100, desc.position.y });
 
   // setup weapon
   auto& weapon_parent = r.get<HasParentComponent>(weapon);

@@ -10,6 +10,7 @@
 #include <algorithm>
 #include <optional>
 #include <set>
+#include <tuple>
 #include <vector>
 
 namespace game2d {
@@ -71,24 +72,40 @@ get_within_range(entt::registry& r, const entt::entity& e, const int d2_max)
 
   for (int i = idx_x.value() - 1; i >= 0; i--) {
     const auto& candidate = physics.sorted_x[i];
-    if (const auto* candidate_has_all = r.try_get<Component...>(candidate))
+    const std::tuple<Component*...> comps = r.try_get<Component...>(candidate);
+
+    bool all_valid = true; // iterate a tuple??
+    std::apply([&all_valid](auto&&... args) { ((all_valid &= (args != nullptr)), ...); }, comps);
+    if (all_valid)
       entt_of_interest_on_the_left.push_back(candidate);
   }
   for (int i = idx_x.value() + 1; i < physics.sorted_x.size(); i++) {
     const auto& candidate = physics.sorted_x[i];
-    if (const auto* candidate_has_all = r.try_get<Component...>(candidate))
+    const std::tuple<Component*...> comps = r.try_get<Component...>(candidate);
+
+    bool all_valid = true; // iterate a tuple??
+    std::apply([&all_valid](auto&&... args) { ((all_valid &= (args != nullptr)), ...); }, comps);
+    if (all_valid)
       entt_of_interest_on_the_right.push_back(candidate);
   }
   // check up... (y gets less)
   for (int i = idx_y.value() - 1; i >= 0; i--) {
     const auto& candidate = physics.sorted_y[i];
-    if (const auto* candidate_has_all = r.try_get<Component...>(candidate))
+    const std::tuple<Component*...> comps = r.try_get<Component...>(candidate);
+
+    bool all_valid = true; // iterate a tuple??
+    std::apply([&all_valid](auto&&... args) { ((all_valid &= (args != nullptr)), ...); }, comps);
+    if (all_valid)
       entt_of_interest_above.push_back(candidate);
   }
   // check down... (y gets greater)
   for (int i = idx_y.value() + 1; i < physics.sorted_y.size(); i++) {
     const auto& candidate = physics.sorted_y[i];
-    if (const auto* candidate_has_all = r.try_get<Component...>(candidate))
+    const std::tuple<Component*...> comps = r.try_get<Component...>(candidate);
+
+    bool all_valid = true; // iterate a tuple??
+    std::apply([&all_valid](auto&&... args) { ((all_valid &= (args != nullptr)), ...); }, comps);
+    if (all_valid)
       entt_of_interest_below.push_back(candidate);
   }
   //

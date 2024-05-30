@@ -340,7 +340,16 @@ at_destination(entt::registry& r, const entt::entity& src_e)
 
   const auto& path = r.get<GeneratedPathComponent>(src_e);
   const auto last = path.path[path.path.size() - 1];
-  return last == src_gridpos;
+
+  const bool same_gridcell = last == src_gridpos;
+  if (!same_gridcell)
+    return false;
+
+  // require distance threshold from position.
+  const auto d = src - path.dst_pos;
+  const int d2 = d.x * d.x + d.y * d.y;
+  const int epsilon = 10;
+  return d2 < epsilon;
 };
 
 } // namespace game2d
