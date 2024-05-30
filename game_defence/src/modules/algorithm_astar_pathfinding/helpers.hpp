@@ -3,7 +3,6 @@
 #include "modules/algorithm_astar_pathfinding/components.hpp"
 #include "modules/grid/components.hpp"
 
-
 #include <glm/glm.hpp>
 
 #include <vector>
@@ -55,5 +54,11 @@ clamp_worldspace_to_gridspace(const MapComponent& map, const glm::ivec2 pos);
 
 int
 convert_position_to_index(const MapComponent& map, const glm::ivec2& pos);
+
+bool
+has_destination(entt::registry& r, const entt::entity& src_e);
+
+bool
+at_destination(entt::registry& r, const entt::entity& e);
 
 } // namespace game2d

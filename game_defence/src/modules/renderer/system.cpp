@@ -28,6 +28,7 @@
 #include "opengl/shader.hpp"
 #include "opengl/texture.hpp"
 #include "opengl/util.hpp"
+#include <SDL_scancode.h>
 using namespace engine; // used for macro
 
 // other lib
@@ -196,6 +197,8 @@ game2d::update_render_system(entt::registry& r, const float dt, const glm::vec2&
   const auto& camera_t = r.get<TransformComponent>(camera_e);
   ri.instanced.bind();
   ri.instanced.set_mat4("view", camera.view);
+  ri.instanced.set_int("screen_w", ri.viewport_size_render_at.x);
+  ri.instanced.set_int("screen_h", ri.viewport_size_render_at.y);
 
   ri.lighting.bind();
   ri.lighting.set_mat4("view", camera.view);
@@ -230,24 +233,38 @@ game2d::update_render_system(entt::registry& r, const float dt, const glm::vec2&
   // light_pos.y should be 0 < viewport_wh.y
   ri.mix_lighting_and_scene.set_vec2("light_pos", light_pos_in_screenspace);
 
-  // DEBUG A SHADER...
-  // #ifdef _DEBUG
-  // const auto& input = get_first_component<SINGLETON_InputComponent>(r);
-  // if (get_key_down(input, SDL_SCANCODE_1)) {
-  //   std::cout << "rebinding shader..." << std::endl;
-  //   ri.grid.reload();
-  //   ri.grid.bind();
-  //   ri.grid.set_mat4("projection", camera.projection);
-  //   ri.grid.set_mat4("view", camera.view);
-  //   ri.grid.set_vec2("viewport_wh", ri.viewport_size_render_at);
-  //   ri.grid.set_vec2("camera_pos", { camera_t.position.x, camera_t.position.y });
-  //   const auto grid_e = get_first<Effect_GridComponent>(r);
-  //   if (grid_e != entt::null) {
-  //     const float gridsize = r.get<Effect_GridComponent>(grid_e).gridsize;
-  //     ri.grid.set_float("gridsize", gridsize);
-  //   }
-  // }
-  // #endif
+// DEBUG A SHADER...
+#ifdef _DEBUG
+  const auto& input = get_first_component<SINGLETON_InputComponent>(r);
+  if (get_key_down(input, SDL_SCANCODE_PAGEUP)) {
+    std::cout << "rebinding shader..." << std::endl;
+    ri.instanced.reload();
+    ri.instanced.bind();
+    ri.instanced.set_int("screen_w", ri.viewport_size_render_at.x);
+    ri.instanced.set_int("screen_h", ri.viewport_size_render_at.y);
+
+    ri.instanced.set_mat4("view", camera.view);
+    ri.instanced.set_vec2("viewport_wh", ri.viewport_size_render_at);
+
+    const int tex_unit_kenny = search_for_texture_unit_by_texture_path(ri, "monochrome")->unit;
+    const int tex_unit_custom = search_for_texture_unit_by_texture_path(ri, "bargame")->unit;
+    const int tex_unit_particles = search_for_texture_unit_by_texture_path(ri, "particles")->unit;
+    const int tex_unit_gameicons = search_for_texture_unit_by_texture_path(ri, "gameicons")->unit;
+    const int tex_unit_car0 = search_for_texture_unit_by_texture_path(ri, "voxel")->unit;
+    const int tex_unit_space_background_0 = search_for_texture_unit_by_texture_path(ri, "space_background_0")->unit;
+    const int tex_unit_mainmenu_background = search_for_texture_unit_by_texture_path(ri, "background_mainmenu")->unit;
+    const int tex_unit_spacestation_0 = search_for_texture_unit_by_texture_path(ri, "spacestation_0")->unit;
+    ri.instanced.set_mat4("projection", camera.projection);
+    ri.instanced.set_int("tex_kenny", tex_unit_kenny);
+    ri.instanced.set_int("tex_custom", tex_unit_custom);
+    ri.instanced.set_int("tex_particles", tex_unit_particles);
+    ri.instanced.set_int("tex_gameicons", tex_unit_gameicons);
+    ri.instanced.set_int("tex_voxel", tex_unit_car0);
+    ri.instanced.set_int("tex_unit_space_background_0", tex_unit_space_background_0);
+    ri.instanced.set_int("tex_unit_mainmenu_background", tex_unit_mainmenu_background);
+    ri.instanced.set_int("tex_unit_spacestation_0", tex_unit_spacestation_0);
+  }
+#endif
 
   // FBO: Render sprites in to this fbo with linear colour
   {

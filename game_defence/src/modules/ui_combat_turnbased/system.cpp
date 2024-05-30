@@ -15,16 +15,19 @@
 #include "modules/combat_damage/components.hpp"
 #include "modules/combat_wants_to_shoot/components.hpp"
 #include "modules/grid/components.hpp"
+#include "modules/grid/helpers.hpp"
 #include "modules/renderer/components.hpp"
 #include "modules/renderer/helpers.hpp"
 #include "modules/scene/components.hpp"
 #include "modules/scene/helpers.hpp"
+#include "modules/system_turnbased_enemy/components.hpp"
 #include "modules/ui_worldspace_text/components.hpp"
 #include "modules/ux_hoverable/components.hpp"
 #include "physics/components.hpp"
+#include "sprites/helpers.hpp"
 
 #include "imgui.h"
-#include "sprites/helpers.hpp"
+#include "magic_enum.hpp"
 
 namespace game2d {
 using namespace std::literals;
@@ -104,13 +107,7 @@ update_ui_combat_turnbased_system(entt::registry& r, const glm::ivec2& input_mou
     engine::grid::world_space_to_grid_space(input_mouse_pos, grid_snap_size), grid_snap_size);
   mouse_pos += glm::vec2(grid_snap_size / 2.0f, grid_snap_size / 2.0f); // center
 
-  // Convert Map to Grid (?)
-  GridComponent grid;
-  grid.size = map.tilesize;
-  grid.width = map.xmax;
-  grid.height = map.ymax;
-  grid.grid = map.map;
-
+  const auto grid = map_to_grid(r);
   const auto gridpos = engine::grid::world_space_to_grid_space(input_mouse_pos, map.tilesize);
   const auto clamped_gridpos = engine::grid::world_space_to_grid_space(mouse_pos, map.tilesize);
 
@@ -120,6 +117,13 @@ update_ui_combat_turnbased_system(entt::registry& r, const glm::ivec2& input_mou
   ImGui::Text("MouseClampedPos: %i %i", mouse_pos.x, mouse_pos.y);
   ImGui::Text("MousePos ClampedGridPos: %i %i", clamped_gridpos.x, clamped_gridpos.y);
   ImGui::Text("Action: %i", action);
+
+  auto& state = get_first_component<SINGLE_CombatState>(r);
+  if (state.team == AvailableTeams::neutral)
+    if (ImGui::Button("Swap to player turn"))
+      state.team = AvailableTeams::player;
+  const auto type_name = std::string(magic_enum::enum_name(state.team));
+  ImGui::Text("Turn: %s", type_name.c_str());
 
   // Hack: debug gridpos pathfinding
   {
@@ -160,10 +164,18 @@ update_ui_combat_turnbased_system(entt::registry& r, const glm::ivec2& input_mou
   int count = 0;
   for (const auto& [e, selected_c, aabb] : selected_view.each())
     count++;
-  ImGui::Text("Count: %i", count);
 
-  // limit to only interacting with 1 selected unit
+  if (ImGui::Button("End Turn")) // let player end their turn
+    r.emplace<RequestToCompleteTurn>(r.create(), AvailableTeams::player);
+
+  // limit: must be interacting with 1 selected unit
   if (count != 1) {
+    ImGui::End();
+    return;
+  }
+
+  // limit: must be player turn
+  if (state.team != AvailableTeams::player) {
     ImGui::End();
     return;
   }
@@ -173,10 +185,6 @@ update_ui_combat_turnbased_system(entt::registry& r, const glm::ivec2& input_mou
   set_position(r, info.action_cursor, mouse_pos);
 
   for (const auto& [e, selected_c, aabb] : selected_view.each()) {
-
-    const auto src = aabb.center;
-    const auto src_idx = convert_position_to_index(map, src);
-    const auto src_gridpos = engine::grid::index_to_grid_position(src_idx, map.xmax, map.ymax);
 
     const auto dst = mouse_pos;
     const int dst_idx = convert_position_to_index(map, dst);
@@ -194,43 +202,37 @@ update_ui_combat_turnbased_system(entt::registry& r, const glm::ivec2& input_mou
     }
     ImGui::Text("Traversable: %i", traversable);
 
-    // Attach a GeneratedPath to the enemy unit. HasTargetPosition gets overwritten.
-    const auto update_path_to_mouse = [&r, &e, &grid, &src_idx, &src, &dst_idx, &dst, &src_gridpos]() {
-      if (auto* existing_path = r.try_get<GeneratedPathComponent>(e)) {
-        if (existing_path->path.size() > 0) {
-          const auto last = existing_path->path[existing_path->path.size() - 1];
-          if (last != src_gridpos)
-            return; // already has a path that you've not yet arrived at
-        }
-      }
-      const auto path = generate_direct(r, grid, src_idx, dst_idx);
-      GeneratedPathComponent path_c;
-      path_c.path = path;
-      path_c.src_pos = src;
-      path_c.dst_pos = dst;
-      path_c.dst_ent = entt::null;
-      path_c.aim_for_exact_position = true;
-      path_c.required_to_clear_path = true;
-      path_c.path_cleared.resize(path.size());
-      r.emplace_or_replace<GeneratedPathComponent>(e, path_c);
-    };
-
     // aim gun
     auto& static_tgt = r.get_or_emplace<StaticTargetComponent>(e);
     static_tgt.target = { mouse_pos.x, mouse_pos.y };
 
+    auto& turn_state = r.get_or_emplace<TurnState>(e);
+    const bool has_moved = turn_state.has_moved;
+    const bool has_shot = turn_state.has_shot;
+
+    ImGui::Separator();
+    ImGui::Text("has_moved %i", has_moved);
+    ImGui::Text("has_shot: %i", has_shot);
+
+    // already has a path that you've not yet arrived at
+    const bool do_move = !has_destination(r, e) || at_destination(r, e);
+
     // move mode
-    if (action == 1) {
+    if (action == 1 && !has_moved && do_move) {
       change_cursor(r, CursorType::MOVE);
-      if (rmb_click && traversable)
-        update_path_to_mouse();
+      if (rmb_click && traversable) {
+        update_path_to_mouse(r, e, dst);
+        turn_state.has_moved = true;
+      }
     }
 
     // shoot mode
-    if (action == 2) {
+    if (action == 2 && !has_shot) {
       change_cursor(r, CursorType::ATTACK);
-      if (rmb_click)
+      if (rmb_click) {
         r.emplace_or_replace<WantsToShoot>(e);
+        turn_state.has_shot = true;
+      }
     }
   }
 

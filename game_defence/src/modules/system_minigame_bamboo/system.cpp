@@ -11,6 +11,7 @@
 #include "modules/renderer/components.hpp"
 #include "modules/scene/helpers.hpp"
 #include <SDL_gamecontroller.h>
+#include <SDL_keyboard.h>
 #include <SDL_scancode.h>
 
 namespace game2d {
@@ -75,8 +76,8 @@ check_if_generate_new_combination(entt::registry& r, const int length, engine::R
   // generate new combination...
   combination.clear();
   for (int i = 0; i < length; i++) {
-    const int idx = int(engine::rand_det_s(rnd.rng, 0, controller_combinations.size() - 1));
-    combination.push_back(controller_combinations[idx]);
+    const int idx = int(engine::rand_det_s(rnd.rng, 0, keyboard_combinations.size()));
+    combination.push_back(keyboard_combinations[idx]);
   }
 };
 
@@ -107,10 +108,15 @@ update_minigame_bamboo_system(entt::registry& r, const float dt)
     last_processed_tick = finputs.fixed_tick;
     // capture all inputs.. live!
     for (const auto& i : inputs) {
-      if (i.state == InputState::press && i.type == InputType::keyboard && fixed_input_keyboard_press(inputs, i.keyboard))
+
+      const bool input_press = i.state == InputState::press;
+      if (!input_press)
+        continue;
+
+      const bool keyboard_input = fixed_input_keyboard_press(inputs, i.keyboard);
+      if (keyboard_input && i.keyboard != keyboard_submit_key.keyboard) // exclude submit key
         buffer.push_back(i);
-      if (i.state == InputState::press && i.type == InputType::controller_button &&
-          fixed_input_controller_button_press(inputs, i.controller_button))
+      else if (fixed_input_controller_button_press(inputs, i.controller_button))
         buffer.push_back(i);
 
       // trigger down?
@@ -140,7 +146,7 @@ update_minigame_bamboo_system(entt::registry& r, const float dt)
       if (!same_type)
         return false;
 
-      const bool same_button = buffer_entry.controller_button == combination_entry.controller_button;
+      const bool same_button = buffer_entry.keyboard == combination_entry.keyboard;
       if (!same_button)
         return false;
     }
@@ -179,8 +185,9 @@ update_minigame_bamboo_system(entt::registry& r, const float dt)
   for (int i = 0; const auto& key : combination) {
     if (i > 0)
       ImGui::SameLine();
-    const auto* key_name = SDL_GameControllerGetStringForButton(key.controller_button);
-    ImGui::Text("%s ", key_name);
+    // const auto* key_name = SDL_GameControllerGetStringForButton(key.controller_button);
+    // ImGui::Text("%s ", key_name);
+    ImGui::Text("%s ", SDL_GetScancodeName(key.keyboard));
     i++;
   }
   ImGui::SetScrollHereY();

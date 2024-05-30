@@ -12,6 +12,7 @@
 #include "modules/actor_weapon_shotgun/components.hpp"
 #include "modules/combat_damage/components.hpp"
 #include "modules/combat_wants_to_shoot/components.hpp"
+#include "modules/gen_dungeons/components.hpp"
 #include "modules/resolve_collisions/helpers.hpp"
 #include "modules/scene/components.hpp"
 #include "modules/scene/helpers.hpp"
@@ -57,12 +58,14 @@ enemy_player_collision(entt::registry& r, const entt::entity& a, const entt::ent
     dead.dead.emplace(b_group);
     r.emplace_or_replace<WaitForInitComponent>(b_group); // set it as not init again
 
-    // save the overworld
-    // todo: add timestamp to savefile?
+    // save the overworld. TODO: add timestamp to savefile?
     save(r, "save-overworld.json");
 
     // going to "dungeon" scene
     move_to_scene_start(r, Scene::dungeon_designer);
+
+    // generate a dungeon
+    r.emplace<RequestGenerateDungeonComponent>(r.create());
   }
 }
 
@@ -86,22 +89,19 @@ update_resolve_collisions_system(entt::registry& r)
     const auto* b_atk = r.try_get<AttackComponent>(b);
     const auto* b_def = r.try_get<HealthComponent>(b);
     const auto* b_team = r.try_get<TeamComponent>(b);
+    const bool same_team = (a_team && b_team) && (a_team->team == b_team->team);
 
     // Dealing Damage
     //
     // deal damage to b
-    if (a_atk && b_def && a_team && b_team) {
-      if (a_team->team == b_team->team)
-        continue; // no team damage
+    if (a_atk && b_def && !same_team) {
       dead.dead.emplace(a);
       const entt::entity from = a;
       const entt::entity to = b;
       r.emplace<DealDamageRequest>(r.create(), from, to);
     }
     // deal damage to a
-    if (b_atk && a_def && a_team && b_team) {
-      if (a_team->team == b_team->team)
-        continue; // no team damage
+    if (b_atk && a_def && !same_team) {
       dead.dead.emplace(b);
       const entt::entity from = b;
       const entt::entity to = a;

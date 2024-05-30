@@ -51,8 +51,8 @@ update_weapon_shotgun_system(entt::registry& r, const uint64_t milliseconds_dt)
                             HasParentComponent,
                             AttackCooldownComponent,
                             AABB,
-                            // HasTargetPositionComponent,
                             TransformComponent,
+                            // const HasTargetPositionComponent,
                             VelocityComponent>(entt::exclude<WaitForInitComponent>);
 
   for (const auto& [entity, shotgun, parent, cooldown, gun_aabb, shotgun_transform, gun_velocity] : view.each()) {
@@ -63,7 +63,7 @@ update_weapon_shotgun_system(entt::registry& r, const uint64_t milliseconds_dt)
       continue;
     }
 
-    const auto& [parent_aabb, parent_weapon] = r.get<const AABB, HasWeaponComponent>(p);
+    const auto& [parent_aabb, parent_team] = r.get<const AABB, const TeamComponent>(p);
 
     // Get the position this gun is aiming
     const auto target_position_opt = get_target_position(r, entity, p);
@@ -165,6 +165,7 @@ update_weapon_shotgun_system(entt::registry& r, const uint64_t milliseconds_dt)
         bullet_vel.y = (new_dir.y * bullet_info.bullet_speed);
 
         // Turn the bullet Live!
+        r.emplace_or_replace<TeamComponent>(req, parent_team.team);
         r.emplace_or_replace<AttackComponent>(req, int(bullet_info.bullet_damage));
         r.emplace_or_replace<EntityTimedLifecycle>(req);
       }

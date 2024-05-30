@@ -20,7 +20,6 @@ update_ui_backstab_patrol_system(entt::registry& r)
     return;
 
   // get enemies within stabbin" range.
-  //
   // const auto enemies = get_within_range<EnemyComponent>(r, player_e, 1000 * 1000);
 
   ImGui::Begin("Debug__BackstabPatrolSystem");

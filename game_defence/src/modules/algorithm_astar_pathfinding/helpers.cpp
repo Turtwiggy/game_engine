@@ -1,10 +1,13 @@
 #include "helpers.hpp"
 
 #include "actors.hpp"
+#include "entt/helpers.hpp"
 #include "maths/grid.hpp"
 #include "modules/actors/helpers.hpp"
+#include "modules/algorithm_astar_pathfinding/components.hpp"
 #include "modules/algorithm_astar_pathfinding/priority_queue.hpp"
 #include "modules/combat_flash_on_damage/helpers.hpp"
+#include "modules/grid/components.hpp"
 #include "sprites/helpers.hpp"
 
 #include <map>
@@ -316,6 +319,28 @@ convert_position_to_index(const MapComponent& map, const glm::ivec2& pos)
 {
   const auto gridpos = clamp_worldspace_to_gridspace(map, pos);
   return engine::grid::grid_position_to_index(gridpos, map.xmax);
+};
+
+bool
+has_destination(entt::registry& r, const entt::entity& src_e)
+{
+  if (auto* existing_path = r.try_get<GeneratedPathComponent>(src_e))
+    return existing_path->path.size() > 0;
+  return false;
+};
+
+bool
+at_destination(entt::registry& r, const entt::entity& src_e)
+{
+  const auto& map = get_first_component<MapComponent>(r);
+
+  const auto src = get_position(r, src_e);
+  const auto src_idx = convert_position_to_index(map, src);
+  const auto src_gridpos = engine::grid::index_to_grid_position(src_idx, map.xmax, map.ymax);
+
+  const auto& path = r.get<GeneratedPathComponent>(src_e);
+  const auto last = path.path[path.path.size() - 1];
+  return last == src_gridpos;
 };
 
 } // namespace game2d

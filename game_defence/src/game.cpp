@@ -37,6 +37,8 @@
 #include "modules/system_particles/system.hpp"
 #include "modules/system_pathfinding/system.hpp"
 #include "modules/system_sprint/system.hpp"
+#include "modules/system_turnbased_endturn/system.hpp"
+#include "modules/system_turnbased_enemy/system.hpp"
 #include "modules/ui_audio/system.hpp"
 #include "modules/ui_backstab_patrol/system.hpp"
 #include "modules/ui_collisions/system.hpp"
@@ -311,6 +313,8 @@ game2d::update(engine::SINGLETON_Application& app, entt::registry& r, const floa
       // combat scene
       update_enemy_system(r, dt);
       update_gen_dungeons_system(r);
+      update_turnbased_endturn_system(r);
+      update_turnbased_enemy_system(r);
     }
 
     if (scene.s == Scene::minigame_bamboo) {

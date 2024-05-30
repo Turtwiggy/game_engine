@@ -34,6 +34,7 @@
 #include "modules/screenshake/components.hpp"
 #include "modules/sprite_spritestack/components.hpp"
 #include "modules/system_minigame_bamboo/components.hpp"
+#include "modules/system_turnbased_enemy/components.hpp"
 #include "modules/ui_arrows_to_spawners/components.hpp"
 #include "modules/ui_combat_turnbased/components.hpp"
 #include "modules/ui_level_up/components.hpp"
@@ -62,6 +63,7 @@ create_combat_entity(entt::registry& r, const CombatEntityDescription& desc)
 
   // create weapon before player to draw on top
   const auto weapon = create_gameplay(r, EntityType::weapon_shotgun);
+  r.emplace_or_replace<TeamComponent>(weapon, desc.team);
 
   // base entity
   const auto e = create_gameplay(r, EntityType::actor_unit_rtslike);
@@ -82,9 +84,9 @@ create_combat_entity(entt::registry& r, const CombatEntityDescription& desc)
     r.emplace<DefaultColour>(e, engine::SRGBColour{ 0.0f, 0.3f, 0.8f, 1.0f });
     r.emplace<HoveredColour>(e, engine::SRGBColour{ 0.0f, 1.0f, 1.0f, 1.0f });
     set_colour(r, e, r.get<DefaultColour>(e).colour);
-  } else {
+  } else if (desc.team == AvailableTeams::enemy) {
     r.emplace<DefaultColour>(e, engine::SRGBColour{ 0.8f, 0.3f, 0.0f, 1.0f });
-    r.emplace<HoveredColour>(e, engine::SRGBColour{ 1.0f, 1.0f, 0.0f, 1.0f });
+    r.emplace<HoveredColour>(e, engine::SRGBColour{ 1.0f, 0.0f, 0.0f, 1.0f });
     set_colour(r, e, r.get<DefaultColour>(e).colour);
     r.emplace_or_replace<EnemyComponent>(e);
   }
@@ -131,11 +133,11 @@ move_to_scene_start(entt::registry& r, const Scene s, const bool load_saved)
   destroy_first_and_create<SINGLE_UILevelUpComponent>(r);
   destroy_first_and_create<SINGLE_TurnBasedCombatInfo>(r);
   destroy_first_and_create<SINGLE_DebugPathLines>(r);
+  destroy_first_and_create<SINGLE_CombatState>(r);
   destroy_first<MapComponent>(r);
   // SINGLE_MainMenuUI: not destroyed. destroyed if scene is menu.
   destroy_first<Effect_GridComponent>(r);
   destroy_first<SINGLE_MinigameBamboo>(r);
-
   // Clear out any old input
   destroy_first_and_create<SINGLETON_InputComponent>(r);
   init_input_system(r);
@@ -396,6 +398,7 @@ move_to_scene_start(entt::registry& r, const Scene s, const bool load_saved)
   }
 
   if (s == Scene::turnbasedcombat) {
+    r.emplace<SINGLE_CombatState>(r.create());
     r.emplace<CameraFreeMove>(camera_e);
 
     int map_width = 1000;
