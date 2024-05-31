@@ -333,10 +333,12 @@ game2d::update(engine::SINGLETON_Application& app, entt::registry& r, const floa
     // update_ui_inverse_kinematics_system(r, mouse_pos);
 
     // Display a parented viewport window at the top of the screen, that shows the fps.
-    {
+
+    const bool show_fps_counter = true;
+    if (show_fps_counter) {
       ImGuiStyle& style = ImGui::GetStyle();
       const std::string example = "FPS: 10000.00";
-      const float size_y = ImGui::CalcTextSize(example.c_str()).y;
+      const float size_y = ImGui::CalcTextSize(example.c_str()).y / 2.0f;
 
       ImGuiWindowFlags flags = 0;
       static bool menubar_open = true;

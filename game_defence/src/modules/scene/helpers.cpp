@@ -20,6 +20,7 @@
 #include "modules/actor_spawner/components.hpp"
 #include "modules/actors/helpers.hpp"
 #include "modules/algorithm_astar_pathfinding/components.hpp"
+#include "modules/algorithm_astar_pathfinding/helpers.hpp"
 #include "modules/algorithm_procedural/cell_automata.hpp"
 #include "modules/algorithm_procedural/poisson.hpp"
 #include "modules/camera/components.hpp"
@@ -30,6 +31,7 @@
 #include "modules/gameover/components.hpp"
 #include "modules/gen_dungeons/components.hpp"
 #include "modules/grid/components.hpp"
+#include "modules/grid/helpers.hpp"
 #include "modules/renderer/components.hpp"
 #include "modules/renderer/helpers.hpp"
 #include "modules/screenshake/components.hpp"
@@ -78,6 +80,7 @@ create_combat_entity(entt::registry& r, const CombatEntityDescription& desc)
   auto& weapon_parent = r.get<HasParentComponent>(weapon);
   weapon_parent.parent = e;
   set_position(r, weapon, r.get<AABB>(e).center);
+  move_entity_on_map(r, e, pos);
 
   // link player&weapon
   HasWeaponComponent has_weapon;
@@ -96,6 +99,7 @@ create_combat_entity(entt::registry& r, const CombatEntityDescription& desc)
   }
 
   set_sprite(r, e, "PERSON_25_2");
+
   return e;
 }
 
@@ -405,8 +409,8 @@ move_to_scene_start(entt::registry& r, const Scene s, const bool load_saved)
     r.emplace<SINGLE_CombatState>(r.create());
     r.emplace<CameraFreeMove>(camera_e);
 
-    int map_width = 1000;
-    int map_height = 1000;
+    int map_width = 600;
+    int map_height = 600;
     MapComponent map_c;
     map_c.tilesize = 50;
     map_c.xmax = map_width / map_c.tilesize;
@@ -415,8 +419,17 @@ move_to_scene_start(entt::registry& r, const Scene s, const bool load_saved)
     r.emplace<MapComponent>(r.create(), map_c);
     r.emplace<Effect_GridComponent>(r.create(), map_c.tilesize);
 
+    int players = 5;
+    int enemies = 5;
+
+    const auto& data_e = get_first<SINGLE_DuckgameToDungeon>(r);
+    if (data_e != entt::null) { // you arrived from a scene
+      const auto& data = get_first_component<SINGLE_DuckgameToDungeon>(r);
+      enemies = data.patrol_that_you_hit.strength;
+    }
+
     // create player team
-    for (int i = 0; i < 5; i++) {
+    for (int i = 0; i < players; i++) {
       const glm::ivec2 offset = { map_c.tilesize / 2, map_c.tilesize / 2 };
       const auto pos = glm::ivec2{ map_c.tilesize * 2, (i + 1) * (map_c.tilesize * 2) } + offset;
 
@@ -426,19 +439,34 @@ move_to_scene_start(entt::registry& r, const Scene s, const bool load_saved)
       const auto e = create_combat_entity(r, desc);
     }
 
+    // place "root" enemy at "top right" of grid
+    const auto& map = get_first_component<MapComponent>(r);
+    const glm::ivec2 offset = { map_c.tilesize / 2, map_c.tilesize / 2 };
+    const glm::ivec2 root_gridpos = { map.xmax - 1, 0 };
+    const auto pos = glm::ivec2{ engine::grid::grid_space_to_world_space(root_gridpos, map.tilesize) } + offset;
+    CombatEntityDescription desc;
+    desc.position = pos;
+    desc.team = AvailableTeams::enemy;
+    enemies--;
+    auto last_spawned_e = create_combat_entity(r, desc);
+
     // create enemy team
-    for (int i = 0; i < 5; i++) {
+    for (int i = 0; i < enemies; i++) {
       // GAMEDESIGN TODO:
       // set out of range, so that player is free-roaming, then
       // when they get in range, the "turn-based combat starts"
 
-      const glm::ivec2 offset = { map_c.tilesize / 2, map_c.tilesize / 2 };
-      const auto pos = glm::ivec2{ map_c.tilesize * 10, (i + 1) * (map_c.tilesize * 2) } + offset;
+      auto& map = get_first_component<MapComponent>(r);
+      const auto& grid = map_to_grid(r);
+
+      const int idx_next = get_lowest_cost_neighbour(r, map, grid, last_spawned_e);
+      auto pos = engine::grid::index_to_world_position(idx_next, map.xmax, map.ymax, map.tilesize);
+      pos += glm::ivec2{ map_c.tilesize / 2, map_c.tilesize / 2 }; // center
 
       CombatEntityDescription desc;
       desc.position = pos;
       desc.team = AvailableTeams::enemy;
-      const auto e = create_combat_entity(r, desc);
+      last_spawned_e = create_combat_entity(r, desc);
     }
 
     // Create 4 edges to the map

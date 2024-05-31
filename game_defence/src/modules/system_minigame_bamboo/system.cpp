@@ -175,6 +175,7 @@ update_minigame_bamboo_system(entt::registry& r, const float dt)
   ImGui::SetNextWindowSizeConstraints(ImVec2(640, 640 * (9 / 16.0f)), ImVec2(640, 640 * (9 / 16.0f)));
 
   ImGui::Begin("BambooMinigame");
+  ImGui::Text("Input the correct combination. Press ENTER to submit your input.");
 
   const float horizontal_offset = 20;
   const auto label = "Combination:"s;

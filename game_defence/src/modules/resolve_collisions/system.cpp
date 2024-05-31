@@ -62,10 +62,7 @@ enemy_player_collision(entt::registry& r, const entt::entity& a, const entt::ent
     save(r, "save-overworld.json");
 
     // going to "dungeon" scene
-    move_to_scene_start(r, Scene::dungeon_designer);
-
-    // generate a dungeon
-    r.emplace<RequestGenerateDungeonComponent>(r.create());
+    move_to_scene_start(r, Scene::turnbasedcombat);
   }
 }
 

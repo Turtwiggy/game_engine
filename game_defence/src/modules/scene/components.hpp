@@ -8,7 +8,6 @@ enum class Scene
   duckgame_overworld,
   dungeon_designer,
   turnbasedcombat,
-
   minigame_bamboo,
 
   // old scenes, possibly remove

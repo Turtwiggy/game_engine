@@ -60,24 +60,23 @@ update_turnbased_enemy_system(entt::registry& r)
     ImGui::Text("has_moved %i", has_moved);
     ImGui::Text("has_shot: %i", has_shot);
 
-    // TEMP: should be moved
-    const auto players = get_players_in_range(r, e);
-
     if (ImGui::Button("Do Move"))
       turn_state.do_move = true;
     if (ImGui::Button("Do Shoot"))
       turn_state.do_shoot = true;
 
     if (turn_state.do_move && !has_moved) {
+      turn_state.has_moved = true;
+      const auto players = get_players_in_range(r, e);
       if (players.size() > 0) {
-        turn_state.has_moved = true;
         update_path_to_tile_next_to_player(r, e, players[0].first);
       }
     }
     if (turn_state.do_shoot && has_moved && !has_shot) {
       if (has_destination(r, e) && at_destination(r, e)) { // wait to arrive...
+        turn_state.has_shot = true;                        // arrived! shoot if possible!
+        const auto players = get_players_in_range(r, e);
         if (players.size() > 0) {
-          turn_state.has_shot = true; // arrived! shoot if possible!
           r.emplace_or_replace<StaticTargetComponent>(e, get_position(r, players[0].first));
           r.emplace<WantsToShoot>(e);
         }

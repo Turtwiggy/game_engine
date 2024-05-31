@@ -25,7 +25,7 @@ update_animator_system(entt::registry& r, const float& dt)
   const auto& anims = get_first_component<SINGLE_Animations>(r);
   auto& dead = get_first_component<SINGLETON_EntityBinComponent>(r);
 
-  static bool debug_animator = true;
+  static bool debug_animator = false;
   ImGui::Begin("Debug__Animator", &debug_animator);
 
   const auto& view = r.view<SpriteComponent, SpriteAnimationComponent>();

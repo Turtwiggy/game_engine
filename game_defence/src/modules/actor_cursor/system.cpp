@@ -32,9 +32,9 @@ update_cursor_system(entt::registry& r, const glm::ivec2& mouse_pos)
   const bool held = get_mouse_lmb_held();
   const bool release = get_mouse_lmb_release();
 
-  static glm::ivec2 click_location = { 0, 0 };
+  auto& cursor_c = get_first_component<CursorComponent>(r);
   if (click)
-    click_location = mouse_pos;
+    cursor_c.click_location = mouse_pos;
 
   const auto& view = r.view<TransformComponent, AABB, CursorComponent>(entt::exclude<WaitForInitComponent>);
   for (const auto& [entity, transform, aabb, cursor] : view.each()) {
@@ -51,9 +51,9 @@ update_cursor_system(entt::registry& r, const glm::ivec2& mouse_pos)
     glm::ivec2 pos = mouse_pos;
 
     // expand cursor when cursor is held
-    if (held) {
-      pos = (click_location + mouse_pos) / 2;
-      size = glm::abs(mouse_pos - click_location);
+    if (cursor_c.click_location.has_value() && held) {
+      pos = (cursor_c.click_location.value() + mouse_pos) / 2;
+      size = glm::abs(mouse_pos - cursor_c.click_location.value());
     }
 
     set_position(r, entity, pos);

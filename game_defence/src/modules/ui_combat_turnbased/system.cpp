@@ -83,11 +83,6 @@ update_ui_combat_turnbased_system(entt::registry& r, const glm::ivec2& input_mou
     return;
   auto& map = get_first_component<MapComponent>(r);
 
-  const auto& data_e = get_first<SINGLE_DuckgameToDungeon>(r);
-  if (data_e != entt::null) {
-    // you arrived from a scene
-  }
-
   const auto& input = get_first_component<SINGLETON_InputComponent>(r);
 
   static int action = 1;

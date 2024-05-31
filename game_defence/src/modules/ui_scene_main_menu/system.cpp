@@ -10,6 +10,7 @@
 #include "io/settings.hpp"
 #include "modules/actor_player/components.hpp"
 #include "modules/animation/components.hpp"
+#include "modules/gen_dungeons/components.hpp"
 #include "modules/renderer/components.hpp"
 #include "modules/renderer/helpers.hpp"
 #include "modules/scene/components.hpp"
@@ -112,7 +113,13 @@ update_ui_scene_main_menu(engine::SINGLETON_Application& app, entt::registry& r)
       editor.mode = LevelEditorMode::play;
       move_to_scene_start(r, Scene::turnbasedcombat);
     }
-    if (selectable_button("minigame bamboo", selected, index++)) {
+    if (selectable_button("(debug) dungeon", selected, index++)) {
+      auto& editor = get_first_component<SINGLETON_LevelEditor>(r);
+      editor.mode = LevelEditorMode::play;
+      move_to_scene_start(r, Scene::dungeon_designer);
+      r.emplace<RequestGenerateDungeonComponent>(r.create());
+    }
+    if (selectable_button("minigame: bamboo", selected, index++)) {
       auto& editor = get_first_component<SINGLETON_LevelEditor>(r);
       editor.mode = LevelEditorMode::play;
       move_to_scene_start(r, Scene::minigame_bamboo);

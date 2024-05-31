@@ -27,7 +27,8 @@ update_sprite_spritestack_system(entt::registry& r, const float dt)
   static int sprite_scale_y = 16;
   static int parallax_offset_amount = 6;
 
-  ImGui::Begin("DebugSpriteStack");
+  static bool debug_spritestack = false;
+  ImGui::Begin("DebugSpriteStack", &debug_spritestack);
   imgui_draw_float("scale", scale_up_by);
   imgui_draw_int("sprite_height", sprite_height);
   imgui_draw_int("sprite_scale_x", sprite_scale_x);
