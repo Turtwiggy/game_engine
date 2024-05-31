@@ -26,19 +26,19 @@ namespace game2d {
 void
 update_gen_dungeons_system(entt::registry& r)
 {
-  ImGui::Begin("Debug__Tunnels");
-  for (const auto& [e, t_c] : r.view<Tunnel>().each()) {
-    ImGui::Separator();
+  // ImGui::Begin("Debug__Tunnels");
+  // for (const auto& [e, t_c] : r.view<Tunnel>().each()) {
+  //   ImGui::Separator();
 
-    ImGui::Text("TunnelLine0");
-    for (const auto& t : t_c.line_0)
-      ImGui::Text("%i %i", t.first, t.second);
+  //   ImGui::Text("TunnelLine0");
+  //   for (const auto& t : t_c.line_0)
+  //     ImGui::Text("%i %i", t.first, t.second);
 
-    ImGui::Text("TunnelLine1");
-    for (const auto& t : t_c.line_1)
-      ImGui::Text("%i %i", t.first, t.second);
-  }
-  ImGui::End();
+  //   ImGui::Text("TunnelLine1");
+  //   for (const auto& t : t_c.line_1)
+  //     ImGui::Text("%i %i", t.first, t.second);
+  // }
+  // ImGui::End();
 
   // HACK: force regenerate dungeon
   // auto& input = get_first_component<SINGLETON_InputComponent>(r);

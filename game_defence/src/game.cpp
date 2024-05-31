@@ -271,7 +271,7 @@ game2d::update(engine::SINGLETON_Application& app, entt::registry& r, const floa
     update_screenshake_system(r, app.ms_since_launch / 1000.0f, dt);
     update_wiggle_up_and_down_system(r, dt);
     update_ux_hoverable_change_colour_system(r);
-    update_sprite_spritestack_system(r, dt);
+    // update_sprite_spritestack_system(r, dt);
 
     const auto& state = get_first_component<SINGLETON_GameStateComponent>(r);
     auto& gameover = get_first_component<SINGLETON_GameOver>(r);
@@ -362,7 +362,7 @@ game2d::update(engine::SINGLETON_Application& app, entt::registry& r, const floa
     // Main menu scene can transition to Game scene
     if (scene.s == Scene::menu) {
       update_ui_scene_main_menu(app, r);
-      update_ui_rpg_character_system(r);
+      // update_ui_rpg_character_system(r);
     }
     // if (scene.s == Scene::game) {
     //   update_ui_inventory(r);

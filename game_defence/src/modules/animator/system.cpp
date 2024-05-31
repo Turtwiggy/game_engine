@@ -26,7 +26,7 @@ update_animator_system(entt::registry& r, const float& dt)
   auto& dead = get_first_component<SINGLETON_EntityBinComponent>(r);
 
   static bool debug_animator = false;
-  ImGui::Begin("Debug__Animator", &debug_animator);
+  // ImGui::Begin("Debug__Animator", &debug_animator);
 
   const auto& view = r.view<SpriteComponent, SpriteAnimationComponent>();
   for (const auto& [e, sprite, animation] : view.each()) {
@@ -51,8 +51,8 @@ update_animator_system(entt::registry& r, const float& dt)
 
     // loop the timer
     animation.timer = fmod(animation.timer, animation.duration);
-    ImGui::Text("Timer: %f", animation.timer);
-    ImGui::Text("Duration: %f", animation.duration);
+    // ImGui::Text("Timer: %f", animation.timer);
+    // ImGui::Text("Duration: %f", animation.duration);
 
     // get the index of the frame to play
     const int i0 = get_index(animation.timer, animation.duration, anim.animation_frames.size());
@@ -62,7 +62,7 @@ update_animator_system(entt::registry& r, const float& dt)
     sprite.tex_pos = frame;
   }
 
-  ImGui::End();
+  // ImGui::End();
 }
 
 } // namespace game2d
