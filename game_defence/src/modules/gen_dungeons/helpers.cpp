@@ -213,10 +213,10 @@ instantiate_tunnels(entt::registry& r, const DungeonGenerationResults& results)
       const glm::ivec2 worldspace_center = { (tl.x + tr.x) / 2.0f, (tr.y + br.y) / 2.0f };
 
       const int lw = 4;
-      const auto w0 = create_wall(r, { worldspace_center.x, tl.y }, { w, lw }, tunnel_to_create); // tl, tr
-      const auto w1 = create_wall(r, { tr.x, worldspace_center.y }, { lw, h }, tunnel_to_create); // tr, br
-      const auto w2 = create_wall(r, { worldspace_center.x, br.y }, { w, lw }, tunnel_to_create); // br, bl
-      const auto w3 = create_wall(r, { bl.x, worldspace_center.y }, { lw, h }, tunnel_to_create); // bl, tl
+      // const auto w0 = create_wall(r, { worldspace_center.x, tl.y }, { w, lw }, tunnel_to_create); // tl, tr
+      // const auto w1 = create_wall(r, { tr.x, worldspace_center.y }, { lw, h }, tunnel_to_create); // tr, br
+      // const auto w2 = create_wall(r, { worldspace_center.x, br.y }, { w, lw }, tunnel_to_create); // br, bl
+      // const auto w3 = create_wall(r, { bl.x, worldspace_center.y }, { lw, h }, tunnel_to_create); // bl, tl
 
       set_position(r, tunnel_to_create, worldspace_center);
       set_size(r, tunnel_to_create, worldspace_size);
@@ -296,15 +296,14 @@ instantiate_walls(entt::registry& r, const DungeonGenerationResults& results)
     const glm::ivec2 worldspace_center = { (tl.x + tr.x) / 2.0f, (tr.y + br.y) / 2.0f };
 
     const int lw = 4;
-    const auto w0 = create_wall(r, { worldspace_center.x, tl.y }, { w, lw }, room_to_create); // tl, tr
-    const auto w1 = create_wall(r, { tr.x, worldspace_center.y }, { lw, h }, room_to_create); // tr, br
-    const auto w2 = create_wall(r, { worldspace_center.x, br.y }, { w, lw }, room_to_create); // br, bl
-    const auto w3 = create_wall(r, { bl.x, worldspace_center.y }, { lw, h }, room_to_create); // bl, tl
-
-    r.replace<Wall>(w0, Wall{ tl, tr, room_to_create });
-    r.replace<Wall>(w1, Wall{ tr, br, room_to_create });
-    r.replace<Wall>(w2, Wall{ br, bl, room_to_create });
-    r.replace<Wall>(w3, Wall{ bl, tl, room_to_create });
+    // const auto w0 = create_wall(r, { worldspace_center.x, tl.y }, { w, lw }, room_to_create); // tl, tr
+    // const auto w1 = create_wall(r, { tr.x, worldspace_center.y }, { lw, h }, room_to_create); // tr, br
+    // const auto w2 = create_wall(r, { worldspace_center.x, br.y }, { w, lw }, room_to_create); // br, bl
+    // const auto w3 = create_wall(r, { bl.x, worldspace_center.y }, { lw, h }, room_to_create); // bl, tl
+    // r.replace<Wall>(w0, Wall{ tl, tr, room_to_create });
+    // r.replace<Wall>(w1, Wall{ tr, br, room_to_create });
+    // r.replace<Wall>(w2, Wall{ br, bl, room_to_create });
+    // r.replace<Wall>(w3, Wall{ bl, tl, room_to_create });
 
     set_position(r, room_to_create, worldspace_center);
     set_size(r, room_to_create, worldspace_size);

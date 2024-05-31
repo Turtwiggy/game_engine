@@ -65,7 +65,6 @@ update_ui_rpg_character_system(entt::registry& r)
   ImGui::End();
 
   ImGui::Begin("Fights");
-
   ImGui::Text("Available Monsters");
 
   if (first_time) {

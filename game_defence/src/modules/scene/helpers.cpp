@@ -393,8 +393,25 @@ move_to_scene_start(entt::registry& r, const Scene s, const bool load_saved)
   }
 
   if (s == Scene::dungeon_designer) {
+    r.emplace<SINGLE_CombatState>(r.create());
     r.emplace<CameraFreeMove>(camera_e);
-    r.emplace<Effect_GridComponent>(r.create()); // create grid effect
+    r.emplace<Effect_GridComponent>(r.create());
+
+    // create new map & dungeon constraints
+    const int map_width = 1000;
+    const int map_height = 1000;
+    MapComponent map_c;
+    map_c.tilesize = 50;
+    map_c.xmax = map_width / map_c.tilesize;
+    map_c.ymax = map_height / map_c.tilesize;
+    map_c.map.resize(map_c.xmax * map_c.ymax);
+    r.emplace<MapComponent>(r.create(), map_c);
+    auto& map = get_first_component<MapComponent>(r);
+
+    // Create 4 edges to the map
+    bool create_edges = true;
+    if (create_edges)
+      add_boundary_walls(r, map_width, map_height, map_c.tilesize);
 
     // Debug object
     auto& info = get_first_component<SINGLE_TurnBasedCombatInfo>(r);
@@ -403,6 +420,12 @@ move_to_scene_start(entt::registry& r, const Scene s, const bool load_saved)
 
     // request to generate a dungeon
     // r.emplace<RequestGenerateDungeonComponent>(r.create());
+
+    // HACK: pretend we hit a spaceship
+    SINGLE_DuckgameToDungeon data;
+    data.backstabbed = true;
+    data.patrol_that_you_hit.strength = 10;
+    destroy_first_and_create<SINGLE_DuckgameToDungeon>(r, data);
   }
 
   if (s == Scene::turnbasedcombat) {

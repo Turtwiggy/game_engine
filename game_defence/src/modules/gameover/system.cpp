@@ -6,6 +6,7 @@
 #include "lifecycle/components.hpp"
 #include "modules/combat_damage/components.hpp"
 #include "modules/gameover/components.hpp"
+#include "modules/gen_dungeons/components.hpp"
 #include "modules/scene/components.hpp"
 #include "modules/scene/helpers.hpp"
 #include "modules/ui_gameover/components.hpp"
@@ -23,10 +24,19 @@ update_gameover_system(entt::registry& r)
     auto& gameover = get_first_component<SINGLETON_GameOver>(r);
     const auto& scene = get_first_component<SINGLETON_CurrentScene>(r);
 
-    // When to end this scene?
-    if (scene.s == Scene::turnbasedcombat) {
-      //
-      // sceneover condition: All of one team is daed
+    // Scenes to add gameover condition to
+    const std::vector<Scene> valid_scenes{
+      Scene::turnbasedcombat,
+      Scene::dungeon_designer,
+    };
+    const bool valid_scene = std::find(valid_scenes.begin(), valid_scenes.end(), scene.s) != valid_scenes.end();
+    if (valid_scene) {
+      // Make sure we're not generating a dungeon...
+      // Where players are temporarily 0...
+      if (get_first<RequestGenerateDungeonComponent>(r) != entt::null)
+        return;
+
+      // condition: All of one team is daed
       std::map<AvailableTeams, int> team_count;
       team_count[AvailableTeams::player] = 0; // force team to exist
 

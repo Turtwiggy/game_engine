@@ -1,6 +1,7 @@
 #include "system.hpp"
 
 #include "entt/helpers.hpp"
+#include "entt/serialize.hpp"
 #include "events/helpers/keyboard.hpp"
 #include "game_state.hpp"
 #include "modules/scene/components.hpp"
@@ -93,7 +94,14 @@ game2d::update_ui_pause_menu_system(engine::SINGLETON_Application& app, entt::re
     if (ImGui::Button("Back to Menu"))
       move_to_scene_start(r, Scene::menu);
 
-    if (ImGui::Button("Quit"))
+    auto& scene = get_first_component<SINGLETON_CurrentScene>(r);
+    bool is_saveable_scene = scene.s == Scene::duckgame_overworld;
+    if (is_saveable_scene && ImGui::Button("Save & Back to Menu")) {
+      save(r, "save-overworld.json");
+      move_to_scene_start(r, Scene::menu);
+    }
+
+    if (ImGui::Button("Close Application"))
       app.running = false;
 
     ImGui::End();

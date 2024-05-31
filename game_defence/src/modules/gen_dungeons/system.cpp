@@ -53,29 +53,16 @@ update_gen_dungeons_system(entt::registry& r)
   move_to_scene_start(r, Scene::dungeon_designer); // clear old map
 
   const auto& data_e = get_first<SINGLE_DuckgameToDungeon>(r);
-  if (data_e == entt::null)
+  if (data_e == entt::null) {
+    std::cout << "not generating dungeon. SINGLE_DuckgameToDungeon not set." << std::endl;
     return;
+  }
   const auto& data = r.get<SINGLE_DuckgameToDungeon>(data_e);
   std::cout << "generating dungeon... you hit a patrol! strength: " << data.patrol_that_you_hit.strength << std::endl;
 
   // todo: make strength impact the number of things spawned
   const int strength = data.patrol_that_you_hit.strength;
-
-  // create new map & dungeon constraints
-  const int map_width = 1000;
-  const int map_height = 1000;
-  MapComponent map_c;
-  map_c.tilesize = 50;
-  map_c.xmax = map_width / map_c.tilesize;
-  map_c.ymax = map_height / map_c.tilesize;
-  map_c.map.resize(map_c.xmax * map_c.ymax);
-  r.emplace<MapComponent>(r.create(), map_c);
-  auto& map = get_first_component<MapComponent>(r);
-
-  // // Create 4 edges to the map
-  // bool create_edges = true;
-  // if (create_edges)
-  //   add_boundary_walls(r, map_width, map_height, map_c.tilesize);
+  const auto& map = get_first_component<MapComponent>(r);
 
   static int seed = 0;
   seed++; // Increase seed everytime a map is generated

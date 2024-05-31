@@ -82,7 +82,6 @@ update_ui_combat_turnbased_system(entt::registry& r, const glm::ivec2& input_mou
   if (map_e == entt::null)
     return;
   auto& map = get_first_component<MapComponent>(r);
-
   const auto& input = get_first_component<SINGLETON_InputComponent>(r);
 
   static int action = 1;
@@ -105,6 +104,67 @@ update_ui_combat_turnbased_system(entt::registry& r, const glm::ivec2& input_mou
   const auto gridpos = engine::grid::world_space_to_grid_space(input_mouse_pos, map.tilesize);
   const auto grid_idx = engine::grid::grid_position_to_index(gridpos, map.xmax);
 
+  auto& state = get_first_component<SINGLE_CombatState>(r);
+  if (state.team == AvailableTeams::neutral) {
+
+    // auto& io = ImGui::GetIO();
+    // const auto& size = ImVec2(io.DisplaySize.x * 0.5f, io.DisplaySize.y * 0.5f);
+    // ImGui::SetNextWindowPos(size, ImGuiCond_Always, ImVec2(0.5f, 0.5f));
+    const auto& viewport = ImGui::GetWindowViewport();
+    ImGui::SetNextWindowPos(viewport->GetCenter(), ImGuiCond_Always, ImVec2(0.5, 0.5));
+    ImGui::SetNextWindowSize(ImVec2{ 400, 200 });
+
+    ImGuiWindowFlags flags = 0;
+    flags |= ImGuiWindowFlags_NoFocusOnAppearing;
+    flags |= ImGuiWindowFlags_NoTitleBar;
+    flags |= ImGuiWindowFlags_NoCollapse;
+    flags |= ImGuiWindowFlags_NoResize;
+    flags |= ImGuiDockNodeFlags_NoResize;
+    flags |= ImGuiDockNodeFlags_PassthruCentralNode;
+    // flags |= ImGuiWindowFlags_NoBackground;
+
+    ImGui::PushStyleVar(ImGuiStyleVar_SelectableTextAlign, { 0.5f, 0.5f });
+
+    ImGui::Begin("Begin Combat", NULL, flags);
+    ImGui::Text("- Drag and select a unit");
+    ImGui::Spacing();
+    ImGui::Text("- Press 1 on keyboard to swap to 'move' action.");
+    ImGui::Text("- Your units can move once per turn.");
+    ImGui::Text("- Right click to perform move action to destination.");
+    ImGui::Spacing();
+    ImGui::Text("- Press 2 on keyboard to swap to 'shoot' action.");
+    ImGui::Text("- Your units can shoot once per turn.");
+    ImGui::Text("- Right click to shoot towards mouse cursor.");
+    ImGui::Spacing();
+    ImGui::Text("- Defeat all enemies to win. Good Luck!");
+
+    // Center button horizontally
+    // ImGuiStyle& style = ImGui::GetStyle();
+    std::string label = "Begin Combat"s;
+
+    // calculate reqiured x-spacing
+    // float width = 0.0f;
+    // width += ImGui::CalcTextSize(label.c_str()).x;
+    // width += style.ItemSpacing.x;
+
+    // AlignForWidth()
+    // const float alignment = 0.5f;
+    // const float avail = ImGui::GetContentRegionAvail().x;
+    // float off = (avail - width) * alignment;
+    // if (off > 0.0f)
+    //   ImGui::SetCursorPosX(ImGui::GetCursorPosX() + off);
+
+    // Draw the button(s)
+    const ImVec2 button_size = ImGui::GetContentRegionAvail();
+    if (ImGui::Button(label.c_str(), button_size))
+      state.team = AvailableTeams::player;
+
+    ImGui::End();
+
+    ImGui::PopStyleVar();
+    return; // must click begin!
+  }
+
   ImGui::Begin("UI Combat");
   ImGui::Text("MousePos: %i %i", input_mouse_pos.x, input_mouse_pos.y);
   ImGui::Text("MousePos GridPos: %i %i", gridpos.x, gridpos.y);
@@ -123,10 +183,6 @@ update_ui_combat_turnbased_system(entt::registry& r, const glm::ivec2& input_mou
       move_to_scene_start(r, Scene::duckgame_overworld, true);
   }
 
-  auto& state = get_first_component<SINGLE_CombatState>(r);
-  if (state.team == AvailableTeams::neutral)
-    if (ImGui::Button("Swap to player turn"))
-      state.team = AvailableTeams::player;
   const auto type_name = std::string(magic_enum::enum_name(state.team));
   ImGui::Text("Turn: %s", type_name.c_str());
 

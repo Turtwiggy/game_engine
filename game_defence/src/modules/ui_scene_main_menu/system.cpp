@@ -93,6 +93,7 @@ update_ui_scene_main_menu(engine::SINGLETON_Application& app, entt::registry& r)
   {
     int index = 0;
 
+    // std::filesystem probably wont work on web. figure this out.
     if (std::filesystem::exists("save-overworld.json")) {
       if (selectable_button("Continue", selected, index++)) {
         auto& editor = get_first_component<SINGLETON_LevelEditor>(r);
@@ -124,7 +125,6 @@ update_ui_scene_main_menu(engine::SINGLETON_Application& app, entt::registry& r)
       editor.mode = LevelEditorMode::play;
       move_to_scene_start(r, Scene::minigame_bamboo);
     }
-
     if (selectable_button("Quit", selected, index++))
       app.running = false;
   }
