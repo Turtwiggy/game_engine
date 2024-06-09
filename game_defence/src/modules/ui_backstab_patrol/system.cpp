@@ -6,7 +6,7 @@
 #include "modules/actor_player/components.hpp"
 #include "modules/ui_worldspace_text/components.hpp"
 
-#include "imgui.h"
+// #include "imgui.h"
 
 namespace game2d {
 using namespace std::literals;
@@ -22,7 +22,7 @@ update_ui_backstab_patrol_system(entt::registry& r)
   // get enemies within stabbin" range.
   // const auto enemies = get_within_range<EnemyComponent>(r, player_e, 1000 * 1000);
 
-  ImGui::Begin("Debug__BackstabPatrolSystem");
+  // ImGui::Begin("Debug__BackstabPatrolSystem");
   // ImGui::Text("Backstabbable Enemies in range: %i", enemies.size());
 
   // BUG: updates all worldspace-ui
@@ -34,17 +34,17 @@ update_ui_backstab_patrol_system(entt::registry& r)
   const auto enemies_view = r.view<EnemyComponent, PatrolComponent>();
   for (const auto& [e, e_c, p_c] : enemies_view.each()) {
     const auto eid = static_cast<uint32_t>(e);
-    ImGui::PushID(eid);
+    // ImGui::PushID(eid);
     // ImGui::Text("AABB: %i %i", aabb_c.size.x, aabb_c.size.y);
 
     auto& ui_txt = r.get_or_emplace<WorldspaceTextComponent>(e);
     ui_txt.text = std::to_string(p_c.strength);
     ui_txt.offset = { 5, -12 }; // dont cover sprite
 
-    ImGui::PopID();
+    // ImGui::PopID();
   }
 
-  ImGui::End();
+  // ImGui::End();
 };
 
 } // namespace game2d

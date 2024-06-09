@@ -130,6 +130,9 @@ move_to_scene_start(entt::registry& r, const Scene s, const bool load_saved)
   const auto& actors = r.view<EntityTypeComponent>(entt::exclude<OrthographicCamera>);
   r.destroy(actors.begin(), actors.end());
 
+  const auto& ui = r.view<WorldspaceTextComponent>();
+  r.destroy(ui.begin(), ui.end());
+
   destroy_first_and_create<SINGLETON_CurrentScene>(r);
   destroy_first_and_create<SINGLETON_PhysicsComponent>(r);
   destroy_first_and_create<SINGLETON_EntityBinComponent>(r);

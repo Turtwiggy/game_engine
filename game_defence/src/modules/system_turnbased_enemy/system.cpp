@@ -11,7 +11,7 @@
 #include "modules/combat_wants_to_shoot/components.hpp"
 #include "modules/grid/helpers.hpp"
 
-#include "imgui.h"
+// #include "imgui.h"
 
 namespace game2d {
 
@@ -31,9 +31,9 @@ get_players_in_range(entt::registry& r, const entt::entity& e)
   // sort players by range
   std::sort(players.begin(), players.end(), [](const auto& l, const auto& r) { return l.second < r.second; });
 
-  ImGui::Text("Players in range: %i", players.size());
-  for (const auto& player : players)
-    ImGui::Text("TargetPlayer: %i, range: %i", static_cast<uint32_t>(player.first), player.second);
+  // ImGui::Text("Players in range: %i", players.size());
+  // for (const auto& player : players)
+  //   ImGui::Text("TargetPlayer: %i, range: %i", static_cast<uint32_t>(player.first), player.second);
 
   return players;
 };
@@ -45,25 +45,24 @@ update_turnbased_enemy_system(entt::registry& r)
   if (state.team != AvailableTeams::enemy)
     return; // only process system if enemy turn
 
-  ImGui::Begin("Debug__TurnbasedEnemySystem");
+  // ImGui::Begin("Debug__TurnbasedEnemySystem");
   const bool one_at_a_time = false;
   bool all_enemies_fully_done = true;
 
   for (const auto& [e, e_c] : r.view<EnemyComponent>().each()) {
-    ImGui::PushID(static_cast<uint32_t>(e));
+    // ImGui::PushID(static_cast<uint32_t>(e));
 
     auto& turn_state = r.get_or_emplace<TurnState>(e);
     const bool has_moved = turn_state.has_moved;
     const bool has_shot = turn_state.has_shot;
 
-    ImGui::Separator();
-    ImGui::Text("has_moved %i", has_moved);
-    ImGui::Text("has_shot: %i", has_shot);
-
-    if (ImGui::Button("Do Move"))
-      turn_state.do_move = true;
-    if (ImGui::Button("Do Shoot"))
-      turn_state.do_shoot = true;
+    // ImGui::Separator();
+    // ImGui::Text("has_moved %i", has_moved);
+    // ImGui::Text("has_shot: %i", has_shot);
+    // if (ImGui::Button("Do Move"))
+    //   turn_state.do_move = true;
+    // if (ImGui::Button("Do Shoot"))
+    //   turn_state.do_shoot = true;
 
     if (turn_state.do_move && !has_moved) {
       turn_state.has_moved = true;
@@ -87,12 +86,12 @@ update_turnbased_enemy_system(entt::registry& r)
     all_enemies_fully_done &= has_moved;
     all_enemies_fully_done &= has_shot;
 
-    ImGui::PopID();
+    // ImGui::PopID();
 
     if (one_at_a_time && (!has_moved || !has_shot))
       break;
   }
-  ImGui::End();
+  // ImGui::End();
 
   // end the enemy turn
   if (all_enemies_fully_done)

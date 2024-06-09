@@ -10,7 +10,7 @@ struct PatrolDescription
   int speed_min = 5;
   int speed_max = 50;
   int units_min = 3;
-  int units_max = 100;
+  int units_max = 40;
 
   PatrolDescription() = default;
 };
@@ -18,7 +18,6 @@ struct PatrolDescription
 struct PatrolComponent
 {
   int strength = 1;
-  // bool should_patrol = true; // todo: implement
 };
 inline void
 to_json(nlohmann::json& j, const PatrolComponent& c)

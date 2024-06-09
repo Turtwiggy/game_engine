@@ -15,7 +15,7 @@
         "${workspaceFolder}/thirdparty/optick/src",
         "${workspaceFolder}/thirdparty/emsdk/upstream/emscripten/cache/sysroot/include"
       ],
-      "defines": ["UNICODE", "_UNICODE"],
+      "defines": [ "UNICODE", "_UNICODE" ],
       "windowsSdkVersion": "10.0.19041.0",
       "cStandard": "c17",
       "cppStandard": "c++20",
@@ -61,8 +61,8 @@
         "${workspaceFolder}/thirdparty/magic_enum",
         "${workspaceFolder}/thirdparty/optick/src"
       ],
-      "defines": ["UNICODE", "_UNICODE"],
-      "macFrameworkPath": [],
+      "defines": [ "UNICODE", "_UNICODE" ],
+      "macFrameworkPath": [ ],
       "compilerPath": "/usr/bin/clang",
       "cStandard": "c17",
       "cppStandard": "c++20",

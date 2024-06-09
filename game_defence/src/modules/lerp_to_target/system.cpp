@@ -1,6 +1,7 @@
 #include "system.hpp"
 
 #include "components.hpp"
+#include "glm/glm.hpp"
 #include "lifecycle/components.hpp"
 #include "maths/maths.hpp"
 #include "physics/components.hpp"
@@ -11,7 +12,6 @@ namespace game2d {
 void
 update_set_velocity_to_target_system(entt::registry& r, const float& dt)
 {
-  //
   // If follow parent...
   // Set your target position as your parents target position.
   //
@@ -21,7 +21,6 @@ update_set_velocity_to_target_system(entt::registry& r, const float& dt)
     target.position = p_pos.center;
   }
 
-  //
   // set velocity to target
   //
   const auto& view =
@@ -37,7 +36,6 @@ update_set_velocity_to_target_system(entt::registry& r, const float& dt)
     vel.y = nrm_dir.y * vel.base_speed;
   }
 
-  //
   // This moves TransformComponent
   // That do not have AABB components.
   //
@@ -56,6 +54,13 @@ update_set_velocity_to_target_system(entt::registry& r, const float& dt)
     t.position.x += x;
     t.position.y += y;
   }
+
+  // https://www.youtube.com/watch?v=LSNQuFEDOyQ
+  // const auto exp_decay = [](float a, float b, float decay, float dt) -> float {
+  //   return b + (a - b) * glm::exp(-decay * dt);
+  // };
+  // const float decay = 16;
+  // const float a = exp_decay(a, b, decay, dt);
 };
 
 } // namespace game2d

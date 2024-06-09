@@ -286,9 +286,6 @@ update_ui_scene_main_menu(engine::SINGLETON_Application& app, entt::registry& r)
     offset = unmute_icon_offset;
     auto& audio = get_first_component<SINGLETON_AudioComponent>(r);
     audio.all_mute = false;
-
-    // we're on the main menu... play the main menu audio
-    r.emplace<AudioRequestPlayEvent>(r.create(), "MENU_01");
   }
   if (toggle == 1 && toggle_changed) {
     offset = mute_icon_offset;

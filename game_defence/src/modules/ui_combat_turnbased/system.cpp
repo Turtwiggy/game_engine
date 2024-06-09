@@ -179,8 +179,11 @@ update_ui_combat_turnbased_system(entt::registry& r, const glm::ivec2& input_mou
   for (const auto& [e, team_c] : r.view<TeamComponent>().each())
     team_count[team_c.team] += 1; // count teams
   if (team_count[AvailableTeams::enemy] == 0) {
-    if (ImGui::Button("You won! Back to overworld"))
+    if (ImGui::Button("You won! Back to overworld")) {
       move_to_scene_start(r, Scene::duckgame_overworld, true);
+      ImGui::End();
+      return;
+    }
   }
 
   const auto type_name = std::string(magic_enum::enum_name(state.team));
