@@ -10,9 +10,6 @@ enum class Scene
   turnbasedcombat,
   minigame_bamboo,
 
-  // old scenes, possibly remove
-  test_scene_gun,
-
   count
 };
 

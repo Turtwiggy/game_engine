@@ -449,26 +449,25 @@ game2d::update_render_system(entt::registry& r, const float dt, const glm::vec2&
 // debug user textures
 //
 #ifdef _DEBUG
-  ImVec2 viewport_size;
-  int i = 0;
-  for (const auto& tex : ri.user_textures) {
-    const std::string label = std::string("Debug") + std::to_string(i);
-    ImGui::Begin(label.c_str());
-    viewport_size = ImGui::GetContentRegionAvail();
-    ImGui::Image((ImTextureID)tex.tex_id.id, viewport_size, ImVec2(0, 0), ImVec2(1, 1));
-    ImGui::End();
+  // ImVec2 viewport_size;
+  // int i = 0;
+  // for (const auto& tex : ri.user_textures) {
+  //   const std::string label = std::string("Debug") + std::to_string(i);
+  //   ImGui::Begin(label.c_str());
+  //   viewport_size = ImGui::GetContentRegionAvail();
+  //   ImGui::Image((ImTextureID)tex.tex_id.id, viewport_size, ImVec2(0, 0), ImVec2(1, 1));
+  //   ImGui::End();
+  //   i++;
+  // }
 
-    i++;
-  }
-
-  ImGui::Begin("DebugLighting");
-  viewport_size = ImGui::GetContentRegionAvail();
-  ImGui::Image((ImTextureID)ri.tex_id_lighting, viewport_size, ImVec2(0, 0), ImVec2(1, 1));
-  ImGui::End();
-  ImGui::Begin("DebugScene");
-  viewport_size = ImGui::GetContentRegionAvail();
-  ImGui::Image((ImTextureID)ri.tex_id_linear_main, viewport_size, ImVec2(0, 0), ImVec2(1, 1));
-  ImGui::End();
+  // ImGui::Begin("DebugLighting");
+  // viewport_size = ImGui::GetContentRegionAvail();
+  // ImGui::Image((ImTextureID)ri.tex_id_lighting, viewport_size, ImVec2(0, 0), ImVec2(1, 1));
+  // ImGui::End();
+  // ImGui::Begin("DebugScene");
+  // viewport_size = ImGui::GetContentRegionAvail();
+  // ImGui::Image((ImTextureID)ri.tex_id_linear_main, viewport_size, ImVec2(0, 0), ImVec2(1, 1));
+  // ImGui::End();
 
 #endif
 };

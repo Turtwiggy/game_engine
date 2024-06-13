@@ -25,31 +25,24 @@ update_gameover_system(entt::registry& r)
     const auto& scene = get_first_component<SINGLETON_CurrentScene>(r);
 
     // Scenes to add gameover condition to
-    const std::vector<Scene> valid_scenes{
-      Scene::turnbasedcombat,
-      Scene::dungeon_designer,
-    };
-    const bool valid_scene = std::find(valid_scenes.begin(), valid_scenes.end(), scene.s) != valid_scenes.end();
-    if (valid_scene) {
-      // Make sure we're not generating a dungeon...
-      // Where players are temporarily 0...
-      if (get_first<RequestGenerateDungeonComponent>(r) != entt::null)
-        return;
-
-      // condition: All of one team is daed
-      std::map<AvailableTeams, int> team_count;
-      team_count[AvailableTeams::player] = 0; // force team to exist
-
-      // Count up all teams
-      for (const auto& [e, team_c] : r.view<TeamComponent>().each())
-        team_count[team_c.team] += 1;
-
-      if (team_count[AvailableTeams::player] == 0) {
-        gameover.game_is_over = true;
-        gameover.win_condition = false;
-        gameover.reason = "Your team wiped out!";
-      }
-    }
+    // const std::vector<Scene> valid_scenes{
+    //   Scene::turnbasedcombat,
+    //   Scene::dungeon_designer,
+    // };
+    // const bool valid_scene = std::find(valid_scenes.begin(), valid_scenes.end(), scene.s) != valid_scenes.end();
+    // if (valid_scene) {
+    //   // condition: All of one team is daed
+    //   std::map<AvailableTeams, int> team_count;
+    //   team_count[AvailableTeams::player] = 0; // force team to exist
+    //   // Count up all teams
+    //   for (const auto& [e, team_c] : r.view<TeamComponent>().each())
+    //     team_count[team_c.team] += 1;
+    //   if (team_count[AvailableTeams::player] == 0) {
+    //     gameover.game_is_over = true;
+    //     gameover.win_condition = false;
+    //     gameover.reason = "Your team wiped out!";
+    //   }
+    // }
 
     if (gameover.game_is_over && !gameover.activated_gameover) {
       gameover.activated_gameover = true;

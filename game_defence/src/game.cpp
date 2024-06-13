@@ -312,7 +312,7 @@ game2d::update(engine::SINGLETON_Application& app, entt::registry& r, const floa
 
       // combat scene
       update_enemy_system(r, dt);
-      update_gen_dungeons_system(r);
+      update_gen_dungeons_system(r, mouse_pos);
       update_turnbased_endturn_system(r);
       update_turnbased_enemy_system(r);
     }
@@ -334,7 +334,7 @@ game2d::update(engine::SINGLETON_Application& app, entt::registry& r, const floa
 
     // Display a parented viewport window at the top of the screen, that shows the fps.
 
-    const bool show_fps_counter = true;
+    const bool show_fps_counter = false;
     if (show_fps_counter) {
       ImGuiStyle& style = ImGui::GetStyle();
       const std::string example = "FPS: 10000.00";
@@ -373,7 +373,6 @@ game2d::update(engine::SINGLETON_Application& app, entt::registry& r, const floa
     //   update_ui_xp_bar_system(r);
     // }
     if (scene.s == Scene::dungeon_designer) {
-      // update_ui_spaceship_designer_system(r, mouse_pos, dt);
       update_ui_combat_turnbased_system(r, mouse_pos);
     }
     if (scene.s == Scene::duckgame_overworld) {

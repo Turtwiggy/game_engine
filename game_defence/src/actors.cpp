@@ -31,7 +31,6 @@
 #include "modules/system_sprint/components.hpp"
 #include "modules/system_turnbased_enemy/components.hpp"
 #include "modules/ui_colours/helpers.hpp"
-#include "modules/ui_spaceship_designer/components.hpp"
 #include "modules/ux_hoverable/components.hpp"
 #include "modules/ux_hoverable_change_colour/components.hpp"
 #include "physics/components.hpp"
@@ -231,7 +230,6 @@ create_gameplay(entt::registry& r, const EntityType& type)
       //
 
     case EntityType::actor_spaceship: {
-      r.emplace<SpaceshipComponent>(e);
       // spaceship is a container for other sprites
       r.remove<TransformComponent>(e);
       r.remove<SpriteComponent>(e);

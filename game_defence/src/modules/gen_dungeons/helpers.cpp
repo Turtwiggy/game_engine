@@ -1,9 +1,12 @@
 #include "helpers.hpp"
 
 #include "actors.hpp"
+#include "colour/colour.hpp"
 #include "components.hpp"
 #include "entt/helpers.hpp"
+#include "events/helpers/keyboard.hpp"
 #include "helpers/line.hpp"
+#include "imgui.h"
 #include "maths/grid.hpp"
 #include "maths/maths.hpp"
 #include "modules/actors/helpers.hpp"
@@ -13,7 +16,7 @@
 #include "modules/renderer/components.hpp"
 #include "modules/scene/helpers.hpp"
 #include "modules/ui_combat_turnbased/components.hpp"
-#include "modules/ui_spaceship_designer/components.hpp"
+#include "modules/ui_worldspace_text/components.hpp"
 #include "modules/ux_hoverable/components.hpp"
 #include "physics/helpers.hpp"
 #include "renderer/transform.hpp"
@@ -24,33 +27,9 @@
 
 namespace game2d {
 
-// update walls_or_floors with room
-void
-create_room(const Room& room, std::vector<int>& wall_or_floors, const int xmax)
-{
-  const auto& w = room.aabb.size.x;
-  const auto& h = room.aabb.size.y;
-
-  for (int y = 0; y < h; y++) {
-    for (int x = 0; x < w; x++) {
-
-      // create walls on the outside of the room
-      bool create_as_wall = false;
-      if (x == 0 || x == w - 1)
-        create_as_wall = true;
-      if (y == 0 || y == h - 1)
-        create_as_wall = true;
-
-      const auto grid_pos = glm::ivec2{ room.tl.x + x, room.tl.y + y };
-      const int global_idx = engine::grid::grid_position_to_index(grid_pos, xmax);
-      wall_or_floors[global_idx] = create_as_wall ? 1 : 0; // else floor
-    }
-  }
-};
-
 // returns two lines: one horizontal, one vetical
 Tunnel
-create_tunnel(entt::registry& r, const Room& room, const Room& prev_room, const int xmax, engine::RandomState& rnd)
+generate_tunnel(entt::registry& r, const Room& room, const Room& prev_room, const int xmax, engine::RandomState& rnd)
 {
   const int zero_or_one = int(engine::rand_det_s(rnd.rng, 0, 1));
   const bool horizontal_then_vertical = zero_or_one == 1;
@@ -85,8 +64,6 @@ create_tunnel(entt::registry& r, const Room& room, const Room& prev_room, const 
   return t;
 };
 
-// room generation algorithm
-//
 DungeonGenerationResults
 generate_rooms(entt::registry& r, const DungeonGenerationCriteria& data, engine::RandomState& rnd)
 {
@@ -132,7 +109,24 @@ generate_rooms(entt::registry& r, const DungeonGenerationCriteria& data, engine:
     const auto& h = gen_room_height;
     std::cout << "gen room. size: " << w << ", " << h << " at " << room.tl.x << ", " << room.tl.y << std::endl;
 
-    // room stored in the wall_of_floors bitmap
+    // update_wall_of_floors_bitmap
+    auto create_room = [](const Room& room, std::vector<int>& wall_or_floors, const int xmax) {
+      const auto& w = room.aabb.size.x;
+      const auto& h = room.aabb.size.y;
+      for (int y = 0; y < h; y++) {
+        for (int x = 0; x < w; x++) {
+          // create walls on the outside of the room
+          bool create_as_wall = false;
+          if (x == 0 || x == w - 1)
+            create_as_wall = true;
+          if (y == 0 || y == h - 1)
+            create_as_wall = true;
+          const auto grid_pos = glm::ivec2{ room.tl.x + x, room.tl.y + y };
+          const int global_idx = engine::grid::grid_position_to_index(grid_pos, xmax);
+          wall_or_floors[global_idx] = create_as_wall ? 1 : 0; // else floor
+        }
+      }
+    };
     create_room(room, wall_or_floors, xmax);
     rooms.push_back(room);
 
@@ -141,7 +135,7 @@ generate_rooms(entt::registry& r, const DungeonGenerationCriteria& data, engine:
       continue;
 
     const Room& prev_room = rooms[rooms.size() - 2];
-    const auto tunnel = create_tunnel(r, room, prev_room, xmax, rnd);
+    const auto tunnel = generate_tunnel(r, room, prev_room, xmax, rnd);
 
     // a) x1, y1 to corner_x, corner_y
     for (const auto& [x, y] : tunnel.line_0)
@@ -153,9 +147,6 @@ generate_rooms(entt::registry& r, const DungeonGenerationCriteria& data, engine:
 
     tunnels.push_back(tunnel);
 
-    // if (rooms.size() == 2)
-    //   break; // DEBUG: only X rooms
-
   } // end iterating rooms
 
   DungeonGenerationResults results;
@@ -166,118 +157,104 @@ generate_rooms(entt::registry& r, const DungeonGenerationCriteria& data, engine:
 };
 
 entt::entity
-create_wall(entt::registry& r, const glm::ivec2& pos, const glm::ivec2& size, const entt::entity& parent)
+create_wall(entt::registry& r, const glm::ivec2& pos, const glm::ivec2& size)
 {
   const auto wall_e = create_gameplay(r, EntityType::solid_wall);
   set_position(r, wall_e, pos);
   set_size(r, wall_e, size);
-  r.get<TagComponent>(wall_e).tag = "wall";
-
-  Wall w;
-  w.parent_room = parent;
-  r.emplace<Wall>(wall_e, w);
-
+  r.get<TagComponent>(wall_e).tag = "dungeon-wall";
   return wall_e;
 };
 
-void
-instantiate_tunnels(entt::registry& r, const DungeonGenerationResults& results)
+Line
+convert_tunnel_line(entt::registry& r, const MapComponent& map, const std::pair<int, int>& a, const std::pair<int, int>& b)
 {
-  const auto& map = get_first_component<MapComponent>(r);
+  const int grid_w = glm::abs(b.first - a.first) + 1;
+  const int grid_h = glm::abs(b.second - a.second) + 1;
+  const glm::ivec2 gridspace_tl = { glm::min(a.first, b.first), glm::min(a.second, b.second) };
 
-  for (const auto& tunnel : results.tunnels) {
+  const auto& worldspace_tl = gridspace_tl * map.tilesize;
+  const auto worldspace_size = glm::ivec2{ grid_w, grid_h } * map.tilesize;
+  const int w = worldspace_size.x;
+  const int h = worldspace_size.y;
 
-    const auto create_square = [&r, &map](const std::pair<int, int>& a, const std::pair<int, int>& b) {
-      const auto tunnel_to_create = create_gameplay(r, EntityType::empty_with_transform);
+  const glm::ivec2 tl = glm::ivec2{ worldspace_tl };
+  const glm::ivec2 tr = glm::ivec2{ (worldspace_tl.x + w), (worldspace_tl.y) };
+  const glm::ivec2 bl = glm::ivec2{ (worldspace_tl.x), (worldspace_tl.y + h) };
+  const glm::ivec2 br = glm::ivec2{ (worldspace_tl.x + w), (worldspace_tl.y + h) };
+  const glm::ivec2 worldspace_center = { (tl.x + tr.x) / 2.0f, (tr.y + br.y) / 2.0f };
 
-      const engine::SRGBColour col = { 1.0f, 0.0f, 0.0f, 0.1f };
-      set_colour(r, tunnel_to_create, col);
-      r.emplace<DefaultColour>(tunnel_to_create, col);
+  Line l;
 
-      const int grid_w = glm::abs(b.first - a.first) + 1;
-      const int grid_h = glm::abs(b.second - a.second) + 1;
-      const glm::ivec2 gridspace_tl = { glm::min(a.first, b.first), glm::min(a.second, b.second) };
-
-      const auto& worldspace_tl = gridspace_tl * map.tilesize;
-      const auto worldspace_size = glm::ivec2{ grid_w, grid_h } * map.tilesize;
-      const int w = worldspace_size.x;
-      const int h = worldspace_size.y;
-
-      // const glm::ivec2 offset = { map.tilesize / 2, map.tilesize / 2 };
-      const glm::ivec2 offset = { 0, 0 };
-
-      const glm::ivec2 tl = glm::ivec2{ worldspace_tl } + offset;
-      const glm::ivec2 tr = glm::ivec2{ (worldspace_tl.x + w), (worldspace_tl.y) } + offset;
-      const glm::ivec2 bl = glm::ivec2{ (worldspace_tl.x), (worldspace_tl.y + h) } + offset;
-      const glm::ivec2 br = glm::ivec2{ (worldspace_tl.x + w), (worldspace_tl.y + h) } + offset;
-      const glm::ivec2 worldspace_center = { (tl.x + tr.x) / 2.0f, (tr.y + br.y) / 2.0f };
-
-      const int lw = 4;
-      // const auto w0 = create_wall(r, { worldspace_center.x, tl.y }, { w, lw }, tunnel_to_create); // tl, tr
-      // const auto w1 = create_wall(r, { tr.x, worldspace_center.y }, { lw, h }, tunnel_to_create); // tr, br
-      // const auto w2 = create_wall(r, { worldspace_center.x, br.y }, { w, lw }, tunnel_to_create); // br, bl
-      // const auto w3 = create_wall(r, { bl.x, worldspace_center.y }, { lw, h }, tunnel_to_create); // bl, tl
-
-      set_position(r, tunnel_to_create, worldspace_center);
-      set_size(r, tunnel_to_create, worldspace_size);
-
-      return tunnel_to_create;
-    };
-
-    const auto& square_0 = tunnel.line_0;
-    const auto& square_1 = tunnel.line_1;
-
-    if (square_0.size() >= 1) {               // first can be last
-      const auto square_pFirst = square_0[0]; // could be horizontal or vertical
-      const auto square_pLast = square_0[square_0.size() - 1];
-      create_square(square_pFirst, square_pLast);
-    }
-
-    if (square_1.size() >= 1) {               // first can be last
-      const auto square_pFirst = square_1[0]; // could be horizontal or vertical
-      const auto square_pLast = square_1[square_1.size() - 1];
-      create_square(square_pFirst, square_pLast);
-    }
-
-    r.emplace<Tunnel>(r.create(), tunnel);
+  const bool is_horizontal = grid_w > grid_h;
+  if (is_horizontal) {
+    l.p0 = { tl.x, worldspace_center.y };
+    l.p1 = { tr.x, worldspace_center.y };
+  } else {
+    l.p0 = { worldspace_center.x, tr.y };
+    l.p1 = { worldspace_center.x, br.y };
   }
+
+  make_p1_bigger_point(l);
+  return l;
+};
+
+// one tunnel is two lines
+std::vector<Line>
+convert_tunnel_to_lines(entt::registry& r, const MapComponent& map, const Tunnel& t)
+{
+  std::vector<Line> results;
+
+  // Create a line along the tunnel.
+  const auto& square_0 = t.line_0;
+  const auto& square_1 = t.line_1;
+  // square_0 or square_1 could be horizontal or vertical
+
+  if (square_0.size() >= 1) {
+    const auto square_pFirst = square_0[0];
+    const auto square_pLast = square_0[square_0.size() - 1];
+    auto l = convert_tunnel_line(r, map, square_pFirst, square_pLast);
+    results.push_back(l);
+  }
+
+  if (square_1.size() >= 1) {
+    const auto square_pFirst = square_1[0];
+    const auto square_pLast = square_1[square_1.size() - 1];
+    auto l = convert_tunnel_line(r, map, square_pFirst, square_pLast);
+    results.push_back(l);
+  }
+
+  return results;
+};
+
+Line
+shrink_line_at_each_end(const Line& non_shrunk, const int shrinkage)
+{
+  Line l = non_shrunk;
+  const bool horizontal = is_horizontal(l);
+  if (horizontal) {
+    l.p0.x += shrinkage;
+    l.p1.x -= shrinkage;
+  } else {
+    l.p0.y += shrinkage;
+    l.p1.y -= shrinkage;
+  }
+  return l;
 };
 
 void
-instantiate_walls(entt::registry& r, const DungeonGenerationResults& results)
+instantiate_walls(entt::registry& r, std::vector<Line>& lines, const DungeonGenerationResults& results, const int& i)
 {
   const auto& map = get_first_component<MapComponent>(r);
+  const auto& tunnels = results.tunnels;
+  const float half_tilesize = map.tilesize / 2.0f;
 
-  // for (int i = 0; i < results.wall_or_floors.size(); i++) {
-  //   if (results.wall_or_floors[i] == 1) {
+  std::vector<Line> lines_to_instantiate;
 
-  //     // optimization: dont create a square if surrounded by walls
-  //     // std::vector<std::pair<engine::grid::GridDirection, int>> neighbours;
-  //     // const glm::ivec2 grid_xy = engine::grid::index_to_grid_position(i, map.xmax, map.ymax);
-  //     // engine::grid::get_neighbour_indicies_with_diagonals(grid_xy.x, grid_xy.y, map.xmax, map.ymax, neighbours);
-  //     // bool surrounded_by_walls = true;
-  //     // for (const auto [dir, idx] : neighbours)
-  //     //   surrounded_by_walls &= results.wall_or_floors[idx] == 1;
-  //     // if (surrounded_by_walls)
-  //     //   continue; // dont render
-
-  //     const glm::ivec2 pos = engine::grid::index_to_world_position(i, map.xmax, map.ymax, map.tilesize);
-  //     const glm::ivec2 offset = { map.tilesize / 2, map.tilesize / 2 };
-
-  //     const auto e = create_gameplay(r, EntityType::solid_wall);
-  //     set_position(r, e, pos + offset);
-  //     set_size(r, e, glm::ivec2{ map.tilesize, map.tilesize });
-  //   }
-  // }
-
+  int room_count = 0;
   for (const Room& room : results.rooms) {
-    const auto room_to_create = create_gameplay(r, EntityType::empty_with_transform);
-    // const auto e = create_gameplay(r, EntityType::empty_no_transform);
-
-    // floor
-    const engine::SRGBColour col = { 1.0f, 1.0f, 1.0f, 0.02f };
-    set_colour(r, room_to_create, col);
-    r.emplace<DefaultColour>(room_to_create, col);
+    // if (i == room_count)
+    //   break; // debug room gen algorithm
 
     // create room walls
     const auto& gridspace_tl = room.tl;
@@ -295,19 +272,140 @@ instantiate_walls(entt::registry& r, const DungeonGenerationResults& results)
     const glm::ivec2 br = glm::ivec2{ (worldspace_tl.x + w), (worldspace_tl.y + h) } + offset;
     const glm::ivec2 worldspace_center = { (tl.x + tr.x) / 2.0f, (tr.y + br.y) / 2.0f };
 
-    const int lw = 4;
-    // const auto w0 = create_wall(r, { worldspace_center.x, tl.y }, { w, lw }, room_to_create); // tl, tr
-    // const auto w1 = create_wall(r, { tr.x, worldspace_center.y }, { lw, h }, room_to_create); // tr, br
-    // const auto w2 = create_wall(r, { worldspace_center.x, br.y }, { w, lw }, room_to_create); // br, bl
-    // const auto w3 = create_wall(r, { bl.x, worldspace_center.y }, { lw, h }, room_to_create); // bl, tl
-    // r.replace<Wall>(w0, Wall{ tl, tr, room_to_create });
-    // r.replace<Wall>(w1, Wall{ tr, br, room_to_create });
-    // r.replace<Wall>(w2, Wall{ br, bl, room_to_create });
-    // r.replace<Wall>(w3, Wall{ bl, tl, room_to_create });
+    // Convert room to 4 lines
+    const Line l0{ tl, tr, 0 }; // horizontal
+    const Line l1{ tr, br, 1 }; // vertical
+    const Line l2{ bl, br, 2 }; // horizontal
+    const Line l3{ tl, bl, 3 }; // vertical
 
+    // only add these lines to lines_to_instantiate if there is no collision
+    // const auto coll0 = get_line_collisions(lines_to_instantiate, l0);
+    // const auto coll1 = get_line_collisions(lines_to_instantiate, l1);
+    // const auto coll2 = get_line_collisions(lines_to_instantiate, l2);
+    // const auto coll3 = get_line_collisions(lines_to_instantiate, l3);
+
+    const int num_lines_prior = lines_to_instantiate.size();
+    lines_to_instantiate.push_back(l0);
+    lines_to_instantiate.push_back(l1);
+    lines_to_instantiate.push_back(l2);
+    lines_to_instantiate.push_back(l3);
+
+    // There WILL be a tunnel(s) going out of this room.
+    // std::vector<Tunnel> tunnels_of_interest;
+    // for (const auto& t : tunnels)
+    //   if (t.room == room || t.prev_room == room)
+    //     tunnels_of_interest.push_back(t);
+
+    if (room_count == 3)
+      int k = 1; // debug specific room
+
+    // A tunnel consists of 2 lines.
+    for (const Tunnel& t : tunnels) {
+      const auto two_tunnel_lines = convert_tunnel_to_lines(r, map, t);
+      for (const auto& t_line : two_tunnel_lines) {
+
+        // shrink line so it doesnt collide at ends
+        const Line t_line_shrunk = shrink_line_at_each_end(t_line, 5);
+
+        const auto collisions = get_line_collisions(lines_to_instantiate, t_line_shrunk);
+        if (collisions.size() > 0)
+          int k = 1;
+
+        // Match tunnel collisions to lines_to_instantiate walls.
+        for (const auto& [coll_line, coll_intersection] : collisions) {
+
+          if (coll_line.p0.x == 650 && coll_line.p0.y == 50)
+            int k = 1;
+
+          // remove the line
+          {
+            const auto cond = [&coll_line](const Line& o) { return o.p0 == coll_line.p0 && o.p1 == coll_line.p1; };
+            auto it = std::find_if(lines_to_instantiate.begin(), lines_to_instantiate.end(), cond);
+            if (it != lines_to_instantiate.end())
+              lines_to_instantiate.erase(it);
+          }
+
+          Line line_to_split = coll_line;
+          make_p1_bigger_point(line_to_split);
+
+          // split the line in to 2 lines...
+          Line new_line_a;
+          new_line_a.p0 = line_to_split.p0;
+          new_line_a.p1 = coll_intersection;
+          new_line_a.room_debug_dir = 999;
+          new_line_a.room_debug_idx = room_count;
+
+          Line new_line_b;
+          new_line_b.p0 = coll_intersection;
+          new_line_b.p1 = line_to_split.p1;
+          new_line_b.room_debug_dir = 999;
+          new_line_b.room_debug_idx = room_count;
+
+          if (new_line_a.p0 == new_line_a.p1)
+            std::cout << "Weird collision. Debug this." << std::endl;
+          if (new_line_b.p0 == new_line_b.p1)
+            std::cout << "Weird collision. Debug this." << std::endl;
+          if (new_line_a.p0.x != new_line_a.p1.x && new_line_a.p0.y != new_line_a.p1.y)
+            std::cout << "Diagonal line. Debug this." << std::endl;
+          if (new_line_b.p0.x != new_line_b.p1.x && new_line_b.p0.y != new_line_b.p1.y)
+            std::cout << "Diagonal line. Debug this." << std::endl;
+
+          // Adjust the new two new lines so that they're half a grid apart
+          if (is_horizontal(line_to_split)) {
+            new_line_a.p1.x -= half_tilesize;
+            new_line_b.p0.x += half_tilesize;
+          } else {
+            new_line_a.p1.y -= half_tilesize;
+            new_line_b.p0.y += half_tilesize;
+          }
+
+          const auto line_is_valid = [](const Line& l) -> bool {
+            // horizontal means y coordinates are the same
+            if (is_horizontal(l))
+              return l.p0.x < l.p1.x;
+            else
+              return l.p0.y < l.p1.y;
+          };
+
+          // After adjustments, check if the line went to 0 or negative length
+          if (line_is_valid(new_line_a))
+            lines_to_instantiate.push_back((new_line_a));
+          if (line_is_valid(new_line_b))
+            lines_to_instantiate.push_back((new_line_b));
+
+          //
+        }
+      }
+    }
+
+    const int num_lines_post = lines_to_instantiate.size();
+    if (num_lines_post - num_lines_prior < 4) {
+      std::cout << "error: did not add enough lines for room to be covered." << std::endl;
+      int k = 1;
+    }
+
+    // debug the room
+    const auto room_to_create = create_gameplay(r, EntityType::empty_with_transform);
     set_position(r, room_to_create, worldspace_center);
     set_size(r, room_to_create, worldspace_size);
     r.emplace<Room>(room_to_create, room);
+
+    // add some interesting colours
+    const auto imcol = (ImVec4)ImColor::HSV(room_count / 7.0f, 0.6f, 0.6f);
+    const engine::SRGBColour col = { imcol.x, imcol.y, imcol.z, 0.1f };
+    set_colour(r, room_to_create, col);
+    r.emplace<DefaultColour>(room_to_create, col);
+
+    // add worldspace text for room to debug it
+    r.emplace<WorldspaceTextComponent>(room_to_create, std::to_string(room_count));
+
+    room_count++;
+  }
+
+  // Instantiate lines
+  for (const auto& l : lines_to_instantiate) {
+    const auto e = create_wall(r, get_center_from_line(l), get_size_from_line(l));
+    set_colour(r, e, { 0.0f, 1.0f, 0.0f, 1.0f });
   }
 };
 
@@ -370,41 +468,135 @@ set_generated_entity_positions(entt::registry& r, const DungeonGenerationResults
   }
 };
 
-// TODO: replace with the number of player's crew
-// TODO: check if occupied
-void
-set_player_positions(entt::registry& r, const DungeonGenerationResults& results, engine::RandomState& rnd)
+std::pair<bool, std::optional<AABB>>
+inside_room(const MapComponent& map, const std::vector<Room>& rooms, const glm::ivec2& gridpos)
 {
-  const auto& map_c = get_first_component<MapComponent>(r);
+  const glm::ivec2 offset = { map.tilesize / 2, map.tilesize / 2 };
 
-  for (const auto& [e, room] : r.view<Room>().each()) {
-    const glm::ivec2 tl = room.tl;
-    const glm::ivec2 br = room.tl + glm::ivec2{ room.aabb.size.x, room.aabb.size.y };
-    const glm::ivec2 worldspace_center = engine::grid::grid_space_to_world_space(room.aabb.center, map_c.tilesize);
+  // create aabb from gridpos
+  // const auto worldpos = gridpos * map.tilesize;
+  // const auto worldpos_center = worldpos + offset;
 
-    // set camera on this room center
-    const auto& camera_e = get_first<OrthographicCamera>(r);
-    auto& camera_t = r.get<TransformComponent>(camera_e);
-    camera_t.position = { worldspace_center.x, worldspace_center.y, 0.0 };
+  AABB aabb;
+  aabb.center = gridpos;
+  aabb.size = { glm::abs(1), glm::abs(1) };
 
-    // place players in first room
+  for (const auto& room : rooms) {
+    // // create aabb for room
+    // AABB room_worldspace_aabb;
+    // room_worldspace_aabb.center = room.aabb.center * map.tilesize;
+    // room_worldspace_aabb.center += offset;
+    // room_worldspace_aabb.size = room.aabb.size * map.tilesize;
 
-    for (int i = 0; i < 1; i++) {
-      const int x = static_cast<int>(engine::rand_det_s(rnd.rng, tl.x + 1, br.x - 1));
-      const int y = static_cast<int>(engine::rand_det_s(rnd.rng, tl.y + 1, br.y - 1));
-      const glm::ivec2 grid_index = { x, y };
-      const glm::ivec2 worldspace = engine::grid::grid_space_to_world_space(grid_index, map_c.tilesize);
-      const glm::ivec2 offset = { map_c.tilesize / 2.0f, map_c.tilesize / 2.0f };
-      const glm::ivec2 pos = worldspace + offset;
+    // Room AABB is in gridspace
+    if (collide(room.aabb, aabb))
+      return { true, room.aabb };
+  }
 
-      CombatEntityDescription desc;
-      desc.position = pos;
-      desc.team = AvailableTeams::player;
-      const auto e = create_combat_entity(r, desc);
+  return { false, std::nullopt };
+};
+
+void
+instantiate_tunnels(entt::registry& r, std::vector<Line>& lines, const DungeonGenerationResults& results)
+{
+  const auto& map = get_first_component<MapComponent>(r);
+
+  // for (const auto& tunnel : results.tunnels) {
+  //   const auto create_square = [&r, &map, &lines](const std::pair<int, int>& a, const std::pair<int, int>& b) {
+  //     // const auto tunnel_to_create = create_gameplay(r, EntityType::empty_with_transform);
+  //     // const engine::SRGBColour col = { 1.0f, 0.0f, 0.0f, 0.1f };
+  //     // set_colour(r, tunnel_to_create, col);
+  //     // r.emplace<DefaultColour>(tunnel_to_create, col);
+
+  //     const int grid_w = glm::abs(b.first - a.first) + 1;
+  //     const int grid_h = glm::abs(b.second - a.second) + 1;
+  //     const glm::ivec2 gridspace_tl = { glm::min(a.first, b.first), glm::min(a.second, b.second) };
+
+  //     const auto& worldspace_tl = gridspace_tl * map.tilesize;
+  //     const auto worldspace_size = glm::ivec2{ grid_w, grid_h } * map.tilesize;
+  //     const int w = worldspace_size.x;
+  //     const int h = worldspace_size.y;
+
+  //     // const glm::ivec2 offset = { map.tilesize / 2, map.tilesize / 2 };
+  //     const glm::ivec2 offset = { 0, 0 };
+
+  //     const glm::ivec2 tl = glm::ivec2{ worldspace_tl } + offset;
+  //     const glm::ivec2 tr = glm::ivec2{ (worldspace_tl.x + w), (worldspace_tl.y) } + offset;
+  //     const glm::ivec2 bl = glm::ivec2{ (worldspace_tl.x), (worldspace_tl.y + h) } + offset;
+  //     const glm::ivec2 br = glm::ivec2{ (worldspace_tl.x + w), (worldspace_tl.y + h) } + offset;
+  //     const glm::ivec2 worldspace_center = { (tl.x + tr.x) / 2.0f, (tr.y + br.y) / 2.0f };
+
+  //     const Line l0{ tl, tr };
+  //     const Line l1{ tr, br };
+  //     const Line l2{ br, bl };
+  //     const Line l3{ bl, tl };
+  //     const auto e0 = create_wall(r, get_center_from_line(l0), get_size_from_line(l0, 1));
+  //     const auto e1 = create_wall(r, get_center_from_line(l1), get_size_from_line(l1, 1));
+  //     const auto e2 = create_wall(r, get_center_from_line(l2), get_size_from_line(l2, 1));
+  //     const auto e3 = create_wall(r, get_center_from_line(l3), get_size_from_line(l3, 1));
+
+  //     set_colour(r, e0, { 1.0f, 0.0, 0.0, 1.0f });
+  //     set_colour(r, e1, { 1.0f, 0.0, 0.0, 1.0f });
+  //     set_colour(r, e2, { 1.0f, 0.0, 0.0, 1.0f });
+  //     set_colour(r, e3, { 1.0f, 0.0, 0.0, 1.0f });
+  //   };
+  //   const auto& square_0 = tunnel.line_0;
+  //   const auto& square_1 = tunnel.line_1;
+  //   if (square_0.size() >= 1) {               // first can be last
+  //     const auto square_pFirst = square_0[0]; // could be horizontal or vertical
+  //     const auto square_pLast = square_0[square_0.size() - 1];
+  //     create_square(square_pFirst, square_pLast);
+  //   }
+  //   if (square_1.size() >= 1) {
+  //     const auto square_pFirst = square_1[0]; // could be horizontal or vertical
+  //     const auto square_pLast = square_1[square_1.size() - 1];
+  //     create_square(square_pFirst, square_pLast);
+  //   }
+  //   r.emplace<Tunnel>(r.create(), tunnel);
+
+  // Debug Tunnel Lines
+  // for (const Tunnel& t : results.tunnels) {
+  //   const auto two_tunnel_lines = convert_tunnel_to_lines(r, map, t);
+  //   for (const auto& t_line : two_tunnel_lines) {
+  //     const auto shrunk_line = shrink_line_at_each_end(t_line, 5);
+  //     const auto e = create_wall(r, get_center_from_line(shrunk_line), get_size_from_line(shrunk_line));
+  //     set_colour(r, e, { 1.0f, 0.0, 0.0, 1.0f });
+  //     r.get<TagComponent>(e).tag = "tunnel-line";
+  //   }
+  // }
+
+  // Fill up gaps in space...
+  for (const Tunnel& tunnel : results.tunnels) {
+    const auto& square_0 = tunnel.line_0;
+    const auto& square_1 = tunnel.line_1;
+
+    for (const std::pair<int, int>& gridpos : square_0) {
+      const auto [coll, coll_aabb] = inside_room(map, results.rooms, { gridpos.first, gridpos.second });
+      // if (coll)
+      //   continue;
+      const glm::ivec2 offset = { map.tilesize / 2, map.tilesize / 2 };
+      const auto worldpos = glm::ivec2{ gridpos.first, gridpos.second } * map.tilesize;
+      const auto worldpos_center = worldpos + offset;
+      const auto e = create_gameplay(r, EntityType::empty_with_transform);
+      set_position(r, e, worldpos_center);
+      set_size(r, e, { 5, 5 });
     }
 
-    break; // only spawn players in first room
+    for (const std::pair<int, int>& gridpos : square_1) {
+      const auto [coll, coll_aabb] = inside_room(map, results.rooms, { gridpos.first, gridpos.second });
+      // if (coll)
+      //   continue;
+      const glm::ivec2 offset = { map.tilesize / 2, map.tilesize / 2 };
+      const auto worldpos = glm::ivec2{ gridpos.first, gridpos.second } * map.tilesize;
+      const auto worldpos_center = worldpos + offset;
+      const auto e = create_gameplay(r, EntityType::empty_with_transform);
+      set_position(r, e, worldpos_center);
+      set_size(r, e, { 5, 5 });
+    }
   }
+
+  for (const Tunnel& t : results.tunnels)
+    r.emplace<Tunnel>(r.create(), t);
 };
 
 } // namespace game2d

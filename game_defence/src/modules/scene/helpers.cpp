@@ -41,7 +41,6 @@
 #include "modules/ui_arrows_to_spawners/components.hpp"
 #include "modules/ui_combat_turnbased/components.hpp"
 #include "modules/ui_level_up/components.hpp"
-#include "modules/ui_rpg_character/components.hpp"
 #include "modules/ui_scene_main_menu/components.hpp"
 #include "modules/ui_selected/components.hpp"
 #include "modules/ui_worldspace_text/components.hpp"
@@ -130,6 +129,9 @@ move_to_scene_start(entt::registry& r, const Scene s, const bool load_saved)
   const auto& actors = r.view<EntityTypeComponent>(entt::exclude<OrthographicCamera>);
   r.destroy(actors.begin(), actors.end());
 
+  const auto& tags = r.view<TagComponent>(entt::exclude<OrthographicCamera>);
+  r.destroy(tags.begin(), tags.end());
+
   const auto& ui = r.view<WorldspaceTextComponent>();
   r.destroy(ui.begin(), ui.end());
 
@@ -209,64 +211,6 @@ move_to_scene_start(entt::registry& r, const Scene s, const bool load_saved)
   //   auto now = std::chrono::system_clock::now();
   //   return std::chrono::system_clock::to_time_t(now);
   // };
-
-  if (s == Scene::test_scene_gun) {
-    int width = 1000;
-    int height = 1000;
-    MapComponent map_c;
-    map_c.tilesize = 50;
-    map_c.xmax = width / map_c.tilesize;
-    map_c.ymax = height / map_c.tilesize;
-    const glm::ivec2 tilesize{ map_c.tilesize, map_c.tilesize };
-    const glm::ivec2 map_offset = { tilesize.x / 2.0f, tilesize.y / 2.0f };
-    r.emplace<MapComponent>(r.create(), map_c);
-
-    CombatEntityDescription desc;
-    desc.position = { 128, 128 };
-    desc.team = AvailableTeams::player;
-    const auto e = create_combat_entity(r, desc);
-
-    const auto player = e;
-    r.emplace<CameraFollow>(player);
-
-    const auto tex_unit = search_for_texture_unit_by_texture_path(ri, "monochrome").value();
-    const auto create_wall_piece = [&r, &tex_unit](const glm::vec2& pos) {
-      const int sprites_for_total_sprite = 10;
-      entt::entity root_entity = entt::null;
-      for (int i = 0; i < sprites_for_total_sprite; i++) {
-        const auto i_as_str = std::to_string(i);
-        entt::entity sprite_e = entt::null;
-        if (i == 0) {
-          sprite_e = create_gameplay(r, EntityType::solid_wall);
-          root_entity = sprite_e;
-          set_position(r, sprite_e, pos);
-        } else
-          sprite_e = create_gameplay(r, EntityType::empty_with_transform);
-        set_sprite_custom(r, sprite_e, "EMPTY", tex_unit.unit);
-        SpritestackComponent spritestack(i);
-        spritestack.spritestack_total = sprites_for_total_sprite;
-        if (i > 0)
-          spritestack.root = root_entity;
-        r.emplace<SpritestackComponent>(sprite_e, spritestack);
-      }
-    };
-
-    // top row
-    for (int i = 0; i < 10; i++)
-      create_wall_piece({ 32 * i, 0 });
-
-    // left row
-    for (int i = 1; i < 10; i++)
-      create_wall_piece({ 0, 32 * i });
-
-    // right row
-    for (int i = 1; i < 10; i++)
-      create_wall_piece({ 32 * 10, 32 * i });
-
-    // bottom row
-    for (int i = 0; i < 10; i++)
-      create_wall_piece({ 32 * i, 32 * 10 });
-  }
 
   if (s == Scene::duckgame_overworld) {
     // Play some audio
@@ -421,13 +365,10 @@ move_to_scene_start(entt::registry& r, const Scene s, const bool load_saved)
     info.action_cursor = create_gameplay(r, EntityType::empty_with_transform);
     set_size(r, info.action_cursor, { 0, 0 }); // start disabled
 
-    // request to generate a dungeon
-    // r.emplace<RequestGenerateDungeonComponent>(r.create());
-
     // HACK: pretend we hit a spaceship
     SINGLE_DuckgameToDungeon data;
     data.backstabbed = true;
-    data.patrol_that_you_hit.strength = 10;
+    data.patrol_that_you_hit.strength = 1;
     destroy_first_and_create<SINGLE_DuckgameToDungeon>(r, data);
   }
 

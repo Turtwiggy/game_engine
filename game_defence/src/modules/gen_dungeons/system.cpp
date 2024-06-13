@@ -1,49 +1,74 @@
 #include "system.hpp"
 
-#include "actors.hpp"
 #include "components.hpp"
 #include "entt/helpers.hpp"
 #include "events/components.hpp"
 #include "events/helpers/keyboard.hpp"
-#include "lifecycle/components.hpp"
+#include "helpers/line.hpp"
 #include "maths/grid.hpp"
 #include "maths/maths.hpp"
+#include "modules/actor_cursor/components.hpp"
+#include "modules/gen_dungeons//helpers.hpp"
 #include "modules/gen_dungeons/components.hpp"
 #include "modules/gen_dungeons/helpers.hpp"
+#include "modules/gen_dungeons/helpers/gen_players.hpp"
 #include "modules/grid/components.hpp"
 #include "modules/scene/helpers.hpp"
 #include "modules/ui_combat_turnbased/components.hpp"
-#include "modules/ui_spaceship_designer/components.hpp"
-#include "renderer/transform.hpp"
 
 #include "imgui.h"
 
 #include <SDL_scancode.h>
 #include <iostream>
+#include <vector>
 
 namespace game2d {
 
 void
-update_gen_dungeons_system(entt::registry& r)
+update_gen_dungeons_system(entt::registry& r, const glm::ivec2& mouse_pos)
 {
-  // ImGui::Begin("Debug__Tunnels");
-  // for (const auto& [e, t_c] : r.view<Tunnel>().each()) {
-  //   ImGui::Separator();
+  const auto& map = get_first_component<MapComponent>(r);
+  auto& input = get_first_component<SINGLETON_InputComponent>(r);
 
-  //   ImGui::Text("TunnelLine0");
-  //   for (const auto& t : t_c.line_0)
-  //     ImGui::Text("%i %i", t.first, t.second);
+  ImGui::Begin("Debug__Tunnels");
+  for (const auto& [e, t_c] : r.view<Tunnel>().each()) {
+    ImGui::Separator();
 
-  //   ImGui::Text("TunnelLine1");
-  //   for (const auto& t : t_c.line_1)
-  //     ImGui::Text("%i %i", t.first, t.second);
-  // }
-  // ImGui::End();
+    ImGui::Text("TunnelLine0");
+    for (const auto& t : t_c.line_0)
+      ImGui::Text("%i %i", t.first, t.second);
+
+    ImGui::Text("TunnelLine1");
+    for (const auto& t : t_c.line_1)
+      ImGui::Text("%i %i", t.first, t.second);
+  }
+  ImGui::End();
+
+  ImGui::Begin("DebugDungeonGen");
+  static int i = 0;
+  if (get_key_down(input, SDL_SCANCODE_O))
+    i--;
+  if (get_key_down(input, SDL_SCANCODE_P))
+    i++;
+  ImGui::Text("i: %i", i);
+
+  std::vector<Room> rooms;
+  for (const auto& [e, room] : r.view<Room>().each()) {
+    // ImGui::Text("Room AABB: %i %i %i %i", room.aabb.center.x, room.aabb.center.x, room.aabb.size.x, room.aabb.size.x);
+    rooms.push_back(room);
+  }
+
+  const auto grid_pos = engine::grid::world_space_to_grid_space(mouse_pos, map.tilesize);
+  ImGui::Text("grid_pos: %i %i", grid_pos.x, grid_pos.y);
+
+  const auto [inside_room, coll_aabb] = inside_room(map, rooms, grid_pos);
+  ImGui::Text("Inside Room: %i", inside_room);
+
+  ImGui::End();
 
   // HACK: force regenerate dungeon
-  // auto& input = get_first_component<SINGLETON_InputComponent>(r);
-  // if (get_key_down(input, SDL_SCANCODE_R))
-  //   r.emplace<RequestGenerateDungeonComponent>(r.create());
+  if (get_key_down(input, SDL_SCANCODE_I))
+    r.emplace<RequestGenerateDungeonComponent>(r.create());
 
   const auto& requests = r.view<RequestGenerateDungeonComponent>();
   if (requests.size() == 0)
@@ -62,22 +87,22 @@ update_gen_dungeons_system(entt::registry& r)
 
   // todo: make strength impact the number of things spawned
   const int strength = data.patrol_that_you_hit.strength;
-  const auto& map = get_first_component<MapComponent>(r);
 
-  static int seed = 0;
-  seed++; // Increase seed everytime a map is generated
-  engine::RandomState rnd(seed);
+  // static int seed = 0;
+  // seed++; // Increase seed everytime a map is generated
+  engine::RandomState rnd(i);
 
   DungeonGenerationCriteria dungeon_parameters;
-  dungeon_parameters.max_rooms = 50;
+  dungeon_parameters.max_rooms = 30;
   dungeon_parameters.room_size_min = glm::max(dungeon_parameters.room_size_min, 0);
   dungeon_parameters.room_size_max = glm::min(dungeon_parameters.room_size_max, map.xmax);
 
   const DungeonGenerationResults result = generate_rooms(r, dungeon_parameters, rnd);
 
-  // todo: get tunnel lines & apply clipping to walls
-  instantiate_tunnels(r, result);
-  instantiate_walls(r, result);
+  // keep a reference to all the lines as walls, so that we dont have any overlaps.
+  std::vector<Line> lines;
+  instantiate_walls(r, lines, result, i);
+  instantiate_tunnels(r, lines, result);
 
   // Steps after initial initialization...
   set_generated_entity_positions(r, result, rnd);

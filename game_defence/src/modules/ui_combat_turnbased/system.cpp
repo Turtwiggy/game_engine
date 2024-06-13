@@ -8,7 +8,6 @@
 #include "events/helpers/keyboard.hpp"
 #include "events/helpers/mouse.hpp"
 #include "maths/grid.hpp"
-#include "modules/actor_enemy/components.hpp"
 #include "modules/actors/helpers.hpp"
 #include "modules/algorithm_astar_pathfinding/components.hpp"
 #include "modules/algorithm_astar_pathfinding/helpers.hpp"
@@ -105,6 +104,7 @@ update_ui_combat_turnbased_system(entt::registry& r, const glm::ivec2& input_mou
   const auto grid_idx = engine::grid::grid_position_to_index(gridpos, map.xmax);
 
   auto& state = get_first_component<SINGLE_CombatState>(r);
+
   if (state.team == AvailableTeams::neutral) {
 
     // auto& io = ImGui::GetIO();
@@ -140,7 +140,6 @@ update_ui_combat_turnbased_system(entt::registry& r, const glm::ivec2& input_mou
 
     // Center button horizontally
     // ImGuiStyle& style = ImGui::GetStyle();
-    std::string label = "Begin Combat"s;
 
     // calculate reqiured x-spacing
     // float width = 0.0f;
@@ -156,8 +155,11 @@ update_ui_combat_turnbased_system(entt::registry& r, const glm::ivec2& input_mou
 
     // Draw the button(s)
     const ImVec2 button_size = ImGui::GetContentRegionAvail();
-    if (ImGui::Button(label.c_str(), button_size))
+    if (ImGui::Button("Begin Combat", button_size))
       state.team = AvailableTeams::player;
+
+    // HACK: hide this menu
+    state.team = AvailableTeams::player;
 
     ImGui::End();
 

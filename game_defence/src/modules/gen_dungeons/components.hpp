@@ -7,19 +7,15 @@
 
 namespace game2d {
 
-// struct map_builder_interface
-// {
-//   virtual void build();
-
-//   // Given the map generation algoritm, generate some points
-//   // that could be valid for the map type for the player to spawn
-//   virtual std::vector<glm::ivec2> generate_starting_positions(int amount);
-// };
-
 struct Room
 {
   glm::ivec2 tl{ 0, 0 };
-  AABB aabb;
+  AABB aabb; // aabb is in tile-space, not world-space.
+};
+inline bool
+operator==(const Room& a, const Room& b)
+{
+  return a.aabb.center == b.aabb.center && a.aabb.size == b.aabb.size;
 };
 
 struct Tunnel
@@ -27,6 +23,7 @@ struct Tunnel
   bool horizontal_then_vertical = false;
   std::vector<std::pair<int, int>> line_0;
   std::vector<std::pair<int, int>> line_1;
+
   Room room;
   Room prev_room;
 };

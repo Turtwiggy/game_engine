@@ -38,74 +38,6 @@ const auto create_aabb = [](const glm::ivec2& tl, const int width, const int hei
   return aabb;
 };
 
-// Function to calculate the intersection point of two lines
-// Returns a tuple with the intersection point (x, y)
-std::optional<glm::ivec2>
-line_intersection(const int x1, // p0
-                  const int y1,
-                  const int x2, // p1
-                  const int y2,
-                  const int x3, // p2
-                  const int y3,
-                  const int x4, // p3
-                  const int y4)
-{
-  // Calculate determinants
-  const int det = (x1 - x2) * (y3 - y4) - (y1 - y2) * (x3 - x4);
-  const int det_x = (x1 * y2 - y1 * x2) * (x3 - x4) - (x1 - x2) * (x3 * y4 - y3 * x4);
-  const int det_y = (x1 * y2 - y1 * x2) * (y3 - y4) - (y1 - y2) * (x3 * y4 - y3 * x4);
-
-  // If determinant is zero, lines are parallel or coincident
-  // If determinant is negative... not intested in future collisions.
-  if (det == 0)
-    return std::nullopt;
-
-  // Calculate intersection point
-  const float intersection_x = det_x / static_cast<float>(det);
-  const float intersection_y = det_y / static_cast<float>(det);
-  const glm::ivec2 intersection = { static_cast<int>(intersection_x), static_cast<int>(intersection_y) };
-
-  ImGui::Separator();
-  ImGui::Text("Potential Intersection! %i %i", intersection.x, intersection.y);
-
-  // check the intersection lies within the line segments.
-  AABB point;
-  point.center = intersection;
-  point.size = { 1, 1 };
-  // ImGui::Text("Point. Center: %i %i. Size: %i %i", point.center.x, point.center.y, point.size.x, point.size.y);
-
-  const int l0 = glm::min(x1, x2);
-  const int r0 = glm::max(x1, x2);
-  const int t0 = glm::min(y1, y2);
-  const int b0 = glm::max(y1, y2);
-  AABB line0 = create_aabb({ l0, t0 }, glm::abs(r0 - l0), glm::abs(b0 - t0));
-  line0.size.x = line0.size.x == 0 ? 1 : line0.size.x;
-  line0.size.y = line0.size.y == 0 ? 1 : line0.size.y;
-  // ImGui::Text("line0. Center: %i %i. Size: %i %i", line0.center.x, line0.center.y, line0.size.x, line0.size.y);
-
-  const int l = glm::min(x3, x4);
-  const int r = glm::max(x3, x4);
-  const int t = glm::min(y3, y4);
-  const int b = glm::max(y3, y4);
-  AABB line1 = create_aabb({ l, t }, glm::abs(r - l), glm::abs(b - t));
-  line1.size.x = line1.size.x == 0 ? 1 : line1.size.x;
-  line1.size.y = line1.size.y == 0 ? 1 : line1.size.y;
-  // ImGui::Text("line1. Center: %i %i. Size: %i %i", line1.center.x, line1.center.y, line1.size.x, line1.size.y);
-
-  const bool coll_a = collide(point, line0);
-  const bool coll_b = collide(point, line1);
-  ImGui::Text("coll_a %i coll_b %i", coll_a, coll_b);
-  if (coll_a && coll_b)
-    return intersection;
-  return std::nullopt;
-}
-
-std::optional<glm::ivec2>
-line_intersection(const glm::ivec2& p0, const glm::ivec2& p1, const glm::ivec2& p2, const glm::ivec2& p3)
-{
-  return line_intersection(p0.x, p0.y, p1.x, p1.y, p2.x, p2.y, p3.x, p3.y);
-};
-
 std::optional<glm::ivec2>
 line_intersection(const Wall& a, const Wall& b)
 {
@@ -537,7 +469,7 @@ update_ui_spaceship_designer_system(entt::registry& r, const glm::ivec2& input_m
         Wall new_line;
         new_line.p0 = i1;
         new_line.p1 = px_closer_to_i1;
-        new_line.parent_room = wall_c.parent_room;
+        // new_line.parent_room = wall_c.parent_room;
         r.emplace<Wall>(new_wall_e, new_line);
 
         clipped_pairs.push_back(std::make_tuple(wall_c.parent_room, i0, i1));
