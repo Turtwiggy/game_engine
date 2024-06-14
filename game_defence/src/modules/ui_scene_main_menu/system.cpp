@@ -15,7 +15,6 @@
 #include "modules/renderer/helpers.hpp"
 #include "modules/scene/components.hpp"
 #include "modules/scene/helpers.hpp"
-#include "modules/ui_level_editor/components.hpp"
 #include "modules/ui_rpg_character/components.hpp"
 #include "modules/ux_hoverable_change_colour/components.hpp"
 #include "physics/components.hpp"
@@ -96,33 +95,24 @@ update_ui_scene_main_menu(engine::SINGLETON_Application& app, entt::registry& r)
     // std::filesystem probably wont work on web. figure this out.
     if (std::filesystem::exists("save-overworld.json")) {
       if (selectable_button("Continue", selected, index++)) {
-        auto& editor = get_first_component<SINGLETON_LevelEditor>(r);
-        editor.mode = LevelEditorMode::play;
-        move_to_scene_start(r, Scene::duckgame_overworld, true);
+        move_to_scene_start(r, Scene::overworld, true);
       }
     }
 
     if (selectable_button("New Game", selected, index++)) {
-      auto& editor = get_first_component<SINGLETON_LevelEditor>(r);
-      editor.mode = LevelEditorMode::play;
-      move_to_scene_start(r, Scene::duckgame_overworld, false);
+      move_to_scene_start(r, Scene::overworld, false);
       //   move_to_scene_start(r, Scene::game);
       //   move_to_scene_start(r, Scene::test_scene_gun);
     }
     if (selectable_button("(debug) combat", selected, index++)) {
-      auto& editor = get_first_component<SINGLETON_LevelEditor>(r);
-      editor.mode = LevelEditorMode::play;
       move_to_scene_start(r, Scene::turnbasedcombat);
     }
     if (selectable_button("(debug) dungeon", selected, index++)) {
-      auto& editor = get_first_component<SINGLETON_LevelEditor>(r);
-      editor.mode = LevelEditorMode::play;
       move_to_scene_start(r, Scene::dungeon_designer);
-      r.emplace<RequestGenerateDungeonComponent>(r.create());
+      const auto e = create_empty<RequestGenerateDungeonComponent>(r);
+      r.emplace<RequestGenerateDungeonComponent>(e);
     }
     if (selectable_button("minigame: bamboo", selected, index++)) {
-      auto& editor = get_first_component<SINGLETON_LevelEditor>(r);
-      editor.mode = LevelEditorMode::play;
       move_to_scene_start(r, Scene::minigame_bamboo);
     }
     if (selectable_button("Quit", selected, index++))

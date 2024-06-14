@@ -22,8 +22,10 @@ void
 init_audio_system(entt::registry& r)
 {
   const int max_audio_sources = 16;
-  for (int i = 0; i < max_audio_sources; i++)
-    r.emplace<AudioSource>(r.create());
+  for (int i = 0; i < max_audio_sources; i++) {
+    const auto audio_e = create_empty<AudioSource>(r);
+    r.emplace<AudioSource>(audio_e);
+  }
 
   open_audio_new_device(r, std::nullopt);
 }
@@ -58,12 +60,14 @@ update_audio_system(entt::registry& r)
 
   // compact duplicate audio requests
   std::map<std::string, std::vector<entt::entity>> compacted_requests;
-  for (auto [entity, request] : r.view<AudioRequestPlayEvent>().each())
+  for (const auto& [entity, request] : r.view<AudioRequestPlayEvent>().each())
     compacted_requests[request.tag].push_back(entity);
 
   // state: process request -> playing
   for (const auto& [tag, entities] : compacted_requests) {
-    const auto& entity = entities[0]; // assume audio request with same tag are the same
+
+    // assume audio request with same tag are the same
+    const auto& entity = entities[0];
     const auto& request = r.get<AudioRequestPlayEvent>(entity);
 
     if (free_audio_sources.size() == 0) {
@@ -71,6 +75,7 @@ update_audio_system(entt::registry& r)
                 << "missed request for: " << tag << std::endl;
       continue;
     }
+
     AudioSource& audio_source = free_audio_sources.front();
     free_audio_sources.erase(free_audio_sources.begin());
     audio_source.state = AudioSourceState::PLAYING;
@@ -83,7 +88,7 @@ update_audio_system(entt::registry& r)
     alSourcePlay(source_id);
 
     // process request
-    r.remove<AudioRequestPlayEvent>(entity);
+    r.destroy(entities.begin(), entities.end());
   }
 };
 

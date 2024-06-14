@@ -61,14 +61,16 @@ update_gen_dungeons_system(entt::registry& r, const glm::ivec2& mouse_pos)
   const auto grid_pos = engine::grid::world_space_to_grid_space(mouse_pos, map.tilesize);
   ImGui::Text("grid_pos: %i %i", grid_pos.x, grid_pos.y);
 
-  const auto [inside_room, coll_aabb] = inside_room(map, rooms, grid_pos);
-  ImGui::Text("Inside Room: %i", inside_room);
+  const auto [in_room, coll_aabb] = inside_room(map, rooms, grid_pos);
+  ImGui::Text("Inside Room: %i", in_room);
 
   ImGui::End();
 
   // HACK: force regenerate dungeon
-  if (get_key_down(input, SDL_SCANCODE_I))
-    r.emplace<RequestGenerateDungeonComponent>(r.create());
+  if (get_key_down(input, SDL_SCANCODE_I)) {
+    const auto e = create_empty<RequestGenerateDungeonComponent>(r);
+    r.emplace<RequestGenerateDungeonComponent>(e);
+  }
 
   const auto& requests = r.view<RequestGenerateDungeonComponent>();
   if (requests.size() == 0)

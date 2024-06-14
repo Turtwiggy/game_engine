@@ -8,6 +8,7 @@
 #include "modules/renderer/components.hpp"
 #include "modules/ui_worldspace_text/components.hpp"
 #include "physics/components.hpp"
+#include "renderer/components.hpp"
 #include "renderer/transform.hpp"
 
 #include <algorithm>

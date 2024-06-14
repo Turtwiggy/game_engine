@@ -1,6 +1,7 @@
 #pragma once
 
 #include "actors.hpp"
+#include "entt/helpers.hpp"
 #include "lifecycle/components.hpp"
 #include "modules/actor_enemy_patrol/components.hpp"
 #include "modules/actor_enemy_patrol/system.hpp"
@@ -28,7 +29,9 @@ TEST(TestSuite, ActorEnemyPatrol_Backstabs)
   map_c.xmax = map_width / map_c.tilesize;
   map_c.ymax = map_height / map_c.tilesize;
   map_c.map.resize(map_c.xmax * map_c.ymax);
-  r.emplace<MapComponent>(r.create(), map_c);
+
+  auto map_e = create_empty<MapComponent>(r);
+  r.emplace<MapComponent>(map_e, map_c);
 
   const auto player_e = create_gameplay(r, EntityType::actor_player);
 

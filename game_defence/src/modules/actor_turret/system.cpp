@@ -15,7 +15,6 @@
 #include "physics/components.hpp"
 #include "sprites/components.hpp"
 
-
 namespace game2d {
 
 void
@@ -88,9 +87,6 @@ update_turret_system(entt::registry& r, const uint64_t& ms_dt)
       TransformComponent t;
       t.position = { offset_pos.x, offset_pos.y, 0 };
       r.emplace_or_replace<TransformComponent>(req, t);
-
-      // request audio
-      // r.emplace<AudioRequestPlayEvent>(r.create(), "SHOOT_02");
 
       reset_cooldown(cooldown);
     }

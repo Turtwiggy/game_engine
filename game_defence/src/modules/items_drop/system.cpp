@@ -11,6 +11,7 @@
 #include "modules/items_pickup/components.hpp"
 #include "modules/lerp_to_target/components.hpp"
 #include "physics/components.hpp"
+#include "renderer/components.hpp"
 #include "renderer/transform.hpp"
 
 #include <utility>
@@ -89,6 +90,7 @@ update_intent_drop_item_system(entt::registry& r)
     // create an item
     const auto item_e = r.create();
     r.emplace<EntityTypeComponent>(item_e, item_type);
+    r.emplace<TagComponent>(item_e, "Item");
 
     // create a new request
     // note: could drop multiple items if wanted
@@ -116,6 +118,7 @@ update_intent_drop_item_system(entt::registry& r)
       // create an item
       const auto item_e = r.create();
       r.emplace<EntityTypeComponent>(item_e, EntityType::actor_barricade);
+      r.emplace<TagComponent>(item_e, "Item: actor_barricade");
       request.items.push_back(item_e);
     }
 

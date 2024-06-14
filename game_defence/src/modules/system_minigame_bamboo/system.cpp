@@ -130,7 +130,7 @@ update_minigame_bamboo_system(entt::registry& r, const float dt)
 
   // first combination
   if (combination.size() == 0)
-    r.emplace<GenerateCombinationRequest>(r.create());
+    r.emplace<GenerateCombinationRequest>(create_empty<GenerateCombinationRequest>(r));
   check_if_generate_new_combination(r, bamboo_minigame.combination_length, rnd);
 
   const auto validate_combination_against_buffer = [&buffer, &combination]() -> bool {
@@ -218,7 +218,7 @@ update_minigame_bamboo_system(entt::registry& r, const float dt)
 
   if (combination_correct) {
     ImGui::Text("Your combination was correct!");
-    r.emplace<GenerateCombinationRequest>(r.create());
+    r.emplace<GenerateCombinationRequest>(create_empty<GenerateCombinationRequest>(r));
     combination_correct = false;
 
     // increase difficulty

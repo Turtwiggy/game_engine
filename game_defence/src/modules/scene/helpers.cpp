@@ -12,6 +12,7 @@
 #include "lifecycle/components.hpp"
 #include "magic_enum.hpp"
 #include "maths/grid.hpp"
+#include "maths/maths.hpp"
 #include "modules/actor_bodypart_legs/components.hpp"
 #include "modules/actor_cursor/components.hpp"
 #include "modules/actor_enemy/components.hpp"
@@ -19,10 +20,6 @@
 #include "modules/actor_enemy_patrol/helpers.hpp"
 #include "modules/actor_spawner/components.hpp"
 #include "modules/actors/helpers.hpp"
-#include "modules/algorithm_astar_pathfinding/components.hpp"
-#include "modules/algorithm_astar_pathfinding/helpers.hpp"
-#include "modules/algorithm_procedural/cell_automata.hpp"
-#include "modules/algorithm_procedural/poisson.hpp"
 #include "modules/camera/components.hpp"
 #include "modules/camera/orthographic.hpp"
 #include "modules/combat_damage/components.hpp"
@@ -39,6 +36,7 @@
 #include "modules/system_minigame_bamboo/components.hpp"
 #include "modules/system_turnbased_enemy/components.hpp"
 #include "modules/ui_arrows_to_spawners/components.hpp"
+#include "modules/ui_colours/components.hpp"
 #include "modules/ui_combat_turnbased/components.hpp"
 #include "modules/ui_level_up/components.hpp"
 #include "modules/ui_scene_main_menu/components.hpp"
@@ -47,6 +45,7 @@
 #include "modules/ux_hoverable/components.hpp"
 #include "modules/vfx_grid/components.hpp"
 #include "physics/components.hpp"
+#include "renderer/components.hpp"
 #include "renderer/transform.hpp"
 #include "sprites/helpers.hpp"
 #include <nlohmann/json.hpp>
@@ -129,9 +128,6 @@ move_to_scene_start(entt::registry& r, const Scene s, const bool load_saved)
   const auto& actors = r.view<EntityTypeComponent>(entt::exclude<OrthographicCamera>);
   r.destroy(actors.begin(), actors.end());
 
-  const auto& tags = r.view<TagComponent>(entt::exclude<OrthographicCamera>);
-  r.destroy(tags.begin(), tags.end());
-
   const auto& ui = r.view<WorldspaceTextComponent>();
   r.destroy(ui.begin(), ui.end());
 
@@ -140,20 +136,27 @@ move_to_scene_start(entt::registry& r, const Scene s, const bool load_saved)
   destroy_first_and_create<SINGLETON_EntityBinComponent>(r);
   destroy_first_and_create<SINGLETON_GameStateComponent>(r);
   destroy_first_and_create<SINGLETON_GameOver>(r);
-  destroy_first_and_create<SINGLE_ScreenshakeComponent>(r);
-  destroy_first_and_create<SINGLE_SelectedUI>(r);
-  destroy_first_and_create<SINGLE_ArrowsToSpawnerUI>(r);
-  destroy_first_and_create<SINGLE_UILevelUpComponent>(r);
-  destroy_first_and_create<SINGLE_TurnBasedCombatInfo>(r);
-  destroy_first_and_create<SINGLE_DebugPathLines>(r);
-  destroy_first_and_create<SINGLE_CombatState>(r);
+  destroy_first_and_create<SINGLETON_InputComponent>(r);
+  init_input_system(r); // clear old input
+
+  destroy_first<SINGLE_ScreenshakeComponent>(r);
+  destroy_first<SINGLE_SelectedUI>(r);
+  destroy_first<SINGLE_ArrowsToSpawnerUI>(r);
+  destroy_first<SINGLE_UILevelUpComponent>(r);
+  destroy_first<SINGLE_TurnBasedCombatInfo>(r);
+  destroy_first<SINGLE_DebugPathLines>(r);
+  destroy_first<SINGLE_CombatState>(r);
   destroy_first<MapComponent>(r);
-  // SINGLE_MainMenuUI: not destroyed. destroyed if scene is menu.
   destroy_first<Effect_GridComponent>(r);
   destroy_first<SINGLE_MinigameBamboo>(r);
-  // Clear out any old input
-  destroy_first_and_create<SINGLETON_InputComponent>(r);
-  init_input_system(r);
+  destroy_first<SINGLE_TurnBasedCombatInfo>(r);
+  // destroy_first<SINGLE_MainMenuUI>(r);
+
+  // systems that havent been destroyed...
+  const auto& ri = get_first_component<SINGLETON_RendererInfo>(r);
+  const auto& anims = get_first_component<SINGLE_Animations>(r);
+  const auto& audio = get_first_component<SINGLETON_AudioComponent>(r);
+  const auto& colours = get_first_component<SINGLE_ColoursInfo>(r);
 
   // HACK: the first and only transform should be the camera
   const auto camera_e = get_first<TransformComponent>(r);
@@ -168,15 +171,12 @@ move_to_scene_start(entt::registry& r, const Scene s, const bool load_saved)
 
   stop_all_audio(r);
 
-  const auto& anims = get_first_component<SINGLE_Animations>(r);
-  const auto& ri = get_first_component<SINGLETON_RendererInfo>(r);
-
   if (s == Scene::menu) {
     auto& ui = destroy_first_and_create<SINGLE_MainMenuUI>(r);
 
     // Play some audio
-    // TODO: check if muted...
-    r.emplace<AudioRequestPlayEvent>(r.create(), "MENU_01");
+    const auto e = create_empty<AudioRequestPlayEvent>(r);
+    r.emplace<AudioRequestPlayEvent>(e, "MENU_01");
 
     // Load randoms name file
     // const auto path = "assets/config/random_names.json";
@@ -212,10 +212,10 @@ move_to_scene_start(entt::registry& r, const Scene s, const bool load_saved)
   //   return std::chrono::system_clock::to_time_t(now);
   // };
 
-  if (s == Scene::duckgame_overworld) {
+  if (s == Scene::overworld) {
     // Play some audio
-    // TODO: check if muted...
-    r.emplace<AudioRequestPlayEvent>(r.create(), "GAME_01");
+    const auto e = create_empty<AudioRequestPlayEvent>(r);
+    r.emplace<AudioRequestPlayEvent>(e, "GAME_01");
 
     int map_width = 2000;
     int map_height = 2000;
@@ -224,7 +224,9 @@ move_to_scene_start(entt::registry& r, const Scene s, const bool load_saved)
     map_c.xmax = map_width / map_c.tilesize;
     map_c.ymax = map_height / map_c.tilesize;
     map_c.map.resize(map_c.xmax * map_c.ymax);
-    r.emplace<MapComponent>(r.create(), map_c);
+
+    const auto map_e = create_empty<MapComponent>(r);
+    r.emplace<MapComponent>(map_e, map_c);
 
     // create a piece of worldspace text for the quadrant
     {
@@ -340,9 +342,10 @@ move_to_scene_start(entt::registry& r, const Scene s, const bool load_saved)
   }
 
   if (s == Scene::dungeon_designer) {
-    r.emplace<SINGLE_CombatState>(r.create());
-    r.emplace<CameraFreeMove>(camera_e);
-    r.emplace<Effect_GridComponent>(r.create());
+    r.emplace<SINGLE_CombatState>(create_empty<SINGLE_CombatState>(r));
+    r.emplace<SINGLE_TurnBasedCombatInfo>(create_empty<SINGLE_TurnBasedCombatInfo>(r));
+    r.emplace<Effect_GridComponent>(create_empty<Effect_GridComponent>(r));
+    r.emplace_or_replace<CameraFreeMove>(get_first<OrthographicCamera>(r));
 
     // create new map & dungeon constraints
     const int map_width = 1000;
@@ -352,7 +355,7 @@ move_to_scene_start(entt::registry& r, const Scene s, const bool load_saved)
     map_c.xmax = map_width / map_c.tilesize;
     map_c.ymax = map_height / map_c.tilesize;
     map_c.map.resize(map_c.xmax * map_c.ymax);
-    r.emplace<MapComponent>(r.create(), map_c);
+    r.emplace<MapComponent>(create_empty<MapComponent>(r), map_c);
     auto& map = get_first_component<MapComponent>(r);
 
     // Create 4 edges to the map
@@ -373,8 +376,9 @@ move_to_scene_start(entt::registry& r, const Scene s, const bool load_saved)
   }
 
   if (s == Scene::turnbasedcombat) {
-    r.emplace<SINGLE_CombatState>(r.create());
-    r.emplace<CameraFreeMove>(camera_e);
+    r.emplace<SINGLE_CombatState>(create_empty<SINGLE_CombatState>(r));
+    r.emplace<SINGLE_TurnBasedCombatInfo>(create_empty<SINGLE_TurnBasedCombatInfo>(r));
+    r.emplace_or_replace<CameraFreeMove>(get_first<OrthographicCamera>(r));
 
     int map_width = 600;
     int map_height = 600;
@@ -383,8 +387,8 @@ move_to_scene_start(entt::registry& r, const Scene s, const bool load_saved)
     map_c.xmax = map_width / map_c.tilesize;
     map_c.ymax = map_height / map_c.tilesize;
     map_c.map.resize(map_c.xmax * map_c.ymax);
-    r.emplace<MapComponent>(r.create(), map_c);
-    r.emplace<Effect_GridComponent>(r.create(), map_c.tilesize);
+    r.emplace<MapComponent>(create_empty<MapComponent>(r), map_c);
+    r.emplace<Effect_GridComponent>(create_empty<Effect_GridComponent>(r), map_c.tilesize);
 
     int players = 5;
     int enemies = 5;
@@ -448,7 +452,7 @@ move_to_scene_start(entt::registry& r, const Scene s, const bool load_saved)
   }
 
   if (s == Scene::minigame_bamboo) {
-    r.emplace<SINGLE_MinigameBamboo>(r.create());
+    r.emplace<SINGLE_MinigameBamboo>(create_empty<SINGLE_MinigameBamboo>(r));
 
     //
   }

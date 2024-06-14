@@ -6,11 +6,12 @@
 #include "modules/actor_player/components.hpp"
 #include "modules/combat_powerup_doubledamage/components.hpp" // should be removed
 #include "modules/items_pickup/components.hpp"
-#include "modules/renderer/components.hpp"
 #include "physics/components.hpp"
+#include "renderer/components.hpp"
 
 #include "imgui.h"
 #include "magic_enum.hpp"
+#include "renderer/transform.hpp"
 
 #include <string>
 

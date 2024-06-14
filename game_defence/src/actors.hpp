@@ -5,6 +5,8 @@
 #include <entt/entt.hpp>
 #include <nlohmann/json.hpp>
 
+#include <string>
+
 namespace game2d {
 
 enum class EntityType

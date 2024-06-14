@@ -95,7 +95,7 @@ game2d::update_ui_pause_menu_system(engine::SINGLETON_Application& app, entt::re
       move_to_scene_start(r, Scene::menu);
 
     auto& scene = get_first_component<SINGLETON_CurrentScene>(r);
-    bool is_saveable_scene = scene.s == Scene::duckgame_overworld;
+    bool is_saveable_scene = scene.s == Scene::overworld;
     if (is_saveable_scene && ImGui::Button("Save & Back to Menu")) {
       save(r, "save-overworld.json");
       move_to_scene_start(r, Scene::menu);

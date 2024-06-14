@@ -34,6 +34,7 @@
 #include "modules/ux_hoverable/components.hpp"
 #include "modules/ux_hoverable_change_colour/components.hpp"
 #include "physics/components.hpp"
+#include "renderer/components.hpp"
 #include "renderer/transform.hpp"
 #include "sprites/components.hpp"
 #include "sprites/helpers.hpp"

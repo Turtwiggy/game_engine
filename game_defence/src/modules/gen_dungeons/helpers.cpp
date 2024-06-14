@@ -13,12 +13,12 @@
 #include "modules/camera/orthographic.hpp"
 #include "modules/combat_damage/components.hpp"
 #include "modules/grid/components.hpp"
-#include "modules/renderer/components.hpp"
 #include "modules/scene/helpers.hpp"
 #include "modules/ui_combat_turnbased/components.hpp"
 #include "modules/ui_worldspace_text/components.hpp"
 #include "modules/ux_hoverable/components.hpp"
 #include "physics/helpers.hpp"
+#include "renderer/components.hpp"
 #include "renderer/transform.hpp"
 
 #include <algorithm>
@@ -296,7 +296,7 @@ instantiate_walls(entt::registry& r, std::vector<Line>& lines, const DungeonGene
     //   if (t.room == room || t.prev_room == room)
     //     tunnels_of_interest.push_back(t);
 
-    if (room_count == 3)
+    if (room_count == 2)
       int k = 1; // debug specific room
 
     // A tunnel consists of 2 lines.
@@ -566,37 +566,39 @@ instantiate_tunnels(entt::registry& r, std::vector<Line>& lines, const DungeonGe
   // }
 
   // Fill up gaps in space...
-  for (const Tunnel& tunnel : results.tunnels) {
-    const auto& square_0 = tunnel.line_0;
-    const auto& square_1 = tunnel.line_1;
+  // for (const Tunnel& tunnel : results.tunnels) {
+  //   const auto& square_0 = tunnel.line_0;
+  //   const auto& square_1 = tunnel.line_1;
 
-    for (const std::pair<int, int>& gridpos : square_0) {
-      const auto [coll, coll_aabb] = inside_room(map, results.rooms, { gridpos.first, gridpos.second });
-      // if (coll)
-      //   continue;
-      const glm::ivec2 offset = { map.tilesize / 2, map.tilesize / 2 };
-      const auto worldpos = glm::ivec2{ gridpos.first, gridpos.second } * map.tilesize;
-      const auto worldpos_center = worldpos + offset;
-      const auto e = create_gameplay(r, EntityType::empty_with_transform);
-      set_position(r, e, worldpos_center);
-      set_size(r, e, { 5, 5 });
-    }
+  //   for (const std::pair<int, int>& gridpos : square_0) {
+  //     const auto [coll, coll_aabb] = inside_room(map, results.rooms, { gridpos.first, gridpos.second });
+  //     // if (coll)
+  //     //   continue;
+  //     const glm::ivec2 offset = { map.tilesize / 2, map.tilesize / 2 };
+  //     const auto worldpos = glm::ivec2{ gridpos.first, gridpos.second } * map.tilesize;
+  //     const auto worldpos_center = worldpos + offset;
+  //     const auto e = create_gameplay(r, EntityType::empty_with_transform);
+  //     set_position(r, e, worldpos_center);
+  //     set_size(r, e, { 5, 5 });
+  //   }
 
-    for (const std::pair<int, int>& gridpos : square_1) {
-      const auto [coll, coll_aabb] = inside_room(map, results.rooms, { gridpos.first, gridpos.second });
-      // if (coll)
-      //   continue;
-      const glm::ivec2 offset = { map.tilesize / 2, map.tilesize / 2 };
-      const auto worldpos = glm::ivec2{ gridpos.first, gridpos.second } * map.tilesize;
-      const auto worldpos_center = worldpos + offset;
-      const auto e = create_gameplay(r, EntityType::empty_with_transform);
-      set_position(r, e, worldpos_center);
-      set_size(r, e, { 5, 5 });
-    }
+  //   for (const std::pair<int, int>& gridpos : square_1) {
+  //     const auto [coll, coll_aabb] = inside_room(map, results.rooms, { gridpos.first, gridpos.second });
+  //     // if (coll)
+  //     //   continue;
+  //     const glm::ivec2 offset = { map.tilesize / 2, map.tilesize / 2 };
+  //     const auto worldpos = glm::ivec2{ gridpos.first, gridpos.second } * map.tilesize;
+  //     const auto worldpos_center = worldpos + offset;
+  //     const auto e = create_gameplay(r, EntityType::empty_with_transform);
+  //     set_position(r, e, worldpos_center);
+  //     set_size(r, e, { 5, 5 });
+  //   }
+  // }
+
+  for (const Tunnel& t : results.tunnels) {
+    const auto e = create_empty<Tunnel>(r);
+    r.emplace<Tunnel>(e, t);
   }
-
-  for (const Tunnel& t : results.tunnels)
-    r.emplace<Tunnel>(r.create(), t);
 };
 
 } // namespace game2d

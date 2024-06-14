@@ -130,7 +130,7 @@ update_enemy_system(entt::registry& r, const float dt)
         if (enemy.attack_percent >= 0.5F && !enemy.has_applied_damage) {
 
           // Create a new damage instance
-          const auto instance = r.create();
+          const auto instance = create_empty<AttackComponent>(r);
           r.emplace<AttackComponent>(instance, 10);
           r.emplace<TransformComponent>(instance, enemy_t); // copy the parent
 

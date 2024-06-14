@@ -64,12 +64,9 @@ update_take_damage_system(entt::registry& r)
     // .. show as flashing
     r.emplace_or_replace<RequestFlashComponent>(request.to);
 
-    // .. play audio // TODO: remove this.
-    // This spams the audio system.
-    // r.emplace<AudioRequestPlayEvent>(r.create(), "TAKE_DAMAGE_01");
-
     // .. screenshake
-    r.emplace<RequestScreenshakeComponent>(r.create());
+    const auto e = create_empty<RequestScreenshakeComponent>(r);
+    r.emplace<RequestScreenshakeComponent>(e);
 
     // TODO: BAD. FIX.
     static engine::RandomState rnd;

@@ -15,11 +15,6 @@
 
 namespace game2d {
 
-struct TagComponent
-{
-  std::string tag;
-};
-
 inline void
 to_json(nlohmann::json& j, const TransformComponent& t)
 {

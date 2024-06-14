@@ -5,7 +5,7 @@ namespace game2d {
 enum class Scene
 {
   menu,
-  duckgame_overworld,
+  overworld,
   dungeon_designer,
   turnbasedcombat,
   minigame_bamboo,

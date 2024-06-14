@@ -2,9 +2,9 @@
 
 #include "components.hpp"
 #include "lifecycle/components.hpp"
-#include "modules/renderer/components.hpp"
 #include "modules/ui_colours/helpers.hpp"
 #include "modules/ux_hoverable/components.hpp"
+#include "renderer/components.hpp"
 #include "sprites/components.hpp"
 
 namespace game2d {

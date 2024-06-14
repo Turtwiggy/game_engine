@@ -182,7 +182,7 @@ update_ui_combat_turnbased_system(entt::registry& r, const glm::ivec2& input_mou
     team_count[team_c.team] += 1; // count teams
   if (team_count[AvailableTeams::enemy] == 0) {
     if (ImGui::Button("You won! Back to overworld")) {
-      move_to_scene_start(r, Scene::duckgame_overworld, true);
+      move_to_scene_start(r, Scene::overworld, true);
       ImGui::End();
       return;
     }
@@ -223,7 +223,7 @@ update_ui_combat_turnbased_system(entt::registry& r, const glm::ivec2& input_mou
     count++;
 
   if (ImGui::Button("End Turn")) // let player end their turn
-    r.emplace<RequestToCompleteTurn>(r.create(), AvailableTeams::player);
+    r.emplace<RequestToCompleteTurn>(create_empty<RequestToCompleteTurn>(r), AvailableTeams::player);
 
   // limit: must be interacting with 1 selected unit
   if (count != 1) {

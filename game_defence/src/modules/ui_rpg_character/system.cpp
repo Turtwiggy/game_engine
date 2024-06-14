@@ -1,6 +1,7 @@
 #include "system.hpp"
 
 #include "components.hpp"
+#include "entt/helpers.hpp"
 #include "imgui/helpers.hpp"
 #include "maths/maths.hpp"
 
@@ -58,7 +59,7 @@ update_ui_rpg_character_system(entt::registry& r)
     ImGui::InputInt(append_proficiency_to_string("Cha", stats.charisma).c_str(), &stats.charisma);
   }
   if (ImGui::Button("Create##character")) {
-    const auto e = r.create();
+    const auto e = create_empty<CharacterStats>(r);
     r.emplace<CharacterStats>(e, stats);
     r.emplace<CharacterPrefab>(e);
   }
@@ -69,7 +70,7 @@ update_ui_rpg_character_system(entt::registry& r)
 
   if (first_time) {
     first_time = false;
-    const auto e = r.create();
+    const auto e = create_empty<CharacterStats>(r);
     r.emplace<CharacterStats>(e, stats);
     r.emplace<CharacterPrefab>(e);
   }
@@ -155,7 +156,7 @@ update_ui_rpg_character_system(entt::registry& r)
     ImGui::SameLine();
     if (ImGui::Button("Roll Dmg")) {
       const int damage = int(engine::rand_det_s(rnd.rng, 1, 12));
-      r.emplace<DamageInstance>(r.create(), damage);
+      r.emplace<DamageInstance>(create_empty<DamageInstance>(r), damage);
     }
 
     // XP

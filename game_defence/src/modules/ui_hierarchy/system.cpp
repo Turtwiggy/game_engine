@@ -1,21 +1,24 @@
 #include "system.hpp"
 
 // components
+#include "actors.hpp"
 #include "imgui/helpers.hpp"
-#include "modules/renderer/components.hpp"
 #include "physics/components.hpp"
+#include "renderer/components.hpp"
+#include "renderer/transform.hpp"
 #include "sprites/components.hpp"
 
 // other lib headers
 #include <glm/gtc/type_ptr.hpp>
 #include <imgui.h>
+#include <magic_enum.hpp>
 
 #include <utility>
 
 void
 game2d::update_ui_hierarchy_system(entt::registry& r)
 {
-  const size_t entities = r.alive();
+  const size_t entities = r.storage<entt::entity>().in_use();
   static entt::entity selected_entity = entt::null;
 
   ImGuiWindowFlags flags = 0;
@@ -56,20 +59,27 @@ game2d::update_ui_hierarchy_system(entt::registry& r)
       SHOWING_INDEX += 1;
 
     const int min_show = SHOWING_INDEX * MAX_TO_SHOW;
-    const int max_show = (SHOWING_INDEX + 1) * MAX_TO_SHOW;
+    const int max_show = ((SHOWING_INDEX + 1) * MAX_TO_SHOW);
 
     if (filter == "") {
 
-      for (int i = 0; const auto& [e, tag] : r.view<TagComponent>().each()) {
-        //
+      for (int i = 0; const std::tuple<entt::entity>& ent_tuple : r.storage<entt::entity>().each()) {
+        const auto& [e] = ent_tuple;
+
         // optimisation; only show MAX_TO_SHOW in hierachy at one time
-        bool valid = i >= min_show && i <= max_show;
-        ++i;
+        bool valid = i >= min_show && i < max_show;
+        i++;
         if (!valid)
           continue;
+
         ImGui::Text("eid: %i", e);
-        ImGui::SameLine();
-        game2d::imgui_draw_entity(r, tag.tag, e, selected_entity);
+
+        const auto* tag = r.try_get<TagComponent>(e);
+        if (tag != nullptr) {
+          ImGui::SameLine();
+          game2d::imgui_draw_entity(r, tag->tag, e, selected_entity);
+        } else
+          ImGui::Text("Non-tagged entity");
       }
 
     } else {
@@ -93,6 +103,16 @@ game2d::update_ui_hierarchy_system(entt::registry& r)
       }
     }
 
+    // Display all the non-tagged entities
+    int not_tagged = 0;
+    for (const std::tuple<entt::entity>& ent_tuple : r.storage<entt::entity>().each()) {
+      const auto& [e] = ent_tuple;
+      const auto* tag = r.try_get<TagComponent>(e);
+      if (tag == nullptr)
+        not_tagged++;
+    }
+    ImGui::Text("Non-Tagged Entities: %i", not_tagged);
+
     // If select anywhere in the window, make entity unselected
     if (ImGui::IsMouseDown(0) && ImGui::IsWindowHovered())
       selected_entity = entt::null;
@@ -106,6 +126,7 @@ game2d::update_ui_hierarchy_system(entt::registry& r)
     //   ImGui::EndPopup();
     // }
   }
+
   ImGui::End();
 
   //

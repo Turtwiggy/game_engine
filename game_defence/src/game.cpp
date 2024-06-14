@@ -1,5 +1,6 @@
 #include "game.hpp"
 
+#include "actors.hpp"
 #include "audio/components.hpp"
 #include "audio/system.hpp"
 #include "entt/helpers.hpp"
@@ -47,10 +48,7 @@
 #include "modules/ui_controllers/system.hpp"
 #include "modules/ui_gameover/system.hpp"
 #include "modules/ui_hierarchy/system.hpp"
-#include "modules/ui_level_editor/components.hpp"
-#include "modules/ui_level_up/components.hpp"
 #include "modules/ui_pause_menu/system.hpp"
-#include "modules/ui_rpg_character/system.hpp"
 #include "modules/ui_scene_main_menu/system.hpp"
 #include "modules/ui_worldspace_text/system.hpp"
 #include "modules/ux_hoverable/system.hpp"
@@ -67,8 +65,11 @@
 #include <algorithm>
 #include <ranges>
 
+namespace game2d {
+using namespace std::literals;
+
 void
-game2d::init(engine::SINGLETON_Application& app, entt::registry& r)
+init(engine::SINGLETON_Application& app, entt::registry& r)
 {
   {
     SINGLETON_AudioComponent audio;
@@ -81,7 +82,8 @@ game2d::init(engine::SINGLETON_Application& app, entt::registry& r)
     audio.sounds.push_back({ "WIN_01", "assets/audio/8-bit-win-funk-david-renda.wav" });
     audio.sounds.push_back({ "LOSS_01", "assets/audio/8-bit-loss-david-renda.wav" });
     audio.sounds.push_back({ "TAKE_DAMAGE_01", "assets/audio/GRUNT_Male_Subtle_Hurt_mono.wav" });
-    r.emplace<SINGLETON_AudioComponent>(r.create(), audio);
+
+    r.emplace<SINGLETON_AudioComponent>(create_empty<SINGLETON_AudioComponent>(r), audio);
   }
   init_audio_system(r);
 
@@ -132,35 +134,27 @@ game2d::init(engine::SINGLETON_Application& app, entt::registry& r)
     SINGLE_Animations anims;
     for (const auto& tex : ri.user_textures)
       load_sprites(anims, tex.spritesheet_path);
-    r.emplace<SINGLE_Animations>(r.create(), anims);
 
-    r.emplace<SINGLETON_RendererInfo>(r.create(), ri);
+    r.emplace<SINGLE_Animations>(create_empty<SINGLE_Animations>(r), anims);
+    r.emplace<SINGLETON_RendererInfo>(create_empty<SINGLETON_RendererInfo>(r), ri);
   }
 
-  r.emplace<SINGLETON_FixedUpdateInputHistory>(r.create());
-  r.emplace<SINGLETON_LevelEditor>(r.create());
   init_ui_colour_palette_system(r);
 
-  const auto camera = r.create();
-  r.emplace<TagComponent>(camera, "camera");
+  // add camera
+  const auto camera_e = create_empty<OrthographicCamera>(r);
   OrthographicCamera camera_info;
   camera_info.projection = calculate_ortho_projection(app.width, app.height);
-  r.emplace<OrthographicCamera>(camera, camera_info);
-  r.emplace<TransformComponent>(camera);
-  // r.emplace<HasTargetPositionComponent>(camera);
-  // r.emplace<LerpToTargetComponent>(camera, 0.5f);
+  r.emplace<OrthographicCamera>(camera_e, camera_info);
+  r.emplace<TransformComponent>(camera_e);
 
   auto& ri = get_first_component<SINGLETON_RendererInfo>(r);
   init_render_system(app, r, ri); // init after camera
 
-  // TRIAL: moved in to scene_start
-  // r.emplace<SINGLETON_InputComponent>(r.create());
-  // init_input_system(r);
+  r.emplace<SINGLETON_FixedUpdateInputHistory>(create_empty<SINGLETON_FixedUpdateInputHistory>(r));
 
   move_to_scene_start(r, Scene::menu);
 }
-
-namespace game2d {
 
 void
 duplicate_held_input(SINGLETON_FixedUpdateInputHistory& fixed_input)
@@ -212,10 +206,6 @@ game2d::fixed_update(engine::SINGLETON_Application& app, entt::registry& game, c
   auto& gameover = get_first_component<SINGLETON_GameOver>(game);
   if (gameover.game_is_over)
     return;
-
-  const auto& leveling_up = get_first_component<SINGLE_UILevelUpComponent>(game);
-  if (leveling_up.show_menu)
-    return; // dont progress game while leveling up
 
   // destroy/create objects
   update_lifecycle_system(game, milliseconds_dt);
@@ -306,11 +296,13 @@ game2d::update(engine::SINGLETON_Application& app, entt::registry& r, const floa
       update_sprint_system(r, dt);
       update_wants_to_shoot_system(r);
       update_weapon_shotgun_system(r, milliseconds_dt);
+    }
 
-      // overworld
+    if (scene.s == Scene::overworld) {
       update_actor_enemy_patrol_system(r, mouse_pos, dt);
+    }
 
-      // combat scene
+    if (scene.s == Scene::dungeon_designer || scene.s == Scene::turnbasedcombat) {
       update_enemy_system(r, dt);
       update_gen_dungeons_system(r, mouse_pos);
       update_turnbased_endturn_system(r);
@@ -347,7 +339,6 @@ game2d::update(engine::SINGLETON_Application& app, entt::registry& r, const floa
       flags |= ImGuiWindowFlags_NoResize;
       flags |= ImGuiWindowFlags_NoTitleBar;
       flags |= ImGuiDockNodeFlags_NoResize;
-      // flags |= ImGuiDockNodeFlags_PassthruCentralNode;
       const auto& ri = get_first_component<SINGLETON_RendererInfo>(r);
       ImGui::SetNextWindowPos({ 0, 0 }, ImGuiCond_Always, { 0, 0 });
       ImGui::SetNextWindowSize({ static_cast<float>(ri.viewport_size_render_at.x), size_y }, ImGuiCond_Always);
@@ -375,7 +366,7 @@ game2d::update(engine::SINGLETON_Application& app, entt::registry& r, const floa
     if (scene.s == Scene::dungeon_designer) {
       update_ui_combat_turnbased_system(r, mouse_pos);
     }
-    if (scene.s == Scene::duckgame_overworld) {
+    if (scene.s == Scene::overworld) {
       update_ui_backstab_patrol_system(r);
     }
     if (scene.s == Scene::turnbasedcombat) {
@@ -387,25 +378,13 @@ game2d::update(engine::SINGLETON_Application& app, entt::registry& r, const floa
     update_ui_gameover_system(r);
 
     // todo: put in to a settings menu
-    static bool show_settings_ui = false;
+    static bool show_settings_ui = true;
     if (show_settings_ui) {
       update_ui_audio_system(r);
       update_ui_controller_system(r);
-    }
-
-#if defined(_DEBUG)
-    // static bool show_demo_window = false;
-    // ImGui::ShowDemoWindow(&show_demo_window);
-
-    static bool show_editor_ui = true;
-    if (show_editor_ui) {
       update_ui_hierarchy_system(r);
-      // update_ui_level_editor_system(r, mouse_pos);
       update_ui_collisions_system(r);
-      // update_ui_colour_palette_system(r);
     }
-
-#endif
   }
 
   end_frame_render_system(r);

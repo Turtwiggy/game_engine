@@ -50,11 +50,13 @@ update_gameover_system(entt::registry& r)
       if (gameover.win_condition) {
         stop_all_audio(r);
         // WHOOOOOOOOOOOO!
-        r.emplace<AudioRequestPlayEvent>(r.create(), "WIN_01");
+        const auto e = create_empty<AudioRequestPlayEvent>(r);
+        r.emplace<AudioRequestPlayEvent>(e, "WIN_01");
       } else {
         stop_all_audio(r);
         // WAHHHHHHHHHHHHH.
-        r.emplace<AudioRequestPlayEvent>(r.create(), "LOSS_01");
+        const auto e = create_empty<AudioRequestPlayEvent>(r);
+        r.emplace<AudioRequestPlayEvent>(e, "LOSS_01");
       }
     }
   }
@@ -72,7 +74,7 @@ update_gameover_system(entt::registry& r)
   // do the restart
   // bug: should not be scene::
   if (new_game)
-    move_to_scene_start(r, Scene::duckgame_overworld, false);
+    move_to_scene_start(r, Scene::overworld, false);
 }
 
 } // namespace game2d

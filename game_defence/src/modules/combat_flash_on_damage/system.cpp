@@ -4,6 +4,7 @@
 #include "lifecycle/components.hpp"
 #include "modules/renderer/components.hpp"
 #include "modules/ui_colours/helpers.hpp"
+#include "renderer/components.hpp"
 #include "sprites/components.hpp"
 
 namespace game2d {

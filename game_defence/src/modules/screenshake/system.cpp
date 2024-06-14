@@ -11,7 +11,10 @@ namespace game2d {
 void
 update_screenshake_system(entt::registry& r, const float timer, const float dt)
 {
-  const auto& input = get_first_component<SINGLETON_InputComponent>(r);
+  // enable system if needed
+  const auto screenshake_e = get_first<SINGLE_ScreenshakeComponent>(r);
+  if (screenshake_e == entt::null)
+    return;
   auto& screenshake = get_first_component<SINGLE_ScreenshakeComponent>(r);
 
   //
