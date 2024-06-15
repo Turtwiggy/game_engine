@@ -96,66 +96,32 @@ create_line(int r0, int c0, int r1, int c1)
 
 // Function to calculate the intersection point of two lines
 // Returns a tuple with the intersection point (x, y)
+// https://stackoverflow.com/questions/563198/how-do-you-detect-where-two-line-segments-intersect
 std::optional<glm::ivec2>
-line_intersection(const int x1, // p0
-                  const int y1,
-                  const int x2, // p1
-                  const int y2,
-                  const int x3, // p2
-                  const int y3,
-                  const int x4, // p3
-                  const int y4)
+line_intersection(const int p0_x,
+                  const int p0_y,
+                  const int p1_x,
+                  const int p1_y,
+                  const int p2_x,
+                  const int p2_y,
+                  const int p3_x,
+                  const int p3_y)
 {
-  const auto create_aabb = [](const glm::ivec2& tl, const int width, const int height) -> AABB {
-    AABB aabb;
-    aabb.center = { tl.x + (width / 2.0f), tl.y + (height / 2.0f) };
-    aabb.size = { glm::abs(width), glm::abs(height) };
-    return aabb;
-  };
+  const float s1_x = p1_x - p0_x;
+  const float s1_y = p1_y - p0_y;
+  const float s2_x = p3_x - p2_x;
+  const float s2_y = p3_y - p2_y;
 
-  // Calculate determinants
-  const int det = (x1 - x2) * (y3 - y4) - (y1 - y2) * (x3 - x4);
-  const int det_x = (x1 * y2 - y1 * x2) * (x3 - x4) - (x1 - x2) * (x3 * y4 - y3 * x4);
-  const int det_y = (x1 * y2 - y1 * x2) * (y3 - y4) - (y1 - y2) * (x3 * y4 - y3 * x4);
+  const float s = (-s1_y * (p0_x - p2_x) + s1_x * (p0_y - p2_y)) / (-s2_x * s1_y + s1_x * s2_y);
+  const float t = (s2_x * (p0_y - p2_y) - s2_y * (p0_x - p2_x)) / (-s2_x * s1_y + s1_x * s2_y);
 
-  // If determinant is zero, lines are parallel or coincident
-  // If determinant is negative... not intested in future collisions.
-  if (det == 0)
-    return std::nullopt;
-
-  // Calculate intersection point
-  const float intersection_x = det_x / static_cast<float>(det);
-  const float intersection_y = det_y / static_cast<float>(det);
-  const glm::ivec2 intersection = { static_cast<int>(intersection_x), static_cast<int>(intersection_y) };
-
-  // check the intersection lies within the line segments.
-  AABB point;
-  point.center = intersection;
-  point.size = { 1, 1 };
-  // ImGui::Text("Point. Center: %i %i. Size: %i %i", point.center.x, point.center.y, point.size.x, point.size.y);
-
-  const int l0 = glm::min(x1, x2);
-  const int r0 = glm::max(x1, x2);
-  const int t0 = glm::min(y1, y2);
-  const int b0 = glm::max(y1, y2);
-  AABB line0 = create_aabb({ l0, t0 }, glm::abs(r0 - l0), glm::abs(b0 - t0));
-  line0.size.x = line0.size.x == 0 ? 1 : line0.size.x;
-  line0.size.y = line0.size.y == 0 ? 1 : line0.size.y;
-  // ImGui::Text("line0. Center: %i %i. Size: %i %i", line0.center.x, line0.center.y, line0.size.x, line0.size.y);
-
-  const int l = glm::min(x3, x4);
-  const int r = glm::max(x3, x4);
-  const int t = glm::min(y3, y4);
-  const int b = glm::max(y3, y4);
-  AABB line1 = create_aabb({ l, t }, glm::abs(r - l), glm::abs(b - t));
-  line1.size.x = line1.size.x == 0 ? 1 : line1.size.x;
-  line1.size.y = line1.size.y == 0 ? 1 : line1.size.y;
-  // ImGui::Text("line1. Center: %i %i. Size: %i %i", line1.center.x, line1.center.y, line1.size.x, line1.size.y);
-
-  const bool coll_a = collide(point, line0);
-  const bool coll_b = collide(point, line1);
-  if (coll_a && coll_b)
-    return intersection;
+  if (s >= 0 && s <= 1 && t >= 0 && t <= 1) {
+    // collision detected
+    return glm::ivec2{
+      static_cast<int>(p0_x + (t * s1_x)),
+      static_cast<int>(p0_y + (t * s1_y)),
+    };
+  }
   return std::nullopt;
 }
 

@@ -4,13 +4,11 @@
 #include "colour/colour.hpp"
 #include "components.hpp"
 #include "entt/helpers.hpp"
-#include "events/helpers/keyboard.hpp"
 #include "helpers/line.hpp"
 #include "imgui.h"
 #include "maths/grid.hpp"
 #include "maths/maths.hpp"
 #include "modules/actors/helpers.hpp"
-#include "modules/camera/orthographic.hpp"
 #include "modules/combat_damage/components.hpp"
 #include "modules/grid/components.hpp"
 #include "modules/scene/helpers.hpp"
@@ -19,7 +17,6 @@
 #include "modules/ux_hoverable/components.hpp"
 #include "physics/helpers.hpp"
 #include "renderer/components.hpp"
-#include "renderer/transform.hpp"
 
 #include <algorithm>
 #include <iostream>
@@ -296,9 +293,6 @@ instantiate_walls(entt::registry& r, std::vector<Line>& lines, const DungeonGene
     //   if (t.room == room || t.prev_room == room)
     //     tunnels_of_interest.push_back(t);
 
-    if (room_count == 2)
-      int k = 1; // debug specific room
-
     // A tunnel consists of 2 lines.
     for (const Tunnel& t : tunnels) {
       const auto two_tunnel_lines = convert_tunnel_to_lines(r, map, t);
@@ -307,15 +301,18 @@ instantiate_walls(entt::registry& r, std::vector<Line>& lines, const DungeonGene
         // shrink line so it doesnt collide at ends
         const Line t_line_shrunk = shrink_line_at_each_end(t_line, 5);
 
+        // if (room_count == 1 && t_line.p0.x == 475 && t_line.p0.y == 250)
+        //   int k = 1; // debug specific room
+
         const auto collisions = get_line_collisions(lines_to_instantiate, t_line_shrunk);
-        if (collisions.size() > 0)
-          int k = 1;
+        // if (collisions.size() > 0)
+        //   int k = 1;
 
         // Match tunnel collisions to lines_to_instantiate walls.
         for (const auto& [coll_line, coll_intersection] : collisions) {
 
-          if (coll_line.p0.x == 650 && coll_line.p0.y == 50)
-            int k = 1;
+          // if (coll_line.p0.x == 650 && coll_line.p0.y == 50)
+          //   int k = 1;
 
           // remove the line
           {
@@ -379,10 +376,8 @@ instantiate_walls(entt::registry& r, std::vector<Line>& lines, const DungeonGene
     }
 
     const int num_lines_post = lines_to_instantiate.size();
-    if (num_lines_post - num_lines_prior < 4) {
+    if (num_lines_post - num_lines_prior < 4)
       std::cout << "error: did not add enough lines for room to be covered." << std::endl;
-      int k = 1;
-    }
 
     // debug the room
     const auto room_to_create = create_gameplay(r, EntityType::empty_with_transform);
@@ -552,18 +547,17 @@ instantiate_tunnels(entt::registry& r, std::vector<Line>& lines, const DungeonGe
   //     const auto square_pLast = square_1[square_1.size() - 1];
   //     create_square(square_pFirst, square_pLast);
   //   }
-  //   r.emplace<Tunnel>(r.create(), tunnel);
 
   // Debug Tunnel Lines
-  // for (const Tunnel& t : results.tunnels) {
-  //   const auto two_tunnel_lines = convert_tunnel_to_lines(r, map, t);
-  //   for (const auto& t_line : two_tunnel_lines) {
-  //     const auto shrunk_line = shrink_line_at_each_end(t_line, 5);
-  //     const auto e = create_wall(r, get_center_from_line(shrunk_line), get_size_from_line(shrunk_line));
-  //     set_colour(r, e, { 1.0f, 0.0, 0.0, 1.0f });
-  //     r.get<TagComponent>(e).tag = "tunnel-line";
-  //   }
-  // }
+  for (const Tunnel& t : results.tunnels) {
+    const auto two_tunnel_lines = convert_tunnel_to_lines(r, map, t);
+    for (const auto& t_line : two_tunnel_lines) {
+      const auto shrunk_line = shrink_line_at_each_end(t_line, 5);
+      const auto e = create_wall(r, get_center_from_line(shrunk_line), get_size_from_line(shrunk_line));
+      set_colour(r, e, { 1.0f, 0.0, 0.0, 1.0f });
+      r.get<TagComponent>(e).tag = "tunnel-line";
+    }
+  }
 
   // Fill up gaps in space...
   // for (const Tunnel& tunnel : results.tunnels) {

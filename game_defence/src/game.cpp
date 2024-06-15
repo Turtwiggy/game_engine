@@ -274,9 +274,9 @@ game2d::update(engine::SINGLETON_Application& app, entt::registry& r, const floa
 
       // Only keeping this here until I'm convinced that
       // putting all these systems in update isn't a mistake
-      const uint64_t milliseconds_dt = dt * 1000.0f;
+      const uint64_t milliseconds_dt = static_cast<uint64_t>(dt * 1000.0f);
 
-      //
+      // REMOVED SYSTEMS... for one reason or another.
       // update_actor_bodypart_head_system(r, dt, mouse_pos);
       // update_actor_bodypart_legs_system(r, dt, mouse_pos);
       // update_combat_powerup_doubledamage_system(r, dt);
@@ -284,6 +284,14 @@ game2d::update(engine::SINGLETON_Application& app, entt::registry& r, const floa
       // update_spaceship_door_system(r, dt);
       // update_intent_pickup_system(r);
       // update_intent_drop_item_system(r);
+      //   update_ui_inventory(r);
+      //   update_ui_selected(r);
+      //   update_ui_arrows_to_spawners_system(r);
+      //   update_ui_player_name_above_player_system(r);
+      //   update_ui_level_up_system(r);
+      //   update_ui_xp_bar_system(r);
+      //   update_ui_rpg_character_system(r);
+      //   update_ui_inverse_kinematics_system(r, mouse_pos);
       //
 
       // potentially common
@@ -322,11 +330,9 @@ game2d::update(engine::SINGLETON_Application& app, entt::registry& r, const floa
 
   {
     OPTICK_EVENT("(update)-update-ui");
-    // update_ui_inverse_kinematics_system(r, mouse_pos);
 
     // Display a parented viewport window at the top of the screen, that shows the fps.
-
-    const bool show_fps_counter = false;
+    const bool show_fps_counter = true;
     if (show_fps_counter) {
       ImGuiStyle& style = ImGui::GetStyle();
       const std::string example = "FPS: 10000.00";
@@ -341,7 +347,7 @@ game2d::update(engine::SINGLETON_Application& app, entt::registry& r, const floa
       flags |= ImGuiDockNodeFlags_NoResize;
       const auto& ri = get_first_component<SINGLETON_RendererInfo>(r);
       ImGui::SetNextWindowPos({ 0, 0 }, ImGuiCond_Always, { 0, 0 });
-      ImGui::SetNextWindowSize({ static_cast<float>(ri.viewport_size_render_at.x), size_y }, ImGuiCond_Always);
+      ImGui::SetNextWindowSize({ 100, size_y }, ImGuiCond_Always);
 
       const ImGuiID dockspace_id = ImGui::GetID("RootDockSpace");
       ImGui::SetNextWindowDockID(dockspace_id, ImGuiCond_Always);
@@ -353,16 +359,8 @@ game2d::update(engine::SINGLETON_Application& app, entt::registry& r, const floa
     // Main menu scene can transition to Game scene
     if (scene.s == Scene::menu) {
       update_ui_scene_main_menu(app, r);
-      // update_ui_rpg_character_system(r);
+      //
     }
-    // if (scene.s == Scene::game) {
-    //   update_ui_inventory(r);
-    //   update_ui_selected(r);
-    //   update_ui_arrows_to_spawners_system(r);
-    //   update_ui_player_name_above_player_system(r);
-    //   update_ui_level_up_system(r);
-    //   update_ui_xp_bar_system(r);
-    // }
     if (scene.s == Scene::dungeon_designer) {
       update_ui_combat_turnbased_system(r, mouse_pos);
     }
