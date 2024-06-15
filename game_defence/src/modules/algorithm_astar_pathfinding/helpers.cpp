@@ -352,4 +352,19 @@ at_destination(entt::registry& r, const entt::entity& src_e)
   return d2 < epsilon;
 };
 
+bool
+destination_is_blocked(entt::registry& r, const glm::ivec2 worldspace_pos)
+{
+  const auto& map = get_first_component<MapComponent>(r);
+  const auto idx = convert_position_to_index(map, worldspace_pos);
+
+  for (const auto& ent : map.map[idx]) {
+    const auto& comp = r.get<PathfindComponent>(ent);
+    if (comp.cost == -1)
+      return true;
+  }
+
+  return false;
+}
+
 } // namespace game2d

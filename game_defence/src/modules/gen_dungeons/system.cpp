@@ -7,7 +7,6 @@
 #include "helpers/line.hpp"
 #include "maths/grid.hpp"
 #include "maths/maths.hpp"
-#include "modules/actor_cursor/components.hpp"
 #include "modules/gen_dungeons//helpers.hpp"
 #include "modules/gen_dungeons/components.hpp"
 #include "modules/gen_dungeons/helpers.hpp"
@@ -27,7 +26,7 @@ namespace game2d {
 void
 update_gen_dungeons_system(entt::registry& r, const glm::ivec2& mouse_pos)
 {
-  const auto& map = get_first_component<MapComponent>(r);
+  auto& map = get_first_component<MapComponent>(r);
   auto& input = get_first_component<SINGLETON_InputComponent>(r);
 
   ImGui::Begin("Debug__Tunnels");
@@ -53,16 +52,32 @@ update_gen_dungeons_system(entt::registry& r, const glm::ivec2& mouse_pos)
   ImGui::Text("i: %i", i);
 
   std::vector<Room> rooms;
-  for (const auto& [e, room] : r.view<Room>().each()) {
-    // ImGui::Text("Room AABB: %i %i %i %i", room.aabb.center.x, room.aabb.center.x, room.aabb.size.x, room.aabb.size.x);
+  for (const auto& [e, room] : r.view<Room>().each())
     rooms.push_back(room);
-  }
+
+  std::vector<Tunnel> tunnels;
+  for (const auto& [e, t] : r.view<Tunnel>().each())
+    tunnels.push_back(t);
 
   const auto grid_pos = engine::grid::world_space_to_grid_space(mouse_pos, map.tilesize);
   ImGui::Text("grid_pos: %i %i", grid_pos.x, grid_pos.y);
 
-  const auto [in_room, coll_aabb] = inside_room(map, rooms, grid_pos);
+  const auto in_room = inside_room(map, rooms, grid_pos);
   ImGui::Text("Inside Room: %i", in_room);
+
+  const auto in_tunnel = inside_tunnel(tunnels, grid_pos);
+  ImGui::Text("Inside Tunnel: %i", in_tunnel);
+
+  auto dungeon_e = get_first<DungeonGenerationResults>(r);
+  if (dungeon_e != entt::null) {
+    const auto dungeon_results = get_first_component<DungeonGenerationResults>(r);
+    ImGui::Text("Have dungeon gen results");
+
+    auto mouse_idx = engine::grid::grid_position_to_index(grid_pos, map.xmax);
+    mouse_idx = glm::clamp(mouse_idx, 0, map.xmax * map.ymax - 1);
+
+    ImGui::Text("mouse: %i is_wall_or_floor: %i", mouse_idx, dungeon_results.wall_or_floors[mouse_idx]);
+  }
 
   ImGui::End();
 
@@ -106,6 +121,17 @@ update_gen_dungeons_system(entt::registry& r, const glm::ivec2& mouse_pos)
   instantiate_walls(r, lines, result, i);
   instantiate_tunnels(r, lines, result);
 
+  // Update pathfinding
+  for (int idx = 0; idx < map.xmax * map.ymax; idx++) {
+    if (result.wall_or_floors[idx] == 1) {
+      auto& ents = map.map[idx];
+
+      const auto e = create_empty<PathfindComponent>(r);
+      r.emplace<PathfindComponent>(e, -1);
+      ents.push_back(e);
+    }
+  }
+
   // Steps after initial initialization...
   set_generated_entity_positions(r, result, rnd);
   set_player_positions(r, result, rnd);
@@ -128,6 +154,8 @@ update_gen_dungeons_system(entt::registry& r, const glm::ivec2& mouse_pos)
   //     pathfinding_c.cost = 0; // floor
   // }
 
+  const auto e = create_empty<DungeonGenerationResults>(r);
+  r.emplace<DungeonGenerationResults>(e, result);
   std::cout << "dungeon generated" << std::endl;
 }
 

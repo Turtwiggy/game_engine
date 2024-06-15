@@ -9,7 +9,6 @@
 #include "game_state.hpp"
 #include "lifecycle/system.hpp"
 #include "modules/actor_cursor/system.hpp"
-#include "modules/actor_enemy/system.hpp"
 #include "modules/actor_enemy_patrol/system.hpp"
 #include "modules/actor_player/system.hpp"
 #include "modules/actor_spawner/system.hpp"
@@ -24,6 +23,7 @@
 #include "modules/combat_damage/system.hpp"
 #include "modules/combat_flash_on_damage/system.hpp"
 #include "modules/combat_wants_to_shoot/system.hpp"
+#include "modules/debug_pathfinding/system.hpp"
 #include "modules/gameover/components.hpp"
 #include "modules/gameover/system.hpp"
 #include "modules/gen_dungeons/system.hpp"
@@ -311,10 +311,14 @@ game2d::update(engine::SINGLETON_Application& app, entt::registry& r, const floa
     }
 
     if (scene.s == Scene::dungeon_designer || scene.s == Scene::turnbasedcombat) {
-      update_enemy_system(r, dt);
+      // update_enemy_system(r, dt);
       update_gen_dungeons_system(r, mouse_pos);
       update_turnbased_endturn_system(r);
       update_turnbased_enemy_system(r);
+
+#if defined(_DEBUG)
+      update_debug_pathfinding_system(r, mouse_pos);
+#endif
     }
 
     if (scene.s == Scene::minigame_bamboo) {

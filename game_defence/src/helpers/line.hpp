@@ -22,9 +22,6 @@ struct Line
 {
   glm::ivec2 p0{ 0, 0 };
   glm::ivec2 p1{ 0, 0 };
-
-  int room_debug_dir = -1;
-  int room_debug_idx = -1;
 };
 inline bool
 operator==(const Line& a, const Line& b)
@@ -53,7 +50,7 @@ std::optional<glm::ivec2>
 line_intersection(const glm::ivec2& p0, const glm::ivec2& p1, const glm::ivec2& p2, const glm::ivec2& p3);
 
 glm::ivec2
-get_size_from_line(const Line& l, int line_width = 4);
+get_size_from_line(const Line& l, int line_width = 2);
 
 glm::ivec2
 get_center_from_line(const Line& l);

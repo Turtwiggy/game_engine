@@ -23,8 +23,11 @@ instantiate_tunnels(entt::registry& r, std::vector<Line>& lines, const DungeonGe
 void
 set_generated_entity_positions(entt::registry& r, const DungeonGenerationResults& results, engine::RandomState& rnd);
 
-std::pair<bool, std::optional<AABB>>
+bool
 inside_room(const MapComponent& map, const std::vector<Room>& rooms, const glm::ivec2& gridpos);
+
+bool
+inside_tunnel(const std::vector<Tunnel>& ts, const glm::ivec2& gridpos);
 
 // EntityType
 // generate_monster();

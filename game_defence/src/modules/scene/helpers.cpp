@@ -150,6 +150,7 @@ move_to_scene_start(entt::registry& r, const Scene s, const bool load_saved)
   destroy_first<Effect_GridComponent>(r);
   destroy_first<SINGLE_MinigameBamboo>(r);
   destroy_first<SINGLE_TurnBasedCombatInfo>(r);
+  destroy_first<DungeonGenerationResults>(r);
   // destroy_first<SINGLE_MainMenuUI>(r);
 
   // systems that havent been destroyed...

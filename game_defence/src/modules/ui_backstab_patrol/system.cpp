@@ -1,9 +1,9 @@
 #include "system.hpp"
 
 #include "entt/helpers.hpp"
-#include "modules/actor_enemy/components.hpp"
 #include "modules/actor_enemy_patrol/components.hpp"
 #include "modules/actor_player/components.hpp"
+#include "modules/system_turnbased_enemy/components.hpp"
 #include "modules/ui_worldspace_text/components.hpp"
 
 // #include "imgui.h"

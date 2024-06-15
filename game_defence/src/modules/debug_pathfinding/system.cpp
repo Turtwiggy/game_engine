@@ -22,6 +22,9 @@ update_debug_pathfinding_system(entt::registry& r, const glm::ivec2& mouse_pos)
   for (const auto& [e, path] : view.each())
     desired_lines += (path.path.size() - 1); // -1, beacuse 1 less line than points
 
+  const auto debug_e = get_first<SINGLE_DebugPathLines>(r);
+  if (debug_e == entt::null)
+    destroy_first_and_create<SINGLE_DebugPathLines>(r);
   auto& debug_path_lines = get_first_component<SINGLE_DebugPathLines>(r);
   debug_path_lines.pool.update(r, desired_lines);
 

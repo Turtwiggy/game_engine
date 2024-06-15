@@ -159,7 +159,7 @@ update_ui_combat_turnbased_system(entt::registry& r, const glm::ivec2& input_mou
       state.team = AvailableTeams::player;
 
     // HACK: hide this menu
-    state.team = AvailableTeams::player;
+    // state.team = AvailableTeams::player;
 
     ImGui::End();
 
@@ -256,7 +256,10 @@ update_ui_combat_turnbased_system(entt::registry& r, const glm::ivec2& input_mou
     ImGui::Text("has_shot: %i", has_shot);
 
     // already has a path that you've not yet arrived at
-    const bool do_move = !has_destination(r, e) || at_destination(r, e);
+    bool do_move = !has_destination(r, e) || at_destination(r, e);
+
+    // destination must be free
+    do_move &= !destination_is_blocked(r, mouse_pos);
 
     // move mode
     if (action == 1 && !has_moved && do_move) {

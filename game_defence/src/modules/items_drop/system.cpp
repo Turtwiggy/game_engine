@@ -5,7 +5,6 @@
 #include "entt/helpers.hpp"
 #include "lifecycle/components.hpp"
 #include "maths/maths.hpp"
-#include "modules/actor_enemy/components.hpp"
 #include "modules/actors/helpers.hpp"
 #include "modules/combat_damage/components.hpp"
 #include "modules/items_pickup/components.hpp"
