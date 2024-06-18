@@ -4,6 +4,7 @@ namespace game2d {
 
 enum class Scene
 {
+  splashscreen,
   menu,
   overworld,
   dungeon_designer,

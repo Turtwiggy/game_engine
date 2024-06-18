@@ -78,24 +78,20 @@ rebind(entt::registry& r, const SINGLETON_RendererInfo& ri)
   camera.projection = calculate_ortho_projection(wh.x, wh.y);
 
   const int tex_unit_kenny = search_for_texture_unit_by_texture_path(ri, "monochrome")->unit;
-  const int tex_unit_custom = search_for_texture_unit_by_texture_path(ri, "bargame")->unit;
-  const int tex_unit_particles = search_for_texture_unit_by_texture_path(ri, "particles")->unit;
   const int tex_unit_gameicons = search_for_texture_unit_by_texture_path(ri, "gameicons")->unit;
-  const int tex_unit_car0 = search_for_texture_unit_by_texture_path(ri, "voxel")->unit;
-  const int tex_unit_space_background_0 = search_for_texture_unit_by_texture_path(ri, "space_background_0")->unit;
+  const int tex_unit_space_background = search_for_texture_unit_by_texture_path(ri, "space_background")->unit;
   const int tex_unit_mainmenu_background = search_for_texture_unit_by_texture_path(ri, "background_mainmenu")->unit;
   const int tex_unit_spacestation_0 = search_for_texture_unit_by_texture_path(ri, "spacestation_0")->unit;
+  const int tex_unit_studio_logo = search_for_texture_unit_by_texture_path(ri, "blueberry")->unit;
 
   ri.instanced.bind();
   ri.instanced.set_mat4("projection", camera.projection);
   ri.instanced.set_int("tex_kenny", tex_unit_kenny);
-  ri.instanced.set_int("tex_custom", tex_unit_custom);
-  ri.instanced.set_int("tex_particles", tex_unit_particles);
   ri.instanced.set_int("tex_gameicons", tex_unit_gameicons);
-  ri.instanced.set_int("tex_voxel", tex_unit_car0);
-  ri.instanced.set_int("tex_unit_space_background_0", tex_unit_space_background_0);
+  ri.instanced.set_int("tex_unit_space_background", tex_unit_space_background);
   ri.instanced.set_int("tex_unit_mainmenu_background", tex_unit_mainmenu_background);
   ri.instanced.set_int("tex_unit_spacestation_0", tex_unit_spacestation_0);
+  ri.instanced.set_int("tex_unit_studio_logo", tex_unit_studio_logo);
 
   ri.lighting.bind();
   ri.lighting.set_mat4("view", camera.view);
@@ -232,39 +228,6 @@ game2d::update_render_system(entt::registry& r, const float dt, const glm::vec2&
   // light_pos.x should be 0 < viewport_wh.x
   // light_pos.y should be 0 < viewport_wh.y
   ri.mix_lighting_and_scene.set_vec2("light_pos", light_pos_in_screenspace);
-
-// DEBUG A SHADER...
-#ifdef _DEBUG
-  const auto& input = get_first_component<SINGLETON_InputComponent>(r);
-  if (get_key_down(input, SDL_SCANCODE_PAGEUP)) {
-    std::cout << "rebinding shader..." << std::endl;
-    ri.instanced.reload();
-    ri.instanced.bind();
-    ri.instanced.set_int("screen_w", ri.viewport_size_render_at.x);
-    ri.instanced.set_int("screen_h", ri.viewport_size_render_at.y);
-
-    ri.instanced.set_mat4("view", camera.view);
-    ri.instanced.set_vec2("viewport_wh", ri.viewport_size_render_at);
-
-    const int tex_unit_kenny = search_for_texture_unit_by_texture_path(ri, "monochrome")->unit;
-    const int tex_unit_custom = search_for_texture_unit_by_texture_path(ri, "bargame")->unit;
-    const int tex_unit_particles = search_for_texture_unit_by_texture_path(ri, "particles")->unit;
-    const int tex_unit_gameicons = search_for_texture_unit_by_texture_path(ri, "gameicons")->unit;
-    const int tex_unit_car0 = search_for_texture_unit_by_texture_path(ri, "voxel")->unit;
-    const int tex_unit_space_background_0 = search_for_texture_unit_by_texture_path(ri, "space_background_0")->unit;
-    const int tex_unit_mainmenu_background = search_for_texture_unit_by_texture_path(ri, "background_mainmenu")->unit;
-    const int tex_unit_spacestation_0 = search_for_texture_unit_by_texture_path(ri, "spacestation_0")->unit;
-    ri.instanced.set_mat4("projection", camera.projection);
-    ri.instanced.set_int("tex_kenny", tex_unit_kenny);
-    ri.instanced.set_int("tex_custom", tex_unit_custom);
-    ri.instanced.set_int("tex_particles", tex_unit_particles);
-    ri.instanced.set_int("tex_gameicons", tex_unit_gameicons);
-    ri.instanced.set_int("tex_voxel", tex_unit_car0);
-    ri.instanced.set_int("tex_unit_space_background_0", tex_unit_space_background_0);
-    ri.instanced.set_int("tex_unit_mainmenu_background", tex_unit_mainmenu_background);
-    ri.instanced.set_int("tex_unit_spacestation_0", tex_unit_spacestation_0);
-  }
-#endif
 
   // FBO: Render sprites in to this fbo with linear colour
   {

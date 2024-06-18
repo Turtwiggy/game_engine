@@ -32,6 +32,7 @@
 #include "modules/renderer/system.hpp"
 #include "modules/resolve_collisions/system.hpp"
 #include "modules/scene/helpers.hpp"
+#include "modules/scene_splashscreen_move_to_menu/system.hpp"
 #include "modules/screenshake/system.hpp"
 #include "modules/sprite_spritestack/system.hpp"
 #include "modules/system_minigame_bamboo/system.hpp"
@@ -95,30 +96,15 @@ init(engine::SINGLETON_Application& app, entt::registry& r)
     kennynl.spritesheet_path = "assets/config/spritemap_kennynl.json";
     ri.user_textures.push_back(kennynl);
 
-    Texture custom;
-    custom.path = "assets/textures/bargame_aseprite.png";
-    custom.spritesheet_path = "assets/config/spritemap_custom.json";
-    ri.user_textures.push_back(custom);
-
-    Texture particles;
-    particles.path = "assets/textures/particles.png";
-    particles.spritesheet_path = "assets/config/spritemap_particles.json";
-    ri.user_textures.push_back(particles);
-
     Texture gameicons;
     gameicons.path = "assets/textures/kennynl_gameicons/Spritesheet/sheet_white1x_adjusted.png";
     gameicons.spritesheet_path = "assets/config/spritemap_kennynl_icons.json";
     ri.user_textures.push_back(gameicons);
 
-    Texture gun_pistol;
-    gun_pistol.path = "assets/textures/voxel/gun_pistol.png";
-    gun_pistol.spritesheet_path = "assets/config/spritemap_voxel_gun_pistol.json";
-    ri.user_textures.push_back(gun_pistol);
-
-    Texture space_background_0;
-    space_background_0.path = "assets/textures/space_background_0.png";
-    space_background_0.spritesheet_path = "assets/config/spritemap_space_background_0.json";
-    ri.user_textures.push_back(space_background_0);
+    Texture space_background;
+    space_background.path = "assets/textures/space_background_stars_only.png";
+    space_background.spritesheet_path = "assets/config/spritemap_space_background_0.json";
+    ri.user_textures.push_back(space_background);
 
     Texture mainmenu_background;
     mainmenu_background.path = "assets/textures/background_mainmenu.png";
@@ -129,6 +115,11 @@ init(engine::SINGLETON_Application& app, entt::registry& r)
     spacestation_0.path = "assets/textures/spacestation_0.png";
     spacestation_0.spritesheet_path = "assets/config/spritemap_spacestation_0.json";
     ri.user_textures.push_back(spacestation_0);
+
+    Texture studio_logo;
+    studio_logo.path = "assets/textures/blueberry.png";
+    studio_logo.spritesheet_path = "assets/config/spritemap_studio_logo.json";
+    ri.user_textures.push_back(studio_logo);
 
     // load spritesheet info
     SINGLE_Animations anims;
@@ -153,7 +144,7 @@ init(engine::SINGLETON_Application& app, entt::registry& r)
 
   r.emplace<SINGLETON_FixedUpdateInputHistory>(create_empty<SINGLETON_FixedUpdateInputHistory>(r));
 
-  move_to_scene_start(r, Scene::menu);
+  move_to_scene_start(r, Scene::splashscreen);
 }
 
 void
@@ -267,7 +258,9 @@ game2d::update(engine::SINGLETON_Application& app, entt::registry& r, const floa
     auto& gameover = get_first_component<SINGLETON_GameOver>(r);
 
     const std::vector<Scene> invalid_scenes{
-      Scene::menu, // dont do game systems in menu
+      // dont do game systems these scenes
+      Scene::splashscreen,
+      Scene::menu,
     };
     const bool in_invalid_scene = std::find(invalid_scenes.begin(), invalid_scenes.end(), scene.s) != invalid_scenes.end();
     if (!in_invalid_scene && state.state == GameState::RUNNING && !gameover.game_is_over) {
@@ -320,6 +313,9 @@ game2d::update(engine::SINGLETON_Application& app, entt::registry& r, const floa
       update_debug_pathfinding_system(r, mouse_pos);
 #endif
     }
+
+    if (scene.s == Scene::splashscreen)
+      update_scene_splashscreen_move_to_menu_system(r, dt);
 
     if (scene.s == Scene::minigame_bamboo) {
       update_minigame_bamboo_system(r, dt);

@@ -31,6 +31,7 @@
 #include "modules/grid/helpers.hpp"
 #include "modules/renderer/components.hpp"
 #include "modules/renderer/helpers.hpp"
+#include "modules/scene_splashscreen_move_to_menu/components.hpp"
 #include "modules/screenshake/components.hpp"
 #include "modules/sprite_spritestack/components.hpp"
 #include "modules/system_minigame_bamboo/components.hpp"
@@ -168,10 +169,23 @@ move_to_scene_start(entt::registry& r, const Scene s, const bool load_saved)
   camera.position = glm::ivec3(0, 0, 0);
 
   // create a cursor
-  const auto cursor_e = create_gameplay(r, EntityType::cursor);
-  set_size(r, cursor_e, { 0, 0 });
+  // const auto cursor_e = create_gameplay(r, EntityType::cursor);
+  // set_size(r, cursor_e, { 0, 0 });
 
   stop_all_audio(r);
+
+  if (s == Scene::splashscreen) {
+    destroy_first_and_create<SINGLE_SplashScreen>(r);
+
+    // create sprite
+    {
+      const auto e = create_gameplay(r, EntityType::empty_with_transform);
+      const auto tex_unit = search_for_texture_unit_by_texture_path(ri, "blueberry").value();
+      set_sprite_custom(r, e, "STUDIO_LOGO", tex_unit.unit);
+      set_size(r, e, { 300, 300 });
+      set_position(r, e, { 0, 0 }); // center
+    }
+  }
 
   if (s == Scene::menu) {
     auto& ui = destroy_first_and_create<SINGLE_MainMenuUI>(r);
@@ -241,7 +255,7 @@ move_to_scene_start(entt::registry& r, const Scene s, const bool load_saved)
     // create a background sprite
     {
       const auto e = create_gameplay(r, EntityType::empty_with_transform);
-      const auto tex_unit = search_for_texture_unit_by_texture_path(ri, "background_0").value();
+      const auto tex_unit = search_for_texture_unit_by_texture_path(ri, "space_background").value();
       set_sprite_custom(r, e, "SPACE_BACKGROUND_0", tex_unit.unit);
       set_size(r, e, { 3000, 3000 });
       set_position(r, e, { map_width / 2, map_height / 2 }); // center

@@ -10,13 +10,11 @@ in vec2 v_sprite_max; // 22 sprites
 in float v_tex_unit;
 
 uniform sampler2D tex_kenny;
-uniform sampler2D tex_custom;
-uniform sampler2D tex_particles;
 uniform sampler2D tex_gameicons;
-uniform sampler2D tex_voxel;
-uniform sampler2D tex_unit_space_background_0;
+uniform sampler2D tex_unit_space_background;
 uniform sampler2D tex_unit_mainmenu_background;
 uniform sampler2D tex_unit_spacestation_0;
+uniform sampler2D tex_unit_studio_logo;
 uniform float screen_w;
 uniform float screen_h;
 
@@ -61,30 +59,25 @@ main()
     // WARNING: seems bad
     if(index == 3){
       out_colour *= texture(tex_kenny, sprite_uv);
-    }else if(index == 4){
-      out_colour *= texture(tex_custom, sprite_uv);
-    }else if(index == 5){
-      out_colour *= texture(tex_particles, sprite_uv);
-      return; // texture uses 0, 0
     }
-    else if(index == 6){
+    else if(index == 4){
       out_colour *= texture(tex_gameicons, sprite_uv);
       return; // texture uses 0, 0
     }
-    else if(index == 7){
-      out_colour *= texture(tex_voxel, sprite_uv);
+    else if(index == 5){
+      out_colour *= texture(tex_unit_space_background, sprite_uv);
       return; // texture uses 0, 0
     }
-    else if(index == 8){
-      out_colour *= texture(tex_unit_space_background_0, sprite_uv);
-      return; // texture uses 0, 0
-    }
-    else if(index == 9){
+    else if(index == 6){
       out_colour *= texture(tex_unit_mainmenu_background, sprite_uv);
       return; // texture uses 0, 0
     }
-    else if(index == 10){
+    else if(index == 7){
       out_colour *= texture(tex_unit_spacestation_0, sprite_uv);
+      return; // texture uses 0, 0
+    }
+     else if(index == 8){
+      out_colour *= texture(tex_unit_studio_logo, sprite_uv);
       return; // texture uses 0, 0
     }
 

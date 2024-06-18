@@ -32,6 +32,10 @@ update_cursor_system(entt::registry& r, const glm::ivec2& mouse_pos)
   const bool held = get_mouse_lmb_held();
   const bool release = get_mouse_lmb_release();
 
+  const auto cursor_e = get_first<CursorComponent>(r);
+  if (cursor_e == entt::null)
+    return;
+
   auto& cursor_c = get_first_component<CursorComponent>(r);
   if (click)
     cursor_c.click_location = mouse_pos;
