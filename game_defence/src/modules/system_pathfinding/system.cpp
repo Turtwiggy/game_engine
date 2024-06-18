@@ -1,6 +1,7 @@
 #include "system.hpp"
 
 #include "entt/helpers.hpp"
+#include "lifecycle/components.hpp"
 #include "maths/grid.hpp"
 #include "modules/algorithm_astar_pathfinding/components.hpp"
 #include "modules/grid/components.hpp"
@@ -8,6 +9,9 @@
 #include "physics/components.hpp"
 
 #include <imgui.h>
+
+#include <algorithm>
+#include <ranges>
 
 namespace game2d {
 
@@ -17,7 +21,15 @@ update_pathfinding_system(entt::registry& r, const float& dt)
   const auto map_e = get_first<MapComponent>(r);
   if (map_e == entt::null)
     return;
-  const auto& map = get_first_component<MapComponent>(r);
+  auto& map = get_first_component<MapComponent>(r);
+
+  // if something was killed, remove it from the map
+  const auto& dead = get_first_component<SINGLETON_EntityBinComponent>(r);
+  for (auto& map_ents : map.map) {
+    const auto invalid = [&r](const entt::entity& e) { return !r.valid(e); };
+    const auto [first, last] = std::ranges::remove_if(map_ents, invalid);
+    map_ents.erase(first, last);
+  }
 
   // set target to next in generated path
   ImGui::Begin("DebugPathfinding");

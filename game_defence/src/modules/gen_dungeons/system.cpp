@@ -42,42 +42,44 @@ update_gen_dungeons_system(entt::registry& r, const glm::ivec2& mouse_pos)
   // }
   // ImGui::End();
 
-  ImGui::Begin("DebugDungeonGen");
   static int i = 0;
   if (get_key_down(input, SDL_SCANCODE_O))
     i--;
   if (get_key_down(input, SDL_SCANCODE_P))
     i++;
-  ImGui::Text("i: %i", i);
 
-  std::vector<Room> rooms;
-  for (const auto& [e, room] : r.view<Room>().each())
-    rooms.push_back(room);
+  ImGui::Begin("DebugDungeonGen");
+  {
+    ImGui::Text("i: %i", i);
 
-  std::vector<Tunnel> tunnels;
-  for (const auto& [e, t] : r.view<Tunnel>().each())
-    tunnels.push_back(t);
+    std::vector<Room> rooms;
+    for (const auto& [e, room] : r.view<Room>().each())
+      rooms.push_back(room);
 
-  const auto grid_pos = engine::grid::world_space_to_grid_space(mouse_pos, map.tilesize);
-  ImGui::Text("grid_pos: %i %i", grid_pos.x, grid_pos.y);
+    std::vector<Tunnel> tunnels;
+    for (const auto& [e, t] : r.view<Tunnel>().each())
+      tunnels.push_back(t);
 
-  const auto in_room = inside_room(map, rooms, grid_pos);
-  ImGui::Text("Inside Room: %i", in_room);
+    const auto grid_pos = engine::grid::world_space_to_grid_space(mouse_pos, map.tilesize);
+    ImGui::Text("grid_pos: %i %i", grid_pos.x, grid_pos.y);
 
-  const auto in_tunnel = inside_tunnel(tunnels, grid_pos);
-  ImGui::Text("Inside Tunnel: %i", in_tunnel);
+    const auto in_room = inside_room(map, rooms, grid_pos);
+    ImGui::Text("Inside Room: %i", in_room);
 
-  auto dungeon_e = get_first<DungeonGenerationResults>(r);
-  if (dungeon_e != entt::null) {
-    const auto dungeon_results = get_first_component<DungeonGenerationResults>(r);
-    ImGui::Text("Have dungeon gen results");
+    const auto in_tunnel = inside_tunnel(tunnels, grid_pos);
+    ImGui::Text("Inside Tunnel: %i", in_tunnel);
 
-    auto mouse_idx = engine::grid::grid_position_to_index(grid_pos, map.xmax);
-    mouse_idx = glm::clamp(mouse_idx, 0, map.xmax * map.ymax - 1);
+    auto dungeon_e = get_first<DungeonGenerationResults>(r);
+    if (dungeon_e != entt::null) {
+      const auto dungeon_results = get_first_component<DungeonGenerationResults>(r);
+      ImGui::Text("Have dungeon gen results");
 
-    ImGui::Text("mouse: %i is_wall_or_floor: %i", mouse_idx, dungeon_results.wall_or_floors[mouse_idx]);
+      auto mouse_idx = engine::grid::grid_position_to_index(grid_pos, map.xmax);
+      mouse_idx = glm::clamp(mouse_idx, 0, map.xmax * map.ymax - 1);
+
+      ImGui::Text("mouse: %i is_wall_or_floor: %i", mouse_idx, dungeon_results.wall_or_floors[mouse_idx]);
+    }
   }
-
   ImGui::End();
 
   // HACK: force regenerate dungeon
@@ -93,12 +95,12 @@ update_gen_dungeons_system(entt::registry& r, const glm::ivec2& mouse_pos)
 
   move_to_scene_start(r, Scene::dungeon_designer); // clear old map
 
-  const auto& data_e = get_first<SINGLE_DuckgameToDungeon>(r);
+  const auto& data_e = get_first<OverworldToDungeonInfo>(r);
   if (data_e == entt::null) {
-    std::cout << "not generating dungeon. SINGLE_DuckgameToDungeon not set." << std::endl;
+    std::cout << "not generating dungeon. OverworldToDungeonInfo not set." << std::endl;
     return;
   }
-  const auto& data = r.get<SINGLE_DuckgameToDungeon>(data_e);
+  const auto& data = r.get<OverworldToDungeonInfo>(data_e);
   std::cout << "generating dungeon... you hit a patrol! strength: " << data.patrol_that_you_hit.strength << std::endl;
 
   // todo: make strength impact the number of things spawned
@@ -131,11 +133,11 @@ update_gen_dungeons_system(entt::registry& r, const glm::ivec2& mouse_pos)
     }
   }
 
-  rooms.clear();
+  std::vector<Room> rooms;
   for (const auto& [e, room] : r.view<Room>().each())
     rooms.push_back(room);
 
-  tunnels.clear();
+  std::vector<Tunnel> tunnels;
   for (const auto& [e, t] : r.view<Tunnel>().each())
     tunnels.push_back(t);
 

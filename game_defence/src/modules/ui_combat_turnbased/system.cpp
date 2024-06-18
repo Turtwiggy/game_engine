@@ -215,15 +215,17 @@ update_ui_combat_turnbased_system(entt::registry& r, const glm::ivec2& input_mou
     }
   }
 
-  ImGui::Text("Hello, Combat!");
-
   const auto& selected_view = r.view<SelectedComponent, AABB>();
   int count = 0;
   for (const auto& [e, selected_c, aabb] : selected_view.each())
     count++;
 
-  if (ImGui::Button("End Turn")) // let player end their turn
-    r.emplace<RequestToCompleteTurn>(create_empty<RequestToCompleteTurn>(r), AvailableTeams::player);
+  if (state.team == AvailableTeams::player) {
+    if (ImGui::Button("End Turn")) // let player end their turn
+      r.emplace<RequestToCompleteTurn>(create_empty<RequestToCompleteTurn>(r), AvailableTeams::player);
+  } else {
+    ImGui::Text("Not player turn...");
+  }
 
   // limit: must be interacting with 1 selected unit
   if (count != 1) {

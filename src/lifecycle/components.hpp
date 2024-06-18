@@ -23,7 +23,8 @@ struct EntityTimedLifecycle
 
 struct SINGLETON_EntityBinComponent
 {
-  std::unordered_set<entt::entity> dead;
+  std::unordered_set<entt::entity> dead;      // to destroy next fixed update
+  std::vector<entt::entity> things_that_died; // destroyed last fixed update
 };
 
 // added to an entity when made via create_gameplay()

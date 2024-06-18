@@ -54,16 +54,7 @@ get_lowest_cost_neighbour(entt::registry& r, const MapComponent& map, const Grid
   std::vector<std::pair<int, int>> idx_to_cost;
   for (const auto& [dir, neighbour_idx] : neighbour_idxs) {
     auto& map_entries = map.map[neighbour_idx];
-
     for (const auto& map_e : map_entries) {
-      // if (!r.valid(map_e)) // chance the unit died.
-      // {
-      //   // remove from current gridpos
-      //   const auto hmm =
-      //     std::remove_if(map_entries.begin(), map_entries.end(), [&map_e](const entt::entity& a) { return a == map_e; });
-      //   map_entries.erase(hmm, map_entries.end());
-      //   continue;
-      // }
       const auto& pathfinding_c = r.get<PathfindComponent>(map_e);
       idx_to_cost.push_back({ neighbour_idx, pathfinding_c.cost });
     }

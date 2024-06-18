@@ -11,7 +11,7 @@ struct SINGLE_TurnBasedCombatInfo
 };
 
 // Data transferred from the Duckgame scene to the dungeon scene
-struct SINGLE_DuckgameToDungeon
+struct OverworldToDungeonInfo
 {
   bool backstabbed = false; // was something backstabbed to get here?
   PatrolComponent patrol_that_you_hit;

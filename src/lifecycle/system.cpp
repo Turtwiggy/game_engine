@@ -18,13 +18,13 @@ game2d::update_lifecycle_system(entt::registry& r, const uint64_t& milliseconds_
     lifecycle.milliseconds_alive += static_cast<int>(milliseconds_dt);
   });
 
+  // provide a list of entity ids that were killed
+  dead.things_that_died.clear();
+  for (const auto& to_be_killed : dead.dead)
+    dead.things_that_died.push_back(to_be_killed);
+
   // destroy all dead objects
-  //
   r.destroy(dead.dead.begin(), dead.dead.end());
-  // for (const auto& d : dead.dead) {
-  //   if (r.valid(d))
-  //     r.destroy(d);
-  // }
   dead.dead.clear();
 
   // process create requests

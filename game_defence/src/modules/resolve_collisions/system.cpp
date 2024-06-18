@@ -48,13 +48,10 @@ enemy_player_collision(entt::registry& r, const entt::entity& a, const entt::ent
 
   if (a_player != entt::null && b_group != entt::null) {
 
-    SINGLE_DuckgameToDungeon data;
+    OverworldToDungeonInfo data;
     data.backstabbed = r.try_get<BackstabbableComponent>(b_group) != nullptr;
     data.patrol_that_you_hit = r.get<PatrolComponent>(b_group);
-
-    // BUG: This looks like a bug that it's creating a SINGLE_ if a collision occours
-    const auto e = create_empty<SINGLE_DuckgameToDungeon>(r);
-    r.emplace<SINGLE_DuckgameToDungeon>(e, data);
+    r.emplace<OverworldToDungeonInfo>(create_empty<OverworldToDungeonInfo>(r), data);
 
     // Destroy the entity we collided with before moving scene,
     // so that when the game is loaded it's gone?
@@ -65,7 +62,8 @@ enemy_player_collision(entt::registry& r, const entt::entity& a, const entt::ent
     save(r, "save-overworld.json");
 
     // going to "dungeon" scene
-    move_to_scene_start(r, Scene::turnbasedcombat);
+    move_to_scene_start(r, Scene::dungeon_designer);
+    r.emplace<RequestGenerateDungeonComponent>(create_empty<RequestGenerateDungeonComponent>(r));
   }
 }
 

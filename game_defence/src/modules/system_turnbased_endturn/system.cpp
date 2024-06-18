@@ -1,6 +1,8 @@
 #include "system.hpp"
 
 #include "entt/helpers.hpp"
+#include "modules/actors/helpers.hpp"
+#include "modules/algorithm_astar_pathfinding/helpers.hpp"
 #include "modules/combat_damage/components.hpp"
 #include "modules/system_turnbased_enemy/components.hpp"
 
@@ -16,8 +18,17 @@ update_turnbased_endturn_system(entt::registry& r)
   const auto request = get_first_component<RequestToCompleteTurn>(r);
   r.destroy(req_view.begin(), req_view.end());
 
-  // At end of turn, Destroy everything's turnstate
   const auto& view = r.view<TurnState>();
+
+  // At end of turn, if you're not at your destination, teleport there
+  for (const auto& [e, ts_c] : view.each()) {
+    if (has_destination(r, e) && !at_destination(r, e)) {
+      const auto& path = r.get<GeneratedPathComponent>(e);
+      set_position(r, e, path.dst_pos);
+    }
+  }
+
+  // At end of turn, Destroy everything's turnstate
   r.remove<TurnState>(view.begin(), view.end());
 
   auto& turn_state = get_first_component<SINGLE_CombatState>(r);

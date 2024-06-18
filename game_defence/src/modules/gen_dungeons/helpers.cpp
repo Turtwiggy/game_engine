@@ -392,7 +392,7 @@ void
 set_generated_entity_positions(entt::registry& r, const DungeonGenerationResults& results, engine::RandomState& rnd)
 {
   const auto& map_c = get_first_component<MapComponent>(r);
-  const auto& data = get_first_component<SINGLE_DuckgameToDungeon>(r);
+  const auto& data = get_first_component<OverworldToDungeonInfo>(r);
   const int strength = data.patrol_that_you_hit.strength;
 
   const auto& rooms_view = r.view<Room>();
