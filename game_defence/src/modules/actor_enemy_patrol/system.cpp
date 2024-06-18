@@ -80,8 +80,7 @@ update_actor_enemy_patrol_system(entt::registry& r, const glm::ivec2 mouse_pos, 
       const auto src_gridpos = clamp_worldspace_to_gridspace(map, src);
 
       // get a random neighbour
-      std::vector<std::pair<engine::grid::GridDirection, int>> results;
-      get_neighbour_indicies(src_gridpos.x, src_gridpos.y, map.xmax, map.ymax, results);
+      const auto results = engine::grid::get_neighbour_indicies(src_gridpos.x, src_gridpos.y, map.xmax, map.ymax);
       const int rnd_neighbour_idx = int(engine::rand_det_s(rnd.rng, 0, results.size()));
       const int dst_idx = results[rnd_neighbour_idx].second;
       const auto dst = engine::grid::index_to_world_position(dst_idx, map.xmax, map.ymax, map.tilesize);

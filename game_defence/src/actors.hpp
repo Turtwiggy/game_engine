@@ -56,11 +56,11 @@ enum class EntityType
   bullet_bow,
   bullet_enemy,
 
-  // actor_enemy,
-  enemy_dummy,
-  enemy_grunt,
-  enemy_ranged,
   actor_enemy_patrol,
+  // actor_enemy,
+  // enemy_dummy,
+  // enemy_grunt,
+  // enemy_ranged,
 
   // misc
   cursor,

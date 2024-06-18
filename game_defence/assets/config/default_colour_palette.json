@@ -1,7 +1,9 @@
 {
   "colours": [
     {
-      "r": 33, "g": 33, "b": 33,
+      "r": 33,
+      "g": 33,
+      "b": 33,
       "name": "background",
       "tags": [ "background" ]
     },

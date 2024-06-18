@@ -1,13 +1,11 @@
 #pragma once
 
-#include "modules/renderer/components.hpp"
 #include "renderer/transform.hpp"
 
 #include <entt/entt.hpp>
 #include <glm/glm.hpp>
 
-// #include <utility>
-// #include <vector>
+#include <optional>
 
 namespace game2d {
 

@@ -4,12 +4,8 @@ namespace engine {
 
 namespace grid {
 
-void
-get_neighbour_indicies(const int x,
-                       const int y,
-                       const int x_max,
-                       const int y_max,
-                       std::vector<std::pair<GridDirection, int>>& results)
+std::vector<std::pair<GridDirection, int>>
+get_neighbour_indicies(const int x, const int y, const int x_max, const int y_max)
 {
   const int max_idx = x_max * y_max;
   const int idx_north = x_max * (y - 1) + x;
@@ -20,6 +16,8 @@ get_neighbour_indicies(const int x,
   const bool ignore_east = x >= x_max - 1;
   const bool ignore_south = y >= y_max - 1;
   const bool ignore_west = x <= 0;
+
+  std::vector<std::pair<GridDirection, int>> results;
 
   if (!ignore_north && idx_north >= 0 && idx_north < max_idx)
     results.push_back({ GridDirection::north, idx_north });
@@ -32,14 +30,12 @@ get_neighbour_indicies(const int x,
 
   if (!ignore_west && idx_west >= 0 && idx_west < max_idx)
     results.push_back({ GridDirection::west, idx_west });
+
+  return results;
 };
 
-void
-get_neighbour_indicies_with_diagonals(const int x,
-                                      const int y,
-                                      const int x_max,
-                                      const int y_max,
-                                      std::vector<std::pair<GridDirection, int>>& results)
+std::vector<std::pair<GridDirection, int>>
+get_neighbour_indicies_with_diagonals(const int x, const int y, const int x_max, const int y_max)
 {
   const int max_idx = x_max * y_max;
   const int idx_north = x_max * (y - 1) + x;
@@ -58,6 +54,8 @@ get_neighbour_indicies_with_diagonals(const int x,
   const bool ignore_south_east = ignore_south | ignore_east;
   const bool ignore_south_west = ignore_south | ignore_west;
   const bool ignore_north_west = ignore_north | ignore_west;
+
+  std::vector<std::pair<GridDirection, int>> results;
 
   if (!ignore_north && idx_north >= 0 && idx_north < max_idx)
     results.push_back({ GridDirection::north, idx_north });
@@ -82,6 +80,8 @@ get_neighbour_indicies_with_diagonals(const int x,
 
   if (!ignore_north_west && idx_north_west >= 0 && idx_north_west < max_idx)
     results.push_back({ GridDirection::north_west, idx_north_west });
+
+  return results;
 };
 
 };

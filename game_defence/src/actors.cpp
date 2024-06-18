@@ -3,7 +3,6 @@
 #include "colour/colour.hpp"
 #include "entt/helpers.hpp"
 #include "lifecycle/components.hpp"
-#include "maths/maths.hpp"
 #include "modules/actor_bodypart_head/components.hpp"
 #include "modules/actor_bodypart_legs/components.hpp"
 #include "modules/actor_cursor/components.hpp"
@@ -129,12 +128,12 @@ sprite_type_to_sprite(entt::registry& r, const EntityType& type)
     sprite = "EMPTY";
 
   // enemies...
-  else if (type == EntityType::enemy_dummy)
-    sprite = "PERSON_25_1";
-  else if (type == EntityType::enemy_grunt)
-    sprite = "PERSON_25_1";
-  else if (type == EntityType::enemy_ranged)
-    sprite = "PERSON_25_6";
+  // else if (type == EntityType::enemy_dummy)
+  //   sprite = "PERSON_25_1";
+  // else if (type == EntityType::enemy_grunt)
+  //   sprite = "PERSON_25_1";
+  // else if (type == EntityType::enemy_ranged)
+  //   sprite = "PERSON_25_6";
   // else if (type == EntityType::enemy_sniper)
   //   sprite = "PERSON_25_6";
   // else if (type == EntityType::enemy_shotgunner)
@@ -561,63 +560,53 @@ create_gameplay(entt::registry& r, const EntityType& type)
       break;
     }
 
-    // actors_enemies
-    //
-    case EntityType::enemy_dummy: {
-      create_physics_actor(r, e);
-      r.emplace<EnemyComponent>(e);
-      r.emplace<TeamComponent>(e, AvailableTeams::enemy);
-      r.emplace<HealthComponent>(e, 100, 100);
-      r.emplace<HoverableComponent>(e);
-      r.emplace<KnockbackComponent>(e);
-      break;
-    }
-    case EntityType::enemy_grunt: {
-      create_physics_actor(r, e);
-      float base_speed = 50.0f; // influences velocity
-      auto& vel = r.get<VelocityComponent>(e);
-      vel.base_speed = base_speed;
-
-      r.emplace<EnemyComponent>(e);
-      r.emplace<HoverableComponent>(e);
-
-      // items
-      r.emplace<AbleToDropItem>(e);
-
-      // movement
-      r.emplace<HasTargetPositionComponent>(e);
-      r.emplace<SetVelocityToTargetComponent>(e);
-
-      // combat
-      r.emplace<TeamComponent>(e, AvailableTeams::enemy);
-      r.emplace<HealthComponent>(e, 10, 10);
-      r.emplace<MeleeComponent>(e);
-      r.emplace<KnockbackComponent>(e);
-      // r.emplace<AttackComponent>(e, 10); // on the equipped weapon?
-      break;
-    }
-
-    case EntityType::enemy_ranged: {
-      create_physics_actor(r, e);
-      r.emplace<EnemyComponent>(e);
-      r.emplace<HoverableComponent>(e);
-
-      // items
-      r.emplace<AbleToDropItem>(e);
-
-      // movement
-      r.emplace<HasTargetPositionComponent>(e);
-      // r.emplace<LerpToTargetComponent>(e, speed);
-
-      // combat
-      r.emplace<TeamComponent>(e, AvailableTeams::enemy);
-      r.emplace<HealthComponent>(e, 10, 10);
-      r.emplace<RangedComponent>(e);
-      r.emplace<AttackCooldownComponent>(e, 1.2f);
-      r.emplace<KnockbackComponent>(e);
-      // r.emplace<AttackComponent>(e, 10); // on the equipped weapon?
-      break;
-    }
+      // actors_enemies
+      //
+      // case EntityType::enemy_dummy: {
+      //   create_physics_actor(r, e);
+      //   r.emplace<EnemyComponent>(e);
+      //   r.emplace<TeamComponent>(e, AvailableTeams::enemy);
+      //   r.emplace<HealthComponent>(e, 100, 100);
+      //   r.emplace<HoverableComponent>(e);
+      //   r.emplace<KnockbackComponent>(e);
+      //   break;
+      // }
+      // case EntityType::enemy_grunt: {
+      //   create_physics_actor(r, e);
+      //   float base_speed = 50.0f; // influences velocity
+      //   auto& vel = r.get<VelocityComponent>(e);
+      //   vel.base_speed = base_speed;
+      //   r.emplace<EnemyComponent>(e);
+      //   r.emplace<HoverableComponent>(e);
+      //   // items
+      //   r.emplace<AbleToDropItem>(e);
+      //   // movement
+      //   r.emplace<HasTargetPositionComponent>(e);
+      //   r.emplace<SetVelocityToTargetComponent>(e);
+      //   // combat
+      //   r.emplace<TeamComponent>(e, AvailableTeams::enemy);
+      //   r.emplace<HealthComponent>(e, 10, 10);
+      //   r.emplace<KnockbackComponent>(e);
+      //   // r.emplace<AttackComponent>(e, 10); // on the equipped weapon?
+      //   break;
+      // }
+      // case EntityType::enemy_ranged: {
+      //   create_physics_actor(r, e);
+      //   r.emplace<EnemyComponent>(e);
+      //   r.emplace<HoverableComponent>(e);
+      //   // items
+      //   r.emplace<AbleToDropItem>(e);
+      //   // movement
+      //   r.emplace<HasTargetPositionComponent>(e);
+      //   // r.emplace<LerpToTargetComponent>(e, speed);
+      //   // combat
+      //   r.emplace<TeamComponent>(e, AvailableTeams::enemy);
+      //   r.emplace<HealthComponent>(e, 10, 10);
+      //   r.emplace<AttackCooldownComponent>(e, 1.2f);
+      //   r.emplace<KnockbackComponent>(e);
+      //   // r.emplace<AttackComponent>(e, 10); // on the equipped weapon?
+      //   break;
+      // }
 
       //
       // misc

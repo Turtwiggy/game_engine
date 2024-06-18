@@ -41,30 +41,29 @@ move_entity_on_map(entt::registry& r, const entt::entity& src_e, const glm::ivec
 };
 
 int
-get_lowest_cost_neighbour(entt::registry& r, MapComponent& map, const GridComponent& grid, const entt::entity& e)
+get_lowest_cost_neighbour(entt::registry& r, const MapComponent& map, const GridComponent& grid, const entt::entity& e)
 {
   const auto dst = get_position(r, e);
   const auto dst_idx = convert_position_to_index(map, dst);
   const auto dst_gridpos = engine::grid::index_to_grid_position(dst_idx, map.xmax, map.ymax);
 
-  std::vector<std::pair<engine::grid::GridDirection, int>> neighbours_idxs;
-  engine::grid::get_neighbour_indicies_with_diagonals(
-    dst_gridpos.x, dst_gridpos.y, grid.width, grid.height, neighbours_idxs);
+  const auto neighbour_idxs =
+    engine::grid::get_neighbour_indicies_with_diagonals(dst_gridpos.x, dst_gridpos.y, grid.width, grid.height);
 
   // get cost at each neighbour
   std::vector<std::pair<int, int>> idx_to_cost;
-  for (const auto& [dir, neighbour_idx] : neighbours_idxs) {
+  for (const auto& [dir, neighbour_idx] : neighbour_idxs) {
     auto& map_entries = map.map[neighbour_idx];
 
     for (const auto& map_e : map_entries) {
-      if (!r.valid(map_e)) // chance the unit died.
-      {
-        // remove from current gridpos
-        const auto hmm =
-          std::remove_if(map_entries.begin(), map_entries.end(), [&map_e](const entt::entity& a) { return a == map_e; });
-        map_entries.erase(hmm, map_entries.end());
-        continue;
-      }
+      // if (!r.valid(map_e)) // chance the unit died.
+      // {
+      //   // remove from current gridpos
+      //   const auto hmm =
+      //     std::remove_if(map_entries.begin(), map_entries.end(), [&map_e](const entt::entity& a) { return a == map_e; });
+      //   map_entries.erase(hmm, map_entries.end());
+      //   continue;
+      // }
       const auto& pathfinding_c = r.get<PathfindComponent>(map_e);
       idx_to_cost.push_back({ neighbour_idx, pathfinding_c.cost });
     }
@@ -92,7 +91,7 @@ get_lowest_cost_neighbour(entt::registry& r, MapComponent& map, const GridCompon
 void
 update_path_to_tile_next_to_player(entt::registry& r, const entt::entity& src_e, const entt::entity& dst_e)
 {
-  auto& map = get_first_component<MapComponent>(r); // gets updated if units was dead
+  const auto& map = get_first_component<MapComponent>(r); // gets updated if units was dead
   const glm::ivec2 offset = { map.tilesize / 2, map.tilesize / 2 };
   const auto grid = map_to_grid(r);
 
@@ -104,7 +103,8 @@ update_path_to_tile_next_to_player(entt::registry& r, const entt::entity& src_e,
   auto dst_pos = engine::grid::index_to_world_position(chosen_neighbour_idx, map.xmax, map.ymax, map.tilesize);
   dst_pos += offset;
 
-  const auto path = generate_direct(r, grid, src_idx, chosen_neighbour_idx);
+  const auto path = generate_direct(r, grid, src_idx, chosen_neighbour_idx, map.edges);
+
   GeneratedPathComponent path_c;
   path_c.path = path;
   path_c.src_pos = src;
@@ -130,7 +130,8 @@ update_path_to_mouse(entt::registry& r, const entt::entity& src_e, const glm::iv
   const auto dst = mouse_pos;
   const int dst_idx = convert_position_to_index(map, dst);
 
-  const auto path = generate_direct(r, grid, src_idx, dst_idx);
+  const auto path = generate_direct(r, grid, src_idx, dst_idx, map.edges);
+
   GeneratedPathComponent path_c;
   path_c.path = path;
   path_c.src_pos = src;

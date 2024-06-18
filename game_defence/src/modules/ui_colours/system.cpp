@@ -64,7 +64,7 @@ init_ui_colour_palette_system(entt::registry& r)
 
   SINGLE_ColoursInfo info;
 
-  for (auto& el : data["colours"]) {
+  for (const auto& el : data["colours"]) {
     ColourTagged colour;
 
     const auto name = el["name"];

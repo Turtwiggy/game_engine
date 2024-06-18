@@ -9,7 +9,7 @@ namespace game2d {
 
 struct SpawnerComponent
 {
-  std::vector<EntityType> types_to_spawn{ EntityType::enemy_grunt };
+  std::vector<EntityType> types_to_spawn{};
 
   bool continuous_spawn = true;
 

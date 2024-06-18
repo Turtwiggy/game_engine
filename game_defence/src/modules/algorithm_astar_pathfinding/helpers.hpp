@@ -3,8 +3,10 @@
 #include "modules/algorithm_astar_pathfinding/components.hpp"
 #include "modules/grid/components.hpp"
 
+#include <functional>
 #include <glm/glm.hpp>
 
+#include <optional>
 #include <vector>
 
 namespace game2d {
@@ -33,7 +35,11 @@ heuristic(const T& a, const T& b)
 };
 
 [[nodiscard]] std::vector<glm::ivec2>
-generate_direct(entt::registry& r, const GridComponent& grid, const int from_idx, const int to_idx);
+generate_direct(entt::registry& r,
+                const GridComponent& grid,
+                const int from_idx,
+                const int to_idx,
+                const std::optional<std::vector<Edge>> edges = std::nullopt);
 
 [[nodiscard]] std::vector<glm::ivec2>
 generate_direct_with_diagonals(entt::registry& r, const GridComponent& grid, const int from_idx, const int to_idx);

@@ -32,6 +32,7 @@ struct MapComponent
   int tilesize = 50;
 
   std::vector<std::vector<entt::entity>> map;
+  std::vector<Edge> edges;
 };
 
 } // namespace game2d

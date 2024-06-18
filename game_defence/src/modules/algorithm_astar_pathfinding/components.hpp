@@ -51,4 +51,11 @@ struct GeneratedPathComponent
   bool aim_for_exact_position = false;
 };
 
+// an edge between two cells assumes there's a wall there
+struct Edge
+{
+  vec2i cell_a{ 0, 0 };
+  vec2i cell_b{ 0, 0 };
+};
+
 } // namespace game2d

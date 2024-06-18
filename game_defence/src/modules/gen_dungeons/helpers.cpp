@@ -447,7 +447,7 @@ set_generated_entity_positions(entt::registry& r, const DungeonGenerationResults
   }
 };
 
-bool
+std::pair<bool, std::optional<Room>>
 inside_room(const MapComponent& map, const std::vector<Room>& rooms, const glm::ivec2& gridpos)
 {
   const glm::ivec2 offset = { map.tilesize / 2, map.tilesize / 2 };
@@ -469,10 +469,10 @@ inside_room(const MapComponent& map, const std::vector<Room>& rooms, const glm::
 
     // Room AABB is in gridspace
     if (collide(room.aabb, aabb))
-      return true;
+      return { true, room };
   }
 
-  return false;
+  return { false, std::nullopt };
 };
 
 bool
@@ -508,8 +508,7 @@ instantiate_tunnels(entt::registry& r, std::vector<Line>& lines, const DungeonGe
   // }
 
   const auto create_walls_based_on_neighbours = [&r, &map, &results](const glm::ivec2& gp) {
-    std::vector<std::pair<engine::grid::GridDirection, int>> idxs;
-    engine::grid::get_neighbour_indicies(gp.x, gp.y, map.xmax, map.ymax, idxs);
+    const auto idxs = engine::grid::get_neighbour_indicies(gp.x, gp.y, map.xmax, map.ymax);
     for (const auto& [dir, neighbour_idx] : idxs) {
 
       // dont create walls at floors
@@ -520,8 +519,8 @@ instantiate_tunnels(entt::registry& r, std::vector<Line>& lines, const DungeonGe
       // dont create walls at rooms
       // although possibly this is where to create doors
       const auto neighbour_gp = engine::grid::index_to_grid_position(neighbour_idx, map.xmax, map.ymax);
-      const auto neighbour_in_room = inside_room(map, results.rooms, neighbour_gp);
-      if (neighbour_in_room)
+      const auto [in_room, room] = inside_room(map, results.rooms, neighbour_gp);
+      if (in_room)
         continue;
 
       // else: neighbour is a wall, create a wall
@@ -560,15 +559,15 @@ instantiate_tunnels(entt::registry& r, std::vector<Line>& lines, const DungeonGe
     const auto& square_1 = tunnel.line_1;
 
     for (const std::pair<int, int>& gridpos : square_0) {
-      const auto coll = inside_room(map, results.rooms, { gridpos.first, gridpos.second });
-      if (coll)
+      const auto [has_coll, room] = inside_room(map, results.rooms, { gridpos.first, gridpos.second });
+      if (has_coll)
         continue;
       create_walls_based_on_neighbours({ gridpos.first, gridpos.second });
     }
 
     for (const std::pair<int, int>& gridpos : square_1) {
-      const auto coll = inside_room(map, results.rooms, { gridpos.first, gridpos.second });
-      if (coll)
+      const auto [has_coll, room] = inside_room(map, results.rooms, { gridpos.first, gridpos.second });
+      if (has_coll)
         continue;
       create_walls_based_on_neighbours({ gridpos.first, gridpos.second });
     }

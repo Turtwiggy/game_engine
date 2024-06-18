@@ -66,7 +66,11 @@ reconstruct_path(std::map<vec2i, vec2i> came_from, vec2i from, vec2i to)
 }
 
 std::vector<glm::ivec2>
-generate_direct(entt::registry& r, const GridComponent& grid, const int from_idx, const int to_idx)
+generate_direct(entt::registry& r,
+                const GridComponent& grid,
+                const int from_idx,
+                const int to_idx,
+                const std::optional<std::vector<Edge>> edges)
 {
   std::vector<astar_cell> map = generate_map_view(r, grid);
 
@@ -93,12 +97,31 @@ generate_direct(entt::registry& r, const GridComponent& grid, const int from_idx
     if (equal<vec2i>(current, to))
       return reconstruct_path(came_from, from, to);
 
-    std::vector<std::pair<engine::grid::GridDirection, int>> neighbours_idxs;
-    engine::grid::get_neighbour_indicies(current.x, current.y, grid.width, grid.height, neighbours_idxs);
+    const auto neighbour_idxs = engine::grid::get_neighbour_indicies(current.x, current.y, grid.width, grid.height);
 
-    for (const auto& [dir, idx] : neighbours_idxs) {
+    for (const auto& [dir, idx] : neighbour_idxs) {
       const auto& neighbour = map[idx].pos;
       const auto& neighbour_cost = map[idx].cost;
+
+      // Check the edges
+      if (edges.has_value()) {
+        // Check if there's an edge between the current cell and the neighbour cell.
+        // If there is, skip evaluating this neighbour.
+
+        const std::vector<Edge>& es = edges.value();
+
+        bool wall_between_grid = false;
+
+        for (const Edge& e : es) {
+          wall_between_grid |= e.cell_a == current && e.cell_b == neighbour;
+          wall_between_grid |= e.cell_b == current && e.cell_a == neighbour;
+        }
+
+        if (wall_between_grid)
+          continue; // impassable
+
+        //
+      }
 
       if (neighbour_cost == -1)
         continue; // impassable
@@ -145,8 +168,8 @@ generate_direct_with_diagonals(entt::registry& r, const GridComponent& grid, con
     if (equal<vec2i>(current, to))
       return reconstruct_path(came_from, from, to);
 
-    std::vector<std::pair<engine::grid::GridDirection, int>> neighbours_idxs;
-    engine::grid::get_neighbour_indicies_with_diagonals(current.x, current.y, grid.width, grid.height, neighbours_idxs);
+    const auto neighbours_idxs =
+      engine::grid::get_neighbour_indicies_with_diagonals(current.x, current.y, grid.width, grid.height);
 
     for (const auto& [dir, idx] : neighbours_idxs) {
       const auto& neighbour = map[idx].pos;
@@ -189,8 +212,7 @@ generate_accessible_areas(entt::registry& r, const GridComponent& grid, const in
     results.push_back({ current.x, current.y });
 
     // check neighbours
-    std::vector<std::pair<engine::grid::GridDirection, int>> neighbours_idxs;
-    engine::grid::get_neighbour_indicies(current.x, current.y, grid.width, grid.height, neighbours_idxs);
+    const auto neighbours_idxs = engine::grid::get_neighbour_indicies(current.x, current.y, grid.width, grid.height);
 
     for (const auto& [dir, idx] : neighbours_idxs) {
       auto& neighbour = map[idx];
@@ -233,9 +255,8 @@ generate_flow_field(entt::registry& r, const GridComponent& grid, const int from
   while (frontier.size() > 0) {
     auto current = frontier.dequeue();
 
-    std::vector<std::pair<engine::grid::GridDirection, int>> neighbours_idxs;
     const auto gpos = engine::grid::index_to_grid_position(current, grid.width, grid.height);
-    engine::grid::get_neighbour_indicies(gpos.x, gpos.y, grid.width, grid.height, neighbours_idxs);
+    const auto neighbours_idxs = engine::grid::get_neighbour_indicies(gpos.x, gpos.y, grid.width, grid.height);
 
     for (const auto& [dir, neighbour_idx] : neighbours_idxs) {
       const auto& neighbour_pos = map[neighbour_idx].pos;

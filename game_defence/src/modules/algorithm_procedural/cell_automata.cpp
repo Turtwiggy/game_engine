@@ -31,9 +31,7 @@ iterate_with_cell_automata(const std::vector<int>& in, const glm::ivec2& xy)
 
   for (int i = 0; i < xy.x * xy.y; i++) {
     const auto grid_xy = engine::grid::index_to_grid_position(i, xy.x, xy.y);
-
-    std::vector<std::pair<engine::grid::GridDirection, int>> neighbours_idxs;
-    engine::grid::get_neighbour_indicies_with_diagonals(grid_xy.x, grid_xy.y, xy.x, xy.y, neighbours_idxs);
+    const auto neighbours_idxs = engine::grid::get_neighbour_indicies_with_diagonals(grid_xy.x, grid_xy.y, xy.x, xy.y);
 
     int neighbours = 0;
 
