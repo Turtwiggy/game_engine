@@ -72,7 +72,7 @@ generate_direct(entt::registry& r,
                 const int to_idx,
                 const std::optional<std::vector<Edge>> edges)
 {
-  std::vector<astar_cell> map = generate_map_view(r, grid);
+  const std::vector<astar_cell> map = generate_map_view(r, grid);
 
   std::vector<vec2i> path;
 
@@ -143,7 +143,7 @@ generate_direct(entt::registry& r,
 std::vector<glm::ivec2>
 generate_direct_with_diagonals(entt::registry& r, const GridComponent& grid, const int from_idx, const int to_idx)
 {
-  std::vector<astar_cell> map = generate_map_view(r, grid);
+  const std::vector<astar_cell> map = generate_map_view(r, grid);
 
   std::vector<vec2i> path;
 

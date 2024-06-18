@@ -389,61 +389,59 @@ instantiate_walls(entt::registry& r, std::vector<Line>& lines, const DungeonGene
 };
 
 void
-set_generated_entity_positions(entt::registry& r, const DungeonGenerationResults& results, engine::RandomState& rnd)
+set_generated_entity_positions(entt::registry& r, DungeonGenerationResults& results, engine::RandomState& rnd)
 {
   const auto& map_c = get_first_component<MapComponent>(r);
   const auto& data = get_first_component<OverworldToDungeonInfo>(r);
   const int strength = data.patrol_that_you_hit.strength;
+  auto& rooms = results.rooms;
 
-  const auto& rooms_view = r.view<Room>();
-  const int amount_of_rooms = rooms_view.size();
+  const int max_attempts_to_generate_unique_spot = 3;
   // const int potential_items_per_room = 5 + (floor);
   // const int potential_monsters_per_room = 5 + (floor);
   // printf("floor %i has max items %i, max monsters: %i\n", floor, potential_items_per_room, potential_monsters_per_room);
 
-  for (int room_idx = 0; const auto& [e, room] : rooms_view.each()) {
-    // first room is player room
-    if (room_idx == 0) {
-      room_idx++;
-      continue;
-    }
-    room_idx++;
+  int room_idx_to_spawn = 1;
+  for (int i = strength; i > 0; i--) {
+    if (room_idx_to_spawn == 0)
+      room_idx_to_spawn++; // first index room is player room
 
-    // stop spawning entities.
-    // you've spawned enough for your strength.
-    if ((room_idx - 1) > strength)
-      continue;
-
+    Room& room = rooms[room_idx_to_spawn];
     const glm::ivec2 tl = room.tl;
     const glm::ivec2 br = room.tl + glm::ivec2{ room.aabb.size.x, room.aabb.size.y };
 
-    // ramdomly place generated entities
-    for (int i = 0; i < 1; i++) {
-      const int x = static_cast<int>(engine::rand_det_s(rnd.rng, tl.x + 1, br.x - 1));
-      const int y = static_cast<int>(engine::rand_det_s(rnd.rng, tl.y + 1, br.y - 1));
-      const glm::ivec2 grid_index = { x, y };
+    glm::ivec2 gridpos{ tl.x + 1, tl.y + 1 };
+    for (int j = 0; j < max_attempts_to_generate_unique_spot; j++) {
+      // random position
+      const int x = static_cast<int>(engine::rand_det_s(rnd.rng, tl.x, br.x));
+      const int y = static_cast<int>(engine::rand_det_s(rnd.rng, tl.y, br.y));
+      const auto attempt = glm::ivec2{ x, y };
 
-      // // Check the tile isn't occupied
-      // const auto full =
-      //   std::find_if(d.occupied.begin(), d.occupied.end(), [&grid_index](const std::pair<entt::entity, glm::ivec2>&
-      //   other)
-      //   {
-      //     return other.second == grid_index;
-      //   });
-      // if (full != d.occupied.end())
-      //   continue; // entity already at position
+      // Check the tile isn't occupied
+      const auto full =
+        std::find_if(room.occupied.begin(), room.occupied.end(), [&attempt](const auto& pos) { return pos == attempt; });
+      const bool entity_at_position = full != room.occupied.end();
 
-      const glm::ivec2 worldspace = engine::grid::grid_space_to_world_space(grid_index, map_c.tilesize);
-      const glm::ivec2 offset = { map_c.tilesize / 2.0f, map_c.tilesize / 2.0f };
-      const glm::ivec2 pos = worldspace + offset;
+      if (entity_at_position)
+        continue; // try again
 
-      CombatEntityDescription desc;
-      desc.position = pos;
-      desc.team = AvailableTeams::enemy;
-      const auto e = create_combat_entity(r, desc);
-
-      // when to increase the generated monsters items stats?
+      // otherwise, hit our gen spot
+      gridpos = attempt;
+      room.occupied.push_back(gridpos);
+      break;
     }
+
+    const glm::ivec2 worldspace = engine::grid::grid_space_to_world_space(gridpos, map_c.tilesize);
+    const glm::ivec2 offset = { map_c.tilesize / 2.0f, map_c.tilesize / 2.0f };
+    const glm::ivec2 pos = worldspace + offset;
+
+    CombatEntityDescription desc;
+    desc.position = pos;
+    desc.team = AvailableTeams::enemy;
+    const auto e = create_combat_entity(r, desc);
+
+    room_idx_to_spawn++;
+    room_idx_to_spawn %= rooms.size();
   }
 };
 
@@ -575,6 +573,57 @@ instantiate_tunnels(entt::registry& r, std::vector<Line>& lines, const DungeonGe
     for (const Tunnel& t : results.tunnels) {
       const auto e = create_empty<Tunnel>(r);
       r.emplace<Tunnel>(e, t);
+    }
+  }
+};
+
+void
+generate_edges(entt::registry& r, MapComponent& map, const DungeonGenerationResults& result)
+{
+  std::vector<Room> rooms;
+  for (const auto& [e, room] : r.view<Room>().each())
+    rooms.push_back(room);
+
+  std::vector<Tunnel> tunnels;
+  for (const auto& [e, t] : r.view<Tunnel>().each())
+    tunnels.push_back(t);
+
+  map.edges.clear();
+  for (int y = 0; y < map.ymax - 1; y++) {
+    for (int x = 0; x < map.xmax - 1; x++) {
+      const auto idx = engine::grid::grid_position_to_index({ x, y }, map.xmax);
+      const auto neighbours = engine::grid::get_neighbour_indicies(x, y, map.xmax, map.ymax);
+
+      for (const auto& [dir, neighbour_idx] : neighbours) {
+        const auto grid_a = engine::grid::index_to_grid_position(idx, map.xmax, map.ymax);
+        const auto grid_b = engine::grid::index_to_grid_position(neighbour_idx, map.xmax, map.ymax);
+
+        // 3 cases to generate edges for walls:
+        // transition from wall to floor
+        // transition from room to room
+        // transition from room to tunnel
+
+        const bool idx_is_wallk = result.wall_or_floors[idx] == 1;
+        const bool nidx_is_floor = result.wall_or_floors[neighbour_idx] == 0;
+        const bool from_wall_to_floor = idx_is_wallk && nidx_is_floor;
+
+        const auto [in_room_a, room_a] = inside_room(map, rooms, grid_a);
+        const auto [in_room_b, room_b] = inside_room(map, rooms, grid_b);
+        const auto in_tunnel_a = inside_tunnel(tunnels, grid_a);
+        const auto in_tunnel_b = inside_tunnel(tunnels, grid_b);
+
+        const bool from_room_to_room =
+          in_room_a && in_room_b && !in_tunnel_a && !in_tunnel_b && room_a.value() != room_b.value();
+
+        const bool from_room_to_tunnel = in_room_a && in_tunnel_b && !in_tunnel_a && !in_room_b;
+
+        if (from_wall_to_floor || from_room_to_room || from_room_to_tunnel) {
+          Edge edge;
+          edge.cell_a = grid_a;
+          edge.cell_b = grid_b;
+          map.edges.push_back(edge);
+        }
+      }
     }
   }
 };

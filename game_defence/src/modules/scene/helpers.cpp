@@ -348,6 +348,14 @@ move_to_scene_start(entt::registry& r, const Scene s, const bool load_saved)
     r.emplace<Effect_GridComponent>(create_empty<Effect_GridComponent>(r));
     r.emplace_or_replace<CameraFreeMove>(get_first<OrthographicCamera>(r));
 
+    if (get_first<OverworldToDungeonInfo>(r) == entt::null) {
+      std::cout << "OverworldToDungeonInfo is null; assuming launch from standalone" << std::endl;
+      OverworldToDungeonInfo info;
+      info.backstabbed = true;
+      info.patrol_that_you_hit.strength = 10;
+      destroy_first_and_create<OverworldToDungeonInfo>(r, info);
+    }
+
     // create new map & dungeon constraints
     const int map_width = 1000;
     const int map_height = 1000;

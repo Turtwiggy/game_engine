@@ -63,7 +63,7 @@ update_gen_dungeons_system(entt::registry& r, const glm::ivec2& mouse_pos)
     const auto grid_pos = engine::grid::world_space_to_grid_space(mouse_pos, map.tilesize);
     ImGui::Text("grid_pos: %i %i", grid_pos.x, grid_pos.y);
 
-    const auto in_room = inside_room(map, rooms, grid_pos);
+    const auto [in_room, room] = inside_room(map, rooms, grid_pos);
     ImGui::Text("Inside Room: %i", in_room);
 
     const auto in_tunnel = inside_tunnel(tunnels, grid_pos);
@@ -115,12 +115,13 @@ update_gen_dungeons_system(entt::registry& r, const glm::ivec2& mouse_pos)
   dungeon_parameters.room_size_min = glm::max(dungeon_parameters.room_size_min, 0);
   dungeon_parameters.room_size_max = glm::min(dungeon_parameters.room_size_max, map.xmax);
 
-  const DungeonGenerationResults result = generate_rooms(r, dungeon_parameters, rnd);
+  DungeonGenerationResults result = generate_rooms(r, dungeon_parameters, rnd);
 
   // keep a reference to all the lines as walls, so that we dont have any overlaps.
   std::vector<Line> lines;
   instantiate_walls(r, lines, result, i);
   instantiate_tunnels(r, lines, result);
+  generate_edges(r, map, result);
 
   // Update pathfinding
   for (int idx = 0; idx < map.xmax * map.ymax; idx++) {
@@ -133,64 +134,16 @@ update_gen_dungeons_system(entt::registry& r, const glm::ivec2& mouse_pos)
     }
   }
 
-  std::vector<Room> rooms;
-  for (const auto& [e, room] : r.view<Room>().each())
-    rooms.push_back(room);
-
-  std::vector<Tunnel> tunnels;
-  for (const auto& [e, t] : r.view<Tunnel>().each())
-    tunnels.push_back(t);
-
-  // Update edges
-  map.edges.clear();
-  for (int y = 0; y < map.ymax - 1; y++) {
-    for (int x = 0; x < map.xmax - 1; x++) {
-      const auto idx = engine::grid::grid_position_to_index({ x, y }, map.xmax);
-      const auto neighbours = engine::grid::get_neighbour_indicies(x, y, map.xmax, map.ymax);
-
-      for (const auto& [dir, neighbour_idx] : neighbours) {
-        const auto grid_a = engine::grid::index_to_grid_position(idx, map.xmax, map.ymax);
-        const auto grid_b = engine::grid::index_to_grid_position(neighbour_idx, map.xmax, map.ymax);
-
-        // 3 cases to generate edges for walls:
-        // transition from wall to floor
-        // transition from room to room
-        // transition from room to tunnel
-
-        const bool idx_is_wallk = result.wall_or_floors[idx] == 1;
-        const bool nidx_is_floor = result.wall_or_floors[neighbour_idx] == 0;
-        const bool from_wall_to_floor = idx_is_wallk && nidx_is_floor;
-
-        const auto [in_room_a, room_a] = inside_room(map, rooms, grid_a);
-        const auto [in_room_b, room_b] = inside_room(map, rooms, grid_b);
-        const auto in_tunnel_a = inside_tunnel(tunnels, grid_a);
-        const auto in_tunnel_b = inside_tunnel(tunnels, grid_b);
-
-        const bool from_room_to_room =
-          in_room_a && in_room_b && !in_tunnel_a && !in_tunnel_b && room_a.value() != room_b.value();
-
-        const bool from_room_to_tunnel = in_room_a && in_tunnel_b && !in_tunnel_a && !in_room_b;
-
-        if (from_wall_to_floor || from_room_to_room || from_room_to_tunnel) {
-          Edge edge;
-          edge.cell_a = grid_a;
-          edge.cell_b = grid_b;
-          map.edges.push_back(edge);
-        }
-      }
-    }
-  }
-
   // Debug edges
-  // const auto offset = glm::vec2(map.tilesize / 2.0f, map.tilesize / 2.0f);
-  // for (const auto& edge : map.edges) {
-  //   const auto ga = engine::grid::grid_space_to_world_space(glm::ivec2(edge.cell_a.x, edge.cell_a.y), map.tilesize) +
-  //   offset; const auto gb = engine::grid::grid_space_to_world_space(glm::ivec2(edge.cell_b.x, edge.cell_b.y),
-  //   map.tilesize) + offset; const auto l = generate_line({ ga.x, ga.y }, { gb.x, gb.y }, 1); const entt::entity e =
-  //   create_gameplay(r, EntityType::empty_with_transform); set_transform_with_line(r, e, l); r.get<TagComponent>(e).tag =
-  //   "debugline";
-  //   // r.get<TransformComponent>(e).rotation_radians.z = engine::HALF_PI;
-  // }
+  const auto offset = glm::vec2(map.tilesize / 2.0f, map.tilesize / 2.0f);
+  for (const auto& edge : map.edges) {
+    const auto ga = engine::grid::grid_space_to_world_space(glm::ivec2(edge.cell_a.x, edge.cell_a.y), map.tilesize) + offset;
+    const auto gb = engine::grid::grid_space_to_world_space(glm::ivec2(edge.cell_b.x, edge.cell_b.y), map.tilesize) + offset;
+    const auto l = generate_line({ ga.x, ga.y }, { gb.x, gb.y }, 1);
+    const entt::entity e = create_gameplay(r, EntityType::empty_with_transform);
+    set_transform_with_line(r, e, l);
+    r.get<TagComponent>(e).tag = "debugline";
+  }
 
   // Steps after initial initialization...
   set_generated_entity_positions(r, result, rnd);

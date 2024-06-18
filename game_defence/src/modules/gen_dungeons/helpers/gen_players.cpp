@@ -13,7 +13,7 @@ set_player_positions(entt::registry& r, const DungeonGenerationResults& results,
 {
   const auto& map_c = get_first_component<MapComponent>(r);
 
-  for (const auto& [e, room] : r.view<Room>().each()) {
+  for (const auto& room : results.rooms) {
     const glm::ivec2 tl = room.tl;
     const glm::ivec2 br = room.tl + glm::ivec2{ room.aabb.size.x, room.aabb.size.y };
     const glm::ivec2 worldspace_center = engine::grid::grid_space_to_world_space(room.aabb.center, map_c.tilesize);

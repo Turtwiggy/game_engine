@@ -317,7 +317,7 @@ game2d::update(engine::SINGLETON_Application& app, entt::registry& r, const floa
       update_turnbased_enemy_system(r);
 
 #if defined(_DEBUG)
-      // update_debug_pathfinding_system(r, mouse_pos);
+      update_debug_pathfinding_system(r, mouse_pos);
 #endif
     }
 

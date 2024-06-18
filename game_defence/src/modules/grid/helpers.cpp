@@ -47,21 +47,39 @@ get_lowest_cost_neighbour(entt::registry& r, const MapComponent& map, const Grid
   const auto dst_idx = convert_position_to_index(map, dst);
   const auto dst_gridpos = engine::grid::index_to_grid_position(dst_idx, map.xmax, map.ymax);
 
-  const auto neighbour_idxs =
-    engine::grid::get_neighbour_indicies_with_diagonals(dst_gridpos.x, dst_gridpos.y, grid.width, grid.height);
+  // Warning: using diagonal neighbour indicies would require
+  // working out if there's an edge between diagonals
+  const auto neighbour_idxs = engine::grid::get_neighbour_indicies(dst_gridpos.x, dst_gridpos.y, grid.width, grid.height);
 
   // get cost at each neighbour
   std::vector<std::pair<int, int>> idx_to_cost;
-  for (const auto& [dir, neighbour_idx] : neighbour_idxs) {
-    auto& map_entries = map.map[neighbour_idx];
+  for (const auto& [dir, n_idx] : neighbour_idxs) {
+
+    // take in to account edges
+    const vec2i current = dst_gridpos;
+    const vec2i neighbour = engine::grid::index_to_grid_position(n_idx, map.xmax, map.ymax);
+    bool wall_between_grid = false;
+    for (const Edge& e : map.edges) {
+      wall_between_grid |= e.cell_a == current && e.cell_b == neighbour;
+      wall_between_grid |= e.cell_b == current && e.cell_a == neighbour;
+    }
+
+    // dont get neighbours if there is an edge between
+    if (wall_between_grid) {
+      idx_to_cost.push_back({ n_idx, -1 });
+      continue; // impassable
+    }
+
+    auto& map_entries = map.map[n_idx];
     for (const auto& map_e : map_entries) {
       const auto& pathfinding_c = r.get<PathfindComponent>(map_e);
-      idx_to_cost.push_back({ neighbour_idx, pathfinding_c.cost });
+      idx_to_cost.push_back({ n_idx, pathfinding_c.cost });
+      continue;
     }
 
     // destination has no cost, because it has nothing there.
     if (map_entries.size() == 0)
-      idx_to_cost.push_back({ neighbour_idx, 0 });
+      idx_to_cost.push_back({ n_idx, 0 });
   }
 
   // sort with lowest cost
