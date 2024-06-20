@@ -1,6 +1,7 @@
 #version 460
 
 out vec4 out_color;
+out vec4 out_bright_color;
 
 in vec2 v_uv;
 in vec4 v_colour;
@@ -13,6 +14,7 @@ in vec2 v_vertex;
 uniform sampler2D scene;
 uniform sampler2D lighting;
 uniform vec2 light_pos; // worldspace
+uniform float brightness_threshold;
 
 float
 SRGBFloatToLinearFloat(const float f)
@@ -127,4 +129,11 @@ void main()
   }
 
   out_color.a = 1.0f;
+
+  // work out "bright" areas for bloom effect
+  float brightness = dot(out_color.rgb, vec3(0.2126, 0.7152, 0.0722));
+  vec4 bright_colour = vec4(0.0, 0.0, 0.0, 1.0);
+  if(brightness > brightness_threshold)
+    bright_colour = vec4(out_color.rgb, 1.0);
+  out_bright_color = bright_colour;
 }

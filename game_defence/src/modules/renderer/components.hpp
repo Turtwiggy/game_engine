@@ -75,20 +75,25 @@ struct SINGLETON_RendererInfo
   engine::FramebufferID fbo_linear_main;
   engine::FramebufferID fbo_lighting;
   engine::FramebufferID fbo_mix_lighting_and_scene;
-  engine::FramebufferID fbo_blur;
+  engine::FramebufferID fbo_blur_pingpong_0;
+  engine::FramebufferID fbo_blur_pingpong_1;
   engine::FramebufferID fbo_bloom;
 
   int tex_unit_linear_main = 0;
   int tex_unit_lighting = 1;
   int tex_unit_mix_lighting_and_scene = 2;
-  int tex_unit_blur = 3;
-  int tex_unit_bloom = 4;
-  int RENDERER_TEX_UNIT_COUNT = 5; // should be the number used by renderer
+  int tex_unit_mix_lighting_and_scene_brightness = 3;
+  int tex_unit_blur_pingpong_0 = 4;
+  int tex_unit_blur_pingpong_1 = 5;
+  int tex_unit_bloom = 6;
+  int RENDERER_TEX_UNIT_COUNT = 7; // the the number used by renderer
 
   int tex_id_linear_main = 0;
   int tex_id_lighting = 0;
   int tex_id_mix_lighting_and_scene = 0;
-  int tex_id_blur = 0;
+  int tex_id_mix_lighting_and_scene_brightness = 0;
+  int tex_id_blur_pingpong_0 = 0;
+  int tex_id_blur_pingpong_1 = 0;
   int tex_id_bloom = 0;
 
   std::vector<Texture> user_textures;

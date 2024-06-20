@@ -17,6 +17,7 @@ uniform sampler2D tex_unit_spacestation_0;
 uniform sampler2D tex_unit_studio_logo;
 uniform float screen_w;
 uniform float screen_h;
+uniform int RENDERER_TEX_UNIT_COUNT;
 
 // fat pixel approach
 // vec2
@@ -60,26 +61,26 @@ main()
 
     // starting at 5, as the renderer makes use of 4 textures...
 
-    if(index == 5){
+    if(index == RENDERER_TEX_UNIT_COUNT){
       out_colour *= texture(tex_kenny, sprite_uv);
     }
-    else if(index == 6){
+    else if(index == RENDERER_TEX_UNIT_COUNT+1){
       out_colour *= texture(tex_gameicons, sprite_uv);
       return; // texture uses 0, 0
     }
-    else if(index == 7){
+    else if(index == RENDERER_TEX_UNIT_COUNT+2){
       out_colour *= texture(tex_unit_space_background, sprite_uv);
       return; // texture uses 0, 0
     }
-    else if(index == 8){
+    else if(index == RENDERER_TEX_UNIT_COUNT+3){
       out_colour *= texture(tex_unit_mainmenu_background, sprite_uv);
       return; // texture uses 0, 0
     }
-    else if(index == 9){
+    else if(index == RENDERER_TEX_UNIT_COUNT+4){
       out_colour *= texture(tex_unit_spacestation_0, sprite_uv);
       return; // texture uses 0, 0
     }
-     else if(index == 10){
+     else if(index == RENDERER_TEX_UNIT_COUNT+5){
       out_colour *= texture(tex_unit_studio_logo, sprite_uv);
       return; // texture uses 0, 0
     }
