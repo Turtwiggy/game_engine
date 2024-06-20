@@ -57,26 +57,29 @@ main()
 
     // index set on cpu side...
     // WARNING: seems bad
-    if(index == 3){
+
+    // starting at 5, as the renderer makes use of 4 textures...
+
+    if(index == 5){
       out_colour *= texture(tex_kenny, sprite_uv);
     }
-    else if(index == 4){
+    else if(index == 6){
       out_colour *= texture(tex_gameicons, sprite_uv);
       return; // texture uses 0, 0
     }
-    else if(index == 5){
+    else if(index == 7){
       out_colour *= texture(tex_unit_space_background, sprite_uv);
       return; // texture uses 0, 0
     }
-    else if(index == 6){
+    else if(index == 8){
       out_colour *= texture(tex_unit_mainmenu_background, sprite_uv);
       return; // texture uses 0, 0
     }
-    else if(index == 7){
+    else if(index == 9){
       out_colour *= texture(tex_unit_spacestation_0, sprite_uv);
       return; // texture uses 0, 0
     }
-     else if(index == 8){
+     else if(index == 10){
       out_colour *= texture(tex_unit_studio_logo, sprite_uv);
       return; // texture uses 0, 0
     }
@@ -88,7 +91,6 @@ main()
     out_colour = v_colour;
     return;
   }
-
 }
 
 

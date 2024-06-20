@@ -5,6 +5,7 @@
 #include "colour/colour.hpp"
 #include "entt/helpers.hpp"
 #include "events/helpers/mouse.hpp"
+#include "imgui/helpers.hpp"
 #include "modules/camera/orthographic.hpp"
 #include "modules/gameplay_circle/components.hpp"
 #include "modules/lighting/helpers.hpp"
@@ -41,6 +42,7 @@ using namespace engine; // used for macro
 
 namespace game2d {
 using namespace std::literals;
+const int blur_scale = 2;
 
 void
 rebind(entt::registry& r, const SINGLETON_RendererInfo& ri)
@@ -60,6 +62,14 @@ rebind(entt::registry& r, const SINGLETON_RendererInfo& ri)
   engine::update_bound_texture_size(wh);
   engine::unbind_tex();
 
+  engine::bind_tex(ri.tex_id_blur);
+  engine::update_bound_texture_size(glm::ivec2(wh.x / blur_scale, wh.y / blur_scale));
+  engine::unbind_tex();
+
+  engine::bind_tex(ri.tex_id_bloom);
+  engine::update_bound_texture_size(wh);
+  engine::unbind_tex();
+
   glActiveTexture(GL_TEXTURE0 + ri.tex_unit_linear_main);
   glBindTexture(GL_TEXTURE_2D, ri.tex_id_linear_main);
 
@@ -68,6 +78,12 @@ rebind(entt::registry& r, const SINGLETON_RendererInfo& ri)
 
   glActiveTexture(GL_TEXTURE0 + ri.tex_unit_mix_lighting_and_scene);
   glBindTexture(GL_TEXTURE_2D, ri.tex_id_mix_lighting_and_scene);
+
+  glActiveTexture(GL_TEXTURE0 + ri.tex_unit_blur);
+  glBindTexture(GL_TEXTURE_2D, ri.tex_id_blur);
+
+  glActiveTexture(GL_TEXTURE0 + ri.tex_unit_bloom);
+  glBindTexture(GL_TEXTURE_2D, ri.tex_id_bloom);
 
   for (const auto& tex : ri.user_textures) {
     glActiveTexture(GL_TEXTURE0 + tex.tex_unit.unit);
@@ -107,6 +123,17 @@ rebind(entt::registry& r, const SINGLETON_RendererInfo& ri)
   ri.mix_lighting_and_scene.set_int("lighting", ri.tex_unit_lighting);
   ri.mix_lighting_and_scene.set_int("scene", ri.tex_unit_linear_main);
 
+  ri.blur.bind();
+  ri.blur.set_mat4("projection", camera.projection);
+  ri.blur.set_mat4("view", glm::mat4(1.0f)); // whole texture
+  ri.blur.set_int("tex", ri.tex_unit_mix_lighting_and_scene);
+
+  ri.bloom.bind();
+  ri.bloom.set_mat4("projection", camera.projection);
+  ri.bloom.set_mat4("view", glm::mat4(1.0f)); // whole texture
+  ri.bloom.set_int("scene_texture", ri.tex_unit_mix_lighting_and_scene);
+  ri.bloom.set_int("blur_texture", ri.tex_unit_blur);
+
   const auto grid_e = get_first<Effect_GridComponent>(r);
   ri.grid.bind();
   ri.grid.set_mat4("projection", camera.projection);
@@ -126,10 +153,26 @@ game2d::init_render_system(const engine::SINGLETON_Application& app, entt::regis
 
   // FBO textures
   Framebuffer::default_fbo();
-  new_texture_to_fbo(ri.fbo_linear_main, ri.tex_id_linear_main, ri.tex_unit_linear_main, fbo_size);
-  new_texture_to_fbo(ri.fbo_lighting, ri.tex_id_lighting, ri.tex_unit_lighting, fbo_size);
-  new_texture_to_fbo(
-    ri.fbo_mix_lighting_and_scene, ri.tex_id_mix_lighting_and_scene, ri.tex_unit_mix_lighting_and_scene, fbo_size);
+
+  const auto linear_main_result = new_texture_to_fbo(ri.tex_unit_linear_main, fbo_size);
+  ri.fbo_linear_main = linear_main_result.out_fbo_id;
+  ri.tex_id_linear_main = linear_main_result.out_tex_ids[0];
+
+  const auto lighting_result = new_texture_to_fbo(ri.tex_unit_lighting, fbo_size);
+  ri.fbo_lighting = lighting_result.out_fbo_id;
+  ri.tex_id_lighting = lighting_result.out_tex_ids[0];
+
+  const auto mix_lighting_and_scene_fbo_result = new_texture_to_fbo(ri.tex_unit_mix_lighting_and_scene, fbo_size);
+  ri.fbo_mix_lighting_and_scene = mix_lighting_and_scene_fbo_result.out_fbo_id;
+  ri.tex_id_mix_lighting_and_scene = mix_lighting_and_scene_fbo_result.out_tex_ids[0];
+
+  const auto blur_fbo_result = new_texture_to_fbo(ri.tex_unit_blur, fbo_size / blur_scale);
+  ri.fbo_blur = blur_fbo_result.out_fbo_id;
+  ri.tex_id_blur = blur_fbo_result.out_tex_ids[0];
+
+  const auto bloom_fbo_result = new_texture_to_fbo(ri.tex_unit_bloom, fbo_size);
+  ri.fbo_bloom = bloom_fbo_result.out_fbo_id;
+  ri.tex_id_bloom = bloom_fbo_result.out_tex_ids[0];
 
   // Load textures
   const int base_tex_unit = ri.RENDERER_TEX_UNIT_COUNT;
@@ -148,6 +191,8 @@ game2d::init_render_system(const engine::SINGLETON_Application& app, entt::regis
   ri.mix_lighting_and_scene = Shader("assets/shaders/2d_instanced.vert", "assets/shaders/2d_mix_lighting_and_scene.frag");
   ri.circle = Shader("assets/shaders/2d_circle.vert", "assets/shaders/2d_circle.frag");
   ri.grid = Shader("assets/shaders/2d_grid.vert", "assets/shaders/2d_grid.frag");
+  ri.blur = Shader("assets/shaders/bloom.vert", "assets/shaders/blur.frag");
+  ri.bloom = Shader("assets/shaders/bloom.vert", "assets/shaders/bloom.frag");
 
   // initialize renderer
   SDL_GL_SetAttribute(SDL_GL_MULTISAMPLEBUFFERS, 1);
@@ -187,6 +232,26 @@ game2d::update_render_system(entt::registry& r, const float dt, const glm::vec2&
   const auto viewport_wh = ri.viewport_size_render_at;
   const glm::ivec2 fbo_lighting_size = { viewport_wh.x, viewport_wh.y };
 
+  // HACK: toggle bloom
+  bool do_bloom = get_first<Effect_DoBloom>(r) != entt::null;
+  static float exposure = 1.0f;
+  static float brightness_threshold = 1.0f;
+  {
+    ImGui::Begin("Debug__Bloom");
+    const auto& input = get_first_component<SINGLETON_InputComponent>(r);
+    if (get_key_down(input, SDL_SCANCODE_P)) {
+      do_bloom = !do_bloom;
+      if (do_bloom)
+        destroy_first_and_create<Effect_DoBloom>(r);
+      else
+        destroy_first<Effect_DoBloom>(r);
+    }
+    ImGui::Text("DoBloom: %i", do_bloom);
+    imgui_draw_float("exposure", exposure);
+    imgui_draw_float("brightness_threshold", brightness_threshold);
+    ImGui::End();
+  }
+
   // Camera
   const auto camera_e = game2d::get_first<OrthographicCamera>(r);
   const auto& camera = r.get<OrthographicCamera>(camera_e);
@@ -198,6 +263,14 @@ game2d::update_render_system(entt::registry& r, const float dt, const glm::vec2&
 
   ri.lighting.bind();
   ri.lighting.set_mat4("view", camera.view);
+
+  ri.blur.bind();
+  ri.blur.set_float("brightness_threshold", brightness_threshold);
+
+  ri.bloom.bind();
+  ri.bloom.set_mat4("view", camera.view);
+  ri.bloom.set_float("exposure", exposure);
+  ri.bloom.set_bool("do_bloom", do_bloom);
 
   ri.circle.bind();
   ri.circle.set_mat4("view", camera.view);
@@ -214,19 +287,16 @@ game2d::update_render_system(entt::registry& r, const float dt, const glm::vec2&
     ri.grid.set_float("gridsize", gridsize);
   }
 
-  ri.mix_lighting_and_scene.bind();
-
-  const glm::vec2 light_pos = mouse_pos;
-  // const glm::vec2 light_pos = { camera_t.position.x, camera_t.position.y };
-
   // convert light_pos to screen_space
-  //
+  // const glm::vec2 light_pos = mouse_pos;
+  // const glm::vec2 light_pos = { camera_t.position.x, camera_t.position.y };
   const auto mouse_raw = get_mouse_pos() - ri.viewport_pos;
   const glm::vec2 light_pos_in_screenspace = { mouse_raw.x, mouse_raw.y };
   // const glm::vec2 middle_of_screen = { viewport_wh.x / 2.0f, viewport_wh.y / 2.0f };
   // const glm::vec2 light_pos_in_screenspace = middle_of_screen;
   // light_pos.x should be 0 < viewport_wh.x
   // light_pos.y should be 0 < viewport_wh.y
+  ri.mix_lighting_and_scene.bind();
   ri.mix_lighting_and_scene.set_vec2("light_pos", light_pos_in_screenspace);
 
   // FBO: Render sprites in to this fbo with linear colour
@@ -237,26 +307,23 @@ game2d::update_render_system(entt::registry& r, const float dt, const glm::vec2&
     RenderCommand::clear();
 
     // Render grid shader
-    {
-      const auto& grid_effect_e = get_first<Effect_GridComponent>(r);
-      if (grid_effect_e != entt::null) {
-        quad_renderer::QuadRenderer::reset_quad_vert_count();
-        quad_renderer::QuadRenderer::begin_batch();
+    if (get_first<Effect_GridComponent>(r) != entt::null) {
+      quad_renderer::QuadRenderer::reset_quad_vert_count();
+      quad_renderer::QuadRenderer::begin_batch();
 
-        // grid post-processing
-        // render completely over screen
-        {
-          quad_renderer::RenderDescriptor desc;
-          const glm::vec2 offset = { ri.viewport_size_render_at.x / 2.0, ri.viewport_size_render_at.y / 2.0f };
-          desc.pos_tl = glm::vec2(camera_t.position.x, camera_t.position.y) - offset;
-          desc.size = ri.viewport_size_render_at;
-          desc.angle_radians = 0;
-          quad_renderer::QuadRenderer::draw_sprite(desc, ri.grid);
-        }
-
-        quad_renderer::QuadRenderer::end_batch();
-        quad_renderer::QuadRenderer::flush(ri.grid);
+      // grid post-processing
+      // render completely over screen
+      {
+        quad_renderer::RenderDescriptor desc;
+        const glm::vec2 offset = { ri.viewport_size_render_at.x / 2.0, ri.viewport_size_render_at.y / 2.0f };
+        desc.pos_tl = glm::vec2(camera_t.position.x, camera_t.position.y) - offset;
+        desc.size = ri.viewport_size_render_at;
+        desc.angle_radians = 0;
+        quad_renderer::QuadRenderer::draw_sprite(desc, ri.grid);
       }
+
+      quad_renderer::QuadRenderer::end_batch();
+      quad_renderer::QuadRenderer::flush(ri.grid);
     }
 
     // Render some quads
@@ -289,7 +356,7 @@ game2d::update_render_system(entt::registry& r, const float dt, const glm::vec2&
       quad_renderer::QuadRenderer::flush(ri.instanced);
     }
 
-    // Render some circles
+    // Render some SDF circles
     {
       quad_renderer::QuadRenderer::reset_quad_vert_count();
       quad_renderer::QuadRenderer::begin_batch();
@@ -325,68 +392,75 @@ game2d::update_render_system(entt::registry& r, const float dt, const glm::vec2&
     }
   }
 
-  // FBO: lighting: simple shadowcasting 2d
-  {
-    Framebuffer::bind_fbo(ri.fbo_lighting);
-    RenderCommand::set_viewport(0, 0, viewport_wh.x, viewport_wh.y);
-    RenderCommand::set_clear_colour_srgb(black);
-    RenderCommand::clear();
-    {
-      engine::triangle_fan_renderer::TriangleFanRenderer::reset_quad_vert_count();
-      engine::triangle_fan_renderer::TriangleFanRenderer::begin_batch();
-      {
-        // Create a triangle fan
-        //
-        // hack: get position of first player
-
-        std::vector<std::tuple<float, float, float>> intersections;
-        // generate_intersections(r, light_pos, intersections);
-
-        if (intersections.size() > 0) {
-          // start point
-          engine::triangle_fan_renderer::TriangleFanRenderer::add_point_to_fan(light_pos, ri.lighting);
-
-          // lighting points
-          for (int i = 0; i < intersections.size(); i++) {
-            const auto pos = glm::vec2(std::get<1>(intersections[i]), std::get<2>(intersections[i]));
-            engine::triangle_fan_renderer::TriangleFanRenderer::add_point_to_fan(pos, ri.lighting);
-          }
-
-          // end point
-          const auto pos = glm::vec2(std::get<1>(intersections[0]), std::get<2>(intersections[0]));
-          engine::triangle_fan_renderer::TriangleFanRenderer::add_point_to_fan(pos, ri.lighting);
-        }
-      }
-    }
-    engine::triangle_fan_renderer::TriangleFanRenderer::end_batch();
-    engine::triangle_fan_renderer::TriangleFanRenderer::flush(ri.lighting);
-  }
-
   // FBO: mix lighting and scene, and convert to srgb
   {
     Framebuffer::bind_fbo(ri.fbo_mix_lighting_and_scene);
     RenderCommand::set_viewport(0, 0, viewport_wh.x, viewport_wh.y);
     RenderCommand::set_clear_colour_srgb(black);
     RenderCommand::clear();
+
+    quad_renderer::QuadRenderer::reset_quad_vert_count();
+    quad_renderer::QuadRenderer::begin_batch();
+
+    quad_renderer::RenderDescriptor desc;
+    desc.pos_tl = { 0, 0 };
+    desc.size = viewport_wh;
+    desc.angle_radians = 0.0f;
+    desc.colour = get_lin_colour_by_tag(r, "background");
+    // desc.tex_unit = ri.tex_unit_main_FBO;
+    // desc.sprite_offset_and_width = { 0, 0, 0, 0 };
+    quad_renderer::QuadRenderer::draw_sprite(desc, ri.mix_lighting_and_scene);
+
+    quad_renderer::QuadRenderer::end_batch();
+    quad_renderer::QuadRenderer::flush(ri.mix_lighting_and_scene);
+  }
+
+  // FBO: blur. Render the scene in to a smaller fbo.
+  {
+    Framebuffer::bind_fbo(ri.fbo_blur);
+    RenderCommand::set_viewport(0, 0, viewport_wh.x, viewport_wh.y);
+    RenderCommand::set_clear_colour_srgb(black);
+    RenderCommand::clear();
+
+    quad_renderer::QuadRenderer::reset_quad_vert_count();
+    quad_renderer::QuadRenderer::begin_batch();
+
+    // render completely over screen
+    if (do_bloom) {
+      quad_renderer::RenderDescriptor desc;
+      const glm::vec2 offset = { ri.viewport_size_render_at.x / 2.0, ri.viewport_size_render_at.y / 2.0f };
+      desc.pos_tl = { 0, 0 };
+      desc.size = { ri.viewport_size_render_at.x / blur_scale, ri.viewport_size_render_at.y / blur_scale };
+      desc.angle_radians = 0;
+      quad_renderer::QuadRenderer::draw_sprite(desc, ri.blur);
+    }
+
+    quad_renderer::QuadRenderer::end_batch();
+    quad_renderer::QuadRenderer::flush(ri.blur);
+  }
+
+  // FBO: bloom
+  {
+    Framebuffer::bind_fbo(ri.fbo_bloom);
+    RenderCommand::set_viewport(0, 0, viewport_wh.x, viewport_wh.y);
+    RenderCommand::set_clear_colour_srgb(black);
+    RenderCommand::clear();
     {
       quad_renderer::QuadRenderer::reset_quad_vert_count();
       quad_renderer::QuadRenderer::begin_batch();
+
+      // render completely over screen
       {
         quad_renderer::RenderDescriptor desc;
-        desc.pos_tl = { 0, 0 };
-        desc.size = viewport_wh;
-        desc.angle_radians = 0.0f;
-
-        RenderCommand::set_clear_colour_srgb(black);
-        const auto lin_pal_background = get_lin_colour_by_tag(r, "background");
-        desc.colour = lin_pal_background;
-
-        // desc.tex_unit = ri.tex_unit_main_FBO;
-        // desc.sprite_offset_and_width = { 0, 0, 0, 0 };
-        quad_renderer::QuadRenderer::draw_sprite(desc, ri.mix_lighting_and_scene);
+        const glm::vec2 offset = { ri.viewport_size_render_at.x / 2.0, ri.viewport_size_render_at.y / 2.0f };
+        desc.pos_tl = glm::vec2(camera_t.position.x, camera_t.position.y) - offset;
+        desc.size = ri.viewport_size_render_at;
+        desc.angle_radians = 0;
+        quad_renderer::QuadRenderer::draw_sprite(desc, ri.bloom);
       }
+
       quad_renderer::QuadRenderer::end_batch();
-      quad_renderer::QuadRenderer::flush(ri.mix_lighting_and_scene);
+      quad_renderer::QuadRenderer::flush(ri.bloom);
     }
   }
 
@@ -398,7 +472,7 @@ game2d::update_render_system(entt::registry& r, const float dt, const glm::vec2&
     RenderCommand::clear();
 
     // Note: ImGui::Image takes in TexID not TexUnit
-    ViewportInfo vi = render_texture_to_imgui_viewport(ri.tex_id_mix_lighting_and_scene);
+    ViewportInfo vi = render_texture_to_imgui_viewport(ri.tex_id_bloom);
 
     // If the viewport moves - viewport position will be a frame behind.
     // This would mainly affect an editor, a game viewport probably(?) wouldn't move that much
@@ -412,7 +486,7 @@ game2d::update_render_system(entt::registry& r, const float dt, const glm::vec2&
 // debug user textures
 //
 #ifdef _DEBUG
-  // ImVec2 viewport_size;
+  ImVec2 viewport_size;
   // int i = 0;
   // for (const auto& tex : ri.user_textures) {
   //   const std::string label = std::string("Debug") + std::to_string(i);
@@ -423,14 +497,26 @@ game2d::update_render_system(entt::registry& r, const float dt, const glm::vec2&
   //   i++;
   // }
 
-  // ImGui::Begin("DebugLighting");
-  // viewport_size = ImGui::GetContentRegionAvail();
-  // ImGui::Image((ImTextureID)ri.tex_id_lighting, viewport_size, ImVec2(0, 0), ImVec2(1, 1));
-  // ImGui::End();
-  // ImGui::Begin("DebugScene");
-  // viewport_size = ImGui::GetContentRegionAvail();
-  // ImGui::Image((ImTextureID)ri.tex_id_linear_main, viewport_size, ImVec2(0, 0), ImVec2(1, 1));
-  // ImGui::End();
+  ImGui::Begin("DebugLighting");
+  viewport_size = ImGui::GetContentRegionAvail();
+  ImGui::Image((ImTextureID)ri.tex_id_lighting, viewport_size, ImVec2(0, 0), ImVec2(1, 1));
+  ImGui::End();
+  ImGui::Begin("DebugScene");
+  viewport_size = ImGui::GetContentRegionAvail();
+  ImGui::Image((ImTextureID)ri.tex_id_linear_main, viewport_size, ImVec2(0, 0), ImVec2(1, 1));
+  ImGui::End();
+  ImGui::Begin("DebugMixLighting");
+  viewport_size = ImGui::GetContentRegionAvail();
+  ImGui::Image((ImTextureID)ri.tex_id_mix_lighting_and_scene, viewport_size, ImVec2(0, 0), ImVec2(1, 1));
+  ImGui::End();
+  ImGui::Begin("DebugBlur");
+  viewport_size = ImGui::GetContentRegionAvail();
+  ImGui::Image((ImTextureID)ri.tex_id_blur, viewport_size, ImVec2(0, 0), ImVec2(1, 1));
+  ImGui::End();
+  ImGui::Begin("DebugBloom");
+  viewport_size = ImGui::GetContentRegionAvail();
+  ImGui::Image((ImTextureID)ri.tex_id_bloom, viewport_size, ImVec2(0, 0), ImVec2(1, 1));
+  ImGui::End();
 
 #endif
 };

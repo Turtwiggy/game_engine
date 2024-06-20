@@ -304,13 +304,12 @@ game2d::update(engine::SINGLETON_Application& app, entt::registry& r, const floa
     }
 
     if (scene.s == Scene::dungeon_designer || scene.s == Scene::turnbasedcombat) {
-      // update_enemy_system(r, dt);
       update_gen_dungeons_system(r, mouse_pos);
       update_turnbased_endturn_system(r);
       update_turnbased_enemy_system(r);
 
 #if defined(_DEBUG)
-      update_debug_pathfinding_system(r, mouse_pos);
+      // update_debug_pathfinding_system(r, mouse_pos);
 #endif
     }
 
@@ -334,7 +333,6 @@ game2d::update(engine::SINGLETON_Application& app, entt::registry& r, const floa
     // Display a parented viewport window at the top of the screen, that shows the fps.
     const bool show_fps_counter = true;
     if (show_fps_counter) {
-      ImGuiStyle& style = ImGui::GetStyle();
       const std::string example = "FPS: 10000.00";
       const float size_y = ImGui::CalcTextSize(example.c_str()).y / 2.0f;
 
@@ -345,7 +343,6 @@ game2d::update(engine::SINGLETON_Application& app, entt::registry& r, const floa
       flags |= ImGuiWindowFlags_NoResize;
       flags |= ImGuiWindowFlags_NoTitleBar;
       flags |= ImGuiDockNodeFlags_NoResize;
-      const auto& ri = get_first_component<SINGLETON_RendererInfo>(r);
       ImGui::SetNextWindowPos({ 0, 0 }, ImGuiCond_Always, { 0, 0 });
       ImGui::SetNextWindowSize({ 100, size_y }, ImGuiCond_Always);
 
@@ -356,10 +353,8 @@ game2d::update(engine::SINGLETON_Application& app, entt::registry& r, const floa
       ImGui::End();
     }
 
-    // Main menu scene can transition to Game scene
     if (scene.s == Scene::menu) {
       update_ui_scene_main_menu(app, r);
-      //
     }
     if (scene.s == Scene::dungeon_designer) {
       update_ui_combat_turnbased_system(r, mouse_pos);

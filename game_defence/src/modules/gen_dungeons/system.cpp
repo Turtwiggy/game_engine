@@ -135,15 +135,14 @@ update_gen_dungeons_system(entt::registry& r, const glm::ivec2& mouse_pos)
   }
 
   // Debug edges
-  const auto offset = glm::vec2(map.tilesize / 2.0f, map.tilesize / 2.0f);
-  for (const auto& edge : map.edges) {
-    const auto ga = engine::grid::grid_space_to_world_space(glm::ivec2(edge.cell_a.x, edge.cell_a.y), map.tilesize) + offset;
-    const auto gb = engine::grid::grid_space_to_world_space(glm::ivec2(edge.cell_b.x, edge.cell_b.y), map.tilesize) + offset;
-    const auto l = generate_line({ ga.x, ga.y }, { gb.x, gb.y }, 1);
-    const entt::entity e = create_gameplay(r, EntityType::empty_with_transform);
-    set_transform_with_line(r, e, l);
-    r.get<TagComponent>(e).tag = "debugline";
-  }
+  // for (const auto& edge : map.edges) {
+  //   const auto ga = engine::grid::grid_space_to_world_space(glm::ivec2(edge.cell_a.x, edge.cell_a.y), map.tilesize) +
+  //   const auto gb = engine::grid::grid_space_to_world_space(glm::ivec2(edge.cell_b.x, edge.cell_b.y), map.tilesize)
+  //   const auto l = generate_line({ ga.x, ga.y }, { gb.x, gb.y }, 1);
+  //   const entt::entity e = create_gameplay(r, EntityType::empty_with_transform);
+  //   set_transform_with_line(r, e, l);
+  //   r.get<TagComponent>(e).tag = "debugline";
+  // }
 
   // Steps after initial initialization...
   set_generated_entity_positions(r, result, rnd);

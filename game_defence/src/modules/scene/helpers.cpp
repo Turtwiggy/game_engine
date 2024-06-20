@@ -168,10 +168,6 @@ move_to_scene_start(entt::registry& r, const Scene s, const bool load_saved)
   auto& camera = r.get<TransformComponent>(camera_e);
   camera.position = glm::ivec3(0, 0, 0);
 
-  // create a cursor
-  // const auto cursor_e = create_gameplay(r, EntityType::cursor);
-  // set_size(r, cursor_e, { 0, 0 });
-
   stop_all_audio(r);
 
   if (s == Scene::splashscreen) {
@@ -182,8 +178,16 @@ move_to_scene_start(entt::registry& r, const Scene s, const bool load_saved)
       const auto e = create_gameplay(r, EntityType::empty_with_transform);
       const auto tex_unit = search_for_texture_unit_by_texture_path(ri, "blueberry").value();
       set_sprite_custom(r, e, "STUDIO_LOGO", tex_unit.unit);
-      set_size(r, e, { 300, 300 });
+      set_size(r, e, { 512, 512 });
       set_position(r, e, { 0, 0 }); // center
+    }
+
+    // create background
+    {
+      const auto e = create_gameplay(r, EntityType::empty_with_transform);
+      set_size(r, e, { ri.viewport_size_render_at.x + 10, ri.viewport_size_render_at.y + 10 });
+      set_position(r, e, { 0, 0 });              // center
+      set_colour(r, e, { 231, 242, 248, 1.0f }); // logo background colour
     }
   }
 
@@ -370,6 +374,10 @@ move_to_scene_start(entt::registry& r, const Scene s, const bool load_saved)
       destroy_first_and_create<OverworldToDungeonInfo>(r, info);
     }
 
+    // create a cursor
+    const auto cursor_e = create_gameplay(r, EntityType::cursor);
+    set_size(r, cursor_e, { 0, 0 });
+
     // create new map & dungeon constraints
     const int map_width = 1000;
     const int map_height = 1000;
@@ -406,6 +414,10 @@ move_to_scene_start(entt::registry& r, const Scene s, const bool load_saved)
     map_c.map.resize(map_c.xmax * map_c.ymax);
     r.emplace<MapComponent>(create_empty<MapComponent>(r), map_c);
     r.emplace<Effect_GridComponent>(create_empty<Effect_GridComponent>(r), map_c.tilesize);
+
+    // create a cursor
+    const auto cursor_e = create_gameplay(r, EntityType::cursor);
+    set_size(r, cursor_e, { 0, 0 });
 
     int players = 1;
     int enemies = 1;

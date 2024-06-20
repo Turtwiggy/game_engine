@@ -75,15 +75,21 @@ struct SINGLETON_RendererInfo
   engine::FramebufferID fbo_linear_main;
   engine::FramebufferID fbo_lighting;
   engine::FramebufferID fbo_mix_lighting_and_scene;
+  engine::FramebufferID fbo_blur;
+  engine::FramebufferID fbo_bloom;
 
   int tex_unit_linear_main = 0;
   int tex_unit_lighting = 1;
   int tex_unit_mix_lighting_and_scene = 2;
-  int RENDERER_TEX_UNIT_COUNT = 3; // should be the number used by renderer
+  int tex_unit_blur = 3;
+  int tex_unit_bloom = 4;
+  int RENDERER_TEX_UNIT_COUNT = 5; // should be the number used by renderer
 
   int tex_id_linear_main = 0;
   int tex_id_lighting = 0;
   int tex_id_mix_lighting_and_scene = 0;
+  int tex_id_blur = 0;
+  int tex_id_bloom = 0;
 
   std::vector<Texture> user_textures;
 
@@ -93,6 +99,8 @@ struct SINGLETON_RendererInfo
   engine::Shader mix_lighting_and_scene;
   engine::Shader circle;
   engine::Shader grid;
+  engine::Shader blur;
+  engine::Shader bloom;
 
   // viewport
   // note: values are updated in render
@@ -102,6 +110,11 @@ struct SINGLETON_RendererInfo
 
   bool viewport_hovered = false;
   bool viewport_focused = false;
+};
+
+struct Effect_DoBloom
+{
+  bool placeholder = true;
 };
 
 } // namespace game2d

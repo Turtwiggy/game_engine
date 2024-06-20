@@ -76,7 +76,7 @@ game2d::imgui_draw_float(const std::string& label, float& v)
 
   ImGui::Text(label.c_str());
   ImGui::SameLine();
-  if (ImGui::DragFloat((std::string("##") + label).c_str(), &v_temp, 0.5f))
+  if (ImGui::DragFloat((std::string("##") + label).c_str(), &v_temp, 0.01f))
     v = v_temp;
 };
 

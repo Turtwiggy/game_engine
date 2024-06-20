@@ -159,15 +159,15 @@ update_resolve_collisions_system(entt::registry& r)
         desc.velocity = { impact_vel_amount_x, impact_vel_amount_y };
         desc.start_size = 10;
         desc.end_size = 0;
-        desc.sprite = "SMOKE_IMPACT";
+        desc.sprite = "EMPTY";
         const auto e = create_particle(r, desc);
 
         // make it an animation
-        SpriteAnimationComponent anim;
-        anim.playing_animation_name = "SMOKE_IMPACT";
-        anim.duration = desc.time_to_live_ms / 1000;
-        anim.looping = false;
-        r.emplace<SpriteAnimationComponent>(e, anim);
+        // SpriteAnimationComponent anim;
+        // anim.playing_animation_name = "SMOKE_IMPACT";
+        // anim.duration = desc.time_to_live_ms / 1000;
+        // anim.looping = false;
+        // r.emplace<SpriteAnimationComponent>(e, anim);
       }
     }
   }

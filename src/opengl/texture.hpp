@@ -4,8 +4,8 @@
 #if !defined(STB_IMAGE_IMPLEMENTATION)
 #define STB_IMAGE_IMPLEMENTATION
 #endif
-#include <glm/glm.hpp>
 #include "opengl/framebuffer.hpp"
+#include <glm/glm.hpp>
 
 // c++ standard library headers
 #include <string>
@@ -63,7 +63,12 @@ bind_linear_texture(const LinearTexture& texture);
 void
 update_bound_texture_size(const glm::ivec2 size);
 
-void
-new_texture_to_fbo(FramebufferID& out_fbo_id, int& out_tex_id, const int tex_unit, const glm::ivec2 size);
+struct FboResult
+{
+  FramebufferID out_fbo_id;
+  std::vector<unsigned int> out_tex_ids;
+};
+FboResult
+new_texture_to_fbo(const int tex_unit, const glm::ivec2& size, const int n_colour_buffers = 1);
 
 } // namespace engine

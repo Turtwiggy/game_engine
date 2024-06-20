@@ -97,7 +97,8 @@
         "actor_unitgroup",
         "solid_spaceship_point",
         "actor_spaceship_pressureplate",
-        "actor_unit_rtslike"
+        "actor_unit_rtslike",
+        "SMOKE_IMPACT"
       ]
     },
     {

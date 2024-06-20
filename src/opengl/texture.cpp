@@ -158,44 +158,68 @@ engine::update_bound_texture_size(const glm::ivec2 size)
   glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, size.x, size.y, 0, GL_RGB, GL_UNSIGNED_BYTE, NULL);
 };
 
-void
-engine::new_texture_to_fbo(FramebufferID& out_fbo_id, int& out_tex_id, const int tex_unit, glm::ivec2 size)
+std::vector<unsigned int>
+add_textures_to_fbo(const glm::ivec2& size, const int num_colour_buffers)
+{
+  // generate textures
+  auto* tex_ids = new unsigned int[num_colour_buffers];
+  glGenTextures(num_colour_buffers, tex_ids);
+
+  for (int i = 0; i < num_colour_buffers; i++) {
+    const auto tex_id = tex_ids[i];
+    glBindTexture(GL_TEXTURE_2D, tex_id);
+
+    // set parameters
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
+    glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA16F, size.x, size.y, 0, GL_RGBA, GL_FLOAT, NULL);
+
+    // attach it to the currently bound framebuffer object
+    glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0 + i, GL_TEXTURE_2D, tex_id, 0);
+  }
+
+  // return texture ids
+  std::vector<unsigned int> result;
+  for (int i = 0; i < num_colour_buffers; i++)
+    result.push_back(tex_ids[i]);
+
+  delete[] tex_ids;
+  return result;
+};
+
+FboResult
+engine::new_texture_to_fbo(const int tex_unit, const glm::ivec2& size, const int n_colour_buffers)
 {
   glActiveTexture(GL_TEXTURE0 + tex_unit);
 
-  auto fbo_id = Framebuffer::create_fbo();
+  const auto fbo_id = Framebuffer::create_fbo();
   Framebuffer::bind_fbo(fbo_id);
   RenderCommand::set_viewport(0, 0, size.x, size.y);
 
-  // add a colour texture
-  unsigned int tex_id;
-  glGenTextures(1, &tex_id);
-  glBindTexture(GL_TEXTURE_2D, tex_id);
-
-  // create a texture
-  glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
-  glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
-  glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
-  glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
-  glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, size.x, size.y, 0, GL_RGBA, GL_UNSIGNED_BYTE, NULL);
-
-  // attach it to the currently bound framebuffer object
-  glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, tex_id, 0);
-
-  CHECK_OPENGL_ERROR(2);
+  const auto tex_ids = add_textures_to_fbo(size, n_colour_buffers);
+  CHECK_OPENGL_ERROR(1);
 
   // tell opengl which colour attachments we'll use of this framebuffer
-  unsigned int attachments[1] = { GL_COLOR_ATTACHMENT0 };
-  glDrawBuffers(1, attachments);
+  unsigned int* attachments = new unsigned int[n_colour_buffers];
+  for (int i = 0; i < n_colour_buffers; i++)
+    attachments[i] = GL_COLOR_ATTACHMENT0 + i;
+  glDrawBuffers(n_colour_buffers, attachments);
+  delete[] attachments;
+
   if (glCheckFramebufferStatus(GL_FRAMEBUFFER) != GL_FRAMEBUFFER_COMPLETE) {
-    std::cerr << "(FBO: main_scene) ERROR: Framebuffer not complete!\n";
-    CHECK_OPENGL_ERROR(1);
+    std::cerr << "(FBO: main_scene) ERROR: Framebuffer not complete!" << std::endl;
+    CHECK_OPENGL_ERROR(2);
     exit(1);
   }
 
   Framebuffer::default_fbo();
-  out_fbo_id = fbo_id;
-  out_tex_id = tex_id;
+
+  FboResult result;
+  result.out_fbo_id = fbo_id;
+  result.out_tex_ids = tex_ids;
+  return result;
 };
 
 std::vector<unsigned int>
