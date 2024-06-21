@@ -15,7 +15,9 @@ const int MAX_BONES = 100;
 const int MAX_BONE_INFLUENCE = 4;
 uniform mat4 final_bone_matrices[MAX_BONES];
 
+out vec3 o_fragpos;
 out vec2 o_uv;
+out vec3 o_normal;
 out vec4 o_colour;
 
 void
@@ -37,9 +39,11 @@ main()
     // vec3 local_normal = mat3(final_bone_matrices[v_bone_ids[i]]) * v_normal;
   }
 
-  // gl_Position = projection * view * model * vec4(v_pos, 1.0f);
-  gl_Position = projection * view * model * total_pos;
+  gl_Position = projection * view * model * vec4(v_pos, 1.0f);
+  // gl_Position = projection * view * model * total_pos;
 
+  o_fragpos = vec3(model * vec4(v_pos, 1.0));
   o_uv = v_uv;
+  o_normal = mat3(transpose(inverse(model))) * v_normal;  
   o_colour = v_colour;
 }

@@ -54,7 +54,7 @@ init(engine::SINGLETON_Application& app, entt::registry& r)
   auto& models = get_first_component<SINGLE_ModelsComponent>(r);
   auto& animator = get_first_component<SINGLE_AnimatorComponent>(r);
   load_models(models);
-  // load_animations(animator, models);
+  load_animations(animator, models);
 
   {
     SINGLE_RendererComponent renderer;
@@ -72,7 +72,7 @@ init(engine::SINGLETON_Application& app, entt::registry& r)
     }
     r.emplace<SINGLE_RendererComponent>(r.create(), renderer);
 
-    init_renderer_system(r);
+    init_renderer_system(app, r);
   }
 
   // create a model
@@ -153,7 +153,7 @@ update(engine::SINGLETON_Application& app, entt::registry& r, const float dt)
     // play_animation(animator, &animator.animation_0_data);
     // }
 
-    update_renderer_system(app, r);
+    update_renderer_system(app, r, dt);
   }
 
   // ui

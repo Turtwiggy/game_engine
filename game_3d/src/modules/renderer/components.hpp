@@ -29,6 +29,17 @@ struct SINGLE_RendererComponent
 
   std::vector<glm::vec3> cubes;
   std::vector<glm::vec3> lights;
+
+  int tex_unit_diffuse_spaceship = 0;
+
+  // tex_id known after bind
+  int tex_id_diffuse_spaceship = 0;
+
+  // viewport
+  // note: values are updated in render
+  glm::ivec2 viewport_size_render_at = { 0, 0 };
+  glm::ivec2 viewport_size_current = { 0, 0 };
+  glm::ivec2 viewport_pos = { 0, 0 };
 };
 
 }

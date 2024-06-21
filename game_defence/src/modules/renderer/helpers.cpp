@@ -116,7 +116,7 @@ game2d::render_texture_to_imgui_viewport(const int64_t& tex_id)
 bool
 game2d::check_if_viewport_resize(const SINGLETON_RendererInfo& ri)
 {
-  auto viewport_wh = ri.viewport_size_render_at;
+  const auto viewport_wh = ri.viewport_size_render_at;
 
   if (ri.viewport_size_current.x > 0.0f && ri.viewport_size_current.y > 0.0f &&
       (viewport_wh.x != ri.viewport_size_current.x || viewport_wh.y != ri.viewport_size_current.y)) {

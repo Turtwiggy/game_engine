@@ -18,4 +18,16 @@ vec3_to_quat(const glm::vec3& v)
   return glm::quat(glm::vec3(pitch, yaw, roll));
 }
 
+bool
+check_if_viewport_resize(const SINGLE_RendererComponent& ri)
+{
+  const auto viewport_wh = ri.viewport_size_render_at;
+
+  if (ri.viewport_size_current.x > 0.0f && ri.viewport_size_current.y > 0.0f &&
+      (viewport_wh.x != ri.viewport_size_current.x || viewport_wh.y != ri.viewport_size_current.y)) {
+    return true;
+  }
+  return false;
+}
+
 } // namespace game2d
