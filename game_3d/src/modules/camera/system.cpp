@@ -43,7 +43,7 @@ update_camera_system(engine::GameWindow& window, entt::registry& r, const float 
     camera_transform.position -= get_up_dir(camera) * velocity;
 
   if (window.get_mouse_captured()) {
-    const float mouse_sens = 0.01f;
+    const float mouse_sens = 0.001f;
     const float mouse_input_x = mouse_input.x * mouse_sens;
     camera.yaw += mouse_input_x;
 

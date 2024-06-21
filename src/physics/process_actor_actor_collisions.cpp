@@ -2,7 +2,6 @@
 #include "process_actor_actor_collisions.hpp"
 
 // game2d
-#include "actors.hpp"
 #include "physics/components.hpp"
 #include "physics/helpers.hpp"
 

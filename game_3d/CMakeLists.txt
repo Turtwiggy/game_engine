@@ -25,10 +25,13 @@ if(EMSCRIPTEN)
 endif()
 
 if(CMAKE_CXX_COMPILER_ID MATCHES GNU)
-  # add_definitions("-std=c++20")
+  add_definitions("-std=c++20")
   add_definitions("-Wall")
+  add_definitions("-Wextra")
   add_definitions("-Wformat")
   add_definitions("-O2")
+
+  # add_definitions("-Werror")
 endif()
 
 if(CMAKE_CXX_COMPILER_ID MATCHES MSVC)
@@ -60,8 +63,6 @@ endif()
 # Add VCPKG packages
 if(EMSCRIPTEN)
 else()
-  message("Finding packages...")
-
   # packages not supported or needed by emscripten
   # find_package(GameNetworkingSockets CONFIG REQUIRED)
   find_package(SDL2 CONFIG REQUIRED)
@@ -116,9 +117,8 @@ endif()
 
 # includes
 target_include_directories(game_3d PRIVATE
-  ${SDL2_INCLUDE_DIRS}
-  ${VCPKG_INCLUDES}
   ${IMGUI_INCLUDES}
+  ${VCPKG_INCLUDES}
   ${OPTICK_INCLUDES}
   ${STB_INCLUDE_DIRS}
   ${CMAKE_SOURCE_DIR}/src
@@ -130,23 +130,20 @@ target_include_directories(game_3d PRIVATE
 )
 
 message("linking libs...")
+target_link_libraries(game_3d PRIVATE assimp)
 target_link_libraries(game_3d PRIVATE GLEW::GLEW)
-target_link_libraries(game_3d PRIVATE SDL2::SDL2 SDL2::SDL2main)
+target_link_libraries(game_3d PRIVATE glm::glm)
+target_link_libraries(game_3d PRIVATE nlohmann_json::nlohmann_json)
 target_link_libraries(game_3d PRIVATE OpenAL::OpenAL)
+target_link_libraries(game_3d PRIVATE SDL2::SDL2 SDL2::SDL2main)
 
 if(${CMAKE_SYSTEM_NAME} STREQUAL "Linux")
   message("linking linux libs...")
   target_link_libraries(game_3d PRIVATE OpenGL::GL)
 endif()
 
-target_link_libraries(game_3d PRIVATE glm::glm)
-target_link_libraries(game_3d PRIVATE nlohmann_json::nlohmann_json)
-target_link_libraries(game_3d PRIVATE assimp)
-
 # target_link_libraries(game_2d PRIVATE opengl32)
 IF(${CMAKE_SYSTEM_NAME} STREQUAL "Windows")
-  message("build type: ${CMAKE_BUILD_TYPE}")
-
   # Only do this for debug builds,
   # as release builds should copy the folder over (not symlink)
   IF(CMAKE_BUILD_TYPE MATCHES Debug)

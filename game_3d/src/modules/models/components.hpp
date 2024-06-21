@@ -45,13 +45,15 @@ struct Model
 
 struct SINGLE_ModelsComponent
 {
-  Model low_poly_car{ "assets/models/lizard_wizard.dae" };
+  std::vector<Model> models_to_load{
+    { "assets/models/wiggy_mech_2d4b.fbx" },
+    { "assets/models/ultimate-spaceships-may-2021/Bob/FBX/Bob.fbx" },
+  };
 };
 
-// hack: remove this component
-struct CarComponent
+struct ModelComponent
 {
-  bool placeholder = true;
+  Model model;
 };
 
 } // namespace game2d

@@ -182,63 +182,61 @@ process_node(Model& model, aiNode* node, const aiScene* scene)
 };
 
 void
-load_models(SINGLE_ModelsComponent& models)
+load_models(SINGLE_ModelsComponent& models_c)
 {
-  // choose models
-  // HACK: only chooses one specific one
-  auto& model = models.low_poly_car;
-
   Assimp::Importer importer;
+  for (auto& model : models_c.models_to_load) {
 
-  // load
-  const auto flags = aiProcess_Triangulate | aiProcess_FlipUVs;
-  const aiScene* scene = importer.ReadFile(model.path, flags);
-  if (!scene || scene->mFlags & AI_SCENE_FLAGS_INCOMPLETE || !scene->mRootNode) {
-    std::cerr << "ERROR::ASSIMP::" << importer.GetErrorString() << std::endl;
-    return;
+    // load
+    const auto flags = aiProcess_Triangulate | aiProcess_FlipUVs;
+    const aiScene* scene = importer.ReadFile(model.path, flags);
+    if (!scene || scene->mFlags & AI_SCENE_FLAGS_INCOMPLETE || !scene->mRootNode) {
+      std::cerr << "ERROR::ASSIMP::" << importer.GetErrorString() << std::endl;
+      return;
+    }
+
+    // process
+    aiNode* root = scene->mRootNode;
+    process_node(model, root, scene);
+
+    // opengl
+    for (auto& mesh : model.meshes) {
+      auto& vertices = mesh.vertices;
+      auto& indices = mesh.indices;
+
+      // generate some buffers
+      glGenVertexArrays(1, &mesh.vao);
+      glGenBuffers(1, &mesh.vbo);
+      glGenBuffers(1, &mesh.ebo);
+      glBindVertexArray(mesh.vao);
+
+      // bind vertices
+      glBindBuffer(GL_ARRAY_BUFFER, mesh.vbo);
+      glBufferData(GL_ARRAY_BUFFER, vertices.size() * sizeof(Vertex), &vertices[0], GL_STATIC_DRAW);
+
+      // bind indices
+      glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, mesh.ebo);
+      glBufferData(GL_ELEMENT_ARRAY_BUFFER, indices.size() * sizeof(unsigned int), &indices[0], GL_STATIC_DRAW);
+
+      // set layout for shader
+      glEnableVertexAttribArray(0);
+      glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, sizeof(Vertex), (void*)0);
+      glEnableVertexAttribArray(1);
+      glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, sizeof(Vertex), (void*)offsetof(Vertex, normal));
+      glEnableVertexAttribArray(2);
+      glVertexAttribPointer(2, 2, GL_FLOAT, GL_FALSE, sizeof(Vertex), (void*)offsetof(Vertex, uv));
+      glEnableVertexAttribArray(3);
+      glVertexAttribPointer(3, 4, GL_FLOAT, GL_FALSE, sizeof(Vertex), (void*)offsetof(Vertex, colour));
+      glEnableVertexAttribArray(4);
+      glVertexAttribIPointer(4, 4, GL_INT, sizeof(Vertex), (void*)offsetof(Vertex, bone_ids));
+      glEnableVertexAttribArray(5);
+      glVertexAttribPointer(5, 4, GL_FLOAT, GL_FALSE, sizeof(Vertex), (void*)offsetof(Vertex, weights));
+      glBindVertexArray(0);
+    }
+
+    std::cout << "loaded model..." << std::endl;
+    std::cout << "It has " << model.bone_info.size() << "bones" << std::endl;
   }
-
-  // process
-  aiNode* root = scene->mRootNode;
-  process_node(model, root, scene);
-
-  // opengl
-  for (auto& mesh : model.meshes) {
-    auto& vertices = mesh.vertices;
-    auto& indices = mesh.indices;
-
-    // generate some buffers
-    glGenVertexArrays(1, &mesh.vao);
-    glGenBuffers(1, &mesh.vbo);
-    glGenBuffers(1, &mesh.ebo);
-    glBindVertexArray(mesh.vao);
-
-    // bind vertices
-    glBindBuffer(GL_ARRAY_BUFFER, mesh.vbo);
-    glBufferData(GL_ARRAY_BUFFER, vertices.size() * sizeof(Vertex), &vertices[0], GL_STATIC_DRAW);
-
-    // bind indices
-    glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, mesh.ebo);
-    glBufferData(GL_ELEMENT_ARRAY_BUFFER, indices.size() * sizeof(unsigned int), &indices[0], GL_STATIC_DRAW);
-
-    // set layout for shader
-    glEnableVertexAttribArray(0);
-    glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, sizeof(Vertex), (void*)0);
-    glEnableVertexAttribArray(1);
-    glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, sizeof(Vertex), (void*)offsetof(Vertex, normal));
-    glEnableVertexAttribArray(2);
-    glVertexAttribPointer(2, 2, GL_FLOAT, GL_FALSE, sizeof(Vertex), (void*)offsetof(Vertex, uv));
-    glEnableVertexAttribArray(3);
-    glVertexAttribPointer(3, 4, GL_FLOAT, GL_FALSE, sizeof(Vertex), (void*)offsetof(Vertex, colour));
-    glEnableVertexAttribArray(4);
-    glVertexAttribIPointer(4, 4, GL_INT, sizeof(Vertex), (void*)offsetof(Vertex, bone_ids));
-    glEnableVertexAttribArray(5);
-    glVertexAttribPointer(5, 4, GL_FLOAT, GL_FALSE, sizeof(Vertex), (void*)offsetof(Vertex, weights));
-    glBindVertexArray(0);
-  }
-
-  std::cout << "loaded model..." << std::endl;
-  std::cout << "It has " << model.bone_info.size() << "bones" << std::endl;
 };
 
 // if want textures, bind textures to shader/texture-unit

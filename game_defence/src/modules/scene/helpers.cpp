@@ -5,7 +5,6 @@
 #include "audio/helpers.hpp"
 #include "colour/colour.hpp"
 #include "entt/helpers.hpp"
-#include "entt/serialize.hpp"
 #include "events/components.hpp"
 #include "events/system.hpp"
 #include "game_state.hpp"
@@ -25,6 +24,7 @@
 #include "modules/combat_damage/components.hpp"
 #include "modules/combat_wants_to_shoot/components.hpp"
 #include "modules/debug_pathfinding/components.hpp"
+#include "modules/entt/serialize.hpp"
 #include "modules/gameover/components.hpp"
 #include "modules/gen_dungeons/components.hpp"
 #include "modules/grid/components.hpp"
@@ -50,6 +50,7 @@
 #include "renderer/transform.hpp"
 #include "sprites/helpers.hpp"
 #include <nlohmann/json.hpp>
+
 
 #include <string>
 

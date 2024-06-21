@@ -176,17 +176,16 @@ update_renderer_system(engine::SINGLETON_Application& app, entt::registry& r)
 
   {
     const auto& animator = get_first_component<SINGLE_AnimatorComponent>(r);
-    const auto& models = get_first_component<SINGLE_ModelsComponent>(r);
     shaders.animated.bind();
     shaders.animated.set_mat4("projection", camera.projection);
     shaders.animated.set_mat4("view", camera.view);
 
-    const auto& view = r.view<const TransformComponent, const CarComponent>();
-    for (const auto& [entity, t, car] : view.each()) {
+    const auto& view = r.view<const TransformComponent, const ModelComponent>();
+    for (const auto& [entity, t, model_c] : view.each()) {
 
-      // const auto& transforms = animator.final_bone_matrices;
-      // for (int i = 0; i < transforms.size(); ++i)
-      //   shaders.animated.set_mat4("final_bone_matrices[" + std::to_string(i) + "]", transforms[i]);
+      const auto& transforms = animator.final_bone_matrices;
+      for (int i = 0; i < transforms.size(); ++i)
+        shaders.animated.set_mat4("final_bone_matrices[" + std::to_string(i) + "]", transforms[i]);
 
       glm::mat4 model(1.0f);
       model = glm::translate(model, t.position);
@@ -194,7 +193,7 @@ update_renderer_system(engine::SINGLETON_Application& app, entt::registry& r)
       model *= glm::toMat4(vec3_to_quat(t.rotation));
       shaders.animated.set_mat4("model", model);
 
-      draw_model(models.low_poly_car);
+      draw_model(model_c.model);
     }
   }
 
@@ -214,15 +213,15 @@ update_renderer_system(engine::SINGLETON_Application& app, entt::registry& r)
     shaders.solid_colour.set_mat4("projection", camera.projection);
     shaders.solid_colour.set_mat4("view", camera.view);
 
-    const auto& view = r.view<TransformComponent, CarComponent>();
-    for (const auto& [entity, t, car] : view.each()) {
+    const auto& view = r.view<TransformComponent, ModelComponent>();
+    for (const auto& [entity, t, model_c] : view.each()) {
       const glm::vec3 scale_big = t.scale * scale;
       glm::mat4 model(1.0f);
       model = glm::translate(model, t.position);
       model = glm::scale(model, scale_big);
       model *= glm::toMat4(vec3_to_quat(t.rotation));
       shaders.solid_colour.set_mat4("model", model);
-      draw_model(models.low_poly_car);
+      draw_model(model_c.model);
     }
   }
 

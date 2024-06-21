@@ -56,9 +56,6 @@ init(engine::SINGLETON_Application& app, entt::registry& r)
   load_models(models);
   // load_animations(animator, models);
 
-  // TEMP: for debugging
-  auto& model = models.low_poly_car;
-
   {
     SINGLE_RendererComponent renderer;
 
@@ -74,19 +71,19 @@ init(engine::SINGLETON_Application& app, entt::registry& r)
       renderer.lights.push_back({ rnd_x, 0.5f, rnd_z });
     }
     r.emplace<SINGLE_RendererComponent>(r.create(), renderer);
+
     init_renderer_system(r);
   }
 
-  // create a car
+  // create a model
   auto e = r.create();
-
   TransformComponent tc;
   tc.position = { 0.0f, 0.0f, 0.0f };
   tc.rotation = { -engine::HALF_PI, 0.0f, 0.0f };
   // tc.scale = { 0.01f, 0.01f, 0.01f };
   tc.scale = { 0.5f, 0.5f, 0.5f };
   r.emplace<TransformComponent>(e, tc);
-  r.emplace<CarComponent>(e);
+  r.emplace<ModelComponent>(e, models.models_to_load[1]); // temp: the spaceship model
 }
 
 void
@@ -117,31 +114,29 @@ update(engine::SINGLETON_Application& app, entt::registry& r, const float dt)
   // game logic
 
   // using opengl right-handed system
-  const glm::vec3 up = glm::vec3(0.0f, 1.0f, 0.0f);
-  const glm::vec3 forward = glm::vec3(0.0f, 0.0f, -1.0f);
-  const glm::vec3 right = glm::vec3(1.0f, 0.0f, 0.0f);
+  // const glm::vec3 up = glm::vec3(0.0f, 1.0f, 0.0f);
+  // const glm::vec3 forward = glm::vec3(0.0f, 0.0f, -1.0f);
+  // const glm::vec3 right = glm::vec3(1.0f, 0.0f, 0.0f);
 
-  const auto& input = get_first_component<SINGLETON_InputComponent>(r);
-  const auto& view = r.view<TransformComponent, CarComponent>();
-  for (const auto& [entity, t, car] : view.each()) {
-    const float car_turn_speed = 5.0f;
-    const float car_speed = 2.0f;
-    const float move_velocity = car_speed * dt;
-    const float turn_velocity = car_turn_speed * dt;
-
-    // update rotation
-    if (get_key_held(input, SDL_SCANCODE_LEFT))
-      t.rotation.y += turn_velocity;
-    if (get_key_held(input, SDL_SCANCODE_RIGHT))
-      t.rotation.y -= turn_velocity;
-
-    // get direction from rotation
-    const auto fwd_dir = glm::rotate(vec3_to_quat(t.rotation), forward);
-    if (get_key_held(input, SDL_SCANCODE_UP))
-      t.position += fwd_dir * move_velocity;
-    if (get_key_held(input, SDL_SCANCODE_DOWN))
-      t.position -= fwd_dir * move_velocity;
-  }
+  // const auto& input = get_first_component<SINGLETON_InputComponent>(r);
+  // const auto& view = r.view<TransformComponent, CarComponent>();
+  // for (const auto& [entity, t, car] : view.each()) {
+  //   const float car_turn_speed = 5.0f;
+  //   const float car_speed = 2.0f;
+  //   const float move_velocity = car_speed * dt;
+  //   const float turn_velocity = car_turn_speed * dt;
+  //   // update rotation
+  //   if (get_key_held(input, SDL_SCANCODE_LEFT))
+  //     t.rotation.y += turn_velocity;
+  //   if (get_key_held(input, SDL_SCANCODE_RIGHT))
+  //     t.rotation.y -= turn_velocity;
+  //   // get direction from rotation
+  //   const auto fwd_dir = glm::rotate(vec3_to_quat(t.rotation), forward);
+  //   if (get_key_held(input, SDL_SCANCODE_UP))
+  //     t.position += fwd_dir * move_velocity;
+  //   if (get_key_held(input, SDL_SCANCODE_DOWN))
+  //     t.position -= fwd_dir * move_velocity;
+  // }
 
   // rendering
   {
@@ -153,19 +148,19 @@ update(engine::SINGLETON_Application& app, entt::registry& r, const float dt)
     update_animation(animator, dt);
 
     // reset
-    if (get_key_down(input, SDL_SCANCODE_P)) {
-      // std::cout << "restarting anim" << std::endl;
-      // play_animation(animator, &animator.animation_0_data);
-    }
+    // if (get_key_down(input, SDL_SCANCODE_P)) {
+    // std::cout << "restarting anim" << std::endl;
+    // play_animation(animator, &animator.animation_0_data);
+    // }
 
     update_renderer_system(app, r);
   }
 
   // ui
   {
-    const auto& models = r.view<CarComponent, TransformComponent>();
+    const auto& models = r.view<ModelComponent, TransformComponent>();
     ImGui::Begin("Models");
-    for (const auto& [e, car, transform] : models.each()) {
+    for (const auto& [e, model, transform] : models.each()) {
       game2d::imgui_draw_vec3("Pos: ", transform.position.x, transform.position.y, transform.position.z);
       game2d::imgui_draw_vec3("Render Size: ", transform.scale.x, transform.scale.y, transform.scale.z);
       game2d::imgui_draw_vec3("Render Angle:", transform.rotation.x, transform.rotation.y, transform.rotation.z);
