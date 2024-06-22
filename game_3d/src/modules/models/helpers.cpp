@@ -184,8 +184,8 @@ process_node(Model& model, aiNode* node, const aiScene* scene)
 void
 load_models(SINGLE_ModelsComponent& models_c)
 {
-  Assimp::Importer importer;
   for (auto& model : models_c.models_to_load) {
+    Assimp::Importer importer;
 
     // load
     const auto flags = aiProcess_Triangulate | aiProcess_FlipUVs;
@@ -201,8 +201,8 @@ load_models(SINGLE_ModelsComponent& models_c)
 
     // opengl
     for (auto& mesh : model.meshes) {
-      auto& vertices = mesh.vertices;
-      auto& indices = mesh.indices;
+      const auto& vertices = mesh.vertices;
+      const auto& indices = mesh.indices;
 
       // generate some buffers
       glGenVertexArrays(1, &mesh.vao);

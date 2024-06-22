@@ -15,7 +15,6 @@
 #include "modules/renderer/helpers.hpp"
 #include "modules/scene/components.hpp"
 #include "modules/scene/helpers.hpp"
-#include "modules/ui_rpg_character/components.hpp"
 #include "modules/ux_hoverable_change_colour/components.hpp"
 #include "physics/components.hpp"
 
@@ -160,64 +159,7 @@ update_ui_scene_main_menu(engine::SINGLETON_Application& app, entt::registry& r)
   // }
   ImGui::End();
 
-  // draw X inactive-soliders wiggling
-  const auto& monsters = r.view<CharacterStats, InActiveFight>();
-  const int cur_size = monsters.size_hint();
-  const int old_size = ui.instantiated_players.size();
-
-  // Create Person
-  const int to_create = cur_size - old_size;
-  for (int i = 0; i < to_create; i++) {
-
-    // Create Wiggly Person
-    const int pixel_scale_up_size = 2;
-    const auto default_size = glm::ivec2{ 16 * pixel_scale_up_size, 16 * pixel_scale_up_size };
-    const auto e = create_gameplay(r, EntityType::actor_player);
-    r.remove<InputComponent>(e);
-    r.remove<PhysicsActorComponent>(e);
-    r.remove<AABB>(e);
-    r.emplace<SeperateTransformFromAABB>(e);
-    r.emplace<ChangeColourOnHoverComponent>(e);
-
-    // e.g. i=0,-200, i=1,0, i=2,200, i=3,400
-    const auto scale = [](int i, int start_x, int increment) -> int { return start_x + increment * i; };
-
-    // ideal pos's......  0 ---- 1 --(C)-- 2 ---- 3
-    const int offset = old_size + (i); // old e.g. 3 existing + creating 0, 1, 2 as new position
-    const float pos_x = scale(offset, -120, 80);
-
-    auto& t = r.get<TransformComponent>(e);
-    t.scale = { default_size.x, default_size.y, 0.0f };
-    t.position = { pos_x, 150, 0.0f };
-
-    WiggleUpAndDown wiggle;
-    wiggle.base_position = { t.position.x, t.position.y };
-    wiggle.amplitude = 2.0f;
-    r.emplace<WiggleUpAndDown>(e, wiggle);
-
-    // Add stats to character
-    for (int j = 0; const auto& [monster_e, stats, fight] : monsters.each()) {
-      if (j == i) {
-        r.emplace<CharacterStats>(e, stats);
-        break;
-      }
-      j++;
-    }
-
-    ui.instantiated_players.push_back(e);
-  }
-
-  // Destroy Person
-  for (auto i = old_size; i > cur_size; i--) {
-    const auto idx = i - 1;
-    // auto entity = ui.instantiated_players[idx];
-    // r.destroy(entity); // fine because no aab
-    // ui.instantiated_players.erase(ui.instantiated_players.begin() + idx);
-  }
-
   // show a sound icon
-  //
-
   ImGuiWindowFlags icon_flags = 0;
   icon_flags |= ImGuiWindowFlags_NoDocking;
   icon_flags |= ImGuiWindowFlags_NoFocusOnAppearing;

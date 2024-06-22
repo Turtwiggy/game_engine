@@ -10,11 +10,6 @@
 
 namespace game2d {
 
-struct poisson
-{
-  //
-};
-
 std::vector<glm::vec2>
 generate_poisson(const int w, const int h, const float radius, const int seed = 0)
 {

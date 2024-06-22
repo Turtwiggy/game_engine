@@ -34,7 +34,6 @@
 #include "modules/scene/helpers.hpp"
 #include "modules/scene_splashscreen_move_to_menu/system.hpp"
 #include "modules/screenshake/system.hpp"
-#include "modules/sprite_spritestack/system.hpp"
 #include "modules/system_minigame_bamboo/system.hpp"
 #include "modules/system_particles/system.hpp"
 #include "modules/system_pathfinding/system.hpp"
@@ -42,13 +41,13 @@
 #include "modules/system_turnbased_endturn/system.hpp"
 #include "modules/system_turnbased_enemy/system.hpp"
 #include "modules/ui_audio/system.hpp"
-#include "modules/ui_backstab_patrol/system.hpp"
 #include "modules/ui_collisions/system.hpp"
 #include "modules/ui_colours/system.hpp"
 #include "modules/ui_combat_turnbased/system.hpp"
 #include "modules/ui_controllers/system.hpp"
 #include "modules/ui_gameover/system.hpp"
 #include "modules/ui_hierarchy/system.hpp"
+#include "modules/ui_patrol/system.hpp"
 #include "modules/ui_pause_menu/system.hpp"
 #include "modules/ui_scene_main_menu/system.hpp"
 #include "modules/ui_worldspace_text/system.hpp"
@@ -360,7 +359,7 @@ game2d::update(engine::SINGLETON_Application& app, entt::registry& r, const floa
       update_ui_combat_turnbased_system(r, mouse_pos);
     }
     if (scene.s == Scene::overworld) {
-      update_ui_backstab_patrol_system(r);
+      update_ui_patrol_system(r);
     }
     if (scene.s == Scene::turnbasedcombat) {
       update_ui_combat_turnbased_system(r, mouse_pos);

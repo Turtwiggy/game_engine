@@ -22,4 +22,11 @@ struct SetVelocityToTargetComponent
   bool placeholder = true;
 };
 
+struct LerpingToTarget
+{
+  glm::ivec2 a;
+  glm::ivec2 b;
+  float t;
+};
+
 } // namespace game2d

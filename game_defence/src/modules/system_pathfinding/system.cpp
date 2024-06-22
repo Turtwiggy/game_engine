@@ -22,6 +22,7 @@ update_pathfinding_system(entt::registry& r, const float& dt)
   if (map_e == entt::null)
     return;
   auto& map = get_first_component<MapComponent>(r);
+  const float dt_ms = dt * 1000.0f;
 
   // if something was killed, remove it from the map
   const auto& dead = get_first_component<SINGLETON_EntityBinComponent>(r);
@@ -62,13 +63,13 @@ update_pathfinding_system(entt::registry& r, const float& dt)
       ImGui::Text("dst_gridpos: %i %i", dst_gridpos_dynamic.value().x, dst_gridpos_dynamic.value().y);
     }
 
-    if (path.aim_for_exact_position) {
-      dst_worldpos_dynamic = path.dst_pos;
-      dst_gridpos_dynamic = engine::grid::world_space_to_grid_space(dst_worldpos_dynamic.value(), map.tilesize);
-      dst_gridpos_dynamic.value().x = glm::clamp(dst_gridpos_dynamic.value().x, 0, map.xmax - 1);
-      dst_gridpos_dynamic.value().y = glm::clamp(dst_gridpos_dynamic.value().y, 0, map.ymax - 1);
-      ImGui::Text("dst_gridpos: %i %i", dst_gridpos_dynamic.value().x, dst_gridpos_dynamic.value().y);
-    }
+    // if (path.aim_for_exact_position) {
+    //   dst_worldpos_dynamic = path.dst_pos;
+    //   dst_gridpos_dynamic = engine::grid::world_space_to_grid_space(dst_worldpos_dynamic.value(), map.tilesize);
+    //   dst_gridpos_dynamic.value().x = glm::clamp(dst_gridpos_dynamic.value().x, 0, map.xmax - 1);
+    //   dst_gridpos_dynamic.value().y = glm::clamp(dst_gridpos_dynamic.value().y, 0, map.ymax - 1);
+    //   ImGui::Text("dst_gridpos: %i %i", dst_gridpos_dynamic.value().x, dst_gridpos_dynamic.value().y);
+    // }
 
     if (dst_gridpos_dynamic.has_value() && dst_gridpos_static != dst_gridpos_dynamic.value())
       ImGui::Text("Target has moved outside pathfinding??");
@@ -103,23 +104,48 @@ update_pathfinding_system(entt::registry& r, const float& dt)
           const auto d = aabb.center - target.position.value();
           const float d2 = d.x * d.x + d.y * d.y;
           const float threshold = 6;
-          if (d2 < threshold)
+          if (d2 <= threshold) {
             path.path_cleared[i] = true;
+
+            if (auto* lerping_to_target = r.try_get<LerpingToTarget>(e))
+              r.remove<LerpingToTarget>(e);
+          }
         }
 
-        // if we've cleared this current gridtile path,
+        // need to have cleared the path for the next conditions
+        if (!path.path_cleared[i])
+          break;
+
+        // If we've cleared the current gridtile path,
+        // wait for a little bit to simulate "walking" steps
+        if (path.wait_at_destination && path.wait_time_ms_left > 0) {
+          path.wait_time_ms_left -= dt_ms;
+          break;
+        }
+
+        // reset the wait time for the next path
+        path.wait_time_ms_left = path.wait_time_ms;
+
         // aim for the next gridtile path
-        if (path.path_cleared[i]) {
-          const int next_idx = i + 1;
-          const bool is_valid_next_index = next_idx <= path.path.size() - 1;
-          if (is_valid_next_index) {
-            const auto next_pos = path.path[next_idx];
-            const auto target_pos = engine::grid::grid_space_to_world_space(next_pos, map.tilesize);
-            // center, not top left
-            target.position = target_pos;
-            target.position.value() += glm::vec2(map.tilesize / 2.0f, map.tilesize / 2.0f);
-            break;
+        const int next_idx = i + 1;
+        const bool is_valid_next_index = next_idx <= path.path.size() - 1;
+        if (is_valid_next_index) {
+          const auto next_pos = path.path[next_idx];
+          const auto target_pos = engine::grid::grid_space_to_world_space(next_pos, map.tilesize);
+          // center, not top left
+          target.position = target_pos;
+          target.position.value() += glm::vec2(map.tilesize / 2.0f, map.tilesize / 2.0f);
+
+          auto* lerping_to_target = r.try_get<LerpingToTarget>(e);
+          if (lerping_to_target == nullptr) {
+            LerpingToTarget data;
+            data.a = aabb.center;
+            data.b = target.position.value();
+            data.t = 0.0f;
+            r.emplace_or_replace<LerpingToTarget>(e, data);
           }
+
+          break;
         }
 
       } else {

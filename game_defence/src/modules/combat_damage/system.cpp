@@ -9,7 +9,6 @@
 #include "modules/actors/helpers.hpp"
 #include "modules/combat_flash_on_damage/components.hpp"
 #include "modules/combat_flash_on_damage/helpers.hpp"
-#include "modules/combat_powerup_doubledamage/components.hpp"
 #include "modules/screenshake/components.hpp"
 #include "modules/system_knockback/components.hpp"
 #include "modules/ui_colours/helpers.hpp"
@@ -81,13 +80,13 @@ update_take_damage_system(entt::registry& r)
     if (crit)
       damage *= 2;
     if (miss)
-      damage = 0;
+      damage = 1;
 
     // Does the attacker have a double damage powerup?
-    if (parent_attacker.has_value() && parent_attacker.value() != entt::null) {
-      if (const auto* dd = r.try_get<PowerupDoubleDamage>(parent_attacker.value()))
-        damage *= 2;
-    }
+    // if (parent_attacker.has_value() && parent_attacker.value() != entt::null) {
+    //   if (const auto* dd = r.try_get<PowerupDoubleDamage>(parent_attacker.value()))
+    //     damage *= 2;
+    // }
 
     // .. popup some numbers as vfx
     const int base_text_separation = 7;

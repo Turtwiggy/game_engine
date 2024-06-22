@@ -195,15 +195,13 @@ game2d::init_render_system(const engine::SINGLETON_Application& app, entt::regis
     ri.tex_id_bloom = result.out_tex_ids[0];
   }
 
-  // Load textures
+  // Load user textures
   const int base_tex_unit = ri.RENDERER_TEX_UNIT_COUNT;
   int next_tex_unit = base_tex_unit;
-
   for (auto& tex : ri.user_textures) {
     tex.tex_unit = next_tex_unit;
     const auto loaded_tex = engine::load_texture_linear(tex.tex_unit.unit, tex.path);
     tex.tex_id.id = bind_linear_texture(loaded_tex);
-
     next_tex_unit++;
   }
 

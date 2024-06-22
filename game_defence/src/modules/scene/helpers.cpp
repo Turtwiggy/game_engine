@@ -12,7 +12,6 @@
 #include "magic_enum.hpp"
 #include "maths/grid.hpp"
 #include "maths/maths.hpp"
-#include "modules/actor_bodypart_legs/components.hpp"
 #include "modules/actor_cursor/components.hpp"
 #include "modules/actor_enemy/components.hpp"
 #include "modules/actor_enemy_patrol/components.hpp"
@@ -33,13 +32,10 @@
 #include "modules/renderer/helpers.hpp"
 #include "modules/scene_splashscreen_move_to_menu/components.hpp"
 #include "modules/screenshake/components.hpp"
-#include "modules/sprite_spritestack/components.hpp"
 #include "modules/system_minigame_bamboo/components.hpp"
 #include "modules/system_turnbased_enemy/components.hpp"
-#include "modules/ui_arrows_to_spawners/components.hpp"
 #include "modules/ui_colours/components.hpp"
 #include "modules/ui_combat_turnbased/components.hpp"
-#include "modules/ui_level_up/components.hpp"
 #include "modules/ui_scene_main_menu/components.hpp"
 #include "modules/ui_selected/components.hpp"
 #include "modules/ui_worldspace_text/components.hpp"
@@ -50,7 +46,6 @@
 #include "renderer/transform.hpp"
 #include "sprites/helpers.hpp"
 #include <nlohmann/json.hpp>
-
 
 #include <string>
 
@@ -143,13 +138,12 @@ move_to_scene_start(entt::registry& r, const Scene s, const bool load_saved)
 
   destroy_first<SINGLE_ScreenshakeComponent>(r);
   destroy_first<SINGLE_SelectedUI>(r);
-  destroy_first<SINGLE_ArrowsToSpawnerUI>(r);
-  destroy_first<SINGLE_UILevelUpComponent>(r);
   destroy_first<SINGLE_TurnBasedCombatInfo>(r);
   destroy_first<SINGLE_DebugPathLines>(r);
   destroy_first<SINGLE_CombatState>(r);
   destroy_first<MapComponent>(r);
   destroy_first<Effect_GridComponent>(r);
+  destroy_first<Effect_DoBloom>(r);
   destroy_first<SINGLE_MinigameBamboo>(r);
   destroy_first<SINGLE_TurnBasedCombatInfo>(r);
   destroy_first<DungeonGenerationResults>(r);
@@ -235,6 +229,7 @@ move_to_scene_start(entt::registry& r, const Scene s, const bool load_saved)
 
   if (s == Scene::overworld) {
     destroy_first<OverworldToDungeonInfo>(r); // clear here if exists
+    destroy_first_and_create<Effect_DoBloom>(r);
 
     // Play some audio
     r.emplace<AudioRequestPlayEvent>(create_empty<AudioRequestPlayEvent>(r), "GAME_01");
@@ -362,10 +357,11 @@ move_to_scene_start(entt::registry& r, const Scene s, const bool load_saved)
   }
 
   if (s == Scene::dungeon_designer) {
-    r.emplace<SINGLE_CombatState>(create_empty<SINGLE_CombatState>(r));
-    r.emplace<SINGLE_TurnBasedCombatInfo>(create_empty<SINGLE_TurnBasedCombatInfo>(r));
-    r.emplace<Effect_GridComponent>(create_empty<Effect_GridComponent>(r));
     r.emplace_or_replace<CameraFreeMove>(get_first<OrthographicCamera>(r));
+    destroy_first_and_create<SINGLE_CombatState>(r);
+    destroy_first_and_create<SINGLE_TurnBasedCombatInfo>(r);
+    destroy_first_and_create<Effect_DoBloom>(r);
+    destroy_first_and_create<Effect_GridComponent>(r);
 
     if (get_first<OverworldToDungeonInfo>(r) == entt::null) {
       std::cout << "OverworldToDungeonInfo is null; assuming launch from standalone" << std::endl;
@@ -402,9 +398,10 @@ move_to_scene_start(entt::registry& r, const Scene s, const bool load_saved)
   }
 
   if (s == Scene::turnbasedcombat) {
-    r.emplace<SINGLE_CombatState>(create_empty<SINGLE_CombatState>(r));
-    r.emplace<SINGLE_TurnBasedCombatInfo>(create_empty<SINGLE_TurnBasedCombatInfo>(r));
     r.emplace_or_replace<CameraFreeMove>(get_first<OrthographicCamera>(r));
+    destroy_first_and_create<SINGLE_CombatState>(r);
+    destroy_first_and_create<SINGLE_TurnBasedCombatInfo>(r);
+    destroy_first_and_create<Effect_DoBloom>(r);
 
     int map_width = 600;
     int map_height = 600;
@@ -483,7 +480,6 @@ move_to_scene_start(entt::registry& r, const Scene s, const bool load_saved)
 
   if (s == Scene::minigame_bamboo) {
     r.emplace<SINGLE_MinigameBamboo>(create_empty<SINGLE_MinigameBamboo>(r));
-
     //
   }
 

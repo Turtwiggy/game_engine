@@ -1,5 +1,6 @@
 #include "serialize.hpp"
 
+#include "actors.hpp"
 #include "lifecycle/components.hpp"
 #include "modules/actor_cursor/components.hpp"
 #include "modules/actor_enemy_patrol/components.hpp"

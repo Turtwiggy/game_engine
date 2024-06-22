@@ -76,24 +76,6 @@ update_actor_enemy_patrol_system(entt::registry& r, const glm::ivec2 mouse_pos, 
       // path_c.path_cleared.resize(path.size());
       r.emplace_or_replace<GeneratedPathComponent>(e, path_c);
     };
-    const auto update_path_to_neighbour_idx = [&r, &e, &grid, &map, &src_idx, &src]() {
-      const auto src_gridpos = clamp_worldspace_to_gridspace(map, src);
-
-      // get a random neighbour
-      const auto results = engine::grid::get_neighbour_indicies(src_gridpos.x, src_gridpos.y, map.xmax, map.ymax);
-      const int rnd_neighbour_idx = int(engine::rand_det_s(rnd.rng, 0, results.size()));
-      const int dst_idx = results[rnd_neighbour_idx].second;
-      const auto dst = engine::grid::index_to_world_position(dst_idx, map.xmax, map.ymax, map.tilesize);
-
-      const auto path = generate_direct(r, grid, src_idx, dst_idx);
-      GeneratedPathComponent path_c;
-      path_c.path = path;
-      path_c.src_pos = src;
-      path_c.dst_pos = dst;
-      path_c.dst_ent = entt::null;
-      // path_c.path_cleared.resize(path.size());
-      r.emplace_or_replace<GeneratedPathComponent>(e, path_c);
-    };
 
     // Calculate distance from player & chase the player if you're near to the player.
     const auto dir = glm::vec2(target_aabb) - glm::vec2(patrol_aabb.center);

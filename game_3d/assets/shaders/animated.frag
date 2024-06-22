@@ -17,7 +17,7 @@ struct Material
 
 struct Light
 {
-  vec3 position;
+  vec3 direction;
 
   vec3 ambient;
   vec3 diffuse;
@@ -27,21 +27,19 @@ struct Light
 uniform Material material;
 uniform Light light;
 uniform vec3 camera_pos;
-// uniform sampler2D texture_diffuse;
+uniform sampler2D texture_diffuse;
 
 void
 main()
 {
   // ambient
-  // vec3 ambient = light.ambient * texture(texture_diffuse, o_uv).rgb * material.ambient;
-  vec3 ambient = light.ambient * material.ambient;
+  vec3 ambient = light.ambient * texture(texture_diffuse, o_uv).rgb * material.ambient;
 
   // diffuse
   vec3 norm = normalize(o_normal);
-  vec3 lightDir = normalize(light.position - o_fragpos);
+  vec3 lightDir = normalize(-light.direction);
   float diff = max(dot(norm, lightDir), 0.0);
-  // vec3 diffuse = light.diffuse * diff * texture(texture_diffuse, o_uv).rgb * material.diffuse;
-  vec3 diffuse = light.diffuse * (diff * material.diffuse);
+  vec3 diffuse = light.diffuse * diff * texture(texture_diffuse, o_uv).rgb * material.diffuse;
 
   // specular
   vec3 viewDir = normalize(camera_pos - o_fragpos);
@@ -51,6 +49,4 @@ main()
 
   vec3 result = ambient + diffuse + specular;
   colour = vec4(result, 1.0);
-  
-  // colour = texture(texture_diffuse, TexCoords);
 }

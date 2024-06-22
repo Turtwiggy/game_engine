@@ -22,6 +22,37 @@ struct SINGLE_ShadersComponent
   engine::Shader animated{ "assets/shaders/animated.vert", "assets/shaders/animated.frag" };
 };
 
+// known before bind
+// i.e. chosen by user
+struct TextureUnit
+{
+  int unit = 0;
+
+  TextureUnit() = default;
+  TextureUnit(int unit)
+    : unit(unit){};
+};
+
+// known after bind
+// i.e. chosen by opengl
+struct TextureId
+{
+  int id = 0;
+};
+
+struct Texture
+{
+  std::string path;
+  // std::string spritesheet_path;
+  TextureUnit tex_unit;
+  TextureId tex_id;
+
+  Texture() = default;
+  Texture(const std::string& p, const std::string& sp)
+    : path(p){};
+  // , spritesheet_path(sp){};
+};
+
 struct SINGLE_RendererComponent
 {
   unsigned int cube_vbo = 0;
@@ -30,10 +61,10 @@ struct SINGLE_RendererComponent
   std::vector<glm::vec3> cubes;
   std::vector<glm::vec3> lights;
 
-  int tex_unit_diffuse_spaceship = 0;
+  //
+  int RENDERER_TEX_UNIT_COUNT = 0; // the the number used by renderer
 
-  // tex_id known after bind
-  int tex_id_diffuse_spaceship = 0;
+  std::vector<Texture> user_textures;
 
   // viewport
   // note: values are updated in render

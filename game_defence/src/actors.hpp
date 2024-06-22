@@ -26,17 +26,7 @@ enum class EntityType
   actor_spawner,
   actor_turret,
   actor_barricade,
-  actor_spaceship,
-  actor_spaceship_pressureplate,
-  solid_spaceship_door,
-  solid_spaceship_point,
   actor_unit_rtslike, // selectable and moveable
-
-  // in progress
-  actor_player_ally,
-  actor_unitgroup,
-  actor_bodypart_leg,
-  actor_bodypart_head,
 
   // pickups
   actor_pickup_xp,
@@ -53,8 +43,8 @@ enum class EntityType
 
   // actor_bullets,
   bullet_default,
-  bullet_bow,
-  bullet_enemy,
+  // bullet_bow,
+  // bullet_enemy,
 
   actor_enemy_patrol,
   // actor_enemy,

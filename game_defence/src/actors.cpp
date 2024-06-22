@@ -3,12 +3,9 @@
 #include "colour/colour.hpp"
 #include "entt/helpers.hpp"
 #include "lifecycle/components.hpp"
-#include "modules/actor_bodypart_head/components.hpp"
-#include "modules/actor_bodypart_legs/components.hpp"
 #include "modules/actor_cursor/components.hpp"
 #include "modules/actor_enemy/components.hpp"
 #include "modules/actor_enemy_patrol/components.hpp"
-#include "modules/actor_group/components.hpp"
 #include "modules/actor_hearth/components.hpp"
 #include "modules/actor_player/components.hpp"
 #include "modules/actor_spawner/components.hpp"
@@ -19,19 +16,15 @@
 #include "modules/animation/components.hpp"
 #include "modules/combat_attack_cooldown/components.hpp"
 #include "modules/combat_damage/components.hpp"
-#include "modules/items_drop/components.hpp"
-#include "modules/items_pickup/components.hpp"
 #include "modules/lerp_to_target/components.hpp"
 #include "modules/renderer/components.hpp"
 #include "modules/renderer/helpers.hpp"
 #include "modules/system_knockback/components.hpp"
 #include "modules/system_particles/components.hpp"
-#include "modules/system_spaceship_door/components.hpp"
 #include "modules/system_sprint/components.hpp"
 #include "modules/system_turnbased_enemy/components.hpp"
 #include "modules/ui_colours/helpers.hpp"
 #include "modules/ux_hoverable/components.hpp"
-#include "modules/ux_hoverable_change_colour/components.hpp"
 #include "physics/components.hpp"
 #include "renderer/components.hpp"
 #include "renderer/transform.hpp"
@@ -98,8 +91,6 @@ sprite_type_to_sprite(entt::registry& r, const EntityType& type)
   //   sprite = "EMPTY";
   // else if (type == EntityType::actor_enemy_patrol)
   //   sprite = "EMPTY";
-  else if (type == EntityType::actor_player_ally)
-    sprite = "PERSON_26_0";
   else if (type == EntityType::actor_spawner)
     sprite = "CASTLE_FLOOR";
   else if (type == EntityType::actor_turret)
@@ -108,8 +99,6 @@ sprite_type_to_sprite(entt::registry& r, const EntityType& type)
     sprite = "GEM";
   else if (type == EntityType::actor_pickup_doubledamage)
     sprite = "CARD_HEARTS_2";
-  else if (type == EntityType::actor_unitgroup)
-    sprite = "SHIELD_2_2";
   else if (type == EntityType::actor_barricade)
     sprite = "WOOD_WALL_SMALL";
 
@@ -122,10 +111,10 @@ sprite_type_to_sprite(entt::registry& r, const EntityType& type)
   // bullets...
   else if (type == EntityType::bullet_default)
     sprite = "EMPTY";
-  else if (type == EntityType::bullet_bow)
-    sprite = "ARROW_1";
-  else if (type == EntityType::bullet_enemy)
-    sprite = "EMPTY";
+  // else if (type == EntityType::bullet_bow)
+  //   sprite = "ARROW_1";
+  // else if (type == EntityType::bullet_enemy)
+  //   sprite = "EMPTY";
 
   // enemies...
   // else if (type == EntityType::enemy_dummy)
@@ -181,10 +170,10 @@ create_gameplay(entt::registry& r, const EntityType& type)
         set_size(r, e, SMALL_SIZE);
         break;
       }
-      case EntityType::bullet_enemy: {
-        set_size(r, e, SMALL_SIZE);
-        break;
-      }
+      // case EntityType::bullet_enemy: {
+      //   set_size(r, e, SMALL_SIZE);
+      //   break;
+      // }
       case EntityType::particle: {
         set_size(r, e, HALF_SIZE);
         break;
@@ -229,40 +218,6 @@ create_gameplay(entt::registry& r, const EntityType& type)
       // actors with only one type
       //
 
-    case EntityType::actor_spaceship: {
-      // spaceship is a container for other sprites
-      r.remove<TransformComponent>(e);
-      r.remove<SpriteComponent>(e);
-      break;
-    }
-    case EntityType::actor_spaceship_pressureplate: {
-      create_physics_actor(r, e);
-
-      // r.emplace<HoverableComponent>(e);
-      // r.emplace<ChangeColourOnHoverComponent>(e);
-
-      r.emplace<SpaceshipPressureplateComponent>(e);
-      break;
-    }
-    case EntityType::solid_spaceship_point: {
-      create_physics_actor(r, e);
-      r.emplace<PhysicsSolidComponent>(e);
-
-      r.emplace<HoverableComponent>(e);
-      r.emplace<ChangeColourOnHoverComponent>(e);
-      break;
-    }
-    case EntityType::solid_spaceship_door: {
-      create_physics_actor(r, e);
-      r.emplace<PhysicsSolidComponent>(e);
-
-      r.emplace<HoverableComponent>(e);
-      r.emplace<ChangeColourOnHoverComponent>(e);
-
-      r.emplace<SpaceshipDoorComponent>(e);
-      break;
-    }
-
     case EntityType::actor_hearth: {
       create_physics_actor(r, e);
       r.emplace<HearthComponent>(e);
@@ -279,30 +234,6 @@ create_gameplay(entt::registry& r, const EntityType& type)
       break;
     }
 
-    case EntityType::actor_bodypart_head: {
-      r.emplace<HeadComponent>(e);
-      break;
-    }
-    case EntityType::actor_bodypart_leg: {
-      LegsComponent legs;
-      legs.lines.push_back(create_gameplay(r, EntityType::empty_with_transform));
-      legs.lines.push_back(create_gameplay(r, EntityType::empty_with_transform));
-      legs.lines.push_back(create_gameplay(r, EntityType::empty_with_transform));
-      legs.lines.push_back(create_gameplay(r, EntityType::empty_with_transform));
-
-      for (const auto& leg : legs.lines) {
-        const auto sprite_name = sprite_type_to_sprite(r, EntityType::actor_bodypart_leg);
-        const auto sc = create_sprite(r, sprite_name, EntityType::actor_bodypart_leg);
-        r.emplace_or_replace<SpriteComponent>(leg, sc);
-      }
-
-      auto& leg_transform = r.get<TransformComponent>(e);
-      leg_transform.scale.x = 0;
-      leg_transform.scale.y = 0;
-
-      r.emplace<LegsComponent>(e, legs);
-      break;
-    }
     case EntityType::actor_player: {
       create_physics_actor(r, e);
       set_size(r, e, HALF_SIZE);
@@ -315,6 +246,7 @@ create_gameplay(entt::registry& r, const EntityType& type)
 
       auto& vel = r.get<VelocityComponent>(e);
       vel.base_speed = 10000.0f;
+
       r.emplace<KnockbackComponent>(e);
 
       // r.emplace<PhysicsSolidComponent>(e);
@@ -374,42 +306,11 @@ create_gameplay(entt::registry& r, const EntityType& type)
       break;
     }
 
-    case EntityType::actor_player_ally: {
-      create_physics_actor(r, e);
-      auto& vel = r.get<VelocityComponent>(e);
-      vel.base_speed = 50.0f;
-      r.emplace<KnockbackComponent>(e);
-
-      // movement
-      r.emplace<HasTargetPositionComponent>(e);
-      r.emplace<SetVelocityToTargetComponent>(e);
-
-      // gameplay
-      r.emplace<PartOfGroupComponent>(e);
-      r.emplace<TeamComponent>(e, AvailableTeams::player);
-      r.emplace<HealthComponent>(e, 100, 100);
-      r.emplace<HoverableComponent>(e);
-
-      break;
-    }
-
-    case EntityType::actor_unitgroup: {
-      create_physics_actor(r, e);
-      r.emplace<GroupComponent>(e);
-
-      r.emplace<AbleToBePickedUp>(e);
-
-      // if picked up as a banner, we pretty much want it to be stuck to the holder
-      auto& vel = r.get<VelocityComponent>(e);
-      vel.base_speed = 200.0f;
-      break;
-    }
-
     case EntityType::actor_unit_rtslike: {
       create_physics_actor(r, e);
 
       auto& vel = r.get<VelocityComponent>(e);
-      vel.base_speed = 50.0f;
+      vel.base_speed = 700.0f;
       // r.emplace<PhysicsSolidComponent>(e);
 
       r.emplace<TeamComponent>(e);
@@ -422,7 +323,7 @@ create_gameplay(entt::registry& r, const EntityType& type)
 
       // movement
       r.emplace<HasTargetPositionComponent>(e);
-      r.emplace<SetVelocityToTargetComponent>(e);
+      // r.emplace<SetVelocityToTargetComponent>(e);
 
       r.emplace<PathfindComponent>(e, 1000); // pass through units if you must
 
@@ -457,19 +358,19 @@ create_gameplay(entt::registry& r, const EntityType& type)
       break;
     }
 
-    case EntityType::actor_pickup_xp: {
-      create_physics_actor(r, e);
-      r.emplace<AbleToBePickedUp>(e);
-      r.emplace<ItemComponent>(e);
-      break;
-    }
+      // case EntityType::actor_pickup_xp: {
+      //   create_physics_actor(r, e);
+      //   r.emplace<AbleToBePickedUp>(e);
+      //   r.emplace<ItemComponent>(e);
+      //   break;
+      // }
 
-    case EntityType::actor_pickup_doubledamage: {
-      create_physics_actor(r, e);
-      r.emplace<AbleToBePickedUp>(e);
-      r.emplace<ItemComponent>(e);
-      break;
-    }
+      // case EntityType::actor_pickup_doubledamage: {
+      //   create_physics_actor(r, e);
+      //   r.emplace<AbleToBePickedUp>(e);
+      //   r.emplace<ItemComponent>(e);
+      //   break;
+      // }
 
     case EntityType::actor_barricade: {
       create_physics_actor(r, e);
@@ -542,23 +443,23 @@ create_gameplay(entt::registry& r, const EntityType& type)
       break;
     }
 
-    case EntityType::bullet_bow: {
-      create_physics_actor(r, e);
-      r.emplace<TeamComponent>(e, AvailableTeams::player);
-      // no attack component as arrows are inactive sometimes
-      break;
-    }
+      // case EntityType::bullet_bow: {
+      //   create_physics_actor(r, e);
+      //   r.emplace<TeamComponent>(e, AvailableTeams::player);
+      //   // no attack component as arrows are inactive sometimes
+      //   break;
+      // }
 
-    case EntityType::bullet_enemy: {
-      create_physics_actor(r, e);
-      set_size(r, e, SMALL_SIZE);
+      // case EntityType::bullet_enemy: {
+      //   create_physics_actor(r, e);
+      //   set_size(r, e, SMALL_SIZE);
 
-      r.emplace<TeamComponent>(e, AvailableTeams::enemy);
-      r.emplace<SetTransformAngleToVelocity>(e);
-      // r.emplace<EntityTimedLifecycle>(e);
-      // r.emplace<AttackComponent>(e, 3);
-      break;
-    }
+      //   r.emplace<TeamComponent>(e, AvailableTeams::enemy);
+      //   r.emplace<SetTransformAngleToVelocity>(e);
+      //   // r.emplace<EntityTimedLifecycle>(e);
+      //   // r.emplace<AttackComponent>(e, 3);
+      //   break;
+      // }
 
       // actors_enemies
       //

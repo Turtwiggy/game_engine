@@ -59,6 +59,11 @@ init(engine::SINGLETON_Application& app, entt::registry& r)
   {
     SINGLE_RendererComponent renderer;
 
+    Texture kennynl;
+    kennynl.path = "assets/models/ultimate-spaceships-may-2021/Bob/Textures/Bob_Blue.png";
+    // kennynl.spritesheet_path = "assets/config/spritemap_kennynl.json";
+    renderer.user_textures.push_back(kennynl);
+
     engine::RandomState rnd;
     for (int i = 0; i < 100; i++) {
       float rnd_x = engine::rand_det_s(rnd.rng, -50, 50);
@@ -79,11 +84,11 @@ init(engine::SINGLETON_Application& app, entt::registry& r)
   auto e = r.create();
   TransformComponent tc;
   tc.position = { 0.0f, 0.0f, 0.0f };
-  tc.rotation = { -engine::HALF_PI, 0.0f, 0.0f };
+  tc.rotation = { engine::HALF_PI, 0.0f, 0.0f };
   // tc.scale = { 0.01f, 0.01f, 0.01f };
-  tc.scale = { 0.5f, 0.5f, 0.5f };
+  tc.scale = { 1.0f, 1.0f, 1.0f };
   r.emplace<TransformComponent>(e, tc);
-  r.emplace<ModelComponent>(e, models.models_to_load[1]); // temp: the spaceship model
+  r.emplace<ModelComponent>(e, models.models_to_load[0]); // temp: the spaceship model
 }
 
 void
@@ -114,29 +119,30 @@ update(engine::SINGLETON_Application& app, entt::registry& r, const float dt)
   // game logic
 
   // using opengl right-handed system
-  // const glm::vec3 up = glm::vec3(0.0f, 1.0f, 0.0f);
-  // const glm::vec3 forward = glm::vec3(0.0f, 0.0f, -1.0f);
-  // const glm::vec3 right = glm::vec3(1.0f, 0.0f, 0.0f);
+  const glm::vec3 up = glm::vec3(0.0f, 1.0f, 0.0f);
+  const glm::vec3 forward = glm::vec3(0.0f, -1.0f, 0.0f);
+  const glm::vec3 right = glm::vec3(1.0f, 0.0f, 0.0f);
 
-  // const auto& input = get_first_component<SINGLETON_InputComponent>(r);
-  // const auto& view = r.view<TransformComponent, CarComponent>();
-  // for (const auto& [entity, t, car] : view.each()) {
-  //   const float car_turn_speed = 5.0f;
-  //   const float car_speed = 2.0f;
-  //   const float move_velocity = car_speed * dt;
-  //   const float turn_velocity = car_turn_speed * dt;
-  //   // update rotation
-  //   if (get_key_held(input, SDL_SCANCODE_LEFT))
-  //     t.rotation.y += turn_velocity;
-  //   if (get_key_held(input, SDL_SCANCODE_RIGHT))
-  //     t.rotation.y -= turn_velocity;
-  //   // get direction from rotation
-  //   const auto fwd_dir = glm::rotate(vec3_to_quat(t.rotation), forward);
-  //   if (get_key_held(input, SDL_SCANCODE_UP))
-  //     t.position += fwd_dir * move_velocity;
-  //   if (get_key_held(input, SDL_SCANCODE_DOWN))
-  //     t.position -= fwd_dir * move_velocity;
-  // }
+  const auto& input = get_first_component<SINGLETON_InputComponent>(r);
+  const auto& view = r.view<TransformComponent, ModelComponent>();
+  for (const auto& [entity, t, car] : view.each()) {
+    const float car_turn_speed = 1.0f;
+    const float car_speed = 3.0f;
+    const float move_velocity = car_speed * dt;
+    const float turn_velocity = car_turn_speed * dt;
+    // update rotation
+    if (get_key_held(input, SDL_SCANCODE_LEFT))
+      t.rotation.y -= turn_velocity;
+    if (get_key_held(input, SDL_SCANCODE_RIGHT))
+      t.rotation.y += turn_velocity;
+    // get direction from rotation
+    // const auto fwd_dir = glm::rotate(vec3_to_quat(t.rotation), forward);
+    const auto fwd_dir = forward;
+    if (get_key_held(input, SDL_SCANCODE_UP))
+      t.position += fwd_dir * move_velocity;
+    if (get_key_held(input, SDL_SCANCODE_DOWN))
+      t.position -= fwd_dir * move_velocity;
+  }
 
   // rendering
   {

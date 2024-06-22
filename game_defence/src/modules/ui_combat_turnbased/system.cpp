@@ -96,9 +96,8 @@ update_ui_combat_turnbased_system(entt::registry& r, const glm::ivec2& input_mou
   const bool rmb_click = get_mouse_rmb_press();
 
   const int grid_snap_size = mouse_grid_increments; // note: this is not the map.tilesize,
-  glm::ivec2 mouse_pos = engine::grid::grid_space_to_world_space(
-    engine::grid::world_space_to_grid_space(input_mouse_pos, grid_snap_size), grid_snap_size);
-  mouse_pos += glm::vec2(grid_snap_size / 2.0f, grid_snap_size / 2.0f); // center
+  const auto mouse_gridspace = engine::grid::world_space_to_grid_space(input_mouse_pos, grid_snap_size);
+  const auto mouse_pos = engine::grid::grid_space_to_world_space(mouse_gridspace, grid_snap_size);
 
   const auto gridpos = engine::grid::world_space_to_grid_space(input_mouse_pos, map.tilesize);
   const auto grid_idx = engine::grid::grid_position_to_index(gridpos, map.xmax);

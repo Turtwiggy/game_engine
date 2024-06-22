@@ -14,7 +14,7 @@ using namespace std::literals;
 
 // show worldspace ui for PatrolComponent when in range
 void
-update_ui_backstab_patrol_system(entt::registry& r)
+update_ui_patrol_system(entt::registry& r)
 {
   const auto& player_e = get_first<PlayerComponent>(r);
   if (player_e == entt::null)

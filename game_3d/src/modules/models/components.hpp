@@ -46,7 +46,7 @@ struct Model
 struct SINGLE_ModelsComponent
 {
   std::vector<Model> models_to_load{
-    { "assets/models/wiggy_mech_2d4b.fbx" },
+    // { "assets/models/wiggy_mech_2d4b.fbx" },
     { "assets/models/ultimate-spaceships-may-2021/Bob/FBX/Bob.fbx" },
   };
 };

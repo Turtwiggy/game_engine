@@ -48,7 +48,11 @@ struct GeneratedPathComponent
   bool required_to_clear_path = false;
   std::vector<bool> path_cleared;
 
-  bool aim_for_exact_position = false;
+  // bool aim_for_exact_position = false;
+
+  bool wait_at_destination = true;
+  float wait_time_ms = 75;
+  float wait_time_ms_left = 0; // move immediately
 };
 
 // an edge between two cells assumes there's a wall there

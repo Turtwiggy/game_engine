@@ -119,7 +119,7 @@ update_path_to_tile_next_to_player(entt::registry& r, const entt::entity& src_e,
   path_c.src_pos = src;
   path_c.dst_pos = dst_pos;
   path_c.dst_ent = entt::null;
-  path_c.aim_for_exact_position = true;
+  // path_c.aim_for_exact_position = false;
   path_c.required_to_clear_path = true;
   path_c.path_cleared.resize(path.size());
   r.emplace_or_replace<GeneratedPathComponent>(src_e, path_c);
@@ -136,7 +136,9 @@ update_path_to_mouse(entt::registry& r, const entt::entity& src_e, const glm::iv
   const auto src = get_position(r, src_e);
   const auto src_idx = convert_position_to_index(map, src);
 
-  const auto dst = mouse_pos;
+  const auto worldspace_tl = engine::grid::world_space_to_clamped_world_space(mouse_pos, map.tilesize);
+  const auto worldspace_center = worldspace_tl + glm::ivec2{ map.tilesize / 2.0f, map.tilesize / 2.0f };
+  const auto dst = worldspace_center;
   const int dst_idx = convert_position_to_index(map, dst);
 
   const auto path = generate_direct(r, grid, src_idx, dst_idx, map.edges);
@@ -146,8 +148,9 @@ update_path_to_mouse(entt::registry& r, const entt::entity& src_e, const glm::iv
   path_c.src_pos = src;
   path_c.dst_pos = dst;
   path_c.dst_ent = entt::null;
-  path_c.aim_for_exact_position = true;
+  // path_c.aim_for_exact_position = false;
   path_c.required_to_clear_path = true;
+  path_c.wait_at_destination = true;
   path_c.path_cleared.resize(path.size());
   r.emplace_or_replace<GeneratedPathComponent>(src_e, path_c);
 
