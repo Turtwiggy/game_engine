@@ -253,8 +253,8 @@ game2d::update_render_system(entt::registry& r, const float dt, const glm::vec2&
 
   // HACK: toggle bloom
   bool do_bloom = get_first<Effect_DoBloom>(r) != entt::null;
-  static float exposure = 1.3f;
-  static float brightness_threshold = 0.70f;
+  static float exposure = 1.1f;
+  static float brightness_threshold = 0.80f;
   static float blur_amount = 4;
   ImGui::Begin("Debug__Bloom");
   const auto& input = get_first_component<SINGLETON_InputComponent>(r);

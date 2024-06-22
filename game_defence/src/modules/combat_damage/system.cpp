@@ -11,6 +11,7 @@
 #include "modules/combat_flash_on_damage/helpers.hpp"
 #include "modules/screenshake/components.hpp"
 #include "modules/system_knockback/components.hpp"
+#include "modules/system_particles/components.hpp"
 #include "modules/ui_colours/helpers.hpp"
 #include "physics/components.hpp"
 #include "renderer/transform.hpp"
@@ -64,8 +65,7 @@ update_take_damage_system(entt::registry& r)
     r.emplace_or_replace<RequestFlashComponent>(request.to);
 
     // .. screenshake
-    const auto e = create_empty<RequestScreenshakeComponent>(r);
-    r.emplace<RequestScreenshakeComponent>(e);
+    create_empty<RequestScreenshakeComponent>(r);
 
     // TODO: BAD. FIX.
     static engine::RandomState rnd;
@@ -126,6 +126,14 @@ update_take_damage_system(entt::registry& r)
     //
     if (hp->hp <= 0) {
       dead.dead.emplace(request.to);
+
+      // Make a request to spawn some particles.
+      if (const auto* req = r.try_get<SpawnParticlesOnDeath>(request.to)) {
+        create_empty<RequestToSpawnParticles>(r, RequestToSpawnParticles{ get_position(r, request.to) });
+
+        // only once
+        r.remove<SpawnParticlesOnDeath>(request.to);
+      }
 
       // If you're looking for where dead enemies drop items...
       // that's in the drop item system

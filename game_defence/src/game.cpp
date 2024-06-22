@@ -36,6 +36,7 @@
 #include "modules/screenshake/system.hpp"
 #include "modules/system_minigame_bamboo/system.hpp"
 #include "modules/system_particles/system.hpp"
+#include "modules/system_particles_on_death/system.hpp"
 #include "modules/system_pathfinding/system.hpp"
 #include "modules/system_sprint/system.hpp"
 #include "modules/system_turnbased_endturn/system.hpp"
@@ -83,7 +84,7 @@ init(engine::SINGLETON_Application& app, entt::registry& r)
     audio.sounds.push_back({ "LOSS_01", "assets/audio/8-bit-loss-david-renda.wav" });
     audio.sounds.push_back({ "TAKE_DAMAGE_01", "assets/audio/GRUNT_Male_Subtle_Hurt_mono.wav" });
 
-    r.emplace<SINGLETON_AudioComponent>(create_empty<SINGLETON_AudioComponent>(r), audio);
+    create_empty<SINGLETON_AudioComponent>(r, audio);
   }
   init_audio_system(r);
 
@@ -125,23 +126,22 @@ init(engine::SINGLETON_Application& app, entt::registry& r)
     for (const auto& tex : ri.user_textures)
       load_sprites(anims, tex.spritesheet_path);
 
-    r.emplace<SINGLE_Animations>(create_empty<SINGLE_Animations>(r), anims);
-    r.emplace<SINGLETON_RendererInfo>(create_empty<SINGLETON_RendererInfo>(r), ri);
+    create_empty<SINGLE_Animations>(r, anims);
+    create_empty<SINGLETON_RendererInfo>(r, ri);
   }
 
   init_ui_colour_palette_system(r);
 
   // add camera
-  const auto camera_e = create_empty<OrthographicCamera>(r);
   OrthographicCamera camera_info;
   camera_info.projection = calculate_ortho_projection(app.width, app.height);
-  r.emplace<OrthographicCamera>(camera_e, camera_info);
+  const auto camera_e = create_empty<OrthographicCamera>(r, camera_info);
   r.emplace<TransformComponent>(camera_e);
 
   auto& ri = get_first_component<SINGLETON_RendererInfo>(r);
   init_render_system(app, r, ri); // init after camera
 
-  r.emplace<SINGLETON_FixedUpdateInputHistory>(create_empty<SINGLETON_FixedUpdateInputHistory>(r));
+  create_empty<SINGLETON_FixedUpdateInputHistory>(r);
 
   move_to_scene_start(r, Scene::splashscreen);
 }
@@ -244,14 +244,9 @@ game2d::update(engine::SINGLETON_Application& app, entt::registry& r, const floa
     update_cursor_system(r, mouse_pos);
 
     // systems
-    update_ux_hoverable(r);
-
-    // effects
-    update_scale_by_velocity_system(r, dt);
     update_screenshake_system(r, app.ms_since_launch / 1000.0f, dt);
-    update_wiggle_up_and_down_system(r, dt);
+    update_ux_hoverable(r);
     update_ux_hoverable_change_colour_system(r);
-    // update_sprite_spritestack_system(r, dt);
 
     const auto& state = get_first_component<SINGLETON_GameStateComponent>(r);
     auto& gameover = get_first_component<SINGLETON_GameOver>(r);
@@ -269,6 +264,10 @@ game2d::update(engine::SINGLETON_Application& app, entt::registry& r, const floa
       const uint64_t milliseconds_dt = static_cast<uint64_t>(dt * 1000.0f);
 
       // REMOVED SYSTEMS... for one reason or another.
+      //
+      // update_wiggle_up_and_down_system(r, dt);
+      //
+      // update_sprite_spritestack_system(r, dt);
       // update_actor_bodypart_head_system(r, dt, mouse_pos);
       // update_actor_bodypart_legs_system(r, dt, mouse_pos);
       // update_combat_powerup_doubledamage_system(r, dt);
@@ -291,6 +290,7 @@ game2d::update(engine::SINGLETON_Application& app, entt::registry& r, const floa
       update_flash_sprite_system(r, milliseconds_dt);
       update_pathfinding_system(r, dt);
       update_particle_system(r, dt);
+      update_spawn_particles_on_death_system(r);
       update_set_velocity_to_target_system(r, dt);
       update_spawner_system(r, milliseconds_dt);
       update_sprint_system(r, dt);
@@ -299,6 +299,7 @@ game2d::update(engine::SINGLETON_Application& app, entt::registry& r, const floa
     }
 
     if (scene.s == Scene::overworld) {
+      update_scale_by_velocity_system(r, dt);
       update_actor_enemy_patrol_system(r, mouse_pos, dt);
     }
 

@@ -35,7 +35,7 @@ update_ui_gameover_system(entt::registry& r)
     ImGui::Text("Thanks for playing.");
 
     if (ImGui::Button("New Game"))
-      r.emplace<NewGameRequest>(create_empty<NewGameRequest>(r));
+      create_empty<NewGameRequest>(r);
 
     if (ImGui::Button("Main Menu"))
       move_to_scene_start(r, Scene::menu); // hack: impl shouldnt be here

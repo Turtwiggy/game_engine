@@ -22,10 +22,8 @@ void
 init_audio_system(entt::registry& r)
 {
   const int max_audio_sources = 16;
-  for (int i = 0; i < max_audio_sources; i++) {
-    const auto audio_e = create_empty<AudioSource>(r);
-    r.emplace<AudioSource>(audio_e);
-  }
+  for (int i = 0; i < max_audio_sources; i++)
+    create_empty<AudioSource>(r);
 
   open_audio_new_device(r, std::nullopt);
 }

@@ -221,7 +221,7 @@ update_ui_combat_turnbased_system(entt::registry& r, const glm::ivec2& input_mou
 
   if (state.team == AvailableTeams::player) {
     if (ImGui::Button("End Turn")) // let player end their turn
-      r.emplace<RequestToCompleteTurn>(create_empty<RequestToCompleteTurn>(r), AvailableTeams::player);
+      create_empty<RequestToCompleteTurn>(r, RequestToCompleteTurn{ AvailableTeams::player });
   } else {
     ImGui::Text("Not player turn...");
   }

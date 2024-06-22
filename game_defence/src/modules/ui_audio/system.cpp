@@ -72,7 +72,7 @@ update_ui_audio_system(entt::registry& r)
     Sound& s = audio.sounds[i];
     std::string label = std::string("Play ") + s.tag + std::string("##sound") + std::to_string(i);
     if (ImGui::Button(label.c_str())) {
-      r.emplace<AudioRequestPlayEvent>(create_empty<AudioRequestPlayEvent>(r), s.tag);
+      create_empty<AudioRequestPlayEvent>(r, AudioRequestPlayEvent{ s.tag });
     }
   }
 

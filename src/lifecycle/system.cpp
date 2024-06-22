@@ -28,7 +28,6 @@ game2d::update_lifecycle_system(entt::registry& r, const uint64_t& milliseconds_
   dead.dead.clear();
 
   // process create requests
-  //
   const auto requests = r.view<WaitForInitComponent>();
   r.remove<WaitForInitComponent>(requests.begin(), requests.end());
 };

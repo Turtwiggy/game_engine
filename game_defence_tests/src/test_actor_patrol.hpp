@@ -29,9 +29,7 @@ TEST(TestSuite, ActorEnemyPatrol_Backstabs)
   map_c.xmax = map_width / map_c.tilesize;
   map_c.ymax = map_height / map_c.tilesize;
   map_c.map.resize(map_c.xmax * map_c.ymax);
-
-  auto map_e = create_empty<MapComponent>(r);
-  r.emplace<MapComponent>(map_e, map_c);
+  create_empty<MapComponent>(r, map_c);
 
   const auto player_e = create_gameplay(r, EntityType::actor_player);
 

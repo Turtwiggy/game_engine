@@ -95,7 +95,7 @@ update_turnbased_enemy_system(entt::registry& r)
 
   // end the enemy turn
   if (all_enemies_fully_done)
-    r.emplace<RequestToCompleteTurn>(create_empty<RequestToCompleteTurn>(r), AvailableTeams::enemy);
+    create_empty<RequestToCompleteTurn>(r, RequestToCompleteTurn{ AvailableTeams::enemy });
 }
 
 } // namespace game2d

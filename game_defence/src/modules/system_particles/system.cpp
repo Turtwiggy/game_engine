@@ -2,6 +2,7 @@
 
 #include "components.hpp"
 #include "lifecycle/components.hpp"
+#include "maths/maths.hpp"
 #include "modules/actors/helpers.hpp"
 #include "modules/combat_attack_cooldown/components.hpp"
 #include "modules/combat_attack_cooldown/helpers.hpp"
@@ -25,23 +26,42 @@ update_particle_system(entt::registry& r, const float dt)
   }
 
   // spawn the particles
-  const auto& view = r.view<const ParticleEmitterComponent, const HasParentComponent, AttackCooldownComponent>(
-    entt::exclude<WaitForInitComponent>);
-  for (const auto& [e, emitter, parent, cooldown] : view.each()) {
+  const auto& view = r.view<ParticleEmitterComponent, AttackCooldownComponent>(entt::exclude<WaitForInitComponent>);
+  for (const auto& [e, emitter, cooldown] : view.each()) {
     if (!cooldown.on_cooldown) {
 
-      const auto parent_position = get_position(r, parent.parent);
-      // const auto parent_velocity = r.get<VelocityComponent>(parent.parent);
+      if (emitter.spawn_all_particles_at_once) {
+        for (int i = 0; i < emitter.particles_to_spawn_before_emitter_expires; i++) {
+          //
 
-      const ParticleDescription base_description = emitter.particle_to_emit;
-      // per-instance? seems bad
-      ParticleDescription particle_description = base_description;
-      particle_description.position = parent_position;
-      particle_description.velocity = { 0, 0 };
-      particle_description.start_size = 6;
-      particle_description.end_size = 0;
-      particle_description.time_to_live_ms = 1 * 1000;
-      create_particle(r, particle_description);
+          // per-instance? seems bad
+          ParticleDescription particle_description = emitter.particle_to_emit;
+
+          // instead of spawning at emitter position, spawn at parent position
+          if (auto* parent = r.try_get<HasParentComponent>(e))
+            particle_description.position = get_position(r, parent->parent);
+
+          if (emitter.random_velocity) {
+            static engine::RandomState rnd;
+            const float rnd_x = engine::rand_det_s(rnd.rng, -10, 10);
+            // make particles go down? simulate gravity?
+            const float rnd_y = engine::rand_det_s(rnd.rng, -10, 10);
+            particle_description.velocity = glm::ivec2{ rnd_x, rnd_y };
+          }
+
+          create_particle(r, particle_description);
+
+          // limit number of particles spawned
+          if (emitter.expires) {
+            emitter.particles_to_spawn_before_emitter_expires -= 1;
+            if (emitter.particles_to_spawn_before_emitter_expires < 0) {
+              r.destroy(e); // emitter expired!
+              continue;
+            }
+          }
+
+        } // end for-loop
+      }
 
       reset_cooldown(cooldown);
     }
@@ -51,15 +71,21 @@ update_particle_system(entt::registry& r, const float dt)
   const auto& particle_view = r.view<TransformComponent, ScaleOverTimeComponent, const EntityTimedLifecycle>();
   for (const auto& [e, transform, scale, life] : particle_view.each()) {
 
-    // if ((life.milliseconds_alive_max / 1000) < scale.seconds_until_complete) {
-    //   std::cout << "warning: particle scaleoversize time is less than lifecycle time; will dissapear before completing"
-    //             << std::endl;
-    // }
+    const auto& a = scale.start_size;
+    const auto& b = scale.end_size;
 
-    const float lerp_amount = scale.timer / scale.seconds_until_complete;
-    const float amount = glm::lerp(scale.start_size, scale.end_size, lerp_amount);
+    float t = scale.timer / scale.seconds_until_complete;
+    if (t >= 1.0f)
+      t = 1.0f;
+
+    const float amount = glm::lerp(a, b, t);
     transform.scale = { static_cast<int>(amount), static_cast<int>(amount), 1 };
+
     scale.timer += dt;
+
+    if (scale.timer >= scale.seconds_until_complete) {
+      // particle done?
+    }
   }
 };
 

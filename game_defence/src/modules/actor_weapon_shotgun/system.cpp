@@ -121,8 +121,7 @@ update_weapon_shotgun_system(entt::registry& r, const uint64_t milliseconds_dt)
 
     if (allowed_to_shoot) {
       // TODO: improve this. This spams the audio system.
-      const auto audio_e = create_empty<AudioRequestPlayEvent>(r);
-      r.emplace<AudioRequestPlayEvent>(audio_e, "SHOTGUN_SHOOT_01");
+      create_empty<AudioRequestPlayEvent>(r, AudioRequestPlayEvent{ "SHOTGUN_SHOOT_01" });
 
       // Add knockback to the shotgun
       shotgun.recoil_amount = shotgun.recoil_amount_max;

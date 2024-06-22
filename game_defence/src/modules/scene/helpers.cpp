@@ -187,11 +187,8 @@ move_to_scene_start(entt::registry& r, const Scene s, const bool load_saved)
   }
 
   if (s == Scene::menu) {
-    auto& ui = destroy_first_and_create<SINGLE_MainMenuUI>(r);
-
-    // Play some audio
-    const auto e = create_empty<AudioRequestPlayEvent>(r);
-    r.emplace<AudioRequestPlayEvent>(e, "MENU_01");
+    destroy_first_and_create<SINGLE_MainMenuUI>(r);
+    create_empty<AudioRequestPlayEvent>(r, AudioRequestPlayEvent{ "MENU_01" });
 
     // Load randoms name file
     // const auto path = "assets/config/random_names.json";
@@ -230,9 +227,7 @@ move_to_scene_start(entt::registry& r, const Scene s, const bool load_saved)
   if (s == Scene::overworld) {
     destroy_first<OverworldToDungeonInfo>(r); // clear here if exists
     destroy_first_and_create<Effect_DoBloom>(r);
-
-    // Play some audio
-    r.emplace<AudioRequestPlayEvent>(create_empty<AudioRequestPlayEvent>(r), "GAME_01");
+    create_empty<AudioRequestPlayEvent>(r, AudioRequestPlayEvent{ "GAME_01" });
 
     int map_width = 2000;
     int map_height = 2000;
@@ -241,7 +236,7 @@ move_to_scene_start(entt::registry& r, const Scene s, const bool load_saved)
     map_c.xmax = map_width / map_c.tilesize;
     map_c.ymax = map_height / map_c.tilesize;
     map_c.map.resize(map_c.xmax * map_c.ymax);
-    r.emplace<MapComponent>(create_empty<MapComponent>(r), map_c);
+    create_empty<MapComponent>(r, map_c);
 
     // create a piece of worldspace text for the quadrant
     {
@@ -383,7 +378,7 @@ move_to_scene_start(entt::registry& r, const Scene s, const bool load_saved)
     map_c.xmax = map_width / map_c.tilesize;
     map_c.ymax = map_height / map_c.tilesize;
     map_c.map.resize(map_c.xmax * map_c.ymax);
-    r.emplace<MapComponent>(create_empty<MapComponent>(r), map_c);
+    create_empty<MapComponent>(r, map_c);
     auto& map = get_first_component<MapComponent>(r);
 
     // Create 4 edges to the map
@@ -410,8 +405,8 @@ move_to_scene_start(entt::registry& r, const Scene s, const bool load_saved)
     map_c.xmax = map_width / map_c.tilesize;
     map_c.ymax = map_height / map_c.tilesize;
     map_c.map.resize(map_c.xmax * map_c.ymax);
-    r.emplace<MapComponent>(create_empty<MapComponent>(r), map_c);
-    r.emplace<Effect_GridComponent>(create_empty<Effect_GridComponent>(r), map_c.tilesize);
+    create_empty<MapComponent>(r, map_c);
+    create_empty<Effect_GridComponent>(r, Effect_GridComponent{ map_c.tilesize });
 
     // create a cursor
     const auto cursor_e = create_gameplay(r, EntityType::cursor);
@@ -479,8 +474,7 @@ move_to_scene_start(entt::registry& r, const Scene s, const bool load_saved)
   }
 
   if (s == Scene::minigame_bamboo) {
-    r.emplace<SINGLE_MinigameBamboo>(create_empty<SINGLE_MinigameBamboo>(r));
-    //
+    create_empty<SINGLE_MinigameBamboo>(r);
   }
 
   const auto scene_name = std::string(magic_enum::enum_name(s));

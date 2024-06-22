@@ -51,7 +51,7 @@ enemy_player_collision(entt::registry& r, const entt::entity& a, const entt::ent
     OverworldToDungeonInfo data;
     data.backstabbed = r.try_get<BackstabbableComponent>(b_group) != nullptr;
     data.patrol_that_you_hit = r.get<PatrolComponent>(b_group);
-    r.emplace<OverworldToDungeonInfo>(create_empty<OverworldToDungeonInfo>(r), data);
+    create_empty<OverworldToDungeonInfo>(r, data);
 
     // Destroy the entity we collided with before moving scene,
     // so that when the game is loaded it's gone?
@@ -63,7 +63,7 @@ enemy_player_collision(entt::registry& r, const entt::entity& a, const entt::ent
 
     // going to "dungeon" scene
     move_to_scene_start(r, Scene::dungeon_designer);
-    r.emplace<RequestGenerateDungeonComponent>(create_empty<RequestGenerateDungeonComponent>(r));
+    create_empty<RequestGenerateDungeonComponent>(r);
   }
 }
 
@@ -96,16 +96,14 @@ update_resolve_collisions_system(entt::registry& r)
       dead.dead.emplace(a);
       const entt::entity from = a;
       const entt::entity to = b;
-      const auto e = create_empty<DealDamageRequest>(r);
-      r.emplace<DealDamageRequest>(e, from, to);
+      create_empty<DealDamageRequest>(r, DealDamageRequest{ from, to });
     }
     // deal damage to a
     if (b_atk && a_def && !same_team) {
       dead.dead.emplace(b);
       const entt::entity from = b;
       const entt::entity to = a;
-      const auto e = create_empty<DealDamageRequest>(r);
-      r.emplace<DealDamageRequest>(e, from, to);
+      create_empty<DealDamageRequest>(r, DealDamageRequest{ from, to });
     }
 
     enemy_barricade_collision(r, a, b);

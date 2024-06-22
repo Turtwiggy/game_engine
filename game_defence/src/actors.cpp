@@ -101,6 +101,8 @@ sprite_type_to_sprite(entt::registry& r, const EntityType& type)
     sprite = "CARD_HEARTS_2";
   else if (type == EntityType::actor_barricade)
     sprite = "WOOD_WALL_SMALL";
+  else if (type == EntityType::actor_barrel)
+    sprite = "BARREL_0";
 
   // weapons...
   //
@@ -192,6 +194,8 @@ create_gameplay(entt::registry& r, const EntityType& type)
     ParticleDescription desc;
     desc.sprite = "EMPTY";
     desc.default_colour = engine::SRGBColour(1.0f, 1.0f, 1.0f, 1.0f);
+    desc.start_size = 6;
+    desc.end_size = 0;
     r.emplace<ParticleEmitterComponent>(particle_emitter, desc);
 
     // emit: particles
@@ -317,6 +321,7 @@ create_gameplay(entt::registry& r, const EntityType& type)
       r.emplace<HoverableComponent>(e); // the selected component gets attached
       // r.emplace<ChangeColourOnHoverComponent>(e);
       r.emplace<TurnBasedUnitComponent>(e);
+      r.emplace<SpawnParticlesOnDeath>(e);
 
       const int hp = 100; // killable
       r.emplace<HealthComponent>(e, hp, hp);
@@ -384,6 +389,17 @@ create_gameplay(entt::registry& r, const EntityType& type)
       r.emplace<TeamComponent>(e, AvailableTeams::player);
 
       r.emplace<KnockbackComponent>(e);
+
+      break;
+    }
+
+    case EntityType::actor_barrel: {
+      create_physics_actor(r, e);
+
+      // can be killed
+      const int hp = 25;
+      r.emplace<HealthComponent>(e, hp, hp);
+      r.emplace<SpawnParticlesOnDeath>(e);
 
       break;
     }

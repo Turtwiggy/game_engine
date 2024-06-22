@@ -570,10 +570,9 @@ instantiate_tunnels(entt::registry& r, std::vector<Line>& lines, const DungeonGe
       create_walls_based_on_neighbours({ gridpos.first, gridpos.second });
     }
 
-    for (const Tunnel& t : results.tunnels) {
-      const auto e = create_empty<Tunnel>(r);
-      r.emplace<Tunnel>(e, t);
-    }
+    // give tunnel representation to entt
+    for (const Tunnel& t : results.tunnels)
+      create_empty<Tunnel>(r, t);
   }
 };
 

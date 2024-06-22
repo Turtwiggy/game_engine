@@ -8,6 +8,7 @@
 #include "helpers/line.hpp"
 #include "maths/grid.hpp"
 #include "maths/maths.hpp"
+#include "modules/algorithm_astar_pathfinding/components.hpp"
 #include "modules/gen_dungeons//helpers.hpp"
 #include "modules/gen_dungeons/components.hpp"
 #include "modules/gen_dungeons/helpers.hpp"
@@ -83,10 +84,8 @@ update_gen_dungeons_system(entt::registry& r, const glm::ivec2& mouse_pos)
   ImGui::End();
 
   // HACK: force regenerate dungeon
-  if (get_key_down(input, SDL_SCANCODE_I)) {
-    const auto e = create_empty<RequestGenerateDungeonComponent>(r);
-    r.emplace<RequestGenerateDungeonComponent>(e);
-  }
+  if (get_key_down(input, SDL_SCANCODE_I))
+    create_empty<RequestGenerateDungeonComponent>(r);
 
   const auto& requests = r.view<RequestGenerateDungeonComponent>();
   if (requests.size() == 0)
@@ -128,8 +127,7 @@ update_gen_dungeons_system(entt::registry& r, const glm::ivec2& mouse_pos)
     if (result.wall_or_floors[idx] == 1) {
       auto& ents = map.map[idx];
 
-      const auto e = create_empty<PathfindComponent>(r);
-      r.emplace<PathfindComponent>(e, -1);
+      const auto e = create_empty<PathfindComponent>(r, PathfindComponent{ -1 });
       ents.push_back(e);
     }
   }
@@ -166,8 +164,7 @@ update_gen_dungeons_system(entt::registry& r, const glm::ivec2& mouse_pos)
   //     pathfinding_c.cost = 0; // floor
   // }
 
-  const auto e = create_empty<DungeonGenerationResults>(r);
-  r.emplace<DungeonGenerationResults>(e, result);
+  create_empty<DungeonGenerationResults>(r, result);
   std::cout << "dungeon generated" << std::endl;
 }
 

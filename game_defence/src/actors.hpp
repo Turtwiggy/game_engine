@@ -27,6 +27,7 @@ enum class EntityType
   actor_turret,
   actor_barricade,
   actor_unit_rtslike, // selectable and moveable
+  actor_barrel,
 
   // pickups
   actor_pickup_xp,

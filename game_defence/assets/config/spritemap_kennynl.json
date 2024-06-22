@@ -140,7 +140,8 @@
     { "name": "CURSOR_2", "frames": [ { "x": 37, "y": 12 } ] },
     { "name": "CURSOR_3", "frames": [ { "x": 38, "y": 12 } ] },
 
-    { "name": "DOOR_4_13", "frames": [ { "x": 4, "y": 13 } ] },
+    { "name": "BARREL_0", "frames": [ { "x": 13, "y": 13 } ] },
+    { "name": "BARREL_1", "frames": [ { "x": 13, "y": 13 } ] },
     { "name": "FULL_POTION_32_13", "frames": [ { "x": 32, "y": 13 } ] },
     { "name": "FULL_POTION_33_13", "frames": [ { "x": 33, "y": 13 } ] },
     { "name": "FULL_POTION_34_13", "frames": [ { "x": 34, "y": 13 } ] },

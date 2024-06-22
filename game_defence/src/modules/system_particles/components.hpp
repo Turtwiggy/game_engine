@@ -34,20 +34,37 @@ struct ParticleDescription
   engine::SRGBColour default_colour{ 1.0f, 1.0f, 1.0f, 1.0f };
 
   // not implemented
-  engine::SRGBColour start_colour;
-  engine::SRGBColour end_colour;
+  // engine::SRGBColour start_colour;
+  // engine::SRGBColour end_colour;
 };
 
 // the emitter that spawns the particle
 struct ParticleEmitterComponent
 {
   ParticleDescription particle_to_emit;
+
+  bool spawn_all_particles_at_once = false;
+
+  bool expires = false;
+  int particles_to_spawn_before_emitter_expires = 0;
+
+  bool random_velocity = false;
 };
 
 // TEMP: should not be here
 struct SetPositionToParentsPosition
 {
   glm::ivec2 offset{ 0, 0 };
+};
+
+struct RequestToSpawnParticles
+{
+  glm::ivec2 position{ 0, 0 };
+};
+
+struct SpawnParticlesOnDeath
+{
+  bool placeholder = true;
 };
 
 } // namespace game2d

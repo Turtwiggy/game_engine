@@ -54,13 +54,11 @@ update_gameover_system(entt::registry& r)
       if (gameover.win_condition) {
         stop_all_audio(r);
         // WHOOOOOOOOOOOO!
-        const auto e = create_empty<AudioRequestPlayEvent>(r);
-        r.emplace<AudioRequestPlayEvent>(e, "WIN_01");
+        create_empty<AudioRequestPlayEvent>(r, AudioRequestPlayEvent{ "WIN_01" });
       } else {
         stop_all_audio(r);
         // WAHHHHHHHHHHHHH.
-        const auto e = create_empty<AudioRequestPlayEvent>(r);
-        r.emplace<AudioRequestPlayEvent>(e, "LOSS_01");
+        create_empty<AudioRequestPlayEvent>(r, AudioRequestPlayEvent{ "LOSS_01" });
       }
     }
   }
