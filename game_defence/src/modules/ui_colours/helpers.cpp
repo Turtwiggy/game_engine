@@ -1,5 +1,6 @@
 #include "helpers.hpp"
 
+#include "colour/colour.hpp"
 #include "entt/helpers.hpp"
 #include "modules/ui_colours/components.hpp"
 
@@ -23,7 +24,7 @@ get_lin_colour_by_tag(entt::registry& r, const std::string& tag)
 
   // otherwise, return the colour
   std::cout << "warning: no colour tag found for: " << tag << std::endl;
-  return { 0.0f, 0.0f, 0.0f, 1.0f };
+  return engine::SRGBToLinear({ 1.0f, 1.0f, 1.0f, 1.0f });
 }
 
 engine::SRGBColour

@@ -1,6 +1,9 @@
 #include "helpers.hpp"
 
 #include "colour/colour.hpp"
+#include "entt/helpers.hpp"
+#include "maths/grid.hpp"
+#include "modules/grid/components.hpp"
 #include "modules/ui_colours/helpers.hpp"
 #include "physics/components.hpp"
 #include "renderer/transform.hpp"
@@ -23,6 +26,16 @@ set_position(entt::registry& r, const entt::entity& e, const glm::ivec2& pos)
   if (auto* aabb = r.try_get<AABB>(e))
     aabb->center = pos;
   r.get<TransformComponent>(e).position = { pos.x, pos.y, 0.0f };
+}
+
+void
+set_position_grid(entt::registry& r, const entt::entity& e, const glm::ivec2 gridpos)
+{
+  const auto& map_c = get_first_component<MapComponent>(r);
+  const glm::ivec2 worldspace = engine::grid::grid_space_to_world_space(gridpos, map_c.tilesize);
+  const glm::ivec2 offset = { map_c.tilesize / 2.0f, map_c.tilesize / 2.0f };
+  const glm::ivec2 pos = worldspace + offset;
+  set_position(r, e, pos);
 }
 
 glm::ivec2

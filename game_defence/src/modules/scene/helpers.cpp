@@ -148,7 +148,9 @@ move_to_scene_start(entt::registry& r, const Scene s, const bool load_saved)
   destroy_first<SINGLE_TurnBasedCombatInfo>(r);
   destroy_first<DungeonGenerationResults>(r);
   // destroy_first<SINGLE_MainMenuUI>(r);
-  // destroy_first<OverworldToDungeonInfo>(r); // not cleared here. incase move from scene?
+
+  if (s != Scene::dungeon_designer)
+    destroy_first<OverworldToDungeonInfo>(r);
 
   // systems that havent been destroyed...
   const auto& ri = get_first_component<SINGLETON_RendererInfo>(r);
@@ -417,8 +419,8 @@ move_to_scene_start(entt::registry& r, const Scene s, const bool load_saved)
 
     // check if you started combat via a collison in e overworld
     if (get_first<OverworldToDungeonInfo>(r) != entt::null) {
-      const auto& data = get_first_component<OverworldToDungeonInfo>(r);
-      enemies = data.patrol_that_you_hit.strength;
+      // const auto& data = get_first_component<OverworldToDungeonInfo>(r);
+      // enemies = data.patrol_that_you_hit.strength;
     }
 
     // create player team
@@ -471,6 +473,10 @@ move_to_scene_start(entt::registry& r, const Scene s, const bool load_saved)
     auto& info = get_first_component<SINGLE_TurnBasedCombatInfo>(r);
     info.action_cursor = create_gameplay(r, EntityType::empty_with_transform);
     set_size(r, info.action_cursor, { 0, 0 }); // start disabled
+
+    // Create a destructable barrel
+    const auto barrel_e = create_gameplay(r, EntityType::actor_barrel);
+    set_position_grid(r, barrel_e, { 4, 4 });
   }
 
   if (s == Scene::minigame_bamboo) {

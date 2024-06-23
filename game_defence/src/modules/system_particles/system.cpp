@@ -43,9 +43,8 @@ update_particle_system(entt::registry& r, const float dt)
 
           if (emitter.random_velocity) {
             static engine::RandomState rnd;
-            const float rnd_x = engine::rand_det_s(rnd.rng, -10, 10);
-            // make particles go down? simulate gravity?
-            const float rnd_y = engine::rand_det_s(rnd.rng, -10, 10);
+            const float rnd_x = engine::rand_det_s(rnd.rng, -50, 50);
+            const float rnd_y = engine::rand_det_s(rnd.rng, -50, 50);
             particle_description.velocity = glm::ivec2{ rnd_x, rnd_y };
           }
 
