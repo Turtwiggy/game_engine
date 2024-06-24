@@ -22,6 +22,7 @@
 #include "modules/system_knockback/components.hpp"
 #include "modules/system_particles/components.hpp"
 #include "modules/system_sprint/components.hpp"
+#include "modules/system_turnbased/components.hpp"
 #include "modules/system_turnbased_enemy/components.hpp"
 #include "modules/ui_colours/helpers.hpp"
 #include "modules/ux_hoverable/components.hpp"
@@ -322,6 +323,7 @@ create_gameplay(entt::registry& r, const EntityType& type)
       // r.emplace<ChangeColourOnHoverComponent>(e);
       r.emplace<TurnBasedUnitComponent>(e);
       r.emplace<SpawnParticlesOnDeath>(e);
+      r.emplace<MoveLimitComponent>(e, 2);
 
       const int hp = 100; // killable
       r.emplace<HealthComponent>(e, hp, hp);

@@ -19,6 +19,7 @@
 #include "modules/renderer/helpers.hpp"
 #include "modules/scene/components.hpp"
 #include "modules/scene/helpers.hpp"
+#include "modules/system_turnbased/components.hpp"
 #include "modules/system_turnbased_enemy/components.hpp"
 #include "modules/ui_worldspace_text/components.hpp"
 #include "modules/ux_hoverable/components.hpp"
@@ -26,6 +27,7 @@
 #include "sprites/helpers.hpp"
 
 #include "imgui.h"
+#include <climits>
 
 namespace game2d {
 using namespace std::literals;
@@ -82,15 +84,11 @@ update_ui_combat_turnbased_system(entt::registry& r, const glm::ivec2& input_mou
   auto& map = get_first_component<MapComponent>(r);
   const auto& input = get_first_component<SINGLETON_InputComponent>(r);
 
-  static int action = 1;
-  {
-    const bool action_1 = get_key_down(input, SDL_Scancode::SDL_SCANCODE_1);
-    const bool action_2 = get_key_down(input, SDL_Scancode::SDL_SCANCODE_2);
-    if (action_1)
-      action = 1;
-    if (action_2)
-      action = 2;
-  }
+  static ActionMode action = ActionMode::MOVE;
+  if (get_key_down(input, SDL_Scancode::SDL_SCANCODE_1))
+    action = ActionMode::MOVE;
+  if (get_key_down(input, SDL_Scancode::SDL_SCANCODE_2))
+    action = ActionMode::ATTACK;
 
   const bool rmb_click = get_mouse_rmb_press();
   const int grid_snap_size = mouse_grid_increments; // note: this is not the map.tilesize,
@@ -173,10 +171,13 @@ update_ui_combat_turnbased_system(entt::registry& r, const glm::ivec2& input_mou
   for (const auto& [e, team_c] : r.view<TeamComponent>().each())
     team_count[team_c.team] += 1; // count teams
   if (team_count[AvailableTeams::enemy] == 0) {
-    if (ImGui::Button("You won! Back to overworld")) {
-      move_to_scene_start(r, Scene::overworld, true);
-      ImGui::End();
-      return;
+    const bool you_came_here_from_overworld = get_first<OverworldToDungeonInfo>(r) != entt::null;
+    if (you_came_here_from_overworld) {
+      if (ImGui::Button("You won! Back to overworld")) {
+        move_to_scene_start(r, Scene::overworld, true);
+        ImGui::End();
+        return;
+      }
     }
   }
 
@@ -209,6 +210,10 @@ update_ui_combat_turnbased_system(entt::registry& r, const glm::ivec2& input_mou
   for (const auto& [e, selected_c, aabb] : selected_view.each())
     count++;
 
+  // stop showing movement path
+  if (count == 0 || action != ActionMode::MOVE)
+    state.show_selected_player_path.update(r, 0);
+
   // limit: must be interacting with 1 selected unit
   if (count != 1) {
     ImGui::End();
@@ -226,6 +231,27 @@ update_ui_combat_turnbased_system(entt::registry& r, const glm::ivec2& input_mou
   set_position(r, info.action_cursor, mouse_pos);
 
   for (const auto& [e, selected_c, aabb] : selected_view.each()) {
+
+    // UX: show the path the unit would take
+    if (action == ActionMode::MOVE) {
+      // Generate full path for ux
+      const auto path = generate_path(r, e, mouse_pos, INT_MAX);
+      state.show_selected_player_path.update(r, path.size());
+
+      const auto limit = r.get<MoveLimitComponent>(e).amount;
+      for (int i = 0; const auto& p : path) {
+        const auto& ui_e = state.show_selected_player_path.instances[i];
+        set_position_grid(r, ui_e, p);
+        set_size(r, ui_e, { 6, 6 });
+        set_sprite(r, ui_e, "EMPTY");
+
+        // show full path, but make it red (i.e. you're not gonna move that far)
+        if (i > limit)
+          set_colour(r, ui_e, { 1.0f, 0.0, 0.0, 1.0f });
+
+        i++;
+      }
+    }
 
     // aim gun
     auto& static_tgt = r.get_or_emplace<StaticTargetComponent>(e);
@@ -246,16 +272,20 @@ update_ui_combat_turnbased_system(entt::registry& r, const glm::ivec2& input_mou
     do_move &= !destination_is_blocked(r, mouse_pos);
 
     // move mode
-    if (action == 1 && !has_moved && do_move) {
+    if (action == ActionMode::MOVE && !has_moved && do_move) {
       change_cursor(r, CursorType::MOVE);
       if (rmb_click) {
-        update_path_to_mouse(r, e, mouse_pos);
+
+        const auto limit = r.get<MoveLimitComponent>(e).amount;
+        const auto path = generate_path(r, e, mouse_pos, limit);
+        update_entity_path(r, e, path);
+
         turn_state.has_moved = true;
       }
     }
 
     // shoot mode
-    if (action == 2 && !has_shot) {
+    if (action == ActionMode::ATTACK && !has_shot) {
       change_cursor(r, CursorType::ATTACK);
       if (rmb_click) {
         r.emplace_or_replace<WantsToShoot>(e);

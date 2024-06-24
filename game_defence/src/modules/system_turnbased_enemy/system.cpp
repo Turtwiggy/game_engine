@@ -10,6 +10,7 @@
 #include "modules/combat_damage/components.hpp"
 #include "modules/combat_wants_to_shoot/components.hpp"
 #include "modules/grid/helpers.hpp"
+#include "modules/system_turnbased/components.hpp"
 
 // #include "imgui.h"
 
@@ -68,7 +69,8 @@ update_turnbased_enemy_system(entt::registry& r)
       turn_state.has_moved = true;
       const auto players = get_players_in_range(r, e);
       if (players.size() > 0) {
-        update_path_to_tile_next_to_player(r, e, players[0].first);
+        const auto limit = r.get<MoveLimitComponent>(e).amount;
+        update_path_to_tile_next_to_player(r, e, players[0].first, limit);
       }
     }
     if (turn_state.do_shoot && has_moved && !has_shot) {

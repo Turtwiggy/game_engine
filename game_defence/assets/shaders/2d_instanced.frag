@@ -64,7 +64,7 @@ main()
     if(index == RENDERER_TEX_UNIT_COUNT){
       out_colour *= texture(tex_kenny, sprite_uv);
     }
-    else if(index == RENDERER_TEX_UNIT_COUNT+1){
+    else if(index == (RENDERER_TEX_UNIT_COUNT+1)){
       out_colour *= texture(tex_gameicons, sprite_uv);
       return; // texture uses 0, 0
     }

@@ -31,9 +31,4 @@ struct SINGLE_CombatState
   EntityPool show_selected_player_path;
 };
 
-struct TurnBasedUnitComponent
-{
-  bool placeholder = true;
-};
-
 } // namespace game2d

@@ -98,7 +98,7 @@ get_lowest_cost_neighbour(entt::registry& r, const MapComponent& map, const Grid
 
 // Attach a GeneratedPath to the enemy unit. HasTargetPosition gets overwritten.
 void
-update_path_to_tile_next_to_player(entt::registry& r, const entt::entity& src_e, const entt::entity& dst_e)
+update_path_to_tile_next_to_player(entt::registry& r, const entt::entity& src_e, const entt::entity& dst_e, const int limit)
 {
   const auto& map = get_first_component<MapComponent>(r); // gets updated if units was dead
   const glm::ivec2 offset = { map.tilesize / 2, map.tilesize / 2 };
@@ -108,27 +108,23 @@ update_path_to_tile_next_to_player(entt::registry& r, const entt::entity& src_e,
   const auto src_idx = convert_position_to_index(map, src);
 
   const auto chosen_neighbour_idx = get_lowest_cost_neighbour(r, map, grid, dst_e);
-
   auto dst_pos = engine::grid::index_to_world_position(chosen_neighbour_idx, map.xmax, map.ymax, map.tilesize);
   dst_pos += offset;
 
-  const auto path = generate_direct(r, grid, src_idx, chosen_neighbour_idx, map.edges);
+  auto path = generate_direct(r, grid, src_idx, chosen_neighbour_idx, map.edges);
 
-  GeneratedPathComponent path_c;
-  path_c.path = path;
-  path_c.src_pos = src;
-  path_c.dst_pos = dst_pos;
-  path_c.dst_ent = entt::null;
-  // path_c.aim_for_exact_position = false;
-  path_c.required_to_clear_path = true;
-  path_c.path_cleared.resize(path.size());
-  r.emplace_or_replace<GeneratedPathComponent>(src_e, path_c);
+  // make sure path.size() < limit
+  if (path.size() > limit) {
+    // return +1, as usually the first path[0] is the element the entity is currently standing on
+    const std::vector<glm::ivec2> path_limited(path.begin(), path.begin() + limit + 1);
+    path = path_limited;
+  }
 
-  move_entity_on_map(r, src_e, dst_pos);
+  update_entity_path(r, src_e, path);
 };
 
-void
-update_path_to_mouse(entt::registry& r, const entt::entity& src_e, const glm::ivec2& mouse_pos)
+std::vector<glm::ivec2>
+generate_path(entt::registry& r, const entt::entity& src_e, const glm::ivec2& worldspace_pos, const int limit)
 {
   const auto& map = get_first_component<MapComponent>(r);
   const auto grid = map_to_grid(r);
@@ -136,25 +132,45 @@ update_path_to_mouse(entt::registry& r, const entt::entity& src_e, const glm::iv
   const auto src = get_position(r, src_e);
   const auto src_idx = convert_position_to_index(map, src);
 
-  const auto worldspace_tl = engine::grid::world_space_to_clamped_world_space(mouse_pos, map.tilesize);
+  const auto worldspace_tl = engine::grid::world_space_to_clamped_world_space(worldspace_pos, map.tilesize);
   const auto worldspace_center = worldspace_tl + glm::ivec2{ map.tilesize / 2.0f, map.tilesize / 2.0f };
   const auto dst = worldspace_center;
   const int dst_idx = convert_position_to_index(map, dst);
 
-  const auto path = generate_direct(r, grid, src_idx, dst_idx, map.edges);
+  auto path = generate_direct(r, grid, src_idx, dst_idx, map.edges);
+
+  // make sure path.size() < limit
+  if (path.size() > limit) {
+    // return +1, as usually the first path[0] is the element the entity is currently standing on
+    const std::vector<glm::ivec2> path_limited(path.begin(), path.begin() + limit + 1);
+    return path_limited;
+  }
+
+  return path;
+};
+
+void
+update_entity_path(entt::registry& r, const entt::entity& src_e, const std::vector<glm::ivec2>& path)
+{
+  if (path.size() == 0)
+    return;
+  const auto& map = get_first_component<MapComponent>(r);
+
+  const glm::ivec2 worldspace_tl = engine::grid::grid_space_to_world_space(path[path.size() - 1], map.tilesize);
+  const glm::ivec2 worldspace_center = worldspace_tl + glm::ivec2{ map.tilesize / 2.0f, map.tilesize / 2.0f };
+  const glm::ivec2 dst = worldspace_center;
 
   GeneratedPathComponent path_c;
   path_c.path = path;
-  path_c.src_pos = src;
+  path_c.src_pos = get_position(r, src_e);
   path_c.dst_pos = dst;
   path_c.dst_ent = entt::null;
-  // path_c.aim_for_exact_position = false;
   path_c.required_to_clear_path = true;
   path_c.wait_at_destination = true;
   path_c.path_cleared.resize(path.size());
   r.emplace_or_replace<GeneratedPathComponent>(src_e, path_c);
 
-  move_entity_on_map(r, src_e, mouse_pos);
+  move_entity_on_map(r, src_e, dst);
 };
 
 } // namespace game2d
