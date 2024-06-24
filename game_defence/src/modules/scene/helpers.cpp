@@ -190,7 +190,7 @@ move_to_scene_start(entt::registry& r, const Scene s, const bool load_saved)
 
   if (s == Scene::menu) {
     destroy_first_and_create<SINGLE_MainMenuUI>(r);
-    create_empty<AudioRequestPlayEvent>(r, AudioRequestPlayEvent{ "MENU_01" });
+    // create_empty<AudioRequestPlayEvent>(r, AudioRequestPlayEvent{ "MENU_01" });
 
     // Load randoms name file
     // const auto path = "assets/config/random_names.json";

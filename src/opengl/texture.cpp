@@ -112,8 +112,6 @@ load_texture_linear(const int tex_unit, const std::string& path)
   return linear;
 };
 
-} // namespace engine;
-
 unsigned int
 bind_srgb_texture(const SRGBTexture& texture)
 {
@@ -146,10 +144,10 @@ bind_srgb_texture(const SRGBTexture& texture)
   stbi_image_free(data); // no longer need the texture data
   unbind_tex();
   return texture_id;
-}
+};
 
 unsigned int
-engine::bind_linear_texture(const LinearTexture& texture)
+bind_linear_texture(const LinearTexture& texture)
 {
   const int tex_unit = texture.texture_unit;
   const int width = texture.width;
@@ -180,7 +178,9 @@ engine::bind_linear_texture(const LinearTexture& texture)
   stbi_image_free(data); // no longer need the texture data
   unbind_tex();
   return texture_id;
-}
+};
+
+} // namespace engine;
 
 void
 engine::update_bound_texture_size(const glm::ivec2 size)

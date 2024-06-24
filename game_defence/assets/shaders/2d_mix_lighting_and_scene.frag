@@ -57,78 +57,8 @@ void main()
   const vec3 scene = texture(scene, v_uv).rgb;
   const vec3 lighting = texture(lighting, v_uv).rgb;
 
-  // distance 200
-  // const float light_linear = 0.022f;
-  // const float light_quadratic = 0.0019f;
-  // distance 325
-  // const float light_linear = 0.014f;
-  // const float light_quadratic = 0.0007f;
-  // distance 600
-  // const float light_linear = 0.007f;
-  // const float light_quadratic = 0.0002f;
-  // distance 3250
-  // const float light_linear = 0.0014f;
-  // const float light_quadratic =  0.000007f;
-
-  const float d = length(light_pos - v_vertex);
-
-  const float light_constant = 1.0f;
-  const float linear =  0.0001f;
-  const float quadratic = 0.00001f;
-  // const float linear =  0.0000001f;
-  // const float quadratic = 0.000000001f;
-  
-  // const float attenuation = 1.0 / (light_constant + linear * d + quadratic * (d * d));
-  const float attenuation = 1.0;
-  // const float b_light_constant = 1.0f;
-  // const float b_linear =  0.0001f;
-  // const float b_quadratic = 0.00001f;
-  // const float steep_attenuation = 1.0 / (b_light_constant + b_linear * d + b_quadratic * (d * d));
-
-  // const vec3 lighting_attenuated = (lighting.rgb * attenuation);
-  // const vec3 scene_corrected = lin_to_srgb(scene.rgb);
-  // const vec3 scene_attenuated = (scene_corrected* attenuation);
-
-  // NOTE: no attenuation here, temporarily removed
-  const vec3 lighting_attenuated = (lighting.rgb);
-  const vec3 scene_corrected = lin_to_srgb(scene.rgb);
-  const vec3 scene_attenuated = (scene_corrected);
-
-  // no lighting
-  if(lighting.rgb == vec3(0.0f))
-  {
-    // no lighting, no scene
-    if(scene_corrected.rgb == vec3(0.0f)){
-      // out_color.rgb = vec3(1.0, 0.0, 0.0);
-      // out_color.rgb = scene_corrected;
-
-      // dark background, as in shadow
-      const vec3 background_attenuated = lin_to_srgb(v_colour.rgb) * attenuation;
-      out_color.rgb = background_attenuated * vec3(0.8);
-    }
-    // no lighting, yes scene
-    else{
-      // out_color.rgb = scene_corrected * lighting_attenuated;
-      out_color.rgb = scene_attenuated;
-    }
-  }
-  // yes lighting
-  else
-  {
-    // yes lighting, no scene
-    if(scene_corrected == vec3(0.0f))
-    {
-      const vec3 background_attenuated = lin_to_srgb(v_colour.rgb) * attenuation;
-      out_color.rgb = background_attenuated;
-    }
-    // yes lighting, yes scene
-    else
-    {
-      // show scene attenuated
-      out_color.rgb = scene_attenuated;
-    }
-  }
-
+  // linear to srgb
+  out_color.rgb = lin_to_srgb(scene.rgb);
   out_color.a = 1.0f;
 
   // work out "bright" areas for bloom effect

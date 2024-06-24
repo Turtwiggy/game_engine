@@ -1,5 +1,6 @@
 #pragma once
 
+#include "helpers/entity_pool.hpp"
 #include "modules/combat_damage/components.hpp"
 #include <entt/entt.hpp>
 
@@ -26,6 +27,8 @@ struct RequestToCompleteTurn
 struct SINGLE_CombatState
 {
   AvailableTeams team = AvailableTeams::neutral;
+
+  EntityPool show_selected_player_path;
 };
 
 struct TurnBasedUnitComponent

@@ -98,11 +98,13 @@ update_ui_scene_main_menu(engine::SINGLETON_Application& app, entt::registry& r)
       }
     }
 
-    if (selectable_button("New Game", selected, index++)) {
+    if (selectable_button("Start Game", selected, index++)) {
       move_to_scene_start(r, Scene::overworld, false);
       //   move_to_scene_start(r, Scene::game);
       //   move_to_scene_start(r, Scene::test_scene_gun);
     }
+
+#if defined(_DEBUG)
     if (selectable_button("(debug) combat", selected, index++)) {
       move_to_scene_start(r, Scene::turnbasedcombat);
     }
@@ -113,6 +115,8 @@ update_ui_scene_main_menu(engine::SINGLETON_Application& app, entt::registry& r)
     if (selectable_button("minigame: bamboo", selected, index++)) {
       move_to_scene_start(r, Scene::minigame_bamboo);
     }
+#endif
+
     if (selectable_button("Quit", selected, index++))
       app.running = false;
   }
@@ -167,7 +171,6 @@ update_ui_scene_main_menu(engine::SINGLETON_Application& app, entt::registry& r)
   icon_flags |= ImGuiWindowFlags_NoResize;
   icon_flags |= ImGuiWindowFlags_NoMove;
   icon_flags |= ImGuiWindowFlags_NoBringToFrontOnFocus;
-  // icon_flags |= ImGuiWindowFlags_NoNavFocus;
 
   static auto should_mute = gesert_string(PLAYERPREF_MUTE, "false"s) == "true";
 
@@ -217,12 +220,16 @@ update_ui_scene_main_menu(engine::SINGLETON_Application& app, entt::registry& r)
     offset = unmute_icon_offset;
     auto& audio = get_first_component<SINGLETON_AudioComponent>(r);
     audio.all_mute = false;
+    std::cout << "changed to unmute all" << std::endl;
+    // move_to_scene_start(r, Scene::menu);
+    create_empty<AudioRequestPlayEvent>(r, AudioRequestPlayEvent{ "MENU_01" });
   }
   if (toggle == 1 && toggle_changed) {
     offset = mute_icon_offset;
     auto& audio = get_first_component<SINGLETON_AudioComponent>(r);
     audio.all_mute = true;
     stop_all_audio(r);
+    std::cout << "muted all" << std::endl;
   }
   toggle_changed = false;
 

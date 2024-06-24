@@ -16,8 +16,8 @@ struct WantsToReleaseSprint
 
 struct SprintComponent
 {
-  float sprint_max_seconds = 5.0f;
-  float sprint_left_seconds = 5.0f;
+  float sprint_max_seconds = 0.0f;
+  float sprint_left_seconds = 0.0f;
   bool is_sprinting = false;
 };
 

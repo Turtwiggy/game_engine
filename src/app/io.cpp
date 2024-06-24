@@ -7,7 +7,7 @@
 #include <iostream>
 #include <string>
 
-#ifdef WIN32
+#if defined(WIN32)
 #include <Windows.h>
 #endif
 
@@ -22,7 +22,7 @@ log_time_since(const std::string& label, std::chrono::time_point<std::chrono::hi
             << "\n";
 }
 
-#ifdef WIN32
+#if defined(WIN32)
 
 void
 hide_windows_console()

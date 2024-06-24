@@ -26,7 +26,6 @@
 #include "sprites/helpers.hpp"
 
 #include "imgui.h"
-#include "magic_enum.hpp"
 
 namespace game2d {
 using namespace std::literals;
@@ -94,21 +93,14 @@ update_ui_combat_turnbased_system(entt::registry& r, const glm::ivec2& input_mou
   }
 
   const bool rmb_click = get_mouse_rmb_press();
-
   const int grid_snap_size = mouse_grid_increments; // note: this is not the map.tilesize,
   const auto mouse_gridspace = engine::grid::world_space_to_grid_space(input_mouse_pos, grid_snap_size);
   const auto mouse_pos = engine::grid::grid_space_to_world_space(mouse_gridspace, grid_snap_size);
-
   const auto gridpos = engine::grid::world_space_to_grid_space(input_mouse_pos, map.tilesize);
   const auto grid_idx = engine::grid::grid_position_to_index(gridpos, map.xmax);
 
   auto& state = get_first_component<SINGLE_CombatState>(r);
-
   if (state.team == AvailableTeams::neutral) {
-
-    // auto& io = ImGui::GetIO();
-    // const auto& size = ImVec2(io.DisplaySize.x * 0.5f, io.DisplaySize.y * 0.5f);
-    // ImGui::SetNextWindowPos(size, ImGuiCond_Always, ImVec2(0.5f, 0.5f));
     const auto& viewport = ImGui::GetWindowViewport();
     ImGui::SetNextWindowPos(viewport->GetCenter(), ImGuiCond_Always, ImVec2(0.5, 0.5));
     ImGui::SetNextWindowSize(ImVec2{ 400, 200 });
@@ -123,47 +115,48 @@ update_ui_combat_turnbased_system(entt::registry& r, const glm::ivec2& input_mou
     // flags |= ImGuiWindowFlags_NoBackground;
 
     ImGui::PushStyleVar(ImGuiStyleVar_SelectableTextAlign, { 0.5f, 0.5f });
-
     ImGui::Begin("Begin Combat", NULL, flags);
-    ImGui::Text("- Drag and select a unit");
-    ImGui::Spacing();
-    ImGui::Text("- Press 1 on keyboard to swap to 'move' action.");
-    ImGui::Text("- Your units can move once per turn.");
-    ImGui::Text("- Right click to perform move action to destination.");
-    ImGui::Spacing();
-    ImGui::Text("- Press 2 on keyboard to swap to 'shoot' action.");
-    ImGui::Text("- Your units can shoot once per turn.");
-    ImGui::Text("- Right click to shoot towards mouse cursor.");
-    ImGui::Spacing();
-    ImGui::Text("- Defeat all enemies to win. Good Luck!");
+    {
+      ImGui::Text("- Drag and select a unit");
+      ImGui::Spacing();
+      ImGui::Text("- Press 1 on keyboard to swap to 'move' action.");
+      ImGui::Text("- Your units can move once per turn.");
+      ImGui::Text("- Right click to perform move action to destination.");
+      ImGui::Spacing();
+      ImGui::Text("- Press 2 on keyboard to swap to 'shoot' action.");
+      ImGui::Text("- Your units can shoot once per turn.");
+      ImGui::Text("- Right click to shoot towards mouse cursor.");
+      ImGui::Spacing();
+      ImGui::Text("- Defeat all enemies to win. Good Luck!");
 
-    // Center button horizontally
-    // ImGuiStyle& style = ImGui::GetStyle();
+      // Center button horizontally
+      // ImGuiStyle& style = ImGui::GetStyle();
 
-    // calculate reqiured x-spacing
-    // float width = 0.0f;
-    // width += ImGui::CalcTextSize(label.c_str()).x;
-    // width += style.ItemSpacing.x;
+      // calculate reqiured x-spacing
+      // float width = 0.0f;
+      // width += ImGui::CalcTextSize(label.c_str()).x;
+      // width += style.ItemSpacing.x;
 
-    // AlignForWidth()
-    // const float alignment = 0.5f;
-    // const float avail = ImGui::GetContentRegionAvail().x;
-    // float off = (avail - width) * alignment;
-    // if (off > 0.0f)
-    //   ImGui::SetCursorPosX(ImGui::GetCursorPosX() + off);
+      // AlignForWidth()
+      // const float alignment = 0.5f;
+      // const float avail = ImGui::GetContentRegionAvail().x;
+      // float off = (avail - width) * alignment;
+      // if (off > 0.0f)
+      //   ImGui::SetCursorPosX(ImGui::GetCursorPosX() + off);
 
-    // Draw the button(s)
-    const ImVec2 button_size = ImGui::GetContentRegionAvail();
-    if (ImGui::Button("Begin Combat", button_size))
-      state.team = AvailableTeams::player;
+      // Draw the button(s)
+      const ImVec2 button_size = ImGui::GetContentRegionAvail();
+      if (ImGui::Button("Begin Combat", button_size))
+        state.team = AvailableTeams::player;
 
-    // HACK: hide this menu
-    // state.team = AvailableTeams::player;
+      // HACK: hide this menu
+      // state.team = AvailableTeams::player;
 
-    ImGui::End();
+      ImGui::End();
 
-    ImGui::PopStyleVar();
-    return; // must click begin!
+      ImGui::PopStyleVar();
+      return; // must click begin!
+    }
   }
 
   ImGui::Begin("UI Combat");
@@ -186,9 +179,6 @@ update_ui_combat_turnbased_system(entt::registry& r, const glm::ivec2& input_mou
       return;
     }
   }
-
-  const auto type_name = std::string(magic_enum::enum_name(state.team));
-  ImGui::Text("Turn: %s", type_name.c_str());
 
   // Hack: debug gridpos pathfinding
   {
@@ -218,13 +208,6 @@ update_ui_combat_turnbased_system(entt::registry& r, const glm::ivec2& input_mou
   int count = 0;
   for (const auto& [e, selected_c, aabb] : selected_view.each())
     count++;
-
-  if (state.team == AvailableTeams::player) {
-    if (ImGui::Button("End Turn")) // let player end their turn
-      create_empty<RequestToCompleteTurn>(r, RequestToCompleteTurn{ AvailableTeams::player });
-  } else {
-    ImGui::Text("Not player turn...");
-  }
 
   // limit: must be interacting with 1 selected unit
   if (count != 1) {

@@ -25,42 +25,43 @@ update_particle_system(entt::registry& r, const float dt)
     set_position(r, e, pos);
   }
 
+  const auto spawn_particle = [&r](ParticleEmitterComponent& emitter, const entt::entity& e) {
+    // per-instance? seems bad
+    ParticleDescription particle_description = emitter.particle_to_emit;
+
+    // instead of spawning at emitter position, spawn at parent position
+    if (auto* parent = r.try_get<HasParentComponent>(e))
+      particle_description.position = get_position(r, parent->parent);
+
+    if (emitter.random_velocity) {
+      static engine::RandomState rnd;
+      const float rnd_x = engine::rand_det_s(rnd.rng, -50, 50);
+      const float rnd_y = engine::rand_det_s(rnd.rng, -50, 50);
+      particle_description.velocity = glm::ivec2{ rnd_x, rnd_y };
+    }
+
+    create_particle(r, particle_description);
+
+    // limit number of particles spawned
+    if (emitter.expires) {
+      emitter.particles_to_spawn_before_emitter_expires -= 1;
+      if (emitter.particles_to_spawn_before_emitter_expires < 0) {
+        r.destroy(e); // emitter expired!
+        return;
+      }
+    }
+  };
+
   // spawn the particles
   const auto& view = r.view<ParticleEmitterComponent, AttackCooldownComponent>(entt::exclude<WaitForInitComponent>);
   for (const auto& [e, emitter, cooldown] : view.each()) {
     if (!cooldown.on_cooldown) {
 
       if (emitter.spawn_all_particles_at_once) {
-        for (int i = 0; i < emitter.particles_to_spawn_before_emitter_expires; i++) {
-          //
-
-          // per-instance? seems bad
-          ParticleDescription particle_description = emitter.particle_to_emit;
-
-          // instead of spawning at emitter position, spawn at parent position
-          if (auto* parent = r.try_get<HasParentComponent>(e))
-            particle_description.position = get_position(r, parent->parent);
-
-          if (emitter.random_velocity) {
-            static engine::RandomState rnd;
-            const float rnd_x = engine::rand_det_s(rnd.rng, -50, 50);
-            const float rnd_y = engine::rand_det_s(rnd.rng, -50, 50);
-            particle_description.velocity = glm::ivec2{ rnd_x, rnd_y };
-          }
-
-          create_particle(r, particle_description);
-
-          // limit number of particles spawned
-          if (emitter.expires) {
-            emitter.particles_to_spawn_before_emitter_expires -= 1;
-            if (emitter.particles_to_spawn_before_emitter_expires < 0) {
-              r.destroy(e); // emitter expired!
-              continue;
-            }
-          }
-
-        } // end for-loop
-      }
+        for (int i = 0; i < emitter.particles_to_spawn_before_emitter_expires; i++)
+          spawn_particle(emitter, e);
+      } else
+        spawn_particle(emitter, e);
 
       reset_cooldown(cooldown);
     }

@@ -117,6 +117,13 @@ game2d::update_player_controller_system(entt::registry& r, const uint64_t& milli
       const glm::vec2 l_nrm_raw = { input.lx, input.ly };
       const glm::vec2 l_nrm_dir = engine::normalize_safe(l_nrm_raw);
       const glm::vec2 move_dir = (l_nrm_dir * vel->base_speed) * dt;
+
+      const bool player_is_moving = glm::abs(vel->x) > 0 || glm::abs(vel->y) > 0;
+      const bool any_input = glm::abs(move_dir.x) > 0 || glm::abs(move_dir.y) > 0.0f;
+
+      if (player_is_moving && !any_input)
+        continue; // keep ship flying in same direction
+
       vel->x = move_dir.x;
       vel->y = move_dir.y;
 

@@ -42,12 +42,6 @@ bind_tex(const int id);
 void
 unbind_tex();
 
-// [[nodiscard]] LinearTexture
-// load_texture_srgb(const int tex_unit, const std::string& path);
-
-// [[nodiscard]] LinearTexture
-// load_texture_linear(const int tex_unit, const std::string& path);
-
 [[nodiscard]] std::vector<unsigned int>
 load_textures(const std::vector<std::pair<int, std::string>>& textures_to_load);
 

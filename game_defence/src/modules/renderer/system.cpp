@@ -253,7 +253,7 @@ game2d::update_render_system(entt::registry& r, const float dt, const glm::vec2&
 
   // HACK: toggle bloom
   bool do_bloom = get_first<Effect_DoBloom>(r) != entt::null;
-  static float exposure = 1.1f;
+  static float exposure = 1.5f;
   static float brightness_threshold = 0.80f;
   static float blur_amount = 4;
   ImGui::Begin("Debug__Bloom");
@@ -529,7 +529,7 @@ game2d::update_render_system(entt::registry& r, const float dt, const glm::vec2&
 
 // debug user textures
 //
-#ifdef _DEBUG
+#if defined(_DEBUG)
   ImVec2 viewport_size;
   // int i = 0;
   // for (const auto& tex : ri.user_textures) {
@@ -540,6 +540,10 @@ game2d::update_render_system(entt::registry& r, const float dt, const glm::vec2&
   //   ImGui::End();
   //   i++;
   // }
+
+  const bool hide_debug_textures = true;
+  if (hide_debug_textures)
+    return;
 
   ImGui::Begin("DebugLighting");
   viewport_size = ImGui::GetContentRegionAvail();
@@ -569,7 +573,6 @@ game2d::update_render_system(entt::registry& r, const float dt, const glm::vec2&
   viewport_size = ImGui::GetContentRegionAvail();
   ImGui::Image((ImTextureID)ri.tex_id_bloom, viewport_size, ImVec2(0, 0), ImVec2(1, 1));
   ImGui::End();
-
 #endif
 };
 

@@ -14,7 +14,6 @@
 #include "modules/actor_spawner/system.hpp"
 #include "modules/actor_weapon_shotgun/system.hpp"
 #include "modules/animation/angle_to_velocity.hpp"
-#include "modules/animation/wiggle_up_and_down.hpp"
 #include "modules/animator/system.hpp"
 #include "modules/camera/helpers.hpp"
 #include "modules/camera/orthographic.hpp"
@@ -23,7 +22,6 @@
 #include "modules/combat_damage/system.hpp"
 #include "modules/combat_flash_on_damage/system.hpp"
 #include "modules/combat_wants_to_shoot/system.hpp"
-#include "modules/debug_pathfinding/system.hpp"
 #include "modules/gameover/components.hpp"
 #include "modules/gameover/system.hpp"
 #include "modules/gen_dungeons/system.hpp"
@@ -44,6 +42,7 @@
 #include "modules/ui_audio/system.hpp"
 #include "modules/ui_collisions/system.hpp"
 #include "modules/ui_colours/system.hpp"
+#include "modules/ui_combat_endturn/system.hpp"
 #include "modules/ui_combat_turnbased/system.hpp"
 #include "modules/ui_controllers/system.hpp"
 #include "modules/ui_gameover/system.hpp"
@@ -275,6 +274,7 @@ game2d::update(engine::SINGLETON_Application& app, entt::registry& r, const floa
       // update_spaceship_door_system(r, dt);
       // update_intent_pickup_system(r);
       // update_intent_drop_item_system(r);
+      // update_sprint_system(r, dt);
       //   update_ui_inventory(r);
       //   update_ui_selected(r);
       //   update_ui_arrows_to_spawners_system(r);
@@ -293,7 +293,6 @@ game2d::update(engine::SINGLETON_Application& app, entt::registry& r, const floa
       update_spawn_particles_on_death_system(r);
       update_set_velocity_to_target_system(r, dt);
       update_spawner_system(r, milliseconds_dt);
-      update_sprint_system(r, dt);
       update_wants_to_shoot_system(r);
       update_weapon_shotgun_system(r, milliseconds_dt);
     }
@@ -358,12 +357,14 @@ game2d::update(engine::SINGLETON_Application& app, entt::registry& r, const floa
     }
     if (scene.s == Scene::dungeon_designer) {
       update_ui_combat_turnbased_system(r, mouse_pos);
+      update_ui_combat_endturn_system(r);
     }
     if (scene.s == Scene::overworld) {
       update_ui_patrol_system(r);
     }
     if (scene.s == Scene::turnbasedcombat) {
       update_ui_combat_turnbased_system(r, mouse_pos);
+      update_ui_combat_endturn_system(r);
     }
 
     update_ui_worldspace_text_system(r);

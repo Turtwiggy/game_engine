@@ -103,7 +103,7 @@ main(int argc, char* argv[])
   game2d::init(app, game);
   CHECK_OPENGL_ERROR(0);
 
-#ifdef __EMSCRIPTEN__
+#if defined(__EMSCRIPTEN__)
   emscripten_set_main_loop_arg(main_loop, NULL, 0, true);
 #else
   // OPTICK_START_CAPTURE();

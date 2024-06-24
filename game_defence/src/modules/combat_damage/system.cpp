@@ -89,12 +89,12 @@ update_take_damage_system(entt::registry& r)
     // }
 
     // .. popup some numbers as vfx
-    const int base_text_separation = 7;
+    const int base_text_separation = 10;
     int text_seperation = base_text_separation;
     const auto sprites = convert_int_to_sprites(damage);
     const auto def_transform = r.get<TransformComponent>(request.to);
     const float rnd_x = engine::rand_det_s(rnd.rng, -50, 50);
-    const float rnd_y = engine::rand_det_s(rnd.rng, -50, 50);
+    const float rnd_y = engine::rand_det_s(rnd.rng, -50, 0); // up only
     for (int i = 0; i < sprites.size(); i++) {
       const auto req = create_gameplay(r, EntityType::particle);
 
