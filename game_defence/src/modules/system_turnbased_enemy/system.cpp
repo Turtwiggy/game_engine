@@ -47,15 +47,15 @@ update_turnbased_enemy_system(entt::registry& r)
     return; // only process system if enemy turn
 
   // ImGui::Begin("Debug__TurnbasedEnemySystem");
-  const bool one_at_a_time = false;
+  const bool one_at_a_time = true;
   bool all_enemies_fully_done = true;
 
   for (const auto& [e, e_c] : r.view<EnemyComponent>().each()) {
     // ImGui::PushID(static_cast<uint32_t>(e));
 
     auto& turn_state = r.get_or_emplace<TurnState>(e);
-    const bool has_moved = turn_state.has_moved;
-    const bool has_shot = turn_state.has_shot;
+    const bool has_moved = turn_state.completed_move;
+    const bool has_shot = turn_state.completed_shot;
 
     // ImGui::Separator();
     // ImGui::Text("has_moved %i", has_moved);
@@ -66,7 +66,7 @@ update_turnbased_enemy_system(entt::registry& r)
     //   turn_state.do_shoot = true;
 
     if (turn_state.do_move && !has_moved) {
-      turn_state.has_moved = true;
+      turn_state.completed_move = true;
       const auto players = get_players_in_range(r, e);
       if (players.size() > 0) {
         const auto limit = r.get<MoveLimitComponent>(e).amount;
@@ -75,7 +75,7 @@ update_turnbased_enemy_system(entt::registry& r)
     }
     if (turn_state.do_shoot && has_moved && !has_shot) {
       if (has_destination(r, e) && at_destination(r, e)) { // wait to arrive...
-        turn_state.has_shot = true;                        // arrived! shoot if possible!
+        turn_state.completed_shot = true;                  // arrived! shoot if possible!
         const auto players = get_players_in_range(r, e);
         if (players.size() > 0) {
           r.emplace_or_replace<StaticTargetComponent>(e, get_position(r, players[0].first));

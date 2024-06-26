@@ -1,27 +1,31 @@
 #include "system.hpp"
 
-#include "audio/components.hpp"
+#include "actors.hpp"
 #include "components.hpp"
 #include "entt/helpers.hpp"
 #include "lifecycle/components.hpp"
 #include "maths/maths.hpp"
-#include "modules/actor_player/components.hpp"
 #include "modules/actors/helpers.hpp"
 #include "modules/combat_flash_on_damage/components.hpp"
-#include "modules/combat_flash_on_damage/helpers.hpp"
 #include "modules/screenshake/components.hpp"
 #include "modules/system_knockback/components.hpp"
 #include "modules/system_particles/components.hpp"
-#include "modules/ui_colours/helpers.hpp"
+#include "modules/ui_event_console/components.hpp"
 #include "physics/components.hpp"
-#include "renderer/transform.hpp"
-#include "sprites/helpers.hpp"
+
+#include "magic_enum.hpp"
+
+#include <format>
 
 namespace game2d {
 
 void
 update_take_damage_system(entt::registry& r)
 {
+  const auto evts_e = get_first<SINGLE_EventConsoleLogComponent>(r);
+  if (evts_e == entt::null)
+    return;
+  auto& evts = get_first_component<SINGLE_EventConsoleLogComponent>(r);
   auto& dead = get_first_component<SINGLETON_EntityBinComponent>(r);
 
   const auto& view = r.view<DealDamageRequest>(entt::exclude<WaitForInitComponent>);
@@ -33,6 +37,9 @@ update_take_damage_system(entt::registry& r)
     // Does the defender have health?
     auto* hp = r.try_get<HealthComponent>(request.to);
 
+    // Does the defender have armour?
+    const auto* defence = r.try_get<DefenceComponent>(request.to);
+
     if (atk == nullptr)
       continue; // no attack damage given
 
@@ -40,14 +47,14 @@ update_take_damage_system(entt::registry& r)
       continue; // not able to take damage?
 
     // Was there a parent of the damage request?
-    std::optional<entt::entity> parent_attacker = std::nullopt;
-    if (const auto* p = r.try_get<HasParentComponent>(request.from))
-      parent_attacker = p->parent;
+    // std::optional<entt::entity> parent_attacker = std::nullopt;
+    // if (const auto* p = r.try_get<HasParentComponent>(request.from))
+    //   parent_attacker = p->parent;
 
     // Was the attacking parent a player?
-    std::optional<entt::entity> player_attacker = std::nullopt;
-    if (parent_attacker.has_value() && r.try_get<PlayerComponent>(parent_attacker.value()))
-      player_attacker = parent_attacker.value();
+    // std::optional<entt::entity> player_attacker = std::nullopt;
+    // if (parent_attacker.has_value() && r.try_get<PlayerComponent>(parent_attacker.value()))
+    //   player_attacker = parent_attacker.value();
 
     // Does the defender have the ability to be knocked back?
     auto* v = r.try_get<VelocityComponent>(request.to);
@@ -77,10 +84,16 @@ update_take_damage_system(entt::registry& r)
 
     // mess with the damage
     int damage = atk->damage;
+    if (miss)
+      damage = 0;
+
+    if (defence) {
+      damage -= defence->armour;
+      damage = glm::max(damage, 0);
+    }
+
     if (crit)
       damage *= 2;
-    if (miss)
-      damage = 1;
 
     // Does the attacker have a double damage powerup?
     // if (parent_attacker.has_value() && parent_attacker.value() != entt::null) {
@@ -88,40 +101,32 @@ update_take_damage_system(entt::registry& r)
     //     damage *= 2;
     // }
 
-    // .. popup some numbers as vfx
-    const int base_text_separation = 10;
-    int text_seperation = base_text_separation;
-    const auto sprites = convert_int_to_sprites(damage);
-    const auto def_transform = r.get<TransformComponent>(request.to);
-    const float rnd_x = engine::rand_det_s(rnd.rng, -50, 50);
-    const float rnd_y = engine::rand_det_s(rnd.rng, -50, 0); // up only
-    for (int i = 0; i < sprites.size(); i++) {
-      const auto req = create_gameplay(r, EntityType::particle);
-
-      VelocityComponent vel;
-      vel.x = rnd_x;
-      vel.y = rnd_y;
-      r.emplace_or_replace<VelocityComponent>(req, vel);
-      glm::vec3 offset_pos = def_transform.position;
-      offset_pos.x += (i)*text_seperation;
-      set_position(r, req, offset_pos);
-      set_sprite(r, req, sprites[i]);
-
-      // new colour
-      if (crit) {
-        auto& sc = r.get<SpriteComponent>(req);
-        sc.colour = get_lin_colour_by_tag(r, "attack_crit");
-      } else if (miss) {
-        auto& sc = r.get<SpriteComponent>(req);
-        sc.colour = get_lin_colour_by_tag(r, "attack_miss");
-      } else {
-        auto& sc = r.get<SpriteComponent>(req);
-        sc.colour = get_lin_colour_by_tag(r, "attack_hit");
-      }
-    }
-
     // .. take damage
     hp->hp -= glm::max(0, damage);
+
+    const auto name_to_pretty_name = [](const std::string& s) -> std::string {
+      std::string result;
+      const std::unordered_map<std::string, std::function<void()>> name_to_pretty_name_map{
+        { std::string(magic_enum::enum_name(EntityType::actor_barrel)), [&]() { result = "Barrel"; } },
+        { std::string(magic_enum::enum_name(EntityType::actor_unit_rtslike)), [&]() { result = "Unit"; } },
+      };
+
+      auto it = name_to_pretty_name_map.find(s);
+      if (it != name_to_pretty_name_map.end()) {
+        it->second();
+        return result;
+      }
+
+      return s; // return ugly name
+    };
+
+    const auto a_name = std::string(magic_enum::enum_name(r.get<EntityTypeComponent>(request.from).type));
+    const auto b_name = std::string(magic_enum::enum_name(r.get<EntityTypeComponent>(request.to).type));
+    const auto pretty_b_name = name_to_pretty_name(b_name);
+    const auto b_team = std::string(magic_enum::enum_name(r.get<TeamComponent>(request.to).team));
+
+    const auto message = std::format("{} ({}) recieved {}", pretty_b_name, b_team, damage, defence->armour, crit);
+    evts.events.push_back(message);
 
     //
     if (hp->hp <= 0) {
@@ -134,6 +139,8 @@ update_take_damage_system(entt::registry& r)
         // only once
         r.remove<SpawnParticlesOnDeath>(request.to);
       }
+
+      evts.events.push_back(std::format("{} died.", pretty_b_name));
 
       // If you're looking for where dead enemies drop items...
       // that's in the drop item system

@@ -73,7 +73,7 @@ game2d::render_texture_to_imgui_viewport(const int64_t& tex_id)
 
       ImGui::DockBuilderDockWindow("Viewport", dock_id_main);
       // ImGui::DockBuilderDockWindow("Player", dock_id_left);
-      // ImGui::DockBuilderDockWindow("GameEvents", dock_id_top);
+      ImGui::DockBuilderDockWindow("Events", dock_id_top);
 
       // tools
       // ImGui::DockBuilderDockWindow("ColourEditor", dock_id_down);

@@ -32,6 +32,7 @@
 #include "modules/scene/helpers.hpp"
 #include "modules/scene_splashscreen_move_to_menu/system.hpp"
 #include "modules/screenshake/system.hpp"
+#include "modules/system_change_gun_colour/system.hpp"
 #include "modules/system_minigame_bamboo/system.hpp"
 #include "modules/system_particles/system.hpp"
 #include "modules/system_particles_on_death/system.hpp"
@@ -45,6 +46,7 @@
 #include "modules/ui_combat_endturn/system.hpp"
 #include "modules/ui_combat_turnbased/system.hpp"
 #include "modules/ui_controllers/system.hpp"
+#include "modules/ui_event_console/system.hpp"
 #include "modules/ui_gameover/system.hpp"
 #include "modules/ui_hierarchy/system.hpp"
 #include "modules/ui_patrol/system.hpp"
@@ -286,6 +288,7 @@ game2d::update(engine::SINGLETON_Application& app, entt::registry& r, const floa
 
       // potentially common
       update_attack_cooldown_system(r, milliseconds_dt);
+      update_change_gun_colour_system(r);
       update_flash_sprite_system(r, milliseconds_dt);
       update_pathfinding_system(r, dt);
       update_particle_system(r, dt);
@@ -335,7 +338,6 @@ game2d::update(engine::SINGLETON_Application& app, entt::registry& r, const floa
       const float size_y = ImGui::CalcTextSize(example.c_str()).y / 2.0f;
 
       ImGuiWindowFlags flags = 0;
-      static bool menubar_open = true;
       flags |= ImGuiWindowFlags_NoFocusOnAppearing;
       flags |= ImGuiWindowFlags_NoCollapse;
       flags |= ImGuiWindowFlags_NoResize;
@@ -344,9 +346,7 @@ game2d::update(engine::SINGLETON_Application& app, entt::registry& r, const floa
       ImGui::SetNextWindowPos({ 0, 0 }, ImGuiCond_Always, { 0, 0 });
       ImGui::SetNextWindowSize({ 100, size_y }, ImGuiCond_Always);
 
-      const ImGuiID dockspace_id = ImGui::GetID("RootDockSpace");
-      ImGui::SetNextWindowDockID(dockspace_id, ImGuiCond_Always);
-      ImGui::Begin("MenuBar", &menubar_open, flags);
+      ImGui::Begin("MenuBar", NULL, flags);
       ImGui::Text("FPS: %0.2f", ImGui::GetIO().Framerate);
       ImGui::End();
     }
@@ -369,6 +369,7 @@ game2d::update(engine::SINGLETON_Application& app, entt::registry& r, const floa
     update_ui_worldspace_text_system(r);
     update_ui_pause_menu_system(app, r);
     update_ui_gameover_system(r);
+    update_ui_event_console_system(r);
 
     // todo: put in to a settings menu
     static bool show_settings_ui = true;

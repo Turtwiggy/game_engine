@@ -323,16 +323,20 @@ create_gameplay(entt::registry& r, const EntityType& type)
       // r.emplace<ChangeColourOnHoverComponent>(e);
       r.emplace<TurnBasedUnitComponent>(e);
       r.emplace<SpawnParticlesOnDeath>(e);
-      r.emplace<MoveLimitComponent>(e, 2);
+
+      const int move_limit = 5;
+      r.emplace<MoveLimitComponent>(e, move_limit);
 
       const int hp = 100; // killable
       r.emplace<HealthComponent>(e, hp, hp);
 
+      const int armour = 3;
+      r.emplace<DefenceComponent>(e, armour);
+
       // movement
       r.emplace<HasTargetPositionComponent>(e);
-      // r.emplace<SetVelocityToTargetComponent>(e);
-
       r.emplace<PathfindComponent>(e, 1000); // pass through units if you must
+      // r.emplace<SetVelocityToTargetComponent>(e);
 
       break;
     }
@@ -398,9 +402,11 @@ create_gameplay(entt::registry& r, const EntityType& type)
     case EntityType::actor_barrel: {
       create_physics_actor(r, e);
 
-      // can be killed
       const int hp = 25;
       r.emplace<HealthComponent>(e, hp, hp);
+      r.emplace<DefenceComponent>(e, 0);
+      r.emplace<TeamComponent>(e, AvailableTeams::neutral);
+
       r.emplace<SpawnParticlesOnDeath>(e);
 
       break;

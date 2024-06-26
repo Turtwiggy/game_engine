@@ -9,8 +9,8 @@ namespace game2d {
 // per-enemy info...
 struct TurnState
 {
-  bool has_moved = false;
-  bool has_shot = false;
+  bool completed_move = false;
+  bool completed_shot = false;
 
   // hack for debugging enemy ai
   bool do_move = true;

@@ -15,6 +15,7 @@ uniform sampler2D scene;
 uniform sampler2D lighting;
 uniform vec2 light_pos; // worldspace
 uniform float brightness_threshold;
+uniform float exposure = 1.0f;
 
 float
 SRGBFloatToLinearFloat(const float f)
@@ -58,7 +59,7 @@ void main()
   const vec3 lighting = texture(lighting, v_uv).rgb;
 
   // linear to srgb
-  out_color.rgb = lin_to_srgb(scene.rgb);
+  out_color.rgb = lin_to_srgb(scene);
   out_color.a = 1.0f;
 
   // work out "bright" areas for bloom effect

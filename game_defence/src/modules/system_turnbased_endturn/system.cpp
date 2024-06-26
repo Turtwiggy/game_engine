@@ -4,7 +4,9 @@
 #include "modules/actors/helpers.hpp"
 #include "modules/algorithm_astar_pathfinding/helpers.hpp"
 #include "modules/combat_damage/components.hpp"
+#include "modules/system_change_gun_colour/helpers.hpp"
 #include "modules/system_turnbased_enemy/components.hpp"
+#include "modules/ui_colours/helpers.hpp"
 
 namespace game2d {
 
@@ -26,6 +28,12 @@ update_turnbased_endturn_system(entt::registry& r)
       const auto& path = r.get<GeneratedPathComponent>(e);
       set_position(r, e, path.dst_pos);
     }
+
+    // reset gun colour state
+    const auto gun_e = get_gun(r, e);
+    if (gun_e == entt::null)
+      continue;
+    set_colour(r, gun_e, get_srgb_colour_by_tag(r, "weapon_shotgun"));
   }
 
   // At end of turn, Destroy everything's turnstate

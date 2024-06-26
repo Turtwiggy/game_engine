@@ -195,13 +195,13 @@ update_ui_combat_turnbased_system(entt::registry& r, const glm::ivec2& input_mou
     }
   }
 
-  // Hack: display all units hp in worldspace
+  // Hack: display all units hp/defence in worldspace
   {
-    const auto& view = r.view<HealthComponent, AABB>();
-    for (const auto& [e, hp, aabb] : view.each()) {
+    const auto& view = r.view<HealthComponent, DefenceComponent, AABB>();
+    for (const auto& [e, hp, defence, aabb] : view.each()) {
       auto& worldspace_ui = r.get_or_emplace<WorldspaceTextComponent>(e);
-      worldspace_ui.text = std::to_string(hp.hp);
-      worldspace_ui.offset.y = -aabb.size.y / 2.0f;
+      worldspace_ui.text = std::to_string(hp.hp) + " " + std::to_string(defence.armour);
+      worldspace_ui.offset.y = -aabb.size.y;
     }
   }
 
@@ -258,8 +258,8 @@ update_ui_combat_turnbased_system(entt::registry& r, const glm::ivec2& input_mou
     static_tgt.target = { mouse_pos.x, mouse_pos.y };
 
     auto& turn_state = r.get_or_emplace<TurnState>(e);
-    const bool has_moved = turn_state.has_moved;
-    const bool has_shot = turn_state.has_shot;
+    const bool has_moved = turn_state.completed_move;
+    const bool has_shot = turn_state.completed_shot;
 
     ImGui::Separator();
     ImGui::Text("has_moved %i", has_moved);
@@ -280,7 +280,7 @@ update_ui_combat_turnbased_system(entt::registry& r, const glm::ivec2& input_mou
         const auto path = generate_path(r, e, mouse_pos, limit);
         update_entity_path(r, e, path);
 
-        turn_state.has_moved = true;
+        turn_state.completed_move = true;
       }
     }
 
@@ -289,7 +289,7 @@ update_ui_combat_turnbased_system(entt::registry& r, const glm::ivec2& input_mou
       change_cursor(r, CursorType::ATTACK);
       if (rmb_click) {
         r.emplace_or_replace<WantsToShoot>(e);
-        turn_state.has_shot = true;
+        turn_state.completed_shot = true;
       }
     }
   }

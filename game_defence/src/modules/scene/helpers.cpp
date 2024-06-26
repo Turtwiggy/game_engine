@@ -36,6 +36,7 @@
 #include "modules/system_turnbased_enemy/components.hpp"
 #include "modules/ui_colours/components.hpp"
 #include "modules/ui_combat_turnbased/components.hpp"
+#include "modules/ui_event_console/components.hpp"
 #include "modules/ui_scene_main_menu/components.hpp"
 #include "modules/ui_selected/components.hpp"
 #include "modules/ui_worldspace_text/components.hpp"
@@ -356,6 +357,7 @@ move_to_scene_start(entt::registry& r, const Scene s, const bool load_saved)
   if (s == Scene::dungeon_designer) {
     r.emplace_or_replace<CameraFreeMove>(get_first<OrthographicCamera>(r));
     destroy_first_and_create<SINGLE_CombatState>(r);
+    destroy_first_and_create<SINGLE_EventConsoleLogComponent>(r);
     destroy_first_and_create<SINGLE_TurnBasedCombatInfo>(r);
     destroy_first_and_create<Effect_DoBloom>(r);
     destroy_first_and_create<Effect_GridComponent>(r);
@@ -397,6 +399,7 @@ move_to_scene_start(entt::registry& r, const Scene s, const bool load_saved)
   if (s == Scene::turnbasedcombat) {
     r.emplace_or_replace<CameraFreeMove>(get_first<OrthographicCamera>(r));
     destroy_first_and_create<SINGLE_CombatState>(r);
+    destroy_first_and_create<SINGLE_EventConsoleLogComponent>(r);
     destroy_first_and_create<SINGLE_TurnBasedCombatInfo>(r);
     destroy_first_and_create<Effect_DoBloom>(r);
 

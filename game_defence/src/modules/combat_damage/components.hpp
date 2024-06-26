@@ -6,15 +6,22 @@
 
 namespace game2d {
 
+// e.g. added to barrels and destroyable objects
 struct HealthComponent
 {
   int max_hp = 100;
   int hp = 100;
 };
 
+// e.g. added to bullets
 struct AttackComponent
 {
   int damage = 5;
+};
+
+struct DefenceComponent
+{
+  int armour = 0;
 };
 
 struct TargetInfo

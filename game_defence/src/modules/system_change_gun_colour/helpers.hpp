@@ -4,9 +4,7 @@
 
 namespace game2d {
 
-struct SINGLE_SplashScreen
-{
-  float time_on_splashscreen_seconds = 3.0f;
-};
+entt::entity
+get_gun(entt::registry& r, const entt::entity& parent);
 
 } // namespace game2d
