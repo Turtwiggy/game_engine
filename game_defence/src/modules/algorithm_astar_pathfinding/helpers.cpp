@@ -327,7 +327,7 @@ display_flow_field_with_visuals(entt::registry& r, GridComponent& grid)
 };
 
 glm::ivec2
-clamp_worldspace_to_gridspace(const MapComponent& map, const glm::ivec2 pos)
+worldspace_to_clamped_gridspace(const MapComponent& map, const glm::ivec2 pos)
 {
   auto gridpos = engine::grid::world_space_to_grid_space(pos, map.tilesize);
   gridpos.x = glm::clamp(gridpos.x, 0, map.xmax - 1);
@@ -338,7 +338,7 @@ clamp_worldspace_to_gridspace(const MapComponent& map, const glm::ivec2 pos)
 int
 convert_position_to_index(const MapComponent& map, const glm::ivec2& pos)
 {
-  const auto gridpos = clamp_worldspace_to_gridspace(map, pos);
+  const auto gridpos = worldspace_to_clamped_gridspace(map, pos);
   return engine::grid::grid_position_to_index(gridpos, map.xmax);
 };
 

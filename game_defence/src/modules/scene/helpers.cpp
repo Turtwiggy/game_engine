@@ -16,6 +16,7 @@
 #include "modules/actor_enemy/components.hpp"
 #include "modules/actor_enemy_patrol/components.hpp"
 #include "modules/actor_enemy_patrol/helpers.hpp"
+#include "modules/actor_player/components.hpp"
 #include "modules/actor_spawner/components.hpp"
 #include "modules/actors/helpers.hpp"
 #include "modules/camera/components.hpp"
@@ -450,14 +451,14 @@ move_to_scene_start(entt::registry& r, const Scene s, const bool load_saved)
 
     // create enemy team
     for (int i = 0; i < enemies; i++) {
-      // GAMEDESIGN TODO:
-      // set out of range, so that player is free-roaming, then
-      // when they get in range, the "turn-based combat starts"
-
-      auto& map = get_first_component<MapComponent>(r);
+      const auto& map = get_first_component<MapComponent>(r);
       const auto& grid = map_to_grid(r);
 
-      const int idx_next = get_lowest_cost_neighbour(r, map, grid, last_spawned_e);
+      const auto src_pos = get_position(r, last_spawned_e);
+      const auto grid_pos = engine::grid::world_space_to_grid_space(src_pos, map.tilesize);
+      const int src_idx = engine::grid::grid_position_to_index(grid_pos, map.xmax);
+
+      const int idx_next = get_lowest_cost_neighbour(r, map, grid, src_idx, last_spawned_e);
       auto pos = engine::grid::index_to_world_position(idx_next, map.xmax, map.ymax, map.tilesize);
       pos += glm::ivec2{ map_c.tilesize / 2, map_c.tilesize / 2 }; // center
 

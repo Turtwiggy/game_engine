@@ -56,10 +56,12 @@ update_gen_dungeons_system(entt::registry& r, const glm::ivec2& mouse_pos)
     std::vector<Room> rooms;
     for (const auto& [e, room] : r.view<Room>().each())
       rooms.push_back(room);
+    ImGui::Text("Rooms: %i");
 
     std::vector<Tunnel> tunnels;
     for (const auto& [e, t] : r.view<Tunnel>().each())
       tunnels.push_back(t);
+    ImGui::Text("Rooms: %i");
 
     const auto grid_pos = engine::grid::world_space_to_grid_space(mouse_pos, map.tilesize);
     ImGui::Text("grid_pos: %i %i", grid_pos.x, grid_pos.y);

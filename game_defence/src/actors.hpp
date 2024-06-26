@@ -22,7 +22,7 @@ enum class EntityType
 
   // actors with only one type (so far)
   actor_hearth,
-  actor_player,
+  actor_player, // overworld player
   actor_spawner,
   actor_turret,
   actor_barricade,

@@ -56,7 +56,7 @@ display_flow_field_with_visuals(entt::registry& r, GridComponent& grid);
 //
 
 glm::ivec2
-clamp_worldspace_to_gridspace(const MapComponent& map, const glm::ivec2 pos);
+worldspace_to_clamped_gridspace(const MapComponent& map, const glm::ivec2 pos);
 
 int
 convert_position_to_index(const MapComponent& map, const glm::ivec2& pos);

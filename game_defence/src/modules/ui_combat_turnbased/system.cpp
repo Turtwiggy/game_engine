@@ -57,6 +57,7 @@ change_cursor(entt::registry& r, const CursorType& type)
 {
   const auto& info = get_first_component<SINGLE_TurnBasedCombatInfo>(r);
   const auto& ri = get_first_component<SINGLETON_RendererInfo>(r);
+  const auto& map = get_first_component<MapComponent>(r);
   const auto& e = info.action_cursor;
   const int tex_unit_kenny = search_for_texture_unit_by_texture_path(ri, "monochrome")->unit;
   const int tex_unit_icons = search_for_texture_unit_by_texture_path(ri, "gameicons")->unit;
@@ -64,19 +65,18 @@ change_cursor(entt::registry& r, const CursorType& type)
   if (type == CursorType::EMPTY) {
     set_size(r, e, { 0, 0 });
     set_sprite_custom(r, e, "EMPTY"s, tex_unit_kenny);
+  } else if (type == CursorType::MOVE) {
+    set_size(r, e, { map.tilesize, map.tilesize });
+    set_sprite_custom(r, e, "CURSOR_1"s, tex_unit_kenny);
   } else if (type == CursorType::ATTACK) {
     set_size(r, e, { 16, 16 });
     set_sprite_custom(r, e, "CURSOR_ATTACK_2"s, tex_unit_kenny);
-  } else if (type == CursorType::MOVE) {
-    set_size(r, e, { 16, 16 });
-    set_sprite_custom(r, e, "ARROW_BOTTOM_RIGHT"s, tex_unit_icons);
   }
 };
 
 void
 update_ui_combat_turnbased_system(entt::registry& r, const glm::ivec2& input_mouse_pos)
 {
-  const int mouse_grid_increments = 5;
 
   const auto& map_e = get_first<MapComponent>(r);
   if (map_e == entt::null)
@@ -90,12 +90,28 @@ update_ui_combat_turnbased_system(entt::registry& r, const glm::ivec2& input_mou
   if (get_key_down(input, SDL_Scancode::SDL_SCANCODE_2))
     action = ActionMode::ATTACK;
 
+  int mouse_grid_increments = 1;
+  if (action == ActionMode::ATTACK)
+    mouse_grid_increments = 1;
+  if (action == ActionMode::MOVE)
+    mouse_grid_increments = map.tilesize;
+
   const bool rmb_click = get_mouse_rmb_press();
   const int grid_snap_size = mouse_grid_increments; // note: this is not the map.tilesize,
+
   const auto mouse_gridspace = engine::grid::world_space_to_grid_space(input_mouse_pos, grid_snap_size);
-  const auto mouse_pos = engine::grid::grid_space_to_world_space(mouse_gridspace, grid_snap_size);
+  auto mouse_pos = engine::grid::grid_space_to_world_space(mouse_gridspace, grid_snap_size);
+  if (action == ActionMode::MOVE)
+    mouse_pos += glm::ivec2{ map.tilesize / 2.0f, map.tilesize / 2.0f }; // center it
+
   const auto gridpos = engine::grid::world_space_to_grid_space(input_mouse_pos, map.tilesize);
   const auto grid_idx = engine::grid::grid_position_to_index(gridpos, map.xmax);
+
+  // change cursor icon
+  if (action == ActionMode::MOVE)
+    change_cursor(r, CursorType::MOVE);
+  if (action == ActionMode::ATTACK)
+    change_cursor(r, CursorType::ATTACK);
 
   auto& state = get_first_component<SINGLE_CombatState>(r);
   if (state.team == AvailableTeams::neutral) {
@@ -273,20 +289,16 @@ update_ui_combat_turnbased_system(entt::registry& r, const glm::ivec2& input_mou
 
     // move mode
     if (action == ActionMode::MOVE && !has_moved && do_move) {
-      change_cursor(r, CursorType::MOVE);
       if (rmb_click) {
-
         const auto limit = r.get<MoveLimitComponent>(e).amount;
         const auto path = generate_path(r, e, mouse_pos, limit);
         update_entity_path(r, e, path);
-
         turn_state.completed_move = true;
       }
     }
 
     // shoot mode
     if (action == ActionMode::ATTACK && !has_shot) {
-      change_cursor(r, CursorType::ATTACK);
       if (rmb_click) {
         r.emplace_or_replace<WantsToShoot>(e);
         turn_state.completed_shot = true;

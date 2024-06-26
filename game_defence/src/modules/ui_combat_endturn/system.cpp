@@ -11,6 +11,9 @@ namespace game2d {
 void
 update_ui_combat_endturn_system(entt::registry& r)
 {
+  const auto state_e = get_first<SINGLE_CombatState>(r);
+  if (state_e == entt::null)
+    return;
   const auto& state = get_first_component<SINGLE_CombatState>(r);
   // const auto type_name = std::string(magic_enum::enum_name(state.team));
 

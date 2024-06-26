@@ -125,12 +125,13 @@ update_take_damage_system(entt::registry& r)
     const auto pretty_b_name = name_to_pretty_name(b_name);
     const auto b_team = std::string(magic_enum::enum_name(r.get<TeamComponent>(request.to).team));
 
-    const auto message = std::format("{} ({}) recieved {}", pretty_b_name, b_team, damage, defence->armour, crit);
+    const auto message = std::format("{} ({}) {} DMG", pretty_b_name, b_team, damage);
     evts.events.push_back(message);
 
     //
     if (hp->hp <= 0) {
       dead.dead.emplace(request.to);
+      evts.events.push_back(std::format("{} died.", pretty_b_name));
 
       // Make a request to spawn some particles.
       if (const auto* req = r.try_get<SpawnParticlesOnDeath>(request.to)) {
@@ -139,8 +140,6 @@ update_take_damage_system(entt::registry& r)
         // only once
         r.remove<SpawnParticlesOnDeath>(request.to);
       }
-
-      evts.events.push_back(std::format("{} died.", pretty_b_name));
 
       // If you're looking for where dead enemies drop items...
       // that's in the drop item system

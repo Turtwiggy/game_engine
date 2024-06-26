@@ -41,7 +41,11 @@ move_entity_on_map(entt::registry& r, const entt::entity& src_e, const glm::ivec
 };
 
 int
-get_lowest_cost_neighbour(entt::registry& r, const MapComponent& map, const GridComponent& grid, const entt::entity& e)
+get_lowest_cost_neighbour(entt::registry& r,
+                          const MapComponent& map,
+                          const GridComponent& grid,
+                          const int src_idx,
+                          const entt::entity& e)
 {
   const auto dst = get_position(r, e);
   const auto dst_idx = convert_position_to_index(map, dst);
@@ -50,6 +54,11 @@ get_lowest_cost_neighbour(entt::registry& r, const MapComponent& map, const Grid
   // Warning: using diagonal neighbour indicies would require
   // working out if there's an edge between diagonals
   const auto neighbour_idxs = engine::grid::get_neighbour_indicies(dst_gridpos.x, dst_gridpos.y, grid.width, grid.height);
+
+  // If you're already at one of the neighbour indexs, dont move!
+  for (const auto& [dir, n_idx] : neighbour_idxs)
+    if (n_idx == src_idx)
+      return n_idx;
 
   // get cost at each neighbour
   std::vector<std::pair<int, int>> idx_to_cost;
@@ -107,7 +116,7 @@ update_path_to_tile_next_to_player(entt::registry& r, const entt::entity& src_e,
   const auto src = get_position(r, src_e);
   const auto src_idx = convert_position_to_index(map, src);
 
-  const auto chosen_neighbour_idx = get_lowest_cost_neighbour(r, map, grid, dst_e);
+  const auto chosen_neighbour_idx = get_lowest_cost_neighbour(r, map, grid, src_idx, dst_e);
   auto dst_pos = engine::grid::index_to_world_position(chosen_neighbour_idx, map.xmax, map.ymax, map.tilesize);
   dst_pos += offset;
 
