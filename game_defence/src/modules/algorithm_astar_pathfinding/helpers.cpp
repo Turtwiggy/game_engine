@@ -359,15 +359,19 @@ at_destination(entt::registry& r, const entt::entity& src_e)
   const auto src_idx = convert_position_to_index(map, src);
   const auto src_gridpos = engine::grid::index_to_grid_position(src_idx, map.xmax, map.ymax);
 
-  const auto& path = r.get<GeneratedPathComponent>(src_e);
-  const auto last = path.path[path.path.size() - 1];
+  const auto& path = r.try_get<GeneratedPathComponent>(src_e);
 
+  // no path means at path?
+  if (path == nullptr)
+    return true;
+
+  const auto last = path->path[path->path.size() - 1];
   const bool same_gridcell = last == src_gridpos;
   if (!same_gridcell)
     return false;
 
   // require distance threshold from position.
-  const auto d = src - path.dst_pos;
+  const auto d = src - path->dst_pos;
   const int d2 = d.x * d.x + d.y * d.y;
   const int epsilon = 10;
   return d2 < epsilon;

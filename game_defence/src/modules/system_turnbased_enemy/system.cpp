@@ -20,7 +20,7 @@
 
 #include <algorithm>
 
-// #include "imgui.h"
+#include "imgui.h"
 
 namespace game2d {
 
@@ -88,20 +88,20 @@ update_turnbased_enemy_system(entt::registry& r)
   if (state.team != AvailableTeams::enemy)
     return; // only process system if enemy turn
 
-  // ImGui::Begin("Debug__TurnbasedEnemySystem");
+  ImGui::Begin("Debug__TurnbasedEnemySystem");
   const bool one_at_a_time = false;
   bool all_enemies_fully_done = true;
 
   for (const auto& [e, e_c] : r.view<EnemyComponent>().each()) {
-    // ImGui::PushID(static_cast<uint32_t>(e));
+    ImGui::PushID(static_cast<uint32_t>(e));
 
     auto& turn_state = r.get_or_emplace<TurnState>(e);
-    const bool has_moved = turn_state.completed_move;
-    const bool has_shot = turn_state.completed_shot;
+    bool has_moved = turn_state.completed_move;
+    bool has_shot = turn_state.completed_shot;
 
-    // ImGui::Separator();
-    // ImGui::Text("has_moved %i", has_moved);
-    // ImGui::Text("has_shot: %i", has_shot);
+    ImGui::Separator();
+    ImGui::Text("has_moved %i", has_moved);
+    ImGui::Text("has_shot: %i", has_shot);
     // if (ImGui::Button("Do Move"))
     //   turn_state.do_move = true;
     // if (ImGui::Button("Do Shoot"))
@@ -112,14 +112,12 @@ update_turnbased_enemy_system(entt::registry& r)
       const auto players = get_players_in_room(r, e);
       if (players.size() > 0) {
         const auto limit = r.get<MoveLimitComponent>(e).amount;
-        const entt::entity player = players[0];
-        update_path_to_tile_next_to_player(r, e, player, limit);
-      } else {
-        // choose a different random spot in the room...
+        update_path_to_tile_next_to_player(r, e, players[0], limit);
+      }
+      // choose a different random spot in the room...
+      else {
         const auto update_path_to_rnd_idx_in_room = [&r, &e]() {
           const auto e_room = get_a_room(r, e);
-          if (!e_room.has_value())
-            return;
           const auto& map = get_first_component<MapComponent>(r);
 
           // Convert Map to Grid (?)
@@ -142,25 +140,22 @@ update_turnbased_enemy_system(entt::registry& r)
           dst += glm::ivec2{ map.tilesize / 2.0f, map.tilesize / 2.0f };
 
           const auto path = generate_direct(r, grid, src_idx, dst_idx);
-          GeneratedPathComponent path_c;
-          path_c.path = path;
-          path_c.src_pos = src;
-          path_c.dst_pos = dst;
-          path_c.dst_ent = entt::null;
-          path_c.path_cleared.resize(path.size());
-          r.emplace_or_replace<GeneratedPathComponent>(e, path_c);
+
+          update_entity_path(r, e, path);
         };
         update_path_to_rnd_idx_in_room();
       }
     }
 
+    // refresh, as if path.size() == 0, this is set to true.
     if (turn_state.do_shoot && has_moved && !has_shot) {
-      if (has_destination(r, e) && at_destination(r, e)) { // wait to arrive...
-        turn_state.completed_shot = true;                  // arrived! shoot if possible!
+      // const bool has_dest = has_destination(r, e);
+      const bool at_dest = at_destination(r, e);
+      if (at_dest) {                      // wait to arrive...
+        turn_state.completed_shot = true; // arrived! shoot if possible!
         const auto players = get_players_in_room(r, e);
         if (players.size() > 0) {
-          const entt::entity player = players[0];
-          r.emplace_or_replace<StaticTargetComponent>(e, get_position(r, player));
+          r.emplace_or_replace<StaticTargetComponent>(e, get_position(r, players[0]));
           r.emplace<WantsToShoot>(e);
         }
       }
@@ -170,12 +165,11 @@ update_turnbased_enemy_system(entt::registry& r)
     all_enemies_fully_done &= has_moved;
     all_enemies_fully_done &= has_shot;
 
-    // ImGui::PopID();
-
+    ImGui::PopID();
     if (one_at_a_time && (!has_moved || !has_shot))
       break;
   }
-  // ImGui::End();
+  ImGui::End();
 
   // end the enemy turn
   if (all_enemies_fully_done)

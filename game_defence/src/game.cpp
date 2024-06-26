@@ -37,7 +37,6 @@
 #include "modules/system_particles/system.hpp"
 #include "modules/system_particles_on_death/system.hpp"
 #include "modules/system_pathfinding/system.hpp"
-#include "modules/system_sprint/system.hpp"
 #include "modules/system_turnbased_endturn/system.hpp"
 #include "modules/system_turnbased_enemy/system.hpp"
 #include "modules/ui_audio/system.hpp"
@@ -53,8 +52,8 @@
 #include "modules/ui_pause_menu/system.hpp"
 #include "modules/ui_scene_main_menu/system.hpp"
 #include "modules/ui_worldspace_text/system.hpp"
-#include "modules/ux_hoverable/system.hpp"
 #include "modules/ux_hoverable_change_colour/system.hpp"
+#include "modules/ux_selectable_by_keyboard/system.hpp"
 #include "physics/components.hpp"
 #include "physics/process_actor_actor_collisions.hpp"
 #include "physics/process_move_objects.hpp"
@@ -246,7 +245,7 @@ game2d::update(engine::SINGLETON_Application& app, entt::registry& r, const floa
 
     // systems
     update_screenshake_system(r, app.ms_since_launch / 1000.0f, dt);
-    update_ux_hoverable(r);
+    // update_ux_hoverable(r);
     update_ux_hoverable_change_colour_system(r);
 
     const auto& state = get_first_component<SINGLETON_GameStateComponent>(r);
@@ -308,6 +307,7 @@ game2d::update(engine::SINGLETON_Application& app, entt::registry& r, const floa
       update_gen_dungeons_system(r, mouse_pos);
       update_turnbased_endturn_system(r);
       update_turnbased_enemy_system(r);
+      update_ux_selectable_by_keyboard_system(r);
 
 #if defined(_DEBUG)
       // update_debug_pathfinding_system(r, mouse_pos);

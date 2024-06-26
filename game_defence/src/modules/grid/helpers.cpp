@@ -5,6 +5,7 @@
 #include "maths/grid.hpp"
 #include "modules/actors/helpers.hpp"
 #include "modules/algorithm_astar_pathfinding/helpers.hpp"
+#include "modules/system_turnbased_enemy/components.hpp"
 
 #include <iostream>
 

@@ -318,6 +318,7 @@ create_gameplay(entt::registry& r, const EntityType& type)
       vel.base_speed = 700.0f;
       // r.emplace<PhysicsSolidComponent>(e);
 
+      // r.emplace<EnemyComponent>(e); // player or enemy
       r.emplace<TeamComponent>(e);
       r.emplace<HoverableComponent>(e); // the selected component gets attached
       // r.emplace<ChangeColourOnHoverComponent>(e);
@@ -327,7 +328,7 @@ create_gameplay(entt::registry& r, const EntityType& type)
       const int move_limit = 5;
       r.emplace<MoveLimitComponent>(e, move_limit);
 
-      const int hp = 100; // killable
+      const int hp = 500; // player hp
       r.emplace<HealthComponent>(e, hp, hp);
 
       const int armour = 3;

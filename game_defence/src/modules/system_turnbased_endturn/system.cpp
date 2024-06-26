@@ -22,14 +22,10 @@ update_turnbased_endturn_system(entt::registry& r)
 
   // At end of turn, if you're not at your destination, teleport there
   for (const auto& [e, ts_c] : r.view<TurnState>().each()) {
-
-    // // only teleport if you were part of the team's turn that ended
-    // if (team_c.team == request.team) {
     if (has_destination(r, e) && !at_destination(r, e)) {
       const auto& path = r.get<GeneratedPathComponent>(e);
       set_position(r, e, path.dst_pos);
     }
-    // }
 
     // reset gun colour state
     const auto gun_e = get_gun(r, e);

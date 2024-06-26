@@ -88,15 +88,18 @@ create_combat_entity(entt::registry& r, const CombatEntityDescription& desc)
     r.emplace<DefaultColour>(e, engine::SRGBColour{ 0.0f, 0.3f, 0.8f, 1.0f });
     r.emplace<HoveredColour>(e, engine::SRGBColour{ 0.0f, 1.0f, 1.0f, 1.0f });
     set_colour(r, e, r.get<DefaultColour>(e).colour);
+    r.emplace_or_replace<PlayerComponent>(e);
   } else if (desc.team == AvailableTeams::enemy) {
     r.emplace<DefaultColour>(e, engine::SRGBColour{ 0.8f, 0.3f, 0.0f, 1.0f });
     r.emplace<HoveredColour>(e, engine::SRGBColour{ 1.0f, 0.0f, 0.0f, 1.0f });
     set_colour(r, e, r.get<DefaultColour>(e).colour);
     r.emplace_or_replace<EnemyComponent>(e);
+
+    r.get<HealthComponent>(e).hp = 100;
+    r.get<HealthComponent>(e).max_hp = 100;
   }
 
   set_sprite(r, e, "PERSON_25_2");
-
   return e;
 }
 
