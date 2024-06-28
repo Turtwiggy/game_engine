@@ -126,8 +126,8 @@ game2d::update_player_controller_system(entt::registry& r, const uint64_t& milli
       vel->x = move_dir.x;
       vel->y = move_dir.y;
 
-      auto* sprint = r.try_get<SprintComponent>(entity);
-      if (sprint->is_sprinting) {
+      const auto* sprint = r.try_get<SprintComponent>(entity);
+      if (sprint != nullptr && sprint->is_sprinting) {
         vel->x *= 2.0f;
         vel->y *= 2.0f;
       }

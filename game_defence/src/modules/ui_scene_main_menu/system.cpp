@@ -92,10 +92,10 @@ update_ui_scene_main_menu(engine::SINGLETON_Application& app, entt::registry& r)
     int index = 0;
 
     // std::filesystem probably wont work on web. figure this out.
-    if (std::filesystem::exists("save-overworld.json")) {
-      if (selectable_button("Continue", selected, index++))
-        move_to_scene_start(r, Scene::overworld, true);
-    }
+    // if (std::filesystem::exists("save-overworld.json")) {
+    //   if (selectable_button("Continue", selected, index++))
+    //     move_to_scene_start(r, Scene::overworld, true);
+    // }
 
     if (selectable_button("Start Game", selected, index++)) {
       move_to_scene_start(r, Scene::overworld, false);

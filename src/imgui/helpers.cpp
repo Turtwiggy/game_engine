@@ -10,8 +10,6 @@
 #include <misc/cpp/imgui_stdlib.h>
 
 // std lib
-#include <algorithm>
-#include <stdio.h>
 #include <vector>
 
 namespace game2d {

@@ -1,7 +1,7 @@
 # this cmake lists compiles the game_defence with the engine
 
-cmake_minimum_required(VERSION 3.0.0)
-set(CMAKE_CXX_STANDARD 20)
+cmake_minimum_required(VERSION 3.5.0)
+set(CMAKE_CXX_STANDARD 23)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 
 if(EMSCRIPTEN)
@@ -25,12 +25,13 @@ if(EMSCRIPTEN)
 endif()
 
 if(CMAKE_CXX_COMPILER_ID MATCHES GNU)
-  add_definitions("-std=c++20")
   add_definitions("-Wall")
   add_definitions("-Wextra")
   add_definitions("-Wformat")
   add_definitions("-O2")
+  set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} /std:c++23")
 
+  # add_definitions("-std=c++23")
   # add_definitions("-Werror")
 endif()
 
@@ -40,7 +41,7 @@ if(CMAKE_CXX_COMPILER_ID MATCHES MSVC)
   # set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} /d2cgsummary") # debug compiler backend???
   # set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS}/WX /W3 /wd4275 /wd4251")
   set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} /MP /fp:fast")
-  set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} /std:c++20 /permissive-")
+  set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} /std:c++23 /permissive-")
 endif()
 
 project(game_defence VERSION 0.1.0)

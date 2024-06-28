@@ -6,6 +6,7 @@
 #include "lifecycle/components.hpp"
 #include "maths/grid.hpp"
 #include "maths/maths.hpp"
+#include "modules/actor_enemy/components.hpp"
 #include "modules/actor_player/components.hpp"
 #include "modules/actors/helpers.hpp"
 #include "modules/algorithm_astar_pathfinding/components.hpp"
@@ -42,8 +43,9 @@ update_actor_enemy_patrol_system(entt::registry& r, const glm::ivec2 mouse_pos, 
   grid.height = map.ymax;
   grid.grid = map.map;
 
-  const auto& view = r.view<PatrolComponent, const AABB, const VelocityComponent>(entt::exclude<WaitForInitComponent>);
-  for (const auto& [e, patrol_c, patrol_aabb, patrol_vel] : view.each()) {
+  const auto& view =
+    r.view<PatrolComponent, const EnemyComponent, const AABB, const VelocityComponent>(entt::exclude<WaitForInitComponent>);
+  for (const auto& [e, patrol_c, enemy_c, patrol_aabb, patrol_vel] : view.each()) {
     //
     const auto src = patrol_aabb.center;
     const auto src_idx = convert_position_to_index(map, src);

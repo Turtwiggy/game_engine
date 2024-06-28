@@ -21,9 +21,7 @@
 #include "modules/renderer/helpers.hpp"
 #include "modules/system_knockback/components.hpp"
 #include "modules/system_particles/components.hpp"
-#include "modules/system_sprint/components.hpp"
 #include "modules/system_turnbased/components.hpp"
-#include "modules/system_turnbased_enemy/components.hpp"
 #include "modules/ui_colours/helpers.hpp"
 #include "modules/ux_hoverable/components.hpp"
 #include "physics/components.hpp"
@@ -34,6 +32,7 @@
 
 #include "magic_enum.hpp"
 
+#include <print>
 #include <string>
 
 namespace game2d {
@@ -267,10 +266,10 @@ create_gameplay(entt::registry& r, const EntityType& type)
       // r.emplace<HasTargetPositionComponent>(e);
       // r.emplace<SetVelocityToTargetComponent>(e);
 
-      r.emplace<SprintComponent>(e);
+      // r.emplace<SprintComponent>(e);
       r.emplace<HealthComponent>(e, 200, 200);
-      // r.emplace<InventoryLimit>(e);
       r.emplace<HoverableComponent>(e);
+      r.emplace<PatrolComponent>(e);
       // r.emplace<CircleComponent>(e);
       // r.emplace<InfiniteLivesComponent>(e);
       // r.emplace<GeneratePickupZoneComponent>(e);
@@ -551,7 +550,7 @@ create_gameplay(entt::registry& r, const EntityType& type)
     }
 
     default: {
-      std::cout << "warning: no gameplay implemented for: " << type_name << std::endl;
+      std::print("warning: no gameplay implemented for: {}\n", type_name);
     }
   } // end switch
 

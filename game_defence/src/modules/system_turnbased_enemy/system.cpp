@@ -20,7 +20,7 @@
 
 #include <algorithm>
 
-#include "imgui.h"
+// #include "imgui.h"
 
 namespace game2d {
 
@@ -88,20 +88,20 @@ update_turnbased_enemy_system(entt::registry& r)
   if (state.team != AvailableTeams::enemy)
     return; // only process system if enemy turn
 
-  ImGui::Begin("Debug__TurnbasedEnemySystem");
+  // ImGui::Begin("Debug__TurnbasedEnemySystem");
   const bool one_at_a_time = false;
   bool all_enemies_fully_done = true;
 
   for (const auto& [e, e_c] : r.view<EnemyComponent>().each()) {
-    ImGui::PushID(static_cast<uint32_t>(e));
+    // ImGui::PushID(static_cast<uint32_t>(e));
 
     auto& turn_state = r.get_or_emplace<TurnState>(e);
     bool has_moved = turn_state.completed_move;
     bool has_shot = turn_state.completed_shot;
 
-    ImGui::Separator();
-    ImGui::Text("has_moved %i", has_moved);
-    ImGui::Text("has_shot: %i", has_shot);
+    // ImGui::Separator();
+    // ImGui::Text("has_moved %i", has_moved);
+    // ImGui::Text("has_shot: %i", has_shot);
     // if (ImGui::Button("Do Move"))
     //   turn_state.do_move = true;
     // if (ImGui::Button("Do Shoot"))
@@ -169,11 +169,11 @@ update_turnbased_enemy_system(entt::registry& r)
     all_enemies_fully_done &= has_moved;
     all_enemies_fully_done &= has_shot;
 
-    ImGui::PopID();
+    // ImGui::PopID();
     if (one_at_a_time && (!has_moved || !has_shot))
       break;
   }
-  ImGui::End();
+  // ImGui::End();
 
   // end the enemy turn
   if (all_enemies_fully_done)

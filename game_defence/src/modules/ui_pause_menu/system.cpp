@@ -3,11 +3,17 @@
 #include "entt/helpers.hpp"
 #include "events/helpers/keyboard.hpp"
 #include "game_state.hpp"
+#include "imgui/helpers.hpp"
 #include "modules/entt/serialize.hpp"
 #include "modules/scene/components.hpp"
 #include "modules/scene/helpers.hpp"
 
 #include <imgui.h>
+
+#include <algorithm>
+#include <iterator>
+#include <print>
+#include <vector>
 
 void
 game2d::update_ui_pause_menu_system(engine::SINGLETON_Application& app, entt::registry& r)
@@ -51,7 +57,7 @@ game2d::update_ui_pause_menu_system(engine::SINGLETON_Application& app, entt::re
     // ImGui::SetNextWindowSize(ImVec2{ 300, 350 });
 
     ImGui::SetNextWindowSize({ 300, 300 });
-    ImGui::Begin("Pause Menu", &open, flags);
+    ImGui::Begin("Paused", &open, flags);
 
     ImGui::Text("Menu FPS: %0.2f", ImGui::GetIO().Framerate);
 
@@ -70,7 +76,7 @@ game2d::update_ui_pause_menu_system(engine::SINGLETON_Application& app, entt::re
     if (ImGui::Checkbox("VSync", &vsync))
       app.window.set_vsync_opengl(vsync);
 
-    static bool limit_fps = app.vsync;
+    static bool limit_fps = app.limit_fps;
     if (ImGui::Checkbox("Limit FPS", &limit_fps))
       app.limit_fps = limit_fps;
 
@@ -78,24 +84,48 @@ game2d::update_ui_pause_menu_system(engine::SINGLETON_Application& app, entt::re
     if (ImGui::InputInt("Target FPS", &i0))
       app.fps_limit = static_cast<float>(i0);
 
-    const char* items[] = { "1600x900", "1920x1080", "2560x1440", "3840x2160" };
-    static int item_current = 0;
-    if (ImGui::Combo("##resolutions", &item_current, items, IM_ARRAYSIZE(items))) {
-      if (item_current == 0)
-        app.window.set_size({ 1600, 900 });
-      if (item_current == 1)
-        app.window.set_size({ 1920, 1080 });
-      if (item_current == 2)
-        app.window.set_size({ 2560, 1440 });
-      if (item_current == 3)
-        app.window.set_size({ 3840, 2160 });
+    struct Resolution
+    {
+      int x = 1920;
+      int y = 1080;
+    };
+
+    static std::vector<Resolution> resolutions{
+      { 1280, 720 },
+      { 1600, 900 },
+      { 1920, 1080 },
+    };
+    static std::vector<std::string> resolutions_as_str;
+    static bool first_time = true;
+    if (first_time) {
+
+      // convert resolutions to string representation
+      const auto convert_resolution_to_string = [](const Resolution& res) -> std::string {
+        return { std::to_string(res.x) + "x" + std::to_string(res.y) };
+      };
+      std::transform(
+        resolutions.begin(), resolutions.end(), std::back_inserter(resolutions_as_str), convert_resolution_to_string);
+
+      first_time = false;
+    }
+
+    static WomboComboIn wc_in(resolutions_as_str);
+    static WomboComboOut wc_out;
+    wc_out = draw_wombo_combo(wc_in);
+
+    if (wc_in.current_index != wc_out.selected) {
+      std::print("changing resolution\n");
+      const auto idx = wc_out.selected;
+      app.window.set_size({ resolutions[idx].x, resolutions[idx].y });
+
+      wc_in.current_index = wc_out.selected;
     }
 
     if (ImGui::Button("Back to Menu"))
       move_to_scene_start(r, Scene::menu);
 
-    auto& scene = get_first_component<SINGLETON_CurrentScene>(r);
-    bool is_saveable_scene = scene.s == Scene::overworld;
+    const auto& scene = get_first_component<SINGLETON_CurrentScene>(r);
+    const bool is_saveable_scene = scene.s == Scene::overworld;
     if (is_saveable_scene && ImGui::Button("Save & Back to Menu")) {
       save(r, "save-overworld.json");
       move_to_scene_start(r, Scene::menu);

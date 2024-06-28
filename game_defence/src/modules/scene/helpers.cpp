@@ -226,10 +226,10 @@ move_to_scene_start(entt::registry& r, const Scene s, const bool load_saved)
     }
   }
 
-  // const auto get_seed_from_systemtime = []() -> time_t {
-  //   auto now = std::chrono::system_clock::now();
-  //   return std::chrono::system_clock::to_time_t(now);
-  // };
+  const auto get_seed_from_systemtime = []() -> time_t {
+    auto now = std::chrono::system_clock::now();
+    return std::chrono::system_clock::to_time_t(now);
+  };
 
   if (s == Scene::overworld) {
     destroy_first<OverworldToDungeonInfo>(r); // clear here if exists
@@ -263,16 +263,6 @@ move_to_scene_start(entt::registry& r, const Scene s, const bool load_saved)
       set_position(r, e, { map_width / 2, map_height / 2 }); // center
       r.get<TransformComponent>(e).position.z = -2;          // behind everything
     }
-
-    // create an empty sprite on the board sprite
-    // {
-    //   const auto e = create_gameplay(r, EntityType::empty_with_transform);
-    //   set_sprite(r, e, "EMPTY");
-    //   set_size(r, e, { map_width, map_height });
-    //   set_position(r, e, { map_width / 2, map_height / 2 }); // center
-    //   set_colour(r, e, engine::SRGBColour{ 0.3f, 0.3f, 0.3f, 0.1f });
-    //   r.get<TransformComponent>(e).position.z = -1; // behind everything
-    // }
 
     // Create 4 edges to the map
     bool create_edges = true;
@@ -308,9 +298,12 @@ move_to_scene_start(entt::registry& r, const Scene s, const bool load_saved)
     if (load_saved)
       load_if_exists(r, "save-overworld.json");
     else {
-      // const int seed = get_seed_from_systemtime();
+#if defined(_DEBUG)
       const int seed = 2;
-      static engine::RandomState rnd(seed); // TODO: BAD. FIX.
+#else
+      const int seed = get_seed_from_systemtime();
+#endif
+      static engine::RandomState rnd(seed);
 
       // spawn the player somewhere random on the map
       const int rnd_x = int(engine::rand_det_s(rnd.rng, map_c.tilesize, map_width - map_c.tilesize));
@@ -373,6 +366,12 @@ move_to_scene_start(entt::registry& r, const Scene s, const bool load_saved)
       info.patrol_that_you_hit.strength = 10;
       destroy_first_and_create<OverworldToDungeonInfo>(r, info);
     }
+
+    // TEMP: add info in the event console on how to play.
+    auto& evts = get_first_component<SINGLE_EventConsoleLogComponent>(r);
+    evts.events.push_back("Press 1 to select move action.");
+    evts.events.push_back("Press 2 to select shoot action.");
+    evts.events.push_back("Right click to perform action.");
 
     // create a cursor
     const auto cursor_e = create_gameplay(r, EntityType::cursor);

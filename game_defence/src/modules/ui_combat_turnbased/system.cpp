@@ -21,6 +21,7 @@
 #include "modules/scene/helpers.hpp"
 #include "modules/system_turnbased/components.hpp"
 #include "modules/system_turnbased_enemy/components.hpp"
+#include "modules/ui_event_console/components.hpp"
 #include "modules/ui_worldspace_text/components.hpp"
 #include "modules/ux_hoverable/components.hpp"
 #include "physics/components.hpp"
@@ -104,92 +105,82 @@ update_ui_combat_turnbased_system(entt::registry& r, const glm::ivec2& input_mou
   if (action == ActionMode::MOVE)
     mouse_pos += glm::ivec2{ map.tilesize / 2.0f, map.tilesize / 2.0f }; // center it
 
-  const auto gridpos = engine::grid::world_space_to_grid_space(input_mouse_pos, map.tilesize);
-  const auto grid_idx = engine::grid::grid_position_to_index(gridpos, map.xmax);
-
   // change cursor icon
   if (action == ActionMode::MOVE)
     change_cursor(r, CursorType::MOVE);
   if (action == ActionMode::ATTACK)
     change_cursor(r, CursorType::ATTACK);
 
-  auto& state = get_first_component<SINGLE_CombatState>(r);
-  if (state.team == AvailableTeams::neutral) {
-    const auto& viewport = ImGui::GetWindowViewport();
-    ImGui::SetNextWindowPos(viewport->GetCenter(), ImGuiCond_Always, ImVec2(0.5, 0.5));
-    ImGui::SetNextWindowSize(ImVec2{ 400, 200 });
+  // Show combat info menu
+  {
+    const auto& state = get_first_component<SINGLE_CombatState>(r);
+    if (state.team == AvailableTeams::neutral) {
+      const auto& viewport = ImGui::GetWindowViewport();
+      ImGui::SetNextWindowPos(viewport->GetCenter(), ImGuiCond_Always, ImVec2(0.5, 0.5));
+      ImGui::SetNextWindowSize(ImVec2{ 400, 200 });
 
-    ImGuiWindowFlags flags = 0;
-    flags |= ImGuiWindowFlags_NoFocusOnAppearing;
-    flags |= ImGuiWindowFlags_NoTitleBar;
-    flags |= ImGuiWindowFlags_NoCollapse;
-    flags |= ImGuiWindowFlags_NoResize;
-    flags |= ImGuiDockNodeFlags_NoResize;
-    flags |= ImGuiDockNodeFlags_PassthruCentralNode;
-    // flags |= ImGuiWindowFlags_NoBackground;
+      ImGuiWindowFlags flags = 0;
+      flags |= ImGuiWindowFlags_NoFocusOnAppearing;
+      flags |= ImGuiWindowFlags_NoTitleBar;
+      flags |= ImGuiWindowFlags_NoCollapse;
+      flags |= ImGuiWindowFlags_NoResize;
+      flags |= ImGuiDockNodeFlags_NoResize;
+      flags |= ImGuiDockNodeFlags_PassthruCentralNode;
+      // flags |= ImGuiWindowFlags_NoBackground;
 
-    ImGui::PushStyleVar(ImGuiStyleVar_SelectableTextAlign, { 0.5f, 0.5f });
-    ImGui::Begin("Begin Combat", NULL, flags);
-    {
-      ImGui::Text("- Press Q and E to swap between your units.");
-      ImGui::Text("- See action bar at bottom for actions.");
-      ImGui::Text("- Right click at location to execute action.");
-      ImGui::Separator();
-      ImGui::Text("- Defeat all enemies to win. Good Luck!");
+      ImGui::PushStyleVar(ImGuiStyleVar_SelectableTextAlign, { 0.5f, 0.5f });
+      ImGui::Begin("Begin Combat", NULL, flags);
+      {
+        // ImGui::Text("- Press Q and E to swap between your units.");
+        // ImGui::Text("- Press 1 for move action. Press 2 for shoot action.");
+        // ImGui::Text("- Right click at location to execute action.");
+        // ImGui::Separator();
+        // ImGui::Text("- Defeat all enemies to win. Good Luck!");
 
-      // Center button horizontally
-      // ImGuiStyle& style = ImGui::GetStyle();
+        // Center button horizontally
+        // ImGuiStyle& style = ImGui::GetStyle();
 
-      // calculate reqiured x-spacing
-      // float width = 0.0f;
-      // width += ImGui::CalcTextSize(label.c_str()).x;
-      // width += style.ItemSpacing.x;
+        // calculate reqiured x-spacing
+        // float width = 0.0f;
+        // width += ImGui::CalcTextSize(label.c_str()).x;
+        // width += style.ItemSpacing.x;
 
-      // AlignForWidth()
-      // const float alignment = 0.5f;
-      // const float avail = ImGui::GetContentRegionAvail().x;
-      // float off = (avail - width) * alignment;
-      // if (off > 0.0f)
-      //   ImGui::SetCursorPosX(ImGui::GetCursorPosX() + off);
+        // AlignForWidth()
+        // const float alignment = 0.5f;
+        // const float avail = ImGui::GetContentRegionAvail().x;
+        // float off = (avail - width) * alignment;
+        // if (off > 0.0f)
+        //   ImGui::SetCursorPosX(ImGui::GetCursorPosX() + off);
 
-      // Draw the button(s)
-      const ImVec2 button_size = ImGui::GetContentRegionAvail();
-      if (ImGui::Button("Begin Combat", button_size))
-        state.team = AvailableTeams::player;
+        // Draw the button(s)
+        const ImVec2 button_size = ImGui::GetContentRegionAvail();
+        if (ImGui::Button("Begin Combat", button_size)) {
+          auto& state = get_first_component<SINGLE_CombatState>(r);
+          state.team = AvailableTeams::player;
+        }
 
-      // HACK: hide this menu
-      // state.team = AvailableTeams::player;
+        // HACK: hide this menu
+        // state.team = AvailableTeams::player;
 
-      ImGui::End();
-
-      ImGui::PopStyleVar();
-      return; // must click begin!
-    }
-  }
-
-  ImGui::Begin("UI Combat");
-  ImGui::Text("MousePos: %i %i", input_mouse_pos.x, input_mouse_pos.y);
-  ImGui::Text("MousePos GridPos: %i %i", gridpos.x, gridpos.y);
-  ImGui::Text("MouseClampedPos: %i %i", mouse_pos.x, mouse_pos.y);
-  ImGui::Text("Mouse GridIndex: %i", grid_idx);
-  ImGui::Text("Action: %i", action);
-
-  // check if all enemies are ded.
-  std::map<AvailableTeams, int> team_count;
-  team_count[AvailableTeams::player] = 0; // force team to exist
-  team_count[AvailableTeams::enemy] = 0;  // force team to exist
-  for (const auto& [e, team_c] : r.view<TeamComponent>().each())
-    team_count[team_c.team] += 1; // count teams
-  if (team_count[AvailableTeams::enemy] == 0) {
-    const bool you_came_here_from_overworld = get_first<OverworldToDungeonInfo>(r) != entt::null;
-    if (you_came_here_from_overworld) {
-      if (ImGui::Button("You won! Back to overworld")) {
-        move_to_scene_start(r, Scene::overworld, true);
         ImGui::End();
-        return;
+
+        ImGui::PopStyleVar();
+        return; // must click begin!
       }
     }
   }
+
+#if defined(_DEBUG)
+  ImGui::Begin("UI Combat");
+  ImGui::Text("MousePos: %i %i", input_mouse_pos.x, input_mouse_pos.y);
+
+  const auto gridpos = engine::grid::world_space_to_grid_space(input_mouse_pos, map.tilesize);
+  ImGui::Text("MousePos GridPos: %i %i", gridpos.x, gridpos.y);
+  ImGui::Text("MouseClampedPos: %i %i", mouse_pos.x, mouse_pos.y);
+
+  const auto grid_idx = engine::grid::grid_position_to_index(gridpos, map.xmax);
+  ImGui::Text("Mouse GridIndex: %i", grid_idx);
+  ImGui::Text("Action: %i", action);
 
   // Hack: debug gridpos pathfinding
   {
@@ -201,6 +192,52 @@ update_ui_combat_turnbased_system(entt::registry& r, const glm::ivec2& input_mou
           ImGui::Text("Cost: %i", pfc->cost);
         else
           ImGui::Text("Entity without pathfinding component");
+      }
+    }
+  }
+
+  ImGui::End();
+#endif
+
+  // check if all enemies are ded.
+  std::map<AvailableTeams, int> team_count;
+  team_count[AvailableTeams::player] = 0; // force team to exist
+  team_count[AvailableTeams::enemy] = 0;  // force team to exist
+  for (const auto& [e, team_c] : r.view<TeamComponent>().each())
+    team_count[team_c.team] += 1; // count teams
+  if (team_count[AvailableTeams::enemy] == 0) {
+    const bool you_came_here_from_overworld = get_first<OverworldToDungeonInfo>(r) != entt::null;
+    if (you_came_here_from_overworld) {
+
+      // center this window
+      const auto& ri = get_first_component<SINGLETON_RendererInfo>(r);
+      const auto& viewport_pos = ImVec2(ri.viewport_pos.x, ri.viewport_pos.y);
+      const auto& viewport_size_half = ImVec2(ri.viewport_size_current.x * 0.5f, ri.viewport_size_current.y * 0.5f);
+      const auto pos = ImVec2(viewport_pos.x + viewport_size_half.x, viewport_pos.y + viewport_size_half.y);
+      ImGui::SetNextWindowPos(pos, ImGuiCond_Always, ImVec2(0.5f, 0.5f));
+      ImGui::SetNextWindowSizeConstraints(ImVec2(200, 200 * (9 / 16.0f)), ImVec2(200, 200 * (9 / 16.0f)));
+
+      ImGuiWindowFlags flags = 0;
+      // position and sizing
+      flags |= ImGuiWindowFlags_NoMove;
+      flags |= ImGuiWindowFlags_NoCollapse;
+      flags |= ImGuiWindowFlags_NoDocking;
+      flags |= ImGuiWindowFlags_NoResize;
+      flags |= ImGuiWindowFlags_NoFocusOnAppearing;
+      // visuals
+      flags |= ImGuiWindowFlags_NoTitleBar;
+      flags |= ImGuiWindowFlags_NoBackground;
+
+      ImGui::Begin("Back To Overworld", NULL, flags);
+      if (ImGui::Button("Spaceship clear. Back to overworld", ImVec2{ 200, 100 })) {
+
+        // add an event because fun
+        auto& evt = get_first_component<SINGLE_EventConsoleLogComponent>(r);
+        evt.events.push_back("Spaceship cleared.");
+
+        move_to_scene_start(r, Scene::overworld, true);
+        ImGui::End();
+        return;
       }
     }
   }
@@ -221,24 +258,29 @@ update_ui_combat_turnbased_system(entt::registry& r, const glm::ivec2& input_mou
     count++;
 
   // stop showing movement path
-  if (count == 0 || action != ActionMode::MOVE)
+  if (count == 0 || action != ActionMode::MOVE) {
+    auto& state = get_first_component<SINGLE_CombatState>(r);
     state.show_selected_player_path.update(r, 0);
-
-  // limit: must be interacting with 1 selected unit
-  if (count != 1) {
-    ImGui::End();
-    return;
-  }
-
-  // limit: must be player turn
-  if (state.team != AvailableTeams::player) {
-    ImGui::End();
-    return;
   }
 
   // set positon of cursor
   const auto& info = get_first_component<SINGLE_TurnBasedCombatInfo>(r);
   set_position(r, info.action_cursor, mouse_pos);
+
+  // move all guns to the mouse cursor
+  for (const auto& [e, selected_c, aabb_c] : selected_view.each()) {
+    auto& static_tgt = r.get_or_emplace<StaticTargetComponent>(e);
+    static_tgt.target = { mouse_pos.x, mouse_pos.y };
+  }
+
+  // limit: must be interacting with 1 selected unit
+  if (count != 1)
+    return;
+
+  // limit: must be player turn
+  auto& state = get_first_component<SINGLE_CombatState>(r);
+  if (state.team != AvailableTeams::player)
+    return;
 
   for (const auto& [e, selected_c, aabb] : selected_view.each()) {
 
@@ -263,17 +305,9 @@ update_ui_combat_turnbased_system(entt::registry& r, const glm::ivec2& input_mou
       }
     }
 
-    // aim gun
-    auto& static_tgt = r.get_or_emplace<StaticTargetComponent>(e);
-    static_tgt.target = { mouse_pos.x, mouse_pos.y };
-
     auto& turn_state = r.get_or_emplace<TurnState>(e);
     const bool has_moved = turn_state.completed_move;
     const bool has_shot = turn_state.completed_shot;
-
-    ImGui::Separator();
-    ImGui::Text("has_moved %i", has_moved);
-    ImGui::Text("has_shot: %i", has_shot);
 
     // already has a path that you've not yet arrived at
     bool do_move = !has_destination(r, e) || at_destination(r, e);

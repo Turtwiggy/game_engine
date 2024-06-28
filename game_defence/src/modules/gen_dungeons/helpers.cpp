@@ -375,7 +375,8 @@ instantiate_walls(entt::registry& r, std::vector<Line>& lines, const DungeonGene
     r.emplace<DefaultColour>(room_to_create, col);
 
     // add worldspace text for room to debug it
-    r.emplace<WorldspaceTextComponent>(room_to_create, std::to_string(room_count));
+    // TAG: ROOM_ID UI
+    // r.emplace<WorldspaceTextComponent>(room_to_create, std::to_string(room_count));
 
     room_count++;
   }

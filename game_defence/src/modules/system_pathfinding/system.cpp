@@ -8,8 +8,6 @@
 #include "modules/lerp_to_target/components.hpp"
 #include "physics/components.hpp"
 
-#include <imgui.h>
-
 #include <algorithm>
 #include <ranges>
 
@@ -32,24 +30,19 @@ update_pathfinding_system(entt::registry& r, const float& dt)
     map_ents.erase(first, last);
   }
 
-  // set target to next in generated path
-  ImGui::Begin("DebugPathfinding");
   const auto& pathfinding = r.view<const AABB, HasTargetPositionComponent, GeneratedPathComponent>();
   for (const auto& [e, aabb, target, path] : pathfinding.each()) {
-    ImGui::Text("Path Size: %i", path.path.size());
 
     const auto& cur = aabb.center;
     auto cur_gridpos = engine::grid::world_space_to_grid_space(glm::vec2(cur.x, cur.y), map.tilesize);
     cur_gridpos.x = glm::clamp(cur_gridpos.x, 0, map.xmax - 1);
     cur_gridpos.y = glm::clamp(cur_gridpos.y, 0, map.ymax - 1);
-    ImGui::Text("cur_gridpos: %i %i", cur_gridpos.x, cur_gridpos.y);
 
     // get target grid position at the time which the pathfinding was calculated
     const auto dst_static = path.dst_pos;
     glm::ivec2 dst_gridpos_static = engine::grid::world_space_to_grid_space(dst_static, map.tilesize);
     dst_gridpos_static.x = glm::clamp(dst_gridpos_static.x, 0, map.xmax - 1);
     dst_gridpos_static.y = glm::clamp(dst_gridpos_static.y, 0, map.ymax - 1);
-    ImGui::Text("dst_gridpos_static: %i %i", dst_gridpos_static.x, dst_gridpos_static.y);
 
     // try to get live target grid position
     // if no dst_ent is set, assume a static position
@@ -60,7 +53,6 @@ update_pathfinding_system(entt::registry& r, const float& dt)
       dst_gridpos_dynamic = engine::grid::world_space_to_grid_space(dst_worldpos_dynamic.value(), map.tilesize);
       dst_gridpos_dynamic.value().x = glm::clamp(dst_gridpos_dynamic.value().x, 0, map.xmax - 1);
       dst_gridpos_dynamic.value().y = glm::clamp(dst_gridpos_dynamic.value().y, 0, map.ymax - 1);
-      ImGui::Text("dst_gridpos: %i %i", dst_gridpos_dynamic.value().x, dst_gridpos_dynamic.value().y);
     }
 
     // if (path.aim_for_exact_position) {
@@ -71,8 +63,8 @@ update_pathfinding_system(entt::registry& r, const float& dt)
     //   ImGui::Text("dst_gridpos: %i %i", dst_gridpos_dynamic.value().x, dst_gridpos_dynamic.value().y);
     // }
 
-    if (dst_gridpos_dynamic.has_value() && dst_gridpos_static != dst_gridpos_dynamic.value())
-      ImGui::Text("Target has moved outside pathfinding??");
+    // if (dst_gridpos_dynamic.has_value() && dst_gridpos_static != dst_gridpos_dynamic.value())
+    //   ImGui::Text("Target has moved outside pathfinding??");
 
     // probably clicked either on invalid spot, or spot in same gridspace
     const bool in_same_gridspace = cur_gridpos == dst_gridpos_dynamic;
@@ -163,15 +155,7 @@ update_pathfinding_system(entt::registry& r, const float& dt)
 
       i++;
     }
-
-    // Debug path
-    if (target.position.has_value())
-      ImGui::Text("TargetPos: %i %i", target.position.value().x, target.position.value().y);
-    ImGui::Separator();
-    for (const auto& p : path.path)
-      ImGui::Text("Path %i %i", p.x, p.y);
   }
-  ImGui::End();
 }
 
 } // namespace game2d

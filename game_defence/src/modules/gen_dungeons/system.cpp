@@ -49,8 +49,13 @@ update_gen_dungeons_system(entt::registry& r, const glm::ivec2& mouse_pos)
   // if (get_key_down(input, SDL_SCANCODE_P))
   //   i++;
 
-  ImGui::Begin("DebugDungeonGen");
-  {
+  bool show_debug_dungeongen = false;
+#if defined(_DEBUG)
+  show_debug_dungeongen = true;
+#endif
+
+  if (show_debug_dungeongen) {
+    ImGui::Begin("DebugDungeonGen");
     // ImGui::Text("i: %i", i);
 
     std::vector<Room> rooms;
@@ -82,8 +87,8 @@ update_gen_dungeons_system(entt::registry& r, const glm::ivec2& mouse_pos)
 
       ImGui::Text("mouse: %i is_wall_or_floor: %i", mouse_idx, dungeon_results.wall_or_floors[mouse_idx]);
     }
+    ImGui::End();
   }
-  ImGui::End();
 
   // HACK: force regenerate dungeon
   // if (get_key_down(input, SDL_SCANCODE_I))

@@ -256,8 +256,9 @@ game2d::update_render_system(entt::registry& r, const float dt, const glm::vec2&
   static float exposure = 1.5f;
   static float brightness_threshold = 0.80f;
   static float blur_amount = 4;
-  ImGui::Begin("Debug__Bloom");
   const auto& input = get_first_component<SINGLETON_InputComponent>(r);
+#if defined(_EEBUG)
+  ImGui::Begin("Debug__Bloom");
   if (get_key_down(input, SDL_SCANCODE_P)) {
     do_bloom = !do_bloom;
     if (do_bloom)
@@ -271,6 +272,7 @@ game2d::update_render_system(entt::registry& r, const float dt, const glm::vec2&
   imgui_draw_float("blur_amount", blur_amount);
   blur_amount = glm::min(blur_amount, 30.0f); // dont crash pc pls
   ImGui::End();
+#endif
 
   // Camera
   const auto camera_e = game2d::get_first<OrthographicCamera>(r);

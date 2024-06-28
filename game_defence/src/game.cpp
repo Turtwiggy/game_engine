@@ -339,11 +339,16 @@ game2d::update(engine::SINGLETON_Application& app, entt::registry& r, const floa
       const float size_y = ImGui::CalcTextSize(example.c_str()).y / 2.0f;
 
       ImGuiWindowFlags flags = 0;
-      flags |= ImGuiWindowFlags_NoFocusOnAppearing;
+      // position and sizing
+      flags |= ImGuiWindowFlags_NoMove;
       flags |= ImGuiWindowFlags_NoCollapse;
+      flags |= ImGuiWindowFlags_NoDocking;
       flags |= ImGuiWindowFlags_NoResize;
+      flags |= ImGuiWindowFlags_NoFocusOnAppearing;
+      // visuals
       flags |= ImGuiWindowFlags_NoTitleBar;
-      flags |= ImGuiDockNodeFlags_NoResize;
+      flags |= ImGuiWindowFlags_NoBackground;
+
       ImGui::SetNextWindowPos({ 0, 0 }, ImGuiCond_Always, { 0, 0 });
       ImGui::SetNextWindowSize({ 100, size_y }, ImGuiCond_Always);
 
@@ -377,14 +382,16 @@ game2d::update(engine::SINGLETON_Application& app, entt::registry& r, const floa
     update_ui_gameover_system(r);
     update_ui_event_console_system(r);
 
+#if defined(_DEBUG)
     // todo: put in to a settings menu
-    static bool show_settings_ui = true;
+    static bool show_settings_ui = false;
     if (show_settings_ui) {
       update_ui_audio_system(r);
       update_ui_controller_system(r);
       update_ui_hierarchy_system(r);
       update_ui_collisions_system(r);
     }
+#endif
   }
 
   end_frame_render_system(r);

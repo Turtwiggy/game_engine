@@ -138,7 +138,8 @@ load(entt::registry& r, const std::string& path)
     }
 
     if (type.type == EntityType::actor_player) {
-      // ??
+      const PatrolComponent patrol = element[2].template get<PatrolComponent>();
+      r.emplace_or_replace<PatrolComponent>(e, patrol);
       r.emplace<CameraFollow>(e);
     }
   }
