@@ -2,25 +2,21 @@
 
 #include "components.hpp"
 
-#include "actors.hpp"
 #include "audio/components.hpp"
 #include "audio/helpers.hpp"
 #include "entt/helpers.hpp"
 #include "events/components.hpp"
 #include "io/settings.hpp"
-#include "modules/actor_player/components.hpp"
-#include "modules/animation/components.hpp"
 #include "modules/gen_dungeons/components.hpp"
 #include "modules/renderer/components.hpp"
 #include "modules/renderer/helpers.hpp"
 #include "modules/scene/components.hpp"
 #include "modules/scene/helpers.hpp"
-#include "modules/ux_hoverable_change_colour/components.hpp"
-#include "physics/components.hpp"
 
 #include <glm/glm.hpp>
 #include <imgui.h>
 
+#include <print>
 #include <string>
 
 namespace game2d {
@@ -169,7 +165,7 @@ update_ui_scene_main_menu(engine::SINGLETON_Application& app, entt::registry& r)
     toggle = toggle == 1 ? 0 : 1;
     toggle_changed = true;
 
-    std::cout << "toggle changed to: " << toggle << std::endl;
+    std::println("toggle changed to: {}", toggle);
     save_string(PLAYERPREF_MUTE, toggle == 1 ? "true"s : "false"s);
   }
 
@@ -177,7 +173,9 @@ update_ui_scene_main_menu(engine::SINGLETON_Application& app, entt::registry& r)
     offset = unmute_icon_offset;
     auto& audio = get_first_component<SINGLETON_AudioComponent>(r);
     audio.all_mute = false;
-    std::cout << "changed to unmute all" << std::endl;
+
+    std::println("changed to unmute all");
+
     // move_to_scene_start(r, Scene::menu);
     create_empty<AudioRequestPlayEvent>(r, AudioRequestPlayEvent{ "MENU_01" });
   }
@@ -186,7 +184,8 @@ update_ui_scene_main_menu(engine::SINGLETON_Application& app, entt::registry& r)
     auto& audio = get_first_component<SINGLETON_AudioComponent>(r);
     audio.all_mute = true;
     stop_all_audio(r);
-    std::cout << "muted all" << std::endl;
+
+    std::println("muted all");
   }
   toggle_changed = false;
 

@@ -20,7 +20,7 @@
 #include "imgui.h"
 
 #include <SDL_scancode.h>
-#include <iostream>
+#include <print>
 #include <vector>
 
 namespace game2d {
@@ -61,12 +61,12 @@ update_gen_dungeons_system(entt::registry& r, const glm::ivec2& mouse_pos)
     std::vector<Room> rooms;
     for (const auto& [e, room] : r.view<Room>().each())
       rooms.push_back(room);
-    ImGui::Text("Rooms: %i");
+    ImGui::Text("Rooms: %i", rooms.size());
 
     std::vector<Tunnel> tunnels;
     for (const auto& [e, t] : r.view<Tunnel>().each())
       tunnels.push_back(t);
-    ImGui::Text("Rooms: %i");
+    ImGui::Text("Tunnels: %i", tunnels.size());
 
     const auto grid_pos = engine::grid::world_space_to_grid_space(mouse_pos, map.tilesize);
     ImGui::Text("grid_pos: %i %i", grid_pos.x, grid_pos.y);
@@ -103,11 +103,11 @@ update_gen_dungeons_system(entt::registry& r, const glm::ivec2& mouse_pos)
 
   const auto& data_e = get_first<OverworldToDungeonInfo>(r);
   if (data_e == entt::null) {
-    std::cout << "not generating dungeon. OverworldToDungeonInfo not set." << std::endl;
+    std::println("not generating dungeon. OverworldToDungeonInfo not set.");
     return;
   }
   const auto& data = r.get<OverworldToDungeonInfo>(data_e);
-  std::cout << "generating dungeon... you hit a patrol! strength: " << data.patrol_that_you_hit.strength << std::endl;
+  std::println("generating dungeon... you hit a patrol! strength: {}", data.patrol_that_you_hit.strength);
 
   // todo: make strength impact the number of things spawned
   const int strength = data.patrol_that_you_hit.strength;
@@ -173,7 +173,7 @@ update_gen_dungeons_system(entt::registry& r, const glm::ivec2& mouse_pos)
   // }
 
   create_empty<DungeonGenerationResults>(r, result);
-  std::cout << "dungeon generated" << std::endl;
+  std::println("dungeon generated");
 }
 
 } // namespace game2d

@@ -145,7 +145,7 @@ update_weapon_shotgun_system(entt::registry& r, const uint64_t milliseconds_dt)
         if (i == 1) // right bullet
           angle_to_fire_at -= bullet_angle_radians;
         // i = 2 is handled as the forward bullet
-        // std::cout << "firing gun at angle(degrees): " << angle_to_fire_at * engine::Rad2Deg << std::endl;
+        // std::println("firing gun at angle(degrees): " << angle_to_fire_at * engine::Rad2Deg << std::endl;
         const auto new_dir = engine::angle_radians_to_direction(angle_to_fire_at);
 
         const auto req = create_gameplay(r, bullet_info.bullet_type);

@@ -7,7 +7,7 @@
 #include "lifecycle/components.hpp"
 
 #include <imgui.h>
-#include <iostream>
+#include <print>
 
 namespace game2d {
 

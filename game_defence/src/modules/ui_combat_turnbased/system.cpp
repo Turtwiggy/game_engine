@@ -333,8 +333,6 @@ update_ui_combat_turnbased_system(entt::registry& r, const glm::ivec2& input_mou
       }
     }
   }
-
-  ImGui::End();
 }
 
 } // namespace game2d

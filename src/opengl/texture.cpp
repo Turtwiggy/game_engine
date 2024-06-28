@@ -19,7 +19,7 @@ using namespace engine; // used for macro
 
 // std lib
 #include <algorithm>
-#include <iostream>
+#include <print>
 #include <string>
 #include <utility>
 
@@ -48,8 +48,7 @@ load_texture_srgb(const int tex_unit, const std::string& path)
 
   // Check Stb texture loaded correctly
   if (!data) {
-    std::cout << "(error) failed to load texture:: " << path << "\n";
-    std::cerr << stbi_failure_reason() << "\n";
+    std::println("(error) failed to load texture: {}\n reason: {}", path, stbi_failure_reason());
     stbi_image_free(data);
     exit(1); // if a texture fails to load, explode!
   }
@@ -186,7 +185,7 @@ void
 engine::update_bound_texture_size(const glm::ivec2 size)
 {
   if (size.x <= 0 || size.y <= 0) {
-    std::cerr << "(update_bound_texture_size) ERROR: Invalid resize for texture\n";
+    std::println("(update_bound_texture_size) ERROR: Invalid resize for texture");
     return;
   }
   glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, size.x, size.y, 0, GL_RGB, GL_UNSIGNED_BYTE, NULL);
@@ -243,7 +242,7 @@ engine::new_texture_to_fbo(const int tex_unit, const glm::ivec2& size, const int
   delete[] attachments;
 
   if (glCheckFramebufferStatus(GL_FRAMEBUFFER) != GL_FRAMEBUFFER_COMPLETE) {
-    std::cerr << "(FBO: main_scene) ERROR: Framebuffer not complete!" << std::endl;
+    std::println("(FBO: main_scene) ERROR: Framebuffer not complete!");
     CHECK_OPENGL_ERROR(2);
     exit(1);
   }

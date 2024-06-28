@@ -3,7 +3,7 @@
 // other library headers
 #include <GL/glew.h>
 
-#include <stdio.h>
+#include <print>
 
 namespace engine {
 
@@ -14,10 +14,10 @@ next_power_of_two(unsigned int x);
 const char*
 gl_error_to_string(GLenum err);
 
-#define CHECK_OPENGL_ERROR(x)                                                                                          \
-  GLenum err_##x = glGetError();                                                                                       \
-  if (GL_NO_ERROR != err_##x) {                                                                                        \
-    printf("\n ~~ ERROR ~~ %i: %s \n", x, gl_error_to_string(err_##x));                                                \
+#define CHECK_OPENGL_ERROR(x)                                                                                               \
+  GLenum err_##x = glGetError();                                                                                            \
+  if (GL_NO_ERROR != err_##x) {                                                                                             \
+    std::println("~~ ERROR ~~ {}: {}", x, gl_error_to_string(err_##x));                                                     \
   }
 
 void

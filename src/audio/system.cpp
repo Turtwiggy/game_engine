@@ -8,8 +8,8 @@
 #include <entt/entt.hpp>
 #include <imgui.h>
 
-#include <iostream>
 #include <map>
+#include <print>
 #include <string>
 #include <vector>
 
@@ -69,8 +69,7 @@ update_audio_system(entt::registry& r)
     const auto& request = r.get<AudioRequestPlayEvent>(entity);
 
     if (free_audio_sources.size() == 0) {
-      std::cout << "no free audio sources!"
-                << "missed request for: " << tag << std::endl;
+      std::println("No free audio sources! Missed request for: {}", tag);
       continue;
     }
 

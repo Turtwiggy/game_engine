@@ -120,22 +120,22 @@ target_link_libraries(game_defence PRIVATE glm::glm)
 target_link_libraries(game_defence PRIVATE nlohmann_json::nlohmann_json)
 
 IF(${CMAKE_SYSTEM_NAME} STREQUAL "Windows")
+  # rename executable
+  set_target_properties(${PROJECT_NAME} PROPERTIES OUTPUT_NAME "SolarWar")
+
   # Only do this for debug builds,
   # as release builds should copy the folder over (not symlink)
   IF(CMAKE_BUILD_TYPE MATCHES Debug)
-    # create symlink assets for build
-    set(src ${CMAKE_SOURCE_DIR}/game_defence/assets)
-    set(dst ${CMAKE_CURRENT_BINARY_DIR}/assets)
-    add_custom_command(
-      TARGET ${PROJECT_NAME} PRE_BUILD
-      COMMAND ${CMAKE_COMMAND} -E create_symlink ${src} ${dst}
-      DEPENDS ${dst}
-      COMMENT "symbolic link resources folder from ${src} => ${dst}"
-    )
+    # # create symlink assets for build
+    # set(src ${CMAKE_SOURCE_DIR}/game_defence/assets)
+    # set(dst ${CMAKE_CURRENT_BINARY_DIR}/assets)
+    # add_custom_command(
+    # TARGET ${PROJECT_NAME} PRE_BUILD
+    # COMMAND ${CMAKE_COMMAND} -E create_symlink ${src} ${dst}
+    # DEPENDS ${dst}
+    # COMMENT "symbolic link resources folder from ${src} => ${dst}"
+    # )
   endif()
-
-  # rename executable
-  set_target_properties(${PROJECT_NAME} PROPERTIES OUTPUT_NAME "SolarWar")
 endif()
 
 IF(EMSCRIPTEN)

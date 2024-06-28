@@ -14,8 +14,9 @@
 #include <SDL2/SDL_syswm.h>
 
 // c++ standard library headers
-#include <iostream>
+#include <print>
 #include <string>
+
 #if defined(SDL_VIDEO_DRIVER_WINDOWS)
 #include "psapi.h"
 #include "windows.h"
@@ -31,11 +32,9 @@ GameWindow::GameWindow(const std::string& title, int width, int height, DisplayM
   SDL_VERSION(&compiledVersion);
   SDL_GetVersion(&linkedVersion);
 
-  std::cout << "Initializing SDL...\n";
-  std::cout << "SDL Version/Compiled " << unsigned(compiledVersion.major) << "." << unsigned(compiledVersion.minor) << "."
-            << unsigned(compiledVersion.patch) << "\n";
-  std::cout << "SDL Version/Linked " << unsigned(linkedVersion.major) << "." << unsigned(linkedVersion.minor) << "."
-            << unsigned(linkedVersion.patch) << "\n";
+  std::println("Initializing SDL...");
+  std::println("SDL Version/Compiled {}.{}.{}", compiledVersion.major, compiledVersion.major, compiledVersion.patch);
+  std::println("SDL Version/Linked {}.{}.{}", linkedVersion.major, linkedVersion.major, linkedVersion.patch);
 
   // Initialize SDL -----------------------
 
@@ -43,19 +42,19 @@ GameWindow::GameWindow(const std::string& title, int width, int height, DisplayM
     SDL_SetMainReady();
 
     if (SDL_Init(0) != 0)
-      std::cout << "could not initialize SDL: " << SDL_GetError();
+      std::println("could not initialize SDL: ", SDL_GetError());
 
     if (SDL_InitSubSystem(SDL_INIT_AUDIO) != 0)
-      std::cout << "Could not initialize SDL Audio Subsystem:" << SDL_GetError() << "\n";
+      std::println("Could not initialize SDL Audio Subsystem: ", SDL_GetError());
 
     if (SDL_InitSubSystem(SDL_INIT_VIDEO) != 0)
-      std::cout << "Could not initialize SDL Video Subsystem:" << SDL_GetError() << "\n";
+      std::println("Could not initialize SDL Video Subsystem: ", SDL_GetError());
 
     if (SDL_InitSubSystem(SDL_INIT_TIMER) != 0)
-      std::cout << "Could not initialize SDL Timer Subsystem:" << SDL_GetError() << "\n";
+      std::println("Could not initialize SDL Timer Subsystem: ", SDL_GetError());
 
     if (SDL_InitSubSystem(SDL_INIT_JOYSTICK) != 0)
-      std::cout << "Could not initialize SDL JoyStick Subsystem:" << SDL_GetError() << "\n";
+      std::println("Could not initialize SDL JoyStick Subsystem: ", SDL_GetError());
   }
 
   int flags = SDL_WINDOW_OPENGL | SDL_WINDOW_INPUT_FOCUS | SDL_WINDOW_ALLOW_HIGHDPI;
@@ -126,20 +125,21 @@ GameWindow::GameWindow(const std::string& title, int width, int height, DisplayM
 
   SDL_Window* window = SDL_CreateWindow(title.c_str(), x, y, width, height, flags);
   if (window == nullptr)
-    std::cerr << "Failed to create SDL2 window: " << SDL_GetError() << "\n";
+    std::println("Failed to create SDL2 window: {}", SDL_GetError());
 
   gl_context = SDL_GL_CreateContext(window);
   SDL_GL_MakeCurrent(window, gl_context);
 
   if (gl_context == NULL) {
-    printf("OpenGL context could not be created! SDL Error: %s\n", SDL_GetError());
+    std::println("OpenGL context could not be created! SDL Error: {}", SDL_GetError());
   } else {
 #if !defined(__EMSCRIPTEN__)
     // Initialize GLEW
     glewExperimental = GL_TRUE;
     GLenum glewError = glewInit();
     if (glewError != GLEW_OK) {
-      printf("Error initializing GLEW! %s\n", glewGetErrorString(glewError));
+      const GLubyte* err = glewGetErrorString(glewError);
+      std::println("Error initializing GLEW! {}", reinterpret_cast<const char*>(err));
     }
 #endif
   }
@@ -172,7 +172,7 @@ GameWindow::get_native_handles(void*& native_window) const
   SDL_SysWMinfo wmi;
   SDL_VERSION(&wmi.version);
   if (!SDL_GetWindowWMInfo(this->get_handle(), &wmi)) {
-    std::cerr << "Failed getting native window handles: : " << std::string(SDL_GetError()) << "\n";
+    std::println("Failed getting native window handles: {}", SDL_GetError());
     exit(0);
   }
 
@@ -190,7 +190,7 @@ GameWindow::get_native_handles(void*& native_window) const
 #endif // defined(SDL_VIDEO_DRIVER_COCOA)
 
   {
-    std::cerr << "Unsupported platform: " << std::to_string(wmi.subsystem) << "\n";
+    std::println("Unsupported platform: {}", std::to_string(wmi.subsystem));
     exit(0);
   }
 };
@@ -352,7 +352,7 @@ GameWindow::toggle_mouse_capture()
     set_mouse_captured(false);
     new_grab = false;
   }
-  printf("(App) Mouse grabbed? : %d \n", new_grab);
+  std::println("(App) Mouse grabbed? : {}", new_grab);
 }
 
 glm::ivec2

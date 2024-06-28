@@ -8,9 +8,10 @@
 #include "modules/renderer/components.hpp"
 
 #include <SDL2/SDL_gamecontroller.h>
-#include <algorithm>
 #include <imgui.h>
-#include <iostream>
+
+#include <algorithm>
+#include <print>
 
 namespace game2d {
 
@@ -38,7 +39,7 @@ update_ui_controller_system(entt::registry& r)
 
     std::string label = std::string("remove-controller##") + std::to_string(i);
     if (ImGui::Button(label.c_str())) {
-      std::cout << "removing controller...\n";
+      std::println("removing controller...");
       SDL_GameControllerClose(c);
       auto it = std::find(input.controllers.begin(), input.controllers.end(), c);
       input.controllers.erase(it);

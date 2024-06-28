@@ -1,7 +1,7 @@
 #include "openal.hpp"
 
 // c++ lib headers
-#include <iostream>
+#include <print>
 
 namespace game2d {
 
@@ -10,7 +10,7 @@ list_devices(const ALCchar* devices)
 {
   ALboolean enumeration = alcIsExtensionPresent(NULL, "ALC_ENUMERATION_EXT");
   if (enumeration == AL_FALSE) {
-    fprintf(stdout, "Audio device enumeration not supported");
+    std::println("Audio device enumeration not supported");
     return {};
   }
 
@@ -48,18 +48,19 @@ audio::load_sound(const std::string& filename)
   Uint32 wav_length;
   Uint8* wav_buffer;
   if (SDL_LoadWAV(filename.c_str(), &wav_spec, &wav_buffer, &wav_length) == NULL) {
-    fprintf(stderr, "Could not open .wav: %s\n", SDL_GetError());
+    std::println("Could not open .wav: {}", SDL_GetError());
+    exit(1); // if fail to load audio, explode!
   }
-  std::cout << "(Audio) Loaded Sound:" << filename << "\n";
+  std::println("(Audio) Loaded sound: {}", filename);
 
   const int bits = SDL_AUDIO_BITSIZE(wav_spec.format);
   const int channels = wav_spec.channels;
 
-  // std::cout << "bits: " << bits << " ";
-  // std::cout << "freq: " << wav_spec.freq << " ";
-  // std::cout << "chan: " << channels << " ";
-  // std::cout << "format: " << wav_spec.format << " ";
-  // std::cout << "samples: " << wav_spec.samples << "\n";
+  // std::println("bits: " << bits << " ";
+  // std::println("freq: " << wav_spec.freq << " ";
+  // std::println("chan: " << channels << " ";
+  // std::println("format: " << wav_spec.format << " ";
+  // std::println("samples: " << wav_spec.samples << "\n";
 
   ALuint buffer;
   alGenBuffers(1, &buffer);
@@ -85,13 +86,13 @@ audio::load_sound(const std::string& filename)
   // Check if an error occured, and clean up if so.
   ALenum err = alGetError();
   if (err != AL_NO_ERROR) {
-    std::cout << "OpenAL Error: " << alGetString(err) << "\n";
+    std::println("OpenAL Error: {}", alGetString(err));
     if (buffer && alIsBuffer(buffer))
       alDeleteBuffers(1, &buffer);
     return 0;
   }
 
-  std::cout << "(Audio) Successfully config Sound:" << filename << "\n";
+  std::println("(Audio) Successfully config sound: {}", filename);
   return buffer;
 };
 

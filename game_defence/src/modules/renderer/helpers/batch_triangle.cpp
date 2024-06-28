@@ -8,7 +8,7 @@
 // other project headers
 #include <GL/glew.h>
 #include <glm/gtc/matrix_transform.hpp>
-#include <iostream>
+#include <print>
 
 namespace engine {
 

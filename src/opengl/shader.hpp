@@ -4,7 +4,6 @@
 #include <glm/glm.hpp>
 
 // c++ standard library headers
-#include <iostream>
 #include <span>
 #include <string>
 

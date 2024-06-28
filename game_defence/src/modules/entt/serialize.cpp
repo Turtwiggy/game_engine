@@ -9,7 +9,7 @@
 #include "modules/renderer/components.hpp"
 
 #include <fstream>
-#include <iostream>
+#include <print>
 #include <sstream>
 #include <string>
 
@@ -48,7 +48,7 @@ namespace game2d {
 void
 save(const entt::registry& r, const std::string& path)
 {
-  std::cout << "saving... " << path << std::endl;
+  std::println("saving... {}", path);
 
   // limit snapshots to actors
   const auto v =
@@ -102,13 +102,13 @@ save(const entt::registry& r, const std::string& path)
   std::ofstream fout(path);
   fout << data;
 
-  std::cout << "saved..." << std::endl;
+  std::println("saved...");
 };
 
 void
 load(entt::registry& r, const std::string& path)
 {
-  std::cout << "loading..." << std::endl;
+  std::println("loading...");
 
   // load from disk
   std::ifstream t(path);
@@ -144,7 +144,7 @@ load(entt::registry& r, const std::string& path)
     }
   }
 
-  std::cout << "loaded..." << std::endl;
+  std::println("loaded...");
 };
 
 void
@@ -154,7 +154,7 @@ load_if_exists(entt::registry& registry, const std::string& path)
   if (file)
     load(registry, path);
   else
-    std::cerr << "(error) file did not exist: " << path << std::endl;
+    std::println("error, file did not exist: {}", path);
 };
 
 } // namespace game2d

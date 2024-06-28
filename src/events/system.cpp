@@ -11,7 +11,7 @@
 #include <SDL2/SDL_events.h>
 #include <imgui.h>
 
-#include <iostream>
+#include <print>
 #include <vector>
 
 void
@@ -80,34 +80,35 @@ game2d::update_input_system(engine::SINGLETON_Application& app, entt::registry& 
       if (e.type == SDL_JOYHATMOTION) {
         //   const int device = static_cast<int>(evt.jhat.which);
         //   const int value = static_cast<int>(evt.jhat.value);
-        //   // value may be one of the following:
-        //   // SDL_HAT_LEFTUP
-        //   // SDL_HAT_UP
-        //   // SDL_HAT_RIGHTUP
-        //   // SDL_HAT_LEFT
-        //   // SDL_HAT_CENTERED
-        //   // SDL_HAT_RIGHT
-        //   // SDL_HAT_LEFTDOWN
-        //   // SDL_HAT_DOWN
-        //   // SDL_HAT_RIGHTDOWN
-        std::cout << "TODO: process joyhat buttonpress" << std::endl;
+        // value may be one of the following:
+        // SDL_HAT_LEFTUP
+        // SDL_HAT_UP
+        // SDL_HAT_RIGHTUP
+        // SDL_HAT_LEFT
+        // SDL_HAT_CENTERED
+        // SDL_HAT_RIGHT
+        // SDL_HAT_LEFTDOWN
+        // SDL_HAT_DOWN
+        // SDL_HAT_RIGHTDOWN
+
+        std::println("TODO: process joyhat button press");
       }
 
       if (e.type == SDL_JOYDEVICEADDED) {
-        std::cout << "controller added" << std::endl;
+        std::println("controller added");
         process_controller_added(input);
       }
       if (e.type == SDL_JOYDEVICEREMOVED) {
-        std::cout << "controller removed" << std::endl;
+        std::println("controller removed");
         process_controller_removed(input);
       }
 
       // if (e.type == SDL_AUDIODEVICEADDED) {
-      //   // std::cout << "audio added" << std::endl;
+      //   // std::println("audio added" << std::endl;
       //   process_audio_added(r);
       // }
       // if (e.type == SDL_AUDIODEVICEREMOVED) {
-      //   // std::cout << "audio removed" << std::endl;
+      //   // std::println("audio removed" << std::endl;
       //   process_audio_removed(r);
       // }
     };

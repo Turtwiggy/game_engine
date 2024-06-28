@@ -4,6 +4,7 @@
 #include "entt/helpers.hpp"
 
 #include <algorithm>
+#include <print>
 
 namespace game2d {
 
@@ -41,10 +42,7 @@ close_audio(entt::registry& r)
 void
 open_audio_new_device(entt::registry& r, const std::optional<std::string>& name)
 {
-  printf("Opening audio....");
-  printf("OpenAL version: %s\n", alGetString(AL_VERSION));
-  printf("OpenAL vendor: %s\n", alGetString(AL_VENDOR));
-  printf("OpenAL renderer: %s\n", alGetString(AL_RENDERER));
+  std::println("Opening audio....");
 
   // init audio
   auto& audio = get_first_component<SINGLETON_AudioComponent>(r);
@@ -62,13 +60,20 @@ open_audio_new_device(entt::registry& r, const std::optional<std::string>& name)
 
   if (context == 0 || alcMakeContextCurrent(context) == ALC_FALSE) {
     if (context != 0) {
-      fprintf(stdout, "destroyed context!\n");
+      std::println("(Audio) destroyed context");
       alcDestroyContext(context);
     }
     alcCloseDevice(device);
-    fprintf(stderr, "Audio could not set a context!\n");
+    std::println("(Audio) could not set a context");
     return;
   }
+
+  const ALchar* openal_ver = alGetString(AL_VERSION);
+  const ALchar* openal_ven = alGetString(AL_VENDOR);
+  const ALchar* openal_ren = alGetString(AL_RENDERER);
+  std::println("OpenAL version: {}", reinterpret_cast<const char*>(openal_ver));
+  std::println("OpenAL vendor:  {}", reinterpret_cast<const char*>(openal_ven));
+  std::println("OpenAL renderer:{}", reinterpret_cast<const char*>(openal_ren));
 
   // create buffers
   for (Sound& sound : audio.sounds) {

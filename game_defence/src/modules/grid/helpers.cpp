@@ -7,7 +7,7 @@
 #include "modules/algorithm_astar_pathfinding/helpers.hpp"
 #include "modules/system_turnbased_enemy/components.hpp"
 
-#include <iostream>
+#include <print>
 
 namespace game2d {
 
@@ -102,7 +102,7 @@ get_lowest_cost_neighbour(entt::registry& r,
     return idx;
   }
 
-  std::cerr << "ERROR: all neighbours of desired cell have cost -1 or invalid" << std::endl;
+  std::println("ERROR: all neighbours of desired cell have cost -1 or invalid");
   return idx_to_cost[0].first;
 };
 

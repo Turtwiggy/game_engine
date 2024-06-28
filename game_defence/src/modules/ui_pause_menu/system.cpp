@@ -114,7 +114,7 @@ game2d::update_ui_pause_menu_system(engine::SINGLETON_Application& app, entt::re
     wc_out = draw_wombo_combo(wc_in);
 
     if (wc_in.current_index != wc_out.selected) {
-      std::print("changing resolution\n");
+      std::println("changing resolution");
       const auto idx = wc_out.selected;
       app.window.set_size({ resolutions[idx].x, resolutions[idx].y });
 

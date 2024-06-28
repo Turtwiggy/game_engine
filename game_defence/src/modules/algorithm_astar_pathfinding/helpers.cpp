@@ -11,6 +11,7 @@
 #include "sprites/helpers.hpp"
 
 #include <map>
+#include <print>
 
 namespace game2d {
 
@@ -37,7 +38,7 @@ generate_map_view(entt::registry& r, const GridComponent& grid)
     result.push_back(cell);
   }
 
-  // std::cout << "map size: " << result.size() << std::endl;
+  // std::println("map size: " << result.size() << std::endl;
   return result;
 }
 
@@ -55,7 +56,7 @@ reconstruct_path(std::map<vec2i, vec2i> came_from, vec2i from, vec2i to)
     current = came_from[current];
 
     if (equal<vec2i>(copy, current)) {
-      fprintf(stderr, "(error) pathfinding hit a loop.");
+      std::println("(error) pathfinding hit a loop.");
       break;
     }
   }

@@ -20,7 +20,7 @@
 #include "renderer/transform.hpp"
 
 #include <algorithm>
-#include <iostream>
+#include <print>
 #include <vector>
 
 namespace game2d {
@@ -105,7 +105,7 @@ generate_rooms(entt::registry& r, const DungeonGenerationCriteria& data, engine:
       continue;
     const auto& w = gen_room_width;
     const auto& h = gen_room_height;
-    std::cout << "gen room. size: " << w << ", " << h << " at " << room.tl.x << ", " << room.tl.y << std::endl;
+    std::println("gen room. size: {}, {} at {}, {}", w, h, room.tl.x, room.tl.y);
 
     // update_wall_of_floors_bitmap
     auto create_room = [](const Room& room, std::vector<int>& wall_or_floors, const int xmax) {
@@ -322,13 +322,13 @@ instantiate_walls(entt::registry& r, std::vector<Line>& lines, const DungeonGene
           new_line_b.p1 = line_to_split.p1;
 
           if (new_line_a.p0 == new_line_a.p1)
-            std::cout << "Weird collision. Debug this." << std::endl;
+            std::println("(warning: map gen). Weird collision. Debug this.");
           if (new_line_b.p0 == new_line_b.p1)
-            std::cout << "Weird collision. Debug this." << std::endl;
+            std::println("(warning: map gen). Weird collision. Debug this.");
           if (new_line_a.p0.x != new_line_a.p1.x && new_line_a.p0.y != new_line_a.p1.y)
-            std::cout << "Diagonal line. Debug this." << std::endl;
+            std::println("(warning: map gen). Diagonal line. Debug this.");
           if (new_line_b.p0.x != new_line_b.p1.x && new_line_b.p0.y != new_line_b.p1.y)
-            std::cout << "Diagonal line. Debug this." << std::endl;
+            std::println("(warning: map gen). Diagonal line. Debug this.");
 
           // Adjust the new two new lines so that they're half a grid apart
           if (is_horizontal(line_to_split)) {
@@ -359,8 +359,8 @@ instantiate_walls(entt::registry& r, std::vector<Line>& lines, const DungeonGene
     }
 
     const int num_lines_post = lines_to_instantiate.size();
-    if (num_lines_post - num_lines_prior < 4)
-      std::cout << "error: did not add enough lines for room to be covered." << std::endl;
+    if (num_lines_post - num_lines_prior < 4) // 4 because a 2d room has 4 walls
+      std::println("error: did not add enough lines for room to be covered.");
 
     // debug the room
     const auto room_to_create = create_gameplay(r, EntityType::empty_with_transform);

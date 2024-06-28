@@ -77,7 +77,7 @@ game2d::update_actor_actor_collisions_system(entt::registry& r, SINGLETON_Physic
 
       if (result == pmap.end()) {
         // New collision
-        // std::cout << "ents: new coll" << "\n";
+        // std::println("ents: new coll" << "\n";
         p.collision_enter.push_back(coll);
         p.collision_stay.push_back(coll);
       } else {
