@@ -24,9 +24,9 @@ uniform Points points[NR_MAX_CIRCLES];
 // float fade = 0.1;
 
 // https://www.shadertoy.com/view/3ltSW2
-float sdCircle( in vec2 p, in float r ) 
+float sdCircle( vec2 p, float radius ) 
 {
-    return length(p)-r;
+    return length(p) - radius;
 }
 
 // https://www.shadertoy.com/view/lt3BW2
@@ -44,11 +44,11 @@ main()
   float screen_max_x = camera_pos.x + half_wh.x; // e.g. 960
   float screen_min_y = camera_pos.y - half_wh.y; // e.g. -540
   float screen_max_y = camera_pos.y + half_wh.y; // e.g. 540
-  float range_x = screen_max_x - screen_min_x;
-  float range_y = screen_max_y - screen_min_y;
+  // float range_x = screen_max_x - screen_min_x;
+  // float range_y = screen_max_y - screen_min_y;
 
   // convert uv to -1 and 1
-  vec2 uv = 2.0 * v_uv - 1.0;
+  vec2 uv = (2.0 * v_uv - 1.0);
   uv.x *= -1;
   uv.y *= -1;
 

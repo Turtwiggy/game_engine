@@ -284,6 +284,20 @@ game2d::update_render_system(entt::registry& r, const float dt, const glm::vec2&
   ri.lighting.bind();
   ri.lighting.set_mat4("view", camera.view);
 
+  ri.mix_lighting_and_scene.bind();
+  // convert light_pos to screen_space
+  // const glm::vec2 light_pos = mouse_pos;
+  // const glm::vec2 light_pos = { camera_t.position.x, camera_t.position.y };
+  // const glm::vec2 middle_of_screen = { viewport_wh.x / 2.0f, viewport_wh.y / 2.0f };
+  // const glm::vec2 light_pos_in_screenspace = middle_of_screen;
+  // light_pos.x should be 0 < viewport_wh.x
+  // light_pos.y should be 0 < viewport_wh.y
+  const glm::vec2 mouse_raw = get_mouse_pos() - ri.viewport_pos;
+  ri.mix_lighting_and_scene.set_vec2("light_pos", mouse_raw);
+  ri.mix_lighting_and_scene.set_vec2("viewport_wh", ri.viewport_size_render_at);
+  ri.mix_lighting_and_scene.set_vec2("camera_pos", { camera_t.position.x, camera_t.position.y });
+  ri.mix_lighting_and_scene.set_float("brightness_threshold", brightness_threshold);
+
   ri.blur.bind();
 
   ri.bloom.bind();
@@ -304,6 +318,22 @@ game2d::update_render_system(entt::registry& r, const float dt, const glm::vec2&
   if (grid_e != entt::null) {
     const float gridsize = r.get<Effect_GridComponent>(grid_e).gridsize;
     ri.grid.set_float("gridsize", gridsize);
+  }
+
+  if (get_key_down(input, SDL_SCANCODE_0)) {
+    ri.mix_lighting_and_scene.reload();
+    ri.mix_lighting_and_scene.bind();
+
+    ri.mix_lighting_and_scene.set_mat4("projection", camera.projection);
+    ri.mix_lighting_and_scene.set_mat4("view", glm::mat4(1.0f)); // whole texture
+    ri.mix_lighting_and_scene.set_int("lighting", ri.tex_unit_lighting);
+    ri.mix_lighting_and_scene.set_int("scene", ri.tex_unit_linear_main);
+
+    const glm::vec2 mouse_raw = get_mouse_pos();
+    ri.mix_lighting_and_scene.set_float("brightness_threshold", brightness_threshold);
+    ri.mix_lighting_and_scene.set_vec2("light_pos", mouse_raw);
+    ri.mix_lighting_and_scene.set_vec2("camera_pos", { camera_t.position.x, camera_t.position.y });
+    ri.mix_lighting_and_scene.set_vec2("viewport_wh", ri.viewport_size_render_at);
   }
 
   // FBO: Render sprites in to this fbo with linear colour
@@ -401,18 +431,6 @@ game2d::update_render_system(entt::registry& r, const float dt, const glm::vec2&
 
   // FBO: mix lighting and scene, and convert to srgb
   {
-    // convert light_pos to screen_space
-    // const glm::vec2 light_pos = mouse_pos;
-    // const glm::vec2 light_pos = { camera_t.position.x, camera_t.position.y };
-    const auto mouse_raw = get_mouse_pos() - ri.viewport_pos;
-    const glm::vec2 light_pos_in_screenspace = { mouse_raw.x, mouse_raw.y };
-    // const glm::vec2 middle_of_screen = { viewport_wh.x / 2.0f, viewport_wh.y / 2.0f };
-    // const glm::vec2 light_pos_in_screenspace = middle_of_screen;
-    // light_pos.x should be 0 < viewport_wh.x
-    // light_pos.y should be 0 < viewport_wh.y
-    ri.mix_lighting_and_scene.bind();
-    ri.mix_lighting_and_scene.set_vec2("light_pos", light_pos_in_screenspace);
-    ri.mix_lighting_and_scene.set_float("brightness_threshold", brightness_threshold);
 
     Framebuffer::bind_fbo(ri.fbo_mix_lighting_and_scene);
     RenderCommand::set_viewport(0, 0, viewport_wh.x, viewport_wh.y);
@@ -530,49 +548,51 @@ game2d::update_render_system(entt::registry& r, const float dt, const glm::vec2&
 // debug user textures
 //
 #if defined(_DEBUG)
-  ImVec2 viewport_size;
-  // int i = 0;
-  // for (const auto& tex : ri.user_textures) {
-  //   const std::string label = std::string("Debug") + std::to_string(i);
-  //   ImGui::Begin(label.c_str());
-  //   viewport_size = ImGui::GetContentRegionAvail();
-  //   ImGui::Image((ImTextureID)tex.tex_id.id, viewport_size, ImVec2(0, 0), ImVec2(1, 1));
-  //   ImGui::End();
-  //   i++;
-  // }
+  {
+    ImVec2 viewport_size;
+    // int i = 0;
+    // for (const auto& tex : ri.user_textures) {
+    //   const std::string label = std::string("Debug") + std::to_string(i);
+    //   ImGui::Begin(label.c_str());
+    //   viewport_size = ImGui::GetContentRegionAvail();
+    //   ImGui::Image((ImTextureID)tex.tex_id.id, viewport_size, ImVec2(0, 0), ImVec2(1, 1));
+    //   ImGui::End();
+    //   i++;
+    // }
 
-  const bool hide_debug_textures = true;
-  if (hide_debug_textures)
-    return;
+    const bool hide_debug_textures = true;
+    if (hide_debug_textures)
+      return;
 
-  ImGui::Begin("DebugLighting");
-  viewport_size = ImGui::GetContentRegionAvail();
-  ImGui::Image((ImTextureID)ri.tex_id_lighting, viewport_size, ImVec2(0, 0), ImVec2(1, 1));
-  ImGui::End();
-  ImGui::Begin("DebugScene");
-  viewport_size = ImGui::GetContentRegionAvail();
-  ImGui::Image((ImTextureID)ri.tex_id_linear_main, viewport_size, ImVec2(0, 0), ImVec2(1, 1));
-  ImGui::End();
-  ImGui::Begin("DebugMixLighting");
-  viewport_size = ImGui::GetContentRegionAvail();
-  ImGui::Image((ImTextureID)ri.tex_id_mix_lighting_and_scene, viewport_size, ImVec2(0, 0), ImVec2(1, 1));
-  ImGui::End();
-  ImGui::Begin("DebugMixLightingBrightness");
-  viewport_size = ImGui::GetContentRegionAvail();
-  ImGui::Image((ImTextureID)ri.tex_id_mix_lighting_and_scene_brightness, viewport_size, ImVec2(0, 0), ImVec2(1, 1));
-  ImGui::End();
-  ImGui::Begin("Debug_tex_id_blur_pingpong_0");
-  viewport_size = ImGui::GetContentRegionAvail();
-  ImGui::Image((ImTextureID)ri.tex_id_blur_pingpong_0, viewport_size, ImVec2(0, 0), ImVec2(1, 1));
-  ImGui::End();
-  ImGui::Begin("Debug_tex_id_blur_pingpong_1");
-  viewport_size = ImGui::GetContentRegionAvail();
-  ImGui::Image((ImTextureID)ri.tex_id_blur_pingpong_1, viewport_size, ImVec2(0, 0), ImVec2(1, 1));
-  ImGui::End();
-  ImGui::Begin("DebugBloom");
-  viewport_size = ImGui::GetContentRegionAvail();
-  ImGui::Image((ImTextureID)ri.tex_id_bloom, viewport_size, ImVec2(0, 0), ImVec2(1, 1));
-  ImGui::End();
+    ImGui::Begin("DebugLighting");
+    viewport_size = ImGui::GetContentRegionAvail();
+    ImGui::Image((ImTextureID)ri.tex_id_lighting, viewport_size, ImVec2(0, 0), ImVec2(1, 1));
+    ImGui::End();
+    ImGui::Begin("DebugScene");
+    viewport_size = ImGui::GetContentRegionAvail();
+    ImGui::Image((ImTextureID)ri.tex_id_linear_main, viewport_size, ImVec2(0, 0), ImVec2(1, 1));
+    ImGui::End();
+    ImGui::Begin("DebugMixLighting");
+    viewport_size = ImGui::GetContentRegionAvail();
+    ImGui::Image((ImTextureID)ri.tex_id_mix_lighting_and_scene, viewport_size, ImVec2(0, 0), ImVec2(1, 1));
+    ImGui::End();
+    ImGui::Begin("DebugMixLightingBrightness");
+    viewport_size = ImGui::GetContentRegionAvail();
+    ImGui::Image((ImTextureID)ri.tex_id_mix_lighting_and_scene_brightness, viewport_size, ImVec2(0, 0), ImVec2(1, 1));
+    ImGui::End();
+    ImGui::Begin("Debug_tex_id_blur_pingpong_0");
+    viewport_size = ImGui::GetContentRegionAvail();
+    ImGui::Image((ImTextureID)ri.tex_id_blur_pingpong_0, viewport_size, ImVec2(0, 0), ImVec2(1, 1));
+    ImGui::End();
+    ImGui::Begin("Debug_tex_id_blur_pingpong_1");
+    viewport_size = ImGui::GetContentRegionAvail();
+    ImGui::Image((ImTextureID)ri.tex_id_blur_pingpong_1, viewport_size, ImVec2(0, 0), ImVec2(1, 1));
+    ImGui::End();
+    ImGui::Begin("DebugBloom");
+    viewport_size = ImGui::GetContentRegionAvail();
+    ImGui::Image((ImTextureID)ri.tex_id_bloom, viewport_size, ImVec2(0, 0), ImVec2(1, 1));
+    ImGui::End();
+  }
 #endif
 };
 

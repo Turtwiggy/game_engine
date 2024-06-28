@@ -407,9 +407,8 @@ create_gameplay(entt::registry& r, const EntityType& type)
       r.emplace<HealthComponent>(e, hp, hp);
       r.emplace<DefenceComponent>(e, 0);
       r.emplace<TeamComponent>(e, AvailableTeams::neutral);
-
       r.emplace<SpawnParticlesOnDeath>(e);
-
+      r.emplace<PathfindComponent>(e, -1);
       break;
     }
 

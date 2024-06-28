@@ -442,15 +442,18 @@ move_to_scene_start(entt::registry& r, const Scene s, const bool load_saved)
     }
 
     // place "root" enemy at "top right" of grid
-    const auto& map = get_first_component<MapComponent>(r);
-    const glm::ivec2 offset = { map_c.tilesize / 2, map_c.tilesize / 2 };
-    const glm::ivec2 root_gridpos = { map.xmax - 1, 0 };
-    const auto pos = glm::ivec2{ engine::grid::grid_space_to_world_space(root_gridpos, map.tilesize) } + offset;
-    CombatEntityDescription desc;
-    desc.position = pos;
-    desc.team = AvailableTeams::enemy;
-    enemies--;
-    auto last_spawned_e = create_combat_entity(r, desc);
+    entt::entity last_spawned_e = entt::null;
+    {
+      const auto& map = get_first_component<MapComponent>(r);
+      const glm::ivec2 offset = { map_c.tilesize / 2, map_c.tilesize / 2 };
+      const glm::ivec2 root_gridpos = { map.xmax - 1, 0 };
+      const auto pos = glm::ivec2{ engine::grid::grid_space_to_world_space(root_gridpos, map.tilesize) } + offset;
+      CombatEntityDescription desc;
+      desc.position = pos;
+      desc.team = AvailableTeams::enemy;
+      enemies--;
+      last_spawned_e = create_combat_entity(r, desc);
+    }
 
     // create enemy team
     for (int i = 0; i < enemies; i++) {
@@ -482,8 +485,12 @@ move_to_scene_start(entt::registry& r, const Scene s, const bool load_saved)
     set_size(r, info.action_cursor, { 0, 0 }); // start disabled
 
     // Create a destructable barrel
-    const auto barrel_e = create_gameplay(r, EntityType::actor_barrel);
-    set_position_grid(r, barrel_e, { 4, 4 });
+    auto& map = get_first_component<MapComponent>(r);
+    const entt::entity barrel_e = create_gameplay(r, EntityType::actor_barrel);
+    const auto gridpos = glm::ivec2{ 4, 4 };
+    set_position_grid(r, barrel_e, gridpos);
+    std::vector<entt::entity>& ents = map.map[engine::grid::grid_position_to_index(gridpos, map.xmax)];
+    ents.push_back(barrel_e);
   }
 
   if (s == Scene::minigame_bamboo) {

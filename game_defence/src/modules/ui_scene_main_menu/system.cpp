@@ -93,15 +93,12 @@ update_ui_scene_main_menu(engine::SINGLETON_Application& app, entt::registry& r)
 
     // std::filesystem probably wont work on web. figure this out.
     if (std::filesystem::exists("save-overworld.json")) {
-      if (selectable_button("Continue", selected, index++)) {
+      if (selectable_button("Continue", selected, index++))
         move_to_scene_start(r, Scene::overworld, true);
-      }
     }
 
     if (selectable_button("Start Game", selected, index++)) {
       move_to_scene_start(r, Scene::overworld, false);
-      //   move_to_scene_start(r, Scene::game);
-      //   move_to_scene_start(r, Scene::test_scene_gun);
     }
 
 #if defined(_DEBUG)
@@ -121,45 +118,6 @@ update_ui_scene_main_menu(engine::SINGLETON_Application& app, entt::registry& r)
       app.running = false;
   }
   ImGui::PopStyleVar();
-
-  //   if (focused_element == 0)
-  //     ImGui::PushStyleColor(ImGuiCol_Button, ImVec4(1, 1, 0, 1));
-  //   if (ImGui::Button("Play".c_str(), button_size))
-  //   if (focused_element == 0)
-  //     ImGui::PopStyleColor();
-
-  //   if (focused_element == 1)
-  //     ImGui::PushStyleColor(ImGuiCol_Button, ImVec4(1, 1, 0, 1));
-  //   if (ImGui::Button("Quit", button_size))
-  //     app.running = false;
-  //   if (focused_element == 1)
-  //     ImGui::PopStyleColor();
-
-  // ImGui::NewLine();
-  // for (int i = 0; i < 4; i++) {
-  //   if (i > 0)
-  //     ImGui::SameLine();
-  //   ImGui::PushID(i);
-  //   ImGui::PushStyleColor(ImGuiCol_Button, (ImVec4)ImColor::HSV(i / 7.0f, 0.6f, 0.6f));
-  //   ImGui::PushStyleColor(ImGuiCol_ButtonHovered, (ImVec4)ImColor::HSV(i / 7.0f, 0.7f, 0.7f));
-  //   ImGui::PushStyleColor(ImGuiCol_ButtonActive, (ImVec4)ImColor::HSV(i / 7.0f, 0.8f, 0.8f));
-  //   std::string tag = "Lv"s + std::to_string(i);
-  //   if (ImGui::Button(tag.c_str())) {
-  //     // DISABLED
-  //     // ui.level = i;
-  //     // editor.mode = LevelEditorMode::play;
-  //     move_to_scene_start(r, Scene::game);
-  //     // configure spawner for level
-  //     // auto& grid = get_first_component<GridComponent>(r);
-  //     // entt::entity spawner_e = grid.grid[0][0];
-  //     // auto& spawner = r.get<SpawnerComponent>(spawner_e);
-  //     // spawner.enemies_to_spawn = (i + 1) * 25;
-  //     // load(r, "assets/maps/main.json");
-  //     ui.instantiated_players.clear();
-  //   }
-  //   ImGui::PopStyleColor(3);
-  //   ImGui::PopID();
-  // }
   ImGui::End();
 
   // show a sound icon
@@ -175,7 +133,6 @@ update_ui_scene_main_menu(engine::SINGLETON_Application& app, entt::registry& r)
   static auto should_mute = gesert_string(PLAYERPREF_MUTE, "false"s) == "true";
 
   // window settings
-  //
   const int size_x = 1000;
   const int size_y = 500;
   const float cols_x = 20;

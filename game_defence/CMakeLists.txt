@@ -132,6 +132,9 @@ IF(${CMAKE_SYSTEM_NAME} STREQUAL "Windows")
       COMMENT "symbolic link resources folder from ${src} => ${dst}"
     )
   endif()
+
+  # rename executable
+  set_target_properties(${PROJECT_NAME} PROPERTIES OUTPUT_NAME "SolarWar")
 endif()
 
 IF(EMSCRIPTEN)

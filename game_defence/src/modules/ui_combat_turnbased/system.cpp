@@ -131,16 +131,10 @@ update_ui_combat_turnbased_system(entt::registry& r, const glm::ivec2& input_mou
     ImGui::PushStyleVar(ImGuiStyleVar_SelectableTextAlign, { 0.5f, 0.5f });
     ImGui::Begin("Begin Combat", NULL, flags);
     {
-      ImGui::Text("- Drag and select a unit");
-      ImGui::Spacing();
-      ImGui::Text("- Press 1 on keyboard to swap to 'move' action.");
-      ImGui::Text("- Your units can move once per turn.");
-      ImGui::Text("- Right click to perform move action to destination.");
-      ImGui::Spacing();
-      ImGui::Text("- Press 2 on keyboard to swap to 'shoot' action.");
-      ImGui::Text("- Your units can shoot once per turn.");
-      ImGui::Text("- Right click to shoot towards mouse cursor.");
-      ImGui::Spacing();
+      ImGui::Text("- Press Q and E to swap between your units.");
+      ImGui::Text("- See action bar at bottom for actions.");
+      ImGui::Text("- Right click at location to execute action.");
+      ImGui::Separator();
       ImGui::Text("- Defeat all enemies to win. Good Luck!");
 
       // Center button horizontally

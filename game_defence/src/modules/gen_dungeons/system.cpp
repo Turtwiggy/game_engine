@@ -43,15 +43,15 @@ update_gen_dungeons_system(entt::registry& r, const glm::ivec2& mouse_pos)
   // }
   // ImGui::End();
 
-  static int i = 0;
-  if (get_key_down(input, SDL_SCANCODE_O))
-    i--;
-  if (get_key_down(input, SDL_SCANCODE_P))
-    i++;
+  // static int i = 0;
+  // if (get_key_down(input, SDL_SCANCODE_O))
+  //   i--;
+  // if (get_key_down(input, SDL_SCANCODE_P))
+  //   i++;
 
   ImGui::Begin("DebugDungeonGen");
   {
-    ImGui::Text("i: %i", i);
+    // ImGui::Text("i: %i", i);
 
     std::vector<Room> rooms;
     for (const auto& [e, room] : r.view<Room>().each())
@@ -86,8 +86,8 @@ update_gen_dungeons_system(entt::registry& r, const glm::ivec2& mouse_pos)
   ImGui::End();
 
   // HACK: force regenerate dungeon
-  if (get_key_down(input, SDL_SCANCODE_I))
-    create_empty<RequestGenerateDungeonComponent>(r);
+  // if (get_key_down(input, SDL_SCANCODE_I))
+  //   create_empty<RequestGenerateDungeonComponent>(r);
 
   const auto& requests = r.view<RequestGenerateDungeonComponent>();
   if (requests.size() == 0)
@@ -107,9 +107,10 @@ update_gen_dungeons_system(entt::registry& r, const glm::ivec2& mouse_pos)
   // todo: make strength impact the number of things spawned
   const int strength = data.patrol_that_you_hit.strength;
 
-  // static int seed = 0;
-  // seed++; // Increase seed everytime a map is generated
-  engine::RandomState rnd(i);
+  static int seed = 0;
+  seed++; // Increase seed everytime a map is generated
+  engine::RandomState rnd(seed);
+  const int i = seed;
 
   DungeonGenerationCriteria dungeon_parameters;
   dungeon_parameters.max_rooms = 30;

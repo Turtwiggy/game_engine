@@ -132,6 +132,10 @@ update_turnbased_enemy_system(entt::registry& r)
 
           // should be any valid tiles, but for the moment, just choose a random one
           static engine::RandomState rnd;
+
+          if (!e_room.has_value())
+            return; // FIX: entity moved outside a room?
+
           const auto room = e_room.value();
           const int x = int(engine::rand_det_s(rnd.rng, room.tl.x, room.tl.x + room.aabb.size.x - 1));
           const int y = int(engine::rand_det_s(rnd.rng, room.tl.y, room.tl.y + room.aabb.size.y - 1));

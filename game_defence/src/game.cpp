@@ -48,6 +48,7 @@
 #include "modules/ui_event_console/system.hpp"
 #include "modules/ui_gameover/system.hpp"
 #include "modules/ui_hierarchy/system.hpp"
+#include "modules/ui_inventory/system.hpp"
 #include "modules/ui_patrol/system.hpp"
 #include "modules/ui_pause_menu/system.hpp"
 #include "modules/ui_scene_main_menu/system.hpp"
@@ -361,9 +362,14 @@ game2d::update(engine::SINGLETON_Application& app, entt::registry& r, const floa
     if (scene.s == Scene::overworld) {
       update_ui_patrol_system(r);
     }
+
     if (scene.s == Scene::turnbasedcombat) {
       update_ui_combat_turnbased_system(r, mouse_pos);
       update_ui_combat_endturn_system(r);
+    }
+
+    if (scene.s == Scene::turnbasedcombat || scene.s == Scene::dungeon_designer) {
+      update_ui_inventory_system(r);
     }
 
     update_ui_worldspace_text_system(r);
