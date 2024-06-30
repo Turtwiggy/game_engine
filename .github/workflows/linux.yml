@@ -29,7 +29,6 @@ jobs:
 
       # See Readme.md: Linux
       - name: install-linux-deps
-        if: ${{ matrix.triplet == 'x64-linux'}}
         run: |
           sudo apt-get install curl zip unzip tar pkg-config -y
           sudo apt install autoconf libtool linux-libc-dev -y
@@ -46,24 +45,17 @@ jobs:
           runVcpkgInstall: true
 
       - name: get-linux-compiler
-        if: ${{ matrix.triplet == 'x64-linux'}}
         run: |
           g++ --version
           which g++
 
       - name: configure-linux
-        if: ${{ matrix.triplet == 'x64-linux' }}
         run: |
           mkdir build
           cmake --no-warn-unused-cli -DCMAKE_C_COMPILER=/usr/bin/gcc -DCMAKE_CXX_COMPILER=/usr/bin/g++ -DCMAKE_EXPORT_COMPILE_COMMANDS:BOOL=TRUE -DCMAKE_BUILD_TYPE:STRING=Release -S . -B build -G Ninja
 
       - name: build-tests
         run: cmake --build build --config Release --target game_defence_tests
-
-      - name: run-tests
-        if: ${{ matrix.triplet == 'x64-windows' }}
-        run: |
-          ./build/game_defence_tests/game_defence_tests.exe | findstr -i "pass"
 
       - name: build-game
         run: cmake --build build --config Release --target game_defence

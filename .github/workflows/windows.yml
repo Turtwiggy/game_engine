@@ -10,7 +10,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        os: [windows-2022, ubuntu-22.04, macos-14]
+        os: [windows-2022]
         include:
           - os: windows-2022
             vcpkg-response-file: vcpkg-x64-windows.txt
@@ -36,11 +36,9 @@ jobs:
           runVcpkgInstall: true
 
       - name: get-windows-compiler
-        if: ${{ matrix.triplet == 'x64-windows' }}
         uses: ilammy/msvc-dev-cmd@v1.13.0
 
       - name: configure-windows
-        if: ${{ matrix.triplet == 'x64-windows' }}
         run: |
           mkdir build
           cmake --no-warn-unused-cli -DCMAKE_EXPORT_COMPILE_COMMANDS:BOOL=TRUE -DCMAKE_BUILD_TYPE:STRING=Release -S . -B build -G Ninja

@@ -35,12 +35,9 @@ jobs:
           runVcpkgInstall: true
 
       - name: get-mac-compiler
-        if: ${{ matrix.triplet == 'arm64-osx' }}
-        run: |
-          which clang clang++
+        run: which clang clang++
 
       - name: configure-mac
-        if: ${{ matrix.triplet == 'arm64-osx' }}
         run: |
           mkdir build
           cmake --no-warn-unused-cli -DCMAKE_C_COMPILER=/usr/bin/clang -DCMAKE_CXX_COMPILER=/usr/bin/clang++ -DCMAKE_EXPORT_COMPILE_COMMANDS:BOOL=TRUE -DCMAKE_BUILD_TYPE:STRING=Release -S . -B build -G Ninja
