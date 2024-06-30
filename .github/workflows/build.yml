@@ -65,7 +65,7 @@ jobs:
       - name: get-mac-compiler
         if: ${{ matrix.triplet == 'arm64-osx' }}
         run: |
-          brew install gcc@14 g++@14
+          brew install gcc@14
           g++-14 --version
           which g++-14
 
