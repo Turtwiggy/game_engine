@@ -9,12 +9,10 @@ message("CMAKE_SYSTEM_NAME ${CMAKE_SYSTEM_NAME}")
 if(CMAKE_SYSTEM_NAME STREQUAL Windows)
   message("Windows... use default kit.")
 elseif(CMAKE_SYSTEM_NAME STREQUAL Darwin)
-  # Prefer gcc/g++ on mac
   message("setting compiler preference to gcc/g++")
   set(CMAKE_C_COMPILER "/usr/bin/gcc")
   set(CMAKE_CXX_COMPILER "/usr/bin/g++")
 elseif(CMAKE_SYSTEM_NAME STREQUAL Linux)
-  # Prefer gcc/g++ on linux
   message("setting compiler preference to gcc/g++")
   set(CMAKE_C_COMPILER "/usr/bin/gcc")
   set(CMAKE_CXX_COMPILER "/usr/bin/g++")
