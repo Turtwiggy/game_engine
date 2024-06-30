@@ -32,6 +32,16 @@ jobs:
         with:
           submodules: true
 
+      # See Readme.md: Linux
+      - name: install-linux-deps
+        if: ${{ matrix.triplet == 'x64-linux'}}
+        run: |
+          sudo apt-get install curl zip unzip tar pkg-config -y
+          sudo apt install autoconf libtool linux-libc-dev -y
+          sudo apt install libglu1-mesa-dev freeglut3-dev mesa-common-dev -y
+          sudo apt-get install libglew-dev libxmu-dev libxi-dev libgl-dev-y
+          sudo apt install libsdl2-dev libsdl2-2.0-0 -y
+
       - name: Restore artifacts, or setup vcpkg for building artifacts
         uses: lukka/run-vcpkg@v10
         id: runvcpkg
@@ -41,18 +51,16 @@ jobs:
           runVcpkgInstall: true
 
       - name: get-windows-compiler
-        if: ${{ matrix.triplet }} == "x64-windows"
+        if: ${{ matrix.triplet == 'x64-windows' }}
         uses: ilammy/msvc-dev-cmd@v1.13.0
 
       - name: get-linux-compiler-version
-        if: ${{ matrix.triplet }} == "x64-linux"
+        if: ${{ matrix.triplet == 'x64-linux'}}
         run: g++ --version
 
       - name: get-mac-compiler-version
-        if: ${{ matrix.triplet }} == ""arm64-osx"
-        run: |
-          clang --version 
-          g++ --version
+        if: ${{ matrix.triplet == 'arm64-osx' }}
+        run: clang --version
 
       - name: configure
         run: |

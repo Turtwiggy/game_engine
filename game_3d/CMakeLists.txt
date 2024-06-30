@@ -24,6 +24,10 @@ if(EMSCRIPTEN)
   message("index CMAKE_EXECUTABLE_SUFFIX: ${CMAKE_EXECUTABLE_SUFFIX}")
 endif()
 
+if(${CMAKE_SYSTEM_NAME} MATCHES "Darwin")
+  set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++23 -stdlib=libc++")
+endif()
+
 if(CMAKE_CXX_COMPILER_ID MATCHES GNU)
   add_definitions("-std=c++20")
   add_definitions("-Wall")

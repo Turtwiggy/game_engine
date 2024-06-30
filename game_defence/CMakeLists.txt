@@ -17,11 +17,15 @@ if(EMSCRIPTEN)
   set(LD_FLAGS "${LD_FLAGS} ${EMS}")
 
   set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} ${EMS}")
-  set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++20 -stdlib=libc++ ${EMS}")
+  set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++23 -stdlib=libc++ ${EMS}")
   set(CMAKE_EXECUTABLE_SUFFIX ".html")
 
   message("index VCPKG_CHAINLOAD_TOOLCHAIN_FILE: ${VCPKG_CHAINLOAD_TOOLCHAIN_FILE}")
   message("index CMAKE_EXECUTABLE_SUFFIX: ${CMAKE_EXECUTABLE_SUFFIX}")
+endif()
+
+if(${CMAKE_SYSTEM_NAME} MATCHES "Darwin")
+  set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++23 -stdlib=libc++")
 endif()
 
 if(CMAKE_CXX_COMPILER_ID MATCHES GNU)
@@ -31,7 +35,6 @@ if(CMAKE_CXX_COMPILER_ID MATCHES GNU)
   add_definitions("-O2")
   set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} /std:c++23")
 
-  # add_definitions("-std=c++23")
   # add_definitions("-Werror")
 endif()
 
@@ -87,6 +90,10 @@ add_executable(game_defence
 if(${CMAKE_SYSTEM_NAME} STREQUAL "Windows")
   set(VCPKG_INCLUDES
     ${CMAKE_CURRENT_LIST_DIR}/thirdparty/vcpkg/installed/x64-windows/include
+  )
+elseif(${CMAKE_SYSTEM_NAME} STREQUAL "Darwin")
+  set(VCPKG_INCLUDES
+    ${CMAKE_CURRENT_LIST_DIR}/thirdparty/vcpkg/installed/arm64-osx/include
   )
 elseif(${CMAKE_SYSTEM_NAME} STREQUAL "Linux")
   set(VCPKG_INCLUDES

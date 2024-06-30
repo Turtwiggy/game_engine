@@ -18,7 +18,7 @@
       "defines": [ "UNICODE", "_UNICODE" ],
       "windowsSdkVersion": "10.0.19041.0",
       "cStandard": "c17",
-      "cppStandard": "c++20",
+      "cppStandard": "c++23",
       "intelliSenseMode": "windows-msvc-x64",
       "configurationProvider": "ms-vscode.cmake-tools",
       "compileCommands": "${workspaceFolder}/build/compile_commands.json",
@@ -41,7 +41,7 @@
       ],
       "compilerPath": "/usr/bin/gcc",
       "cStandard": "c17",
-      "cppStandard": "c++20",
+      "cppStandard": "c++23",
       "intelliSenseMode": "linux-gcc-x64",
       "configurationProvider": "ms-vscode.cmake-tools",
       "mergeConfigurations": false
@@ -65,7 +65,7 @@
       "macFrameworkPath": [ ],
       "compilerPath": "/usr/bin/clang",
       "cStandard": "c17",
-      "cppStandard": "c++20",
+      "cppStandard": "c++23",
       "intelliSenseMode": "macos-clang-arm64",
       "configurationProvider": "ms-vscode.cmake-tools",
       "mergeConfigurations": false
