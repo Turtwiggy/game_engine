@@ -4,7 +4,6 @@ sdl2
 openal-soft
 stb
 nlohmann-json
-gamenetworkingsockets
 gtest
 --triplet
 x64-windows

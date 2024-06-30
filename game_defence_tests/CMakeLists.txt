@@ -1,8 +1,9 @@
 # this cmake lists compiles the game_defence_tests with the engine
 
 cmake_minimum_required(VERSION 3.5.0)
-set(CMAKE_CXX_STANDARD 20)
+set(CMAKE_CXX_STANDARD 23)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
+game_roguelike/*, game_2d_adl/*,
 
 if(EMSCRIPTEN)
   message("Compiling for emscripten (toolkit set in cmake-kits.json)")
