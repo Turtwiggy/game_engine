@@ -4,6 +4,22 @@ cmake_minimum_required(VERSION 3.5.0)
 set(CMAKE_CXX_STANDARD 23)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 
+message("CMAKE_SYSTEM_NAME ${CMAKE_SYSTEM_NAME}")
+
+if(CMAKE_SYSTEM_NAME STREQUAL Windows)
+  message("Windows... use default kit.")
+elseif(CMAKE_SYSTEM_NAME STREQUAL Darwin)
+  # Prefer gcc/g++ on mac
+  message("setting compiler preference to gcc/g++")
+  set(CMAKE_C_COMPILER "gcc")
+  set(CMAKE_CXX_COMPILER "g++")
+elseif(CMAKE_SYSTEM_NAME STREQUAL Linux)
+  # Prefer gcc/g++ on linux
+  message("setting compiler preference to gcc/g++")
+  set(CMAKE_C_COMPILER "gcc")
+  set(CMAKE_CXX_COMPILER "g++")
+endif()
+
 if(EMSCRIPTEN)
   message("Compiling for emscripten (toolkit set in cmake-kits.json)")
 
@@ -52,6 +68,8 @@ message("game_defence: CMAKE_SYSTEM_NAME ${CMAKE_SYSTEM_NAME}")
 message("game_defence: CMAKE_BUILD_TYPE ${CMAKE_BUILD_TYPE}")
 message("game_defence: C: ${CMAKE_C_COMPILER_ID}")
 message("game_defence: CXX: ${CMAKE_CXX_COMPILER_ID}")
+message("game_defence: CMAKE_C_COMPILER: ${CMAKE_C_COMPILER}")
+message("game_defence: CMAKE_CXX_COMPILER: ${CMAKE_CXX_COMPILER}")
 message("game_defence: current_list_dir: ${CMAKE_CURRENT_LIST_DIR}")
 message("game_defence: source_dir: ${CMAKE_SOURCE_DIR}")
 message("index CMAKE_TOOLCHAIN_FILE: ${CMAKE_TOOLCHAIN_FILE}")
