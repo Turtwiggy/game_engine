@@ -1,0 +1,65 @@
+name: mac_build
+
+on:
+  push:
+    branches: ["*"]
+
+jobs:
+  build-game:
+    runs-on: ${{ matrix.os }}
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [macos-14]
+        include:
+          - os: macos-14
+            vcpkg-response-file: vcpkg-arm64-osx.txt
+            triplet: arm64-osx
+    env:
+      VCPKG_ROOT: ${{ github.workspace }}/thirdparty/vcpkg
+      VCPKG_DEFAULT_TRIPLET: ${{ matrix.triplet }}
+      VCPKG_INSTALLED_DIR: ${{ github.workspace }}/thirdparty/vcpkg/installed
+
+    steps:
+      - uses: lukka/get-cmake@latest
+      - uses: actions/checkout@v3
+        with:
+          submodules: true
+
+      - name: Restore artifacts, or setup vcpkg for building artifacts
+        uses: lukka/run-vcpkg@v10
+        id: runvcpkg
+        with:
+          vcpkgDirectory: "${{ github.workspace }}/thirdparty/vcpkg"
+          vcpkgJsonGlob: "**/game_defence_tests/vcpkg.json"
+          runVcpkgInstall: true
+
+      - name: get-mac-compiler
+        if: ${{ matrix.triplet == 'arm64-osx' }}
+        run: |
+          which clang clang++
+
+      - name: configure-mac
+        if: ${{ matrix.triplet == 'arm64-osx' }}
+        run: |
+          mkdir build
+          cmake --no-warn-unused-cli -DCMAKE_C_COMPILER=/usr/bin/clang -DCMAKE_CXX_COMPILER=/usr/bin/clang++ -DCMAKE_EXPORT_COMPILE_COMMANDS:BOOL=TRUE -DCMAKE_BUILD_TYPE:STRING=Release -S . -B build -G Ninja
+
+      - name: build-tests
+        run: cmake --build build --config Release --target game_defence_tests
+
+      - name: build-game
+        run: cmake --build build --config Release --target game_defence
+
+      - name: copy-game-assets
+        run: |
+          cp -r ${{ github.workspace }}/game_defence/assets ./build/game_defence/
+          rm -r ./build/game_defence/CMakeFiles
+          rm ./build/game_defence/*.cmake 
+          rm ./build/game_defence/*.manifest
+
+      - name: release-game
+        uses: actions/upload-artifact@v3
+        with:
+          name: game_defence-${{ matrix.os }}
+          path: ./build/game_defence

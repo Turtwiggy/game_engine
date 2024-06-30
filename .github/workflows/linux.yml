@@ -1,4 +1,4 @@
-name: game_defence
+name: linux_build
 
 on:
   push:
@@ -10,17 +10,12 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        os: [windows-2022, ubuntu-22.04, macos-14]
+        os: [ubuntu-22.04]
         include:
-          - os: windows-2022
-            vcpkg-response-file: vcpkg-x64-windows.txt
-            triplet: x64-windows
           - os: ubuntu-22.04
             vcpkg-response-file: vcpkg-x64-linux.txt
             triplet: x64-linux
-          - os: macos-14
-            vcpkg-response-file: vcpkg-arm64-osx.txt
-            triplet: arm64-osx
+
     env:
       VCPKG_ROOT: ${{ github.workspace }}/thirdparty/vcpkg
       VCPKG_DEFAULT_TRIPLET: ${{ matrix.triplet }}
@@ -50,38 +45,17 @@ jobs:
           vcpkgJsonGlob: "**/game_defence_tests/vcpkg.json"
           runVcpkgInstall: true
 
-      - name: get-windows-compiler
-        if: ${{ matrix.triplet == 'x64-windows' }}
-        uses: ilammy/msvc-dev-cmd@v1.13.0
-
       - name: get-linux-compiler
         if: ${{ matrix.triplet == 'x64-linux'}}
         run: |
           g++ --version
           which g++
 
-      - name: get-mac-compiler
-        if: ${{ matrix.triplet == 'arm64-osx' }}
-        run: |
-          which clang clang++
-
-      - name: configure-windows
-        if: ${{ matrix.triplet == 'x64-windows' }}
-        run: |
-          mkdir build
-          cmake --no-warn-unused-cli -DCMAKE_EXPORT_COMPILE_COMMANDS:BOOL=TRUE -DCMAKE_BUILD_TYPE:STRING=Release -S . -B build -G Ninja
-
       - name: configure-linux
         if: ${{ matrix.triplet == 'x64-linux' }}
         run: |
           mkdir build
           cmake --no-warn-unused-cli -DCMAKE_C_COMPILER=/usr/bin/gcc -DCMAKE_CXX_COMPILER=/usr/bin/g++ -DCMAKE_EXPORT_COMPILE_COMMANDS:BOOL=TRUE -DCMAKE_BUILD_TYPE:STRING=Release -S . -B build -G Ninja
-
-      - name: configure-mac
-        if: ${{ matrix.triplet == 'arm64-osx' }}
-        run: |
-          mkdir build
-          cmake --no-warn-unused-cli -DCMAKE_C_COMPILER=/usr/bin/clang -DCMAKE_CXX_COMPILER=/usr/bin/clang++ -DCMAKE_EXPORT_COMPILE_COMMANDS:BOOL=TRUE -DCMAKE_BUILD_TYPE:STRING=Release -S . -B build -G Ninja
 
       - name: build-tests
         run: cmake --build build --config Release --target game_defence_tests
