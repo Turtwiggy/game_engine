@@ -37,7 +37,7 @@ set_transform_with_line(entt::registry& r, const entt::entity& e, const LineInfo
 };
 
 void
-game2d::set_position_and_size_with_line(entt::registry& r, const entt::entity& e, const LineInfo& li)
+set_position_and_size_with_line(entt::registry& r, const entt::entity& e, const LineInfo& li)
 {
   if (auto* aabb = r.try_get<AABB>(e)) {
     aabb->center = { li.position.x, li.position.y };

@@ -84,7 +84,7 @@ jobs:
           cmake --no-warn-unused-cli -DCMAKE_C_COMPILER=/usr/bin/clang -DCMAKE_CXX_COMPILER=/usr/bin/clang++ -DCMAKE_EXPORT_COMPILE_COMMANDS:BOOL=TRUE -DCMAKE_BUILD_TYPE:STRING=Release -S . -B build -G Ninja
 
       - name: build-tests
-        run: cmake --build build --config Release --target game_defence_tests --parallel 10
+        run: cmake --build build --config Release --target game_defence_tests
 
       - name: run-tests
         if: ${{ matrix.triplet == 'x64-windows' }}
@@ -92,7 +92,7 @@ jobs:
           ./build/game_defence_tests/game_defence_tests.exe | findstr -i "pass"
 
       - name: build-game
-        run: cmake --build build --config Release --target game_defence --parallel 10
+        run: cmake --build build --config Release --target game_defence
 
       - name: copy-game-assets
         run: |

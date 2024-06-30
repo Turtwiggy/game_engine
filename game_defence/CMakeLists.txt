@@ -1,7 +1,7 @@
 # this cmake lists compiles the game_defence with the engine
 
 cmake_minimum_required(VERSION 3.5.0)
-set(CMAKE_CXX_STANDARD 23)
+set(CMAKE_CXX_STANDARD 20)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 
 if(EMSCRIPTEN)
@@ -17,7 +17,7 @@ if(EMSCRIPTEN)
   set(LD_FLAGS "${LD_FLAGS} ${EMS}")
 
   set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} ${EMS}")
-  set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++23 -stdlib=libc++ ${EMS}")
+  set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++20 -stdlib=libc++ ${EMS}")
   set(CMAKE_EXECUTABLE_SUFFIX ".html")
 
   message("index VCPKG_CHAINLOAD_TOOLCHAIN_FILE: ${VCPKG_CHAINLOAD_TOOLCHAIN_FILE}")
@@ -26,12 +26,12 @@ endif()
 
 if(CMAKE_SYSTEM_NAME MATCHES Darwin)
   message("setting cxx flags for mac...")
-  set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++23 -stdlib=libc++")
+  set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++20 -stdlib=libc++")
 endif()
 
 if(CMAKE_SYSTEM_NAME MATCHES Linux)
   message("setting cxx flags for linux...")
-  set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++23")
+  set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++20")
 endif()
 
 if(CMAKE_CXX_COMPILER_ID MATCHES GNU)
@@ -49,7 +49,7 @@ if(CMAKE_CXX_COMPILER_ID MATCHES MSVC)
   # set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} /d2cgsummary") # debug compiler backend???
   # set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS}/WX /W3 /wd4275 /wd4251")
   set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} /MP /fp:fast")
-  set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} /std:c++latest /permissive-")
+  set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} /std:c++20 /permissive-")
 endif()
 
 project(game_defence VERSION 0.1.0)

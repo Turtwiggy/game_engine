@@ -6,8 +6,6 @@
 
 #include <fmt/core.h>
 
-#undef main
-
 // Logical	    ASSERT_TRUE(condition)
 //              ASSERT_FALSE(condition)
 // General comparison	ASSERT_EQ(expected, actual) / ASSERT_NE(val1, val2)
