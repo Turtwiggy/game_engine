@@ -29,14 +29,18 @@ if(CMAKE_SYSTEM_NAME MATCHES Darwin)
   set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++23 -stdlib=libc++")
 endif()
 
+if(CMAKE_SYSTEM_NAME MATCHES Linux)
+  message("setting cxx flags for linux...")
+  set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++23")
+endif()
+
 if(CMAKE_CXX_COMPILER_ID MATCHES GNU)
   add_definitions("-Wall")
   add_definitions("-Wextra")
   add_definitions("-Wformat")
   add_definitions("-O2")
-  set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} /std:c++23")
 
-  # add_definitions("-Werror")
+  # set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS}")
 endif()
 
 if(CMAKE_CXX_COMPILER_ID MATCHES MSVC)
