@@ -11,13 +11,13 @@ if(CMAKE_SYSTEM_NAME STREQUAL Windows)
 elseif(CMAKE_SYSTEM_NAME STREQUAL Darwin)
   # Prefer gcc/g++ on mac
   message("setting compiler preference to gcc/g++")
-  set(CMAKE_C_COMPILER "gcc")
-  set(CMAKE_CXX_COMPILER "g++")
+  set(CMAKE_C_COMPILER "/usr/bin/gcc")
+  set(CMAKE_CXX_COMPILER "/usr/bin/g++")
 elseif(CMAKE_SYSTEM_NAME STREQUAL Linux)
   # Prefer gcc/g++ on linux
   message("setting compiler preference to gcc/g++")
-  set(CMAKE_C_COMPILER "gcc")
-  set(CMAKE_CXX_COMPILER "g++")
+  set(CMAKE_C_COMPILER "/usr/bin/gcc")
+  set(CMAKE_CXX_COMPILER "/usr/bin/g++")
 endif()
 
 if(EMSCRIPTEN)
