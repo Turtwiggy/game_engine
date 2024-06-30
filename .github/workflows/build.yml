@@ -62,13 +62,7 @@ jobs:
         if: ${{ matrix.triplet == 'arm64-osx' }}
         run: g++ --version
 
-      - name: configure-non-windows
-        if: ${{ matrix.triplet != 'x64-windows' }}
-        run: |
-          mkdir build
-          cmake --no-warn-unused-cli -DCMAKE_C_COMPILER=/usr/bin/gcc -DCMAKE_CXX_COMPILER=/usr/bin/g++ -DCMAKE_EXPORT_COMPILE_COMMANDS:BOOL=TRUE -DCMAKE_BUILD_TYPE:STRING=Release -S . -B build -G Ninja
-
-      - name: configure-windows
+      - name: configure
         run: |
           mkdir build
           cmake --no-warn-unused-cli -DCMAKE_EXPORT_COMPILE_COMMANDS:BOOL=TRUE -DCMAKE_BUILD_TYPE:STRING=Release -S . -B build -G Ninja
