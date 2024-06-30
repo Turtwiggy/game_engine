@@ -1,4 +1,4 @@
-name: game_defence
+name: windows_build
 
 on:
   push:
