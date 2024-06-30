@@ -4,20 +4,6 @@ cmake_minimum_required(VERSION 3.5.0)
 set(CMAKE_CXX_STANDARD 23)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 
-message("CMAKE_SYSTEM_NAME ${CMAKE_SYSTEM_NAME}")
-
-if(CMAKE_SYSTEM_NAME STREQUAL Windows)
-  message("Windows... use default kit.")
-elseif(CMAKE_SYSTEM_NAME STREQUAL Darwin)
-  message("setting compiler preference to gcc/g++")
-  set(CMAKE_C_COMPILER "/usr/bin/gcc")
-  set(CMAKE_CXX_COMPILER "/usr/bin/g++")
-elseif(CMAKE_SYSTEM_NAME STREQUAL Linux)
-  message("setting compiler preference to gcc/g++")
-  set(CMAKE_C_COMPILER "/usr/bin/gcc")
-  set(CMAKE_CXX_COMPILER "/usr/bin/g++")
-endif()
-
 if(EMSCRIPTEN)
   message("Compiling for emscripten (toolkit set in cmake-kits.json)")
 
@@ -38,7 +24,8 @@ if(EMSCRIPTEN)
   message("index CMAKE_EXECUTABLE_SUFFIX: ${CMAKE_EXECUTABLE_SUFFIX}")
 endif()
 
-if(${CMAKE_SYSTEM_NAME} MATCHES "Darwin")
+if(CMAKE_SYSTEM_NAME MATCHES Darwin)
+  message("setting cxx flags for mac...")
   set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++23 -stdlib=libc++")
 endif()
 

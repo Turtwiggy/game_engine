@@ -1,6 +1,7 @@
 cmake_minimum_required(VERSION 3.5.0)
 set(CMAKE_CXX_STANDARD 23)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
+message("CMAKE_SYSTEM_NAME ${CMAKE_SYSTEM_NAME}")
 
 # set(CMAKE_VERBOSE_MAKEFILE on)
 if(EMSCRIPTEN)
@@ -10,13 +11,25 @@ else()
   set(CMAKE_TOOLCHAIN_FILE ${CMAKE_SOURCE_DIR}/thirdparty/vcpkg/scripts/buildsystems/vcpkg.cmake)
 endif()
 
+if(CMAKE_SYSTEM_NAME STREQUAL Windows)
+  message("Windows... use default kit.")
+elseif(CMAKE_SYSTEM_NAME STREQUAL Darwin)
+  message("setting compiler preference to gcc/g++")
+  set(CMAKE_C_COMPILER "/usr/bin/gcc")
+  set(CMAKE_CXX_COMPILER "/usr/bin/g++")
+elseif(CMAKE_SYSTEM_NAME STREQUAL Linux)
+  message("setting compiler preference to gcc/g++")
+  set(CMAKE_C_COMPILER "/usr/bin/gcc")
+  set(CMAKE_CXX_COMPILER "/usr/bin/g++")
+endif()
+
 project(subprojects VERSION 0.1.0)
 
 # projects
 # add_subdirectory(game_networked)
+# add_subdirectory(game_3d)
 add_subdirectory(game_defence)
 add_subdirectory(game_defence_tests)
-add_subdirectory(game_3d)
 
 set(CPACK_PROJECT_NAME ${PROJECT_NAME})
 set(CPACK_PROJECT_VERSION ${PROJECT_VERSION})
