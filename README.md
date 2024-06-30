@@ -58,7 +58,7 @@ sudo apt install autoconf libtool linux-libc-dev -y
 sudo apt install libglu1-mesa-dev freeglut3-dev mesa-common-dev -y
 
 # glew
-sudo apt-get install libglew-dev -y
+sudo apt-get install libglew-dev libxmu-dev libxi-dev libgl-dev -y
 
 # sdl2
 sudo apt install libsdl2-dev libsdl2-2.0-0 -y
