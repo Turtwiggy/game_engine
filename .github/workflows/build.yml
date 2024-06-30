@@ -60,11 +60,14 @@ jobs:
 
       - name: get-mac-compiler-version
         if: ${{ matrix.triplet == 'arm64-osx' }}
-        run: |
-          brew install gcc
-          g++ --version
+        run: g++ --version
 
-      - name: configure
+      - name: configure-non-windows
+        run: |
+          mkdir build
+          cmake --no-warn-unused-cli -DCMAKE_C_COMPILER=/usr/bin/gcc -DCMAKE_CXX_COMPILER=/usr/bin/g++ -DCMAKE_EXPORT_COMPILE_COMMANDS:BOOL=TRUE -DCMAKE_BUILD_TYPE:STRING=Release -S . -B build -G Ninja
+
+      - name: configure-windows
         run: |
           mkdir build
           cmake --no-warn-unused-cli -DCMAKE_EXPORT_COMPILE_COMMANDS:BOOL=TRUE -DCMAKE_BUILD_TYPE:STRING=Release -S . -B build -G Ninja
