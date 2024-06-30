@@ -57,10 +57,8 @@ jobs:
       - name: get-linux-compiler
         if: ${{ matrix.triplet == 'x64-linux'}}
         run: |
-          sudo apt-get install gcc-14 -y
-          sudo apt-get install g++-14 -y
-          g++-14 --version
-          which g++-14
+          g++ --version
+          which g++
 
       - name: get-mac-compiler
         if: ${{ matrix.triplet == 'arm64-osx' }}
@@ -77,7 +75,7 @@ jobs:
         if: ${{ matrix.triplet == 'x64-linux' }}
         run: |
           mkdir build
-          cmake --no-warn-unused-cli -DCMAKE_C_COMPILER=/usr/bin/gcc-14 -DCMAKE_CXX_COMPILER=/usr/bin/g++-14 -DCMAKE_EXPORT_COMPILE_COMMANDS:BOOL=TRUE -DCMAKE_BUILD_TYPE:STRING=Release -S . -B build -G Ninja
+          cmake --no-warn-unused-cli -DCMAKE_C_COMPILER=/usr/bin/gcc -DCMAKE_CXX_COMPILER=/usr/bin/g++ -DCMAKE_EXPORT_COMPILE_COMMANDS:BOOL=TRUE -DCMAKE_BUILD_TYPE:STRING=Release -S . -B build -G Ninja
 
       - name: configure-mac
         if: ${{ matrix.triplet == 'arm64-osx' }}

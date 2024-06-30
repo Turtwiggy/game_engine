@@ -46,7 +46,7 @@ update_ui_level_up_system(const GameEditor& editor, Game& game)
 
       ImGui::Begin("LevelUp", NULL);
 
-      auto window_table_label = std::format("level-up-table-{}", i).c_str();
+      auto window_table_label = fmt::format("level-up-table-{}", i).c_str();
       if (ImGui::BeginTable(window_table_label, 3)) {
 
         ImGui::TableNextRow();

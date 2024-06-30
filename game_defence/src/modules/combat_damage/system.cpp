@@ -126,7 +126,7 @@ update_take_damage_system(entt::registry& r)
     const auto b_team = std::string(magic_enum::enum_name(r.get<TeamComponent>(request.to).team));
     const auto b_hp = std::to_string(r.get<HealthComponent>(request.to).hp);
 
-    const auto message = std::format("{} ({}) -{}HP. CUR:{}", pretty_b_name, b_team, damage, b_hp);
+    const auto message = fmt::format("{} ({}) -{}HP. CUR:{}", pretty_b_name, b_team, damage, b_hp);
     evts.events.push_back(message);
 
     //

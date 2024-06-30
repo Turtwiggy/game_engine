@@ -1,5 +1,7 @@
 #include "helpers.hpp"
 
+#include <algorithm>
+
 namespace game2d {
 
 std::vector<std::string>
