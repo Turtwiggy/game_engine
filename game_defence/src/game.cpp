@@ -162,10 +162,8 @@ duplicate_held_input(SINGLETON_FixedUpdateInputHistory& fixed_input)
   i.insert(i.end(), first, last);
 };
 
-} // namespace game2d
-
 void
-game2d::fixed_update(engine::SINGLETON_Application& app, entt::registry& game, const uint64_t milliseconds_dt)
+fixed_update(engine::SINGLETON_Application& app, entt::registry& game, const uint64_t milliseconds_dt)
 {
   OPTICK_EVENT("FixedUpdate()");
 
@@ -226,7 +224,7 @@ game2d::fixed_update(engine::SINGLETON_Application& app, entt::registry& game, c
 }
 
 void
-game2d::update(engine::SINGLETON_Application& app, entt::registry& r, const float dt)
+update(engine::SINGLETON_Application& app, entt::registry& r, const float dt)
 {
   OPTICK_EVENT("(update)");
   const auto& scene = get_first_component<SINGLETON_CurrentScene>(r);
@@ -396,3 +394,5 @@ game2d::update(engine::SINGLETON_Application& app, entt::registry& r, const floa
 
   end_frame_render_system(r);
 };
+
+} // namespace game2d

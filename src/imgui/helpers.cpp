@@ -47,7 +47,7 @@ draw_wombo_combo(const WomboComboIn& in)
 };
 
 void
-game2d::imgui_draw_string(const std::string& label, std::string& v)
+imgui_draw_string(const std::string& label, std::string& v)
 {
   ImGui::Text(label.c_str());
   ImGui::SameLine();
@@ -55,7 +55,7 @@ game2d::imgui_draw_string(const std::string& label, std::string& v)
 };
 
 void
-game2d::imgui_draw_int(const std::string& label, int& v)
+imgui_draw_int(const std::string& label, int& v)
 {
   int v_temp = v;
   ImGui::Text(label.c_str());
@@ -65,7 +65,7 @@ game2d::imgui_draw_int(const std::string& label, int& v)
 }
 
 void
-game2d::imgui_draw_float(const std::string& label, float& v)
+imgui_draw_float(const std::string& label, float& v)
 {
   float v_temp = v;
 
@@ -76,7 +76,7 @@ game2d::imgui_draw_float(const std::string& label, float& v)
 };
 
 void
-game2d::imgui_draw_ivec2(const std::string& label, glm::ivec2& xy)
+imgui_draw_ivec2(const std::string& label, glm::ivec2& xy)
 {
   glm::ivec2 v_temp = xy;
 
@@ -89,7 +89,7 @@ game2d::imgui_draw_ivec2(const std::string& label, glm::ivec2& xy)
 }
 
 void
-game2d::imgui_draw_ivec2(const std::string& label, int& x, int& y)
+imgui_draw_ivec2(const std::string& label, int& x, int& y)
 {
   glm::ivec2 v_temp = { x, y };
 
@@ -102,7 +102,7 @@ game2d::imgui_draw_ivec2(const std::string& label, int& x, int& y)
 };
 
 void
-game2d::imgui_draw_vec3(const std::string& label, glm::vec3& xyz)
+imgui_draw_vec3(const std::string& label, glm::vec3& xyz)
 {
   glm::vec3 v_temp = xyz;
 
@@ -116,7 +116,7 @@ game2d::imgui_draw_vec3(const std::string& label, glm::vec3& xyz)
 };
 
 void
-game2d::imgui_draw_vec3(const std::string& label, float& x, float& y, float& z)
+imgui_draw_vec3(const std::string& label, float& x, float& y, float& z)
 {
   glm::vec3 v_temp = { x, y, z };
 
@@ -130,7 +130,7 @@ game2d::imgui_draw_vec3(const std::string& label, float& x, float& y, float& z)
 };
 
 void
-game2d::imgui_draw_ivec3(const std::string& label, int& x, int& y, int& z)
+imgui_draw_ivec3(const std::string& label, int& x, int& y, int& z)
 {
   glm::ivec3 v_temp = { x, y, z };
 
@@ -144,7 +144,7 @@ game2d::imgui_draw_ivec3(const std::string& label, int& x, int& y, int& z)
 };
 
 void
-game2d::imgui_draw_vec2(const std::string label, glm::vec2& xy, const float v_speed)
+imgui_draw_vec2(const std::string label, glm::vec2& xy, const float v_speed)
 {
   glm::vec2 v_temp = xy;
 
@@ -157,7 +157,7 @@ game2d::imgui_draw_vec2(const std::string label, glm::vec2& xy, const float v_sp
 }
 
 void
-game2d::imgui_draw_vec2(const std::string& label, float& x, float& y, const float v_speed)
+imgui_draw_vec2(const std::string& label, float& x, float& y, const float v_speed)
 {
   glm::vec2 v_temp = { x, y };
 
@@ -170,10 +170,10 @@ game2d::imgui_draw_vec2(const std::string& label, float& x, float& y, const floa
 };
 
 void
-game2d::imgui_draw_entity(entt::registry& r,        //
-                          const std::string& label, //
-                          const entt::entity& e,    //
-                          entt::entity& selected_e  //
+imgui_draw_entity(entt::registry& r,        //
+                  const std::string& label, //
+                  const entt::entity& e,    //
+                  entt::entity& selected_e  //
 )
 {
   ImGuiTreeNodeFlags flags = ((selected_e == e) ? ImGuiTreeNodeFlags_Selected : 0);

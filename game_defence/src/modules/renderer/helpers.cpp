@@ -1,14 +1,7 @@
 // header
 #include "helpers.hpp"
 
-// other lib
-#include "opengl/framebuffer.hpp"
-#include "opengl/render_command.hpp"
-#include "opengl/texture.hpp"
-#include "opengl/util.hpp"
-using namespace engine; // used for macro
-
-#include "modules/camera/orthographic.hpp"
+#include "components.hpp"
 
 #include <imgui.h>
 #include <imgui_internal.h>
@@ -19,10 +12,12 @@ using namespace engine; // used for macro
 #endif
 
 #include <algorithm>
-#include <array>
 
-game2d::ViewportInfo
-game2d::render_texture_to_imgui_viewport(const int64_t& tex_id)
+namespace game2d {
+using namespace engine; // used for macro
+
+ViewportInfo
+render_texture_to_imgui_viewport(const int64_t& tex_id)
 {
   static bool dockspace_open = true;
   static ImGuiDockNodeFlags dockspace_flags = ImGuiDockNodeFlags_None;
@@ -114,7 +109,7 @@ game2d::render_texture_to_imgui_viewport(const int64_t& tex_id)
 }
 
 bool
-game2d::check_if_viewport_resize(const SINGLETON_RendererInfo& ri)
+check_if_viewport_resize(const SINGLETON_RendererInfo& ri)
 {
   const auto viewport_wh = ri.viewport_size_render_at;
 
@@ -125,8 +120,8 @@ game2d::check_if_viewport_resize(const SINGLETON_RendererInfo& ri)
   return false;
 }
 
-std::optional<game2d::TextureUnit>
-game2d::search_for_texture_unit_by_texture_path(const game2d::SINGLETON_RendererInfo& ri, const std::string& search)
+std::optional<TextureUnit>
+search_for_texture_unit_by_texture_path(const SINGLETON_RendererInfo& ri, const std::string& search)
 {
   const auto result = std::find_if(ri.user_textures.begin(), ri.user_textures.end(), [&search](const Texture& tex) {
     return tex.path.find(search) != std::string::npos;
@@ -138,8 +133,8 @@ game2d::search_for_texture_unit_by_texture_path(const game2d::SINGLETON_Renderer
   return std::nullopt;
 };
 
-std::optional<game2d::TextureId>
-game2d::search_for_texture_id_by_texture_path(const game2d::SINGLETON_RendererInfo& ri, const std::string& search)
+std::optional<TextureId>
+search_for_texture_id_by_texture_path(const SINGLETON_RendererInfo& ri, const std::string& search)
 {
   const auto result = std::find_if(ri.user_textures.begin(), ri.user_textures.end(), [&search](const Texture& tex) {
     return tex.path.find(search) != std::string::npos;
@@ -151,8 +146,8 @@ game2d::search_for_texture_id_by_texture_path(const game2d::SINGLETON_RendererIn
   return std::nullopt;
 };
 
-std::optional<game2d::TextureUnit>
-game2d::search_for_texture_unit_by_spritesheet_path(const game2d::SINGLETON_RendererInfo& ri, const std::string& search)
+std::optional<TextureUnit>
+search_for_texture_unit_by_spritesheet_path(const SINGLETON_RendererInfo& ri, const std::string& search)
 {
   const auto result = std::find_if(ri.user_textures.begin(), ri.user_textures.end(), [&search](const Texture& tex) {
     return tex.spritesheet_path.find(search) != std::string::npos;
@@ -164,8 +159,8 @@ game2d::search_for_texture_unit_by_spritesheet_path(const game2d::SINGLETON_Rend
   return std::nullopt;
 };
 
-std::optional<game2d::TextureId>
-game2d::search_for_texture_id_by_spritesheet_path(const game2d::SINGLETON_RendererInfo& ri, const std::string& search)
+std::optional<TextureId>
+search_for_texture_id_by_spritesheet_path(const SINGLETON_RendererInfo& ri, const std::string& search)
 {
   const auto result = std::find_if(ri.user_textures.begin(), ri.user_textures.end(), [&search](const Texture& tex) {
     return tex.spritesheet_path.find(search) != std::string::npos;
@@ -176,3 +171,5 @@ game2d::search_for_texture_id_by_spritesheet_path(const game2d::SINGLETON_Render
 
   return std::nullopt;
 };
+
+} // namespace game2d

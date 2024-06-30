@@ -1,12 +1,9 @@
 #pragma once
 
 #include "app/application.hpp"
-#include "colour/colour.hpp"
 #include "modules/renderer/components.hpp"
 
 #include <entt/entt.hpp>
-
-#include <vector>
 
 namespace game2d {
 

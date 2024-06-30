@@ -7,6 +7,7 @@
 #include "opengl/shader.hpp"
 
 // other
+#include "imgui.h"
 #include <glm/glm.hpp>
 #include <glm/gtc/quaternion.hpp>
 #include <nlohmann/json.hpp>
@@ -14,6 +15,14 @@
 #include <vector>
 
 namespace game2d {
+
+struct ViewportInfo
+{
+  ImVec2 pos;
+  ImVec2 size;
+  bool focused = false;
+  bool hovered = false;
+};
 
 inline void
 to_json(nlohmann::json& j, const TransformComponent& t)

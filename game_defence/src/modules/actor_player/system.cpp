@@ -16,8 +16,10 @@
 #include <SDL2/SDL_mouse.h>
 #include <glm/glm.hpp>
 
+namespace game2d {
+
 void
-game2d::update_player_controller_system(entt::registry& r, const uint64_t& milliseconds_dt)
+update_player_controller_system(entt::registry& r, const uint64_t& milliseconds_dt)
 {
   const auto& finputs = get_first_component<SINGLETON_FixedUpdateInputHistory>(r);
   const auto& inputs = finputs.history.at(finputs.fixed_tick);
@@ -134,3 +136,5 @@ game2d::update_player_controller_system(entt::registry& r, const uint64_t& milli
     }
   }
 };
+
+} // namespace game2d

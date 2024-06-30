@@ -36,11 +36,10 @@ using namespace engine; // used for macro
 #include <glm/glm.hpp>
 #include <glm/gtc/type_ptr.hpp>
 
-#include <ranges>
+#include "components.hpp"
 
 namespace game2d {
 using namespace std::literals;
-const int blur_scale = 8;
 
 void
 rebind(entt::registry& r, const SINGLETON_RendererInfo& ri)
@@ -102,7 +101,7 @@ rebind(entt::registry& r, const SINGLETON_RendererInfo& ri)
     glBindTexture(GL_TEXTURE_2D, tex.tex_id.id);
   }
 
-  auto& camera = game2d::get_first_component<OrthographicCamera>(r);
+  auto& camera = get_first_component<OrthographicCamera>(r);
   camera.projection = calculate_ortho_projection(wh.x, wh.y);
 
   const int tex_unit_kenny = search_for_texture_unit_by_texture_path(ri, "monochrome")->unit;
@@ -154,7 +153,7 @@ rebind(entt::registry& r, const SINGLETON_RendererInfo& ri)
 };
 
 void
-game2d::init_render_system(const engine::SINGLETON_Application& app, entt::registry& r, SINGLETON_RendererInfo& ri)
+init_render_system(const engine::SINGLETON_Application& app, entt::registry& r, SINGLETON_RendererInfo& ri)
 {
   const glm::ivec2 screen_wh = { app.width, app.height };
   ri.viewport_size_render_at = screen_wh;
@@ -233,10 +232,10 @@ game2d::init_render_system(const engine::SINGLETON_Application& app, entt::regis
   triangle_fan_renderer::TriangleFanRenderer::init();
 
   rebind(r, ri);
-}
+};
 
 void
-game2d::update_render_system(entt::registry& r, const float dt, const glm::vec2& mouse_pos)
+update_render_system(entt::registry& r, const float dt, const glm::vec2& mouse_pos)
 {
   auto& ri = get_first_component<SINGLETON_RendererInfo>(r);
   static const engine::SRGBColour black(0, 0, 0, 1.0f);
@@ -275,7 +274,7 @@ game2d::update_render_system(entt::registry& r, const float dt, const glm::vec2&
 #endif
 
   // Camera
-  const auto camera_e = game2d::get_first<OrthographicCamera>(r);
+  const auto camera_e = get_first<OrthographicCamera>(r);
   const auto& camera = r.get<OrthographicCamera>(camera_e);
   const auto& camera_t = r.get<TransformComponent>(camera_e);
   ri.instanced.bind();
@@ -599,7 +598,7 @@ game2d::update_render_system(entt::registry& r, const float dt, const glm::vec2&
 };
 
 void
-game2d::end_frame_render_system(entt::registry& registry)
+end_frame_render_system(entt::registry& registry)
 {
   quad_renderer::QuadRenderer::end_frame();
   triangle_fan_renderer::TriangleFanRenderer::end_frame();

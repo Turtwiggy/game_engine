@@ -167,9 +167,9 @@ update(engine::SINGLETON_Application& app, entt::registry& r, const float dt)
     const auto& models = r.view<ModelComponent, TransformComponent>();
     ImGui::Begin("Models");
     for (const auto& [e, model, transform] : models.each()) {
-      game2d::imgui_draw_vec3("Pos: ", transform.position.x, transform.position.y, transform.position.z);
-      game2d::imgui_draw_vec3("Render Size: ", transform.scale.x, transform.scale.y, transform.scale.z);
-      game2d::imgui_draw_vec3("Render Angle:", transform.rotation.x, transform.rotation.y, transform.rotation.z);
+      imgui_draw_vec3("Pos: ", transform.position.x, transform.position.y, transform.position.z);
+      imgui_draw_vec3("Render Size: ", transform.scale.x, transform.scale.y, transform.scale.z);
+      imgui_draw_vec3("Render Angle:", transform.rotation.x, transform.rotation.y, transform.rotation.z);
     }
     ImGui::End();
 

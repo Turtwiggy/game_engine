@@ -4,18 +4,16 @@
 // components
 #include "entt/helpers.hpp"
 #include "lifecycle/components.hpp"
-#include "maths/maths.hpp"
 #include "physics/components.hpp"
 #include "physics/helpers.hpp"
 #include "renderer/transform.hpp"
 
-
 #include "optick.h"
+#include <glm/glm.hpp>
 
 // c++ lib headers
-#include <algorithm>
+#include <cmath>
 #include <set>
-#include <vector>
 
 namespace game2d {
 

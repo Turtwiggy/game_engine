@@ -4,8 +4,10 @@
 #include "entt/helpers.hpp"
 #include "lifecycle/components.hpp"
 
+namespace game2d {
+
 void
-game2d::update_lifecycle_system(entt::registry& r, const uint64_t& milliseconds_dt)
+update_lifecycle_system(entt::registry& r, const uint64_t& milliseconds_dt)
 {
   auto& dead = get_first_component<SINGLETON_EntityBinComponent>(r);
 
@@ -31,3 +33,5 @@ game2d::update_lifecycle_system(entt::registry& r, const uint64_t& milliseconds_
   const auto requests = r.view<WaitForInitComponent>();
   r.remove<WaitForInitComponent>(requests.begin(), requests.end());
 };
+
+} // namespace game2d

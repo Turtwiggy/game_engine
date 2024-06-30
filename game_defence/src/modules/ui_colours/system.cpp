@@ -87,7 +87,7 @@ init_ui_colour_palette_system(entt::registry& r)
 }
 
 void
-game2d::update_ui_colour_palette_system(entt::registry& r)
+update_ui_colour_palette_system(entt::registry& r)
 {
   auto& colours = get_first_component<SINGLE_ColoursInfo>(r);
 

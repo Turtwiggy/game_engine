@@ -8,11 +8,14 @@
 // other lib headers
 #include <algorithm>
 #include <glm/glm.hpp>
+
 #include <ranges>
 #include <vector>
 
+namespace game2d {
+
 void
-game2d::update_actor_actor_collisions_system(entt::registry& r, SINGLETON_PhysicsComponent& p)
+update_actor_actor_collisions_system(entt::registry& r, SINGLETON_PhysicsComponent& p)
 {
   // 1. get all the actors
   // 2. generate all possible collisions
@@ -96,3 +99,5 @@ game2d::update_actor_actor_collisions_system(entt::registry& r, SINGLETON_Physic
     p.persistent_collisions.erase(first, last);
   }
 };
+
+} // namespace game2d

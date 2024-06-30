@@ -1,7 +1,6 @@
 #include "system.hpp"
 
 // components
-#include "actors.hpp"
 #include "imgui/helpers.hpp"
 #include "physics/components.hpp"
 #include "renderer/components.hpp"
@@ -15,8 +14,10 @@
 
 #include <utility>
 
+namespace game2d {
+
 void
-game2d::update_ui_hierarchy_system(entt::registry& r)
+update_ui_hierarchy_system(entt::registry& r)
 {
   const size_t entities = r.storage<entt::entity>().in_use();
   static entt::entity selected_entity = entt::null;
@@ -77,7 +78,7 @@ game2d::update_ui_hierarchy_system(entt::registry& r)
         const auto* tag = r.try_get<TagComponent>(e);
         if (tag != nullptr) {
           ImGui::SameLine();
-          game2d::imgui_draw_entity(r, tag->tag, e, selected_entity);
+          imgui_draw_entity(r, tag->tag, e, selected_entity);
         } else
           ImGui::Text("Non-tagged entity");
       }
@@ -97,7 +98,7 @@ game2d::update_ui_hierarchy_system(entt::registry& r)
         if (i >= min_show && i <= max_show) {
           ImGui::Text("eid: %i", entity);
           ImGui::SameLine();
-          game2d::imgui_draw_entity(r, tag, entity, selected_entity);
+          imgui_draw_entity(r, tag, entity, selected_entity);
         }
         i++;
       }
@@ -200,3 +201,5 @@ game2d::update_ui_hierarchy_system(entt::registry& r)
   }
   ImGui::End();
 };
+
+} // namespace game2d

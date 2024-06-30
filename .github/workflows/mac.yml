@@ -52,8 +52,8 @@ jobs:
         run: |
           cp -r ${{ github.workspace }}/game_defence/assets ./build/game_defence/
           rm -r ./build/game_defence/CMakeFiles
-          rm ./build/game_defence/*.cmake 
-          rm ./build/game_defence/*.manifest
+          rm ./build/game_defence/*.cmake  || true
+          rm ./build/game_defence/*.manifest || true
 
       - name: release-game
         uses: actions/upload-artifact@v3

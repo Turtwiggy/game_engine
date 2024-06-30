@@ -15,8 +15,10 @@
 #include <iterator>
 #include <vector>
 
+namespace game2d {
+
 void
-game2d::update_ui_pause_menu_system(engine::SINGLETON_Application& app, entt::registry& r)
+update_ui_pause_menu_system(engine::SINGLETON_Application& app, entt::registry& r)
 {
   ImGuiWindowFlags flags = 0;
   flags |= ImGuiWindowFlags_NoFocusOnAppearing;
@@ -137,3 +139,5 @@ game2d::update_ui_pause_menu_system(engine::SINGLETON_Application& app, entt::re
     ImGui::End();
   }
 };
+
+} // namespace game2d

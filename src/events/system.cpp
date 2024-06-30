@@ -14,8 +14,10 @@
 #include <fmt/core.h>
 #include <vector>
 
+namespace game2d {
+
 void
-game2d::init_input_system(entt::registry& r)
+init_input_system(entt::registry& r)
 {
   auto& input = get_first_component<SINGLETON_InputComponent>(r);
   input.state = SDL_GetKeyboardState(NULL);
@@ -23,7 +25,7 @@ game2d::init_input_system(entt::registry& r)
 };
 
 void
-game2d::update_input_system(engine::SINGLETON_Application& app, entt::registry& r)
+update_input_system(engine::SINGLETON_Application& app, entt::registry& r)
 {
   auto& input = get_first_component<SINGLETON_InputComponent>(r);
   input.update_since_last_fixed_update = true;
@@ -207,3 +209,5 @@ game2d::update_input_system(engine::SINGLETON_Application& app, entt::registry& 
     }
   }
 };
+
+} // namespace game2d
