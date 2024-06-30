@@ -16,7 +16,7 @@
 #include <glm/glm.hpp>
 #include <imgui.h>
 
-#include <print>
+#include <fmt/core.h>
 #include <string>
 
 namespace game2d {
@@ -165,7 +165,7 @@ update_ui_scene_main_menu(engine::SINGLETON_Application& app, entt::registry& r)
     toggle = toggle == 1 ? 0 : 1;
     toggle_changed = true;
 
-    std::println("toggle changed to: {}", toggle);
+    fmt::println("toggle changed to: {}", toggle);
     save_string(PLAYERPREF_MUTE, toggle == 1 ? "true"s : "false"s);
   }
 
@@ -174,7 +174,7 @@ update_ui_scene_main_menu(engine::SINGLETON_Application& app, entt::registry& r)
     auto& audio = get_first_component<SINGLETON_AudioComponent>(r);
     audio.all_mute = false;
 
-    std::println("changed to unmute all");
+    fmt::println("changed to unmute all");
 
     // move_to_scene_start(r, Scene::menu);
     create_empty<AudioRequestPlayEvent>(r, AudioRequestPlayEvent{ "MENU_01" });
@@ -185,7 +185,7 @@ update_ui_scene_main_menu(engine::SINGLETON_Application& app, entt::registry& r)
     audio.all_mute = true;
     stop_all_audio(r);
 
-    std::println("muted all");
+    fmt::println("muted all");
   }
   toggle_changed = false;
 

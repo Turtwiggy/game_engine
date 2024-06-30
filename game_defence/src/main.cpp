@@ -17,7 +17,7 @@ using namespace engine;
 
 // std lib
 #include <chrono>
-#include <print>
+#include <fmt/core.h>
 
 // fixed tick
 static const int MILLISECONDS_PER_FIXED_TICK = 7; // or ~142 ticks per second
@@ -38,7 +38,7 @@ main_loop(void* arg)
   OPTICK_FRAME("MainThread");
 
 #if defined(__EMSCRIPTEN_PTHREADS__)
-  std::println("Emscripten pthreads defined");
+  fmt::println("Emscripten pthreads defined");
 #endif
 
   engine::start_frame(app);
@@ -66,7 +66,7 @@ main_loop(void* arg)
     const auto after_fixed_update = SDL_GetTicks64();
     const auto execution_time = after_fixed_update - before_fixed_update;
     if (execution_time > MILLISECONDS_PER_FIXED_TICK)
-      std::println("uh oh! in trouble! fixedupdate() is taking too long");
+      fmt::println("uh oh! in trouble! fixedupdate() is taking too long");
 #endif
   }
 

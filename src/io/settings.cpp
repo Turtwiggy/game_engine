@@ -2,10 +2,11 @@
 
 #include <nlohmann/json.hpp>
 
+#include <fmt/core.h>
 #include <fstream>
-#include <print>
 #include <sstream>
 #include <string>
+
 
 namespace game2d {
 

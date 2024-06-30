@@ -5,7 +5,7 @@
 #include "modules/ui_colours/components.hpp"
 
 #include <algorithm>
-#include <print>
+#include <fmt/core.h>
 
 namespace game2d {
 
@@ -23,7 +23,7 @@ get_lin_colour_by_tag(entt::registry& r, const std::string& tag)
   }
 
   // otherwise, return the colour
-  std::println("warning: no colour tag found for: {}", tag);
+  fmt::println("warning: no colour tag found for: {}", tag);
   return engine::SRGBToLinear({ 1.0f, 1.0f, 1.0f, 1.0f });
 }
 
@@ -41,7 +41,7 @@ get_srgb_colour_by_tag(entt::registry& r, const std::string& tag)
   }
 
   // otherwise, return the colour
-  std::println("warning: no colour tag found for: {}", tag);
+  fmt::println("warning: no colour tag found for: {}", tag);
   return engine::SRGBColour{ 1.0f, 1.0f, 1.0f, 1.0f };
 }
 

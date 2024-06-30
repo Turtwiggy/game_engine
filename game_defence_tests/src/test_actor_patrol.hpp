@@ -13,7 +13,7 @@
 #include <glm/glm.hpp>
 #include <gtest/gtest.h>
 
-#include <print>
+#include <fmt/core.h>
 
 namespace game2d {
 
@@ -38,7 +38,7 @@ TEST(TestSuite, ActorEnemyPatrol_Backstabs)
   int i = 0;
   const auto test_patrol =
     [&r, &player_e, &i](const glm::vec2& lookdir, const glm::ivec2& player_pos, const bool is_backstabbable) {
-      std::println("Testing patrol case: {}", i++);
+      fmt::println("Testing patrol case: {}", i++);
 
       // Arrange
       const auto patrol_e = create_gameplay(r, EntityType::actor_enemy_patrol);
@@ -80,7 +80,7 @@ TEST(TestSuite, ActorEnemyPatrol_Backstabs)
 
   // different backstab cases
   //
-  std::println("Testing patrol case: looking_right");
+  fmt::println("Testing patrol case: looking_right");
   test_patrol(looking_right, on_left, true);
   test_patrol(looking_right, on_left_upper, true);
   test_patrol(looking_right, on_left_lower, true);
@@ -88,7 +88,7 @@ TEST(TestSuite, ActorEnemyPatrol_Backstabs)
   test_patrol(looking_right, above, false);
   test_patrol(looking_right, below, false);
 
-  std::println("Testing patrol case: looking_left");
+  fmt::println("Testing patrol case: looking_left");
   test_patrol(looking_left, on_right, true);
   test_patrol(looking_left, on_right_upper, true);
   test_patrol(looking_left, on_right_lower, true);
@@ -96,7 +96,7 @@ TEST(TestSuite, ActorEnemyPatrol_Backstabs)
   test_patrol(looking_left, above, false);
   test_patrol(looking_left, below, false);
 
-  std::println("Testing patrol case: looking_up");
+  fmt::println("Testing patrol case: looking_up");
   test_patrol(looking_up, below, true);
   test_patrol(looking_up, on_below_upper, true);
   test_patrol(looking_up, on_below_lower, true);
@@ -104,7 +104,7 @@ TEST(TestSuite, ActorEnemyPatrol_Backstabs)
   test_patrol(looking_up, on_left, false);
   test_patrol(looking_up, above, false);
 
-  std::println("Testing patrol case: looking_down");
+  fmt::println("Testing patrol case: looking_down");
   test_patrol(looking_down, above, true);
   test_patrol(looking_down, on_above_upper, true);
   test_patrol(looking_down, on_above_lower, true);

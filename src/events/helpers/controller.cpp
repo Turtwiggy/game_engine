@@ -4,7 +4,7 @@
 #include "maths/maths.hpp"
 
 #include <SDL2/SDL.h>
-#include <print>
+#include <fmt/core.h>
 
 namespace game2d {
 
@@ -12,7 +12,7 @@ void
 open_controllers(SINGLETON_InputComponent& input)
 {
   const int controllers = SDL_NumJoysticks();
-  std::println("(InputManager) controllers available: {}", controllers);
+  fmt::println("(InputManager) controllers available: {}", controllers);
 
   for (int i = 0; i < controllers; ++i) {
     if (SDL_IsGameController(i)) {
@@ -20,9 +20,9 @@ open_controllers(SINGLETON_InputComponent& input)
       SDL_GameController* controller = SDL_GameControllerOpen(i);
       if (controller) {
         input.controllers.push_back(controller);
-        std::println("(InputManager) controller loaded... {}", i);
+        fmt::println("(InputManager) controller loaded... {}", i);
       } else {
-        std::println("Could not open gamecontroller {}, error: {}", i, SDL_GetError());
+        fmt::println("Could not open gamecontroller {}, error: {}", i, SDL_GetError());
       }
     }
   }
@@ -31,7 +31,7 @@ open_controllers(SINGLETON_InputComponent& input)
 void
 process_controller_added(SINGLETON_InputComponent& input)
 {
-  std::println("controller added... processing");
+  fmt::println("controller added... processing");
 
   for (auto* controller : input.controllers) {
     if (controller)
@@ -45,7 +45,7 @@ process_controller_added(SINGLETON_InputComponent& input)
 void
 process_controller_removed(SINGLETON_InputComponent& input)
 {
-  std::println("controller removed... processing");
+  fmt::println("controller removed... processing");
 
   for (auto* controller : input.controllers) {
     if (controller)

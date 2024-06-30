@@ -14,7 +14,8 @@
 #include <SDL2/SDL_syswm.h>
 
 // c++ standard library headers
-#include <print>
+#include <fmt/core.h>
+#include <stdexcept>
 #include <string>
 
 #if defined(SDL_VIDEO_DRIVER_WINDOWS)
@@ -32,9 +33,9 @@ GameWindow::GameWindow(const std::string& title, int width, int height, DisplayM
   SDL_VERSION(&compiledVersion);
   SDL_GetVersion(&linkedVersion);
 
-  std::println("Initializing SDL...");
-  std::println("SDL Version/Compiled {}.{}.{}", compiledVersion.major, compiledVersion.major, compiledVersion.patch);
-  std::println("SDL Version/Linked {}.{}.{}", linkedVersion.major, linkedVersion.major, linkedVersion.patch);
+  fmt::println("Initializing SDL...");
+  fmt::println("SDL Version/Compiled {}.{}.{}", compiledVersion.major, compiledVersion.major, compiledVersion.patch);
+  fmt::println("SDL Version/Linked {}.{}.{}", linkedVersion.major, linkedVersion.major, linkedVersion.patch);
 
   // Initialize SDL -----------------------
 
@@ -42,19 +43,19 @@ GameWindow::GameWindow(const std::string& title, int width, int height, DisplayM
     SDL_SetMainReady();
 
     if (SDL_Init(0) != 0)
-      std::println("could not initialize SDL: ", SDL_GetError());
+      fmt::println("could not initialize SDL: ", SDL_GetError());
 
     if (SDL_InitSubSystem(SDL_INIT_AUDIO) != 0)
-      std::println("Could not initialize SDL Audio Subsystem: ", SDL_GetError());
+      fmt::println("Could not initialize SDL Audio Subsystem: ", SDL_GetError());
 
     if (SDL_InitSubSystem(SDL_INIT_VIDEO) != 0)
-      std::println("Could not initialize SDL Video Subsystem: ", SDL_GetError());
+      fmt::println("Could not initialize SDL Video Subsystem: ", SDL_GetError());
 
     if (SDL_InitSubSystem(SDL_INIT_TIMER) != 0)
-      std::println("Could not initialize SDL Timer Subsystem: ", SDL_GetError());
+      fmt::println("Could not initialize SDL Timer Subsystem: ", SDL_GetError());
 
     if (SDL_InitSubSystem(SDL_INIT_JOYSTICK) != 0)
-      std::println("Could not initialize SDL JoyStick Subsystem: ", SDL_GetError());
+      fmt::println("Could not initialize SDL JoyStick Subsystem: ", SDL_GetError());
   }
 
   int flags = SDL_WINDOW_OPENGL | SDL_WINDOW_INPUT_FOCUS | SDL_WINDOW_ALLOW_HIGHDPI;
@@ -125,13 +126,13 @@ GameWindow::GameWindow(const std::string& title, int width, int height, DisplayM
 
   SDL_Window* window = SDL_CreateWindow(title.c_str(), x, y, width, height, flags);
   if (window == nullptr)
-    std::println("Failed to create SDL2 window: {}", SDL_GetError());
+    fmt::println("Failed to create SDL2 window: {}", SDL_GetError());
 
   gl_context = SDL_GL_CreateContext(window);
   SDL_GL_MakeCurrent(window, gl_context);
 
   if (gl_context == NULL) {
-    std::println("OpenGL context could not be created! SDL Error: {}", SDL_GetError());
+    fmt::println("OpenGL context could not be created! SDL Error: {}", SDL_GetError());
   } else {
 #if !defined(__EMSCRIPTEN__)
     // Initialize GLEW
@@ -139,7 +140,7 @@ GameWindow::GameWindow(const std::string& title, int width, int height, DisplayM
     GLenum glewError = glewInit();
     if (glewError != GLEW_OK) {
       const GLubyte* err = glewGetErrorString(glewError);
-      std::println("Error initializing GLEW! {}", reinterpret_cast<const char*>(err));
+      fmt::println("Error initializing GLEW! {}", reinterpret_cast<const char*>(err));
     }
 #endif
   }
@@ -172,7 +173,7 @@ GameWindow::get_native_handles(void*& native_window) const
   SDL_SysWMinfo wmi;
   SDL_VERSION(&wmi.version);
   if (!SDL_GetWindowWMInfo(this->get_handle(), &wmi)) {
-    std::println("Failed getting native window handles: {}", SDL_GetError());
+    fmt::println("Failed getting native window handles: {}", SDL_GetError());
     exit(0);
   }
 
@@ -190,7 +191,7 @@ GameWindow::get_native_handles(void*& native_window) const
 #endif // defined(SDL_VIDEO_DRIVER_COCOA)
 
   {
-    std::println("Unsupported platform: {}", std::to_string(wmi.subsystem));
+    fmt::println("Unsupported platform: {}", std::to_string(wmi.subsystem));
     exit(0);
   }
 };
@@ -352,7 +353,7 @@ GameWindow::toggle_mouse_capture()
     set_mouse_captured(false);
     new_grab = false;
   }
-  std::println("(App) Mouse grabbed? : {}", new_grab);
+  fmt::println("(App) Mouse grabbed? : {}", new_grab);
 }
 
 glm::ivec2

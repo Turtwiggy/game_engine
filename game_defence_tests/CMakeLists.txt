@@ -73,6 +73,7 @@ endif()
 
 find_package(nlohmann_json CONFIG REQUIRED)
 find_package(glm CONFIG REQUIRED)
+find_package(fmt CONFIG REQUIRED)
 find_path(STB_INCLUDE_DIRS "stb_c_lexer.h")
 
 # Add Testing
@@ -132,6 +133,7 @@ else()
 endif()
 
 target_link_libraries(game_defence_tests PRIVATE glm::glm)
+target_link_libraries(game_defence_tests PRIVATE fmt::fmt)
 target_link_libraries(game_defence_tests PRIVATE nlohmann_json::nlohmann_json)
 target_link_libraries(game_defence_tests PRIVATE GTest::gmock GTest::gtest GTest::gmock_main GTest::gtest_main)
 

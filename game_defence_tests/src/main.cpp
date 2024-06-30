@@ -4,7 +4,7 @@
 #include "test_actor_patrol.hpp"
 #include "test_physics.hpp"
 
-#include <print>
+#include <fmt/core.h>
 
 #undef main
 
@@ -25,7 +25,7 @@
 int
 main(int argc, char** argv)
 {
-  std::println("Running main() from {}", __FILE__);
+  fmt::println("Running main() from {}", __FILE__);
   testing::InitGoogleTest(&argc, argv);
   return RUN_ALL_TESTS();
 }

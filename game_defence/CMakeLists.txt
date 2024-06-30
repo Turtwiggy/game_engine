@@ -75,6 +75,7 @@ endif()
 
 find_package(nlohmann_json CONFIG REQUIRED)
 find_package(glm CONFIG REQUIRED)
+find_package(fmt CONFIG REQUIRED)
 find_path(STB_INCLUDE_DIRS "stb_c_lexer.h")
 
 # Add source files
@@ -131,6 +132,7 @@ else()
 endif()
 
 target_link_libraries(game_defence PRIVATE glm::glm)
+target_link_libraries(game_defence PRIVATE fmt::fmt)
 target_link_libraries(game_defence PRIVATE nlohmann_json::nlohmann_json)
 
 IF(${CMAKE_SYSTEM_NAME} STREQUAL "Windows")

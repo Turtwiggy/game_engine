@@ -9,8 +9,8 @@
 #include <nlohmann/json.hpp>
 
 // std libs
+#include <fmt/core.h>
 #include <fstream>
-#include <print>
 #include <string>
 #include <vector>
 
@@ -26,7 +26,7 @@ struct Frame
 void
 load_sprites(SINGLE_Animations& anims, const std::string path)
 {
-  std::println("loading sprite config: {}", path);
+  fmt::println("loading sprite config: {}", path);
   std::ifstream f(path);
   json data = json::parse(f);
 
@@ -83,7 +83,7 @@ find_animation(const SINGLE_Animations& anims, const std::string name)
       return { spritesheet, *s };
   }
 
-  std::println("CONFIG ERROR: sprite not found: {}", name);
+  fmt::println("CONFIG ERROR: sprite not found: {}", name);
   exit(1); // explode!
 }
 

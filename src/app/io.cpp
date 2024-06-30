@@ -4,7 +4,7 @@
 
 // other library headers
 #include <chrono>
-#include <print>
+#include <fmt/core.h>
 #include <string>
 
 #if defined(WIN32)
@@ -18,7 +18,7 @@ log_time_since(const std::string& label, std::chrono::time_point<std::chrono::hi
 {
   const auto x = std::chrono::high_resolution_clock::now();
   const auto y = std::chrono::duration_cast<std::chrono::milliseconds>(x - start).count();
-  std::println("{}{}ms", label, y);
+  fmt::println("{}{}ms", label, y);
 }
 
 #if defined(WIN32)

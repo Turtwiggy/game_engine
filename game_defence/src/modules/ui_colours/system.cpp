@@ -12,8 +12,8 @@
 #include <nlohmann/json.hpp>
 
 // std libs
+#include <fmt/core.h>
 #include <fstream>
-#include <print>
 #include <string>
 #include <vector>
 
@@ -83,7 +83,7 @@ init_ui_colour_palette_system(entt::registry& r)
   }
 
   destroy_first_and_create<SINGLE_ColoursInfo>(r, info);
-  std::println("colours loaded: {}", info.colours.size());
+  fmt::println("colours loaded: {}", info.colours.size());
 }
 
 void

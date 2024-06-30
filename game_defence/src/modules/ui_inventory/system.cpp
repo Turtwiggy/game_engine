@@ -7,7 +7,7 @@
 
 #include "imgui.h"
 
-#include <print>
+#include <fmt/core.h>
 #include <ranges>
 
 namespace game2d {
@@ -27,7 +27,7 @@ check_item_parent_valid(entt::registry& r, const entt::entity& e)
 
     // ahh! parent was never set.
     if (parent_e == entt::null) {
-      std::println("Item parent was never set");
+      fmt::println("Item parent was never set");
       continue;
     }
 
@@ -47,7 +47,7 @@ update_item_parent(entt::registry& r, const entt::entity& item, const entt::enti
 
   // ahh! parent was never set.
   if (old_parent == entt::null) {
-    std::println("Item parent was never set");
+    fmt::println("Item parent was never set");
     return;
   }
 

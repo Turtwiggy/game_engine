@@ -3,7 +3,7 @@
 #include "opengl/util.hpp"
 
 #include <cassert>
-#include <print>
+#include <fmt/core.h>
 
 namespace engine {
 
@@ -56,7 +56,7 @@ print_gpu_info()
   // how to get GPU info from OpenGL
   // -------------------------------
   // GPU Info
-  std::println("(INFO) OpenGL version supported by this platform: {}",
+  fmt::println("(INFO) OpenGL version supported by this platform: {}",
                reinterpret_cast<const char*>(glGetString(GL_VERSION)));
 
   int params[1];
@@ -64,7 +64,7 @@ print_gpu_info()
 
   // printf("(INFO) GPU: Max shader storage buffer bindings: %i \n", params[0]);
   glGetIntegerv(GL_MAX_TEXTURE_IMAGE_UNITS, params);
-  std::println("(INFO) GL_MAX_TEXTURE_IMAGE_UNITS: {}", params[0]);
+  fmt::println("(INFO) GL_MAX_TEXTURE_IMAGE_UNITS: {}", params[0]);
 
   // GL_MAX_SHADER_STORAGE_BUFFER_BINDINGS = 96
   // GL_MAX_SHADER_STORAGE_BLOCK_SIZE = 2147483647

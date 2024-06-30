@@ -32,7 +32,7 @@
 
 #include "magic_enum.hpp"
 
-#include <print>
+#include <fmt/core.h>
 #include <string>
 
 namespace game2d {
@@ -131,7 +131,7 @@ sprite_type_to_sprite(entt::registry& r, const EntityType& type)
   //   sprite = "PERSON_28_1";
 
   // else
-  //   std::println("warning! sprite set to empty: " << type_name << ".\n";
+  //   fmt::println("warning! sprite set to empty: " << type_name << ".\n";
 
   return sprite;
 };
@@ -550,7 +550,7 @@ create_gameplay(entt::registry& r, const EntityType& type)
     }
 
     default: {
-      std::println("warning: no gameplay implemented for: {}", type_name);
+      fmt::println("warning: no gameplay implemented for: {}", type_name);
     }
   } // end switch
 

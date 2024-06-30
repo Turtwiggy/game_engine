@@ -8,8 +8,8 @@
 #include "modules/camera/components.hpp"
 #include "modules/renderer/components.hpp"
 
+#include <fmt/core.h>
 #include <fstream>
-#include <print>
 #include <sstream>
 #include <string>
 
@@ -48,7 +48,7 @@ namespace game2d {
 void
 save(const entt::registry& r, const std::string& path)
 {
-  std::println("saving... {}", path);
+  fmt::println("saving... {}", path);
 
   // limit snapshots to actors
   const auto v =
@@ -102,13 +102,13 @@ save(const entt::registry& r, const std::string& path)
   std::ofstream fout(path);
   fout << data;
 
-  std::println("saved...");
+  fmt::println("saved...");
 };
 
 void
 load(entt::registry& r, const std::string& path)
 {
-  std::println("loading...");
+  fmt::println("loading...");
 
   // load from disk
   std::ifstream t(path);
@@ -144,7 +144,7 @@ load(entt::registry& r, const std::string& path)
     }
   }
 
-  std::println("loaded...");
+  fmt::println("loaded...");
 };
 
 void
@@ -154,7 +154,7 @@ load_if_exists(entt::registry& registry, const std::string& path)
   if (file)
     load(registry, path);
   else
-    std::println("error, file did not exist: {}", path);
+    fmt::println("error, file did not exist: {}", path);
 };
 
 } // namespace game2d

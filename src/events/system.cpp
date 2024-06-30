@@ -11,7 +11,7 @@
 #include <SDL2/SDL_events.h>
 #include <imgui.h>
 
-#include <print>
+#include <fmt/core.h>
 #include <vector>
 
 void
@@ -91,24 +91,24 @@ game2d::update_input_system(engine::SINGLETON_Application& app, entt::registry& 
         // SDL_HAT_DOWN
         // SDL_HAT_RIGHTDOWN
 
-        std::println("TODO: process joyhat button press");
+        fmt::println("TODO: process joyhat button press");
       }
 
       if (e.type == SDL_JOYDEVICEADDED) {
-        std::println("controller added");
+        fmt::println("controller added");
         process_controller_added(input);
       }
       if (e.type == SDL_JOYDEVICEREMOVED) {
-        std::println("controller removed");
+        fmt::println("controller removed");
         process_controller_removed(input);
       }
 
       // if (e.type == SDL_AUDIODEVICEADDED) {
-      //   // std::println("audio added" << std::endl;
+      //   // fmt::println("audio added" << std::endl;
       //   process_audio_added(r);
       // }
       // if (e.type == SDL_AUDIODEVICEREMOVED) {
-      //   // std::println("audio removed" << std::endl;
+      //   // fmt::println("audio removed" << std::endl;
       //   process_audio_removed(r);
       // }
     };

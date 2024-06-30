@@ -65,9 +65,6 @@ jobs:
       - name: get-mac-compiler
         if: ${{ matrix.triplet == 'arm64-osx' }}
         run: |
-          which gcc-14 g++-14
-          which g++
-          brew install llvm
           which clang clang++
 
       - name: configure-windows

@@ -10,8 +10,8 @@
 
 // c++ standard library headers
 #include <filesystem> // C++17
+#include <fmt/core.h>
 #include <fstream>
-#include <print>
 #include <sstream>
 
 namespace engine {
@@ -25,13 +25,13 @@ check_compile_errors(unsigned int shader, std::string type, std::string path)
     glGetShaderiv(shader, GL_COMPILE_STATUS, &success);
     if (!success) {
       glGetShaderInfoLog(shader, 1024, NULL, infoLog);
-      std::println("ERROR::SHADER_COMPILATION_ERROR type: {}, path: {} \nlog: {} ", type, path, infoLog);
+      fmt::println("ERROR::SHADER_COMPILATION_ERROR type: {}, path: {} \nlog: {} ", type, path, infoLog);
     }
   } else {
     glGetProgramiv(shader, GL_LINK_STATUS, &success);
     if (!success) {
       glGetProgramInfoLog(shader, 1024, NULL, infoLog);
-      std::println("ERROR::SHADER_COMPILATION_ERROR type: {}, path: {} \nlog: {} ", type, path, infoLog);
+      fmt::println("ERROR::SHADER_COMPILATION_ERROR type: {}, path: {} \nlog: {} ", type, path, infoLog);
     }
   }
 }
@@ -41,10 +41,10 @@ reload_shader_program(unsigned int* id, const std::string& vert_path, const std:
 {
   // Create a new shader program from the given file names. Halt on failure.
   auto new_id = create_opengl_shader(vert_path, frag_path);
-  std::println("reloading shader, new_id: {}", new_id);
+  fmt::println("reloading shader, new_id: {}", new_id);
 
   if (new_id) {
-    std::println("deleting old shader program");
+    fmt::println("deleting old shader program");
     glDeleteProgram(*id);
     *id = new_id;
   }
@@ -98,7 +98,7 @@ load_shader_from_disk(const std::string& path, unsigned int gl_shader_type, std:
       // convert stream into string
       code = csShaderStream.str();
     } catch (const std::ifstream::failure& e) {
-      std::println("ERROR::SHADER::FILE_NOT_SUCCESSFULLY_READ {}, info: ", path, e.what());
+      fmt::println("ERROR::SHADER::FILE_NOT_SUCCESSFULLY_READ {}, info: ", path, e.what());
       exit(1);
     }
   }
@@ -139,7 +139,7 @@ void
 Shader::reload()
 {
   reload_shader_program(&ID, vert_path, frag_path);
-  std::println("shader new id: {}", ID);
+  fmt::println("shader new id: {}", ID);
 }
 
 void
@@ -221,7 +221,7 @@ Shader::get_uniform_binding_location(const std::string& name) const
   int loc = glGetUniformLocation(ID, name.c_str());
 
   if (loc == -1) {
-    std::println("ERROR: Location of uniform not found: {}", name.c_str());
+    fmt::println("ERROR: Location of uniform not found: {}", name.c_str());
     return -1;
   }
 

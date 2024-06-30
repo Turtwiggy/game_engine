@@ -19,8 +19,7 @@
   },
   "files.exclude": {
     "**/.vs": true,
-    "**/.cache": true,
-    "**/thirdparty": true
+    "**/.cache": true
   },
   "editor.bracketPairColorization.enabled": true,
 

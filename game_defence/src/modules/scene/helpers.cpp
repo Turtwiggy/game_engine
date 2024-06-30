@@ -48,7 +48,7 @@
 #include "sprites/helpers.hpp"
 #include <nlohmann/json.hpp>
 
-#include <print>
+#include <fmt/core.h>
 #include <string>
 
 namespace game2d {
@@ -360,7 +360,7 @@ move_to_scene_start(entt::registry& r, const Scene s, const bool load_saved)
     destroy_first_and_create<Effect_GridComponent>(r);
 
     if (get_first<OverworldToDungeonInfo>(r) == entt::null) {
-      std::println("OverworldToDungeonInfo is null; assuming launch from standalone");
+      fmt::println("OverworldToDungeonInfo is null; assuming launch from standalone");
       OverworldToDungeonInfo info;
       info.backstabbed = true;
       info.patrol_that_you_hit.strength = 10;
@@ -497,7 +497,7 @@ move_to_scene_start(entt::registry& r, const Scene s, const bool load_saved)
   }
 
   const auto scene_name = std::string(magic_enum::enum_name(s));
-  std::println("setting scene to: {}", scene_name);
+  fmt::println("setting scene to: {}", scene_name);
 
   auto& scene = get_first_component<SINGLETON_CurrentScene>(r);
   scene.s = s; // done

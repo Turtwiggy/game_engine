@@ -6,8 +6,9 @@
 #include "entt/helpers.hpp"
 #include "lifecycle/components.hpp"
 
+#include <fmt/core.h>
 #include <imgui.h>
-#include <print>
+
 
 namespace game2d {
 

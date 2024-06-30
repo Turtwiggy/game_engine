@@ -28,9 +28,9 @@ draw_wombo_combo(const WomboComboIn& in)
   WomboComboOut out;
   out.selected = in.current_index;
 
-  const char* combo_preview_value = items[in.current_index].c_str();
+  const std::string combo_preview_value = items[in.current_index];
 
-  if (ImGui::BeginCombo(label.c_str(), combo_preview_value, 0)) {
+  if (ImGui::BeginCombo(label.c_str(), combo_preview_value.c_str(), 0)) {
     for (int n = 0; n < items.size(); n++) {
       const bool is_selected = (cur_idx == n);
 

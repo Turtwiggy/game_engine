@@ -20,7 +20,7 @@
 #include "imgui.h"
 
 #include <SDL_scancode.h>
-#include <print>
+#include <fmt/core.h>
 #include <vector>
 
 namespace game2d {
@@ -103,11 +103,11 @@ update_gen_dungeons_system(entt::registry& r, const glm::ivec2& mouse_pos)
 
   const auto& data_e = get_first<OverworldToDungeonInfo>(r);
   if (data_e == entt::null) {
-    std::println("not generating dungeon. OverworldToDungeonInfo not set.");
+    fmt::println("not generating dungeon. OverworldToDungeonInfo not set.");
     return;
   }
   const auto& data = r.get<OverworldToDungeonInfo>(data_e);
-  std::println("generating dungeon... you hit a patrol! strength: {}", data.patrol_that_you_hit.strength);
+  fmt::println("generating dungeon... you hit a patrol! strength: {}", data.patrol_that_you_hit.strength);
 
   // todo: make strength impact the number of things spawned
   const int strength = data.patrol_that_you_hit.strength;
@@ -173,7 +173,7 @@ update_gen_dungeons_system(entt::registry& r, const glm::ivec2& mouse_pos)
   // }
 
   create_empty<DungeonGenerationResults>(r, result);
-  std::println("dungeon generated");
+  fmt::println("dungeon generated");
 }
 
 } // namespace game2d

@@ -8,8 +8,8 @@
 #include <glm/glm.hpp>
 
 // c++ headers
+#include <fmt/core.h>
 #include <memory>
-#include <print>
 #include <vector>
 
 namespace engine {
@@ -57,7 +57,7 @@ public:
   template<class T>
   inline static void register_interface()
   {
-    std::println("(BatchTriangle) Registering interface...");
+    fmt::println("(BatchTriangle) Registering interface...");
     std::unique_ptr p = std::make_unique<T>();
     interfaces.push_back(std::move(p));
   }

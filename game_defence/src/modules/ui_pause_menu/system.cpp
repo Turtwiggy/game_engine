@@ -11,8 +11,8 @@
 #include <imgui.h>
 
 #include <algorithm>
+#include <fmt/core.h>
 #include <iterator>
-#include <print>
 #include <vector>
 
 void
@@ -114,7 +114,7 @@ game2d::update_ui_pause_menu_system(engine::SINGLETON_Application& app, entt::re
     wc_out = draw_wombo_combo(wc_in);
 
     if (wc_in.current_index != wc_out.selected) {
-      std::println("changing resolution");
+      fmt::println("changing resolution");
       const auto idx = wc_out.selected;
       app.window.set_size({ resolutions[idx].x, resolutions[idx].y });
 
