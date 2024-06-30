@@ -5,11 +5,9 @@
 #include "entt/helpers.hpp"
 #include "events/components.hpp"
 #include "events/helpers/keyboard.hpp"
-#include "events/helpers/mouse.hpp"
 #include "modules/camera/perspective.hpp"
 
 #include <glm/glm.hpp>
-// #include <glm/gtx/compatibility.hpp> // lerp
 
 namespace game2d {
 

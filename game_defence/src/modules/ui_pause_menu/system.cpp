@@ -109,16 +109,16 @@ game2d::update_ui_pause_menu_system(engine::SINGLETON_Application& app, entt::re
       first_time = false;
     }
 
-    static WomboComboIn wc_in(resolutions_as_str);
-    static WomboComboOut wc_out;
-    wc_out = draw_wombo_combo(wc_in);
+    static int idx = 0;
+    WomboComboIn wc_in(resolutions_as_str);
+    wc_in.label = "resolutions";
+    wc_in.current_index = idx;
+    const auto wc_out = draw_wombo_combo(wc_in);
 
-    if (wc_in.current_index != wc_out.selected) {
+    if (wc_out.selected != idx) {
       fmt::println("changing resolution");
-      const auto idx = wc_out.selected;
+      idx = wc_out.selected;
       app.window.set_size({ resolutions[idx].x, resolutions[idx].y });
-
-      wc_in.current_index = wc_out.selected;
     }
 
     if (ImGui::Button("Back to Menu"))

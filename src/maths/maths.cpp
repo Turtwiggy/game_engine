@@ -2,8 +2,6 @@
 // header
 #include "maths/maths.hpp"
 
-#include <glm/gtx/compatibility.hpp> // lerp
-
 namespace engine {
 
 [[nodiscard]] float
@@ -107,11 +105,19 @@ scale(const float x, const float min, const float max, const float a, const floa
   return ((b - a) * (x - min)) / (max - min) + a;
 }
 
+float
+lerp(const float& a, const float& b, const float& t)
+{
+  return a + (b - a) * t;
+};
+
 glm::vec2
 lerp_a_to_b_clamped_between_0_and_1(const glm::vec2 a, const glm::vec2 b, float t)
 {
-  return glm::lerp(a, b, glm::clamp(t, 0.0f, 1.0f));
-}
+  const float aval = lerp(a.x, b.x, glm::clamp(t, 0.0f, 1.0f));
+  const float bval = lerp(a.y, b.y, glm::clamp(t, 0.0f, 1.0f));
+  return { aval, bval };
+};
 
 glm::vec2
 quadratic_curve(const glm::vec2 a, const glm::vec2 b, const glm::vec2 c, const float t)

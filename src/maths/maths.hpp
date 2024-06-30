@@ -79,6 +79,9 @@ decode_cantor_pairing_function(uint64_t p, uint32_t& x, uint32_t& y);
 [[nodiscard]] float
 scale(const float x, const float min, const float max, const float a, const float b);
 
+[[nodiscard]] float
+lerp(const float& a, const float& b, const float& t);
+
 [[nodiscard]] glm::vec2
 lerp_a_to_b_clamped_between_0_and_1(const glm::vec2 a, const glm::vec2 b, float t);
 

@@ -10,8 +10,6 @@
 #include "physics/components.hpp"
 #include "renderer/transform.hpp"
 
-#include <glm/gtx/compatibility.hpp> // lerp
-
 namespace game2d {
 
 void
@@ -78,7 +76,7 @@ update_particle_system(entt::registry& r, const float dt)
     if (t >= 1.0f)
       t = 1.0f;
 
-    const float amount = glm::lerp(a, b, t);
+    const float amount = engine::lerp(a, b, t);
     transform.scale = { static_cast<int>(amount), static_cast<int>(amount), 1 };
 
     scale.timer += dt;

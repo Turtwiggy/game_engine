@@ -73,10 +73,10 @@ else()
   find_package(OpenAL CONFIG REQUIRED)
 endif()
 
+find_package(fmt CONFIG REQUIRED)
 find_package(nlohmann_json CONFIG REQUIRED)
 find_package(glm CONFIG REQUIRED)
-find_package(fmt CONFIG REQUIRED)
-find_path(STB_INCLUDE_DIRS "stb_c_lexer.h")
+find_package(Stb REQUIRED)
 
 # Add source files
 include(${CMAKE_SOURCE_DIR}/cmake/imgui.cmake)
@@ -114,7 +114,7 @@ target_include_directories(game_defence PRIVATE
   ${IMGUI_INCLUDES}
   ${VCPKG_INCLUDES}
   ${OPTICK_INCLUDES}
-  ${STB_INCLUDE_DIRS}
+  ${Stb_INCLUDE_DIR}
   ${CMAKE_SOURCE_DIR}/src
   ${CMAKE_SOURCE_DIR}/game_defence/src
   ${CMAKE_SOURCE_DIR}/thirdparty/entt/single_include
@@ -131,8 +131,8 @@ else()
   target_link_libraries(game_defence PRIVATE OpenAL::OpenAL)
 endif()
 
-target_link_libraries(game_defence PRIVATE glm::glm)
 target_link_libraries(game_defence PRIVATE fmt::fmt)
+target_link_libraries(game_defence PRIVATE glm::glm)
 target_link_libraries(game_defence PRIVATE nlohmann_json::nlohmann_json)
 
 IF(${CMAKE_SYSTEM_NAME} STREQUAL "Windows")

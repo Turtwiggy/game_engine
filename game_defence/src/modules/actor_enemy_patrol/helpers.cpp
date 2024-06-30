@@ -5,7 +5,6 @@
 #include "physics/components.hpp"
 
 #include <glm/glm.hpp>
-#include <glm/gtx/compatibility.hpp> // lerp
 
 namespace game2d {
 
@@ -23,7 +22,7 @@ update_patrol_from_desc(entt::registry& r, const entt::entity& e, const PatrolDe
   const float min = desc.speed_min;
   const float max = desc.speed_max;
   const float t = engine::scale(patrol_c.strength, desc.units_max, desc.units_min, 0.0f, 1.0f);
-  const int speed = static_cast<int>(glm::lerp(min, max, glm::clamp(t, 0.0f, 1.0f)));
+  const int speed = static_cast<int>(engine::lerp(min, max, glm::clamp(t, 0.0f, 1.0f)));
 
   r.get<VelocityComponent>(e).base_speed = speed;
 };
