@@ -9,7 +9,6 @@
 #include "modules/camera/perspective.hpp"
 
 #include <glm/glm.hpp>
-// #include <glm/gtx/compatibility.hpp> // lerp
 
 namespace game2d {
 

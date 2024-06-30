@@ -2,18 +2,18 @@
 #include "system.hpp"
 
 // components/systems
-#include "maths/grid.hpp"
-#include "components/actors.hpp"
-#include "modules/player/components.hpp"
 #include "camera/components.hpp"
 #include "camera/helpers.hpp"
+#include "components/actors.hpp"
 #include "events/components.hpp"
 #include "events/helpers/keyboard.hpp"
 #include "events/helpers/mouse.hpp"
+#include "maths/grid.hpp"
+#include "modules/player/components.hpp"
 #include "renderer/components.hpp"
 
+
 #include <glm/glm.hpp>
-#include <glm/gtx/compatibility.hpp>
 
 namespace game2d {
 

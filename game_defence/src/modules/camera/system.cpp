@@ -12,7 +12,6 @@
 #include "renderer/transform.hpp"
 
 #include <glm/glm.hpp>
-#include <glm/gtx/compatibility.hpp>
 
 namespace game2d {
 

@@ -15,7 +15,7 @@
 
 #include "magic_enum.hpp"
 
-#include <format>
+#include <fmt/core.h>
 
 namespace game2d {
 
@@ -132,7 +132,9 @@ update_take_damage_system(entt::registry& r)
     //
     if (hp->hp <= 0) {
       dead.dead.emplace(request.to);
-      evts.events.push_back(std::format("{} died.", pretty_b_name));
+
+      const auto str = fmt::format("{} died.", pretty_b_name);
+      evts.events.push_back(str);
 
       // Make a request to spawn some particles.
       if (const auto* req = r.try_get<SpawnParticlesOnDeath>(request.to)) {

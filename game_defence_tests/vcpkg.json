@@ -8,7 +8,7 @@
     "openal-soft",
     "stb",
     "nlohmann-json",
-    "gtest",
-    "fmt"
+    "fmt",
+    "gtest"
   ]
 }

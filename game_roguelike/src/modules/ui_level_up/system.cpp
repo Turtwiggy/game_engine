@@ -6,7 +6,7 @@
 
 #include "imgui.h"
 
-#include <format>
+#include <fmt/core.h>
 
 namespace game2d {
 
@@ -22,7 +22,7 @@ update_ui_level_up_system(const GameEditor& editor, Game& game)
 
 #ifdef _DEBUG
     ImGui::Begin("Debug");
-    std::string label = std::format("(debug) Give player {} 50 XP", i);
+    std::string label = fmt::format("(debug) Give player {} 50 XP", i);
     if (ImGui::Button(label.c_str()))
       xp.amount += 50;
     ImGui::End();

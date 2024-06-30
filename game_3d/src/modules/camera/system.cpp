@@ -1,4 +1,3 @@
-// header
 #include "system.hpp"
 
 // components/systems
