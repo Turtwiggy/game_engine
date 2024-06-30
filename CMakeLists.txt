@@ -10,6 +10,13 @@ else()
   set(CMAKE_TOOLCHAIN_FILE ${CMAKE_SOURCE_DIR}/thirdparty/vcpkg/scripts/buildsystems/vcpkg.cmake)
 endif()
 
+if(${CMAKE_SYSTEM_NAME} MATCHES "Windows")
+else()
+  # Prefer gcc/g++ on mac and linux
+  set(CMAKE_C_COMPILER "gcc")
+  set(CMAKE_CXX_COMPILER "g++")
+endif()
+
 project(subprojects VERSION 0.1.0)
 
 # projects
