@@ -4,6 +4,18 @@ cmake_minimum_required(VERSION 3.5.0)
 set(CMAKE_CXX_STANDARD 23)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 
+if(CMAKE_SYSTEM_NAME STREQUAL Windows)
+  message("Windows... use default kit.")
+elseif(CMAKE_SYSTEM_NAME STREQUAL Darwin AND CMAKE_CXX_COMPILER_ID NOT MATCHES GNU)
+  message("setting compiler preference to gcc/g++")
+  set(CMAKE_C_COMPILER "/usr/bin/gcc")
+  set(CMAKE_CXX_COMPILER "/usr/bin/g++")
+elseif(CMAKE_SYSTEM_NAME STREQUAL Linux AND CMAKE_CXX_COMPILER_ID NOT MATCHES GNU)
+  message("setting compiler preference to gcc/g++")
+  set(CMAKE_C_COMPILER "/usr/bin/gcc")
+  set(CMAKE_CXX_COMPILER "/usr/bin/g++")
+endif()
+
 if(EMSCRIPTEN)
   message("Compiling for emscripten (toolkit set in cmake-kits.json)")
 
