@@ -57,14 +57,17 @@ jobs:
       - name: get-linux-compiler
         if: ${{ matrix.triplet == 'x64-linux'}}
         run: |
-          sudo apt-get g++-14 -y
+          sudo apt-get install gcc-14 -y
+          sudo apt-get install g++-14 -y
           g++-14 --version
+          which g++-14
 
       - name: get-mac-compiler
         if: ${{ matrix.triplet == 'arm64-osx' }}
         run: |
-          brew install gcc@14
+          brew install gcc@14 g++@14
           g++-14 --version
+          which g++-14
 
       - name: configure-windows
         if: ${{ matrix.triplet == 'x64-windows' }}
