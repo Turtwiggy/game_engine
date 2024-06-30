@@ -8,7 +8,6 @@
 #include "helpers/line.hpp"
 #include "imgui/helpers.hpp"
 #include "lifecycle/components.hpp"
-#include "maths/grid.hpp"
 #include "modules/actor_cursor/components.hpp"
 #include "modules/actors/helpers.hpp"
 #include "modules/renderer/components.hpp"

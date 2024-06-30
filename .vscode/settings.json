@@ -15,11 +15,12 @@
   "search.exclude": {
     "**/*.code-search": true,
     "**/.git": true,
-    "**/thirdparty/**": true
+    "**/thirdparty": true
   },
   "files.exclude": {
     "**/.vs": true,
-    "**/.cache": true
+    "**/.cache": true,
+    "**/thirdparty": true
   },
   "editor.bracketPairColorization.enabled": true,
 

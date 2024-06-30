@@ -1,8 +1,5 @@
 #include "helpers.hpp"
 
-// my lib
-#include "modules/renderer/components.hpp"
-
 // other lib
 #include <glm/glm.hpp>
 #include <glm/gtc/type_ptr.hpp>

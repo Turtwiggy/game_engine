@@ -65,9 +65,8 @@ jobs:
       - name: get-mac-compiler
         if: ${{ matrix.triplet == 'arm64-osx' }}
         run: |
-          brew install gcc@14
-          g++-14 --version
-          which g++-14
+          which gcc-14 g++-14
+          which g++
 
       - name: configure-windows
         if: ${{ matrix.triplet == 'x64-windows' }}
@@ -85,17 +84,18 @@ jobs:
         if: ${{ matrix.triplet == 'arm64-osx' }}
         run: |
           mkdir build
-          cmake --no-warn-unused-cli -DCMAKE_C_COMPILER=/opt/homebrew/bin/gcc-14 -DCMAKE_CXX_COMPILER=/opt/homebrew/bin/g++-14 -DCMAKE_EXPORT_COMPILE_COMMANDS:BOOL=TRUE -DCMAKE_BUILD_TYPE:STRING=Release -S . -B build -G Ninja
+          cmake --no-warn-unused-cli -DCMAKE_C_COMPILER=/usr/local/bin/gcc-14 -DCMAKE_CXX_COMPILER=/usr/local/bin/g++-14 -DCMAKE_EXPORT_COMPILE_COMMANDS:BOOL=TRUE -DCMAKE_BUILD_TYPE:STRING=Release -S . -B build -G Ninja
 
       - name: build-tests
-        run: cmake --build build --config Release --target game_defence_tests
+        run: cmake --build build --config Release --target game_defence_tests --parallel 10
 
       - name: run-tests
+        if: ${{ matrix.triplet == 'x64-windows' }}
         run: |
           ./build/game_defence_tests/game_defence_tests.exe | findstr -i "pass"
 
       - name: build-game
-        run: cmake --build build --config Release --target game_defence
+        run: cmake --build build --config Release --target game_defence --parallel 10
 
       - name: copy-game-assets
         run: |
