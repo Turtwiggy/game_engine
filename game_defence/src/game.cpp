@@ -1,5 +1,6 @@
 #include "game.hpp"
 
+#include "app/io.hpp"
 #include "audio/components.hpp"
 #include "audio/system.hpp"
 #include "entt/helpers.hpp"
@@ -72,37 +73,13 @@ using namespace std::literals;
 void
 init(engine::SINGLETON_Application& app, entt::registry& r)
 {
+  const auto start = std::chrono::high_resolution_clock::now();
+
   // Fonts
   auto& io = ImGui::GetIO();
   float font_scale = 12.0f;
   //   font_scale = 18.0f; // 4k scale?
   io.Fonts->AddFontFromFileTTF("assets/fonts/ImPerfect23.ttf", font_scale);
-
-  {
-    SINGLETON_AudioComponent audio;
-    audio.sounds.push_back({ "SHOTGUN_SHOOT_01", "assets/audio/FIREARM_Shotgun_Model_02_Fire_Single_RR1_stereo.wav" });
-    audio.sounds.push_back({ "SHOTGUN_SHOOT_02", "assets/audio/FIREARM_Shotgun_Model_02_Fire_Single_RR2_stereo.wav" });
-    audio.sounds.push_back({ "SHOTGUN_SHOOT_03", "assets/audio/FIREARM_Shotgun_Model_02_Fire_Single_RR3_stereo.wav" });
-    audio.sounds.push_back({ "SHOTGUN_RELOAD_01", "assets/audio/RELOAD_Pump_stereo.wav" });
-    audio.sounds.push_back({ "TAKE_DAMAGE_01", "assets/audio/GRUNT_Male_Subtle_Hurt_mono.wav" });
-
-    audio.sounds.push_back({ "MENU_01", "assets/audio/scott-buckley-moonlight.mp3" });
-    audio.sounds.push_back({ "MENU_02", "assets/audio/scott-buckley-phaseshift.mp3" });
-
-    audio.sounds.push_back({ "GAME_01", "assets/audio/alex-productions-arnor-short.mp3" });
-    audio.sounds.push_back({ "GAME_02", "assets/audio/purrple-cat-silent-wood.mp3" });
-    audio.sounds.push_back({ "GAME_03", "assets/audio/purrple-cat-green-tea.mp3" });
-
-    audio.sounds.push_back({ "COMBAT_01", "assets/audio/combat-punch-deck-brazilian-street-fight.mp3" });
-    audio.sounds.push_back({ "COMBAT_02", "assets/audio/combat-alex-productions-cyberpunk-computer.mp3" });
-    audio.sounds.push_back({ "COMBAT_03", "assets/audio/combat-alex-productions-enigma.mp3" });
-
-    // audio.sounds.push_back({ "WIN_01", "assets/audio/8-bit-win-funk-david-renda.wav" });
-    // audio.sounds.push_back({ "LOSS_01", "assets/audio/8-bit-loss-david-renda.wav" });
-
-    create_empty<SINGLETON_AudioComponent>(r, audio);
-  }
-  init_audio_system(r);
 
   {
     SINGLETON_RendererInfo ri;
@@ -146,8 +123,6 @@ init(engine::SINGLETON_Application& app, entt::registry& r)
     create_empty<SINGLETON_RendererInfo>(r, ri);
   }
 
-  init_ui_colour_palette_system(r);
-
   // add camera
   OrthographicCamera camera_info;
   camera_info.projection = calculate_ortho_projection(app.width, app.height);
@@ -158,8 +133,46 @@ init(engine::SINGLETON_Application& app, entt::registry& r)
   init_render_system(app, r, ri); // init after camera
 
   create_empty<SINGLETON_FixedUpdateInputHistory>(r);
+  create_empty<SINGLETON_AudioComponent>(r); // replaced later
+  init_ui_colour_palette_system(r);
 
+  // move to splash screen before doing any heavy lifting (i.e. app freezing)
+  engine::log_time_since("Moving to splash screen.", start);
   move_to_scene_start(r, Scene::splashscreen);
+}
+
+// i.e. do things heavy during splash screen.
+void
+init_slow(engine::SINGLETON_Application& app, entt::registry& r)
+{
+  {
+    const std::string path = "assets/audio/";
+
+    SINGLETON_AudioComponent audio;
+    audio.sounds.push_back(
+      { "SHOTGUN_SHOOT_01", path + "FIREARM_Shotgun_Model_02_Fire_Single_RR1_stereo.wav", SoundType::SFX });
+    audio.sounds.push_back(
+      { "SHOTGUN_SHOOT_02", path + "FIREARM_Shotgun_Model_02_Fire_Single_RR2_stereo.wav", SoundType::SFX });
+    audio.sounds.push_back(
+      { "SHOTGUN_SHOOT_03", path + "FIREARM_Shotgun_Model_02_Fire_Single_RR3_stereo.wav", SoundType::SFX });
+    audio.sounds.push_back({ "SHOTGUN_RELOAD_01", path + "RELOAD_Pump_stereo.wav", SoundType::SFX });
+    audio.sounds.push_back({ "TAKE_DAMAGE_01", path + "GRUNT_Male_Subtle_Hurt_mono.wav", SoundType::SFX });
+
+    audio.sounds.push_back({ "MENU_01", path + "scott-buckley-moonlight.mp3", SoundType::BACKGROUND });
+    audio.sounds.push_back({ "GAME_01", path + "alex-productions-arnor-short.mp3", SoundType::BACKGROUND });
+    // audio.sounds.push_back({ "GAME_01", "purrple-cat-green-tea.mp3" });
+    // audio.sounds.push_back({ "MENU_01", "scott-buckley-phaseshift.mp3" });
+    audio.sounds.push_back({ "COMBAT_01", path + "combat-alex-productions-enigma.mp3", SoundType::BACKGROUND });
+    // audio.sounds.push_back({ "COMBAT_02", "combat-alex-productions-cyberpunk-computer.mp3" });
+    // audio.sounds.push_back({ "WIN_01", "8-bit-win-funk-david-renda.wav" });
+    // audio.sounds.push_back({ "LOSS_01", "8-bit-loss-david-renda.wav" });
+
+    audio.sounds.push_back({ "ENEMY_LOCKON", path + "UI_SCI-FI_Tone_Bright_Wet_16_stereo.wav", SoundType::SFX });
+    audio.sounds.push_back({ "ENEMY_LOCKOFF", path + "UI_SCI-FI_Tone_Bright_Wet_17_stereo.wav", SoundType::SFX });
+
+    destroy_first_and_create<SINGLETON_AudioComponent>(r, audio);
+  }
+  init_audio_system(r);
 }
 
 void

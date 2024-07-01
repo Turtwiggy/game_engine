@@ -30,6 +30,9 @@ static const int allowed_ticks_per_frame = 2;
 static SINGLETON_Application app;
 static entt::registry game;
 
+static int frames_to_pass_before_init = 10;
+static bool done_init_slow = false;
+
 void
 main_loop(void* arg)
 {
@@ -39,6 +42,11 @@ main_loop(void* arg)
 #if defined(__EMSCRIPTEN_PTHREADS__)
   fmt::println("Emscripten pthreads defined");
 #endif
+
+  if (frames_to_pass_before_init <= 0 && !done_init_slow) {
+    game2d::init_slow(app, game);
+    done_init_slow = true;
+  }
 
   engine::start_frame(app);
 
@@ -72,6 +80,9 @@ main_loop(void* arg)
   game2d::update(app, game, milliseconds_delta_time / 1000.0f);
 
   engine::end_frame(app);
+
+  if (frames_to_pass_before_init > 0)
+    frames_to_pass_before_init--;
 }
 
 int

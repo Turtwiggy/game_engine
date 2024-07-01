@@ -124,9 +124,9 @@ update_ui_combat_turnbased_system(entt::registry& r, const glm::ivec2& input_mou
       flags |= ImGuiWindowFlags_NoTitleBar;
       flags |= ImGuiWindowFlags_NoCollapse;
       flags |= ImGuiWindowFlags_NoResize;
+      flags |= ImGuiWindowFlags_NoBackground;
       flags |= ImGuiDockNodeFlags_NoResize;
       flags |= ImGuiDockNodeFlags_PassthruCentralNode;
-      // flags |= ImGuiWindowFlags_NoBackground;
 
       ImGui::PushStyleVar(ImGuiStyleVar_SelectableTextAlign, { 0.5f, 0.5f });
       ImGui::Begin("Begin Combat", NULL, flags);

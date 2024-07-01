@@ -1,8 +1,8 @@
 #include "system.hpp"
 
+#include "audio/components.hpp"
 #include "components.hpp"
 #include "entt/helpers.hpp"
-#include "helpers/entity_pool.hpp"
 #include "lifecycle/components.hpp"
 #include "maths/grid.hpp"
 #include "maths/maths.hpp"
@@ -125,6 +125,9 @@ update_actor_enemy_patrol_system(entt::registry& r, const glm::ivec2 mouse_pos, 
         if (player_in_vision_cone) {
           set_colour(r, e, { 255, 0, 0, 1.0f }); // red; attack!!
 
+          // play some audio
+          create_empty<AudioRequestPlayEvent>(r, AudioRequestPlayEvent{ "ENEMY_LOCKON" });
+
           update_path_to_player(); // change course, scotty! we've spotted a whale!
         }
 
@@ -150,8 +153,12 @@ update_actor_enemy_patrol_system(entt::registry& r, const glm::ivec2 mouse_pos, 
       const auto& existing_path = r.try_get<GeneratedPathComponent>(e);
 
       // was chasing a player but that player is now out of range
-      if (existing_path && existing_path->dst_ent != entt::null)
+      if (existing_path && existing_path->dst_ent != entt::null) {
         update_path_to_rnd_idx();
+
+        // play some audio
+        create_empty<AudioRequestPlayEvent>(r, AudioRequestPlayEvent{ "ENEMY_LOCKOFF" });
+      }
 
       // was not chasing a player, generate a path
       if (!existing_path)

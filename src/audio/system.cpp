@@ -13,7 +13,6 @@
 #include <fmt/core.h>
 #include <imgui.h>
 
-#include <algorithm>
 #include <chrono>
 #include <map>
 #include <string>
@@ -50,7 +49,8 @@ init_audio_system(entt::registry& r)
   }
 
   // request some channels
-  Mix_AllocateChannels(8);
+  const int request_channels = 16;
+  Mix_AllocateChannels(request_channels);
   const int max_audio_sources = Mix_AllocateChannels(-1); // -1 means query the number of channels
   fmt::println("Audio sources to create: {}", max_audio_sources);
   for (int i = 0; i < max_audio_sources; i++)
@@ -59,28 +59,15 @@ init_audio_system(entt::registry& r)
   // Load sounds
 
   auto start = std::chrono::high_resolution_clock::now();
-  engine::log_time_since("loading audio`... ", start);
+  engine::log_time_since("Loading audio... ", start);
 
-  // threaded
-  std::vector<std::thread> threads;
-  std::vector<std::pair<std::string, Mix_Chunk*>> results;
-  for (const auto& file : audio.sounds)
-    threads.emplace_back([&file, &results]() { results.push_back({ file.path, Mix_LoadWAV(file.path.c_str()) }); });
-
-  for (auto& thread : threads)
-    thread.join();
-
-  for (const auto& [filepath, result] : results) {
-    if (!result) {
-      fmt::println("Could not load sound: {}", filepath);
-      continue;
+  for (auto& file : audio.sounds) {
+    auto* sound = Mix_LoadWAV(file.path.c_str());
+    if (!sound) {
+      fmt::println("Failed to load sound: {}", file.path);
+      exit(1); // explode!
     }
-    const auto find_sound = [&](const Sound& sound) { return sound.path == filepath; };
-    const auto& s = std::find_if(audio.sounds.begin(), audio.sounds.end(), find_sound);
-    if (s != audio.sounds.end()) {
-      s->buffer = result;
-    } else
-      fmt::println("Error finding sound: {}", filepath);
+    file.buffer = sound;
   }
 
   engine::log_time_since("Audio loaded.", start);
@@ -90,11 +77,20 @@ void
 update_audio_system(entt::registry& r)
 {
   const auto& audio = get_first_component<SINGLETON_AudioComponent>(r);
+  if (audio.sounds.size() == 0)
+    return; // no sounds loaded
 
   // If muted, destroy all requests
-  if (audio.all_mute) {
+  if (audio.mute_all) {
     const auto& view = r.view<AudioRequestPlayEvent>();
     r.destroy(view.begin(), view.end());
+  }
+
+  // check if request is a sfx effect
+  for (const auto& [e, req] : r.view<AudioRequestPlayEvent>().each()) {
+    const Sound& s = get_sound(audio, req.tag);
+    if (audio.mute_sfx && s.type == SoundType::SFX)
+      r.destroy(e);
   }
 
   // a vector of free audio sources, populated every frame

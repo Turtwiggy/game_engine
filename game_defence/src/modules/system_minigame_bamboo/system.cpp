@@ -8,6 +8,7 @@
 #include "events/helpers/keyboard.hpp"
 #include "imgui.h"
 #include "maths/maths.hpp"
+#include "modules/gameover/components.hpp"
 #include "modules/renderer/components.hpp"
 #include "modules/scene/helpers.hpp"
 #include <SDL_gamecontroller.h>
@@ -85,6 +86,10 @@ void
 update_minigame_bamboo_system(entt::registry& r, const float dt)
 {
   static engine::RandomState rnd;
+
+  auto& gameover = get_first_component<SINGLETON_GameOver>(r);
+  if (gameover.game_is_over)
+    return;
 
   auto& bamboo_minigame = get_first_component<SINGLE_MinigameBamboo>(r);
   auto& buffer = bamboo_minigame.inputs;
@@ -175,14 +180,9 @@ update_minigame_bamboo_system(entt::registry& r, const float dt)
   ImGui::SetNextWindowSizeConstraints(ImVec2(640, 640 * (9 / 16.0f)), ImVec2(640, 640 * (9 / 16.0f)));
 
   ImGui::Begin("BambooMinigame");
-  ImGui::Text("Input the correct combination. Press ENTER to submit your input.");
+  ImGui::Text("Input the combination. Press ENTER to submit input.");
 
-  const float horizontal_offset = 20;
-  const auto label = "Combination:"s;
-  const auto label_size = ImGui::CalcTextSize(label.c_str());
-  ImGui::Text("%s", label.c_str());
-  ImGui::SameLine();
-  ImGui::SetCursorPosX(label_size.x + horizontal_offset);
+  ImGui::SeparatorText("Combination");
   for (int i = 0; const auto& key : combination) {
     if (i > 0)
       ImGui::SameLine();
@@ -191,16 +191,15 @@ update_minigame_bamboo_system(entt::registry& r, const float dt)
     ImGui::Text("%s ", SDL_GetScancodeName(key.keyboard));
     i++;
   }
-  ImGui::SetScrollHereY();
 
-  ImGui::Separator();
-  ImGui::Text("Your Input:");
+  ImGui::SeparatorText("Your Input");
+
+  if (buffer.size() == 0)
+    ImGui::Text(" ");
 
   for (int i = 0; const auto& evt : buffer) {
-    if (i == 0) {
-      ImGui::SetCursorPosX(label_size.x + horizontal_offset);
-    }
-    ImGui::SameLine();
+    if (i > 0)
+      ImGui::SameLine();
     if (evt.type == InputType::keyboard)
       ImGui::Text("%s ", SDL_GetScancodeName(evt.keyboard));
     else if (evt.type == InputType::controller_button)
@@ -210,7 +209,8 @@ update_minigame_bamboo_system(entt::registry& r, const float dt)
     i++;
   }
 
-  ImGui::Text("Timer: %f", bamboo_minigame.time_left);
+  ImGui::Separator();
+  ImGui::Text("Time before detection: %f", bamboo_minigame.time_left);
   if (bamboo_minigame.time_left <= 0.0f) {
     combination_correct = false;
     move_to_scene_start(r, Scene::minigame_bamboo);
@@ -220,6 +220,15 @@ update_minigame_bamboo_system(entt::registry& r, const float dt)
     ImGui::Text("Your combination was correct!");
     create_empty<GenerateCombinationRequest>(r);
     combination_correct = false;
+
+    if (bamboo_minigame.combination_length == 7) {
+      // you win!
+      gameover.game_is_over = true;
+      gameover.reason = "You solved max combination length";
+      gameover.win_condition = true;
+      ImGui::End();
+      return;
+    }
 
     // increase difficulty
     bamboo_minigame.combination_length++;  // every loop, increase combination by 1

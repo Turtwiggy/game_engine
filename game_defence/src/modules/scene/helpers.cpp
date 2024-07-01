@@ -138,9 +138,9 @@ move_to_scene_start(entt::registry& r, const Scene s, const bool load_saved)
   destroy_first_and_create<SINGLETON_GameStateComponent>(r);
   destroy_first_and_create<SINGLETON_GameOver>(r);
   destroy_first_and_create<SINGLETON_InputComponent>(r);
+  destroy_first_and_create<SINGLE_ScreenshakeComponent>(r);
   init_input_system(r); // clear old input
 
-  destroy_first<SINGLE_ScreenshakeComponent>(r);
   destroy_first<SINGLE_SelectedUI>(r);
   destroy_first<SINGLE_TurnBasedCombatInfo>(r);
   destroy_first<SINGLE_DebugPathLines>(r);
@@ -194,9 +194,7 @@ move_to_scene_start(entt::registry& r, const Scene s, const bool load_saved)
 
   if (s == Scene::menu) {
     destroy_first_and_create<SINGLE_MainMenuUI>(r);
-
-    if (!audio.all_mute)
-      create_empty<AudioRequestPlayEvent>(r, AudioRequestPlayEvent{ "MENU_01" });
+    create_empty<AudioRequestPlayEvent>(r, AudioRequestPlayEvent{ "MENU_01" });
 
     // Load randoms name file
     // const auto path = "assets/config/random_names.json";
@@ -391,7 +389,7 @@ move_to_scene_start(entt::registry& r, const Scene s, const bool load_saved)
     auto& map = get_first_component<MapComponent>(r);
 
     // Create 4 edges to the map
-    bool create_edges = true;
+    bool create_edges = false;
     if (create_edges)
       add_boundary_walls(r, map_width, map_height, map_c.tilesize);
 

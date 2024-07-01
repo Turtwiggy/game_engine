@@ -15,6 +15,9 @@ void
 stop_all_audio(entt::registry& r);
 
 void
+resume_all_audio(entt::registry& r);
+
+void
 process_audio_added(entt::registry& r);
 
 void

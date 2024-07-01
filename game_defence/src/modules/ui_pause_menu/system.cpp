@@ -1,5 +1,7 @@
 #include "system.hpp"
 
+#include "audio/components.hpp"
+#include "audio/helpers/sdl_mixer.hpp"
 #include "entt/helpers.hpp"
 #include "events/helpers/keyboard.hpp"
 #include "game_state.hpp"
@@ -58,13 +60,15 @@ update_ui_pause_menu_system(engine::SINGLETON_Application& app, entt::registry& 
     // ImGui::SetNextWindowPos(viewport->GetCenter());
     // ImGui::SetNextWindowSize(ImVec2{ 300, 350 });
 
-    ImGui::SetNextWindowSize({ 300, 300 });
+    ImGui::SetNextWindowSize({ 300, 400 });
     ImGui::Begin("Paused", &open, flags);
 
     ImGui::Text("Menu FPS: %0.2f", ImGui::GetIO().Framerate);
 
     if (ImGui::Button("Resume"))
       open = false;
+
+    ImGui::SeparatorText("Settings");
 
     static bool value = false;
     if (ImGui::Checkbox("Fullscreen", &value))
@@ -122,6 +126,33 @@ update_ui_pause_menu_system(engine::SINGLETON_Application& app, entt::registry& 
       idx = wc_out.selected;
       app.window.set_size({ resolutions[idx].x, resolutions[idx].y });
     }
+
+    auto& audio = get_first_component<SINGLETON_AudioComponent>(r);
+
+    ImGui::SeparatorText("Audio");
+
+    static bool mute_all = audio.mute_all;
+    if (ImGui::Checkbox("Mute All", &mute_all)) {
+      audio.mute_all = mute_all;
+      if (audio.mute_all)
+        audio::sdl_mixer::stop_all_audio(r);
+      else {
+        // how to resume correct scene background music?
+        // a better solution would be to fade the music back in
+        // below is BAD.
+        const auto& s = get_first_component<SINGLETON_CurrentScene>(r);
+        if (s.s == Scene::overworld)
+          create_empty<AudioRequestPlayEvent>(r, AudioRequestPlayEvent{ "GAME_01" });
+        if (s.s == Scene::dungeon_designer || s.s == Scene::turnbasedcombat)
+          create_empty<AudioRequestPlayEvent>(r, AudioRequestPlayEvent{ "COMBAT_01" });
+      }
+    }
+#
+    static bool mute_sfx = audio.mute_sfx;
+    if (ImGui::Checkbox("Mute SFX", &mute_sfx))
+      audio.mute_sfx = mute_sfx;
+
+    ImGui::SeparatorText("Quit");
 
     if (ImGui::Button("Back to Menu"))
       move_to_scene_start(r, Scene::menu);

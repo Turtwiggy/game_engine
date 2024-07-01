@@ -98,6 +98,10 @@ update_ui_scene_main_menu(engine::SINGLETON_Application& app, entt::registry& r)
       move_to_scene_start(r, Scene::overworld, false);
     }
 
+    if (selectable_button("minigame: bamboo", selected, index++)) {
+      move_to_scene_start(r, Scene::minigame_bamboo);
+    }
+
 #if defined(_DEBUG)
     if (selectable_button("(debug) combat", selected, index++)) {
       move_to_scene_start(r, Scene::turnbasedcombat);
@@ -106,9 +110,7 @@ update_ui_scene_main_menu(engine::SINGLETON_Application& app, entt::registry& r)
       move_to_scene_start(r, Scene::dungeon_designer);
       create_empty<RequestGenerateDungeonComponent>(r);
     }
-    if (selectable_button("minigame: bamboo", selected, index++)) {
-      move_to_scene_start(r, Scene::minigame_bamboo);
-    }
+
 #endif
 
     if (selectable_button("Quit", selected, index++))
@@ -176,7 +178,8 @@ update_ui_scene_main_menu(engine::SINGLETON_Application& app, entt::registry& r)
   // update state
   set_icon_state(toggle);
   auto& audio = get_first_component<SINGLETON_AudioComponent>(r);
-  audio.all_mute = toggle;
+  audio.mute_all = toggle;
+  audio.mute_sfx = toggle;
 
   // toggle: mute to unmute. play menu theme.
   if (toggle_changed && toggle == 0) {

@@ -1,5 +1,6 @@
 #include "system.hpp"
 
+#include "audio/components.hpp"
 #include "components.hpp"
 #include "entt/helpers.hpp"
 #include "events/components.hpp"
@@ -12,6 +13,10 @@ update_scene_splashscreen_move_to_menu_system(entt::registry& r, const float dt)
 {
   auto& data = get_first_component<SINGLE_SplashScreen>(r);
   const auto& input = get_first_component<SINGLETON_InputComponent>(r);
+  const auto& audio = get_first_component<SINGLETON_AudioComponent>(r);
+
+  if (audio.sounds.size() == 0)
+    return; // wait for sounds to be loaded
 
   // After X seconds, move to menu
   data.time_on_splashscreen_seconds -= dt;

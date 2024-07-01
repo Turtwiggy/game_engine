@@ -96,7 +96,7 @@ main()
   if(abs(d) >= grid_width)
     colour = vec3(0.0); // background
   else
-    colour = vec3(0.1, 0.1, 0.1); // line
+    colour = vec3(0.05, 0.05, 0.05); // line
 
 	// colour *= 1.0 - exp(-6.0 * abs(d));
 	// colour *= 0.8 + 0.2 * cos(120.0 * d);

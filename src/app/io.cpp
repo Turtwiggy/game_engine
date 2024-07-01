@@ -18,7 +18,7 @@ log_time_since(const std::string& label, std::chrono::time_point<std::chrono::hi
 {
   const auto x = std::chrono::high_resolution_clock::now();
   const auto y = std::chrono::duration_cast<std::chrono::milliseconds>(x - start).count();
-  fmt::println("{}{}ms", label, y);
+  fmt::println("{} {}seconds", label, y / 1000.0f);
 }
 
 #if defined(WIN32)
