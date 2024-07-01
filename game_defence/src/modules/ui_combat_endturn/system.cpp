@@ -51,7 +51,7 @@ update_ui_combat_endturn_system(entt::registry& r)
   ImGui::Begin("UI Combat EndTurn", NULL, flags);
   {
     if (state.team == AvailableTeams::player) {
-      if (ImGui::Button("End Turn (or press E)", ImVec2(-FLT_MIN, -FLT_MIN)) || e_pressed) // let player end their turn
+      if (ImGui::Button("End Turn (E)", ImVec2(-FLT_MIN, -FLT_MIN)) || e_pressed) // let player end their turn
         create_empty<RequestToCompleteTurn>(r, RequestToCompleteTurn{ AvailableTeams::player });
     }
   }

@@ -1,6 +1,5 @@
 #include "game.hpp"
 
-#include "actors.hpp"
 #include "audio/components.hpp"
 #include "audio/system.hpp"
 #include "entt/helpers.hpp"
@@ -73,17 +72,33 @@ using namespace std::literals;
 void
 init(engine::SINGLETON_Application& app, entt::registry& r)
 {
+  // Fonts
+  auto& io = ImGui::GetIO();
+  float font_scale = 12.0f;
+  //   font_scale = 18.0f; // 4k scale?
+  io.Fonts->AddFontFromFileTTF("assets/fonts/ImPerfect23.ttf", font_scale);
+
   {
     SINGLETON_AudioComponent audio;
     audio.sounds.push_back({ "SHOTGUN_SHOOT_01", "assets/audio/FIREARM_Shotgun_Model_02_Fire_Single_RR1_stereo.wav" });
     audio.sounds.push_back({ "SHOTGUN_SHOOT_02", "assets/audio/FIREARM_Shotgun_Model_02_Fire_Single_RR2_stereo.wav" });
     audio.sounds.push_back({ "SHOTGUN_SHOOT_03", "assets/audio/FIREARM_Shotgun_Model_02_Fire_Single_RR3_stereo.wav" });
     audio.sounds.push_back({ "SHOTGUN_RELOAD_01", "assets/audio/RELOAD_Pump_stereo.wav" });
-    audio.sounds.push_back({ "MENU_01", "assets/audio/8-bit-menu-david-renda.wav" });
-    audio.sounds.push_back({ "GAME_01", "assets/audio/8-bit-adventure-david-renda.wav" });
-    audio.sounds.push_back({ "WIN_01", "assets/audio/8-bit-win-funk-david-renda.wav" });
-    audio.sounds.push_back({ "LOSS_01", "assets/audio/8-bit-loss-david-renda.wav" });
     audio.sounds.push_back({ "TAKE_DAMAGE_01", "assets/audio/GRUNT_Male_Subtle_Hurt_mono.wav" });
+
+    audio.sounds.push_back({ "MENU_01", "assets/audio/scott-buckley-moonlight.mp3" });
+    audio.sounds.push_back({ "MENU_02", "assets/audio/scott-buckley-phaseshift.mp3" });
+
+    audio.sounds.push_back({ "GAME_01", "assets/audio/alex-productions-arnor-short.mp3" });
+    audio.sounds.push_back({ "GAME_02", "assets/audio/purrple-cat-silent-wood.mp3" });
+    audio.sounds.push_back({ "GAME_03", "assets/audio/purrple-cat-green-tea.mp3" });
+
+    audio.sounds.push_back({ "COMBAT_01", "assets/audio/combat-punch-deck-brazilian-street-fight.mp3" });
+    audio.sounds.push_back({ "COMBAT_02", "assets/audio/combat-alex-productions-cyberpunk-computer.mp3" });
+    audio.sounds.push_back({ "COMBAT_03", "assets/audio/combat-alex-productions-enigma.mp3" });
+
+    // audio.sounds.push_back({ "WIN_01", "assets/audio/8-bit-win-funk-david-renda.wav" });
+    // audio.sounds.push_back({ "LOSS_01", "assets/audio/8-bit-loss-david-renda.wav" });
 
     create_empty<SINGLETON_AudioComponent>(r, audio);
   }
@@ -382,7 +397,7 @@ update(engine::SINGLETON_Application& app, entt::registry& r, const float dt)
 
 #if defined(_DEBUG)
     // todo: put in to a settings menu
-    static bool show_settings_ui = false;
+    static bool show_settings_ui = true;
     if (show_settings_ui) {
       update_ui_audio_system(r);
       update_ui_controller_system(r);

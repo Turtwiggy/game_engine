@@ -2,7 +2,7 @@
 
 #include "actors.hpp"
 #include "audio/components.hpp"
-#include "audio/helpers.hpp"
+#include "audio/helpers/sdl_mixer.hpp"
 #include "colour/colour.hpp"
 #include "entt/helpers.hpp"
 #include "events/components.hpp"
@@ -43,7 +43,6 @@
 #include "modules/ux_hoverable/components.hpp"
 #include "modules/vfx_grid/components.hpp"
 #include "physics/components.hpp"
-#include "renderer/components.hpp"
 #include "renderer/transform.hpp"
 #include "sprites/helpers.hpp"
 #include <nlohmann/json.hpp>
@@ -52,7 +51,7 @@
 #include <string>
 
 namespace game2d {
-
+using namespace audio::sdl_mixer;
 using namespace std::literals;
 using json = nlohmann::json;
 
@@ -195,7 +194,9 @@ move_to_scene_start(entt::registry& r, const Scene s, const bool load_saved)
 
   if (s == Scene::menu) {
     destroy_first_and_create<SINGLE_MainMenuUI>(r);
-    // create_empty<AudioRequestPlayEvent>(r, AudioRequestPlayEvent{ "MENU_01" });
+
+    if (!audio.all_mute)
+      create_empty<AudioRequestPlayEvent>(r, AudioRequestPlayEvent{ "MENU_01" });
 
     // Load randoms name file
     // const auto path = "assets/config/random_names.json";
@@ -358,6 +359,7 @@ move_to_scene_start(entt::registry& r, const Scene s, const bool load_saved)
     destroy_first_and_create<SINGLE_TurnBasedCombatInfo>(r);
     destroy_first_and_create<Effect_DoBloom>(r);
     destroy_first_and_create<Effect_GridComponent>(r);
+    create_empty<AudioRequestPlayEvent>(r, AudioRequestPlayEvent{ "COMBAT_01" });
 
     if (get_first<OverworldToDungeonInfo>(r) == entt::null) {
       fmt::println("OverworldToDungeonInfo is null; assuming launch from standalone");
@@ -405,6 +407,7 @@ move_to_scene_start(entt::registry& r, const Scene s, const bool load_saved)
     destroy_first_and_create<SINGLE_EventConsoleLogComponent>(r);
     destroy_first_and_create<SINGLE_TurnBasedCombatInfo>(r);
     destroy_first_and_create<Effect_DoBloom>(r);
+    create_empty<AudioRequestPlayEvent>(r, AudioRequestPlayEvent{ "COMBAT_01" });
 
     int map_width = 600;
     int map_height = 600;

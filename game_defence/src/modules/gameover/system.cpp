@@ -1,7 +1,5 @@
 #include "system.hpp"
 
-#include "audio/components.hpp"
-#include "audio/helpers.hpp"
 #include "entt/helpers.hpp"
 #include "lifecycle/components.hpp"
 #include "modules/combat_damage/components.hpp"
@@ -52,13 +50,11 @@ update_gameover_system(entt::registry& r)
       gameover.activated_gameover = true;
 
       if (gameover.win_condition) {
-        stop_all_audio(r);
         // WHOOOOOOOOOOOO!
-        create_empty<AudioRequestPlayEvent>(r, AudioRequestPlayEvent{ "WIN_01" });
+        // create_empty<AudioRequestPlayEvent>(r, AudioRequestPlayEvent{ "WIN_01" });
       } else {
-        stop_all_audio(r);
         // WAHHHHHHHHHHHHH.
-        create_empty<AudioRequestPlayEvent>(r, AudioRequestPlayEvent{ "LOSS_01" });
+        // create_empty<AudioRequestPlayEvent>(r, AudioRequestPlayEvent{ "LOSS_01" });
       }
     }
   }

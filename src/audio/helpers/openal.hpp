@@ -1,15 +1,18 @@
 #pragma once
 
-#include "SDL2/SDL_audio.h"
 #include <AL/al.h>
 #include <AL/alc.h>
+#include <entt/entt.hpp>
 
+#include <optional>
 #include <string>
 #include <vector>
 
 namespace game2d {
 
 namespace audio {
+
+namespace openal {
 
 // https://openal.org/documentation/OpenAL_Programmers_Guide.pdf
 
@@ -42,6 +45,25 @@ list_playback_devices();
 std::vector<std::string>
 list_captured_devices();
 
+// https://github.com/kcat/openal-soft/blob/master/examples/common/alhelpers.c
+
+void
+close_audio(entt::registry& r);
+
+void
+open_audio_new_device(entt::registry& r, const std::optional<std::string>& name);
+
+void
+process_audio_added(entt::registry& r);
+
+void
+process_audio_removed(entt::registry& r);
+
+void
+stop_all_audio(entt::registry& r);
+
 } // namespace audio
+
+} // namespace openal
 
 } // namespace game2d

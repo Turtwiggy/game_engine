@@ -1,14 +1,13 @@
 #include "system.hpp"
 
 #include "audio/components.hpp"
-#include "audio/helpers.hpp"
-#include "audio/helpers/openal.hpp"
+#include "audio/helpers/sdl_mixer.hpp"
 #include "entt/helpers.hpp"
-#include "lifecycle/components.hpp"
 
+#include <SDL_audio.h>
 #include <fmt/core.h>
 #include <imgui.h>
-
+#include <magic_enum.hpp>
 
 namespace game2d {
 
@@ -25,45 +24,40 @@ update_ui_audio_system(entt::registry& r)
     audio.refresh_devices = true;
 
   if (audio.refresh_devices) {
-    audio.playback_devices = audio::list_playback_devices();
-    audio.captured_devices = audio::list_captured_devices();
+    audio.devices = audio::sdl_mixer::list_devices();
     audio.refresh_devices = false;
   }
 
   ImGui::Text("Audio Devices");
-  for (int i = 0; i < audio.playback_devices.size(); i++)
-    ImGui::Text("Available: %s", audio.playback_devices[i].c_str());
+  for (int i = 0; i < audio.devices.size(); i++)
+    ImGui::Text("Available: %s", audio.devices[i].c_str());
   ImGui::NewLine();
 
   ImGui::Text("Captured Devices");
-  for (int i = 0; i < audio.captured_devices.size(); i++)
-    ImGui::Text("captured_devices: %s", audio.captured_devices[i].c_str());
-  ImGui::NewLine();
-
-  ImGui::Text("Context Audio Device");
-  {
-    auto* context = alcGetCurrentContext();
-    if (context) {
-      auto* device = alcGetContextsDevice(context);
-      const auto* device_name = alcGetString(device, ALC_ALL_DEVICES_SPECIFIER);
-      ImGui::Text("Device: %s", device_name);
-      if (ImGui::Button("Close Audio Device")) {
-        if (context != nullptr)
-          close_audio(r);
-      }
-    } else
-      ImGui::Text("No Audio Context Created");
-  }
+  ImGui::Text("captured_device_id: %i", audio.captured_device_id);
   ImGui::NewLine();
 
   ImGui::Text("Select Audio Device");
-  for (int i = 0; i < audio.playback_devices.size(); i++) {
+  for (int i = 0; i < audio.devices.size(); i++) {
 
-    const std::string& name = audio.playback_devices[i];
+    const std::string& name = audio.devices[i];
     const std::string label = std::string("Open ") + name;
+
     if (ImGui::Button(label.c_str())) {
-      close_audio(r);
-      open_audio_new_device(r, { name });
+
+      // Close old device, if exists
+      if (audio.captured_device_id != -1) {
+        SDL_CloseAudioDevice(audio.captured_device_id);
+        audio.captured_device_id = -1;
+      }
+
+      // Open new device
+      SDL_AudioSpec spec;
+      spec.freq = MIX_DEFAULT_FREQUENCY;
+      spec.format = MIX_DEFAULT_FORMAT;
+      spec.channels = MIX_DEFAULT_CHANNELS;
+      int chunk_size = 2048;
+      audio.captured_device_id = Mix_OpenAudioDevice(spec.freq, spec.format, spec.channels, chunk_size, NULL, 0);
     }
   }
   ImGui::NewLine();
@@ -81,22 +75,14 @@ update_ui_audio_system(entt::registry& r)
   ImGui::Text("¬¬ Audio State ¬¬");
   ImGui::Text("Audio Sources: %i", sources.size());
 
-  // a vector of free audio sources, populated every frame
-  std::vector<AudioSource> free_audio_sources;
+  for (const auto& [e, source] : sources.each()) {
+    ImGui::Text("Channel %i", source.channel);
+    ImGui::SameLine();
 
-  // state: playing -> free
-  for (const auto& [entity, source] : r.view<AudioSource>().each()) {
-    ALint source_state;
-    alGetSourcei(source.source_id, AL_SOURCE_STATE, &source_state);
-
-    source.state = AudioSourceState::FREE;
-    if (source_state == AL_PLAYING)
-      source.state = AudioSourceState::PLAYING;
-
-    if (source.state == AudioSourceState::FREE)
-      free_audio_sources.push_back(source);
+    const auto type_name = std::string(magic_enum::enum_name(source.state));
+    ImGui::Text("%s", type_name.c_str());
+    //
   }
-  ImGui::Text("Free Audio Sources: %i", free_audio_sources.size());
 
   ImGui::End();
 }

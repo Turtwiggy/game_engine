@@ -293,8 +293,8 @@ engine::load_textures_threaded(const std::vector<std::pair<int, std::string>>& t
   {
     // Try and work out threads on emscrtipten
     std::vector<std::thread> threads;
-
     std::vector<LinearTexture> loaded_textures(textures_to_load.size());
+
     for (int i = 0; const auto& texture : textures_to_load) {
       threads.emplace_back([&texture, i, &loaded_textures]() {
         //

@@ -3,7 +3,7 @@
 #include "components.hpp"
 
 #include "audio/components.hpp"
-#include "audio/helpers.hpp"
+#include "audio/helpers/sdl_mixer.hpp"
 #include "entt/helpers.hpp"
 #include "events/components.hpp"
 #include "io/settings.hpp"
@@ -21,6 +21,7 @@
 
 namespace game2d {
 using namespace std::literals;
+using namespace audio::sdl_mixer;
 
 void
 update_ui_scene_main_menu(engine::SINGLETON_Application& app, entt::registry& r)
@@ -28,7 +29,7 @@ update_ui_scene_main_menu(engine::SINGLETON_Application& app, entt::registry& r)
   const auto& ri = get_first_component<SINGLETON_RendererInfo>(r);
   const auto& input = get_first_component<SINGLETON_InputComponent>(r);
   const auto& controllers = input.controllers;
-  auto& ui = get_first_component<SINGLE_MainMenuUI>(r);
+  const auto& ui = get_first_component<SINGLE_MainMenuUI>(r);
 
   ImGuiWindowFlags flags = 0;
   flags |= ImGuiWindowFlags_NoCollapse;
@@ -118,15 +119,10 @@ update_ui_scene_main_menu(engine::SINGLETON_Application& app, entt::registry& r)
 
   // show a sound icon
   ImGuiWindowFlags icon_flags = 0;
-  icon_flags |= ImGuiWindowFlags_NoDocking;
-  icon_flags |= ImGuiWindowFlags_NoFocusOnAppearing;
-  icon_flags |= ImGuiWindowFlags_NoTitleBar;
   icon_flags |= ImGuiWindowFlags_NoCollapse;
-  icon_flags |= ImGuiWindowFlags_NoResize;
-  icon_flags |= ImGuiWindowFlags_NoMove;
-  icon_flags |= ImGuiWindowFlags_NoBringToFrontOnFocus;
-
-  static auto should_mute = gesert_string(PLAYERPREF_MUTE, "false"s) == "true";
+  icon_flags |= ImGuiWindowFlags_NoTitleBar;
+  icon_flags |= ImGuiWindowFlags_AlwaysAutoResize;
+  icon_flags |= ImGuiWindowFlags_NoBackground;
 
   // window settings
   const int size_x = 1000;
@@ -141,13 +137,23 @@ update_ui_scene_main_menu(engine::SINGLETON_Application& app, entt::registry& r)
   const float distance_from_right_of_screen = 75;
   const float distance_from_top_of_screen = 75;
   static glm::ivec2 offset = unmute_icon_offset;
-  static int toggle = should_mute ? 1 : 0; // 1 is muted
-  static bool toggle_changed = true;
-  const ImGuiViewport* viewport = ImGui::GetMainViewport();
 
+  const auto set_icon_state = [&](const bool muted) {
+    if (muted)
+      offset = mute_icon_offset;
+    else
+      offset = unmute_icon_offset;
+  };
+
+  // button state
+  static auto should_mute = gesert_string(PLAYERPREF_MUTE, "false"s) == "true";
+  static int toggle = should_mute ? 1 : 0; // 1 is muted
+  static bool toggle_changed = false;
+
+  const ImGuiViewport* viewport = ImGui::GetMainViewport();
   ImGui::SetNextWindowPos(ImVec2(viewport->WorkPos.x + viewport->WorkSize.x - distance_from_right_of_screen,
                                  viewport->WorkPos.y + viewport->WorkSize.y - distance_from_top_of_screen));
-  ImGui::Begin("Mute Sound Icon", nullptr, flags);
+  ImGui::Begin("Mute Sound Icon", nullptr, icon_flags);
 
   // convert desired icon to uv coordinates
   // clang-format off
@@ -155,39 +161,36 @@ update_ui_scene_main_menu(engine::SINGLETON_Application& app, entt::registry& r)
   ImVec2 br = ImVec2(((offset.x * pixels_x + pixels_x) / size_x), ((offset.y * pixels_y + pixels_y) / size_y));
   // clang-format on
 
-  const auto tex_id = search_for_texture_id_by_texture_path(ri, "kennynl_gameicons")->id;
-
   // draw an audio icon
-  // ImGui::Image((ImTextureID)tex_id, { icon_size.x, icon_size.y }, tl, br);
-  ImTextureID id = (ImTextureID)tex_id;
+  const auto tex_id = search_for_texture_id_by_texture_path(ri, "kennynl_gameicons")->id;
+  const auto id = (ImTextureID)tex_id;
   int frame_padding = -1;
   if (ImGui::ImageButton(id, icon_size, tl, br, frame_padding, ImColor(0, 0, 0, 255))) {
     toggle = toggle == 1 ? 0 : 1;
     toggle_changed = true;
-
     fmt::println("toggle changed to: {}", toggle);
+
     save_string(PLAYERPREF_MUTE, toggle == 1 ? "true"s : "false"s);
   }
 
-  if (toggle == 0 && toggle_changed) {
-    offset = unmute_icon_offset;
-    auto& audio = get_first_component<SINGLETON_AudioComponent>(r);
-    audio.all_mute = false;
+  // update state
+  set_icon_state(toggle);
+  auto& audio = get_first_component<SINGLETON_AudioComponent>(r);
+  audio.all_mute = toggle;
 
-    fmt::println("changed to unmute all");
-
-    // move_to_scene_start(r, Scene::menu);
+  // toggle: mute to unmute. play menu theme.
+  if (toggle_changed && toggle == 0) {
+    fmt::println("unmute all");
     create_empty<AudioRequestPlayEvent>(r, AudioRequestPlayEvent{ "MENU_01" });
+    toggle_changed = false;
   }
-  if (toggle == 1 && toggle_changed) {
-    offset = mute_icon_offset;
-    auto& audio = get_first_component<SINGLETON_AudioComponent>(r);
-    audio.all_mute = true;
-    stop_all_audio(r);
 
+  // toggle: unmute to mute. stop all music.
+  if (toggle_changed && toggle == 1) {
     fmt::println("muted all");
+    stop_all_audio(r);
+    toggle_changed = false;
   }
-  toggle_changed = false;
 
   ImGui::End();
 };

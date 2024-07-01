@@ -73,6 +73,7 @@ else()
   find_package(OpenAL CONFIG REQUIRED)
 endif()
 
+find_package(SDL2_mixer CONFIG REQUIRED)
 find_package(fmt CONFIG REQUIRED)
 find_package(nlohmann_json CONFIG REQUIRED)
 find_package(glm CONFIG REQUIRED)
@@ -128,6 +129,7 @@ else()
   # target_link_libraries(game_defence PRIVATE GameNetworkingSockets::shared)
   target_link_libraries(game_defence PRIVATE GLEW::GLEW)
   target_link_libraries(game_defence PRIVATE SDL2::SDL2 SDL2::SDL2main)
+  target_link_libraries(game_defence PRIVATE SDL2_mixer::SDL2_mixer)
   target_link_libraries(game_defence PRIVATE OpenAL::OpenAL)
 endif()
 
@@ -142,15 +144,15 @@ IF(${CMAKE_SYSTEM_NAME} STREQUAL "Windows")
   # Only do this for debug builds,
   # as release builds should copy the folder over (not symlink)
   IF(CMAKE_BUILD_TYPE MATCHES Debug)
-    # # create symlink assets for build
-    # set(src ${CMAKE_SOURCE_DIR}/game_defence/assets)
-    # set(dst ${CMAKE_CURRENT_BINARY_DIR}/assets)
-    # add_custom_command(
-    # TARGET ${PROJECT_NAME} PRE_BUILD
-    # COMMAND ${CMAKE_COMMAND} -E create_symlink ${src} ${dst}
-    # DEPENDS ${dst}
-    # COMMENT "symbolic link resources folder from ${src} => ${dst}"
-    # )
+    # create symlink assets for build
+    set(src ${CMAKE_SOURCE_DIR}/game_defence/assets)
+    set(dst ${CMAKE_CURRENT_BINARY_DIR}/assets)
+    add_custom_command(
+      TARGET ${PROJECT_NAME} PRE_BUILD
+      COMMAND ${CMAKE_COMMAND} -E create_symlink ${src} ${dst}
+      DEPENDS ${dst}
+      COMMENT "symbolic link resources folder from ${src} => ${dst}"
+    )
   endif()
 endif()
 

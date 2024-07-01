@@ -1,8 +1,6 @@
 #pragma once
 
-#include "AL/al.h"
-#include "AL/alc.h"
-
+#include <SDL_mixer.h>
 #include <string>
 #include <vector>
 
@@ -23,13 +21,14 @@ enum class AudioSourceState
   PLAYING,
 };
 
-// sources can be positioned and played.
-// source sound is determined position and
-// orientation relative to the listener object.
 struct AudioSource
 {
-  ALuint source_id = 0; // generated
+  int channel = -1;
   AudioSourceState state = AudioSourceState::FREE;
+
+  AudioSource() = default;
+  AudioSource(const int c)
+    : channel(c){};
 };
 
 struct AudioListener
@@ -41,7 +40,9 @@ struct Sound
 {
   std::string tag;
   std::string path;
-  ALuint result;
+
+  // ALuint result;
+  Mix_Chunk* buffer;
 };
 
 struct SINGLETON_AudioComponent
@@ -52,8 +53,9 @@ struct SINGLETON_AudioComponent
   float master_volume = 1.0f;
 
   bool refresh_devices = true;
-  std::vector<std::string> playback_devices;
-  std::vector<std::string> captured_devices;
+  std::vector<std::string> devices;
+
+  int captured_device_id = -1;
 };
 
 } // namespace game2d

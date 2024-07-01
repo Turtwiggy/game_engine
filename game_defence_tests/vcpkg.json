@@ -5,6 +5,8 @@
     "glew",
     "glm",
     "sdl2",
+    "sdl2-mixer",
+    "sdl2-mixer[mpg123]",
     "openal-soft",
     "stb",
     "nlohmann-json",

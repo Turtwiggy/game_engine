@@ -1,6 +1,7 @@
 #include "system.hpp"
 
 #include "app/application.hpp"
+#include "audio/helpers/sdl_mixer.hpp"
 #include "entt/helpers.hpp"
 #include "events/components.hpp"
 #include "events/helpers/controller.hpp"
@@ -105,14 +106,14 @@ update_input_system(engine::SINGLETON_Application& app, entt::registry& r)
         process_controller_removed(input);
       }
 
-      // if (e.type == SDL_AUDIODEVICEADDED) {
-      //   // fmt::println("audio added" << std::endl;
-      //   process_audio_added(r);
-      // }
-      // if (e.type == SDL_AUDIODEVICEREMOVED) {
-      //   // fmt::println("audio removed" << std::endl;
-      //   process_audio_removed(r);
-      // }
+      if (e.type == SDL_AUDIODEVICEADDED) {
+        fmt::println("audio device added");
+        // game2d::audio::sdl_mixer::process_audio_added(r);
+      }
+      if (e.type == SDL_AUDIODEVICEREMOVED) {
+        fmt::println("audio device removed");
+        // game2d::audio::sdl_mixer::process_audio_removed(r);
+      }
     };
 
   } // finished polling events
