@@ -172,4 +172,15 @@ search_for_texture_id_by_spritesheet_path(const SINGLETON_RendererInfo& ri, cons
   return std::nullopt;
 };
 
+int
+search_for_renderpass_by_name(const SINGLETON_RendererInfo& ri, const PassName& name)
+{
+  for (int i = 0; i < ri.passes.size(); i++) {
+    if (ri.passes[i].pass == name)
+      return i;
+  }
+
+  exit(1); // explode
+};
+
 } // namespace game2d

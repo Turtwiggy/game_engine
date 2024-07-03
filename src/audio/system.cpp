@@ -59,7 +59,7 @@ init_audio_system(entt::registry& r)
   // Load sounds
 
   auto start = std::chrono::high_resolution_clock::now();
-  engine::log_time_since("Loading audio... ", start);
+  fmt::println("Loading audio...");
 
   for (auto& file : audio.sounds) {
     auto* sound = Mix_LoadWAV(file.path.c_str());

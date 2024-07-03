@@ -151,6 +151,7 @@ move_to_scene_start(entt::registry& r, const Scene s, const bool load_saved)
   destroy_first<SINGLE_MinigameBamboo>(r);
   destroy_first<SINGLE_TurnBasedCombatInfo>(r);
   destroy_first<DungeonGenerationResults>(r);
+  destroy_first<SINGLE_EventConsoleLogComponent>(r);
   // destroy_first<SINGLE_MainMenuUI>(r);
 
   if (s != Scene::dungeon_designer)
@@ -377,21 +378,10 @@ move_to_scene_start(entt::registry& r, const Scene s, const bool load_saved)
     const auto cursor_e = create_gameplay(r, EntityType::cursor);
     set_size(r, cursor_e, { 0, 0 });
 
-    // create new map & dungeon constraints
-    const int map_width = 1000;
-    const int map_height = 1000;
-    MapComponent map_c;
-    map_c.tilesize = 50;
-    map_c.xmax = map_width / map_c.tilesize;
-    map_c.ymax = map_height / map_c.tilesize;
-    map_c.map.resize(map_c.xmax * map_c.ymax);
-    create_empty<MapComponent>(r, map_c);
-    auto& map = get_first_component<MapComponent>(r);
-
     // Create 4 edges to the map
-    bool create_edges = false;
-    if (create_edges)
-      add_boundary_walls(r, map_width, map_height, map_c.tilesize);
+    // bool create_edges = false;
+    // if (create_edges)
+    //   add_boundary_walls(r, map_width, map_height, map_c.tilesize);
 
     // Debug object
     auto& info = get_first_component<SINGLE_TurnBasedCombatInfo>(r);

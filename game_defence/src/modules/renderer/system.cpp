@@ -1,25 +1,15 @@
 // your header
 #include "system.hpp"
 
-// components/systems
+// components/systems#
 #include "colour/colour.hpp"
+#include "components.hpp"
 #include "entt/helpers.hpp"
-#include "events/helpers/mouse.hpp"
-#include "imgui/helpers.hpp"
 #include "modules/camera/orthographic.hpp"
-#include "modules/gameplay_circle/components.hpp"
 #include "modules/renderer/components.hpp"
 #include "modules/renderer/helpers.hpp"
 #include "modules/renderer/helpers/batch_quad.hpp"
-#include "modules/renderer/helpers/batch_triangle_fan.hpp"
-#include "modules/ui_colours/helpers.hpp"
-#include "modules/vfx_grid/components.hpp"
-#include "renderer/transform.hpp"
-#include "sprites/components.hpp"
-
-// hack
-#include "events/components.hpp"
-#include "events/helpers/keyboard.hpp"
+#include "modules/renderer/renderpass/passes.hpp"
 
 // engine headers
 #include "opengl/framebuffer.hpp"
@@ -28,18 +18,26 @@
 #include "opengl/texture.hpp"
 #include "opengl/util.hpp"
 #include <SDL_scancode.h>
-using namespace engine; // used for macro
+using namespace engine;
 
 // other lib
 #include "imgui.h"
 #include <SDL2/SDL.h>
 #include <glm/glm.hpp>
 #include <glm/gtc/type_ptr.hpp>
-
-#include "components.hpp"
+#include <magic_enum.hpp>
 
 namespace game2d {
 using namespace std::literals;
+
+int
+get_renderer_tex_unit_count(const SINGLETON_RendererInfo& ri)
+{
+  int i = 0;
+  for (const auto& p : ri.passes)
+    i += int(p.texs.size());
+  return i;
+};
 
 void
 rebind(entt::registry& r, const SINGLETON_RendererInfo& ri)
@@ -47,54 +45,20 @@ rebind(entt::registry& r, const SINGLETON_RendererInfo& ri)
   const auto& wh = ri.viewport_size_render_at;
   engine::RenderCommand::set_viewport(0, 0, wh.x, wh.y);
 
-  engine::bind_tex(ri.tex_id_linear_main);
-  engine::update_bound_texture_size(wh);
-  engine::unbind_tex();
+  for (auto& rp : ri.passes) {
+    for (const auto& tex : rp.texs) {
+      engine::bind_tex(tex.tex_id.id);
+      engine::update_bound_texture_size(wh);
+      engine::unbind_tex();
+    }
+  }
 
-  engine::bind_tex(ri.tex_id_lighting);
-  engine::update_bound_texture_size(wh);
-  engine::unbind_tex();
-
-  engine::bind_tex(ri.tex_id_mix_lighting_and_scene);
-  engine::update_bound_texture_size(wh);
-  engine::unbind_tex();
-
-  engine::bind_tex(ri.tex_id_mix_lighting_and_scene_brightness);
-  engine::update_bound_texture_size(wh);
-  engine::unbind_tex();
-
-  engine::bind_tex(ri.tex_id_blur_pingpong_0);
-  engine::update_bound_texture_size(wh);
-  engine::unbind_tex();
-
-  engine::bind_tex(ri.tex_id_blur_pingpong_1);
-  engine::update_bound_texture_size(wh);
-  engine::unbind_tex();
-
-  engine::bind_tex(ri.tex_id_bloom);
-  engine::update_bound_texture_size(wh);
-  engine::unbind_tex();
-
-  glActiveTexture(GL_TEXTURE0 + ri.tex_unit_linear_main);
-  glBindTexture(GL_TEXTURE_2D, ri.tex_id_linear_main);
-
-  glActiveTexture(GL_TEXTURE0 + ri.tex_unit_lighting);
-  glBindTexture(GL_TEXTURE_2D, ri.tex_id_lighting);
-
-  glActiveTexture(GL_TEXTURE0 + ri.tex_unit_mix_lighting_and_scene);
-  glBindTexture(GL_TEXTURE_2D, ri.tex_id_mix_lighting_and_scene);
-
-  glActiveTexture(GL_TEXTURE0 + ri.tex_unit_mix_lighting_and_scene_brightness);
-  glBindTexture(GL_TEXTURE_2D, ri.tex_id_mix_lighting_and_scene_brightness);
-
-  glActiveTexture(GL_TEXTURE0 + ri.tex_unit_blur_pingpong_0);
-  glBindTexture(GL_TEXTURE_2D, ri.tex_id_blur_pingpong_0);
-
-  glActiveTexture(GL_TEXTURE0 + ri.tex_unit_blur_pingpong_1);
-  glBindTexture(GL_TEXTURE_2D, ri.tex_id_blur_pingpong_1);
-
-  glActiveTexture(GL_TEXTURE0 + ri.tex_unit_bloom);
-  glBindTexture(GL_TEXTURE_2D, ri.tex_id_bloom);
+  for (auto& rp : ri.passes) {
+    for (const auto& tex : rp.texs) {
+      glActiveTexture(GL_TEXTURE0 + tex.tex_unit.unit);
+      glBindTexture(GL_TEXTURE_2D, tex.tex_id.id);
+    }
+  }
 
   for (const auto& tex : ri.user_textures) {
     glActiveTexture(GL_TEXTURE0 + tex.tex_unit.unit);
@@ -113,13 +77,35 @@ rebind(entt::registry& r, const SINGLETON_RendererInfo& ri)
 
   ri.instanced.bind();
   ri.instanced.set_mat4("projection", camera.projection);
-  ri.instanced.set_int("RENDERER_TEX_UNIT_COUNT", ri.RENDERER_TEX_UNIT_COUNT);
+  ri.instanced.set_int("RENDERER_TEX_UNIT_COUNT", get_renderer_tex_unit_count(ri));
   ri.instanced.set_int("tex_kenny", tex_unit_kenny);
   ri.instanced.set_int("tex_gameicons", tex_unit_gameicons);
   ri.instanced.set_int("tex_unit_space_background", tex_unit_space_background);
   ri.instanced.set_int("tex_unit_mainmenu_background", tex_unit_mainmenu_background);
   ri.instanced.set_int("tex_unit_spacestation_0", tex_unit_spacestation_0);
   ri.instanced.set_int("tex_unit_studio_logo", tex_unit_studio_logo);
+
+  const auto lighting_pass_idx = search_for_renderpass_by_name(ri, PassName::lighting_main);
+  const auto& lighting_pass = ri.passes[lighting_pass_idx];
+  const int tex_unit_lighting = lighting_pass.texs[0].tex_unit.unit;
+
+  const auto linear_pass_idx = search_for_renderpass_by_name(ri, PassName::linear_main);
+  const auto& linear_pass = ri.passes[linear_pass_idx];
+  const int tex_unit_linear_main = linear_pass.texs[0].tex_unit.unit;
+
+  const auto lighting_and_scene_idx = search_for_renderpass_by_name(ri, PassName::mix_lighting_and_scene);
+  const auto& lighting_and_scene_pass = ri.passes[lighting_and_scene_idx];
+  const int tex_unit_mix_lighting_and_scene = lighting_and_scene_pass.texs[0].tex_unit.unit;
+
+  const auto blur_pingpong_1_idx = search_for_renderpass_by_name(ri, PassName::blur_pingpong_1);
+  const auto& blur_pingpong_1_pass = ri.passes[blur_pingpong_1_idx];
+  const int tex_unit_blur_pingpong_1 = blur_pingpong_1_pass.texs[0].tex_unit.unit;
+
+  ri.mix_lighting_and_scene.bind();
+  ri.mix_lighting_and_scene.set_mat4("projection", camera.projection);
+  ri.mix_lighting_and_scene.set_mat4("view", glm::mat4(1.0f)); // whole texture
+  ri.mix_lighting_and_scene.set_int("lighting", tex_unit_lighting);
+  ri.mix_lighting_and_scene.set_int("scene", tex_unit_linear_main);
 
   ri.lighting.bind();
   ri.lighting.set_mat4("view", camera.view);
@@ -129,12 +115,6 @@ rebind(entt::registry& r, const SINGLETON_RendererInfo& ri)
   ri.circle.bind();
   ri.circle.set_mat4("projection", camera.projection);
 
-  ri.mix_lighting_and_scene.bind();
-  ri.mix_lighting_and_scene.set_mat4("projection", camera.projection);
-  ri.mix_lighting_and_scene.set_mat4("view", glm::mat4(1.0f)); // whole texture
-  ri.mix_lighting_and_scene.set_int("lighting", ri.tex_unit_lighting);
-  ri.mix_lighting_and_scene.set_int("scene", ri.tex_unit_linear_main);
-
   ri.blur.bind();
   ri.blur.set_mat4("projection", camera.projection);
   ri.blur.set_mat4("view", glm::mat4(1.0f)); // whole texture
@@ -142,14 +122,11 @@ rebind(entt::registry& r, const SINGLETON_RendererInfo& ri)
   ri.bloom.bind();
   ri.bloom.set_mat4("projection", camera.projection);
   ri.bloom.set_mat4("view", glm::mat4(1.0f)); // whole texture
-  ri.bloom.set_int("scene_texture", ri.tex_unit_mix_lighting_and_scene);
-  ri.bloom.set_int("blur_texture", ri.tex_unit_blur_pingpong_1);
+  ri.bloom.set_int("scene_texture", tex_unit_mix_lighting_and_scene);
+  ri.bloom.set_int("blur_texture", tex_unit_blur_pingpong_1);
 
-  const auto grid_e = get_first<Effect_GridComponent>(r);
   ri.grid.bind();
   ri.grid.set_mat4("projection", camera.projection);
-  if (grid_e != entt::null)
-    ri.grid.set_float("gridsize", r.get<Effect_GridComponent>(grid_e).gridsize);
 };
 
 void
@@ -162,43 +139,20 @@ init_render_system(const engine::SINGLETON_Application& app, entt::registry& r, 
 
   // FBO textures
   Framebuffer::default_fbo();
-  {
-    const auto result = new_texture_to_fbo(ri.tex_unit_linear_main, fbo_size);
-    ri.fbo_linear_main = result.out_fbo_id;
-    ri.tex_id_linear_main = result.out_tex_ids[0];
-  }
-  {
-    const auto result = new_texture_to_fbo(ri.tex_unit_lighting, fbo_size);
-    ri.fbo_lighting = result.out_fbo_id;
-    ri.tex_id_lighting = result.out_tex_ids[0];
-  }
-  {
-    const auto result = new_texture_to_fbo(ri.tex_unit_mix_lighting_and_scene, fbo_size, 2);
-    ri.fbo_mix_lighting_and_scene = result.out_fbo_id;
-    ri.tex_id_mix_lighting_and_scene = result.out_tex_ids[0];
-    ri.tex_id_mix_lighting_and_scene_brightness = result.out_tex_ids[1];
-  }
-  {
-    const auto result = new_texture_to_fbo(ri.tex_unit_blur_pingpong_0, fbo_size);
-    ri.fbo_blur_pingpong_0 = result.out_fbo_id;
-    ri.tex_id_blur_pingpong_0 = result.out_tex_ids[0];
-  }
-  {
-    const auto result = new_texture_to_fbo(ri.tex_unit_blur_pingpong_1, fbo_size);
-    ri.fbo_blur_pingpong_1 = result.out_fbo_id;
-    ri.tex_id_blur_pingpong_1 = result.out_tex_ids[0];
-  }
-  {
-    const auto result = new_texture_to_fbo(ri.tex_unit_bloom, fbo_size);
-    ri.fbo_bloom = result.out_fbo_id;
-    ri.tex_id_bloom = result.out_tex_ids[0];
-  }
+  ri.passes.push_back(RenderPass(PassName::linear_main));
+  ri.passes.push_back(RenderPass(PassName::lighting_main));
+  ri.passes.push_back(RenderPass(PassName::mix_lighting_and_scene, 2));
+  ri.passes.push_back(RenderPass(PassName::blur_pingpong_0));
+  ri.passes.push_back(RenderPass(PassName::blur_pingpong_1));
+  ri.passes.push_back(RenderPass(PassName::bloom));
+  for (auto& rp : ri.passes)
+    rp.setup(fbo_size);
 
   // Load user textures
-  const int base_tex_unit = ri.RENDERER_TEX_UNIT_COUNT;
+  const int base_tex_unit = get_renderer_tex_unit_count(ri);
   int next_tex_unit = base_tex_unit;
-  for (auto& tex : ri.user_textures) {
-    tex.tex_unit = next_tex_unit;
+  for (Texture& tex : ri.user_textures) {
+    tex.tex_unit.unit = next_tex_unit;
     const auto loaded_tex = engine::load_texture_linear(tex.tex_unit.unit, tex.path);
     tex.tex_id.id = bind_linear_texture(loaded_tex);
     next_tex_unit++;
@@ -222,312 +176,67 @@ init_render_system(const engine::SINGLETON_Application& app, entt::registry& r, 
 
   glEnable(GL_BLEND);
   glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
-  // glBlendFuncSeparate(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA, GL_ONE, GL_ZERO);
-  // glEnable(GL_DEPTH_TEST);
-  // glEnable(GL_LINE_SMOOTH);
 
-  print_gpu_info();
-
-  quad_renderer::QuadRenderer::init();
-  triangle_fan_renderer::TriangleFanRenderer::init();
+  engine::print_gpu_info();
+  engine::quad_renderer::QuadRenderer::init();
 
   rebind(r, ri);
+
+  // adds the update() for each renderpass
+  setup_linear_main_update(r);
+  setup_lighting_main_update(r);
+  setup_mix_lighting_and_scene_update(r);
+  setup_gaussian_blur_update(r);
+  setup_bloom_update(r);
+
+  // validate that update() been set...
+  for (const auto& pass : ri.passes) {
+    const auto type_name = std::string(magic_enum::enum_name(pass.pass));
+    if (!pass.update) {
+      fmt::println(stderr, "ERROR! RenderPass Update() not set for {}", type_name);
+      exit(1); // explode
+    }
+    // fmt::println("RenderPass {} tex_size: {}", type_name, pass.texs.size());
+    // for (const auto& tex : pass.texs)
+    //   fmt::println("Unit: {}, Id: {}", tex.tex_unit.unit, tex.tex_id.id);
+  }
+  // for (auto& tex : ri.user_textures)
+  //   fmt::println("User Texture, Unit: {}, Id: {}", tex.tex_unit.unit, tex.tex_id.id);
+
+  CHECK_OPENGL_ERROR(3);
 };
 
 void
 update_render_system(entt::registry& r, const float dt, const glm::vec2& mouse_pos)
 {
-  auto& ri = get_first_component<SINGLETON_RendererInfo>(r);
   static const engine::SRGBColour black(0, 0, 0, 1.0f);
 
-  // static float time = 0.0f;
-  // time += dt;
+  auto& ri = get_first_component<SINGLETON_RendererInfo>(r);
 
   if (check_if_viewport_resize(ri)) {
     ri.viewport_size_render_at = ri.viewport_size_current;
     rebind(r, ri);
   }
   const auto viewport_wh = ri.viewport_size_render_at;
-  const glm::ivec2 fbo_lighting_size = { viewport_wh.x, viewport_wh.y };
 
-  // HACK: toggle bloom
-  bool do_bloom = get_first<Effect_DoBloom>(r) != entt::null;
-  static float exposure = 1.5f;
-  static float brightness_threshold = 0.80f;
-  static float blur_amount = 4;
-  const auto& input = get_first_component<SINGLETON_InputComponent>(r);
-#if defined(_EEBUG)
-  ImGui::Begin("Debug__Bloom");
-  if (get_key_down(input, SDL_SCANCODE_P)) {
-    do_bloom = !do_bloom;
-    if (do_bloom)
-      destroy_first_and_create<Effect_DoBloom>(r);
-    else
-      destroy_first<Effect_DoBloom>(r);
+  ImGui::Begin("DebugRenderPasses");
+
+  for (const auto& pass : ri.passes) {
+    const auto pass_name = std::string(magic_enum::enum_name(pass.pass));
+    ImGui::Text("Pass: %s", pass_name.c_str());
+
+    Framebuffer::bind_fbo(pass.fbo);
+    RenderCommand::set_viewport(0, 0, viewport_wh.x, viewport_wh.y);
+    RenderCommand::set_clear_colour_srgb(black);
+    RenderCommand::clear();
+
+    pass.update();
   }
-  ImGui::Text("DoBloom: %i", do_bloom);
-  imgui_draw_float("exposure", exposure);
-  imgui_draw_float("brightness_threshold", brightness_threshold);
-  imgui_draw_float("blur_amount", blur_amount);
-  blur_amount = glm::min(blur_amount, 30.0f); // dont crash pc pls
+
   ImGui::End();
-#endif
-
-  // Camera
-  const auto camera_e = get_first<OrthographicCamera>(r);
-  const auto& camera = r.get<OrthographicCamera>(camera_e);
-  const auto& camera_t = r.get<TransformComponent>(camera_e);
-  ri.instanced.bind();
-  ri.instanced.set_mat4("view", camera.view);
-  ri.instanced.set_int("screen_w", ri.viewport_size_render_at.x);
-  ri.instanced.set_int("screen_h", ri.viewport_size_render_at.y);
-
-  ri.lighting.bind();
-  ri.lighting.set_mat4("view", camera.view);
-
-  ri.mix_lighting_and_scene.bind();
-  // convert light_pos to screen_space
-  // const glm::vec2 light_pos = mouse_pos;
-  // const glm::vec2 light_pos = { camera_t.position.x, camera_t.position.y };
-  // const glm::vec2 middle_of_screen = { viewport_wh.x / 2.0f, viewport_wh.y / 2.0f };
-  // const glm::vec2 light_pos_in_screenspace = middle_of_screen;
-  // light_pos.x should be 0 < viewport_wh.x
-  // light_pos.y should be 0 < viewport_wh.y
-  const glm::vec2 mouse_raw = get_mouse_pos() - ri.viewport_pos;
-  ri.mix_lighting_and_scene.set_vec2("light_pos", mouse_raw);
-  ri.mix_lighting_and_scene.set_vec2("viewport_wh", ri.viewport_size_render_at);
-  ri.mix_lighting_and_scene.set_vec2("camera_pos", { camera_t.position.x, camera_t.position.y });
-  ri.mix_lighting_and_scene.set_float("brightness_threshold", brightness_threshold);
-
-  ri.blur.bind();
-
-  ri.bloom.bind();
-  ri.bloom.set_mat4("view", camera.view);
-  ri.bloom.set_float("exposure", exposure);
-  ri.bloom.set_bool("do_bloom", do_bloom);
-
-  ri.circle.bind();
-  ri.circle.set_mat4("view", camera.view);
-  ri.circle.set_vec2("viewport_wh", ri.viewport_size_render_at);
-  ri.circle.set_vec2("camera_pos", { camera_t.position.x, camera_t.position.y });
-
-  ri.grid.bind();
-  ri.grid.set_mat4("view", camera.view);
-  ri.grid.set_vec2("viewport_wh", ri.viewport_size_render_at);
-  ri.grid.set_vec2("camera_pos", { camera_t.position.x, camera_t.position.y });
-  const auto grid_e = get_first<Effect_GridComponent>(r);
-  if (grid_e != entt::null) {
-    const float gridsize = r.get<Effect_GridComponent>(grid_e).gridsize;
-    ri.grid.set_float("gridsize", gridsize);
-  }
-
-  if (get_key_down(input, SDL_SCANCODE_0)) {
-    ri.mix_lighting_and_scene.reload();
-    ri.mix_lighting_and_scene.bind();
-
-    ri.mix_lighting_and_scene.set_mat4("projection", camera.projection);
-    ri.mix_lighting_and_scene.set_mat4("view", glm::mat4(1.0f)); // whole texture
-    ri.mix_lighting_and_scene.set_int("lighting", ri.tex_unit_lighting);
-    ri.mix_lighting_and_scene.set_int("scene", ri.tex_unit_linear_main);
-
-    const glm::vec2 mouse_raw = get_mouse_pos();
-    ri.mix_lighting_and_scene.set_float("brightness_threshold", brightness_threshold);
-    ri.mix_lighting_and_scene.set_vec2("light_pos", mouse_raw);
-    ri.mix_lighting_and_scene.set_vec2("camera_pos", { camera_t.position.x, camera_t.position.y });
-    ri.mix_lighting_and_scene.set_vec2("viewport_wh", ri.viewport_size_render_at);
-  }
-
-  // FBO: Render sprites in to this fbo with linear colour
-  {
-    Framebuffer::bind_fbo(ri.fbo_linear_main);
-    RenderCommand::set_viewport(0, 0, viewport_wh.x, viewport_wh.y);
-    RenderCommand::set_clear_colour_srgb(black);
-    RenderCommand::clear();
-
-    // Render grid shader
-    if (get_first<Effect_GridComponent>(r) != entt::null) {
-      quad_renderer::QuadRenderer::reset_quad_vert_count();
-      quad_renderer::QuadRenderer::begin_batch();
-
-      // grid post-processing
-      // render completely over screen
-      {
-        quad_renderer::RenderDescriptor desc;
-        const glm::vec2 offset = { ri.viewport_size_render_at.x / 2.0, ri.viewport_size_render_at.y / 2.0f };
-        desc.pos_tl = glm::vec2(camera_t.position.x, camera_t.position.y) - offset;
-        desc.size = ri.viewport_size_render_at;
-        desc.angle_radians = 0;
-        quad_renderer::QuadRenderer::draw_sprite(desc, ri.grid);
-      }
-
-      quad_renderer::QuadRenderer::end_batch();
-      quad_renderer::QuadRenderer::flush(ri.grid);
-    }
-
-    // Render some quads
-    {
-      quad_renderer::QuadRenderer::reset_quad_vert_count();
-      quad_renderer::QuadRenderer::begin_batch();
-
-      const auto& group = r.group<TransformComponent, SpriteComponent>();
-
-      // sort by z-index; adds 0.5ms
-      group.sort<TransformComponent>([](const auto& a, const auto& b) { return a.position.z < b.position.z; });
-
-      for (const auto& [entity, transform, sc] : group.each()) {
-        quad_renderer::RenderDescriptor desc;
-        // desc.pos_tl = camera_transform.position + transform.position - transform.scale / 2;
-        desc.pos_tl = transform.position - transform.scale / 2;
-        desc.size = transform.scale;
-        desc.angle_radians = sc.angle_radians + transform.rotation_radians.z;
-        desc.colour = sc.colour;
-        desc.tex_unit = sc.tex_unit;
-
-        desc.sprite_offset = { sc.tex_pos.x, sc.tex_pos.y };
-        desc.sprite_width = { sc.tex_pos.w, sc.tex_pos.h };
-        desc.sprites_max = { sc.total_sx, sc.total_sy };
-
-        quad_renderer::QuadRenderer::draw_sprite(desc, ri.instanced);
-      }
-
-      quad_renderer::QuadRenderer::end_batch();
-      quad_renderer::QuadRenderer::flush(ri.instanced);
-    }
-
-    // Render some SDF circles
-    {
-      quad_renderer::QuadRenderer::reset_quad_vert_count();
-      quad_renderer::QuadRenderer::begin_batch();
-
-      // set the positions of the player units
-      {
-        ri.circle.bind();
-        const auto& player_view = r.view<TransformComponent, CircleComponent>();
-        for (int i = 0; const auto& [e, transform, c] : player_view.each()) {
-          const glm::vec2 pos = { float(transform.position.x), float(transform.position.y) };
-          std::string label = "points["s + std::to_string(i) + "].pos"s;
-          ri.circle.set_vec2(label, pos);
-          i++;
-        }
-
-        // const auto& io = ImGui::GetIO();
-        // ri.circle.set_vec2("points[4].pos", { io.MousePos.x, io.MousePos.y });
-      }
-
-      // circle post-processing
-      // render completely over screen
-      {
-        quad_renderer::RenderDescriptor desc;
-        const glm::vec2 offset = { ri.viewport_size_render_at.x / 2.0, ri.viewport_size_render_at.y / 2.0f };
-        desc.pos_tl = glm::vec2(camera_t.position.x, camera_t.position.y) - offset;
-        desc.size = ri.viewport_size_render_at;
-        desc.angle_radians = 0;
-        quad_renderer::QuadRenderer::draw_sprite(desc, ri.circle);
-      }
-
-      quad_renderer::QuadRenderer::end_batch();
-      quad_renderer::QuadRenderer::flush(ri.circle);
-    }
-  }
-
-  // FBO: mix lighting and scene, and convert to srgb
-  {
-
-    Framebuffer::bind_fbo(ri.fbo_mix_lighting_and_scene);
-    RenderCommand::set_viewport(0, 0, viewport_wh.x, viewport_wh.y);
-    RenderCommand::set_clear_colour_srgb(black);
-    RenderCommand::clear();
-
-    quad_renderer::QuadRenderer::reset_quad_vert_count();
-    quad_renderer::QuadRenderer::begin_batch();
-
-    quad_renderer::RenderDescriptor desc;
-    desc.pos_tl = { 0, 0 };
-    desc.size = viewport_wh;
-    desc.angle_radians = 0.0f;
-    desc.colour = get_lin_colour_by_tag(r, "background");
-    // desc.tex_unit = ri.tex_unit_main_FBO;
-    // desc.sprite_offset_and_width = { 0, 0, 0, 0 };
-    quad_renderer::QuadRenderer::draw_sprite(desc, ri.mix_lighting_and_scene);
-
-    quad_renderer::QuadRenderer::end_batch();
-    quad_renderer::QuadRenderer::flush(ri.mix_lighting_and_scene);
-  }
-
-  // FBO: gaussian blur.
-  bool horizontal = true;
-  bool first_iteration = true;
-  int last_blur_texunit = ri.tex_id_mix_lighting_and_scene_brightness;
-  {
-    ri.blur.bind();
-    for (int i = 0; i < blur_amount; i++) {
-      if (horizontal)
-        Framebuffer::bind_fbo(ri.fbo_blur_pingpong_1);
-      else
-        Framebuffer::bind_fbo(ri.fbo_blur_pingpong_0);
-
-      ri.blur.set_bool("horizontal", horizontal);
-      if (first_iteration) {
-        ri.blur.set_int("tex", ri.tex_unit_mix_lighting_and_scene_brightness);
-        first_iteration = false;
-      } else {
-        const int tex_unit = horizontal ? ri.tex_unit_blur_pingpong_0 : ri.tex_unit_blur_pingpong_1;
-        ri.blur.set_int("tex", tex_unit);
-        last_blur_texunit = tex_unit;
-      }
-      horizontal = !horizontal;
-
-      RenderCommand::set_viewport(0, 0, viewport_wh.x, viewport_wh.y);
-      RenderCommand::set_clear_colour_srgb(black);
-      RenderCommand::clear();
-      {
-        quad_renderer::QuadRenderer::reset_quad_vert_count();
-        quad_renderer::QuadRenderer::begin_batch();
-
-        // render completely over screen
-        {
-          quad_renderer::RenderDescriptor desc;
-          desc.pos_tl = { 0, 0 };
-          desc.size = ri.viewport_size_render_at;
-          desc.angle_radians = 0;
-          quad_renderer::QuadRenderer::draw_sprite(desc, ri.blur);
-        }
-
-        quad_renderer::QuadRenderer::end_batch();
-        quad_renderer::QuadRenderer::flush(ri.blur);
-      }
-    }
-  }
-
-  // FBO: bloom
-  {
-    ri.bloom.bind();
-    ri.bloom.set_int("blur_texture", last_blur_texunit);
-
-    Framebuffer::bind_fbo(ri.fbo_bloom);
-    RenderCommand::set_viewport(0, 0, viewport_wh.x, viewport_wh.y);
-    RenderCommand::set_clear_colour_srgb(black);
-    RenderCommand::clear();
-    {
-      quad_renderer::QuadRenderer::reset_quad_vert_count();
-      quad_renderer::QuadRenderer::begin_batch();
-
-      // render completely over screen
-      {
-        quad_renderer::RenderDescriptor desc;
-        const glm::vec2 offset = { ri.viewport_size_render_at.x / 2.0, ri.viewport_size_render_at.y / 2.0f };
-        desc.pos_tl = glm::vec2(camera_t.position.x, camera_t.position.y) - offset;
-        desc.size = ri.viewport_size_render_at;
-        desc.angle_radians = 0;
-        quad_renderer::QuadRenderer::draw_sprite(desc, ri.bloom);
-      }
-
-      quad_renderer::QuadRenderer::end_batch();
-      quad_renderer::QuadRenderer::flush(ri.bloom);
-    }
-  }
 
   // Default: render_texture_to_imgui
+  // Render the last renderpass texture to the final output
   {
     Framebuffer::default_fbo();
     RenderCommand::set_viewport(0, 0, viewport_wh.x, viewport_wh.y);
@@ -535,7 +244,9 @@ update_render_system(entt::registry& r, const float dt, const glm::vec2& mouse_p
     RenderCommand::clear();
 
     // Note: ImGui::Image takes in TexID not TexUnit
-    ViewportInfo vi = render_texture_to_imgui_viewport(ri.tex_id_bloom);
+    const auto pass_idx = search_for_renderpass_by_name(ri, PassName::bloom);
+    const auto& pass = ri.passes[pass_idx];
+    const auto vi = render_texture_to_imgui_viewport(pass.texs[0].tex_id.id);
 
     // If the viewport moves - viewport position will be a frame behind.
     // This would mainly affect an editor, a game viewport probably(?) wouldn't move that much
@@ -546,53 +257,33 @@ update_render_system(entt::registry& r, const float dt, const glm::vec2& mouse_p
     ri.viewport_focused = vi.focused;
   }
 
-// debug user textures
-//
 #if defined(_DEBUG)
   {
-    ImVec2 viewport_size;
-    // int i = 0;
-    // for (const auto& tex : ri.user_textures) {
-    //   const std::string label = std::string("Debug") + std::to_string(i);
-    //   ImGui::Begin(label.c_str());
-    //   viewport_size = ImGui::GetContentRegionAvail();
-    //   ImGui::Image((ImTextureID)tex.tex_id.id, viewport_size, ImVec2(0, 0), ImVec2(1, 1));
-    //   ImGui::End();
-    //   i++;
-    // }
-
-    const bool hide_debug_textures = true;
+    const bool hide_debug_textures = false;
     if (hide_debug_textures)
       return;
 
-    ImGui::Begin("DebugLighting");
-    viewport_size = ImGui::GetContentRegionAvail();
-    ImGui::Image((ImTextureID)ri.tex_id_lighting, viewport_size, ImVec2(0, 0), ImVec2(1, 1));
-    ImGui::End();
-    ImGui::Begin("DebugScene");
-    viewport_size = ImGui::GetContentRegionAvail();
-    ImGui::Image((ImTextureID)ri.tex_id_linear_main, viewport_size, ImVec2(0, 0), ImVec2(1, 1));
-    ImGui::End();
-    ImGui::Begin("DebugMixLighting");
-    viewport_size = ImGui::GetContentRegionAvail();
-    ImGui::Image((ImTextureID)ri.tex_id_mix_lighting_and_scene, viewport_size, ImVec2(0, 0), ImVec2(1, 1));
-    ImGui::End();
-    ImGui::Begin("DebugMixLightingBrightness");
-    viewport_size = ImGui::GetContentRegionAvail();
-    ImGui::Image((ImTextureID)ri.tex_id_mix_lighting_and_scene_brightness, viewport_size, ImVec2(0, 0), ImVec2(1, 1));
-    ImGui::End();
-    ImGui::Begin("Debug_tex_id_blur_pingpong_0");
-    viewport_size = ImGui::GetContentRegionAvail();
-    ImGui::Image((ImTextureID)ri.tex_id_blur_pingpong_0, viewport_size, ImVec2(0, 0), ImVec2(1, 1));
-    ImGui::End();
-    ImGui::Begin("Debug_tex_id_blur_pingpong_1");
-    viewport_size = ImGui::GetContentRegionAvail();
-    ImGui::Image((ImTextureID)ri.tex_id_blur_pingpong_1, viewport_size, ImVec2(0, 0), ImVec2(1, 1));
-    ImGui::End();
-    ImGui::Begin("DebugBloom");
-    viewport_size = ImGui::GetContentRegionAvail();
-    ImGui::Image((ImTextureID)ri.tex_id_bloom, viewport_size, ImVec2(0, 0), ImVec2(1, 1));
-    ImGui::End();
+    // Debug Passes
+    for (const auto& rp : ri.passes) {
+      const auto pass_name = std::string(magic_enum::enum_name(rp.pass));
+
+      for (int i = 0; const auto& tex : rp.texs) {
+        const std::string label = "DebugTexture"s + pass_name + std::to_string(i++);
+        ImGui::Begin(label.c_str());
+        ImVec2 viewport_size = ImGui::GetContentRegionAvail();
+        ImGui::Image((ImTextureID)tex.tex_id.id, viewport_size, ImVec2(0, 0), ImVec2(1, 1));
+        ImGui::End();
+      }
+    }
+
+    // Debug user Texture
+    // for (int i = 0; const auto& tex : ri.user_textures) {
+    //   const std::string label = std::string("Debug") + std::to_string(i++);
+    //   ImGui::Begin(label.c_str());
+    //   ImVec2 viewport_size = ImGui::GetContentRegionAvail();
+    //   ImGui::Image((ImTextureID)tex.tex_id.id, viewport_size, ImVec2(0, 0), ImVec2(1, 1));
+    //   ImGui::End();
+    // }
   }
 #endif
 };
@@ -601,7 +292,6 @@ void
 end_frame_render_system(entt::registry& registry)
 {
   quad_renderer::QuadRenderer::end_frame();
-  triangle_fan_renderer::TriangleFanRenderer::end_frame();
 };
 
 } // namespace game2d

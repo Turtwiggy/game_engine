@@ -33,6 +33,7 @@ GameWindow::GameWindow(const std::string& title, int width, int height, DisplayM
   SDL_VERSION(&compiledVersion);
   SDL_GetVersion(&linkedVersion);
 
+  setbuf(stdout, nullptr); // dont buffer fmt::println
   fmt::println("Initializing SDL...");
   fmt::println("SDL Version/Compiled {}.{}.{}", compiledVersion.major, compiledVersion.major, compiledVersion.patch);
   fmt::println("SDL Version/Linked {}.{}.{}", linkedVersion.major, linkedVersion.major, linkedVersion.patch);

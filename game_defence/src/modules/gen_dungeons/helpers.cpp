@@ -247,7 +247,7 @@ shrink_line_at_each_end(const Line& non_shrunk, const int shrinkage)
 };
 
 void
-instantiate_walls(entt::registry& r, std::vector<Line>& lines, const DungeonGenerationResults& results, const int& i)
+instantiate_walls(entt::registry& r, std::vector<Line>& lines, DungeonGenerationResults& results, const int& i)
 {
   const auto& map = get_first_component<MapComponent>(r);
   const auto& tunnels = results.tunnels;
@@ -387,6 +387,8 @@ instantiate_walls(entt::registry& r, std::vector<Line>& lines, const DungeonGene
     const auto e = create_wall(r, get_center_from_line(l), get_size_from_line(l));
     set_colour(r, e, { 0.0f, 1.0f, 0.0f, 1.0f });
   }
+
+  results.lines_to_instantiate = lines_to_instantiate;
 };
 
 void
@@ -491,7 +493,7 @@ inside_tunnel(const std::vector<Tunnel>& ts, const glm::ivec2& gridpos)
 };
 
 void
-instantiate_tunnels(entt::registry& r, std::vector<Line>& lines, const DungeonGenerationResults& results)
+instantiate_tunnels(entt::registry& r, std::vector<Line>& lines, DungeonGenerationResults& results)
 {
   const auto& map = get_first_component<MapComponent>(r);
 
@@ -549,6 +551,9 @@ instantiate_tunnels(entt::registry& r, std::vector<Line>& lines, const DungeonGe
         l = { tl, bl };
 
       create_wall(r, get_center_from_line(l), get_size_from_line(l));
+
+      // keep a record of the tunnel line that was created
+      results.lines_to_instantiate.push_back(l);
     }
   };
 
@@ -603,9 +608,9 @@ generate_edges(entt::registry& r, MapComponent& map, const DungeonGenerationResu
         // transition from room to room
         // transition from room to tunnel
 
-        const bool idx_is_wallk = result.wall_or_floors[idx] == 1;
+        const bool idx_is_wall = result.wall_or_floors[idx] == 1;
         const bool nidx_is_floor = result.wall_or_floors[neighbour_idx] == 0;
-        const bool from_wall_to_floor = idx_is_wallk && nidx_is_floor;
+        const bool from_wall_to_floor = idx_is_wall && nidx_is_floor;
 
         const auto [in_room_a, room_a] = inside_room(map, rooms, grid_a);
         const auto [in_room_b, room_b] = inside_room(map, rooms, grid_b);
@@ -613,7 +618,7 @@ generate_edges(entt::registry& r, MapComponent& map, const DungeonGenerationResu
         const auto in_tunnel_b = inside_tunnel(tunnels, grid_b);
 
         const bool from_room_to_room =
-          in_room_a && in_room_b && !in_tunnel_a && !in_tunnel_b && room_a.value() != room_b.value();
+          in_room_a && in_room_b && (!in_tunnel_a || !in_tunnel_b) && room_a.value() != room_b.value();
 
         const bool from_room_to_tunnel = in_room_a && in_tunnel_b && !in_tunnel_a && !in_room_b;
 
@@ -626,6 +631,8 @@ generate_edges(entt::registry& r, MapComponent& map, const DungeonGenerationResu
       }
     }
   }
+
+  fmt::println("Map edges: {}", map.edges.size());
 };
 
 } // namespace game2d

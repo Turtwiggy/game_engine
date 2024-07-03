@@ -7,7 +7,7 @@
 #include <fmt/core.h>
 #include <string>
 
-#if defined(WIN32)
+#if defined(WIN32) || defined(_WIN32)
 #include <Windows.h>
 #endif
 
@@ -21,7 +21,7 @@ log_time_since(const std::string& label, std::chrono::time_point<std::chrono::hi
   fmt::println("{} {}seconds", label, y / 1000.0f);
 }
 
-#if defined(WIN32)
+#if defined(WIN32) || defined(_WIN32)
 
 void
 hide_windows_console()

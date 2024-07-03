@@ -15,8 +15,17 @@ uniform sampler2D scene;
 uniform sampler2D lighting;
 uniform float brightness_threshold = 0.8;
 uniform vec2 light_pos; // worldspace
+uniform vec2 mouse_pos;
 uniform vec2 camera_pos;
 uniform vec2 viewport_wh;
+uniform float time;
+
+struct Line{
+  vec2 start;
+  vec2 end;
+};
+#define NR_LINES 100
+uniform Line lines[NR_LINES];
 
 float
 SRGBFloatToLinearFloat(const float f)
@@ -63,12 +72,156 @@ vec2 translate(vec2 p, vec2 t)
 
 // distance field functions
 
-float sdCircle( vec2 p, float radius ) 
+float circleDist( vec2 p, float radius ) 
 {
     return length(p) - radius;
 }
 
+float boxDist(vec2 p, vec2 size, float radius)
+{
+	size -= vec2(radius);
+	vec2 d = abs(p) - size;
+  	return min(max(d.x, d.y), 0.0) + length(max(d, 0.0)) - radius;
+}
+
+float lineDist(vec2 p, vec2 start, vec2 end, float width)
+{
+	vec2 dir = start - end;
+	float lngth = length(dir);
+	dir /= lngth;
+	vec2 proj = max(0.0, min(lngth, dot((start - p), dir))) * dir;
+	return length( (start - p) - proj ) - (width / 2.0);
+}
+
+float merge(float d1, float d2)
+{
+	return min(d1, d2);
+}
+
+// scene
+
+float sceneDist(vec2 p)
+{
+  const float radius = 5;
+	const vec2 half_wh = viewport_wh / 2.0;
+	const vec2 screen_min = camera_pos - half_wh; // e.g. -960
+
+	const float c1 = circleDist(		translate(p, mouse_pos), 40.0);
+	const float c2 = circleDist(		translate(p, vec2(200, 250)), 40.0);
+
+	float m = merge(c1, c2);
+
+  // draw all the walls
+  for(int i = 0; i < NR_LINES; i++){
+
+    // values in worldspace
+    const Line l = lines[i]; 
+
+    // should really check if something is active or not...
+		// if(l.start == vec2(0.0, 0.0))
+		// 	continue;
+	
+		const vec2 a_corr = (l.start - screen_min);
+		const vec2 b_corr = (l.end  - screen_min);
+
+    // line approach...
+    const float d = lineDist( p, a_corr, b_corr, radius);
+    m = merge(m, d);
+  }
+
+  // draw all the shadows as circles
+  // todo...
+
+  return m;
+}
+
+float sceneSmooth(vec2 p, float r){
+	float accum = sceneDist(p);
+	accum += sceneDist(p + vec2(0.0, r));
+	accum += sceneDist(p + vec2(0.0, -r));
+	accum += sceneDist(p + vec2(r, 0.0));
+	accum += sceneDist(p + vec2(-r, 0.0));
+	return accum / 5.0;
+}
+
+// masks for drawing
+
+float fillMask(float dist)
+{
+	return clamp(-dist, 0.0, 1.0);
+}
+
+float innerBorderMask(float dist, float width)
+{
+	//dist += 1.0;
+	float alpha1 = clamp(dist + width, 0.0, 1.0);
+	float alpha2 = clamp(dist, 0.0, 1.0);
+	return alpha1 - alpha2;
+}
+
+float outerBorderMask(float dist, float width)
+{
+	//dist += 1.0;
+	float alpha1 = clamp(dist, 0.0, 1.0);
+	float alpha2 = clamp(dist - width, 0.0, 1.0);
+	return alpha1 - alpha2;
+}
+
 // shadow and light
+
+float shadow(vec2 p, vec2 pos, float radius)
+{
+	vec2 dir = normalize(pos - p);
+	float dl = length(p - pos);
+	
+	// fraction of light visible, starts at one radius (second half added in the end);
+	float lf = radius * dl;
+	
+	// distance traveled
+	float dt = 0.01;
+
+	for (int i = 0; i < 64; ++i)
+	{				
+		// distance to scene at current position
+		float sd = sceneDist(p + dir * dt);
+
+        // early out when this ray is guaranteed to be full shadow
+        if (sd < -radius) 
+            return 0.0;
+        
+		// width of cone-overlap at light
+		// 0 in center, so 50% overlap: add one radius outside of loop to get total coverage
+		// should be '(sd / dt) * dl', but '*dl' outside of loop
+		lf = min(lf, sd / dt);
+		
+		// move ahead
+		dt += max(1.0, abs(sd));
+		if (dt > dl) break;
+	}
+
+	// multiply by dl to get the real projected overlap (moved out of loop)
+	// add one radius, before between -radius and + radius
+	// normalize to 1 ( / 2*radius)
+	lf = clamp((lf*dl + radius) / (2.0 * radius), 0.0, 1.0);
+	lf = smoothstep(0.0, 1.0, lf);
+	return lf;
+}
+
+vec4 drawLight(vec2 p, vec2 pos, vec4 color, float dist, float range, float radius)
+{
+	// distance to light
+	float ld = length(p - pos);
+	
+	// out of range
+	if (ld > range) return vec4(0.0);
+	
+	// shadow and falloff
+	float shad = shadow(p, pos, radius);
+	float fall = (range - ld)/range;
+	fall *= fall;
+	float source = fillMask(circleDist(p - pos, radius));
+	return (shad * fall + source) * color;
+}
 
 float luminance(vec3 col)
 {
@@ -90,42 +243,74 @@ float AO(vec2 p, float dist, float radius, float intensity)
 
 void main()
 {
-  const vec3 scene = texture(scene, v_uv).rgb;
-  const vec3 lighting = texture(lighting, v_uv).rgb;
+	out_color.a = 1.0f;
 
-  // convert uv to -1 and 1
-  vec2 uv = (2.0 * v_uv - 1.0);
-  uv.x *= -1;
-  uv.y *= -1;
-
-  float aspect = viewport_wh.x / viewport_wh.y;
-  uv.x *= aspect;
-
-  // convert worldspace to between -1 and 1.
-  vec2 half_wh = viewport_wh / 2.0;
-  float screen_min_x = 0; // e.g. -960
-  // float screen_max_x = camera_pos.x + half_wh.x; // e.g. 960
-  float screen_min_y = 0; // e.g. -540
-  // float screen_max_y = camera_pos.y + half_wh.y; // e.g. 540
-
-  float ss_x = (((light_pos.x - screen_min_x)/viewport_wh.x) * 2.0) - 1.0;
-  float ss_y = (((light_pos.y - screen_min_y)/viewport_wh.y) * 2.0) - 1.0;
-  ss_x *= aspect;
-
-  vec2 p = vec2(uv.x + ss_x, uv.y + ss_y);
-
-  // draw sdf at light_pos
-  float d = sdCircle(p, 0.1);
-	vec4 light1Col = vec4(0.75, 1.0, 0.5, 1.0);
-  setLuminance(light1Col, 0.4);
+	// disable bloom
+  out_bright_color = vec4(0.0, 0.0, 0.0, 1.0);
 
   // linear to srgb
-  vec3 corrected = lin_to_srgb(scene);
+  const vec3 scene = texture(scene, v_uv).rgb;
+  const vec3 lighting = texture(lighting, v_uv).rgb;
+  vec3 corrected = lin_to_srgb(scene.rgb);
 
-  vec3 col = (d>0.0) ? vec3(0.0,0.0,0.0) : vec3(0.25,0.25,0.25); // colour
-  out_color.rgb = corrected;
-  out_color.rgb += col; // additive
-  out_color.a = 1.0f;
+	out_color.rgb = corrected;
+	return;
+  
+	// fragCoord : is a vec2 that is between 0 > 640 on the X axis and 0 > 360 on the Y axis
+  // iResolution : is a vec2 with an X value of 640 and a Y value of 360
+  vec2 fragCoord = v_uv * viewport_wh;
+  vec2 iResolution = viewport_wh;
+  vec2 p = fragCoord.xy + vec2(0.5);
+	vec2 c = iResolution.xy / 2.0;
+
+  vec4 lightColBlue = vec4(0.5, 0.75, 1.0, 1.0);
+	setLuminance(lightColBlue, 0.4);
+
+  vec4 lightColOrange =  vec4(1.0, 0.75, 0.5, 1.0);
+	setLuminance(lightColOrange, 0.5);
+
+  vec4 lightColGreen = vec4(0.75, 1.0, 0.5, 1.0);
+	setLuminance(lightColGreen, 0.6);
+
+  // light
+	vec4 light1Col = lightColGreen;
+	vec4 light2Col = lightColOrange;
+	vec4 light3Col = lightColBlue;
+
+	const vec2 half_wh = viewport_wh / 2.0;
+	const vec2 screen_min = camera_pos - half_wh; // e.g. -960
+
+  vec2 light1Pos = light_pos.xy;
+	vec2 light2Pos = vec2(iResolution.x * (sin(time + 3.1415) + 1.2) / 2.4, 500.0) - screen_min;
+	vec2 light3Pos = vec2(iResolution.x * (sin(time) + 1.2) / 2.4, 100.0) - screen_min;
+  // vec2 light4Pos = vec2(100, 100) - screen_min;
+  // vec2 light5Pos = vec2(200, 200) - screen_min;
+  // vec2 light6Pos = vec2(300, 300) - screen_min;
+
+  float dist = sceneDist(p);
+
+  // ambient + vignette
+	vec4 col = vec4(0.5, 0.5, 0.5, 1.0) * (1.0 - length(c - p)/iResolution.x);
+
+	// todo: generate ambient occlusion only when map is generated
+  // ambient occlusion
+	// col *= AO(p, sceneSmooth(p, 10.0), 40.0, 0.4);
+	// col *= 1.0-AO(p, sceneDist(p), 40.0, 1.0);
+
+  // light
+	// col += drawLight(p, light1Pos, light1Col, dist, 150.0, 6.0);
+  // col += drawLight(p, light2Pos, light2Col, dist, 200.0, 8.0);
+	// col += drawLight(p, light3Pos, light3Col, dist, 300.0, 12.0);
+	// col += drawLight(p, light4Pos, light1Col, dist, 400.0, 12.0);
+	// col += drawLight(p, light5Pos, light1Col, dist, 500.0, 12.0);
+	// col += drawLight(p, light6Pos, light1Col, dist, 600.0, 12.0);
+  // shape fill
+	col = mix(col, vec4(1.0, 0.4, 0.0, 1.0), fillMask(dist));
+  // shape outline
+	col = mix(col, vec4(0.1, 0.1, 0.1, 1.0), innerBorderMask(dist, 1.5));
+
+  // out_color.rgb = col.rgb + corrected.rgb; // HMM
+  // out_color.rgb = col.rgb;
 
   // work out "bright" areas for bloom effect
   float brightness = luminance(out_color.rgb);
@@ -136,4 +321,5 @@ void main()
 
   // after lighting, clamp buffer
 	out_color.rgb = clamp(out_color.rgb, 0.0, 1.0);
+  out_color.a = 1.0f;
 }

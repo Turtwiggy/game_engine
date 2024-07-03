@@ -76,10 +76,10 @@ init(engine::SINGLETON_Application& app, entt::registry& r)
   const auto start = std::chrono::high_resolution_clock::now();
 
   // Fonts
-  auto& io = ImGui::GetIO();
-  float font_scale = 12.0f;
+  // auto& io = ImGui::GetIO();
+  // float font_scale = 12.0f;
   //   font_scale = 18.0f; // 4k scale?
-  io.Fonts->AddFontFromFileTTF("assets/fonts/ImPerfect23.ttf", font_scale);
+  // io.Fonts->AddFontFromFileTTF("assets/fonts/ImPerfect23.ttf", font_scale);
 
   {
     SINGLETON_RendererInfo ri;

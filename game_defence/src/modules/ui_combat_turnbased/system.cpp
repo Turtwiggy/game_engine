@@ -117,7 +117,7 @@ update_ui_combat_turnbased_system(entt::registry& r, const glm::ivec2& input_mou
     if (state.team == AvailableTeams::neutral) {
       const auto& viewport = ImGui::GetWindowViewport();
       ImGui::SetNextWindowPos(viewport->GetCenter(), ImGuiCond_Always, ImVec2(0.5, 0.5));
-      ImGui::SetNextWindowSize(ImVec2{ 400, 200 });
+      ImGui::SetNextWindowSize(ImVec2{ 200, 100 });
 
       ImGuiWindowFlags flags = 0;
       flags |= ImGuiWindowFlags_NoFocusOnAppearing;
@@ -129,7 +129,7 @@ update_ui_combat_turnbased_system(entt::registry& r, const glm::ivec2& input_mou
       flags |= ImGuiDockNodeFlags_PassthruCentralNode;
 
       ImGui::PushStyleVar(ImGuiStyleVar_SelectableTextAlign, { 0.5f, 0.5f });
-      ImGui::Begin("Begin Combat", NULL, flags);
+      ImGui::Begin("Fight!", NULL, flags);
       {
         // ImGui::Text("- Press Q and E to swap between your units.");
         // ImGui::Text("- Press 1 for move action. Press 2 for shoot action.");
@@ -170,34 +170,34 @@ update_ui_combat_turnbased_system(entt::registry& r, const glm::ivec2& input_mou
     }
   }
 
-#if defined(_DEBUG)
-  ImGui::Begin("UI Combat");
-  ImGui::Text("MousePos: %i %i", input_mouse_pos.x, input_mouse_pos.y);
+  // #if defined(_DEBUG)
+  //   ImGui::Begin("UI Combat");
+  //   ImGui::Text("MousePos: %i %i", input_mouse_pos.x, input_mouse_pos.y);
 
-  const auto gridpos = engine::grid::world_space_to_grid_space(input_mouse_pos, map.tilesize);
-  ImGui::Text("MousePos GridPos: %i %i", gridpos.x, gridpos.y);
-  ImGui::Text("MouseClampedPos: %i %i", mouse_pos.x, mouse_pos.y);
+  //   const auto gridpos = engine::grid::world_space_to_grid_space(input_mouse_pos, map.tilesize);
+  //   ImGui::Text("MousePos GridPos: %i %i", gridpos.x, gridpos.y);
+  //   ImGui::Text("MouseClampedPos: %i %i", mouse_pos.x, mouse_pos.y);
 
-  const auto grid_idx = engine::grid::grid_position_to_index(gridpos, map.xmax);
-  ImGui::Text("Mouse GridIndex: %i", grid_idx);
-  ImGui::Text("Action: %i", action);
+  //   const auto grid_idx = engine::grid::grid_position_to_index(gridpos, map.xmax);
+  //   ImGui::Text("Mouse GridIndex: %i", grid_idx);
+  //   ImGui::Text("Action: %i", action);
 
-  // Hack: debug gridpos pathfinding
-  {
-    const auto gridpos = engine::grid::world_space_to_grid_space(input_mouse_pos, map.tilesize);
-    const auto grid_idx = engine::grid::grid_position_to_clamped_index(gridpos, map.xmax, map.ymax);
-    if (map.map[grid_idx].size() > 0) {
-      for (const auto& map_e : map.map[grid_idx]) {
-        if (const auto* pfc = r.try_get<PathfindComponent>(map_e))
-          ImGui::Text("Cost: %i", pfc->cost);
-        else
-          ImGui::Text("Entity without pathfinding component");
-      }
-    }
-  }
+  //   // Hack: debug gridpos pathfinding
+  //   {
+  //     const auto gridpos = engine::grid::world_space_to_grid_space(input_mouse_pos, map.tilesize);
+  //     const auto grid_idx = engine::grid::grid_position_to_clamped_index(gridpos, map.xmax, map.ymax);
+  //     if (map.map[grid_idx].size() > 0) {
+  //       for (const auto& map_e : map.map[grid_idx]) {
+  //         if (const auto* pfc = r.try_get<PathfindComponent>(map_e))
+  //           ImGui::Text("Cost: %i", pfc->cost);
+  //         else
+  //           ImGui::Text("Entity without pathfinding component");
+  //       }
+  //     }
+  //   }
 
-  ImGui::End();
-#endif
+  //   ImGui::End();
+  // #endif
 
   // check if all enemies are ded.
   std::map<AvailableTeams, int> team_count;
@@ -229,16 +229,17 @@ update_ui_combat_turnbased_system(entt::registry& r, const glm::ivec2& input_mou
       flags |= ImGuiWindowFlags_NoBackground;
 
       ImGui::Begin("Back To Overworld", NULL, flags);
-      if (ImGui::Button("Spaceship clear. Back to overworld", ImVec2{ 200, 100 })) {
-
+      if (ImGui::Button("Spaceship clear. \nBack to overworld", ImVec2(-FLT_MIN, -FLT_MIN))) {
         // add an event because fun
         auto& evt = get_first_component<SINGLE_EventConsoleLogComponent>(r);
         evt.events.push_back("Spaceship cleared.");
-
         move_to_scene_start(r, Scene::overworld, true);
         ImGui::End();
         return;
       }
+      ImGui::End();
+    } else {
+      // Trying to leave the combat scene, but you probably launched standalone..
     }
   }
 

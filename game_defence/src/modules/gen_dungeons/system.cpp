@@ -8,6 +8,7 @@
 #include "helpers/line.hpp"
 #include "maths/grid.hpp"
 #include "maths/maths.hpp"
+#include "modules/actors/helpers.hpp"
 #include "modules/algorithm_astar_pathfinding/components.hpp"
 #include "modules/gen_dungeons//helpers.hpp"
 #include "modules/gen_dungeons/components.hpp"
@@ -28,8 +29,6 @@ namespace game2d {
 void
 update_gen_dungeons_system(entt::registry& r, const glm::ivec2& mouse_pos)
 {
-  auto& map = get_first_component<MapComponent>(r);
-  auto& input = get_first_component<SINGLETON_InputComponent>(r);
 
   // ImGui::Begin("Debug__Tunnels");
   // for (const auto& [e, t_c] : r.view<Tunnel>().each()) {
@@ -55,39 +54,43 @@ update_gen_dungeons_system(entt::registry& r, const glm::ivec2& mouse_pos)
 #endif
 
   if (show_debug_dungeongen) {
-    ImGui::Begin("DebugDungeonGen");
     // ImGui::Text("i: %i", i);
 
-    std::vector<Room> rooms;
-    for (const auto& [e, room] : r.view<Room>().each())
-      rooms.push_back(room);
-    ImGui::Text("Rooms: %i", rooms.size());
+    const auto map_e = get_first<MapComponent>(r);
+    if (map_e != entt::null) {
+      const auto& map = get_first_component<MapComponent>(r);
+      ImGui::Begin("DebugDungeonGen");
 
-    std::vector<Tunnel> tunnels;
-    for (const auto& [e, t] : r.view<Tunnel>().each())
-      tunnels.push_back(t);
-    ImGui::Text("Tunnels: %i", tunnels.size());
+      std::vector<Room> rooms;
+      for (const auto& [e, room] : r.view<Room>().each())
+        rooms.push_back(room);
+      ImGui::Text("Rooms: %i", rooms.size());
 
-    const auto grid_pos = engine::grid::world_space_to_grid_space(mouse_pos, map.tilesize);
-    ImGui::Text("grid_pos: %i %i", grid_pos.x, grid_pos.y);
+      std::vector<Tunnel> tunnels;
+      for (const auto& [e, t] : r.view<Tunnel>().each())
+        tunnels.push_back(t);
+      ImGui::Text("Tunnels: %i", tunnels.size());
 
-    const auto [in_room, room] = inside_room(map, rooms, grid_pos);
-    ImGui::Text("Inside Room: %i", in_room);
+      const auto grid_pos = engine::grid::world_space_to_grid_space(mouse_pos, map.tilesize);
+      ImGui::Text("grid_pos: %i %i", grid_pos.x, grid_pos.y);
 
-    const auto in_tunnel = inside_tunnel(tunnels, grid_pos);
-    ImGui::Text("Inside Tunnel: %i", in_tunnel);
+      const auto [in_room, room] = inside_room(map, rooms, grid_pos);
+      ImGui::Text("Inside Room: %i", in_room);
 
-    auto dungeon_e = get_first<DungeonGenerationResults>(r);
-    if (dungeon_e != entt::null) {
-      const auto dungeon_results = get_first_component<DungeonGenerationResults>(r);
-      ImGui::Text("Have dungeon gen results");
+      const auto in_tunnel = inside_tunnel(tunnels, grid_pos);
+      ImGui::Text("Inside Tunnel: %i", in_tunnel);
 
-      auto mouse_idx = engine::grid::grid_position_to_index(grid_pos, map.xmax);
-      mouse_idx = glm::clamp(mouse_idx, 0, map.xmax * map.ymax - 1);
+      const auto dungeon_e = get_first<DungeonGenerationResults>(r);
+      if (dungeon_e != entt::null) {
+        const auto dungeon_results = get_first_component<DungeonGenerationResults>(r);
+        ImGui::Text("Have dungeon gen results");
 
-      ImGui::Text("mouse: %i is_wall_or_floor: %i", mouse_idx, dungeon_results.wall_or_floors[mouse_idx]);
+        auto mouse_idx = engine::grid::grid_position_to_index(grid_pos, map.xmax);
+        mouse_idx = glm::clamp(mouse_idx, 0, map.xmax * map.ymax - 1);
+        ImGui::Text("mouse: %i is_wall_or_floor: %i", mouse_idx, dungeon_results.wall_or_floors[mouse_idx]);
+      }
+      ImGui::End();
     }
-    ImGui::End();
   }
 
   // HACK: force regenerate dungeon
@@ -117,12 +120,42 @@ update_gen_dungeons_system(entt::registry& r, const glm::ivec2& mouse_pos)
   engine::RandomState rnd(seed);
   const int i = seed;
 
+  // re-generate map
+  destroy_first_and_create<MapComponent>(r);
+  auto& map = get_first_component<MapComponent>(r);
+  // create new map & dungeon constraints
+  const int map_width = strength * 100;
+  const int map_height = strength * 100;
+  map.tilesize = 50;
+  map.xmax = map_width / map.tilesize;
+  map.ymax = map_height / map.tilesize;
+  map.map.resize(map.xmax * map.ymax);
+
+  if (true) {
+    const int w = map_width;
+    const int h = map_height;
+    const int tilesize = map.tilesize;
+    const int half_tile_size = tilesize / 10.0f;
+    const auto wall_l = create_gameplay(r, EntityType::solid_wall);
+    set_position(r, wall_l, { 0, h / 2.0f });
+    set_size(r, wall_l, { half_tile_size, h });
+    const auto wall_r = create_gameplay(r, EntityType::solid_wall);
+    set_position(r, wall_r, { w, h / 2.0f });
+    set_size(r, wall_r, { half_tile_size, h });
+    const auto wall_u = create_gameplay(r, EntityType::solid_wall);
+    set_position(r, wall_u, { w / 2.0f, 0 });
+    set_size(r, wall_u, { w, half_tile_size });
+    const auto wall_d = create_gameplay(r, EntityType::solid_wall);
+    set_position(r, wall_d, { w / 2.0f, h });
+    set_size(r, wall_d, { w, half_tile_size });
+  }
+
   DungeonGenerationCriteria dungeon_parameters;
   dungeon_parameters.max_rooms = 30;
-  dungeon_parameters.room_size_min = glm::max(dungeon_parameters.room_size_min, 0);
-  dungeon_parameters.room_size_max = glm::min(dungeon_parameters.room_size_max, map.xmax);
+  dungeon_parameters.room_size_min = glm::max(strength / 2, 3);
+  dungeon_parameters.room_size_max = glm::min((strength / 2) + 5, map.xmax);
 
-  DungeonGenerationResults result = generate_rooms(r, dungeon_parameters, rnd);
+  auto result = generate_rooms(r, dungeon_parameters, rnd);
 
   // keep a reference to all the lines as walls, so that we dont have any overlaps.
   std::vector<Line> lines;
@@ -141,14 +174,15 @@ update_gen_dungeons_system(entt::registry& r, const glm::ivec2& mouse_pos)
   }
 
   // Debug edges
-  // for (const auto& edge : map.edges) {
-  //   const auto ga = engine::grid::grid_space_to_world_space(glm::ivec2(edge.cell_a.x, edge.cell_a.y), map.tilesize) +
-  //   const auto gb = engine::grid::grid_space_to_world_space(glm::ivec2(edge.cell_b.x, edge.cell_b.y), map.tilesize)
-  //   const auto l = generate_line({ ga.x, ga.y }, { gb.x, gb.y }, 1);
-  //   const entt::entity e = create_gameplay(r, EntityType::empty_with_transform);
-  //   set_transform_with_line(r, e, l);
-  //   r.get<TagComponent>(e).tag = "debugline";
-  // }
+  for (const auto& edge : map.edges) {
+    const auto offset = glm::vec2{ map.tilesize / 2.0f, map.tilesize / 2.0f };
+    const auto ga = engine::grid::grid_space_to_world_space(glm::ivec2(edge.cell_a.x, edge.cell_a.y), map.tilesize) + offset;
+    const auto gb = engine::grid::grid_space_to_world_space(glm::ivec2(edge.cell_b.x, edge.cell_b.y), map.tilesize) + offset;
+    const auto l = generate_line({ ga.x, ga.y }, { gb.x, gb.y }, 1);
+    const entt::entity e = create_gameplay(r, EntityType::empty_with_transform);
+    set_transform_with_line(r, e, l);
+    r.get<TagComponent>(e).tag = "debugline";
+  }
 
   // Steps after initial initialization...
   set_generated_entity_positions(r, result, rnd);

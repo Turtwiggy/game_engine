@@ -1,5 +1,6 @@
 #pragma once
 
+#include "opengl/texture.hpp"
 #include "renderer/transform.hpp"
 
 // engine headers
@@ -12,6 +13,7 @@
 #include <glm/gtc/quaternion.hpp>
 #include <nlohmann/json.hpp>
 
+#include <functional>
 #include <vector>
 
 namespace game2d {
@@ -77,33 +79,42 @@ struct Texture
     , spritesheet_path(sp){};
 };
 
+enum class PassName
+{
+  linear_main,
+  lighting_main,
+  mix_lighting_and_scene, // 2 colour attachments
+  blur_pingpong_0,
+  blur_pingpong_1,
+  bloom,
+};
+
+struct RenderPass
+{
+  PassName pass;
+
+  engine::FramebufferID fbo;
+
+  // one framebuffer can have multiple attachments,
+  // in the form of multiple multiple tex_ids.
+  std::vector<Texture> texs;
+
+  // the function that gets called during the render
+  std::function<void()> update;
+
+private:
+  int colour_buffers = 0;
+
+public:
+  RenderPass(const PassName& pass, const int colour_attachments = 1);
+
+  void setup(const glm::ivec2& fbo_size);
+};
+
 // Attributes only updated by renderer system, read by anything.
 struct SINGLETON_RendererInfo
 {
-  // fbo
-  engine::FramebufferID fbo_linear_main;
-  engine::FramebufferID fbo_lighting;
-  engine::FramebufferID fbo_mix_lighting_and_scene;
-  engine::FramebufferID fbo_blur_pingpong_0;
-  engine::FramebufferID fbo_blur_pingpong_1;
-  engine::FramebufferID fbo_bloom;
-
-  int tex_unit_linear_main = 0;
-  int tex_unit_lighting = 1;
-  int tex_unit_mix_lighting_and_scene = 2;
-  int tex_unit_mix_lighting_and_scene_brightness = 3;
-  int tex_unit_blur_pingpong_0 = 4;
-  int tex_unit_blur_pingpong_1 = 5;
-  int tex_unit_bloom = 6;
-  int RENDERER_TEX_UNIT_COUNT = 7; // the the number used by renderer
-
-  int tex_id_linear_main = 0;
-  int tex_id_lighting = 0;
-  int tex_id_mix_lighting_and_scene = 0;
-  int tex_id_mix_lighting_and_scene_brightness = 0;
-  int tex_id_blur_pingpong_0 = 0;
-  int tex_id_blur_pingpong_1 = 0;
-  int tex_id_bloom = 0;
+  std::vector<RenderPass> passes;
 
   std::vector<Texture> user_textures;
 
@@ -129,6 +140,11 @@ struct SINGLETON_RendererInfo
 struct Effect_DoBloom
 {
   bool placeholder = true;
+};
+
+struct EffectBlurInfo
+{
+  int last_blur_texunit = 0;
 };
 
 } // namespace game2d

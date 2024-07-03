@@ -1,5 +1,6 @@
 #pragma once
 
+#include "helpers/line.hpp"
 #include "physics/components.hpp"
 
 #include <entt/entt.hpp>
@@ -48,6 +49,7 @@ struct DungeonGenerationResults
   std::vector<Room> rooms;
   std::vector<Tunnel> tunnels;
   std::vector<int> wall_or_floors;
+  std::vector<Line> lines_to_instantiate;
 };
 
 } // namespace game2d

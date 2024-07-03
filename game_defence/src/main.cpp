@@ -91,10 +91,15 @@ main(int argc, char* argv[])
   IM_UNUSED(argc);
   IM_UNUSED(argv);
 
-#if defined(WIN32)
+#if defined(WIN32) || defined(_WIN32)
+  fmt::println("Hello, Windows!");
   bool hide_windows_console = true;
   if (hide_windows_console)
     engine::hide_windows_console();
+#endif
+
+#if defined(__unix__)
+  fmt::println("Hello, Unix!");
 #endif
 
   // const auto start = std::chrono::high_resolution_clock::now();

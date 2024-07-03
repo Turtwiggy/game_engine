@@ -15,10 +15,10 @@ DungeonGenerationResults
 generate_rooms(entt::registry& r, const DungeonGenerationCriteria& data, engine::RandomState& rnd);
 
 void
-instantiate_walls(entt::registry& r, std::vector<Line>& lines, const DungeonGenerationResults& results, const int& i);
+instantiate_walls(entt::registry& r, std::vector<Line>& lines, DungeonGenerationResults& results, const int& i);
 
 void
-instantiate_tunnels(entt::registry& r, std::vector<Line>& lines, const DungeonGenerationResults& results);
+instantiate_tunnels(entt::registry& r, std::vector<Line>& lines, DungeonGenerationResults& results);
 
 void
 set_generated_entity_positions(entt::registry& r, DungeonGenerationResults& results, engine::RandomState& rnd);
