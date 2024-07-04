@@ -28,7 +28,7 @@ jobs:
 
       - name: Restore artifacts, or setup vcpkg for building artifacts
         uses: lukka/run-vcpkg@v10
-        id: runvcpkg
+        id: runvcpkg-mac
         with:
           vcpkgDirectory: "${{ github.workspace }}/thirdparty/vcpkg"
           vcpkgJsonGlob: "**/game_defence_tests/vcpkg.json"

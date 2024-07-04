@@ -137,10 +137,10 @@ target_link_libraries(game_defence PRIVATE fmt::fmt)
 target_link_libraries(game_defence PRIVATE glm::glm)
 target_link_libraries(game_defence PRIVATE nlohmann_json::nlohmann_json)
 
-IF(${CMAKE_SYSTEM_NAME} STREQUAL "Windows")
-  # rename executable
-  set_target_properties(${PROJECT_NAME} PROPERTIES OUTPUT_NAME "SolarWar")
+# rename executable
+set_target_properties(${PROJECT_NAME} PROPERTIES OUTPUT_NAME "solar_war")
 
+IF(${CMAKE_SYSTEM_NAME} STREQUAL "Windows")
   # Only do this for debug builds,
   # as release builds should copy the folder over (not symlink)
   IF(CMAKE_BUILD_TYPE MATCHES Debug)
