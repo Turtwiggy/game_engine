@@ -93,9 +93,12 @@ update_gen_dungeons_system(entt::registry& r, const glm::ivec2& mouse_pos)
     }
   }
 
+#if defined(_DEBUG)
   // HACK: force regenerate dungeon
-  // if (get_key_down(input, SDL_SCANCODE_I))
-  //   create_empty<RequestGenerateDungeonComponent>(r);
+  const auto& input = get_first_component<SINGLETON_InputComponent>(r);
+  if (get_key_down(input, SDL_SCANCODE_I))
+    create_empty<RequestGenerateDungeonComponent>(r);
+#endif
 
   const auto& requests = r.view<RequestGenerateDungeonComponent>();
   if (requests.size() == 0)

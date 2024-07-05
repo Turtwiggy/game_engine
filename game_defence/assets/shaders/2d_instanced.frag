@@ -11,12 +11,9 @@ in float v_tex_unit;
 
 uniform sampler2D tex_kenny;
 uniform sampler2D tex_gameicons;
-uniform sampler2D tex_unit_space_background;
-uniform sampler2D tex_unit_mainmenu_background;
 uniform sampler2D tex_unit_spacestation_0;
 uniform sampler2D tex_unit_studio_logo;
-uniform float screen_w;
-uniform float screen_h;
+uniform vec2 viewport_wh;
 uniform int RENDERER_TEX_UNIT_COUNT;
 
 // fat pixel approach
@@ -32,7 +29,7 @@ uniform int RENDERER_TEX_UNIT_COUNT;
 
 
 vec2 clamp_uv(vec2 uv){
-  vec2 tex_size = vec2(screen_w / 1000.0, screen_h / 1000.0);
+  vec2 tex_size = vec2(viewport_wh.x / 1000.0, viewport_wh.y / 1000.0);
   vec2 pixel = v_uv * tex_size;
   vec2 fat_pixel = floor(pixel) + 0.5;
   return fat_pixel;
@@ -52,7 +49,7 @@ main()
       (v_sprite_wh.y * v_uv.y) / v_sprite_max.y + v_sprite_pos.y * (1.0f/v_sprite_max.y)
     );
 
-    vec2 sprite_uv_tmp = clamp_uv(v_uv);
+    // vec2 sprite_uv_tmp = clamp_uv(v_uv);
 
     out_colour = v_colour;
 
@@ -69,18 +66,10 @@ main()
       return; // texture uses 0, 0
     }
     else if(index == RENDERER_TEX_UNIT_COUNT+2){
-      out_colour *= texture(tex_unit_space_background, sprite_uv);
-      return; // texture uses 0, 0
-    }
-    else if(index == RENDERER_TEX_UNIT_COUNT+3){
-      out_colour *= texture(tex_unit_mainmenu_background, sprite_uv);
-      return; // texture uses 0, 0
-    }
-    else if(index == RENDERER_TEX_UNIT_COUNT+4){
       out_colour *= texture(tex_unit_spacestation_0, sprite_uv);
       return; // texture uses 0, 0
     }
-     else if(index == RENDERER_TEX_UNIT_COUNT+5){
+     else if(index == RENDERER_TEX_UNIT_COUNT+3){
       out_colour *= texture(tex_unit_studio_logo, sprite_uv);
       return; // texture uses 0, 0
     }

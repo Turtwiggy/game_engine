@@ -13,7 +13,7 @@ RenderPass::RenderPass(const PassName& pass_name, const int colour_attachments)
   for (int i = 0; i < colour_attachments; i++) {
     Texture t;
     t.tex_unit = TextureUnit(global_tex_unit_count++);
-    t.tex_id = TextureId(0);
+    t.tex_id = TextureId{ 0 };
     t.path = std::string(magic_enum::enum_name(pass_name)) + std::to_string(i);
     texs.push_back(t);
   }

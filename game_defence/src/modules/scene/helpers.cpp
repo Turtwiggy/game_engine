@@ -216,14 +216,14 @@ move_to_scene_start(entt::registry& r, const Scene s, const bool load_saved)
     // }
 
     // create a background sprite
-    {
-      const auto e = create_gameplay(r, EntityType::empty_with_transform);
-      const auto tex_unit = search_for_texture_unit_by_texture_path(ri, "background_mainmenu").value();
-      set_sprite_custom(r, e, "SPACE_BACKGROUND_0", tex_unit.unit);
-      set_size(r, e, { 3000, 3000 });
-      set_position(r, e, { 0, -600 });
-      r.get<TransformComponent>(e).position.z = -2; // behind everything
-    }
+    // {
+    //   const auto e = create_gameplay(r, EntityType::empty_with_transform);
+    //   const auto tex_unit = search_for_texture_unit_by_texture_path(ri, "background_mainmenu").value();
+    //   set_sprite_custom(r, e, "SPACE_BACKGROUND_0", tex_unit.unit);
+    //   set_size(r, e, { 3000, 3000 });
+    //   set_position(r, e, { 0, -600 });
+    //   r.get<TransformComponent>(e).position.z = -2; // behind everything
+    // }
   }
 
   const auto get_seed_from_systemtime = []() -> time_t {
@@ -233,11 +233,11 @@ move_to_scene_start(entt::registry& r, const Scene s, const bool load_saved)
 
   if (s == Scene::overworld) {
     destroy_first<OverworldToDungeonInfo>(r); // clear here if exists
-    destroy_first_and_create<Effect_DoBloom>(r);
+    // destroy_first_and_create<Effect_DoBloom>(r);
     create_empty<AudioRequestPlayEvent>(r, AudioRequestPlayEvent{ "GAME_01" });
 
-    int map_width = 2000;
-    int map_height = 2000;
+    const int map_width = 1600;
+    const int map_height = 1600;
     MapComponent map_c;
     map_c.tilesize = 50;
     map_c.xmax = map_width / map_c.tilesize;
@@ -255,14 +255,14 @@ move_to_scene_start(entt::registry& r, const Scene s, const bool load_saved)
     };
 
     // create a background sprite
-    {
-      const auto e = create_gameplay(r, EntityType::empty_with_transform);
-      const auto tex_unit = search_for_texture_unit_by_texture_path(ri, "space_background").value();
-      set_sprite_custom(r, e, "SPACE_BACKGROUND_0", tex_unit.unit);
-      set_size(r, e, { 3000, 3000 });
-      set_position(r, e, { map_width / 2, map_height / 2 }); // center
-      r.get<TransformComponent>(e).position.z = -2;          // behind everything
-    }
+    // {
+    //   const auto e = create_gameplay(r, EntityType::empty_with_transform);
+    //   const auto tex_unit = search_for_texture_unit_by_texture_path(ri, "space_background").value();
+    //   set_sprite_custom(r, e, "SPACE_BACKGROUND_0", tex_unit.unit);
+    //   set_size(r, e, { 3000, 3000 });
+    //   set_position(r, e, { map_width / 2, map_height / 2 }); // center
+    //   r.get<TransformComponent>(e).position.z = -2;          // behind everything
+    // }
 
     // Create 4 edges to the map
     bool create_edges = true;
@@ -356,7 +356,7 @@ move_to_scene_start(entt::registry& r, const Scene s, const bool load_saved)
     destroy_first_and_create<SINGLE_CombatState>(r);
     destroy_first_and_create<SINGLE_EventConsoleLogComponent>(r);
     destroy_first_and_create<SINGLE_TurnBasedCombatInfo>(r);
-    destroy_first_and_create<Effect_DoBloom>(r);
+    // destroy_first_and_create<Effect_DoBloom>(r);
     destroy_first_and_create<Effect_GridComponent>(r);
     create_empty<AudioRequestPlayEvent>(r, AudioRequestPlayEvent{ "COMBAT_01" });
 
@@ -394,7 +394,7 @@ move_to_scene_start(entt::registry& r, const Scene s, const bool load_saved)
     destroy_first_and_create<SINGLE_CombatState>(r);
     destroy_first_and_create<SINGLE_EventConsoleLogComponent>(r);
     destroy_first_and_create<SINGLE_TurnBasedCombatInfo>(r);
-    destroy_first_and_create<Effect_DoBloom>(r);
+    // destroy_first_and_create<Effect_DoBloom>(r);
     create_empty<AudioRequestPlayEvent>(r, AudioRequestPlayEvent{ "COMBAT_01" });
 
     int map_width = 600;

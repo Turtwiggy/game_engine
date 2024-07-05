@@ -13,11 +13,9 @@
 #include "modules/grid/components.hpp"
 #include "modules/scene/helpers.hpp"
 #include "modules/ui_combat_turnbased/components.hpp"
-#include "modules/ui_worldspace_text/components.hpp"
 #include "modules/ux_hoverable/components.hpp"
 #include "physics/helpers.hpp"
 #include "renderer/components.hpp"
-#include "renderer/transform.hpp"
 
 #include <algorithm>
 #include <fmt/core.h>
@@ -620,7 +618,9 @@ generate_edges(entt::registry& r, MapComponent& map, const DungeonGenerationResu
         const bool from_room_to_room =
           in_room_a && in_room_b && (!in_tunnel_a || !in_tunnel_b) && room_a.value() != room_b.value();
 
-        const bool from_room_to_tunnel = in_room_a && in_tunnel_b && !in_tunnel_a && !in_room_b;
+        bool from_room_to_tunnel = in_room_a && in_tunnel_b;
+        from_room_to_tunnel &= !(in_room_a && in_room_b); // dont generate edge in same room
+        // from_room_to_tunnel &= !(in_tunnel_a && in_tunnel_b); // dont generate edge if both are tunnels
 
         if (from_wall_to_floor || from_room_to_room || from_room_to_tunnel) {
           Edge edge;

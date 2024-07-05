@@ -81,6 +81,7 @@ struct Texture
 
 enum class PassName
 {
+  stars,
   linear_main,
   lighting_emitters_and_occluders,
   lighting_ambient_occlusion,
@@ -120,6 +121,7 @@ struct SINGLETON_RendererInfo
   std::vector<Texture> user_textures;
 
   // shaders
+  engine::Shader stars;
   engine::Shader instanced;
   engine::Shader lighting_emitters_and_occluders;
   engine::Shader lighting_ambient_occlusion;

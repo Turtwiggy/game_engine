@@ -11,7 +11,8 @@ in vec2 v_sprite_max;
 in float v_tex_unit;
 // in vec2 v_vertex;  
 
-uniform sampler2D scene;
+uniform sampler2D scene_0; // linear main
+uniform sampler2D scene_1; // stars
 uniform sampler2D lighting;
 uniform float brightness_threshold = 0.8;
 uniform vec2 light_pos; // worldspace
@@ -19,6 +20,7 @@ uniform vec2 mouse_pos;
 uniform vec2 camera_pos;
 uniform vec2 viewport_wh;
 uniform float time;
+uniform bool put_starshader_behind;
 
 struct Line{
   vec2 start;
@@ -249,11 +251,16 @@ void main()
   out_bright_color = vec4(0.0, 0.0, 0.0, 1.0);
 
   // linear to srgb
-  const vec3 scene = texture(scene, v_uv).rgb;
+  const vec4 scene = texture(scene_0, v_uv);
+  const vec3 stars = texture(scene_1, v_uv).rgb;
   const vec3 lighting = texture(lighting, v_uv).rgb;
   vec3 corrected = lin_to_srgb(scene.rgb);
 
-	out_color.rgb = corrected;
+	if(put_starshader_behind)
+		out_color.rgb = stars + corrected;
+	else
+		out_color.rgb = corrected;
+
 	return;
   
 	// fragCoord : is a vec2 that is between 0 > 640 on the X axis and 0 > 360 on the Y axis

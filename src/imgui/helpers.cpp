@@ -102,13 +102,13 @@ imgui_draw_ivec2(const std::string& label, int& x, int& y)
 };
 
 void
-imgui_draw_vec3(const std::string& label, glm::vec3& xyz)
+imgui_draw_vec3(const std::string& label, glm::vec3& xyz, const float& v_speed)
 {
   glm::vec3 v_temp = xyz;
 
   ImGui::Text(label.c_str());
   ImGui::SameLine();
-  if (ImGui::DragFloat3((std::string("##") + label).c_str(), glm::value_ptr(v_temp), 0.5f)) {
+  if (ImGui::DragFloat3((std::string("##") + label).c_str(), glm::value_ptr(v_temp), v_speed)) {
     xyz.x = v_temp.x;
     xyz.y = v_temp.y;
     xyz.z = v_temp.z;
@@ -116,13 +116,13 @@ imgui_draw_vec3(const std::string& label, glm::vec3& xyz)
 };
 
 void
-imgui_draw_vec3(const std::string& label, float& x, float& y, float& z)
+imgui_draw_vec3(const std::string& label, float& x, float& y, float& z, const float& v_speed)
 {
   glm::vec3 v_temp = { x, y, z };
 
   ImGui::Text(label.c_str());
   ImGui::SameLine();
-  if (ImGui::DragFloat3((std::string("##") + label).c_str(), glm::value_ptr(v_temp), 0.5f)) {
+  if (ImGui::DragFloat3((std::string("##") + label).c_str(), glm::value_ptr(v_temp), v_speed)) {
     x = v_temp.x;
     y = v_temp.y;
     z = v_temp.z;

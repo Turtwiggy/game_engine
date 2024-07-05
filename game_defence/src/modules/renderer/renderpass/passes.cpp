@@ -31,6 +31,45 @@ const auto render_fullscreen_quad = [](const engine::Shader& shader, const glm::
   engine::quad_renderer::QuadRenderer::flush(shader);
 };
 
+const auto get_tex_unit = [](const SINGLETON_RendererInfo& ri, const PassName& p) -> int {
+  const auto linear_pass_idx = search_for_renderpass_by_name(ri, p);
+  const auto& linear_pass = ri.passes[linear_pass_idx];
+  return linear_pass.texs[0].tex_unit.unit;
+};
+
+void
+setup_stars_update(entt::registry& r)
+{
+  auto& ri = get_first_component<SINGLETON_RendererInfo>(r);
+  const auto pass_idx = search_for_renderpass_by_name(ri, PassName::stars);
+  auto& pass = ri.passes[pass_idx];
+
+  pass.update = [&r]() {
+    const auto& ri = get_first_component<SINGLETON_RendererInfo>(r);
+    const auto camera_e = get_first<OrthographicCamera>(r);
+    const auto& camera = r.get<OrthographicCamera>(camera_e);
+    const auto& camera_t = r.get<TransformComponent>(camera_e);
+
+    // Render stars shader
+    ri.stars.bind();
+    ri.stars.set_mat4("view", camera.view);
+    {
+      engine::quad_renderer::QuadRenderer::reset_quad_vert_count();
+      engine::quad_renderer::QuadRenderer::begin_batch();
+      {
+        engine::quad_renderer::RenderDescriptor desc;
+        const glm::vec2 offset = { ri.viewport_size_render_at.x / 2.0, ri.viewport_size_render_at.y / 2.0f };
+        desc.pos_tl = glm::vec2(camera_t.position.x, camera_t.position.y) - offset;
+        desc.size = ri.viewport_size_render_at;
+        desc.angle_radians = 0;
+        engine::quad_renderer::QuadRenderer::draw_sprite(desc, ri.stars);
+      }
+      engine::quad_renderer::QuadRenderer::end_batch();
+      engine::quad_renderer::QuadRenderer::flush(ri.stars);
+    }
+  };
+};
+
 void
 setup_linear_main_update(entt::registry& r)
 {
@@ -43,17 +82,7 @@ setup_linear_main_update(entt::registry& r)
     const auto& camera = r.get<OrthographicCamera>(camera_e);
     const auto& camera_t = r.get<TransformComponent>(camera_e);
 
-    // update uniforms
-    ri.instanced.bind();
-    ri.instanced.set_mat4("view", camera.view);
-    ri.instanced.set_int("screen_w", ri.viewport_size_render_at.x);
-    ri.instanced.set_int("screen_h", ri.viewport_size_render_at.y);
-
-    ri.circle.bind();
-    ri.circle.set_mat4("view", camera.view);
-    ri.circle.set_vec2("viewport_wh", ri.viewport_size_render_at);
-    ri.circle.set_vec2("camera_pos", { camera_t.position.x, camera_t.position.y });
-
+    // Render grid shader
     ri.grid.bind();
     ri.grid.set_mat4("view", camera.view);
     ri.grid.set_vec2("viewport_wh", ri.viewport_size_render_at);
@@ -63,8 +92,6 @@ setup_linear_main_update(entt::registry& r)
       const float gridsize = r.get<Effect_GridComponent>(grid_e).gridsize;
       ri.grid.set_float("gridsize", gridsize);
     }
-
-    // Render grid shader
     if (get_first<Effect_GridComponent>(r) != entt::null) {
       engine::quad_renderer::QuadRenderer::reset_quad_vert_count();
       engine::quad_renderer::QuadRenderer::begin_batch();
@@ -85,6 +112,9 @@ setup_linear_main_update(entt::registry& r)
     }
 
     // Render some quads
+    ri.instanced.bind();
+    ri.instanced.set_mat4("view", camera.view);
+    ri.instanced.set_vec2("viewport_wh", ri.viewport_size_render_at);
     {
       engine::quad_renderer::QuadRenderer::reset_quad_vert_count();
       engine::quad_renderer::QuadRenderer::begin_batch();
@@ -114,6 +144,11 @@ setup_linear_main_update(entt::registry& r)
     }
 
     // Render some SDF circles
+    ri.circle.bind();
+    ri.circle.set_mat4("view", camera.view);
+    ri.circle.set_vec2("viewport_wh", ri.viewport_size_render_at);
+    ri.circle.set_vec2("camera_pos", { camera_t.position.x, camera_t.position.y });
+
     {
       engine::quad_renderer::QuadRenderer::reset_quad_vert_count();
       engine::quad_renderer::QuadRenderer::begin_batch();
@@ -161,28 +196,11 @@ setup_lighting_emitters_and_occluders_update(entt::registry& r)
     const auto& camera = r.get<OrthographicCamera>(camera_e);
 
     // emitters should be anything but black
-    const engine::SRGBColour emitter_col{ 255, 0, 0, 1.0f };
-    const engine::LinearColour background_col(0.0f, 0.0f, 0.0f, 1.0f);
+    // const engine::SRGBColour emitter_col{ 255, 0, 0, 1.0f };
+    const engine::LinearColour background_col(0.0f, 0.0f, 0.0f, 0.0f);
     const engine::LinearColour occluder_col(1.0f, 1.0f, 1.0f, 1.0f);
 
     engine::RenderCommand::set_clear_colour_linear(background_col);
-
-    // draw emitters
-    // {
-    //   const auto& emitters =
-    //     r.view<const LightEmitterComponent, const TransformComponent, const SpriteComponent, const
-    //     SpriteColourComponent>();
-    //   for (const auto& [entity, emitter, transform, sc, scc] : emitters.each()) {
-    //     quad_renderer::RenderDescriptor desc;
-    //     desc.pos_tl = transform.position - transform.scale / 2;
-    //     desc.size = transform.scale;
-    //     desc.angle_radians = sc.angle_radians + transform.rotation_radians.z;
-    //     desc.colour = engine::SRGBToLinear(emitter_col);
-    //     desc.tex_unit = sc.tex_unit;
-    //     desc.sprite_offset_and_spritesheet = { sc.x, sc.y, sc.sx, sc.sy };
-    //     quad_renderer::QuadRenderer::draw_sprite(desc, ri.emitters_and_occluders);
-    //   }
-    // }
 
     ri.lighting_emitters_and_occluders.bind();
     ri.lighting_emitters_and_occluders.set_mat4("view", camera.view);
@@ -212,8 +230,6 @@ setup_lighting_emitters_and_occluders_update(entt::registry& r)
       engine::quad_renderer::QuadRenderer::end_batch();
       engine::quad_renderer::QuadRenderer::flush(ri.lighting_emitters_and_occluders);
     }
-
-    // render_fullscreen_quad(ri.lighting_emitters_and_occluders, ri.viewport_size_render_at);
   };
 };
 
@@ -226,11 +242,8 @@ setup_lighting_ambient_occlusion_update(entt::registry& r)
 
   pass.update = [&r]() {
     const auto& ri = get_first_component<SINGLETON_RendererInfo>(r);
-    const auto camera_e = get_first<OrthographicCamera>(r);
-    const auto& camera = r.get<OrthographicCamera>(camera_e);
 
     ri.lighting_ambient_occlusion.bind();
-    ri.lighting_ambient_occlusion.set_mat4("view", camera.view);
 
     //
 
@@ -252,22 +265,30 @@ setup_mix_lighting_and_scene_update(entt::registry& r)
 
     const auto camera_e = get_first<OrthographicCamera>(r);
     const auto& camera_t = r.get<TransformComponent>(camera_e);
+    const auto& camera = r.get<OrthographicCamera>(camera_e);
+
+    // Render stars shader
+    // ri.stars.bind();
+    // ri.stars.set_mat4("view", camera.view);
+    // {
+    //   engine::quad_renderer::QuadRenderer::reset_quad_vert_count();
+    //   engine::quad_renderer::QuadRenderer::begin_batch();
+    //   {
+    //     engine::quad_renderer::RenderDescriptor desc;
+    //     const glm::vec2 offset = { ri.viewport_size_render_at.x / 2.0, ri.viewport_size_render_at.y / 2.0f };
+    //     desc.pos_tl = glm::vec2(camera_t.position.x, camera_t.position.y) - offset;
+    //     desc.size = ri.viewport_size_render_at;
+    //     desc.angle_radians = 0;
+    //     engine::quad_renderer::QuadRenderer::draw_sprite(desc, ri.stars);
+    //   }
+    //   engine::quad_renderer::QuadRenderer::end_batch();
+    //   engine::quad_renderer::QuadRenderer::flush(ri.stars);
+    // }
 
     // update uniforms
     ri.mix_lighting_and_scene.bind();
-
-    {
-      const auto linear_pass_idx = search_for_renderpass_by_name(ri, PassName::linear_main);
-      const auto& linear_pass = ri.passes[linear_pass_idx];
-      const int tex_unit_linear_main = linear_pass.texs[0].tex_unit.unit;
-      ri.mix_lighting_and_scene.set_int("scene", tex_unit_linear_main);
-    }
-    {
-      // const auto lighting_pass_idx = search_for_renderpass_by_name(ri, PassName::lighting_main);
-      // const auto& lighting_pass = ri.passes[lighting_pass_idx];
-      // const int tex_unit_lighting = lighting_pass.texs[0].tex_unit.unit;
-      // ri.mix_lighting_and_scene.set_int("lighting", tex_unit_lighting);
-    }
+    ri.mix_lighting_and_scene.set_int("scene_0", get_tex_unit(ri, PassName::linear_main));
+    ri.mix_lighting_and_scene.set_int("scene_1", get_tex_unit(ri, PassName::stars));
 
     // light_pos.x should be between 0 < viewport_wh.x
     // light_pos.y should be between 0 < viewport_wh.y
