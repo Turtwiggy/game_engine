@@ -104,12 +104,12 @@ rebind(entt::registry& r, const SINGLETON_RendererInfo& ri)
   ri.lighting_emitters_and_occluders.bind();
   ri.lighting_emitters_and_occluders.set_mat4("projection", camera.projection);
   ri.lighting_emitters_and_occluders.set_mat4("view", glm::mat4(1.0f)); // whole texture
-  ri.lighting_emitters_and_occluders.set_vec4("colour", glm::vec4(1.0f, 1.0f, 1.0f, 1.0f));
+  ri.lighting_emitters_and_occluders.set_vec4("colour", glm::vec4(1.0f, 0.0f, 0.0f, 1.0f));
 
   ri.lighting_ambient_occlusion.bind();
   ri.lighting_ambient_occlusion.set_mat4("projection", camera.projection);
   ri.lighting_ambient_occlusion.set_mat4("view", glm::mat4(1.0f)); // whole texture
-  ri.lighting_ambient_occlusion.set_vec4("colour", glm::vec4(1.0f, 1.0f, 1.0f, 1.0f));
+  ri.lighting_ambient_occlusion.set_vec4("colour", glm::vec4(0.0f, 1.0f, 0.0f, 1.0f));
 
   ri.mix_lighting_and_scene.bind();
   ri.mix_lighting_and_scene.set_mat4("projection", camera.projection);
@@ -165,8 +165,9 @@ init_render_system(const engine::SINGLETON_Application& app, entt::registry& r, 
   }
 
   ri.instanced = Shader("assets/shaders/2d_instanced.vert", "assets/shaders/2d_instanced.frag");
-  ri.lighting_emitters_and_occluders = Shader("assets/shaders/2d_basic_with_proj.vert", "assets/shaders/2d_colour.frag");
-  ri.lighting_ambient_occlusion = Shader("assets/shaders/2d_basic_with_proj.vert", "assets/shaders/2d_colour.frag");
+  ri.lighting_emitters_and_occluders =
+    Shader("assets/shaders/2d_instanced.vert", "assets/shaders/2d_emitters_and_occluders.frag");
+  ri.lighting_ambient_occlusion = Shader("assets/shaders/2d_instanced.vert", "assets/shaders/2d_colour.frag");
   ri.mix_lighting_and_scene = Shader("assets/shaders/2d_instanced.vert", "assets/shaders/2d_mix_lighting_and_scene.frag");
   ri.circle = Shader("assets/shaders/2d_circle.vert", "assets/shaders/2d_circle.frag");
   ri.grid = Shader("assets/shaders/2d_grid.vert", "assets/shaders/2d_grid.frag");

@@ -17,6 +17,7 @@
 #include "modules/combat_attack_cooldown/components.hpp"
 #include "modules/combat_damage/components.hpp"
 #include "modules/lerp_to_target/components.hpp"
+#include "modules/lighting/components.hpp"
 #include "modules/renderer/components.hpp"
 #include "modules/renderer/helpers.hpp"
 #include "modules/system_knockback/components.hpp"
@@ -418,6 +419,7 @@ create_gameplay(entt::registry& r, const EntityType& type)
     case EntityType::solid_wall: {
       create_physics_actor(r, e);
       r.emplace<PhysicsSolidComponent>(e);
+      r.emplace<LightOccluderComponent>(e);
       break;
     }
 

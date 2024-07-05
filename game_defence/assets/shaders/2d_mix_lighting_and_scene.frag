@@ -9,7 +9,7 @@ in vec2 v_sprite_pos;
 in vec2 v_sprite_wh;
 in vec2 v_sprite_max;
 in float v_tex_unit;
-in vec2 v_vertex;  
+// in vec2 v_vertex;  
 
 uniform sampler2D scene;
 uniform sampler2D lighting;

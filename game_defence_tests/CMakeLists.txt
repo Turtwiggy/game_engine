@@ -3,6 +3,7 @@
 cmake_minimum_required(VERSION 3.5.0)
 set(CMAKE_CXX_STANDARD 20)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
+include(${CMAKE_SOURCE_DIR}/cmake/packages.cmake)
 
 if(EMSCRIPTEN)
   message("Compiling for emscripten (toolkit set in cmake-kits.json)")
@@ -61,20 +62,7 @@ message("game_defence_tests: current_list_dir: ${CMAKE_CURRENT_LIST_DIR}")
 message("game_defence_tests: source_dir: ${CMAKE_SOURCE_DIR}")
 message("index CMAKE_TOOLCHAIN_FILE: ${CMAKE_TOOLCHAIN_FILE}")
 
-# Add VCPKG packages
-if(EMSCRIPTEN)
-else()
-  # packages not supported or needed by emscripten
-  # find_package(GameNetworkingSockets CONFIG REQUIRED)
-  find_package(SDL2 CONFIG REQUIRED)
-  find_package(GLEW REQUIRED)
-  find_package(OpenAL CONFIG REQUIRED)
-endif()
-
-find_package(fmt CONFIG REQUIRED)
-find_package(nlohmann_json CONFIG REQUIRED)
-find_package(glm CONFIG REQUIRED)
-find_package(Stb REQUIRED)
+get_packages()
 
 # Add Testing
 enable_testing()
@@ -126,18 +114,8 @@ target_include_directories(game_defence_tests PRIVATE
   ${CMAKE_SOURCE_DIR}/thirdparty/imgui-filebrowser
 )
 
-if(EMSCRIPTEN)
-  target_link_libraries(game_defence_tests PRIVATE openal)
-else()
-  # target_link_libraries(game_defence_tests PRIVATE GameNetworkingSockets::shared)
-  target_link_libraries(game_defence_tests PRIVATE GLEW::GLEW)
-  target_link_libraries(game_defence_tests PRIVATE SDL2::SDL2 SDL2::SDL2main)
-  target_link_libraries(game_defence_tests PRIVATE OpenAL::OpenAL)
-endif()
+link_libs(game_defence_tests)
 
-target_link_libraries(game_defence_tests PRIVATE fmt::fmt)
-target_link_libraries(game_defence_tests PRIVATE nlohmann_json::nlohmann_json)
-target_link_libraries(game_defence_tests PRIVATE glm::glm)
 target_link_libraries(game_defence_tests PRIVATE GTest::gmock GTest::gtest GTest::gmock_main GTest::gtest_main)
 
 set(CPACK_PROJECT_NAME ${PROJECT_NAME})

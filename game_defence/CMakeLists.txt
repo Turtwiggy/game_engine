@@ -3,6 +3,7 @@
 cmake_minimum_required(VERSION 3.5.0)
 set(CMAKE_CXX_STANDARD 20)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
+include(${CMAKE_SOURCE_DIR}/cmake/packages.cmake)
 
 if(EMSCRIPTEN)
   message("Compiling for emscripten (toolkit set in cmake-kits.json)")
@@ -63,21 +64,8 @@ message("game_defence: current_list_dir: ${CMAKE_CURRENT_LIST_DIR}")
 message("game_defence: source_dir: ${CMAKE_SOURCE_DIR}")
 message("index CMAKE_TOOLCHAIN_FILE: ${CMAKE_TOOLCHAIN_FILE}")
 
-# Add VCPKG packages
-if(EMSCRIPTEN)
-else()
-  # packages not supported or needed by emscripten
-  # find_package(GameNetworkingSockets CONFIG REQUIRED)
-  find_package(SDL2 CONFIG REQUIRED)
-  find_package(GLEW REQUIRED)
-  find_package(OpenAL CONFIG REQUIRED)
-endif()
-
-find_package(SDL2_mixer CONFIG REQUIRED)
-find_package(fmt CONFIG REQUIRED)
-find_package(nlohmann_json CONFIG REQUIRED)
-find_package(glm CONFIG REQUIRED)
-find_package(Stb REQUIRED)
+include(${CMAKE_SOURCE_DIR}/cmake/packages.cmake)
+get_packages()
 
 # Add source files
 include(${CMAKE_SOURCE_DIR}/cmake/imgui.cmake)
@@ -123,19 +111,7 @@ target_include_directories(game_defence PRIVATE
   ${CMAKE_SOURCE_DIR}/thirdparty/imgui-filebrowser
 )
 
-if(EMSCRIPTEN)
-  target_link_libraries(game_defence PRIVATE openal)
-else()
-  # target_link_libraries(game_defence PRIVATE GameNetworkingSockets::shared)
-  target_link_libraries(game_defence PRIVATE GLEW::GLEW)
-  target_link_libraries(game_defence PRIVATE SDL2::SDL2 SDL2::SDL2main)
-  target_link_libraries(game_defence PRIVATE SDL2_mixer::SDL2_mixer)
-  target_link_libraries(game_defence PRIVATE OpenAL::OpenAL)
-endif()
-
-target_link_libraries(game_defence PRIVATE fmt::fmt)
-target_link_libraries(game_defence PRIVATE glm::glm)
-target_link_libraries(game_defence PRIVATE nlohmann_json::nlohmann_json)
+link_libs(game_defence)
 
 # rename executable
 set_target_properties(${PROJECT_NAME} PROPERTIES OUTPUT_NAME "solar_war")

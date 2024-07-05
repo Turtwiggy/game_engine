@@ -5,6 +5,7 @@
 #include "imgui/helpers.hpp"
 #include "modules/camera/orthographic.hpp"
 #include "modules/gameplay_circle/components.hpp"
+#include "modules/lighting/components.hpp"
 #include "modules/renderer/components.hpp"
 #include "modules/renderer/helpers.hpp"
 #include "modules/renderer/helpers/batch_quad.hpp"
@@ -95,7 +96,6 @@ setup_linear_main_update(entt::registry& r)
 
       for (const auto& [entity, transform, sc] : group.each()) {
         engine::quad_renderer::RenderDescriptor desc;
-        // desc.pos_tl = camera_transform.position + transform.position - transform.scale / 2;
         desc.pos_tl = transform.position - transform.scale / 2;
         desc.size = transform.scale;
         desc.angle_radians = sc.angle_radians + transform.rotation_radians.z;
@@ -157,10 +157,63 @@ setup_lighting_emitters_and_occluders_update(entt::registry& r)
   pass.update = [&r]() {
     const auto& ri = get_first_component<SINGLETON_RendererInfo>(r);
 
-    //
-    //
+    const auto camera_e = get_first<OrthographicCamera>(r);
+    const auto& camera = r.get<OrthographicCamera>(camera_e);
 
-    render_fullscreen_quad(ri.lighting_emitters_and_occluders, ri.viewport_size_render_at);
+    // emitters should be anything but black
+    const engine::SRGBColour emitter_col{ 255, 0, 0, 1.0f };
+    const engine::LinearColour background_col(0.0f, 0.0f, 0.0f, 1.0f);
+    const engine::LinearColour occluder_col(1.0f, 1.0f, 1.0f, 1.0f);
+
+    engine::RenderCommand::set_clear_colour_linear(background_col);
+
+    // draw emitters
+    // {
+    //   const auto& emitters =
+    //     r.view<const LightEmitterComponent, const TransformComponent, const SpriteComponent, const
+    //     SpriteColourComponent>();
+    //   for (const auto& [entity, emitter, transform, sc, scc] : emitters.each()) {
+    //     quad_renderer::RenderDescriptor desc;
+    //     desc.pos_tl = transform.position - transform.scale / 2;
+    //     desc.size = transform.scale;
+    //     desc.angle_radians = sc.angle_radians + transform.rotation_radians.z;
+    //     desc.colour = engine::SRGBToLinear(emitter_col);
+    //     desc.tex_unit = sc.tex_unit;
+    //     desc.sprite_offset_and_spritesheet = { sc.x, sc.y, sc.sx, sc.sy };
+    //     quad_renderer::QuadRenderer::draw_sprite(desc, ri.emitters_and_occluders);
+    //   }
+    // }
+
+    ri.lighting_emitters_and_occluders.bind();
+    ri.lighting_emitters_and_occluders.set_mat4("view", camera.view);
+
+    {
+      engine::quad_renderer::QuadRenderer::reset_quad_vert_count();
+      engine::quad_renderer::QuadRenderer::begin_batch();
+
+      // draw occluders
+      {
+        const auto& occluders = r.view<const LightOccluderComponent, const TransformComponent, const SpriteComponent>();
+        for (const auto& [entity, occluder, transform, sc] : occluders.each()) {
+          engine::quad_renderer::RenderDescriptor desc;
+          desc.pos_tl = transform.position - transform.scale / 2;
+          desc.size = transform.scale;
+          desc.angle_radians = sc.angle_radians + transform.rotation_radians.z;
+          desc.colour = occluder_col;
+          desc.tex_unit = sc.tex_unit;
+
+          desc.sprite_offset = { sc.tex_pos.x, sc.tex_pos.y };
+          desc.sprite_width = { sc.tex_pos.w, sc.tex_pos.h };
+          desc.sprites_max = { sc.total_sx, sc.total_sy };
+
+          engine::quad_renderer::QuadRenderer::draw_sprite(desc, ri.lighting_emitters_and_occluders);
+        }
+      }
+      engine::quad_renderer::QuadRenderer::end_batch();
+      engine::quad_renderer::QuadRenderer::flush(ri.lighting_emitters_and_occluders);
+    }
+
+    // render_fullscreen_quad(ri.lighting_emitters_and_occluders, ri.viewport_size_render_at);
   };
 };
 
@@ -173,8 +226,12 @@ setup_lighting_ambient_occlusion_update(entt::registry& r)
 
   pass.update = [&r]() {
     const auto& ri = get_first_component<SINGLETON_RendererInfo>(r);
+    const auto camera_e = get_first<OrthographicCamera>(r);
+    const auto& camera = r.get<OrthographicCamera>(camera_e);
 
-    //
+    ri.lighting_ambient_occlusion.bind();
+    ri.lighting_ambient_occlusion.set_mat4("view", camera.view);
+
     //
 
     render_fullscreen_quad(ri.lighting_ambient_occlusion, ri.viewport_size_render_at);
