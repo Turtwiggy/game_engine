@@ -8,8 +8,14 @@ namespace game2d {
 void
 setup_linear_main_update(entt::registry& r);
 
+// void
+// setup_lighting_main_update(entt::registry& r);
+
 void
-setup_lighting_main_update(entt::registry& r);
+setup_lighting_emitters_and_occluders_update(entt::registry& r);
+
+void
+setup_lighting_ambient_occlusion_update(entt::registry& r);
 
 // mix scene and lighting textures
 void

@@ -82,7 +82,8 @@ struct Texture
 enum class PassName
 {
   linear_main,
-  lighting_main,
+  lighting_emitters_and_occluders,
+  lighting_ambient_occlusion,
   mix_lighting_and_scene, // 2 colour attachments
   blur_pingpong_0,
   blur_pingpong_1,
@@ -120,7 +121,8 @@ struct SINGLETON_RendererInfo
 
   // shaders
   engine::Shader instanced;
-  engine::Shader lighting;
+  engine::Shader lighting_emitters_and_occluders;
+  engine::Shader lighting_ambient_occlusion;
   engine::Shader mix_lighting_and_scene;
   engine::Shader circle;
   engine::Shader grid;

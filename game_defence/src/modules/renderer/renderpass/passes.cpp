@@ -8,7 +8,6 @@
 #include "modules/renderer/components.hpp"
 #include "modules/renderer/helpers.hpp"
 #include "modules/renderer/helpers/batch_quad.hpp"
-#include "modules/ui_colours/helpers.hpp"
 #include "modules/vfx_grid/components.hpp"
 #include "sprites/components.hpp"
 
@@ -16,6 +15,20 @@
 
 namespace game2d {
 using namespace std::literals;
+
+const auto render_fullscreen_quad = [](const engine::Shader& shader, const glm::ivec2& size) {
+  engine::quad_renderer::QuadRenderer::reset_quad_vert_count();
+  engine::quad_renderer::QuadRenderer::begin_batch();
+
+  engine::quad_renderer::RenderDescriptor desc;
+  desc.pos_tl = { 0, 0 };
+  desc.size = size;
+  desc.angle_radians = 0;
+  engine::quad_renderer::QuadRenderer::draw_sprite(desc, shader);
+
+  engine::quad_renderer::QuadRenderer::end_batch();
+  engine::quad_renderer::QuadRenderer::flush(shader);
+};
 
 void
 setup_linear_main_update(entt::registry& r)
@@ -135,35 +148,36 @@ setup_linear_main_update(entt::registry& r)
 };
 
 void
-setup_lighting_main_update(entt::registry& r)
+setup_lighting_emitters_and_occluders_update(entt::registry& r)
 {
   auto& ri = get_first_component<SINGLETON_RendererInfo>(r);
-  const auto pass_idx = search_for_renderpass_by_name(ri, PassName::lighting_main);
+  const auto pass_idx = search_for_renderpass_by_name(ri, PassName::lighting_emitters_and_occluders);
   auto& pass = ri.passes[pass_idx];
+
   pass.update = [&r]() {
     const auto& ri = get_first_component<SINGLETON_RendererInfo>(r);
-    const auto camera_e = get_first<OrthographicCamera>(r);
-    const auto& camera = r.get<OrthographicCamera>(camera_e);
 
-    // setup uniforms
-    ri.lighting.bind();
-    ri.lighting.set_vec4("colour", glm::vec4(1.0f, 1.0f, 1.0f, 1.0f));
-    ri.lighting.set_mat4("view", camera.view);
+    //
+    //
 
-    engine::quad_renderer::QuadRenderer::reset_quad_vert_count();
-    engine::quad_renderer::QuadRenderer::begin_batch();
+    render_fullscreen_quad(ri.lighting_emitters_and_occluders, ri.viewport_size_render_at);
+  };
+};
 
-    // render completely over screen
-    {
-      engine::quad_renderer::RenderDescriptor desc;
-      desc.pos_tl = { 0, 0 };
-      desc.size = ri.viewport_size_render_at;
-      desc.angle_radians = 0;
-      engine::quad_renderer::QuadRenderer::draw_sprite(desc, ri.lighting);
-    }
+void
+setup_lighting_ambient_occlusion_update(entt::registry& r)
+{
+  auto& ri = get_first_component<SINGLETON_RendererInfo>(r);
+  const auto pass_idx = search_for_renderpass_by_name(ri, PassName::lighting_ambient_occlusion);
+  auto& pass = ri.passes[pass_idx];
 
-    engine::quad_renderer::QuadRenderer::end_batch();
-    engine::quad_renderer::QuadRenderer::flush(ri.lighting);
+  pass.update = [&r]() {
+    const auto& ri = get_first_component<SINGLETON_RendererInfo>(r);
+
+    //
+    //
+
+    render_fullscreen_quad(ri.lighting_ambient_occlusion, ri.viewport_size_render_at);
   };
 };
 
@@ -208,18 +222,7 @@ setup_mix_lighting_and_scene_update(entt::registry& r)
     ri.mix_lighting_and_scene.set_float("brightness_threshold", brightness_threshold);
     // ri.mix_lighting_and_scene.set_float("time", time);
 
-    engine::quad_renderer::QuadRenderer::reset_quad_vert_count();
-    engine::quad_renderer::QuadRenderer::begin_batch();
-    {
-      engine::quad_renderer::RenderDescriptor desc;
-      desc.pos_tl = { 0, 0 };
-      desc.size = ri.viewport_size_render_at;
-      desc.angle_radians = 0.0f;
-      desc.colour = get_lin_colour_by_tag(r, "background");
-      engine::quad_renderer::QuadRenderer::draw_sprite(desc, ri.mix_lighting_and_scene);
-    }
-    engine::quad_renderer::QuadRenderer::end_batch();
-    engine::quad_renderer::QuadRenderer::flush(ri.mix_lighting_and_scene);
+    render_fullscreen_quad(ri.mix_lighting_and_scene, ri.viewport_size_render_at);
   };
 };
 
@@ -276,23 +279,9 @@ setup_gaussian_blur_update(entt::registry& r)
       engine::RenderCommand::set_viewport(0, 0, ri.viewport_size_render_at.x, ri.viewport_size_render_at.y);
       engine::RenderCommand::set_clear_colour_srgb(black);
       engine::RenderCommand::clear();
-      {
-        engine::quad_renderer::QuadRenderer::reset_quad_vert_count();
-        engine::quad_renderer::QuadRenderer::begin_batch();
 
-        // render completely over screen
-        engine::quad_renderer::RenderDescriptor desc;
-        desc.pos_tl = { 0, 0 };
-        desc.size = ri.viewport_size_render_at;
-        desc.angle_radians = 0;
-        engine::quad_renderer::QuadRenderer::draw_sprite(desc, ri.blur);
-
-        engine::quad_renderer::QuadRenderer::end_batch();
-        engine::quad_renderer::QuadRenderer::flush(ri.blur);
-      }
+      render_fullscreen_quad(ri.blur, ri.viewport_size_render_at);
     }
-
-    //
   };
 
   pass1.update = []() {}; // nothing, only used for fbo
@@ -322,6 +311,8 @@ setup_bloom_update(entt::registry& r)
     const auto& blur_data = get_first_component<EffectBlurInfo>(r);
     ri.bloom.set_int("blur_texture", blur_data.last_blur_texunit);
 
+    // render_fullscreen_quad(ri.bloom, ri.viewport_size_render_at);
+
     engine::quad_renderer::QuadRenderer::reset_quad_vert_count();
     engine::quad_renderer::QuadRenderer::begin_batch();
 
@@ -339,5 +330,4 @@ setup_bloom_update(entt::registry& r)
     engine::quad_renderer::QuadRenderer::flush(ri.bloom);
   };
 };
-
 } // namespace game2d

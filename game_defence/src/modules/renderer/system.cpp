@@ -85,10 +85,6 @@ rebind(entt::registry& r, const SINGLETON_RendererInfo& ri)
   ri.instanced.set_int("tex_unit_spacestation_0", tex_unit_spacestation_0);
   ri.instanced.set_int("tex_unit_studio_logo", tex_unit_studio_logo);
 
-  const auto lighting_pass_idx = search_for_renderpass_by_name(ri, PassName::lighting_main);
-  const auto& lighting_pass = ri.passes[lighting_pass_idx];
-  const int tex_unit_lighting = lighting_pass.texs[0].tex_unit.unit;
-
   const auto linear_pass_idx = search_for_renderpass_by_name(ri, PassName::linear_main);
   const auto& linear_pass = ri.passes[linear_pass_idx];
   const int tex_unit_linear_main = linear_pass.texs[0].tex_unit.unit;
@@ -101,16 +97,25 @@ rebind(entt::registry& r, const SINGLETON_RendererInfo& ri)
   const auto& blur_pingpong_1_pass = ri.passes[blur_pingpong_1_idx];
   const int tex_unit_blur_pingpong_1 = blur_pingpong_1_pass.texs[0].tex_unit.unit;
 
+  const auto lighting_AO_pass_idx = search_for_renderpass_by_name(ri, PassName::lighting_ambient_occlusion);
+  const auto& lighting_AO_pass = ri.passes[lighting_AO_pass_idx];
+  const int tex_unit_lighting_AO = lighting_AO_pass.texs[0].tex_unit.unit;
+
+  ri.lighting_emitters_and_occluders.bind();
+  ri.lighting_emitters_and_occluders.set_mat4("projection", camera.projection);
+  ri.lighting_emitters_and_occluders.set_mat4("view", glm::mat4(1.0f)); // whole texture
+  ri.lighting_emitters_and_occluders.set_vec4("colour", glm::vec4(1.0f, 1.0f, 1.0f, 1.0f));
+
+  ri.lighting_ambient_occlusion.bind();
+  ri.lighting_ambient_occlusion.set_mat4("projection", camera.projection);
+  ri.lighting_ambient_occlusion.set_mat4("view", glm::mat4(1.0f)); // whole texture
+  ri.lighting_ambient_occlusion.set_vec4("colour", glm::vec4(1.0f, 1.0f, 1.0f, 1.0f));
+
   ri.mix_lighting_and_scene.bind();
   ri.mix_lighting_and_scene.set_mat4("projection", camera.projection);
   ri.mix_lighting_and_scene.set_mat4("view", glm::mat4(1.0f)); // whole texture
-  ri.mix_lighting_and_scene.set_int("lighting", tex_unit_lighting);
+  ri.mix_lighting_and_scene.set_int("lighting", tex_unit_lighting_AO);
   ri.mix_lighting_and_scene.set_int("scene", tex_unit_linear_main);
-
-  ri.lighting.bind();
-  ri.lighting.set_mat4("view", camera.view);
-  ri.lighting.set_mat4("projection", camera.projection);
-  ri.lighting.set_vec4("colour", glm::vec4(1.0f, 1.0f, 1.0f, 1.0f));
 
   ri.circle.bind();
   ri.circle.set_mat4("projection", camera.projection);
@@ -140,7 +145,8 @@ init_render_system(const engine::SINGLETON_Application& app, entt::registry& r, 
   // FBO textures
   Framebuffer::default_fbo();
   ri.passes.push_back(RenderPass(PassName::linear_main));
-  ri.passes.push_back(RenderPass(PassName::lighting_main));
+  ri.passes.push_back(RenderPass(PassName::lighting_emitters_and_occluders));
+  ri.passes.push_back(RenderPass(PassName::lighting_ambient_occlusion));
   ri.passes.push_back(RenderPass(PassName::mix_lighting_and_scene, 2));
   ri.passes.push_back(RenderPass(PassName::blur_pingpong_0));
   ri.passes.push_back(RenderPass(PassName::blur_pingpong_1));
@@ -159,7 +165,8 @@ init_render_system(const engine::SINGLETON_Application& app, entt::registry& r, 
   }
 
   ri.instanced = Shader("assets/shaders/2d_instanced.vert", "assets/shaders/2d_instanced.frag");
-  ri.lighting = Shader("assets/shaders/2d_basic_with_proj.vert", "assets/shaders/2d_colour.frag");
+  ri.lighting_emitters_and_occluders = Shader("assets/shaders/2d_basic_with_proj.vert", "assets/shaders/2d_colour.frag");
+  ri.lighting_ambient_occlusion = Shader("assets/shaders/2d_basic_with_proj.vert", "assets/shaders/2d_colour.frag");
   ri.mix_lighting_and_scene = Shader("assets/shaders/2d_instanced.vert", "assets/shaders/2d_mix_lighting_and_scene.frag");
   ri.circle = Shader("assets/shaders/2d_circle.vert", "assets/shaders/2d_circle.frag");
   ri.grid = Shader("assets/shaders/2d_grid.vert", "assets/shaders/2d_grid.frag");
@@ -184,7 +191,9 @@ init_render_system(const engine::SINGLETON_Application& app, entt::registry& r, 
 
   // adds the update() for each renderpass
   setup_linear_main_update(r);
-  setup_lighting_main_update(r);
+  // setup_lighting_main_update(r);
+  setup_lighting_emitters_and_occluders_update(r);
+  setup_lighting_ambient_occlusion_update(r);
   setup_mix_lighting_and_scene_update(r);
   setup_gaussian_blur_update(r);
   setup_bloom_update(r);

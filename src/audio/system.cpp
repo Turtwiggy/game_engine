@@ -16,7 +16,6 @@
 #include <chrono>
 #include <map>
 #include <string>
-#include <thread>
 #include <vector>
 
 namespace game2d {
@@ -70,6 +69,7 @@ init_audio_system(entt::registry& r)
     file.buffer = sound;
   }
 
+  audio.loaded = true;
   engine::log_time_since("Audio loaded.", start);
 }
 
@@ -77,6 +77,8 @@ void
 update_audio_system(entt::registry& r)
 {
   const auto& audio = get_first_component<SINGLETON_AudioComponent>(r);
+  if (!audio.loaded)
+    return;
   if (audio.sounds.size() == 0)
     return; // no sounds loaded
 

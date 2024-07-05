@@ -179,8 +179,19 @@ update_minigame_bamboo_system(entt::registry& r, const float dt)
   ImGui::SetNextWindowPos(pos, ImGuiCond_Always, ImVec2(0.5f, 0.5f));
   ImGui::SetNextWindowSizeConstraints(ImVec2(640, 640 * (9 / 16.0f)), ImVec2(640, 640 * (9 / 16.0f)));
 
-  ImGui::Begin("BambooMinigame");
-  ImGui::Text("Input the combination. Press ENTER to submit input.");
+  ImGuiWindowFlags flags = 0;
+  // position and sizing
+  flags |= ImGuiWindowFlags_NoMove;
+  flags |= ImGuiWindowFlags_NoCollapse;
+  flags |= ImGuiWindowFlags_NoDocking;
+  flags |= ImGuiWindowFlags_NoResize;
+  // flags |= ImGuiWindowFlags_NoFocusOnAppearing;
+  // visuals
+  flags |= ImGuiWindowFlags_NoTitleBar;
+  // flags |= ImGuiWindowFlags_NoBackground;
+
+  ImGui::Begin("BambooMinigame", NULL, flags);
+  ImGui::Text("Input the combination. Press ENTER to submit.");
 
   ImGui::SeparatorText("Combination");
   for (int i = 0; const auto& key : combination) {

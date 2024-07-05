@@ -248,7 +248,7 @@ update_ui_combat_turnbased_system(entt::registry& r, const glm::ivec2& input_mou
     const auto& view = r.view<HealthComponent, DefenceComponent, AABB>();
     for (const auto& [e, hp, defence, aabb] : view.each()) {
       auto& worldspace_ui = r.get_or_emplace<WorldspaceTextComponent>(e);
-      worldspace_ui.text = std::to_string(hp.hp) + " " + std::to_string(defence.armour);
+      worldspace_ui.text = "HP:"s + std::to_string(hp.hp) + " DEF:" + std::to_string(defence.armour);
       worldspace_ui.offset.y = -aabb.size.y;
     }
   }

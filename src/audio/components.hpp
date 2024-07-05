@@ -55,6 +55,7 @@ struct Sound
 struct SINGLETON_AudioComponent
 {
   std::vector<Sound> sounds;
+  bool loaded = false;
 
   bool mute_all = false;
   bool mute_sfx = false;

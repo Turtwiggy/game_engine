@@ -94,13 +94,10 @@ update_ui_scene_main_menu(engine::SINGLETON_Application& app, entt::registry& r)
     //     move_to_scene_start(r, Scene::overworld, true);
     // }
 
-    if (selectable_button("Start Game", selected, index++)) {
+    if (selectable_button("Start", selected, index++))
       move_to_scene_start(r, Scene::overworld, false);
-    }
-
-    if (selectable_button("minigame: bamboo", selected, index++)) {
+    if (selectable_button("minigame: breach", selected, index++))
       move_to_scene_start(r, Scene::minigame_bamboo);
-    }
 
 #if defined(_DEBUG)
     if (selectable_button("(debug) combat", selected, index++)) {
@@ -110,7 +107,6 @@ update_ui_scene_main_menu(engine::SINGLETON_Application& app, entt::registry& r)
       move_to_scene_start(r, Scene::dungeon_designer);
       create_empty<RequestGenerateDungeonComponent>(r);
     }
-
 #endif
 
     if (selectable_button("Quit", selected, index++))

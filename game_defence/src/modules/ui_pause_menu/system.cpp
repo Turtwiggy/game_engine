@@ -154,17 +154,17 @@ update_ui_pause_menu_system(engine::SINGLETON_Application& app, entt::registry& 
 
     ImGui::SeparatorText("Quit");
 
-    if (ImGui::Button("Back to Menu"))
-      move_to_scene_start(r, Scene::menu);
-
     const auto& scene = get_first_component<SINGLETON_CurrentScene>(r);
     const bool is_saveable_scene = scene.s == Scene::overworld;
-    if (is_saveable_scene && ImGui::Button("Save & Back to Menu")) {
+    if (is_saveable_scene && ImGui::Button("Save to Menu")) {
       save(r, "save-overworld.json");
       move_to_scene_start(r, Scene::menu);
     }
 
-    if (ImGui::Button("Close Application"))
+    if (ImGui::Button("Exit to Menu"))
+      move_to_scene_start(r, Scene::menu);
+
+    if (ImGui::Button("Exit to Desktop"))
       app.running = false;
 
     ImGui::End();
