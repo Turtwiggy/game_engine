@@ -123,9 +123,7 @@ main(int argc, char* argv[])
   name += " [RELEASE]";
 #endif
 
-  app.height = 720;
-  app.width = 1280;
-  app.window = GameWindow(name, app.width, app.height, app.display, app.vsync);
+  app.window = GameWindow(name, DisplayMode::windowed, app.vsync);
   app.imgui.initialize(app.window);
 
   game2d::init(app, game);

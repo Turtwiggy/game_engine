@@ -113,12 +113,6 @@ init(engine::SINGLETON_Application& app, entt::registry& r)
     create_empty<SINGLETON_RendererInfo>(r, ri);
   }
 
-  // add camera
-  OrthographicCamera camera_info;
-  camera_info.projection = calculate_ortho_projection(app.width, app.height);
-  const auto camera_e = create_empty<OrthographicCamera>(r, camera_info);
-  r.emplace<TransformComponent>(camera_e);
-
   auto& ri = get_first_component<SINGLETON_RendererInfo>(r);
   init_render_system(app, r, ri); // init after camera
 

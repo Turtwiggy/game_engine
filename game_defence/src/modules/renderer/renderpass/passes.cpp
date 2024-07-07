@@ -44,7 +44,7 @@ setup_stars_update(entt::registry& r)
   const auto pass_idx = search_for_renderpass_by_name(ri, PassName::stars);
   auto& pass = ri.passes[pass_idx];
 
-  pass.update = [&r]() {
+  pass.update = [&r, &pass]() {
     const auto& ri = get_first_component<SINGLETON_RendererInfo>(r);
     const auto camera_e = get_first<OrthographicCamera>(r);
     const auto& camera = r.get<OrthographicCamera>(camera_e);
@@ -53,6 +53,11 @@ setup_stars_update(entt::registry& r)
     // Render stars shader
     ri.stars.bind();
     ri.stars.set_mat4("view", camera.view);
+
+    // const glm::vec2 scaled = { ri.viewport_size_render_at.x * pass.texture_scale_factor,
+    //                            ri.viewport_size_render_at.y * pass.texture_scale_factor };
+    ri.stars.set_vec2("texture_wh", ri.viewport_size_render_at);
+
     {
       engine::quad_renderer::QuadRenderer::reset_quad_vert_count();
       engine::quad_renderer::QuadRenderer::begin_batch();

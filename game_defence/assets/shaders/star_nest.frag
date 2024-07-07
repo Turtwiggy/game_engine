@@ -1,4 +1,4 @@
-#version 460
+#version 330
 
 out vec4 out_colour;
 
@@ -9,7 +9,7 @@ in vec2 v_sprite_wh;  // desired sprites e.g. 2, 2
 in vec2 v_sprite_max; // 22 sprites
 in float v_tex_unit;
 
-uniform vec2 viewport_wh;
+uniform vec2 texture_wh;
 uniform vec2 player_position;
 
 //
@@ -18,24 +18,24 @@ uniform vec2 player_position;
 // https://www.shadertoy.com/view/XlfGRj
 //
 
-#define iterations 15
+#define iterations 16
 #define formuparam 0.53
 
-#define volsteps 20
-#define stepsize 0.1
+#define volsteps 10
+#define stepsize 0.2
 
-#define zoom   0.550
+#define zoom   0.800
 #define tile   0.850
 
-#define brightness 0.0006
-#define darkmatter 0.210
-#define distfading 0.800
+#define brightness 0.0005
+#define darkmatter 0.300
+#define distfading 0.730
 #define saturation 0.950
 
 void main()
 {
-  vec2 fragCoord = v_uv * viewport_wh;
-  vec2 iResolution = viewport_wh;
+  vec2 fragCoord = v_uv * texture_wh;
+  vec2 iResolution = texture_wh;
 
 	//get coords and direction
 	vec2 uv=fragCoord.xy/iResolution.xy-.5;
@@ -57,12 +57,11 @@ void main()
 
 			// reduce flicking, but also detail. hmmmmmm.
 			// the lower the number, the less flickering.
-			if(p_dot < 0.0006) {
-				p_dot = 0.0006;
+			if(p_dot < 0.001) {
+				p_dot = 0.001;
 			}
 
 			p=abs(p)/p_dot-formuparam; // the magic formula
-
 			a+=abs(length(p)-pa); // absolute sum of average change
 			pa=length(p);
 		}

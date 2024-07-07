@@ -11,9 +11,6 @@ struct SINGLETON_Application
   bool vsync = true;
   bool limit_fps = false;
   float fps_limit = 60.0f;
-  int width = 1600;
-  int height = 900;
-  DisplayMode display = DisplayMode::windowed;
 
   GameWindow window;
   ImGui_Manager imgui;

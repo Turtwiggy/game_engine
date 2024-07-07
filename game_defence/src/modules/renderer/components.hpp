@@ -94,6 +94,7 @@ enum class PassName
 struct RenderPass
 {
   PassName pass;
+  float texture_scale_factor = 1.0f; // dont scale
 
   engine::FramebufferID fbo;
 

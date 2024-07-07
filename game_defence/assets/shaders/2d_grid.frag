@@ -1,4 +1,4 @@
-#version 460
+#version 330
 
 out vec4 o_colour;
 
@@ -44,13 +44,13 @@ vec2 offset(vec2 _st, vec2 _offset){
 void
 main()
 {
-  const vec2 half_wh = viewport_wh / 2.0;
-  const float screen_min_x = camera_pos.x - half_wh.x; // e.g. -960
-  const float screen_max_x = camera_pos.x + half_wh.x; // e.g. 960
-  const float screen_min_y = camera_pos.y - half_wh.y; // e.g. -540
-  const float screen_max_y = camera_pos.y + half_wh.y; // e.g. 540
-  const float range_x = screen_max_x - screen_min_x;
-  const float range_y = screen_max_y - screen_min_y;
+  vec2 half_wh = viewport_wh / 2.0;
+  float screen_min_x = camera_pos.x - half_wh.x; // e.g. -960
+  float screen_max_x = camera_pos.x + half_wh.x; // e.g. 960
+  float screen_min_y = camera_pos.y - half_wh.y; // e.g. -540
+  float screen_max_y = camera_pos.y + half_wh.y; // e.g. 540
+  float range_x = screen_max_x - screen_min_x;
+  float range_y = screen_max_y - screen_min_y;
 
   //
   // the screen overlay quad is moving with camera_position..
@@ -59,11 +59,11 @@ main()
 
   // camera position is in worldspace.
   //
-  const vec2 camera_uv_screen = vec2(
+  vec2 camera_uv_screen = vec2(
     camera_pos.x / half_wh.x,
     camera_pos.y / half_wh.y
   );
-  const vec2 camera_uv = camera_uv_screen; 
+  vec2 camera_uv = camera_uv_screen; 
   //
   // here, camera_uv_screen should be in the range 0, 1
   // e.g. 0 < camera_pos.x < half_wh.x
@@ -92,7 +92,7 @@ main()
   // and the gridwidth isnt large enough, 
   // the grid appears to dissapear.
   // the value 0.05 seems to work until gridsize<10
-  const float grid_width = 0.02; 
+  float grid_width = 0.02; 
   if(abs(d) >= grid_width)
     colour = vec3(0.0); // background
   else

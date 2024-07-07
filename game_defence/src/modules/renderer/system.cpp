@@ -52,10 +52,11 @@ rebind(entt::registry& r, SINGLETON_RendererInfo& ri)
   const auto& wh = ri.viewport_size_render_at;
   engine::RenderCommand::set_viewport(0, 0, wh.x, wh.y);
 
-  for (auto& rp : ri.passes) {
+  for (RenderPass& rp : ri.passes) {
     for (const auto& tex : rp.texs) {
+      const glm::ivec2 scaled_size = { wh.x * rp.texture_scale_factor, wh.y * rp.texture_scale_factor };
       engine::bind_tex(tex.tex_id.id);
-      engine::update_bound_texture_size(wh);
+      engine::update_bound_texture_size(scaled_size);
       engine::unbind_tex();
     }
   }
@@ -80,7 +81,7 @@ rebind(entt::registry& r, SINGLETON_RendererInfo& ri)
   const int tex_unit_spacestation_0 = search_for_texture_unit_by_texture_path(ri, "spacestation_0")->unit;
   const int tex_unit_studio_logo = search_for_texture_unit_by_texture_path(ri, "blueberry")->unit;
 
-  ri.instanced.reload();
+  // ri.instanced.reload();
   ri.instanced.bind();
   ri.instanced.set_mat4("projection", camera.projection);
   ri.instanced.set_int("RENDERER_TEX_UNIT_COUNT", get_renderer_tex_unit_count(ri));
@@ -103,45 +104,43 @@ rebind(entt::registry& r, SINGLETON_RendererInfo& ri)
   ri.stars.reload();
   ri.stars.bind();
   ri.stars.set_mat4("projection", camera.projection);
-  ri.stars.set_mat4("view", glm::mat4(1.0f)); // whole texture
   ri.stars.set_int("tex", tex_unit_emitters_and_occluders);
-  ri.stars.set_vec2("viewport_wh", ri.viewport_size_render_at);
 
-  ri.lighting_emitters_and_occluders.reload();
+  // ri.lighting_emitters_and_occluders.reload();
   ri.lighting_emitters_and_occluders.bind();
   ri.lighting_emitters_and_occluders.set_mat4("projection", camera.projection);
 
-  ri.lighting_ambient_occlusion.reload();
+  // ri.lighting_ambient_occlusion.reload();
   ri.lighting_ambient_occlusion.bind();
   ri.lighting_ambient_occlusion.set_mat4("projection", camera.projection);
   ri.lighting_ambient_occlusion.set_mat4("view", glm::mat4(1.0f)); // whole texture
   ri.lighting_ambient_occlusion.set_int("tex", tex_unit_emitters_and_occluders);
   ri.lighting_ambient_occlusion.set_vec2("viewport_wh", ri.viewport_size_render_at);
 
-  ri.mix_lighting_and_scene.reload();
+  // ri.mix_lighting_and_scene.reload();
   ri.mix_lighting_and_scene.bind();
   ri.mix_lighting_and_scene.set_mat4("projection", camera.projection);
   ri.mix_lighting_and_scene.set_mat4("view", glm::mat4(1.0f)); // whole texture
   ri.mix_lighting_and_scene.set_int("lighting", tex_unit_lighting_AO);
   ri.mix_lighting_and_scene.set_int("scene", tex_unit_linear_main);
 
-  ri.circle.reload();
+  // ri.circle.reload();
   ri.circle.bind();
   ri.circle.set_mat4("projection", camera.projection);
 
-  ri.blur.reload();
+  // ri.blur.reload();
   ri.blur.bind();
   ri.blur.set_mat4("projection", camera.projection);
   ri.blur.set_mat4("view", glm::mat4(1.0f)); // whole texture
 
-  ri.bloom.reload();
+  // ri.bloom.reload();
   ri.bloom.bind();
   ri.bloom.set_mat4("projection", camera.projection);
   ri.bloom.set_mat4("view", glm::mat4(1.0f)); // whole texture
   ri.bloom.set_int("scene_texture", tex_unit_mix_lighting_and_scene);
   ri.bloom.set_int("blur_texture", tex_unit_blur_pingpong_1);
 
-  ri.grid.reload();
+  // ri.grid.reload();
   ri.grid.bind();
   ri.grid.set_mat4("projection", camera.projection);
 };
@@ -149,7 +148,14 @@ rebind(entt::registry& r, SINGLETON_RendererInfo& ri)
 void
 init_render_system(const engine::SINGLETON_Application& app, entt::registry& r, SINGLETON_RendererInfo& ri)
 {
-  const glm::ivec2 screen_wh = { app.width, app.height };
+  const glm::ivec2 screen_wh = app.window.get_size();
+
+  // add camera
+  OrthographicCamera camera_info;
+  camera_info.projection = calculate_ortho_projection(screen_wh.x, screen_wh.y);
+  const auto camera_e = create_empty<OrthographicCamera>(r, camera_info);
+  r.emplace<TransformComponent>(camera_e);
+
   ri.viewport_size_render_at = screen_wh;
   ri.viewport_size_current = screen_wh;
   const auto& fbo_size = ri.viewport_size_render_at;
@@ -164,8 +170,15 @@ init_render_system(const engine::SINGLETON_Application& app, entt::registry& r, 
   ri.passes.push_back(RenderPass(PassName::blur_pingpong_0));
   ri.passes.push_back(RenderPass(PassName::blur_pingpong_1));
   ri.passes.push_back(RenderPass(PassName::bloom));
-  for (auto& rp : ri.passes)
+  for (auto& rp : ri.passes) {
+    if (rp.pass == PassName::stars) {
+      rp.texture_scale_factor = 1.0f;
+      const glm::ivec2 scaled_size = { screen_wh.x * rp.texture_scale_factor, screen_wh.y * rp.texture_scale_factor };
+      rp.setup(scaled_size);
+      continue;
+    }
     rp.setup(fbo_size);
+  }
 
   // Load user textures
   const int base_tex_unit = get_renderer_tex_unit_count(ri);
@@ -255,6 +268,7 @@ update_render_system(entt::registry& r, const float dt, const glm::vec2& mouse_p
 
   // Do things with the star shader
   {
+
     ri.stars.bind();
     static glm::vec3 current_pos{ 0, 0, 0 };
     static glm::vec3 target_pos{ 0, 0, 0 };
@@ -310,12 +324,15 @@ update_render_system(entt::registry& r, const float dt, const glm::vec2& mouse_p
 
   ImGui::Begin("DebugRenderPasses");
 
-  for (const auto& pass : ri.passes) {
+  for (auto& pass : ri.passes) {
     const auto pass_name = std::string(magic_enum::enum_name(pass.pass));
-    ImGui::Text("Pass: %s", pass_name.c_str());
+
+    const auto& wh = ri.viewport_size_render_at;
+    const auto& rp = pass;
+    const glm::ivec2 scaled = { wh.x * rp.texture_scale_factor, wh.y * rp.texture_scale_factor };
 
     Framebuffer::bind_fbo(pass.fbo);
-    RenderCommand::set_viewport(0, 0, viewport_wh.x, viewport_wh.y);
+    RenderCommand::set_viewport(0, 0, scaled.x, scaled.y);
     RenderCommand::set_clear_colour_srgb(black);
     RenderCommand::clear();
 

@@ -2,6 +2,7 @@
 
 // other library headers
 #include <SDL2/SDL.h>
+#include <SDL_video.h>
 #include <glm/glm.hpp>
 
 // c++ standard lib headers
@@ -28,6 +29,7 @@ class GameWindow
 
 public:
   // Note: 4, 3 when compute shaders were introduced
+  // Note: renderdoc requires opengl 3.2+
   int opengl_major = 3;
   int opengl_minor = 3;
   std::string glsl_version = "#version 330 core";
@@ -48,7 +50,7 @@ private:
 
 public:
   GameWindow() = default;
-  GameWindow(const std::string& title, int width, int height, DisplayMode displaymode, bool vsync);
+  GameWindow(const std::string& title, const DisplayMode& displaymode, const bool& vsync);
 
   [[nodiscard]] SDL_Window* get_handle() const;
   void get_native_handles(void*& native_window) const;

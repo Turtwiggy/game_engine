@@ -1,4 +1,4 @@
-#version 460
+#version 330
 
 out vec4 out_color;
 out vec4 out_bright_color;
@@ -105,11 +105,11 @@ float merge(float d1, float d2)
 float sceneDist(vec2 p)
 {
   const float radius = 5;
-	const vec2 half_wh = viewport_wh / 2.0;
-	const vec2 screen_min = camera_pos - half_wh; // e.g. -960
+	vec2 half_wh = viewport_wh / 2.0;
+	vec2 screen_min = camera_pos - half_wh; // e.g. -960
 
-	const float c1 = circleDist(		translate(p, mouse_pos), 40.0);
-	const float c2 = circleDist(		translate(p, vec2(200, 250)), 40.0);
+	float c1 = circleDist(		translate(p, mouse_pos), 40.0);
+	float c2 = circleDist(		translate(p, vec2(200, 250)), 40.0);
 
 	float m = merge(c1, c2);
 
@@ -117,17 +117,17 @@ float sceneDist(vec2 p)
   for(int i = 0; i < NR_LINES; i++){
 
     // values in worldspace
-    const Line l = lines[i]; 
+    Line l = lines[i]; 
 
     // should really check if something is active or not...
 		// if(l.start == vec2(0.0, 0.0))
 		// 	continue;
 	
-		const vec2 a_corr = (l.start - screen_min);
-		const vec2 b_corr = (l.end  - screen_min);
+		vec2 a_corr = (l.start - screen_min);
+		vec2 b_corr = (l.end  - screen_min);
 
     // line approach...
-    const float d = lineDist( p, a_corr, b_corr, radius);
+    float d = lineDist( p, a_corr, b_corr, radius);
     m = merge(m, d);
   }
 
@@ -251,9 +251,9 @@ void main()
   out_bright_color = vec4(0.0, 0.0, 0.0, 1.0);
 
   // linear to srgb
-  const vec4 scene = texture(scene_0, v_uv);
-  const vec3 stars = texture(scene_1, v_uv).rgb;
-  const vec3 lighting = texture(lighting, v_uv).rgb;
+  vec4 scene = texture(scene_0, v_uv);
+  vec3 stars = texture(scene_1, v_uv).rgb;
+  vec3 lighting = texture(lighting, v_uv).rgb;
   vec3 corrected = lin_to_srgb(scene.rgb);
 
 	if(put_starshader_behind)
@@ -284,8 +284,8 @@ void main()
 	vec4 light2Col = lightColOrange;
 	vec4 light3Col = lightColBlue;
 
-	const vec2 half_wh = viewport_wh / 2.0;
-	const vec2 screen_min = camera_pos - half_wh; // e.g. -960
+	vec2 half_wh = viewport_wh / 2.0;
+	vec2 screen_min = camera_pos - half_wh; // e.g. -960
 
   vec2 light1Pos = light_pos.xy;
 	vec2 light2Pos = vec2(iResolution.x * (sin(time + 3.1415) + 1.2) / 2.4, 500.0) - screen_min;

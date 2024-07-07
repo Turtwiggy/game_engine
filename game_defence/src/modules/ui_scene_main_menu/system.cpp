@@ -35,7 +35,7 @@ update_ui_scene_main_menu(engine::SINGLETON_Application& app, entt::registry& r)
   flags |= ImGuiWindowFlags_NoCollapse;
   flags |= ImGuiWindowFlags_NoTitleBar;
   flags |= ImGuiWindowFlags_AlwaysAutoResize;
-  flags |= ImGuiWindowFlags_NoBackground;
+  // flags |= ImGuiWindowFlags_NoBackground;
 
   const auto& viewport_pos = ImVec2(ri.viewport_pos.x, ri.viewport_pos.y);
   const auto& viewport_size_half = ImVec2(ri.viewport_size_current.x * 0.5f, ri.viewport_size_current.y * 0.5f);

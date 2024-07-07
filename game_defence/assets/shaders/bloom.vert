@@ -1,4 +1,4 @@
-#version 460
+#version 330
 
 layout(location = 0) in vec4 vertex; // xy and uv
 layout(location = 1) in vec4 colour;

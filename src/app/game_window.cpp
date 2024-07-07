@@ -27,7 +27,7 @@
 
 namespace engine {
 
-GameWindow::GameWindow(const std::string& title, int width, int height, DisplayMode displaymode, bool vsync)
+GameWindow::GameWindow(const std::string& title, const DisplayMode& displaymode, const bool& vsync)
 {
   SDL_version compiledVersion, linkedVersion;
   SDL_VERSION(&compiledVersion);
@@ -61,7 +61,6 @@ GameWindow::GameWindow(const std::string& title, int width, int height, DisplayM
 
   int flags = SDL_WINDOW_OPENGL | SDL_WINDOW_INPUT_FOCUS | SDL_WINDOW_ALLOW_HIGHDPI;
   flags |= SDL_WINDOW_RESIZABLE;
-
   if (displaymode == DisplayMode::borderless)
     flags |= SDL_WINDOW_BORDERLESS;
   else if (displaymode == DisplayMode::fullscreen)
@@ -75,6 +74,8 @@ GameWindow::GameWindow(const std::string& title, int width, int height, DisplayM
 
   // OpenGL--------------------------------------
 
+  SDL_GL_SetAttribute(SDL_GL_CONTEXT_PROFILE_MASK, SDL_GL_CONTEXT_PROFILE_CORE);
+
 // emscripten
 #if defined(__EMSCRIPTEN__)
   // webgl 1
@@ -85,47 +86,34 @@ GameWindow::GameWindow(const std::string& title, int width, int height, DisplayM
   // SDL_GL_SetAttribute(SDL_GL_CONTEXT_FLAGS, 0);
 
   // webgl 2
-
   SDL_GL_SetAttribute(SDL_GL_CONTEXT_PROFILE_MASK, SDL_GL_CONTEXT_PROFILE_ES);
   SDL_GL_SetAttribute(SDL_GL_CONTEXT_FLAGS, 0);
   opengl_major = 3;
   opengl_minor = 0;
+
 // mac
 #elif defined(SDL_VIDEO_DRIVER_COCOA)
-  opengl_major = 3;
-  opengl_minor = 3;
-  SDL_GL_SetAttribute(SDL_GL_CONTEXT_PROFILE_MASK, SDL_GL_CONTEXT_PROFILE_CORE);
   SDL_GL_SetAttribute(SDL_GL_CONTEXT_FLAGS, SDL_GL_CONTEXT_FORWARD_COMPATIBLE_FLAG);
 
 // windows
 #elif defined(SDL_VIDEO_DRIVER_WINDOWS)
-  // renderdoc requires opengl 3.2+
-  opengl_major = 4;
-  opengl_minor = 6;
-  SDL_GL_SetAttribute(SDL_GL_CONTEXT_PROFILE_MASK, SDL_GL_CONTEXT_PROFILE_CORE);
+  //
 
-  // opengl_major = 3;
-  // opengl_minor = 0;
-  // SDL_GL_SetAttribute(SDL_GL_CONTEXT_PROFILE_MASK, SDL_GL_CONTEXT_PROFILE_ES);
-  // SDL_GL_SetAttribute(SDL_GL_CONTEXT_FLAGS, SDL_GL_CONTEXT_FORWARD_COMPATIBLE_FLAG);
-  // linux
+// linux
 #elif defined(SDL_VIDEO_DRIVER_X11)
-  opengl_major = 3;
-  opengl_minor = 3;
-  SDL_GL_SetAttribute(SDL_GL_CONTEXT_PROFILE_MASK, SDL_GL_CONTEXT_PROFILE_CORE);
-  SDL_GL_SetAttribute(SDL_GL_DOUBLEBUFFER, 1);
-  SDL_GL_SetAttribute(SDL_GL_DEPTH_SIZE, 24);
-  SDL_GL_SetAttribute(SDL_GL_STENCIL_SIZE, 8);
+  //
 
 #endif
   // SDL_SetHint(SDL_HINT_RENDER_SCALE_QUALITY, "1");
   SDL_GL_SetAttribute(SDL_GL_CONTEXT_MAJOR_VERSION, opengl_major);
   SDL_GL_SetAttribute(SDL_GL_CONTEXT_MINOR_VERSION, opengl_minor);
-  SDL_GL_SetAttribute(SDL_GL_STENCIL_SIZE, 1);
 
   // SDL2 Create Window --------------------------------------
 
-  SDL_Window* window = SDL_CreateWindow(title.c_str(), x, y, width, height, flags);
+  const int tmp_h = 720;
+  const int tmp_w = 1280;
+
+  SDL_Window* window = SDL_CreateWindow(title.c_str(), x, y, tmp_w, tmp_h, flags);
   if (window == nullptr)
     fmt::println("Failed to create SDL2 window: {}", SDL_GetError());
 
@@ -230,7 +218,7 @@ GameWindow::set_position(int x, int y)
 glm::ivec2
 GameWindow::get_position() const
 {
-  int x, y = 0;
+  int x = 0, y = 0;
   SDL_GetWindowPosition(window_.get(), &x, &y);
   return glm::ivec2(x, y);
 }
@@ -244,7 +232,7 @@ GameWindow::set_size(const glm::ivec2& size)
 glm::ivec2
 GameWindow::get_size() const
 {
-  int width, height = 0;
+  int width = 0, height = 0;
   SDL_GetWindowSize(window_.get(), &width, &height);
   return glm::ivec2(width, height);
 }
@@ -258,7 +246,7 @@ GameWindow::set_min_size(int width, int height)
 glm::ivec2
 GameWindow::get_min_size() const
 {
-  int width, height = 0;
+  int width = 0, height = 0;
   SDL_GetWindowMinimumSize(window_.get(), &width, &height);
   return glm::ivec2(width, height);
 }
@@ -272,7 +260,7 @@ GameWindow::set_max_size(int width, int height)
 glm::ivec2
 GameWindow::get_max_size() const
 {
-  int width, height = 0;
+  int width = 0, height = 0;
   SDL_GetWindowMaximumSize(window_.get(), &width, &height);
   return glm::ivec2(width, height);
 }
@@ -446,7 +434,7 @@ GameWindow::set_vsync_opengl(const bool vs)
 bool
 GameWindow::get_vsync_opengl() const
 {
-  int enabled = SDL_GL_GetSwapInterval();
+  const int enabled = SDL_GL_GetSwapInterval();
   return static_cast<bool>(enabled);
 }
 }
