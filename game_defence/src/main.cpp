@@ -117,6 +117,7 @@ main(int argc, char* argv[])
   // const auto start = std::chrono::high_resolution_clock::now();
 
   std::string name = "Solar War";
+
 #if defined(_DEBUG)
   name += " [DEBUG]";
 #else

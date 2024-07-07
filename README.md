@@ -25,6 +25,8 @@ thirdparty/vcpkg/vcpkg.exe install @vcpkg-x64-windows.txt
 Mac
 
 ```bash
+brew install pkg-config
+
 git clone
 git submodule update --init --recursive
 thirdparty/vcpkg/bootstrap-vcpkg.sh

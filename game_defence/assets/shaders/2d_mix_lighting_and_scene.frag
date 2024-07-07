@@ -35,7 +35,7 @@ SRGBFloatToLinearFloat(const float f)
   if (f <= 0.04045f)
     return f / 12.92f;
   return pow((f + 0.055f) / 1.055f, 2.4f);
-};
+}
 
 vec3 srgb_to_lin(vec3 color)
 {

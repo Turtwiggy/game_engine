@@ -33,7 +33,7 @@ vec2 clamp_uv(vec2 uv){
   vec2 pixel = v_uv * tex_size;
   vec2 fat_pixel = floor(pixel) + 0.5;
   return fat_pixel;
-};
+}
 
 void
 main()
@@ -55,8 +55,6 @@ main()
 
     // index set on cpu side...
     // WARNING: seems bad
-
-    // starting at 5, as the renderer makes use of 4 textures...
 
     if(index == RENDERER_TEX_UNIT_COUNT){
       out_colour *= texture(tex_kenny, sprite_uv);

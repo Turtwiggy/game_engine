@@ -24,11 +24,12 @@ struct Frame
 };
 
 void
-load_sprites(SINGLE_Animations& anims, const std::string path)
+load_sprites(SINGLE_Animations& anims, const std::string& path)
 {
   fmt::println("loading sprite config: {}", path);
   std::ifstream f(path);
-  json data = json::parse(f);
+
+  const json data = json::parse(f);
 
   auto ss = data["spritesheet"];
   Spritesheet spritesheet;
@@ -69,12 +70,12 @@ load_sprites(SINGLE_Animations& anims, const std::string path)
   }
 
   // append spritesheet global info
-  auto info = std::make_pair(spritesheet, sprites);
+  const auto info = std::make_pair(spritesheet, sprites);
   anims.animations.push_back(std::move(info));
 };
 
 std::pair<Spritesheet, SpriteAnimation>
-find_animation(const SINGLE_Animations& anims, const std::string name)
+find_animation(const SINGLE_Animations& anims, const std::string& name)
 {
   for (const auto& [spritesheet, sprites] : anims.animations) {
     const auto s =

@@ -6,6 +6,7 @@
 build/
 .vs/
 .cache/
+.DS_Store
 
 # Configs
 imgui.ini

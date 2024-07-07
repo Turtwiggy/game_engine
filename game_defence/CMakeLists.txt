@@ -1,5 +1,3 @@
-# this cmake lists compiles the game_defence with the engine
-
 cmake_minimum_required(VERSION 3.5.0)
 set(CMAKE_CXX_STANDARD 20)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
@@ -25,9 +23,13 @@ if(EMSCRIPTEN)
   message("index CMAKE_EXECUTABLE_SUFFIX: ${CMAKE_EXECUTABLE_SUFFIX}")
 endif()
 
-if(CMAKE_SYSTEM_NAME MATCHES Darwin)
-  message("setting cxx flags for mac...")
+if(${CMAKE_SYSTEM_NAME} MATCHES "Darwin")
   set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++20 -stdlib=libc++")
+
+  if(${CMAKE_BUILD_TYPE} MATCHES Debug)
+    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -g")
+    add_definitions(-D_DEBUG)
+  endif()
 endif()
 
 if(CMAKE_SYSTEM_NAME MATCHES Linux)
@@ -64,7 +66,6 @@ message("game_defence: current_list_dir: ${CMAKE_CURRENT_LIST_DIR}")
 message("game_defence: source_dir: ${CMAKE_SOURCE_DIR}")
 message("index CMAKE_TOOLCHAIN_FILE: ${CMAKE_TOOLCHAIN_FILE}")
 
-include(${CMAKE_SOURCE_DIR}/cmake/packages.cmake)
 get_packages()
 
 # Add source files
@@ -120,20 +121,8 @@ IF(${CMAKE_SYSTEM_NAME} STREQUAL "Windows")
   # Only do this for debug builds,
   # as release builds should copy the folder over (not symlink)
   IF(CMAKE_BUILD_TYPE MATCHES Debug)
-    # create symlink assets for build
-    set(src ${CMAKE_SOURCE_DIR}/game_defence/assets)
-    set(dst ${CMAKE_CURRENT_BINARY_DIR}/assets)
-    add_custom_command(
-      TARGET ${PROJECT_NAME} PRE_BUILD
-      COMMAND ${CMAKE_COMMAND} -E create_symlink ${src} ${dst}
-      DEPENDS ${dst}
-      COMMENT "symbolic link resources folder from ${src} => ${dst}"
-    )
-  endif()
-endif()
+    message("creating symlink...")
 
-IF(EMSCRIPTEN)
-  IF(CMAKE_BUILD_TYPE MATCHES Debug)
     # create symlink assets for build
     set(src ${CMAKE_SOURCE_DIR}/game_defence/assets)
     set(dst ${CMAKE_CURRENT_BINARY_DIR}/../assets)
@@ -144,7 +133,9 @@ IF(EMSCRIPTEN)
       COMMENT "symbolic link resources folder from ${src} => ${dst}"
     )
   endif()
+endif()
 
+IF(EMSCRIPTEN)
   set_target_properties(game_defence PROPERTIES LINK_FLAGS "${LD_FLAGS}")
 endif()
 

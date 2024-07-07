@@ -61,17 +61,20 @@ rebind(entt::registry& r, SINGLETON_RendererInfo& ri)
     }
   }
 
+  int i = 0;
   for (auto& rp : ri.passes) {
     for (const auto& tex : rp.texs) {
       glActiveTexture(GL_TEXTURE0 + tex.tex_unit.unit);
       glBindTexture(GL_TEXTURE_2D, tex.tex_id.id);
+      i++;
     }
   }
-
   for (const auto& tex : ri.user_textures) {
     glActiveTexture(GL_TEXTURE0 + tex.tex_unit.unit);
     glBindTexture(GL_TEXTURE_2D, tex.tex_id.id);
+    i++;
   }
+  fmt::println("bound textures: {}", i);
 
   auto& camera = get_first_component<OrthographicCamera>(r);
   camera.projection = calculate_ortho_projection(wh.x, wh.y);
@@ -101,7 +104,7 @@ rebind(entt::registry& r, SINGLETON_RendererInfo& ri)
   const int tex_unit_lighting_AO = get_tex_unit(PassName::lighting_ambient_occlusion);
   const int tex_unit_emitters_and_occluders = get_tex_unit(PassName::lighting_emitters_and_occluders);
 
-  ri.stars.reload();
+  // ri.stars.reload();
   ri.stars.bind();
   ri.stars.set_mat4("projection", camera.projection);
   ri.stars.set_int("tex", tex_unit_emitters_and_occluders);
@@ -188,6 +191,7 @@ init_render_system(const engine::SINGLETON_Application& app, entt::registry& r, 
     const auto loaded_tex = engine::load_texture_linear(tex.tex_unit.unit, tex.path);
     tex.tex_id.id = bind_linear_texture(loaded_tex);
     next_tex_unit++;
+    fmt::println("loaded texture... {}", tex.path);
   }
 
   ri.stars = Shader("assets/shaders/2d_instanced.vert", "assets/shaders/star_nest.frag");
@@ -220,7 +224,6 @@ init_render_system(const engine::SINGLETON_Application& app, entt::registry& r, 
   // adds the update() for each renderpass
   setup_stars_update(r);
   setup_linear_main_update(r);
-  // setup_lighting_main_update(r);
   setup_lighting_emitters_and_occluders_update(r);
   setup_lighting_ambient_occlusion_update(r);
   setup_mix_lighting_and_scene_update(r);
@@ -388,13 +391,13 @@ update_render_system(entt::registry& r, const float dt, const glm::vec2& mouse_p
     }
 
     // Debug user Texture
-    // for (int i = 0; const auto& tex : ri.user_textures) {
-    //   const std::string label = std::string("Debug") + std::to_string(i++);
-    //   ImGui::Begin(label.c_str());
-    //   ImVec2 viewport_size = ImGui::GetContentRegionAvail();
-    //   ImGui::Image((ImTextureID)tex.tex_id.id, viewport_size, ImVec2(0, 0), ImVec2(1, 1));
-    //   ImGui::End();
-    // }
+    for (int i = 0; const auto& tex : ri.user_textures) {
+      const std::string label = std::string("Debug") + std::to_string(i++);
+      ImGui::Begin(label.c_str());
+      ImVec2 viewport_size = ImGui::GetContentRegionAvail();
+      ImGui::Image((ImTextureID)tex.tex_id.id, viewport_size, ImVec2(0, 0), ImVec2(1, 1));
+      ImGui::End();
+    }
   }
 #endif
 };

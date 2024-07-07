@@ -93,6 +93,7 @@ GameWindow::GameWindow(const std::string& title, const DisplayMode& displaymode,
 
 // mac
 #elif defined(SDL_VIDEO_DRIVER_COCOA)
+  fmt::println("enabling SDL_GL_CONTEXT_FORWARD_COMPATIBLE_FLAG for mac...");
   SDL_GL_SetAttribute(SDL_GL_CONTEXT_FLAGS, SDL_GL_CONTEXT_FORWARD_COMPATIBLE_FLAG);
 
 // windows
