@@ -267,24 +267,6 @@ setup_mix_lighting_and_scene_update(entt::registry& r)
     const auto& camera_t = r.get<TransformComponent>(camera_e);
     const auto& camera = r.get<OrthographicCamera>(camera_e);
 
-    // Render stars shader
-    // ri.stars.bind();
-    // ri.stars.set_mat4("view", camera.view);
-    // {
-    //   engine::quad_renderer::QuadRenderer::reset_quad_vert_count();
-    //   engine::quad_renderer::QuadRenderer::begin_batch();
-    //   {
-    //     engine::quad_renderer::RenderDescriptor desc;
-    //     const glm::vec2 offset = { ri.viewport_size_render_at.x / 2.0, ri.viewport_size_render_at.y / 2.0f };
-    //     desc.pos_tl = glm::vec2(camera_t.position.x, camera_t.position.y) - offset;
-    //     desc.size = ri.viewport_size_render_at;
-    //     desc.angle_radians = 0;
-    //     engine::quad_renderer::QuadRenderer::draw_sprite(desc, ri.stars);
-    //   }
-    //   engine::quad_renderer::QuadRenderer::end_batch();
-    //   engine::quad_renderer::QuadRenderer::flush(ri.stars);
-    // }
-
     // update uniforms
     ri.mix_lighting_and_scene.bind();
     ri.mix_lighting_and_scene.set_int("scene_0", get_tex_unit(ri, PassName::linear_main));

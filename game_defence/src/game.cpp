@@ -94,16 +94,6 @@ init(engine::SINGLETON_Application& app, entt::registry& r)
     gameicons.spritesheet_path = "assets/config/spritemap_kennynl_icons.json";
     ri.user_textures.push_back(gameicons);
 
-    // Texture space_background;
-    // space_background.path = "assets/textures/space_background_stars_only.png";
-    // space_background.spritesheet_path = "assets/config/spritemap_space_background_0.json";
-    // ri.user_textures.push_back(space_background);
-
-    // Texture mainmenu_background;
-    // mainmenu_background.path = "assets/textures/background_mainmenu.png";
-    // mainmenu_background.spritesheet_path = "assets/config/spritemap_space_background_0.json"; // lazy
-    // ri.user_textures.push_back(mainmenu_background);
-
     Texture spacestation_0;
     spacestation_0.path = "assets/textures/spacestation_0.png";
     spacestation_0.spritesheet_path = "assets/config/spritemap_spacestation_0.json";

@@ -474,20 +474,23 @@ inside_room(const MapComponent& map, const std::vector<Room>& rooms, const glm::
   return { false, std::nullopt };
 };
 
-bool
-inside_tunnel(const std::vector<Tunnel>& ts, const glm::ivec2& gridpos)
+std::vector<Tunnel>
+inside_tunnels(const std::vector<Tunnel>& ts, const glm::ivec2& gridpos)
 {
+  std::vector<Tunnel> ts_results;
+
   for (const auto& t : ts) {
-    for (const auto& l : t.line_0) {
+
+    for (const auto& l : t.line_0)
       if (l.first == gridpos.x && l.second == gridpos.y)
-        return true;
-    }
-    for (const auto& l : t.line_1) {
+        ts_results.push_back(t);
+
+    for (const auto& l : t.line_1)
       if (l.first == gridpos.x && l.second == gridpos.y)
-        return true;
-    }
+        ts_results.push_back(t);
   }
-  return false;
+
+  return ts_results;
 };
 
 void
@@ -501,7 +504,7 @@ instantiate_tunnels(entt::registry& r, std::vector<Line>& lines, DungeonGenerati
   //   for (const auto& t_line : two_tunnel_lines) {
   //     const auto shrunk_line = shrink_line_at_each_end(t_line, 5);
   //     const auto e = create_wall(r, get_center_from_line(shrunk_line), get_size_from_line(shrunk_line));
-  //     set_colour(r, e, { 1.0f, 0.0, 0.0, 1.0f });
+  //     set_colour(r, e, { 0.0f, 0.0, 1.0, 1.0f });
   //     r.get<TagComponent>(e).tag = "tunnel-line";
   //   }
   // }
@@ -612,25 +615,45 @@ generate_edges(entt::registry& r, MapComponent& map, const DungeonGenerationResu
 
         const auto [in_room_a, room_a] = inside_room(map, rooms, grid_a);
         const auto [in_room_b, room_b] = inside_room(map, rooms, grid_b);
-        const auto in_tunnel_a = inside_tunnel(tunnels, grid_a);
-        const auto in_tunnel_b = inside_tunnel(tunnels, grid_b);
+        const auto tunnels_a = inside_tunnels(tunnels, grid_a);
+        const auto tunnels_b = inside_tunnels(tunnels, grid_b);
+        const bool in_tunnel_a = tunnels_a.size() > 0;
+        const bool in_tunnel_b = tunnels_b.size() > 0;
 
-        const bool from_room_to_room =
-          in_room_a && in_room_b && (!in_tunnel_a || !in_tunnel_b) && room_a.value() != room_b.value();
+        // same_tunnel means:
+        // if two gridsquares are in the same_tunnel,
+        // that means there is a direct path from a to b (i.e. no edges)
+        bool same_tunnel = false;
+        for (const auto& t_a : tunnels_a)
+          for (const auto& t_b : tunnels_b)
+            same_tunnel |= t_a == t_b;
 
-        bool from_room_to_tunnel = in_room_a && in_tunnel_b;
-        from_room_to_tunnel &= !(in_room_a && in_room_b); // dont generate edge in same room
-        // from_room_to_tunnel &= !(in_tunnel_a && in_tunnel_b); // dont generate edge if both are tunnels
+        const bool from_room_to_room = (in_room_a && in_room_b) && (room_a.value() != room_b.value());
 
-        if (from_wall_to_floor || from_room_to_room || from_room_to_tunnel) {
-          Edge edge;
-          edge.cell_a = grid_a;
-          edge.cell_b = grid_b;
+        const bool from_room_to_tunnel = in_room_a && in_tunnel_b && !in_room_b;
+
+        Edge edge;
+        edge.cell_a = grid_a;
+        edge.cell_b = grid_b;
+
+        if (from_wall_to_floor) {
+          edge.debug_colour = { 1.0f, 0.0, 0.0, 1.0f }; // red
+          map.edges.push_back(edge);
+        } else if (from_room_to_room && !same_tunnel) {
+          edge.debug_colour = { 0.0f, 1.0, 0.0, 1.0f }; // green
+          map.edges.push_back(edge);
+        } else if (from_room_to_tunnel && !same_tunnel) {
+          edge.debug_colour = { 1.0f, 1.0, 1.0, 1.0f }; // white
           map.edges.push_back(edge);
         }
       }
     }
-  }
+  };
+
+  // remove duplicates
+  auto& edgs = map.edges;
+  const auto pred = [](const Edge& a, const Edge& b) { return a.cell_a == b.cell_a && a.cell_b == b.cell_b; };
+  edgs.erase(std::unique(edgs.begin(), edgs.end(), pred), edgs.end());
 
   fmt::println("Map edges: {}", map.edges.size());
 };

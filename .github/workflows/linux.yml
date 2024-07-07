@@ -69,6 +69,7 @@ jobs:
           rm -r ./build/game_defence/CMakeFiles
           rm ./build/game_defence/*.cmake || true
           rm ./build/game_defence/*.manifest || true
+          chmod 755 ./build/game_defence/solar_war
 
       - name: release-game
         uses: actions/upload-artifact@v3

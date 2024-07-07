@@ -77,8 +77,8 @@ update_gen_dungeons_system(entt::registry& r, const glm::ivec2& mouse_pos)
       const auto [in_room, room] = inside_room(map, rooms, grid_pos);
       ImGui::Text("Inside Room: %i", in_room);
 
-      const auto in_tunnel = inside_tunnel(tunnels, grid_pos);
-      ImGui::Text("Inside Tunnel: %i", in_tunnel);
+      const auto ts = inside_tunnels(tunnels, grid_pos);
+      ImGui::Text("Tunnels Size: %i", int(ts.size()));
 
       const auto dungeon_e = get_first<DungeonGenerationResults>(r);
       if (dungeon_e != entt::null) {
@@ -106,6 +106,15 @@ update_gen_dungeons_system(entt::registry& r, const glm::ivec2& mouse_pos)
   r.destroy(requests.begin(), requests.end()); // process request
 
   move_to_scene_start(r, Scene::dungeon_designer); // clear old map
+
+  // cleanup
+  {
+    const auto& rooms = r.view<Room>();
+    r.destroy(rooms.begin(), rooms.end());
+
+    const auto& tunnels = r.view<Tunnel>();
+    r.destroy(tunnels.begin(), tunnels.end());
+  }
 
   const auto& data_e = get_first<OverworldToDungeonInfo>(r);
   if (data_e == entt::null) {
@@ -184,6 +193,7 @@ update_gen_dungeons_system(entt::registry& r, const glm::ivec2& mouse_pos)
     const auto l = generate_line({ ga.x, ga.y }, { gb.x, gb.y }, 1);
     const entt::entity e = create_gameplay(r, EntityType::empty_with_transform);
     set_transform_with_line(r, e, l);
+    set_colour(r, e, edge.debug_colour);
     r.get<TagComponent>(e).tag = "debugline";
   }
 

@@ -17,6 +17,7 @@ using namespace engine;
 
 // std lib
 #include <fmt/core.h>
+#include <optional>
 #include <thread>
 
 // fixed tick
@@ -31,7 +32,7 @@ static const int allowed_ticks_per_frame = 2;
 static SINGLETON_Application app;
 static entt::registry game;
 
-static int frames_to_pass_before_init = 2;
+static int frames_to_pass_before_init = 3;
 static bool done_init_slow = false;
 static std::optional<std::thread> slow_thread = std::nullopt;
 

@@ -31,6 +31,11 @@ struct Tunnel
   Room room;
   Room prev_room;
 };
+inline bool
+operator==(const Tunnel& a, const Tunnel& b)
+{
+  return a.line_0 == b.line_0 && a.line_1 == b.line_1;
+};
 
 struct RequestGenerateDungeonComponent
 {

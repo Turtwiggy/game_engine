@@ -26,8 +26,8 @@ set_generated_entity_positions(entt::registry& r, DungeonGenerationResults& resu
 std::pair<bool, std::optional<Room>>
 inside_room(const MapComponent& map, const std::vector<Room>& rooms, const glm::ivec2& gridpos);
 
-bool
-inside_tunnel(const std::vector<Tunnel>& ts, const glm::ivec2& gridpos);
+std::vector<Tunnel>
+inside_tunnels(const std::vector<Tunnel>& ts, const glm::ivec2& gridpos);
 
 void
 generate_edges(entt::registry& r, MapComponent& map, const DungeonGenerationResults& result);

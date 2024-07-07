@@ -1,5 +1,6 @@
 #pragma once
 
+#include "colour/colour.hpp"
 #include <entt/entt.hpp>
 #include <glm/glm.hpp>
 
@@ -60,6 +61,8 @@ struct Edge
 {
   vec2i cell_a{ 0, 0 };
   vec2i cell_b{ 0, 0 };
+
+  engine::SRGBColour debug_colour;
 };
 
 } // namespace game2d

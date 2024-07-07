@@ -265,8 +265,8 @@ update_render_system(entt::registry& r, const float dt, const glm::vec2& mouse_p
     if (generate_offset) {
       generate_offset = false;
       static engine::RandomState rnd;
-      offset.x = int(engine::rand_det_s(rnd.rng, -5000, 5000));
-      offset.y = int(engine::rand_det_s(rnd.rng, -5000, 5000));
+      offset.x = engine::rand_det_s(rnd.rng, -5000.0f, 5000.0f);
+      offset.y = engine::rand_det_s(rnd.rng, -5000.0f, 5000.0f);
 
       target_pos.x = offset.x;
       target_pos.y = offset.y;
@@ -287,9 +287,9 @@ update_render_system(entt::registry& r, const float dt, const glm::vec2& mouse_p
       }
 
       // scroll the starfield down and right
-      const glm::vec2 dir{ 1, 1 };
-      target_pos.x += dir.x * dt * 10;
-      target_pos.y += dir.y * dt * 10;
+      const glm::vec2 dir{ 1.0f, 1.0f };
+      target_pos.x += dir.x * dt * 10.0f;
+      target_pos.y += dir.y * dt * 10.0f;
     }
 
     const auto exp_decay = [](float a, float b, float decay, float dt) -> float {
@@ -298,7 +298,8 @@ update_render_system(entt::registry& r, const float dt, const glm::vec2& mouse_p
     current_pos.x = exp_decay(current_pos.x, target_pos.x, 32, dt);
     current_pos.y = exp_decay(current_pos.y, target_pos.y, 32, dt);
     // current_pos.y = exp_decay(current_pos.z, target_pos.z, 32, dt);
-    ri.stars.set_vec3("player_position", { current_pos.x, current_pos.y, target_pos.z });
+
+    ri.stars.set_vec2("player_position", { current_pos.x, current_pos.y });
 
     const bool in_overworld = s.s == Scene::overworld;
     const bool in_splashscreen = s.s == Scene::splashscreen;

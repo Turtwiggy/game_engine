@@ -10,7 +10,7 @@ in vec2 v_sprite_max; // 22 sprites
 in float v_tex_unit;
 
 uniform vec2 viewport_wh;
-uniform vec3 player_position;
+uniform vec2 player_position;
 
 //
 // Star Nest by Pablo Roman Andrioli
@@ -28,7 +28,7 @@ uniform vec3 player_position;
 #define tile   0.850
 
 #define brightness 0.0006
-#define darkmatter 0.250
+#define darkmatter 0.210
 #define distfading 0.800
 #define saturation 0.950
 
@@ -52,7 +52,17 @@ void main()
 		p = abs(vec3(tile)-mod(p,vec3(tile*2.))); // tiling fold
 		float pa,a=pa=0.;
 		for (int i=0; i<iterations; i++) { 
-			p=abs(p)/dot(p,p)-formuparam; // the magic formula
+			
+			float p_dot = dot(p,p);
+
+			// reduce flicking, but also detail. hmmmmmm.
+			// the lower the number, the less flickering.
+			if(p_dot < 0.0006) {
+				p_dot = 0.0006;
+			}
+
+			p=abs(p)/p_dot-formuparam; // the magic formula
+
 			a+=abs(length(p)-pa); // absolute sum of average change
 			pa=length(p);
 		}
