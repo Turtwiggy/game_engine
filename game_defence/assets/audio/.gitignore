@@ -1,7 +1,5 @@
 // ignore paid assets
 UniversalSoundFX_1_4/*
-FIREARM_*
-RELOAD_*
 
 // except this file
 !.gitignore
