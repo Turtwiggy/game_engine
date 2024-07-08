@@ -7,6 +7,7 @@
 #include "events/components.hpp"
 #include "events/system.hpp"
 #include "game_state.hpp"
+#include "io/path.hpp"
 #include "lifecycle/system.hpp"
 #include "modules/actor_cursor/system.hpp"
 #include "modules/actor_enemy_patrol/system.hpp"
@@ -61,6 +62,7 @@
 #include "sprites/components.hpp"
 #include "sprites/helpers.hpp"
 
+#include "fmt/core.h"
 #include "imgui.h"
 #include "optick.h"
 
@@ -79,29 +81,32 @@ init(engine::SINGLETON_Application& app, entt::registry& r)
   // auto& io = ImGui::GetIO();
   // float font_scale = 12.0f;
   //   font_scale = 18.0f; // 4k scale?
-  // io.Fonts->AddFontFromFileTTF("assets/fonts/ImPerfect23.ttf", font_scale);
+  // io.Fonts->AddFontFromFileTTF("./assets/fonts/ImPerfect23.ttf", font_scale);
 
   {
     SINGLETON_RendererInfo ri;
 
+    std::string path = engine::get_exe_path_without_exe_name();
+    path += "assets/";
+
     Texture kennynl;
-    kennynl.path = "assets/textures/kennynl_1bit_pack/monochrome_transparent_packed.png";
-    kennynl.spritesheet_path = "assets/config/spritemap_kennynl.json";
+    kennynl.path = path + "textures/kennynl_1bit_pack/monochrome_transparent_packed.png";
+    kennynl.spritesheet_path = path + "config/spritemap_kennynl.json";
     ri.user_textures.push_back(kennynl);
 
     Texture gameicons;
-    gameicons.path = "assets/textures/kennynl_gameicons/Spritesheet/sheet_white1x_adjusted.png";
-    gameicons.spritesheet_path = "assets/config/spritemap_kennynl_icons.json";
+    gameicons.path = path + "textures/kennynl_gameicons/Spritesheet/sheet_white1x_adjusted.png";
+    gameicons.spritesheet_path = path + "config/spritemap_kennynl_icons.json";
     ri.user_textures.push_back(gameicons);
 
     Texture spacestation_0;
-    spacestation_0.path = "assets/textures/spacestation_0.png";
-    spacestation_0.spritesheet_path = "assets/config/spritemap_spacestation_0.json";
+    spacestation_0.path = path + "textures/spacestation_0.png";
+    spacestation_0.spritesheet_path = path + "config/spritemap_spacestation_0.json";
     ri.user_textures.push_back(spacestation_0);
 
     Texture studio_logo;
-    studio_logo.path = "assets/textures/blueberry.png";
-    studio_logo.spritesheet_path = "assets/config/spritemap_studio_logo.json";
+    studio_logo.path = path + "textures/blueberry.png";
+    studio_logo.spritesheet_path = path + "config/spritemap_studio_logo.json";
     ri.user_textures.push_back(studio_logo);
 
     // load spritesheet info
@@ -130,7 +135,8 @@ void
 init_slow(engine::SINGLETON_Application& app, entt::registry& r)
 {
   {
-    const std::string path = "assets/audio/";
+    std::string path = engine::get_exe_path_without_exe_name();
+    path += "assets/audio/";
 
     SINGLETON_AudioComponent audio;
     audio.sounds.push_back(

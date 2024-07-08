@@ -198,7 +198,7 @@ move_to_scene_start(entt::registry& r, const Scene s, const bool load_saved)
     create_empty<AudioRequestPlayEvent>(r, AudioRequestPlayEvent{ "MENU_01" });
 
     // Load randoms name file
-    // const auto path = "assets/config/random_names.json";
+    // const auto path = "./assets/config/random_names.json";
     // std::ifstream f(path);
     // json data = json::parse(f);
     // const auto names = data["names"]; // list of names

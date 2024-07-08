@@ -2,6 +2,7 @@
 #include "opengl/shader.hpp"
 
 // your project headers
+#include "io/path.hpp"
 #include "opengl/util.hpp"
 
 // other library headers
@@ -97,6 +98,9 @@ load_shader_from_disk(const std::string& path, unsigned int gl_shader_type, std:
 
       // convert stream into string
       code = csShaderStream.str();
+
+      codeFile.close();
+
     } catch (const std::ifstream::failure& e) {
       fmt::println("ERROR::SHADER::FILE_NOT_SUCCESSFULLY_READ {}, info: ", path, e.what());
       exit(1);
@@ -116,10 +120,11 @@ load_shader_from_disk(const std::string& path, unsigned int gl_shader_type, std:
 // Shader
 //
 
-Shader::Shader(const std::string& vert_path, const std::string& frag_path)
-  : vert_path(vert_path)
-  , frag_path(frag_path)
+Shader::Shader(const std::string& vp, const std::string& fp)
 {
+  vert_path = get_exe_path_without_exe_name() + vp;
+  frag_path = get_exe_path_without_exe_name() + fp;
+
   ID = create_opengl_shader(vert_path, frag_path);
 }
 

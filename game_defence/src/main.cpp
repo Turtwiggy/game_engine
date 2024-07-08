@@ -110,6 +110,10 @@ main(int argc, char* argv[])
     engine::hide_windows_console();
 #endif
 
+#if defined(__APPLE__)
+  fmt::println("Hello, Apple!");
+#endif
+
 #if defined(__unix__)
   fmt::println("Hello, Unix!");
 #endif

@@ -6,6 +6,7 @@
 #include "colour/colour.hpp"
 #include "entt/helpers.hpp"
 #include "imgui/helpers.hpp"
+#include "io/path.hpp"
 
 // other libs
 #include <imgui.h>
@@ -20,8 +21,6 @@
 namespace game2d {
 using namespace std::literals;
 using json = nlohmann::json;
-
-static std::string path = "assets/config/default_colour_palette.json";
 
 // palette: player
 // https://colorhunt.co/palette/1b262c0f4c753282b8bbe1fa
@@ -59,6 +58,7 @@ static std::string path = "assets/config/default_colour_palette.json";
 void
 init_ui_colour_palette_system(entt::registry& r)
 {
+  std::string path = engine::get_exe_path_without_exe_name() + "assets/config/default_colour_palette.json";
   std::ifstream f(path);
   json data = json::parse(f);
 
@@ -92,13 +92,6 @@ update_ui_colour_palette_system(entt::registry& r)
   auto& colours = get_first_component<SINGLE_ColoursInfo>(r);
 
   ImGui::Begin("ColourEditor");
-
-  if (ImGui::Button("Load##colourload")) {
-    // load
-    std::ifstream f(path);
-    json data = json::parse(f);
-    // TODO
-  }
 
   // ImGui::SameLine();
   // if (ImGui::Button("Save##coloursave")) {
