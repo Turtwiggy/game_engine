@@ -19,4 +19,12 @@ struct WiggleUpAndDown
   float frequency = 5.0f;
 };
 
+struct RotateAroundSpot
+{
+  glm::ivec2 spot{ 0, 0 };
+  float distance = 1.0f;
+  float rotate_speed = 1.0f;
+  float theta = 0.0f; // 0 and 2PI
+};
+
 } // namespace game2d

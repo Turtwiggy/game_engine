@@ -253,7 +253,7 @@ instantiate_walls(entt::registry& r, std::vector<Line>& lines, DungeonGeneration
 
   std::vector<Line> lines_to_instantiate;
 
-  int room_count = 0;
+  // int room_count = 0;
   for (const Room& room : results.rooms) {
     // if (i == room_count)
     //   break; // debug room gen algorithm
@@ -360,30 +360,30 @@ instantiate_walls(entt::registry& r, std::vector<Line>& lines, DungeonGeneration
     if (num_lines_post - num_lines_prior < 4) // 4 because a 2d room has 4 walls
       fmt::println("error: did not add enough lines for room to be covered.");
 
-    // debug the room
+    // instantiate room
     const auto room_to_create = create_gameplay(r, EntityType::empty_with_transform);
     set_position(r, room_to_create, worldspace_center);
     set_size(r, room_to_create, worldspace_size);
     r.emplace<Room>(room_to_create, room);
 
     // add some interesting colours
-    const auto imcol = (ImVec4)ImColor::HSV(room_count / 7.0f, 0.6f, 0.6f);
-    const engine::SRGBColour col = { imcol.x, imcol.y, imcol.z, 0.1f };
-    set_colour(r, room_to_create, col);
-    r.emplace<DefaultColour>(room_to_create, col);
+    // const auto imcol = (ImVec4)ImColor::HSV(room_count / 7.0f, 0.6f, 0.6f);
+    // const engine::SRGBColour col = { imcol.x, imcol.y, imcol.z, 0.1f };
+    set_colour(r, room_to_create, { 0.3f, 0.3f, 0.3, 0.5f });
+    // r.emplace<DefaultColour>(room_to_create, col);
 
     // add worldspace text for room to debug it
     // TAG: ROOM_ID UI
     // r.emplace<WorldspaceTextComponent>(room_to_create, std::to_string(room_count));
 
-    room_count++;
+    // room_count++;
   }
 
   // Instantiate lines
   // const glm::ivec2 offset = { map.tilesize / 2, map.tilesize / 2 };
   for (const auto& l : lines_to_instantiate) {
     const auto e = create_wall(r, get_center_from_line(l), get_size_from_line(l));
-    set_colour(r, e, { 0.0f, 1.0f, 0.0f, 1.0f });
+    set_colour(r, e, { 1.0f, 1.0f, 1.0f, 1.0f });
   }
 
   results.lines_to_instantiate = lines_to_instantiate;

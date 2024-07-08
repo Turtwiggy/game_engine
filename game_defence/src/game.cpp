@@ -15,6 +15,7 @@
 #include "modules/actor_spawner/system.hpp"
 #include "modules/actor_weapon_shotgun/system.hpp"
 #include "modules/animation/angle_to_velocity.hpp"
+#include "modules/animation/rotate_around_spot.hpp"
 #include "modules/animator/system.hpp"
 #include "modules/camera/helpers.hpp"
 #include "modules/camera/orthographic.hpp"
@@ -149,7 +150,7 @@ init_slow(engine::SINGLETON_Application& app, entt::registry& r)
     audio.sounds.push_back({ "TAKE_DAMAGE_01", path + "GRUNT_Male_Subtle_Hurt_mono.wav", SoundType::SFX });
 
     audio.sounds.push_back({ "MENU_01", path + "scott-buckley-moonlight.mp3", SoundType::BACKGROUND });
-    audio.sounds.push_back({ "GAME_01", path + "alex-productions-arnor-short.mp3", SoundType::BACKGROUND });
+    audio.sounds.push_back({ "GAME_01", path + "alex-productions-arnor.mp3", SoundType::BACKGROUND });
     // audio.sounds.push_back({ "GAME_01", "purrple-cat-green-tea.mp3" });
     // audio.sounds.push_back({ "MENU_01", "scott-buckley-phaseshift.mp3" });
     audio.sounds.push_back({ "COMBAT_01", path + "combat-alex-productions-enigma.mp3", SoundType::BACKGROUND });
@@ -313,6 +314,7 @@ update(engine::SINGLETON_Application& app, entt::registry& r, const float dt)
       update_spawner_system(r, milliseconds_dt);
       update_wants_to_shoot_system(r);
       update_weapon_shotgun_system(r, milliseconds_dt);
+      update_rotate_around_spot_system(r, dt);
     }
 
     if (scene.s == Scene::overworld) {

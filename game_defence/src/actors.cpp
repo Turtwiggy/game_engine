@@ -3,6 +3,7 @@
 #include "colour/colour.hpp"
 #include "entt/helpers.hpp"
 #include "lifecycle/components.hpp"
+#include "modules/actor_asteroid/components.hpp"
 #include "modules/actor_cursor/components.hpp"
 #include "modules/actor_enemy/components.hpp"
 #include "modules/actor_enemy_patrol/components.hpp"
@@ -409,6 +410,12 @@ create_gameplay(entt::registry& r, const EntityType& type)
       r.emplace<TeamComponent>(e, AvailableTeams::neutral);
       r.emplace<SpawnParticlesOnDeath>(e);
       r.emplace<PathfindComponent>(e, -1);
+      break;
+    }
+
+    case EntityType::actor_asteroid: {
+      create_physics_actor(r, e);
+      r.emplace<AsteroidComponent>(e);
       break;
     }
 

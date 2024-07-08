@@ -28,6 +28,7 @@ enum class EntityType
   actor_barricade,
   actor_unit_rtslike, // selectable and moveable
   actor_barrel,
+  actor_asteroid,
 
   // pickups
   actor_pickup_xp,

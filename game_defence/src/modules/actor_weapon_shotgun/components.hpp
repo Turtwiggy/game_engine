@@ -21,7 +21,7 @@ struct ShotgunComponent
   float offset_amount = 25.0;
 
   float recoil_regain_speed = 100.0f;
-  float recoil_amount = 0.0;
+  float recoil_amount = 5.0;
   float recoil_amount_max = 10.0;
 };
 

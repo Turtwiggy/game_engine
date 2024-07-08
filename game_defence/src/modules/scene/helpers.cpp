@@ -18,6 +18,7 @@
 #include "modules/actor_player/components.hpp"
 #include "modules/actor_spawner/components.hpp"
 #include "modules/actors/helpers.hpp"
+#include "modules/animation/components.hpp"
 #include "modules/camera/components.hpp"
 #include "modules/camera/orthographic.hpp"
 #include "modules/combat_damage/components.hpp"
@@ -254,16 +255,6 @@ move_to_scene_start(entt::registry& r, const Scene s, const bool load_saved)
       set_size(r, e, { 0, 0 });
     };
 
-    // create a background sprite
-    // {
-    //   const auto e = create_gameplay(r, EntityType::empty_with_transform);
-    //   const auto tex_unit = search_for_texture_unit_by_texture_path(ri, "space_background").value();
-    //   set_sprite_custom(r, e, "SPACE_BACKGROUND_0", tex_unit.unit);
-    //   set_size(r, e, { 3000, 3000 });
-    //   set_position(r, e, { map_width / 2, map_height / 2 }); // center
-    //   r.get<TransformComponent>(e).position.z = -2;          // behind everything
-    // }
-
     // Create 4 edges to the map
     bool create_edges = true;
     if (create_edges)
@@ -333,6 +324,40 @@ move_to_scene_start(entt::registry& r, const Scene s, const bool load_saved)
       set_sprite_custom(r, spacestation_e, "SPACESTATION_0", tex_unit.unit);
       set_position(r, spacestation_e, { map_width / 2, map_height / 2 }); // center
       set_colour(r, spacestation_e, { 1.0f, 1.0f, 1.0f, 1.0f });
+
+      // rotate the station
+      RotateAroundSpot spot;
+      spot.spot = get_position(r, spacestation_e);
+      spot.theta = float(engine::rand_det_s(rnd.rng, 0.0f, engine::PI * 2.0f));
+      spot.distance = 0;
+      spot.rotate_speed = 0.1f;
+      r.emplace<RotateAroundSpot>(spacestation_e, spot);
+
+      // create some debris around the station
+      for (int i = 0; i < 50; i++) {
+        const auto debris_e = create_gameplay(r, EntityType::actor_asteroid);
+
+        // rotate around the station
+        RotateAroundSpot spot;
+        spot.spot = get_position(r, spacestation_e);
+        spot.theta = float(engine::rand_det_s(rnd.rng, 0.0f, engine::PI * 2.0f));
+
+        // i.e. the closer you are the slower you are
+        const float min = 80;
+        const float max = 120;
+        spot.distance = int(engine::rand_det_s(rnd.rng, min, max));
+
+        const float t = engine::scale(spot.distance, min, max, 0.0f, 1.0f);
+        const float speed_min = 0.1f;
+        const float speed_max = 0.5f;
+        const float speed = engine::lerp(speed_min, speed_max, glm::clamp(t, 0.0f, 1.0f));
+        spot.rotate_speed = speed;
+
+        r.emplace<RotateAroundSpot>(debris_e, spot);
+
+        set_colour(r, debris_e, { 0.3f, 0.3f, 0.3f, 0.5f });
+        set_size(r, debris_e, { 4, 4 });
+      }
     }
 
     // VISUAL: use poisson for stars?

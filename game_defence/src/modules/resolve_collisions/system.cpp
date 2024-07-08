@@ -5,10 +5,13 @@
 #include "helpers.hpp"
 #include "lifecycle/components.hpp"
 #include "maths/maths.hpp"
+#include "modules/actor_asteroid/components.hpp"
 #include "modules/actor_enemy/components.hpp"
 #include "modules/actor_enemy_patrol/components.hpp"
 #include "modules/actor_player/components.hpp"
 #include "modules/actor_weapon_shotgun/components.hpp"
+#include "modules/actors/helpers.hpp"
+#include "modules/animation/components.hpp"
 #include "modules/combat_damage/components.hpp"
 #include "modules/combat_wants_to_shoot/components.hpp"
 #include "modules/entt/serialize.hpp"
@@ -20,10 +23,31 @@
 #include "modules/system_particles/helpers.hpp"
 #include "modules/ui_combat_turnbased/components.hpp"
 #include "physics/components.hpp"
-#include "renderer/transform.hpp"
-#include "sprites/components.hpp"
 
 namespace game2d {
+
+void
+player_asteroid_collison(entt::registry& r, const entt::entity& a, const entt::entity& b)
+{
+  const auto [a_ent, b_ent] = collision_of_interest<const PlayerComponent, const AsteroidComponent>(r, a, b);
+  if (a_ent != entt::null && b_ent != entt::null) {
+    const auto& a_vel = r.get<VelocityComponent>(a_ent);
+    const float a_speed = glm::length(glm::vec2{ a_vel.x, a_vel.y });
+
+    const auto& a_pos = get_position(r, a_ent);
+    const auto& b_pos = get_position(r, b_ent);
+    const auto dir = b_pos - a_pos;
+
+    auto& asteroid_vel = r.get<VelocityComponent>(b_ent);
+    asteroid_vel.x = dir.x * a_speed / 10.0f;
+    asteroid_vel.y = dir.y * a_speed / 10.0f;
+
+    if (const auto& rotate_around_spot = r.try_get<RotateAroundSpot>(b_ent)) {
+      r.remove<RotateAroundSpot>(b_ent);
+      r.emplace<EntityTimedLifecycle>(b_ent, 3 * 1000);
+    }
+  }
+}
 
 void
 enemy_barricade_collision(entt::registry& r, const entt::entity& a, const entt::entity& b)
@@ -111,8 +135,9 @@ update_resolve_collisions_system(entt::registry& r)
       create_empty<DealDamageRequest>(r, DealDamageRequest{ from, to });
     }
 
-    enemy_barricade_collision(r, a, b);
+    // enemy_barricade_collision(r, a, b);
     enemy_player_collision(r, a, b);
+    player_asteroid_collison(r, a, b);
   }
 
   for (const Collision2D& coll : physics.frame_solid_collisions) {

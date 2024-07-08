@@ -18,7 +18,7 @@ struct HasParentComponent
 struct EntityTimedLifecycle
 {
   int milliseconds_alive_max = 3 * 1000; // seconds
-  int milliseconds_alive = 0;
+  int milliseconds_alive = 0;            // counts from 0 up to _max
 };
 
 struct SINGLETON_EntityBinComponent
