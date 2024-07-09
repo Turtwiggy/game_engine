@@ -85,9 +85,10 @@ rebind(entt::registry& r, SINGLETON_RendererInfo& ri)
   const int tex_unit_studio_logo = search_for_texture_unit_by_texture_path(ri, "blueberry")->unit;
 
   // ri.instanced.reload();
+  const int texs_used_by_renderer = get_renderer_tex_unit_count(ri);
   ri.instanced.bind();
   ri.instanced.set_mat4("projection", camera.projection);
-  ri.instanced.set_int("RENDERER_TEX_UNIT_COUNT", get_renderer_tex_unit_count(ri));
+  ri.instanced.set_int("RENDERER_TEX_UNIT_COUNT", texs_used_by_renderer);
   ri.instanced.set_int("tex_kenny", tex_unit_kenny);
   ri.instanced.set_int("tex_gameicons", tex_unit_gameicons);
   ri.instanced.set_int("tex_unit_spacestation_0", tex_unit_spacestation_0);
@@ -120,7 +121,7 @@ rebind(entt::registry& r, SINGLETON_RendererInfo& ri)
   ri.lighting_ambient_occlusion.set_int("tex", tex_unit_emitters_and_occluders);
   ri.lighting_ambient_occlusion.set_vec2("viewport_wh", ri.viewport_size_render_at);
 
-  // ri.mix_lighting_and_scene.reload();
+  ri.mix_lighting_and_scene.reload();
   ri.mix_lighting_and_scene.bind();
   ri.mix_lighting_and_scene.set_mat4("projection", camera.projection);
   ri.mix_lighting_and_scene.set_mat4("view", glm::mat4(1.0f)); // whole texture
@@ -329,6 +330,7 @@ update_render_system(entt::registry& r, const float dt, const glm::vec2& mouse_p
 
   for (auto& pass : ri.passes) {
     const auto pass_name = std::string(magic_enum::enum_name(pass.pass));
+    ImGui::Text("Pass: %s", pass_name.c_str());
 
     const auto& wh = ri.viewport_size_render_at;
     const auto& rp = pass;
@@ -391,13 +393,13 @@ update_render_system(entt::registry& r, const float dt, const glm::vec2& mouse_p
     }
 
     // Debug user Texture
-    for (int i = 0; const auto& tex : ri.user_textures) {
-      const std::string label = std::string("Debug") + std::to_string(i++);
-      ImGui::Begin(label.c_str());
-      ImVec2 viewport_size = ImGui::GetContentRegionAvail();
-      ImGui::Image((ImTextureID)tex.tex_id.id, viewport_size, ImVec2(0, 0), ImVec2(1, 1));
-      ImGui::End();
-    }
+    // for (int i = 0; const auto& tex : ri.user_textures) {
+    //   const std::string label = std::string("Debug") + std::to_string(i++);
+    //   ImGui::Begin(label.c_str());
+    //   ImVec2 viewport_size = ImGui::GetContentRegionAvail();
+    //   ImGui::Image((ImTextureID)tex.tex_id.id, viewport_size, ImVec2(0, 0), ImVec2(1, 1));
+    //   ImGui::End();
+    // }
   }
 #endif
 };

@@ -135,6 +135,22 @@ IF(${CMAKE_SYSTEM_NAME} STREQUAL "Windows")
   endif()
 endif()
 
+IF(${CMAKE_SYSTEM_NAME} STREQUAL "Darwin")
+  message("creating symlink...")
+
+  set(src ${CMAKE_SOURCE_DIR}/game_defence/assets)
+  set(dst ${CMAKE_CURRENT_BINARY_DIR}/assets)
+  message("creating symlink src... ${src}")
+  message("creating symlink dst... ${dst}")
+
+  add_custom_command(
+    TARGET ${PROJECT_NAME} PRE_BUILD
+    COMMAND ${CMAKE_COMMAND} -E create_symlink ${src} ${dst}
+    DEPENDS ${dst}
+    COMMENT "symbolic link resources folder from ${src} => ${dst}"
+  )
+endif()
+
 IF(EMSCRIPTEN)
   set_target_properties(game_defence PROPERTIES LINK_FLAGS "${LD_FLAGS}")
 endif()

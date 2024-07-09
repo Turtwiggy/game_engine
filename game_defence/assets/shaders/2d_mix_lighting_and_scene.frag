@@ -1,7 +1,7 @@
-#version 330
+#version 330 core
 
-out vec4 out_color;
-out vec4 out_bright_color;
+layout (location = 0) out vec4 out_color;
+layout (location = 1) out vec4 out_bright_color;
 
 in vec2 v_uv;
 in vec4 v_colour;
@@ -246,9 +246,10 @@ float AO(vec2 p, float dist, float radius, float intensity)
 void main()
 {
 	out_color.a = 1.0f;
+	out_bright_color.a = 1.0f;
 
 	// disable bloom
-  out_bright_color = vec4(0.0, 0.0, 0.0, 1.0);
+  out_bright_color = vec4(1.0, 0.0, 0.0, 1.0);
 
   // linear to srgb
   vec4 scene = texture(scene_0, v_uv);
