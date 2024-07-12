@@ -1,6 +1,6 @@
-#version 330
+#version 330 core
 
-out vec4 colour;
+layout(location = 0) out vec4 colour;
 
 void
 main()

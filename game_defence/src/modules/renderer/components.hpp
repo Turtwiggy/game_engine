@@ -84,6 +84,9 @@ enum class PassName
   stars,
   linear_main,
   lighting_emitters_and_occluders,
+  voronoi_seed,
+  jump_flood,
+  voronoi_distance,
   lighting_ambient_occlusion,
   mix_lighting_and_scene, // 2 colour attachments
   blur_pingpong_0,
@@ -94,9 +97,7 @@ enum class PassName
 struct RenderPass
 {
   PassName pass;
-  float texture_scale_factor = 1.0f; // dont scale
-
-  engine::FramebufferID fbo;
+  std::vector<engine::FramebufferID> fbos;
 
   // one framebuffer can have multiple attachments,
   // in the form of multiple multiple tex_ids.
@@ -106,12 +107,12 @@ struct RenderPass
   std::function<void()> update;
 
 private:
-  int colour_buffers = 0;
+  int colour_buffers_per_texture = 0;
 
 public:
   RenderPass(const PassName& pass, const int colour_attachments = 1);
 
-  void setup(const glm::ivec2& fbo_size);
+  void setup(const glm::ivec2& fbo_size, const int framebuffers = 1);
 };
 
 // Attributes only updated by renderer system, read by anything.
@@ -125,6 +126,9 @@ struct SINGLETON_RendererInfo
   engine::Shader stars;
   engine::Shader instanced;
   engine::Shader lighting_emitters_and_occluders;
+  engine::Shader voronoi_seed; // this shader stores the uv coordinates in the texture
+  engine::Shader jump_flood;
+  engine::Shader voronoi_distance;
   engine::Shader lighting_ambient_occlusion;
   engine::Shader mix_lighting_and_scene;
   engine::Shader circle;

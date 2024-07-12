@@ -272,6 +272,9 @@ create_gameplay(entt::registry& r, const EntityType& type)
       r.emplace<HealthComponent>(e, 200, 200);
       r.emplace<HoverableComponent>(e);
       r.emplace<PatrolComponent>(e);
+
+      r.emplace<LightEmitterComponent>(e);
+
       // r.emplace<CircleComponent>(e);
       // r.emplace<InfiniteLivesComponent>(e);
       // r.emplace<GeneratePickupZoneComponent>(e);

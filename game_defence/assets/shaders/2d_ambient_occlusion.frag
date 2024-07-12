@@ -1,6 +1,6 @@
-#version 330
+#version 330 core
 
-out vec4 out_colour;
+layout(location = 0) out vec4 out_colour;
 
 in vec2 v_uv;
 in vec4 v_colour;
@@ -9,16 +9,49 @@ in vec2 v_sprite_wh;  // desired sprites e.g. 2, 2
 in vec2 v_sprite_max; // 22 sprites
 in float v_tex_unit;
 
-uniform sampler2D tex;
+uniform sampler2D u_distance_data;
+uniform sampler2D u_emitters_and_occluders;
 uniform vec2 viewport_wh;
+uniform vec2 mouse_pos;
+
+// sdf translation
+
+vec2 translate(vec2 p, vec2 t)
+{
+	return p - t;
+}
+
+// distance field functions
+
+float circleDist( vec2 p, float radius ) 
+{
+    return length(p) - radius;
+}
+
+float merge(float d1, float d2)
+{
+	return min(d1, d2);
+}
+
+// ----------------------------
+
+
+float V2_F16(vec2 v) { return v.x + (v.y / 255.0); }
 
 float sceneDist(vec2 p)
 {
-  float dist = texture(tex, v_uv).r;
-  return dist;
+  // float d = length(texture(u_emitters_and_occluders, v_uv).rgb);
+	float d = V2_F16(texture2D(u_distance_data, v_uv).rg);
+
+	float c = circleDist(		translate(p, mouse_pos), 40.0);
+
+	float m = merge(d, c);
+
+  return m;
 }
 
-float sceneSmooth(vec2 p, float r){
+float sceneSmooth(vec2 p, float r)
+{
 	float accum = sceneDist(p);
 	accum += sceneDist(p + vec2(0.0, r));
 	accum += sceneDist(p + vec2(0.0, -r));
@@ -30,7 +63,7 @@ float sceneSmooth(vec2 p, float r){
 float AO(vec2 p, float dist, float radius, float intensity)
 {
 	float a = clamp(dist / radius, 0.0, 1.0) - 1.0;
-	return 1.0 - (pow(abs(a), 5.0) + 1.0) * intensity + (1.0 - intensity);
+	return (pow(abs(a), 5.0) + 1.0) * intensity + (1.0 - intensity);
 	return smoothstep(0.0, 1.0, dist / radius);
 }
 
@@ -43,9 +76,8 @@ void main()
   vec2 p = fragCoord.xy + vec2(0.5);
 	vec2 c = iResolution.xy / 2.0;
 
-  // float AO = AO(p, sceneSmooth(p, 10.0), 40.0, 0.4);
-  // out_colour.rgb = vec3(AO);
+	vec4 col = vec4(0.1, 0.1, 0.1, 1.0);
+	col *= AO(p, sceneSmooth(p, 10.0), 40.0, 0.9);
 
-  out_colour.rgb = vec3(1.0, 1.0, 1.0);
-  out_colour.a = 1.0f;
+	out_colour = col;
 }

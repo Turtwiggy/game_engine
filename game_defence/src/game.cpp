@@ -153,8 +153,7 @@ init_slow(engine::SINGLETON_Application& app, entt::registry& r)
     audio.sounds.push_back({ "GAME_01", path + "alex-productions-arnor.mp3", SoundType::BACKGROUND });
     // audio.sounds.push_back({ "GAME_01", "purrple-cat-green-tea.mp3" });
     // audio.sounds.push_back({ "MENU_01", "scott-buckley-phaseshift.mp3" });
-    audio.sounds.push_back({ "COMBAT_01", path + "combat-alex-productions-enigma.mp3", SoundType::BACKGROUND });
-    // audio.sounds.push_back({ "COMBAT_02", "combat-alex-productions-cyberpunk-computer.mp3" });
+    // audio.sounds.push_back({ "COMBAT_01", path + ".mp3", SoundType::BACKGROUND });
     // audio.sounds.push_back({ "WIN_01", "8-bit-win-funk-david-renda.wav" });
     // audio.sounds.push_back({ "LOSS_01", "8-bit-loss-david-renda.wav" });
 

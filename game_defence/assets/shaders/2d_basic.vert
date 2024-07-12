@@ -1,4 +1,4 @@
-#version 330
+#version 330 clre
 
 layout(location = 0) in vec4 pos;
 

@@ -1,6 +1,6 @@
 #version 330 core
 
-out vec4 out_colour;
+layout(location = 0) out vec4 out_colour;
 
 in vec2 v_uv;
 in vec4 v_colour;

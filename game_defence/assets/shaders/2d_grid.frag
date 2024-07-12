@@ -1,6 +1,6 @@
 #version 330
 
-out vec4 o_colour;
+layout(location = 0) out vec4 o_colour;
 
 in vec2 v_uv;
 in vec4 v_colour;
@@ -49,8 +49,8 @@ main()
   float screen_max_x = camera_pos.x + half_wh.x; // e.g. 960
   float screen_min_y = camera_pos.y - half_wh.y; // e.g. -540
   float screen_max_y = camera_pos.y + half_wh.y; // e.g. 540
-  float range_x = screen_max_x - screen_min_x;
-  float range_y = screen_max_y - screen_min_y;
+  // float range_x = screen_max_x - screen_min_x;
+  // float range_y = screen_max_y - screen_min_y;
 
   //
   // the screen overlay quad is moving with camera_position..

@@ -11,11 +11,15 @@ setup_stars_update(entt::registry& r);
 void
 setup_linear_main_update(entt::registry& r);
 
-// void
-// setup_lighting_main_update(entt::registry& r);
-
 void
 setup_lighting_emitters_and_occluders_update(entt::registry& r);
+
+void
+setup_voronoi_seed_update(entt::registry& r);
+void
+setup_jump_flood_pass(entt::registry& r);
+void
+setup_voronoi_distance_field_update(entt::registry& r);
 
 void
 setup_lighting_ambient_occlusion_update(entt::registry& r);

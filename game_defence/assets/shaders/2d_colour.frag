@@ -1,6 +1,6 @@
 #version 330
 
-out vec4 out_colour;
+layout(location = 0) out vec4 out_colour;
 
 uniform vec4 colour;
 

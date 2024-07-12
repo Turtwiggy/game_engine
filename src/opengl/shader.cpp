@@ -42,10 +42,10 @@ reload_shader_program(unsigned int* id, const std::string& vert_path, const std:
 {
   // Create a new shader program from the given file names. Halt on failure.
   auto new_id = create_opengl_shader(vert_path, frag_path);
-  fmt::println("reloading shader, new_id: {}", new_id);
+  // fmt::println("reloading shader, new_id: {}", new_id);
 
   if (new_id) {
-    fmt::println("deleting old shader program");
+    // fmt::println("deleting old shader program");
     glDeleteProgram(*id);
     *id = new_id;
   }
@@ -144,7 +144,7 @@ void
 Shader::reload()
 {
   reload_shader_program(&ID, vert_path, frag_path);
-  fmt::println("shader new id: {}", ID);
+  // fmt::println("shader new id: {}", ID);
 }
 
 void
