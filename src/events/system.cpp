@@ -107,11 +107,11 @@ update_input_system(engine::SINGLETON_Application& app, entt::registry& r)
       }
 
       if (e.type == SDL_AUDIODEVICEADDED) {
-        fmt::println("audio device added");
+        fmt::println("audio device added. iscapture: {}", e.adevice.iscapture);
         // game2d::audio::sdl_mixer::process_audio_added(r);
       }
       if (e.type == SDL_AUDIODEVICEREMOVED) {
-        fmt::println("audio device removed");
+        fmt::println("audio device removed. iscapture: {}", e.adevice.iscapture);
         // game2d::audio::sdl_mixer::process_audio_removed(r);
       }
     };

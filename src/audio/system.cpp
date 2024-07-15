@@ -38,6 +38,12 @@ init_audio_system(entt::registry& r)
   // Try to open the most reasonable device
   int device_index = 0;
   const char* device_name = SDL_GetAudioDeviceName(device_index, 0);
+  if (device_name == nullptr) {
+
+    fmt::println("No Default Audio Device enabled. Not loading sounds.");
+    audio.loaded = true;
+    return; // no available devices
+  }
   fmt::println("Using audiodevice: {}", device_name);
   audio.captured_device_id = Mix_OpenAudioDevice(spec.freq, spec.format, spec.channels, chunk_size, device_name, 0);
 
@@ -55,22 +61,17 @@ init_audio_system(entt::registry& r)
   for (int i = 0; i < max_audio_sources; i++)
     create_empty<AudioSource>(r, AudioSource(i));
 
-  // Load sounds
-
-  auto start = std::chrono::high_resolution_clock::now();
   fmt::println("Loading audio...");
-
   for (auto& file : audio.sounds) {
     auto* sound = Mix_LoadWAV(file.path.c_str());
     if (!sound) {
       fmt::println("Failed to load sound: {}", file.path);
-      exit(1); // explode!
+      continue;
     }
     file.buffer = sound;
   }
 
   audio.loaded = true;
-  engine::log_time_since("Audio loaded.", start);
 }
 
 void

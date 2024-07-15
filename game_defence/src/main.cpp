@@ -32,7 +32,7 @@ static const int allowed_ticks_per_frame = 2;
 static SINGLETON_Application app;
 static entt::registry game;
 
-static int frames_to_pass_before_init = 3;
+static int frames_to_pass_before_init = 1;
 static bool done_init_slow = false;
 static std::optional<std::thread> slow_thread = std::nullopt;
 
@@ -43,8 +43,10 @@ launch_thread_after_x_frames()
     const auto work = []() { game2d::init_slow(app, game); };
     slow_thread = std::thread(work);
     done_init_slow = true;
+    fmt::println("spawning thread...");
   }
-  if (slow_thread.has_value() && slow_thread.value().joinable()) {
+  if (slow_thread != std::nullopt && slow_thread.value().joinable()) {
+    fmt::println("want to join thread...");
     slow_thread.value().join();
     slow_thread = std::nullopt;
   }

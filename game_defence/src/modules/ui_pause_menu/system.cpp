@@ -143,8 +143,9 @@ update_ui_pause_menu_system(engine::SINGLETON_Application& app, entt::registry& 
         const auto& s = get_first_component<SINGLETON_CurrentScene>(r);
         if (s.s == Scene::overworld)
           create_empty<AudioRequestPlayEvent>(r, AudioRequestPlayEvent{ "GAME_01" });
-        if (s.s == Scene::dungeon_designer || s.s == Scene::turnbasedcombat)
-          create_empty<AudioRequestPlayEvent>(r, AudioRequestPlayEvent{ "COMBAT_01" });
+        if (s.s == Scene::dungeon_designer || s.s == Scene::turnbasedcombat) {
+          // create_empty<AudioRequestPlayEvent>(r, AudioRequestPlayEvent{ "COMBAT_01" });
+        }
       }
     }
 #

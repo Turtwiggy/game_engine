@@ -385,7 +385,7 @@ move_to_scene_start(entt::registry& r, const Scene s, const bool load_saved)
     destroy_first_and_create<SINGLE_TurnBasedCombatInfo>(r);
     // destroy_first_and_create<Effect_DoBloom>(r);
     destroy_first_and_create<Effect_GridComponent>(r);
-    create_empty<AudioRequestPlayEvent>(r, AudioRequestPlayEvent{ "COMBAT_01" });
+    // create_empty<AudioRequestPlayEvent>(r, AudioRequestPlayEvent{ "COMBAT_01" });
 
     if (get_first<OverworldToDungeonInfo>(r) == entt::null) {
       fmt::println("OverworldToDungeonInfo is null; assuming launch from standalone");
@@ -422,7 +422,7 @@ move_to_scene_start(entt::registry& r, const Scene s, const bool load_saved)
     destroy_first_and_create<SINGLE_EventConsoleLogComponent>(r);
     destroy_first_and_create<SINGLE_TurnBasedCombatInfo>(r);
     // destroy_first_and_create<Effect_DoBloom>(r);
-    create_empty<AudioRequestPlayEvent>(r, AudioRequestPlayEvent{ "COMBAT_01" });
+    // create_empty<AudioRequestPlayEvent>(r, AudioRequestPlayEvent{ "COMBAT_01" });
 
     int map_width = 600;
     int map_height = 600;

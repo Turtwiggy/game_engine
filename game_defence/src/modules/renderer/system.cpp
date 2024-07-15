@@ -41,6 +41,14 @@ using namespace engine;
 namespace game2d {
 using namespace std::literals;
 
+struct Light
+{
+  bool enabled = false;
+  glm::vec2 pos;
+  engine::SRGBColour colour;
+  float luminence = 0.6;
+};
+
 int
 get_renderer_tex_unit_count(const SINGLETON_RendererInfo& ri)
 {
@@ -362,21 +370,6 @@ update_render_system(entt::registry& r, const float dt, const glm::vec2& mouse_p
   ri.mix_lighting_and_scene.set_bool("put_starshader_behind", in_stars_scene);
   ri.mix_lighting_and_scene.set_float("iTime", time);
 
-  //
-  struct Light
-  {
-    bool enabled = false;
-    glm::vec2 pos;
-    engine::SRGBColour colour;
-    float luminence = 0.6;
-
-    // vec4 lightColGreen = vec4(0.6, 0.6, 1.0, 1.0);
-    // setLuminance(lightColGreen, 1.0);
-
-    // vec4 lightColOrange = vec4(1.0, 0.75, 0.5, 1.0);
-    // setLuminance(lightColOrange, 0.5);
-  };
-
   const auto camera_e = get_first<OrthographicCamera>(r);
   const auto& camera_t = r.get<TransformComponent>(camera_e);
 
@@ -432,6 +425,7 @@ update_render_system(entt::registry& r, const float dt, const glm::vec2& mouse_p
     if (room->tl != room_c.tl)
       continue;
 
+    // Orange light top left
     {
       Light& l = lights[i++];
       l.enabled = true;
@@ -451,9 +445,7 @@ update_render_system(entt::registry& r, const float dt, const glm::vec2& mouse_p
       l.luminence = 0.5f;
     }
 
-    //
     // Another light in the bottom right
-    //
     {
       Light& l = lights[i++];
       l.enabled = true;
@@ -474,10 +466,9 @@ update_render_system(entt::registry& r, const float dt, const glm::vec2& mouse_p
     }
   }
 
-  // what is i? how many lights were used?
-  int k = i;
-
   ri.mix_lighting_and_scene.bind();
+
+  // update lighting uniforms
 
   for (int i = 0; i < lights.size(); i++) {
     const std::string label = "lights["s + std::to_string(i) + "]."s;
@@ -546,7 +537,6 @@ update_render_system(entt::registry& r, const float dt, const glm::vec2& mouse_p
       p = PassName::stars;
     const auto& pass = ri.passes[search_for_renderpass_by_name(ri, p)];
     const auto tex_id = pass.texs[0].tex_id.id;
-
     const auto vi = render_texture_to_imgui_viewport(tex_id);
 
     // If the viewport moves - viewport position will be a frame behind.
@@ -560,7 +550,7 @@ update_render_system(entt::registry& r, const float dt, const glm::vec2& mouse_p
 
 #if defined(_DEBUG)
   {
-    const bool hide_debug_textures = false;
+    const bool hide_debug_textures = true;
     if (hide_debug_textures)
       return;
 

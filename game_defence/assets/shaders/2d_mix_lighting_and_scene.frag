@@ -256,12 +256,12 @@ void main()
 	// vec4 col = vec4(0.0, 0.0, 0.0, 1.0) * (1.0 - length(c - p)/iResolution.x);
 
 	// optiona a
-	vec4 col = vec4(0.5, 0.5, 0.5, 1.0);
-	col *= AO(sceneDist(p), 40.0, 1.0);
+	// vec4 col = vec4(0.5, 0.5, 0.5, 1.0);
+	// col *= AO(sceneDist(p), 40.0, 1.0);
 
 	// option b
-	// vec4 col = vec4(0.0, 0.0, 0.0, 1.0);
-	// col *= AO(sceneDist(p), 40.0, 0.5);
+	 vec4 col = vec4(0.0, 0.0, 0.0, 1.0);
+	//  col *= AO(sceneSmooth(p, 10.0), 40.0, 1.0);	
 
 	// light
 	for(int i = 0; i < MAX_LIGHTS; i++)
@@ -272,9 +272,9 @@ void main()
 			continue;
 		}
 
- 		setLuminance(l.colour, 1.0);
+ 		setLuminance(l.colour, 0.5);
 
-		col += drawLight(p, l.position, l.colour, dist, 500.0, 1.0);
+		col += drawLight(p, l.position, l.colour, dist, 300.0, 1.0);
 	}
 
 	// shape fill
@@ -287,9 +287,6 @@ void main()
 	// vec3 srgb_final = lin_to_srgb(lin_all);
 
 	vec3 srgb_final = col.rgb * lin_to_srgb(scene_lin.rgb);
-	// vec3 srgb_final = col.rgb;
-	// srgb_final = col.rgb;
-	
 
 	out_color.rgb = srgb_final.rgb;
 	out_color.a = col.a;

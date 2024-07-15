@@ -27,8 +27,8 @@ uniform vec2 player_position;
 #define zoom   0.600
 #define tile   0.850
 
-#define brightness 0.00075
-#define darkmatter 0.300
+#define brightness 0.0004
+#define darkmatter 0.900
 #define distfading 0.730
 #define saturation 0.950
 

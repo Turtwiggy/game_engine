@@ -408,6 +408,10 @@ set_generated_entity_positions(entt::registry& r, DungeonGenerationResults& resu
     if (room_idx_to_spawn == 0)
       room_idx_to_spawn++; // first index room is player room
 
+    if (rooms.size() < 2) {
+      fmt::println("WARNING! roomgen issue...");
+      break;
+    }
     Room& room = rooms[room_idx_to_spawn];
     const glm::ivec2 tl = room.tl;
     const glm::ivec2 br = room.tl + glm::ivec2{ room.aabb.size.x, room.aabb.size.y };
