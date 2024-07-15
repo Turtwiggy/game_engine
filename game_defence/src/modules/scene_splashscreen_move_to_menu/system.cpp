@@ -13,8 +13,11 @@ update_scene_splashscreen_move_to_menu_system(entt::registry& r, const float dt)
 {
   auto& data = get_first_component<SINGLE_SplashScreen>(r);
   const auto& input = get_first_component<SINGLETON_InputComponent>(r);
-  const auto& audio = get_first_component<SINGLETON_AudioComponent>(r);
 
+  const auto audio_e = get_first<SINGLETON_AudioComponent>(r);
+  if (audio_e == entt::null)
+    return;
+  const auto& audio = get_first_component<SINGLETON_AudioComponent>(r);
   if (!audio.loaded)
     return; // wait for sounds to be loaded
 

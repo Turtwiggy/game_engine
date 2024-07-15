@@ -123,7 +123,8 @@ init(engine::SINGLETON_Application& app, entt::registry& r)
   init_render_system(app, r, ri); // init after camera
 
   create_empty<SINGLETON_FixedUpdateInputHistory>(r);
-  create_empty<SINGLETON_AudioComponent>(r); // replaced later
+  init_input_system(r);
+
   init_ui_colour_palette_system(r);
 
   // move to splash screen before doing any heavy lifting (i.e. app freezing)

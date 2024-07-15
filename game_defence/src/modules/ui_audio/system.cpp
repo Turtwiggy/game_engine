@@ -16,6 +16,9 @@ update_ui_audio_system(entt::registry& r)
 {
   // todo: process audio device disconnect and connect events?
 
+  const auto audio_e = get_first<SINGLETON_AudioComponent>(r);
+  if (audio_e == entt::null)
+    return;
   auto& audio = get_first_component<SINGLETON_AudioComponent>(r);
 
   ImGui::Begin("Audio");

@@ -27,7 +27,7 @@
 #include "opengl/shader.hpp"
 #include "opengl/texture.hpp"
 #include "opengl/util.hpp"
-#include "physics/helpers.hpp"
+#include "renderer/transform.hpp"
 #include <SDL_scancode.h>
 using namespace engine;
 
@@ -61,8 +61,9 @@ get_renderer_tex_unit_count(const SINGLETON_RendererInfo& ri)
 void
 rebind(entt::registry& r, SINGLETON_RendererInfo& ri)
 {
+  fmt::println("rebind...");
+
   const auto& wh = ri.viewport_size_render_at;
-  engine::RenderCommand::set_viewport(0, 0, wh.x, wh.y);
 
   for (RenderPass& rp : ri.passes) {
     for (const auto& tex : rp.texs) {
@@ -173,16 +174,18 @@ void
 init_render_system(const engine::SINGLETON_Application& app, entt::registry& r, SINGLETON_RendererInfo& ri)
 {
   const glm::ivec2 screen_wh = app.window.get_size();
+  ri.viewport_size_render_at = screen_wh;
+  ri.viewport_size_current = screen_wh;
+  const auto& fbo_size = ri.viewport_size_render_at;
 
   // add camera
+
+  // calculate view after updating postiion
+
   OrthographicCamera camera_info;
   camera_info.projection = calculate_ortho_projection(screen_wh.x, screen_wh.y);
   const auto camera_e = create_empty<OrthographicCamera>(r, camera_info);
   r.emplace<TransformComponent>(camera_e);
-
-  ri.viewport_size_render_at = screen_wh;
-  ri.viewport_size_current = screen_wh;
-  const auto& fbo_size = ri.viewport_size_render_at;
 
   const int max_dim = glm::max(ri.viewport_size_render_at.x, ri.viewport_size_render_at.y);
   const int n_jumpflood_passes = glm::ceil(glm::log(max_dim) / std::log(2.0f));
@@ -190,6 +193,10 @@ init_render_system(const engine::SINGLETON_Application& app, entt::registry& r, 
 
   // FBO textures
   Framebuffer::default_fbo();
+  RenderCommand::set_viewport(0, 0, ri.viewport_size_render_at.x, ri.viewport_size_render_at.y);
+  RenderCommand::set_clear_colour_srgb({ 0.0f, 0.0f, 0.0f, 1.0f });
+  RenderCommand::clear();
+
   ri.passes.push_back(RenderPass(PassName::stars));
   ri.passes.push_back(RenderPass(PassName::linear_main));
   ri.passes.push_back(RenderPass(PassName::lighting_emitters_and_occluders));

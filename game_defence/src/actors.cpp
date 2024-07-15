@@ -251,7 +251,7 @@ create_gameplay(entt::registry& r, const EntityType& type)
       r.emplace<SetTransformAngleToVelocity>(e);
 
       auto& vel = r.get<VelocityComponent>(e);
-      vel.base_speed = 10000.0f;
+      vel.base_speed = 200.0f;
 
       r.emplace<KnockbackComponent>(e);
 
@@ -273,7 +273,7 @@ create_gameplay(entt::registry& r, const EntityType& type)
       r.emplace<HoverableComponent>(e);
       r.emplace<PatrolComponent>(e);
 
-      r.emplace<LightEmitterComponent>(e);
+      // r.emplace<LightEmitterComponent>(e);
 
       // r.emplace<CircleComponent>(e);
       // r.emplace<InfiniteLivesComponent>(e);
@@ -320,6 +320,7 @@ create_gameplay(entt::registry& r, const EntityType& type)
 
       auto& vel = r.get<VelocityComponent>(e);
       vel.base_speed = 700.0f;
+
       // r.emplace<PhysicsSolidComponent>(e);
 
       // r.emplace<EnemyComponent>(e); // player or enemy

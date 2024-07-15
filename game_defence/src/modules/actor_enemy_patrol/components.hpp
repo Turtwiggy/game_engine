@@ -7,9 +7,9 @@ namespace game2d {
 
 struct PatrolDescription
 {
-  int speed_min = 5;
-  int speed_max = 50;
-  int units_min = 3;
+  int speed_min = 50;
+  int speed_max = 175;
+  int units_min = 4;
   int units_max = 10;
 
   PatrolDescription() = default;

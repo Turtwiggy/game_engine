@@ -32,7 +32,7 @@ static const int allowed_ticks_per_frame = 2;
 static SINGLETON_Application app;
 static entt::registry game;
 
-static int frames_to_pass_before_init = 1;
+static int frames_to_pass_before_init = 3;
 static bool done_init_slow = false;
 static std::optional<std::thread> slow_thread = std::nullopt;
 
@@ -130,10 +130,16 @@ main(int argc, char* argv[])
   name += " [RELEASE]";
 #endif
 
+#if defined(_DEBUG)
+  app.limit_fps = true;
+  app.fps_limit = 30;
+#endif
+
   app.window = GameWindow(name, DisplayMode::windowed, app.vsync);
   app.imgui.initialize(app.window);
 
   game2d::init(app, game);
+
   CHECK_OPENGL_ERROR(0);
 
 #if defined(__EMSCRIPTEN__)

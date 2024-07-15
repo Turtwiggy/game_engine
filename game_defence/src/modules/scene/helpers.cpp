@@ -142,7 +142,6 @@ move_to_scene_start(entt::registry& r, const Scene s, const bool load_saved)
   destroy_first_and_create<SINGLETON_GameOver>(r);
   destroy_first_and_create<SINGLETON_InputComponent>(r);
   destroy_first_and_create<SINGLE_ScreenshakeComponent>(r);
-  init_input_system(r); // clear old input
 
   destroy_first<SINGLE_SelectedUI>(r);
   destroy_first<SINGLE_TurnBasedCombatInfo>(r);
@@ -163,8 +162,8 @@ move_to_scene_start(entt::registry& r, const Scene s, const bool load_saved)
   // systems that havent been destroyed...
   const auto& ri = get_first_component<SINGLETON_RendererInfo>(r);
   const auto& anims = get_first_component<SINGLE_Animations>(r);
-  const auto& audio = get_first_component<SINGLETON_AudioComponent>(r);
   const auto& colours = get_first_component<SINGLE_ColoursInfo>(r);
+  // const auto& audio = get_first_component<SINGLETON_AudioComponent>(r);
 
   // HACK: the first and only transform should be the camera
   const auto camera_e = get_first<TransformComponent>(r);

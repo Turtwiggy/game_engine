@@ -4,7 +4,6 @@
 #include "entt/helpers.hpp"
 #include "events/components.hpp"
 
-#include "events/helpers/fixed_update.hpp"
 #include "events/helpers/keyboard.hpp"
 #include "imgui.h"
 #include "maths/maths.hpp"
@@ -101,42 +100,20 @@ update_minigame_bamboo_system(entt::registry& r, const float dt)
   const InputEvent keyboard_submit_key = keyboard_key(SDL_SCANCODE_RETURN);
   const InputEvent controller_submit_key = controller_axis(SDL_GameControllerAxis::SDL_CONTROLLER_AXIS_TRIGGERRIGHT);
 
-  // hack to process fixed-update inputs in update()
-  // this processes all the inputs the last fixed-update knew about
-  const auto& finputs = get_first_component<SINGLETON_FixedUpdateInputHistory>(r);
-  const uint32_t last_fixedupdate_frame = std::prev(finputs.history.end())->first;
-  const uint32_t next_fixedupdate_frame = finputs.fixed_tick;
-
-  static bool trigger_r_press = false;
-  const auto& inputs = finputs.history.at(last_fixedupdate_frame);
-  if (last_processed_tick != finputs.fixed_tick) {
-    last_processed_tick = finputs.fixed_tick;
-    // capture all inputs.. live!
-    for (const auto& i : inputs) {
-
-      const bool input_press = i.state == InputState::press;
-      if (!input_press)
-        continue;
-
-      const bool keyboard_input = fixed_input_keyboard_press(inputs, i.keyboard);
-      if (keyboard_input && i.keyboard != keyboard_submit_key.keyboard) // exclude submit key
-        buffer.push_back(i);
-      else if (fixed_input_controller_button_press(inputs, i.controller_button))
-        buffer.push_back(i);
-
-      // trigger down?
-      const float trigger_r = fixed_input_controller_axis_held(inputs, SDL_CONTROLLER_AXIS_TRIGGERRIGHT);
-      if (trigger_r > 0.0f && !trigger_r_press)
-        trigger_r_press = true;
-      if (trigger_r == 0.0f && trigger_r_press)
-        trigger_r_press = false;
-    }
-  }
-
   // first combination
   if (combination.size() == 0)
     create_empty<GenerateCombinationRequest>(r);
   check_if_generate_new_combination(r, bamboo_minigame.combination_length, rnd);
+
+  const auto& update_inputs = get_first_component<SINGLETON_InputComponent>(r);
+
+  // Add inputs to buffer.
+  for (const auto& input : update_inputs.unprocessed_inputs) {
+    if (input.type == InputType::keyboard && input.state == InputState::press) {
+      if (input.keyboard != keyboard_submit_key.keyboard) // no submit key
+        buffer.push_back(input);
+    }
+  }
 
   const auto validate_combination_against_buffer = [&buffer, &combination]() -> bool {
     const auto buffer_size = buffer.size();
@@ -161,15 +138,16 @@ update_minigame_bamboo_system(entt::registry& r, const float dt)
   };
 
   static bool combination_correct = false;
-  const auto& update_inputs = get_first_component<SINGLETON_InputComponent>(r);
   if (get_key_down(update_inputs, keyboard_submit_key.keyboard)) {
     combination_correct |= validate_combination_against_buffer();
     buffer.clear(); // clear your attempt
   }
-  if (trigger_r_press) {
-    combination_correct |= validate_combination_against_buffer();
-    buffer.clear(); // clear your attempt
-  }
+
+  // get_axis_01(SDL_GameController *controller, SDL_GameControllerAxis axis)
+  // if (trigger_r_press) {
+  //   combination_correct |= validate_combination_against_buffer();
+  //   buffer.clear(); // clear your attempt
+  // }
 
   // center this window
   const auto& ri = get_first_component<SINGLETON_RendererInfo>(r);
@@ -185,10 +163,8 @@ update_minigame_bamboo_system(entt::registry& r, const float dt)
   flags |= ImGuiWindowFlags_NoCollapse;
   flags |= ImGuiWindowFlags_NoDocking;
   flags |= ImGuiWindowFlags_NoResize;
-  // flags |= ImGuiWindowFlags_NoFocusOnAppearing;
   // visuals
   flags |= ImGuiWindowFlags_NoTitleBar;
-  // flags |= ImGuiWindowFlags_NoBackground;
 
   ImGui::Begin("BambooMinigame", NULL, flags);
   ImGui::Text("Input the combination. Press ENTER to submit.");

@@ -1,7 +1,6 @@
 #include "system.hpp"
 
 #include "app/application.hpp"
-#include "audio/helpers/sdl_mixer.hpp"
 #include "entt/helpers.hpp"
 #include "events/components.hpp"
 #include "events/helpers/controller.hpp"
@@ -20,9 +19,10 @@ namespace game2d {
 void
 init_input_system(entt::registry& r)
 {
-  auto& input = get_first_component<SINGLETON_InputComponent>(r);
+  SINGLETON_InputComponent input;
   input.state = SDL_GetKeyboardState(NULL);
   open_controllers(input);
+  destroy_first_and_create<SINGLETON_InputComponent>(r, input);
 };
 
 void

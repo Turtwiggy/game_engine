@@ -81,16 +81,27 @@ render_texture_to_imgui_viewport(const int64_t& tex_id)
     ImGui::DockSpace(dockspace_id, ImVec2(0.0f, 0.0f), dockspace_flags);
   }
 
-  ImGuiWindowFlags viewport_flags = ImGuiWindowFlags_NoTitleBar;
+  ImGuiWindowFlags viewport_flags = 0;
+  // viewport_flags |= ImGuiWindowFlags_NoMove;
+  // viewport_flags |= ImGuiWindowFlags_NoCollapse;
+  // viewport_flags |= ImGuiWindowFlags_NoDocking;
+  // viewport_flags |= ImGuiWindowFlags_NoResize;
+  // viewport_flags |= ImGuiWindowFlags_NoFocusOnAppearing;
+  // viewport_flags |= ImGuiWindowFlags_NoBringToFrontOnFocus;
+  // visuals
+  // viewport_flags |= ImGuiWindowFlags_NoTitleBar;
+  // viewport_flags |= ImGuiWindowFlags_NoBackground;
 
   ImGuiWindowClass window_class;
-  window_class.DockNodeFlagsOverrideSet = ImGuiDockNodeFlags_NoTabBar;
+  window_class.DockNodeFlagsOverrideSet |= ImGuiDockNodeFlags_AutoHideTabBar;
+  window_class.DockNodeFlagsOverrideSet |= ImGuiDockNodeFlags_NoTabBar;
   ImGui::SetNextWindowClass(&window_class);
+
   ImGui::PushStyleVar(ImGuiStyleVar_WindowPadding, ImVec2(0.0f, 0.0f));
 
   ImGui::Begin("Viewport", NULL, viewport_flags);
   ImGui::PopStyleVar();
-  ImVec2 viewport_size = ImGui::GetContentRegionAvail();
+  const ImVec2 viewport_size = ImGui::GetContentRegionAvail();
 
   ViewportInfo vi;
   vi.focused = ImGui::IsWindowFocused();

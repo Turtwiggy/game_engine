@@ -77,6 +77,9 @@ init_audio_system(entt::registry& r)
 void
 update_audio_system(entt::registry& r)
 {
+  const auto audio_e = get_first<SINGLETON_AudioComponent>(r);
+  if (audio_e == entt::null)
+    return;
   const auto& audio = get_first_component<SINGLETON_AudioComponent>(r);
   if (!audio.loaded)
     return;

@@ -56,7 +56,6 @@ struct ControllerComponent
 
 struct InputComponent
 {
-  // player analogues
   float lx = 0.0f;
   float ly = 0.0f;
   float rx = 0.0f;
