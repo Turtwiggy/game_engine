@@ -164,6 +164,7 @@ create_wall(entt::registry& r, const glm::ivec2& pos, const glm::ivec2& size)
   const auto wall_e = create_gameplay(r, EntityType::solid_wall);
   set_position(r, wall_e, pos);
   set_size(r, wall_e, size);
+  set_colour(r, wall_e, { 1.0f, 1.0f, 1.0f, 1.0f });
   r.get<TagComponent>(wall_e).tag = "dungeon-wall";
   return wall_e;
 };
@@ -369,7 +370,7 @@ instantiate_walls(entt::registry& r, std::vector<Line>& lines, DungeonGeneration
     // add some interesting colours
     // const auto imcol = (ImVec4)ImColor::HSV(room_count / 7.0f, 0.6f, 0.6f);
     // const engine::SRGBColour col = { imcol.x, imcol.y, imcol.z, 0.1f };
-    set_colour(r, room_to_create, { 0.3f, 0.3f, 0.3, 0.5f });
+    set_colour(r, room_to_create, { 0.0f, 0.0f, 0.0, 0.0f });
     // r.emplace<DefaultColour>(room_to_create, col);
 
     // add worldspace text for room to debug it

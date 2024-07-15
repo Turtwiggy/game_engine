@@ -372,28 +372,6 @@ setup_voronoi_distance_field_update(entt::registry& r)
 };
 
 void
-setup_lighting_ambient_occlusion_update(entt::registry& r)
-{
-  auto& ri = get_first_component<SINGLETON_RendererInfo>(r);
-  const auto pass_idx = search_for_renderpass_by_name(ri, PassName::lighting_ambient_occlusion);
-  auto& pass = ri.passes[pass_idx];
-
-  pass.update = [&r]() {
-    const auto& ri = get_first_component<SINGLETON_RendererInfo>(r);
-    const auto tex_unit_distance = get_tex_unit(ri, PassName::voronoi_distance);
-    const auto tex_unit_emitters_and_occluders = get_tex_unit(ri, PassName::lighting_emitters_and_occluders);
-
-    ri.lighting_ambient_occlusion.bind();
-    ri.lighting_ambient_occlusion.set_vec2("viewport_wh", ri.viewport_size_render_at);
-    ri.lighting_ambient_occlusion.set_vec2("mouse_pos", { ImGui::GetIO().MousePos.x, ImGui::GetIO().MousePos.y });
-    ri.lighting_ambient_occlusion.set_int("u_distance_data", tex_unit_distance);
-    ri.lighting_ambient_occlusion.set_int("u_emitters_and_occluders", tex_unit_emitters_and_occluders);
-
-    render_fullscreen_quad(ri.lighting_ambient_occlusion, ri.viewport_size_render_at);
-  };
-};
-
-void
 setup_mix_lighting_and_scene_update(entt::registry& r)
 {
   auto& ri = get_first_component<SINGLETON_RendererInfo>(r);

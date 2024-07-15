@@ -19,11 +19,11 @@ vec2 F16_V2(float f) { return vec2(floor(f * 255.0) / 255.0, fract(f * 255.0)); 
 void
 main()
 {
-  vec4 jfuv = texture2D(tex_jflood, v_uv);
+  vec4 jfuv = texture(tex_jflood, v_uv);
   vec2 jumpflood = vec2(V2_F16(jfuv.rg),V2_F16(jfuv.ba));
   vec2 dst = F16_V2(distance(v_uv, jumpflood));
 
-  float dst_sign = texture2D(tex_emitters_and_occluders, v_uv).a > 0.0 ? 0.0 : 1.0;
+  float dst_sign = texture(tex_emitters_and_occluders, v_uv).a > 0.0 ? 0.0 : 1.0;
 
   out_colour = vec4(dst, dst_sign, 1.0);
 }

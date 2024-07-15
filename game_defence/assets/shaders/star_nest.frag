@@ -24,10 +24,10 @@ uniform vec2 player_position;
 #define volsteps 10
 #define stepsize 0.2
 
-#define zoom   0.800
+#define zoom   0.600
 #define tile   0.850
 
-#define brightness 0.0005
+#define brightness 0.00075
 #define darkmatter 0.300
 #define distfading 0.730
 #define saturation 0.950

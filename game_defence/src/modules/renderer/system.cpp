@@ -7,11 +7,14 @@
 #include "entt/helpers.hpp"
 #include "events/components.hpp"
 #include "events/helpers/keyboard.hpp"
-#include "imgui/helpers.hpp"
+#include "maths/grid.hpp"
 #include "maths/maths.hpp"
 #include "modules/actor_player/components.hpp"
 #include "modules/actors/helpers.hpp"
 #include "modules/camera/orthographic.hpp"
+#include "modules/gen_dungeons/components.hpp"
+#include "modules/gen_dungeons/helpers.hpp"
+#include "modules/grid/components.hpp"
 #include "modules/renderer/components.hpp"
 #include "modules/renderer/helpers.hpp"
 #include "modules/renderer/helpers/batch_quad.hpp"
@@ -24,6 +27,7 @@
 #include "opengl/shader.hpp"
 #include "opengl/texture.hpp"
 #include "opengl/util.hpp"
+#include "physics/helpers.hpp"
 #include <SDL_scancode.h>
 using namespace engine;
 
@@ -92,10 +96,9 @@ rebind(entt::registry& r, SINGLETON_RendererInfo& ri)
   const int tex_unit_linear_main = get_tex_unit(PassName::linear_main);
   const int tex_unit_mix_lighting_and_scene = get_tex_unit(PassName::mix_lighting_and_scene);
   const int tex_unit_blur_pingpong_1 = get_tex_unit(PassName::blur_pingpong_1);
-  const int tex_unit_lighting_AO = get_tex_unit(PassName::lighting_ambient_occlusion);
   const int tex_unit_emitters_and_occluders = get_tex_unit(PassName::lighting_emitters_and_occluders);
 
-  // ri.stars.reload();
+  ri.stars.reload();
   ri.stars.bind();
   ri.stars.set_mat4("projection", camera.projection);
   ri.stars.set_int("tex", tex_unit_emitters_and_occluders);
@@ -135,7 +138,6 @@ rebind(entt::registry& r, SINGLETON_RendererInfo& ri)
   ri.mix_lighting_and_scene.bind();
   ri.mix_lighting_and_scene.set_mat4("projection", camera.projection);
   ri.mix_lighting_and_scene.set_mat4("view", glm::mat4(1.0f)); // whole texture
-  ri.mix_lighting_and_scene.set_int("lighting_ao", tex_unit_lighting_AO);
   ri.mix_lighting_and_scene.set_int("scene", tex_unit_linear_main);
 
   // ri.circle.reload();
@@ -188,7 +190,6 @@ init_render_system(const engine::SINGLETON_Application& app, entt::registry& r, 
   ri.passes.push_back(RenderPass(PassName::voronoi_seed));
   ri.passes.push_back(RenderPass(PassName::jump_flood));
   ri.passes.push_back(RenderPass(PassName::voronoi_distance));
-  ri.passes.push_back(RenderPass(PassName::lighting_ambient_occlusion));
   ri.passes.push_back(RenderPass(PassName::mix_lighting_and_scene, 2));
   ri.passes.push_back(RenderPass(PassName::blur_pingpong_0));
   ri.passes.push_back(RenderPass(PassName::blur_pingpong_1));
@@ -219,7 +220,6 @@ init_render_system(const engine::SINGLETON_Application& app, entt::registry& r, 
   ri.voronoi_seed = Shader("assets/shaders/2d_instanced.vert", "assets/shaders/2d_voronoi_seed.frag");
   ri.jump_flood = Shader("assets/shaders/2d_instanced.vert", "assets/shaders/2d_jump_flood.frag");
   ri.voronoi_distance = Shader("assets/shaders/2d_instanced.vert", "assets/shaders/2d_voronoi_distance.frag");
-  ri.lighting_ambient_occlusion = Shader("assets/shaders/2d_instanced.vert", "assets/shaders/2d_ambient_occlusion.frag");
   ri.mix_lighting_and_scene = Shader("assets/shaders/2d_instanced.vert", "assets/shaders/2d_mix_lighting_and_scene.frag");
   ri.circle = Shader("assets/shaders/2d_circle.vert", "assets/shaders/2d_circle.frag");
   ri.grid = Shader("assets/shaders/2d_grid.vert", "assets/shaders/2d_grid.frag");
@@ -249,7 +249,6 @@ init_render_system(const engine::SINGLETON_Application& app, entt::registry& r, 
   setup_voronoi_seed_update(r);
   setup_jump_flood_pass(r);
   setup_voronoi_distance_field_update(r);
-  setup_lighting_ambient_occlusion_update(r);
   setup_mix_lighting_and_scene_update(r);
   setup_gaussian_blur_update(r);
   setup_bloom_update(r);
@@ -294,6 +293,21 @@ update_render_system(entt::registry& r, const float dt, const glm::vec2& mouse_p
   if (get_key_down(input, SDL_SCANCODE_0))
     rebind(r, ri);
 #endif
+
+  const auto& scene = get_first_component<SINGLETON_CurrentScene>(r);
+
+  const auto scenes_to_render_stars = std::vector<Scene>{ Scene::splashscreen, Scene::menu, Scene::overworld };
+  const bool in_stars_scene =
+    std::find(scenes_to_render_stars.begin(), scenes_to_render_stars.end(), scene.s) != scenes_to_render_stars.end();
+
+  const auto scenes_to_jumpflood = std::vector<Scene>{ Scene::dungeon_designer, Scene::turnbasedcombat };
+  const bool in_jumpflood_scene =
+    std::find(scenes_to_jumpflood.begin(), scenes_to_jumpflood.end(), scene.s) != scenes_to_jumpflood.end();
+
+  const std::vector<PassName> jumpflood_passes{ PassName::voronoi_seed, PassName::jump_flood, PassName::voronoi_distance };
+  const auto in_jumpflood_pass = [jumpflood_passes](const PassName& pass) {
+    return std::find(jumpflood_passes.begin(), jumpflood_passes.end(), pass) != jumpflood_passes.end();
+  };
 
   // Do things with the star shader
   {
@@ -342,22 +356,167 @@ update_render_system(entt::registry& r, const float dt, const glm::vec2& mouse_p
     // current_pos.y = exp_decay(current_pos.z, target_pos.z, 32, dt);
 
     ri.stars.set_vec2("player_position", { current_pos.x, current_pos.y });
-
-    const bool in_overworld = s.s == Scene::overworld;
-    const bool in_splashscreen = s.s == Scene::splashscreen;
-    const bool put_starshader_behind = in_overworld || in_splashscreen;
-    ri.mix_lighting_and_scene.bind();
-    ri.mix_lighting_and_scene.set_bool("put_starshader_behind", put_starshader_behind);
   }
 
   ri.mix_lighting_and_scene.bind();
+  ri.mix_lighting_and_scene.set_bool("put_starshader_behind", in_stars_scene);
   ri.mix_lighting_and_scene.set_float("iTime", time);
+
+  //
+  struct Light
+  {
+    bool enabled = false;
+    glm::vec2 pos;
+    engine::SRGBColour colour;
+    float luminence = 0.6;
+
+    // vec4 lightColGreen = vec4(0.6, 0.6, 1.0, 1.0);
+    // setLuminance(lightColGreen, 1.0);
+
+    // vec4 lightColOrange = vec4(1.0, 0.75, 0.5, 1.0);
+    // setLuminance(lightColOrange, 0.5);
+  };
+
+  const auto camera_e = get_first<OrthographicCamera>(r);
+  const auto& camera_t = r.get<TransformComponent>(camera_e);
+
+  const int max_lights = 32;
+  static std::vector<Light> lights(max_lights);
+
+  // disable lights every frame?
+  for (auto& l : lights) {
+    l.enabled = false;
+    l.luminence = 0.0f;
+  }
+
+  // update the first light position to the first player position.
+  const auto& first_player = get_first<PlayerComponent>(r);
+  if (first_player != entt::null) {
+    glm::vec2 hmm = get_position(r, first_player);
+
+    // worldspace to screenspace
+    const auto& wh = ri.viewport_size_render_at;
+    hmm -= glm::vec2{ camera_t.position.x, camera_t.position.y };
+    hmm += glm::vec2{ wh.x / 2.0f, wh.y / 2.0f };
+
+    lights[0].pos = hmm;
+    lights[0].enabled = true;
+    lights[0].colour = { 0.5f, 0.75f, 1.0f, 1.0f };
+    lights[0].luminence = 0.5;
+  }
+
+  // HACK: try adding light to each tunnel
+  const auto& map_e = get_first<MapComponent>(r);
+  const auto& results_e = get_first<DungeonGenerationResults>(r);
+
+  int i = 1;
+  for (const auto& [e, room_c] : r.view<Room>().each()) {
+
+    if (map_e == entt::null)
+      continue;
+    const auto& map = r.get<MapComponent>(map_e);
+
+    if (map_e == entt::null)
+      continue;
+    const auto& results = r.get<DungeonGenerationResults>(results_e);
+
+    if (first_player == entt::null)
+      continue;
+    const auto player_pos = get_position(r, first_player);
+    const auto player_gridpos = engine::grid::world_space_to_grid_space(player_pos, map.tilesize);
+
+    // if player is in the room, light it up
+    const auto [in_room, room] = inside_room(map, results.rooms, player_gridpos);
+    if (!in_room)
+      continue;
+    if (room->tl != room_c.tl)
+      continue;
+
+    {
+      Light& l = lights[i++];
+      l.enabled = true;
+
+      // gridspace to worldspace
+      const glm::ivec2 gridpos = room_c.tl;
+      l.pos = engine::grid::grid_space_to_world_space(gridpos, 50);
+      l.pos += glm::vec2(map.tilesize / 2.0f, map.tilesize / 2.0f);
+
+      // worldspace to screenspace
+      const auto& wh = ri.viewport_size_render_at;
+      l.pos -= glm::vec2{ camera_t.position.x, camera_t.position.y };
+      l.pos += glm::vec2{ wh.x / 2.0f, wh.y / 2.0f };
+
+      // orange
+      l.colour = engine::SRGBColour{ 1.0f, 0.75f, 0.5f, 1.0f };
+      l.luminence = 0.5f;
+    }
+
+    //
+    // Another light in the bottom right
+    //
+    {
+      Light& l = lights[i++];
+      l.enabled = true;
+
+      // gridspace to worldspace
+      const glm::ivec2 gridpos = { room_c.tl.x + room_c.aabb.size.x - 1, room_c.tl.y + room_c.aabb.size.y - 1 };
+      l.pos = engine::grid::grid_space_to_world_space(gridpos, 50);
+      l.pos += glm::vec2(map.tilesize / 2.0f, map.tilesize / 2.0f);
+
+      // worldspace to screenspace
+      const auto& wh = ri.viewport_size_render_at;
+      l.pos -= glm::vec2{ camera_t.position.x, camera_t.position.y };
+      l.pos += glm::vec2{ wh.x / 2.0f, wh.y / 2.0f };
+
+      // green
+      l.colour = engine::SRGBColour{ 0.6f, 0.6f, 1.0f, 1.0f };
+      l.luminence = 1.0f;
+    }
+  }
+
+  // what is i? how many lights were used?
+  int k = i;
+
+  ri.mix_lighting_and_scene.bind();
+
+  for (int i = 0; i < lights.size(); i++) {
+    const std::string label = "lights["s + std::to_string(i) + "]."s;
+
+    const auto& l = lights[i];
+    ri.mix_lighting_and_scene.set_bool(label + "enabled"s, l.enabled);
+    if (!l.enabled)
+      continue;
+    ri.mix_lighting_and_scene.set_vec2(label + "position"s, l.pos);
+    ri.mix_lighting_and_scene.set_vec4(label + "colour"s,
+                                       { l.colour.r / 255.0f, l.colour.g / 255.0f, l.colour.b / 255.0f, l.colour.a });
+    ri.mix_lighting_and_scene.set_float(label + "luminance"s, l.luminence);
+
+    if (i >= max_lights)
+      break;
+  }
 
   ImGui::Begin("DebugRenderPasses");
 
   for (auto& pass : ri.passes) {
     const auto pass_name = std::string(magic_enum::enum_name(pass.pass));
+    const auto& pass_enum = pass.pass;
     ImGui::Text("Pass: %s", pass_name.c_str());
+
+    // Optimisation:
+    // avoid some heavy passes on scene that doesnt need them.
+    // There's probably a better way to do this.
+
+    if (pass_enum == PassName::stars && !in_stars_scene) {
+      ImGui::SameLine();
+      ImGui::Text("(Skipped)");
+      continue;
+    }
+
+    if (in_jumpflood_pass(pass_enum) && !in_jumpflood_scene) {
+      ImGui::SameLine();
+      ImGui::Text("(Skipped)");
+      continue;
+    }
 
     const auto& wh = ri.viewport_size_render_at;
     // const glm::ivec2 scaled = { wh.x * rp.texture_scale_factor, wh.y * rp.texture_scale_factor };

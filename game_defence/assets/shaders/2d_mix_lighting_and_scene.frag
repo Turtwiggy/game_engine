@@ -12,7 +12,6 @@ in float v_tex_unit;
 
 uniform sampler2D scene_0;     // linear main
 uniform sampler2D scene_1; 		 // stars
-uniform sampler2D lighting_ao; // ambient occlusion
 uniform sampler2D u_distance_data; // distance data
 
 uniform float brightness_threshold = 0.8;
@@ -23,6 +22,19 @@ uniform vec2 viewport_wh;
 uniform float iTime;
 uniform bool put_starshader_behind;
 
+struct Light
+{
+	bool enabled;
+	vec2 position;
+	vec4 colour;
+	float luminance;
+
+	// not yet used
+	// float range;
+	// float radius;
+};
+#define MAX_LIGHTS 32
+uniform Light lights[MAX_LIGHTS];
 
 float
 SRGBFloatToLinearFloat(const float f)
@@ -60,102 +72,11 @@ vec3 lin_to_srgb(vec3 color)
   return clr.rgb;
 }
 
-// Combine distance field functions //
-
-float smoothMerge(float d1, float d2, float k)
-{
-    float h = clamp(0.5 + 0.5*(d2 - d1)/k, 0.0, 1.0);
-    return mix(d2, d1, h) - k * h * (1.0-h);
-}
-
-float merge(float d1, float d2)
-{
-	return min(d1, d2);
-}
-
-float mergeExclude(float d1, float d2)
-{
-	return min(max(-d1, d2), max(-d2, d1));
-}
-
-float substract(float d1, float d2)
-{
-	return max(-d1, d2);
-}
-
-float intersect(float d1, float d2)
-{
-	return max(d1, d2);
-}
-
-// Rotation and translation //
-
-vec2 rotateCCW(vec2 p, float a)
-{
-	mat2 m = mat2(cos(a), sin(a), -sin(a), cos(a));
-	return p * m;	
-}
-
-vec2 rotateCW(vec2 p, float a)
-{
-	mat2 m = mat2(cos(a), -sin(a), sin(a), cos(a));
-	return p * m;
-}
-
-vec2 translate(vec2 p, vec2 t)
-{
-	return p - t;
-}
-
-// Distance field functions //
-
-float pie(vec2 p, float angle)
-{
-	angle = radians(angle) / 2.0;
-	vec2 n = vec2(cos(angle), sin(angle));
-	return abs(p).x * n.x + p.y*n.y;
-}
+// sdf
 
 float circleDist(vec2 p, float radius)
 {
 	return length(p) - radius;
-}
-
-float triangleDist(vec2 p, float radius)
-{
-	return max(	abs(p).x * 0.866025 + 
-			   	p.y * 0.5, -p.y) 
-				-radius * 0.5;
-}
-
-float triangleDist(vec2 p, float width, float height)
-{
-	vec2 n = normalize(vec2(height, width / 2.0));
-	return max(	abs(p).x*n.x + p.y*n.y - (height*n.y), -p.y);
-}
-
-float semiCircleDist(vec2 p, float radius, float angle, float width)
-{
-	width /= 2.0;
-	radius -= width;
-	return substract(pie(p, angle), 
-					 abs(circleDist(p, radius)) - width);
-}
-
-float boxDist(vec2 p, vec2 size, float radius)
-{
-	size -= vec2(radius);
-	vec2 d = abs(p) - size;
-  	return min(max(d.x, d.y), 0.0) + length(max(d, 0.0)) - radius;
-}
-
-float lineDist(vec2 p, vec2 start, vec2 end, float width)
-{
-	vec2 dir = start - end;
-	float lngth = length(dir);
-	dir /= lngth;
-	vec2 proj = max(0.0, min(lngth, dot((start - p), dir))) * dir;
-	return length( (start - p) - proj ) - (width / 2.0);
 }
 
 // masks for drawing
@@ -173,13 +94,6 @@ float innerBorderMask(float dist, float width)
 	return alpha1 - alpha2;
 }
 
-float outerBorderMask(float dist, float width)
-{
-	//dist += 1.0;
-	float alpha1 = clamp(dist, 0.0, 1.0);
-	float alpha2 = clamp(dist - width, 0.0, 1.0);
-	return alpha1 - alpha2;
-}
 
 // the scene
 
@@ -187,59 +101,11 @@ float V2_F16(vec2 v) { return v.x + (v.y / 255.0); }
 float sceneDist(vec2 p)
 {
 	vec2 uv = p / viewport_wh;
-	float m_sign = texture2D(u_distance_data, uv).b;
-	float m = V2_F16(texture2D(u_distance_data, uv).rg) * 720 * m_sign;
+	
+	float m_sign = texture(u_distance_data, uv).b;
+	float m = V2_F16(texture(u_distance_data, uv).rg) * 720 * m_sign;
+
 	return m;
-	/*
-	float c = circleDist(		translate(p, vec2(100, 250)), 40.0);
-	float b1 =  boxDist(		translate(p, vec2(200, 250)), vec2(40, 40), 	0.0);
-	float b2 =  boxDist(		translate(p, vec2(300, 250)), vec2(40, 40), 	10.0);
-	float l = lineDist(			p, 			 vec2(370, 220),  vec2(430, 280),	10.0);
-	float t1 = triangleDist(	translate(p, vec2(500, 210)), 80.0, 			80.0);
-	float t2 = triangleDist(	rotateCW(translate(p, vec2(600, 250)), iTime), 40.0);
-	
-	m =	merge (m, c);
-	m =	merge(m, b1);
-	m =	merge(m, b2);
-	m =	merge(m, l);
-	m =	merge(m, t1);
-	m =	merge(m, t2);
-	
-	float b3 = boxDist(		translate(p, vec2(100, sin(iTime * 3.0 + 1.0) * 40.0 + 100.0)), 
-					   		vec2(40, 15), 	0.0);
-	float c2 = circleDist(	translate(p, vec2(100, 100)),	30.0);
-	float s = substract(b3, c2);
-	
-	float b4 = boxDist(		translate(p, vec2(200, sin(iTime * 3.0 + 2.0) * 40.0 + 100.0)), 
-					   		vec2(40, 15), 	0.0);
-	float c3 = circleDist(	translate(p, vec2(200, 100)), 	30.0);
-	float i = intersect(b4, c3);
-	
-	float b5 = boxDist(		translate(p, vec2(300, sin(iTime * 3.0 + 3.0) * 40.0 + 100.0)), 
-					   		vec2(40, 15), 	0.0);
-	float c4 = circleDist(	translate(p, vec2(300, 100)), 	30.0);
-	float a = merge(b5, c4);
-	
-	float b6 = boxDist(		translate(p, vec2(400, 100)),	vec2(40, 15), 	0.0);
-	float c5 = circleDist(	translate(p, vec2(400, 100)), 	30.0);
-	float sm = smoothMerge(b6, c5, 10.0);
-	
-	float sc = semiCircleDist(translate(p, vec2(500,100)), 40.0, 90.0, 10.0);
-    
-    float b7 = boxDist(		translate(p, vec2(600, sin(iTime * 3.0 + 3.0) * 40.0 + 100.0)), 
-					   		vec2(40, 15), 	0.0);
-	float c6 = circleDist(	translate(p, vec2(600, 100)), 	30.0);
-	float e = mergeExclude(b7, c6);
-    
-	m = merge(m, s);
-	m = merge(m, i);
-	m = merge(m, a);
-	m = merge(m, sm);
-	m = merge(m, sc);
-	m = merge(m, e);
-	
-	return m;
-	*/
 }
 
 float sceneSmooth(vec2 p, float r)
@@ -331,16 +197,17 @@ float AO(float dist, float radius, float intensity)
 
 void main()
 {
+	out_color.a = 1.0f;
+
 	// disable bloom
   out_bright_color = vec4(0.0, 0.0, 0.0, 1.0);
 
   // linear to srgb
   vec4 scene_lin = texture(scene_0, v_uv);
   vec3 stars = texture(scene_1, v_uv).rgb;
-  vec3 lighting_ao = texture(lighting_ao, v_uv).rgb;
 
 	if(put_starshader_behind){
-		out_color.rgb = stars;
+		out_color.rgb = stars.rgb + lin_to_srgb(scene_lin.rgb);
 		return;
 	}
 
@@ -358,7 +225,6 @@ void main()
 	// the dist at the center of the shape is negative, 
 	// increasing the furhter from edges
 	// the dist away from the shape is
-
 	/*
 	if(dist > 0){
 		out_color = vec4(dist, dist, dist, 1.0f);
@@ -374,35 +240,43 @@ void main()
 	}
 	*/
 
-  vec4 lightColGreen = vec4(0.6, 0.6, 1.0, 1.0);
-	setLuminance(lightColGreen, 1.0);
+  // vec4 lightColGreen = vec4(0.6, 0.6, 1.0, 1.0);
+	// setLuminance(lightColGreen, 1.0);
 
-  vec4 lightColOrange =  vec4(1.0, 0.75, 0.5, 1.0);
-	setLuminance(lightColOrange, 0.5);
+  // vec4 lightColOrange =  vec4(1.0, 0.75, 0.5, 1.0);
+	// setLuminance(lightColOrange, 0.5);
 
-	  vec4 lightColBlue = vec4(0.5, 0.75, 1.0, 1.0);
-	setLuminance(lightColBlue, 0.4);
+	// vec4 lightColBlue = vec4(0.5, 0.75, 1.0, 1.0);
+	// setLuminance(lightColBlue, 0.4);
 
 	vec2 half_wh = viewport_wh / 2.0;
 	vec2 screen_min = camera_pos - half_wh; // e.g. -960
 
-  // light
-	vec4 light1Col = lightColGreen;
-	vec4 light2Col = lightColOrange;
-	vec4 light3Col = lightColBlue;
-  vec2 light1Pos = light_pos.xy;
-	vec2 light2Pos = vec2(iResolution.x * (sin(iTime + 3.1415) + 1.2) / 2.4, 500.0) - screen_min;
-	vec2 light3Pos = vec2(iResolution.x * (sin(iTime) + 1.2) / 2.4, 100.0) - screen_min;
-
 	// gradient
 	// vec4 col = vec4(0.0, 0.0, 0.0, 1.0) * (1.0 - length(c - p)/iResolution.x);
-	vec4 col = vec4(0.0, 0.0, 0.0, 1.0);
-	// ambient occlusion
-	col *= AO(sceneSmooth(p, 10.0), 40.0, 0.4);
+
+	// optiona a
+	vec4 col = vec4(0.5, 0.5, 0.5, 1.0);
+	col *= AO(sceneDist(p), 40.0, 1.0);
+
+	// option b
+	// vec4 col = vec4(0.0, 0.0, 0.0, 1.0);
+	// col *= AO(sceneDist(p), 40.0, 0.5);
+
 	// light
-	col += drawLight(p, light1Pos, light1Col, dist, 300.0, 1.0);
-	col += drawLight(p, light2Pos, light2Col, dist, 300.0, 1.0);
-	col += drawLight(p, light3Pos, light3Col, dist, 300.0, 1.0);
+	for(int i = 0; i < MAX_LIGHTS; i++)
+	{
+		Light l = lights[i];
+
+		if(!l.enabled){
+			continue;
+		}
+
+ 		setLuminance(l.colour, 1.0);
+
+		col += drawLight(p, l.position, l.colour, dist, 500.0, 1.0);
+	}
+
 	// shape fill
 	// col = mix(col, vec4(1.0, 0.4, 0.0, 1.0), fillMask(dist));
 	// shape outline
@@ -413,8 +287,9 @@ void main()
 	// vec3 srgb_final = lin_to_srgb(lin_all);
 
 	vec3 srgb_final = col.rgb * lin_to_srgb(scene_lin.rgb);
-	
+	// vec3 srgb_final = col.rgb;
 	// srgb_final = col.rgb;
+	
 
 	out_color.rgb = srgb_final.rgb;
 	out_color.a = col.a;

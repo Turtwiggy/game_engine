@@ -21,9 +21,6 @@ setup_jump_flood_pass(entt::registry& r);
 void
 setup_voronoi_distance_field_update(entt::registry& r);
 
-void
-setup_lighting_ambient_occlusion_update(entt::registry& r);
-
 // mix scene and lighting textures
 void
 setup_mix_lighting_and_scene_update(entt::registry& r);

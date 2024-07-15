@@ -90,9 +90,11 @@ create_combat_entity(entt::registry& r, const CombatEntityDescription& desc)
     set_colour(r, e, r.get<DefaultColour>(e).colour);
     r.emplace_or_replace<PlayerComponent>(e);
   } else if (desc.team == AvailableTeams::enemy) {
-    r.emplace<DefaultColour>(e, engine::SRGBColour{ 0.8f, 0.3f, 0.0f, 1.0f });
+
+    r.emplace<DefaultColour>(e, engine::SRGBColour{ 1.0f, 1.0f, 1.0f, 1.0f });
     r.emplace<HoveredColour>(e, engine::SRGBColour{ 1.0f, 0.0f, 0.0f, 1.0f });
     set_colour(r, e, r.get<DefaultColour>(e).colour);
+
     r.emplace_or_replace<EnemyComponent>(e);
 
     r.get<HealthComponent>(e).hp = 100;
@@ -490,7 +492,7 @@ move_to_scene_start(entt::registry& r, const Scene s, const bool load_saved)
     }
 
     // Create 4 edges to the map
-    bool create_edges = true;
+    bool create_edges = false;
     if (create_edges)
       add_boundary_walls(r, map_width, map_height, map_c.tilesize);
 

@@ -292,7 +292,6 @@ update(engine::SINGLETON_Application& app, entt::registry& r, const float dt)
       // update_intent_pickup_system(r);
       // update_intent_drop_item_system(r);
       // update_sprint_system(r, dt);
-      //   update_ui_inventory(r);
       //   update_ui_selected(r);
       //   update_ui_arrows_to_spawners_system(r);
       //   update_ui_player_name_above_player_system(r);

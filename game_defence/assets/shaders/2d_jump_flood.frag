@@ -39,7 +39,7 @@ main()
     // voffset += offsets[i] * SCREEN_PIXEL_SIZE * u_offset;
     
     vec2 jump = v_uv + (offsets[i] * (u_offset / screen_wh));
-    vec4 seed = texture2D(tex, jump);
+    vec4 seed = texture(tex, jump);
     vec2 seedpos = vec2(V2_F16(seed.xy), V2_F16(seed.zw));
     float dist = distance(seedpos, v_uv);
 
