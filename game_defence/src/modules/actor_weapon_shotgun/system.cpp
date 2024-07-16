@@ -49,13 +49,12 @@ update_weapon_shotgun_system(entt::registry& r, const uint64_t milliseconds_dt)
 
   const auto& view = r.view<ShotgunComponent,
                             HasParentComponent,
-                            AttackCooldownComponent,
                             AABB,
                             TransformComponent,
                             // const HasTargetPositionComponent,
                             VelocityComponent>(entt::exclude<WaitForInitComponent>);
 
-  for (const auto& [entity, shotgun, parent, cooldown, gun_aabb, shotgun_transform, gun_velocity] : view.each()) {
+  for (const auto& [entity, shotgun, parent, gun_aabb, shotgun_transform, gun_velocity] : view.each()) {
 
     const auto& p = parent.parent;
     if (p == entt::null || !r.valid(p)) {
@@ -114,10 +113,14 @@ update_weapon_shotgun_system(entt::registry& r, const uint64_t milliseconds_dt)
       r.remove<WantsToReleaseShot>(p);
     }
 
+    // Gun may not have a cooldown component
+    auto* cooldown = r.try_get<AttackCooldownComponent>(p);
+
     // fire shots in a spread
     // const bool aiming = glm::abs(input.rx) > 0.3f || glm::abs(input.ry) > 0.3f;
-    bool allowed_to_shoot = !cooldown.on_cooldown;
-    allowed_to_shoot &= shoot_pressed; // input
+    bool allowed_to_shoot = shoot_pressed;
+    if (cooldown)
+      allowed_to_shoot &= !cooldown->on_cooldown;
 
     if (allowed_to_shoot) {
       // TODO: improve this. This spams the audio system.
@@ -127,8 +130,10 @@ update_weapon_shotgun_system(entt::registry& r, const uint64_t milliseconds_dt)
       shotgun.recoil_amount = shotgun.recoil_amount_max;
 
       // put gun on cooldown
-      cooldown.on_cooldown = true;
-      cooldown.time_between_attack_left = cooldown.time_between_attack;
+      if (cooldown) {
+        cooldown->on_cooldown = true;
+        cooldown->time_between_attack_left = cooldown->time_between_attack;
+      }
 
       // spread the bullets out in an arc
       // const glm::vec2 r_nrm_dir = { input.rx, input.ry };

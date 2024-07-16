@@ -4,9 +4,7 @@
 
 namespace game2d {
 
-struct SINGLE_SplashScreen
-{
-  float time_on_splashscreen_seconds = 1.5f;
-};
+void
+update_ui_combat_begin_system(entt::registry& r);
 
 } // namespace game2d

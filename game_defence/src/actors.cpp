@@ -330,7 +330,7 @@ create_gameplay(entt::registry& r, const EntityType& type)
       r.emplace<TurnBasedUnitComponent>(e);
       r.emplace<SpawnParticlesOnDeath>(e);
 
-      const int move_limit = 5;
+      const int move_limit = 1;
       r.emplace<MoveLimitComponent>(e, move_limit);
 
       const int hp = 500; // player hp
@@ -452,7 +452,7 @@ create_gameplay(entt::registry& r, const EntityType& type)
       create_physics_actor(r, e);
       r.emplace<ShotgunComponent>(e);
 
-      r.emplace<AttackCooldownComponent>(e, 1.2f); // seconds between shooting
+      // r.emplace<AttackCooldownComponent>(e, 1.2f); // seconds between shooting
       r.emplace<HasParentComponent>(e);
 
       WeaponBulletTypeToSpawnComponent bullet_info;

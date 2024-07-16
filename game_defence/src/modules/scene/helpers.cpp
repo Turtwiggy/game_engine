@@ -226,6 +226,37 @@ move_to_scene_start(entt::registry& r, const Scene s, const bool load_saved)
     //   set_position(r, e, { 0, -600 });
     //   r.get<TransformComponent>(e).position.z = -2; // behind everything
     // }
+
+    // As the camera is at 0, 0,
+    // worldspace text around the camera would be from e.g. -width/2 to width/2
+    const auto half_wh = ri.viewport_size_render_at / glm::ivec2(2.0f, 2.0f);
+
+    // create a piece of worldspace text with the title
+    // this'll probably be replaced by an icon
+    {
+      const std::string label = "Solar War";
+      const ImVec2 xy = ImGui::CalcTextSize(label.c_str());
+      const auto ypos = -half_wh.y + ((half_wh.y * 2.0f) / 6.0);
+      const auto e = create_gameplay(r, EntityType::empty_with_transform);
+      auto& ui = r.emplace<WorldspaceTextComponent>(e);
+      ui.text = label;
+      ui.font_scale = 1.0f;
+      set_position(r, e, { 0, ypos });
+      set_size(r, e, { 0, 0 });
+    };
+
+    // create a piece of worldspace text for support
+    {
+      const std::string label = "v0.0.4   Issues/Feedback on X @Wiggy_dev or via https://turtwiggy.itch.io/solar-war-alpha";
+      const ImVec2 xy = ImGui::CalcTextSize(label.c_str());
+      const float padding = 12;
+
+      const auto e = create_gameplay(r, EntityType::empty_with_transform);
+      auto& ui = r.emplace<WorldspaceTextComponent>(e);
+      ui.text = label;
+      set_position(r, e, { -half_wh.x + (xy.x / 2.0f) + padding, half_wh.y - xy.y });
+      set_size(r, e, { 0, 0 });
+    };
   }
 
   const auto get_seed_from_systemtime = []() -> time_t {
@@ -437,6 +468,22 @@ move_to_scene_start(entt::registry& r, const Scene s, const bool load_saved)
     const auto cursor_e = create_gameplay(r, EntityType::cursor);
     set_size(r, cursor_e, { 0, 0 });
 
+    // make the entire debug space a room
+    const int room_width = map_width / map_c.tilesize;
+    const int room_height = map_height / map_c.tilesize;
+
+    Room room;
+    room.tl = { 0, 0 };
+    room.aabb.center = { room.tl.x + (room_width / 2), room.tl.y + (room_height / 2) };
+    room.aabb.size = { room_width, room_height };
+    create_empty<Room>(r, room);
+
+    DungeonGenerationResults result;
+    result.rooms.push_back(room);
+    std::vector<int> wall_or_floors(map_c.xmax * map_c.ymax, 0); // 1: everything as floor
+    result.wall_or_floors = wall_or_floors;
+    create_empty<DungeonGenerationResults>(r, result);
+
     int players = 1;
     int enemies = 1;
 
@@ -491,7 +538,7 @@ move_to_scene_start(entt::registry& r, const Scene s, const bool load_saved)
     }
 
     // Create 4 edges to the map
-    bool create_edges = false;
+    bool create_edges = true;
     if (create_edges)
       add_boundary_walls(r, map_width, map_height, map_c.tilesize);
 

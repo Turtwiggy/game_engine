@@ -47,7 +47,13 @@ update_ui_worldspace_text_system(entt::registry& r)
     ImGui::Begin(beginlabel.c_str(), NULL, flags);
     ImGui::PushID(eid);
 
+    if (wst_c.font_scale != 1.0f)
+      ImGui::SetWindowFontScale(wst_c.font_scale);
+
     ImGui::Text("%s", wst_c.text.c_str());
+
+    if (wst_c.font_scale != 1.0f)
+      ImGui::SetWindowFontScale(1.0f);
 
     ImGui::PopID();
     ImGui::End();

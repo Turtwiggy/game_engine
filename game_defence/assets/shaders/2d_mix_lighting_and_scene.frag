@@ -260,9 +260,8 @@ void main()
 	// col *= AO(sceneDist(p), 40.0, 1.0);
 
 	// option b
-	 vec4 col = vec4(0.0, 0.0, 0.0, 1.0);
-	//  col *= AO(sceneSmooth(p, 10.0), 40.0, 1.0);	
-
+	 vec4 col = vec4(0.3, 0.3, 0.3, 1.0);
+	 col *= AO(sceneSmooth(p, 10.0), 40.0, 0.4);	
 	// light
 	for(int i = 0; i < MAX_LIGHTS; i++)
 	{

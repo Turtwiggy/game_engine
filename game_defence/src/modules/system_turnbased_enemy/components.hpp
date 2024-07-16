@@ -6,15 +6,18 @@
 
 namespace game2d {
 
-// per-enemy info...
-struct TurnState
+enum class Actions
 {
-  bool completed_move = false;
-  bool completed_shot = false;
+  MOVE,
+  ATTACK,
+};
 
-  // hack for debugging enemy ai
-  bool do_move = true;
-  bool do_shoot = true;
+// Each entity gets X actions before the other team gets to go
+struct ActionState
+{
+  int actions_available = 2; // per turn
+  int actions_completed = 0;
+  // std::vector<> actions_completed;
 };
 
 // when the team's turn is complete...

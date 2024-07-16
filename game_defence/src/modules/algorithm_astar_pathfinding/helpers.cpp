@@ -388,6 +388,9 @@ destination_is_blocked(entt::registry& r, const glm::ivec2 worldspace_pos)
     const auto& comp = r.get<PathfindComponent>(ent);
     if (comp.cost == -1)
       return true;
+
+    // if there's anything at the destination, consider it blocked.
+    return true;
   }
 
   return false;

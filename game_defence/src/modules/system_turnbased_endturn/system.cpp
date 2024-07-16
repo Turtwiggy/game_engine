@@ -4,11 +4,23 @@
 #include "modules/actors/helpers.hpp"
 #include "modules/algorithm_astar_pathfinding/helpers.hpp"
 #include "modules/combat_damage/components.hpp"
+#include "modules/combat_wants_to_shoot/components.hpp"
 #include "modules/system_change_gun_colour/helpers.hpp"
 #include "modules/system_turnbased_enemy/components.hpp"
 #include "modules/ui_colours/helpers.hpp"
 
+#include <fmt/core.h>
+
 namespace game2d {
+
+void
+teleport_to_destination(entt::registry& r, const entt::entity& e)
+{
+  if (has_destination(r, e) && !at_destination(r, e)) {
+    const auto& path = r.get<GeneratedPathComponent>(e);
+    set_position(r, e, path.dst_pos);
+  }
+}
 
 void
 update_turnbased_endturn_system(entt::registry& r)
@@ -19,24 +31,15 @@ update_turnbased_endturn_system(entt::registry& r)
     return;
   const auto request = get_first_component<RequestToCompleteTurn>(r);
   r.destroy(req_view.begin(), req_view.end());
+  fmt::println("End turn request...");
 
-  // At end of turn, if you're not at your destination, teleport there
-  for (const auto& [e, ts_c] : r.view<TurnState>().each()) {
-    if (has_destination(r, e) && !at_destination(r, e)) {
-      const auto& path = r.get<GeneratedPathComponent>(e);
-      set_position(r, e, path.dst_pos);
-    }
-
-    // reset gun colour state
-    const auto gun_e = get_gun(r, e);
-    if (gun_e == entt::null)
-      continue;
-    set_colour(r, gun_e, get_srgb_colour_by_tag(r, "weapon_shotgun"));
-  }
+  // If anything is left moving, teleport it
+  // for (const auto& [e, ts_c] : r.view<ActionState>().each())
+  //   teleport_to_destination(r, e);
 
   // At end of turn, Destroy everything's turnstate
-  const auto reqs = r.view<TurnState>();
-  r.remove<TurnState>(reqs.begin(), reqs.end());
+  const auto reqs = r.view<ActionState>();
+  r.remove<ActionState>(reqs.begin(), reqs.end());
 
   auto& turn_state = get_first_component<SINGLE_CombatState>(r);
   const auto& current_team_turn = turn_state.team;

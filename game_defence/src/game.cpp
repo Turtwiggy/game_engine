@@ -44,6 +44,8 @@
 #include "modules/ui_audio/system.hpp"
 #include "modules/ui_collisions/system.hpp"
 #include "modules/ui_colours/system.hpp"
+#include "modules/ui_combat_begin/system.hpp"
+#include "modules/ui_combat_ended/system.hpp"
 #include "modules/ui_combat_endturn/system.hpp"
 #include "modules/ui_combat_turnbased/system.hpp"
 #include "modules/ui_controllers/system.hpp"
@@ -79,7 +81,7 @@ init(engine::SINGLETON_Application& app, entt::registry& r)
   const auto start = std::chrono::high_resolution_clock::now();
 
   // Fonts
-  // auto& io = ImGui::GetIO();
+  auto& io = ImGui::GetIO();
   // float font_scale = 12.0f;
   //   font_scale = 18.0f; // 4k scale?
   // io.Fonts->AddFontFromFileTTF("./assets/fonts/ImPerfect23.ttf", font_scale);
@@ -311,7 +313,7 @@ update(engine::SINGLETON_Application& app, entt::registry& r, const float dt)
       update_spawn_particles_on_death_system(r);
       update_set_velocity_to_target_system(r, dt);
       update_spawner_system(r, milliseconds_dt);
-      update_wants_to_shoot_system(r);
+      // update_wants_to_shoot_system(r);
       update_weapon_shotgun_system(r, milliseconds_dt);
       update_rotate_around_spot_system(r, dt);
     }
@@ -391,6 +393,8 @@ update(engine::SINGLETON_Application& app, entt::registry& r, const float dt)
     }
 
     if (scene.s == Scene::turnbasedcombat || scene.s == Scene::dungeon_designer) {
+      update_ui_combat_begin_system(r);
+      update_ui_combat_ended_system(r);
       update_ui_inventory_system(r);
     }
 
