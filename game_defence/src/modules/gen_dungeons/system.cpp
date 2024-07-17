@@ -189,7 +189,9 @@ update_gen_dungeons_system(entt::registry& r, const glm::ivec2& mouse_pos)
     if (result.wall_or_floors[idx] == 1) {
       auto& ents = map.map[idx];
 
-      const auto e = create_empty<PathfindComponent>(r, PathfindComponent{ -1 });
+      const auto e = create_gameplay(r, EntityType::empty_no_transform);
+      r.emplace<PathfindComponent>(e, PathfindComponent{ -1 });
+
       ents.push_back(e);
     }
   }

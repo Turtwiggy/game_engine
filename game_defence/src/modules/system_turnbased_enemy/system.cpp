@@ -112,8 +112,8 @@ move_action(entt::registry& r, const entt::entity& e)
         return; // FIX: entity moved outside a room?
 
       const auto room = e_room.value();
-      const int x = int(engine::rand_det_s(rnd.rng, room.tl.x, room.tl.x + room.aabb.size.x - 1));
-      const int y = int(engine::rand_det_s(rnd.rng, room.tl.y, room.tl.y + room.aabb.size.y - 1));
+      const int x = int(engine::rand_det_s(rnd.rng, room.tl.x, room.tl.x + room.aabb.size.x));
+      const int y = int(engine::rand_det_s(rnd.rng, room.tl.y, room.tl.y + room.aabb.size.y));
       const int dst_idx = engine::grid::grid_position_to_index({ x, y }, map.xmax);
       auto dst = engine::grid::index_to_world_position(dst_idx, map.xmax, map.ymax, map.tilesize);
       dst += glm::ivec2{ map.tilesize / 2.0f, map.tilesize / 2.0f };

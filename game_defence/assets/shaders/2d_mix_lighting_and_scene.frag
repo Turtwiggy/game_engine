@@ -256,12 +256,13 @@ void main()
 	// vec4 col = vec4(0.0, 0.0, 0.0, 1.0) * (1.0 - length(c - p)/iResolution.x);
 
 	// optiona a
-	// vec4 col = vec4(0.5, 0.5, 0.5, 1.0);
-	// col *= AO(sceneDist(p), 40.0, 1.0);
+	vec4 col = vec4(0.0, 0.0, 0.0	, 1.0);
+	// col *= AO(sceneDist(p), 20.0, 0.5);
 
 	// option b
-	 vec4 col = vec4(0.3, 0.3, 0.3, 1.0);
-	 col *= AO(sceneSmooth(p, 10.0), 40.0, 0.4);	
+	//  vec4 col = vec4(0.0, 0.0, 0.0, 1.0);
+	//  col *= AO(sceneDist(p), 40.0, 0.5);	
+
 	// light
 	for(int i = 0; i < MAX_LIGHTS; i++)
 	{
@@ -271,9 +272,9 @@ void main()
 			continue;
 		}
 
- 		setLuminance(l.colour, 0.5);
+ 		setLuminance(l.colour, 0.9);
 
-		col += drawLight(p, l.position, l.colour, dist, 300.0, 1.0);
+		col += drawLight(p, l.position, l.colour, dist, 350.0, 1.0);
 	}
 
 	// shape fill

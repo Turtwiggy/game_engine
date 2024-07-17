@@ -141,6 +141,9 @@ update_weapon_shotgun_system(entt::registry& r, const uint64_t milliseconds_dt)
       constexpr float bullet_angle_degrees = 5.0f;
       constexpr float bullet_angle_radians = bullet_angle_degrees * engine::Deg2Rad;
 
+      // give all the bullets the same attack id
+      AttackIdComponent attack_id_comp;
+
       const auto& bullet_info = r.get<WeaponBulletTypeToSpawnComponent>(entity);
       for (int i = 0; i < shotgun.bullets_to_spawn; i++) {
 
@@ -170,7 +173,8 @@ update_weapon_shotgun_system(entt::registry& r, const uint64_t milliseconds_dt)
 
         // Turn the bullet Live!
         r.emplace_or_replace<TeamComponent>(req, parent_team.team);
-        r.emplace_or_replace<AttackComponent>(req, int(bullet_info.bullet_damage));
+        r.emplace_or_replace<AttackComponent>(req, AttackComponent{ int(bullet_info.bullet_damage) });
+        r.emplace<AttackIdComponent>(req, attack_id_comp);
         r.emplace_or_replace<EntityTimedLifecycle>(req);
       }
     }
