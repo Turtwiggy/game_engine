@@ -159,7 +159,7 @@ update_weapon_shotgun_system(entt::registry& r, const uint64_t milliseconds_dt)
         const auto req = create_gameplay(r, bullet_info.bullet_type);
         r.get_or_emplace<HasParentComponent>(req).parent = p;
 
-        const glm::ivec2 bullet_position = gun_aabb.center + glm::ivec2(offset.x, offset.y);
+        const glm::ivec2 bullet_position = parent_aabb.center + glm::ivec2(offset.x, offset.y);
 
         auto& bullet_transform = r.get<TransformComponent>(req);
         bullet_transform.position = { bullet_position.x, bullet_position.y, 0.0f };

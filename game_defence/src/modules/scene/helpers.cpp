@@ -246,14 +246,14 @@ move_to_scene_start(entt::registry& r, const Scene s, const bool load_saved)
 
     // create a piece of worldspace text for support
     {
-      const std::string label = "v0.0.4   Issues/Feedback on X @Wiggy_dev or via https://turtwiggy.itch.io/solar-war-alpha";
+      const std::string label = "v0.0.4  Got feedback? Discord @turtwiggy or https://turtwiggy.itch.io/solar-war-alpha";
       const ImVec2 xy = ImGui::CalcTextSize(label.c_str());
       const float padding = 12;
 
       const auto e = create_gameplay(r, EntityType::empty_with_transform);
       auto& ui = r.emplace<WorldspaceTextComponent>(e);
       ui.text = label;
-      set_position(r, e, { -half_wh.x + (xy.x / 2.0f) + padding, half_wh.y - xy.y });
+      set_position(r, e, { -half_wh.x + (xy.x / 2.0f) + padding, half_wh.y - xy.y - 6 });
       set_size(r, e, { 0, 0 });
     };
   }

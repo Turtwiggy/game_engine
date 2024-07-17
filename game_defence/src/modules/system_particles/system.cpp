@@ -7,7 +7,6 @@
 #include "modules/combat_attack_cooldown/components.hpp"
 #include "modules/combat_attack_cooldown/helpers.hpp"
 #include "modules/system_particles/helpers.hpp"
-#include "physics/components.hpp"
 #include "renderer/transform.hpp"
 
 namespace game2d {
@@ -15,7 +14,8 @@ namespace game2d {
 void
 update_particle_system(entt::registry& r, const float dt)
 {
-  // TEMP: should not be here. set position to parents position
+  // TEMP: should not be here.
+  // set position to parents position
   for (const auto& [e, request, has_parent] :
        r.view<const SetPositionToParentsPosition, const HasParentComponent>().each()) {
     const glm::ivec2 base_position = get_position(r, has_parent.parent);
@@ -53,6 +53,7 @@ update_particle_system(entt::registry& r, const float dt)
   // spawn the particles
   const auto& view = r.view<ParticleEmitterComponent, AttackCooldownComponent>(entt::exclude<WaitForInitComponent>);
   for (const auto& [e, emitter, cooldown] : view.each()) {
+
     if (!cooldown.on_cooldown) {
 
       if (emitter.spawn_all_particles_at_once) {

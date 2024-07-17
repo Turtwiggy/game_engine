@@ -16,9 +16,9 @@ struct WeaponBulletTypeToSpawnComponent
 
 struct ShotgunComponent
 {
-  int bullets_to_spawn = 3;
+  int bullets_to_spawn = 2;
 
-  float offset_amount = 25.0;
+  float offset_amount = 20.0;
 
   float recoil_regain_speed = 100.0f;
   float recoil_amount = 5.0;
