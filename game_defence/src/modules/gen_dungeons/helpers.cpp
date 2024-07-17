@@ -363,6 +363,7 @@ instantiate_walls(entt::registry& r, std::vector<Line>& lines, DungeonGeneration
 
     // instantiate room
     const auto room_to_create = create_gameplay(r, EntityType::empty_with_transform);
+    r.get<TagComponent>(room_to_create).tag = "empty_with_transform:Room";
     set_position(r, room_to_create, worldspace_center);
     set_size(r, room_to_create, worldspace_size);
     r.emplace<Room>(room_to_create, room);

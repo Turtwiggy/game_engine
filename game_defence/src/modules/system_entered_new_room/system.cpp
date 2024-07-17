@@ -72,7 +72,7 @@ update_entered_new_room_system(entt::registry& r, const float dt)
       if (req.room == room) {
         room_name = std::to_string(static_cast<uint32_t>(room_e));
 
-        const std::string label = "Entered room"s + room_name.value();
+        const std::string label = "Entered room "s + room_name.value();
         evts.events.push_back(label);
 
         break;
@@ -104,7 +104,7 @@ update_entered_new_room_system(entt::registry& r, const float dt)
     // text size
     std::string label = "N/A";
     if (room_name.has_value())
-      label = "Entered Room: "s + room_name.value();
+      label = "Entered Room "s + room_name.value();
     ImGuiStyle& style = ImGui::GetStyle();
     const float alignment = 0.5f;
     const float size = ImGui::CalcTextSize(label.c_str()).x + style.FramePadding.x * 2.0f;
@@ -112,7 +112,7 @@ update_entered_new_room_system(entt::registry& r, const float dt)
     // window size
     const float forced_padding = size / 2.0;
     const float w = size + forced_padding;
-    const float h = w * (9 / 16.0f) / 2.0f;
+    const float h = 16.0f;
     ImGui::SetNextWindowSizeConstraints(ImVec2(w, h), ImVec2(w, h));
 
     // position

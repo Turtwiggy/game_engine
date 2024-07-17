@@ -1,6 +1,8 @@
 #include "modules/ui_worldspace_text/system.hpp"
 
 #include "components.hpp"
+#include "helpers.hpp"
+
 #include "entt/helpers.hpp"
 #include "modules/camera/helpers.hpp"
 #include "modules/renderer/components.hpp"
@@ -11,32 +13,6 @@
 
 namespace game2d {
 using namespace std::literals;
-
-const auto split_paragrah = [](const std::string& str, const int& len) -> std::vector<std::string> {
-  std::vector<std::string> results;
-
-  int start = 0;
-  while (start < str.size()) {
-    int end = start + len;
-
-    // Get the nearest ' ' char to the end of the sentence
-    if (end < str.size() && str[end] != ' ') {
-      const int space_pos = str.rfind(' ', end);
-      if (space_pos != std::string::npos && space_pos > start)
-        end = space_pos;
-    }
-
-    // add the sentence so far
-    results.push_back(str.substr(start, end - start));
-
-    // onwards..!
-    start = end;
-    while (start < str.size() && str[start] == ' ')
-      ++start; // Skip spaces
-  }
-
-  return results;
-};
 
 void
 update_ui_worldspace_text_system(entt::registry& r)
@@ -75,9 +51,12 @@ update_ui_worldspace_text_system(entt::registry& r)
     // if (wst_c.font_scale != 1.0f)
     //   ImGui::SetWindowFontScale(wst_c.font_scale);
 
-    const auto shortened = split_paragrah(wst_c.text, 20);
-    for (const auto& line : shortened)
-      ImGui::Text("%s", line.c_str());
+    if (wst_c.split_text_into_chunks) {
+      const auto shortened = split_string_nearest_space(wst_c.text, wst_c.chunk_length);
+      for (const auto& line : shortened)
+        ImGui::Text("%s", line.c_str());
+    } else
+      ImGui::Text("%s", wst_c.text.c_str());
 
     // if (wst_c.font_scale != 1.0f)
     //   ImGui::SetWindowFontScale(1.0f);

@@ -17,6 +17,7 @@
 #include "modules/actor_weapon_shotgun/system.hpp"
 #include "modules/animation/angle_to_velocity.hpp"
 #include "modules/animation/rotate_around_spot.hpp"
+#include "modules/animation/wiggle_up_and_down.hpp"
 #include "modules/animator/system.hpp"
 #include "modules/camera/helpers.hpp"
 #include "modules/camera/system.hpp"
@@ -58,6 +59,7 @@
 #include "modules/ui_patrol/system.hpp"
 #include "modules/ui_pause_menu/system.hpp"
 #include "modules/ui_scene_main_menu/system.hpp"
+#include "modules/ui_worldspace_sprite/system.hpp"
 #include "modules/ui_worldspace_text/system.hpp"
 #include "modules/ux_hoverable_change_colour/system.hpp"
 #include "modules/ux_selectable_by_keyboard/system.hpp"
@@ -299,7 +301,7 @@ update(engine::SINGLETON_Application& app, entt::registry& r, const float dt)
 
       // REMOVED SYSTEMS... for one reason or another.
       //
-      // update_wiggle_up_and_down_system(r, dt);
+      //
       // update_sprite_spritestack_system(r, dt);
       // update_actor_bodypart_head_system(r, dt, mouse_pos);
       // update_actor_bodypart_legs_system(r, dt, mouse_pos);
@@ -331,6 +333,7 @@ update(engine::SINGLETON_Application& app, entt::registry& r, const float dt)
       update_weapon_shotgun_system(r, milliseconds_dt);
       update_rotate_around_spot_system(r, dt);
       update_quips_system(r);
+      update_wiggle_up_and_down_system(r, dt);
     }
 
     if (scene.s == Scene::overworld) {
@@ -415,6 +418,7 @@ update(engine::SINGLETON_Application& app, entt::registry& r, const float dt)
     }
 
     update_ui_worldspace_text_system(r);
+    update_ui_worldspace_sprite_system(r);
     update_ui_pause_menu_system(app, r);
     update_ui_gameover_system(r);
     update_ui_event_console_system(r);

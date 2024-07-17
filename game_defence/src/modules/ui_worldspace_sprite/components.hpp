@@ -6,7 +6,7 @@
 
 namespace game2d {
 
-struct WorldspaceTextComponent
+struct WorldspaceSpriteRequestComponent
 {
   std::string text;
   glm::ivec2 offset{ 0, 0 };

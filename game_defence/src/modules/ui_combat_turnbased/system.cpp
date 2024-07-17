@@ -7,6 +7,7 @@
 #include "events/components.hpp"
 #include "events/helpers/keyboard.hpp"
 #include "events/helpers/mouse.hpp"
+#include "game_state.hpp"
 #include "maths/grid.hpp"
 #include "modules/actors/helpers.hpp"
 #include "modules/algorithm_astar_pathfinding/helpers.hpp"
@@ -64,7 +65,6 @@ change_cursor(entt::registry& r, const CursorType& type)
 void
 update_ui_combat_turnbased_system(entt::registry& r, const glm::ivec2& input_mouse_pos)
 {
-
   const auto& map_e = get_first<MapComponent>(r);
   if (map_e == entt::null)
     return;
@@ -135,6 +135,10 @@ update_ui_combat_turnbased_system(entt::registry& r, const glm::ivec2& input_mou
 
   // limit: must be player turn
   if (state.team != AvailableTeams::player)
+    return;
+
+  const bool paused = get_first_component<SINGLETON_GameStateComponent>(r).state == GameState::PAUSED;
+  if (paused)
     return;
 
   for (const auto& [e, selected_c, aabb] : selected_view.each()) {

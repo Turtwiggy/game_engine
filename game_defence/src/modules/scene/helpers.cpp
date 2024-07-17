@@ -317,7 +317,8 @@ move_to_scene_start(entt::registry& r, const Scene s, const bool load_saved)
 
     // spawnables below
     //
-    if (load_saved)
+    // if (load_saved)
+    if (false)
       load_if_exists(r, "save-overworld.json");
     else {
 #if defined(_DEBUG)

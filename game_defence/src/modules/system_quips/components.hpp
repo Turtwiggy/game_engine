@@ -22,4 +22,16 @@ struct SINGLE_QuipsComponent
   std::vector<std::string> quips_hit_unused;
 };
 
+enum class QuipType
+{
+  ENTER_ROOM,
+  TOOK_DAMAGE,
+};
+
+struct RequestQuip
+{
+  QuipType type;
+  entt::entity quipp_e = entt::null;
+};
+
 } // namespace game2d

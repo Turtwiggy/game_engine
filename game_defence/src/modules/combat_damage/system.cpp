@@ -10,6 +10,7 @@
 #include "modules/screenshake/components.hpp"
 #include "modules/system_knockback/components.hpp"
 #include "modules/system_particles/components.hpp"
+#include "modules/system_quips/components.hpp"
 #include "modules/ui_event_console/components.hpp"
 #include "physics/components.hpp"
 
@@ -126,8 +127,21 @@ update_take_damage_system(entt::registry& r)
     const auto b_team = std::string(magic_enum::enum_name(r.get<TeamComponent>(request.to).team));
     const auto b_hp = std::to_string(r.get<HealthComponent>(request.to).hp);
 
+    // log event to combat log
     const auto message = fmt::format("{} ({}) -{}HP. CUR:{}", pretty_b_name, b_team, damage, b_hp);
     evts.events.push_back(message);
+
+    // quip & roll a dice to say a quip.
+    // BUG: taking damage from a shotgun has
+    // 3 damage instances occur, but technically its all part of the same attack.
+    // that could result in 3 rolls at quipping which is no good
+    const bool should_quip = engine::rand_01(rnd.rng) < 0.05f;
+    if (should_quip) {
+      RequestQuip quip_req;
+      quip_req.type = QuipType::TOOK_DAMAGE;
+      quip_req.quipp_e = request.to;
+      create_empty<RequestQuip>(r, quip_req);
+    }
 
     //
     if (hp->hp <= 0) {

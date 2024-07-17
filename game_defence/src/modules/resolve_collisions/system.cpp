@@ -50,20 +50,6 @@ player_asteroid_collison(entt::registry& r, const entt::entity& a, const entt::e
 }
 
 void
-enemy_barricade_collision(entt::registry& r, const entt::entity& a, const entt::entity& b)
-{
-  const auto [a_ent, b_ent] = collision_of_interest<const EnemyComponent, const EntityTypeComponent>(r, a, b);
-
-  if (a_ent != entt::null && b_ent != entt::null) {
-    // If an enemy collides with a barricade, set that as the new target
-    const auto& b_type = r.get<EntityTypeComponent>(b_ent).type;
-    if (b_type == EntityType::actor_barricade) {
-      r.get_or_emplace<DynamicTargetComponent>(a_ent).target = b_ent;
-    }
-  }
-}
-
-void
 enemy_player_collision(entt::registry& r, const entt::entity& a, const entt::entity& b)
 {
   auto& dead = get_first_component<SINGLETON_EntityBinComponent>(r);
@@ -135,7 +121,6 @@ update_resolve_collisions_system(entt::registry& r)
       create_empty<DealDamageRequest>(r, DealDamageRequest{ from, to });
     }
 
-    // enemy_barricade_collision(r, a, b);
     enemy_player_collision(r, a, b);
     player_asteroid_collison(r, a, b);
   }
