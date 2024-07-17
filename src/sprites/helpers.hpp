@@ -4,6 +4,7 @@
 #include "components.hpp"
 
 // std libs
+#include <optional>
 #include <string>
 #include <vector>
 

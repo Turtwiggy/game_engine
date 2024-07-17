@@ -105,7 +105,7 @@ update_gen_dungeons_system(entt::registry& r, const glm::ivec2& mouse_pos)
 #if defined(_DEBUG)
   // HACK: force regenerate dungeon
   const auto& input = get_first_component<SINGLETON_InputComponent>(r);
-  if (get_key_down(input, SDL_SCANCODE_I))
+  if (get_key_down(input, SDL_SCANCODE_KP_0))
     create_empty<RequestGenerateDungeonComponent>(r);
 #endif
 

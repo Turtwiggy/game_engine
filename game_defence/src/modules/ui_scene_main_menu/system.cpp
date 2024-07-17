@@ -12,6 +12,7 @@
 #include "modules/renderer/helpers.hpp"
 #include "modules/scene/components.hpp"
 #include "modules/scene/helpers.hpp"
+#include "modules/ui_inventory/helpers.hpp"
 
 #include <glm/glm.hpp>
 #include <imgui.h>
@@ -122,73 +123,69 @@ update_ui_scene_main_menu(engine::SINGLETON_Application& app, entt::registry& r)
   icon_flags |= ImGuiWindowFlags_AlwaysAutoResize;
   icon_flags |= ImGuiWindowFlags_NoBackground;
 
-  // window settings
-  const int size_x = 1000;
-  const int size_y = 500;
-  const float cols_x = 20;
-  const float cols_y = 10;
-  const float pixels_x = size_x / cols_x;
-  const float pixels_y = size_y / cols_y;
-  const glm::ivec2 unmute_icon_offset{ 5, 0 };
-  const glm::ivec2 mute_icon_offset{ 5, 1 };
-  const ImVec2 icon_size = { 50, 50 };
   const float distance_from_right_of_screen = 75;
   const float distance_from_top_of_screen = 75;
-  static glm::ivec2 offset = unmute_icon_offset;
 
+  const ImVec2 icon_size{ 50, 50 };
+  static ImVec2 tl{ 0.0f, 0.0f };
+  static ImVec2 br{ 1.0f, 1.0f };
   const auto set_icon_state = [&](const bool muted) {
-    if (muted)
-      offset = mute_icon_offset;
-    else
-      offset = unmute_icon_offset;
+    const auto [unmute_tl, unmute_br] = convert_sprite_to_uv(r, "AUDIO"s);
+    const auto [mute_tl, mute_br] = convert_sprite_to_uv(r, "AUDIO_MUTE"s);
+    if (muted) {
+      tl = mute_tl;
+      br = mute_br;
+    } else {
+      tl = unmute_tl;
+      br = unmute_br;
+    }
   };
 
   // button state
-  static auto should_mute = gesert_string(PLAYERPREF_MUTE, "false"s) == "true";
-  static int toggle = should_mute ? 1 : 0; // 1 is muted
-  static bool toggle_changed = false;
+  static int mute = 0;
+
+  // set state from saved disk
+  static auto disk_preference_mute = gesert_string(PLAYERPREF_MUTE, "false"s) == "true";
+  static bool set_from_disk = true;
+  if (set_from_disk) {
+    mute = disk_preference_mute;
+    set_from_disk = false;
+    set_icon_state(mute);
+  }
 
   const ImGuiViewport* viewport = ImGui::GetMainViewport();
   ImGui::SetNextWindowPos(ImVec2(viewport->WorkPos.x + viewport->WorkSize.x - distance_from_right_of_screen,
                                  viewport->WorkPos.y + viewport->WorkSize.y - distance_from_top_of_screen));
   ImGui::Begin("Mute Sound Icon", nullptr, icon_flags);
 
-  // convert desired icon to uv coordinates
-  // clang-format off
-  ImVec2 tl = ImVec2(((offset.x * pixels_x + 0.0f    ) / size_x), ((offset.y * pixels_y + 0.0f    ) / size_y));
-  ImVec2 br = ImVec2(((offset.x * pixels_x + pixels_x) / size_x), ((offset.y * pixels_y + pixels_y) / size_y));
-  // clang-format on
-
   // draw an audio icon
   const auto tex_id = search_for_texture_id_by_texture_path(ri, "kennynl_gameicons")->id;
   const auto id = (ImTextureID)tex_id;
-  int frame_padding = -1;
-  if (ImGui::ImageButton(id, icon_size, tl, br, frame_padding, ImColor(0, 0, 0, 255))) {
-    toggle = toggle == 1 ? 0 : 1;
+
+  bool toggle_changed = false;
+  ImGui::PushStyleVar(ImGuiStyleVar_FramePadding, ImVec2(0, 0));
+  if (ImGui::ImageButton("mute-icon", id, icon_size, tl, br)) {
+    mute = mute == 1 ? 0 : 1;
+    save_string(PLAYERPREF_MUTE, mute == 1 ? "true"s : "false"s);
+    set_icon_state(mute);
     toggle_changed = true;
-    fmt::println("toggle changed to: {}", toggle);
-
-    save_string(PLAYERPREF_MUTE, toggle == 1 ? "true"s : "false"s);
   }
+  ImGui::PopStyleVar();
 
-  // update state
-  set_icon_state(toggle);
   auto& audio = get_first_component<SINGLETON_AudioComponent>(r);
-  audio.mute_all = toggle;
-  audio.mute_sfx = toggle;
+  audio.mute_all = mute;
+  audio.mute_sfx = mute;
 
   // toggle: mute to unmute. play menu theme.
-  if (toggle_changed && toggle == 0) {
+  if (toggle_changed && mute == 0) {
     fmt::println("unmute all");
     create_empty<AudioRequestPlayEvent>(r, AudioRequestPlayEvent{ "MENU_01" });
-    toggle_changed = false;
   }
 
   // toggle: unmute to mute. stop all music.
-  if (toggle_changed && toggle == 1) {
+  if (toggle_changed && mute == 1) {
     fmt::println("muted all");
     stop_all_audio(r);
-    toggle_changed = false;
   }
 
   ImGui::End();

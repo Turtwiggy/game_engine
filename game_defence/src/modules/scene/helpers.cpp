@@ -217,16 +217,6 @@ move_to_scene_start(entt::registry& r, const Scene s, const bool load_saved)
     //   ui.random_names.push_back(first_name);
     // }
 
-    // create a background sprite
-    // {
-    //   const auto e = create_gameplay(r, EntityType::empty_with_transform);
-    //   const auto tex_unit = search_for_texture_unit_by_texture_path(ri, "background_mainmenu").value();
-    //   set_sprite_custom(r, e, "SPACE_BACKGROUND_0", tex_unit.unit);
-    //   set_size(r, e, { 3000, 3000 });
-    //   set_position(r, e, { 0, -600 });
-    //   r.get<TransformComponent>(e).position.z = -2; // behind everything
-    // }
-
     // As the camera is at 0, 0,
     // worldspace text around the camera would be from e.g. -width/2 to width/2
     const auto half_wh = ri.viewport_size_render_at / glm::ivec2(2.0f, 2.0f);
@@ -248,12 +238,12 @@ move_to_scene_start(entt::registry& r, const Scene s, const bool load_saved)
     {
       const std::string label = "v0.0.4  Got feedback? Discord @turtwiggy or https://turtwiggy.itch.io/solar-war-alpha";
       const ImVec2 xy = ImGui::CalcTextSize(label.c_str());
-      const float padding = 12;
+      const float padding = 10;
 
       const auto e = create_gameplay(r, EntityType::empty_with_transform);
       auto& ui = r.emplace<WorldspaceTextComponent>(e);
       ui.text = label;
-      set_position(r, e, { -half_wh.x + (xy.x / 2.0f) + padding, half_wh.y - xy.y - 6 });
+      set_position(r, e, { -half_wh.x + (xy.x / 2.0f) + padding, half_wh.y - xy.y - 4 });
       set_size(r, e, { 0, 0 });
     };
   }
