@@ -59,14 +59,14 @@ game2d::update_move_objects_system(entt::registry& r, const uint64_t& millisecon
 
     const auto& vel_actors = r.view<AABB, VelocityComponent>(entt::exclude<WaitForInitComponent>);
     const auto& solids = r.view<const PhysicsSolidComponent, const AABB>(entt::exclude<WaitForInitComponent>);
-    const float dt = milliseconds_dt / 1000.0f;
+    const float fixed_dt = milliseconds_dt / 1000.0f;
 
     for (const auto& [entity, aabb, vel] : vel_actors.each()) {
       //
       // move_x
       //
       {
-        vel.remainder_x += vel.x * dt;
+        vel.remainder_x += vel.x * fixed_dt;
 
         int move = static_cast<int>(vel.remainder_x);
         if (move != 0) {
@@ -113,7 +113,7 @@ game2d::update_move_objects_system(entt::registry& r, const uint64_t& millisecon
       // move_y
       //
       {
-        vel.remainder_y += vel.y * dt;
+        vel.remainder_y += vel.y * fixed_dt;
 
         int amount = static_cast<int>(vel.remainder_y);
         if (amount != 0) {

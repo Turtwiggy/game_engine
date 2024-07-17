@@ -251,7 +251,7 @@ create_gameplay(entt::registry& r, const EntityType& type)
       r.emplace<SetTransformAngleToVelocity>(e);
 
       auto& vel = r.get<VelocityComponent>(e);
-      vel.base_speed = 200.0f;
+      vel.base_speed = 50.0f;
 
       r.emplace<KnockbackComponent>(e);
 

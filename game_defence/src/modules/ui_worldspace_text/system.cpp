@@ -12,8 +12,33 @@
 namespace game2d {
 using namespace std::literals;
 
-void
+const auto split_paragrah = [](const std::string& str, const int& len) -> std::vector<std::string> {
+  std::vector<std::string> results;
 
+  int start = 0;
+  while (start < str.size()) {
+    int end = start + len;
+
+    // Get the nearest ' ' char to the end of the sentence
+    if (end < str.size() && str[end] != ' ') {
+      const int space_pos = str.rfind(' ', end);
+      if (space_pos != std::string::npos && space_pos > start)
+        end = space_pos;
+    }
+
+    // add the sentence so far
+    results.push_back(str.substr(start, end - start));
+
+    // onwards..!
+    start = end;
+    while (start < str.size() && str[start] == ' ')
+      ++start; // Skip spaces
+  }
+
+  return results;
+};
+
+void
 update_ui_worldspace_text_system(entt::registry& r)
 {
   const auto& ri = get_first_component<SINGLETON_RendererInfo>(r);
@@ -47,13 +72,15 @@ update_ui_worldspace_text_system(entt::registry& r)
     ImGui::Begin(beginlabel.c_str(), NULL, flags);
     ImGui::PushID(eid);
 
-    if (wst_c.font_scale != 1.0f)
-      ImGui::SetWindowFontScale(wst_c.font_scale);
+    // if (wst_c.font_scale != 1.0f)
+    //   ImGui::SetWindowFontScale(wst_c.font_scale);
 
-    ImGui::Text("%s", wst_c.text.c_str());
+    const auto shortened = split_paragrah(wst_c.text, 20);
+    for (const auto& line : shortened)
+      ImGui::Text("%s", line.c_str());
 
-    if (wst_c.font_scale != 1.0f)
-      ImGui::SetWindowFontScale(1.0f);
+    // if (wst_c.font_scale != 1.0f)
+    //   ImGui::SetWindowFontScale(1.0f);
 
     ImGui::PopID();
     ImGui::End();

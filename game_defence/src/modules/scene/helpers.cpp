@@ -240,7 +240,6 @@ move_to_scene_start(entt::registry& r, const Scene s, const bool load_saved)
       const auto e = create_gameplay(r, EntityType::empty_with_transform);
       auto& ui = r.emplace<WorldspaceTextComponent>(e);
       ui.text = label;
-      ui.font_scale = 1.0f;
       set_position(r, e, { 0, ypos });
       set_size(r, e, { 0, 0 });
     };

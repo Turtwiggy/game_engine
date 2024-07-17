@@ -1,4 +1,5 @@
 #include "game.hpp"
+#include <SDL_timer.h>
 using namespace game2d;
 
 #include "app/application.hpp"
@@ -23,11 +24,8 @@ using namespace engine;
 // fixed tick
 static const int MILLISECONDS_PER_FIXED_TICK = 7; // or ~142 ticks per second
 // static int MILLISECONDS_PER_FIXED_TICK = 16; // or ~62.5 ticks per second
-static uint64_t milliseconds_accumulator_since_last_tick = 0;
-static uint64_t new_time = 0;
 static uint64_t cur_time = 0;
-static uint64_t milliseconds_delta_time = 0;
-static const int allowed_ticks_per_frame = 2;
+static uint64_t milliseconds_accumulator_since_last_tick = 0;
 
 static SINGLETON_Application app;
 static entt::registry game;
@@ -67,34 +65,24 @@ main_loop(void* arg)
   engine::start_frame(app);
   launch_thread_after_x_frames();
 
-  new_time = SDL_GetTicks64();
-  milliseconds_delta_time = new_time - cur_time;
-  if (milliseconds_delta_time > MILLISECONDS_PER_FIXED_TICK * allowed_ticks_per_frame)
-    milliseconds_delta_time = MILLISECONDS_PER_FIXED_TICK * allowed_ticks_per_frame; // avoid spiral
+  const uint64_t new_time = SDL_GetTicks64();
+  uint64_t frame_time = new_time - cur_time;
+  if (frame_time > 250)
+    frame_time = 250; // avoid spiral
   cur_time = new_time;
 
-  milliseconds_accumulator_since_last_tick += milliseconds_delta_time;
+  milliseconds_accumulator_since_last_tick += frame_time;
 
   // The physics cycle may happen more than once per frame if
   // the fixed timestep is less than the actual frame update time.
   while (milliseconds_accumulator_since_last_tick >= MILLISECONDS_PER_FIXED_TICK) {
     milliseconds_accumulator_since_last_tick -= MILLISECONDS_PER_FIXED_TICK;
 
-#if defined(_DEBUG)
-    const auto before_fixed_update = SDL_GetTicks64();
-#endif
-
     game2d::fixed_update(app, game, MILLISECONDS_PER_FIXED_TICK);
-
-#if defined(_DEBUG)
-    const auto after_fixed_update = SDL_GetTicks64();
-    const auto execution_time = after_fixed_update - before_fixed_update;
-    if (execution_time > MILLISECONDS_PER_FIXED_TICK)
-      fmt::println("uh oh! in trouble! fixedupdate() is taking too long");
-#endif
   }
 
-  game2d::update(app, game, milliseconds_delta_time / 1000.0f);
+  const float dt = frame_time / 1000.0f;
+  game2d::update(app, game, dt);
 
   engine::end_frame(app);
 }
@@ -130,10 +118,10 @@ main(int argc, char* argv[])
   name += " [RELEASE]";
 #endif
 
-#if defined(_DEBUG)
-  app.limit_fps = true;
-  app.fps_limit = 30;
-#endif
+  // #if defined(_DEBUG)
+  //   app.limit_fps = true;
+  //   app.fps_limit = 30;
+  // #endif
 
   app.window = GameWindow(name, DisplayMode::windowed, app.vsync);
   app.imgui.initialize(app.window);

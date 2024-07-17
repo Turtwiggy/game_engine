@@ -7,8 +7,8 @@ namespace game2d {
 
 struct PatrolDescription
 {
-  int speed_min = 50;
-  int speed_max = 175;
+  int speed_min = 25;
+  int speed_max = 45;
   int units_min = 4;
   int units_max = 10;
 
@@ -18,16 +18,8 @@ struct PatrolDescription
 struct PatrolComponent
 {
   int strength = 1;
-};
-inline void
-to_json(nlohmann::json& j, const PatrolComponent& c)
-{
-  j = nlohmann::json{ { "strength", static_cast<int>(c.strength) } };
-};
-inline void
-from_json(const nlohmann::json& j, PatrolComponent& c)
-{
-  j.at("strength").get_to(c.strength);
+
+  NLOHMANN_DEFINE_TYPE_INTRUSIVE(PatrolComponent, strength);
 };
 
 struct BackstabbableComponent

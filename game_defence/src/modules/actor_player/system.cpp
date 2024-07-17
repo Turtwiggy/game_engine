@@ -99,11 +99,9 @@ update_player_controller_system(entt::registry& r, const uint64_t& milliseconds_
     // if (input.drop)
     //   r.emplace_or_replace<WantsToDrop>(entity);
     if (input.shoot) {
-      fmt::println("wants to shoot...");
       r.emplace_or_replace<WantsToShoot>(entity);
     }
     if (input.shoot_release) {
-      fmt::println("wants to shoot release...");
       r.emplace_or_replace<WantsToReleaseShot>(entity);
     }
     if (input.sprint) {
@@ -122,6 +120,8 @@ update_player_controller_system(entt::registry& r, const uint64_t& milliseconds_
 
       vel->x = move_dir.x;
       vel->y = move_dir.y;
+
+      // fmt::println("x: {}  ", vel->x);
 
       const auto* sprint = r.try_get<SprintComponent>(entity);
       if (sprint != nullptr && sprint->is_sprinting) {

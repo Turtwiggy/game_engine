@@ -46,11 +46,14 @@ update_ui_combat_ended_system(entt::registry& r)
 
       ImGui::Begin("Back To Overworld", NULL, flags);
       if (ImGui::Button("Spaceship clear. \nBack to overworld", ImVec2(-FLT_MIN, -FLT_MIN))) {
+        ImGui::End();
+
         // add an event because fun
         auto& evt = get_first_component<SINGLE_EventConsoleLogComponent>(r);
         evt.events.push_back("Spaceship cleared.");
+
         move_to_scene_start(r, Scene::overworld, true);
-        ImGui::End();
+        return;
       }
       ImGui::End();
     } else {

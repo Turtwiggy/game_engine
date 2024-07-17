@@ -7,6 +7,7 @@
 #include "events/components.hpp"
 #include "events/system.hpp"
 #include "game_state.hpp"
+#include "io/file.hpp"
 #include "io/path.hpp"
 #include "lifecycle/system.hpp"
 #include "modules/actor_cursor/system.hpp"
@@ -18,12 +19,10 @@
 #include "modules/animation/rotate_around_spot.hpp"
 #include "modules/animator/system.hpp"
 #include "modules/camera/helpers.hpp"
-#include "modules/camera/orthographic.hpp"
 #include "modules/camera/system.hpp"
 #include "modules/combat_attack_cooldown/system.hpp"
 #include "modules/combat_damage/system.hpp"
 #include "modules/combat_flash_on_damage/system.hpp"
-#include "modules/combat_wants_to_shoot/system.hpp"
 #include "modules/gameover/components.hpp"
 #include "modules/gameover/system.hpp"
 #include "modules/gen_dungeons/system.hpp"
@@ -35,10 +34,13 @@
 #include "modules/scene_splashscreen_move_to_menu/system.hpp"
 #include "modules/screenshake/system.hpp"
 #include "modules/system_change_gun_colour/system.hpp"
+#include "modules/system_entered_new_room/system.hpp"
 #include "modules/system_minigame_bamboo/system.hpp"
 #include "modules/system_particles/system.hpp"
 #include "modules/system_particles_on_death/system.hpp"
 #include "modules/system_pathfinding/system.hpp"
+#include "modules/system_quips/components.hpp"
+#include "modules/system_quips/system.hpp"
 #include "modules/system_turnbased_endturn/system.hpp"
 #include "modules/system_turnbased_enemy/system.hpp"
 #include "modules/ui_audio/system.hpp"
@@ -81,10 +83,12 @@ init(engine::SINGLETON_Application& app, entt::registry& r)
   const auto start = std::chrono::high_resolution_clock::now();
 
   // Fonts
-  auto& io = ImGui::GetIO();
-  // float font_scale = 12.0f;
-  //   font_scale = 18.0f; // 4k scale?
-  // io.Fonts->AddFontFromFileTTF("./assets/fonts/ImPerfect23.ttf", font_scale);
+  // auto& io = ImGui::GetIO();
+  // float font_scale = 8.0f;
+  // //   font_scale = 18.0f; // 4k scale?
+  // const std::string exe_path = engine::get_exe_path_without_exe_name();
+  // const std::string font_path = exe_path + "assets/fonts/ImPerfect23.ttf"s;
+  // io.Fonts->AddFontFromFileTTF(font_path.c_str(), font_scale);
 
   {
     SINGLETON_RendererInfo ri;
@@ -128,6 +132,16 @@ init(engine::SINGLETON_Application& app, entt::registry& r)
   init_input_system(r);
 
   init_ui_colour_palette_system(r);
+
+  // Load Quips
+  const auto quips = load_file_into_lines("assets/writing/quips.txt");
+  const auto quips_hit = load_file_into_lines("assets/writing/quips_hit.txt");
+  SINGLE_QuipsComponent quips_c;
+  quips_c.quips = quips;
+  quips_c.quips_unused = quips;
+  quips_c.quips_hit = quips_hit;
+  quips_c.quips_hit_unused = quips_hit;
+  create_empty<SINGLE_QuipsComponent>(r, quips_c);
 
   // move to splash screen before doing any heavy lifting (i.e. app freezing)
   engine::log_time_since("Moving to splash screen.", start);
@@ -316,6 +330,7 @@ update(engine::SINGLETON_Application& app, entt::registry& r, const float dt)
       // update_wants_to_shoot_system(r);
       update_weapon_shotgun_system(r, milliseconds_dt);
       update_rotate_around_spot_system(r, dt);
+      update_quips_system(r);
     }
 
     if (scene.s == Scene::overworld) {
@@ -324,6 +339,7 @@ update(engine::SINGLETON_Application& app, entt::registry& r, const float dt)
     }
 
     if (scene.s == Scene::dungeon_designer || scene.s == Scene::turnbasedcombat) {
+      update_entered_new_room_system(r, dt);
       update_gen_dungeons_system(r, mouse_pos);
       update_turnbased_endturn_system(r);
       update_turnbased_enemy_system(r);
