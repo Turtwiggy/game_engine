@@ -68,4 +68,14 @@ const static std::unordered_map<ItemType, std::vector<InventorySlotType>> item_t
   { ItemType::scrap_boots, { InventorySlotType::feet, InventorySlotType::backpack } },
 };
 
+const static std::unordered_map<ItemType, std::string> item_to_sprite_map{
+  { ItemType::scrap, "SCRAP" },
+  { ItemType::scrap_helmet, "HELMET_5" },
+  { ItemType::scrap_chestpiece, "CHESTPIECE_5" },
+  { ItemType::scrap_arm_bracer, "GLOVES_4" },
+  { ItemType::scrap_legs, "" },
+  { ItemType::scrap_boots, "BOOTS_2" },
+  { ItemType::scrap_shotgun, "WEAPON_SHOTGUN" },
+};
+
 } // namespace game2d

@@ -43,6 +43,32 @@
     { "name": "PERSON_30_0", "frames": [ { "x": 30, "y": 0 } ] },
     { "name": "PERSON_31_0", "frames": [ { "x": 31, "y": 0 } ] },
 
+    { "name": "HELMET_0", "frames": [ { "x": 32, "y": 0 } ] },
+    { "name": "HELMET_1", "frames": [ { "x": 33, "y": 0 } ] },
+    { "name": "HELMET_2", "frames": [ { "x": 34, "y": 0 } ] },
+    { "name": "HELMET_3", "frames": [ { "x": 35, "y": 0 } ] },
+    { "name": "HELMET_4", "frames": [ { "x": 36, "y": 0 } ] },
+    { "name": "HELMET_5", "frames": [ { "x": 37, "y": 0 } ] },
+    { "name": "HELMET_6", "frames": [ { "x": 38, "y": 0 } ] },
+
+    { "name": "BOOTS_0", "frames": [ { "x": 39, "y": 0 } ] },
+    { "name": "BOOTS_1", "frames": [ { "x": 40, "y": 0 } ] },
+    { "name": "BOOTS_2", "frames": [ { "x": 39, "y": 1 } ] },
+    { "name": "BOOTS_4", "frames": [ { "x": 40, "y": 1 } ] },
+
+    { "name": "GLOVES_0", "frames": [ { "x": 41, "y": 0 } ] },
+    { "name": "GLOVES_1", "frames": [ { "x": 42, "y": 0 } ] },
+    { "name": "GLOVES_2", "frames": [ { "x": 41, "y": 1 } ] },
+    { "name": "GLOVES_4", "frames": [ { "x": 42, "y": 1 } ] },
+
+    { "name": "CHESTPIECE_0", "frames": [ { "x": 32, "y": 1 } ] },
+    { "name": "CHESTPIECE_1", "frames": [ { "x": 33, "y": 1 } ] },
+    { "name": "CHESTPIECE_2", "frames": [ { "x": 34, "y": 1 } ] },
+    { "name": "CHESTPIECE_3", "frames": [ { "x": 35, "y": 1 } ] },
+    { "name": "CHESTPIECE_4", "frames": [ { "x": 36, "y": 1 } ] },
+    { "name": "CHESTPIECE_5", "frames": [ { "x": 37, "y": 1 } ] },
+    { "name": "CHESTPIECE_6", "frames": [ { "x": 38, "y": 1 } ] },
+
     { "name": "TREE_0_1", "frames": [ { "x": 0, "y": 1 } ] },
     { "name": "TREE_1_1", "frames": [ { "x": 1, "y": 1 } ] },
     { "name": "TREE_2_1", "frames": [ { "x": 2, "y": 1 } ] },
@@ -221,6 +247,9 @@
     { "name": "ARROW_RIGHT", "frames": [ { "x": 24, "y": 20 } ] },
     { "name": "ARROW_DOWN", "frames": [ { "x": 25, "y": 20 } ] },
     { "name": "ARROW_LEFT", "frames": [ { "x": 26, "y": 20 } ] },
+
+    { "name": "SCRAP", "frames": [ { "x": 33, "y": 20 } ] },
+
     { "name": "TEXT_HASH", "frames": [ { "x": 35, "y": 20 } ] },
 
     { "name": "SPACE_VEHICLE_1", "frames": [ { "x": 12, "y": 21 } ] },

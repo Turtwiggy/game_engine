@@ -31,7 +31,7 @@ update_turnbased_endturn_system(entt::registry& r)
     return;
   const auto request = get_first_component<RequestToCompleteTurn>(r);
   r.destroy(req_view.begin(), req_view.end());
-  fmt::println("End turn request...");
+  // fmt::println("End turn request...");
 
   // If anything is left moving, teleport it
   // for (const auto& [e, ts_c] : r.view<ActionState>().each())

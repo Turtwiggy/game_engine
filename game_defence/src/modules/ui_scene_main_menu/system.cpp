@@ -36,11 +36,18 @@ update_ui_scene_main_menu(engine::SINGLETON_Application& app, entt::registry& r)
   flags |= ImGuiWindowFlags_NoCollapse;
   flags |= ImGuiWindowFlags_NoTitleBar;
   flags |= ImGuiWindowFlags_AlwaysAutoResize;
-  // flags |= ImGuiWindowFlags_NoBackground;
+  flags |= ImGuiWindowFlags_NoBackground;
 
+  // center
+  // const auto& viewport_pos = ImVec2(ri.viewport_pos.x, ri.viewport_pos.y);
+  // const auto& viewport_size_half = ImVec2(ri.viewport_size_current.x * 0.5f, ri.viewport_size_current.y * 0.5f);
+  // const auto pos = ImVec2(viewport_pos.x + viewport_size_half.x, viewport_pos.y + viewport_size_half.y);
+  // ImGui::SetNextWindowPos(pos, ImGuiCond_Always, ImVec2(0.5f, 0.5f));
+
+  // left third centered
   const auto& viewport_pos = ImVec2(ri.viewport_pos.x, ri.viewport_pos.y);
   const auto& viewport_size_half = ImVec2(ri.viewport_size_current.x * 0.5f, ri.viewport_size_current.y * 0.5f);
-  const auto pos = ImVec2(viewport_pos.x + viewport_size_half.x, viewport_pos.y + viewport_size_half.y);
+  const auto pos = ImVec2(viewport_pos.x + (ri.viewport_size_current.x / 6.0f), viewport_pos.y + viewport_size_half.y);
   ImGui::SetNextWindowPos(pos, ImGuiCond_Always, ImVec2(0.5f, 0.5f));
 
   ImGui::Begin("Main Menu", nullptr, flags);
@@ -63,16 +70,10 @@ update_ui_scene_main_menu(engine::SINGLETON_Application& app, entt::registry& r)
   // selected %= buttons;
 
   const auto selectable_button = [&do_ui_action](const std::string& label, int& selected, const int index) {
-    const ImVec2 size = { 200, 50 };
-
-    // ImGui::Text("selected: %i", selected);
-    // ImGui::Text("Index: %i", index);
-
-    // draw a button. highlight it if the selected index is over this button already
-    ImGui::Selectable(label.c_str(), selected == index, 0, size);
+    const ImVec2 size = { 100, 100 * 9 / 16.0f };
 
     // update the selected index if this button is clicked
-    if (ImGui::IsItemClicked()) {
+    if (ImGui::Button(label.c_str(), size)) {
       do_ui_action = true;
       selected = index;
     }
@@ -85,7 +86,10 @@ update_ui_scene_main_menu(engine::SINGLETON_Application& app, entt::registry& r)
   };
 
   const ImVec2 pivot = { 0.5f, 0.5f };
-  ImGui::PushStyleVar(ImGuiStyleVar_SelectableTextAlign, pivot);
+  ImGui::PushStyleVar(ImGuiStyleVar_ButtonTextAlign, pivot);
+  ImGui::PushStyleVar(ImGuiStyleVar_FrameRounding, 10.0f);
+  ImGui::PushStyleVar(ImGuiStyleVar_FramePadding, ImVec2(5.0f, 5.0f));
+
   {
     int index = 0;
 
@@ -97,14 +101,15 @@ update_ui_scene_main_menu(engine::SINGLETON_Application& app, entt::registry& r)
 
     if (selectable_button("Start", selected, index++))
       move_to_scene_start(r, Scene::overworld, false);
-    if (selectable_button("minigame: breach", selected, index++))
+
+    if (selectable_button("(minigame)\nbreach", selected, index++))
       move_to_scene_start(r, Scene::minigame_bamboo);
 
 #if defined(_DEBUG)
-    if (selectable_button("(debug) combat", selected, index++)) {
+    if (selectable_button("(debug)\ncombat", selected, index++)) {
       move_to_scene_start(r, Scene::turnbasedcombat);
     }
-    if (selectable_button("(debug) dungeon", selected, index++)) {
+    if (selectable_button("(debug)\ndungeon", selected, index++)) {
       move_to_scene_start(r, Scene::dungeon_designer);
       create_empty<RequestGenerateDungeonComponent>(r);
     }
@@ -113,6 +118,8 @@ update_ui_scene_main_menu(engine::SINGLETON_Application& app, entt::registry& r)
     if (selectable_button("Quit", selected, index++))
       app.running = false;
   }
+  ImGui::PopStyleVar();
+  ImGui::PopStyleVar();
   ImGui::PopStyleVar();
   ImGui::End();
 

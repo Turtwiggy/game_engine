@@ -65,6 +65,7 @@ display_inventory_slot(entt::registry& r,
 
   if (slot.child_item != entt::null) {
     const auto item_type = r.get<ItemComponent>(slot.child_item).type;
+    const auto item_type_str = std::string(magic_enum::enum_name(item_type));
 
     const auto& ri = get_first_component<SINGLETON_RendererInfo>(r);
     const auto tex_id = search_for_texture_id_by_texture_path(ri, "monochrome")->id;
@@ -72,23 +73,44 @@ display_inventory_slot(entt::registry& r,
 
     ImVec2 tl{ 0.0f, 0.0f };
     ImVec2 br{ 1.0f, 1.0f };
-    if (item_type == ItemType::scrap_shotgun) {
-      const auto result = convert_sprite_to_uv(r, "WEAPON_SHOTGUN");
-      std::tie(tl, br) = result;
-    } else {
+
+    if (auto it{ item_to_sprite_map.find(item_type) }; it != std::end(item_to_sprite_map)) {
+      const auto& [key, val]{ *it };
+      if (val != "") {
+        const auto result = convert_sprite_to_uv(r, val);
+        std::tie(tl, br) = result;
+      } else {
+        // item_to_spritemap set but it's set as ""
+        const auto result = convert_sprite_to_uv(r, "TEXT_?");
+        std::tie(tl, br) = result;
+      }
+    }
+    // item_to_spritemap not set
+    else {
       const auto result = convert_sprite_to_uv(r, "TEXT_?");
       std::tie(tl, br) = result;
     }
 
     const uint32_t eid = static_cast<uint32_t>(inventory_slot_e);
     const std::string label = "inv-button##" + std::to_string(eid);
+
     ImGui::PushStyleVar(ImGuiStyleVar_FramePadding, ImVec2(0, 0));
     ImGui::ImageButton(label.c_str(), id, button_size, tl, br);
     ImGui::PopStyleVar();
+    ImGui::SetItemTooltip("%s", item_type_str.c_str());
 
   } else {
-    std::string label = std::string(magic_enum::enum_name(slot.type));
-    ImGui::Button(label.c_str(), button_size);
+    ImGui::Button("...", button_size);
+    const std::string label = std::string(magic_enum::enum_name(slot.type));
+    ImGui::SetItemTooltip("%s", label.c_str());
+
+    // if (ImGui::BeginItemTooltip()) {
+    //   ImGui::Text("I am a fancy tooltip");
+    //   static float arr[] = { 0.6f, 0.1f, 1.0f, 0.5f, 0.92f, 0.1f, 0.2f };
+    //   ImGui::PlotLines("Curve", arr, IM_ARRAYSIZE(arr));
+    //   ImGui::Text("Sin(time) = %f", sinf((float)ImGui::GetTime()));
+    //   ImGui::EndTooltip();
+    // }
   }
 
   // slot contains an item. can be come a dragdrop source
@@ -132,118 +154,138 @@ update_ui_inventory_system(entt::registry& r)
   flags |= ImGuiWindowFlags_NoMove;
   flags |= ImGuiWindowFlags_NoCollapse;
   flags |= ImGuiWindowFlags_NoResize;
+  flags |= ImGuiWindowFlags_NoTitleBar;
 
-  const float padding = 20;
-  const auto viewport_pos = ImVec2(ri.viewport_pos.x, ri.viewport_pos.y);
-  const auto viewport_size_half = ImVec2(ri.viewport_size_current.x * 0.5f, ri.viewport_size_current.y * 0.5f);
-  const auto pos = ImVec2(viewport_pos.x + padding, viewport_pos.y + viewport_size_half.y);
-
-  // configs
-  const int inv_x = 6;
-  const int inv_y = 5;
-  const ImVec2 button_size = ImVec2(50, 50);
-  const ImVec2 gun_button_size = button_size;
-  const ImVec2 window_0_size{ 300, 300 };
-  const ImVec2 window_1_size{ button_size.x * inv_x, button_size.y * inv_y };
-
-  ImGui::SetNextWindowPos(pos, ImGuiCond_Always, ImVec2(0.0f, 0.5f));
-  ImGui::SetNextWindowSizeConstraints(window_0_size, window_0_size);
-  ImGui::Begin("Inventory-Body", NULL, flags);
-
-  const auto create_body_slot = [&r](const InventorySlotType& type) -> entt::entity {
-    return create_empty<InventorySlotComponent>(r, InventorySlotComponent{ type });
-  };
-  static auto head_eid = create_body_slot(InventorySlotType::head);
-  static auto chest_eid = create_body_slot(InventorySlotType::chest);
-  static auto l_arm_eid = create_body_slot(InventorySlotType::l_arm);
-  static auto r_arm_eid = create_body_slot(InventorySlotType::r_arm);
-  static auto legs_eid = create_body_slot(InventorySlotType::legs);
-  static auto feet_eid = create_body_slot(InventorySlotType::feet);
-  static auto gun_0_eid = create_body_slot(InventorySlotType::gun);
-  static auto gun_1_eid = create_body_slot(InventorySlotType::gun);
-
-  const float center_x = window_0_size.x / 2.0f - button_size.x / 2.0f;
-  const float right_x = window_0_size.x;
-  const float base_y = button_size.y / 2.0f;
-  const int padding_x = 10;
-  const int padding_y = 4;
-
+  ImGui::PushStyleVar(ImGuiStyleVar_FrameRounding, 10.0f);
+  // ImGui::PushStyleVar(ImGuiStyleVar_FramePadding, ImVec2(5.0f, 5.0f));
   {
-    float y = base_y;
-    display_inventory_slot(r, head_eid, button_size, { center_x, 0 });
+    const float window_left_edge_padding = 20;
+    const auto viewport_pos = ImVec2(ri.viewport_pos.x, ri.viewport_pos.y);
+    const auto viewport_size_half = ImVec2(ri.viewport_size_current.x * 0.5f, ri.viewport_size_current.y * 0.5f);
+    const auto pos = ImVec2(viewport_pos.x + window_left_edge_padding, viewport_pos.y + viewport_size_half.y);
 
-    y += button_size.y + padding_y;
-    display_inventory_slot(r, l_arm_eid, button_size, { center_x - button_size.x - padding_x, 0 });
-    ImGui::SameLine();
-    display_inventory_slot(r, chest_eid, button_size, { center_x, 0 });
-    ImGui::SameLine();
-    display_inventory_slot(r, r_arm_eid, button_size, { center_x + button_size.x + padding_x, 0 });
+    // configs
+    const int inv_x = 6;
+    const int inv_y = 5;
+    const ImVec2 button_size = ImVec2(40, 40);
+    const ImVec2 gun_button_size = button_size;
+    const ImVec2 window_0_size{ 300, 300 };
+    const ImVec2 window_1_size{ (button_size.x * inv_x) + (button_size.x * 2), window_0_size.y };
 
-    y += button_size.y + padding_y;
-    display_inventory_slot(r, legs_eid, button_size, { center_x, 0 });
-    ImGui::SameLine();
-    display_inventory_slot(r, gun_0_eid, gun_button_size, { right_x - gun_button_size.x - padding_x, 0 });
+    // window 1
+    const float center_x = window_0_size.x / 2.0f - button_size.x / 2.0f;
+    const float right_x = window_0_size.x;
+    const float base_y = button_size.y / 2.0f;
+    const int padding_x = 10;
+    const int padding_y = 0;
+    const auto window_1_pos = ImVec2(pos.x + window_0_size.x, viewport_pos.y + viewport_size_half.y);
 
-    y += button_size.y + padding_y;
-    display_inventory_slot(r, feet_eid, button_size, { center_x, 0 });
-    ImGui::SameLine();
-    display_inventory_slot(r, gun_1_eid, gun_button_size, { right_x - gun_button_size.x - padding_x, 0 });
-  }
+    ImGui::SetNextWindowPos(pos, ImGuiCond_Always, ImVec2(0.0f, 0.5f));
+    ImGui::SetNextWindowSizeConstraints(window_0_size, window_0_size);
+    ImGui::Begin("Inventory-Body", NULL, flags);
 
-  ImGui::End();
+    const auto create_body_slot = [&r](const InventorySlotType& type) -> entt::entity {
+      return create_empty<InventorySlotComponent>(r, InventorySlotComponent{ type });
+    };
+    static auto head_eid = create_body_slot(InventorySlotType::head);
+    static auto chest_eid = create_body_slot(InventorySlotType::chest);
+    static auto l_arm_eid = create_body_slot(InventorySlotType::l_arm);
+    static auto r_arm_eid = create_body_slot(InventorySlotType::r_arm);
+    static auto legs_eid = create_body_slot(InventorySlotType::legs);
+    static auto feet_eid = create_body_slot(InventorySlotType::feet);
+    static auto gun_0_eid = create_body_slot(InventorySlotType::gun);
+    static auto gun_1_eid = create_body_slot(InventorySlotType::gun);
 
-  //
-  // create the backpack inventory
-  // n.b. should occur after creating the body
-  //
+    const auto create_item = [&r](const entt::entity& slot_e, const ItemType& item_type) -> entt::entity {
+      ItemComponent item;
+      item.parent_slot = slot_e;
+      item.type = item_type;
+      const auto item_e = create_empty<ItemComponent>(r, item);
+      update_item_parent(r, item_e, slot_e);
+      return item_e;
+    };
 
-  // Show a 6x5 grid in the window
+    // give player default items?
+    static auto scrap_item_head = create_item(head_eid, ItemType::scrap_helmet);
+    static auto scrap_item_chest = create_item(chest_eid, ItemType::scrap_chestpiece);
+    static auto scrap_item_l_arm = create_item(l_arm_eid, ItemType::scrap_arm_bracer);
+    static auto scrap_item_r_arm = create_item(r_arm_eid, ItemType::scrap_arm_bracer);
+    static auto scrap_item_legs = create_item(legs_eid, ItemType::scrap_legs);
+    static auto scrap_item_feet = create_item(feet_eid, ItemType::scrap_boots);
+    static auto scrap_item_gun = create_item(gun_0_eid, ItemType::scrap_shotgun);
 
-  static bool created_inventory = false;
-  if (!created_inventory) {
-    for (int i = 0; i < inv_x * inv_y; i++) {
-      const auto slot_e = create_empty<InventorySlotComponent>(r, InventorySlotComponent{ InventorySlotType::backpack });
+    {
+      float y = base_y;
+      display_inventory_slot(r, head_eid, button_size, { center_x, 0 });
 
-      if (i == 0) {
-        ItemComponent item;
-        item.parent_slot = slot_e;
-        item.type = ItemType::scrap;
-        const auto item_e = create_empty<ItemComponent>(r, item);
-        update_item_parent(r, item_e, slot_e);
-      }
-      if (i == 1) {
-        ItemComponent item;
-        item.parent_slot = slot_e;
-        item.type = ItemType::scrap_shotgun;
-        const auto item_e = create_empty<ItemComponent>(r, item);
-        update_item_parent(r, item_e, slot_e);
-      }
+      y += button_size.y + padding_y;
+      display_inventory_slot(r, l_arm_eid, button_size, { center_x - button_size.x - padding_x, 0 });
+      ImGui::SameLine();
+      display_inventory_slot(r, chest_eid, button_size, { center_x, 0 });
+      ImGui::SameLine();
+      display_inventory_slot(r, r_arm_eid, button_size, { center_x + button_size.x + padding_x, 0 });
+
+      y += button_size.y + padding_y;
+      display_inventory_slot(r, legs_eid, button_size, { center_x, 0 });
+      ImGui::SameLine();
+      display_inventory_slot(r, gun_0_eid, gun_button_size, { right_x - gun_button_size.x - padding_x, 0 });
+
+      y += button_size.y + padding_y;
+      display_inventory_slot(r, feet_eid, button_size, { center_x, 0 });
+      ImGui::SameLine();
+      display_inventory_slot(r, gun_1_eid, gun_button_size, { right_x - gun_button_size.x - padding_x, 0 });
     }
-    created_inventory = true;
+
+    ImGui::End();
+
+    //
+    // create the backpack inventory
+    // n.b. should occur after creating the body
+    //
+
+    // Show a 6x5 grid in the window
+
+    static bool created_inventory = false;
+    if (!created_inventory) {
+
+      for (int i = 0; i < inv_x * inv_y; i++) {
+        const auto slot_e = create_empty<InventorySlotComponent>(r, InventorySlotComponent{ InventorySlotType::backpack });
+        if (i == (inv_x * inv_y) - 1)
+          create_item(slot_e, ItemType::scrap);
+      }
+      created_inventory = true;
+    }
+
+    ImGui::SetNextWindowPos(window_1_pos, ImGuiCond_Always, ImVec2(0.0f, 0.5f));
+    ImGui::SetNextWindowSizeConstraints(window_1_size, window_1_size);
+    ImGui::PushStyleVar(ImGuiTableColumnFlags_WidthFixed, button_size.x);
+    {
+      ImGui::Begin("Inventory-Backpack", NULL, flags);
+      {
+        const int columns = inv_x;
+        ImGuiTableFlags table_flags = ImGuiTableFlags_SizingStretchSame;
+
+        ImGui::BeginTable("backpack", columns, table_flags);
+
+        for (const auto& [e, slot] : r.view<InventorySlotComponent>().each()) {
+          if (slot.type != InventorySlotType::backpack)
+            continue;
+          const auto eid = static_cast<uint32_t>(e);
+          ImGui::PushID(eid);
+
+          ImGui::TableNextColumn();
+          display_inventory_slot(r, e, button_size);
+
+          ImGui::PopID();
+        }
+
+        ImGui::EndTable();
+      }
+      ImGui::End();
+    }
+    ImGui::PopStyleVar();
   }
-
-  const auto backpack_pos = ImVec2(pos.x + window_0_size.x + padding, viewport_pos.y + viewport_size_half.y);
-  ImGui::SetNextWindowPos(backpack_pos, ImGuiCond_Always, ImVec2(0.0f, 0.5f));
-  ImGui::SetNextWindowSizeConstraints(window_1_size, window_1_size);
-  ImGui::Begin("Inventory-Backpack", NULL, flags);
-
-  const int columns = inv_x;
-  ImGui::BeginTable("backpack", columns);
-
-  for (const auto& [e, slot] : r.view<InventorySlotComponent>().each()) {
-    if (slot.type != InventorySlotType::backpack)
-      continue;
-    const auto eid = static_cast<uint32_t>(e);
-    ImGui::PushID(eid);
-
-    ImGui::TableNextColumn();
-    display_inventory_slot(r, e, button_size);
-
-    ImGui::PopID();
-  }
-
-  ImGui::EndTable();
-  ImGui::End();
+  ImGui::PopStyleVar();
 }
 
 } // namespace game2d

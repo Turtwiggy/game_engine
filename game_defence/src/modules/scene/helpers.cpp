@@ -223,22 +223,9 @@ move_to_scene_start(entt::registry& r, const Scene s, const bool load_saved)
     // worldspace text around the camera would be from e.g. -width/2 to width/2
     const auto half_wh = ri.viewport_size_render_at / glm::ivec2(2.0f, 2.0f);
 
-    // create a piece of worldspace text with the title
-    // this'll probably be replaced by an icon
-    {
-      const std::string label = "Solar Warfare";
-      const ImVec2 xy = ImGui::CalcTextSize(label.c_str());
-      const auto ypos = -half_wh.y + ((half_wh.y * 2.0f) / 6.0);
-      const auto e = create_gameplay(r, EntityType::empty_with_transform);
-      auto& ui = r.emplace<WorldspaceTextComponent>(e);
-      ui.text = label;
-      set_position(r, e, { 0, ypos });
-      set_size(r, e, { 0, 0 });
-    };
-
     // create a piece of worldspace text for support
     {
-      const std::string label = "v0.0.4  Got feedback? Discord @turtwiggy or https://turtwiggy.itch.io/solar-war-alpha";
+      const std::string label = "v0.0.4  Feedback? Discord @turtwiggy or X @Wiggy_dev";
       const ImVec2 xy = ImGui::CalcTextSize(label.c_str());
       const float padding = 10;
 

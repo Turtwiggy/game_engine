@@ -26,36 +26,34 @@ update_ui_combat_begin_system(entt::registry& r)
 
     ImGui::PushStyleVar(ImGuiStyleVar_SelectableTextAlign, { 0.5f, 0.5f });
     ImGui::Begin("Fight!", NULL, flags);
-    {
-      // Center button horizontally
-      // ImGuiStyle& style = ImGui::GetStyle();
 
-      // calculate reqiured x-spacing
-      // float width = 0.0f;
-      // width += ImGui::CalcTextSize(label.c_str()).x;
-      // width += style.ItemSpacing.x;
+    // Center button horizontally
+    // ImGuiStyle& style = ImGui::GetStyle();
 
-      // AlignForWidth()
-      // const float alignment = 0.5f;
-      // const float avail = ImGui::GetContentRegionAvail().x;
-      // float off = (avail - width) * alignment;
-      // if (off > 0.0f)
-      //   ImGui::SetCursorPosX(ImGui::GetCursorPosX() + off);
+    // calculate reqiured x-spacing
+    // float width = 0.0f;
+    // width += ImGui::CalcTextSize(label.c_str()).x;
+    // width += style.ItemSpacing.x;
 
-      // Draw the button(s)
-      const ImVec2 button_size = ImGui::GetContentRegionAvail();
-      if (ImGui::Button("Begin Combat", button_size)) {
-        auto& state = get_first_component<SINGLE_CombatState>(r);
-        state.team = AvailableTeams::player;
-      }
+    // AlignForWidth()
+    // const float alignment = 0.5f;
+    // const float avail = ImGui::GetContentRegionAvail().x;
+    // float off = (avail - width) * alignment;
+    // if (off > 0.0f)
+    //   ImGui::SetCursorPosX(ImGui::GetCursorPosX() + off);
 
-      // HACK: hide this menu
-      // state.team = AvailableTeams::player;
-
-      ImGui::End();
-
-      ImGui::PopStyleVar();
+    // Draw the button(s)
+    const ImVec2 button_size = ImGui::GetContentRegionAvail();
+    if (ImGui::Button("Begin Combat", button_size)) {
+      auto& state = get_first_component<SINGLE_CombatState>(r);
+      state.team = AvailableTeams::player;
     }
+
+    // HACK: hide this menu
+    // state.team = AvailableTeams::player;
+
+    ImGui::End();
+    ImGui::PopStyleVar();
   }
 }
 
