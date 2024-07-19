@@ -15,10 +15,10 @@
 namespace game2d {
 using namespace std::literals;
 
-const int space_width = 4;
-const int char_width = 16;
-const int char_space = 12;
-const int line_height = 13;
+const int space_width = 5;
+const int char_width = 12; // with of chars
+const int char_space = 10; // space between chars
+const int line_height = 10;
 
 std::vector<int>
 get_length_of_each_line(const std::vector<std::string>& lines)
@@ -67,11 +67,15 @@ update_ui_worldspace_sprite_system(entt::registry& r)
     float offset_x = 0;
     float offset_y = 0;
 
+    // glm::vec2 tl{ 0.0f, 0.0f };
+    // glm::vec2 br{ 0.0f, 0.0f };
+
     for (int i = 0; i < lines.size(); i++) {
       const auto& line = lines[i];
       const auto& line_len = line_lengths[i];
 
-      for (const char& ch : line) {
+      for (int ch_idx = 0; ch_idx < line.size(); ch_idx++) {
+        const auto& ch = line[ch_idx];
 
         // handle special cases
         if (ch == ' ') {
@@ -97,12 +101,17 @@ update_ui_worldspace_sprite_system(entt::registry& r)
         r.get<TagComponent>(sprite_e).tag = "empty_with_transform:QuipText";
 
         // work out the position of the letter.
-        // center align each line.
         glm::ivec2 base_position = pos;
-        base_position.x -= int(line_len / 2.0f);
+        base_position.x -= int(line_len / 2.0f); // center align the line
         base_position.x += int(offset_x);
         base_position.y += int(offset_y);
-        base_position.y -= int(size.y + ((lines.size() - 1) * line_height)); // put this above the quipper? quippee?
+        base_position.y -= int((size.y / 2.0f) + ((lines.size() - 1) * line_height)); // put this above the quipper? quippee?
+
+        // Workout background border
+        // if (i == 0 && ch_idx == 0)
+        //   tl = { base_position.x - char_width / 2.0f, base_position.y - char_width / 2.0f };
+        // if (i == lines.size() - 1 && ch_idx == line.size() - 1)
+        //   br = { base_position.x + char_width / 2.0f, base_position.y + char_width / 2.0f };
 
         set_position(r, sprite_e, base_position);
         r.get<TransformComponent>(sprite_e).position.z = 5; // set text in front
@@ -126,6 +135,21 @@ update_ui_worldspace_sprite_system(entt::registry& r)
       offset_x = 0;
       offset_y += line_height;
     }
+
+    // create a background sprite to increase contrast
+    // const auto background_size = glm::vec2(glm::abs(br.x - tl.x), glm::abs(br.y - tl.y));
+    // const auto background_center = glm::vec2((br.x + tl.x) / 2.0f, (br.y + tl.y) / 2.0f);
+    // const auto background_e = create_gameplay(r, EntityType::empty_with_transform);
+    // set_position(r, background_e, background_center);
+    // r.get<TransformComponent>(background_e).position.z = 4; // set text in front
+    // set_size(r, background_e, size);
+    // set_colour(r, background_e, { 0.0f, 0.0f, 0.0f, 1.0f });
+    // WiggleUpAndDown wig;
+    // wig.base_position = background_center;
+    // wig.offset = 0; // offset the wiggle of each letter slightly
+    // wig.amplitude = 1.0;
+    // r.emplace<WiggleUpAndDown>(background_e, wig);
+    // r.emplace<EntityTimedLifecycle>(background_e, 4 * 1000);
   }
 
   // processed all requests

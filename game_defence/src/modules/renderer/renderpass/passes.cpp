@@ -381,7 +381,10 @@ setup_mix_lighting_and_scene_update(entt::registry& r)
   pass.update = [&r]() {
     const auto& ri = get_first_component<SINGLETON_RendererInfo>(r);
     static float brightness_threshold = 0.80f;
+
+#if defined(_DEBUG)
     imgui_draw_float("brightness_threshold", brightness_threshold);
+#endif
 
     const auto camera_e = get_first<OrthographicCamera>(r);
     const auto& camera_t = r.get<TransformComponent>(camera_e);
@@ -418,7 +421,9 @@ setup_gaussian_blur_update(entt::registry& r)
   pass0.update = [&r, &pass0, &pass1]() {
     const auto& ri = get_first_component<SINGLETON_RendererInfo>(r);
     static float blur_amount = 4;
+#if defined(_DEBUG)
     imgui_draw_float("blur_amount", blur_amount);
+#endif
 
     bool horizontal = true;
     bool first_iteration = true;
@@ -478,8 +483,9 @@ setup_bloom_update(entt::registry& r)
     const auto& ri = get_first_component<SINGLETON_RendererInfo>(r);
     const bool do_bloom = get_first<Effect_DoBloom>(r) != entt::null;
     static float exposure = 1.5f;
+#if defined(_DEBUG)
     imgui_draw_float("exposure", exposure);
-
+#endif
     const auto camera_e = get_first<OrthographicCamera>(r);
     const auto& camera_t = r.get<TransformComponent>(camera_e);
     const auto& camera = r.get<OrthographicCamera>(camera_e);

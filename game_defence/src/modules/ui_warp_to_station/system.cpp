@@ -89,14 +89,13 @@ update_ui_warp_to_station_system(entt::registry& r)
   // flags |= ImGuiWindowFlags_NoBackground;
 
   const auto& ri = get_first_component<SINGLETON_RendererInfo>(r);
-  const ImVec2 size{ 200, 300 };
+  const ImVec2 size{ 200, 250 };
   const ImVec2 pos{ ri.viewport_size_render_at.x - size.x, 0 };
 
   ImGui::SetNextWindowPos(pos, ImGuiCond_Always, { 0, 0 });
   ImGui::SetNextWindowSize(size, ImGuiCond_Always);
 
   ImGui::Begin("WarpToSpaceship", NULL, flags);
-  ImGui::Text("~~ Warp Drive ~~");
 
   ImGui::Separator();
   if (has_destination(r, player_e)) {

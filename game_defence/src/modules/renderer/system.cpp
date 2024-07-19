@@ -493,32 +493,39 @@ update_render_system(entt::registry& r, const float dt, const glm::vec2& mouse_p
       break;
   }
 
+#if defined(_DEBUG)
   ImGui::Begin("DebugRenderPasses");
+#endif
 
   for (auto& pass : ri.passes) {
     const auto pass_name = std::string(magic_enum::enum_name(pass.pass));
     const auto& pass_enum = pass.pass;
+
+#if defined(_DEBUG)
     ImGui::Text("Pass: %s", pass_name.c_str());
+#endif
 
     // Optimisation:
     // avoid some heavy passes on scene that doesnt need them.
     // There's probably a better way to do this.
 
     if (pass_enum == PassName::stars && !in_stars_scene) {
+#if defined(_DEBUG)
       ImGui::SameLine();
       ImGui::Text("(Skipped)");
+#endif
       continue;
     }
 
     if (in_jumpflood_pass(pass_enum) && !in_jumpflood_scene) {
+#if defined(_DEBUG)
       ImGui::SameLine();
       ImGui::Text("(Skipped)");
+#endif
       continue;
     }
 
     const auto& wh = ri.viewport_size_render_at;
-    // const glm::ivec2 scaled = { wh.x * rp.texture_scale_factor, wh.y * rp.texture_scale_factor };
-
     Framebuffer::bind_fbo(pass.fbos[0]);
     RenderCommand::set_viewport(0, 0, wh.x, wh.y);
     RenderCommand::set_clear_colour_srgb(black);
@@ -527,7 +534,9 @@ update_render_system(entt::registry& r, const float dt, const glm::vec2& mouse_p
     pass.update();
   }
 
+#if defined(_DEBUG)
   ImGui::End();
+#endif
 
   // Default: render_texture_to_imgui
   // Render the last renderpass texture to the final output

@@ -70,9 +70,9 @@ update_ui_pause_menu_system(engine::SINGLETON_Application& app, entt::registry& 
 
     ImGui::SeparatorText("Settings");
 
-    static bool value = false;
-    if (ImGui::Checkbox("Fullscreen", &value))
-      app.window.toggle_fullscreen();
+    // static bool value = false;
+    // if (ImGui::Checkbox("Fullscreen", &value))
+    //   app.window.toggle_fullscreen();
 
     static bool borderless = false;
     if (ImGui::Checkbox("Borderless", &borderless))
