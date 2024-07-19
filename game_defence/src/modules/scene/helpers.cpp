@@ -16,8 +16,10 @@
 #include "modules/actor_enemy_patrol/components.hpp"
 #include "modules/actor_enemy_patrol/helpers.hpp"
 #include "modules/actor_player/components.hpp"
+#include "modules/actor_spacestation/components.hpp"
 #include "modules/actor_spawner/components.hpp"
 #include "modules/actors/helpers.hpp"
+#include "modules/algorithm_procedural/poisson.hpp"
 #include "modules/animation/components.hpp"
 #include "modules/camera/components.hpp"
 #include "modules/camera/orthographic.hpp"
@@ -224,7 +226,7 @@ move_to_scene_start(entt::registry& r, const Scene s, const bool load_saved)
     // create a piece of worldspace text with the title
     // this'll probably be replaced by an icon
     {
-      const std::string label = "Solar War";
+      const std::string label = "Solar Warfare";
       const ImVec2 xy = ImGui::CalcTextSize(label.c_str());
       const auto ypos = -half_wh.y + ((half_wh.y * 2.0f) / 6.0);
       const auto e = create_gameplay(r, EntityType::empty_with_transform);
@@ -258,23 +260,14 @@ move_to_scene_start(entt::registry& r, const Scene s, const bool load_saved)
     // destroy_first_and_create<Effect_DoBloom>(r);
     create_empty<AudioRequestPlayEvent>(r, AudioRequestPlayEvent{ "GAME_01" });
 
-    const int map_width = 1600;
-    const int map_height = 1600;
+    const int map_width = 3000;
+    const int map_height = 3000;
     MapComponent map_c;
     map_c.tilesize = 50;
     map_c.xmax = map_width / map_c.tilesize;
     map_c.ymax = map_height / map_c.tilesize;
     map_c.map.resize(map_c.xmax * map_c.ymax);
     create_empty<MapComponent>(r, map_c);
-
-    // create a piece of worldspace text for the quadrant
-    {
-      const auto e = create_gameplay(r, EntityType::empty_with_transform);
-      auto& ui = r.emplace<WorldspaceTextComponent>(e);
-      ui.text = "Quadrant 4.2UNE";
-      set_position(r, e, { 40, -10 });
-      set_size(r, e, { 0, 0 });
-    };
 
     // Create 4 edges to the map
     bool create_edges = true;
@@ -318,15 +311,6 @@ move_to_scene_start(entt::registry& r, const Scene s, const bool load_saved)
 #endif
       static engine::RandomState rnd(seed);
 
-      // spawn the player somewhere random on the map
-      const int rnd_x = int(engine::rand_det_s(rnd.rng, map_c.tilesize, map_width - map_c.tilesize));
-      const int rnd_y = int(engine::rand_det_s(rnd.rng, map_c.tilesize, map_height - map_c.tilesize));
-      const auto pos = glm::ivec2{ rnd_x, rnd_y };
-
-      const auto player = create_gameplay(r, EntityType::actor_player);
-      set_position(r, player, pos);
-      r.emplace<CameraFollow>(player);
-
       for (int i = 0; i < 20; i++) {
         const auto enemy = create_gameplay(r, EntityType::actor_enemy_patrol);
 
@@ -339,63 +323,83 @@ move_to_scene_start(entt::registry& r, const Scene s, const bool load_saved)
         set_position(r, enemy, { rnd_x * map_c.tilesize, rnd_y * map_c.tilesize });
       }
 
-      // HACK: create a spacestation
-      const auto spacestation_e = create_gameplay(r, EntityType::empty_with_physics);
-      set_size(r, spacestation_e, { 200, 200 });
-      const auto tex_unit = search_for_texture_unit_by_texture_path(ri, "spacestation_0").value();
-      set_sprite_custom(r, spacestation_e, "SPACESTATION_0", tex_unit.unit);
-      set_position(r, spacestation_e, { map_width / 2, map_height / 2 }); // center
-      set_colour(r, spacestation_e, { 1.0f, 1.0f, 1.0f, 1.0f });
+      // Use poisson for stations?
+      {
+        const int width = map_width;
+        const int height = map_height;
+        const auto poisson = generate_poisson(width - 200, height - 200, 800, 0);
+        fmt::println("Stations generated: {}", poisson.size());
 
-      // rotate the station
-      RotateAroundSpot spot;
-      spot.spot = get_position(r, spacestation_e);
-      spot.theta = float(engine::rand_det_s(rnd.rng, 0.0f, engine::PI * 2.0f));
-      spot.distance = 0;
-      spot.rotate_speed = 0.1f;
-      r.emplace<RotateAroundSpot>(spacestation_e, spot);
+        for (int station_idx = 0; const auto& p : poisson) {
+          const glm::vec2 base_position = p + glm::vec2{ 100, 100 };
 
-      // create some debris around the station
-      for (int i = 0; i < 50; i++) {
-        const auto debris_e = create_gameplay(r, EntityType::actor_asteroid);
+          const auto spacestation_e = create_gameplay(r, EntityType::actor_spacestation);
+          if (station_idx > 0)
+            r.emplace<SpacestationUndiscoveredComponent>(spacestation_e);
 
-        // rotate around the station
-        RotateAroundSpot spot;
-        spot.spot = get_position(r, spacestation_e);
-        spot.theta = float(engine::rand_det_s(rnd.rng, 0.0f, engine::PI * 2.0f));
+          auto& station_data = r.get<SpacestationComponent>(spacestation_e);
+          station_data.idx = station_idx++;
 
-        // i.e. the closer you are the slower you are
-        const float min = 80;
-        const float max = 120;
-        spot.distance = int(engine::rand_det_s(rnd.rng, min, max));
+          set_size(r, spacestation_e, { 160, 160 });
+          const auto tex_unit = search_for_texture_unit_by_texture_path(ri, "spacestation_0").value();
+          set_sprite_custom(r, spacestation_e, "SPACESTATION_0", tex_unit.unit);
+          set_position(r, spacestation_e, base_position); // center
+          set_colour(r, spacestation_e, { 1.0f, 1.0f, 1.0f, 1.0f });
 
-        const float t = engine::scale(spot.distance, min, max, 0.0f, 1.0f);
-        const float speed_min = 0.1f;
-        const float speed_max = 0.5f;
-        const float speed = engine::lerp(speed_min, speed_max, glm::clamp(t, 0.0f, 1.0f));
-        spot.rotate_speed = speed;
+          const std::string station_name = fmt::format("Station {}", std::to_string(station_data.idx));
+          r.emplace<WorldspaceTextComponent>(spacestation_e, WorldspaceTextComponent{ station_name });
 
-        r.emplace<RotateAroundSpot>(debris_e, spot);
+          // rotate the station
+          RotateAroundSpot spot;
+          spot.spot = { p.x, p.y };
+          spot.theta = float(engine::rand_det_s(rnd.rng, 0.0f, engine::PI * 2.0f));
+          spot.distance = 0;
+          spot.rotate_speed = 0.1f;
+          r.emplace<RotateAroundSpot>(spacestation_e, spot);
 
-        set_colour(r, debris_e, { 0.3f, 0.3f, 0.3f, 0.5f });
-        set_size(r, debris_e, { 4, 4 });
+          // create some debris around the station
+          for (int i = 0; i < 0; i++) {
+            const auto debris_e = create_gameplay(r, EntityType::actor_asteroid);
+
+            // rotate around the station
+            RotateAroundSpot spot;
+            spot.spot = get_position(r, spacestation_e);
+            spot.theta = float(engine::rand_det_s(rnd.rng, 0.0f, engine::PI * 2.0f));
+
+            // i.e. the closer you are the slower you are
+            const float min = 80;
+            const float max = 120;
+            spot.distance = int(engine::rand_det_s(rnd.rng, min, max));
+
+            const float t = engine::scale(spot.distance, min, max, 0.0f, 1.0f);
+            const float speed_min = 0.1f;
+            const float speed_max = 0.5f;
+            const float speed = engine::lerp(speed_min, speed_max, glm::clamp(t, 0.0f, 1.0f));
+            spot.rotate_speed = speed;
+
+            r.emplace<RotateAroundSpot>(debris_e, spot);
+
+            set_colour(r, debris_e, { 0.3f, 0.3f, 0.3f, 0.5f });
+            set_size(r, debris_e, { 4, 4 });
+          }
+        }
+      }
+
+      // const int rnd_x = int(engine::rand_det_s(rnd.rng, map_c.tilesize, map_width - map_c.tilesize));
+      // const int rnd_y = int(engine::rand_det_s(rnd.rng, map_c.tilesize, map_height - map_c.tilesize));
+      // const auto pos = glm::ivec2{ rnd_x, rnd_y };
+
+      // spawn the player at the 0th spacestation
+      const auto& spacestations_view = r.view<const SpacestationComponent>(entt::exclude<SpacestationUndiscoveredComponent>);
+      for (const auto& [e, station_c] : spacestations_view.each()) {
+
+        const auto player = create_gameplay(r, EntityType::actor_player);
+        set_position(r, player, get_position(r, e));
+        r.emplace<CameraFollow>(player);
+
+        break;
       }
     }
-
-    // VISUAL: use poisson for stars?
-    // {
-    //   const int width = map_width;
-    //   const int height = map_height;
-    //   const auto poisson = generate_poisson(width, height, 150, 0);
-    //   for (const auto& p : poisson) {
-    //     const auto icon = create_gameplay(r, EntityType::empty_with_transform);
-    //     set_sprite(r, icon, "EMPTY"s);
-    //     set_size(r, icon, { 8, 8 });
-    //     set_position(r, icon, { p.x, p.y });
-    //     set_colour(r, icon, { 255, 225, 123, 0.35f });
-    //     r.get<TagComponent>(icon).tag = "star"s;
-    //   }
-    // }
   }
 
   if (s == Scene::dungeon_designer) {

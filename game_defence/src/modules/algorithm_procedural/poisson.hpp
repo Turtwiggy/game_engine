@@ -10,8 +10,7 @@
 
 namespace game2d {
 
-std::vector<glm::vec2>
-generate_poisson(const int w, const int h, const float radius, const int seed = 0)
+std::vector<glm::vec2> inline generate_poisson(const int w, const int h, const float radius, const int seed = 0)
 {
   // setup
   const AABB rect = { { w / 2.0f, h / 2.0f }, { w, h } };
@@ -19,7 +18,8 @@ generate_poisson(const int w, const int h, const float radius, const int seed = 
   const float grid_size = radius / glm::sqrt(2.0f);
   const auto grid_w = static_cast<int>(glm::ceil(w / grid_size));
   const auto grid_h = static_cast<int>(glm::ceil(h / grid_size));
-  auto rnd = engine::RandomState(seed);
+  auto rnd = engine::RandomState();
+  rnd.rng.seed(seed);
   const auto k = 30; // max attempts bfore making sample inactive
 
   std::vector<std::optional<glm::vec2>> results(grid_w * grid_h, std::nullopt);
@@ -95,5 +95,4 @@ generate_poisson(const int w, const int h, const float radius, const int seed = 
   }
   return filtered_results;
 }
-
 } // namespace game2d

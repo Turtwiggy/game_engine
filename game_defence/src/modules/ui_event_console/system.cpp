@@ -31,7 +31,6 @@ update_ui_event_console_system(entt::registry& r)
 
   // top right
   const ImVec2 pos{ ri.viewport_size_render_at.x - size.x, 0 };
-
   ImGui::SetNextWindowPos(pos, ImGuiCond_Always, { 0, 0 });
   ImGui::SetNextWindowSize(size, ImGuiCond_Always);
 

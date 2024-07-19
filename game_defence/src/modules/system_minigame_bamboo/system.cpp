@@ -14,6 +14,9 @@
 #include <SDL_keyboard.h>
 #include <SDL_scancode.h>
 
+#include "fmt/core.h"
+#include "magic_enum.hpp"
+
 namespace game2d {
 using namespace std::literals;
 
@@ -105,15 +108,22 @@ update_minigame_bamboo_system(entt::registry& r, const float dt)
     create_empty<GenerateCombinationRequest>(r);
   check_if_generate_new_combination(r, bamboo_minigame.combination_length, rnd);
 
+  // Add inputs to buffer.
   const auto& update_inputs = get_first_component<SINGLETON_InputComponent>(r);
 
-  // Add inputs to buffer.
+  int added_this_frame = 0;
   for (const auto& input : update_inputs.unprocessed_inputs) {
     if (input.type == InputType::keyboard && input.state == InputState::press) {
-      if (input.keyboard != keyboard_submit_key.keyboard) // no submit key
+      if (input.keyboard != keyboard_submit_key.keyboard) { // no submit key
         buffer.push_back(input);
+        fmt::println("adding: {}", std::string(magic_enum::enum_name(input.type)));
+        added_this_frame++;
+      }
     }
   }
+
+  if (added_this_frame > 1)
+    int k = 1;
 
   const auto validate_combination_against_buffer = [&buffer, &combination]() -> bool {
     const auto buffer_size = buffer.size();

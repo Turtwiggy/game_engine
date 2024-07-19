@@ -18,8 +18,9 @@ update_rotate_around_spot_system(entt::registry& r, const float& dt)
     // dir to offset the rotation object
     const glm::vec2 dir = engine::angle_radians_to_direction(rotate_info.theta);
 
-    const glm::vec2 offset = dir * rotate_info.distance;
-    set_position(r, e, { rotate_info.spot.x + offset.x, rotate_info.spot.x + offset.y });
+    // hmm this seems to break things
+    // const glm::vec2 offset = dir * rotate_info.distance;
+    // set_position(r, e, { rotate_info.spot.x + offset.x, rotate_info.spot.x + offset.y });
 
     transform.rotation_radians.z = rotate_info.theta;
   }

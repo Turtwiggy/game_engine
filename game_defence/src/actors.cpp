@@ -9,6 +9,7 @@
 #include "modules/actor_enemy_patrol/components.hpp"
 #include "modules/actor_hearth/components.hpp"
 #include "modules/actor_player/components.hpp"
+#include "modules/actor_spacestation/components.hpp"
 #include "modules/actor_spawner/components.hpp"
 #include "modules/actor_turret/components.hpp"
 #include "modules/actor_weapon_shotgun/components.hpp"
@@ -251,7 +252,7 @@ create_gameplay(entt::registry& r, const EntityType& type)
       r.emplace<SetTransformAngleToVelocity>(e);
 
       auto& vel = r.get<VelocityComponent>(e);
-      vel.base_speed = 50.0f;
+      vel.base_speed = 100.0f;
 
       r.emplace<KnockbackComponent>(e);
 
@@ -372,6 +373,13 @@ create_gameplay(entt::registry& r, const EntityType& type)
       // if make turret solid,
       // spawn bullets outside of turret
       // r.emplace<PhysicsSolidComponent>(e);
+      break;
+    }
+
+    case EntityType::actor_spacestation: {
+      create_physics_actor(r, e);
+      r.emplace<SpacestationComponent>(e);
+
       break;
     }
 

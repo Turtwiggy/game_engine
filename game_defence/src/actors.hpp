@@ -29,6 +29,7 @@ enum class EntityType
   actor_unit_rtslike, // selectable and moveable
   actor_barrel,
   actor_asteroid,
+  actor_spacestation,
 
   // pickups
   actor_pickup_xp,

@@ -59,6 +59,7 @@
 #include "modules/ui_patrol/system.hpp"
 #include "modules/ui_pause_menu/system.hpp"
 #include "modules/ui_scene_main_menu/system.hpp"
+#include "modules/ui_warp_to_station/system.hpp"
 #include "modules/ui_worldspace_sprite/system.hpp"
 #include "modules/ui_worldspace_text/system.hpp"
 #include "modules/ux_hoverable_change_colour/system.hpp"
@@ -68,6 +69,7 @@
 #include "physics/process_move_objects.hpp"
 #include "sprites/components.hpp"
 #include "sprites/helpers.hpp"
+
 
 #include "fmt/core.h"
 #include "imgui.h"
@@ -404,6 +406,7 @@ update(engine::SINGLETON_Application& app, entt::registry& r, const float dt)
     }
     if (scene.s == Scene::overworld) {
       update_ui_patrol_system(r);
+      update_ui_warp_to_station_system(r);
     }
 
     if (scene.s == Scene::turnbasedcombat) {
