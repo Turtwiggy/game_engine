@@ -70,7 +70,6 @@
 #include "sprites/components.hpp"
 #include "sprites/helpers.hpp"
 
-
 #include "fmt/core.h"
 #include "imgui.h"
 #include "optick.h"
@@ -116,7 +115,7 @@ init(engine::SINGLETON_Application& app, entt::registry& r)
     ri.user_textures.push_back(spacestation_0);
 
     Texture studio_logo;
-    studio_logo.path = path + "textures/blueberry.png";
+    studio_logo.path = path + "textures/blueberry-dark.png";
     studio_logo.spritesheet_path = path + "config/spritemap_studio_logo.json";
     ri.user_textures.push_back(studio_logo);
 

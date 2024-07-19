@@ -189,12 +189,12 @@ move_to_scene_start(entt::registry& r, const Scene s, const bool load_saved)
     }
 
     // create background
-    {
-      const auto e = create_gameplay(r, EntityType::empty_with_transform);
-      set_size(r, e, { ri.viewport_size_render_at.x + 10, ri.viewport_size_render_at.y + 10 });
-      set_position(r, e, { 0, 0 });              // center
-      set_colour(r, e, { 231, 242, 248, 1.0f }); // logo background colour
-    }
+    // {
+    //   const auto e = create_gameplay(r, EntityType::empty_with_transform);
+    //   set_size(r, e, { ri.viewport_size_render_at.x + 10, ri.viewport_size_render_at.y + 10 });
+    //   set_position(r, e, { 0, 0 });              // center
+    //   set_colour(r, e, { 231, 242, 248, 1.0f }); // logo background colour
+    // }
   }
 
   if (s == Scene::menu) {
