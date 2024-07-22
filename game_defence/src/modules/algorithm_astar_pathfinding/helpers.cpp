@@ -6,23 +6,21 @@
 #include "modules/actors/helpers.hpp"
 #include "modules/algorithm_astar_pathfinding/components.hpp"
 #include "modules/algorithm_astar_pathfinding/priority_queue.hpp"
-#include "modules/combat_flash_on_damage/helpers.hpp"
 #include "modules/grid/components.hpp"
-#include "sprites/helpers.hpp"
 
 #include <fmt/core.h>
 #include <map>
 
 namespace game2d {
 
-// Converts GridComponent to std::vector<astar_cell>
+// Converts MapComponent to std::vector<astar_cell>
 std::vector<astar_cell>
-generate_map_view(entt::registry& r, const GridComponent& grid)
+generate_map_view(entt::registry& r, const MapComponent& map)
 {
   std::vector<astar_cell> result;
 
-  for (int xy = 0; xy < grid.width * grid.height; xy++) {
-    const auto gpos = engine::grid::index_to_grid_position(xy, grid.width, grid.height);
+  for (int xy = 0; xy < map.xmax * map.ymax; xy++) {
+    const auto gpos = engine::grid::index_to_grid_position(xy, map.xmax, map.ymax);
 
     astar_cell cell;
     cell.idx = xy;
@@ -30,7 +28,7 @@ generate_map_view(entt::registry& r, const GridComponent& grid)
 
     // If the cell contains entites with cost info,
     // add that cost info to the cost
-    for (const auto& ent : grid.grid[xy]) {
+    for (const auto& ent : map.map[xy]) {
       if (auto* cost = r.try_get<PathfindComponent>(ent))
         cell.cost = cost->cost;
     }
@@ -68,17 +66,18 @@ reconstruct_path(std::map<vec2i, vec2i> came_from, vec2i from, vec2i to)
 
 std::vector<glm::ivec2>
 generate_direct(entt::registry& r,
-                const GridComponent& grid,
+                const MapComponent& map_c,
                 const int from_idx,
                 const int to_idx,
                 const std::optional<std::vector<Edge>> edges)
 {
-  const std::vector<astar_cell> map = generate_map_view(r, grid);
+  // this seems bad
+  const std::vector<astar_cell> map = generate_map_view(r, map_c);
 
   std::vector<vec2i> path;
 
-  const auto from_glm = engine::grid::index_to_grid_position(from_idx, grid.width, grid.height);
-  const auto to_glm = engine::grid::index_to_grid_position(to_idx, grid.width, grid.height);
+  const auto from_glm = engine::grid::index_to_grid_position(from_idx, map_c.xmax, map_c.ymax);
+  const auto to_glm = engine::grid::index_to_grid_position(to_idx, map_c.xmax, map_c.ymax);
   const vec2i from{ from_glm.x, from_glm.y };
   const vec2i to{ to_glm.x, to_glm.y };
 
@@ -98,7 +97,7 @@ generate_direct(entt::registry& r,
     if (equal<vec2i>(current, to))
       return reconstruct_path(came_from, from, to);
 
-    const auto neighbour_idxs = engine::grid::get_neighbour_indicies(current.x, current.y, grid.width, grid.height);
+    const auto neighbour_idxs = engine::grid::get_neighbour_indicies(current.x, current.y, map_c.xmax, map_c.ymax);
 
     for (const auto& [dir, idx] : neighbour_idxs) {
       const auto& neighbour = map[idx].pos;
@@ -142,14 +141,14 @@ generate_direct(entt::registry& r,
 }
 
 std::vector<glm::ivec2>
-generate_direct_with_diagonals(entt::registry& r, const GridComponent& grid, const int from_idx, const int to_idx)
+generate_direct_with_diagonals(entt::registry& r, const MapComponent& map_c, const int from_idx, const int to_idx)
 {
-  const std::vector<astar_cell> map = generate_map_view(r, grid);
+  const std::vector<astar_cell> map = generate_map_view(r, map_c);
 
   std::vector<vec2i> path;
 
-  const auto from_glm = engine::grid::index_to_grid_position(from_idx, grid.width, grid.height);
-  const auto to_glm = engine::grid::index_to_grid_position(to_idx, grid.width, grid.height);
+  const auto from_glm = engine::grid::index_to_grid_position(from_idx, map_c.xmax, map_c.ymax);
+  const auto to_glm = engine::grid::index_to_grid_position(to_idx, map_c.xmax, map_c.ymax);
   const vec2i from{ from_glm.x, from_glm.y };
   const vec2i to{ to_glm.x, to_glm.y };
 
@@ -170,7 +169,7 @@ generate_direct_with_diagonals(entt::registry& r, const GridComponent& grid, con
       return reconstruct_path(came_from, from, to);
 
     const auto neighbours_idxs =
-      engine::grid::get_neighbour_indicies_with_diagonals(current.x, current.y, grid.width, grid.height);
+      engine::grid::get_neighbour_indicies_with_diagonals(current.x, current.y, map_c.xmax, map_c.ymax);
 
     for (const auto& [dir, idx] : neighbours_idxs) {
       const auto& neighbour = map[idx].pos;
@@ -194,12 +193,12 @@ generate_direct_with_diagonals(entt::registry& r, const GridComponent& grid, con
 };
 
 [[nodiscard]] std::vector<glm::ivec2>
-generate_accessible_areas(entt::registry& r, const GridComponent& grid, const int from_idx, const int range)
+generate_accessible_areas(entt::registry& r, const MapComponent& map_c, const int from_idx, const int range)
 {
-  std::vector<astar_cell> map = generate_map_view(r, grid);
+  std::vector<astar_cell> map = generate_map_view(r, map_c);
   map[from_idx].distance = 0;
 
-  const auto from_glm = engine::grid::index_to_grid_position(from_idx, grid.width, grid.height);
+  const auto from_glm = engine::grid::index_to_grid_position(from_idx, map_c.xmax, map_c.ymax);
   const vec2i from{ from_glm.x, from_glm.y };
 
   PriorityQueue<vec2i> frontier;
@@ -209,11 +208,11 @@ generate_accessible_areas(entt::registry& r, const GridComponent& grid, const in
 
   while (frontier.size() > 0) {
     const auto current = frontier.dequeue();
-    const auto current_idx = engine::grid::grid_position_to_index({ current.x, current.y }, grid.width);
+    const auto current_idx = engine::grid::grid_position_to_index({ current.x, current.y }, map_c.xmax);
     results.push_back({ current.x, current.y });
 
     // check neighbours
-    const auto neighbours_idxs = engine::grid::get_neighbour_indicies(current.x, current.y, grid.width, grid.height);
+    const auto neighbours_idxs = engine::grid::get_neighbour_indicies(current.x, current.y, map_c.xmax, map_c.ymax);
 
     for (const auto& [dir, idx] : neighbours_idxs) {
       auto& neighbour = map[idx];
@@ -238,11 +237,11 @@ generate_accessible_areas(entt::registry& r, const GridComponent& grid, const in
 };
 
 std::vector<astar_cell>
-generate_flow_field(entt::registry& r, const GridComponent& grid, const int from_idx)
+generate_flow_field(entt::registry& r, const MapComponent& map_c, const int from_idx)
 {
-  std::vector<astar_cell> map = generate_map_view(r, grid);
+  std::vector<astar_cell> map = generate_map_view(r, map_c);
 
-  const int from = grid.grid.size() - 1;
+  const int from = map_c.map.size() - 1;
   const int to = 0;
   const vec2i to_pos = { 0, 0 };
 
@@ -256,8 +255,8 @@ generate_flow_field(entt::registry& r, const GridComponent& grid, const int from
   while (frontier.size() > 0) {
     auto current = frontier.dequeue();
 
-    const auto gpos = engine::grid::index_to_grid_position(current, grid.width, grid.height);
-    const auto neighbours_idxs = engine::grid::get_neighbour_indicies(gpos.x, gpos.y, grid.width, grid.height);
+    const auto gpos = engine::grid::index_to_grid_position(current, map_c.xmax, map_c.ymax);
+    const auto neighbours_idxs = engine::grid::get_neighbour_indicies(gpos.x, gpos.y, map_c.xmax, map_c.ymax);
 
     for (const auto& [dir, neighbour_idx] : neighbours_idxs) {
       const auto& neighbour_pos = map[neighbour_idx].pos;
@@ -278,7 +277,7 @@ generate_flow_field(entt::registry& r, const GridComponent& grid, const int from
   } // end while loop
 
   // set final distances
-  for (int xy = 0; xy < grid.width * grid.height; xy++) {
+  for (int xy = 0; xy < map_c.xmax * map_c.ymax; xy++) {
     if (map[xy].cost == -1)
       continue;
     if (auto it{ cost_so_far.find(xy) }; it != std::end(cost_so_far)) {
@@ -293,39 +292,39 @@ generate_flow_field(entt::registry& r, const GridComponent& grid, const int from
 };
 
 // update visuals
-void
-display_flow_field_with_visuals(entt::registry& r, GridComponent& grid)
-{
-  std::vector<astar_cell> map = generate_map_view(r, grid);
+// void
+// display_flow_field_with_visuals(entt::registry& r, MapComponent& map_c)
+// {
+//   std::vector<astar_cell> map = generate_map_view(r, grid);
 
-  for (auto& vfx_ents : grid.debug_flow_field) {
-    r.destroy(vfx_ents.begin(), vfx_ents.end());
-    vfx_ents.clear();
-  }
-  grid.debug_flow_field.clear();
-  grid.debug_flow_field.resize(grid.width * grid.height);
+//   for (auto& vfx_ents : grid.debug_flow_field) {
+//     r.destroy(vfx_ents.begin(), vfx_ents.end());
+//     vfx_ents.clear();
+//   }
+//   grid.debug_flow_field.clear();
+//   grid.debug_flow_field.resize(map.xmax * map.ymax);
 
-  for (int xy = 0; xy < grid.width * grid.height; xy++) {
-    const auto gpos = engine::grid::index_to_grid_position(xy, grid.width, grid.height);
+//   for (int xy = 0; xy < map.xmax * map.ymax; xy++) {
+//     const auto gpos = engine::grid::index_to_grid_position(xy, map.xmax, map.ymax);
 
-    const int text_seperation = 10;
-    const int distance = map[xy].distance;
-    if (distance == INT_MAX)
-      continue;
-    const auto sprites = convert_int_to_sprites(distance);
-    auto& sprite_vfxs = grid.debug_flow_field[xy];
-    for (int i = 0; i < sprites.size(); i++) {
-      const auto sprite = create_gameplay(r, EntityType::empty_with_transform);
-      set_sprite(r, sprite, sprites[i]);
+//     const int text_seperation = 10;
+//     const int distance = map[xy].distance;
+//     if (distance == INT_MAX)
+//       continue;
+//     const auto sprites = convert_int_to_sprites(distance);
+//     auto& sprite_vfxs = grid.debug_flow_field[xy];
+//     for (int i = 0; i < sprites.size(); i++) {
+//       const auto sprite = create_gameplay(r, EntityType::empty_with_transform);
+//       set_sprite(r, sprite, sprites[i]);
 
-      glm::ivec2 position = { gpos.x * grid.size, gpos.y * grid.size };
-      position.x += (i + 1) * text_seperation;
-      set_position(r, sprite, position);
+//       glm::ivec2 position = { gpos.x * grid.size, gpos.y * grid.size };
+//       position.x += (i + 1) * text_seperation;
+//       set_position(r, sprite, position);
 
-      sprite_vfxs.push_back(sprite);
-    }
-  }
-};
+//       sprite_vfxs.push_back(sprite);
+//     }
+//   }
+// };
 
 glm::ivec2
 worldspace_to_clamped_gridspace(const MapComponent& map, const glm::ivec2 pos)
@@ -385,6 +384,9 @@ destination_is_blocked(entt::registry& r, const glm::ivec2 worldspace_pos)
   const auto idx = convert_position_to_index(map, worldspace_pos);
 
   for (const auto& ent : map.map[idx]) {
+    const auto& info = r.get<EntityTypeComponent>(ent);
+
+    // something exists, so it should have a pathfind component
     const auto& comp = r.get<PathfindComponent>(ent);
     if (comp.cost == -1)
       return true;

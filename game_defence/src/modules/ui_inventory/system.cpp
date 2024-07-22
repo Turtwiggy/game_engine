@@ -128,7 +128,7 @@ update_ui_inventory_system(entt::registry& r)
   const auto& input = get_first_component<SINGLETON_InputComponent>(r);
 
 #if defined(_DEBUG)
-  static bool first_time = true;
+  static bool first_time = false;
   if (first_time) {
     first_time = false;
     destroy_first_and_create<ShowInventoryRequest>(r);
@@ -188,11 +188,11 @@ update_ui_inventory_system(entt::registry& r)
       return create_empty<InventorySlotComponent>(r, InventorySlotComponent{ type });
     };
     static auto head_eid = create_body_slot(InventorySlotType::head);
-    static auto chest_eid = create_body_slot(InventorySlotType::chest);
-    static auto l_arm_eid = create_body_slot(InventorySlotType::l_arm);
-    static auto r_arm_eid = create_body_slot(InventorySlotType::r_arm);
-    static auto legs_eid = create_body_slot(InventorySlotType::legs);
-    static auto feet_eid = create_body_slot(InventorySlotType::feet);
+    static auto core_eid = create_body_slot(InventorySlotType::core);
+    static auto l_arm_eid = create_body_slot(InventorySlotType::arm);
+    static auto r_arm_eid = create_body_slot(InventorySlotType::arm);
+    static auto l_leg_eid = create_body_slot(InventorySlotType::leg);
+    static auto r_leg_eid = create_body_slot(InventorySlotType::leg);
     static auto gun_0_eid = create_body_slot(InventorySlotType::gun);
     static auto gun_1_eid = create_body_slot(InventorySlotType::gun);
 
@@ -206,12 +206,12 @@ update_ui_inventory_system(entt::registry& r)
     };
 
     // give player default items?
-    static auto scrap_item_head = create_item(head_eid, ItemType::scrap_helmet);
-    static auto scrap_item_chest = create_item(chest_eid, ItemType::scrap_chestpiece);
-    static auto scrap_item_l_arm = create_item(l_arm_eid, ItemType::scrap_arm_bracer);
-    static auto scrap_item_r_arm = create_item(r_arm_eid, ItemType::scrap_arm_bracer);
-    static auto scrap_item_legs = create_item(legs_eid, ItemType::scrap_legs);
-    static auto scrap_item_feet = create_item(feet_eid, ItemType::scrap_boots);
+    static auto scrap_item_head = create_item(head_eid, ItemType::scrap_head_protection);
+    static auto scrap_item_core = create_item(core_eid, ItemType::scrap_core_protection);
+    static auto scrap_item_l_arm = create_item(l_arm_eid, ItemType::scrap_arm_protection);
+    static auto scrap_item_r_arm = create_item(r_arm_eid, ItemType::scrap_arm_protection);
+    static auto scrap_item_l_legs = create_item(l_leg_eid, ItemType::scrap_leg_protection);
+    static auto scrap_item_r_legs = create_item(r_leg_eid, ItemType::scrap_leg_protection);
     static auto scrap_item_gun = create_item(gun_0_eid, ItemType::scrap_shotgun);
 
     {
@@ -221,18 +221,18 @@ update_ui_inventory_system(entt::registry& r)
       y += button_size.y + padding_y;
       display_inventory_slot(r, l_arm_eid, button_size, { center_x - button_size.x - padding_x, 0 });
       ImGui::SameLine();
-      display_inventory_slot(r, chest_eid, button_size, { center_x, 0 });
+      display_inventory_slot(r, core_eid, button_size, { center_x, 0 });
       ImGui::SameLine();
       display_inventory_slot(r, r_arm_eid, button_size, { center_x + button_size.x + padding_x, 0 });
 
       y += button_size.y + padding_y;
-      display_inventory_slot(r, legs_eid, button_size, { center_x, 0 });
+      display_inventory_slot(r, l_leg_eid, button_size, { center_x, 0 });
+      ImGui::SameLine();
+      display_inventory_slot(r, r_leg_eid, button_size, { center_x + button_size.x, 0 });
       ImGui::SameLine();
       display_inventory_slot(r, gun_0_eid, gun_button_size, { right_x - gun_button_size.x - padding_x, 0 });
 
       y += button_size.y + padding_y;
-      display_inventory_slot(r, feet_eid, button_size, { center_x, 0 });
-      ImGui::SameLine();
       display_inventory_slot(r, gun_1_eid, gun_button_size, { right_x - gun_button_size.x - padding_x, 0 });
     }
 

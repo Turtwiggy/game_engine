@@ -36,22 +36,22 @@ heuristic(const T& a, const T& b)
 
 [[nodiscard]] std::vector<glm::ivec2>
 generate_direct(entt::registry& r,
-                const GridComponent& grid,
+                const MapComponent& grid,
                 const int from_idx,
                 const int to_idx,
                 const std::optional<std::vector<Edge>> edges = std::nullopt);
 
 [[nodiscard]] std::vector<glm::ivec2>
-generate_direct_with_diagonals(entt::registry& r, const GridComponent& grid, const int from_idx, const int to_idx);
+generate_direct_with_diagonals(entt::registry& r, const MapComponent& grid, const int from_idx, const int to_idx);
 
 [[nodiscard]] std::vector<glm::ivec2>
-generate_accessible_areas(entt::registry& r, const GridComponent& grid, const int from_idx, const int range);
+generate_accessible_areas(entt::registry& r, const MapComponent& grid, const int from_idx, const int range);
 
 [[nodiscard]] std::vector<astar_cell>
-generate_flow_field(entt::registry& r, const GridComponent& grid, const int from_idx);
+generate_flow_field(entt::registry& r, const MapComponent& grid, const int from_idx);
 
 void
-display_flow_field_with_visuals(entt::registry& r, GridComponent& grid);
+display_flow_field_with_visuals(entt::registry& r, MapComponent& grid);
 
 //
 

@@ -36,6 +36,7 @@
 #include "modules/screenshake/system.hpp"
 #include "modules/system_change_gun_colour/system.hpp"
 #include "modules/system_entered_new_room/system.hpp"
+#include "modules/system_inventory/system.hpp"
 #include "modules/system_minigame_bamboo/system.hpp"
 #include "modules/system_particles/system.hpp"
 #include "modules/system_particles_on_death/system.hpp"
@@ -234,6 +235,9 @@ fixed_update(engine::SINGLETON_Application& app, entt::registry& game, const uin
   if (gameover.game_is_over)
     return;
 
+  // needs dead.dead before it's cleared
+  update_pathfinding_system(game, milliseconds_dt / 1000.0f);
+
   // destroy/create objects
   update_lifecycle_system(game, milliseconds_dt);
 
@@ -281,9 +285,6 @@ update(engine::SINGLETON_Application& app, entt::registry& r, const float dt)
     update_cursor_system(r, mouse_pos);
 
     // systems
-    update_screenshake_system(r, app.ms_since_launch / 1000.0f, dt);
-    // update_ux_hoverable(r);
-    update_ux_hoverable_change_colour_system(r);
 
     const auto& state = get_first_component<SINGLETON_GameStateComponent>(r);
     auto& gameover = get_first_component<SINGLETON_GameOver>(r);
@@ -319,13 +320,14 @@ update(engine::SINGLETON_Application& app, entt::registry& r, const float dt)
       //   update_ui_xp_bar_system(r);
       //   update_ui_rpg_character_system(r);
       //   update_ui_inverse_kinematics_system(r, mouse_pos);
+      // update_ux_hoverable(r);
+      // update_ux_hoverable_change_colour_system(r);
       //
 
       // potentially common
       update_attack_cooldown_system(r, milliseconds_dt);
       update_change_gun_colour_system(r);
       update_flash_sprite_system(r, milliseconds_dt);
-      update_pathfinding_system(r, dt);
       update_particle_system(r, dt);
       update_spawn_particles_on_death_system(r);
       update_set_velocity_to_target_system(r, dt);
@@ -345,9 +347,11 @@ update(engine::SINGLETON_Application& app, entt::registry& r, const float dt)
     if (scene.s == Scene::dungeon_designer || scene.s == Scene::turnbasedcombat) {
       update_entered_new_room_system(r, dt);
       update_gen_dungeons_system(r, mouse_pos);
+      update_inventory_system(r);
       update_turnbased_endturn_system(r);
       update_turnbased_enemy_system(r);
       update_ux_selectable_by_keyboard_system(r);
+      update_screenshake_system(r, app.ms_since_launch / 1000.0f, dt);
 
 #if defined(_DEBUG)
       // update_debug_pathfinding_system(r, mouse_pos);

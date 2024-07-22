@@ -1,9 +1,12 @@
 #include "system.hpp"
 
 #include "entt/helpers.hpp"
+#include "lifecycle/components.hpp"
 #include "maths/grid.hpp"
+#include "modules/actor_enemy_patrol/components.hpp"
 #include "modules/actor_player/components.hpp"
 #include "modules/actor_spacestation/components.hpp"
+#include "modules/actor_turret/helpers.hpp"
 #include "modules/actors/helpers.hpp"
 #include "modules/algorithm_astar_pathfinding/components.hpp"
 #include "modules/algorithm_astar_pathfinding/helpers.hpp"
@@ -25,11 +28,6 @@ update_ui_warp_to_station_system(entt::registry& r)
   if (map_e == entt::null)
     return;
 
-  const auto& player_e = get_first<PlayerComponent>(r);
-  if (player_e == entt::null)
-    return;
-  const glm::vec2 player_pos = get_position(r, player_e);
-
   const auto stop_spaceship_ai = [&r](const entt::entity& e) {
     // warp-speed, deactivate!
     auto& player_vel = r.get<VelocityComponent>(e);
@@ -44,15 +42,17 @@ update_ui_warp_to_station_system(entt::registry& r)
   };
 
   // if player touches WASD, stop ai control if it is occuring
-  const auto& player_input = r.get<InputComponent>(player_e);
-  if (glm::abs(player_input.lx) > 0.0f)
-    stop_spaceship_ai(player_e);
-  if (glm::abs(player_input.ly) > 0.0f)
-    stop_spaceship_ai(player_e);
+  const auto check_if_player_pressed_key = [&r, &stop_spaceship_ai](const entt::entity& e) {
+    if (const auto* input_c = r.try_get<InputComponent>(e)) {
+      if (glm::abs(input_c->lx) > 0.0f)
+        stop_spaceship_ai(e);
+      if (glm::abs(input_c->ly) > 0.0f)
+        stop_spaceship_ai(e);
+    }
+  };
 
   const auto update_player_to_spacestation = [](entt::registry& r, const entt::entity& src_e, const entt::entity& dst_e) {
     const auto& map = get_first_component<MapComponent>(r); // gets updated if units was dead
-    const auto grid = map_to_grid(r);
 
     const auto src = get_position(r, src_e);
     const auto src_idx = convert_position_to_index(map, src);
@@ -63,11 +63,11 @@ update_ui_warp_to_station_system(entt::registry& r)
     if (src_idx == dst_idx)
       return;
 
-    const auto path = generate_direct(r, grid, src_idx, dst_idx);
+    const auto path = generate_direct(r, map, src_idx, dst_idx);
 
-    const glm::ivec2 worldspace_tl = engine::grid::grid_space_to_world_space(path[path.size() - 1], map.tilesize);
-    const glm::ivec2 worldspace_center = worldspace_tl + glm::ivec2{ map.tilesize / 2.0f, map.tilesize / 2.0f };
-    const glm::ivec2 dst_pos = worldspace_center;
+    glm::ivec2 dst_pos = engine::grid::index_to_world_position(dst_idx, map.xmax, map.ymax, map.tilesize);
+    const glm::ivec2 offset = { map.tilesize / 2, map.tilesize / 2 };
+    dst_pos += offset;
 
     GeneratedPathComponent path_c;
     path_c.path = path;
@@ -98,53 +98,99 @@ update_ui_warp_to_station_system(entt::registry& r)
   ImGui::Begin("WarpToSpaceship", NULL, flags);
 
   ImGui::Separator();
-  if (has_destination(r, player_e)) {
-    ImGui::Text("Warp Drive: active");
 
-    // Check when to deactivate warp drive...
-    if (at_destination(r, player_e))
-      stop_spaceship_ai(player_e);
+  // Players able to warp to stations?
+  for (const auto& [e, player_c] : r.view<PlayerComponent>().each()) {
+    ImGui::Text("Warp drive... ");
+    ImGui::SameLine();
 
-  } else
-    ImGui::Text("Warp Drive: inactive");
-  ImGui::Separator();
+    // Warp Drive status
+    if (has_destination(r, e)) {
+      ImGui::Text("active");
 
-  const auto& view = r.view<const SpacestationComponent>(entt::exclude<SpacestationUndiscoveredComponent>);
-  for (const auto& [station_e, spaceship] : view.each()) {
-    const auto eid = static_cast<uint32_t>(station_e);
-    ImGui::PushID(eid);
-
-    if (ImGui::Button("Warp")) {
       // warp-speed, activate!
-      auto& player_vel = r.get<VelocityComponent>(player_e);
+      auto& player_vel = r.get<VelocityComponent>(e);
       player_vel.base_speed = 500.0f;
 
-      update_player_to_spacestation(r, player_e, station_e);
+      // When to stop warp?
+      // ...on reaching destination
+      if (at_destination(r, e))
+        stop_spaceship_ai(e);
+      // ...on key press
+      check_if_player_pressed_key(e);
 
-      // player ship to automatically fly to destination
-      r.emplace_or_replace<HasTargetPositionComponent>(player_e);
-      r.emplace_or_replace<SetVelocityToTargetComponent>(player_e);
+    } else
+      ImGui::Text("inactive");
+  }
+
+  // configs
+  const float range_to_discover_station = 0.8f * 100'000;
+
+  ImGui::SeparatorText("Stations");
+
+  const auto& discovered_spacestations_view =
+    r.view<const SpacestationComponent>(entt::exclude<SpacestationUndiscoveredComponent>);
+  for (const auto& [station_e, station_c] : discovered_spacestations_view.each()) {
+    ImGui::PushID(static_cast<uint32_t>(station_e));
+    ImGui::Text("Station %i", station_c.idx);
+
+    // Let players dock
+    const auto in_range = get_within_range<PlayerComponent>(r, station_e, 100 * 100);
+    for (const auto& [player_e, d2] : in_range) {
+      ImGui::PushID(static_cast<uint32_t>(player_e));
+
+      const float fake_au = d2 / 10000.0f;
+      ImGui::Text("Entity.. %f AU", fake_au);
+
+      const auto* docked_comp = r.try_get<DockedAtStationComponent>(player_e);
+      if (docked_comp && ImGui::Button("Undock")) {
+        r.remove<DockedAtStationComponent>(player_e);
+        r.emplace_or_replace<InputComponent>(player_e);
+      } else if (!docked_comp && ImGui::Button("Dock")) {
+        r.emplace_or_replace<DockedAtStationComponent>(player_e, DockedAtStationComponent{ station_e });
+        r.remove<InputComponent>(player_e);
+
+        // seems like a bad idea
+        // auto& dead = get_first_component<SINGLETON_EntityBinComponent>(r);
+        // dead.dead.emplace(first_player_e);
+      }
+
+      ImGui::PopID();
     }
 
-    ImGui::SameLine();
-    const std::string station_name = fmt::format("S{}", spaceship.idx);
+    // temporary: first player warp to stations
+    const auto first_player_e = get_first<PlayerComponent>(r);
+    if (first_player_e != entt::null) {
+      const auto& e = first_player_e;
+      const bool warping = has_destination(r, e) && !at_destination(r, e);
+      const bool docked = r.try_get<DockedAtStationComponent>(e) != nullptr;
 
-    const glm::vec2 spacestation_pos = get_position(r, station_e);
-    const glm::vec2 d = player_pos - spacestation_pos;
-    const float d2 = (d.x * d.x + d.y * d.y) / 10000.0f;
-    ImGui::Text("%s AU %.2f", station_name.c_str(), d2);
+      // todo: show station list...
+      // select station to warp to...
+
+      if (!warping && !docked) {
+        ImGui::SameLine();
+        if (ImGui::Button("Warp")) {
+
+          // set path to spacestation
+          update_player_to_spacestation(r, e, station_e);
+
+          // player ship to automatically fly to destination
+          r.emplace_or_replace<HasTargetPositionComponent>(e);
+          r.emplace_or_replace<SetVelocityToTargetComponent>(e);
+        }
+      }
+    }
 
     ImGui::PopID();
   }
 
-  for (const auto& [station_e, station, undiscovered] :
-       r.view<const SpacestationComponent, const SpacestationUndiscoveredComponent>().each()) {
-    ImGui::Text("Spacestation Undiscovered");
+  const auto undiscovered_stations_view = r.view<const SpacestationComponent, const SpacestationUndiscoveredComponent>();
+  for (const auto& [station_e, station, undiscovered] : undiscovered_stations_view.each()) {
+    ImGui::Text("Undiscovered");
 
-    const glm::vec2 spacestation_pos = get_position(r, station_e);
-    const glm::vec2 d = player_pos - spacestation_pos;
-    const float d2 = (d.x * d.x + d.y * d.y) / 10000.0f;
-    if (d2 <= 8)
+    const auto in_range = get_within_range<PlayerComponent>(r, station_e, range_to_discover_station);
+    if (in_range.size() > 0)
       r.remove<SpacestationUndiscoveredComponent>(station_e);
   }
 

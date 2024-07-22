@@ -1,5 +1,7 @@
 #pragma once
 
+#include <entt/entt.hpp>
+
 namespace game2d {
 
 struct SpacestationComponent
@@ -11,6 +13,11 @@ struct SpacestationComponent
 struct SpacestationUndiscoveredComponent
 {
   bool placeholder = true;
+};
+
+struct DockedAtStationComponent
+{
+  entt::entity station_e = entt::null;
 };
 
 } // namespace game2d

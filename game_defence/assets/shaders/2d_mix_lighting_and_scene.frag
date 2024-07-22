@@ -21,6 +21,7 @@ uniform vec2 camera_pos;
 uniform vec2 viewport_wh;
 uniform float iTime;
 uniform bool put_starshader_behind;
+uniform bool add_grid = false;
 
 struct Light
 {
@@ -77,6 +78,19 @@ vec3 lin_to_srgb(vec3 color)
 float circleDist(vec2 p, float radius)
 {
 	return length(p) - radius;
+}
+
+float sdGrid(in vec2 position, in float margin) {
+
+	// Calculate per-axis distance from 0.5 to position mod 1
+	vec2 gridDist = abs(fract(position) - 0.5) - margin;
+	
+	// Calculate length for round outer corners, by Inigo Quilez
+	float outsideDist = length(max(gridDist, 0.0));
+	// Calculate inside separately, by Inigo Quilez
+	float insideDist = min(max(gridDist.x, gridDist.y), 0.0);
+	
+	return outsideDist + insideDist;
 }
 
 // masks for drawing
@@ -202,21 +216,51 @@ void main()
 	// disable bloom
   out_bright_color = vec4(0.0, 0.0, 0.0, 1.0);
 
-  // linear to srgb
-  vec4 scene_lin = texture(scene_0, v_uv);
-  vec3 stars = texture(scene_1, v_uv).rgb;
-
-	if(put_starshader_behind){
-		out_color.rgb = stars.rgb + lin_to_srgb(scene_lin.rgb);
-		return;
-	}
-
 	// fragCoord : is a vec2 that is between 0 > 640 on the X axis and 0 > 360 on the Y axis
   // iResolution : is a vec2 with an X value of 640 and a Y value of 360
   vec2 fragCoord = v_uv * viewport_wh;
   vec2 iResolution = viewport_wh;
   vec2 p = fragCoord.xy + vec2(0.5);
 	vec2 c = iResolution.xy / 2.0;
+	
+	vec2 half_wh = viewport_wh / 2.0;
+	vec2 screen_min = camera_pos - half_wh; // e.g. -960
+
+	// sdf grid
+	vec3 grid_col = vec3(0.0f);
+	{
+		int gridsize = 50; // pixels
+		vec2 camera_uv_screen = vec2( camera_pos.x / half_wh.x, camera_pos.y / half_wh.y); // camera position is in worldspace.
+		vec2 camera_uv = camera_uv_screen; 
+		vec2 uv = 2.0 * v_uv - 1.0;
+		uv += camera_uv;
+		float aspect = viewport_wh.y / viewport_wh.x;
+		uv.y *= aspect;
+		vec2 p_grid = (viewport_wh.x / gridsize / 2.0) * uv;
+		// if the gridsize gets too small and the gridwidth isnt large enough, 
+		// the grid appears to dissapear. the value 0.05 seems to work until gridsize<10
+		float grid_width = 0.02; 
+		float margin = 0.5;
+		if(abs(sdGrid(p_grid, margin)) >= grid_width)
+			grid_col = vec3(0.0f);// background
+		else
+			grid_col = vec3(0.05f); // line
+	}
+
+  // linear to srgb
+  vec4 scene_lin = texture(scene_0, v_uv);
+  vec3 stars = texture(scene_1, v_uv).rgb;
+
+	vec3 scene_col = lin_to_srgb(scene_lin.rgb);
+
+	if(add_grid){
+		scene_col + grid_col;
+	}
+	if(put_starshader_behind){
+		scene_col = stars.rgb + scene_col;
+		out_color.rgb = scene_col;
+		return;
+	}
 
 	float dist = sceneDist(p);
 	// float dist = sceneSmooth(p, 5.0);
@@ -249,8 +293,7 @@ void main()
 	// vec4 lightColBlue = vec4(0.5, 0.75, 1.0, 1.0);
 	// setLuminance(lightColBlue, 0.4);
 
-	vec2 half_wh = viewport_wh / 2.0;
-	vec2 screen_min = camera_pos - half_wh; // e.g. -960
+
 
 	// gradient
 	// vec4 col = vec4(0.0, 0.0, 0.0, 1.0) * (1.0 - length(c - p)/iResolution.x);
@@ -286,7 +329,9 @@ void main()
 	// vec3 lin_all = lin_lighting + scene_lin.rgb;
 	// vec3 srgb_final = lin_to_srgb(lin_all);
 
-	vec3 srgb_final = col.rgb * lin_to_srgb(scene_lin.rgb);
+
+
+	vec3 srgb_final = col.rgb * ( vec3(0.26f) + lin_to_srgb(scene_lin.rgb) + grid_col) ;
 
 	out_color.rgb = srgb_final.rgb;
 	out_color.a = col.a;

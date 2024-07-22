@@ -82,24 +82,14 @@ update_take_damage_system(entt::registry& r)
     // Does the defender have health?
     auto* hp = r.try_get<HealthComponent>(request.to);
 
-    // Does the defender have armour?
-    const auto* defence = r.try_get<DefenceComponent>(request.to);
-
     if (atk == nullptr)
       continue; // no attack damage given
 
     if (hp == nullptr)
       continue; // not able to take damage?
 
-    // Was there a parent of the damage request?
-    // std::optional<entt::entity> parent_attacker = std::nullopt;
-    // if (const auto* p = r.try_get<HasParentComponent>(request.from))
-    //   parent_attacker = p->parent;
-
-    // Was the attacking parent a player?
-    // std::optional<entt::entity> player_attacker = std::nullopt;
-    // if (parent_attacker.has_value() && r.try_get<PlayerComponent>(parent_attacker.value()))
-    //   player_attacker = parent_attacker.value();
+    // Does the defender have armour?
+    const auto* defence = r.try_get<DefenceComponent>(request.to);
 
     // Does the defender have the ability to be knocked back?
     auto* v = r.try_get<VelocityComponent>(request.to);
@@ -149,37 +139,20 @@ update_take_damage_system(entt::registry& r)
     // .. take damage
     hp->hp -= glm::max(0, damage);
 
-    const auto name_to_pretty_name = [](const std::string& s) -> std::string {
-      std::string result;
-      const std::unordered_map<std::string, std::function<void()>> name_to_pretty_name_map{
-        { std::string(magic_enum::enum_name(EntityType::actor_barrel)), [&]() { result = "Barrel"; } },
-        { std::string(magic_enum::enum_name(EntityType::actor_unit_rtslike)), [&]() { result = "Unit"; } },
-      };
-
-      auto it = name_to_pretty_name_map.find(s);
-      if (it != name_to_pretty_name_map.end()) {
-        it->second();
-        return result;
-      }
-
-      return s; // return ugly name
-    };
-
     const auto a_name = std::string(magic_enum::enum_name(r.get<EntityTypeComponent>(request.from).type));
     const auto b_name = std::string(magic_enum::enum_name(r.get<EntityTypeComponent>(request.to).type));
-    const auto pretty_b_name = name_to_pretty_name(b_name);
     const auto b_team = std::string(magic_enum::enum_name(r.get<TeamComponent>(request.to).team));
     const auto b_hp = std::to_string(r.get<HealthComponent>(request.to).hp);
 
     // log event to combat log
-    const auto message = fmt::format("{} ({}) -{}HP. CUR:{}", pretty_b_name, b_team, damage, b_hp);
+    const auto message = fmt::format("{} ({}) -{}HP. CUR:{}", b_name, b_team, damage, b_hp);
     evts.events.push_back(message);
 
     //
     if (hp->hp <= 0) {
       dead.dead.emplace(request.to);
 
-      const auto str = fmt::format("{} died.", pretty_b_name);
+      const auto str = fmt::format("{} died.", b_name);
       evts.events.push_back(str);
 
       // Make a request to spawn some particles.

@@ -130,7 +130,6 @@ struct SINGLETON_RendererInfo
   engine::Shader voronoi_distance;
   engine::Shader mix_lighting_and_scene;
   engine::Shader circle;
-  engine::Shader grid;
   engine::Shader blur;
   engine::Shader bloom;
 

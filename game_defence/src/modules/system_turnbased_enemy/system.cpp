@@ -95,13 +95,6 @@ move_action(entt::registry& r, const entt::entity& e)
       const auto e_room = get_a_room(r, e);
       const auto& map = get_first_component<MapComponent>(r);
 
-      // Convert Map to Grid (?)
-      GridComponent grid;
-      grid.size = map.tilesize;
-      grid.width = map.xmax;
-      grid.height = map.ymax;
-      grid.grid = map.map;
-
       const auto src = get_position(r, e);
       const auto src_idx = convert_position_to_index(map, src);
 
@@ -118,7 +111,7 @@ move_action(entt::registry& r, const entt::entity& e)
       auto dst = engine::grid::index_to_world_position(dst_idx, map.xmax, map.ymax, map.tilesize);
       dst += glm::ivec2{ map.tilesize / 2.0f, map.tilesize / 2.0f };
 
-      auto path = generate_direct(r, grid, src_idx, dst_idx);
+      auto path = generate_direct(r, map, src_idx, dst_idx);
 
       // make sure path.size() < limit
       const auto limit = r.get<MoveLimitComponent>(e).amount;

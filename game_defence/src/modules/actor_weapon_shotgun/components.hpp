@@ -7,10 +7,11 @@
 
 namespace game2d {
 
+// set this per-weapon
 struct WeaponBulletTypeToSpawnComponent
 {
   EntityType bullet_type = EntityType::bullet_default;
-  float bullet_damage = 3.0f;
+  float bullet_damage = 0.0f;
   float bullet_speed = 200.0f;
 };
 

@@ -5,23 +5,10 @@
 #include "maths/grid.hpp"
 #include "modules/actors/helpers.hpp"
 #include "modules/algorithm_astar_pathfinding/helpers.hpp"
-#include "modules/system_turnbased_enemy/components.hpp"
 
 #include <fmt/core.h>
 
 namespace game2d {
-
-GridComponent
-map_to_grid(entt::registry& r)
-{
-  auto& map = get_first_component<MapComponent>(r);
-  GridComponent grid; // Convert Map to Grid (?)
-  grid.size = map.tilesize;
-  grid.width = map.xmax;
-  grid.height = map.ymax;
-  grid.grid = map.map;
-  return grid;
-};
 
 void
 move_entity_on_map(entt::registry& r, const entt::entity& src_e, const glm::ivec2& dst)
@@ -42,11 +29,7 @@ move_entity_on_map(entt::registry& r, const entt::entity& src_e, const glm::ivec
 };
 
 int
-get_lowest_cost_neighbour(entt::registry& r,
-                          const MapComponent& map,
-                          const GridComponent& grid,
-                          const int src_idx,
-                          const entt::entity& e)
+get_lowest_cost_neighbour(entt::registry& r, const MapComponent& map, const int src_idx, const entt::entity& e)
 {
   const auto dst = get_position(r, e);
   const auto dst_idx = convert_position_to_index(map, dst);
@@ -54,7 +37,7 @@ get_lowest_cost_neighbour(entt::registry& r,
 
   // Warning: using diagonal neighbour indicies would require
   // working out if there's an edge between diagonals
-  const auto neighbour_idxs = engine::grid::get_neighbour_indicies(dst_gridpos.x, dst_gridpos.y, grid.width, grid.height);
+  const auto neighbour_idxs = engine::grid::get_neighbour_indicies(dst_gridpos.x, dst_gridpos.y, map.xmax, map.ymax);
 
   // If you're already at one of the neighbour indexs, dont move!
   for (const auto& [dir, n_idx] : neighbour_idxs)
@@ -112,16 +95,15 @@ update_path_to_tile_next_to_player(entt::registry& r, const entt::entity& src_e,
 {
   const auto& map = get_first_component<MapComponent>(r); // gets updated if units was dead
   const glm::ivec2 offset = { map.tilesize / 2, map.tilesize / 2 };
-  const auto grid = map_to_grid(r);
 
   const auto src = get_position(r, src_e);
   const auto src_idx = convert_position_to_index(map, src);
 
-  const auto chosen_neighbour_idx = get_lowest_cost_neighbour(r, map, grid, src_idx, dst_e);
+  const auto chosen_neighbour_idx = get_lowest_cost_neighbour(r, map, src_idx, dst_e);
   auto dst_pos = engine::grid::index_to_world_position(chosen_neighbour_idx, map.xmax, map.ymax, map.tilesize);
   dst_pos += offset;
 
-  auto path = generate_direct(r, grid, src_idx, chosen_neighbour_idx, map.edges);
+  auto path = generate_direct(r, map, src_idx, chosen_neighbour_idx, map.edges);
 
   // make sure path.size() < limit
   if (path.size() > limit) {
@@ -137,7 +119,6 @@ std::vector<glm::ivec2>
 generate_path(entt::registry& r, const entt::entity& src_e, const glm::ivec2& worldspace_pos, const int limit)
 {
   const auto& map = get_first_component<MapComponent>(r);
-  const auto grid = map_to_grid(r);
 
   const auto src = get_position(r, src_e);
   const auto src_idx = convert_position_to_index(map, src);
@@ -147,7 +128,7 @@ generate_path(entt::registry& r, const entt::entity& src_e, const glm::ivec2& wo
   const auto dst = worldspace_center;
   const int dst_idx = convert_position_to_index(map, dst);
 
-  auto path = generate_direct(r, grid, src_idx, dst_idx, map.edges);
+  auto path = generate_direct(r, map, src_idx, dst_idx, map.edges);
 
   // make sure path.size() < limit
   if (path.size() > limit) {

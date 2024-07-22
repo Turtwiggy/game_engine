@@ -21,12 +21,6 @@ static bool clamp_to_grid = false;
 void
 update_cursor_system(entt::registry& r, const glm::ivec2& mouse_pos)
 {
-  // check grid exists
-  // const auto grid_e = get_first<GridComponent>(r);
-  // if (grid_e == entt::null)
-  //   return;
-  // const auto& grid = r.get<GridComponent>(grid_e);
-
   // warning: doesnt work with controller currently
   const bool click = get_mouse_lmb_press();
   const bool held = get_mouse_lmb_held();

@@ -92,7 +92,7 @@ main()
   // and the gridwidth isnt large enough, 
   // the grid appears to dissapear.
   // the value 0.05 seems to work until gridsize<10
-  float grid_width = 0.02; 
+  float grid_width = 0.05; 
   if(abs(d) >= grid_width)
     colour = vec3(0.0); // background
   else
@@ -102,5 +102,5 @@ main()
 	// colour *= 0.8 + 0.2 * cos(120.0 * d);
 	// colour = mix(colour, vec3(1.0), 1.0 - smoothstep(0.0, 0.015, abs(d)));
 
-  o_colour = vec4(colour, 1.0);
+  o_colour = vec4(colour.rgb, 1.0);
 }

@@ -270,7 +270,7 @@ create_gameplay(entt::registry& r, const EntityType& type)
       // r.emplace<SetVelocityToTargetComponent>(e);
 
       // r.emplace<SprintComponent>(e);
-      r.emplace<HealthComponent>(e, 200, 200);
+      r.emplace<HealthComponent>(e, 250, 250);
       r.emplace<HoverableComponent>(e);
       r.emplace<PatrolComponent>(e);
 
@@ -334,7 +334,7 @@ create_gameplay(entt::registry& r, const EntityType& type)
       const int move_limit = 1;
       r.emplace<MoveLimitComponent>(e, move_limit);
 
-      const int hp = 500; // player hp
+      const int hp = 250; // player hp
       r.emplace<HealthComponent>(e, hp, hp);
 
       const int armour = 3;
@@ -464,9 +464,9 @@ create_gameplay(entt::registry& r, const EntityType& type)
       r.emplace<HasParentComponent>(e);
 
       WeaponBulletTypeToSpawnComponent bullet_info;
-      bullet_info.bullet_damage = 20;
+      bullet_info.bullet_damage = 12;
+      bullet_info.bullet_speed = 250.0f;
       bullet_info.bullet_type = EntityType::bullet_default;
-      bullet_info.bullet_speed = 200.0f;
       r.emplace<WeaponBulletTypeToSpawnComponent>(e, bullet_info);
 
       break;

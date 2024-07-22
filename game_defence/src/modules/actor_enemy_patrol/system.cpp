@@ -36,13 +36,6 @@ update_actor_enemy_patrol_system(entt::registry& r, const glm::ivec2 mouse_pos, 
   // TODO: BAD. FIX.
   static engine::RandomState rnd;
 
-  // Convert Map to Grid (?)
-  GridComponent grid;
-  grid.size = map.tilesize;
-  grid.width = map.xmax;
-  grid.height = map.ymax;
-  grid.grid = map.map;
-
   const auto& view =
     r.view<PatrolComponent, const EnemyComponent, const AABB, const VelocityComponent>(entt::exclude<WaitForInitComponent>);
   for (const auto& [e, patrol_c, enemy_c, patrol_aabb, patrol_vel] : view.each()) {
@@ -51,10 +44,10 @@ update_actor_enemy_patrol_system(entt::registry& r, const glm::ivec2 mouse_pos, 
     const auto src_idx = convert_position_to_index(map, src);
 
     // Attach a GeneratedPath to the enemy unit. HasTargetPosition gets overwritten.
-    const auto update_path_to_player = [&r, &e, &grid, &map, &src_idx, &src, &target_aabb, &player_e]() {
+    const auto update_path_to_player = [&r, &e, &map, &src_idx, &src, &target_aabb, &player_e]() {
       const auto dst = target_aabb;
       const int dst_idx = convert_position_to_index(map, dst);
-      const auto path = generate_direct_with_diagonals(r, grid, src_idx, dst_idx);
+      const auto path = generate_direct_with_diagonals(r, map, src_idx, dst_idx);
       GeneratedPathComponent path_c;
       path_c.path = path;
       path_c.src_pos = src;
@@ -63,13 +56,13 @@ update_actor_enemy_patrol_system(entt::registry& r, const glm::ivec2 mouse_pos, 
       // path_c.path_cleared.resize(path.size());
       r.emplace_or_replace<GeneratedPathComponent>(e, path_c);
     };
-    const auto update_path_to_rnd_idx = [&r, &e, &grid, &src_idx, &src, &map]() {
+    const auto update_path_to_rnd_idx = [&r, &e, &src_idx, &src, &map]() {
       // should be any valid tiles, but for the moment, just choose a random one
-      const int grid_max = (grid.width * grid.height) - 1;
+      const int grid_max = (map.xmax * map.ymax) - 1;
       const int dst_idx = int(engine::rand_det_s(rnd.rng, 0, grid_max));
       const auto dst = engine::grid::index_to_world_position(dst_idx, map.xmax, map.ymax, map.tilesize);
 
-      const auto path = generate_direct(r, grid, src_idx, dst_idx);
+      const auto path = generate_direct(r, map, src_idx, dst_idx);
       GeneratedPathComponent path_c;
       path_c.path = path;
       path_c.src_pos = src;

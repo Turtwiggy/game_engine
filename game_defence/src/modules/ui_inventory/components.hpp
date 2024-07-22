@@ -16,25 +16,22 @@ enum class InventorySlotType
 {
   // body slots
   head,
-  chest,
-  l_arm,
-  r_arm,
-  legs,
-  feet,
-  gun,
+  core,
+  arm,
+  leg,
 
   // inventory
+  gun,
   backpack,
 };
 
 enum class ItemType
 {
   scrap,
-  scrap_helmet,
-  scrap_chestpiece,
-  scrap_arm_bracer,
-  scrap_legs,
-  scrap_boots,
+  scrap_head_protection,
+  scrap_core_protection,
+  scrap_arm_protection,
+  scrap_leg_protection,
 
   scrap_shotgun,
 };
@@ -59,22 +56,20 @@ struct ItemComponent
   auto operator<=>(const ItemComponent&) const = default;
 };
 
-const static std::unordered_map<ItemType, std::vector<InventorySlotType>> item_to_slot_map{
-  { ItemType::scrap, { InventorySlotType::backpack } },
-  { ItemType::scrap_helmet, { InventorySlotType::head, InventorySlotType::backpack } },
-  { ItemType::scrap_chestpiece, { InventorySlotType::chest, InventorySlotType::backpack } },
-  { ItemType::scrap_arm_bracer, { InventorySlotType::l_arm, InventorySlotType::r_arm, InventorySlotType::backpack } },
-  { ItemType::scrap_legs, { InventorySlotType::legs, InventorySlotType::backpack } },
-  { ItemType::scrap_boots, { InventorySlotType::feet, InventorySlotType::backpack } },
-};
+// const static std::unordered_map<ItemType, std::vector<InventorySlotType>> item_to_slot_map{
+//   { ItemType::scrap, { InventorySlotType::backpack } },
+//   { ItemType::scrap_helmet, { InventorySlotType::head, InventorySlotType::backpack } },
+//   { ItemType::scrap_chestpiece, { InventorySlotType::chest, InventorySlotType::backpack } },
+//   { ItemType::scrap_arm_bracer, { InventorySlotType::l_arm, InventorySlotType::r_arm, InventorySlotType::backpack } },
+//   { ItemType::scrap_legs, { InventorySlotType::legs, InventorySlotType::backpack } },
+// };
 
 const static std::unordered_map<ItemType, std::string> item_to_sprite_map{
   { ItemType::scrap, "SCRAP" },
-  { ItemType::scrap_helmet, "HELMET_5" },
-  { ItemType::scrap_chestpiece, "CHESTPIECE_5" },
-  { ItemType::scrap_arm_bracer, "GLOVES_4" },
-  { ItemType::scrap_legs, "" },
-  { ItemType::scrap_boots, "BOOTS_2" },
+  { ItemType::scrap_head_protection, "HELMET_5" },
+  { ItemType::scrap_core_protection, "CHESTPIECE_5" },
+  { ItemType::scrap_arm_protection, "GLOVES_4" },
+  { ItemType::scrap_leg_protection, "BOOTS_2" },
   { ItemType::scrap_shotgun, "WEAPON_SHOTGUN" },
 };
 

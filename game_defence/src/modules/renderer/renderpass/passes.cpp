@@ -98,40 +98,10 @@ setup_linear_main_update(entt::registry& r)
     glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
     glEnable(GL_DEPTH_TEST);
 
-    ri.grid.bind();
-    ri.grid.set_mat4("view", camera.view);
-    ri.grid.set_vec2("viewport_wh", ri.viewport_size_render_at);
-    ri.grid.set_vec2("camera_pos", { camera_t.position.x, camera_t.position.y });
-
     ri.circle.bind();
     ri.circle.set_mat4("view", camera.view);
     ri.circle.set_vec2("viewport_wh", ri.viewport_size_render_at);
     ri.circle.set_vec2("camera_pos", { camera_t.position.x, camera_t.position.y });
-
-    // Render grid shader
-    const auto grid_e = get_first<Effect_GridComponent>(r);
-    if (grid_e != entt::null) {
-      const float gridsize = r.get<Effect_GridComponent>(grid_e).gridsize;
-      ri.grid.set_float("gridsize", gridsize);
-    }
-    if (get_first<Effect_GridComponent>(r) != entt::null) {
-      engine::quad_renderer::QuadRenderer::reset_quad_vert_count();
-      engine::quad_renderer::QuadRenderer::begin_batch();
-
-      // grid post-processing
-      // render completely over screen
-      {
-        engine::quad_renderer::RenderDescriptor desc;
-        const glm::vec2 offset = { ri.viewport_size_render_at.x / 2.0, ri.viewport_size_render_at.y / 2.0f };
-        desc.pos_tl = glm::vec2(camera_t.position.x, camera_t.position.y) - offset;
-        desc.size = ri.viewport_size_render_at;
-        desc.angle_radians = 0;
-        engine::quad_renderer::QuadRenderer::draw_sprite(desc, ri.grid);
-      }
-
-      engine::quad_renderer::QuadRenderer::end_batch();
-      engine::quad_renderer::QuadRenderer::flush(ri.grid);
-    }
 
     // Render some quads
     ri.instanced.bind();

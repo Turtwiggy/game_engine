@@ -91,6 +91,7 @@ create_combat_entity(entt::registry& r, const CombatEntityDescription& desc)
     r.emplace<HoveredColour>(e, engine::SRGBColour{ 0.0f, 1.0f, 1.0f, 1.0f });
     set_colour(r, e, r.get<DefaultColour>(e).colour);
     r.emplace_or_replace<PlayerComponent>(e);
+
   } else if (desc.team == AvailableTeams::enemy) {
 
     r.emplace<DefaultColour>(e, engine::SRGBColour{ 1.0f, 1.0f, 1.0f, 1.0f });
@@ -99,11 +100,11 @@ create_combat_entity(entt::registry& r, const CombatEntityDescription& desc)
 
     r.emplace_or_replace<EnemyComponent>(e);
 
-    r.get<HealthComponent>(e).hp = 100;
-    r.get<HealthComponent>(e).max_hp = 100;
+    r.get<HealthComponent>(e).hp = 50;
+    r.get<HealthComponent>(e).max_hp = 50;
   }
 
-  set_sprite(r, e, "PERSON_25_2");
+  set_sprite(r, e, "PERSON_25_0");
   return e;
 }
 
@@ -245,6 +246,7 @@ move_to_scene_start(entt::registry& r, const Scene s, const bool load_saved)
   if (s == Scene::overworld) {
     destroy_first<OverworldToDungeonInfo>(r); // clear here if exists
     // destroy_first_and_create<Effect_DoBloom>(r);
+    destroy_first_and_create<Effect_GridComponent>(r);
     create_empty<AudioRequestPlayEvent>(r, AudioRequestPlayEvent{ "GAME_01" });
 
     const int map_width = 3000;
@@ -321,8 +323,12 @@ move_to_scene_start(entt::registry& r, const Scene s, const bool load_saved)
           const glm::vec2 base_position = p + glm::vec2{ 100, 100 };
 
           const auto spacestation_e = create_gameplay(r, EntityType::actor_spacestation);
+
+// #define HIDE_SPACESTATIONS 1
+#if defined(HIDE_SPACESTATIONS)
           if (station_idx > 0)
             r.emplace<SpacestationUndiscoveredComponent>(spacestation_e);
+#endif
 
           auto& station_data = r.get<SpacestationComponent>(spacestation_e);
           station_data.idx = station_idx++;
@@ -337,14 +343,16 @@ move_to_scene_start(entt::registry& r, const Scene s, const bool load_saved)
           r.emplace<WorldspaceTextComponent>(spacestation_e, WorldspaceTextComponent{ station_name });
 
           // rotate the station
-          RotateAroundSpot spot;
-          spot.spot = { p.x, p.y };
-          spot.theta = float(engine::rand_det_s(rnd.rng, 0.0f, engine::PI * 2.0f));
-          spot.distance = 0;
-          spot.rotate_speed = 0.1f;
-          r.emplace<RotateAroundSpot>(spacestation_e, spot);
+          // RotateAroundSpot spot;
+          // spot.spot = { p.x, p.y };
+          // spot.theta = float(engine::rand_det_s(rnd.rng, 0.0f, engine::PI * 2.0f));
+          // spot.distance = 0;
+          // spot.rotate_speed = 0.1f;
+          // r.emplace<RotateAroundSpot>(spacestation_e, spot);
 
           // create some debris around the station
+          // this destroys the aabb-grid physics system.
+          // would need to divide the map in to grids to maintain any performance
           for (int i = 0; i < 0; i++) {
             const auto debris_e = create_gameplay(r, EntityType::actor_asteroid);
 
@@ -502,13 +510,12 @@ move_to_scene_start(entt::registry& r, const Scene s, const bool load_saved)
     // create enemy team
     for (int i = 0; i < enemies; i++) {
       const auto& map = get_first_component<MapComponent>(r);
-      const auto& grid = map_to_grid(r);
 
       const auto src_pos = get_position(r, last_spawned_e);
       const auto grid_pos = engine::grid::world_space_to_grid_space(src_pos, map.tilesize);
       const int src_idx = engine::grid::grid_position_to_index(grid_pos, map.xmax);
 
-      const int idx_next = get_lowest_cost_neighbour(r, map, grid, src_idx, last_spawned_e);
+      const int idx_next = get_lowest_cost_neighbour(r, map, src_idx, last_spawned_e);
       auto pos = engine::grid::index_to_world_position(idx_next, map.xmax, map.ymax, map.tilesize);
       pos += glm::ivec2{ map_c.tilesize / 2, map_c.tilesize / 2 }; // center
 

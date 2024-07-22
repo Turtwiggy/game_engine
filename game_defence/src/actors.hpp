@@ -22,14 +22,28 @@ enum class EntityType
 
   // actors with only one type (so far)
   actor_hearth,
-  actor_player, // overworld player
   actor_spawner,
   actor_turret,
+
+  // overworld
+  actor_player, // overworld player
+  actor_enemy_patrol,
+  actor_asteroid,
+  actor_spacestation,
+
+  // dungeon
   actor_barricade,
   actor_unit_rtslike, // selectable and moveable
   actor_barrel,
-  actor_asteroid,
-  actor_spacestation,
+  weapon_shotgun,
+  // weapon_bow,
+  // weapon_pistol,
+  // weapon_sniper,
+  bullet_default,
+  // bullet_bow,
+  // enemy_dummy,
+  // enemy_grunt,
+  // enemy_ranged,
 
   // pickups
   actor_pickup_xp,
@@ -37,23 +51,6 @@ enum class EntityType
 
   // solids
   solid_wall,
-
-  // actor_weapons,
-  // weapon_bow,
-  // weapon_pistol,
-  // weapon_sniper,
-  weapon_shotgun,
-
-  // actor_bullets,
-  bullet_default,
-  // bullet_bow,
-  // bullet_enemy,
-
-  actor_enemy_patrol,
-  // actor_enemy,
-  // enemy_dummy,
-  // enemy_grunt,
-  // enemy_ranged,
 
   // misc
   cursor,

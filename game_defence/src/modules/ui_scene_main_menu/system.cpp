@@ -47,7 +47,8 @@ update_ui_scene_main_menu(engine::SINGLETON_Application& app, entt::registry& r)
   // left third centered
   const auto& viewport_pos = ImVec2(ri.viewport_pos.x, ri.viewport_pos.y);
   const auto& viewport_size_half = ImVec2(ri.viewport_size_current.x * 0.5f, ri.viewport_size_current.y * 0.5f);
-  const auto pos = ImVec2(viewport_pos.x + (ri.viewport_size_current.x / 6.0f), viewport_pos.y + viewport_size_half.y);
+  const auto pos =
+    ImVec2(viewport_pos.x + (ri.viewport_size_current.x * (3 / 12.0f)), viewport_pos.y + viewport_size_half.y);
   ImGui::SetNextWindowPos(pos, ImGuiCond_Always, ImVec2(0.5f, 0.5f));
 
   ImGui::Begin("Main Menu", nullptr, flags);

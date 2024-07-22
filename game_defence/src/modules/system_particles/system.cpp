@@ -1,6 +1,7 @@
 #include "system.hpp"
 
 #include "components.hpp"
+#include "entt/helpers.hpp"
 #include "lifecycle/components.hpp"
 #include "maths/maths.hpp"
 #include "modules/actors/helpers.hpp"
@@ -14,10 +15,20 @@ namespace game2d {
 void
 update_particle_system(entt::registry& r, const float dt)
 {
+  auto& dead = get_first_component<SINGLETON_EntityBinComponent>(r);
+
   // TEMP: should not be here.
   // set position to parents position
   for (const auto& [e, request, has_parent] :
        r.view<const SetPositionToParentsPosition, const HasParentComponent>().each()) {
+
+    // particle emitter's parent has died
+    if (has_parent.parent == entt::null || !r.valid(has_parent.parent)) {
+      r.emplace<WaitForInitComponent>(e);
+      dead.dead.emplace(e);
+      continue;
+    }
+
     const glm::ivec2 base_position = get_position(r, has_parent.parent);
     const glm::ivec2 pos = base_position + request.offset;
     set_position(r, e, pos);

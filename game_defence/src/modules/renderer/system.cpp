@@ -22,6 +22,7 @@
 
 // engine headers
 #include "modules/scene/components.hpp"
+#include "modules/vfx_grid/components.hpp"
 #include "opengl/framebuffer.hpp"
 #include "opengl/render_command.hpp"
 #include "opengl/shader.hpp"
@@ -148,6 +149,7 @@ rebind(entt::registry& r, SINGLETON_RendererInfo& ri)
   ri.mix_lighting_and_scene.set_mat4("projection", camera.projection);
   ri.mix_lighting_and_scene.set_mat4("view", glm::mat4(1.0f)); // whole texture
   ri.mix_lighting_and_scene.set_int("scene", tex_unit_linear_main);
+  ri.mix_lighting_and_scene.set_bool("add_grid", false);
 
   // ri.circle.reload();
   ri.circle.bind();
@@ -164,10 +166,6 @@ rebind(entt::registry& r, SINGLETON_RendererInfo& ri)
   ri.bloom.set_mat4("view", glm::mat4(1.0f)); // whole texture
   ri.bloom.set_int("scene_texture", tex_unit_mix_lighting_and_scene);
   ri.bloom.set_int("blur_texture", tex_unit_blur_pingpong_1);
-
-  // ri.grid.reload();
-  ri.grid.bind();
-  ri.grid.set_mat4("projection", camera.projection);
 };
 
 void
@@ -237,7 +235,6 @@ init_render_system(const engine::SINGLETON_Application& app, entt::registry& r, 
   ri.voronoi_distance = Shader("assets/shaders/2d_instanced.vert", "assets/shaders/2d_voronoi_distance.frag");
   ri.mix_lighting_and_scene = Shader("assets/shaders/2d_instanced.vert", "assets/shaders/2d_mix_lighting_and_scene.frag");
   ri.circle = Shader("assets/shaders/2d_circle.vert", "assets/shaders/2d_circle.frag");
-  ri.grid = Shader("assets/shaders/2d_grid.vert", "assets/shaders/2d_grid.frag");
   ri.blur = Shader("assets/shaders/bloom.vert", "assets/shaders/blur.frag");
   ri.bloom = Shader("assets/shaders/bloom.vert", "assets/shaders/bloom.frag");
 
@@ -311,11 +308,18 @@ update_render_system(entt::registry& r, const float dt, const glm::vec2& mouse_p
 
   const auto& scene = get_first_component<SINGLETON_CurrentScene>(r);
 
-  const auto scenes_to_render_stars = std::vector<Scene>{ Scene::splashscreen, Scene::menu, Scene::overworld };
+  const auto scenes_to_render_stars = std::vector<Scene>{
+    Scene::splashscreen,
+    Scene::menu,
+    Scene::overworld,
+  };
   const bool in_stars_scene =
     std::find(scenes_to_render_stars.begin(), scenes_to_render_stars.end(), scene.s) != scenes_to_render_stars.end();
 
-  const auto scenes_to_jumpflood = std::vector<Scene>{ Scene::dungeon_designer, Scene::turnbasedcombat };
+  const auto scenes_to_jumpflood = std::vector<Scene>{
+    Scene::dungeon_designer,
+    Scene::turnbasedcombat,
+  };
   const bool in_jumpflood_scene =
     std::find(scenes_to_jumpflood.begin(), scenes_to_jumpflood.end(), scene.s) != scenes_to_jumpflood.end();
 
@@ -376,6 +380,7 @@ update_render_system(entt::registry& r, const float dt, const glm::vec2& mouse_p
   ri.mix_lighting_and_scene.bind();
   ri.mix_lighting_and_scene.set_bool("put_starshader_behind", in_stars_scene);
   ri.mix_lighting_and_scene.set_float("iTime", time);
+  ri.mix_lighting_and_scene.set_bool("add_grid", get_first<Effect_GridComponent>(r) != entt::null);
 
   const auto camera_e = get_first<OrthographicCamera>(r);
   const auto& camera_t = r.get<TransformComponent>(camera_e);

@@ -3,13 +3,14 @@
 #include "entt/helpers.hpp"
 #include "lifecycle/components.hpp"
 #include "maths/grid.hpp"
+#include "modules/actors/helpers.hpp"
 #include "modules/algorithm_astar_pathfinding/components.hpp"
 #include "modules/grid/components.hpp"
 #include "modules/lerp_to_target/components.hpp"
 #include "physics/components.hpp"
+#include "renderer/transform.hpp"
 
 #include <algorithm>
-#include <ranges>
 
 namespace game2d {
 
@@ -24,10 +25,12 @@ update_pathfinding_system(entt::registry& r, const float& dt)
 
   // if something was killed, remove it from the map
   const auto& dead = get_first_component<SINGLETON_EntityBinComponent>(r);
-  for (auto& map_ents : map.map) {
-    const auto invalid = [&r](const entt::entity& e) { return !r.valid(e); };
-    const auto [first, last] = std::ranges::remove_if(map_ents, invalid);
-    map_ents.erase(first, last);
+  for (const entt::entity& e : dead.dead) {
+    if (const auto* has_transform = r.try_get<TransformComponent>(e)) {
+      const auto gs = engine::grid::world_space_to_grid_space(get_position(r, e), map.tilesize);
+      const auto idx = engine::grid::grid_position_to_index(gs, map.xmax);
+      map.map[idx].clear();
+    }
   }
 
   const auto& pathfinding = r.view<const AABB, HasTargetPositionComponent, GeneratedPathComponent>();
