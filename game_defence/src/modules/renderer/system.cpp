@@ -239,13 +239,9 @@ init_render_system(const engine::SINGLETON_Application& app, entt::registry& r, 
   ri.bloom = Shader("assets/shaders/bloom.vert", "assets/shaders/bloom.frag");
 
   // initialize renderer
-  SDL_GL_SetAttribute(SDL_GL_MULTISAMPLEBUFFERS, 1);
-  SDL_GL_SetAttribute(SDL_GL_MULTISAMPLESAMPLES, 4);
+#if !defined(__EMSCRIPTEN__)
   glEnable(GL_MULTISAMPLE);
-  SDL_GL_SetAttribute(SDL_GL_DOUBLEBUFFER, 1);
-  SDL_GL_SetAttribute(SDL_GL_DEPTH_SIZE, 24);
-  SDL_GL_SetAttribute(SDL_GL_STENCIL_SIZE, 8);
-
+#endif
   glEnable(GL_BLEND);
   glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 

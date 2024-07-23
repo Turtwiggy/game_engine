@@ -3,7 +3,7 @@
 #include "opengl/framebuffer.hpp"
 
 // other lib headers
-#include <GL/glew.h>
+#include "deps/opengl.hpp"
 
 namespace engine {
 

@@ -30,9 +30,10 @@ class GameWindow
 public:
   // Note: 4, 3 when compute shaders were introduced
   // Note: renderdoc requires opengl 3.2+
+  // webgl 2 uses 3, 0
   int opengl_major = 3;
-  int opengl_minor = 3;
-  std::string glsl_version = "#version 330 core";
+  int opengl_minor = 0;
+  std::string glsl_version = "#version 300 es";
 
 private:
   // SDL2 window

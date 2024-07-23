@@ -6,10 +6,9 @@
 #include "batch_renderer.hpp"
 
 // other project headers
-#include <GL/glew.h>
+#include "deps/opengl.hpp"
 #include <fmt/core.h>
 #include <glm/gtc/matrix_transform.hpp>
-
 
 namespace engine {
 

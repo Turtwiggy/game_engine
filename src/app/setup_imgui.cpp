@@ -11,11 +11,7 @@
 #include <SDL2/SDL_syswm.h>
 // clang-format on
 
-#if defined(IMGUI_IMPL_OPENGL_LOADER_GLEW)
-#include <GL/glew.h>
-#else
-#include <SDL2/SDL_opengles2.h>
-#endif
+#include "deps/opengl.hpp"
 
 namespace engine {
 

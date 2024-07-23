@@ -14,10 +14,9 @@
 #include "modules/vfx_grid/components.hpp"
 #include "sprites/components.hpp"
 
+#include "deps/opengl.hpp"
 #include "opengl/framebuffer.hpp"
 #include "opengl/render_command.hpp"
-
-#include <GL/glew.h>
 
 namespace game2d {
 using namespace std::literals;

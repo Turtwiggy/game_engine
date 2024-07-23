@@ -1,4 +1,5 @@
-#version 330 core
+#version 300 es
+precision highp float;
 
 layout(location = 0) in vec4 vertex; // xy and uv
 layout(location = 1) in vec4 colour;
@@ -8,12 +9,6 @@ layout(location = 4) in float tex_unit;
 layout(location = 5) in mat4 model;
 
 out vec2 v_uv;
-// out vec4 v_colour;
-// out vec2 v_sprite_pos;
-// out vec2 v_sprite_wh;
-// out vec2 v_sprite_max;
-// out float v_tex_unit;
-// out vec2 v_vertex;
 
 uniform mat4 view;
 uniform mat4 projection;

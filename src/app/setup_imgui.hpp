@@ -1,5 +1,8 @@
 #pragma once
 
+#if defined(__EMSCRIPTEN__)
+#define IMGUI_IMPL_OPENGL_ES3
+#endif
 #if !defined(__EMSCRIPTEN__)
 #define IMGUI_IMPL_OPENGL_LOADER_GLEW
 #endif

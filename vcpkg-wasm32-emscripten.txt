@@ -1,5 +1,8 @@
 glm
+sdl2
+sdl2-mixer[core, mpg123]
 stb
 nlohmann-json
+fmt
 --triplet
 wasm32-emscripten

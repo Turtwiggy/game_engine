@@ -5,7 +5,7 @@
 #include "batch_renderer.hpp"
 
 // other lib headers
-#include <GL/glew.h>
+#include "deps/opengl.hpp"
 #include <glm/gtc/matrix_transform.hpp>
 
 namespace engine {

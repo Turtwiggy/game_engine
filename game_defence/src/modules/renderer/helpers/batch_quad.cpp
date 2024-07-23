@@ -4,10 +4,13 @@
 
 // my libs
 #include "batch_renderer.hpp"
+#include "opengl/util.hpp"
 
 // other project headers
-#include <GL/glew.h>
+#include "deps/opengl.hpp"
 #include <glm/gtc/matrix_transform.hpp>
+
+#include "fmt/core.h"
 
 namespace engine {
 
@@ -83,13 +86,37 @@ void
 QuadRenderer::init()
 {
   data.buffer = new Vertex[max_quad_vert_count];
+  // CHECK_OPENGL_ERROR(4); // eat any error before this stage
 
   glGenVertexArrays(1, &data.VAO);
+  // if (data.VAO == 0) {
+  //   fmt::println("Failed to generate VAO");
+  //   exit(1); // explode
+  // }
   glGenBuffers(1, &data.VBO);
+  // if (data.VBO == 0) {
+  //   fmt::println("Failed to generate VBO");
+  //   exit(1); // explode
+  // }
+
   glGenBuffers(1, &data.EBO);
+  // if (data.EBO == 0) {
+  //   fmt::println("Failed to generate EBO");
+  //   exit(1); // explode
+  // }
+
   glBindVertexArray(data.VAO); // bind the vao
+  // if (glIsVertexArray(data.VAO) == GL_FALSE) {
+  //   fmt::println("VAO is not a valid buffer");
+  //   exit(1); // explode
+  // }
 
   glBindBuffer(GL_ARRAY_BUFFER, data.VBO);
+  // if (glIsBuffer(data.VBO) == GL_FALSE) {
+  //   fmt::println("VBO is not a valid buffer");
+  //   exit(1); // explode
+  // }
+
   glBufferData(GL_ARRAY_BUFFER, max_quad_vert_count * sizeof(Vertex), nullptr, GL_DYNAMIC_DRAW); // dynamic
 
   // specific to the game...

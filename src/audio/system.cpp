@@ -5,8 +5,8 @@
 #include "components.hpp"
 
 #include <SDL2/SDL.h>
-#include <SDL_audio.h>
-#include <SDL_mixer.h>
+#include <SDL2/SDL_audio.h>
+#include <SDL2/SDL_mixer.h>
 
 #include "entt/helpers.hpp"
 #include <entt/entt.hpp>
@@ -65,7 +65,7 @@ init_audio_system(entt::registry& r)
   for (auto& file : audio.sounds) {
     auto* sound = Mix_LoadWAV(file.path.c_str());
     if (!sound) {
-      fmt::println("Failed to load sound: {}", file.path);
+      fmt::println("Failed to load sound: {}, {}", file.path, Mix_GetError());
       continue;
     }
     file.buffer = sound;
@@ -136,8 +136,9 @@ update_audio_system(entt::registry& r)
 
     const Sound s = get_sound(audio, request.tag);
     const int channel = Mix_PlayChannel(audio_source.channel, s.buffer, 0);
-    if (channel != audio_source.channel)
+    if (channel != audio_source.channel) {
       fmt::println("Warning: sound playing on incorrect channel");
+    }
 
     // process request
     r.destroy(entities.begin(), entities.end());

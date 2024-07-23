@@ -42,6 +42,10 @@ update_input_system(engine::SINGLETON_Application& app, entt::registry& r)
     while (SDL_PollEvent(&e)) {
       sdl_events.push_back(e);
 
+      // const SDL_EventType type_enum = static_cast<SDL_EventType>(e.type);
+      // const std::string type_name = std::string(magic_enum::enum_name(type_enum));
+      // fmt::println("event... {}", type_name);
+
       // Events to quit
       if (e.type == SDL_QUIT)
         app.running = false;
@@ -52,10 +56,10 @@ update_input_system(engine::SINGLETON_Application& app, entt::registry& r)
           case SDL_WINDOWEVENT_CLOSE:
             app.running = false;
           case SDL_WINDOWEVENT_FOCUS_GAINED:
-            SDL_Log("Window %d gained keyboard focus \n", e.window.windowID);
+            fmt::println("Window {} gained keyboard focus", e.window.windowID);
             break;
           case SDL_WINDOWEVENT_FOCUS_LOST:
-            SDL_Log("Window %d lost keyboard focus \n", e.window.windowID);
+            fmt::println("Window {} lost keyboard focus", e.window.windowID);
             break;
         }
       }
@@ -117,6 +121,13 @@ update_input_system(engine::SINGLETON_Application& app, entt::registry& r)
     };
 
   } // finished polling events
+
+#if defined(__EMSCRIPTEN__)
+  // emscripten seems to be having issues with mousepos
+  int x = 0, y = 0;
+  SDL_GetMouseState(&x, &y);
+  ImGui::GetIO().MousePos = ImVec2{ float(x), float(y) };
+#endif
 
   process_held_buttons(input);
 

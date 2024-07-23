@@ -1,4 +1,10 @@
-#version 330 core
+#version 300 es
+precision highp float;
+
+// gl2.0 es changes:
+// in = attribute
+// out = varying
+// completely remove layout()
 
 layout(location = 0) in vec4 vertex;
 layout(location = 1) in mat4 model;

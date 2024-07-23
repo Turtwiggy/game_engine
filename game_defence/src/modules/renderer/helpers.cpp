@@ -3,13 +3,10 @@
 
 #include "components.hpp"
 
+#include "deps/opengl.hpp"
 #include <imgui.h>
 #include <imgui_internal.h>
-#if defined(__EMSCRIPTEN__)
-#include <SDL2/SDL_opengles2.h>
-#else
-#include <GL/glew.h>
-#endif
+
 
 #include <algorithm>
 

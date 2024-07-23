@@ -1,6 +1,7 @@
-#version 330 core
+#version 300 es
+precision highp float;
 
-layout(location = 0) out vec4 out_colour;
+out vec4 out_colour;
 
 in vec2 v_uv;
 in vec4 v_colour;
@@ -18,7 +19,7 @@ uniform vec2 player_position;
 // https://www.shadertoy.com/view/XlfGRj
 //
 
-#define iterations 16
+#define iterations 17
 #define formuparam 0.53
 
 #define volsteps 10
@@ -27,8 +28,8 @@ uniform vec2 player_position;
 #define zoom   0.600
 #define tile   0.850
 
-#define brightness 0.0004
-#define darkmatter 0.900
+#define brightness 0.0005
+#define darkmatter 0.800
 #define distfading 0.730
 #define saturation 0.950
 

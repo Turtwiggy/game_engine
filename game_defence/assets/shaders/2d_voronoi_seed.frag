@@ -1,6 +1,7 @@
-#version 330 core
+#version 300 es
+precision highp float;
 
-layout(location = 0) out vec4 out_colour;
+out vec4 out_colour;
 
 in vec2 v_uv;
 in vec4 v_colour;
@@ -22,6 +23,11 @@ main()
 
   // for debugging
   // out_colour = vec4(v_uv.x * scene.a, v_uv.y * scene.a, 0.0, 1.0);
+  
+  if(scene.a > 0.0)
+    out_colour = vec4(1.0);
+  else
+    out_colour = vec4(0.0, 0.0, 0.0, 1.0);
 
   // any pixel with .a > 0 will be recognised as an emitter or occluder
   out_colour = vec4(F16_V2(v_uv.x * scene.a), F16_V2(v_uv.y * scene.a));

@@ -1,4 +1,5 @@
-#version 330
+#version 300 es
+precision highp float;
 
 layout(location = 0) in vec4 vertex; // xy and uv
 layout(location = 1) in vec4 colour;

@@ -1,7 +1,8 @@
-#version 330 core
+#version 300 es
+precision highp float;
 
-layout (location = 0) out vec4 out_color;
-layout (location = 1) out vec4 out_bright_color;
+layout(location = 0) out vec4 out_color;
+layout(location = 1) out vec4 out_bright_color;
 
 in vec2 v_uv;
 in vec4 v_colour;
@@ -14,14 +15,14 @@ uniform sampler2D scene_0;     // linear main
 uniform sampler2D scene_1; 		 // stars
 uniform sampler2D u_distance_data; // distance data
 
-uniform float brightness_threshold = 0.8;
+uniform float brightness_threshold;
 uniform vec2 light_pos; // worldspace
 uniform vec2 mouse_pos;
 uniform vec2 camera_pos;
 uniform vec2 viewport_wh;
 uniform float iTime;
 uniform bool put_starshader_behind;
-uniform bool add_grid = false;
+uniform bool add_grid;
 
 struct Light
 {
@@ -117,7 +118,7 @@ float sceneDist(vec2 p)
 	vec2 uv = p / viewport_wh;
 	
 	float m_sign = texture(u_distance_data, uv).b;
-	float m = V2_F16(texture(u_distance_data, uv).rg) * 720 * m_sign;
+	float m = V2_F16(texture(u_distance_data, uv).rg) * viewport_wh.y * m_sign;
 
 	return m;
 }
@@ -229,7 +230,7 @@ void main()
 	// sdf grid
 	vec3 grid_col = vec3(0.0f);
 	{
-		int gridsize = 50; // pixels
+		float gridsize = 50.0; // pixels
 		vec2 camera_uv_screen = vec2( camera_pos.x / half_wh.x, camera_pos.y / half_wh.y); // camera position is in worldspace.
 		vec2 camera_uv = camera_uv_screen; 
 		vec2 uv = 2.0 * v_uv - 1.0;

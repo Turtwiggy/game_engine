@@ -1,8 +1,8 @@
 #include "sdl_mixer.hpp"
 
 #include "audio/components.hpp"
-#include <SDL_audio.h>
-#include <SDL_mixer.h>
+#include <SDL2/SDL_audio.h>
+#include <SDL2/SDL_mixer.h>
 #include <fmt/core.h>
 
 namespace game2d {

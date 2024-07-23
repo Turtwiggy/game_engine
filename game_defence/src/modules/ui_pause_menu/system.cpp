@@ -127,31 +127,36 @@ update_ui_pause_menu_system(engine::SINGLETON_Application& app, entt::registry& 
       app.window.set_size({ resolutions[idx].x, resolutions[idx].y });
     }
 
-    auto& audio = get_first_component<SINGLETON_AudioComponent>(r);
+    const auto audio_e = get_first<SINGLETON_AudioComponent>(r);
+    if (audio_e != entt::null) {
+      auto& audio = get_first_component<SINGLETON_AudioComponent>(r);
 
-    ImGui::SeparatorText("Audio");
+      if (audio.loaded) {
+        ImGui::SeparatorText("Audio");
 
-    static bool mute_all = audio.mute_all;
-    if (ImGui::Checkbox("Mute All", &mute_all)) {
-      audio.mute_all = mute_all;
-      if (audio.mute_all)
-        audio::sdl_mixer::stop_all_audio(r);
-      else {
-        // how to resume correct scene background music?
-        // a better solution would be to fade the music back in
-        // below is BAD.
-        const auto& s = get_first_component<SINGLETON_CurrentScene>(r);
-        if (s.s == Scene::overworld)
-          create_empty<AudioRequestPlayEvent>(r, AudioRequestPlayEvent{ "GAME_01" });
-        if (s.s == Scene::dungeon_designer || s.s == Scene::turnbasedcombat) {
-          // create_empty<AudioRequestPlayEvent>(r, AudioRequestPlayEvent{ "COMBAT_01" });
+        static bool mute_all = audio.mute_all;
+        if (ImGui::Checkbox("Mute All", &mute_all)) {
+          audio.mute_all = mute_all;
+          if (audio.mute_all)
+            audio::sdl_mixer::stop_all_audio(r);
+          else {
+            // how to resume correct scene background music?
+            // a better solution would be to fade the music back in
+            // below is BAD.
+            const auto& s = get_first_component<SINGLETON_CurrentScene>(r);
+            if (s.s == Scene::overworld)
+              create_empty<AudioRequestPlayEvent>(r, AudioRequestPlayEvent{ "GAME_01" });
+            if (s.s == Scene::dungeon_designer || s.s == Scene::turnbasedcombat) {
+              // create_empty<AudioRequestPlayEvent>(r, AudioRequestPlayEvent{ "COMBAT_01" });
+            }
+          }
         }
+
+        static bool mute_sfx = audio.mute_sfx;
+        if (ImGui::Checkbox("Mute SFX", &mute_sfx))
+          audio.mute_sfx = mute_sfx;
       }
     }
-#
-    static bool mute_sfx = audio.mute_sfx;
-    if (ImGui::Checkbox("Mute SFX", &mute_sfx))
-      audio.mute_sfx = mute_sfx;
 
     ImGui::SeparatorText("Quit");
 

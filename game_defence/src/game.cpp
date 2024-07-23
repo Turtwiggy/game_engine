@@ -73,7 +73,13 @@
 
 #include "fmt/core.h"
 #include "imgui.h"
+
+#if !defined(__EMSCRIPTEN__)
 #include "optick.h"
+#else
+constexpr auto OPTICK_EVENT = [](const std::string& str) {}; // do nothing
+constexpr auto OPTICK_FRAME = [](const std::string& str) {}; // do nothing
+#endif
 
 #include <algorithm>
 #include <ranges>

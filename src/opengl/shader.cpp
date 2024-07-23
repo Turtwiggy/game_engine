@@ -6,7 +6,7 @@
 #include "opengl/util.hpp"
 
 // other library headers
-#include <GL/glew.h>
+#include "deps/opengl.hpp"
 #include <glm/gtc/type_ptr.hpp>
 
 // c++ standard library headers

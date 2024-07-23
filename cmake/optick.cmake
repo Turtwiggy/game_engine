@@ -13,3 +13,9 @@ set(OPTICK_SOURCE
 set(OPTICK_INCLUDES
   ${CMAKE_CURRENT_LIST_DIR}/../thirdparty/optick/src/
 )
+
+# Don't include optick on emscripten
+if(EMSCRIPTEN)
+  set(OPTICK_SOURCE "")
+  set(OPTICK_INCLUDES "")
+endif()

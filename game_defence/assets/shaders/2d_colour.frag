@@ -1,6 +1,7 @@
-#version 330
+#version 300 es
+precision highp float;
 
-layout(location = 0) out vec4 out_colour;
+layout(location = 0) in vec4 out_colour;
 
 uniform vec4 colour;
 

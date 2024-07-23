@@ -1,6 +1,7 @@
-#version 330 core
+#version 300 es
+precision highp float;
 
-layout(location = 0) out vec4 out_colour;
+out vec4 out_colour;
 
 in vec2 v_uv;
 in vec4 v_colour;
@@ -15,18 +16,6 @@ uniform sampler2D tex_unit_spacestation_0;
 uniform sampler2D tex_unit_studio_logo;
 uniform vec2 viewport_wh;
 uniform int RENDERER_TEX_UNIT_COUNT;
-
-// fat pixel approach
-// vec2
-// uv_to_fatpixel(vec2 uv){
-//   float tp = float(float(screen_h) / float(screen_w));
-//   vec2 tex_size = vec2(screen_w, screen_h);
-//   vec2 pixel = v_uv * tex_size;
-//   vec2 fat_pixel = floor(pixel) + 0.5;
-//   fat_pixel += 1 - clamp((1.0 - fract(pixel)) * tp, 0, 1); // subpixel aa algorithm
-//   return fat_pixel / tex_size;
-// }
-
 
 vec2 clamp_uv(vec2 uv){
   vec2 tex_size = vec2(viewport_wh.x / 1000.0, viewport_wh.y / 1000.0);

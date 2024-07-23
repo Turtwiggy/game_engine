@@ -3,20 +3,24 @@ set(CMAKE_CXX_STANDARD 20)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 include(${CMAKE_SOURCE_DIR}/cmake/packages.cmake)
 
+# Note: CMAKE_SYSTEM_NAME should be: Emscripten NOT windows
 if(EMSCRIPTEN)
   message("Compiling for emscripten (toolkit set in cmake-kits.json)")
 
   # https://emscripten.org/docs/tools_reference/emcc.html
   # https://emscripten.org/docs/porting/files/packaging_files.html
-  set(EMS "-sUSE_SDL=2 -sDISABLE_EXCEPTION_CATCHING=1")
+  set(EMS "-sUSE_SDL=2 -sUSE_SDL_MIXER=2 -sSDL2_MIXER_FORMATS=wav,mp3 -sDISABLE_EXCEPTION_CATCHING=1 ")
+
+  # set(EMS "${EMS} -sUSE_PTHREADS=1")
+  # set(LD_FLAGS "${LD_FLAGS} -sPTHREAD_POOL_SIZE=4")
   set(LD_FLAGS "-sWASM=1 -sALLOW_MEMORY_GROWTH=1 -sNO_EXIT_RUNTIME=0 -sASSERTIONS=1")
   set(LD_FLAGS "${LD_FLAGS} -sMIN_WEBGL_VERSION=2 -sMAX_WEBGL_VERSION=2")
-  set(LD_FLAGS "${LD_FLAGS} -sDEMANGLE_SUPPORT=1 --preload-file assets --bind")
-  set(LD_FLAGS "${LD_FLAGS} --shell-file assets/emscripten/shell_minimal.html")
+  set(LD_FLAGS "${LD_FLAGS} --preload-file assets --bind")
+  set(LD_FLAGS "${LD_FLAGS} --shell-file  assets/emscripten/shell_minimal.html")
   set(LD_FLAGS "${LD_FLAGS} ${EMS}")
 
   set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} ${EMS}")
-  set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++20 -stdlib=libc++ ${EMS}")
+  set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++20 -stdlib=libc++ -O2 ${EMS}")
   set(CMAKE_EXECUTABLE_SUFFIX ".html")
 
   message("index VCPKG_CHAINLOAD_TOOLCHAIN_FILE: ${VCPKG_CHAINLOAD_TOOLCHAIN_FILE}")
@@ -38,6 +42,8 @@ if(CMAKE_SYSTEM_NAME MATCHES Linux)
 endif()
 
 if(CMAKE_CXX_COMPILER_ID MATCHES GNU)
+  message("adding defs for gnu...")
+
   add_definitions("-Wall")
   add_definitions("-Wextra")
   add_definitions("-Wformat")
@@ -71,6 +77,7 @@ get_packages()
 # Add source files
 include(${CMAKE_SOURCE_DIR}/cmake/imgui.cmake)
 include(${CMAKE_SOURCE_DIR}/cmake/optick.cmake)
+
 file(GLOB_RECURSE SRC_FILES
   ${IMGUI_SOURCE}
   ${OPTICK_SOURCE}
@@ -78,12 +85,20 @@ file(GLOB_RECURSE SRC_FILES
   ${CMAKE_SOURCE_DIR}/game_defence/src/*.cpp
 )
 
-add_executable(game_defence
-  ${SRC_FILES}
+if(${CMAKE_SYSTEM_NAME} STREQUAL "Windows")
+  message("creating build with icon...")
 
-  # add icon to executable
-  ${CMAKE_SOURCE_DIR}/game_defence/assets/textures/resource.rc
-)
+  add_executable(game_defence
+    ${SRC_FILES}
+
+    # add icon to executable
+    ${CMAKE_SOURCE_DIR}/game_defence/assets/textures/resource.rc
+  )
+else()
+  message("creating build without icon...")
+
+  add_executable(game_defence ${SRC_FILES})
+endif()
 
 if(${CMAKE_SYSTEM_NAME} STREQUAL "Windows")
   set(VCPKG_INCLUDES
@@ -115,9 +130,9 @@ target_include_directories(game_defence PRIVATE
 link_libs(game_defence)
 
 # rename executable
-set_target_properties(${PROJECT_NAME} PROPERTIES OUTPUT_NAME "solar_war")
-
 IF(${CMAKE_SYSTEM_NAME} STREQUAL "Windows")
+  set_target_properties(${PROJECT_NAME} PROPERTIES OUTPUT_NAME "solar_warfare")
+
   # Only do this for debug builds,
   # as release builds should copy the folder over (not symlink)
   IF(CMAKE_BUILD_TYPE MATCHES Debug)
@@ -125,7 +140,10 @@ IF(${CMAKE_SYSTEM_NAME} STREQUAL "Windows")
 
     # create symlink assets for build
     set(src ${CMAKE_SOURCE_DIR}/game_defence/assets)
-    set(dst ${CMAKE_CURRENT_BINARY_DIR}/../assets)
+    set(dst ${CMAKE_CURRENT_BINARY_DIR}/assets)
+    message("creating symlink src... ${src}")
+    message("creating symlink dst... ${dst}")
+
     add_custom_command(
       TARGET ${PROJECT_NAME} PRE_BUILD
       COMMAND ${CMAKE_COMMAND} -E create_symlink ${src} ${dst}
@@ -136,6 +154,8 @@ IF(${CMAKE_SYSTEM_NAME} STREQUAL "Windows")
 endif()
 
 IF(${CMAKE_SYSTEM_NAME} STREQUAL "Darwin")
+  set_target_properties(${PROJECT_NAME} PROPERTIES OUTPUT_NAME "solar_warfare")
+
   # Only do this for debug builds,
   # as release builds should copy the folder over (not symlink)
   IF(${CMAKE_BUILD_TYPE} MATCHES Debug)
@@ -156,6 +176,20 @@ IF(${CMAKE_SYSTEM_NAME} STREQUAL "Darwin")
 endif()
 
 IF(EMSCRIPTEN)
+  set(src ${CMAKE_SOURCE_DIR}/game_defence/assets)
+  set(dst ${CMAKE_CURRENT_BINARY_DIR}/../assets)
+  message("creating symlink src... ${src}")
+  message("creating symlink dst... ${dst}")
+
+  add_custom_command(
+    TARGET ${PROJECT_NAME} PRE_BUILD
+    COMMAND ${CMAKE_COMMAND} -E create_symlink ${src} ${dst}
+    DEPENDS ${dst}
+    COMMENT "symbolic link resources folder from ${src} => ${dst}"
+  )
+
+  # rename as index.html
+  set_target_properties(${PROJECT_NAME} PROPERTIES OUTPUT_NAME "index")
   set_target_properties(game_defence PROPERTIES LINK_FLAGS "${LD_FLAGS}")
 endif()
 

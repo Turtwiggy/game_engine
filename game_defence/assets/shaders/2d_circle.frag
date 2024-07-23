@@ -1,4 +1,5 @@
-#version 330
+#version 300 es
+precision highp float;
 
 layout(location = 0) out vec4 o_colour;
 
@@ -49,8 +50,8 @@ main()
 
   // convert uv to -1 and 1
   vec2 uv = (2.0 * v_uv - 1.0);
-  uv.x *= -1;
-  uv.y *= -1;
+  uv.x *= -1.0;
+  uv.y *= -1.0;
 
   float aspect = viewport_wh.x / viewport_wh.y;
   uv.x *= aspect;

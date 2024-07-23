@@ -1,6 +1,7 @@
-#version 330 core
+#version 300 es
+precision highp float;
 
-layout(location = 0) out vec4 out_color;
+out vec4 out_color;
 
 in vec2 v_uv;
 

@@ -8,12 +8,9 @@
 #include "opengl/util.hpp"
 using namespace engine; // used for macro
 
+#include "deps/opengl.hpp"
+
 // other lib headers
-#if defined(__EMSCRIPTEN__)
-#include <SDL2/SDL_opengles2.h>
-#else
-#include <GL/glew.h>
-#endif
 #include <stb_image.h>
 #include <thread>
 
@@ -188,7 +185,7 @@ engine::update_bound_texture_size(const glm::ivec2 size)
     fmt::println("(update_bound_texture_size) ERROR: Invalid resize for texture");
     return;
   }
-  glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, size.x, size.y, 0, GL_RGBA, GL_FLOAT, NULL);
+  glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, size.x, size.y, 0, GL_RGBA, GL_UNSIGNED_BYTE, NULL);
 };
 
 std::vector<unsigned int>
@@ -207,7 +204,7 @@ add_textures_to_fbo(const glm::ivec2& size, const int num_colour_buffers)
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
-    glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, size.x, size.y, 0, GL_RGBA, GL_FLOAT, NULL);
+    glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, size.x, size.y, 0, GL_RGBA, GL_UNSIGNED_BYTE, NULL);
 
     // attach it to the currently bound framebuffer object
     glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0 + i, GL_TEXTURE_2D, tex_id, 0);
@@ -233,6 +230,10 @@ engine::new_texture_to_fbo(const int tex_unit, const glm::ivec2& size, const int
 
   const auto tex_ids = add_textures_to_fbo(size, n_colour_buffers);
   CHECK_OPENGL_ERROR(1);
+  if (opengl_error1) {
+    fmt::println("failed tex_unit: {}", tex_unit);
+    exit(1); // explode
+  }
 
   // tell opengl which colour attachments we'll use of this framebuffer
   unsigned int* attachments = new unsigned int[n_colour_buffers];
@@ -242,9 +243,9 @@ engine::new_texture_to_fbo(const int tex_unit, const glm::ivec2& size, const int
   delete[] attachments;
 
   if (glCheckFramebufferStatus(GL_FRAMEBUFFER) != GL_FRAMEBUFFER_COMPLETE) {
-    fmt::println("(FBO: main_scene) ERROR: Framebuffer not complete!");
+    fmt::println("(FBO: {}) ERROR: Framebuffer not complete!", tex_unit);
     CHECK_OPENGL_ERROR(2);
-    exit(1);
+    exit(1); // explode
   }
 
   Framebuffer::default_fbo();

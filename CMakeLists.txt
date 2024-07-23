@@ -4,6 +4,8 @@ set(CMAKE_CXX_STANDARD_REQUIRED ON)
 
 # set(CMAKE_VERBOSE_MAKEFILE on)
 if(EMSCRIPTEN)
+  message("Compiling for emscripten")
+
 else()
   message("Not compiling for emscripten - adding vcpkg ${CMAKE_SOURCE_DIR}")
   message("${CMAKE_SOURCE_DIR}")
@@ -16,8 +18,9 @@ project(subprojects VERSION 0.1.0)
 # add_subdirectory(game_networked)
 add_subdirectory(game_defence)
 add_subdirectory(game_defence_tests)
-add_subdirectory(game_3d)
 
+# add_subdirectory(game_3d)
+#
 set(CPACK_PROJECT_NAME ${PROJECT_NAME})
 set(CPACK_PROJECT_VERSION ${PROJECT_VERSION})
 include(CPack)

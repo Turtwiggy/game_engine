@@ -29,6 +29,9 @@ load_sprites(SINGLE_Animations& anims, const std::string& path)
   fmt::println("loading sprite config: {}", path);
   std::ifstream f(path);
 
+  // if there's an error here,
+  // as it's the first thing loaded,
+  // it probably means: assets haven't been provided for the build
   const json data = json::parse(f);
 
   auto ss = data["spritesheet"];

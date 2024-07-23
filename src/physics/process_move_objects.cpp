@@ -8,8 +8,14 @@
 #include "physics/helpers.hpp"
 #include "renderer/transform.hpp"
 
-#include "optick.h"
 #include <glm/glm.hpp>
+
+#if !defined(__EMSCRIPTEN__)
+#include "optick.h"
+#else
+#define OPTICK_EVENT(x) int k = 1; // do nothing
+#define OPTICK_FRAME(x) int k = 1; // do nothing
+#endif
 
 // c++ lib headers
 #include <cmath>

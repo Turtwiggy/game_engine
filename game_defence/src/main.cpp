@@ -8,17 +8,22 @@ using namespace game2d;
 using namespace engine;
 
 #if defined(__EMSCRIPTEN__)
+#include "deps/opengl.hpp"
 #include <emscripten.h>
+constexpr auto OPTICK_EVENT = [](const std::string& str) {}; // do nothing
+constexpr auto OPTICK_FRAME = [](const std::string& str) {}; // do nothing
+#else
+#include "optick.h"
 #endif
 
 // other libs
 #include <entt/entt.hpp>
 #include <imgui.h>
-#include <optick.h>
 
 // std lib
 #include <fmt/core.h>
 #include <optional>
+#include <string>
 #include <thread>
 
 // fixed tick
@@ -37,6 +42,17 @@ static std::optional<std::thread> slow_thread = std::nullopt;
 void
 launch_thread_after_x_frames()
 {
+#if defined(__EMSCRIPTEN__)
+  // Just do the slow work. Non-threded.
+  if (frames_to_pass_before_init <= 0 && !done_init_slow) {
+    game2d::init_slow(app, game);
+    done_init_slow = true;
+  }
+  if (frames_to_pass_before_init > 0)
+    frames_to_pass_before_init--;
+  return;
+#endif
+
   if (frames_to_pass_before_init <= 0 && !done_init_slow) {
     const auto work = []() { game2d::init_slow(app, game); };
     slow_thread = std::thread(work);
@@ -57,10 +73,6 @@ main_loop(void* arg)
 {
   IM_UNUSED(arg); // do nothing with it
   OPTICK_FRAME("MainThread");
-
-#if defined(__EMSCRIPTEN_PTHREADS__)
-  fmt::println("Emscripten pthreads defined");
-#endif
 
   engine::start_frame(app);
   launch_thread_after_x_frames();
@@ -100,6 +112,14 @@ main(int argc, char* argv[])
     engine::hide_windows_console();
 #endif
 
+#if defined(__EMSCRIPTEN__)
+  fmt::println("Hello, Emscripten!");
+#endif
+
+#if defined(__EMSCRIPTEN_PTHREADS__)
+  fmt::println("Emscripten pthreads defined");
+#endif
+
 #if defined(__APPLE__)
   fmt::println("Hello, Apple!");
 #endif
@@ -127,10 +147,10 @@ main(int argc, char* argv[])
   app.imgui.initialize(app.window);
 
   game2d::init(app, game);
-
   CHECK_OPENGL_ERROR(0);
 
 #if defined(__EMSCRIPTEN__)
+  fmt::println("about to start main loop...");
   emscripten_set_main_loop_arg(main_loop, NULL, 0, true);
 #else
   // OPTICK_START_CAPTURE();

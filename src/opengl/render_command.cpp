@@ -4,7 +4,7 @@
 #include "colour/colour.hpp"
 
 // other library headers
-#include <GL/glew.h>
+#include "deps/opengl.hpp"
 #include <SDL2/SDL.h>
 
 namespace engine {

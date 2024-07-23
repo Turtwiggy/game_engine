@@ -49,7 +49,7 @@ draw_wombo_combo(const WomboComboIn& in)
 void
 imgui_draw_string(const std::string& label, std::string& v)
 {
-  ImGui::Text(label.c_str());
+  ImGui::Text("%s", label.c_str());
   ImGui::SameLine();
   ImGui::InputText((std::string("##") + label).c_str(), &v);
 };
@@ -58,7 +58,7 @@ void
 imgui_draw_int(const std::string& label, int& v)
 {
   int v_temp = v;
-  ImGui::Text(label.c_str());
+  ImGui::Text("%s", label.c_str());
   ImGui::SameLine();
   if (ImGui::DragInt((std::string("##") + label).c_str(), &v_temp))
     v = v_temp;
@@ -69,7 +69,7 @@ imgui_draw_float(const std::string& label, float& v)
 {
   float v_temp = v;
 
-  ImGui::Text(label.c_str());
+  ImGui::Text("%s", label.c_str());
   ImGui::SameLine();
   if (ImGui::DragFloat((std::string("##") + label).c_str(), &v_temp, 0.01f))
     v = v_temp;
@@ -80,7 +80,7 @@ imgui_draw_ivec2(const std::string& label, glm::ivec2& xy)
 {
   glm::ivec2 v_temp = xy;
 
-  ImGui::Text(label.c_str());
+  ImGui::Text("%s", label.c_str());
   ImGui::SameLine();
   if (ImGui::DragInt2((std::string("##") + label).c_str(), glm::value_ptr(v_temp), 0.5f)) {
     xy.x = v_temp.x;
@@ -93,7 +93,7 @@ imgui_draw_ivec2(const std::string& label, int& x, int& y)
 {
   glm::ivec2 v_temp = { x, y };
 
-  ImGui::Text(label.c_str());
+  ImGui::Text("%s", label.c_str());
   ImGui::SameLine();
   if (ImGui::DragInt2((std::string("##") + label).c_str(), glm::value_ptr(v_temp), 0.5f)) {
     x = v_temp.x;
@@ -106,7 +106,7 @@ imgui_draw_vec3(const std::string& label, glm::vec3& xyz, const float& v_speed)
 {
   glm::vec3 v_temp = xyz;
 
-  ImGui::Text(label.c_str());
+  ImGui::Text("%s", label.c_str());
   ImGui::SameLine();
   if (ImGui::DragFloat3((std::string("##") + label).c_str(), glm::value_ptr(v_temp), v_speed)) {
     xyz.x = v_temp.x;
@@ -120,7 +120,7 @@ imgui_draw_vec3(const std::string& label, float& x, float& y, float& z, const fl
 {
   glm::vec3 v_temp = { x, y, z };
 
-  ImGui::Text(label.c_str());
+  ImGui::Text("%s", label.c_str());
   ImGui::SameLine();
   if (ImGui::DragFloat3((std::string("##") + label).c_str(), glm::value_ptr(v_temp), v_speed)) {
     x = v_temp.x;
@@ -134,7 +134,7 @@ imgui_draw_ivec3(const std::string& label, int& x, int& y, int& z)
 {
   glm::ivec3 v_temp = { x, y, z };
 
-  ImGui::Text(label.c_str());
+  ImGui::Text("%s", label.c_str());
   ImGui::SameLine();
   if (ImGui::DragInt3((std::string("##") + label).c_str(), glm::value_ptr(v_temp), 0.5f)) {
     x = v_temp.x;
@@ -148,7 +148,7 @@ imgui_draw_vec2(const std::string label, glm::vec2& xy, const float v_speed)
 {
   glm::vec2 v_temp = xy;
 
-  ImGui::Text(label.c_str());
+  ImGui::Text("%s", label.c_str());
   ImGui::SameLine();
   if (ImGui::DragFloat2((std::string("##") + label).c_str(), glm::value_ptr(v_temp), v_speed)) {
     xy.x = v_temp.x;
@@ -161,7 +161,7 @@ imgui_draw_vec2(const std::string& label, float& x, float& y, const float v_spee
 {
   glm::vec2 v_temp = { x, y };
 
-  ImGui::Text(label.c_str());
+  ImGui::Text("%s", label.c_str());
   ImGui::SameLine();
   if (ImGui::DragFloat2((std::string("##") + label).c_str(), glm::value_ptr(v_temp), v_speed)) {
     x = v_temp.x;
@@ -195,7 +195,7 @@ imgui_draw_entity(entt::registry& r,        //
 
   if (ImGui::BeginDragDropSource()) {
     ImGui::SetDragDropPayload("DEMO", &selected_e, sizeof(entt::entity));
-    ImGui::Text(label.c_str());
+    ImGui::Text("%s", label.c_str());
     ImGui::EndDragDropSource();
   }
 };

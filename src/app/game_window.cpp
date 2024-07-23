@@ -4,16 +4,12 @@
 
 // other library headers
 
-#if defined(__EMSCRIPTEN__)
-#include <SDL2/SDL_opengles2.h>
-#include <emscripten.h>
-#else
-#include <GL/glew.h>
-#endif
+#include "deps/opengl.hpp"
 #include <SDL2/SDL.h>
 #include <SDL2/SDL_syswm.h>
 
 // c++ standard library headers
+#include <SDL2/SDL_video.h>
 #include <fmt/core.h>
 #include <stdexcept>
 #include <string>
@@ -33,7 +29,9 @@ GameWindow::GameWindow(const std::string& title, const DisplayMode& displaymode,
   SDL_VERSION(&compiledVersion);
   SDL_GetVersion(&linkedVersion);
 
+#if !defined(__EMSCRIPTEN__)
   setbuf(stdout, nullptr); // dont buffer fmt::println
+#endif
   fmt::println("Initializing SDL...");
   fmt::println("SDL Version/Compiled {}.{}.{}", compiledVersion.major, compiledVersion.major, compiledVersion.patch);
   fmt::println("SDL Version/Linked {}.{}.{}", linkedVersion.major, linkedVersion.major, linkedVersion.patch);
@@ -74,12 +72,12 @@ GameWindow::GameWindow(const std::string& title, const DisplayMode& displaymode,
 
   // OpenGL--------------------------------------
 
-  SDL_GL_SetAttribute(SDL_GL_CONTEXT_PROFILE_MASK, SDL_GL_CONTEXT_PROFILE_CORE);
+  // SDL_GL_SetAttribute(SDL_GL_CONTEXT_PROFILE_MASK, SDL_GL_CONTEXT_PROFILE_CORE);
+  SDL_GL_SetAttribute(SDL_GL_CONTEXT_PROFILE_MASK, SDL_GL_CONTEXT_PROFILE_ES);
 
 // emscripten
 #if defined(__EMSCRIPTEN__)
   // webgl 1
-  //
   // opengl_major = 2;
   // opengl_minor = 0;
   // SDL_GL_SetAttribute(SDL_GL_CONTEXT_PROFILE_MASK, SDL_GL_CONTEXT_PROFILE_ES);
@@ -106,8 +104,16 @@ GameWindow::GameWindow(const std::string& title, const DisplayMode& displaymode,
 
 #endif
   // SDL_SetHint(SDL_HINT_RENDER_SCALE_QUALITY, "1");
+
   SDL_GL_SetAttribute(SDL_GL_CONTEXT_MAJOR_VERSION, opengl_major);
   SDL_GL_SetAttribute(SDL_GL_CONTEXT_MINOR_VERSION, opengl_minor);
+
+  SDL_GL_SetAttribute(SDL_GL_MULTISAMPLEBUFFERS, 1);
+  SDL_GL_SetAttribute(SDL_GL_MULTISAMPLESAMPLES, 4);
+
+  SDL_GL_SetAttribute(SDL_GL_DOUBLEBUFFER, 1);
+  SDL_GL_SetAttribute(SDL_GL_DEPTH_SIZE, 24);
+  SDL_GL_SetAttribute(SDL_GL_STENCIL_SIZE, 8);
 
   // SDL2 Create Window --------------------------------------
 
@@ -136,6 +142,7 @@ GameWindow::GameWindow(const std::string& title, const DisplayMode& displaymode,
   }
 
   // Settings...
+  SDL_RaiseWindow(window);
   SDL_SetWindowMinimumSize(window, 500, 300);
   SDL_ShowCursor(SDL_ENABLE);
   SDL_SetRelativeMouseMode(SDL_FALSE);
