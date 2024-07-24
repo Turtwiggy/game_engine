@@ -111,19 +111,16 @@ update_minigame_bamboo_system(entt::registry& r, const float dt)
   // Add inputs to buffer.
   const auto& update_inputs = get_first_component<SINGLETON_InputComponent>(r);
 
-  int added_this_frame = 0;
-  for (const auto& input : update_inputs.unprocessed_inputs) {
-    if (input.type == InputType::keyboard && input.state == InputState::press) {
-      if (input.keyboard != keyboard_submit_key.keyboard) { // no submit key
-        buffer.push_back(input);
-        fmt::println("adding: {}", std::string(magic_enum::enum_name(input.type)));
-        added_this_frame++;
-      }
+  for (const SDL_Scancode& input : update_inputs.keys_pressed) {
+    if (input != keyboard_submit_key.keyboard) { // no submit key
+      InputEvent evt;
+      evt.type = InputType::keyboard;
+      evt.state = InputState::press;
+      evt.keyboard = input;
+      buffer.push_back(evt);
+      // fmt::println("adding: {}", std::string(magic_enum::enum_name(input)));
     }
   }
-
-  if (added_this_frame > 1)
-    int k = 1;
 
   const auto validate_combination_against_buffer = [&buffer, &combination]() -> bool {
     const auto buffer_size = buffer.size();
