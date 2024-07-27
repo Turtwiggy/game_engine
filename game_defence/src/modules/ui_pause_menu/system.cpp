@@ -10,6 +10,7 @@
 #include "modules/scene/components.hpp"
 #include "modules/scene/helpers.hpp"
 
+#include <SDL_mixer.h>
 #include <imgui.h>
 
 #include <algorithm>
@@ -133,6 +134,13 @@ update_ui_pause_menu_system(engine::SINGLETON_Application& app, entt::registry& 
 
       if (audio.loaded) {
         ImGui::SeparatorText("Audio");
+
+        if (ImGui::SliderFloat("##max_volume", &audio.volume_user, 0.0f, 1.0f, "%.2f")) {
+          audio.volume_internal = static_cast<int>(MIX_MAX_VOLUME * audio.volume_user);
+          fmt::println("setting volume: {}", audio.volume_internal);
+          for (int i = 0; i < audio.max_audio_sources; i++)
+            Mix_Volume(i, audio.volume_internal);
+        }
 
         static bool mute_all = audio.mute_all;
         if (ImGui::Checkbox("Mute All", &mute_all)) {

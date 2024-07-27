@@ -116,6 +116,8 @@ sprite_type_to_sprite(entt::registry& r, const EntityType& type)
   // bullets...
   else if (type == EntityType::bullet_default)
     sprite = "EMPTY";
+  else if (type == EntityType::bullet_bouncy)
+    sprite = "EMPTY";
   // else if (type == EntityType::bullet_bow)
   //   sprite = "ARROW_1";
   // else if (type == EntityType::bullet_enemy)
@@ -171,6 +173,7 @@ create_gameplay(entt::registry& r, const EntityType& type)
 
     set_size(r, e, DEFAULT_SIZE);
     switch (type) {
+      case EntityType::bullet_bouncy:
       case EntityType::bullet_default: {
         set_size(r, e, SMALL_SIZE);
         break;
@@ -462,11 +465,12 @@ create_gameplay(entt::registry& r, const EntityType& type)
 
       // r.emplace<AttackCooldownComponent>(e, 1.2f); // seconds between shooting
       r.emplace<HasParentComponent>(e);
+      // r.emplace<AbleToShoot>(e);
 
       WeaponBulletTypeToSpawnComponent bullet_info;
       bullet_info.bullet_damage = 12;
       bullet_info.bullet_speed = 250.0f;
-      bullet_info.bullet_type = EntityType::bullet_default;
+      bullet_info.bullet_type = EntityType::bullet_bouncy;
       r.emplace<WeaponBulletTypeToSpawnComponent>(e, bullet_info);
 
       break;
@@ -484,6 +488,18 @@ create_gameplay(entt::registry& r, const EntityType& type)
       r.emplace<SetTransformAngleToVelocity>(e);
       r.emplace<EntityTimedLifecycle>(e);
       r.emplace<BulletComponent>(e);
+      break;
+    }
+
+    case EntityType::bullet_bouncy: {
+      create_physics_actor(r, e);
+      set_size(r, e, SMALL_SIZE);
+
+      r.emplace<TeamComponent>(e, AvailableTeams::player);
+      r.emplace<SetTransformAngleToVelocity>(e);
+      r.emplace<EntityTimedLifecycle>(e);
+      // r.emplace<BulletComponent>(e);
+      r.emplace<BulletBouncyComponent>(e);
       break;
     }
 

@@ -56,10 +56,14 @@ init_audio_system(entt::registry& r)
   // request some channels
   const int request_channels = 16;
   Mix_AllocateChannels(request_channels);
-  const int max_audio_sources = Mix_AllocateChannels(-1); // -1 means query the number of channels
-  fmt::println("Audio sources to create: {}", max_audio_sources);
-  for (int i = 0; i < max_audio_sources; i++)
+  audio.max_audio_sources = Mix_AllocateChannels(-1); // -1 means query the number of channels
+  fmt::println("Audio sources to create: {}", audio.max_audio_sources);
+  for (int i = 0; i < audio.max_audio_sources; i++) {
     create_empty<AudioSource>(r, AudioSource(i));
+
+    // set volume to user pref
+    Mix_Volume(i, audio.volume_internal);
+  }
 
   fmt::println("Loading audio...");
   for (auto& file : audio.sounds) {

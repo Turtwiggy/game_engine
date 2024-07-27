@@ -9,6 +9,8 @@
 #include "modules/combat_damage/components.hpp"
 #include "modules/combat_wants_to_shoot/components.hpp"
 #include "modules/lerp_to_target/components.hpp"
+#include "modules/system_particles/components.hpp"
+#include "modules/system_particles/helpers.hpp"
 #include "physics/components.hpp"
 #include "renderer/transform.hpp"
 
@@ -111,6 +113,24 @@ update_weapon_shotgun_system(entt::registry& r, const uint64_t milliseconds_dt)
     if (const auto* release_request = r.try_get<WantsToReleaseShot>(p)) {
       shoot_released = true;
       r.remove<WantsToReleaseShot>(p);
+    }
+
+    if (shoot_pressed && r.try_get<AbleToShoot>(entity) == NULL) {
+      // not able to shoot...
+
+      // spawn particles "pfft"; you couldnt shoot
+      const float pfft_speed = 0.1f;
+
+      ParticleDescription desc;
+      desc.time_to_live_ms = 1000;
+      desc.position = gun_aabb.center;
+      desc.velocity = { -dir_i.x * pfft_speed, -glm::abs(dir_i.y * pfft_speed) };
+      desc.start_size = 10;
+      desc.end_size = 0;
+      desc.sprite = "EMPTY";
+      const auto e = create_particle(r, desc);
+
+      continue;
     }
 
     // Gun may not have a cooldown component

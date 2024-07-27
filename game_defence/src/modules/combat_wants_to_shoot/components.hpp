@@ -7,6 +7,11 @@
 
 namespace game2d {
 
+struct AbleToShoot
+{
+  bool placeholder = true;
+};
+
 struct WantsToShoot
 {
   bool placeholder = true;
@@ -26,11 +31,6 @@ struct DynamicTargetComponent
 struct StaticTargetComponent
 {
   std::optional<glm::ivec2> target = std::nullopt;
-};
-
-struct LineOfSightComponent
-{
-  bool placeholder = true;
 };
 
 } // namespace game2d

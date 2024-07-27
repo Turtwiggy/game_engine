@@ -166,7 +166,7 @@ update_ui_combat_turnbased_system(entt::registry& r, const glm::ivec2& input_mou
     auto& actions = r.get_or_emplace<ActionState>(e);
 
     // already has a path that you've not yet arrived at
-    bool able_to_move = !has_destination(r, e) || at_destination(r, e);
+    bool able_to_move = (!has_destination(r, e) || at_destination(r, e));
     able_to_move &= !destination_is_blocked(r, mouse_pos);
 
     // move mode

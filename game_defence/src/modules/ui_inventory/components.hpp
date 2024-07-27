@@ -22,6 +22,7 @@ enum class InventorySlotType
 
   // inventory
   gun,
+  bullet,
   backpack,
 };
 
@@ -34,6 +35,9 @@ enum class ItemType
   scrap_leg_protection,
 
   scrap_shotgun,
+
+  bullettype_default,
+  bullettype_bouncy,
 };
 
 struct InventorySlotComponent
@@ -71,6 +75,8 @@ const static std::unordered_map<ItemType, std::string> item_to_sprite_map{
   { ItemType::scrap_arm_protection, "GLOVES_4" },
   { ItemType::scrap_leg_protection, "BOOTS_2" },
   { ItemType::scrap_shotgun, "WEAPON_SHOTGUN" },
+  { ItemType::bullettype_default, "AMMO_BOX" },
+  { ItemType::bullettype_bouncy, "AMMO_BOX" },
 };
 
 } // namespace game2d

@@ -6,7 +6,11 @@ namespace game2d {
 
 struct SINGLE_SplashScreen
 {
-  float time_on_splashscreen_seconds = 3.0f;
+#if defined(_DEBUG)
+  float time_on_splashscreen_seconds = 0.5f;
+#else
+  float time_on_splashscreen_seconds = 2.5f;
+#endif
 };
 
 } // namespace game2d

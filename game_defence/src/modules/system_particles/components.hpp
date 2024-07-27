@@ -29,9 +29,12 @@ struct ParticleDescription
   float start_size = 10;
   float end_size = 10;
   glm::ivec2 position{ 0, 0 };
-  glm::ivec2 velocity{ 0, 0 };
+  glm::vec2 velocity{ 0, 0 };
   std::string sprite = "EMPTY";
   engine::SRGBColour default_colour{ 1.0f, 1.0f, 1.0f, 1.0f };
+
+  // int amount = 1;
+  // bool slightly_change_velocity = false;
 
   // not implemented
   // engine::SRGBColour start_colour;

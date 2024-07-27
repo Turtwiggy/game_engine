@@ -23,6 +23,7 @@
 #include "modules/system_particles/helpers.hpp"
 #include "modules/ui_combat_turnbased/components.hpp"
 #include "physics/components.hpp"
+#include <glm/common.hpp>
 
 namespace game2d {
 
@@ -129,6 +130,26 @@ update_resolve_collisions_system(entt::registry& r)
     const auto a = static_cast<entt::entity>(coll.ent_id_0);
     const auto b = static_cast<entt::entity>(coll.ent_id_1);
 
+    const auto [bbouncy_ent, some_ent] =
+      collision_of_interest<const BulletBouncyComponent, const EntityTypeComponent>(r, a, b);
+    if (bbouncy_ent != entt::null && some_ent != entt::null) {
+      const auto& bullet_e = bbouncy_ent;
+      const auto& solid_e = some_ent;
+      const auto& bullet_aabb = r.get<AABB>(bullet_e);
+      const auto& solid_aabb = r.get<AABB>(solid_e);
+
+      // bouncy bullet hit a wall
+      const bool wall_is_horizontal = solid_aabb.size.x > solid_aabb.size.y;
+      const auto dir = bullet_aabb.center - solid_aabb.center;
+
+      // move the bullet away from the collided wall
+      auto& bullet_vel = r.get<VelocityComponent>(bullet_e);
+      if (wall_is_horizontal) // reflect y
+        bullet_vel.y = glm::abs(bullet_vel.y) * glm::sign(dir.y);
+      else
+        bullet_vel.x = glm::abs(bullet_vel.x) * glm::sign(dir.x);
+    }
+
     const auto [a_ent, b_ent] = collision_of_interest<const BulletComponent, const EntityTypeComponent>(r, a, b);
     if (a_ent != entt::null && b_ent != entt::null) {
       const auto& bullet = a_ent;
@@ -140,6 +161,7 @@ update_resolve_collisions_system(entt::registry& r)
       // which direction was the bullet moving in?
       const auto& bullet_vel = r.get<VelocityComponent>(bullet);
       const auto& bullet_aabb = r.get<AABB>(bullet);
+      const auto& solid_aabb = r.get<AABB>(wall);
       const float sign_x = glm::sign(bullet_vel.x);
       const float sign_y = glm::sign(bullet_vel.y);
       const auto impact_point_x = bullet_aabb.center.x + (sign_x * (bullet_aabb.size.x / 2.0f));
@@ -157,14 +179,15 @@ update_resolve_collisions_system(entt::registry& r)
         float impact_vel_amount_x = 0.0f;
         float impact_vel_amount_y = 0.0f;
         const float momentum_loss = 5.0f; // e.g. particles return at 1/5th the speed
-        // going more horizontal than vertical
-        // just set impact-vel as perpendicular to the impact point
-        if (glm::abs(bullet_vel.x) >= glm::abs(bullet_vel.y))
-          impact_vel_amount_x = (-bullet_vel.x) / momentum_loss;
-        // going more vertical than horizontal
-        // just set impact-vel as perpendicular to the impact point
+
+        // bouncy bullet hit a wall
+        const bool wall_is_horizontal = solid_aabb.size.x > solid_aabb.size.y;
+        const auto dir = bullet_aabb.center - solid_aabb.center;
+
+        if (wall_is_horizontal)
+          impact_vel_amount_y = glm::abs(bullet_vel.y) * glm::sign(dir.y) / momentum_loss;
         else
-          impact_vel_amount_y = (-bullet_vel.y) / momentum_loss;
+          impact_vel_amount_x = glm::abs(bullet_vel.x) * glm::sign(dir.x) / momentum_loss;
 
         ParticleDescription desc;
         desc.time_to_live_ms = 1000;

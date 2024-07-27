@@ -31,4 +31,9 @@ struct BulletComponent
   bool placeholder = true;
 };
 
+struct BulletBouncyComponent
+{
+  bool placeholder = true;
+};
+
 } // namespace game2d

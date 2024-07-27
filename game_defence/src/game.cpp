@@ -167,12 +167,10 @@ init_slow(engine::SINGLETON_Application& app, entt::registry& r)
     path += "assets/audio/";
 
     SINGLETON_AudioComponent audio;
+
     audio.sounds.push_back(
       { "SHOTGUN_SHOOT_01", path + "FIREARM_Shotgun_Model_02_Fire_Single_RR1_stereo.wav", SoundType::SFX });
-    audio.sounds.push_back(
-      { "SHOTGUN_SHOOT_02", path + "FIREARM_Shotgun_Model_02_Fire_Single_RR2_stereo.wav", SoundType::SFX });
-    audio.sounds.push_back(
-      { "SHOTGUN_SHOOT_03", path + "FIREARM_Shotgun_Model_02_Fire_Single_RR3_stereo.wav", SoundType::SFX });
+
     audio.sounds.push_back({ "SHOTGUN_RELOAD_01", path + "RELOAD_Pump_stereo.wav", SoundType::SFX });
     audio.sounds.push_back({ "TAKE_DAMAGE_01", path + "GRUNT_Male_Subtle_Hurt_mono.wav", SoundType::SFX });
 

@@ -43,27 +43,33 @@ void
 launch_thread_after_x_frames()
 {
 #if defined(__EMSCRIPTEN__)
-  // Just do the slow work. Non-threded.
-  if (frames_to_pass_before_init <= 0 && !done_init_slow) {
-    game2d::init_slow(app, game);
-    done_init_slow = true;
-  }
-  if (frames_to_pass_before_init > 0)
-    frames_to_pass_before_init--;
-  return;
+  const bool do_threaded = false;
+#else
+  const bool do_threaded = true;
 #endif
 
-  if (frames_to_pass_before_init <= 0 && !done_init_slow) {
-    const auto work = []() { game2d::init_slow(app, game); };
-    slow_thread = std::thread(work);
-    done_init_slow = true;
-    fmt::println("spawning thread...");
+  if (do_threaded) {
+    if (frames_to_pass_before_init <= 0 && !done_init_slow) {
+      const auto work = []() { game2d::init_slow(app, game); };
+      slow_thread = std::thread(work);
+      done_init_slow = true;
+      fmt::println("spawning thread...");
+    }
+    if (slow_thread != std::nullopt && slow_thread.value().joinable()) {
+      fmt::println("want to join thread...");
+      slow_thread.value().join();
+      slow_thread = std::nullopt;
+    }
   }
-  if (slow_thread != std::nullopt && slow_thread.value().joinable()) {
-    fmt::println("want to join thread...");
-    slow_thread.value().join();
-    slow_thread = std::nullopt;
+
+  if (!do_threaded) {
+    // Just do the slow work. Non-threded.
+    if (frames_to_pass_before_init <= 0 && !done_init_slow) {
+      game2d::init_slow(app, game);
+      done_init_slow = true;
+    }
   }
+
   if (frames_to_pass_before_init > 0)
     frames_to_pass_before_init--;
 }

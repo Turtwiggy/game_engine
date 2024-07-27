@@ -384,6 +384,10 @@ destination_is_blocked(entt::registry& r, const glm::ivec2 worldspace_pos)
   const auto idx = convert_position_to_index(map, worldspace_pos);
 
   for (const auto& ent : map.map[idx]) {
+    if (!r.valid(ent)) {
+      fmt::println("Map contains invalid entity... check this out!");
+      continue;
+    }
     const auto& info = r.get<EntityTypeComponent>(ent);
 
     // something exists, so it should have a pathfind component

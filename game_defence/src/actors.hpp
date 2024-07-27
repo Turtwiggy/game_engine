@@ -25,6 +25,9 @@ enum class EntityType
   actor_spawner,
   actor_turret,
 
+  // solids
+  solid_wall,
+
   // overworld
   actor_player, // overworld player
   actor_enemy_patrol,
@@ -40,6 +43,7 @@ enum class EntityType
   // weapon_pistol,
   // weapon_sniper,
   bullet_default,
+  bullet_bouncy,
   // bullet_bow,
   // enemy_dummy,
   // enemy_grunt,
@@ -48,9 +52,6 @@ enum class EntityType
   // pickups
   actor_pickup_xp,
   actor_pickup_doubledamage,
-
-  // solids
-  solid_wall,
 
   // misc
   cursor,

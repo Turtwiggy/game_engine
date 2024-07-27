@@ -3,12 +3,19 @@
 #include "entt/helpers.hpp"
 #include "events/components.hpp"
 #include "events/helpers/keyboard.hpp"
+#include "lifecycle/components.hpp"
+#include "modules/actor_player/components.hpp"
+#include "modules/actor_weapon_shotgun/components.hpp"
+#include "modules/actors/helpers.hpp"
+#include "modules/combat_damage/components.hpp"
+#include "modules/combat_wants_to_shoot/components.hpp"
 #include "modules/renderer/components.hpp"
 #include "modules/renderer/helpers.hpp"
 #include "modules/ui_inventory/components.hpp"
 #include "modules/ui_inventory/helpers.hpp"
 
 #include "imgui.h"
+#include "physics/components.hpp"
 #include <magic_enum.hpp>
 
 #include <fmt/core.h>
@@ -123,6 +130,80 @@ display_inventory_slot(entt::registry& r,
 };
 
 void
+update_gunstate_from_ui_bullets(entt::registry& r, entt::entity& gunslot_e, entt::entity& bulletslot_e)
+{
+  const auto first_player_e = get_first<PlayerComponent>(r);
+  if (first_player_e == entt::null)
+    return;
+  const auto* first_player_weapon_c = r.try_get<HasWeaponComponent>(first_player_e);
+
+  const auto& gun_0_slot_child = r.get<InventorySlotComponent>(gunslot_e).child_item;
+  const auto& bullet_0_slot_child = r.get<InventorySlotComponent>(bulletslot_e).child_item;
+  const bool gun_0_slot_is_empty = gun_0_slot_child == entt::null;
+  const bool bullet_0_slot_is_empty = bullet_0_slot_child == entt::null;
+
+  bool has_instantiated_weapon = false;
+  if (first_player_weapon_c)
+    has_instantiated_weapon = first_player_weapon_c->instance != entt::null;
+
+  if (has_instantiated_weapon) {
+    const bool weapon_able_to_shoot = r.try_get<AbleToShoot>(first_player_weapon_c->instance);
+
+    if (weapon_able_to_shoot) {
+      // Gun is able to shoot. Check ammo in ammo slot.
+      if (bullet_0_slot_is_empty)
+        r.remove<AbleToShoot>(first_player_weapon_c->instance);
+    }
+
+    if (!weapon_able_to_shoot) {
+      // Gun is not able to shoot. Check ammo in slot.
+      if (!bullet_0_slot_is_empty) {
+        // halellula. we have ammo again.
+        r.emplace<AbleToShoot>(first_player_weapon_c->instance);
+
+        auto bullet_type = EntityType::bullet_default;
+
+        // TODO: set ammo type better.
+        const auto& item = r.get<ItemComponent>(bullet_0_slot_child);
+        if (item.type == ItemType::bullettype_bouncy)
+          bullet_type = EntityType::bullet_bouncy;
+        if (item.type == ItemType::bullettype_default)
+          bullet_type = EntityType::bullet_default;
+
+        r.get<WeaponBulletTypeToSpawnComponent>(first_player_weapon_c->instance).bullet_type = bullet_type;
+      }
+    }
+  }
+
+  if (has_instantiated_weapon && gun_0_slot_is_empty) {
+    // destroy instance.
+    auto& dead = get_first_component<SINGLETON_EntityBinComponent>(r);
+    dead.dead.emplace(first_player_weapon_c->instance);
+
+    r.remove<HasWeaponComponent>(first_player_e);
+  }
+  if (!gun_0_slot_is_empty && !has_instantiated_weapon) {
+    // create instance.
+    // todo: spawn the right weapon from the inventory equipped item
+
+    // create weapon
+    const auto weapon = create_gameplay(r, EntityType::weapon_shotgun);
+    const auto& player_team_c = r.get<TeamComponent>(first_player_e);
+    r.emplace_or_replace<TeamComponent>(weapon, player_team_c.team);
+
+    // setup weapon
+    auto& weapon_parent = r.get<HasParentComponent>(weapon);
+    weapon_parent.parent = first_player_e;
+    set_position(r, weapon, r.get<AABB>(first_player_e).center);
+
+    // link player&weapon
+    HasWeaponComponent has_weapon;
+    has_weapon.instance = weapon;
+    r.emplace<HasWeaponComponent>(first_player_e, has_weapon);
+  }
+};
+
+void
 update_ui_inventory_system(entt::registry& r)
 {
   const auto& input = get_first_component<SINGLETON_InputComponent>(r);
@@ -143,6 +224,56 @@ update_ui_inventory_system(entt::registry& r)
     else
       destroy_first<ShowInventoryRequest>(r);
   }
+
+  // default slots
+  const auto create_body_slot = [&r](const InventorySlotType& type) -> entt::entity {
+    return create_empty<InventorySlotComponent>(r, InventorySlotComponent{ type });
+  };
+  static auto head_eid = create_body_slot(InventorySlotType::head);
+  static auto core_eid = create_body_slot(InventorySlotType::core);
+  static auto l_arm_eid = create_body_slot(InventorySlotType::arm);
+  static auto r_arm_eid = create_body_slot(InventorySlotType::arm);
+  static auto l_leg_eid = create_body_slot(InventorySlotType::leg);
+  static auto r_leg_eid = create_body_slot(InventorySlotType::leg);
+  static auto gun_0_eid = create_body_slot(InventorySlotType::gun);
+  static auto bullet_0_eid = create_body_slot(InventorySlotType::bullet);
+
+  // default items
+  const auto create_item = [&r](const entt::entity& slot_e, const ItemType& item_type) -> entt::entity {
+    ItemComponent item;
+    item.parent_slot = slot_e;
+    item.type = item_type;
+    const auto item_e = create_empty<ItemComponent>(r, item);
+    update_item_parent(r, item_e, slot_e);
+    return item_e;
+  };
+  static auto scrap_item_head = create_item(head_eid, ItemType::scrap_head_protection);
+  static auto scrap_item_core = create_item(core_eid, ItemType::scrap_core_protection);
+  static auto scrap_item_l_arm = create_item(l_arm_eid, ItemType::scrap_arm_protection);
+  static auto scrap_item_r_arm = create_item(r_arm_eid, ItemType::scrap_arm_protection);
+  static auto scrap_item_l_legs = create_item(l_leg_eid, ItemType::scrap_leg_protection);
+  static auto scrap_item_r_legs = create_item(r_leg_eid, ItemType::scrap_leg_protection);
+  static auto scrap_item_gun = create_item(gun_0_eid, ItemType::scrap_shotgun);
+  // static auto scrap_item_bullet = create_item(bullet_0_eid, ItemType::bullettype_default);
+
+  // default backpack items
+  static bool created_inventory = false;
+  const int inv_x = 6;
+  const int inv_y = 5;
+  if (!created_inventory) {
+    created_inventory = true;
+    for (int i = 0; i < inv_x * inv_y; i++) {
+      const auto slot_e = create_empty<InventorySlotComponent>(r, InventorySlotComponent{ InventorySlotType::backpack });
+      if (i == (inv_x * inv_y) - 1)
+        create_item(slot_e, ItemType::scrap);
+      if (i == (inv_x * inv_y) - 2)
+        create_item(slot_e, ItemType::bullettype_bouncy);
+      if (i == (inv_x * inv_y) - 3)
+        create_item(slot_e, ItemType::bullettype_default);
+    }
+  }
+
+  update_gunstate_from_ui_bullets(r, gun_0_eid, bullet_0_eid);
 
   // no request: do not show inventory
   if (get_first<ShowInventoryRequest>(r) == entt::null)
@@ -165,9 +296,8 @@ update_ui_inventory_system(entt::registry& r)
     const auto pos = ImVec2(viewport_pos.x + window_left_edge_padding, viewport_pos.y + viewport_size_half.y);
 
     // configs
-    const int inv_x = 6;
-    const int inv_y = 5;
-    const ImVec2 button_size = ImVec2(40, 40);
+
+    const ImVec2 button_size = ImVec2(32, 32);
     const ImVec2 gun_button_size = button_size;
     const ImVec2 window_0_size{ 300, 300 };
     const ImVec2 window_1_size{ (button_size.x * inv_x) + (button_size.x * 2), window_0_size.y };
@@ -184,77 +314,34 @@ update_ui_inventory_system(entt::registry& r)
     ImGui::SetNextWindowSizeConstraints(window_0_size, window_0_size);
     ImGui::Begin("Inventory-Body", NULL, flags);
 
-    const auto create_body_slot = [&r](const InventorySlotType& type) -> entt::entity {
-      return create_empty<InventorySlotComponent>(r, InventorySlotComponent{ type });
-    };
-    static auto head_eid = create_body_slot(InventorySlotType::head);
-    static auto core_eid = create_body_slot(InventorySlotType::core);
-    static auto l_arm_eid = create_body_slot(InventorySlotType::arm);
-    static auto r_arm_eid = create_body_slot(InventorySlotType::arm);
-    static auto l_leg_eid = create_body_slot(InventorySlotType::leg);
-    static auto r_leg_eid = create_body_slot(InventorySlotType::leg);
-    static auto gun_0_eid = create_body_slot(InventorySlotType::gun);
-    static auto gun_1_eid = create_body_slot(InventorySlotType::gun);
-
-    const auto create_item = [&r](const entt::entity& slot_e, const ItemType& item_type) -> entt::entity {
-      ItemComponent item;
-      item.parent_slot = slot_e;
-      item.type = item_type;
-      const auto item_e = create_empty<ItemComponent>(r, item);
-      update_item_parent(r, item_e, slot_e);
-      return item_e;
-    };
-
-    // give player default items?
-    static auto scrap_item_head = create_item(head_eid, ItemType::scrap_head_protection);
-    static auto scrap_item_core = create_item(core_eid, ItemType::scrap_core_protection);
-    static auto scrap_item_l_arm = create_item(l_arm_eid, ItemType::scrap_arm_protection);
-    static auto scrap_item_r_arm = create_item(r_arm_eid, ItemType::scrap_arm_protection);
-    static auto scrap_item_l_legs = create_item(l_leg_eid, ItemType::scrap_leg_protection);
-    static auto scrap_item_r_legs = create_item(r_leg_eid, ItemType::scrap_leg_protection);
-    static auto scrap_item_gun = create_item(gun_0_eid, ItemType::scrap_shotgun);
-
     {
-      float y = base_y;
-      display_inventory_slot(r, head_eid, button_size, { center_x, 0 });
+      // display_inventory_slot(r, head_eid, button_size, { center_x, 0 });
+      // display_inventory_slot(r, l_arm_eid, button_size, { center_x - button_size.x - padding_x, 0 });
+      // display_inventory_slot(r, core_eid, button_size, { center_x, 0 });
+      // display_inventory_slot(r, r_arm_eid, button_size, { center_x + button_size.x + padding_x, 0 });
+      // display_inventory_slot(r, l_leg_eid, button_size, { center_x, 0 });
+      // display_inventory_slot(r, r_leg_eid, button_size, { center_x + button_size.x, 0 });
+      // display_inventory_slot(r, gun_0_eid, gun_button_size, { right_x - gun_button_size.x - padding_x, 0 });
+      // display_inventory_slot(r, gun_1_eid, gun_button_size, { right_x - gun_button_size.x - padding_x, 0 });
 
-      y += button_size.y + padding_y;
-      display_inventory_slot(r, l_arm_eid, button_size, { center_x - button_size.x - padding_x, 0 });
+      display_inventory_slot(r, head_eid, button_size);
       ImGui::SameLine();
-      display_inventory_slot(r, core_eid, button_size, { center_x, 0 });
+      display_inventory_slot(r, core_eid, button_size);
       ImGui::SameLine();
-      display_inventory_slot(r, r_arm_eid, button_size, { center_x + button_size.x + padding_x, 0 });
+      display_inventory_slot(r, l_arm_eid, button_size);
+      ImGui::SameLine();
+      display_inventory_slot(r, r_arm_eid, button_size);
+      ImGui::SameLine();
+      display_inventory_slot(r, l_leg_eid, button_size);
+      ImGui::SameLine();
+      display_inventory_slot(r, r_leg_eid, button_size);
 
-      y += button_size.y + padding_y;
-      display_inventory_slot(r, l_leg_eid, button_size, { center_x, 0 });
+      display_inventory_slot(r, gun_0_eid, gun_button_size);
       ImGui::SameLine();
-      display_inventory_slot(r, r_leg_eid, button_size, { center_x + button_size.x, 0 });
-      ImGui::SameLine();
-      display_inventory_slot(r, gun_0_eid, gun_button_size, { right_x - gun_button_size.x - padding_x, 0 });
-
-      y += button_size.y + padding_y;
-      display_inventory_slot(r, gun_1_eid, gun_button_size, { right_x - gun_button_size.x - padding_x, 0 });
+      display_inventory_slot(r, bullet_0_eid, gun_button_size);
     }
 
     ImGui::End();
-
-    //
-    // create the backpack inventory
-    // n.b. should occur after creating the body
-    //
-
-    // Show a 6x5 grid in the window
-
-    static bool created_inventory = false;
-    if (!created_inventory) {
-
-      for (int i = 0; i < inv_x * inv_y; i++) {
-        const auto slot_e = create_empty<InventorySlotComponent>(r, InventorySlotComponent{ InventorySlotType::backpack });
-        if (i == (inv_x * inv_y) - 1)
-          create_item(slot_e, ItemType::scrap);
-      }
-      created_inventory = true;
-    }
 
     ImGui::SetNextWindowPos(window_1_pos, ImGuiCond_Always, ImVec2(0.0f, 0.5f));
     ImGui::SetNextWindowSizeConstraints(window_1_size, window_1_size);
