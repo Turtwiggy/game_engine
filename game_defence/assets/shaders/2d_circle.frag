@@ -1,5 +1,5 @@
-#version 300 es
-precision highp float;
+// version prepended to file when loaded by engine.
+// #version 130
 
 layout(location = 0) out vec4 o_colour;
 

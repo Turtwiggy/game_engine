@@ -470,7 +470,7 @@ create_gameplay(entt::registry& r, const EntityType& type)
       WeaponBulletTypeToSpawnComponent bullet_info;
       bullet_info.bullet_damage = 12;
       bullet_info.bullet_speed = 250.0f;
-      bullet_info.bullet_type = EntityType::bullet_bouncy;
+      bullet_info.bullet_type = EntityType::bullet_default;
       r.emplace<WeaponBulletTypeToSpawnComponent>(e, bullet_info);
 
       break;

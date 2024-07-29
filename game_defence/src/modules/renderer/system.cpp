@@ -96,6 +96,7 @@ rebind(entt::registry& r, SINGLETON_RendererInfo& ri)
   const int tex_unit_gameicons = search_for_texture_unit_by_texture_path(ri, "gameicons")->unit;
   const int tex_unit_spacestation_0 = search_for_texture_unit_by_texture_path(ri, "spacestation_0")->unit;
   const int tex_unit_studio_logo = search_for_texture_unit_by_texture_path(ri, "blueberry")->unit;
+  const int tex_unit_custom = search_for_texture_unit_by_texture_path(ri, "custom")->unit;
   const int texs_used_by_renderer = get_renderer_tex_unit_count(ri);
 
   const auto get_tex_unit = [&ri](const PassName& p) -> int {
@@ -121,6 +122,7 @@ rebind(entt::registry& r, SINGLETON_RendererInfo& ri)
   ri.instanced.set_int("tex_gameicons", tex_unit_gameicons);
   ri.instanced.set_int("tex_unit_spacestation_0", tex_unit_spacestation_0);
   ri.instanced.set_int("tex_unit_studio_logo", tex_unit_studio_logo);
+  ri.instanced.set_int("tex_unit_custom", tex_unit_custom);
 
   ri.lighting_emitters_and_occluders.reload();
   ri.lighting_emitters_and_occluders.bind();

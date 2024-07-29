@@ -2,6 +2,7 @@
 #include "opengl/shader.hpp"
 
 // your project headers
+#include "app/game_window.hpp"
 #include "io/path.hpp"
 #include "opengl/util.hpp"
 
@@ -10,12 +11,12 @@
 #include <glm/gtc/type_ptr.hpp>
 
 // c++ standard library headers
-#include <filesystem> // C++17
 #include <fmt/core.h>
 #include <fstream>
 #include <sstream>
 
 namespace engine {
+using namespace std::literals;
 
 void
 check_compile_errors(unsigned int shader, std::string type, std::string path)
@@ -106,6 +107,10 @@ load_shader_from_disk(const std::string& path, unsigned int gl_shader_type, std:
       exit(1);
     }
   }
+
+  // Prepend e.g. "#version 330 core" to the shader.
+  const std::string version = GameWindow::get_glsl_version();
+  code = version + code;
 
   const char* csCode = code.c_str();
   shader_id = glCreateShader(gl_shader_type);

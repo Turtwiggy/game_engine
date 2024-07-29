@@ -130,9 +130,13 @@ target_include_directories(game_defence PRIVATE
 link_libs(game_defence)
 
 # rename executable
-IF(${CMAKE_SYSTEM_NAME} STREQUAL "Windows")
-  set_target_properties(${PROJECT_NAME} PROPERTIES OUTPUT_NAME "solar_warfare")
+if(EMSCRIPTEN)
+else()
+  set(GAME_EXE_NAME "solar_warfare")
+  set_target_properties(${PROJECT_NAME} PROPERTIES OUTPUT_NAME ${GAME_EXE_NAME})
+endif()
 
+IF(${CMAKE_SYSTEM_NAME} STREQUAL "Windows")
   # Only do this for debug builds,
   # as release builds should copy the folder over (not symlink)
   IF(CMAKE_BUILD_TYPE MATCHES Debug)
@@ -154,8 +158,6 @@ IF(${CMAKE_SYSTEM_NAME} STREQUAL "Windows")
 endif()
 
 IF(${CMAKE_SYSTEM_NAME} STREQUAL "Darwin")
-  set_target_properties(${PROJECT_NAME} PROPERTIES OUTPUT_NAME "solar_warfare")
-
   # Only do this for debug builds,
   # as release builds should copy the folder over (not symlink)
   IF(${CMAKE_BUILD_TYPE} MATCHES Debug)

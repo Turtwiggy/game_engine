@@ -27,14 +27,6 @@ class GameWindow
     void operator()(SDL_Window* window) const { SDL_DestroyWindow(window); }
   };
 
-public:
-  // Note: 4, 3 when compute shaders were introduced
-  // Note: renderdoc requires opengl 3.2+
-  // webgl 2 uses 3, 0
-  int opengl_major = 3;
-  int opengl_minor = 0;
-  std::string glsl_version = "#version 300 es";
-
 private:
   // SDL2 window
   std::unique_ptr<SDL_Window, SDLDestroyer> window_ = nullptr;
@@ -58,6 +50,8 @@ public:
 
   [[nodiscard]] uint32_t get_sdl_id() const;
   [[nodiscard]] uint32_t get_sdl_flags() const;
+
+  static std::string get_glsl_version();
 
   void set_title(const std::string& str);
   void set_position(int x, int y);

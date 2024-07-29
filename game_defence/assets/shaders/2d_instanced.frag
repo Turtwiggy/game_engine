@@ -1,5 +1,5 @@
-#version 300 es
-precision highp float;
+// version prepended to file when loaded by engine.
+// #version 130
 
 out vec4 out_colour;
 
@@ -14,6 +14,7 @@ uniform sampler2D tex_kenny;
 uniform sampler2D tex_gameicons;
 uniform sampler2D tex_unit_spacestation_0;
 uniform sampler2D tex_unit_studio_logo;
+uniform sampler2D tex_unit_custom;
 uniform vec2 viewport_wh;
 uniform int RENDERER_TEX_UNIT_COUNT;
 
@@ -56,8 +57,12 @@ main()
       out_colour *= texture(tex_unit_spacestation_0, sprite_uv);
       return; // texture uses 0, 0
     }
-     else if(index == RENDERER_TEX_UNIT_COUNT+3){
+    else if(index == RENDERER_TEX_UNIT_COUNT+3){
       out_colour *= texture(tex_unit_studio_logo, sprite_uv);
+      return; // texture uses 0, 0
+    }
+    else if(index == RENDERER_TEX_UNIT_COUNT+4){
+      out_colour *= texture(tex_unit_custom, sprite_uv);
       return; // texture uses 0, 0
     }
 
