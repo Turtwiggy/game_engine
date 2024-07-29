@@ -371,7 +371,7 @@ setup_mix_lighting_and_scene_update(entt::registry& r)
     ri.mix_lighting_and_scene.set_vec2("viewport_wh", ri.viewport_size_render_at);
     ri.mix_lighting_and_scene.set_vec2("camera_pos", { camera_t.position.x, camera_t.position.y });
     ri.mix_lighting_and_scene.set_vec2("mouse_pos", mouse_raw);
-    ri.mix_lighting_and_scene.set_float("brightness_threshold", brightness_threshold);
+    // ri.mix_lighting_and_scene.set_float("brightness_threshold", brightness_threshold);
     ri.mix_lighting_and_scene.set_int("u_distance_data", get_tex_unit(ri, PassName::voronoi_distance));
 
     render_fullscreen_quad(ri.mix_lighting_and_scene, ri.viewport_size_render_at);

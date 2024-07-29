@@ -1,7 +1,6 @@
 // version prepended to file when loaded by engine.
-// #version 130
 
-layout(location = 0) out vec4 o_colour;
+out vec4 o_colour;
 
 in vec2 v_uv;
 in vec4 v_colour;

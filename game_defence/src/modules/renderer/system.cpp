@@ -205,7 +205,7 @@ init_render_system(const engine::SINGLETON_Application& app, entt::registry& r, 
   ri.passes.push_back(RenderPass(PassName::voronoi_seed));
   ri.passes.push_back(RenderPass(PassName::jump_flood));
   ri.passes.push_back(RenderPass(PassName::voronoi_distance));
-  ri.passes.push_back(RenderPass(PassName::mix_lighting_and_scene, 2));
+  ri.passes.push_back(RenderPass(PassName::mix_lighting_and_scene));
   ri.passes.push_back(RenderPass(PassName::blur_pingpong_0));
   ri.passes.push_back(RenderPass(PassName::blur_pingpong_1));
   ri.passes.push_back(RenderPass(PassName::bloom));
@@ -571,7 +571,7 @@ update_render_system(entt::registry& r, const float dt, const glm::vec2& mouse_p
 
     // Note: ImGui::Image takes in TexID not TexUnit
 
-    PassName p = PassName::bloom;
+    PassName p = PassName::mix_lighting_and_scene;
     if (s.s == Scene::menu)
       p = PassName::stars;
     const auto& pass = ri.passes[search_for_renderpass_by_name(ri, p)];

@@ -87,7 +87,7 @@ enum class PassName
   voronoi_seed,
   jump_flood,
   voronoi_distance,
-  mix_lighting_and_scene, // 2 colour attachments
+  mix_lighting_and_scene,
   blur_pingpong_0,
   blur_pingpong_1,
   bloom,

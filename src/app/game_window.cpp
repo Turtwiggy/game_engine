@@ -81,7 +81,7 @@ GameWindow::GameWindow(const std::string& title, const DisplayMode& displaymode,
   opengl_minor = 0;
 // mac
 #elif defined(__APPLE__)
-  // GL 3.3 Core + GLSL 330 core
+  // GL 3.3 + GLSL 330 core
   SDL_GL_SetAttribute(SDL_GL_CONTEXT_FLAGS, SDL_GL_CONTEXT_FORWARD_COMPATIBLE_FLAG); // Always required on Mac
   SDL_GL_SetAttribute(SDL_GL_CONTEXT_PROFILE_MASK, SDL_GL_CONTEXT_PROFILE_CORE);
   SDL_GL_SetAttribute(SDL_GL_CONTEXT_MAJOR_VERSION, 3);

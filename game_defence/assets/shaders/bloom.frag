@@ -1,5 +1,5 @@
 // version prepended to file when loaded by engine.
-// #version 130
+//
 
 out vec4 out_color;
 
@@ -13,6 +13,17 @@ uniform bool do_bloom;
 void
 main()
 {
+  // work out "bright" areas for bloom effect
+  // float brightness = luminance(out_color);
+  // vec4 bright_colour = vec4(0.0, 0.0, 0.0, 1.0);
+  // if(brightness > brightness_threshold)
+  //   bright_colour = vec4(out_color.rgb, 1.0);
+  // out_bright_color = bright_colour;
+
+  // // after lighting, clamp buffer
+	// out_color.rgb = clamp(out_color.rgb, 0.0, 1.0);
+  // out_color.a = 1.0f;
+
   // color = sprite_colour; //* texture(tex, TexCoords);
   // color = sprite_colour * texture(tex, TexCoords);
   vec4 scene_col_srgb = texture(scene_texture, v_uv);

@@ -1,8 +1,7 @@
 // version prepended to file when loaded by engine.
-// #version 130
+//
 
-layout(location = 0) out vec4 out_color;
-layout(location = 1) out vec4 out_bright_color;
+out vec4 out_color;
 
 in vec2 v_uv;
 in vec4 v_colour;
@@ -214,9 +213,6 @@ void main()
 {
 	out_color.a = 1.0f;
 
-	// disable bloom
-  out_bright_color = vec4(0.0, 0.0, 0.0, 1.0);
-
 	// fragCoord : is a vec2 that is between 0 > 640 on the X axis and 0 > 360 on the Y axis
   // iResolution : is a vec2 with an X value of 640 and a Y value of 360
   vec2 fragCoord = v_uv * viewport_wh;
@@ -330,22 +326,8 @@ void main()
 	// vec3 lin_all = lin_lighting + scene_lin.rgb;
 	// vec3 srgb_final = lin_to_srgb(lin_all);
 
-
-
 	vec3 srgb_final = col.rgb * ( vec3(0.26f) + lin_to_srgb(scene_lin.rgb) + grid_col) ;
 
 	out_color.rgb = srgb_final.rgb;
 	out_color.a = col.a;
-	return;
-
-  // work out "bright" areas for bloom effect
-  float brightness = luminance(out_color);
-  vec4 bright_colour = vec4(0.0, 0.0, 0.0, 1.0);
-  if(brightness > brightness_threshold)
-    bright_colour = vec4(out_color.rgb, 1.0);
-  out_bright_color = bright_colour;
-
-  // after lighting, clamp buffer
-	out_color.rgb = clamp(out_color.rgb, 0.0, 1.0);
-  out_color.a = 1.0f;
 }
