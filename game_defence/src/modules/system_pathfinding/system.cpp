@@ -1,5 +1,6 @@
 #include "system.hpp"
 
+#include "actors.hpp"
 #include "entt/helpers.hpp"
 #include "lifecycle/components.hpp"
 #include "maths/grid.hpp"
@@ -25,10 +26,16 @@ update_pathfinding_system(entt::registry& r, const float& dt)
 
   // if something was killed, remove it from the map
   const auto& dead = get_first_component<SINGLETON_EntityBinComponent>(r);
-  for (const entt::entity& e : dead.dead) {
-    if (const auto* has_transform = r.try_get<TransformComponent>(e)) {
-      const auto gs = engine::grid::world_space_to_grid_space(get_position(r, e), map.tilesize);
+  for (const auto& e : dead.dead) {
+    const auto& type = r.get<EntityTypeComponent>(e);
+
+    if (type.type == EntityType::actor_unit_rtslike) {
+      const auto gs = engine::grid::worldspace_to_grid_space(get_position(r, e), map.tilesize);
       const auto idx = engine::grid::grid_position_to_index(gs, map.xmax);
+
+      // Warning: this nukes the entire gridcell.
+      // If there's multiple things in the cell,
+      // that could cause issues.
       map.map[idx].clear();
     }
   }
@@ -37,13 +44,13 @@ update_pathfinding_system(entt::registry& r, const float& dt)
   for (const auto& [e, aabb, target, path] : pathfinding.each()) {
 
     const auto& cur = aabb.center;
-    auto cur_gridpos = engine::grid::world_space_to_grid_space(glm::vec2(cur.x, cur.y), map.tilesize);
+    auto cur_gridpos = engine::grid::worldspace_to_grid_space(glm::vec2(cur.x, cur.y), map.tilesize);
     cur_gridpos.x = glm::clamp(cur_gridpos.x, 0, map.xmax - 1);
     cur_gridpos.y = glm::clamp(cur_gridpos.y, 0, map.ymax - 1);
 
     // get target grid position at the time which the pathfinding was calculated
     const auto dst_static = path.dst_pos;
-    glm::ivec2 dst_gridpos_static = engine::grid::world_space_to_grid_space(dst_static, map.tilesize);
+    glm::ivec2 dst_gridpos_static = engine::grid::worldspace_to_grid_space(dst_static, map.tilesize);
     dst_gridpos_static.x = glm::clamp(dst_gridpos_static.x, 0, map.xmax - 1);
     dst_gridpos_static.y = glm::clamp(dst_gridpos_static.y, 0, map.ymax - 1);
 
@@ -53,14 +60,14 @@ update_pathfinding_system(entt::registry& r, const float& dt)
     std::optional<glm::ivec2> dst_worldpos_dynamic = std::nullopt;
     if (path.dst_ent != entt::null) {
       dst_worldpos_dynamic = r.get<AABB>(path.dst_ent).center;
-      dst_gridpos_dynamic = engine::grid::world_space_to_grid_space(dst_worldpos_dynamic.value(), map.tilesize);
+      dst_gridpos_dynamic = engine::grid::worldspace_to_grid_space(dst_worldpos_dynamic.value(), map.tilesize);
       dst_gridpos_dynamic.value().x = glm::clamp(dst_gridpos_dynamic.value().x, 0, map.xmax - 1);
       dst_gridpos_dynamic.value().y = glm::clamp(dst_gridpos_dynamic.value().y, 0, map.ymax - 1);
     }
 
     // if (path.aim_for_exact_position) {
     //   dst_worldpos_dynamic = path.dst_pos;
-    //   dst_gridpos_dynamic = engine::grid::world_space_to_grid_space(dst_worldpos_dynamic.value(), map.tilesize);
+    //   dst_gridpos_dynamic = engine::grid::worldspace_to_grid_space(dst_worldpos_dynamic.value(), map.tilesize);
     //   dst_gridpos_dynamic.value().x = glm::clamp(dst_gridpos_dynamic.value().x, 0, map.xmax - 1);
     //   dst_gridpos_dynamic.value().y = glm::clamp(dst_gridpos_dynamic.value().y, 0, map.ymax - 1);
     //   ImGui::Text("dst_gridpos: %i %i", dst_gridpos_dynamic.value().x, dst_gridpos_dynamic.value().y);

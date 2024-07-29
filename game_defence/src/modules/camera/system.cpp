@@ -16,7 +16,7 @@
 namespace game2d {
 
 void
-update_camera_system(entt::registry& r, const float dt, const glm::ivec2& mouse_pos)
+update_camera_system(entt::registry& r, const float dt)
 {
   const auto& ri = get_first_component<SINGLETON_RendererInfo>(r);
   const auto& input = get_first_component<SINGLETON_InputComponent>(r);

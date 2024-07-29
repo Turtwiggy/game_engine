@@ -1,11 +1,10 @@
 #pragma once
 
 #include <entt/entt.hpp>
-#include <glm/glm.hpp>
 
 namespace game2d {
 
 void
-update_debug_pathfinding_system(entt::registry& r);
+set_z_index(entt::registry& r, const entt::entity& e, const int index);
 
 } // namespace game2d

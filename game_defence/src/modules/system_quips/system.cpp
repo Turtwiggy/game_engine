@@ -9,6 +9,7 @@
 #include "maths/maths.hpp"
 #include "modules/actor_enemy/components.hpp"
 #include "modules/actors/helpers.hpp"
+#include "modules/animation/components.hpp"
 #include "modules/gen_dungeons/components.hpp"
 #include "modules/gen_dungeons/helpers.hpp"
 #include "modules/grid/components.hpp"
@@ -20,6 +21,21 @@
 
 namespace game2d {
 using namespace std::literals;
+
+void
+create_imgui_quip(entt::registry& r, const entt::entity& e, const entt::entity& actor, const std::string& quip)
+{
+  auto& ui = r.emplace<WorldspaceTextComponent>(e);
+  ui.text = quip;
+  ui.offset.y = (-get_size(r, actor).y) / 2.0f;
+  ui.split_text_into_lines = true;
+  ui.line_length = 20;
+  WiggleUpAndDown wig;
+  wig.base_position = get_position(r, actor);
+  wig.amplitude = 1.0;
+  r.emplace<WiggleUpAndDown>(e, wig);
+  r.emplace<EntityTimedLifecycle>(e, static_cast<int>(2.5f * 1000));
+};
 
 void
 update_quips_system(entt::registry& r)
@@ -39,6 +55,7 @@ update_quips_system(entt::registry& r)
 
   //
   // Process ENTER_ROOM quip type
+  // Damage request for QUIPs are in the resolve_collisions()
   //
   {
     const auto& reqs = r.view<PlayerEnteredNewRoom>();
@@ -51,7 +68,7 @@ update_quips_system(entt::registry& r)
       const auto& enemies_view = r.view<EnemyComponent>();
       for (const auto& [enemy_e, enemy_c] : enemies_view.each()) {
         const auto enemy_pos = get_position(r, enemy_e);
-        const auto enemy_gridpos = engine::grid::world_space_to_grid_space(enemy_pos, map.tilesize);
+        const auto enemy_gridpos = engine::grid::worldspace_to_grid_space(enemy_pos, map.tilesize);
         const auto [in_room, room] = inside_room(map, dungeon.rooms, enemy_gridpos);
         if (!in_room)
           continue; // enemy not in a room (probably in a tunnel?)
@@ -105,13 +122,18 @@ update_quips_system(entt::registry& r)
       // forward the quip text on to the worldspace text system
       const auto e = create_gameplay(r, EntityType::empty_with_transform);
       r.get<TagComponent>(e).tag = "empty_with_transform:Quip:ENTER_ROOM";
-
-      auto& ui = r.emplace<WorldspaceSpriteRequestComponent>(e);
-      ui.text = quip;
-      ui.split_text_into_chunks = true;
-      ui.chunk_length = 16;
       set_position(r, e, get_position(r, e_to_quip));
-      set_size(r, e, get_size(r, e_to_quip));
+      set_size(r, e, { 0, 0 });
+
+      bool custom_sprite_text = false;
+      if (custom_sprite_text) {
+        auto& ui = r.emplace<WorldspaceSpriteRequestComponent>(e);
+        ui.text = quip;
+        ui.split_text_into_chunks = true;
+        ui.chunk_length = 16;
+        set_size(r, e, get_size(r, e_to_quip)); // size of enemy
+      } else
+        create_imgui_quip(r, e, e_to_quip, quip);
     }
 
     if (quip_c.type == QuipType::TOOK_DAMAGE) {
@@ -123,13 +145,18 @@ update_quips_system(entt::registry& r)
       // forward the quip text on to the worldspace text system
       const auto e = create_gameplay(r, EntityType::empty_with_transform);
       r.get<TagComponent>(e).tag = "empty_with_transform:Quip:TOOK_DAMAGE";
-
-      auto& ui = r.emplace<WorldspaceSpriteRequestComponent>(e);
-      ui.text = quip;
-      ui.split_text_into_chunks = true;
-      ui.chunk_length = 16;
       set_position(r, e, get_position(r, e_to_quip));
-      set_size(r, e, get_size(r, e_to_quip));
+      set_size(r, e, { 0, 0 });
+
+      bool custom_sprite_text = false;
+      if (custom_sprite_text) {
+        auto& ui = r.emplace<WorldspaceSpriteRequestComponent>(e);
+        ui.text = quip;
+        ui.split_text_into_chunks = true;
+        ui.chunk_length = 16;
+        set_size(r, e, get_size(r, e_to_quip)); // size of enemy
+      } else
+        create_imgui_quip(r, e, e_to_quip, quip);
     }
   }
 

@@ -6,6 +6,6 @@
 namespace game2d {
 
 void
-update_camera_system(entt::registry& r, const float dt, const glm::ivec2& mouse_pos);
+update_camera_system(entt::registry& r, const float dt);
 
 } // namespace game2d

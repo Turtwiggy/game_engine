@@ -29,7 +29,7 @@ struct RequestToCompleteTurn
 // scene data...
 struct SINGLE_CombatState
 {
-  AvailableTeams team = AvailableTeams::neutral;
+  AvailableTeams team = AvailableTeams::player;
 
   EntityPool show_selected_player_path;
 };

@@ -6,6 +6,7 @@
 #include "entt/helpers.hpp"
 #include "modules/camera/helpers.hpp"
 #include "modules/renderer/components.hpp"
+#include "modules/ux_hoverable/components.hpp"
 #include "renderer/transform.hpp"
 
 #include <glm/glm.hpp>
@@ -18,10 +19,19 @@ void
 update_ui_worldspace_text_system(entt::registry& r)
 {
   const auto& ri = get_first_component<SINGLETON_RendererInfo>(r);
+  ImGui::PushStyleVar(ImGuiStyleVar_FramePadding, ImVec2(0, 0));
+  // ImGui::PushStyleVar(ImGuiStyleVar_WindowPadding, ImVec2{ 0.0f, 0.0f });
+  ImGui::PushStyleVar(ImGuiStyleVar_WindowRounding, 6);
+  ImGui::PushStyleVar(ImGuiStyleVar_WindowBorderSize, 1);
 
   const auto& view = r.view<TransformComponent, WorldspaceTextComponent>();
   for (const auto& [e, t, wst_c] : view.each()) {
     const auto eid = static_cast<uint32_t>(e);
+
+    // Does an entity need to be hovered to show this ui?
+    const auto* is_hovered = r.try_get<HoveredComponent>(e);
+    if (wst_c.requires_hovered && !is_hovered)
+      continue;
 
     const auto t_pos = glm::ivec2(t.position.x, t.position.y);
     const auto worldspace = position_in_worldspace(r, t_pos);
@@ -39,7 +49,8 @@ update_ui_worldspace_text_system(entt::registry& r)
     ImGuiWindowFlags flags = 0;
     flags |= ImGuiWindowFlags_NoMove;
     flags |= ImGuiWindowFlags_NoTitleBar;
-    flags |= ImGuiWindowFlags_NoBackground;
+    // flags |= ImGuiWindowFlags_NoBackground;
+    ImGui::SetNextWindowBgAlpha(0.5); // some background
     flags |= ImGuiWindowFlags_NoResize;
     flags |= ImGuiDockNodeFlags_AutoHideTabBar;
     flags |= ImGuiDockNodeFlags_NoResize;
@@ -51,8 +62,8 @@ update_ui_worldspace_text_system(entt::registry& r)
     // if (wst_c.font_scale != 1.0f)
     //   ImGui::SetWindowFontScale(wst_c.font_scale);
 
-    if (wst_c.split_text_into_chunks) {
-      const auto shortened = split_string_nearest_space(wst_c.text, wst_c.chunk_length);
+    if (wst_c.split_text_into_lines) {
+      const auto shortened = split_string_nearest_space(wst_c.text, wst_c.line_length);
       for (const auto& line : shortened)
         ImGui::Text("%s", line.c_str());
     } else if (wst_c.layout.has_value())
@@ -66,6 +77,8 @@ update_ui_worldspace_text_system(entt::registry& r)
     ImGui::PopID();
     ImGui::End();
   }
+
+  ImGui::PopStyleVar(3);
 }
 
 } // namespace game2d

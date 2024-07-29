@@ -316,7 +316,7 @@ void main()
 			continue;
 		}
 
- 		setLuminance(l.colour, 0.9);
+ 		setLuminance(l.colour, 0.85);
 
 		col += drawLight(p, l.position, l.colour, dist, 350.0, 1.0);
 	}

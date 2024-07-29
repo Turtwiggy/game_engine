@@ -123,7 +123,7 @@ generate_path(entt::registry& r, const entt::entity& src_e, const glm::ivec2& wo
   const auto src = get_position(r, src_e);
   const auto src_idx = convert_position_to_index(map, src);
 
-  const auto worldspace_tl = engine::grid::world_space_to_clamped_world_space(worldspace_pos, map.tilesize);
+  const auto worldspace_tl = engine::grid::worldspace_to_clamped_world_space(worldspace_pos, map.tilesize);
   const auto worldspace_center = worldspace_tl + glm::ivec2{ map.tilesize / 2.0f, map.tilesize / 2.0f };
   const auto dst = worldspace_center;
   const int dst_idx = convert_position_to_index(map, dst);

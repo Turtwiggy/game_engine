@@ -8,7 +8,6 @@
 #include "events/helpers/keyboard.hpp"
 #include "events/helpers/mouse.hpp"
 #include "game_state.hpp"
-#include "imgui.h"
 #include "maths/grid.hpp"
 #include "modules/actors/helpers.hpp"
 #include "modules/algorithm_astar_pathfinding/helpers.hpp"
@@ -20,11 +19,12 @@
 #include "modules/renderer/helpers.hpp"
 #include "modules/system_turnbased/components.hpp"
 #include "modules/system_turnbased_enemy/components.hpp"
-#include "modules/ui_inventory/helpers.hpp"
-#include "modules/ui_worldspace_text/components.hpp"
+
 #include "modules/ux_hoverable/components.hpp"
 #include "physics/components.hpp"
 #include "sprites/helpers.hpp"
+
+#include "imgui.h"
 
 namespace game2d {
 using namespace std::literals;
@@ -70,7 +70,7 @@ update_ui_combat_turnbased_system(entt::registry& r, const glm::ivec2& input_mou
   const auto& map_e = get_first<MapComponent>(r);
   if (map_e == entt::null)
     return;
-  auto& map = get_first_component<MapComponent>(r);
+  const auto& map = get_first_component<MapComponent>(r);
   const auto& input = get_first_component<SINGLETON_InputComponent>(r);
 
   static Actions action = Actions::MOVE;
@@ -88,7 +88,7 @@ update_ui_combat_turnbased_system(entt::registry& r, const glm::ivec2& input_mou
   const bool rmb_click = get_mouse_rmb_press();
   const int grid_snap_size = mouse_grid_increments; // note: this is not the map.tilesize,
 
-  const auto mouse_gridspace = engine::grid::world_space_to_grid_space(input_mouse_pos, grid_snap_size);
+  const auto mouse_gridspace = engine::grid::worldspace_to_grid_space(input_mouse_pos, grid_snap_size);
   auto mouse_pos = engine::grid::grid_space_to_world_space(mouse_gridspace, grid_snap_size);
   if (action == Actions::MOVE)
     mouse_pos += glm::ivec2{ map.tilesize / 2.0f, map.tilesize / 2.0f }; // center it
@@ -103,39 +103,6 @@ update_ui_combat_turnbased_system(entt::registry& r, const glm::ivec2& input_mou
   auto& state = get_first_component<SINGLE_CombatState>(r);
   if (state.team == AvailableTeams::neutral)
     return;
-
-  // Hack: display all units hp/defence in worldspace
-  const auto& view = r.view<HealthComponent, DefenceComponent, AABB>();
-  for (const auto& [e, hp, defence, aabb] : view.each()) {
-    auto& worldspace_ui = r.get_or_emplace<WorldspaceTextComponent>(e);
-    // worldspace_ui.text = "HP:"s + std::to_string(hp.hp) + " DEF:" + std::to_string(defence.armour);
-    worldspace_ui.offset.y = -aabb.size.y;
-
-    // set imgui layout that gets positioned in worldspace
-    worldspace_ui.layout = [&r, &hp, &defence]() {
-      const auto [heart_tl, heart_br] = convert_sprite_to_uv(r, "ICON_HEART_FULL"s);
-      const auto [shield_tl, shield_br] = convert_sprite_to_uv(r, "shield_custom"s);
-      const ImVec2 icon_size = { 16, 16 };
-      const auto& ri = get_first_component<SINGLETON_RendererInfo>(r);
-      const int custom_id = search_for_texture_id_by_texture_path(ri, "custom").value().id;
-      const int kenny_id = search_for_texture_id_by_texture_path(ri, "monochrome").value().id;
-
-      // icon + hp
-      ImGui::PushStyleVar(ImGuiStyleVar_ItemSpacing, ImVec2(0, 0));
-      ImGui::Image((ImTextureID)kenny_id, icon_size, heart_tl, heart_br);
-      ImGui::SameLine();
-      ImGui::Text("%s", std::to_string(hp.hp).c_str());
-      ImGui::PopStyleVar();
-
-      // icon + def
-      ImGui::SameLine();
-      ImGui::PushStyleVar(ImGuiStyleVar_ItemSpacing, ImVec2(0, 0));
-      ImGui::Image((ImTextureID)custom_id, icon_size, shield_tl, shield_br);
-      ImGui::SameLine();
-      ImGui::Text("%s", std::to_string(defence.armour).c_str());
-      ImGui::PopStyleVar();
-    };
-  }
 
   const auto& selected_view = r.view<SelectedComponent, AABB>();
   int count = 0;
@@ -153,7 +120,7 @@ update_ui_combat_turnbased_system(entt::registry& r, const glm::ivec2& input_mou
   // move all guns to the mouse cursor
   for (const auto& [e, selected_c, aabb_c] : selected_view.each()) {
     auto& static_tgt = r.get_or_emplace<StaticTargetComponent>(e);
-    static_tgt.target = { mouse_pos.x, mouse_pos.y };
+    static_tgt.target = { input_mouse_pos.x, input_mouse_pos.y };
   }
 
   // limit: must be interacting with 1 selected unit

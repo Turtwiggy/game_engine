@@ -53,15 +53,8 @@ generate_flow_field(entt::registry& r, const MapComponent& grid, const int from_
 void
 display_flow_field_with_visuals(entt::registry& r, MapComponent& grid);
 
-//
-
-glm::ivec2
-worldspace_to_clamped_gridspace(const MapComponent& map, const glm::ivec2 pos);
-
-int
+[[nodiscard]] int
 convert_position_to_index(const MapComponent& map, const glm::ivec2& pos);
-
-//
 
 bool
 has_destination(entt::registry& r, const entt::entity& src_e);

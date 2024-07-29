@@ -70,6 +70,7 @@ create_combat_entity(entt::registry& r, const CombatEntityDescription& desc)
   // base entity
   const auto e = create_gameplay(r, EntityType::actor_unit_rtslike);
   set_position(r, e, pos);
+  move_entity_on_map(r, e, pos);
   r.emplace_or_replace<TeamComponent>(e, TeamComponent{ desc.team });
 
   // set entity to aim by default to the right
@@ -79,7 +80,6 @@ create_combat_entity(entt::registry& r, const CombatEntityDescription& desc)
   auto& weapon_parent = r.get<HasParentComponent>(weapon);
   weapon_parent.parent = e;
   set_position(r, weapon, r.get<AABB>(e).center);
-  move_entity_on_map(r, e, pos);
 
   // link player&weapon
   HasWeaponComponent has_weapon;
@@ -419,6 +419,7 @@ move_to_scene_start(entt::registry& r, const Scene s, const bool load_saved)
 
     // TEMP: add info in the event console on how to play.
     auto& evts = get_first_component<SINGLE_EventConsoleLogComponent>(r);
+    evts.events.push_back("Press E to access inventory.");
     evts.events.push_back("Press 1 to select move action.");
     evts.events.push_back("Press 2 to select shoot action.");
     evts.events.push_back("Right click to perform action.");
@@ -515,7 +516,7 @@ move_to_scene_start(entt::registry& r, const Scene s, const bool load_saved)
       const auto& map = get_first_component<MapComponent>(r);
 
       const auto src_pos = get_position(r, last_spawned_e);
-      const auto grid_pos = engine::grid::world_space_to_grid_space(src_pos, map.tilesize);
+      const auto grid_pos = engine::grid::worldspace_to_grid_space(src_pos, map.tilesize);
       const int src_idx = engine::grid::grid_position_to_index(grid_pos, map.xmax);
 
       const int idx_next = get_lowest_cost_neighbour(r, map, src_idx, last_spawned_e);

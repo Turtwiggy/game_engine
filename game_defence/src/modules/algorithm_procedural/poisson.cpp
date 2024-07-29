@@ -24,7 +24,7 @@
 
 //   const auto add_sample = [&](const glm::vec2& sample) {
 //     active_samples.push_back(sample);
-//     const auto grid_pos = engine::grid::world_space_to_grid_space(sample, cell_size);
+//     const auto grid_pos = engine::grid::worldspace_to_grid_space(sample, cell_size);
 //     const auto grid_idx = engine::grid::grid_position_to_index(grid_pos, grid_w);
 //     grid[grid_idx] = sample;
 //   };
@@ -36,7 +36,7 @@
 //   add_sample({ x, y });
 
 //   const auto is_far_enough = [&grid, &cell_size, &grid_w, &grid_h, &r2](const glm::vec2& sample) {
-//     const auto pos = engine::grid::world_space_to_grid_space(sample, cell_size);
+//     const auto pos = engine::grid::worldspace_to_grid_space(sample, cell_size);
 
 //     const int xmin = glm::max(pos.x - 2, 0);
 //     const int ymin = glm::max(pos.y - 2, 0);

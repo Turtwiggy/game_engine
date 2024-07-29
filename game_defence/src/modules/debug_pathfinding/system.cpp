@@ -10,7 +10,7 @@
 namespace game2d {
 
 void
-update_debug_pathfinding_system(entt::registry& r, const glm::ivec2& mouse_pos)
+update_debug_pathfinding_system(entt::registry& r)
 {
   const auto& map_e = get_first<MapComponent>(r);
   if (map_e == entt::null)

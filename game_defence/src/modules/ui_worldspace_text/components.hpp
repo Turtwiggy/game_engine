@@ -11,10 +11,12 @@ namespace game2d {
 struct WorldspaceTextComponent
 {
   std::string text;
-  glm::ivec2 offset{ 0, 0 };
+  glm::vec2 offset{ 0, 0 };
 
-  bool split_text_into_chunks = false;
-  int chunk_length = 20;
+  bool split_text_into_lines = false;
+  int line_length = 20;
+
+  bool requires_hovered = false;
 
   std::optional<std::function<void()>> layout = std::nullopt;
 };

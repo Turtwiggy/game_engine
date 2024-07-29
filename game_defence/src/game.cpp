@@ -35,6 +35,7 @@
 #include "modules/scene_splashscreen_move_to_menu/system.hpp"
 #include "modules/screenshake/system.hpp"
 #include "modules/system_change_gun_colour/system.hpp"
+#include "modules/system_change_gun_z_index/system.hpp"
 #include "modules/system_entered_new_room/system.hpp"
 #include "modules/system_inventory/system.hpp"
 #include "modules/system_minigame_bamboo/system.hpp"
@@ -48,9 +49,9 @@
 #include "modules/ui_audio/system.hpp"
 #include "modules/ui_collisions/system.hpp"
 #include "modules/ui_colours/system.hpp"
-#include "modules/ui_combat_begin/system.hpp"
 #include "modules/ui_combat_ended/system.hpp"
 #include "modules/ui_combat_endturn/system.hpp"
+#include "modules/ui_combat_info_in_worldspace/system.hpp"
 #include "modules/ui_combat_turnbased/system.hpp"
 #include "modules/ui_controllers/system.hpp"
 #include "modules/ui_event_console/system.hpp"
@@ -63,7 +64,7 @@
 #include "modules/ui_warp_to_station/system.hpp"
 #include "modules/ui_worldspace_sprite/system.hpp"
 #include "modules/ui_worldspace_text/system.hpp"
-#include "modules/ux_hoverable_change_colour/system.hpp"
+#include "modules/ux_hoverable/system.hpp"
 #include "modules/ux_selectable_by_keyboard/system.hpp"
 #include "physics/components.hpp"
 #include "physics/process_actor_actor_collisions.hpp"
@@ -289,7 +290,7 @@ update(engine::SINGLETON_Application& app, entt::registry& r, const float dt)
     OPTICK_EVENT("(update)-game-tick");
 
     // core
-    update_camera_system(r, dt, mouse_pos);
+    update_camera_system(r, dt);
     update_audio_system(r);
     update_cursor_system(r, mouse_pos);
 
@@ -329,14 +330,15 @@ update(engine::SINGLETON_Application& app, entt::registry& r, const float dt)
       //   update_ui_xp_bar_system(r);
       //   update_ui_rpg_character_system(r);
       //   update_ui_inverse_kinematics_system(r, mouse_pos);
-      // update_ux_hoverable(r);
+      //
       // update_ux_hoverable_change_colour_system(r);
       //
 
       // potentially common
       update_attack_cooldown_system(r, milliseconds_dt);
       update_change_gun_colour_system(r);
-      update_flash_sprite_system(r, milliseconds_dt);
+      update_change_gun_z_index_system(r);
+      // update_flash_sprite_system(r, milliseconds_dt);
       update_particle_system(r, dt);
       update_spawn_particles_on_death_system(r);
       update_set_velocity_to_target_system(r, dt);
@@ -350,7 +352,11 @@ update(engine::SINGLETON_Application& app, entt::registry& r, const float dt)
 
     if (scene.s == Scene::overworld) {
       update_scale_by_velocity_system(r, dt);
-      update_actor_enemy_patrol_system(r, mouse_pos, dt);
+      update_actor_enemy_patrol_system(r, dt);
+    }
+
+    if (scene.s == Scene::overworld_revamped) {
+      //
     }
 
     if (scene.s == Scene::dungeon_designer || scene.s == Scene::turnbasedcombat) {
@@ -359,6 +365,7 @@ update(engine::SINGLETON_Application& app, entt::registry& r, const float dt)
       update_inventory_system(r);
       update_turnbased_endturn_system(r);
       update_turnbased_enemy_system(r);
+      update_ux_hoverable(r, mouse_pos);
       update_ux_selectable_by_keyboard_system(r);
       update_screenshake_system(r, app.ms_since_launch / 1000.0f, dt);
 
@@ -420,16 +427,18 @@ update(engine::SINGLETON_Application& app, entt::registry& r, const float dt)
       update_ui_patrol_system(r);
       update_ui_warp_to_station_system(r);
     }
-
+    if (scene.s == Scene::overworld_revamped) {
+      //
+    }
     if (scene.s == Scene::turnbasedcombat) {
       update_ui_combat_turnbased_system(r, mouse_pos);
       update_ui_combat_endturn_system(r);
     }
-
     if (scene.s == Scene::turnbasedcombat || scene.s == Scene::dungeon_designer) {
-      update_ui_combat_begin_system(r);
+      // update_ui_combat_begin_system(r);
       update_ui_combat_ended_system(r);
       update_ui_inventory_system(r);
+      update_ui_combat_info_in_worldspace_system(r);
     }
 
     update_ui_worldspace_text_system(r);

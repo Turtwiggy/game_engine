@@ -35,7 +35,7 @@ get_a_room(entt::registry& r, const entt::entity& e)
   const auto& gen = get_first_component<DungeonGenerationResults>(r);
 
   const auto e_pos = get_position(r, e);
-  const auto e_gridpos = engine::grid::world_space_to_grid_space(e_pos, map.tilesize);
+  const auto e_gridpos = engine::grid::worldspace_to_grid_space(e_pos, map.tilesize);
   AABB e_as_aabb = AABB();
   e_as_aabb.center = e_gridpos;
   e_as_aabb.size = { 1, 1 };
@@ -102,7 +102,7 @@ move_action(entt::registry& r, const entt::entity& e)
       static engine::RandomState rnd;
 
       if (!e_room.has_value())
-        return; // FIX: entity moved outside a room?
+        return; // TO FIX: entity moved outside a room?
 
       const auto room = e_room.value();
       const int x = int(engine::rand_det_s(rnd.rng, room.tl.x, room.tl.x + room.aabb.size.x));

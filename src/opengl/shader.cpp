@@ -109,7 +109,14 @@ load_shader_from_disk(const std::string& path, unsigned int gl_shader_type, std:
   }
 
   // Prepend e.g. "#version 330 core" to the shader.
-  const std::string version = GameWindow::get_glsl_version();
+  std::string version = GameWindow::get_glsl_version() + "\n"s;
+
+  // If the version is e.g. "#version 300 es",
+  // we need to specify the float precision
+  if (version.find(" es") != std::string::npos)
+    version += "precision highp float;\n"s;
+
+  // add the rest of the shader code
   code = version + code;
 
   const char* csCode = code.c_str();

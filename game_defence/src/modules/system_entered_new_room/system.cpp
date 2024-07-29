@@ -31,7 +31,7 @@ update_entered_new_room_system(entt::registry& r, const float dt)
 
   const auto& view = r.view<PlayerComponent, AABB>();
   for (const auto& [e, player, player_aabb] : view.each()) {
-    const auto player_gridspace = engine::grid::world_space_to_grid_space(player_aabb.center, map.tilesize);
+    const auto player_gridspace = engine::grid::worldspace_to_grid_space(player_aabb.center, map.tilesize);
 
     const auto [in_room, room] = inside_room(map, dungeon.rooms, player_gridspace);
     if (in_room) {

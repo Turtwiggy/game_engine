@@ -216,7 +216,7 @@ update_ui_inventory_system(entt::registry& r)
   }
 #endif
 
-  if (get_key_down(input, SDL_Scancode::SDL_SCANCODE_I)) {
+  if (get_key_down(input, SDL_Scancode::SDL_SCANCODE_E)) {
     // not showing => showing
     if (get_first<ShowInventoryRequest>(r) == entt::null)
       destroy_first_and_create<ShowInventoryRequest>(r);
@@ -303,11 +303,11 @@ update_ui_inventory_system(entt::registry& r)
     const ImVec2 window_1_size{ (button_size.x * inv_x) + (button_size.x * 2), window_0_size.y };
 
     // window 1
-    const float center_x = window_0_size.x / 2.0f - button_size.x / 2.0f;
-    const float right_x = window_0_size.x;
-    const float base_y = button_size.y / 2.0f;
-    const int padding_x = 10;
-    const int padding_y = 0;
+    // const float center_x = window_0_size.x / 2.0f - button_size.x / 2.0f;
+    // const float right_x = window_0_size.x;
+    // const float base_y = button_size.y / 2.0f;
+    // const int padding_x = 10;
+    // const int padding_y = 0;
     const auto window_1_pos = ImVec2(pos.x + window_0_size.x, viewport_pos.y + viewport_size_half.y);
 
     ImGui::SetNextWindowPos(pos, ImGuiCond_Always, ImVec2(0.0f, 0.5f));

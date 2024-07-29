@@ -408,7 +408,7 @@ update_render_system(entt::registry& r, const float dt, const glm::vec2& mouse_p
     lights[0].luminence = 0.5;
   }
 
-  // HACK: try adding light to each tunnel
+  // HACK: try adding lights to interesting map features
   const auto& map_e = get_first<MapComponent>(r);
   const auto& results_e = get_first<DungeonGenerationResults>(r);
 
@@ -426,7 +426,7 @@ update_render_system(entt::registry& r, const float dt, const glm::vec2& mouse_p
     if (first_player == entt::null)
       continue;
     const auto player_pos = get_position(r, first_player);
-    const auto player_gridpos = engine::grid::world_space_to_grid_space(player_pos, map.tilesize);
+    const auto player_gridpos = engine::grid::worldspace_to_grid_space(player_pos, map.tilesize);
 
     // if player is in the room, light it up
     const auto [in_room, room] = inside_room(map, results.rooms, player_gridpos);
@@ -434,6 +434,26 @@ update_render_system(entt::registry& r, const float dt, const glm::vec2& mouse_p
       continue;
     if (room->tl != room_c.tl)
       continue;
+
+    // Orange light center
+    if (false) {
+      Light& l = lights[i++];
+      l.enabled = true;
+
+      // gridspace to worldspace
+      const glm::ivec2 gridpos = { room_c.tl.x + (room_c.aabb.size.x / 2) - 1, room_c.tl.y + (room_c.aabb.size.y / 2) - 1 };
+      l.pos = engine::grid::grid_space_to_world_space(gridpos, 50);
+      l.pos += glm::vec2(map.tilesize / 2.0f, map.tilesize / 2.0f);
+
+      // worldspace to screenspace
+      const auto& wh = ri.viewport_size_render_at;
+      l.pos -= glm::vec2{ camera_t.position.x, camera_t.position.y };
+      l.pos += glm::vec2{ wh.x / 2.0f, wh.y / 2.0f };
+
+      // orange
+      l.colour = engine::SRGBColour{ 1.0f, 0.75f, 0.5f, 1.0f };
+      l.luminence = 0.5f;
+    }
 
     // Orange light top left
     {

@@ -12,6 +12,7 @@
 #include "modules/actor_spacestation/components.hpp"
 #include "modules/actor_spawner/components.hpp"
 #include "modules/actor_turret/components.hpp"
+#include "modules/actor_weapon/components.hpp"
 #include "modules/actor_weapon_shotgun/components.hpp"
 #include "modules/actors/helpers.hpp"
 #include "modules/algorithm_astar_pathfinding/components.hpp"
@@ -337,11 +338,9 @@ create_gameplay(entt::registry& r, const EntityType& type)
       const int move_limit = 1;
       r.emplace<MoveLimitComponent>(e, move_limit);
 
-      const int hp = 250; // player hp
+      const int hp = 100; // player hp
       r.emplace<HealthComponent>(e, hp, hp);
-
-      const int armour = 3;
-      r.emplace<DefenceComponent>(e, armour);
+      r.emplace<DefenceComponent>(e, 0); // determined by equipment
 
       // movement
       r.emplace<HasTargetPositionComponent>(e);
@@ -461,6 +460,7 @@ create_gameplay(entt::registry& r, const EntityType& type)
 
     case EntityType::weapon_shotgun: {
       create_physics_actor(r, e);
+      r.emplace<WeaponComponent>(e);
       r.emplace<ShotgunComponent>(e);
 
       // r.emplace<AttackCooldownComponent>(e, 1.2f); // seconds between shooting

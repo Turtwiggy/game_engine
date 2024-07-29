@@ -6,6 +6,6 @@
 namespace game2d {
 
 void
-update_actor_enemy_patrol_system(entt::registry& r, const glm::ivec2 mouse_pos, const float dt);
+update_actor_enemy_patrol_system(entt::registry& r, const float dt);
 
 } // namespace game2d

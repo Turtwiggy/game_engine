@@ -60,6 +60,11 @@ ImGui_Manager::initialize(GameWindow& window)
     style.Colors[ImGuiCol_WindowBg].w = 1.0f;
   }
 
+  // Popups
+  style.PopupBorderSize = 0;
+  style.FrameBorderSize = 0;
+  style.WindowBorderSize = 0;
+
   auto& colors = ImGui::GetStyle().Colors;
   colors[ImGuiCol_WindowBg] = ImVec4{ 0.1f, 0.105f, 0.11f, 1.0f };
 

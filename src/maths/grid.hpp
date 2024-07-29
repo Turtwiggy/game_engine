@@ -38,7 +38,7 @@ grid_space_to_world_space(const glm::ivec2 pos, const int grid_size)
 }
 
 [[nodiscard]] inline glm::ivec2
-world_space_to_grid_space(const glm::vec2& pos, const int grid_size)
+worldspace_to_grid_space(const glm::vec2& pos, const int grid_size)
 {
   const int grid_x = static_cast<int>(glm::abs(pos.x) / static_cast<float>(grid_size));
   const int grid_y = static_cast<int>(glm::abs(pos.y) / static_cast<float>(grid_size));
@@ -60,11 +60,27 @@ world_space_to_grid_space(const glm::vec2& pos, const int grid_size)
   return { final_grid_x, final_grid_y };
 }
 
+[[nodiscard]] inline glm::ivec2
+worldspace_to_clamped_gridspace(const glm::ivec2 pos, const int grid_size, const int xmax, const int ymax)
+{
+  auto gridpos = engine::grid::worldspace_to_grid_space(pos, grid_size);
+  gridpos.x = glm::clamp(gridpos.x, 0, xmax - 1);
+  gridpos.y = glm::clamp(gridpos.y, 0, ymax - 1);
+  return gridpos;
+};
+
 inline int
 grid_position_to_index(const glm::ivec2& pos, const int x_max)
 {
   return x_max * pos.y + pos.x;
 }
+
+[[nodiscard]] inline int
+worldspace_to_index(const glm::ivec2& pos, const int grid_size, const int xmax, const int ymax)
+{
+  const auto gridpos = worldspace_to_clamped_gridspace(pos, grid_size, xmax, ymax);
+  return engine::grid::grid_position_to_index(gridpos, xmax);
+};
 
 constexpr int
 grid_position_to_clamped_index(const glm::ivec2& pos, const int xmax, const int ymax)
@@ -108,7 +124,7 @@ get_cell(const std::vector<T>& t, int x, int y, int x_max)
 }
 
 [[nodiscard]] inline glm::ivec2
-world_space_to_clamped_world_space(const glm::vec2& world_space, int grid_size)
+worldspace_to_clamped_world_space(const glm::vec2& world_space, int grid_size)
 {
   const float x = world_space.x;
   const float y = world_space.y;

@@ -3,7 +3,6 @@
 
 // engine headers
 #include "entt/helpers.hpp"
-#include "maths/maths.hpp"
 
 #include <algorithm>
 

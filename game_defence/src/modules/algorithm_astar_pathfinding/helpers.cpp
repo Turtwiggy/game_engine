@@ -326,20 +326,10 @@ generate_flow_field(entt::registry& r, const MapComponent& map_c, const int from
 //   }
 // };
 
-glm::ivec2
-worldspace_to_clamped_gridspace(const MapComponent& map, const glm::ivec2 pos)
-{
-  auto gridpos = engine::grid::world_space_to_grid_space(pos, map.tilesize);
-  gridpos.x = glm::clamp(gridpos.x, 0, map.xmax - 1);
-  gridpos.y = glm::clamp(gridpos.y, 0, map.ymax - 1);
-  return gridpos;
-};
-
 int
 convert_position_to_index(const MapComponent& map, const glm::ivec2& pos)
 {
-  const auto gridpos = worldspace_to_clamped_gridspace(map, pos);
-  return engine::grid::grid_position_to_index(gridpos, map.xmax);
+  return engine::grid::worldspace_to_index(pos, map.tilesize, map.xmax, map.ymax);
 };
 
 bool
@@ -356,7 +346,7 @@ at_destination(entt::registry& r, const entt::entity& src_e)
   const auto& map = get_first_component<MapComponent>(r);
 
   const auto src = get_position(r, src_e);
-  const auto src_idx = convert_position_to_index(map, src);
+  const auto src_idx = engine::grid::worldspace_to_index(src, map.tilesize, map.xmax, map.ymax);
   const auto src_gridpos = engine::grid::index_to_grid_position(src_idx, map.xmax, map.ymax);
 
   const auto& path = r.try_get<GeneratedPathComponent>(src_e);
@@ -381,14 +371,13 @@ bool
 destination_is_blocked(entt::registry& r, const glm::ivec2 worldspace_pos)
 {
   const auto& map = get_first_component<MapComponent>(r);
-  const auto idx = convert_position_to_index(map, worldspace_pos);
+  const auto idx = engine::grid::worldspace_to_index(worldspace_pos, map.tilesize, map.xmax, map.ymax);
 
   for (const auto& ent : map.map[idx]) {
     if (!r.valid(ent)) {
       fmt::println("Map contains invalid entity... check this out!");
       continue;
     }
-    const auto& info = r.get<EntityTypeComponent>(ent);
 
     // something exists, so it should have a pathfind component
     const auto& comp = r.get<PathfindComponent>(ent);

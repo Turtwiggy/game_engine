@@ -29,12 +29,12 @@ std::vector<glm::vec2> inline generate_poisson(const int w, const int h, const f
   const auto add_sample = [&active_samples, &results, &grid_size, &grid_w, &r2](const glm::vec2& sample) {
     active_samples.push_back(sample);
 
-    const auto grid_pos = engine::grid::world_space_to_grid_space(sample, grid_size);
+    const auto grid_pos = engine::grid::worldspace_to_grid_space(sample, grid_size);
     const auto grid_idx = engine::grid::grid_position_to_index(grid_pos, grid_w);
     results[grid_idx] = sample;
   };
   const auto is_far_enough = [&results, &grid_size, &grid_w, &grid_h, &r2](const glm::vec2& sample) {
-    const auto pos = engine::grid::world_space_to_grid_space(sample, grid_size);
+    const auto pos = engine::grid::worldspace_to_grid_space(sample, grid_size);
 
     const int xmin = glm::max(pos.x - 2, 0);
     const int ymin = glm::max(pos.y - 2, 0);

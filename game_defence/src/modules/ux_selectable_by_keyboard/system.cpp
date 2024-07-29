@@ -15,14 +15,11 @@ void
 update_ux_selectable_by_keyboard_system(entt::registry& r)
 {
   // Clear anything thats hovered
-  {
-    const auto& view = r.view<HoveredComponent>();
-    r.remove<HoveredComponent>(view.begin(), view.end());
-  }
+  // cleared by ux_hoverable() system
 
   // Clear anything that's selected
   {
-    const auto& view = r.view<SelectedComponent>();
+    const auto& view = r.view<const SelectedComponent>();
     r.remove<SelectedComponent>(view.begin(), view.end());
   }
 
