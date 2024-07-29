@@ -126,6 +126,11 @@ init(engine::SINGLETON_Application& app, entt::registry& r)
     studio_logo.spritesheet_path = path + "config/spritemap_studio_logo.json";
     ri.user_textures.push_back(studio_logo);
 
+    Texture custom;
+    custom.path = path + "textures/custom.png";
+    custom.spritesheet_path = path + "config/spritemap_custom.json";
+    ri.user_textures.push_back(custom);
+
     // load spritesheet info
     SINGLE_Animations anims;
     for (const auto& tex : ri.user_textures)

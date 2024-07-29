@@ -1,4 +1,5 @@
-#version 150
+// version prepended to file when loaded by engine.
+// #version 130
 
 layout(location = 0) out vec4 out_color;
 layout(location = 1) out vec4 out_bright_color;

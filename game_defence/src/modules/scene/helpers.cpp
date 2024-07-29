@@ -102,6 +102,9 @@ create_combat_entity(entt::registry& r, const CombatEntityDescription& desc)
 
     r.get<HealthComponent>(e).hp = 50;
     r.get<HealthComponent>(e).max_hp = 50;
+
+    // all enemy weapons sholuld be able to shoot?
+    r.emplace<AbleToShoot>(weapon);
   }
 
   set_sprite(r, e, "PERSON_25_0");

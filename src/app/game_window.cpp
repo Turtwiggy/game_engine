@@ -63,15 +63,17 @@ GameWindow::GameWindow(const std::string& title, const DisplayMode& displaymode,
   const int y = SDL_WINDOWPOS_UNDEFINED;
 
   // OpenGL--------------------------------------
+  // OpenGL 3.0: #version 130
+  // OpenGL 3.1: #version 140
+  // OpenGL 3.2: #version 150
+  // OpenGL 3.3: #version 330 core
+  // OpenGL ES 2.0: #version 100
+  // OpenGL ES 3.0: #version 300 es
+  // OpenGL ES 3.1: #version 310 es
+  // OpenGL ES 3.2: #version 320 es
 
 // emscripten
 #if defined(__EMSCRIPTEN__)
-  // webgl 1
-  // opengl_major = 2;
-  // opengl_minor = 0;
-  // SDL_GL_SetAttribute(SDL_GL_CONTEXT_PROFILE_MASK, SDL_GL_CONTEXT_PROFILE_ES);
-  // SDL_GL_SetAttribute(SDL_GL_CONTEXT_FLAGS, 0);
-
   // webgl 2
   SDL_GL_SetAttribute(SDL_GL_CONTEXT_PROFILE_MASK, SDL_GL_CONTEXT_PROFILE_ES);
   SDL_GL_SetAttribute(SDL_GL_CONTEXT_FLAGS, 0);
@@ -79,18 +81,17 @@ GameWindow::GameWindow(const std::string& title, const DisplayMode& displaymode,
   opengl_minor = 0;
 // mac
 #elif defined(__APPLE__)
-  // GL 3.2 Core + GLSL 150
+  // GL 3.3 Core + GLSL 330 core
   SDL_GL_SetAttribute(SDL_GL_CONTEXT_FLAGS, SDL_GL_CONTEXT_FORWARD_COMPATIBLE_FLAG); // Always required on Mac
   SDL_GL_SetAttribute(SDL_GL_CONTEXT_PROFILE_MASK, SDL_GL_CONTEXT_PROFILE_CORE);
   SDL_GL_SetAttribute(SDL_GL_CONTEXT_MAJOR_VERSION, 3);
-  SDL_GL_SetAttribute(SDL_GL_CONTEXT_MINOR_VERSION, 2);
+  SDL_GL_SetAttribute(SDL_GL_CONTEXT_MINOR_VERSION, 3);
 #else
-  // GL 3.0 + GLSL 130
-  const char* glsl_version = "#version 130";
+  // GL 3.3 + GLSL 330 core
   SDL_GL_SetAttribute(SDL_GL_CONTEXT_FLAGS, 0);
   SDL_GL_SetAttribute(SDL_GL_CONTEXT_PROFILE_MASK, SDL_GL_CONTEXT_PROFILE_CORE);
   SDL_GL_SetAttribute(SDL_GL_CONTEXT_MAJOR_VERSION, 3);
-  SDL_GL_SetAttribute(SDL_GL_CONTEXT_MINOR_VERSION, 0);
+  SDL_GL_SetAttribute(SDL_GL_CONTEXT_MINOR_VERSION, 3);
 #endif
 
   SDL_GL_SetAttribute(SDL_GL_MULTISAMPLEBUFFERS, 1);
@@ -187,18 +188,23 @@ GameWindow::get_native_handles(void*& native_window) const
   }
 };
 
+// OpenGL--------------------------------------
+// OpenGL 3.0: #version 130
+// OpenGL 3.1: #version 140
+// OpenGL 3.2: #version 150
+// OpenGL 3.3: #version 330 core
+// OpenGL ES 2.0: #version 100
+// OpenGL ES 3.0: #version 300 es
+// OpenGL ES 3.1: #version 310 es
+// OpenGL ES 3.2: #version 320 es`
 std::string
-GameWindow::get_glsl_version() const
+GameWindow::get_glsl_version()
 {
 #if defined(__EMSCRIPTEN__)
-  const std::string glsl_version = "#version 300 es";
-#elif defined(__APPLE__)
-  // GL 3.2 Core + GLSL 150
-  const std::string glsl_version = "#version 150"s;
+  return "#version 300 es"s;
 #else
-  const std::string glsl_version = "#version 130"s;
+  return "#version 330 core"s;
 #endif
-  return glsl_version;
 };
 
 uint32_t

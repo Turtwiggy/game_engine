@@ -1,4 +1,5 @@
-#version 150
+// version prepended to file when loaded by engine.
+// #version 130
 
 // gl2.0 es changes:
 // in = attribute

@@ -1,4 +1,5 @@
-#version 150
+// version prepended to file when loaded by engine.
+// #version 130
 
 in vec4 vertex; // xy and uv
 in vec4 colour;

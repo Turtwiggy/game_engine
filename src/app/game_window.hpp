@@ -51,7 +51,7 @@ public:
   [[nodiscard]] uint32_t get_sdl_id() const;
   [[nodiscard]] uint32_t get_sdl_flags() const;
 
-  std::string get_glsl_version() const;
+  static std::string get_glsl_version();
 
   void set_title(const std::string& str);
   void set_position(int x, int y);

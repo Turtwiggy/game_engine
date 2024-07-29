@@ -1,4 +1,5 @@
-#version 150
+// version prepended to file when loaded by engine.
+// #version 130
 
 out vec4 out_colour;
 

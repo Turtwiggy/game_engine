@@ -55,7 +55,9 @@ update_ui_worldspace_text_system(entt::registry& r)
       const auto shortened = split_string_nearest_space(wst_c.text, wst_c.chunk_length);
       for (const auto& line : shortened)
         ImGui::Text("%s", line.c_str());
-    } else
+    } else if (wst_c.layout.has_value())
+      wst_c.layout.value()(); // layout set externally via regular imgui commands
+    else
       ImGui::Text("%s", wst_c.text.c_str());
 
     // if (wst_c.font_scale != 1.0f)
