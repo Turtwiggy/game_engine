@@ -31,6 +31,12 @@ ImGui_Manager::initialize(GameWindow& window)
   ImGuiIO& io = ImGui::GetIO();
   (void)io;
 
+#if defined(__EMSCRIPTEN__)
+  // For an Emscripten build we are disabling file-system access, so let's not attempt to do a fopen() of the imgui.ini file.
+  // You may manually call LoadIniSettingsFromMemory() to load settings from your own storage.
+  io.IniFilename = nullptr;
+#endif
+
   // io.ConfigFlags |= ImGuiConfigFlags_NavEnableKeyboard; // Enable Keyboard Controls
   // io.ConfigFlags |= ImGuiConfigFlags_NavEnableGamepad;  // Enable Gamepad Controls
   io.ConfigFlags |= ImGuiConfigFlags_DockingEnable; // Enable Docking
@@ -85,7 +91,7 @@ ImGui_Manager::initialize(GameWindow& window)
   colors[ImGuiCol_TitleBgCollapsed] = ImVec4{ 0.15f, 0.1505f, 0.151f, 1.0f };
 
   ImGui_ImplSDL2_InitForOpenGL(window.get_handle(), window.get_gl_context());
-  ImGui_ImplOpenGL3_Init(window.glsl_version.c_str());
+  ImGui_ImplOpenGL3_Init(window.get_glsl_version().c_str());
 }
 
 void

@@ -1,5 +1,4 @@
-#version 300 es
-precision highp float;
+#version 150
 
 layout(location = 0) out vec4 out_color;
 layout(location = 1) out vec4 out_bright_color;

@@ -1,12 +1,11 @@
-#version 300 es
-precision highp float;
+#version 150
 
-layout(location = 0) in vec4 vertex; // xy and uv
-layout(location = 1) in vec4 colour;
-layout(location = 2) in vec4 sprite_pos;
-layout(location = 3) in vec4 sprite_width_and_max;
-layout(location = 4) in float tex_unit;
-layout(location = 5) in mat4 model;
+in vec4 vertex; // xy and uv
+in vec4 colour;
+in vec4 sprite_pos;
+in vec4 sprite_width_and_max;
+in float tex_unit;
+in mat4 model;
 
 out vec2 v_uv;
 out vec4 v_colour;

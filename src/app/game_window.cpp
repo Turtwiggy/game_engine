@@ -22,6 +22,7 @@
 #endif
 
 namespace engine {
+using namespace std::literals;
 
 GameWindow::GameWindow(const std::string& title, const DisplayMode& displaymode, const bool& vsync)
 {
@@ -57,23 +58,11 @@ GameWindow::GameWindow(const std::string& title, const DisplayMode& displaymode,
       fmt::println("Could not initialize SDL JoyStick Subsystem: ", SDL_GetError());
   }
 
-  int flags = SDL_WINDOW_OPENGL | SDL_WINDOW_INPUT_FOCUS | SDL_WINDOW_ALLOW_HIGHDPI;
-  flags |= SDL_WINDOW_RESIZABLE;
-  if (displaymode == DisplayMode::borderless)
-    flags |= SDL_WINDOW_BORDERLESS;
-  else if (displaymode == DisplayMode::fullscreen)
-    flags |= SDL_WINDOW_FULLSCREEN;
-  else if (displaymode == DisplayMode::fullscreen_borderless)
-    flags |= SDL_WINDOW_FULLSCREEN_DESKTOP;
-
   // Get SDL Window requirements from Renderer
   const int x = SDL_WINDOWPOS_UNDEFINED;
   const int y = SDL_WINDOWPOS_UNDEFINED;
 
   // OpenGL--------------------------------------
-
-  // SDL_GL_SetAttribute(SDL_GL_CONTEXT_PROFILE_MASK, SDL_GL_CONTEXT_PROFILE_CORE);
-  SDL_GL_SetAttribute(SDL_GL_CONTEXT_PROFILE_MASK, SDL_GL_CONTEXT_PROFILE_ES);
 
 // emscripten
 #if defined(__EMSCRIPTEN__)
@@ -88,25 +77,21 @@ GameWindow::GameWindow(const std::string& title, const DisplayMode& displaymode,
   SDL_GL_SetAttribute(SDL_GL_CONTEXT_FLAGS, 0);
   opengl_major = 3;
   opengl_minor = 0;
-
 // mac
-#elif defined(SDL_VIDEO_DRIVER_COCOA)
-  fmt::println("enabling SDL_GL_CONTEXT_FORWARD_COMPATIBLE_FLAG for mac...");
-  SDL_GL_SetAttribute(SDL_GL_CONTEXT_FLAGS, SDL_GL_CONTEXT_FORWARD_COMPATIBLE_FLAG);
-
-// windows
-#elif defined(SDL_VIDEO_DRIVER_WINDOWS)
-  //
-
-// linux
-#elif defined(SDL_VIDEO_DRIVER_X11)
-  //
-
+#elif defined(__APPLE__)
+  // GL 3.2 Core + GLSL 150
+  SDL_GL_SetAttribute(SDL_GL_CONTEXT_FLAGS, SDL_GL_CONTEXT_FORWARD_COMPATIBLE_FLAG); // Always required on Mac
+  SDL_GL_SetAttribute(SDL_GL_CONTEXT_PROFILE_MASK, SDL_GL_CONTEXT_PROFILE_CORE);
+  SDL_GL_SetAttribute(SDL_GL_CONTEXT_MAJOR_VERSION, 3);
+  SDL_GL_SetAttribute(SDL_GL_CONTEXT_MINOR_VERSION, 2);
+#else
+  // GL 3.0 + GLSL 130
+  const char* glsl_version = "#version 130";
+  SDL_GL_SetAttribute(SDL_GL_CONTEXT_FLAGS, 0);
+  SDL_GL_SetAttribute(SDL_GL_CONTEXT_PROFILE_MASK, SDL_GL_CONTEXT_PROFILE_CORE);
+  SDL_GL_SetAttribute(SDL_GL_CONTEXT_MAJOR_VERSION, 3);
+  SDL_GL_SetAttribute(SDL_GL_CONTEXT_MINOR_VERSION, 0);
 #endif
-  // SDL_SetHint(SDL_HINT_RENDER_SCALE_QUALITY, "1");
-
-  SDL_GL_SetAttribute(SDL_GL_CONTEXT_MAJOR_VERSION, opengl_major);
-  SDL_GL_SetAttribute(SDL_GL_CONTEXT_MINOR_VERSION, opengl_minor);
 
   SDL_GL_SetAttribute(SDL_GL_MULTISAMPLEBUFFERS, 1);
   SDL_GL_SetAttribute(SDL_GL_MULTISAMPLESAMPLES, 4);
@@ -119,6 +104,15 @@ GameWindow::GameWindow(const std::string& title, const DisplayMode& displaymode,
 
   const int tmp_h = 720;
   const int tmp_w = 1280;
+
+  int flags = SDL_WINDOW_OPENGL | SDL_WINDOW_INPUT_FOCUS | SDL_WINDOW_ALLOW_HIGHDPI;
+  flags |= SDL_WINDOW_RESIZABLE;
+  if (displaymode == DisplayMode::borderless)
+    flags |= SDL_WINDOW_BORDERLESS;
+  else if (displaymode == DisplayMode::fullscreen)
+    flags |= SDL_WINDOW_FULLSCREEN;
+  else if (displaymode == DisplayMode::fullscreen_borderless)
+    flags |= SDL_WINDOW_FULLSCREEN_DESKTOP;
 
   SDL_Window* window = SDL_CreateWindow(title.c_str(), x, y, tmp_w, tmp_h, flags);
   if (window == nullptr)
@@ -191,6 +185,20 @@ GameWindow::get_native_handles(void*& native_window) const
     fmt::println("Unsupported platform: {}", std::to_string(wmi.subsystem));
     exit(0);
   }
+};
+
+std::string
+GameWindow::get_glsl_version() const
+{
+#if defined(__EMSCRIPTEN__)
+  const std::string glsl_version = "#version 300 es";
+#elif defined(__APPLE__)
+  // GL 3.2 Core + GLSL 150
+  const std::string glsl_version = "#version 150"s;
+#else
+  const std::string glsl_version = "#version 130"s;
+#endif
+  return glsl_version;
 };
 
 uint32_t

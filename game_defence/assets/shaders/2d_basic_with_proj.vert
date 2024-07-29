@@ -1,5 +1,4 @@
-#version 300 es
-precision highp float;
+#version 150
 
 // gl2.0 es changes:
 // in = attribute
