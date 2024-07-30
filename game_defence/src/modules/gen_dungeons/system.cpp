@@ -215,21 +215,21 @@ update_gen_dungeons_system(entt::registry& r, const glm::ivec2& mouse_pos)
   }
 
   // HACK: add random variation'd colour tiles
-  for (int xy = 0; xy < result.wall_or_floors.size(); xy++) {
-    if (result.wall_or_floors[xy] == 0) {
-      const auto gridpos = engine::grid::index_to_grid_position(xy, map.xmax, map.ymax);
-      const auto floor_e = create_gameplay(r, EntityType::empty_with_transform);
-      const glm::ivec2 worldspace = engine::grid::grid_space_to_world_space(gridpos, map.tilesize);
-      const glm::ivec2 offset = { map.tilesize / 2.0f, map.tilesize / 2.0f };
-      const glm::ivec2 pos = worldspace + offset;
-      set_position(r, floor_e, pos);
-      r.get<TransformComponent>(floor_e).position.z = -1; // behind player
-      set_size(r, floor_e, { map.tilesize - 1, map.tilesize - 1 });
-      float rnd_col = engine::rand_det_s(rnd.rng, 0.1f, 0.15f);
-      set_colour(r, floor_e, { rnd_col, rnd_col, rnd_col, 1.0f });
-      set_z_index(r, floor_e, -2);
-    }
-  }
+  // for (int xy = 0; xy < result.wall_or_floors.size(); xy++) {
+  //   if (result.wall_or_floors[xy] == 0) {
+  //     const auto gridpos = engine::grid::index_to_grid_position(xy, map.xmax, map.ymax);
+  //     const auto floor_e = create_gameplay(r, EntityType::empty_with_transform);
+  //     const glm::ivec2 worldspace = engine::grid::grid_space_to_world_space(gridpos, map.tilesize);
+  //     const glm::ivec2 offset = { map.tilesize / 2.0f, map.tilesize / 2.0f };
+  //     const glm::ivec2 pos = worldspace + offset;
+  //     set_position(r, floor_e, pos);
+  //     r.get<TransformComponent>(floor_e).position.z = -1; // behind player
+  //     set_size(r, floor_e, { map.tilesize - 1, map.tilesize - 1 });
+  //     float rnd_col = engine::rand_det_s(rnd.rng, 0.1f, 0.15f);
+  //     set_colour(r, floor_e, { rnd_col, rnd_col, rnd_col, 1.0f });
+  //     set_z_index(r, floor_e, -2);
+  //   }
+  // }
 
   // Steps after initial initialization...
   set_generated_entity_positions(r, result, rnd);

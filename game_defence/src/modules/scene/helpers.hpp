@@ -10,7 +10,11 @@
 namespace game2d {
 
 void
-move_to_scene_start(entt::registry& r, const Scene s, const bool load_saved = false);
+move_to_scene_start(entt::registry& r, const Scene& s, const bool load_saved = false);
+
+// e.g. menu to overworld
+void
+move_to_scene_additive(entt::registry&, const Scene& s);
 
 struct CombatEntityDescription
 {

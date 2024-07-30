@@ -11,6 +11,7 @@ struct SINGLE_QuipsComponent
 {
   std::vector<std::string> quips;
   std::vector<std::string> quips_hit;
+  std::vector<std::string> quips_encounter;
 
   // when pulling from quips,
   // choose from unused,
@@ -20,10 +21,12 @@ struct SINGLE_QuipsComponent
 
   std::vector<std::string> quips_unused;
   std::vector<std::string> quips_hit_unused;
+  std::vector<std::string> quips_encounter_unused;
 };
 
 enum class QuipType
 {
+  BEGIN_ENCOUNTER,
   ENTER_ROOM,
   TOOK_DAMAGE,
 };

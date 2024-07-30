@@ -3,26 +3,32 @@
 #include "components.hpp"
 #include "maths/maths.hpp"
 #include "modules/actors/helpers.hpp"
+#include "modules/lerp_to_target/components.hpp"
+#include "physics/components.hpp"
 #include "renderer/transform.hpp"
 
 namespace game2d {
 
 void
-update_rotate_around_spot_system(entt::registry& r, const float& dt)
+update_rotate_around_entity_system(entt::registry& r, const float& dt)
 {
-  const auto& view = r.view<RotateAroundSpot, TransformComponent>();
-  for (const auto& [e, rotate_info, transform] : view.each()) {
+  const auto& view = r.view<RotateAroundEntity, HasTargetPositionComponent>();
+  for (const auto& [e, info, target_pos] : view.each()) {
 
-    rotate_info.theta += dt * rotate_info.rotate_speed;
+    // += is clockwise
+    // -= is anticlockwise
+    info.theta += dt * info.rotate_speed;
 
-    // dir to offset the rotation object
-    const glm::vec2 dir = engine::angle_radians_to_direction(rotate_info.theta);
+    const float& distance = info.distance;
+    const glm::vec2& spot = get_position(r, info.e);
+    const glm::vec2 dir = engine::angle_radians_to_direction(info.theta);
+    const glm::vec2 target = spot + (dir * glm::vec2{ distance, distance });
 
-    // hmm this seems to break things
-    // const glm::vec2 offset = dir * rotate_info.distance;
-    // set_position(r, e, { rotate_info.spot.x + offset.x, rotate_info.spot.x + offset.y });
+    // set position seems incorrect,
+    // but target_pos on a moving object was causing jittering
+    set_position(r, e, target);
 
-    transform.rotation_radians.z = rotate_info.theta;
+    // target_pos.position = target;
   }
 };
 

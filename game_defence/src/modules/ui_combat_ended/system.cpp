@@ -45,14 +45,17 @@ update_ui_combat_ended_system(entt::registry& r)
       flags |= ImGuiWindowFlags_NoBackground;
 
       ImGui::Begin("Back To Overworld", NULL, flags);
-      if (ImGui::Button("Spaceship clear. \nBack to overworld", ImVec2(-FLT_MIN, -FLT_MIN))) {
+
+      // note: this should not be gameover, but back to
+      // some sort of ui that would let you pick more fights.
+
+      if (ImGui::Button("Gameover. Back to menu.", ImVec2(-FLT_MIN, -FLT_MIN))) {
         ImGui::End();
 
         // add an event because fun
         auto& evt = get_first_component<SINGLE_EventConsoleLogComponent>(r);
         evt.events.push_back("Spaceship cleared.");
-
-        move_to_scene_start(r, Scene::overworld, true);
+        move_to_scene_start(r, Scene::menu, false);
         return;
       }
       ImGui::End();

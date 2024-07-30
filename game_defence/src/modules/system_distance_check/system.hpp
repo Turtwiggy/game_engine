@@ -5,6 +5,6 @@
 namespace game2d {
 
 void
-update_rotate_around_entity_system(entt::registry& r, const float& dt);
+update_distance_check_system(entt::registry& r);
 
 } // namespace game2d

@@ -11,6 +11,7 @@
 #include "maths/maths.hpp"
 #include "modules/actor_player/components.hpp"
 #include "modules/actors/helpers.hpp"
+#include "modules/camera/components.hpp"
 #include "modules/camera/orthographic.hpp"
 #include "modules/gen_dungeons/components.hpp"
 #include "modules/gen_dungeons/helpers.hpp"
@@ -309,7 +310,7 @@ update_render_system(entt::registry& r, const float dt, const glm::vec2& mouse_p
   const auto scenes_to_render_stars = std::vector<Scene>{
     Scene::splashscreen,
     Scene::menu,
-    Scene::overworld,
+    Scene::overworld_revamped,
   };
   const bool in_stars_scene =
     std::find(scenes_to_render_stars.begin(), scenes_to_render_stars.end(), scene.s) != scenes_to_render_stars.end();
@@ -332,37 +333,25 @@ update_render_system(entt::registry& r, const float dt, const glm::vec2& mouse_p
     static glm::vec3 current_pos{ 0, 0, 0 };
     static glm::vec3 target_pos{ 0, 0, 0 };
     static glm::vec2 offset{ 0, 0 };
-    static bool generate_offset = true;
-    static bool has_player = false;
+    const auto camera_e = get_first<CameraFollow>(r);
+    const bool has_player = camera_e != entt::null;
 
+    // generate an offset as (0, 0) in the fractal looks weird
+    static bool generate_offset = true;
     if (generate_offset) {
       generate_offset = false;
       static engine::RandomState rnd;
       offset.x = engine::rand_det_s(rnd.rng, -5000.0f, 5000.0f);
       offset.y = engine::rand_det_s(rnd.rng, -5000.0f, 5000.0f);
-
       target_pos.x = offset.x;
       target_pos.y = offset.y;
     }
 
-    const auto& player_e = get_first<PlayerComponent>(r);
-    if (player_e != entt::null && s.s == Scene::overworld) {
-      has_player = true;
-
-      // set the star shader to the player position, plus an offset
-      const auto pos = get_position(r, player_e);
+    // starfield to follow player position
+    if (has_player && in_stars_scene) {
+      const auto pos = get_position(r, camera_e);
       target_pos.x = pos.x + offset.x;
       target_pos.y = pos.y + offset.y;
-    } else {
-      if (has_player) {
-        has_player = false;
-        generate_offset = true;
-      }
-
-      // scroll the starfield down and right
-      const glm::vec2 dir{ 1.0f, 1.0f };
-      target_pos.x += dir.x * dt * 10.0f;
-      target_pos.y += dir.y * dt * 10.0f;
     }
 
     const auto exp_decay = [](float a, float b, float decay, float dt) -> float {
@@ -571,9 +560,7 @@ update_render_system(entt::registry& r, const float dt, const glm::vec2& mouse_p
 
     // Note: ImGui::Image takes in TexID not TexUnit
 
-    PassName p = PassName::mix_lighting_and_scene;
-    if (s.s == Scene::menu)
-      p = PassName::stars;
+    const PassName p = PassName::mix_lighting_and_scene;
     const auto& pass = ri.passes[search_for_renderpass_by_name(ri, p)];
     const auto tex_id = pass.texs[0].tex_id.id;
     const auto vi = render_texture_to_imgui_viewport(tex_id);

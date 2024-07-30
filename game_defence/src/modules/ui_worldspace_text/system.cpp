@@ -40,8 +40,8 @@ update_ui_worldspace_text_system(entt::registry& r)
     pos.y += wst_c.offset.y;
 
     // keeps in screen boundaries?
-    pos.x = glm::clamp(static_cast<int>(pos.x), 0, ri.viewport_size_render_at.x);
-    pos.y = glm::clamp(static_cast<int>(pos.y), 0, ri.viewport_size_render_at.y);
+    // pos.x = glm::clamp(static_cast<int>(pos.x), 0, ri.viewport_size_render_at.x);
+    // pos.y = glm::clamp(static_cast<int>(pos.y), 0, ri.viewport_size_render_at.y);
 
     ImGui::SetNextWindowPos(pos, ImGuiCond_Always, ImVec2(0.5f, 0.5f));
 

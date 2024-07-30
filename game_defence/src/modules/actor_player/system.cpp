@@ -20,15 +20,60 @@
 namespace game2d {
 
 void
+update_movement_direct(entt::registry& r)
+{
+  const auto& view = r.view<const PlayerComponent, const InputComponent, const MovementDirectComponent, VelocityComponent>();
+  for (const auto& [e, player_c, input_c, movetype_c, vel_c] : view.each()) {
+    const glm::vec2 l_nrm_raw = { input_c.lx, input_c.ly };
+    const glm::vec2 l_nrm_dir = engine::normalize_safe(l_nrm_raw);
+    const glm::vec2 move_dir = (l_nrm_dir * vel_c.base_speed);
+
+    vel_c.x = move_dir.x;
+    vel_c.y = move_dir.y;
+  }
+};
+
+void
+update_movement_asteroids(entt::registry& r, const float dt)
+{
+  const auto& view =
+    r.view<const PlayerComponent, const InputComponent, MovementAsteroidsComponent, VelocityComponent, TransformComponent>();
+  for (const auto& [e, player_c, input_c, movetype_c, vel_c, transform_c] : view.each()) {
+
+    const float rotation_speed = 2.0f;
+    const float thrust_change = 100.0f;
+
+    if (movetype_c.able_to_change_dir) {
+      if (input_c.lx > 0) // rotate left
+        transform_c.rotation_radians.z += dt * rotation_speed;
+      if (input_c.lx < 0) // rotate right
+        transform_c.rotation_radians.z -= dt * rotation_speed;
+    }
+
+    if (movetype_c.able_to_change_thrust) {
+      if (input_c.ly > 0)
+        movetype_c.thrust += dt * thrust_change;
+      if (input_c.ly < 0)
+        movetype_c.thrust -= dt * thrust_change;
+      // hack: shift pressed, stop the ship
+      if (input_c.sprint)
+        movetype_c.thrust = 0;
+    }
+
+    const auto dir = engine::angle_radians_to_direction(transform_c.rotation_radians.z);
+    vel_c.x = dir.x * movetype_c.thrust;
+    vel_c.y = dir.y * movetype_c.thrust;
+  }
+}
+
+void
 update_player_controller_system(entt::registry& r, const uint64_t& milliseconds_dt)
 {
   const auto& finputs = get_first_component<SINGLETON_FixedUpdateInputHistory>(r);
   const auto& inputs = finputs.history.at(finputs.fixed_tick);
 
-  const auto& view =
-    r.view<const PlayerComponent, InputComponent, const AABB, const TransformComponent>(entt::exclude<WaitForInitComponent>);
-
-  for (const auto& [entity, player, input, aabb, transform] : view.each()) {
+  const auto& view = r.view<const PlayerComponent, InputComponent, const AABB>(entt::exclude<WaitForInitComponent>);
+  for (const auto& [entity, player, input, aabb] : view.each()) {
 
     const auto* keyboard = r.try_get<KeyboardComponent>(entity);
     const auto* controller = r.try_get<ControllerComponent>(entity);
@@ -98,40 +143,21 @@ update_player_controller_system(entt::registry& r, const uint64_t& milliseconds_
     //   r.emplace_or_replace<WantsToPickUp>(entity);
     // if (input.drop)
     //   r.emplace_or_replace<WantsToDrop>(entity);
-    if (input.shoot) {
+    if (input.shoot)
       r.emplace_or_replace<WantsToShoot>(entity);
-    }
-    if (input.shoot_release) {
+
+    if (input.shoot_release)
       r.emplace_or_replace<WantsToReleaseShot>(entity);
-    }
-    if (input.sprint) {
+
+    if (input.sprint)
       r.emplace_or_replace<WantsToSprint>(entity);
-    }
-    if (input.sprint_release) {
+
+    if (input.sprint_release)
       r.emplace_or_replace<WantsToReleaseSprint>(entity);
-    }
-
-    // do the move..
-    //
-    if (auto* vel = r.try_get<VelocityComponent>(entity)) {
-      const glm::vec2 l_nrm_raw = { input.lx, input.ly };
-      const glm::vec2 l_nrm_dir = engine::normalize_safe(l_nrm_raw);
-      const glm::vec2 move_dir = (l_nrm_dir * vel->base_speed);
-
-      vel->x = move_dir.x;
-      vel->y = move_dir.y;
-
-      // fmt::println("x: {}  ", vel->x);
-
-      const auto* sprint = r.try_get<SprintComponent>(entity);
-      if (sprint != nullptr && sprint->is_sprinting) {
-        vel->x *= 2.0f;
-        vel->y *= 2.0f;
-      }
-    }
-
-    // remove ai spaceship control?
   }
+
+  update_movement_direct(r);
+  update_movement_asteroids(r, milliseconds_dt / 1000.0f);
 };
 
 } // namespace game2d

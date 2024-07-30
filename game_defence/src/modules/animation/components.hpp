@@ -1,5 +1,6 @@
 #pragma once
 
+#include <entt/entt.hpp>
 #include <glm/glm.hpp>
 
 namespace game2d {
@@ -19,9 +20,9 @@ struct WiggleUpAndDown
   float frequency = 5.0f;
 };
 
-struct RotateAroundSpot
+struct RotateAroundEntity
 {
-  glm::ivec2 spot{ 0, 0 };
+  entt::entity e = entt::null;
   float distance = 1.0f;
   float rotate_speed = 1.0f;
   float theta = 0.0f; // 0 and 2PI

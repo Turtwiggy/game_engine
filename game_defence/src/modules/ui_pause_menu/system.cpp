@@ -151,12 +151,11 @@ update_ui_pause_menu_system(engine::SINGLETON_Application& app, entt::registry& 
             // how to resume correct scene background music?
             // a better solution would be to fade the music back in
             // below is BAD.
-            const auto& s = get_first_component<SINGLETON_CurrentScene>(r);
-            if (s.s == Scene::overworld)
-              create_empty<AudioRequestPlayEvent>(r, AudioRequestPlayEvent{ "GAME_01" });
-            if (s.s == Scene::dungeon_designer || s.s == Scene::turnbasedcombat) {
-              // create_empty<AudioRequestPlayEvent>(r, AudioRequestPlayEvent{ "COMBAT_01" });
-            }
+            // const auto& s = get_first_component<SINGLETON_CurrentScene>(r);
+            // if (s.s == Scene::overworld)
+            //   create_empty<AudioRequestPlayEvent>(r, AudioRequestPlayEvent{ "GAME_01" });
+            // if (s.s == Scene::dungeon_designer || s.s == Scene::turnbasedcombat) {
+            // create_empty<AudioRequestPlayEvent>(r, AudioRequestPlayEvent{ "COMBAT_01" });
           }
         }
 
@@ -169,11 +168,11 @@ update_ui_pause_menu_system(engine::SINGLETON_Application& app, entt::registry& 
     ImGui::SeparatorText("Quit");
 
     const auto& scene = get_first_component<SINGLETON_CurrentScene>(r);
-    const bool is_saveable_scene = scene.s == Scene::overworld;
-    if (is_saveable_scene && ImGui::Button("Save to Menu")) {
-      save(r, "save-overworld.json");
-      move_to_scene_start(r, Scene::menu);
-    }
+    // const bool is_saveable_scene = scene.s == Scene::overworld;
+    // if (is_saveable_scene && ImGui::Button("Save to Menu")) {
+    //   save(r, "save-overworld.json");
+    //   move_to_scene_start(r, Scene::menu);
+    // }
 
     if (ImGui::Button("Exit to Menu"))
       move_to_scene_start(r, Scene::menu);

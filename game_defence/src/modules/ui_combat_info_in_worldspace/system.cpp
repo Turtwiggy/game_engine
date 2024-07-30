@@ -37,11 +37,6 @@ update_ui_combat_info_in_worldspace_system(entt::registry& r)
       const int custom_id = search_for_texture_id_by_texture_path(ri, "custom").value().id;
       const int kenny_id = search_for_texture_id_by_texture_path(ri, "monochrome").value().id;
 
-      // float textHeight = ImGui::GetTextLineHeightWithSpacing();d
-      // float imageHeight = aabb.size.y;
-      // float verticalOffset = (imageHeight - textHeight) * 0.5f;
-      // ImGui::SetCursorPosY(ImGui::GetCursorPosY() + verticalOffset);
-
       // icon + hp
       ImGui::PushStyleVar(ImGuiStyleVar_ItemSpacing, ImVec2(0, 0));
       ImGui::Image((ImTextureID)kenny_id, icon_size, heart_tl, heart_br);

@@ -6,7 +6,6 @@
 #include "colour/colour.hpp"
 #include "entt/helpers.hpp"
 #include "events/components.hpp"
-#include "events/system.hpp"
 #include "game_state.hpp"
 #include "lifecycle/components.hpp"
 #include "magic_enum.hpp"
@@ -31,11 +30,14 @@
 #include "modules/gen_dungeons/components.hpp"
 #include "modules/grid/components.hpp"
 #include "modules/grid/helpers.hpp"
+#include "modules/lerp_to_target/components.hpp"
 #include "modules/renderer/components.hpp"
 #include "modules/renderer/helpers.hpp"
 #include "modules/scene_splashscreen_move_to_menu/components.hpp"
 #include "modules/screenshake/components.hpp"
+#include "modules/system_distance_check/components.hpp"
 #include "modules/system_minigame_bamboo/components.hpp"
+#include "modules/system_quips/components.hpp"
 #include "modules/system_turnbased_enemy/components.hpp"
 #include "modules/ui_colours/components.hpp"
 #include "modules/ui_combat_turnbased/components.hpp"
@@ -130,7 +132,154 @@ add_boundary_walls(entt::registry& r, const int w, const int h, const int tilesi
 }
 
 void
-move_to_scene_start(entt::registry& r, const Scene s, const bool load_saved)
+move_to_scene_menu(entt::registry& r)
+{
+  destroy_first_and_create<SINGLE_MainMenuUI>(r);
+  destroy_first_and_create<Effect_GridComponent>(r);
+  create_empty<AudioRequestPlayEvent>(r, AudioRequestPlayEvent{ "MENU_01" });
+  const auto& ri = get_first_component<SINGLETON_RendererInfo>(r);
+
+  // Load randoms name file
+  // const auto path = "./assets/config/random_names.json";
+  // std::ifstream f(path);
+  // json data = json::parse(f);
+  // const auto names = data["names"]; // list of names
+
+  // choose X random names, display them on the menu
+  // static engine::RandomState rnd;
+  // for (int i = 0; i < 4; i++) {
+  //   const float rnd_f = engine::rand_det_s(rnd.rng, 0, names.size());
+  //   const int rnd = static_cast<int>(rnd_f);
+  //   const std::string name = names[rnd];
+  //   const std::string delimiter = " ";
+  //   const auto first_name = name.substr(0, name.find(delimiter));
+
+  //   ui.random_names.push_back(first_name);
+  // }
+
+  // As the camera is at 0, 0,
+  // worldspace text around the camera would be from e.g. -width/2 to width/2
+  const auto half_wh = ri.viewport_size_render_at / glm::ivec2(2.0f, 2.0f);
+
+  // create a piece of worldspace text for support
+  {
+    const std::string label = "v0.0.4  Feedback? Discord @turtwiggy or X @Wiggy_dev";
+    const ImVec2 xy = ImGui::CalcTextSize(label.c_str());
+    const float padding = 10;
+
+    const auto e = create_gameplay(r, EntityType::empty_with_transform);
+    auto& ui = r.emplace<WorldspaceTextComponent>(e);
+    ui.text = label;
+    set_position(r, e, { +half_wh.x + (xy.x / 2.0f) + padding, half_wh.y - xy.y - 4 });
+    set_size(r, e, { 0, 0 });
+  };
+
+  // create a player for an interactive menu
+  const auto player_e = create_gameplay(r, EntityType::actor_player);
+  set_position(r, player_e, { half_wh.x, 0 });
+  auto& player_thrust = r.get<MovementAsteroidsComponent>(player_e);
+  player_thrust.able_to_change_thrust = false;
+  player_thrust.able_to_change_dir = true;
+  player_thrust.thrust = 60;
+  auto& player_t = r.get<TransformComponent>(player_e);
+  player_t.rotation_radians.z = engine::dir_to_angle_radians({ 1.0f, 1.0 }) + engine::PI;
+  player_t.position.z = 1; // above particles
+  r.emplace<CameraFollow>(player_e);
+}
+
+void
+move_to_scene_overworld_revamped(entt::registry& r)
+{
+  const auto& ri = get_first_component<SINGLETON_RendererInfo>(r);
+  const auto half_wh = ri.viewport_size_render_at / glm::ivec2(2.0f, 2.0f);
+
+  // spawn a ship,
+  // boost the player ship for X seconds until it reaches the ship,
+  // move the already existing player to circle it.
+  // this is your "prepare your units phase"...
+
+  const auto player_e = get_first<PlayerComponent>(r);
+  auto& player_t = r.get<TransformComponent>(player_e);
+  player_t.rotation_radians.z = 0; // look right
+
+  // remove player's control
+  const float previous_thrust = r.get<MovementAsteroidsComponent>(player_e).thrust;
+  r.remove<InputComponent>(player_e);
+  r.remove<MovementAsteroidsComponent>(player_e);
+
+  // boost the player's ship until it reaches the enemy...
+  auto& player_vel = r.get<VelocityComponent>(player_e);
+  player_vel.base_speed = previous_thrust * 10.0f;
+
+  // spawn an enemy ship
+  const auto enemy_e = create_gameplay(r, EntityType::actor_enemy_patrol);
+  update_patrol_from_desc(r, enemy_e, PatrolDescription{});
+
+  // spawn the enemy off the screen
+  set_position(r, enemy_e, { player_t.position.x + half_wh.x * 2, player_t.position.y });
+
+  // get the enemy to slowly move right
+  auto& enemy_vel = r.get<VelocityComponent>(enemy_e);
+  enemy_vel.x = 50;
+
+  // r.emplace<SetTransformAngleToVelocity>(player_e);
+  r.emplace<SetVelocityToTargetComponent>(player_e);
+  r.emplace<HasTargetPositionComponent>(player_e);
+  r.emplace<FollowTargetComponent>(player_e, enemy_e);
+
+  // start circling enemy in this distance...
+
+  const int d2 = 100 * 100;
+  DistanceCheckComponent distance_c;
+  distance_c.d2 = d2;
+  distance_c.e0 = player_e;
+  distance_c.e1 = enemy_e;
+  distance_c.action = [d2](entt::registry& r) {
+    fmt::println("distance check fired");
+    const auto& player_e = get_first<PlayerComponent>(r);
+    const auto& enemy_e = get_first<EnemyComponent>(r);
+
+    r.remove<CameraFollow>(player_e);
+    r.emplace<CameraFollow>(enemy_e);
+
+    r.remove<FollowTargetComponent>(player_e);
+    // r.remove<SetTransformAngleToVelocity>(player_e);
+    // r.remove<SetVelocityToTargetComponent>(player_e);
+    // r.remove<HasTargetPositionComponent>(player_e);
+
+    RotateAroundEntity spot;
+    spot.e = enemy_e;
+    spot.theta = -engine::PI; // circle starting on the left
+    spot.distance = glm::sqrt(d2);
+    spot.rotate_speed = 0.2f;
+    r.emplace<RotateAroundEntity>(player_e, spot);
+
+    // get the enemy to quip
+    RequestQuip quip_req;
+    quip_req.type = QuipType::BEGIN_ENCOUNTER;
+    quip_req.quipp_e = enemy_e;
+    create_empty<RequestQuip>(r, quip_req);
+  };
+  create_empty<DistanceCheckComponent>(r, distance_c);
+}
+
+void
+move_to_scene_additive(entt::registry& r, const Scene& s)
+{
+  stop_all_audio(r);
+
+  if (s == Scene::overworld_revamped)
+    move_to_scene_overworld_revamped(r);
+
+  const auto scene_name = std::string(magic_enum::enum_name(s));
+  fmt::println("additive scene. scene set to: {}", scene_name);
+
+  auto& scene = get_first_component<SINGLETON_CurrentScene>(r);
+  scene.s = s; // done
+}
+
+void
+move_to_scene_start(entt::registry& r, const Scene& s, const bool load_saved)
 {
   const auto& transforms = r.view<TransformComponent>(entt::exclude<OrthographicCamera>);
   r.destroy(transforms.begin(), transforms.end());
@@ -184,221 +333,20 @@ move_to_scene_start(entt::registry& r, const Scene s, const bool load_saved)
     destroy_first_and_create<SINGLE_SplashScreen>(r);
 
     // create sprite
-    {
-      const auto e = create_gameplay(r, EntityType::empty_with_transform);
-      const auto tex_unit = search_for_texture_unit_by_texture_path(ri, "blueberry").value();
-      set_sprite_custom(r, e, "STUDIO_LOGO", tex_unit.unit);
-      set_size(r, e, { 512, 512 });
-      set_position(r, e, { 0, 0 }); // center
-    }
-
-    // create background
-    // {
-    //   const auto e = create_gameplay(r, EntityType::empty_with_transform);
-    //   set_size(r, e, { ri.viewport_size_render_at.x + 10, ri.viewport_size_render_at.y + 10 });
-    //   set_position(r, e, { 0, 0 });              // center
-    //   set_colour(r, e, { 231, 242, 248, 1.0f }); // logo background colour
-    // }
+    const auto e = create_gameplay(r, EntityType::empty_with_transform);
+    const auto tex_unit = search_for_texture_unit_by_texture_path(ri, "blueberry").value();
+    set_sprite_custom(r, e, "STUDIO_LOGO", tex_unit.unit);
+    set_size(r, e, { 512, 512 });
+    set_position(r, e, { 0, 0 }); // center
   }
 
-  if (s == Scene::menu) {
-    destroy_first_and_create<SINGLE_MainMenuUI>(r);
-    create_empty<AudioRequestPlayEvent>(r, AudioRequestPlayEvent{ "MENU_01" });
-
-    // Load randoms name file
-    // const auto path = "./assets/config/random_names.json";
-    // std::ifstream f(path);
-    // json data = json::parse(f);
-    // const auto names = data["names"]; // list of names
-
-    // choose X random names, display them on the menu
-    // static engine::RandomState rnd;
-    // for (int i = 0; i < 4; i++) {
-    //   const float rnd_f = engine::rand_det_s(rnd.rng, 0, names.size());
-    //   const int rnd = static_cast<int>(rnd_f);
-    //   const std::string name = names[rnd];
-    //   const std::string delimiter = " ";
-    //   const auto first_name = name.substr(0, name.find(delimiter));
-
-    //   ui.random_names.push_back(first_name);
-    // }
-
-    // As the camera is at 0, 0,
-    // worldspace text around the camera would be from e.g. -width/2 to width/2
-    const auto half_wh = ri.viewport_size_render_at / glm::ivec2(2.0f, 2.0f);
-
-    // create a piece of worldspace text for support
-    {
-      const std::string label = "v0.0.4  Feedback? Discord @turtwiggy or X @Wiggy_dev";
-      const ImVec2 xy = ImGui::CalcTextSize(label.c_str());
-      const float padding = 10;
-
-      const auto e = create_gameplay(r, EntityType::empty_with_transform);
-      auto& ui = r.emplace<WorldspaceTextComponent>(e);
-      ui.text = label;
-      set_position(r, e, { -half_wh.x + (xy.x / 2.0f) + padding, half_wh.y - xy.y - 4 });
-      set_size(r, e, { 0, 0 });
-    };
-  }
+  if (s == Scene::menu)
+    move_to_scene_menu(r);
 
   const auto get_seed_from_systemtime = []() -> time_t {
     auto now = std::chrono::system_clock::now();
     return std::chrono::system_clock::to_time_t(now);
   };
-
-  if (s == Scene::overworld) {
-    destroy_first<OverworldToDungeonInfo>(r); // clear here if exists
-    // destroy_first_and_create<Effect_DoBloom>(r);
-    destroy_first_and_create<Effect_GridComponent>(r);
-    create_empty<AudioRequestPlayEvent>(r, AudioRequestPlayEvent{ "GAME_01" });
-
-    const int map_width = 3000;
-    const int map_height = 3000;
-    MapComponent map_c;
-    map_c.tilesize = 50;
-    map_c.xmax = map_width / map_c.tilesize;
-    map_c.ymax = map_height / map_c.tilesize;
-    map_c.map.resize(map_c.xmax * map_c.ymax);
-    create_empty<MapComponent>(r, map_c);
-
-    // Create 4 edges to the map
-    bool create_edges = true;
-    if (create_edges)
-      add_boundary_walls(r, map_width, map_height, map_c.tilesize);
-
-    // Add respawner without body
-    bool add_spawner = false;
-    if (add_spawner) {
-      SpawnerComponent spawner_c;
-      spawner_c.types_to_spawn = { EntityType::actor_enemy_patrol };
-      spawner_c.continuous_spawn = true;
-      AABB spawner_area;
-      // area: entire map
-      spawner_area.center = { map_width / 2.0f, map_height / 2.0f };
-      spawner_area.size = { map_width, map_height };
-      spawner_c.spawn_in_boundingbox = true;
-      spawner_c.spawn_area = spawner_area;
-      const auto e = create_gameplay(r, EntityType::actor_spawner);
-      r.emplace_or_replace<SpawnerComponent>(e, spawner_c);
-      // not visible
-      r.remove<TransformComponent>(e);
-      // stop being physics actor
-      r.remove<PhysicsTransformXComponent>(e);
-      r.remove<PhysicsTransformYComponent>(e);
-      r.remove<AABB>(e);
-      r.remove<PhysicsActorComponent>(e);
-      r.remove<VelocityComponent>(e);
-    }
-
-    // spawnables below
-    //
-    // if (load_saved)
-    if (false)
-      load_if_exists(r, "save-overworld.json");
-    else {
-#if defined(_DEBUG)
-      const int seed = 2;
-#else
-      const int seed = get_seed_from_systemtime();
-#endif
-      static engine::RandomState rnd(seed);
-
-      for (int i = 0; i < 20; i++) {
-        const auto enemy = create_gameplay(r, EntityType::actor_enemy_patrol);
-
-        PatrolDescription desc;
-        update_patrol_from_desc(r, enemy, desc);
-
-        // random position, dont spawn at 0, 0
-        const int rnd_x = int(engine::rand_det_s(rnd.rng, 1, (map_c.xmax - 1)));
-        const int rnd_y = int(engine::rand_det_s(rnd.rng, 1, (map_c.ymax - 1)));
-        set_position(r, enemy, { rnd_x * map_c.tilesize, rnd_y * map_c.tilesize });
-      }
-
-      // Use poisson for stations?
-      {
-        const int width = map_width;
-        const int height = map_height;
-        const auto poisson = generate_poisson(width - 200, height - 200, 800, 0);
-        fmt::println("Stations generated: {}", poisson.size());
-
-        for (int station_idx = 0; const auto& p : poisson) {
-          const glm::vec2 base_position = p + glm::vec2{ 100, 100 };
-
-          const auto spacestation_e = create_gameplay(r, EntityType::actor_spacestation);
-
-// #define HIDE_SPACESTATIONS 1
-#if defined(HIDE_SPACESTATIONS)
-          if (station_idx > 0)
-            r.emplace<SpacestationUndiscoveredComponent>(spacestation_e);
-#endif
-
-          auto& station_data = r.get<SpacestationComponent>(spacestation_e);
-          station_data.idx = station_idx++;
-
-          set_size(r, spacestation_e, { 160, 160 });
-          const auto tex_unit = search_for_texture_unit_by_texture_path(ri, "spacestation_0").value();
-          set_sprite_custom(r, spacestation_e, "SPACESTATION_0", tex_unit.unit);
-          set_position(r, spacestation_e, base_position); // center
-          set_colour(r, spacestation_e, { 1.0f, 1.0f, 1.0f, 1.0f });
-
-          const std::string station_name = fmt::format("Station {}", std::to_string(station_data.idx));
-          r.emplace<WorldspaceTextComponent>(spacestation_e, WorldspaceTextComponent{ station_name });
-
-          // rotate the station
-          // RotateAroundSpot spot;
-          // spot.spot = { p.x, p.y };
-          // spot.theta = float(engine::rand_det_s(rnd.rng, 0.0f, engine::PI * 2.0f));
-          // spot.distance = 0;
-          // spot.rotate_speed = 0.1f;
-          // r.emplace<RotateAroundSpot>(spacestation_e, spot);
-
-          // create some debris around the station
-          // this destroys the aabb-grid physics system.
-          // would need to divide the map in to grids to maintain any performance
-          for (int i = 0; i < 0; i++) {
-            const auto debris_e = create_gameplay(r, EntityType::actor_asteroid);
-
-            // rotate around the station
-            RotateAroundSpot spot;
-            spot.spot = get_position(r, spacestation_e);
-            spot.theta = float(engine::rand_det_s(rnd.rng, 0.0f, engine::PI * 2.0f));
-
-            // i.e. the closer you are the slower you are
-            const float min = 80;
-            const float max = 120;
-            spot.distance = int(engine::rand_det_s(rnd.rng, min, max));
-
-            const float t = engine::scale(spot.distance, min, max, 0.0f, 1.0f);
-            const float speed_min = 0.1f;
-            const float speed_max = 0.5f;
-            const float speed = engine::lerp(speed_min, speed_max, glm::clamp(t, 0.0f, 1.0f));
-            spot.rotate_speed = speed;
-
-            r.emplace<RotateAroundSpot>(debris_e, spot);
-
-            set_colour(r, debris_e, { 0.3f, 0.3f, 0.3f, 0.5f });
-            set_size(r, debris_e, { 4, 4 });
-          }
-        }
-      }
-
-      // const int rnd_x = int(engine::rand_det_s(rnd.rng, map_c.tilesize, map_width - map_c.tilesize));
-      // const int rnd_y = int(engine::rand_det_s(rnd.rng, map_c.tilesize, map_height - map_c.tilesize));
-      // const auto pos = glm::ivec2{ rnd_x, rnd_y };
-
-      // spawn the player at the 0th spacestation
-      const auto& spacestations_view = r.view<const SpacestationComponent>(entt::exclude<SpacestationUndiscoveredComponent>);
-      for (const auto& [e, station_c] : spacestations_view.each()) {
-
-        const auto player = create_gameplay(r, EntityType::actor_player);
-        set_position(r, player, get_position(r, e));
-        r.emplace<CameraFollow>(player);
-
-        break;
-      }
-    }
-  }
 
   if (s == Scene::dungeon_designer) {
     r.emplace_or_replace<CameraFreeMove>(get_first<OrthographicCamera>(r));
@@ -427,11 +375,6 @@ move_to_scene_start(entt::registry& r, const Scene s, const bool load_saved)
     // create a cursor
     const auto cursor_e = create_gameplay(r, EntityType::cursor);
     set_size(r, cursor_e, { 0, 0 });
-
-    // Create 4 edges to the map
-    // bool create_edges = false;
-    // if (create_edges)
-    //   add_boundary_walls(r, map_width, map_height, map_c.tilesize);
 
     // Debug object
     auto& info = get_first_component<SINGLE_TurnBasedCombatInfo>(r);
@@ -548,9 +491,8 @@ move_to_scene_start(entt::registry& r, const Scene s, const bool load_saved)
     ents.push_back(barrel_e);
   }
 
-  if (s == Scene::minigame_bamboo) {
+  if (s == Scene::minigame_bamboo)
     create_empty<SINGLE_MinigameBamboo>(r);
-  }
 
   const auto scene_name = std::string(magic_enum::enum_name(s));
   fmt::println("setting scene to: {}", scene_name);

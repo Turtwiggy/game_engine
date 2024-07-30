@@ -15,13 +15,13 @@ update_ui_patrol_system(entt::registry& r)
 {
   const auto view = r.view<PatrolComponent>();
   for (const auto& [e, p_c] : view.each()) {
-    auto& ui_txt = r.get_or_emplace<WorldspaceTextComponent>(e);
-    ui_txt.text = std::to_string(p_c.strength);
+    // auto& ui_txt = r.get_or_emplace<WorldspaceTextComponent>(e);
+    // ui_txt.text = std::to_string(p_c.strength);
 
     // const auto size = get_size(r, e);
     // temporarily fixed size x, because rotating the sprite updates the aabb size
 
-    ui_txt.offset = { 12, 12 }; // dont cover sprite
+    // ui_txt.offset = { 12, 12 }; // dont cover sprite
   }
 };
 

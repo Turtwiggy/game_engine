@@ -10,7 +10,7 @@ namespace game2d {
 
 template<class T>
 entt::entity
-create_empty(entt::registry& r, const std::optional<T> val = std::nullopt)
+create_empty(entt::registry& r, const std::optional<T>& val = std::nullopt)
 {
   // val passed in. could be useful for debugging
 

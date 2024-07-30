@@ -70,4 +70,20 @@ struct InputComponent
   bool drop = false;
 };
 
+// pressing WASD directly correlates to some axis
+struct MovementDirectComponent
+{
+  bool placeholder = true;
+};
+
+// move like asteroids
+// w/s add/remove velocity
+// a/d change angle you're pointing at
+struct MovementAsteroidsComponent
+{
+  float thrust = 0;
+  bool able_to_change_dir = true;
+  bool able_to_change_thrust = true;
+};
+
 } // namespace game2d

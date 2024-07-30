@@ -88,9 +88,9 @@ sprite_type_to_sprite(entt::registry& r, const EntityType& type)
   else if (type == EntityType::actor_hearth)
     sprite = "CAMPFIRE";
   else if (type == EntityType::actor_player)
-    sprite = "ARROW_LEFT";
+    sprite = "SPACE_VEHICLE_1";
   else if (type == EntityType::actor_enemy_patrol)
-    sprite = "ARROW_LEFT";
+    sprite = "SPACE_VEHICLE_1";
   // else if (type == EntityType::actor_player)
   //   sprite = "EMPTY";
   // else if (type == EntityType::actor_enemy_patrol)
@@ -253,12 +253,10 @@ create_gameplay(entt::registry& r, const EntityType& type)
       CircleCollider coll;
       coll.radius = size.x / 4; // half square to feel better?
       r.emplace<CircleCollider>(e, coll);
-      r.emplace<SetTransformAngleToVelocity>(e);
+      // r.emplace<SetTransformAngleToVelocity>(e);
 
       auto& vel = r.get<VelocityComponent>(e);
       vel.base_speed = 100.0f;
-
-      r.emplace<KnockbackComponent>(e);
 
       // r.emplace<PhysicsSolidComponent>(e);
       r.emplace<TeamComponent>(e, AvailableTeams::player);
@@ -268,6 +266,7 @@ create_gameplay(entt::registry& r, const EntityType& type)
       r.emplace<InputComponent>(e);
       r.emplace<KeyboardComponent>(e);
       r.emplace<ControllerComponent>(e);
+      r.emplace<MovementAsteroidsComponent>(e);
 
       // movement
       // r.emplace<HasTargetPositionComponent>(e);

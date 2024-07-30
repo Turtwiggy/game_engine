@@ -101,7 +101,7 @@ update_ui_scene_main_menu(engine::SINGLETON_Application& app, entt::registry& r)
     // }
 
     if (selectable_button("Start", selected, index++))
-      move_to_scene_start(r, Scene::overworld, false);
+      move_to_scene_additive(r, Scene::overworld_revamped);
 
     if (selectable_button("(minigame)\nbreach", selected, index++))
       move_to_scene_start(r, Scene::minigame_bamboo);

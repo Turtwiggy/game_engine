@@ -36,6 +36,7 @@
 #include "modules/screenshake/system.hpp"
 #include "modules/system_change_gun_colour/system.hpp"
 #include "modules/system_change_gun_z_index/system.hpp"
+#include "modules/system_distance_check/system.hpp"
 #include "modules/system_entered_new_room/system.hpp"
 #include "modules/system_inventory/system.hpp"
 #include "modules/system_minigame_bamboo/system.hpp"
@@ -152,11 +153,18 @@ init(engine::SINGLETON_Application& app, entt::registry& r)
   // Load Quips
   const auto quips = load_file_into_lines("assets/writing/quips.txt");
   const auto quips_hit = load_file_into_lines("assets/writing/quips_hit.txt");
+  const auto quips_encounter = load_file_into_lines("assets/writing/quips_encounter.txt");
   SINGLE_QuipsComponent quips_c;
+
   quips_c.quips = quips;
   quips_c.quips_unused = quips;
+
+  quips_c.quips_encounter = quips_encounter;
+  quips_c.quips_encounter_unused = quips_encounter;
+
   quips_c.quips_hit = quips_hit;
   quips_c.quips_hit_unused = quips_hit;
+
   create_empty<SINGLE_QuipsComponent>(r, quips_c);
 
   // move to splash screen before doing any heavy lifting (i.e. app freezing)
@@ -188,8 +196,8 @@ init_slow(engine::SINGLETON_Application& app, entt::registry& r)
     // audio.sounds.push_back({ "WIN_01", "8-bit-win-funk-david-renda.wav" });
     // audio.sounds.push_back({ "LOSS_01", "8-bit-loss-david-renda.wav" });
 
-    audio.sounds.push_back({ "ENEMY_LOCKON", path + "UI_SCI-FI_Tone_Bright_Wet_16_stereo.wav", SoundType::SFX });
-    audio.sounds.push_back({ "ENEMY_LOCKOFF", path + "UI_SCI-FI_Tone_Bright_Wet_17_stereo.wav", SoundType::SFX });
+    // audio.sounds.push_back({ "ENEMY_LOCKON", path + "UI_SCI-FI_Tone_Bright_Wet_16_stereo.wav", SoundType::SFX });
+    // audio.sounds.push_back({ "ENEMY_LOCKOFF", path + "UI_SCI-FI_Tone_Bright_Wet_17_stereo.wav", SoundType::SFX });
 
     destroy_first_and_create<SINGLETON_AudioComponent>(r, audio);
   }
@@ -302,7 +310,6 @@ update(engine::SINGLETON_Application& app, entt::registry& r, const float dt)
     const std::vector<Scene> invalid_scenes{
       // dont do game systems these scenes
       Scene::splashscreen,
-      Scene::menu,
     };
     const bool in_invalid_scene = std::find(invalid_scenes.begin(), invalid_scenes.end(), scene.s) != invalid_scenes.end();
     if (!in_invalid_scene && state.state == GameState::RUNNING && !gameover.game_is_over) {
@@ -313,29 +320,31 @@ update(engine::SINGLETON_Application& app, entt::registry& r, const float dt)
 
       // REMOVED SYSTEMS... for one reason or another.
       //
-      //
       // update_sprite_spritestack_system(r, dt);
       // update_actor_bodypart_head_system(r, dt, mouse_pos);
       // update_actor_bodypart_legs_system(r, dt, mouse_pos);
+      // update_actor_enemy_patrol_system(r, dt);
       // update_combat_powerup_doubledamage_system(r, dt);
       // update_actor_group_system(r, mouse_pos);
       // update_spaceship_door_system(r, dt);
       // update_intent_pickup_system(r);
       // update_intent_drop_item_system(r);
       // update_sprint_system(r, dt);
-      //   update_ui_selected(r);
-      //   update_ui_arrows_to_spawners_system(r);
-      //   update_ui_player_name_above_player_system(r);
-      //   update_ui_level_up_system(r);
-      //   update_ui_xp_bar_system(r);
-      //   update_ui_rpg_character_system(r);
-      //   update_ui_inverse_kinematics_system(r, mouse_pos);
-      //
+      // update_ui_selected(r);
+      // update_ui_arrows_to_spawners_system(r);
+      // update_ui_player_name_above_player_system(r);
+      // update_ui_level_up_system(r);
+      // update_ui_xp_bar_system(r);
+      // update_ui_rpg_character_system(r);
+      // update_ui_inverse_kinematics_system(r, mouse_pos);
+      // update_ui_patrol_system(r);
+      // update_ui_warp_to_station_system(r);
       // update_ux_hoverable_change_colour_system(r);
       //
 
       // potentially common
       update_attack_cooldown_system(r, milliseconds_dt);
+      update_distance_check_system(r);
       update_change_gun_colour_system(r);
       update_change_gun_z_index_system(r);
       // update_flash_sprite_system(r, milliseconds_dt);
@@ -345,14 +354,10 @@ update(engine::SINGLETON_Application& app, entt::registry& r, const float dt)
       update_spawner_system(r, milliseconds_dt);
       // update_wants_to_shoot_system(r);
       update_weapon_shotgun_system(r, milliseconds_dt);
-      update_rotate_around_spot_system(r, dt);
+      update_rotate_around_entity_system(r, dt);
+      update_scale_by_velocity_system(r, dt);
       update_quips_system(r);
       update_wiggle_up_and_down_system(r, dt);
-    }
-
-    if (scene.s == Scene::overworld) {
-      update_scale_by_velocity_system(r, dt);
-      update_actor_enemy_patrol_system(r, dt);
     }
 
     if (scene.s == Scene::overworld_revamped) {
@@ -422,10 +427,6 @@ update(engine::SINGLETON_Application& app, entt::registry& r, const float dt)
     if (scene.s == Scene::dungeon_designer) {
       update_ui_combat_turnbased_system(r, mouse_pos);
       update_ui_combat_endturn_system(r);
-    }
-    if (scene.s == Scene::overworld) {
-      update_ui_patrol_system(r);
-      update_ui_warp_to_station_system(r);
     }
     if (scene.s == Scene::overworld_revamped) {
       //

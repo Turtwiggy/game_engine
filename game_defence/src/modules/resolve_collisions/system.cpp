@@ -28,37 +28,14 @@
 namespace game2d {
 
 void
-player_asteroid_collison(entt::registry& r, const entt::entity& a, const entt::entity& b)
-{
-  const auto [a_ent, b_ent] = collision_of_interest<const PlayerComponent, const AsteroidComponent>(r, a, b);
-  if (a_ent != entt::null && b_ent != entt::null) {
-    const auto& a_vel = r.get<VelocityComponent>(a_ent);
-    const float a_speed = glm::length(glm::vec2{ a_vel.x, a_vel.y });
-
-    const auto& a_pos = get_position(r, a_ent);
-    const auto& b_pos = get_position(r, b_ent);
-    const auto dir = b_pos - a_pos;
-
-    auto& asteroid_vel = r.get<VelocityComponent>(b_ent);
-    asteroid_vel.x = dir.x * a_speed / 10.0f;
-    asteroid_vel.y = dir.y * a_speed / 10.0f;
-
-    if (const auto& rotate_around_spot = r.try_get<RotateAroundSpot>(b_ent)) {
-      r.remove<RotateAroundSpot>(b_ent);
-      r.emplace<EntityTimedLifecycle>(b_ent, 3 * 1000);
-    }
-  }
-}
-
-void
 enemy_player_collision(entt::registry& r, const entt::entity& a, const entt::entity& b)
 {
   auto& dead = get_first_component<SINGLETON_EntityBinComponent>(r);
 
   // enemy_player collision for overworld
   const auto& scene = get_first_component<SINGLETON_CurrentScene>(r);
-  if (scene.s != Scene::overworld)
-    return;
+  // if (scene.s != Scene::overworld)
+  //   return;
 
   const auto [a_player, b_group] = collision_of_interest<PlayerComponent, EnemyComponent>(r, a, b);
 
@@ -122,8 +99,7 @@ update_resolve_collisions_system(entt::registry& r)
       create_empty<DealDamageRequest>(r, DealDamageRequest{ from, to });
     }
 
-    enemy_player_collision(r, a, b);
-    player_asteroid_collison(r, a, b);
+    // enemy_player_collision(r, a, b);
   }
 
   for (const Collision2D& coll : physics.frame_solid_collisions) {

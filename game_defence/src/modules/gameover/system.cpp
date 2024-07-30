@@ -72,7 +72,7 @@ update_gameover_system(entt::registry& r)
   // do the restart
   // bug: should not be scene::
   if (new_game)
-    move_to_scene_start(r, Scene::overworld, false);
+    move_to_scene_start(r, Scene::menu, false);
 }
 
 } // namespace game2d

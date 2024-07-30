@@ -26,7 +26,8 @@ update_scale_by_velocity_system(entt::registry& r, float dt)
       };
 
       const auto a = transform.rotation_radians.z;
-      const auto b = engine::dir_to_angle_radians(nrm_dir);
+      const auto b = engine::dir_to_angle_radians(nrm_dir) + engine::PI;
+
       if (glm::abs(b - a) > 0.1f) {
         transform.rotation_radians.z = exp_decay(a, b, 20, dt);
       }
