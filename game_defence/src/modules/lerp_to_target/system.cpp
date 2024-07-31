@@ -4,6 +4,7 @@
 #include "glm/glm.hpp"
 #include "lifecycle/components.hpp"
 #include "maths/maths.hpp"
+#include "modules/actors/helpers.hpp"
 #include "physics/components.hpp"
 #include "renderer/transform.hpp"
 
@@ -17,19 +18,17 @@ update_set_velocity_to_target_system(entt::registry& r, const float& dt)
   //
   const auto& follow_view = r.view<FollowTargetComponent, HasTargetPositionComponent>();
   for (const auto& [e, follow, target] : follow_view.each()) {
-    const auto& p_pos = r.get<AABB>(follow.target);
-    target.position = p_pos.center;
+    target.position = r.get<AABB>(follow.target).center;
   }
 
   // set velocity to target
   {
-    const auto& view =
-      r.view<VelocityComponent, const AABB, const HasTargetPositionComponent, const SetVelocityToTargetComponent>(
-        entt::exclude<WaitForInitComponent>);
-    for (const auto& [e, vel, aabb, target, lerp] : view.each()) {
+    const auto& view = r.view<VelocityComponent, const HasTargetPositionComponent, const SetVelocityToTargetComponent>(
+      entt::exclude<WaitForInitComponent>);
+    for (const auto& [e, vel, target, lerp] : view.each()) {
       if (!target.position.has_value())
         continue;
-      const glm::ivec2 a = { aabb.center.x, aabb.center.y };
+      const glm::ivec2 a = get_position(r, e);
       const glm::ivec2 b = target.position.value();
       const glm::vec2 nrm_dir = engine::normalize_safe(b - a);
       vel.x = nrm_dir.x * vel.base_speed;

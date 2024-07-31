@@ -243,8 +243,9 @@ init_render_system(const engine::SINGLETON_Application& app, entt::registry& r, 
 
   // initialize renderer
 #if !defined(__EMSCRIPTEN__)
-  glEnable(GL_MULTISAMPLE);
+  // glEnable(GL_MULTISAMPLE);
 #endif
+
   glEnable(GL_BLEND);
   glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 
@@ -333,7 +334,7 @@ update_render_system(entt::registry& r, const float dt, const glm::vec2& mouse_p
     static glm::vec3 current_pos{ 0, 0, 0 };
     static glm::vec3 target_pos{ 0, 0, 0 };
     static glm::vec2 offset{ 0, 0 };
-    const auto camera_e = get_first<CameraFollow>(r);
+    const auto camera_e = get_first<OrthographicCamera>(r);
     const bool has_player = camera_e != entt::null;
 
     // generate an offset as (0, 0) in the fractal looks weird

@@ -16,6 +16,14 @@
 
 namespace game2d {
 
+std::string
+to_lower(const std::string& str)
+{
+  std::string result = str;
+  std::transform(result.begin(), result.end(), result.begin(), [](unsigned char c) { return std::tolower(c); });
+  return result;
+}
+
 void
 update_ui_hierarchy_system(entt::registry& r)
 {
@@ -84,12 +92,14 @@ update_ui_hierarchy_system(entt::registry& r)
       }
 
     } else {
+      filter = to_lower(filter);
+
       //
       // Show the paginated filtered entities
       //
       std::vector<std::pair<entt::entity, std::string>> ents;
       for (const auto& [entity, tag] : r.view<TagComponent>().each()) {
-        if (tag.tag.find(filter) != std::string::npos)
+        if (to_lower(tag.tag).find(filter) != std::string::npos)
           ents.push_back({ entity, tag.tag });
       }
 

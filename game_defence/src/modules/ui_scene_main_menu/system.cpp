@@ -70,9 +70,13 @@ update_ui_scene_main_menu(engine::SINGLETON_Application& app, entt::registry& r)
   // selected = selected < 0 ? buttons - 1 : selected;
   // selected %= buttons;
 
-  const auto selectable_button = [&do_ui_action](const std::string& label, int& selected, const int index) {
-    const ImVec2 size = { 100, 100 * 9 / 16.0f };
+  const ImVec2 size = { 200, 100 * 9 / 16.0f };
+  const ImVec2 pivot = { 0.5f, 0.5f };
+  ImGui::PushStyleVar(ImGuiStyleVar_ButtonTextAlign, pivot);
+  ImGui::PushStyleVar(ImGuiStyleVar_FrameRounding, 10.0f);
+  ImGui::PushStyleVar(ImGuiStyleVar_FramePadding, ImVec2(5.0f, 5.0f));
 
+  const auto selectable_button = [&](const std::string& label, int& selected, const int index) {
     // update the selected index if this button is clicked
     if (ImGui::Button(label.c_str(), size)) {
       do_ui_action = true;
@@ -86,11 +90,6 @@ update_ui_scene_main_menu(engine::SINGLETON_Application& app, entt::registry& r)
     return false;
   };
 
-  const ImVec2 pivot = { 0.5f, 0.5f };
-  ImGui::PushStyleVar(ImGuiStyleVar_ButtonTextAlign, pivot);
-  ImGui::PushStyleVar(ImGuiStyleVar_FrameRounding, 10.0f);
-  ImGui::PushStyleVar(ImGuiStyleVar_FramePadding, ImVec2(5.0f, 5.0f));
-
   {
     int index = 0;
 
@@ -100,13 +99,16 @@ update_ui_scene_main_menu(engine::SINGLETON_Application& app, entt::registry& r)
     //     move_to_scene_start(r, Scene::overworld, true);
     // }
 
-    if (selectable_button("Start", selected, index++))
+    if (selectable_button("START", selected, index++))
       move_to_scene_additive(r, Scene::overworld_revamped);
 
+    if (selectable_button("SETTINGS", selected, index++)) {
+    }
+
+#if defined(_DEBUG)
     if (selectable_button("(minigame)\nbreach", selected, index++))
       move_to_scene_start(r, Scene::minigame_bamboo);
 
-#if defined(_DEBUG)
     if (selectable_button("(debug)\ncombat", selected, index++)) {
       move_to_scene_start(r, Scene::turnbasedcombat);
     }
@@ -116,7 +118,7 @@ update_ui_scene_main_menu(engine::SINGLETON_Application& app, entt::registry& r)
     }
 #endif
 
-    if (selectable_button("Quit", selected, index++))
+    if (selectable_button("QUIT", selected, index++))
       app.running = false;
   }
   ImGui::PopStyleVar();

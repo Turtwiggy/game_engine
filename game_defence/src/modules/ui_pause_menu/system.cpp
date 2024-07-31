@@ -4,9 +4,12 @@
 #include "audio/helpers/sdl_mixer.hpp"
 #include "entt/helpers.hpp"
 #include "events/helpers/keyboard.hpp"
+#include "events/helpers/mouse.hpp"
 #include "game_state.hpp"
 #include "imgui/helpers.hpp"
+#include "modules/camera/helpers.hpp"
 #include "modules/entt/serialize.hpp"
+#include "modules/renderer/components.hpp"
 #include "modules/scene/components.hpp"
 #include "modules/scene/helpers.hpp"
 
@@ -65,6 +68,16 @@ update_ui_pause_menu_system(engine::SINGLETON_Application& app, entt::registry& 
     ImGui::Begin("Paused", &open, flags);
 
     ImGui::Text("Menu FPS: %0.2f", ImGui::GetIO().Framerate);
+
+    const bool show_mousepos = false;
+    if (show_mousepos) {
+      const auto& ri = get_first_component<SINGLETON_RendererInfo>(r);
+      ImGui::Text("imgui: %f, %f", ImGui::GetIO().MousePos.x, ImGui::GetIO().MousePos.y);
+      const glm::ivec2 mouse_pos = get_mouse_pos() - ri.viewport_pos;
+      ImGui::Text("mouse_pos: %i, %i", mouse_pos.x, mouse_pos.y);
+      const glm::ivec2 worldspace_pos = mouse_position_in_worldspace(r);
+      ImGui::Text("worldspace: %i, %i", worldspace_pos.x, worldspace_pos.y);
+    }
 
     if (ImGui::Button("Resume"))
       open = false;

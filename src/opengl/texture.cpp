@@ -109,40 +109,6 @@ load_texture_linear(const int tex_unit, const std::string& path)
 };
 
 unsigned int
-bind_srgb_texture(const SRGBTexture& texture)
-{
-  const int tex_unit = texture.texture_unit;
-  const int width = texture.width;
-  const int height = texture.height;
-  const int nr_components = texture.nr_components;
-  unsigned char* data = texture.data;
-
-  unsigned int texture_id;
-  glGenTextures(1, &texture_id);
-
-  GLenum format = GL_RGB;
-  if (nr_components == 1)
-    format = GL_RED;
-  else if (nr_components == 3)
-    format = GL_RGB;
-  else if (nr_components == 4)
-    format = GL_RGBA;
-
-  glActiveTexture(GL_TEXTURE0 + tex_unit);
-  glBindTexture(GL_TEXTURE_2D, texture_id);
-  glTexImage2D(GL_TEXTURE_2D, 0, format, width, height, 0, format, GL_UNSIGNED_BYTE, data);
-  glGenerateMipmap(GL_TEXTURE_2D);
-  glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
-  glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
-  glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_LINEAR);
-  glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
-
-  stbi_image_free(data); // no longer need the texture data
-  unbind_tex();
-  return texture_id;
-};
-
-unsigned int
 bind_linear_texture(const LinearTexture& texture)
 {
   const int tex_unit = texture.texture_unit;

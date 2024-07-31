@@ -70,19 +70,6 @@ update_ui_controller_system(entt::registry& r)
     // clang-format on
   }
   ImGui::End();
-
-  const auto& ri = get_first_component<SINGLETON_RendererInfo>(r);
-
-  ImGui::Begin("Mouse/Keyboard");
-  ImGui::Text("imgui: %f, %f", ImGui::GetIO().MousePos.x, ImGui::GetIO().MousePos.y);
-
-  const glm::ivec2 mouse_pos = get_mouse_pos() - ri.viewport_pos;
-  ImGui::Text("mouse_pos: %i, %i", mouse_pos.x, mouse_pos.y);
-
-  const glm::ivec2 worldspace_pos = mouse_position_in_worldspace(r);
-  ImGui::Text("worldspace: %i, %i", worldspace_pos.x, worldspace_pos.y);
-
-  ImGui::End();
 };
 
 } // namespace game2d

@@ -52,7 +52,7 @@ update_camera_system(entt::registry& r, const float dt)
   // if (auto* target = r.try_get<HasTargetPositionComponent>(camera_ent))
   //   target->position = { target_position.x, target_position.y };
 
-  // allow move camera if no targets
+  // allow camera to move freely
   if (get_first<CameraFreeMove>(r) != entt::null) {
     const float CAM_SPEED = 500.0f;
     const int mul = static_cast<int>(CAM_SPEED * dt);

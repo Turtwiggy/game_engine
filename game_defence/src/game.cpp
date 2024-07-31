@@ -95,12 +95,12 @@ init(engine::SINGLETON_Application& app, entt::registry& r)
   const auto start = std::chrono::high_resolution_clock::now();
 
   // Fonts
-  // auto& io = ImGui::GetIO();
-  // float font_scale = 8.0f;
-  // //   font_scale = 18.0f; // 4k scale?
-  // const std::string exe_path = engine::get_exe_path_without_exe_name();
-  // const std::string font_path = exe_path + "assets/fonts/ImPerfect23.ttf"s;
-  // io.Fonts->AddFontFromFileTTF(font_path.c_str(), font_scale);
+  auto& io = ImGui::GetIO();
+  float font_scale = 14.0f;
+  //   font_scale = X.0f; // 4k scale?
+  const std::string exe_path = engine::get_exe_path_without_exe_name();
+  const std::string font_path = exe_path + "assets/fonts/Roboto-Regular.ttf"s;
+  io.Fonts->AddFontFromFileTTF(font_path.c_str(), font_scale);
 
   {
     SINGLETON_RendererInfo ri;
@@ -404,14 +404,12 @@ update(engine::SINGLETON_Application& app, entt::registry& r, const float dt)
 
       ImGuiWindowFlags flags = 0;
       // position and sizing
-      flags |= ImGuiWindowFlags_NoMove;
-      flags |= ImGuiWindowFlags_NoCollapse;
+      flags |= ImGuiWindowFlags_NoDecoration;
       flags |= ImGuiWindowFlags_NoDocking;
-      flags |= ImGuiWindowFlags_NoResize;
+      flags |= ImGuiWindowFlags_AlwaysAutoResize;
+      flags |= ImGuiWindowFlags_NoSavedSettings;
       flags |= ImGuiWindowFlags_NoFocusOnAppearing;
-      // visuals
-      flags |= ImGuiWindowFlags_NoTitleBar;
-      flags |= ImGuiWindowFlags_NoBackground;
+      flags |= ImGuiWindowFlags_NoNav;
 
       ImGui::SetNextWindowPos({ 0, 0 }, ImGuiCond_Always, { 0, 0 });
       ImGui::SetNextWindowSize({ 100, size_y }, ImGuiCond_Always);
@@ -420,6 +418,8 @@ update(engine::SINGLETON_Application& app, entt::registry& r, const float dt)
       ImGui::Text("FPS: %0.2f", ImGui::GetIO().Framerate);
       ImGui::End();
     }
+
+    // ImGui::ShowDemoWindow(NULL);
 
     if (scene.s == Scene::menu) {
       update_ui_scene_main_menu(app, r);

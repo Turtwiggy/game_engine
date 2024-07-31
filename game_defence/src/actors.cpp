@@ -171,6 +171,7 @@ create_gameplay(entt::registry& r, const EntityType& type)
     const auto sc = create_sprite(r, sprite_name, type);
     r.emplace<SpriteComponent>(e, sc);
     r.emplace<TransformComponent>(e);
+    r.emplace<DefaultColour>(e, engine::LinearToSRGB(sc.colour));
 
     set_size(r, e, DEFAULT_SIZE);
     switch (type) {
@@ -203,6 +204,7 @@ create_gameplay(entt::registry& r, const EntityType& type)
     desc.default_colour = engine::SRGBColour(1.0f, 1.0f, 1.0f, 1.0f);
     desc.start_size = 6;
     desc.end_size = 0;
+    desc.default_colour = r.get<DefaultColour>(parent).colour;
     r.emplace<ParticleEmitterComponent>(particle_emitter, desc);
 
     // emit: particles
@@ -298,11 +300,11 @@ create_gameplay(entt::registry& r, const EntityType& type)
       create_physics_actor(r, e);
       set_size(r, e, HALF_SIZE);
 
-      const auto size = get_size(r, e);
-      CircleCollider coll;
-      coll.radius = size.x / 4; // half square to feel better?
-      r.emplace<CircleCollider>(e, coll);
-      r.emplace<SetTransformAngleToVelocity>(e);
+      // const auto size = get_size(r, e);
+      // CircleCollider coll;
+      // coll.radius = size.x / 4; // half square to feel better?
+      // r.emplace<CircleCollider>(e, coll);
+      // r.emplace<SetTransformAngleToVelocity>(e);
 
       r.emplace<EnemyComponent>(e);
       r.emplace<TeamComponent>(e, AvailableTeams::enemy);

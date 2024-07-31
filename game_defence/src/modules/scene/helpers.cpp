@@ -48,6 +48,7 @@
 #include "modules/ux_hoverable/components.hpp"
 #include "modules/vfx_grid/components.hpp"
 #include "physics/components.hpp"
+#include "renderer/components.hpp"
 #include "renderer/transform.hpp"
 #include "sprites/helpers.hpp"
 #include <nlohmann/json.hpp>
@@ -89,14 +90,12 @@ create_combat_entity(entt::registry& r, const CombatEntityDescription& desc)
   r.emplace<HasWeaponComponent>(e, has_weapon);
 
   if (desc.team == AvailableTeams::player) {
-    r.emplace<DefaultColour>(e, engine::SRGBColour{ 0.0f, 0.3f, 0.8f, 1.0f });
     r.emplace<HoveredColour>(e, engine::SRGBColour{ 0.0f, 1.0f, 1.0f, 1.0f });
     set_colour(r, e, r.get<DefaultColour>(e).colour);
     r.emplace_or_replace<PlayerComponent>(e);
 
   } else if (desc.team == AvailableTeams::enemy) {
 
-    r.emplace<DefaultColour>(e, engine::SRGBColour{ 1.0f, 1.0f, 1.0f, 1.0f });
     r.emplace<HoveredColour>(e, engine::SRGBColour{ 1.0f, 0.0f, 0.0f, 1.0f });
     set_colour(r, e, r.get<DefaultColour>(e).colour);
 
@@ -200,7 +199,7 @@ move_to_scene_overworld_revamped(entt::registry& r)
 
   const auto player_e = get_first<PlayerComponent>(r);
   auto& player_t = r.get<TransformComponent>(player_e);
-  player_t.rotation_radians.z = 0; // look right
+  auto& player_vel = r.get<VelocityComponent>(player_e);
 
   // remove player's control
   const float previous_thrust = r.get<MovementAsteroidsComponent>(player_e).thrust;
@@ -208,41 +207,71 @@ move_to_scene_overworld_revamped(entt::registry& r)
   r.remove<MovementAsteroidsComponent>(player_e);
 
   // boost the player's ship until it reaches the enemy...
-  auto& player_vel = r.get<VelocityComponent>(player_e);
   player_vel.base_speed = previous_thrust * 10.0f;
 
   // spawn an enemy ship
   const auto enemy_e = create_gameplay(r, EntityType::actor_enemy_patrol);
-  update_patrol_from_desc(r, enemy_e, PatrolDescription{});
-
-  // spawn the enemy off the screen
-  set_position(r, enemy_e, { player_t.position.x + half_wh.x * 2, player_t.position.y });
-
-  // get the enemy to slowly move right
+  auto& enemy_t = r.get<TransformComponent>(enemy_e);
   auto& enemy_vel = r.get<VelocityComponent>(enemy_e);
-  enemy_vel.x = 50;
 
-  // r.emplace<SetTransformAngleToVelocity>(player_e);
-  r.emplace<SetVelocityToTargetComponent>(player_e);
-  r.emplace<HasTargetPositionComponent>(player_e);
-  r.emplace<FollowTargetComponent>(player_e, enemy_e);
+  player_t.rotation_radians.z = 0; // player look right
+  enemy_t.rotation_radians.z = 0;  // enemy look right
+
+  {
+    // update dungeon gen parameters
+    update_patrol_from_desc(r, enemy_e, PatrolDescription{});
+
+    // spawn the enemy off the screen
+    set_position(r, enemy_e, { player_t.position.x + half_wh.x * 2, player_t.position.y });
+
+    // get the enemy to slowly move right
+    enemy_vel.x = 50;
+
+    // r.emplace<SetTransformAngleToVelocity>(player_e);
+    r.emplace<SetVelocityToTargetComponent>(player_e);
+    r.emplace<HasTargetPositionComponent>(player_e);
+    r.emplace<FollowTargetComponent>(player_e, enemy_e);
+  }
 
   // start circling enemy in this distance...
 
-  const int d2 = 100 * 100;
+  constexpr int d2 = 150 * 150;
   DistanceCheckComponent distance_c;
   distance_c.d2 = d2;
   distance_c.e0 = player_e;
   distance_c.e1 = enemy_e;
-  distance_c.action = [d2](entt::registry& r) {
+  distance_c.action = [player_vel, enemy_vel](entt::registry& r) {
     fmt::println("distance check fired");
     const auto& player_e = get_first<PlayerComponent>(r);
     const auto& enemy_e = get_first<EnemyComponent>(r);
 
     r.remove<CameraFollow>(player_e);
-    r.emplace<CameraFollow>(enemy_e);
-
     r.remove<FollowTargetComponent>(player_e);
+
+    // lerp the camera to the the enemy
+    const auto camera_e = get_first<OrthographicCamera>(r);
+
+    VelocityComponent vel_c;
+    vel_c.base_speed = player_vel.base_speed + enemy_vel.base_speed;
+    r.emplace<VelocityComponent>(camera_e, vel_c);
+    r.emplace<FollowTargetComponent>(camera_e, enemy_e);
+    r.emplace<SetVelocityToTargetComponent>(camera_e);
+    r.emplace<HasTargetPositionComponent>(camera_e);
+
+    DistanceCheckComponent distance_c_cameratoenemy;
+    distance_c_cameratoenemy.d2 = 2;
+    distance_c_cameratoenemy.e0 = camera_e;
+    distance_c_cameratoenemy.e1 = enemy_e;
+    distance_c_cameratoenemy.action = [camera_e, enemy_e](entt::registry& r) {
+      r.remove<VelocityComponent>(camera_e);
+      r.remove<FollowTargetComponent>(camera_e);
+      r.remove<HasTargetPositionComponent>(camera_e);
+      r.remove<SetVelocityToTargetComponent>(camera_e);
+
+      r.emplace<CameraFollow>(enemy_e);
+    };
+    create_empty<DistanceCheckComponent>(r, distance_c_cameratoenemy);
+
     // r.remove<SetTransformAngleToVelocity>(player_e);
     // r.remove<SetVelocityToTargetComponent>(player_e);
     // r.remove<HasTargetPositionComponent>(player_e);
@@ -250,7 +279,7 @@ move_to_scene_overworld_revamped(entt::registry& r)
     RotateAroundEntity spot;
     spot.e = enemy_e;
     spot.theta = -engine::PI; // circle starting on the left
-    spot.distance = glm::sqrt(d2);
+    spot.distance = glm::sqrt(float(d2));
     spot.rotate_speed = 0.2f;
     r.emplace<RotateAroundEntity>(player_e, spot);
 
