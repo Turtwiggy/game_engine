@@ -13,6 +13,7 @@ struct PhysicsDescription
 {
   b2BodyType type = b2_staticBody;
   bool is_bullet = false;
+  bool is_sensor = false;
   float density = 1.0f;
 
   // set when creating body...

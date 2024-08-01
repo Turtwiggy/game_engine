@@ -41,6 +41,7 @@
 #include "modules/ux_hoverable/components.hpp"
 #include "modules/vfx_grid/components.hpp"
 #include "physics/components.hpp"
+#include "physics/helpers.hpp"
 #include "renderer/transform.hpp"
 #include "sprites/helpers.hpp"
 #include <nlohmann/json.hpp>
@@ -62,6 +63,7 @@ create_combat_entity(entt::registry& r, const CombatEntityDescription& desc)
   const auto e = create_gameplay(r, EntityType::actor_unit_rtslike, pos);
   move_entity_on_map(r, e, pos);
   r.emplace_or_replace<TeamComponent>(e, TeamComponent{ desc.team });
+  set_collision_filters(r, e); // needs team_component
 
   // set entity to aim by default to the right
   r.emplace<StaticTargetComponent>(e, glm::ivec2{ desc.position.x + 100, desc.position.y });
@@ -69,6 +71,7 @@ create_combat_entity(entt::registry& r, const CombatEntityDescription& desc)
   // setup weapon
   const auto weapon = create_gameplay(r, EntityType::weapon_shotgun, get_position(r, e));
   r.emplace_or_replace<TeamComponent>(weapon, TeamComponent{ desc.team });
+
   auto& weapon_parent = r.get<HasParentComponent>(weapon);
   weapon_parent.parent = e;
 
@@ -286,16 +289,24 @@ move_to_scene_start(entt::registry& r, const Scene& s, const bool load_saved)
   r.destroy(ui.begin(), ui.end());
 
   // store one physics world...
-  static b2World world(b2Vec2(0.0f, 0.0f));
-  static b2World* world_ptr = &world;
+  static b2World* world = new b2World(b2Vec2(0.0f, 0.0f));
   static bool needs_deleting = false;
   if (needs_deleting) {
-    delete world_ptr;
-    world = b2World{ b2Vec2(0.0f, 0.0f) };
-    world_ptr = &world;
-    needs_deleting = true;
+    b2Joint* joint = world->GetJointList();
+    while (joint) {
+      b2Joint* j = joint;
+      joint = joint->GetNext();
+      world->DestroyJoint(j);
+    }
+    b2Body* body = world->GetBodyList();
+    while (body) {
+      b2Body* b = body;
+      body = body->GetNext();
+      world->DestroyBody(b);
+    }
   }
-  destroy_first_and_create<SINGLE_Physics>(r, SINGLE_Physics{ world_ptr });
+  needs_deleting = true;
+  destroy_first_and_create<SINGLE_Physics>(r, SINGLE_Physics{ world });
 
   destroy_first_and_create<SINGLETON_CurrentScene>(r);
   destroy_first_and_create<SINGLETON_EntityBinComponent>(r);

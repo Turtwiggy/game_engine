@@ -68,7 +68,7 @@ update_movement_asteroids(entt::registry& r, uint64_t ms_dt)
       //   movetype_c.thrust = 0;
     }
     movetype_c.thrust = glm::min(movetype_c.thrust, 200.0f);
-    movetype_c.thrust = glm::max(movetype_c.thrust, -200.0f);
+    movetype_c.thrust = glm::max(movetype_c.thrust, 1.0f);
 
     const auto dir = engine::angle_radians_to_direction(transform_c.rotation_radians.z);
     body_c.body->SetLinearVelocity({ dir.x * movetype_c.thrust, dir.y * movetype_c.thrust });

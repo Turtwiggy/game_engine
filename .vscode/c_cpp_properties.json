@@ -4,7 +4,6 @@
       "name": "Windows MSCV",
       "includePath": [
         "${workspaceFolder}/src",
-        "${workspaceFolder}/game_3d/src",
         "${workspaceFolder}/game_defence/src",
         "${workspaceFolder}/game_defence_tests/src",
         "${workspaceFolder}/thirdparty/vcpkg/installed/x64-windows/include",
@@ -28,7 +27,6 @@
       "name": "Linux GCC",
       "includePath": [
         "${workspaceFolder}/src",
-        "${workspaceFolder}/game_3d/src",
         "${workspaceFolder}/game_defence/src",
         "${workspaceFolder}/game_defence_tests/src",
         "${workspaceFolder}/thirdparty/vcpkg/installed/x64-linux/include",
@@ -50,7 +48,6 @@
       "name": "Mac Clang",
       "includePath": [
         "${workspaceFolder}/src",
-        "${workspaceFolder}/game_3d/src",
         "${workspaceFolder}/game_defence/src",
         "${workspaceFolder}/game_defence_tests/src",
         "${workspaceFolder}/thirdparty/vcpkg/installed/x64-osx/include",

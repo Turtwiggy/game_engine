@@ -109,7 +109,9 @@ sprite_type_to_sprite(entt::registry& r, const EntityType& type)
   // else if (type == EntityType::weapon_bow)
   //   sprite = "WEAPON_BOW_0";
   else if (type == EntityType::weapon_shotgun)
-    sprite = "WEAPON_SHOTGUN";
+    sprite = "EMPTY";
+  // else if (type == EntityType::weapon_shotgun)
+  //   sprite = "WEAPON_SHOTGUN";
   // bullets...
   else if (type == EntityType::bullet_default)
     sprite = "EMPTY";
@@ -269,10 +271,8 @@ create_gameplay(entt::registry& r, const EntityType& type, const glm::vec2& posi
     case EntityType::actor_player: {
       create_physics_actor_dynamic(r, e, position, HALF_SIZE);
 
-      // r.emplace<PhysicsSolidComponent>(e);
-      r.emplace<TeamComponent>(e, AvailableTeams::player);
-
       // gameplay
+      r.emplace<TeamComponent>(e, AvailableTeams::player);
       r.emplace<PlayerComponent>(e);
       r.emplace<InputComponent>(e);
       r.emplace<KeyboardComponent>(e);
@@ -326,7 +326,16 @@ create_gameplay(entt::registry& r, const EntityType& type, const glm::vec2& posi
     }
 
     case EntityType::actor_unit_rtslike: {
-      create_physics_actor_dynamic(r, e, position, DEFAULT_SIZE);
+      // create_physics_actor_dynamic(r, e, position, DEFAULT_SIZE);
+
+      PhysicsDescription desc;
+      desc.type = b2_kinematicBody;
+      desc.is_bullet = false;
+      desc.density = 1.0;
+      desc.position = position;
+      desc.size = DEFAULT_SIZE;
+      desc.is_sensor = true;
+      create_physics_actor(r, e, desc);
 
       // auto& vel = r.get<VelocityComponent>(e);
       // vel.base_speed = 700.0f;
@@ -334,7 +343,7 @@ create_gameplay(entt::registry& r, const EntityType& type, const glm::vec2& posi
       // r.emplace<PhysicsSolidComponent>(e);
 
       // r.emplace<EnemyComponent>(e); // player or enemy
-      r.emplace<TeamComponent>(e);
+      // r.emplace<TeamComponent>(e); // player or enemy
       r.emplace<HoverableComponent>(e); // the selected component gets attached
       // r.emplace<ChangeColourOnHoverComponent>(e);
       r.emplace<TurnBasedUnitComponent>(e);
@@ -428,6 +437,7 @@ create_gameplay(entt::registry& r, const EntityType& type, const glm::vec2& posi
 
     case EntityType::solid_wall: {
       create_physics_actor_static(r, e, position, DEFAULT_SIZE);
+      set_collision_filters(r, e);
       r.emplace<LightOccluderComponent>(e);
       break;
     }
@@ -448,6 +458,7 @@ create_gameplay(entt::registry& r, const EntityType& type, const glm::vec2& posi
 
     case EntityType::weapon_shotgun: {
       // create_physics_actor_dynamic(r, e, DEFAULT_SIZE);
+      set_size(r, e, SMALL_SIZE);
 
       r.emplace<WeaponComponent>(e);
       r.emplace<ShotgunComponent>(e);
@@ -475,7 +486,11 @@ create_gameplay(entt::registry& r, const EntityType& type, const glm::vec2& posi
       r.emplace<TeamComponent>(e, AvailableTeams::player);
       r.emplace<SetTransformAngleToVelocity>(e);
       r.emplace<EntityTimedLifecycle>(e);
-      r.emplace<BulletComponent>(e);
+
+      BulletComponent bc;
+      bc.bounce_bullet_on_wall_collision = false;
+      bc.destroy_bullet_on_wall_collision = true;
+      r.emplace<BulletComponent>(e, bc);
       break;
     }
 
@@ -485,8 +500,11 @@ create_gameplay(entt::registry& r, const EntityType& type, const glm::vec2& posi
       r.emplace<TeamComponent>(e, AvailableTeams::player);
       r.emplace<SetTransformAngleToVelocity>(e);
       r.emplace<EntityTimedLifecycle>(e);
-      // r.emplace<BulletComponent>(e);
-      r.emplace<BulletBouncyComponent>(e);
+
+      BulletComponent bc;
+      bc.bounce_bullet_on_wall_collision = true;
+      bc.destroy_bullet_on_wall_collision = false;
+      r.emplace<BulletComponent>(e, bc);
       break;
     }
 

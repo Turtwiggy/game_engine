@@ -19,7 +19,7 @@ struct ShotgunComponent
 {
   int bullets_to_spawn = 2;
 
-  float offset_amount = 20.0;
+  float offset_amount = 32.0;
 
   float recoil_regain_speed = 100.0f;
   float recoil_amount = 5.0;
@@ -28,12 +28,9 @@ struct ShotgunComponent
 
 struct BulletComponent
 {
-  bool placeholder = true;
-};
-
-struct BulletBouncyComponent
-{
-  bool placeholder = true;
+  bool destroy_bullet_on_wall_collision = false;
+  bool destroy_bullet_on_actor_collision = true;
+  bool bounce_bullet_on_wall_collision = false;
 };
 
 } // namespace game2d

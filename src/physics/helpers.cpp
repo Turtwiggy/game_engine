@@ -1,7 +1,11 @@
 #include "helpers.hpp"
 
+#include "actors.hpp"
 #include "entt/helpers.hpp"
+#include "modules/combat_damage/components.hpp"
+#include "physics/components.hpp"
 #include "renderer/transform.hpp"
+#include <box2d/b2_circle_shape.h>
 
 namespace game2d {
 
@@ -33,23 +37,21 @@ create_physics_actor(entt::registry& r, const entt::entity e, const PhysicsDescr
   }
 
   // create a fixture
-  {
-    b2PolygonShape box;
-    box.SetAsBox(desc.size.x / 2.0f, desc.size.y / 2.0f);
+  //
+  b2PolygonShape box;
+  box.SetAsBox(desc.size.x / 2.0f, desc.size.y / 2.0f);
 
-    b2FixtureDef fixture_def;
-    fixture_def.friction = 0.0f;
-    fixture_def.density = desc.density;
-    fixture_def.shape = &box;
-    body->CreateFixture(&fixture_def);
+  // b2CircleShape circle;
 
-    // Set collision filtering
-    // const uint16 PLAYER_CATEGORY = 0x0001;
-    // const uint16 BULLET_CATEGORY = 0x0002;
-    // const uint16 WALL_CATEGORY = 0x0004;
-    // fixtureDef.filter.categoryBits = PLAYER_CATEGORY;
-    // fixtureDef.filter.maskBits = WALL_CATEGORY | BULLET_CATEGORY; // Collide with walls and bullets
-  }
+  b2FixtureDef fixture_def;
+  fixture_def.friction = 0.0f;
+  fixture_def.density = desc.density;
+  fixture_def.shape = &box;
+  fixture_def.isSensor = desc.is_sensor;
+
+  body->CreateFixture(&fixture_def);
+
+  //
 
   PhysicsBodyComponent body_c;
   body_c.body = body;
@@ -59,6 +61,71 @@ create_physics_actor(entt::registry& r, const entt::entity e, const PhysicsDescr
   auto& transform_c = r.get<TransformComponent>(e);
   transform_c.scale.x = desc.size.x;
   transform_c.scale.y = desc.size.y;
+}
+
+void
+set_collision_filters(entt::registry& r, entt::entity e)
+{
+  // I am a ....
+  constexpr uint16 FRIENDLY_UNIT_CATEGORY = 0x0001;
+  constexpr uint16 FRIENDLY_BULLET_CATEGORY = 0x0002;
+  constexpr uint16 ENEMY_UNIT_CATEGORY = 0x0004;
+  constexpr uint16 ENEMY_BULLET_CATEGORY = 0x0008;
+  constexpr uint16 WALL_CATEGORY = 0x0016;
+
+  // I collide with ... (0xFFFF is everything)
+  constexpr uint16_t FRIENDLY_UNIT_MASK = WALL_CATEGORY | ENEMY_BULLET_CATEGORY;
+  constexpr uint16_t FRIENDLY_BULLET_MASK = WALL_CATEGORY | ENEMY_UNIT_CATEGORY;
+  constexpr uint16_t ENEMY_UNIT_MASK = WALL_CATEGORY | FRIENDLY_BULLET_CATEGORY;
+  constexpr uint16_t ENEMY_BULLET_MASK = WALL_CATEGORY | FRIENDLY_UNIT_CATEGORY;
+  constexpr uint16_t WALL_MASK = 0xFFFF;
+
+  const auto& physics_body = r.get<PhysicsBodyComponent>(e);
+  const auto type = r.get<EntityTypeComponent>(e).type;
+  const auto* team_c = r.try_get<TeamComponent>(e);
+
+  return;
+
+  for (b2Fixture* fixture = physics_body.body->GetFixtureList(); fixture; fixture = fixture->GetNext()) {
+
+    b2Filter filter;
+
+    if (type == EntityType::solid_wall) {
+      filter.categoryBits = WALL_CATEGORY;
+      filter.maskBits = WALL_MASK;
+      fixture->SetFilterData(filter);
+    }
+
+    if (type == EntityType::bullet_default || type == EntityType::bullet_bouncy) {
+      if (team_c->team == AvailableTeams::player) {
+        filter.categoryBits = FRIENDLY_BULLET_CATEGORY;
+        filter.maskBits = FRIENDLY_BULLET_MASK;
+        fixture->SetFilterData(filter);
+      } else if (team_c->team == AvailableTeams::enemy) {
+        filter.categoryBits = ENEMY_BULLET_CATEGORY;
+        filter.maskBits = ENEMY_BULLET_MASK;
+        fixture->SetFilterData(filter);
+      } else {
+        // hmm
+        int k = 1;
+      }
+    }
+
+    if (type == EntityType::actor_unit_rtslike) {
+      if (team_c->team == AvailableTeams::player) {
+        filter.categoryBits = FRIENDLY_UNIT_CATEGORY;
+        filter.maskBits = FRIENDLY_UNIT_MASK;
+        fixture->SetFilterData(filter);
+      } else if (team_c->team == AvailableTeams::enemy) {
+        filter.categoryBits = ENEMY_UNIT_CATEGORY;
+        filter.maskBits = ENEMY_UNIT_MASK;
+        fixture->SetFilterData(filter);
+      } else {
+        // hmm
+        int k = 1;
+      }
+    }
+  }
 }
 
 } // namespace game2d
