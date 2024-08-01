@@ -16,7 +16,7 @@ EntityPool::update(entt::registry& r, const int desired)
   // create
   const int to_create = new_size - old_size;
   for (int i = 0; i < to_create; i++)
-    instances.push_back(create_gameplay(r, EntityType::empty_with_transform));
+    instances.push_back(create_transform(r));
 
   // destroy
   auto& dead = get_first_component<SINGLETON_EntityBinComponent>(r);

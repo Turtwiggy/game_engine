@@ -92,7 +92,7 @@ find_animation(const SINGLE_Animations& anims, const std::string& name)
 }
 
 void
-set_sprite(entt::registry& r, const entt::entity& e, const std::string& sprite)
+set_sprite(entt::registry& r, const entt::entity e, const std::string& sprite)
 {
   const auto& anims = get_first_component<SINGLE_Animations>(r);
   const auto [spritesheet, anim] = find_animation(anims, sprite);
@@ -103,7 +103,7 @@ set_sprite(entt::registry& r, const entt::entity& e, const std::string& sprite)
 };
 
 void
-set_sprite_custom(entt::registry& r, const entt::entity& e, const std::string& sprite, int tex_unit)
+set_sprite_custom(entt::registry& r, const entt::entity e, const std::string& sprite, int tex_unit)
 {
   const auto& anims = get_first_component<SINGLE_Animations>(r);
   const auto [spritesheet, anim] = find_animation(anims, sprite);

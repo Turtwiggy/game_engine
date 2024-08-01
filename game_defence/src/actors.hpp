@@ -16,14 +16,14 @@ enum class EntityType
   // as the order is used for unique-ids when saved to disk
   // probably should do something else
 
-  empty_no_transform,
+  // empty_no_transform, // use create_empty instead
   empty_with_transform,
   empty_with_physics,
 
   // actors with only one type (so far)
-  actor_hearth,
-  actor_spawner,
-  actor_turret,
+  // actor_hearth,
+  // actor_spawner,
+  // actor_turret,
 
   // solids
   solid_wall,
@@ -31,13 +31,11 @@ enum class EntityType
   // overworld
   actor_player, // overworld player
   actor_enemy_patrol,
-  actor_asteroid,
-  actor_spacestation,
 
   // dungeon
-  actor_barricade,
   actor_unit_rtslike, // selectable and moveable
   actor_barrel,
+  // actor_barricade,
   weapon_shotgun,
   // weapon_bow,
   // weapon_pistol,
@@ -81,6 +79,10 @@ SpriteComponent
 create_sprite(entt::registry& r, const std::string& sprite, const EntityType& type);
 
 [[nodiscard]] entt::entity
-create_gameplay(entt::registry& r, const EntityType& type);
+create_transform(entt::registry& r);
+
+// have to set position for physics entities
+[[nodiscard]] entt::entity
+create_gameplay(entt::registry& r, const EntityType& type, const glm::vec2& position);
 
 } // namespace game2d

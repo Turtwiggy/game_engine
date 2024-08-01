@@ -33,7 +33,7 @@ struct LinearTexture
   int nr_components;
   int texture_unit;
   std::string path;
-  unsigned char* data; // linear colour 0-255
+  std::vector<float> data; // linear colour 0-1
 };
 
 void

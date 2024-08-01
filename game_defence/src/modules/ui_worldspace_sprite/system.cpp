@@ -97,7 +97,7 @@ update_ui_worldspace_sprite_system(entt::registry& r)
           continue;
         }
 
-        const auto sprite_e = create_gameplay(r, EntityType::empty_with_transform);
+        const auto sprite_e = create_transform(r);
         r.get<TagComponent>(sprite_e).tag = "empty_with_transform:QuipText";
 
         // work out the position of the letter.

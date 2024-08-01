@@ -8,10 +8,12 @@
 
 #include <fmt/core.h>
 
+#include <algorithm>
+
 namespace game2d {
 
 void
-move_entity_on_map(entt::registry& r, const entt::entity& src_e, const glm::ivec2& dst)
+move_entity_on_map(entt::registry& r, const entt::entity src_e, const glm::ivec2& dst)
 {
   auto& map = get_first_component<MapComponent>(r);
 
@@ -21,15 +23,24 @@ move_entity_on_map(entt::registry& r, const entt::entity& src_e, const glm::ivec
 
   // remove from current gridpos
   const auto hmm =
-    std::remove_if(map.map[src_idx].begin(), map.map[src_idx].end(), [&src_e](const entt::entity& a) { return a == src_e; });
+    std::remove_if(map.map[src_idx].begin(), map.map[src_idx].end(), [&src_e](const entt::entity a) { return a == src_e; });
   map.map[src_idx].erase(hmm, map.map[src_idx].end());
 
   // immediately update the map so that other entities would prefer not to pathfind to the destination
   map.map[dst_idx].push_back(src_e);
+
+  // remove invalid ents...
+  auto& ents_at_src = map.map[src_idx];
+  std::erase_if(ents_at_src, [&r](const entt::entity& e) {
+    const bool invalid = !r.valid(e);
+    if (invalid)
+      fmt::println("warning.. map contains invalid entity. check this out!");
+    return invalid;
+  });
 };
 
 int
-get_lowest_cost_neighbour(entt::registry& r, const MapComponent& map, const int src_idx, const entt::entity& e)
+get_lowest_cost_neighbour(entt::registry& r, const MapComponent& map, const int src_idx, const entt::entity e)
 {
   const auto dst = get_position(r, e);
   const auto dst_idx = convert_position_to_index(map, dst);
@@ -65,6 +76,8 @@ get_lowest_cost_neighbour(entt::registry& r, const MapComponent& map, const int 
 
     auto& map_entries = map.map[n_idx];
     for (const auto& map_e : map_entries) {
+      if (!r.valid(map_e))
+        continue;
       const auto& pathfinding_c = r.get<PathfindComponent>(map_e);
       idx_to_cost.push_back({ n_idx, pathfinding_c.cost });
       continue;
@@ -91,7 +104,7 @@ get_lowest_cost_neighbour(entt::registry& r, const MapComponent& map, const int 
 
 // Attach a GeneratedPath to the enemy unit. HasTargetPosition gets overwritten.
 void
-update_path_to_tile_next_to_player(entt::registry& r, const entt::entity& src_e, const entt::entity& dst_e, const int limit)
+update_path_to_tile_next_to_player(entt::registry& r, const entt::entity src_e, const entt::entity dst_e, const int limit)
 {
   const auto& map = get_first_component<MapComponent>(r); // gets updated if units was dead
   const glm::ivec2 offset = { map.tilesize / 2, map.tilesize / 2 };
@@ -116,7 +129,7 @@ update_path_to_tile_next_to_player(entt::registry& r, const entt::entity& src_e,
 };
 
 std::vector<glm::ivec2>
-generate_path(entt::registry& r, const entt::entity& src_e, const glm::ivec2& worldspace_pos, const int limit)
+generate_path(entt::registry& r, const entt::entity src_e, const glm::ivec2& worldspace_pos, const int limit)
 {
   const auto& map = get_first_component<MapComponent>(r);
 
@@ -141,7 +154,7 @@ generate_path(entt::registry& r, const entt::entity& src_e, const glm::ivec2& wo
 };
 
 void
-update_entity_path(entt::registry& r, const entt::entity& src_e, const std::vector<glm::ivec2>& path)
+update_entity_path(entt::registry& r, const entt::entity src_e, const std::vector<glm::ivec2>& path)
 {
   if (path.size() == 0)
     return;

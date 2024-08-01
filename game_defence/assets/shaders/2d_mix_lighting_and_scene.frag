@@ -251,10 +251,10 @@ void main()
 	vec3 scene_col = lin_to_srgb(scene_lin.rgb);
 
 	if(add_grid){
-		scene_col + grid_col;
+		scene_col + grid_col; // WRONG SRGB+SRGB
 	}
 	if(put_starshader_behind){
-		scene_col = stars.rgb + scene_col;
+		scene_col = stars.rgb + scene_col;  // WRONG SRGB+SRGB
 		out_color.rgb = scene_col;
 		return;
 	}

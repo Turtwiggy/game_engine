@@ -5,16 +5,14 @@
 #include "components.hpp"
 #include "entt/helpers.hpp"
 #include "helpers/line.hpp"
-#include "imgui.h"
 #include "maths/grid.hpp"
 #include "maths/maths.hpp"
 #include "modules/actors/helpers.hpp"
 #include "modules/combat_damage/components.hpp"
+#include "modules/gen_dungeons/helpers/collisions.hpp"
 #include "modules/grid/components.hpp"
 #include "modules/scene/helpers.hpp"
 #include "modules/ui_combat_turnbased/components.hpp"
-#include "modules/ux_hoverable/components.hpp"
-#include "physics/helpers.hpp"
 #include "renderer/components.hpp"
 
 #include <algorithm>
@@ -161,8 +159,7 @@ generate_rooms(entt::registry& r, const DungeonGenerationCriteria& data, engine:
 entt::entity
 create_wall(entt::registry& r, const glm::ivec2& pos, const glm::ivec2& size)
 {
-  const auto wall_e = create_gameplay(r, EntityType::solid_wall);
-  set_position(r, wall_e, pos);
+  const auto wall_e = create_gameplay(r, EntityType::solid_wall, pos);
   set_size(r, wall_e, size);
   set_colour(r, wall_e, { 1.0f, 1.0f, 1.0f, 1.0f });
   r.get<TagComponent>(wall_e).tag = "dungeon-wall";
@@ -362,9 +359,8 @@ instantiate_walls(entt::registry& r, std::vector<Line>& lines, DungeonGeneration
       fmt::println("error: did not add enough lines for room to be covered.");
 
     // instantiate room
-    const auto room_to_create = create_gameplay(r, EntityType::empty_with_transform);
+    const auto room_to_create = create_gameplay(r, EntityType::empty_with_transform, worldspace_center);
     r.get<TagComponent>(room_to_create).tag = "empty_with_transform:Room";
-    set_position(r, room_to_create, worldspace_center);
     set_size(r, room_to_create, worldspace_size);
     r.emplace<Room>(room_to_create, room);
 
@@ -396,7 +392,8 @@ set_generated_entity_positions(entt::registry& r, DungeonGenerationResults& resu
 {
   const auto& map_c = get_first_component<MapComponent>(r);
   const auto& data = get_first_component<OverworldToDungeonInfo>(r);
-  const int strength = data.patrol_that_you_hit.strength;
+  // const int strength = data.patrol_that_you_hit.strength;
+  const int strength = 10; // TODO: fix this
   auto& rooms = results.rooms;
 
   const int max_attempts_to_generate_unique_spot = 3;
@@ -461,11 +458,11 @@ inside_room(const MapComponent& map, const std::vector<Room>& rooms, const glm::
   // const auto worldpos = gridpos * map.tilesize;
   // const auto worldpos_center = worldpos + offset;
 
-  AABB aabb;
+  RoomAABB aabb;
   aabb.center = gridpos;
   aabb.size = { glm::abs(1), glm::abs(1) };
 
-  for (const auto& room : rooms) {
+  for (const Room& room : rooms) {
     // // create aabb for room
     // AABB room_worldspace_aabb;
     // room_worldspace_aabb.center = room.aabb.center * map.tilesize;

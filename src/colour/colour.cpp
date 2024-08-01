@@ -1,25 +1,25 @@
 #include "colour/colour.hpp"
 
-#include <math.h>
+#include <cmath>
 
 namespace engine {
 
 // This function really should be constexpr but math pow isnt constexpr
-float
+constexpr float
 SRGBFloatToLinearFloat(const float f)
 {
   if (f <= 0.04045f)
     return f / 12.92f;
-  return pow((f + 0.055f) / 1.055f, 2.4f);
+  return std::pow((f + 0.055f) / 1.055f, 2.4f);
 };
 
 // This function really should be constexpr but math pow isnt constexpr
-float
+constexpr float
 LinearFloatToSRGBFloat(const float f)
 {
   if (f <= 0.0031308f)
     return 12.92f * f;
-  return 1.055f * pow(f, 1.0f / 2.4f) - 0.055f;
+  return 1.055f * std::pow(f, 1.0f / 2.4f) - 0.055f;
 };
 
 LinearColour

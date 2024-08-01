@@ -1,3 +1,4 @@
+box2d
 glm
 sdl2
 sdl2-mixer[core, mpg123]

@@ -1,6 +1,7 @@
 #include "system.hpp"
 
 #include "entt/helpers.hpp"
+#include "modules/actors/helpers.hpp"
 #include "modules/combat_damage/components.hpp"
 #include "modules/renderer/components.hpp"
 #include "modules/renderer/helpers.hpp"
@@ -19,12 +20,13 @@ update_ui_combat_info_in_worldspace_system(entt::registry& r)
   // display all units hp/defence in worldspace
   // only display if the unit is hovered with a mouse
 
-  const auto& view = r.view<const HealthComponent, const DefenceComponent, const AABB>();
-  for (const auto& [e, hp, defence, aabb] : view.each()) {
+  const auto& view = r.view<const HealthComponent, const DefenceComponent>();
+  for (const auto& [e, hp, defence] : view.each()) {
+    const auto size = get_size(r, e);
 
     auto& worldspace_ui = r.get_or_emplace<WorldspaceTextComponent>(e);
     // worldspace_ui.text = "HP:"s + std::to_string(hp.hp) + " DEF:" + std::to_string(defence.armour);
-    worldspace_ui.offset.y = -1.25f * aabb.size.y; // place above
+    worldspace_ui.offset.y = -1.25f * size.y; // place above
 
     // set imgui layout that gets positioned in worldspace
 

@@ -7,12 +7,12 @@
 #include "maths/maths.hpp"
 #include "modules/actor_enemy/components.hpp"
 #include "modules/actor_player/components.hpp"
-#include "modules/actor_turret/helpers.hpp"
 #include "modules/actors/helpers.hpp"
 #include "modules/algorithm_astar_pathfinding/helpers.hpp"
 #include "modules/combat_damage/components.hpp"
 #include "modules/combat_wants_to_shoot/components.hpp"
 #include "modules/gen_dungeons/components.hpp"
+#include "modules/gen_dungeons/helpers/collisions.hpp"
 #include "modules/grid/components.hpp"
 #include "modules/grid/helpers.hpp"
 #include "modules/system_turnbased/components.hpp"
@@ -25,7 +25,7 @@
 namespace game2d {
 
 std::optional<Room>
-get_a_room(entt::registry& r, const entt::entity& e)
+get_a_room(entt::registry& r, const entt::entity e)
 {
   const auto& map = get_first_component<MapComponent>(r);
 
@@ -36,7 +36,8 @@ get_a_room(entt::registry& r, const entt::entity& e)
 
   const auto e_pos = get_position(r, e);
   const auto e_gridpos = engine::grid::worldspace_to_grid_space(e_pos, map.tilesize);
-  AABB e_as_aabb = AABB();
+
+  RoomAABB e_as_aabb = RoomAABB();
   e_as_aabb.center = e_gridpos;
   e_as_aabb.size = { 1, 1 };
 
@@ -48,7 +49,7 @@ get_a_room(entt::registry& r, const entt::entity& e)
 };
 
 std::vector<entt::entity>
-get_players_in_room(entt::registry& r, const entt::entity& e)
+get_players_in_room(entt::registry& r, const entt::entity e)
 {
   const auto gen_e = get_first<DungeonGenerationResults>(r);
   if (gen_e == entt::null)
@@ -68,12 +69,13 @@ get_players_in_room(entt::registry& r, const entt::entity& e)
   }
 
   // get within range.
-  const auto entity = get_within_range<TurnBasedUnitComponent, TeamComponent>(r, e, 100 * 100);
-  for (const auto& [team_e, range] : entity) {
-    const auto& team = r.get<TeamComponent>(team_e);
-    if (team.team == AvailableTeams::player)
-      players.push_back(team_e);
-  }
+  // need to implement something on top of box2d. argh.
+  // const auto entity = get_within_range<TurnBasedUnitComponent, TeamComponent>(r, e, 100 * 100);
+  // for (const auto& [team_e, range] : entity) {
+  //   const auto& team = r.get<TeamComponent>(team_e);
+  //   if (team.team == AvailableTeams::player)
+  //     players.push_back(team_e);
+  // }
 
   // sort players by range
   // std::sort(players.begin(), players.end(), [](const auto& l, const auto& r) { return l.second < r.second; });
@@ -82,7 +84,7 @@ get_players_in_room(entt::registry& r, const entt::entity& e)
 };
 
 void
-move_action(entt::registry& r, const entt::entity& e)
+move_action(entt::registry& r, const entt::entity e)
 {
   const auto players = get_players_in_room(r, e);
   if (players.size() > 0) {
@@ -128,7 +130,7 @@ move_action(entt::registry& r, const entt::entity& e)
 }
 
 void
-shoot_action(entt::registry& r, const entt::entity& e)
+shoot_action(entt::registry& r, const entt::entity e)
 {
   // shoot if possible!
   const auto players = get_players_in_room(r, e);

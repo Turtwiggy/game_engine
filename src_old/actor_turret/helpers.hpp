@@ -16,11 +16,11 @@
 namespace game2d {
 
 [[nodiscard]] entt::entity
-get_closest(entt::registry& r, const entt::entity& e);
+get_closest(entt::registry& r, const entt::entity e);
 
 template<typename... Component>
 [[nodiscard]] std::set<std::pair<entt::entity, int>>
-get_within_range(entt::registry& r, const entt::entity& e, const int d2_max)
+get_within_range(entt::registry& r, const entt::entity e, const int d2_max)
 {
   const auto& physics = get_first_component<const SINGLETON_PhysicsComponent>(r);
   const auto& t = r.get<TransformComponent>(e);
@@ -43,7 +43,7 @@ get_within_range(entt::registry& r, const entt::entity& e, const int d2_max)
   if (!idx_y.has_value())
     return {};
 
-  const auto entity_in_range = [&r, &t, &d2_max](const entt::entity& other) -> std::pair<bool, int> {
+  const auto entity_in_range = [&r, &t, &d2_max](const entt::entity other) -> std::pair<bool, int> {
     // calculate distance
     const auto& other_pos = r.get<TransformComponent>(other);
     const auto d = t.position - other_pos.position;

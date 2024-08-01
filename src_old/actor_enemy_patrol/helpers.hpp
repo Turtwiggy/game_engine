@@ -7,6 +7,6 @@
 namespace game2d {
 
 void
-update_patrol_from_desc(entt::registry& r, const entt::entity& e, const PatrolDescription& desc);
+update_patrol_from_desc(entt::registry& r, const entt::entity e, const PatrolDescription& desc);
 
 } // namespace game2d

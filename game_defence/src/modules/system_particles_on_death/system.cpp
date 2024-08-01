@@ -16,7 +16,7 @@ update_spawn_particles_on_death_system(entt::registry& r)
   const auto& view = r.view<RequestToSpawnParticles>(entt::exclude<WaitForInitComponent>);
   for (const auto& [e, req] : view.each()) {
 
-    const auto particle_emitter = create_gameplay(r, EntityType::empty_with_transform);
+    const auto particle_emitter = create_transform(r);
     set_size(r, particle_emitter, { 0, 0 }); // no size just script, but need position
     set_position(r, particle_emitter, req.position);
 

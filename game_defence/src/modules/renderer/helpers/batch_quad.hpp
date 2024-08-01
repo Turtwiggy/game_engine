@@ -17,8 +17,8 @@ namespace quad_renderer {
 // data required per sprite
 struct RenderDescriptor
 {
-  glm::ivec2 pos_tl = { 0, 0 };
-  glm::ivec2 size = { 1, 1 };
+  glm::vec2 pos_tl = { 0, 0 };
+  glm::vec2 size = { 1, 1 };
   float angle_radians = 0.0f;
   LinearColour colour;
 

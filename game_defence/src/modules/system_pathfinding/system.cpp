@@ -6,8 +6,9 @@
 #include "maths/grid.hpp"
 #include "modules/actors/helpers.hpp"
 #include "modules/algorithm_astar_pathfinding/components.hpp"
+#include "modules/combat_wants_to_shoot/components.hpp"
 #include "modules/grid/components.hpp"
-#include "modules/lerp_to_target/components.hpp"
+#include "modules/system_move_to_target_via_lerp/components.hpp"
 #include "physics/components.hpp"
 #include "renderer/transform.hpp"
 
@@ -27,12 +28,9 @@ update_pathfinding_system(entt::registry& r, const float& dt)
   // if something was killed, remove it from the map
   const auto& dead = get_first_component<SINGLETON_EntityBinComponent>(r);
   for (const auto& e : dead.dead) {
-    const auto& type = r.get<EntityTypeComponent>(e);
-
-    if (type.type == EntityType::actor_unit_rtslike) {
+    if (r.get<EntityTypeComponent>(e).type == EntityType::actor_unit_rtslike) {
       const auto gs = engine::grid::worldspace_to_grid_space(get_position(r, e), map.tilesize);
       const auto idx = engine::grid::grid_position_to_index(gs, map.xmax);
-
       // Warning: this nukes the entire gridcell.
       // If there's multiple things in the cell,
       // that could cause issues.
@@ -40,10 +38,11 @@ update_pathfinding_system(entt::registry& r, const float& dt)
     }
   }
 
-  const auto& pathfinding = r.view<const AABB, HasTargetPositionComponent, GeneratedPathComponent>();
-  for (const auto& [e, aabb, target, path] : pathfinding.each()) {
+  // anything with a path attached
+  const auto& pathfinding = r.view<GeneratedPathComponent, StaticTargetComponent>();
 
-    const auto& cur = aabb.center;
+  for (const auto& [e, path, target_c] : pathfinding.each()) {
+    const auto cur = get_position(r, e);
     auto cur_gridpos = engine::grid::worldspace_to_grid_space(glm::vec2(cur.x, cur.y), map.tilesize);
     cur_gridpos.x = glm::clamp(cur_gridpos.x, 0, map.xmax - 1);
     cur_gridpos.y = glm::clamp(cur_gridpos.y, 0, map.ymax - 1);
@@ -59,7 +58,7 @@ update_pathfinding_system(entt::registry& r, const float& dt)
     std::optional<glm::ivec2> dst_gridpos_dynamic = std::nullopt;
     std::optional<glm::ivec2> dst_worldpos_dynamic = std::nullopt;
     if (path.dst_ent != entt::null) {
-      dst_worldpos_dynamic = r.get<AABB>(path.dst_ent).center;
+      dst_worldpos_dynamic = get_position(r, path.dst_ent);
       dst_gridpos_dynamic = engine::grid::worldspace_to_grid_space(dst_worldpos_dynamic.value(), map.tilesize);
       dst_gridpos_dynamic.value().x = glm::clamp(dst_gridpos_dynamic.value().x, 0, map.xmax - 1);
       dst_gridpos_dynamic.value().y = glm::clamp(dst_gridpos_dynamic.value().y, 0, map.ymax - 1);
@@ -79,7 +78,7 @@ update_pathfinding_system(entt::registry& r, const float& dt)
     // probably clicked either on invalid spot, or spot in same gridspace
     const bool in_same_gridspace = cur_gridpos == dst_gridpos_dynamic;
     if ((path.path.size() == 0 || in_same_gridspace) && dst_worldpos_dynamic.has_value()) {
-      target.position = dst_worldpos_dynamic.value();
+      target_c.target = dst_worldpos_dynamic.value();
     }
 
     for (int i = 0; const auto p : path.path) {
@@ -97,13 +96,13 @@ update_pathfinding_system(entt::registry& r, const float& dt)
         // move towards center of the current tile
         if (!path.path_cleared[i]) {
           const auto target_pos = engine::grid::grid_space_to_world_space(cur_gridpos, map.tilesize);
-          target.position = target_pos;
-          target.position.value() += glm::vec2(map.tilesize / 2.0f, map.tilesize / 2.0f);
+          target_c.target = target_pos;
+          target_c.target.value() += glm::vec2(map.tilesize / 2.0f, map.tilesize / 2.0f);
         }
 
         // check if within distance of the center of the gridpos
         if (!path.path_cleared[i]) {
-          const auto d = aabb.center - target.position.value();
+          const auto d = get_position(r, e) - target_c.target.value();
           const float d2 = d.x * d.x + d.y * d.y;
           const float threshold = 6;
           if (d2 <= threshold) {
@@ -135,14 +134,14 @@ update_pathfinding_system(entt::registry& r, const float& dt)
           const auto next_pos = path.path[next_idx];
           const auto target_pos = engine::grid::grid_space_to_world_space(next_pos, map.tilesize);
           // center, not top left
-          target.position = target_pos;
-          target.position.value() += glm::vec2(map.tilesize / 2.0f, map.tilesize / 2.0f);
+          target_c.target = target_pos;
+          target_c.target.value() += glm::vec2(map.tilesize / 2.0f, map.tilesize / 2.0f);
 
           auto* lerping_to_target = r.try_get<LerpingToTarget>(e);
           if (lerping_to_target == nullptr) {
             LerpingToTarget data;
-            data.a = aabb.center;
-            data.b = target.position.value();
+            data.a = cur;
+            data.b = target_c.target.value();
             data.t = 0.0f;
             r.emplace_or_replace<LerpingToTarget>(e, data);
           }
@@ -157,8 +156,8 @@ update_pathfinding_system(entt::registry& r, const float& dt)
         if (is_valid_next_index) {
           const auto next_pos = path.path[next_idx];
           const auto target_pos = engine::grid::grid_space_to_world_space(next_pos, map.tilesize);
-          target.position = target_pos; // center, not top left
-          target.position.value() += glm::vec2(map.tilesize / 2.0f, map.tilesize / 2.0f);
+          target_c.target = target_pos; // center, not top left
+          target_c.target.value() += glm::vec2(map.tilesize / 2.0f, map.tilesize / 2.0f);
           break;
         }
       }

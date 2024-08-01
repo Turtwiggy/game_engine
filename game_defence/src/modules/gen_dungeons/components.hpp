@@ -8,10 +8,16 @@
 
 namespace game2d {
 
+struct RoomAABB
+{
+  glm::ivec2 center{ 0, 0 };
+  glm::ivec2 size{ 0, 0 };
+};
+
 struct Room
 {
   glm::ivec2 tl{ 0, 0 };
-  AABB aabb; // aabb is in tile-space, not world-space.
+  RoomAABB aabb; // aabb is in tile-space, not world-space.
 
   // occupied only accurate at generation stage
   std::vector<glm::ivec2> occupied;

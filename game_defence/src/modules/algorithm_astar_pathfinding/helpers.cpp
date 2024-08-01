@@ -333,7 +333,7 @@ convert_position_to_index(const MapComponent& map, const glm::ivec2& pos)
 };
 
 bool
-has_destination(entt::registry& r, const entt::entity& src_e)
+has_destination(entt::registry& r, const entt::entity src_e)
 {
   if (auto* existing_path = r.try_get<GeneratedPathComponent>(src_e))
     return existing_path->path.size() > 0;
@@ -341,7 +341,7 @@ has_destination(entt::registry& r, const entt::entity& src_e)
 };
 
 bool
-at_destination(entt::registry& r, const entt::entity& src_e)
+at_destination(entt::registry& r, const entt::entity src_e)
 {
   const auto& map = get_first_component<MapComponent>(r);
 
@@ -370,17 +370,12 @@ at_destination(entt::registry& r, const entt::entity& src_e)
 bool
 destination_is_blocked(entt::registry& r, const glm::ivec2 worldspace_pos)
 {
-  const auto& map = get_first_component<MapComponent>(r);
+  auto& map = get_first_component<MapComponent>(r);
   const auto idx = engine::grid::worldspace_to_index(worldspace_pos, map.tilesize, map.xmax, map.ymax);
 
-  for (const auto& ent : map.map[idx]) {
-    if (!r.valid(ent)) {
-      fmt::println("Map contains invalid entity... check this out!");
-      continue;
-    }
-
+  for (const auto& e : map.map[idx]) {
     // something exists, so it should have a pathfind component
-    const auto& comp = r.get<PathfindComponent>(ent);
+    const auto& comp = r.get<PathfindComponent>(e);
     if (comp.cost == -1)
       return true;
 

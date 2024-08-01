@@ -29,18 +29,15 @@ update_entered_new_room_system(entt::registry& r, const float dt)
   const auto& map = get_first_component<MapComponent>(r);
   const auto& dungeon = get_first_component<DungeonGenerationResults>(r);
 
-  const auto& view = r.view<PlayerComponent, AABB>();
+  const auto& view = r.view<PlayerComponent, RoomAABB>();
   for (const auto& [e, player, player_aabb] : view.each()) {
     const auto player_gridspace = engine::grid::worldspace_to_grid_space(player_aabb.center, map.tilesize);
-
     const auto [in_room, room] = inside_room(map, dungeon.rooms, player_gridspace);
     if (in_room) {
       auto& player_in_room = r.get_or_emplace<PlayerInRoomComponent>(e);
-
       // player was never in a room
       if (!player_in_room.room_tl.has_value())
         player_in_room.room_tl = room->tl;
-
       // player entered a new room...
       if (player_in_room.room_tl.has_value() && player_in_room.room_tl.value() != room->tl) {
         // boom! entered a new room
@@ -48,7 +45,6 @@ update_entered_new_room_system(entt::registry& r, const float dt)
         data.player = e;
         data.room = room.value();
         create_empty<PlayerEnteredNewRoom>(r, data);
-
         player_in_room.room_tl = room.value().tl;
       }
     }

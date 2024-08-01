@@ -74,8 +74,7 @@ load_texture_linear(const int tex_unit, const std::string& path)
   linear.nr_components = nr_components;
   linear.texture_unit = tex_unit;
   linear.path = path;
-  // linear.data = new float[width * height * nr_components];
-  linear.data = new unsigned char[width * height * nr_components];
+  linear.data.resize(width * height * nr_components);
 
   for (int i = 0; i < srgb.width; i++) {
     for (int j = 0; j < srgb.height; j++) {
@@ -89,18 +88,18 @@ load_texture_linear(const int tex_unit, const std::string& path)
       if (srgb.nr_components > 3)
         a = static_cast<int>(pixel_offset[3]);
 
-      SRGBColour srgbcol = { r, g, b, a / 255.0f };
-      LinearColour lincol = SRGBToLinear(srgbcol);
-      int lin_r = static_cast<int>(lincol.r * 255.0f);
-      int lin_g = static_cast<int>(lincol.g * 255.0f);
-      int lin_b = static_cast<int>(lincol.b * 255.0f);
+      const SRGBColour srgbcol = { r, g, b, a / 255.0f };
+      const LinearColour lincol = SRGBToLinear(srgbcol);
+      const float lin_r = lincol.r;
+      const float lin_g = lincol.g;
+      const float lin_b = lincol.b;
 
       linear.data[offset + 0] = lin_r;
       linear.data[offset + 1] = lin_g;
       linear.data[offset + 2] = lin_b;
 
       if (srgb.nr_components == 4)
-        linear.data[offset + 3] = static_cast<int>(lincol.a * 255.0f);
+        linear.data[offset + 3] = lincol.a;
     }
   }
 
@@ -115,7 +114,7 @@ bind_linear_texture(const LinearTexture& texture)
   const int width = texture.width;
   const int height = texture.height;
   const int nr_components = texture.nr_components;
-  unsigned char* data = texture.data;
+  const auto& data = texture.data;
 
   unsigned int texture_id;
   glGenTextures(1, &texture_id);
@@ -130,14 +129,13 @@ bind_linear_texture(const LinearTexture& texture)
 
   glActiveTexture(GL_TEXTURE0 + tex_unit);
   glBindTexture(GL_TEXTURE_2D, texture_id);
-  glTexImage2D(GL_TEXTURE_2D, 0, format, width, height, 0, format, GL_UNSIGNED_BYTE, data);
+  glTexImage2D(GL_TEXTURE_2D, 0, format, width, height, 0, format, GL_FLOAT, data.data());
   glGenerateMipmap(GL_TEXTURE_2D);
   glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
   glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
   glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_LINEAR);
   glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
 
-  stbi_image_free(data); // no longer need the texture data
   unbind_tex();
   return texture_id;
 };
@@ -151,7 +149,7 @@ engine::update_bound_texture_size(const glm::ivec2 size)
     fmt::println("(update_bound_texture_size) ERROR: Invalid resize for texture");
     return;
   }
-  glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, size.x, size.y, 0, GL_RGBA, GL_UNSIGNED_BYTE, NULL);
+  glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, size.x, size.y, 0, GL_RGBA, GL_FLOAT, NULL);
 };
 
 std::vector<unsigned int>
@@ -170,7 +168,7 @@ add_textures_to_fbo(const glm::ivec2& size, const int num_colour_buffers)
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
-    glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, size.x, size.y, 0, GL_RGBA, GL_UNSIGNED_BYTE, NULL);
+    glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, size.x, size.y, 0, GL_RGBA, GL_FLOAT, NULL);
 
     // attach it to the currently bound framebuffer object
     glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0 + i, GL_TEXTURE_2D, tex_id, 0);

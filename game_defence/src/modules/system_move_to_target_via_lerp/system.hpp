@@ -5,6 +5,6 @@
 namespace game2d {
 
 void
-update_ui_patrol_system(entt::registry& r);
+update_move_to_target_via_lerp(entt::registry& r, const float& dt);
 
 } // namespace game2d

@@ -7,6 +7,7 @@
 #include "modules/actors/helpers.hpp"
 #include "modules/combat_attack_cooldown/components.hpp"
 #include "modules/combat_attack_cooldown/helpers.hpp"
+#include "modules/combat_wants_to_shoot/components.hpp"
 #include "modules/system_particles/helpers.hpp"
 #include "renderer/transform.hpp"
 
@@ -15,32 +16,13 @@ namespace game2d {
 void
 update_particle_system(entt::registry& r, const float dt)
 {
-  auto& dead = get_first_component<SINGLETON_EntityBinComponent>(r);
-
-  // TEMP: should not be here.
-  // set position to parents position
-  for (const auto& [e, request, has_parent] :
-       r.view<const SetPositionToParentsPosition, const HasParentComponent>().each()) {
-
-    // particle emitter's parent has died
-    if (has_parent.parent == entt::null || !r.valid(has_parent.parent)) {
-      r.emplace<WaitForInitComponent>(e);
-      dead.dead.emplace(e);
-      continue;
-    }
-
-    const glm::ivec2 base_position = get_position(r, has_parent.parent);
-    const glm::ivec2 pos = base_position + request.offset;
-    set_position(r, e, pos);
-  }
-
-  const auto spawn_particle = [&r](ParticleEmitterComponent& emitter, const entt::entity& e) {
+  const auto spawn_particle = [&r](ParticleEmitterComponent& emitter, const entt::entity e) {
     // per-instance? seems bad
     ParticleDescription particle_description = emitter.particle_to_emit;
 
     // instead of spawning at emitter position, spawn at parent position
-    if (auto* parent = r.try_get<HasParentComponent>(e))
-      particle_description.position = get_position(r, parent->parent);
+    if (auto* target_c = r.try_get<DynamicTargetComponent>(e))
+      particle_description.position = get_position(r, target_c->target);
 
     if (emitter.random_velocity) {
       static engine::RandomState rnd;

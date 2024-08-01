@@ -12,31 +12,24 @@
 #include "maths/grid.hpp"
 #include "maths/maths.hpp"
 #include "modules/actor_enemy/components.hpp"
-#include "modules/actor_enemy_patrol/components.hpp"
-#include "modules/actor_enemy_patrol/helpers.hpp"
 #include "modules/actor_player/components.hpp"
-#include "modules/actor_spacestation/components.hpp"
-#include "modules/actor_spawner/components.hpp"
 #include "modules/actors/helpers.hpp"
-#include "modules/algorithm_procedural/poisson.hpp"
-#include "modules/animation/components.hpp"
 #include "modules/camera/components.hpp"
 #include "modules/camera/orthographic.hpp"
 #include "modules/combat_damage/components.hpp"
 #include "modules/combat_wants_to_shoot/components.hpp"
 #include "modules/debug_pathfinding/components.hpp"
-#include "modules/entt/serialize.hpp"
 #include "modules/gameover/components.hpp"
 #include "modules/gen_dungeons/components.hpp"
 #include "modules/grid/components.hpp"
 #include "modules/grid/helpers.hpp"
-#include "modules/lerp_to_target/components.hpp"
 #include "modules/renderer/components.hpp"
 #include "modules/renderer/helpers.hpp"
 #include "modules/scene_splashscreen_move_to_menu/components.hpp"
 #include "modules/screenshake/components.hpp"
 #include "modules/system_distance_check/components.hpp"
 #include "modules/system_minigame_bamboo/components.hpp"
+#include "modules/system_overworld_fake_fight/components.hpp"
 #include "modules/system_quips/components.hpp"
 #include "modules/system_turnbased_enemy/components.hpp"
 #include "modules/ui_colours/components.hpp"
@@ -48,7 +41,6 @@
 #include "modules/ux_hoverable/components.hpp"
 #include "modules/vfx_grid/components.hpp"
 #include "physics/components.hpp"
-#include "renderer/components.hpp"
 #include "renderer/transform.hpp"
 #include "sprites/helpers.hpp"
 #include <nlohmann/json.hpp>
@@ -66,13 +58,8 @@ create_combat_entity(entt::registry& r, const CombatEntityDescription& desc)
 {
   const auto& pos = desc.position;
 
-  // create weapon before player to draw on top
-  const auto weapon = create_gameplay(r, EntityType::weapon_shotgun);
-  r.emplace_or_replace<TeamComponent>(weapon, TeamComponent{ desc.team });
-
   // base entity
-  const auto e = create_gameplay(r, EntityType::actor_unit_rtslike);
-  set_position(r, e, pos);
+  const auto e = create_gameplay(r, EntityType::actor_unit_rtslike, pos);
   move_entity_on_map(r, e, pos);
   r.emplace_or_replace<TeamComponent>(e, TeamComponent{ desc.team });
 
@@ -80,9 +67,10 @@ create_combat_entity(entt::registry& r, const CombatEntityDescription& desc)
   r.emplace<StaticTargetComponent>(e, glm::ivec2{ desc.position.x + 100, desc.position.y });
 
   // setup weapon
+  const auto weapon = create_gameplay(r, EntityType::weapon_shotgun, get_position(r, e));
+  r.emplace_or_replace<TeamComponent>(weapon, TeamComponent{ desc.team });
   auto& weapon_parent = r.get<HasParentComponent>(weapon);
   weapon_parent.parent = e;
-  set_position(r, weapon, r.get<AABB>(e).center);
 
   // link player&weapon
   HasWeaponComponent has_weapon;
@@ -91,16 +79,10 @@ create_combat_entity(entt::registry& r, const CombatEntityDescription& desc)
 
   if (desc.team == AvailableTeams::player) {
     r.emplace<HoveredColour>(e, engine::SRGBColour{ 0.0f, 1.0f, 1.0f, 1.0f });
-    set_colour(r, e, r.get<DefaultColour>(e).colour);
     r.emplace_or_replace<PlayerComponent>(e);
-
   } else if (desc.team == AvailableTeams::enemy) {
-
     r.emplace<HoveredColour>(e, engine::SRGBColour{ 1.0f, 0.0f, 0.0f, 1.0f });
-    set_colour(r, e, r.get<DefaultColour>(e).colour);
-
     r.emplace_or_replace<EnemyComponent>(e);
-
     r.get<HealthComponent>(e).hp = 50;
     r.get<HealthComponent>(e).max_hp = 50;
 
@@ -116,17 +98,13 @@ void
 add_boundary_walls(entt::registry& r, const int w, const int h, const int tilesize)
 {
   const int half_tile_size = tilesize / 10.0f;
-  const auto wall_l = create_gameplay(r, EntityType::solid_wall);
-  set_position(r, wall_l, { 0, h / 2.0f });
+  const auto wall_l = create_gameplay(r, EntityType::solid_wall, { 0, h / 2.0f });
   set_size(r, wall_l, { half_tile_size, h });
-  const auto wall_r = create_gameplay(r, EntityType::solid_wall);
-  set_position(r, wall_r, { w, h / 2.0f });
+  const auto wall_r = create_gameplay(r, EntityType::solid_wall, { w, h / 2.0f });
   set_size(r, wall_r, { half_tile_size, h });
-  const auto wall_u = create_gameplay(r, EntityType::solid_wall);
-  set_position(r, wall_u, { w / 2.0f, 0 });
+  const auto wall_u = create_gameplay(r, EntityType::solid_wall, { w / 2.0f, 0 });
   set_size(r, wall_u, { w, half_tile_size });
-  const auto wall_d = create_gameplay(r, EntityType::solid_wall);
-  set_position(r, wall_d, { w / 2.0f, h });
+  const auto wall_d = create_gameplay(r, EntityType::solid_wall, { w / 2.0f, h });
   set_size(r, wall_d, { w, half_tile_size });
 }
 
@@ -166,7 +144,7 @@ move_to_scene_menu(entt::registry& r)
     const ImVec2 xy = ImGui::CalcTextSize(label.c_str());
     const float padding = 10;
 
-    const auto e = create_gameplay(r, EntityType::empty_with_transform);
+    const auto e = create_transform(r);
     auto& ui = r.emplace<WorldspaceTextComponent>(e);
     ui.text = label;
     set_position(r, e, { +half_wh.x + (xy.x / 2.0f) + padding, half_wh.y - xy.y - 4 });
@@ -174,10 +152,9 @@ move_to_scene_menu(entt::registry& r)
   };
 
   // create a player for an interactive menu
-  const auto player_e = create_gameplay(r, EntityType::actor_player);
-  set_position(r, player_e, { half_wh.x, 0 });
+  const auto player_e = create_gameplay(r, EntityType::actor_player, { half_wh.x, 0 });
   auto& player_thrust = r.get<MovementAsteroidsComponent>(player_e);
-  player_thrust.able_to_change_thrust = false;
+  player_thrust.able_to_change_thrust = true;
   player_thrust.able_to_change_dir = true;
   player_thrust.thrust = 60;
   auto& player_t = r.get<TransformComponent>(player_e);
@@ -186,20 +163,20 @@ move_to_scene_menu(entt::registry& r)
   r.emplace<CameraFollow>(player_e);
 }
 
+// scene idea:
+// spawn a ship,
+// boost the player ship for X seconds until it reaches the ship,
+// move the already existing player to circle it.
+// this is your "prepare your units phase"...
 void
 move_to_scene_overworld_revamped(entt::registry& r)
 {
   const auto& ri = get_first_component<SINGLETON_RendererInfo>(r);
   const auto half_wh = ri.viewport_size_render_at / glm::ivec2(2.0f, 2.0f);
 
-  // spawn a ship,
-  // boost the player ship for X seconds until it reaches the ship,
-  // move the already existing player to circle it.
-  // this is your "prepare your units phase"...
-
   const auto player_e = get_first<PlayerComponent>(r);
   auto& player_t = r.get<TransformComponent>(player_e);
-  auto& player_vel = r.get<VelocityComponent>(player_e);
+  auto& player_physics = r.get<PhysicsBodyComponent>(player_e);
 
   // remove player's control
   const float previous_thrust = r.get<MovementAsteroidsComponent>(player_e).thrust;
@@ -207,30 +184,21 @@ move_to_scene_overworld_revamped(entt::registry& r)
   r.remove<MovementAsteroidsComponent>(player_e);
 
   // boost the player's ship until it reaches the enemy...
-  player_vel.base_speed = previous_thrust * 10.0f;
+  player_physics.base_speed = previous_thrust * 10.0f;
 
-  // spawn an enemy ship
-  const auto enemy_e = create_gameplay(r, EntityType::actor_enemy_patrol);
+  // spawn an enemy ship (off the screen)
+  const glm::vec2 enemy_pos = { player_t.position.x + half_wh.x * 2, player_t.position.y };
+  const auto enemy_e = create_gameplay(r, EntityType::actor_enemy_patrol, enemy_pos);
   auto& enemy_t = r.get<TransformComponent>(enemy_e);
-  auto& enemy_vel = r.get<VelocityComponent>(enemy_e);
+  auto& enemy_physics = r.get<PhysicsBodyComponent>(enemy_e);
 
   player_t.rotation_radians.z = 0; // player look right
   enemy_t.rotation_radians.z = 0;  // enemy look right
 
+  // intiialize enemy...
   {
-    // update dungeon gen parameters
-    update_patrol_from_desc(r, enemy_e, PatrolDescription{});
-
-    // spawn the enemy off the screen
-    set_position(r, enemy_e, { player_t.position.x + half_wh.x * 2, player_t.position.y });
-
     // get the enemy to slowly move right
-    enemy_vel.x = 50;
-
-    // r.emplace<SetTransformAngleToVelocity>(player_e);
-    r.emplace<SetVelocityToTargetComponent>(player_e);
-    r.emplace<HasTargetPositionComponent>(player_e);
-    r.emplace<FollowTargetComponent>(player_e, enemy_e);
+    enemy_physics.body->SetLinearVelocity({ 5, 0 });
   }
 
   // start circling enemy in this distance...
@@ -240,48 +208,46 @@ move_to_scene_overworld_revamped(entt::registry& r)
   distance_c.d2 = d2;
   distance_c.e0 = player_e;
   distance_c.e1 = enemy_e;
-  distance_c.action = [player_vel, enemy_vel](entt::registry& r) {
-    fmt::println("distance check fired");
+  distance_c.action = [](entt::registry& r) {
     const auto& player_e = get_first<PlayerComponent>(r);
     const auto& enemy_e = get_first<EnemyComponent>(r);
 
-    r.remove<CameraFollow>(player_e);
-    r.remove<FollowTargetComponent>(player_e);
+    // r.remove<CameraFollow>(player_e);
+    // r.remove<FollowTargetComponent>(player_e);
 
-    // lerp the camera to the the enemy
-    const auto camera_e = get_first<OrthographicCamera>(r);
+    // // lerp the camera to the the enemy
+    // const auto camera_e = get_first<OrthographicCamera>(r);
 
-    VelocityComponent vel_c;
-    vel_c.base_speed = player_vel.base_speed + enemy_vel.base_speed;
-    r.emplace<VelocityComponent>(camera_e, vel_c);
-    r.emplace<FollowTargetComponent>(camera_e, enemy_e);
-    r.emplace<SetVelocityToTargetComponent>(camera_e);
-    r.emplace<HasTargetPositionComponent>(camera_e);
+    // VelocityComponent vel_c;
+    // vel_c.base_speed = player_vel.base_speed + enemy_vel.base_speed;
+    // r.emplace<VelocityComponent>(camera_e, vel_c);
+    // r.emplace<FollowTargetComponent>(camera_e, enemy_e);
+    // r.emplace<SetVelocityToTargetComponent>(camera_e);
+    // r.emplace<HasTargetPositionComponent>(camera_e);
 
-    DistanceCheckComponent distance_c_cameratoenemy;
-    distance_c_cameratoenemy.d2 = 2;
-    distance_c_cameratoenemy.e0 = camera_e;
-    distance_c_cameratoenemy.e1 = enemy_e;
-    distance_c_cameratoenemy.action = [camera_e, enemy_e](entt::registry& r) {
-      r.remove<VelocityComponent>(camera_e);
-      r.remove<FollowTargetComponent>(camera_e);
-      r.remove<HasTargetPositionComponent>(camera_e);
-      r.remove<SetVelocityToTargetComponent>(camera_e);
+    // DistanceCheckComponent distance_c_cameratoenemy;
+    // distance_c_cameratoenemy.d2 = 2;
+    // distance_c_cameratoenemy.e0 = camera_e;
+    // distance_c_cameratoenemy.e1 = enemy_e;
+    // distance_c_cameratoenemy.action = [camera_e, enemy_e](entt::registry& r) {
+    //   r.remove<VelocityComponent>(camera_e);
+    //   r.remove<FollowTargetComponent>(camera_e);
+    //   r.remove<HasTargetPositionComponent>(camera_e);
+    //   r.remove<SetVelocityToTargetComponent>(camera_e);
+    //   r.emplace<CameraFollow>(enemy_e);
 
-      r.emplace<CameraFollow>(enemy_e);
-    };
-    create_empty<DistanceCheckComponent>(r, distance_c_cameratoenemy);
+    //   // activate fake-fight system
+    //   create_empty<SINGLE_OverworldFakeFight>(r);
+    // };
+    // create_empty<DistanceCheckComponent>(r, distance_c_cameratoenemy);
 
-    // r.remove<SetTransformAngleToVelocity>(player_e);
-    // r.remove<SetVelocityToTargetComponent>(player_e);
-    // r.remove<HasTargetPositionComponent>(player_e);
-
-    RotateAroundEntity spot;
-    spot.e = enemy_e;
-    spot.theta = -engine::PI; // circle starting on the left
-    spot.distance = glm::sqrt(float(d2));
-    spot.rotate_speed = 0.2f;
-    r.emplace<RotateAroundEntity>(player_e, spot);
+    // get the player to rotate around the enemy
+    // RotateAroundEntity spot;
+    // spot.e = enemy_e;
+    // spot.theta = -engine::PI; // circle starting on the left
+    // spot.distance = glm::sqrt(float(d2));
+    // spot.rotate_speed = 0.2f;
+    // r.emplace<RotateAroundEntity>(player_e, spot);
 
     // get the enemy to quip
     RequestQuip quip_req;
@@ -319,8 +285,19 @@ move_to_scene_start(entt::registry& r, const Scene& s, const bool load_saved)
   const auto& ui = r.view<WorldspaceTextComponent>();
   r.destroy(ui.begin(), ui.end());
 
+  // store one physics world...
+  static b2World world(b2Vec2(0.0f, 0.0f));
+  static b2World* world_ptr = &world;
+  static bool needs_deleting = false;
+  if (needs_deleting) {
+    delete world_ptr;
+    world = b2World{ b2Vec2(0.0f, 0.0f) };
+    world_ptr = &world;
+    needs_deleting = true;
+  }
+  destroy_first_and_create<SINGLE_Physics>(r, SINGLE_Physics{ world_ptr });
+
   destroy_first_and_create<SINGLETON_CurrentScene>(r);
-  destroy_first_and_create<SINGLETON_PhysicsComponent>(r);
   destroy_first_and_create<SINGLETON_EntityBinComponent>(r);
   destroy_first_and_create<SINGLETON_GameStateComponent>(r);
   destroy_first_and_create<SINGLETON_GameOver>(r);
@@ -338,6 +315,7 @@ move_to_scene_start(entt::registry& r, const Scene& s, const bool load_saved)
   destroy_first<SINGLE_TurnBasedCombatInfo>(r);
   destroy_first<DungeonGenerationResults>(r);
   destroy_first<SINGLE_EventConsoleLogComponent>(r);
+  destroy_first<SINGLE_OverworldFakeFight>(r);
   // destroy_first<SINGLE_MainMenuUI>(r);
 
   if (s != Scene::dungeon_designer)
@@ -362,7 +340,7 @@ move_to_scene_start(entt::registry& r, const Scene& s, const bool load_saved)
     destroy_first_and_create<SINGLE_SplashScreen>(r);
 
     // create sprite
-    const auto e = create_gameplay(r, EntityType::empty_with_transform);
+    const auto e = create_transform(r);
     const auto tex_unit = search_for_texture_unit_by_texture_path(ri, "blueberry").value();
     set_sprite_custom(r, e, "STUDIO_LOGO", tex_unit.unit);
     set_size(r, e, { 512, 512 });
@@ -390,7 +368,6 @@ move_to_scene_start(entt::registry& r, const Scene& s, const bool load_saved)
       fmt::println("OverworldToDungeonInfo is null; assuming launch from standalone");
       OverworldToDungeonInfo info;
       info.backstabbed = true;
-      info.patrol_that_you_hit.strength = 10;
       destroy_first_and_create<OverworldToDungeonInfo>(r, info);
     }
 
@@ -402,12 +379,12 @@ move_to_scene_start(entt::registry& r, const Scene& s, const bool load_saved)
     evts.events.push_back("Right click to perform action.");
 
     // create a cursor
-    const auto cursor_e = create_gameplay(r, EntityType::cursor);
+    const auto cursor_e = create_gameplay(r, EntityType::cursor, { 0, 0 });
     set_size(r, cursor_e, { 0, 0 });
 
     // Debug object
     auto& info = get_first_component<SINGLE_TurnBasedCombatInfo>(r);
-    info.action_cursor = create_gameplay(r, EntityType::empty_with_transform);
+    info.action_cursor = create_transform(r);
     set_size(r, info.action_cursor, { 0, 0 }); // start disabled
   }
 
@@ -430,7 +407,7 @@ move_to_scene_start(entt::registry& r, const Scene& s, const bool load_saved)
     create_empty<Effect_GridComponent>(r, Effect_GridComponent{ map_c.tilesize });
 
     // create a cursor
-    const auto cursor_e = create_gameplay(r, EntityType::cursor);
+    const auto cursor_e = create_gameplay(r, EntityType::cursor, { 0, 0 });
     set_size(r, cursor_e, { 0, 0 });
 
     // make the entire debug space a room
@@ -508,14 +485,19 @@ move_to_scene_start(entt::registry& r, const Scene& s, const bool load_saved)
 
     // Debug object
     auto& info = get_first_component<SINGLE_TurnBasedCombatInfo>(r);
-    info.action_cursor = create_gameplay(r, EntityType::empty_with_transform);
+    info.action_cursor = create_gameplay(r, EntityType::empty_with_transform, { 0, 0 });
     set_size(r, info.action_cursor, { 0, 0 }); // start disabled
 
     // Create a destructable barrel
     auto& map = get_first_component<MapComponent>(r);
-    const entt::entity barrel_e = create_gameplay(r, EntityType::actor_barrel);
+
     const auto gridpos = glm::ivec2{ 4, 4 };
-    set_position_grid(r, barrel_e, gridpos);
+    const glm::ivec2 worldspace = engine::grid::grid_space_to_world_space(gridpos, map_c.tilesize);
+    const glm::ivec2 offset = { map_c.tilesize / 2.0f, map_c.tilesize / 2.0f };
+    const glm::ivec2 pos = worldspace + offset;
+
+    const entt::entity barrel_e = create_gameplay(r, EntityType::actor_barrel, pos);
+
     std::vector<entt::entity>& ents = map.map[engine::grid::grid_position_to_index(gridpos, map.xmax)];
     ents.push_back(barrel_e);
   }

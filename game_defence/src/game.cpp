@@ -11,23 +11,17 @@
 #include "io/path.hpp"
 #include "lifecycle/system.hpp"
 #include "modules/actor_cursor/system.hpp"
-#include "modules/actor_enemy_patrol/system.hpp"
 #include "modules/actor_player/system.hpp"
-#include "modules/actor_spawner/system.hpp"
 #include "modules/actor_weapon_shotgun/system.hpp"
-#include "modules/animation/angle_to_velocity.hpp"
-#include "modules/animation/rotate_around_spot.hpp"
 #include "modules/animation/wiggle_up_and_down.hpp"
 #include "modules/animator/system.hpp"
 #include "modules/camera/helpers.hpp"
 #include "modules/camera/system.hpp"
 #include "modules/combat_attack_cooldown/system.hpp"
 #include "modules/combat_damage/system.hpp"
-#include "modules/combat_flash_on_damage/system.hpp"
 #include "modules/gameover/components.hpp"
 #include "modules/gameover/system.hpp"
 #include "modules/gen_dungeons/system.hpp"
-#include "modules/lerp_to_target/system.hpp"
 #include "modules/renderer/components.hpp"
 #include "modules/renderer/system.hpp"
 #include "modules/resolve_collisions/system.hpp"
@@ -38,8 +32,10 @@
 #include "modules/system_change_gun_z_index/system.hpp"
 #include "modules/system_distance_check/system.hpp"
 #include "modules/system_entered_new_room/system.hpp"
-#include "modules/system_inventory/system.hpp"
 #include "modules/system_minigame_bamboo/system.hpp"
+#include "modules/system_move_to_target_via_lerp/system.hpp"
+#include "modules/system_move_to_target_via_vel/system.hpp"
+#include "modules/system_overworld_fake_fight/system.hpp"
 #include "modules/system_particles/system.hpp"
 #include "modules/system_particles_on_death/system.hpp"
 #include "modules/system_pathfinding/system.hpp"
@@ -59,17 +55,14 @@
 #include "modules/ui_gameover/system.hpp"
 #include "modules/ui_hierarchy/system.hpp"
 #include "modules/ui_inventory/system.hpp"
-#include "modules/ui_patrol/system.hpp"
 #include "modules/ui_pause_menu/system.hpp"
 #include "modules/ui_scene_main_menu/system.hpp"
-#include "modules/ui_warp_to_station/system.hpp"
 #include "modules/ui_worldspace_sprite/system.hpp"
 #include "modules/ui_worldspace_text/system.hpp"
 #include "modules/ux_hoverable/system.hpp"
 #include "modules/ux_selectable_by_keyboard/system.hpp"
 #include "physics/components.hpp"
-#include "physics/process_actor_actor_collisions.hpp"
-#include "physics/process_move_objects.hpp"
+#include "physics/system.hpp"
 #include "sprites/components.hpp"
 #include "sprites/helpers.hpp"
 
@@ -261,12 +254,7 @@ fixed_update(engine::SINGLETON_Application& app, entt::registry& game, const uin
 
   {
     OPTICK_EVENT("(physics-tick)");
-    auto& physics = get_first_component<SINGLETON_PhysicsComponent>(game);
-    physics.frame_collisions.clear();
-
-    // todo: split out updating aabb from move_objects system
-    update_move_objects_system(game, milliseconds_dt);
-    update_actor_actor_collisions_system(game, physics);
+    update_physics_system(game, milliseconds_dt);
   }
 
   {
@@ -340,34 +328,35 @@ update(engine::SINGLETON_Application& app, entt::registry& r, const float dt)
       // update_ui_patrol_system(r);
       // update_ui_warp_to_station_system(r);
       // update_ux_hoverable_change_colour_system(r);
+      // update_flash_sprite_system(r, milliseconds_dt);
+      // update_wants_to_shoot_system(r);
+
+      // stuff that probably needs reimplementing
       //
+      // update_rotate_around_entity_system(r, dt);
+      // update_spawner_system(r, milliseconds_dt);
 
       // potentially common
       update_attack_cooldown_system(r, milliseconds_dt);
-      update_distance_check_system(r);
       update_change_gun_colour_system(r);
       update_change_gun_z_index_system(r);
-      // update_flash_sprite_system(r, milliseconds_dt);
+      update_distance_check_system(r);
+      update_move_to_target_via_lerp(r, dt);
+      update_move_to_target_via_vel(r);
       update_particle_system(r, dt);
-      update_spawn_particles_on_death_system(r);
-      update_set_velocity_to_target_system(r, dt);
-      update_spawner_system(r, milliseconds_dt);
-      // update_wants_to_shoot_system(r);
-      update_weapon_shotgun_system(r, milliseconds_dt);
-      update_rotate_around_entity_system(r, dt);
-      update_scale_by_velocity_system(r, dt);
       update_quips_system(r);
+      update_spawn_particles_on_death_system(r);
+      update_weapon_shotgun_system(r, milliseconds_dt);
       update_wiggle_up_and_down_system(r, dt);
     }
 
     if (scene.s == Scene::overworld_revamped) {
-      //
+      update_overworld_fake_fight_system(r);
     }
 
     if (scene.s == Scene::dungeon_designer || scene.s == Scene::turnbasedcombat) {
       update_entered_new_room_system(r, dt);
       update_gen_dungeons_system(r, mouse_pos);
-      update_inventory_system(r);
       update_turnbased_endturn_system(r);
       update_turnbased_enemy_system(r);
       update_ux_hoverable(r, mouse_pos);
@@ -405,16 +394,17 @@ update(engine::SINGLETON_Application& app, entt::registry& r, const float dt)
       ImGuiWindowFlags flags = 0;
       // position and sizing
       flags |= ImGuiWindowFlags_NoDecoration;
+      flags |= ImGuiWindowFlags_NoMove;
+      flags |= ImGuiWindowFlags_NoBackground;
       flags |= ImGuiWindowFlags_NoDocking;
-      flags |= ImGuiWindowFlags_AlwaysAutoResize;
       flags |= ImGuiWindowFlags_NoSavedSettings;
       flags |= ImGuiWindowFlags_NoFocusOnAppearing;
-      flags |= ImGuiWindowFlags_NoNav;
+      // flags |= ImGuiWindowFlags_NoNav;
 
       ImGui::SetNextWindowPos({ 0, 0 }, ImGuiCond_Always, { 0, 0 });
       ImGui::SetNextWindowSize({ 100, size_y }, ImGuiCond_Always);
 
-      ImGui::Begin("MenuBar", NULL, flags);
+      ImGui::Begin("FPS", NULL, flags);
       ImGui::Text("FPS: %0.2f", ImGui::GetIO().Framerate);
       ImGui::End();
     }

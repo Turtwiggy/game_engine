@@ -14,6 +14,13 @@ namespace game2d {
 // TransformComponent
 // CooldownComponent
 
+// used by non-physics body components
+struct VelocityTemporaryComponent
+{
+  float x = 0;
+  float y = 0;
+};
+
 struct ScaleOverTimeComponent
 {
   float timer = 0.0f;
@@ -52,12 +59,6 @@ struct ParticleEmitterComponent
   int particles_to_spawn_before_emitter_expires = 0;
 
   bool random_velocity = false;
-};
-
-// TEMP: should not be here
-struct SetPositionToParentsPosition
-{
-  glm::ivec2 offset{ 0, 0 };
 };
 
 struct RequestToSpawnParticles

@@ -1,157 +1,64 @@
-// your header
 #include "helpers.hpp"
 
-// engine headers
 #include "entt/helpers.hpp"
-
-#include <algorithm>
+#include "renderer/transform.hpp"
 
 namespace game2d {
 
-bool
-collide(const AABB& one, const AABB& two)
-{
-  const glm::ivec2 one_tl_pos = { one.center.x - one.size.x / 2, one.center.y - one.size.y / 2 };
-  const glm::ivec2 two_tl_pos = { two.center.x - two.size.x / 2, two.center.y - two.size.y / 2 };
-
-  // collision x-axis?
-  bool collision_x = one_tl_pos.x + one.size.x > two_tl_pos.x && two_tl_pos.x + two.size.x > one_tl_pos.x;
-
-  // collision y-axis?
-  bool collision_y = one_tl_pos.y + one.size.y > two_tl_pos.y && two_tl_pos.y + two.size.y > one_tl_pos.y;
-
-  return collision_x && collision_y;
-};
-
-bool
-collide(const CircleCollider& a, const CircleCollider& b)
-{
-  const float dx = a.center.x - b.center.x;
-  const float dy = a.center.y - b.center.y;
-  const float distance = glm::sqrt((dx * dx) + (dy * dy));
-  return distance <= a.radius + b.radius;
-};
-
 void
-generate_broadphase_collisions_xy(entt::registry& r, std::vector<Collision2D>& collisions)
+create_physics_actor(entt::registry& r, const entt::entity e, const PhysicsDescription& desc)
 {
-  // store results of sorted aabb
-  auto& physics = get_first_component<SINGLETON_PhysicsComponent>(r);
-  physics.sorted_x.clear();
-  physics.sorted_y.clear();
+  auto& physics_c = get_first_component<SINGLE_Physics>(r);
 
-  // sort physics
-  r.sort<PhysicsTransformXComponent>([](const auto& a, const auto& b) { return a.l < b.l; });
-  r.sort<PhysicsTransformYComponent>([](const auto& a, const auto& b) { return a.t < b.t; });
+  // Bodies are built using the following steps:
+  // Define a body with position, damping, etc.
+  // Use the world object to create the body.
+  // Define fixtures with a shape, friction, density, etc.
+  // Create fixtures on the body.
+  b2Body* body = nullptr;
 
-  auto view = r.view<const PhysicsTransformXComponent, const PhysicsTransformYComponent, const AABB>();
+  // create a body
+  {
+    b2BodyDef body_def;
+    body_def.position.Set(desc.position.x, desc.position.y);
+    body_def.angle = 0.0f;
+    body_def.fixedRotation = true;
+    body_def.bullet = desc.is_bullet;
+    body_def.type = desc.type;
+    body_def.linearVelocity = b2Vec2_zero;
+    body = physics_c.world->CreateBody(&body_def);
 
-  std::vector<entt::entity> active_list;
-  active_list.reserve(view.size_hint());
-
-  active_list.clear();
-  view.use<const PhysicsTransformXComponent>();
-  for (int i = 0; const auto& [new_obj, new_x, new_y, new_aabb] : view.each()) {
-    physics.sorted_x.push_back(new_obj);
-
-    // begin on the left of sorted_aabb.
-    // add the first item from sorted_aabb to active_list.
-    if (i == 0) {
-      active_list.push_back(new_obj);
-      ++i;
-      continue;
-    }
-
-    // have a look at the next item in axis_list,
-    // compare it with all the items currently in active_list. (currently just 1)
-    auto it_1 = active_list.begin();
-    while (it_1 != active_list.end()) {
-      const auto& old_obj = *it_1;
-      const auto& [old_x, old_y, old_aabb] = view.get(old_obj);
-
-      // if the new item's left is > than the active_item's right
-      if (new_x.l >= old_x.r) {
-        // no possible collision!
-        // remove the active_list item from the active list
-        it_1 = active_list.erase(it_1);
-      } else {
-        // possible collision!
-        // between new axis_list item and the current active_list item
-
-        // Just do the AABB collision check
-        if (collide(new_aabb, old_aabb)) {
-          Collision2D coll;
-          const auto id_0 = static_cast<uint32_t>(old_obj);
-          const auto id_1 = static_cast<uint32_t>(new_obj);
-          coll.ent_id_0 = glm::min(id_0, id_1);
-          coll.ent_id_1 = glm::max(id_0, id_1);
-          collisions.push_back(coll);
-        }
-
-        ++it_1;
-      }
-    }
-
-    // Add the new item itself to active_list and continue with the next item in axis_list
-    active_list.push_back(new_obj);
+    // set user data as the entity id
+    body->GetUserData().pointer = (uintptr_t)e;
   }
 
-  active_list.clear();
-  view.use<const PhysicsTransformYComponent>();
-  for (int i = 0; const auto& [new_obj, new_x, new_y, new_aabb] : view.each()) {
-    physics.sorted_y.push_back(new_obj);
+  // create a fixture
+  {
+    b2PolygonShape box;
+    box.SetAsBox(desc.size.x / 2.0f, desc.size.y / 2.0f);
 
-    // begin on the left of sorted_aabb.
-    // add the first item from sorted_aabb to active_list.
-    if (i == 0) {
-      active_list.push_back(new_obj);
-      ++i;
-      continue;
-    }
+    b2FixtureDef fixture_def;
+    fixture_def.friction = 0.0f;
+    fixture_def.density = desc.density;
+    fixture_def.shape = &box;
+    body->CreateFixture(&fixture_def);
 
-    // have a look at the next item in axis_list,
-    // compare it with all the items currently in active_list. (currently just 1)
-    auto it_1 = active_list.begin();
-    while (it_1 != active_list.end()) {
-      const auto& old_obj = *it_1;
-      const auto& [old_x, old_y, old_aabb] = view.get(old_obj);
-
-      // if the new item's top is > than the active_item's bottom
-      if (new_y.b >= old_y.t) {
-        // no possible collision!
-        // remove the active_list item from the active list
-        it_1 = active_list.erase(it_1);
-      } else {
-        // possible collision!
-        // between new axis_list item and the current active_list item
-
-        // Just do the AABB collision check
-        if (collide(new_aabb, old_aabb)) {
-          const auto id_0 = static_cast<uint32_t>(old_obj);
-          const auto id_1 = static_cast<uint32_t>(new_obj);
-          Collision2D coll;
-          coll.ent_id_0 = glm::min(id_0, id_1);
-          coll.ent_id_1 = glm::max(id_0, id_1);
-          collisions.push_back(coll);
-        }
-
-        ++it_1;
-      }
-    }
-
-    // Add the new item itself to active_list and continue with the next item in axis_list
-    active_list.push_back(new_obj);
+    // Set collision filtering
+    // const uint16 PLAYER_CATEGORY = 0x0001;
+    // const uint16 BULLET_CATEGORY = 0x0002;
+    // const uint16 WALL_CATEGORY = 0x0004;
+    // fixtureDef.filter.categoryBits = PLAYER_CATEGORY;
+    // fixtureDef.filter.maskBits = WALL_CATEGORY | BULLET_CATEGORY; // Collide with walls and bullets
   }
-};
 
-void
-generate_filtered_broadphase_collisions(entt::registry& r, std::vector<Collision2D>& collisions)
-{
-  // Do broad-phase check.
-  generate_broadphase_collisions_xy(r, collisions);
+  PhysicsBodyComponent body_c;
+  body_c.body = body;
+  r.emplace<PhysicsBodyComponent>(e, body_c);
 
-  // remove duplicates
-  collisions.erase(std::unique(collisions.begin(), collisions.end()), collisions.end());
-};
+  // While we're creating it, update the transform
+  auto& transform_c = r.get<TransformComponent>(e);
+  transform_c.scale.x = desc.size.x;
+  transform_c.scale.y = desc.size.y;
+}
 
-}; // namespace game2d
+} // namespace game2d

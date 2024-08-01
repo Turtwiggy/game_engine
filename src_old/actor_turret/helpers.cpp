@@ -11,7 +11,7 @@
 namespace game2d {
 
 entt::entity
-get_closest(entt::registry& r, const entt::entity& e)
+get_closest(entt::registry& r, const entt::entity e)
 {
   const auto& physics = get_first_component<const SINGLETON_PhysicsComponent>(r);
   const auto& t = r.get<TransformComponent>(e);
@@ -34,7 +34,7 @@ get_closest(entt::registry& r, const entt::entity& e)
   if (!idx_y.has_value())
     return entt::null;
 
-  const auto evaluate_closest = [&r, &t](const entt::entity& other, TargetInfo& info) -> bool {
+  const auto evaluate_closest = [&r, &t](const entt::entity other, TargetInfo& info) -> bool {
     // calculate distance
     const auto& other_pos = r.get<TransformComponent>(other);
     const auto d = t.position - other_pos.position;

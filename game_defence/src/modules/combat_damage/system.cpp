@@ -8,7 +8,6 @@
 #include "modules/actors/helpers.hpp"
 #include "modules/combat_flash_on_damage/components.hpp"
 #include "modules/screenshake/components.hpp"
-#include "modules/system_knockback/components.hpp"
 #include "modules/system_particles/components.hpp"
 #include "modules/system_quips/components.hpp"
 #include "modules/ui_event_console/components.hpp"
@@ -26,7 +25,7 @@ namespace game2d {
 // so if we want to quip, the incoming damage must have a damage id,
 // so that we know from what attack we've taken damage.
 void
-roll_to_quip(entt::registry& r, const entt::entity& from, const entt::entity& to)
+roll_to_quip(entt::registry& r, const entt::entity from, const entt::entity to)
 {
   static engine::RandomState rnd;
   const auto* atk_id = r.try_get<AttackIdComponent>(from);
@@ -91,17 +90,17 @@ update_take_damage_system(entt::registry& r)
     // Does the defender have armour?
     const auto* defence = r.try_get<DefenceComponent>(request.to);
 
-    // Does the defender have the ability to be knocked back?
-    auto* v = r.try_get<VelocityComponent>(request.to);
-    const auto* kb = r.try_get<KnockbackComponent>(request.to);
-    if (v && kb) {
-      const auto atk_pos = get_position(r, request.from);
-      const auto def_pos = get_position(r, request.to);
-      const auto dir = engine::normalize_safe(atk_pos - def_pos);
-      const float knockback_amount = 5.0F;
-      v->remainder_x += -dir.x * knockback_amount;
-      v->remainder_y += -dir.y * knockback_amount;
-    }
+    // // Does the defender have the ability to be knocked back?
+    // auto* v = r.try_get<VelocityComponent>(request.to);
+    // const auto* kb = r.try_get<KnockbackComponent>(request.to);
+    // if (v && kb) {
+    //   const auto atk_pos = get_position(r, request.from);
+    //   const auto def_pos = get_position(r, request.to);
+    //   const auto dir = engine::normalize_safe(atk_pos - def_pos);
+    //   const float knockback_amount = 5.0F;
+    //   v->remainder_x += -dir.x * knockback_amount;
+    //   v->remainder_y += -dir.y * knockback_amount;
+    // }
 
     // .. show as flashing
     r.emplace_or_replace<RequestFlashComponent>(request.to);

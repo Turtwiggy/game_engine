@@ -28,7 +28,7 @@ update_ui_warp_to_station_system(entt::registry& r)
   if (map_e == entt::null)
     return;
 
-  const auto stop_spaceship_ai = [&r](const entt::entity& e) {
+  const auto stop_spaceship_ai = [&r](const entt::entity e) {
     // warp-speed, deactivate!
     auto& player_vel = r.get<VelocityComponent>(e);
     player_vel.base_speed = 100.0f;
@@ -42,7 +42,7 @@ update_ui_warp_to_station_system(entt::registry& r)
   };
 
   // if player touches WASD, stop ai control if it is occuring
-  const auto check_if_player_pressed_key = [&r, &stop_spaceship_ai](const entt::entity& e) {
+  const auto check_if_player_pressed_key = [&r, &stop_spaceship_ai](const entt::entity e) {
     if (const auto* input_c = r.try_get<InputComponent>(e)) {
       if (glm::abs(input_c->lx) > 0.0f)
         stop_spaceship_ai(e);
@@ -51,7 +51,7 @@ update_ui_warp_to_station_system(entt::registry& r)
     }
   };
 
-  const auto update_player_to_spacestation = [](entt::registry& r, const entt::entity& src_e, const entt::entity& dst_e) {
+  const auto update_player_to_spacestation = [](entt::registry& r, const entt::entity src_e, const entt::entity dst_e) {
     const auto& map = get_first_component<MapComponent>(r); // gets updated if units was dead
 
     const auto src = get_position(r, src_e);

@@ -3,15 +3,9 @@
 #include "colour/colour.hpp"
 #include "entt/helpers.hpp"
 #include "lifecycle/components.hpp"
-#include "modules/actor_asteroid/components.hpp"
 #include "modules/actor_cursor/components.hpp"
 #include "modules/actor_enemy/components.hpp"
-#include "modules/actor_enemy_patrol/components.hpp"
-#include "modules/actor_hearth/components.hpp"
 #include "modules/actor_player/components.hpp"
-#include "modules/actor_spacestation/components.hpp"
-#include "modules/actor_spawner/components.hpp"
-#include "modules/actor_turret/components.hpp"
 #include "modules/actor_weapon/components.hpp"
 #include "modules/actor_weapon_shotgun/components.hpp"
 #include "modules/actors/helpers.hpp"
@@ -19,16 +13,17 @@
 #include "modules/animation/components.hpp"
 #include "modules/combat_attack_cooldown/components.hpp"
 #include "modules/combat_damage/components.hpp"
-#include "modules/lerp_to_target/components.hpp"
+#include "modules/combat_wants_to_shoot/components.hpp"
 #include "modules/lighting/components.hpp"
 #include "modules/renderer/components.hpp"
 #include "modules/renderer/helpers.hpp"
-#include "modules/system_knockback/components.hpp"
+#include "modules/system_move_to_target_via_lerp/components.hpp"
 #include "modules/system_particles/components.hpp"
 #include "modules/system_turnbased/components.hpp"
 #include "modules/ui_colours/helpers.hpp"
 #include "modules/ux_hoverable/components.hpp"
 #include "physics/components.hpp"
+#include "physics/helpers.hpp"
 #include "renderer/components.hpp"
 #include "renderer/transform.hpp"
 #include "sprites/components.hpp"
@@ -36,6 +31,7 @@
 
 #include "magic_enum.hpp"
 
+#include <box2d/b2_body.h>
 #include <fmt/core.h>
 #include <string>
 
@@ -85,8 +81,8 @@ sprite_type_to_sprite(entt::registry& r, const EntityType& type)
 
   if (type == EntityType::cursor)
     sprite = "EMPTY";
-  else if (type == EntityType::actor_hearth)
-    sprite = "CAMPFIRE";
+  // else if (type == EntityType::actor_hearth)
+  //   sprite = "CAMPFIRE";
   else if (type == EntityType::actor_player)
     sprite = "SPACE_VEHICLE_1";
   else if (type == EntityType::actor_enemy_patrol)
@@ -95,16 +91,16 @@ sprite_type_to_sprite(entt::registry& r, const EntityType& type)
   //   sprite = "EMPTY";
   // else if (type == EntityType::actor_enemy_patrol)
   //   sprite = "EMPTY";
-  else if (type == EntityType::actor_spawner)
-    sprite = "CASTLE_FLOOR";
-  else if (type == EntityType::actor_turret)
-    sprite = "EMPTY";
+  // else if (type == EntityType::actor_spawner)
+  //   sprite = "CASTLE_FLOOR";
+  // else if (type == EntityType::actor_turret)
+  //   sprite = "EMPTY";
   else if (type == EntityType::actor_pickup_xp)
     sprite = "GEM";
   else if (type == EntityType::actor_pickup_doubledamage)
     sprite = "CARD_HEARTS_2";
-  else if (type == EntityType::actor_barricade)
-    sprite = "WOOD_WALL_SMALL";
+  // else if (type == EntityType::actor_barricade)
+  //   sprite = "WOOD_WALL_SMALL";
   else if (type == EntityType::actor_barrel)
     sprite = "BARREL_0";
 
@@ -143,17 +139,41 @@ sprite_type_to_sprite(entt::registry& r, const EntityType& type)
 };
 
 void
-create_physics_actor(entt::registry& r, const entt::entity& e)
+create_physics_actor_static(entt::registry& r, const entt::entity e, const glm::ivec2& position, const glm::ivec2& size)
 {
-  r.emplace<PhysicsTransformXComponent>(e);
-  r.emplace<PhysicsTransformYComponent>(e);
-  r.emplace<AABB>(e);
-  r.emplace<PhysicsActorComponent>(e);
-  r.emplace<VelocityComponent>(e);
+  PhysicsDescription desc;
+  desc.type = b2_staticBody;
+  desc.is_bullet = false;
+  desc.density = 1.0;
+  desc.position = position;
+  desc.size = size;
+  create_physics_actor(r, e, desc);
+}
+
+void
+create_physics_actor_dynamic(entt::registry& r,
+                             const entt::entity e,
+                             const glm::ivec2& position,
+                             const glm::ivec2& size,
+                             bool is_bullet = false)
+{
+  PhysicsDescription desc;
+  desc.type = b2_dynamicBody;
+  desc.is_bullet = is_bullet;
+  desc.density = 1.0;
+  desc.position = position;
+  desc.size = size;
+  create_physics_actor(r, e, desc);
+};
+
+[[nodiscard]] entt::entity
+create_transform(entt::registry& r)
+{
+  return create_gameplay(r, EntityType::empty_with_transform, { 0, 0 });
 };
 
 entt::entity
-create_gameplay(entt::registry& r, const EntityType& type)
+create_gameplay(entt::registry& r, const EntityType& type, const glm::vec2& position)
 {
   const glm::ivec3 DEFAULT_SIZE{ 32, 32, 1 };
   const glm::ivec3 HALF_SIZE{ 16, 16, 1 };
@@ -166,37 +186,40 @@ create_gameplay(entt::registry& r, const EntityType& type)
   r.emplace<EntityTypeComponent>(e, type);
   r.emplace<WaitForInitComponent>(e);
 
-  if (type != EntityType::empty_no_transform) {
-    const auto sprite_name = sprite_type_to_sprite(r, type);
-    const auto sc = create_sprite(r, sprite_name, type);
-    r.emplace<SpriteComponent>(e, sc);
-    r.emplace<TransformComponent>(e);
-    r.emplace<DefaultColour>(e, engine::LinearToSRGB(sc.colour));
+  const auto sprite_name = sprite_type_to_sprite(r, type);
+  const auto sc = create_sprite(r, sprite_name, type);
+  r.emplace<SpriteComponent>(e, sc);
+  r.emplace<TransformComponent>(e);
+  r.emplace<DefaultColour>(e, engine::LinearToSRGB(sc.colour));
 
-    set_size(r, e, DEFAULT_SIZE);
-    switch (type) {
-      case EntityType::bullet_bouncy:
-      case EntityType::bullet_default: {
-        set_size(r, e, SMALL_SIZE);
-        break;
-      }
-      // case EntityType::bullet_enemy: {
-      //   set_size(r, e, SMALL_SIZE);
-      //   break;
-      // }
-      case EntityType::particle: {
-        set_size(r, e, HALF_SIZE);
-        break;
-      }
+  set_size(r, e, DEFAULT_SIZE);
+  set_position(r, e, position);
+
+  switch (type) {
+    case EntityType::bullet_bouncy:
+    case EntityType::bullet_default: {
+      set_size(r, e, SMALL_SIZE);
+      break;
+    }
+    // case EntityType::bullet_enemy: {
+    //   set_size(r, e, SMALL_SIZE);
+    //   break;
+    // }
+    case EntityType::particle: {
+      set_size(r, e, HALF_SIZE);
+      r.emplace<VelocityTemporaryComponent>(e);
+      break;
     }
   }
 
   // particles
-  auto add_particles = [&r](const entt::entity& parent) {
-    const auto particle_emitter = create_gameplay(r, EntityType::empty_with_transform);
+  auto add_particles = [&r, &position](const entt::entity parent) {
+    const auto particle_emitter = create_transform(r);
+    set_position(r, particle_emitter, position);
     set_size(r, particle_emitter, { 0, 0 }); // no size just script, but need position
-    r.emplace<HasParentComponent>(particle_emitter, parent);
-    r.emplace<SetPositionToParentsPosition>(particle_emitter);
+
+    r.emplace<SetPositionAtDynamicTarget>(particle_emitter);
+    r.emplace<DynamicTargetComponent>(particle_emitter, parent);
 
     // which particle to spawn?
     ParticleDescription desc;
@@ -215,15 +238,11 @@ create_gameplay(entt::registry& r, const EntityType& type)
   };
 
   switch (type) {
-
-    case EntityType::empty_no_transform: {
-      break;
-    }
     case EntityType::empty_with_transform: {
       break;
     }
     case EntityType::empty_with_physics: {
-      create_physics_actor(r, e);
+      create_physics_actor_dynamic(r, e, position, DEFAULT_SIZE);
       break;
     }
 
@@ -231,34 +250,24 @@ create_gameplay(entt::registry& r, const EntityType& type)
       // actors with only one type
       //
 
-    case EntityType::actor_hearth: {
-      create_physics_actor(r, e);
-      r.emplace<HearthComponent>(e);
-      r.emplace<HealthComponent>(e, 50, 50);
-      r.emplace<TeamComponent>(e, AvailableTeams::player);
-      r.emplace<HoverableComponent>(e);
+      // case EntityType::actor_hearth: {
+      //   create_physics_actor_static(r, e, DEFAULT_SIZE);
+      //   r.emplace<HearthComponent>(e);
+      //   r.emplace<HealthComponent>(e, 50, 50);
+      //   r.emplace<TeamComponent>(e, AvailableTeams::player);
+      //   r.emplace<HoverableComponent>(e);
 
-      // spawn the player at the hearth
-      // SpawnerComponent hearth_spawner;
-      // hearth_spawner.type_to_spawn = EntityType::actor_player;
-      // hearth_spawner.continuous_spawn = false;
-      // r.emplace<SpawnerComponent>(e, hearth_spawner);
+      //   // spawn the player at the hearth
+      //   // SpawnerComponent hearth_spawner;
+      //   // hearth_spawner.type_to_spawn = EntityType::actor_player;
+      //   // hearth_spawner.continuous_spawn = false;
+      //   // r.emplace<SpawnerComponent>(e, hearth_spawner);
 
-      break;
-    }
+      //   break;
+      // }
 
     case EntityType::actor_player: {
-      create_physics_actor(r, e);
-      set_size(r, e, HALF_SIZE);
-
-      const auto size = get_size(r, e);
-      CircleCollider coll;
-      coll.radius = size.x / 4; // half square to feel better?
-      r.emplace<CircleCollider>(e, coll);
-      // r.emplace<SetTransformAngleToVelocity>(e);
-
-      auto& vel = r.get<VelocityComponent>(e);
-      vel.base_speed = 100.0f;
+      create_physics_actor_dynamic(r, e, position, HALF_SIZE);
 
       // r.emplace<PhysicsSolidComponent>(e);
       r.emplace<TeamComponent>(e, AvailableTeams::player);
@@ -277,7 +286,6 @@ create_gameplay(entt::registry& r, const EntityType& type)
       // r.emplace<SprintComponent>(e);
       r.emplace<HealthComponent>(e, 250, 250);
       r.emplace<HoverableComponent>(e);
-      r.emplace<PatrolComponent>(e);
 
       // r.emplace<LightEmitterComponent>(e);
 
@@ -297,8 +305,7 @@ create_gameplay(entt::registry& r, const EntityType& type)
       break;
     }
     case EntityType::actor_enemy_patrol: {
-      create_physics_actor(r, e);
-      set_size(r, e, HALF_SIZE);
+      create_physics_actor_dynamic(r, e, position, HALF_SIZE);
 
       // const auto size = get_size(r, e);
       // CircleCollider coll;
@@ -311,21 +318,18 @@ create_gameplay(entt::registry& r, const EntityType& type)
       // r.emplace<HoverableComponent>(e);
 
       // movement
-      r.emplace<HasTargetPositionComponent>(e);
-      r.emplace<SetVelocityToTargetComponent>(e);
-
-      // gameplay
-      r.emplace<PatrolComponent>(e);
+      // r.emplace<HasTargetPositionComponent>(e);
+      // r.emplace<SetVelocityToTargetComponent>(e);
 
       add_particles(e); // particle emitter as child
       break;
     }
 
     case EntityType::actor_unit_rtslike: {
-      create_physics_actor(r, e);
+      create_physics_actor_dynamic(r, e, position, DEFAULT_SIZE);
 
-      auto& vel = r.get<VelocityComponent>(e);
-      vel.base_speed = 700.0f;
+      // auto& vel = r.get<VelocityComponent>(e);
+      // vel.base_speed = 700.0f;
 
       // r.emplace<PhysicsSolidComponent>(e);
 
@@ -344,47 +348,39 @@ create_gameplay(entt::registry& r, const EntityType& type)
       r.emplace<DefenceComponent>(e, 0); // determined by equipment
 
       // movement
-      r.emplace<HasTargetPositionComponent>(e);
+      // r.emplace<HasTargetPositionComponent>(e);
       r.emplace<PathfindComponent>(e, 1000); // pass through units if you must
       // r.emplace<SetVelocityToTargetComponent>(e);
 
       break;
     }
 
-    case EntityType::actor_spawner: {
-      create_physics_actor(r, e);
-      r.emplace<HealthComponent>(e, 10, 10);
+      // case EntityType::actor_spawner: {
+      //   r.emplace<HealthComponent>(e, 10, 10);
 
-      // X seconds between spawning
-      r.emplace<AttackCooldownComponent>(e, 5.0f);
+      //   // X seconds between spawning
+      //   r.emplace<AttackCooldownComponent>(e, 5.0f);
 
-      // if spawning enemies...
-      // its on the enemy team
-      // remember to update this?
-      r.emplace<SpawnerComponent>(e);
-      r.emplace<TeamComponent>(e, AvailableTeams::enemy);
-      r.emplace<HoverableComponent>(e);
+      //   // if spawning enemies...
+      //   // its on the enemy team
+      //   // remember to update this?
+      //   r.emplace<SpawnerComponent>(e);
+      //   r.emplace<TeamComponent>(e, AvailableTeams::enemy);
+      //   r.emplace<HoverableComponent>(e);
 
-      break;
-    }
+      //   break;
+      // }
 
-    case EntityType::actor_turret: {
-      create_physics_actor(r, e);
-      r.emplace<TurretComponent>(e);
-      r.emplace<AttackCooldownComponent>(e);
+      // case EntityType::actor_turret: {
+      //   create_physics_actor(r, e);
+      //   r.emplace<TurretComponent>(e);
+      //   r.emplace<AttackCooldownComponent>(e);
 
-      // if make turret solid,
-      // spawn bullets outside of turret
-      // r.emplace<PhysicsSolidComponent>(e);
-      break;
-    }
-
-    case EntityType::actor_spacestation: {
-      create_physics_actor(r, e);
-      r.emplace<SpacestationComponent>(e);
-
-      break;
-    }
+      //   // if make turret solid,
+      //   // spawn bullets outside of turret
+      //   // r.emplace<PhysicsSolidComponent>(e);
+      //   break;
+      // }
 
       // case EntityType::actor_pickup_xp: {
       //   create_physics_actor(r, e);
@@ -400,24 +396,22 @@ create_gameplay(entt::registry& r, const EntityType& type)
       //   break;
       // }
 
-    case EntityType::actor_barricade: {
-      create_physics_actor(r, e);
-      // r.emplace<PhysicsSolidComponent>(e);
+      // case EntityType::actor_barricade: {
+      //   create_physics_actor(r, e);
+      //   // r.emplace<PhysicsSolidComponent>(e);
 
-      // can be killed
-      const int hp = 100;
-      r.emplace<HealthComponent>(e, hp, hp);
+      //   // can be killed
+      //   const int hp = 100;
+      //   r.emplace<HealthComponent>(e, hp, hp);
 
-      // assume all barricades are player barricades?
-      r.emplace<TeamComponent>(e, AvailableTeams::player);
+      //   // assume all barricades are player barricades?
+      //   r.emplace<TeamComponent>(e, AvailableTeams::player);
 
-      r.emplace<KnockbackComponent>(e);
-
-      break;
-    }
+      //   break;
+      // }
 
     case EntityType::actor_barrel: {
-      create_physics_actor(r, e);
+      create_physics_actor_static(r, e, position, DEFAULT_SIZE);
 
       const int hp = 25;
       r.emplace<HealthComponent>(e, hp, hp);
@@ -428,19 +422,12 @@ create_gameplay(entt::registry& r, const EntityType& type)
       break;
     }
 
-    case EntityType::actor_asteroid: {
-      create_physics_actor(r, e);
-      r.emplace<AsteroidComponent>(e);
-      break;
-    }
-
       //
       // solids
       //
 
     case EntityType::solid_wall: {
-      create_physics_actor(r, e);
-      r.emplace<PhysicsSolidComponent>(e);
+      create_physics_actor_static(r, e, position, DEFAULT_SIZE);
       r.emplace<LightOccluderComponent>(e);
       break;
     }
@@ -460,7 +447,8 @@ create_gameplay(entt::registry& r, const EntityType& type)
       // }
 
     case EntityType::weapon_shotgun: {
-      create_physics_actor(r, e);
+      // create_physics_actor_dynamic(r, e, DEFAULT_SIZE);
+
       r.emplace<WeaponComponent>(e);
       r.emplace<ShotgunComponent>(e);
 
@@ -482,8 +470,7 @@ create_gameplay(entt::registry& r, const EntityType& type)
       //
 
     case EntityType::bullet_default: {
-      create_physics_actor(r, e);
-      set_size(r, e, SMALL_SIZE);
+      create_physics_actor_dynamic(r, e, position, SMALL_SIZE, true);
 
       r.emplace<TeamComponent>(e, AvailableTeams::player);
       r.emplace<SetTransformAngleToVelocity>(e);
@@ -493,8 +480,7 @@ create_gameplay(entt::registry& r, const EntityType& type)
     }
 
     case EntityType::bullet_bouncy: {
-      create_physics_actor(r, e);
-      set_size(r, e, SMALL_SIZE);
+      create_physics_actor_dynamic(r, e, position, SMALL_SIZE, true);
 
       r.emplace<TeamComponent>(e, AvailableTeams::player);
       r.emplace<SetTransformAngleToVelocity>(e);
@@ -530,7 +516,6 @@ create_gameplay(entt::registry& r, const EntityType& type)
       //   r.emplace<TeamComponent>(e, AvailableTeams::enemy);
       //   r.emplace<HealthComponent>(e, 100, 100);
       //   r.emplace<HoverableComponent>(e);
-      //   r.emplace<KnockbackComponent>(e);
       //   break;
       // }
       // case EntityType::enemy_grunt: {
@@ -548,7 +533,6 @@ create_gameplay(entt::registry& r, const EntityType& type)
       //   // combat
       //   r.emplace<TeamComponent>(e, AvailableTeams::enemy);
       //   r.emplace<HealthComponent>(e, 10, 10);
-      //   r.emplace<KnockbackComponent>(e);
       //   // r.emplace<AttackComponent>(e, 10); // on the equipped weapon?
       //   break;
       // }
@@ -565,7 +549,6 @@ create_gameplay(entt::registry& r, const EntityType& type)
       //   r.emplace<TeamComponent>(e, AvailableTeams::enemy);
       //   r.emplace<HealthComponent>(e, 10, 10);
       //   r.emplace<AttackCooldownComponent>(e, 1.2f);
-      //   r.emplace<KnockbackComponent>(e);
       //   // r.emplace<AttackComponent>(e, 10); // on the equipped weapon?
       //   break;
       // }
@@ -576,13 +559,12 @@ create_gameplay(entt::registry& r, const EntityType& type)
 
     case EntityType::cursor: {
       r.emplace<CursorComponent>(e);
-      create_physics_actor(r, e);
+      // create_physics_actor(r, e);
       set_size(r, e, { 0, 0 });
       break;
     }
 
     case EntityType::particle: {
-      r.emplace<VelocityComponent>(e);
       r.emplace<EntityTimedLifecycle>(e, 3 * 1000);
       break;
     }

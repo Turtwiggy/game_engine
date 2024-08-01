@@ -30,7 +30,7 @@ struct DynamicTargetComponent
 
 struct StaticTargetComponent
 {
-  std::optional<glm::ivec2> target = std::nullopt;
+  std::optional<glm::vec2> target = std::nullopt;
 };
 
 } // namespace game2d

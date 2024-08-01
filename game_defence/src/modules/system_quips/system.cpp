@@ -21,8 +21,14 @@ namespace game2d {
 using namespace std::literals;
 
 void
-create_imgui_quip(entt::registry& r, const entt::entity& e, const entt::entity& actor, const std::string& quip)
+create_imgui_quip(entt::registry& r, const entt::entity actor, const std::string& quip)
 {
+  // forward the quip text on to the worldspace text system
+  const auto e = create_transform(r);
+  r.get<TagComponent>(e).tag = "empty_with_transform:Quip:BEGIN_ENCOUNTER";
+  set_position(r, e, get_position(r, actor));
+  set_size(r, e, { 0, 0 });
+
   auto& ui = r.emplace<WorldspaceTextComponent>(e);
   ui.text = quip;
   ui.offset.y = (-get_size(r, actor).y) / 2.0f;
@@ -120,17 +126,11 @@ update_quips_system(entt::registry& r)
 
     if (quip_c.type == QuipType::BEGIN_ENCOUNTER) {
       // pull the quip from the unused pile
-      const int rnd_idx = int(engine::rand_det_s(rnd.rng, 0, int(quips.quips_encounter.size())));
-      const auto quip = quips.quips_encounter[rnd_idx];
-      quips.quips_encounter.erase(quips.quips_encounter.begin() + rnd_idx);
+      const int rnd_idx = int(engine::rand_det_s(rnd.rng, 0, int(quips.quips_encounter_unused.size())));
+      const auto quip = quips.quips_encounter_unused[rnd_idx];
+      quips.quips_encounter_unused.erase(quips.quips_encounter_unused.begin() + rnd_idx);
 
-      // forward the quip text on to the worldspace text system
-      const auto e = create_gameplay(r, EntityType::empty_with_transform);
-      r.get<TagComponent>(e).tag = "empty_with_transform:Quip:BEGIN_ENCOUNTER";
-      set_position(r, e, get_position(r, e_to_quip));
-      set_size(r, e, { 0, 0 });
-
-      create_imgui_quip(r, e, e_to_quip, quip);
+      create_imgui_quip(r, e_to_quip, quip);
     }
 
     if (quip_c.type == QuipType::ENTER_ROOM) {
@@ -139,21 +139,7 @@ update_quips_system(entt::registry& r)
       const auto quip = quips.quips_unused[rnd_idx];
       quips.quips_unused.erase(quips.quips_unused.begin() + rnd_idx);
 
-      // forward the quip text on to the worldspace text system
-      const auto e = create_gameplay(r, EntityType::empty_with_transform);
-      r.get<TagComponent>(e).tag = "empty_with_transform:Quip:ENTER_ROOM";
-      set_position(r, e, get_position(r, e_to_quip));
-      set_size(r, e, { 0, 0 });
-
-      bool custom_sprite_text = false;
-      if (custom_sprite_text) {
-        auto& ui = r.emplace<WorldspaceSpriteRequestComponent>(e);
-        ui.text = quip;
-        ui.split_text_into_chunks = true;
-        ui.chunk_length = 16;
-        set_size(r, e, get_size(r, e_to_quip)); // size of enemy
-      } else
-        create_imgui_quip(r, e, e_to_quip, quip);
+      create_imgui_quip(r, e_to_quip, quip);
     }
 
     if (quip_c.type == QuipType::TOOK_DAMAGE) {
@@ -162,21 +148,7 @@ update_quips_system(entt::registry& r)
       const auto quip = quips.quips_hit_unused[rnd_idx];
       quips.quips_hit_unused.erase(quips.quips_hit_unused.begin() + rnd_idx);
 
-      // forward the quip text on to the worldspace text system
-      const auto e = create_gameplay(r, EntityType::empty_with_transform);
-      r.get<TagComponent>(e).tag = "empty_with_transform:Quip:TOOK_DAMAGE";
-      set_position(r, e, get_position(r, e_to_quip));
-      set_size(r, e, { 0, 0 });
-
-      bool custom_sprite_text = false;
-      if (custom_sprite_text) {
-        auto& ui = r.emplace<WorldspaceSpriteRequestComponent>(e);
-        ui.text = quip;
-        ui.split_text_into_chunks = true;
-        ui.chunk_length = 16;
-        set_size(r, e, get_size(r, e_to_quip)); // size of enemy
-      } else
-        create_imgui_quip(r, e, e_to_quip, quip);
+      create_imgui_quip(r, e_to_quip, quip);
     }
   }
 

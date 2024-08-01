@@ -6,7 +6,7 @@
 namespace game2d {
 
 entt::entity
-get_gun(entt::registry& r, const entt::entity& parent)
+get_gun(entt::registry& r, const entt::entity parent)
 {
   for (const auto& [e, parent_c, cooldown] : r.view<HasParentComponent, WeaponComponent>().each())
     if (parent_c.parent == parent)

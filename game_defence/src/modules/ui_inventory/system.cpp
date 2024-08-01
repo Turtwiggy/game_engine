@@ -15,16 +15,14 @@
 #include "modules/ui_inventory/helpers.hpp"
 
 #include "imgui.h"
-#include "physics/components.hpp"
 #include <magic_enum.hpp>
 
 #include <fmt/core.h>
-#include <ranges>
 
 namespace game2d {
 
 void
-update_item_parent(entt::registry& r, const entt::entity& item, const entt::entity& parent)
+update_item_parent(entt::registry& r, const entt::entity item, const entt::entity parent)
 {
   auto& item_c = r.get<ItemComponent>(item);
 
@@ -38,7 +36,7 @@ update_item_parent(entt::registry& r, const entt::entity& item, const entt::enti
   r.get<InventorySlotComponent>(parent).child_item = item;
 };
 
-const auto item_slot_accepting_item = [](entt::registry& r, const entt::entity& item_slot) {
+const auto item_slot_accepting_item = [](entt::registry& r, const entt::entity item_slot) {
   if (ImGui::BeginDragDropTarget()) {
     if (const ImGuiPayload* payload = ImGui::AcceptDragDropPayload("ITEM_E_PAYLOAD")) {
       IM_ASSERT(payload->DataSize == sizeof(uint32_t));
@@ -59,7 +57,7 @@ const auto item_slot_has_item = [](const entt::entity item_e) {
 
 void
 display_inventory_slot(entt::registry& r,
-                       const entt::entity& inventory_slot_e,
+                       const entt::entity inventory_slot_e,
                        const ImVec2& button_size,
                        ImVec2 pos = { 0, 0 })
 {
@@ -130,7 +128,7 @@ display_inventory_slot(entt::registry& r,
 };
 
 void
-update_gunstate_from_ui_bullets(entt::registry& r, entt::entity& gunslot_e, entt::entity& bulletslot_e)
+update_gunstate_from_ui_bullets(entt::registry& r, entt::entity gunslot_e, entt::entity bulletslot_e)
 {
   const auto first_player_e = get_first<PlayerComponent>(r);
   if (first_player_e == entt::null)
@@ -187,14 +185,13 @@ update_gunstate_from_ui_bullets(entt::registry& r, entt::entity& gunslot_e, entt
     // todo: spawn the right weapon from the inventory equipped item
 
     // create weapon
-    const auto weapon = create_gameplay(r, EntityType::weapon_shotgun);
+    const auto weapon = create_gameplay(r, EntityType::weapon_shotgun, get_position(r, first_player_e));
     const auto& player_team_c = r.get<TeamComponent>(first_player_e);
     r.emplace_or_replace<TeamComponent>(weapon, player_team_c.team);
 
     // setup weapon
     auto& weapon_parent = r.get<HasParentComponent>(weapon);
     weapon_parent.parent = first_player_e;
-    set_position(r, weapon, r.get<AABB>(first_player_e).center);
 
     // link player&weapon
     HasWeaponComponent has_weapon;
@@ -239,7 +236,7 @@ update_ui_inventory_system(entt::registry& r)
   static auto bullet_0_eid = create_body_slot(InventorySlotType::bullet);
 
   // default items
-  const auto create_item = [&r](const entt::entity& slot_e, const ItemType& item_type) -> entt::entity {
+  const auto create_item = [&r](const entt::entity slot_e, const ItemType& item_type) -> entt::entity {
     ItemComponent item;
     item.parent_slot = slot_e;
     item.type = item_type;
@@ -297,9 +294,9 @@ update_ui_inventory_system(entt::registry& r)
 
     // configs
 
-    const ImVec2 button_size = ImVec2(32, 32);
+    const ImVec2 button_size = ImVec2(32, 32); // make the border 48 or 64
     const ImVec2 gun_button_size = button_size;
-    const ImVec2 window_0_size{ 300, 300 };
+    const ImVec2 window_0_size{ button_size.x * 8, button_size.y * 6 };
     const ImVec2 window_1_size{ (button_size.x * inv_x) + (button_size.x * 2), window_0_size.y };
 
     // window 1

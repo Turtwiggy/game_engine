@@ -3,6 +3,7 @@
 
 #include "entt/helpers.hpp"
 #include "lifecycle/components.hpp"
+#include "physics/components.hpp"
 
 namespace game2d {
 
@@ -26,6 +27,10 @@ update_lifecycle_system(entt::registry& r, const uint64_t& milliseconds_dt)
     dead.things_that_died.push_back(to_be_killed);
 
   // destroy all dead objects
+  auto& physics_c = get_first_component<SINGLE_Physics>(r);
+  for (const auto& e : dead.dead)
+    if (auto* pb = r.try_get<PhysicsBodyComponent>(e))
+      physics_c.world->DestroyBody(pb->body);
   r.destroy(dead.dead.begin(), dead.dead.end());
   dead.dead.clear();
 

@@ -57,10 +57,10 @@ display_flow_field_with_visuals(entt::registry& r, MapComponent& grid);
 convert_position_to_index(const MapComponent& map, const glm::ivec2& pos);
 
 bool
-has_destination(entt::registry& r, const entt::entity& src_e);
+has_destination(entt::registry& r, const entt::entity src_e);
 
 bool
-at_destination(entt::registry& r, const entt::entity& e);
+at_destination(entt::registry& r, const entt::entity e);
 
 bool
 destination_is_blocked(entt::registry& r, const glm::ivec2 worldspace_pos);

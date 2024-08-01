@@ -116,7 +116,7 @@ vec4 tex2dss(sampler2D tex, vec2 uv, float bias, float aascale)
     col /= (gridDim * gridDim);
 #else
   // no super sampling, just bias
-  col = tex2Dbias(tex, vec4(uv, 0, bias));
+  // col = tex2Dbias(tex, vec4(uv, 0, bias));
 #endif
   
     return col;

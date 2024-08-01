@@ -2,6 +2,7 @@
 
 // components
 #include "imgui/helpers.hpp"
+#include "modules/actors/helpers.hpp"
 #include "physics/components.hpp"
 #include "renderer/components.hpp"
 #include "renderer/transform.hpp"
@@ -161,30 +162,30 @@ update_ui_hierarchy_system(entt::registry& r)
 
     if (r.all_of<TransformComponent>(eid)) {
       auto& transform = r.get<TransformComponent>(eid);
-      imgui_draw_ivec3("Pos: ", transform.position.x, transform.position.y, transform.position.z);
-      imgui_draw_ivec3("Render Size: ", transform.scale.x, transform.scale.y, transform.scale.z);
+      imgui_draw_vec3("Pos: ", transform.position.x, transform.position.y, transform.position.z);
+      imgui_draw_vec3("Render Size: ", transform.scale.x, transform.scale.y, transform.scale.z);
       imgui_draw_vec3(
         "Render Angle:", transform.rotation_radians.x, transform.rotation_radians.y, transform.rotation_radians.z);
     }
 
-    if (r.all_of<PhysicsTransformXComponent>(eid)) {
-      PhysicsTransformXComponent& ptc = r.get<PhysicsTransformXComponent>(eid);
-      imgui_draw_ivec2("PhysX (l, r): ", ptc.l, ptc.r);
-    }
-    if (r.all_of<PhysicsTransformYComponent>(eid)) {
-      PhysicsTransformYComponent& ptc = r.get<PhysicsTransformYComponent>(eid);
-      imgui_draw_ivec2("PhysY (b, t): ", ptc.b, ptc.t);
-    }
-    if (r.all_of<AABB>(eid)) {
-      AABB& aabb = r.get<AABB>(eid);
-      imgui_draw_ivec2("AABB (center): ", aabb.center.x, aabb.center.y);
-      imgui_draw_ivec2("AABB (size): ", aabb.size.x, aabb.size.y);
-    }
-    if (r.all_of<VelocityComponent>(eid)) {
-      const auto& c = r.get<VelocityComponent>(eid);
-      float x = c.x;
-      float y = c.y;
-      imgui_draw_vec2("Vel: ", x, y);
+    if (auto* pb = r.try_get<PhysicsBodyComponent>(eid)) {
+      const auto& pos = pb->body->GetPosition();
+      float tmp_x = pos.x;
+      float tmp_y = pos.y;
+      imgui_draw_vec2("Physics Pos: ", tmp_x, tmp_y);
+
+      const glm::vec2 size = get_size(r, eid);
+      tmp_x = size.x;
+      tmp_y = size.y;
+      imgui_draw_vec2("Physics Size: ", tmp_x, tmp_y);
+
+      const auto& vel = pb->body->GetLinearVelocity();
+      tmp_x = vel.x;
+      tmp_y = vel.y;
+      imgui_draw_vec2("Physics LinearVelocity", tmp_x, tmp_y);
+
+      tmp_x = pb->body->GetAngle();
+      imgui_draw_float("Physics Angle", tmp_x);
     }
 
     if (auto* sc = r.try_get<SpriteComponent>(eid)) {

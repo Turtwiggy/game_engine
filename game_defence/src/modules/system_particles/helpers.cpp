@@ -1,12 +1,10 @@
 #include "helpers.hpp"
 
 #include "actors.hpp"
-#include "colour/colour.hpp"
 #include "components.hpp"
 #include "lifecycle/components.hpp"
 #include "maths/maths.hpp"
 #include "modules/actors/helpers.hpp"
-#include "physics/components.hpp"
 #include "renderer/transform.hpp"
 
 namespace game2d {
@@ -16,18 +14,17 @@ create_particle(entt::registry& r, const ParticleDescription& desc)
 {
   static engine::RandomState rnd;
 
-  const auto e = create_gameplay(r, EntityType::particle);
+  const auto e = create_gameplay(r, EntityType::particle, desc.position);
 
   // time-alive
   r.get<EntityTimedLifecycle>(e).milliseconds_alive_max = desc.time_to_live_ms;
 
   // spawn-point
-  set_position(r, e, desc.position);
   auto& t = r.get<TransformComponent>(e);
   t.rotation_radians.z = engine::rand_det_s(rnd.rng, 0.0f, 2.0f * engine::PI); // rnd rotation
 
   // velocity
-  auto& vel = r.get<VelocityComponent>(e);
+  auto& vel = r.get<VelocityTemporaryComponent>(e);
   vel.x = desc.velocity.x;
   vel.y = desc.velocity.y;
 

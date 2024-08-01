@@ -42,7 +42,7 @@ update_debug_pathfinding_system(entt::registry& r)
         continue; // why dis happening?
 
       const auto debug_e = debug_path_lines.pool.instances[line_idx];
-      set_transform_with_line(r, debug_e, generate_line(cur, nxt, 2));
+      set_position_and_size_with_line(r, debug_e, generate_line(cur, nxt, 2));
 
       line_idx++;
     }

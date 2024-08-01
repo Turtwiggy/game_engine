@@ -5,6 +5,6 @@
 namespace game2d {
 
 void
-update_set_velocity_to_target_system(entt::registry& r, const float& dt);
+update_move_to_target_via_vel(entt::registry& r);
 
 } // namespace game2d

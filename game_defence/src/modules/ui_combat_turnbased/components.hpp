@@ -1,6 +1,5 @@
 #pragma once
 
-#include "modules/actor_enemy_patrol/components.hpp"
 #include <entt/entt.hpp>
 
 namespace game2d {
@@ -14,7 +13,6 @@ struct SINGLE_TurnBasedCombatInfo
 struct OverworldToDungeonInfo
 {
   bool backstabbed = false; // was something backstabbed to get here?
-  PatrolComponent patrol_that_you_hit;
 };
 
 } // namespace game2d

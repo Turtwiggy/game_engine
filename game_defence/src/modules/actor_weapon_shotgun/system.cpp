@@ -5,10 +5,10 @@
 #include "entt/helpers.hpp"
 #include "lifecycle/components.hpp"
 #include "maths/maths.hpp"
+#include "modules/actors/helpers.hpp"
 #include "modules/combat_attack_cooldown/components.hpp"
 #include "modules/combat_damage/components.hpp"
 #include "modules/combat_wants_to_shoot/components.hpp"
-#include "modules/lerp_to_target/components.hpp"
 #include "modules/system_particles/components.hpp"
 #include "modules/system_particles/helpers.hpp"
 #include "physics/components.hpp"
@@ -16,8 +16,8 @@
 
 namespace game2d {
 
-std::optional<glm::ivec2>
-get_parent_target_position(entt::registry& r, const entt::entity& p)
+std::optional<glm::vec2>
+get_parents_target(entt::registry& r, const entt::entity p)
 {
   // Get Target: Either an Entity or a Location
   const auto* dynamic_tgt = r.try_get<DynamicTargetComponent>(p);
@@ -31,14 +31,14 @@ get_parent_target_position(entt::registry& r, const entt::entity& p)
     r.remove<DynamicTargetComponent>(p);
 
   // If no static target either; skip all together
-  if (!dynamic_tgt && (!static_tgt || !static_tgt->target.has_value()))
+  if (!dynamic_tgt && !static_tgt)
     return std::nullopt;
 
   if (dynamic_tgt != nullptr)
-    return r.get<AABB>(dynamic_tgt->target).center;
+    return get_position(r, dynamic_tgt->target);
 
   if (static_tgt != nullptr)
-    return static_tgt->target.value();
+    return static_tgt->target;
 
   return std::nullopt;
 };
@@ -49,36 +49,28 @@ update_weapon_shotgun_system(entt::registry& r, const uint64_t milliseconds_dt)
   auto& dead = get_first_component<SINGLETON_EntityBinComponent>(r);
   const float dt = milliseconds_dt / 1000.0f;
 
-  const auto& view = r.view<ShotgunComponent,
-                            HasParentComponent,
-                            AABB,
-                            TransformComponent,
-                            // const HasTargetPositionComponent,
-                            VelocityComponent>(entt::exclude<WaitForInitComponent>);
+  const auto& view = r.view<ShotgunComponent, HasParentComponent, TransformComponent>(entt::exclude<WaitForInitComponent>);
 
-  for (const auto& [entity, shotgun, parent, gun_aabb, shotgun_transform, gun_velocity] : view.each()) {
+  for (const auto& [shotgun_e, shotgun, parent, shotgun_t] : view.each()) {
 
     const auto& p = parent.parent;
     if (p == entt::null || !r.valid(p)) {
-      dead.dead.emplace(entity); // kill this parentless entity (soz)
+      dead.dead.emplace(shotgun_e); // kill this parentless entity (soz)
       continue;
     }
 
-    const auto& [parent_aabb, parent_team] = r.get<const AABB, const TeamComponent>(p);
+    const auto& [parent_team] = r.get<const TeamComponent>(p);
 
     // Get the position this gun is aiming
-    const auto target_position_opt = get_parent_target_position(r, p);
+    const auto target_position_opt = get_parents_target(r, p);
     if (target_position_opt == std::nullopt)
       continue;
-    const glm::ivec2 target_position = target_position_opt.value();
-
-    // set gun position
-    gun_aabb.center = glm::ivec2(parent_aabb.center);
+    const auto target_position = target_position_opt.value();
 
     // distance from parent
-    auto dir_i = gun_aabb.center - target_position;
-    auto raw_dir = glm::vec2{ dir_i.x, dir_i.y };
-    auto nrm_dir = engine::normalize_safe(raw_dir);
+    const auto parent_pos = get_position(r, p);
+    glm::vec2 raw_dir = parent_pos - target_position;
+    glm::vec2 nrm_dir = engine::normalize_safe(raw_dir);
 
     // Add an offset.
     auto offset = glm::vec2{ -nrm_dir.x * shotgun.offset_amount, -nrm_dir.y * shotgun.offset_amount };
@@ -89,17 +81,16 @@ update_weapon_shotgun_system(entt::registry& r, const uint64_t milliseconds_dt)
     if (shotgun.recoil_amount > 0.0f)
       offset += glm::vec2{ nrm_dir.x * shotgun.recoil_amount, nrm_dir.y * shotgun.recoil_amount };
 
-    gun_aabb.center += offset;
+    // Set gun position
+    const auto offset_pos = parent_pos + offset;
+    set_position(r, shotgun_e, offset_pos);
 
     // recalculate
-    //
-    dir_i = gun_aabb.center - target_position;
-    raw_dir = glm::vec2{ dir_i.x, dir_i.y };
+    raw_dir = target_position - offset_pos;
     nrm_dir = engine::normalize_safe(raw_dir);
 
     // Rotate the gun axis to the target
-    const float angle = engine::dir_to_angle_radians(nrm_dir);
-    shotgun_transform.rotation_radians.z = angle;
+    shotgun_t.rotation_radians.z = engine::dir_to_angle_radians(nrm_dir) + engine::PI;
 
     // check if input was pressed
     bool shoot_pressed = false;
@@ -115,7 +106,7 @@ update_weapon_shotgun_system(entt::registry& r, const uint64_t milliseconds_dt)
       r.remove<WantsToReleaseShot>(p);
     }
 
-    if (shoot_pressed && r.try_get<AbleToShoot>(entity) == NULL) {
+    if (shoot_pressed && r.try_get<AbleToShoot>(shotgun_e) == NULL) {
       // not able to shoot...
 
       // spawn particles "pfft"; you couldnt shoot
@@ -123,8 +114,8 @@ update_weapon_shotgun_system(entt::registry& r, const uint64_t milliseconds_dt)
 
       ParticleDescription desc;
       desc.time_to_live_ms = 1000;
-      desc.position = gun_aabb.center;
-      desc.velocity = { -dir_i.x * pfft_speed, -glm::abs(dir_i.y * pfft_speed) };
+      desc.position = offset_pos;
+      desc.velocity = { -nrm_dir.x * pfft_speed, -glm::abs(nrm_dir.y * pfft_speed) };
       desc.start_size = 10;
       desc.end_size = 0;
       desc.sprite = "EMPTY";
@@ -164,35 +155,35 @@ update_weapon_shotgun_system(entt::registry& r, const uint64_t milliseconds_dt)
       // give all the bullets the same attack id
       AttackIdComponent attack_id_comp;
 
-      const auto& bullet_info = r.get<WeaponBulletTypeToSpawnComponent>(entity);
-      for (int i = 0; i < shotgun.bullets_to_spawn; i++) {
+      const auto& bullet_info = r.get<WeaponBulletTypeToSpawnComponent>(shotgun_e);
+      for (int i = 2; i < 3; i++) {
 
-        float angle_to_fire_at = angle_radians;
-        if (i == 0) // left bullet
-          angle_to_fire_at += bullet_angle_radians;
-        if (i == 1) // right bullet
-          angle_to_fire_at -= bullet_angle_radians;
+        // float angle_to_fire_at = angle_radians;
+        // if (i == 0) // left bullet
+        //   angle_to_fire_at += bullet_angle_radians;
+        // if (i == 1) // right bullet
+        //   angle_to_fire_at -= bullet_angle_radians;
         // i = 2 is handled as the forward bullet
-        // fmt::println("firing gun at angle(degrees): " << angle_to_fire_at * engine::Rad2Deg << std::endl;
-        const auto new_dir = engine::angle_radians_to_direction(angle_to_fire_at);
 
-        const auto req = create_gameplay(r, bullet_info.bullet_type);
+        // fmt::println("firing gun at angle(degrees): " << angle_to_fire_at * engine::Rad2Deg << std::endl;
+        // const auto new_dir = engine::angle_radians_to_direction(angle_to_fire_at);
+
+        const glm::vec2 bullet_position = offset_pos;
+        const auto req = create_gameplay(r, bullet_info.bullet_type, bullet_position);
         r.get_or_emplace<HasParentComponent>(req).parent = p;
 
-        const glm::ivec2 bullet_position = parent_aabb.center + glm::ivec2(offset.x, offset.y);
-
         auto& bullet_transform = r.get<TransformComponent>(req);
-        bullet_transform.position = { bullet_position.x, bullet_position.y, 0.0f };
-        bullet_transform.rotation_radians.z = shotgun_transform.rotation_radians.z;
-        auto& bullet_aabb = r.get<AABB>(req);
-        bullet_aabb.center = bullet_position;
+        bullet_transform.rotation_radians.z = shotgun_t.rotation_radians.z;
 
-        auto& bullet_vel = r.get<VelocityComponent>(req);
-        bullet_vel.x = (new_dir.x * bullet_info.bullet_speed);
-        bullet_vel.y = (new_dir.y * bullet_info.bullet_speed);
+        const b2Vec2 vel = { nrm_dir.x * bullet_info.bullet_speed, nrm_dir.y * bullet_info.bullet_speed };
+        auto& bullet_c = r.get<PhysicsBodyComponent>(req);
+        bullet_c.base_speed = bullet_info.bullet_speed;
+        bullet_c.body->SetLinearVelocity(vel);
 
         // Turn the bullet Live!
-        r.emplace_or_replace<TeamComponent>(req, parent_team.team);
+        // Make bullets Neutral so they hurt everyone >:)
+        // r.emplace_or_replace<TeamComponent>(req, AvailableTeams::neutral);
+        r.emplace_or_replace<TeamComponent>(req, r.get<TeamComponent>(p).team);
         r.emplace_or_replace<AttackComponent>(req, AttackComponent{ int(bullet_info.bullet_damage) });
         r.emplace<AttackIdComponent>(req, attack_id_comp);
         r.emplace_or_replace<EntityTimedLifecycle>(req);

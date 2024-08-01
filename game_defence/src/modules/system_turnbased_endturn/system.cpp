@@ -14,7 +14,7 @@
 namespace game2d {
 
 void
-teleport_to_destination(entt::registry& r, const entt::entity& e)
+teleport_to_destination(entt::registry& r, const entt::entity e)
 {
   if (has_destination(r, e) && !at_destination(r, e)) {
     const auto& path = r.get<GeneratedPathComponent>(e);

@@ -1,0 +1,188 @@
+#include "system.hpp"
+
+#include "actors.hpp"
+#include "entt/helpers.hpp"
+#include "helpers.hpp"
+#include "lifecycle/components.hpp"
+#include "maths/maths.hpp"
+#include "modules/actor_asteroid/components.hpp"
+#include "modules/actor_enemy/components.hpp"
+#include "modules/actor_enemy_patrol/components.hpp"
+#include "modules/actor_player/components.hpp"
+#include "modules/actor_weapon_shotgun/components.hpp"
+#include "modules/actors/helpers.hpp"
+#include "modules/animation/components.hpp"
+#include "modules/combat_damage/components.hpp"
+#include "modules/combat_wants_to_shoot/components.hpp"
+#include "modules/entt/serialize.hpp"
+#include "modules/gen_dungeons/components.hpp"
+#include "modules/resolve_collisions/helpers.hpp"
+#include "modules/scene/components.hpp"
+#include "modules/scene/helpers.hpp"
+#include "modules/system_particles/components.hpp"
+#include "modules/system_particles/helpers.hpp"
+#include "modules/ui_combat_turnbased/components.hpp"
+#include "physics/components.hpp"
+#include <glm/common.hpp>
+
+namespace game2d {
+
+void
+enemy_player_collision(entt::registry& r, const entt::entity& a, const entt::entity& b)
+{
+  auto& dead = get_first_component<SINGLETON_EntityBinComponent>(r);
+
+  // enemy_player collision for overworld
+  const auto& scene = get_first_component<SINGLETON_CurrentScene>(r);
+  // if (scene.s != Scene::overworld)
+  //   return;
+
+  const auto [a_player, b_group] = collision_of_interest<PlayerComponent, EnemyComponent>(r, a, b);
+
+  if (a_player != entt::null && b_group != entt::null) {
+
+    OverworldToDungeonInfo data;
+    data.backstabbed = r.try_get<BackstabbableComponent>(b_group) != nullptr;
+    data.patrol_that_you_hit = r.get<PatrolComponent>(b_group);
+    create_empty<OverworldToDungeonInfo>(r, data);
+
+    // Destroy the entity we collided with before moving scene,
+    // so that when the game is loaded it's gone?
+    dead.dead.emplace(b_group);
+    r.emplace_or_replace<WaitForInitComponent>(b_group); // set it as not init again
+
+    // save the overworld. TODO: add timestamp to savefile?
+    save(r, "save-overworld.json");
+
+    // going to "dungeon" scene
+    move_to_scene_start(r, Scene::dungeon_designer);
+    create_empty<RequestGenerateDungeonComponent>(r);
+  }
+}
+
+void
+update_resolve_collisions_system(entt::registry& r)
+{
+  static engine::RandomState rnd;
+  const auto& physics = get_first_component<SINGLETON_PhysicsComponent>(r);
+
+  // some collisions result in dead entities
+  auto& dead = get_first_component<SINGLETON_EntityBinComponent>(r);
+
+  for (const auto& coll : physics.collision_enter) {
+
+    const auto a = static_cast<entt::entity>(coll.ent_id_0);
+    const auto b = static_cast<entt::entity>(coll.ent_id_1);
+
+    const auto* a_atk = r.try_get<AttackComponent>(a);
+    const auto* a_def = r.try_get<HealthComponent>(a);
+    const auto* a_team = r.try_get<TeamComponent>(a);
+    const auto* b_atk = r.try_get<AttackComponent>(b);
+    const auto* b_def = r.try_get<HealthComponent>(b);
+    const auto* b_team = r.try_get<TeamComponent>(b);
+    const bool same_team = (a_team && b_team) && (a_team->team == b_team->team);
+
+    // Dealing Damage
+    //
+    // deal damage to b
+    if (a_atk && b_def && !same_team) {
+      dead.dead.emplace(a);
+      const entt::entity from = a;
+      const entt::entity to = b;
+      create_empty<DealDamageRequest>(r, DealDamageRequest{ from, to });
+    }
+    // deal damage to a
+    if (b_atk && a_def && !same_team) {
+      dead.dead.emplace(b);
+      const entt::entity from = b;
+      const entt::entity to = a;
+      create_empty<DealDamageRequest>(r, DealDamageRequest{ from, to });
+    }
+
+    // enemy_player_collision(r, a, b);
+  }
+
+  for (const Collision2D& coll : physics.frame_solid_collisions) {
+    const auto a = static_cast<entt::entity>(coll.ent_id_0);
+    const auto b = static_cast<entt::entity>(coll.ent_id_1);
+
+    const auto [bbouncy_ent, some_ent] =
+      collision_of_interest<const BulletBouncyComponent, const EntityTypeComponent>(r, a, b);
+    if (bbouncy_ent != entt::null && some_ent != entt::null) {
+      const auto& bullet_e = bbouncy_ent;
+      const auto& solid_e = some_ent;
+      const auto& bullet_aabb = r.get<AABB>(bullet_e);
+      const auto& solid_aabb = r.get<AABB>(solid_e);
+
+      // bouncy bullet hit a wall
+      const bool wall_is_horizontal = solid_aabb.size.x > solid_aabb.size.y;
+      const auto dir = bullet_aabb.center - solid_aabb.center;
+
+      // move the bullet away from the collided wall
+      auto& bullet_vel = r.get<VelocityComponent>(bullet_e);
+      if (wall_is_horizontal) // reflect y
+        bullet_vel.y = glm::abs(bullet_vel.y) * glm::sign(dir.y);
+      else
+        bullet_vel.x = glm::abs(bullet_vel.x) * glm::sign(dir.x);
+    }
+
+    const auto [a_ent, b_ent] = collision_of_interest<const BulletComponent, const EntityTypeComponent>(r, a, b);
+    if (a_ent != entt::null && b_ent != entt::null) {
+      const auto& bullet = a_ent;
+      const auto& wall = b_ent;
+
+      // get rid of bullet
+      dead.dead.emplace(bullet);
+
+      // which direction was the bullet moving in?
+      const auto& bullet_vel = r.get<VelocityComponent>(bullet);
+      const auto& bullet_aabb = r.get<AABB>(bullet);
+      const auto& solid_aabb = r.get<AABB>(wall);
+      const float sign_x = glm::sign(bullet_vel.x);
+      const float sign_y = glm::sign(bullet_vel.y);
+      const auto impact_point_x = bullet_aabb.center.x + (sign_x * (bullet_aabb.size.x / 2.0f));
+      const auto impact_point_y = bullet_aabb.center.y + (sign_y * (bullet_aabb.size.y / 2.0f));
+
+      // todo: 6 dust clouds
+      // todo: 3 sparks
+      // todo: spawn permanant debris. look in to gamemaker surface system?
+      // todo: slow the particle down over time
+      // todo: give the particle a limited range to bounce off at with some randomness
+
+      // root particle for collision
+      {
+        // Set the velocity of the particle
+        float impact_vel_amount_x = 0.0f;
+        float impact_vel_amount_y = 0.0f;
+        const float momentum_loss = 5.0f; // e.g. particles return at 1/5th the speed
+
+        // bouncy bullet hit a wall
+        const bool wall_is_horizontal = solid_aabb.size.x > solid_aabb.size.y;
+        const auto dir = bullet_aabb.center - solid_aabb.center;
+
+        if (wall_is_horizontal)
+          impact_vel_amount_y = glm::abs(bullet_vel.y) * glm::sign(dir.y) / momentum_loss;
+        else
+          impact_vel_amount_x = glm::abs(bullet_vel.x) * glm::sign(dir.x) / momentum_loss;
+
+        ParticleDescription desc;
+        desc.time_to_live_ms = 1000;
+        desc.position = { impact_point_x, impact_point_y };
+        desc.velocity = { impact_vel_amount_x, impact_vel_amount_y };
+        desc.start_size = 10;
+        desc.end_size = 0;
+        desc.sprite = "EMPTY";
+        const auto e = create_particle(r, desc);
+
+        // make it an animation
+        // SpriteAnimationComponent anim;
+        // anim.playing_animation_name = "SMOKE_IMPACT";
+        // anim.duration = desc.time_to_live_ms / 1000;
+        // anim.looping = false;
+        // r.emplace<SpriteAnimationComponent>(e, anim);
+      }
+    }
+  }
+}
+
+} // namespace game2d

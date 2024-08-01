@@ -5,6 +5,6 @@
 namespace game2d {
 
 void
-update_inventory_system(entt::registry& r);
+update_overworld_fake_fight_system(entt::registry& r);
 
 } // namespace game2d

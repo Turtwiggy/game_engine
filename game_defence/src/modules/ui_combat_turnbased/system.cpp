@@ -21,10 +21,7 @@
 #include "modules/system_turnbased_enemy/components.hpp"
 
 #include "modules/ux_hoverable/components.hpp"
-#include "physics/components.hpp"
 #include "sprites/helpers.hpp"
-
-#include "imgui.h"
 
 namespace game2d {
 using namespace std::literals;
@@ -104,10 +101,8 @@ update_ui_combat_turnbased_system(entt::registry& r, const glm::ivec2& input_mou
   if (state.team == AvailableTeams::neutral)
     return;
 
-  const auto& selected_view = r.view<SelectedComponent, AABB>();
-  int count = 0;
-  for (const auto& [e, selected_c, aabb] : selected_view.each())
-    count++;
+  const auto& selected_view = r.view<SelectedComponent>();
+  int count = selected_view.size();
 
   // stop showing movement path
   if (count == 0 || action != Actions::MOVE)
@@ -118,7 +113,7 @@ update_ui_combat_turnbased_system(entt::registry& r, const glm::ivec2& input_mou
   set_position(r, info.action_cursor, mouse_pos);
 
   // move all guns to the mouse cursor
-  for (const auto& [e, selected_c, aabb_c] : selected_view.each()) {
+  for (const auto& [e, selected_c] : selected_view.each()) {
     auto& static_tgt = r.get_or_emplace<StaticTargetComponent>(e);
     static_tgt.target = { input_mouse_pos.x, input_mouse_pos.y };
   }
@@ -135,7 +130,7 @@ update_ui_combat_turnbased_system(entt::registry& r, const glm::ivec2& input_mou
   if (paused)
     return;
 
-  for (const auto& [e, selected_c, aabb] : selected_view.each()) {
+  for (const auto& [e, selected_c] : selected_view.each()) {
 
     // UX: show the path the unit would take
     if (action == Actions::MOVE) {

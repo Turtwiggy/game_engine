@@ -132,10 +132,11 @@ update_gen_dungeons_system(entt::registry& r, const glm::ivec2& mouse_pos)
     return;
   }
   const auto& data = r.get<OverworldToDungeonInfo>(data_e);
-  fmt::println("generating dungeon... you hit a patrol! strength: {}", data.patrol_that_you_hit.strength);
+  fmt::println("generating dungeon... todo: generate of a certain strength");
 
   // todo: make strength impact the number of things spawned
-  const int strength = data.patrol_that_you_hit.strength;
+  // const int strength = data.patrol_that_you_hit.strength;
+  const int strength = 10; // TODO: fix this
 
   static int seed = 0;
   seed++; // Increase seed everytime a map is generated
@@ -158,17 +159,13 @@ update_gen_dungeons_system(entt::registry& r, const glm::ivec2& mouse_pos)
     const int h = map_height;
     const int tilesize = map.tilesize;
     const int half_tile_size = tilesize / 10.0f;
-    const auto wall_l = create_gameplay(r, EntityType::solid_wall);
-    set_position(r, wall_l, { 0, h / 2.0f });
+    const auto wall_l = create_gameplay(r, EntityType::solid_wall, { 0, h / 2.0f });
     set_size(r, wall_l, { half_tile_size, h });
-    const auto wall_r = create_gameplay(r, EntityType::solid_wall);
-    set_position(r, wall_r, { w, h / 2.0f });
+    const auto wall_r = create_gameplay(r, EntityType::solid_wall, { w, h / 2.0f });
     set_size(r, wall_r, { half_tile_size, h });
-    const auto wall_u = create_gameplay(r, EntityType::solid_wall);
-    set_position(r, wall_u, { w / 2.0f, 0 });
+    const auto wall_u = create_gameplay(r, EntityType::solid_wall, { w / 2.0f, 0 });
     set_size(r, wall_u, { w, half_tile_size });
-    const auto wall_d = create_gameplay(r, EntityType::solid_wall);
-    set_position(r, wall_d, { w / 2.0f, h });
+    const auto wall_d = create_gameplay(r, EntityType::solid_wall, { w / 2.0f, h });
     set_size(r, wall_d, { w, half_tile_size });
   }
 
@@ -189,10 +186,7 @@ update_gen_dungeons_system(entt::registry& r, const glm::ivec2& mouse_pos)
   for (int idx = 0; idx < map.xmax * map.ymax; idx++) {
     if (result.wall_or_floors[idx] == 1) {
       auto& ents = map.map[idx];
-
-      const auto e = create_gameplay(r, EntityType::empty_no_transform);
-      r.emplace<PathfindComponent>(e, PathfindComponent{ -1 });
-
+      const auto e = create_empty<PathfindComponent>(r, { PathfindComponent{ -1 } });
       ents.push_back(e);
     }
   }
@@ -207,8 +201,8 @@ update_gen_dungeons_system(entt::registry& r, const glm::ivec2& mouse_pos)
       const auto gb =
         engine::grid::grid_space_to_world_space(glm::ivec2(edge.cell_b.x, edge.cell_b.y), map.tilesize) + offset;
       const auto l = generate_line({ ga.x, ga.y }, { gb.x, gb.y }, 1);
-      const entt::entity e = create_gameplay(r, EntityType::empty_with_transform);
-      set_transform_with_line(r, e, l);
+      const entt::entity e = create_gameplay(r, EntityType::empty_with_transform, { 0, 0 });
+      set_position_and_size_with_line(r, e, l);
       set_colour(r, e, edge.debug_colour);
       r.get<TagComponent>(e).tag = "debugline";
     }

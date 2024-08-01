@@ -1,8 +1,10 @@
 #include "line.hpp"
 
 #include "maths/maths.hpp"
+#include "modules/actors/helpers.hpp"
 #include "physics/components.hpp"
 #include "physics/helpers.hpp"
+#include "renderer/transform.hpp"
 
 namespace game2d {
 
@@ -30,20 +32,13 @@ set_transform_with_line(TransformComponent& t, const LineInfo& line)
 };
 
 void
-set_transform_with_line(entt::registry& r, const entt::entity& e, const LineInfo& li)
+set_position_and_size_with_line(entt::registry& r, const entt::entity e, const LineInfo& li)
 {
-  auto& t = r.get<TransformComponent>(e);
-  set_transform_with_line(t, li);
-};
+  set_position(r, e, li.position);
+  set_size(r, e, li.scale);
 
-void
-set_position_and_size_with_line(entt::registry& r, const entt::entity& e, const LineInfo& li)
-{
-  if (auto* aabb = r.try_get<AABB>(e)) {
-    aabb->center = { li.position.x, li.position.y };
-    aabb->size = { li.scale.x, li.scale.y };
-  }
-  set_transform_with_line(r, e, li);
+  auto& t = r.get<TransformComponent>(e);
+  t.rotation_radians.z = li.rotation;
 }
 
 std::vector<std::pair<int, int>>

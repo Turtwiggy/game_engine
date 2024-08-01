@@ -63,7 +63,7 @@ destroy_first_and_create(entt::registry& r, const std::optional<T> val = std::nu
 
 template<class T>
 bool // existed
-remove_if_exists(entt::registry& r, const entt::entity& e)
+remove_if_exists(entt::registry& r, const entt::entity e)
 {
   if (const auto* comp = r.try_get<T>(e)) {
     r.remove<T>(e);

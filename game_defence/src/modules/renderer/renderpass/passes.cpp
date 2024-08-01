@@ -127,7 +127,7 @@ setup_linear_main_update(entt::registry& r)
 
       for (const auto& [entity, transform, sc] : group.each()) {
         engine::quad_renderer::RenderDescriptor desc;
-        desc.pos_tl = transform.position - transform.scale / 2;
+        desc.pos_tl = transform.position - (transform.scale * 0.5f);
         desc.size = transform.scale;
         desc.angle_radians = sc.angle_radians + transform.rotation_radians.z;
         desc.colour = sc.colour;
@@ -211,7 +211,7 @@ setup_lighting_emitters_and_occluders_update(entt::registry& r)
         const auto& emitters = r.view<const LightEmitterComponent, const TransformComponent, const SpriteComponent>();
         for (const auto& [entity, emitter, transform, sc] : emitters.each()) {
           engine::quad_renderer::RenderDescriptor desc;
-          desc.pos_tl = transform.position - transform.scale / 2;
+          desc.pos_tl = transform.position - transform.scale * 0.5f;
           desc.size = transform.scale;
           desc.angle_radians = sc.angle_radians + transform.rotation_radians.z;
           desc.colour = emitter_col;
@@ -230,7 +230,7 @@ setup_lighting_emitters_and_occluders_update(entt::registry& r)
         const auto& occluders = r.view<const LightOccluderComponent, const TransformComponent, const SpriteComponent>();
         for (const auto& [entity, occluder, transform, sc] : occluders.each()) {
           engine::quad_renderer::RenderDescriptor desc;
-          desc.pos_tl = transform.position - transform.scale / 2;
+          desc.pos_tl = transform.position - transform.scale * 0.5f;
           desc.size = transform.scale;
           desc.angle_radians = sc.angle_radians + transform.rotation_radians.z;
           desc.colour = occluder_col;
