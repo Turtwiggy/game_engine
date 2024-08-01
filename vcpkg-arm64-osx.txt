@@ -1,12 +1,12 @@
 box2d
+fmt
 glew
 glm
+gtest
 sdl2
 sdl2-mixer[core, mpg123]
 openal-soft
 stb
 nlohmann-json
-gtest
-fmt
 --triplet
 arm64-osx

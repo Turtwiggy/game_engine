@@ -2,17 +2,18 @@
   "name": "default-dependencies",
   "version-string": "0.0.1",
   "dependencies": [
+    "box2d",
+    "fmt",
     "glew",
     "glm",
-    "sdl2",
-    "openal-soft",
-    "stb",
-    "nlohmann-json",
-    "fmt",
     "gtest",
+    "sdl2",
     {
       "name": "sdl2-mixer",
-      "features": [ "mpg123" ]
-    }
+      "features": [ "core", "mpg123" ]
+    },
+    "openal-soft",
+    "stb",
+    "nlohmann-json"
   ]
 }
