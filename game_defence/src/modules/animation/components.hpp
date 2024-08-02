@@ -20,12 +20,4 @@ struct WiggleUpAndDown
   float frequency = 5.0f;
 };
 
-struct RotateAroundEntity
-{
-  entt::entity e = entt::null;
-  float distance = 1.0f;
-  float rotate_speed = 1.0f;
-  float theta = 0.0f; // 0 and 2PI
-};
-
 } // namespace game2d

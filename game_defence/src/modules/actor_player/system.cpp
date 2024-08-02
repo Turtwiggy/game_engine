@@ -14,6 +14,7 @@
 
 #include <SDL2/SDL_keyboard.h>
 #include <SDL2/SDL_mouse.h>
+#include <box2d/b2_math.h>
 #include <box2d/box2d.h>
 #include <fmt/core.h>
 #include <glm/glm.hpp>
@@ -44,8 +45,16 @@ update_movement_asteroids(entt::registry& r, uint64_t ms_dt)
                             TransformComponent>();
   for (const auto& [e, player_c, input_c, movetype_c, body_c, transform_c] : view.each()) {
 
-    const float rotation_speed = 1.0f;
-    const float thrust_change = 100.0f;
+    // rotation_speed: how fast ship can look left/right
+    // speed: how fast ship travels
+    const float rotation_speed = 1.5f;
+    const float speed = 100.0f;
+
+    // A constant that determines how strongly the force is applied in response to the velocity error.
+    // A higher value means more aggressive correction.
+    const float max_force = 1000.0f;
+    const float proportional_gain = 10000.0f;
+    const bool clamp_max_force = false;
 
     // Choosing Between Torque and Angular Impulse:
     // Torque:
@@ -54,24 +63,60 @@ update_movement_asteroids(entt::registry& r, uint64_t ms_dt)
     // Angular Impulse:
     // Applies an instantaneous change in rotational velocity.
     // Useful for sudden rotational effects, like impacts or quick spins.
-
     if (movetype_c.able_to_change_dir)
       body_c.body->SetAngularVelocity(input_c.lx * rotation_speed);
 
     if (movetype_c.able_to_change_thrust) {
-      if (input_c.ly > 0)
-        movetype_c.thrust -= thrust_change * (ms_dt / 1000.0f);
-      if (input_c.ly < 0)
-        movetype_c.thrust += thrust_change * (ms_dt / 1000.0f);
+      // if (input_c.ly > 0)
+      //   movetype_c.thrust -= thrust_change * (ms_dt / 1000.0f);
+      // if (input_c.ly < 0)
+      //   movetype_c.thrust += thrust_change * (ms_dt / 1000.0f);
       // hack: shift pressed, stop the ship
       // if (input_c.sprint)
       //   movetype_c.thrust = 0;
     }
-    movetype_c.thrust = glm::min(movetype_c.thrust, 200.0f);
-    movetype_c.thrust = glm::max(movetype_c.thrust, 1.0f);
+    // movetype_c.thrust = glm::min(movetype_c.thrust, 200.0f);
+    // movetype_c.thrust = glm::max(movetype_c.thrust, 1.0f);
 
     const auto dir = engine::angle_radians_to_direction(transform_c.rotation_radians.z);
-    body_c.body->SetLinearVelocity({ dir.x * movetype_c.thrust, dir.y * movetype_c.thrust });
+    const b2Vec2 tgt_vel = b2Vec2(dir.x * speed, dir.y * speed);
+
+    /*
+    When aiming to achieve and maintain a specific velocity for a dynamic object (like a spaceship)
+    you should use a control approach that adjusts the force applied based on the difference between the current velocity
+    and the desired velocity.
+    This is typically done using a form of proportional control,
+    which is a fundamental concept in control systems.
+    */
+    const b2Vec2 cur_vel = body_c.body->GetLinearVelocity();
+    const b2Vec2 vel_err = tgt_vel - cur_vel;
+    b2Vec2 force = proportional_gain * vel_err;
+
+    // Clamp the force magnitude to avoid excessive values.
+    // Game-feel wise, if clamp is yes:
+    // ship feels more "physics-y", because it takes a little longer to turn
+    // Game-feel wise, if clamp is no:
+    // ship is more responsive beause large force values can be applied.
+    // Kinda feels more like a car than a thruster-powered spaceship
+    if (clamp_max_force) {
+      float force_magnitude_sq = force.LengthSquared();
+      float max_force_mag_sq = max_force * max_force;
+      if (force_magnitude_sq > max_force_mag_sq) {
+        float force_mag = glm::sqrt(force_magnitude_sq);
+        force *= (max_force / force_mag);
+      }
+    }
+
+    /*
+      For more sophisticated control, you might consider implementing a PID
+      (Proportional - Integral - Derivative) controller,
+      which takes into account not only the current error(proportional control)
+      but also the accumulated error over time(integral control) and
+      the rate of change of the error(derivative control).
+      This can provide smoother and more stable control in some cases.
+    */
+
+    body_c.body->ApplyForceToCenter(force, true);
   }
 }
 

@@ -39,6 +39,7 @@
 #include "modules/system_particles/system.hpp"
 #include "modules/system_particles_on_death/system.hpp"
 #include "modules/system_pathfinding/system.hpp"
+#include "modules/system_physics_apply_force/system.hpp"
 #include "modules/system_quips/components.hpp"
 #include "modules/system_quips/system.hpp"
 #include "modules/system_turnbased_endturn/system.hpp"
@@ -254,6 +255,7 @@ fixed_update(engine::SINGLETON_Application& app, entt::registry& game, const uin
 
   {
     OPTICK_EVENT("(physics-tick)");
+    update_physics_apply_force_system(game);
     update_physics_system(game, milliseconds_dt);
   }
 
@@ -330,11 +332,6 @@ update(engine::SINGLETON_Application& app, entt::registry& r, const float dt)
       // update_ux_hoverable_change_colour_system(r);
       // update_flash_sprite_system(r, milliseconds_dt);
       // update_wants_to_shoot_system(r);
-
-      // stuff that probably needs reimplementing
-      //
-      // update_rotate_around_entity_system(r, dt);
-      // update_spawner_system(r, milliseconds_dt);
 
       // potentially common
       update_attack_cooldown_system(r, milliseconds_dt);

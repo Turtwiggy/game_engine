@@ -27,7 +27,7 @@ update_physics_system(entt::registry& r, const uint64_t ms_dt)
     const auto& view = r.view<PhysicsBodyComponent, TransformComponent>();
     for (const auto& [e, body_c, transform_c] : view.each()) {
       const b2Vec2& position = body_c.body->GetPosition();
-      const float& angle = body_c.body->GetAngle();
+      const float angle = body_c.body->GetAngle();
 
       transform_c.position.x = position.x;
       transform_c.position.y = position.y;

@@ -30,6 +30,7 @@
 #include "modules/system_distance_check/components.hpp"
 #include "modules/system_minigame_bamboo/components.hpp"
 #include "modules/system_overworld_fake_fight/components.hpp"
+#include "modules/system_physics_apply_force/components.hpp"
 #include "modules/system_quips/components.hpp"
 #include "modules/system_turnbased_enemy/components.hpp"
 #include "modules/ui_colours/components.hpp"
@@ -44,8 +45,10 @@
 #include "physics/helpers.hpp"
 #include "renderer/transform.hpp"
 #include "sprites/helpers.hpp"
+#include <box2d/b2_math.h>
 #include <nlohmann/json.hpp>
 
+#include <box2d/b2_revolute_joint.h>
 #include <fmt/core.h>
 #include <string>
 
@@ -159,9 +162,7 @@ move_to_scene_menu(entt::registry& r)
   auto& player_thrust = r.get<MovementAsteroidsComponent>(player_e);
   player_thrust.able_to_change_thrust = true;
   player_thrust.able_to_change_dir = true;
-  player_thrust.thrust = 60;
   auto& player_t = r.get<TransformComponent>(player_e);
-  player_t.rotation_radians.z = engine::dir_to_angle_radians({ 1.0f, 1.0 }) + engine::PI;
   player_t.position.z = 1; // above particles
   r.emplace<CameraFollow>(player_e);
 }
@@ -179,15 +180,10 @@ move_to_scene_overworld_revamped(entt::registry& r)
 
   const auto player_e = get_first<PlayerComponent>(r);
   auto& player_t = r.get<TransformComponent>(player_e);
-  auto& player_physics = r.get<PhysicsBodyComponent>(player_e);
 
-  // remove player's control
-  const float previous_thrust = r.get<MovementAsteroidsComponent>(player_e).thrust;
+  // remove player control
   r.remove<InputComponent>(player_e);
   r.remove<MovementAsteroidsComponent>(player_e);
-
-  // boost the player's ship until it reaches the enemy...
-  player_physics.base_speed = previous_thrust * 10.0f;
 
   // spawn an enemy ship (off the screen)
   const glm::vec2 enemy_pos = { player_t.position.x + half_wh.x * 2, player_t.position.y };
@@ -195,18 +191,19 @@ move_to_scene_overworld_revamped(entt::registry& r)
   auto& enemy_t = r.get<TransformComponent>(enemy_e);
   auto& enemy_physics = r.get<PhysicsBodyComponent>(enemy_e);
 
-  player_t.rotation_radians.z = 0; // player look right
-  enemy_t.rotation_radians.z = 0;  // enemy look right
+  // slowly move the enemy right...
+  enemy_physics.body->SetLinearVelocity({ 25, 0 });
+  enemy_physics.body->SetAngularVelocity(0.0f);
+  enemy_t.rotation_radians.z = 0;
 
-  // intiialize enemy...
-  {
-    // get the enemy to slowly move right
-    enemy_physics.body->SetLinearVelocity({ 5, 0 });
-  }
+  // boost the player's ship until it reaches the enemy...
+  r.emplace<DynamicTargetComponent>(player_e, enemy_e);
+  r.emplace<ApplyForceToDynamicTarget>(player_e);
 
+  // when player is within range...
   // start circling enemy in this distance...
 
-  constexpr int d2 = 150 * 150;
+  constexpr int d2 = 200 * 200;
   DistanceCheckComponent distance_c;
   distance_c.d2 = d2;
   distance_c.e0 = player_e;
@@ -215,11 +212,16 @@ move_to_scene_overworld_revamped(entt::registry& r)
     const auto& player_e = get_first<PlayerComponent>(r);
     const auto& enemy_e = get_first<EnemyComponent>(r);
 
-    // r.remove<CameraFollow>(player_e);
-    // r.remove<FollowTargetComponent>(player_e);
+    const auto& player_body = r.get<PhysicsBodyComponent>(player_e);
+    const auto& enemy_body = r.get<PhysicsBodyComponent>(enemy_e);
+    auto& world = get_first_component<SINGLE_Physics>(r).world;
 
-    // // lerp the camera to the the enemy
-    // const auto camera_e = get_first<OrthographicCamera>(r);
+    r.remove<CameraFollow>(player_e);
+
+    // TODO: lerp the camera to the the enemy
+    const auto camera_e = get_first<OrthographicCamera>(r);
+
+    r.emplace<CameraFollow>(enemy_e);
 
     // VelocityComponent vel_c;
     // vel_c.base_speed = player_vel.base_speed + enemy_vel.base_speed;
@@ -244,13 +246,14 @@ move_to_scene_overworld_revamped(entt::registry& r)
     // };
     // create_empty<DistanceCheckComponent>(r, distance_c_cameratoenemy);
 
-    // get the player to rotate around the enemy
-    // RotateAroundEntity spot;
-    // spot.e = enemy_e;
-    // spot.theta = -engine::PI; // circle starting on the left
-    // spot.distance = glm::sqrt(float(d2));
-    // spot.rotate_speed = 0.2f;
-    // r.emplace<RotateAroundEntity>(player_e, spot);
+    // get player to orbit the enemy
+    OrbitEntity orbit_c;
+    orbit_c.e = enemy_e;
+    orbit_c.distance = glm::sqrt(d2);
+    orbit_c.theta = -engine::PI; // start rotating from right
+    orbit_c.rotate_speed = 1.0f;
+    orbit_c.debug_e = create_transform(r);
+    r.emplace<OrbitEntity>(player_e, orbit_c);
 
     // get the enemy to quip
     RequestQuip quip_req;

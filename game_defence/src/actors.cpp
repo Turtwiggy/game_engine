@@ -268,8 +268,34 @@ create_gameplay(entt::registry& r, const EntityType& type, const glm::vec2& posi
       //   break;
       // }
 
+    case EntityType::actor_enemy_patrol: {
+      PhysicsDescription desc;
+      desc.type = b2_dynamicBody;
+      desc.is_bullet = false;
+      desc.density = 0.0;
+      desc.position = position;
+      desc.size = HALF_SIZE;
+      desc.is_sensor = false;
+      create_physics_actor(r, e, desc);
+
+      r.emplace<EnemyComponent>(e);
+      r.emplace<TeamComponent>(e, AvailableTeams::enemy);
+      // r.emplace<HoverableComponent>(e);
+
+      add_particles(e); // particle emitter as child
+      break;
+    }
+
     case EntityType::actor_player: {
-      create_physics_actor_dynamic(r, e, position, HALF_SIZE);
+
+      PhysicsDescription desc;
+      desc.type = b2_dynamicBody;
+      desc.is_bullet = false;
+      desc.density = 1.0;
+      desc.position = position;
+      desc.size = HALF_SIZE;
+      desc.is_sensor = false;
+      create_physics_actor(r, e, desc);
 
       // gameplay
       r.emplace<TeamComponent>(e, AvailableTeams::player);
@@ -287,8 +313,6 @@ create_gameplay(entt::registry& r, const EntityType& type, const glm::vec2& posi
       r.emplace<HealthComponent>(e, 250, 250);
       r.emplace<HoverableComponent>(e);
 
-      // r.emplace<LightEmitterComponent>(e);
-
       // r.emplace<CircleComponent>(e);
       // r.emplace<InfiniteLivesComponent>(e);
       // r.emplace<GeneratePickupZoneComponent>(e);
@@ -300,26 +324,6 @@ create_gameplay(entt::registry& r, const EntityType& type, const glm::vec2& posi
       // stats.agi_level = 1;
       // stats.str_level = 1;
       // r.emplace<StatsComponent>(e, stats);
-
-      add_particles(e); // particle emitter as child
-      break;
-    }
-    case EntityType::actor_enemy_patrol: {
-      create_physics_actor_dynamic(r, e, position, HALF_SIZE);
-
-      // const auto size = get_size(r, e);
-      // CircleCollider coll;
-      // coll.radius = size.x / 4; // half square to feel better?
-      // r.emplace<CircleCollider>(e, coll);
-      // r.emplace<SetTransformAngleToVelocity>(e);
-
-      r.emplace<EnemyComponent>(e);
-      r.emplace<TeamComponent>(e, AvailableTeams::enemy);
-      // r.emplace<HoverableComponent>(e);
-
-      // movement
-      // r.emplace<HasTargetPositionComponent>(e);
-      // r.emplace<SetVelocityToTargetComponent>(e);
 
       add_particles(e); // particle emitter as child
       break;

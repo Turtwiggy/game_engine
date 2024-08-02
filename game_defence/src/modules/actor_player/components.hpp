@@ -81,7 +81,6 @@ struct MovementDirectComponent
 // a/d change angle you're pointing at
 struct MovementAsteroidsComponent
 {
-  float thrust = 10;
   bool able_to_change_dir = true;
   bool able_to_change_thrust = true;
 };
