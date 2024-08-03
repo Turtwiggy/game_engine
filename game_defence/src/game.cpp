@@ -35,6 +35,7 @@
 #include "modules/system_minigame_bamboo/system.hpp"
 #include "modules/system_move_to_target_via_lerp/system.hpp"
 #include "modules/system_move_to_target_via_vel/system.hpp"
+#include "modules/system_overworld_change_direction/system.hpp"
 #include "modules/system_overworld_fake_fight/system.hpp"
 #include "modules/system_particles/system.hpp"
 #include "modules/system_particles_on_death/system.hpp"
@@ -348,6 +349,7 @@ update(engine::SINGLETON_Application& app, entt::registry& r, const float dt)
     }
 
     if (scene.s == Scene::overworld_revamped) {
+      update_overworld_change_direction_system(r);
       update_overworld_fake_fight_system(r);
     }
 

@@ -20,22 +20,15 @@ enum class EntityType
   empty_with_transform,
   empty_with_physics,
 
-  // actors with only one type (so far)
-  // actor_hearth,
-  // actor_spawner,
-  // actor_turret,
+  // overworld
+  actor_spaceship,
+
+  // dungeon
+  actor_dungeon,
 
   // solids
   solid_wall,
 
-  // overworld
-  actor_player, // overworld player
-  actor_enemy_patrol,
-
-  // dungeon
-  actor_unit_rtslike, // selectable and moveable
-  actor_barrel,
-  // actor_barricade,
   weapon_shotgun,
   // weapon_bow,
   // weapon_pistol,
@@ -43,9 +36,6 @@ enum class EntityType
   bullet_default,
   bullet_bouncy,
   // bullet_bow,
-  // enemy_dummy,
-  // enemy_grunt,
-  // enemy_ranged,
 
   // pickups
   actor_pickup_xp,
@@ -84,5 +74,8 @@ create_transform(entt::registry& r);
 // have to set position for physics entities
 [[nodiscard]] entt::entity
 create_gameplay(entt::registry& r, const EntityType& type, const glm::vec2& position);
+
+void
+add_particles(entt::registry& r, const entt::entity parent);
 
 } // namespace game2d

@@ -58,8 +58,8 @@ save(const entt::registry& r, const std::string& path)
   // Which types to save?
   // Should probably be outside this function
   std::vector<EntityType> savetypes{
-    EntityType::actor_player,
-    EntityType::actor_enemy_patrol,
+    // EntityType::actor_,
+    // EntityType::actor_enemy_patrol,
   };
 
   for (const auto& [entity, type, transform] : v.each()) {

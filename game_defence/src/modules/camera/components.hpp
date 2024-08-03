@@ -4,7 +4,7 @@ namespace game2d {
 
 struct CameraFollow
 {
-  bool placeholder = true;
+  bool lerp_to_new_target = false;
 };
 
 struct CameraFreeMove

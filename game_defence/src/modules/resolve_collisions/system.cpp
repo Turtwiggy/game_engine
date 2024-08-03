@@ -73,7 +73,7 @@ update_resolve_collisions_system(entt::registry& r)
       const auto& info = r.get<BulletComponent>(a_ent);
 
       // if hit person, destroy bullet
-      if (b_type.type == EntityType::actor_unit_rtslike && info.destroy_bullet_on_actor_collision)
+      if (b_type.type == EntityType::actor_dungeon && info.destroy_bullet_on_actor_collision)
         dead.dead.emplace(bullet_e);
 
       if (b_type.type != EntityType::solid_wall)

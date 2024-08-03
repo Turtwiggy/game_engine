@@ -79,14 +79,6 @@ update_gen_dungeons_system(entt::registry& r, const glm::ivec2& mouse_pos)
       const auto [in_room, room] = inside_room(map, rooms, grid_pos);
       ImGui::Text("Inside Room: %i", in_room);
 
-      // const auto player_e = get_first<PlayerComponent>(r);
-      // if (player_e != entt::null) {
-      //   const auto player_pos = get_position(r, player_e);
-      //   const auto player_gridpos = engine::grid::worldspace_to_grid_space(player_pos, map.tilesize);
-      //   const auto [in_room, room] = inside_room(map, rooms, player_gridpos);
-      //   ImGui::Text("Player Inside Room: %i", in_room);
-      // }
-
       const auto ts = inside_tunnels(tunnels, grid_pos);
       ImGui::Text("Tunnels Size: %i", int(ts.size()));
 

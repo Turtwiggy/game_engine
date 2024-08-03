@@ -5,11 +5,6 @@
 
 namespace game2d {
 
-struct SetTransformAngleToVelocity
-{
-  bool placeholder = true;
-};
-
 struct WiggleUpAndDown
 {
   glm::ivec2 base_position;

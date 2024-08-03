@@ -21,14 +21,17 @@ const auto exp_decay = [](float a, float b, float decay, float dt) -> float {
 void
 update_move_to_target_via_lerp(entt::registry& r, const float& dt)
 {
-  const auto& view = r.view<const StaticTargetComponent, LerpingToTarget>(entt::exclude<WaitForInitComponent>);
-  for (const auto& [e, target, lerp_info] : view.each()) {
+  //
+  // Do the lerp and update position
+  //
+  const auto& view = r.view<LerpingToTarget>(entt::exclude<WaitForInitComponent>);
+  for (const auto& [e, lerp_info] : view.each()) {
     if (lerp_info.t >= 1.0f)
       lerp_info.t = 1.0f;
     lerp_info.t += dt;
 
-    const auto a = lerp_info.a;
-    const auto b = lerp_info.b;
+    const auto& a = lerp_info.a;
+    const auto& b = lerp_info.b;
 
     const float decay = 20; // higher number = faster to destination
     const float pos_x = exp_decay(a.x, b.x, decay, lerp_info.t);

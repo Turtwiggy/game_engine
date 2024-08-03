@@ -5,6 +5,6 @@
 namespace game2d {
 
 void
-update_move_to_target_via_vel(entt::registry& r);
+update_overworld_change_direction_system(entt::registry& r);
 
 } // namespace game2d

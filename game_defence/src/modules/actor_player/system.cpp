@@ -24,9 +24,8 @@ namespace game2d {
 void
 update_movement_direct(entt::registry& r)
 {
-  const auto& view =
-    r.view<const PlayerComponent, const InputComponent, const MovementDirectComponent, PhysicsBodyComponent>();
-  for (const auto& [e, player_c, input_c, movetype_c, body_c] : view.each()) {
+  const auto& view = r.view<const InputComponent, const MovementDirectComponent, PhysicsBodyComponent>();
+  for (const auto& [e, input_c, movetype_c, body_c] : view.each()) {
     const glm::vec2 l_nrm_raw = { input_c.lx, input_c.ly };
     const glm::vec2 l_nrm_dir = engine::normalize_safe(l_nrm_raw);
 
@@ -38,12 +37,8 @@ update_movement_direct(entt::registry& r)
 void
 update_movement_asteroids(entt::registry& r, uint64_t ms_dt)
 {
-  const auto& view = r.view<const PlayerComponent,
-                            const InputComponent,
-                            MovementAsteroidsComponent,
-                            PhysicsBodyComponent,
-                            TransformComponent>();
-  for (const auto& [e, player_c, input_c, movetype_c, body_c, transform_c] : view.each()) {
+  const auto& view = r.view<const InputComponent, MovementAsteroidsComponent, PhysicsBodyComponent, TransformComponent>();
+  for (const auto& [e, input_c, movetype_c, body_c, transform_c] : view.each()) {
 
     // rotation_speed: how fast ship can look left/right
     // speed: how fast ship travels
@@ -126,8 +121,8 @@ update_player_controller_system(entt::registry& r, const uint64_t& milliseconds_
   const auto& finputs = get_first_component<SINGLETON_FixedUpdateInputHistory>(r);
   const auto& inputs = finputs.history.at(finputs.fixed_tick);
 
-  const auto& view = r.view<const PlayerComponent, InputComponent>(entt::exclude<WaitForInitComponent>);
-  for (const auto& [entity, player, input] : view.each()) {
+  const auto& view = r.view<InputComponent>(entt::exclude<WaitForInitComponent>);
+  for (const auto& [entity, input] : view.each()) {
 
     const auto* keyboard = r.try_get<KeyboardComponent>(entity);
     const auto* controller = r.try_get<ControllerComponent>(entity);

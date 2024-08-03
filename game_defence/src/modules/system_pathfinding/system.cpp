@@ -9,10 +9,6 @@
 #include "modules/combat_wants_to_shoot/components.hpp"
 #include "modules/grid/components.hpp"
 #include "modules/system_move_to_target_via_lerp/components.hpp"
-#include "physics/components.hpp"
-#include "renderer/transform.hpp"
-
-#include <algorithm>
 
 namespace game2d {
 
@@ -28,7 +24,7 @@ update_pathfinding_system(entt::registry& r, const float& dt)
   // if something was killed, remove it from the map
   const auto& dead = get_first_component<SINGLETON_EntityBinComponent>(r);
   for (const auto& e : dead.dead) {
-    if (r.get<EntityTypeComponent>(e).type == EntityType::actor_unit_rtslike) {
+    if (r.get<EntityTypeComponent>(e).type == EntityType::actor_dungeon) {
       const auto gs = engine::grid::worldspace_to_grid_space(get_position(r, e), map.tilesize);
       const auto idx = engine::grid::grid_position_to_index(gs, map.xmax);
       // Warning: this nukes the entire gridcell.

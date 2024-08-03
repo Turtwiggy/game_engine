@@ -5,7 +5,9 @@
 #include "modules/combat_damage/components.hpp"
 #include "physics/components.hpp"
 #include "renderer/transform.hpp"
+
 #include <box2d/b2_circle_shape.h>
+#include <fmt/core.h>
 
 namespace game2d {
 
@@ -106,12 +108,11 @@ set_collision_filters(entt::registry& r, entt::entity e)
         filter.maskBits = ENEMY_BULLET_MASK;
         fixture->SetFilterData(filter);
       } else {
-        // hmm
-        int k = 1;
+        fmt::println("warning; no team set on bullet. not setting physics masks");
       }
     }
 
-    if (type == EntityType::actor_unit_rtslike) {
+    if (type == EntityType::actor_dungeon) {
       if (team_c->team == AvailableTeams::player) {
         filter.categoryBits = FRIENDLY_UNIT_CATEGORY;
         filter.maskBits = FRIENDLY_UNIT_MASK;
@@ -120,10 +121,8 @@ set_collision_filters(entt::registry& r, entt::entity e)
         filter.categoryBits = ENEMY_UNIT_CATEGORY;
         filter.maskBits = ENEMY_UNIT_MASK;
         fixture->SetFilterData(filter);
-      } else {
-        // hmm
-        int k = 1;
-      }
+      } else
+        fmt::println("warning; no team set on actor_dungeon. not setting physics masks");
     }
   }
 }

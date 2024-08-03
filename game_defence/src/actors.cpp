@@ -83,9 +83,7 @@ sprite_type_to_sprite(entt::registry& r, const EntityType& type)
     sprite = "EMPTY";
   // else if (type == EntityType::actor_hearth)
   //   sprite = "CAMPFIRE";
-  else if (type == EntityType::actor_player)
-    sprite = "SPACE_VEHICLE_1";
-  else if (type == EntityType::actor_enemy_patrol)
+  else if (type == EntityType::actor_spaceship)
     sprite = "SPACE_VEHICLE_1";
   // else if (type == EntityType::actor_player)
   //   sprite = "EMPTY";
@@ -101,8 +99,8 @@ sprite_type_to_sprite(entt::registry& r, const EntityType& type)
     sprite = "CARD_HEARTS_2";
   // else if (type == EntityType::actor_barricade)
   //   sprite = "WOOD_WALL_SMALL";
-  else if (type == EntityType::actor_barrel)
-    sprite = "BARREL_0";
+  // else if (type == EntityType::actor_barrel)
+  //   sprite = "BARREL_0";
 
   // weapons...
   //
@@ -174,6 +172,32 @@ create_transform(entt::registry& r)
   return create_gameplay(r, EntityType::empty_with_transform, { 0, 0 });
 };
 
+void
+add_particles(entt::registry& r, const entt::entity parent)
+{
+  const auto particle_emitter = create_transform(r);
+  set_position(r, particle_emitter, get_position(r, parent));
+  set_size(r, particle_emitter, { 0, 0 }); // no size just script, but need position
+
+  r.emplace<SetPositionAtDynamicTarget>(particle_emitter);
+  r.emplace<DynamicTargetComponent>(particle_emitter, parent);
+
+  // which particle to spawn?
+  ParticleDescription desc;
+  desc.sprite = "EMPTY";
+  desc.default_colour = engine::SRGBColour(1.0f, 1.0f, 1.0f, 1.0f);
+  desc.start_size = 6;
+  desc.end_size = 0;
+  desc.default_colour = r.get<DefaultColour>(parent).colour;
+  r.emplace<ParticleEmitterComponent>(particle_emitter, desc);
+
+  // emit: particles
+  AttackCooldownComponent cooldown;
+  cooldown.time_between_attack = 0.1f;
+  cooldown.time_between_attack_left = cooldown.time_between_attack;
+  r.emplace<AttackCooldownComponent>(particle_emitter, cooldown);
+};
+
 entt::entity
 create_gameplay(entt::registry& r, const EntityType& type, const glm::vec2& position)
 {
@@ -192,7 +216,6 @@ create_gameplay(entt::registry& r, const EntityType& type, const glm::vec2& posi
   const auto sc = create_sprite(r, sprite_name, type);
   r.emplace<SpriteComponent>(e, sc);
   r.emplace<TransformComponent>(e);
-  r.emplace<DefaultColour>(e, engine::LinearToSRGB(sc.colour));
 
   set_size(r, e, DEFAULT_SIZE);
   set_position(r, e, position);
@@ -214,31 +237,6 @@ create_gameplay(entt::registry& r, const EntityType& type, const glm::vec2& posi
     }
   }
 
-  // particles
-  auto add_particles = [&r, &position](const entt::entity parent) {
-    const auto particle_emitter = create_transform(r);
-    set_position(r, particle_emitter, position);
-    set_size(r, particle_emitter, { 0, 0 }); // no size just script, but need position
-
-    r.emplace<SetPositionAtDynamicTarget>(particle_emitter);
-    r.emplace<DynamicTargetComponent>(particle_emitter, parent);
-
-    // which particle to spawn?
-    ParticleDescription desc;
-    desc.sprite = "EMPTY";
-    desc.default_colour = engine::SRGBColour(1.0f, 1.0f, 1.0f, 1.0f);
-    desc.start_size = 6;
-    desc.end_size = 0;
-    desc.default_colour = r.get<DefaultColour>(parent).colour;
-    r.emplace<ParticleEmitterComponent>(particle_emitter, desc);
-
-    // emit: particles
-    AttackCooldownComponent cooldown;
-    cooldown.time_between_attack = 0.1f;
-    cooldown.time_between_attack_left = cooldown.time_between_attack;
-    r.emplace<AttackCooldownComponent>(particle_emitter, cooldown);
-  };
-
   switch (type) {
     case EntityType::empty_with_transform: {
       break;
@@ -252,42 +250,7 @@ create_gameplay(entt::registry& r, const EntityType& type, const glm::vec2& posi
       // actors with only one type
       //
 
-      // case EntityType::actor_hearth: {
-      //   create_physics_actor_static(r, e, DEFAULT_SIZE);
-      //   r.emplace<HearthComponent>(e);
-      //   r.emplace<HealthComponent>(e, 50, 50);
-      //   r.emplace<TeamComponent>(e, AvailableTeams::player);
-      //   r.emplace<HoverableComponent>(e);
-
-      //   // spawn the player at the hearth
-      //   // SpawnerComponent hearth_spawner;
-      //   // hearth_spawner.type_to_spawn = EntityType::actor_player;
-      //   // hearth_spawner.continuous_spawn = false;
-      //   // r.emplace<SpawnerComponent>(e, hearth_spawner);
-
-      //   break;
-      // }
-
-    case EntityType::actor_enemy_patrol: {
-      PhysicsDescription desc;
-      desc.type = b2_dynamicBody;
-      desc.is_bullet = false;
-      desc.density = 0.0;
-      desc.position = position;
-      desc.size = HALF_SIZE;
-      desc.is_sensor = false;
-      create_physics_actor(r, e, desc);
-
-      r.emplace<EnemyComponent>(e);
-      r.emplace<TeamComponent>(e, AvailableTeams::enemy);
-      // r.emplace<HoverableComponent>(e);
-
-      add_particles(e); // particle emitter as child
-      break;
-    }
-
-    case EntityType::actor_player: {
-
+    case EntityType::actor_spaceship: {
       PhysicsDescription desc;
       desc.type = b2_dynamicBody;
       desc.is_bullet = false;
@@ -297,41 +260,11 @@ create_gameplay(entt::registry& r, const EntityType& type, const glm::vec2& posi
       desc.is_sensor = false;
       create_physics_actor(r, e, desc);
 
-      // gameplay
-      r.emplace<TeamComponent>(e, AvailableTeams::player);
-      r.emplace<PlayerComponent>(e);
-      r.emplace<InputComponent>(e);
-      r.emplace<KeyboardComponent>(e);
-      r.emplace<ControllerComponent>(e);
-      r.emplace<MovementAsteroidsComponent>(e);
-
-      // movement
-      // r.emplace<HasTargetPositionComponent>(e);
-      // r.emplace<SetVelocityToTargetComponent>(e);
-
-      // r.emplace<SprintComponent>(e);
-      r.emplace<HealthComponent>(e, 250, 250);
       r.emplace<HoverableComponent>(e);
-
-      // r.emplace<CircleComponent>(e);
-      // r.emplace<InfiniteLivesComponent>(e);
-      // r.emplace<GeneratePickupZoneComponent>(e);
-
-      // r.emplace<TakeDamageComponent>(e);
-      // r.emplace<XpComponent>(e, 0);
-      // StatsComponent stats;
-      // stats.con_level = 1;
-      // stats.agi_level = 1;
-      // stats.str_level = 1;
-      // r.emplace<StatsComponent>(e, stats);
-
-      add_particles(e); // particle emitter as child
       break;
     }
 
-    case EntityType::actor_unit_rtslike: {
-      // create_physics_actor_dynamic(r, e, position, DEFAULT_SIZE);
-
+    case EntityType::actor_dungeon: {
       PhysicsDescription desc;
       desc.type = b2_kinematicBody;
       desc.is_bullet = false;
@@ -341,15 +274,7 @@ create_gameplay(entt::registry& r, const EntityType& type, const glm::vec2& posi
       desc.is_sensor = true;
       create_physics_actor(r, e, desc);
 
-      // auto& vel = r.get<VelocityComponent>(e);
-      // vel.base_speed = 700.0f;
-
-      // r.emplace<PhysicsSolidComponent>(e);
-
-      // r.emplace<EnemyComponent>(e); // player or enemy
-      // r.emplace<TeamComponent>(e); // player or enemy
-      r.emplace<HoverableComponent>(e); // the selected component gets attached
-      // r.emplace<ChangeColourOnHoverComponent>(e);
+      r.emplace<HoverableComponent>(e);
       r.emplace<TurnBasedUnitComponent>(e);
       r.emplace<SpawnParticlesOnDeath>(e);
 
@@ -358,80 +283,9 @@ create_gameplay(entt::registry& r, const EntityType& type, const glm::vec2& posi
 
       const int hp = 100; // player hp
       r.emplace<HealthComponent>(e, hp, hp);
-      r.emplace<DefenceComponent>(e, 0); // determined by equipment
-
-      // movement
-      // r.emplace<HasTargetPositionComponent>(e);
+      r.emplace<DefenceComponent>(e, 0);     // should be determined by equipment
       r.emplace<PathfindComponent>(e, 1000); // pass through units if you must
-      // r.emplace<SetVelocityToTargetComponent>(e);
-
-      break;
-    }
-
-      // case EntityType::actor_spawner: {
-      //   r.emplace<HealthComponent>(e, 10, 10);
-
-      //   // X seconds between spawning
-      //   r.emplace<AttackCooldownComponent>(e, 5.0f);
-
-      //   // if spawning enemies...
-      //   // its on the enemy team
-      //   // remember to update this?
-      //   r.emplace<SpawnerComponent>(e);
-      //   r.emplace<TeamComponent>(e, AvailableTeams::enemy);
-      //   r.emplace<HoverableComponent>(e);
-
-      //   break;
-      // }
-
-      // case EntityType::actor_turret: {
-      //   create_physics_actor(r, e);
-      //   r.emplace<TurretComponent>(e);
-      //   r.emplace<AttackCooldownComponent>(e);
-
-      //   // if make turret solid,
-      //   // spawn bullets outside of turret
-      //   // r.emplace<PhysicsSolidComponent>(e);
-      //   break;
-      // }
-
-      // case EntityType::actor_pickup_xp: {
-      //   create_physics_actor(r, e);
-      //   r.emplace<AbleToBePickedUp>(e);
-      //   r.emplace<ItemComponent>(e);
-      //   break;
-      // }
-
-      // case EntityType::actor_pickup_doubledamage: {
-      //   create_physics_actor(r, e);
-      //   r.emplace<AbleToBePickedUp>(e);
-      //   r.emplace<ItemComponent>(e);
-      //   break;
-      // }
-
-      // case EntityType::actor_barricade: {
-      //   create_physics_actor(r, e);
-      //   // r.emplace<PhysicsSolidComponent>(e);
-
-      //   // can be killed
-      //   const int hp = 100;
-      //   r.emplace<HealthComponent>(e, hp, hp);
-
-      //   // assume all barricades are player barricades?
-      //   r.emplace<TeamComponent>(e, AvailableTeams::player);
-
-      //   break;
-      // }
-
-    case EntityType::actor_barrel: {
-      create_physics_actor_static(r, e, position, DEFAULT_SIZE);
-
-      const int hp = 25;
-      r.emplace<HealthComponent>(e, hp, hp);
-      r.emplace<DefenceComponent>(e, 0);
-      r.emplace<TeamComponent>(e, AvailableTeams::neutral);
-      r.emplace<SpawnParticlesOnDeath>(e);
-      r.emplace<PathfindComponent>(e, -1);
+      // r.emplace<TeamComponent>(e, AvailableTeams::neutral);
       break;
     }
 
@@ -450,16 +304,6 @@ create_gameplay(entt::registry& r, const EntityType& type, const glm::vec2& posi
       // actor_weapons
       //
 
-      // case EntityType::weapon_bow: {
-      //   create_physics_actor(r, e);
-      //   r.emplace<BowComponent>(e);
-      //   r.emplace<HasTargetPositionComponent>(e);
-      //   r.emplace<SetVelocityToTargetComponent>(e);
-      //   r.emplace<AttackCooldownComponent>(e);
-      //   r.emplace<HasParentComponent>(e);
-      //   break;
-      // }
-
     case EntityType::weapon_shotgun: {
       // create_physics_actor_dynamic(r, e, DEFAULT_SIZE);
       set_size(r, e, SMALL_SIZE);
@@ -467,8 +311,8 @@ create_gameplay(entt::registry& r, const EntityType& type, const glm::vec2& posi
       r.emplace<WeaponComponent>(e);
       r.emplace<ShotgunComponent>(e);
 
-      // r.emplace<AttackCooldownComponent>(e, 1.2f); // seconds between shooting
       r.emplace<HasParentComponent>(e);
+      // r.emplace<AttackCooldownComponent>(e, 1.2f); // seconds between shooting
       // r.emplace<AbleToShoot>(e);
 
       WeaponBulletTypeToSpawnComponent bullet_info;
@@ -488,7 +332,6 @@ create_gameplay(entt::registry& r, const EntityType& type, const glm::vec2& posi
       create_physics_actor_dynamic(r, e, position, SMALL_SIZE, true);
 
       r.emplace<TeamComponent>(e, AvailableTeams::player);
-      r.emplace<SetTransformAngleToVelocity>(e);
       r.emplace<EntityTimedLifecycle>(e);
 
       BulletComponent bc;
@@ -502,7 +345,6 @@ create_gameplay(entt::registry& r, const EntityType& type, const glm::vec2& posi
       create_physics_actor_dynamic(r, e, position, SMALL_SIZE, true);
 
       r.emplace<TeamComponent>(e, AvailableTeams::player);
-      r.emplace<SetTransformAngleToVelocity>(e);
       r.emplace<EntityTimedLifecycle>(e);
 
       BulletComponent bc;
@@ -511,69 +353,6 @@ create_gameplay(entt::registry& r, const EntityType& type, const glm::vec2& posi
       r.emplace<BulletComponent>(e, bc);
       break;
     }
-
-      // case EntityType::bullet_bow: {
-      //   create_physics_actor(r, e);
-      //   r.emplace<TeamComponent>(e, AvailableTeams::player);
-      //   // no attack component as arrows are inactive sometimes
-      //   break;
-      // }
-
-      // case EntityType::bullet_enemy: {
-      //   create_physics_actor(r, e);
-      //   set_size(r, e, SMALL_SIZE);
-
-      //   r.emplace<TeamComponent>(e, AvailableTeams::enemy);
-      //   r.emplace<SetTransformAngleToVelocity>(e);
-      //   // r.emplace<EntityTimedLifecycle>(e);
-      //   // r.emplace<AttackComponent>(e, 3);
-      //   break;
-      // }
-
-      // actors_enemies
-      //
-      // case EntityType::enemy_dummy: {
-      //   create_physics_actor(r, e);
-      //   r.emplace<EnemyComponent>(e);
-      //   r.emplace<TeamComponent>(e, AvailableTeams::enemy);
-      //   r.emplace<HealthComponent>(e, 100, 100);
-      //   r.emplace<HoverableComponent>(e);
-      //   break;
-      // }
-      // case EntityType::enemy_grunt: {
-      //   create_physics_actor(r, e);
-      //   float base_speed = 50.0f; // influences velocity
-      //   auto& vel = r.get<VelocityComponent>(e);
-      //   vel.base_speed = base_speed;
-      //   r.emplace<EnemyComponent>(e);
-      //   r.emplace<HoverableComponent>(e);
-      //   // items
-      //   r.emplace<AbleToDropItem>(e);
-      //   // movement
-      //   r.emplace<HasTargetPositionComponent>(e);
-      //   r.emplace<SetVelocityToTargetComponent>(e);
-      //   // combat
-      //   r.emplace<TeamComponent>(e, AvailableTeams::enemy);
-      //   r.emplace<HealthComponent>(e, 10, 10);
-      //   // r.emplace<AttackComponent>(e, 10); // on the equipped weapon?
-      //   break;
-      // }
-      // case EntityType::enemy_ranged: {
-      //   create_physics_actor(r, e);
-      //   r.emplace<EnemyComponent>(e);
-      //   r.emplace<HoverableComponent>(e);
-      //   // items
-      //   r.emplace<AbleToDropItem>(e);
-      //   // movement
-      //   r.emplace<HasTargetPositionComponent>(e);
-      //   // r.emplace<LerpToTargetComponent>(e, speed);
-      //   // combat
-      //   r.emplace<TeamComponent>(e, AvailableTeams::enemy);
-      //   r.emplace<HealthComponent>(e, 10, 10);
-      //   r.emplace<AttackCooldownComponent>(e, 1.2f);
-      //   // r.emplace<AttackComponent>(e, 10); // on the equipped weapon?
-      //   break;
-      // }
 
       //
       // misc
