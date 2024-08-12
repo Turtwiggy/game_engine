@@ -11,6 +11,8 @@
 #include "modules/actor_player/components.hpp"
 #include "modules/actors/helpers.hpp"
 #include "modules/algorithm_astar_pathfinding/components.hpp"
+#include "modules/camera/orthographic.hpp"
+#include "modules/combat_damage/components.hpp"
 #include "modules/gen_dungeons//helpers.hpp"
 #include "modules/gen_dungeons/components.hpp"
 #include "modules/gen_dungeons/helpers.hpp"
@@ -21,6 +23,7 @@
 #include "modules/ui_combat_turnbased/components.hpp"
 
 #include "imgui.h"
+#include "modules/ux_hoverable/components.hpp"
 
 #include <SDL_scancode.h>
 #include <fmt/core.h>
@@ -146,21 +149,6 @@ update_gen_dungeons_system(entt::registry& r, const glm::ivec2& mouse_pos)
   map.ymax = map_height / map.tilesize;
   map.map.resize(map.xmax * map.ymax);
 
-  if (true) {
-    const int w = map_width;
-    const int h = map_height;
-    const int tilesize = map.tilesize;
-    const int half_tile_size = tilesize / 10.0f;
-    const auto wall_l = create_gameplay(r, EntityType::solid_wall, { 0, h / 2.0f });
-    set_size(r, wall_l, { half_tile_size, h });
-    const auto wall_r = create_gameplay(r, EntityType::solid_wall, { w, h / 2.0f });
-    set_size(r, wall_r, { half_tile_size, h });
-    const auto wall_u = create_gameplay(r, EntityType::solid_wall, { w / 2.0f, 0 });
-    set_size(r, wall_u, { w, half_tile_size });
-    const auto wall_d = create_gameplay(r, EntityType::solid_wall, { w / 2.0f, h });
-    set_size(r, wall_d, { w, half_tile_size });
-  }
-
   DungeonGenerationCriteria dungeon_parameters;
   dungeon_parameters.max_rooms = 30;
   dungeon_parameters.room_size_min = glm::max(strength / 2, 3);
@@ -220,6 +208,23 @@ update_gen_dungeons_system(entt::registry& r, const glm::ivec2& mouse_pos)
   // Steps after initial initialization...
   set_generated_entity_positions(r, result, rnd);
   set_player_positions(r, result, rnd);
+
+  // create a player off the ship
+  // CombatEntityDescription desc;
+  // desc.position = { -100, -100 };
+  // desc.team = AvailableTeams::player;
+  // const auto e = create_combat_entity(r, desc);
+  // const auto& camera_e = get_first<OrthographicCamera>(r);
+  // auto& camera_t = r.get<TransformComponent>(camera_e);
+  // camera_t.position = { desc.position.x, desc.position.y, 0.0 };
+
+  // const auto player_e = create_gameplay(r, EntityType::actor_spaceship, { -100, -100 });
+  // r.emplace<PlayerComponent>(player_e);
+  // r.emplace<TeamComponent>(player_e, AvailableTeams::player);
+  // r.emplace<InputComponent>(player_e);
+  // r.emplace<KeyboardComponent>(player_e);
+  // r.emplace<DefaultColour>(player_e, engine::SRGBColour{ 255, 255, 117, 1.0f });
+  // add_particles(r, player_e);
 
   // set exit door position
   // bug: exit placed on generated entities. not so bad?

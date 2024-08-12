@@ -70,7 +70,7 @@ update_ui_scene_main_menu(engine::SINGLETON_Application& app, entt::registry& r)
   // selected = selected < 0 ? buttons - 1 : selected;
   // selected %= buttons;
 
-  const ImVec2 size = { 200, 100 * 9 / 16.0f };
+  const ImVec2 size = { 120, 120 * 9 / 16.0f };
   const ImVec2 pivot = { 0.5f, 0.5f };
   ImGui::PushStyleVar(ImGuiStyleVar_ButtonTextAlign, pivot);
   ImGui::PushStyleVar(ImGuiStyleVar_FrameRounding, 10.0f);

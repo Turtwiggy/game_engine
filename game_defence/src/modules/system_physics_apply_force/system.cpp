@@ -13,31 +13,31 @@
 namespace game2d {
 
 b2Vec2
-calculate_desired_velocity(b2Body* a_body, b2Body* b_body, const float speed)
+calculate_desired_velocity(b2Body* a_body, b2Body* b_body, const ApplyForceToDynamicTarget& req)
 {
   b2Vec2 dir = b_body->GetPosition() - a_body->GetPosition();
 
   // distance from target
   const float distance = dir.Length();
-
   dir.Normalize();
 
-  float distance_to_stop_thrust = 200;
-
   // full-speed ahead!
-  if (distance > distance_to_stop_thrust)
-    return b_body->GetLinearVelocity() + speed * dir;
+  if (distance > req.distance_to_reduce_thrust || !req.reduce_thrusters)
+    return b_body->GetLinearVelocity() + req.speed * dir;
 
   // Adjust the desired vel to account for target's velocity,
   // reduce speed the closer to the target you get
-  const float percent = (distance / distance_to_stop_thrust);
-  const b2Vec2 reduced_vel = percent * speed * dir;
+  const float percent = (distance / req.distance_to_reduce_thrust);
+  const b2Vec2 reduced_vel = percent * req.speed * dir;
 
-  // HACK: try adding perpendcular vel to make it orbit
+  // try adding perpendcular vel to make it orbit
   // the closer you get, the stronger the orbit vel becomes
   // in order to try and prevent crash
-  const b2Vec2 perp = { -dir.y, dir.x };
-  const b2Vec2 orbit_vel = (1 - percent) * speed * perp;
+  b2Vec2 orbit_vel{ 0.0f, 0.0f };
+  if (req.orbit) {
+    const b2Vec2 perp = { -dir.y, dir.x };
+    orbit_vel = (1 - percent) * req.speed * perp;
+  }
 
   return b_body->GetLinearVelocity() + reduced_vel + orbit_vel;
 };
@@ -56,8 +56,7 @@ update_physics_apply_force_system(entt::registry& r)
       const auto cur_vel = a_body->GetLinearVelocity();
 
       // Compute the desired velocity of your spaceship.
-      const float speed = 100.0f;
-      const b2Vec2 desired_vel = calculate_desired_velocity(a_body, b_body, speed);
+      const b2Vec2 desired_vel = calculate_desired_velocity(a_body, b_body, req_c);
 
       // Calculate the velocity error
       const float proportional_gain = 100.0f;
@@ -85,7 +84,7 @@ update_physics_apply_force_system(entt::registry& r)
       const auto vel_err = b2Vec2{ dir_c.tgt_vel.x, dir_c.tgt_vel.y } - cur_vel;
 
       // how much force to apply?
-      const float proportional_gain = 50.0f;
+      const float proportional_gain = 100.0f;
       const b2Vec2 force = proportional_gain * vel_err;
 
       // Apply the force

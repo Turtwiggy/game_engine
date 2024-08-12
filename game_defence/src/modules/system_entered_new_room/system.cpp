@@ -5,6 +5,7 @@
 #include "entt/helpers.hpp"
 #include "maths/grid.hpp"
 #include "modules/actor_player/components.hpp"
+#include "modules/actors/helpers.hpp"
 #include "modules/gen_dungeons/components.hpp"
 #include "modules/gen_dungeons/helpers.hpp"
 #include "modules/grid/components.hpp"
@@ -29,9 +30,10 @@ update_entered_new_room_system(entt::registry& r, const float dt)
   const auto& map = get_first_component<MapComponent>(r);
   const auto& dungeon = get_first_component<DungeonGenerationResults>(r);
 
-  const auto& view = r.view<PlayerComponent, RoomAABB>();
-  for (const auto& [e, player, player_aabb] : view.each()) {
-    const auto player_gridspace = engine::grid::worldspace_to_grid_space(player_aabb.center, map.tilesize);
+  const auto& view = r.view<const PlayerComponent>();
+  for (const auto& [e, player] : view.each()) {
+    const auto player_pos = get_position(r, e);
+    const auto player_gridspace = engine::grid::worldspace_to_grid_space(player_pos, map.tilesize);
     const auto [in_room, room] = inside_room(map, dungeon.rooms, player_gridspace);
     if (in_room) {
       auto& player_in_room = r.get_or_emplace<PlayerInRoomComponent>(e);

@@ -81,8 +81,8 @@ struct MovementDirectComponent
 // a/d change angle you're pointing at
 struct MovementAsteroidsComponent
 {
+  bool able_to_change_thrust = false;
   bool able_to_change_dir = true;
-  bool able_to_change_thrust = true;
 };
 
 } // namespace game2d

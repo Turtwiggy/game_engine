@@ -175,7 +175,14 @@
     { "name": "TEXT_!", "frames": [ { "x": 35, "y": 13 } ] },
     { "name": "TEXT_?", "frames": [ { "x": 37, "y": 13 } ] },
 
-    { "name": "BORDER_0", "frames": [ { "x": 39, "y": 14 } ] },
+    { "name": "DICE_DARK_O", "frames": [ { "x": 39, "y": 14 } ] },
+    { "name": "DICE_DARK_X", "frames": [ { "x": 40, "y": 14 } ] },
+    { "name": "DICE_DARK_1", "frames": [ { "x": 41, "y": 14 } ] },
+    { "name": "DICE_DARK_2", "frames": [ { "x": 42, "y": 14 } ] },
+    { "name": "DICE_DARK_3", "frames": [ { "x": 42, "y": 14 } ] },
+    { "name": "DICE_DARK_4", "frames": [ { "x": 42, "y": 14 } ] },
+    { "name": "DICE_DARK_5", "frames": [ { "x": 42, "y": 14 } ] },
+    { "name": "DICE_DARK_6", "frames": [ { "x": 42, "y": 14 } ] },
 
     { "name": "CURSOR_ATTACK_0", "frames": [ { "x": 19, "y": 14 } ] },
     { "name": "CURSOR_ATTACK_1", "frames": [ { "x": 20, "y": 14 } ] },

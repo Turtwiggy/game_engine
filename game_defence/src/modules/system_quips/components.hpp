@@ -35,6 +35,7 @@ struct RequestQuip
 {
   QuipType type;
   entt::entity quipp_e = entt::null;
+  float seconds_to_quip = 2.5f;
 };
 
 } // namespace game2d

@@ -14,14 +14,15 @@
 #include "modules/gen_dungeons/helpers.hpp"
 #include "modules/grid/components.hpp"
 #include "modules/system_entered_new_room/components.hpp"
-#include "modules/ui_worldspace_sprite/components.hpp"
 #include "modules/ui_worldspace_text/components.hpp"
+
+#include "fmt/core.h"
 
 namespace game2d {
 using namespace std::literals;
 
 void
-create_imgui_quip(entt::registry& r, const entt::entity actor, const std::string& quip)
+create_imgui_quip(entt::registry& r, const entt::entity actor, const RequestQuip& req, const std::string& quip)
 {
   // forward the quip text on to the worldspace text system
   const auto e = create_transform(r);
@@ -38,7 +39,7 @@ create_imgui_quip(entt::registry& r, const entt::entity actor, const std::string
   wig.base_position = get_position(r, actor);
   wig.amplitude = 1.0;
   r.emplace<WiggleUpAndDown>(e, wig);
-  r.emplace<EntityTimedLifecycle>(e, static_cast<int>(2.5f * 1000));
+  r.emplace<EntityTimedLifecycle>(e, static_cast<int>(req.seconds_to_quip * 1000));
 };
 
 void
@@ -112,48 +113,38 @@ update_quips_system(entt::registry& r)
   for (const auto& [req_e, quip_c] : quip_req.each()) {
     const auto& e_to_quip = quip_c.quipp_e;
 
-    // force reuse
-    if (quips.quips_unused.size() == 0)
-      quips.quips_unused = std::vector<std::string>(quips.quips.begin(), quips.quips.end());
+    const auto recycle_quips = [](auto& unused, const auto& available) {
+      if (unused.size() == 0)
+        unused = std::vector<std::string>(available.begin(), available.end());
+    };
+    recycle_quips(quips.quips_unused, quips.quips);
+    recycle_quips(quips.quips_hit_unused, quips.quips_hit);
+    recycle_quips(quips.quips_encounter_unused, quips.quips_encounter);
 
-    // force reuse
-    if (quips.quips_hit_unused.size() == 0)
-      quips.quips_hit_unused = std::vector<std::string>(quips.quips_hit.begin(), quips.quips_hit.end());
-
-    // force reuse
-    if (quips.quips_encounter_unused.size() == 0)
-      quips.quips_encounter_unused = std::vector<std::string>(quips.quips_encounter.begin(), quips.quips_encounter.end());
-
-    if (quip_c.type == QuipType::BEGIN_ENCOUNTER) {
+    const auto get_quip = [](auto& quips) -> std::string {
       // pull the quip from the unused pile
-      const int rnd_idx = int(engine::rand_det_s(rnd.rng, 0, int(quips.quips_encounter_unused.size())));
-      const auto quip = quips.quips_encounter_unused[rnd_idx];
-      quips.quips_encounter_unused.erase(quips.quips_encounter_unused.begin() + rnd_idx);
+      const int rnd_idx = int(engine::rand_det_s(rnd.rng, 0, int(quips.size())));
+      const auto quip = quips[rnd_idx];
+      quips.erase(quips.begin() + rnd_idx);
+      return quip;
+    };
 
-      create_imgui_quip(r, e_to_quip, quip);
-    }
+    std::string quip = ":O";
 
-    if (quip_c.type == QuipType::ENTER_ROOM) {
-      // pull the quip from the unused pile
-      const int rnd_idx = int(engine::rand_det_s(rnd.rng, 0, int(quips.quips_unused.size())));
-      const auto quip = quips.quips_unused[rnd_idx];
-      quips.quips_unused.erase(quips.quips_unused.begin() + rnd_idx);
+    if (quip_c.type == QuipType::BEGIN_ENCOUNTER)
+      quip = get_quip(quips.quips_encounter_unused);
+    else if (quip_c.type == QuipType::ENTER_ROOM)
+      quip = get_quip(quips.quips_unused);
+    else if (quip_c.type == QuipType::TOOK_DAMAGE)
+      quip = get_quip(quips.quips_hit_unused);
+    else
+      fmt::println("WARNING: not implemented quip scenario");
 
-      create_imgui_quip(r, e_to_quip, quip);
-    }
+    create_imgui_quip(r, e_to_quip, quip_c, quip);
 
-    if (quip_c.type == QuipType::TOOK_DAMAGE) {
-      // pull the quip from the unused pile
-      const int rnd_idx = int(engine::rand_det_s(rnd.rng, 0, int(quips.quips_hit_unused.size())));
-      const auto quip = quips.quips_hit_unused[rnd_idx];
-      quips.quips_hit_unused.erase(quips.quips_hit_unused.begin() + rnd_idx);
-
-      create_imgui_quip(r, e_to_quip, quip);
-    }
+    // destroy quip reqs...
+    r.destroy(quip_req.begin(), quip_req.end());
   }
-
-  // destroy quip reqs...
-  r.destroy(quip_req.begin(), quip_req.end());
 };
 
 } // namespace game2d

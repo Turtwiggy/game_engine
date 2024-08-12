@@ -32,6 +32,7 @@ create_physics_actor(entt::registry& r, const entt::entity e, const PhysicsDescr
     body_def.bullet = desc.is_bullet;
     body_def.type = desc.type;
     body_def.linearVelocity = b2Vec2_zero;
+    body_def.angularDamping = desc.angular_damping;
     body = physics_c.world->CreateBody(&body_def);
 
     // set user data as the entity id

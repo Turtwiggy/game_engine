@@ -4,13 +4,10 @@
 #include "entt/helpers.hpp"
 #include "lifecycle/components.hpp"
 #include "modules/actor_cursor/components.hpp"
-#include "modules/actor_enemy/components.hpp"
-#include "modules/actor_player/components.hpp"
 #include "modules/actor_weapon/components.hpp"
 #include "modules/actor_weapon_shotgun/components.hpp"
 #include "modules/actors/helpers.hpp"
 #include "modules/algorithm_astar_pathfinding/components.hpp"
-#include "modules/animation/components.hpp"
 #include "modules/combat_attack_cooldown/components.hpp"
 #include "modules/combat_damage/components.hpp"
 #include "modules/combat_wants_to_shoot/components.hpp"
@@ -85,6 +82,10 @@ sprite_type_to_sprite(entt::registry& r, const EntityType& type)
   //   sprite = "CAMPFIRE";
   else if (type == EntityType::actor_spaceship)
     sprite = "SPACE_VEHICLE_1";
+  else if (type == EntityType::actor_capsule)
+    sprite = "EMPTY";
+  else if (type == EntityType::actor_cargo)
+    sprite = "DICE_DARK_X";
   // else if (type == EntityType::actor_player)
   //   sprite = "EMPTY";
   // else if (type == EntityType::actor_enemy_patrol)
@@ -261,6 +262,30 @@ create_gameplay(entt::registry& r, const EntityType& type, const glm::vec2& posi
       create_physics_actor(r, e, desc);
 
       r.emplace<HoverableComponent>(e);
+      break;
+    }
+
+    case EntityType::actor_capsule: {
+      PhysicsDescription desc;
+      desc.type = b2_dynamicBody;
+      desc.is_bullet = false;
+      desc.density = 1.0;
+      desc.position = position;
+      desc.size = HALF_SIZE;
+      desc.is_sensor = true;
+      create_physics_actor(r, e, desc);
+      break;
+    }
+
+    case EntityType::actor_cargo: {
+      PhysicsDescription desc;
+      desc.type = b2_dynamicBody;
+      desc.is_bullet = false;
+      desc.density = 1.0;
+      desc.position = position;
+      desc.size = HALF_SIZE;
+      desc.is_sensor = false;
+      create_physics_actor(r, e, desc);
       break;
     }
 

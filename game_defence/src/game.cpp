@@ -34,7 +34,6 @@
 #include "modules/system_entered_new_room/system.hpp"
 #include "modules/system_minigame_bamboo/system.hpp"
 #include "modules/system_move_to_target_via_lerp/system.hpp"
-#include "modules/system_move_to_target_via_vel/system.hpp"
 #include "modules/system_overworld_change_direction/system.hpp"
 #include "modules/system_overworld_fake_fight/system.hpp"
 #include "modules/system_particles/system.hpp"
@@ -57,13 +56,14 @@
 #include "modules/ui_gameover/system.hpp"
 #include "modules/ui_hierarchy/system.hpp"
 #include "modules/ui_inventory/system.hpp"
+#include "modules/ui_overworld_launch_crew/system.hpp"
+#include "modules/ui_overworld_ship_label/system.hpp"
 #include "modules/ui_pause_menu/system.hpp"
 #include "modules/ui_scene_main_menu/system.hpp"
 #include "modules/ui_worldspace_sprite/system.hpp"
 #include "modules/ui_worldspace_text/system.hpp"
 #include "modules/ux_hoverable/system.hpp"
 #include "modules/ux_selectable_by_keyboard/system.hpp"
-#include "physics/components.hpp"
 #include "physics/system.hpp"
 #include "sprites/components.hpp"
 #include "sprites/helpers.hpp"
@@ -294,7 +294,6 @@ update(engine::SINGLETON_Application& app, entt::registry& r, const float dt)
     update_cursor_system(r, mouse_pos);
 
     // systems
-
     const auto& state = get_first_component<SINGLETON_GameStateComponent>(r);
     auto& gameover = get_first_component<SINGLETON_GameOver>(r);
 
@@ -340,7 +339,6 @@ update(engine::SINGLETON_Application& app, entt::registry& r, const float dt)
       update_change_gun_z_index_system(r);
       update_distance_check_system(r);
       update_move_to_target_via_lerp(r, dt);
-      update_move_to_target_via_vel(r);
       update_particle_system(r, dt);
       update_quips_system(r);
       update_spawn_particles_on_death_system(r);
@@ -388,7 +386,6 @@ update(engine::SINGLETON_Application& app, entt::registry& r, const float dt)
     const bool show_fps_counter = true;
     if (show_fps_counter) {
       const std::string example = "FPS: 10000.00";
-      const float size_y = ImGui::CalcTextSize(example.c_str()).y / 2.0f;
 
       ImGuiWindowFlags flags = 0;
       // position and sizing
@@ -401,14 +398,15 @@ update(engine::SINGLETON_Application& app, entt::registry& r, const float dt)
       // flags |= ImGuiWindowFlags_NoNav;
 
       ImGui::SetNextWindowPos({ 0, 0 }, ImGuiCond_Always, { 0, 0 });
-      ImGui::SetNextWindowSize({ 100, size_y }, ImGuiCond_Always);
 
       ImGui::Begin("FPS", NULL, flags);
       ImGui::Text("FPS: %0.2f", ImGui::GetIO().Framerate);
       ImGui::End();
     }
 
-    // ImGui::ShowDemoWindow(NULL);
+#if defined(_DEBUG)
+    ImGui::ShowDemoWindow(NULL);
+#endif
 
     if (scene.s == Scene::menu) {
       update_ui_scene_main_menu(app, r);
@@ -417,20 +415,21 @@ update(engine::SINGLETON_Application& app, entt::registry& r, const float dt)
       update_ui_combat_turnbased_system(r, mouse_pos);
       update_ui_combat_endturn_system(r);
     }
+
     if (scene.s == Scene::overworld_revamped) {
-      //
+      update_ui_launch_crew_system(r);
     }
     if (scene.s == Scene::turnbasedcombat) {
       update_ui_combat_turnbased_system(r, mouse_pos);
       update_ui_combat_endturn_system(r);
     }
     if (scene.s == Scene::turnbasedcombat || scene.s == Scene::dungeon_designer) {
-      // update_ui_combat_begin_system(r);
       update_ui_combat_ended_system(r);
       update_ui_inventory_system(r);
       update_ui_combat_info_in_worldspace_system(r);
     }
 
+    update_ui_overworld_shiplabel_system(r);
     update_ui_worldspace_text_system(r);
     update_ui_worldspace_sprite_system(r);
     update_ui_pause_menu_system(app, r);

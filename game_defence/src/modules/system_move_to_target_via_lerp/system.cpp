@@ -53,7 +53,7 @@ update_move_to_target_via_lerp(entt::registry& r, const float& dt)
   for (const auto& [e, target_c, req_c] : non_physics_view.each()) {
 
     if (target_c.target == entt::null || !r.valid(target_c.target)) {
-      r.emplace<WaitForInitComponent>(e);
+      r.emplace_or_replace<WaitForInitComponent>(e);
       dead.dead.emplace(e);
       continue;
     }

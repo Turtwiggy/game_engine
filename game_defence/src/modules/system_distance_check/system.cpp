@@ -21,13 +21,25 @@ update_distance_check_system(entt::registry& r)
     const auto& p1 = get_position(r, distance_c.e1);
     const auto dir = p1 - p0;
     const int d2 = dir.x * dir.x + dir.y * dir.y;
-    if (d2 <= distance_c.d2) {
-      distance_c.action(r);
 
-      // destroy the actual check...
-      // this doesn't have to be this way...
-      // but just trial out this system
-      r.destroy(e);
+    if (distance_c.type == DISTANCE_CHECK_TYPE::LESS_THAN_OR_EQUAL) {
+      if (d2 <= distance_c.d2) {
+        distance_c.action(r, distance_c);
+
+        // destroy the check...
+        if (r.valid(e))
+          r.destroy(e);
+      }
+    }
+
+    else if (distance_c.type == DISTANCE_CHECK_TYPE::GREATER_THAN_OR_EQUAL) {
+      if (d2 >= distance_c.d2) {
+        distance_c.action(r, distance_c);
+
+        // destroy the check...
+        if (r.valid(e))
+          r.destroy(e);
+      }
     }
   }
 

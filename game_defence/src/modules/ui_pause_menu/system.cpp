@@ -8,7 +8,6 @@
 #include "game_state.hpp"
 #include "imgui/helpers.hpp"
 #include "modules/camera/helpers.hpp"
-#include "modules/entt/serialize.hpp"
 #include "modules/renderer/components.hpp"
 #include "modules/scene/components.hpp"
 #include "modules/scene/helpers.hpp"
@@ -187,8 +186,11 @@ update_ui_pause_menu_system(engine::SINGLETON_Application& app, entt::registry& 
     //   move_to_scene_start(r, Scene::menu);
     // }
 
-    if (ImGui::Button("Exit to Menu"))
+    if (ImGui::Button("Exit to Menu")) {
       move_to_scene_start(r, Scene::menu);
+
+      open = false; // unpause this menu
+    }
 
     if (ImGui::Button("Exit to Desktop"))
       app.running = false;

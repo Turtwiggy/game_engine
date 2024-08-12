@@ -19,16 +19,16 @@ uniform vec2 player_position;
 // https://www.shadertoy.com/view/XlfGRj
 //
 
-#define iterations 17
+#define iterations 15
 #define formuparam 0.53
 
 #define volsteps 10
 #define stepsize 0.2
 
-#define zoom   0.600
+#define zoom   0.750
 #define tile   0.850
 
-#define brightness 0.0005
+#define brightness 0.0008
 #define darkmatter 0.800
 #define distfading 0.730
 #define saturation 0.950

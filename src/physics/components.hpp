@@ -15,6 +15,7 @@ struct PhysicsDescription
   bool is_bullet = false;
   bool is_sensor = false;
   float density = 1.0f;
+  float angular_damping = 0.0f;
 
   // set when creating body...
   glm::vec2 position{ 0, 0 };

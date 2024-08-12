@@ -137,7 +137,10 @@ update_ui_combat_turnbased_system(entt::registry& r, const glm::ivec2& input_mou
       const auto path = generate_path(r, e, mouse_pos, INT_MAX);
       state.show_selected_player_path.update(r, path.size());
 
-      const auto limit = r.get<MoveLimitComponent>(e).amount;
+      const auto limit_c = r.try_get<MoveLimitComponent>(e);
+      if (limit_c == nullptr)
+        continue;
+      int limit = limit_c->amount;
       for (int i = 0; const auto& p : path) {
         const auto& ui_e = state.show_selected_player_path.instances[i];
         set_position_grid(r, ui_e, p);

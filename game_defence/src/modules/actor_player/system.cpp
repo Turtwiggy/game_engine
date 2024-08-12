@@ -66,9 +66,6 @@ update_movement_asteroids(entt::registry& r, uint64_t ms_dt)
       //   movetype_c.thrust -= thrust_change * (ms_dt / 1000.0f);
       // if (input_c.ly < 0)
       //   movetype_c.thrust += thrust_change * (ms_dt / 1000.0f);
-      // hack: shift pressed, stop the ship
-      // if (input_c.sprint)
-      //   movetype_c.thrust = 0;
     }
     // movetype_c.thrust = glm::min(movetype_c.thrust, 200.0f);
     // movetype_c.thrust = glm::max(movetype_c.thrust, 1.0f);

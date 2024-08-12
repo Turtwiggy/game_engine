@@ -7,7 +7,6 @@
 #include <imgui.h>
 #include <imgui_internal.h>
 
-
 #include <algorithm>
 
 namespace game2d {
@@ -95,7 +94,6 @@ render_texture_to_imgui_viewport(const int64_t& tex_id)
   ImGui::SetNextWindowClass(&window_class);
 
   ImGui::PushStyleVar(ImGuiStyleVar_WindowPadding, ImVec2(0.0f, 0.0f));
-
   ImGui::Begin("Viewport", NULL, viewport_flags);
   ImGui::PopStyleVar();
   const ImVec2 viewport_size = ImGui::GetContentRegionAvail();

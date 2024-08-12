@@ -22,6 +22,8 @@ enum class EntityType
 
   // overworld
   actor_spaceship,
+  actor_capsule,
+  actor_cargo,
 
   // dungeon
   actor_dungeon,

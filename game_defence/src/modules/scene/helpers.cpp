@@ -10,13 +10,11 @@
 #include "lifecycle/components.hpp"
 #include "magic_enum.hpp"
 #include "maths/grid.hpp"
-#include "maths/maths.hpp"
 #include "modules/actor_enemy/components.hpp"
 #include "modules/actor_player/components.hpp"
 #include "modules/actors/helpers.hpp"
 #include "modules/camera/components.hpp"
 #include "modules/camera/orthographic.hpp"
-#include "modules/combat_attack_cooldown/components.hpp"
 #include "modules/combat_damage/components.hpp"
 #include "modules/combat_wants_to_shoot/components.hpp"
 #include "modules/debug_pathfinding/components.hpp"
@@ -30,7 +28,6 @@
 #include "modules/screenshake/components.hpp"
 #include "modules/system_distance_check/components.hpp"
 #include "modules/system_minigame_bamboo/components.hpp"
-#include "modules/system_overworld_change_direction/components.hpp"
 #include "modules/system_overworld_fake_fight/components.hpp"
 #include "modules/system_physics_apply_force/components.hpp"
 #include "modules/system_quips/components.hpp"
@@ -38,6 +35,7 @@
 #include "modules/ui_colours/components.hpp"
 #include "modules/ui_combat_turnbased/components.hpp"
 #include "modules/ui_event_console/components.hpp"
+#include "modules/ui_overworld_ship_label/components.hpp"
 #include "modules/ui_scene_main_menu/components.hpp"
 #include "modules/ui_selected/components.hpp"
 #include "modules/ui_worldspace_text/components.hpp"
@@ -145,9 +143,9 @@ move_to_scene_menu(entt::registry& r)
   // worldspace text around the camera would be from e.g. -width/2 to width/2
   const auto half_wh = ri.viewport_size_render_at / glm::ivec2(2.0f, 2.0f);
 
-  // create a piece of worldspace text for support
+  // create a piece of worldspace text
   {
-    const std::string label = "v0.0.4  Feedback? Discord @turtwiggy or X @Wiggy_dev";
+    const std::string label = "v0.0.5  Feedback? Discord @turtwiggy or X @Wiggy_dev";
     const ImVec2 xy = ImGui::CalcTextSize(label.c_str());
     const float padding = 10;
 
@@ -195,50 +193,51 @@ move_to_scene_overworld_revamped(entt::registry& r)
   // create an enemy ship off-screen
   const glm::vec2 enemy_pos = { player_t.position.x + half_wh.x * 2, player_t.position.y };
   const auto enemy_e = create_gameplay(r, EntityType::actor_spaceship, enemy_pos);
-  r.emplace<EnemyComponent>(enemy_e);
-  r.emplace<DefaultColour>(enemy_e, engine::SRGBColour{ 1.0f, 0.0f, 0.0f, 1.0f });
+  const auto enemy_col = engine::SRGBColour{ 1.0f, 0.0f, 0.0f, 1.0f };
   r.get<TransformComponent>(enemy_e).position.z = 1; // above particles
+  r.emplace<EnemyComponent>(enemy_e);
+  r.emplace<DefaultColour>(enemy_e, enemy_col);
+  set_colour(r, enemy_e, enemy_col);
   add_particles(r, enemy_e);
 
   // boost the player's ship until it reaches the enemy...
   r.emplace<DynamicTargetComponent>(player_e, enemy_e);
-  r.emplace<ApplyForceToDynamicTarget>(player_e);
+  r.emplace<ApplyForceToDynamicTarget>(player_e, 300.0f);
 
-  // when player is within range...
-  // start circling enemy in this distance...
+  // when within range...
+  // start circling in this distance...
 
   constexpr int d2 = 200 * 200;
   DistanceCheckComponent distance_c;
   distance_c.d2 = d2;
   distance_c.e0 = player_e;
   distance_c.e1 = enemy_e;
-  distance_c.action = [](entt::registry& r) {
-    const auto& player_e = get_first<PlayerComponent>(r);
-    const auto& enemy_e = get_first<EnemyComponent>(r);
+  distance_c.action = [](entt::registry& r, const DistanceCheckComponent& info) {
+    const auto player_e = get_first<PlayerComponent>(r);
+    const auto enemy_e = get_first<EnemyComponent>(r);
 
-    r.remove<CameraFollow>(player_e);
-    r.emplace<CameraFollow>(enemy_e, true);
+    // remove target from player
+    r.remove<ApplyForceToDynamicTarget>(player_e);
+    r.remove<DynamicTargetComponent>(player_e);
 
-    // just for fun, try giving control to the ship being orbited
-    // conclusion: that is incredibly nice
-    // r.remove<PlayerComponent>(player_e);
-    // r.emplace<PlayerComponent>(enemy_e);
-    // r.emplace<InputComponent>(enemy_e);
-    // r.emplace<KeyboardComponent>(enemy_e);
-    // MovementAsteroidsComponent control_c;
-    // control_c.able_to_change_thrust = false;
-    // control_c.able_to_change_dir = true;
-    // r.emplace<MovementAsteroidsComponent>(enemy_e, control_c);
+    // give back movement control (to player)
+    r.emplace<InputComponent>(player_e);
+    r.emplace<MovementAsteroidsComponent>(player_e);
 
-    // change direction every X seconds
-    AttackCooldownComponent cooldown;
-    cooldown.time_between_attack = 10.0f;
-    cooldown.time_between_attack_left = cooldown.time_between_attack;
-    r.emplace<AttackCooldownComponent>(enemy_e, cooldown);
-    ApplyForceInDirectionComponent tgt_vel;
-    const float speed = 25;
-    tgt_vel.tgt_vel = { speed, 0.0f };
-    r.emplace<ApplyForceInDirectionComponent>(enemy_e, tgt_vel);
+    // give the player some UI
+    SpaceLabelComponent player_label;
+    player_label.text = "You";
+    player_label.ui_colour = engine::SRGBColour(0.3f, 1.0f, 0.3f, 1.0f);
+    r.emplace<SpaceLabelComponent>(player_e, player_label);
+
+    SpaceLabelComponent enemy_label;
+    enemy_label.text = "Hostile Hauler";
+    enemy_label.ui_colour = engine::SRGBColour{ 1.0f, 0.3f, 0.3f, 1.0f };
+    r.emplace<SpaceLabelComponent>(enemy_e, enemy_label);
+
+    // get the enemy ship to orbit your ship
+    r.emplace<DynamicTargetComponent>(enemy_e, player_e);
+    r.emplace<ApplyForceToDynamicTarget>(enemy_e);
 
     // shoot star-wars lasers at eachother
     // create_empty<SINGLE_OverworldFakeFight>(r);
@@ -247,6 +246,7 @@ move_to_scene_overworld_revamped(entt::registry& r)
     RequestQuip quip_req;
     quip_req.type = QuipType::BEGIN_ENCOUNTER;
     quip_req.quipp_e = enemy_e;
+    quip_req.seconds_to_quip = 6.0f;
     create_empty<RequestQuip>(r, quip_req);
   };
   create_empty<DistanceCheckComponent>(r, distance_c);
@@ -483,11 +483,6 @@ move_to_scene_start(entt::registry& r, const Scene& s, const bool load_saved)
       desc.team = AvailableTeams::enemy;
       last_spawned_e = create_combat_entity(r, desc);
     }
-
-    // Create 4 edges to the map
-    bool create_edges = true;
-    if (create_edges)
-      add_boundary_walls(r, map_width, map_height, map_c.tilesize);
 
     // Debug object
     auto& info = get_first_component<SINGLE_TurnBasedCombatInfo>(r);
