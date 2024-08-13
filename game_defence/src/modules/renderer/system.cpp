@@ -7,6 +7,7 @@
 #include "entt/helpers.hpp"
 #include "events/components.hpp"
 #include "events/helpers/keyboard.hpp"
+#include "imgui/helpers.hpp"
 #include "maths/grid.hpp"
 #include "maths/maths.hpp"
 #include "modules/actor_player/components.hpp"
@@ -213,7 +214,7 @@ init_render_system(const engine::SINGLETON_Application& app, entt::registry& r, 
 
   for (auto& rp : ri.passes) {
     if (rp.pass == PassName::jump_flood)
-      rp.setup(fbo_size, n_jumpflood_passes);
+      rp.setup(fbo_size / 100, n_jumpflood_passes);
     else
       rp.setup(fbo_size);
   }
@@ -487,6 +488,10 @@ update_render_system(entt::registry& r, const float dt, const glm::vec2& mouse_p
   }
 
   ri.mix_lighting_and_scene.bind();
+
+  static glm::vec2 uv_offset{ 0, 0 };
+  imgui_draw_vec2("uv_offset", uv_offset, 10);
+  ri.mix_lighting_and_scene.set_vec2("uv_offset", uv_offset);
 
   // update lighting uniforms
 

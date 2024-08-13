@@ -10,9 +10,11 @@ struct SINGLE_TurnBasedCombatInfo
 };
 
 // Data transferred from the Duckgame scene to the dungeon scene
+// this should be things like; the crew you chose, their items. etc
+
 struct OverworldToDungeonInfo
 {
-  bool backstabbed = false; // was something backstabbed to get here?
+  bool placeholder = true;
 };
 
 } // namespace game2d

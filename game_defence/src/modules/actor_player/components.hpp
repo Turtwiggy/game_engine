@@ -85,4 +85,9 @@ struct MovementAsteroidsComponent
   bool able_to_change_dir = true;
 };
 
+struct MovementJetpackComponent
+{
+  bool placeholder = true;
+};
+
 } // namespace game2d

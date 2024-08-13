@@ -10,6 +10,8 @@
 #include "modules/grid/components.hpp"
 #include "modules/system_move_to_target_via_lerp/components.hpp"
 
+#include "fmt/core.h"
+
 namespace game2d {
 
 void
@@ -31,6 +33,8 @@ update_pathfinding_system(entt::registry& r, const float& dt)
       // If there's multiple things in the cell,
       // that could cause issues.
       map.map[idx].clear();
+
+      fmt::println("map idx {} clearing", idx);
     }
   }
 

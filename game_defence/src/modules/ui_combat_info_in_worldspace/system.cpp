@@ -5,6 +5,7 @@
 #include "modules/combat_damage/components.hpp"
 #include "modules/renderer/components.hpp"
 #include "modules/renderer/helpers.hpp"
+#include "modules/system_sprite_hide_if_not_in_room/components.hpp"
 #include "modules/ui_inventory/helpers.hpp"
 #include "modules/ui_worldspace_text/components.hpp"
 #include "modules/ux_hoverable/components.hpp"
@@ -20,8 +21,8 @@ update_ui_combat_info_in_worldspace_system(entt::registry& r)
   // display all units hp/defence in worldspace
   // only display if the unit is hovered with a mouse
 
-  const auto& view = r.view<const HealthComponent, const DefenceComponent>();
-  for (const auto& [e, hp, defence] : view.each()) {
+  const auto& view = r.view<const HealthComponent, const DefenceComponent, const VisibleComponent>();
+  for (const auto& [e, hp, defence, visible_c] : view.each()) {
     const auto size = get_size(r, e);
 
     auto& worldspace_ui = r.get_or_emplace<WorldspaceTextComponent>(e);

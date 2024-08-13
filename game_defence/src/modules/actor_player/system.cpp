@@ -22,6 +22,46 @@
 namespace game2d {
 
 void
+update_movement_jetpack(entt::registry& r)
+{
+  const float rotation_speed = 1.5f;
+  const float speed = 100.0f;
+
+  const float max_force = 100.0f;
+  const float proportional_gain = 10000.0f;
+  const bool clamp_max_force = false;
+
+  const auto& view = r.view<const InputComponent, const MovementJetpackComponent, PhysicsBodyComponent>();
+  for (const auto& [e, input_c, movetype_c, body_c] : view.each()) {
+    body_c.body->SetLinearDamping(1.0f);
+
+    // rotate
+    body_c.body->SetAngularVelocity(input_c.lx * rotation_speed);
+
+    if (input_c.ly == 0)
+      continue; // no input, dont move
+
+    const auto dir = engine::angle_radians_to_direction(body_c.body->GetAngle());
+    const b2Vec2 tgt_vel = b2Vec2(dir.x * speed, dir.y * speed);
+
+    const b2Vec2 cur_vel = body_c.body->GetLinearVelocity();
+    const b2Vec2 vel_err = tgt_vel - cur_vel;
+    b2Vec2 force = proportional_gain * vel_err;
+
+    if (clamp_max_force) {
+      float force_magnitude_sq = force.LengthSquared();
+      float max_force_mag_sq = max_force * max_force;
+      if (force_magnitude_sq > max_force_mag_sq) {
+        float force_mag = glm::sqrt(force_magnitude_sq);
+        force *= (max_force / force_mag);
+      }
+    }
+
+    body_c.body->ApplyForceToCenter(force, true);
+  }
+}
+
+void
 update_movement_direct(entt::registry& r)
 {
   const auto& view = r.view<const InputComponent, const MovementDirectComponent, PhysicsBodyComponent>();
@@ -202,8 +242,9 @@ update_player_controller_system(entt::registry& r, const uint64_t& milliseconds_
       r.emplace_or_replace<WantsToReleaseSprint>(entity);
   }
 
-  update_movement_direct(r);
   update_movement_asteroids(r, milliseconds_dt);
+  update_movement_direct(r);
+  update_movement_jetpack(r);
 };
 
 } // namespace game2d

@@ -42,6 +42,7 @@
 #include "modules/system_physics_apply_force/system.hpp"
 #include "modules/system_quips/components.hpp"
 #include "modules/system_quips/system.hpp"
+#include "modules/system_sprite_hide_if_not_in_room/system.hpp"
 #include "modules/system_turnbased_endturn/system.hpp"
 #include "modules/system_turnbased_enemy/system.hpp"
 #include "modules/ui_audio/system.hpp"
@@ -359,6 +360,7 @@ update(engine::SINGLETON_Application& app, entt::registry& r, const float dt)
       update_ux_hoverable(r, mouse_pos);
       update_ux_selectable_by_keyboard_system(r);
       update_screenshake_system(r, app.ms_since_launch / 1000.0f, dt);
+      update_sprite_hide_if_not_in_room_system(r);
 
 #if defined(_DEBUG)
       // update_debug_pathfinding_system(r, mouse_pos);

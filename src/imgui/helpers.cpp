@@ -144,7 +144,7 @@ imgui_draw_ivec3(const std::string& label, int& x, int& y, int& z)
 };
 
 void
-imgui_draw_vec2(const std::string label, glm::vec2& xy, const float v_speed)
+imgui_draw_vec2(const std::string& label, glm::vec2& xy, const float v_speed)
 {
   glm::vec2 v_temp = xy;
 

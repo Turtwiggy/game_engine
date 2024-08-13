@@ -87,7 +87,7 @@ set_collision_filters(entt::registry& r, entt::entity e)
   const auto type = r.get<EntityTypeComponent>(e).type;
   const auto* team_c = r.try_get<TeamComponent>(e);
 
-  return;
+  return; // currently not doing this
 
   for (b2Fixture* fixture = physics_body.body->GetFixtureList(); fixture; fixture = fixture->GetNext()) {
 

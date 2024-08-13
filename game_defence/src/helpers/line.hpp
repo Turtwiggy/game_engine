@@ -45,7 +45,7 @@ std::optional<glm::ivec2>
 line_intersection(const glm::ivec2& p0, const glm::ivec2& p1, const glm::ivec2& p2, const glm::ivec2& p3);
 
 glm::ivec2
-get_size_from_line(const Line& l, int line_width = 2);
+get_size_from_line(const Line& l, int line_width = 4);
 
 glm::ivec2
 get_center_from_line(const Line& l);

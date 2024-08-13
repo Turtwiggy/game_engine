@@ -58,7 +58,7 @@ update_move_to_target_via_lerp(entt::registry& r, const float& dt)
       continue;
     }
 
-    const auto target_position = get_position(r, target_c.target);
+    const auto target_position = get_position(r, target_c.target) + req_c.offset;
     set_position(r, e, target_position);
   }
 

@@ -22,6 +22,7 @@ uniform vec2 viewport_wh;
 uniform float iTime;
 uniform bool put_starshader_behind;
 uniform bool add_grid;
+uniform vec2 uv_offset;
 
 struct Light
 {
@@ -157,7 +158,8 @@ float shadow(vec2 p, vec2 pos, float radius)
 		// width of cone-overlap at light
 		// 0 in center, so 50% overlap: add one radius outside of loop to get total coverage
 		// should be '(sd / dt) * dl', but '*dl' outside of loop
-		lf = min(lf, sd / dt);
+		// lf = min(lf, sd / dt);
+		lf = min(lf, (sd / dt));
 		
 		// move ahead
 		dt += max(1.0, abs(sd));
@@ -184,8 +186,7 @@ vec4 drawLight(vec2 p, vec2 pos, vec4 color, float dist, float range, float radi
 	float shad = shadow(p, pos, radius);
 	float fall = (range - ld)/range;
 	fall *= fall;
-	float source = fillMask(circleDist(p - pos, radius));
-	return (shad * fall + source) * color;
+	return (shad * fall) * color;
 }
 
 float luminance(vec4 col)
@@ -241,67 +242,30 @@ void main()
 		if(abs(sdGrid(p_grid, margin)) >= grid_width)
 			grid_col = vec3(0.0f);// background
 		else
-			grid_col = vec3(0.05f); // line
+			grid_col = vec3(0.25); // line
 	}
 
-  // linear to srgb
   vec4 scene_lin = texture(scene_0, v_uv);
-  vec3 stars = texture(scene_1, v_uv).rgb;
+  vec3 stars_srgb = texture(scene_1, v_uv).rgb;
 
-	vec3 scene_col = lin_to_srgb(scene_lin.rgb);
-
-	if(add_grid){
-		scene_col + grid_col; // WRONG SRGB+SRGB
-	}
 	if(put_starshader_behind){
-		scene_col = stars.rgb + scene_col;  // WRONG SRGB+SRGB
-		out_color.rgb = scene_col;
+		vec3 scene_col = lin_to_srgb(scene_lin.rgb);
+		out_color.rgb = stars_srgb.rgb + scene_col;
 		return;
 	}
 
 	float dist = sceneDist(p);
-	// float dist = sceneSmooth(p, 5.0);
-
-	// the dist at the edges of the shape is 0
-	// the dist at the center of the shape is negative, 
-	// increasing the furhter from edges
-	// the dist away from the shape is
-	/*
-	if(dist > 0){
-		out_color = vec4(dist, dist, dist, 1.0f);
-		return;
-	}
-	if(dist == 0.0) {
-		out_color = vec4(0.0, 0.0, 0.0f, 1.0f);
-		return;
-	}
-	if(dist < 0){
-		out_color = vec4(1.0, 0.0, 0.0, 1.0f);
-		return;
-	}
-	*/
-
-  // vec4 lightColGreen = vec4(0.6, 0.6, 1.0, 1.0);
-	// setLuminance(lightColGreen, 1.0);
-
-  // vec4 lightColOrange =  vec4(1.0, 0.75, 0.5, 1.0);
-	// setLuminance(lightColOrange, 0.5);
-
-	// vec4 lightColBlue = vec4(0.5, 0.75, 1.0, 1.0);
-	// setLuminance(lightColBlue, 0.4);
-
-
 
 	// gradient
-	// vec4 col = vec4(0.0, 0.0, 0.0, 1.0) * (1.0 - length(c - p)/iResolution.x);
+	// vec4 col = vec4(0.3, 0.3, 0.3, 1.0) * (1.0 - length(c - p)/iResolution.x);
 
-	// optiona a
-	vec4 col = vec4(0.0, 0.0, 0.0	, 1.0);
-	// col *= AO(sceneDist(p), 20.0, 0.5);
+	// inside spaceship
+	// vec4 col = vec4(0.3, 0.3, 0.3, 1.0);
+	// col *= AO(dist, 20.0, 1.0);
 
-	// option b
-	//  vec4 col = vec4(0.0, 0.0, 0.0, 1.0);
-	//  col *= AO(sceneDist(p), 40.0, 0.5);	
+	// outside spaceship
+	vec4 col = vec4(0.3, 0.3, 0.3, 1.0);
+	col *= 1 - AO(dist, 10.0, 0.7);
 
 	// light
 	for(int i = 0; i < MAX_LIGHTS; i++)
@@ -312,22 +276,40 @@ void main()
 			continue;
 		}
 
- 		setLuminance(l.colour, 0.85);
+		// inside spaceship
+ 		// setLuminance(l.colour, 0.75);
 
-		col += drawLight(p, l.position, l.colour, dist, 350.0, 1.0);
+		// outside spaceship
+ 		setLuminance(l.colour, 1.25);
+
+		col += drawLight(p, l.position, l.colour, dist, 300.0, 12.0);
 	}
 
 	// shape fill
 	// col = mix(col, vec4(1.0, 0.4, 0.0, 1.0), fillMask(dist));
 	// shape outline
 	// col = mix(col, vec4(0.1, 0.1, 0.1, 1.0), innerBorderMask(dist, 0.15));
-	
-	// vec3 lin_lighting = srgb_to_lin(col.rgb);
-	// vec3 lin_all = lin_lighting + scene_lin.rgb;
-	// vec3 srgb_final = lin_to_srgb(lin_all);
 
-	vec3 srgb_final = col.rgb * ( vec3(0.26f) + lin_to_srgb(scene_lin.rgb) + grid_col) ;
+	col = clamp(col, 0.0, 1.0);
+
+  // linear to srgb
+
+	vec3 final_lin = scene_lin.rgb;
+
+	// grid
+	vec3 grid_lin = srgb_to_lin(vec3(grid_col.r * 255, grid_col.g * 255, grid_col.b * 255));
+	if(add_grid) {
+		final_lin += grid_lin;
+	}
+
+	// lighting
+	vec3 lighting_lin = srgb_to_lin(vec3(col.r * 255, col.g * 255, col.b * 255));
+	final_lin *= lighting_lin;
+	// final_lin *= lighting_lin;
+
+	vec3 srgb_final = (lin_to_srgb(final_lin));
+	// vec3 srgb_final = lin_to_srgb(scene_lin.rgb);
 
 	out_color.rgb = srgb_final.rgb;
-	out_color.a = col.a;
+	out_color.a = 1.0f;
 }

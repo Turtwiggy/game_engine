@@ -68,6 +68,7 @@ create_combat_entity(entt::registry& r, const CombatEntityDescription& desc)
   r.emplace_or_replace<TeamComponent>(e, TeamComponent{ desc.team });
   set_collision_filters(r, e); // needs team_component
 
+  // movement. required for lerp?
   r.emplace<StaticTargetComponent>(e);
 
   // setup weapon
@@ -85,13 +86,15 @@ create_combat_entity(entt::registry& r, const CombatEntityDescription& desc)
   if (desc.team == AvailableTeams::player) {
     r.emplace<HoveredColour>(e, engine::SRGBColour{ 0.0f, 1.0f, 1.0f, 1.0f });
     r.emplace_or_replace<PlayerComponent>(e);
-  } else if (desc.team == AvailableTeams::enemy) {
+  }
+
+  if (desc.team == AvailableTeams::enemy) {
     r.emplace<HoveredColour>(e, engine::SRGBColour{ 1.0f, 0.0f, 0.0f, 1.0f });
     r.emplace_or_replace<EnemyComponent>(e);
     r.get<HealthComponent>(e).hp = 50;
     r.get<HealthComponent>(e).max_hp = 50;
 
-    // all enemy weapons sholuld be able to shoot?
+    // all enemy weapons should be able to shoot?
     r.emplace<AbleToShoot>(weapon);
   }
 
@@ -362,7 +365,7 @@ move_to_scene_start(entt::registry& r, const Scene& s, const bool load_saved)
   };
 
   if (s == Scene::dungeon_designer) {
-    r.emplace_or_replace<CameraFreeMove>(get_first<OrthographicCamera>(r));
+    // r.emplace_or_replace<CameraFreeMove>(get_first<OrthographicCamera>(r));
     destroy_first_and_create<SINGLE_CombatState>(r);
     destroy_first_and_create<SINGLE_EventConsoleLogComponent>(r);
     destroy_first_and_create<SINGLE_TurnBasedCombatInfo>(r);
@@ -373,7 +376,7 @@ move_to_scene_start(entt::registry& r, const Scene& s, const bool load_saved)
     if (get_first<OverworldToDungeonInfo>(r) == entt::null) {
       fmt::println("OverworldToDungeonInfo is null; assuming launch from standalone");
       OverworldToDungeonInfo info;
-      info.backstabbed = true;
+      info.placeholder = true;
       destroy_first_and_create<OverworldToDungeonInfo>(r, info);
     }
 

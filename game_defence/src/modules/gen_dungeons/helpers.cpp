@@ -13,6 +13,7 @@
 #include "modules/grid/components.hpp"
 #include "modules/scene/helpers.hpp"
 #include "modules/ui_combat_turnbased/components.hpp"
+#include "modules/ui_worldspace_text/components.hpp"
 #include "renderer/components.hpp"
 
 #include <algorithm>
@@ -242,6 +243,28 @@ shrink_line_at_each_end(const Line& non_shrunk, const int shrinkage)
   return l;
 };
 
+// Split the wall in to multiple walls per tilesize
+void
+instantiate_segments_from_line(entt::registry& r, const glm::ivec2& size, const glm::ivec2& center)
+{
+  const auto& map = get_first_component<MapComponent>(r);
+
+  const bool is_horizontal = size.x > size.y;
+
+  const int chunks = is_horizontal ? size.x / map.tilesize : size.y / map.tilesize;
+  const glm::vec2 chunk_size = is_horizontal ? glm::vec2{ size.x / chunks, size.y } : glm::vec2{ size.x, size.y / chunks };
+  const auto chunk_l = is_horizontal ? center.x - (chunk_size.x * (chunks / 2.0f)) : center.x;
+  const auto chunk_t = is_horizontal ? center.y : center.y - (chunk_size.y * (chunks / 2.0f));
+  const auto chunk_tl = glm::vec2{ chunk_l, chunk_t };
+  for (int i = 0; i < chunks; i++) {
+    const float pos_x = is_horizontal ? chunk_tl.x + i * chunk_size.x + map.tilesize / 2.0f : chunk_tl.x;
+    const float pos_y = is_horizontal ? chunk_tl.y : chunk_tl.y + i * chunk_size.y + map.tilesize / 2.0f;
+    create_wall(r, { pos_x, pos_y }, chunk_size);
+    // const float percent = (i + 1) / (float)(chunks + 1);
+    // set_colour(r, e, { percent, percent, 1.0f, 1.0f });
+  }
+}
+
 void
 instantiate_walls(entt::registry& r, std::vector<Line>& lines, DungeonGenerationResults& results, const int& i)
 {
@@ -251,7 +274,7 @@ instantiate_walls(entt::registry& r, std::vector<Line>& lines, DungeonGeneration
 
   std::vector<Line> lines_to_instantiate;
 
-  // int room_count = 0;
+  int room_count = 0;
   for (const Room& room : results.rooms) {
     // if (i == room_count)
     //   break; // debug room gen algorithm
@@ -358,30 +381,15 @@ instantiate_walls(entt::registry& r, std::vector<Line>& lines, DungeonGeneration
     if (num_lines_post - num_lines_prior < 4) // 4 because a 2d room has 4 walls
       fmt::println("error: did not add enough lines for room to be covered.");
 
-    // instantiate room
-    const auto room_to_create = create_gameplay(r, EntityType::empty_with_transform, worldspace_center);
-    r.get<TagComponent>(room_to_create).tag = "empty_with_transform:Room";
-    set_size(r, room_to_create, worldspace_size);
-    r.emplace<Room>(room_to_create, room);
-
-    // add some interesting colours
-    // const auto imcol = (ImVec4)ImColor::HSV(room_count / 7.0f, 0.6f, 0.6f);
-    // const engine::SRGBColour col = { imcol.x, imcol.y, imcol.z, 0.1f };
-    set_colour(r, room_to_create, { 0.0f, 0.0f, 0.0, 0.0f });
-    // r.emplace<DefaultColour>(room_to_create, col);
-
-    // add worldspace text for room to debug it
-    // TAG: ROOM_ID UI
-    // r.emplace<WorldspaceTextComponent>(room_to_create, std::to_string(room_count));
-
-    // room_count++;
+    // store "Room" struct on entt?
+    create_empty<Room>(r, room);
   }
 
-  // Instantiate lines
-  // const glm::ivec2 offset = { map.tilesize / 2, map.tilesize / 2 };
+  // Instantiate Room lines
   for (const auto& l : lines_to_instantiate) {
-    const auto e = create_wall(r, get_center_from_line(l), get_size_from_line(l));
-    set_colour(r, e, { 1.0f, 1.0f, 1.0f, 1.0f });
+    const auto size = get_size_from_line(l);
+    const auto center = get_center_from_line(l);
+    instantiate_segments_from_line(r, size, center);
   }
 
   results.lines_to_instantiate = lines_to_instantiate;
@@ -554,7 +562,9 @@ instantiate_tunnels(entt::registry& r, std::vector<Line>& lines, DungeonGenerati
       if (dir == engine::grid::GridDirection::west)
         l = { tl, bl };
 
-      create_wall(r, get_center_from_line(l), get_size_from_line(l));
+      const auto size = get_size_from_line(l);
+      const auto center = get_center_from_line(l);
+      create_wall(r, center, size);
 
       // keep a record of the tunnel line that was created
       results.lines_to_instantiate.push_back(l);

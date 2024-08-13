@@ -6,7 +6,7 @@ namespace game2d {
 
 struct SetPositionAtDynamicTarget
 {
-  bool placeholder = true;
+  glm::vec2 offset{ 0, 0 };
 };
 
 struct LerpingToTarget
