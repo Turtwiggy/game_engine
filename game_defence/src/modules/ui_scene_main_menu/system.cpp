@@ -116,6 +116,9 @@ update_ui_scene_main_menu(engine::SINGLETON_Application& app, entt::registry& r)
       move_to_scene_start(r, Scene::dungeon_designer);
       create_empty<RequestGenerateDungeonComponent>(r);
     }
+    // if (selectable_button("(debug)\nfov tests", selected, index++)) {
+    //   move_to_scene_start(r, Scene::fov_tests);
+    // }
 #endif
 
     if (selectable_button("QUIT", selected, index++))

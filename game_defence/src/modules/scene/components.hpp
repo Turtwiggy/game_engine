@@ -11,6 +11,8 @@ enum class Scene
   dungeon_designer,
   turnbasedcombat,
 
+  fov_tests,
+
   minigame_bamboo,
 
   count

@@ -32,6 +32,7 @@
 #include "modules/system_change_gun_z_index/system.hpp"
 #include "modules/system_distance_check/system.hpp"
 #include "modules/system_entered_new_room/system.hpp"
+#include "modules/system_fov/system.hpp"
 #include "modules/system_minigame_bamboo/system.hpp"
 #include "modules/system_move_to_target_via_lerp/system.hpp"
 #include "modules/system_overworld_change_direction/system.hpp"
@@ -42,7 +43,6 @@
 #include "modules/system_physics_apply_force/system.hpp"
 #include "modules/system_quips/components.hpp"
 #include "modules/system_quips/system.hpp"
-#include "modules/system_sprite_hide_if_not_in_room/system.hpp"
 #include "modules/system_turnbased_endturn/system.hpp"
 #include "modules/system_turnbased_enemy/system.hpp"
 #include "modules/ui_audio/system.hpp"
@@ -352,7 +352,7 @@ update(engine::SINGLETON_Application& app, entt::registry& r, const float dt)
       update_overworld_fake_fight_system(r);
     }
 
-    if (scene.s == Scene::dungeon_designer || scene.s == Scene::turnbasedcombat) {
+    if (scene.s == Scene::dungeon_designer || scene.s == Scene::turnbasedcombat || scene.s == Scene::fov_tests) {
       update_entered_new_room_system(r, dt);
       update_gen_dungeons_system(r, mouse_pos);
       update_turnbased_endturn_system(r);
@@ -360,7 +360,7 @@ update(engine::SINGLETON_Application& app, entt::registry& r, const float dt)
       update_ux_hoverable(r, mouse_pos);
       update_ux_selectable_by_keyboard_system(r);
       update_screenshake_system(r, app.ms_since_launch / 1000.0f, dt);
-      update_sprite_hide_if_not_in_room_system(r);
+      update_fov_system(r, mouse_pos);
 
 #if defined(_DEBUG)
       // update_debug_pathfinding_system(r, mouse_pos);

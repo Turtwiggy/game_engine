@@ -61,6 +61,8 @@ struct DungeonGenerationResults
   std::vector<Tunnel> tunnels;
   std::vector<int> wall_or_floors;
   std::vector<Line> lines_to_instantiate;
+
+  std::vector<entt::entity> floor_tiles;
 };
 
 } // namespace game2d

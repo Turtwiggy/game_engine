@@ -5,6 +5,7 @@
 #include "entt/helpers.hpp"
 #include "events/components.hpp"
 #include "events/helpers/keyboard.hpp"
+#include "events/helpers/mouse.hpp"
 #include "helpers/line.hpp"
 #include "maths/grid.hpp"
 #include "maths/maths.hpp"
@@ -12,8 +13,6 @@
 #include "modules/actors/helpers.hpp"
 #include "modules/algorithm_astar_pathfinding/components.hpp"
 #include "modules/camera/components.hpp"
-#include "modules/camera/orthographic.hpp"
-#include "modules/combat_damage/components.hpp"
 #include "modules/combat_wants_to_shoot/components.hpp"
 #include "modules/gen_dungeons//helpers.hpp"
 #include "modules/gen_dungeons/components.hpp"
@@ -24,10 +23,9 @@
 #include "modules/system_change_gun_z_index/helpers.hpp"
 #include "modules/system_move_to_target_via_lerp/components.hpp"
 #include "modules/ui_combat_turnbased/components.hpp"
+#include "sprites/helpers.hpp"
 
 #include "imgui.h"
-#include "modules/ux_hoverable/components.hpp"
-#include "sprites/helpers.hpp"
 
 #include <SDL_scancode.h>
 #include <fmt/core.h>
@@ -87,27 +85,29 @@ update_gen_dungeons_system(entt::registry& r, const glm::ivec2& mouse_pos)
       if (dungeon_e != entt::null) {
         const auto dungeon_results = get_first_component<DungeonGenerationResults>(r);
         ImGui::Text("Have dungeon gen results");
-
-        auto mouse_idx = engine::grid::grid_position_to_index(grid_pos, map.xmax);
-        mouse_idx = glm::clamp(mouse_idx, 0, map.xmax * map.ymax - 1);
-        ImGui::Text("mouse: %i is_wall_or_floor: %i", mouse_idx, dungeon_results.wall_or_floors[mouse_idx]);
       }
 
-      if (get_key_down(input, SDL_SCANCODE_O))
+      if (get_key_down(input, SDL_SCANCODE_KP_1))
         i--;
-      if (get_key_down(input, SDL_SCANCODE_P))
+      if (get_key_down(input, SDL_SCANCODE_KP_2))
         i++;
+      ImGui::Text("Increase/decerase, kp 1/2");
+      ImGui::Text("Generate kp0");
       ImGui::Text("Seed: %i", i);
+
+      // HACK: force regenerate dungeon
+      if (get_key_down(input, SDL_SCANCODE_KP_0))
+        create_empty<RequestGenerateDungeonComponent>(r);
+
+      if (get_mouse_mmb_press()) {
+        const auto worldpos = engine::grid::grid_space_to_world_space(grid_pos, map.tilesize);
+        const auto offset = glm::vec2{ map.tilesize / 2.0f, map.tilesize / 2.0f };
+        set_position(r, get_first<PlayerComponent>(r), worldpos + offset);
+      }
     }
 
     ImGui::End();
   }
-
-#if defined(_DEBUG)
-  // HACK: force regenerate dungeon
-  if (get_key_down(input, SDL_SCANCODE_KP_0))
-    create_empty<RequestGenerateDungeonComponent>(r);
-#endif
 
   const auto& requests = r.view<RequestGenerateDungeonComponent>();
   if (requests.size() == 0)
@@ -178,10 +178,8 @@ update_gen_dungeons_system(entt::registry& r, const glm::ivec2& mouse_pos)
   if (debug_edges) {
     for (const auto& edge : map.edges) {
       const auto offset = glm::vec2{ map.tilesize / 2.0f, map.tilesize / 2.0f };
-      const auto ga =
-        engine::grid::grid_space_to_world_space(glm::ivec2(edge.cell_a.x, edge.cell_a.y), map.tilesize) + offset;
-      const auto gb =
-        engine::grid::grid_space_to_world_space(glm::ivec2(edge.cell_b.x, edge.cell_b.y), map.tilesize) + offset;
+      const auto ga = engine::grid::grid_space_to_world_space({ edge.cell_a.x, edge.cell_a.y }, map.tilesize) + offset;
+      const auto gb = engine::grid::grid_space_to_world_space({ edge.cell_b.x, edge.cell_b.y }, map.tilesize) + offset;
       const auto l = generate_line({ ga.x, ga.y }, { gb.x, gb.y }, 1);
       const entt::entity e = create_gameplay(r, EntityType::empty_with_transform, { 0, 0 });
       set_position_and_size_with_line(r, e, l);
@@ -190,7 +188,8 @@ update_gen_dungeons_system(entt::registry& r, const glm::ivec2& mouse_pos)
     }
   }
 
-  // add random colour variation tiles
+  // add random colour tile variation
+  result.floor_tiles.resize(result.wall_or_floors.size(), entt::null);
   for (int xy = 0; xy < result.wall_or_floors.size(); xy++) {
     if (result.wall_or_floors[xy] == 0) {
       const auto gridpos = engine::grid::index_to_grid_position(xy, map.xmax, map.ymax);
@@ -203,42 +202,39 @@ update_gen_dungeons_system(entt::registry& r, const glm::ivec2& mouse_pos)
       float rnd_col = engine::rand_det_s(rnd.rng, 0.8, 0.85f);
       set_colour(r, floor_e, { rnd_col, rnd_col, rnd_col, 1.0f });
       set_z_index(r, floor_e, -1);
+
+      result.floor_tiles[engine::grid::grid_position_to_index(gridpos, map.xmax)] = floor_e;
     }
   }
 
   // Steps after initial initialization...
   set_generated_entity_positions(r, result, rnd);
-  // set_player_positions(r, result, rnd);
-  // create_empty<CameraFreeMove>(r);
 
-  // create a player off the ship
-  // CombatEntityDescription desc;
-  // desc.position = { -100, -100 };
-  // desc.team = AvailableTeams::player;
-  // const auto e = create_combat_entity(r, desc);
+  set_player_positions(r, result, rnd);
+  create_empty<CameraFreeMove>(r);
 
-  const auto player_e = create_gameplay(r, EntityType::actor_spaceship, { -100, -100 });
-  r.emplace<PlayerComponent>(player_e);
-  r.emplace<TeamComponent>(player_e, AvailableTeams::player);
-  r.emplace<InputComponent>(player_e);
-  r.emplace<KeyboardComponent>(player_e);
-  r.emplace<DefaultColour>(player_e, engine::SRGBColour{ 255, 255, 117, 1.0f });
-  add_particles(r, player_e);
-  // movement
-  r.get<PhysicsBodyComponent>(player_e).base_speed = 100.0f;
-  r.emplace<MovementJetpackComponent>(player_e);
-  r.emplace<CameraFollow>(player_e);
-  set_sprite(r, player_e, "PERSON_25_0");
-  set_size(r, player_e, { 32, 32 });
+  // const auto player_e = create_gameplay(r, EntityType::actor_spaceship, { -100, -100 });
+  // r.emplace<PlayerComponent>(player_e);
+  // r.emplace<TeamComponent>(player_e, AvailableTeams::player);
+  // r.emplace<InputComponent>(player_e);
+  // r.emplace<KeyboardComponent>(player_e);
+  // r.emplace<DefaultColour>(player_e, engine::SRGBColour{ 255, 255, 117, 1.0f });
+  // add_particles(r, player_e);
+  // // movement
+  // r.get<PhysicsBodyComponent>(player_e).base_speed = 100.0f;
+  // r.emplace<MovementJetpackComponent>(player_e);
+  // r.emplace<CameraFollow>(player_e);
+  // set_sprite(r, player_e, "PERSON_25_0");
+  // set_size(r, player_e, { 32, 32 });
 
   // give helmet to breathe
   const auto helmet_e = create_transform(r);
   set_sprite(r, helmet_e, "HELMET_5");
-  set_size(r, helmet_e, { 32, 32 });
+  set_size(r, helmet_e, { 16, 16 });
   set_z_index(r, helmet_e, 2); // above player
-  r.emplace<DynamicTargetComponent>(helmet_e).target = player_e;
+  r.emplace<DynamicTargetComponent>(helmet_e).target = get_first<PlayerComponent>(r);
   SetPositionAtDynamicTarget tgt;
-  tgt.offset = { 0, -get_size(r, helmet_e).y / 2.0 };
+  tgt.offset = { 0, -8 };
   r.emplace<SetPositionAtDynamicTarget>(helmet_e, tgt);
 
   // set exit door position

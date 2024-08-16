@@ -143,6 +143,9 @@ shoot_action(entt::registry& r, const entt::entity e)
 void
 update_turnbased_enemy_system(entt::registry& r)
 {
+  const auto state_e = get_first<SINGLE_CombatState>(r);
+  if (state_e == entt::null)
+    return;
   const auto& state = get_first_component<SINGLE_CombatState>(r);
   if (state.team != AvailableTeams::enemy)
     return; // only process system if enemy turn

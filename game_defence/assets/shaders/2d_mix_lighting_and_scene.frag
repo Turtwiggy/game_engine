@@ -260,12 +260,12 @@ void main()
 	// vec4 col = vec4(0.3, 0.3, 0.3, 1.0) * (1.0 - length(c - p)/iResolution.x);
 
 	// inside spaceship
-	// vec4 col = vec4(0.3, 0.3, 0.3, 1.0);
-	// col *= AO(dist, 20.0, 1.0);
+	vec4 col = vec4(0.3, 0.3, 0.3, 1.0);
+	col *= AO(dist, 20.0, 1.0);
 
 	// outside spaceship
-	vec4 col = vec4(0.3, 0.3, 0.3, 1.0);
-	col *= 1 - AO(dist, 10.0, 0.7);
+	// vec4 col = vec4(0.3, 0.3, 0.3, 1.0);
+	// // col *= 1 - AO(dist, 10.0, 0.7);
 
 	// light
 	for(int i = 0; i < MAX_LIGHTS; i++)
@@ -277,7 +277,7 @@ void main()
 		}
 
 		// inside spaceship
- 		// setLuminance(l.colour, 0.75);
+ 		// setLuminance(l.colour, 1.0);
 
 		// outside spaceship
  		setLuminance(l.colour, 1.25);
@@ -307,8 +307,8 @@ void main()
 	final_lin *= lighting_lin;
 	// final_lin *= lighting_lin;
 
-	vec3 srgb_final = (lin_to_srgb(final_lin));
-	// vec3 srgb_final = lin_to_srgb(scene_lin.rgb);
+	// vec3 srgb_final = (lin_to_srgb(final_lin));
+	vec3 srgb_final = lin_to_srgb(scene_lin.rgb);
 
 	out_color.rgb = srgb_final.rgb;
 	out_color.a = 1.0f;

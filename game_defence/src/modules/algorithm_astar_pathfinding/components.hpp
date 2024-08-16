@@ -62,7 +62,7 @@ struct Edge
   vec2i cell_a{ 0, 0 };
   vec2i cell_b{ 0, 0 };
 
-  engine::SRGBColour debug_colour;
+  engine::SRGBColour debug_colour{ 1.0f, 1.0f, 1.0f, 1.0f };
 };
 
 } // namespace game2d

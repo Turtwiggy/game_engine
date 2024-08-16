@@ -1,0 +1,342 @@
+#include "system.hpp"
+
+#include "components.hpp"
+
+#include "entt/helpers.hpp"
+#include "events/components.hpp"
+#include "events/helpers/keyboard.hpp"
+#include "imgui/helpers.hpp"
+#include "maths/grid.hpp"
+#include "modules/actor_enemy/components.hpp"
+#include "modules/actor_player/components.hpp"
+#include "modules/actors/helpers.hpp"
+#include "modules/gen_dungeons/components.hpp"
+#include "modules/gen_dungeons/helpers.hpp"
+#include "modules/grid/components.hpp"
+#include "modules/system_fov/symmetric_shadowcasting.hpp"
+#include "modules/ux_hoverable/components.hpp"
+#include "sprites/helpers.hpp"
+
+#include "imgui.h"
+#include <fmt/core.h>
+
+#include <algorithm>
+
+namespace game2d {
+using namespace std::literals;
+
+void
+update_fov_system(entt::registry& r, const glm::ivec2& mouse_pos)
+{
+  const auto& map = get_first_component<MapComponent>(r);
+  const auto& dungeon = get_first_component<DungeonGenerationResults>(r);
+
+  const auto player_e = get_first<PlayerComponent>(r);
+  if (player_e == entt::null)
+    return;
+  const auto player_pos = get_position(r, player_e);
+  const auto player_gridpos = engine::grid::worldspace_to_grid_space(player_pos, map.tilesize);
+
+  for (const auto& [e, enemy_c, visible] : r.view<const EnemyComponent, const VisibleComponent>().each()) {
+    // full reveal
+    set_sprite(r, e, "PERSON_25_0");
+    set_colour(r, e, { 1.0f, 1.0f, 1.0f, 1.0f });
+  }
+  // for (const auto& [e, enemy_c, seen_c] : r.view<EnemyComponent, SeenComponent>(entt::exclude<VisibleComponent>).each()) {
+  //   // leave revealed
+  //   // set_sprite(r, e, "PERSON_25_0");
+  //   // set_colour(r, e, { 1.0f, 1.0f, 1.0f, 0.1f });
+  // }
+  // for (const auto& [e, enemy_c] : r.view<EnemyComponent>(entt::exclude<VisibleComponent, SeenComponent>).each()) {
+  for (const auto& [e, enemy_c] : r.view<EnemyComponent>(entt::exclude<VisibleComponent>).each()) {
+    // hasn't been revealed yet
+    set_sprite(r, e, "TEXT_?");
+  }
+
+  std::vector<int> walls_or_floors_adjusted = dungeon.wall_or_floors; // copy
+
+  int cur_idx = 0;
+  static int break_idx = 0;
+  const auto input = get_first_component<SINGLETON_InputComponent>(r);
+  if (get_key_down(input, SDL_SCANCODE_KP_7))
+    break_idx--;
+  if (get_key_down(input, SDL_SCANCODE_KP_8))
+    break_idx++;
+
+  bool debug_fov = false;
+
+  if (debug_fov) {
+    for (const entt::entity& floor_e : dungeon.floor_tiles)
+      if (floor_e != entt::null)
+        set_colour(r, floor_e, { 0.1f, 0.1f, 0.5f, 1.0f });
+  }
+
+  // prevent out of bounds issues
+  if (!debug_fov) {
+    const auto [in_room, room] = inside_room(map, dungeon.rooms, player_gridpos);
+    const auto in_tunnel = inside_tunnels(dungeon.tunnels, player_gridpos).size() > 0;
+    if (!in_room && !in_tunnel)
+      return;
+  }
+
+  // only update if origin updates
+  const glm::ivec2 origin = player_gridpos;
+  if (!debug_fov) {
+    static glm::ivec2 cached_origin;
+    if (cached_origin == origin)
+      return;
+    cached_origin = origin;
+  }
+
+  static std::vector<entt::entity> edges;
+  r.destroy(edges.begin(), edges.end());
+  edges.clear();
+
+  // adjust this vector based on edges
+  for (int dir = 0; dir < 4; dir++) {
+    const auto has_edge = [&](const Tile& t0, const Tile& t1) -> std::pair<bool, std::optional<Edge>> {
+      const auto [x, y] = transform(t0, dir, origin);
+      const auto [prev_x, prev_y] = transform(t1, dir, origin);
+      const auto search_a = glm::ivec2{ x, y };
+      const auto search_b = glm::ivec2{ prev_x, prev_y };
+
+      const auto res = std::find_if(map.edges.begin(), map.edges.end(), [&search_a, &search_b](const Edge& e) {
+        return (e.cell_a == search_a && e.cell_b == search_b) || (e.cell_a == search_b && e.cell_b == search_a);
+      });
+
+      if (res != map.edges.end())
+        return { true, (*res) };
+
+      return { false, std::nullopt };
+    };
+    const auto is_type = [&](const Tile& t, const TileType& type) -> bool {
+      const auto [x, y] = transform(t, dir, origin);
+      const auto idx = engine::grid::grid_position_to_index({ x, y }, map.xmax);
+      return walls_or_floors_adjusted[idx] == static_cast<uint32_t>(type);
+    };
+    const auto is_wall = [&](const Tile& t) -> bool { return is_type(t, TileType::WALL); };
+    const auto is_floor = [&](const Tile& t) -> bool { return is_type(t, TileType::FLOOR); };
+
+    Row first_row;
+    first_row.depth = 1;
+    first_row.start_slope = -1.0f;
+    first_row.end_slope = 1.0f;
+    std::vector<Row> rows{ first_row };
+
+    while (!rows.empty()) {
+      Row row = rows.back();
+      rows.pop_back();
+      std::optional<Tile> prev_tile = std::nullopt;
+
+      const int min_col = round_up(row.depth * row.start_slope);
+      const int max_col = round_down(row.depth * row.end_slope);
+      for (int i = min_col; i < (max_col + 1); i++) { // row.tiles()
+
+        if (debug_fov) {
+          cur_idx++;
+          if (cur_idx > break_idx)
+            break;
+        }
+
+        const auto furthest_tile = [&dir, &origin](const Tile& a, const Tile& b) -> Tile {
+          const auto [ax, ay] = transform(a, dir, origin);
+          const auto [bx, by] = transform(b, dir, origin);
+          const auto a_tile = origin - glm::ivec2{ ax, ay };
+          const auto b_tile = origin - glm::ivec2{ bx, by };
+          const auto d2_tile_a = a_tile.x * a_tile.x + a_tile.y * a_tile.y;
+          const auto d2_tile_b = b_tile.x * b_tile.x + b_tile.y * b_tile.y;
+          return d2_tile_a > d2_tile_b ? a : b;
+        };
+
+        const Tile tile(row.depth, i);
+        const auto [x, y] = transform(tile, dir, origin);
+        const auto idx = engine::grid::grid_position_to_index({ x, y }, map.xmax);
+
+        const Tile above_tile(tile.depth - 1, i);
+        const auto [abv_x, abv_y] = transform(above_tile, dir, origin);
+        const bool invalid_above = above_tile.depth == 0 && above_tile.col != 0;
+        const auto [edge_exists, edge] = has_edge(tile, above_tile);
+
+        const Tile tile_r(tile.depth, i + 1);
+        const Tile tile_l(tile.depth, i - 1);
+        const auto [r_x, r_y] = transform(tile_r, dir, origin);
+        bool invalid_right = tile_r.col > max_col;
+        const auto [r_edge_exists, r_edge] = has_edge(tile, tile_r);
+
+        // edge between red and white
+        // edge between blue and white
+        const Tile tile_ur(tile.depth - 1, i + 1);
+        const auto [ur_x, ur_y] = transform(tile_ur, dir, origin);
+        const auto [has_edge_a, edge_a] = has_edge(tile_r, tile_ur);
+        const auto [has_edge_b, edge_b] = has_edge(above_tile, tile_ur);
+        bool ur_edge_exists = has_edge_a && has_edge_b;
+
+        // edge between red and white
+        // edge between blue and white
+        const Tile tile_ul(tile.depth - 1, i - 1);
+        const auto [ul_x, ul_y] = transform(tile_ul, dir, origin);
+        const auto [has_edge_ul_a, edge_ul_a] = has_edge(tile_l, tile_ul);
+        const auto [has_edge_ul_b, edge_ul_b] = has_edge(above_tile, tile_ul);
+        const bool ul_edge_exists = has_edge_ul_a && has_edge_ul_b;
+
+        if (debug_fov) {
+          const auto r_idx = engine::grid::grid_position_to_index({ r_x, r_y }, map.xmax);
+          const auto abv_idx = engine::grid::grid_position_to_index({ abv_x, abv_y }, map.xmax);
+          const auto ur_idx = engine::grid::grid_position_to_index({ ur_x, ur_y }, map.xmax);
+          const auto ul_idx = engine::grid::grid_position_to_index({ ul_x, ul_y }, map.xmax);
+
+          if (dungeon.floor_tiles.size() > 0 && dungeon.floor_tiles[idx] != entt::null)
+            set_colour(r, dungeon.floor_tiles[idx], { dir / 5.0f, dir / 5.0f, dir / 5.0f, 1.0f });
+
+          if (!invalid_above && dungeon.floor_tiles.size() > 0 && dungeon.floor_tiles[abv_idx] != entt::null)
+            set_colour(r, dungeon.floor_tiles[abv_idx], { 0.0f, 0.0f, 1.0f, 1.0f });
+
+          if (!invalid_right && dungeon.floor_tiles.size() > 0 && dungeon.floor_tiles[r_idx] != entt::null)
+            set_colour(r, dungeon.floor_tiles[r_idx], { 1.0f, 0.0f, 0.0f, 1.0f });
+
+          if (dungeon.floor_tiles.size() > 0 && dungeon.floor_tiles[ur_idx] != entt::null)
+            set_colour(r, dungeon.floor_tiles[ur_idx], { 1.0f, 1.0f, 1.0f, 1.0f });
+
+          if (dungeon.floor_tiles.size() > 0 && dungeon.floor_tiles[ul_idx] != entt::null)
+            set_colour(r, dungeon.floor_tiles[ul_idx], { 0.0f, 1.0f, 1.0f, 1.0f });
+
+          const auto debug_edge = [&r, &map](const vec2i& a, const vec2i& b) {
+            const auto offset = glm::vec2{ map.tilesize / 2.0f, map.tilesize / 2.0f };
+            const auto ga = engine::grid::grid_space_to_world_space({ a.x, a.y }, map.tilesize) + offset;
+            const auto gb = engine::grid::grid_space_to_world_space({ b.x, b.y }, map.tilesize) + offset;
+            const auto l = generate_line({ ga.x, ga.y }, { gb.x, gb.y }, 1);
+            const entt::entity e = create_gameplay(r, EntityType::empty_with_transform, { 0, 0 });
+            set_position_and_size_with_line(r, e, l);
+            set_colour(r, e, { 0.0f, 1.0f, 0.0f, 1.0f });
+            r.get<TagComponent>(e).tag = "debugline";
+            edges.push_back(e);
+          };
+
+          if (!invalid_above && edge_exists)
+            debug_edge(edge.value().cell_a, edge.value().cell_b);
+          if (!invalid_right && r_edge_exists)
+            debug_edge(r_edge.value().cell_a, r_edge.value().cell_b);
+          if (ur_edge_exists)
+            debug_edge({ ur_x, ur_y }, { x, y });
+          if (ul_edge_exists)
+            debug_edge({ ul_x, ul_y }, { x, y });
+        }
+
+        // If tile isnt a wall,
+        // And above tile isnt a wall,
+        // but there is an edge between tile and above tile,
+        if (!invalid_above && !is_wall(tile) && !is_wall(above_tile) && edge_exists)
+          walls_or_floors_adjusted[idx] = 1;
+
+        // if tile isnt a wall,
+        // and tile_r isnt a wall,
+        // and there is an edge between tile and tile_r
+        if (!invalid_right && !is_wall(tile) && !is_wall(tile_r) && r_edge_exists) {
+          const auto further_tile = furthest_tile(tile, tile_r);
+          const auto [fx, fy] = transform(further_tile, dir, origin);
+          const auto fidx = engine::grid::grid_position_to_index({ fx, fy }, map.xmax);
+          walls_or_floors_adjusted[fidx] = 1;
+        }
+
+        // corners
+        if (!is_wall(tile) && !is_wall(tile_ur) && ur_edge_exists) {
+          const auto further_tile = furthest_tile(tile, tile_ur);
+          const auto [x, y] = transform(further_tile, dir, origin);
+          const auto idx = engine::grid::grid_position_to_index({ x, y }, map.xmax);
+          walls_or_floors_adjusted[idx] = 1;
+        }
+        if (!is_wall(tile) && !is_wall(tile_ul) && ul_edge_exists) {
+          const auto further_tile = furthest_tile(tile, tile_ul);
+          const auto [x, y] = transform(further_tile, dir, origin);
+          const auto idx = engine::grid::grid_position_to_index({ x, y }, map.xmax);
+          walls_or_floors_adjusted[idx] = 1;
+        }
+
+        if (prev_tile.has_value() && is_wall(prev_tile.value()) && is_floor(tile))
+          row.start_slope = slope(tile);
+
+        if (prev_tile.has_value() && is_floor(prev_tile.value()) && is_wall(tile)) {
+          Row next_row = next(row);
+          next_row.end_slope = slope(tile);
+          rows.push_back(next_row);
+        }
+
+        prev_tile = tile;
+      }
+
+      if (prev_tile.has_value() && is_floor(prev_tile.value()))
+        rows.push_back(next(row)); // scan(row.next())
+    }
+  }
+
+  const auto vview = r.view<VisibleComponent>();
+  r.remove<VisibleComponent>(vview.begin(), vview.end());
+
+  //
+  // symemtric shadowcasting
+  //
+  const auto visible_idxs = do_shadowcasting(r, origin, walls_or_floors_adjusted);
+
+  for (const auto idx : visible_idxs) {
+    if (dungeon.floor_tiles[idx] != entt::null)
+      r.emplace_or_replace<VisibleComponent>(dungeon.floor_tiles[idx]);
+  }
+
+  // remove visible from adjusted floors=>walls,
+  // usually walls are visible, but because we've adjusted
+  // it to be "behind" an edge, that square is no longer visible
+  for (int i = 0; i < dungeon.wall_or_floors.size(); i++) {
+    const auto floor_e = dungeon.floor_tiles[i];
+    if (walls_or_floors_adjusted[i] == 1 && dungeon.wall_or_floors[i] == 0 && floor_e != entt::null) {
+      set_colour(r, floor_e, { 1.0f, 0.4f, 0.4f, 1.0f });
+      if (auto* visible_c = r.try_get<VisibleComponent>(floor_e))
+        r.remove<VisibleComponent>(floor_e);
+    }
+  }
+
+  // mark origin visible
+  const int origin_idx = engine::grid::grid_position_to_index(origin, map.xmax);
+  const auto origin_floor_e = dungeon.floor_tiles[origin_idx];
+  r.emplace_or_replace<VisibleComponent>(origin_floor_e);
+
+  // change colour of all floor tiles to visible state
+  if (!debug_fov) {
+    for (const entt::entity& floor_e : dungeon.floor_tiles) {
+      if (floor_e == entt::null)
+        continue;
+
+      const bool is_visible = r.try_get<VisibleComponent>(floor_e) != nullptr;
+      const auto floor_pos = get_position(r, floor_e);
+      const auto floor_idx = engine::grid::worldspace_to_index(floor_pos, map.tilesize, map.xmax, map.ymax);
+
+      for (const auto& e : map.map[floor_idx])
+        if (is_visible)
+          mark_visible(r, e);
+
+      if (is_visible)
+        set_colour(r, floor_e, { 0.3f, 0.3f, 0.3f, 1.0f });
+      else
+        set_colour(r, floor_e, { 0.0f, 0.0f, 0.0f, 1.0f });
+    }
+  }
+
+  if (debug_fov) {
+    ImGui::Begin("DebugFoV");
+    imgui_draw_int("break_idx"s, break_idx);
+    imgui_draw_int("cur_idx"s, cur_idx);
+
+    const auto grid_pos = engine::grid::worldspace_to_grid_space(mouse_pos, map.tilesize);
+    auto mouse_idx = engine::grid::grid_position_to_index(grid_pos, map.xmax);
+    mouse_idx = glm::clamp(mouse_idx, 0, map.xmax * map.ymax - 1);
+    ImGui::Text("mouse: %i is_wall_or_floor: %i", mouse_idx, walls_or_floors_adjusted[mouse_idx]);
+
+    const auto floor_e = dungeon.floor_tiles[mouse_idx];
+    if (floor_e != entt::null && r.try_get<VisibleComponent>(floor_e) != nullptr)
+      ImGui::Text("is_visible: 1");
+    else
+      ImGui::Text("is_visible: 0");
+    ImGui::End();
+  }
+}
+
+} // namespace game2d

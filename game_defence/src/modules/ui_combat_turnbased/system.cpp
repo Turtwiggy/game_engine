@@ -134,17 +134,20 @@ update_ui_combat_turnbased_system(entt::registry& r, const glm::ivec2& input_mou
 
     // UX: show the path the unit would take
     if (action == Actions::MOVE) {
-      const auto path = generate_path(r, e, mouse_pos, INT_MAX);
+      // TODO: dont generate path every frame
+      // const auto path = generate_path(r, e, mouse_pos, INT_MAX);
 
-      state.show_selected_player_path.update(r, path.size());
-      for (const auto& ui_e : state.show_selected_player_path.instances)
-        set_size(r, ui_e, { 0, 0 });
+      // state.show_selected_player_path.update(r, path.size());
+      // for (const auto& ui_e : state.show_selected_player_path.instances)
+      //   set_size(r, ui_e, { 0, 0 });
 
       const auto limit_c = r.try_get<MoveLimitComponent>(e);
       if (limit_c == nullptr)
         continue;
 
       int limit = limit_c->amount;
+
+      /*
       for (int i = 0; const auto& p : path) {
         const auto& ui_e = state.show_selected_player_path.instances[i];
         set_position_grid(r, ui_e, p);
@@ -162,6 +165,7 @@ update_ui_combat_turnbased_system(entt::registry& r, const glm::ivec2& input_mou
 
         i++;
       }
+      */
     }
 
     auto& actions = r.get_or_emplace<ActionState>(e);
