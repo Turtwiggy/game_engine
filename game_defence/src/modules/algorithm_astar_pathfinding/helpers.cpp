@@ -92,35 +92,31 @@ generate_direct(entt::registry& r,
   cost_so_far[from] = 0;
 
   while (frontier.size() > 0) {
-    const auto current = frontier.dequeue();
+    const vec2i current = frontier.dequeue();
+    const int current_idx = map_c.xmax * current.y + current.x;
 
     if (equal<vec2i>(current, to))
       return reconstruct_path(came_from, from, to);
 
     const auto neighbour_idxs = engine::grid::get_neighbour_indicies(current.x, current.y, map_c.xmax, map_c.ymax);
 
-    for (const auto& [dir, idx] : neighbour_idxs) {
-      const auto& neighbour = map[idx].pos;
-      const auto& neighbour_cost = map[idx].cost;
+    for (const auto& [dir, n_idx] : neighbour_idxs) {
+      const auto& neighbour = map[n_idx].pos;
+      const auto& neighbour_cost = map[n_idx].cost;
 
       // Check the edges
       if (edges.has_value()) {
         // Check if there's an edge between the current cell and the neighbour cell.
         // If there is, skip evaluating this neighbour.
-
         const std::vector<Edge>& es = edges.value();
 
         bool wall_between_grid = false;
-
         for (const Edge& e : es) {
-          wall_between_grid |= e.cell_a == current && e.cell_b == neighbour;
-          wall_between_grid |= e.cell_b == current && e.cell_a == neighbour;
+          wall_between_grid |= e.a_idx == current_idx && e.b_idx == n_idx;
+          wall_between_grid |= e.b_idx == current_idx && e.a_idx == n_idx;
         }
-
         if (wall_between_grid)
           continue; // impassable
-
-        //
       }
 
       if (neighbour_cost == -1)
@@ -374,6 +370,10 @@ destination_is_blocked(entt::registry& r, const glm::ivec2 worldspace_pos)
   const auto idx = engine::grid::worldspace_to_index(worldspace_pos, map.tilesize, map.xmax, map.ymax);
 
   for (const auto& e : map.map[idx]) {
+    if (!r.valid(e)) {
+      fmt::println("something invalid in map.map...");
+      continue;
+    }
     // something exists, so it should have a pathfind component
     const auto& comp = r.get<PathfindComponent>(e);
     if (comp.cost == -1)

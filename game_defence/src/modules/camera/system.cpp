@@ -22,9 +22,8 @@ update_camera_system(entt::registry& r, const float dt)
   const auto& input = get_first_component<SINGLETON_InputComponent>(r);
   const auto camera_ent = get_first<OrthographicCamera>(r);
 
-  const float screen_x = static_cast<int>(-ri.viewport_size_render_at.x / 2.0f);
-  const float screen_y = static_cast<int>(-ri.viewport_size_render_at.y / 2.0f);
-
+  const float screen_x = -ri.viewport_size_render_at.x / 2.0f;
+  const float screen_y = -ri.viewport_size_render_at.y / 2.0f;
   auto& camera = r.get<OrthographicCamera>(camera_ent);
   auto& camera_transform = r.get<TransformComponent>(camera_ent);
 

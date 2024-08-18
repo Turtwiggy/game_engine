@@ -5,6 +5,7 @@
 #include <entt/entt.hpp>
 #include <nlohmann/json.hpp>
 
+#include <optional>
 #include <string>
 
 namespace game2d {
@@ -75,7 +76,10 @@ create_transform(entt::registry& r);
 
 // have to set position for physics entities
 [[nodiscard]] entt::entity
-create_gameplay(entt::registry& r, const EntityType& type, const glm::vec2& position);
+create_gameplay(entt::registry& r,
+                const EntityType& type,
+                const glm::vec2& position,
+                const std::optional<glm::vec2> size = std::nullopt);
 
 void
 add_particles(entt::registry& r, const entt::entity parent);

@@ -25,6 +25,10 @@ update_ui_combat_info_in_worldspace_system(entt::registry& r)
     const auto size = get_size(r, e);
 
     auto& worldspace_ui = r.get_or_emplace<WorldspaceTextComponent>(e);
+
+    // requires fov algorithm
+    worldspace_ui.requires_visible = true;
+
     // worldspace_ui.text = "HP:"s + std::to_string(hp.hp) + " DEF:" + std::to_string(defence.armour);
     worldspace_ui.offset.y = -1.25f * size.y; // place above
 

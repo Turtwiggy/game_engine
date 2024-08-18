@@ -17,6 +17,7 @@ struct WorldspaceTextComponent
   int line_length = 20;
 
   bool requires_hovered = false;
+  bool requires_visible = false;
 
   std::optional<std::function<void()>> layout = std::nullopt;
 };

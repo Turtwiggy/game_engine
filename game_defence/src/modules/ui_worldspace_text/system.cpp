@@ -6,6 +6,7 @@
 #include "entt/helpers.hpp"
 #include "modules/camera/helpers.hpp"
 #include "modules/renderer/components.hpp"
+#include "modules/system_fov/components.hpp"
 #include "modules/ux_hoverable/components.hpp"
 #include "renderer/transform.hpp"
 
@@ -31,6 +32,11 @@ update_ui_worldspace_text_system(entt::registry& r)
     // Does an entity need to be hovered to show this ui?
     const auto* is_hovered = r.try_get<HoveredComponent>(e);
     if (wst_c.requires_hovered && !is_hovered)
+      continue;
+
+    // Does an entity need to be visible to show this ui?
+    const auto* is_visible = r.try_get<VisibleComponent>(e);
+    if (wst_c.requires_visible && !is_visible)
       continue;
 
     const auto t_pos = glm::ivec2(t.position.x, t.position.y);

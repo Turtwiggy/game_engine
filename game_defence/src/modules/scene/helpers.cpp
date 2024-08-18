@@ -525,27 +525,13 @@ move_to_scene_start(entt::registry& r, const Scene& s, const bool load_saved)
     map_c.ymax = map_height / map_c.tilesize;
     map_c.map.resize(map_c.xmax * map_c.ymax);
 
-    Edge edge;
-    edge.cell_a = { 0, 0 };
-    edge.cell_b = { 0, 1 };
-    map_c.edges.push_back(edge);
+    // Edge edge;
+    // edge.cell_a = { 0, 0 };
+    // edge.cell_b = { 0, 1 };
+    // map_c.edges.push_back(edge);
 
     create_empty<MapComponent>(r, map_c);
     create_empty<Effect_GridComponent>(r, Effect_GridComponent{ map_c.tilesize });
-
-    // debug edges
-    for (const auto& edge : map_c.edges) {
-      const auto offset = glm::vec2{ map_c.tilesize / 2.0f, map_c.tilesize / 2.0f };
-      const auto ga =
-        engine::grid::grid_space_to_world_space(glm::ivec2(edge.cell_a.x, edge.cell_a.y), map_c.tilesize) + offset;
-      const auto gb =
-        engine::grid::grid_space_to_world_space(glm::ivec2(edge.cell_b.x, edge.cell_b.y), map_c.tilesize) + offset;
-      const auto l = generate_line({ ga.x, ga.y }, { gb.x, gb.y }, 1);
-      const entt::entity e = create_gameplay(r, EntityType::empty_with_transform, { 0, 0 });
-      set_position_and_size_with_line(r, e, l);
-      set_colour(r, e, edge.debug_colour);
-      r.get<TagComponent>(e).tag = "debugline";
-    }
 
     // create a cursor
     const auto cursor_e = create_gameplay(r, EntityType::cursor, { 0, 0 });

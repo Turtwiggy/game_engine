@@ -60,12 +60,10 @@ get_lowest_cost_neighbour(entt::registry& r, const MapComponent& map, const int 
   for (const auto& [dir, n_idx] : neighbour_idxs) {
 
     // take in to account edges
-    const vec2i current = dst_gridpos;
-    const vec2i neighbour = engine::grid::index_to_grid_position(n_idx, map.xmax, map.ymax);
     bool wall_between_grid = false;
     for (const Edge& e : map.edges) {
-      wall_between_grid |= e.cell_a == current && e.cell_b == neighbour;
-      wall_between_grid |= e.cell_b == current && e.cell_a == neighbour;
+      wall_between_grid |= e.a_idx == dst_idx && e.b_idx == n_idx;
+      wall_between_grid |= e.b_idx == dst_idx && e.a_idx == n_idx;
     }
 
     // dont get neighbours if there is an edge between

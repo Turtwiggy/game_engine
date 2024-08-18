@@ -393,10 +393,11 @@ update_render_system(entt::registry& r, const float dt, const glm::vec2& mouse_p
     hmm -= glm::vec2{ camera_t.position.x, camera_t.position.y };
     hmm += glm::vec2{ wh.x / 2.0f, wh.y / 2.0f };
 
+    // player light; blueish?
     lights[0].pos = hmm;
     lights[0].enabled = true;
     lights[0].colour = { 0.5f, 0.75f, 1.0f, 1.0f };
-    lights[0].luminence = 0.5;
+    lights[0].luminence = 0.9;
   }
 
   // HACK: try adding lights to interesting map features
@@ -425,26 +426,10 @@ update_render_system(entt::registry& r, const float dt, const glm::vec2& mouse_p
       continue;
     if (room->tl != room_c.tl)
       continue;
-
-    // Orange light center
-    if (false) {
-      Light& l = lights[i++];
-      l.enabled = true;
-
-      // gridspace to worldspace
-      const glm::ivec2 gridpos = { room_c.tl.x + (room_c.aabb.size.x / 2) - 1, room_c.tl.y + (room_c.aabb.size.y / 2) - 1 };
-      l.pos = engine::grid::grid_space_to_world_space(gridpos, 50);
-      l.pos += glm::vec2(map.tilesize / 2.0f, map.tilesize / 2.0f);
-
-      // worldspace to screenspace
-      const auto& wh = ri.viewport_size_render_at;
-      l.pos -= glm::vec2{ camera_t.position.x, camera_t.position.y };
-      l.pos += glm::vec2{ wh.x / 2.0f, wh.y / 2.0f };
-
-      // orange
-      l.colour = engine::SRGBColour{ 1.0f, 0.75f, 0.5f, 1.0f };
-      l.luminence = 0.5f;
-    }
+    const int room_size = room->aabb.size.x * room->aabb.size.y;
+    float lum = 0.6f;
+    if (room_size <= 16)
+      lum = 0.5f;
 
     // Orange light top left
     {
@@ -463,10 +448,10 @@ update_render_system(entt::registry& r, const float dt, const glm::vec2& mouse_p
 
       // orange
       l.colour = engine::SRGBColour{ 1.0f, 0.75f, 0.5f, 1.0f };
-      l.luminence = 0.5f;
+      l.luminence = lum;
     }
 
-    // Another light in the bottom right
+    // A light in bottom right
     {
       Light& l = lights[i++];
       l.enabled = true;
@@ -481,9 +466,8 @@ update_render_system(entt::registry& r, const float dt, const glm::vec2& mouse_p
       l.pos -= glm::vec2{ camera_t.position.x, camera_t.position.y };
       l.pos += glm::vec2{ wh.x / 2.0f, wh.y / 2.0f };
 
-      // green
       l.colour = engine::SRGBColour{ 0.6f, 0.6f, 1.0f, 1.0f };
-      l.luminence = 1.0f;
+      l.luminence = lum;
     }
   }
 

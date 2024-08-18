@@ -147,24 +147,29 @@ get_center_from_line(const Line& l)
   return { (l.p0.x + l.p1.x) / 2.0f, (l.p0.y + l.p1.y) / 2.0f };
 }
 
-std::vector<std::pair<Line, glm::ivec2>>
+std::vector<LineCollision>
 get_line_collisions(const std::vector<Line>& lines, const Line& l)
 {
-  std::vector<std::pair<Line, glm::ivec2>> collisions;
+  std::vector<LineCollision> collisions;
 
-  for (const Line& other_l : lines) {
+  for (const Line& wall_line : lines) {
 
 #if defined(_DEBUG)
     // sanity checks
     assert(l.p1.x >= l.p0.x);
     assert(l.p1.y >= l.p0.y);
-    assert(other_l.p1.x >= other_l.p0.x);
-    assert(other_l.p1.y >= other_l.p0.y);
+    assert(wall_line.p1.x >= wall_line.p0.x);
+    assert(wall_line.p1.y >= wall_line.p0.y);
 #endif
 
-    const auto intersection = line_intersection(l.p0, l.p1, other_l.p0, other_l.p1);
-    if (intersection.has_value())
-      collisions.push_back({ other_l, intersection.value() });
+    const auto intersection = line_intersection(l.p0, l.p1, wall_line.p0, wall_line.p1);
+    if (intersection.has_value()) {
+      LineCollision coll;
+      coll.line_a = wall_line;
+      coll.line_b = l;
+      coll.intersection = intersection.value();
+      collisions.push_back(coll);
+    }
   }
 
   return collisions;

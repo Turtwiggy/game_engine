@@ -19,6 +19,7 @@
 #include "modules/camera/system.hpp"
 #include "modules/combat_attack_cooldown/system.hpp"
 #include "modules/combat_damage/system.hpp"
+#include "modules/combat_heal/system.hpp"
 #include "modules/gameover/components.hpp"
 #include "modules/gameover/system.hpp"
 #include "modules/gen_dungeons/system.hpp"
@@ -361,6 +362,7 @@ update(engine::SINGLETON_Application& app, entt::registry& r, const float dt)
       update_ux_selectable_by_keyboard_system(r);
       update_screenshake_system(r, app.ms_since_launch / 1000.0f, dt);
       update_fov_system(r, mouse_pos);
+      update_combat_heal_system(r);
 
 #if defined(_DEBUG)
       // update_debug_pathfinding_system(r, mouse_pos);

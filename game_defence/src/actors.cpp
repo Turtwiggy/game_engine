@@ -200,12 +200,8 @@ add_particles(entt::registry& r, const entt::entity parent)
 };
 
 entt::entity
-create_gameplay(entt::registry& r, const EntityType& type, const glm::vec2& position)
+create_gameplay(entt::registry& r, const EntityType& type, const glm::vec2& position, const std::optional<glm::vec2> size)
 {
-  const glm::ivec3 DEFAULT_SIZE{ 32, 32, 1 };
-  const glm::ivec3 HALF_SIZE{ 16, 16, 1 };
-  const glm::ivec2 SMALL_SIZE{ 4, 4 };
-
   const auto type_name = std::string(magic_enum::enum_name(type));
 
   const auto& e = r.create();
@@ -216,34 +212,29 @@ create_gameplay(entt::registry& r, const EntityType& type, const glm::vec2& posi
   const auto sprite_name = sprite_type_to_sprite(r, type);
   const auto sc = create_sprite(r, sprite_name, type);
   r.emplace<SpriteComponent>(e, sc);
-  r.emplace<TransformComponent>(e);
 
-  set_size(r, e, DEFAULT_SIZE);
-  set_position(r, e, position);
+  const glm::ivec3 DEFAULT_SIZE{ 32, 32, 1 };
+  const glm::ivec3 HALF_SIZE{ 16, 16, 1 };
+  const glm::ivec2 SMALL_SIZE{ 4, 4 };
 
-  switch (type) {
-    case EntityType::bullet_bouncy:
-    case EntityType::bullet_default: {
-      set_size(r, e, SMALL_SIZE);
-      break;
-    }
-    // case EntityType::bullet_enemy: {
-    //   set_size(r, e, SMALL_SIZE);
-    //   break;
-    // }
-    case EntityType::particle: {
-      set_size(r, e, HALF_SIZE);
-      r.emplace<VelocityTemporaryComponent>(e);
-      break;
-    }
-  }
+  glm::vec2 size_final = size.has_value() ? size.value() : DEFAULT_SIZE;
+  if (type == EntityType::actor_spaceship)
+    size_final = HALF_SIZE;
+  else if (type == EntityType::bullet_bouncy)
+    size_final = SMALL_SIZE;
+  else if (type == EntityType::bullet_default)
+    size_final = SMALL_SIZE;
+  else if (type == EntityType::particle)
+    size_final = HALF_SIZE;
+
+  TransformComponent tf{ { position.x, position.y, 0.0f }, glm::vec3(0.0f), { size_final.x, size_final.y, 0.0f } };
+  r.emplace<TransformComponent>(e, tf);
 
   switch (type) {
-    case EntityType::empty_with_transform: {
+    case EntityType::empty_with_transform:
       break;
-    }
     case EntityType::empty_with_physics: {
-      create_physics_actor_dynamic(r, e, position, DEFAULT_SIZE);
+      create_physics_actor_dynamic(r, e, position, size_final);
       break;
     }
 
@@ -257,7 +248,7 @@ create_gameplay(entt::registry& r, const EntityType& type, const glm::vec2& posi
       desc.is_bullet = false;
       desc.density = 1.0;
       desc.position = position;
-      desc.size = HALF_SIZE;
+      desc.size = size_final;
       desc.is_sensor = false;
       create_physics_actor(r, e, desc);
 
@@ -295,7 +286,7 @@ create_gameplay(entt::registry& r, const EntityType& type, const glm::vec2& posi
       desc.is_bullet = false;
       desc.density = 1.0;
       desc.position = position;
-      desc.size = DEFAULT_SIZE;
+      desc.size = size_final;
       desc.is_sensor = true;
       create_physics_actor(r, e, desc);
 
@@ -319,7 +310,7 @@ create_gameplay(entt::registry& r, const EntityType& type, const glm::vec2& posi
       //
 
     case EntityType::solid_wall: {
-      create_physics_actor_static(r, e, position, DEFAULT_SIZE);
+      create_physics_actor_static(r, e, position, size_final);
       set_collision_filters(r, e);
       r.emplace<LightOccluderComponent>(e);
       break;
@@ -391,6 +382,7 @@ create_gameplay(entt::registry& r, const EntityType& type, const glm::vec2& posi
     }
 
     case EntityType::particle: {
+      r.emplace<VelocityTemporaryComponent>(e);
       r.emplace<EntityTimedLifecycle>(e, 3 * 1000);
       break;
     }

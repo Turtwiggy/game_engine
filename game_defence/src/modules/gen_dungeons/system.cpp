@@ -29,6 +29,8 @@
 
 #include <SDL_scancode.h>
 #include <fmt/core.h>
+#include <glm/ext/quaternion_geometric.hpp>
+#include <glm/fwd.hpp>
 #include <vector>
 
 namespace game2d {
@@ -158,10 +160,14 @@ update_gen_dungeons_system(entt::registry& r, const glm::ivec2& mouse_pos)
 
   auto result = generate_rooms(r, dungeon_parameters, rnd);
 
-  // keep a reference to all the lines as walls, so that we dont have any overlaps.
-  std::vector<Line> lines;
-  instantiate_walls(r, lines, result, i);
-  instantiate_tunnels(r, lines, result);
+  // give to entt?
+  for (const Room& room : result.rooms)
+    create_empty<Room>(r, room);
+  for (const Tunnel& tunnel : result.tunnels)
+    create_empty<Tunnel>(r, tunnel);
+
+  // generate edges for pathfinding.
+  // they get put in the map.edges
   generate_edges(r, map, result);
 
   // Update pathfinding
@@ -173,19 +179,35 @@ update_gen_dungeons_system(entt::registry& r, const glm::ivec2& mouse_pos)
     }
   }
 
-  // Debug edges
-  const bool debug_edges = false;
-  if (debug_edges) {
-    for (const auto& edge : map.edges) {
-      const auto offset = glm::vec2{ map.tilesize / 2.0f, map.tilesize / 2.0f };
-      const auto ga = engine::grid::grid_space_to_world_space({ edge.cell_a.x, edge.cell_a.y }, map.tilesize) + offset;
-      const auto gb = engine::grid::grid_space_to_world_space({ edge.cell_b.x, edge.cell_b.y }, map.tilesize) + offset;
-      const auto l = generate_line({ ga.x, ga.y }, { gb.x, gb.y }, 1);
-      const entt::entity e = create_gameplay(r, EntityType::empty_with_transform, { 0, 0 });
-      set_position_and_size_with_line(r, e, l);
-      set_colour(r, e, edge.debug_colour);
-      r.get<TagComponent>(e).tag = "debugline";
-    }
+  // Instantiate map edges
+  for (auto& edge : map.edges) {
+    const auto offset = glm::vec2{ map.tilesize / 2.0f, map.tilesize / 2.0f };
+    const auto ga = engine::grid::index_to_world_position(edge.a_idx, map.xmax, map.ymax, map.tilesize) + offset;
+    const auto gb = engine::grid::index_to_world_position(edge.b_idx, map.xmax, map.ymax, map.tilesize) + offset;
+
+    // const auto l0 = generate_line({ ga.x, ga.y }, { gb.x, gb.y }, 4);
+    // const entt::entity e0 = create_gameplay(r, EntityType::empty_with_transform, { 0, 0 });
+    // set_position_and_size_with_line(r, e0, l0);
+    // set_colour(r, e0, { 1.0f, 0.0, 0.0, 0.5f });
+
+    const auto center = (gb + ga) / 2.0f;
+    const auto size = glm::abs(gb - ga);
+    const bool was_horizontal = size.x > size.y;
+
+    auto new_size = glm::vec2{ size.y, size.x };
+    if (new_size.x == 0)
+      new_size.x = 2;
+    if (new_size.y == 0)
+      new_size.y = 2;
+
+    const entt::entity e = create_gameplay(r, EntityType::solid_wall, center, new_size);
+
+    if (was_horizontal)
+      set_colour(r, e, { 0.0f, 1.0, 0.0, 1.0f });
+    else
+      set_colour(r, e, { 0.0f, 0.0, 1.0, 1.0f });
+
+    edge.instance = e;
   }
 
   // add random colour tile variation
@@ -209,7 +231,6 @@ update_gen_dungeons_system(entt::registry& r, const glm::ivec2& mouse_pos)
 
   // Steps after initial initialization...
   set_generated_entity_positions(r, result, rnd);
-
   set_player_positions(r, result, rnd);
   create_empty<CameraFreeMove>(r);
 

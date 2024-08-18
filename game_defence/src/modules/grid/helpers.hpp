@@ -3,6 +3,9 @@
 #include "modules/grid/components.hpp"
 
 #include <entt/entt.hpp>
+#include <glm/glm.hpp>
+
+#include <vector>
 
 namespace game2d {
 

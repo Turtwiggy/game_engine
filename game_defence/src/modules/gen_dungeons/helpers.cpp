@@ -251,7 +251,12 @@ instantiate_segments_from_line(entt::registry& r, const glm::ivec2& size, const 
 
   const bool is_horizontal = size.x > size.y;
 
+  // if ((is_horizontal && size.x < map.tilesize) || (!is_horizontal && size.y < map.tilesize))
+  //   return;
+
   const int chunks = is_horizontal ? size.x / map.tilesize : size.y / map.tilesize;
+  if (chunks <= 0)
+    return;
   const glm::vec2 chunk_size = is_horizontal ? glm::vec2{ size.x / chunks, size.y } : glm::vec2{ size.x, size.y / chunks };
   const auto chunk_l = is_horizontal ? center.x - (chunk_size.x * (chunks / 2.0f)) : center.x;
   const auto chunk_t = is_horizontal ? center.y : center.y - (chunk_size.y * (chunks / 2.0f));
@@ -260,140 +265,8 @@ instantiate_segments_from_line(entt::registry& r, const glm::ivec2& size, const 
     const float pos_x = is_horizontal ? chunk_tl.x + i * chunk_size.x + map.tilesize / 2.0f : chunk_tl.x;
     const float pos_y = is_horizontal ? chunk_tl.y : chunk_tl.y + i * chunk_size.y + map.tilesize / 2.0f;
     create_wall(r, { pos_x, pos_y }, chunk_size);
-    // const float percent = (i + 1) / (float)(chunks + 1);
-    // set_colour(r, e, { percent, percent, 1.0f, 1.0f });
   }
 }
-
-void
-instantiate_walls(entt::registry& r, std::vector<Line>& lines, DungeonGenerationResults& results, const int& i)
-{
-  const auto& map = get_first_component<MapComponent>(r);
-  const auto& tunnels = results.tunnels;
-  const float half_tilesize = map.tilesize / 2.0f;
-
-  std::vector<Line> lines_to_instantiate;
-
-  int room_count = 0;
-  for (const Room& room : results.rooms) {
-    // if (i == room_count)
-    //   break; // debug room gen algorithm
-
-    // create room walls
-    const auto& gridspace_tl = room.tl;
-    const auto& worldspace_tl = gridspace_tl * map.tilesize;
-    const auto worldspace_size = room.aabb.size * map.tilesize;
-
-    // const glm::ivec2 offset = { map.tilesize / 2, map.tilesize / 2 };
-    const glm::ivec2 offset = { 0, 0 };
-
-    const int w = worldspace_size.x;
-    const int h = worldspace_size.y;
-    const glm::ivec2 tl = glm::ivec2{ worldspace_tl } + offset;
-    const glm::ivec2 tr = glm::ivec2{ (worldspace_tl.x + w), (worldspace_tl.y) } + offset;
-    const glm::ivec2 bl = glm::ivec2{ (worldspace_tl.x), (worldspace_tl.y + h) } + offset;
-    const glm::ivec2 br = glm::ivec2{ (worldspace_tl.x + w), (worldspace_tl.y + h) } + offset;
-    const glm::ivec2 worldspace_center = { (tl.x + tr.x) / 2.0f, (tr.y + br.y) / 2.0f };
-
-    // Convert room to 4 lines
-    const Line l0{ tl, tr }; // horizontal
-    const Line l1{ tr, br }; // vertical
-    const Line l2{ bl, br }; // horizontal
-    const Line l3{ tl, bl }; // vertical
-
-    const int num_lines_prior = lines_to_instantiate.size();
-    lines_to_instantiate.push_back(l0);
-    lines_to_instantiate.push_back(l1);
-    lines_to_instantiate.push_back(l2);
-    lines_to_instantiate.push_back(l3);
-
-    // A tunnel consists of 2 lines.
-    for (const Tunnel& t : tunnels) {
-      const auto two_tunnel_lines = convert_tunnel_to_lines(r, map, t);
-      for (const auto& t_line : two_tunnel_lines) {
-
-        // shrink line so it doesnt collide at ends
-        const Line t_line_shrunk = shrink_line_at_each_end(t_line, 5);
-
-        const auto collisions = get_line_collisions(lines_to_instantiate, t_line_shrunk);
-
-        // Match tunnel collisions to lines_to_instantiate walls.
-        for (const auto& [coll_line, coll_intersection] : collisions) {
-
-          // remove the line
-          {
-            const auto cond = [&coll_line](const Line& o) { return o.p0 == coll_line.p0 && o.p1 == coll_line.p1; };
-            auto it = std::find_if(lines_to_instantiate.begin(), lines_to_instantiate.end(), cond);
-            if (it != lines_to_instantiate.end())
-              lines_to_instantiate.erase(it);
-          }
-
-          Line line_to_split = coll_line;
-          make_p1_bigger_point(line_to_split);
-
-          // split the line in to 2 lines...
-          Line new_line_a;
-          new_line_a.p0 = line_to_split.p0;
-          new_line_a.p1 = coll_intersection;
-
-          Line new_line_b;
-          new_line_b.p0 = coll_intersection;
-          new_line_b.p1 = line_to_split.p1;
-
-          if (new_line_a.p0 == new_line_a.p1)
-            fmt::println("(warning: map gen). Weird collision. Debug this.");
-          if (new_line_b.p0 == new_line_b.p1)
-            fmt::println("(warning: map gen). Weird collision. Debug this.");
-          if (new_line_a.p0.x != new_line_a.p1.x && new_line_a.p0.y != new_line_a.p1.y)
-            fmt::println("(warning: map gen). Diagonal line. Debug this.");
-          if (new_line_b.p0.x != new_line_b.p1.x && new_line_b.p0.y != new_line_b.p1.y)
-            fmt::println("(warning: map gen). Diagonal line. Debug this.");
-
-          // Adjust the new two new lines so that they're half a grid apart
-          if (is_horizontal(line_to_split)) {
-            new_line_a.p1.x -= half_tilesize;
-            new_line_b.p0.x += half_tilesize;
-          } else {
-            new_line_a.p1.y -= half_tilesize;
-            new_line_b.p0.y += half_tilesize;
-          }
-
-          const auto line_is_valid = [](const Line& l) -> bool {
-            // horizontal means y coordinates are the same
-            if (is_horizontal(l))
-              return l.p0.x < l.p1.x;
-            else
-              return l.p0.y < l.p1.y;
-          };
-
-          // After adjustments, check if the line went to 0 or negative length
-          if (line_is_valid(new_line_a))
-            lines_to_instantiate.push_back((new_line_a));
-          if (line_is_valid(new_line_b))
-            lines_to_instantiate.push_back((new_line_b));
-
-          //
-        }
-      }
-    }
-
-    const int num_lines_post = lines_to_instantiate.size();
-    if (num_lines_post - num_lines_prior < 4) // 4 because a 2d room has 4 walls
-      fmt::println("error: did not add enough lines for room to be covered.");
-
-    // store "Room" struct on entt?
-    create_empty<Room>(r, room);
-  }
-
-  // Instantiate Room lines
-  for (const auto& l : lines_to_instantiate) {
-    const auto size = get_size_from_line(l);
-    const auto center = get_center_from_line(l);
-    instantiate_segments_from_line(r, size, center);
-  }
-
-  results.lines_to_instantiate = lines_to_instantiate;
-};
 
 void
 set_generated_entity_positions(entt::registry& r, DungeonGenerationResults& results, engine::RandomState& rnd)
@@ -457,26 +330,16 @@ set_generated_entity_positions(entt::registry& r, DungeonGenerationResults& resu
   }
 };
 
+//
+
 std::pair<bool, std::optional<Room>>
 inside_room(const MapComponent& map, const std::vector<Room>& rooms, const glm::ivec2& gridpos)
 {
-  const glm::ivec2 offset = { map.tilesize / 2, map.tilesize / 2 };
-
-  // create aabb from gridpos
-  // const auto worldpos = gridpos * map.tilesize;
-  // const auto worldpos_center = worldpos + offset;
-
   RoomAABB aabb;
   aabb.center = gridpos;
   aabb.size = { glm::abs(1), glm::abs(1) };
 
   for (const Room& room : rooms) {
-    // // create aabb for room
-    // AABB room_worldspace_aabb;
-    // room_worldspace_aabb.center = room.aabb.center * map.tilesize;
-    // room_worldspace_aabb.center += offset;
-    // room_worldspace_aabb.size = room.aabb.size * map.tilesize;
-
     // Room AABB is in gridspace
     if (collide(room.aabb, aabb))
       return { true, room };
@@ -505,7 +368,130 @@ inside_tunnels(const std::vector<Tunnel>& ts, const glm::ivec2& gridpos)
 };
 
 void
-instantiate_tunnels(entt::registry& r, std::vector<Line>& lines, DungeonGenerationResults& results)
+remove_line(std::vector<Line>& lines, const Line& line)
+{
+  const auto cond = [&line](const Line& o) { return o.p0 == line.p0 && o.p1 == line.p1; };
+  const auto it = std::find_if(lines.begin(), lines.end(), cond);
+  if (it != lines.end())
+    lines.erase(it);
+};
+
+void
+instantiate_walls(entt::registry& r, DungeonGenerationResults& results)
+{
+  const auto& map = get_first_component<MapComponent>(r);
+  const auto& tunnels = results.tunnels;
+  const float half_tilesize = map.tilesize / 2.0f;
+
+  std::vector<Line> wall_lines_to_instantiate;
+
+  for (const Room& room : results.rooms) {
+    // create room walls
+    const auto& gridspace_tl = room.tl;
+    const auto& worldspace_tl = gridspace_tl * map.tilesize;
+    const auto worldspace_size = room.aabb.size * map.tilesize;
+
+    const int w = worldspace_size.x;
+    const int h = worldspace_size.y;
+    const glm::ivec2 tl = glm::ivec2{ worldspace_tl };
+    const glm::ivec2 tr = glm::ivec2{ (worldspace_tl.x + w), (worldspace_tl.y) };
+    const glm::ivec2 bl = glm::ivec2{ (worldspace_tl.x), (worldspace_tl.y + h) };
+    const glm::ivec2 br = glm::ivec2{ (worldspace_tl.x + w), (worldspace_tl.y + h) };
+    const glm::ivec2 worldspace_center = { (tl.x + tr.x) / 2.0f, (tr.y + br.y) / 2.0f };
+
+    // Convert room to 4 lines
+    const Line l0{ tl, tr }; // horizontal
+    const Line l1{ tr, br }; // vertical
+    const Line l2{ bl, br }; // horizontal
+    const Line l3{ tl, bl }; // vertical
+
+    const int num_lines_prior = wall_lines_to_instantiate.size();
+    wall_lines_to_instantiate.push_back(l0);
+    wall_lines_to_instantiate.push_back(l1);
+    wall_lines_to_instantiate.push_back(l2);
+    wall_lines_to_instantiate.push_back(l3);
+
+    // now shrink the walls based on tunnels
+    //
+    // A tunnel consists of 2 lines.
+    for (const Tunnel& t : tunnels) {
+      for (const Line& t_line : convert_tunnel_to_lines(r, map, t)) {
+
+        // shrink line so it doesnt collide at ends
+        // check if the tunnel line collides with any of the wall lines
+        const Line t_line_shrunk = shrink_line_at_each_end(t_line, 5);
+        const std::vector<LineCollision> collisions = get_line_collisions(wall_lines_to_instantiate, t_line_shrunk);
+        for (const auto& coll_info : collisions) {
+          Line wall_line = coll_info.line_a;
+          Line tunnel_line = coll_info.line_b;
+          const auto intersection = coll_info.intersection;
+
+          // remove the wall if it collided
+          remove_line(wall_lines_to_instantiate, wall_line);
+
+          make_p1_bigger_point(wall_line);
+
+          // split the line in to 2 lines...
+          Line new_line_a;
+          new_line_a.p0 = wall_line.p0;
+          new_line_a.p1 = intersection;
+
+          Line new_line_b;
+          new_line_b.p0 = intersection;
+          new_line_b.p1 = wall_line.p1;
+
+          if (new_line_a.p0 == new_line_a.p1)
+            fmt::println("(warning: map gen). Weird collision. Debug this.");
+          if (new_line_b.p0 == new_line_b.p1)
+            fmt::println("(warning: map gen). Weird collision. Debug this.");
+          if (new_line_a.p0.x != new_line_a.p1.x && new_line_a.p0.y != new_line_a.p1.y)
+            fmt::println("(warning: map gen). Diagonal line. Debug this.");
+          if (new_line_b.p0.x != new_line_b.p1.x && new_line_b.p0.y != new_line_b.p1.y)
+            fmt::println("(warning: map gen). Diagonal line. Debug this.");
+
+          // Adjust the new two new lines so that they're half a grid apart
+          if (is_horizontal(wall_line)) {
+            new_line_a.p1.x -= half_tilesize;
+            new_line_b.p0.x += half_tilesize;
+          } else {
+            new_line_a.p1.y -= half_tilesize;
+            new_line_b.p0.y += half_tilesize;
+          }
+
+          const auto line_is_valid = [](const Line& l) -> bool {
+            // horizontal means y coordinates are the same
+            if (is_horizontal(l))
+              return l.p0.x < l.p1.x;
+            else
+              return l.p0.y < l.p1.y;
+          };
+
+          // After adjustments, check if the line went to 0 or negative length
+          if (line_is_valid(new_line_a))
+            wall_lines_to_instantiate.push_back((new_line_a));
+          if (line_is_valid(new_line_b))
+            wall_lines_to_instantiate.push_back((new_line_b));
+
+          //
+        }
+      }
+    }
+
+    const int num_lines_post = wall_lines_to_instantiate.size();
+    if (num_lines_post - num_lines_prior < 4) // 4 because a 2d room has 4 walls
+      fmt::println("error: did not add enough lines for room to be covered.");
+  }
+
+  // Instantiate Room lines
+  // for (const auto& l : wall_lines_to_instantiate) {
+  //   const auto size = get_size_from_line(l);
+  //   const auto center = get_center_from_line(l);
+  //   instantiate_segments_from_line(r, size, center);
+  // }
+};
+
+void
+instantiate_tunnels(entt::registry& r, DungeonGenerationResults& results)
 {
   const auto& map = get_first_component<MapComponent>(r);
 
@@ -521,19 +507,20 @@ instantiate_tunnels(entt::registry& r, std::vector<Line>& lines, DungeonGenerati
   // }
 
   const auto create_walls_based_on_neighbours = [&r, &map, &results](const glm::ivec2& gp) {
+    const auto idx = engine::grid::grid_position_to_index(gp, map.xmax);
     const auto idxs = engine::grid::get_neighbour_indicies(gp.x, gp.y, map.xmax, map.ymax);
     for (const auto& [dir, neighbour_idx] : idxs) {
-
-      // dont create walls at floors
-      const auto neighbour_is_floor = results.wall_or_floors[neighbour_idx] == 0;
-      if (neighbour_is_floor)
-        continue;
+      const auto neighbour_gp = engine::grid::index_to_grid_position(neighbour_idx, map.xmax, map.ymax);
 
       // dont create walls at rooms
       // although possibly this is where to create doors
-      const auto neighbour_gp = engine::grid::index_to_grid_position(neighbour_idx, map.xmax, map.ymax);
       const auto [in_room, room] = inside_room(map, results.rooms, neighbour_gp);
-      if (in_room)
+      // const bool create_as_door = results.wall_or_floors[idx] == 0 && in_room;
+      const bool create_as_door = false;
+
+      // dont create walls at floors
+      const auto neighbour_is_floor = results.wall_or_floors[neighbour_idx] == 0;
+      if (neighbour_is_floor && !create_as_door)
         continue;
 
       // else: neighbour is a wall, create a wall
@@ -564,35 +551,33 @@ instantiate_tunnels(entt::registry& r, std::vector<Line>& lines, DungeonGenerati
 
       const auto size = get_size_from_line(l);
       const auto center = get_center_from_line(l);
-      create_wall(r, center, size);
+      const auto e = create_wall(r, center, size);
+
+      if (create_as_door)
+        set_colour(r, e, { 1.0f, 0.0f, 0.0f, 1.0f });
 
       // keep a record of the tunnel line that was created
-      results.lines_to_instantiate.push_back(l);
+      // results.lines_to_instantiate.push_back(l);
     }
   };
 
-  // Fill up gaps in space...
+  // For all the tunnels, iterate along all the grid-cells
+  //
   for (const Tunnel& tunnel : results.tunnels) {
-    const auto& square_0 = tunnel.line_0;
-    const auto& square_1 = tunnel.line_1;
 
-    for (const std::pair<int, int>& gridpos : square_0) {
+    for (const std::pair<int, int>& gridpos : tunnel.line_0) {
       const auto [has_coll, room] = inside_room(map, results.rooms, { gridpos.first, gridpos.second });
       if (has_coll)
         continue;
       create_walls_based_on_neighbours({ gridpos.first, gridpos.second });
     }
 
-    for (const std::pair<int, int>& gridpos : square_1) {
+    for (const std::pair<int, int>& gridpos : tunnel.line_1) {
       const auto [has_coll, room] = inside_room(map, results.rooms, { gridpos.first, gridpos.second });
       if (has_coll)
         continue;
       create_walls_based_on_neighbours({ gridpos.first, gridpos.second });
     }
-
-    // give tunnel representation to entt
-    for (const Tunnel& t : results.tunnels)
-      create_empty<Tunnel>(r, t);
   }
 };
 
@@ -646,26 +631,29 @@ generate_edges(entt::registry& r, MapComponent& map, const DungeonGenerationResu
         const bool from_room_to_tunnel = in_room_a && in_tunnel_b && !in_room_b;
 
         Edge edge;
-        edge.cell_a = grid_a;
-        edge.cell_b = grid_b;
+        edge.a_idx = engine::grid::grid_position_to_index(grid_a, map.xmax);
+        edge.b_idx = engine::grid::grid_position_to_index(grid_b, map.xmax);
 
-        if (from_wall_to_floor) {
-          edge.debug_colour = { 1.0f, 0.0, 0.0, 1.0f }; // red
+        if (from_wall_to_floor)
           map.edges.push_back(edge);
-        } else if (from_room_to_room && !same_tunnel) {
-          edge.debug_colour = { 0.0f, 1.0, 0.0, 1.0f }; // green
+        else if (from_room_to_room && !same_tunnel)
           map.edges.push_back(edge);
-        } else if (from_room_to_tunnel && !same_tunnel) {
-          edge.debug_colour = { 1.0f, 1.0, 1.0, 1.0f }; // white
+        else if (from_room_to_tunnel && !same_tunnel)
           map.edges.push_back(edge);
-        }
       }
     }
   };
 
   // remove duplicates
   auto& edgs = map.edges;
-  const auto pred = [](const Edge& a, const Edge& b) { return a.cell_a == b.cell_a && a.cell_b == b.cell_b; };
+
+  // std::unique only removes consecutive duplicates
+  const auto sort_pred = [](const Edge& a, const Edge& b) {
+    return (a.a_idx < b.a_idx) || (a.a_idx == b.a_idx && a.b_idx < b.b_idx);
+  };
+  std::sort(edgs.begin(), edgs.end(), sort_pred);
+
+  const auto pred = [](const Edge& a, const Edge& b) { return a.a_idx == b.a_idx && a.b_idx == b.b_idx; };
   edgs.erase(std::unique(edgs.begin(), edgs.end(), pred), edgs.end());
 
   fmt::println("Map edges: {}", map.edges.size());

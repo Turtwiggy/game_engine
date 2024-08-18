@@ -101,11 +101,10 @@ index_to_grid_position(const int index, const int x_max, const int y_max)
   return { x, y };
 }
 
-inline glm::ivec2
+inline glm::vec2
 index_to_world_position(const int index, const int x_max, const int y_max, const int size)
 {
-  const auto grid_position = index_to_grid_position(index, x_max, y_max);
-  return grid_position * size;
+  return index_to_grid_position(index, x_max, y_max) * size;
 }
 
 // a grid shaped

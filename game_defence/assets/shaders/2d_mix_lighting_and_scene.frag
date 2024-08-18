@@ -277,12 +277,14 @@ void main()
 		}
 
 		// inside spaceship
- 		// setLuminance(l.colour, 1.0);
+		// most lights, 0.6
+		// player light: 1.0
+ 		setLuminance(l.colour, l.luminance);
 
 		// outside spaceship
- 		setLuminance(l.colour, 1.25);
+ 		// setLuminance(l.colour, 1.25);
 
-		col += drawLight(p, l.position, l.colour, dist, 300.0, 12.0);
+		col += drawLight(p, l.position, l.colour, dist, 350.0, 12.0);
 	}
 
 	// shape fill
@@ -307,8 +309,8 @@ void main()
 	final_lin *= lighting_lin;
 	// final_lin *= lighting_lin;
 
-	// vec3 srgb_final = (lin_to_srgb(final_lin));
-	vec3 srgb_final = lin_to_srgb(scene_lin.rgb);
+	vec3 srgb_final = (lin_to_srgb(final_lin));
+	// vec3 srgb_final = lin_to_srgb(scene_lin.rgb);
 
 	out_color.rgb = srgb_final.rgb;
 	out_color.a = 1.0f;

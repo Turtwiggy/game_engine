@@ -24,4 +24,4 @@ struct CombatEntityDescription
 entt::entity
 create_combat_entity(entt::registry& r, const CombatEntityDescription& desc);
 
-} // namespace game2d
+} // namespace game2dw

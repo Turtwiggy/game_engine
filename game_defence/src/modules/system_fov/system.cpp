@@ -64,11 +64,10 @@ update_fov_system(entt::registry& r, const glm::ivec2& mouse_pos)
     break_idx++;
 
   bool debug_fov = false;
-
   if (debug_fov) {
     for (const entt::entity& floor_e : dungeon.floor_tiles)
       if (floor_e != entt::null)
-        set_colour(r, floor_e, { 0.1f, 0.1f, 0.5f, 1.0f });
+        set_colour(r, floor_e, { 0.2f, 0.2f, 0.2f, 1.0f });
   }
 
   // prevent out of bounds issues
@@ -88,20 +87,20 @@ update_fov_system(entt::registry& r, const glm::ivec2& mouse_pos)
     cached_origin = origin;
   }
 
-  static std::vector<entt::entity> edges;
-  r.destroy(edges.begin(), edges.end());
-  edges.clear();
+  static std::vector<entt::entity> edge_debug;
+  r.destroy(edge_debug.begin(), edge_debug.end());
+  edge_debug.clear();
 
   // adjust this vector based on edges
   for (int dir = 0; dir < 4; dir++) {
     const auto has_edge = [&](const Tile& t0, const Tile& t1) -> std::pair<bool, std::optional<Edge>> {
       const auto [x, y] = transform(t0, dir, origin);
       const auto [prev_x, prev_y] = transform(t1, dir, origin);
-      const auto search_a = glm::ivec2{ x, y };
-      const auto search_b = glm::ivec2{ prev_x, prev_y };
+      const int search_a_idx = engine::grid::grid_position_to_index({ x, y }, map.xmax);
+      const int search_b_idx = engine::grid::grid_position_to_index({ prev_x, prev_y }, map.xmax);
 
-      const auto res = std::find_if(map.edges.begin(), map.edges.end(), [&search_a, &search_b](const Edge& e) {
-        return (e.cell_a == search_a && e.cell_b == search_b) || (e.cell_a == search_b && e.cell_b == search_a);
+      const auto res = std::find_if(map.edges.begin(), map.edges.end(), [&search_a_idx, &search_b_idx](const Edge& e) {
+        return (e.a_idx == search_a_idx && e.b_idx == search_b_idx) || (e.a_idx == search_b_idx && e.b_idx == search_a_idx);
       });
 
       if (res != map.edges.end())
@@ -194,44 +193,44 @@ update_fov_system(entt::registry& r, const glm::ivec2& mouse_pos)
           if (!invalid_right && dungeon.floor_tiles.size() > 0 && dungeon.floor_tiles[r_idx] != entt::null)
             set_colour(r, dungeon.floor_tiles[r_idx], { 1.0f, 0.0f, 0.0f, 1.0f });
 
-          if (dungeon.floor_tiles.size() > 0 && dungeon.floor_tiles[ur_idx] != entt::null)
-            set_colour(r, dungeon.floor_tiles[ur_idx], { 1.0f, 1.0f, 1.0f, 1.0f });
+          // if (dungeon.floor_tiles.size() > 0 && dungeon.floor_tiles[ur_idx] != entt::null)
+          //   set_colour(r, dungeon.floor_tiles[ur_idx], { 1.0f, 1.0f, 1.0f, 1.0f });
 
-          if (dungeon.floor_tiles.size() > 0 && dungeon.floor_tiles[ul_idx] != entt::null)
-            set_colour(r, dungeon.floor_tiles[ul_idx], { 0.0f, 1.0f, 1.0f, 1.0f });
+          // if (dungeon.floor_tiles.size() > 0 && dungeon.floor_tiles[ul_idx] != entt::null)
+          //   set_colour(r, dungeon.floor_tiles[ul_idx], { 0.0f, 1.0f, 1.0f, 1.0f });
 
-          const auto debug_edge = [&r, &map](const vec2i& a, const vec2i& b) {
+          const auto debug_edge = [&r, &map](const int a, const int b) {
             const auto offset = glm::vec2{ map.tilesize / 2.0f, map.tilesize / 2.0f };
-            const auto ga = engine::grid::grid_space_to_world_space({ a.x, a.y }, map.tilesize) + offset;
-            const auto gb = engine::grid::grid_space_to_world_space({ b.x, b.y }, map.tilesize) + offset;
+            const auto ga = engine::grid::index_to_world_position(a, map.xmax, map.ymax, map.tilesize) + offset;
+            const auto gb = engine::grid::index_to_world_position(b, map.xmax, map.ymax, map.tilesize) + offset;
             const auto l = generate_line({ ga.x, ga.y }, { gb.x, gb.y }, 1);
             const entt::entity e = create_gameplay(r, EntityType::empty_with_transform, { 0, 0 });
             set_position_and_size_with_line(r, e, l);
             set_colour(r, e, { 0.0f, 1.0f, 0.0f, 1.0f });
             r.get<TagComponent>(e).tag = "debugline";
-            edges.push_back(e);
+            edge_debug.push_back(e);
           };
 
           if (!invalid_above && edge_exists)
-            debug_edge(edge.value().cell_a, edge.value().cell_b);
+            debug_edge(edge.value().a_idx, edge.value().b_idx);
           if (!invalid_right && r_edge_exists)
-            debug_edge(r_edge.value().cell_a, r_edge.value().cell_b);
+            debug_edge(r_edge.value().a_idx, r_edge.value().b_idx);
           if (ur_edge_exists)
-            debug_edge({ ur_x, ur_y }, { x, y });
+            debug_edge(ur_idx, idx);
           if (ul_edge_exists)
-            debug_edge({ ul_x, ul_y }, { x, y });
+            debug_edge(ul_idx, idx);
         }
 
         // If tile isnt a wall,
         // And above tile isnt a wall,
         // but there is an edge between tile and above tile,
-        if (!invalid_above && !is_wall(tile) && !is_wall(above_tile) && edge_exists)
+        if (!invalid_above && edge_exists && !is_wall(tile) && !is_wall(above_tile))
           walls_or_floors_adjusted[idx] = 1;
 
         // if tile isnt a wall,
         // and tile_r isnt a wall,
         // and there is an edge between tile and tile_r
-        if (!invalid_right && !is_wall(tile) && !is_wall(tile_r) && r_edge_exists) {
+        if (!invalid_right && r_edge_exists && !is_wall(tile) && !is_wall(tile_r)) {
           const auto further_tile = furthest_tile(tile, tile_r);
           const auto [fx, fy] = transform(further_tile, dir, origin);
           const auto fidx = engine::grid::grid_position_to_index({ fx, fy }, map.xmax);
@@ -239,13 +238,13 @@ update_fov_system(entt::registry& r, const glm::ivec2& mouse_pos)
         }
 
         // corners
-        if (!is_wall(tile) && !is_wall(tile_ur) && ur_edge_exists) {
+        if (ur_edge_exists && !is_wall(tile) && !is_wall(tile_ur)) {
           const auto further_tile = furthest_tile(tile, tile_ur);
           const auto [x, y] = transform(further_tile, dir, origin);
           const auto idx = engine::grid::grid_position_to_index({ x, y }, map.xmax);
           walls_or_floors_adjusted[idx] = 1;
         }
-        if (!is_wall(tile) && !is_wall(tile_ul) && ul_edge_exists) {
+        if (ul_edge_exists && !is_wall(tile) && !is_wall(tile_ul)) {
           const auto further_tile = furthest_tile(tile, tile_ul);
           const auto [x, y] = transform(further_tile, dir, origin);
           const auto idx = engine::grid::grid_position_to_index({ x, y }, map.xmax);
@@ -278,8 +277,10 @@ update_fov_system(entt::registry& r, const glm::ivec2& mouse_pos)
   const auto visible_idxs = do_shadowcasting(r, origin, walls_or_floors_adjusted);
 
   for (const auto idx : visible_idxs) {
-    if (dungeon.floor_tiles[idx] != entt::null)
+    if (dungeon.floor_tiles[idx] != entt::null) {
+      // set_colour(r, dungeon.floor_tiles[idx], { 0.5f, 0.5, 0.5, 1.0 });
       r.emplace_or_replace<VisibleComponent>(dungeon.floor_tiles[idx]);
+    }
   }
 
   // remove visible from adjusted floors=>walls,
@@ -288,7 +289,8 @@ update_fov_system(entt::registry& r, const glm::ivec2& mouse_pos)
   for (int i = 0; i < dungeon.wall_or_floors.size(); i++) {
     const auto floor_e = dungeon.floor_tiles[i];
     if (walls_or_floors_adjusted[i] == 1 && dungeon.wall_or_floors[i] == 0 && floor_e != entt::null) {
-      set_colour(r, floor_e, { 1.0f, 0.4f, 0.4f, 1.0f });
+      if (debug_fov)
+        set_colour(r, floor_e, { 1.0f, 0.4f, 0.4f, 1.0f });
       if (auto* visible_c = r.try_get<VisibleComponent>(floor_e))
         r.remove<VisibleComponent>(floor_e);
     }
@@ -300,24 +302,19 @@ update_fov_system(entt::registry& r, const glm::ivec2& mouse_pos)
   r.emplace_or_replace<VisibleComponent>(origin_floor_e);
 
   // change colour of all floor tiles to visible state
-  if (!debug_fov) {
-    for (const entt::entity& floor_e : dungeon.floor_tiles) {
-      if (floor_e == entt::null)
-        continue;
-
-      const bool is_visible = r.try_get<VisibleComponent>(floor_e) != nullptr;
-      const auto floor_pos = get_position(r, floor_e);
-      const auto floor_idx = engine::grid::worldspace_to_index(floor_pos, map.tilesize, map.xmax, map.ymax);
-
-      for (const auto& e : map.map[floor_idx])
-        if (is_visible)
-          mark_visible(r, e);
-
+  for (const entt::entity& floor_e : dungeon.floor_tiles) {
+    if (floor_e == entt::null)
+      continue;
+    const bool is_visible = r.try_get<VisibleComponent>(floor_e) != nullptr;
+    const auto floor_pos = get_position(r, floor_e);
+    const auto floor_idx = engine::grid::worldspace_to_index(floor_pos, map.tilesize, map.xmax, map.ymax);
+    for (const auto& e : map.map[floor_idx])
       if (is_visible)
-        set_colour(r, floor_e, { 0.3f, 0.3f, 0.3f, 1.0f });
-      else
-        set_colour(r, floor_e, { 0.0f, 0.0f, 0.0f, 1.0f });
-    }
+        mark_visible(r, e);
+    if (is_visible)
+      set_colour(r, floor_e, { 0.75f, 0.75f, 0.75f, 1.0f });
+    else
+      set_colour(r, floor_e, { 0.65f, 0.65f, 0.65f, 1.0f });
   }
 
   if (debug_fov) {

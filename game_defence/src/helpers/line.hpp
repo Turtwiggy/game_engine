@@ -50,7 +50,13 @@ get_size_from_line(const Line& l, int line_width = 4);
 glm::ivec2
 get_center_from_line(const Line& l);
 
-std::vector<std::pair<Line, glm::ivec2>>
+struct LineCollision
+{
+  Line line_a;
+  Line line_b;
+  glm::ivec2 intersection;
+};
+std::vector<LineCollision>
 get_line_collisions(const std::vector<Line>& lines, const Line& l);
 
 bool

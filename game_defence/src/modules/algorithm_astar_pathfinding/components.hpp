@@ -1,6 +1,5 @@
 #pragma once
 
-#include "colour/colour.hpp"
 #include <entt/entt.hpp>
 #include <glm/glm.hpp>
 
@@ -54,15 +53,6 @@ struct GeneratedPathComponent
   bool wait_at_destination = true;
   float wait_time_ms = 75;
   float wait_time_ms_left = 0; // move immediately
-};
-
-// an edge between two cells assumes there's a wall there
-struct Edge
-{
-  vec2i cell_a{ 0, 0 };
-  vec2i cell_b{ 0, 0 };
-
-  engine::SRGBColour debug_colour{ 1.0f, 1.0f, 1.0f, 1.0f };
 };
 
 } // namespace game2d

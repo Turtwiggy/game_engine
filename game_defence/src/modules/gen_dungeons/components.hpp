@@ -1,7 +1,7 @@
 #pragma once
 
 #include "helpers/line.hpp"
-#include "physics/components.hpp"
+#include "modules/algorithm_astar_pathfinding/components.hpp"
 
 #include <entt/entt.hpp>
 #include <glm/glm.hpp>
@@ -60,7 +60,6 @@ struct DungeonGenerationResults
   std::vector<Room> rooms;
   std::vector<Tunnel> tunnels;
   std::vector<int> wall_or_floors;
-  std::vector<Line> lines_to_instantiate;
 
   std::vector<entt::entity> floor_tiles;
 };
