@@ -17,10 +17,10 @@ update_distance_check_system(entt::registry& r)
       continue;
     }
 
-    const auto& p0 = get_position(r, distance_c.e0);
-    const auto& p1 = get_position(r, distance_c.e1);
-    const auto dir = p1 - p0;
-    const int d2 = dir.x * dir.x + dir.y * dir.y;
+    const auto p0 = get_position(r, distance_c.e0);
+    const auto p1 = get_position(r, distance_c.e1);
+    const glm::vec2 dir = p1 - p0;
+    const float d2 = dir.x * dir.x + dir.y * dir.y;
 
     if (distance_c.type == DISTANCE_CHECK_TYPE::LESS_THAN_OR_EQUAL) {
       if (d2 <= distance_c.d2) {

@@ -14,9 +14,9 @@ get_index(const float time, const float duration, const int size)
 {
   if (duration == 0.0f)
     return 0;
-  const float r = time / duration;    // a value between 0 and 1
-  const int s = glm::floor(r * size); // a value between 0 and size
-  return glm::clamp(s, 0, size);      // check between 0 and size
+  const float r = time / duration;                      // a value between 0 and 1
+  const int s = static_cast<int>(glm::floor(r * size)); // a value between 0 and size
+  return glm::clamp(s, 0, size);                        // check between 0 and size
 };
 
 void
@@ -43,7 +43,7 @@ update_animator_system(entt::registry& r, const float& dt)
 
     // pause on final frame if not looping
     if (animation.timer >= animation.duration && !animation.looping) {
-      const int i0 = anim.animation_frames.size() - 1;
+      const int i0 = static_cast<int>(anim.animation_frames.size() - 1);
       const SpritePosition& frame = anim.animation_frames[i0];
       sprite.tex_pos = frame;
       continue;
@@ -55,7 +55,7 @@ update_animator_system(entt::registry& r, const float& dt)
     // ImGui::Text("Duration: %f", animation.duration);
 
     // get the index of the frame to play
-    const int i0 = get_index(animation.timer, animation.duration, anim.animation_frames.size());
+    const int i0 = get_index(animation.timer, animation.duration, static_cast<int>(anim.animation_frames.size()));
     // const int i1 = i0 + 1;
 
     const SpritePosition& frame = anim.animation_frames[i0];

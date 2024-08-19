@@ -13,7 +13,6 @@ update_lifecycle_system(entt::registry& r, const uint64_t& milliseconds_dt)
   auto& dead = get_first_component<SINGLETON_EntityBinComponent>(r);
 
   // update all components with timed lifecycle
-  //
   const auto& view = r.view<EntityTimedLifecycle>(entt::exclude<WaitForInitComponent>);
   view.each([&dead, &milliseconds_dt](auto entity, auto& lifecycle) {
     if (lifecycle.milliseconds_alive > lifecycle.milliseconds_alive_max)
@@ -21,16 +20,19 @@ update_lifecycle_system(entt::registry& r, const uint64_t& milliseconds_dt)
     lifecycle.milliseconds_alive += static_cast<int>(milliseconds_dt);
   });
 
-  // provide a list of entity ids that were killed
-  dead.things_that_died.clear();
-  for (const auto& to_be_killed : dead.dead)
-    dead.things_that_died.push_back(to_be_killed);
-
   // destroy all dead objects
+  //
   auto& physics_c = get_first_component<SINGLE_Physics>(r);
-  for (const auto& e : dead.dead)
+  for (const auto& e : dead.dead) {
+    // Death callback
+    if (auto* callback = r.try_get<OnDeathCallback>(e))
+      callback->callback(r, e);
+
+    // Update physics
     if (auto* pb = r.try_get<PhysicsBodyComponent>(e))
       physics_c.world->DestroyBody(pb->body);
+  }
+
   r.destroy(dead.dead.begin(), dead.dead.end());
   dead.dead.clear();
 

@@ -145,6 +145,9 @@
     { "name": "WEAPON_MP5", "frames": [ { "x": 42, "y": 9 } ] },
     { "name": "WEAPON_RPG", "frames": [ { "x": 43, "y": 9 } ] },
     { "name": "AMMO_BOX", "frames": [ { "x": 44, "y": 9 } ] },
+    { "name": "WEAPON_GRENADE", "frames": [ { "x": 45, "y": 9 } ] },
+    { "name": "WEAPON_TNT", "frames": [ { "x": 46, "y": 9 } ] },
+    { "name": "WEAPON_FLASHBANG", "frames": [ { "x": 47, "y": 9 } ] },
 
     { "name": "CAMPFIRE", "frames": [ { "x": 14, "y": 10 } ] },
     { "name": "FIRE", "frames": [ { "x": 15, "y": 10 } ] },

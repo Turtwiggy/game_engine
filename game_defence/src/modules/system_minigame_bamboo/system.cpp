@@ -34,13 +34,13 @@ const auto controller_button = [](const SDL_GameControllerButton& button) -> Inp
   ie.controller_button = button;
   return ie;
 };
-const auto controller_axis = [](const SDL_GameControllerAxis& axis) -> InputEvent {
-  InputEvent ie;
-  ie.type = InputType::controller_axis;
-  ie.state = InputState::press;
-  ie.controller_axis = axis;
-  return ie;
-};
+// const auto controller_axis = [](const SDL_GameControllerAxis& axis) -> InputEvent {
+//   InputEvent ie;
+//   ie.type = InputType::controller_axis;
+//   ie.state = InputState::press;
+//   ie.controller_axis = axis;
+//   return ie;
+// };
 
 const static std::vector<InputEvent> keyboard_combinations = {
   keyboard_key(SDL_SCANCODE_W),
@@ -79,7 +79,7 @@ check_if_generate_new_combination(entt::registry& r, const int length, engine::R
   // generate new combination...
   combination.clear();
   for (int i = 0; i < length; i++) {
-    const int idx = int(engine::rand_det_s(rnd.rng, 0, keyboard_combinations.size()));
+    const int idx = engine::rand_det_s(rnd.rng, 0, (int)keyboard_combinations.size());
     combination.push_back(keyboard_combinations[idx]);
   }
 };
@@ -96,12 +96,11 @@ update_minigame_bamboo_system(entt::registry& r, const float dt)
   auto& bamboo_minigame = get_first_component<SINGLE_MinigameBamboo>(r);
   auto& buffer = bamboo_minigame.inputs;
   auto& combination = bamboo_minigame.combination;
-  auto& last_processed_tick = bamboo_minigame.last_processed_tick;
   bamboo_minigame.time_left -= dt;
   bamboo_minigame.time_left = glm::max(bamboo_minigame.time_left, 0.0f);
 
   const InputEvent keyboard_submit_key = keyboard_key(SDL_SCANCODE_RETURN);
-  const InputEvent controller_submit_key = controller_axis(SDL_GameControllerAxis::SDL_CONTROLLER_AXIS_TRIGGERRIGHT);
+  // const InputEvent controller_submit_key = controller_axis(SDL_GameControllerAxis::SDL_CONTROLLER_AXIS_TRIGGERRIGHT);
 
   // first combination
   if (combination.size() == 0)
@@ -158,8 +157,8 @@ update_minigame_bamboo_system(entt::registry& r, const float dt)
 
   // center this window
   const auto& ri = get_first_component<SINGLETON_RendererInfo>(r);
-  const auto& viewport_pos = ImVec2(ri.viewport_pos.x, ri.viewport_pos.y);
-  const auto& viewport_size_half = ImVec2(ri.viewport_size_current.x * 0.5f, ri.viewport_size_current.y * 0.5f);
+  const auto viewport_pos = ImVec2((float)ri.viewport_pos.x, (float)ri.viewport_pos.y);
+  const auto viewport_size_half = ImVec2(ri.viewport_size_current.x * 0.5f, ri.viewport_size_current.y * 0.5f);
   const auto pos = ImVec2(viewport_pos.x + viewport_size_half.x, viewport_pos.y + viewport_size_half.y);
   ImGui::SetNextWindowPos(pos, ImGuiCond_Always, ImVec2(0.5f, 0.5f));
   ImGui::SetNextWindowSizeConstraints(ImVec2(640, 640 * (9 / 16.0f)), ImVec2(640, 640 * (9 / 16.0f)));

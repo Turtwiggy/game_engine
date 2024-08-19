@@ -10,6 +10,7 @@
 #include "io/file.hpp"
 #include "io/path.hpp"
 #include "lifecycle/system.hpp"
+#include "modules/actor_breach_charge/system.hpp"
 #include "modules/actor_cursor/system.hpp"
 #include "modules/actor_player/system.hpp"
 #include "modules/actor_weapon_shotgun/system.hpp"
@@ -34,6 +35,7 @@
 #include "modules/system_distance_check/system.hpp"
 #include "modules/system_entered_new_room/system.hpp"
 #include "modules/system_fov/system.hpp"
+#include "modules/system_go_from_jetpack_to_dungeon/system.hpp"
 #include "modules/system_minigame_bamboo/system.hpp"
 #include "modules/system_move_to_target_via_lerp/system.hpp"
 #include "modules/system_overworld_change_direction/system.hpp"
@@ -310,31 +312,6 @@ update(engine::SINGLETON_Application& app, entt::registry& r, const float dt)
       // putting all these systems in update isn't a mistake
       const uint64_t milliseconds_dt = static_cast<uint64_t>(dt * 1000.0f);
 
-      // REMOVED SYSTEMS... for one reason or another.
-      //
-      // update_sprite_spritestack_system(r, dt);
-      // update_actor_bodypart_head_system(r, dt, mouse_pos);
-      // update_actor_bodypart_legs_system(r, dt, mouse_pos);
-      // update_actor_enemy_patrol_system(r, dt);
-      // update_combat_powerup_doubledamage_system(r, dt);
-      // update_actor_group_system(r, mouse_pos);
-      // update_spaceship_door_system(r, dt);
-      // update_intent_pickup_system(r);
-      // update_intent_drop_item_system(r);
-      // update_sprint_system(r, dt);
-      // update_ui_selected(r);
-      // update_ui_arrows_to_spawners_system(r);
-      // update_ui_player_name_above_player_system(r);
-      // update_ui_level_up_system(r);
-      // update_ui_xp_bar_system(r);
-      // update_ui_rpg_character_system(r);
-      // update_ui_inverse_kinematics_system(r, mouse_pos);
-      // update_ui_patrol_system(r);
-      // update_ui_warp_to_station_system(r);
-      // update_ux_hoverable_change_colour_system(r);
-      // update_flash_sprite_system(r, milliseconds_dt);
-      // update_wants_to_shoot_system(r);
-
       // potentially common
       update_attack_cooldown_system(r, milliseconds_dt);
       update_change_gun_colour_system(r);
@@ -350,10 +327,10 @@ update(engine::SINGLETON_Application& app, entt::registry& r, const float dt)
 
     if (scene.s == Scene::overworld_revamped) {
       update_overworld_change_direction_system(r);
-      update_overworld_fake_fight_system(r);
+      // update_overworld_fake_fight_system(r);
     }
 
-    if (scene.s == Scene::dungeon_designer || scene.s == Scene::turnbasedcombat || scene.s == Scene::fov_tests) {
+    if (scene.s == Scene::dungeon_designer || scene.s == Scene::turnbasedcombat) {
       update_entered_new_room_system(r, dt);
       update_gen_dungeons_system(r, mouse_pos);
       update_turnbased_endturn_system(r);
@@ -363,10 +340,8 @@ update(engine::SINGLETON_Application& app, entt::registry& r, const float dt)
       update_screenshake_system(r, app.ms_since_launch / 1000.0f, dt);
       update_fov_system(r, mouse_pos);
       update_combat_heal_system(r);
-
-#if defined(_DEBUG)
-      // update_debug_pathfinding_system(r, mouse_pos);
-#endif
+      update_breach_charge_system(r, mouse_pos);
+      update_go_from_jetpack_to_dungeon_system(r);
     }
 
     if (scene.s == Scene::splashscreen)

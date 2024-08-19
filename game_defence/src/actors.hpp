@@ -22,6 +22,7 @@ enum class EntityType
   empty_with_physics,
 
   // overworld
+  actor_breach_charge,
   actor_spaceship,
   actor_capsule,
   actor_cargo,

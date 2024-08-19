@@ -25,7 +25,8 @@ IKSolver::generate_backward_chain(const std::vector<glm::vec2>& points, const gl
   std::vector<glm::vec2> results;
   results.resize(points.size());
 
-  for (int i = points.size() - 1; i >= 0; i--) {
+  const int size = (int)points.size();
+  for (int i = size - 1; i >= 0; i--) {
 
     // set last point to goal
     if (i == points.size() - 1) {
@@ -50,7 +51,7 @@ IKSolver::generate_forward_chain(const std::vector<glm::vec2>& points, const std
   std::vector<glm::vec2> results;
   results.resize(back_chain.size());
 
-  for (int i = 0; i < back_chain.size(); i++) {
+  for (size_t i = 0; i < back_chain.size(); i++) {
 
     // set the first point to the start
     if (i == 0) {
@@ -82,7 +83,7 @@ IKSolver::Iterate(const std::vector<glm::vec2>& in_points, const glm::vec2& goal
   // Generate some points
   if (lengths.size() > 0 && in_points.size() == 0) {
     points.resize(lengths.size());
-    for (int i = 0; i < lengths.size(); i++)
+    for (size_t i = 0; i < lengths.size(); i++)
       points[i] = { i * lengths[i], i * lengths[i] };
   }
 

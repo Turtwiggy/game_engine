@@ -25,8 +25,8 @@ set_player_positions(entt::registry& r, const DungeonGenerationResults& results,
 
     // place players in first room
     for (int i = 0; i < 1; i++) {
-      const int x = static_cast<int>(engine::rand_det_s(rnd.rng, tl.x + 1, br.x - 1));
-      const int y = static_cast<int>(engine::rand_det_s(rnd.rng, tl.y + 1, br.y - 1));
+      const int x = engine::rand_det_s(rnd.rng, tl.x + 1, br.x - 1);
+      const int y = engine::rand_det_s(rnd.rng, tl.y + 1, br.y - 1);
       const glm::ivec2 grid_index = { x, y };
       const glm::ivec2 worldspace = engine::grid::grid_space_to_world_space(grid_index, map_c.tilesize);
       const glm::ivec2 offset = { map_c.tilesize / 2.0f, map_c.tilesize / 2.0f };

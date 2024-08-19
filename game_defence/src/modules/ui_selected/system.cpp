@@ -17,8 +17,11 @@ update_ui_selected(entt::registry& r)
 {
   auto& ui = get_first_component<SINGLE_SelectedUI>(r);
 
-  const auto& view = r.view<SelectedComponent, TransformComponent>();
-  const int selected = view.size_hint();
+  const auto& view = r.view<const SelectedComponent, const TransformComponent>();
+
+  int selected = 0;
+  for (const auto& [e, sel_c, t_c] : view.each())
+    selected++;
 
   // create ui
   for (int i = selected; i > ui.instantiated_ui.size(); i--) {

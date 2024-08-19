@@ -18,8 +18,8 @@ generate_line(const glm::ivec2& a, const glm::ivec2& b, const int width)
   LineInfo line;
   line.position = { (a.x + a.x + raw_dir.x) / 2, (a.y + a.y + raw_dir.y) / 2 };
   line.rotation = angle;
-  line.scale.x = width;
-  line.scale.y = sqrt(pow(raw_dir.x, 2) + pow(raw_dir.y, 2));
+  line.scale.x = static_cast<float>(width);
+  line.scale.y = static_cast<float>(sqrt(pow(raw_dir.x, 2) + pow(raw_dir.y, 2)));
   return line;
 };
 
@@ -102,10 +102,10 @@ line_intersection(const int p0_x,
                   const int p3_x,
                   const int p3_y)
 {
-  const float s1_x = p1_x - p0_x;
-  const float s1_y = p1_y - p0_y;
-  const float s2_x = p3_x - p2_x;
-  const float s2_y = p3_y - p2_y;
+  const float s1_x = static_cast<float>(p1_x - p0_x);
+  const float s1_y = static_cast<float>(p1_y - p0_y);
+  const float s2_x = static_cast<float>(p3_x - p2_x);
+  const float s2_y = static_cast<float>(p3_y - p2_y);
 
   const float s = (-s1_y * (p0_x - p2_x) + s1_x * (p0_y - p2_y)) / (-s2_x * s1_y + s1_x * s2_y);
   const float t = (s2_x * (p0_y - p2_y) - s2_y * (p0_x - p2_x)) / (-s2_x * s1_y + s1_x * s2_y);
@@ -127,10 +127,10 @@ line_intersection(const glm::ivec2& p0, const glm::ivec2& p1, const glm::ivec2& 
 };
 
 glm::ivec2
-get_size_from_line(const Line& l, int line_width)
+get_size_from_line(const Line& l, float line_width)
 {
-  int width = glm::abs(l.p0.x - l.p1.x);
-  int height = glm::abs(l.p0.y - l.p1.y);
+  float width = glm::abs(l.p0.x - l.p1.x);
+  float height = glm::abs(l.p0.y - l.p1.y);
 
   // set a line width
   if (l.p0.x != l.p1.x && height == 0)

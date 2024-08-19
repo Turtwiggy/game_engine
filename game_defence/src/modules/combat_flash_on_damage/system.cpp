@@ -25,7 +25,7 @@ update_flash_sprite_system(entt::registry& r, const uint64_t milliseconds_dt)
       r.remove<RequestFlashComponent>(e);
     }
 
-    request.milliseconds_left -= milliseconds_dt;
+    request.milliseconds_left -= static_cast<int>(milliseconds_dt);
   }
 };
 

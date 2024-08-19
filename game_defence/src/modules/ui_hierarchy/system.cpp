@@ -43,7 +43,7 @@ update_ui_hierarchy_system(entt::registry& r)
 
   ImGui::Begin("Hierarchy", NULL, flags);
   {
-    ImGui::Text("Total alive: %i", entities);
+    ImGui::Text("Total alive: %zu", entities);
 
     // Filter the Hierarchy
     static std::string filter = "";
@@ -82,7 +82,7 @@ update_ui_hierarchy_system(entt::registry& r)
         if (!valid)
           continue;
 
-        ImGui::Text("eid: %i", e);
+        ImGui::Text("eid: %i", static_cast<uint32_t>(e));
 
         const auto* tag = r.try_get<TagComponent>(e);
         if (tag != nullptr) {
@@ -107,7 +107,7 @@ update_ui_hierarchy_system(entt::registry& r)
       ImGui::Text("Showing between %i %i", min_show, max_show);
       for (int i = 0; const auto& [entity, tag] : ents) {
         if (i >= min_show && i <= max_show) {
-          ImGui::Text("eid: %i", entity);
+          ImGui::Text("eid: %i", static_cast<uint32_t>(entity));
           ImGui::SameLine();
           imgui_draw_entity(r, tag, entity, selected_entity);
         }

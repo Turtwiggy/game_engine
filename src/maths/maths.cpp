@@ -32,7 +32,7 @@ distance_squared(const glm::vec3& i)
 glm::vec3
 rand_unit_vector(RandomState& rnd)
 {
-  auto a = rand_det_s(rnd.rng, 0, 2.0f * PI);
+  auto a = rand_det_s(rnd.rng, 0.0f, 2.0f * PI);
   auto z = rand_det_s(rnd.rng, -1.0f, 1.0f);
   auto r = glm::sqrt(1 - z * z);
   return glm::vec3(r * glm::cos(a), r * glm::sin(a), z);
@@ -73,7 +73,7 @@ encode_cantor_pairing_function(int x, int y)
   }
 
   int64_t p = 0;
-  int i = 0;
+  size_t i = 0;
   while (x || y) {
     p |= ((uint64_t)(x & 1) << i);
     x >>= 1;
@@ -89,7 +89,7 @@ decode_cantor_pairing_function(uint64_t p, uint32_t& x, uint32_t& y)
 {
   x = 0;
   y = 0;
-  int i = 0;
+  size_t i = 0;
   while (p) {
     x |= ((uint32_t)(p & 1) << i);
     p >>= 1;

@@ -23,6 +23,8 @@
 #include "modules/system_change_gun_z_index/helpers.hpp"
 #include "modules/system_move_to_target_via_lerp/components.hpp"
 #include "modules/ui_combat_turnbased/components.hpp"
+#include "modules/ux_hoverable/components.hpp"
+#include "physics/components.hpp"
 #include "sprites/helpers.hpp"
 
 #include "imgui.h"
@@ -119,13 +121,6 @@ update_gen_dungeons_system(entt::registry& r, const glm::ivec2& mouse_pos)
   move_to_scene_start(r, Scene::dungeon_designer); // clear old map
 
   // cleanup
-  {
-    const auto& rooms = r.view<Room>();
-    r.destroy(rooms.begin(), rooms.end());
-
-    const auto& tunnels = r.view<Tunnel>();
-    r.destroy(tunnels.begin(), tunnels.end());
-  }
 
   const auto& data_e = get_first<OverworldToDungeonInfo>(r);
   if (data_e == entt::null) {
@@ -179,38 +174,7 @@ update_gen_dungeons_system(entt::registry& r, const glm::ivec2& mouse_pos)
     }
   }
 
-  // Instantiate map edges
-  for (auto& edge : map.edges) {
-    const auto offset = glm::vec2{ map.tilesize / 2.0f, map.tilesize / 2.0f };
-    const auto ga = engine::grid::index_to_world_position(edge.a_idx, map.xmax, map.ymax, map.tilesize) + offset;
-    const auto gb = engine::grid::index_to_world_position(edge.b_idx, map.xmax, map.ymax, map.tilesize) + offset;
-
-    // const auto l0 = generate_line({ ga.x, ga.y }, { gb.x, gb.y }, 4);
-    // const entt::entity e0 = create_gameplay(r, EntityType::empty_with_transform, { 0, 0 });
-    // set_position_and_size_with_line(r, e0, l0);
-    // set_colour(r, e0, { 1.0f, 0.0, 0.0, 0.5f });
-
-    const auto center = (gb + ga) / 2.0f;
-    const auto size = glm::abs(gb - ga);
-    const bool was_horizontal = size.x > size.y;
-
-    auto new_size = glm::vec2{ size.y, size.x };
-    if (new_size.x == 0)
-      new_size.x = 2;
-    if (new_size.y == 0)
-      new_size.y = 2;
-
-    const entt::entity e = create_gameplay(r, EntityType::solid_wall, center, new_size);
-
-    if (was_horizontal)
-      set_colour(r, e, { 0.0f, 1.0, 0.0, 1.0f });
-    else
-      set_colour(r, e, { 0.0f, 0.0, 1.0, 1.0f });
-
-    edge.instance = e;
-  }
-
-  // add random colour tile variation
+  // add floor tiles
   result.floor_tiles.resize(result.wall_or_floors.size(), entt::null);
   for (int xy = 0; xy < result.wall_or_floors.size(); xy++) {
     if (result.wall_or_floors[xy] == 0) {
@@ -221,42 +185,45 @@ update_gen_dungeons_system(entt::registry& r, const glm::ivec2& mouse_pos)
       const glm::ivec2 pos = worldspace + offset;
       set_position(r, floor_e, pos);
       set_size(r, floor_e, { map.tilesize, map.tilesize });
-      float rnd_col = engine::rand_det_s(rnd.rng, 0.8, 0.85f);
-      set_colour(r, floor_e, { rnd_col, rnd_col, rnd_col, 1.0f });
+      // float rnd_col = engine::rand_det_s(rnd.rng, 0.8, 0.85f);
+      // set_colour(r, floor_e, { rnd_col, rnd_col, rnd_col, 1.0f });
       set_z_index(r, floor_e, -1);
-
       result.floor_tiles[engine::grid::grid_position_to_index(gridpos, map.xmax)] = floor_e;
     }
   }
 
+  instantiate_edges(r, map);
+
   // Steps after initial initialization...
   set_generated_entity_positions(r, result, rnd);
-  set_player_positions(r, result, rnd);
-  create_empty<CameraFreeMove>(r);
 
-  // const auto player_e = create_gameplay(r, EntityType::actor_spaceship, { -100, -100 });
-  // r.emplace<PlayerComponent>(player_e);
-  // r.emplace<TeamComponent>(player_e, AvailableTeams::player);
-  // r.emplace<InputComponent>(player_e);
-  // r.emplace<KeyboardComponent>(player_e);
-  // r.emplace<DefaultColour>(player_e, engine::SRGBColour{ 255, 255, 117, 1.0f });
-  // add_particles(r, player_e);
-  // // movement
-  // r.get<PhysicsBodyComponent>(player_e).base_speed = 100.0f;
-  // r.emplace<MovementJetpackComponent>(player_e);
-  // r.emplace<CameraFollow>(player_e);
-  // set_sprite(r, player_e, "PERSON_25_0");
-  // set_size(r, player_e, { 32, 32 });
+  // set_player_positions(r, result, rnd);
+  // create_empty<CameraFreeMove>(r);
+
+  const auto player_e = create_gameplay(r, EntityType::actor_spaceship, { -100, -100 });
+  r.emplace<PlayerComponent>(player_e);
+  r.emplace<TeamComponent>(player_e, AvailableTeams::player);
+  r.emplace<InputComponent>(player_e);
+  r.emplace<KeyboardComponent>(player_e);
+  r.emplace<DefaultColour>(player_e, engine::SRGBColour{ 255, 255, 117, 1.0f });
+  add_particles(r, player_e);
+  // movement
+  r.get<PhysicsBodyComponent>(player_e).base_speed = 100.0f;
+  r.emplace<MovementJetpackComponent>(player_e);
+  r.emplace<CameraFollow>(player_e);
+  set_sprite(r, player_e, "PERSON_25_0");
+  set_size(r, player_e, { 32, 32 });
 
   // give helmet to breathe
   const auto helmet_e = create_transform(r);
   set_sprite(r, helmet_e, "HELMET_5");
-  set_size(r, helmet_e, { 16, 16 });
+  set_size(r, helmet_e, { 32, 32 });
   set_z_index(r, helmet_e, 2); // above player
   r.emplace<DynamicTargetComponent>(helmet_e).target = get_first<PlayerComponent>(r);
   SetPositionAtDynamicTarget tgt;
-  tgt.offset = { 0, -8 };
+  tgt.offset = { 0, -10 };
   r.emplace<SetPositionAtDynamicTarget>(helmet_e, tgt);
+  set_colour(r, helmet_e, { 1.0f, 1.0f, 1.0f, 1.0f });
 
   // set exit door position
   // bug: exit placed on generated entities. not so bad?
@@ -265,7 +232,7 @@ update_gen_dungeons_system(entt::registry& r, const glm::ivec2& mouse_pos)
   // create_dungeon_entity(editor, game, EntityType::tile_type_exit, middle);
 
   // Set the cost for all of the tiles
-  // for (int i = 0; i < dungeon_result.wall_or_floors.size(); i++) {
+  // for (size_t i = 0; i < dungeon_result.wall_or_floors.size(); i++) {
   //   // const auto grid_xy = engine::grid::index_to_grid_position(i, map.xmax, map.ymax);
   //   const auto empty_e = create_gameplay(r, EntityType::empty_no_transform);
   //   map.map[i].push_back(empty_e);

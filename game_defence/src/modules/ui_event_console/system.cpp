@@ -18,7 +18,7 @@ update_ui_event_console_system(entt::registry& r)
 
   static int events = 0;
   static int new_events = 0;
-  new_events = evts.events.size();
+  new_events = (int)evts.events.size();
 
   ImGuiWindowFlags flags = 0;
   flags |= ImGuiWindowFlags_NoFocusOnAppearing;

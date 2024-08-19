@@ -26,7 +26,7 @@ get_length_of_each_line(const std::vector<std::string>& lines)
   std::vector<int> line_length(lines.size());
 
   int working_line_length = 0;
-  for (int i = 0; i < lines.size(); i++) {
+  for (size_t i = 0; i < lines.size(); i++) {
     const auto& line = lines[i];
 
     for (const char& ch : line) {
@@ -70,7 +70,7 @@ update_ui_worldspace_sprite_system(entt::registry& r)
     // glm::vec2 tl{ 0.0f, 0.0f };
     // glm::vec2 br{ 0.0f, 0.0f };
 
-    for (int i = 0; i < lines.size(); i++) {
+    for (size_t i = 0; i < lines.size(); i++) {
       const auto& line = lines[i];
       const auto& line_len = line_lengths[i];
 
@@ -85,7 +85,7 @@ update_ui_worldspace_sprite_system(entt::registry& r)
 
         // handle regular cases
         bool allowed_symbol = std::isalpha(ch);
-        allowed_symbol |= std::isdigit(static_cast<unsigned char>(ch));
+        allowed_symbol |= (bool)std::isdigit(static_cast<unsigned char>(ch));
         allowed_symbol |= ch == '!';
         allowed_symbol |= ch == '?';
         allowed_symbol |= ch == ':';
@@ -101,11 +101,11 @@ update_ui_worldspace_sprite_system(entt::registry& r)
         r.get<TagComponent>(sprite_e).tag = "empty_with_transform:QuipText";
 
         // work out the position of the letter.
-        glm::ivec2 base_position = pos;
-        base_position.x -= int(line_len / 2.0f); // center align the line
-        base_position.x += int(offset_x);
-        base_position.y += int(offset_y);
-        base_position.y -= int((size.y / 2.0f) + ((lines.size() - 1) * line_height)); // put this above the quipper? quippee?
+        glm::vec2 base_position = pos;
+        base_position.x -= line_len / 2.0f; // center align the line
+        base_position.x += offset_x;
+        base_position.y += offset_y;
+        base_position.y -= (size.y / 2.0f) + ((lines.size() - 1) * line_height); // put this above the quipper? quippee?
 
         // Workout background border
         // if (i == 0 && ch_idx == 0)

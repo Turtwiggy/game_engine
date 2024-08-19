@@ -63,11 +63,13 @@ update_fov_system(entt::registry& r, const glm::ivec2& mouse_pos)
   if (get_key_down(input, SDL_SCANCODE_KP_8))
     break_idx++;
 
-  bool debug_fov = false;
+  static bool debug_fov = false;
+  imgui_draw_bool("debug_fov", debug_fov);
+
   if (debug_fov) {
     for (const entt::entity& floor_e : dungeon.floor_tiles)
       if (floor_e != entt::null)
-        set_colour(r, floor_e, { 0.2f, 0.2f, 0.2f, 1.0f });
+        set_colour(r, floor_e, { 0.05f, 0.05f, 0.05f, 1.0f });
   }
 
   // prevent out of bounds issues
@@ -111,6 +113,8 @@ update_fov_system(entt::registry& r, const glm::ivec2& mouse_pos)
     const auto is_type = [&](const Tile& t, const TileType& type) -> bool {
       const auto [x, y] = transform(t, dir, origin);
       const auto idx = engine::grid::grid_position_to_index({ x, y }, map.xmax);
+      if (idx < 0)
+        return false;
       return walls_or_floors_adjusted[idx] == static_cast<uint32_t>(type);
     };
     const auto is_wall = [&](const Tile& t) -> bool { return is_type(t, TileType::WALL); };
@@ -156,15 +160,15 @@ update_fov_system(entt::registry& r, const glm::ivec2& mouse_pos)
         const bool invalid_above = above_tile.depth == 0 && above_tile.col != 0;
         const auto [edge_exists, edge] = has_edge(tile, above_tile);
 
-        const Tile tile_r(tile.depth, i + 1);
-        const Tile tile_l(tile.depth, i - 1);
+        const Tile tile_r(tile.depth, i - 1);
+        const Tile tile_l(tile.depth, i + 1);
         const auto [r_x, r_y] = transform(tile_r, dir, origin);
         bool invalid_right = tile_r.col > max_col;
         const auto [r_edge_exists, r_edge] = has_edge(tile, tile_r);
 
         // edge between red and white
         // edge between blue and white
-        const Tile tile_ur(tile.depth - 1, i + 1);
+        const Tile tile_ur(tile.depth - 1, i - 1);
         const auto [ur_x, ur_y] = transform(tile_ur, dir, origin);
         const auto [has_edge_a, edge_a] = has_edge(tile_r, tile_ur);
         const auto [has_edge_b, edge_b] = has_edge(above_tile, tile_ur);
@@ -172,7 +176,7 @@ update_fov_system(entt::registry& r, const glm::ivec2& mouse_pos)
 
         // edge between red and white
         // edge between blue and white
-        const Tile tile_ul(tile.depth - 1, i - 1);
+        const Tile tile_ul(tile.depth - 1, i + 1);
         const auto [ul_x, ul_y] = transform(tile_ul, dir, origin);
         const auto [has_edge_ul_a, edge_ul_a] = has_edge(tile_l, tile_ul);
         const auto [has_edge_ul_b, edge_ul_b] = has_edge(above_tile, tile_ul);
@@ -194,10 +198,10 @@ update_fov_system(entt::registry& r, const glm::ivec2& mouse_pos)
             set_colour(r, dungeon.floor_tiles[r_idx], { 1.0f, 0.0f, 0.0f, 1.0f });
 
           // if (dungeon.floor_tiles.size() > 0 && dungeon.floor_tiles[ur_idx] != entt::null)
-          //   set_colour(r, dungeon.floor_tiles[ur_idx], { 1.0f, 1.0f, 1.0f, 1.0f });
+          //   set_colour(r, dungeon.floor_tiles[ur_idx], { 1.0f, 1.0f, 1.0f, 1.0f }); // white
 
           // if (dungeon.floor_tiles.size() > 0 && dungeon.floor_tiles[ul_idx] != entt::null)
-          //   set_colour(r, dungeon.floor_tiles[ul_idx], { 0.0f, 1.0f, 1.0f, 1.0f });
+          //   set_colour(r, dungeon.floor_tiles[ul_idx], { 0.0f, 1.0f, 1.0f, 1.0f }); // cyan
 
           const auto debug_edge = [&r, &map](const int a, const int b) {
             const auto offset = glm::vec2{ map.tilesize / 2.0f, map.tilesize / 2.0f };
@@ -286,7 +290,7 @@ update_fov_system(entt::registry& r, const glm::ivec2& mouse_pos)
   // remove visible from adjusted floors=>walls,
   // usually walls are visible, but because we've adjusted
   // it to be "behind" an edge, that square is no longer visible
-  for (int i = 0; i < dungeon.wall_or_floors.size(); i++) {
+  for (size_t i = 0; i < dungeon.wall_or_floors.size(); i++) {
     const auto floor_e = dungeon.floor_tiles[i];
     if (walls_or_floors_adjusted[i] == 1 && dungeon.wall_or_floors[i] == 0 && floor_e != entt::null) {
       if (debug_fov)
@@ -302,19 +306,21 @@ update_fov_system(entt::registry& r, const glm::ivec2& mouse_pos)
   r.emplace_or_replace<VisibleComponent>(origin_floor_e);
 
   // change colour of all floor tiles to visible state
-  for (const entt::entity& floor_e : dungeon.floor_tiles) {
-    if (floor_e == entt::null)
-      continue;
-    const bool is_visible = r.try_get<VisibleComponent>(floor_e) != nullptr;
-    const auto floor_pos = get_position(r, floor_e);
-    const auto floor_idx = engine::grid::worldspace_to_index(floor_pos, map.tilesize, map.xmax, map.ymax);
-    for (const auto& e : map.map[floor_idx])
+  if (!debug_fov) {
+    for (const entt::entity& floor_e : dungeon.floor_tiles) {
+      if (floor_e == entt::null)
+        continue;
+      const bool is_visible = r.try_get<VisibleComponent>(floor_e) != nullptr;
+      const auto floor_pos = get_position(r, floor_e);
+      const auto floor_idx = engine::grid::worldspace_to_index(floor_pos, map.tilesize, map.xmax, map.ymax);
+      for (const auto& e : map.map[floor_idx])
+        if (is_visible)
+          mark_visible(r, e);
       if (is_visible)
-        mark_visible(r, e);
-    if (is_visible)
-      set_colour(r, floor_e, { 0.75f, 0.75f, 0.75f, 1.0f });
-    else
-      set_colour(r, floor_e, { 0.65f, 0.65f, 0.65f, 1.0f });
+        set_colour(r, floor_e, { 0.75f, 0.75f, 0.75f, 1.0f });
+      else
+        set_colour(r, floor_e, { 0.65f, 0.65f, 0.65f, 1.0f });
+    }
   }
 
   if (debug_fov) {

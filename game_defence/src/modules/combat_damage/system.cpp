@@ -38,7 +38,7 @@ roll_to_quip(entt::registry& r, const entt::entity from, const entt::entity to)
   if (atk_team->team != AvailableTeams::enemy)
     return; // only enemies to quip
 
-  const int atk_unique_id = atk_id->id;
+  const uint64_t atk_unique_id = atk_id->id;
   auto& hit_list = r.get_or_emplace<DefenceHitListComponent>(to);
   auto& hit_list_attack_ids_taken = hit_list.attack_id_taken;
 

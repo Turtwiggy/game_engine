@@ -42,6 +42,15 @@ rand_det_s(T& rnd, const float M, const float MN)
 };
 
 template<typename T>
+inline int
+rand_det_s(T& rnd, const int M, const int MN)
+{
+  const float scaled = (rnd() - rnd.min()) / (float)(rnd.max() - rnd.min() + 1.f);
+
+  return static_cast<int>(scaled * (MN - M) + M);
+};
+
+template<typename T>
 inline float
 rand_01(T& rnd)
 {

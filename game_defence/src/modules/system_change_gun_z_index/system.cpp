@@ -17,14 +17,14 @@ update_change_gun_z_index_system(entt::registry& r)
     auto& gun_t = r.get<TransformComponent>(gun_e);
     set_z_index(r, gun_e, 0);
 
-    const int player_y = player_t.position.y;
-    const int gun_y = gun_t.position.y;
+    const float player_y = player_t.position.y;
+    const float gun_y = gun_t.position.y;
 
     // if gun is below player...
     if (gun_y > player_y)
-      gun_t.position.z = 1; // draw on top
+      gun_t.position.z = 1.0f; // draw on top
     else
-      gun_t.position.z = -1; // draw behind
+      gun_t.position.z = -1.0f; // draw behind
   }
 }
 

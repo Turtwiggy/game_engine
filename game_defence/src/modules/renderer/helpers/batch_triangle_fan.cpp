@@ -74,7 +74,7 @@ TriangleFanRenderer::init()
   // indicies
 
   uint32_t indices[max_quad_index_count];
-  for (int i = 0; i < max_quad_index_count; i++) {
+  for (uint32_t i = 0; i < max_quad_index_count; i++) {
     indices[i] = i;
   }
 

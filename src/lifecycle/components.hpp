@@ -2,6 +2,7 @@
 
 #include "entt/entt.hpp"
 
+#include <optional>
 #include <unordered_set>
 
 namespace game2d {
@@ -23,15 +24,24 @@ struct EntityTimedLifecycle
 
 struct SINGLETON_EntityBinComponent
 {
-  std::unordered_set<entt::entity> dead;      // to destroy next fixed update
-  std::vector<entt::entity> things_that_died; // destroyed last fixed update
+  std::unordered_set<entt::entity> dead; // to destroy next fixed update
 };
+// Alternative:
+// struct DEADBEEFComponent
+// {
+//   bool placeholder = true;
+// };
 
 // added to an entity when made via create_gameplay()
 // removed at the next FixedUpdate()
 struct WaitForInitComponent
 {
   bool placeholder = true;
+};
+
+struct OnDeathCallback
+{
+  std::function<void(entt::registry&, const entt::entity&)> callback;
 };
 
 };

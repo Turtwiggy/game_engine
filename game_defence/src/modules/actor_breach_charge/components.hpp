@@ -4,7 +4,9 @@
 
 namespace game2d {
 
-void
-update_rotate_around_entity_system(entt::registry& r, const float& dt);
+struct BreachCharge
+{
+  bool placeholder = true;
+};
 
 } // namespace game2d

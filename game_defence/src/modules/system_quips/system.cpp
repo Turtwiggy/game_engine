@@ -85,7 +85,7 @@ update_quips_system(entt::registry& r)
           continue;
 
         // choose a random enemy to say the quip
-        const int enemy_to_quip_idx = int(engine::rand_det_s(rnd.rng, 0, enemies_in_newly_entered_room.size()));
+        const int enemy_to_quip_idx = engine::rand_det_s(rnd.rng, 0, (int)enemies_in_newly_entered_room.size());
         const entt::entity enemy_to_quip = enemies_in_newly_entered_room[enemy_to_quip_idx];
 
         // roll a dice to say a quip.

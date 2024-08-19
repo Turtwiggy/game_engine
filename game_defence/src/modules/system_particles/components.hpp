@@ -32,7 +32,7 @@ struct ScaleOverTimeComponent
 // each individual particle
 struct ParticleDescription
 {
-  float time_to_live_ms = 1000;
+  int time_to_live_ms = 1000;
   float start_size = 10;
   float end_size = 10;
   glm::ivec2 position{ 0, 0 };

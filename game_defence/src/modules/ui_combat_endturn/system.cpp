@@ -43,7 +43,7 @@ update_ui_combat_endturn_system(entt::registry& r)
 
   // position
   const auto& ri = get_first_component<SINGLETON_RendererInfo>(r);
-  const auto& viewport_pos = ImVec2(ri.viewport_pos.x, ri.viewport_pos.y);
+  const auto viewport_pos = ImVec2((float)ri.viewport_pos.x, (float)ri.viewport_pos.y);
   const auto pos = ImVec2(viewport_pos.x + ri.viewport_size_current.x - (size.x / 2.0f), //
                           viewport_pos.y + ri.viewport_size_current.y - (size.y / 2.0f));
   ImGui::SetNextWindowPos(pos, ImGuiCond_Always, ImVec2(0.5f, 0.5f));

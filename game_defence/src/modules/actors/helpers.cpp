@@ -69,7 +69,7 @@ get_size(entt::registry& r, const entt::entity e)
 };
 
 void
-set_size(entt::registry& r, const entt::entity e, const glm::ivec2& size)
+set_size(entt::registry& r, const entt::entity e, const glm::vec2& size)
 {
   if (auto* pb = r.try_get<PhysicsBodyComponent>(e)) {
 

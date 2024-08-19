@@ -114,8 +114,8 @@ update_ui_launch_crew_system(entt::registry& r)
   //
 
   const auto& ri = get_first_component<SINGLETON_RendererInfo>(r);
-  const auto& viewport_pos = ImVec2(ri.viewport_pos.x, ri.viewport_pos.y);
-  const auto& viewport_size_half = ImVec2(ri.viewport_size_current.x * 0.5f, ri.viewport_size_current.y * 0.5f);
+  const auto viewport_pos = ImVec2((float)ri.viewport_pos.x, (float)ri.viewport_pos.y);
+  const auto viewport_size_half = ImVec2(ri.viewport_size_current.x * 0.5f, ri.viewport_size_current.y * 0.5f);
 
   // window size
   const ImVec2 size = { 160, 160 * 9 / 16.0f };
@@ -159,8 +159,8 @@ update_ui_launch_crew_system(entt::registry& r)
     slabel.text = "Cargo";
     r.emplace<SpaceLabelComponent>(capsule_e, slabel);
 
-    const auto& player_body = r.get<PhysicsBodyComponent>(player_e).body;
-    const auto& capsule_body = r.get<PhysicsBodyComponent>(capsule_e).body;
+    // const auto& player_body = r.get<PhysicsBodyComponent>(player_e).body;
+    // const auto& capsule_body = r.get<PhysicsBodyComponent>(capsule_e).body;
 
     // Define a distance joint
     // b2DistanceJointDef jointDef;

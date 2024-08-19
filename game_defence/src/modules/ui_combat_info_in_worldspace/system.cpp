@@ -45,7 +45,8 @@ update_ui_combat_info_in_worldspace_system(entt::registry& r)
 
       // icon + hp
       ImGui::PushStyleVar(ImGuiStyleVar_ItemSpacing, ImVec2(0, 0));
-      ImGui::Image((ImTextureID)kenny_id, icon_size, heart_tl, heart_br);
+      const ImTextureID im_kenny_id = reinterpret_cast<ImTextureID>(static_cast<uintptr_t>(kenny_id));
+      ImGui::Image(im_kenny_id, icon_size, heart_tl, heart_br);
       ImGui::SameLine();
       ImGui::Text("%s", std::to_string(hp.hp).c_str());
 
@@ -55,7 +56,8 @@ update_ui_combat_info_in_worldspace_system(entt::registry& r)
       ImGui::PushStyleVar(ImGuiStyleVar_ItemSpacing, ImVec2(0, 0));
 
       // icon + def
-      ImGui::Image((ImTextureID)custom_id, icon_size, shield_tl, shield_br);
+      const ImTextureID im_custom_id = reinterpret_cast<ImTextureID>(static_cast<uintptr_t>(custom_id));
+      ImGui::Image(im_custom_id, icon_size, shield_tl, shield_br);
       ImGui::SameLine();
       ImGui::Text("%s", std::to_string(defence.armour).c_str());
       ImGui::PopStyleVar();

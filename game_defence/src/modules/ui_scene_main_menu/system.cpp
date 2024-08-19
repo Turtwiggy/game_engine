@@ -28,9 +28,9 @@ void
 update_ui_scene_main_menu(engine::SINGLETON_Application& app, entt::registry& r)
 {
   const auto& ri = get_first_component<SINGLETON_RendererInfo>(r);
-  const auto& input = get_first_component<SINGLETON_InputComponent>(r);
-  const auto& controllers = input.controllers;
-  const auto& ui = get_first_component<SINGLE_MainMenuUI>(r);
+  // const auto& input = get_first_component<SINGLETON_InputComponent>(r);
+  // const auto& controllers = input.controllers;
+  // const auto& ui = get_first_component<SINGLE_MainMenuUI>(r);
 
   ImGuiWindowFlags flags = 0;
   flags |= ImGuiWindowFlags_NoCollapse;
@@ -45,8 +45,8 @@ update_ui_scene_main_menu(engine::SINGLETON_Application& app, entt::registry& r)
   // ImGui::SetNextWindowPos(pos, ImGuiCond_Always, ImVec2(0.5f, 0.5f));
 
   // left third centered
-  const auto& viewport_pos = ImVec2(ri.viewport_pos.x, ri.viewport_pos.y);
-  const auto& viewport_size_half = ImVec2(ri.viewport_size_current.x * 0.5f, ri.viewport_size_current.y * 0.5f);
+  const auto viewport_pos = ImVec2((float)ri.viewport_pos.x, (float)ri.viewport_pos.y);
+  const auto viewport_size_half = ImVec2(ri.viewport_size_current.x * 0.5f, ri.viewport_size_current.y * 0.5f);
   const auto pos =
     ImVec2(viewport_pos.x + (ri.viewport_size_current.x * (3 / 12.0f)), viewport_pos.y + viewport_size_half.y);
   ImGui::SetNextWindowPos(pos, ImGuiCond_Always, ImVec2(0.5f, 0.5f));
@@ -116,9 +116,6 @@ update_ui_scene_main_menu(engine::SINGLETON_Application& app, entt::registry& r)
       move_to_scene_start(r, Scene::dungeon_designer);
       create_empty<RequestGenerateDungeonComponent>(r);
     }
-    // if (selectable_button("(debug)\nfov tests", selected, index++)) {
-    //   move_to_scene_start(r, Scene::fov_tests);
-    // }
 #endif
 
     if (selectable_button("QUIT", selected, index++))
@@ -173,11 +170,11 @@ update_ui_scene_main_menu(engine::SINGLETON_Application& app, entt::registry& r)
 
   // draw an audio icon
   const auto tex_id = search_for_texture_id_by_texture_path(ri, "kennynl_gameicons")->id;
-  const auto id = (ImTextureID)tex_id;
+  const auto im_id = reinterpret_cast<ImTextureID>(static_cast<uintptr_t>(tex_id));
 
   bool toggle_changed = false;
   ImGui::PushStyleVar(ImGuiStyleVar_FramePadding, ImVec2(0, 0));
-  if (ImGui::ImageButton("mute-icon", id, icon_size, tl, br)) {
+  if (ImGui::ImageButton("mute-icon", im_id, icon_size, tl, br)) {
     mute = mute == 1 ? 0 : 1;
     save_string(PLAYERPREF_MUTE, mute == 1 ? "true"s : "false"s);
     set_icon_state(mute);

@@ -66,7 +66,7 @@ update_ui_audio_system(entt::registry& r)
   ImGui::NewLine();
 
   ImGui::Text("¬¬ Sounds ¬¬");
-  for (int i = 0; i < audio.sounds.size(); i++) {
+  for (size_t i = 0; i < audio.sounds.size(); i++) {
     Sound& s = audio.sounds[i];
     std::string label = std::string("Play ") + s.tag + std::string("##sound") + std::to_string(i);
     if (ImGui::Button(label.c_str())) {
@@ -76,7 +76,7 @@ update_ui_audio_system(entt::registry& r)
 
   const auto& sources = r.view<AudioSource>();
   ImGui::Text("¬¬ Audio State ¬¬");
-  ImGui::Text("Audio Sources: %i", sources.size());
+  ImGui::Text("Audio Sources: %zu", sources.size());
 
   for (const auto& [e, source] : sources.each()) {
     ImGui::Text("Channel %i", source.channel);

@@ -34,12 +34,20 @@ update_entered_new_room_system(entt::registry& r, const float dt)
   for (const auto& [e, player] : view.each()) {
     const auto player_pos = get_position(r, e);
     const auto player_gridspace = engine::grid::worldspace_to_grid_space(player_pos, map.tilesize);
+
     const auto [in_room, room] = inside_room(map, dungeon.rooms, player_gridspace);
+
+    auto& player_in_room = r.get_or_emplace<PlayerInRoomComponent>(e);
     if (in_room) {
-      auto& player_in_room = r.get_or_emplace<PlayerInRoomComponent>(e);
       // player was never in a room
-      if (!player_in_room.room_tl.has_value())
+      if (!player_in_room.room_tl.has_value()) {
+        // boom! entered a new room
+        PlayerEnteredNewRoom data;
+        data.player = e;
+        data.room = room.value();
+        create_empty<PlayerEnteredNewRoom>(r, data);
         player_in_room.room_tl = room->tl;
+      }
       // player entered a new room...
       if (player_in_room.room_tl.has_value() && player_in_room.room_tl.value() != room->tl) {
         // boom! entered a new room
@@ -50,6 +58,8 @@ update_entered_new_room_system(entt::registry& r, const float dt)
         player_in_room.room_tl = room.value().tl;
       }
     }
+    if (!in_room)
+      player_in_room.room_tl = std::nullopt;
   }
 
   //
@@ -96,8 +106,8 @@ update_entered_new_room_system(entt::registry& r, const float dt)
   const bool show_room_ui = time_displaying_room_name <= time_to_display_room_name && time_displaying_room_name != 0.0f;
   if (show_room_ui) {
     const auto& ri = get_first_component<SINGLETON_RendererInfo>(r);
-    const auto& viewport_pos = ImVec2(ri.viewport_pos.x, ri.viewport_pos.y);
-    const auto& viewport_size_half = ImVec2(ri.viewport_size_current.x * 0.5f, ri.viewport_size_current.y * 0.5f);
+    const ImVec2 viewport_pos = { (float)ri.viewport_pos.x, (float)ri.viewport_pos.y };
+    const ImVec2 viewport_size_half = ImVec2(ri.viewport_size_current.x * 0.5f, ri.viewport_size_current.y * 0.5f);
 
     // text size
     std::string label = "N/A";
@@ -108,7 +118,7 @@ update_entered_new_room_system(entt::registry& r, const float dt)
     const float size = ImGui::CalcTextSize(label.c_str()).x + style.FramePadding.x * 2.0f;
 
     // window size
-    const float forced_padding = size / 2.0;
+    const float forced_padding = size / 2.0f;
     const float w = size + forced_padding;
     const float h = 16.0f;
     ImGui::SetNextWindowSizeConstraints(ImVec2(w, h), ImVec2(w, h));

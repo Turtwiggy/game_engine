@@ -106,6 +106,11 @@ do_shadowcasting(entt::registry& r, const glm::ivec2& origin, const std::vector<
         tile.depth = row.depth;
         tile.col = i;
 
+        const auto [x, y] = transform(tile, dir, origin);
+        const auto idx = engine::grid::grid_position_to_index({ x, y }, map.xmax);
+        if (idx < 0)
+          continue; // hmm...?
+
         // The current tile is a wall,
         // mark it as visible and move on
         if (is_wall(tile) || is_symmetric(row, tile)) {

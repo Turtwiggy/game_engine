@@ -153,7 +153,7 @@ QuadRenderer::init()
 
   uint32_t indices[max_quad_index_count];
   uint32_t index_offset = 0;
-  for (int i = 0; i < max_quad_index_count; i += 6) {
+  for (uint32_t i = 0; i < max_quad_index_count; i += 6) {
     indices[i + 0] = 0 + index_offset;
     indices[i + 1] = 1 + index_offset;
     indices[i + 2] = 2 + index_offset;

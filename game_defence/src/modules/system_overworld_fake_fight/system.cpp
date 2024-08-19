@@ -22,7 +22,7 @@ update_overworld_fake_fight_system(entt::registry& r)
   const auto player_e = get_first<PlayerComponent>(r);
   const auto enemy_e = get_first<EnemyComponent>(r);
 
-  static bool first_time = true;
+  static bool first_time = false;
   if (first_time) {
     first_time = false;
 

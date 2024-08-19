@@ -5,7 +5,7 @@
 namespace game2d {
 
 void
-set_z_index(entt::registry& r, const entt::entity e, const int index)
+set_z_index(entt::registry& r, const entt::entity e, const float index)
 {
   r.get<TransformComponent>(e).position.z = index;
 };

@@ -1,20 +1,21 @@
 #pragma once
 
-#include "physics/components.hpp"
-#include "physics/helpers.hpp"
-#include <glm/glm.hpp>
+#include "modules/gen_dungeons/components.hpp"
 #include <maths/grid.hpp>
 #include <maths/maths.hpp>
+
+#include <glm/glm.hpp>
 
 #include <optional>
 
 namespace game2d {
 
+/*
 std::vector<glm::vec2> inline generate_poisson(const int w, const int h, const float radius, const int seed = 0)
 {
   // setup
-  const AABB rect = { { w / 2.0f, h / 2.0f }, { w, h } };
-  const auto r2 = radius * radius;
+  const RoomAABB rect = { { w / 2.0f, h / 2.0f }, { w, h } };
+  const float r2 = radius * radius;
   const float grid_size = radius / glm::sqrt(2.0f);
   const auto grid_w = static_cast<int>(glm::ceil(w / grid_size));
   const auto grid_h = static_cast<int>(glm::ceil(h / grid_size));
@@ -26,7 +27,7 @@ std::vector<glm::vec2> inline generate_poisson(const int w, const int h, const f
   std::vector<glm::vec2> active_samples;
 
   // lambdas
-  const auto add_sample = [&active_samples, &results, &grid_size, &grid_w, &r2](const glm::vec2& sample) {
+  const auto add_sample = [&active_samples, &results, &grid_size, &grid_w](const glm::vec2& sample) {
     active_samples.push_back(sample);
 
     const auto grid_pos = engine::grid::worldspace_to_grid_space(sample, grid_size);
@@ -89,10 +90,12 @@ std::vector<glm::vec2> inline generate_poisson(const int w, const int h, const f
 
   // Filter out all the nullopts
   std::vector<glm::vec2> filtered_results;
-  for (int i = 0; i < results.size(); i++) {
+  for (size_t i = 0; i < results.size(); i++) {
     if (results[i] != std::nullopt)
       filtered_results.push_back(results[i].value());
   }
   return filtered_results;
 }
+*/
+
 } // namespace game2d

@@ -20,7 +20,7 @@ update_debug_pathfinding_system(entt::registry& r)
   const auto& view = r.view<GeneratedPathComponent>();
   int desired_lines = 0;
   for (const auto& [e, path] : view.each())
-    desired_lines += (path.path.size() - 1); // -1, beacuse 1 less line than points
+    desired_lines += static_cast<int>(path.path.size() - 1); // -1, beacuse 1 less line than points
 
   const auto debug_e = get_first<SINGLE_DebugPathLines>(r);
   if (debug_e == entt::null)
@@ -33,7 +33,7 @@ update_debug_pathfinding_system(entt::registry& r)
     const auto& path = path_c.path;
     if (path.size() == 0)
       continue;
-    for (int i = 0; i < path.size() - 1; i++) {
+    for (size_t i = 0; i < path.size() - 1; i++) {
       const auto offset = glm::ivec2{ map.tilesize / 2, map.tilesize / 2 };
       const auto cur = (glm::ivec2{ path[i].x, path[i].y } * map.tilesize) + offset;
       const auto nxt = (glm::ivec2{ path[i + 1].x, path[i + 1].y } * map.tilesize) + offset;

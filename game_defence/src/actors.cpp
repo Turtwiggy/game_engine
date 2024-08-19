@@ -86,6 +86,8 @@ sprite_type_to_sprite(entt::registry& r, const EntityType& type)
     sprite = "EMPTY";
   else if (type == EntityType::actor_cargo)
     sprite = "DICE_DARK_X";
+  else if (type == EntityType::actor_breach_charge)
+    sprite = "WEAPON_GRENADE";
   // else if (type == EntityType::actor_player)
   //   sprite = "EMPTY";
   // else if (type == EntityType::actor_enemy_patrol)
@@ -241,6 +243,19 @@ create_gameplay(entt::registry& r, const EntityType& type, const glm::vec2& posi
       //
       // actors with only one type
       //
+
+    case EntityType::actor_breach_charge: {
+      PhysicsDescription desc;
+      desc.type = b2_dynamicBody;
+      desc.is_bullet = false;
+      desc.density = 1.0;
+      desc.position = position;
+      desc.size = size_final;
+      desc.is_sensor = false;
+      create_physics_actor(r, e, desc);
+
+      break;
+    }
 
     case EntityType::actor_spaceship: {
       PhysicsDescription desc;

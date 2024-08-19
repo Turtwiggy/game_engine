@@ -36,7 +36,7 @@ struct DefenceComponent
 
 struct DefenceHitListComponent
 {
-  std::vector<int> attack_id_taken;
+  std::vector<uint64_t> attack_id_taken;
 };
 
 struct TargetInfo

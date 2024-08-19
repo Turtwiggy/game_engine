@@ -64,7 +64,7 @@ render_texture_to_imgui_viewport(const int64_t& tex_id)
 
       ImGui::DockBuilderDockWindow("Viewport", dock_id_main);
       // ImGui::DockBuilderDockWindow("Player", dock_id_left);
-      ImGui::DockBuilderDockWindow("Events", dock_id_top);
+      // ImGui::DockBuilderDockWindow("Events", dock_id_top);
 
       // tools
       // ImGui::DockBuilderDockWindow("ColourEditor", dock_id_down);
@@ -89,8 +89,9 @@ render_texture_to_imgui_viewport(const int64_t& tex_id)
   // viewport_flags |= ImGuiWindowFlags_NoBackground;
 
   ImGuiWindowClass window_class;
-  window_class.DockNodeFlagsOverrideSet |= ImGuiDockNodeFlags_AutoHideTabBar;
-  window_class.DockNodeFlagsOverrideSet |= ImGuiDockNodeFlags_NoTabBar;
+  // window_class.DockNodeFlagsOverrideSet |= ImGuiDockNodeFlags_AutoHideTabBar;
+  // window_class.DockNodeFlagsOverrideSet |= ImGuiDockNodeFlags_NoTabBar;
+  // window_class.DockNodeFlagsOverrideSet |= ImGuiDockNodeFlags_NoDocking;
   ImGui::SetNextWindowClass(&window_class);
 
   ImGui::PushStyleVar(ImGuiStyleVar_WindowPadding, ImVec2(0.0f, 0.0f));
@@ -181,9 +182,9 @@ search_for_texture_id_by_spritesheet_path(const SINGLETON_RendererInfo& ri, cons
 int
 search_for_renderpass_by_name(const SINGLETON_RendererInfo& ri, const PassName& name)
 {
-  for (int i = 0; i < ri.passes.size(); i++) {
+  for (size_t i = 0; i < ri.passes.size(); i++) {
     if (ri.passes[i].pass == name)
-      return i;
+      return (int)i;
   }
 
   exit(1); // explode

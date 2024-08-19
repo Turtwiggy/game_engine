@@ -265,7 +265,7 @@ void main()
 
 	// outside spaceship
 	// vec4 col = vec4(0.3, 0.3, 0.3, 1.0);
-	// // col *= 1 - AO(dist, 10.0, 0.7);
+	// col *= 1 - AO(dist, 40.0, 0.8);
 
 	// light
 	for(int i = 0; i < MAX_LIGHTS; i++)
@@ -279,10 +279,10 @@ void main()
 		// inside spaceship
 		// most lights, 0.6
 		// player light: 1.0
- 		setLuminance(l.colour, l.luminance);
+ 		// setLuminance(l.colour, l.luminance);
 
 		// outside spaceship
- 		// setLuminance(l.colour, 1.25);
+ 		setLuminance(l.colour, 1.25);
 
 		col += drawLight(p, l.position, l.colour, dist, 350.0, 12.0);
 	}
@@ -309,8 +309,8 @@ void main()
 	final_lin *= lighting_lin;
 	// final_lin *= lighting_lin;
 
-	vec3 srgb_final = (lin_to_srgb(final_lin));
-	// vec3 srgb_final = lin_to_srgb(scene_lin.rgb);
+	// vec3 srgb_final = (lin_to_srgb(final_lin));
+	vec3 srgb_final = lin_to_srgb(scene_lin.rgb);
 
 	out_color.rgb = srgb_final.rgb;
 	out_color.a = 1.0f;

@@ -116,11 +116,11 @@ generate_rooms(entt::registry& r, const DungeonGenerationCriteria& data, engine:
           // set the entire generated room to "floor"
 
           // create walls on the outside of the room
-          bool create_as_wall = false;
-          if (x == 0 || x == w - 1)
-            create_as_wall = true;
-          if (y == 0 || y == h - 1)
-            create_as_wall = true;
+          // bool create_as_wall = false;
+          // if (x == 0 || x == w - 1)
+          //   create_as_wall = true;
+          // if (y == 0 || y == h - 1)
+          //   create_as_wall = true;
 
           const auto grid_pos = glm::ivec2{ room.tl.x + x, room.tl.y + y };
           const auto global_idx = engine::grid::grid_position_to_index(grid_pos, xmax);
@@ -181,7 +181,7 @@ convert_tunnel_line(entt::registry& r, const MapComponent& map, const std::pair<
 
   const glm::ivec2 tl = glm::ivec2{ worldspace_tl };
   const glm::ivec2 tr = glm::ivec2{ (worldspace_tl.x + w), (worldspace_tl.y) };
-  const glm::ivec2 bl = glm::ivec2{ (worldspace_tl.x), (worldspace_tl.y + h) };
+  // const glm::ivec2 bl = glm::ivec2{ (worldspace_tl.x), (worldspace_tl.y + h) };
   const glm::ivec2 br = glm::ivec2{ (worldspace_tl.x + w), (worldspace_tl.y + h) };
   const glm::ivec2 worldspace_center = { (tl.x + tr.x) / 2.0f, (tr.y + br.y) / 2.0f };
 
@@ -272,7 +272,7 @@ void
 set_generated_entity_positions(entt::registry& r, DungeonGenerationResults& results, engine::RandomState& rnd)
 {
   const auto& map_c = get_first_component<MapComponent>(r);
-  const auto& data = get_first_component<OverworldToDungeonInfo>(r);
+  // const auto& data = get_first_component<OverworldToDungeonInfo>(r);
   // const int strength = data.patrol_that_you_hit.strength;
   const int strength = 10; // TODO: fix this
   auto& rooms = results.rooms;
@@ -323,7 +323,7 @@ set_generated_entity_positions(entt::registry& r, DungeonGenerationResults& resu
     CombatEntityDescription desc;
     desc.position = pos;
     desc.team = AvailableTeams::enemy;
-    const auto e = create_combat_entity(r, desc);
+    create_combat_entity(r, desc);
 
     room_idx_to_spawn++;
     room_idx_to_spawn %= rooms.size();
@@ -405,7 +405,7 @@ instantiate_walls(entt::registry& r, DungeonGenerationResults& results)
     const Line l2{ bl, br }; // horizontal
     const Line l3{ tl, bl }; // vertical
 
-    const int num_lines_prior = wall_lines_to_instantiate.size();
+    const int num_lines_prior = (int)wall_lines_to_instantiate.size();
     wall_lines_to_instantiate.push_back(l0);
     wall_lines_to_instantiate.push_back(l1);
     wall_lines_to_instantiate.push_back(l2);
@@ -423,7 +423,7 @@ instantiate_walls(entt::registry& r, DungeonGenerationResults& results)
         const std::vector<LineCollision> collisions = get_line_collisions(wall_lines_to_instantiate, t_line_shrunk);
         for (const auto& coll_info : collisions) {
           Line wall_line = coll_info.line_a;
-          Line tunnel_line = coll_info.line_b;
+          // Line tunnel_line = coll_info.line_b;
           const auto intersection = coll_info.intersection;
 
           // remove the wall if it collided
@@ -477,7 +477,7 @@ instantiate_walls(entt::registry& r, DungeonGenerationResults& results)
       }
     }
 
-    const int num_lines_post = wall_lines_to_instantiate.size();
+    const int num_lines_post = (int)wall_lines_to_instantiate.size();
     if (num_lines_post - num_lines_prior < 4) // 4 because a 2d room has 4 walls
       fmt::println("error: did not add enough lines for room to be covered.");
   }
@@ -507,7 +507,6 @@ instantiate_tunnels(entt::registry& r, DungeonGenerationResults& results)
   // }
 
   const auto create_walls_based_on_neighbours = [&r, &map, &results](const glm::ivec2& gp) {
-    const auto idx = engine::grid::grid_position_to_index(gp, map.xmax);
     const auto idxs = engine::grid::get_neighbour_indicies(gp.x, gp.y, map.xmax, map.ymax);
     for (const auto& [dir, neighbour_idx] : idxs) {
       const auto neighbour_gp = engine::grid::index_to_grid_position(neighbour_idx, map.xmax, map.ymax);
@@ -584,79 +583,149 @@ instantiate_tunnels(entt::registry& r, DungeonGenerationResults& results)
 void
 generate_edges(entt::registry& r, MapComponent& map, const DungeonGenerationResults& result)
 {
-  std::vector<Room> rooms;
-  for (const auto& [e, room] : r.view<Room>().each())
-    rooms.push_back(room);
-
-  std::vector<Tunnel> tunnels;
-  for (const auto& [e, t] : r.view<Tunnel>().each())
-    tunnels.push_back(t);
+  const auto& rooms = result.rooms;
+  const auto& tunnels = result.tunnels;
 
   map.edges.clear();
-  for (int y = 0; y < map.ymax - 1; y++) {
-    for (int x = 0; x < map.xmax - 1; x++) {
-      const auto idx = engine::grid::grid_position_to_index({ x, y }, map.xmax);
-      const auto neighbours = engine::grid::get_neighbour_indicies(x, y, map.xmax, map.ymax);
 
-      for (const auto& [dir, neighbour_idx] : neighbours) {
-        const auto grid_a = engine::grid::index_to_grid_position(idx, map.xmax, map.ymax);
-        const auto grid_b = engine::grid::index_to_grid_position(neighbour_idx, map.xmax, map.ymax);
+  for (int idx = 0; idx < map.xmax * map.ymax; idx++) {
+    const auto xy = engine::grid::index_to_grid_position(idx, map.xmax, map.ymax);
+    const auto neighbours = engine::grid::get_neighbour_indicies(xy.x, xy.y, map.xmax, map.ymax);
+    for (const auto& [dir, neighbour_idx] : neighbours) {
 
-        // 3 cases to generate edges for walls:
-        // transition from wall to floor
-        // transition from room to room
-        // transition from room to tunnel
+      const auto grid_a = engine::grid::index_to_grid_position(idx, map.xmax, map.ymax);
+      const auto grid_b = engine::grid::index_to_grid_position(neighbour_idx, map.xmax, map.ymax);
 
-        const bool idx_is_wall = result.wall_or_floors[idx] == 1;
-        const bool nidx_is_floor = result.wall_or_floors[neighbour_idx] == 0;
-        const bool from_wall_to_floor = idx_is_wall && nidx_is_floor;
+      // 3 cases to generate edges for walls:
+      // transition from wall to floor
+      // transition from room to room
+      // transition from room to tunnel
+      // you're in a room and on the edge of the grid
 
-        const auto [in_room_a, room_a] = inside_room(map, rooms, grid_a);
-        const auto [in_room_b, room_b] = inside_room(map, rooms, grid_b);
-        const auto tunnels_a = inside_tunnels(tunnels, grid_a);
-        const auto tunnels_b = inside_tunnels(tunnels, grid_b);
-        const bool in_tunnel_a = tunnels_a.size() > 0;
-        const bool in_tunnel_b = tunnels_b.size() > 0;
+      const bool idx_is_wall = result.wall_or_floors[idx] == 1;
+      const bool nidx_is_floor = result.wall_or_floors[neighbour_idx] == 0;
+      const bool from_wall_to_floor = idx_is_wall && nidx_is_floor;
 
-        // same_tunnel means:
-        // if two gridsquares are in the same_tunnel,
-        // that means there is a direct path from a to b (i.e. no edges)
-        bool same_tunnel = false;
-        for (const auto& t_a : tunnels_a)
-          for (const auto& t_b : tunnels_b)
-            same_tunnel |= t_a == t_b;
+      const auto [in_room_a, room_a] = inside_room(map, rooms, grid_a);
+      const auto [in_room_b, room_b] = inside_room(map, rooms, grid_b);
+      const auto tunnels_a = inside_tunnels(tunnels, grid_a);
+      const auto tunnels_b = inside_tunnels(tunnels, grid_b);
+      // const bool in_tunnel_a = tunnels_a.size() > 0;
+      const bool in_tunnel_b = tunnels_b.size() > 0;
 
-        const bool from_room_to_room = (in_room_a && in_room_b) && (room_a.value() != room_b.value());
+      // same_tunnel means:
+      // if two gridsquares are in the same_tunnel,
+      // that means there is a direct path from a to b (i.e. no edges)
+      bool same_tunnel = false;
+      for (const auto& t_a : tunnels_a)
+        for (const auto& t_b : tunnels_b)
+          same_tunnel |= t_a == t_b;
 
-        const bool from_room_to_tunnel = in_room_a && in_tunnel_b && !in_room_b;
+      const bool from_room_to_room = (in_room_a && in_room_b) && (room_a.value() != room_b.value());
 
-        Edge edge;
-        edge.a_idx = engine::grid::grid_position_to_index(grid_a, map.xmax);
-        edge.b_idx = engine::grid::grid_position_to_index(grid_b, map.xmax);
+      const bool from_room_to_tunnel = in_room_a && in_tunnel_b && !in_room_b;
 
-        if (from_wall_to_floor)
-          map.edges.push_back(edge);
-        else if (from_room_to_room && !same_tunnel)
-          map.edges.push_back(edge);
-        else if (from_room_to_tunnel && !same_tunnel)
-          map.edges.push_back(edge);
-      }
+      Edge edge;
+      edge.a_idx = engine::grid::grid_position_to_index(grid_a, map.xmax);
+      edge.b_idx = engine::grid::grid_position_to_index(grid_b, map.xmax);
+      if (edge.a_idx > edge.b_idx)
+        std::swap(edge.a_idx, edge.b_idx);
+
+      if (from_wall_to_floor)
+        map.edges.push_back(edge);
+      else if (from_room_to_room && !same_tunnel)
+        map.edges.push_back(edge);
+      else if (from_room_to_tunnel && !same_tunnel)
+        map.edges.push_back(edge);
+
+      // check if you're in a room and on the edge of the grid
+      const bool on_x_min = xy.x == 0;
+      const bool on_y_min = xy.y == 0;
+      const bool on_x_max = xy.x == map.xmax;
+      const bool on_y_max = xy.y == map.ymax;
+      const bool add_boundary = (on_x_min || on_y_min || on_x_max || on_y_max) && in_room_a;
+      Edge b_edge;
+      b_edge.a_idx = engine::grid::grid_position_to_index(grid_a, map.xmax);
+      b_edge.b_idx = -1; // off the grid... what value would make sense?
+      if (add_boundary)
+        map.edges.push_back(b_edge);
     }
-  };
+  }
 
   // remove duplicates
-  auto& edgs = map.edges;
-
   // std::unique only removes consecutive duplicates
-  const auto sort_pred = [](const Edge& a, const Edge& b) {
-    return (a.a_idx < b.a_idx) || (a.a_idx == b.a_idx && a.b_idx < b.b_idx);
-  };
-  std::sort(edgs.begin(), edgs.end(), sort_pred);
+  auto p = [](const Edge& a, const Edge& b) { return (a.a_idx < b.a_idx) || (a.a_idx == b.a_idx && a.b_idx < b.b_idx); };
+  std::sort(map.edges.begin(), map.edges.end(), p);
 
-  const auto pred = [](const Edge& a, const Edge& b) { return a.a_idx == b.a_idx && a.b_idx == b.b_idx; };
-  edgs.erase(std::unique(edgs.begin(), edgs.end(), pred), edgs.end());
+  auto pred = [](const Edge& a, const Edge& b) { return a.a_idx == b.a_idx && a.b_idx == b.b_idx; };
+  map.edges.erase(std::unique(map.edges.begin(), map.edges.end(), pred), map.edges.end());
 
   fmt::println("Map edges: {}", map.edges.size());
 };
+
+void
+instantiate_edges(entt::registry& r, MapComponent& map)
+{
+  for (auto& edge : map.edges) {
+    const auto offset = glm::vec2{ map.tilesize / 2.0f, map.tilesize / 2.0f };
+    const auto ga = engine::grid::index_to_world_position(edge.a_idx, map.xmax, map.ymax, map.tilesize) + offset;
+    glm::vec2 gb{ 0, 0 };
+
+    // handle off the grid case...
+    if (edge.b_idx == -1) {
+      const glm::ivec2 xy = engine::grid::index_to_grid_position(edge.a_idx, map.xmax, map.ymax);
+      glm::ivec2 gp{ 0, 0 };
+      if (xy.x == 0)
+        gp = { -1, xy.y };
+      if (xy.y == 0)
+        gp = { xy.x, -1 };
+      if (xy.x == map.xmax)
+        gp = { xy.x + 1, xy.y };
+      if (xy.y == map.ymax)
+        gp = { xy.x, xy.y + 1 };
+      gb = engine::grid::grid_space_to_world_space(gp, map.tilesize) + offset;
+    } else
+      gb = engine::grid::index_to_world_position(edge.b_idx, map.xmax, map.ymax, map.tilesize) + offset;
+
+    // debug edge
+    // const auto l0 = generate_line({ ga.x, ga.y }, { gb.x, gb.y }, 4);
+    // const entt::entity e0 = create_gameplay(r, EntityType::empty_with_transform, { 0, 0 });
+    // set_position_and_size_with_line(r, e0, l0);
+    // set_colour(r, e0, { 1.0f, 0.0, 0.0, 0.5f });
+
+    const auto center = (gb + ga) / 2.0f;
+    const auto size = glm::abs(gb - ga);
+    const bool was_horizontal = size.x > size.y;
+
+    auto new_size = glm::vec2{ size.y, size.x };
+    if (new_size.x == 0)
+      new_size.x = 2;
+    if (new_size.y == 0)
+      new_size.y = 2;
+
+    if (edge.instance != entt::null) {
+      fmt::println("Warning: edge already had instance...");
+      continue;
+    }
+
+    const entt::entity e = create_gameplay(r, EntityType::solid_wall, center, new_size);
+
+    if (was_horizontal)
+      set_colour(r, e, { 0.0f, 1.0, 0.0, 1.0f });
+    else
+      set_colour(r, e, { 0.0f, 0.0, 1.0, 1.0f });
+
+    if (edge.instance != entt::null)
+      fmt::println("Warning: edge already had instance...");
+
+    edge.instance = e;
+  }
+
+  // validate...
+  for (const auto& edge : map.edges) {
+    if (edge.instance == entt::null)
+      fmt::println("Warning: edge without instance?");
+  }
+}
 
 } // namespace game2d

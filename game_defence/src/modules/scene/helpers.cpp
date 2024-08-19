@@ -37,6 +37,7 @@
 #include "modules/ui_colours/components.hpp"
 #include "modules/ui_combat_turnbased/components.hpp"
 #include "modules/ui_event_console/components.hpp"
+#include "modules/ui_inventory/components.hpp"
 #include "modules/ui_overworld_ship_label/components.hpp"
 #include "modules/ui_scene_main_menu/components.hpp"
 #include "modules/ui_selected/components.hpp"
@@ -88,6 +89,11 @@ create_combat_entity(entt::registry& r, const CombatEntityDescription& desc)
   if (desc.team == AvailableTeams::player) {
     r.emplace<HoveredColour>(e, engine::SRGBColour{ 0.0f, 1.0f, 1.0f, 1.0f });
     r.emplace_or_replace<PlayerComponent>(e);
+
+    // early days systems below
+    r.emplace<DefaultBody>(e, DefaultBody(r));
+    r.emplace<DefaultInventory>(e, DefaultInventory(r, 6 * 5));
+    r.emplace<InitBodyAndInventory>(e);
   }
 
   if (desc.team == AvailableTeams::enemy) {
@@ -105,9 +111,9 @@ create_combat_entity(entt::registry& r, const CombatEntityDescription& desc)
 }
 
 void
-add_boundary_walls(entt::registry& r, const int w, const int h, const int tilesize)
+add_boundary_walls(entt::registry& r, const float w, const float h, const int tilesize)
 {
-  const int half_tile_size = tilesize / 10.0f;
+  const float half_tile_size = tilesize / 10.0f;
   const auto wall_l = create_gameplay(r, EntityType::solid_wall, { 0, h / 2.0f });
   set_size(r, wall_l, { half_tile_size, h });
   const auto wall_r = create_gameplay(r, EntityType::solid_wall, { w, h / 2.0f });
@@ -134,7 +140,7 @@ move_to_scene_menu(entt::registry& r)
 
   // choose X random names, display them on the menu
   // static engine::RandomState rnd;
-  // for (int i = 0; i < 4; i++) {
+  // for (size_t i = 0; i < 4; i++) {
   //   const float rnd_f = engine::rand_det_s(rnd.rng, 0, names.size());
   //   const int rnd = static_cast<int>(rnd_f);
   //   const std::string name = names[rnd];
@@ -284,6 +290,18 @@ move_to_scene_start(entt::registry& r, const Scene& s, const bool load_saved)
   const auto& ui = r.view<WorldspaceTextComponent>();
   r.destroy(ui.begin(), ui.end());
 
+  // anything created with create_empty?
+  const auto& rooms = r.view<Room>();
+  r.destroy(rooms.begin(), rooms.end());
+  const auto& tunnels = r.view<Tunnel>();
+  r.destroy(tunnels.begin(), tunnels.end());
+  const auto& paths = r.view<PathfindComponent>();
+  r.destroy(paths.begin(), paths.end());
+  const auto& camera_move = r.view<CameraFreeMove>();
+  r.destroy(camera_move.begin(), camera_move.end());
+  const auto& invs = r.view<InventorySlotComponent>();
+  r.destroy(invs.begin(), invs.end());
+
   // store one physics world...
   static b2World* world = new b2World(b2Vec2(0.0f, 0.0f));
 
@@ -334,8 +352,8 @@ move_to_scene_start(entt::registry& r, const Scene& s, const bool load_saved)
 
   // systems that havent been destroyed...
   const auto& ri = get_first_component<SINGLETON_RendererInfo>(r);
-  const auto& anims = get_first_component<SINGLE_Animations>(r);
-  const auto& colours = get_first_component<SINGLE_ColoursInfo>(r);
+  // const auto& anims = get_first_component<SINGLE_Animations>(r);
+  // const auto& colours = get_first_component<SINGLE_ColoursInfo>(r);
   // const auto& audio = get_first_component<SINGLETON_AudioComponent>(r);
 
   // HACK: the first and only transform should be the camera
@@ -361,10 +379,10 @@ move_to_scene_start(entt::registry& r, const Scene& s, const bool load_saved)
   if (s == Scene::menu)
     move_to_scene_menu(r);
 
-  const auto get_seed_from_systemtime = []() -> time_t {
-    auto now = std::chrono::system_clock::now();
-    return std::chrono::system_clock::to_time_t(now);
-  };
+  // const auto get_seed_from_systemtime = []() -> time_t {
+  //   auto now = std::chrono::system_clock::now();
+  //   return std::chrono::system_clock::to_time_t(now);
+  // };
 
   if (s == Scene::dungeon_designer) {
     // r.emplace_or_replace<CameraFreeMove>(get_first<OrthographicCamera>(r));
@@ -385,6 +403,7 @@ move_to_scene_start(entt::registry& r, const Scene& s, const bool load_saved)
     // TEMP: add info in the event console on how to play.
     auto& evts = get_first_component<SINGLE_EventConsoleLogComponent>(r);
     evts.events.push_back("Press E to access inventory.");
+    evts.events.push_back("Press Q to perform heal action.");
     evts.events.push_back("Press 1 to select move action.");
     evts.events.push_back("Press 2 to select shoot action.");
     evts.events.push_back("Right click to perform action.");
@@ -509,87 +528,6 @@ move_to_scene_start(entt::registry& r, const Scene& s, const bool load_saved)
 
   if (s == Scene::minigame_bamboo)
     create_empty<SINGLE_MinigameBamboo>(r);
-
-  if (s == Scene::fov_tests) {
-    engine::RandomState rnd;
-    destroy_first_and_create<SINGLE_CombatState>(r);
-    destroy_first_and_create<SINGLE_EventConsoleLogComponent>(r);
-    destroy_first_and_create<SINGLE_TurnBasedCombatInfo>(r);
-    destroy_first_and_create<CameraFreeMove>(r);
-
-    int map_width = 600;
-    int map_height = 600;
-    MapComponent map_c;
-    map_c.tilesize = 50;
-    map_c.xmax = map_width / map_c.tilesize;
-    map_c.ymax = map_height / map_c.tilesize;
-    map_c.map.resize(map_c.xmax * map_c.ymax);
-
-    // Edge edge;
-    // edge.cell_a = { 0, 0 };
-    // edge.cell_b = { 0, 1 };
-    // map_c.edges.push_back(edge);
-
-    create_empty<MapComponent>(r, map_c);
-    create_empty<Effect_GridComponent>(r, Effect_GridComponent{ map_c.tilesize });
-
-    // create a cursor
-    const auto cursor_e = create_gameplay(r, EntityType::cursor, { 0, 0 });
-    set_size(r, cursor_e, { 0, 0 });
-
-    // make the entire debug space a room
-    const int room_width = map_width / map_c.tilesize;
-    const int room_height = map_height / map_c.tilesize;
-    Room room;
-    room.tl = { 0, 0 };
-    room.aabb.center = { room.tl.x + (room_width / 2), room.tl.y + (room_height / 2) };
-    room.aabb.size = { room_width, room_height };
-    create_empty<Room>(r, room);
-
-    DungeonGenerationResults result;
-    result.rooms.push_back(room);
-    std::vector<int> wall_or_floors(map_c.xmax * map_c.ymax, 0); // 0: everything as floor
-    result.wall_or_floors = wall_or_floors;
-    create_empty<DungeonGenerationResults>(r, result);
-
-    // DUPLICATE CODE: generate floor tiles
-    result.floor_tiles.resize(result.wall_or_floors.size(), entt::null);
-    for (int xy = 0; xy < result.wall_or_floors.size(); xy++) {
-      if (result.wall_or_floors[xy] == 0) {
-        const auto gridpos = engine::grid::index_to_grid_position(xy, map_c.xmax, map_c.ymax);
-        const auto floor_e = create_transform(r);
-        const glm::ivec2 worldspace = engine::grid::grid_space_to_world_space(gridpos, map_c.tilesize);
-        const glm::ivec2 offset = { map_c.tilesize / 2.0f, map_c.tilesize / 2.0f };
-        const glm::ivec2 pos = worldspace + offset;
-        set_position(r, floor_e, pos);
-        set_size(r, floor_e, { map_c.tilesize, map_c.tilesize });
-        float rnd_col = engine::rand_det_s(rnd.rng, 0.3, 0.35f);
-        set_colour(r, floor_e, { rnd_col, rnd_col, rnd_col, 1.0f });
-        set_z_index(r, floor_e, -1);
-
-        result.floor_tiles[engine::grid::grid_position_to_index(gridpos, map_c.xmax)] = floor_e;
-      }
-    }
-
-    // DUPLICATE CODE: add info in the event console on how to play.
-    auto& evts = get_first_component<SINGLE_EventConsoleLogComponent>(r);
-    evts.events.push_back("Press E to access inventory.");
-    evts.events.push_back("Press 1 to select move action.");
-    evts.events.push_back("Press 2 to select shoot action.");
-    evts.events.push_back("Right click to perform action.");
-
-    // Debug object
-    auto& info = get_first_component<SINGLE_TurnBasedCombatInfo>(r);
-    info.action_cursor = create_transform(r);
-    set_size(r, info.action_cursor, { 0, 0 }); // start disabled
-
-    const glm::ivec2 offset = { map_c.tilesize / 2, map_c.tilesize / 2 };
-    const auto pos = glm::ivec2{ map_c.tilesize * 2, (1) * (map_c.tilesize * 2) } + offset;
-    CombatEntityDescription desc;
-    desc.position = pos;
-    desc.team = AvailableTeams::player;
-    create_combat_entity(r, desc);
-  }
 
   const auto scene_name = std::string(magic_enum::enum_name(s));
   fmt::println("setting scene to: {}", scene_name);

@@ -18,7 +18,7 @@ RenderCommand::set_viewport(int x, int y, int width, int height)
 void
 RenderCommand::set_clear_colour_srgb(const SRGBColour& colour)
 {
-  glClearColor(colour.r, colour.g, colour.b, colour.a);
+  glClearColor(colour.r / 255.0f, colour.g / 255.0f, colour.b / 255.0f, colour.a);
 }
 
 void

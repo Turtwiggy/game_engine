@@ -13,9 +13,9 @@ split_string_nearest_space(const std::string& str, const int& len)
 
     // Get the nearest ' ' char to the end of the sentence
     if (end < str.size() && str[end] != ' ') {
-      const int space_pos = str.rfind(' ', end);
+      const size_t space_pos = str.rfind(' ', end);
       if (space_pos != std::string::npos && space_pos > start)
-        end = space_pos;
+        end = (int)space_pos;
     }
 
     // add the sentence so far

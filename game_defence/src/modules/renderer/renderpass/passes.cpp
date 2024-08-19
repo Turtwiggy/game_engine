@@ -50,7 +50,7 @@ setup_stars_update(entt::registry& r)
   const auto pass_idx = search_for_renderpass_by_name(ri, PassName::stars);
   auto& pass = ri.passes[pass_idx];
 
-  pass.update = [&r, &pass]() {
+  pass.update = [&r]() {
     const auto& ri = get_first_component<SINGLETON_RendererInfo>(r);
     const auto camera_e = get_first<OrthographicCamera>(r);
     const auto& camera = r.get<OrthographicCamera>(camera_e);
@@ -259,7 +259,7 @@ setup_voronoi_seed_update(entt::registry& r)
   const auto pass_idx = search_for_renderpass_by_name(ri, PassName::voronoi_seed);
   auto& pass = ri.passes[pass_idx];
 
-  pass.update = [&r, &ri]() {
+  pass.update = [&ri]() {
     const int tex_unit_emitters_and_occluders = get_tex_unit(ri, PassName::lighting_emitters_and_occluders);
 
     ri.voronoi_seed.bind();
@@ -280,12 +280,12 @@ setup_jump_flood_pass(entt::registry& r)
 
   pass.update = [&r, &pass]() {
     const auto& ri = get_first_component<SINGLETON_RendererInfo>(r);
-    const auto camera_e = get_first<OrthographicCamera>(r);
-    const auto& camera = r.get<OrthographicCamera>(camera_e);
+    // const auto camera_e = get_first<OrthographicCamera>(r);
+    // const auto& camera = r.get<OrthographicCamera>(camera_e);
 
     const auto wh = ri.viewport_size_render_at;
     const int max_dim = glm::max(wh.x, wh.y);
-    const int n_jumpflood_passes = glm::ceil(glm::log(max_dim) / std::log(2.0f));
+    const int n_jumpflood_passes = (int)(glm::ceil(glm::log(max_dim) / std::log(2.0f)));
 
     for (int i = 0; i < n_jumpflood_passes; i++) {
 
@@ -296,7 +296,7 @@ setup_jump_flood_pass(entt::registry& r)
 
       // offset for each pass is half the previous one, starting at half the square resolution rounded up to nearest
       // power 2. #i.e.for 768x512 we round up to 1024x1024 and the offset for the first pass is 512x512, then 256x256, etc.
-      const auto offset = std::pow(2, n_jumpflood_passes - i - 1);
+      const float offset = (float)std::pow(2, n_jumpflood_passes - i - 1);
 
       int tex_unit = get_tex_unit(ri, PassName::voronoi_seed);
       if (i > 0)
@@ -357,7 +357,7 @@ setup_mix_lighting_and_scene_update(entt::registry& r)
 
     const auto camera_e = get_first<OrthographicCamera>(r);
     const auto& camera_t = r.get<TransformComponent>(camera_e);
-    const auto& camera = r.get<OrthographicCamera>(camera_e);
+    // const auto& camera = r.get<OrthographicCamera>(camera_e);
 
     // update uniforms
     ri.mix_lighting_and_scene.bind();

@@ -102,7 +102,7 @@ update_ui_combat_turnbased_system(entt::registry& r, const glm::ivec2& input_mou
     return;
 
   const auto& selected_view = r.view<SelectedComponent>();
-  int count = selected_view.size();
+  int count = (int)selected_view.size();
 
   // stop showing movement path
   if (count == 0 || action != Actions::MOVE)

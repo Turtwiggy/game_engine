@@ -16,6 +16,14 @@ struct Edge
   entt::entity instance = entt::null;
 };
 
+inline bool
+operator==(const Edge& a, const Edge& b)
+{
+  const auto eq_a = (a.a_idx == b.a_idx && a.b_idx == b.b_idx);
+  const auto eq_b = (a.a_idx == b.b_idx && a.b_idx == b.a_idx);
+  return eq_a || eq_b;
+};
+
 struct MapComponent
 {
   int xmax = 10;

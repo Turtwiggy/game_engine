@@ -237,7 +237,7 @@ generate_flow_field(entt::registry& r, const MapComponent& map_c, const int from
 {
   std::vector<astar_cell> map = generate_map_view(r, map_c);
 
-  const int from = map_c.map.size() - 1;
+  const int from = static_cast<int>(map_c.map.size() - 1);
   const int to = 0;
   const vec2i to_pos = { 0, 0 };
 
@@ -249,7 +249,7 @@ generate_flow_field(entt::registry& r, const MapComponent& map_c, const int from
   cost_so_far[0] = 0;
 
   while (frontier.size() > 0) {
-    auto current = frontier.dequeue();
+    const int current = static_cast<int>(frontier.dequeue());
 
     const auto gpos = engine::grid::index_to_grid_position(current, map_c.xmax, map_c.ymax);
     const auto neighbours_idxs = engine::grid::get_neighbour_indicies(gpos.x, gpos.y, map_c.xmax, map_c.ymax);
@@ -261,11 +261,11 @@ generate_flow_field(entt::registry& r, const MapComponent& map_c, const int from
       if (neighbour_cost == -1)
         continue; // impasable
 
-      int new_cost = cost_so_far[current] + neighbour_cost;
+      const int new_cost = cost_so_far[current] + neighbour_cost;
 
       if (!cost_so_far.contains(neighbour_idx) || new_cost < cost_so_far[neighbour_idx]) {
         cost_so_far[neighbour_idx] = new_cost;
-        int priority = new_cost + heuristic<vec2i>(neighbour_pos, to_pos);
+        const int priority = new_cost + heuristic<vec2i>(neighbour_pos, to_pos);
         frontier.enqueue(neighbour_idx, priority);
         came_from[neighbour_idx] = current;
       }
@@ -357,9 +357,9 @@ at_destination(entt::registry& r, const entt::entity src_e)
     return false;
 
   // require distance threshold from position.
-  const auto d = src - path->dst_pos;
-  const int d2 = d.x * d.x + d.y * d.y;
-  const int epsilon = 10;
+  const glm::vec2 d = src - path->dst_pos;
+  const float d2 = d.x * d.x + d.y * d.y;
+  const float epsilon = 10;
   return d2 < epsilon;
 };
 

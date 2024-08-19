@@ -42,7 +42,7 @@ RenderPass::setup(const glm::ivec2& fbo_size, const int framebuffers)
     const auto result = result_opt.value();
     fbos.push_back(result.out_fbo_id);
 
-    for (int i = 0; i < result.out_tex_ids.size(); i++) {
+    for (size_t i = 0; i < result.out_tex_ids.size(); i++) {
       texs[tex_idx].tex_id.id = result.out_tex_ids[i];
       tex_idx++;
     }

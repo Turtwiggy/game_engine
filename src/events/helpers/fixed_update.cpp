@@ -74,7 +74,8 @@ float
 fixed_input_controller_axis_held(const std::vector<InputEvent>& inputs, const SDL_GameControllerAxis& axis)
 {
   // process more recent inputs first
-  for (int i = inputs.size() - 1; i >= 0; i--) {
+  const int size = static_cast<int>(inputs.size());
+  for (int i = size - 1; i >= 0; i--) {
     const auto& e = inputs[i];
     const bool is_controller_axis = e.type == InputType::controller_axis;
     const bool your_axis = e.controller_axis == axis;

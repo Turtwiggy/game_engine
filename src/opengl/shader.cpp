@@ -173,7 +173,7 @@ void
 Shader::set_int_array(const std::string& name, std::span<const int> values) const
 {
   GLint location = glGetUniformLocation(ID, name.c_str());
-  int count = values.size();
+  int count = (int)values.size();
   glUniform1iv(location, count, values.data());
 }
 void

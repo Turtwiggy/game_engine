@@ -20,7 +20,7 @@ set_position_grid(entt::registry& r, const entt::entity e, const glm::ivec2 grid
 get_size(entt::registry& r, const entt::entity e);
 
 void
-set_size(entt::registry& r, const entt::entity e, const glm::ivec2& size);
+set_size(entt::registry& r, const entt::entity e, const glm::vec2& size);
 
 void
 set_colour(entt::registry& r, const entt::entity e, const engine::SRGBColour& col);

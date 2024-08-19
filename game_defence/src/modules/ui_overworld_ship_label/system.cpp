@@ -38,7 +38,7 @@ draw_dashed_line(ImDrawList* draw_list, const ImVec2 p0, const ImVec2 p1, int n_
 
   // draw each dash
   glm::vec2 start = { p0.x, p0.y };
-  for (int i = 0; i < n_dashes; i++) {
+  for (size_t i = 0; i < n_dashes; i++) {
     const glm::vec2 end = start + nrm_dir * dash_length;
 
     // fade from 0 to 1 alpha

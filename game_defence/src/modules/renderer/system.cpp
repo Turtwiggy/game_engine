@@ -49,7 +49,7 @@ struct Light
   bool enabled = false;
   glm::vec2 pos;
   engine::SRGBColour colour;
-  float luminence = 0.6;
+  float luminence = 0.6f;
 };
 
 int
@@ -190,7 +190,7 @@ init_render_system(const engine::SINGLETON_Application& app, entt::registry& r, 
   r.emplace<TransformComponent>(camera_e);
 
   const int max_dim = glm::max(ri.viewport_size_render_at.x, ri.viewport_size_render_at.y);
-  const int n_jumpflood_passes = glm::ceil(glm::log(max_dim) / std::log(2.0f));
+  const int n_jumpflood_passes = (int)(glm::ceil(glm::log(max_dim) / std::log(2.0f)));
   fmt::println("jumpflood passes... {}", n_jumpflood_passes);
 
   // FBO textures
@@ -291,7 +291,7 @@ update_render_system(entt::registry& r, const float dt, const glm::vec2& mouse_p
   static float time = 0.0f;
   time += dt;
 
-  const auto& s = get_first_component<SINGLETON_CurrentScene>(r);
+  const auto& scene = get_first_component<SINGLETON_CurrentScene>(r);
   auto& ri = get_first_component<SINGLETON_RendererInfo>(r);
 
   if (check_if_viewport_resize(ri)) {
@@ -306,8 +306,6 @@ update_render_system(entt::registry& r, const float dt, const glm::vec2& mouse_p
   if (get_key_down(input, SDL_SCANCODE_0))
     rebind(r, ri);
 #endif
-
-  const auto& scene = get_first_component<SINGLETON_CurrentScene>(r);
 
   const auto scenes_to_render_stars = std::vector<Scene>{
     Scene::splashscreen,
@@ -397,7 +395,7 @@ update_render_system(entt::registry& r, const float dt, const glm::vec2& mouse_p
     lights[0].pos = hmm;
     lights[0].enabled = true;
     lights[0].colour = { 0.5f, 0.75f, 1.0f, 1.0f };
-    lights[0].luminence = 0.9;
+    lights[0].luminence = 0.9f;
   }
 
   // HACK: try adding lights to interesting map features
@@ -479,7 +477,7 @@ update_render_system(entt::registry& r, const float dt, const glm::vec2& mouse_p
 
   // update lighting uniforms
 
-  for (int i = 0; i < lights.size(); i++) {
+  for (size_t i = 0; i < lights.size(); i++) {
     const std::string label = "lights["s + std::to_string(i) + "]."s;
 
     const auto& l = lights[i];
@@ -577,8 +575,9 @@ update_render_system(entt::registry& r, const float dt, const glm::vec2& mouse_p
       for (const auto& tex : rp.texs) {
         const std::string label = fmt::format("TexUnit: {}, Tex: {}, Id: {}", tex.tex_unit.unit, pass_name, tex.tex_id.id);
         ImGui::Begin(label.c_str());
-        ImVec2 viewport_size = ImGui::GetContentRegionAvail();
-        ImGui::Image((ImTextureID)tex.tex_id.id, viewport_size, ImVec2(0, 0), ImVec2(1, 1));
+        const ImVec2 viewport_size = ImGui::GetContentRegionAvail();
+        const ImTextureID id = reinterpret_cast<ImTextureID>(static_cast<uintptr_t>(tex.tex_id.id));
+        ImGui::Image(id, viewport_size, ImVec2(0, 0), ImVec2(1, 1));
         ImGui::End();
       }
     }

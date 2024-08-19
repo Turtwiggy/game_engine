@@ -30,7 +30,7 @@ create_particle(entt::registry& r, const ParticleDescription& desc)
 
   // make it shrink
   ScaleOverTimeComponent sotc;
-  sotc.seconds_until_complete = desc.time_to_live_ms / 1000;
+  sotc.seconds_until_complete = desc.time_to_live_ms / 1000.0f;
   sotc.start_size = desc.start_size;
   sotc.end_size = desc.end_size;
   r.emplace<ScaleOverTimeComponent>(e, sotc);

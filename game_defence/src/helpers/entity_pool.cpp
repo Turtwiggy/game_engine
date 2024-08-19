@@ -14,8 +14,8 @@ EntityPool::update(entt::registry& r, const int desired)
     return;
 
   // create
-  const int to_create = new_size - old_size;
-  for (int i = 0; i < to_create; i++)
+  const size_t to_create = new_size - old_size;
+  for (size_t i = 0; i < to_create; i++)
     instances.push_back(create_transform(r));
 
   // destroy

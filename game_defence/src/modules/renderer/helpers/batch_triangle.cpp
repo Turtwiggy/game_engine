@@ -95,7 +95,7 @@ TriangleRenderer::init()
     7, 4, GL_FLOAT, GL_FALSE, sizeof(Vertex), (const void*)(offsetof(Vertex, model) + 3 * sizeof(glm::vec4)));
 
   uint32_t indices[max_quad_index_count];
-  for (int i = 0; i < max_quad_index_count; i += 3) {
+  for (uint32_t i = 0; i < max_quad_index_count; i += 3) {
     indices[i + 0] = 0 + i;
     indices[i + 1] = 1 + i;
     indices[i + 2] = 2 + i;

@@ -132,6 +132,20 @@ worldspace_to_clamped_world_space(const glm::vec2& world_space, int grid_size)
   return glm::ivec2{ grid_size * grid_x, grid_size * grid_y };
 }
 
+[[nodiscard]] inline std::vector<glm::ivec2>
+get_grid_cells(const glm::vec2& pos_tl, const glm::vec2& size, const int tilesize)
+{
+  std::vector<glm::ivec2> cells;
+  for (float y = pos_tl.y; y <= pos_tl.y + size.y; y += tilesize) {
+    for (float x = pos_tl.x; x <= pos_tl.x + size.x; x += tilesize) {
+      const auto worldspace_pos = glm::vec2{ x, y };
+      const auto gridspace_pos = engine::grid::worldspace_to_grid_space(worldspace_pos, tilesize);
+      cells.push_back((gridspace_pos));
+    }
+  }
+  return cells;
+};
+
 // e.g. {0, 0}, {1, 0} would return East
 // engine::grid::GridDirection
 // which_quadrant_is_b(const glm::ivec2& a, const glm::ivec2& b);

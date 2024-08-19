@@ -31,7 +31,7 @@ GameWindow::GameWindow(const std::string& title, const DisplayMode& displaymode,
   SDL_GetVersion(&linkedVersion);
 
 #if !defined(__EMSCRIPTEN__)
-  setbuf(stdout, nullptr); // dont buffer fmt::println
+  setvbuf(stdout, nullptr, _IONBF, 0); // dont buffer fmt::println
 #endif
   fmt::println("Initializing SDL...");
   fmt::println("SDL Version/Compiled {}.{}.{}", compiledVersion.major, compiledVersion.major, compiledVersion.patch);

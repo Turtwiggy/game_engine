@@ -30,6 +30,9 @@ inside_tunnels(const std::vector<Tunnel>& ts, const glm::ivec2& gridpos);
 void
 generate_edges(entt::registry& r, MapComponent& map, const DungeonGenerationResults& result);
 
+void
+instantiate_edges(entt::registry& r, MapComponent& map);
+
 // EntityType
 // generate_monster();
 
