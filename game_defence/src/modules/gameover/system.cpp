@@ -28,13 +28,17 @@ update_gameover_system(entt::registry& r)
       Scene::dungeon_designer,
     };
     const bool valid_scene = std::find(valid_scenes.begin(), valid_scenes.end(), scene.s) != valid_scenes.end();
+
     if (valid_scene) {
       // Make sure we're not generating a dungeon...
       // Where players are temporarily 0...
-      if (get_first<DungeonGenerationResults>(r) != entt::null) {
+      const bool generated_dungeon = get_first<DungeonGenerationResults>(r) != entt::null;
+      if (generated_dungeon) {
+
         // condition: All of one team is daed
         std::map<AvailableTeams, int> team_count;
         team_count[AvailableTeams::player] = 0; // force team to exist
+
         // Count up all teams
         for (const auto& [e, team_c] : r.view<TeamComponent>().each())
           team_count[team_c.team] += 1;

@@ -4,6 +4,7 @@
 #include "entt/helpers.hpp"
 #include "lifecycle/components.hpp"
 #include "modules/actor_cursor/components.hpp"
+#include "modules/actor_player/components.hpp"
 #include "modules/actor_weapon/components.hpp"
 #include "modules/actor_weapon_shotgun/components.hpp"
 #include "modules/actors/helpers.hpp"
@@ -80,6 +81,8 @@ sprite_type_to_sprite(entt::registry& r, const EntityType& type)
     sprite = "EMPTY";
   // else if (type == EntityType::actor_hearth)
   //   sprite = "CAMPFIRE";
+  if (type == EntityType::actor_jetpack_player)
+    sprite = "PERSON_25_0";
   else if (type == EntityType::actor_spaceship)
     sprite = "SPACE_VEHICLE_1";
   else if (type == EntityType::actor_capsule)
@@ -201,6 +204,83 @@ add_particles(entt::registry& r, const entt::entity parent)
   r.emplace<AttackCooldownComponent>(particle_emitter, cooldown);
 };
 
+void
+add_components(entt::registry& r,
+               const entt::entity e,
+               const EntityType& type,
+               const glm::vec2 pos,
+               const std::optional<glm::vec2> size_in)
+{
+  const glm::ivec2 DEFAULT_SIZE{ 32, 32 };
+  const glm::ivec2 HALF_SIZE{ 16, 16 };
+  const glm::ivec2 SMALL_SIZE{ 4, 4 };
+
+  glm::ivec2 size = DEFAULT_SIZE;
+  if (size_in.has_value())
+    size = size_in.value();
+
+  if (type == EntityType::actor_dungeon) {
+    PhysicsDescription desc;
+    desc.type = b2_kinematicBody;
+    desc.is_bullet = false;
+    desc.density = 1.0;
+    desc.position = pos;
+    desc.size = size;
+    desc.is_sensor = true;
+    create_physics_actor(r, e, desc);
+
+    r.emplace<HoverableComponent>(e);
+    r.emplace<TurnBasedUnitComponent>(e);
+    r.emplace<SpawnParticlesOnDeath>(e);
+    r.emplace<MoveLimitComponent>(e, 1);
+    r.emplace<HealthComponent>(e, 100, 100);
+    r.emplace<DefenceComponent>(e, 0);     // should be determined by equipment
+    r.emplace<PathfindComponent>(e, 1000); // pass through units if you must
+  }
+  if (type == EntityType::actor_jetpack_player) {
+    PhysicsDescription desc;
+    desc.type = b2_dynamicBody;
+    desc.is_bullet = false;
+    desc.density = 1.0;
+    desc.position = pos;
+    desc.size = size;
+    desc.is_sensor = false;
+    create_physics_actor(r, e, desc);
+
+    r.emplace<MovementJetpackComponent>(e);
+    r.emplace<DefaultColour>(e, engine::SRGBColour{ 255, 255, 117, 1.0f });
+    add_particles(r, e); // requires default colour
+  }
+
+  set_position(r, e, pos);
+};
+
+void
+remove_components(entt::registry& r, const entt::entity e, const EntityType& type)
+{
+  auto& physics_c = get_first_component<SINGLE_Physics>(r);
+
+  if (type == EntityType::actor_dungeon) {
+    r.remove<HoverableComponent>(e);
+    r.remove<TurnBasedUnitComponent>(e);
+    r.remove<SpawnParticlesOnDeath>(e);
+    r.remove<MoveLimitComponent>(e);
+    r.remove<HealthComponent>(e);
+    r.remove<DefenceComponent>(e);
+    r.remove<PathfindComponent>(e);
+
+    physics_c.world->DestroyBody(r.get<PhysicsBodyComponent>(e).body);
+    r.remove<PhysicsBodyComponent>(e);
+  }
+  if (type == EntityType::actor_jetpack_player) {
+    r.remove<MovementJetpackComponent>(e);
+    r.remove<DefaultColour>(e);
+
+    physics_c.world->DestroyBody(r.get<PhysicsBodyComponent>(e).body);
+    r.remove<PhysicsBodyComponent>(e);
+  }
+};
+
 entt::entity
 create_gameplay(entt::registry& r, const EntityType& type, const glm::vec2& position, const std::optional<glm::vec2> size)
 {
@@ -228,6 +308,8 @@ create_gameplay(entt::registry& r, const EntityType& type, const glm::vec2& posi
     size_final = SMALL_SIZE;
   else if (type == EntityType::particle)
     size_final = HALF_SIZE;
+  else if (type == EntityType::actor_jetpack_player)
+    size_final = DEFAULT_SIZE;
 
   TransformComponent tf{ { position.x, position.y, 0.0f }, glm::vec3(0.0f), { size_final.x, size_final.y, 0.0f } };
   r.emplace<TransformComponent>(e, tf);
@@ -253,7 +335,6 @@ create_gameplay(entt::registry& r, const EntityType& type, const glm::vec2& posi
       desc.size = size_final;
       desc.is_sensor = false;
       create_physics_actor(r, e, desc);
-
       break;
     }
 
@@ -266,8 +347,11 @@ create_gameplay(entt::registry& r, const EntityType& type, const glm::vec2& posi
       desc.size = size_final;
       desc.is_sensor = false;
       create_physics_actor(r, e, desc);
+      break;
+    }
 
-      r.emplace<HoverableComponent>(e);
+    case EntityType::actor_jetpack_player: {
+      add_components(r, e, type, position, size_final);
       break;
     }
 
@@ -296,27 +380,7 @@ create_gameplay(entt::registry& r, const EntityType& type, const glm::vec2& posi
     }
 
     case EntityType::actor_dungeon: {
-      PhysicsDescription desc;
-      desc.type = b2_kinematicBody;
-      desc.is_bullet = false;
-      desc.density = 1.0;
-      desc.position = position;
-      desc.size = size_final;
-      desc.is_sensor = true;
-      create_physics_actor(r, e, desc);
-
-      r.emplace<HoverableComponent>(e);
-      r.emplace<TurnBasedUnitComponent>(e);
-      r.emplace<SpawnParticlesOnDeath>(e);
-
-      const int move_limit = 1;
-      r.emplace<MoveLimitComponent>(e, move_limit);
-
-      const int hp = 100; // player hp
-      r.emplace<HealthComponent>(e, hp, hp);
-      r.emplace<DefenceComponent>(e, 0);     // should be determined by equipment
-      r.emplace<PathfindComponent>(e, 1000); // pass through units if you must
-      // r.emplace<TeamComponent>(e, AvailableTeams::neutral);
+      add_components(r, e, type, position, size_final);
       break;
     }
 
@@ -344,7 +408,7 @@ create_gameplay(entt::registry& r, const EntityType& type, const glm::vec2& posi
 
       r.emplace<HasParentComponent>(e);
       // r.emplace<AttackCooldownComponent>(e, 1.2f); // seconds between shooting
-      // r.emplace<AbleToShoot>(e);
+      // r.emplace<AbleToShoot>(e); // by default, not able to shoot
 
       WeaponBulletTypeToSpawnComponent bullet_info;
       bullet_info.bullet_damage = 12;

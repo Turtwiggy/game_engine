@@ -28,9 +28,14 @@ generate_map_view(entt::registry& r, const MapComponent& map)
 
     // If the cell contains entites with cost info,
     // add that cost info to the cost
-    for (const auto& ent : map.map[xy]) {
-      if (auto* cost = r.try_get<PathfindComponent>(ent))
-        cell.cost = cost->cost;
+    // for (const auto& ent : map.map[xy]) {
+    //   if (auto* cost = r.try_get<PathfindComponent>(ent))
+    //     cell.cost = cost->cost;
+    // }
+
+    if (map.map[xy] != entt::null) {
+      if (auto* pfc = r.try_get<PathfindComponent>(map.map[xy]))
+        cell.cost = pfc->cost;
     }
 
     result.push_back(cell);
@@ -364,16 +369,22 @@ at_destination(entt::registry& r, const entt::entity src_e)
 };
 
 bool
-destination_is_blocked(entt::registry& r, const glm::ivec2 worldspace_pos)
+destination_is_blocked(entt::registry& r, const entt::entity you, const glm::ivec2 worldspace_pos)
 {
   auto& map = get_first_component<MapComponent>(r);
   const auto idx = engine::grid::worldspace_to_index(worldspace_pos, map.tilesize, map.xmax, map.ymax);
 
+  return map.map[idx] != entt::null;
+  /*
   for (const auto& e : map.map[idx]) {
     if (!r.valid(e)) {
       fmt::println("something invalid in map.map...");
       continue;
     }
+
+    if (e == you)
+      continue; // you cant block yourself
+
     // something exists, so it should have a pathfind component
     const auto& comp = r.get<PathfindComponent>(e);
     if (comp.cost == -1)
@@ -382,7 +393,7 @@ destination_is_blocked(entt::registry& r, const glm::ivec2 worldspace_pos)
     // if there's anything at the destination, consider it blocked.
     return true;
   }
-
+  */
   return false;
 }
 

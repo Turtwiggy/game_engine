@@ -29,6 +29,7 @@ enum class EntityType
 
   // dungeon
   actor_dungeon,
+  actor_jetpack_player,
 
   // solids
   solid_wall,
@@ -84,5 +85,15 @@ create_gameplay(entt::registry& r,
 
 void
 add_particles(entt::registry& r, const entt::entity parent);
+
+void
+add_components(entt::registry& r,
+               const entt::entity e,
+               const EntityType& type,
+               const glm::vec2 pos,
+               const std::optional<glm::vec2> size = std::nullopt);
+
+void
+remove_components(entt::registry& r, const entt::entity e, const EntityType& type);
 
 } // namespace game2d

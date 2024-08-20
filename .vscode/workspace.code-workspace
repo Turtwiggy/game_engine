@@ -5,6 +5,8 @@
     }
   ],
   "settings": {
+    "clangd.checkUpdates": true,
+
     "files.associations": {
       "*.yarnproject": "jsonc",
       "*.glsl": "c",

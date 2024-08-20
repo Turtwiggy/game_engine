@@ -25,7 +25,7 @@ update_ux_hoverable(entt::registry& r, const glm::ivec2& mouse_pos)
   // Clear anything thats hovered
   {
     const auto& view = r.view<HoveredComponent>();
-    ImGui::Text("Hovered before: %i", view.size());
+    ImGui::Text("Hovered before: %zu", view.size());
     r.remove<HoveredComponent>(view.begin(), view.end());
   }
 
@@ -38,18 +38,16 @@ update_ux_hoverable(entt::registry& r, const glm::ivec2& mouse_pos)
   const auto grid_idx = engine::grid::grid_position_to_clamped_index(grid_pos, map_c.xmax, map_c.ymax);
   ImGui::Text("Grid Idx: %i", grid_idx);
 
-  const auto& grid_es = map_c.map[grid_idx];
-  ImGui::Text("Ents: %i", grid_es.size());
-
-  for (const auto& map_e : grid_es) {
-    if (const auto* has_health = r.try_get<HealthComponent>(map_e))
-      r.emplace_or_replace<HoveredComponent>(map_e);
+  const entt::entity grid_e = map_c.map[grid_idx];
+  if (grid_e != entt::null) {
+    if (const auto* has_health = r.try_get<HealthComponent>(grid_e))
+      r.emplace_or_replace<HoveredComponent>(grid_e);
   }
 
-  {
-    const auto& view = r.view<HoveredComponent>();
-    ImGui::Text("Hovered after: %i", view.size());
-  }
+  // {
+  //   const auto& view = r.view<HoveredComponent>();
+  //   ImGui::Text("Hovered after: %i", view.size());
+  // }
 
   // Work out what's being hovered this tick (via physics)
   // const auto& physics = get_first_component<SINGLETON_PhysicsComponent>(r);

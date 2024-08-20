@@ -25,9 +25,8 @@
 
   "C_Cpp.default.intelliSenseMode": "windows-msvc-x64",
   "C_Cpp.intelliSenseEngine": "disabled",
-
-  "C_Cpp.codeAnalysis.clangTidy.enabled": true,
   "C_Cpp.codeAnalysis.runAutomatically": true,
+  "C_Cpp.codeAnalysis.clangTidy.enabled": true,
   "C_Cpp.codeAnalysis.clangTidy.checks.enabled": [
     "clang-analyzer-*",
     "cppcoreguidelines-*",
@@ -46,9 +45,11 @@
     "readability-braces-around-statements",
     "readability-uppercase-literal-suffix",
     "modernize-use-trailing-return-type",
-    "cppcoreguidelines-pro-type-union-access"
+    "cppcoreguidelines-pro-type-union-access",
+    "clang-analyzer-deadcode.DeadStores",
+    "misc-unused-*"
   ]
-  // "C_Cpp.codeAnalysis.clangTidy.useBuildPath": false
 
+  // "C_Cpp.codeAnalysis.clangTidy.useBuildPath": false
   // "editor.guides.bracketPairs": "active",
 }

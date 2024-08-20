@@ -14,7 +14,6 @@
 #include "modules/gen_dungeons/helpers.hpp"
 #include "modules/grid/components.hpp"
 #include "modules/system_fov/symmetric_shadowcasting.hpp"
-#include "modules/ux_hoverable/components.hpp"
 #include "sprites/helpers.hpp"
 
 #include "imgui.h"
@@ -73,21 +72,34 @@ update_fov_system(entt::registry& r, const glm::ivec2& mouse_pos)
   }
 
   // prevent out of bounds issues
-  if (!debug_fov) {
-    const auto [in_room, room] = inside_room(map, dungeon.rooms, player_gridpos);
-    const auto in_tunnel = inside_tunnels(dungeon.tunnels, player_gridpos).size() > 0;
-    if (!in_room && !in_tunnel)
-      return;
+  const auto [in_room, room] = inside_room(map, dungeon.rooms, player_gridpos);
+  const auto in_tunnel = inside_tunnels(dungeon.tunnels, player_gridpos).size() > 0;
+  if (!in_room && !in_tunnel) {
+    return;
   }
 
-  // only update if origin updates
-  const glm::ivec2 origin = player_gridpos;
-  if (!debug_fov) {
-    static glm::ivec2 cached_origin;
-    if (cached_origin == origin)
-      return;
-    cached_origin = origin;
+  // Generate request when player moves gridpos
+  static entt::entity cached_player_e = entt::null;
+  static glm::ivec2 cached_origin{ 0, 0 };
+  if (player_e != cached_player_e) {
+    create_empty<RequestUpdateFOV>(r);
+    cached_player_e = player_e;
   }
+  if (cached_player_e != entt::null) {
+    const auto gp = get_grid_position(r, cached_player_e);
+    if (cached_origin != gp) {
+      create_empty<RequestUpdateFOV>(r);
+      cached_origin = gp;
+    }
+  }
+
+  // only update fov when needed
+  const auto reqs = r.view<RequestUpdateFOV>();
+  if (reqs.size() == 0)
+    return;
+  r.destroy(reqs.begin(), reqs.end());
+
+  const glm::ivec2 origin = player_gridpos;
 
   static std::vector<entt::entity> edge_debug;
   r.destroy(edge_debug.begin(), edge_debug.end());
@@ -313,9 +325,14 @@ update_fov_system(entt::registry& r, const glm::ivec2& mouse_pos)
       const bool is_visible = r.try_get<VisibleComponent>(floor_e) != nullptr;
       const auto floor_pos = get_position(r, floor_e);
       const auto floor_idx = engine::grid::worldspace_to_index(floor_pos, map.tilesize, map.xmax, map.ymax);
+
+      if (map.map[floor_idx] != entt::null)
+        mark_visible(r, map.map[floor_idx]);
+      /*
       for (const auto& e : map.map[floor_idx])
         if (is_visible)
           mark_visible(r, e);
+      */
       if (is_visible)
         set_colour(r, floor_e, { 0.75f, 0.75f, 0.75f, 1.0f });
       else

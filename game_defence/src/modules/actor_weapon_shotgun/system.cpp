@@ -22,7 +22,7 @@ get_parents_target(entt::registry& r, const entt::entity p)
 {
   // Get Target: Either an Entity or a Location
   const auto* dynamic_tgt = r.try_get<DynamicTargetComponent>(p);
-  const auto* static_tgt = r.try_get<StaticTargetComponent>(p);
+  const auto* static_tgt = r.try_get<GunStaticTargetComponent>(p);
 
   if (dynamic_tgt == nullptr && static_tgt == nullptr)
     return std::nullopt;
@@ -108,7 +108,7 @@ update_weapon_shotgun_system(entt::registry& r, const uint64_t milliseconds_dt)
       r.remove<WantsToReleaseShot>(p);
     }
 
-    if (shoot_pressed && r.try_get<AbleToShoot>(shotgun_e) == NULL) {
+    if (shoot_pressed && !r.try_get<AbleToShoot>(shotgun_e)) {
       // not able to shoot...
 
       // spawn particles "pfft"; you couldnt shoot

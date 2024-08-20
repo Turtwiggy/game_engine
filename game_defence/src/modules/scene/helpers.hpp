@@ -21,7 +21,10 @@ struct CombatEntityDescription
   AvailableTeams team = AvailableTeams::neutral;
   glm::ivec2 position{ 0, 0 };
 };
+// entt::entity
+// create_combat_entity(entt::registry& r, const CombatEntityDescription& desc);
+
 entt::entity
-create_combat_entity(entt::registry& r, const CombatEntityDescription& desc);
+add_weapon_shotgun(entt::registry& r, const entt::entity& e);
 
 } // namespace game2dw

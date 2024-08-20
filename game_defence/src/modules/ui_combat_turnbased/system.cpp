@@ -9,6 +9,7 @@
 #include "events/helpers/mouse.hpp"
 #include "game_state.hpp"
 #include "maths/grid.hpp"
+#include "modules/actor_weapon_shotgun/components.hpp"
 #include "modules/actors/helpers.hpp"
 #include "modules/algorithm_astar_pathfinding/helpers.hpp"
 #include "modules/combat_damage/components.hpp"
@@ -19,9 +20,10 @@
 #include "modules/renderer/helpers.hpp"
 #include "modules/system_turnbased/components.hpp"
 #include "modules/system_turnbased_enemy/components.hpp"
-
 #include "modules/ux_hoverable/components.hpp"
 #include "sprites/helpers.hpp"
+
+#include <fmt/core.h>
 
 namespace game2d {
 using namespace std::literals;
@@ -113,9 +115,10 @@ update_ui_combat_turnbased_system(entt::registry& r, const glm::ivec2& input_mou
   set_position(r, info.action_cursor, mouse_pos);
 
   // move all guns to the mouse cursor
+  // adding a static target component seems weird for only the gun
   for (const auto& [e, selected_c] : selected_view.each()) {
-    auto& static_tgt = r.get_or_emplace<StaticTargetComponent>(e);
-    static_tgt.target = { input_mouse_pos.x, input_mouse_pos.y };
+    auto& gun_tgt = r.get_or_emplace<GunStaticTargetComponent>(e);
+    gun_tgt.target = { input_mouse_pos.x, input_mouse_pos.y };
   }
 
   // limit: must be interacting with 1 selected unit
@@ -135,8 +138,14 @@ update_ui_combat_turnbased_system(entt::registry& r, const glm::ivec2& input_mou
     auto& actions = r.get_or_emplace<ActionState>(e);
 
     // already has a path that you've not yet arrived at
-    bool able_to_move = (!has_destination(r, e) || at_destination(r, e));
-    able_to_move &= !destination_is_blocked(r, mouse_pos);
+    // const bool has_d = has_destination(r, e);
+    // const bool at_d = at_destination(r, e);
+    const bool blocked_d = destination_is_blocked(r, e, mouse_pos);
+    // if (blocked_d)
+    //   fmt::println("player destination blocked?");
+
+    // const bool able_to_move = (!has_d || at_d) && !blocked_d;
+    const bool able_to_move = !blocked_d;
 
     // move mode
     if (action == Actions::MOVE && able_to_move && actions.actions_available > 0 && rmb_click) {

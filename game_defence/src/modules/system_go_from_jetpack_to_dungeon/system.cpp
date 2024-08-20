@@ -1,7 +1,7 @@
 #include "system.hpp"
 
+#include "actors.hpp"
 #include "entt/helpers.hpp"
-#include "lifecycle/components.hpp"
 #include "maths/grid.hpp"
 #include "modules/actor_player/components.hpp"
 #include "modules/actors/helpers.hpp"
@@ -11,13 +11,11 @@
 #include "modules/gen_dungeons/components.hpp"
 #include "modules/gen_dungeons/helpers.hpp"
 #include "modules/grid/components.hpp"
-#include "modules/scene/helpers.hpp"
-#include "modules/system_entered_new_room/components.hpp"
-#include "modules/system_particles/components.hpp"
-#include "modules/system_turnbased/components.hpp"
-#include "modules/ux_hoverable/components.hpp"
+#include "modules/grid/helpers.hpp"
+#include "modules/system_fov/components.hpp"
 #include "physics/components.hpp"
-#include "sprites/helpers.hpp"
+
+#include <box2d/b2_math.h>
 
 namespace game2d {
 
@@ -30,9 +28,8 @@ update_go_from_jetpack_to_dungeon_system(entt::registry& r)
   if (dungeon_e == entt::null)
     return;
   const auto& dungeon = get_first_component<DungeonGenerationResults>(r);
-  auto& dead = get_first_component<SINGLETON_EntityBinComponent>(r);
 
-  const auto& view = r.view<PlayerComponent, MovementJetpackComponent>();
+  const auto& view = r.view<const PlayerComponent, const MovementJetpackComponent>();
   for (const auto& [e, req_c, jetpack_c] : view.each()) {
     const auto pos = get_position(r, e);
     const auto gp = engine::grid::worldspace_to_grid_space(pos, map.tilesize);
@@ -42,25 +39,26 @@ update_go_from_jetpack_to_dungeon_system(entt::registry& r)
     const bool in_tunnels = inside_tunnels(dungeon.tunnels, gp).size() > 0;
     if (!in_room && !in_tunnels)
       continue;
-    r.remove<MovementJetpackComponent>(e);
 
-    // we're inside a ship now
-    dead.dead.emplace(e);
-    if (auto* weapon = r.try_get<HasWeaponComponent>(e))
-      dead.dead.emplace(weapon->instance);
-
-    // change camera type
-    r.remove<CameraFollow>(e);
-    create_empty<CameraFreeMove>(r);
-
-    // destroy jetpack player and recreate
     const auto worldspace_pos = get_position(r, e);
     const glm::vec2 worldspace_clamped = engine::grid::worldspace_to_clamped_world_space(worldspace_pos, map.tilesize);
     const glm::vec2 offset = { map.tilesize / 2.0f, map.tilesize / 2.0f };
-    CombatEntityDescription desc;
-    desc.position = worldspace_clamped + offset;
-    desc.team = AvailableTeams::player;
-    const auto player_e = create_combat_entity(r, desc);
+    const auto final_pos = worldspace_clamped + offset;
+
+    remove_components(r, e, EntityType::actor_jetpack_player);
+    add_components(r, e, EntityType::actor_dungeon, final_pos);
+
+    // change camera type
+    remove_if_exists<CameraFollow>(r, e);
+    create_empty<CameraFreeMove>(r);
+
+    // ripped out create_combat_entity
+    move_entity_on_map(r, e, final_pos);
+    r.emplace_or_replace<TeamComponent>(e, TeamComponent{ AvailableTeams::player });
+    r.emplace<StaticTargetComponent>(e); // for lerp
+
+    // request fov to kick in
+    create_empty<RequestUpdateFOV>(r);
   }
 }
 

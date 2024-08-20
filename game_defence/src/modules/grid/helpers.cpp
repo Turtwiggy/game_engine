@@ -5,6 +5,7 @@
 #include "maths/grid.hpp"
 #include "modules/actors/helpers.hpp"
 #include "modules/algorithm_astar_pathfinding/helpers.hpp"
+#include "renderer/components.hpp"
 
 #include <fmt/core.h>
 
@@ -13,7 +14,7 @@
 namespace game2d {
 
 void
-move_entity_on_map(entt::registry& r, const entt::entity src_e, const glm::ivec2& dst)
+move_entity_on_map(entt::registry& r, const entt::entity src_e, const glm::vec2& dst)
 {
   auto& map = get_first_component<MapComponent>(r);
 
@@ -21,6 +22,7 @@ move_entity_on_map(entt::registry& r, const entt::entity src_e, const glm::ivec2
   const auto src_idx = convert_position_to_index(map, src);
   const auto dst_idx = convert_position_to_index(map, dst);
 
+  /*
   // remove from current gridpos
   const auto hmm =
     std::remove_if(map.map[src_idx].begin(), map.map[src_idx].end(), [&src_e](const entt::entity a) { return a == src_e; });
@@ -37,6 +39,18 @@ move_entity_on_map(entt::registry& r, const entt::entity src_e, const glm::ivec2
       fmt::println("warning.. map contains invalid entity. check this out!");
     return invalid;
   });
+  */
+
+  map.map[src_idx] = entt::null;
+
+  if (map.map[dst_idx] != entt::null) {
+    auto& tag = r.get<TagComponent>(map.map[dst_idx]);
+    fmt::println("warning: dst not clear for move. Tag: {}", tag.tag);
+    return;
+  }
+  map.map[dst_idx] = src_e;
+
+  // set_position(r, src_e, dst);
 };
 
 int
@@ -71,7 +85,7 @@ get_lowest_cost_neighbour(entt::registry& r, const MapComponent& map, const int 
       idx_to_cost.push_back({ n_idx, -1 });
       continue; // impassable
     }
-
+    /*
     auto& map_entries = map.map[n_idx];
     for (const auto& map_e : map_entries) {
       if (!r.valid(map_e))
@@ -84,6 +98,15 @@ get_lowest_cost_neighbour(entt::registry& r, const MapComponent& map, const int 
     // destination has no cost, because it has nothing there.
     if (map_entries.size() == 0)
       idx_to_cost.push_back({ n_idx, 0 });
+    */
+
+    const entt::entity entry = map.map[n_idx];
+    if (entry == entt::null) // nothing there
+      idx_to_cost.push_back({ n_idx, 0 });
+    else {
+      const auto& pathfinding_c = r.get<PathfindComponent>(entry);
+      idx_to_cost.push_back({ n_idx, pathfinding_c.cost });
+    }
   }
 
   // sort with lowest cost
@@ -172,7 +195,8 @@ update_entity_path(entt::registry& r, const entt::entity src_e, const std::vecto
   path_c.path_cleared.resize(path.size());
   r.emplace_or_replace<GeneratedPathComponent>(src_e, path_c);
 
-  move_entity_on_map(r, src_e, dst);
+  // immediately move from source to end of path?
+  // move_entity_on_map(r, src_e, dst);
 };
 
 } // namespace game2d

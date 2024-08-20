@@ -3,12 +3,16 @@
 #include "colour/colour.hpp"
 
 #include <entt/entt.hpp>
+#include <glm/fwd.hpp>
 #include <glm/glm.hpp>
 
 namespace game2d {
 
 [[nodiscard]] glm::vec2
 get_position(entt::registry& r, const entt::entity e);
+
+[[nodiscard]] glm::ivec2
+get_grid_position(entt::registry& r, const entt::entity e);
 
 void
 set_position(entt::registry& r, const entt::entity e, const glm::vec2& pos);

@@ -295,7 +295,7 @@ update(engine::SINGLETON_Application& app, entt::registry& r, const float dt)
     // core
     update_camera_system(r, dt);
     update_audio_system(r);
-    update_cursor_system(r, mouse_pos);
+    // update_cursor_system(r, mouse_pos);
 
     // systems
     const auto& state = get_first_component<SINGLETON_GameStateComponent>(r);
@@ -340,7 +340,7 @@ update(engine::SINGLETON_Application& app, entt::registry& r, const float dt)
       update_screenshake_system(r, app.ms_since_launch / 1000.0f, dt);
       update_fov_system(r, mouse_pos);
       update_combat_heal_system(r);
-      update_breach_charge_system(r, mouse_pos);
+      update_breach_charge_system(r, mouse_pos, dt);
       update_go_from_jetpack_to_dungeon_system(r);
     }
 

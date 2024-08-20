@@ -6,7 +6,6 @@
 #include "events/components.hpp"
 #include "events/helpers/keyboard.hpp"
 #include "events/helpers/mouse.hpp"
-#include "helpers/line.hpp"
 #include "maths/grid.hpp"
 #include "maths/maths.hpp"
 #include "modules/actor_player/components.hpp"
@@ -17,12 +16,13 @@
 #include "modules/gen_dungeons//helpers.hpp"
 #include "modules/gen_dungeons/components.hpp"
 #include "modules/gen_dungeons/helpers.hpp"
-#include "modules/gen_dungeons/helpers/gen_players.hpp"
 #include "modules/grid/components.hpp"
 #include "modules/scene/helpers.hpp"
 #include "modules/system_change_gun_z_index/helpers.hpp"
+#include "modules/system_fov/components.hpp"
 #include "modules/system_move_to_target_via_lerp/components.hpp"
 #include "modules/ui_combat_turnbased/components.hpp"
+#include "modules/ui_inventory/components.hpp"
 #include "modules/ux_hoverable/components.hpp"
 #include "physics/components.hpp"
 #include "sprites/helpers.hpp"
@@ -59,12 +59,12 @@ update_gen_dungeons_system(entt::registry& r, const glm::ivec2& mouse_pos)
       std::vector<Room> rooms;
       for (const auto& [e, room] : r.view<Room>().each())
         rooms.push_back(room);
-      ImGui::Text("Rooms: %i", rooms.size());
+      ImGui::Text("Rooms: %zu", rooms.size());
 
       std::vector<Tunnel> tunnels;
       for (const auto& [e, t] : r.view<Tunnel>().each())
         tunnels.push_back(t);
-      ImGui::Text("Tunnels: %i", tunnels.size());
+      ImGui::Text("Tunnels: %zu", tunnels.size());
 
       // for (const auto& [e, t_c] : r.view<Tunnel>().each()) {
       //   ImGui::Separator();
@@ -108,6 +108,14 @@ update_gen_dungeons_system(entt::registry& r, const glm::ivec2& mouse_pos)
         const auto offset = glm::vec2{ map.tilesize / 2.0f, map.tilesize / 2.0f };
         set_position(r, get_first<PlayerComponent>(r), worldpos + offset);
       }
+
+      ImGui::SeparatorText("Map");
+      const auto mouse_idx = engine::grid::grid_position_to_clamped_index(grid_pos, map.xmax, map.ymax);
+      ImGui::Text("Clamped idx: %i", mouse_idx);
+      const auto idx_is_null = map.map[mouse_idx] == entt::null;
+      ImGui::Text("Map ent is null: %i", idx_is_null);
+      ImGui::Text("Map ent is visible: %i", !idx_is_null && r.try_get<VisibleComponent>(map.map[mouse_idx]) != nullptr);
+      ImGui::Text("Map ent is hovered: %i", !idx_is_null && r.try_get<HoveredComponent>(map.map[mouse_idx]) != nullptr);
     }
 
     ImGui::End();
@@ -127,7 +135,7 @@ update_gen_dungeons_system(entt::registry& r, const glm::ivec2& mouse_pos)
     fmt::println("not generating dungeon. OverworldToDungeonInfo not set.");
     return;
   }
-  const auto& data = r.get<OverworldToDungeonInfo>(data_e);
+  // const auto& data = r.get<OverworldToDungeonInfo>(data_e);
   fmt::println("generating dungeon... todo: generate of a certain strength");
 
   // static int seed = 0;
@@ -146,7 +154,7 @@ update_gen_dungeons_system(entt::registry& r, const glm::ivec2& mouse_pos)
   map.tilesize = 50;
   map.xmax = map_width / map.tilesize;
   map.ymax = map_height / map.tilesize;
-  map.map.resize(map.xmax * map.ymax);
+  map.map.resize(map.xmax * map.ymax, entt::null);
 
   DungeonGenerationCriteria dungeon_parameters;
   dungeon_parameters.max_rooms = 30;
@@ -165,12 +173,17 @@ update_gen_dungeons_system(entt::registry& r, const glm::ivec2& mouse_pos)
   // they get put in the map.edges
   generate_edges(r, map, result);
 
-  // Update pathfinding
+  // Update pathfinding with walls
   for (int idx = 0; idx < map.xmax * map.ymax; idx++) {
     if (result.wall_or_floors[idx] == 1) {
-      auto& ents = map.map[idx];
       const auto e = create_empty<PathfindComponent>(r, { PathfindComponent{ -1 } });
-      ents.push_back(e);
+
+      if (map.map[idx] != entt::null) {
+        fmt::println("ERROR: wall index isnt empty");
+        exit(1); // crash
+      }
+
+      map.map[idx] = e;
     }
   }
 
@@ -198,21 +211,19 @@ update_gen_dungeons_system(entt::registry& r, const glm::ivec2& mouse_pos)
   set_generated_entity_positions(r, result, rnd);
 
   // set_player_positions(r, result, rnd);
-  // create_empty<CameraFreeMove>(r);
 
-  const auto player_e = create_gameplay(r, EntityType::actor_spaceship, { -100, -100 });
-  r.emplace<PlayerComponent>(player_e);
-  r.emplace<TeamComponent>(player_e, AvailableTeams::player);
-  r.emplace<InputComponent>(player_e);
-  r.emplace<KeyboardComponent>(player_e);
-  r.emplace<DefaultColour>(player_e, engine::SRGBColour{ 255, 255, 117, 1.0f });
-  add_particles(r, player_e);
-  // movement
-  r.get<PhysicsBodyComponent>(player_e).base_speed = 100.0f;
-  r.emplace<MovementJetpackComponent>(player_e);
-  r.emplace<CameraFollow>(player_e);
-  set_sprite(r, player_e, "PERSON_25_0");
-  set_size(r, player_e, { 32, 32 });
+  const auto e = create_gameplay(r, EntityType::actor_jetpack_player, { -100, -100 });
+  r.emplace<CameraFollow>(e);
+  r.get<PhysicsBodyComponent>(e).base_speed = 100.0f;
+  // make it a controlled player
+  r.emplace<PlayerComponent>(e);
+  r.emplace<TeamComponent>(e, AvailableTeams::player);
+  r.emplace<InputComponent>(e);
+  r.emplace<KeyboardComponent>(e);
+  // give the player in the jet-pack stage their inventory
+  r.emplace<DefaultBody>(e, DefaultBody(r));
+  r.emplace<DefaultInventory>(e, DefaultInventory(r, 6 * 5));
+  r.emplace<InitBodyAndInventory>(e);
 
   // give helmet to breathe
   const auto helmet_e = create_transform(r);

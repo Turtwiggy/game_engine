@@ -229,17 +229,14 @@ update_player_controller_system(entt::registry& r, const uint64_t& milliseconds_
     //   r.emplace_or_replace<WantsToPickUp>(entity);
     // if (input.drop)
     //   r.emplace_or_replace<WantsToDrop>(entity);
-    if (input.shoot)
-      r.emplace_or_replace<WantsToShoot>(entity);
-
-    if (input.shoot_release)
-      r.emplace_or_replace<WantsToReleaseShot>(entity);
-
-    if (input.sprint)
-      r.emplace_or_replace<WantsToSprint>(entity);
-
-    if (input.sprint_release)
-      r.emplace_or_replace<WantsToReleaseSprint>(entity);
+    // if (input.shoot)
+    //   r.emplace_or_replace<WantsToShoot>(entity);
+    // if (input.shoot_release)
+    //   r.emplace_or_replace<WantsToReleaseShot>(entity);
+    // if (input.sprint)
+    //   r.emplace_or_replace<WantsToSprint>(entity);
+    // if (input.sprint_release)
+    //   r.emplace_or_replace<WantsToReleaseSprint>(entity);
   }
 
   update_movement_asteroids(r, milliseconds_dt);

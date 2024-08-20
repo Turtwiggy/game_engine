@@ -30,7 +30,7 @@ struct MapComponent
   int ymax = 10;
   int tilesize = 50;
 
-  std::vector<std::vector<entt::entity>> map;
+  std::vector<entt::entity> map;
   std::vector<Edge> edges;
 };
 

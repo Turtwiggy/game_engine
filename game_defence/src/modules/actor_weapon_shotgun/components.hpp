@@ -33,4 +33,9 @@ struct BulletComponent
   bool bounce_bullet_on_wall_collision = false;
 };
 
+struct GunStaticTargetComponent
+{
+  std::optional<glm::vec2> target = std::nullopt;
+};
+
 } // namespace game2d

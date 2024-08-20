@@ -7,13 +7,15 @@
 #include "helpers/line.hpp"
 #include "maths/grid.hpp"
 #include "maths/maths.hpp"
+#include "modules/actor_enemy/components.hpp"
 #include "modules/actors/helpers.hpp"
 #include "modules/combat_damage/components.hpp"
+#include "modules/combat_wants_to_shoot/components.hpp"
 #include "modules/gen_dungeons/helpers/collisions.hpp"
 #include "modules/grid/components.hpp"
+#include "modules/grid/helpers.hpp"
 #include "modules/scene/helpers.hpp"
-#include "modules/ui_combat_turnbased/components.hpp"
-#include "modules/ui_worldspace_text/components.hpp"
+#include "modules/ux_hoverable/components.hpp"
 #include "renderer/components.hpp"
 
 #include <algorithm>
@@ -320,10 +322,25 @@ set_generated_entity_positions(entt::registry& r, DungeonGenerationResults& resu
     const glm::ivec2 offset = { map_c.tilesize / 2.0f, map_c.tilesize / 2.0f };
     const glm::ivec2 pos = worldspace + offset;
 
+    // actor_dungeon description
     CombatEntityDescription desc;
     desc.position = pos;
     desc.team = AvailableTeams::enemy;
-    create_combat_entity(r, desc);
+
+    // old create_combat_entity();
+    {
+      const auto e = create_gameplay(r, EntityType::actor_dungeon, pos);
+      move_entity_on_map(r, e, pos);
+      r.emplace_or_replace<TeamComponent>(e, TeamComponent{ desc.team });
+      r.emplace<StaticTargetComponent>(e);
+      r.emplace<HoveredColour>(e, engine::SRGBColour{ 1.0f, 0.0f, 0.0f, 1.0f });
+      r.emplace_or_replace<EnemyComponent>(e);
+      r.get<HealthComponent>(e).hp = 50;
+      r.get<HealthComponent>(e).max_hp = 50;
+
+      const auto weapon_e = add_weapon_shotgun(r, e);
+      r.emplace<AbleToShoot>(weapon_e);
+    }
 
     room_idx_to_spawn++;
     room_idx_to_spawn %= rooms.size();
@@ -673,6 +690,8 @@ instantiate_edges(entt::registry& r, MapComponent& map)
 
     // handle off the grid case...
     if (edge.b_idx == -1) {
+
+      // convert invalid index to grid position
       const glm::ivec2 xy = engine::grid::index_to_grid_position(edge.a_idx, map.xmax, map.ymax);
       glm::ivec2 gp{ 0, 0 };
       if (xy.x == 0)
@@ -683,6 +702,7 @@ instantiate_edges(entt::registry& r, MapComponent& map)
         gp = { xy.x + 1, xy.y };
       if (xy.y == map.ymax)
         gp = { xy.x, xy.y + 1 };
+
       gb = engine::grid::grid_space_to_world_space(gp, map.tilesize) + offset;
     } else
       gb = engine::grid::index_to_world_position(edge.b_idx, map.xmax, map.ymax, map.tilesize) + offset;

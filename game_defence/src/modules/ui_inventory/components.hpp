@@ -40,6 +40,7 @@ enum class ItemType
 
   // weapons
   scrap_shotgun,
+  breach_charge,
 
   bullettype_default,
   bullettype_bouncy,
@@ -73,6 +74,7 @@ struct ItemComponent
 //   { ItemType::scrap_legs, { InventorySlotType::legs, InventorySlotType::backpack } },
 // };
 
+// ui icons
 const static std::unordered_map<ItemType, std::string> item_to_sprite_map{
   { ItemType::scrap, "SCRAP" },
   { ItemType::head_protection, "HELMET_5" },
@@ -82,6 +84,7 @@ const static std::unordered_map<ItemType, std::string> item_to_sprite_map{
   { ItemType::scrap_shotgun, "WEAPON_SHOTGUN" },
   { ItemType::bullettype_default, "AMMO_BOX" },
   { ItemType::bullettype_bouncy, "AMMO_BOX" },
+  { ItemType::breach_charge, "WEAPON_GRENADE" },
 };
 
 struct DefaultBody

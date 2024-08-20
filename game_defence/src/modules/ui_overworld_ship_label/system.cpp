@@ -1,11 +1,8 @@
 #include "system.hpp"
 
 #include "colour/colour.hpp"
-#include "entt/helpers.hpp"
 #include "maths/maths.hpp"
-#include "modules/camera/components.hpp"
 #include "modules/camera/helpers.hpp"
-#include "modules/system_distance_check/components.hpp"
 #include "modules/ui_overworld_ship_label/components.hpp"
 #include "renderer/transform.hpp"
 

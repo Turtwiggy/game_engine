@@ -15,6 +15,8 @@
 
 #include "imgui.h"
 
+#include <fmt/core.h>
+
 namespace game2d {
 using namespace std::literals;
 
@@ -32,34 +34,33 @@ update_entered_new_room_system(entt::registry& r, const float dt)
 
   const auto& view = r.view<const PlayerComponent>();
   for (const auto& [e, player] : view.each()) {
+    const auto eid = static_cast<uint32_t>(e);
     const auto player_pos = get_position(r, e);
     const auto player_gridspace = engine::grid::worldspace_to_grid_space(player_pos, map.tilesize);
-
     const auto [in_room, room] = inside_room(map, dungeon.rooms, player_gridspace);
 
     auto& player_in_room = r.get_or_emplace<PlayerInRoomComponent>(e);
-    if (in_room) {
-      // player was never in a room
-      if (!player_in_room.room_tl.has_value()) {
-        // boom! entered a new room
-        PlayerEnteredNewRoom data;
-        data.player = e;
-        data.room = room.value();
-        create_empty<PlayerEnteredNewRoom>(r, data);
-        player_in_room.room_tl = room->tl;
-      }
-      // player entered a new room...
-      if (player_in_room.room_tl.has_value() && player_in_room.room_tl.value() != room->tl) {
-        // boom! entered a new room
-        PlayerEnteredNewRoom data;
-        data.player = e;
-        data.room = room.value();
-        create_empty<PlayerEnteredNewRoom>(r, data);
-        player_in_room.room_tl = room.value().tl;
-      }
-    }
     if (!in_room)
       player_in_room.room_tl = std::nullopt;
+
+    const bool player_already_in_room = player_in_room.room_tl.has_value();
+    if (in_room && !player_already_in_room) {
+      fmt::println("player {} entered new room (a)", eid);
+      PlayerEnteredNewRoom data;
+      data.player = e;
+      data.room = room.value();
+      create_empty<PlayerEnteredNewRoom>(r, data);
+      player_in_room.room_tl = room->tl;
+    }
+
+    if (in_room && player_already_in_room && player_in_room.room_tl.value() != room->tl) {
+      fmt::println("player {} entered new room (b)", eid);
+      PlayerEnteredNewRoom data;
+      data.player = e;
+      data.room = room.value();
+      create_empty<PlayerEnteredNewRoom>(r, data);
+      player_in_room.room_tl = room->tl;
+    }
   }
 
   //

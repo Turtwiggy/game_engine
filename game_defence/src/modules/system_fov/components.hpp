@@ -21,4 +21,9 @@ struct SeenComponent
   bool placeholder = true;
 };
 
+struct RequestUpdateFOV
+{
+  bool placeholder = true;
+};
+
 } // namespace game2d

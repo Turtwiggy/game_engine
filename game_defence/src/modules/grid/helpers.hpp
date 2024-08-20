@@ -10,7 +10,7 @@
 namespace game2d {
 
 void
-move_entity_on_map(entt::registry& r, const entt::entity src_e, const glm::ivec2& worldspace_pos);
+move_entity_on_map(entt::registry& r, const entt::entity src_e, const glm::vec2& worldspace_pos);
 
 int
 get_lowest_cost_neighbour(entt::registry& r, const MapComponent& map, const int src_idx, const entt::entity e);

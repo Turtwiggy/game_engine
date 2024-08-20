@@ -6,7 +6,7 @@
 #include "maths/grid.hpp"
 #include "maths/maths.hpp"
 #include "modules/actor_enemy/components.hpp"
-#include "modules/actor_player/components.hpp"
+#include "modules/actor_weapon_shotgun/components.hpp"
 #include "modules/actors/helpers.hpp"
 #include "modules/algorithm_astar_pathfinding/helpers.hpp"
 #include "modules/combat_damage/components.hpp"
@@ -16,11 +16,8 @@
 #include "modules/grid/components.hpp"
 #include "modules/grid/helpers.hpp"
 #include "modules/system_turnbased/components.hpp"
-#include "physics/helpers.hpp"
 
-#include <algorithm>
-
-// #include "imgui.h"
+#include <fmt/core.h>
 
 namespace game2d {
 
@@ -104,7 +101,7 @@ move_action(entt::registry& r, const entt::entity e)
       static engine::RandomState rnd;
 
       if (!e_room.has_value())
-        return; // TO FIX: entity moved outside a room?
+        return; // TO FIX: if moved outside a room?
 
       const auto room = e_room.value();
       const int x = int(engine::rand_det_s(rnd.rng, room.tl.x, room.tl.x + room.aabb.size.x));
@@ -130,12 +127,12 @@ move_action(entt::registry& r, const entt::entity e)
 }
 
 void
-shoot_action(entt::registry& r, const entt::entity e)
+enemy_shoot_action(entt::registry& r, const entt::entity e)
 {
   // shoot if possible!
   const auto players = get_players_in_room(r, e);
   if (players.size() > 0) {
-    r.emplace_or_replace<StaticTargetComponent>(e, get_position(r, players[0]));
+    r.emplace_or_replace<GunStaticTargetComponent>(e, get_position(r, players[0]));
     r.emplace<WantsToShoot>(e);
   }
 }
@@ -180,15 +177,20 @@ update_turnbased_enemy_system(entt::registry& r)
       if (at_dest) {
         actions_available--;
         actions_completed = 2;
-        shoot_action(r, e);
+        enemy_shoot_action(r, e);
       }
     }
 
     const bool waiting_to_shoot = r.try_get<WantsToShoot>(e) != nullptr;
+    const bool allowed_to_shoot = r.try_get<AbleToShoot>(e) != nullptr;
 
     // require all enemies to have done all actions
     all_enemies_fully_done &= actions_available == 0;
     all_enemies_fully_done &= !waiting_to_shoot;
+
+    // if (waiting_to_shoot && !allowed_to_shoot) {
+    //   fmt::println("Potential AI error: waiting to shoot but cant shoot.");
+    // }
 
     // ImGui::PopID();
     if (one_at_a_time)

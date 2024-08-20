@@ -11,6 +11,7 @@
 #include "modules/combat_wants_to_shoot/components.hpp"
 #include "modules/renderer/components.hpp"
 #include "modules/renderer/helpers.hpp"
+#include "modules/scene/helpers.hpp"
 #include "modules/ui_inventory/components.hpp"
 #include "modules/ui_inventory/helpers.hpp"
 
@@ -175,14 +176,19 @@ update_ui_inventory_system(entt::registry& r)
       r.get<InventorySlotComponent>(body_c.body[3]).item_e = create_item(r, body_c.body[3], ItemType::arm_protection);
       r.get<InventorySlotComponent>(body_c.body[4]).item_e = create_item(r, body_c.body[4], ItemType::leg_protection);
       r.get<InventorySlotComponent>(body_c.body[5]).item_e = create_item(r, body_c.body[5], ItemType::leg_protection);
-      r.get<InventorySlotComponent>(body_c.body[6]).item_e = create_item(r, body_c.body[6], ItemType::scrap_shotgun);
-      r.get<InventorySlotComponent>(body_c.body[7]).item_e = create_item(r, body_c.body[7], ItemType::bullettype_default);
+      r.get<InventorySlotComponent>(body_c.body[6]).item_e = create_item(r, body_c.body[6], ItemType::breach_charge);
 
-      // init inventory
-      r.get<InventorySlotComponent>(inv_c.inv[inv_c.inv.size() - 1]).item_e =
-        create_item(r, inv_c.inv[inv_c.inv.size() - 1], ItemType::scrap);
-      r.get<InventorySlotComponent>(inv_c.inv[inv_c.inv.size() - 2]).item_e =
-        create_item(r, inv_c.inv[inv_c.inv.size() - 2], ItemType::bullettype_bouncy);
+      // initial items in your inventory
+      const auto inv_1_e = inv_c.inv[inv_c.inv.size() - 1];
+      const auto inv_2_e = inv_c.inv[inv_c.inv.size() - 2];
+      const auto inv_3_e = inv_c.inv[inv_c.inv.size() - 3];
+      const auto inv_4_e = inv_c.inv[inv_c.inv.size() - 4];
+      const auto inv_5_e = inv_c.inv[inv_c.inv.size() - 5];
+      r.get<InventorySlotComponent>(inv_1_e).item_e = create_item(r, inv_1_e, ItemType::scrap);
+      r.get<InventorySlotComponent>(inv_2_e).item_e = create_item(r, inv_2_e, ItemType::scrap_shotgun);
+      r.get<InventorySlotComponent>(inv_3_e).item_e = create_item(r, inv_3_e, ItemType::bullettype_bouncy);
+      r.get<InventorySlotComponent>(inv_4_e).item_e = create_item(r, inv_4_e, ItemType::bullettype_default);
+      r.get<InventorySlotComponent>(inv_5_e).item_e = create_item(r, inv_5_e, ItemType::breach_charge);
     }
 
     // Four cases to handle here.
@@ -191,24 +197,24 @@ update_ui_inventory_system(entt::registry& r)
     // UI: yes. Instance: no. spawn.
     // UI: no. Instance: yes. destroy.
     const auto slots = get_slots(r, e, InventorySlotType::gun);
-    const bool ui_has_gun = r.get<InventorySlotComponent>(slots[0]).item_e != entt::null;
+    const auto ui_gun_slot_e = r.get<InventorySlotComponent>(slots[0]);
+    const bool ui_has_gun =
+      ui_gun_slot_e.item_e != entt::null && r.get<ItemComponent>(ui_gun_slot_e.item_e).type == ItemType::scrap_shotgun;
     auto* has_weapon = r.try_get<HasWeaponComponent>(e);
     const bool gun_has_instance = has_weapon && has_weapon->instance != entt::null;
 
     // spawn
     if (ui_has_gun && !gun_has_instance) {
       // create weapon
-      // TODO: create the correct weapon spawn from inventory item type, not just weapon_shotgun
-      const auto weapon = create_gameplay(r, EntityType::weapon_shotgun, get_position(r, e));
-      const auto& player_team_c = r.get<TeamComponent>(e);
-      r.emplace_or_replace<TeamComponent>(weapon, player_team_c.team);
-      // setup weapon
-      auto& weapon_parent = r.get<HasParentComponent>(weapon);
-      weapon_parent.parent = e;
-      // link player&weapon
-      HasWeaponComponent has_weapon;
-      has_weapon.instance = weapon;
-      r.emplace<HasWeaponComponent>(e, has_weapon);
+      // create the correct weapon spawn from inventory item type
+
+      const auto item_type = r.get<ItemComponent>(ui_gun_slot_e.item_e).type;
+      if (item_type == ItemType::scrap_shotgun)
+        add_weapon_shotgun(r, e);
+
+      if (item_type == ItemType::breach_charge) {
+        // dont do anything, but breach charge system is now active
+      }
     }
 
     // destroy
@@ -219,15 +225,19 @@ update_ui_inventory_system(entt::registry& r)
     }
 
     // Ammo. Two cases.
-    // UI: must have gun in gun slot
+    // UI: gun in slot.
     // Instance: must exist.
     // Ammo: must exist in slot.
     // Add/remove abletoshoot component.
+
     const auto ammo_slots = get_slots(r, e, InventorySlotType::bullet);
-    const auto ui_ammo_slot = r.get<InventorySlotComponent>(slots[0]);
+    const auto ui_ammo_slot = r.get<InventorySlotComponent>(ammo_slots[0]);
     const bool ui_has_ammo = ui_ammo_slot.item_e != entt::null;
-    if (ui_has_gun && gun_has_instance)
+
+    if (ui_has_gun && gun_has_instance && ui_has_ammo)
       r.emplace_or_replace<AbleToShoot>(has_weapon->instance);
+    if (ui_has_gun && gun_has_instance && !ui_has_ammo)
+      remove_if_exists<AbleToShoot>(r, has_weapon->instance);
 
     // Ammo. Set bullet type.
     if (ui_has_gun && gun_has_instance && ui_has_ammo) {

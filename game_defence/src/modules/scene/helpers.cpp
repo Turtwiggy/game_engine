@@ -61,54 +61,22 @@ using namespace std::literals;
 using json = nlohmann::json;
 
 entt::entity
-create_combat_entity(entt::registry& r, const CombatEntityDescription& desc)
+add_weapon_shotgun(entt::registry& r, const entt::entity& e)
 {
-  const auto& pos = desc.position;
-
-  // base entity
-  const auto e = create_gameplay(r, EntityType::actor_dungeon, pos);
-  move_entity_on_map(r, e, pos);
-  r.emplace_or_replace<TeamComponent>(e, TeamComponent{ desc.team });
-  set_collision_filters(r, e); // needs team_component
-
-  // movement. required for lerp?
-  r.emplace<StaticTargetComponent>(e);
-
   // setup weapon
-  const auto weapon = create_gameplay(r, EntityType::weapon_shotgun, get_position(r, e));
-  r.emplace_or_replace<TeamComponent>(weapon, TeamComponent{ desc.team });
+  const auto weapon_e = create_gameplay(r, EntityType::weapon_shotgun, get_position(r, e));
+  r.emplace_or_replace<TeamComponent>(weapon_e, TeamComponent{ r.get<TeamComponent>(e).team });
 
-  auto& weapon_parent = r.get<HasParentComponent>(weapon);
+  auto& weapon_parent = r.get<HasParentComponent>(weapon_e);
   weapon_parent.parent = e;
 
   // link player&weapon
   HasWeaponComponent has_weapon;
-  has_weapon.instance = weapon;
+  has_weapon.instance = weapon_e;
   r.emplace<HasWeaponComponent>(e, has_weapon);
 
-  if (desc.team == AvailableTeams::player) {
-    r.emplace<HoveredColour>(e, engine::SRGBColour{ 0.0f, 1.0f, 1.0f, 1.0f });
-    r.emplace_or_replace<PlayerComponent>(e);
-
-    // early days systems below
-    r.emplace<DefaultBody>(e, DefaultBody(r));
-    r.emplace<DefaultInventory>(e, DefaultInventory(r, 6 * 5));
-    r.emplace<InitBodyAndInventory>(e);
-  }
-
-  if (desc.team == AvailableTeams::enemy) {
-    r.emplace<HoveredColour>(e, engine::SRGBColour{ 1.0f, 0.0f, 0.0f, 1.0f });
-    r.emplace_or_replace<EnemyComponent>(e);
-    r.get<HealthComponent>(e).hp = 50;
-    r.get<HealthComponent>(e).max_hp = 50;
-
-    // all enemy weapons should be able to shoot?
-    r.emplace<AbleToShoot>(weapon);
-  }
-
-  set_sprite(r, e, "PERSON_25_0");
-  return e;
-}
+  return weapon_e;
+};
 
 void
 add_boundary_walls(entt::registry& r, const float w, const float h, const int tilesize)
@@ -461,8 +429,8 @@ move_to_scene_start(entt::registry& r, const Scene& s, const bool load_saved)
       // enemies = data.patrol_that_you_hit.strength;
     }
 
-    int players = 1;
-    int enemies = 1;
+    int players = 0;
+    int enemies = 0;
 
     // create player team
     for (int i = 0; i < players; i++) {
@@ -472,7 +440,6 @@ move_to_scene_start(entt::registry& r, const Scene& s, const bool load_saved)
       CombatEntityDescription desc;
       desc.position = pos;
       desc.team = AvailableTeams::player;
-      create_combat_entity(r, desc);
     }
 
     // place "root" enemy at "top right" of grid
@@ -486,7 +453,7 @@ move_to_scene_start(entt::registry& r, const Scene& s, const bool load_saved)
       desc.position = pos;
       desc.team = AvailableTeams::enemy;
       enemies--;
-      last_spawned_e = create_combat_entity(r, desc);
+      // last_spawned_e = create_combat_entity(r, desc);
     }
 
     // create enemy team
@@ -504,7 +471,7 @@ move_to_scene_start(entt::registry& r, const Scene& s, const bool load_saved)
       CombatEntityDescription desc;
       desc.position = pos;
       desc.team = AvailableTeams::enemy;
-      last_spawned_e = create_combat_entity(r, desc);
+      // last_spawned_e = create_combat_entity(r, desc);
     }
 
     // Debug object
@@ -522,8 +489,12 @@ move_to_scene_start(entt::registry& r, const Scene& s, const bool load_saved)
 
     const entt::entity barrel_e = create_gameplay(r, EntityType::actor_dungeon, pos);
 
+    /*
     std::vector<entt::entity>& ents = map.map[engine::grid::grid_position_to_index(gridpos, map.xmax)];
     ents.push_back(barrel_e);
+    */
+
+    map.map[engine::grid::grid_position_to_index(gridpos, map.xmax)] = barrel_e;
   }
 
   if (s == Scene::minigame_bamboo)

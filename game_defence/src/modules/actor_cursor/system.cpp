@@ -4,10 +4,7 @@
 #include "entt/helpers.hpp"
 #include "events/helpers/mouse.hpp"
 #include "lifecycle/components.hpp"
-#include "modules/actor_enemy/components.hpp"
 #include "modules/actors/helpers.hpp"
-#include "modules/ux_hoverable/components.hpp"
-#include "sprites/helpers.hpp"
 
 namespace game2d {
 
@@ -31,13 +28,6 @@ update_cursor_system(entt::registry& r, const glm::ivec2& mouse_pos)
 
   const auto& view = r.view<CursorComponent>(entt::exclude<WaitForInitComponent>);
   for (const auto& [entity, cursor] : view.each()) {
-
-    // Is the cursor hovering any enemies?
-    const auto& enemies_view = r.view<const HoveredComponent, const EnemyComponent>(entt::exclude<WaitForInitComponent>);
-    if (enemies_view.size_hint() > 0 && !held)
-      set_sprite(r, entity, "CURSOR_1");
-    else
-      set_sprite(r, entity, "EMPTY");
 
     // defaults
     glm::ivec2 size{ 0, 0 };

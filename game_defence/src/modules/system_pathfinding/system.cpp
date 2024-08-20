@@ -12,6 +12,8 @@
 
 #include "fmt/core.h"
 
+#include <algorithm>
+
 namespace game2d {
 
 void
@@ -26,15 +28,15 @@ update_pathfinding_system(entt::registry& r, const float& dt)
   // if something was killed, remove it from the map
   const auto& dead = get_first_component<SINGLETON_EntityBinComponent>(r);
   for (const auto& e : dead.dead) {
-    if (r.get<EntityTypeComponent>(e).type == EntityType::actor_dungeon) {
-      const auto gs = engine::grid::worldspace_to_grid_space(get_position(r, e), map.tilesize);
-      const auto idx = engine::grid::grid_position_to_index(gs, map.xmax);
-      // Warning: this nukes the entire gridcell.
-      // If there's multiple things in the cell,
-      // that could cause issues.
-      map.map[idx].clear();
 
-      fmt::println("map idx {} clearing", idx);
+    // remove it from the map
+    const auto& pred = [&e](const entt::entity& other) -> bool { return e == other; };
+    auto it = std::find_if(map.map.begin(), map.map.end(), pred);
+    if (it != map.map.end()) {
+      uint64_t index = it - map.map.begin();
+      if (map.map[index] == entt::null)
+        fmt::println("Map: dead entity was not in map?");
+      map.map[index] = entt::null;
     }
   }
 
