@@ -6,7 +6,7 @@
 
 [![Linux](https://github.com/Turtwiggy/game_engine/actions/workflows/linux.yml/badge.svg)](https://github.com/Turtwiggy/game_engine/actions/workflows/linux.yml)
 
-### Install
+### Install prerequisites
 
 - c++ compiler (MSVC, g++, clang)
   - `sudo apt install build-essential`
@@ -54,14 +54,14 @@ git submodule update --init --recursive
 sudo apt-get update
 
 # gdb
-sudo apt install gdb -y
+sudo apt install g++ gdb -y
 
 # vcpkg
 sudo apt-get install curl zip unzip tar pkg-config -y
 sudo apt install autoconf libtool linux-libc-dev -y
 
 # opengl
-sudo apt install libglu1-mesa-dev freeglut3-dev mesa-common-dev -y
+sudo apt install libgl1-mesa-dev libglu1-mesa-dev freeglut3-dev mesa-common-dev -y
 
 # glew
 sudo apt-get install libglew-dev libxmu-dev libxi-dev libgl-dev -y
@@ -69,8 +69,12 @@ sudo apt-get install libglew-dev libxmu-dev libxi-dev libgl-dev -y
 # sdl2
 sudo apt install libsdl2-dev libsdl2-2.0-0 -y
 
+# temporary to fix: https://github.com/microsoft/vcpkg/issues/37279
+sudo apt install python3-jinja2
+
 thirdparty/vcpkg/bootstrap-vcpkg.sh
 thirdparty/vcpkg/vcpkg install @vcpkg-x64-linux.txt
+
 ```
 
 ### Develop
@@ -84,3 +88,5 @@ I develop with visual studio code. You can open the .code-workspace using the C/
     CMake Tools by vector-of-bool
     This extension allows for configuring the CMake project and building it from within the Visual Studio Code IDE.
     VS Marketplace Link: https://marketplace.visualstudio.com/items?itemName=vector-of-bool.cmake-tools
+
+For a more complete list see [.vscode/extensions.json](.vscode/extensions.json)

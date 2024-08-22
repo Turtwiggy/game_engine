@@ -1,5 +1,5 @@
 
-function(get_packages)
+function(find_packages)
   # Add VCPKG packages
   if(EMSCRIPTEN)
   else()

@@ -9,7 +9,7 @@ void
 EntityPool::update(entt::registry& r, const int desired)
 {
   const int new_size = desired;
-  const size_t old_size = instances.size();
+  const int old_size = instances.size();
   if (new_size == old_size)
     return;
 

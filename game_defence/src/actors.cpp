@@ -71,7 +71,7 @@ create_sprite(entt::registry& r, const std::string& sprite, const EntityType& ty
 };
 
 std::string
-sprite_type_to_sprite(entt::registry& r, const EntityType& type)
+sprite_type_to_sprite(const EntityType& type)
 {
   const auto type_name = std::string(magic_enum::enum_name(type));
 
@@ -291,7 +291,7 @@ create_gameplay(entt::registry& r, const EntityType& type, const glm::vec2& posi
   r.emplace<EntityTypeComponent>(e, type);
   r.emplace<WaitForInitComponent>(e);
 
-  const auto sprite_name = sprite_type_to_sprite(r, type);
+  const auto sprite_name = sprite_type_to_sprite(type);
   const auto sc = create_sprite(r, sprite_name, type);
   r.emplace<SpriteComponent>(e, sc);
 

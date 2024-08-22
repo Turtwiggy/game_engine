@@ -131,7 +131,7 @@ update_pathfinding_system(entt::registry& r, const float& dt)
 
         // aim for the next gridtile path
         const int next_idx = i + 1;
-        const bool is_valid_next_index = next_idx <= path.path.size() - 1;
+        const bool is_valid_next_index = next_idx <= static_cast<int>(path.path.size()) - 1;
         if (is_valid_next_index) {
           const auto next_pos = path.path[next_idx];
           const auto target_pos = engine::grid::grid_space_to_world_space(next_pos, map.tilesize);
@@ -154,7 +154,7 @@ update_pathfinding_system(entt::registry& r, const float& dt)
       } else {
         // aim for the next gridtile
         const int next_idx = i + 1;
-        const bool is_valid_next_index = next_idx <= path.path.size() - 1;
+        const bool is_valid_next_index = next_idx <= static_cast<int>(path.path.size()) - 1;
         if (is_valid_next_index) {
           const auto next_pos = path.path[next_idx];
           const auto target_pos = engine::grid::grid_space_to_world_space(next_pos, map.tilesize);

@@ -25,7 +25,7 @@ generate_50_50(const glm::ivec2 xy, const int seed)
 std::vector<int>
 iterate_with_cell_automata(const std::vector<int>& in, const glm::ivec2& xy)
 {
-  assert(in.size() == xy.x * xy.y);
+  assert(in.size() == static_cast<size_t>(xy.x * xy.y));
 
   std::vector<int> results;
 
@@ -35,7 +35,7 @@ iterate_with_cell_automata(const std::vector<int>& in, const glm::ivec2& xy)
 
     int neighbours = 0;
 
-    for (const auto [dir, idx] : neighbours_idxs) {
+    for (const auto& [dir, idx] : neighbours_idxs) {
       const auto val = in[idx];
       neighbours += val;
     }

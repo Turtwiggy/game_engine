@@ -3,7 +3,6 @@
 using namespace game2d;
 
 #include "app/application.hpp"
-#include "app/io.hpp"
 #include "opengl/util.hpp"
 using namespace engine;
 

@@ -14,9 +14,9 @@ mouse_position_in_worldspace(entt::registry& r)
 {
   const auto& ri = get_first_component<SINGLETON_RendererInfo>(r);
   const auto& cameras = r.view<OrthographicCamera, TransformComponent>(entt::exclude<WaitForInitComponent>);
-  const auto mouse_pos = get_mouse_pos() - ri.viewport_pos;
+  const glm::vec2 mouse_pos = get_mouse_pos() - ri.viewport_pos;
 
-  glm::ivec2 camera_position;
+  glm::vec2 camera_position{ 0, 0 };
   for (auto [entity, camera, transform] : cameras.each())
     camera_position = { transform.position.x, transform.position.y };
 
@@ -27,7 +27,7 @@ mouse_position_in_worldspace(entt::registry& r)
     //
   };
 
-  const glm::ivec2 pos_in_worldspace = {
+  const glm::vec2 pos_in_worldspace = {
     camera_position.x + mouse_pos.x - xy.x,
     camera_position.y + mouse_pos.y - xy.y,
   };
@@ -43,7 +43,7 @@ position_in_worldspace(entt::registry& r, const glm::ivec2& game_pos)
 
   const auto screen_pos = game_pos - ri.viewport_pos;
 
-  glm::ivec2 camera_position;
+  glm::vec2 camera_position{ 0.0f, 0.0f };
   for (const auto& [entity, camera, transform] : cameras.each())
     camera_position = { transform.position.x, transform.position.y };
 

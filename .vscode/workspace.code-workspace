@@ -6,6 +6,7 @@
   ],
   "settings": {
     "clangd.checkUpdates": true,
+    "C_Cpp.intelliSenseEngine": "disabled",
 
     "files.associations": {
       "*.yarnproject": "jsonc",

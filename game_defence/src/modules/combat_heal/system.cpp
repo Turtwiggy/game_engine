@@ -7,7 +7,6 @@
 #include "events/helpers/keyboard.hpp"
 #include "modules/actor_player/components.hpp"
 #include "modules/combat_damage/components.hpp"
-#include "modules/system_turnbased/components.hpp"
 #include "modules/system_turnbased_enemy/components.hpp"
 
 #include <SDL_scancode.h>

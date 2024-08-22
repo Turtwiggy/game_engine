@@ -83,7 +83,6 @@ constexpr auto OPTICK_FRAME = [](const std::string& str) {}; // do nothing
 #endif
 
 #include <algorithm>
-#include <ranges>
 
 namespace game2d {
 using namespace std::literals;

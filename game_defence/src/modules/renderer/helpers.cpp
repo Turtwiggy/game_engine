@@ -78,19 +78,15 @@ render_texture_to_imgui_viewport(const int64_t& tex_id)
   }
 
   ImGuiWindowFlags viewport_flags = 0;
-  // viewport_flags |= ImGuiWindowFlags_NoMove;
-  // viewport_flags |= ImGuiWindowFlags_NoCollapse;
+  viewport_flags |= ImGuiWindowFlags_NoMove;
+  viewport_flags |= ImGuiWindowFlags_NoFocusOnAppearing;
+  viewport_flags |= ImGuiWindowFlags_NoBringToFrontOnFocus;
+  viewport_flags |= ImGuiWindowFlags_NoDecoration;
   // viewport_flags |= ImGuiWindowFlags_NoDocking;
-  // viewport_flags |= ImGuiWindowFlags_NoResize;
-  // viewport_flags |= ImGuiWindowFlags_NoFocusOnAppearing;
-  // viewport_flags |= ImGuiWindowFlags_NoBringToFrontOnFocus;
-  // visuals
-  // viewport_flags |= ImGuiWindowFlags_NoTitleBar;
-  // viewport_flags |= ImGuiWindowFlags_NoBackground;
 
   ImGuiWindowClass window_class;
-  // window_class.DockNodeFlagsOverrideSet |= ImGuiDockNodeFlags_AutoHideTabBar;
-  // window_class.DockNodeFlagsOverrideSet |= ImGuiDockNodeFlags_NoTabBar;
+  window_class.DockNodeFlagsOverrideSet |= ImGuiDockNodeFlags_AutoHideTabBar;
+  window_class.DockNodeFlagsOverrideSet |= ImGuiDockNodeFlags_NoTabBar;
   // window_class.DockNodeFlagsOverrideSet |= ImGuiDockNodeFlags_NoDocking;
   ImGui::SetNextWindowClass(&window_class);
 

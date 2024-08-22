@@ -1,7 +1,6 @@
 cmake_minimum_required(VERSION 3.5.0)
 set(CMAKE_CXX_STANDARD 20)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
-include(${CMAKE_SOURCE_DIR}/cmake/packages.cmake)
 
 # Note: CMAKE_SYSTEM_NAME should be: Emscripten NOT windows
 if(EMSCRIPTEN)
@@ -36,20 +35,19 @@ if(${CMAKE_SYSTEM_NAME} MATCHES "Darwin")
   endif()
 endif()
 
-if(CMAKE_SYSTEM_NAME MATCHES Linux)
-  message("setting cxx flags for linux...")
-  set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++20")
-endif()
-
 if(CMAKE_CXX_COMPILER_ID MATCHES GNU)
-  message("adding defs for gnu...")
+  message("setting cxx flags for gnu...")
 
-  add_definitions("-Wall")
-  add_definitions("-Wextra")
-  add_definitions("-Wformat")
-  add_definitions("-O2")
+  # set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Werror -Wpedantic")
+  set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++20 -Wno-unused-variable -Wno-unused-but-set-variable -Wno-unused-parameter")
+  set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wall -Wextra -Wformat")
 
-  # set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS}")
+  if(${CMAKE_BUILD_TYPE} MATCHES Debug)
+    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -g -O0")
+    add_definitions(-D_DEBUG)
+  else()
+    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -O2")
+  endif()
 endif()
 
 if(CMAKE_CXX_COMPILER_ID MATCHES MSVC)
@@ -73,12 +71,12 @@ message("game_defence: current_list_dir: ${CMAKE_CURRENT_LIST_DIR}")
 message("game_defence: source_dir: ${CMAKE_SOURCE_DIR}")
 message("index CMAKE_TOOLCHAIN_FILE: ${CMAKE_TOOLCHAIN_FILE}")
 
-get_packages()
+include(${CMAKE_SOURCE_DIR}/cmake/packages.cmake)
+find_packages()
 
 # Add source files
 include(${CMAKE_SOURCE_DIR}/cmake/imgui.cmake)
 include(${CMAKE_SOURCE_DIR}/cmake/optick.cmake)
-
 file(GLOB_RECURSE SRC_FILES
   ${IMGUI_SOURCE}
   ${OPTICK_SOURCE}
@@ -86,37 +84,9 @@ file(GLOB_RECURSE SRC_FILES
   ${CMAKE_SOURCE_DIR}/game_defence/src/*.cpp
 )
 
-if(${CMAKE_SYSTEM_NAME} STREQUAL "Windows")
-  message("creating build with icon...")
-
-  add_executable(game_defence
-    ${SRC_FILES}
-
-    # add icon to executable
-    ${CMAKE_SOURCE_DIR}/game_defence/assets/textures/resource.rc
-  )
-
-else()
-  message("creating build without icon...")
-
-  add_executable(game_defence ${SRC_FILES})
-endif()
-
-if(${CMAKE_SYSTEM_NAME} STREQUAL "Windows")
-  set(VCPKG_INCLUDES
-    ${CMAKE_CURRENT_LIST_DIR}/thirdparty/vcpkg/installed/x64-windows/include
-  )
-elseif(${CMAKE_SYSTEM_NAME} STREQUAL "Darwin")
-  set(VCPKG_INCLUDES
-    ${CMAKE_CURRENT_LIST_DIR}/thirdparty/vcpkg/installed/arm64-osx/include
-  )
-elseif(${CMAKE_SYSTEM_NAME} STREQUAL "Linux")
-  set(VCPKG_INCLUDES
-    ${CMAKE_CURRENT_LIST_DIR}/thirdparty/vcpkg/installed/x64-linux/include
-  )
-endif()
-
-# includes
+# Main executable
+add_executable(game_defence ${SRC_FILES})
+link_libs(game_defence)
 target_include_directories(game_defence PRIVATE
   ${IMGUI_INCLUDES}
   ${VCPKG_INCLUDES}
@@ -129,8 +99,6 @@ target_include_directories(game_defence PRIVATE
   ${CMAKE_SOURCE_DIR}/thirdparty/imgui-filebrowser
 )
 
-link_libs(game_defence)
-
 # rename executable
 if(EMSCRIPTEN)
 else()
@@ -138,45 +106,30 @@ else()
   set_target_properties(${PROJECT_NAME} PROPERTIES OUTPUT_NAME ${GAME_EXE_NAME})
 endif()
 
-IF(${CMAKE_SYSTEM_NAME} STREQUAL "Windows")
-  # Only do this for debug builds,
-  # as release builds should copy the folder over (not symlink)
-  IF(CMAKE_BUILD_TYPE MATCHES Debug)
-    message("creating symlink...")
-
-    # create symlink assets for build
-    set(src ${CMAKE_SOURCE_DIR}/game_defence/assets)
-    set(dst ${CMAKE_CURRENT_BINARY_DIR}/assets)
-    message("creating symlink src... ${src}")
-    message("creating symlink dst... ${dst}")
-
-    add_custom_command(
-      TARGET ${PROJECT_NAME} PRE_BUILD
-      COMMAND ${CMAKE_COMMAND} -E create_symlink ${src} ${dst}
-      DEPENDS ${dst}
-      COMMENT "symbolic link resources folder from ${src} => ${dst}"
-    )
-  endif()
+if(${CMAKE_SYSTEM_NAME} STREQUAL "Windows")
+  set(VCPKG_INCLUDES ${CMAKE_CURRENT_LIST_DIR}/thirdparty/vcpkg/installed/x64-windows/include)
+elseif(${CMAKE_SYSTEM_NAME} STREQUAL "Darwin")
+  set(VCPKG_INCLUDES ${CMAKE_CURRENT_LIST_DIR}/thirdparty/vcpkg/installed/arm64-osx/include)
+elseif(${CMAKE_SYSTEM_NAME} STREQUAL "Linux")
+  set(VCPKG_INCLUDES ${CMAKE_CURRENT_LIST_DIR}/thirdparty/vcpkg/installed/x64-linux/include)
 endif()
 
-IF(${CMAKE_SYSTEM_NAME} STREQUAL "Darwin")
-  # Only do this for debug builds,
-  # as release builds should copy the folder over (not symlink)
-  IF(${CMAKE_BUILD_TYPE} MATCHES Debug)
-    message("creating symlink...")
+# Only do this for debug builds,
+# as release builds should copy the folder over (not symlink)
+IF(NOT EMSCRIPTEN AND ${CMAKE_BUILD_TYPE} MATCHES Debug)
+  message("creating symlink...")
 
-    set(src ${CMAKE_SOURCE_DIR}/game_defence/assets)
-    set(dst ${CMAKE_CURRENT_BINARY_DIR}/assets)
-    message("creating symlink src... ${src}")
-    message("creating symlink dst... ${dst}")
+  set(src ${CMAKE_SOURCE_DIR}/game_defence/assets)
+  set(dst ${CMAKE_CURRENT_BINARY_DIR}/assets)
+  message("creating symlink src... ${src}")
+  message("creating symlink dst... ${dst}")
 
-    add_custom_command(
-      TARGET ${PROJECT_NAME} PRE_BUILD
-      COMMAND ${CMAKE_COMMAND} -E create_symlink ${src} ${dst}
-      DEPENDS ${dst}
-      COMMENT "symbolic link resources folder from ${src} => ${dst}"
-    )
-  endif()
+  add_custom_command(
+    TARGET ${PROJECT_NAME} PRE_BUILD
+    COMMAND ${CMAKE_COMMAND} -E create_symlink ${src} ${dst}
+    DEPENDS ${dst}
+    COMMENT "symbolic link resources folder from ${src} => ${dst}"
+  )
 endif()
 
 IF(EMSCRIPTEN)
@@ -199,4 +152,6 @@ endif()
 
 set(CPACK_PROJECT_NAME ${PROJECT_NAME})
 set(CPACK_PROJECT_VERSION ${PROJECT_VERSION})
+set(CPACK_PACKAGE_DESCRIPTION "Super cool things")
+set(CPACK_GENERATOR "ZIP") # Generate zip files
 include(CPack)

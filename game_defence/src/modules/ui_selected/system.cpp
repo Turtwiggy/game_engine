@@ -24,7 +24,7 @@ update_ui_selected(entt::registry& r)
     selected++;
 
   // create ui
-  for (int i = selected; i > ui.instantiated_ui.size(); i--) {
+  for (int i = selected; i > static_cast<int>(ui.instantiated_ui.size()); i--) {
     const auto new_ui = create_transform(r);
 
     // set outline sprite
@@ -35,7 +35,7 @@ update_ui_selected(entt::registry& r)
   }
 
   // destroy ui
-  for (auto i = ui.instantiated_ui.size(); i > selected; i--) {
+  for (int i = static_cast<int>(ui.instantiated_ui.size()); i > selected; i--) {
     const auto idx = i - 1;
     auto entity = ui.instantiated_ui[idx];
     r.destroy(entity); // fine because no aabb

@@ -9,6 +9,11 @@
       // "--headless"
     ]
   },
+
+  // boom boom
+  // parallel can cause issues with gcov/lcov
+  "cmake.parallelJobs": 32,
+
   "editor.formatOnSave": true,
   "editor.showUnused": true,
   "editor.showDeprecated": true,
@@ -23,7 +28,12 @@
   },
   "editor.bracketPairColorization.enabled": true,
 
-  "C_Cpp.default.intelliSenseMode": "windows-msvc-x64",
+  // "gcovViewer.highlightMissedLines": false,
+
+  // linux settings
+  "cmake.cmakePath": "/usr/bin/cmake",
+  "C_Cpp.default.intelliSenseMode": "linux-gcc-x64",
+
   "C_Cpp.intelliSenseEngine": "disabled",
   "C_Cpp.codeAnalysis.runAutomatically": true,
   "C_Cpp.codeAnalysis.clangTidy.enabled": true,

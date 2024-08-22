@@ -8,8 +8,6 @@
 
 namespace game2d {
 
-static bool clamp_to_grid = false;
-
 void
 update_cursor_system(entt::registry& r, const glm::ivec2& mouse_pos)
 {

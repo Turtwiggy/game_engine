@@ -1,0 +1,21 @@
+{
+  "recommendations": [
+    "aaron-bond.better-comments",
+    "donjayamanne.githistory",
+    "editorconfig.editorconfig",
+    "jacqueslucke.gcov-viewer",
+    "jeff-hykin.better-cpp-syntax",
+    "josetr.cmake-language-support-vscode",
+    "llvm-vs-code-extensions.vscode-clangd",
+    "mcu-debug.debug-tracker-vscode",
+    "mhutchie.git-graph",
+    "ms-vscode.cmake-tools",
+    "ms-vscode.cpptools",
+    "ms-vscode.cpptools-extension-pack",
+    "slevesque.shader",
+    "streetsidesoftware.code-spell-checker",
+    "timonwong.shellcheck",
+    "twxs.cmake",
+    "waderyan.gitblame"
+  ]
+}

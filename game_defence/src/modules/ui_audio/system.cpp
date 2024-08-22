@@ -32,7 +32,7 @@ update_ui_audio_system(entt::registry& r)
   }
 
   ImGui::Text("Audio Devices");
-  for (int i = 0; i < audio.devices.size(); i++)
+  for (size_t i = 0; i < audio.devices.size(); i++)
     ImGui::Text("Available: %s", audio.devices[i].c_str());
   ImGui::NewLine();
 
@@ -41,7 +41,7 @@ update_ui_audio_system(entt::registry& r)
   ImGui::NewLine();
 
   ImGui::Text("Select Audio Device");
-  for (int i = 0; i < audio.devices.size(); i++) {
+  for (size_t i = 0; i < audio.devices.size(); i++) {
 
     const std::string& name = audio.devices[i];
     const std::string label = std::string("Open ") + name;

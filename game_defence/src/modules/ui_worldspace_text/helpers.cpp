@@ -7,9 +7,9 @@ split_string_nearest_space(const std::string& str, const int& len)
 {
   std::vector<std::string> results;
 
-  int start = 0;
+  size_t start = 0;
   while (start < str.size()) {
-    int end = start + len;
+    size_t end = start + len;
 
     // Get the nearest ' ' char to the end of the sentence
     if (end < str.size() && str[end] != ' ') {

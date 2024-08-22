@@ -140,7 +140,7 @@ update_path_to_tile_next_to_player(entt::registry& r, const entt::entity src_e, 
   auto path = generate_direct(r, map, src_idx, chosen_neighbour_idx, map.edges);
 
   // make sure path.size() < limit
-  if (path.size() > limit) {
+  if (path.size() > static_cast<size_t>(limit)) {
     // return +1, as usually the first path[0] is the element the entity is currently standing on
     const std::vector<glm::ivec2> path_limited(path.begin(), path.begin() + limit + 1);
     path = path_limited;
@@ -165,7 +165,7 @@ generate_path(entt::registry& r, const entt::entity src_e, const glm::ivec2& wor
   auto path = generate_direct(r, map, src_idx, dst_idx, map.edges);
 
   // make sure path.size() < limit
-  if (path.size() > limit) {
+  if (path.size() > static_cast<size_t>(limit)) {
     // return +1, as usually the first path[0] is the element the entity is currently standing on
     const std::vector<glm::ivec2> path_limited(path.begin(), path.begin() + limit + 1);
     return path_limited;

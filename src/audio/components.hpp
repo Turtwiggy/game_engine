@@ -49,7 +49,7 @@ struct Sound
   SoundType type = SoundType::BACKGROUND;
 
   // ALuint result;
-  Mix_Chunk* buffer;
+  Mix_Chunk* buffer = nullptr;
 };
 
 struct SINGLETON_AudioComponent

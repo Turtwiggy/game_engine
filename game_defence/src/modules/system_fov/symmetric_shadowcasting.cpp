@@ -82,7 +82,7 @@ do_shadowcasting(entt::registry& r, const glm::ivec2& origin, const std::vector<
     const auto is_type = [&](const Tile& t, const TileType& type) -> bool {
       const auto [x, y] = transform(t, dir, origin);
       const auto idx = engine::grid::grid_position_to_index({ x, y }, map.xmax);
-      return walls_or_floors[idx] == static_cast<uint32_t>(type);
+      return walls_or_floors[idx] == static_cast<int>(type);
     };
     const auto is_wall = [&](const Tile& t) -> bool { return is_type(t, TileType::WALL); };
     const auto is_floor = [&](const Tile& t) -> bool { return is_type(t, TileType::FLOOR); };
