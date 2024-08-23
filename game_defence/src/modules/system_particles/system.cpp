@@ -1,14 +1,13 @@
 #include "system.hpp"
 
+#include "actors/actors.hpp"
 #include "components.hpp"
-#include "entt/helpers.hpp"
 #include "lifecycle/components.hpp"
 #include "maths/maths.hpp"
 #include "modules/actors/helpers.hpp"
 #include "modules/combat_attack_cooldown/components.hpp"
 #include "modules/combat_attack_cooldown/helpers.hpp"
 #include "modules/combat_wants_to_shoot/components.hpp"
-#include "modules/system_particles/helpers.hpp"
 #include "renderer/transform.hpp"
 
 namespace game2d {
@@ -18,11 +17,11 @@ update_particle_system(entt::registry& r, const float dt)
 {
   const auto spawn_particle = [&r](ParticleEmitterComponent& emitter, const entt::entity e) {
     // per-instance? seems bad
-    ParticleDescription particle_description = emitter.particle_to_emit;
+    Particle particle_description = emitter.particle_to_emit;
 
     // instead of spawning at emitter position, spawn at parent position
     if (auto* target_c = r.try_get<DynamicTargetComponent>(e))
-      particle_description.position = get_position(r, target_c->target);
+      particle_description.pos = get_position(r, target_c->target);
 
     if (emitter.random_velocity) {
       static engine::RandomState rnd;
@@ -31,7 +30,7 @@ update_particle_system(entt::registry& r, const float dt)
       particle_description.velocity = glm::ivec2{ rnd_x, rnd_y };
     }
 
-    create_particle(r, particle_description);
+    Factory_Particle::create(r, particle_description);
 
     // limit number of particles spawned
     if (emitter.expires) {

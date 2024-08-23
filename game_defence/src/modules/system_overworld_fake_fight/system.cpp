@@ -27,11 +27,12 @@ update_overworld_fake_fight_system(entt::registry& r)
     first_time = false;
 
     const auto setup_weapon = [&r](const auto& ship_e, const auto& target_e) {
+      // TODO: finish implementing this
+      /*
       // setup weapon
       const auto weapon_e = create_gameplay(r, EntityType::weapon_shotgun, get_position(r, ship_e));
       r.emplace_or_replace<TeamComponent>(weapon_e, r.get<TeamComponent>(ship_e).team);
 
-      // TODO: finish implementing this
       // set entity to aim at the other ship
       // (incorrectly, this needs ch anging),
       // this is on the parent not the gun
@@ -45,6 +46,7 @@ update_overworld_fake_fight_system(entt::registry& r)
       r.emplace<HasWeaponComponent>(ship_e, HasWeaponComponent{ weapon_e });
 
       set_sprite(r, weapon_e, "EMPTY");
+      */
     };
 
     // give player ship a gun

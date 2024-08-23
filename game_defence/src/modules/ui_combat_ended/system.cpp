@@ -19,9 +19,14 @@ update_ui_combat_ended_system(entt::registry& r)
   std::map<AvailableTeams, int> team_count;
   team_count[AvailableTeams::player] = 0; // force team to exist
   team_count[AvailableTeams::enemy] = 0;  // force team to exist
-  for (const auto& [e, team_c] : r.view<TeamComponent>().each())
+
+  const auto view = r.view<TeamComponent>();
+  for (const auto& [e, team_c] : view.each())
     team_count[team_c.team] += 1; // count teams
-  if (team_count[AvailableTeams::enemy] == 0) {
+
+  const bool all_enemies_ded = team_count[AvailableTeams::enemy] == 0;
+  if (all_enemies_ded) {
+
     const bool you_came_here_from_overworld = get_first<OverworldToDungeonInfo>(r) != entt::null;
     if (you_came_here_from_overworld) {
 

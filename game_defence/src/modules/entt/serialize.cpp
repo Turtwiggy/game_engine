@@ -1,16 +1,13 @@
 #include "serialize.hpp"
 
-#include "actors.hpp"
-#include "lifecycle/components.hpp"
-#include "modules/actor_cursor/components.hpp"
-#include "modules/actors/helpers.hpp"
-#include "modules/camera/components.hpp"
-#include "modules/renderer/components.hpp"
+#include "actors/base.hpp"
+#include "renderer/transform.hpp"
 
 #include <fmt/core.h>
 #include <fstream>
 #include <sstream>
 #include <string>
+#include <vector>
 
 namespace game2d {
 
@@ -50,8 +47,7 @@ save(const entt::registry& r, const std::string& path)
   fmt::println("saving... {}", path);
 
   // limit snapshots to actors
-  const auto v =
-    r.view<const EntityTypeComponent, const TransformComponent>(entt::exclude<CursorComponent, WaitForInitComponent>);
+  const auto v = r.view<const EntityTypeComponent, const TransformComponent>(entt::exclude<WaitForInitComponent>);
 
   nlohmann::json root = nlohmann::json::array();
 
@@ -76,8 +72,8 @@ save(const entt::registry& r, const std::string& path)
     nlohmann::json entity_type_component_json = type;
     j.push_back(entity_type_component_json);
 
-    nlohmann::json transform_component_json = transform;
-    j.push_back(transform_component_json);
+    // nlohmann::json transform_component_json = transform;
+    // j.push_back(transform_component_json);
 
     // if (const auto* patrol_c = r.try_get<PatrolComponent>(entity)) {
     //   const PatrolComponent& pc = (*patrol_c);
@@ -125,10 +121,10 @@ load(entt::registry& r, const std::string& path)
   // populate the registry
   for (auto& element : root) {
     const EntityTypeComponent type = element[0].template get<EntityTypeComponent>();
-    const TransformComponent transform = element[1].template get<TransformComponent>();
+    // const TransformComponent transform = element[1].template get<TransformComponent>();
 
-    const auto e = create_gameplay(r, type.type, { transform.position.x, transform.position.y });
-    set_size(r, e, { transform.scale.x, transform.scale.y });
+    // const auto e = create_gameplay(r, type.type, { transform.position.x, transform.position.y });
+    // set_size(r, e, { transform.scale.x, transform.scale.y });
 
     // if (type.type == EntityType::actor_enemy_patrol) {
     //   const PatrolComponent patrol = element[2].template get<PatrolComponent>();

@@ -1,5 +1,6 @@
 {
   // "cmake.configureArgs": ["-DCMAKE_EXPORT_COMPILE_COMMANDS:BOOL=TRUE"],
+  // "cmake.preferredGenerators": ["Ninja"],
   "cmake.preferredGenerators": ["Ninja"],
   "cmake.debugConfig": {
     "args": [
@@ -9,10 +10,6 @@
       // "--headless"
     ]
   },
-
-  // boom boom
-  // parallel can cause issues with gcov/lcov
-  "cmake.parallelJobs": 32,
 
   "editor.formatOnSave": true,
   "editor.showUnused": true,
@@ -30,11 +27,8 @@
 
   // "gcovViewer.highlightMissedLines": false,
 
-  // linux settings
-  "cmake.cmakePath": "/usr/bin/cmake",
-  "C_Cpp.default.intelliSenseMode": "linux-gcc-x64",
-
   "C_Cpp.intelliSenseEngine": "disabled",
+
   "C_Cpp.codeAnalysis.runAutomatically": true,
   "C_Cpp.codeAnalysis.clangTidy.enabled": true,
   "C_Cpp.codeAnalysis.clangTidy.checks.enabled": [

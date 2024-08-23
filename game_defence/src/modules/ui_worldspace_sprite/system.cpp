@@ -1,6 +1,6 @@
 #include "modules/ui_worldspace_sprite/system.hpp"
 
-#include "actors.hpp"
+#include "actors/actors.hpp"
 #include "components.hpp"
 #include "lifecycle/components.hpp"
 #include "modules/actors/helpers.hpp"

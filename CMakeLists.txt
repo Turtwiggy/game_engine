@@ -9,6 +9,7 @@ if(EMSCRIPTEN)
 else()
   message("Not compiling for emscripten - adding vcpkg ${CMAKE_SOURCE_DIR}")
   message("${CMAKE_SOURCE_DIR}")
+  message("VCPKG TRIPLET: ${VCPKG_TARGET_TRIPLET}")
   set(CMAKE_TOOLCHAIN_FILE ${CMAKE_SOURCE_DIR}/thirdparty/vcpkg/scripts/buildsystems/vcpkg.cmake)
 endif()
 

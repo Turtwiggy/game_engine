@@ -76,7 +76,7 @@
 #include "imgui.h"
 
 #if !defined(__EMSCRIPTEN__)
-#include "optick.h"
+// #include "optick.h"
 #else
 constexpr auto OPTICK_EVENT = [](const std::string& str) {}; // do nothing
 constexpr auto OPTICK_FRAME = [](const std::string& str) {}; // do nothing
@@ -220,7 +220,7 @@ duplicate_held_input(SINGLETON_FixedUpdateInputHistory& fixed_input)
 void
 fixed_update(engine::SINGLETON_Application& app, entt::registry& game, const uint64_t milliseconds_dt)
 {
-  OPTICK_EVENT("FixedUpdate()");
+  // OPTICK_EVENT("FixedUpdate()");
 
   auto& input = get_first_component<SINGLETON_InputComponent>(game);
   auto& fixed_input = get_first_component<SINGLETON_FixedUpdateInputHistory>(game);
@@ -258,13 +258,13 @@ fixed_update(engine::SINGLETON_Application& app, entt::registry& game, const uin
   update_lifecycle_system(game, milliseconds_dt);
 
   {
-    OPTICK_EVENT("(physics-tick)");
+    // OPTICK_EVENT("(physics-tick)");
     update_physics_apply_force_system(game);
     update_physics_system(game, milliseconds_dt);
   }
 
   {
-    OPTICK_EVENT("fixed-game-tick");
+    // OPTICK_EVENT("fixed-game-tick");
     update_resolve_collisions_system(game);
 
     // put immediately after collisions,
@@ -280,7 +280,7 @@ fixed_update(engine::SINGLETON_Application& app, entt::registry& game, const uin
 void
 update(engine::SINGLETON_Application& app, entt::registry& r, const float dt)
 {
-  OPTICK_EVENT("(update)");
+  // OPTICK_EVENT("(update)");
   const auto& scene = get_first_component<SINGLETON_CurrentScene>(r);
 
   update_input_system(app, r); // sets update_since_last_fixed_update
@@ -289,7 +289,7 @@ update(engine::SINGLETON_Application& app, entt::registry& r, const float dt)
   const glm::ivec2 mouse_pos = mouse_position_in_worldspace(r);
 
   {
-    OPTICK_EVENT("(update)-game-tick");
+    // OPTICK_EVENT("(update)-game-tick");
 
     // core
     update_camera_system(r, dt);
@@ -329,7 +329,7 @@ update(engine::SINGLETON_Application& app, entt::registry& r, const float dt)
       // update_overworld_fake_fight_system(r);
     }
 
-    if (scene.s == Scene::dungeon_designer || scene.s == Scene::turnbasedcombat) {
+    if (scene.s == Scene::dungeon_designer) {
       update_entered_new_room_system(r, dt);
       update_gen_dungeons_system(r, mouse_pos);
       update_turnbased_endturn_system(r);
@@ -352,13 +352,13 @@ update(engine::SINGLETON_Application& app, entt::registry& r, const float dt)
   }
 
   {
-    OPTICK_EVENT("(update)-update-render-system");
+    // OPTICK_EVENT("(update)-update-render-system");
     update_animator_system(r, dt);
     update_render_system(r, dt, mouse_pos);
   }
 
   {
-    OPTICK_EVENT("(update)-update-ui");
+    // OPTICK_EVENT("(update)-update-ui");
 
     // Display a parented viewport window at the top of the screen, that shows the fps.
     const bool show_fps_counter = true;
@@ -392,21 +392,13 @@ update(engine::SINGLETON_Application& app, entt::registry& r, const float dt)
     if (scene.s == Scene::dungeon_designer) {
       update_ui_combat_turnbased_system(r, mouse_pos);
       update_ui_combat_endturn_system(r);
-    }
-
-    if (scene.s == Scene::overworld_revamped) {
-      update_ui_launch_crew_system(r);
-    }
-    if (scene.s == Scene::turnbasedcombat) {
-      update_ui_combat_turnbased_system(r, mouse_pos);
-      update_ui_combat_endturn_system(r);
-    }
-    if (scene.s == Scene::turnbasedcombat || scene.s == Scene::dungeon_designer) {
       update_ui_combat_ended_system(r);
       update_ui_inventory_system(r);
       update_ui_combat_info_in_worldspace_system(r);
     }
-
+    if (scene.s == Scene::overworld_revamped) {
+      update_ui_launch_crew_system(r);
+    }
     update_ui_overworld_shiplabel_system(r);
     update_ui_worldspace_text_system(r);
     update_ui_worldspace_sprite_system(r);

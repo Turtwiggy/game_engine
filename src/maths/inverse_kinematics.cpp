@@ -29,7 +29,7 @@ IKSolver::generate_backward_chain(const std::vector<glm::vec2>& points, const gl
   for (int i = size - 1; i >= 0; i--) {
 
     // set last point to goal
-    if (i == points.size() - 1) {
+    if (i == static_cast<int>(points.size()) - 1) {
       results[i] = goal;
       continue;
     }
@@ -97,7 +97,7 @@ IKSolver::Iterate(const std::vector<glm::vec2>& in_points, const glm::vec2& goal
     ps.resize(points.size());
     const auto raw_dir = goal - points[0];
     const auto nrm_dir = engine::normalize_safe(raw_dir);
-    for (int i = 1; i < points.size(); i++)
+    for (size_t i = 1; i < points.size(); i++)
       ps[i] = points[i - 1] + nrm_dir * lengths[i - 1];
     return ps;
   }

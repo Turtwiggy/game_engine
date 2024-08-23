@@ -1,6 +1,5 @@
 #include "helpers.hpp"
 
-#include "actors.hpp"
 #include "entt/helpers.hpp"
 #include "maths/grid.hpp"
 #include "modules/actors/helpers.hpp"

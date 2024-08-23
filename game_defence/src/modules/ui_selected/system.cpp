@@ -2,7 +2,7 @@
 
 #include "components.hpp"
 
-#include "actors.hpp"
+#include "actors/actors.hpp"
 #include "entt/helpers.hpp"
 #include "modules/ux_hoverable/components.hpp"
 #include "renderer/transform.hpp"

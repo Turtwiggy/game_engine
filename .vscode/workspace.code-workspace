@@ -8,6 +8,18 @@
     "clangd.checkUpdates": true,
     "C_Cpp.intelliSenseEngine": "disabled",
 
+    "cmake.parallelJobs": 32,
+
+    /*
+    "terminal.integrated.profiles.windows": {
+      "msys2": {
+        "path": ["C:/Software/msys64/msys2_shell.cmd"],
+        "args": ["-defterm", "-mingw64", "-no-start", "-here"]
+      }
+    },
+    "terminal.integrated.defaultProfile.windows": "msys2",
+    */
+
     "files.associations": {
       "*.yarnproject": "jsonc",
       "*.glsl": "c",

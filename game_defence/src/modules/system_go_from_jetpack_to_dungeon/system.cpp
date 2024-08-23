@@ -1,19 +1,17 @@
 #include "system.hpp"
 
-#include "actors.hpp"
+#include "actors/actors.hpp"
 #include "entt/helpers.hpp"
 #include "maths/grid.hpp"
 #include "modules/actor_player/components.hpp"
 #include "modules/actors/helpers.hpp"
 #include "modules/camera/components.hpp"
 #include "modules/combat_damage/components.hpp"
-#include "modules/combat_wants_to_shoot/components.hpp"
 #include "modules/gen_dungeons/components.hpp"
 #include "modules/gen_dungeons/helpers.hpp"
 #include "modules/grid/components.hpp"
 #include "modules/grid/helpers.hpp"
 #include "modules/system_fov/components.hpp"
-#include "physics/components.hpp"
 
 #include <box2d/b2_math.h>
 
@@ -45,19 +43,21 @@ update_go_from_jetpack_to_dungeon_system(entt::registry& r)
     const glm::vec2 offset = { map.tilesize / 2.0f, map.tilesize / 2.0f };
     const auto final_pos = worldspace_clamped + offset;
 
-    remove_components(r, e, EntityType::actor_jetpack_player);
-    add_components(r, e, EntityType::actor_dungeon, final_pos);
+    remove_components(r, e, ActorJetpackPlayer{});
 
-    // change camera type
+    ActorDungeon player_desc;
+    player_desc.team = AvailableTeams::player;
+    player_desc.hp = 100;
+    player_desc.max_hp = 100;
+    player_desc.pos = final_pos;
+    add_components(r, e, player_desc);
+
+    // change camera
     remove_if_exists<CameraFollow>(r, e);
     create_empty<CameraFreeMove>(r);
 
-    // ripped out create_combat_entity
     move_entity_on_map(r, e, final_pos);
-    r.emplace_or_replace<TeamComponent>(e, TeamComponent{ AvailableTeams::player });
-    r.emplace<StaticTargetComponent>(e); // for lerp
 
-    // request fov to kick in
     create_empty<RequestUpdateFOV>(r);
   }
 }

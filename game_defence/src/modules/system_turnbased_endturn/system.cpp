@@ -4,10 +4,7 @@
 #include "modules/actors/helpers.hpp"
 #include "modules/algorithm_astar_pathfinding/helpers.hpp"
 #include "modules/combat_damage/components.hpp"
-#include "modules/combat_wants_to_shoot/components.hpp"
-#include "modules/system_change_gun_colour/helpers.hpp"
 #include "modules/system_turnbased_enemy/components.hpp"
-#include "modules/ui_colours/helpers.hpp"
 
 #include <fmt/core.h>
 

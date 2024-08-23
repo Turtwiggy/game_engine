@@ -1,6 +1,6 @@
 #include "helpers.hpp"
 
-#include "actors.hpp"
+#include "actors/actors.hpp"
 #include "audio/components.hpp"
 #include "audio/helpers/sdl_mixer.hpp"
 #include "colour/colour.hpp"
@@ -9,8 +9,6 @@
 #include "game_state.hpp"
 #include "lifecycle/components.hpp"
 #include "magic_enum.hpp"
-#include "maths/grid.hpp"
-#include "maths/maths.hpp"
 #include "modules/actor_enemy/components.hpp"
 #include "modules/actor_player/components.hpp"
 #include "modules/actors/helpers.hpp"
@@ -22,19 +20,16 @@
 #include "modules/gameover/components.hpp"
 #include "modules/gen_dungeons/components.hpp"
 #include "modules/grid/components.hpp"
-#include "modules/grid/helpers.hpp"
 #include "modules/renderer/components.hpp"
 #include "modules/renderer/helpers.hpp"
 #include "modules/scene_splashscreen_move_to_menu/components.hpp"
 #include "modules/screenshake/components.hpp"
-#include "modules/system_change_gun_z_index/helpers.hpp"
 #include "modules/system_distance_check/components.hpp"
 #include "modules/system_minigame_bamboo/components.hpp"
 #include "modules/system_overworld_fake_fight/components.hpp"
 #include "modules/system_physics_apply_force/components.hpp"
 #include "modules/system_quips/components.hpp"
 #include "modules/system_turnbased_enemy/components.hpp"
-#include "modules/ui_colours/components.hpp"
 #include "modules/ui_combat_turnbased/components.hpp"
 #include "modules/ui_event_console/components.hpp"
 #include "modules/ui_inventory/components.hpp"
@@ -42,16 +37,13 @@
 #include "modules/ui_scene_main_menu/components.hpp"
 #include "modules/ui_selected/components.hpp"
 #include "modules/ui_worldspace_text/components.hpp"
-#include "modules/ux_hoverable/components.hpp"
 #include "modules/vfx_grid/components.hpp"
 #include "physics/components.hpp"
-#include "physics/helpers.hpp"
 #include "renderer/transform.hpp"
 #include "sprites/helpers.hpp"
 #include <box2d/b2_math.h>
 #include <nlohmann/json.hpp>
 
-#include <box2d/b2_revolute_joint.h>
 #include <fmt/core.h>
 #include <string>
 
@@ -63,12 +55,11 @@ using json = nlohmann::json;
 entt::entity
 add_weapon_shotgun(entt::registry& r, const entt::entity& e)
 {
-  // setup weapon
-  const auto weapon_e = create_gameplay(r, EntityType::weapon_shotgun, get_position(r, e));
-  r.emplace_or_replace<TeamComponent>(weapon_e, TeamComponent{ r.get<TeamComponent>(e).team });
-
-  auto& weapon_parent = r.get<HasParentComponent>(weapon_e);
-  weapon_parent.parent = e;
+  WeaponShotgun desc;
+  desc.pos = get_position(r, e);
+  desc.team = r.get<TeamComponent>(e).team;
+  desc.parent = e;
+  const auto weapon_e = Factory_WeaponShotgun::create(r, desc);
 
   // link player&weapon
   HasWeaponComponent has_weapon;
@@ -77,20 +68,6 @@ add_weapon_shotgun(entt::registry& r, const entt::entity& e)
 
   return weapon_e;
 };
-
-void
-add_boundary_walls(entt::registry& r, const float w, const float h, const int tilesize)
-{
-  const float half_tile_size = tilesize / 10.0f;
-  const auto wall_l = create_gameplay(r, EntityType::solid_wall, { 0, h / 2.0f });
-  set_size(r, wall_l, { half_tile_size, h });
-  const auto wall_r = create_gameplay(r, EntityType::solid_wall, { w, h / 2.0f });
-  set_size(r, wall_r, { half_tile_size, h });
-  const auto wall_u = create_gameplay(r, EntityType::solid_wall, { w / 2.0f, 0 });
-  set_size(r, wall_u, { w, half_tile_size });
-  const auto wall_d = create_gameplay(r, EntityType::solid_wall, { w / 2.0f, h });
-  set_size(r, wall_d, { w, half_tile_size });
-}
 
 void
 move_to_scene_menu(entt::registry& r)
@@ -122,32 +99,12 @@ move_to_scene_menu(entt::registry& r)
   // worldspace text around the camera would be from e.g. -width/2 to width/2
   const auto half_wh = ri.viewport_size_render_at / glm::ivec2(2.0f, 2.0f);
 
-  // create a piece of worldspace text
-  {
-    const std::string label = "v0.0.5  Feedback? Discord @turtwiggy or X @Wiggy_dev";
-    const ImVec2 xy = ImGui::CalcTextSize(label.c_str());
-    const float padding = 10;
-
-    const auto e = create_transform(r);
-    auto& ui = r.emplace<WorldspaceTextComponent>(e);
-    ui.text = label;
-    set_position(r, e, { +half_wh.x + (xy.x / 2.0f) + padding, half_wh.y - xy.y - 4 });
-    set_size(r, e, { 0, 0 });
-  };
-
   // create a player for an interactive menu
-  const auto player_e = create_gameplay(r, EntityType::actor_spaceship, { half_wh.x, 0 });
-  r.emplace<PlayerComponent>(player_e);
-  r.emplace<InputComponent>(player_e);
-  r.emplace<KeyboardComponent>(player_e);
-  r.emplace<DefaultColour>(player_e, engine::SRGBColour{ 255, 255, 117, 1.0f });
-  add_particles(r, player_e);
-
-  // r.emplace<PlayerComponent>(player_e);
-  auto& player_thrust = r.emplace<MovementAsteroidsComponent>(player_e);
-  player_thrust.able_to_change_thrust = false;
-  player_thrust.able_to_change_dir = true;
-  r.get<TransformComponent>(player_e).position.z = 1; // above particles
+  ActorSpaceShip desc;
+  desc.pos = { half_wh.x, 0 };
+  desc.colour = { 255, 255, 117, 1.0f };
+  desc.team = AvailableTeams::player;
+  const auto player_e = Factory_ActorSpaceShip::create(r, desc);
   r.emplace<CameraFollow>(player_e);
 }
 
@@ -170,14 +127,12 @@ move_to_scene_overworld_revamped(entt::registry& r)
   r.remove<MovementAsteroidsComponent>(player_e);
 
   // create an enemy ship off-screen
-  const glm::vec2 enemy_pos = { player_t.position.x + half_wh.x * 2, player_t.position.y };
-  const auto enemy_e = create_gameplay(r, EntityType::actor_spaceship, enemy_pos);
-  const auto enemy_col = engine::SRGBColour{ 1.0f, 0.0f, 0.0f, 1.0f };
-  r.get<TransformComponent>(enemy_e).position.z = 1; // above particles
-  r.emplace<EnemyComponent>(enemy_e);
-  r.emplace<DefaultColour>(enemy_e, enemy_col);
-  set_colour(r, enemy_e, enemy_col);
-  add_particles(r, enemy_e);
+
+  ActorSpaceShip desc;
+  desc.pos = { player_t.position.x + half_wh.x * 2, player_t.position.y };
+  desc.colour = { 1.0f, 0.0f, 0.0f, 1.0f };
+  desc.team = AvailableTeams::enemy;
+  const auto enemy_e = Factory_ActorSpaceShip::create(r, desc);
 
   // boost the player's ship until it reaches the enemy...
   r.emplace<DynamicTargetComponent>(player_e, enemy_e);
@@ -185,7 +140,6 @@ move_to_scene_overworld_revamped(entt::registry& r)
 
   // when within range...
   // start circling in this distance...
-
   constexpr int d2 = 200 * 200;
   DistanceCheckComponent distance_c;
   distance_c.d2 = d2;
@@ -376,125 +330,10 @@ move_to_scene_start(entt::registry& r, const Scene& s, const bool load_saved)
     evts.events.push_back("Press 2 to select shoot action.");
     evts.events.push_back("Right click to perform action.");
 
-    // create a cursor
-    const auto cursor_e = create_gameplay(r, EntityType::cursor, { 0, 0 });
-    set_size(r, cursor_e, { 0, 0 });
-
     // Debug object
     auto& info = get_first_component<SINGLE_TurnBasedCombatInfo>(r);
     info.action_cursor = create_transform(r);
     set_size(r, info.action_cursor, { 0, 0 }); // start disabled
-  }
-
-  if (s == Scene::turnbasedcombat) {
-    r.emplace_or_replace<CameraFreeMove>(get_first<OrthographicCamera>(r));
-    destroy_first_and_create<SINGLE_CombatState>(r);
-    destroy_first_and_create<SINGLE_EventConsoleLogComponent>(r);
-    destroy_first_and_create<SINGLE_TurnBasedCombatInfo>(r);
-    // destroy_first_and_create<Effect_DoBloom>(r);
-    // create_empty<AudioRequestPlayEvent>(r, AudioRequestPlayEvent{ "COMBAT_01" });
-
-    int map_width = 600;
-    int map_height = 600;
-    MapComponent map_c;
-    map_c.tilesize = 50;
-    map_c.xmax = map_width / map_c.tilesize;
-    map_c.ymax = map_height / map_c.tilesize;
-    map_c.map.resize(map_c.xmax * map_c.ymax);
-    create_empty<MapComponent>(r, map_c);
-    create_empty<Effect_GridComponent>(r, Effect_GridComponent{ map_c.tilesize });
-
-    // create a cursor
-    const auto cursor_e = create_gameplay(r, EntityType::cursor, { 0, 0 });
-    set_size(r, cursor_e, { 0, 0 });
-
-    // make the entire debug space a room
-    const int room_width = map_width / map_c.tilesize;
-    const int room_height = map_height / map_c.tilesize;
-    Room room;
-    room.tl = { 0, 0 };
-    room.aabb.center = { room.tl.x + (room_width / 2), room.tl.y + (room_height / 2) };
-    room.aabb.size = { room_width, room_height };
-    create_empty<Room>(r, room);
-
-    DungeonGenerationResults result;
-    result.rooms.push_back(room);
-    std::vector<int> wall_or_floors(map_c.xmax * map_c.ymax, 0); // 0: everything as floor
-    result.wall_or_floors = wall_or_floors;
-    create_empty<DungeonGenerationResults>(r, result);
-
-    // check if you started combat via a collison in e overworld
-    if (get_first<OverworldToDungeonInfo>(r) != entt::null) {
-      // const auto& data = get_first_component<OverworldToDungeonInfo>(r);
-      // enemies = data.patrol_that_you_hit.strength;
-    }
-
-    int players = 0;
-    int enemies = 0;
-
-    // create player team
-    for (int i = 0; i < players; i++) {
-      const glm::ivec2 offset = { map_c.tilesize / 2, map_c.tilesize / 2 };
-      const auto pos = glm::ivec2{ map_c.tilesize * 2, (i + 1) * (map_c.tilesize * 2) } + offset;
-
-      CombatEntityDescription desc;
-      desc.position = pos;
-      desc.team = AvailableTeams::player;
-    }
-
-    // place "root" enemy at "top right" of grid
-    entt::entity last_spawned_e = entt::null;
-    {
-      const auto& map = get_first_component<MapComponent>(r);
-      const glm::ivec2 offset = { map_c.tilesize / 2, map_c.tilesize / 2 };
-      const glm::ivec2 root_gridpos = { map.xmax - 1, 0 };
-      const auto pos = glm::ivec2{ engine::grid::grid_space_to_world_space(root_gridpos, map.tilesize) } + offset;
-      CombatEntityDescription desc;
-      desc.position = pos;
-      desc.team = AvailableTeams::enemy;
-      enemies--;
-      // last_spawned_e = create_combat_entity(r, desc);
-    }
-
-    // create enemy team
-    for (int i = 0; i < enemies; i++) {
-      const auto& map = get_first_component<MapComponent>(r);
-
-      const auto src_pos = get_position(r, last_spawned_e);
-      const auto grid_pos = engine::grid::worldspace_to_grid_space(src_pos, map.tilesize);
-      const int src_idx = engine::grid::grid_position_to_index(grid_pos, map.xmax);
-
-      const int idx_next = get_lowest_cost_neighbour(r, map, src_idx, last_spawned_e);
-      auto pos = engine::grid::index_to_world_position(idx_next, map.xmax, map.ymax, map.tilesize);
-      pos += glm::ivec2{ map_c.tilesize / 2, map_c.tilesize / 2 }; // center
-
-      CombatEntityDescription desc;
-      desc.position = pos;
-      desc.team = AvailableTeams::enemy;
-      // last_spawned_e = create_combat_entity(r, desc);
-    }
-
-    // Debug object
-    auto& info = get_first_component<SINGLE_TurnBasedCombatInfo>(r);
-    info.action_cursor = create_gameplay(r, EntityType::empty_with_transform, { 0, 0 });
-    set_size(r, info.action_cursor, { 0, 0 }); // start disabled
-
-    // Create a destructable barrel
-    auto& map = get_first_component<MapComponent>(r);
-
-    const auto gridpos = glm::ivec2{ 4, 4 };
-    const glm::ivec2 worldspace = engine::grid::grid_space_to_world_space(gridpos, map_c.tilesize);
-    const glm::ivec2 offset = { map_c.tilesize / 2.0f, map_c.tilesize / 2.0f };
-    const glm::ivec2 pos = worldspace + offset;
-
-    const entt::entity barrel_e = create_gameplay(r, EntityType::actor_dungeon, pos);
-
-    /*
-    std::vector<entt::entity>& ents = map.map[engine::grid::grid_position_to_index(gridpos, map.xmax)];
-    ents.push_back(barrel_e);
-    */
-
-    map.map[engine::grid::grid_position_to_index(gridpos, map.xmax)] = barrel_e;
   }
 
   if (s == Scene::minigame_bamboo)

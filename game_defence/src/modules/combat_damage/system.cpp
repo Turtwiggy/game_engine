@@ -1,6 +1,6 @@
 #include "system.hpp"
 
-#include "actors.hpp"
+#include "actors/base.hpp"
 #include "components.hpp"
 #include "entt/helpers.hpp"
 #include "lifecycle/components.hpp"
@@ -11,7 +11,6 @@
 #include "modules/system_particles/components.hpp"
 #include "modules/system_quips/components.hpp"
 #include "modules/ui_event_console/components.hpp"
-#include "physics/components.hpp"
 
 #include "magic_enum.hpp"
 

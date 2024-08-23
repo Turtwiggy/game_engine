@@ -12,7 +12,7 @@ using namespace engine;
 constexpr auto OPTICK_EVENT = [](const std::string& str) {}; // do nothing
 constexpr auto OPTICK_FRAME = [](const std::string& str) {}; // do nothing
 #else
-#include "optick.h"
+// #include "optick.h"
 #endif
 
 // other libs
@@ -77,7 +77,7 @@ void
 main_loop(void* arg)
 {
   IM_UNUSED(arg); // do nothing with it
-  OPTICK_FRAME("MainThread");
+  // OPTICK_FRAME("MainThread");
 
   engine::start_frame(app);
   launch_thread_after_x_frames();
@@ -110,12 +110,12 @@ main(int argc, char* argv[])
   IM_UNUSED(argc);
   IM_UNUSED(argv);
 
-#if defined(WIN32) || defined(_WIN32)
-  fmt::println("Hello, Windows!");
-  bool hide_windows_console = true;
-  if (hide_windows_console)
-    engine::hide_windows_console();
-#endif
+  // #if defined(WIN32) || defined(_WIN32)
+  //   fmt::println("Hello, Windows!");
+  //   bool hide_windows_console = true;
+  //   if (hide_windows_console)
+  //     engine::hide_windows_console();
+  // #endif
 
 #if defined(__EMSCRIPTEN__)
   fmt::println("Hello, Emscripten!");

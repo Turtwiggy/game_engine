@@ -185,12 +185,12 @@ update_turnbased_enemy_system(entt::registry& r)
     const bool allowed_to_shoot = r.try_get<AbleToShoot>(e) != nullptr;
 
     // require all enemies to have done all actions
-    all_enemies_fully_done &= actions_available == 0;
-    all_enemies_fully_done &= !waiting_to_shoot;
+    all_enemies_fully_done &= actions_available == 0 && !waiting_to_shoot;
 
-    // if (waiting_to_shoot && !allowed_to_shoot) {
-    //   fmt::println("Potential AI error: waiting to shoot but cant shoot.");
-    // }
+    if (waiting_to_shoot && !allowed_to_shoot) {
+      // Possible causes: no gun. gun on cooldown. gun has no parent.
+      fmt::println("Potential AI error: waiting to shoot but cant shoot.");
+    }
 
     // ImGui::PopID();
     if (one_at_a_time)

@@ -26,7 +26,7 @@ if(EMSCRIPTEN)
   message("index CMAKE_EXECUTABLE_SUFFIX: ${CMAKE_EXECUTABLE_SUFFIX}")
 endif()
 
-if(${CMAKE_SYSTEM_NAME} MATCHES "Darwin")
+if(CMAKE_CXX_COMPILER_ID MATCHES CLANG)
   set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++20 -stdlib=libc++")
 
   if(${CMAKE_BUILD_TYPE} MATCHES Debug)
@@ -38,15 +38,18 @@ endif()
 if(CMAKE_CXX_COMPILER_ID MATCHES GNU)
   message("setting cxx flags for gnu...")
 
-  # set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Werror -Wpedantic")
-  set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++20 -Wno-unused-variable -Wno-unused-but-set-variable -Wno-unused-parameter")
-  set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wall -Wextra -Wformat")
+  set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -static-libgcc")
+  set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++20 -static-libgcc -static-libstdc++ -O2")
+  set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wno-unused-variable -Wno-unused-but-set-variable -Wno-unused-parameter")
+  set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wall -Wextra -Wformat -Wl,--no-undefined")
+  set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -mcmodel=medium")
 
+  # add_link_options("-lstdc++")
+
+  # set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Werror -Wpedantic")
   if(${CMAKE_BUILD_TYPE} MATCHES Debug)
     set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -g -O0")
     add_definitions(-D_DEBUG)
-  else()
-    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -O2")
   endif()
 endif()
 
@@ -76,21 +79,27 @@ find_packages()
 
 # Add source files
 include(${CMAKE_SOURCE_DIR}/cmake/imgui.cmake)
-include(${CMAKE_SOURCE_DIR}/cmake/optick.cmake)
+
+# include(${CMAKE_SOURCE_DIR}/cmake/optick.cmake)
 file(GLOB_RECURSE SRC_FILES
   ${IMGUI_SOURCE}
-  ${OPTICK_SOURCE}
+
+  # ${OPTICK_SOURCE}
   ${CMAKE_SOURCE_DIR}/src/*.cpp
   ${CMAKE_SOURCE_DIR}/game_defence/src/*.cpp
 )
 
 # Main executable
 add_executable(game_defence ${SRC_FILES})
+
 link_libs(game_defence)
+
+# target_link_libraries(game_defence PRIVATE -lstdc++20)
 target_include_directories(game_defence PRIVATE
   ${IMGUI_INCLUDES}
   ${VCPKG_INCLUDES}
-  ${OPTICK_INCLUDES}
+
+  # ${OPTICK_INCLUDES}
   ${Stb_INCLUDE_DIR}
   ${CMAKE_SOURCE_DIR}/src
   ${CMAKE_SOURCE_DIR}/game_defence/src
@@ -118,12 +127,10 @@ endif()
 # as release builds should copy the folder over (not symlink)
 IF(NOT EMSCRIPTEN AND ${CMAKE_BUILD_TYPE} MATCHES Debug)
   message("creating symlink...")
-
   set(src ${CMAKE_SOURCE_DIR}/game_defence/assets)
   set(dst ${CMAKE_CURRENT_BINARY_DIR}/assets)
   message("creating symlink src... ${src}")
   message("creating symlink dst... ${dst}")
-
   add_custom_command(
     TARGET ${PROJECT_NAME} PRE_BUILD
     COMMAND ${CMAKE_COMMAND} -E create_symlink ${src} ${dst}

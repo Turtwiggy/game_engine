@@ -196,7 +196,7 @@ update_entity_path(entt::registry& r, const entt::entity src_e, const std::vecto
   r.emplace_or_replace<GeneratedPathComponent>(src_e, path_c);
 
   // immediately move from source to end of path?
-  // move_entity_on_map(r, src_e, dst);
+  move_entity_on_map(r, src_e, dst);
 };
 
 } // namespace game2d

@@ -247,7 +247,10 @@ update_ui_inventory_system(entt::registry& r)
         bullet_type = EntityType::bullet_bouncy;
       if (item_c.type == ItemType::bullettype_default)
         bullet_type = EntityType::bullet_default;
-      r.get<WeaponBulletTypeToSpawnComponent>(has_weapon->instance).bullet_type = bullet_type;
+
+      // set the bullet type for shotgun.
+      if (auto* shotgun_c = r.try_get<ShotgunComponent>(has_weapon->instance))
+        shotgun_c->bullet_type = bullet_type;
     }
   }
 

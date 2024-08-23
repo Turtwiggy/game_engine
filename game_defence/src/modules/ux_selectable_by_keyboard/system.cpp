@@ -1,13 +1,13 @@
 #include "system.hpp"
 
-#include "actors.hpp"
+#include "actors/base.hpp"
 #include "entt/helpers.hpp"
 #include "events/components.hpp"
 #include "events/helpers/keyboard.hpp"
 #include "modules/actor_player/components.hpp"
 #include "modules/ux_hoverable/components.hpp"
 
-#include "magic_enum.hpp"
+#include <magic_enum.hpp>
 
 namespace game2d {
 

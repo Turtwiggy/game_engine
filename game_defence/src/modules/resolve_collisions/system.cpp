@@ -1,14 +1,12 @@
 #include "system.hpp"
 
-#include "actors.hpp"
+#include "actors/actors.hpp"
 #include "entt/helpers.hpp"
 #include "lifecycle/components.hpp"
 #include "modules/actor_weapon_shotgun/components.hpp"
 #include "modules/actors/helpers.hpp"
 #include "modules/combat_damage/components.hpp"
 #include "modules/resolve_collisions/helpers.hpp"
-#include "modules/system_particles/components.hpp"
-#include "modules/system_particles/helpers.hpp"
 #include "physics/components.hpp"
 
 #include <box2d/box2d.h>
@@ -128,14 +126,14 @@ update_resolve_collisions_system(entt::registry& r)
         else
           impact_vel_amount_x = glm::abs(bullet_vel.x) * glm::sign(dir.x) / momentum_loss;
 
-        ParticleDescription desc;
+        Particle desc;
+        desc.pos = { impact_point_x, impact_point_y };
         desc.time_to_live_ms = 1000;
-        desc.position = { impact_point_x, impact_point_y };
         desc.velocity = { impact_vel_amount_x, impact_vel_amount_y };
         desc.start_size = 6;
         desc.end_size = 2;
         desc.sprite = "EMPTY";
-        const auto e = create_particle(r, desc);
+        const auto e = Factory_Particle::create(r, desc);
 
         // make it an animation
         // SpriteAnimationComponent anim;

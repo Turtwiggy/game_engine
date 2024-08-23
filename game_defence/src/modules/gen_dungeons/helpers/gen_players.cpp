@@ -1,10 +1,12 @@
 #include "gen_players.hpp"
 
+#include "actors/actors.hpp"
 #include "entt/helpers.hpp"
 #include "maths/grid.hpp"
 #include "modules/actor_player/components.hpp"
 #include "modules/camera/components.hpp"
 #include "modules/camera/orthographic.hpp"
+#include "modules/combat_damage/components.hpp"
 #include "modules/grid/components.hpp"
 #include "modules/scene/helpers.hpp"
 #include "modules/ui_inventory/components.hpp"
@@ -37,17 +39,14 @@ set_player_positions(entt::registry& r, const DungeonGenerationResults& results,
       const glm::ivec2 pos = worldspace + offset;
 
       // create a jetpack entity
-      // it gets converted to a dungeon entity via jetpack to dungeon
-      const auto e = create_gameplay(r, EntityType::actor_jetpack_player, pos);
+      // it gets converted to a dungeon entity via jetpack_to_dungeon
+      ActorJetpackPlayer desc;
+      desc.pos = pos;
+      desc.team = AvailableTeams::player;
+      const auto e = Factory_ActorJetpackPlayer::create(r, desc);
+
+      // camera...
       r.emplace<CameraFollow>(e);
-      r.get<PhysicsBodyComponent>(e).base_speed = 100.0f;
-      r.emplace<PlayerComponent>(e);
-      r.emplace<TeamComponent>(e, AvailableTeams::player);
-      r.emplace<InputComponent>(e);
-      r.emplace<KeyboardComponent>(e);
-      r.emplace<DefaultBody>(e, DefaultBody(r));
-      r.emplace<DefaultInventory>(e, DefaultInventory(r, 6 * 5));
-      r.emplace<InitBodyAndInventory>(e);
     }
 
     break; // only spawn players in first room

@@ -1,11 +1,8 @@
 #include "system.hpp"
 
-#include "actors.hpp"
 #include "lifecycle/components.hpp"
-#include "maths/maths.hpp"
 #include "modules/actors/helpers.hpp"
 #include "modules/combat_attack_cooldown/components.hpp"
-#include "modules/combat_damage/components.hpp"
 #include "modules/system_particles/components.hpp"
 
 namespace game2d {
@@ -21,10 +18,10 @@ update_spawn_particles_on_death_system(entt::registry& r)
     set_position(r, particle_emitter, req.position);
 
     // which particle to spawn?
-    ParticleDescription desc;
+    Particle desc;
     desc.sprite = "EMPTY";
-    desc.default_colour = engine::SRGBColour(0.8f, 0.2f, 0.2f, 0.5f);
-    desc.position = req.position;
+    desc.colour = { 0.8f, 0.2f, 0.2f, 0.5f };
+    desc.pos = req.position;
     desc.start_size = 16;
     desc.end_size = 4;
     desc.time_to_live_ms = 1000;

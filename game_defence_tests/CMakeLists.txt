@@ -75,9 +75,9 @@ file(GLOB_RECURSE TEST_SRC_FILES
   ${CMAKE_SOURCE_DIR}/src/*.cpp
 
   # do not inlude main()
+  ${CMAKE_SOURCE_DIR}/game_defence/src/actors/*.cpp
   ${CMAKE_SOURCE_DIR}/game_defence/src/helpers/*.cpp
   ${CMAKE_SOURCE_DIR}/game_defence/src/modules/*.cpp
-  ${CMAKE_SOURCE_DIR}/game_defence/src/actors.cpp
   ${CMAKE_SOURCE_DIR}/game_defence/src/game_state.cpp
   ${CMAKE_SOURCE_DIR}/game_defence/src/game.cpp
   ${CMAKE_SOURCE_DIR}/game_defence_tests/src/*.cpp
@@ -114,40 +114,40 @@ if(CMAKE_CXX_COMPILER_ID MATCHES GNU AND CMAKE_BUILD_TYPE STREQUAL "Debug")
   target_compile_options(game_defence_tests PRIVATE --coverage) # -O0 and -g should already be set
   target_link_options(game_defence_tests PRIVATE --coverage)
 
-  find_program(LCOV_PATH lcov)
-  find_program(GENHTML_PATH genhtml)
+  # find_program(LCOV_PATH lcov)
+  # find_program(GENHTML_PATH genhtml)
 
-  if(NOT LCOV_PATH)
-    message(FATAL_ERROR "lcov not found!")
-  endif()
+  # if(NOT LCOV_PATH)
+  # message(FATAL_ERROR "lcov not found!")
+  # endif()
 
-  if(NOT GENHTML_PATH)
-    message(FATAL_ERROR "genhtml not found!")
-  endif()
+  # if(NOT GENHTML_PATH)
+  # message(FATAL_ERROR "genhtml not found!")
+  # endif()
 
-  set(COVERAGE_OUTPUT_DIR "${CMAKE_BINARY_DIR}/coverage")
+  # set(COVERAGE_OUTPUT_DIR "${CMAKE_BINARY_DIR}/coverage")
 
-  # generate lcov file
-  add_custom_target(lcov_generate_coverage
-    COMMAND ${LCOV_PATH} --capture --directory .
-    COMMAND ${LCOV_PATH} --remove lcov.info '/usr/*' --output-file lcov.info
-    COMMAND ${LCOV_PATH} --list lcov.info
-    COMMAND ${GENHTML_PATH} lcov.info --output-directory ${COVERAGE_OUTPUT_DIR}
-    COMMAND ${CMAKE_COMMAND} -E echo "Coverage report generated at ${COVERAGE_OUTPUT_DIR}/index.html"
-    WORKING_DIRECTORY ${CMAKE_BINARY_DIR}
-    COMMENT "Generating code coverage report..."
-    VERBATIM
-  )
+  # # generate lcov file
+  # add_custom_target(lcov_generate_coverage
+  # COMMAND ${LCOV_PATH} --capture --directory .
+  # COMMAND ${LCOV_PATH} --remove lcov.info '/usr/*' --output-file lcov.info
+  # COMMAND ${LCOV_PATH} --list lcov.info
+  # COMMAND ${GENHTML_PATH} lcov.info --output-directory ${COVERAGE_OUTPUT_DIR}
+  # COMMAND ${CMAKE_COMMAND} -E echo "Coverage report generated at ${COVERAGE_OUTPUT_DIR}/index.html"
+  # WORKING_DIRECTORY ${CMAKE_BINARY_DIR}
+  # COMMENT "Generating code coverage report..."
+  # VERBATIM
+  # )
 
-  # cleanup lcov file
-  add_custom_target(lcov_remove_coverage
-    COMMAND ${LCOV_PATH} --directory . --zerocounters
-    COMMAND ${CMAKE_COMMAND} -E remove lcov.info
-    COMMAND ${CMAKE_COMMAND} -E remove_directory ${COVERAGE_OUTPUT_DIR}
-    WORKING_DIRECTORY ${CMAKE_BINARY_DIR}
-    COMMENT "Cleaning up code coverage data..."
-    VERBATIM
-  )
+  # # cleanup lcov file
+  # add_custom_target(lcov_remove_coverage
+  # COMMAND ${LCOV_PATH} --directory . --zerocounters
+  # COMMAND ${CMAKE_COMMAND} -E remove lcov.info
+  # COMMAND ${CMAKE_COMMAND} -E remove_directory ${COVERAGE_OUTPUT_DIR}
+  # WORKING_DIRECTORY ${CMAKE_BINARY_DIR}
+  # COMMENT "Cleaning up code coverage data..."
+  # VERBATIM
+  # )
 endif()
 
 message("adding test to ctest..")
