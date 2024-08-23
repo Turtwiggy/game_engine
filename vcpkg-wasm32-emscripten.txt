@@ -1,7 +1,7 @@
 box2d
 glm
 sdl2
-sdl2-mixer[core, mpg123]
+sdl2-mixer[core,mpg123]
 stb
 nlohmann-json
 fmt

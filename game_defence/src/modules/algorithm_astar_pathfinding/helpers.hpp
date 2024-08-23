@@ -47,8 +47,8 @@ generate_direct_with_diagonals(entt::registry& r, const MapComponent& grid, cons
 [[nodiscard]] std::vector<glm::ivec2>
 generate_accessible_areas(entt::registry& r, const MapComponent& grid, const int from_idx, const int range);
 
-[[nodiscard]] std::vector<astar_cell>
-generate_flow_field(entt::registry& r, const MapComponent& grid, const int from_idx);
+// [[nodiscard]] std::vector<astar_cell>
+// generate_flow_field(entt::registry& r, const MapComponent& grid, const int from_idx);
 
 void
 display_flow_field_with_visuals(entt::registry& r, MapComponent& grid);
@@ -63,6 +63,6 @@ bool
 at_destination(entt::registry& r, const entt::entity e);
 
 bool
-destination_is_blocked(entt::registry& r, const entt::entity you, const glm::ivec2 worldspace_pos);
+destination_is_blocked(entt::registry& r, const glm::ivec2 worldspace_pos);
 
 } // namespace game2d

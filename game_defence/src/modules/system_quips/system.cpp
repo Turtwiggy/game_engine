@@ -1,8 +1,8 @@
 #include "system.hpp"
 
+#include "actors/actors.hpp"
 #include "components.hpp"
 
-#include "actors.hpp"
 #include "entt/helpers.hpp"
 #include "lifecycle/components.hpp"
 #include "maths/grid.hpp"

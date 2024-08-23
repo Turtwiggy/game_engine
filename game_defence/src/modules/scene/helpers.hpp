@@ -16,14 +16,6 @@ move_to_scene_start(entt::registry& r, const Scene& s, const bool load_saved = f
 void
 move_to_scene_additive(entt::registry&, const Scene& s);
 
-struct CombatEntityDescription
-{
-  AvailableTeams team = AvailableTeams::neutral;
-  glm::ivec2 position{ 0, 0 };
-};
-// entt::entity
-// create_combat_entity(entt::registry& r, const CombatEntityDescription& desc);
-
 entt::entity
 add_weapon_shotgun(entt::registry& r, const entt::entity& e);
 

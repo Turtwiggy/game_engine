@@ -1,6 +1,5 @@
 #include "helpers.hpp"
 
-#include "actors.hpp"
 #include "entt/helpers.hpp"
 #include "maths/grid.hpp"
 #include "modules/actors/helpers.hpp"
@@ -237,6 +236,7 @@ generate_accessible_areas(entt::registry& r, const MapComponent& map_c, const in
   return results;
 };
 
+/*
 std::vector<astar_cell>
 generate_flow_field(entt::registry& r, const MapComponent& map_c, const int from_idx)
 {
@@ -291,6 +291,7 @@ generate_flow_field(entt::registry& r, const MapComponent& map_c, const int from
 
   return map;
 };
+*/
 
 // update visuals
 // void
@@ -369,7 +370,7 @@ at_destination(entt::registry& r, const entt::entity src_e)
 };
 
 bool
-destination_is_blocked(entt::registry& r, const entt::entity you, const glm::ivec2 worldspace_pos)
+destination_is_blocked(entt::registry& r, const glm::ivec2 worldspace_pos)
 {
   auto& map = get_first_component<MapComponent>(r);
   const auto idx = engine::grid::worldspace_to_index(worldspace_pos, map.tilesize, map.xmax, map.ymax);

@@ -1,5 +1,6 @@
 #include "system.hpp"
 
+#include "actors/actors.hpp"
 #include "components.hpp"
 
 #include "entt/helpers.hpp"
@@ -220,9 +221,9 @@ update_fov_system(entt::registry& r, const glm::ivec2& mouse_pos)
             const auto ga = engine::grid::index_to_world_position(a, map.xmax, map.ymax, map.tilesize) + offset;
             const auto gb = engine::grid::index_to_world_position(b, map.xmax, map.ymax, map.tilesize) + offset;
             const auto l = generate_line({ ga.x, ga.y }, { gb.x, gb.y }, 1);
-            const entt::entity e = create_gameplay(r, EntityType::empty_with_transform, { 0, 0 });
+            const entt::entity e = create_transform(r);
             set_position_and_size_with_line(r, e, l);
-            set_colour(r, e, { 0.0f, 1.0f, 0.0f, 1.0f });
+            set_colour(r, e, { 1.0f, 1.0f, 1.0f, 1.0f });
             r.get<TagComponent>(e).tag = "debugline";
             edge_debug.push_back(e);
           };

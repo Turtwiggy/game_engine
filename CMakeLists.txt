@@ -9,6 +9,7 @@ if(EMSCRIPTEN)
 else()
   message("Not compiling for emscripten - adding vcpkg ${CMAKE_SOURCE_DIR}")
   message("${CMAKE_SOURCE_DIR}")
+  message("VCPKG TRIPLET: ${VCPKG_TARGET_TRIPLET}")
   set(CMAKE_TOOLCHAIN_FILE ${CMAKE_SOURCE_DIR}/thirdparty/vcpkg/scripts/buildsystems/vcpkg.cmake)
 endif()
 
@@ -18,6 +19,8 @@ project(subprojects VERSION 0.1.0)
 # add_subdirectory(game_3d)
 # add_subdirectory(game_networked)
 add_subdirectory(game_defence)
+
+enable_testing()
 add_subdirectory(game_defence_tests)
 
 #

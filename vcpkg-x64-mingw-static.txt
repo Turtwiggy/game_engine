@@ -8,4 +8,4 @@ sdl2-mixer[core,mpg123]
 stb
 nlohmann-json
 --triplet
-arm64-osx
+x64-mingw-static

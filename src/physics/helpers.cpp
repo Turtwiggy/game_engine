@@ -1,6 +1,6 @@
 #include "helpers.hpp"
 
-#include "actors.hpp"
+#include "actors/base.hpp"
 #include "entt/helpers.hpp"
 #include "modules/combat_damage/components.hpp"
 #include "physics/components.hpp"
@@ -66,6 +66,7 @@ create_physics_actor(entt::registry& r, const entt::entity e, const PhysicsDescr
   transform_c.scale.y = desc.size.y;
 }
 
+/*
 void
 set_collision_filters(entt::registry& r, entt::entity e)
 {
@@ -127,5 +128,6 @@ set_collision_filters(entt::registry& r, entt::entity e)
     }
   }
 }
+*/
 
 } // namespace game2d

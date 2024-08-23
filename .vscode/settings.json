@@ -9,6 +9,8 @@
       // "--headless"
     ]
   },
+  "cmake.parallelJobs": 32, // boom boom
+
   "editor.formatOnSave": true,
   "editor.showUnused": true,
   "editor.showDeprecated": true,
@@ -23,8 +25,10 @@
   },
   "editor.bracketPairColorization.enabled": true,
 
-  "C_Cpp.default.intelliSenseMode": "windows-msvc-x64",
+  // "gcovViewer.highlightMissedLines": false,
+
   "C_Cpp.intelliSenseEngine": "disabled",
+
   "C_Cpp.codeAnalysis.runAutomatically": true,
   "C_Cpp.codeAnalysis.clangTidy.enabled": true,
   "C_Cpp.codeAnalysis.clangTidy.checks.enabled": [

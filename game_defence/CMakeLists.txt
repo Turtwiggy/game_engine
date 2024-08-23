@@ -1,66 +1,11 @@
 cmake_minimum_required(VERSION 3.5.0)
 set(CMAKE_CXX_STANDARD 20)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
-include(${CMAKE_SOURCE_DIR}/cmake/packages.cmake)
 
-# Note: CMAKE_SYSTEM_NAME should be: Emscripten NOT windows
-if(EMSCRIPTEN)
-  message("Compiling for emscripten (toolkit set in cmake-kits.json)")
-
-  # https://emscripten.org/docs/tools_reference/emcc.html
-  # https://emscripten.org/docs/porting/files/packaging_files.html
-  set(EMS "-sUSE_SDL=2 -sUSE_SDL_MIXER=2 -sSDL2_MIXER_FORMATS=wav,mp3 -sDISABLE_EXCEPTION_CATCHING=1 ")
-
-  # set(EMS "${EMS} -sUSE_PTHREADS=1")
-  # set(LD_FLAGS "${LD_FLAGS} -sPTHREAD_POOL_SIZE=4")
-  set(LD_FLAGS "-sWASM=1 -sALLOW_MEMORY_GROWTH=1 -sNO_EXIT_RUNTIME=0 -sASSERTIONS=1")
-  set(LD_FLAGS "${LD_FLAGS} -sMIN_WEBGL_VERSION=2 -sMAX_WEBGL_VERSION=2")
-  set(LD_FLAGS "${LD_FLAGS} --preload-file assets --bind")
-  set(LD_FLAGS "${LD_FLAGS} --shell-file  assets/emscripten/shell_minimal.html")
-  set(LD_FLAGS "${LD_FLAGS} ${EMS}")
-
-  set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} ${EMS}")
-  set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++20 -stdlib=libc++ -O2 ${EMS}")
-  set(CMAKE_EXECUTABLE_SUFFIX ".html")
-
-  message("index VCPKG_CHAINLOAD_TOOLCHAIN_FILE: ${VCPKG_CHAINLOAD_TOOLCHAIN_FILE}")
-  message("index CMAKE_EXECUTABLE_SUFFIX: ${CMAKE_EXECUTABLE_SUFFIX}")
-endif()
-
-if(${CMAKE_SYSTEM_NAME} MATCHES "Darwin")
-  set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++20 -stdlib=libc++")
-
-  if(${CMAKE_BUILD_TYPE} MATCHES Debug)
-    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -g")
-    add_definitions(-D_DEBUG)
-  endif()
-endif()
-
-if(CMAKE_SYSTEM_NAME MATCHES Linux)
-  message("setting cxx flags for linux...")
-  set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++20")
-endif()
-
-if(CMAKE_CXX_COMPILER_ID MATCHES GNU)
-  message("adding defs for gnu...")
-
-  add_definitions("-Wall")
-  add_definitions("-Wextra")
-  add_definitions("-Wformat")
-  add_definitions("-O2")
-
-  # set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS}")
-endif()
-
-if(CMAKE_CXX_COMPILER_ID MATCHES MSVC)
-  # set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} /Bt+")
-  # set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} /d1reportTime") # debug compiler frontend???
-  # set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} /d2cgsummary") # debug compiler backend???
-  set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} /MP /fp:precise")
-  set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} /WX /W3 /wd4275 /wd4251 /bigobj")
-  set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} /std:c++20 /permissive-")
-  set(CMAKE_CXX_FLAGS_RELEASE "${CMAKE_CXX_FLAGS_RELEASE} /sdl /Oi /Ot /Oy /Ob2 /Zi")
-endif()
+include(${CMAKE_SOURCE_DIR}/cmake/use-compiler-clang.cmake)
+include(${CMAKE_SOURCE_DIR}/cmake/use-compiler-emscripten.cmake)
+include(${CMAKE_SOURCE_DIR}/cmake/use-compiler-gcc.cmake)
+include(${CMAKE_SOURCE_DIR}/cmake/use-compiler-msvc.cmake)
 
 project(game_defence VERSION 0.1.0)
 message("game_defence: CMAKE_SYSTEM_NAME ${CMAKE_SYSTEM_NAME}")
@@ -69,58 +14,34 @@ message("game_defence: C: ${CMAKE_C_COMPILER_ID}")
 message("game_defence: CXX: ${CMAKE_CXX_COMPILER_ID}")
 message("game_defence: CMAKE_C_COMPILER: ${CMAKE_C_COMPILER}")
 message("game_defence: CMAKE_CXX_COMPILER: ${CMAKE_CXX_COMPILER}")
+message("game_defence: CMAKE_LINKER: ${CMAKE_LINKER}")
 message("game_defence: current_list_dir: ${CMAKE_CURRENT_LIST_DIR}")
 message("game_defence: source_dir: ${CMAKE_SOURCE_DIR}")
 message("index CMAKE_TOOLCHAIN_FILE: ${CMAKE_TOOLCHAIN_FILE}")
 
-get_packages()
+include(${CMAKE_SOURCE_DIR}/cmake/packages.cmake)
+find_packages()
 
 # Add source files
 include(${CMAKE_SOURCE_DIR}/cmake/imgui.cmake)
-include(${CMAKE_SOURCE_DIR}/cmake/optick.cmake)
 
+# include(${CMAKE_SOURCE_DIR}/cmake/optick.cmake)
 file(GLOB_RECURSE SRC_FILES
   ${IMGUI_SOURCE}
-  ${OPTICK_SOURCE}
+
+  # ${OPTICK_SOURCE}
   ${CMAKE_SOURCE_DIR}/src/*.cpp
   ${CMAKE_SOURCE_DIR}/game_defence/src/*.cpp
 )
 
-if(${CMAKE_SYSTEM_NAME} STREQUAL "Windows")
-  message("creating build with icon...")
+# Main executable
+add_executable(game_defence ${SRC_FILES})
 
-  add_executable(game_defence
-    ${SRC_FILES}
+link_libs(game_defence)
 
-    # add icon to executable
-    ${CMAKE_SOURCE_DIR}/game_defence/assets/textures/resource.rc
-  )
-
-else()
-  message("creating build without icon...")
-
-  add_executable(game_defence ${SRC_FILES})
-endif()
-
-if(${CMAKE_SYSTEM_NAME} STREQUAL "Windows")
-  set(VCPKG_INCLUDES
-    ${CMAKE_CURRENT_LIST_DIR}/thirdparty/vcpkg/installed/x64-windows/include
-  )
-elseif(${CMAKE_SYSTEM_NAME} STREQUAL "Darwin")
-  set(VCPKG_INCLUDES
-    ${CMAKE_CURRENT_LIST_DIR}/thirdparty/vcpkg/installed/arm64-osx/include
-  )
-elseif(${CMAKE_SYSTEM_NAME} STREQUAL "Linux")
-  set(VCPKG_INCLUDES
-    ${CMAKE_CURRENT_LIST_DIR}/thirdparty/vcpkg/installed/x64-linux/include
-  )
-endif()
-
-# includes
 target_include_directories(game_defence PRIVATE
   ${IMGUI_INCLUDES}
   ${VCPKG_INCLUDES}
-  ${OPTICK_INCLUDES}
   ${Stb_INCLUDE_DIR}
   ${CMAKE_SOURCE_DIR}/src
   ${CMAKE_SOURCE_DIR}/game_defence/src
@@ -129,54 +50,38 @@ target_include_directories(game_defence PRIVATE
   ${CMAKE_SOURCE_DIR}/thirdparty/imgui-filebrowser
 )
 
-link_libs(game_defence)
-
 # rename executable
 if(EMSCRIPTEN)
+  # rename as index.html
+  set_target_properties(${PROJECT_NAME} PROPERTIES OUTPUT_NAME "index")
+  set_target_properties(game_defence PROPERTIES LINK_FLAGS "${LD_FLAGS}")
 else()
   set(GAME_EXE_NAME "solar_warfare")
   set_target_properties(${PROJECT_NAME} PROPERTIES OUTPUT_NAME ${GAME_EXE_NAME})
 endif()
 
-IF(${CMAKE_SYSTEM_NAME} STREQUAL "Windows")
-  # Only do this for debug builds,
-  # as release builds should copy the folder over (not symlink)
-  IF(CMAKE_BUILD_TYPE MATCHES Debug)
-    message("creating symlink...")
-
-    # create symlink assets for build
-    set(src ${CMAKE_SOURCE_DIR}/game_defence/assets)
-    set(dst ${CMAKE_CURRENT_BINARY_DIR}/assets)
-    message("creating symlink src... ${src}")
-    message("creating symlink dst... ${dst}")
-
-    add_custom_command(
-      TARGET ${PROJECT_NAME} PRE_BUILD
-      COMMAND ${CMAKE_COMMAND} -E create_symlink ${src} ${dst}
-      DEPENDS ${dst}
-      COMMENT "symbolic link resources folder from ${src} => ${dst}"
-    )
-  endif()
+if(${CMAKE_SYSTEM_NAME} STREQUAL "Windows")
+  set(VCPKG_INCLUDES ${CMAKE_CURRENT_LIST_DIR}/thirdparty/vcpkg/installed/x64-windows/include)
+elseif(${CMAKE_SYSTEM_NAME} STREQUAL "Darwin")
+  set(VCPKG_INCLUDES ${CMAKE_CURRENT_LIST_DIR}/thirdparty/vcpkg/installed/arm64-osx/include)
+elseif(${CMAKE_SYSTEM_NAME} STREQUAL "Linux")
+  set(VCPKG_INCLUDES ${CMAKE_CURRENT_LIST_DIR}/thirdparty/vcpkg/installed/x64-linux/include)
 endif()
 
-IF(${CMAKE_SYSTEM_NAME} STREQUAL "Darwin")
-  # Only do this for debug builds,
-  # as release builds should copy the folder over (not symlink)
-  IF(${CMAKE_BUILD_TYPE} MATCHES Debug)
-    message("creating symlink...")
-
-    set(src ${CMAKE_SOURCE_DIR}/game_defence/assets)
-    set(dst ${CMAKE_CURRENT_BINARY_DIR}/assets)
-    message("creating symlink src... ${src}")
-    message("creating symlink dst... ${dst}")
-
-    add_custom_command(
-      TARGET ${PROJECT_NAME} PRE_BUILD
-      COMMAND ${CMAKE_COMMAND} -E create_symlink ${src} ${dst}
-      DEPENDS ${dst}
-      COMMENT "symbolic link resources folder from ${src} => ${dst}"
-    )
-  endif()
+# Only do this for debug builds,
+# as release builds should copy the folder over (not symlink)
+IF(NOT EMSCRIPTEN AND ${CMAKE_BUILD_TYPE} MATCHES Debug)
+  message("creating symlink...")
+  set(src ${CMAKE_SOURCE_DIR}/game_defence/assets)
+  set(dst ${CMAKE_CURRENT_BINARY_DIR}/assets)
+  message("creating symlink src... ${src}")
+  message("creating symlink dst... ${dst}")
+  add_custom_command(
+    TARGET ${PROJECT_NAME} PRE_BUILD
+    COMMAND ${CMAKE_COMMAND} -E create_symlink ${src} ${dst}
+    DEPENDS ${dst}
+    COMMENT "symbolic link resources folder from ${src} => ${dst}"
+  )
 endif()
 
 IF(EMSCRIPTEN)
@@ -184,19 +89,17 @@ IF(EMSCRIPTEN)
   set(dst ${CMAKE_CURRENT_BINARY_DIR}/../assets)
   message("creating symlink src... ${src}")
   message("creating symlink dst... ${dst}")
-
   add_custom_command(
     TARGET ${PROJECT_NAME} PRE_BUILD
     COMMAND ${CMAKE_COMMAND} -E create_symlink ${src} ${dst}
     DEPENDS ${dst}
     COMMENT "symbolic link resources folder from ${src} => ${dst}"
   )
-
-  # rename as index.html
-  set_target_properties(${PROJECT_NAME} PROPERTIES OUTPUT_NAME "index")
-  set_target_properties(game_defence PROPERTIES LINK_FLAGS "${LD_FLAGS}")
 endif()
 
 set(CPACK_PROJECT_NAME ${PROJECT_NAME})
 set(CPACK_PROJECT_VERSION ${PROJECT_VERSION})
+set(CPACK_PACKAGE_DESCRIPTION "Super cool things")
+
+# set(CPACK_GENERATOR "ZIP") # Generate zip files
 include(CPack)

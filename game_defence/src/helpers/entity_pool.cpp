@@ -1,6 +1,6 @@
 #include "entity_pool.hpp"
 
-#include "actors.hpp"
+#include "actors/actors.hpp"
 #include "entt/helpers.hpp"
 
 namespace game2d {
@@ -8,7 +8,7 @@ namespace game2d {
 void
 EntityPool::update(entt::registry& r, const int desired)
 {
-  const int new_size = desired;
+  const size_t new_size = desired;
   const size_t old_size = instances.size();
   if (new_size == old_size)
     return;

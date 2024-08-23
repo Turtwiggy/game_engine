@@ -1,29 +1,25 @@
 #pragma once
 
-#include "actors.hpp"
+#include "actors/base.hpp"
 
 #include <entt/entt.hpp>
 #include <glm/glm.hpp>
 
-namespace game2d {
+#include <optional>
 
-// set this per-weapon
-struct WeaponBulletTypeToSpawnComponent
-{
-  EntityType bullet_type = EntityType::bullet_default;
-  float bullet_damage = 0.0f;
-  float bullet_speed = 200.0f;
-};
+namespace game2d {
 
 struct ShotgunComponent
 {
   int bullets_to_spawn = 2;
-
   float offset_amount = 32.0;
-
   float recoil_regain_speed = 100.0f;
   float recoil_amount = 5.0;
   float recoil_amount_max = 10.0;
+
+  // bullet_type doesnt belong on shotgun.
+  // need something else. incase more guns.
+  EntityType bullet_type = EntityType::bullet_default;
 };
 
 struct BulletComponent

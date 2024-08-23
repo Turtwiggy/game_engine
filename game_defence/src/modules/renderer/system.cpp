@@ -315,10 +315,7 @@ update_render_system(entt::registry& r, const float dt, const glm::vec2& mouse_p
   const bool in_stars_scene =
     std::find(scenes_to_render_stars.begin(), scenes_to_render_stars.end(), scene.s) != scenes_to_render_stars.end();
 
-  const auto scenes_to_jumpflood = std::vector<Scene>{
-    Scene::dungeon_designer,
-    Scene::turnbasedcombat,
-  };
+  const auto scenes_to_jumpflood = std::vector<Scene>{ Scene::dungeon_designer };
   const bool in_jumpflood_scene =
     std::find(scenes_to_jumpflood.begin(), scenes_to_jumpflood.end(), scene.s) != scenes_to_jumpflood.end();
 

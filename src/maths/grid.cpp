@@ -95,6 +95,14 @@ get_neighbour_indicies_with_diagonals(const int x, const int y, const int x_max,
   return results;
 };
 
+glm::ivec2
+index_to_grid_position(const int index, const int x_max, const int y_max)
+{
+  const int x = index % x_max;
+  const int y = static_cast<int>(index / static_cast<float>(y_max));
+  return { x, y };
+};
+
 };
 
 engine::grid::GridDirection

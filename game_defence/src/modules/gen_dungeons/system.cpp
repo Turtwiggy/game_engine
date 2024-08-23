@@ -1,6 +1,6 @@
 #include "system.hpp"
 
-#include "actors.hpp"
+#include "actors/actors.hpp"
 #include "components.hpp"
 #include "entt/helpers.hpp"
 #include "events/components.hpp"
@@ -24,15 +24,12 @@
 #include "modules/ui_combat_turnbased/components.hpp"
 #include "modules/ui_inventory/components.hpp"
 #include "modules/ux_hoverable/components.hpp"
-#include "physics/components.hpp"
 #include "sprites/helpers.hpp"
 
 #include "imgui.h"
 
 #include <SDL_scancode.h>
 #include <fmt/core.h>
-#include <glm/ext/quaternion_geometric.hpp>
-#include <glm/fwd.hpp>
 #include <vector>
 
 namespace game2d {
@@ -212,9 +209,10 @@ update_gen_dungeons_system(entt::registry& r, const glm::ivec2& mouse_pos)
 
   // set_player_positions(r, result, rnd);
 
-  const auto e = create_gameplay(r, EntityType::actor_jetpack_player, { -100, -100 });
+  ActorJetpackPlayer desc;
+  desc.pos = { -100, -100 };
+  const auto e = Factory_ActorJetpackPlayer::create(r, desc);
   r.emplace<CameraFollow>(e);
-  r.get<PhysicsBodyComponent>(e).base_speed = 100.0f;
   // make it a controlled player
   r.emplace<PlayerComponent>(e);
   r.emplace<TeamComponent>(e, AvailableTeams::player);

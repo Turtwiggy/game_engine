@@ -9,6 +9,8 @@
 #include "modules/scene/helpers.hpp"
 #include "modules/ui_gameover/components.hpp"
 
+#include <algorithm>
+
 namespace game2d {
 using namespace std::literals;
 
@@ -23,13 +25,9 @@ update_gameover_system(entt::registry& r)
     const auto& scene = get_first_component<SINGLETON_CurrentScene>(r);
 
     // Scenes to add gameover condition to
-    const std::vector<Scene> valid_scenes{
-      Scene::turnbasedcombat,
-      Scene::dungeon_designer,
-    };
-    const bool valid_scene = std::find(valid_scenes.begin(), valid_scenes.end(), scene.s) != valid_scenes.end();
-
-    if (valid_scene) {
+    const auto s = std::vector<Scene>{ Scene::dungeon_designer };
+    const auto it = std::find_if(s.begin(), s.end(), [&scene](const Scene& sc) { return sc == scene.s; });
+    if (it != s.end()) {
       // Make sure we're not generating a dungeon...
       // Where players are temporarily 0...
       const bool generated_dungeon = get_first<DungeonGenerationResults>(r) != entt::null;

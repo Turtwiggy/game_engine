@@ -1,8 +1,7 @@
 #include "system.hpp"
 
-#include "components.hpp"
+#include "actors/actors.hpp"
 
-#include "actors.hpp"
 #include "entt/helpers.hpp"
 #include "events/helpers/mouse.hpp"
 #include "lifecycle/components.hpp"
@@ -158,7 +157,7 @@ DrawZeldaCursor(const ImVec2& pos, const ImVec2& window_size, float radius, floa
 
   draw_list->PathArcTo(window_center, radius, start_angle, end_angle);
   draw_list->PathStroke(color, false, thickness);
-}
+};
 
 void
 DrawZeldaCursorWindow(entt::registry& r, const glm::ivec2& mouse_pos, const float angle)
@@ -186,7 +185,7 @@ DrawZeldaCursorWindow(entt::registry& r, const glm::ivec2& mouse_pos, const floa
   DrawZeldaCursor(pos, size, radius, thickness, angle, color);
 
   ImGui::End();
-}
+};
 
 void
 update_breach_charge_system(entt::registry& r, const glm::ivec2& mouse_pos, const float dt)
@@ -226,9 +225,10 @@ update_breach_charge_system(entt::registry& r, const glm::ivec2& mouse_pos, cons
 
   // debug spawn loads of bombs
   if (imediately_place_bomb && get_mouse_lmb_press()) {
-    // spawn the bomb!
-    const auto charge_e = create_gameplay(r, EntityType::actor_breach_charge, mouse_pos_on_grid);
-    r.emplace<EntityTimedLifecycle>(charge_e, 3 * 1000);
+
+    ActorBreachCharge desc;
+    desc.pos = glm::vec2(mouse_pos_on_grid);
+    const auto charge_e = Factory_ActorBreachCharge::create(r, desc);
     add_bomb_callback(r, charge_e);
   }
 
@@ -256,11 +256,12 @@ update_breach_charge_system(entt::registry& r, const glm::ivec2& mouse_pos, cons
     }
 
     if (able_to_use_breach_charge && place_bomb) {
-
       fmt::println("spawning bomb!");
+
       // spawn the bomb!
-      const auto charge_e = create_gameplay(r, EntityType::actor_breach_charge, mouse_pos_on_grid);
-      r.emplace<EntityTimedLifecycle>(charge_e, 3 * 1000);
+      ActorBreachCharge desc;
+      desc.pos = glm::vec2(mouse_pos_on_grid);
+      const auto charge_e = Factory_ActorBreachCharge::create(r, desc);
       add_bomb_callback(r, charge_e);
 
       // remove bomb from inventory (a one use)
@@ -274,6 +275,6 @@ update_breach_charge_system(entt::registry& r, const glm::ivec2& mouse_pos, cons
       able_to_use_breach_charge = false;
     }
   }
-}
+};
 
 } // namespace game2d

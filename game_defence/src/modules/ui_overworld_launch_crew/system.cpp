@@ -1,6 +1,6 @@
 #include "system.hpp"
 
-#include "actors.hpp"
+#include "actors/actors.hpp"
 #include "entt/helpers.hpp"
 #include "imgui/helpers.hpp"
 #include "maths/maths.hpp"
@@ -88,7 +88,9 @@ update_ui_launch_crew_system(entt::registry& r)
     const auto enemy_e = get_first<EnemyComponent>(r);
     const auto player_t = get_position(r, player_e);
 
-    const auto capsule_e = create_gameplay(r, EntityType::actor_capsule, { player_t.x, player_t.y });
+    ActorSpaceCapsule desc;
+    desc.pos = { player_t.x, player_t.y };
+    const auto capsule_e = Factory_ActorSpaceCapsule::create(r, desc);
 
     // set the capsule's dynamic target to the enemy ship
     r.emplace<DynamicTargetComponent>(capsule_e, enemy_e);
@@ -151,7 +153,10 @@ update_ui_launch_crew_system(entt::registry& r)
   if (ImGui::Button("Add cargo drone")) {
     const auto player_e = get_first<PlayerComponent>(r);
     const auto player_t = get_position(r, player_e);
-    const auto capsule_e = create_gameplay(r, EntityType::actor_cargo, { player_t.x, player_t.y - 50 });
+
+    ActorSpaceCargo desc;
+    desc.pos = { player_t.x, player_t.y - 50 };
+    const auto capsule_e = Factory_ActorSpaceCargo::create(r, desc);
 
     r.emplace<ApplyForceInDirectionComponent>(capsule_e);
 

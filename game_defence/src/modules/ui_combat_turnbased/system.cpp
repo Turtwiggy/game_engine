@@ -140,7 +140,7 @@ update_ui_combat_turnbased_system(entt::registry& r, const glm::ivec2& input_mou
     // already has a path that you've not yet arrived at
     // const bool has_d = has_destination(r, e);
     // const bool at_d = at_destination(r, e);
-    const bool blocked_d = destination_is_blocked(r, e, mouse_pos);
+    const bool blocked_d = destination_is_blocked(r, mouse_pos);
     // if (blocked_d)
     //   fmt::println("player destination blocked?");
 

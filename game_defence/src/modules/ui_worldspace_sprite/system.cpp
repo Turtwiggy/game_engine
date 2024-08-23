@@ -1,6 +1,6 @@
 #include "modules/ui_worldspace_sprite/system.hpp"
 
-#include "actors.hpp"
+#include "actors/actors.hpp"
 #include "components.hpp"
 #include "lifecycle/components.hpp"
 #include "modules/actors/helpers.hpp"
@@ -74,7 +74,7 @@ update_ui_worldspace_sprite_system(entt::registry& r)
       const auto& line = lines[i];
       const auto& line_len = line_lengths[i];
 
-      for (int ch_idx = 0; ch_idx < line.size(); ch_idx++) {
+      for (size_t ch_idx = 0; ch_idx < line.size(); ch_idx++) {
         const auto& ch = line[ch_idx];
 
         // handle special cases

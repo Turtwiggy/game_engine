@@ -1,5 +1,6 @@
 #include "system.hpp"
 
+#include "actors/actors.hpp"
 #include "audio/components.hpp"
 #include "components.hpp"
 #include "entt/helpers.hpp"
@@ -9,11 +10,9 @@
 #include "modules/combat_attack_cooldown/components.hpp"
 #include "modules/combat_damage/components.hpp"
 #include "modules/combat_wants_to_shoot/components.hpp"
-#include "modules/system_particles/components.hpp"
-#include "modules/system_particles/helpers.hpp"
-#include "physics/components.hpp"
-#include "physics/helpers.hpp"
 #include "renderer/transform.hpp"
+
+#include <fmt/core.h>
 
 namespace game2d {
 
@@ -52,7 +51,7 @@ update_weapon_shotgun_system(entt::registry& r, const uint64_t milliseconds_dt)
 
   const auto& view = r.view<ShotgunComponent, HasParentComponent, TransformComponent>(entt::exclude<WaitForInitComponent>);
 
-  for (const auto& [shotgun_e, shotgun, parent, shotgun_t] : view.each()) {
+  for (const auto& [shotgun_e, shotgun_c, parent, shotgun_t] : view.each()) {
 
     const auto& p = parent.parent;
     if (p == entt::null || !r.valid(p)) {
@@ -72,14 +71,14 @@ update_weapon_shotgun_system(entt::registry& r, const uint64_t milliseconds_dt)
     const glm::vec2 nrm_dir = engine::normalize_safe(raw_dir);
 
     // Add an offset.
-    auto offset = glm::vec2{ nrm_dir.x * shotgun.offset_amount, nrm_dir.y * shotgun.offset_amount };
+    auto offset = glm::vec2{ nrm_dir.x * shotgun_c.offset_amount, nrm_dir.y * shotgun_c.offset_amount };
 
     // Add an offset due to recoil.
     auto offset_due_to_recoil = glm::vec2{ 0.0f, 0.0f };
-    shotgun.recoil_amount -= dt * shotgun.recoil_regain_speed;
-    shotgun.recoil_amount = glm::max(shotgun.recoil_amount, 0.0f); // clamp above 0
-    if (shotgun.recoil_amount > 0.0f)
-      offset_due_to_recoil = glm::vec2{ -nrm_dir.x * shotgun.recoil_amount, -nrm_dir.y * shotgun.recoil_amount };
+    shotgun_c.recoil_amount -= dt * shotgun_c.recoil_regain_speed;
+    shotgun_c.recoil_amount = glm::max(shotgun_c.recoil_amount, 0.0f); // clamp above 0
+    if (shotgun_c.recoil_amount > 0.0f)
+      offset_due_to_recoil = glm::vec2{ -nrm_dir.x * shotgun_c.recoil_amount, -nrm_dir.y * shotgun_c.recoil_amount };
 
     // Set gun position
     {
@@ -114,14 +113,14 @@ update_weapon_shotgun_system(entt::registry& r, const uint64_t milliseconds_dt)
       // spawn particles "pfft"; you couldnt shoot
       const float pfft_speed = 0.1f;
 
-      ParticleDescription desc;
+      Particle desc;
       desc.time_to_live_ms = 1000;
-      desc.position = parent_pos + offset + offset_due_to_recoil;
+      desc.pos = parent_pos + offset + offset_due_to_recoil;
       desc.velocity = { -nrm_dir.x * pfft_speed, -glm::abs(nrm_dir.y * pfft_speed) };
       desc.start_size = 10;
       desc.end_size = 0;
       desc.sprite = "EMPTY";
-      const auto e = create_particle(r, desc);
+      const auto e = Factory_Particle::create(r, desc);
 
       continue;
     }
@@ -140,7 +139,7 @@ update_weapon_shotgun_system(entt::registry& r, const uint64_t milliseconds_dt)
       create_empty<AudioRequestPlayEvent>(r, AudioRequestPlayEvent{ "SHOTGUN_SHOOT_01" });
 
       // Add knockback to the shotgun
-      shotgun.recoil_amount = shotgun.recoil_amount_max;
+      shotgun_c.recoil_amount = shotgun_c.recoil_amount_max;
 
       // put gun on cooldown
       if (cooldown) {
@@ -155,9 +154,7 @@ update_weapon_shotgun_system(entt::registry& r, const uint64_t milliseconds_dt)
       // constexpr float bullet_angle_radians = bullet_angle_degrees * engine::Deg2Rad;
 
       // give all the bullets the same attack id
-      AttackIdComponent attack_id_comp;
 
-      const auto& bullet_info = r.get<WeaponBulletTypeToSpawnComponent>(shotgun_e);
       for (int i = 2; i < 3; i++) {
 
         // float angle_to_fire_at = angle_radians;
@@ -170,28 +167,35 @@ update_weapon_shotgun_system(entt::registry& r, const uint64_t milliseconds_dt)
         // fmt::println("firing gun at angle(degrees): " << angle_to_fire_at * engine::Rad2Deg << std::endl;
         // const auto new_dir = engine::angle_radians_to_direction(angle_to_fire_at);
 
-        // offset * 1.0 = bullet spawns at the center of the gun
-        const glm::vec2 bullet_position = parent_pos + (offset * 1.0f);
+        const glm::vec2 bullet_position = parent_pos + (offset);
+        entt::entity bullet_e = entt::null;
 
-        const auto req = create_gameplay(r, bullet_info.bullet_type, bullet_position);
-        r.get_or_emplace<HasParentComponent>(req).parent = p;
+        if (shotgun_c.bullet_type == EntityType::bullet_default) {
+          BulletDefault desc;
+          desc.pos = bullet_position;
+          desc.dir = nrm_dir;
+          desc.rotation = shotgun_t.rotation_radians.z;
+          desc.team = r.get<TeamComponent>(p).team;
+          desc.parent = p;
+          bullet_e = Factory_BulletDefault::create(r, desc);
+        }
 
-        auto& bullet_transform = r.get<TransformComponent>(req);
-        bullet_transform.rotation_radians.z = shotgun_t.rotation_radians.z;
+        if (shotgun_c.bullet_type == EntityType::bullet_bouncy) {
+          BulletBouncy desc;
+          desc.pos = bullet_position;
+          desc.dir = nrm_dir;
+          desc.rotation = shotgun_t.rotation_radians.z;
+          desc.team = r.get<TeamComponent>(p).team;
+          desc.parent = p;
+          bullet_e = Factory_BulletBouncy::create(r, desc);
+        }
 
-        const b2Vec2 vel = { nrm_dir.x * bullet_info.bullet_speed, nrm_dir.y * bullet_info.bullet_speed };
-        auto& bullet_c = r.get<PhysicsBodyComponent>(req);
-        bullet_c.base_speed = bullet_info.bullet_speed;
-        bullet_c.body->SetLinearVelocity(vel);
+        if (bullet_e == entt::null) {
+          fmt::println("Error: bullet type not implemented");
+          exit(1); // crash. bullet not implemented
+        }
 
-        // Turn the bullet Live!
-        // Make bullets Neutral so they hurt everyone >:)
-        // r.emplace_or_replace<TeamComponent>(req, AvailableTeams::neutral);
-        r.emplace_or_replace<TeamComponent>(req, r.get<TeamComponent>(p).team);
-        set_collision_filters(r, req); // needs teamcomponent
-        r.emplace_or_replace<AttackComponent>(req, AttackComponent{ int(bullet_info.bullet_damage) });
-        r.emplace<AttackIdComponent>(req, attack_id_comp);
-        r.emplace_or_replace<EntityTimedLifecycle>(req);
+        //
       }
     }
   }

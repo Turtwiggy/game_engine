@@ -4,8 +4,7 @@ glew
 glm
 gtest
 sdl2
-sdl2-mixer[core, mpg123]
-openal-soft
+sdl2-mixer[core,mpg123]
 stb
 nlohmann-json
 --triplet

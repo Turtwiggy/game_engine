@@ -45,7 +45,7 @@ get_first_component(entt::registry& r)
 
 template<class T>
 void
-destroy_first(entt::registry& r, const std::optional<T> val = std::nullopt)
+destroy_first(entt::registry& r)
 {
   const entt::entity ent = get_first<T>(r);
   if (ent != entt::null)
@@ -56,7 +56,7 @@ template<class T>
 entt::entity
 destroy_first_and_create(entt::registry& r, const std::optional<T> val = std::nullopt)
 {
-  destroy_first<T>(r, val);
+  destroy_first<T>(r);
 
   return create_empty<T>(r, val);
 };

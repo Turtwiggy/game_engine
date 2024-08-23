@@ -126,7 +126,7 @@ update_minigame_bamboo_system(entt::registry& r, const float dt)
     const auto combination_size = combination.size();
     if (buffer_size != combination_size)
       return false;
-    for (int i = 0; i < buffer_size; i++) {
+    for (size_t i = 0; i < buffer_size; i++) {
       const auto buffer_entry = buffer[i];
       const auto combination_entry = combination[i];
 

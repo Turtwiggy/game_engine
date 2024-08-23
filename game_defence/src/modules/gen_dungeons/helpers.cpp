@@ -1,22 +1,17 @@
 #include "helpers.hpp"
 
-#include "actors.hpp"
+#include "actors/actors.hpp"
 #include "colour/colour.hpp"
 #include "components.hpp"
 #include "entt/helpers.hpp"
 #include "helpers/line.hpp"
 #include "maths/grid.hpp"
 #include "maths/maths.hpp"
-#include "modules/actor_enemy/components.hpp"
 #include "modules/actors/helpers.hpp"
 #include "modules/combat_damage/components.hpp"
-#include "modules/combat_wants_to_shoot/components.hpp"
 #include "modules/gen_dungeons/helpers/collisions.hpp"
 #include "modules/grid/components.hpp"
 #include "modules/grid/helpers.hpp"
-#include "modules/scene/helpers.hpp"
-#include "modules/ux_hoverable/components.hpp"
-#include "renderer/components.hpp"
 
 #include <algorithm>
 #include <fmt/core.h>
@@ -162,11 +157,11 @@ generate_rooms(entt::registry& r, const DungeonGenerationCriteria& data, engine:
 entt::entity
 create_wall(entt::registry& r, const glm::ivec2& pos, const glm::ivec2& size)
 {
-  const auto wall_e = create_gameplay(r, EntityType::solid_wall, pos);
-  set_size(r, wall_e, size);
-  set_colour(r, wall_e, { 1.0f, 1.0f, 1.0f, 1.0f });
-  r.get<TagComponent>(wall_e).tag = "dungeon-wall";
-  return wall_e;
+  SolidWall desc;
+  desc.pos = pos;
+  desc.size = size;
+  desc.colour = { 1.0f, 1.0f, 1.0f, 1.0f };
+  return Factory_SolidWall::create(r, desc);
 };
 
 Line
@@ -323,24 +318,21 @@ set_generated_entity_positions(entt::registry& r, DungeonGenerationResults& resu
     const glm::ivec2 pos = worldspace + offset;
 
     // actor_dungeon description
-    CombatEntityDescription desc;
-    desc.position = pos;
+
+    ActorDungeon desc;
+    desc.pos = pos;
     desc.team = AvailableTeams::enemy;
+    desc.hp = 50;
+    desc.max_hp = 50;
+    desc.hovered_colour = { 1.0f, 0.0f, 0.0f, 1.0f };
+    const auto dungeon_e = Factory_ActorDungeon::create(r, desc);
+    move_entity_on_map(r, dungeon_e, pos);
 
-    // old create_combat_entity();
-    {
-      const auto e = create_gameplay(r, EntityType::actor_dungeon, pos);
-      move_entity_on_map(r, e, pos);
-      r.emplace_or_replace<TeamComponent>(e, TeamComponent{ desc.team });
-      r.emplace<StaticTargetComponent>(e);
-      r.emplace<HoveredColour>(e, engine::SRGBColour{ 1.0f, 0.0f, 0.0f, 1.0f });
-      r.emplace_or_replace<EnemyComponent>(e);
-      r.get<HealthComponent>(e).hp = 50;
-      r.get<HealthComponent>(e).max_hp = 50;
-
-      const auto weapon_e = add_weapon_shotgun(r, e);
-      r.emplace<AbleToShoot>(weapon_e);
-    }
+    WeaponShotgun wdesc;
+    wdesc.able_to_shoot = true;
+    wdesc.parent = dungeon_e;
+    wdesc.team = desc.team;
+    const auto weapon_e = Factory_WeaponShotgun::create(r, wdesc);
 
     room_idx_to_spawn++;
     room_idx_to_spawn %= rooms.size();
@@ -728,12 +720,15 @@ instantiate_edges(entt::registry& r, MapComponent& map)
       continue;
     }
 
-    const entt::entity e = create_gameplay(r, EntityType::solid_wall, center, new_size);
+    SolidWall desc;
+    desc.pos = center;
+    desc.size = new_size;
+    const auto e = Factory_SolidWall::create(r, desc);
 
-    if (was_horizontal)
-      set_colour(r, e, { 0.0f, 1.0, 0.0, 1.0f });
-    else
-      set_colour(r, e, { 0.0f, 0.0, 1.0, 1.0f });
+    // if (was_horizontal)
+    //   set_colour(r, e, { 0.0f, 1.0, 0.0, 1.0f });
+    // else
+    //   set_colour(r, e, { 0.0f, 0.0, 1.0, 1.0f });
 
     if (edge.instance != entt::null)
       fmt::println("Warning: edge already had instance...");

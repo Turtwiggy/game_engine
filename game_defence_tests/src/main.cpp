@@ -1,7 +1,10 @@
 
-#include <gtest/gtest.h>
+#include "maths/grid.hpp"
+#include <SDL2/SDL.h>
 
 #include <fmt/core.h>
+#include <glm/glm.hpp>
+#include <gtest/gtest.h>
 
 // Logical	    ASSERT_TRUE(condition)
 //              ASSERT_FALSE(condition)
@@ -25,12 +28,30 @@ main(int argc, char** argv)
   return RUN_ALL_TESTS();
 }
 
+TEST(TestSuite, HelloAgain)
+{
+  ASSERT_TRUE(true);
+};
+
 TEST(TestSuite, HelloTest)
 {
   ASSERT_TRUE(true);
-}
+};
 
 TEST(TestSuite, HelloTest2)
 {
   ASSERT_NE(1.0f, 0.0f);
-}
+};
+
+TEST(TestSuite, HelloMaths)
+{
+  // arrange
+  const int index = 0;
+  const glm::ivec2 gp{ 0, 0 };
+
+  // act
+  const glm::ivec2 result = engine::grid::index_to_grid_position(index, 5, 5);
+
+  // assert
+  ASSERT_EQ(gp, result);
+};

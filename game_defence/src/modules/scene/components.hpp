@@ -7,10 +7,7 @@ enum class Scene
   splashscreen,
   menu,
   overworld_revamped,
-
   dungeon_designer,
-  turnbasedcombat,
-
   minigame_bamboo,
 
   count
