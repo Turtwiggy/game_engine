@@ -1,5 +1,7 @@
 
 #include "maths/grid.hpp"
+#include <SDL2/SDL.h>
+
 #include <fmt/core.h>
 #include <glm/glm.hpp>
 #include <gtest/gtest.h>

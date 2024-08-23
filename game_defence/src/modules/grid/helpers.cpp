@@ -22,25 +22,6 @@ move_entity_on_map(entt::registry& r, const entt::entity src_e, const glm::vec2&
   const auto src_idx = convert_position_to_index(map, src);
   const auto dst_idx = convert_position_to_index(map, dst);
 
-  /*
-  // remove from current gridpos
-  const auto hmm =
-    std::remove_if(map.map[src_idx].begin(), map.map[src_idx].end(), [&src_e](const entt::entity a) { return a == src_e; });
-  map.map[src_idx].erase(hmm, map.map[src_idx].end());
-
-  // immediately update the map so that other entities would prefer not to pathfind to the destination
-  map.map[dst_idx].push_back(src_e);
-
-  // remove invalid ents...
-  auto& ents_at_src = map.map[src_idx];
-  std::erase_if(ents_at_src, [&r](const entt::entity& e) {
-    const bool invalid = !r.valid(e);
-    if (invalid)
-      fmt::println("warning.. map contains invalid entity. check this out!");
-    return invalid;
-  });
-  */
-
   map.map[src_idx] = entt::null;
 
   if (map.map[dst_idx] != entt::null) {

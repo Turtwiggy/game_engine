@@ -189,7 +189,7 @@ update_turnbased_enemy_system(entt::registry& r)
 
     if (waiting_to_shoot && !allowed_to_shoot) {
       // Possible causes: no gun. gun on cooldown. gun has no parent.
-      fmt::println("Potential AI error: waiting to shoot but cant shoot.");
+      fmt::println("Potential AI error: waiting to shoot but hasn't shot yet. Maybe unable.");
     }
 
     // ImGui::PopID();

@@ -29,10 +29,10 @@ get_exe_path_without_exe_name()
 
   if (!path.ends_with('/'))
     path += "/"s;
-
+  return path;
 #endif
 
-  return path;
+  return "";
 };
 
 } // namespace engine

@@ -6,15 +6,21 @@
   ],
   "settings": {
     "clangd.checkUpdates": true,
-    "C_Cpp.intelliSenseEngine": "disabled",
+    "C_Cpp.intelliSenseEngine": "disabled", // use clangd
 
+    "cmake.preferredGenerators": ["Ninja"],
     "cmake.parallelJobs": 32,
+
+    "clangd.path": "C:/Software/msys64/ucrt64/bin/clangd.exe",
+    "cmake.cmakePath": "C:/Software/msys64/ucrt64/bin/cmake.exe",
+    "cmake.ctestPath": "C:/Software/msys64/ucrt64/bin/ctest.exe",
+    "cmake.cpackPath": "C:/Software/msys64/ucrt64/bin/cpack.exe",
 
     /*
     "terminal.integrated.profiles.windows": {
       "msys2": {
         "path": ["C:/Software/msys64/msys2_shell.cmd"],
-        "args": ["-defterm", "-mingw64", "-no-start", "-here"]
+        "args": ["-defterm", "-ucrt64", "-no-start", "-here"]
       }
     },
     "terminal.integrated.defaultProfile.windows": "msys2",

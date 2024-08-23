@@ -11,15 +11,19 @@
   {
     "name": "MSYS2 gcc/g++",
     "compilers": {
-      "C": "C:/Software/msys64/mingw64/bin/gcc.exe",
-      "CXX": "C:/Software/msys64/mingw64/bin/g++.exe"
+      "C": "C:/Software/msys64/ucrt64/bin/gcc.exe",
+      "CXX": "C:/Software/msys64/ucrt64/bin/g++.exe"
     },
     "preferredGenerator": {
       "name": "Ninja"
     },
     "cmakeSettings": {
       "VCPKG_TARGET_TRIPLET": "x64-mingw-static",
+      "VCPKG_DEFAULT_HOST_TRIPLET": "x64-mingw-static",
       "CMAKE_TOOLCHAIN_FILE": "${workspaceFolder}/thirdparty/vcpkg/scripts/buildsystems/vcpkg.cmake"
+    },
+    "environmentVariables": {
+      "CMT_MINGW_PATH": "C:/Software/msys64/ucrt64/bin"
     }
   }
 ]

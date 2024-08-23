@@ -142,6 +142,9 @@ main(int argc, char* argv[])
 #else
   name += " [RELEASE]";
 #endif
+#if defined(__MINGW32__)
+  name += " [MINGW]";
+#endif
 
   // #if defined(_DEBUG)
   //   app.limit_fps = true;

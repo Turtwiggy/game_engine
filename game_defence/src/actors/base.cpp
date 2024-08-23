@@ -20,7 +20,9 @@ sprite_type_to_sprite(const EntityType& type)
 
   std::string sprite = "EMPTY";
 
-  if (type == EntityType::actor_jetpack_player)
+  if (type == EntityType::actor_breach_charge)
+    sprite = "WEAPON_GRENADE";
+  else if (type == EntityType::actor_jetpack_player)
     sprite = "PERSON_25_0";
   else if (type == EntityType::actor_space_ship)
     sprite = "SPACE_VEHICLE_1";
@@ -28,8 +30,6 @@ sprite_type_to_sprite(const EntityType& type)
     sprite = "EMPTY";
   else if (type == EntityType::actor_space_cargo)
     sprite = "DICE_DARK_X";
-  else if (type == EntityType::actor_breach_charge)
-    sprite = "WEAPON_GRENADE";
   else if (type == EntityType::weapon_shotgun)
     sprite = "EMPTY";
   else if (type == EntityType::bullet_default)
@@ -38,8 +38,10 @@ sprite_type_to_sprite(const EntityType& type)
     sprite = "EMPTY";
   else if (type == EntityType::particle)
     sprite = "EMPTY";
-  else
-    fmt::println("warning! sprite set to empty: {}", type_name);
+  else if (type == EntityType::solid_wall)
+    sprite = "EMPTY";
+  // else
+  //   fmt::println("warning! sprite set to empty: {}", type_name);
 
   return sprite;
 };

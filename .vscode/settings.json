@@ -1,6 +1,5 @@
 {
   // "cmake.configureArgs": ["-DCMAKE_EXPORT_COMPILE_COMMANDS:BOOL=TRUE"],
-  // "cmake.preferredGenerators": ["Ninja"],
   "cmake.preferredGenerators": ["Ninja"],
   "cmake.debugConfig": {
     "args": [
@@ -10,6 +9,7 @@
       // "--headless"
     ]
   },
+  "cmake.parallelJobs": 32, // boom boom
 
   "editor.formatOnSave": true,
   "editor.showUnused": true,
