@@ -3,10 +3,25 @@
 #include "entt/helpers.hpp"
 #include <entt/entt.hpp>
 
-#include <map>
-#include <unordered_map>
-
 namespace game2d {
+
+enum class ItemType
+{
+  gun,
+  armour,
+  bomb,
+  medkit,
+  scrap,
+  bullet_default,
+  bullet_bouncy
+};
+
+// ItemTypeComponent exists to that
+// the item knows which instance of an object to spawn
+struct ItemTypeComponent
+{
+  ItemType type = ItemType::armour;
+};
 
 struct ShowInventoryRequest
 {
@@ -27,28 +42,9 @@ enum class InventorySlotType
   backpack,
 };
 
-enum class ItemType
-{
-  // resource
-  scrap,
-
-  // armour
-  head_protection,
-  core_protection,
-  arm_protection,
-  leg_protection,
-
-  // weapons
-  scrap_shotgun,
-  breach_charge,
-
-  bullettype_default,
-  bullettype_bouncy,
-};
-
 struct InventorySlotComponent
 {
-  InventorySlotType type = InventorySlotType::backpack;
+  InventorySlotType type = InventorySlotType::head;
 
   // parent <=> child
   entt::entity item_e = entt::null;
@@ -58,7 +54,8 @@ struct InventorySlotComponent
 
 struct ItemComponent
 {
-  ItemType type = ItemType::scrap;
+  std::string display_icon = "EMPTY";
+  std::string display_name = "DISPLAY_NAME";
 
   // parent <=> child
   entt::entity parent_slot = entt::null;
@@ -66,25 +63,15 @@ struct ItemComponent
   auto operator<=>(const ItemComponent&) const = default;
 };
 
-// const static std::unordered_map<ItemType, std::vector<InventorySlotType>> item_to_slot_map{
-//   { ItemType::scrap, { InventorySlotType::backpack } },
-//   { ItemType::scrap_helmet, { InventorySlotType::head, InventorySlotType::backpack } },
-//   { ItemType::scrap_chestpiece, { InventorySlotType::chest, InventorySlotType::backpack } },
-//   { ItemType::scrap_arm_bracer, { InventorySlotType::l_arm, InventorySlotType::r_arm, InventorySlotType::backpack } },
-//   { ItemType::scrap_legs, { InventorySlotType::legs, InventorySlotType::backpack } },
-// };
-
-// ui icons
-const static std::unordered_map<ItemType, std::string> item_to_sprite_map{
-  { ItemType::scrap, "SCRAP" },
-  { ItemType::head_protection, "HELMET_5" },
-  { ItemType::core_protection, "CHESTPIECE_5" },
-  { ItemType::arm_protection, "GLOVES_4" },
-  { ItemType::leg_protection, "BOOTS_2" },
-  { ItemType::scrap_shotgun, "WEAPON_SHOTGUN" },
-  { ItemType::bullettype_default, "AMMO_BOX" },
-  { ItemType::bullettype_bouncy, "AMMO_BOX" },
-  { ItemType::breach_charge, "WEAPON_GRENADE" },
+// where is item allowed to go?
+struct AllowedSlotsComponent
+{
+  //   { ItemType::scrap, { InventorySlotType::backpack } },
+  //   { ItemType::scrap_helmet, { InventorySlotType::head, InventorySlotType::backpack } },
+  //   { ItemType::scrap_chestpiece, { InventorySlotType::chest, InventorySlotType::backpack } },
+  //   { ItemType::scrap_arm_bracer, { InventorySlotType::l_arm, InventorySlotType::r_arm, InventorySlotType::backpack } },
+  //   { ItemType::scrap_legs, { InventorySlotType::legs, InventorySlotType::backpack } },
+  std::vector<InventorySlotType> slots;
 };
 
 struct DefaultBody
@@ -129,5 +116,12 @@ struct InitBodyAndInventory
 {
   bool placeholder = true;
 };
+
+// Items that have actions
+//
+// struct ItemMedkitActionComponent
+// {
+//   int heal_amount = 25;
+// };
 
 } // namespace game2d

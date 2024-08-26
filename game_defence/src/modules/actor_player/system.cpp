@@ -38,7 +38,8 @@ update_movement_jetpack(entt::registry& r)
     // rotate
     body_c.body->SetAngularVelocity(input_c.lx * rotation_speed);
 
-    if (input_c.ly == 0)
+    const float epsilon = 0.0001f;
+    if (glm::abs(input_c.ly) - epsilon <= 0.0f)
       continue; // no input, dont move
 
     const auto dir = engine::angle_radians_to_direction(body_c.body->GetAngle());
@@ -77,7 +78,8 @@ update_movement_direct(entt::registry& r)
 void
 update_movement_asteroids(entt::registry& r, uint64_t ms_dt)
 {
-  const auto& view = r.view<const InputComponent, MovementAsteroidsComponent, PhysicsBodyComponent, TransformComponent>();
+  const auto& view =
+    r.view<const InputComponent, const MovementAsteroidsComponent, PhysicsBodyComponent, const TransformComponent>();
   for (const auto& [e, input_c, movetype_c, body_c, transform_c] : view.each()) {
 
     // rotation_speed: how fast ship can look left/right

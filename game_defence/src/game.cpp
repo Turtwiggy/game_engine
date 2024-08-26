@@ -11,7 +11,6 @@
 #include "io/path.hpp"
 #include "lifecycle/system.hpp"
 #include "modules/actor_breach_charge/system.hpp"
-#include "modules/actor_cursor/system.hpp"
 #include "modules/actor_player/system.hpp"
 #include "modules/actor_weapon_shotgun/system.hpp"
 #include "modules/animation/wiggle_up_and_down.hpp"

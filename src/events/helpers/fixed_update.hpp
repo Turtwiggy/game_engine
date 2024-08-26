@@ -22,10 +22,10 @@ fixed_input_keyboard_release(const std::vector<InputEvent>& inputs, const SDL_Sc
 //
 
 bool
-fixed_input_mouse_press(const std::vector<InputEvent>& inputs, const int& button);
+fixed_input_mouse_press(const std::vector<InputEvent>& inputs, const uint32_t button);
 
 bool
-fixed_input_mouse_release(const std::vector<InputEvent>& inputs, const int& button);
+fixed_input_mouse_release(const std::vector<InputEvent>& inputs, const uint32_t button);
 
 //
 //

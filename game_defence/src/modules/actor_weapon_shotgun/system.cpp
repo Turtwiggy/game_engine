@@ -1,12 +1,14 @@
 #include "system.hpp"
 
 #include "actors/actors.hpp"
+#include "actors/bags/bullets.hpp"
+#include "actors/helpers.hpp"
 #include "audio/components.hpp"
 #include "components.hpp"
 #include "entt/helpers.hpp"
 #include "lifecycle/components.hpp"
+#include "magic_enum.hpp"
 #include "maths/maths.hpp"
-#include "modules/actors/helpers.hpp"
 #include "modules/combat_attack_cooldown/components.hpp"
 #include "modules/combat_damage/components.hpp"
 #include "modules/combat_wants_to_shoot/components.hpp"
@@ -113,14 +115,14 @@ update_weapon_shotgun_system(entt::registry& r, const uint64_t milliseconds_dt)
       // spawn particles "pfft"; you couldnt shoot
       const float pfft_speed = 0.1f;
 
-      Particle desc;
+      DataParticle desc;
       desc.time_to_live_ms = 1000;
       desc.pos = parent_pos + offset + offset_due_to_recoil;
       desc.velocity = { -nrm_dir.x * pfft_speed, -glm::abs(nrm_dir.y * pfft_speed) };
       desc.start_size = 10;
       desc.end_size = 0;
       desc.sprite = "EMPTY";
-      const auto e = Factory_Particle::create(r, desc);
+      const auto e = Factory_DataParticle::create(r, desc);
 
       continue;
     }
@@ -168,32 +170,17 @@ update_weapon_shotgun_system(entt::registry& r, const uint64_t milliseconds_dt)
         // const auto new_dir = engine::angle_radians_to_direction(angle_to_fire_at);
 
         const glm::vec2 bullet_position = parent_pos + (offset);
-        entt::entity bullet_e = entt::null;
 
-        if (shotgun_c.bullet_type == EntityType::bullet_default) {
-          BulletDefault desc;
-          desc.pos = bullet_position;
-          desc.dir = nrm_dir;
-          desc.rotation = shotgun_t.rotation_radians.z;
-          desc.team = r.get<TeamComponent>(p).team;
-          desc.parent = p;
-          bullet_e = Factory_BulletDefault::create(r, desc);
-        }
+        fmt::println("gun bullet type: {}", std::string(magic_enum::enum_name(shotgun_c.bullet_type)));
 
-        if (shotgun_c.bullet_type == EntityType::bullet_bouncy) {
-          BulletBouncy desc;
-          desc.pos = bullet_position;
-          desc.dir = nrm_dir;
-          desc.rotation = shotgun_t.rotation_radians.z;
-          desc.team = r.get<TeamComponent>(p).team;
-          desc.parent = p;
-          bullet_e = Factory_BulletBouncy::create(r, desc);
-        }
-
-        if (bullet_e == entt::null) {
-          fmt::println("Error: bullet type not implemented");
-          exit(1); // crash. bullet not implemented
-        }
+        DataBullet desc(shotgun_c.bullet_type);
+        desc.pos = bullet_position;
+        desc.dir = nrm_dir;
+        desc.rotation = shotgun_t.rotation_radians.z;
+        desc.team = r.get<TeamComponent>(p).team;
+        desc.parent = p;
+        desc.type = shotgun_c.bullet_type;
+        const auto bullet_e = Factory_DataBullet::create(r, desc);
 
         //
       }

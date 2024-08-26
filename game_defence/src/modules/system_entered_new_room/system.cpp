@@ -2,16 +2,17 @@
 
 #include "components.hpp"
 
+#include "actors/helpers.hpp"
 #include "entt/helpers.hpp"
 #include "maths/grid.hpp"
 #include "modules/actor_player/components.hpp"
-#include "modules/actors/helpers.hpp"
 #include "modules/gen_dungeons/components.hpp"
 #include "modules/gen_dungeons/helpers.hpp"
 #include "modules/grid/components.hpp"
 #include "modules/renderer/components.hpp"
 #include "modules/system_entered_new_room/components.hpp"
 #include "modules/ui_event_console/components.hpp"
+
 
 #include "imgui.h"
 

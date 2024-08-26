@@ -1,6 +1,6 @@
 #pragma once
 
-#include "actors/base.hpp"
+#include "actors/bags/bullets.hpp"
 
 #include <entt/entt.hpp>
 #include <glm/glm.hpp>
@@ -19,11 +19,13 @@ struct ShotgunComponent
 
   // bullet_type doesnt belong on shotgun.
   // need something else. incase more guns.
-  EntityType bullet_type = EntityType::bullet_default;
+  BulletType bullet_type = BulletType::DEFAULT;
 };
 
 struct BulletComponent
 {
+  BulletType type = BulletType::DEFAULT;
+
   bool destroy_bullet_on_wall_collision = false;
   bool destroy_bullet_on_actor_collision = true;
   bool bounce_bullet_on_wall_collision = false;

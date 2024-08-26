@@ -1,6 +1,7 @@
 #include "helpers.hpp"
 
 #include "actors/actors.hpp"
+#include "actors/helpers.hpp"
 #include "audio/components.hpp"
 #include "audio/helpers/sdl_mixer.hpp"
 #include "colour/colour.hpp"
@@ -11,7 +12,6 @@
 #include "magic_enum.hpp"
 #include "modules/actor_enemy/components.hpp"
 #include "modules/actor_player/components.hpp"
-#include "modules/actors/helpers.hpp"
 #include "modules/camera/components.hpp"
 #include "modules/camera/orthographic.hpp"
 #include "modules/combat_damage/components.hpp"
@@ -44,7 +44,6 @@
 #include <box2d/b2_math.h>
 #include <nlohmann/json.hpp>
 
-
 #include <fmt/core.h>
 #include <string>
 
@@ -56,11 +55,12 @@ using json = nlohmann::json;
 entt::entity
 add_weapon_shotgun(entt::registry& r, const entt::entity& e)
 {
-  WeaponShotgun desc;
+  DataWeaponShotgun desc;
   desc.pos = get_position(r, e);
   desc.team = r.get<TeamComponent>(e).team;
-  desc.parent = e;
-  const auto weapon_e = Factory_WeaponShotgun::create(r, desc);
+  desc.parent = get_first<PlayerComponent>(r);
+  const auto weapon_e = Factory_DataWeaponShotgun::create(r, desc);
+  // add_components(r, e, desc);
 
   // link player&weapon
   HasWeaponComponent has_weapon;
@@ -101,11 +101,11 @@ move_to_scene_menu(entt::registry& r)
   const auto half_wh = ri.viewport_size_render_at / glm::ivec2(2.0f, 2.0f);
 
   // create a player for an interactive menu
-  ActorSpaceShip desc;
+  DataSpaceShipActor desc;
   desc.pos = { half_wh.x, 0 };
   desc.colour = { 255, 255, 117, 1.0f };
   desc.team = AvailableTeams::player;
-  const auto player_e = Factory_ActorSpaceShip::create(r, desc);
+  const auto player_e = Factory_DataSpaceShipActor::create(r, desc);
   r.emplace<CameraFollow>(player_e);
 }
 
@@ -129,11 +129,11 @@ move_to_scene_overworld_revamped(entt::registry& r)
 
   // create an enemy ship off-screen
 
-  ActorSpaceShip desc;
+  DataSpaceShipActor desc;
   desc.pos = { player_t.position.x + half_wh.x * 2, player_t.position.y };
   desc.colour = { 1.0f, 0.0f, 0.0f, 1.0f };
   desc.team = AvailableTeams::enemy;
-  const auto enemy_e = Factory_ActorSpaceShip::create(r, desc);
+  const auto enemy_e = Factory_DataSpaceShipActor::create(r, desc);
 
   // boost the player's ship until it reaches the enemy...
   r.emplace<DynamicTargetComponent>(player_e, enemy_e);
@@ -206,10 +206,6 @@ move_to_scene_start(entt::registry& r, const Scene& s, const bool load_saved)
 {
   const auto& transforms = r.view<TransformComponent>(entt::exclude<OrthographicCamera>);
   r.destroy(transforms.begin(), transforms.end());
-
-  const auto& actors = r.view<EntityTypeComponent>(entt::exclude<OrthographicCamera>);
-  r.destroy(actors.begin(), actors.end());
-
   const auto& ui = r.view<WorldspaceTextComponent>();
   r.destroy(ui.begin(), ui.end());
 

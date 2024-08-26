@@ -1,12 +1,13 @@
 #pragma once
 
-#include "actors/base.hpp"
+#include "bags/armour.hpp"
+#include "bags/bullets.hpp"
+#include "bags/items.hpp"
+#include "bags/weapons.hpp"
 #include "colour/colour.hpp"
 #include "modules/combat_damage/components.hpp"
 
 #include <entt/entt.hpp>
-
-// #include <concepts>
 
 namespace game2d {
 
@@ -15,60 +16,43 @@ namespace game2d {
 // i.e. data that needs to be set per entity
 //
 
-struct ActorBreachCharge : public EntityDescription
-{
-  bool placeholder : true;
-};
-
-struct ActorDungeon : public EntityDescription
+struct DataDungeonActor : public EntityData
 {
   AvailableTeams team = AvailableTeams::neutral;
   int hp = 100;
   int max_hp = 100;
-  engine::SRGBColour hovered_colour;
+  engine::SRGBColour hovered_colour{ 1.0f, 1.0f, 1.0f, 1.0f };
 };
 
-struct ActorJetpackPlayer : public EntityDescription
+struct DataJetpackActor : public EntityData
 {
   AvailableTeams team = AvailableTeams::neutral;
+
+  DataJetpackActor() { sprite = "PERSON_25_0"; }
 };
 
-struct ActorSpaceShip : public EntityDescription
+struct DataSpaceShipActor : public EntityData
 {
   AvailableTeams team = AvailableTeams::neutral;
+
+  DataSpaceShipActor() { sprite = "SPACE_VEHICLE_1"; }
 };
 
-struct ActorSpaceCapsule : public EntityDescription
+struct DataSpaceCapsuleActor : public EntityData
 {
   bool placeholder = true;
 };
 
-struct ActorSpaceCargo : public EntityDescription
+struct DataSpaceCargoActor : public EntityData
 {
-  bool placeholder = true;
+  DataSpaceCargoActor()
+  {
+    sprite = "DICE_DARK_X";
+    // colour = get_srgb_colour_by_tag("");
+  }
 };
 
-struct BulletBouncy : public EntityDescription
-{
-  int bullet_damage = 12;
-  float bullet_speed = 250;
-  float rotation = 0.0f;
-  glm::vec2 dir{ 0.0f };
-  AvailableTeams team = AvailableTeams::neutral;
-  entt::entity parent = entt::null;
-};
-
-struct BulletDefault : public EntityDescription
-{
-  int bullet_damage = 12;
-  float bullet_speed = 250.0f;
-  float rotation = 0.0f;
-  glm::vec2 dir{ 0.0f };
-  AvailableTeams team = AvailableTeams::neutral;
-  entt::entity parent = entt::null;
-};
-
-struct Particle : public EntityDescription
+struct DataParticle : public EntityData
 {
   int time_to_live_ms = 3 * 1000;
   float start_size = 10;
@@ -81,99 +65,59 @@ struct Particle : public EntityDescription
   // engine::SRGBColour end_colour;
 };
 
-struct SolidWall : public EntityDescription
+struct DataSolidWall : public EntityData
 {
   bool placeholder = true;
-};
-
-struct WeaponShotgun : public EntityDescription
-{
-  entt::entity parent = entt::null;
-  bool able_to_shoot = false;
-  AvailableTeams team = AvailableTeams::neutral;
 };
 
 //
 // Factories
 //
 
-// #define REGISTER_DERIVED_TYPE(entity_type, entity_description_struct)                                                       \
-//   template<>                                                                                                                \
-//   struct DerivedTypeMap<entity_type>                                                                                        \
-//   {                                                                                                                         \
-//     using type = entity_description_struct;                                                                                 \
-//   };
-
-// template<EntityType>
-// struct DerivedTypeMap;
-
-#define GENERATE_FACTORY(entity_type, entity_description_struct)                                                            \
-  struct Factory_##entity_description_struct : public Actor<entity_type>                                                    \
+#define GENERATE_FACTORY(entity_description_struct)                                                                         \
+  struct Factory_##entity_description_struct                                                                                \
   {                                                                                                                         \
-    Factory_##entity_description_struct() = delete;                                                                         \
     static entt::entity create(entt::registry& r, const entity_description_struct& desc);                                   \
-  };                                                                                                                        \
-  // REGISTER_DERIVED_TYPE(entity_type, Factory_##entity_description_struct)
+  };
 
-GENERATE_FACTORY(EntityType::actor_breach_charge, ActorBreachCharge)
-GENERATE_FACTORY(EntityType::actor_dungeon, ActorDungeon)
-GENERATE_FACTORY(EntityType::actor_jetpack_player, ActorJetpackPlayer)
-GENERATE_FACTORY(EntityType::actor_space_ship, ActorSpaceShip)
-GENERATE_FACTORY(EntityType::actor_space_cargo, ActorSpaceCargo)
-GENERATE_FACTORY(EntityType::actor_space_capsule, ActorSpaceCapsule)
-GENERATE_FACTORY(EntityType::bullet_bouncy, BulletBouncy)
-GENERATE_FACTORY(EntityType::bullet_default, BulletDefault)
-GENERATE_FACTORY(EntityType::particle, Particle)
-// GENERATE_FACTORY(EntityType::particle_emitter, Particle)
-GENERATE_FACTORY(EntityType::solid_wall, SolidWall)
-GENERATE_FACTORY(EntityType::weapon_shotgun, WeaponShotgun)
-// GENERATE_FACTORY(EntityType::quip, WeaponShotgun)
+GENERATE_FACTORY(DataDungeonActor)
+GENERATE_FACTORY(DataJetpackActor)
+GENERATE_FACTORY(DataSpaceShipActor)
+GENERATE_FACTORY(DataSpaceCapsuleActor)
+GENERATE_FACTORY(DataSpaceCargoActor)
+GENERATE_FACTORY(DataParticle)
+GENERATE_FACTORY(DataSolidWall)
+// GENERATE_FACTORY(EntityType::particle_emitter, ParticleDesc)
+// GENERATE_FACTORY(EntityType::quip, WeaponShotgunDesc)
 
-// template<EntityType E>
-// using DerivedType = typename DerivedTypeMap<E>::type;
+// hmm
+GENERATE_FACTORY(DataArmour)
+GENERATE_FACTORY(DataBullet)
+GENERATE_FACTORY(DataWeaponShotgun)
+// items
+GENERATE_FACTORY(DataBreachCharge)
+GENERATE_FACTORY(DataMedkit)
+GENERATE_FACTORY(DataScrap)
 
-//
-// Provide a static concept check that all enum values have derived classes
-//
-
-/*
-
-template<typename T, EntityType ET>
-concept enum_has_factory = std::is_base_of_v<Actor<ET>, T>;
-
-*/
-
-/*
-
-template<std::size_t... Is>
-constexpr bool
-check_all_enum_values(std::index_sequence<Is...>)
-{
-  return (enum_has_factory<DerivedType<static_cast<EntityType>(Is)>, static_cast<EntityType>(Is)> && ...);
-};
-constexpr bool
-validate_all_enum_classes()
-{
-  return check_all_enum_values(std::make_index_sequence<static_cast<std::size_t>(EntityType::count)>{});
-}
-*/
-
-// static_assert(validate_all_enum_classes(), "Not all enum values have corresponding derived classes!");
-
-// #undef REGISTER_DERIVED_TYPE
 #undef GENERATE_FACTORY
 
 //
-// TEMPORARY
 // it's likely that everything that uses create_transform
 // should be it's own EntityType(?)
 //
 entt::entity
 create_transform(entt::registry& r);
 
+// takes in desc so can be overloaded
 void
-add_components(entt::registry& r, const entt::entity e, const ActorDungeon& desc);
+add_components(entt::registry& r, const entt::entity e, const DataDungeonActor& desc);
 void
-remove_components(entt::registry& r, const entt::entity e, const ActorJetpackPlayer& desc);
+add_components(entt::registry& r, const entt::entity e, const DataWeaponShotgun& desc);
+void
+add_components(entt::registry& r, const entt::entity e, const DataBreachCharge& desc);
+
+// takes in desc so can be overloaded
+void
+remove_components(entt::registry& r, const entt::entity e, const DataJetpackActor& desc);
 
 } // namespace game2d

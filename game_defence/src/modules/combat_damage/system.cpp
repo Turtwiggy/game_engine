@@ -1,11 +1,11 @@
 #include "system.hpp"
 
 #include "actors/base.hpp"
+#include "actors/helpers.hpp"
 #include "components.hpp"
 #include "entt/helpers.hpp"
 #include "lifecycle/components.hpp"
 #include "maths/maths.hpp"
-#include "modules/actors/helpers.hpp"
 #include "modules/combat_flash_on_damage/components.hpp"
 #include "modules/screenshake/components.hpp"
 #include "modules/system_particles/components.hpp"
@@ -13,6 +13,7 @@
 #include "modules/ui_event_console/components.hpp"
 
 #include "magic_enum.hpp"
+#include "renderer/components.hpp"
 
 #include <algorithm>
 #include <fmt/core.h>
@@ -137,8 +138,8 @@ update_take_damage_system(entt::registry& r)
     // .. take damage
     hp->hp -= glm::max(0, damage);
 
-    const auto a_name = std::string(magic_enum::enum_name(r.get<EntityTypeComponent>(request.from).type));
-    const auto b_name = std::string(magic_enum::enum_name(r.get<EntityTypeComponent>(request.to).type));
+    const auto a_name = std::string(r.get<TagComponent>(request.from).tag);
+    const auto b_name = std::string(r.get<TagComponent>(request.to).tag);
     const auto b_team = std::string(magic_enum::enum_name(r.get<TeamComponent>(request.to).team));
     const auto b_hp = std::to_string(r.get<HealthComponent>(request.to).hp);
 

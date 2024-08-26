@@ -1,9 +1,10 @@
 #include "system.hpp"
 
+#include "actors/helpers.hpp"
 #include "components.hpp"
 #include "entt/helpers.hpp"
-#include "modules/actors/helpers.hpp"
 #include "renderer/transform.hpp"
+
 
 namespace game2d {
 

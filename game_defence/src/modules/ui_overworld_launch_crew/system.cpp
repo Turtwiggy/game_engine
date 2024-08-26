@@ -1,12 +1,10 @@
 #include "system.hpp"
 
 #include "actors/actors.hpp"
+#include "actors/helpers.hpp"
 #include "entt/helpers.hpp"
-#include "imgui/helpers.hpp"
-#include "maths/maths.hpp"
 #include "modules/actor_enemy/components.hpp"
 #include "modules/actor_player/components.hpp"
-#include "modules/actors/helpers.hpp"
 #include "modules/combat_wants_to_shoot/components.hpp"
 #include "modules/gen_dungeons/components.hpp"
 #include "modules/renderer/components.hpp"
@@ -16,7 +14,6 @@
 
 #include "imgui.h"
 #include "modules/ui_overworld_ship_label/components.hpp"
-#include "physics/components.hpp"
 #include <box2d/b2_joint.h>
 #include <box2d/b2_math.h>
 
@@ -88,9 +85,9 @@ update_ui_launch_crew_system(entt::registry& r)
     const auto enemy_e = get_first<EnemyComponent>(r);
     const auto player_t = get_position(r, player_e);
 
-    ActorSpaceCapsule desc;
+    DataSpaceCapsuleActor desc;
     desc.pos = { player_t.x, player_t.y };
-    const auto capsule_e = Factory_ActorSpaceCapsule::create(r, desc);
+    const auto capsule_e = Factory_DataSpaceCapsuleActor::create(r, desc);
 
     // set the capsule's dynamic target to the enemy ship
     r.emplace<DynamicTargetComponent>(capsule_e, enemy_e);
@@ -154,9 +151,9 @@ update_ui_launch_crew_system(entt::registry& r)
     const auto player_e = get_first<PlayerComponent>(r);
     const auto player_t = get_position(r, player_e);
 
-    ActorSpaceCargo desc;
+    DataSpaceCargoActor desc;
     desc.pos = { player_t.x, player_t.y - 50 };
-    const auto capsule_e = Factory_ActorSpaceCargo::create(r, desc);
+    const auto capsule_e = Factory_DataSpaceCargoActor::create(r, desc);
 
     r.emplace<ApplyForceInDirectionComponent>(capsule_e);
 

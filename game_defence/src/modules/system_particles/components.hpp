@@ -32,7 +32,7 @@ struct ScaleOverTimeComponent
 // the emitter that spawns the particle
 struct ParticleEmitterComponent
 {
-  Particle particle_to_emit;
+  DataParticle particle_to_emit;
   bool spawn_all_particles_at_once = false;
 
   bool expires = false;

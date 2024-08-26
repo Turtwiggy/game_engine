@@ -3,6 +3,7 @@
 #include "actors/actors.hpp"
 #include "components.hpp"
 
+#include "actors/helpers.hpp"
 #include "entt/helpers.hpp"
 #include "events/components.hpp"
 #include "events/helpers/keyboard.hpp"
@@ -10,7 +11,6 @@
 #include "maths/grid.hpp"
 #include "modules/actor_enemy/components.hpp"
 #include "modules/actor_player/components.hpp"
-#include "modules/actors/helpers.hpp"
 #include "modules/gen_dungeons/components.hpp"
 #include "modules/gen_dungeons/helpers.hpp"
 #include "modules/grid/components.hpp"
@@ -129,7 +129,7 @@ update_fov_system(entt::registry& r, const glm::ivec2& mouse_pos)
       const auto idx = engine::grid::grid_position_to_index({ x, y }, map.xmax);
       if (idx < 0)
         return false;
-      return walls_or_floors_adjusted[idx] == static_cast<uint32_t>(type);
+      return walls_or_floors_adjusted[idx] == static_cast<int>(type);
     };
     const auto is_wall = [&](const Tile& t) -> bool { return is_type(t, TileType::WALL); };
     const auto is_floor = [&](const Tile& t) -> bool { return is_type(t, TileType::FLOOR); };

@@ -53,8 +53,10 @@ update_input_system(engine::SINGLETON_Application& app, entt::registry& r)
       // https://wiki.libsdl.org/SDL_WindowEvent
       if (e.type == SDL_WINDOWEVENT) {
         switch (e.window.event) {
-          case SDL_WINDOWEVENT_CLOSE:
+          case SDL_WINDOWEVENT_CLOSE: {
             app.running = false;
+            break;
+          }
           case SDL_WINDOWEVENT_FOCUS_GAINED:
             fmt::println("Window {} gained keyboard focus", e.window.windowID);
             break;

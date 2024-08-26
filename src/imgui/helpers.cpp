@@ -31,7 +31,7 @@ draw_wombo_combo(const WomboComboIn& in)
   const std::string combo_preview_value = items[in.current_index];
 
   if (ImGui::BeginCombo(label.c_str(), combo_preview_value.c_str(), 0)) {
-    for (int n = 0; n < items.size(); n++) {
+    for (size_t n = 0; n < items.size(); n++) {
       const bool is_selected = (cur_idx == n);
 
       if (ImGui::Selectable(items[n].c_str(), is_selected))

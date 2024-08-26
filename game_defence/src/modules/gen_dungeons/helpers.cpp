@@ -1,13 +1,13 @@
 #include "helpers.hpp"
 
 #include "actors/actors.hpp"
+#include "actors/helpers.hpp"
 #include "colour/colour.hpp"
 #include "components.hpp"
 #include "entt/helpers.hpp"
 #include "helpers/line.hpp"
 #include "maths/grid.hpp"
 #include "maths/maths.hpp"
-#include "modules/actors/helpers.hpp"
 #include "modules/combat_damage/components.hpp"
 #include "modules/gen_dungeons/helpers/collisions.hpp"
 #include "modules/grid/components.hpp"
@@ -157,11 +157,11 @@ generate_rooms(entt::registry& r, const DungeonGenerationCriteria& data, engine:
 entt::entity
 create_wall(entt::registry& r, const glm::ivec2& pos, const glm::ivec2& size)
 {
-  SolidWall desc;
+  DataSolidWall desc;
   desc.pos = pos;
   desc.size = size;
   desc.colour = { 1.0f, 1.0f, 1.0f, 1.0f };
-  return Factory_SolidWall::create(r, desc);
+  return Factory_DataSolidWall::create(r, desc);
 };
 
 Line
@@ -319,22 +319,22 @@ set_generated_entity_positions(entt::registry& r, DungeonGenerationResults& resu
 
     // actor_dungeon description
 
-    ActorDungeon desc;
+    DataDungeonActor desc;
     desc.pos = pos;
     desc.team = AvailableTeams::enemy;
     desc.hp = 50;
     desc.max_hp = 50;
     desc.hovered_colour = { 1.0f, 0.0f, 0.0f, 1.0f };
-    const auto dungeon_e = Factory_ActorDungeon::create(r, desc);
+    const auto dungeon_e = Factory_DataDungeonActor::create(r, desc);
 
     const auto idx = engine::grid::worldspace_to_index(pos, map_c.tilesize, map_c.xmax, map_c.ymax);
     add_entity_to_map(r, dungeon_e, idx);
 
-    WeaponShotgun wdesc;
+    DataWeaponShotgun wdesc;
     wdesc.able_to_shoot = true;
     wdesc.parent = dungeon_e;
     wdesc.team = desc.team;
-    const auto weapon_e = Factory_WeaponShotgun::create(r, wdesc);
+    const auto weapon_e = Factory_DataWeaponShotgun::create(r, wdesc);
 
     room_idx_to_spawn++;
     room_idx_to_spawn %= rooms.size();
@@ -719,10 +719,10 @@ instantiate_edges(entt::registry& r, MapComponent& map)
       continue;
     }
 
-    SolidWall desc;
+    DataSolidWall desc;
     desc.pos = center;
     desc.size = new_size;
-    const auto e = Factory_SolidWall::create(r, desc);
+    const auto e = Factory_DataSolidWall::create(r, desc);
 
     // if (was_horizontal)
     //   set_colour(r, e, { 0.0f, 1.0, 0.0, 1.0f });
