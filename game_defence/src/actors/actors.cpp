@@ -105,8 +105,6 @@ create_physics_actor_dynamic(entt::registry& r,
 void
 add_components(entt::registry& r, const entt::entity e, const ActorDungeon& desc)
 {
-  set_position(r, e, desc.pos); // set transform
-
   PhysicsDescription pdesc;
   pdesc.type = b2_kinematicBody;
   pdesc.is_bullet = false;
@@ -125,7 +123,6 @@ add_components(entt::registry& r, const entt::entity e, const ActorDungeon& desc
   r.emplace<HealthComponent>(e, desc.hp, desc.max_hp);
   r.emplace<DefenceComponent>(e, 0);     // should be determined by equipment
   r.emplace<PathfindComponent>(e, 1000); // pass through units if you must
-  r.emplace<StaticTargetComponent>(e);   // for lerp
   r.emplace<TeamComponent>(e, desc.team);
 
   if (desc.team == AvailableTeams::enemy)

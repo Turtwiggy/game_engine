@@ -40,17 +40,31 @@ update_resolve_collisions_system(entt::registry& r)
     // if (a_atk && b_def && !same_team) {
     if (a_atk && b_def) {
       dead.dead.emplace(a);
-      const entt::entity from = a;
-      const entt::entity to = b;
-      create_empty<DealDamageRequest>(r, DealDamageRequest{ from, to });
+
+      // TEMPORARY: !same_team check.
+      // enemies are currently shooting eachother
+      // in the back of the head. need to implement a
+      // line of sight check to fix that.
+      if (!same_team) {
+        const entt::entity from = a;
+        const entt::entity to = b;
+        create_empty<DealDamageRequest>(r, DealDamageRequest{ from, to });
+      }
     }
     // deal damage to a
     // if (b_atk && a_def && !same_team) {
     if (b_atk && a_def) {
       dead.dead.emplace(b);
-      const entt::entity from = b;
-      const entt::entity to = a;
-      create_empty<DealDamageRequest>(r, DealDamageRequest{ from, to });
+
+      // TEMPORARY: !same_team check.
+      // enemies are currently shooting eachother
+      // in the back of the head. need to implement a
+      // line of sight check to fix that.
+      if (!same_team) {
+        const entt::entity from = b;
+        const entt::entity to = a;
+        create_empty<DealDamageRequest>(r, DealDamageRequest{ from, to });
+      }
     }
 
     const auto [a_ent, b_ent] = collision_of_interest<const BulletComponent, const EntityTypeComponent>(r, a, b);

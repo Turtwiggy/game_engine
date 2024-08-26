@@ -195,7 +195,7 @@ engine::new_texture_to_fbo(const int tex_unit, const glm::ivec2& size, const int
   const auto tex_ids = add_textures_to_fbo(size, n_colour_buffers);
   CHECK_OPENGL_ERROR(1);
   if (opengl_error1) {
-    fmt::println("failed tex_unit: {}", tex_unit);
+    fmt::println("Error: failed tex_unit: {}", tex_unit);
     exit(1); // explode
   }
 

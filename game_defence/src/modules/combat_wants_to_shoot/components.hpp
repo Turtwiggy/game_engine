@@ -28,9 +28,4 @@ struct DynamicTargetComponent
   entt::entity target = entt::null;
 };
 
-struct StaticTargetComponent
-{
-  std::optional<glm::vec2> target = std::nullopt;
-};
-
 } // namespace game2d

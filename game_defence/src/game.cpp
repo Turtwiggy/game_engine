@@ -21,6 +21,7 @@
 #include "modules/combat_attack_cooldown/system.hpp"
 #include "modules/combat_damage/system.hpp"
 #include "modules/combat_heal/system.hpp"
+#include "modules/debug_map/system.hpp"
 #include "modules/gameover/components.hpp"
 #include "modules/gameover/system.hpp"
 #include "modules/gen_dungeons/system.hpp"
@@ -342,6 +343,10 @@ update(engine::SINGLETON_Application& app, entt::registry& r, const float dt)
       update_combat_heal_system(r);
       update_breach_charge_system(r, mouse_pos, dt);
       update_go_from_jetpack_to_dungeon_system(r);
+
+#if defined(_DEBUG)
+      update_debug_map_system(r);
+#endif
     }
 
     if (scene.s == Scene::splashscreen)

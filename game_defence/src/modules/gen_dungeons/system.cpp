@@ -16,6 +16,7 @@
 #include "modules/gen_dungeons//helpers.hpp"
 #include "modules/gen_dungeons/components.hpp"
 #include "modules/gen_dungeons/helpers.hpp"
+#include "modules/gen_dungeons/helpers/gen_players.hpp"
 #include "modules/grid/components.hpp"
 #include "modules/scene/helpers.hpp"
 #include "modules/system_change_gun_z_index/helpers.hpp"
@@ -82,12 +83,6 @@ update_gen_dungeons_system(entt::registry& r, const glm::ivec2& mouse_pos)
       const auto ts = inside_tunnels(tunnels, grid_pos);
       ImGui::Text("Tunnels Size: %i", int(ts.size()));
 
-      const auto dungeon_e = get_first<DungeonGenerationResults>(r);
-      if (dungeon_e != entt::null) {
-        const auto dungeon_results = get_first_component<DungeonGenerationResults>(r);
-        ImGui::Text("Have dungeon gen results");
-      }
-
       if (get_key_down(input, SDL_SCANCODE_KP_1))
         i--;
       if (get_key_down(input, SDL_SCANCODE_KP_2))
@@ -113,6 +108,19 @@ update_gen_dungeons_system(entt::registry& r, const glm::ivec2& mouse_pos)
       ImGui::Text("Map ent is null: %i", idx_is_null);
       ImGui::Text("Map ent is visible: %i", !idx_is_null && r.try_get<VisibleComponent>(map.map[mouse_idx]) != nullptr);
       ImGui::Text("Map ent is hovered: %i", !idx_is_null && r.try_get<HoveredComponent>(map.map[mouse_idx]) != nullptr);
+
+      const auto dungeon_e = get_first<DungeonGenerationResults>(r);
+      if (dungeon_e != entt::null) {
+        const auto dungeon = get_first_component<DungeonGenerationResults>(r);
+        ImGui::Text("Have dungeon gen results");
+
+        const auto floor_idx_is_null = dungeon.floor_tiles[mouse_idx] == entt::null;
+        ImGui::Text("Floor ent is null: %i", floor_idx_is_null);
+        ImGui::Text("Floor ent is visible: %i",
+                    !floor_idx_is_null && r.try_get<VisibleComponent>(dungeon.floor_tiles[mouse_idx]) != nullptr);
+        ImGui::Text("Floor ent is hovered: %i",
+                    !floor_idx_is_null && r.try_get<HoveredComponent>(dungeon.floor_tiles[mouse_idx]) != nullptr);
+      }
     }
 
     ImGui::End();
@@ -186,7 +194,7 @@ update_gen_dungeons_system(entt::registry& r, const glm::ivec2& mouse_pos)
 
   // add floor tiles
   result.floor_tiles.resize(result.wall_or_floors.size(), entt::null);
-  for (int xy = 0; xy < result.wall_or_floors.size(); xy++) {
+  for (size_t xy = 0; xy < result.wall_or_floors.size(); xy++) {
     if (result.wall_or_floors[xy] == 0) {
       const auto gridpos = engine::grid::index_to_grid_position(xy, map.xmax, map.ymax);
       const auto floor_e = create_transform(r);
@@ -207,21 +215,15 @@ update_gen_dungeons_system(entt::registry& r, const glm::ivec2& mouse_pos)
   // Steps after initial initialization...
   set_generated_entity_positions(r, result, rnd);
 
-  // set_player_positions(r, result, rnd);
+  set_player_positions(r, result, rnd);
 
+  /*
   ActorJetpackPlayer desc;
   desc.pos = { -100, -100 };
+  desc.team = AvailableTeams::player;
   const auto e = Factory_ActorJetpackPlayer::create(r, desc);
   r.emplace<CameraFollow>(e);
-  // make it a controlled player
-  r.emplace<PlayerComponent>(e);
-  r.emplace<TeamComponent>(e, AvailableTeams::player);
-  r.emplace<InputComponent>(e);
-  r.emplace<KeyboardComponent>(e);
-  // give the player in the jet-pack stage their inventory
-  r.emplace<DefaultBody>(e, DefaultBody(r));
-  r.emplace<DefaultInventory>(e, DefaultInventory(r, 6 * 5));
-  r.emplace<InitBodyAndInventory>(e);
+  */
 
   // give helmet to breathe
   const auto helmet_e = create_transform(r);

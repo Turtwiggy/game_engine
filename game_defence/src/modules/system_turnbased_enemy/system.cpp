@@ -4,137 +4,176 @@
 
 #include "entt/helpers.hpp"
 #include "maths/grid.hpp"
-#include "maths/maths.hpp"
 #include "modules/actor_enemy/components.hpp"
+#include "modules/actor_player/components.hpp"
 #include "modules/actor_weapon_shotgun/components.hpp"
 #include "modules/actors/helpers.hpp"
 #include "modules/algorithm_astar_pathfinding/helpers.hpp"
 #include "modules/combat_damage/components.hpp"
 #include "modules/combat_wants_to_shoot/components.hpp"
 #include "modules/gen_dungeons/components.hpp"
-#include "modules/gen_dungeons/helpers/collisions.hpp"
+#include "modules/gen_dungeons/helpers.hpp"
 #include "modules/grid/components.hpp"
 #include "modules/grid/helpers.hpp"
+#include "modules/system_fov/components.hpp"
+#include "modules/system_move_to_target_via_lerp/components.hpp"
 #include "modules/system_turnbased/components.hpp"
 
 #include <fmt/core.h>
 
 namespace game2d {
 
-std::optional<Room>
-get_a_room(entt::registry& r, const entt::entity e)
+glm::vec2
+get_rnd_worldpos_pos_in_room(const MapComponent& map, const Room& room)
+{
+  static engine::RandomState rnd;
+  const int x = int(engine::rand_det_s(rnd.rng, room.tl.x, room.tl.x + room.aabb.size.x));
+  const int y = int(engine::rand_det_s(rnd.rng, room.tl.y, room.tl.y + room.aabb.size.y));
+
+  auto wp = engine::grid::grid_space_to_world_space({ x, y }, map.tilesize);
+  wp += glm::vec2{ map.tilesize / 2.0f, map.tilesize / 2.0f };
+
+  return wp;
+};
+
+glm::vec2
+get_free_worldspace_pos_around_player(entt::registry& r, const MapComponent& map, const entt::entity e)
+{
+  const auto player_wp = get_position(r, get_first<PlayerComponent>(r));
+  const auto player_gp = engine::grid::worldspace_to_grid_space(player_wp, map.tilesize);
+  const auto player_idx = engine::grid::grid_position_to_index(player_gp, map.xmax);
+
+  const auto neighbour_idxs = engine::grid::get_neighbour_indicies(player_gp.x, player_gp.y, map.xmax, map.ymax);
+  for (const auto& [dir, n_idx] : neighbour_idxs) {
+    if (map.map[n_idx] == entt::null) {
+
+      // take in to account edges
+      bool wall_between_grid = false;
+      for (const Edge& e : map.edges) {
+        wall_between_grid |= e.a_idx == player_idx && e.b_idx == n_idx;
+        wall_between_grid |= e.b_idx == player_idx && e.a_idx == n_idx;
+      }
+
+      if (!wall_between_grid) {
+        auto pos = engine::grid::index_to_world_position(n_idx, map.xmax, map.ymax, map.tilesize);
+        pos += glm::vec2{ map.tilesize / 2.0f, map.tilesize / 2.0f }; // center not tl
+        return pos;
+      }
+    }
+  }
+
+  // If no free gridpos, return your current pos
+  return get_position(r, e);
+};
+
+glm::vec2
+ai_decide_move_destination(entt::registry& r, const entt::entity e)
 {
   const auto& map = get_first_component<MapComponent>(r);
 
-  const auto gen_e = get_first<DungeonGenerationResults>(r);
-  if (gen_e == entt::null)
-    return std::nullopt;
-  const auto& gen = get_first_component<DungeonGenerationResults>(r);
+  // Different AI systems to go here...
 
-  const auto e_pos = get_position(r, e);
-  const auto e_gridpos = engine::grid::worldspace_to_grid_space(e_pos, map.tilesize);
+  /*
+  Future interesting topics
+  https://old.reddit.com/r/roguelikedev/comments/3b4wx2/faq_friday_15_ai/
 
-  RoomAABB e_as_aabb = RoomAABB();
-  e_as_aabb.center = e_gridpos;
-  e_as_aabb.size = { 1, 1 };
+  Specific patterns e.g.
+  - Maintaining a certain distance / range. Min dst, max dst.
+  - Pack tactics. Unit stays a minimum of 2 tiles from the player unless
+    there are 4 units with a radius of 3 from the player.
+  - Hit and run pack. Enemy stay ranged. Once they have minumum pack numbers,
+    they charge in. Once they make an attack they switch back to ranged.
+    Combine with healing enemies.
 
-  for (const Room& room_e : gen.rooms)
-    if (collide(room_e.aabb, e_as_aabb))
-      return room_e;
+  - Go to Melee attack the player
+  - Look for a good square to move to
+  - Recency bias to encourage fun movement. e.g. avoid the previous 4 squares you've stepped on.
+  - Have a goal. e.g. seeing player, noise, item
 
-  return std::nullopt;
-};
+  - Temperment.
+    e.g. always hostile,
+    retreat after-attacked,
+    hostile-after-attacked
+  */
 
-std::vector<entt::entity>
-get_players_in_room(entt::registry& r, const entt::entity e)
-{
-  const auto gen_e = get_first<DungeonGenerationResults>(r);
-  if (gen_e == entt::null)
-    return {};
-  const auto gen = get_first_component<DungeonGenerationResults>(r);
+  // stupid simple ai for the moment.
+  // Wander around, unless you've been spotted.
+  // Then charge next to the player.
 
-  std::vector<entt::entity> players;
+  const auto gp = get_grid_position(r, e);
 
-  // either: be in the same room as a player
-  const auto e_room = get_a_room(r, e);
-  for (const auto& [player_e, tbc_c, team_c] : r.view<TurnBasedUnitComponent, TeamComponent>().each()) {
-    if (team_c.team != AvailableTeams::player)
-      continue;
-    const auto player_room = get_a_room(r, player_e);
-    if (player_room.has_value() && e_room.has_value() && e_room.value().tl == player_room.value().tl)
-      players.push_back(player_e);
+  // You've not been spotted. Wander around your room.
+  // Note: all entities are spawned in rooms.
+
+  if (r.try_get<SeenComponent>(e) == nullptr) {
+    const auto& dungeon = get_first_component<DungeonGenerationResults>(r);
+
+    const auto [in_room, room] = inside_room(map, dungeon.rooms, gp);
+    if (in_room) {
+      const auto room_v = room.value();
+
+      // should be any valid tiles, but for the moment, just choose a random one
+      return get_rnd_worldpos_pos_in_room(map, room_v);
+
+    } else
+    // If an entity somehow got in to a tunnel
+    // without being seen (plausable later, but not currently)
+    // then this would be a problem.
+    {
+      fmt::println("AI ERROR: entity in tunnel but not seen. Sneaky SoB");
+      return { 0.0f, 0.0f };
+    }
   }
 
-  // get within range.
-  // need to implement something on top of box2d. argh.
-  // const auto entity = get_within_range<TurnBasedUnitComponent, TeamComponent>(r, e, 100 * 100);
-  // for (const auto& [team_e, range] : entity) {
-  //   const auto& team = r.get<TeamComponent>(team_e);
-  //   if (team.team == AvailableTeams::player)
-  //     players.push_back(team_e);
-  // }
-
-  // sort players by range
-  // std::sort(players.begin(), players.end(), [](const auto& l, const auto& r) { return l.second < r.second; });
-
-  return players;
+  // You've been spotted. Charge at the player.
+  // Get the first grid position around the player.
+  return get_free_worldspace_pos_around_player(r, map, e);
 };
 
 void
 move_action(entt::registry& r, const entt::entity e)
 {
-  const auto players = get_players_in_room(r, e);
-  if (players.size() > 0) {
-    const auto limit = r.get<MoveLimitComponent>(e).amount;
-    update_path_to_tile_next_to_player(r, e, players[0], limit);
-  }
-  // choose a different random spot in the room...
-  else {
-    const auto update_path_to_rnd_idx_in_room = [&r, &e]() {
-      const auto e_room = get_a_room(r, e);
-      const auto& map = get_first_component<MapComponent>(r);
+  const auto& map = get_first_component<MapComponent>(r);
 
-      const auto src = get_position(r, e);
-      const auto src_idx = convert_position_to_index(map, src);
+  const glm::vec2 dst_wp = ai_decide_move_destination(r, e);
 
-      // should be any valid tiles, but for the moment, just choose a random one
-      static engine::RandomState rnd;
+  const auto limit = r.get<MoveLimitComponent>(e).amount;
+  const auto path = generate_path(r, e, dst_wp, limit);
+  if (path.size() < 2)
+    return;
+  const auto next_dst = path[1];
+  const auto next_idx = engine::grid::grid_position_to_index(next_dst, map.xmax);
 
-      if (!e_room.has_value())
-        return; // TO FIX: if moved outside a room?
+  // player move action...
+  const auto it = std::find(map.map.begin(), map.map.end(), e);
+  const auto idx = it - map.map.begin();
+  const int a = idx;
+  const int b = next_idx;
+  if (!move_entity_on_map(r, a, b))
+    return;
 
-      const auto room = e_room.value();
-      const int x = int(engine::rand_det_s(rnd.rng, room.tl.x, room.tl.x + room.aabb.size.x));
-      const int y = int(engine::rand_det_s(rnd.rng, room.tl.y, room.tl.y + room.aabb.size.y));
-      const int dst_idx = engine::grid::grid_position_to_index({ x, y }, map.xmax);
-      auto dst = engine::grid::index_to_world_position(dst_idx, map.xmax, map.ymax, map.tilesize);
-      dst += glm::ivec2{ map.tilesize / 2.0f, map.tilesize / 2.0f };
-
-      auto path = generate_direct(r, map, src_idx, dst_idx);
-
-      // make sure path.size() < limit
-      const auto limit = r.get<MoveLimitComponent>(e).amount;
-      if (path.size() > limit) {
-        // return +1, as usually the first path[0] is the element the entity is currently standing on
-        const std::vector<glm::ivec2> path_limited(path.begin(), path.begin() + limit + 1);
-        path = path_limited;
-      }
-
-      update_entity_path(r, e, path);
-    };
-    update_path_to_rnd_idx_in_room();
-  }
+  // Lerp the enemy model, independent of the grid representation
+  const auto offset = glm::vec2{ map.tilesize / 2.0f, map.tilesize / 2.0f };
+  remove_if_exists<LerpingToTarget>(r, e);
+  LerpingToTarget lerp;
+  lerp.a = engine::grid::index_to_world_position(a, map.xmax, map.ymax, map.tilesize) + offset;
+  lerp.b = engine::grid::index_to_world_position(b, map.xmax, map.ymax, map.tilesize) + offset;
+  lerp.t = 0.0f;
+  r.emplace<LerpingToTarget>(e, lerp);
 }
 
 void
 enemy_shoot_action(entt::registry& r, const entt::entity e)
 {
+  // aim your gun...
+  const auto player_e = get_first<PlayerComponent>(r);
+  r.emplace_or_replace<GunStaticTargetComponent>(e, get_position(r, player_e));
+
+  if (r.try_get<SeenComponent>(e) == nullptr)
+    return; // dont shoot, you're not seen
+
   // shoot if possible!
-  const auto players = get_players_in_room(r, e);
-  if (players.size() > 0) {
-    r.emplace_or_replace<GunStaticTargetComponent>(e, get_position(r, players[0]));
-    r.emplace<WantsToShoot>(e);
-  }
+  r.emplace<WantsToShoot>(e);
 }
 
 void
@@ -177,7 +216,8 @@ update_turnbased_enemy_system(entt::registry& r)
       if (at_dest) {
         actions_available--;
         actions_completed = 2;
-        enemy_shoot_action(r, e);
+
+        // enemy_shoot_action(r, e);
       }
     }
 
@@ -189,7 +229,7 @@ update_turnbased_enemy_system(entt::registry& r)
 
     if (waiting_to_shoot && !allowed_to_shoot) {
       // Possible causes: no gun. gun on cooldown. gun has no parent.
-      fmt::println("Potential AI error: waiting to shoot but hasn't shot yet. Maybe unable.");
+      // fmt::println("Potential AI error: waiting to shoot but hasn't shot yet. Maybe unable.");
     }
 
     // ImGui::PopID();

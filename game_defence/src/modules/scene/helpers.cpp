@@ -16,7 +16,7 @@
 #include "modules/camera/orthographic.hpp"
 #include "modules/combat_damage/components.hpp"
 #include "modules/combat_wants_to_shoot/components.hpp"
-#include "modules/debug_pathfinding/components.hpp"
+#include "modules/debug_map/components.hpp"
 #include "modules/gameover/components.hpp"
 #include "modules/gen_dungeons/components.hpp"
 #include "modules/grid/components.hpp"
@@ -43,6 +43,7 @@
 #include "sprites/helpers.hpp"
 #include <box2d/b2_math.h>
 #include <nlohmann/json.hpp>
+
 
 #include <fmt/core.h>
 #include <string>
@@ -257,9 +258,9 @@ move_to_scene_start(entt::registry& r, const Scene& s, const bool load_saved)
 
   destroy_first<SINGLE_SelectedUI>(r);
   destroy_first<SINGLE_TurnBasedCombatInfo>(r);
-  destroy_first<SINGLE_DebugPathLines>(r);
   destroy_first<SINGLE_CombatState>(r);
   destroy_first<MapComponent>(r);
+  destroy_first<DebugMapComponent>(r);
   destroy_first<Effect_GridComponent>(r);
   destroy_first<Effect_DoBloom>(r);
   destroy_first<SINGLE_MinigameBamboo>(r);

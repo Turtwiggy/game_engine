@@ -37,19 +37,20 @@ update_fov_system(entt::registry& r, const glm::ivec2& mouse_pos)
   const auto player_pos = get_position(r, player_e);
   const auto player_gridpos = engine::grid::worldspace_to_grid_space(player_pos, map.tilesize);
 
+  // Anything visible
   for (const auto& [e, enemy_c, visible] : r.view<const EnemyComponent, const VisibleComponent>().each()) {
-    // full reveal
     set_sprite(r, e, "PERSON_25_0");
     set_colour(r, e, { 1.0f, 1.0f, 1.0f, 1.0f });
   }
-  // for (const auto& [e, enemy_c, seen_c] : r.view<EnemyComponent, SeenComponent>(entt::exclude<VisibleComponent>).each()) {
-  //   // leave revealed
-  //   // set_sprite(r, e, "PERSON_25_0");
-  //   // set_colour(r, e, { 1.0f, 1.0f, 1.0f, 0.1f });
-  // }
-  // for (const auto& [e, enemy_c] : r.view<EnemyComponent>(entt::exclude<VisibleComponent, SeenComponent>).each()) {
-  for (const auto& [e, enemy_c] : r.view<EnemyComponent>(entt::exclude<VisibleComponent>).each()) {
-    // hasn't been revealed yet
+
+  // Seen but not visible
+  for (const auto& [e, enemy_c, seen_c] :
+       r.view<const EnemyComponent, const SeenComponent>(entt::exclude<VisibleComponent>).each()) {
+    set_sprite(r, e, "TEXT_?");
+  }
+
+  // Anything not visible (and not seen)
+  for (const auto& [e, enemy_c] : r.view<const EnemyComponent>(entt::exclude<VisibleComponent, SeenComponent>).each()) {
     set_sprite(r, e, "TEXT_?");
   }
 
@@ -285,6 +286,7 @@ update_fov_system(entt::registry& r, const glm::ivec2& mouse_pos)
     }
   }
 
+  // stop everything being visible
   const auto vview = r.view<VisibleComponent>();
   r.remove<VisibleComponent>(vview.begin(), vview.end());
 
@@ -293,6 +295,7 @@ update_fov_system(entt::registry& r, const glm::ivec2& mouse_pos)
   //
   const auto visible_idxs = do_shadowcasting(r, origin, walls_or_floors_adjusted);
 
+  // Update the floor colouring
   for (const auto idx : visible_idxs) {
     if (dungeon.floor_tiles[idx] != entt::null) {
       // set_colour(r, dungeon.floor_tiles[idx], { 0.5f, 0.5, 0.5, 1.0 });
@@ -315,8 +318,8 @@ update_fov_system(entt::registry& r, const glm::ivec2& mouse_pos)
 
   // mark origin visible
   const int origin_idx = engine::grid::grid_position_to_index(origin, map.xmax);
-  const auto origin_floor_e = dungeon.floor_tiles[origin_idx];
-  r.emplace_or_replace<VisibleComponent>(origin_floor_e);
+  mark_visible(r, dungeon.floor_tiles[origin_idx]);
+  // mark_visible(r, map.map[origin_idx]);
 
   // change colour of all floor tiles to visible state
   if (!debug_fov) {
@@ -327,13 +330,11 @@ update_fov_system(entt::registry& r, const glm::ivec2& mouse_pos)
       const auto floor_pos = get_position(r, floor_e);
       const auto floor_idx = engine::grid::worldspace_to_index(floor_pos, map.tilesize, map.xmax, map.ymax);
 
-      if (map.map[floor_idx] != entt::null)
+      // Mark the entity in the map as visible
+      // if they're standing on a visible floor
+      if (is_visible && map.map[floor_idx] != entt::null)
         mark_visible(r, map.map[floor_idx]);
-      /*
-      for (const auto& e : map.map[floor_idx])
-        if (is_visible)
-          mark_visible(r, e);
-      */
+
       if (is_visible)
         set_colour(r, floor_e, { 0.75f, 0.75f, 0.75f, 1.0f });
       else

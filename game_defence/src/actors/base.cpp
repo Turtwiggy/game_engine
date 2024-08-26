@@ -51,17 +51,10 @@ create_sprite(entt::registry& r, const std::string& sprite, const EntityType& ty
 {
   const auto type_name = std::string(magic_enum::enum_name(type));
 
-  SpriteComponent sc;
-
-  // Check if this component exists.
-  // if it does not, we may be running in a test-suite.
-  const auto maybe_anims = get_first<SINGLE_Animations>(r);
-  if (maybe_anims == entt::null)
-    return sc;
-
   const auto& anims = get_first_component<SINGLE_Animations>(r);
   const auto& ri = get_first_component<SINGLETON_RendererInfo>(r);
 
+  SpriteComponent sc;
   sc.colour = get_lin_colour_by_tag(r, type_name);
 
   // search spritesheet

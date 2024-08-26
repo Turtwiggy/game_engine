@@ -38,7 +38,7 @@ get_neighbour_indicies_with_diagonals(const int x, const int y, const int x_max,
 grid_space_to_world_space(const glm::ivec2 pos, const int grid_size)
 {
   return glm::vec2{ pos.x, pos.y } * static_cast<float>(grid_size);
-}
+};
 
 [[nodiscard]] inline glm::ivec2
 worldspace_to_grid_space(const glm::vec2& pos, const int grid_size)
@@ -61,7 +61,7 @@ worldspace_to_grid_space(const glm::vec2& pos, const int grid_size)
   if (pos.y < 0)
     final_grid_y = -(grid_y + 1);
   return { final_grid_x, final_grid_y };
-}
+};
 
 [[nodiscard]] inline glm::ivec2
 worldspace_to_clamped_gridspace(const glm::ivec2 pos, const int grid_size, const int xmax, const int ymax)
@@ -76,7 +76,7 @@ inline int
 grid_position_to_index(const glm::ivec2& pos, const int x_max)
 {
   return x_max * pos.y + pos.x;
-}
+};
 
 [[nodiscard]] inline int
 worldspace_to_index(const glm::ivec2& pos, const int grid_size, const int xmax, const int ymax)
@@ -94,7 +94,7 @@ grid_position_to_clamped_index(const glm::ivec2& pos, const int xmax, const int 
   if (idx >= (xmax * ymax))
     return (xmax * ymax) - 1;
   return idx;
-}
+};
 
 glm::ivec2
 index_to_grid_position(const int index, const int x_max, const int y_max);
@@ -103,7 +103,7 @@ inline glm::vec2
 index_to_world_position(const int index, const int x_max, const int y_max, const int size)
 {
   return index_to_grid_position(index, x_max, y_max) * size;
-}
+};
 
 // a grid shaped
 // ~~~~~~~~~~~~~
@@ -118,9 +118,9 @@ template<typename T>
 get_cell(const std::vector<T>& t, int x, int y, int x_max)
 {
   return t[x_max * y + x];
-}
+};
 
-[[nodiscard]] inline glm::ivec2
+[[nodiscard]] inline glm::vec2
 worldspace_to_clamped_world_space(const glm::vec2& world_space, int grid_size)
 {
   const float x = world_space.x;
@@ -128,7 +128,7 @@ worldspace_to_clamped_world_space(const glm::vec2& world_space, int grid_size)
   const int grid_x = x < 0.0f ? static_cast<int>((x - grid_size) / grid_size) : static_cast<int>(x / grid_size);
   const int grid_y = y < 0.0f ? static_cast<int>((y - grid_size) / grid_size) : static_cast<int>(y / grid_size);
   return glm::ivec2{ grid_size * grid_x, grid_size * grid_y };
-}
+};
 
 [[nodiscard]] inline std::vector<glm::ivec2>
 get_grid_cells(const glm::vec2& pos_tl, const glm::vec2& size, const int tilesize)

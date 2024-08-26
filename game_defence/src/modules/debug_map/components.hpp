@@ -1,10 +1,12 @@
 #pragma once
 
+#include <entt/entt.hpp>
+
 #include "helpers/entity_pool.hpp"
 
 namespace game2d {
 
-struct SINGLE_DebugPathLines
+struct DebugMapComponent
 {
   EntityPool pool;
 };

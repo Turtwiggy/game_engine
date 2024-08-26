@@ -326,7 +326,9 @@ set_generated_entity_positions(entt::registry& r, DungeonGenerationResults& resu
     desc.max_hp = 50;
     desc.hovered_colour = { 1.0f, 0.0f, 0.0f, 1.0f };
     const auto dungeon_e = Factory_ActorDungeon::create(r, desc);
-    move_entity_on_map(r, dungeon_e, pos);
+
+    const auto idx = engine::grid::worldspace_to_index(pos, map_c.tilesize, map_c.xmax, map_c.ymax);
+    add_entity_to_map(r, dungeon_e, idx);
 
     WeaponShotgun wdesc;
     wdesc.able_to_shoot = true;
@@ -379,10 +381,7 @@ inside_tunnels(const std::vector<Tunnel>& ts, const glm::ivec2& gridpos)
 void
 remove_line(std::vector<Line>& lines, const Line& line)
 {
-  const auto cond = [&line](const Line& o) { return o.p0 == line.p0 && o.p1 == line.p1; };
-  const auto it = std::find_if(lines.begin(), lines.end(), cond);
-  if (it != lines.end())
-    lines.erase(it);
+  std::erase(lines, line);
 };
 
 void

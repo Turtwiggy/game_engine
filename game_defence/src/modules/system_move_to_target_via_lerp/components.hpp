@@ -11,9 +11,9 @@ struct SetPositionAtDynamicTarget
 
 struct LerpingToTarget
 {
-  glm::vec2 a;
-  glm::vec2 b;
-  float t;
+  glm::vec2 a{ 0.0f, 0.0f };
+  glm::vec2 b{ 0.0f, 0.0f };
+  float t = 0.0f;
 };
 
 } // namespace game2d

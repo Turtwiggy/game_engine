@@ -56,7 +56,8 @@ update_go_from_jetpack_to_dungeon_system(entt::registry& r)
     remove_if_exists<CameraFollow>(r, e);
     create_empty<CameraFreeMove>(r);
 
-    move_entity_on_map(r, e, final_pos);
+    const int idx = engine::grid::worldspace_to_index(final_pos, map.tilesize, map.xmax, map.ymax);
+    add_entity_to_map(r, e, idx);
 
     create_empty<RequestUpdateFOV>(r);
   }

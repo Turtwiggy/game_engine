@@ -53,9 +53,6 @@ generate_accessible_areas(entt::registry& r, const MapComponent& grid, const int
 void
 display_flow_field_with_visuals(entt::registry& r, MapComponent& grid);
 
-[[nodiscard]] int
-convert_position_to_index(const MapComponent& map, const glm::ivec2& pos);
-
 bool
 has_destination(entt::registry& r, const entt::entity src_e);
 

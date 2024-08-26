@@ -44,8 +44,6 @@ set_player_positions(entt::registry& r, const DungeonGenerationResults& results,
       desc.pos = pos;
       desc.team = AvailableTeams::player;
       const auto e = Factory_ActorJetpackPlayer::create(r, desc);
-
-      // camera...
       r.emplace<CameraFollow>(e);
     }
 

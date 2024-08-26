@@ -328,12 +328,6 @@ generate_flow_field(entt::registry& r, const MapComponent& map_c, const int from
 //   }
 // };
 
-int
-convert_position_to_index(const MapComponent& map, const glm::ivec2& pos)
-{
-  return engine::grid::worldspace_to_index(pos, map.tilesize, map.xmax, map.ymax);
-};
-
 bool
 has_destination(entt::registry& r, const entt::entity src_e)
 {

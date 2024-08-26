@@ -3,6 +3,8 @@
 #include "renderer/components.hpp"
 #include <entt/entt.hpp>
 
+#include <fmt/core.h>
+#include <format>
 #include <optional>
 #include <string>
 
@@ -40,6 +42,16 @@ template<class T>
 get_first_component(entt::registry& r)
 {
   const auto e = get_first<T>(r);
+
+  if (e == entt::null) {
+    const T t{};
+    const std::string name = typeid(t).name();
+    const std::string err = std::format("get_first_component<{}>() missing", name);
+    fmt::println("Error: {}", err);
+    throw std::runtime_error(err);
+    exit(1); // crash
+  }
+
   return r.get<T>(e);
 };
 

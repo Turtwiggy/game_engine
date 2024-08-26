@@ -1,0 +1,47 @@
+#include "system.hpp"
+#include "components.hpp"
+#include "entt/helpers.hpp"
+#include "helpers/entity_pool.hpp"
+#include "maths/grid.hpp"
+#include "modules/actors/helpers.hpp"
+#include "modules/grid/components.hpp"
+#include "modules/system_change_gun_z_index/helpers.hpp"
+
+namespace game2d {
+
+void
+update_debug_map_system(entt::registry& r)
+{
+  const auto map_e = get_first<MapComponent>(r);
+  if (map_e == entt::null)
+    return;
+  const auto& map = get_first_component<MapComponent>(r);
+
+  const auto map_debug_e = get_first<DebugMapComponent>(r);
+  if (map_debug_e == entt::null)
+    create_empty<DebugMapComponent>(r);
+  auto& map_debug = get_first_component<DebugMapComponent>(r);
+
+  auto& pool = map_debug.pool;
+  pool.update(r, map.map.size());
+
+  // debug all grid cells that contain something
+  for (size_t i = 0; i < map.map.size(); i++) {
+    const auto instance_e = pool.instances[i];
+
+    if (map.map[i] == entt::null) {
+      set_size(r, instance_e, { 0, 0 });
+      continue;
+    }
+
+    auto wp = engine::grid::index_to_world_position(i, map.xmax, map.ymax, map.tilesize);
+    wp += glm::vec2{ map.tilesize / 2.0f, map.tilesize / 2.0f };
+
+    set_position(r, instance_e, wp);
+    set_size(r, instance_e, { 8, 8 });
+    set_colour(r, instance_e, { 0.75f, 0.25f, 0.25f, 1.0f });
+    set_z_index(r, instance_e, 1); // infront
+  }
+}
+
+} // namespace game2d
