@@ -39,6 +39,7 @@ struct Crew
 void
 update_ui_launch_crew_system(entt::registry& r)
 {
+  /*
   ImGui::Begin("Launch Crew UI");
 
   static std::vector<Crew> crew{
@@ -107,6 +108,7 @@ update_ui_launch_crew_system(entt::registry& r)
   }
 
   ImGui::End();
+  */
 
   //
   // ui: board ship button
@@ -123,7 +125,7 @@ update_ui_launch_crew_system(entt::registry& r)
   // position
   const float padding_y = size.y / 2.0f;
   const float center_x = viewport_pos.x + viewport_size_half.x;
-  const float bottom_y = viewport_pos.y + ri.viewport_size_current.y - padding_y;
+  const float bottom_y = viewport_pos.y + ri.viewport_size_current.y - padding_y - 32.0f;
   const auto pos = ImVec2(center_x, bottom_y);
   ImGui::SetNextWindowPos(pos, ImGuiCond_Always, ImVec2(0.5f, 0.5f));
 
@@ -131,9 +133,11 @@ update_ui_launch_crew_system(entt::registry& r)
   flags |= ImGuiWindowFlags_NoDecoration;
   flags |= ImGuiWindowFlags_NoMove;
 
+  ImGui::PushStyleVar(ImGuiStyleVar_FrameRounding, 10.0f);
+  ImGui::PushStyleVar(ImGuiStyleVar_FramePadding, ImVec2(5.0f, 5.0f));
   ImGui::PushStyleVar(ImGuiStyleVar_WindowPadding, ImVec2(0.0f, 0.0f));
+
   ImGui::Begin("Board Ship", NULL, flags);
-  ImGui::PopStyleVar();
 
   if (ImGui::Button("Board Ship", size)) {
     move_to_scene_start(r, Scene::dungeon_designer);
@@ -141,6 +145,12 @@ update_ui_launch_crew_system(entt::registry& r)
   }
 
   ImGui::End();
+
+  ImGui::PopStyleVar();
+  ImGui::PopStyleVar();
+  ImGui::PopStyleVar();
+
+  /*
 
   //
   // HACK: trial adding some cargo boxes behind your main ship
@@ -221,6 +231,8 @@ update_ui_launch_crew_system(entt::registry& r)
   // }
 
   ImGui::End();
+
+  */
 }
 
 } // namespace game2d

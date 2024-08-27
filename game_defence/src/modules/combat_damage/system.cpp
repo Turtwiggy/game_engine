@@ -65,12 +65,12 @@ void
 update_take_damage_system(entt::registry& r)
 {
   const auto evts_e = get_first<SINGLE_EventConsoleLogComponent>(r);
-  if (evts_e == entt::null)
+  if (evts_e == entt::null) {
+    fmt::println("warning: update_take_damage_system() doesnt have an event log; not running");
     return;
+  }
   auto& evts = get_first_component<SINGLE_EventConsoleLogComponent>(r);
   auto& dead = get_first_component<SINGLETON_EntityBinComponent>(r);
-
-  static engine::RandomState rnd;
 
   const auto& view = r.view<DealDamageRequest>(entt::exclude<WaitForInitComponent>);
   for (const auto& [e_req, request] : view.each()) {
@@ -112,9 +112,11 @@ update_take_damage_system(entt::registry& r)
     roll_to_quip(r, request.from, request.to);
 
     // Is this a crit?
-    const int rnd_crit = int(engine::rand_det_s(rnd.rng, 0, 100));
-    const bool crit = rnd_crit >= 90; // X% chance for crit
-    const bool miss = rnd_crit < 5;   // X% chance to miss
+    // const int rnd_crit = int(engine::rand_det_s(rnd.rng, 0, 100));
+    // const bool crit = rnd_crit >= 90; // X% chance for crit
+    // const bool miss = rnd_crit < 5;   // X% chance to miss
+    const bool crit = false;
+    const bool miss = false;
 
     // mess with the damage
     int damage = atk->damage;

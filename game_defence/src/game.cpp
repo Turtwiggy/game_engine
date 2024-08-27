@@ -25,6 +25,7 @@
 #include "modules/gameover/system.hpp"
 #include "modules/gen_dungeons/system.hpp"
 #include "modules/renderer/components.hpp"
+#include "modules/renderer/helpers.hpp"
 #include "modules/renderer/system.hpp"
 #include "modules/resolve_collisions/system.hpp"
 #include "modules/scene/helpers.hpp"
@@ -101,47 +102,16 @@ init(engine::SINGLETON_Application& app, entt::registry& r)
   io.Fonts->AddFontFromFileTTF(font_path.c_str(), font_scale);
 
   {
-    SINGLETON_RendererInfo ri;
-
-    std::string path = engine::get_exe_path_without_exe_name();
-    path += "assets/";
-
-    Texture kennynl;
-    kennynl.path = path + "textures/kennynl_1bit_pack/monochrome_transparent_packed.png";
-    kennynl.spritesheet_path = path + "config/spritemap_kennynl.json";
-    ri.user_textures.push_back(kennynl);
-
-    Texture gameicons;
-    gameicons.path = path + "textures/kennynl_gameicons/Spritesheet/sheet_white1x_adjusted.png";
-    gameicons.spritesheet_path = path + "config/spritemap_kennynl_icons.json";
-    ri.user_textures.push_back(gameicons);
-
-    Texture spacestation_0;
-    spacestation_0.path = path + "textures/spacestation_0.png";
-    spacestation_0.spritesheet_path = path + "config/spritemap_spacestation_0.json";
-    ri.user_textures.push_back(spacestation_0);
-
-    Texture studio_logo;
-    studio_logo.path = path + "textures/blueberry-dark.png";
-    studio_logo.spritesheet_path = path + "config/spritemap_studio_logo.json";
-    ri.user_textures.push_back(studio_logo);
-
-    Texture custom;
-    custom.path = path + "textures/custom.png";
-    custom.spritesheet_path = path + "config/spritemap_custom.json";
-    ri.user_textures.push_back(custom);
-
-    // load spritesheet info
+    SINGLETON_RendererInfo ri = get_default_rendererinfo();
     SINGLE_Animations anims;
     for (const auto& tex : ri.user_textures)
       load_sprites(anims, tex.spritesheet_path);
-
     create_empty<SINGLE_Animations>(r, anims);
     create_empty<SINGLETON_RendererInfo>(r, ri);
   }
 
   auto& ri = get_first_component<SINGLETON_RendererInfo>(r);
-  init_render_system(app, r, ri); // init after camera
+  init_render_system(app, r, ri);
 
   create_empty<SINGLETON_FixedUpdateInputHistory>(r);
   init_input_system(r);
@@ -322,7 +292,7 @@ update(engine::SINGLETON_Application& app, entt::registry& r, const float dt)
     }
 
     if (scene.s == Scene::overworld_revamped) {
-      update_overworld_change_direction_system(r);
+      // update_overworld_change_direction_system(r);
       // update_overworld_fake_fight_system(r);
     }
 

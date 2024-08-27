@@ -37,7 +37,7 @@ namespace game2d {
 void
 update_gen_dungeons_system(entt::registry& r, const glm::ivec2& mouse_pos)
 {
-  bool show_debug_dungeongen = true;
+  bool show_debug_dungeongen = false;
 #if defined(_DEBUG)
   show_debug_dungeongen = true;
 #endif
@@ -143,9 +143,18 @@ update_gen_dungeons_system(entt::registry& r, const glm::ivec2& mouse_pos)
   // const auto& data = r.get<OverworldToDungeonInfo>(data_e);
   fmt::println("generating dungeon... todo: generate of a certain strength");
 
+  const auto get_seed_from_systemtime = []() -> time_t {
+    auto now = std::chrono::system_clock::now();
+    return std::chrono::system_clock::to_time_t(now);
+  };
+
   // static int seed = 0;
   // seed++; // Increase seed everytime a map is generated
-  int seed = i;
+
+  const int seed = get_seed_from_systemtime();
+#if defined(_DEBUG)
+  // seed = i;
+#endif
   engine::RandomState rnd(seed);
 
   // re-generate map

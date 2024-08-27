@@ -38,7 +38,7 @@
 #include "modules/ui_selected/components.hpp"
 #include "modules/ui_worldspace_text/components.hpp"
 #include "modules/vfx_grid/components.hpp"
-#include "physics/components.hpp"
+#include "physics/helpers.hpp"
 #include "renderer/transform.hpp"
 #include "sprites/helpers.hpp"
 #include <box2d/b2_math.h>
@@ -107,7 +107,7 @@ move_to_scene_menu(entt::registry& r)
   desc.team = AvailableTeams::player;
   const auto player_e = Factory_DataSpaceShipActor::create(r, desc);
   r.emplace<CameraFollow>(player_e);
-}
+};
 
 // scene idea:
 // spawn a ship,
@@ -184,7 +184,7 @@ move_to_scene_overworld_revamped(entt::registry& r)
     create_empty<RequestQuip>(r, quip_req);
   };
   create_empty<DistanceCheckComponent>(r, distance_c);
-}
+};
 
 void
 move_to_scene_additive(entt::registry& r, const Scene& s)
@@ -199,7 +199,7 @@ move_to_scene_additive(entt::registry& r, const Scene& s)
 
   auto& scene = get_first_component<SINGLETON_CurrentScene>(r);
   scene.s = s; // done
-}
+};
 
 void
 move_to_scene_start(entt::registry& r, const Scene& s, const bool load_saved)
@@ -221,29 +221,7 @@ move_to_scene_start(entt::registry& r, const Scene& s, const bool load_saved)
   const auto& invs = r.view<InventorySlotComponent>();
   r.destroy(invs.begin(), invs.end());
 
-  // store one physics world...
-  static b2World* world = new b2World(b2Vec2(0.0f, 0.0f));
-
-  // cleanup physics world...
-  {
-    static bool needs_deleting = false;
-    if (needs_deleting) {
-      b2Joint* joint = world->GetJointList();
-      while (joint) {
-        b2Joint* j = joint;
-        joint = joint->GetNext();
-        world->DestroyJoint(j);
-      }
-      b2Body* body = world->GetBodyList();
-      while (body) {
-        b2Body* b = body;
-        body = body->GetNext();
-        world->DestroyBody(b);
-      }
-    }
-    needs_deleting = true;
-  }
-  destroy_first_and_create<SINGLE_Physics>(r, SINGLE_Physics{ world });
+  emplace_or_replace_physics_world(r);
 
   destroy_first_and_create<SINGLETON_CurrentScene>(r);
   destroy_first_and_create<SINGLETON_EntityBinComponent>(r);
@@ -251,6 +229,7 @@ move_to_scene_start(entt::registry& r, const Scene& s, const bool load_saved)
   destroy_first_and_create<SINGLETON_GameOver>(r);
   destroy_first_and_create<SINGLETON_InputComponent>(r);
   destroy_first_and_create<SINGLE_ScreenshakeComponent>(r);
+  destroy_first_and_create<SINGLE_EventConsoleLogComponent>(r);
 
   destroy_first<SINGLE_SelectedUI>(r);
   destroy_first<SINGLE_TurnBasedCombatInfo>(r);
@@ -262,7 +241,6 @@ move_to_scene_start(entt::registry& r, const Scene& s, const bool load_saved)
   destroy_first<SINGLE_MinigameBamboo>(r);
   destroy_first<SINGLE_TurnBasedCombatInfo>(r);
   destroy_first<DungeonGenerationResults>(r);
-  destroy_first<SINGLE_EventConsoleLogComponent>(r);
   destroy_first<SINGLE_OverworldFakeFight>(r);
   // destroy_first<SINGLE_MainMenuUI>(r);
 
@@ -298,15 +276,9 @@ move_to_scene_start(entt::registry& r, const Scene& s, const bool load_saved)
   if (s == Scene::menu)
     move_to_scene_menu(r);
 
-  // const auto get_seed_from_systemtime = []() -> time_t {
-  //   auto now = std::chrono::system_clock::now();
-  //   return std::chrono::system_clock::to_time_t(now);
-  // };
-
   if (s == Scene::dungeon_designer) {
     // r.emplace_or_replace<CameraFreeMove>(get_first<OrthographicCamera>(r));
     destroy_first_and_create<SINGLE_CombatState>(r);
-    destroy_first_and_create<SINGLE_EventConsoleLogComponent>(r);
     destroy_first_and_create<SINGLE_TurnBasedCombatInfo>(r);
     // destroy_first_and_create<Effect_DoBloom>(r);
     destroy_first_and_create<Effect_GridComponent>(r);
@@ -341,6 +313,6 @@ move_to_scene_start(entt::registry& r, const Scene& s, const bool load_saved)
 
   auto& scene = get_first_component<SINGLETON_CurrentScene>(r);
   scene.s = s; // done
-}
+};
 
 } // namespace game2d

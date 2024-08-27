@@ -61,9 +61,10 @@ add_particles(entt::registry& r, const entt::entity parent)
   // just give everything that need particles the same particle
   DataParticle pdesc;
   pdesc.start_size = 6;
-  pdesc.end_size = 0;
-  pdesc.colour = { 1.0f, 1.0f, 1.0f, 1.0f };
+  pdesc.end_size = 2;
+  pdesc.colour = r.get<DefaultColour>(parent).colour;
   pdesc.sprite = "EMPTY";
+  pdesc.time_to_live_ms = 1.0 * 1000.0f;
 
   // which particle to spawn?
   ParticleEmitterComponent pedesc;

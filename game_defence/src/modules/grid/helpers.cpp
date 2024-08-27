@@ -62,7 +62,11 @@ move_entity_on_map(entt::registry& r, const int idx_a, const int idx_b)
 
           const auto& item_type = r.get<ItemTypeComponent>(dst_e);
           if (item_type.type == ItemType::scrap) {
+
+            // This seems weird that a new entity is created
+            // and the grid entity is destroyed.
             slot_c.item_e = create_inv_scrap(r, slot_e);
+
             item_added = true;
           }
 

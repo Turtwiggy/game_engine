@@ -2,6 +2,7 @@
 
 // game2d
 #include "components.hpp"
+#include "modules/renderer/components.hpp"
 
 // other libs
 #include <imgui.h>
@@ -37,5 +38,10 @@ search_for_texture_id_by_spritesheet_path(const SINGLETON_RendererInfo& ri, cons
 
 int
 search_for_renderpass_by_name(const SINGLETON_RendererInfo& ri, const PassName& name);
+
+//
+
+SINGLETON_RendererInfo
+get_default_rendererinfo();
 
 }; // namespace game2d

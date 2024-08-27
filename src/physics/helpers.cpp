@@ -12,6 +12,35 @@
 namespace game2d {
 
 void
+emplace_or_replace_physics_world(entt::registry& r)
+{
+  // store one physics world...
+  static b2World* world = new b2World(b2Vec2(0.0f, 0.0f));
+
+  // cleanup physics world...
+  {
+    static bool needs_deleting = false;
+    if (needs_deleting) {
+      b2Joint* joint = world->GetJointList();
+      while (joint) {
+        b2Joint* j = joint;
+        joint = joint->GetNext();
+        world->DestroyJoint(j);
+      }
+      b2Body* body = world->GetBodyList();
+      while (body) {
+        b2Body* b = body;
+        body = body->GetNext();
+        world->DestroyBody(b);
+      }
+    }
+    needs_deleting = true;
+  }
+
+  destroy_first_and_create<SINGLE_Physics>(r, SINGLE_Physics{ world });
+};
+
+void
 create_physics_actor(entt::registry& r, const entt::entity e, const PhysicsDescription& desc)
 {
   auto& physics_c = get_first_component<SINGLE_Physics>(r);
@@ -64,7 +93,7 @@ create_physics_actor(entt::registry& r, const entt::entity e, const PhysicsDescr
   auto& transform_c = r.get<TransformComponent>(e);
   transform_c.scale.x = desc.size.x;
   transform_c.scale.y = desc.size.y;
-}
+};
 
 /*
 void

@@ -27,7 +27,9 @@ move_action_common(entt::registry& r, const entt::entity e, const glm::vec2& dst
   const auto idx = it - map.map.begin();
   const int a = idx;
   const int b = next_idx;
-  if (!move_entity_on_map(r, a, b))
+
+  const bool moved = move_entity_on_map(r, a, b);
+  if (!moved)
     return;
 
   // Lerp the player model, independent of the grid representation

@@ -78,7 +78,6 @@ update_breach_charge_system(entt::registry& r, const glm::ivec2& mouse_pos, cons
   // only place bombs if viewport is hovered
   const auto& ri = get_first_component<SINGLETON_RendererInfo>(r);
   const bool viewport_hovered = ri.viewport_hovered;
-  ImGui::Text("Viewport Hovered: %i", viewport_hovered);
   if (!viewport_hovered)
     return;
 
@@ -95,7 +94,7 @@ update_breach_charge_system(entt::registry& r, const glm::ivec2& mouse_pos, cons
   const bool place_bomb = lmb_held_time > lmb_time_to_place_bomb;
   if (place_bomb)
     lmb_held_time = 0.0f;
-  ImGui::Text("Bomb Held time: %f", lmb_held_time);
+  // ImGui::Text("Bomb Held time: %f", lmb_held_time);
 
   // Convert from [0, time_to_place_bomb] to [0, 2*PI]
   const float angle = engine::scale(lmb_held_time, 0.0f, lmb_time_to_place_bomb, 0.0f, 2.0f * engine::PI);
@@ -108,7 +107,7 @@ update_breach_charge_system(entt::registry& r, const glm::ivec2& mouse_pos, cons
 
   // debug spawn loads of bombs
   if (imediately_place_bomb && get_mouse_lmb_press()) {
-
+    fmt::println("immediately placing bomb...");
     DataBreachCharge desc;
     desc.pos = glm::vec2(mouse_pos_on_grid);
     const auto charge_e = Factory_DataBreachCharge::create(r, desc);

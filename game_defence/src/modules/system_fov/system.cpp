@@ -48,9 +48,9 @@ update_fov_system(entt::registry& r, const glm::ivec2& mouse_pos)
     break_idx++;
 
   static bool debug_fov = false;
-  imgui_draw_bool("debug_fov", debug_fov);
 
   if (debug_fov) {
+    imgui_draw_bool("debug_fov", debug_fov);
     for (const entt::entity& floor_e : dungeon.floor_tiles)
       if (floor_e != entt::null)
         set_colour(r, floor_e, { 0.05f, 0.05f, 0.05f, 1.0f });

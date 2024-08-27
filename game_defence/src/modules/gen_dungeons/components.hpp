@@ -1,6 +1,7 @@
 #pragma once
 
 #include "helpers/line.hpp"
+#include "maths/maths.hpp"
 #include "modules/algorithm_astar_pathfinding/components.hpp"
 
 #include <entt/entt.hpp>

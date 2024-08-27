@@ -15,14 +15,15 @@ namespace game2d {
 SpriteComponent
 create_sprite(entt::registry& r, const EntityData& desc)
 {
-  const auto& anims = get_first_component<SINGLE_Animations>(r);
   const auto& ri = get_first_component<SINGLETON_RendererInfo>(r);
 
   SpriteComponent sc;
   sc.colour = engine::SRGBToLinear(desc.colour);
 
   // search spritesheet
+  const auto& anims = get_first_component<SINGLE_Animations>(r);
   const auto [spritesheet, anim] = find_animation(anims, desc.sprite);
+
   sc.tex_pos.x = anim.animation_frames[0].x;
   sc.tex_pos.y = anim.animation_frames[0].y;
 
