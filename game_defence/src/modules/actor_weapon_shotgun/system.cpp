@@ -171,8 +171,6 @@ update_weapon_shotgun_system(entt::registry& r, const uint64_t milliseconds_dt)
 
         const glm::vec2 bullet_position = parent_pos + (offset);
 
-        fmt::println("gun bullet type: {}", std::string(magic_enum::enum_name(shotgun_c.bullet_type)));
-
         DataBullet desc(shotgun_c.bullet_type);
         desc.pos = bullet_position;
         desc.dir = nrm_dir;

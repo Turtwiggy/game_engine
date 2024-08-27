@@ -22,21 +22,6 @@
 
 namespace game2d {
 
-void
-update_item_parent(entt::registry& r, const entt::entity item, const entt::entity parent)
-{
-  auto& item_c = r.get<ItemComponent>(item);
-
-  // move out of old parent
-  r.get<InventorySlotComponent>(item_c.parent_slot).item_e = entt::null;
-
-  // set item to new parent
-  r.get<ItemComponent>(item).parent_slot = parent;
-
-  // set parent to new child
-  r.get<InventorySlotComponent>(parent).item_e = item;
-};
-
 const auto item_slot_accepting_item = [](entt::registry& r, const entt::entity item_slot) {
   if (ImGui::BeginDragDropTarget()) {
     if (const ImGuiPayload* payload = ImGui::AcceptDragDropPayload("ITEM_E_PAYLOAD")) {
@@ -202,19 +187,6 @@ update_ui_inventory_system(entt::registry& r)
         update_item_parent(r, item_e, slot_e);
         return item_e;
       };
-      const auto create_scrap = [](entt::registry& r, const entt::entity slot_e) -> entt::entity {
-        DataScrap data;
-
-        ItemComponent item_c;
-        item_c.display_icon = data.icon;
-        item_c.display_name = "sCrap";
-        item_c.parent_slot = slot_e;
-        auto item_e = create_empty<ItemComponent>(r, item_c);
-        r.emplace<ItemTypeComponent>(item_e, ItemTypeComponent{ ItemType::scrap });
-
-        update_item_parent(r, item_e, slot_e);
-        return item_e;
-      };
       const auto create_shotgun = [](entt::registry& r, const entt::entity slot_e) -> entt::entity {
         DataWeaponShotgun data;
 
@@ -237,12 +209,12 @@ update_ui_inventory_system(entt::registry& r)
         item_c.parent_slot = slot_e;
         auto item_e = create_empty<ItemComponent>(r, item_c);
 
-        ItemType t = ItemType::bullet_default;
+        std::optional<ItemType> t = std::nullopt;
         if (type == BulletType::BOUNCY)
-          t = ItemType::bullet_default;
-        if (type == BulletType::DEFAULT)
           t = ItemType::bullet_bouncy;
-        r.emplace<ItemTypeComponent>(item_e, ItemTypeComponent{ t });
+        if (type == BulletType::DEFAULT)
+          t = ItemType::bullet_default;
+        r.emplace<ItemTypeComponent>(item_e, ItemTypeComponent{ t.value() });
 
         update_item_parent(r, item_e, slot_e);
         return item_e;
@@ -263,7 +235,7 @@ update_ui_inventory_system(entt::registry& r)
       const auto inv_3_e = inv_c.inv[inv_c.inv.size() - 3];
       const auto inv_4_e = inv_c.inv[inv_c.inv.size() - 4];
       const auto inv_5_e = inv_c.inv[inv_c.inv.size() - 5];
-      r.get<InventorySlotComponent>(inv_1_e).item_e = create_scrap(r, inv_1_e);
+      r.get<InventorySlotComponent>(inv_1_e).item_e = create_inv_scrap(r, inv_1_e);
       r.get<InventorySlotComponent>(inv_2_e).item_e = create_shotgun(r, inv_2_e);
       r.get<InventorySlotComponent>(inv_3_e).item_e = create_bullets(r, inv_3_e, BulletType::DEFAULT);
       r.get<InventorySlotComponent>(inv_4_e).item_e = create_bullets(r, inv_4_e, BulletType::BOUNCY);
@@ -294,7 +266,7 @@ update_ui_inventory_system(entt::registry& r)
       const auto& type = r.get<ItemTypeComponent>(ui_gun_slot_e.item_e);
 
       if (type.type == ItemType::gun) {
-        fmt::println("adding shotgun components to item");
+        // fmt::println("adding shotgun components to item");
         add_weapon_shotgun(r, e);
       }
 
@@ -333,10 +305,10 @@ update_ui_inventory_system(entt::registry& r)
     // Ammo. Set bullet type.
     if (ui_has_gun && gun_has_instance && ui_has_ammo) {
 
-      const auto& type = r.get<ItemTypeComponent>(ui_gun_slot_e.item_e);
-      fmt::println("bullet: {}", std::string(magic_enum::enum_name(type.type)));
+      const auto& type = r.get<ItemTypeComponent>(ui_ammo_slot.item_e);
+      // fmt::println("bullet: {}", std::string(magic_enum::enum_name(type.type)));
 
-      auto bullet_type = BulletType::DEFAULT;
+      std::optional<BulletType> bullet_type = std::nullopt;
       if (type.type == ItemType::bullet_default)
         bullet_type = BulletType::DEFAULT;
       if (type.type == ItemType::bullet_bouncy)
@@ -344,8 +316,8 @@ update_ui_inventory_system(entt::registry& r)
 
       // set the bullet type for shotgun.
       if (auto* shotgun_c = r.try_get<ShotgunComponent>(has_weapon->instance)) {
-        fmt::println("setting ammo type... {}", std::string(magic_enum::enum_name(bullet_type)));
-        shotgun_c->bullet_type = bullet_type;
+        // fmt::println("setting ammo type... {}", std::string(magic_enum::enum_name(bullet_type.value())));
+        shotgun_c->bullet_type = bullet_type.value();
       }
     }
   }

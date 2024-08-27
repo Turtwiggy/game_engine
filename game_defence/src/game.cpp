@@ -42,7 +42,6 @@
 #include "modules/system_overworld_fake_fight/system.hpp"
 #include "modules/system_particles/system.hpp"
 #include "modules/system_particles_on_death/system.hpp"
-#include "modules/system_pathfinding/system.hpp"
 #include "modules/system_physics_apply_force/system.hpp"
 #include "modules/system_quips/components.hpp"
 #include "modules/system_quips/system.hpp"
@@ -251,9 +250,6 @@ fixed_update(engine::SINGLETON_Application& app, entt::registry& game, const uin
   auto& gameover = get_first_component<SINGLETON_GameOver>(game);
   if (gameover.game_is_over)
     return;
-
-  // needs dead.dead before it's cleared
-  update_pathfinding_system(game, milliseconds_dt / 1000.0f);
 
   // destroy/create objects
   update_lifecycle_system(game, milliseconds_dt);

@@ -16,7 +16,7 @@ add_bomb_callback(entt::registry& r, const entt::entity e)
   const auto& map = get_first_component<MapComponent>(r);
 
   OnDeathCallback callback;
-  callback.callback = [](entt::registry& r, const entt::entity& e) {
+  callback.callback = [](entt::registry& r, const entt::entity e) {
     // create a boom effect
     const glm::vec2 pos = get_position(r, e);
     create_empty<RequestToSpawnParticles>(r, RequestToSpawnParticles{ pos });

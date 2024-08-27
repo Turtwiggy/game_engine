@@ -16,6 +16,7 @@
 #include "modules/gen_dungeons//helpers.hpp"
 #include "modules/gen_dungeons/components.hpp"
 #include "modules/gen_dungeons/helpers.hpp"
+#include "modules/gen_dungeons/helpers/gen_players.hpp"
 #include "modules/grid/components.hpp"
 #include "modules/scene/helpers.hpp"
 #include "modules/system_change_gun_z_index/helpers.hpp"
@@ -74,6 +75,7 @@ update_gen_dungeons_system(entt::registry& r, const glm::ivec2& mouse_pos)
 
       const auto grid_pos = engine::grid::worldspace_to_grid_space(mouse_pos, map.tilesize);
       ImGui::Text("grid_pos: %i %i", grid_pos.x, grid_pos.y);
+      ImGui::Text("grid_idx: %i", engine::grid::grid_position_to_index(grid_pos, map.xmax));
 
       const auto [in_room, room] = inside_room(map, rooms, grid_pos);
       ImGui::Text("Inside Room: %i", in_room);
@@ -213,12 +215,12 @@ update_gen_dungeons_system(entt::registry& r, const glm::ivec2& mouse_pos)
   // Steps after initial initialization...
   set_generated_entity_positions(r, result, rnd);
 
-  // set_player_positions(r, result, rnd);
-  DataJetpackActor desc;
-  desc.pos = { -100, -100 };
-  desc.team = AvailableTeams::player;
-  const auto e = Factory_DataJetpackActor::create(r, desc);
-  r.emplace<CameraFollow>(e);
+  set_player_positions(r, result, rnd);
+  // DataJetpackActor desc;
+  // desc.pos = { -100, -100 };
+  // desc.team = AvailableTeams::player;
+  // const auto e = Factory_DataJetpackActor::create(r, desc);
+  // r.emplace<CameraFollow>(e);
 
   // give helmet to breathe
   const auto helmet_e = create_transform(r);

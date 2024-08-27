@@ -12,6 +12,7 @@
 #include "modules/gen_dungeons/helpers/collisions.hpp"
 #include "modules/grid/components.hpp"
 #include "modules/grid/helpers.hpp"
+#include "modules/system_drop_items/components.hpp"
 
 #include <algorithm>
 #include <fmt/core.h>
@@ -330,6 +331,10 @@ set_generated_entity_positions(entt::registry& r, DungeonGenerationResults& resu
     const auto idx = engine::grid::worldspace_to_index(pos, map_c.tilesize, map_c.xmax, map_c.ymax);
     add_entity_to_map(r, dungeon_e, idx);
 
+    // get enemies to drop scrap
+    r.emplace<DropItemsOnDeathComponent>(dungeon_e);
+
+    // give enemies a shotgun
     DataWeaponShotgun wdesc;
     wdesc.able_to_shoot = true;
     wdesc.parent = dungeon_e;

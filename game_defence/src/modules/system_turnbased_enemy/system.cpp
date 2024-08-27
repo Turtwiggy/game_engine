@@ -20,7 +20,6 @@
 #include "modules/system_move_to_target_via_lerp/components.hpp"
 #include "modules/system_turnbased/components.hpp"
 
-
 #include <fmt/core.h>
 
 namespace game2d {
@@ -218,8 +217,12 @@ update_turnbased_enemy_system(entt::registry& r)
   // ImGui::End();
 
   // end the enemy turn
-  if (all_enemies_fully_done)
+  if (all_enemies_fully_done) {
     create_empty<RequestToCompleteTurn>(r, RequestToCompleteTurn{ AvailableTeams::enemy });
+
+    // Also, now all the enemies have moved, the fov needs updating
+    create_empty<RequestUpdateFOV>(r);
+  }
 }
 
 } // namespace game2d

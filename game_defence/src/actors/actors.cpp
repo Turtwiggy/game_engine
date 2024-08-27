@@ -17,7 +17,9 @@
 #include "modules/combat_attack_cooldown/components.hpp"
 #include "modules/combat_damage/components.hpp"
 #include "modules/combat_wants_to_shoot/components.hpp"
+#include "modules/items_pickup/components.hpp"
 #include "modules/lighting/components.hpp"
+#include "modules/system_drop_items/helpers.hpp"
 #include "modules/system_move_to_target_via_lerp/components.hpp"
 #include "modules/system_particles/components.hpp"
 #include "modules/system_turnbased/components.hpp"
@@ -199,6 +201,13 @@ Factory_DataDungeonActor::create(entt::registry& r, const DataDungeonActor& desc
 
   add_components(r, e, desc);
 
+  OnDeathCallback callback;
+  callback.callback = [](entt::registry& r, const entt::entity e) {
+    //
+    drop_items_on_death_callback(r, e);
+  };
+  r.emplace<OnDeathCallback>(e, callback);
+
   return e;
 };
 
@@ -256,7 +265,6 @@ Factory_DataSpaceShipActor::create(entt::registry& r, const DataSpaceShipActor& 
   r.emplace<DefaultColour>(e, desc.colour);
 
   if (desc.team == AvailableTeams::player) {
-
     r.emplace<PlayerComponent>(e);
     r.emplace<InputComponent>(e);
     r.emplace<KeyboardComponent>(e);
@@ -402,7 +410,6 @@ Factory_DataBullet::create(entt::registry& r, const DataBullet& desc)
   }
 
   r.emplace<BulletComponent>(e, bc);
-  fmt::println("bullet: {}", std::string(magic_enum::enum_name(desc.type)));
 
   return e;
 };
@@ -432,6 +439,7 @@ Factory_DataMedkit::create(entt::registry& r, const DataMedkit& desc)
 {
   const auto e = Factory_BaseActor::create(r, desc);
 
+  r.emplace<AbleToBePickedUp>(e);
   // r.emplace<MedKitComponent>(e);
 
   return e;
@@ -442,6 +450,9 @@ Factory_DataScrap::create(entt::registry& r, const DataScrap& desc)
 {
   const auto e = Factory_BaseActor::create(r, desc);
   const auto size = HALF_SIZE;
+
+  r.emplace<AbleToBePickedUp>(e);
+  r.emplace<ItemTypeComponent>(e, ItemType::scrap);
 
   return e;
 };

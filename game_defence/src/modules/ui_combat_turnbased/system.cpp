@@ -22,7 +22,6 @@
 #include "modules/ux_hoverable/components.hpp"
 #include "sprites/helpers.hpp"
 
-
 #include <fmt/core.h>
 
 namespace game2d {
@@ -140,15 +139,15 @@ update_ui_combat_turnbased_system(entt::registry& r, const glm::ivec2& input_mou
     // already has a path that you've not yet arrived at
     // const bool has_d = has_destination(r, e);
     // const bool at_d = at_destination(r, e);
-    const bool blocked_d = destination_is_blocked(r, mouse_pos);
+    // const bool blocked_d = destination_is_blocked(r, mouse_pos);
     // if (blocked_d)
     //   fmt::println("player destination blocked?");
 
     // const bool able_to_move = (!has_d || at_d) && !blocked_d;
-    const bool able_to_move = !blocked_d;
+    // const bool able_to_move = !blocked_d;
 
     // move mode
-    if (action == Actions::MOVE && able_to_move && actions.actions_available > 0 && rmb_click) {
+    if (action == Actions::MOVE && actions.actions_available > 0 && rmb_click) {
       move_action_common(r, e, mouse_pos);
 
       actions.actions_available--;

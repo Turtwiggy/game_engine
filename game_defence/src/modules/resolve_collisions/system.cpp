@@ -90,13 +90,10 @@ update_resolve_collisions_system(entt::registry& r)
 
       if (!is_wall)
         continue; // walls only from here on out
-      fmt::println("it was a wall");
 
       // bouncy bullet hit a wall
       //
       if (bullet_info.bounce_bullet_on_wall_collision) {
-        fmt::println("bullet wants to bounce...");
-
         const bool wall_is_horizontal = other_size.x > other_size.y;
         const auto dir = bullet_pos - other_pos;
 
