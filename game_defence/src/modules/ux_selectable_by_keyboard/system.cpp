@@ -1,6 +1,5 @@
 #include "system.hpp"
 
-#include "actors/base.hpp"
 #include "entt/helpers.hpp"
 #include "events/components.hpp"
 #include "events/helpers/keyboard.hpp"
@@ -37,7 +36,7 @@ update_ux_selectable_by_keyboard_system(entt::registry& r)
   chosen_idx = glm::min(chosen_idx, int(view.size() - 1));
 
   for (int i = 0; const auto& [e, player_c] : view.each()) {
-    const auto name = std::string(magic_enum::enum_name(r.get<EntityTypeComponent>(e).type));
+    // const auto name = std::string(magic_enum::enum_name(r.get<EntityTypeComponent>(e).type));
     if (chosen_idx == i)
       r.emplace_or_replace<SelectedComponent>(e);
     i++;

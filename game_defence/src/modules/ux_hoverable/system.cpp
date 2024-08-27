@@ -20,12 +20,12 @@ update_ux_hoverable(entt::registry& r, const glm::ivec2& mouse_pos)
   // const bool release = get_mouse_lmb_release();
   // const bool shift_held = get_key_held(input, SDL_SCANCODE_LSHIFT);
 
-  ImGui::Begin("DebugHover");
+  // ImGui::Begin("DebugHover");
 
   // Clear anything thats hovered
   {
     const auto& view = r.view<HoveredComponent>();
-    ImGui::Text("Hovered before: %zu", view.size());
+    // ImGui::Text("Hovered before: %zu", view.size());
     r.remove<HoveredComponent>(view.begin(), view.end());
   }
 
@@ -36,7 +36,7 @@ update_ux_hoverable(entt::registry& r, const glm::ivec2& mouse_pos)
   const auto& map_c = get_first_component<MapComponent>(r);
   const auto grid_pos = engine::grid::worldspace_to_grid_space(mouse_pos, map_c.tilesize);
   const auto grid_idx = engine::grid::grid_position_to_clamped_index(grid_pos, map_c.xmax, map_c.ymax);
-  ImGui::Text("Grid Idx: %i", grid_idx);
+  // ImGui::Text("Grid Idx: %i", grid_idx);
 
   const entt::entity grid_e = map_c.map[grid_idx];
   if (grid_e != entt::null) {
@@ -80,7 +80,7 @@ update_ux_hoverable(entt::registry& r, const glm::ivec2& mouse_pos)
   //   }
   // }
 
-  ImGui::End();
+  // ImGui::End();
 };
 
 } // namespace game2d

@@ -1,12 +1,10 @@
 #include "system.hpp"
 
 #include "actors/actors.hpp"
+#include "actors/helpers.hpp"
 #include "entt/helpers.hpp"
-#include "imgui/helpers.hpp"
-#include "maths/maths.hpp"
 #include "modules/actor_enemy/components.hpp"
 #include "modules/actor_player/components.hpp"
-#include "modules/actors/helpers.hpp"
 #include "modules/combat_wants_to_shoot/components.hpp"
 #include "modules/gen_dungeons/components.hpp"
 #include "modules/renderer/components.hpp"
@@ -16,7 +14,6 @@
 
 #include "imgui.h"
 #include "modules/ui_overworld_ship_label/components.hpp"
-#include "physics/components.hpp"
 #include <box2d/b2_joint.h>
 #include <box2d/b2_math.h>
 
@@ -42,6 +39,7 @@ struct Crew
 void
 update_ui_launch_crew_system(entt::registry& r)
 {
+  /*
   ImGui::Begin("Launch Crew UI");
 
   static std::vector<Crew> crew{
@@ -88,9 +86,9 @@ update_ui_launch_crew_system(entt::registry& r)
     const auto enemy_e = get_first<EnemyComponent>(r);
     const auto player_t = get_position(r, player_e);
 
-    ActorSpaceCapsule desc;
+    DataSpaceCapsuleActor desc;
     desc.pos = { player_t.x, player_t.y };
-    const auto capsule_e = Factory_ActorSpaceCapsule::create(r, desc);
+    const auto capsule_e = Factory_DataSpaceCapsuleActor::create(r, desc);
 
     // set the capsule's dynamic target to the enemy ship
     r.emplace<DynamicTargetComponent>(capsule_e, enemy_e);
@@ -110,6 +108,7 @@ update_ui_launch_crew_system(entt::registry& r)
   }
 
   ImGui::End();
+  */
 
   //
   // ui: board ship button
@@ -126,7 +125,7 @@ update_ui_launch_crew_system(entt::registry& r)
   // position
   const float padding_y = size.y / 2.0f;
   const float center_x = viewport_pos.x + viewport_size_half.x;
-  const float bottom_y = viewport_pos.y + ri.viewport_size_current.y - padding_y;
+  const float bottom_y = viewport_pos.y + ri.viewport_size_current.y - padding_y - 32.0f;
   const auto pos = ImVec2(center_x, bottom_y);
   ImGui::SetNextWindowPos(pos, ImGuiCond_Always, ImVec2(0.5f, 0.5f));
 
@@ -134,9 +133,11 @@ update_ui_launch_crew_system(entt::registry& r)
   flags |= ImGuiWindowFlags_NoDecoration;
   flags |= ImGuiWindowFlags_NoMove;
 
+  ImGui::PushStyleVar(ImGuiStyleVar_FrameRounding, 10.0f);
+  ImGui::PushStyleVar(ImGuiStyleVar_FramePadding, ImVec2(5.0f, 5.0f));
   ImGui::PushStyleVar(ImGuiStyleVar_WindowPadding, ImVec2(0.0f, 0.0f));
+
   ImGui::Begin("Board Ship", NULL, flags);
-  ImGui::PopStyleVar();
 
   if (ImGui::Button("Board Ship", size)) {
     move_to_scene_start(r, Scene::dungeon_designer);
@@ -144,6 +145,12 @@ update_ui_launch_crew_system(entt::registry& r)
   }
 
   ImGui::End();
+
+  ImGui::PopStyleVar();
+  ImGui::PopStyleVar();
+  ImGui::PopStyleVar();
+
+  /*
 
   //
   // HACK: trial adding some cargo boxes behind your main ship
@@ -154,9 +161,9 @@ update_ui_launch_crew_system(entt::registry& r)
     const auto player_e = get_first<PlayerComponent>(r);
     const auto player_t = get_position(r, player_e);
 
-    ActorSpaceCargo desc;
+    DataSpaceCargoActor desc;
     desc.pos = { player_t.x, player_t.y - 50 };
-    const auto capsule_e = Factory_ActorSpaceCargo::create(r, desc);
+    const auto capsule_e = Factory_DataSpaceCargoActor::create(r, desc);
 
     r.emplace<ApplyForceInDirectionComponent>(capsule_e);
 
@@ -224,6 +231,8 @@ update_ui_launch_crew_system(entt::registry& r)
   // }
 
   ImGui::End();
+
+  */
 }
 
 } // namespace game2d

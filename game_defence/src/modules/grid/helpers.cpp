@@ -1,10 +1,14 @@
 #include "helpers.hpp"
 
+#include "actors/helpers.hpp"
 #include "components.hpp"
 #include "entt/helpers.hpp"
+#include "lifecycle/components.hpp"
 #include "maths/grid.hpp"
-#include "modules/actors/helpers.hpp"
 #include "modules/algorithm_astar_pathfinding/helpers.hpp"
+#include "modules/items_pickup/components.hpp"
+#include "modules/ui_inventory/components.hpp"
+#include "modules/ui_inventory/helpers.hpp"
 
 #include <fmt/core.h>
 
@@ -27,6 +31,7 @@ bool
 move_entity_on_map(entt::registry& r, const int idx_a, const int idx_b)
 {
   auto& map = get_first_component<MapComponent>(r);
+  auto& dead = get_first_component<SINGLETON_EntityBinComponent>(r);
 
   const entt::entity src_e = map.map[idx_a];
   const entt::entity dst_e = map.map[idx_b];
@@ -38,6 +43,57 @@ move_entity_on_map(entt::registry& r, const int idx_a, const int idx_b)
 
   if (dst_e != entt::null) {
     fmt::println("move_entity_on_map(): dst not clear for move");
+
+    if (auto* pickup = r.try_get<AbleToBePickedUp>(dst_e)) {
+      fmt::println("move_entity_on_map(): dst is an item");
+
+      // Add it to the inventory of the thing being picked up if there is space
+      if (auto* inv = r.try_get<DefaultInventory>(src_e)) {
+
+        bool item_added = false;
+
+        // add scrap to first free slot
+        for (size_t i = 0; i < inv->inv.size(); i++) {
+          const auto slot_e = inv->inv[i];
+          auto& slot_c = r.get<InventorySlotComponent>(slot_e);
+
+          if (slot_c.item_e != entt::null)
+            continue; // slot not free
+
+          const auto& item_type = r.get<ItemTypeComponent>(dst_e);
+          if (item_type.type == ItemType::scrap) {
+
+            // This seems weird that a new entity is created
+            // and the grid entity is destroyed.
+            slot_c.item_e = create_inv_scrap(r, slot_e);
+
+            item_added = true;
+          }
+
+          break; // item is not scrap?
+        }
+
+        if (!item_added) {
+          fmt::println("warning: would pickup item but inv full; not moving");
+          return false;
+        }
+
+        //
+      } else {
+        fmt::println("warning: no inventory to pickup; not moving");
+        return false;
+      }
+
+      fmt::println("item picked up");
+
+      // remove that item.
+      dead.dead.emplace(dst_e);
+
+      map.map[idx_a] = entt::null;
+      map.map[idx_b] = src_e;
+      return true;
+    }
+
     return false;
   }
 

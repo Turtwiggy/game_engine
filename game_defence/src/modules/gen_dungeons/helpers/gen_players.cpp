@@ -3,14 +3,10 @@
 #include "actors/actors.hpp"
 #include "entt/helpers.hpp"
 #include "maths/grid.hpp"
-#include "modules/actor_player/components.hpp"
 #include "modules/camera/components.hpp"
 #include "modules/camera/orthographic.hpp"
 #include "modules/combat_damage/components.hpp"
 #include "modules/grid/components.hpp"
-#include "modules/scene/helpers.hpp"
-#include "modules/ui_inventory/components.hpp"
-#include "physics/components.hpp"
 
 namespace game2d {
 
@@ -40,10 +36,10 @@ set_player_positions(entt::registry& r, const DungeonGenerationResults& results,
 
       // create a jetpack entity
       // it gets converted to a dungeon entity via jetpack_to_dungeon
-      ActorJetpackPlayer desc;
+      DataJetpackActor desc;
       desc.pos = pos;
       desc.team = AvailableTeams::player;
-      const auto e = Factory_ActorJetpackPlayer::create(r, desc);
+      const auto e = Factory_DataJetpackActor::create(r, desc);
       r.emplace<CameraFollow>(e);
     }
 

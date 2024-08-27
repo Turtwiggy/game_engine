@@ -1,5 +1,6 @@
 #include "helpers.hpp"
 
+#include "actors/bags/items.hpp"
 #include "entt/helpers.hpp"
 #include "events/components.hpp"
 #include "events/helpers/keyboard.hpp"
@@ -62,6 +63,38 @@ get_slots(entt::registry& r, const entt::entity e, const InventorySlotType& type
   }
 
   return slots;
+};
+
+void
+update_item_parent(entt::registry& r, const entt::entity item, const entt::entity parent)
+{
+  auto& item_c = r.get<ItemComponent>(item);
+
+  // move out of old parent
+  r.get<InventorySlotComponent>(item_c.parent_slot).item_e = entt::null;
+
+  // set item to new parent
+  r.get<ItemComponent>(item).parent_slot = parent;
+
+  // set parent to new child
+  r.get<InventorySlotComponent>(parent).item_e = item;
+};
+
+entt::entity
+create_inv_scrap(entt::registry& r, const entt::entity slot_e)
+{
+  DataScrap data;
+
+  ItemComponent item_c;
+  item_c.display_icon = data.icon;
+  item_c.display_name = "sCrap";
+  item_c.parent_slot = slot_e;
+  auto item_e = create_empty<ItemComponent>(r, item_c);
+  r.emplace<ItemTypeComponent>(item_e, ItemTypeComponent{ ItemType::scrap });
+
+  update_item_parent(r, item_e, slot_e);
+
+  return item_e;
 };
 
 } // namespace game2d

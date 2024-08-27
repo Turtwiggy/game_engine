@@ -2,8 +2,8 @@
 #include "helpers.hpp"
 
 #include "components.hpp"
+#include "io/path.hpp"
 
-#include "deps/opengl.hpp"
 #include <imgui.h>
 #include <imgui_internal.h>
 
@@ -184,6 +184,42 @@ search_for_renderpass_by_name(const SINGLETON_RendererInfo& ri, const PassName& 
   }
 
   exit(1); // explode
+};
+
+SINGLETON_RendererInfo
+get_default_rendererinfo()
+{
+  SINGLETON_RendererInfo ri;
+
+  std::string path = engine::get_exe_path_without_exe_name();
+  path += "assets/";
+
+  Texture kennynl;
+  kennynl.path = path + "textures/kennynl_1bit_pack/monochrome_transparent_packed.png";
+  kennynl.spritesheet_path = path + "config/spritemap_kennynl.json";
+  ri.user_textures.push_back(kennynl);
+
+  Texture gameicons;
+  gameicons.path = path + "textures/kennynl_gameicons/Spritesheet/sheet_white1x_adjusted.png";
+  gameicons.spritesheet_path = path + "config/spritemap_kennynl_icons.json";
+  ri.user_textures.push_back(gameicons);
+
+  Texture spacestation_0;
+  spacestation_0.path = path + "textures/spacestation_0.png";
+  spacestation_0.spritesheet_path = path + "config/spritemap_spacestation_0.json";
+  ri.user_textures.push_back(spacestation_0);
+
+  Texture studio_logo;
+  studio_logo.path = path + "textures/blueberry-dark.png";
+  studio_logo.spritesheet_path = path + "config/spritemap_studio_logo.json";
+  ri.user_textures.push_back(studio_logo);
+
+  Texture custom;
+  custom.path = path + "textures/custom.png";
+  custom.spritesheet_path = path + "config/spritemap_custom.json";
+  ri.user_textures.push_back(custom);
+
+  return ri;
 };
 
 } // namespace game2d

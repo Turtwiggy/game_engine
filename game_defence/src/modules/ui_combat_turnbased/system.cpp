@@ -2,6 +2,7 @@
 
 #include "components.hpp"
 
+#include "actors/helpers.hpp"
 #include "components.hpp"
 #include "entt/helpers.hpp"
 #include "events/components.hpp"
@@ -10,17 +11,14 @@
 #include "game_state.hpp"
 #include "maths/grid.hpp"
 #include "modules/actor_weapon_shotgun/components.hpp"
-#include "modules/actors/helpers.hpp"
 #include "modules/algorithm_astar_pathfinding/helpers.hpp"
 #include "modules/combat_damage/components.hpp"
 #include "modules/combat_wants_to_shoot/components.hpp"
 #include "modules/grid/components.hpp"
-#include "modules/grid/helpers.hpp"
 #include "modules/renderer/components.hpp"
 #include "modules/renderer/helpers.hpp"
-#include "modules/system_move_to_target_via_lerp/components.hpp"
-#include "modules/system_turnbased/components.hpp"
 #include "modules/system_turnbased_enemy/components.hpp"
+#include "modules/system_turnbased_enemy/helpers.hpp"
 #include "modules/ux_hoverable/components.hpp"
 #include "sprites/helpers.hpp"
 
@@ -141,41 +139,19 @@ update_ui_combat_turnbased_system(entt::registry& r, const glm::ivec2& input_mou
     // already has a path that you've not yet arrived at
     // const bool has_d = has_destination(r, e);
     // const bool at_d = at_destination(r, e);
-    const bool blocked_d = destination_is_blocked(r, mouse_pos);
+    // const bool blocked_d = destination_is_blocked(r, mouse_pos);
     // if (blocked_d)
     //   fmt::println("player destination blocked?");
 
     // const bool able_to_move = (!has_d || at_d) && !blocked_d;
-    const bool able_to_move = !blocked_d;
+    // const bool able_to_move = !blocked_d;
 
     // move mode
-    if (action == Actions::MOVE && able_to_move && actions.actions_available > 0 && rmb_click) {
-      const auto limit = r.get<MoveLimitComponent>(e).amount;
-      const auto path = generate_path(r, e, mouse_pos, limit);
-      if (path.size() >= 2) {
-        const auto next_dst = path[1];
-        const auto next_idx = engine::grid::grid_position_to_index(next_dst, map.xmax);
+    if (action == Actions::MOVE && actions.actions_available > 0 && rmb_click) {
+      move_action_common(r, e, mouse_pos);
 
-        // player move action...
-        const auto it = std::find(map.map.begin(), map.map.end(), e);
-        const auto idx = it - map.map.begin();
-        const int a = idx;
-        const int b = next_idx;
-        if (move_entity_on_map(r, a, b)) {
-
-          // Lerp the player model, independent of the grid representation
-          const auto offset = glm::vec2{ map.tilesize / 2.0f, map.tilesize / 2.0f };
-          remove_if_exists<LerpingToTarget>(r, e);
-          LerpingToTarget lerp;
-          lerp.a = engine::grid::index_to_world_position(a, map.xmax, map.ymax, map.tilesize) + offset;
-          lerp.b = engine::grid::index_to_world_position(b, map.xmax, map.ymax, map.tilesize) + offset;
-          lerp.t = 0.0f;
-          r.emplace<LerpingToTarget>(e, lerp);
-
-          actions.actions_available--;
-          actions.actions_completed++;
-        }
-      }
+      actions.actions_available--;
+      actions.actions_completed++;
     }
 
     // shoot mode

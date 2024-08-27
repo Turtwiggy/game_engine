@@ -1,64 +1,29 @@
 #include "actors/base.hpp"
 
+#include "actors/helpers.hpp"
+#include "colour/colour.hpp"
 #include "entt/helpers.hpp"
-#include "modules/actors/helpers.hpp"
+#include "lifecycle/components.hpp"
 #include "modules/renderer/components.hpp"
 #include "modules/renderer/helpers.hpp"
-#include "modules/ui_colours/helpers.hpp"
+#include "renderer/components.hpp"
 #include "sprites/components.hpp"
 #include "sprites/helpers.hpp"
 
-#include "magic_enum.hpp"
-#include <fmt/core.h>
-
 namespace game2d {
 
-std::string
-sprite_type_to_sprite(const EntityType& type)
-{
-  const auto type_name = std::string(magic_enum::enum_name(type));
-
-  std::string sprite = "EMPTY";
-
-  if (type == EntityType::actor_breach_charge)
-    sprite = "WEAPON_GRENADE";
-  else if (type == EntityType::actor_jetpack_player)
-    sprite = "PERSON_25_0";
-  else if (type == EntityType::actor_space_ship)
-    sprite = "SPACE_VEHICLE_1";
-  else if (type == EntityType::actor_space_capsule)
-    sprite = "EMPTY";
-  else if (type == EntityType::actor_space_cargo)
-    sprite = "DICE_DARK_X";
-  else if (type == EntityType::weapon_shotgun)
-    sprite = "EMPTY";
-  else if (type == EntityType::bullet_default)
-    sprite = "EMPTY";
-  else if (type == EntityType::bullet_bouncy)
-    sprite = "EMPTY";
-  else if (type == EntityType::particle)
-    sprite = "EMPTY";
-  else if (type == EntityType::solid_wall)
-    sprite = "EMPTY";
-  // else
-  //   fmt::println("warning! sprite set to empty: {}", type_name);
-
-  return sprite;
-};
-
 SpriteComponent
-create_sprite(entt::registry& r, const std::string& sprite, const EntityType& type)
+create_sprite(entt::registry& r, const EntityData& desc)
 {
-  const auto type_name = std::string(magic_enum::enum_name(type));
-
-  const auto& anims = get_first_component<SINGLE_Animations>(r);
   const auto& ri = get_first_component<SINGLETON_RendererInfo>(r);
 
   SpriteComponent sc;
-  sc.colour = get_lin_colour_by_tag(r, type_name);
+  sc.colour = engine::SRGBToLinear(desc.colour);
 
   // search spritesheet
-  const auto [spritesheet, anim] = find_animation(anims, sprite);
+  const auto& anims = get_first_component<SINGLE_Animations>(r);
+  const auto [spritesheet, anim] = find_animation(anims, desc.sprite);
+
   sc.tex_pos.x = anim.animation_frames[0].x;
   sc.tex_pos.y = anim.animation_frames[0].y;
 
@@ -73,18 +38,13 @@ create_sprite(entt::registry& r, const std::string& sprite, const EntityType& ty
 };
 
 entt::entity
-Factory_BaseActor::create(entt::registry& r, const EntityType& type, const EntityDescription& desc)
+Factory_BaseActor::create(entt::registry& r, const EntityData& desc)
 {
-  const auto type_name = std::string(magic_enum::enum_name(type));
   const auto e = r.create();
 
-  r.emplace<TagComponent>(e, type_name);
-  r.emplace<EntityTypeComponent>(e, type);
+  r.emplace<TagComponent>(e, desc.sprite); // tag as sprite?
   r.emplace<WaitForInitComponent>(e);
-
-  auto sprite = sprite_type_to_sprite(type);
-  auto sc = create_sprite(r, sprite, type);
-  r.emplace<SpriteComponent>(e, sc);
+  r.emplace<SpriteComponent>(e, create_sprite(r, desc));
 
   TransformComponent tf;
   tf.position = { desc.pos.x, desc.pos.y, 0.0f };

@@ -1,10 +1,10 @@
 #include "system.hpp"
 
 #include "actors/actors.hpp"
+#include "actors/helpers.hpp"
 #include "entt/helpers.hpp"
 #include "maths/grid.hpp"
 #include "modules/actor_player/components.hpp"
-#include "modules/actors/helpers.hpp"
 #include "modules/camera/components.hpp"
 #include "modules/combat_damage/components.hpp"
 #include "modules/gen_dungeons/components.hpp"
@@ -43,9 +43,9 @@ update_go_from_jetpack_to_dungeon_system(entt::registry& r)
     const glm::vec2 offset = { map.tilesize / 2.0f, map.tilesize / 2.0f };
     const auto final_pos = worldspace_clamped + offset;
 
-    remove_components(r, e, ActorJetpackPlayer{});
+    remove_components(r, e, DataJetpackActor{});
 
-    ActorDungeon player_desc;
+    DataDungeonActor player_desc;
     player_desc.team = AvailableTeams::player;
     player_desc.hp = 100;
     player_desc.max_hp = 100;

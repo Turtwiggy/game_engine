@@ -1,6 +1,6 @@
 #include "system.hpp"
 
-#include "modules/actors/helpers.hpp"
+#include "actors/helpers.hpp"
 #include "modules/combat_damage/components.hpp"
 #include "modules/system_turnbased_enemy/components.hpp"
 #include "modules/ui_colours/helpers.hpp"

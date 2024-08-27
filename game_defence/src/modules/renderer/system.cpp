@@ -2,6 +2,7 @@
 #include "system.hpp"
 
 // components/systems#
+#include "actors/helpers.hpp"
 #include "colour/colour.hpp"
 #include "components.hpp"
 #include "entt/helpers.hpp"
@@ -11,7 +12,6 @@
 #include "maths/grid.hpp"
 #include "maths/maths.hpp"
 #include "modules/actor_player/components.hpp"
-#include "modules/actors/helpers.hpp"
 #include "modules/camera/components.hpp"
 #include "modules/camera/orthographic.hpp"
 #include "modules/gen_dungeons/components.hpp"
@@ -180,10 +180,7 @@ init_render_system(const engine::SINGLETON_Application& app, entt::registry& r, 
   ri.viewport_size_current = screen_wh;
   const auto& fbo_size = ri.viewport_size_render_at;
 
-  // add camera
-
   // calculate view after updating postiion
-
   OrthographicCamera camera_info;
   camera_info.projection = calculate_ortho_projection(screen_wh.x, screen_wh.y);
   const auto camera_e = create_empty<OrthographicCamera>(r, camera_info);
@@ -392,7 +389,7 @@ update_render_system(entt::registry& r, const float dt, const glm::vec2& mouse_p
     lights[0].pos = hmm;
     lights[0].enabled = true;
     lights[0].colour = { 0.5f, 0.75f, 1.0f, 1.0f };
-    lights[0].luminence = 0.9f;
+    lights[0].luminence = 0.6f;
   }
 
   // HACK: try adding lights to interesting map features
@@ -467,10 +464,6 @@ update_render_system(entt::registry& r, const float dt, const glm::vec2& mouse_p
   }
 
   ri.mix_lighting_and_scene.bind();
-
-  static glm::vec2 uv_offset{ 0, 0 };
-  imgui_draw_vec2("uv_offset", uv_offset, 10);
-  ri.mix_lighting_and_scene.set_vec2("uv_offset", uv_offset);
 
   // update lighting uniforms
 

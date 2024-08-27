@@ -19,4 +19,10 @@ toggle_inventory_display(entt::registry& r);
 std::vector<entt::entity>
 get_slots(entt::registry& r, const entt::entity e, const InventorySlotType& type);
 
+void
+update_item_parent(entt::registry& r, const entt::entity item, const entt::entity parent);
+
+entt::entity
+create_inv_scrap(entt::registry& r, const entt::entity slot_e);
+
 } // namespace game2d

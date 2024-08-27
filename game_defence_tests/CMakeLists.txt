@@ -99,9 +99,20 @@ if(CMAKE_CXX_COMPILER_ID MATCHES GNU AND CMAKE_BUILD_TYPE STREQUAL "Debug")
   # )
 endif()
 
-message("adding test to ctest..")
+message("creating symlink...")
+set(src ${CMAKE_SOURCE_DIR}/game_defence/assets)
+set(dst ${CMAKE_CURRENT_BINARY_DIR}/assets)
+message("creating symlink src... ${src}")
+message("creating symlink dst... ${dst}")
+add_custom_command(
+  TARGET ${PROJECT_NAME} PRE_BUILD
+  COMMAND ${CMAKE_COMMAND} -E create_symlink ${src} ${dst}
+  DEPENDS ${dst}
+  COMMENT "symbolic link resources folder from ${src} => ${dst}"
+)
 
 # If COMMAND specifies an executable target (created by add_executable)
 # it will automatically be replaced by the location of the executable
 # created at build time
+message("adding test to ctest..")
 add_test(NAME all_game_defence_tests COMMAND game_defence_tests)

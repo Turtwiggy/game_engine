@@ -1,6 +1,7 @@
 #include "system.hpp"
 
 #include "actors/actors.hpp"
+#include "actors/helpers.hpp"
 #include "components.hpp"
 #include "entt/helpers.hpp"
 #include "events/components.hpp"
@@ -9,7 +10,6 @@
 #include "maths/grid.hpp"
 #include "maths/maths.hpp"
 #include "modules/actor_player/components.hpp"
-#include "modules/actors/helpers.hpp"
 #include "modules/algorithm_astar_pathfinding/components.hpp"
 #include "modules/camera/components.hpp"
 #include "modules/combat_wants_to_shoot/components.hpp"
@@ -23,7 +23,6 @@
 #include "modules/system_fov/components.hpp"
 #include "modules/system_move_to_target_via_lerp/components.hpp"
 #include "modules/ui_combat_turnbased/components.hpp"
-#include "modules/ui_inventory/components.hpp"
 #include "modules/ux_hoverable/components.hpp"
 #include "sprites/helpers.hpp"
 
@@ -38,7 +37,7 @@ namespace game2d {
 void
 update_gen_dungeons_system(entt::registry& r, const glm::ivec2& mouse_pos)
 {
-  bool show_debug_dungeongen = true;
+  bool show_debug_dungeongen = false;
 #if defined(_DEBUG)
   show_debug_dungeongen = true;
 #endif
@@ -76,6 +75,7 @@ update_gen_dungeons_system(entt::registry& r, const glm::ivec2& mouse_pos)
 
       const auto grid_pos = engine::grid::worldspace_to_grid_space(mouse_pos, map.tilesize);
       ImGui::Text("grid_pos: %i %i", grid_pos.x, grid_pos.y);
+      ImGui::Text("grid_idx: %i", engine::grid::grid_position_to_index(grid_pos, map.xmax));
 
       const auto [in_room, room] = inside_room(map, rooms, grid_pos);
       ImGui::Text("Inside Room: %i", in_room);
@@ -143,9 +143,18 @@ update_gen_dungeons_system(entt::registry& r, const glm::ivec2& mouse_pos)
   // const auto& data = r.get<OverworldToDungeonInfo>(data_e);
   fmt::println("generating dungeon... todo: generate of a certain strength");
 
+  const auto get_seed_from_systemtime = []() -> time_t {
+    auto now = std::chrono::system_clock::now();
+    return std::chrono::system_clock::to_time_t(now);
+  };
+
   // static int seed = 0;
   // seed++; // Increase seed everytime a map is generated
-  int seed = i;
+
+  const int seed = get_seed_from_systemtime();
+#if defined(_DEBUG)
+  // seed = i;
+#endif
   engine::RandomState rnd(seed);
 
   // re-generate map
@@ -216,14 +225,11 @@ update_gen_dungeons_system(entt::registry& r, const glm::ivec2& mouse_pos)
   set_generated_entity_positions(r, result, rnd);
 
   set_player_positions(r, result, rnd);
-
-  /*
-  ActorJetpackPlayer desc;
-  desc.pos = { -100, -100 };
-  desc.team = AvailableTeams::player;
-  const auto e = Factory_ActorJetpackPlayer::create(r, desc);
-  r.emplace<CameraFollow>(e);
-  */
+  // DataJetpackActor desc;
+  // desc.pos = { -100, -100 };
+  // desc.team = AvailableTeams::player;
+  // const auto e = Factory_DataJetpackActor::create(r, desc);
+  // r.emplace<CameraFollow>(e);
 
   // give helmet to breathe
   const auto helmet_e = create_transform(r);

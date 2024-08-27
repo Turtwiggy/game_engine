@@ -53,7 +53,7 @@ update_ui_scene_main_menu(engine::SINGLETON_Application& app, entt::registry& r)
 
   ImGui::Begin("Main Menu", nullptr, flags);
 
-  // // TODO: keyboard to update ui? mouse could just click.
+  // TODO: keyboard to update ui? mouse could just click.
   // // Controller to update UI
   // if (controllers.size() > 0) {
   //   auto* c = controllers[0];
@@ -102,8 +102,8 @@ update_ui_scene_main_menu(engine::SINGLETON_Application& app, entt::registry& r)
     if (selectable_button("START", selected, index++))
       move_to_scene_additive(r, Scene::overworld_revamped);
 
-    if (selectable_button("SETTINGS", selected, index++)) {
-    }
+      // if (selectable_button("SETTINGS", selected, index++)) {
+      // }
 
 #if defined(_DEBUG)
     if (selectable_button("(minigame)\nbreach", selected, index++))

@@ -3,18 +3,19 @@
 #include "actors/actors.hpp"
 #include "components.hpp"
 
+#include "actors/helpers.hpp"
 #include "entt/helpers.hpp"
 #include "lifecycle/components.hpp"
 #include "maths/grid.hpp"
 #include "maths/maths.hpp"
 #include "modules/actor_enemy/components.hpp"
-#include "modules/actors/helpers.hpp"
 #include "modules/animation/components.hpp"
 #include "modules/gen_dungeons/components.hpp"
 #include "modules/gen_dungeons/helpers.hpp"
 #include "modules/grid/components.hpp"
 #include "modules/system_entered_new_room/components.hpp"
 #include "modules/ui_worldspace_text/components.hpp"
+
 
 #include "fmt/core.h"
 

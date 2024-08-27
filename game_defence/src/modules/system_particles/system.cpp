@@ -1,10 +1,10 @@
 #include "system.hpp"
 
 #include "actors/actors.hpp"
+#include "actors/helpers.hpp"
 #include "components.hpp"
 #include "lifecycle/components.hpp"
 #include "maths/maths.hpp"
-#include "modules/actors/helpers.hpp"
 #include "modules/combat_attack_cooldown/components.hpp"
 #include "modules/combat_attack_cooldown/helpers.hpp"
 #include "modules/combat_wants_to_shoot/components.hpp"
@@ -17,7 +17,7 @@ update_particle_system(entt::registry& r, const float dt)
 {
   const auto spawn_particle = [&r](ParticleEmitterComponent& emitter, const entt::entity e) {
     // per-instance? seems bad
-    Particle particle_description = emitter.particle_to_emit;
+    auto particle_description = emitter.particle_to_emit;
 
     // instead of spawning at emitter position, spawn at parent position
     if (auto* target_c = r.try_get<DynamicTargetComponent>(e))
@@ -30,7 +30,7 @@ update_particle_system(entt::registry& r, const float dt)
       particle_description.velocity = glm::ivec2{ rnd_x, rnd_y };
     }
 
-    Factory_Particle::create(r, particle_description);
+    Factory_DataParticle::create(r, particle_description);
 
     // limit number of particles spawned
     if (emitter.expires) {

@@ -3,6 +3,7 @@
 #include "actors/actors.hpp"
 #include "components.hpp"
 
+#include "actors/helpers.hpp"
 #include "entt/helpers.hpp"
 #include "events/components.hpp"
 #include "events/helpers/keyboard.hpp"
@@ -10,7 +11,6 @@
 #include "maths/grid.hpp"
 #include "modules/actor_enemy/components.hpp"
 #include "modules/actor_player/components.hpp"
-#include "modules/actors/helpers.hpp"
 #include "modules/gen_dungeons/components.hpp"
 #include "modules/gen_dungeons/helpers.hpp"
 #include "modules/grid/components.hpp"
@@ -37,23 +37,6 @@ update_fov_system(entt::registry& r, const glm::ivec2& mouse_pos)
   const auto player_pos = get_position(r, player_e);
   const auto player_gridpos = engine::grid::worldspace_to_grid_space(player_pos, map.tilesize);
 
-  // Anything visible
-  for (const auto& [e, enemy_c, visible] : r.view<const EnemyComponent, const VisibleComponent>().each()) {
-    set_sprite(r, e, "PERSON_25_0");
-    set_colour(r, e, { 1.0f, 1.0f, 1.0f, 1.0f });
-  }
-
-  // Seen but not visible
-  for (const auto& [e, enemy_c, seen_c] :
-       r.view<const EnemyComponent, const SeenComponent>(entt::exclude<VisibleComponent>).each()) {
-    set_sprite(r, e, "TEXT_?");
-  }
-
-  // Anything not visible (and not seen)
-  for (const auto& [e, enemy_c] : r.view<const EnemyComponent>(entt::exclude<VisibleComponent, SeenComponent>).each()) {
-    set_sprite(r, e, "TEXT_?");
-  }
-
   std::vector<int> walls_or_floors_adjusted = dungeon.wall_or_floors; // copy
 
   int cur_idx = 0;
@@ -65,9 +48,9 @@ update_fov_system(entt::registry& r, const glm::ivec2& mouse_pos)
     break_idx++;
 
   static bool debug_fov = false;
-  imgui_draw_bool("debug_fov", debug_fov);
 
   if (debug_fov) {
+    imgui_draw_bool("debug_fov", debug_fov);
     for (const entt::entity& floor_e : dungeon.floor_tiles)
       if (floor_e != entt::null)
         set_colour(r, floor_e, { 0.05f, 0.05f, 0.05f, 1.0f });
@@ -129,7 +112,7 @@ update_fov_system(entt::registry& r, const glm::ivec2& mouse_pos)
       const auto idx = engine::grid::grid_position_to_index({ x, y }, map.xmax);
       if (idx < 0)
         return false;
-      return walls_or_floors_adjusted[idx] == static_cast<uint32_t>(type);
+      return walls_or_floors_adjusted[idx] == static_cast<int>(type);
     };
     const auto is_wall = [&](const Tile& t) -> bool { return is_type(t, TileType::WALL); };
     const auto is_floor = [&](const Tile& t) -> bool { return is_type(t, TileType::FLOOR); };
@@ -358,6 +341,23 @@ update_fov_system(entt::registry& r, const glm::ivec2& mouse_pos)
     else
       ImGui::Text("is_visible: 0");
     ImGui::End();
+  }
+
+  // Anything visible
+  for (const auto& [e, enemy_c, visible] : r.view<const EnemyComponent, const VisibleComponent>().each()) {
+    set_sprite(r, e, "PERSON_25_0");
+    set_colour(r, e, { 1.0f, 1.0f, 1.0f, 1.0f });
+  }
+
+  // Seen but not visible
+  for (const auto& [e, enemy_c, seen_c] :
+       r.view<const EnemyComponent, const SeenComponent>(entt::exclude<VisibleComponent>).each()) {
+    set_sprite(r, e, "TEXT_?");
+  }
+
+  // Anything not visible (and not seen)
+  for (const auto& [e, enemy_c] : r.view<const EnemyComponent>(entt::exclude<VisibleComponent, SeenComponent>).each()) {
+    set_sprite(r, e, "TEXT_?");
   }
 }
 

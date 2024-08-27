@@ -1,11 +1,11 @@
 #include "system.hpp"
 
 #include "actors/base.hpp"
+#include "actors/helpers.hpp"
 #include "components.hpp"
 #include "entt/helpers.hpp"
 #include "lifecycle/components.hpp"
 #include "maths/maths.hpp"
-#include "modules/actors/helpers.hpp"
 #include "modules/combat_flash_on_damage/components.hpp"
 #include "modules/screenshake/components.hpp"
 #include "modules/system_particles/components.hpp"
@@ -13,6 +13,7 @@
 #include "modules/ui_event_console/components.hpp"
 
 #include "magic_enum.hpp"
+#include "renderer/components.hpp"
 
 #include <algorithm>
 #include <fmt/core.h>
@@ -64,12 +65,12 @@ void
 update_take_damage_system(entt::registry& r)
 {
   const auto evts_e = get_first<SINGLE_EventConsoleLogComponent>(r);
-  if (evts_e == entt::null)
+  if (evts_e == entt::null) {
+    fmt::println("warning: update_take_damage_system() doesnt have an event log; not running");
     return;
+  }
   auto& evts = get_first_component<SINGLE_EventConsoleLogComponent>(r);
   auto& dead = get_first_component<SINGLETON_EntityBinComponent>(r);
-
-  static engine::RandomState rnd;
 
   const auto& view = r.view<DealDamageRequest>(entt::exclude<WaitForInitComponent>);
   for (const auto& [e_req, request] : view.each()) {
@@ -111,9 +112,11 @@ update_take_damage_system(entt::registry& r)
     roll_to_quip(r, request.from, request.to);
 
     // Is this a crit?
-    const int rnd_crit = int(engine::rand_det_s(rnd.rng, 0, 100));
-    const bool crit = rnd_crit >= 90; // X% chance for crit
-    const bool miss = rnd_crit < 5;   // X% chance to miss
+    // const int rnd_crit = int(engine::rand_det_s(rnd.rng, 0, 100));
+    // const bool crit = rnd_crit >= 90; // X% chance for crit
+    // const bool miss = rnd_crit < 5;   // X% chance to miss
+    const bool crit = false;
+    const bool miss = false;
 
     // mess with the damage
     int damage = atk->damage;
@@ -137,8 +140,8 @@ update_take_damage_system(entt::registry& r)
     // .. take damage
     hp->hp -= glm::max(0, damage);
 
-    const auto a_name = std::string(magic_enum::enum_name(r.get<EntityTypeComponent>(request.from).type));
-    const auto b_name = std::string(magic_enum::enum_name(r.get<EntityTypeComponent>(request.to).type));
+    const auto a_name = std::string(r.get<TagComponent>(request.from).tag);
+    const auto b_name = std::string(r.get<TagComponent>(request.to).tag);
     const auto b_team = std::string(magic_enum::enum_name(r.get<TeamComponent>(request.to).team));
     const auto b_hp = std::to_string(r.get<HealthComponent>(request.to).hp);
 

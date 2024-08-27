@@ -46,6 +46,8 @@ save(const entt::registry& r, const std::string& path)
 {
   fmt::println("saving... {}", path);
 
+  /*
+
   // limit snapshots to actors
   const auto v = r.view<const EntityTypeComponent, const TransformComponent>(entt::exclude<WaitForInitComponent>);
 
@@ -98,12 +100,16 @@ save(const entt::registry& r, const std::string& path)
   fout << data;
 
   fmt::println("saved...");
+
+  */
 };
 
 void
 load(entt::registry& r, const std::string& path)
 {
   fmt::println("loading...");
+
+  /*
 
   // load from disk
   std::ifstream t(path);
@@ -139,6 +145,7 @@ load(entt::registry& r, const std::string& path)
   }
 
   fmt::println("loaded...");
+  */
 };
 
 void

@@ -2,12 +2,13 @@
 
 #include "components.hpp"
 
+#include "actors/helpers.hpp"
 #include "entt/helpers.hpp"
+#include "helpers.hpp"
 #include "maths/grid.hpp"
 #include "modules/actor_enemy/components.hpp"
 #include "modules/actor_player/components.hpp"
 #include "modules/actor_weapon_shotgun/components.hpp"
-#include "modules/actors/helpers.hpp"
 #include "modules/algorithm_astar_pathfinding/helpers.hpp"
 #include "modules/combat_damage/components.hpp"
 #include "modules/combat_wants_to_shoot/components.hpp"
@@ -133,34 +134,10 @@ ai_decide_move_destination(entt::registry& r, const entt::entity e)
 void
 move_action(entt::registry& r, const entt::entity e)
 {
-  const auto& map = get_first_component<MapComponent>(r);
-
   const glm::vec2 dst_wp = ai_decide_move_destination(r, e);
 
-  const auto limit = r.get<MoveLimitComponent>(e).amount;
-  const auto path = generate_path(r, e, dst_wp, limit);
-  if (path.size() < 2)
-    return;
-  const auto next_dst = path[1];
-  const auto next_idx = engine::grid::grid_position_to_index(next_dst, map.xmax);
-
-  // player move action...
-  const auto it = std::find(map.map.begin(), map.map.end(), e);
-  const auto idx = it - map.map.begin();
-  const int a = idx;
-  const int b = next_idx;
-  if (!move_entity_on_map(r, a, b))
-    return;
-
-  // Lerp the enemy model, independent of the grid representation
-  const auto offset = glm::vec2{ map.tilesize / 2.0f, map.tilesize / 2.0f };
-  remove_if_exists<LerpingToTarget>(r, e);
-  LerpingToTarget lerp;
-  lerp.a = engine::grid::index_to_world_position(a, map.xmax, map.ymax, map.tilesize) + offset;
-  lerp.b = engine::grid::index_to_world_position(b, map.xmax, map.ymax, map.tilesize) + offset;
-  lerp.t = 0.0f;
-  r.emplace<LerpingToTarget>(e, lerp);
-}
+  move_action_common(r, e, dst_wp);
+};
 
 void
 enemy_shoot_action(entt::registry& r, const entt::entity e)
@@ -207,6 +184,7 @@ update_turnbased_enemy_system(entt::registry& r)
     if (actions_available > 0 && actions_completed == 0) {
       actions_available--;
       actions_completed = 1;
+
       move_action(r, e);
     }
 
@@ -217,7 +195,7 @@ update_turnbased_enemy_system(entt::registry& r)
         actions_available--;
         actions_completed = 2;
 
-        // enemy_shoot_action(r, e);
+        enemy_shoot_action(r, e);
       }
     }
 
@@ -239,8 +217,12 @@ update_turnbased_enemy_system(entt::registry& r)
   // ImGui::End();
 
   // end the enemy turn
-  if (all_enemies_fully_done)
+  if (all_enemies_fully_done) {
     create_empty<RequestToCompleteTurn>(r, RequestToCompleteTurn{ AvailableTeams::enemy });
+
+    // Also, now all the enemies have moved, the fov needs updating
+    create_empty<RequestUpdateFOV>(r);
+  }
 }
 
 } // namespace game2d

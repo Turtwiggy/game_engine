@@ -1,14 +1,15 @@
 #include "system.hpp"
 
 #include "actors/actors.hpp"
+#include "actors/helpers.hpp"
 #include "entt/helpers.hpp"
 #include "lifecycle/components.hpp"
 #include "modules/actor_weapon_shotgun/components.hpp"
-#include "modules/actors/helpers.hpp"
 #include "modules/combat_damage/components.hpp"
 #include "modules/resolve_collisions/helpers.hpp"
 #include "physics/components.hpp"
 
+#include <box2d/b2_body.h>
 #include <box2d/box2d.h>
 
 namespace game2d {
@@ -16,8 +17,8 @@ namespace game2d {
 void
 update_resolve_collisions_system(entt::registry& r)
 {
-  auto& physics = get_first_component<SINGLE_Physics>(r);
-  auto& world = physics.world;
+  const auto& physics = get_first_component<SINGLE_Physics>(r);
+  const auto& world = physics.world;
 
   // some collisions result in dead entities
   auto& dead = get_first_component<SINGLETON_EntityBinComponent>(r);
@@ -67,38 +68,36 @@ update_resolve_collisions_system(entt::registry& r)
       }
     }
 
-    const auto [a_ent, b_ent] = collision_of_interest<const BulletComponent, const EntityTypeComponent>(r, a, b);
+    const auto [a_ent, b_ent] = collision_of_interest<const BulletComponent, const PhysicsBodyComponent>(r, a, b);
     if (a_ent != entt::null && b_ent != entt::null) {
       const auto bullet_e = a_ent;
-      const auto wall_e = b_ent;
+      const auto other_e = b_ent;
 
       const auto& bullet_body = r.get<PhysicsBodyComponent>(bullet_e);
       const auto bullet_pos = get_position(r, bullet_e);
       const auto bullet_size = get_size(r, bullet_e);
       const auto& bullet_vel = bullet_body.body->GetLinearVelocity();
+      const auto& bullet_info = r.get<BulletComponent>(bullet_e);
 
-      const auto& b_type = r.get<EntityTypeComponent>(wall_e);
-      // const auto& solid_body = r.get<PhysicsBodyComponent>(wall_e);
-      const auto solid_pos = get_position(r, wall_e);
-      const auto solid_size = get_size(r, wall_e);
-
-      const auto& info = r.get<BulletComponent>(a_ent);
+      const auto& other_body = r.get<PhysicsBodyComponent>(other_e);
+      const auto other_pos = get_position(r, other_e);
+      const auto other_size = get_size(r, other_e);
+      const bool is_wall = other_body.body->GetType() == b2_staticBody;
 
       // if hit person, destroy bullet
-      if (b_type.type == EntityType::actor_dungeon && info.destroy_bullet_on_actor_collision)
+      if (!is_wall && bullet_info.destroy_bullet_on_actor_collision)
         dead.dead.emplace(bullet_e);
 
-      if (b_type.type != EntityType::solid_wall)
+      if (!is_wall)
         continue; // walls only from here on out
 
       // bouncy bullet hit a wall
       //
-      if (info.bounce_bullet_on_wall_collision) {
-        const bool wall_is_horizontal = solid_size.x > solid_size.y;
-        const auto dir = bullet_pos - solid_pos;
+      if (bullet_info.bounce_bullet_on_wall_collision) {
+        const bool wall_is_horizontal = other_size.x > other_size.y;
+        const auto dir = bullet_pos - other_pos;
 
         // move the bullet away from the collided wall
-
         const auto existing_vel = bullet_body.body->GetLinearVelocity();
         if (wall_is_horizontal) // reflect y
           bullet_body.body->SetLinearVelocity({ existing_vel.x, glm::abs(existing_vel.y) * glm::sign(dir.y) });
@@ -106,9 +105,8 @@ update_resolve_collisions_system(entt::registry& r)
           bullet_body.body->SetLinearVelocity({ glm::abs(existing_vel.x) * glm::sign(dir.x), existing_vel.y });
       }
 
-      // get rid of bullet
-      //
-      if (info.destroy_bullet_on_wall_collision)
+      // if hit wall, destroy bullet
+      if (bullet_info.destroy_bullet_on_wall_collision)
         dead.dead.emplace(bullet_e);
 
       // spawn collison particle effects
@@ -132,22 +130,22 @@ update_resolve_collisions_system(entt::registry& r)
         const float momentum_loss = 5.0f; // e.g. particles return at 1/5th the speed
 
         // bouncy bullet hit a wall
-        const bool wall_is_horizontal = solid_size.x > solid_size.y;
-        const auto dir = bullet_pos - solid_pos;
+        const bool wall_is_horizontal = other_size.x > other_size.y;
+        const auto dir = bullet_pos - other_pos;
 
         if (wall_is_horizontal)
           impact_vel_amount_y = glm::abs(bullet_vel.y) * glm::sign(dir.y) / momentum_loss;
         else
           impact_vel_amount_x = glm::abs(bullet_vel.x) * glm::sign(dir.x) / momentum_loss;
 
-        Particle desc;
+        DataParticle desc;
         desc.pos = { impact_point_x, impact_point_y };
         desc.time_to_live_ms = 1000;
         desc.velocity = { impact_vel_amount_x, impact_vel_amount_y };
         desc.start_size = 6;
         desc.end_size = 2;
         desc.sprite = "EMPTY";
-        const auto e = Factory_Particle::create(r, desc);
+        const auto e = Factory_DataParticle::create(r, desc);
 
         // make it an animation
         // SpriteAnimationComponent anim;

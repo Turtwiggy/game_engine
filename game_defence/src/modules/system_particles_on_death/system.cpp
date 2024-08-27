@@ -1,7 +1,7 @@
 #include "system.hpp"
 
+#include "actors/helpers.hpp"
 #include "lifecycle/components.hpp"
-#include "modules/actors/helpers.hpp"
 #include "modules/combat_attack_cooldown/components.hpp"
 #include "modules/system_particles/components.hpp"
 
@@ -18,7 +18,7 @@ update_spawn_particles_on_death_system(entt::registry& r)
     set_position(r, particle_emitter, req.position);
 
     // which particle to spawn?
-    Particle desc;
+    DataParticle desc;
     desc.sprite = "EMPTY";
     desc.colour = { 0.8f, 0.2f, 0.2f, 0.5f };
     desc.pos = req.position;

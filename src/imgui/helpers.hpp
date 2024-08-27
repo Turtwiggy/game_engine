@@ -12,11 +12,11 @@ struct WomboComboIn
 {
   std::string label;
 
-  int current_index = 0;
+  size_t current_index = 0;
   const std::vector<std::string>& items;
 
   WomboComboIn(const std::vector<std::string>& i)
-    : items(i){};
+    : items(i) {};
 };
 struct WomboComboOut
 {

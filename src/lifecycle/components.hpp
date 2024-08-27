@@ -41,7 +41,7 @@ struct WaitForInitComponent
 
 struct OnDeathCallback
 {
-  std::function<void(entt::registry&, const entt::entity&)> callback;
+  std::function<void(entt::registry&, const entt::entity)> callback;
 };
 
 };

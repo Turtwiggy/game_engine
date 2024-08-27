@@ -10,6 +10,7 @@ enum class Scene
   dungeon_designer,
   minigame_bamboo,
 
+  test, // used by tests
   count
 };
 

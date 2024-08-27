@@ -1,18 +1,25 @@
 #include "actors/actors.hpp"
 
+#include "actors.hpp"
+#include "actors/helpers.hpp"
+#include "bags/bullets.hpp"
+#include "bags/items.hpp"
 #include "base.hpp"
 #include "entt/helpers.hpp"
 #include "lifecycle/components.hpp"
 #include "maths/maths.hpp"
+#include "modules/actor_breach_charge/components.hpp"
+#include "modules/actor_breach_charge/helpers.hpp"
 #include "modules/actor_enemy/components.hpp"
 #include "modules/actor_player/components.hpp"
 #include "modules/actor_weapon_shotgun/components.hpp"
-#include "modules/actors/helpers.hpp"
 #include "modules/algorithm_astar_pathfinding/components.hpp"
 #include "modules/combat_attack_cooldown/components.hpp"
 #include "modules/combat_damage/components.hpp"
 #include "modules/combat_wants_to_shoot/components.hpp"
+#include "modules/items_pickup/components.hpp"
 #include "modules/lighting/components.hpp"
+#include "modules/system_drop_items/helpers.hpp"
 #include "modules/system_move_to_target_via_lerp/components.hpp"
 #include "modules/system_particles/components.hpp"
 #include "modules/system_turnbased/components.hpp"
@@ -21,19 +28,23 @@
 #include "physics/helpers.hpp"
 #include "renderer/transform.hpp"
 
+#include "magic_enum.hpp"
 #include <fmt/core.h>
 
 namespace game2d {
 
-//
 // helpers
 //
+
+const glm::ivec3 DEFAULT_SIZE{ 32, 32, 1 };
+const glm::ivec3 HALF_SIZE{ 16, 16, 1 };
+const glm::ivec2 SMALL_SIZE{ 4, 4 };
 
 entt::entity
 create_transform(entt::registry& r)
 {
-  EntityDescription desc;
-  return Factory_BaseActor::create(r, EntityType::empty_with_transform, desc);
+  EntityData desc;
+  return Factory_BaseActor::create(r, desc);
 };
 
 void
@@ -48,11 +59,12 @@ add_particles(entt::registry& r, const entt::entity parent)
 
   // This could be unique per add_particles but for the moment,
   // just give everything that need particles the same particle
-  Particle pdesc;
+  DataParticle pdesc;
   pdesc.start_size = 6;
-  pdesc.end_size = 0;
-  pdesc.colour = { 1.0f, 1.0f, 1.0f, 1.0f };
+  pdesc.end_size = 2;
+  pdesc.colour = r.get<DefaultColour>(parent).colour;
   pdesc.sprite = "EMPTY";
+  pdesc.time_to_live_ms = 1.0 * 1000.0f;
 
   // which particle to spawn?
   ParticleEmitterComponent pedesc;
@@ -103,7 +115,7 @@ create_physics_actor_dynamic(entt::registry& r,
 //
 
 void
-add_components(entt::registry& r, const entt::entity e, const ActorDungeon& desc)
+add_components(entt::registry& r, const entt::entity e, const DataDungeonActor& desc)
 {
   PhysicsDescription pdesc;
   pdesc.type = b2_kinematicBody;
@@ -130,31 +142,24 @@ add_components(entt::registry& r, const entt::entity e, const ActorDungeon& desc
 };
 
 void
-remove_components(entt::registry& r, const entt::entity e, const ActorJetpackPlayer& desc)
+add_components(entt::registry& r, const entt::entity e, const DataWeaponShotgun& desc)
 {
-  r.remove<MovementJetpackComponent>(e);
-  r.remove<DefaultColour>(e);
-  r.remove<TeamComponent>(e);
+  set_size(r, e, SMALL_SIZE);
 
-  auto& physics_c = get_first_component<SINGLE_Physics>(r);
-  physics_c.world->DestroyBody(r.get<PhysicsBodyComponent>(e).body);
-  r.remove<PhysicsBodyComponent>(e);
-}
+  r.emplace<ShotgunComponent>(e);
+  r.emplace<TeamComponent>(e, desc.team);
 
-//
-// factories
-//
+  if (desc.parent == entt::null)
+    fmt::println("(ERROR) weaponshotgun creating with no parent");
+  r.emplace<HasParentComponent>(e, desc.parent);
 
-const glm::ivec3 DEFAULT_SIZE{ 32, 32, 1 };
-const glm::ivec3 HALF_SIZE{ 16, 16, 1 };
-const glm::ivec2 SMALL_SIZE{ 4, 4 };
+  if (desc.able_to_shoot)
+    r.emplace<AbleToShoot>(e);
+};
 
-entt::entity
-Factory_ActorBreachCharge::create(entt::registry& r, const ActorBreachCharge& desc)
+void
+add_components(entt::registry& r, const entt::entity e, const DataBreachCharge& desc)
 {
-  const auto type = Actor<EntityType::actor_breach_charge>::type;
-  const auto e = Factory_BaseActor::create(r, type, desc);
-
   PhysicsDescription pdesc;
   pdesc.type = b2_dynamicBody;
   pdesc.is_bullet = false;
@@ -166,30 +171,51 @@ Factory_ActorBreachCharge::create(entt::registry& r, const ActorBreachCharge& de
 
   // bomb blows up in X seconds
   r.emplace<EntityTimedLifecycle>(e, 3 * 1000);
-
-  return e;
+  r.emplace<BreachChargeComponent>(e);
+  add_bomb_callback(r, e);
 };
 
-entt::entity
-Factory_ActorDungeon::create(entt::registry& r, const ActorDungeon& desc)
+void
+remove_components(entt::registry& r, const entt::entity e, const DataJetpackActor& desc)
 {
-  const auto type = Actor<EntityType::actor_dungeon>::type;
-  const auto e = Factory_BaseActor::create(r, type, desc);
+  r.remove<MovementJetpackComponent>(e);
+  r.remove<DefaultColour>(e);
+  r.remove<TeamComponent>(e);
+
+  auto& physics_c = get_first_component<SINGLE_Physics>(r);
+  physics_c.world->DestroyBody(r.get<PhysicsBodyComponent>(e).body);
+  r.remove<PhysicsBodyComponent>(e);
+};
+
+//
+// factories
+//
+
+entt::entity
+Factory_DataDungeonActor::create(entt::registry& r, const DataDungeonActor& desc)
+{
+  const auto e = Factory_BaseActor::create(r, desc);
   const auto size = DEFAULT_SIZE;
 
-  ActorDungeon mdesc; // copy?
+  DataDungeonActor mdesc; // copy?
   mdesc.size = size;
 
   add_components(r, e, desc);
 
+  OnDeathCallback callback;
+  callback.callback = [](entt::registry& r, const entt::entity e) {
+    //
+    drop_items_on_death_callback(r, e);
+  };
+  r.emplace<OnDeathCallback>(e, callback);
+
   return e;
 };
 
 entt::entity
-Factory_ActorJetpackPlayer::create(entt::registry& r, const ActorJetpackPlayer& desc)
+Factory_DataJetpackActor::create(entt::registry& r, const DataJetpackActor& desc)
 {
-  const auto type = Actor<EntityType::actor_jetpack_player>::type;
-  const auto e = Factory_BaseActor::create(r, type, desc);
+  const auto e = Factory_BaseActor::create(r, desc);
   const auto size = DEFAULT_SIZE;
 
   PhysicsDescription pdesc;
@@ -212,12 +238,9 @@ Factory_ActorJetpackPlayer::create(entt::registry& r, const ActorJetpackPlayer& 
     r.emplace<DefaultInventory>(e, DefaultInventory(r, 6 * 5));
     r.emplace<InitBodyAndInventory>(e);
 
-    auto& player_thrust = r.emplace<MovementAsteroidsComponent>(e);
-    player_thrust.able_to_change_thrust = false;
-    player_thrust.able_to_change_dir = true;
+    r.emplace<MovementJetpackComponent>(e);
   }
 
-  r.emplace<MovementJetpackComponent>(e);
   r.emplace<DefaultColour>(e, engine::SRGBColour{ 255, 255, 117, 1.0f });
   add_particles(r, e); // requires default colour
 
@@ -226,10 +249,9 @@ Factory_ActorJetpackPlayer::create(entt::registry& r, const ActorJetpackPlayer& 
 };
 
 entt::entity
-Factory_ActorSpaceShip::create(entt::registry& r, const ActorSpaceShip& desc)
+Factory_DataSpaceShipActor::create(entt::registry& r, const DataSpaceShipActor& desc)
 {
-  const auto type = Actor<EntityType::actor_space_ship>::type;
-  const auto e = Factory_BaseActor::create(r, type, desc);
+  const auto e = Factory_BaseActor::create(r, desc);
   const auto size = HALF_SIZE;
 
   PhysicsDescription pdesc;
@@ -244,7 +266,6 @@ Factory_ActorSpaceShip::create(entt::registry& r, const ActorSpaceShip& desc)
   r.emplace<DefaultColour>(e, desc.colour);
 
   if (desc.team == AvailableTeams::player) {
-
     r.emplace<PlayerComponent>(e);
     r.emplace<InputComponent>(e);
     r.emplace<KeyboardComponent>(e);
@@ -265,10 +286,9 @@ Factory_ActorSpaceShip::create(entt::registry& r, const ActorSpaceShip& desc)
 };
 
 entt::entity
-Factory_ActorSpaceCargo::create(entt::registry& r, const ActorSpaceCargo& desc)
+Factory_DataSpaceCargoActor::create(entt::registry& r, const DataSpaceCargoActor& desc)
 {
-  const auto type = Actor<EntityType::actor_space_cargo>::type;
-  const auto e = Factory_BaseActor::create(r, type, desc);
+  const auto e = Factory_BaseActor::create(r, desc);
   const auto size = HALF_SIZE;
 
   PhysicsDescription pdesc;
@@ -284,10 +304,9 @@ Factory_ActorSpaceCargo::create(entt::registry& r, const ActorSpaceCargo& desc)
 };
 
 entt::entity
-Factory_ActorSpaceCapsule::create(entt::registry& r, const ActorSpaceCapsule& desc)
+Factory_DataSpaceCapsuleActor::create(entt::registry& r, const DataSpaceCapsuleActor& desc)
 {
-  const auto type = Actor<EntityType::actor_space_capsule>::type;
-  const auto e = Factory_BaseActor::create(r, type, desc);
+  const auto e = Factory_BaseActor::create(r, desc);
   const auto size = HALF_SIZE;
 
   PhysicsDescription pdesc;
@@ -303,72 +322,9 @@ Factory_ActorSpaceCapsule::create(entt::registry& r, const ActorSpaceCapsule& de
 };
 
 entt::entity
-Factory_BulletDefault::create(entt::registry& r, const BulletDefault& desc)
+Factory_DataParticle::create(entt::registry& r, const DataParticle& desc)
 {
-  const auto type = Actor<EntityType::bullet_default>::type;
-  const auto e = Factory_BaseActor::create(r, type, desc);
-  const auto size = SMALL_SIZE;
-  create_physics_actor_dynamic(r, e, desc.pos, size, true);
-
-  auto& t = r.get<TransformComponent>(e);
-  t.rotation_radians.z = desc.rotation;
-  t.scale = { size.x, size.y, 0.0f };
-
-  const b2Vec2 vel = { desc.dir.x * desc.bullet_speed, desc.dir.y * desc.bullet_speed };
-  auto& bullet_c = r.get<PhysicsBodyComponent>(e);
-  bullet_c.base_speed = desc.bullet_speed;
-  bullet_c.body->SetLinearVelocity(vel);
-
-  r.emplace<AttackComponent>(e, AttackComponent{ desc.bullet_damage });
-  r.emplace<AttackIdComponent>(e);
-  r.emplace<EntityTimedLifecycle>(e);
-  r.emplace<HasParentComponent>(e).parent = desc.parent;
-  r.emplace<TeamComponent>(e, desc.team);
-
-  BulletComponent bc;
-  bc.bounce_bullet_on_wall_collision = false;
-  bc.destroy_bullet_on_wall_collision = true;
-  r.emplace<BulletComponent>(e, bc);
-
-  return e;
-};
-
-entt::entity
-Factory_BulletBouncy::create(entt::registry& r, const BulletBouncy& desc)
-{
-  const auto type = Actor<EntityType::bullet_bouncy>::type;
-  const auto e = Factory_BaseActor::create(r, type, desc);
-  const auto size = SMALL_SIZE;
-  create_physics_actor_dynamic(r, e, desc.pos, size, true);
-
-  auto& t = r.get<TransformComponent>(e);
-  t.rotation_radians.z = desc.rotation;
-  t.scale = { size.x, size.y, 0.0f };
-
-  const b2Vec2 vel = { desc.dir.x * desc.bullet_speed, desc.dir.y * desc.bullet_speed };
-  auto& bullet_c = r.get<PhysicsBodyComponent>(e);
-  bullet_c.base_speed = desc.bullet_speed;
-  bullet_c.body->SetLinearVelocity(vel);
-
-  r.emplace<AttackComponent>(e, AttackComponent{ desc.bullet_damage });
-  r.emplace<AttackIdComponent>(e);
-  r.emplace<EntityTimedLifecycle>(e);
-  r.emplace<HasParentComponent>(e).parent = desc.parent;
-  r.emplace<TeamComponent>(e, desc.team);
-
-  BulletComponent bc;
-  bc.bounce_bullet_on_wall_collision = true;
-  bc.destroy_bullet_on_wall_collision = false;
-  r.emplace<BulletComponent>(e, bc);
-
-  return e;
-};
-
-entt::entity
-Factory_Particle::create(entt::registry& r, const Particle& desc)
-{
-  const auto type = Actor<EntityType::particle>::type;
-  const auto e = Factory_BaseActor::create(r, type, desc);
+  const auto e = Factory_BaseActor::create(r, desc);
   const auto size = HALF_SIZE;
 
   r.emplace<EntityTimedLifecycle>(e, desc.time_to_live_ms);
@@ -393,10 +349,9 @@ Factory_Particle::create(entt::registry& r, const Particle& desc)
 };
 
 entt::entity
-Factory_SolidWall::create(entt::registry& r, const SolidWall& desc)
+Factory_DataSolidWall::create(entt::registry& r, const DataSolidWall& desc)
 {
-  const auto type = Actor<EntityType::solid_wall>::type;
-  const auto e = Factory_BaseActor::create(r, type, desc);
+  const auto e = Factory_BaseActor::create(r, desc);
 
   create_physics_actor_static(r, e, desc.pos, desc.size);
   r.emplace<LightOccluderComponent>(e);
@@ -404,22 +359,101 @@ Factory_SolidWall::create(entt::registry& r, const SolidWall& desc)
   return e;
 };
 
-entt::entity
-Factory_WeaponShotgun::create(entt::registry& r, const WeaponShotgun& desc)
-{
-  const auto type = Actor<EntityType::weapon_shotgun>::type;
-  const auto e = Factory_BaseActor::create(r, type, desc);
+//
+// hmm below
+//
 
-  set_size(r, e, SMALL_SIZE);
-  r.emplace<ShotgunComponent>(e);
+entt::entity
+Factory_DataArmour::create(entt::registry& r, const DataArmour& desc)
+{
+  const auto e = Factory_BaseActor::create(r, desc);
+
+  return e;
+}
+
+entt::entity
+Factory_DataBullet::create(entt::registry& r, const DataBullet& desc)
+{
+  const auto e = Factory_BaseActor::create(r, desc);
+  const auto size = SMALL_SIZE;
+  create_physics_actor_dynamic(r, e, desc.pos, size, true);
+
+  auto& t = r.get<TransformComponent>(e);
+  t.rotation_radians.z = desc.rotation;
+  t.scale = { size.x, size.y, 0.0f };
+
+  const b2Vec2 vel = { desc.dir.x * desc.bullet_speed, desc.dir.y * desc.bullet_speed };
+  auto& bullet_c = r.get<PhysicsBodyComponent>(e);
+  bullet_c.base_speed = desc.bullet_speed;
+  bullet_c.body->SetLinearVelocity(vel);
+
+  r.emplace<AttackComponent>(e, AttackComponent{ desc.bullet_damage });
+  r.emplace<AttackIdComponent>(e);
+  r.emplace<EntityTimedLifecycle>(e);
+  r.emplace<HasParentComponent>(e).parent = desc.parent;
   r.emplace<TeamComponent>(e, desc.team);
 
-  if (desc.parent == entt::null)
-    fmt::println("(ERROR) weaponshotgun creating with no parent");
-  r.emplace<HasParentComponent>(e, desc.parent);
+  BulletComponent bc;
 
-  if (desc.able_to_shoot)
-    r.emplace<AbleToShoot>(e);
+  switch (desc.type) {
+
+    case BulletType::BOUNCY: {
+      bc.bounce_bullet_on_wall_collision = true;
+      bc.destroy_bullet_on_wall_collision = false;
+      break;
+    }
+
+    case BulletType::DEFAULT: {
+      bc.bounce_bullet_on_wall_collision = false;
+      bc.destroy_bullet_on_wall_collision = true;
+      break;
+    }
+  }
+
+  r.emplace<BulletComponent>(e, bc);
+
+  return e;
+};
+
+entt::entity
+Factory_DataWeaponShotgun::create(entt::registry& r, const DataWeaponShotgun& desc)
+{
+  const auto e = Factory_BaseActor::create(r, desc);
+
+  add_components(r, e, desc);
+
+  return e;
+};
+
+entt::entity
+Factory_DataBreachCharge::create(entt::registry& r, const DataBreachCharge& desc)
+{
+  const auto e = Factory_BaseActor::create(r, desc);
+
+  add_components(r, e, desc);
+
+  return e;
+};
+
+entt::entity
+Factory_DataMedkit::create(entt::registry& r, const DataMedkit& desc)
+{
+  const auto e = Factory_BaseActor::create(r, desc);
+
+  r.emplace<AbleToBePickedUp>(e);
+  // r.emplace<MedKitComponent>(e);
+
+  return e;
+};
+
+entt::entity
+Factory_DataScrap::create(entt::registry& r, const DataScrap& desc)
+{
+  const auto e = Factory_BaseActor::create(r, desc);
+  const auto size = HALF_SIZE;
+
+  r.emplace<AbleToBePickedUp>(e);
+  r.emplace<ItemTypeComponent>(e, ItemType::scrap);
 
   return e;
 };

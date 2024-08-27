@@ -5,6 +5,6 @@
 namespace game2d {
 
 void
-update_pathfinding_system(entt::registry& r, const float& dt);
+drop_items_on_death_callback(entt::registry& r, const entt::entity e);
 
 } // namespace game2d

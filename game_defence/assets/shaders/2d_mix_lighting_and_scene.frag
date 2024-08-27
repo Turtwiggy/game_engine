@@ -309,8 +309,8 @@ void main()
 	final_lin *= lighting_lin;
 	// final_lin *= lighting_lin;
 
-	// vec3 srgb_final = (lin_to_srgb(final_lin));
-	vec3 srgb_final = lin_to_srgb(scene_lin.rgb);
+	vec3 srgb_final = (lin_to_srgb(final_lin));
+	// vec3 srgb_final = lin_to_srgb(scene_lin.rgb);
 
 	out_color.rgb = srgb_final.rgb;
 	out_color.a = 1.0f;
