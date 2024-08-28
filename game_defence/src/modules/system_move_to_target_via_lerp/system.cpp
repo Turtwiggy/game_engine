@@ -79,7 +79,7 @@ update_move_to_target_via_lerp(entt::registry& r, const float& dt)
     // set the angle of the helmet
     const float angle = r.get<TransformComponent>(target_c.target).rotation_radians.z;
     t_c.rotation_radians.z = angle;
-    ImGui::Text("angle: %f", angle);
+    // ImGui::Text("angle: %f", angle);
 
     // Set position as the offset due to rotation.
     // angle: 0. dir: {1, 0}
@@ -93,11 +93,11 @@ update_move_to_target_via_lerp(entt::registry& r, const float& dt)
     // helmet: angle 3*PI/2. helmet to go left.
 
     const auto dir = engine::angle_radians_to_direction(angle - engine::HALF_PI);
-    ImGui::Text("dir %f %f", dir.x, dir.y);
+    // ImGui::Text("dir %f %f", dir.x, dir.y);
 
     const auto parent_pos = get_position(r, target_c.target);
     const auto offset = dir * 8.0f;
-    ImGui::Text("offset %f %f", offset.x, offset.y);
+    // ImGui::Text("offset %f %f", offset.x, offset.y);
 
     const auto pos = parent_pos + offset;
     set_position(r, e, pos);

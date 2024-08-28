@@ -316,8 +316,8 @@ update_ui_inventory_system(entt::registry& r)
 
       // set the bullet type for shotgun.
       if (auto* shotgun_c = r.try_get<ShotgunComponent>(has_weapon->instance)) {
-        // fmt::println("setting ammo type... {}", std::string(magic_enum::enum_name(bullet_type.value())));
-        shotgun_c->bullet_type = bullet_type.value();
+        if (bullet_type.has_value())
+          shotgun_c->bullet_type = bullet_type.value();
       }
     }
   }

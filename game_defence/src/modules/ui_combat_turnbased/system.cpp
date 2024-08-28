@@ -1,6 +1,7 @@
 #include "system.hpp"
 
 #include "components.hpp"
+#include "helpers.hpp"
 
 #include "actors/helpers.hpp"
 #include "components.hpp"
@@ -136,15 +137,8 @@ update_ui_combat_turnbased_system(entt::registry& r, const glm::ivec2& input_mou
 
     auto& actions = r.get_or_emplace<ActionState>(e);
 
-    // already has a path that you've not yet arrived at
-    // const bool has_d = has_destination(r, e);
-    // const bool at_d = at_destination(r, e);
-    // const bool blocked_d = destination_is_blocked(r, mouse_pos);
-    // if (blocked_d)
-    //   fmt::println("player destination blocked?");
-
-    // const bool able_to_move = (!has_d || at_d) && !blocked_d;
-    // const bool able_to_move = !blocked_d;
+    if (!inside_ship(r, e))
+      return; // only move if onboard
 
     // move mode
     if (action == Actions::MOVE && actions.actions_available > 0 && rmb_click) {

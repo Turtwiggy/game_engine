@@ -294,6 +294,8 @@ move_to_scene_start(entt::registry& r, const Scene& s, const bool load_saved)
     // TEMP: add info in the event console on how to play.
     auto& evts = get_first_component<SINGLE_EventConsoleLogComponent>(r);
     evts.events.push_back("Press E to access inventory.");
+    evts.events.push_back("gun_slot=>bomb. Hold left click to place.");
+    evts.events.push_back("gun_slot=>shotgun ammo_slot=>ammo. Perform shoot action.");
     evts.events.push_back("Press Q to perform heal action.");
     evts.events.push_back("Press 1 to select move action.");
     evts.events.push_back("Press 2 to select shoot action.");
