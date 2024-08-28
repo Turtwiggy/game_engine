@@ -2,11 +2,12 @@
 
 #include "actors/actors.hpp"
 #include "actors/bags/items.hpp"
-#include "actors/helpers.hpp"
 #include "entt/helpers.hpp"
 #include "maths/grid.hpp"
 #include "modules/grid/components.hpp"
 #include "modules/grid/helpers.hpp"
+
+#include <algorithm>
 
 namespace game2d {
 
@@ -27,10 +28,8 @@ drop_items_on_death_callback(entt::registry& r, const entt::entity e)
     exit(1); // crash
   }
 
-  const auto idx = it - map.map.begin();
-
-  auto pos = engine::grid::index_to_world_position(idx, map.xmax, map.ymax, map.tilesize);
-  pos += glm::vec2{ map.tilesize / 2.0f, map.tilesize / 2.0f };
+  const int idx = static_cast<int>(it - map.map.begin());
+  auto pos = engine::grid::index_to_world_position_center(idx, map.xmax, map.ymax, map.tilesize);
 
   DataScrap desc;
   desc.pos = pos;

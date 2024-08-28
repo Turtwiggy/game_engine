@@ -34,6 +34,7 @@
 #include "modules/system_change_gun_colour/system.hpp"
 #include "modules/system_change_gun_z_index/system.hpp"
 #include "modules/system_distance_check/system.hpp"
+#include "modules/system_dungeon_helmet/system.hpp"
 #include "modules/system_entered_new_room/system.hpp"
 #include "modules/system_fov/system.hpp"
 #include "modules/system_go_from_jetpack_to_dungeon/system.hpp"
@@ -71,6 +72,7 @@
 #include "physics/system.hpp"
 #include "sprites/components.hpp"
 #include "sprites/helpers.hpp"
+
 
 #include "fmt/core.h"
 #include "imgui.h"
@@ -308,9 +310,10 @@ update(engine::SINGLETON_Application& app, entt::registry& r, const float dt)
       update_combat_heal_system(r);
       update_breach_charge_system(r, mouse_pos, dt);
       update_go_from_jetpack_to_dungeon_system(r);
+      update_dungeon_helmet_system(r);
 
 #if defined(_DEBUG)
-      update_debug_map_system(r);
+      // update_debug_map_system(r);
 #endif
     }
 

@@ -103,8 +103,8 @@ GameWindow::GameWindow(const std::string& title, const DisplayMode& displaymode,
 
   // SDL2 Create Window --------------------------------------
 
-  const int tmp_h = 900;
-  const int tmp_w = 1600;
+  constexpr int tmp_h = 720;
+  constexpr int tmp_w = 1280;
 
   int flags = SDL_WINDOW_OPENGL | SDL_WINDOW_INPUT_FOCUS | SDL_WINDOW_ALLOW_HIGHDPI;
   flags |= SDL_WINDOW_RESIZABLE;

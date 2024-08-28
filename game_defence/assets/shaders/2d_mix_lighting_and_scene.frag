@@ -23,6 +23,7 @@ uniform float iTime;
 uniform bool put_starshader_behind;
 uniform bool add_grid;
 uniform vec2 uv_offset;
+uniform bool inside_spaceship;
 
 struct Light
 {
@@ -260,12 +261,19 @@ void main()
 	// vec4 col = vec4(0.3, 0.3, 0.3, 1.0) * (1.0 - length(c - p)/iResolution.x);
 
 	// inside spaceship
-	vec4 col = vec4(0.3, 0.3, 0.3, 1.0);
-	col *= AO(dist, 20.0, 1.0);
 
-	// outside spaceship
-	// vec4 col = vec4(0.3, 0.3, 0.3, 1.0);
-	// col *= 1 - AO(dist, 40.0, 0.8);
+	vec4 col = vec4(0.0f, 0.0f, 0.0f, 1.0f);
+	if(inside_spaceship)
+	{
+		col = vec4(0.3, 0.3, 0.3, 1.0);
+		col *= AO(dist, 20.0, 1.0);
+	}
+	else
+	{
+		// outside spaceship
+		col = vec4(0.3, 0.3, 0.3, 1.0);
+		col *= 1 - AO(dist, 30.0, 0.8);
+	}
 
 	// light
 	for(int i = 0; i < MAX_LIGHTS; i++)
@@ -279,10 +287,8 @@ void main()
 		// inside spaceship
 		// most lights, 0.6
 		// player light: 1.0
- 		// setLuminance(l.colour, l.luminance);
-
-		// outside spaceship
- 		setLuminance(l.colour, 1.25);
+		// player light outside spaceship: 1.25
+ 		setLuminance(l.colour, l.luminance);
 
 		col += drawLight(p, l.position, l.colour, dist, 350.0, 12.0);
 	}

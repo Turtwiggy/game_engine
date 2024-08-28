@@ -314,9 +314,7 @@ set_generated_entity_positions(entt::registry& r, DungeonGenerationResults& resu
       break;
     }
 
-    const glm::ivec2 worldspace = engine::grid::grid_space_to_world_space(gridpos, map_c.tilesize);
-    const glm::ivec2 offset = { map_c.tilesize / 2.0f, map_c.tilesize / 2.0f };
-    const glm::ivec2 pos = worldspace + offset;
+    const glm::ivec2 pos = engine::grid::grid_space_to_world_space_center(gridpos, map_c.tilesize);
 
     // actor_dungeon description
 
@@ -680,8 +678,7 @@ void
 instantiate_edges(entt::registry& r, MapComponent& map)
 {
   for (auto& edge : map.edges) {
-    const auto offset = glm::vec2{ map.tilesize / 2.0f, map.tilesize / 2.0f };
-    const auto ga = engine::grid::index_to_world_position(edge.a_idx, map.xmax, map.ymax, map.tilesize) + offset;
+    const auto ga = engine::grid::index_to_world_position_center(edge.a_idx, map.xmax, map.ymax, map.tilesize);
     glm::vec2 gb{ 0, 0 };
 
     // handle off the grid case...
@@ -699,9 +696,9 @@ instantiate_edges(entt::registry& r, MapComponent& map)
       if (xy.y == map.ymax)
         gp = { xy.x, xy.y + 1 };
 
-      gb = engine::grid::grid_space_to_world_space(gp, map.tilesize) + offset;
+      gb = engine::grid::grid_space_to_world_space_center(gp, map.tilesize);
     } else
-      gb = engine::grid::index_to_world_position(edge.b_idx, map.xmax, map.ymax, map.tilesize) + offset;
+      gb = engine::grid::index_to_world_position_center(edge.b_idx, map.xmax, map.ymax, map.tilesize);
 
     // debug edge
     // const auto l0 = generate_line({ ga.x, ga.y }, { gb.x, gb.y }, 4);

@@ -9,6 +9,7 @@
 #include "events/components.hpp"
 #include "events/helpers/keyboard.hpp"
 #include "imgui/helpers.hpp"
+#include "lights/helpers.hpp"
 #include "maths/grid.hpp"
 #include "maths/maths.hpp"
 #include "modules/actor_player/components.hpp"
@@ -20,11 +21,12 @@
 #include "modules/renderer/components.hpp"
 #include "modules/renderer/helpers.hpp"
 #include "modules/renderer/helpers/batch_quad.hpp"
+#include "modules/renderer/lights/components.hpp"
 #include "modules/renderer/renderpass/passes.hpp"
-
-// engine headers
 #include "modules/scene/components.hpp"
 #include "modules/vfx_grid/components.hpp"
+
+// engine headers
 #include "opengl/framebuffer.hpp"
 #include "opengl/render_command.hpp"
 #include "opengl/shader.hpp"
@@ -43,14 +45,6 @@ using namespace engine;
 
 namespace game2d {
 using namespace std::literals;
-
-struct Light
-{
-  bool enabled = false;
-  glm::vec2 pos;
-  engine::SRGBColour colour;
-  float luminence = 0.6f;
-};
 
 int
 get_renderer_tex_unit_count(const SINGLETON_RendererInfo& ri)
@@ -395,71 +389,37 @@ update_render_system(entt::registry& r, const float dt, const glm::vec2& mouse_p
   // HACK: try adding lights to interesting map features
   const auto& map_e = get_first<MapComponent>(r);
   const auto& results_e = get_first<DungeonGenerationResults>(r);
+  {
+    if (map_e != entt::null && first_player != entt::null) {
+      const auto& map = r.get<MapComponent>(map_e);
+      const auto& results = r.get<DungeonGenerationResults>(results_e);
 
-  int i = 1;
-  for (const auto& [e, room_c] : r.view<Room>().each()) {
+      // if player is in the room, light it up
+      const auto player_pos = get_position(r, first_player);
+      const auto player_gridpos = engine::grid::worldspace_to_grid_space(player_pos, map.tilesize);
+      const auto [in_room, room] = inside_room(map, results.rooms, player_gridpos);
+      const auto tunnels = inside_tunnels(results.tunnels, player_gridpos);
+      const bool in_tunnel = tunnels.size() > 0;
+      const bool inside_spaceship = in_room || in_tunnel;
 
-    if (map_e == entt::null)
-      continue;
-    const auto& map = r.get<MapComponent>(map_e);
+      ri.mix_lighting_and_scene.bind();
+      ri.mix_lighting_and_scene.set_bool("inside_spaceship", inside_spaceship);
 
-    if (map_e == entt::null)
-      continue;
-    const auto& results = r.get<DungeonGenerationResults>(results_e);
+      // increase player brightness outside spaceship.
+      if (!inside_spaceship)
+        lights[0].luminence = 1.5f;
 
-    if (first_player == entt::null)
-      continue;
-    const auto player_pos = get_position(r, first_player);
-    const auto player_gridpos = engine::grid::worldspace_to_grid_space(player_pos, map.tilesize);
+      // increase player brightness in tunnel (no room lights)
+      if (in_tunnel && !in_room)
+        lights[0].luminence = 1.25f;
 
-    // if player is in the room, light it up
-    const auto [in_room, room] = inside_room(map, results.rooms, player_gridpos);
-    if (!in_room)
-      continue;
-    if (room->tl != room_c.tl)
-      continue;
-    const int room_size = room->aabb.size.x * room->aabb.size.y;
-    float lum = 0.6f;
-    if (room_size <= 16)
-      lum = 0.5f;
-
-    // Orange light top left
-    {
-      Light& l = lights[i++];
-      l.enabled = true;
-
-      // gridspace to worldspace
-      const glm::ivec2 gridpos = room_c.tl;
-      l.pos = engine::grid::grid_space_to_world_space(gridpos, 50);
-      l.pos += glm::vec2(map.tilesize / 2.0f, map.tilesize / 2.0f);
-
-      // worldspace to screenspace
-      const auto& wh = ri.viewport_size_render_at;
-      l.pos -= glm::vec2{ camera_t.position.x, camera_t.position.y };
-      l.pos += glm::vec2{ wh.x / 2.0f, wh.y / 2.0f };
-
-      // orange
-      l.colour = engine::SRGBColour{ 1.0f, 0.75f, 0.5f, 1.0f };
-      l.luminence = lum;
-    }
-
-    // A light in bottom right
-    {
-      Light& l = lights[i++];
-      l.enabled = true;
-
-      // gridspace to worldspace
-      const glm::ivec2 gridpos = { room_c.tl.x + room_c.aabb.size.x - 1, room_c.tl.y + room_c.aabb.size.y - 1 };
-      l.pos = engine::grid::grid_space_to_world_space(gridpos, 50);
-      l.pos += glm::vec2(map.tilesize / 2.0f, map.tilesize / 2.0f);
-
-      // worldspace to screenspace
-      const auto& wh = ri.viewport_size_render_at;
-      l.pos -= glm::vec2{ camera_t.position.x, camera_t.position.y };
-      l.pos += glm::vec2{ wh.x / 2.0f, wh.y / 2.0f };
-
-      l.colour = engine::SRGBColour{ 0.6f, 0.6f, 1.0f, 1.0f };
-      l.luminence = lum;
+      if (in_room) {
+        for (int i = 1; const auto& [e, room_c] : r.view<Room>().each()) {
+          if (room->tl != room_c.tl)
+            continue;
+          light_up_room(lights, i, room_c, ri, camera_t);
+        }
+      }
     }
   }
 

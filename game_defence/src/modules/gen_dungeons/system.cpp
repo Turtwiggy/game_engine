@@ -7,6 +7,7 @@
 #include "events/components.hpp"
 #include "events/helpers/keyboard.hpp"
 #include "events/helpers/mouse.hpp"
+#include "lifecycle/components.hpp"
 #include "maths/grid.hpp"
 #include "maths/maths.hpp"
 #include "modules/actor_player/components.hpp"
@@ -20,6 +21,7 @@
 #include "modules/grid/components.hpp"
 #include "modules/scene/helpers.hpp"
 #include "modules/system_change_gun_z_index/helpers.hpp"
+#include "modules/system_dungeon_helmet/components.hpp"
 #include "modules/system_fov/components.hpp"
 #include "modules/system_move_to_target_via_lerp/components.hpp"
 #include "modules/ui_combat_turnbased/components.hpp"
@@ -96,9 +98,8 @@ update_gen_dungeons_system(entt::registry& r, const glm::ivec2& mouse_pos)
         create_empty<RequestGenerateDungeonComponent>(r);
 
       if (get_mouse_mmb_press()) {
-        const auto worldpos = engine::grid::grid_space_to_world_space(grid_pos, map.tilesize);
-        const auto offset = glm::vec2{ map.tilesize / 2.0f, map.tilesize / 2.0f };
-        set_position(r, get_first<PlayerComponent>(r), worldpos + offset);
+        const auto worldpos = engine::grid::grid_space_to_world_space_center(grid_pos, map.tilesize);
+        set_position(r, get_first<PlayerComponent>(r), worldpos);
       }
 
       ImGui::SeparatorText("Map");
@@ -143,19 +144,19 @@ update_gen_dungeons_system(entt::registry& r, const glm::ivec2& mouse_pos)
   // const auto& data = r.get<OverworldToDungeonInfo>(data_e);
   fmt::println("generating dungeon... todo: generate of a certain strength");
 
-  const auto get_seed_from_systemtime = []() -> time_t {
-    auto now = std::chrono::system_clock::now();
-    return std::chrono::system_clock::to_time_t(now);
-  };
+  // const auto get_seed_from_systemtime = []() -> uint64_t {
+  //   auto now = std::chrono::system_clock::now();
+  //   return static_cast<uint64_t>(std::chrono::system_clock::to_time_t(now));
+  // };
+  // const uint64_t seed = get_seed_from_systemtime();
 
-  // static int seed = 0;
-  // seed++; // Increase seed everytime a map is generated
-
-  const int seed = get_seed_from_systemtime();
+  static int seed = 0;
+  seed++; // Increase seed everytime a map is generated
 #if defined(_DEBUG)
-  // seed = i;
+  if (get_key_down(input, SDL_SCANCODE_KP_0))
+    seed = i;
 #endif
-  engine::RandomState rnd(seed);
+  engine::RandomState rnd(static_cast<int>(seed));
 
   // re-generate map
   destroy_first_and_create<MapComponent>(r);
@@ -205,7 +206,7 @@ update_gen_dungeons_system(entt::registry& r, const glm::ivec2& mouse_pos)
   result.floor_tiles.resize(result.wall_or_floors.size(), entt::null);
   for (size_t xy = 0; xy < result.wall_or_floors.size(); xy++) {
     if (result.wall_or_floors[xy] == 0) {
-      const auto gridpos = engine::grid::index_to_grid_position(xy, map.xmax, map.ymax);
+      const auto gridpos = engine::grid::index_to_grid_position((int)xy, map.xmax, map.ymax);
       const auto floor_e = create_transform(r);
       const glm::ivec2 worldspace = engine::grid::grid_space_to_world_space(gridpos, map.tilesize);
       const glm::ivec2 offset = { map.tilesize / 2.0f, map.tilesize / 2.0f };
@@ -224,23 +225,27 @@ update_gen_dungeons_system(entt::registry& r, const glm::ivec2& mouse_pos)
   // Steps after initial initialization...
   set_generated_entity_positions(r, result, rnd);
 
-  set_player_positions(r, result, rnd);
-  // DataJetpackActor desc;
-  // desc.pos = { -100, -100 };
-  // desc.team = AvailableTeams::player;
-  // const auto e = Factory_DataJetpackActor::create(r, desc);
-  // r.emplace<CameraFollow>(e);
+  // set_player_positions(r, result, rnd);
+  DataJetpackActor desc;
+  desc.pos = { -100, -100 };
+  desc.team = AvailableTeams::player;
+  const auto e = Factory_DataJetpackActor::create(r, desc);
+  r.emplace<CameraFollow>(e);
 
   // give helmet to breathe
   const auto helmet_e = create_transform(r);
   set_sprite(r, helmet_e, "HELMET_5");
-  set_size(r, helmet_e, { 32, 32 });
+  set_size(r, helmet_e, get_size(r, e));
   set_z_index(r, helmet_e, 2); // above player
-  r.emplace<DynamicTargetComponent>(helmet_e).target = get_first<PlayerComponent>(r);
+  set_colour(r, helmet_e, { 1.0f, 1.0f, 1.0f, 1.0f });
+  // r.emplace<DungeonHelmetComponent>(helmet_e);
+  // r.emplace<HasParentComponent>(helmet_e, e);
+
+  r.emplace<DynamicTargetComponent>(helmet_e).target = e;
   SetPositionAtDynamicTarget tgt;
   tgt.offset = { 0, -10 };
-  r.emplace<SetPositionAtDynamicTarget>(helmet_e, tgt);
-  set_colour(r, helmet_e, { 1.0f, 1.0f, 1.0f, 1.0f });
+  // r.emplace<SetPositionAtDynamicTarget>(helmet_e, tgt);
+  r.emplace<SetRotationAsDynamicTarget>(helmet_e);
 
   // set exit door position
   // bug: exit placed on generated entities. not so bad?

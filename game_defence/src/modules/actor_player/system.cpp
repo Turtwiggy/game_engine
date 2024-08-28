@@ -42,7 +42,9 @@ update_movement_jetpack(entt::registry& r)
     if (glm::abs(input_c.ly) - epsilon <= 0.0f)
       continue; // no input, dont move
 
-    const auto dir = engine::angle_radians_to_direction(body_c.body->GetAngle());
+    // -engine::HALF_PI so that the angle is not from the left side, but from the feet
+    const float angle = body_c.body->GetAngle() - engine::HALF_PI;
+    const auto dir = engine::angle_radians_to_direction(angle);
     const b2Vec2 tgt_vel = b2Vec2(dir.x * speed, dir.y * speed);
 
     const b2Vec2 cur_vel = body_c.body->GetLinearVelocity();

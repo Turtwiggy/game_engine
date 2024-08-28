@@ -143,7 +143,10 @@ main(int argc, char* argv[])
   name += " [RELEASE]";
 #endif
 #if defined(__MINGW32__)
-  name += " [MINGW]";
+  name += "[MINGW]";
+#endif
+#if defined(_MSC_VER)
+  name += "[MSVC]";
 #endif
 
   // #if defined(_DEBUG)

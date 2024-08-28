@@ -1,6 +1,6 @@
 #pragma once
 
-#include "core.hpp"
+#include "actors/bags/core.hpp"
 
 namespace game2d {
 

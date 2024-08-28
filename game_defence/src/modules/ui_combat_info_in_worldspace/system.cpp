@@ -9,7 +9,6 @@
 #include "modules/ui_inventory/helpers.hpp"
 #include "modules/ui_worldspace_text/components.hpp"
 
-
 #include "imgui.h"
 
 namespace game2d {
@@ -18,7 +17,6 @@ void
 update_ui_combat_info_in_worldspace_system(entt::registry& r)
 {
   // display all units hp/defence in worldspace
-  // only display if the unit is hovered with a mouse
   // only display if the unit is visible in the fov system
 
   const auto& view = r.view<const HealthComponent, const DefenceComponent, const VisibleComponent>();
@@ -35,7 +33,7 @@ update_ui_combat_info_in_worldspace_system(entt::registry& r)
 
     // set imgui layout that gets positioned in worldspace
 
-    worldspace_ui.requires_hovered = true;
+    worldspace_ui.requires_hovered = false;
     worldspace_ui.layout = [&r, &hp, &defence]() {
       const auto [heart_tl, heart_br] = convert_sprite_to_uv(r, "ICON_HEART_FULL");
       const auto [shield_tl, shield_br] = convert_sprite_to_uv(r, "shield_custom");
@@ -52,9 +50,9 @@ update_ui_combat_info_in_worldspace_system(entt::registry& r)
       ImGui::Text("%s", std::to_string(hp.hp).c_str());
 
       // uncomment StyleVar here if want space between icons
-      ImGui::PopStyleVar();
+      // ImGui::PopStyleVar();
       ImGui::SameLine();
-      ImGui::PushStyleVar(ImGuiStyleVar_ItemSpacing, ImVec2(0, 0));
+      // ImGui::PushStyleVar(ImGuiStyleVar_ItemSpacing, ImVec2(0, 0));
 
       // icon + def
       const ImTextureID im_custom_id = reinterpret_cast<ImTextureID>(static_cast<uintptr_t>(custom_id));

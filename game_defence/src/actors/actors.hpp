@@ -65,6 +65,15 @@ struct DataParticle : public EntityData
   // engine::SRGBColour end_colour;
 };
 
+struct DataParticleEmitter : public EntityData
+{
+  entt::entity parent = entt::null;
+  glm::vec2 velocity{ 0.0f, 0.0f };
+
+  float start_size = 6.0f;
+  float end_size = 2.0f;
+};
+
 struct DataSolidWall : public EntityData
 {
   bool placeholder = true;
@@ -86,8 +95,8 @@ GENERATE_FACTORY(DataSpaceShipActor)
 GENERATE_FACTORY(DataSpaceCapsuleActor)
 GENERATE_FACTORY(DataSpaceCargoActor)
 GENERATE_FACTORY(DataParticle)
+GENERATE_FACTORY(DataParticleEmitter)
 GENERATE_FACTORY(DataSolidWall)
-// GENERATE_FACTORY(EntityType::particle_emitter, ParticleDesc)
 // GENERATE_FACTORY(EntityType::quip, WeaponShotgunDesc)
 
 // hmm

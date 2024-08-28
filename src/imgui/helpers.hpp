@@ -20,7 +20,7 @@ struct WomboComboIn
 };
 struct WomboComboOut
 {
-  int selected = 0;
+  size_t selected = 0;
 };
 
 WomboComboOut

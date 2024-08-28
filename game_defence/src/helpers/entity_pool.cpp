@@ -6,7 +6,7 @@
 namespace game2d {
 
 void
-EntityPool::update(entt::registry& r, const int desired)
+EntityPool::update(entt::registry& r, const size_t desired)
 {
   const size_t new_size = desired;
   const size_t old_size = instances.size();

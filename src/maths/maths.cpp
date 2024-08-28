@@ -65,6 +65,7 @@ encode_cantor_pairing_function(int x, int y)
 {
   // If you don't want to make a distinction between the pairs (a, b) and (b, a),
   // then sort a and b before applying the pairing function.
+
   if (y < x) {
     // Swap X and Y
     int temp = x;

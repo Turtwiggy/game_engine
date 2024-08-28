@@ -1,12 +1,11 @@
 #include "system.hpp"
+
 #include "actors/helpers.hpp"
 #include "components.hpp"
 #include "entt/helpers.hpp"
-#include "helpers/entity_pool.hpp"
 #include "maths/grid.hpp"
 #include "modules/grid/components.hpp"
 #include "modules/system_change_gun_z_index/helpers.hpp"
-
 
 namespace game2d {
 
@@ -35,8 +34,7 @@ update_debug_map_system(entt::registry& r)
       continue;
     }
 
-    auto wp = engine::grid::index_to_world_position(i, map.xmax, map.ymax, map.tilesize);
-    wp += glm::vec2{ map.tilesize / 2.0f, map.tilesize / 2.0f };
+    auto wp = engine::grid::index_to_world_position_center((int)i, map.xmax, map.ymax, map.tilesize);
 
     set_position(r, instance_e, wp);
     set_size(r, instance_e, { 8, 8 });

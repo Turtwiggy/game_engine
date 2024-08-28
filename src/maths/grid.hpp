@@ -40,6 +40,13 @@ grid_space_to_world_space(const glm::ivec2 pos, const int grid_size)
   return glm::vec2{ pos.x, pos.y } * static_cast<float>(grid_size);
 };
 
+[[nodiscard]] inline glm::vec2
+grid_space_to_world_space_center(const glm::ivec2 pos, const int grid_size)
+{
+  const glm::vec2 p = grid_space_to_world_space(pos, grid_size);
+  return p + glm::vec2{ grid_size / 2.0f, grid_size / 2.0f };
+};
+
 [[nodiscard]] inline glm::ivec2
 worldspace_to_grid_space(const glm::vec2& pos, const int grid_size)
 {
@@ -103,6 +110,13 @@ inline glm::vec2
 index_to_world_position(const int index, const int x_max, const int y_max, const int size)
 {
   return index_to_grid_position(index, x_max, y_max) * size;
+};
+
+inline glm::vec2
+index_to_world_position_center(const int index, const int x_max, const int y_max, const int size)
+{
+  const glm::vec2 pos = index_to_grid_position(index, x_max, y_max) * size;
+  return pos + glm::vec2{ size / 2.0f, size / 2.0f };
 };
 
 // a grid shaped

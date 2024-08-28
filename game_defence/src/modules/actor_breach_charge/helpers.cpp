@@ -1,22 +1,52 @@
 #include "helpers.hpp"
 
+#include "actors/actors.hpp"
 #include "actors/helpers.hpp"
+#include "colour/colour.hpp"
 #include "entt/helpers.hpp"
 #include "lifecycle/components.hpp"
 #include "maths/grid.hpp"
+#include "maths/maths.hpp"
+#include "modules/gen_dungeons/components.hpp"
+#include "modules/gen_dungeons/helpers.hpp"
 #include "modules/grid/components.hpp"
 #include "modules/system_particles/components.hpp"
+#include "modules/ux_hoverable/components.hpp"
 #include "physics/components.hpp"
+#include "renderer/components.hpp"
+
+#include <unordered_set>
 
 namespace game2d {
+
+glm::ivec2
+calculate_oob_edge_gp(const MapComponent& map, glm::ivec2 xy)
+{
+  glm::ivec2 edge_oob{ 0, 0 };
+
+  if (xy.x == 0)
+    edge_oob = { -1, xy.y };
+
+  if (xy.y == 0)
+    edge_oob = { xy.x, -1 };
+
+  if (xy.x == map.xmax)
+    edge_oob = { xy.x + 1, xy.y };
+
+  if (xy.y == map.ymax)
+    edge_oob = { xy.x, xy.y + 1 };
+
+  return edge_oob;
+};
 
 void
 add_bomb_callback(entt::registry& r, const entt::entity e)
 {
-  const auto& map = get_first_component<MapComponent>(r);
 
   OnDeathCallback callback;
   callback.callback = [](entt::registry& r, const entt::entity e) {
+    const auto& dungeon = get_first_component<DungeonGenerationResults>(r);
+
     // create a boom effect
     const glm::vec2 pos = get_position(r, e);
     create_empty<RequestToSpawnParticles>(r, RequestToSpawnParticles{ pos });
@@ -28,6 +58,8 @@ add_bomb_callback(entt::registry& r, const entt::entity e)
     auto& dead = get_first_component<SINGLETON_EntityBinComponent>(r);
     const auto gp = engine::grid::worldspace_to_grid_space(pos, map.tilesize);
     // fmt::println("go boom at {}, {}. gp: {}, {}", pos.x, pos.y, gp.x, gp.y);
+
+    std::unordered_set<Edge, EdgeHash> edges_blown_up;
 
     // Have to use gridpos not index, because gridpos {-1, 12} is valid for a bomb to be placed
     // but if that was convertd to an index it would wrap round the value and be too large.
@@ -62,6 +94,9 @@ add_bomb_callback(entt::registry& r, const entt::entity e)
           // the edge's in-bound edge.
           const auto xy = engine::grid::index_to_grid_position(other.a_idx, map.xmax, map.ymax);
 
+          // the edge's out-of-bound edge.
+          const auto edge_oob = calculate_oob_edge_gp(map, xy);
+
           glm::ivec2 inb_gp{ 0, 0 };
           glm::ivec2 oob_gb{ 0, 0 };
           if (bomb_out_of_bounds) {
@@ -72,17 +107,6 @@ add_bomb_callback(entt::registry& r, const entt::entity e)
             oob_gb = gp_neighbour;
             inb_gp = gp_bomb;
           }
-
-          // get the other edge grid pos
-          glm::ivec2 edge_oob{ 0, 0 };
-          if (xy.x == 0)
-            edge_oob = { -1, xy.y };
-          if (xy.y == 0)
-            edge_oob = { xy.x, -1 };
-          if (xy.x == map.xmax)
-            edge_oob = { xy.x + 1, xy.y };
-          if (xy.y == map.ymax)
-            edge_oob = { xy.x, xy.y + 1 };
 
           // Pull the lever, kronk!
           return xy == inb_gp && edge_oob == oob_gb;
@@ -102,10 +126,15 @@ add_bomb_callback(entt::registry& r, const entt::entity e)
       };
 
       const auto it = std::find_if(map.edges.begin(), map.edges.end(), pred);
+
       if (it != map.edges.end()) {
+
         const entt::entity instance = it->instance;
         if (instance == entt::null)
           continue;
+
+        edges_blown_up.emplace(*it);
+        fmt::println("removing edge..");
 
         // destroy body immediately
         auto& physics_b = r.get<PhysicsBodyComponent>(instance).body;
@@ -117,10 +146,53 @@ add_bomb_callback(entt::registry& r, const entt::entity e)
 
         // destroy edge
         map.edges.erase(it);
-        fmt::println("removed edge..");
       }
+    }
 
-      // TODO: everything in that room (or tunnel) gets sucked out
+    // TODO: everything in that room (or tunnel) gets sucked out
+
+    fmt::println("resulting edges blown up: {}", edges_blown_up.size());
+    for (const Edge& edge : edges_blown_up) {
+      // create a particle spawner...
+      const auto pos_a = engine::grid::index_to_grid_position(edge.a_idx, map.xmax, map.ymax);
+
+      auto pos_b = glm::vec2{ 0.0f, 0.0f };
+      if (edge.b_idx != -1)
+        pos_b = engine::grid::index_to_grid_position(edge.b_idx, map.xmax, map.ymax);
+      if (edge.b_idx == -1)
+        pos_b = calculate_oob_edge_gp(map, pos_a);
+
+      const auto pos_a_worldspace = engine::grid::grid_space_to_world_space_center(pos_a, map.tilesize);
+      const auto pos_b_worldspace = engine::grid::grid_space_to_world_space_center(pos_b, map.tilesize);
+
+      const auto [in_room, rooms] = inside_room(map, dungeon.rooms, pos_a);
+      const auto in_tunnel = inside_tunnels(dungeon.tunnels, pos_a).size() > 0;
+
+      // Point the particles outside the room
+      glm::vec2 dir{ 0.0f, 0.0f };
+      if (in_room || in_tunnel)
+        dir = engine::normalize_safe(pos_b_worldspace - pos_a_worldspace);
+      else
+        dir = -engine::normalize_safe(pos_b_worldspace - pos_a_worldspace);
+
+      const auto halfway_pos = (pos_a_worldspace + pos_b_worldspace) * 0.5f;
+
+      // basically a particle emitter
+      const auto particle_parent_e = create_transform(r);
+      r.get<TagComponent>(particle_parent_e).tag = "particle_emitter_parent";
+      set_position(r, particle_parent_e, halfway_pos);
+      set_size(r, particle_parent_e, { 0, 0 }); // no size for particle emitter
+
+      // add_particles()
+      DataParticleEmitter desc;
+      desc.parent = particle_parent_e;
+      desc.velocity = dir * 20.0f;
+      desc.start_size = 10;
+      desc.end_size = 2;
+      desc.colour = engine::SRGBColour{ 0.9f, 0.9f, 0.9f, 0.9f };
+      auto particle_e = Factory_DataParticleEmitter::create(r, desc);
+
+      fmt::println("spawning particle emitter due to blown up edge at {} {}", halfway_pos.x, halfway_pos.y);
     }
   };
   r.emplace<OnDeathCallback>(e, callback);

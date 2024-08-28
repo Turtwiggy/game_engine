@@ -52,11 +52,9 @@ update_ui_worldspace_text_system(entt::registry& r)
 
     // ImGui::PushStyleColor(ImGuiCol_, (ImVec4)ImColor::HSV(1 / 7.0f, 0.6f, 0.6f));
     ImGuiWindowFlags flags = 0;
-    flags |= ImGuiWindowFlags_NoMove;
-    flags |= ImGuiWindowFlags_NoTitleBar;
-    // flags |= ImGuiWindowFlags_NoBackground;
+    flags |= ImGuiWindowFlags_NoDecoration;
+    flags |= ImGuiWindowFlags_NoBackground;
     ImGui::SetNextWindowBgAlpha(0.5); // some background
-    flags |= ImGuiWindowFlags_NoResize;
     flags |= ImGuiDockNodeFlags_AutoHideTabBar;
     flags |= ImGuiDockNodeFlags_NoResize;
 

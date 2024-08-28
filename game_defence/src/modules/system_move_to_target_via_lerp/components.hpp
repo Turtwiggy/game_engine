@@ -9,6 +9,11 @@ struct SetPositionAtDynamicTarget
   glm::vec2 offset{ 0, 0 };
 };
 
+struct SetRotationAsDynamicTarget
+{
+  bool placeholder = true;
+};
+
 struct LerpingToTarget
 {
   glm::vec2 a{ 0.0f, 0.0f };

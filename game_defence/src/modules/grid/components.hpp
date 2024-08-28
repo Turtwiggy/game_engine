@@ -1,6 +1,7 @@
 #pragma once
 
 #include "entt/entt.hpp"
+#include "maths/maths.hpp"
 
 #include <vector>
 
@@ -22,6 +23,11 @@ operator==(const Edge& a, const Edge& b)
   const auto eq_a = (a.a_idx == b.a_idx && a.b_idx == b.b_idx);
   const auto eq_b = (a.a_idx == b.b_idx && a.b_idx == b.a_idx);
   return eq_a || eq_b;
+};
+
+struct EdgeHash
+{
+  size_t operator()(const Edge& s) const { return engine::encode_cantor_pairing_function(s.a_idx, s.b_idx); }
 };
 
 struct MapComponent

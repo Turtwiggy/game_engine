@@ -42,9 +42,7 @@ void
 set_position_grid(entt::registry& r, const entt::entity e, const glm::ivec2 gridpos)
 {
   const auto& map_c = get_first_component<MapComponent>(r);
-  const glm::ivec2 worldspace = engine::grid::grid_space_to_world_space(gridpos, map_c.tilesize);
-  const glm::ivec2 offset = { map_c.tilesize / 2.0f, map_c.tilesize / 2.0f };
-  const glm::ivec2 pos = worldspace + offset;
+  const glm::ivec2 pos = engine::grid::grid_space_to_world_space_center(gridpos, map_c.tilesize);
   set_position(r, e, pos);
 }
 

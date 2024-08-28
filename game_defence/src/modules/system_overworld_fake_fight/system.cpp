@@ -11,7 +11,6 @@
 #include "physics/components.hpp"
 #include "sprites/helpers.hpp"
 
-
 namespace game2d {
 
 void
@@ -27,7 +26,7 @@ update_overworld_fake_fight_system(entt::registry& r)
   if (first_time) {
     first_time = false;
 
-    const auto setup_weapon = [&r](const auto& ship_e, const auto& target_e) {
+    const auto setup_weapon = [](const auto& ship_e, const auto& target_e) {
       // TODO: finish implementing this
       /*
       // setup weapon

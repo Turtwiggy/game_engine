@@ -25,7 +25,7 @@ move_action_common(entt::registry& r, const entt::entity e, const glm::vec2& dst
   // move action...
   const auto it = std::find(map.map.begin(), map.map.end(), e);
   const auto idx = it - map.map.begin();
-  const int a = idx;
+  const int a = static_cast<int>(idx);
   const int b = next_idx;
 
   const bool moved = move_entity_on_map(r, a, b);

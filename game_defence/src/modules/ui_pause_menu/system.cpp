@@ -128,7 +128,7 @@ update_ui_pause_menu_system(engine::SINGLETON_Application& app, entt::registry& 
       first_time = false;
     }
 
-    static int idx = 0;
+    static size_t idx = 0;
     WomboComboIn wc_in(resolutions_as_str);
     wc_in.label = "resolutions";
     wc_in.current_index = idx;

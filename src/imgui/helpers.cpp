@@ -7,6 +7,7 @@
 #include <misc/cpp/imgui_stdlib.h>
 
 // std lib
+#include <string>
 #include <vector>
 
 namespace game2d {

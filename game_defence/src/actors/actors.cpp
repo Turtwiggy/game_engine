@@ -1,10 +1,10 @@
 #include "actors/actors.hpp"
 
 #include "actors.hpp"
+#include "actors/base.hpp"
 #include "actors/helpers.hpp"
 #include "bags/bullets.hpp"
 #include "bags/items.hpp"
-#include "base.hpp"
 #include "entt/helpers.hpp"
 #include "lifecycle/components.hpp"
 #include "maths/maths.hpp"
@@ -28,7 +28,6 @@
 #include "physics/helpers.hpp"
 #include "renderer/transform.hpp"
 
-#include "magic_enum.hpp"
 #include <fmt/core.h>
 
 namespace game2d {
@@ -45,37 +44,6 @@ create_transform(entt::registry& r)
 {
   EntityData desc;
   return Factory_BaseActor::create(r, desc);
-};
-
-void
-add_particles(entt::registry& r, const entt::entity parent)
-{
-  const auto particle_emitter = create_transform(r);
-  set_position(r, particle_emitter, get_position(r, parent));
-  set_size(r, particle_emitter, { 0, 0 }); // no size just script, but need position
-
-  r.emplace<SetPositionAtDynamicTarget>(particle_emitter);
-  r.emplace<DynamicTargetComponent>(particle_emitter, parent);
-
-  // This could be unique per add_particles but for the moment,
-  // just give everything that need particles the same particle
-  DataParticle pdesc;
-  pdesc.start_size = 6;
-  pdesc.end_size = 2;
-  pdesc.colour = r.get<DefaultColour>(parent).colour;
-  pdesc.sprite = "EMPTY";
-  pdesc.time_to_live_ms = 1.0 * 1000.0f;
-
-  // which particle to spawn?
-  ParticleEmitterComponent pedesc;
-  pedesc.particle_to_emit = pdesc;
-  r.emplace<ParticleEmitterComponent>(particle_emitter, pedesc);
-
-  // emit: particles
-  AttackCooldownComponent cooldown;
-  cooldown.time_between_attack = 0.1f;
-  cooldown.time_between_attack_left = cooldown.time_between_attack;
-  r.emplace<AttackCooldownComponent>(particle_emitter, cooldown);
 };
 
 //
@@ -242,7 +210,12 @@ Factory_DataJetpackActor::create(entt::registry& r, const DataJetpackActor& desc
   }
 
   r.emplace<DefaultColour>(e, engine::SRGBColour{ 255, 255, 117, 1.0f });
-  add_particles(r, e); // requires default colour
+
+  // add_particles()
+  DataParticleEmitter pedesc;
+  pedesc.parent = e;
+  pedesc.colour = engine::SRGBColour{ 255, 255, 117, 1.0f };
+  auto particle_e = Factory_DataParticleEmitter::create(r, pedesc);
 
   set_position(r, e, desc.pos);
   return e;
@@ -280,7 +253,12 @@ Factory_DataSpaceShipActor::create(entt::registry& r, const DataSpaceShipActor& 
 
   set_colour(r, e, desc.colour);
   r.get<TransformComponent>(e).position.z = 1; // above particles
-  add_particles(r, e);
+
+  // add_particles()
+  DataParticleEmitter pedesc;
+  pedesc.parent = e;
+  pedesc.colour = desc.colour;
+  auto particle_e = Factory_DataParticleEmitter::create(r, pedesc);
 
   return e;
 };
@@ -345,6 +323,40 @@ Factory_DataParticle::create(entt::registry& r, const DataParticle& desc)
   // update particle sprite to the correct sprite
   set_colour(r, e, desc.colour);
 
+  return e;
+};
+
+entt::entity
+Factory_DataParticleEmitter::create(entt::registry& r, const DataParticleEmitter& desc)
+{
+  const auto e = Factory_BaseActor::create(r, desc);
+  const auto parent = desc.parent;
+
+  r.emplace<SetPositionAtDynamicTarget>(e);
+  r.emplace<DynamicTargetComponent>(e, parent);
+
+  // This could be unique per add_particles but for the moment,
+  // just give everything that need particles the same particle
+  DataParticle pdesc;
+  pdesc.start_size = desc.start_size;
+  pdesc.end_size = desc.end_size;
+  pdesc.colour = desc.colour;
+  pdesc.sprite = "EMPTY";
+  pdesc.velocity = desc.velocity;
+  pdesc.time_to_live_ms = 1 * 1000;
+
+  // which particle to spawn?
+  ParticleEmitterComponent pedesc;
+  pedesc.particle_to_emit = pdesc;
+  r.emplace<ParticleEmitterComponent>(e, pedesc);
+
+  // emit: particles
+  AttackCooldownComponent cooldown;
+  cooldown.time_between_attack = 0.1f;
+  cooldown.time_between_attack_left = cooldown.time_between_attack;
+  r.emplace<AttackCooldownComponent>(e, cooldown);
+
+  set_size(r, e, { 0, 0 }); // no size for particle emitter
   return e;
 };
 
