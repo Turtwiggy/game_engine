@@ -1,8 +1,8 @@
+#include "app/application.hpp"
+#include "app/io.hpp"
 #include "game.hpp"
-#include <SDL_timer.h>
 using namespace game2d;
 
-#include "app/application.hpp"
 #include "opengl/util.hpp"
 using namespace engine;
 
@@ -16,6 +16,7 @@ constexpr auto OPTICK_FRAME = [](const std::string& str) {}; // do nothing
 #endif
 
 // other libs
+#include <SDL_timer.h>
 #include <entt/entt.hpp>
 #include <imgui.h>
 
@@ -110,12 +111,14 @@ main(int argc, char* argv[])
   IM_UNUSED(argc);
   IM_UNUSED(argv);
 
-  // #if defined(WIN32) || defined(_WIN32)
-  //   fmt::println("Hello, Windows!");
-  //   bool hide_windows_console = true;
-  //   if (hide_windows_console)
-  //     engine::hide_windows_console();
-  // #endif
+#if (defined(WIN32) || defined(_WIN32))
+  fmt::println("Hello, Windows!");
+  bool hide_windows_console = true;
+  if (hide_windows_console) {
+    fmt::println("hiding console...");
+    engine::hide_windows_console();
+  }
+#endif
 
 #if defined(__EMSCRIPTEN__)
   fmt::println("Hello, Emscripten!");
@@ -135,7 +138,7 @@ main(int argc, char* argv[])
 
   // const auto start = std::chrono::high_resolution_clock::now();
 
-  std::string name = "Solar Warfare";
+  std::string name = "SPACEHAUL";
 
 #if defined(_DEBUG)
   name += " [DEBUG]";

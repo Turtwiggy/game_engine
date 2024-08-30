@@ -5,7 +5,7 @@
 #include "audio/components.hpp"
 #include "audio/helpers/sdl_mixer.hpp"
 #include "entt/helpers.hpp"
-#include "events/components.hpp"
+#include "helpers.hpp"
 #include "io/settings.hpp"
 #include "modules/gen_dungeons/components.hpp"
 #include "modules/renderer/components.hpp"
@@ -17,6 +17,7 @@
 #include <glm/glm.hpp>
 #include <imgui.h>
 
+#include <algorithm>
 #include <fmt/core.h>
 #include <string>
 
@@ -28,9 +29,9 @@ void
 update_ui_scene_main_menu(engine::SINGLETON_Application& app, entt::registry& r)
 {
   const auto& ri = get_first_component<SINGLETON_RendererInfo>(r);
+  auto& ui = get_first_component<SINGLE_MainMenuUI>(r);
   // const auto& input = get_first_component<SINGLETON_InputComponent>(r);
   // const auto& controllers = input.controllers;
-  // const auto& ui = get_first_component<SINGLE_MainMenuUI>(r);
 
   ImGuiWindowFlags flags = 0;
   flags |= ImGuiWindowFlags_NoCollapse;
@@ -83,9 +84,13 @@ update_ui_scene_main_menu(engine::SINGLETON_Application& app, entt::registry& r)
       selected = index;
     }
 
+    play_sound_if_hovered(r, ui.hovered_buttons, label);
+
     // Do the callback for the button
-    if (selected == index && do_ui_action)
+    if (selected == index && do_ui_action) {
+      create_empty<AudioRequestPlayEvent>(r, AudioRequestPlayEvent{ "UI_SELECT_01" });
       return true;
+    }
 
     return false;
   };
@@ -99,7 +104,7 @@ update_ui_scene_main_menu(engine::SINGLETON_Application& app, entt::registry& r)
     //     move_to_scene_start(r, Scene::overworld, true);
     // }
 
-    if (selectable_button("START", selected, index++))
+    if (selectable_button("Start", selected, index++))
       move_to_scene_additive(r, Scene::overworld_revamped);
 
       // if (selectable_button("SETTINGS", selected, index++)) {
@@ -115,7 +120,7 @@ update_ui_scene_main_menu(engine::SINGLETON_Application& app, entt::registry& r)
     }
 #endif
 
-    if (selectable_button("QUIT", selected, index++))
+    if (selectable_button("Exit", selected, index++))
       app.running = false;
   }
   ImGui::PopStyleVar();

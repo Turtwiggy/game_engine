@@ -346,7 +346,11 @@ update_fov_system(entt::registry& r, const glm::ivec2& mouse_pos)
   // Anything visible
   for (const auto& [e, enemy_c, visible] : r.view<const EnemyComponent, const VisibleComponent>().each()) {
     set_sprite(r, e, "PERSON_25_0");
-    set_colour(r, e, { 1.0f, 1.0f, 1.0f, 1.0f });
+    // set_colour(r, e, { 1.0f, 1.0f, 1.0f, 1.0f });
+
+    auto col = engine::SRGBColour{ 255, 117, 117, 1.0f };
+    set_colour(r, e, col);
+    // r.emplace<DefaultColour>(e, col);
   }
 
   // Seen but not visible

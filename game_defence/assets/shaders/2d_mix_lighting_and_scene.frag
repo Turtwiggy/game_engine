@@ -265,14 +265,14 @@ void main()
 	vec4 col = vec4(0.0f, 0.0f, 0.0f, 1.0f);
 	if(inside_spaceship)
 	{
-		col = vec4(0.3, 0.3, 0.3, 1.0);
-		col *= AO(dist, 20.0, 1.0);
+		col = vec4(0.3f, 0.3f, 0.3f, 1.0f);
+		col *= AO(dist, 20.0f, 1.0f);
 	}
 	else
 	{
 		// outside spaceship
-		col = vec4(0.3, 0.3, 0.3, 1.0);
-		col *= 1 - AO(dist, 30.0, 0.8);
+		col = vec4(0.3f, 0.3f, 0.3f, 1.0f);
+		col *= 1.0f - AO(dist, 1.0f, 0.8f);
 	}
 
 	// light
@@ -305,13 +305,13 @@ void main()
 	vec3 final_lin = scene_lin.rgb;
 
 	// grid
-	vec3 grid_lin = srgb_to_lin(vec3(grid_col.r * 255, grid_col.g * 255, grid_col.b * 255));
+	vec3 grid_lin = srgb_to_lin(vec3(grid_col.r * 255.0f, grid_col.g * 255.0f, grid_col.b * 255.0f));
 	if(add_grid) {
 		final_lin += grid_lin;
 	}
 
 	// lighting
-	vec3 lighting_lin = srgb_to_lin(vec3(col.r * 255, col.g * 255, col.b * 255));
+	vec3 lighting_lin = srgb_to_lin(vec3(col.r * 255.0f, col.g * 255.0f, col.b * 255.0f));
 	final_lin *= lighting_lin;
 	// final_lin *= lighting_lin;
 

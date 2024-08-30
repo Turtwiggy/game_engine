@@ -323,7 +323,7 @@ set_generated_entity_positions(entt::registry& r, DungeonGenerationResults& resu
     desc.team = AvailableTeams::enemy;
     desc.hp = 50;
     desc.max_hp = 50;
-    desc.hovered_colour = { 1.0f, 0.0f, 0.0f, 1.0f };
+    // desc.hovered_colour = { 1.0f, 0.0f, 0.0f, 1.0f };
     const auto dungeon_e = Factory_DataDungeonActor::create(r, desc);
 
     const auto idx = engine::grid::worldspace_to_index(pos, map_c.tilesize, map_c.xmax, map_c.ymax);

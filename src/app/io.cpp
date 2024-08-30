@@ -26,7 +26,7 @@ log_time_since(const std::string& label, std::chrono::time_point<std::chrono::hi
 void
 hide_windows_console()
 {
-  ::ShowWindow(::GetConsoleWindow(), SW_HIDE); // hide console
+  ShowWindow(GetConsoleWindow(), SW_HIDE); // hide console
 };
 
 #endif

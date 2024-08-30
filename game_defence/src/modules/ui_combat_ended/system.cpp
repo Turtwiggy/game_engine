@@ -49,6 +49,10 @@ update_ui_combat_ended_system(entt::registry& r)
       flags |= ImGuiWindowFlags_NoTitleBar;
       flags |= ImGuiWindowFlags_NoBackground;
 
+      ImGui::PushStyleVar(ImGuiStyleVar_FrameRounding, 10.0f);
+      ImGui::PushStyleVar(ImGuiStyleVar_FramePadding, ImVec2(5.0f, 5.0f));
+      ImGui::PushStyleVar(ImGuiStyleVar_WindowPadding, ImVec2(0.0f, 0.0f));
+
       ImGui::Begin("Back To Overworld", NULL, flags);
 
       // note: this should not be gameover, but back to
@@ -64,6 +68,11 @@ update_ui_combat_ended_system(entt::registry& r)
         return;
       }
       ImGui::End();
+
+      ImGui::PopStyleVar();
+      ImGui::PopStyleVar();
+      ImGui::PopStyleVar();
+
     } else {
       // Trying to leave the combat scene, but you probably launched standalone..
     }

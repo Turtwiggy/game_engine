@@ -124,4 +124,9 @@ struct InitBodyAndInventory
 //   int heal_amount = 25;
 // };
 
+struct SINGLE_UIInventoryState
+{
+  std::vector<std::string> hovered_buttons;
+};
+
 } // namespace game2d

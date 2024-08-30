@@ -59,6 +59,7 @@ setup_stars_update(entt::registry& r)
 
     // Render stars shader
     ri.stars.bind();
+    ri.stars.set_mat4("projection", camera.projection);
     ri.stars.set_mat4("view", camera.view);
     ri.stars.set_vec2("texture_wh", ri.viewport_size_render_at);
 
@@ -96,12 +97,14 @@ setup_linear_main_update(entt::registry& r)
     glEnable(GL_DEPTH_TEST);
 
     ri.circle.bind();
+    ri.circle.set_mat4("projection", camera.projection);
     ri.circle.set_mat4("view", camera.view);
     ri.circle.set_vec2("viewport_wh", ri.viewport_size_render_at);
     ri.circle.set_vec2("camera_pos", { camera_t.position.x, camera_t.position.y });
 
     // Render some quads
     ri.instanced.bind();
+    ri.instanced.set_mat4("projection", camera.projection);
     ri.instanced.set_mat4("view", camera.view);
     ri.instanced.set_mat4("projection", camera.projection);
     ri.instanced.set_vec2("viewport_wh", ri.viewport_size_render_at);
@@ -196,6 +199,7 @@ setup_lighting_emitters_and_occluders_update(entt::registry& r)
     // glEnable(GL_DEPTH_TEST);
 
     ri.lighting_emitters_and_occluders.bind();
+    ri.lighting_emitters_and_occluders.set_mat4("projection", camera.projection);
     ri.lighting_emitters_and_occluders.set_mat4("view", camera.view);
 
     {
@@ -257,10 +261,14 @@ setup_voronoi_seed_update(entt::registry& r)
   const auto pass_idx = search_for_renderpass_by_name(ri, PassName::voronoi_seed);
   auto& pass = ri.passes[pass_idx];
 
-  pass.update = [&ri]() {
+  pass.update = [&ri, &r]() {
+    const auto camera_e = get_first<OrthographicCamera>(r);
+    const auto& camera = r.get<OrthographicCamera>(camera_e);
+
     const int tex_unit_emitters_and_occluders = get_tex_unit(ri, PassName::lighting_emitters_and_occluders);
 
     ri.voronoi_seed.bind();
+    ri.voronoi_seed.set_mat4("projection", camera.projection);
     ri.voronoi_seed.set_int("tex", tex_unit_emitters_and_occluders);
 
     //
@@ -278,8 +286,11 @@ setup_jump_flood_pass(entt::registry& r)
 
   pass.update = [&r, &pass]() {
     const auto& ri = get_first_component<SINGLETON_RendererInfo>(r);
-    // const auto camera_e = get_first<OrthographicCamera>(r);
-    // const auto& camera = r.get<OrthographicCamera>(camera_e);
+    const auto camera_e = get_first<OrthographicCamera>(r);
+    const auto& camera = r.get<OrthographicCamera>(camera_e);
+
+    ri.jump_flood.bind();
+    ri.jump_flood.set_mat4("projection", camera.projection);
 
     const auto wh = ri.viewport_size_render_at;
     const int max_dim = glm::max(wh.x, wh.y);
@@ -300,7 +311,6 @@ setup_jump_flood_pass(entt::registry& r)
       if (i > 0)
         tex_unit = pass.texs[i - 1].tex_unit.unit;
 
-      ri.jump_flood.bind();
       ri.jump_flood.set_int("tex", tex_unit);
       ri.jump_flood.set_vec2("screen_wh", ri.viewport_size_render_at);
       ri.jump_flood.set_float("u_offset", offset);
@@ -355,12 +365,13 @@ setup_mix_lighting_and_scene_update(entt::registry& r)
 
     const auto camera_e = get_first<OrthographicCamera>(r);
     const auto& camera_t = r.get<TransformComponent>(camera_e);
-    // const auto& camera = r.get<OrthographicCamera>(camera_e);
+    const auto& camera = r.get<OrthographicCamera>(camera_e);
 
     // update uniforms
     ri.mix_lighting_and_scene.bind();
     ri.mix_lighting_and_scene.set_int("scene_0", get_tex_unit(ri, PassName::linear_main));
     ri.mix_lighting_and_scene.set_int("scene_1", get_tex_unit(ri, PassName::stars));
+    ri.mix_lighting_and_scene.set_mat4("projection", camera.projection);
 
     // light_pos.x should be between 0 < viewport_wh.x
     // light_pos.y should be between 0 < viewport_wh.y
@@ -387,6 +398,10 @@ setup_gaussian_blur_update(entt::registry& r)
 
   pass0.update = [&r, &pass0, &pass1]() {
     const auto& ri = get_first_component<SINGLETON_RendererInfo>(r);
+    const auto camera_e = get_first<OrthographicCamera>(r);
+    const auto& camera_t = r.get<TransformComponent>(camera_e);
+    const auto& camera = r.get<OrthographicCamera>(camera_e);
+
     static float blur_amount = 4;
 #if defined(_DEBUG)
     imgui_draw_float("blur_amount", blur_amount);
@@ -400,6 +415,7 @@ setup_gaussian_blur_update(entt::registry& r)
 
     // update uniforms
     ri.blur.bind();
+    ri.blur.set_mat4("projection", camera.projection);
 
     for (int i = 0; i < blur_amount; i++) {
       if (horizontal)
@@ -458,6 +474,7 @@ setup_bloom_update(entt::registry& r)
     const auto& camera = r.get<OrthographicCamera>(camera_e);
 
     ri.bloom.bind();
+    ri.bloom.set_mat4("projection", camera.projection);
     ri.bloom.set_mat4("view", camera.view);
     ri.bloom.set_float("exposure", exposure);
     ri.bloom.set_bool("do_bloom", do_bloom);

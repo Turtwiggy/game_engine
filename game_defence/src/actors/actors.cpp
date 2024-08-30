@@ -43,7 +43,7 @@ entt::entity
 create_transform(entt::registry& r)
 {
   EntityData desc;
-  return Factory_BaseActor::create(r, desc);
+  return Factory_BaseActor::create(r, desc, "create_transform()");
 };
 
 //
@@ -95,8 +95,8 @@ add_components(entt::registry& r, const entt::entity e, const DataDungeonActor& 
   create_physics_actor(r, e, pdesc);
 
   // add_components()
-  r.emplace<HoveredColour>(e, desc.hovered_colour);
-  r.emplace<HoverableComponent>(e);
+  // r.emplace<HoveredColour>(e, desc.hovered_colour);
+  // r.emplace<HoverableComponent>(e);
   r.emplace<TurnBasedUnitComponent>(e);
   r.emplace<SpawnParticlesOnDeath>(e);
   r.emplace<MoveLimitComponent>(e, 1);
@@ -105,8 +105,10 @@ add_components(entt::registry& r, const entt::entity e, const DataDungeonActor& 
   r.emplace<PathfindComponent>(e, 1000); // pass through units if you must
   r.emplace<TeamComponent>(e, desc.team);
 
-  if (desc.team == AvailableTeams::enemy)
+  if (desc.team == AvailableTeams::enemy) {
+
     r.emplace<EnemyComponent>(e);
+  }
 };
 
 void
@@ -162,7 +164,7 @@ remove_components(entt::registry& r, const entt::entity e, const DataJetpackActo
 entt::entity
 Factory_DataDungeonActor::create(entt::registry& r, const DataDungeonActor& desc)
 {
-  const auto e = Factory_BaseActor::create(r, desc);
+  const auto e = Factory_BaseActor::create(r, desc, typeid(desc).name());
   const auto size = DEFAULT_SIZE;
 
   DataDungeonActor mdesc; // copy?
@@ -183,7 +185,7 @@ Factory_DataDungeonActor::create(entt::registry& r, const DataDungeonActor& desc
 entt::entity
 Factory_DataJetpackActor::create(entt::registry& r, const DataJetpackActor& desc)
 {
-  const auto e = Factory_BaseActor::create(r, desc);
+  const auto e = Factory_BaseActor::create(r, desc, typeid(desc).name());
   const auto size = DEFAULT_SIZE;
 
   PhysicsDescription pdesc;
@@ -207,15 +209,17 @@ Factory_DataJetpackActor::create(entt::registry& r, const DataJetpackActor& desc
     r.emplace<InitBodyAndInventory>(e);
 
     r.emplace<MovementJetpackComponent>(e);
+
+    auto col = engine::SRGBColour{ 255, 255, 117, 1.0f };
+    r.emplace<DefaultColour>(e, col);
+    set_colour(r, e, col);
   }
 
-  r.emplace<DefaultColour>(e, engine::SRGBColour{ 255, 255, 117, 1.0f });
-
   // add_particles()
-  DataParticleEmitter pedesc;
-  pedesc.parent = e;
-  pedesc.colour = engine::SRGBColour{ 255, 255, 117, 1.0f };
-  auto particle_e = Factory_DataParticleEmitter::create(r, pedesc);
+  // DataParticleEmitter pedesc;
+  // pedesc.parent = e;
+  // pedesc.colour = engine::SRGBColour{ 255, 255, 117, 1.0f };
+  // auto particle_e = Factory_DataParticleEmitter::create(r, pedesc);
 
   set_position(r, e, desc.pos);
   return e;
@@ -224,7 +228,7 @@ Factory_DataJetpackActor::create(entt::registry& r, const DataJetpackActor& desc
 entt::entity
 Factory_DataSpaceShipActor::create(entt::registry& r, const DataSpaceShipActor& desc)
 {
-  const auto e = Factory_BaseActor::create(r, desc);
+  const auto e = Factory_BaseActor::create(r, desc, typeid(desc).name());
   const auto size = HALF_SIZE;
 
   PhysicsDescription pdesc;
@@ -266,7 +270,7 @@ Factory_DataSpaceShipActor::create(entt::registry& r, const DataSpaceShipActor& 
 entt::entity
 Factory_DataSpaceCargoActor::create(entt::registry& r, const DataSpaceCargoActor& desc)
 {
-  const auto e = Factory_BaseActor::create(r, desc);
+  const auto e = Factory_BaseActor::create(r, desc, typeid(desc).name());
   const auto size = HALF_SIZE;
 
   PhysicsDescription pdesc;
@@ -284,7 +288,7 @@ Factory_DataSpaceCargoActor::create(entt::registry& r, const DataSpaceCargoActor
 entt::entity
 Factory_DataSpaceCapsuleActor::create(entt::registry& r, const DataSpaceCapsuleActor& desc)
 {
-  const auto e = Factory_BaseActor::create(r, desc);
+  const auto e = Factory_BaseActor::create(r, desc, typeid(desc).name());
   const auto size = HALF_SIZE;
 
   PhysicsDescription pdesc;
@@ -302,7 +306,7 @@ Factory_DataSpaceCapsuleActor::create(entt::registry& r, const DataSpaceCapsuleA
 entt::entity
 Factory_DataParticle::create(entt::registry& r, const DataParticle& desc)
 {
-  const auto e = Factory_BaseActor::create(r, desc);
+  const auto e = Factory_BaseActor::create(r, desc, typeid(desc).name());
   const auto size = HALF_SIZE;
 
   r.emplace<EntityTimedLifecycle>(e, desc.time_to_live_ms);
@@ -329,7 +333,7 @@ Factory_DataParticle::create(entt::registry& r, const DataParticle& desc)
 entt::entity
 Factory_DataParticleEmitter::create(entt::registry& r, const DataParticleEmitter& desc)
 {
-  const auto e = Factory_BaseActor::create(r, desc);
+  const auto e = Factory_BaseActor::create(r, desc, typeid(desc).name());
   const auto parent = desc.parent;
 
   r.emplace<SetPositionAtDynamicTarget>(e);
@@ -363,7 +367,7 @@ Factory_DataParticleEmitter::create(entt::registry& r, const DataParticleEmitter
 entt::entity
 Factory_DataSolidWall::create(entt::registry& r, const DataSolidWall& desc)
 {
-  const auto e = Factory_BaseActor::create(r, desc);
+  const auto e = Factory_BaseActor::create(r, desc, typeid(desc).name());
 
   create_physics_actor_static(r, e, desc.pos, desc.size);
   r.emplace<LightOccluderComponent>(e);
@@ -378,7 +382,7 @@ Factory_DataSolidWall::create(entt::registry& r, const DataSolidWall& desc)
 entt::entity
 Factory_DataArmour::create(entt::registry& r, const DataArmour& desc)
 {
-  const auto e = Factory_BaseActor::create(r, desc);
+  const auto e = Factory_BaseActor::create(r, desc, typeid(desc).name());
 
   return e;
 }
@@ -386,7 +390,7 @@ Factory_DataArmour::create(entt::registry& r, const DataArmour& desc)
 entt::entity
 Factory_DataBullet::create(entt::registry& r, const DataBullet& desc)
 {
-  const auto e = Factory_BaseActor::create(r, desc);
+  const auto e = Factory_BaseActor::create(r, desc, typeid(desc).name());
   const auto size = SMALL_SIZE;
   create_physics_actor_dynamic(r, e, desc.pos, size, true);
 
@@ -430,17 +434,18 @@ Factory_DataBullet::create(entt::registry& r, const DataBullet& desc)
 entt::entity
 Factory_DataWeaponShotgun::create(entt::registry& r, const DataWeaponShotgun& desc)
 {
-  const auto e = Factory_BaseActor::create(r, desc);
+  const auto e = Factory_BaseActor::create(r, desc, typeid(desc).name());
 
   add_components(r, e, desc);
 
+  set_position(r, e, get_position(r, desc.parent));
   return e;
 };
 
 entt::entity
 Factory_DataBreachCharge::create(entt::registry& r, const DataBreachCharge& desc)
 {
-  const auto e = Factory_BaseActor::create(r, desc);
+  const auto e = Factory_BaseActor::create(r, desc, typeid(desc).name());
 
   add_components(r, e, desc);
 
@@ -450,7 +455,7 @@ Factory_DataBreachCharge::create(entt::registry& r, const DataBreachCharge& desc
 entt::entity
 Factory_DataMedkit::create(entt::registry& r, const DataMedkit& desc)
 {
-  const auto e = Factory_BaseActor::create(r, desc);
+  const auto e = Factory_BaseActor::create(r, desc, typeid(desc).name());
 
   r.emplace<AbleToBePickedUp>(e);
   // r.emplace<MedKitComponent>(e);
@@ -461,7 +466,7 @@ Factory_DataMedkit::create(entt::registry& r, const DataMedkit& desc)
 entt::entity
 Factory_DataScrap::create(entt::registry& r, const DataScrap& desc)
 {
-  const auto e = Factory_BaseActor::create(r, desc);
+  const auto e = Factory_BaseActor::create(r, desc, typeid(desc).name());
   const auto size = HALF_SIZE;
 
   r.emplace<AbleToBePickedUp>(e);

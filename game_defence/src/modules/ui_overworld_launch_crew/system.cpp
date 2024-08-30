@@ -1,19 +1,12 @@
 #include "system.hpp"
 
-#include "actors/actors.hpp"
-#include "actors/helpers.hpp"
+#include "components.hpp"
 #include "entt/helpers.hpp"
-#include "modules/actor_enemy/components.hpp"
-#include "modules/actor_player/components.hpp"
-#include "modules/combat_wants_to_shoot/components.hpp"
 #include "modules/gen_dungeons/components.hpp"
 #include "modules/renderer/components.hpp"
 #include "modules/scene/helpers.hpp"
-#include "modules/system_overworld_change_direction/components.hpp"
-#include "modules/system_physics_apply_force/components.hpp"
 
 #include "imgui.h"
-#include "modules/ui_overworld_ship_label/components.hpp"
 #include <box2d/b2_joint.h>
 #include <box2d/b2_math.h>
 
@@ -24,96 +17,22 @@ struct Crew
   std::string name;
 };
 
-// bool
-// ButtonCenteredOnLine(const char* label, const ImVec2& bsize = ImVec2(0, 0), float alignment = 0.5f)
-// {
-//   ImGuiStyle& style = ImGui::GetStyle();
-//   float size = ImGui::CalcTextSize(label).x + style.FramePadding.x * 2.0f;
-//   float avail = ImGui::GetContentRegionAvail().x;
-//   float off = (avail - size) * alignment;
-//   if (off > 0.0f)
-//     ImGui::SetCursorPosX(ImGui::GetCursorPosX() + off);
-//   return ImGui::Button(label, bsize);
-// }
-
 void
 update_ui_launch_crew_system(entt::registry& r)
 {
-  /*
-  ImGui::Begin("Launch Crew UI");
 
-  static std::vector<Crew> crew{
-    { "Captain" },  //
-    { "Pilot" },    //
-    { "Engineer" }, //
-    { "Medic" },    //
-    { "Doggo" },    //
-    { "Soldier" },  //
-  };
-  static std::vector<Crew> crew_in_cargopod;
+  // bug: static: here is wrong
+  static bool show_boardship_ui = false;
 
-  // List crew in ship...
-  ImGui::SeparatorText("Crew in ship...");
-  for (int i = 0; const Crew& c : crew) {
-    ImGui::Text("%s", c.name.c_str());
-    ImGui::SameLine();
+  const auto& view_reqs = r.view<RequestShowBoardShipButton>();
+  for (const auto& [e, req_c] : view_reqs.each())
+    show_boardship_ui = req_c.request;
+  r.destroy(view_reqs.begin(), view_reqs.end());
+  if (!show_boardship_ui)
+    return;
 
-    std::string label = "add-to-cargo-pod##" + std::to_string(i);
-    if (ImGui::Button(label.c_str())) {
-      crew_in_cargopod.push_back(std::move(crew[i]));
-      crew.erase(crew.begin() + i);
-      continue;
-    }
-    i++;
-  }
-
-  // List crew in pods...
-  ImGui::SeparatorText("Crew in cargo pods...");
-  for (int i = 0; const auto& c : crew_in_cargopod) {
-    ImGui::Text("%s", c.name.c_str());
-    ImGui::SameLine();
-    std::string label = "remove-from-cargo-pod##" + std::to_string(i);
-    if (ImGui::Button(label.c_str())) {
-      crew.push_back(std::move(crew_in_cargopod[i]));
-      crew_in_cargopod.erase(crew_in_cargopod.begin() + i);
-      continue;
-    }
-    i++;
-  }
-
-  if (crew_in_cargopod.size() > 0 && ImGui::Button("Launch your crew")) {
-    const auto player_e = get_first<PlayerComponent>(r);
-    const auto enemy_e = get_first<EnemyComponent>(r);
-    const auto player_t = get_position(r, player_e);
-
-    DataSpaceCapsuleActor desc;
-    desc.pos = { player_t.x, player_t.y };
-    const auto capsule_e = Factory_DataSpaceCapsuleActor::create(r, desc);
-
-    // set the capsule's dynamic target to the enemy ship
-    r.emplace<DynamicTargetComponent>(capsule_e, enemy_e);
-
-    ApplyForceToDynamicTarget cargopod;
-    cargopod.speed = 300;
-    cargopod.orbit = false;
-    cargopod.reduce_thrusters = false;
-    r.emplace<ApplyForceToDynamicTarget>(capsule_e, cargopod);
-
-    SpaceLabelComponent slabel;
-    slabel.text = "Your Crew";
-    r.emplace<SpaceLabelComponent>(capsule_e, slabel);
-
-    // Goodbye crew!
-    crew_in_cargopod.clear();
-  }
-
-  ImGui::End();
-  */
-
-  //
   // ui: board ship button
   //
-
   const auto& ri = get_first_component<SINGLETON_RendererInfo>(r);
   const auto viewport_pos = ImVec2((float)ri.viewport_pos.x, (float)ri.viewport_pos.y);
   const auto viewport_size_half = ImVec2(ri.viewport_size_current.x * 0.5f, ri.viewport_size_current.y * 0.5f);
@@ -237,3 +156,74 @@ update_ui_launch_crew_system(entt::registry& r)
 }
 
 } // namespace game2d
+
+/*
+ImGui::Begin("Launch Crew UI");
+
+static std::vector<Crew> crew{
+  { "Captain" },  //
+  { "Pilot" },    //
+  { "Engineer" }, //
+  { "Medic" },    //
+  { "Doggo" },    //
+  { "Soldier" },  //
+};
+static std::vector<Crew> crew_in_cargopod;
+
+// List crew in ship...
+ImGui::SeparatorText("Crew in ship...");
+for (int i = 0; const Crew& c : crew) {
+  ImGui::Text("%s", c.name.c_str());
+  ImGui::SameLine();
+
+  std::string label = "add-to-cargo-pod##" + std::to_string(i);
+  if (ImGui::Button(label.c_str())) {
+    crew_in_cargopod.push_back(std::move(crew[i]));
+    crew.erase(crew.begin() + i);
+    continue;
+  }
+  i++;
+}
+
+// List crew in pods...
+ImGui::SeparatorText("Crew in cargo pods...");
+for (int i = 0; const auto& c : crew_in_cargopod) {
+  ImGui::Text("%s", c.name.c_str());
+  ImGui::SameLine();
+  std::string label = "remove-from-cargo-pod##" + std::to_string(i);
+  if (ImGui::Button(label.c_str())) {
+    crew.push_back(std::move(crew_in_cargopod[i]));
+    crew_in_cargopod.erase(crew_in_cargopod.begin() + i);
+    continue;
+  }
+  i++;
+}
+
+if (crew_in_cargopod.size() > 0 && ImGui::Button("Launch your crew")) {
+  const auto player_e = get_first<PlayerComponent>(r);
+  const auto enemy_e = get_first<EnemyComponent>(r);
+  const auto player_t = get_position(r, player_e);
+
+  DataSpaceCapsuleActor desc;
+  desc.pos = { player_t.x, player_t.y };
+  const auto capsule_e = Factory_DataSpaceCapsuleActor::create(r, desc);
+
+  // set the capsule's dynamic target to the enemy ship
+  r.emplace<DynamicTargetComponent>(capsule_e, enemy_e);
+
+  ApplyForceToDynamicTarget cargopod;
+  cargopod.speed = 300;
+  cargopod.orbit = false;
+  cargopod.reduce_thrusters = false;
+  r.emplace<ApplyForceToDynamicTarget>(capsule_e, cargopod);
+
+  SpaceLabelComponent slabel;
+  slabel.text = "Your Crew";
+  r.emplace<SpaceLabelComponent>(capsule_e, slabel);
+
+  // Goodbye crew!
+  crew_in_cargopod.clear();
+}
+
+ImGui::End();
+*/

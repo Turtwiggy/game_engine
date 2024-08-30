@@ -14,6 +14,7 @@
 #include "modules/scene/helpers.hpp"
 #include "modules/ui_inventory/components.hpp"
 #include "modules/ui_inventory/helpers.hpp"
+#include "modules/ui_scene_main_menu/helpers.hpp"
 
 #include "imgui.h"
 #include <magic_enum.hpp>
@@ -41,27 +42,40 @@ const auto item_slot_has_item = [](const entt::entity item_e) {
   }
 };
 
-const auto display_empty_item = [](const InventorySlotType& type, const ImVec2& size) {
-  ImGui::Button("...", size);
+const auto display_empty_item =
+  [](entt::registry& r, entt::entity slot_e, const InventorySlotType& type, const ImVec2& size) {
+    auto& ui = get_first_component<SINGLE_UIInventoryState>(r);
 
-  // tooltip
-  const std::string label = std::string(magic_enum::enum_name(type));
-  ImGui::SetItemTooltip("%s", label.c_str());
+    {
+      const uint32_t eid = static_cast<uint32_t>(slot_e);
+      const std::string label = "inv-button##" + std::to_string(eid);
 
-  // if (ImGui::BeginItemTooltip()) {
-  //   ImGui::Text("I am a fancy tooltip");
-  //   static float arr[] = { 0.6f, 0.1f, 1.0f, 0.5f, 0.92f, 0.1f, 0.2f };
-  //   ImGui::PlotLines("Curve", arr, IM_ARRAYSIZE(arr));
-  //   ImGui::Text("Sin(time) = %f", sinf((float)ImGui::GetTime()));
-  //   ImGui::EndTooltip();
-  // }
-};
+      ImGui::Button("...", size);
+
+      play_sound_if_hovered(r, ui.hovered_buttons, label);
+    }
+
+    // tooltip
+    {
+      const std::string label = std::string(magic_enum::enum_name(type));
+      ImGui::SetItemTooltip("%s", label.c_str());
+    }
+
+    // if (ImGui::BeginItemTooltip()) {
+    //   ImGui::Text("I am a fancy tooltip");
+    //   static float arr[] = { 0.6f, 0.1f, 1.0f, 0.5f, 0.92f, 0.1f, 0.2f };
+    //   ImGui::PlotLines("Curve", arr, IM_ARRAYSIZE(arr));
+    //   ImGui::Text("Sin(time) = %f", sinf((float)ImGui::GetTime()));
+    //   ImGui::EndTooltip();
+    // }
+  };
 
 const auto display_item = [](entt::registry& r, entt::entity slot_e, entt::entity item_e, const ImVec2& size) {
   const auto& ri = get_first_component<SINGLETON_RendererInfo>(r);
   const auto tex_id = search_for_texture_id_by_texture_path(ri, "monochrome")->id;
   const ImTextureID im_id = reinterpret_cast<ImTextureID>(static_cast<uintptr_t>(tex_id));
   const auto& item_tag = r.get<TagComponent>(item_e);
+  auto& ui = get_first_component<SINGLE_UIInventoryState>(r);
 
   ImVec2 tl{ 0.0f, 0.0f };
   ImVec2 br{ 1.0f, 1.0f };
@@ -77,6 +91,8 @@ const auto display_item = [](entt::registry& r, entt::entity slot_e, entt::entit
   ImGui::ImageButton(label.c_str(), im_id, size, tl, br);
   ImGui::PopStyleVar();
   ImGui::SetItemTooltip("%s", item_c.display_name.c_str());
+
+  play_sound_if_hovered(r, ui.hovered_buttons, label);
 };
 
 void
@@ -93,13 +109,11 @@ display_inventory_slot(entt::registry& r,
   const auto& slot_c = r.get<InventorySlotComponent>(inventory_slot_e);
   const auto item_e = slot_c.item_e;
 
-  if (item_e != entt::null) {
+  if (item_e != entt::null)
     display_item(r, inventory_slot_e, item_e, button_size);
-  }
 
-  if (item_e == entt::null) {
-    display_empty_item(slot_c.type, button_size);
-  }
+  if (item_e == entt::null)
+    display_empty_item(r, inventory_slot_e, slot_c.type, button_size);
 
   // item = dragdrop source
   if (item_e != entt::null)
@@ -109,37 +123,6 @@ display_inventory_slot(entt::registry& r,
   if (item_e == entt::null)
     item_slot_accepting_item(r, inventory_slot_e);
 };
-
-/*
-template<class T, class ET>
-entt::entity
-add_item(entt::registry& r,
-         entt::entity slot_e,
-         std::optional<std::string> display_name = std::nullopt,
-         std::optional<ET> type = std::nullopt)
-{
-  std::optional<T> data_v;
-  if (type.has_value())
-    data_v = T(type.value());
-  else
-    data_v = T();
-  T data = data.value();
-
-  ItemComponent item_c;
-  item_c.display_icon = data.icon;
-
-  if (type.has_value())
-    item_c.display_name = std::string(magic_enum::enum_name(type));
-  else
-    item_c.display_name = display_name.value();
-
-  item_c.parent_slot = slot_e;
-
-  auto item_e = create_empty<ItemComponent>(r, item_c);
-  update_item_parent(r, item_e, slot_e);
-  return item_e;
-};
-*/
 
 void
 update_ui_inventory_system(entt::registry& r)

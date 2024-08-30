@@ -124,12 +124,17 @@ bind_linear_texture(const LinearTexture& texture)
     format = GL_RED;
   else if (nr_components == 3)
     format = GL_RGB;
+#if defined(__EMSCRIPTEN__)
+  else if (nr_components == 4)
+    format = GL_RGBA32F;
+#else
   else if (nr_components == 4)
     format = GL_RGBA;
+#endif
 
   glActiveTexture(GL_TEXTURE0 + tex_unit);
   glBindTexture(GL_TEXTURE_2D, texture_id);
-  glTexImage2D(GL_TEXTURE_2D, 0, format, width, height, 0, format, GL_FLOAT, data.data());
+  glTexImage2D(GL_TEXTURE_2D, 0, format, width, height, 0, GL_RGBA, GL_FLOAT, data.data());
   glGenerateMipmap(GL_TEXTURE_2D);
   glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
   glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
@@ -149,7 +154,12 @@ engine::update_bound_texture_size(const glm::ivec2 size)
     fmt::println("(update_bound_texture_size) ERROR: Invalid resize for texture");
     return;
   }
+
+#if defined(__EMSCRIPTEN__)
+  glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA32F, size.x, size.y, 0, GL_RGBA, GL_FLOAT, NULL);
+#else
   glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, size.x, size.y, 0, GL_RGBA, GL_FLOAT, NULL);
+#endif
 };
 
 std::vector<unsigned int>
@@ -168,7 +178,12 @@ add_textures_to_fbo(const glm::ivec2& size, const int num_colour_buffers)
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
+
+#if defined(__EMSCRIPTEN__)
+    glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA32F, size.x, size.y, 0, GL_RGBA, GL_FLOAT, NULL);
+#else
     glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, size.x, size.y, 0, GL_RGBA, GL_FLOAT, NULL);
+#endif
 
     // attach it to the currently bound framebuffer object
     glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0 + i, GL_TEXTURE_2D, tex_id, 0);

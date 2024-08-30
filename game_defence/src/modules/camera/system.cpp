@@ -9,8 +9,8 @@
 #include "events/helpers/keyboard.hpp"
 #include "modules/camera/orthographic.hpp"
 #include "modules/renderer/components.hpp"
+#include "orthographic.hpp"
 #include "renderer/transform.hpp"
-
 
 #include <glm/glm.hpp>
 
@@ -80,7 +80,7 @@ update_camera_system(entt::registry& r, const float dt)
   TransformComponent screen_offset = camera_transform;
   screen_offset.position.x = screen_x + screen_offset.position.x;
   screen_offset.position.y = screen_y + screen_offset.position.y;
-  camera.view = calculate_ortho_view(screen_offset);
+  camera.view = calculate_ortho_view(screen_offset, dt);
 };
 
 } // namespace game2d

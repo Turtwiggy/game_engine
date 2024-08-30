@@ -38,11 +38,11 @@ create_sprite(entt::registry& r, const EntityData& desc)
 };
 
 entt::entity
-Factory_BaseActor::create(entt::registry& r, const EntityData& desc)
+Factory_BaseActor::create(entt::registry& r, const EntityData& desc, const std::string& tag)
 {
   const auto e = r.create();
 
-  r.emplace<TagComponent>(e, desc.sprite); // tag as sprite?
+  r.emplace<TagComponent>(e, tag);
   r.emplace<WaitForInitComponent>(e);
   r.emplace<SpriteComponent>(e, create_sprite(r, desc));
 

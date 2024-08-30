@@ -236,7 +236,7 @@ update_gen_dungeons_system(entt::registry& r, const glm::ivec2& mouse_pos)
   const auto helmet_e = create_transform(r);
   set_sprite(r, helmet_e, "HELMET_5");
   set_size(r, helmet_e, get_size(r, e));
-  set_z_index(r, helmet_e, 2); // above player
+  set_z_index(r, helmet_e, 3); // above player
   set_colour(r, helmet_e, { 1.0f, 1.0f, 1.0f, 1.0f });
   // r.emplace<DungeonHelmetComponent>(helmet_e);
   // r.emplace<HasParentComponent>(helmet_e, e);

@@ -33,6 +33,7 @@ GameWindow::GameWindow(const std::string& title, const DisplayMode& displaymode,
 #if !defined(__EMSCRIPTEN__)
   setvbuf(stdout, nullptr, _IONBF, 0); // dont buffer fmt::println
 #endif
+
   fmt::println("Initializing SDL...");
   fmt::println("SDL Version/Compiled {}.{}.{}", compiledVersion.major, compiledVersion.major, compiledVersion.patch);
   fmt::println("SDL Version/Linked {}.{}.{}", linkedVersion.major, linkedVersion.major, linkedVersion.patch);
@@ -77,8 +78,8 @@ GameWindow::GameWindow(const std::string& title, const DisplayMode& displaymode,
   // webgl 2
   SDL_GL_SetAttribute(SDL_GL_CONTEXT_PROFILE_MASK, SDL_GL_CONTEXT_PROFILE_ES);
   SDL_GL_SetAttribute(SDL_GL_CONTEXT_FLAGS, 0);
-  opengl_major = 3;
-  opengl_minor = 0;
+  SDL_GL_SetAttribute(SDL_GL_CONTEXT_MAJOR_VERSION, 3);
+  SDL_GL_SetAttribute(SDL_GL_CONTEXT_MINOR_VERSION, 0);
 // mac
 #elif defined(__APPLE__)
   // GL 3.3 + GLSL 330 core

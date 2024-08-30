@@ -45,8 +45,7 @@ ImGui_Manager::initialize(GameWindow& window)
   // io.ConfigViewportsNoTaskBarIcon = true;
 
   // Fonts
-  // float font_scale = 16.0f; // 1080 scale
-  //   font_scale = 18.0f; // 4k scale?
+  // float font_scale = 16.0f; // how scale for 1080, 4k?
   // io.Fonts->AddFontFromFileTTF("assets/fonts/opensans/OpenSans-Regular.ttf", font_scale);
 
   // Setup Dear ImGui style

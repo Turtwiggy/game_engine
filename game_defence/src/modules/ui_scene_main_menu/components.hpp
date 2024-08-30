@@ -11,7 +11,9 @@ struct SINGLE_MainMenuUI
 
   // probably shouldnt be here
   // std::vector<std::string> random_names;
-  std::vector<entt::entity> instantiated_players;
+  // std::vector<entt::entity> instantiated_players;
+
+  std::vector<std::string> hovered_buttons;
 };
 
 } // namespace game2d

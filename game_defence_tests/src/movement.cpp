@@ -36,9 +36,7 @@ default_setup(entt::registry& r)
   create_empty<SINGLETON_RendererInfo>(r, ri);
 
   // create a camera
-  OrthographicCamera camera_info;
-  camera_info.projection = calculate_ortho_projection(100, 100);
-  const auto camera_e = create_empty<OrthographicCamera>(r, camera_info);
+  const auto camera_e = create_empty<OrthographicCamera>(r);
   r.emplace<TransformComponent>(camera_e);
 
   move_to_scene_start(r, Scene::test);

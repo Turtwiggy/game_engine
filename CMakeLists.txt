@@ -20,8 +20,11 @@ project(subprojects VERSION 0.1.0)
 # add_subdirectory(game_networked)
 add_subdirectory(game_defence)
 
-enable_testing()
-add_subdirectory(game_defence_tests)
+if(EMSCRIPTEN)
+else()
+  enable_testing()
+  add_subdirectory(game_defence_tests)
+endif()
 
 #
 set(CPACK_PROJECT_NAME ${PROJECT_NAME})

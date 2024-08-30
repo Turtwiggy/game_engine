@@ -54,10 +54,11 @@ target_include_directories(game_defence PRIVATE
 if(EMSCRIPTEN)
   # rename as index.html
   set_target_properties(${PROJECT_NAME} PROPERTIES OUTPUT_NAME "index")
-  set_target_properties(game_defence PROPERTIES LINK_FLAGS "${LD_FLAGS}")
+  set_target_properties(${PROJECT_NAME} PROPERTIES LINK_FLAGS "${LD_FLAGS}")
 else()
   set(GAME_EXE_NAME "solar_warfare")
   set_target_properties(${PROJECT_NAME} PROPERTIES OUTPUT_NAME ${GAME_EXE_NAME})
+  set_target_properties(${PROJECT_NAME} PROPERTIES LINK_FLAGS "${LD_FLAGS}")
 endif()
 
 if(${CMAKE_SYSTEM_NAME} STREQUAL "Windows")
@@ -68,22 +69,7 @@ elseif(${CMAKE_SYSTEM_NAME} STREQUAL "Linux")
   set(VCPKG_INCLUDES ${CMAKE_CURRENT_LIST_DIR}/thirdparty/vcpkg/installed/x64-linux/include)
 endif()
 
-# Only do this for debug builds,
-# as release builds should copy the folder over (not symlink)
-IF(NOT EMSCRIPTEN AND ${CMAKE_BUILD_TYPE} MATCHES Debug)
-  message("creating symlink...")
-  set(src ${CMAKE_SOURCE_DIR}/game_defence/assets)
-  set(dst ${CMAKE_CURRENT_BINARY_DIR}/assets)
-  message("creating symlink src... ${src}")
-  message("creating symlink dst... ${dst}")
-  add_custom_command(
-    TARGET ${PROJECT_NAME} PRE_BUILD
-    COMMAND ${CMAKE_COMMAND} -E create_symlink ${src} ${dst}
-    DEPENDS ${dst}
-    COMMENT "symbolic link resources folder from ${src} => ${dst}"
-  )
-endif()
-
+# Create symlink for assets for emscripten
 IF(EMSCRIPTEN)
   set(src ${CMAKE_SOURCE_DIR}/game_defence/assets)
   set(dst ${CMAKE_CURRENT_BINARY_DIR}/../assets)
@@ -95,7 +81,21 @@ IF(EMSCRIPTEN)
     DEPENDS ${dst}
     COMMENT "symbolic link resources folder from ${src} => ${dst}"
   )
-endif()
+
+# Create symlink for assets
+ELSE()
+  message("creating symlink...")
+  set(src ${CMAKE_SOURCE_DIR}/game_defence/assets)
+  set(dst ${CMAKE_CURRENT_BINARY_DIR}/assets)
+  message("creating symlink src... ${src}")
+  message("creating symlink dst... ${dst}")
+  add_custom_command(
+    TARGET ${PROJECT_NAME} PRE_BUILD
+    COMMAND ${CMAKE_COMMAND} -E create_symlink ${src} ${dst}
+    DEPENDS ${dst}
+    COMMENT "symbolic link resources folder from ${src} => ${dst}"
+  )
+ENDIF()
 
 set(CPACK_PROJECT_NAME ${PROJECT_NAME})
 set(CPACK_PROJECT_VERSION ${PROJECT_VERSION})

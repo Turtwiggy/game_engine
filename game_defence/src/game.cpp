@@ -73,7 +73,6 @@
 #include "sprites/components.hpp"
 #include "sprites/helpers.hpp"
 
-
 #include "fmt/core.h"
 #include "imgui.h"
 
@@ -100,7 +99,7 @@ init(engine::SINGLETON_Application& app, entt::registry& r)
   //   font_scale = X.0f; // 4k scale?
   const std::string exe_path = engine::get_exe_path_without_exe_name();
   fmt::println("exe path: {}", exe_path);
-  const std::string font_path = exe_path + "assets/fonts/Roboto-Regular.ttf"s;
+  const std::string font_path = exe_path + "assets/fonts/ProggyClean.ttf"s;
   io.Fonts->AddFontFromFileTTF(font_path.c_str(), font_scale);
 
   {
@@ -160,8 +159,10 @@ init_slow(engine::SINGLETON_Application& app, entt::registry& r)
 
     audio.sounds.push_back({ "MENU_01", path + "scott-buckley-moonlight.mp3", SoundType::BACKGROUND });
     audio.sounds.push_back({ "GAME_01", path + "alex-productions-arnor.mp3", SoundType::BACKGROUND });
-    // audio.sounds.push_back({ "GAME_01", "purrple-cat-green-tea.mp3" });
-    // audio.sounds.push_back({ "MENU_01", "scott-buckley-phaseshift.mp3" });
+
+    audio.sounds.push_back({ "UI_HOVER_01", path + "UI_SCI-FI_Tone_Bright_Wet_12_stereo.wav", SoundType::SFX });
+    audio.sounds.push_back({ "UI_SELECT_01", path + "UI_SCI-FI_Tone_Bright_Wet_25_stereo.wav", SoundType::SFX });
+
     // audio.sounds.push_back({ "COMBAT_01", path + ".mp3", SoundType::BACKGROUND });
     // audio.sounds.push_back({ "WIN_01", "8-bit-win-funk-david-renda.wav" });
     // audio.sounds.push_back({ "LOSS_01", "8-bit-loss-david-renda.wav" });

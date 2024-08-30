@@ -4,6 +4,8 @@
 
 #include <entt/entt.hpp>
 
+#include <string>
+
 namespace game2d {
 
 /*
@@ -14,7 +16,7 @@ namespace game2d {
 class Factory_BaseActor
 {
 public:
-  static entt::entity create(entt::registry& r, const EntityData& desc);
+  static entt::entity create(entt::registry& r, const EntityData& desc, const std::string& tag);
 };
 
 } // namespace game2d

@@ -33,6 +33,7 @@
 #include "modules/ui_combat_turnbased/components.hpp"
 #include "modules/ui_event_console/components.hpp"
 #include "modules/ui_inventory/components.hpp"
+#include "modules/ui_overworld_launch_crew/components.hpp"
 #include "modules/ui_overworld_ship_label/components.hpp"
 #include "modules/ui_scene_main_menu/components.hpp"
 #include "modules/ui_selected/components.hpp"
@@ -165,7 +166,7 @@ move_to_scene_overworld_revamped(entt::registry& r)
     r.emplace<SpaceLabelComponent>(player_e, player_label);
 
     SpaceLabelComponent enemy_label;
-    enemy_label.text = "Hostile Hauler";
+    enemy_label.text = "Hauler";
     enemy_label.ui_colour = engine::SRGBColour{ 1.0f, 0.3f, 0.3f, 1.0f };
     r.emplace<SpaceLabelComponent>(enemy_e, enemy_label);
 
@@ -182,6 +183,9 @@ move_to_scene_overworld_revamped(entt::registry& r)
     quip_req.quipp_e = enemy_e;
     quip_req.seconds_to_quip = 6.0f;
     create_empty<RequestQuip>(r, quip_req);
+
+    // allow user to board the ship
+    create_empty<RequestShowBoardShipButton>(r, RequestShowBoardShipButton{ true });
   };
   create_empty<DistanceCheckComponent>(r, distance_c);
 };
@@ -191,8 +195,10 @@ move_to_scene_additive(entt::registry& r, const Scene& s)
 {
   stop_all_audio(r);
 
-  if (s == Scene::overworld_revamped)
+  if (s == Scene::overworld_revamped) {
+    create_empty<AudioRequestPlayEvent>(r, AudioRequestPlayEvent{ "GAME_01" });
     move_to_scene_overworld_revamped(r);
+  }
 
   const auto scene_name = std::string(magic_enum::enum_name(s));
   fmt::println("additive scene. scene set to: {}", scene_name);
@@ -230,6 +236,7 @@ move_to_scene_start(entt::registry& r, const Scene& s, const bool load_saved)
   destroy_first_and_create<SINGLETON_InputComponent>(r);
   destroy_first_and_create<SINGLE_ScreenshakeComponent>(r);
   destroy_first_and_create<SINGLE_EventConsoleLogComponent>(r);
+  destroy_first_and_create<SINGLE_UIInventoryState>(r);
 
   destroy_first<SINGLE_SelectedUI>(r);
   destroy_first<SINGLE_TurnBasedCombatInfo>(r);
