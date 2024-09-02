@@ -64,14 +64,12 @@ generate_rooms(entt::registry& r, const DungeonGenerationCriteria& data, engine:
 
   std::vector<int> wall_or_floors(map.xmax * map.ymax, 1); // 1: everything as wall
 
-  const int xmax = map.xmax;
   const int max_rooms = data.max_rooms;
   const int room_size_min = data.room_size_min;
   const int room_size_max = data.room_size_max;
-
-  // Create some rooms
   const int map_width = map.xmax;
   const int map_height = map.ymax;
+  const int xmax = map.xmax;
 
   std::vector<Room> rooms;
   std::vector<Tunnel> tunnels;
@@ -109,17 +107,8 @@ generate_rooms(entt::registry& r, const DungeonGenerationCriteria& data, engine:
 
       for (int y = 0; y < h; y++) {
         for (int x = 0; x < w; x++) {
-
           // by commenting out below,
           // set the entire generated room to "floor"
-
-          // create walls on the outside of the room
-          // bool create_as_wall = false;
-          // if (x == 0 || x == w - 1)
-          //   create_as_wall = true;
-          // if (y == 0 || y == h - 1)
-          //   create_as_wall = true;
-
           const auto grid_pos = glm::ivec2{ room.tl.x + x, room.tl.y + y };
           const auto global_idx = engine::grid::grid_position_to_index(grid_pos, xmax);
           wall_or_floors[global_idx] = 0;
@@ -270,77 +259,75 @@ void
 set_generated_entity_positions(entt::registry& r, DungeonGenerationResults& results, engine::RandomState& rnd)
 {
   const auto& map_c = get_first_component<MapComponent>(r);
-  // const auto& data = get_first_component<OverworldToDungeonInfo>(r);
-  // const int strength = data.patrol_that_you_hit.strength;
-  const int strength = 10; // TODO: fix this
-  auto& rooms = results.rooms;
 
-  const int max_attempts_to_generate_unique_spot = 3;
-  // const int potential_items_per_room = 5 + (floor);
-  // const int potential_monsters_per_room = 5 + (floor);
-  // printf("floor %i has max items %i, max monsters: %i\n", floor, potential_items_per_room, potential_monsters_per_room);
+  // TODO: fix this
+  // not every room should have the same strength..
+  const int strength = 3;
 
-  int room_idx_to_spawn = 1;
-  for (int i = strength; i > 0; i--) {
-    if (room_idx_to_spawn == 0)
-      room_idx_to_spawn++; // first index room is player room
-
-    if (rooms.size() < 2) {
-      fmt::println("WARNING! roomgen issue...");
-      break;
-    }
-    Room& room = rooms[room_idx_to_spawn];
+  // i = 0 is the player room
+  for (size_t i = 1; i < results.rooms.size(); i++) {
+    const Room& room = results.rooms[i];
     const glm::ivec2 tl = room.tl;
     const glm::ivec2 br = room.tl + glm::ivec2{ room.aabb.size.x, room.aabb.size.y };
 
-    glm::ivec2 gridpos{ tl.x + 1, tl.y + 1 };
-    for (int j = 0; j < max_attempts_to_generate_unique_spot; j++) {
-      // random position
-      const int x = static_cast<int>(engine::rand_det_s(rnd.rng, tl.x, br.x));
-      const int y = static_cast<int>(engine::rand_det_s(rnd.rng, tl.y, br.y));
-      const auto attempt = glm::ivec2{ x, y };
+    std::vector<int> free_slots;
+    for (int x = tl.x + 1; x < br.x - 1; x++) {
+      for (int y = tl.y + 1; y < br.y - 1; y++) {
+        const auto idx = engine::grid::grid_position_to_index({ x, y }, map_c.xmax);
 
-      // Check the tile isn't occupied
-      const auto full =
-        std::find_if(room.occupied.begin(), room.occupied.end(), [&attempt](const auto& pos) { return pos == attempt; });
-      const bool entity_at_position = full != room.occupied.end();
+        if (map_c.map[idx] != entt::null)
+          continue; // not free...
 
-      if (entity_at_position)
-        continue; // try again
-
-      // otherwise, hit our gen spot
-      gridpos = attempt;
-      room.occupied.push_back(gridpos);
-      break;
+        free_slots.push_back(idx);
+      }
     }
 
-    const glm::ivec2 pos = engine::grid::grid_space_to_world_space_center(gridpos, map_c.tilesize);
+    // Free slots in room...
+    if (free_slots.size() < strength)
+      fmt::println("warning: room size: {}, strength required: {}", free_slots.size(), strength);
 
-    // actor_dungeon description
+    fmt::println("Room free slots: {}", free_slots.size());
 
-    DataDungeonActor desc;
-    desc.pos = pos;
-    desc.team = AvailableTeams::enemy;
-    desc.hp = 50;
-    desc.max_hp = 50;
-    // desc.hovered_colour = { 1.0f, 0.0f, 0.0f, 1.0f };
-    const auto dungeon_e = Factory_DataDungeonActor::create(r, desc);
+    // Spawn something for every strength.
+    for (int i = strength; i > 0; i--) {
 
-    const auto idx = engine::grid::worldspace_to_index(pos, map_c.tilesize, map_c.xmax, map_c.ymax);
-    add_entity_to_map(r, dungeon_e, idx);
+      const int n_free_slots = static_cast<int>(free_slots.size());
+      if (n_free_slots == 0)
+        break;
 
-    // get enemies to drop scrap
-    r.emplace<DropItemsOnDeathComponent>(dungeon_e);
+      //
+      // choose a random free slot
+      //
+      const int slot_i = engine::rand_det_s(rnd.rng, 0, n_free_slots);
+      const int slot_idx = free_slots[slot_i];
 
-    // give enemies a shotgun
-    DataWeaponShotgun wdesc;
-    wdesc.able_to_shoot = true;
-    wdesc.parent = dungeon_e;
-    wdesc.team = desc.team;
-    const auto weapon_e = Factory_DataWeaponShotgun::create(r, wdesc);
+      //
+      // SPAWN THE ENEMY
+      //
 
-    room_idx_to_spawn++;
-    room_idx_to_spawn %= rooms.size();
+      DataDungeonActor desc;
+      desc.pos = engine::grid::index_to_world_position_center(slot_idx, map_c.xmax, map_c.ymax, map_c.tilesize);
+      desc.team = AvailableTeams::enemy;
+      desc.hp = 50;
+      desc.max_hp = 50;
+      const auto dungeon_e = Factory_DataDungeonActor::create(r, desc);
+      add_entity_to_map(r, dungeon_e, slot_idx);
+
+      // get enemies to drop scrap
+      r.emplace<DropItemsOnDeathComponent>(dungeon_e);
+
+      // give enemies a shotgun
+      DataWeaponShotgun wdesc;
+      wdesc.able_to_shoot = true;
+      wdesc.parent = dungeon_e;
+      wdesc.team = desc.team;
+      const auto weapon_e = Factory_DataWeaponShotgun::create(r, wdesc);
+
+      // remove slot from free slot
+      free_slots.erase(free_slots.begin() + slot_i);
+    }
+
+    //
   }
 };
 

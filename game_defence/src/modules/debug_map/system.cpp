@@ -5,6 +5,7 @@
 #include "entt/helpers.hpp"
 #include "maths/grid.hpp"
 #include "modules/grid/components.hpp"
+#include "modules/renderer/components.hpp"
 #include "modules/system_change_gun_z_index/helpers.hpp"
 
 namespace game2d {
@@ -39,7 +40,7 @@ update_debug_map_system(entt::registry& r)
     set_position(r, instance_e, wp);
     set_size(r, instance_e, { 8, 8 });
     set_colour(r, instance_e, { 0.75f, 0.25f, 0.25f, 1.0f });
-    set_z_index(r, instance_e, 1); // infront
+    // set_z_index(r, instance_e, ZLayer::FOREGROUND);
   }
 }
 

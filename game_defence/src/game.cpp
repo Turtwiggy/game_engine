@@ -96,10 +96,9 @@ init(engine::SINGLETON_Application& app, entt::registry& r)
   // Fonts
   auto& io = ImGui::GetIO();
   float font_scale = 14.0f;
-  //   font_scale = X.0f; // 4k scale?
   const std::string exe_path = engine::get_exe_path_without_exe_name();
   fmt::println("exe path: {}", exe_path);
-  const std::string font_path = exe_path + "assets/fonts/ProggyClean.ttf"s;
+  const std::string font_path = exe_path + "assets/fonts/ProggyTiny.ttf"s;
   io.Fonts->AddFontFromFileTTF(font_path.c_str(), font_scale);
 
   {

@@ -45,6 +45,7 @@ Factory_BaseActor::create(entt::registry& r, const EntityData& desc, const std::
   r.emplace<TagComponent>(e, tag);
   r.emplace<WaitForInitComponent>(e);
   r.emplace<SpriteComponent>(e, create_sprite(r, desc));
+  r.emplace<ZIndex>(e, ZIndex{ ZLayer::DEFAULT });
 
   TransformComponent tf;
   tf.position = { desc.pos.x, desc.pos.y, 0.0f };

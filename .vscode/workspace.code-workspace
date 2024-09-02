@@ -7,9 +7,9 @@
   "settings": {
     "cmake.preferredGenerators": ["Ninja"],
     "cmake.parallelJobs": 32,
+
     "C_Cpp.intelliSenseEngine": "disabled", // use clangd
     "clangd.checkUpdates": true,
-
     "clangd.path": "C:/Software/msys64/ucrt64/bin/clangd.exe",
     "cmake.cmakePath": "C:/Software/msys64/ucrt64/bin/cmake.exe",
     "cmake.ctestPath": "C:/Software/msys64/ucrt64/bin/ctest.exe",

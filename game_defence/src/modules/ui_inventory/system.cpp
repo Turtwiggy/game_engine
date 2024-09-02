@@ -46,20 +46,19 @@ const auto display_empty_item =
   [](entt::registry& r, entt::entity slot_e, const InventorySlotType& type, const ImVec2& size) {
     auto& ui = get_first_component<SINGLE_UIInventoryState>(r);
 
-    {
-      const uint32_t eid = static_cast<uint32_t>(slot_e);
-      const std::string label = "inv-button##" + std::to_string(eid);
+    const uint32_t eid = static_cast<uint32_t>(slot_e);
+    const std::string label = "inv-button##" + std::to_string(eid);
 
-      ImGui::Button("...", size);
+    ImGui::PushStyleVar(ImGuiStyleVar_FramePadding, ImVec2(0, 0));
+    ImGui::Button(" ", size);
+    ImGui::PopStyleVar();
 
-      play_sound_if_hovered(r, ui.hovered_buttons, label);
-    }
+    // sounds
+    play_sound_if_hovered(r, ui.hovered_buttons, label);
 
     // tooltip
-    {
-      const std::string label = std::string(magic_enum::enum_name(type));
-      ImGui::SetItemTooltip("%s", label.c_str());
-    }
+    const std::string label_tooltip = std::string(magic_enum::enum_name(type));
+    ImGui::SetItemTooltip("%s", label_tooltip.c_str());
 
     // if (ImGui::BeginItemTooltip()) {
     //   ImGui::Text("I am a fancy tooltip");
@@ -90,9 +89,12 @@ const auto display_item = [](entt::registry& r, entt::entity slot_e, entt::entit
   ImGui::PushStyleVar(ImGuiStyleVar_FramePadding, ImVec2(0, 0));
   ImGui::ImageButton(label.c_str(), im_id, size, tl, br);
   ImGui::PopStyleVar();
-  ImGui::SetItemTooltip("%s", item_c.display_name.c_str());
 
+  // sounds
   play_sound_if_hovered(r, ui.hovered_buttons, label);
+
+  // tooltip
+  ImGui::SetItemTooltip("%s", item_c.display_name.c_str());
 };
 
 void

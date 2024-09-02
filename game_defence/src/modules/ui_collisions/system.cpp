@@ -14,8 +14,7 @@ update_ui_collisions_system(entt::registry& r)
 
   ImGuiWindowFlags flags = 0;
   flags |= ImGuiWindowFlags_NoFocusOnAppearing;
-  flags |= ImGuiWindowFlags_NoTitleBar;
-  flags |= ImGuiWindowFlags_NoBackground;
+  flags |= ImGuiWindowFlags_NoDecoration;
 
   ImGui::Begin("Collisions", NULL, flags);
 

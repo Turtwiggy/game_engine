@@ -1,4 +1,4 @@
-#include "helpers.hpp"
+#include "modules/scene/helpers.hpp"
 
 #include "actors/actors.hpp"
 #include "actors/helpers.hpp"
@@ -76,7 +76,7 @@ move_to_scene_menu(entt::registry& r)
 {
   destroy_first_and_create<SINGLE_MainMenuUI>(r);
   destroy_first_and_create<Effect_GridComponent>(r);
-  create_empty<AudioRequestPlayEvent>(r, AudioRequestPlayEvent{ "MENU_01" });
+  create_empty<AudioRequestPlayEvent>(r, AudioRequestPlayEvent{ "MENU_01", true });
   const auto& ri = get_first_component<SINGLETON_RendererInfo>(r);
 
   // Load randoms name file
@@ -166,7 +166,7 @@ move_to_scene_overworld_revamped(entt::registry& r)
     r.emplace<SpaceLabelComponent>(player_e, player_label);
 
     SpaceLabelComponent enemy_label;
-    enemy_label.text = "Hauler";
+    enemy_label.text = "Small Ship";
     enemy_label.ui_colour = engine::SRGBColour{ 1.0f, 0.3f, 0.3f, 1.0f };
     r.emplace<SpaceLabelComponent>(enemy_e, enemy_label);
 

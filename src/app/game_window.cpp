@@ -460,4 +460,41 @@ GameWindow::get_vsync_opengl() const
   const int enabled = SDL_GL_GetSwapInterval();
   return static_cast<bool>(enabled);
 }
+
+void
+GameWindow::set_icon(const std::string& path)
+{
+  // SDL_Surface* iconSurface = IMG_Load("icon.png"); // If PNG or other format
+  // const SDL_Surface* iconSurface = SDL_LoadBMP(path);
+  // SDL_SetWindowIcon(this.get, SDL_Surface * icon)
+
+#if defined(WIN32) || defined(_WIN32)
+
+  // Example: Setting the window icon
+  HINSTANCE hInstance = GetModuleHandle(NULL);
+
+  SDL_SysWMinfo wmi;
+  SDL_VERSION(&wmi.version);
+  if (!SDL_GetWindowWMInfo(this->get_handle(), &wmi))
+    return;
+
+  HWND hWnd = wmi.info.win.window;
+  HICON hIcon = (HICON)LoadImage(NULL,         // hInstance is NULL when loading from a file
+                                 path.c_str(), // Path to the icon file
+                                 IMAGE_ICON,
+                                 32, // Icon size (width, height)
+                                 32,
+                                 LR_LOADFROMFILE | LR_DEFAULTSIZE // Load icon from file and use default size
+  );
+
+  if (hIcon) {
+    fmt::println("setting icon...");
+    SendMessage(hWnd, WM_SETICON, ICON_BIG, (LPARAM)hIcon);
+  } else
+    fmt::println("unable to load icon...");
+
+    //
+#endif
 }
+
+} // namespace game2d

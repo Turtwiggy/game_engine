@@ -7,21 +7,17 @@
 #include "events/components.hpp"
 #include "events/helpers/keyboard.hpp"
 #include "events/helpers/mouse.hpp"
-#include "lifecycle/components.hpp"
 #include "maths/grid.hpp"
 #include "maths/maths.hpp"
 #include "modules/actor_player/components.hpp"
 #include "modules/algorithm_astar_pathfinding/components.hpp"
 #include "modules/camera/components.hpp"
 #include "modules/combat_wants_to_shoot/components.hpp"
-#include "modules/gen_dungeons//helpers.hpp"
 #include "modules/gen_dungeons/components.hpp"
 #include "modules/gen_dungeons/helpers.hpp"
-#include "modules/gen_dungeons/helpers/gen_players.hpp"
 #include "modules/grid/components.hpp"
 #include "modules/scene/helpers.hpp"
 #include "modules/system_change_gun_z_index/helpers.hpp"
-#include "modules/system_dungeon_helmet/components.hpp"
 #include "modules/system_fov/components.hpp"
 #include "modules/system_move_to_target_via_lerp/components.hpp"
 #include "modules/ui_combat_turnbased/components.hpp"
@@ -163,9 +159,8 @@ update_gen_dungeons_system(entt::registry& r, const glm::ivec2& mouse_pos)
   auto& map = get_first_component<MapComponent>(r);
 
   // create new map & dungeon constraints
-  const int strength = 10; // TODO: fix this
-  const int map_width = strength * 100;
-  const int map_height = strength * 100;
+  const int map_width = 1500;
+  const int map_height = 1500;
   map.tilesize = 50;
   map.xmax = map_width / map.tilesize;
   map.ymax = map_height / map.tilesize;
@@ -173,8 +168,8 @@ update_gen_dungeons_system(entt::registry& r, const glm::ivec2& mouse_pos)
 
   DungeonGenerationCriteria dungeon_parameters;
   dungeon_parameters.max_rooms = 30;
-  dungeon_parameters.room_size_min = glm::max(strength / 2, 3);
-  dungeon_parameters.room_size_max = glm::min((strength / 2) + 5, map.xmax);
+  dungeon_parameters.room_size_min = 4;
+  dungeon_parameters.room_size_max = glm::min(10, map.xmax);
 
   auto result = generate_rooms(r, dungeon_parameters, rnd);
 
@@ -215,7 +210,8 @@ update_gen_dungeons_system(entt::registry& r, const glm::ivec2& mouse_pos)
       set_size(r, floor_e, { map.tilesize, map.tilesize });
       // float rnd_col = engine::rand_det_s(rnd.rng, 0.8, 0.85f);
       // set_colour(r, floor_e, { rnd_col, rnd_col, rnd_col, 1.0f });
-      set_z_index(r, floor_e, -1);
+
+      set_z_index(r, floor_e, ZLayer::BACKGROUND);
       result.floor_tiles[engine::grid::grid_position_to_index(gridpos, map.xmax)] = floor_e;
     }
   }
@@ -227,7 +223,7 @@ update_gen_dungeons_system(entt::registry& r, const glm::ivec2& mouse_pos)
 
   // set_player_positions(r, result, rnd);
   DataJetpackActor desc;
-  desc.pos = { -100, -100 };
+  desc.pos = { -100, -100 }; // somewhere around the ship?
   desc.team = AvailableTeams::player;
   const auto e = Factory_DataJetpackActor::create(r, desc);
   r.emplace<CameraFollow>(e);
@@ -236,15 +232,9 @@ update_gen_dungeons_system(entt::registry& r, const glm::ivec2& mouse_pos)
   const auto helmet_e = create_transform(r);
   set_sprite(r, helmet_e, "HELMET_5");
   set_size(r, helmet_e, get_size(r, e));
-  set_z_index(r, helmet_e, 3); // above player
+  set_z_index(r, helmet_e, ZLayer::PLAYER_HELMET);
   set_colour(r, helmet_e, { 1.0f, 1.0f, 1.0f, 1.0f });
-  // r.emplace<DungeonHelmetComponent>(helmet_e);
-  // r.emplace<HasParentComponent>(helmet_e, e);
-
   r.emplace<DynamicTargetComponent>(helmet_e).target = e;
-  SetPositionAtDynamicTarget tgt;
-  tgt.offset = { 0, -10 };
-  // r.emplace<SetPositionAtDynamicTarget>(helmet_e, tgt);
   r.emplace<SetRotationAsDynamicTarget>(helmet_e);
 
   // set exit door position
@@ -264,6 +254,11 @@ update_gen_dungeons_system(entt::registry& r, const glm::ivec2& mouse_pos)
   //   else
   //     pathfinding_c.cost = 0; // floor
   // }
+
+  // see ship outside ship
+  // #if defined(_DEBUG)
+  //   create_empty<RequestUpdateFOV>(r);
+  // #endif
 
   create_empty<DungeonGenerationResults>(r, result);
   fmt::println("dungeon generated");

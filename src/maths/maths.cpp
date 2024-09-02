@@ -2,6 +2,8 @@
 // header
 #include "maths/maths.hpp"
 
+#include <fmt/core.h>
+
 namespace engine {
 
 [[nodiscard]] float
@@ -65,6 +67,11 @@ encode_cantor_pairing_function(int x, int y)
 {
   // If you don't want to make a distinction between the pairs (a, b) and (b, a),
   // then sort a and b before applying the pairing function.
+
+  if (x < 0 || y < 0) {
+    fmt::println("encode cantor pairing function not implemented negative ints");
+    exit(1); // crash
+  }
 
   if (y < x) {
     // Swap X and Y

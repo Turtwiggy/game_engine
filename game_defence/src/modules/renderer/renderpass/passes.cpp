@@ -121,12 +121,13 @@ setup_linear_main_update(entt::registry& r)
       engine::quad_renderer::QuadRenderer::reset_quad_vert_count();
       engine::quad_renderer::QuadRenderer::begin_batch();
 
-      const auto& group = r.group<TransformComponent, SpriteComponent>();
+      const auto& group = r.group<TransformComponent, SpriteComponent, ZIndex>();
 
       // sort by z-index; adds 0.5ms
-      group.sort<TransformComponent>([](const auto& a, const auto& b) { return a.position.z < b.position.z; });
+      group.sort<ZIndex>(
+        [](const auto& a, const auto& b) { return static_cast<size_t>(a.layer) < static_cast<size_t>(b.layer); });
 
-      for (const auto& [entity, transform, sc] : group.each()) {
+      for (const auto& [entity, transform, sc, zidx] : group.each()) {
         engine::quad_renderer::RenderDescriptor desc;
         desc.pos_tl = transform.position - (transform.scale * 0.5f);
         desc.size = transform.scale;

@@ -28,7 +28,7 @@ calculate_ortho_projection(int w, int h, const float dt)
   return glm::ortho(l_zoom, r_zoom, b_zoom, t_zoom, -1.0f, 1.0f);
   */
 
-  return glm::ortho(left, right, bottom, top, -1.0f, 1.0f);
+  return glm::ortho(left, right, bottom, top, -10.0f, 10.0f);
 };
 
 glm::mat4

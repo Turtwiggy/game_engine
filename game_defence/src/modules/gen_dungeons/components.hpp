@@ -19,9 +19,6 @@ struct Room
 {
   glm::ivec2 tl{ 0, 0 };
   RoomAABB aabb; // aabb is in tile-space, not world-space.
-
-  // occupied only accurate at generation stage
-  std::vector<glm::ivec2> occupied;
 };
 inline bool
 operator==(const Room& a, const Room& b)

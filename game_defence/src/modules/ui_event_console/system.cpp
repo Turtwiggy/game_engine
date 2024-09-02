@@ -17,8 +17,10 @@ update_ui_event_console_system(entt::registry& r)
   const auto& ri = get_first_component<SINGLETON_RendererInfo>(r);
 
   static int events = 0;
-  static int new_events = 0;
-  new_events = (int)evts.events.size();
+  const int new_events = (int)evts.events.size();
+
+  if (events == 0 && new_events == 0)
+    return; // hide ui
 
   ImGuiWindowFlags flags = 0;
   flags |= ImGuiWindowFlags_NoFocusOnAppearing;
@@ -27,18 +29,19 @@ update_ui_event_console_system(entt::registry& r)
   flags |= ImGuiWindowFlags_NoTitleBar;
   flags |= ImGuiWindowFlags_NoBackground;
 
-  const ImVec2 size{ 300, 150 };
+  const ImVec2 size{ 300, 200 };
 
   // top right
   const ImVec2 pos{ ri.viewport_size_render_at.x - size.x, 0 };
   ImGui::SetNextWindowPos(pos, ImGuiCond_Always, { 0, 0 });
   ImGui::SetNextWindowSize(size, ImGuiCond_Always);
 
-  static bool show_events = true;
-  ImGui::Begin("Events", &show_events, flags);
+  ImGui::Begin("Event Log", NULL, flags);
+
+  ImGui::SeparatorText("Event Log");
 
   for (const auto& evt : evts.events)
-    ImGui::Text("- %s", evt.c_str());
+    ImGui::Text("%s", evt.c_str());
 
   // Display bottom when new event occurs
   if (new_events != events) {

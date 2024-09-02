@@ -3,6 +3,7 @@
 #include "entt/entt.hpp"
 #include "maths/maths.hpp"
 
+#include <functional>
 #include <vector>
 
 namespace game2d {
@@ -27,7 +28,12 @@ operator==(const Edge& a, const Edge& b)
 
 struct EdgeHash
 {
-  size_t operator()(const Edge& s) const { return engine::encode_cantor_pairing_function(s.a_idx, s.b_idx); }
+  size_t operator()(const Edge& s) const
+  {
+    std::size_t h1 = std::hash<int>{}(s.a_idx);
+    std::size_t h2 = std::hash<int>{}(s.b_idx);
+    return h1 ^ (h2 << 1); // or use boost::hash_combine
+  };
 };
 
 struct MapComponent

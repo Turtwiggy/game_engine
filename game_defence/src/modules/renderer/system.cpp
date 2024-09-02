@@ -223,6 +223,7 @@ init_render_system(const engine::SINGLETON_Application& app, entt::registry& r, 
   // glEnable(GL_MULTISAMPLE);
 #endif
 
+  glEnable(GL_DEPTH_TEST);
   glEnable(GL_BLEND);
   glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 

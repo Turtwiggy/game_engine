@@ -16,7 +16,7 @@ struct DataWeaponShotgun : public EntityData
   DataWeaponShotgun()
   {
     icon = "WEAPON_SHOTGUN";
-    sprite = "EMPTY";
+    sprite = "WEAPON_SHOTGUN";
   }
 };
 

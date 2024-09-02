@@ -139,7 +139,7 @@ update_audio_system(entt::registry& r)
     audio_source.state = AudioSourceState::PLAYING;
 
     const Sound s = get_sound(audio, request.tag);
-    const int channel = Mix_PlayChannel(audio_source.channel, s.buffer, 0);
+    const int channel = Mix_PlayChannel(audio_source.channel, s.buffer, request.looping ? -1 : 0);
     if (channel != audio_source.channel) {
       fmt::println("Warning: sound playing on incorrect channel");
     }

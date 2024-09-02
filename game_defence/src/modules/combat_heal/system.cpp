@@ -29,7 +29,7 @@ update_combat_heal_system(entt::registry& r)
 
   const auto& input = get_first_component<SINGLETON_InputComponent>(r);
   if (get_key_down(input, SDL_SCANCODE_Q))
-    r.emplace<WantsToHeal>(player_e);
+    r.emplace_or_replace<WantsToHeal>(player_e);
 
   for (const auto& [e, req, hp, actions] : r.view<WantsToHeal, HealthComponent, ActionState>().each()) {
     if (actions.actions_available <= 0)

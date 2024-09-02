@@ -11,6 +11,7 @@ namespace game2d {
 struct AudioRequestPlayEvent
 {
   std::string tag;
+  bool looping = false;
 };
 
 // classes to support System()
@@ -28,7 +29,7 @@ struct AudioSource
 
   AudioSource() = default;
   AudioSource(const int c)
-    : channel(c){};
+    : channel(c) {};
 };
 
 struct AudioListener

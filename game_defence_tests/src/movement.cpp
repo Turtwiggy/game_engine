@@ -66,7 +66,7 @@ TEST(TestSuite, MoveToFreeTile)
 
   // assert: has moved
   const auto it = std::find(map_c.map.begin(), map_c.map.end(), dungeon_e);
-  const auto idx = it - map_c.map.begin();
+  const auto idx = static_cast<int>(it - map_c.map.begin());
   const glm::ivec2 expected = glm::ivec2{ 1, 0 };
   const glm::ivec2 actual = engine::grid::index_to_grid_position(idx, map_c.xmax, map_c.ymax);
   ASSERT_EQ(expected, actual);
@@ -91,7 +91,7 @@ TEST(TestSuite, MoveToOccupiedTile)
 
   // assert: has not moved
   const auto it = std::find(map_c.map.begin(), map_c.map.end(), dungeon_e_0);
-  const auto idx = it - map_c.map.begin();
+  const auto idx = static_cast<int>(it - map_c.map.begin());
   const glm::ivec2 expected = glm::ivec2{ 0, 0 }; // hasnt moved
   const glm::ivec2 actual = engine::grid::index_to_grid_position(idx, map_c.xmax, map_c.ymax);
   ASSERT_EQ(expected, actual);
@@ -130,7 +130,7 @@ TEST(TestSuite, MoveToItemTileWithInventory)
   {
     const auto& map_c = get_first_component<MapComponent>(r);
     const auto it = std::find(map_c.map.begin(), map_c.map.end(), dungeon_e);
-    const auto idx = it - map_c.map.begin();
+    const auto idx = static_cast<int>(it - map_c.map.begin());
     const glm::ivec2 expected = glm::ivec2{ 1, 0 };
     const glm::ivec2 actual = engine::grid::index_to_grid_position(idx, map_c.xmax, map_c.ymax);
     ASSERT_EQ(expected, actual);
@@ -230,7 +230,7 @@ TEST(TestSuite, MoveToItemTileWithNoInventory)
   {
     const auto& map_c = get_first_component<MapComponent>(r);
     const auto it = std::find(map_c.map.begin(), map_c.map.end(), dungeon_e);
-    const auto idx = it - map_c.map.begin();
+    const auto idx = static_cast<int>(it - map_c.map.begin());
     const glm::ivec2 expected = glm::ivec2{ 0, 0 };
     const glm::ivec2 actual = engine::grid::index_to_grid_position(idx, map_c.xmax, map_c.ymax);
     ASSERT_EQ(expected, actual);

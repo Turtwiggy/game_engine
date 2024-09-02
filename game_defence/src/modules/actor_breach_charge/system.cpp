@@ -2,11 +2,11 @@
 
 #include "actors/actors.hpp"
 
-#include "components.hpp"
 #include "entt/helpers.hpp"
 #include "events/helpers/mouse.hpp"
 #include "maths/grid.hpp"
 #include "maths/maths.hpp"
+#include "modules/actor_breach_charge/helpers.hpp"
 #include "modules/actor_player/components.hpp"
 #include "modules/camera/helpers.hpp"
 #include "modules/grid/components.hpp"
@@ -85,14 +85,25 @@ update_breach_charge_system(entt::registry& r, const glm::ivec2& mouse_pos, cons
   glm::ivec2 mouse_pos_on_grid = engine::grid::worldspace_to_clamped_world_space(mouse_pos, map.tilesize);
   mouse_pos_on_grid += offset;
 
+  // do the rest of the logic if not debugging this
+  if (debug_spawn_bombs(r, mouse_pos_on_grid))
+    return;
+
+  // only place bombs if bomb equipped
+  const auto [has_bomb, bomb_e] = bomb_equipped_in_inventory(r);
+  if (!has_bomb)
+    return;
+
   static float lmb_held_time = 0.0f;
   static float lmb_time_to_place_bomb = 2.5f;
+
   if (get_mouse_lmb_held())
     lmb_held_time += dt;
   if (get_mouse_lmb_release())
     lmb_held_time = 0.0f;
-  const bool place_bomb = lmb_held_time > lmb_time_to_place_bomb;
-  if (place_bomb)
+
+  const bool cursor_complete_so_place_bomb = lmb_held_time > lmb_time_to_place_bomb;
+  if (cursor_complete_so_place_bomb)
     lmb_held_time = 0.0f;
   // ImGui::Text("Bomb Held time: %f", lmb_held_time);
 
@@ -100,60 +111,20 @@ update_breach_charge_system(entt::registry& r, const glm::ivec2& mouse_pos, cons
   const float angle = engine::scale(lmb_held_time, 0.0f, lmb_time_to_place_bomb, 0.0f, 2.0f * engine::PI);
   DrawZeldaCursorWindow(r, mouse_pos, angle);
 
-  bool imediately_place_bomb = false;
-#if defined(_DEBUG)
-  imediately_place_bomb = false;
-#endif
+  if (cursor_complete_so_place_bomb && has_bomb && bomb_e != entt::null) {
+    fmt::println("spawning bomb!");
 
-  // debug spawn loads of bombs
-  if (imediately_place_bomb && get_mouse_lmb_press()) {
-    fmt::println("immediately placing bomb...");
+    // spawn the bomb!
     DataBreachCharge desc;
     desc.pos = glm::vec2(mouse_pos_on_grid);
     const auto charge_e = Factory_DataBreachCharge::create(r, desc);
-  }
 
-  if (imediately_place_bomb)
-    return;
-
-  // Check that you've got a breach charge equipped
-  const auto& view = r.view<const PlayerComponent, DefaultBody>();
-  for (const auto& [e, player_c, equipment_c] : view.each()) {
-    bool able_to_use_breach_charge = false;
-
-    // std::vector<entt::entity> equipment = equipment_c.body;
-
-    const auto slots = get_slots(r, e, InventorySlotType::gun);
-    if (slots.size() > 0) {
-      const auto equipment_slot_e = slots[0];
-      const auto equipment_slot = r.get<InventorySlotComponent>(equipment_slot_e);
-      const auto has_item = equipment_slot.item_e != entt::null;
-      if (!has_item)
-        continue;
-
-      // Is the item a breach charge?
-      if (r.get<ItemTypeComponent>(equipment_slot.item_e).type == ItemType::bomb)
-        able_to_use_breach_charge = true;
-    }
-
-    if (able_to_use_breach_charge && place_bomb) {
-      fmt::println("spawning bomb!");
-
-      // spawn the bomb!
-      DataBreachCharge desc;
-      desc.pos = glm::vec2(mouse_pos_on_grid);
-      const auto charge_e = Factory_DataBreachCharge::create(r, desc);
-
-      // remove bomb from inventory (a one use)
-      // update equipment slot
-      const auto equipment_slot_e = slots[0];
-      auto& equipment_slot = r.get<InventorySlotComponent>(equipment_slot_e);
-      r.destroy(equipment_slot.item_e);   // destroy item
-      equipment_slot.item_e = entt::null; // reset slot
-
-      // doesnt do anything, but just to be sure
-      able_to_use_breach_charge = false;
-    }
+    // remove bomb from inventory (a one use)
+    // update equipment slot
+    const auto equipment_slot_e = bomb_e;
+    auto& equipment_slot = r.get<InventorySlotComponent>(equipment_slot_e);
+    r.destroy(equipment_slot.item_e);   // destroy item
+    equipment_slot.item_e = entt::null; // reset slot
   }
 };
 

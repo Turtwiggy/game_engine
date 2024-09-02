@@ -19,6 +19,8 @@
 #include "modules/combat_wants_to_shoot/components.hpp"
 #include "modules/items_pickup/components.hpp"
 #include "modules/lighting/components.hpp"
+#include "modules/renderer/components.hpp"
+#include "modules/system_change_gun_z_index/helpers.hpp"
 #include "modules/system_drop_items/helpers.hpp"
 #include "modules/system_move_to_target_via_lerp/components.hpp"
 #include "modules/system_particles/components.hpp"
@@ -114,7 +116,9 @@ add_components(entt::registry& r, const entt::entity e, const DataDungeonActor& 
 void
 add_components(entt::registry& r, const entt::entity e, const DataWeaponShotgun& desc)
 {
-  set_size(r, e, SMALL_SIZE);
+  // set_size(r, e, SMALL_SIZE);   // empty sprite
+  set_size(r, e, DEFAULT_SIZE); // shotgun sprite
+  set_z_index(r, e, ZLayer::PLAYER_GUN_ABOVE_PLAYER);
 
   r.emplace<ShotgunComponent>(e);
   r.emplace<TeamComponent>(e, desc.team);
@@ -213,13 +217,13 @@ Factory_DataJetpackActor::create(entt::registry& r, const DataJetpackActor& desc
     auto col = engine::SRGBColour{ 255, 255, 117, 1.0f };
     r.emplace<DefaultColour>(e, col);
     set_colour(r, e, col);
-  }
 
-  // add_particles()
-  // DataParticleEmitter pedesc;
-  // pedesc.parent = e;
-  // pedesc.colour = engine::SRGBColour{ 255, 255, 117, 1.0f };
-  // auto particle_e = Factory_DataParticleEmitter::create(r, pedesc);
+    // add_particles()
+    DataParticleEmitter pedesc;
+    pedesc.parent = e;
+    pedesc.colour = engine::SRGBColour{ 255, 255, 117, 1.0f };
+    auto particle_e = Factory_DataParticleEmitter::create(r, pedesc);
+  }
 
   set_position(r, e, desc.pos);
   return e;

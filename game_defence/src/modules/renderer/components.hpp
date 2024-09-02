@@ -56,7 +56,7 @@ struct TextureUnit
 
   TextureUnit() = default;
   TextureUnit(int unit)
-    : unit(unit){};
+    : unit(unit) {};
 };
 
 // known after bind
@@ -76,7 +76,7 @@ struct Texture
   Texture() = default;
   Texture(const std::string& p, const std::string& sp)
     : path(p)
-    , spritesheet_path(sp){};
+    , spritesheet_path(sp) {};
 };
 
 enum class PassName
@@ -151,6 +151,21 @@ struct Effect_DoBloom
 struct EffectBlurInfo
 {
   int last_blur_texunit = 0;
+};
+
+enum class ZLayer : size_t
+{
+  BACKGROUND = 0,
+  PLAYER_GUN_BEHIND_PLAYER,
+  DEFAULT,
+  PLAYER_HELMET,
+  PLAYER_GUN_ABOVE_PLAYER,
+  FOREGROUND,
+};
+
+struct ZIndex
+{
+  ZLayer layer = ZLayer::DEFAULT;
 };
 
 } // namespace game2d

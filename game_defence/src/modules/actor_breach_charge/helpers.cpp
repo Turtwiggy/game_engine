@@ -4,14 +4,17 @@
 #include "actors/helpers.hpp"
 #include "colour/colour.hpp"
 #include "entt/helpers.hpp"
+#include "events/helpers/mouse.hpp"
 #include "lifecycle/components.hpp"
 #include "maths/grid.hpp"
 #include "maths/maths.hpp"
+#include "modules/actor_player/components.hpp"
 #include "modules/gen_dungeons/components.hpp"
 #include "modules/gen_dungeons/helpers.hpp"
 #include "modules/grid/components.hpp"
 #include "modules/system_particles/components.hpp"
-#include "modules/ux_hoverable/components.hpp"
+#include "modules/ui_inventory/components.hpp"
+#include "modules/ui_inventory/helpers.hpp"
 #include "physics/components.hpp"
 #include "renderer/components.hpp"
 
@@ -196,6 +199,52 @@ add_bomb_callback(entt::registry& r, const entt::entity e)
     }
   };
   r.emplace<OnDeathCallback>(e, callback);
+};
+
+bool
+debug_spawn_bombs(entt::registry& r, const glm::ivec2& mouse_pos_on_grid)
+{
+  // debug spawn bombs immediately
+  bool imediately_place_bomb = false;
+
+#if defined(_DEBUG)
+  imediately_place_bomb = false;
+#endif
+
+  if (imediately_place_bomb && get_mouse_lmb_press()) {
+    fmt::println("immediately placing bomb...");
+    DataBreachCharge desc;
+    desc.pos = glm::vec2(mouse_pos_on_grid);
+    const auto charge_e = Factory_DataBreachCharge::create(r, desc);
+  }
+
+  return imediately_place_bomb;
+};
+
+std::pair<bool, entt::entity>
+bomb_equipped_in_inventory(entt::registry& r)
+{
+  const auto& view = r.view<const PlayerComponent, DefaultBody>();
+
+  for (const auto& [e, player_c, equipment_c] : view.each()) {
+    bool able_to_use_breach_charge = false;
+    // std::vector<entt::entity> equipment = equipment_c.body;
+
+    const auto slots = get_slots(r, e, InventorySlotType::gun);
+    if (slots.size() > 0) {
+      const auto equipment_slot_e = slots[0];
+      const auto equipment_slot = r.get<InventorySlotComponent>(equipment_slot_e);
+      const auto has_item = equipment_slot.item_e != entt::null;
+      if (!has_item)
+        continue;
+
+      // Is the item a breach charge?
+      if (r.get<ItemTypeComponent>(equipment_slot.item_e).type == ItemType::bomb)
+        return { true, slots[0] };
+    }
+  }
+
+  return { false, entt::null };
 };
 
 } // namespace game2d

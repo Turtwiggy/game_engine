@@ -1,1 +1,2 @@
-game_2d ICON ./stars.ico
+// Define the icon resource
+solar_warfare ICON "stars.ico"
