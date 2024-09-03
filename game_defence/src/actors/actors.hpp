@@ -1,10 +1,10 @@
 #pragma once
 
+#include "actors/bags/core.hpp"
 #include "bags/armour.hpp"
 #include "bags/bullets.hpp"
 #include "bags/items.hpp"
 #include "bags/weapons.hpp"
-#include "colour/colour.hpp"
 #include "modules/combat_damage/components.hpp"
 
 #include <entt/entt.hpp>
@@ -22,6 +22,13 @@ struct DataDungeonActor : public EntityData
   int hp = 100;
   int max_hp = 100;
   // engine::SRGBColour hovered_colour{ 1.0f, 1.0f, 1.0f, 1.0f };
+};
+
+struct DataDungeonCover : public EntityData
+{
+  bool placeholder = true;
+
+  DataDungeonCover() { sprite = "WALL_19_1_NONE"; }
 };
 
 struct DataJetpackActor : public EntityData
@@ -90,6 +97,7 @@ struct DataSolidWall : public EntityData
   };
 
 GENERATE_FACTORY(DataDungeonActor)
+GENERATE_FACTORY(DataDungeonCover)
 GENERATE_FACTORY(DataJetpackActor)
 GENERATE_FACTORY(DataSpaceShipActor)
 GENERATE_FACTORY(DataSpaceCapsuleActor)

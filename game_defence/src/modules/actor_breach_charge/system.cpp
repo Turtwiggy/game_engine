@@ -2,17 +2,16 @@
 
 #include "actors/actors.hpp"
 
+#include "audio/components.hpp"
 #include "entt/helpers.hpp"
 #include "events/helpers/mouse.hpp"
 #include "maths/grid.hpp"
 #include "maths/maths.hpp"
 #include "modules/actor_breach_charge/helpers.hpp"
-#include "modules/actor_player/components.hpp"
 #include "modules/camera/helpers.hpp"
 #include "modules/grid/components.hpp"
 #include "modules/renderer/components.hpp"
 #include "modules/ui_inventory/components.hpp"
-#include "modules/ui_inventory/helpers.hpp"
 
 #include <fmt/core.h>
 
@@ -99,6 +98,7 @@ update_breach_charge_system(entt::registry& r, const glm::ivec2& mouse_pos, cons
 
   if (get_mouse_lmb_held())
     lmb_held_time += dt;
+
   if (get_mouse_lmb_release())
     lmb_held_time = 0.0f;
 

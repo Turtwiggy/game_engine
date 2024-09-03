@@ -9,10 +9,10 @@ using namespace engine;
 #if defined(__EMSCRIPTEN__)
 #include "deps/opengl.hpp"
 #include <emscripten.h>
-constexpr auto OPTICK_EVENT = [](const std::string& str) {}; // do nothing
-constexpr auto OPTICK_FRAME = [](const std::string& str) {}; // do nothing
-#else
-// #include "optick.h"
+#endif
+
+#if (defined(WIN32) || defined(_WIN32))
+#include <optick.h>
 #endif
 
 // other libs
@@ -78,7 +78,10 @@ void
 main_loop(void* arg)
 {
   IM_UNUSED(arg); // do nothing with it
-  // OPTICK_FRAME("MainThread");
+
+#if (defined(WIN32) || defined(_WIN32))
+  OPTICK_FRAME("MainThread");
+#endif
 
   engine::start_frame(app);
   launch_thread_after_x_frames();
@@ -167,13 +170,18 @@ main(int argc, char* argv[])
   fmt::println("about to start main loop...");
   emscripten_set_main_loop_arg(main_loop, NULL, 0, true);
 #else
-  // OPTICK_START_CAPTURE();
+
+#if (defined(WIN32) || defined(_WIN32))
+  OPTICK_START_CAPTURE();
+#endif
 
   while (app.running)
     main_loop(nullptr);
 
-    // OPTICK_STOP_CAPTURE();
-    // OPTICK_SAVE_CAPTURE("GameCapture");
+#if (defined(WIN32) || defined(_WIN32))
+  OPTICK_STOP_CAPTURE();
+#endif
+  // OPTICK_SAVE_CAPTURE("GameCapture");
 #endif
 
   return 0;

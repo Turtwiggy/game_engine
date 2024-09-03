@@ -26,14 +26,23 @@ struct BulletComponent
 {
   BulletType type = BulletType::DEFAULT;
 
-  bool destroy_bullet_on_wall_collision = false;
-  bool destroy_bullet_on_actor_collision = true;
   bool bounce_bullet_on_wall_collision = false;
+};
+
+// attached to e.g. walls, enemies
+struct DestroyBulletOnCollison
+{
+  bool placeholder = true;
 };
 
 struct GunStaticTargetComponent
 {
   std::optional<glm::vec2> target = std::nullopt;
+};
+
+struct RequestParticleOnCollision
+{
+  bool placeholder = true;
 };
 
 } // namespace game2d

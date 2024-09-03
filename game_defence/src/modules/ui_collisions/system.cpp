@@ -14,17 +14,15 @@ update_ui_collisions_system(entt::registry& r)
 
   ImGuiWindowFlags flags = 0;
   flags |= ImGuiWindowFlags_NoFocusOnAppearing;
-  flags |= ImGuiWindowFlags_NoDecoration;
+  // flags |= ImGuiWindowFlags_NoDecoration;
 
   ImGui::Begin("Collisions", NULL, flags);
 
-  ImGui::Text("Collisions");
+  ImGui::SameLine();
+  ImGui::Text("BodyCount(): %i", physics.world->GetBodyCount());
 
   ImGui::SameLine();
-  ImGui::Text("Bodies: %i", physics.world->GetBodyCount());
-
-  ImGui::SameLine();
-  ImGui::Text("Contacts: %i", physics.world->GetContactCount());
+  ImGui::Text("ContactCount(): %i", physics.world->GetContactCount());
 
   ImGui::End();
 }

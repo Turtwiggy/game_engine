@@ -14,6 +14,7 @@
 #include "modules/camera/components.hpp"
 #include "modules/combat_wants_to_shoot/components.hpp"
 #include "modules/gen_dungeons/components.hpp"
+#include "modules/gen_dungeons/entity_generation/units.hpp"
 #include "modules/gen_dungeons/helpers.hpp"
 #include "modules/grid/components.hpp"
 #include "modules/scene/helpers.hpp"
@@ -159,17 +160,17 @@ update_gen_dungeons_system(entt::registry& r, const glm::ivec2& mouse_pos)
   auto& map = get_first_component<MapComponent>(r);
 
   // create new map & dungeon constraints
-  const int map_width = 1500;
-  const int map_height = 1500;
+  const int map_width = 1200;
+  const int map_height = 1200;
   map.tilesize = 50;
   map.xmax = map_width / map.tilesize;
   map.ymax = map_height / map.tilesize;
   map.map.resize(map.xmax * map.ymax, entt::null);
 
   DungeonGenerationCriteria dungeon_parameters;
-  dungeon_parameters.max_rooms = 30;
+  dungeon_parameters.max_rooms = 10;
   dungeon_parameters.room_size_min = 4;
-  dungeon_parameters.room_size_max = glm::min(10, map.xmax);
+  dungeon_parameters.room_size_max = glm::min(8, map.xmax);
 
   auto result = generate_rooms(r, dungeon_parameters, rnd);
 
@@ -221,9 +222,15 @@ update_gen_dungeons_system(entt::registry& r, const glm::ivec2& mouse_pos)
   // Steps after initial initialization...
   set_generated_entity_positions(r, result, rnd);
 
-  // set_player_positions(r, result, rnd);
+  Room r0 = result.rooms[0];
+  const glm::ivec2 tl = r0.tl;
+  const glm::ivec2 br = r0.tl + glm::ivec2{ r0.aabb.size.x, r0.aabb.size.y };
+  const glm::ivec2 center = (tl + br) / 2;
+  const auto pos = engine::grid::grid_space_to_world_space_center(center, map.tilesize);
+
   DataJetpackActor desc;
-  desc.pos = { -100, -100 }; // somewhere around the ship?
+  desc.pos = pos; // somewhere on the ship?
+  // desc.pos = { -100, -100 }; // somewhere around the ship?
   desc.team = AvailableTeams::player;
   const auto e = Factory_DataJetpackActor::create(r, desc);
   r.emplace<CameraFollow>(e);

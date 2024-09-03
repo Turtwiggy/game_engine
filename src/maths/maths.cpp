@@ -114,7 +114,7 @@ scale(const float x, const float min, const float max, const float a, const floa
 }
 
 float
-lerp(const float& a, const float& b, const float& t)
+lerp(const float a, const float b, const float t)
 {
   return a + (b - a) * t;
 };

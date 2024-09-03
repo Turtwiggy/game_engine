@@ -19,7 +19,9 @@
 #include "modules/camera/system.hpp"
 #include "modules/combat_attack_cooldown/system.hpp"
 #include "modules/combat_damage/system.hpp"
+#include "modules/combat_flash_on_damage/system.hpp"
 #include "modules/combat_heal/system.hpp"
+#include "modules/combat_scale_on_hit/system.hpp"
 #include "modules/debug_map/system.hpp"
 #include "modules/gameover/components.hpp"
 #include "modules/gameover/system.hpp"
@@ -76,11 +78,8 @@
 #include "fmt/core.h"
 #include "imgui.h"
 
-#if !defined(__EMSCRIPTEN__)
-// #include "optick.h"
-#else
-constexpr auto OPTICK_EVENT = [](const std::string& str) {}; // do nothing
-constexpr auto OPTICK_FRAME = [](const std::string& str) {}; // do nothing
+#if (defined(WIN32) || defined(_WIN32))
+#include "optick.h"
 #endif
 
 #include <algorithm>
@@ -162,6 +161,9 @@ init_slow(engine::SINGLETON_Application& app, entt::registry& r)
     audio.sounds.push_back({ "UI_HOVER_01", path + "UI_SCI-FI_Tone_Bright_Wet_12_stereo.wav", SoundType::SFX });
     audio.sounds.push_back({ "UI_SELECT_01", path + "UI_SCI-FI_Tone_Bright_Wet_25_stereo.wav", SoundType::SFX });
 
+    audio.sounds.push_back(
+      { "BOMB_BLOWUP_01", path + "BLASTER_Complex_Fire_Trigger_Powerful_Deep_Release_stereo.wav", SoundType::SFX });
+
     // audio.sounds.push_back({ "COMBAT_01", path + ".mp3", SoundType::BACKGROUND });
     // audio.sounds.push_back({ "WIN_01", "8-bit-win-funk-david-renda.wav" });
     // audio.sounds.push_back({ "LOSS_01", "8-bit-loss-david-renda.wav" });
@@ -192,7 +194,9 @@ duplicate_held_input(SINGLETON_FixedUpdateInputHistory& fixed_input)
 void
 fixed_update(engine::SINGLETON_Application& app, entt::registry& game, const uint64_t milliseconds_dt)
 {
-  // OPTICK_EVENT("FixedUpdate()");
+#if (defined(WIN32) || defined(_WIN32))
+  OPTICK_EVENT("FixedUpdate()");
+#endif
 
   auto& input = get_first_component<SINGLETON_InputComponent>(game);
   auto& fixed_input = get_first_component<SINGLETON_FixedUpdateInputHistory>(game);
@@ -227,13 +231,17 @@ fixed_update(engine::SINGLETON_Application& app, entt::registry& game, const uin
   update_lifecycle_system(game, milliseconds_dt);
 
   {
-    // OPTICK_EVENT("(physics-tick)");
+#if (defined(WIN32) || defined(_WIN32))
+    OPTICK_EVENT("(physics-tick)");
+#endif
     update_physics_apply_force_system(game);
     update_physics_system(game, milliseconds_dt);
   }
 
   {
-    // OPTICK_EVENT("fixed-game-tick");
+#if (defined(WIN32) || defined(_WIN32))
+    OPTICK_EVENT("fixed-game-tick");
+#endif
     update_resolve_collisions_system(game);
 
     // put immediately after collisions,
@@ -249,7 +257,9 @@ fixed_update(engine::SINGLETON_Application& app, entt::registry& game, const uin
 void
 update(engine::SINGLETON_Application& app, entt::registry& r, const float dt)
 {
-  // OPTICK_EVENT("(update)");
+#if (defined(WIN32) || defined(_WIN32))
+  OPTICK_EVENT("(update)");
+#endif
   const auto& scene = get_first_component<SINGLETON_CurrentScene>(r);
 
   update_input_system(app, r); // sets update_since_last_fixed_update
@@ -291,6 +301,8 @@ update(engine::SINGLETON_Application& app, entt::registry& r, const float dt)
       update_spawn_particles_on_death_system(r);
       update_weapon_shotgun_system(r, milliseconds_dt);
       update_wiggle_up_and_down_system(r, dt);
+      update_flash_sprite_system(r, milliseconds_dt);
+      update_combat_scale_on_hit_system(r, dt);
     }
 
     if (scene.s == Scene::overworld_revamped) {

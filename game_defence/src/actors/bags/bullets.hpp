@@ -30,6 +30,7 @@ struct DataBullet
 {
 
   DataBullet() = delete;
+
   DataBullet(const BulletType& in_type)
   {
     type = in_type;

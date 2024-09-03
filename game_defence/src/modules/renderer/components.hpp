@@ -1,6 +1,5 @@
 #pragma once
 
-#include "opengl/texture.hpp"
 #include "renderer/transform.hpp"
 
 // engine headers

@@ -73,8 +73,6 @@ create_physics_actor(entt::registry& r, const entt::entity e, const PhysicsDescr
   b2PolygonShape box;
   box.SetAsBox(desc.size.x / 2.0f, desc.size.y / 2.0f);
 
-  // b2CircleShape circle;
-
   b2FixtureDef fixture_def;
   fixture_def.friction = 0.0f;
   fixture_def.density = desc.density;
@@ -82,12 +80,7 @@ create_physics_actor(entt::registry& r, const entt::entity e, const PhysicsDescr
   fixture_def.isSensor = desc.is_sensor;
 
   body->CreateFixture(&fixture_def);
-
-  //
-
-  PhysicsBodyComponent body_c;
-  body_c.body = body;
-  r.emplace<PhysicsBodyComponent>(e, body_c);
+  r.emplace<PhysicsBodyComponent>(e, PhysicsBodyComponent{ body });
 
   // While we're creating it, update the transform
   auto& transform_c = r.get<TransformComponent>(e);

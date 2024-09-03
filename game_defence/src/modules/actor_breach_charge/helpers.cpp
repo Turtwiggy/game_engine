@@ -2,6 +2,7 @@
 
 #include "actors/actors.hpp"
 #include "actors/helpers.hpp"
+#include "audio/components.hpp"
 #include "colour/colour.hpp"
 #include "entt/helpers.hpp"
 #include "events/helpers/mouse.hpp"
@@ -197,6 +198,9 @@ add_bomb_callback(entt::registry& r, const entt::entity e)
 
       fmt::println("spawning particle emitter due to blown up edge at {} {}", halfway_pos.x, halfway_pos.y);
     }
+
+    // request some audio
+    create_empty<AudioRequestPlayEvent>(r, AudioRequestPlayEvent{ "BOMB_BLOWUP_01" });
   };
   r.emplace<OnDeathCallback>(e, callback);
 };

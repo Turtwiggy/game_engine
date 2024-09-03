@@ -1,8 +1,9 @@
 #include "components.hpp"
 
-#include "magic_enum.hpp"
+#include "opengl/texture.hpp"
 
 #include <fmt/core.h>
+#include <magic_enum.hpp>
 
 namespace game2d {
 
@@ -10,7 +11,7 @@ static int global_tex_unit_count = 0;
 
 RenderPass::RenderPass(const PassName& pass_name, const int colour_buffers)
   : pass(pass_name)
-  , colour_buffers_per_texture(colour_buffers){};
+  , colour_buffers_per_texture(colour_buffers) {};
 
 void
 RenderPass::setup(const glm::ivec2& fbo_size, const int framebuffers)

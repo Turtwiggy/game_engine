@@ -10,6 +10,21 @@
 
 namespace game2d {
 
+bool
+centered_button(const std::string& label)
+{
+  const float alignment = 0.5f;
+  ImGuiStyle& style = ImGui::GetStyle();
+
+  const float size = ImGui::CalcTextSize(label.c_str()).x + style.FramePadding.x * 2.0f;
+  float avail = ImGui::GetContentRegionAvail().x;
+  float off = (avail - size) * alignment;
+  if (off > 0.0f)
+    ImGui::SetCursorPosX(ImGui::GetCursorPosX() + off);
+
+  return ImGui::Button(label.c_str());
+};
+
 void
 update_ui_gameover_system(entt::registry& r)
 {
@@ -19,11 +34,8 @@ update_ui_gameover_system(entt::registry& r)
   if (gameover.game_is_over) {
 
     ImGuiWindowFlags flags = 0;
-    flags |= ImGuiWindowFlags_NoMove;
-    flags |= ImGuiWindowFlags_NoTitleBar;
-    flags |= ImGuiWindowFlags_NoResize;
-    flags |= ImGuiDockNodeFlags_AutoHideTabBar;
-    flags |= ImGuiDockNodeFlags_NoResize;
+    flags |= ImGuiWindowFlags_NoDecoration;
+    // flags |= ImGuiWindowFlags_NoBackground;
 
     const auto viewport_pos = ImVec2((float)ri.viewport_pos.x, (float)ri.viewport_pos.y);
     const auto viewport_size_half = ImVec2(ri.viewport_size_current.x * 0.5f, ri.viewport_size_current.y * 0.5f);
@@ -32,12 +44,13 @@ update_ui_gameover_system(entt::registry& r)
 
     ImGui::Begin("GameOver!", NULL, flags);
     ImGui::Text("%s", gameover.reason.c_str());
+
     ImGui::Text("Thanks for playing.");
 
-    if (ImGui::Button("New Game"))
+    if (centered_button("New Game"))
       create_empty<NewGameRequest>(r);
 
-    if (ImGui::Button("Main Menu"))
+    if (centered_button("Main Menu"))
       move_to_scene_start(r, Scene::menu); // hack: impl shouldnt be here
 
     ImGui::End();

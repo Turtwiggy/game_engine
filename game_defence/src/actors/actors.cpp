@@ -10,6 +10,7 @@
 #include "maths/maths.hpp"
 #include "modules/actor_breach_charge/components.hpp"
 #include "modules/actor_breach_charge/helpers.hpp"
+#include "modules/actor_cover/components.hpp"
 #include "modules/actor_enemy/components.hpp"
 #include "modules/actor_player/components.hpp"
 #include "modules/actor_weapon_shotgun/components.hpp"
@@ -25,11 +26,13 @@
 #include "modules/system_move_to_target_via_lerp/components.hpp"
 #include "modules/system_particles/components.hpp"
 #include "modules/system_turnbased/components.hpp"
+#include "modules/ui_colours/helpers.hpp"
 #include "modules/ui_inventory/components.hpp"
 #include "modules/ux_hoverable/components.hpp"
 #include "physics/helpers.hpp"
 #include "renderer/transform.hpp"
 
+#include <box2d/b2_body.h>
 #include <fmt/core.h>
 
 namespace game2d {
@@ -89,8 +92,6 @@ add_components(entt::registry& r, const entt::entity e, const DataDungeonActor& 
 {
   PhysicsDescription pdesc;
   pdesc.type = b2_kinematicBody;
-  pdesc.is_bullet = false;
-  pdesc.density = 1.0;
   pdesc.position = desc.pos;
   pdesc.size = desc.size;
   pdesc.is_sensor = true;
@@ -106,6 +107,7 @@ add_components(entt::registry& r, const entt::entity e, const DataDungeonActor& 
   r.emplace<DefenceComponent>(e, 0);     // should be determined by equipment
   r.emplace<PathfindComponent>(e, 1000); // pass through units if you must
   r.emplace<TeamComponent>(e, desc.team);
+  r.emplace<DestroyBulletOnCollison>(e);
 
   if (desc.team == AvailableTeams::enemy) {
 
@@ -136,8 +138,6 @@ add_components(entt::registry& r, const entt::entity e, const DataBreachCharge& 
 {
   PhysicsDescription pdesc;
   pdesc.type = b2_dynamicBody;
-  pdesc.is_bullet = false;
-  pdesc.density = 1.0;
   pdesc.position = desc.pos;
   pdesc.size = { DEFAULT_SIZE.x, DEFAULT_SIZE.y };
   pdesc.is_sensor = false;
@@ -146,6 +146,7 @@ add_components(entt::registry& r, const entt::entity e, const DataBreachCharge& 
   // bomb blows up in X seconds
   r.emplace<EntityTimedLifecycle>(e, 3 * 1000);
   r.emplace<BreachChargeComponent>(e);
+
   add_bomb_callback(r, e);
 };
 
@@ -187,6 +188,34 @@ Factory_DataDungeonActor::create(entt::registry& r, const DataDungeonActor& desc
 };
 
 entt::entity
+Factory_DataDungeonCover::create(entt::registry& r, const DataDungeonCover& desc)
+{
+  const auto e = Factory_BaseActor::create(r, desc, typeid(desc).name());
+
+  PhysicsDescription pdesc;
+  pdesc.type = b2_staticBody;
+  pdesc.is_bullet = false;
+  pdesc.density = 1.0;
+  pdesc.position = desc.pos;
+  pdesc.size = desc.size;
+  pdesc.is_sensor = true;
+  create_physics_actor(r, e, pdesc);
+
+  r.emplace<PathfindComponent>(e, -1); // cant pass through
+  r.emplace<CoverComponent>(e);
+
+  auto col = get_srgb_colour_by_tag(r, "solid_wall");
+  r.emplace<DefaultColour>(e, col);
+  set_colour(r, e, col);
+
+  // only flash / scale size once per bullet
+  r.emplace<DefenceHitListComponent>(e);
+
+  set_position(r, e, desc.pos);
+  return e;
+}
+
+entt::entity
 Factory_DataJetpackActor::create(entt::registry& r, const DataJetpackActor& desc)
 {
   const auto e = Factory_BaseActor::create(r, desc, typeid(desc).name());
@@ -194,8 +223,6 @@ Factory_DataJetpackActor::create(entt::registry& r, const DataJetpackActor& desc
 
   PhysicsDescription pdesc;
   pdesc.type = b2_dynamicBody;
-  pdesc.is_bullet = false;
-  pdesc.density = 1.0;
   pdesc.position = desc.pos;
   pdesc.size = size;
   pdesc.is_sensor = false;
@@ -237,8 +264,6 @@ Factory_DataSpaceShipActor::create(entt::registry& r, const DataSpaceShipActor& 
 
   PhysicsDescription pdesc;
   pdesc.type = b2_dynamicBody;
-  pdesc.is_bullet = false;
-  pdesc.density = 1.0;
   pdesc.position = desc.pos;
   pdesc.size = size;
   pdesc.is_sensor = false;
@@ -268,6 +293,7 @@ Factory_DataSpaceShipActor::create(entt::registry& r, const DataSpaceShipActor& 
   pedesc.colour = desc.colour;
   auto particle_e = Factory_DataParticleEmitter::create(r, pedesc);
 
+  set_position(r, e, desc.pos);
   return e;
 };
 
@@ -279,13 +305,12 @@ Factory_DataSpaceCargoActor::create(entt::registry& r, const DataSpaceCargoActor
 
   PhysicsDescription pdesc;
   pdesc.type = b2_dynamicBody;
-  pdesc.is_bullet = false;
-  pdesc.density = 1.0;
   pdesc.position = desc.pos;
   pdesc.size = HALF_SIZE;
   pdesc.is_sensor = false;
   create_physics_actor(r, e, pdesc);
 
+  set_position(r, e, desc.pos);
   return e;
 };
 
@@ -297,13 +322,12 @@ Factory_DataSpaceCapsuleActor::create(entt::registry& r, const DataSpaceCapsuleA
 
   PhysicsDescription pdesc;
   pdesc.type = b2_dynamicBody;
-  pdesc.is_bullet = false;
-  pdesc.density = 1.0;
   pdesc.position = desc.pos;
   pdesc.size = HALF_SIZE;
   pdesc.is_sensor = true;
   create_physics_actor(r, e, pdesc);
 
+  set_position(r, e, desc.pos);
   return e;
 };
 
@@ -374,8 +398,12 @@ Factory_DataSolidWall::create(entt::registry& r, const DataSolidWall& desc)
   const auto e = Factory_BaseActor::create(r, desc, typeid(desc).name());
 
   create_physics_actor_static(r, e, desc.pos, desc.size);
-  r.emplace<LightOccluderComponent>(e);
 
+  r.emplace<LightOccluderComponent>(e);
+  r.emplace<DestroyBulletOnCollison>(e);
+  r.emplace<RequestParticleOnCollision>(e);
+
+  set_position(r, e, desc.pos);
   return e;
 };
 
@@ -388,6 +416,7 @@ Factory_DataArmour::create(entt::registry& r, const DataArmour& desc)
 {
   const auto e = Factory_BaseActor::create(r, desc, typeid(desc).name());
 
+  set_position(r, e, desc.pos);
   return e;
 }
 
@@ -396,7 +425,9 @@ Factory_DataBullet::create(entt::registry& r, const DataBullet& desc)
 {
   const auto e = Factory_BaseActor::create(r, desc, typeid(desc).name());
   const auto size = SMALL_SIZE;
-  create_physics_actor_dynamic(r, e, desc.pos, size, true);
+
+  const bool is_bullet = true;
+  create_physics_actor_dynamic(r, e, desc.pos, size, is_bullet);
 
   auto& t = r.get<TransformComponent>(e);
   t.rotation_radians.z = desc.rotation;
@@ -414,24 +445,10 @@ Factory_DataBullet::create(entt::registry& r, const DataBullet& desc)
   r.emplace<TeamComponent>(e, desc.team);
 
   BulletComponent bc;
-
-  switch (desc.type) {
-
-    case BulletType::BOUNCY: {
-      bc.bounce_bullet_on_wall_collision = true;
-      bc.destroy_bullet_on_wall_collision = false;
-      break;
-    }
-
-    case BulletType::DEFAULT: {
-      bc.bounce_bullet_on_wall_collision = false;
-      bc.destroy_bullet_on_wall_collision = true;
-      break;
-    }
-  }
-
+  bc.bounce_bullet_on_wall_collision = desc.type == BulletType::BOUNCY;
   r.emplace<BulletComponent>(e, bc);
 
+  set_position(r, e, desc.pos);
   return e;
 };
 
@@ -453,6 +470,7 @@ Factory_DataBreachCharge::create(entt::registry& r, const DataBreachCharge& desc
 
   add_components(r, e, desc);
 
+  set_position(r, e, desc.pos);
   return e;
 };
 
@@ -476,6 +494,7 @@ Factory_DataScrap::create(entt::registry& r, const DataScrap& desc)
   r.emplace<AbleToBePickedUp>(e);
   r.emplace<ItemTypeComponent>(e, ItemType::scrap);
 
+  set_position(r, e, desc.pos);
   return e;
 };
 

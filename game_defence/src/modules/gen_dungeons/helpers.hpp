@@ -14,9 +14,6 @@ namespace game2d {
 DungeonGenerationResults
 generate_rooms(entt::registry& r, const DungeonGenerationCriteria& data, engine::RandomState& rnd);
 
-void
-set_generated_entity_positions(entt::registry& r, DungeonGenerationResults& results, engine::RandomState& rnd);
-
 //
 
 std::pair<bool, std::optional<Room>>
@@ -32,11 +29,5 @@ generate_edges(entt::registry& r, MapComponent& map, const DungeonGenerationResu
 
 void
 instantiate_edges(entt::registry& r, MapComponent& map);
-
-// EntityType
-// generate_monster();
-
-// EntityType
-// generate_item();
 
 } // namespace game2d

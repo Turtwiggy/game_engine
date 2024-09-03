@@ -78,7 +78,8 @@
         "bullet_default",
         "particle",
         "actor_dungeon",
-        "SMOKE_IMPACT"
+        "SMOKE_IMPACT",
+        "white"
       ]
     },
     {

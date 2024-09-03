@@ -59,6 +59,7 @@ update_go_from_jetpack_to_dungeon_system(entt::registry& r)
     const int idx = engine::grid::worldspace_to_index(final_pos, map.tilesize, map.xmax, map.ymax);
     add_entity_to_map(r, e, idx);
 
+    fmt::println("going from jetpack to dungeon character...");
     create_empty<RequestUpdateFOV>(r);
   }
 }
