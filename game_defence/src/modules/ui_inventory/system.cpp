@@ -126,6 +126,72 @@ display_inventory_slot(entt::registry& r,
     item_slot_accepting_item(r, inventory_slot_e);
 };
 
+//
+//
+//
+
+const auto create_armour = [](entt::registry& r, const entt::entity slot_e, const ArmourType& type) -> entt::entity {
+  DataArmour data(type);
+
+  ItemComponent item_c;
+  item_c.display_icon = data.icon;
+  item_c.display_name = std::string(magic_enum::enum_name(type));
+  item_c.parent_slot = slot_e;
+  auto item_e = create_empty<ItemComponent>(r, item_c);
+  r.emplace<ItemTypeComponent>(item_e, ItemTypeComponent{ ItemType::armour });
+
+  // todo: each item should have it's own unique defence value?
+  r.emplace<DefenceComponent>(item_e, DefenceComponent(1));
+
+  update_item_parent(r, item_e, slot_e);
+  return item_e;
+};
+const auto create_breachcharge = [](entt::registry& r, const entt::entity slot_e) -> entt::entity {
+  DataBreachCharge data;
+
+  ItemComponent item_c;
+  item_c.display_icon = data.icon;
+  item_c.display_name = "Breach Charge";
+  item_c.parent_slot = slot_e;
+  auto item_e = create_empty<ItemComponent>(r, item_c);
+  r.emplace<ItemTypeComponent>(item_e, ItemTypeComponent{ ItemType::bomb });
+
+  update_item_parent(r, item_e, slot_e);
+  return item_e;
+};
+const auto create_shotgun = [](entt::registry& r, const entt::entity slot_e) -> entt::entity {
+  DataWeaponShotgun data;
+
+  ItemComponent item_c;
+  item_c.display_icon = data.icon;
+  item_c.display_name = "Shotgun";
+  item_c.parent_slot = slot_e;
+  auto item_e = create_empty<ItemComponent>(r, item_c);
+  r.emplace<ItemTypeComponent>(item_e, ItemTypeComponent{ ItemType::gun });
+
+  update_item_parent(r, item_e, slot_e);
+  return item_e;
+};
+const auto create_bullets = [](entt::registry& r, const entt::entity slot_e, const BulletType& type) -> entt::entity {
+  DataBullet data(type);
+
+  ItemComponent item_c;
+  item_c.display_icon = data.icon;
+  item_c.display_name = std::string(magic_enum::enum_name(type));
+  item_c.parent_slot = slot_e;
+  auto item_e = create_empty<ItemComponent>(r, item_c);
+
+  std::optional<ItemType> t = std::nullopt;
+  if (type == BulletType::BOUNCY)
+    t = ItemType::bullet_bouncy;
+  if (type == BulletType::DEFAULT)
+    t = ItemType::bullet_default;
+  r.emplace<ItemTypeComponent>(item_e, ItemTypeComponent{ t.value() });
+
+  update_item_parent(r, item_e, slot_e);
+  return item_e;
+};
+
 void
 update_ui_inventory_system(entt::registry& r)
 {
@@ -145,65 +211,6 @@ update_ui_inventory_system(entt::registry& r)
 
     if (auto* init = r.try_get<InitBodyAndInventory>(e)) {
       r.remove<InitBodyAndInventory>(e);
-
-      const auto create_armour = [](entt::registry& r, const entt::entity slot_e, const ArmourType& type) -> entt::entity {
-        DataArmour data(type);
-
-        ItemComponent item_c;
-        item_c.display_icon = data.icon;
-        item_c.display_name = std::string(magic_enum::enum_name(type));
-        item_c.parent_slot = slot_e;
-        auto item_e = create_empty<ItemComponent>(r, item_c);
-        r.emplace<ItemTypeComponent>(item_e, ItemTypeComponent{ ItemType::armour });
-
-        update_item_parent(r, item_e, slot_e);
-        return item_e;
-      };
-      const auto create_breachcharge = [](entt::registry& r, const entt::entity slot_e) -> entt::entity {
-        DataBreachCharge data;
-
-        ItemComponent item_c;
-        item_c.display_icon = data.icon;
-        item_c.display_name = "Breach Charge";
-        item_c.parent_slot = slot_e;
-        auto item_e = create_empty<ItemComponent>(r, item_c);
-        r.emplace<ItemTypeComponent>(item_e, ItemTypeComponent{ ItemType::bomb });
-
-        update_item_parent(r, item_e, slot_e);
-        return item_e;
-      };
-      const auto create_shotgun = [](entt::registry& r, const entt::entity slot_e) -> entt::entity {
-        DataWeaponShotgun data;
-
-        ItemComponent item_c;
-        item_c.display_icon = data.icon;
-        item_c.display_name = "Shotgun";
-        item_c.parent_slot = slot_e;
-        auto item_e = create_empty<ItemComponent>(r, item_c);
-        r.emplace<ItemTypeComponent>(item_e, ItemTypeComponent{ ItemType::gun });
-
-        update_item_parent(r, item_e, slot_e);
-        return item_e;
-      };
-      const auto create_bullets = [](entt::registry& r, const entt::entity slot_e, const BulletType& type) -> entt::entity {
-        DataBullet data(type);
-
-        ItemComponent item_c;
-        item_c.display_icon = data.icon;
-        item_c.display_name = std::string(magic_enum::enum_name(type));
-        item_c.parent_slot = slot_e;
-        auto item_e = create_empty<ItemComponent>(r, item_c);
-
-        std::optional<ItemType> t = std::nullopt;
-        if (type == BulletType::BOUNCY)
-          t = ItemType::bullet_bouncy;
-        if (type == BulletType::DEFAULT)
-          t = ItemType::bullet_default;
-        r.emplace<ItemTypeComponent>(item_e, ItemTypeComponent{ t.value() });
-
-        update_item_parent(r, item_e, slot_e);
-        return item_e;
-      };
 
       // init body
       r.get<InventorySlotComponent>(body_c.body[0]).item_e = create_armour(r, body_c.body[0], ArmourType::HEAD);

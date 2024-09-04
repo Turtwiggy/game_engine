@@ -66,7 +66,7 @@
       "tags": [ ]
     },
     {
-      "r": 0, "g": 255, "b": 192,
+      "r": 240, "g": 123, "b": 63,
       "name": "hit",
       "tags": [ "hovered", "enemy_flash", "attack_hit" ]
     },

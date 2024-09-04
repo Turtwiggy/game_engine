@@ -8,6 +8,7 @@
 
 // other
 #include "imgui.h"
+#include <entt/entt.hpp>
 #include <glm/glm.hpp>
 #include <glm/gtc/quaternion.hpp>
 #include <nlohmann/json.hpp>
@@ -102,7 +103,7 @@ struct RenderPass
   std::vector<Texture> texs;
 
   // the function that gets called during the render
-  std::function<void()> update;
+  std::function<void(entt::registry&)> update;
 
 private:
   int colour_buffers_per_texture = 0;
@@ -152,19 +153,14 @@ struct EffectBlurInfo
   int last_blur_texunit = 0;
 };
 
-enum class ZLayer : size_t
+enum class ZLayer : int
 {
-  BACKGROUND = 0,
-  PLAYER_GUN_BEHIND_PLAYER,
-  DEFAULT,
+  BACKGROUND = -2,
+  PLAYER_GUN_BEHIND_PLAYER = -1,
+  DEFAULT = 0,
   PLAYER_HELMET,
   PLAYER_GUN_ABOVE_PLAYER,
   FOREGROUND,
-};
-
-struct ZIndex
-{
-  ZLayer layer = ZLayer::DEFAULT;
 };
 
 } // namespace game2d

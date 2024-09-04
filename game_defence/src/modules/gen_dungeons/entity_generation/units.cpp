@@ -126,8 +126,8 @@ set_generated_entity_positions(entt::registry& r, DungeonGenerationResults& resu
 
   // Generate some things
   for (auto& [room, free_slots] : room_to_free_slots) {
-    spawn_enemy_in_free_slots(r, free_slots, 1);
-    spawn_cover_in_free_slots(r, free_slots, 2);
+    spawn_enemy_in_free_slots(r, free_slots, 3);
+    spawn_cover_in_free_slots(r, free_slots, 1);
   }
 
   //

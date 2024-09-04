@@ -11,9 +11,9 @@
     "C_Cpp.intelliSenseEngine": "disabled", // use clangd
     "clangd.checkUpdates": true,
     "clangd.path": "C:/Software/msys64/ucrt64/bin/clangd.exe",
-    "cmake.cmakePath": "C:/Software/msys64/ucrt64/bin/cmake.exe",
-    "cmake.ctestPath": "C:/Software/msys64/ucrt64/bin/ctest.exe",
-    "cmake.cpackPath": "C:/Software/msys64/ucrt64/bin/cpack.exe",
+    // "cmake.cmakePath": "C:/Software/msys64/ucrt64/bin/cmake.exe",
+    // "cmake.ctestPath": "C:/Software/msys64/ucrt64/bin/ctest.exe",
+    // "cmake.cpackPath": "C:/Software/msys64/ucrt64/bin/cpack.exe",
 
     /*
     "terminal.integrated.profiles.windows": {

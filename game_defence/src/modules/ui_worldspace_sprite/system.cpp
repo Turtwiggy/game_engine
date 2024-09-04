@@ -5,11 +5,12 @@
 #include "components.hpp"
 #include "lifecycle/components.hpp"
 #include "modules/animation/components.hpp"
+#include "modules/renderer/components.hpp"
+#include "modules/system_change_gun_z_index/helpers.hpp"
 #include "modules/ui_worldspace_text/helpers.hpp"
 #include "renderer/components.hpp"
 #include "renderer/transform.hpp"
 #include "sprites/helpers.hpp"
-
 
 #include <fmt/core.h>
 
@@ -115,7 +116,7 @@ update_ui_worldspace_sprite_system(entt::registry& r)
         //   br = { base_position.x + char_width / 2.0f, base_position.y + char_width / 2.0f };
 
         set_position(r, sprite_e, base_position);
-        r.get<TransformComponent>(sprite_e).position.z = 5; // set text in front
+        set_z_index(r, sprite_e, ZLayer::FOREGROUND); // set text in front
         set_size(r, sprite_e, { char_width, char_width });
 
         WiggleUpAndDown wig;

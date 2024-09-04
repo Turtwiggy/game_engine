@@ -119,13 +119,13 @@ update_take_damage_system(entt::registry& r)
     const bool miss = false;
 
     // mess with the damage
-    int damage = atk->damage;
+    auto damage = atk->damage;
     if (miss)
       damage = 0;
 
     if (defence) {
       damage -= defence->armour;
-      damage = glm::max(damage, 0);
+      damage = glm::max(damage, 0.0f);
     }
 
     if (crit)
@@ -138,7 +138,7 @@ update_take_damage_system(entt::registry& r)
     // }
 
     // .. take damage
-    hp->hp -= glm::max(0, damage);
+    hp->hp -= glm::max(0.0f, damage);
 
     const auto a_name = std::string(r.get<TagComponent>(request.from).tag);
     const auto b_name = std::string(r.get<TagComponent>(request.to).tag);

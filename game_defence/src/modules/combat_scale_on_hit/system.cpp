@@ -4,6 +4,8 @@
 #include "components.hpp"
 #include "lifecycle/components.hpp"
 #include "maths/maths.hpp"
+#include "modules/ui_colours/helpers.hpp"
+#include "modules/ux_hoverable/components.hpp"
 #include "physics/components.hpp"
 #include "renderer/transform.hpp"
 
@@ -44,14 +46,31 @@ spike(float t)
 };
 
 void
+enable_flash(entt::registry& r, entt::entity e)
+{
+  set_colour(r, e, get_srgb_colour_by_tag(r, "enemy_flash"));
+};
+
+void
+disable_flash(entt::registry& r, entt::entity e)
+{
+  const auto& default_c = r.get<DefaultColour>(e);
+  set_colour(r, e, default_c.colour);
+};
+
+// note: while the thing is scaling, also make it flash
+void
 update_combat_scale_on_hit_system(entt::registry& r, const float dt)
 {
   const auto& view =
     r.view<TransformComponent, RequestHitScaleComponent, const PhysicsBodyComponent>(entt::exclude<WaitForInitComponent>);
   for (const auto& [e, t_c, req_c, pb_c] : view.each()) {
+    //
+    if (req_c.t == 0.0f)
+      enable_flash(r, e);
 
     // variables
-    const float speed = 10.0f;
+    const float speed = 5.0f;
     const float scale_up = 20.0f;
 
     req_c.t += dt * speed;
@@ -63,6 +82,8 @@ update_combat_scale_on_hit_system(entt::registry& r, const float dt)
     t_c.scale = { new_size, new_size, 1.0f };
 
     if (req_c.t >= 1.0f) {
+
+      disable_flash(r, e);
 
       // reset the transform
       auto physics_size = get_size(r, e);

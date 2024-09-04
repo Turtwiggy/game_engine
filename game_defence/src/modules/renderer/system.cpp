@@ -98,13 +98,20 @@ rebind(entt::registry& r, SINGLETON_RendererInfo& ri)
     return linear_pass.texs[0].tex_unit.unit;
   };
   const int tex_unit_linear_main = get_tex_unit(PassName::linear_main);
+  const int tex_unit_stars = get_tex_unit(PassName::stars);
+  const int tex_unit_voronoi_distance = get_tex_unit(PassName::voronoi_distance);
   const int tex_unit_mix_lighting_and_scene = get_tex_unit(PassName::mix_lighting_and_scene);
   const int tex_unit_blur_pingpong_1 = get_tex_unit(PassName::blur_pingpong_1);
   const int tex_unit_emitters_and_occluders = get_tex_unit(PassName::lighting_emitters_and_occluders);
 
+  auto& camera = get_first_component<OrthographicCamera>(r);
+  camera.projection = calculate_ortho_projection(ri.viewport_size_render_at.x, ri.viewport_size_render_at.y, 0.0f);
+
   ri.stars.reload();
   ri.stars.bind();
   ri.stars.set_int("tex", tex_unit_emitters_and_occluders);
+  ri.stars.set_mat4("projection", camera.projection);
+  ri.stars.set_vec2("texture_wh", ri.viewport_size_render_at);
 
   ri.instanced.reload();
   ri.instanced.bind();
@@ -114,6 +121,8 @@ rebind(entt::registry& r, SINGLETON_RendererInfo& ri)
   ri.instanced.set_int("tex_unit_spacestation_0", tex_unit_spacestation_0);
   ri.instanced.set_int("tex_unit_studio_logo", tex_unit_studio_logo);
   ri.instanced.set_int("tex_unit_custom", tex_unit_custom);
+  ri.instanced.set_mat4("projection", camera.projection);
+  ri.instanced.set_vec2("viewport_wh", ri.viewport_size_render_at);
 
   ri.lighting_emitters_and_occluders.reload();
   ri.lighting_emitters_and_occluders.bind();
@@ -121,34 +130,47 @@ rebind(entt::registry& r, SINGLETON_RendererInfo& ri)
   ri.voronoi_seed.reload();
   ri.voronoi_seed.bind();
   ri.voronoi_seed.set_mat4("view", glm::mat4(1.0f)); // whole texture
+  ri.voronoi_seed.set_mat4("projection", camera.projection);
   ri.voronoi_seed.set_int("tex", tex_unit_emitters_and_occluders);
 
   ri.jump_flood.reload();
   ri.jump_flood.bind();
   ri.jump_flood.set_mat4("view", glm::mat4(1.0f)); // whole texture
+  ri.jump_flood.set_mat4("projection", camera.projection);
+  ri.jump_flood.set_vec2("screen_wh", ri.viewport_size_render_at);
 
   ri.voronoi_distance.reload();
   ri.voronoi_distance.bind();
   ri.voronoi_distance.set_mat4("view", glm::mat4(1.0f)); // whole texture
+  ri.voronoi_distance.set_mat4("projection", camera.projection);
   ri.voronoi_distance.set_int("tex_emitters_and_occluders", tex_unit_emitters_and_occluders);
   ri.voronoi_distance.set_vec2("screen_wh", ri.viewport_size_render_at);
 
   ri.mix_lighting_and_scene.reload();
   ri.mix_lighting_and_scene.bind();
   ri.mix_lighting_and_scene.set_mat4("view", glm::mat4(1.0f)); // whole texture
+  ri.mix_lighting_and_scene.set_mat4("projection", camera.projection);
   ri.mix_lighting_and_scene.set_int("scene", tex_unit_linear_main);
   ri.mix_lighting_and_scene.set_bool("add_grid", false);
+  ri.mix_lighting_and_scene.set_vec2("viewport_wh", ri.viewport_size_render_at);
+  ri.mix_lighting_and_scene.set_int("scene_0", tex_unit_linear_main);
+  ri.mix_lighting_and_scene.set_int("scene_1", tex_unit_stars);
+  ri.mix_lighting_and_scene.set_int("u_distance_data", tex_unit_voronoi_distance);
 
   ri.circle.reload();
   ri.circle.bind();
+  ri.circle.set_mat4("projection", camera.projection);
+  ri.circle.set_vec2("viewport_wh", ri.viewport_size_render_at);
 
   ri.blur.reload();
   ri.blur.bind();
   ri.blur.set_mat4("view", glm::mat4(1.0f)); // whole texture
+  ri.blur.set_mat4("projection", camera.projection);
 
   // ri.bloom.reload();
   ri.bloom.bind();
   ri.bloom.set_mat4("view", glm::mat4(1.0f)); // whole texture
+  ri.bloom.set_mat4("projection", camera.projection);
   ri.bloom.set_int("scene_texture", tex_unit_mix_lighting_and_scene);
   ri.bloom.set_int("blur_texture", tex_unit_blur_pingpong_1);
 };
@@ -285,8 +307,8 @@ update_render_system(entt::registry& r, const float dt, const glm::vec2& mouse_p
     rebind(r, ri);
 #endif
 
-  auto& camera = get_first_component<OrthographicCamera>(r);
-  camera.projection = calculate_ortho_projection(viewport_wh.x, viewport_wh.y, dt);
+  // auto& camera = get_first_component<OrthographicCamera>(r);
+  // camera.projection = calculate_ortho_projection(viewport_wh.x, viewport_wh.y, dt);
 
   const auto scenes_to_render_stars = std::vector<Scene>{
     Scene::splashscreen,
@@ -344,7 +366,6 @@ update_render_system(entt::registry& r, const float dt, const glm::vec2& mouse_p
 
   ri.mix_lighting_and_scene.bind();
   ri.mix_lighting_and_scene.set_bool("put_starshader_behind", in_stars_scene);
-  ri.mix_lighting_and_scene.set_float("iTime", time);
   ri.mix_lighting_and_scene.set_bool("add_grid", get_first<Effect_GridComponent>(r) != entt::null);
 
   const auto camera_e = get_first<OrthographicCamera>(r);
@@ -471,7 +492,7 @@ update_render_system(entt::registry& r, const float dt, const glm::vec2& mouse_p
     RenderCommand::set_clear_colour_srgb(black);
     RenderCommand::clear();
 
-    pass.update();
+    pass.update(r);
   }
 
 #if defined(_DEBUG)

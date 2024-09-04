@@ -10,6 +10,7 @@
 #include "modules/renderer/helpers.hpp"
 #include "modules/renderer/helpers/batch_quad.hpp"
 #include "modules/vfx_circle/components.hpp"
+#include "renderer/transform.hpp"
 #include "sprites/components.hpp"
 
 #include "deps/opengl.hpp"
@@ -48,7 +49,7 @@ setup_stars_update(entt::registry& r)
   const auto pass_idx = search_for_renderpass_by_name(ri, PassName::stars);
   auto& pass = ri.passes[pass_idx];
 
-  pass.update = [&r]() {
+  pass.update = [](entt::registry& r) {
     const auto& ri = get_first_component<SINGLETON_RendererInfo>(r);
     const auto camera_e = get_first<OrthographicCamera>(r);
     const auto& camera = r.get<OrthographicCamera>(camera_e);
@@ -59,9 +60,7 @@ setup_stars_update(entt::registry& r)
 
     // Render stars shader
     ri.stars.bind();
-    ri.stars.set_mat4("projection", camera.projection);
     ri.stars.set_mat4("view", camera.view);
-    ri.stars.set_vec2("texture_wh", ri.viewport_size_render_at);
 
     {
       engine::quad_renderer::QuadRenderer::reset_quad_vert_count();
@@ -86,7 +85,8 @@ setup_linear_main_update(entt::registry& r)
   auto& ri = get_first_component<SINGLETON_RendererInfo>(r);
   const auto pass_idx = search_for_renderpass_by_name(ri, PassName::linear_main);
   auto& pass = ri.passes[pass_idx];
-  pass.update = [&r]() {
+
+  pass.update = [](entt::registry& r) {
     const auto& ri = get_first_component<SINGLETON_RendererInfo>(r);
     const auto camera_e = get_first<OrthographicCamera>(r);
     const auto& camera = r.get<OrthographicCamera>(camera_e);
@@ -96,38 +96,20 @@ setup_linear_main_update(entt::registry& r)
     glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
     glEnable(GL_DEPTH_TEST);
 
-    ri.circle.bind();
-    ri.circle.set_mat4("projection", camera.projection);
-    ri.circle.set_mat4("view", camera.view);
-    ri.circle.set_vec2("viewport_wh", ri.viewport_size_render_at);
-    ri.circle.set_vec2("camera_pos", { camera_t.position.x, camera_t.position.y });
-
     // Render some quads
     ri.instanced.bind();
-    ri.instanced.set_mat4("projection", camera.projection);
     ri.instanced.set_mat4("view", camera.view);
-    ri.instanced.set_mat4("projection", camera.projection);
-    ri.instanced.set_vec2("viewport_wh", ri.viewport_size_render_at);
-    const int tex_unit_kenny = search_for_texture_unit_by_texture_path(ri, "monochrome")->unit;
-    const int tex_unit_gameicons = search_for_texture_unit_by_texture_path(ri, "gameicons")->unit;
-    const int tex_unit_spacestation_0 = search_for_texture_unit_by_texture_path(ri, "spacestation_0")->unit;
-    const int tex_unit_studio_logo = search_for_texture_unit_by_texture_path(ri, "blueberry")->unit;
-    ri.instanced.set_int("tex_kenny", tex_unit_kenny);
-    ri.instanced.set_int("tex_gameicons", tex_unit_gameicons);
-    ri.instanced.set_int("tex_unit_spacestation_0", tex_unit_spacestation_0);
-    ri.instanced.set_int("tex_unit_studio_logo", tex_unit_studio_logo);
 
     {
       engine::quad_renderer::QuadRenderer::reset_quad_vert_count();
       engine::quad_renderer::QuadRenderer::begin_batch();
 
-      const auto& group = r.group<TransformComponent, SpriteComponent, ZIndex>();
+      const auto& group = r.group<TransformComponent, SpriteComponent>();
 
       // sort by z-index; adds 0.5ms
-      group.sort<ZIndex>(
-        [](const auto& a, const auto& b) { return static_cast<size_t>(a.layer) < static_cast<size_t>(b.layer); });
+      group.sort<TransformComponent>([](const auto& a, const auto& b) { return a.z_index < b.z_index; });
 
-      for (const auto& [entity, transform, sc, zidx] : group.each()) {
+      for (const auto& [e, transform, sc] : group.each()) {
         engine::quad_renderer::RenderDescriptor desc;
         desc.pos_tl = transform.position - (transform.scale * 0.5f);
         desc.size = transform.scale;
@@ -145,6 +127,12 @@ setup_linear_main_update(entt::registry& r)
       engine::quad_renderer::QuadRenderer::end_batch();
       engine::quad_renderer::QuadRenderer::flush(ri.instanced);
     }
+
+    /*
+    // ri.circle.bind();
+    // ri.circle.set_mat4("view", camera.view);
+    // ri.circle.set_vec2("camera_pos", { camera_t.position.x, camera_t.position.y });
+
 
     // Render some SDF circles
     {
@@ -177,6 +165,7 @@ setup_linear_main_update(entt::registry& r)
       engine::quad_renderer::QuadRenderer::end_batch();
       engine::quad_renderer::QuadRenderer::flush(ri.circle);
     }
+    */
   };
 };
 
@@ -187,7 +176,7 @@ setup_lighting_emitters_and_occluders_update(entt::registry& r)
   const auto pass_idx = search_for_renderpass_by_name(ri, PassName::lighting_emitters_and_occluders);
   auto& pass = ri.passes[pass_idx];
 
-  pass.update = [&r, &ri]() {
+  pass.update = [&ri](entt::registry& r) {
     const auto camera_e = get_first<OrthographicCamera>(r);
     const auto& camera = r.get<OrthographicCamera>(camera_e);
 
@@ -200,7 +189,6 @@ setup_lighting_emitters_and_occluders_update(entt::registry& r)
     // glEnable(GL_DEPTH_TEST);
 
     ri.lighting_emitters_and_occluders.bind();
-    ri.lighting_emitters_and_occluders.set_mat4("projection", camera.projection);
     ri.lighting_emitters_and_occluders.set_mat4("view", camera.view);
 
     {
@@ -262,19 +250,15 @@ setup_voronoi_seed_update(entt::registry& r)
   const auto pass_idx = search_for_renderpass_by_name(ri, PassName::voronoi_seed);
   auto& pass = ri.passes[pass_idx];
 
-  pass.update = [&ri, &r]() {
+  pass.update = [&ri](entt::registry& r) {
     const auto camera_e = get_first<OrthographicCamera>(r);
     const auto& camera = r.get<OrthographicCamera>(camera_e);
 
     const int tex_unit_emitters_and_occluders = get_tex_unit(ri, PassName::lighting_emitters_and_occluders);
 
     ri.voronoi_seed.bind();
-    ri.voronoi_seed.set_mat4("projection", camera.projection);
-    ri.voronoi_seed.set_int("tex", tex_unit_emitters_and_occluders);
 
-    //
     render_fullscreen_quad(ri.voronoi_seed, ri.viewport_size_render_at);
-    //
   };
 };
 
@@ -285,13 +269,12 @@ setup_jump_flood_pass(entt::registry& r)
   const auto pass_idx = search_for_renderpass_by_name(ri, PassName::jump_flood);
   auto& pass = ri.passes[pass_idx];
 
-  pass.update = [&r, &pass]() {
+  pass.update = [&pass](entt::registry& r) {
     const auto& ri = get_first_component<SINGLETON_RendererInfo>(r);
     const auto camera_e = get_first<OrthographicCamera>(r);
     const auto& camera = r.get<OrthographicCamera>(camera_e);
 
     ri.jump_flood.bind();
-    ri.jump_flood.set_mat4("projection", camera.projection);
 
     const auto wh = ri.viewport_size_render_at;
     const int max_dim = glm::max(wh.x, wh.y);
@@ -313,7 +296,6 @@ setup_jump_flood_pass(entt::registry& r)
         tex_unit = pass.texs[i - 1].tex_unit.unit;
 
       ri.jump_flood.set_int("tex", tex_unit);
-      ri.jump_flood.set_vec2("screen_wh", ri.viewport_size_render_at);
       ri.jump_flood.set_float("u_offset", offset);
 
       render_fullscreen_quad(ri.jump_flood, ri.viewport_size_render_at);
@@ -328,7 +310,7 @@ setup_voronoi_distance_field_update(entt::registry& r)
   const auto pass_idx = search_for_renderpass_by_name(ri, PassName::voronoi_distance);
   auto& pass = ri.passes[pass_idx];
 
-  pass.update = [&r]() {
+  pass.update = [](entt::registry& r) {
     const auto camera_e = get_first<OrthographicCamera>(r);
     const auto& camera = r.get<OrthographicCamera>(camera_e);
 
@@ -340,8 +322,6 @@ setup_voronoi_distance_field_update(entt::registry& r)
     const auto tex_unit = get_tex_unit(ri, PassName::lighting_emitters_and_occluders);
 
     ri.voronoi_distance.bind();
-    ri.voronoi_distance.set_mat4("projection", camera.projection);
-    ri.voronoi_distance.set_vec2("screen_wh", ri.viewport_size_render_at);
     ri.voronoi_distance.set_int("tex_jflood", last_jflood_texunit);
     ri.voronoi_distance.set_int("tex_emitters_and_occluders", tex_unit);
 
@@ -356,7 +336,7 @@ setup_mix_lighting_and_scene_update(entt::registry& r)
   const auto pass_idx = search_for_renderpass_by_name(ri, PassName::mix_lighting_and_scene);
   auto& pass = ri.passes[pass_idx];
 
-  pass.update = [&r]() {
+  pass.update = [](entt::registry& r) {
     const auto& ri = get_first_component<SINGLETON_RendererInfo>(r);
     static float brightness_threshold = 0.80f;
 
@@ -370,19 +350,10 @@ setup_mix_lighting_and_scene_update(entt::registry& r)
 
     // update uniforms
     ri.mix_lighting_and_scene.bind();
-    ri.mix_lighting_and_scene.set_int("scene_0", get_tex_unit(ri, PassName::linear_main));
-    ri.mix_lighting_and_scene.set_int("scene_1", get_tex_unit(ri, PassName::stars));
-    ri.mix_lighting_and_scene.set_mat4("projection", camera.projection);
 
-    // light_pos.x should be between 0 < viewport_wh.x
-    // light_pos.y should be between 0 < viewport_wh.y
     const glm::vec2 mouse_raw = get_mouse_pos() - ri.viewport_pos;
-    ri.mix_lighting_and_scene.set_vec2("light_pos", mouse_raw);
-    ri.mix_lighting_and_scene.set_vec2("viewport_wh", ri.viewport_size_render_at);
     ri.mix_lighting_and_scene.set_vec2("camera_pos", { camera_t.position.x, camera_t.position.y });
-    ri.mix_lighting_and_scene.set_vec2("mouse_pos", mouse_raw);
     // ri.mix_lighting_and_scene.set_float("brightness_threshold", brightness_threshold);
-    ri.mix_lighting_and_scene.set_int("u_distance_data", get_tex_unit(ri, PassName::voronoi_distance));
 
     render_fullscreen_quad(ri.mix_lighting_and_scene, ri.viewport_size_render_at);
   };
@@ -397,7 +368,7 @@ setup_gaussian_blur_update(entt::registry& r)
   auto& pass0 = ri.passes[pass0_idx];
   auto& pass1 = ri.passes[pass1_idx];
 
-  pass0.update = [&r, &pass0, &pass1]() {
+  pass0.update = [&pass0, &pass1](entt::registry& r) {
     const auto& ri = get_first_component<SINGLETON_RendererInfo>(r);
     const auto camera_e = get_first<OrthographicCamera>(r);
     const auto& camera_t = r.get<TransformComponent>(camera_e);
@@ -416,7 +387,6 @@ setup_gaussian_blur_update(entt::registry& r)
 
     // update uniforms
     ri.blur.bind();
-    ri.blur.set_mat4("projection", camera.projection);
 
     for (int i = 0; i < blur_amount; i++) {
       if (horizontal)
@@ -454,7 +424,7 @@ setup_gaussian_blur_update(entt::registry& r)
     }
   };
 
-  pass1.update = []() {}; // nothing, only used for fbo
+  pass1.update = [](entt::registry& r) {}; // nothing, only used for fbo
 };
 
 void
@@ -463,7 +433,7 @@ setup_bloom_update(entt::registry& r)
   auto& ri = get_first_component<SINGLETON_RendererInfo>(r);
   const auto pass_idx = search_for_renderpass_by_name(ri, PassName::bloom);
   auto& pass = ri.passes[pass_idx];
-  pass.update = [&r]() {
+  pass.update = [](entt::registry& r) {
     const auto& ri = get_first_component<SINGLETON_RendererInfo>(r);
     const bool do_bloom = get_first<Effect_DoBloom>(r) != entt::null;
     static float exposure = 1.5f;
@@ -475,7 +445,6 @@ setup_bloom_update(entt::registry& r)
     const auto& camera = r.get<OrthographicCamera>(camera_e);
 
     ri.bloom.bind();
-    ri.bloom.set_mat4("projection", camera.projection);
     ri.bloom.set_mat4("view", camera.view);
     ri.bloom.set_float("exposure", exposure);
     ri.bloom.set_bool("do_bloom", do_bloom);

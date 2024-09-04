@@ -1,6 +1,7 @@
 #pragma once
 
 #include "entt/helpers.hpp"
+#include "modules/combat_damage/components.hpp"
 #include <entt/entt.hpp>
 
 namespace game2d {

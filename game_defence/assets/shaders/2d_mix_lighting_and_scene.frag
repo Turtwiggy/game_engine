@@ -15,11 +15,8 @@ uniform sampler2D scene_1; 		 // stars
 uniform sampler2D u_distance_data; // distance data
 
 uniform float brightness_threshold;
-uniform vec2 light_pos; // worldspace
-uniform vec2 mouse_pos;
 uniform vec2 camera_pos;
 uniform vec2 viewport_wh;
-uniform float iTime;
 uniform bool put_starshader_behind;
 uniform bool add_grid;
 uniform vec2 uv_offset;

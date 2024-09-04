@@ -17,7 +17,7 @@ struct HealthComponent
 // e.g. added to bullets
 struct AttackComponent
 {
-  int damage = 5;
+  float damage = 5.0f;
 };
 
 // a shotgun can have 3 bullets. link the bullets

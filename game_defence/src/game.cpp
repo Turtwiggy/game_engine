@@ -11,6 +11,7 @@
 #include "io/path.hpp"
 #include "lifecycle/system.hpp"
 #include "modules/actor_breach_charge/system.hpp"
+#include "modules/actor_cover/system.hpp"
 #include "modules/actor_player/system.hpp"
 #include "modules/actor_weapon_shotgun/system.hpp"
 #include "modules/animation/wiggle_up_and_down.hpp"
@@ -19,10 +20,10 @@
 #include "modules/camera/system.hpp"
 #include "modules/combat_attack_cooldown/system.hpp"
 #include "modules/combat_damage/system.hpp"
+#include "modules/combat_defence/system.hpp"
 #include "modules/combat_flash_on_damage/system.hpp"
 #include "modules/combat_heal/system.hpp"
 #include "modules/combat_scale_on_hit/system.hpp"
-#include "modules/debug_map/system.hpp"
 #include "modules/gameover/components.hpp"
 #include "modules/gameover/system.hpp"
 #include "modules/gen_dungeons/system.hpp"
@@ -303,6 +304,8 @@ update(engine::SINGLETON_Application& app, entt::registry& r, const float dt)
       update_wiggle_up_and_down_system(r, dt);
       update_flash_sprite_system(r, milliseconds_dt);
       update_combat_scale_on_hit_system(r, dt);
+      update_actor_cover_system(r);
+      update_combat_defence_system(r);
     }
 
     if (scene.s == Scene::overworld_revamped) {

@@ -16,7 +16,7 @@ struct BulletData
 {
   BulletType type = BulletType::DEFAULT;
 
-  int bullet_damage = 12;
+  float bullet_damage = 12.0f;
   float bullet_speed = 250.0f;
   float rotation = 0.0f;
   glm::vec2 dir{ 0.0f };

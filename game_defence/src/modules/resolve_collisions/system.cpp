@@ -118,9 +118,11 @@ update_resolve_collisions_system(entt::registry& r)
           if (r.try_get<RequestHitScaleComponent>(other_e) == nullptr)
             r.emplace<RequestHitScaleComponent>(other_e);
 
-          // get the cover to flash
-          if (r.try_get<RequestFlashComponent>(other_e) == nullptr)
-            r.emplace<RequestFlashComponent>(other_e);
+          // half the bullet's damage if it hit cover
+          auto& attack_c = r.get<AttackComponent>(bullet_e);
+          attack_c.damage /= 2.0f;
+
+          fmt::println("bullet hit cover... halving damage");
         }
 
         // continue; // dont spawn particles or bounce on cover

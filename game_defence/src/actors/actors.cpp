@@ -80,6 +80,7 @@ create_physics_actor_dynamic(entt::registry& r,
   desc.density = 1.0;
   desc.position = position;
   desc.size = size;
+  desc.is_sensor = is_bullet; // for the moment, bullets only sensor
   create_physics_actor(r, e, desc);
 };
 
@@ -285,7 +286,6 @@ Factory_DataSpaceShipActor::create(entt::registry& r, const DataSpaceShipActor& 
   }
 
   set_colour(r, e, desc.colour);
-  r.get<TransformComponent>(e).position.z = 1; // above particles
 
   // add_particles()
   DataParticleEmitter pedesc;
