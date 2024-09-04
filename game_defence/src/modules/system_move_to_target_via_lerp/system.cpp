@@ -96,7 +96,7 @@ update_move_to_target_via_lerp(entt::registry& r, const float& dt)
     // ImGui::Text("dir %f %f", dir.x, dir.y);
 
     const auto parent_pos = get_position(r, target_c.target);
-    const auto offset = dir * 8.0f;
+    const auto offset = dir * req_c.offset;
     // ImGui::Text("offset %f %f", offset.x, offset.y);
 
     const auto pos = parent_pos + offset;

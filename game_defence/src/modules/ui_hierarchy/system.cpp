@@ -8,7 +8,6 @@
 #include "renderer/transform.hpp"
 #include "sprites/components.hpp"
 
-
 // other lib headers
 #include <glm/gtc/type_ptr.hpp>
 #include <imgui.h>
@@ -26,6 +25,21 @@ to_lower(const std::string& str)
   return result;
 }
 
+struct Category
+{
+  std::string tag;
+  bool display = true;
+};
+
+std::optional<size_t>
+get_category_idx(std::vector<Category>& cs, const std::string& s)
+{
+  const auto it = std::find_if(cs.begin(), cs.end(), [&s](const auto& other) { return other.tag == s; });
+  if (it == cs.end())
+    return std::nullopt;
+  return static_cast<size_t>(it - cs.begin());
+};
+
 void
 update_ui_hierarchy_system(entt::registry& r)
 {
@@ -41,6 +55,47 @@ update_ui_hierarchy_system(entt::registry& r)
   flags |= ImGuiWindowFlags_NoFocusOnAppearing;
   // flags |= ImGuiDockNodeFlags_AutoHideTabBar;
   // flags |= ImGuiDockNodeFlags_NoResize;
+
+  ImGui::Begin("Hierarchy Category Filter");
+
+  // get all the categories of entity
+  static std::vector<Category> categories;
+  for (const std::tuple<entt::entity>& ent_tuple : r.storage<entt::entity>().each()) {
+    const auto& [e] = ent_tuple;
+
+    const auto* tag = r.try_get<TagComponent>(e);
+    if (tag == nullptr) {
+      continue;
+    }
+
+    const auto category_opt = get_category_idx(categories, tag->tag);
+    if (!category_opt.has_value()) {
+
+      // preset filters...
+
+      if (tag->tag.find("AudioSource") != std::string::npos) {
+        categories.push_back({ tag->tag, false });
+        continue;
+      }
+
+      // note: also filters out DataParticleEmitter
+      if (tag->tag.find("DataParticle") != std::string::npos) {
+        categories.push_back({ tag->tag, false });
+        continue;
+      }
+
+      categories.push_back({ tag->tag });
+    }
+  }
+
+  // Display a filter for the categories
+  for (auto& c : categories)
+    imgui_draw_bool(c.tag, c.display);
+
+  // sort alphabetically
+  std::sort(categories.begin(), categories.end(), [](const Category& a, const Category& b) { return a.tag < b.tag; });
+
+  ImGui::End();
 
   ImGui::Begin("Hierarchy", NULL, flags);
   {
@@ -83,17 +138,29 @@ update_ui_hierarchy_system(entt::registry& r)
         if (!valid)
           continue;
 
-        ImGui::Text("eid: %i", static_cast<uint32_t>(e));
-
         const auto* tag = r.try_get<TagComponent>(e);
-        if (tag != nullptr) {
-          ImGui::SameLine();
-          imgui_draw_entity(r, tag->tag, e, selected_entity);
-        } else
-          ImGui::Text("Non-tagged entity");
-      }
 
-    } else {
+        if (tag == nullptr) {
+          ImGui::Text("Non-tagged entity");
+        } else {
+
+          // limit entry by displayed categories
+          const auto category_opt = get_category_idx(categories, tag->tag);
+          if (category_opt.has_value()) {
+            const auto category_idx = category_opt.value();
+            const auto category = categories[category_idx];
+            if (!category.display) {
+              i--; // wasnt displayed
+              continue;
+            }
+          };
+
+          imgui_draw_entity(r, tag->tag, e, selected_entity);
+        }
+      }
+    }
+
+    if (filter != "") {
       filter = to_lower(filter);
 
       //
@@ -115,16 +182,6 @@ update_ui_hierarchy_system(entt::registry& r)
         i++;
       }
     }
-
-    // Display all the non-tagged entities
-    int not_tagged = 0;
-    for (const std::tuple<entt::entity>& ent_tuple : r.storage<entt::entity>().each()) {
-      const auto& [e] = ent_tuple;
-      const auto* tag = r.try_get<TagComponent>(e);
-      if (tag == nullptr)
-        not_tagged++;
-    }
-    ImGui::Text("Non-Tagged Entities: %i", not_tagged);
 
     // If select anywhere in the window, make entity unselected
     if (ImGui::IsMouseDown(0) && ImGui::IsWindowHovered())
@@ -155,6 +212,7 @@ update_ui_hierarchy_system(entt::registry& r)
     }
 
     const auto& eid = selected_entity;
+    ImGui::Text("%u", static_cast<uint32_t>(eid));
 
     if (r.all_of<TagComponent>(eid)) {
       TagComponent& t = r.get<TagComponent>(eid);

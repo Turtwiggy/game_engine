@@ -27,6 +27,7 @@ struct RenderDescriptor
   glm::ivec2 sprite_width = { 0, 0 };  // e.g. 2, 2
   glm::ivec2 sprites_max = { 0, 0 };   // e.g. 22
 
+  // the spritesheet texture unit this belongs to
   int tex_unit = 0;
 };
 

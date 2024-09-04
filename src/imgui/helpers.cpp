@@ -203,12 +203,6 @@ imgui_draw_entity(entt::registry& r,        //
     }
     ImGui::EndPopup();
   }
-
-  if (ImGui::BeginDragDropSource()) {
-    ImGui::SetDragDropPayload("DEMO", &selected_e, sizeof(entt::entity));
-    ImGui::Text("%s", label.c_str());
-    ImGui::EndDragDropSource();
-  }
 };
 
 } // namespace game2d

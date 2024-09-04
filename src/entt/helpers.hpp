@@ -10,6 +10,18 @@
 
 namespace game2d {
 
+inline std::string
+cleanup_tag_str(const std::string& s)
+{
+  // cleanup the generated tag...
+  std::string cleanedup_tag = s;
+  const std::string search_str = "struct game2d::";
+  const std::size_t pos = cleanedup_tag.find(search_str);
+  if (pos != std::string::npos)
+    cleanedup_tag = cleanedup_tag.substr(pos + search_str.length());
+  return cleanedup_tag;
+};
+
 template<class T>
 entt::entity
 create_empty(entt::registry& r, const std::optional<T>& val = std::nullopt)
@@ -18,9 +30,10 @@ create_empty(entt::registry& r, const std::optional<T>& val = std::nullopt)
 
   const T t{};
   const std::string name = typeid(t).name();
+  const std::string tag = cleanup_tag_str(name);
 
   const auto e = r.create();
-  r.emplace<TagComponent>(e, name);
+  r.emplace<TagComponent>(e, tag);
 
   if (val.has_value())
     r.emplace<T>(e, val.value());

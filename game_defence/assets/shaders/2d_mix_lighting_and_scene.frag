@@ -10,9 +10,11 @@ in vec2 v_sprite_wh;
 in vec2 v_sprite_max;
 in float v_tex_unit;
 
-uniform sampler2D scene_0;     // linear main
-uniform sampler2D scene_1; 		 // stars
+uniform sampler2D scene_0;         // linear main
+uniform sampler2D scene_1; 		 	   // stars
 uniform sampler2D u_distance_data; // distance data
+uniform sampler2D tex_unit_debris;
+uniform sampler2D tex_unit_floor_mask;
 
 uniform float brightness_threshold;
 uniform vec2 camera_pos;
@@ -287,7 +289,9 @@ void main()
 		// player light outside spaceship: 1.25
  		setLuminance(l.colour, l.luminance);
 
-		col += drawLight(p, l.position, l.colour, dist, 350.0, 12.0);
+		vec4 pcol = vec4(1.0f); 
+
+		col += drawLight(p, l.position, pcol, dist, 450.0, 12.0);
 	}
 
 	// shape fill
@@ -298,8 +302,15 @@ void main()
 	col = clamp(col, 0.0, 1.0);
 
   // linear to srgb
-
 	vec3 final_lin = scene_lin.rgb;
+
+	// debris backdrop
+	vec3 scene_debris_lin = texture(tex_unit_debris, v_uv).rgb;
+	float floor_mask = texture(tex_unit_floor_mask, v_uv).r;
+	if(floor_mask >= 0.95){
+		scene_debris_lin = vec3(0.0f);
+	}
+	final_lin += scene_debris_lin;
 
 	// grid
 	vec3 grid_lin = srgb_to_lin(vec3(grid_col.r * 255.0f, grid_col.g * 255.0f, grid_col.b * 255.0f));
@@ -309,12 +320,19 @@ void main()
 
 	// lighting
 	vec3 lighting_lin = srgb_to_lin(vec3(col.r * 255.0f, col.g * 255.0f, col.b * 255.0f));
-	final_lin *= lighting_lin;
 	// final_lin *= lighting_lin;
 
-	// vec3 srgb_final = (lin_to_srgb(final_lin));
-	vec3 srgb_final = lin_to_srgb(scene_lin.rgb);
+	vec3 srgb_final = lin_to_srgb(final_lin);
+	// vec3 srgb_final = lin_to_srgb(scene_lin.rgb);
 
 	out_color.rgb = srgb_final.rgb;
+
+	// vignette
+	vec2 vig_uv = fragCoord.xy / iResolution.xy;
+	vig_uv *=  1.0 - vig_uv.yx;   //vec2(1.0)- uv.yx; -> 1.-u.yx; Thanks FabriceNeyret !
+	float vig = vig_uv.x*vig_uv.y * 15.0; // multiply with sth for intensity
+	vig = pow(vig, 0.15); // change pow for modifying the extend of the  vignette
+	out_color.rgb *= vig;
+
 	out_color.a = 1.0f;
 }

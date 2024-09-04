@@ -82,6 +82,8 @@ struct Texture
 enum class PassName
 {
   stars,
+  debris,
+  floor_mask,
   linear_main,
   lighting_emitters_and_occluders,
   voronoi_seed,
@@ -123,6 +125,7 @@ struct SINGLETON_RendererInfo
 
   // shaders
   engine::Shader stars;
+  engine::Shader debris;
   engine::Shader instanced;
   engine::Shader lighting_emitters_and_occluders;
   engine::Shader voronoi_seed; // this shader stores the uv coordinates in the texture

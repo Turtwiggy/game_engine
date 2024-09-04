@@ -194,30 +194,18 @@ get_default_rendererinfo()
   std::string path = engine::get_exe_path_without_exe_name();
   path += "assets/";
 
-  Texture kennynl;
-  kennynl.path = path + "textures/kennynl_1bit_pack/monochrome_transparent_packed.png";
-  kennynl.spritesheet_path = path + "config/spritemap_kennynl.json";
-  ri.user_textures.push_back(kennynl);
+  const auto add_tex = [&ri, &path](const std::string& p, const std::string& sp) {
+    Texture tex;
+    tex.path = path + "textures/" + p;
+    tex.spritesheet_path = path + "config/" + sp;
+    ri.user_textures.push_back(tex);
+  };
 
-  Texture gameicons;
-  gameicons.path = path + "textures/kennynl_gameicons/Spritesheet/sheet_white1x_adjusted.png";
-  gameicons.spritesheet_path = path + "config/spritemap_kennynl_icons.json";
-  ri.user_textures.push_back(gameicons);
-
-  Texture spacestation_0;
-  spacestation_0.path = path + "textures/spacestation_0.png";
-  spacestation_0.spritesheet_path = path + "config/spritemap_spacestation_0.json";
-  ri.user_textures.push_back(spacestation_0);
-
-  Texture studio_logo;
-  studio_logo.path = path + "textures/blueberry-dark.png";
-  studio_logo.spritesheet_path = path + "config/spritemap_studio_logo.json";
-  ri.user_textures.push_back(studio_logo);
-
-  Texture custom;
-  custom.path = path + "textures/custom.png";
-  custom.spritesheet_path = path + "config/spritemap_custom.json";
-  ri.user_textures.push_back(custom);
+  add_tex("kennynl_1bit_pack/monochrome_transparent_packed.png", "spritemap_kennynl.json");
+  add_tex("kennynl_gameicons/Spritesheet/sheet_white1x_adjusted.png", "spritemap_kennynl_icons.json");
+  add_tex("blueberry-dark.png", "spritemap_studio_logo.json");
+  add_tex("custom.png", "spritemap_custom.json");
+  add_tex("organic2.jpg", "spritemap_default_1024.json");
 
   return ri;
 };

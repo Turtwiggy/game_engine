@@ -62,4 +62,9 @@ struct DungeonGenerationResults
   std::vector<entt::entity> floor_tiles;
 };
 
+struct FloorComponent
+{
+  bool placeholder = true;
+};
+
 } // namespace game2d

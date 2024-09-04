@@ -10,7 +10,7 @@ in vec2 v_sprite_wh;  // desired sprites e.g. 2, 2
 in vec2 v_sprite_max; // 22 sprites
 in float v_tex_unit;
 
-uniform vec2 texture_wh;
+uniform vec2 viewport_wh;
 uniform vec2 player_position;
 
 //
@@ -35,8 +35,8 @@ uniform vec2 player_position;
 
 void main()
 {
-  vec2 fragCoord = v_uv * texture_wh;
-  vec2 iResolution = texture_wh;
+  vec2 fragCoord = v_uv * viewport_wh;
+  vec2 iResolution = viewport_wh;
 
 	//get coords and direction
 	vec2 uv=fragCoord.xy/iResolution.xy-.5;

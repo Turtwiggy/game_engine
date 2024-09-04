@@ -5,6 +5,7 @@
 #include "events/helpers/mouse.hpp"
 #include "imgui/helpers.hpp"
 #include "modules/camera/orthographic.hpp"
+#include "modules/gen_dungeons/components.hpp"
 #include "modules/lighting/components.hpp"
 #include "modules/renderer/components.hpp"
 #include "modules/renderer/helpers.hpp"
@@ -80,6 +81,83 @@ setup_stars_update(entt::registry& r)
 };
 
 void
+setup_debris_update(entt::registry& r)
+{
+  auto& ri = get_first_component<SINGLETON_RendererInfo>(r);
+  const auto pass_idx = search_for_renderpass_by_name(ri, PassName::debris);
+  auto& pass = ri.passes[pass_idx];
+
+  pass.update = [](entt::registry& r) {
+    const auto& ri = get_first_component<SINGLETON_RendererInfo>(r);
+    const auto camera_e = get_first<OrthographicCamera>(r);
+    const auto& camera_t = r.get<TransformComponent>(camera_e);
+    const auto& camera_c = r.get<OrthographicCamera>(camera_e);
+
+    ri.debris.bind();
+    ri.debris.set_mat4("view", camera_c.view);
+    ri.debris.set_vec2("camera_pos", { camera_t.position.x, camera_t.position.y });
+
+    {
+      engine::quad_renderer::QuadRenderer::reset_quad_vert_count();
+      engine::quad_renderer::QuadRenderer::begin_batch();
+      {
+        engine::quad_renderer::RenderDescriptor desc;
+        const glm::vec2 offset = { ri.viewport_size_render_at.x / 2.0, ri.viewport_size_render_at.y / 2.0f };
+        desc.pos_tl = glm::vec2(camera_t.position.x, camera_t.position.y) - offset;
+        desc.size = ri.viewport_size_render_at;
+        desc.angle_radians = 0;
+        engine::quad_renderer::QuadRenderer::draw_sprite(desc, ri.debris);
+      }
+      engine::quad_renderer::QuadRenderer::end_batch();
+      engine::quad_renderer::QuadRenderer::flush(ri.debris);
+    }
+  };
+};
+
+void
+setup_floor_mask_update(entt::registry& r)
+{
+  auto& ri = get_first_component<SINGLETON_RendererInfo>(r);
+  const auto pass_idx = search_for_renderpass_by_name(ri, PassName::floor_mask);
+  auto& pass = ri.passes[pass_idx];
+  pass.update = [](entt::registry& r) {
+    const auto& ri = get_first_component<SINGLETON_RendererInfo>(r);
+    const auto& camera_c = get_first_component<OrthographicCamera>(r);
+
+    ri.instanced.bind();
+    ri.instanced.set_mat4("view", camera_c.view);
+
+    // Render floor quads in to floor-mask texture.
+    engine::LinearColour mask_colour = engine::LinearColour(1.0f, 1.0f, 1.0f, 1.0f);
+
+    {
+      engine::quad_renderer::QuadRenderer::reset_quad_vert_count();
+      engine::quad_renderer::QuadRenderer::begin_batch();
+
+      const auto& view = r.view<TransformComponent, SpriteComponent, FloorComponent>();
+
+      for (const auto& [e, transform, sc, floor_c] : view.each()) {
+        engine::quad_renderer::RenderDescriptor desc;
+        desc.pos_tl = transform.position - (transform.scale * 0.5f);
+        desc.size = transform.scale;
+        desc.angle_radians = sc.angle_radians + transform.rotation_radians.z;
+        desc.colour = mask_colour;
+        desc.tex_unit = sc.tex_unit;
+
+        desc.sprite_offset = { sc.tex_pos.x, sc.tex_pos.y };
+        desc.sprite_width = { sc.tex_pos.w, sc.tex_pos.h };
+        desc.sprites_max = { sc.total_sx, sc.total_sy };
+
+        engine::quad_renderer::QuadRenderer::draw_sprite(desc, ri.instanced);
+      }
+
+      engine::quad_renderer::QuadRenderer::end_batch();
+      engine::quad_renderer::QuadRenderer::flush(ri.instanced);
+    }
+  };
+};
+
+void
 setup_linear_main_update(entt::registry& r)
 {
   auto& ri = get_first_component<SINGLETON_RendererInfo>(r);
@@ -88,18 +166,16 @@ setup_linear_main_update(entt::registry& r)
 
   pass.update = [](entt::registry& r) {
     const auto& ri = get_first_component<SINGLETON_RendererInfo>(r);
-    const auto camera_e = get_first<OrthographicCamera>(r);
-    const auto& camera = r.get<OrthographicCamera>(camera_e);
-    const auto& camera_t = r.get<TransformComponent>(camera_e);
+    const auto& camera_c = get_first_component<OrthographicCamera>(r);
 
     glEnable(GL_BLEND);
     glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
     glEnable(GL_DEPTH_TEST);
 
-    // Render some quads
     ri.instanced.bind();
-    ri.instanced.set_mat4("view", camera.view);
+    ri.instanced.set_mat4("view", camera_c.view);
 
+    // Render some quads
     {
       engine::quad_renderer::QuadRenderer::reset_quad_vert_count();
       engine::quad_renderer::QuadRenderer::begin_batch();
@@ -346,7 +422,7 @@ setup_mix_lighting_and_scene_update(entt::registry& r)
 
     const auto camera_e = get_first<OrthographicCamera>(r);
     const auto& camera_t = r.get<TransformComponent>(camera_e);
-    const auto& camera = r.get<OrthographicCamera>(camera_e);
+    const auto& camera_c = r.get<OrthographicCamera>(camera_e);
 
     // update uniforms
     ri.mix_lighting_and_scene.bind();

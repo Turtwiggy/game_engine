@@ -1,6 +1,7 @@
 #pragma once
 
 // other lib headers
+#include "deps/opengl.hpp"
 #if !defined(STB_IMAGE_IMPLEMENTATION)
 #define STB_IMAGE_IMPLEMENTATION
 #endif
@@ -34,6 +35,9 @@ struct LinearTexture
   int texture_unit;
   std::string path;
   std::vector<float> data; // linear colour 0-1
+
+  int texture_min_filter = GL_LINEAR_MIPMAP_LINEAR;
+  int texture_max_filter = GL_NEAREST;
 };
 
 void

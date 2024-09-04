@@ -42,7 +42,7 @@ Factory_BaseActor::create(entt::registry& r, const EntityData& desc, const std::
 {
   const auto e = r.create();
 
-  r.emplace<TagComponent>(e, tag);
+  r.emplace<TagComponent>(e, cleanup_tag_str(tag));
   r.emplace<WaitForInitComponent>(e);
   r.emplace<SpriteComponent>(e, create_sprite(r, desc));
 

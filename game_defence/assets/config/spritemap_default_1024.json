@@ -1,0 +1,14 @@
+{
+  "spritesheet": {
+    "name": "default_1024",
+    "px_total": 1024,
+    "py_total": 1024,
+    "px": 1024,
+    "py": 1024,
+    "nx": 1,
+    "ny": 1
+  },
+  "sprites": [
+    { "name": "default_1024", "frames": [ { "x": 0, "y": 0, "w": 1, "h": 1 } ] }
+  ]
+}

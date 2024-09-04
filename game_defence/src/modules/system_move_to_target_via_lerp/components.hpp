@@ -11,7 +11,7 @@ struct SetPositionAtDynamicTarget
 
 struct SetRotationAsDynamicTarget
 {
-  bool placeholder = true;
+  float offset = 0.0f;
 };
 
 struct LerpingToTarget

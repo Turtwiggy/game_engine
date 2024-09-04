@@ -213,7 +213,11 @@ update_gen_dungeons_system(entt::registry& r, const glm::ivec2& mouse_pos)
       // set_colour(r, floor_e, { rnd_col, rnd_col, rnd_col, 1.0f });
 
       set_z_index(r, floor_e, ZLayer::BACKGROUND);
-      result.floor_tiles[engine::grid::grid_position_to_index(gridpos, map.xmax)] = floor_e;
+
+      r.emplace<FloorComponent>(floor_e);
+
+      const auto floor_idx = engine::grid::grid_position_to_index(gridpos, map.xmax);
+      result.floor_tiles[floor_idx] = floor_e;
     }
   }
 
@@ -229,8 +233,8 @@ update_gen_dungeons_system(entt::registry& r, const glm::ivec2& mouse_pos)
   const auto pos = engine::grid::grid_space_to_world_space_center(center, map.tilesize);
 
   DataJetpackActor desc;
-  desc.pos = pos; // somewhere on the ship?
-  // desc.pos = { -100, -100 }; // somewhere around the ship?
+  // desc.pos = pos; // somewhere on the ship?
+  desc.pos = { -100, -100 }; // somewhere around the ship?
   desc.team = AvailableTeams::player;
   const auto e = Factory_DataJetpackActor::create(r, desc);
   r.emplace<CameraFollow>(e);
@@ -242,7 +246,7 @@ update_gen_dungeons_system(entt::registry& r, const glm::ivec2& mouse_pos)
   set_z_index(r, helmet_e, ZLayer::PLAYER_HELMET);
   set_colour(r, helmet_e, { 1.0f, 1.0f, 1.0f, 1.0f });
   r.emplace<DynamicTargetComponent>(helmet_e).target = e;
-  r.emplace<SetRotationAsDynamicTarget>(helmet_e);
+  r.emplace<SetRotationAsDynamicTarget>(helmet_e, SetRotationAsDynamicTarget{ 6.0f });
 
   // set exit door position
   // bug: exit placed on generated entities. not so bad?

@@ -181,7 +181,7 @@ add_bomb_callback(entt::registry& r, const entt::entity e)
 
       const auto halfway_pos = (pos_a_worldspace + pos_b_worldspace) * 0.5f;
 
-      // basically a particle emitter
+      // a particle_parent_e is what the particle emitter follows
       const auto particle_parent_e = create_transform(r);
       r.get<TagComponent>(particle_parent_e).tag = "particle_emitter_parent";
       set_position(r, particle_parent_e, halfway_pos);

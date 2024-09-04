@@ -40,10 +40,6 @@ namespace game2d {
 // helpers
 //
 
-const glm::ivec3 DEFAULT_SIZE{ 32, 32, 1 };
-const glm::ivec3 HALF_SIZE{ 16, 16, 1 };
-const glm::ivec2 SMALL_SIZE{ 4, 4 };
-
 entt::entity
 create_transform(entt::registry& r)
 {

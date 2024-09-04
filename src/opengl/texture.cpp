@@ -108,38 +108,48 @@ load_texture_linear(const int tex_unit, const std::string& path)
 };
 
 unsigned int
-bind_linear_texture(const LinearTexture& texture)
+bind_linear_texture(const LinearTexture& tex)
 {
-  const int tex_unit = texture.texture_unit;
-  const int width = texture.width;
-  const int height = texture.height;
-  const int nr_components = texture.nr_components;
-  const auto& data = texture.data;
+  const int tex_unit = tex.texture_unit;
+  const int width = tex.width;
+  const int height = tex.height;
+  const int nr_components = tex.nr_components;
+  const auto& data = tex.data;
 
   unsigned int texture_id;
   glGenTextures(1, &texture_id);
 
-  GLenum format = GL_RGB;
-  if (nr_components == 1)
-    format = GL_RED;
-  else if (nr_components == 3)
-    format = GL_RGB;
+  GLenum format_a = GL_RGB;
+  GLenum format_b = GL_RGB;
+
+  if (nr_components == 1) {
+    format_a = GL_RED;
+    format_b = GL_RED;
+  }
+  if (nr_components == 3) {
+    format_a = GL_RGB;
+    format_b = GL_RGB;
+  }
 #if defined(__EMSCRIPTEN__)
-  else if (nr_components == 4)
-    format = GL_RGBA32F;
+  else if (nr_components == 4) {
+    format_a = GL_RGBA32F;
+    format_b = GL_RGBA;
+  }
 #else
-  else if (nr_components == 4)
-    format = GL_RGBA;
+  else if (nr_components == 4) {
+    format_a = GL_RGBA;
+    format_b = GL_RGBA;
+  }
 #endif
 
   glActiveTexture(GL_TEXTURE0 + tex_unit);
   glBindTexture(GL_TEXTURE_2D, texture_id);
-  glTexImage2D(GL_TEXTURE_2D, 0, format, width, height, 0, GL_RGBA, GL_FLOAT, data.data());
+  glTexImage2D(GL_TEXTURE_2D, 0, format_a, width, height, 0, format_b, GL_FLOAT, data.data());
   glGenerateMipmap(GL_TEXTURE_2D);
   glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
   glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
-  glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_LINEAR);
-  glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
+  glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, tex.texture_min_filter);
+  glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, tex.texture_max_filter);
 
   unbind_tex();
   return texture_id;

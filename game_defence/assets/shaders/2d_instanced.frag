@@ -12,7 +12,6 @@ in float v_tex_unit;
 
 uniform sampler2D tex_kenny;
 uniform sampler2D tex_gameicons;
-uniform sampler2D tex_unit_spacestation_0;
 uniform sampler2D tex_unit_studio_logo;
 uniform sampler2D tex_unit_custom;
 uniform vec2 viewport_wh;
@@ -157,14 +156,10 @@ main()
       return; // texture uses 0, 0
     }
     else if(index == RENDERER_TEX_UNIT_COUNT+2){
-      out_colour *= texture(tex_unit_spacestation_0, sprite_uv);
-      return; // texture uses 0, 0
-    }
-    else if(index == RENDERER_TEX_UNIT_COUNT+3){
       out_colour *= texture(tex_unit_studio_logo, sprite_uv);
       return; // texture uses 0, 0
     }
-    else if(index == RENDERER_TEX_UNIT_COUNT+4){
+    else if(index == RENDERER_TEX_UNIT_COUNT+3){
       out_colour *= texture(tex_unit_custom, sprite_uv);
       return; // texture uses 0, 0
     }

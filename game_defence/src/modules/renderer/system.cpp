@@ -87,7 +87,7 @@ rebind(entt::registry& r, SINGLETON_RendererInfo& ri)
 
   const int tex_unit_kenny = search_for_texture_unit_by_texture_path(ri, "monochrome")->unit;
   const int tex_unit_gameicons = search_for_texture_unit_by_texture_path(ri, "gameicons")->unit;
-  const int tex_unit_spacestation_0 = search_for_texture_unit_by_texture_path(ri, "spacestation_0")->unit;
+  const int tex_unit_organic2 = search_for_texture_unit_by_texture_path(ri, "organic2")->unit;
   const int tex_unit_studio_logo = search_for_texture_unit_by_texture_path(ri, "blueberry")->unit;
   const int tex_unit_custom = search_for_texture_unit_by_texture_path(ri, "custom")->unit;
   const int texs_used_by_renderer = get_renderer_tex_unit_count(ri);
@@ -99,6 +99,8 @@ rebind(entt::registry& r, SINGLETON_RendererInfo& ri)
   };
   const int tex_unit_linear_main = get_tex_unit(PassName::linear_main);
   const int tex_unit_stars = get_tex_unit(PassName::stars);
+  const int tex_unit_debris = get_tex_unit(PassName::debris);
+  const int tex_unit_floor_mask = get_tex_unit(PassName::floor_mask);
   const int tex_unit_voronoi_distance = get_tex_unit(PassName::voronoi_distance);
   const int tex_unit_mix_lighting_and_scene = get_tex_unit(PassName::mix_lighting_and_scene);
   const int tex_unit_blur_pingpong_1 = get_tex_unit(PassName::blur_pingpong_1);
@@ -111,14 +113,19 @@ rebind(entt::registry& r, SINGLETON_RendererInfo& ri)
   ri.stars.bind();
   ri.stars.set_int("tex", tex_unit_emitters_and_occluders);
   ri.stars.set_mat4("projection", camera.projection);
-  ri.stars.set_vec2("texture_wh", ri.viewport_size_render_at);
+  ri.stars.set_vec2("viewport_wh", ri.viewport_size_render_at);
+
+  ri.debris.reload();
+  ri.debris.bind();
+  ri.debris.set_int("tex", tex_unit_organic2);
+  ri.debris.set_mat4("projection", camera.projection);
+  ri.debris.set_vec2("viewport_wh", ri.viewport_size_render_at);
 
   ri.instanced.reload();
   ri.instanced.bind();
   ri.instanced.set_int("RENDERER_TEX_UNIT_COUNT", texs_used_by_renderer);
   ri.instanced.set_int("tex_kenny", tex_unit_kenny);
   ri.instanced.set_int("tex_gameicons", tex_unit_gameicons);
-  ri.instanced.set_int("tex_unit_spacestation_0", tex_unit_spacestation_0);
   ri.instanced.set_int("tex_unit_studio_logo", tex_unit_studio_logo);
   ri.instanced.set_int("tex_unit_custom", tex_unit_custom);
   ri.instanced.set_mat4("projection", camera.projection);
@@ -155,6 +162,8 @@ rebind(entt::registry& r, SINGLETON_RendererInfo& ri)
   ri.mix_lighting_and_scene.set_vec2("viewport_wh", ri.viewport_size_render_at);
   ri.mix_lighting_and_scene.set_int("scene_0", tex_unit_linear_main);
   ri.mix_lighting_and_scene.set_int("scene_1", tex_unit_stars);
+  ri.mix_lighting_and_scene.set_int("tex_unit_debris", tex_unit_debris);
+  ri.mix_lighting_and_scene.set_int("tex_unit_floor_mask", tex_unit_floor_mask);
   ri.mix_lighting_and_scene.set_int("u_distance_data", tex_unit_voronoi_distance);
 
   ri.circle.reload();
@@ -167,7 +176,7 @@ rebind(entt::registry& r, SINGLETON_RendererInfo& ri)
   ri.blur.set_mat4("view", glm::mat4(1.0f)); // whole texture
   ri.blur.set_mat4("projection", camera.projection);
 
-  // ri.bloom.reload();
+  ri.bloom.reload();
   ri.bloom.bind();
   ri.bloom.set_mat4("view", glm::mat4(1.0f)); // whole texture
   ri.bloom.set_mat4("projection", camera.projection);
@@ -198,6 +207,8 @@ init_render_system(const engine::SINGLETON_Application& app, entt::registry& r, 
   RenderCommand::clear();
 
   ri.passes.push_back(RenderPass(PassName::stars));
+  ri.passes.push_back(RenderPass(PassName::debris));
+  ri.passes.push_back(RenderPass(PassName::floor_mask));
   ri.passes.push_back(RenderPass(PassName::linear_main));
   ri.passes.push_back(RenderPass(PassName::lighting_emitters_and_occluders));
   // Use the Jump flood algorithm to generate a voroi diagram,
@@ -222,13 +233,22 @@ init_render_system(const engine::SINGLETON_Application& app, entt::registry& r, 
   int next_tex_unit = base_tex_unit;
   for (Texture& tex : ri.user_textures) {
     tex.tex_unit.unit = next_tex_unit;
-    const auto loaded_tex = engine::load_texture_linear(tex.tex_unit.unit, tex.path);
+
+    auto loaded_tex = engine::load_texture_linear(tex.tex_unit.unit, tex.path);
+
+    // HACK... should do something better than this
+    if (loaded_tex.path.find("organic2") != std::string::npos) {
+      loaded_tex.texture_min_filter = GL_MIPMAP;
+      loaded_tex.texture_max_filter = GL_MIPMAP;
+    }
+
     tex.tex_id.id = bind_linear_texture(loaded_tex);
     next_tex_unit++;
     fmt::println("loaded texture... {}", tex.path);
   }
 
   ri.stars = Shader("assets/shaders/2d_instanced.vert", "assets/shaders/star_nest.frag");
+  ri.debris = Shader("assets/shaders/2d_instanced.vert", "assets/shaders/2d_debris.frag");
   ri.instanced = Shader("assets/shaders/2d_instanced.vert", "assets/shaders/2d_instanced.frag");
   ri.lighting_emitters_and_occluders =
     Shader("assets/shaders/2d_instanced.vert", "assets/shaders/2d_emitters_and_occluders.frag");
@@ -257,6 +277,8 @@ init_render_system(const engine::SINGLETON_Application& app, entt::registry& r, 
   // adds the update() for each renderpass
 
   setup_stars_update(r);
+  setup_floor_mask_update(r);
+  setup_debris_update(r);
   setup_linear_main_update(r);
   setup_lighting_emitters_and_occluders_update(r);
   setup_voronoi_seed_update(r);
@@ -288,6 +310,10 @@ update_render_system(entt::registry& r, const float dt, const glm::vec2& mouse_p
 {
   static const engine::SRGBColour black(0, 0, 0, 1.0f);
 
+#if defined(_DEBUG)
+  CHECK_OPENGL_ERROR(1337); // check error every update()
+#endif
+
   static float time = 0.0f;
   time += dt;
 
@@ -309,6 +335,13 @@ update_render_system(entt::registry& r, const float dt, const glm::vec2& mouse_p
 
   // auto& camera = get_first_component<OrthographicCamera>(r);
   // camera.projection = calculate_ortho_projection(viewport_wh.x, viewport_wh.y, dt);
+
+  // Do things with debris shader
+  ri.debris.bind();
+  ri.debris.set_float("iTime", time);
+  // static float parallax = 0.1f;
+  // imgui_draw_float("parallax", parallax);
+  // ri.debris.set_float("parallax", parallax);
 
   const auto scenes_to_render_stars = std::vector<Scene>{
     Scene::splashscreen,
@@ -544,13 +577,14 @@ update_render_system(entt::registry& r, const float dt, const glm::vec2& mouse_p
     }
 
     // Debug user Texture
-    // for (int i = 0; const auto& tex : ri.user_textures) {
-    //   const std::string label = std::string("Debug") + std::to_string(i++);
-    //   ImGui::Begin(label.c_str());
-    //   ImVec2 viewport_size = ImGui::GetContentRegionAvail();
-    //   ImGui::Image((ImTextureID)tex.tex_id.id, viewport_size, ImVec2(0, 0), ImVec2(1, 1));
-    //   ImGui::End();
-    // }
+    for (int i = 0; const auto& tex : ri.user_textures) {
+      const std::string label = std::string("Debug") + std::to_string(i++);
+      ImGui::Begin(label.c_str());
+      ImVec2 viewport_size = ImGui::GetContentRegionAvail();
+      const ImTextureID id = reinterpret_cast<ImTextureID>(static_cast<uintptr_t>(tex.tex_id.id));
+      ImGui::Image(id, viewport_size, ImVec2(0, 0), ImVec2(1, 1));
+      ImGui::End();
+    }
   }
 #endif
 };

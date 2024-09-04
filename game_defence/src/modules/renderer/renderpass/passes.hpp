@@ -7,6 +7,12 @@ namespace game2d {
 void
 setup_stars_update(entt::registry& r);
 
+void
+setup_floor_mask_update(entt::registry& r);
+
+void
+setup_debris_update(entt::registry& r);
+
 // FBO: Render sprites in to this fbo with linear colour
 void
 setup_linear_main_update(entt::registry& r);
