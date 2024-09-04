@@ -24,27 +24,29 @@ const auto exp_decay = [](float a, float b, float decay, float dt) -> float {
 void
 update_move_to_target_via_lerp(entt::registry& r, const float& dt)
 {
-  //
-  // Do the lerp and update position
-  //
-  const auto& view = r.view<LerpingToTarget>(entt::exclude<WaitForInitComponent>);
-  for (const auto& [e, lerp_info] : view.each()) {
-    if (lerp_info.t >= 1.0f)
-      lerp_info.t = 1.0f;
-    lerp_info.t += dt;
+  {
+    const auto& view = r.view<LerpToFixedTarget>(entt::exclude<WaitForInitComponent>);
+    for (const auto& [e, info] : view.each()) {
+      if (info.t >= 1.0f)
+        info.t = 1.0f;
+      info.t += dt;
 
-    const auto& a = lerp_info.a;
-    const auto& b = lerp_info.b;
+      const float pos_x = exp_decay(info.a.x, info.b.x, info.speed, info.t);
+      const float pos_y = exp_decay(info.a.y, info.b.y, info.speed, info.t);
+      set_position(r, e, { pos_x, pos_y });
 
-    const float decay = 20; // higher number = faster to destination
-    const float pos_x = exp_decay(a.x, b.x, decay, lerp_info.t);
-    const float pos_y = exp_decay(a.y, b.y, decay, lerp_info.t);
-
-    set_position(r, e, { pos_x, pos_y });
-
-    // check not out of bounds
-    if (lerp_info.t >= 1.0f)
-      r.remove<LerpingToTarget>(e);
+      // check not out of bounds
+      if (info.t >= 1.0f)
+        r.remove<LerpToFixedTarget>(e);
+    }
+  }
+  {
+    const auto& view = r.view<LerpToMovingTarget>(entt::exclude<WaitForInitComponent>);
+    for (const auto& [e, info] : view.each()) {
+      const float pos_x = exp_decay(info.a.x, info.b.x, info.speed, dt);
+      const float pos_y = exp_decay(info.a.y, info.b.y, info.speed, dt);
+      set_position(r, e, { pos_x, pos_y });
+    }
   }
 
   //

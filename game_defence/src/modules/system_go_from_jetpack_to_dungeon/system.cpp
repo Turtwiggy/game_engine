@@ -12,6 +12,7 @@
 #include "modules/grid/components.hpp"
 #include "modules/grid/helpers.hpp"
 #include "modules/system_fov/components.hpp"
+#include "modules/system_move_to_target_via_lerp/components.hpp"
 
 #include <box2d/b2_math.h>
 
@@ -54,10 +55,7 @@ update_go_from_jetpack_to_dungeon_system(entt::registry& r)
 
     // change camera
     remove_if_exists<CameraFollow>(r, e);
-    create_empty<CameraFreeMove>(r);
-
-    const int idx = engine::grid::worldspace_to_index(final_pos, map.tilesize, map.xmax, map.ymax);
-    add_entity_to_map(r, e, idx);
+    r.emplace<CameraLerpToTarget>(e);
 
     fmt::println("going from jetpack to dungeon character...");
     create_empty<RequestUpdateFOV>(r);

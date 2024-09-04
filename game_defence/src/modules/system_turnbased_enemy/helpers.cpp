@@ -34,12 +34,12 @@ move_action_common(entt::registry& r, const entt::entity e, const glm::vec2& dst
 
   // Lerp the player model, independent of the grid representation
   const auto offset = glm::vec2{ map.tilesize / 2.0f, map.tilesize / 2.0f };
-  remove_if_exists<LerpingToTarget>(r, e);
-  LerpingToTarget lerp;
+  remove_if_exists<LerpToFixedTarget>(r, e);
+  LerpToFixedTarget lerp;
   lerp.a = engine::grid::index_to_world_position(a, map.xmax, map.ymax, map.tilesize) + offset;
   lerp.b = engine::grid::index_to_world_position(b, map.xmax, map.ymax, map.tilesize) + offset;
   lerp.t = 0.0f;
-  r.emplace<LerpingToTarget>(e, lerp);
+  r.emplace<LerpToFixedTarget>(e, lerp);
 };
 
 } // namespace game2d

@@ -9,6 +9,7 @@
 #include "events/helpers/keyboard.hpp"
 #include "modules/camera/orthographic.hpp"
 #include "modules/renderer/components.hpp"
+#include "modules/system_move_to_target_via_lerp/components.hpp"
 #include "orthographic.hpp"
 #include "renderer/transform.hpp"
 
@@ -49,8 +50,14 @@ update_camera_system(entt::registry& r, const float dt)
   // }
 
   // update lerp
-  // if (auto* target = r.try_get<HasTargetPositionComponent>(camera_ent))
-  //   target->position = { target_position.x, target_position.y };
+  auto target_e = get_first<CameraLerpToTarget>(r);
+  if (target_e != entt::null) {
+    auto& lerp_c = r.get_or_emplace<LerpToMovingTarget>(camera_ent);
+    lerp_c.a = get_position(r, camera_ent);
+    lerp_c.b = get_position(r, target_e);
+    lerp_c.speed = 5.0f;
+  } else
+    remove_if_exists<LerpToMovingTarget>(r, camera_ent);
 
   // allow camera to move freely
   if (get_first<CameraFreeMove>(r) != entt::null) {

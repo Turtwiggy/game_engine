@@ -7,6 +7,7 @@
 #include "bags/items.hpp"
 #include "entt/helpers.hpp"
 #include "lifecycle/components.hpp"
+#include "maths/grid.hpp"
 #include "maths/maths.hpp"
 #include "modules/actor_breach_charge/components.hpp"
 #include "modules/actor_breach_charge/helpers.hpp"
@@ -18,6 +19,8 @@
 #include "modules/combat_attack_cooldown/components.hpp"
 #include "modules/combat_damage/components.hpp"
 #include "modules/combat_wants_to_shoot/components.hpp"
+#include "modules/grid/components.hpp"
+#include "modules/grid/helpers.hpp"
 #include "modules/items_pickup/components.hpp"
 #include "modules/lighting/components.hpp"
 #include "modules/renderer/components.hpp"
@@ -107,9 +110,11 @@ add_components(entt::registry& r, const entt::entity e, const DataDungeonActor& 
   r.emplace<DestroyBulletOnCollison>(e);
 
   if (desc.team == AvailableTeams::enemy) {
-
     r.emplace<EnemyComponent>(e);
   }
+
+  const auto& map_c = get_first_component<MapComponent>(r);
+  add_entity_to_map(r, e, engine::grid::worldspace_to_index(desc.pos, map_c.tilesize, map_c.xmax, map_c.ymax));
 };
 
 void
@@ -207,6 +212,9 @@ Factory_DataDungeonCover::create(entt::registry& r, const DataDungeonCover& desc
 
   // only flash / scale size once per bullet
   r.emplace<DefenceHitListComponent>(e);
+
+  const auto& map_c = get_first_component<MapComponent>(r);
+  add_entity_to_map(r, e, engine::grid::worldspace_to_index(desc.pos, map_c.tilesize, map_c.xmax, map_c.ymax));
 
   set_position(r, e, desc.pos);
   return e;

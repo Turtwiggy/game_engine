@@ -5,7 +5,6 @@
 #include "maths/grid.hpp"
 #include "maths/maths.hpp"
 #include "modules/grid/components.hpp"
-#include "modules/grid/helpers.hpp"
 #include "modules/system_drop_items/components.hpp"
 
 namespace game2d {
@@ -24,7 +23,6 @@ spawn_enemy(entt::registry& r, const int idx)
   desc.hp = 50;
   desc.max_hp = 50;
   const auto dungeon_e = Factory_DataDungeonActor::create(r, desc);
-  add_entity_to_map(r, dungeon_e, idx);
 
   // get enemies to drop scrap
   r.emplace<DropItemsOnDeathComponent>(dungeon_e);
@@ -47,7 +45,6 @@ spawn_cover(entt::registry& r, const int idx)
   fmt::println("pos: {},{}", desc.pos.x, desc.pos.y);
 
   const auto e = Factory_DataDungeonCover::create(r, desc);
-  add_entity_to_map(r, e, idx);
 };
 
 FreeSlots

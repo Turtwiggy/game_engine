@@ -97,6 +97,44 @@ TEST(TestSuite, MoveToOccupiedTile)
   ASSERT_EQ(expected, actual);
 };
 
+TEST(TestSuite, DungeonEntityDropsScrap)
+{
+  // arrange
+  entt::registry r;
+  default_setup(r);
+
+  const auto attacker_e = Factory_DataDungeonActor::create(r, {});
+  r.emplace<AttackComponent>(attacker_e, 10); // comp could be on shotgun
+  add_entity_to_map(r, attacker_e, 0);
+
+  DataDungeonActor desc;
+  desc.hp = 10;
+  desc.max_hp = 10;
+  const auto defender_e = Factory_DataDungeonActor::create(r, desc);
+  add_entity_to_map(r, defender_e, 1);
+
+  DealDamageRequest req;
+  req.from = attacker_e;
+  req.to = defender_e;
+  create_empty<DealDamageRequest>(r, req);
+
+  // act: kill the entity
+  update_take_damage_system(r);
+
+  // assert: entity is dead
+  const auto& dead = get_first_component<SINGLETON_EntityBinComponent>(r);
+  const auto it = std::find(dead.dead.begin(), dead.dead.end(), defender_e);
+  ASSERT_TRUE(it != dead.dead.end()); // i.e. it exists in the dead pile
+
+  // act: tick. which is where the item-drop callback is called
+  update_lifecycle_system(r, 10);
+
+  // assert: item is dropped
+  const auto& map_c = get_first_component<MapComponent>(r);
+  auto& item_c = r.get<ItemTypeComponent>(map_c.map[1]);
+  ASSERT_EQ(ItemType::scrap, item_c.type);
+};
+
 TEST(TestSuite, MoveToItemTileWithInventory)
 {
   // arrange
@@ -161,44 +199,6 @@ TEST(TestSuite, MoveToItemTileWithInventory)
     const auto it = std::find(map_c.map.begin(), map_c.map.end(), item_e);
     ASSERT_TRUE(it == map_c.map.end());
   }
-};
-
-TEST(TestSuite, DungeonEntityDropsScrap)
-{
-  // arrange
-  entt::registry r;
-  default_setup(r);
-
-  const auto attacker_e = Factory_DataDungeonActor::create(r, {});
-  r.emplace<AttackComponent>(attacker_e, 10); // comp could be on shotgun
-  add_entity_to_map(r, attacker_e, 0);
-
-  DataDungeonActor desc;
-  desc.hp = 10;
-  desc.max_hp = 10;
-  const auto defender_e = Factory_DataDungeonActor::create(r, desc);
-  add_entity_to_map(r, defender_e, 1);
-
-  DealDamageRequest req;
-  req.from = attacker_e;
-  req.to = defender_e;
-  create_empty<DealDamageRequest>(r, req);
-
-  // act: kill the entity
-  update_take_damage_system(r);
-
-  // assert: entity is dead
-  const auto& dead = get_first_component<SINGLETON_EntityBinComponent>(r);
-  const auto it = std::find(dead.dead.begin(), dead.dead.end(), defender_e);
-  ASSERT_TRUE(it != dead.dead.end()); // i.e. it exists in the dead pile
-
-  // act: tick. which is where the item-drop callback is called
-  update_lifecycle_system(r, 10);
-
-  // assert: item is dropped
-  const auto& map_c = get_first_component<MapComponent>(r);
-  auto& item_c = r.get<ItemTypeComponent>(map_c.map[1]);
-  ASSERT_EQ(ItemType::scrap, item_c.type);
 };
 
 TEST(TestSuite, MoveToItemTileWithNoInventory)

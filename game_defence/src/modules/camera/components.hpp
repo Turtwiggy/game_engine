@@ -1,5 +1,7 @@
 #pragma once
 
+#include <entt/entt.hpp>
+
 namespace game2d {
 
 struct CameraFollow
@@ -8,6 +10,11 @@ struct CameraFollow
 };
 
 struct CameraFreeMove
+{
+  bool placeholder = true;
+};
+
+struct CameraLerpToTarget
 {
   bool placeholder = true;
 };
