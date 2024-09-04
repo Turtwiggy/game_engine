@@ -164,7 +164,7 @@ update_turnbased_enemy_system(entt::registry& r)
     return; // only process system if enemy turn
 
   // ImGui::Begin("Debug__TurnbasedEnemySystem");
-  const bool one_at_a_time = false;
+  const bool one_at_a_time = true;
   bool all_enemies_fully_done = true;
 
   for (const auto& [e, e_c] : r.view<EnemyComponent>().each()) {
@@ -211,7 +211,7 @@ update_turnbased_enemy_system(entt::registry& r)
     }
 
     // ImGui::PopID();
-    if (one_at_a_time)
+    if (one_at_a_time && (!all_enemies_fully_done))
       break;
   }
   // ImGui::End();

@@ -138,7 +138,7 @@ update_take_damage_system(entt::registry& r)
     // }
 
     // .. take damage
-    hp->hp -= glm::max(0.0f, damage);
+    hp->hp -= static_cast<int>(glm::max(0.0f, damage));
 
     const auto a_name = std::string(r.get<TagComponent>(request.from).tag);
     const auto b_name = std::string(r.get<TagComponent>(request.to).tag);
