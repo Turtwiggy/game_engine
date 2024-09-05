@@ -7,8 +7,9 @@
 
 namespace game2d {
 
-const std::string SETTINGS_FILEPATH = "settings.json";
+const std::string SETTINGS_FILEPATH = "save.json";
 const std::string PLAYERPREF_MUTE = "playerpref_mute";
+const std::string SPACESHIP_COUNT = "spaceship_count";
 
 void
 save_string(const std::string& key, const std::string& value);

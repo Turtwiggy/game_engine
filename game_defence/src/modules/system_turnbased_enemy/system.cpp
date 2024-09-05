@@ -15,10 +15,7 @@
 #include "modules/gen_dungeons/components.hpp"
 #include "modules/gen_dungeons/helpers.hpp"
 #include "modules/grid/components.hpp"
-#include "modules/grid/helpers.hpp"
 #include "modules/system_fov/components.hpp"
-#include "modules/system_move_to_target_via_lerp/components.hpp"
-#include "modules/system_turnbased/components.hpp"
 
 #include <fmt/core.h>
 
@@ -71,6 +68,9 @@ glm::vec2
 ai_decide_move_destination(entt::registry& r, const entt::entity e)
 {
   const auto& map = get_first_component<MapComponent>(r);
+
+  if (get_first<PlayerComponent>(r) == entt::null)
+    return get_position(r, e); // current position
 
   // Different AI systems to go here...
 

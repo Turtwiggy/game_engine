@@ -9,4 +9,9 @@ struct RequestShowBoardShipButton
   bool request = false;
 };
 
+struct RequestSpawnCargoboxes
+{
+  int amount = 0;
+};
+
 } // namespace game2d

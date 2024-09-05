@@ -2,6 +2,7 @@
 
 #include "entt/helpers.hpp"
 #include "lifecycle/components.hpp"
+#include "modules/actor_cargo/helpers.hpp"
 #include "modules/combat_damage/components.hpp"
 #include "modules/gameover/components.hpp"
 #include "modules/gen_dungeons/components.hpp"
@@ -44,6 +45,9 @@ update_gameover_system(entt::registry& r)
           gameover.game_is_over = true;
           gameover.win_condition = false;
           gameover.reason = "Your team wiped out!";
+
+          // punish the player! make them lose a cargo!
+          decrement_cargo(r);
         }
       }
     }

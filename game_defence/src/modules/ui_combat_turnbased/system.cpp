@@ -11,8 +11,8 @@
 #include "events/helpers/mouse.hpp"
 #include "game_state.hpp"
 #include "maths/grid.hpp"
+#include "modules/actor_player/components.hpp"
 #include "modules/actor_weapon_shotgun/components.hpp"
-#include "modules/algorithm_astar_pathfinding/helpers.hpp"
 #include "modules/combat_damage/components.hpp"
 #include "modules/combat_wants_to_shoot/components.hpp"
 #include "modules/grid/components.hpp"
@@ -24,6 +24,8 @@
 #include "sprites/helpers.hpp"
 
 #include <fmt/core.h>
+
+#include <cmath>
 
 namespace game2d {
 using namespace std::literals;
@@ -84,13 +86,10 @@ update_ui_combat_turnbased_system(entt::registry& r, const glm::ivec2& input_mou
   if (action == Actions::MOVE)
     mouse_grid_increments = map.tilesize;
 
-  const bool rmb_click = get_mouse_rmb_press();
   const int grid_snap_size = mouse_grid_increments; // note: this is not the map.tilesize,
 
   const auto mouse_gridspace = engine::grid::worldspace_to_grid_space(input_mouse_pos, grid_snap_size);
-  auto mouse_pos = engine::grid::grid_space_to_world_space(mouse_gridspace, grid_snap_size);
-  if (action == Actions::MOVE)
-    mouse_pos += glm::ivec2{ map.tilesize / 2.0f, map.tilesize / 2.0f }; // center it
+  const auto mouse_pos = engine::grid::grid_space_to_world_space_center(mouse_gridspace, grid_snap_size);
 
   // change cursor icon
   if (action == Actions::MOVE)
@@ -140,16 +139,52 @@ update_ui_combat_turnbased_system(entt::registry& r, const glm::ivec2& input_mou
     if (!inside_ship(r, e))
       return; // only move if onboard
 
+    bool request_action = false;
+    glm::vec2 move_position{ 0, 0 };
+    const auto wp = get_position(r, e);
+    {
+      // mouse input
+      request_action |= get_mouse_rmb_press();
+      move_position = mouse_pos;
+
+      // override with keyboard or controller input
+      if (auto* inp_c = r.try_get<InputComponent>(e)) {
+
+        request_action |= inp_c->unprocessed_move_down;
+
+        const auto round_away_from_zero = [](const float value) -> float {
+          if (value > 0.0f)
+            return std::ceil(value);
+          else if (value < 0.0f)
+            return std::floor(value);
+          else
+            return 0.0f;
+        };
+
+        if (inp_c->unprocessed_move_down) {
+          // aim 1 tile left/right/up/down etc
+          move_position.x = wp.x + round_away_from_zero(inp_c->lx) * float(map.tilesize);
+          move_position.y = wp.y + round_away_from_zero(inp_c->ly) * float(map.tilesize);
+        }
+
+        if (inp_c->unprocessed_move_down)
+          inp_c->unprocessed_move_down = false;
+      }
+    }
+
+    if (move_position == wp)
+      return; // moving to same space.. skip
+
     // move mode
-    if (action == Actions::MOVE && actions.actions_available > 0 && rmb_click) {
-      move_action_common(r, e, mouse_pos);
+    if (action == Actions::MOVE && actions.actions_available > 0 && request_action) {
+      move_action_common(r, e, move_position);
 
       actions.actions_available--;
       actions.actions_completed++;
     }
 
     // shoot mode
-    if (action == Actions::ATTACK && actions.actions_available > 0 && rmb_click) {
+    if (action == Actions::ATTACK && actions.actions_available > 0 && request_action) {
       r.emplace_or_replace<WantsToShoot>(e);
 
       actions.actions_available--;

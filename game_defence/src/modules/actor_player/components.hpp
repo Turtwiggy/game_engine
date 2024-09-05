@@ -66,6 +66,7 @@ struct InputComponent
   bool sprint_release = false;
   bool pickup = false;
   bool drop = false;
+  bool unprocessed_move_down = false;
 };
 
 // pressing WASD directly correlates to some axis

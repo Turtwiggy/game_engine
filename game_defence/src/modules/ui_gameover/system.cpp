@@ -42,16 +42,18 @@ update_ui_gameover_system(entt::registry& r)
     const auto pos = ImVec2(viewport_pos.x + viewport_size_half.x, viewport_pos.y + viewport_size_half.y);
     ImGui::SetNextWindowPos(pos, ImGuiCond_Always, ImVec2(0.5f, 0.5f));
 
-    ImGui::Begin("GameOver!", NULL, flags);
+    ImGui::Begin("Gameover", NULL, flags);
     ImGui::Text("%s", gameover.reason.c_str());
 
-    ImGui::Text("Thanks for playing.");
+    if (centered_button("Back to ship.")) {
+      move_to_scene_start(r, Scene::overworld_revamped, false);
+      move_to_scene_additive(r, Scene::overworld_revamped);
+    }
 
+    /*
     if (centered_button("New Game"))
       create_empty<NewGameRequest>(r);
-
-    if (centered_button("Main Menu"))
-      move_to_scene_start(r, Scene::menu); // hack: impl shouldnt be here
+    */
 
     ImGui::End();
   }

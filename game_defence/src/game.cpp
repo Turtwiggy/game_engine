@@ -378,6 +378,7 @@ update(engine::SINGLETON_Application& app, entt::registry& r, const float dt)
     if (scene.s == Scene::menu) {
       update_ui_scene_main_menu(app, r);
     }
+
     if (scene.s == Scene::dungeon_designer) {
       update_ui_combat_turnbased_system(r, mouse_pos);
       update_ui_combat_endturn_system(r);
@@ -385,9 +386,12 @@ update(engine::SINGLETON_Application& app, entt::registry& r, const float dt)
       update_ui_inventory_system(r);
       update_ui_combat_info_in_worldspace_system(r);
     }
+
     if (scene.s == Scene::overworld_revamped) {
-      update_ui_launch_crew_system(r);
+      //
     }
+
+    update_ui_launch_crew_system(r);
     update_ui_overworld_shiplabel_system(r);
     update_ui_worldspace_text_system(r);
     update_ui_worldspace_sprite_system(r);

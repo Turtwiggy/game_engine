@@ -97,6 +97,7 @@ rebind(entt::registry& r, SINGLETON_RendererInfo& ri)
     const auto& linear_pass = ri.passes[linear_pass_idx];
     return linear_pass.texs[0].tex_unit.unit;
   };
+
   const int tex_unit_linear_main = get_tex_unit(PassName::linear_main);
   const int tex_unit_stars = get_tex_unit(PassName::stars);
   const int tex_unit_debris = get_tex_unit(PassName::debris);

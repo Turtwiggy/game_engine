@@ -212,6 +212,11 @@ update_player_controller_system(entt::registry& r, const uint64_t& milliseconds_
       input.pickup |= fixed_input_keyboard_press(inputs, keyboard->pickup);
       input.drop |= fixed_input_keyboard_press(inputs, keyboard->drop);
       input.sprint |= fixed_input_keyboard_press(inputs, keyboard->sprint);
+
+      input.unprocessed_move_down |= fixed_input_keyboard_press(inputs, keyboard->W);
+      input.unprocessed_move_down |= fixed_input_keyboard_press(inputs, keyboard->A);
+      input.unprocessed_move_down |= fixed_input_keyboard_press(inputs, keyboard->S);
+      input.unprocessed_move_down |= fixed_input_keyboard_press(inputs, keyboard->D);
     }
 
     if (controller) {
@@ -223,6 +228,9 @@ update_player_controller_system(entt::registry& r, const uint64_t& milliseconds_
       input.pickup |= fixed_input_controller_button_held(inputs, controller->c_r_bumper);
       input.drop |= fixed_input_controller_button_held(inputs, controller->c_l_bumper);
       input.sprint |= fixed_input_controller_axis_held(inputs, controller->c_left_trigger) > 0.5f;
+
+      input.unprocessed_move_down |= input.lx != 0.0f && input.shoot;
+      input.unprocessed_move_down |= input.ly != 0.0f && input.shoot;
     }
 
     const glm::vec2 r_nrm_dir = engine::normalize_safe({ input.rx, input.ry });

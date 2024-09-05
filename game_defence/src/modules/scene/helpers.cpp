@@ -8,6 +8,7 @@
 #include "entt/helpers.hpp"
 #include "events/components.hpp"
 #include "game_state.hpp"
+#include "io/settings.hpp"
 #include "lifecycle/components.hpp"
 #include "magic_enum.hpp"
 #include "modules/actor_enemy/components.hpp"
@@ -72,12 +73,39 @@ add_weapon_shotgun(entt::registry& r, const entt::entity& e)
 };
 
 void
+create_player_if_not_in_scene(entt::registry& r)
+{
+  if (get_first<PlayerComponent>(r) != entt::null)
+    return;
+
+  const auto& ri = get_first_component<SINGLETON_RendererInfo>(r);
+
+  // As the camera is at 0, 0,
+  // worldspace text around the camera would be from e.g. -width/2 to width/2
+  const auto half_wh = ri.viewport_size_render_at / glm::ivec2(2.0f, 2.0f);
+
+  // create a player for an interactive menu
+  DataSpaceShipActor desc;
+  desc.pos = { half_wh.x, 0 };
+  desc.colour = { 255, 255, 117, 1.0f };
+  desc.team = AvailableTeams::player;
+  const auto player_e = Factory_DataSpaceShipActor::create(r, desc);
+  r.emplace<CameraFollow>(player_e);
+
+  // drag cargo around
+  auto ships_opt = get_string(SPACESHIP_COUNT);
+  if (ships_opt.has_value()) {
+    fmt::println("you've beaten {} ships", ships_opt.value());
+    create_empty<RequestSpawnCargoboxes>(r, RequestSpawnCargoboxes{ std::stoi(ships_opt.value()) });
+  }
+};
+
+void
 move_to_scene_menu(entt::registry& r)
 {
   destroy_first_and_create<SINGLE_MainMenuUI>(r);
   destroy_first_and_create<Effect_GridComponent>(r);
   create_empty<AudioRequestPlayEvent>(r, AudioRequestPlayEvent{ "MENU_01", true });
-  const auto& ri = get_first_component<SINGLETON_RendererInfo>(r);
 
   // Load randoms name file
   // const auto path = "./assets/config/random_names.json";
@@ -97,17 +125,7 @@ move_to_scene_menu(entt::registry& r)
   //   ui.random_names.push_back(first_name);
   // }
 
-  // As the camera is at 0, 0,
-  // worldspace text around the camera would be from e.g. -width/2 to width/2
-  const auto half_wh = ri.viewport_size_render_at / glm::ivec2(2.0f, 2.0f);
-
-  // create a player for an interactive menu
-  DataSpaceShipActor desc;
-  desc.pos = { half_wh.x, 0 };
-  desc.colour = { 255, 255, 117, 1.0f };
-  desc.team = AvailableTeams::player;
-  const auto player_e = Factory_DataSpaceShipActor::create(r, desc);
-  r.emplace<CameraFollow>(player_e);
+  create_player_if_not_in_scene(r);
 };
 
 // scene idea:
@@ -121,6 +139,7 @@ move_to_scene_overworld_revamped(entt::registry& r)
   const auto& ri = get_first_component<SINGLETON_RendererInfo>(r);
   const auto half_wh = ri.viewport_size_render_at / glm::ivec2(2.0f, 2.0f);
 
+  create_player_if_not_in_scene(r);
   const auto player_e = get_first<PlayerComponent>(r);
   auto& player_t = r.get<TransformComponent>(player_e);
 
@@ -129,7 +148,6 @@ move_to_scene_overworld_revamped(entt::registry& r)
   r.remove<MovementAsteroidsComponent>(player_e);
 
   // create an enemy ship off-screen
-
   DataSpaceShipActor desc;
   desc.pos = { player_t.position.x + half_wh.x * 2, player_t.position.y };
   desc.colour = { 1.0f, 0.0f, 0.0f, 1.0f };
