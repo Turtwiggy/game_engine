@@ -13,6 +13,7 @@
 #include "modules/actor_breach_charge/helpers.hpp"
 #include "modules/actor_cover/components.hpp"
 #include "modules/actor_enemy/components.hpp"
+#include "modules/actor_lootbag/components.hpp"
 #include "modules/actor_player/components.hpp"
 #include "modules/actor_weapon_shotgun/components.hpp"
 #include "modules/algorithm_astar_pathfinding/components.hpp"
@@ -109,12 +110,21 @@ add_components(entt::registry& r, const entt::entity e, const DataDungeonActor& 
   r.emplace<TeamComponent>(e, desc.team);
   r.emplace<DestroyBulletOnCollison>(e);
 
+  // note: player inventory currently added to jetpack actor...
+
   if (desc.team == AvailableTeams::enemy) {
     r.emplace<EnemyComponent>(e);
+
+    // give default body and inventory
+    r.emplace<DefaultBody>(e, DefaultBody(r));
+
+    // note: giving enemies smaller inventories
+    r.emplace<DefaultInventory>(e, DefaultInventory(r, 2 * 6));
   }
 
   const auto& map_c = get_first_component<MapComponent>(r);
-  add_entity_to_map(r, e, engine::grid::worldspace_to_index(desc.pos, map_c.tilesize, map_c.xmax, map_c.ymax));
+  const auto idx = engine::grid::worldspace_to_index(desc.pos, map_c.tilesize, map_c.xmax, map_c.ymax);
+  add_entity_to_map(r, e, idx);
 };
 
 void
@@ -182,12 +192,26 @@ Factory_DataDungeonActor::create(entt::registry& r, const DataDungeonActor& desc
   OnDeathCallback callback;
   callback.callback = [](entt::registry& r, const entt::entity e) {
     //
-    drop_items_on_death_callback(r, e);
+    drop_inventory_on_death_callback(r, e);
   };
   r.emplace<OnDeathCallback>(e, callback);
 
   return e;
 };
+
+entt::entity
+Factory_DataDungeonLootbag::create(entt::registry& r, const DataDungeonLootbag& desc)
+{
+  const auto e = Factory_BaseActor::create(r, desc, typeid(desc).name());
+
+  r.emplace<LootbagComponent>(e);
+  r.emplace<DefaultInventory>(e, desc.inventory);
+  r.emplace<PathfindComponent>(e, PathfindComponent{ 0 }); // free to move through
+
+  const auto& map_c = get_first_component<MapComponent>(r);
+  add_entity_to_map(r, e, engine::grid::worldspace_to_index(desc.pos, map_c.tilesize, map_c.xmax, map_c.ymax));
+  return e;
+}
 
 entt::entity
 Factory_DataDungeonCover::create(entt::registry& r, const DataDungeonCover& desc)
@@ -412,7 +436,7 @@ Factory_DataSolidWall::create(entt::registry& r, const DataSolidWall& desc)
 };
 
 //
-// hmm below
+// not sure if correct approach below
 //
 
 entt::entity

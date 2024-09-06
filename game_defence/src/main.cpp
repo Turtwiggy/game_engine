@@ -11,7 +11,7 @@ using namespace engine;
 #include <emscripten.h>
 #endif
 
-#if (defined(WIN32) || defined(_WIN32))
+#if defined(_MSC_VER)
 #include <optick.h>
 #endif
 
@@ -79,7 +79,7 @@ main_loop(void* arg)
 {
   IM_UNUSED(arg); // do nothing with it
 
-#if (defined(WIN32) || defined(_WIN32))
+#if defined(_MSC_VER)
   OPTICK_FRAME("MainThread");
 #endif
 
@@ -171,14 +171,14 @@ main(int argc, char* argv[])
   emscripten_set_main_loop_arg(main_loop, NULL, 0, true);
 #else
 
-#if (defined(WIN32) || defined(_WIN32))
+#if defined(_MSC_VER)
   OPTICK_START_CAPTURE();
 #endif
 
   while (app.running)
     main_loop(nullptr);
 
-#if (defined(WIN32) || defined(_WIN32))
+#if defined(_MSC_VER)
   OPTICK_STOP_CAPTURE();
 #endif
   // OPTICK_SAVE_CAPTURE("GameCapture");

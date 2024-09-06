@@ -43,8 +43,13 @@ get_free_worldspace_pos_around_player(entt::registry& r, const MapComponent& map
 
   const auto neighbour_idxs = engine::grid::get_neighbour_indicies(player_gp.x, player_gp.y, map.xmax, map.ymax);
   for (const auto& [dir, n_idx] : neighbour_idxs) {
-    if (map.map[n_idx] == entt::null) {
 
+    const auto& es = map.map[n_idx];
+
+    // TODO: investigate this. stuff now contains loot on the floor,
+    // which means that this cell WOULD technically be "free"
+
+    if (es.size() == 0) {
       // take in to account edges
       bool wall_between_grid = false;
       for (const Edge& e : map.edges) {

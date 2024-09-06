@@ -28,21 +28,6 @@ main(int argc, char** argv)
   return RUN_ALL_TESTS();
 }
 
-TEST(TestSuite, HelloAgain)
-{
-  ASSERT_TRUE(true);
-};
-
-TEST(TestSuite, HelloTest)
-{
-  ASSERT_TRUE(true);
-};
-
-TEST(TestSuite, HelloTest2)
-{
-  ASSERT_NE(1.0f, 0.0f);
-};
-
 TEST(TestSuite, HelloMaths)
 {
   // arrange

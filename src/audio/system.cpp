@@ -119,8 +119,8 @@ update_audio_system(entt::registry& r)
 
   // compact duplicate audio requests
   std::map<std::string, std::vector<entt::entity>> compacted_requests;
-  for (const auto& [entity, request] : r.view<AudioRequestPlayEvent>().each())
-    compacted_requests[request.tag].push_back(entity);
+  for (const auto& [e, request] : r.view<AudioRequestPlayEvent>().each())
+    compacted_requests[request.tag].push_back(e);
 
   // state: process request -> playing
   for (const auto& [tag, entities] : compacted_requests) {

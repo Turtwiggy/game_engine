@@ -43,8 +43,6 @@
 #include "modules/system_go_from_jetpack_to_dungeon/system.hpp"
 #include "modules/system_minigame_bamboo/system.hpp"
 #include "modules/system_move_to_target_via_lerp/system.hpp"
-#include "modules/system_overworld_change_direction/system.hpp"
-#include "modules/system_overworld_fake_fight/system.hpp"
 #include "modules/system_particles/system.hpp"
 #include "modules/system_particles_on_death/system.hpp"
 #include "modules/system_physics_apply_force/system.hpp"
@@ -64,6 +62,7 @@
 #include "modules/ui_gameover/system.hpp"
 #include "modules/ui_hierarchy/system.hpp"
 #include "modules/ui_inventory/system.hpp"
+#include "modules/ui_lootbag/system.hpp"
 #include "modules/ui_overworld_launch_crew/system.hpp"
 #include "modules/ui_overworld_ship_label/system.hpp"
 #include "modules/ui_pause_menu/system.hpp"
@@ -79,7 +78,7 @@
 #include "fmt/core.h"
 #include "imgui.h"
 
-#if (defined(WIN32) || defined(_WIN32))
+#if defined(_MSC_VER)
 #include "optick.h"
 #endif
 
@@ -175,7 +174,7 @@ init_slow(engine::SINGLETON_Application& app, entt::registry& r)
     destroy_first_and_create<SINGLETON_AudioComponent>(r, audio);
   }
   init_audio_system(r);
-}
+};
 
 void
 duplicate_held_input(SINGLETON_FixedUpdateInputHistory& fixed_input)
@@ -195,7 +194,7 @@ duplicate_held_input(SINGLETON_FixedUpdateInputHistory& fixed_input)
 void
 fixed_update(engine::SINGLETON_Application& app, entt::registry& game, const uint64_t milliseconds_dt)
 {
-#if (defined(WIN32) || defined(_WIN32))
+#if defined(_MSC_VER)
   OPTICK_EVENT("FixedUpdate()");
 #endif
 
@@ -232,7 +231,7 @@ fixed_update(engine::SINGLETON_Application& app, entt::registry& game, const uin
   update_lifecycle_system(game, milliseconds_dt);
 
   {
-#if (defined(WIN32) || defined(_WIN32))
+#if defined(_MSC_VER)
     OPTICK_EVENT("(physics-tick)");
 #endif
     update_physics_apply_force_system(game);
@@ -240,7 +239,7 @@ fixed_update(engine::SINGLETON_Application& app, entt::registry& game, const uin
   }
 
   {
-#if (defined(WIN32) || defined(_WIN32))
+#if defined(_MSC_VER)
     OPTICK_EVENT("fixed-game-tick");
 #endif
     update_resolve_collisions_system(game);
@@ -258,7 +257,7 @@ fixed_update(engine::SINGLETON_Application& app, entt::registry& game, const uin
 void
 update(engine::SINGLETON_Application& app, entt::registry& r, const float dt)
 {
-#if (defined(WIN32) || defined(_WIN32))
+#if defined(_MSC_VER)
   OPTICK_EVENT("(update)");
 #endif
   const auto& scene = get_first_component<SINGLETON_CurrentScene>(r);
@@ -385,14 +384,14 @@ update(engine::SINGLETON_Application& app, entt::registry& r, const float dt)
       update_ui_combat_ended_system(r);
       update_ui_inventory_system(r);
       update_ui_combat_info_in_worldspace_system(r);
+      update_ui_lootbag_system(r);
     }
 
     if (scene.s == Scene::overworld_revamped) {
-      //
+      update_ui_launch_crew_system(r);
+      update_ui_overworld_shiplabel_system(r);
     }
 
-    update_ui_launch_crew_system(r);
-    update_ui_overworld_shiplabel_system(r);
     update_ui_worldspace_text_system(r);
     update_ui_worldspace_sprite_system(r);
     update_ui_pause_menu_system(app, r);

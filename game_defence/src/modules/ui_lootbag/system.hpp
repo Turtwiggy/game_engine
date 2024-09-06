@@ -5,6 +5,6 @@
 namespace game2d {
 
 void
-drop_inventory_on_death_callback(entt::registry& r, const entt::entity e);
+update_ui_lootbag_system(entt::registry& r);
 
 } // namespace game2d

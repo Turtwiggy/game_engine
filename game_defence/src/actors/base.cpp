@@ -53,6 +53,7 @@ Factory_BaseActor::create(entt::registry& r, const EntityData& desc, const std::
 
   set_position(r, e, { tf.position.x, tf.position.y });
   set_colour(r, e, desc.colour);
+  set_size(r, e, desc.size);
   return e;
 };
 

@@ -26,7 +26,9 @@ struct Frame
 void
 load_sprites(SINGLE_Animations& anims, const std::string& path)
 {
+#if defined(_RELEASE)
   fmt::println("loading sprite config: {}", path);
+#endif
   std::ifstream f(path);
 
   // if there's an error here,

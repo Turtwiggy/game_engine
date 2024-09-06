@@ -17,6 +17,7 @@
 #include "modules/gen_dungeons/entity_generation/units.hpp"
 #include "modules/gen_dungeons/helpers.hpp"
 #include "modules/grid/components.hpp"
+#include "modules/grid/helpers.hpp"
 #include "modules/scene/helpers.hpp"
 #include "modules/system_change_gun_z_index/helpers.hpp"
 #include "modules/system_fov/components.hpp"
@@ -102,10 +103,17 @@ update_gen_dungeons_system(entt::registry& r, const glm::ivec2& mouse_pos)
       ImGui::SeparatorText("Map");
       const auto mouse_idx = engine::grid::grid_position_to_clamped_index(grid_pos, map.xmax, map.ymax);
       ImGui::Text("Clamped idx: %i", mouse_idx);
-      const auto idx_is_null = map.map[mouse_idx] == entt::null;
-      ImGui::Text("Map ent is null: %i", idx_is_null);
-      ImGui::Text("Map ent is visible: %i", !idx_is_null && r.try_get<VisibleComponent>(map.map[mouse_idx]) != nullptr);
-      ImGui::Text("Map ent is hovered: %i", !idx_is_null && r.try_get<HoveredComponent>(map.map[mouse_idx]) != nullptr);
+
+      int i = 0;
+      for (const auto& e : map.map[mouse_idx]) {
+        //
+        ImGui::Separator();
+        ImGui::Text("Map ent is visible: %i", r.try_get<VisibleComponent>(e) != nullptr);
+        ImGui::Text("Map ent is hovered: %i", r.try_get<HoveredComponent>(e) != nullptr);
+        i++;
+      }
+      if (i == 0)
+        ImGui::Text("Map ent is null");
 
       const auto dungeon_e = get_first<DungeonGenerationResults>(r);
       if (dungeon_e != entt::null) {
@@ -165,7 +173,7 @@ update_gen_dungeons_system(entt::registry& r, const glm::ivec2& mouse_pos)
   map.tilesize = 50;
   map.xmax = map_width / map.tilesize;
   map.ymax = map_height / map.tilesize;
-  map.map.resize(map.xmax * map.ymax, entt::null);
+  map.map.resize(map.xmax * map.ymax);
 
   DungeonGenerationCriteria dungeon_parameters;
   dungeon_parameters.max_rooms = 10;
@@ -189,12 +197,12 @@ update_gen_dungeons_system(entt::registry& r, const glm::ivec2& mouse_pos)
     if (result.wall_or_floors[idx] == 1) {
       const auto e = create_empty<PathfindComponent>(r, { PathfindComponent{ -1 } });
 
-      if (map.map[idx] != entt::null) {
+      if (map.map[idx].size() != 0) {
         fmt::println("ERROR: wall index isnt empty");
         exit(1); // crash
       }
 
-      map.map[idx] = e;
+      add_entity_to_map(r, e, idx);
     }
   }
 

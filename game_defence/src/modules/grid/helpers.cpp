@@ -1,114 +1,120 @@
 #include "helpers.hpp"
 
-#include "actors/helpers.hpp"
 #include "components.hpp"
 #include "entt/helpers.hpp"
 #include "lifecycle/components.hpp"
-#include "maths/grid.hpp"
+#include "modules/actor_lootbag/components.hpp"
 #include "modules/algorithm_astar_pathfinding/helpers.hpp"
-#include "modules/items_pickup/components.hpp"
-#include "modules/ui_inventory/components.hpp"
-#include "modules/ui_inventory/helpers.hpp"
 
 #include <fmt/core.h>
 
 namespace game2d {
+
+std::optional<MapInfo>
+get_entity_mapinfo(entt::registry& r, entt::entity e)
+{
+  const auto& map = get_first_component<MapComponent>(r);
+
+  for (int i = 0; i < map.xmax * map.ymax; i++) {
+    const std::vector<entt::entity>& es = map.map[i];
+
+    const auto it = std::find(es.begin(), es.end(), e);
+    if (it == es.end())
+      continue;
+
+    const auto tile_idx = static_cast<int>(it - es.begin());
+
+    MapInfo info;
+    info.idx_in_map = i;
+    info.idx_in_map_tile = tile_idx;
+    return info;
+  }
+
+  fmt::println("ERROR: entity requested not on map");
+  return std::nullopt;
+};
+
+void
+remove_entity_from_map(entt::registry& r, const MapInfo& info)
+{
+  auto& map = get_first_component<MapComponent>(r);
+  auto& es = map.map[info.idx_in_map];
+
+  // fmt::println("remove_entity_from_map(): idx{} tile{} old size: {}", info.idx_in_map, info.idx_in_map_tile, es.size());
+
+  es.erase(es.begin() + info.idx_in_map_tile);
+
+  // fmt::println("remove_entity_from_map(): idx{} new size: {}", info.idx_in_map, es.size());
+};
 
 void
 add_entity_to_map(entt::registry& r, const entt::entity src_e, const int idx)
 {
   auto& map = get_first_component<MapComponent>(r);
 
-  if (map.map[idx] != entt::null) {
-    fmt::println("add_entity_to_map(): src contains an entity");
-    return;
-  }
+  std::vector<entt::entity>& ents = map.map[idx];
 
-  map.map[idx] = src_e;
+  // if (ents.size() > 0)
+  //   fmt::println("add_entity_to_map(): moving to tile that contains an entity");
+
+  ents.push_back(src_e);
 };
 
 bool
-move_entity_on_map(entt::registry& r, const int idx_a, const int idx_b)
+move_entity_on_map(entt::registry& r, const entt::entity src_e, const int dst_idx)
 {
   auto& map = get_first_component<MapComponent>(r);
   auto& dead = get_first_component<SINGLETON_EntityBinComponent>(r);
 
-  const entt::entity src_e = map.map[idx_a];
-  const entt::entity dst_e = map.map[idx_b];
-
-  if (src_e == entt::null) {
-    fmt::println("move_entity_on_map(): src does not contain entity");
+  const auto mapinfo_opt = get_entity_mapinfo(r, src_e);
+  if (!mapinfo_opt.has_value()) {
+    fmt::println("move_entity_on_map(): src_e not on map");
     return false;
   }
 
-  if (dst_e != entt::null) {
-    fmt::println("move_entity_on_map(): dst not clear for move");
+  const std::vector<entt::entity>& dst_es = map.map[dst_idx];
 
-    if (auto* pickup = r.try_get<AbleToBePickedUp>(dst_e)) {
-      fmt::println("move_entity_on_map(): dst is an item");
-
-      // Add it to the inventory of the thing being picked up if there is space
-      if (auto* inv = r.try_get<DefaultInventory>(src_e)) {
-
-        bool item_added = false;
-
-        // add scrap to first free slot
-        for (size_t i = 0; i < inv->inv.size(); i++) {
-          const auto slot_e = inv->inv[i];
-          auto& slot_c = r.get<InventorySlotComponent>(slot_e);
-
-          if (slot_c.item_e != entt::null)
-            continue; // slot not free
-
-          const auto& item_type = r.get<ItemTypeComponent>(dst_e);
-          if (item_type.type == ItemType::scrap) {
-
-            // This seems weird that a new entity is created
-            // and the grid entity is destroyed.
-            slot_c.item_e = create_inv_scrap(r, slot_e);
-
-            item_added = true;
-          }
-
-          break; // item is not scrap?
-        }
-
-        if (!item_added) {
-          fmt::println("warning: would pickup item but inv full; not moving");
-          return false;
-        }
-
-        //
-      } else {
-        fmt::println("warning: no inventory to pickup; not moving");
-        return false;
-      }
-
-      fmt::println("item picked up");
-
-      // remove that item.
-      dead.dead.emplace(dst_e);
-
-      map.map[idx_a] = entt::null;
-      map.map[idx_b] = src_e;
-      return true;
-    }
-
-    return false;
+  // easy case: dst is clear.
+  if (dst_es.size() == 0) {
+    remove_entity_from_map(r, mapinfo_opt.value());
+    add_entity_to_map(r, src_e, dst_idx);
+    return true;
   }
 
-  map.map[idx_a] = entt::null;
-  map.map[idx_b] = src_e;
-  return true;
+  // hard case: dst is not clear,
+  // and contain anything,
+  // and any number of it.
+
+  // gamerule: allow move on to (any number) an inventory
+  //
+
+  bool contains_all_inventories = true;
+  for (const auto dst_e : dst_es) {
+    if (const auto* lootbag = r.try_get<LootbagComponent>(dst_e))
+      contains_all_inventories = true;
+    else
+      contains_all_inventories = false;
+  }
+
+  if (contains_all_inventories) {
+    fmt::println("dst_es contains all inventories.");
+
+    // situation: there's an inventory on the floor,
+    // and you might have an inventory on you.
+    // dont process the pickup rules, just allow the move.
+    remove_entity_from_map(r, mapinfo_opt.value());
+    add_entity_to_map(r, src_e, dst_idx);
+
+    return true;
+  }
+
+  return false;
 };
 
 std::vector<glm::ivec2>
-generate_path(entt::registry& r, const entt::entity src_e, const glm::ivec2& worldspace_pos, const size_t limit)
+generate_path(entt::registry& r, int src_idx, int dst_idx, const size_t limit)
 {
   const auto& map = get_first_component<MapComponent>(r);
-
-  const auto src_idx = engine::grid::worldspace_to_index(get_position(r, src_e), map.tilesize, map.xmax, map.ymax);
-  const auto dst_idx = engine::grid::worldspace_to_index(worldspace_pos, map.tilesize, map.xmax, map.ymax);
 
   auto path = generate_direct(r, map, src_idx, dst_idx, map.edges);
 

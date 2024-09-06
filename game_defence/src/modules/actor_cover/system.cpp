@@ -27,9 +27,10 @@ update_actor_cover_system(entt::registry& r)
     const auto gp = engine::grid::worldspace_to_grid_space(pos_glm, map_c.tilesize);
 
     const auto neighbours_idxs = engine::grid::get_neighbour_indicies_with_diagonals(gp.x, gp.y, map_c.xmax, map_c.ymax);
-    for (const auto& [dir, idx] : neighbours_idxs)
-      if (map_c.map[idx] != entt::null)
-        r.emplace<InCoverComponent>(map_c.map[idx]);
+    for (const auto& [dir, idx] : neighbours_idxs) {
+      for (const auto e : map_c.map[idx])
+        r.emplace<InCoverComponent>(e);
+    }
   }
 
   //

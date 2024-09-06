@@ -1,5 +1,7 @@
 #pragma once
 
+#include "actors/bags/armour.hpp"
+#include "actors/bags/bullets.hpp"
 #include "modules/ui_inventory/components.hpp"
 
 #include "entt/entt.hpp"
@@ -22,7 +24,29 @@ get_slots(entt::registry& r, const entt::entity e, const InventorySlotType& type
 void
 update_item_parent(entt::registry& r, const entt::entity item, const entt::entity parent);
 
+void
+display_inventory_slot(entt::registry& r,
+                       const entt::entity inventory_slot_e,
+                       const ImVec2& button_size,
+                       const ImVec2 pos = { 0, 0 });
+
+// items
+
 entt::entity
 create_inv_scrap(entt::registry& r, const entt::entity slot_e);
+
+entt::entity
+create_inv_armour(entt::registry& r, const entt::entity slot_e, const ArmourType& type);
+
+entt::entity
+create_inv_breachcharge(entt::registry& r, const entt::entity slot_e);
+
+entt::entity
+create_inv_shotgun(entt::registry& r, const entt::entity slot_e);
+
+entt::entity
+create_inv_bullets(entt::registry& r, const entt::entity slot_e, const BulletType& type);
+
+//
 
 } // namespace game2d

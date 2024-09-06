@@ -19,7 +19,6 @@ struct Points
 #define NR_MAX_CIRCLES 20
 uniform Points points[NR_MAX_CIRCLES];
 
-// todo: move to v
 // float thickness = 0.05;
 // float fade = 0.1;
 

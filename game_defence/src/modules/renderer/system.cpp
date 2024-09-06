@@ -239,8 +239,10 @@ init_render_system(const engine::SINGLETON_Application& app, entt::registry& r, 
 
     // HACK... should do something better than this
     if (loaded_tex.path.find("organic2") != std::string::npos) {
-      loaded_tex.texture_min_filter = GL_MIPMAP;
-      loaded_tex.texture_max_filter = GL_MIPMAP;
+      // loaded_tex.texture_min_filter = GL_MIPMAP;
+      // loaded_tex.texture_max_filter = GL_MIPMAP;
+      loaded_tex.texture_min_filter = GL_NEAREST;
+      loaded_tex.texture_max_filter = GL_NEAREST;
     }
 
     tex.tex_id.id = bind_linear_texture(loaded_tex);

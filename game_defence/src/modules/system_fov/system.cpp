@@ -322,9 +322,10 @@ update_fov_system(entt::registry& r, const glm::ivec2& mouse_pos)
 
       // Mark the entity in the map as visible
       // if they're standing on a visible floor
-      if (is_visible && map.map[floor_idx] != entt::null)
-        mark_visible(r, map.map[floor_idx]);
-
+      if (is_visible) {
+        for (const auto e : map.map[floor_idx])
+          mark_visible(r, e);
+      }
       if (is_visible)
         set_colour(r, floor_e, { 0.75f, 0.75f, 0.75f, 1.0f });
       else

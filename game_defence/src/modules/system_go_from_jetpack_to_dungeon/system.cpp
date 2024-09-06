@@ -6,6 +6,7 @@
 #include "maths/grid.hpp"
 #include "modules/actor_player/components.hpp"
 #include "modules/camera/components.hpp"
+#include "modules/camera/orthographic.hpp"
 #include "modules/combat_damage/components.hpp"
 #include "modules/gen_dungeons/components.hpp"
 #include "modules/gen_dungeons/helpers.hpp"
@@ -56,6 +57,8 @@ update_go_from_jetpack_to_dungeon_system(entt::registry& r)
     // change camera
     remove_if_exists<CameraFollow>(r, e);
     r.emplace<CameraLerpToTarget>(e);
+    auto camera_e = get_first<OrthographicCamera>(r);
+    set_position(r, camera_e, player_desc.pos);
 
     fmt::println("going from jetpack to dungeon character...");
     create_empty<RequestUpdateFOV>(r);

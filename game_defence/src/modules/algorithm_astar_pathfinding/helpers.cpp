@@ -7,7 +7,6 @@
 #include "modules/algorithm_astar_pathfinding/priority_queue.hpp"
 #include "modules/grid/components.hpp"
 
-
 #include <fmt/core.h>
 #include <map>
 
@@ -28,14 +27,12 @@ generate_map_view(entt::registry& r, const MapComponent& map)
 
     // If the cell contains entites with cost info,
     // add that cost info to the cost
-    // for (const auto& ent : map.map[xy]) {
-    //   if (auto* cost = r.try_get<PathfindComponent>(ent))
-    //     cell.cost = cost->cost;
-    // }
-
-    if (map.map[xy] != entt::null) {
-      if (auto* pfc = r.try_get<PathfindComponent>(map.map[xy]))
-        cell.cost = pfc->cost;
+    for (const auto& e : map.map[xy]) {
+      if (auto* cost = r.try_get<PathfindComponent>(e)) {
+        cell.cost = cost->cost;
+        // fmt::println("warning: multiple pathfinding entity in cell; using cost from first: {}", cell.cost);
+        break;
+      }
     }
 
     result.push_back(cell);
@@ -370,26 +367,19 @@ destination_is_blocked(entt::registry& r, const glm::ivec2 worldspace_pos)
   auto& map = get_first_component<MapComponent>(r);
   const auto idx = engine::grid::worldspace_to_index(worldspace_pos, map.tilesize, map.xmax, map.ymax);
 
-  return map.map[idx] != entt::null;
+  return map.map[idx].size() > 0;
+
+  // alternative approach...
   /*
-  for (const auto& e : map.map[idx]) {
-    if (!r.valid(e)) {
-      fmt::println("something invalid in map.map...");
-      continue;
-    }
-
-    if (e == you)
-      continue; // you cant block yourself
-
+  const auto& es = map.map[idx];
+  for (const auto e : es) {
     // something exists, so it should have a pathfind component
     const auto& comp = r.get<PathfindComponent>(e);
     if (comp.cost == -1)
       return true;
-
-    // if there's anything at the destination, consider it blocked.
-    return true;
   }
   */
+
   return false;
 }
 

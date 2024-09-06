@@ -6,6 +6,7 @@
 #include "bags/items.hpp"
 #include "bags/weapons.hpp"
 #include "modules/combat_damage/components.hpp"
+#include "modules/ui_inventory/components.hpp"
 
 #include <entt/entt.hpp>
 
@@ -29,6 +30,13 @@ struct DataDungeonCover : public EntityData
   bool placeholder = true;
 
   DataDungeonCover() { sprite = "WALL_19_1_NONE"; }
+};
+
+struct DataDungeonLootbag : public EntityData
+{
+  DefaultInventory inventory;
+
+  DataDungeonLootbag() { sprite = "SKULL_AND_BONES"; }
 };
 
 struct DataJetpackActor : public EntityData
@@ -98,6 +106,7 @@ struct DataSolidWall : public EntityData
 
 GENERATE_FACTORY(DataDungeonActor)
 GENERATE_FACTORY(DataDungeonCover)
+GENERATE_FACTORY(DataDungeonLootbag)
 GENERATE_FACTORY(DataJetpackActor)
 GENERATE_FACTORY(DataSpaceShipActor)
 GENERATE_FACTORY(DataSpaceCapsuleActor)

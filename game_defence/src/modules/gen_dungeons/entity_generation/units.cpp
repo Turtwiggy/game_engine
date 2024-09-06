@@ -6,6 +6,8 @@
 #include "maths/maths.hpp"
 #include "modules/grid/components.hpp"
 #include "modules/system_drop_items/components.hpp"
+#include "modules/ui_inventory/components.hpp"
+#include "modules/ui_inventory/helpers.hpp"
 
 namespace game2d {
 
@@ -24,7 +26,10 @@ spawn_enemy(entt::registry& r, const int idx)
   desc.max_hp = 50;
   const auto dungeon_e = Factory_DataDungeonActor::create(r, desc);
 
-  // get enemies to drop scrap
+  // give the enemy a piece of scrap in their inventory
+  create_inv_scrap(r, r.get<DefaultInventory>(dungeon_e).inv[0]);
+
+  // get enemies to their inventory
   r.emplace<DropItemsOnDeathComponent>(dungeon_e);
 
   // give enemies a shotgun
@@ -42,7 +47,7 @@ spawn_cover(entt::registry& r, const int idx)
 
   DataDungeonCover desc;
   desc.pos = engine::grid::index_to_world_position_center(idx, map_c.xmax, map_c.ymax, map_c.tilesize);
-  fmt::println("pos: {},{}", desc.pos.x, desc.pos.y);
+  fmt::println("cover generated: {},{}", desc.pos.x, desc.pos.y);
 
   const auto e = Factory_DataDungeonCover::create(r, desc);
 };
@@ -59,7 +64,10 @@ get_free_slots_idxs(const MapComponent& map_c, const Room& room)
     for (int y = tl.y + 1; y < br.y - 1; y++) {
       const auto idx = engine::grid::grid_position_to_index({ x, y }, map_c.xmax);
 
-      if (map_c.map[idx] != entt::null)
+      // TODO: investigate this. stuff now contains loot on the floor,
+      // which means that this cell WOULD technically be "free"
+
+      if (map_c.map[idx].size() != 0)
         continue; // not free...
 
       results.push_back(idx);

@@ -1,5 +1,6 @@
 #include "helpers.hpp"
 
+#include "actors/helpers.hpp"
 #include "entt/helpers.hpp"
 #include "maths/grid.hpp"
 #include "modules/grid/components.hpp"
@@ -15,22 +16,37 @@ move_action_common(entt::registry& r, const entt::entity e, const glm::vec2& dst
   const auto& map = get_first_component<MapComponent>(r);
 
   const auto limit = r.get<MoveLimitComponent>(e).amount;
-  const auto path = generate_path(r, e, dst_wp, limit);
+  const auto info = get_entity_mapinfo(r, e);
+  const auto src_idx = info->idx_in_map;
+
+  // pathfinding...
+  // note: use pathfinding here instead of direct movement
+  // so that edges are taken in to account and you cant go through walls
+
+  const auto dst_idx = engine::grid::worldspace_to_index(dst_wp, map.tilesize, map.xmax, map.ymax);
+  const auto path = generate_path(r, src_idx, dst_idx, limit);
+
+  /*
+  fmt::print("path generated. ");
+  for (const auto& p : path)
+    fmt::print(" {},{}", p.x, p.y);
+  fmt::println("");
+  */
+
   if (path.size() < 2)
     return;
-
   const auto next_dst = path[1];
   const auto next_idx = engine::grid::grid_position_to_index(next_dst, map.xmax);
 
   // move action...
-  const auto it = std::find(map.map.begin(), map.map.end(), e);
-  const auto idx = static_cast<int>(it - map.map.begin());
-  const int a = static_cast<int>(idx);
-  const int b = next_idx;
-
-  const bool moved = move_entity_on_map(r, a, b);
-  if (!moved)
+  const bool moved = move_entity_on_map(r, e, next_idx);
+  if (!moved) {
+    fmt::println("move_action_common(): entity didnt move...");
     return;
+  }
+
+  const int a = engine::grid::grid_position_to_index(get_grid_position(r, e), map.xmax);
+  const int b = next_idx;
 
   // Lerp the player model, independent of the grid representation
   const auto offset = glm::vec2{ map.tilesize / 2.0f, map.tilesize / 2.0f };

@@ -1,4 +1,5 @@
 #include "actors/actors.hpp"
+#include "actors/helpers.hpp"
 #include "entt/helpers.hpp"
 #include "lifecycle/components.hpp"
 #include "lifecycle/system.hpp"
@@ -41,12 +42,12 @@ default_setup(entt::registry& r)
 
   move_to_scene_start(r, Scene::test);
 
-  MapComponent map_c;
-  map_c.tilesize = 50;
-  map_c.xmax = 10;
-  map_c.ymax = 10;
-  map_c.map.resize(map_c.xmax * map_c.ymax, entt::null);
-  r.emplace<MapComponent>(r.create(), map_c);
+  MapComponent map;
+  map.tilesize = 50;
+  map.xmax = 10;
+  map.ymax = 10;
+  map.map.resize(map.xmax * map.ymax);
+  r.emplace<MapComponent>(r.create(), map);
 };
 
 TEST(TestSuite, MoveToFreeTile)
@@ -55,63 +56,155 @@ TEST(TestSuite, MoveToFreeTile)
   entt::registry r;
   default_setup(r);
   const auto dungeon_e = Factory_DataDungeonActor::create(r, {});
-  add_entity_to_map(r, dungeon_e, 0);
 
   // act
-  const auto& map_c = get_first_component<MapComponent>(r);
-  const auto next_idx = engine::grid::grid_position_to_index({ 1, 0 }, map_c.xmax);
-  auto next_wp = engine::grid::index_to_world_position(next_idx, map_c.xmax, map_c.ymax, map_c.tilesize);
-  next_wp += glm::vec2{ map_c.tilesize / 2.0f, map_c.tilesize / 2.0f };
+  const auto& map = get_first_component<MapComponent>(r);
+  const auto next_idx = engine::grid::grid_position_to_index({ 1, 0 }, map.xmax);
+  auto next_wp = engine::grid::index_to_world_position_center(next_idx, map.xmax, map.ymax, map.tilesize);
   move_action_common(r, dungeon_e, next_wp);
 
   // assert: has moved
-  const auto it = std::find(map_c.map.begin(), map_c.map.end(), dungeon_e);
-  const auto idx = static_cast<int>(it - map_c.map.begin());
-  const glm::ivec2 expected = glm::ivec2{ 1, 0 };
-  const glm::ivec2 actual = engine::grid::index_to_grid_position(idx, map_c.xmax, map_c.ymax);
+  const auto mapinfo = get_entity_mapinfo(r, dungeon_e);
+  const int expected = 1;
+  const int actual = mapinfo.value().idx_in_map;
   ASSERT_EQ(expected, actual);
 };
 
-TEST(TestSuite, MoveToOccupiedTile)
+TEST(TestSuite, MoveToTileOccupiedWithDungeonActor)
 {
   // arrange
   entt::registry r;
   default_setup(r);
-  const auto dungeon_e_0 = Factory_DataDungeonActor::create(r, {});
-  add_entity_to_map(r, dungeon_e_0, 0);
-  const auto dungeon_e_1 = Factory_DataDungeonActor::create(r, {});
-  add_entity_to_map(r, dungeon_e_1, 1);
+  const auto& map = get_first_component<MapComponent>(r);
+
+  DataDungeonActor desc_0;
+  desc_0.pos = engine::grid::index_to_world_position_center(0, map.xmax, map.ymax, map.tilesize);
+  const auto dungeon_e_0 = Factory_DataDungeonActor::create(r, desc_0);
+
+  DataDungeonActor desc_1;
+  desc_1.pos = engine::grid::index_to_world_position_center(1, map.xmax, map.ymax, map.tilesize);
+  const auto dungeon_e_1 = Factory_DataDungeonActor::create(r, desc_1);
 
   // act
-  const auto& map_c = get_first_component<MapComponent>(r);
-  const auto next_idx = engine::grid::grid_position_to_index({ 1, 0 }, map_c.xmax);
-  auto next_wp = engine::grid::index_to_world_position(next_idx, map_c.xmax, map_c.ymax, map_c.tilesize);
-  next_wp += glm::vec2{ map_c.tilesize / 2.0f, map_c.tilesize / 2.0f };
+  const auto next_idx = engine::grid::grid_position_to_index({ 1, 0 }, map.xmax);
+  auto next_wp = engine::grid::index_to_world_position(next_idx, map.xmax, map.ymax, map.tilesize);
+  next_wp += glm::vec2{ map.tilesize / 2.0f, map.tilesize / 2.0f };
   move_action_common(r, dungeon_e_0, next_wp);
 
   // assert: has not moved
-  const auto it = std::find(map_c.map.begin(), map_c.map.end(), dungeon_e_0);
-  const auto idx = static_cast<int>(it - map_c.map.begin());
-  const glm::ivec2 expected = glm::ivec2{ 0, 0 }; // hasnt moved
-  const glm::ivec2 actual = engine::grid::index_to_grid_position(idx, map_c.xmax, map_c.ymax);
+  const auto mapinfo = get_entity_mapinfo(r, dungeon_e_0);
+  const int expected = 0;
+  const int actual = mapinfo.value().idx_in_map;
   ASSERT_EQ(expected, actual);
 };
 
-TEST(TestSuite, DungeonEntityDropsScrap)
+TEST(TestSuite, MoveToTileOccupiedWithInventory)
 {
   // arrange
   entt::registry r;
   default_setup(r);
+  const auto& map = get_first_component<MapComponent>(r);
 
-  const auto attacker_e = Factory_DataDungeonActor::create(r, {});
-  r.emplace<AttackComponent>(attacker_e, 10); // comp could be on shotgun
-  add_entity_to_map(r, attacker_e, 0);
+  // add dungeon actor
+  entt::entity dungeon_e = entt::null;
+  {
+    DataDungeonActor desc;
+    desc.pos = engine::grid::index_to_world_position_center(0, map.xmax, map.ymax, map.tilesize);
+    desc.team = AvailableTeams::player;
+    dungeon_e = Factory_DataDungeonActor::create(r, desc);
+    r.emplace<DefaultBody>(dungeon_e, DefaultBody(r));
+    r.emplace<DefaultInventory>(dungeon_e, DefaultInventory(r, 6 * 5));
+    r.emplace<PlayerComponent>(dungeon_e);
+  }
+
+  // add inv to floor
+  const auto pos = engine::grid::index_to_world_position_center(1, map.xmax, map.ymax, map.tilesize);
+  DataDungeonLootbag loot_desc;
+  loot_desc.pos = pos;
+  loot_desc.inventory = DefaultInventory(r, 6 * 5);
+  Factory_DataDungeonLootbag::create(r, loot_desc);
+
+  // act
+  const auto next_idx = engine::grid::grid_position_to_index({ 1, 0 }, map.xmax);
+  auto next_wp = engine::grid::index_to_world_position_center(next_idx, map.xmax, map.ymax, map.tilesize);
+  move_action_common(r, dungeon_e, next_wp);
+
+  // assert: you have moved (its valid to move on to an inventory)
+  const auto mapinfo = get_entity_mapinfo(r, dungeon_e);
+  const int expected = 1;
+  const int actual = mapinfo.value().idx_in_map;
+  ASSERT_EQ(expected, actual);
+};
+
+TEST(TestSuite, MoveDungeonActorOverInventory)
+{
+  // arrange
+  entt::registry r;
+  default_setup(r);
+  const auto& map = get_first_component<MapComponent>(r);
+
+  // add dungeon actor
+  entt::entity dungeon_e = entt::null;
+  DataDungeonActor desc;
+  desc.pos = engine::grid::index_to_world_position_center(0, map.xmax, map.ymax, map.tilesize);
+  desc.team = AvailableTeams::player;
+  dungeon_e = Factory_DataDungeonActor::create(r, desc);
+  r.emplace<DefaultBody>(dungeon_e, DefaultBody(r));
+  r.emplace<DefaultInventory>(dungeon_e, DefaultInventory(r, 6 * 5));
+  r.emplace<PlayerComponent>(dungeon_e);
+
+  // add inv to floor
+  const auto pos = engine::grid::index_to_world_position_center(1, map.xmax, map.ymax, map.tilesize);
+  DataDungeonLootbag loot_desc;
+  loot_desc.pos = pos;
+  loot_desc.inventory = DefaultInventory(r, 6 * 5);
+  Factory_DataDungeonLootbag::create(r, loot_desc);
+
+  // act 1: move dungeon actor on to inventory
+  {
+    const auto next_idx = engine::grid::grid_position_to_index({ 1, 0 }, map.xmax);
+    auto next_wp = engine::grid::index_to_world_position_center(next_idx, map.xmax, map.ymax, map.tilesize);
+    move_action_common(r, dungeon_e, next_wp);
+  }
+
+  // Assert: index 1 contains inventory and player (i.e. size=2)
+  ASSERT_EQ(2, map.map[1].size());
+
+  // act 2: move dungeon actor off inventory
+  {
+    const auto next_idx = engine::grid::grid_position_to_index({ 2, 0 }, map.xmax);
+    auto next_wp = engine::grid::index_to_world_position_center(next_idx, map.xmax, map.ymax, map.tilesize);
+    move_action_common(r, dungeon_e, next_wp);
+  }
+
+  // Assert: index 0 is empty (i.e. size=0)
+  ASSERT_EQ(0, map.map[0].size());
+
+  // Assert: index 1 contains inventory (i.e. size=1)
+  ASSERT_EQ(1, map.map[1].size());
+
+  // Assert: index 2 contains dungeon player (i.e. size=1)
+  ASSERT_EQ(1, map.map[2].size());
+}
+
+TEST(TestSuite, DungeonActorCanDropInventoryWithNoItems)
+{
+  // arrange
+  entt::registry r;
+  default_setup(r);
+  const auto& map = get_first_component<MapComponent>(r);
+
+  DataDungeonActor desc_0;
+  desc_0.pos = engine::grid::index_to_world_position_center(0, map.xmax, map.ymax, map.tilesize);
+  const auto attacker_e = Factory_DataDungeonActor::create(r, desc_0);
+  r.emplace<AttackComponent>(attacker_e, 10.0f); // comp could be on shotgun
 
   DataDungeonActor desc;
+  desc.pos = engine::grid::index_to_world_position_center(1, map.xmax, map.ymax, map.tilesize);
   desc.hp = 10;
   desc.max_hp = 10;
+  desc.team = AvailableTeams::enemy;
   const auto defender_e = Factory_DataDungeonActor::create(r, desc);
-  add_entity_to_map(r, defender_e, 1);
 
   DealDamageRequest req;
   req.from = attacker_e;
@@ -130,26 +223,19 @@ TEST(TestSuite, DungeonEntityDropsScrap)
   update_lifecycle_system(r, 10);
 
   // assert: item is dropped
-  const auto& map_c = get_first_component<MapComponent>(r);
-  auto& item_c = r.get<ItemTypeComponent>(map_c.map[1]);
-  ASSERT_EQ(ItemType::scrap, item_c.type);
+  const auto& map_es = map.map[1];
+  const auto map_e = map_es[0];
+  const auto& inv_c = r.get<DefaultInventory>(map_e);
+
+  const int expected = 30;
+  const int actual = inv_c.inv.size();
+  ASSERT_EQ(expected, actual);
 };
+
+/*
 
 TEST(TestSuite, MoveToItemTileWithInventory)
 {
-  // arrange
-  entt::registry r;
-  default_setup(r);
-
-  // dungeon entity with inventory...
-  DataDungeonActor desc;
-  desc.team = AvailableTeams::player;
-  const auto dungeon_e = Factory_DataDungeonActor::create(r, desc);
-  r.emplace<DefaultBody>(dungeon_e, DefaultBody(r));
-  r.emplace<DefaultInventory>(dungeon_e, DefaultInventory(r, 6 * 5));
-  // r.emplace<InitBodyAndInventory>(dungeon_e); // not init with default stuff
-  r.emplace<PlayerComponent>(dungeon_e);
-  add_entity_to_map(r, dungeon_e, 0);
 
   // scrap item on other tile...
   const auto item_e = Factory_DataScrap::create(r, {});
@@ -157,20 +243,20 @@ TEST(TestSuite, MoveToItemTileWithInventory)
 
   // act
   {
-    const auto& map_c = get_first_component<MapComponent>(r);
-    const auto next_idx = engine::grid::grid_position_to_index({ 1, 0 }, map_c.xmax);
-    auto next_wp = engine::grid::index_to_world_position(next_idx, map_c.xmax, map_c.ymax, map_c.tilesize);
-    next_wp += glm::vec2{ map_c.tilesize / 2.0f, map_c.tilesize / 2.0f };
+    const auto& map = get_first_component<MapComponent>(r);
+    const auto next_idx = engine::grid::grid_position_to_index({ 1, 0 }, map.xmax);
+    auto next_wp = engine::grid::index_to_world_position(next_idx, map.xmax, map.ymax, map.tilesize);
+    next_wp += glm::vec2{ map.tilesize / 2.0f, map.tilesize / 2.0f };
     move_action_common(r, dungeon_e, next_wp);
   }
 
   // assert: dungeon entity has moved
   {
-    const auto& map_c = get_first_component<MapComponent>(r);
-    const auto it = std::find(map_c.map.begin(), map_c.map.end(), dungeon_e);
-    const auto idx = static_cast<int>(it - map_c.map.begin());
+    const auto& map = get_first_component<MapComponent>(r);
+    const auto it = std::find(map.map.begin(), map.map.end(), dungeon_e);
+    const auto idx = static_cast<int>(it - map.map.begin());
     const glm::ivec2 expected = glm::ivec2{ 1, 0 };
-    const glm::ivec2 actual = engine::grid::index_to_grid_position(idx, map_c.xmax, map_c.ymax);
+    const glm::ivec2 actual = engine::grid::index_to_grid_position(idx, map.xmax, map.ymax);
     ASSERT_EQ(expected, actual);
   }
 
@@ -195,44 +281,10 @@ TEST(TestSuite, MoveToItemTileWithInventory)
 
   // assert: item is no longer on the map
   {
-    const auto& map_c = get_first_component<MapComponent>(r);
-    const auto it = std::find(map_c.map.begin(), map_c.map.end(), item_e);
-    ASSERT_TRUE(it == map_c.map.end());
+    const auto& map = get_first_component<MapComponent>(r);
+    const auto it = std::find(map.map.begin(), map.map.end(), item_e);
+    ASSERT_TRUE(it == map.map.end());
   }
 };
 
-TEST(TestSuite, MoveToItemTileWithNoInventory)
-{
-  // arrange
-  entt::registry r;
-  default_setup(r);
-
-  // dungeon entity with no inventory...
-  DataDungeonActor desc;
-  desc.team = AvailableTeams::player;
-  const auto dungeon_e = Factory_DataDungeonActor::create(r, desc);
-  add_entity_to_map(r, dungeon_e, 0);
-
-  // scrap item on other tile...
-  const auto item_e = Factory_DataScrap::create(r, {});
-  add_entity_to_map(r, item_e, 1);
-
-  // act
-  {
-    const auto& map_c = get_first_component<MapComponent>(r);
-    const auto next_idx = engine::grid::grid_position_to_index({ 1, 0 }, map_c.xmax);
-    auto next_wp = engine::grid::index_to_world_position(next_idx, map_c.xmax, map_c.ymax, map_c.tilesize);
-    next_wp += glm::vec2{ map_c.tilesize / 2.0f, map_c.tilesize / 2.0f };
-    move_action_common(r, dungeon_e, next_wp);
-  }
-
-  // assert: dungeon entity has not moved
-  {
-    const auto& map_c = get_first_component<MapComponent>(r);
-    const auto it = std::find(map_c.map.begin(), map_c.map.end(), dungeon_e);
-    const auto idx = static_cast<int>(it - map_c.map.begin());
-    const glm::ivec2 expected = glm::ivec2{ 0, 0 };
-    const glm::ivec2 actual = engine::grid::index_to_grid_position(idx, map_c.xmax, map_c.ymax);
-    ASSERT_EQ(expected, actual);
-  }
-};
+*/
