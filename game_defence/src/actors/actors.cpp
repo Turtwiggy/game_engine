@@ -474,6 +474,7 @@ Factory_DataBullet::create(entt::registry& r, const DataBullet& desc)
 
   BulletComponent bc;
   bc.bounce_bullet_on_wall_collision = desc.type == BulletType::BOUNCY;
+  bc.type = desc.type;
   r.emplace<BulletComponent>(e, bc);
 
   set_position(r, e, desc.pos);

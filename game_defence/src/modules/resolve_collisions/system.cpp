@@ -1,13 +1,13 @@
 #include "system.hpp"
 
 #include "actors/actors.hpp"
+#include "actors/bags/bullets.hpp"
 #include "actors/helpers.hpp"
 #include "entt/helpers.hpp"
 #include "lifecycle/components.hpp"
 #include "modules/actor_cover/components.hpp"
 #include "modules/actor_weapon_shotgun/components.hpp"
 #include "modules/combat_damage/components.hpp"
-#include "modules/combat_flash_on_damage/components.hpp"
 #include "modules/combat_scale_on_hit/components.hpp"
 #include "modules/resolve_collisions/helpers.hpp"
 #include "physics/components.hpp"
@@ -88,7 +88,10 @@ update_resolve_collisions_system(entt::registry& r)
       const bool is_wall = other_body.body->GetType() == b2_staticBody;
 
       // check if the bullet should be destroyed by the other entity (e.g. wall, enemy)
-      if (auto* destroy_bullet_req = r.try_get<DestroyBulletOnCollison>(other_e))
+      // note: bouncy bullet probably not destroyed on wall collision
+      bool is_bouncy_bullet = bullet_info.type == BulletType::BOUNCY;
+      auto* destroy_bullet_req = r.try_get<DestroyBulletOnCollison>(other_e);
+      if (destroy_bullet_req && !is_bouncy_bullet)
         dead.dead.emplace(bullet_e);
 
       if (auto* req = r.try_get<CoverComponent>(other_e)) {

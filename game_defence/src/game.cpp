@@ -351,8 +351,6 @@ update(engine::SINGLETON_Application& app, entt::registry& r, const float dt)
     // Display a parented viewport window at the top of the screen, that shows the fps.
     const bool show_fps_counter = true;
     if (show_fps_counter) {
-      const std::string example = "FPS: 10000.00";
-
       ImGuiWindowFlags flags = 0;
       // position and sizing
       flags |= ImGuiWindowFlags_NoDecoration;
@@ -366,7 +364,7 @@ update(engine::SINGLETON_Application& app, entt::registry& r, const float dt)
       ImGui::SetNextWindowPos({ 0, 0 }, ImGuiCond_Always, { 0, 0 });
 
       ImGui::Begin("FPS", NULL, flags);
-      ImGui::Text("FPS: %0.2f", ImGui::GetIO().Framerate);
+      ImGui::Text("FPS: %0.2f ", ImGui::GetIO().Framerate);
       ImGui::End();
     }
 

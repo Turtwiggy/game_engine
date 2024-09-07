@@ -7,6 +7,7 @@
 #include "modules/actor_player/components.hpp"
 #include "modules/grid/components.hpp"
 #include "modules/renderer/components.hpp"
+#include "modules/ui_combat_turnbased/helpers.hpp"
 #include "modules/ui_inventory/components.hpp"
 #include "modules/ui_inventory/helpers.hpp"
 
@@ -44,6 +45,10 @@ update_ui_lootbag_system(entt::registry& r)
   const auto content_size = ImGui::GetContentRegionAvail();
 
   for (const auto& [e, player_c] : r.view<PlayerComponent>().each()) {
+
+    if (!inside_ship(r, e))
+      continue;
+
     const auto gp = get_grid_position(r, e);
     const auto idx = engine::grid::grid_position_to_index(gp, map_c.xmax);
 

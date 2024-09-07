@@ -140,9 +140,9 @@ update_ui_hierarchy_system(entt::registry& r)
 
         const auto* tag = r.try_get<TagComponent>(e);
 
-        if (tag == nullptr) {
+        if (tag == nullptr)
           ImGui::Text("Non-tagged entity");
-        } else {
+        else {
 
           // limit entry by displayed categories
           const auto category_opt = get_category_idx(categories, tag->tag);
