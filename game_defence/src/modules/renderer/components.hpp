@@ -1,5 +1,6 @@
 #pragma once
 
+#include "modules/renderer/helpers/batch_quad.hpp"
 #include "renderer/transform.hpp"
 
 // engine headers
@@ -123,6 +124,9 @@ struct SINGLETON_RendererInfo
 
   std::vector<Texture> user_textures;
 
+  // quad renderer
+  engine::quad_renderer::QuadRenderer renderer;
+
   // shaders
   engine::Shader stars;
   engine::Shader debris;
@@ -132,7 +136,6 @@ struct SINGLETON_RendererInfo
   engine::Shader jump_flood;
   engine::Shader voronoi_distance;
   engine::Shader mix_lighting_and_scene;
-  engine::Shader circle;
   engine::Shader blur;
   engine::Shader bloom;
 

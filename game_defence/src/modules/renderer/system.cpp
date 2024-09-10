@@ -8,12 +8,10 @@
 #include "entt/helpers.hpp"
 #include "events/components.hpp"
 #include "events/helpers/keyboard.hpp"
-#include "imgui/helpers.hpp"
 #include "lights/helpers.hpp"
 #include "maths/grid.hpp"
 #include "maths/maths.hpp"
 #include "modules/actor_player/components.hpp"
-#include "modules/camera/components.hpp"
 #include "modules/camera/orthographic.hpp"
 #include "modules/gen_dungeons/components.hpp"
 #include "modules/gen_dungeons/helpers.hpp"
@@ -83,6 +81,14 @@ rebind(entt::registry& r, SINGLETON_RendererInfo& ri)
     glBindTexture(GL_TEXTURE_2D, tex.tex_id.id);
     i++;
   }
+
+  // TBO for quadrenderer...
+  int tex_buffer_unit = i++;
+  glActiveTexture(GL_TEXTURE0 + tex_buffer_unit);
+  glBindTexture(GL_TEXTURE_BUFFER, ri.renderer.data.TEX);
+  ri.renderer.data.tex_unit = tex_buffer_unit;
+  fmt::println("tbo unit... {}", ri.renderer.data.tex_unit);
+
   fmt::println("bound textures: {}", i);
 
   const int tex_unit_kenny = search_for_texture_unit_by_texture_path(ri, "monochrome")->unit;
@@ -166,11 +172,7 @@ rebind(entt::registry& r, SINGLETON_RendererInfo& ri)
   ri.mix_lighting_and_scene.set_int("tex_unit_debris", tex_unit_debris);
   ri.mix_lighting_and_scene.set_int("tex_unit_floor_mask", tex_unit_floor_mask);
   ri.mix_lighting_and_scene.set_int("u_distance_data", tex_unit_voronoi_distance);
-
-  ri.circle.reload();
-  ri.circle.bind();
-  ri.circle.set_mat4("projection", camera.projection);
-  ri.circle.set_vec2("viewport_wh", ri.viewport_size_render_at);
+  ri.mix_lighting_and_scene.set_int("circleBuffer", ri.renderer.data.tex_unit);
 
   ri.blur.reload();
   ri.blur.bind();
@@ -239,8 +241,6 @@ init_render_system(const engine::SINGLETON_Application& app, entt::registry& r, 
 
     // HACK... should do something better than this
     if (loaded_tex.path.find("organic2") != std::string::npos) {
-      loaded_tex.texture_min_filter = GL_MIPMAP;
-      loaded_tex.texture_max_filter = GL_MIPMAP;
       // loaded_tex.texture_min_filter = GL_NEAREST;
       // loaded_tex.texture_max_filter = GL_NEAREST;
     }
@@ -259,7 +259,6 @@ init_render_system(const engine::SINGLETON_Application& app, entt::registry& r, 
   ri.jump_flood = Shader("assets/shaders/2d_instanced.vert", "assets/shaders/2d_jump_flood.frag");
   ri.voronoi_distance = Shader("assets/shaders/2d_instanced.vert", "assets/shaders/2d_voronoi_distance.frag");
   ri.mix_lighting_and_scene = Shader("assets/shaders/2d_instanced.vert", "assets/shaders/2d_mix_lighting_and_scene.frag");
-  ri.circle = Shader("assets/shaders/2d_circle.vert", "assets/shaders/2d_circle.frag");
   ri.blur = Shader("assets/shaders/bloom.vert", "assets/shaders/blur.frag");
   ri.bloom = Shader("assets/shaders/bloom.vert", "assets/shaders/bloom.frag");
 
@@ -273,7 +272,9 @@ init_render_system(const engine::SINGLETON_Application& app, entt::registry& r, 
   glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 
   engine::print_gpu_info();
-  engine::quad_renderer::QuadRenderer::init();
+
+  // init(): create a dynamic VBO
+  ri.renderer.init();
 
   rebind(r, ri);
 
@@ -593,9 +594,10 @@ update_render_system(entt::registry& r, const float dt, const glm::vec2& mouse_p
 };
 
 void
-end_frame_render_system(entt::registry& registry)
+end_frame_render_system(entt::registry& r)
 {
-  quad_renderer::QuadRenderer::end_frame();
+  auto& ri = get_first_component<SINGLETON_RendererInfo>(r);
+  ri.renderer.end_frame();
 };
 
 } // namespace game2d

@@ -149,6 +149,8 @@ enemy_shoot_action(entt::registry& r, const entt::entity e)
 {
   // aim your gun...
   const auto player_e = get_first<PlayerComponent>(r);
+  if (player_e == entt::null)
+    return;
   r.emplace_or_replace<GunStaticTargetComponent>(e, get_position(r, player_e));
 
   if (r.try_get<SeenComponent>(e) == nullptr)

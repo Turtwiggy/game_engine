@@ -1,7 +1,10 @@
 #include "system.hpp"
 
 #include "actors/helpers.hpp"
+#include "components.hpp"
 #include "entt/helpers.hpp"
+#include "events/components.hpp"
+#include "events/helpers/keyboard.hpp"
 #include "imgui.h"
 #include "maths/grid.hpp"
 #include "modules/actor_player/components.hpp"
@@ -14,6 +17,21 @@
 namespace game2d {
 
 void
+toggle_lootbag_display(entt::registry& r)
+{
+  const auto& input = get_first_component<SINGLETON_InputComponent>(r);
+
+  if (get_key_down(input, SDL_Scancode::SDL_SCANCODE_R)) {
+    // not showing => showing
+    if (get_first<ShowLootbagRequest>(r) == entt::null)
+      destroy_first_and_create<ShowLootbagRequest>(r);
+    // showing => not showing
+    else
+      destroy_first<ShowLootbagRequest>(r);
+  }
+};
+
+void
 update_ui_lootbag_system(entt::registry& r)
 {
   const auto map_e = get_first<MapComponent>(r);
@@ -21,6 +39,12 @@ update_ui_lootbag_system(entt::registry& r)
     return;
   const auto& map_c = get_first_component<MapComponent>(r);
   const auto& ri = get_first_component<SINGLETON_RendererInfo>(r);
+
+  toggle_lootbag_display(r);
+
+  // no request: do not show loot menu
+  if (get_first<ShowLootbagRequest>(r) == entt::null)
+    return;
 
   const int inv_x = 6;
   const ImVec2 button_size = ImVec2(32, 32); // make the border 48 or 64
@@ -40,8 +64,10 @@ update_ui_lootbag_system(entt::registry& r)
   ImGui::SetNextWindowPos(pos, ImGuiCond_Always, ImVec2(0.0f, 0.5f));
   ImGui::SetNextWindowSizeConstraints(window_0_size, window_0_size);
   ImGui::PushStyleVar(ImGuiTableColumnFlags_WidthFixed, button_size.x);
+
   ImGui::Begin("UILootbag", NULL, flags);
   ImGui::SeparatorText("Loot");
+
   const auto content_size = ImGui::GetContentRegionAvail();
 
   for (const auto& [e, player_c] : r.view<PlayerComponent>().each()) {

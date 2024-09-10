@@ -1,5 +1,6 @@
 #include "passes.hpp"
 
+#include "actors/helpers.hpp"
 #include "colour/colour.hpp"
 #include "entt/helpers.hpp"
 #include "events/helpers/mouse.hpp"
@@ -11,6 +12,7 @@
 #include "modules/renderer/helpers.hpp"
 #include "modules/renderer/helpers/batch_quad.hpp"
 #include "modules/vfx_circle/components.hpp"
+#include "opengl/util.hpp"
 #include "renderer/transform.hpp"
 #include "sprites/components.hpp"
 
@@ -19,6 +21,7 @@
 #include "opengl/render_command.hpp"
 
 namespace game2d {
+using namespace engine;
 using namespace std::literals;
 
 int
@@ -29,18 +32,20 @@ get_tex_unit(const SINGLETON_RendererInfo& ri, const PassName& p)
   return linear_pass.texs[0].tex_unit.unit;
 };
 
-const auto render_fullscreen_quad = [](const engine::Shader& shader, const glm::ivec2& size) {
-  engine::quad_renderer::QuadRenderer::reset_quad_vert_count();
-  engine::quad_renderer::QuadRenderer::begin_batch();
+const auto render_fullscreen_quad = [](entt::registry& r, const engine::Shader& shader, const glm::ivec2& size) {
+  auto& ri = get_first_component<SINGLETON_RendererInfo>(r);
+
+  ri.renderer.reset_quad_vert_count();
+  ri.renderer.begin_batch();
 
   engine::quad_renderer::RenderDescriptor desc;
   desc.pos_tl = { 0, 0 };
   desc.size = size;
   desc.angle_radians = 0;
-  engine::quad_renderer::QuadRenderer::draw_sprite(desc, shader);
+  ri.renderer.draw_sprite(desc, shader);
 
-  engine::quad_renderer::QuadRenderer::end_batch();
-  engine::quad_renderer::QuadRenderer::flush(shader);
+  ri.renderer.end_batch();
+  ri.renderer.flush(shader);
 };
 
 void
@@ -51,7 +56,7 @@ setup_stars_update(entt::registry& r)
   auto& pass = ri.passes[pass_idx];
 
   pass.update = [](entt::registry& r) {
-    const auto& ri = get_first_component<SINGLETON_RendererInfo>(r);
+    auto& ri = get_first_component<SINGLETON_RendererInfo>(r);
     const auto camera_e = get_first<OrthographicCamera>(r);
     const auto& camera = r.get<OrthographicCamera>(camera_e);
     const auto& camera_t = r.get<TransformComponent>(camera_e);
@@ -64,18 +69,18 @@ setup_stars_update(entt::registry& r)
     ri.stars.set_mat4("view", camera.view);
 
     {
-      engine::quad_renderer::QuadRenderer::reset_quad_vert_count();
-      engine::quad_renderer::QuadRenderer::begin_batch();
+      ri.renderer.reset_quad_vert_count();
+      ri.renderer.begin_batch();
       {
         engine::quad_renderer::RenderDescriptor desc;
         const glm::vec2 offset = { ri.viewport_size_render_at.x / 2.0, ri.viewport_size_render_at.y / 2.0f };
         desc.pos_tl = glm::vec2(camera_t.position.x, camera_t.position.y) - offset;
         desc.size = ri.viewport_size_render_at;
         desc.angle_radians = 0;
-        engine::quad_renderer::QuadRenderer::draw_sprite(desc, ri.stars);
+        ri.renderer.draw_sprite(desc, ri.stars);
       }
-      engine::quad_renderer::QuadRenderer::end_batch();
-      engine::quad_renderer::QuadRenderer::flush(ri.stars);
+      ri.renderer.end_batch();
+      ri.renderer.flush(ri.stars);
     }
   };
 };
@@ -88,7 +93,7 @@ setup_debris_update(entt::registry& r)
   auto& pass = ri.passes[pass_idx];
 
   pass.update = [](entt::registry& r) {
-    const auto& ri = get_first_component<SINGLETON_RendererInfo>(r);
+    auto& ri = get_first_component<SINGLETON_RendererInfo>(r);
     const auto camera_e = get_first<OrthographicCamera>(r);
     const auto& camera_t = r.get<TransformComponent>(camera_e);
     const auto& camera_c = r.get<OrthographicCamera>(camera_e);
@@ -98,18 +103,18 @@ setup_debris_update(entt::registry& r)
     ri.debris.set_vec2("camera_pos", { camera_t.position.x, camera_t.position.y });
 
     {
-      engine::quad_renderer::QuadRenderer::reset_quad_vert_count();
-      engine::quad_renderer::QuadRenderer::begin_batch();
+      ri.renderer.reset_quad_vert_count();
+      ri.renderer.begin_batch();
       {
         engine::quad_renderer::RenderDescriptor desc;
         const glm::vec2 offset = { ri.viewport_size_render_at.x / 2.0, ri.viewport_size_render_at.y / 2.0f };
         desc.pos_tl = glm::vec2(camera_t.position.x, camera_t.position.y) - offset;
         desc.size = ri.viewport_size_render_at;
         desc.angle_radians = 0;
-        engine::quad_renderer::QuadRenderer::draw_sprite(desc, ri.debris);
+        ri.renderer.draw_sprite(desc, ri.debris);
       }
-      engine::quad_renderer::QuadRenderer::end_batch();
-      engine::quad_renderer::QuadRenderer::flush(ri.debris);
+      ri.renderer.end_batch();
+      ri.renderer.flush(ri.debris);
     }
   };
 };
@@ -121,7 +126,7 @@ setup_floor_mask_update(entt::registry& r)
   const auto pass_idx = search_for_renderpass_by_name(ri, PassName::floor_mask);
   auto& pass = ri.passes[pass_idx];
   pass.update = [](entt::registry& r) {
-    const auto& ri = get_first_component<SINGLETON_RendererInfo>(r);
+    auto& ri = get_first_component<SINGLETON_RendererInfo>(r);
     const auto& camera_c = get_first_component<OrthographicCamera>(r);
 
     ri.instanced.bind();
@@ -131,8 +136,8 @@ setup_floor_mask_update(entt::registry& r)
     engine::LinearColour mask_colour = engine::LinearColour(1.0f, 1.0f, 1.0f, 1.0f);
 
     {
-      engine::quad_renderer::QuadRenderer::reset_quad_vert_count();
-      engine::quad_renderer::QuadRenderer::begin_batch();
+      ri.renderer.reset_quad_vert_count();
+      ri.renderer.begin_batch();
 
       const auto& view = r.view<TransformComponent, SpriteComponent, FloorComponent>();
 
@@ -148,11 +153,11 @@ setup_floor_mask_update(entt::registry& r)
         desc.sprite_width = { sc.tex_pos.w, sc.tex_pos.h };
         desc.sprites_max = { sc.total_sx, sc.total_sy };
 
-        engine::quad_renderer::QuadRenderer::draw_sprite(desc, ri.instanced);
+        ri.renderer.draw_sprite(desc, ri.instanced);
       }
 
-      engine::quad_renderer::QuadRenderer::end_batch();
-      engine::quad_renderer::QuadRenderer::flush(ri.instanced);
+      ri.renderer.end_batch();
+      ri.renderer.flush(ri.instanced);
     }
   };
 };
@@ -165,8 +170,10 @@ setup_linear_main_update(entt::registry& r)
   auto& pass = ri.passes[pass_idx];
 
   pass.update = [](entt::registry& r) {
-    const auto& ri = get_first_component<SINGLETON_RendererInfo>(r);
-    const auto& camera_c = get_first_component<OrthographicCamera>(r);
+    auto& ri = get_first_component<SINGLETON_RendererInfo>(r);
+    const auto camera_e = get_first<OrthographicCamera>(r);
+    const auto& camera_t = r.get<TransformComponent>(camera_e);
+    const auto& camera_c = r.get<OrthographicCamera>(camera_e);
 
     glEnable(GL_BLEND);
     glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
@@ -175,10 +182,28 @@ setup_linear_main_update(entt::registry& r)
     ri.instanced.bind();
     ri.instanced.set_mat4("view", camera_c.view);
 
+    // set the positions of the units with circles units & update TBO
+    {
+      static std::vector<CircleComponent> points(100);
+      const auto view = r.view<TransformComponent, CircleComponent>();
+      for (int i = 0; const auto& [e, transform_c, circle_c] : view.each()) {
+        if (i > 100)
+          break;
+        circle_c.shader_pos = get_position(r, e);
+        points[i] = circle_c;
+        i++;
+      }
+      // Update for TBO
+      glBindBuffer(GL_TEXTURE_BUFFER, ri.renderer.data.TBO);
+      glBufferSubData(GL_TEXTURE_BUFFER, 0, sizeof(CircleComponent) * points.size(), points.data());
+      glBindTexture(GL_TEXTURE_BUFFER, ri.renderer.data.TEX);
+      glTexBuffer(GL_TEXTURE_BUFFER, GL_RGB32F, ri.renderer.data.TBO);
+    }
+
     // Render some quads
     {
-      engine::quad_renderer::QuadRenderer::reset_quad_vert_count();
-      engine::quad_renderer::QuadRenderer::begin_batch();
+      ri.renderer.reset_quad_vert_count();
+      ri.renderer.begin_batch();
 
       const auto& group = r.group<TransformComponent, SpriteComponent>();
 
@@ -197,51 +222,12 @@ setup_linear_main_update(entt::registry& r)
         desc.sprite_width = { sc.tex_pos.w, sc.tex_pos.h };
         desc.sprites_max = { sc.total_sx, sc.total_sy };
 
-        engine::quad_renderer::QuadRenderer::draw_sprite(desc, ri.instanced);
+        ri.renderer.draw_sprite(desc, ri.instanced);
       }
 
-      engine::quad_renderer::QuadRenderer::end_batch();
-      engine::quad_renderer::QuadRenderer::flush(ri.instanced);
+      ri.renderer.end_batch();
+      ri.renderer.flush(ri.instanced);
     }
-
-    /*
-    // ri.circle.bind();
-    // ri.circle.set_mat4("view", camera.view);
-    // ri.circle.set_vec2("camera_pos", { camera_t.position.x, camera_t.position.y });
-
-
-    // Render some SDF circles
-    {
-      engine::quad_renderer::QuadRenderer::reset_quad_vert_count();
-      engine::quad_renderer::QuadRenderer::begin_batch();
-
-      // set the positions of the player units
-      {
-        ri.circle.bind();
-        const auto& player_view = r.view<TransformComponent, CircleComponent>();
-        for (int i = 0; const auto& [e, transform, c] : player_view.each()) {
-          const glm::vec2 pos = { float(transform.position.x), float(transform.position.y) };
-          std::string label = "points["s + std::to_string(i) + "].pos"s;
-          ri.circle.set_vec2(label, pos);
-          i++;
-        }
-      }
-
-      // circle post-processing
-      // render completely over screen
-      {
-        engine::quad_renderer::RenderDescriptor desc;
-        const glm::vec2 offset = { ri.viewport_size_render_at.x / 2.0, ri.viewport_size_render_at.y / 2.0f };
-        desc.pos_tl = glm::vec2(camera_t.position.x, camera_t.position.y) - offset;
-        desc.size = ri.viewport_size_render_at;
-        desc.angle_radians = 0;
-        engine::quad_renderer::QuadRenderer::draw_sprite(desc, ri.circle);
-      }
-
-      engine::quad_renderer::QuadRenderer::end_batch();
-      engine::quad_renderer::QuadRenderer::flush(ri.circle);
-    }
-    */
   };
 };
 
@@ -252,7 +238,8 @@ setup_lighting_emitters_and_occluders_update(entt::registry& r)
   const auto pass_idx = search_for_renderpass_by_name(ri, PassName::lighting_emitters_and_occluders);
   auto& pass = ri.passes[pass_idx];
 
-  pass.update = [&ri](entt::registry& r) {
+  pass.update = [](entt::registry& r) {
+    auto& ri = get_first_component<SINGLETON_RendererInfo>(r);
     const auto camera_e = get_first<OrthographicCamera>(r);
     const auto& camera = r.get<OrthographicCamera>(camera_e);
 
@@ -271,8 +258,8 @@ setup_lighting_emitters_and_occluders_update(entt::registry& r)
       engine::RenderCommand::set_clear_colour_srgb({ 0, 0, 0, 0.0f });
       engine::RenderCommand::clear();
 
-      engine::quad_renderer::QuadRenderer::reset_quad_vert_count();
-      engine::quad_renderer::QuadRenderer::begin_batch();
+      ri.renderer.reset_quad_vert_count();
+      ri.renderer.begin_batch();
 
       {
         const auto& emitters = r.view<const LightEmitterComponent, const TransformComponent, const SpriteComponent>();
@@ -288,7 +275,7 @@ setup_lighting_emitters_and_occluders_update(entt::registry& r)
           desc.sprite_width = { sc.tex_pos.w, sc.tex_pos.h };
           desc.sprites_max = { sc.total_sx, sc.total_sy };
 
-          engine::quad_renderer::QuadRenderer::draw_sprite(desc, ri.lighting_emitters_and_occluders);
+          ri.renderer.draw_sprite(desc, ri.lighting_emitters_and_occluders);
         }
       }
 
@@ -307,11 +294,11 @@ setup_lighting_emitters_and_occluders_update(entt::registry& r)
           desc.sprite_width = { sc.tex_pos.w, sc.tex_pos.h };
           desc.sprites_max = { sc.total_sx, sc.total_sy };
 
-          engine::quad_renderer::QuadRenderer::draw_sprite(desc, ri.lighting_emitters_and_occluders);
+          ri.renderer.draw_sprite(desc, ri.lighting_emitters_and_occluders);
         }
       }
-      engine::quad_renderer::QuadRenderer::end_batch();
-      engine::quad_renderer::QuadRenderer::flush(ri.lighting_emitters_and_occluders);
+      ri.renderer.end_batch();
+      ri.renderer.flush(ri.lighting_emitters_and_occluders);
     }
 
     glDisable(GL_DEPTH_TEST);
@@ -334,7 +321,7 @@ setup_voronoi_seed_update(entt::registry& r)
 
     ri.voronoi_seed.bind();
 
-    render_fullscreen_quad(ri.voronoi_seed, ri.viewport_size_render_at);
+    render_fullscreen_quad(r, ri.voronoi_seed, ri.viewport_size_render_at);
   };
 };
 
@@ -364,7 +351,8 @@ setup_jump_flood_pass(entt::registry& r)
       engine::RenderCommand::clear();
 
       // offset for each pass is half the previous one, starting at half the square resolution rounded up to nearest
-      // power 2. #i.e.for 768x512 we round up to 1024x1024 and the offset for the first pass is 512x512, then 256x256, etc.
+      // power 2. #i.e.for 768x512 we round up to 1024x1024 and the offset for the first pass is 512x512, then 256x256,
+      // etc.
       const float offset = (float)std::pow(2, n_jumpflood_passes - i - 1);
 
       int tex_unit = get_tex_unit(ri, PassName::voronoi_seed);
@@ -374,7 +362,7 @@ setup_jump_flood_pass(entt::registry& r)
       ri.jump_flood.set_int("tex", tex_unit);
       ri.jump_flood.set_float("u_offset", offset);
 
-      render_fullscreen_quad(ri.jump_flood, ri.viewport_size_render_at);
+      render_fullscreen_quad(r, ri.jump_flood, ri.viewport_size_render_at);
     }
   };
 };
@@ -401,7 +389,7 @@ setup_voronoi_distance_field_update(entt::registry& r)
     ri.voronoi_distance.set_int("tex_jflood", last_jflood_texunit);
     ri.voronoi_distance.set_int("tex_emitters_and_occluders", tex_unit);
 
-    render_fullscreen_quad(ri.voronoi_distance, ri.viewport_size_render_at);
+    render_fullscreen_quad(r, ri.voronoi_distance, ri.viewport_size_render_at);
   };
 };
 
@@ -431,7 +419,7 @@ setup_mix_lighting_and_scene_update(entt::registry& r)
     ri.mix_lighting_and_scene.set_vec2("camera_pos", { camera_t.position.x, camera_t.position.y });
     // ri.mix_lighting_and_scene.set_float("brightness_threshold", brightness_threshold);
 
-    render_fullscreen_quad(ri.mix_lighting_and_scene, ri.viewport_size_render_at);
+    render_fullscreen_quad(r, ri.mix_lighting_and_scene, ri.viewport_size_render_at);
   };
 };
 
@@ -496,7 +484,7 @@ setup_gaussian_blur_update(entt::registry& r)
       engine::RenderCommand::set_clear_colour_srgb({ 0, 0, 0, 0.0f });
       engine::RenderCommand::clear();
 
-      render_fullscreen_quad(ri.blur, ri.viewport_size_render_at);
+      render_fullscreen_quad(r, ri.blur, ri.viewport_size_render_at);
     }
   };
 
@@ -509,8 +497,9 @@ setup_bloom_update(entt::registry& r)
   auto& ri = get_first_component<SINGLETON_RendererInfo>(r);
   const auto pass_idx = search_for_renderpass_by_name(ri, PassName::bloom);
   auto& pass = ri.passes[pass_idx];
+
   pass.update = [](entt::registry& r) {
-    const auto& ri = get_first_component<SINGLETON_RendererInfo>(r);
+    auto& ri = get_first_component<SINGLETON_RendererInfo>(r);
     const bool do_bloom = get_first<Effect_DoBloom>(r) != entt::null;
     static float exposure = 1.5f;
 #if defined(_DEBUG)
@@ -528,10 +517,10 @@ setup_bloom_update(entt::registry& r)
     const auto& blur_data = get_first_component<EffectBlurInfo>(r);
     ri.bloom.set_int("blur_texture", blur_data.last_blur_texunit);
 
-    // render_fullscreen_quad(ri.bloom, ri.viewport_size_render_at);
+    // render_fullscreen_quad(r, ri.bloom, ri.viewport_size_render_at);
 
-    engine::quad_renderer::QuadRenderer::reset_quad_vert_count();
-    engine::quad_renderer::QuadRenderer::begin_batch();
+    ri.renderer.reset_quad_vert_count();
+    ri.renderer.begin_batch();
 
     // render completely over screen
     {
@@ -540,11 +529,11 @@ setup_bloom_update(entt::registry& r)
       desc.pos_tl = glm::vec2(camera_t.position.x, camera_t.position.y) - offset;
       desc.size = ri.viewport_size_render_at;
       desc.angle_radians = 0;
-      engine::quad_renderer::QuadRenderer::draw_sprite(desc, ri.bloom);
+      ri.renderer.draw_sprite(desc, ri.bloom);
     }
 
-    engine::quad_renderer::QuadRenderer::end_batch();
-    engine::quad_renderer::QuadRenderer::flush(ri.bloom);
+    ri.renderer.end_batch();
+    ri.renderer.flush(ri.bloom);
   };
 };
 } // namespace game2d

@@ -66,6 +66,10 @@ print_gpu_info()
   glGetIntegerv(GL_MAX_TEXTURE_IMAGE_UNITS, params);
   fmt::println("(INFO) GL_MAX_TEXTURE_IMAGE_UNITS: {}", params[0]);
 
+  // In OpenGL 3.3+ you are guarenteed at least 16 texture units for frag shaders
+  glGetIntegerv(GL_MAX_COMBINED_TEXTURE_IMAGE_UNITS, params);
+  fmt::println("(INFO) GL_MAX_COMBINED_TEXTURE_IMAGE_UNITS: {}", params[0]);
+
   // GL_MAX_SHADER_STORAGE_BUFFER_BINDINGS = 96
   // GL_MAX_SHADER_STORAGE_BLOCK_SIZE = 2147483647
   // GL_MAX_VERTEX_SHADER_STORAGE_BLOCKS = 16

@@ -74,29 +74,6 @@ update_ui_combat_turnbased_system(entt::registry& r, const glm::ivec2& input_mou
   const auto& map = get_first_component<MapComponent>(r);
   const auto& input = get_first_component<SINGLETON_InputComponent>(r);
 
-  static Actions action = Actions::MOVE;
-  if (get_key_down(input, SDL_Scancode::SDL_SCANCODE_1))
-    action = Actions::MOVE;
-  if (get_key_down(input, SDL_Scancode::SDL_SCANCODE_2))
-    action = Actions::ATTACK;
-
-  int mouse_grid_increments = 1;
-  if (action == Actions::ATTACK)
-    mouse_grid_increments = 1;
-  if (action == Actions::MOVE)
-    mouse_grid_increments = map.tilesize;
-
-  const int grid_snap_size = mouse_grid_increments; // note: this is not the map.tilesize,
-
-  const auto mouse_gridspace = engine::grid::worldspace_to_grid_space(input_mouse_pos, grid_snap_size);
-  const auto mouse_pos = engine::grid::grid_space_to_world_space_center(mouse_gridspace, grid_snap_size);
-
-  // change cursor icon
-  if (action == Actions::MOVE)
-    change_cursor(r, CursorType::MOVE);
-  if (action == Actions::ATTACK)
-    change_cursor(r, CursorType::ATTACK);
-
   // Limit: the next bit should only happen if it's not the start of the game
   auto& state = get_first_component<SINGLE_CombatState>(r);
   if (state.team == AvailableTeams::neutral)
@@ -104,14 +81,6 @@ update_ui_combat_turnbased_system(entt::registry& r, const glm::ivec2& input_mou
 
   const auto& selected_view = r.view<SelectedComponent>();
   int count = (int)selected_view.size();
-
-  // stop showing movement path
-  if (count == 0 || action != Actions::MOVE)
-    state.show_selected_player_path.update(r, 0);
-
-  // set positon of cursor
-  const auto& info = get_first_component<SINGLE_TurnBasedCombatInfo>(r);
-  set_position(r, info.action_cursor, mouse_pos);
 
   // move all guns to the mouse cursor
   // adding a static target component seems weird for only the gun
@@ -139,18 +108,19 @@ update_ui_combat_turnbased_system(entt::registry& r, const glm::ivec2& input_mou
     if (!inside_ship(r, e))
       return; // only move if onboard
 
-    bool request_action = false;
+    bool request_move = false;
+    bool request_shoot = false;
     glm::vec2 move_position{ 0, 0 };
     const auto wp = get_position(r, e);
-    {
-      // mouse input
-      request_action |= get_mouse_rmb_press();
-      move_position = mouse_pos;
 
+    {
       // override with keyboard or controller input
       if (auto* inp_c = r.try_get<InputComponent>(e)) {
 
-        request_action |= inp_c->unprocessed_move_down;
+        request_move |= inp_c->unprocessed_move_down;
+
+        request_shoot |= inp_c->shoot;
+        inp_c->shoot = false;
 
         const auto round_away_from_zero = [](const float value) -> float {
           if (value > 0.0f)
@@ -175,16 +145,16 @@ update_ui_combat_turnbased_system(entt::registry& r, const glm::ivec2& input_mou
     if (move_position == wp)
       return; // moving to same space.. skip
 
-    // move mode
-    if (action == Actions::MOVE && actions.actions_available > 0 && request_action) {
+    // move action
+    if (actions.actions_available > 0 && request_move) {
       move_action_common(r, e, move_position);
 
       actions.actions_available--;
       actions.actions_completed++;
     }
 
-    // shoot mode
-    if (action == Actions::ATTACK && actions.actions_available > 0 && request_action) {
+    // shoot action
+    if (actions.actions_available > 0 && request_shoot) {
       r.emplace_or_replace<WantsToShoot>(e);
 
       actions.actions_available--;

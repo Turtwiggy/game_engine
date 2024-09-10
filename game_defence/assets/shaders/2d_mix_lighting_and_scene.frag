@@ -24,6 +24,9 @@ uniform bool add_grid;
 uniform vec2 uv_offset;
 uniform bool inside_spaceship;
 
+#define NR_MAX_CIRCLES 100
+uniform samplerBuffer circleBuffer;  // a texture buffer
+
 struct Light
 {
 	bool enabled;
@@ -92,6 +95,19 @@ float sdGrid(in vec2 position, in float margin) {
 	float insideDist = min(max(gridDist.x, gridDist.y), 0.0);
 	
 	return outsideDist + insideDist;
+}
+
+// https://www.shadertoy.com/view/3ltSW2
+float sdCircle( vec2 p, float radius ) 
+{
+    return length(p) - radius;
+}
+
+// https://www.shadertoy.com/view/lt3BW2
+float opSmoothUnion( float d1, float d2, float k )
+{
+    float h = max(k-abs(d1-d2),0.0);
+    return min(d1, d2) - h*h*0.25/k;
 }
 
 // masks for drawing
@@ -230,11 +246,14 @@ void main()
 		float gridsize = 50.0; // pixels
 		vec2 camera_uv_screen = vec2( camera_pos.x / half_wh.x, camera_pos.y / half_wh.y); // camera position is in worldspace.
 		vec2 camera_uv = camera_uv_screen; 
-		vec2 uv = 2.0 * v_uv - 1.0;
-		uv += camera_uv;
-		float aspect = viewport_wh.y / viewport_wh.x;
-		uv.y *= aspect;
-		vec2 p_grid = (viewport_wh.x / gridsize / 2.0) * uv;
+		float aspect_y = viewport_wh.y / viewport_wh.x;
+		
+ 		vec2 grid_uv = (2.0 * v_uv - 1.0);
+		grid_uv += camera_uv;
+		grid_uv.y *= aspect_y;
+
+		vec2 p_grid = (viewport_wh.x / gridsize / 2.0) * grid_uv;
+
 		// if the gridsize gets too small and the gridwidth isnt large enough, 
 		// the grid appears to dissapear. the value 0.05 seems to work until gridsize<10
 		float grid_width = 0.02; 
@@ -301,15 +320,66 @@ void main()
 
 	col = clamp(col, 0.0, 1.0);
 
+	//
+	// sdf circles for oxygen
+	//
+	vec3 circle_col = vec3(1.0f);
+	{
+		// convert uv to -1 and 1
+		vec2 uv = (2.0 * v_uv - 1.0);
+		uv.x *= -1.0;
+		uv.y *= -1.0;
+		float aspect = viewport_wh.x / viewport_wh.y;
+		uv.x *= aspect;
+
+  	float d = 1e10;
+
+		for (int i = 0; i < NR_MAX_CIRCLES; ++i) {
+			vec3 circleData = texelFetch(circleBuffer, i).xyz;
+			vec2 pos = circleData.xy;   // Circle center position
+			float radius = circleData.z;       // Circle radius
+
+			if(pos == vec2(0.0))
+				break; // assume no more circles
+
+			// convert worldspace to between -1 and 1.
+			float ss_x = (((pos.x - screen_min.x)/viewport_wh.x) * 2.0) - 1.0;
+			float ss_y = (((pos.y - screen_min.y)/viewport_wh.y) * 2.0) - 1.0;
+			ss_x *= aspect;
+
+			vec2 p = vec2(uv.x + ss_x, uv.y + ss_y);
+
+			// radius 
+			float tilesize = 50;
+			float circle_size = tilesize * radius;
+			float rad = (circle_size / viewport_wh.y);	
+			float d0 = sdCircle(p, rad);
+
+			// If not the first circle, smooth it in
+			float dt = opSmoothUnion(d, d0, 0.5);
+			d = min(d, dt); 
+		}
+
+		// colouring
+		vec3 ccol = vec3(0.0f, 0.4f, 0.4f);
+
+		float thickness = 0.0025;
+		ccol *= mix( vec3(0.0), vec3(1.0), 1.0-smoothstep(0.0,thickness,abs(d)) ); // border
+		circle_col.rgb = ccol;
+	}
+
+
   // linear to srgb
 	vec3 final_lin = scene_lin.rgb;
 
 	// debris backdrop
 	vec3 scene_debris_lin = texture(tex_unit_debris, v_uv).rgb;
 	float floor_mask = texture(tex_unit_floor_mask, v_uv).r;
-	if(floor_mask >= 0.95){
+	// bool black_debris = scene_debris_lin == vec3(0.0f);
+	if(floor_mask >= 0.95 ){
 		scene_debris_lin = vec3(0.0f);
 	}
+
 	final_lin += scene_debris_lin;
 
 	// grid
@@ -325,7 +395,7 @@ void main()
 	vec3 srgb_final = lin_to_srgb(final_lin);
 	// vec3 srgb_final = lin_to_srgb(scene_lin.rgb);
 
-	out_color.rgb = srgb_final.rgb;
+	out_color.rgb = circle_col + srgb_final.rgb;
 
 	// vignette
 	vec2 vig_uv = fragCoord.xy / iResolution.xy;

@@ -31,7 +31,7 @@ struct SINGLE_CombatState
 {
   AvailableTeams team = AvailableTeams::player;
 
-  EntityPool show_selected_player_path;
+  // EntityPool show_selected_player_path;
 };
 
 } // namespace game2d

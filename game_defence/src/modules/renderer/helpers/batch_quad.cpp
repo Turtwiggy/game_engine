@@ -3,20 +3,19 @@
 #include "batch_quad.hpp"
 
 // my libs
-#include "batch_renderer.hpp"
-#include "opengl/util.hpp"
+#include "modules/vfx_circle/components.hpp"
 
 // other project headers
 #include "deps/opengl.hpp"
-#include <glm/gtc/matrix_transform.hpp>
+#include "opengl/util.hpp"
 
-#include "fmt/core.h"
+#include <fmt/core.h>
+#include <glm/gtc/matrix_transform.hpp>
 
 namespace engine {
 
 namespace quad_renderer {
-
-static RenderData<Vertex> data;
+using game2d::CircleComponent;
 
 void
 QuadRenderer::draw_sprite(const RenderDescriptor& r, const Shader& s)
@@ -86,38 +85,17 @@ QuadRenderer::draw_sprite(const RenderDescriptor& r, const Shader& s)
 void
 QuadRenderer::init()
 {
+  CHECK_OPENGL_ERROR(4); // eat any error before this stage
+
   data.buffer = new Vertex[max_quad_vert_count];
-  // CHECK_OPENGL_ERROR(4); // eat any error before this stage
 
   glGenVertexArrays(1, &data.VAO);
-  // if (data.VAO == 0) {
-  //   fmt::println("Failed to generate VAO");
-  //   exit(1); // explode
-  // }
   glGenBuffers(1, &data.VBO);
-  // if (data.VBO == 0) {
-  //   fmt::println("Failed to generate VBO");
-  //   exit(1); // explode
-  // }
-
   glGenBuffers(1, &data.EBO);
-  // if (data.EBO == 0) {
-  //   fmt::println("Failed to generate EBO");
-  //   exit(1); // explode
-  // }
 
   glBindVertexArray(data.VAO); // bind the vao
-  // if (glIsVertexArray(data.VAO) == GL_FALSE) {
-  //   fmt::println("VAO is not a valid buffer");
-  //   exit(1); // explode
-  // }
 
   glBindBuffer(GL_ARRAY_BUFFER, data.VBO);
-  // if (glIsBuffer(data.VBO) == GL_FALSE) {
-  //   fmt::println("VBO is not a valid buffer");
-  //   exit(1); // explode
-  // }
-
   glBufferData(GL_ARRAY_BUFFER, max_quad_vert_count * sizeof(Vertex), nullptr, GL_DYNAMIC_DRAW); // dynamic
 
   // specific to the game...
@@ -172,6 +150,21 @@ QuadRenderer::init()
   // unbind vbo and vao
   glBindBuffer(GL_ARRAY_BUFFER, 0);
   glBindVertexArray(0);
+
+  // create a texture buffer object
+  GLuint& tbo = data.TBO;
+  GLuint& tex = data.TEX;
+  glGenBuffers(1, &tbo);
+  glBindBuffer(GL_TEXTURE_BUFFER, tbo);
+  glBufferData(GL_TEXTURE_BUFFER, N_MAX_CIRCLES * sizeof(CircleComponent), nullptr, GL_DYNAMIC_DRAW);
+
+  // bind the tbo to a texture unit for shaders
+  glGenTextures(1, &tex);
+
+  glBindTexture(GL_TEXTURE_BUFFER, tex);
+  glTexBuffer(GL_TEXTURE_BUFFER, GL_RGB32F, tbo);
+
+  fmt::println("created texture object...");
 };
 
 void

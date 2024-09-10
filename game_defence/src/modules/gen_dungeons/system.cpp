@@ -24,6 +24,7 @@
 #include "modules/system_move_to_target_via_lerp/components.hpp"
 #include "modules/ui_combat_turnbased/components.hpp"
 #include "modules/ux_hoverable/components.hpp"
+#include "modules/vfx_circle/components.hpp"
 #include "sprites/helpers.hpp"
 
 #include "imgui.h"
@@ -231,6 +232,31 @@ update_gen_dungeons_system(entt::registry& r, const glm::ivec2& mouse_pos)
 
   instantiate_edges(r, map);
 
+  // Create some sdf circles
+  for (const auto& room : result.rooms) {
+    const auto e = create_transform(r);
+    set_size(r, e, { 0, 0 });
+
+    CircleComponent c_comp;
+    c_comp.radius = (float)glm::max(room.aabb.size.x, room.aabb.size.y);
+    r.emplace<CircleComponent>(e, c_comp);
+
+    const auto& gridspace_tl = room.tl;
+    const auto& worldspace_tl = gridspace_tl * map.tilesize;
+    const auto worldspace_size = room.aabb.size * map.tilesize;
+
+    const int w = worldspace_size.x;
+    const int h = worldspace_size.y;
+
+    const glm::ivec2 tl = glm::ivec2{ worldspace_tl };
+    const glm::ivec2 tr = glm::ivec2{ (worldspace_tl.x + w), (worldspace_tl.y) };
+    const glm::ivec2 bl = glm::ivec2{ (worldspace_tl.x), (worldspace_tl.y + h) };
+    const glm::ivec2 br = glm::ivec2{ (worldspace_tl.x + w), (worldspace_tl.y + h) };
+    const glm::ivec2 worldspace_center = { (tl.x + tr.x) / 2.0f, (tr.y + br.y) / 2.0f };
+
+    set_position(r, e, worldspace_center);
+  }
+
   // Steps after initial initialization...
   set_generated_entity_positions(r, result, rnd);
 
@@ -246,6 +272,7 @@ update_gen_dungeons_system(entt::registry& r, const glm::ivec2& mouse_pos)
   desc.team = AvailableTeams::player;
   const auto e = Factory_DataJetpackActor::create(r, desc);
   r.emplace<CameraFollow>(e);
+  r.emplace<CircleComponent>(e);
 
   // give helmet to breathe
   const auto helmet_e = create_transform(r);
