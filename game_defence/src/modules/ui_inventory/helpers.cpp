@@ -5,6 +5,8 @@
 #include "entt/helpers.hpp"
 #include "events/components.hpp"
 #include "events/helpers/keyboard.hpp"
+#include "imgui.h"
+#include "modules/actor_armour/components.hpp"
 #include "modules/renderer/components.hpp"
 #include "modules/renderer/helpers.hpp"
 #include "modules/ui_inventory/components.hpp"
@@ -72,7 +74,7 @@ get_slots(entt::registry& r, const entt::entity e, const InventorySlotType& type
 };
 
 void
-update_item_parent(entt::registry& r, const entt::entity item, const entt::entity parent)
+update_item_parent(entt::registry& r, const entt::entity item, const entt::entity parent_slot)
 {
   auto& item_c = r.get<ItemComponent>(item);
 
@@ -80,28 +82,65 @@ update_item_parent(entt::registry& r, const entt::entity item, const entt::entit
   r.get<InventorySlotComponent>(item_c.parent_slot).item_e = entt::null;
 
   // set item to new parent
-  r.get<ItemComponent>(item).parent_slot = parent;
+  r.get<ItemComponent>(item).parent_slot = parent_slot;
 
   // set parent to new child
-  r.get<InventorySlotComponent>(parent).item_e = item;
+  r.get<InventorySlotComponent>(parent_slot).item_e = item;
 };
 
 void
-item_slot_accepting_item(entt::registry& r, const entt::entity item_slot)
+handle_dragdrop_target(entt::registry& r, const entt::entity payload_e, const entt::entity slot_e)
+{
+  auto& slot_c = r.get<InventorySlotComponent>(slot_e);
+  const bool slot_is_full = slot_c.item_e != entt::null;
+  const bool item_exists = payload_e != entt::null;
+
+  // 4 cases:
+  // yes item, full slot
+  // no item, full slot
+  // yes item, free slot
+  // no item, free slot
+
+  // yes item, free slot
+  if (item_exists && !slot_is_full)
+    update_item_parent(r, payload_e, slot_e);
+
+  // yes item, full slot (i.e. inventory swapping items)
+  if (item_exists && slot_is_full) {
+    auto item_0_e = payload_e;
+    auto item_1_e = slot_c.item_e;
+    auto& item_0_c = r.get<ItemComponent>(item_0_e);
+    auto& item_1_c = r.get<ItemComponent>(item_1_e);
+    const auto slot_0_e = item_0_c.parent_slot;
+    const auto slot_1_e = item_1_c.parent_slot;
+
+    // update child <=> parent
+    item_0_c.parent_slot = slot_1_e;
+    item_1_c.parent_slot = slot_0_e;
+
+    // update parent <=> child
+    r.get<InventorySlotComponent>(item_0_c.parent_slot).item_e = item_0_e;
+    r.get<InventorySlotComponent>(item_1_c.parent_slot).item_e = item_1_e;
+  }
+};
+
+void
+become_dragdrop_target(entt::registry& r, const entt::entity slot_e)
 {
   if (ImGui::BeginDragDropTarget()) {
     if (const ImGuiPayload* payload = ImGui::AcceptDragDropPayload("ITEM_E_PAYLOAD")) {
       IM_ASSERT(payload->DataSize == sizeof(uint32_t));
       const auto payload_eid = *(const uint32_t*)payload->Data;
       const auto payload_e = static_cast<entt::entity>(payload_eid);
-      update_item_parent(r, payload_e, item_slot);
+
+      handle_dragdrop_target(r, payload_e, slot_e);
     }
     ImGui::EndDragDropTarget();
   }
 };
 
 void
-item_slot_has_item(const entt::entity item_e)
+become_dragdrop_source(const entt::entity item_e)
 {
   if (ImGui::BeginDragDropSource(ImGuiDragDropFlags_None)) {
     ImGui::SetDragDropPayload("ITEM_E_PAYLOAD", &item_e, sizeof(uint32_t));
@@ -184,13 +223,11 @@ display_inventory_slot(entt::registry& r, const entt::entity inventory_slot_e, c
   if (item_e == entt::null)
     display_empty_item(r, inventory_slot_e, slot_c.type, button_size);
 
-  // item = dragdrop source
   if (item_e != entt::null)
-    item_slot_has_item(item_e);
+    become_dragdrop_source(item_e);
 
-  // no item = dragdrop target
-  if (item_e == entt::null)
-    item_slot_accepting_item(r, inventory_slot_e);
+  // any slot is a target, even if full
+  become_dragdrop_target(r, inventory_slot_e);
 };
 
 //
@@ -225,9 +262,8 @@ create_inv_armour(entt::registry& r, const entt::entity slot_e, const ArmourType
   item_c.parent_slot = slot_e;
   auto item_e = create_empty<ItemComponent>(r, item_c);
   r.emplace<ItemTypeComponent>(item_e, ItemTypeComponent{ ItemType::armour });
-
-  // todo: each item should have it's own unique defence value?
-  r.emplace<DefenceComponent>(item_e, DefenceComponent(1));
+  r.emplace<DefenceComponent>(item_e, DefenceComponent(data.armour_amount));
+  r.emplace<ArmourComponent>(item_e, ArmourComponent{ data });
 
   update_item_parent(r, item_e, slot_e);
   return item_e;

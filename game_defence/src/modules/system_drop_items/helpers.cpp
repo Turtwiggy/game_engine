@@ -33,9 +33,8 @@ drop_inventory_on_death_callback(entt::registry& r, const entt::entity e)
   remove_entity_from_map(r, info);
 
   // add inv to floor
-  DataDungeonLootbag loot_desc;
+  DataDungeonLootbag loot_desc(inv);
   loot_desc.pos = pos;
-  loot_desc.inventory = inv;
   Factory_DataDungeonLootbag::create(r, loot_desc);
 
   fmt::println("item add to map_idx: {} pos: {}", info.idx_in_map, info.idx_in_map_tile);

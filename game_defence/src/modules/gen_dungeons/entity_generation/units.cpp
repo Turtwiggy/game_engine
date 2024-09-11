@@ -29,6 +29,9 @@ spawn_enemy(entt::registry& r, const int idx)
   // give the enemy a piece of scrap in their inventory
   create_inv_scrap(r, r.get<DefaultInventory>(dungeon_e).inv[0]);
 
+  // give the enemy a 5% chance to have a medkit in their inventory...
+  // TODO: medkits
+
   // get enemies to their inventory
   r.emplace<DropItemsOnDeathComponent>(dungeon_e);
 

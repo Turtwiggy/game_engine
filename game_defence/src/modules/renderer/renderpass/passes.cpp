@@ -12,7 +12,6 @@
 #include "modules/renderer/helpers.hpp"
 #include "modules/renderer/helpers/batch_quad.hpp"
 #include "modules/vfx_circle/components.hpp"
-#include "opengl/util.hpp"
 #include "renderer/transform.hpp"
 #include "sprites/components.hpp"
 
@@ -536,4 +535,5 @@ setup_bloom_update(entt::registry& r)
     ri.renderer.flush(ri.bloom);
   };
 };
+
 } // namespace game2d

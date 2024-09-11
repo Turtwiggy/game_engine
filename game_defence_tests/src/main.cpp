@@ -24,7 +24,11 @@ int
 main(int argc, char** argv)
 {
   fmt::println("Running main() from {}", __FILE__);
+
   testing::InitGoogleTest(&argc, argv);
+
+  // testing::GTEST_FLAG(filter) = "MoveInventory*";
+
   return RUN_ALL_TESTS();
 }
 

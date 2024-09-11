@@ -97,6 +97,11 @@ update_ui_combat_turnbased_system(entt::registry& r, const glm::ivec2& input_mou
   if (state.team != AvailableTeams::player)
     return;
 
+  // limit: must not be on ui
+  const auto& ri = get_first_component<SINGLETON_RendererInfo>(r);
+  if (!ri.viewport_hovered)
+    return;
+
   const bool paused = get_first_component<SINGLETON_GameStateComponent>(r).state == GameState::PAUSED;
   if (paused)
     return;

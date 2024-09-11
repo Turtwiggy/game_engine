@@ -36,7 +36,12 @@ struct DataDungeonLootbag : public EntityData
 {
   DefaultInventory inventory;
 
-  DataDungeonLootbag() { sprite = "SKULL_AND_BONES"; }
+  DataDungeonLootbag() = delete;
+  DataDungeonLootbag(const DefaultInventory inv)
+    : inventory(inv)
+  {
+    sprite = "SKULL_AND_BONES";
+  };
 };
 
 struct DataJetpackActor : public EntityData

@@ -15,6 +15,7 @@
 #include "modules/gen_dungeons/components.hpp"
 #include "modules/gen_dungeons/helpers.hpp"
 #include "modules/grid/components.hpp"
+#include "modules/renderer/components.hpp"
 #include "modules/system_fov/components.hpp"
 
 #include <fmt/core.h>

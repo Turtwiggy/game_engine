@@ -11,12 +11,16 @@ project(game_defence_tests VERSION 0.1.0)
 message("game_defence_tests...")
 
 include(${CMAKE_SOURCE_DIR}/cmake/packages.cmake)
+
 find_packages()
 find_package(GTest CONFIG REQUIRED)
 
 include(${CMAKE_SOURCE_DIR}/cmake/imgui.cmake)
+include(${CMAKE_SOURCE_DIR}/cmake/optick.cmake)
+
 file(GLOB_RECURSE TEST_SRC_FILES
   ${IMGUI_SOURCE}
+  ${OPTICK_SOURCE}
   ${CMAKE_SOURCE_DIR}/src/*.cpp
 
   # do not inlude main()
@@ -37,6 +41,7 @@ target_link_libraries(game_defence_tests PRIVATE GTest::gmock GTest::gtest GTest
 target_include_directories(game_defence_tests PRIVATE
   ${IMGUI_INCLUDES}
   ${VCPKG_INCLUDES}
+  ${OPTICK_INCLUDES}
   ${Stb_INCLUDE_DIR}
   ${CMAKE_SOURCE_DIR}/src
   ${CMAKE_SOURCE_DIR}/game_defence/src

@@ -356,7 +356,7 @@ void main()
 			float d0 = sdCircle(p, rad);
 
 			// If not the first circle, smooth it in
-			float dt = opSmoothUnion(d, d0, 0.5);
+			float dt = opSmoothUnion(d, d0, 0.1);
 			d = min(d, dt); 
 		}
 

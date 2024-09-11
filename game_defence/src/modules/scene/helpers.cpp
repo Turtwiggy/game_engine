@@ -320,7 +320,6 @@ move_to_scene_start(entt::registry& r, const Scene& s, const bool load_saved)
     auto& evts = get_first_component<SINGLE_EventConsoleLogComponent>(r);
     evts.events.push_back("Press WASD to move.");
     evts.events.push_back("Press E to open/close inventory.");
-    evts.events.push_back("Press Q to perform heal action.");
     evts.events.push_back("Left click to perform item action.");
 
     // Debug object

@@ -60,13 +60,14 @@ update_ui_lootbag_system(entt::registry& r)
   ImGuiWindowFlags flags = 0;
   flags |= ImGuiWindowFlags_NoDecoration;
   flags |= ImGuiWindowFlags_NoMove;
+  // flags |= ImGuiWindowFlags_NoInputs;
 
   ImGui::SetNextWindowPos(pos, ImGuiCond_Always, ImVec2(0.0f, 0.5f));
   ImGui::SetNextWindowSizeConstraints(window_0_size, window_0_size);
   ImGui::PushStyleVar(ImGuiTableColumnFlags_WidthFixed, button_size.x);
 
   ImGui::Begin("UILootbag", NULL, flags);
-  ImGui::SeparatorText("Loot");
+  ImGui::SeparatorText("Loot (Press R to toggle)");
 
   const auto content_size = ImGui::GetContentRegionAvail();
 
@@ -89,20 +90,56 @@ update_ui_lootbag_system(entt::registry& r)
     ImGui::Text("%s", info_str.c_str());
 
     // should be all inventories
-    for (const auto inv_e : es) {
+    for (const auto lootbag_e : es) {
+
+      const auto& inv_c = r.get<DefaultInventory>(lootbag_e);
+
+      bool all_items_empty = true;
+
+      for (const auto& inv_e : inv_c.inv) {
+        const auto& slot_c = r.get<InventorySlotComponent>(inv_e);
+        const auto item_e = slot_c.item_e;
+        if (item_e != entt::null)
+          all_items_empty = false;
+      }
+
+      if (all_items_empty) {
+        ImGui::SeparatorText("Lootbag... (empty)");
+        continue;
+      }
       ImGui::SeparatorText("Lootbag...");
 
       const int columns = inv_x;
       ImGuiTableFlags table_flags = ImGuiTableFlags_SizingStretchSame;
       ImGui::BeginTable("backpack", columns, table_flags);
 
-      const auto& inv_c = r.get<DefaultInventory>(inv_e);
-
       for (const auto& inv_e : inv_c.inv) {
         const auto eid = static_cast<uint32_t>(inv_e);
         ImGui::PushID(eid);
         ImGui::TableNextColumn();
+
         display_inventory_slot(r, inv_e, button_size);
+
+        // warning: approach does not work with multiple players
+        bool clicked = ImGui::IsItemClicked();
+
+        if (clicked) {
+          const auto& slot_c = r.get<InventorySlotComponent>(inv_e);
+          const auto item_e = slot_c.item_e;
+
+          // move item to player inventory
+          if (item_e != entt::null) {
+            auto& player_inv = r.get<DefaultInventory>(e);
+            for (const auto& player_inv_slot_e : player_inv.inv) {
+              auto& player_slot_c = r.get<InventorySlotComponent>(player_inv_slot_e);
+              if (player_slot_c.item_e == entt::null) // free slot
+                update_item_parent(r, item_e, player_inv_slot_e);
+            }
+          }
+
+          fmt::println("item was clicked...");
+        }
+
         ImGui::PopID();
       }
 

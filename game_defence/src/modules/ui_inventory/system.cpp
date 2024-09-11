@@ -169,7 +169,10 @@ update_ui_inventory_system(entt::registry& r)
         if (r.get<InventorySlotComponent>(body_c.body[i]).type == InventorySlotType::gun)
           ImGui::NewLine();
 
+        const auto eid = static_cast<uint32_t>(body_c.body[i]);
+        ImGui::PushID(eid);
         display_inventory_slot(r, body_c.body[i], button_size);
+        ImGui::PopID();
       }
     }
 
@@ -187,7 +190,6 @@ update_ui_inventory_system(entt::registry& r)
 
     const auto& inv_view = r.view<PlayerComponent, DefaultInventory>();
     for (const auto& [e, player_c, inv_c] : inv_view.each()) {
-
       for (const auto& inv_e : inv_c.inv) {
         const auto eid = static_cast<uint32_t>(inv_e);
         ImGui::PushID(eid);
@@ -195,9 +197,10 @@ update_ui_inventory_system(entt::registry& r)
         display_inventory_slot(r, inv_e, button_size);
         ImGui::PopID();
       }
-
-      ImGui::EndTable();
     }
+
+    ImGui::EndTable();
+
     ImGui::End();
     ImGui::PopStyleVar();
   }

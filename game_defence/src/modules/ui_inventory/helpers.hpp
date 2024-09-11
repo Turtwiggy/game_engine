@@ -22,13 +22,16 @@ std::vector<entt::entity>
 get_slots(entt::registry& r, const entt::entity e, const InventorySlotType& type);
 
 void
-update_item_parent(entt::registry& r, const entt::entity item, const entt::entity parent);
+update_item_parent(entt::registry& r, const entt::entity item, const entt::entity parent_slot);
 
 void
 display_inventory_slot(entt::registry& r,
                        const entt::entity inventory_slot_e,
                        const ImVec2& button_size,
                        const ImVec2 pos = { 0, 0 });
+
+void
+handle_dragdrop_target(entt::registry& r, const entt::entity payload_e, const entt::entity slot_e);
 
 // items
 

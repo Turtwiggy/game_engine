@@ -74,11 +74,9 @@ update_breach_charge_system(entt::registry& r, const glm::ivec2& mouse_pos, cons
 {
   const auto& map = get_first_component<MapComponent>(r);
 
-  // only place bombs if viewport is hovered
   const auto& ri = get_first_component<SINGLETON_RendererInfo>(r);
-  const bool viewport_hovered = ri.viewport_hovered;
-  if (!viewport_hovered)
-    return;
+  if (!ri.viewport_hovered)
+    return; // no ui
 
   const auto offset = glm::vec2{ map.tilesize / 2.0f, map.tilesize / 2.0f };
   glm::ivec2 mouse_pos_on_grid = engine::grid::worldspace_to_clamped_world_space(mouse_pos, map.tilesize);
