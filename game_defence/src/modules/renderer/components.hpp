@@ -21,8 +21,8 @@ namespace game2d {
 
 struct ViewportInfo
 {
-  ImVec2 pos;
-  ImVec2 size;
+  ImVec2 pos{ 0, 0 };
+  ImVec2 size{ 0, 0 };
   bool focused = false;
   bool hovered = false;
 };
@@ -161,7 +161,8 @@ struct EffectBlurInfo
 
 enum class ZLayer : int
 {
-  BACKGROUND = -2,
+  BACKGROUND = -3,
+  BEHIND_PLAYER = -2,
   PLAYER_GUN_BEHIND_PLAYER = -1,
   DEFAULT = 0,
   PLAYER_HELMET,

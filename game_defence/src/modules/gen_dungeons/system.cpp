@@ -267,8 +267,8 @@ update_gen_dungeons_system(entt::registry& r, const glm::ivec2& mouse_pos)
   const auto pos = engine::grid::grid_space_to_world_space_center(center, map.tilesize);
 
   DataJetpackActor desc;
-  desc.pos = pos; // somewhere on the ship?
-  // desc.pos = { -100, -100 }; // somewhere around the ship?
+  // desc.pos = pos; // somewhere on the ship?
+  desc.pos = { -100, -100 }; // somewhere around the ship?
   desc.team = AvailableTeams::player;
   const auto e = Factory_DataJetpackActor::create(r, desc);
   r.emplace<CameraFollow>(e);

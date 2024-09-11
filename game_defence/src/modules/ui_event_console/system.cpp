@@ -36,9 +36,9 @@ update_ui_event_console_system(entt::registry& r)
   ImGui::SetNextWindowPos(pos, ImGuiCond_Always, { 0, 0 });
   ImGui::SetNextWindowSize(size, ImGuiCond_Always);
 
-  ImGui::Begin("Event Log", NULL, flags);
+  ImGui::Begin("Log", NULL, flags);
 
-  ImGui::SeparatorText("Event Log");
+  ImGui::SeparatorText("Log");
 
   for (const auto& evt : evts.events)
     ImGui::Text("%s", evt.c_str());

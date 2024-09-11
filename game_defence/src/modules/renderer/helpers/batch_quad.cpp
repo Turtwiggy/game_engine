@@ -162,7 +162,7 @@ QuadRenderer::init()
   glGenTextures(1, &tex);
 
   glBindTexture(GL_TEXTURE_BUFFER, tex);
-  glTexBuffer(GL_TEXTURE_BUFFER, GL_RGB32F, tbo);
+  glTexBuffer(GL_TEXTURE_BUFFER, GL_RGBA32F, tbo);
 
   fmt::println("created texture object...");
 };

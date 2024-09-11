@@ -33,7 +33,7 @@ main()
   vec4 O = v_colour;
 
   // Clear the fragcolor, texture sample with parallax, iterate 
-  for(O-=O; O.r < texture(tex, zoom - pos/O.r/100 - scroll).r; O+=0.01f);
+  for(O-=O; O.r < texture(tex, zoom - pos/O.r/100 - scroll).r; O+=0.02f);
 
   // out_colour = vec4(1.0f) - O;
   out_colour.rgb = O.rgb;

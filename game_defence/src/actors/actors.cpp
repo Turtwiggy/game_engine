@@ -109,6 +109,7 @@ add_components(entt::registry& r, const entt::entity e, const DataDungeonActor& 
   r.emplace<PathfindComponent>(e, 1000); // pass through units if you must
   r.emplace<TeamComponent>(e, desc.team);
   r.emplace<DestroyBulletOnCollison>(e);
+  r.emplace<DefaultColour>(e, desc.colour);
 
   // note: player inventory currently added to jetpack actor...
 
@@ -207,6 +208,8 @@ Factory_DataDungeonLootbag::create(entt::registry& r, const DataDungeonLootbag& 
   r.emplace<LootbagComponent>(e);
   r.emplace<DefaultInventory>(e, desc.inventory);
   r.emplace<PathfindComponent>(e, PathfindComponent{ 0 }); // free to move through
+
+  set_z_index(r, e, ZLayer::BEHIND_PLAYER);
 
   const auto& map_c = get_first_component<MapComponent>(r);
   add_entity_to_map(r, e, engine::grid::worldspace_to_index(desc.pos, map_c.tilesize, map_c.xmax, map_c.ymax));

@@ -196,7 +196,7 @@ setup_linear_main_update(entt::registry& r)
       glBindBuffer(GL_TEXTURE_BUFFER, ri.renderer.data.TBO);
       glBufferSubData(GL_TEXTURE_BUFFER, 0, sizeof(CircleComponent) * points.size(), points.data());
       glBindTexture(GL_TEXTURE_BUFFER, ri.renderer.data.TEX);
-      glTexBuffer(GL_TEXTURE_BUFFER, GL_RGB32F, ri.renderer.data.TBO);
+      glTexBuffer(GL_TEXTURE_BUFFER, GL_RGBA32F, ri.renderer.data.TBO);
     }
 
     // Render some quads
@@ -245,10 +245,6 @@ setup_lighting_emitters_and_occluders_update(entt::registry& r)
     // emitters should be anything but black (i.e. scene lighting)
     const engine::LinearColour emitter_col = engine::SRGBToLinear({ 255, 0, 0, 1.0f });
     const engine::LinearColour occluder_col(0.0f, 0.0f, 0.0f, 1.0f);
-
-    // glEnable(GL_BLEND);
-    // glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
-    // glEnable(GL_DEPTH_TEST);
 
     ri.lighting_emitters_and_occluders.bind();
     ri.lighting_emitters_and_occluders.set_mat4("view", camera.view);

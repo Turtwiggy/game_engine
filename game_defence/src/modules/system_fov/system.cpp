@@ -15,6 +15,7 @@
 #include "modules/gen_dungeons/helpers.hpp"
 #include "modules/grid/components.hpp"
 #include "modules/system_fov/symmetric_shadowcasting.hpp"
+#include "modules/ux_hoverable/components.hpp"
 #include "sprites/helpers.hpp"
 
 #include "imgui.h"
@@ -353,10 +354,10 @@ update_fov_system(entt::registry& r, const glm::ivec2& mouse_pos)
 
   // Anything visible
   for (const auto& [e, enemy_c, visible] : r.view<const EnemyComponent, const VisibleComponent>().each()) {
+    set_colour(r, e, r.get<DefaultColour>(e).colour);
 
     // WARNING: set sprites for ALL enemies, reglardless of type...
     set_sprite(r, e, "PERSON_28_1");
-    set_colour(r, e, engine::SRGBColour{ 255, 30, 30, 1.0f });
   }
 
   // Seen but not visible

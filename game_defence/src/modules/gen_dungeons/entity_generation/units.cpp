@@ -1,6 +1,7 @@
 #include "units.hpp"
 
 #include "actors/actors.hpp"
+#include "colour/colour.hpp"
 #include "entt/helpers.hpp"
 #include "maths/grid.hpp"
 #include "maths/maths.hpp"
@@ -24,6 +25,7 @@ spawn_enemy(entt::registry& r, const int idx)
   desc.team = AvailableTeams::enemy;
   desc.hp = 50;
   desc.max_hp = 50;
+  desc.colour = engine::SRGBColour{ 0.7f, 0.3f, 0.3f, 1.0f };
   const auto dungeon_e = Factory_DataDungeonActor::create(r, desc);
 
   // give the enemy a piece of scrap in their inventory
@@ -50,7 +52,7 @@ spawn_cover(entt::registry& r, const int idx)
 
   DataDungeonCover desc;
   desc.pos = engine::grid::index_to_world_position_center(idx, map_c.xmax, map_c.ymax, map_c.tilesize);
-  fmt::println("cover generated: {},{}", desc.pos.x, desc.pos.y);
+  // fmt::println("cover generated: {},{}", desc.pos.x, desc.pos.y);
 
   const auto e = Factory_DataDungeonCover::create(r, desc);
 };

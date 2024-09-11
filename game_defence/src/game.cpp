@@ -368,10 +368,6 @@ update(engine::SINGLETON_Application& app, entt::registry& r, const float dt)
       ImGui::End();
     }
 
-#if defined(_DEBUG)
-    ImGui::ShowDemoWindow(NULL);
-#endif
-
     if (scene.s == Scene::menu) {
       update_ui_scene_main_menu(app, r);
     }
@@ -398,8 +394,9 @@ update(engine::SINGLETON_Application& app, entt::registry& r, const float dt)
 
 #if defined(_DEBUG)
     // todo: put in to a settings menu
-    static bool show_settings_ui = true;
+    static bool show_settings_ui = false;
     if (show_settings_ui) {
+      ImGui::ShowDemoWindow(NULL);
       update_ui_audio_system(r);
       update_ui_controller_system(r);
       update_ui_hierarchy_system(r);

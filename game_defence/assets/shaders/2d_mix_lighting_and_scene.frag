@@ -240,30 +240,6 @@ void main()
 	vec2 half_wh = viewport_wh / 2.0;
 	vec2 screen_min = camera_pos - half_wh; // e.g. -960
 
-	// sdf grid
-	vec3 grid_col = vec3(0.0f);
-	{
-		float gridsize = 50.0; // pixels
-		vec2 camera_uv_screen = vec2( camera_pos.x / half_wh.x, camera_pos.y / half_wh.y); // camera position is in worldspace.
-		vec2 camera_uv = camera_uv_screen; 
-		float aspect_y = viewport_wh.y / viewport_wh.x;
-		
- 		vec2 grid_uv = (2.0 * v_uv - 1.0);
-		grid_uv += camera_uv;
-		grid_uv.y *= aspect_y;
-
-		vec2 p_grid = (viewport_wh.x / gridsize / 2.0) * grid_uv;
-
-		// if the gridsize gets too small and the gridwidth isnt large enough, 
-		// the grid appears to dissapear. the value 0.05 seems to work until gridsize<10
-		float grid_width = 0.02; 
-		float margin = 0.5;
-		if(abs(sdGrid(p_grid, margin)) >= grid_width)
-			grid_col = vec3(0.0f);// background
-		else
-			grid_col = vec3(0.25); // line
-	}
-
   vec4 scene_lin = texture(scene_0, v_uv);
   vec3 stars_srgb = texture(scene_1, v_uv).rgb;
 
@@ -284,7 +260,7 @@ void main()
 	if(inside_spaceship)
 	{
 		col = vec4(0.3f, 0.3f, 0.3f, 1.0f);
-		col *= AO(dist, 20.0f, 1.0f);
+		col *= AO(dist, 40.0f, 1.0f);
 	}
 	else
 	{
@@ -308,9 +284,9 @@ void main()
 		// player light outside spaceship: 1.25
  		setLuminance(l.colour, l.luminance);
 
-		vec4 pcol = vec4(1.0f); 
+		// vec4 pcol = vec4(1.0f); 
 
-		col += drawLight(p, l.position, pcol, dist, 450.0, 12.0);
+		col += drawLight(p, l.position, l.colour, dist, 450.0, 12.0);
 	}
 
 	// shape fill
@@ -368,7 +344,6 @@ void main()
 		circle_col.rgb = ccol;
 	}
 
-
   // linear to srgb
 	vec3 final_lin = scene_lin.rgb;
 
@@ -382,26 +357,51 @@ void main()
 
 	final_lin += scene_debris_lin;
 
-	// grid
-	vec3 grid_lin = srgb_to_lin(vec3(grid_col.r * 255.0f, grid_col.g * 255.0f, grid_col.b * 255.0f));
+	//
+	// sdf grid	
+	//
 	if(add_grid) {
+		vec3 grid_col = vec3(0.0f);
+		{
+			float gridsize = 50.0; // pixels
+			vec2 camera_uv_screen = vec2( camera_pos.x / half_wh.x, camera_pos.y / half_wh.y); // camera position is in worldspace.
+			vec2 camera_uv = camera_uv_screen; 
+			float aspect_y = viewport_wh.y / viewport_wh.x;
+			
+			vec2 grid_uv = (2.0 * v_uv - 1.0);
+			grid_uv += camera_uv;
+			grid_uv.y *= aspect_y;
+
+			vec2 p_grid = (viewport_wh.x / gridsize / 2.0) * grid_uv;
+
+			// if the gridsize gets too small and the gridwidth isnt large enough, 
+			// the grid appears to dissapear. the value 0.05 seems to work until gridsize<10
+			float grid_width = 0.02; 
+			float margin = 0.5;
+			if(abs(sdGrid(p_grid, margin)) >= grid_width)
+				grid_col = vec3(0.0f);// background
+			else
+				grid_col = vec3(0.25); // line
+		}
+		vec3 grid_lin = srgb_to_lin(vec3(grid_col.r * 255.0f, grid_col.g * 255.0f, grid_col.b * 255.0f));
 		final_lin += grid_lin;
 	}
 
 	// lighting
 	vec3 lighting_lin = srgb_to_lin(vec3(col.r * 255.0f, col.g * 255.0f, col.b * 255.0f));
-	// final_lin *= lighting_lin;
+	final_lin *= lighting_lin;
 
 	vec3 srgb_final = lin_to_srgb(final_lin);
 	// vec3 srgb_final = lin_to_srgb(scene_lin.rgb);
 
-	out_color.rgb = circle_col + srgb_final.rgb;
+	// out_color.rgb = circle_col + srgb_final.rgb;
+	out_color.rgb = srgb_final.rgb;
 
 	// vignette
 	vec2 vig_uv = fragCoord.xy / iResolution.xy;
 	vig_uv *=  1.0 - vig_uv.yx;   //vec2(1.0)- uv.yx; -> 1.-u.yx; Thanks FabriceNeyret !
 	float vig = vig_uv.x*vig_uv.y * 15.0; // multiply with sth for intensity
-	vig = pow(vig, 0.15); // change pow for modifying the extend of the  vignette
+	vig = pow(vig, 0.15); // change pow for modifying the extend of the  vignettea
 	out_color.rgb *= vig;
 
 	out_color.a = 1.0f;

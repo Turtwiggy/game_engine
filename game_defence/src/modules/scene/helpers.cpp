@@ -306,7 +306,7 @@ move_to_scene_start(entt::registry& r, const Scene& s, const bool load_saved)
     destroy_first_and_create<SINGLE_CombatState>(r);
     destroy_first_and_create<SINGLE_TurnBasedCombatInfo>(r);
     // destroy_first_and_create<Effect_DoBloom>(r);
-    destroy_first_and_create<Effect_GridComponent>(r);
+    // destroy_first_and_create<Effect_GridComponent>(r);
     // create_empty<AudioRequestPlayEvent>(r, AudioRequestPlayEvent{ "COMBAT_01" });
 
     if (get_first<OverworldToDungeonInfo>(r) == entt::null) {
@@ -320,6 +320,7 @@ move_to_scene_start(entt::registry& r, const Scene& s, const bool load_saved)
     auto& evts = get_first_component<SINGLE_EventConsoleLogComponent>(r);
     evts.events.push_back("Press WASD to move.");
     evts.events.push_back("Press E to open/close inventory.");
+    evts.events.push_back("Press R to open/close loot");
     evts.events.push_back("Left click to perform item action.");
 
     // Debug object

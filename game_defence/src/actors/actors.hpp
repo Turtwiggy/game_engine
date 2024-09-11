@@ -22,7 +22,6 @@ struct DataDungeonActor : public EntityData
   AvailableTeams team = AvailableTeams::neutral;
   int hp = 100;
   int max_hp = 100;
-  // engine::SRGBColour hovered_colour{ 1.0f, 1.0f, 1.0f, 1.0f };
 };
 
 struct DataDungeonCover : public EntityData
