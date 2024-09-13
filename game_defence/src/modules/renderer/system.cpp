@@ -241,10 +241,10 @@ init_render_system(const engine::SINGLETON_Application& app, entt::registry& r, 
     auto loaded_tex = engine::load_texture_linear(tex.tex_unit.unit, tex.path);
 
     // HACK... should do something better than this
-    // if (loaded_tex.path.find("organic2") != std::string::npos) {
-    //   // loaded_tex.texture_min_filter = GL_NEAREST;
-    //   // loaded_tex.texture_max_filter = GL_NEAREST;
-    // }
+    if (loaded_tex.path.find("organic2") != std::string::npos) {
+      loaded_tex.texture_min_filter = GL_NEAREST_MIPMAP_NEAREST;
+      loaded_tex.texture_max_filter = GL_NEAREST;
+    }
 
     tex.tex_id.id = bind_linear_texture(loaded_tex);
     next_tex_unit++;
@@ -431,7 +431,7 @@ update_render_system(entt::registry& r, const float dt, const glm::vec2& mouse_p
     // player light; blueish?
     lights[0].pos = hmm;
     lights[0].enabled = true;
-    lights[0].colour = { 0.5f, 0.75f, 1.0f, 1.0f };
+    lights[0].colour = { 0.75f, 0.75f, 1.0f, 1.0f };
     lights[0].luminence = 0.6f;
   }
 

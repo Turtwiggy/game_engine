@@ -16,6 +16,9 @@ generate_rooms(entt::registry& r, const DungeonGenerationCriteria& data, engine:
 
 //
 
+std::vector<entt::entity>
+inside_room(entt::registry& r, const glm::ivec2& gridpos);
+
 std::pair<bool, std::optional<Room>>
 inside_room(const MapComponent& map, const std::vector<Room>& rooms, const glm::ivec2& gridpos);
 

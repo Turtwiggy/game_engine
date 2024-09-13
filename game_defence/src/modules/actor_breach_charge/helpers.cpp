@@ -13,6 +13,7 @@
 #include "modules/gen_dungeons/components.hpp"
 #include "modules/gen_dungeons/helpers.hpp"
 #include "modules/grid/components.hpp"
+#include "modules/system_breached_room/components.hpp"
 #include "modules/system_particles/components.hpp"
 #include "modules/ui_inventory/components.hpp"
 #include "modules/ui_inventory/helpers.hpp"
@@ -153,11 +154,12 @@ add_bomb_callback(entt::registry& r, const entt::entity e)
       }
     }
 
-    // TODO: everything in that room (or tunnel) gets sucked out
-
     fmt::println("resulting edges blown up: {}", edges_blown_up.size());
+    //
+    // create a particle spawner...
+    //
     for (const Edge& edge : edges_blown_up) {
-      // create a particle spawner...
+
       const auto pos_a = engine::grid::index_to_grid_position(edge.a_idx, map.xmax, map.ymax);
 
       auto pos_b = glm::vec2{ 0.0f, 0.0f };
@@ -169,8 +171,16 @@ add_bomb_callback(entt::registry& r, const entt::entity e)
       const auto pos_a_worldspace = engine::grid::grid_space_to_world_space_center(pos_a, map.tilesize);
       const auto pos_b_worldspace = engine::grid::grid_space_to_world_space_center(pos_b, map.tilesize);
 
-      const auto [in_room, rooms] = inside_room(map, dungeon.rooms, pos_a);
+      const auto rooms_a = inside_room(r, pos_a);
+      const auto rooms_b = inside_room(r, pos_b);
+      const auto in_room = rooms_a.size() > 0 || rooms_b.size() > 0;
       const auto in_tunnel = inside_tunnels(dungeon.tunnels, pos_a).size() > 0;
+
+      // add a breachedroom component...
+      for (const auto room_e : rooms_a)
+        r.emplace_or_replace<BreachedRoom>(room_e);
+      for (const auto room_e : rooms_b)
+        r.emplace_or_replace<BreachedRoom>(room_e);
 
       // Point the particles outside the room
       glm::vec2 dir{ 0.0f, 0.0f };

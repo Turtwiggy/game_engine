@@ -17,6 +17,6 @@ void
 move_to_scene_additive(entt::registry&, const Scene& s);
 
 entt::entity
-add_weapon_shotgun(entt::registry& r, const entt::entity& e);
+add_player_shotgun(entt::registry& r, const entt::entity& e);
 
 } // namespace game2dw

@@ -1,6 +1,7 @@
 #include "system.hpp"
 
 #include "actors/actors.hpp"
+#include "actors/bags/core.hpp"
 #include "components.hpp"
 
 #include "actors/helpers.hpp"
@@ -11,6 +12,7 @@
 #include "maths/grid.hpp"
 #include "modules/actor_enemy/components.hpp"
 #include "modules/actor_player/components.hpp"
+#include "modules/combat_damage/components.hpp"
 #include "modules/gen_dungeons/components.hpp"
 #include "modules/gen_dungeons/helpers.hpp"
 #include "modules/grid/components.hpp"
@@ -38,6 +40,10 @@ update_fov_system(entt::registry& r, const glm::ivec2& mouse_pos)
   const auto player_pos = get_position(r, player_e);
   const auto player_gridpos = engine::grid::worldspace_to_grid_space(player_pos, map.tilesize);
 
+  const auto [in_room, room] = inside_room(map, dungeon.rooms, player_gridpos);
+  const auto in_tunnel = inside_tunnels(dungeon.tunnels, player_gridpos).size() > 0;
+  const bool outside_ship = !in_room && !in_tunnel;
+
   std::vector<int> walls_or_floors_adjusted = dungeon.wall_or_floors; // copy
 
   int cur_idx = 0;
@@ -63,11 +69,9 @@ update_fov_system(entt::registry& r, const glm::ivec2& mouse_pos)
 
   if (!debug_fov) {
     // prevent out of bounds issues
-    const auto [in_room, room] = inside_room(map, dungeon.rooms, player_gridpos);
-    const auto in_tunnel = inside_tunnels(dungeon.tunnels, player_gridpos).size() > 0;
-    if (!in_room && !in_tunnel) {
+
+    if (outside_ship)
       return;
-    }
 
     // Generate request when player moves gridpos
     static entt::entity cached_player_e = entt::null;
@@ -289,7 +293,6 @@ update_fov_system(entt::registry& r, const glm::ivec2& mouse_pos)
   // Update the floor colouring
   for (const auto idx : visible_idxs) {
     if (dungeon.floor_tiles[idx] != entt::null) {
-      // set_colour(r, dungeon.floor_tiles[idx], { 0.0f, 0.5, 0.5, 1.0 });
       r.emplace_or_replace<VisibleComponent>(dungeon.floor_tiles[idx]);
     }
   }
@@ -327,10 +330,10 @@ update_fov_system(entt::registry& r, const glm::ivec2& mouse_pos)
         for (const auto e : map.map[floor_idx])
           mark_visible(r, e);
       }
-      if (is_visible)
-        set_colour(r, floor_e, { 0.75f, 0.75f, 0.75f, 1.0f });
-      else
-        set_colour(r, floor_e, { 0.65f, 0.65f, 0.65f, 1.0f });
+      if (is_visible) {
+        set_colour(r, floor_e, r.get<DefaultColour>(floor_e).colour);
+      } else
+        set_colour(r, floor_e, { 0.35f, 0.35f, 0.35f, 1.0f });
     }
   }
 
@@ -350,25 +353,6 @@ update_fov_system(entt::registry& r, const glm::ivec2& mouse_pos)
     else
       ImGui::Text("is_visible: 0");
     ImGui::End();
-  }
-
-  // Anything visible
-  for (const auto& [e, enemy_c, visible] : r.view<const EnemyComponent, const VisibleComponent>().each()) {
-    set_colour(r, e, r.get<DefaultColour>(e).colour);
-
-    // WARNING: set sprites for ALL enemies, reglardless of type...
-    set_sprite(r, e, "PERSON_28_1");
-  }
-
-  // Seen but not visible
-  for (const auto& [e, enemy_c, seen_c] :
-       r.view<const EnemyComponent, const SeenComponent>(entt::exclude<VisibleComponent>).each()) {
-    set_sprite(r, e, "TEXT_?");
-  }
-
-  // Anything not visible (and not seen)
-  for (const auto& [e, enemy_c] : r.view<const EnemyComponent>(entt::exclude<VisibleComponent, SeenComponent>).each()) {
-    set_sprite(r, e, "TEXT_?");
   }
 }
 

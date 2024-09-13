@@ -5,6 +5,7 @@
 #include "entt/helpers.hpp"
 #include "maths/grid.hpp"
 #include "maths/maths.hpp"
+#include "modules/combat_damage/components.hpp"
 #include "modules/grid/components.hpp"
 #include "modules/system_drop_items/components.hpp"
 #include "modules/ui_inventory/components.hpp"
@@ -25,7 +26,7 @@ spawn_enemy(entt::registry& r, const int idx)
   desc.team = AvailableTeams::enemy;
   desc.hp = 50;
   desc.max_hp = 50;
-  desc.colour = engine::SRGBColour{ 0.7f, 0.3f, 0.3f, 1.0f };
+  desc.colour = engine::SRGBColour{ 0.9f, 0.9f, 0.9f, 1.0f };
   const auto dungeon_e = Factory_DataDungeonActor::create(r, desc);
 
   // give the enemy a piece of scrap in their inventory
@@ -43,6 +44,11 @@ spawn_enemy(entt::registry& r, const int idx)
   wdesc.parent = dungeon_e;
   wdesc.team = desc.team;
   const auto weapon_e = Factory_DataWeaponShotgun::create(r, wdesc);
+
+  // link entity&weapon
+  HasWeaponComponent has_weapon_c;
+  has_weapon_c.instance = weapon_e;
+  r.emplace<HasWeaponComponent>(dungeon_e, has_weapon_c);
 };
 
 void

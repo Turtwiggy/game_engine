@@ -13,6 +13,7 @@
 #include "magic_enum.hpp"
 #include "modules/actor_enemy/components.hpp"
 #include "modules/actor_player/components.hpp"
+#include "modules/algorithm_astar_pathfinding/components.hpp"
 #include "modules/camera/components.hpp"
 #include "modules/camera/orthographic.hpp"
 #include "modules/combat_damage/components.hpp"
@@ -34,6 +35,7 @@
 #include "modules/ui_combat_turnbased/components.hpp"
 #include "modules/ui_event_console/components.hpp"
 #include "modules/ui_inventory/components.hpp"
+#include "modules/ui_lootbag/components.hpp"
 #include "modules/ui_overworld_launch_crew/components.hpp"
 #include "modules/ui_overworld_ship_label/components.hpp"
 #include "modules/ui_scene_main_menu/components.hpp"
@@ -55,7 +57,7 @@ using namespace std::literals;
 using json = nlohmann::json;
 
 entt::entity
-add_weapon_shotgun(entt::registry& r, const entt::entity& e)
+add_player_shotgun(entt::registry& r, const entt::entity& e)
 {
   DataWeaponShotgun desc;
   desc.pos = get_position(r, e);
@@ -267,6 +269,7 @@ move_to_scene_start(entt::registry& r, const Scene& s, const bool load_saved)
   destroy_first<SINGLE_TurnBasedCombatInfo>(r);
   destroy_first<DungeonGenerationResults>(r);
   destroy_first<SINGLE_OverworldFakeFight>(r);
+  destroy_first<SINGLE_UI_Lootbag>(r);
   // destroy_first<SINGLE_MainMenuUI>(r);
 
   if (s != Scene::dungeon_designer)
@@ -305,6 +308,8 @@ move_to_scene_start(entt::registry& r, const Scene& s, const bool load_saved)
     // r.emplace_or_replace<CameraFreeMove>(get_first<OrthographicCamera>(r));
     destroy_first_and_create<SINGLE_CombatState>(r);
     destroy_first_and_create<SINGLE_TurnBasedCombatInfo>(r);
+    destroy_first_and_create<SINGLE_UI_Lootbag>(r);
+
     // destroy_first_and_create<Effect_DoBloom>(r);
     // destroy_first_and_create<Effect_GridComponent>(r);
     // create_empty<AudioRequestPlayEvent>(r, AudioRequestPlayEvent{ "COMBAT_01" });
@@ -325,8 +330,8 @@ move_to_scene_start(entt::registry& r, const Scene& s, const bool load_saved)
 
     // Debug object
     auto& info = get_first_component<SINGLE_TurnBasedCombatInfo>(r);
-    info.action_cursor = create_transform(r);
-    set_size(r, info.action_cursor, { 0, 0 }); // start disabled
+    // info.action_cursor = create_transform(r);
+    // set_size(r, info.action_cursor, { 0, 0 }); // start disabled
   }
 
   if (s == Scene::minigame_bamboo)

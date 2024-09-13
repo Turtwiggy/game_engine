@@ -82,7 +82,7 @@ update_ui_inventory_system(entt::registry& r)
 
       if (type.type == ItemType::gun) {
         // fmt::println("adding shotgun components to item");
-        add_weapon_shotgun(r, e);
+        add_player_shotgun(r, e);
       }
 
       // breach charge system uses ItemTypeComponent to monitor inventory

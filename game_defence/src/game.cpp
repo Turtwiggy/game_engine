@@ -34,6 +34,7 @@
 #include "modules/scene/helpers.hpp"
 #include "modules/scene_splashscreen_move_to_menu/system.hpp"
 #include "modules/screenshake/system.hpp"
+#include "modules/system_breached_room/system.hpp"
 #include "modules/system_change_gun_colour/system.hpp"
 #include "modules/system_change_gun_z_index/system.hpp"
 #include "modules/system_distance_check/system.hpp"
@@ -41,6 +42,7 @@
 #include "modules/system_entered_new_room/system.hpp"
 #include "modules/system_fov/system.hpp"
 #include "modules/system_go_from_jetpack_to_dungeon/system.hpp"
+#include "modules/system_hide_sprites_when_outside_ship/system.hpp"
 #include "modules/system_minigame_bamboo/system.hpp"
 #include "modules/system_move_to_target_via_lerp/system.hpp"
 #include "modules/system_particles/system.hpp"
@@ -325,6 +327,8 @@ update(engine::SINGLETON_Application& app, entt::registry& r, const float dt)
       update_breach_charge_system(r, mouse_pos, dt);
       update_go_from_jetpack_to_dungeon_system(r);
       update_dungeon_helmet_system(r);
+      update_hide_sprites_when_outside_ship_system(r);
+      update_breached_room_system(r);
 
 #if defined(_DEBUG)
       // update_debug_map_system(r);

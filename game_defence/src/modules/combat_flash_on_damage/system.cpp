@@ -22,11 +22,11 @@ update_flash_sprite_system(entt::registry& r, const uint64_t milliseconds_dt)
       req.flashing = true;
       set_colour(r, e, get_srgb_colour_by_tag(r, "enemy_flash"));
 
-      fmt::println("flashing...");
+      // fmt::println("flashing...");
     }
 
     if (req.milliseconds_left <= 0) {
-      fmt::println("done flashing...");
+      // fmt::println("done flashing...");
       set_colour(r, e, default_c.colour);
       r.remove<RequestFlashComponent>(e); // done flashing
     }

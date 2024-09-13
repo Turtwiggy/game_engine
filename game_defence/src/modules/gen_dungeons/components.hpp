@@ -1,11 +1,14 @@
 #pragma once
 
 #include "helpers/line.hpp"
-#include "maths/maths.hpp"
-#include "modules/algorithm_astar_pathfinding/components.hpp"
 
 #include <entt/entt.hpp>
+#include <functional> // for std::hash
+#include <glm/fwd.hpp>
 #include <glm/glm.hpp>
+
+#define GLM_ENABLE_EXPERIMENTAL
+#include "glm/gtx/hash.hpp"
 
 namespace game2d {
 
@@ -15,11 +18,22 @@ struct RoomAABB
   glm::ivec2 size{ 0, 0 };
 };
 
+struct RoomAABBHash
+{
+  size_t operator()(const RoomAABB& room) const
+  {
+    std::size_t h1 = std::hash<glm::ivec2>{}(room.center);
+    std::size_t h2 = std::hash<glm::ivec2>{}(room.size);
+    return h1 ^ (h2 << 1); // or use boost::hash_combine
+  };
+};
+
 struct Room
 {
   glm::ivec2 tl{ 0, 0 };
   RoomAABB aabb; // aabb is in tile-space, not world-space.
 };
+
 inline bool
 operator==(const Room& a, const Room& b)
 {

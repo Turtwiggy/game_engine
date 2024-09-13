@@ -85,7 +85,8 @@ update_resolve_collisions_system(entt::registry& r)
       const auto& other_body = r.get<PhysicsBodyComponent>(other_e);
       const auto other_pos = get_position(r, other_e);
       const auto other_size = get_size(r, other_e);
-      const bool is_wall = other_body.body->GetType() == b2_staticBody;
+
+      const bool is_static = other_body.body->GetType() == b2_staticBody;
 
       // check if the bullet should be destroyed by the other entity (e.g. wall, enemy)
       // note: bouncy bullet probably not destroyed on wall collision
@@ -94,44 +95,37 @@ update_resolve_collisions_system(entt::registry& r)
       if (destroy_bullet_req && !is_bouncy_bullet)
         dead.dead.emplace(bullet_e);
 
-      if (auto* req = r.try_get<CoverComponent>(other_e)) {
+      const auto* req = r.try_get<CoverComponent>(other_e);
+      const bool is_cover = req != nullptr;
+
+      if (is_cover) {
 
         // WARNING: this attackidcomponent logic here is duplicate
         // with the quip system
 
         // get the attack id of the bullet
         const auto* atk_id = r.try_get<AttackIdComponent>(bullet_e);
-
         const uint64_t atk_unique_id = atk_id->id;
         auto& hit_list = r.get<DefenceHitListComponent>(other_e);
         auto& hit_list_attack_ids_taken = hit_list.attack_id_taken;
-
         auto it = std::find(hit_list_attack_ids_taken.begin(), hit_list_attack_ids_taken.end(), atk_unique_id);
-        if (it != hit_list_attack_ids_taken.end()) {
-          // fmt::println("atk_id already taken...");
+        if (it != hit_list_attack_ids_taken.end())
           continue;
-        }
-
         // we've not taken damage from this attack id before!
         hit_list_attack_ids_taken.push_back(atk_unique_id);
 
-        // Do the work....
-        {
-          // get the cover's transform to "pop" in size
-          if (r.try_get<RequestHitScaleComponent>(other_e) == nullptr)
-            r.emplace<RequestHitScaleComponent>(other_e);
+        // get the cover's transform to "pop" in size
+        if (r.try_get<RequestHitScaleComponent>(other_e) == nullptr)
+          r.emplace<RequestHitScaleComponent>(other_e);
 
-          // half the bullet's damage if it hit cover
-          auto& attack_c = r.get<AttackComponent>(bullet_e);
-          attack_c.damage /= 2.0f;
-
-          fmt::println("bullet hit cover... halving damage");
-        }
+        // half the bullet's damage if it hit cover
+        auto& attack_c = r.get<AttackComponent>(bullet_e);
+        attack_c.damage /= 2.0f;
 
         // continue; // dont spawn particles or bounce on cover
       }
 
-      if (!is_wall)
+      if (is_cover || !is_static)
         continue; // walls only from here on out
 
       // bouncy bullet hit a wall

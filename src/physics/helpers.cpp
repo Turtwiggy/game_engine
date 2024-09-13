@@ -2,7 +2,6 @@
 
 #include "actors/base.hpp"
 #include "entt/helpers.hpp"
-#include "modules/combat_damage/components.hpp"
 #include "physics/components.hpp"
 #include "renderer/transform.hpp"
 

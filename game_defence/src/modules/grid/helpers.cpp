@@ -87,7 +87,6 @@ move_entity_on_map(entt::registry& r, const entt::entity src_e, const int dst_id
 
   // gamerule: allow move on to (any number) an inventory
   //
-
   bool contains_all_inventories = true;
   for (const auto dst_e : dst_es) {
     if (const auto* lootbag = r.try_get<LootbagComponent>(dst_e))
@@ -97,7 +96,7 @@ move_entity_on_map(entt::registry& r, const entt::entity src_e, const int dst_id
   }
 
   if (contains_all_inventories) {
-    fmt::println("dst_es contains all inventories.");
+    // fmt::println("dst_es contains all inventories.");
 
     // situation: there's an inventory on the floor,
     // and you might have an inventory on you.

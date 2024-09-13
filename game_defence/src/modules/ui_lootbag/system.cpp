@@ -45,6 +45,7 @@ update_ui_lootbag_system(entt::registry& r)
   // no request: do not show loot menu
   if (get_first<ShowLootbagRequest>(r) == entt::null)
     return;
+  auto& ui = get_first_component<SINGLE_UI_Lootbag>(r);
 
   const int inv_x = 6;
   const ImVec2 button_size = ImVec2(32, 32); // make the border 48 or 64
@@ -67,7 +68,10 @@ update_ui_lootbag_system(entt::registry& r)
   ImGui::PushStyleVar(ImGuiTableColumnFlags_WidthFixed, button_size.x);
 
   ImGui::Begin("UILootbag", NULL, flags);
+  ui.hovered = ImGui::IsWindowHovered();
+
   ImGui::SeparatorText("Loot (Press R to toggle)");
+  ImGui::Text("Right click to take loot");
 
   const auto content_size = ImGui::GetContentRegionAvail();
 
@@ -121,7 +125,8 @@ update_ui_lootbag_system(entt::registry& r)
         display_inventory_slot(r, inv_e, button_size);
 
         // warning: approach does not work with multiple players
-        bool clicked = ImGui::IsItemClicked();
+        bool clicked = ImGui::IsItemClicked(ImGuiMouseButton_Right);
+        // clicked |= ImGui::IsItemClicked();
 
         if (clicked) {
           const auto& slot_c = r.get<InventorySlotComponent>(inv_e);
@@ -137,7 +142,7 @@ update_ui_lootbag_system(entt::registry& r)
             }
           }
 
-          fmt::println("item was clicked...");
+          // fmt::println("item was clicked...");
         }
 
         ImGui::PopID();

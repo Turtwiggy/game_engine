@@ -6,7 +6,7 @@ namespace game2d {
 
 struct SINGLE_TurnBasedCombatInfo
 {
-  entt::entity action_cursor = entt::null;
+  bool placeholder = true;
 };
 
 // Data transferred from the Duckgame scene to the dungeon scene

@@ -2,6 +2,7 @@
 
 #include "actors/actors.hpp"
 #include "actors/helpers.hpp"
+#include "colour/colour.hpp"
 #include "components.hpp"
 #include "entt/helpers.hpp"
 #include "events/components.hpp"
@@ -193,9 +194,13 @@ update_gen_dungeons_system(entt::registry& r, const glm::ivec2& mouse_pos)
   // they get put in the map.edges
   generate_edges(r, map, result);
 
-  // Update pathfinding with walls
+  //
+  // Update pathfinding so that every "wall" that was generated
+  // the gridcell now only contains an entity with a pathfinding component
+  //
   for (int idx = 0; idx < map.xmax * map.ymax; idx++) {
     if (result.wall_or_floors[idx] == 1) {
+
       const auto e = create_empty<PathfindComponent>(r, { PathfindComponent{ -1 } });
 
       if (map.map[idx].size() != 0) {
@@ -218,11 +223,12 @@ update_gen_dungeons_system(entt::registry& r, const glm::ivec2& mouse_pos)
       const glm::ivec2 pos = worldspace + offset;
       set_position(r, floor_e, pos);
       set_size(r, floor_e, { map.tilesize, map.tilesize });
+
       // float rnd_col = engine::rand_det_s(rnd.rng, 0.8, 0.85f);
-      // set_colour(r, floor_e, { rnd_col, rnd_col, rnd_col, 1.0f });
+      // auto col = engine::SRGBColour{ rnd_col, rnd_col, rnd_col, 1.0f };
+      r.emplace<DefaultColour>(floor_e).colour = { 0.75f, 0.75f, 0.75f, 1.0f };
 
       set_z_index(r, floor_e, ZLayer::BACKGROUND);
-
       r.emplace<FloorComponent>(floor_e);
 
       const auto floor_idx = engine::grid::grid_position_to_index(gridpos, map.xmax);
@@ -257,9 +263,6 @@ update_gen_dungeons_system(entt::registry& r, const glm::ivec2& mouse_pos)
     set_position(r, e, worldspace_center);
   }
 
-  // Steps after initial initialization...
-  set_generated_entity_positions(r, result, rnd);
-
   Room r0 = result.rooms[0];
   const glm::ivec2 tl = r0.tl;
   const glm::ivec2 br = r0.tl + glm::ivec2{ r0.aabb.size.x, r0.aabb.size.y };
@@ -267,8 +270,8 @@ update_gen_dungeons_system(entt::registry& r, const glm::ivec2& mouse_pos)
   const auto pos = engine::grid::grid_space_to_world_space_center(center, map.tilesize);
 
   DataJetpackActor desc;
-  // desc.pos = pos; // somewhere on the ship?
-  desc.pos = { -100, -100 }; // somewhere around the ship?
+  desc.pos = pos; // somewhere inside ship?
+  // desc.pos = { -100, -100 }; // somewhere around ship?
   desc.team = AvailableTeams::player;
   const auto e = Factory_DataJetpackActor::create(r, desc);
   r.emplace<CameraFollow>(e);
@@ -289,22 +292,9 @@ update_gen_dungeons_system(entt::registry& r, const glm::ivec2& mouse_pos)
   // glm::ivec2 middle = room_center(room);
   // create_dungeon_entity(editor, game, EntityType::tile_type_exit, middle);
 
-  // Set the cost for all of the tiles
-  // for (size_t i = 0; i < dungeon_result.wall_or_floors.size(); i++) {
-  //   // const auto grid_xy = engine::grid::index_to_grid_position(i, map.xmax, map.ymax);
-  //   const auto empty_e = create_gameplay(r, EntityType::empty_no_transform);
-  //   map.map[i].push_back(empty_e);
-  //   auto& pathfinding_c = r.emplace<PathfindComponent>(empty_e);
-  //   if (dungeon_result.wall_or_floors[i] == 1)
-  //     pathfinding_c.cost = -1; // impassable wall
-  //   else
-  //     pathfinding_c.cost = 0; // floor
-  // }
-
-  // see ship outside ship
-  // #if defined(_DEBUG)
-  //   create_empty<RequestUpdateFOV>(r);
-  // #endif
+  // when a unit enters the ship...
+  // Steps after initial initialization...
+  set_generated_entity_positions(r, result, rnd);
 
   create_empty<DungeonGenerationResults>(r, result);
   fmt::println("dungeon generated");

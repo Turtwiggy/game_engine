@@ -254,6 +254,23 @@ instantiate_segments_from_line(entt::registry& r, const glm::ivec2& size, const 
 
 //
 
+std::vector<entt::entity>
+inside_room(entt::registry& r, const glm::ivec2& gridpos)
+{
+  RoomAABB aabb;
+  aabb.center = gridpos;
+  aabb.size = { glm::abs(1), glm::abs(1) };
+
+  std::vector<entt::entity> rooms;
+
+  for (const auto& [e, room_c] : r.view<const Room>().each()) {
+    if (collide(room_c.aabb, aabb))
+      rooms.push_back(e);
+  }
+
+  return rooms;
+};
+
 std::pair<bool, std::optional<Room>>
 inside_room(const MapComponent& map, const std::vector<Room>& rooms, const glm::ivec2& gridpos)
 {
