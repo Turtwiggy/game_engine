@@ -30,6 +30,7 @@ jobs:
       # See Readme.md: Linux
       - name: install-linux-deps
         run: |
+          sudo apt-get install build-essential
           sudo apt-get install curl zip unzip tar pkg-config -y
           sudo apt install autoconf libtool linux-libc-dev -y
           sudo apt install libglu1-mesa-dev freeglut3-dev mesa-common-dev -y
@@ -38,7 +39,6 @@ jobs:
           sudo apt install libx11-dev libxft-dev libxext-dev -y
           sudo apt install libwayland-dev libxkbcommon-dev libegl1-mesa-dev -y
           sudo apt install libibus-1.0-dev -y
-          sudo apt-get install libpthread-stubs0-dev -y
 
       - name: Restore artifacts, or setup vcpkg for building artifacts
         uses: lukka/run-vcpkg@v10
@@ -52,6 +52,7 @@ jobs:
         run: |
           g++ --version
           which g++
+          cmake --version
 
       - name: configure-linux
         run: |
