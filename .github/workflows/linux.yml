@@ -38,6 +38,7 @@ jobs:
           sudo apt install libx11-dev libxft-dev libxext-dev -y
           sudo apt install libwayland-dev libxkbcommon-dev libegl1-mesa-dev -y
           sudo apt install libibus-1.0-dev -y
+          sudo apt-get install libpthread-stubs0-dev -y
 
       - name: Restore artifacts, or setup vcpkg for building artifacts
         uses: lukka/run-vcpkg@v10

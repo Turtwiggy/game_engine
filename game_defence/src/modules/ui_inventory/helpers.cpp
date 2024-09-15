@@ -7,6 +7,7 @@
 #include "events/helpers/keyboard.hpp"
 #include "imgui.h"
 #include "modules/actor_armour/components.hpp"
+#include "modules/combat_damage/components.hpp"
 #include "modules/renderer/components.hpp"
 #include "modules/renderer/helpers.hpp"
 #include "modules/ui_inventory/components.hpp"
@@ -262,7 +263,7 @@ create_inv_armour(entt::registry& r, const entt::entity slot_e, const ArmourType
   item_c.parent_slot = slot_e;
   auto item_e = create_empty<ItemComponent>(r, item_c);
   r.emplace<ItemTypeComponent>(item_e, ItemTypeComponent{ ItemType::armour });
-  r.emplace<DefenceComponent>(item_e, DefenceComponent(data.armour_amount));
+  r.emplace<DefenceComponent>(item_e, DefenceComponent{ data.armour_amount });
   r.emplace<ArmourComponent>(item_e, ArmourComponent{ data });
 
   update_item_parent(r, item_e, slot_e);

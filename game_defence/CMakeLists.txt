@@ -81,9 +81,14 @@ IF(EMSCRIPTEN)
     DEPENDS ${dst}
     COMMENT "symbolic link resources folder from ${src} => ${dst}"
   )
+ENDIF()
 
-# Create symlink for assets
-ELSE()
+# Create symlink for assets only in debug mode.
+# This is due to the way I've implemented github
+# actions for building release. Github actins will
+# copy over the /assets folder in the release mode,
+# and would fail if this symlink was created here.
+if(CMAKE_BUILD_TYPE MATCHES Debug)
   message("creating symlink...")
   set(src ${CMAKE_SOURCE_DIR}/game_defence/assets)
   set(dst ${CMAKE_CURRENT_BINARY_DIR}/assets)

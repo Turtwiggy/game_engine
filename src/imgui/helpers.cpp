@@ -190,7 +190,7 @@ imgui_draw_entity(entt::registry& r,        //
   ImGuiTreeNodeFlags flags = ((selected_e == e) ? ImGuiTreeNodeFlags_Selected : 0);
   flags |= ImGuiTreeNodeFlags_OpenOnArrow;
   flags |= ImGuiTreeNodeFlags_SpanAvailWidth;
-  bool opened = ImGui::TreeNodeEx((void*)(uint64_t)(uint32_t)e, flags, label.c_str());
+  bool opened = ImGui::TreeNodeEx((void*)(uint64_t)(uint32_t)e, flags, "%s", label.c_str());
 
   if (ImGui::IsItemClicked())
     selected_e = e;

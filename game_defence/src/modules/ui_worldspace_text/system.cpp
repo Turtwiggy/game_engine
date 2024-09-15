@@ -19,10 +19,10 @@ void
 update_ui_worldspace_text_system(entt::registry& r)
 {
   const auto& ri = get_first_component<SINGLETON_RendererInfo>(r);
-  ImGui::PushStyleVar(ImGuiStyleVar_FramePadding, ImVec2(0, 0));
+  // ImGui::PushStyleVar(ImGuiStyleVar_FramePadding, ImVec2(0, 0));
   // ImGui::PushStyleVar(ImGuiStyleVar_WindowPadding, ImVec2{ 0.0f, 0.0f });
-  ImGui::PushStyleVar(ImGuiStyleVar_WindowRounding, 6);
-  ImGui::PushStyleVar(ImGuiStyleVar_WindowBorderSize, 1);
+  // ImGui::PushStyleVar(ImGuiStyleVar_WindowRounding, 6);
+  // ImGui::PushStyleVar(ImGuiStyleVar_WindowBorderSize, 1);
 
   const auto& view = r.view<TransformComponent, WorldspaceTextComponent>();
   for (const auto& [e, t, wst_c] : view.each()) {
@@ -50,6 +50,12 @@ update_ui_worldspace_text_system(entt::registry& r)
 
     ImGui::SetNextWindowPos(pos, ImGuiCond_Always, ImVec2(0.5f, 0.5f));
 
+    const auto& style = ImGui::GetStyle();
+    auto size = ImGui::CalcTextSize(wst_c.text.c_str());
+    size.x *= 2.0f;
+    size.y *= 2.0f;
+    ImGui::SetNextWindowSize(size, ImGuiCond_Always);
+
     // ImGui::PushStyleColor(ImGuiCol_, (ImVec4)ImColor::HSV(1 / 7.0f, 0.6f, 0.6f));
     ImGuiWindowFlags flags = 0;
     flags |= ImGuiWindowFlags_NoInputs;
@@ -64,11 +70,13 @@ update_ui_worldspace_text_system(entt::registry& r)
     // if (wst_c.font_scale != 1.0f)
     //   ImGui::SetWindowFontScale(wst_c.font_scale);
 
-    if (wst_c.split_text_into_lines) {
-      const auto shortened = split_string_nearest_space(wst_c.text, wst_c.line_length);
-      for (const auto& line : shortened)
-        ImGui::Text("%s", line.c_str());
-    } else if (wst_c.layout.has_value())
+    // if (wst_c.split_text_into_lines) {
+    //   const auto shortened = split_string_nearest_space(wst_c.text, wst_c.line_length);
+    //   for (const auto& line : shortened)
+    //     ImGui::Text("%s", line.c_str());
+    // } else
+
+    if (wst_c.layout.has_value())
       wst_c.layout.value()(); // layout set externally via regular imgui commands
     else
       ImGui::Text("%s", wst_c.text.c_str());
@@ -80,7 +88,7 @@ update_ui_worldspace_text_system(entt::registry& r)
     ImGui::End();
   }
 
-  ImGui::PopStyleVar(3);
+  // ImGui::PopStyleVar(3);
 }
 
 } // namespace game2d
