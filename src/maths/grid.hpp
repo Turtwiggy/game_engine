@@ -103,6 +103,9 @@ grid_position_to_clamped_index(const glm::ivec2& pos, const int xmax, const int 
   return idx;
 };
 
+bool
+grid_position_in_bounds(const glm::ivec2& gp, const int x_max, const int y_max);
+
 glm::ivec2
 index_to_grid_position(const int index, const int x_max, const int y_max);
 

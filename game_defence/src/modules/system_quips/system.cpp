@@ -16,7 +16,6 @@
 #include "modules/system_entered_new_room/components.hpp"
 #include "modules/ui_worldspace_text/components.hpp"
 
-
 #include "fmt/core.h"
 
 namespace game2d {
@@ -64,7 +63,7 @@ update_quips_system(entt::registry& r)
     {
       const auto& reqs = r.view<PlayerEnteredNewRoom>();
       for (const auto& [req_e, req_c] : reqs.each()) {
-        const auto& req_room = req_c.room;
+        const auto req_room = req_c.room_e;
 
         std::vector<entt::entity> enemies_in_newly_entered_room;
 
@@ -73,11 +72,16 @@ update_quips_system(entt::registry& r)
         for (const auto& [enemy_e, enemy_c] : enemies_view.each()) {
           const auto enemy_pos = get_position(r, enemy_e);
           const auto enemy_gridpos = engine::grid::worldspace_to_grid_space(enemy_pos, map.tilesize);
-          const auto [in_room, room] = inside_room(map, dungeon.rooms, enemy_gridpos);
+
+          const auto rooms = inside_room(r, enemy_gridpos);
+
+          const auto in_room = rooms.size() > 0;
           if (!in_room)
-            continue; // enemy not in a room (probably in a tunnel?)
-          if (room->tl != req_room.tl)
+            continue;
+
+          if (req_room != rooms[0])
             continue; // enemy not in the room we just entered
+
           enemies_in_newly_entered_room.push_back(enemy_e);
         }
 

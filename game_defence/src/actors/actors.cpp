@@ -164,6 +164,15 @@ add_components(entt::registry& r, const entt::entity e, const DataBreachCharge& 
 };
 
 void
+add_components(entt::registry& r, const entt::entity e, const DataSolidWall& desc)
+{
+  create_physics_actor_static(r, e, desc.pos, desc.size);
+  r.emplace<LightOccluderComponent>(e);
+  r.emplace<DestroyBulletOnCollison>(e);
+  r.emplace<RequestParticleOnCollision>(e);
+};
+
+void
 remove_components(entt::registry& r, const entt::entity e, const DataJetpackActor& desc)
 {
   r.remove<MovementJetpackComponent>(e);
@@ -428,11 +437,7 @@ Factory_DataSolidWall::create(entt::registry& r, const DataSolidWall& desc)
 {
   const auto e = Factory_BaseActor::create(r, desc, typeid(desc).name());
 
-  create_physics_actor_static(r, e, desc.pos, desc.size);
-
-  r.emplace<LightOccluderComponent>(e);
-  r.emplace<DestroyBulletOnCollison>(e);
-  r.emplace<RequestParticleOnCollision>(e);
+  add_components(r, e, desc);
 
   set_position(r, e, desc.pos);
   return e;

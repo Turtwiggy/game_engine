@@ -55,35 +55,16 @@ update_gen_dungeons_system(entt::registry& r, const glm::ivec2& mouse_pos)
     if (map_e != entt::null) {
       const auto& map = get_first_component<MapComponent>(r);
 
-      std::vector<Room> rooms;
-      for (const auto& [e, room] : r.view<Room>().each())
-        rooms.push_back(room);
-      ImGui::Text("Rooms: %zu", rooms.size());
-
-      std::vector<Tunnel> tunnels;
-      for (const auto& [e, t] : r.view<Tunnel>().each())
-        tunnels.push_back(t);
-      ImGui::Text("Tunnels: %zu", tunnels.size());
-
-      // for (const auto& [e, t_c] : r.view<Tunnel>().each()) {
-      //   ImGui::Separator();
-      //   ImGui::Text("TunnelLine0");
-      //   for (const auto& t : t_c.line_0)
-      //     ImGui::Text("%i %i", t.first, t.second);
-      //   ImGui::Text("TunnelLine1");
-      //   for (const auto& t : t_c.line_1)
-      //     ImGui::Text("%i %i", t.first, t.second);
-      // }
+      ImGui::Text("Rooms: %zu", r.view<Room>().size());
 
       const auto grid_pos = engine::grid::worldspace_to_grid_space(mouse_pos, map.tilesize);
       ImGui::Text("grid_pos: %i %i", grid_pos.x, grid_pos.y);
       ImGui::Text("grid_idx: %i", engine::grid::grid_position_to_index(grid_pos, map.xmax));
 
-      const auto [in_room, room] = inside_room(map, rooms, grid_pos);
-      ImGui::Text("Inside Room: %i", in_room);
-
-      const auto ts = inside_tunnels(tunnels, grid_pos);
-      ImGui::Text("Tunnels Size: %i", int(ts.size()));
+      const auto in_rooms = inside_room(r, grid_pos);
+      ImGui::Text("Inside Room: %i", in_rooms.size() > 0);
+      for (const entt::entity room_e : in_rooms)
+        ImGui::Text("in_room_e: %i", static_cast<uint32_t>(room_e));
 
       if (get_key_down(input, SDL_SCANCODE_KP_1))
         i--;
@@ -183,15 +164,9 @@ update_gen_dungeons_system(entt::registry& r, const glm::ivec2& mouse_pos)
   dungeon_parameters.room_size_max = glm::min(8, map.xmax);
 
   auto result = generate_rooms(r, dungeon_parameters, rnd);
-
-  // give to entt?
-  for (const Room& room : result.rooms)
-    create_empty<Room>(r, room);
-  for (const Tunnel& tunnel : result.tunnels)
-    create_empty<Tunnel>(r, tunnel);
+  connect_rooms_via_nearest_neighbour(r, result);
 
   // generate edges for pathfinding.
-  // they get put in the map.edges
   generate_edges(r, map, result);
 
   //
@@ -216,6 +191,7 @@ update_gen_dungeons_system(entt::registry& r, const glm::ivec2& mouse_pos)
   result.floor_tiles.resize(result.wall_or_floors.size(), entt::null);
   for (size_t xy = 0; xy < result.wall_or_floors.size(); xy++) {
     if (result.wall_or_floors[xy] == 0) {
+
       const auto gridpos = engine::grid::index_to_grid_position((int)xy, map.xmax, map.ymax);
       const auto floor_e = create_transform(r);
       const glm::ivec2 worldspace = engine::grid::grid_space_to_world_space(gridpos, map.tilesize);
@@ -224,10 +200,16 @@ update_gen_dungeons_system(entt::registry& r, const glm::ivec2& mouse_pos)
       set_position(r, floor_e, pos);
       set_size(r, floor_e, { map.tilesize, map.tilesize });
 
-      // float rnd_col = engine::rand_det_s(rnd.rng, 0.8, 0.85f);
-      // auto col = engine::SRGBColour{ rnd_col, rnd_col, rnd_col, 1.0f };
-      r.emplace<DefaultColour>(floor_e).colour = { 0.75f, 0.75f, 0.75f, 1.0f };
+      const bool in_room = inside_room(r, gridpos).size() > 0;
+      if (!in_room) {
+        r.emplace<DefaultColour>(floor_e).colour = { 1.0f, 0.5f, 0.5f, 1.0f };
+      } else {
+        // float rnd_col = engine::rand_det_s(rnd.rng, 0.8, 0.85f);
+        // auto col = engine::SRGBColour{ rnd_col, rnd_col, rnd_col, 1.0f };
+        r.emplace<DefaultColour>(floor_e).colour = { 0.75f, 0.75f, 0.75f, 1.0f };
+      }
 
+      set_colour(r, floor_e, r.get<DefaultColour>(floor_e).colour);
       set_z_index(r, floor_e, ZLayer::BACKGROUND);
       r.emplace<FloorComponent>(floor_e);
 
@@ -238,6 +220,7 @@ update_gen_dungeons_system(entt::registry& r, const glm::ivec2& mouse_pos)
 
   instantiate_edges(r, map);
 
+  /*
   // Create some sdf circles
   for (const auto& room : result.rooms) {
     const auto e = create_transform(r);
@@ -262,16 +245,14 @@ update_gen_dungeons_system(entt::registry& r, const glm::ivec2& mouse_pos)
 
     set_position(r, e, worldspace_center);
   }
+  */
 
   Room r0 = result.rooms[0];
-  const glm::ivec2 tl = r0.tl;
-  const glm::ivec2 br = r0.tl + glm::ivec2{ r0.aabb.size.x, r0.aabb.size.y };
-  const glm::ivec2 center = (tl + br) / 2;
-  const auto pos = engine::grid::grid_space_to_world_space_center(center, map.tilesize);
+  const auto pos = engine::grid::index_to_world_position_center(r0.tiles_idx[0], map.xmax, map.ymax, map.tilesize);
 
   DataJetpackActor desc;
-  desc.pos = pos; // somewhere inside ship?
-  // desc.pos = { -100, -100 }; // somewhere around ship?
+  // desc.pos = pos; // somewhere inside ship?
+  desc.pos = { -100, -100 }; // somewhere around ship?
   desc.team = AvailableTeams::player;
   const auto e = Factory_DataJetpackActor::create(r, desc);
   r.emplace<CameraFollow>(e);

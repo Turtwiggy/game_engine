@@ -113,9 +113,7 @@ move_entity_on_map(entt::registry& r, const entt::entity src_e, const int dst_id
 std::vector<glm::ivec2>
 generate_path(entt::registry& r, int src_idx, int dst_idx, const size_t limit)
 {
-  const auto& map = get_first_component<MapComponent>(r);
-
-  auto path = generate_direct(r, map, src_idx, dst_idx, map.edges);
+  auto path = generate_direct(r, src_idx, dst_idx);
 
   // make sure path.size() < limit
   // return +1, as usually the first path[0] is the element the entity is currently standing on

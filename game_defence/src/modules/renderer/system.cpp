@@ -428,11 +428,11 @@ update_render_system(entt::registry& r, const float dt, const glm::vec2& mouse_p
     hmm -= glm::vec2{ camera_t.position.x, camera_t.position.y };
     hmm += glm::vec2{ wh.x / 2.0f, wh.y / 2.0f };
 
-    // player light; blueish?
+    // player light
     lights[0].pos = hmm;
     lights[0].enabled = true;
-    lights[0].colour = { 0.75f, 0.75f, 1.0f, 1.0f };
-    lights[0].luminence = 0.6f;
+    lights[0].colour = { 1.0f, 1.0f, 1.0f, 1.0f };
+    lights[0].luminence = 0.5f;
   }
 
   // HACK: try adding lights to interesting map features
@@ -446,28 +446,26 @@ update_render_system(entt::registry& r, const float dt, const glm::vec2& mouse_p
       // if player is in the room, light it up
       const auto player_pos = get_position(r, first_player);
       const auto player_gridpos = engine::grid::worldspace_to_grid_space(player_pos, map.tilesize);
-      const auto [in_room, room] = inside_room(map, results.rooms, player_gridpos);
-      const auto tunnels = inside_tunnels(results.tunnels, player_gridpos);
-      const bool in_tunnel = tunnels.size() > 0;
-      const bool inside_spaceship = in_room || in_tunnel;
+
+      const auto rooms = inside_room(r, player_gridpos);
+      const auto in_room = rooms.size() > 0;
+      const bool inside_spaceship = in_room;
 
       ri.mix_lighting_and_scene.bind();
-      ri.mix_lighting_and_scene.set_bool("inside_spaceship", inside_spaceship);
+      ri.mix_lighting_and_scene.set_bool("inside_spaceship", in_room);
 
       // increase player brightness outside spaceship.
       if (!inside_spaceship)
         lights[0].luminence = 1.5f;
 
       // increase player brightness in tunnel (no room lights)
-      if (in_tunnel && !in_room)
-        lights[0].luminence = 1.25f;
+      // if (in_room)
+      //   lights[0].luminence = 1.25f;
 
       if (in_room) {
-        for (int i = 1; const auto& [e, room_c] : r.view<Room>().each()) {
-          if (room->tl != room_c.tl)
-            continue;
-          light_up_room(lights, i, room_c, ri, camera_t);
-        }
+        int i = 1; // 1 because used 1 light?
+        const auto& room_c = r.get<Room>(rooms[0]);
+        light_up_room(r, lights, i, room_c, camera_t);
       }
     }
   }

@@ -6,6 +6,7 @@
 #include "entt/helpers.hpp"
 #include "helpers.hpp"
 #include "maths/grid.hpp"
+#include "maths/maths.hpp"
 #include "modules/actor_enemy/components.hpp"
 #include "modules/actor_player/components.hpp"
 #include "modules/actor_weapon_shotgun/components.hpp"
@@ -15,7 +16,6 @@
 #include "modules/gen_dungeons/components.hpp"
 #include "modules/gen_dungeons/helpers.hpp"
 #include "modules/grid/components.hpp"
-#include "modules/renderer/components.hpp"
 #include "modules/system_fov/components.hpp"
 
 #include <fmt/core.h>
@@ -26,12 +26,9 @@ glm::vec2
 get_rnd_worldpos_pos_in_room(const MapComponent& map, const Room& room)
 {
   static engine::RandomState rnd;
-  const int x = int(engine::rand_det_s(rnd.rng, room.tl.x, room.tl.x + room.aabb.size.x));
-  const int y = int(engine::rand_det_s(rnd.rng, room.tl.y, room.tl.y + room.aabb.size.y));
-
-  auto wp = engine::grid::grid_space_to_world_space({ x, y }, map.tilesize);
-  wp += glm::vec2{ map.tilesize / 2.0f, map.tilesize / 2.0f };
-
+  const int idx = engine::rand_det_s(rnd.rng, 0, (int)room.tiles_idx.size());
+  const int room_idx = room.tiles_idx[idx];
+  const auto wp = engine::grid::index_to_world_position_center(room_idx, map.xmax, map.ymax, map.tilesize);
   return wp;
 };
 
@@ -40,30 +37,22 @@ get_free_worldspace_pos_around_player(entt::registry& r, const MapComponent& map
 {
   const auto player_wp = get_position(r, get_first<PlayerComponent>(r));
   const auto player_gp = engine::grid::worldspace_to_grid_space(player_wp, map.tilesize);
-  const auto player_idx = engine::grid::grid_position_to_index(player_gp, map.xmax);
+  const auto neighbour_gps = engine::grid::get_neighbour_gridpos(player_gp, map.xmax, map.ymax);
 
-  const auto neighbour_idxs = engine::grid::get_neighbour_indicies(player_gp.x, player_gp.y, map.xmax, map.ymax);
-  for (const auto& [dir, n_idx] : neighbour_idxs) {
-
+  for (const auto& [dir, n_gp] : neighbour_gps) {
+    bool in_bounds = engine::grid::grid_position_in_bounds(n_gp, map.xmax, map.ymax);
+    if (!in_bounds)
+      continue;
+    const int n_idx = engine::grid::grid_position_to_index(n_gp, map.xmax);
     const auto& es = map.map[n_idx];
 
     // TODO: investigate this. stuff now contains loot on the floor,
     // which means that this cell WOULD technically be "free"
+    if (es.size() != 0)
+      continue;
 
-    if (es.size() == 0) {
-      // take in to account edges
-      bool wall_between_grid = false;
-      for (const Edge& e : map.edges) {
-        wall_between_grid |= e.a_idx == player_idx && e.b_idx == n_idx;
-        wall_between_grid |= e.b_idx == player_idx && e.a_idx == n_idx;
-      }
-
-      if (!wall_between_grid) {
-        auto pos = engine::grid::index_to_world_position(n_idx, map.xmax, map.ymax, map.tilesize);
-        pos += glm::vec2{ map.tilesize / 2.0f, map.tilesize / 2.0f }; // center not tl
-        return pos;
-      }
-    }
+    if (edge_between_gps(r, player_gp, n_gp) != entt::null)
+      return engine::grid::grid_space_to_world_space_center(n_gp, map.tilesize);
   }
 
   // If no free gridpos, return your current pos
@@ -115,19 +104,20 @@ ai_decide_move_destination(entt::registry& r, const entt::entity e)
   if (r.try_get<SeenComponent>(e) == nullptr) {
     const auto& dungeon = get_first_component<DungeonGenerationResults>(r);
 
-    const auto [in_room, room] = inside_room(map, dungeon.rooms, gp);
+    const auto rooms = inside_room(r, gp);
+    const bool in_room = rooms.size() > 0;
     if (in_room) {
-      const auto room_v = room.value();
+      const auto& room_c = r.get<Room>(rooms[0]);
 
       // should be any valid tiles, but for the moment, just choose a random one
-      return get_rnd_worldpos_pos_in_room(map, room_v);
+      return get_rnd_worldpos_pos_in_room(map, room_c);
 
     } else
     // If an entity somehow got in to a tunnel
     // without being seen (plausable later, but not currently)
     // then this would be a problem.
     {
-      fmt::println("AI ERROR: entity in tunnel but not seen. Sneaky SoB");
+      fmt::println("AI ERROR: entity in space??");
       return { 0.0f, 0.0f };
     }
   }

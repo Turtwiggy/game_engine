@@ -13,7 +13,6 @@
 #include "modules/system_entered_new_room/components.hpp"
 #include "modules/ui_event_console/components.hpp"
 
-
 #include "imgui.h"
 
 #include <fmt/core.h>
@@ -38,29 +37,39 @@ update_entered_new_room_system(entt::registry& r, const float dt)
     const auto eid = static_cast<uint32_t>(e);
     const auto player_pos = get_position(r, e);
     const auto player_gridspace = engine::grid::worldspace_to_grid_space(player_pos, map.tilesize);
-    const auto [in_room, room] = inside_room(map, dungeon.rooms, player_gridspace);
 
-    auto& player_in_room = r.get_or_emplace<PlayerInRoomComponent>(e);
+    const auto rooms = inside_room(r, player_gridspace);
+    const bool in_room = rooms.size() > 0;
+
+    auto& player_in_room_c = r.get_or_emplace<PlayerInRoomComponent>(e);
     if (!in_room)
-      player_in_room.room_tl = std::nullopt;
+      player_in_room_c.room_e = entt::null;
 
-    const bool player_already_in_room = player_in_room.room_tl.has_value();
-    if (in_room && !player_already_in_room) {
+    const bool player_in_room = player_in_room_c.room_e != entt::null;
+    if (in_room && !player_in_room) {
+      const auto& room_c = r.get<Room>(rooms[0]);
+
       fmt::println("player {} entered new room (a)", eid);
       PlayerEnteredNewRoom data;
       data.player = e;
-      data.room = room.value();
+      data.room_e = rooms[0];
       create_empty<PlayerEnteredNewRoom>(r, data);
-      player_in_room.room_tl = room->tl;
+
+      player_in_room_c.room_e = rooms[0];
     }
 
-    if (in_room && player_already_in_room && player_in_room.room_tl.value() != room->tl) {
-      fmt::println("player {} entered new room (b)", eid);
-      PlayerEnteredNewRoom data;
-      data.player = e;
-      data.room = room.value();
-      create_empty<PlayerEnteredNewRoom>(r, data);
-      player_in_room.room_tl = room->tl;
+    if (in_room && player_in_room) {
+      const auto& room_c = r.get<Room>(player_in_room_c.room_e);
+
+      if (player_in_room_c.room_e != rooms[0]) {
+        fmt::println("player {} entered new room (b)", eid);
+        PlayerEnteredNewRoom data;
+        data.player = e;
+        data.room_e = rooms[0];
+        create_empty<PlayerEnteredNewRoom>(r, data);
+
+        player_in_room_c.room_e = rooms[0];
+      }
     }
   }
 
@@ -77,19 +86,13 @@ update_entered_new_room_system(entt::registry& r, const float dt)
   const auto& reqs = r.view<PlayerEnteredNewRoom>();
   for (const auto& [req_e, req] : reqs.each()) {
 
-    // get the eid of the room... could be sent in req...
-    for (const auto& [room_e, room] : r.view<Room>().each()) {
-      if (req.room == room) {
-        room_name = std::to_string(static_cast<uint32_t>(room_e));
+    // get the eid of the room sent in req...
+    room_name = std::to_string(static_cast<uint32_t>(req.room_e));
 
-        const std::string label = "Entered room "s + room_name.value();
-        evts.events.push_back(label);
+    const std::string label = "Entered room "s + room_name.value();
+    evts.events.push_back(label);
 
-        break;
-      }
-    }
-
-    break; // only show first
+    break; // only first event
   }
 
   // count all reqs as handled...

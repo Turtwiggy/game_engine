@@ -21,6 +21,9 @@ update_actor_cover_system(entt::registry& r)
   r.remove<InCoverComponent>(reqs.begin(), reqs.end());
 
   // set all neighbours as in cover
+  // todo: take in to account rooms
+
+  /*
   const auto view = r.view<const CoverComponent, const PhysicsBodyComponent>();
   for (const auto& [e, cover_c, pb_c] : view.each()) {
     const auto pos_glm = glm::vec2{ pb_c.body->GetPosition().x, pb_c.body->GetPosition().y };
@@ -32,6 +35,7 @@ update_actor_cover_system(entt::registry& r)
         r.emplace<InCoverComponent>(e);
     }
   }
+  */
 
   //
 }

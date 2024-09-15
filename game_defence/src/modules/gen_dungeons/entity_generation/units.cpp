@@ -68,21 +68,15 @@ get_free_slots_idxs(const MapComponent& map_c, const Room& room)
 {
   FreeSlots results;
 
-  const glm::ivec2 tl = room.tl;
-  const glm::ivec2 br = room.tl + glm::ivec2{ room.aabb.size.x, room.aabb.size.y };
+  for (const auto idx : room.tiles_idx) {
 
-  for (int x = tl.x + 1; x < br.x - 1; x++) {
-    for (int y = tl.y + 1; y < br.y - 1; y++) {
-      const auto idx = engine::grid::grid_position_to_index({ x, y }, map_c.xmax);
+    // TODO: investigate this. stuff now contains loot on the floor,
+    // which means that this cell WOULD technically be "free"
 
-      // TODO: investigate this. stuff now contains loot on the floor,
-      // which means that this cell WOULD technically be "free"
+    if (map_c.map[idx].size() != 0)
+      continue; // not free...
 
-      if (map_c.map[idx].size() != 0)
-        continue; // not free...
-
-      results.push_back(idx);
-    }
+    results.push_back(idx);
   }
 
   return results;

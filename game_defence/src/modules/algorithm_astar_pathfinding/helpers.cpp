@@ -67,12 +67,10 @@ reconstruct_path(std::map<vec2i, vec2i> came_from, vec2i from, vec2i to)
 }
 
 std::vector<glm::ivec2>
-generate_direct(entt::registry& r,
-                const MapComponent& map_c,
-                const int from_idx,
-                const int to_idx,
-                const std::optional<std::vector<Edge>> edges)
+generate_direct(entt::registry& r, const int from_idx, const int to_idx)
 {
+  const auto& map_c = get_first_component<MapComponent>(r);
+
   // this seems bad
   const std::vector<astar_cell> map = generate_map_view(r, map_c);
 
@@ -106,20 +104,8 @@ generate_direct(entt::registry& r,
       const auto& neighbour = map[n_idx].pos;
       const auto& neighbour_cost = map[n_idx].cost;
 
-      // Check the edges
-      if (edges.has_value()) {
-        // Check if there's an edge between the current cell and the neighbour cell.
-        // If there is, skip evaluating this neighbour.
-        const std::vector<Edge>& es = edges.value();
-
-        bool wall_between_grid = false;
-        for (const Edge& e : es) {
-          wall_between_grid |= e.a_idx == current_idx && e.b_idx == n_idx;
-          wall_between_grid |= e.b_idx == current_idx && e.a_idx == n_idx;
-        }
-        if (wall_between_grid)
-          continue; // impassable
-      }
+      if (edge_between_gps(r, { current.x, current.y }, { neighbour.x, neighbour.y }) != entt::null)
+        continue; // impassable
 
       if (neighbour_cost == -1)
         continue; // impassable
@@ -366,21 +352,26 @@ destination_is_blocked(entt::registry& r, const glm::ivec2 worldspace_pos)
 {
   auto& map = get_first_component<MapComponent>(r);
   const auto idx = engine::grid::worldspace_to_index(worldspace_pos, map.tilesize, map.xmax, map.ymax);
-
   return map.map[idx].size() > 0;
+};
 
-  // alternative approach...
-  /*
-  const auto& es = map.map[idx];
-  for (const auto e : es) {
-    // something exists, so it should have a pathfind component
-    const auto& comp = r.get<PathfindComponent>(e);
-    if (comp.cost == -1)
-      return true;
-  }
-  */
+entt::entity
+edge_between_gps(entt::registry& r, const glm::ivec2& a, const glm::ivec2& b)
+{
+  const auto& view = r.view<Edge>();
 
-  return false;
-}
+  Edge tgt_edge;
+  tgt_edge.gp_a = a;
+  tgt_edge.gp_b = b;
+
+  const auto it = std::find_if(view.begin(), view.end(), [&](entt::entity e) {
+    const auto& edge = view.get<Edge>(e);
+    return edge == tgt_edge;
+  });
+
+  if (it != view.end())
+    return (*it);
+  return entt::null;
+};
 
 } // namespace game2d

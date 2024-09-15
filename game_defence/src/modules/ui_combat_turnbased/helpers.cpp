@@ -18,11 +18,8 @@ inside_ship(entt::registry& r, const entt::entity e)
   const auto& results = r.get<DungeonGenerationResults>(results_e);
 
   const auto gp = get_grid_position(r, e);
-
-  const auto [in_room, room] = inside_room(map, results.rooms, gp);
-  const auto in_tunnel = inside_tunnels(results.tunnels, gp).size() > 0;
-  const bool inside_spaceship = in_room || in_tunnel;
-
+  const auto rooms = inside_room(r, gp);
+  const bool inside_spaceship = rooms.size() > 0;
   return inside_spaceship;
 };
 

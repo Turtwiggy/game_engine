@@ -34,12 +34,11 @@ heuristic(const T& a, const T& b)
   return distance<T>(a, b);
 };
 
+std::vector<astar_cell>
+generate_map_view(entt::registry& r, const MapComponent& map);
+
 [[nodiscard]] std::vector<glm::ivec2>
-generate_direct(entt::registry& r,
-                const MapComponent& grid,
-                const int from_idx,
-                const int to_idx,
-                const std::optional<std::vector<Edge>> edges = std::nullopt);
+generate_direct(entt::registry& r, const int from_idx, const int to_idx);
 
 [[nodiscard]] std::vector<glm::ivec2>
 generate_direct_with_diagonals(entt::registry& r, const MapComponent& grid, const int from_idx, const int to_idx);
@@ -61,5 +60,8 @@ at_destination(entt::registry& r, const entt::entity e);
 
 bool
 destination_is_blocked(entt::registry& r, const glm::ivec2 worldspace_pos);
+
+entt::entity
+edge_between_gps(entt::registry& r, const glm::ivec2& a, const glm::ivec2& b);
 
 } // namespace game2d

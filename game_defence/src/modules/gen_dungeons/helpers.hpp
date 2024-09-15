@@ -14,16 +14,13 @@ namespace game2d {
 DungeonGenerationResults
 generate_rooms(entt::registry& r, const DungeonGenerationCriteria& data, engine::RandomState& rnd);
 
+void
+connect_rooms_via_nearest_neighbour(entt::registry& r, DungeonGenerationResults& result);
+
 //
 
 std::vector<entt::entity>
 inside_room(entt::registry& r, const glm::ivec2& gridpos);
-
-std::pair<bool, std::optional<Room>>
-inside_room(const MapComponent& map, const std::vector<Room>& rooms, const glm::ivec2& gridpos);
-
-std::vector<Tunnel>
-inside_tunnels(const std::vector<Tunnel>& ts, const glm::ivec2& gridpos);
 
 //
 
@@ -32,5 +29,8 @@ generate_edges(entt::registry& r, MapComponent& map, const DungeonGenerationResu
 
 void
 instantiate_edges(entt::registry& r, MapComponent& map);
+
+void
+instantiate_doors(entt::registry& r, MapComponent& map);
 
 } // namespace game2d

@@ -3,12 +3,8 @@
 #include "helpers/line.hpp"
 
 #include <entt/entt.hpp>
-#include <functional> // for std::hash
 #include <glm/fwd.hpp>
 #include <glm/glm.hpp>
-
-#define GLM_ENABLE_EXPERIMENTAL
-#include "glm/gtx/hash.hpp"
 
 namespace game2d {
 
@@ -18,41 +14,19 @@ struct RoomAABB
   glm::ivec2 size{ 0, 0 };
 };
 
-struct RoomAABBHash
-{
-  size_t operator()(const RoomAABB& room) const
-  {
-    std::size_t h1 = std::hash<glm::ivec2>{}(room.center);
-    std::size_t h2 = std::hash<glm::ivec2>{}(room.size);
-    return h1 ^ (h2 << 1); // or use boost::hash_combine
-  };
-};
-
 struct Room
 {
-  glm::ivec2 tl{ 0, 0 };
-  RoomAABB aabb; // aabb is in tile-space, not world-space.
+  // tl and aabb only applies if the room is square
+  std::optional<glm::ivec2> tl;
+  std::optional<RoomAABB> aabb; // aabb is in tile-space, not world-space.
+
+  std::vector<int> tiles_idx;
 };
 
 inline bool
 operator==(const Room& a, const Room& b)
 {
-  return a.aabb.center == b.aabb.center && a.aabb.size == b.aabb.size;
-};
-
-struct Tunnel
-{
-  bool horizontal_then_vertical = false;
-  std::vector<std::pair<int, int>> line_0;
-  std::vector<std::pair<int, int>> line_1;
-
-  Room room;
-  Room prev_room;
-};
-inline bool
-operator==(const Tunnel& a, const Tunnel& b)
-{
-  return a.line_0 == b.line_0 && a.line_1 == b.line_1;
+  return a.tiles_idx == b.tiles_idx;
 };
 
 struct RequestGenerateDungeonComponent
@@ -70,9 +44,7 @@ struct DungeonGenerationCriteria
 struct DungeonGenerationResults
 {
   std::vector<Room> rooms;
-  std::vector<Tunnel> tunnels;
   std::vector<int> wall_or_floors;
-
   std::vector<entt::entity> floor_tiles;
 };
 

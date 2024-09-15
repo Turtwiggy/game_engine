@@ -145,6 +145,8 @@ void
 add_components(entt::registry& r, const entt::entity e, const DataWeaponShotgun& desc);
 void
 add_components(entt::registry& r, const entt::entity e, const DataBreachCharge& desc);
+void
+add_components(entt::registry& r, const entt::entity e, const DataSolidWall& desc);
 
 // takes in desc so can be overloaded
 void

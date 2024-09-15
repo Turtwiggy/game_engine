@@ -1,7 +1,6 @@
 #include "system.hpp"
 
 #include "actors/actors.hpp"
-#include "actors/bags/core.hpp"
 #include "components.hpp"
 
 #include "actors/helpers.hpp"
@@ -10,20 +9,15 @@
 #include "events/helpers/keyboard.hpp"
 #include "imgui/helpers.hpp"
 #include "maths/grid.hpp"
-#include "modules/actor_enemy/components.hpp"
 #include "modules/actor_player/components.hpp"
-#include "modules/combat_damage/components.hpp"
 #include "modules/gen_dungeons/components.hpp"
 #include "modules/gen_dungeons/helpers.hpp"
 #include "modules/grid/components.hpp"
 #include "modules/system_fov/symmetric_shadowcasting.hpp"
-#include "modules/ux_hoverable/components.hpp"
-#include "sprites/helpers.hpp"
+#include <modules/algorithm_astar_pathfinding/helpers.hpp>
 
 #include "imgui.h"
 #include <fmt/core.h>
-
-#include <algorithm>
 
 namespace game2d {
 using namespace std::literals;
@@ -40,9 +34,9 @@ update_fov_system(entt::registry& r, const glm::ivec2& mouse_pos)
   const auto player_pos = get_position(r, player_e);
   const auto player_gridpos = engine::grid::worldspace_to_grid_space(player_pos, map.tilesize);
 
-  const auto [in_room, room] = inside_room(map, dungeon.rooms, player_gridpos);
-  const auto in_tunnel = inside_tunnels(dungeon.tunnels, player_gridpos).size() > 0;
-  const bool outside_ship = !in_room && !in_tunnel;
+  const auto rooms = inside_room(r, player_gridpos);
+  const bool in_room = rooms.size() > 0;
+  const bool outside_ship = !in_room;
 
   std::vector<int> walls_or_floors_adjusted = dungeon.wall_or_floors; // copy
 
@@ -103,20 +97,10 @@ update_fov_system(entt::registry& r, const glm::ivec2& mouse_pos)
 
   // adjust this vector based on edges
   for (int dir = 0; dir < 4; dir++) {
-    const auto has_edge = [&](const Tile& t0, const Tile& t1) -> std::pair<bool, std::optional<Edge>> {
+    const auto has_edge = [&](const Tile& t0, const Tile& t1) -> entt::entity {
       const auto [x, y] = transform(t0, dir, origin);
       const auto [prev_x, prev_y] = transform(t1, dir, origin);
-      const int search_a_idx = engine::grid::grid_position_to_index({ x, y }, map.xmax);
-      const int search_b_idx = engine::grid::grid_position_to_index({ prev_x, prev_y }, map.xmax);
-
-      const auto res = std::find_if(map.edges.begin(), map.edges.end(), [&search_a_idx, &search_b_idx](const Edge& e) {
-        return (e.a_idx == search_a_idx && e.b_idx == search_b_idx) || (e.a_idx == search_b_idx && e.b_idx == search_a_idx);
-      });
-
-      if (res != map.edges.end())
-        return { true, (*res) };
-
-      return { false, std::nullopt };
+      return edge_between_gps(r, { x, y }, { prev_x, prev_y });
     };
     const auto is_type = [&](const Tile& t, const TileType& type) -> bool {
       const auto [x, y] = transform(t, dir, origin);
@@ -156,29 +140,31 @@ update_fov_system(entt::registry& r, const glm::ivec2& mouse_pos)
         const Tile above_tile(tile.depth - 1, i);
         const auto [abv_x, abv_y] = transform(above_tile, dir, origin);
         const bool invalid_above = above_tile.depth == 0 && above_tile.col != 0;
-        const auto [edge_exists, edge] = has_edge(tile, above_tile);
+        const auto edge = has_edge(tile, above_tile);
+        const bool edge_exists = edge != entt::null;
 
         const Tile tile_l(tile.depth, i + 1);
         const Tile tile_r(tile.depth, i - 1);
         const auto [r_x, r_y] = transform(tile_r, dir, origin);
-        bool invalid_right = tile_r.col > max_col;
-        const auto [r_edge_exists, r_edge] = has_edge(tile, tile_r);
+        const bool invalid_right = tile_r.col > max_col;
+        const auto r_edge = has_edge(tile, tile_r);
+        const bool r_edge_exists = r_edge != entt::null;
 
         // edge between red and white
         // edge between blue and white
         const Tile tile_ur(tile.depth - 1, i - 1);
         const auto [ur_x, ur_y] = transform(tile_ur, dir, origin);
-        const auto [has_edge_a, edge_a] = has_edge(tile_r, tile_ur);
-        const auto [has_edge_b, edge_b] = has_edge(above_tile, tile_ur);
-        bool ur_edge_exists = has_edge_a && has_edge_b;
+        const auto edge_a = has_edge(tile_r, tile_ur);
+        const auto edge_b = has_edge(above_tile, tile_ur);
+        const bool ur_edge_exists = edge_a != entt::null && edge_b != entt::null;
 
         // edge between red and white
         // edge between blue and white
         const Tile tile_ul(tile.depth - 1, i + 1);
         const auto [ul_x, ul_y] = transform(tile_ul, dir, origin);
-        const auto [has_edge_ul_a, edge_ul_a] = has_edge(tile_l, tile_ul);
-        const auto [has_edge_ul_b, edge_ul_b] = has_edge(above_tile, tile_ul);
-        const bool ul_edge_exists = has_edge_ul_a && has_edge_ul_b;
+        const auto edge_ul_a = has_edge(tile_l, tile_ul);
+        const auto edge_ul_b = has_edge(above_tile, tile_ul);
+        const bool ul_edge_exists = edge_ul_a != entt::null && edge_ul_b != entt::null;
 
         if (debug_fov && cur_idx == break_idx) {
           ImGui::Text("cur_idx %i break_idx: %i", cur_idx, break_idx);
@@ -203,10 +189,10 @@ update_fov_system(entt::registry& r, const glm::ivec2& mouse_pos)
           // if (dungeon.floor_tiles.size() > 0 && dungeon.floor_tiles[ul_idx] != entt::null)
           //   set_colour(r, dungeon.floor_tiles[ul_idx], { 0.0f, 1.0f, 1.0f, 1.0f }); // cyan
 
-          const auto debug_edge = [&r, &map](const int a, const int b) {
+          const auto debug_edge = [&r, &map](Edge edge) {
             const auto offset = glm::vec2{ map.tilesize / 2.0f, map.tilesize / 2.0f };
-            const auto ga = engine::grid::index_to_world_position(a, map.xmax, map.ymax, map.tilesize) + offset;
-            const auto gb = engine::grid::index_to_world_position(b, map.xmax, map.ymax, map.tilesize) + offset;
+            const auto ga = engine::grid::grid_space_to_world_space_center(edge.gp_a, map.tilesize) + offset;
+            const auto gb = engine::grid::grid_space_to_world_space_center(edge.gp_b, map.tilesize) + offset;
             const auto l = generate_line({ ga.x, ga.y }, { gb.x, gb.y }, 1);
             const entt::entity e = create_transform(r);
             set_position_and_size_with_line(r, e, l);
@@ -216,13 +202,13 @@ update_fov_system(entt::registry& r, const glm::ivec2& mouse_pos)
           };
 
           if (!invalid_above && edge_exists)
-            debug_edge(edge.value().a_idx, edge.value().b_idx);
+            debug_edge(r.get<Edge>(edge));
           if (!invalid_right && r_edge_exists)
-            debug_edge(r_edge.value().a_idx, r_edge.value().b_idx);
+            debug_edge(r.get<Edge>(r_edge));
           if (ur_edge_exists)
-            debug_edge(ur_idx, idx);
+            debug_edge({ { ur_x, ur_y }, { x, y } });
           if (ul_edge_exists)
-            debug_edge(ul_idx, idx);
+            debug_edge({ { ul_x, ul_y }, { x, y } });
         }
 
         // If tile isnt a wall,
@@ -330,10 +316,10 @@ update_fov_system(entt::registry& r, const glm::ivec2& mouse_pos)
         for (const auto e : map.map[floor_idx])
           mark_visible(r, e);
       }
-      if (is_visible) {
-        set_colour(r, floor_e, r.get<DefaultColour>(floor_e).colour);
-      } else
-        set_colour(r, floor_e, { 0.35f, 0.35f, 0.35f, 1.0f });
+      // if (is_visible) {
+      //   set_colour(r, floor_e, r.get<DefaultColour>(floor_e).colour);
+      // } else
+      //   set_colour(r, floor_e, { 0.35f, 0.35f, 0.35f, 1.0f });
     }
   }
 

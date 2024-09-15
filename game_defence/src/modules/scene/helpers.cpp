@@ -238,8 +238,6 @@ move_to_scene_start(entt::registry& r, const Scene& s, const bool load_saved)
   // anything created with create_empty?
   const auto& rooms = r.view<Room>();
   r.destroy(rooms.begin(), rooms.end());
-  const auto& tunnels = r.view<Tunnel>();
-  r.destroy(tunnels.begin(), tunnels.end());
   const auto& paths = r.view<PathfindComponent>();
   r.destroy(paths.begin(), paths.end());
   const auto& camera_move = r.view<CameraFreeMove>();
@@ -309,9 +307,9 @@ move_to_scene_start(entt::registry& r, const Scene& s, const bool load_saved)
     destroy_first_and_create<SINGLE_CombatState>(r);
     destroy_first_and_create<SINGLE_TurnBasedCombatInfo>(r);
     destroy_first_and_create<SINGLE_UI_Lootbag>(r);
+    destroy_first_and_create<Effect_GridComponent>(r);
 
     // destroy_first_and_create<Effect_DoBloom>(r);
-    // destroy_first_and_create<Effect_GridComponent>(r);
     // create_empty<AudioRequestPlayEvent>(r, AudioRequestPlayEvent{ "COMBAT_01" });
 
     if (get_first<OverworldToDungeonInfo>(r) == entt::null) {

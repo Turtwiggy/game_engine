@@ -1,9 +1,9 @@
 #pragma once
 
-#include "entt/entt.hpp"
-#include "maths/maths.hpp"
+#include <entt/entt.hpp>
 
-#include <functional>
+#include <glm/glm.hpp>
+
 #include <vector>
 
 namespace game2d {
@@ -13,27 +13,16 @@ namespace game2d {
 // the wall goes 90 degrees between them
 struct Edge
 {
-  int a_idx = 0;
-  int b_idx = 0;
-  entt::entity instance = entt::null;
+  glm::ivec2 gp_a{ 0, 0 };
+  glm::ivec2 gp_b{ 0, 0 };
 };
 
 inline bool
 operator==(const Edge& a, const Edge& b)
 {
-  const auto eq_a = (a.a_idx == b.a_idx && a.b_idx == b.b_idx);
-  const auto eq_b = (a.a_idx == b.b_idx && a.b_idx == b.a_idx);
-  return eq_a || eq_b;
-};
-
-struct EdgeHash
-{
-  size_t operator()(const Edge& s) const
-  {
-    std::size_t h1 = std::hash<int>{}(s.a_idx);
-    std::size_t h2 = std::hash<int>{}(s.b_idx);
-    return h1 ^ (h2 << 1); // or use boost::hash_combine
-  };
+  const bool cond_a = a.gp_a == b.gp_a && a.gp_b == b.gp_b;
+  const bool cond_b = a.gp_a == b.gp_b && a.gp_b == b.gp_a;
+  return cond_a || cond_b;
 };
 
 struct MapComponent
@@ -43,7 +32,6 @@ struct MapComponent
   int tilesize = 50;
 
   std::vector<std::vector<entt::entity>> map;
-  std::vector<Edge> edges;
 };
 
 } // namespace game2d

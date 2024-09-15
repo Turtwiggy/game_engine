@@ -1,4 +1,5 @@
 #include "grid.hpp"
+#include "modules/grid/components.hpp"
 
 namespace engine {
 
@@ -103,8 +104,6 @@ index_to_grid_position(const int index, const int x_max, const int y_max)
   return { x, y };
 };
 
-};
-
 engine::grid::GridDirection
 which_quadrant_is_b(const glm::ivec2& a, const glm::ivec2& b)
 {
@@ -153,4 +152,21 @@ dir_is_in_quadrant(const glm::ivec2& dir, const engine::grid::GridDirection& dir
   return which_quadrant_is_b({ 0, 0 }, dir) == direction;
 };
 
-} // namespace game2d
+bool
+grid_position_in_bounds(const glm::ivec2& gp, const int x_max, const int y_max)
+{
+  if (gp.x < 0)
+    return false;
+  if (gp.x > x_max - 1)
+    return false;
+  if (gp.y < 0)
+    return false;
+  if (gp.y > y_max - 1)
+    return false;
+
+  return true;
+};
+
+} // namespace grid
+
+} // namespace engine

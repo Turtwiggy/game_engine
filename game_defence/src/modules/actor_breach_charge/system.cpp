@@ -87,8 +87,8 @@ update_breach_charge_system(entt::registry& r, const glm::ivec2& mouse_pos, cons
     return;
 
   // only place bombs if bomb equipped
-  const auto [has_bomb, bomb_e] = bomb_equipped_in_inventory(r);
-  if (!has_bomb)
+  const auto bomb_e = bomb_equipped_in_inventory(r);
+  if (bomb_e == entt::null)
     return;
 
   static float lmb_held_time = 0.0f;
@@ -109,7 +109,7 @@ update_breach_charge_system(entt::registry& r, const glm::ivec2& mouse_pos, cons
   const float angle = engine::scale(lmb_held_time, 0.0f, lmb_time_to_place_bomb, 0.0f, 2.0f * engine::PI);
   DrawZeldaCursorWindow(r, mouse_pos, angle);
 
-  if (cursor_complete_so_place_bomb && has_bomb && bomb_e != entt::null) {
+  if (cursor_complete_so_place_bomb) {
     fmt::println("spawning bomb!");
 
     // spawn the bomb!

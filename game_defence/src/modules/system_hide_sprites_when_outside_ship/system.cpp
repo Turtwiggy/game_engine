@@ -30,15 +30,15 @@ update_hide_sprites_when_outside_ship_system(entt::registry& r)
   const auto player_pos = get_position(r, player_e);
   const auto player_gridpos = engine::grid::worldspace_to_grid_space(player_pos, map.tilesize);
 
-  const auto [in_room, room] = inside_room(map, dungeon.rooms, player_gridpos);
-  const auto in_tunnel = inside_tunnels(dungeon.tunnels, player_gridpos).size() > 0;
-  const bool outside_ship = !in_room && !in_tunnel;
+  const auto rooms = inside_room(r, player_gridpos);
+  const bool in_room = rooms.size() > 0;
+  const bool outside_ship = !in_room;
   const bool player_in_ship = r.try_get<PlayerInShipComponent>(player_e) != NULL;
 
   const bool player_moved_inside_ship = !outside_ship && !player_in_ship;
   if (player_moved_inside_ship) {
     fmt::println("player moved inside ship");
-    r.emplace<PlayerJustMovedIntoShipComponent>(player_e);
+    r.emplace_or_replace<PlayerJustMovedIntoShipComponent>(player_e);
   }
 
   if (outside_ship)

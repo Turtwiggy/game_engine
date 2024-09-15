@@ -35,9 +35,9 @@ update_go_from_jetpack_to_dungeon_system(entt::registry& r)
     const auto gp = engine::grid::worldspace_to_grid_space(pos, map.tilesize);
 
     // check if outside ship
-    const auto [in_room, room_opt] = inside_room(map, dungeon.rooms, gp);
-    const bool in_tunnels = inside_tunnels(dungeon.tunnels, gp).size() > 0;
-    if (!in_room && !in_tunnels)
+    const auto rooms = inside_room(r, gp);
+    const bool in_room = rooms.size() > 0;
+    if (!in_room)
       continue;
 
     const auto worldspace_pos = get_position(r, e);
