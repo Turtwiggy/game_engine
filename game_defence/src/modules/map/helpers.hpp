@@ -1,7 +1,5 @@
 #pragma once
 
-#include "modules/grid/components.hpp"
-
 #include <entt/entt.hpp>
 #include <glm/glm.hpp>
 
@@ -12,6 +10,9 @@ namespace game2d {
 struct MapInfo
 {
   int idx_in_map = 0;
+
+  // each gridcell can have multiple entries
+  // idx_in_map_tile is the index in the std::vector<entity>
   int idx_in_map_tile = 0;
 };
 

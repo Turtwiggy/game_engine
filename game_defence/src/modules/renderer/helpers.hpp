@@ -37,4 +37,7 @@ search_for_texture_id_by_spritesheet_path(const SINGLE_RendererInfo& ri, const s
 int
 search_for_renderpass_by_name(const SINGLE_RendererInfo& ri, const PassName& name);
 
+void
+set_z_index(entt::registry& r, const entt::entity e, const ZLayer& layer);
+
 }; // namespace game2d

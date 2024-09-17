@@ -269,7 +269,8 @@ void main()
 		col *= 1.0f - AO(dist, 1.0f, 0.8f);
 	}
 
-	// light
+	// lights
+	//
 	for(int i = 0; i < MAX_LIGHTS; i++)
 	{
 		Light l = lights[i];
@@ -288,15 +289,8 @@ void main()
 
 		col += drawLight(p, l.position, l.colour, dist, 450.0, 12.0);
 	}
-
-	// shape fill
-	// col = mix(col, vec4(1.0, 0.4, 0.0, 1.0), fillMask(dist));
-	// shape outline
-	// col = mix(col, vec4(0.1, 0.1, 0.1, 1.0), innerBorderMask(dist, 0.15));
-
 	col = clamp(col, 0.0, 1.0);
 
-	//
 	// sdf circles for oxygen
 	//
 	vec3 circle_col = vec3(1.0f);
@@ -354,10 +348,8 @@ void main()
 	if(floor_mask >= 0.95 ){
 		scene_debris_lin = vec3(0.0f);
 	}
-
 	final_lin += scene_debris_lin;
 
-	//
 	// sdf grid	
 	//
 	if(add_grid) {
@@ -369,6 +361,7 @@ void main()
 			float aspect_y = viewport_wh.y / viewport_wh.x;
 			
 			vec2 grid_uv = (2.0 * v_uv - 1.0);
+			grid_uv.y = -grid_uv.y;
 			grid_uv += camera_uv;
 			grid_uv.y *= aspect_y;
 
@@ -389,7 +382,7 @@ void main()
 
 	// lighting
 	vec3 lighting_lin = srgb_to_lin(vec3(col.r * 255.0f, col.g * 255.0f, col.b * 255.0f));
-	final_lin *= lighting_lin;
+	// final_lin *= lighting_lin;
 
 	vec3 srgb_final = lin_to_srgb(final_lin);
 	// vec3 srgb_final = lin_to_srgb(scene_lin.rgb);

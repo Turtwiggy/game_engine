@@ -1,10 +1,10 @@
 #include "helpers.hpp"
 
 #include "components.hpp"
+#include "engine/algorithm_astar_pathfinding/helpers.hpp"
 #include "engine/entt/helpers.hpp"
 #include "engine/lifecycle/components.hpp"
 #include "modules/actor_lootbag/components.hpp"
-#include "modules/algorithm_astar_pathfinding/helpers.hpp"
 
 #include <fmt/core.h>
 

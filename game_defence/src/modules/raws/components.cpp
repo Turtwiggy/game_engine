@@ -9,6 +9,9 @@
 #include "engine/sprites/components.hpp"
 #include "engine/sprites/helpers.hpp"
 #include "modules/colour/components.hpp"
+#include "modules/renderer/components.hpp"
+#include "modules/renderer/helpers.hpp"
+#include "modules/renderer/lights/components.hpp"
 #include "modules/system_cooldown/components.hpp"
 #include "modules/system_move_to_target_via_lerp/components.hpp"
 
@@ -32,7 +35,7 @@ load_raws(std::string path)
 };
 
 entt::entity
-create_transform(entt::registry& r, std::string name)
+create_transform(entt::registry& r, const std::string& name)
 {
   const auto e = r.create();
   r.emplace<TagComponent>(e, name);
@@ -97,6 +100,8 @@ spawn_mob(entt::registry& r, const std::string& key, const glm::vec2& pos)
   r.emplace<TagComponent>(e, item_template.name);
   r.emplace<WaitForInitComponent>(e);
 
+  float size = 16;
+
   // create_transform()
   {
     r.emplace<SpriteComponent>(e);
@@ -106,7 +111,7 @@ spawn_mob(entt::registry& r, const std::string& key, const glm::vec2& pos)
 
     TransformComponent tf;
     tf.position = { pos.x, pos.y, 0.0f };
-    tf.scale = { 16, 16, 0.0f };
+    tf.scale = { size, size, 0.0f };
     r.emplace<TransformComponent>(e, tf);
   }
 
@@ -115,7 +120,7 @@ spawn_mob(entt::registry& r, const std::string& key, const glm::vec2& pos)
     PhysicsDescription pdesc;
     pdesc.type = b2_dynamicBody;
     pdesc.position = pos;
-    pdesc.size = { 16, 16 };
+    pdesc.size = { size, size };
     pdesc.is_sensor = false;
     create_physics_actor(r, e, pdesc);
   }
@@ -181,6 +186,38 @@ spawn_particle(entt::registry& r, const std::string& key, const Particle& desc)
 
   set_position(r, e, desc.position);
   return e;
+};
+
+entt::entity
+spawn_wall(entt::registry& r, const std::string& key, const glm::vec2& pos, const glm::vec2& size)
+{
+  auto e = create_transform(r, "wall");
+  r.emplace<SpriteComponent>(e);
+  set_sprite(r, e, "EMPTY");
+  set_size(r, e, size);
+
+  create_physics_actor_static(r, e, pos, size);
+  r.emplace<LightOccluderComponent>(e);
+  // r.emplace<DestroyBulletOnCollison>(e);
+  // r.emplace<RequestParticleOnCollision>(e);
+
+  set_colour(r, e, { 1.0f, 0.0f, 0.0f, 1.0f });
+  return e;
+};
+
+entt::entity
+spawn_floor(entt::registry& r, const std::string& key, const glm::vec2& pos, const glm::vec2& size)
+{
+  const auto floor_e = create_transform(r, "floor");
+  r.emplace<DefaultColour>(floor_e, engine::SRGBColour{ 0.5f, 0.5f, 0.5f, 1.0f });
+  r.emplace<SpriteComponent>(floor_e);
+  set_sprite(r, floor_e, "EMPTY");
+  set_position(r, floor_e, pos);
+  set_size(r, floor_e, size);
+  set_colour(r, floor_e, r.get<DefaultColour>(floor_e).colour);
+  set_z_index(r, floor_e, ZLayer::BACKGROUND);
+  r.emplace<FloorComponent>(floor_e);
+  return floor_e;
 };
 
 } // namespace game2d

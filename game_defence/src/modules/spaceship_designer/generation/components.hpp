@@ -1,10 +1,10 @@
 #pragma once
 
-#include "helpers/line.hpp"
-
 #include <entt/entt.hpp>
-#include <glm/fwd.hpp>
 #include <glm/glm.hpp>
+
+#include <optional>
+#include <vector>
 
 namespace game2d {
 
@@ -29,11 +29,6 @@ operator==(const Room& a, const Room& b)
   return a.tiles_idx == b.tiles_idx;
 };
 
-struct RequestGenerateDungeonComponent
-{
-  bool placeholder = true;
-};
-
 struct DungeonGenerationCriteria
 {
   int max_rooms = 300;
@@ -48,7 +43,7 @@ struct DungeonGenerationResults
   std::vector<entt::entity> floor_tiles;
 };
 
-struct FloorComponent
+struct RequestGenerateDungeonComponent
 {
   bool placeholder = true;
 };

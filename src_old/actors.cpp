@@ -117,27 +117,6 @@ add_components(entt::registry& r, const entt::entity e, const DataBreachCharge& 
   add_bomb_callback(r, e);
 };
 
-void
-add_components(entt::registry& r, const entt::entity e, const DataSolidWall& desc)
-{
-  create_physics_actor_static(r, e, desc.pos, desc.size);
-  r.emplace<LightOccluderComponent>(e);
-  r.emplace<DestroyBulletOnCollison>(e);
-  r.emplace<RequestParticleOnCollision>(e);
-};
-
-void
-remove_components(entt::registry& r, const entt::entity e, const DataJetpackActor& desc)
-{
-  r.remove<MovementJetpackComponent>(e);
-  r.remove<DefaultColour>(e);
-  r.remove<TeamComponent>(e);
-
-  auto& physics_c = get_first_component<SINGLE_Physics>(r);
-  physics_c.world->DestroyBody(r.get<PhysicsBodyComponent>(e).body);
-  r.remove<PhysicsBodyComponent>(e);
-};
-
 //
 // factories
 //
@@ -239,17 +218,6 @@ Factory_DataSpaceCapsuleActor::create(entt::registry& r, const DataSpaceCapsuleA
   pdesc.size = HALF_SIZE;
   pdesc.is_sensor = true;
   create_physics_actor(r, e, pdesc);
-
-  set_position(r, e, desc.pos);
-  return e;
-};
-
-entt::entity
-Factory_DataSolidWall::create(entt::registry& r, const DataSolidWall& desc)
-{
-  const auto e = Factory_BaseActor::create(r, desc, typeid(desc).name());
-
-  add_components(r, e, desc);
 
   set_position(r, e, desc.pos);
   return e;

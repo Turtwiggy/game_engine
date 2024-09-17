@@ -38,5 +38,4 @@ main()
   // out_colour = vec4(1.0f) - O;
   out_colour.rgb = O.rgb;
   out_colour.a = 1.0f;
-  return;
 }

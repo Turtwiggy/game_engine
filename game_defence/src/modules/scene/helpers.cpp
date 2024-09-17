@@ -15,6 +15,7 @@
 #include "modules/camera/components.hpp"
 #include "modules/combat/components.hpp"
 #include "modules/raws/components.hpp"
+#include "modules/renderer/components.hpp"
 #include "modules/scene_splashscreen_move_to_menu/components.hpp"
 #include "modules/ui_scene_main_menu/components.hpp"
 
@@ -144,8 +145,9 @@ move_to_scene_start(entt::registry& r, const Scene& s)
 {
   for (const std::tuple<entt::entity>& ent_tuple : r.storage<entt::entity>().each()) {
     const auto& [e] = ent_tuple;
-    if (r.try_get<Persistent>(e) == nullptr)
-      r.destroy(e);
+    if (const auto* p_c = r.try_get<Persistent>(e))
+      continue;
+    r.destroy(e);
   };
 
   // box2d to handle it's own cleanup
@@ -181,7 +183,6 @@ move_to_scene_start(entt::registry& r, const Scene& s)
 
   if (s == Scene::menu) {
     create_empty<SINGLE_MainMenuUI>(r);
-
     // destroy_first_and_create<Effect_GridComponent>(r);
     // create_empty<AudioRequestPlayEvent>(r, AudioRequestPlayEvent{ "MENU_01", true });
 
@@ -203,10 +204,11 @@ move_to_scene_start(entt::registry& r, const Scene& s)
   }
 
   if (s == Scene::dungeon_designer) {
+    create_empty<CameraFreeMove>(r);
+    create_empty<Effect_GridComponent>(r);
     // destroy_first_and_create<SINGLE_CombatState>(r);
     // destroy_first_and_create<SINGLE_TurnBasedCombatInfo>(r);
     // destroy_first_and_create<SINGLE_UI_Lootbag>(r);
-    // destroy_first_and_create<Effect_GridComponent>(r);
 
     // TEMP: add info in the event console on how to play.
     // auto& evts = get_first_component<SINGLE_EventConsoleLogComponent>(r);
@@ -214,30 +216,6 @@ move_to_scene_start(entt::registry& r, const Scene& s)
     // evts.events.push_back("Press E to open/close inventory.");
     // evts.events.push_back("Press R to open/close loot");
     // evts.events.push_back("Left click to perform item action.");
-
-    // {
-    //   PhysicsDescription pdesc;
-    //   pdesc.type = b2_dynamicBody;
-    //   pdesc.position = desc.pos;
-    //   pdesc.size = size;
-    //   pdesc.is_sensor = false;
-    //   create_physics_actor(r, e, pdesc);
-    //   r.get<PhysicsBodyComponent>(e).base_speed = 100.0f;
-    //   if (desc.team == AvailableTeams::player) {
-    //     r.emplace<PlayerComponent>(e);
-    //     r.emplace<TeamComponent>(e, AvailableTeams::player);
-    //     r.emplace<InputComponent>(e);
-    //     r.emplace<KeyboardComponent>(e);
-    //     r.emplace<DefaultBody>(e, DefaultBody(r));
-    //     r.emplace<DefaultInventory>(e, DefaultInventory(r, 6 * 5));
-    //     r.emplace<InitBodyAndInventory>(e);
-    //     r.emplace<MovementJetpackComponent>(e);
-    //     // add_particles()
-    //     DataParticleEmitter pedesc;
-    //     pedesc.parent = e;
-    //     pedesc.colour = engine::SRGBColour{ 255, 255, 117, 1.0f };
-    //     auto particle_e = Factory_DataParticleEmitter::create(r, pedesc);
-    // }
   }
 
   auto& scene = get_first_component<SINGLE_CurrentScene>(r);

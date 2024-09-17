@@ -8,8 +8,6 @@
 #include "engine/physics/components.hpp"
 #include "modules/system_particles/components.hpp"
 
-#include "imgui.h"
-
 namespace game2d {
 
 // https://www.youtube.com/watch?v=LSNQuFEDOyQ
@@ -118,7 +116,7 @@ update_move_to_target_via_lerp(entt::registry& r, const float& dt)
     transform_c.position.y += vel.y * dt;
   }
 
-  ImGui::Text("particles: %zu", particle_view.size_hint());
+  // ImGui::Text("particles: %zu", particle_view.size_hint());
 }
 
 } // namespace game2d

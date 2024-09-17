@@ -22,6 +22,7 @@
 #include "modules/scene/helpers.hpp"
 #include "modules/scene_splashscreen_move_to_menu/system.hpp"
 #include "modules/system_cooldown/system.hpp"
+#include "modules/system_distance_check/system.hpp"
 #include "modules/system_move_to_target_via_lerp/system.hpp"
 #include "modules/system_particles/system.hpp"
 #include "modules/system_physics_apply_force/system.hpp"
@@ -30,6 +31,7 @@
 #include "modules/ui_pause_menu/system.hpp"
 #include "modules/ui_raws/system.hpp"
 #include "modules/ui_scene_main_menu/system.hpp"
+#include "modules/ui_spaceship_designer/system.hpp"
 #include "resources/resources.hpp"
 
 namespace game2d {
@@ -133,9 +135,9 @@ update(engine::SINGLE_Application& app, entt::registry& r, const uint64_t millis
   update_cooldown_system(r, milliseconds_dt);
   update_move_to_target_via_lerp(r, dt);
   update_particle_system(r, dt);
+  update_distance_check_system(r);
   // update_change_gun_colour_system(r);
   // update_change_gun_z_index_system(r);
-  // update_distance_check_system(r);
   // update_quips_system(r);
   // update_spawn_particles_on_death_system(r);
   // update_weapon_shotgun_system(r, milliseconds_dt);
@@ -168,6 +170,13 @@ update(engine::SINGLE_Application& app, entt::registry& r, const uint64_t millis
   update_ui_fps_counter_system(r);
   update_ui_raws_system(r);
   update_ui_pause_menu_system(app, r);
+
+  if (scene.s == Scene::menu)
+    update_ui_scene_main_menu(app, r);
+
+  if (scene.s == Scene::dungeon_designer)
+    update_ui_spaceship_designer_system(r, mouse_pos, dt);
+
   // update_ui_worldspace_text_system(r);
   // update_ui_worldspace_sprite_system(r);
   // update_ui_gameover_system(r);
@@ -180,9 +189,6 @@ update(engine::SINGLE_Application& app, entt::registry& r, const uint64_t millis
   // update_ui_lootbag_system(r);
   // update_ui_launch_crew_system(r);
   // update_ui_overworld_shiplabel_system(r);
-
-  if (scene.s == Scene::menu)
-    update_ui_scene_main_menu(app, r);
 
   static bool show_settings_ui = true;
   if (show_settings_ui) {

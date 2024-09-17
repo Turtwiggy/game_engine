@@ -13,7 +13,6 @@
 #include "modules/system_move_to_target_via_lerp/components.hpp"
 #include "orthographic.hpp"
 
-
 #include <glm/glm.hpp>
 
 namespace game2d {
@@ -84,6 +83,10 @@ update_camera_system(entt::registry& r, const float dt)
   screen_offset.position.x = screen_x + screen_offset.position.x;
   screen_offset.position.y = screen_y + screen_offset.position.y;
   camera.view = calculate_ortho_view(screen_offset, dt);
+
+  // no zooming unless on the viewport
+  if (!ri.viewport_hovered)
+    return;
 
   static float zoom = 0.0f;
   static float zoom_nonlinear = 0.0f;

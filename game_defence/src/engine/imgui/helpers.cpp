@@ -65,14 +65,17 @@ imgui_draw_bool(const std::string& label, bool& v)
     v = v_temp;
 };
 
-void
+bool
 imgui_draw_int(const std::string& label, int& v)
 {
   int v_temp = v;
   ImGui::Text("%s", label.c_str());
   ImGui::SameLine();
-  if (ImGui::DragInt((std::string("##") + label).c_str(), &v_temp))
+  if (ImGui::DragInt((std::string("##") + label).c_str(), &v_temp)) {
     v = v_temp;
+    return true;
+  }
+  return false;
 };
 
 void
@@ -203,6 +206,9 @@ imgui_draw_entity(entt::registry& r,        //
     }
     ImGui::EndPopup();
   }
+
+  if (delete_entity)
+    r.destroy(e);
 };
 
 } // namespace game2d

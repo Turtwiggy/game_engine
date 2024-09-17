@@ -1,14 +1,11 @@
 #pragma once
 
+#include "components.hpp"
 #include "engine/maths/maths.hpp"
-#include "helpers/line.hpp"
-#include "modules/gen_dungeons/components.hpp"
-#include "modules/grid/components.hpp"
-
+#include "modules/map/components.hpp"
 
 #include <entt/entt.hpp>
-
-#include <vector>
+#include <glm/glm.hpp>
 
 namespace game2d {
 
@@ -18,20 +15,10 @@ generate_rooms(entt::registry& r, const DungeonGenerationCriteria& data, engine:
 void
 connect_rooms_via_nearest_neighbour(entt::registry& r, DungeonGenerationResults& result);
 
-//
-
 std::vector<entt::entity>
 inside_room(entt::registry& r, const glm::ivec2& gridpos);
 
-//
-
-void
-generate_edges(entt::registry& r, MapComponent& map, const DungeonGenerationResults& result);
-
-void
-instantiate_edges(entt::registry& r, MapComponent& map);
-
-void
-instantiate_doors(entt::registry& r, MapComponent& map);
+std::vector<int>
+get_free_slots_idxs(const MapComponent& map_c, const Room& room);
 
 } // namespace game2d

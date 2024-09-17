@@ -2,6 +2,7 @@
 #include "helpers.hpp"
 
 #include "components.hpp"
+#include "engine/renderer/transform.hpp"
 
 #include <imgui.h>
 #include <imgui_internal.h>
@@ -187,6 +188,12 @@ search_for_renderpass_by_name(const SINGLE_RendererInfo& ri, const PassName& nam
   const auto type_name = std::string(magic_enum::enum_name(name));
   fmt::println("no render pass of name: {}", type_name);
   exit(1); // explode
+};
+
+void
+set_z_index(entt::registry& r, const entt::entity e, const ZLayer& layer)
+{
+  r.get<TransformComponent>(e).z_index = static_cast<int>(layer);
 };
 
 } // namespace game2d

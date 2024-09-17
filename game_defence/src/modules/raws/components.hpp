@@ -237,6 +237,9 @@ Raws
 load_raws(std::string path);
 
 entt::entity
+create_transform(entt::registry& r, const std::string& name);
+
+entt::entity
 spawn_item(entt::registry& r, const std::string& key, const glm::vec2& pos);
 
 entt::entity
@@ -247,5 +250,11 @@ spawn_particle_emitter(entt::registry& r, const std::string& key, const glm::vec
 
 entt::entity
 spawn_particle(entt::registry& r, const std::string& key, const Particle& desc);
+
+entt::entity
+spawn_wall(entt::registry& r, const std::string& key, const glm::vec2& pos, const glm::vec2& size);
+
+entt::entity
+spawn_floor(entt::registry& r, const std::string& key, const glm::vec2& pos, const glm::vec2& size);
 
 } // namespace game2d
