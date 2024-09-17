@@ -4,12 +4,14 @@
 #include "engine/audio/system.hpp"
 #include "engine/entt/helpers.hpp"
 #include "engine/events/components.hpp"
+#include "engine/events/helpers/keyboard.hpp"
 #include "engine/events/system.hpp"
 #include "engine/lifecycle/system.hpp"
 #include "engine/physics/system.hpp"
 #include "engine/sprites/components.hpp"
 #include "engine/sprites/helpers.hpp"
 #include "game_state.hpp"
+#include "modules/actor_player/system.hpp"
 #include "modules/camera/helpers.hpp"
 #include "modules/camera/orthographic.hpp"
 #include "modules/camera/system.hpp"
@@ -19,6 +21,9 @@
 #include "modules/scene/components.hpp"
 #include "modules/scene/helpers.hpp"
 #include "modules/scene_splashscreen_move_to_menu/system.hpp"
+#include "modules/system_cooldown/system.hpp"
+#include "modules/system_move_to_target_via_lerp/system.hpp"
+#include "modules/system_particles/system.hpp"
 #include "modules/system_physics_apply_force/system.hpp"
 #include "modules/ui_fps_counter/system.hpp"
 #include "modules/ui_hierarchy/system.hpp"
@@ -80,10 +85,10 @@ duplicate_held_input(SINGLE_FixedUpdateInputHistory& fixed_input)
 };
 
 void
-fixed_update(engine::SINGLE_Application& app, entt::registry& game, const uint64_t milliseconds_dt)
+fixed_update(engine::SINGLE_Application& app, entt::registry& r, const uint64_t milliseconds_dt)
 {
-  auto& input = get_first_component<SINGLE_InputComponent>(game);
-  auto& fixed_input = get_first_component<SINGLE_FixedUpdateInputHistory>(game);
+  auto& input = get_first_component<SINGLE_InputComponent>(r);
+  auto& fixed_input = get_first_component<SINGLE_FixedUpdateInputHistory>(r);
 
   // move inputs from Update() to this FixedUpdate() tick
   fixed_input.history[fixed_input.fixed_tick] = std::move(input.unprocessed_inputs);
@@ -100,37 +105,37 @@ fixed_update(engine::SINGLE_Application& app, entt::registry& game, const uint64
   fixed_input.history.clear();
   fixed_input.history[fixed_input.fixed_tick] = std::move(inputs);
 
-  auto& state = get_first_component<SINGLE_GameStateComponent>(game);
+  auto& state = get_first_component<SINGLE_GameStateComponent>(r);
   if (state.state == GameState::PAUSED)
     return; // note: this ignores inputs
 
   // destroy/create objects
-  update_lifecycle_system(game, milliseconds_dt);
-  update_physics_apply_force_system(game);
-  update_physics_system(game, milliseconds_dt);
+  update_lifecycle_system(r, milliseconds_dt);
+  update_physics_apply_force_system(r);
+  update_physics_system(r, milliseconds_dt);
   // update_resolve_collisions_system(game);
   // update_take_damage_system(game);                        // after colls
-  // update_player_controller_system(game, milliseconds_dt); // input => actions
+  update_player_controller_system(r, milliseconds_dt); // input => actions
 
   fixed_input.fixed_tick += 1;
 };
 
 void
-update(engine::SINGLE_Application& app, entt::registry& r, const float dt)
+update(engine::SINGLE_Application& app, entt::registry& r, const uint64_t milliseconds_dt)
 {
   const auto& scene = get_first_component<SINGLE_CurrentScene>(r);
+  const float dt = milliseconds_dt / 1000.0f;
 
   const auto mouse_pos = mouse_position_in_worldspace(r);
   update_input_system(app, r); // sets update_since_last_fixed_update
   update_camera_system(r, dt);
   update_audio_system(r);
-
-  // update_attack_cooldown_system(r, milliseconds_dt);
+  update_cooldown_system(r, milliseconds_dt);
+  update_move_to_target_via_lerp(r, dt);
+  update_particle_system(r, dt);
   // update_change_gun_colour_system(r);
   // update_change_gun_z_index_system(r);
   // update_distance_check_system(r);
-  // update_move_to_target_via_lerp(r, dt);
-  // update_particle_system(r, dt);
   // update_quips_system(r);
   // update_spawn_particles_on_death_system(r);
   // update_weapon_shotgun_system(r, milliseconds_dt);
@@ -187,6 +192,17 @@ update(engine::SINGLE_Application& app, entt::registry& r, const float dt)
     // update_ui_controller_system(r);
     // update_ui_collisions_system(r);
   }
+
+#if defined(_DEBUG)
+  // hack: reload RAWS
+  // note: this doesnt update anything already spawned from raws data
+  const auto& input = get_first_component<SINGLE_InputComponent>(r);
+  if (get_key_down(input, SDL_SCANCODE_9)) {
+    fmt::println("reloading raws...");
+    destroy_first<Raws>(r);
+    create_persistent<Raws>(r, load_raws("assets/raws/items.json"));
+  }
+#endif
 
   end_frame_render_system(r);
 };

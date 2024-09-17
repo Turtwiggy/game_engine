@@ -82,6 +82,11 @@
   ],
   "mobs": [
     {
+      "name": "spaceship_player",
+      "renderable": { "sprite": "SPACE_VEHICLE_1", "colour": { "r": 255, "g": 255, "b": 255 } },
+      "stats": { "max_hp": 100, "hp": 100 }
+    },
+    {
       "name": "dungeon_actor_hero",
       "renderable": { "sprite": "PERSON_25_0", "colour": { "r": 255, "g": 255, "b": 255 } },
       "stats": { "max_hp": 100, "hp": 100 }

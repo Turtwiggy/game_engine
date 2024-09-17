@@ -1,7 +1,5 @@
 #pragma once
 
-#include "actors/actors.hpp"
-
 #include <entt/entt.hpp>
 #include <glm/glm.hpp>
 
@@ -12,9 +10,8 @@ struct Particle
   int time_to_live_ms = 3 * 1000;
   float start_size = 10;
   float end_size = 10;
+  glm::vec2 position{ 0, 0 }; // seems wrong
   glm::vec2 velocity{ 0, 0 };
-  // int amount = 1;
-  // bool slightly_change_velocity = false;
   // not implemented
   // engine::SRGBColour start_colour;
   // engine::SRGBColour end_colour;
@@ -37,7 +34,7 @@ struct ParticleEmitter
 // CooldownComponent
 
 // used by non-physics body components
-struct VelocityTemporaryComponent
+struct VelocityComponent
 {
   float x = 0;
   float y = 0;

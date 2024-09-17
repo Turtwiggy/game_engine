@@ -1,28 +1,28 @@
 #include "system.hpp"
 
-#include "actors/actors.hpp"
 #include "actors/helpers.hpp"
 #include "components.hpp"
 #include "engine/lifecycle/components.hpp"
 #include "engine/maths/maths.hpp"
 #include "engine/renderer/transform.hpp"
-#include "modules/combat_attack_cooldown/components.hpp"
-#include "modules/combat_attack_cooldown/helpers.hpp"
-#include "modules/combat_wants_to_shoot/components.hpp"
-
+#include "modules/raws/components.hpp"
+#include "modules/system_cooldown/components.hpp"
+#include "modules/system_cooldown/helpers.hpp"
+#include "modules/system_move_to_target_via_lerp/components.hpp"
 
 namespace game2d {
 
 void
 update_particle_system(entt::registry& r, const float dt)
 {
-  const auto spawn_particle = [&r](ParticleEmitterComponent& emitter, const entt::entity e) {
+  const auto spawn_particle_helper = [&r](const ParticleEmitterComponent& emitter, const entt::entity e) {
     // per-instance? seems bad
     auto particle_description = emitter.particle_to_emit;
 
     // instead of spawning at emitter position, spawn at parent position
+    particle_description.position = get_position(r, e);
     if (auto* target_c = r.try_get<DynamicTargetComponent>(e))
-      particle_description.pos = get_position(r, target_c->target);
+      particle_description.position = get_position(r, target_c->target);
 
     if (emitter.random_velocity) {
       static engine::RandomState rnd;
@@ -31,29 +31,35 @@ update_particle_system(entt::registry& r, const float dt)
       particle_description.velocity = glm::ivec2{ rnd_x, rnd_y };
     }
 
-    Factory_DataParticle::create(r, particle_description);
-
-    // limit number of particles spawned
-    if (emitter.expires) {
-      emitter.particles_to_spawn_before_emitter_expires -= 1;
-      if (emitter.particles_to_spawn_before_emitter_expires < 0) {
-        r.destroy(e); // emitter expired!
-        return;
-      }
-    }
+    Particle p;
+    p.position = particle_description.position;
+    p.start_size = particle_description.start_size;
+    p.end_size = particle_description.end_size;
+    p.time_to_live_ms = particle_description.time_to_live_ms;
+    spawn_particle(r, "default_particle", p);
   };
 
   // spawn the particles
-  const auto& view = r.view<ParticleEmitterComponent, AttackCooldownComponent>(entt::exclude<WaitForInitComponent>);
+  const auto& view = r.view<ParticleEmitterComponent, CooldownComponent>(entt::exclude<WaitForInitComponent>);
   for (const auto& [e, emitter, cooldown] : view.each()) {
 
     if (!cooldown.on_cooldown) {
 
       if (emitter.spawn_all_particles_at_once) {
-        for (int i = 0; i < emitter.particles_to_spawn_before_emitter_expires; i++)
-          spawn_particle(emitter, e);
-      } else
-        spawn_particle(emitter, e);
+        for (int i = 0; i < emitter.particles_to_spawn_before_emitter_expires; i++) {
+          spawn_particle_helper(emitter, e);
+          emitter.particles_to_spawn_before_emitter_expires--;
+        }
+      } else {
+        spawn_particle_helper(emitter, e);
+        emitter.particles_to_spawn_before_emitter_expires--;
+      }
+
+      // limit number of particles spawned
+      if (emitter.expires && emitter.particles_to_spawn_before_emitter_expires < 0) {
+        r.destroy(e); // emitter expired!
+        continue;
+      }
 
       reset_cooldown(cooldown);
     }
@@ -80,8 +86,5 @@ update_particle_system(entt::registry& r, const float dt)
     }
   }
 };
-
-// todo: lerp particle colours?
-//
 
 } // namespace game2d

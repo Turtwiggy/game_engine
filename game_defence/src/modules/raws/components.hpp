@@ -2,6 +2,7 @@
 
 #include "engine/colour/colour.hpp"
 #include "engine/entt/helpers.hpp"
+#include "modules/system_particles/components.hpp"
 
 #include <entt/entt.hpp>
 #include <glm/glm.hpp>
@@ -237,5 +238,14 @@ load_raws(std::string path);
 
 entt::entity
 spawn_item(entt::registry& r, const std::string& key, const glm::vec2& pos);
+
+entt::entity
+spawn_mob(entt::registry& r, const std::string& key, const glm::vec2& pos);
+
+entt::entity
+spawn_particle_emitter(entt::registry& r, const std::string& key, const glm::vec2& pos, entt::entity& parent);
+
+entt::entity
+spawn_particle(entt::registry& r, const std::string& key, const Particle& desc);
 
 } // namespace game2d

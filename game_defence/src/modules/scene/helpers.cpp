@@ -1,5 +1,6 @@
 #include "helpers.hpp"
 
+#include "actors/helpers.hpp"
 #include "components.hpp"
 #include "engine/entt/helpers.hpp"
 #include "engine/events/components.hpp"
@@ -7,8 +8,13 @@
 #include "engine/physics/components.hpp"
 #include "engine/physics/helpers.hpp"
 #include "engine/renderer/transform.hpp"
+#include "engine/sprites/components.hpp"
+#include "engine/sprites/helpers.hpp"
 #include "game_state.hpp"
+#include "modules/actor_player/components.hpp"
 #include "modules/camera/components.hpp"
+#include "modules/combat/components.hpp"
+#include "modules/raws/components.hpp"
 #include "modules/scene_splashscreen_move_to_menu/components.hpp"
 #include "modules/ui_scene_main_menu/components.hpp"
 
@@ -32,34 +38,6 @@ add_player_shotgun(entt::registry& r, const entt::entity& e)
   r.emplace<HasWeaponComponent>(e, has_weapon);
 
   return weapon_e;
-};
-
-void
-create_player_if_not_in_scene(entt::registry& r)
-{
-  if (get_first<PlayerComponent>(r) != entt::null)
-    return;
-
-  const auto& ri = get_first_component<SINGLE_RendererInfo>(r);
-
-  // As the camera is at 0, 0,
-  // worldspace text around the camera would be from e.g. -width/2 to width/2
-  const auto half_wh = ri.viewport_size_render_at / glm::ivec2(2.0f, 2.0f);
-
-  // create a player for an interactive menu
-  DataSpaceShipActor desc;
-  desc.pos = { half_wh.x, 0 };
-  desc.colour = { 255, 255, 117, 1.0f };
-  desc.team = AvailableTeams::player;
-  const auto player_e = Factory_DataSpaceShipActor::create(r, desc);
-  r.emplace<CameraFollow>(player_e);
-
-  // drag cargo around
-  auto ships_opt = get_string(SPACESHIP_COUNT);
-  if (ships_opt.has_value()) {
-    fmt::println("you've beaten {} ships", ships_opt.value());
-    create_empty<RequestSpawnCargoboxes>(r, RequestSpawnCargoboxes{ std::stoi(ships_opt.value()) });
-  }
 };
 
 // scene idea:
@@ -194,21 +172,34 @@ move_to_scene_start(entt::registry& r, const Scene& s)
   if (s == Scene::splashscreen) {
     create_empty<SINGLE_SplashScreen>(r);
 
-    // create sprite
-    // const auto e = create_transform(r);
-    // const auto tex_unit = search_for_texture_unit_by_texture_path(ri, "blueberry").value();
-    // set_sprite_custom(r, e, "STUDIO_LOGO", tex_unit.unit);
-    // set_size(r, e, { 512, 512 });
-    // set_position(r, e, { 0, 0 }); // center
+    auto e = create_empty<TransformComponent>(r);
+    r.emplace<SpriteComponent>(e);
+    set_sprite(r, e, "STUDIO_LOGO");
+    set_size(r, e, { 512, 512 });
+    set_position(r, e, { 0, 0 }); // center
   }
 
   if (s == Scene::menu) {
     create_empty<SINGLE_MainMenuUI>(r);
-    r.emplace<CameraFreeMove>(camera_e);
 
     // destroy_first_and_create<Effect_GridComponent>(r);
     // create_empty<AudioRequestPlayEvent>(r, AudioRequestPlayEvent{ "MENU_01", true });
-    // create_player_if_not_in_scene(r);
+
+    // create a player controlled spaceship
+    {
+      const auto pos = glm::vec2{ 0, 0 };
+      auto e = spawn_mob(r, "spaceship_player", pos);
+      r.emplace<CameraFollow>(e);
+      r.emplace<TeamComponent>(e, TeamComponent{ AvailableTeams::player });
+      r.emplace<PlayerComponent>(e);
+      r.emplace<InputComponent>(e);
+      r.emplace<KeyboardComponent>(e);
+      auto& player_thrust = r.emplace<MovementAsteroidsComponent>(e);
+      player_thrust.able_to_change_thrust = false;
+      player_thrust.able_to_change_dir = true;
+
+      spawn_particle_emitter(r, "anything", { 0, 0 }, e);
+    }
   }
 
   if (s == Scene::dungeon_designer) {
@@ -223,6 +214,30 @@ move_to_scene_start(entt::registry& r, const Scene& s)
     // evts.events.push_back("Press E to open/close inventory.");
     // evts.events.push_back("Press R to open/close loot");
     // evts.events.push_back("Left click to perform item action.");
+
+    // {
+    //   PhysicsDescription pdesc;
+    //   pdesc.type = b2_dynamicBody;
+    //   pdesc.position = desc.pos;
+    //   pdesc.size = size;
+    //   pdesc.is_sensor = false;
+    //   create_physics_actor(r, e, pdesc);
+    //   r.get<PhysicsBodyComponent>(e).base_speed = 100.0f;
+    //   if (desc.team == AvailableTeams::player) {
+    //     r.emplace<PlayerComponent>(e);
+    //     r.emplace<TeamComponent>(e, AvailableTeams::player);
+    //     r.emplace<InputComponent>(e);
+    //     r.emplace<KeyboardComponent>(e);
+    //     r.emplace<DefaultBody>(e, DefaultBody(r));
+    //     r.emplace<DefaultInventory>(e, DefaultInventory(r, 6 * 5));
+    //     r.emplace<InitBodyAndInventory>(e);
+    //     r.emplace<MovementJetpackComponent>(e);
+    //     // add_particles()
+    //     DataParticleEmitter pedesc;
+    //     pedesc.parent = e;
+    //     pedesc.colour = engine::SRGBColour{ 255, 255, 117, 1.0f };
+    //     auto particle_e = Factory_DataParticleEmitter::create(r, pedesc);
+    // }
   }
 
   auto& scene = get_first_component<SINGLE_CurrentScene>(r);

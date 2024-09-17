@@ -102,8 +102,7 @@ main_loop(void* arg)
     game2d::fixed_update(app, game, MILLISECONDS_PER_FIXED_TICK);
   }
 
-  const float dt = frame_time / 1000.0f;
-  game2d::update(app, game, dt);
+  game2d::update(app, game, frame_time);
 
   engine::end_frame(app);
 }

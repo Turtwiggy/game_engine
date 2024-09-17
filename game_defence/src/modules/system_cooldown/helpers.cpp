@@ -3,10 +3,10 @@
 namespace game2d {
 
 void
-reset_cooldown(AttackCooldownComponent& c)
+reset_cooldown(CooldownComponent& c)
 {
   c.on_cooldown = true;
-  c.time_between_attack_left = c.time_between_attack;
+  c.time_left = c.time;
 };
 
 } // namespace game2d

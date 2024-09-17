@@ -5,6 +5,6 @@
 namespace game2d {
 
 void
-reset_cooldown(AttackCooldownComponent& c);
+reset_cooldown(CooldownComponent& c);
 
 } // namespace game2d

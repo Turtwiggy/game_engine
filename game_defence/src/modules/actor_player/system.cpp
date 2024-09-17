@@ -1,6 +1,5 @@
 #include "modules/actor_player/system.hpp"
 
-#include "components.hpp"
 #include "engine/entt/helpers.hpp"
 #include "engine/events/components.hpp"
 #include "engine/events/helpers/fixed_update.hpp"
@@ -9,8 +8,6 @@
 #include "engine/physics/components.hpp"
 #include "engine/renderer/transform.hpp"
 #include "modules/actor_player/components.hpp"
-#include "modules/combat_wants_to_shoot/components.hpp"
-#include "modules/system_sprint/components.hpp"
 
 #include <SDL2/SDL_keyboard.h>
 #include <SDL2/SDL_mouse.h>
@@ -154,10 +151,10 @@ update_movement_asteroids(entt::registry& r, uint64_t ms_dt)
 
     body_c.body->ApplyForceToCenter(force, true);
   }
-}
+};
 
 void
-update_player_controller_system(entt::registry& r, const uint64_t& milliseconds_dt)
+update_player_controller_system(entt::registry& r, const uint64_t milliseconds_dt)
 {
   const auto& finputs = get_first_component<SINGLE_FixedUpdateInputHistory>(r);
   const auto& inputs = finputs.history.at(finputs.fixed_tick);
