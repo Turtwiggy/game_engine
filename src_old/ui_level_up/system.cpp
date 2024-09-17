@@ -2,8 +2,8 @@
 
 #include "actors.hpp"
 #include "components.hpp"
-#include "entt/helpers.hpp"
-#include "lifecycle/components.hpp"
+#include "engine/entt/helpers.hpp"
+#include "engine/lifecycle/components.hpp"
 #include "modules/actor_player/components.hpp"
 #include "modules/actor_weapon_shotgun/components.hpp"
 #include "modules/combat_attack_cooldown/components.hpp"

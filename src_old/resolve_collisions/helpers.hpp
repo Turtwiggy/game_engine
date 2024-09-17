@@ -1,8 +1,6 @@
 #pragma once
 
-#include "physics/components.hpp"
-
-#include "entt/entt.hpp"
+#include <entt/entt.hpp>
 
 namespace game2d {
 

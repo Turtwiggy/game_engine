@@ -1,7 +1,7 @@
 #include "cell_automata.hpp"
 
-#include "maths/grid.hpp"
-#include "maths/maths.hpp"
+#include "engine/maths/grid.hpp"
+#include "engine/maths/maths.hpp"
 
 #include <utility>
 

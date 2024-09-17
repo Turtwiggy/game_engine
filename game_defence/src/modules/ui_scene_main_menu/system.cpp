@@ -2,10 +2,9 @@
 
 #include "components.hpp"
 
-#include "audio/components.hpp"
-#include "entt/helpers.hpp"
+#include "engine/audio/components.hpp"
+#include "engine/entt/helpers.hpp"
 #include "helpers.hpp"
-#include "modules/gen_dungeons/components.hpp"
 #include "modules/renderer/components.hpp"
 #include "modules/scene/components.hpp"
 #include "modules/scene/helpers.hpp"
@@ -20,11 +19,11 @@ namespace game2d {
 using namespace std::literals;
 
 void
-update_ui_scene_main_menu(engine::SINGLETON_Application& app, entt::registry& r)
+update_ui_scene_main_menu(engine::SINGLE_Application& app, entt::registry& r)
 {
-  const auto& ri = get_first_component<SINGLETON_RendererInfo>(r);
+  const auto& ri = get_first_component<SINGLE_RendererInfo>(r);
   auto& ui = get_first_component<SINGLE_MainMenuUI>(r);
-  // const auto& input = get_first_component<SINGLETON_InputComponent>(r);
+  // const auto& input = get_first_component<SINGLE_InputComponent>(r);
   // const auto& controllers = input.controllers;
 
   ImGuiWindowFlags flags = 0;
@@ -98,19 +97,17 @@ update_ui_scene_main_menu(engine::SINGLETON_Application& app, entt::registry& r)
     //     move_to_scene_start(r, Scene::overworld, true);
     // }
 
-    if (selectable_button("Start", selected, index++))
-      move_to_scene_additive(r, Scene::overworld_revamped);
+    if (selectable_button("Start", selected, index++)) {
+      move_to_scene_additive(r, Scene::overworld);
+    }
 
-      // if (selectable_button("SETTINGS", selected, index++)) {
-      // }
+    // if (selectable_button("SETTINGS", selected, index++)) {
+    // }
 
 #if defined(_DEBUG)
-    if (selectable_button("(minigame)\nbreach", selected, index++))
-      move_to_scene_start(r, Scene::minigame_bamboo);
-
     if (selectable_button("(debug)\ndungeon", selected, index++)) {
       move_to_scene_start(r, Scene::dungeon_designer);
-      create_empty<RequestGenerateDungeonComponent>(r);
+      // create_empty<RequestGenerateDungeonComponent>(r);
     }
 #endif
 

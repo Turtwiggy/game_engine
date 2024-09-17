@@ -1,6 +1,6 @@
 #include "helpers.hpp"
 
-#include "maths/maths.hpp"
+#include "engine/maths/maths.hpp"
 
 namespace game2d {
 

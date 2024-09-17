@@ -21,10 +21,10 @@ include(${CMAKE_SOURCE_DIR}/cmake/optick.cmake)
 file(GLOB_RECURSE TEST_SRC_FILES
   ${IMGUI_SOURCE}
   ${OPTICK_SOURCE}
-  ${CMAKE_SOURCE_DIR}/src/*.cpp
 
   # do not inlude main()
   ${CMAKE_SOURCE_DIR}/game_defence/src/actors/*.cpp
+  ${CMAKE_SOURCE_DIR}/game_defence/src/engine/*.cpp
   ${CMAKE_SOURCE_DIR}/game_defence/src/helpers/*.cpp
   ${CMAKE_SOURCE_DIR}/game_defence/src/modules/*.cpp
   ${CMAKE_SOURCE_DIR}/game_defence/src/game_state.cpp
@@ -43,7 +43,6 @@ target_include_directories(game_defence_tests PRIVATE
   ${VCPKG_INCLUDES}
   ${OPTICK_INCLUDES}
   ${Stb_INCLUDE_DIR}
-  ${CMAKE_SOURCE_DIR}/src
   ${CMAKE_SOURCE_DIR}/game_defence/src
   ${CMAKE_SOURCE_DIR}/game_defence_tests/src
   ${CMAKE_SOURCE_DIR}/thirdparty/entt/single_include

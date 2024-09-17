@@ -1,12 +1,11 @@
 #include "system.hpp"
 
-// components
 #include "actors/helpers.hpp"
-#include "imgui/helpers.hpp"
-#include "physics/components.hpp"
-#include "renderer/components.hpp"
-#include "renderer/transform.hpp"
-#include "sprites/components.hpp"
+#include "engine/imgui/helpers.hpp"
+#include "engine/physics/components.hpp"
+#include "engine/renderer/transform.hpp"
+#include "engine/sprites/components.hpp"
+#include "modules/renderer/components.hpp"
 
 // other lib headers
 #include <glm/gtc/type_ptr.hpp>

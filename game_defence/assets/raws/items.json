@@ -1,0 +1,95 @@
+{
+  "items": [
+    {
+      "name": "medkit",
+      "renderable": { "sprite": "EMPTY", "colour": { "r": 255, "g": 255, "b": 255 } },
+      "use": { "name": "heal", "select": "actor", "amount": 25 }
+    },
+    {
+      "name": "seed (plant)",
+      "renderable": { "sprite": "EMPTY", "colour": { "r": 255, "g": 255, "b": 255 } }
+    },
+    {
+      "name": "scrap",
+      "renderable": { "sprite": "SCRAP", "colour": { "r": 255, "g": 255, "b": 255 } }
+    },
+    {
+      "name": "breach charge",
+      "renderable": { "sprite": "WEAPON_GRENADE", "colour": { "r": 255, "g": 255, "b": 255 } },
+      "use": { "name": "explode", "select": "point" }
+    }
+  ],
+  "weapons": [
+    {
+      "name": "knife",
+      "renderable": { "sprite": "WEAPON_KNIFE", "colour": { "r": 255, "g": 255, "b": 255 } },
+      "melee": { "damage": 12, "range": 1 }
+    },
+    {
+      "name": "chainsaw",
+      "renderable": { "sprite": "WEAPON_KNIFE", "colour": { "r": 255, "g": 255, "b": 255 } },
+      "melee": { "damage": 20, "range": 1 }
+    },
+    {
+      "name": "pistol",
+      "renderable": { "sprite": "WEAPON_PISTOL", "colour": { "r": 255, "g": 255, "b": 255 } },
+      "ranged": { "type": "line", "range": 3 }
+    },
+    {
+      "name": "shotgun",
+      "renderable": { "sprite": "WEAPON_SHOTGUN", "colour": { "r": 255, "g": 255, "b": 255 } },
+      "ranged": { "type": "cone", "range": 3 }
+    },
+    {
+      "name": "bullet_default",
+      "renderable": { "sprite": "AMMO_BOX", "colour": { "r": 255, "g": 255, "b": 255 } },
+      "bullet": { "damage": 12 }
+    },
+    {
+      "name": "bullet_bounce",
+      "renderable": { "sprite": "AMMO_BOX", "colour": { "r": 255, "g": 255, "b": 255 } },
+      "bullet": { "damage": 12 }
+    }
+  ],
+  "armour": [
+    {
+      "name": "scrap_helmet",
+      "renderable": { "sprite": "HELMET_5", "colour": { "r": 255, "g": 255, "b": 255 } },
+      "defence": { "block": 3, "slot": "HEAD" }
+    },
+    {
+      "name": "scrap_chestpiece",
+      "renderable": { "sprite": "CHESTPIECE_5", "colour": { "r": 255, "g": 255, "b": 255 } },
+      "defence": { "block": 5, "slot": "CORE" }
+    },
+    {
+      "name": "scrap_gloves",
+      "renderable": { "sprite": "GLOVES_4", "colour": { "r": 255, "g": 255, "b": 255 } },
+      "defence": { "block": 2, "slot": "ARM" }
+    },
+    {
+      "name": "scrap_legs",
+      "renderable": { "sprite": "GLOVES_4", "colour": { "r": 255, "g": 255, "b": 255 } },
+      "defence": { "block": 4, "slot": "LEG" }
+    }
+  ],
+  "environment": [
+    {
+      "name": "cover",
+      "renderable": { "sprite": "WALL_19_1_NONE", "colour": { "r": 255, "g": 255, "b": 255 } },
+      "defence": { "block": 5 }
+    }
+  ],
+  "mobs": [
+    {
+      "name": "dungeon_actor_hero",
+      "renderable": { "sprite": "PERSON_25_0", "colour": { "r": 255, "g": 255, "b": 255 } },
+      "stats": { "max_hp": 100, "hp": 100 }
+    },
+    {
+      "name": "dungeon_actor_enemy_default",
+      "renderable": { "sprite": "WALL_19_1_NONE", "colour": { "r": 255, "g": 255, "b": 255 } },
+      "stats": { "max_hp": 50, "hp": 50 }
+    }
+  ]
+}

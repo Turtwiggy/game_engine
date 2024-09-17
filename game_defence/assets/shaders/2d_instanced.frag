@@ -17,37 +17,6 @@ uniform sampler2D tex_unit_custom;
 uniform vec2 viewport_wh;
 uniform int RENDERER_TEX_UNIT_COUNT;
 
-// vec2 clamp_uv(vec2 uv){
-//   vec2 tex_size = vec2(viewport_wh.x / 1000.0, viewport_wh.y / 1000.0);
-//   vec2 pixel = v_uv * tex_size;
-//   vec2 fat_pixel = floor(pixel) + 0.5;
-//   return fat_pixel;
-// }
-
-// heartbeast approach?
-// https://www.youtube.com/watch?v=2JbhkZe22bE&list=RDCMUCrHQNOyU1q6BFEfkNq2CYMA&index=25
-// vec4 texturePointSmooth(sampler2D tex, vec2 uv, vec2 pixel_size){
-  // vec2 size = vec2(textureSize(tex, 0));
-  // vec2 pixel = vec2(1.0) / size;
-  // uv -= pixel * vec2(0.5);
-  // vec2 uv_pixels = uv * size;
-  // vec2 delta_pixel = fract(uv_pixels) - vec2(0.5);
-  // vec2 ddxy = fwidth(uv_pixels);
-  // vec2 mip = log2(ddxy) - 0.5;
-  // return textureLod(tex, uv + (clamp(delta_pixel / ddxy, 0.0, 1.0) - delta_pixel) * pixel, min(mip.x, mip.y));
-// }
-
-// fat pixel approach
-// vec2
-// uv_to_fatpixel(vec2 uv){
-//   float tp = float(float(viewport_wh.y) / float(viewport_wh.x));
-//   vec2 tex_size = viewport_wh;
-//   vec2 pixel = v_uv * tex_size;
-//   vec2 fat_pixel = floor(pixel) + 0.5;
-//   fat_pixel += 1 - clamp((1.0 - fract(pixel)) * tp, 0, 1); // subpixel aa algorithm
-//   return fat_pixel / tex_size;
-// }
-
 #define _SUPERSAMPLING_2X2_RGSS
 
 // https://discussions.unity.com/t/how-to-keep-sprites-sharp-and-crisp-even-while-rotating-solved/737314/6
@@ -127,7 +96,7 @@ void
 main()
 {
   int index = int(v_tex_unit);
-  
+
   // A spritesheet texture
   {
     // v_uv goes from 0 to 1
@@ -172,36 +141,3 @@ main()
     return;
   }
 }
-
-
-
-
-// vec2
-// uv_nearest(vec2 uv, ivec2 texture_size)
-// {
-//   vec2 pixel = uv * texture_size;
-//   pixel = floor(pixel) + .5;
-//   return pixel / texture_size;
-// }
-
-// this approach?
-// https://csantosbh.wordpress.com/2014/02/05/automatically-detecting-the-texture-filter-threshold-for-pixelated-magnifications/
-// int w = int(screen_w);
-// int h = int(screen_h);
-// vec2 vUv = v_uv * vec2(w, h);
-// vec2 alpha = 0.7 * vec2(dFdx(vUv.x), dFdy(vUv.y));
-// vec2 x = fract(vUv);
-// vec2 x_ = clamp(0.5 / alpha * x, 0.0, 0.5) + clamp(0.5 / alpha * (x - 1.0) + 0.5, 0.0, 0.5);
-// vec2 uv = (floor(vUv) + x_) / vec2(w, h);
-
-// vec2
-// uv_cstantos(vec2 uv, vec2 res)
-// {
-//   vec2 pixels = uv * res;
-//   // Updated to the final article
-//   vec2 alpha = 0.7 * fwidth(pixels);
-//   vec2 pixels_fract = fract(pixels);
-//   vec2 pixels_diff = clamp(.5 / alpha * pixels_fract, 0, .5) + clamp(.5 / alpha * (pixels_fract - 1) + .5, 0, .5);
-//   pixels = floor(pixels) + pixels_diff;
-//   return pixels / res;
-// }

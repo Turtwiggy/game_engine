@@ -2,12 +2,13 @@
 #include "helpers.hpp"
 
 #include "components.hpp"
-#include "io/path.hpp"
 
 #include <imgui.h>
 #include <imgui_internal.h>
+#include <magic_enum.hpp>
 
 #include <algorithm>
+#include <fmt/core.h>
 
 namespace game2d {
 using namespace engine; // used for macro
@@ -112,7 +113,7 @@ render_texture_to_imgui_viewport(const int64_t& tex_id)
 }
 
 bool
-check_if_viewport_resize(const SINGLETON_RendererInfo& ri)
+check_if_viewport_resize(const SINGLE_RendererInfo& ri)
 {
   const auto viewport_wh = ri.viewport_size_render_at;
 
@@ -124,7 +125,7 @@ check_if_viewport_resize(const SINGLETON_RendererInfo& ri)
 }
 
 std::optional<TextureUnit>
-search_for_texture_unit_by_texture_path(const SINGLETON_RendererInfo& ri, const std::string& search)
+search_for_texture_unit_by_texture_path(const SINGLE_RendererInfo& ri, const std::string& search)
 {
   const auto result = std::find_if(ri.user_textures.begin(), ri.user_textures.end(), [&search](const Texture& tex) {
     return tex.path.find(search) != std::string::npos;
@@ -137,7 +138,7 @@ search_for_texture_unit_by_texture_path(const SINGLETON_RendererInfo& ri, const 
 };
 
 std::optional<TextureId>
-search_for_texture_id_by_texture_path(const SINGLETON_RendererInfo& ri, const std::string& search)
+search_for_texture_id_by_texture_path(const SINGLE_RendererInfo& ri, const std::string& search)
 {
   const auto result = std::find_if(ri.user_textures.begin(), ri.user_textures.end(), [&search](const Texture& tex) {
     return tex.path.find(search) != std::string::npos;
@@ -150,7 +151,7 @@ search_for_texture_id_by_texture_path(const SINGLETON_RendererInfo& ri, const st
 };
 
 std::optional<TextureUnit>
-search_for_texture_unit_by_spritesheet_path(const SINGLETON_RendererInfo& ri, const std::string& search)
+search_for_texture_unit_by_spritesheet_path(const SINGLE_RendererInfo& ri, const std::string& search)
 {
   const auto result = std::find_if(ri.user_textures.begin(), ri.user_textures.end(), [&search](const Texture& tex) {
     return tex.spritesheet_path.find(search) != std::string::npos;
@@ -159,11 +160,12 @@ search_for_texture_unit_by_spritesheet_path(const SINGLETON_RendererInfo& ri, co
   if (result != ri.user_textures.end())
     return result->tex_unit;
 
-  return std::nullopt;
+  fmt::println("unable to find tex unit for {}", search);
+  exit(1);
 };
 
 std::optional<TextureId>
-search_for_texture_id_by_spritesheet_path(const SINGLETON_RendererInfo& ri, const std::string& search)
+search_for_texture_id_by_spritesheet_path(const SINGLE_RendererInfo& ri, const std::string& search)
 {
   const auto result = std::find_if(ri.user_textures.begin(), ri.user_textures.end(), [&search](const Texture& tex) {
     return tex.spritesheet_path.find(search) != std::string::npos;
@@ -176,38 +178,15 @@ search_for_texture_id_by_spritesheet_path(const SINGLETON_RendererInfo& ri, cons
 };
 
 int
-search_for_renderpass_by_name(const SINGLETON_RendererInfo& ri, const PassName& name)
+search_for_renderpass_by_name(const SINGLE_RendererInfo& ri, const PassName& name)
 {
-  for (size_t i = 0; i < ri.passes.size(); i++) {
-    if (ri.passes[i].pass == name)
-      return (int)i;
-  }
+  auto it = std::find_if(ri.passes.begin(), ri.passes.end(), [&name](const RenderPass& pass) { return pass.pass == name; });
+  if (it != ri.passes.end())
+    return static_cast<int>(it - ri.passes.begin());
 
+  const auto type_name = std::string(magic_enum::enum_name(name));
+  fmt::println("no render pass of name: {}", type_name);
   exit(1); // explode
-};
-
-SINGLETON_RendererInfo
-get_default_rendererinfo()
-{
-  SINGLETON_RendererInfo ri;
-
-  std::string path = engine::get_exe_path_without_exe_name();
-  path += "assets/";
-
-  const auto add_tex = [&ri, &path](const std::string& p, const std::string& sp) {
-    Texture tex;
-    tex.path = path + "textures/" + p;
-    tex.spritesheet_path = path + "config/" + sp;
-    ri.user_textures.push_back(tex);
-  };
-
-  add_tex("kennynl_1bit_pack/monochrome_transparent_packed.png", "spritemap_kennynl.json");
-  add_tex("kennynl_gameicons/Spritesheet/sheet_white1x_adjusted.png", "spritemap_kennynl_icons.json");
-  add_tex("blueberry-dark.png", "spritemap_studio_logo.json");
-  add_tex("custom.png", "spritemap_custom.json");
-  add_tex("organic2.jpg", "spritemap_default_1024.json");
-
-  return ri;
 };
 
 } // namespace game2d

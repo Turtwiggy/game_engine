@@ -2,15 +2,7 @@
 
 #include "actors/helpers.hpp"
 #include "components.hpp"
-#include "entt/helpers.hpp"
-#include "lifecycle/components.hpp"
-#include "maths/maths.hpp"
-#include "modules/combat_wants_to_shoot/components.hpp"
-#include "modules/system_particles/components.hpp"
-#include "physics/components.hpp"
-#include "renderer/transform.hpp"
-
-#include "imgui.h"
+#include "engine/lifecycle/components.hpp"
 
 namespace game2d {
 
@@ -24,6 +16,7 @@ const auto exp_decay = [](float a, float b, float decay, float dt) -> float {
 void
 update_move_to_target_via_lerp(entt::registry& r, const float& dt)
 {
+  // update static lerps
   {
     const auto& view = r.view<LerpToFixedTarget>(entt::exclude<WaitForInitComponent>);
     for (const auto& [e, info] : view.each()) {
@@ -40,6 +33,8 @@ update_move_to_target_via_lerp(entt::registry& r, const float& dt)
         r.remove<LerpToFixedTarget>(e);
     }
   }
+
+  // update dynamic lerps
   {
     const auto& view = r.view<LerpToMovingTarget>(entt::exclude<WaitForInitComponent>);
     for (const auto& [e, info] : view.each()) {
@@ -49,11 +44,11 @@ update_move_to_target_via_lerp(entt::registry& r, const float& dt)
     }
   }
 
-  //
+  /*
+
   // Follow your parent. // e.g. particle systems.
   //
-
-  auto& dead = get_first_component<SINGLETON_EntityBinComponent>(r);
+  auto& dead = get_first_component<SINGLE_EntityBinComponent>(r);
   const auto remove_dead_parents = [&r, &dead](const entt::entity e, const entt::entity parent) -> bool {
     if (parent == entt::null || !r.valid(parent)) {
       r.emplace_or_replace<WaitForInitComponent>(e);
@@ -114,6 +109,8 @@ update_move_to_target_via_lerp(entt::registry& r, const float& dt)
     transform_c.position.x += vel.x * dt;
     transform_c.position.y += vel.y * dt;
   }
+
+  */
 }
 
 } // namespace game2d

@@ -1,60 +1,20 @@
-#include "modules/scene/helpers.hpp"
+#include "helpers.hpp"
 
-#include "actors/actors.hpp"
-#include "actors/helpers.hpp"
-#include "audio/components.hpp"
-#include "audio/helpers/sdl_mixer.hpp"
-#include "colour/colour.hpp"
-#include "entt/helpers.hpp"
-#include "events/components.hpp"
+#include "components.hpp"
+#include "engine/entt/helpers.hpp"
+#include "engine/events/components.hpp"
+#include "engine/lifecycle/components.hpp"
+#include "engine/physics/components.hpp"
+#include "engine/physics/helpers.hpp"
+#include "engine/renderer/transform.hpp"
 #include "game_state.hpp"
-#include "io/settings.hpp"
-#include "lifecycle/components.hpp"
-#include "magic_enum.hpp"
-#include "modules/actor_enemy/components.hpp"
-#include "modules/actor_player/components.hpp"
-#include "modules/algorithm_astar_pathfinding/components.hpp"
 #include "modules/camera/components.hpp"
-#include "modules/camera/orthographic.hpp"
-#include "modules/combat_damage/components.hpp"
-#include "modules/combat_wants_to_shoot/components.hpp"
-#include "modules/debug_map/components.hpp"
-#include "modules/gameover/components.hpp"
-#include "modules/gen_dungeons/components.hpp"
-#include "modules/grid/components.hpp"
-#include "modules/renderer/components.hpp"
-#include "modules/renderer/helpers.hpp"
 #include "modules/scene_splashscreen_move_to_menu/components.hpp"
-#include "modules/screenshake/components.hpp"
-#include "modules/system_distance_check/components.hpp"
-#include "modules/system_minigame_bamboo/components.hpp"
-#include "modules/system_overworld_fake_fight/components.hpp"
-#include "modules/system_physics_apply_force/components.hpp"
-#include "modules/system_quips/components.hpp"
-#include "modules/system_turnbased_enemy/components.hpp"
-#include "modules/ui_combat_turnbased/components.hpp"
-#include "modules/ui_event_console/components.hpp"
-#include "modules/ui_inventory/components.hpp"
-#include "modules/ui_lootbag/components.hpp"
-#include "modules/ui_overworld_launch_crew/components.hpp"
-#include "modules/ui_overworld_ship_label/components.hpp"
 #include "modules/ui_scene_main_menu/components.hpp"
-#include "modules/ui_selected/components.hpp"
-#include "modules/ui_worldspace_text/components.hpp"
-#include "modules/vfx_grid/components.hpp"
-#include "physics/helpers.hpp"
-#include "renderer/transform.hpp"
-#include "sprites/helpers.hpp"
-#include <box2d/b2_math.h>
-#include <nlohmann/json.hpp>
-
-#include <fmt/core.h>
-#include <string>
 
 namespace game2d {
-using namespace audio::sdl_mixer;
-using namespace std::literals;
-using json = nlohmann::json;
+
+/*
 
 entt::entity
 add_player_shotgun(entt::registry& r, const entt::entity& e)
@@ -80,7 +40,7 @@ create_player_if_not_in_scene(entt::registry& r)
   if (get_first<PlayerComponent>(r) != entt::null)
     return;
 
-  const auto& ri = get_first_component<SINGLETON_RendererInfo>(r);
+  const auto& ri = get_first_component<SINGLE_RendererInfo>(r);
 
   // As the camera is at 0, 0,
   // worldspace text around the camera would be from e.g. -width/2 to width/2
@@ -102,34 +62,6 @@ create_player_if_not_in_scene(entt::registry& r)
   }
 };
 
-void
-move_to_scene_menu(entt::registry& r)
-{
-  destroy_first_and_create<SINGLE_MainMenuUI>(r);
-  destroy_first_and_create<Effect_GridComponent>(r);
-  create_empty<AudioRequestPlayEvent>(r, AudioRequestPlayEvent{ "MENU_01", true });
-
-  // Load randoms name file
-  // const auto path = "./assets/config/random_names.json";
-  // std::ifstream f(path);
-  // json data = json::parse(f);
-  // const auto names = data["names"]; // list of names
-
-  // choose X random names, display them on the menu
-  // static engine::RandomState rnd;
-  // for (size_t i = 0; i < 4; i++) {
-  //   const float rnd_f = engine::rand_det_s(rnd.rng, 0, names.size());
-  //   const int rnd = static_cast<int>(rnd_f);
-  //   const std::string name = names[rnd];
-  //   const std::string delimiter = " ";
-  //   const auto first_name = name.substr(0, name.find(delimiter));
-
-  //   ui.random_names.push_back(first_name);
-  // }
-
-  create_player_if_not_in_scene(r);
-};
-
 // scene idea:
 // spawn a ship,
 // boost the player ship for X seconds until it reaches the ship,
@@ -138,7 +70,7 @@ move_to_scene_menu(entt::registry& r)
 void
 move_to_scene_overworld_revamped(entt::registry& r)
 {
-  const auto& ri = get_first_component<SINGLETON_RendererInfo>(r);
+  const auto& ri = get_first_component<SINGLE_RendererInfo>(r);
   const auto half_wh = ri.viewport_size_render_at / glm::ivec2(2.0f, 2.0f);
 
   create_player_if_not_in_scene(r);
@@ -223,123 +155,95 @@ move_to_scene_additive(entt::registry& r, const Scene& s)
   const auto scene_name = std::string(magic_enum::enum_name(s));
   fmt::println("additive scene. scene set to: {}", scene_name);
 
-  auto& scene = get_first_component<SINGLETON_CurrentScene>(r);
+  auto& scene = get_first_component<SINGLE_CurrentScene>(r);
   scene.s = s; // done
 };
 
+*/
+
 void
-move_to_scene_start(entt::registry& r, const Scene& s, const bool load_saved)
+move_to_scene_start(entt::registry& r, const Scene& s)
 {
-  const auto& transforms = r.view<TransformComponent>(entt::exclude<OrthographicCamera>);
-  r.destroy(transforms.begin(), transforms.end());
-  const auto& ui = r.view<WorldspaceTextComponent>();
-  r.destroy(ui.begin(), ui.end());
+  for (const std::tuple<entt::entity>& ent_tuple : r.storage<entt::entity>().each()) {
+    const auto& [e] = ent_tuple;
+    if (r.try_get<Persistent>(e) == nullptr)
+      r.destroy(e);
+  };
 
-  // anything created with create_empty?
-  const auto& rooms = r.view<Room>();
-  r.destroy(rooms.begin(), rooms.end());
-  const auto& paths = r.view<PathfindComponent>();
-  r.destroy(paths.begin(), paths.end());
-  const auto& camera_move = r.view<CameraFreeMove>();
-  r.destroy(camera_move.begin(), camera_move.end());
-  const auto& invs = r.view<InventorySlotComponent>();
-  r.destroy(invs.begin(), invs.end());
-
+  // box2d to handle it's own cleanup
   emplace_or_replace_physics_world(r);
+  auto physics_e = get_first<SINGLE_Physics>(r);
+  r.emplace<Persistent>(physics_e);
 
-  destroy_first_and_create<SINGLETON_CurrentScene>(r);
-  destroy_first_and_create<SINGLETON_EntityBinComponent>(r);
-  destroy_first_and_create<SINGLETON_GameStateComponent>(r);
-  destroy_first_and_create<SINGLETON_GameOver>(r);
-  destroy_first_and_create<SINGLETON_InputComponent>(r);
-  destroy_first_and_create<SINGLE_ScreenshakeComponent>(r);
-  destroy_first_and_create<SINGLE_EventConsoleLogComponent>(r);
-  destroy_first_and_create<SINGLE_UIInventoryState>(r);
+  // do not use create_persistent here. anything created
+  // here should be expected to be removed between scenes
+  create_empty<SINGLE_CurrentScene>(r);
+  create_empty<SINGLE_EntityBinComponent>(r);
+  create_empty<SINGLE_GameStateComponent>(r);
+  create_empty<SINGLE_InputComponent>(r);
 
-  destroy_first<SINGLE_SelectedUI>(r);
-  destroy_first<SINGLE_TurnBasedCombatInfo>(r);
-  destroy_first<SINGLE_CombatState>(r);
-  destroy_first<MapComponent>(r);
-  destroy_first<DebugMapComponent>(r);
-  destroy_first<Effect_GridComponent>(r);
-  destroy_first<Effect_DoBloom>(r);
-  destroy_first<SINGLE_MinigameBamboo>(r);
-  destroy_first<SINGLE_TurnBasedCombatInfo>(r);
-  destroy_first<DungeonGenerationResults>(r);
-  destroy_first<SINGLE_OverworldFakeFight>(r);
-  destroy_first<SINGLE_UI_Lootbag>(r);
-  // destroy_first<SINGLE_MainMenuUI>(r);
-
-  if (s != Scene::dungeon_designer)
-    destroy_first<OverworldToDungeonInfo>(r);
-
-  // systems that havent been destroyed...
-  const auto& ri = get_first_component<SINGLETON_RendererInfo>(r);
-  // const auto& anims = get_first_component<SINGLE_Animations>(r);
-  // const auto& colours = get_first_component<SINGLE_ColoursInfo>(r);
-  // const auto& audio = get_first_component<SINGLETON_AudioComponent>(r);
-
-  // HACK: the first and only transform should be the camera
+  // The first and only transform should be the camera
   const auto camera_e = get_first<TransformComponent>(r);
   if (auto* can_move = r.try_get<CameraFreeMove>(camera_e))
     r.remove<CameraFreeMove>(camera_e); // reset to default
-  auto& camera = r.get<TransformComponent>(camera_e);
-  camera.position = glm::ivec3(0, 0, 0);
+  r.get<TransformComponent>(camera_e).position = { 0, 0, 0 };
+  r.get<TransformComponent>(camera_e).scale = { 0, 0, 0 };
 
-  stop_all_audio(r);
+  // stop_all_audio(r);
 
   if (s == Scene::splashscreen) {
-    destroy_first_and_create<SINGLE_SplashScreen>(r);
+    create_empty<SINGLE_SplashScreen>(r);
 
     // create sprite
-    const auto e = create_transform(r);
-    const auto tex_unit = search_for_texture_unit_by_texture_path(ri, "blueberry").value();
-    set_sprite_custom(r, e, "STUDIO_LOGO", tex_unit.unit);
-    set_size(r, e, { 512, 512 });
-    set_position(r, e, { 0, 0 }); // center
+    // const auto e = create_transform(r);
+    // const auto tex_unit = search_for_texture_unit_by_texture_path(ri, "blueberry").value();
+    // set_sprite_custom(r, e, "STUDIO_LOGO", tex_unit.unit);
+    // set_size(r, e, { 512, 512 });
+    // set_position(r, e, { 0, 0 }); // center
   }
 
-  if (s == Scene::menu)
-    move_to_scene_menu(r);
+  if (s == Scene::menu) {
+    create_empty<SINGLE_MainMenuUI>(r);
+    r.emplace<CameraFreeMove>(camera_e);
+
+    // destroy_first_and_create<Effect_GridComponent>(r);
+    // create_empty<AudioRequestPlayEvent>(r, AudioRequestPlayEvent{ "MENU_01", true });
+    // create_player_if_not_in_scene(r);
+  }
 
   if (s == Scene::dungeon_designer) {
-    // r.emplace_or_replace<CameraFreeMove>(get_first<OrthographicCamera>(r));
-    destroy_first_and_create<SINGLE_CombatState>(r);
-    destroy_first_and_create<SINGLE_TurnBasedCombatInfo>(r);
-    destroy_first_and_create<SINGLE_UI_Lootbag>(r);
-    destroy_first_and_create<Effect_GridComponent>(r);
-
-    // destroy_first_and_create<Effect_DoBloom>(r);
-    // create_empty<AudioRequestPlayEvent>(r, AudioRequestPlayEvent{ "COMBAT_01" });
-
-    if (get_first<OverworldToDungeonInfo>(r) == entt::null) {
-      fmt::println("OverworldToDungeonInfo is null; assuming launch from standalone");
-      OverworldToDungeonInfo info;
-      info.placeholder = true;
-      destroy_first_and_create<OverworldToDungeonInfo>(r, info);
-    }
+    // destroy_first_and_create<SINGLE_CombatState>(r);
+    // destroy_first_and_create<SINGLE_TurnBasedCombatInfo>(r);
+    // destroy_first_and_create<SINGLE_UI_Lootbag>(r);
+    // destroy_first_and_create<Effect_GridComponent>(r);
 
     // TEMP: add info in the event console on how to play.
-    auto& evts = get_first_component<SINGLE_EventConsoleLogComponent>(r);
-    evts.events.push_back("Press WASD to move.");
-    evts.events.push_back("Press E to open/close inventory.");
-    evts.events.push_back("Press R to open/close loot");
-    evts.events.push_back("Left click to perform item action.");
-
-    // Debug object
-    auto& info = get_first_component<SINGLE_TurnBasedCombatInfo>(r);
-    // info.action_cursor = create_transform(r);
-    // set_size(r, info.action_cursor, { 0, 0 }); // start disabled
+    // auto& evts = get_first_component<SINGLE_EventConsoleLogComponent>(r);
+    // evts.events.push_back("Press WASD to move.");
+    // evts.events.push_back("Press E to open/close inventory.");
+    // evts.events.push_back("Press R to open/close loot");
+    // evts.events.push_back("Left click to perform item action.");
   }
 
-  if (s == Scene::minigame_bamboo)
-    create_empty<SINGLE_MinigameBamboo>(r);
-
-  const auto scene_name = std::string(magic_enum::enum_name(s));
-  fmt::println("setting scene to: {}", scene_name);
-
-  auto& scene = get_first_component<SINGLETON_CurrentScene>(r);
+  auto& scene = get_first_component<SINGLE_CurrentScene>(r);
   scene.s = s; // done
-};
+}
+
+void
+move_to_scene_additive(entt::registry& r, const Scene& s)
+{
+  // stop_all_audio(r);
+
+  if (s == Scene::overworld) {
+    // create_empty<AudioRequestPlayEvent>(r, AudioRequestPlayEvent{ "GAME_01" });
+    // move_to_scene_overworld(r);
+  }
+
+  // const auto scene_name = std::string(magic_enum::enum_name(s));
+  // fmt::println("additive scene. scene set to: {}", scene_name);
+
+  auto& scene = get_first_component<SINGLE_CurrentScene>(r);
+  scene.s = s; // done
+}
 
 } // namespace game2d

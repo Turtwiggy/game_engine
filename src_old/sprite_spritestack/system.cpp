@@ -1,16 +1,17 @@
 #include "system.hpp"
 
 #include "components.hpp"
-#include "entt/helpers.hpp"
-#include "imgui/helpers.hpp"
-#include "lifecycle/components.hpp"
-#include "maths/maths.hpp"
+#include "engine/entt/helpers.hpp"
+#include "engine/imgui/helpers.hpp"
+#include "engine/lifecycle/components.hpp"
+#include "engine/maths/maths.hpp"
+#include "engine/physics/components.hpp"
+#include "engine/renderer/transform.hpp"
+#include "engine/sprites/components.hpp"
 #include "modules/actors/helpers.hpp"
 #include "modules/camera/orthographic.hpp"
 #include "modules/lerp_to_target/components.hpp"
-#include "physics/components.hpp"
-#include "renderer/transform.hpp"
-#include "sprites/components.hpp"
+
 
 #include <entt/entt.hpp>
 #include <glm/gtx/compatibility.hpp> // lerp

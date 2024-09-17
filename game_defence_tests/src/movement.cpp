@@ -2,10 +2,10 @@
 using namespace game2d::tests;
 
 #include "actors/actors.hpp"
-#include "entt/helpers.hpp"
-#include "lifecycle/components.hpp"
-#include "lifecycle/system.hpp"
-#include "maths/grid.hpp"
+#include "engine/entt/helpers.hpp"
+#include "engine/lifecycle/components.hpp"
+#include "engine/lifecycle/system.hpp"
+#include "engine/maths/grid.hpp"
 #include "modules/actor_player/components.hpp"
 #include "modules/combat_damage/components.hpp"
 #include "modules/combat_damage/system.hpp"
@@ -13,6 +13,7 @@ using namespace game2d::tests;
 #include "modules/grid/helpers.hpp"
 #include "modules/system_turnbased_enemy/helpers.hpp"
 #include "modules/ui_inventory/components.hpp"
+
 using namespace game2d;
 
 #include <entt/entt.hpp>
@@ -184,7 +185,7 @@ TEST(TestMovement, DungeonActorCanDropInventoryWithNoItems)
   update_take_damage_system(r);
 
   // assert: entity is dead
-  const auto& dead = get_first_component<SINGLETON_EntityBinComponent>(r);
+  const auto& dead = get_first_component<SINGLE_EntityBinComponent>(r);
   const auto it = std::find(dead.dead.begin(), dead.dead.end(), defender_e);
   ASSERT_TRUE(it != dead.dead.end()); // i.e. it exists in the dead pile
 

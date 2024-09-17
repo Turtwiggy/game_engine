@@ -2,16 +2,16 @@
 
 #include "actors.hpp"
 #include "components.hpp"
-#include "entt/helpers.hpp"
-#include "lifecycle/components.hpp"
-#include "maths/maths.hpp"
+#include "engine/entt/helpers.hpp"
+#include "engine/lifecycle/components.hpp"
+#include "engine/maths/maths.hpp"
+#include "engine/physics/components.hpp"
+#include "engine/renderer/transform.hpp"
 #include "modules/actors/helpers.hpp"
 #include "modules/combat_damage/components.hpp"
 #include "modules/items_pickup/components.hpp"
 #include "modules/lerp_to_target/components.hpp"
-#include "physics/components.hpp"
 #include "renderer/components.hpp"
-#include "renderer/transform.hpp"
 
 #include <utility>
 #include <vector>

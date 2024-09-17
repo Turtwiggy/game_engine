@@ -1,13 +1,13 @@
-#include "app/application.hpp"
-#include "app/io.hpp"
 #include "game.hpp"
 using namespace game2d;
 
-#include "opengl/util.hpp"
+#include "engine/app/application.hpp"
+#include "engine/app/io.hpp"
+#include "engine/opengl/util.hpp"
 using namespace engine;
 
 #if defined(__EMSCRIPTEN__)
-#include "deps/opengl.hpp"
+#include "engine/deps/opengl.hpp"
 #include <emscripten.h>
 #endif
 
@@ -16,7 +16,7 @@ using namespace engine;
 #endif
 
 // other libs
-#include <SDL_timer.h>
+#include <SDL2/SDL_timer.h>
 #include <entt/entt.hpp>
 #include <imgui.h>
 
@@ -32,7 +32,7 @@ static const int MILLISECONDS_PER_FIXED_TICK = 7; // or ~142 ticks per second
 static uint64_t cur_time = 0;
 static uint64_t milliseconds_accumulator_since_last_tick = 0;
 
-static SINGLETON_Application app;
+static SINGLE_Application app;
 static entt::registry game;
 
 static int frames_to_pass_before_init = 3;
@@ -56,7 +56,7 @@ launch_thread_after_x_frames()
       fmt::println("spawning thread...");
     }
     if (slow_thread != std::nullopt && slow_thread.value().joinable()) {
-      fmt::println("want to join thread...");
+      fmt::println("joining thread...");
       slow_thread.value().join();
       slow_thread = std::nullopt;
     }

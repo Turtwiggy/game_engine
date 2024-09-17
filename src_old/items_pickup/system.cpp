@@ -2,8 +2,9 @@
 
 #include "actors.hpp"
 #include "components.hpp"
-#include "entt/helpers.hpp"
-#include "lifecycle/components.hpp"
+#include "engine/entt/helpers.hpp"
+#include "engine/lifecycle/components.hpp"
+#include "engine/physics/components.hpp"
 #include "modules/actor_group/components.hpp"
 #include "modules/actor_player/components.hpp"
 #include "modules/combat_powerup_doubledamage/components.hpp"
@@ -11,8 +12,6 @@
 #include "modules/lerp_to_target/components.hpp"
 #include "modules/renderer/components.hpp"
 #include "modules/resolve_collisions/helpers.hpp"
-#include "physics/components.hpp"
-
 
 #include <iostream>
 #include <optional>

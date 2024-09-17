@@ -1,8 +1,19 @@
 #pragma once
 
 #include <entt/entt.hpp>
+#include <glm/glm.hpp>
 
 namespace game2d {
+
+struct PhysicsDynamicTarget
+{
+  entt::entity target = entt::null;
+};
+
+struct ApplyForceInDirectionComponent
+{
+  glm::vec2 tgt_vel{ 0.0f, 0.0f };
+};
 
 // combine with: DynamicTargetComponent
 struct ApplyForceToDynamicTarget

@@ -2,41 +2,32 @@
 #include "system.hpp"
 
 // components/systems#
-#include "actors/helpers.hpp"
-#include "colour/colour.hpp"
 #include "components.hpp"
-#include "entt/helpers.hpp"
-#include "events/components.hpp"
-#include "events/helpers/keyboard.hpp"
-#include "lights/helpers.hpp"
-#include "maths/grid.hpp"
-#include "maths/maths.hpp"
-#include "modules/actor_player/components.hpp"
+#include "engine/colour/colour.hpp"
+#include "engine/entt/helpers.hpp"
+#include "engine/events/components.hpp"
+#include "engine/events/helpers/keyboard.hpp"
 #include "modules/camera/orthographic.hpp"
-#include "modules/gen_dungeons/components.hpp"
-#include "modules/gen_dungeons/helpers.hpp"
-#include "modules/grid/components.hpp"
 #include "modules/renderer/components.hpp"
 #include "modules/renderer/helpers.hpp"
 #include "modules/renderer/helpers/batch_quad.hpp"
-#include "modules/renderer/lights/components.hpp"
 #include "modules/renderer/renderpass/passes.hpp"
-#include "modules/scene/components.hpp"
-#include "modules/vfx_grid/components.hpp"
+#include "modules/renderer/shaders/helpers.hpp"
 
 // engine headers
-#include "opengl/framebuffer.hpp"
-#include "opengl/render_command.hpp"
-#include "opengl/shader.hpp"
-#include "opengl/texture.hpp"
-#include "opengl/util.hpp"
-#include "renderer/transform.hpp"
-#include <SDL_scancode.h>
+#include "engine/opengl/framebuffer.hpp"
+#include "engine/opengl/render_command.hpp"
+#include "engine/opengl/shader.hpp"
+#include "engine/opengl/texture.hpp"
+#include "engine/opengl/util.hpp"
+#include "modules/scene/components.hpp"
+
 using namespace engine;
 
 // other lib
 #include "imgui.h"
 #include <SDL2/SDL.h>
+#include <SDL2/SDL_scancode.h>
 #include <glm/glm.hpp>
 #include <glm/gtc/type_ptr.hpp>
 #include <magic_enum.hpp>
@@ -45,7 +36,7 @@ namespace game2d {
 using namespace std::literals;
 
 int
-get_renderer_tex_unit_count(const SINGLETON_RendererInfo& ri)
+get_renderer_tex_unit_count(const SINGLE_RendererInfo& ri)
 {
   int i = 0;
   for (const auto& p : ri.passes)
@@ -54,7 +45,7 @@ get_renderer_tex_unit_count(const SINGLETON_RendererInfo& ri)
 };
 
 void
-rebind(entt::registry& r, SINGLETON_RendererInfo& ri)
+rebind(entt::registry& r, SINGLE_RendererInfo& ri)
 {
   fmt::println("rebind...");
 
@@ -114,7 +105,7 @@ rebind(entt::registry& r, SINGLETON_RendererInfo& ri)
   const int tex_unit_emitters_and_occluders = get_tex_unit(PassName::lighting_emitters_and_occluders);
 
   auto& camera = get_first_component<OrthographicCamera>(r);
-  camera.projection = calculate_ortho_projection(ri.viewport_size_render_at.x, ri.viewport_size_render_at.y, 0.0f);
+  camera.projection = calculate_ortho_projection(ri.viewport_size_render_at.x, ri.viewport_size_render_at.y, 1.0f);
 
   ri.stars.reload();
   ri.stars.bind();
@@ -189,16 +180,14 @@ rebind(entt::registry& r, SINGLETON_RendererInfo& ri)
 };
 
 void
-init_render_system(const engine::SINGLETON_Application& app, entt::registry& r, SINGLETON_RendererInfo& ri)
+init_render_system(const engine::SINGLE_Application& app, entt::registry& r)
 {
+  auto& ri = get_first_component<SINGLE_RendererInfo>(r);
+
   const glm::ivec2 screen_wh = app.window.get_size();
   ri.viewport_size_render_at = screen_wh;
   ri.viewport_size_current = screen_wh;
   const auto& fbo_size = ri.viewport_size_render_at;
-
-  // calculate view after updating postiion
-  const auto camera_e = create_empty<OrthographicCamera>(r);
-  r.emplace<TransformComponent>(camera_e);
 
   const int max_dim = glm::max(ri.viewport_size_render_at.x, ri.viewport_size_render_at.y);
   const int n_jumpflood_passes = (int)(glm::ceil(glm::log(max_dim) / std::log(2.0f)));
@@ -280,7 +269,6 @@ init_render_system(const engine::SINGLETON_Application& app, entt::registry& r, 
   rebind(r, ri);
 
   // adds the update() for each renderpass
-
   setup_stars_update(r);
   setup_floor_mask_update(r);
   setup_debris_update(r);
@@ -316,14 +304,14 @@ update_render_system(entt::registry& r, const float dt, const glm::vec2& mouse_p
   static const engine::SRGBColour black(0, 0, 0, 1.0f);
 
 #if defined(_DEBUG)
-  CHECK_OPENGL_ERROR(1337); // check error every update()
+  CHECK_OPENGL_ERROR(1337); // check a unique error code every update()
 #endif
 
   static float time = 0.0f;
   time += dt;
 
-  const auto& scene = get_first_component<SINGLETON_CurrentScene>(r);
-  auto& ri = get_first_component<SINGLETON_RendererInfo>(r);
+  const auto& scene = get_first_component<SINGLE_CurrentScene>(r);
+  auto& ri = get_first_component<SINGLE_RendererInfo>(r);
 
   if (check_if_viewport_resize(ri)) {
     ri.viewport_size_render_at = ri.viewport_size_current;
@@ -333,162 +321,32 @@ update_render_system(entt::registry& r, const float dt, const glm::vec2& mouse_p
 
 #if defined(_DEBUG)
   // reload all shaders
-  const auto& input = get_first_component<SINGLETON_InputComponent>(r);
+  const auto& input = get_first_component<SINGLE_InputComponent>(r);
   if (get_key_down(input, SDL_SCANCODE_0))
     rebind(r, ri);
 #endif
 
-  // auto& camera = get_first_component<OrthographicCamera>(r);
-  // camera.projection = calculate_ortho_projection(viewport_wh.x, viewport_wh.y, dt);
-
-  // Do things with debris shader
+  // debris shader
   ri.debris.bind();
   ri.debris.set_float("iTime", time);
-  // static float parallax = 0.1f;
-  // imgui_draw_float("parallax", parallax);
-  // ri.debris.set_float("parallax", parallax);
 
-  const auto scenes_to_render_stars = std::vector<Scene>{
-    Scene::splashscreen,
-    Scene::menu,
-    Scene::overworld_revamped,
-  };
-  const bool in_stars_scene =
-    std::find(scenes_to_render_stars.begin(), scenes_to_render_stars.end(), scene.s) != scenes_to_render_stars.end();
+  const auto s_stars = std::vector<Scene>{ Scene::splashscreen, Scene::menu, Scene::overworld };
+  const bool in_stars_scene = std::find(s_stars.begin(), s_stars.end(), scene.s) != s_stars.end();
 
-  const auto scenes_to_jumpflood = std::vector<Scene>{ Scene::dungeon_designer };
-  const bool in_jumpflood_scene =
-    std::find(scenes_to_jumpflood.begin(), scenes_to_jumpflood.end(), scene.s) != scenes_to_jumpflood.end();
+  const auto s_jumpflood = std::vector<Scene>{ Scene::dungeon_designer };
+  const bool in_jumpflood_scene = std::find(s_jumpflood.begin(), s_jumpflood.end(), scene.s) != s_jumpflood.end();
 
-  const std::vector<PassName> jumpflood_passes{ PassName::voronoi_seed, PassName::jump_flood, PassName::voronoi_distance };
-  const auto in_jumpflood_pass = [jumpflood_passes](const PassName& pass) {
-    return std::find(jumpflood_passes.begin(), jumpflood_passes.end(), pass) != jumpflood_passes.end();
+  const auto jflood_pass = std::vector<PassName>{ PassName::voronoi_seed, PassName::jump_flood, PassName::voronoi_distance };
+  const auto in_jumpflood_pass = [&jflood_pass](const PassName& p) {
+    return std::find(jflood_pass.begin(), jflood_pass.end(), p) != jflood_pass.end();
   };
 
-  // Do things with the star shader
-  {
-    ri.stars.bind();
-    static glm::vec3 current_pos{ 0, 0, 0 };
-    static glm::vec3 target_pos{ 0, 0, 0 };
-    static glm::vec2 offset{ 0, 0 };
-    const auto camera_e = get_first<OrthographicCamera>(r);
-    const bool has_player = camera_e != entt::null;
-
-    // generate an offset as (0, 0) in the fractal looks weird
-    static bool generate_offset = true;
-    if (generate_offset) {
-      generate_offset = false;
-      static engine::RandomState rnd;
-      offset.x = engine::rand_det_s(rnd.rng, -5000.0f, 5000.0f);
-      offset.y = engine::rand_det_s(rnd.rng, -5000.0f, 5000.0f);
-      target_pos.x = offset.x;
-      target_pos.y = offset.y;
-    }
-
-    // starfield to follow player position
-    if (has_player && in_stars_scene) {
-      const auto pos = get_position(r, camera_e);
-      target_pos.x = pos.x + offset.x;
-      target_pos.y = pos.y + offset.y;
-    }
-
-    const auto exp_decay = [](float a, float b, float decay, float dt) -> float {
-      return b + (a - b) * glm::exp(-decay * dt);
-    };
-    current_pos.x = exp_decay(current_pos.x, target_pos.x, 32, dt);
-    current_pos.y = exp_decay(current_pos.y, target_pos.y, 32, dt);
-    // current_pos.y = exp_decay(current_pos.z, target_pos.z, 32, dt);
-
-    ri.stars.set_vec2("player_position", { current_pos.x, current_pos.y });
-  }
+  update_stars_shader(r, ri, in_stars_scene, dt);
+  update_lights(r, ri);
 
   ri.mix_lighting_and_scene.bind();
   ri.mix_lighting_and_scene.set_bool("put_starshader_behind", in_stars_scene);
   ri.mix_lighting_and_scene.set_bool("add_grid", get_first<Effect_GridComponent>(r) != entt::null);
-
-  const auto camera_e = get_first<OrthographicCamera>(r);
-  const auto& camera_t = r.get<TransformComponent>(camera_e);
-
-  const int max_lights = 32;
-  static std::vector<Light> lights(max_lights);
-
-  // disable lights every frame?
-  for (auto& l : lights) {
-    l.enabled = false;
-    l.luminence = 0.0f;
-  }
-
-  // update the first light position to the first player position.
-  const auto& first_player = get_first<PlayerComponent>(r);
-  if (first_player != entt::null) {
-    glm::vec2 hmm = get_position(r, first_player);
-
-    // worldspace to screenspace
-    const auto& wh = ri.viewport_size_render_at;
-    hmm -= glm::vec2{ camera_t.position.x, camera_t.position.y };
-    hmm += glm::vec2{ wh.x / 2.0f, wh.y / 2.0f };
-
-    // player light
-    lights[0].pos = hmm;
-    lights[0].enabled = true;
-    lights[0].colour = { 1.0f, 1.0f, 1.0f, 1.0f };
-    lights[0].luminence = 0.5f;
-  }
-
-  // HACK: try adding lights to interesting map features
-  const auto& map_e = get_first<MapComponent>(r);
-  const auto& results_e = get_first<DungeonGenerationResults>(r);
-  {
-    if (map_e != entt::null && first_player != entt::null) {
-      const auto& map = r.get<MapComponent>(map_e);
-      const auto& results = r.get<DungeonGenerationResults>(results_e);
-
-      // if player is in the room, light it up
-      const auto player_pos = get_position(r, first_player);
-      const auto player_gridpos = engine::grid::worldspace_to_grid_space(player_pos, map.tilesize);
-
-      const auto rooms = inside_room(r, player_gridpos);
-      const auto in_room = rooms.size() > 0;
-      const bool inside_spaceship = in_room;
-
-      ri.mix_lighting_and_scene.bind();
-      ri.mix_lighting_and_scene.set_bool("inside_spaceship", in_room);
-
-      // increase player brightness outside spaceship.
-      if (!inside_spaceship)
-        lights[0].luminence = 1.5f;
-
-      // increase player brightness in tunnel (no room lights)
-      // if (in_room)
-      //   lights[0].luminence = 1.25f;
-
-      if (in_room) {
-        int i = 1; // 1 because used 1 light?
-        const auto& room_c = r.get<Room>(rooms[0]);
-        light_up_room(r, lights, i, room_c, camera_t);
-      }
-    }
-  }
-
-  ri.mix_lighting_and_scene.bind();
-
-  // update lighting uniforms
-
-  for (size_t i = 0; i < lights.size(); i++) {
-    const std::string label = "lights["s + std::to_string(i) + "]."s;
-
-    const auto& l = lights[i];
-    ri.mix_lighting_and_scene.set_bool(label + "enabled"s, l.enabled);
-    if (!l.enabled)
-      continue;
-    ri.mix_lighting_and_scene.set_vec2(label + "position"s, l.pos);
-    ri.mix_lighting_and_scene.set_vec4(label + "colour"s,
-                                       { l.colour.r / 255.0f, l.colour.g / 255.0f, l.colour.b / 255.0f, l.colour.a });
-    ri.mix_lighting_and_scene.set_float(label + "luminance"s, l.luminence);
-
-    if (i >= max_lights)
-      break;
-  }
 
 #if defined(_DEBUG)
   ImGui::Begin("DebugRenderPasses");
@@ -595,7 +453,7 @@ update_render_system(entt::registry& r, const float dt, const glm::vec2& mouse_p
 void
 end_frame_render_system(entt::registry& r)
 {
-  auto& ri = get_first_component<SINGLETON_RendererInfo>(r);
+  auto& ri = get_first_component<SINGLE_RendererInfo>(r);
   ri.renderer.end_frame();
 };
 

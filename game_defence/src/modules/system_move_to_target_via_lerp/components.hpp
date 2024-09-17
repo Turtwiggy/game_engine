@@ -27,6 +27,7 @@ struct LerpToMovingTarget
 {
   glm::vec2 a{ 0.0f, 0.0f };
   glm::vec2 b{ 0.0f, 0.0f };
+  // float t = 0.0f; no t because continous
   float speed = 20.0f; // higher number = faster to destination
 };
 

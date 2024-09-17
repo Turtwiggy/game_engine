@@ -1,10 +1,10 @@
 #include "system.hpp"
 
-#include "audio/components.hpp"
-#include "audio/helpers/sdl_mixer.hpp"
-#include "entt/helpers.hpp"
+#include "engine/audio/components.hpp"
+#include "engine/audio/helpers/sdl_mixer.hpp"
+#include "engine/entt/helpers.hpp"
 
-#include <SDL_audio.h>
+#include <SDL2/SDL_audio.h>
 #include <fmt/core.h>
 #include <imgui.h>
 #include <magic_enum.hpp>
@@ -16,10 +16,10 @@ update_ui_audio_system(entt::registry& r)
 {
   // todo: process audio device disconnect and connect events?
 
-  const auto audio_e = get_first<SINGLETON_AudioComponent>(r);
+  const auto audio_e = get_first<SINGLE_AudioComponent>(r);
   if (audio_e == entt::null)
     return;
-  auto& audio = get_first_component<SINGLETON_AudioComponent>(r);
+  auto& audio = get_first_component<SINGLE_AudioComponent>(r);
 
   ImGui::Begin("Audio");
 

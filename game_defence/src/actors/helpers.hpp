@@ -1,9 +1,8 @@
 #pragma once
 
-#include "colour/colour.hpp"
+#include "engine/colour/colour.hpp"
 
 #include <entt/entt.hpp>
-#include <glm/fwd.hpp>
 #include <glm/glm.hpp>
 
 namespace game2d {
@@ -28,8 +27,5 @@ set_size(entt::registry& r, const entt::entity e, const glm::vec2& size);
 
 void
 set_colour(entt::registry& r, const entt::entity e, const engine::SRGBColour& col);
-
-void
-set_colour_by_tag(entt::registry& r, const entt::entity e, const std::string& tag);
 
 } // namespace game2d

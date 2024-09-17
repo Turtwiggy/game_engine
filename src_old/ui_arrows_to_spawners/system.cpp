@@ -1,12 +1,12 @@
 #include "modules/ui_arrows_to_spawners/system.hpp"
 
-#include "entt/helpers.hpp"
-#include "lifecycle/components.hpp"
+#include "engine/entt/helpers.hpp"
+#include "engine/lifecycle/components.hpp"
+#include "engine/physics/components.hpp"
+#include "engine/sprites/helpers.hpp"
 #include "modules/actor_spawner/components.hpp"
 #include "modules/camera/orthographic.hpp"
 #include "modules/ui_arrows_to_spawners/components.hpp"
-#include "physics/components.hpp"
-#include "sprites/helpers.hpp"
 
 #include <glm/glm.hpp>
 

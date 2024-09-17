@@ -1,11 +1,9 @@
 #include "system.hpp"
 
 #include "components.hpp"
-#include "maths/maths.hpp"
-#include "modules/combat_wants_to_shoot/components.hpp"
-#include "modules/system_overworld_change_direction/components.hpp"
-#include "physics/components.hpp"
-#include "renderer/transform.hpp"
+#include "engine/maths/maths.hpp"
+#include "engine/physics/components.hpp"
+#include "engine/renderer/transform.hpp"
 
 #include <box2d/b2_math.h>
 #include <fmt/core.h>
@@ -48,7 +46,7 @@ update_physics_apply_force_system(entt::registry& r)
   // Force to DynamicTarget
   {
     const auto& view =
-      r.view<PhysicsBodyComponent, TransformComponent, const ApplyForceToDynamicTarget, const DynamicTargetComponent>();
+      r.view<PhysicsBodyComponent, TransformComponent, const ApplyForceToDynamicTarget, const PhysicsDynamicTarget>();
     for (const auto& [e, body_c, t_c, req_c, target_c] : view.each()) {
       const auto& b_body = r.get<PhysicsBodyComponent>(target_c.target).body;
 

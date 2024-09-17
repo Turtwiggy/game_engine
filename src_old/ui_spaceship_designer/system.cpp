@@ -1,17 +1,19 @@
 #include "system.hpp"
 
 #include "actors.hpp"
-#include "colour/colour.hpp"
 #include "components.hpp"
-#include "entt/helpers.hpp"
-#include "events/components.hpp"
-#include "events/helpers/keyboard.hpp"
+#include "engine/colour/colour.hpp"
+#include "engine/entt/helpers.hpp"
+#include "engine/events/components.hpp"
+#include "engine/events/helpers/keyboard.hpp"
+#include "engine/imgui/helpers.hpp"
+#include "engine/lifecycle/components.hpp"
+#include "engine/maths/grid.hpp"
+#include "engine/maths/maths.hpp"
+#include "engine/physics/components.hpp"
+#include "engine/physics/helpers.hpp"
 #include "helpers/entity_pool.hpp"
 #include "helpers/line.hpp"
-#include "imgui/helpers.hpp"
-#include "lifecycle/components.hpp"
-#include "maths/grid.hpp"
-#include "maths/maths.hpp"
 #include "modules/actor_player/components.hpp"
 #include "modules/actors/helpers.hpp"
 #include "modules/gen_dungeons/components.hpp"
@@ -19,12 +21,10 @@
 #include "modules/resolve_collisions/helpers.hpp"
 #include "modules/system_spaceship_door/components.hpp"
 #include "modules/vfx_grid/components.hpp"
-#include "physics/components.hpp"
-#include "physics/helpers.hpp"
 
 #include "imgui.h"
-#include <SDL_keyboard.h>
-#include <SDL_scancode.h>
+#include <SDL2/SDL_keyboard.h>
+#include <SDL2/SDL_scancode.h>
 #include <glm/fwd.hpp>
 #include <string>
 

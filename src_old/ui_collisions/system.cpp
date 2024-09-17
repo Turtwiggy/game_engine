@@ -1,7 +1,7 @@
 #include "system.hpp"
 
-#include "entt/helpers.hpp"
-#include "physics/components.hpp"
+#include "engine/entt/helpers.hpp"
+#include "engine/physics/components.hpp"
 
 #include "imgui.h"
 
@@ -10,25 +10,19 @@ namespace game2d {
 void
 update_ui_collisions_system(entt::registry& r)
 {
-  const auto& physics = get_first_component<SINGLETON_PhysicsComponent>(r);
+  const auto& physics = get_first_component<SINGLE_Physics>(r);
 
   ImGuiWindowFlags flags = 0;
   flags |= ImGuiWindowFlags_NoFocusOnAppearing;
-  flags |= ImGuiWindowFlags_NoTitleBar;
-  flags |= ImGuiWindowFlags_NoBackground;
+  // flags |= ImGuiWindowFlags_NoDecoration;
 
   ImGui::Begin("Collisions", NULL, flags);
 
-  ImGui::Text("Collisions");
+  ImGui::SameLine();
+  ImGui::Text("BodyCount(): %i", physics.world->GetBodyCount());
 
   ImGui::SameLine();
-  ImGui::Text("Enter %i", physics.collision_enter.size());
-
-  ImGui::SameLine();
-  ImGui::Text("Stay %i", physics.collision_stay.size());
-
-  ImGui::SameLine();
-  ImGui::Text("Exit %i", physics.collision_exit.size());
+  ImGui::Text("ContactCount(): %i", physics.world->GetContactCount());
 
   ImGui::End();
 }
