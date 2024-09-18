@@ -19,11 +19,6 @@ include(${CMAKE_SOURCE_DIR}/cmake/use-compiler-emscripten.cmake)
 include(${CMAKE_SOURCE_DIR}/cmake/use-compiler-gcc.cmake)
 include(${CMAKE_SOURCE_DIR}/cmake/use-compiler-msvc.cmake)
 
-# try to stop the windows console appearing
-if(CMAKE_CXX_COMPILER_ID MATCHES MSVC)
-  set(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} /SUBSYSTEM:WINDOWS")
-endif()
-
 include(${CMAKE_SOURCE_DIR}/cmake/packages.cmake)
 find_packages()
 
@@ -92,7 +87,7 @@ ENDIF()
 # actions for building release. Github actins will
 # copy over the /assets folder in the release mode,
 # and would fail if this symlink was created here.
-if(${CMAKE_BUILD_TYPE} EQUAL Debug)
+if(${CMAKE_BUILD_TYPE} STREQUAL Debug)
   message("creating symlink...")
   set(src ${CMAKE_SOURCE_DIR}/game_defence/assets)
   set(dst ${CMAKE_CURRENT_BINARY_DIR}/assets)
