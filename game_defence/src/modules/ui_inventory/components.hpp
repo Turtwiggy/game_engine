@@ -1,28 +1,9 @@
 #pragma once
 
 #include "engine/entt/helpers.hpp"
-#include "modules/combat_damage/components.hpp"
 #include <entt/entt.hpp>
 
 namespace game2d {
-
-// enum class ItemType
-// {
-//   gun,
-//   armour,
-//   bomb,
-//   medkit,
-//   scrap,
-//   bullet_default,
-//   bullet_bouncy
-// };
-
-// ItemTypeComponent exists to that
-// the item knows which instance of an object to spawn
-// struct ItemTypeComponent
-// {
-//   ItemType type = ItemType::armour;
-// };
 
 struct ShowInventoryRequest
 {

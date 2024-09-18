@@ -3,15 +3,14 @@
 #include "engine/entt/helpers.hpp"
 #include "engine/events/components.hpp"
 #include "engine/events/helpers/keyboard.hpp"
-#include "engine/sprites/components.hpp"
 #include "engine/sprites/helpers.hpp"
-#include "imgui.h"
+#include "modules/raws_components.hpp"
 #include "modules/renderer/components.hpp"
 #include "modules/renderer/helpers.hpp"
 #include "modules/ui_inventory/components.hpp"
 #include "modules/ui_scene_main_menu/helpers.hpp"
 
-
+#include "imgui.h"
 #include "magic_enum.hpp"
 
 namespace game2d {
@@ -29,29 +28,6 @@ toggle_inventory_display(entt::registry& r)
     else
       destroy_first<ShowInventoryRequest>(r);
   }
-};
-
-std::vector<entt::entity>
-get_slots(entt::registry& r, const entt::entity e, const InventorySlotType& type)
-{
-  const auto& inv = r.get<DefaultInventory>(e);
-  const auto& body = r.get<DefaultBody>(e);
-
-  std::vector<entt::entity> slots;
-
-  for (const entt::entity& e : body.body) {
-    const auto& slot_c = r.get<InventorySlotComponent>(e);
-    if (slot_c.type == type)
-      slots.push_back(e);
-  }
-
-  for (const entt::entity& e : inv.inv) {
-    const auto& slot_c = r.get<InventorySlotComponent>(e);
-    if (slot_c.type == type)
-      slots.push_back(e);
-  }
-
-  return slots;
 };
 
 void
@@ -209,6 +185,38 @@ display_inventory_slot(entt::registry& r, const entt::entity inventory_slot_e, c
 
   // any slot is a target, even if full
   become_dragdrop_target(r, inventory_slot_e);
+};
+
+void
+update_initialize_inventory(entt::registry& r, entt::entity e)
+{
+  auto& body_c = r.get<DefaultBody>(e);
+  auto& inv_c = r.get<DefaultInventory>(e);
+
+  if (auto* init = r.try_get<InitBodyAndInventory>(e)) {
+    r.remove<InitBodyAndInventory>(e);
+
+    // init body
+    r.get<InventorySlotComponent>(body_c.body[0]).item_e = spawn_item(r, "scrap_helmet");
+    r.get<InventorySlotComponent>(body_c.body[1]).item_e = spawn_item(r, "scrap_core");
+    r.get<InventorySlotComponent>(body_c.body[2]).item_e = spawn_item(r, "scrap_gloves");
+    r.get<InventorySlotComponent>(body_c.body[3]).item_e = spawn_item(r, "scrap_gloves");
+    r.get<InventorySlotComponent>(body_c.body[4]).item_e = spawn_item(r, "scrap_legs");
+    r.get<InventorySlotComponent>(body_c.body[5]).item_e = spawn_item(r, "scrap_legs");
+    r.get<InventorySlotComponent>(body_c.body[6]).item_e = spawn_item(r, "breach charge");
+
+    // initial items in your inventory
+    const auto inv_1_e = inv_c.inv[inv_c.inv.size() - 1];
+    const auto inv_2_e = inv_c.inv[inv_c.inv.size() - 2];
+    const auto inv_3_e = inv_c.inv[inv_c.inv.size() - 3];
+    const auto inv_4_e = inv_c.inv[inv_c.inv.size() - 4];
+    const auto inv_5_e = inv_c.inv[inv_c.inv.size() - 5];
+    r.get<InventorySlotComponent>(inv_1_e).item_e = spawn_item(r, "scrap");
+    r.get<InventorySlotComponent>(inv_2_e).item_e = spawn_item(r, "shotgun");
+    r.get<InventorySlotComponent>(inv_3_e).item_e = spawn_item(r, "bullet_default");
+    r.get<InventorySlotComponent>(inv_4_e).item_e = spawn_item(r, "bullet_bouncy");
+    r.get<InventorySlotComponent>(inv_5_e).item_e = spawn_item(r, "breach charge");
+  }
 };
 
 } // namespace game2d

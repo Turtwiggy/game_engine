@@ -44,19 +44,19 @@ from_json(const json& j, std::optional<T>& opt)
 struct Defence
 {
   int block;
-  std::optional<std::string> slot;
+  std::optional<std::string> worn_on;
 
   friend void to_json(json& j, const Defence& val)
   {
     j["block"] = val.block;
-    if (val.slot.has_value())
-      j["slot"] = val.slot.value();
+    if (val.worn_on.has_value())
+      j["worn_on"] = val.worn_on.value();
   }
   friend void from_json(const json& j, Defence& val)
   {
     j.at("block").get_to(val.block);
-    if (j.contains("slot"))
-      j.at("slot").get_to(val.slot.emplace());
+    if (j.contains("worn_on"))
+      j.at("worn_on").get_to(val.worn_on.emplace());
   };
 };
 
@@ -136,8 +136,14 @@ struct Stats
 struct Item
 {
   std::string name;
+  std::string display_name;
+  std::string display_desc;
   Renderable renderable;
   std::optional<Use> use;
+  std::optional<Melee> melee = std::nullopt;
+  std::optional<Ranged> ranged = std::nullopt;
+  std::optional<Bullet> bullet = std::nullopt;
+  std::optional<Defence> defence = std::nullopt;
 
   friend void to_json(json& j, const Item& val)
   {
@@ -145,6 +151,14 @@ struct Item
     j["renderable"] = val.renderable;
     if (val.use.has_value())
       j["use"] = val.use.value();
+    if (val.melee.has_value())
+      j["melee"] = val.melee.value();
+    if (val.ranged.has_value())
+      j["ranged"] = val.ranged.value();
+    if (val.bullet.has_value())
+      j["bullet"] = val.bullet.value();
+    if (val.defence.has_value())
+      j["defence"] = val.defence.value();
   }
   friend void from_json(const json& j, Item& val)
   {
@@ -152,48 +166,15 @@ struct Item
     j.at("renderable").get_to(val.renderable);
     if (j.contains("use"))
       j.at("use").get_to(val.use.emplace());
-  };
-};
-
-struct Weapon
-{
-  std::string name;
-  Renderable renderable;
-  std::optional<Melee> melee = std::nullopt;
-  std::optional<Ranged> ranged = std::nullopt;
-  std::optional<Bullet> bullet = std::nullopt;
-
-  friend void to_json(json& j, const Weapon& val)
-  {
-    j["name"] = val.name;
-    j["renderable"] = val.renderable;
-    if (val.melee.has_value())
-      j["melee"] = val.melee.value();
-    if (val.ranged.has_value())
-      j["ranged"] = val.ranged.value();
-    if (val.bullet.has_value())
-      j["bullet"] = val.bullet.value();
-  }
-  friend void from_json(const json& j, Weapon& w)
-  {
-    j.at("name").get_to(w.name);
-    j.at("renderable").get_to(w.renderable);
     if (j.contains("melee"))
-      j.at("melee").get_to(w.melee);
+      j.at("melee").get_to(val.melee);
     if (j.contains("ranged"))
-      j.at("ranged").get_to(w.ranged);
+      j.at("ranged").get_to(val.ranged);
     if (j.contains("bullet"))
-      j.at("bullet").get_to(w.bullet);
+      j.at("bullet").get_to(val.bullet);
+    if (j.contains("defence"))
+      j.at("defence").get_to(val.defence);
   };
-};
-
-struct Armour
-{
-  std::string name;
-  Renderable renderable;
-  Defence defence;
-
-  NLOHMANN_DEFINE_TYPE_INTRUSIVE(Armour, name, renderable, defence);
 };
 
 struct Environment
@@ -221,12 +202,10 @@ struct Mob
 struct Raws
 {
   std::vector<Item> items;
-  std::vector<Weapon> weapons;
-  std::vector<Armour> armour;
   std::vector<Environment> environment;
   std::vector<Mob> mobs;
 
-  NLOHMANN_DEFINE_TYPE_INTRUSIVE(Raws, items, weapons, armour, environment, mobs);
+  NLOHMANN_DEFINE_TYPE_INTRUSIVE(Raws, items, environment, mobs);
 };
 
 //
@@ -240,7 +219,7 @@ entt::entity
 create_transform(entt::registry& r, const std::string& name);
 
 entt::entity
-spawn_item(entt::registry& r, const std::string& key, const glm::vec2& pos);
+spawn_item(entt::registry& r, const std::string& key);
 
 entt::entity
 spawn_mob(entt::registry& r, const std::string& key, const glm::vec2& pos);

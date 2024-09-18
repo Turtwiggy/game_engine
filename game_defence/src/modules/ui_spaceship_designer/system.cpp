@@ -10,13 +10,14 @@
 #include "modules/camera/orthographic.hpp"
 #include "modules/combat/components.hpp"
 #include "modules/map/components.hpp"
-#include "modules/raws/components.hpp"
+#include "modules/raws_components.hpp"
 #include "modules/renderer/components.hpp"
 #include "modules/spaceship_designer/generation/rooms_random.hpp"
 #include "modules/spaceship_designer/helpers.hpp"
 
 #include "imgui.h"
 #include "modules/scene/helpers.hpp"
+#include "modules/ui_inventory/components.hpp"
 
 namespace game2d {
 
@@ -36,15 +37,18 @@ update_ui_spaceship_designer_system(entt::registry& r, const glm::vec2& mouse_po
   if (imgui_draw_int("seed", seed))
     rnd = engine::RandomState(seed);
 
+  static int tilesize = 50;
+  imgui_draw_int("tilesize", tilesize);
+
   // Generate Rooms Randomly
   if (ImGui::Button("Generate Rooms (Random)")) {
     move_to_scene_start(r, Scene::dungeon_designer);
 
     destroy_first_and_create<MapComponent>(r);
     auto& map = get_first_component<MapComponent>(r);
-    const int map_width = 1200;
-    const int map_height = 1200;
-    map.tilesize = 50;
+    const int map_width = tilesize * 24;
+    const int map_height = tilesize * 24;
+    map.tilesize = tilesize;
     map.xmax = map_width / map.tilesize;
     map.ymax = map_height / map.tilesize;
     map.map.resize(map.xmax * map.ymax);
@@ -69,6 +73,9 @@ update_ui_spaceship_designer_system(entt::registry& r, const glm::vec2& mouse_po
 
   // TODO: replace this with generic item/mob spawner
   if (ImGui::Button("Add player")) {
+    destroy_first<CameraFreeMove>(r);
+
+    // create_player();
     auto e = spawn_mob(r, "dungeon_actor_hero", { 0, 0 });
     r.emplace<CameraFollow>(e);
     r.emplace<CircleComponent>(e);
@@ -76,11 +83,9 @@ update_ui_spaceship_designer_system(entt::registry& r, const glm::vec2& mouse_po
     r.emplace<TeamComponent>(e, AvailableTeams::player);
     r.get<PhysicsBodyComponent>(e).base_speed = 100.0f;
     r.emplace<MovementJetpackComponent>(e);
-    r.emplace<InputComponent>(e);
-    r.emplace<KeyboardComponent>(e);
-    //     r.emplace<DefaultBody>(e, DefaultBody(r));
-    //     r.emplace<DefaultInventory>(e, DefaultInventory(r, 6 * 5));
-    //     r.emplace<InitBodyAndInventory>(e);
+    r.emplace<DefaultBody>(e, DefaultBody(r));
+    r.emplace<DefaultInventory>(e, DefaultInventory(r, 6 * 5));
+    r.emplace<InitBodyAndInventory>(e);
     spawn_particle_emitter(r, "anything", { 0, 0 }, e);
 
     // give helmet to breathe

@@ -1,4 +1,4 @@
-#include "components.hpp"
+#include "raws_components.hpp"
 
 #include "actors/helpers.hpp"
 #include "engine/lifecycle/components.hpp"
@@ -27,9 +27,19 @@ load_raws(std::string path)
   std::ifstream t(path);
   std::stringstream buffer;
   buffer << t.rdbuf();
-  const std::string data = buffer.str();
+  const std::string data_with_comments = buffer.str();
 
-  nlohmann::json root = nlohmann::json::parse(data);
+  // remove comments from .jsonc file
+  std::istringstream stream(data_with_comments);
+  std::ostringstream output;
+  std::string line;
+  while (std::getline(stream, line)) {
+    std::string cleaned_line = line.find("//") != std::string::npos ? "" : line;
+    output << cleaned_line << "\n";
+  }
+  const std::string string_without_comments = output.str();
+
+  nlohmann::json root = nlohmann::json::parse(string_without_comments);
   const auto raws = root.get<Raws>();
   return raws;
 };
@@ -45,7 +55,7 @@ create_transform(entt::registry& r, const std::string& name)
 };
 
 entt::entity
-spawn_item(entt::registry& r, const std::string& key, const glm::vec2& pos)
+spawn_item(entt::registry& r, const std::string& key)
 {
   const auto& rs = get_first_component<Raws>(r);
 
@@ -61,23 +71,23 @@ spawn_item(entt::registry& r, const std::string& key, const glm::vec2& pos)
   const auto e = r.create();
   r.emplace<TagComponent>(e, item_template.name);
   r.emplace<WaitForInitComponent>(e);
-
-  // create_transform()
-  {
-    r.emplace<SpriteComponent>(e);
-    set_sprite(r, e, item_template.renderable.sprite);
-    set_colour(r, e, item_template.renderable.colour);
-
-    TransformComponent tf;
-    tf.position = { pos.x, pos.y, 0.0f };
-    tf.scale = { 32, 32, 0.0f };
-    r.emplace<TransformComponent>(e, tf);
-    set_position(r, e, { tf.position.x, tf.position.y });
-    set_size(r, e, { 32, 32 });
-  }
+  r.emplace<Item>(e, item_template);
 
   if (item_template.use.has_value())
-    r.emplace<Use>(e);
+    r.emplace<Use>(e, item_template.use.value());
+
+  // create_transform()
+  // {
+  //   r.emplace<SpriteComponent>(e);
+  //   set_sprite(r, e, item_template.renderable.sprite);
+  //   set_colour(r, e, item_template.renderable.colour);
+  //   TransformComponent tf;
+  //   tf.position = { pos.x, pos.y, 0.0f };
+  //   tf.scale = { 32, 32, 0.0f };
+  //   r.emplace<TransformComponent>(e, tf);
+  //   set_position(r, e, { tf.position.x, tf.position.y });
+  //   set_size(r, e, { 32, 32 });
+  // }
 
   return e;
 };

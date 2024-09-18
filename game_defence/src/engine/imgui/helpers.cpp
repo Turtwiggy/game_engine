@@ -157,7 +157,7 @@ imgui_draw_ivec3(const std::string& label, int& x, int& y, int& z)
   }
 };
 
-void
+bool
 imgui_draw_vec2(const std::string& label, glm::vec2& xy, const float v_speed)
 {
   glm::vec2 v_temp = xy;
@@ -167,10 +167,12 @@ imgui_draw_vec2(const std::string& label, glm::vec2& xy, const float v_speed)
   if (ImGui::DragFloat2((std::string("##") + label).c_str(), glm::value_ptr(v_temp), v_speed)) {
     xy.x = v_temp.x;
     xy.y = v_temp.y;
+    return true;
   }
+  return false;
 }
 
-void
+bool
 imgui_draw_vec2(const std::string& label, float& x, float& y, const float v_speed)
 {
   glm::vec2 v_temp = { x, y };
@@ -180,7 +182,9 @@ imgui_draw_vec2(const std::string& label, float& x, float& y, const float v_spee
   if (ImGui::DragFloat2((std::string("##") + label).c_str(), glm::value_ptr(v_temp), v_speed)) {
     x = v_temp.x;
     y = v_temp.y;
+    return true;
   }
+  return false;
 };
 
 void

@@ -1,14 +1,10 @@
 #pragma once
 
-#include "actors/bags/armour.hpp"
-
 #include <entt/entt.hpp>
 
 namespace game2d {
 
-struct ArmourComponent
-{
-  ArmourData data;
-};
+void
+update_swap_active_player_system(entt::registry& r);
 
 } // namespace game2d

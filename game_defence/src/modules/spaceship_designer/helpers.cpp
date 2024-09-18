@@ -6,7 +6,7 @@
 #include "generation/rooms_random.hpp"
 #include "modules/map/components.hpp"
 #include "modules/map/helpers.hpp"
-#include "modules/raws/components.hpp"
+#include "modules/raws_components.hpp"
 
 namespace game2d {
 

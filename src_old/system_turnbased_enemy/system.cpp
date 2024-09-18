@@ -18,7 +18,6 @@
 #include "modules/grid/components.hpp"
 #include "modules/system_fov/components.hpp"
 
-
 #include <fmt/core.h>
 
 namespace game2d {

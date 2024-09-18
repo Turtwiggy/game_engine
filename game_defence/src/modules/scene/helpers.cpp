@@ -14,7 +14,7 @@
 #include "modules/actor_player/components.hpp"
 #include "modules/camera/components.hpp"
 #include "modules/combat/components.hpp"
-#include "modules/raws/components.hpp"
+#include "modules/raws_components.hpp"
 #include "modules/renderer/components.hpp"
 #include "modules/scene_splashscreen_move_to_menu/components.hpp"
 #include "modules/ui_scene_main_menu/components.hpp"
@@ -22,24 +22,6 @@
 namespace game2d {
 
 /*
-
-entt::entity
-add_player_shotgun(entt::registry& r, const entt::entity& e)
-{
-  DataWeaponShotgun desc;
-  desc.pos = get_position(r, e);
-  desc.team = r.get<TeamComponent>(e).team;
-  desc.parent = get_first<PlayerComponent>(r);
-  const auto weapon_e = Factory_DataWeaponShotgun::create(r, desc);
-  // add_components(r, e, desc);
-
-  // link player&weapon
-  HasWeaponComponent has_weapon;
-  has_weapon.instance = weapon_e;
-  r.emplace<HasWeaponComponent>(e, has_weapon);
-
-  return weapon_e;
-};
 
 // scene idea:
 // spawn a ship,

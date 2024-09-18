@@ -15,7 +15,7 @@
 #include "modules/camera/helpers.hpp"
 #include "modules/camera/orthographic.hpp"
 #include "modules/camera/system.hpp"
-#include "modules/raws/components.hpp"
+#include "modules/raws_components.hpp"
 #include "modules/renderer/components.hpp"
 #include "modules/renderer/system.hpp"
 #include "modules/scene/components.hpp"
@@ -26,8 +26,13 @@
 #include "modules/system_move_to_target_via_lerp/system.hpp"
 #include "modules/system_particles/system.hpp"
 #include "modules/system_physics_apply_force/system.hpp"
+#include "modules/system_swap_active_player/system.hpp"
+#include "modules/ui_audio/system.hpp"
+#include "modules/ui_collisions/system.hpp"
+#include "modules/ui_controllers/system.hpp"
 #include "modules/ui_fps_counter/system.hpp"
 #include "modules/ui_hierarchy/system.hpp"
+#include "modules/ui_inventory/system.hpp"
 #include "modules/ui_pause_menu/system.hpp"
 #include "modules/ui_raws/system.hpp"
 #include "modules/ui_scene_main_menu/system.hpp"
@@ -53,7 +58,7 @@ init(engine::SINGLE_Application& app, entt::registry& r)
   }
 
   // load_quips();
-  create_persistent<Raws>(r, load_raws("assets/raws/items.json"));
+  create_persistent<Raws>(r, load_raws("assets/raws/items.jsonc"));
 
   {
     create_persistent<SINGLE_FixedUpdateInputHistory>(r);
@@ -136,6 +141,7 @@ update(engine::SINGLE_Application& app, entt::registry& r, const uint64_t millis
   update_move_to_target_via_lerp(r, dt);
   update_particle_system(r, dt);
   update_distance_check_system(r);
+  update_swap_active_player_system(r);
   // update_change_gun_colour_system(r);
   // update_change_gun_z_index_system(r);
   // update_quips_system(r);
@@ -170,6 +176,7 @@ update(engine::SINGLE_Application& app, entt::registry& r, const uint64_t millis
   update_ui_fps_counter_system(r);
   update_ui_raws_system(r);
   update_ui_pause_menu_system(app, r);
+  update_ui_inventory_system(r);
 
   if (scene.s == Scene::menu)
     update_ui_scene_main_menu(app, r);
@@ -184,7 +191,6 @@ update(engine::SINGLE_Application& app, entt::registry& r, const uint64_t millis
   // update_ui_combat_turnbased_system(r, mouse_pos);
   // update_ui_combat_endturn_system(r);
   // update_ui_combat_ended_system(r);
-  // update_ui_inventory_system(r);
   // update_ui_combat_info_in_worldspace_system(r);
   // update_ui_lootbag_system(r);
   // update_ui_launch_crew_system(r);
@@ -192,11 +198,11 @@ update(engine::SINGLE_Application& app, entt::registry& r, const uint64_t millis
 
   static bool show_settings_ui = true;
   if (show_settings_ui) {
-    // ImGui::ShowDemoWindow(NULL);
+    ImGui::ShowDemoWindow(NULL);
     update_ui_hierarchy_system(r);
-    // update_ui_audio_system(r);
-    // update_ui_controller_system(r);
-    // update_ui_collisions_system(r);
+    update_ui_audio_system(r);
+    update_ui_controller_system(r);
+    update_ui_collisions_system(r);
   }
 
 #if defined(_DEBUG)
@@ -206,7 +212,7 @@ update(engine::SINGLE_Application& app, entt::registry& r, const uint64_t millis
   if (get_key_down(input, SDL_SCANCODE_9)) {
     fmt::println("reloading raws...");
     destroy_first<Raws>(r);
-    create_persistent<Raws>(r, load_raws("assets/raws/items.json"));
+    create_persistent<Raws>(r, load_raws("assets/raws/items.jsonc"));
   }
 #endif
 

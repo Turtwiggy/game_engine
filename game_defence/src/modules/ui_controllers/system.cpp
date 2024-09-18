@@ -3,9 +3,6 @@
 #include "engine/entt/helpers.hpp"
 #include "engine/events/components.hpp"
 #include "engine/events/helpers/controller.hpp"
-#include "engine/events/helpers/mouse.hpp"
-#include "modules/camera/helpers.hpp"
-#include "modules/renderer/components.hpp"
 
 #include <SDL2/SDL_gamecontroller.h>
 #include <imgui.h>
@@ -19,9 +16,6 @@ void
 update_ui_controller_system(entt::registry& r)
 {
   auto& input = get_first_component<SINGLE_InputComponent>(r);
-
-  // ImGuiWindowFlags flags = 0;
-  // flags |= ImGuiDockNodeFlags_AutoHideTabBar;
 
   ImGui::Begin("Controller");
 

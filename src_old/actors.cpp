@@ -83,24 +83,6 @@ add_components(entt::registry& r, const entt::entity e, const DataDungeonActor& 
 };
 
 void
-add_components(entt::registry& r, const entt::entity e, const DataWeaponShotgun& desc)
-{
-  // set_size(r, e, SMALL_SIZE);   // empty sprite
-  set_size(r, e, DEFAULT_SIZE); // shotgun sprite
-  set_z_index(r, e, ZLayer::PLAYER_GUN_ABOVE_PLAYER);
-
-  r.emplace<ShotgunComponent>(e);
-  r.emplace<TeamComponent>(e, desc.team);
-
-  if (desc.parent == entt::null)
-    fmt::println("(ERROR) weaponshotgun creating with no parent");
-  r.emplace<HasParentComponent>(e, desc.parent);
-
-  if (desc.able_to_shoot)
-    r.emplace<AbleToShoot>(e);
-};
-
-void
 add_components(entt::registry& r, const entt::entity e, const DataBreachCharge& desc)
 {
   PhysicsDescription pdesc;
@@ -273,17 +255,6 @@ entt::entity
 Factory_DataWeaponKnife::create(entt::registry& r, const DataWeaponKnife& desc)
 {
   const auto e = Factory_BaseActor::create(r, desc, typeid(desc).name());
-};
-
-entt::entity
-Factory_DataWeaponShotgun::create(entt::registry& r, const DataWeaponShotgun& desc)
-{
-  const auto e = Factory_BaseActor::create(r, desc, typeid(desc).name());
-
-  add_components(r, e, desc);
-
-  set_position(r, e, get_position(r, desc.parent));
-  return e;
 };
 
 entt::entity

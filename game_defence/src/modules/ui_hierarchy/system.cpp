@@ -72,13 +72,13 @@ update_ui_hierarchy_system(entt::registry& r)
 
       // preset filters...
 
-      if (tag->tag.find("AudioSource") != std::string::npos) {
+      if (tag->tag.find("InventorySlot") != std::string::npos) {
         categories.push_back({ tag->tag, false });
         continue;
       }
 
       // note: also filters out DataParticleEmitter
-      if (tag->tag.find("DataParticle") != std::string::npos) {
+      if (tag->tag.find("particle") != std::string::npos) {
         categories.push_back({ tag->tag, false });
         continue;
       }

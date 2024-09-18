@@ -5,7 +5,7 @@
 #include "engine/lifecycle/components.hpp"
 #include "engine/maths/maths.hpp"
 #include "engine/renderer/transform.hpp"
-#include "modules/raws/components.hpp"
+#include "modules/raws_components.hpp"
 #include "modules/system_cooldown/components.hpp"
 #include "modules/system_cooldown/helpers.hpp"
 #include "modules/system_move_to_target_via_lerp/components.hpp"
