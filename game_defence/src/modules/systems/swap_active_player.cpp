@@ -1,4 +1,5 @@
-#include "system.hpp"
+#include "swap_active_player.hpp"
+
 #include "modules/actor_player/components.hpp"
 #include "modules/camera/components.hpp"
 

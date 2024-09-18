@@ -26,7 +26,8 @@
 #include "modules/system_move_to_target_via_lerp/system.hpp"
 #include "modules/system_particles/system.hpp"
 #include "modules/system_physics_apply_force/system.hpp"
-#include "modules/system_swap_active_player/system.hpp"
+#include "modules/systems/show_tiles_in_range.hpp"
+#include "modules/systems/swap_active_player.hpp"
 #include "modules/ui_audio/system.hpp"
 #include "modules/ui_collisions/system.hpp"
 #include "modules/ui_controllers/system.hpp"
@@ -142,6 +143,7 @@ update(engine::SINGLE_Application& app, entt::registry& r, const uint64_t millis
   update_particle_system(r, dt);
   update_distance_check_system(r);
   update_swap_active_player_system(r);
+  update_show_tiles_in_range_system(r);
   // update_change_gun_colour_system(r);
   // update_change_gun_z_index_system(r);
   // update_quips_system(r);
