@@ -1,4 +1,4 @@
-#include "raws_components.hpp"
+#include "raws.hpp"
 
 #include "actors/helpers.hpp"
 #include "engine/lifecycle/components.hpp"
@@ -14,6 +14,7 @@
 #include "modules/renderer/lights/components.hpp"
 #include "modules/system_cooldown/components.hpp"
 #include "modules/system_move_to_target_via_lerp/components.hpp"
+#include "modules/ui_inventory/components.hpp"
 
 #include <fstream>
 #include <sstream>
@@ -54,6 +55,29 @@ create_transform(entt::registry& r, const std::string& name)
   return e;
 };
 
+void
+add_item_to_world(entt::entity& e) {
+  // create_transform()
+  // {
+  //   r.emplace<SpriteComponent>(e);
+  //   set_sprite(r, e, item_template.renderable.sprite);
+  //   set_colour(r, e, item_template.renderable.colour);
+  //   TransformComponent tf;
+  //   tf.position = { pos.x, pos.y, 0.0f };
+  //   tf.scale = { 32, 32, 0.0f };
+  //   r.emplace<TransformComponent>(e, tf);
+  //   set_position(r, e, { tf.position.x, tf.position.y });
+  //   set_size(r, e, { 32, 32 });
+  // }
+
+  // PhysicsDescription pdesc;
+  // pdesc.type = b2_dynamicBody;
+  // pdesc.position = desc.pos;
+  // pdesc.size = { DEFAULT_SIZE.x, DEFAULT_SIZE.y };
+  // pdesc.is_sensor = false;
+  // create_physics_actor(r, e, pdesc);
+};
+
 entt::entity
 spawn_item(entt::registry& r, const std::string& key)
 {
@@ -71,23 +95,20 @@ spawn_item(entt::registry& r, const std::string& key)
   const auto e = r.create();
   r.emplace<TagComponent>(e, item_template.name);
   r.emplace<WaitForInitComponent>(e);
+
+  // item is use across the game to represent any item
   r.emplace<Item>(e, item_template);
+
+  // item component is used by the inventory ui
+  UI_ItemComponent item_c;
+  item_c.display_icon = item_template.renderable.sprite;
+  item_c.display_name = item_template.display_name;
+  item_c.display_desc = item_template.display_desc;
+  item_c.parent_slot = entt::null; // set outside this func
+  r.emplace<UI_ItemComponent>(e, item_c);
 
   if (item_template.use.has_value())
     r.emplace<Use>(e, item_template.use.value());
-
-  // create_transform()
-  // {
-  //   r.emplace<SpriteComponent>(e);
-  //   set_sprite(r, e, item_template.renderable.sprite);
-  //   set_colour(r, e, item_template.renderable.colour);
-  //   TransformComponent tf;
-  //   tf.position = { pos.x, pos.y, 0.0f };
-  //   tf.scale = { 32, 32, 0.0f };
-  //   r.emplace<TransformComponent>(e, tf);
-  //   set_position(r, e, { tf.position.x, tf.position.y });
-  //   set_size(r, e, { 32, 32 });
-  // }
 
   return e;
 };
@@ -118,7 +139,6 @@ spawn_mob(entt::registry& r, const std::string& key, const glm::vec2& pos)
     set_sprite(r, e, item_template.renderable.sprite);
     set_colour(r, e, item_template.renderable.colour);
     r.emplace<DefaultColour>(e, item_template.renderable.colour);
-
     TransformComponent tf;
     tf.position = { pos.x, pos.y, 0.0f };
     tf.scale = { size, size, 0.0f };

@@ -15,7 +15,7 @@
 #include "modules/camera/helpers.hpp"
 #include "modules/camera/orthographic.hpp"
 #include "modules/camera/system.hpp"
-#include "modules/raws_components.hpp"
+#include "modules/components/raws.hpp"
 #include "modules/renderer/components.hpp"
 #include "modules/renderer/system.hpp"
 #include "modules/scene/components.hpp"

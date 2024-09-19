@@ -14,9 +14,10 @@
 #include "modules/actor_player/components.hpp"
 #include "modules/camera/components.hpp"
 #include "modules/combat/components.hpp"
-#include "modules/raws_components.hpp"
+#include "modules/components/raws.hpp"
 #include "modules/renderer/components.hpp"
 #include "modules/scene_splashscreen_move_to_menu/components.hpp"
+#include "modules/ui_inventory/components.hpp"
 #include "modules/ui_scene_main_menu/components.hpp"
 
 namespace game2d {
@@ -143,6 +144,7 @@ move_to_scene_start(entt::registry& r, const Scene& s)
   create_empty<SINGLE_EntityBinComponent>(r);
   create_empty<SINGLE_GameStateComponent>(r);
   create_empty<SINGLE_InputComponent>(r);
+  create_empty<SINGLE_UIInventoryState>(r);
 
   // The first and only transform should be the camera
   const auto camera_e = get_first<TransformComponent>(r);

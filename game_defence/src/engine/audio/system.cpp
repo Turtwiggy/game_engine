@@ -131,7 +131,7 @@ update_audio_system(entt::registry& r)
     const auto& request = r.get<AudioRequestPlayEvent>(entity);
 
     if (free_audio_sources.size() == 0) {
-      // fmt::println("No free audio sources! Missed request for: {}", tag);
+      fmt::println("No free audio sources! Missed request for: {}", tag);
       continue;
     }
 

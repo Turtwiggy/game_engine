@@ -93,12 +93,35 @@ if(${CMAKE_BUILD_TYPE} STREQUAL Debug)
   set(dst ${CMAKE_CURRENT_BINARY_DIR}/assets)
   message("creating symlink src... ${src}")
   message("creating symlink dst... ${dst}")
-  add_custom_command(
-    TARGET ${PROJECT_NAME} POST_BUILD
-    COMMAND ${CMAKE_COMMAND} -E create_symlink ${src_sym} ${dst_sym}
-    DEPENDS ${dst_sym}
-    COMMENT "symbolic link resources folder from ${src_sym} => ${dst_sym}"
-  )
+
+  if(UNIX)
+    message("creating symlink... (unix)")
+    add_custom_command(
+      TARGET ${PROJECT_NAME} PRE_BUILD
+      COMMAND ${CMAKE_COMMAND} -E create_symlink ${src_sym} ${dst_sym}
+      DEPENDS ${dst_sym}
+      COMMENT "symbolic link resources folder from ${src_sym} => ${dst_sym}"
+    )
+  else()
+    message("creating symlink... (windows)")
+    file(TO_NATIVE_PATH "${src}" _srcDir)
+    file(TO_NATIVE_PATH "${dst}" _dstDir)
+
+    if(NOT EXISTS ${_dstDir})
+      # https://learn.microsoft.com/en-us/windows-server/administration/windows-commands/mklink
+      # mklink [[/d] | [/h] | [/j]] <link> <target>
+      # <link>	Specifies the name of the symbolic link being created.
+      # <target>	Specifies the path (relative or absolute) that the new symbolic link refers to.
+      #
+      add_custom_command(
+        TARGET ${PROJECT_NAME} PRE_BUILD
+        COMMAND cmd.exe /c mklink /D "${_dstDir}" "${_srcDir}"
+        COMMENT "Creating symlink on Windows"
+      )
+    ELSE()
+      message("creating symlink... (already exists)")
+    ENDIF()
+  ENDIF()
 ENDIF()
 
 set(CPACK_PROJECT_NAME ${PROJECT_NAME})

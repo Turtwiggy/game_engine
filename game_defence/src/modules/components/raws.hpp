@@ -148,6 +148,8 @@ struct Item
   friend void to_json(json& j, const Item& val)
   {
     j["name"] = val.name;
+    j["display_name"] = val.display_name;
+    j["display_desc"] = val.display_desc;
     j["renderable"] = val.renderable;
     if (val.use.has_value())
       j["use"] = val.use.value();
@@ -163,6 +165,10 @@ struct Item
   friend void from_json(const json& j, Item& val)
   {
     j.at("name").get_to(val.name);
+    if (j.contains("display_name"))
+      j.at("display_name").get_to(val.display_name);
+    if (j.contains("display_desc"))
+      j.at("display_desc").get_to(val.display_desc);
     j.at("renderable").get_to(val.renderable);
     if (j.contains("use"))
       j.at("use").get_to(val.use.emplace());

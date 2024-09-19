@@ -23,4 +23,7 @@ handle_dragdrop_target(entt::registry& r, const entt::entity payload_e, const en
 void
 update_initialize_inventory(entt::registry& r, entt::entity e_player);
 
+entt::entity
+spawn_inv_item(entt::registry& r, std::vector<entt::entity>& v, int idx, std::string key);
+
 } // namespace game2d
