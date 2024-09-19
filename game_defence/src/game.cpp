@@ -1,7 +1,7 @@
 #include "game.hpp"
 
-#include "engine/audio/components.hpp"
-#include "engine/audio/system.hpp"
+#include "engine/audio/audio_components.hpp"
+#include "engine/audio/audio_system.hpp"
 #include "engine/entt/helpers.hpp"
 #include "engine/events/components.hpp"
 #include "engine/events/helpers/keyboard.hpp"

@@ -1,6 +1,6 @@
 #include "system.hpp"
 
-#include "engine/audio/components.hpp"
+#include "engine/audio/audio_components.hpp"
 #include "engine/audio/helpers/sdl_mixer.hpp"
 #include "engine/entt/helpers.hpp"
 

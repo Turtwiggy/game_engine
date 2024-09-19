@@ -12,10 +12,17 @@
 
     // Windows-specific settings
     "cmake.parallelJobs": 32,
-    "clangd.path": "C:/Software/msys64/ucrt64/bin/clangd.exe",
-    "cmake.cmakePath": "C:/Software/msys64/ucrt64/bin/cmake.exe",
-    "cmake.ctestPath": "C:/Software/msys64/ucrt64/bin/ctest.exe",
-    "cmake.cpackPath": "C:/Software/msys64/ucrt64/bin/cpack.exe",
+
+    "[windows]": {
+      "clangd.path": "C:/Software/msys64/ucrt64/bin/clangd.exe",
+      "cmake.cmakePath": "C:/Software/msys64/ucrt64/bin/cmake.exe",
+      "cmake.ctestPath": "C:/Software/msys64/ucrt64/bin/ctest.exe",
+      "cmake.cpackPath": "C:/Software/msys64/ucrt64/bin/cpack.exe"
+    },
+
+    "[macos]": {
+      //
+    },
 
     /*
     "terminal.integrated.profiles.windows": {

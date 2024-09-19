@@ -1,6 +1,6 @@
 #include "sdl_mixer.hpp"
 
-#include "engine/audio/components.hpp"
+#include "engine/audio/audio_components.hpp"
 
 #include <SDL2/SDL_audio.h>
 #include <SDL2/SDL_mixer.h>

@@ -1,7 +1,7 @@
-#include "system.hpp"
+#include "audio_system.hpp"
 
-#include "components.hpp"
-#include "engine/audio/helpers.hpp"
+#include "audio_components.hpp"
+#include "engine/audio/audio_helpers.hpp"
 
 #include <SDL2/SDL.h>
 #include <SDL2/SDL_audio.h>
@@ -57,7 +57,7 @@ init_audio_system(entt::registry& r)
   audio.max_audio_sources = Mix_AllocateChannels(-1); // -1 means query the number of channels
   fmt::println("Audio sources to create: {}", audio.max_audio_sources);
   for (int i = 0; i < audio.max_audio_sources; i++) {
-    create_empty<AudioSource>(r, AudioSource(i));
+    create_persistent<AudioSource>(r, AudioSource(i));
 
     // set volume to user pref
     Mix_Volume(i, audio.volume_internal);

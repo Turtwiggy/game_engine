@@ -2,7 +2,7 @@
 
 #include "components.hpp"
 
-#include "engine/audio/components.hpp"
+#include "engine/audio/audio_components.hpp"
 #include "engine/entt/helpers.hpp"
 #include "helpers.hpp"
 #include "modules/renderer/components.hpp"

@@ -1,6 +1,6 @@
 #pragma once
 
-#include "engine/audio/components.hpp"
+#include "engine/audio/audio_components.hpp"
 #include "modules/renderer/components.hpp"
 
 namespace game2d {

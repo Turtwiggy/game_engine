@@ -2,7 +2,7 @@
 
 #include "actors/actors.hpp"
 #include "actors/helpers.hpp"
-#include "engine/audio/components.hpp"
+#include "engine/audio/audio_components.hpp"
 #include "engine/entt/helpers.hpp"
 #include "engine/events/helpers/mouse.hpp"
 #include "engine/lifecycle/components.hpp"
