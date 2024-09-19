@@ -11,10 +11,9 @@
     },
     {
       "name": "duck",
-      "display_name": "Basic Duck.",
+      "display_name": "Basic Duck",
       "display_desc": "Quuack. Quack. QUACK >:(",
-      "renderable": { "sprite": "DUCK", "colour": { "r": 255, "g": 255, "b": 255 } },
-      "use": { "name": "heal", "select": "actor", "amount": 25 }
+      "renderable": { "sprite": "DUCK", "colour": { "r": 255, "g": 255, "b": 255 } }
     },
     {
       "name": "seed (plant)",

@@ -185,6 +185,10 @@ display_item(entt::registry& r, entt::entity slot_e, entt::entity item_e, const 
     const auto item_desc_str = item_c.display_desc.c_str();
     ImGui::TextColored(ImVec4(0.8f, 0.8f, 0.8f, 1.0f), "%s", item_desc_str);
 
+    auto& core_item_c = r.get<Item>(item_e);
+    if (core_item_c.use.has_value())
+      ImGui::TextColored(ImVec4(0.8f, 0.8f, 0.8f, 1.0f), "(usable)");
+
     ImGui::EndTooltip();
   }
 };

@@ -15,8 +15,11 @@ EntityPool::update(entt::registry& r, const size_t desired)
 
   // create
   const size_t to_create = new_size - old_size;
-  for (size_t i = 0; i < to_create; i++)
-    instances.push_back(create_empty<TagComponent>(r));
+  for (size_t i = 0; i < to_create; i++) {
+    const auto e = r.create();
+    r.emplace<TagComponent>(e, "entity-pool-entity");
+    instances.push_back(e);
+  }
 
   // destroy
   auto& dead = get_first_component<SINGLE_EntityBinComponent>(r);
